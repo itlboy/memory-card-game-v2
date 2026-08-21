@@ -16,6 +16,19 @@
 - Kích thước chạm tối thiểu 44px (NF-07); lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
 
+## Hướng thiết kế đã chốt: C · Arcade neon
+
+- **Màn định danh** (mỗi ô một thứ khác nhau — cách chơi, chế độ, entry
+  online): ô gradient MÀU RIÊNG luôn bật, chữ/icon trắng (class
+  `.neon .g-*` trong global.css); đang chọn thì thắp outline trắng.
+- **Màn cấu hình** (lưới, theme): ô nền tối; Ô ĐƯỢC CHỌN bùng gradient
+  tím + glow (`aria-checked/pressed` + `:not(.neon)`).
+- Màu cố định từng chế độ, dùng xuyên suốt: Chiến dịch g-violet ·
+  Cổ điển g-blue · Đua thời gian g-amber · Sinh tồn g-red ·
+  Chớp nhoáng g-teal; nhánh người chơi: solo tím / local hồng / online cyan.
+- Trạng thái chọn đổi màu TỨC THÌ (không transition màu — chỉ hover
+  desktop mới transition transform/shadow).
+
 ## Kiến trúc
 
 - `packages/engine`: luật chơi TS thuần, **tất định** — cấm `Date.now()` /

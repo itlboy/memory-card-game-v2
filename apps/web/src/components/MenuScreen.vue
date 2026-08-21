@@ -75,12 +75,13 @@ const TITLES: Record<Step, string> = {
   campaign: 'Chọn màn'
 };
 
+// Mỗi chế độ một màu neon cố định — theo suốt game (hướng thiết kế C)
 const SOLO_MODES = [
-  { id: 'campaign' as Mode, icon: Map,    name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
-  { id: 'classic' as Mode,  icon: Brain,  name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
-  { id: 'time' as Mode,     icon: Timer,  name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
-  { id: 'survival' as Mode, icon: Heart,  name: 'Sinh tồn',      desc: '5 mạng — lật sai là mất mạng' },
-  { id: 'peek' as Mode,     icon: Eye,    name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
+  { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
+  { id: 'classic' as Mode,  icon: Brain,  g: 'g-blue',   name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
+  { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
+  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — lật sai là mất mạng' },
+  { id: 'peek' as Mode,     icon: Eye,    g: 'g-teal',   name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
 ];
 const MULTI_MODES = SOLO_MODES.filter((m) => m.id === 'classic' || m.id === 'survival');
 const modes = computed(() => (isMulti.value ? MULTI_MODES : SOLO_MODES));
@@ -159,17 +160,17 @@ function toggleTheme(id: string): void {
     <Transition name="step" mode="out-in">
       <!-- BƯỚC 1: một mình hay nhiều người -->
       <div v-if="step === 'players'" key="players" class="step-body options loose">
-        <button class="option big" type="button" @click="pickPlayers(false)">
+        <button class="option big neon g-violet" type="button" @click="pickPlayers(false)">
           <User class="opt-icon" :size="40" />
           <strong>Chơi một mình</strong>
           <small>Luyện trí nhớ, phá kỷ lục của chính bạn</small>
         </button>
-        <button class="option big" type="button" @click="pickPlayers(true)">
+        <button class="option big neon g-pink" type="button" @click="pickPlayers(true)">
           <Users class="opt-icon" :size="40" />
           <strong>Chơi nhiều người</strong>
           <small>2–4 người thay lượt trên cùng máy này</small>
         </button>
-        <button class="option big" type="button" @click="sfx.select(); emit('online')">
+        <button class="option big neon g-cyan" type="button" @click="sfx.select(); emit('online')">
           <Globe class="opt-icon" :size="40" />
           <strong>Chơi online</strong>
           <small>Tạo phòng, mời bạn bè bằng mã 6 ký tự</small>
@@ -179,7 +180,7 @@ function toggleTheme(id: string): void {
       <!-- BƯỚC 2 (nhiều người): số người -->
       <div v-else-if="step === 'count'" key="count" class="step-body options loose row3">
         <button
-          v-for="n in [2, 3, 4]" :key="n" class="option" type="button"
+          v-for="n in [2, 3, 4]" :key="n" class="option neon g-pink" type="button"
           :aria-pressed="playerCount === n"
           @click="pickCount(n)"
         >
@@ -191,7 +192,7 @@ function toggleTheme(id: string): void {
       <!-- BƯỚC: chọn chế độ -->
       <div v-else-if="step === 'mode'" key="mode" class="step-body options loose">
         <button
-          v-for="m in modes" :key="m.id" class="option wide" type="button"
+          v-for="m in modes" :key="m.id" class="option wide neon" :class="m.g" type="button"
           :aria-pressed="mode === m.id"
           @click="pickMode(m.id)"
         >
@@ -324,9 +325,18 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   font-size: clamp(10px, 10.5cqw, 14px);
   line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
 }
-.option[aria-checked='true'] {
-  border-color: var(--accent); background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent);
+/* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
+.option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
+  border-color: transparent;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: 0 8px 26px rgba(106, 92, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+  color: #fff;
+}
+.option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }
+.option[aria-pressed='true'] .grid-preview i { background: rgba(255, 255, 255, .9); }
+/* Ô neon màu riêng (chế độ, số người) đang chọn: thắp viền trắng, giữ màu gốc */
+.option.neon[aria-pressed='true'], .option.neon[aria-checked='true'] {
+  outline: 3px solid rgba(255, 255, 255, .85); outline-offset: -3px;
 }
 .wizard-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
@@ -354,10 +364,13 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 .option .icon { font-size: 30px; }
 .opt-icon { color: var(--accent); flex-shrink: 0; }
+.neon .opt-icon { color: #fff; }
+.neon small { color: rgba(255, 255, 255, .85); }
 .count-num {
   font-family: var(--font-display); font-weight: 800; font-size: 34px;
   color: var(--accent); line-height: 1;
 }
+.neon .count-num { color: #fff; }
 .option strong { font-size: 16px; }
 .option small { color: var(--muted); font-size: 12.5px; }
 

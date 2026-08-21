@@ -175,9 +175,10 @@ const startLabel = computed(() => {
   return 'Bắt đầu';
 });
 
+// Màu neon từng chế độ — đồng bộ với wizard offline (hướng thiết kế C)
 const MODES = [
-  { id: 'classic' as const, icon: Brain, name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
-  { id: 'survival' as const, icon: Heart, name: 'Sinh tồn', desc: '5 mạng — lật sai là mất mạng' }
+  { id: 'classic' as const, icon: Brain, g: 'g-blue', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
+  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — lật sai là mất mạng' }
 ];
 
 /** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */
@@ -272,7 +273,7 @@ function openCfgWizard(): void {
 
     <div v-if="wizard === 'mode'" class="step-body options loose">
       <button
-        v-for="m in MODES" :key="m.id" class="option wide" type="button"
+        v-for="m in MODES" :key="m.id" class="option wide neon" :class="m.g" type="button"
         :aria-pressed="cfg.mode === m.id"
         @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'grid'"
       >
@@ -337,12 +338,12 @@ function openCfgWizard(): void {
 
     <!-- BƯỚC 1: tạo phòng hay vào phòng có sẵn -->
     <div v-if="entryStep === 'choose'" class="options loose">
-      <button class="option" type="button" @click="entryStep = 'create'">
+      <button class="option neon g-violet" type="button" @click="entryStep = 'create'">
         <Sparkles class="opt-icon" :size="34" />
         <strong>Tạo phòng mới</strong>
         <small>Lấy mã 6 số rồi mời bạn bè vào chơi</small>
       </button>
-      <button class="option" type="button" @click="entryStep = 'join'">
+      <button class="option neon g-cyan" type="button" @click="entryStep = 'join'">
         <Hash class="opt-icon" :size="34" />
         <strong>Vào phòng có sẵn</strong>
         <small>Nhập mã 6 số bạn bè gửi cho</small>
@@ -599,9 +600,18 @@ input:focus { outline: none; border-color: var(--accent); }
 .option.wide { flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
 .option.wide .text { display: flex; flex-direction: column; gap: 1px; }
-.option[aria-pressed='true'], .option[aria-checked='true'] {
-  border-color: var(--accent); background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent);
+/* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
+.option[aria-pressed='true']:not(.neon), .option[aria-checked='true']:not(.neon) {
+  border-color: transparent;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: 0 8px 26px rgba(106, 92, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+  color: #fff;
+}
+.option[aria-pressed='true'] small, .option[aria-checked='true'] small { color: rgba(255, 255, 255, .85); }
+.option[aria-pressed='true'] .grid-preview i { background: rgba(255, 255, 255, .9); }
+/* Chế độ (neon sẵn màu riêng): ô đang chọn thắp viền trắng thay vì đổi màu */
+.option.wide.neon[aria-pressed='true'] {
+  outline: 3px solid rgba(255, 255, 255, .85); outline-offset: -3px;
 }
 /* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
 .online > .panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
@@ -669,6 +679,8 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .option .icon { font-size: 38px; }
 .opt-icon { color: var(--accent); flex-shrink: 0; }
+.neon .opt-icon { color: #fff; }
+.neon small { color: rgba(255, 255, 255, .85); }
 .option strong { font-family: var(--font-display); font-size: 17px; }
 .option small { color: var(--muted); font-size: 12.5px; }
 

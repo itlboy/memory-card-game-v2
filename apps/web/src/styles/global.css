@@ -110,6 +110,20 @@ button {
 }
 .chip[aria-disabled='true'] { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
 
+/* ===== Arcade neon (hướng C): ô gradient màu riêng ===== */
+.neon {
+  border-color: transparent !important;
+  color: #fff;
+}
+.neon small { color: rgba(255, 255, 255, .85); }
+.g-violet { background: linear-gradient(150deg, #6a5cff, #8b5cf6); box-shadow: 0 10px 30px rgba(106, 92, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.g-pink   { background: linear-gradient(150deg, #c44cf0, #ff5fa2); box-shadow: 0 10px 30px rgba(196, 76, 240, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.g-cyan   { background: linear-gradient(150deg, #2fb6f0, #38e0c8); box-shadow: 0 10px 30px rgba(56, 189, 248, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.g-blue   { background: linear-gradient(150deg, #4c7dff, #5fb0ff); box-shadow: 0 10px 30px rgba(76, 125, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.g-amber  { background: linear-gradient(150deg, #f59e0b, #ff7b45); box-shadow: 0 10px 30px rgba(245, 158, 11, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.g-red    { background: linear-gradient(150deg, #ef4458, #ff5fa2); box-shadow: 0 10px 30px rgba(239, 68, 88, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+.g-teal   { background: linear-gradient(150deg, #14b8a6, #38e0c8); box-shadow: 0 10px 30px rgba(20, 184, 166, .45), inset 0 1px 0 rgba(255, 255, 255, .3); }
+
 /* Chuyển màn mượt */
 .screen-enter-active { transition: opacity .22s ease, transform .22s ease; }
 .screen-enter-from { opacity: 0; transform: translateY(10px) scale(.99); }
