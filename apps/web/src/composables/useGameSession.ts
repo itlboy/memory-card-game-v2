@@ -35,6 +35,8 @@ export function useGameSession() {
   const pickBack = (): void => { backStyle.value = BACKS[Math.floor(Math.random() * BACKS.length)]!; };
   /** Hiệu ứng "+10s" trên chip người vừa ghép đúng. */
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
+  /** Thông báo thẻ chưa mở vừa bị xáo trộn (Chiến dịch màn 8+). */
+  const reshuffled = ref<{ key: number } | null>(null);
 
   let raf = 0;
   // Date.now thay vì performance.now: mốc thời gian phải sống qua F5
@@ -70,6 +72,12 @@ export function useGameSession() {
           break;
         case 'turn-timeout':
           sfx.miss();
+          break;
+        case 'reshuffle':
+          // Tính năng "thẻ xáo trộn" — phải báo rõ, im lặng thì nhìn như bug
+          sfx.deal(e.indices.length);
+          reshuffled.value = { key: (reshuffled.value?.key ?? 0) + 1 };
+          setTimeout(() => { reshuffled.value = null; }, 2200);
           break;
         case 'time-bonus':
           timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
@@ -254,7 +262,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop, adopt,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner, timeBonusFor,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner, timeBonusFor, reshuffled,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };

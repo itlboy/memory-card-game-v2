@@ -89,6 +89,9 @@ const fitStyle = computed(() => {
     <p v-if="s.revealingAll.value" class="toast peek" role="status">
       👀 Ghi nhớ vị trí các thẻ…
     </p>
+    <p v-else-if="s.reshuffled.value" :key="s.reshuffled.value.key" class="toast shuffle" role="status">
+      🔀 Các thẻ chưa mở vừa đổi chỗ cho nhau!
+    </p>
     <p v-else-if="s.lastPower.value" class="toast" role="status">
       {{ POWER_TEXT[s.lastPower.value.power] }}
     </p>
@@ -204,4 +207,9 @@ const fitStyle = computed(() => {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .toast.peek { background: color-mix(in srgb, var(--warn) 18%, transparent); }
+.toast.shuffle {
+  background: color-mix(in srgb, var(--bad) 14%, transparent);
+  animation: shuffle-in .3s cubic-bezier(.3, 1.5, .5, 1);
+}
+@keyframes shuffle-in { from { transform: scale(.8); opacity: 0; } }
 </style>
