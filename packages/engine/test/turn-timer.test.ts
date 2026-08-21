@@ -4,7 +4,7 @@ import { presetConfig } from '../src/presets.js';
 import { SYMBOLS, matchPair, missPair, pairSlots } from './helpers.js';
 
 const timed = (over = {}) => new MemoryGame({
-  mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 42, turnLimit: 15,
+  mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 42, turnLimit: 15, shufflePlayers: false,
   players: [{ id: 'a', name: 'An' }, { id: 'b', name: 'Bình' }], ...over
 });
 

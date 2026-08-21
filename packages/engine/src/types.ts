@@ -63,6 +63,8 @@ export interface GameConfig {
   flipBackMs?: number;
   /** Giới hạn mỗi lượt (giây) — multiplayer. null = không giới hạn. */
   turnLimit?: number | null;
+  /** Xáo thứ tự người chơi khi vào ván (mặc định bật) — ai đi trước là ngẫu nhiên. */
+  shufflePlayers?: boolean;
   /** Mốc điểm đạt 2 và 3 sao (Campaign). */
   starThresholds?: readonly [number, number];
 }

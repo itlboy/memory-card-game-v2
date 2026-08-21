@@ -4,7 +4,7 @@ import { publicEvents, publicView } from '../src/online.js';
 import { SYMBOLS, matchPair, missPair, pairSlots } from './helpers.js';
 
 const twoP = (over = {}) => new MemoryGame({
-  mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 777,
+  mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 777, shufflePlayers: false,
   players: [{ id: 'a', name: 'An' }, { id: 'b', name: 'Bình' }], ...over
 });
 const allOn = () => true;
@@ -66,7 +66,7 @@ describe('forfeit (ON-07)', () => {
 
   it('3 người: người bỏ cuộc bị loại khỏi vòng lượt, ván tiếp tục', () => {
     const g = new MemoryGame({
-      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 5,
+      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 5, shufflePlayers: false,
       players: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }]
     });
     g.forfeit('b', 0);
@@ -80,7 +80,7 @@ describe('forfeit (ON-07)', () => {
   it('đang tới lượt người bỏ cuộc thì huỷ thẻ đang mở và chuyển lượt', () => {
     const g = twoP();
     const g3 = new MemoryGame({
-      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 5,
+      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 5, shufflePlayers: false,
       players: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }]
     });
     g3.flip(pairSlots(g3)[0]![0], 0);       // a mở 1 thẻ rồi rớt mạng

@@ -4,7 +4,7 @@ import { rankPlayers } from '../src/scoring.js';
 import { SYMBOLS, matchPair, missPair } from './helpers.js';
 
 const four = (over = {}) => new MemoryGame({
-  mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 2024,
+  mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 2024, shufflePlayers: false,
   players: [
     { id: 'a', name: 'An' }, { id: 'b', name: 'Bình' },
     { id: 'c', name: 'Chi' }, { id: 'd', name: 'Dũng' }
@@ -83,5 +83,37 @@ describe('thẻ đóng băng (SRS 3.4)', () => {
     expect(g.current.id).toBe('a');
     missPair(g, 0, 1);
     expect(g.current.id).toBe('b');        // lần này Bình được chơi
+  });
+});
+
+describe('thứ tự đi ngẫu nhiên', () => {
+  const players = [
+    { id: 'host', name: 'Chủ phòng' }, { id: 'p2', name: 'B' },
+    { id: 'p3', name: 'C' }, { id: 'p4', name: 'D' }
+  ];
+  const withSeed = (seed: number) => new MemoryGame({
+    mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed, players
+  });
+
+  it('chủ phòng không mặc nhiên đi trước — có seed cho người khác mở màn', () => {
+    const starters = new Set(Array.from({ length: 30 }, (_, i) => withSeed(i + 1).current.id));
+    expect(starters.size).toBeGreaterThan(1);           // không phải luôn một người
+    expect([...starters].some((id) => id !== 'host')).toBe(true);
+  });
+
+  it('xáo là hoán vị: đủ người, không mất ai', () => {
+    const g = withSeed(99);
+    expect(g.players.map((p) => p.id).sort()).toEqual(['host', 'p2', 'p3', 'p4']);
+  });
+
+  it('cùng seed cho cùng thứ tự (tất định — server và client khớp nhau)', () => {
+    expect(withSeed(7).players.map((p) => p.id)).toEqual(withSeed(7).players.map((p) => p.id));
+  });
+
+  it('shufflePlayers: false giữ nguyên thứ tự đưa vào', () => {
+    const g = new MemoryGame({
+      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 3, shufflePlayers: false, players
+    });
+    expect(g.players.map((p) => p.id)).toEqual(['host', 'p2', 'p3', 'p4']);
   });
 });

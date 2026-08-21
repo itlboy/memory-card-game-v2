@@ -6,7 +6,7 @@ import { SYMBOLS, matchPair, pairSlots } from './helpers.js';
 /** Dựng ván rồi gán cứng hiệu ứng lên 1 thẻ của cặp `pairId` để test tất định. */
 function withPower(power: Power, pairId: number, over = {}) {
   const g = new MemoryGame({
-    mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 555, ...over
+    mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 555, shufflePlayers: false, ...over
   });
   for (const c of g.cards) {
     (c as { power?: Power }).power = undefined;

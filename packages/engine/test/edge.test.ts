@@ -90,7 +90,7 @@ describe('các nhánh biên', () => {
 
 describe('thẻ đóng băng — các nhánh còn lại', () => {
   const twoPlayer = () => new MemoryGame({
-    mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 8,
+    mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 8, shufflePlayers: false,
     players: [{ id: 'a', name: 'An' }, { id: 'b', name: 'Bình' }]
   });
 

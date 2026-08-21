@@ -63,7 +63,13 @@ export class MemoryGame {
     const inits = config.players?.length
       ? config.players
       : [{ id: 'p1', name: 'Bạn' }];
-    this.players = inits.map((p) => makePlayer(p, config.lives ?? null));
+    let players = inits.map((p) => makePlayer(p, config.lives ?? null));
+    // Thứ tự đi ngẫu nhiên theo seed — chủ phòng không mặc nhiên đi trước.
+    // Tất định theo seed nên server/client và snapshot/restore vẫn khớp nhau.
+    if (players.length > 1 && config.shufflePlayers !== false) {
+      players = this.rng.shuffle(players);
+    }
+    this.players = players;
   }
 
   /* ---------- truy vấn ---------- */

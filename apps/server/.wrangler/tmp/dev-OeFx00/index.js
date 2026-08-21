@@ -177,7 +177,11 @@ var MemoryGame = class _MemoryGame {
       allowedPowers: (config.players?.length ?? 1) > 1 ? void 0 : SOLO_POWERS
     });
     const inits = config.players?.length ? config.players : [{ id: "p1", name: "B\u1EA1n" }];
-    this.players = inits.map((p) => makePlayer(p, config.lives ?? null));
+    let players = inits.map((p) => makePlayer(p, config.lives ?? null));
+    if (players.length > 1 && config.shufflePlayers !== false) {
+      players = this.rng.shuffle(players);
+    }
+    this.players = players;
   }
   /* ---------- truy vấn ---------- */
   get totalPairs() {
