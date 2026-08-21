@@ -16,8 +16,17 @@ const o = useOnlineRoom();
 const name = ref(store.playerNames()[0] ?? '');
 const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
+/** Vào bằng link mời: chỉ hiện đúng một việc — nhập tên rồi vào phòng. */
+const invited = computed(() => !!props.joinCode);
 
-onMounted(() => { o.resumeStored(); });
+onMounted(() => {
+  // Vào bằng link mời: ý định là vào ĐÚNG phòng đó — đã có tên nhớ sẵn thì vào luôn
+  if (invited.value) {
+    if (name.value.trim()) join();
+    return;
+  }
+  o.resumeStored();
+});
 
 function remember(): void { store.savePlayerNames([name.value.trim()]); }
 function create(): void {
@@ -93,26 +102,41 @@ const THEMES = [
       <h2>Chơi online</h2>
     </div>
 
+    <p v-if="invited" class="invite">
+      🎉 Bạn được mời vào phòng <b class="invite-code">{{ codeInput }}</b>
+    </p>
+
     <label class="field">
       <span>Tên của bạn</span>
-      <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="create">
+      <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="invited ? join() : create()">
     </label>
 
-    <button class="btn-primary" :disabled="!name.trim() || o.phase.value === 'connecting'" type="button" @click="create">
-      {{ o.phase.value === 'connecting' ? 'Đang kết nối…' : 'Tạo phòng mới' }}
+    <!-- Vào bằng link mời: một nút duy nhất, không hiện "Tạo phòng" để khỏi bấm nhầm -->
+    <button
+      v-if="invited" class="btn-primary"
+      :disabled="!name.trim() || o.phase.value === 'connecting'"
+      type="button" @click="join"
+    >
+      {{ o.phase.value === 'connecting' ? 'Đang vào phòng…' : 'Vào phòng chơi' }}
     </button>
 
-    <div class="divider"><span>hoặc vào phòng có sẵn</span></div>
-
-    <div class="joinrow">
-      <input
-        v-model="codeInput" class="code-input" maxlength="6" placeholder="MÃ PHÒNG"
-        autocapitalize="characters" spellcheck="false" @keydown.enter="join"
-      >
-      <button class="btn join" :disabled="!name.trim() || codeInput.trim().length !== 6" type="button" @click="join">
-        Vào phòng
+    <template v-else>
+      <button class="btn-primary" :disabled="!name.trim() || o.phase.value === 'connecting'" type="button" @click="create">
+        {{ o.phase.value === 'connecting' ? 'Đang kết nối…' : 'Tạo phòng mới' }}
       </button>
-    </div>
+
+      <div class="divider"><span>hoặc vào phòng có sẵn</span></div>
+
+      <div class="joinrow">
+        <input
+          v-model="codeInput" class="code-input" maxlength="6" placeholder="MÃ PHÒNG"
+          autocapitalize="characters" spellcheck="false" @keydown.enter="join"
+        >
+        <button class="btn join" :disabled="!name.trim() || codeInput.trim().length !== 6" type="button" @click="join">
+          Vào phòng
+        </button>
+      </div>
+    </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
   </section>
@@ -260,6 +284,13 @@ const THEMES = [
   color: var(--accent);
 }
 
+.invite {
+  margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r-md);
+  background: var(--accent-soft); font-size: var(--text-md); text-align: center;
+}
+.invite-code {
+  font-family: var(--font-display); letter-spacing: .15em; color: var(--accent);
+}
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .field span { font-size: var(--text-sm); font-weight: 700; color: var(--muted); }
 input {
