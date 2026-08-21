@@ -2,7 +2,8 @@
 import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { byId } from '@/lib/achievements';
-import { clock, starText } from '@/lib/format';
+import { sfx } from '@/lib/audio';
+import { clock } from '@/lib/format';
 
 const props = defineProps<{
   summary: Summary;
@@ -16,7 +17,31 @@ const props = defineProps<{
 
 const emit = defineEmits<{ replay: []; next: []; menu: [] }>();
 const primary = ref<HTMLButtonElement | null>(null);
-onMounted(() => primary.value?.focus());
+const shownStars = ref(0);
+
+onMounted(() => {
+  primary.value?.focus();
+  if (props.showStars && props.summary.status === 'won') {
+    // Sao hiện lần lượt, mỗi ngôi kèm một nốt cao dần
+    for (let i = 1; i <= props.summary.stars; i++) {
+      setTimeout(() => { shownStars.value = i; sfx.star(i); }, 350 * i);
+    }
+  }
+});
+
+/** Confetti: 60 mảnh giấy với vị trí/màu/độ trễ tất định theo chỉ số. */
+const CONFETTI_COLORS = ['#6a5cff', '#b74cf0', '#f59e0b', '#10b981', '#ef4444', '#38bdf8'];
+const confetti = computed(() => {
+  if (props.summary.status !== 'won') return [];
+  return Array.from({ length: 60 }, (_, i) => ({
+    left: `${(i * 37) % 100}%`,
+    background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    animationDelay: `${(i % 12) * 90}ms`,
+    animationDuration: `${2200 + (i % 7) * 250}ms`,
+    '--drift': `${((i * 13) % 9) - 4}rem`,
+    '--spin': `${420 + (i * 47) % 400}deg`
+  }));
+});
 
 const REASON: Record<Summary['reason'], string> = {
   cleared: 'Bạn đã mở hết các cặp!',
@@ -34,12 +59,19 @@ const title = computed(() => {
 
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
+    <div v-if="confetti.length" class="confetti" aria-hidden="true">
+      <i v-for="(c, i) in confetti" :key="i" :style="c" />
+    </div>
     <div class="panel">
       <h2 id="resTitle">{{ title }}</h2>
       <p class="reason">{{ REASON[summary.reason] }}</p>
 
       <p v-if="showStars && summary.status === 'won'" class="stars" :aria-label="`${summary.stars} trên 3 sao`">
-        {{ starText(summary.stars) }}
+        <span
+          v-for="i in 3" :key="i"
+          class="star"
+          :class="{ lit: i <= shownStars, dim: i > summary.stars }"
+        >★</span>
       </p>
 
       <ol v-if="multiplayer" class="ranking">
@@ -85,10 +117,35 @@ const title = computed(() => {
   position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
   padding: 20px; background: rgba(6, 9, 18, .62);
 }
-.panel { width: 100%; max-width: 400px; }
+.panel { width: 100%; max-width: 400px; position: relative; animation: dialog-in .3s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes dialog-in { from { transform: translateY(18px) scale(.94); opacity: 0; } }
 h2 { margin: 0 0 4px; }
 .reason { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
-.stars { margin: 0 0 12px; font-size: 30px; color: var(--warn); letter-spacing: 4px; }
+.stars { margin: 0 0 12px; font-size: 32px; letter-spacing: 6px; }
+.star { color: var(--line); display: inline-block; transition: color .2s; }
+.star.lit {
+  color: var(--gold);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--gold) 70%, transparent);
+  animation: star-in .45s cubic-bezier(.3, 1.8, .5, 1);
+}
+.star.dim { color: var(--line); }
+@keyframes star-in {
+  0% { transform: scale(.2) rotate(-30deg); opacity: 0; }
+  60% { transform: scale(1.35) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti i {
+  position: absolute; top: -3vh; width: 8px; height: 14px; border-radius: 2px;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to {
+    transform: translateY(105vh) translateX(var(--drift, 0)) rotate(var(--spin, 540deg));
+    opacity: .2;
+  }
+}
 
 .stats { margin: 0; display: grid; gap: 6px; }
 .stats div { display: flex; justify-content: space-between; gap: 12px; }

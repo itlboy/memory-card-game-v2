@@ -10,6 +10,7 @@ export const makeGame = (over: Partial<GameConfig> = {}): MemoryGame =>
 export function pairSlots(game: MemoryGame): [number, number][] {
   const map = new Map<number, number[]>();
   for (const c of game.cards) {
+    if (c.blank) continue;
     const list = map.get(c.pairId) ?? [];
     list.push(c.index);
     map.set(c.pairId, list);

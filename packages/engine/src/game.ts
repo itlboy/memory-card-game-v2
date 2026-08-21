@@ -66,7 +66,7 @@ export class MemoryGame {
 
   /* ---------- truy vấn ---------- */
 
-  get totalPairs(): number { return this.cards.length / 2; }
+  get totalPairs(): number { return Math.floor(this.cards.length / 2); }
   get current(): Player { return this.players[this.turnIndex]!; }
   get isMultiplayer(): boolean { return this.players.length > 1; }
   get finished(): boolean { return this.status === 'won' || this.status === 'lost'; }
@@ -90,6 +90,7 @@ export class MemoryGame {
 
   isMatched(index: number): boolean { return this.matched.has(this.cards[index]!.pairId); }
   isFaceUp(index: number): boolean {
+    if (this.cards[index]!.blank) return false;
     return this.revealingAll || this.selection.includes(index) || this.isMatched(index);
   }
 
@@ -141,6 +142,7 @@ export class MemoryGame {
     if (this.status === 'idle') this.start(now);
     if (this.status !== 'playing' || this.locked) return [];
     if (index < 0 || index >= this.cards.length) return [];
+    if (this.cards[index]!.blank) return [];
     if (this.isMatched(index) || this.selection.includes(index)) return [];
     if (this.selection.length >= 2) return [];
 
@@ -208,7 +210,7 @@ export class MemoryGame {
     const every = this.config.shuffleAfterMisses ?? 0;
     if (every > 0 && ++this.missStreakForShuffle >= every) {
       this.missStreakForShuffle = 0;
-      const hidden = this.cards.filter((c) => !this.matched.has(c.pairId)).map((c) => c.index);
+      const hidden = this.cards.filter((c) => !c.blank && !this.matched.has(c.pairId)).map((c) => c.index);
       if (hidden.length > 2) out.push({ type: 'reshuffle', indices: reshuffleHidden(this.cards, hidden, this.rng) });
     }
 

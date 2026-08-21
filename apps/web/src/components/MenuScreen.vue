@@ -47,7 +47,7 @@ const cells = computed(() => {
 /** Theme phải đủ biểu tượng cho lưới đã chọn. */
 const themeTooSmall = computed(() => {
   const t = props.themes.find((x) => x.id === props.themeId);
-  return !!t && t.symbols.length < cells.value / 2;
+  return !!t && t.symbols.length < Math.floor(cells.value / 2);
 });
 </script>
 
@@ -82,7 +82,7 @@ const themeTooSmall = computed(() => {
           @click="emit('update:grid', k)"
         >
           <strong>{{ k.replace('x', '×') }}</strong>
-          <small>{{ GRIDS[k]!.cols * GRIDS[k]!.rows / 2 }} cặp</small>
+          <small>{{ Math.floor(GRIDS[k]!.cols * GRIDS[k]!.rows / 2) }} cặp</small>
         </button>
       </div>
 

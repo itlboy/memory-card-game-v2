@@ -14,9 +14,10 @@ export interface Level {
   starThresholds: [number, number];
 }
 
-/** Kích thước lưới tăng dần qua các màn (mục 3.1). */
+/** Kích thước lưới tăng dần qua các màn — vào ván từ 2×2 cho người mới (mục 3.1).
+ *  Lưới lẻ ô (3×3) có ô trống ở giữa. */
 const GRID_LADDER: readonly [number, number][] = [
-  [3, 4], [4, 4], [4, 5], [5, 6], [6, 6], [6, 8]
+  [2, 2], [3, 3], [3, 4], [4, 4], [4, 5], [5, 6], [6, 6], [6, 8]
 ];
 
 export const CAMPAIGN_LEVELS = 20;
@@ -32,9 +33,9 @@ export function levelSpec(id: number): Level {
   if (id < 1 || id > CAMPAIGN_LEVELS) throw new Error(`Màn ${id} không tồn tại`);
 
   // Trải 20 màn lên 6 bậc lưới, mỗi bậc giữ vài màn
-  const step = Math.min(GRID_LADDER.length - 1, Math.floor((id - 1) / (CAMPAIGN_LEVELS / GRID_LADDER.length)));
+  const step = Math.min(GRID_LADDER.length - 1, Math.floor(((id - 1) * GRID_LADDER.length) / CAMPAIGN_LEVELS));
   const [cols, rows] = GRID_LADDER[step]!;
-  const pairs = (cols * rows) / 2;
+  const pairs = Math.floor((cols * rows) / 2);
 
   // Thời gian nới theo số cặp nhưng siết theo bước nguyên 2 giây mỗi màn,
   // để hai màn cùng bậc lưới không bao giờ có cùng giới hạn (làm tròn dễ gây trùng)

@@ -14,17 +14,19 @@ describe('các nhánh biên', () => {
   });
 
   it('flip sau khi ván kết thúc bị bỏ qua', () => {
-    const g = makeGame({ cols: 2, rows: 1 });
+    const g = makeGame({ cols: 2, rows: 2 });
     matchPair(g, 0);
+    matchPair(g, 1);
     expect(g.status).toBe('won');
     expect(g.flip(0, 100)).toEqual([]);
-    expect(g.moves).toBe(1);
+    expect(g.moves).toBe(2);
   });
 
   it('tick sau khi kết thúc không phát thêm sự kiện', () => {
-    const g = makeGame({ cols: 2, rows: 1, timeLimit: 5 });
+    const g = makeGame({ cols: 2, rows: 2, timeLimit: 5 });
     g.start(0);
     matchPair(g, 0, 1000);
+    matchPair(g, 1, 1000);
     expect(g.tick(999_999)).toEqual([]);
   });
 
@@ -68,9 +70,10 @@ describe('các nhánh biên', () => {
   });
 
   it('thời gian đóng băng sau khi ván kết thúc', () => {
-    const g = makeGame({ cols: 2, rows: 1 });
+    const g = makeGame({ cols: 2, rows: 2 });
     g.start(0);
     matchPair(g, 0, 3000);
+    matchPair(g, 1, 3000);
     expect(g.elapsed(999_999)).toBe(3);
   });
 
@@ -144,5 +147,33 @@ describe('thẻ đóng băng — các nhánh còn lại', () => {
     expect(ev).toMatchObject({ power: 'eye' });
     if (ev?.type !== 'power') throw new Error('thiếu sự kiện power');
     expect(ev.affected).toHaveLength(g.cards.length);
+  });
+});
+
+describe('lưới lẻ ô (3×3 với ô trống)', () => {
+  it('chơi trọn ván 3×3: 4 cặp, ô trống không lật được, thắng bình thường', () => {
+    const g = makeGame({ cols: 3, rows: 3 });
+    expect(g.totalPairs).toBe(4);
+    const blank = g.cards.find((c) => c.blank)!;
+    expect(g.flip(blank.index, 0)).toEqual([]);       // ô trống bị bỏ qua
+    expect(g.isFaceUp(blank.index)).toBe(false);
+    for (let p = 0; p < 4; p++) matchPair(g, p);
+    expect(g.status).toBe('won');
+    expect(g.moves).toBe(4);
+  });
+
+  it('hé mở toàn bàn (Peek) không làm ô trống "ngửa mặt"', () => {
+    const g = makeGame({ cols: 3, rows: 3, peekMs: 3000 });
+    g.start(0);
+    const blank = g.cards.find((c) => c.blank)!;
+    expect(g.revealingAll).toBe(true);
+    expect(g.isFaceUp(blank.index)).toBe(false);
+  });
+
+  it('thẻ xáo trộn không dịch chuyển ô trống', () => {
+    const g = makeGame({ cols: 3, rows: 3, shuffleAfterMisses: 1 });
+    const blankAt = g.cards.findIndex((c) => c.blank);
+    missPair(g, 0, 1);
+    expect(g.cards[blankAt]!.blank).toBe(true);
   });
 });

@@ -4,6 +4,8 @@ export interface GridSpec { cols: number; rows: number; timeLimit: number }
 
 /** Lưới dùng cho chế độ chơi nhanh. */
 export const GRIDS: Record<string, GridSpec> = {
+  '2x2': { cols: 2, rows: 2, timeLimit: 15 },
+  '3x3': { cols: 3, rows: 3, timeLimit: 35 },   // ô giữa để trống, 4 cặp
   '4x4': { cols: 4, rows: 4, timeLimit: 70 },
   '4x5': { cols: 4, rows: 5, timeLimit: 100 },
   '6x6': { cols: 6, rows: 6, timeLimit: 190 }

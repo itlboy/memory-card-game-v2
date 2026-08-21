@@ -17,10 +17,11 @@ export interface DeckOptions {
 export function buildDeck(opts: DeckOptions): Card[] {
   const { cols, rows, symbols, rng } = opts;
   const total = cols * rows;
-  if (total <= 0) throw new Error('Lưới không hợp lệ');
-  if (total % 2 !== 0) throw new Error(`Lưới ${cols}x${rows} có số ô lẻ, không chia được thành cặp`);
+  if (total < 4) throw new Error('Lưới không hợp lệ');
 
-  const pairCount = total / 2;
+  // Lưới lẻ ô (3×3, 5×5...): ô chính giữa để trống, phần còn lại chia cặp
+  const hasBlank = total % 2 === 1;
+  const pairCount = Math.floor(total / 2);
   if (symbols.length < pairCount) {
     throw new Error(`Theme chỉ có ${symbols.length} biểu tượng, cần ${pairCount} cho lưới ${cols}x${rows}`);
   }
@@ -41,7 +42,12 @@ export function buildDeck(opts: DeckOptions): Card[] {
     }
   });
 
-  return rng.shuffle(draft).map((c, index) => ({ ...c, index }));
+  const shuffled = rng.shuffle(draft);
+  if (hasBlank) {
+    // Chèn ô trống vào chính giữa lưới để bố cục cân đối
+    shuffled.splice(Math.floor(total / 2), 0, { pairId: -1, symbol: '', blank: true });
+  }
+  return shuffled.map((c, index) => ({ ...c, index }));
 }
 
 /** Đổi chỗ các thẻ chưa mở, giữ nguyên vị trí thẻ đã ghép (thẻ "xáo trộn"). */

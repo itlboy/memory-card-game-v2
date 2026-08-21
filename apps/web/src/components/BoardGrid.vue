@@ -26,7 +26,13 @@ function onKeydown(e: KeyboardEvent): void {
   e.preventDefault();
   const active = document.activeElement as HTMLElement | null;
   const from = Number(active?.dataset.index ?? 0);
-  const to = Math.min(props.cards.length - 1, Math.max(0, from + step));
+  let to = Math.min(props.cards.length - 1, Math.max(0, from + step));
+  if (props.cards[to]?.blank) {
+    // Nhảy qua ô trống; nếu ra ngoài lưới thì đứng yên
+    const beyond = to + step;
+    if (beyond < 0 || beyond >= props.cards.length) return;
+    to = beyond;
+  }
   grid.value?.querySelector<HTMLElement>(`[data-index="${to}"]`)?.focus();
 }
 
@@ -48,6 +54,7 @@ defineExpose({
       v-for="card in cards"
       :key="card.index"
       :card="card"
+      :deal-order="card.index"
       :face-up="faceUp.has(card.index)"
       :matched="matched.has(card.index)"
       :wrong="wrongPair.includes(card.index)"

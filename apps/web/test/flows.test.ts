@@ -5,7 +5,7 @@ import App from '@/App.vue';
 
 /** Truy cập engine bên trong App để chơi tất định. */
 type Session = {
-  game: { value: { cards: { index: number; pairId: number }[]; totalPairs: number } | null };
+  game: { value: { cards: { index: number; pairId: number; blank?: boolean }[]; totalPairs: number } | null };
 };
 const session = (w: VueWrapper): Session => (w.vm as unknown as { session: Session }).session;
 
@@ -61,7 +61,7 @@ async function start(): Promise<void> {
 
 /** Ghép hết các cặp bằng cách đọc pairId từ engine. */
 async function winGame(missFirst = false): Promise<void> {
-  const cards = session(wrapper).game.value!.cards;
+  const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
   const byPair = new Map<number, number[]>();
   for (const c of cards) byPair.set(c.pairId, [...(byPair.get(c.pairId) ?? []), c.index]);
   const tiles = () => wrapper.findAll('.card');
@@ -147,9 +147,9 @@ describe('luồng trọn ván', () => {
   it('thắng màn 1 Chiến dịch: lưu sao, hiện nút "Màn tiếp theo", mở khoá màn 2', async () => {
     await mountApp();
     await pickMode('Chiến dịch');
-    await wrapper.findAll('.node')[0]!.trigger('click');     // vào màn 1 (lưới 3×4)
+    await wrapper.findAll('.node')[0]!.trigger('click');     // vào màn 1 (lưới 2×2)
     await flush();
-    expect(wrapper.findAll('.card')).toHaveLength(12);
+    expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
     expect(wrapper.text()).toContain('Màn tiếp theo');
     expect(wrapper.text()).toMatch(/★/);
@@ -225,5 +225,44 @@ describe('điều hướng bàn phím (NF-07)', () => {
     await start();
     const board = wrapper.find('[role="grid"]');
     await board.trigger('keydown', { key: 'Tab' });   // không ném lỗi là đạt
+  });
+});
+
+describe('lưới nhỏ và ô trống', () => {
+  it('ván 3×3 có 9 ô: 1 ô trống không bấm được, thắng với 4 cặp', async () => {
+    await mountApp();
+    await wrapper.findAll('.chip').find((c) => c.text().startsWith('3×3'))!.trigger('click');
+    await flush();
+    await start();
+    expect(wrapper.findAll('.card')).toHaveLength(9);
+    const blanks = wrapper.findAll('.card.blank');
+    expect(blanks).toHaveLength(1);
+    expect(wrapper.text()).toContain('0/4');
+    await winGame();
+    expect(wrapper.text()).toContain('Kỷ lục mới');   // thắng lần đầu = kỷ lục
+  });
+
+  it('ván 2×2 thắng chỉ với 2 cặp', async () => {
+    await mountApp();
+    await wrapper.findAll('.chip').find((c) => c.text().startsWith('2×2'))!.trigger('click');
+    await flush();
+    await start();
+    expect(wrapper.findAll('.card')).toHaveLength(4);
+    await winGame();
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
+  });
+
+  it('bàn phím nhảy qua ô trống ở giữa lưới 3×3', async () => {
+    await mountApp();
+    await wrapper.findAll('.chip').find((c) => c.text().startsWith('3×3'))!.trigger('click');
+    await flush();
+    await start();
+    const board = wrapper.find('[role="grid"]');
+    const tile = (i: number) => board.find(`[data-index="${i}"]`);
+    (tile(3).element as HTMLElement).focus();                 // ô trái của ô trống (index 4)
+    await board.trigger('keydown', { key: 'ArrowRight' });
+    expect(document.activeElement).toBe(tile(5).element);     // nhảy qua ô trống
+    await board.trigger('keydown', { key: 'ArrowLeft' });
+    expect(document.activeElement).toBe(tile(3).element);
   });
 });

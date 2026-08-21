@@ -132,6 +132,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
   />
 
   <main>
+    <Transition name="screen" mode="out-in">
     <MenuScreen
       v-if="screen === 'menu'"
       :themes="themes"
@@ -155,6 +156,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :level-id="levelId ?? undefined"
       @quit="backToMenu"
     />
+    </Transition>
   </main>
 
   <ResultDialog
@@ -173,7 +175,8 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
 
 <style scoped>
 main {
-  flex: 1; display: flex; justify-content: center; padding: 14px;
+  flex: 1; min-height: 0; display: flex; justify-content: center;
+  padding: 12px; overflow-y: auto;
 }
 main > * { width: 100%; max-width: 760px; }
 </style>

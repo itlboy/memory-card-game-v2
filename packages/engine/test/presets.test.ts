@@ -6,11 +6,16 @@ const make = (mode: Parameters<typeof presetConfig>[0]['mode'], grid = '4x4') =>
   presetConfig({ mode, grid, symbols: SYMBOLS, seed: 1 });
 
 describe('cấu hình mặc định theo chế độ (SRS 3.1)', () => {
-  it('mọi lưới đều chẵn ô và có giới hạn thời gian dương', () => {
+  it('mọi lưới đều có ít nhất 2 cặp và giới hạn thời gian dương', () => {
     for (const [key, g] of Object.entries(GRIDS)) {
-      expect((g.cols * g.rows) % 2, key).toBe(0);
+      expect(Math.floor((g.cols * g.rows) / 2), key).toBeGreaterThanOrEqual(2);
       expect(g.timeLimit, key).toBeGreaterThan(0);
     }
+  });
+
+  it('có các lưới nhỏ 2x2 và 3x3 cho người mới', () => {
+    expect(GRIDS['2x2']).toBeDefined();
+    expect(GRIDS['3x3']).toBeDefined();
   });
 
   it('Classic: không giới hạn thời gian, không mạng, không thẻ đặc biệt', () => {

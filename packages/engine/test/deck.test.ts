@@ -26,9 +26,24 @@ describe('dựng bộ thẻ', () => {
     expect(a.map((x) => x.symbol)).not.toEqual(c.map((x) => x.symbol));
   });
 
-  it('từ chối lưới lẻ ô và theme không đủ biểu tượng', () => {
-    expect(() => deck({ cols: 3, rows: 3 })).toThrow(/lẻ/);
+  it('từ chối lưới dưới 4 ô và theme không đủ biểu tượng', () => {
+    expect(() => deck({ cols: 1, rows: 2 })).toThrow(/không hợp lệ/);
     expect(() => deck({ symbols: ['a', 'b'] })).toThrow(/biểu tượng/);
+  });
+
+  it('lưới lẻ ô (3×3): ô chính giữa để trống, còn lại 4 cặp đủ đôi', () => {
+    const cards = deck({ cols: 3, rows: 3 });
+    expect(cards).toHaveLength(9);
+    expect(cards[4]!.blank).toBe(true);           // ô giữa lưới 3×3
+    const counts = new Map<number, number>();
+    for (const c of cards) if (!c.blank) counts.set(c.pairId, (counts.get(c.pairId) ?? 0) + 1);
+    expect(counts.size).toBe(4);
+    expect([...counts.values()].every((n) => n === 2)).toBe(true);
+    expect(cards.every((c, i) => c.index === i)).toBe(true);
+  });
+
+  it('lưới chẵn ô không có ô trống nào', () => {
+    expect(deck().some((c) => c.blank)).toBe(false);
   });
 
   it('thẻ đặc biệt chỉ gắn trên 1 trong 2 thẻ của cặp', () => {

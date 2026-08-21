@@ -17,7 +17,10 @@ export function useGameSession() {
   /** Thẻ đang lắc vì ghép sai, để UI vẽ hiệu ứng. */
   const wrongPair = ref<number[]>([]);
   const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
+  /** Điểm vừa ghi + vị trí thẻ, cho hiệu ứng "+120" bay lên. `key` để ép re-render. */
+  const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   const now = ref(0);
+  let lastTickSecond = -1;
 
   let raf = 0;
   const clockNow = (): number => performance.now();
@@ -27,14 +30,19 @@ export function useGameSession() {
     for (const e of events) {
       switch (e.type) {
         case 'flip': sfx.flip(); break;
-        case 'match': sfx.match(); break;
+        case 'match': {
+          const streak = game.value?.players.find((p) => p.id === e.playerId)?.streak ?? 1;
+          sfx.match(streak);
+          lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
+          break;
+        }
         case 'miss':
           sfx.miss();
           wrongPair.value = e.indices;
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;
         case 'power':
-          e.power === 'bomb' ? sfx.bomb() : sfx.power();
+          e.power === 'bomb' ? sfx.bomb() : e.power === 'freeze' ? sfx.freeze() : sfx.power();
           lastPower.value = e;
           setTimeout(() => { lastPower.value = null; }, 1600);
           break;
@@ -53,6 +61,12 @@ export function useGameSession() {
     if (g && !g.finished) {
       now.value = clockNow();
       handle(g.tick(now.value));
+      // Tick cảnh báo mỗi giây trong 10 giây cuối
+      const left = g.timeLeft(now.value);
+      if (left !== null && left > 0 && left <= 10) {
+        const sec = Math.ceil(left);
+        if (sec !== lastTickSecond) { lastTickSecond = sec; sfx.tick(); }
+      }
       raf = requestAnimationFrame(loop);
     } else {
       raf = 0;
@@ -67,6 +81,8 @@ export function useGameSession() {
     summary.value = null;
     wrongPair.value = [];
     lastPower.value = null;
+    lastGain.value = null;
+    lastTickSecond = -1;
     now.value = clockNow();
     g.start(now.value);
     bump();
@@ -143,7 +159,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary
   };

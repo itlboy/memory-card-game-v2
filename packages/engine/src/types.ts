@@ -11,6 +11,8 @@ export interface Card {
   readonly power?: Power;
   /** Hiệu ứng đã dùng — thẻ chỉ kích hoạt một lần. */
   powerUsed?: boolean;
+  /** Ô trống (lưới lẻ ô như 3×3) — không lật được, không thuộc cặp nào. */
+  readonly blank?: boolean;
 }
 
 export interface PlayerInit {

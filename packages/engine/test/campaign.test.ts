@@ -6,16 +6,23 @@ import { SYMBOLS, clearBoard } from './helpers.js';
 describe('Campaign (SP-03)', () => {
   const levels = allLevels();
 
-  it('có đúng 20 màn, mọi lưới đều chẵn ô', () => {
+  it('có đúng 20 màn, mọi màn có ít nhất 2 cặp', () => {
     expect(levels).toHaveLength(CAMPAIGN_LEVELS);
-    for (const l of levels) expect((l.cols * l.rows) % 2).toBe(0);
+    for (const l of levels) expect(Math.floor((l.cols * l.rows) / 2)).toBeGreaterThanOrEqual(2);
+  });
+
+  it('vào ván từ dễ: màn 1 là 2×2, có màn 3×3, kết ở 6×8', () => {
+    expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 2]);
+    expect(levels.some((l) => l.cols === 3 && l.rows === 3)).toBe(true);
+    const last = levels.at(-1)!;
+    expect([last.cols, last.rows]).toEqual([6, 8]);
   });
 
   it('lưới không bao giờ nhỏ lại và thời gian mỗi cặp siết dần', () => {
     for (let i = 1; i < levels.length; i++) {
       const prev = levels[i - 1]!, cur = levels[i]!;
       expect(cur.cols * cur.rows).toBeGreaterThanOrEqual(prev.cols * prev.rows);
-      const perPair = (l: typeof cur) => l.timeLimit / ((l.cols * l.rows) / 2);
+      const perPair = (l: typeof cur) => l.timeLimit / Math.floor((l.cols * l.rows) / 2);
       if (cur.cols === prev.cols && cur.rows === prev.rows) {
         expect(perPair(cur)).toBeLessThan(perPair(prev));
       }
@@ -31,7 +38,7 @@ describe('Campaign (SP-03)', () => {
 
   it('mốc sao nằm dưới điểm hoàn hảo nên 3 sao là đạt được', () => {
     for (const l of levels) {
-      const perfect = perfectScore((l.cols * l.rows) / 2);
+      const perfect = perfectScore(Math.floor((l.cols * l.rows) / 2));
       const [two, three] = l.starThresholds;
       expect(two).toBeLessThan(three);
       expect(three).toBeLessThan(perfect);

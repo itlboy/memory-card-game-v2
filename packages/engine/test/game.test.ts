@@ -156,8 +156,9 @@ describe('giới hạn lượt lật (Campaign)', () => {
   });
 
   it('dùng đúng lượt cuối để hoàn thành bàn thì vẫn thắng', () => {
-    const g = makeGame({ cols: 2, rows: 1, moveLimit: 1 });   // 1 cặp duy nhất
+    const g = makeGame({ cols: 2, rows: 2, moveLimit: 2 });   // 2 cặp, đúng 2 lượt
     matchPair(g, 0);
+    matchPair(g, 1);
     expect(g.status).toBe('won');
   });
 });
