@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { GRIDS, QUICK_EMOJIS } from '@mm/engine';
-import { Check, ChevronLeft, Copy, Crown, Settings2, Timer } from 'lucide-vue-next';
+import {
+  Brain, Check, ChevronLeft, Copy, Crown, Hash, Heart, Settings2, Sparkles, Timer
+} from 'lucide-vue-next';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
@@ -173,8 +175,8 @@ const startLabel = computed(() => {
 });
 
 const MODES = [
-  { id: 'classic' as const, icon: '🧠', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
-  { id: 'survival' as const, icon: '❤️', name: 'Sinh tồn', desc: '5 mạng — lật sai là mất mạng' }
+  { id: 'classic' as const, icon: Brain, name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
+  { id: 'survival' as const, icon: Heart, name: 'Sinh tồn', desc: '5 mạng — lật sai là mất mạng' }
 ];
 
 /** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */
@@ -263,7 +265,7 @@ function openCfgWizard(): void {
         :aria-pressed="cfg.mode === m.id"
         @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'grid'"
       >
-        <span class="icon">{{ m.icon }}</span>
+        <component :is="m.icon" class="opt-icon" :size="26" />
         <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
       </button>
     </div>
@@ -325,12 +327,12 @@ function openCfgWizard(): void {
     <!-- BƯỚC 1: tạo phòng hay vào phòng có sẵn -->
     <div v-if="entryStep === 'choose'" class="options">
       <button class="option" type="button" @click="entryStep = 'create'">
-        <span class="icon">✨</span>
+        <Sparkles class="opt-icon" :size="34" />
         <strong>Tạo phòng mới</strong>
         <small>Lấy mã 6 số rồi mời bạn bè vào chơi</small>
       </button>
       <button class="option" type="button" @click="entryStep = 'join'">
-        <span class="icon">🔢</span>
+        <Hash class="opt-icon" :size="34" />
         <strong>Vào phòng có sẵn</strong>
         <small>Nhập mã 6 số bạn bè gửi cho</small>
       </button>
@@ -648,6 +650,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
 }
 .option .icon { font-size: 38px; }
+.opt-icon { color: var(--accent); flex-shrink: 0; }
 .option strong { font-family: var(--font-display); font-size: 17px; }
 .option small { color: var(--muted); font-size: 12.5px; }
 

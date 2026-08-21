@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { GRIDS } from '@mm/engine';
-import { ChevronLeft } from 'lucide-vue-next';
+import { Brain, ChevronLeft, Eye, Globe, Heart, Map, Timer, User, Users } from 'lucide-vue-next';
 import type { Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
@@ -75,12 +75,12 @@ const TITLES: Record<Step, string> = {
   campaign: 'Chọn màn'
 };
 
-const SOLO_MODES: { id: Mode; icon: string; name: string; desc: string }[] = [
-  { id: 'campaign', icon: '🗺️', name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
-  { id: 'classic',  icon: '🧠', name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
-  { id: 'time',     icon: '⏱️', name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
-  { id: 'survival', icon: '❤️', name: 'Sinh tồn',      desc: '5 mạng — lật sai là mất mạng' },
-  { id: 'peek',     icon: '👀', name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
+const SOLO_MODES = [
+  { id: 'campaign' as Mode, icon: Map,    name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
+  { id: 'classic' as Mode,  icon: Brain,  name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
+  { id: 'time' as Mode,     icon: Timer,  name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
+  { id: 'survival' as Mode, icon: Heart,  name: 'Sinh tồn',      desc: '5 mạng — lật sai là mất mạng' },
+  { id: 'peek' as Mode,     icon: Eye,    name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
 ];
 const MULTI_MODES = SOLO_MODES.filter((m) => m.id === 'classic' || m.id === 'survival');
 const modes = computed(() => (isMulti.value ? MULTI_MODES : SOLO_MODES));
@@ -160,17 +160,17 @@ function toggleTheme(id: string): void {
       <!-- BƯỚC 1: một mình hay nhiều người -->
       <div v-if="step === 'players'" key="players" class="step-body options">
         <button class="option big" type="button" @click="pickPlayers(false)">
-          <span class="icon">🧍</span>
+          <User class="opt-icon" :size="40" />
           <strong>Chơi một mình</strong>
           <small>Luyện trí nhớ, phá kỷ lục của chính bạn</small>
         </button>
         <button class="option big" type="button" @click="pickPlayers(true)">
-          <span class="icon">👥</span>
+          <Users class="opt-icon" :size="40" />
           <strong>Chơi nhiều người</strong>
           <small>2–4 người thay lượt trên cùng máy này</small>
         </button>
         <button class="option big" type="button" @click="sfx.select(); emit('online')">
-          <span class="icon">🌐</span>
+          <Globe class="opt-icon" :size="40" />
           <strong>Chơi online</strong>
           <small>Tạo phòng, mời bạn bè bằng mã 6 ký tự</small>
         </button>
@@ -183,7 +183,7 @@ function toggleTheme(id: string): void {
           :aria-pressed="playerCount === n"
           @click="pickCount(n)"
         >
-          <span class="icon">{{ ['👥', '👨‍👩‍👦', '👨‍👩‍👧‍👦'][n - 2] }}</span>
+          <span class="count-num" aria-hidden="true">{{ n }}</span>
           <strong>{{ n }} người</strong>
         </button>
       </div>
@@ -195,7 +195,7 @@ function toggleTheme(id: string): void {
           :aria-pressed="mode === m.id"
           @click="pickMode(m.id)"
         >
-          <span class="icon">{{ m.icon }}</span>
+          <component :is="m.icon" class="opt-icon" :size="26" />
           <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
         </button>
       </div>
@@ -346,6 +346,11 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 }
 .option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 .option .icon { font-size: 30px; }
+.opt-icon { color: var(--accent); flex-shrink: 0; }
+.count-num {
+  font-family: var(--font-display); font-weight: 800; font-size: 34px;
+  color: var(--accent); line-height: 1;
+}
 .option strong { font-size: 16px; }
 .option small { color: var(--muted); font-size: 12.5px; }
 
