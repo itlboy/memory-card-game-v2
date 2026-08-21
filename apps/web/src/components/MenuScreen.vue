@@ -80,6 +80,13 @@ function pickMode(m: Mode): void {
   step.value = m === 'campaign' && !isMulti.value ? 'campaign' : 'grid';
 }
 
+/** Ô chính giữa của lưới lẻ để trống — preview vẽ đúng như bàn thật. */
+function isBlankCell(k: string, idx: number): boolean {
+  const g = GRIDS[k]!;
+  const total = g.cols * g.rows;
+  return total % 2 === 1 && idx === Math.floor(total / 2);
+}
+
 function pickGrid(k: string): void {
   sfx.select();
   emit('update:grid', k);
@@ -184,8 +191,14 @@ function toggleTheme(id: string): void {
           :aria-pressed="grid === k"
           @click="pickGrid(k)"
         >
-          <span class="grid-preview" aria-hidden="true">
-            <i v-for="n in Math.min(GRIDS[k]!.cols * GRIDS[k]!.rows, 16)" :key="n" />
+          <span
+            class="grid-preview" aria-hidden="true"
+            :style="{
+              gridTemplateColumns: `repeat(${GRIDS[k]!.cols}, 1fr)`,
+              width: `${GRIDS[k]!.cols * 9}px`
+            }"
+          >
+            <i v-for="n in GRIDS[k]!.cols * GRIDS[k]!.rows" :key="n" :class="{ blank: isBlankCell(k, n - 1) }" />
           </span>
           <strong>{{ k.replace('x', '×') }}</strong>
           <small>{{ Math.floor(GRIDS[k]!.cols * GRIDS[k]!.rows / 2) }} cặp</small>
@@ -235,13 +248,15 @@ function toggleTheme(id: string): void {
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
 .options.grid2 { grid-template-columns: repeat(2, 1fr); }
 .grid-preview {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; width: 44px;
+  display: grid; gap: 2px;
+  min-height: 56px; align-content: center;
 }
 .grid-preview i {
   aspect-ratio: 3 / 4; border-radius: 2px;
   background: linear-gradient(150deg, var(--accent), var(--accent-2));
   opacity: .75;
 }
+.grid-preview i.blank { background: transparent; }
 .theme-opt { padding: 14px 10px; }
 .theme-sample { font-size: 22px; letter-spacing: 2px; }
 .option[aria-checked='true'] {

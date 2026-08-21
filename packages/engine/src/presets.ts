@@ -4,11 +4,18 @@ export interface GridSpec { cols: number; rows: number; timeLimit: number }
 
 /** Lưới dùng cho chế độ chơi nhanh. */
 export const GRIDS: Record<string, GridSpec> = {
+  // Lưới lẻ ô (3x3, 5x5) có ô trống ở chính giữa. Trần 8x8 = 32 cặp —
+  // một theme 24 biểu tượng là không đủ, người chơi cần chọn thêm theme.
   '2x2': { cols: 2, rows: 2, timeLimit: 15 },
-  '3x3': { cols: 3, rows: 3, timeLimit: 35 },   // ô giữa để trống, 4 cặp
+  '3x3': { cols: 3, rows: 3, timeLimit: 35 },
+  '3x4': { cols: 3, rows: 4, timeLimit: 55 },
   '4x4': { cols: 4, rows: 4, timeLimit: 70 },
   '4x5': { cols: 4, rows: 5, timeLimit: 100 },
-  '6x6': { cols: 6, rows: 6, timeLimit: 190 }
+  '5x5': { cols: 5, rows: 5, timeLimit: 115 },
+  '5x6': { cols: 5, rows: 6, timeLimit: 140 },
+  '6x6': { cols: 6, rows: 6, timeLimit: 190 },
+  '6x8': { cols: 6, rows: 8, timeLimit: 230 },
+  '8x8': { cols: 8, rows: 8, timeLimit: 300 }
 };
 
 export type GridKey = keyof typeof GRIDS;

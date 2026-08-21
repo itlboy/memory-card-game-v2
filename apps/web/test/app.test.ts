@@ -220,3 +220,35 @@ describe('màn online (điều hướng, không cần server)', () => {
     expect(wrapper.html().length).toBeGreaterThan(500);
   });
 });
+
+describe('bước chọn lưới', () => {
+  it('có đủ 10 cỡ bàn, trần 8×8, preview vẽ đúng hình dạng bàn', async () => {
+    wrapper = mount(App);
+    await flush();
+    await click('Chơi một mình');
+    await click('Cổ điển');
+    const options = wrapper.findAll('.option');
+    expect(options.length).toBe(10);
+    expect(wrapper.text()).toContain('8×8');
+    expect(wrapper.text()).toContain('32 cặp');
+    expect(wrapper.text()).not.toContain('8×10');
+    // Preview 3×3: 9 ô, ô chính giữa trống (đúng như bàn thật)
+    const p33 = options.find((o) => o.text().includes('3×3'))!.findAll('.grid-preview i');
+    expect(p33).toHaveLength(9);
+    expect(p33[4]!.classes()).toContain('blank');
+    // Preview 8×8: 64 ô, không ô trống
+    const p88 = options.find((o) => o.text().includes('8×8'))!.findAll('.grid-preview i');
+    expect(p88).toHaveLength(64);
+    expect(p88.every((i) => !i.classes().includes('blank'))).toBe(true);
+  });
+
+  it('8×8 với một theme 24 biểu tượng thì cảnh báo chọn thêm theme', async () => {
+    wrapper = mount(App);
+    await flush();
+    await click('Chơi một mình');
+    await click('Cổ điển');
+    await click('8×8');
+    expect(wrapper.text()).toContain('Chưa đủ biểu tượng');
+    expect(wrapper.find('.btn-primary').attributes('disabled')).toBeDefined();
+  });
+});
