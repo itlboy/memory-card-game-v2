@@ -633,6 +633,17 @@ input:focus { outline: none; border-color: var(--accent); }
 .step-body.options.loose > .option, .options.loose > .option { height: auto; max-height: none; }
 .options.loose .option { padding: 22px 16px; }
 .options.loose .option.wide { min-height: 76px; padding: 13px 16px; }
+
+/* Desktop: 2 lựa chọn đứng cạnh nhau thành tile (mock C bản desktop) */
+@media (min-width: 700px) {
+  .options.loose { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .options.loose .option { aspect-ratio: 1.5 / 1; max-height: 260px; }
+  .options.loose .option.wide {
+    flex-direction: column; text-align: center; gap: 10px;
+    aspect-ratio: auto; min-height: 170px;
+  }
+  .options.loose .option.wide .text { align-items: center; }
+}
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
 @media (min-width: 560px) {

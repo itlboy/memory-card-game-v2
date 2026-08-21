@@ -190,7 +190,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
-      <div v-else-if="step === 'mode'" key="mode" class="step-body options loose">
+      <div v-else-if="step === 'mode'" key="mode" class="step-body options loose modes">
         <button
           v-for="m in modes" :key="m.id" class="option wide neon" :class="m.g" type="button"
           :aria-pressed="mode === m.id"
@@ -290,6 +290,22 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .step-body.options.loose > .option { height: auto; max-height: none; }
 .options.loose .option.big { padding: 22px 16px; }
 .options.loose .option.wide { min-height: 76px; }
+
+/* Desktop: thanh dọc biến thành TILE đứng cạnh nhau (mock C bản desktop) —
+   cùng markup, chỉ đổi hình bằng breakpoint */
+@media (min-width: 700px) {
+  .step-body.options.loose { grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .options.loose .option.big { aspect-ratio: 1 / 1.02; max-height: 300px; padding: 24px; }
+  /* 5 chế độ: Chiến dịch nổi bật trọn hàng đầu, 4 chế độ còn lại 2×2 */
+  .step-body.options.loose.modes { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .modes > .option.wide:first-child { grid-column: 1 / -1; }
+  .modes .option.wide {
+    flex-direction: column; text-align: center; gap: 10px;
+    min-height: 150px; padding: 22px 16px;
+  }
+  .modes .option.wide .text { align-items: center; }
+  .modes .option.wide .text small { max-width: 340px; }
+}
 
 
 .options.grid3 {
