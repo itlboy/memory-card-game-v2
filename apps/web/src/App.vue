@@ -89,6 +89,7 @@ function replay(): void {
 
 function backToMenu(): void {
   session.stop();
+  session.summary.value = null;   // đóng dialog kết quả nếu đang mở
   screen.value = 'menu';
   totalScore.value = store.totalScore();
 }
