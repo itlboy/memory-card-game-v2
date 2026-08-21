@@ -90,7 +90,8 @@ async function winGame(missFirst = false): Promise<void> {
     await tiles()[b]!.trigger('click');
     await flush();
   }
-  await vi.advanceTimersByTimeAsync(50);
+  // Thắng xong ăn mừng 5s rồi popup mới hiện
+  await vi.advanceTimersByTimeAsync(5100);
   await flush();
 }
 
@@ -134,6 +135,7 @@ describe('luồng trọn ván', () => {
     await start();
     await wrapper.findAll('.card')[0]!.trigger('click');     // khởi động đồng hồ
     await vi.advanceTimersByTimeAsync(71_000);               // giới hạn 4x4 là 70s
+    await vi.advanceTimersByTimeAsync(1100);                 // thua: popup vào sau 1 giây
     await flush();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Hết thời gian');

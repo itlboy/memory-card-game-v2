@@ -158,7 +158,7 @@ function toggleTheme(id: string): void {
 
     <Transition name="step" mode="out-in">
       <!-- BƯỚC 1: một mình hay nhiều người -->
-      <div v-if="step === 'players'" key="players" class="step-body options">
+      <div v-if="step === 'players'" key="players" class="step-body options loose">
         <button class="option big" type="button" @click="pickPlayers(false)">
           <User class="opt-icon" :size="40" />
           <strong>Chơi một mình</strong>
@@ -177,7 +177,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="step-body options row3">
+      <div v-else-if="step === 'count'" key="count" class="step-body options loose row3">
         <button
           v-for="n in [2, 3, 4]" :key="n" class="option" type="button"
           :aria-pressed="playerCount === n"
@@ -189,7 +189,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
-      <div v-else-if="step === 'mode'" key="mode" class="step-body options">
+      <div v-else-if="step === 'mode'" key="mode" class="step-body options loose">
         <button
           v-for="m in modes" :key="m.id" class="option wide" type="button"
           :aria-pressed="mode === m.id"
@@ -283,6 +283,13 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   height: 100%; max-height: 210px;
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
+
+/* Bước ít lựa chọn: ô cao tự nhiên, cụm canh giữa — không phình to/cách xa */
+.step-body.options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
+.step-body.options.loose > .option { height: auto; max-height: none; }
+.options.loose .option.big { padding: 22px 16px; }
+.options.loose .option.wide { min-height: 76px; }
+
 
 .options.grid3 {
   /* 12 cỡ bàn: 3 cột (mobile, 4 hàng) hay 4 cột (desktop, 3 hàng) đều tròn hàng */

@@ -2,6 +2,7 @@
 import { MemoryGame, levelConfig, levelSpec, presetConfig, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
+import CelebrationFx from './components/CelebrationFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
@@ -30,6 +31,9 @@ const joinCode = ref('');
 const levelId = ref<number | null>(null);
 const isRecord = ref(false);
 const freshAchievements = ref<string[]>([]);
+/** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
+const showResult = ref(false);
+let resultTimer: ReturnType<typeof setTimeout> | undefined;
 
 const session = useGameSession();
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
@@ -209,8 +213,12 @@ function backToMenu(): void {
 
 /* ---------- ghi kết quả khi ván kết thúc ---------- */
 watch(session.summary, (s) => {
+  clearTimeout(resultTimer);
+  showResult.value = false;
   const game = session.game.value;
   if (!s || !game) return;
+  // Thắng: để pháo hoa + vỗ tay chiếm sóng 5 giây rồi popup mới vào
+  resultTimer = setTimeout(() => { showResult.value = true; }, s.status === 'won' ? 5000 : 1000);
 
   const player = game.players[0]!;
   if (!game.isMultiplayer) {
@@ -292,8 +300,10 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     @cancel="confirmQuit = false"
   />
 
+  <CelebrationFx v-if="session.summary.value?.status === 'won' && screen === 'game'" />
+
   <ResultDialog
-    v-if="session.summary.value"
+    v-if="session.summary.value && showResult"
     :summary="session.summary.value"
     :is-record="isRecord"
     :show-stars="!!levelId"

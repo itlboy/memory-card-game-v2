@@ -29,48 +29,6 @@ onMounted(() => {
   }
 });
 
-/** Pháo hoa: các vụ nổ so le quanh màn, mỗi vụ 18 spark toả tròn. */
-interface Spark { dx: string; dy: string; delay: string; dur: string; color: string }
-interface Burst { left: string; top: string; sparks: Spark[] }
-const FW_COLORS = ['#ffd54a', '#ff7b72', '#7ce38b', '#79c0ff', '#d2a8ff', '#ff9ff3'];
-const fireworks = computed<Burst[]>(() => {
-  if (props.summary.status !== 'won') return [];
-  return Array.from({ length: 5 }, (_, b) => {
-    const baseDelay = 0.15 + b * 0.55;
-    const color = FW_COLORS[(b * 2) % FW_COLORS.length]!;
-    return {
-      left: `${12 + ((b * 37) % 76)}%`,
-      top: `${10 + ((b * 23) % 38)}%`,
-      sparks: Array.from({ length: 18 }, (_, i) => {
-        const angle = (i / 18) * Math.PI * 2;
-        const dist = 60 + (i % 3) * 26;
-        return {
-          dx: `${Math.cos(angle) * dist}px`,
-          dy: `${Math.sin(angle) * dist + 28}px`,   // +28: rơi nhẹ theo trọng lực
-          delay: `${baseDelay}s`,
-          dur: `${0.8 + (i % 4) * 0.12}s`,
-          color: i % 5 === 0 ? '#ffffff' : color
-        };
-      })
-    };
-  });
-});
-
-/** Confetti: 60 mảnh giấy với vị trí/màu/độ trễ tất định theo chỉ số. */
-const sp0 = (b: Burst): string => b.sparks[0]?.delay ?? '0s';
-const CONFETTI_COLORS = ['#6a5cff', '#b74cf0', '#f59e0b', '#10b981', '#ef4444', '#38bdf8'];
-const confetti = computed(() => {
-  if (props.summary.status !== 'won') return [];
-  return Array.from({ length: 60 }, (_, i) => ({
-    left: `${(i * 37) % 100}%`,
-    background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-    animationDelay: `${(i % 12) * 90}ms`,
-    animationDuration: `${2200 + (i % 7) * 250}ms`,
-    '--drift': `${((i * 13) % 9) - 4}rem`,
-    '--spin': `${420 + (i * 47) % 400}deg`
-  }));
-});
-
 const REASON: Record<Summary['reason'], string> = {
   cleared: 'Bạn đã mở hết các cặp!',
   timeout: 'Hết thời gian.',
@@ -88,24 +46,6 @@ const title = computed(() => {
 
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
-    <div v-if="confetti.length" class="confetti" aria-hidden="true">
-      <i v-for="(c, i) in confetti" :key="i" :style="c" />
-    </div>
-    <div v-if="fireworks.length" class="fireworks" aria-hidden="true">
-      <span
-        v-for="(b, bi) in fireworks" :key="bi"
-        class="burst" :style="{ left: b.left, top: b.top }"
-      >
-        <i
-          v-for="(sp, si) in b.sparks" :key="si"
-          :style="{
-            '--dx': sp.dx, '--dy': sp.dy, background: sp.color,
-            animationDelay: sp.delay, animationDuration: sp.dur
-          }"
-        />
-        <b :style="{ animationDelay: sp0(b) }" />
-      </span>
-    </div>
     <div class="panel">
       <h2 id="resTitle">{{ title }}</h2>
       <p class="reason">{{ REASON[summary.reason] }}</p>
@@ -159,9 +99,16 @@ const title = computed(() => {
 <style scoped>
 .overlay {
   position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
-  padding: 20px; background: rgba(6, 9, 18, .62);
+  padding: 20px; background: rgba(6, 9, 18, .3);   /* nền nhạt để thấy pháo hoa phía sau */
 }
-.panel { width: 100%; max-width: 400px; position: relative; animation: dialog-in .3s cubic-bezier(.3, 1.4, .5, 1); }
+.panel {
+  width: 100%; max-width: 400px; position: relative;
+  /* Bán trong suốt + blur: nhìn xuyên được màn ăn mừng phía sau */
+  background: color-mix(in srgb, var(--panel-solid) 78%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: dialog-in .3s cubic-bezier(.3, 1.4, .5, 1);
+}
 @keyframes dialog-in { from { transform: translateY(18px) scale(.94); opacity: 0; } }
 h2 { margin: 0 0 4px; }
 .reason { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
@@ -178,55 +125,6 @@ h2 { margin: 0 0 4px; }
   60% { transform: scale(1.35) rotate(8deg); }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
-
-.confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-
-.fireworks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.burst { position: absolute; }
-.burst i {
-  position: absolute; width: 7px; height: 7px; border-radius: 50%;
-  opacity: 0; box-shadow: 0 0 8px currentColor;
-  animation-name: fw-spark; animation-timing-function: cubic-bezier(.1, .7, .4, 1);
-  animation-fill-mode: forwards;
-}
-.burst b {
-  position: absolute; width: 14px; height: 14px; border-radius: 50%;
-  left: -7px; top: -7px; background: #fff; opacity: 0;
-  box-shadow: 0 0 30px 14px rgba(255, 255, 255, .85);
-  animation: fw-flash .35s ease-out forwards;
-}
-@keyframes fw-spark {
-  0% { transform: translate(0, 0) scale(1); opacity: 1; }
-  75% { opacity: .95; }
-  100% { transform: translate(var(--dx), var(--dy)) scale(.35); opacity: 0; }
-}
-@keyframes fw-flash {
-  0% { transform: scale(.3); opacity: 1; }
-  100% { transform: scale(2.4); opacity: 0; }
-}
-.confetti i {
-  position: absolute; top: -3vh; width: 8px; height: 14px; border-radius: 2px;
-  animation: fall linear forwards;
-}
-@keyframes fall {
-  to {
-    transform: translateY(105vh) translateX(var(--drift, 0)) rotate(var(--spin, 540deg));
-    opacity: .2;
-  }
-}
-
-.stats { margin: 0; display: grid; gap: 6px; }
-.stats div { display: flex; justify-content: space-between; gap: 12px; }
-.stats dt { color: var(--muted); font-size: 14px; }
-.stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
-
-.ranking { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.ranking li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 4px 10px; }
-.ranking li:first-child b { color: var(--ok); }
-.ranking small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
-
-.achievements { margin: 14px 0 0; padding: 12px; list-style: none; display: grid; gap: 6px;
-  background: color-mix(in srgb, var(--warn) 12%, transparent); border-radius: 10px; font-size: 13px; }
 
 .row { display: flex; gap: 8px; margin-top: 18px; }
 .row .btn { flex: 1; }

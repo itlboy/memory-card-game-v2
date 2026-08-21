@@ -6,6 +6,7 @@ import {
 import type { Card } from '@mm/engine';
 import { computed, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
+import CelebrationFx from './CelebrationFx.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
@@ -218,6 +219,16 @@ const wizTooSmall = computed(() => {
 });
 
 const creatingRoom = ref(false);
+/** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
+const showResult = ref(false);
+let resultTimer: ReturnType<typeof setTimeout> | undefined;
+const iWon = computed(() => o.view.value?.summary?.ranking[0]?.id === o.myId.value);
+watch(() => o.view.value?.summary, (s) => {
+  clearTimeout(resultTimer);
+  showResult.value = false;
+  if (!s) return;
+  resultTimer = setTimeout(() => { showResult.value = true; }, iWon.value ? 5000 : 1500);
+});
 
 function wizFinish(): void {
   if (editingInLobby.value) {
@@ -259,7 +270,7 @@ function openCfgWizard(): void {
       </span>
     </div>
 
-    <div v-if="wizard === 'mode'" class="step-body options">
+    <div v-if="wizard === 'mode'" class="step-body options loose">
       <button
         v-for="m in MODES" :key="m.id" class="option wide" type="button"
         :aria-pressed="cfg.mode === m.id"
@@ -325,7 +336,7 @@ function openCfgWizard(): void {
     </div>
 
     <!-- BƯỚC 1: tạo phòng hay vào phòng có sẵn -->
-    <div v-if="entryStep === 'choose'" class="options">
+    <div v-if="entryStep === 'choose'" class="options loose">
       <button class="option" type="button" @click="entryStep = 'create'">
         <Sparkles class="opt-icon" :size="34" />
         <strong>Tạo phòng mới</strong>
@@ -532,8 +543,9 @@ function openCfgWizard(): void {
       >{{ e }}</button>
     </div>
 
+    <CelebrationFx v-if="o.view.value?.summary && iWon" />
     <ResultDialog
-      v-if="o.view.value?.summary"
+      v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
       :is-record="false" :show-stars="false" :multiplayer="true"
       :fresh-achievements="[]" :has-next="false"
@@ -605,6 +617,12 @@ input:focus { outline: none; border-color: var(--accent); }
   height: 100%; max-height: 210px;
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
+
+/* Bước ít lựa chọn: ô cao tự nhiên, cụm canh giữa — không phình to/cách xa */
+.step-body.options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
+.step-body.options.loose > .option, .options.loose > .option { height: auto; max-height: none; }
+.options.loose .option { padding: 22px 16px; }
+.options.loose .option.wide { min-height: 76px; padding: 13px 16px; }
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
 @media (min-width: 560px) {
