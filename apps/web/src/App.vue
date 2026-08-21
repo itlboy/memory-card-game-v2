@@ -116,12 +116,21 @@ onMounted(() => {
   } else if (q.get('playing') === '1') {
     // Ván offline dở: URL chỉ là con trỏ, ruột ván nằm trong snapshot
     if (!restoreGame()) setUrl(null);
+  } else if (q.get('online') === '1') {
+    screen.value = 'online';           // F5 ở màn vào online
+  } else if (q.get('w')) {
+    /* bước wizard — MenuScreen tự khôi phục từ ?w= */
   } else if (location.search) {
     setUrl(null);
   }
 
   // Chốt snapshot lần cuối ngay trước khi trang bị đóng/reload
   window.addEventListener('beforeunload', persistGame);
+});
+
+// Màn online (chưa vào phòng) cũng đánh dấu lên URL để F5 quay lại đúng chỗ
+watch(screen, (sc) => {
+  if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
 });
 
 /* ---------- tuỳ chọn hiển thị ---------- */

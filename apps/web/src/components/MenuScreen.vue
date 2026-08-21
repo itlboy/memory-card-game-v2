@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GRIDS } from '@mm/engine';
 import type { Mode } from '@mm/engine';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
@@ -29,7 +29,29 @@ const emit = defineEmits<{
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
 type Step = 'players' | 'count' | 'mode' | 'grid' | 'theme' | 'campaign';
-const step = ref<Step>('players');
+const STEPS: readonly Step[] = ['players', 'count', 'mode', 'grid', 'theme', 'campaign'];
+
+/** Bước hiện tại nằm trên URL (?w=grid) để F5 không bị bật về bước 1. */
+function stepFromUrl(): Step {
+  try {
+    const w = new URLSearchParams(location.search).get('w') as Step | null;
+    return w && STEPS.includes(w) ? w : 'players';
+  } catch { return 'players'; }
+}
+const step = ref<Step>(stepFromUrl());
+
+watch(step, (st) => {
+  // Chỉ đụng đúng param `w` — các con trỏ khác (?playing, ?online, ?room) là của App
+  const q = new URLSearchParams(location.search);
+  if (st === 'players') {
+    if (!q.has('w')) return;   // về bước 1: URL sạch — thoát là mất, đúng chủ đích
+    q.delete('w');
+  } else {
+    q.set('w', st);
+  }
+  const qs = q.toString();
+  history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : ''));
+}, { immediate: true });
 
 const isMulti = computed(() => props.playerCount > 1);
 
@@ -40,6 +62,8 @@ const path = computed<Step[]>(() =>
     : ['players', 'mode', ...(props.mode === 'campaign' ? ['campaign' as const] : ['grid' as const, 'theme' as const])]
 );
 const stepIndex = computed(() => path.value.indexOf(step.value));
+// Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
+if (step.value !== 'players' && !path.value.includes(step.value)) step.value = 'players';
 
 const TITLES: Record<Step, string> = {
   players: 'Bạn muốn chơi thế nào?',

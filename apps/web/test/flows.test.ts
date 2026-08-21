@@ -467,3 +467,44 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     expect(wrapper.findAll('.card.up')).toHaveLength(1);
   });
 });
+
+describe('F5 giữ bước wizard (?w= trên URL)', () => {
+  it('đi tới bước lưới, F5 vẫn đứng ở bước lưới', async () => {
+    await mountApp();
+    await click('Chơi một mình');
+    expect(location.search).toBe('?w=mode');
+    await click('Cổ điển');
+    expect(location.search).toBe('?w=grid');
+    wrapper.unmount();
+    await mountApp();                                    // "F5"
+    expect(wrapper.text()).toContain('Kích thước lưới'); // vẫn ở bước lưới
+    await click('4×4');
+    expect(location.search).toBe('?w=theme');
+  });
+
+  it('logo về trang chủ thì URL sạch và về bước 1 — mất trạng thái là chủ đích', async () => {
+    await mountApp();
+    await click('Chơi một mình');
+    await click('Cổ điển');
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+    expect(location.search).toBe('');
+    wrapper.unmount();
+    await mountApp();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');   // F5 sau đó cũng về bước 1
+  });
+
+  it('F5 ở màn vào online quay lại màn online', async () => {
+    vi.stubGlobal('WebSocket', class {
+      onmessage: unknown = null; onclose: unknown = null;
+      close(): void {} send(): void {}
+    });
+    await mountApp();
+    await click('Chơi online');
+    expect(location.search).toBe('?online=1');
+    wrapper.unmount();
+    await mountApp();
+    expect(wrapper.text()).toContain('Vào phòng có sẵn');   // đứng ở màn online
+  });
+});
