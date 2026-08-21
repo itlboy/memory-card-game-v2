@@ -79,7 +79,9 @@ const label = computed(() => {
 .face {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   border-radius: 12px; backface-visibility: hidden;
-  box-shadow: var(--shadow-soft); font-size: clamp(18px, 6.5vw, 38px);
+  box-shadow: var(--shadow-soft);
+  /* Biểu tượng lớn (~72% bề rộng thẻ) cho dễ nhìn, dễ ghi nhớ */
+  font-size: clamp(26px, 9.5vw, 58px);
 }
 .back {
   /* Hoa văn nhiều lớp: đốm sáng góc + kẻ chéo mờ + gradient thương hiệu */
@@ -107,7 +109,10 @@ const label = computed(() => {
 .card:not(.up):not(.done):hover .back .mark { transform: rotate(90deg) scale(1.15); }
 
 .front {
-  background: var(--card-face); border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at 50% 58%, var(--accent-soft), transparent 62%),
+    var(--card-face);
+  border: 1px solid var(--line);
   transform: rotateY(180deg);
   box-shadow: var(--shadow-soft), var(--inner-light);
 }
