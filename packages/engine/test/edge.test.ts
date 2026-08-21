@@ -142,6 +142,7 @@ describe('thẻ đóng băng — các nhánh còn lại', () => {
     const slot = plant(g, 'eye', 1);
     const ev = g.flip(slot, 0).find((e) => e.type === 'power');
     expect(ev).toMatchObject({ power: 'eye' });
-    expect(ev!.type === 'power' && ev.affected).toHaveLength(g.cards.length);
+    if (ev?.type !== 'power') throw new Error('thiếu sự kiện power');
+    expect(ev.affected).toHaveLength(g.cards.length);
   });
 });
