@@ -26,7 +26,7 @@ export const ROOM_LIMITS = {
 } as const;
 
 /** Emoji chat nhanh — danh sách đóng để tránh nội dung xấu (ON-08). */
-export const QUICK_EMOJIS = ['👍', '😂', '😮', '😭', '🔥', '🎉', '🤔', '💩'] as const;
+export const QUICK_EMOJIS = ['👍', '😂', '😡', '😮', '😭', '🔥', '🎉', '🤔', '💩'] as const;
 export type QuickEmoji = (typeof QUICK_EMOJIS)[number];
 
 /* ---------- view công khai ---------- */
