@@ -19,6 +19,8 @@ let wrapper: VueWrapper;
 
 beforeEach(() => {
   localStorage.clear();
+  sessionStorage.clear();
+  history.replaceState(null, '', location.pathname);
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(THEMES), {
     headers: { 'Content-Type': 'application/json' }
   })));

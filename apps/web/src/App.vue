@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { levelConfig, levelSpec, presetConfig, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
+import { MemoryGame, levelConfig, levelSpec, presetConfig, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import GameScreen from './components/GameScreen.vue';
@@ -32,6 +32,49 @@ const freshAchievements = ref<string[]>([]);
 
 const session = useGameSession();
 
+/* ---------- state trên URL + khôi phục ván dở khi F5 ---------- */
+
+const RESUME_KEY = 'mm.resume';
+
+/** Ghi query state vào URL (không đẩy history mới). */
+function setUrl(query: string | null): void {
+  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
+}
+
+/** Lưu snapshot ván đang chơi — gọi sau mỗi biến động và trước khi rời trang. */
+function persistGame(): void {
+  const g = session.game.value;
+  if (!g || g.finished) return;
+  try {
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ snap: g.snapshot(), levelId: levelId.value }));
+  } catch { /* chế độ riêng tư */ }
+}
+
+function clearResume(): void {
+  try { sessionStorage.removeItem(RESUME_KEY); } catch { /* bỏ qua */ }
+  if (location.search) setUrl(null);
+}
+
+/** F5 giữa ván: dựng lại đúng ván từ snapshot. Trả về true nếu khôi phục được. */
+function restoreGame(): boolean {
+  try {
+    const raw = sessionStorage.getItem(RESUME_KEY);
+    if (!raw) return false;
+    const blob = JSON.parse(raw) as { snap: string; levelId: number | null };
+    const g = MemoryGame.restore(blob.snap);
+    if (g.finished) return false;
+    levelId.value = blob.levelId;
+    session.adopt(g);
+    screen.value = 'game';
+    return true;
+  } catch { return false; }
+}
+
+watch(
+  () => [session.moves.value, session.faceUp.value.size, session.matchedCount.value],
+  persistGame
+);
+
 void loadThemes().then((list) => {
   themes.value = list;
   if (!list.some((t) => t.id === themeId.value)) themeId.value = list[0]?.id ?? 'animals';
@@ -43,13 +86,22 @@ onMounted(() => {
   for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) {
     document.addEventListener(ev, unlock, { once: true, passive: true });
   }
-  // Link mời: ?room=ABC123 → vào thẳng màn online với mã đã điền sẵn (ON-01)
-  const code = new URLSearchParams(location.search).get('room');
+  // Khôi phục vị trí từ URL sau F5 / mở link mời
+  const q = new URLSearchParams(location.search);
+  const code = q.get('room');
   if (code && /^[A-Za-z0-9]{6}$/.test(code)) {
+    // Online: giữ ?room=CODE trên URL suốt phiên — F5 quay lại đúng phòng
     joinCode.value = code.toUpperCase();
     screen.value = 'online';
-    history.replaceState(null, '', location.pathname);
+  } else if (q.get('playing') === '1') {
+    // Ván offline dở: URL chỉ là con trỏ, ruột ván nằm trong snapshot
+    if (!restoreGame()) setUrl(null);
+  } else if (location.search) {
+    setUrl(null);
   }
+
+  // Chốt snapshot lần cuối ngay trước khi trang bị đóng/reload
+  window.addEventListener('beforeunload', persistGame);
 });
 
 /* ---------- tuỳ chọn hiển thị ---------- */
@@ -81,6 +133,8 @@ function launch(config: GameConfig): void {
   freshAchievements.value = [];
   session.start(config);
   screen.value = 'game';
+  setUrl('playing=1');
+  persistGame();
 }
 
 function startQuick(): void {
@@ -110,6 +164,7 @@ function backToMenu(): void {
   session.summary.value = null;   // đóng dialog kết quả nếu đang mở
   screen.value = 'menu';
   totalScore.value = store.totalScore();
+  clearResume();
 }
 
 /* ---------- ghi kết quả khi ván kết thúc ---------- */
@@ -137,6 +192,7 @@ watch(session.summary, (s) => {
     }));
   }
   totalScore.value = store.totalScore();
+  try { sessionStorage.removeItem(RESUME_KEY); } catch { /* bỏ qua */ }
 });
 
 const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVELS);

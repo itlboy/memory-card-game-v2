@@ -22,6 +22,8 @@ let wrapper: VueWrapper;
 
 beforeEach(() => {
   localStorage.clear();
+  sessionStorage.clear();
+  history.replaceState(null, '', location.pathname);
   // Phải giả cả performance (đồng hồ của engine) và rAF (vòng tick của session)
   vi.useFakeTimers({ toFake: [
     'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date',
@@ -283,5 +285,71 @@ describe('lưới nhỏ và ô trống', () => {
     expect(document.activeElement).toBe(tile(5).element);     // nhảy qua ô trống
     await board.trigger('keydown', { key: 'ArrowLeft' });
     expect(document.activeElement).toBe(tile(3).element);
+  });
+});
+
+describe('F5 giữa ván (state trên URL + snapshot)', () => {
+  it('vào ván thì URL có ?playing=1, về menu thì sạch', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    expect(location.search).toBe('?playing=1');
+    await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
+    await flush();
+    expect(location.search).toBe('');
+  });
+
+  it('reload giữa ván khôi phục đúng bàn: cặp đã ghép, điểm, số lượt', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    // Ghép đúng 1 cặp + lật sai 1 lượt rồi "F5"
+    const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
+    const byPair = new Map<number, number[]>();
+    for (const c of cards) byPair.set(c.pairId, [...(byPair.get(c.pairId) ?? []), c.index]);
+    const [p0, p1] = [...byPair.values()];
+    const tiles = () => wrapper.findAll('.card');
+    await tiles()[p0![0]!]!.trigger('click');
+    await tiles()[p0![1]!]!.trigger('click');   // đúng
+    await tiles()[p1![0]!]!.trigger('click');
+    const wrongIdx = [...byPair.values()][2]![0]!;
+    await tiles()[wrongIdx]!.trigger('click');  // sai → -10
+    await vi.advanceTimersByTimeAsync(1100);
+    await flush();
+    expect(wrapper.text()).toContain('1/8');
+
+    window.dispatchEvent(new Event('beforeunload'));   // chốt snapshot như trước khi reload
+    wrapper.unmount();
+    // URL vẫn là ?playing=1 → mount mới (trang mới) phải dựng lại ván
+    expect(location.search).toBe('?playing=1');
+    await mountApp();
+    expect(wrapper.findAll('.card')).toHaveLength(16);
+    expect(wrapper.findAll('.card.done')).toHaveLength(2);   // cặp đã ghép còn nguyên
+    expect(wrapper.text()).toContain('1/8');
+    expect(wrapper.text()).toContain('90');                  // 100 - 10 điểm phạt
+    expect(wrapper.text()).toContain('Lượt2');
+  });
+
+  it('reload sau khi thắng không dựng lại ván — về menu sạch sẽ', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    await winGame();
+    wrapper.unmount();
+    await mountApp();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+    expect(wrapper.findAll('.card')).toHaveLength(0);
+  });
+
+  it('reload giữa màn Chiến dịch giữ nguyên số màn', async () => {
+    await mountApp();
+    await pickMode('Chiến dịch');
+    await wrapper.findAll('.node')[0]!.trigger('click');
+    await flush();
+    window.dispatchEvent(new Event('beforeunload'));
+    wrapper.unmount();
+    await mountApp();
+    expect(wrapper.findAll('.card')).toHaveLength(4);   // màn 1 = 2×2
+    expect(wrapper.text()).toContain('Màn1');
   });
 });

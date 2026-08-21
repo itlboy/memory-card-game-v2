@@ -200,12 +200,16 @@ export function useOnlineRoom() {
     }
   }
 
-  /** Có phiên dở dang trong sessionStorage (reload trang giữa ván)? */
-  function resumeStored(): boolean {
+  /**
+   * Có phiên dở dang trong sessionStorage (reload trang giữa ván)?
+   * `matchCode`: chỉ resume nếu đúng phòng đó (khi vào bằng link mời).
+   */
+  function resumeStored(matchCode?: string): boolean {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
       if (!raw) return false;
       const s = JSON.parse(raw) as StoredSession;
+      if (matchCode && s.code !== matchCode) return false;
       token = s.token;
       connect(s.code, s.name, s.token);
       return true;

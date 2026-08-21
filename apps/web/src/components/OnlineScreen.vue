@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GRIDS, QUICK_EMOJIS } from '@mm/engine';
 import type { Card } from '@mm/engine';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
@@ -20,12 +20,18 @@ const copied = ref(false);
 const invited = computed(() => !!props.joinCode);
 
 onMounted(() => {
-  // Vào bằng link mời: ý định là vào ĐÚNG phòng đó — đã có tên nhớ sẵn thì vào luôn
+  // Vào bằng link mời / F5 khi đang trong phòng: ưu tiên resume đúng phòng đó
   if (invited.value) {
-    if (name.value.trim()) join();
+    if (o.resumeStored(props.joinCode)) return;   // F5: vào lại bằng token, giữ danh tính
+    if (name.value.trim()) join();                // link mời + đã nhớ tên: vào luôn
     return;
   }
   o.resumeStored();
+});
+
+// Đang trong phòng thì URL luôn mang ?room=CODE để F5 quay lại đúng chỗ
+watch(() => o.room.value?.code, (code) => {
+  if (code) history.replaceState(null, '', `${location.pathname}?room=${code}`);
 });
 
 function remember(): void { store.savePlayerNames([name.value.trim()]); }
@@ -39,7 +45,11 @@ function join(): void {
   remember();
   o.join(codeInput.value, name.value.trim());
 }
-function quit(): void { o.leave(); emit('back'); }
+function quit(): void {
+  o.leave();
+  history.replaceState(null, '', location.pathname);
+  emit('back');
+}
 
 const inviteLink = computed(() =>
   `${location.origin}${location.pathname}?room=${o.room.value?.code ?? ''}`);

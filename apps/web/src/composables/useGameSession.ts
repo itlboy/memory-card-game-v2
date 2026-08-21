@@ -26,7 +26,9 @@ export function useGameSession() {
   let lastTickSecond = -1;
 
   let raf = 0;
-  const clockNow = (): number => performance.now();
+  // Date.now thay vì performance.now: mốc thời gian phải sống qua F5
+  // để khôi phục ván dở từ snapshot không làm sai đồng hồ
+  const clockNow = (): number => Date.now();
   const bump = (): void => { rev.value++; };
 
   function handle(events: GameEvent[]): void {
@@ -129,6 +131,21 @@ export function useGameSession() {
     raf = 0;
   }
 
+  /** Nhận một ván đã khôi phục từ snapshot (F5 giữa ván) và chạy tiếp. */
+  function adopt(g: MemoryGame): void {
+    stop();
+    game.value = g;
+    summary.value = g.summary();
+    wrongPair.value = [];
+    lastPower.value = null;
+    lastGain.value = null;
+    turnBanner.value = null;
+    lastTickSecond = -1;
+    now.value = clockNow();
+    bump();
+    if (!g.finished) raf = requestAnimationFrame(loop);
+  }
+
   onScopeDispose(stop);
 
   /* ---------- dữ liệu cho template (đọc qua rev để bám re-render) ---------- */
@@ -184,7 +201,7 @@ export function useGameSession() {
   });
 
   return {
-    game, start, flip, stop,
+    game, start, flip, stop, adopt,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary
