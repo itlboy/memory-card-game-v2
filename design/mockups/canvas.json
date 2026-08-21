@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",        "x": 0,    "y": 0,    "w": 390, "h": 844, "title": "Wizard · Bước 1" },
+    { "file": "WizardMode.dc.html",  "x": 470,  "y": 0,    "w": 390, "h": 844, "title": "Wizard · Chế độ" },
+    { "file": "WizardSetup.dc.html", "x": 940,  "y": 0,    "w": 390, "h": 844, "title": "Wizard · Bàn chơi" },
+    { "file": "GameSolo.dc.html",    "x": 0,    "y": 984,  "w": 390, "h": 844, "title": "Trong ván · Chơi đơn" },
+    { "file": "GameMulti.dc.html",   "x": 470,  "y": 984,  "w": 390, "h": 844, "title": "Trong ván · 2 người" },
+    { "file": "Result.dc.html",      "x": 940,  "y": 984,  "w": 390, "h": 844, "title": "Kết quả" }
+  ],
+  "annotations": [
+    { "id": "flow-wizard", "x": 0, "y": -120, "w": 340, "text": "Luồng menu wizard: mỗi bước một câu hỏi.\nBước 1 → chế độ → bàn chơi (Chiến dịch nhảy thẳng tới bản đồ màn)." },
+    { "id": "flow-game", "x": 0, "y": 870, "w": 340, "text": "Trong ván & kết quả: HUD kính, điểm bay +150, banner chuyển lượt (multiplayer), dialog 3 sao + confetti." }
+  ],
+  "launch": { "view": "canvas" }
+}

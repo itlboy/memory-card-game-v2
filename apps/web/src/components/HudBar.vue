@@ -13,6 +13,8 @@ const props = defineProps<{
   movesLeft: number | null;
   lives: number | null;
   levelId?: number;
+  /** Nhiều người chơi: ẩn Điểm/Lượt/Combo — các số này nằm trong chip từng người. */
+  multiplayer?: boolean;
 }>();
 
 defineEmits<{ quit: [] }>();
@@ -25,11 +27,11 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 <template>
   <div class="hud panel">
     <div v-if="levelId" class="stat"><span>Màn</span><b>{{ levelId }}</b></div>
-    <div class="stat"><span>Điểm</span><b>{{ score }}</b></div>
-    <div class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
+    <div v-if="!multiplayer" class="stat"><span>Điểm</span><b>{{ score }}</b></div>
+    <div v-if="!multiplayer" class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
     <div class="stat"><span>Cặp</span><b>{{ matched }}/{{ totalPairs }}</b></div>
     <div class="stat" :class="{ urgent }"><span>{{ timeLabel }}</span><b>{{ timeText }}</b></div>
-    <div class="stat combo" :class="{ hot: combo >= 1.5, max: combo >= 2 }">
+    <div v-if="!multiplayer" class="stat combo" :class="{ hot: combo >= 1.5, max: combo >= 2 }">
       <span>Combo</span><b :key="combo">x{{ combo }}</b>
     </div>
     <div v-if="lives !== null" class="stat"><span>Mạng</span><b>{{ '❤️'.repeat(Math.max(0, lives)) || '—' }}</b></div>

@@ -39,8 +39,11 @@ const gainStyle = computed(() => {
     top: `${((row + 0.5) / rows) * 100}%`
   };
 });
+// Nhiều người: mạng hiển thị trong chip từng người, không chiếm chỗ HUD
 const lives = computed(() =>
-  props.game.config.lives == null ? null : (s.players.value[0]?.lives ?? 0)
+  props.game.config.lives == null || props.game.isMultiplayer
+    ? null
+    : (s.players.value[0]?.lives ?? 0)
 );
 const locked = computed(() => s.locked.value || s.revealingAll.value);
 
@@ -51,7 +54,7 @@ const locked = computed(() => s.locked.value || s.revealingAll.value);
  */
 const fitStyle = computed(() => {
   const { cols, rows } = props.game.config;
-  const chrome = props.game.isMultiplayer ? 320 : 230;   // topbar + HUD + đệm
+  const chrome = props.game.isMultiplayer ? 255 : 230;   // topbar + HUD (+ chip người chơi) + đệm
   return {
     '--fit': `min(100%, calc((100dvh - ${chrome}px) * ${(cols * 3) / (rows * 4)}))`
   };
@@ -71,6 +74,7 @@ const fitStyle = computed(() => {
       :moves-left="s.movesLeft.value"
       :lives="lives"
       :level-id="levelId"
+      :multiplayer="game.isMultiplayer"
       @quit="emit('quit')"
     />
 

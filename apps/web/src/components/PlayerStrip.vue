@@ -16,22 +16,22 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
       :aria-current="p.id === currentId ? 'true' : undefined"
     >
       <span class="avatar" aria-hidden="true">{{ p.avatar ?? AVATARS[i % AVATARS.length] }}</span>
-      <span class="meta">
-        <b>{{ p.name }}</b>
-        <small>{{ p.score }} điểm · {{ p.pairs }} cặp</small>
-      </span>
+      <b class="name">{{ p.name }}</b>
+      <span class="pts">{{ p.score }}</span>
+      <small v-if="Number.isFinite(p.lives)" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
       <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng">❄️</span>
       <span v-else-if="p.doubleNext" class="tag" title="Cặp tới nhân đôi điểm">✖️2</span>
-      <span v-if="p.id === currentId" class="tag turn">Đang chơi</span>
+      <span v-if="p.id === currentId" class="sr-only">Đang chơi</span>
     </li>
   </ul>
 </template>
 
 <style scoped>
-.strip { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+.strip { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .player {
-  flex: 1 1 150px; display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; border-width: 2px;
+  /* Chip 1 dòng, nén hết cỡ để nhường diện tích cho bàn thẻ trên mobile */
+  flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
+  padding: 5px 9px; border-width: 2px; border-radius: 12px;
 }
 .player.active {
   border-color: var(--accent);
@@ -42,10 +42,20 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
   50% { box-shadow: 0 0 0 1px var(--accent), 0 4px 26px var(--card-back-glow); transform: translateY(-1px); }
 }
 .player.frozen { opacity: .6; }
-.avatar { font-size: 22px; }
-.meta { display: flex; flex-direction: column; min-width: 0; }
-.meta b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.meta small { color: var(--muted); font-size: 12px; }
-.tag { margin-left: auto; font-size: 11px; }
-.tag.turn { color: var(--accent); font-weight: 600; }
+.avatar { font-size: 18px; }
+.name {
+  font-size: 13px; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pts {
+  margin-left: auto; font-family: var(--font-display); font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.player.active .pts { color: var(--accent); }
+.lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
+.tag { font-size: 11px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
 </style>
