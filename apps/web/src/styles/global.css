@@ -2,6 +2,19 @@
 
 * { box-sizing: border-box; }
 html, body, #app { margin: 0; min-height: 100%; }
+html {
+  /* Chặn double-tap zoom toàn cục + kéo giật rubber-band làm xê dịch khi bấm */
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+body {
+  overscroll-behavior: none;
+  /* Bấm nhanh liên tục không bôi đen chữ / hiện callout iOS */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; }
 body {
   color: var(--fg);
   font: 400 16px/1.5 var(--font-body);
