@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memory Match — Game Thẻ Bài Trí Nhớ</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>Memory Match</h1>
+  <button id="btnTheme" class="icon-btn" aria-label="Đổi sáng/tối">🌙</button>
+  <button id="btnSound" class="icon-btn" aria-pressed="true" aria-label="Bật/tắt âm thanh">🔊</button>
+</header>
+
+<main>
+  <!-- MENU -->
+  <section id="screenMenu" class="screen active">
+    <div class="panel">
+      <h2>Chọn chế độ</h2>
+      <div class="choices" role="radiogroup" aria-label="Chế độ chơi">
+        <button class="choice selected" data-mode="classic" role="radio" aria-checked="true">
+          <strong>Cổ điển</strong><small>Không giới hạn thời gian · ít lượt = điểm cao</small>
+        </button>
+        <button class="choice" data-mode="time" role="radio" aria-checked="false">
+          <strong>Đua thời gian</strong><small>Xong càng nhanh, thưởng càng nhiều</small>
+        </button>
+      </div>
+
+      <h2>Kích thước lưới</h2>
+      <div class="choices" role="radiogroup" aria-label="Kích thước lưới">
+        <button class="choice selected" data-grid="4x4" role="radio" aria-checked="true">4×4</button>
+        <button class="choice" data-grid="4x5" role="radio" aria-checked="false">4×5</button>
+        <button class="choice" data-grid="6x6" role="radio" aria-checked="false">6×6</button>
+      </div>
+
+      <h2>Theme thẻ</h2>
+      <div id="themeList" class="choices" role="radiogroup" aria-label="Theme thẻ"></div>
+
+      <button id="btnStart" class="primary">Bắt đầu</button>
+      <div id="bestBoard" class="best"></div>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="screenGame" class="screen">
+    <div class="hud">
+      <div class="stat"><span>Điểm</span><b id="hudScore">0</b></div>
+      <div class="stat"><span>Lượt</span><b id="hudMoves">0</b></div>
+      <div class="stat"><span>Cặp</span><b id="hudPairs">0/0</b></div>
+      <div class="stat"><span id="timeLabel">Thời gian</span><b id="hudTime">0:00</b></div>
+      <div class="stat"><span>Combo</span><b id="hudCombo">x1</b></div>
+      <button id="btnQuit" class="icon-btn" aria-label="Thoát về menu">✕</button>
+    </div>
+    <div id="board" class="board" role="grid" aria-label="Bàn thẻ"></div>
+  </section>
+</main>
+
+<!-- RESULT -->
+<div id="overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="resTitle">
+  <div class="panel">
+    <h2 id="resTitle">Hoàn thành!</h2>
+    <p id="resBody"></p>
+    <div class="row">
+      <button id="btnReplay" class="primary">Chơi lại</button>
+      <button id="btnMenu">Về menu</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
