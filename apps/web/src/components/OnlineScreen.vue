@@ -297,7 +297,7 @@ function openCfgWizard(): void {
           @click="wizToggleTheme(t.id)"
         >
           <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
-          <strong class="tname">{{ cfg.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
+          <strong class="tname">{{ t.name }}</strong>
         </button>
       </div>
 

@@ -243,7 +243,7 @@ function toggleTheme(id: string): void {
             @click="unlocked(t) && toggleTheme(t.id)"
           >
             <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
-            <strong class="tname">{{ themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
+            <strong class="tname">{{ t.name }}</strong>
             <small v-if="!unlocked(t)">🔒 {{ t.unlockAt / 1000 }}k điểm</small>
           </button>
         </div>
