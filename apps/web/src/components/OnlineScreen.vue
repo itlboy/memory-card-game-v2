@@ -567,7 +567,6 @@ function openCfgWizard(): void {
 
 <style scoped>
 .online { display: flex; flex-direction: column; height: 100%; }
-.online > .panel { height: fit-content; }
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { font-size: 22px; line-height: 1; padding: 4px 12px; }
@@ -615,7 +614,6 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 /* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
 .online > .panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
-.online > .panel:not(:has(.step-body)) { flex: 0 1 auto; }
 .step-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .step-body.options { display: grid; }
 .step-body.options, .options.fill {
