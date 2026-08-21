@@ -517,6 +517,7 @@ var GRIDS = {
   // Lưới lẻ ô (3x3, 5x5) có ô trống ở chính giữa. Trần 8x8 = 32 cặp —
   // một theme 24 biểu tượng là không đủ, người chơi cần chọn thêm theme.
   "2x2": { cols: 2, rows: 2, timeLimit: 15 },
+  "2x3": { cols: 2, rows: 3, timeLimit: 25 },
   "3x3": { cols: 3, rows: 3, timeLimit: 35 },
   "3x4": { cols: 3, rows: 4, timeLimit: 55 },
   "4x4": { cols: 4, rows: 4, timeLimit: 70 },
@@ -525,6 +526,7 @@ var GRIDS = {
   "5x6": { cols: 5, rows: 6, timeLimit: 140 },
   "6x6": { cols: 6, rows: 6, timeLimit: 190 },
   "6x8": { cols: 6, rows: 8, timeLimit: 230 },
+  "7x8": { cols: 7, rows: 8, timeLimit: 260 },
   "8x8": { cols: 8, rows: 8, timeLimit: 300 }
 };
 function presetConfig({ mode, grid, symbols, seed, players }) {
@@ -630,7 +632,9 @@ var THEME_SYMBOLS = {
   sports: ["\u26BD", "\u{1F3C0}", "\u{1F3C8}", "\u26BE", "\u{1F3BE}", "\u{1F3D0}", "\u{1F3C9}", "\u{1F3B1}", "\u{1F3D3}", "\u{1F3F8}", "\u{1F945}", "\u26F3", "\u{1F3D2}", "\u{1F94D}", "\u{1F94A}", "\u{1F94B}", "\u26F8\uFE0F", "\u{1F6F9}", "\u{1F3F9}", "\u{1F3A3}", "\u{1F93F}", "\u{1F3BD}", "\u{1F3C6}", "\u{1F947}"],
   nature: ["\u{1F338}", "\u{1F33B}", "\u{1F339}", "\u{1F337}", "\u{1F335}", "\u{1F334}", "\u{1F340}", "\u{1F341}", "\u{1F33F}", "\u{1F344}", "\u26F0\uFE0F", "\u{1F30B}", "\u{1F3DD}\uFE0F", "\u{1F30A}", "\u2744\uFE0F", "\u26C5", "\u{1F308}", "\u26A1", "\u{1F319}", "\u2600\uFE0F", "\u2B50", "\u{1F525}", "\u{1F4A7}", "\u{1F333}"],
   space: ["\u{1F680}", "\u{1F6F8}", "\u{1FA90}", "\u{1F30D}", "\u{1F30E}", "\u{1F30F}", "\u{1F315}", "\u2604\uFE0F", "\u{1F31F}", "\u2728", "\u{1F47D}", "\u{1F6F0}\uFE0F", "\u{1F52D}", "\u{1F30C}", "\u{1F320}", "\u{1F9ED}", "\u{1F4E1}", "\u269B\uFE0F", "\u{1F311}", "\u{1F31C}", "\u{1F31B}", "\u{1F31E}", "\u{1F386}", "\u{1F321}\uFE0F"],
-  vehicles: ["\u{1F697}", "\u{1F695}", "\u{1F699}", "\u{1F68C}", "\u{1F68E}", "\u{1F3CE}\uFE0F", "\u{1F693}", "\u{1F691}", "\u{1F692}", "\u{1F69A}", "\u{1F69C}", "\u{1F6F5}", "\u{1F3CD}\uFE0F", "\u{1F6B2}", "\u{1F6F4}", "\u{1F682}", "\u2708\uFE0F", "\u{1F681}", "\u26F5", "\u{1F6A4}", "\u{1F6F3}\uFE0F", "\u{1F6FA}", "\u{1F6A0}", "\u{1F6A1}"]
+  vehicles: ["\u{1F697}", "\u{1F695}", "\u{1F699}", "\u{1F68C}", "\u{1F68E}", "\u{1F3CE}\uFE0F", "\u{1F693}", "\u{1F691}", "\u{1F692}", "\u{1F69A}", "\u{1F69C}", "\u{1F6F5}", "\u{1F3CD}\uFE0F", "\u{1F6B2}", "\u{1F6F4}", "\u{1F682}", "\u2708\uFE0F", "\u{1F681}", "\u26F5", "\u{1F6A4}", "\u{1F6F3}\uFE0F", "\u{1F6FA}", "\u{1F6A0}", "\u{1F6A1}"],
+  smileys: ["\u{1F600}", "\u{1F601}", "\u{1F602}", "\u{1F923}", "\u{1F60A}", "\u{1F607}", "\u{1F642}", "\u{1F609}", "\u{1F60D}", "\u{1F618}", "\u{1F61C}", "\u{1F92A}", "\u{1F928}", "\u{1F60E}", "\u{1F929}", "\u{1F973}", "\u{1F634}", "\u{1F92F}", "\u{1F631}", "\u{1F976}", "\u{1F922}", "\u{1F920}", "\u{1F921}", "\u{1F47B}"],
+  ocean: ["\u{1F433}", "\u{1F40B}", "\u{1F42C}", "\u{1F988}", "\u{1F419}", "\u{1F991}", "\u{1F990}", "\u{1F99E}", "\u{1F980}", "\u{1F421}", "\u{1F420}", "\u{1F41F}", "\u{1F41A}", "\u2693", "\u{1F30A}", "\u26F5", "\u{1F6A4}", "\u{1F6E5}\uFE0F", "\u{1F3DD}\uFE0F", "\u{1F3D6}\uFE0F", "\u{1F93F}", "\u{1F3A3}", "\u{1F9DC}\u200D\u2640\uFE0F", "\u{1F422}"]
 };
 
 // src/room.ts

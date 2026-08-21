@@ -250,7 +250,7 @@ function openCfgWizard(): void {
       </span>
     </div>
 
-    <div v-if="wizard === 'mode'" class="options">
+    <div v-if="wizard === 'mode'" class="step-body options">
       <button
         v-for="m in MODES" :key="m.id" class="option wide" type="button"
         :aria-pressed="cfg.mode === m.id"
@@ -261,7 +261,7 @@ function openCfgWizard(): void {
       </button>
     </div>
 
-    <div v-else-if="wizard === 'grid'" class="options wiz-grids">
+    <div v-else-if="wizard === 'grid'" class="step-body options wiz-grids">
       <button
         v-for="(g, k) in GRIDS" :key="k" class="option" type="button"
         :aria-pressed="cfg.grid === k"
@@ -269,7 +269,7 @@ function openCfgWizard(): void {
       >
         <span
           class="grid-preview" aria-hidden="true"
-          :style="{ gridTemplateColumns: `repeat(${g.cols}, 1fr)`, width: `${g.cols * 9}px` }"
+          :style="{ gridTemplateColumns: `repeat(${g.cols}, 1fr)`, width: `${g.cols * 8}px` }"
         >
           <i v-for="n in g.cols * g.rows" :key="n" :class="{ blank: isBlankCell(String(k), n - 1) }" />
         </span>
@@ -278,9 +278,9 @@ function openCfgWizard(): void {
       </button>
     </div>
 
-    <div v-else>
+    <div v-else class="step-body">
       <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
-      <div class="options wiz-themes" role="group" aria-label="Theme thẻ">
+      <div class="options wiz-themes fill" role="group" aria-label="Theme thẻ">
         <button
           v-for="t in allThemes" :key="t.id" class="option theme-opt" role="checkbox"
           :aria-checked="cfg.themeIds.includes(t.id)"
@@ -574,22 +574,33 @@ input:focus { outline: none; border-color: var(--accent); }
   border-color: var(--accent); background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);
 }
-.options.wiz-grids { grid-template-columns: repeat(2, 1fr); }
-.options.wiz-themes { grid-template-columns: repeat(2, 1fr); }
-@media (min-width: 560px) {
-  .options.wiz-grids { grid-template-columns: repeat(5, 1fr); }
-  .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }
+/* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
+.online > .panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.online > .panel:not(:has(.step-body)) { flex: 0 1 auto; }
+.step-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.step-body.options { display: grid; }
+.step-body.options, .options.fill {
+  flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
 }
-.options.wiz-grids .option { padding: 12px 6px; }
-.grid-preview { display: grid; gap: 2px; min-height: 56px; align-content: center; max-width: 100%; }
+.option { min-height: 0; overflow: hidden; justify-content: center; }
+.options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
+.options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
+@media (min-width: 560px) {
+  .options.wiz-grids { grid-template-columns: repeat(4, 1fr); }
+  .options.wiz-themes { grid-template-columns: repeat(4, 1fr); }
+}
+.options.wiz-grids .option { padding: 6px 4px; gap: 2px; }
+.options.wiz-grids strong { font-size: var(--text-md); }
+.options.wiz-grids small, .theme-opt small { font-size: var(--text-xs); }
+.grid-preview { display: grid; gap: 1.5px; align-content: center; max-width: 72%; min-height: 0; }
 .grid-preview i {
-  aspect-ratio: 3 / 4; border-radius: 2px;
+  aspect-ratio: 3 / 4; border-radius: 2px; min-height: 0;
   background: linear-gradient(150deg, var(--accent), var(--accent-2));
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
-.theme-opt { padding: 14px 10px; }
-.theme-sample { font-size: 22px; letter-spacing: 2px; }
+.theme-opt { padding: 8px 6px; gap: 2px; }
+.theme-sample { font-size: clamp(15px, 4.5vw, 22px); letter-spacing: 1px; white-space: nowrap; }
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
 .dots { display: flex; gap: 6px; }
 .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }

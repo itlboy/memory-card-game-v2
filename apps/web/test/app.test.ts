@@ -222,13 +222,13 @@ describe('màn online (điều hướng, không cần server)', () => {
 });
 
 describe('bước chọn lưới', () => {
-  it('có đủ 10 cỡ bàn, trần 8×8, preview vẽ đúng hình dạng bàn', async () => {
+  it('có đủ 12 cỡ bàn, trần 8×8, preview vẽ đúng hình dạng bàn', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
     const options = wrapper.findAll('.option');
-    expect(options.length).toBe(10);
+    expect(options.length).toBe(12);   // 3×4 mobile / 4×3 desktop — tròn hàng
     expect(wrapper.text()).toContain('8×8');
     expect(wrapper.text()).toContain('32 cặp');
     expect(wrapper.text()).not.toContain('8×10');

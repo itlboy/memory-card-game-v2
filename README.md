@@ -18,6 +18,13 @@ pnpm serve      # web server Node thuần phục vụ bản build, http://127.0.
 `pnpm serve` không cần dependency nào; đổi port bằng `node server.js 4000`, đổi thư mục
 gốc bằng `MM_ROOT=... node server.js`.
 
+## Ràng buộc UI quan trọng
+
+**Không scroll trên mobile**: mọi màn (wizard, lobby, màn chơi) phải trọn
+trong viewport — nút hành động chính không bao giờ bị đẩy khỏi màn hình.
+Lưới lựa chọn dùng `grid-auto-rows: minmax(0, 1fr)` để tự nén theo chỗ còn
+lại; thêm lựa chọn = ô nhỏ đi, không dài trang ra. Chi tiết xem CLAUDE.md.
+
 ## Cấu trúc
 
 ```

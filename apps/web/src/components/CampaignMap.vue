@@ -12,7 +12,7 @@ const totalStars = computed(() => Object.values(props.progress).reduce((n, p) =>
 </script>
 
 <template>
-  <div>
+  <div class="wrap">
     <p class="summary">Đã đạt <b>{{ totalStars }}</b> / {{ levels.length * 3 }} sao</p>
     <ol class="map">
       <li v-for="l in levels" :key="l.id">
@@ -34,14 +34,22 @@ const totalStars = computed(() => Object.values(props.progress).reduce((n, p) =>
 </template>
 
 <style scoped>
-.summary { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+/* KHÔNG SCROLL: 20 màn nén vừa chỗ còn lại — 4 cột mobile / 5 cột desktop */
+.wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.summary { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
 .map {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-  gap: 8px; list-style: none; margin: 0; padding: 0;
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(0, 1fr); overflow: hidden;
+  gap: 6px; list-style: none; margin: 0; padding: 0;
 }
+@media (min-width: 560px) {
+  .map { grid-template-columns: repeat(5, 1fr); }
+}
+li { display: flex; min-height: 0; }
 .node {
-  width: 100%; min-height: 72px; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 1px; padding: 8px 4px;
+  width: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 0; padding: 4px 2px; overflow: hidden;
   border: 2px solid var(--line); border-radius: 12px; background: transparent;
 }
 .node b { font-size: 18px; }

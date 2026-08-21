@@ -157,7 +157,7 @@ function toggleTheme(id: string): void {
 
     <Transition name="step" mode="out-in">
       <!-- BƯỚC 1: một mình hay nhiều người -->
-      <div v-if="step === 'players'" key="players" class="options">
+      <div v-if="step === 'players'" key="players" class="step-body options">
         <button class="option big" type="button" @click="pickPlayers(false)">
           <span class="icon">🧍</span>
           <strong>Chơi một mình</strong>
@@ -176,7 +176,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="options row3">
+      <div v-else-if="step === 'count'" key="count" class="step-body options row3">
         <button
           v-for="n in [2, 3, 4]" :key="n" class="option" type="button"
           :aria-pressed="playerCount === n"
@@ -188,7 +188,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
-      <div v-else-if="step === 'mode'" key="mode" class="options">
+      <div v-else-if="step === 'mode'" key="mode" class="step-body options">
         <button
           v-for="m in modes" :key="m.id" class="option wide" type="button"
           :aria-pressed="mode === m.id"
@@ -200,7 +200,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC: bản đồ Chiến dịch -->
-      <div v-else-if="step === 'campaign'" key="campaign">
+      <div v-else-if="step === 'campaign'" key="campaign" class="step-body">
         <CampaignMap
           :progress="store.campaign()"
           :unlocked="store.unlockedLevel()"
@@ -209,7 +209,7 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC: kích thước lưới — chọn là sang bước theme -->
-      <div v-else-if="step === 'grid'" key="grid" class="options grid3">
+      <div v-else-if="step === 'grid'" key="grid" class="step-body options grid3">
         <button
           v-for="k in gridKeys" :key="k" class="option" type="button"
           :aria-pressed="grid === k"
@@ -219,7 +219,7 @@ function toggleTheme(id: string): void {
             class="grid-preview" aria-hidden="true"
             :style="{
               gridTemplateColumns: `repeat(${GRIDS[k]!.cols}, 1fr)`,
-              width: `${GRIDS[k]!.cols * 9}px`
+              width: `${GRIDS[k]!.cols * 8}px`
             }"
           >
             <i v-for="n in GRIDS[k]!.cols * GRIDS[k]!.rows" :key="n" :class="{ blank: isBlankCell(k, n - 1) }" />
@@ -230,9 +230,9 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC cuối: theme (chọn được nhiều) + Bắt đầu -->
-      <div v-else key="theme">
+      <div v-else key="theme" class="step-body theme-step">
         <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
-        <div class="options grid2" role="group" aria-label="Theme thẻ">
+        <div class="options grid2 fill" role="group" aria-label="Theme thẻ">
           <button
             v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
             :aria-checked="themeIds.includes(t.id)"
@@ -268,29 +268,44 @@ function toggleTheme(id: string): void {
 </template>
 
 <style scoped>
-.hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
+.hint-multi { margin: 0 0 10px; color: var(--muted); font-size: var(--text-sm); }
+
+/* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
+section.panel { display: flex; flex-direction: column; min-height: 0; }
+.step-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.step-body.options { display: grid; }
+.step-body.options, .options.fill {
+  flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
+}
+.option { min-height: 0; overflow: hidden; justify-content: center; }
+
 .options.grid3 {
-  /* 10 cỡ bàn: 2 cột (mobile) hay 5 cột (desktop) đều chia hết — không lẻ ô thừa */
-  grid-template-columns: repeat(2, 1fr);
+  /* 12 cỡ bàn: 3 cột (mobile, 4 hàng) hay 4 cột (desktop, 3 hàng) đều tròn hàng */
+  grid-template-columns: repeat(3, 1fr);
 }
 @media (min-width: 560px) {
-  .options.grid3 { grid-template-columns: repeat(5, 1fr); }
+  .options.grid3 { grid-template-columns: repeat(4, 1fr); }
 }
-.options.grid2 { grid-template-columns: repeat(2, 1fr); }
+.options.grid2 { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
+@media (min-width: 560px) {
+  .options.grid2 { grid-template-columns: repeat(4, 1fr); }
+}
+.theme-step { gap: 0; }
 .grid-preview {
-  display: grid; gap: 2px;
-  min-height: 56px; align-content: center;
-  max-width: 100%;
+  display: grid; gap: 1.5px;
+  align-content: center; max-width: 72%; min-height: 0;
 }
 .grid-preview i {
-  aspect-ratio: 3 / 4; border-radius: 2px;
+  aspect-ratio: 3 / 4; border-radius: 2px; min-height: 0;
   background: linear-gradient(150deg, var(--accent), var(--accent-2));
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
-.options.grid3 .option { padding: 12px 6px; }
-.theme-opt { padding: 14px 10px; }
-.theme-sample { font-size: 22px; letter-spacing: 2px; }
+.options.grid3 .option { padding: 6px 4px; gap: 2px; }
+.options.grid3 strong { font-size: var(--text-md); }
+.options.grid3 small, .theme-opt small { font-size: var(--text-xs); }
+.theme-opt { padding: 8px 6px; gap: 2px; }
+.theme-sample { font-size: clamp(15px, 4.5vw, 22px); letter-spacing: 1px; white-space: nowrap; }
 .option[aria-checked='true'] {
   border-color: var(--accent); background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);

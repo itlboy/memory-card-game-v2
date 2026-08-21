@@ -67,4 +67,14 @@ describe('file themes.json thực trong repo', () => {
     // Phải có ít nhất một theme mở sẵn, nếu không người mới không chơi được
     expect(themes.some((t) => t.unlockAt === 0)).toBe(true);
   });
+
+  it('đúng 12 theme: 6 mở sẵn + 6 khoá bằng điểm (lưới 3×4)', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
+    const { themes } = JSON.parse(raw) as { themes: { unlockAt: number }[] };
+    expect(themes).toHaveLength(12);
+    expect(themes.filter((t) => t.unlockAt === 0)).toHaveLength(6);
+    expect(themes.filter((t) => t.unlockAt > 0)).toHaveLength(6);
+  });
 });
