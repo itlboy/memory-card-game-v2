@@ -4,7 +4,7 @@
   "private": true,
   "description": "Game thẻ bài trí nhớ (Memory Match) — monorepo",
   "scripts": {
-    "dev": "pnpm --filter @mm/web dev",
+    "dev": "pnpm --parallel --filter @mm/web --filter @mm/server dev",
     "build": "pnpm --filter @mm/web build",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
@@ -12,7 +12,8 @@
     "dev:legacy": "node legacy/v1/server.js 3002",
     "dev:server": "pnpm --filter @mm/server dev",
     "smoke:online": "node tools/smoke-online.mjs",
-    "deploy:server": "pnpm --filter @mm/server deploy"
+    "deploy:server": "pnpm --filter @mm/server deploy",
+    "dev:web": "pnpm --filter @mm/web dev"
   },
   "packageManager": "pnpm@10.0.0"
 }
