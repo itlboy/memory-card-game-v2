@@ -1,0 +1,9 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",       "x": 0, "y": 0,    "w": 520,  "h": 260, "title": "Tổng quan" },
+    { "file": "LaBai.dc.html",      "x": 0, "y": 400,  "w": 1300, "h": 760 },
+    { "file": "SanhSplit.dc.html",  "x": 0, "y": 1300, "w": 1300, "h": 760 },
+    { "file": "ArcadeNeon.dc.html", "x": 0, "y": 2200, "w": 1300, "h": 760 }
+  ],
+  "launch": { "view": "canvas" }
+}

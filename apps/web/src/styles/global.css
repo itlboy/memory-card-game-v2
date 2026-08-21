@@ -18,7 +18,11 @@ body {
 #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: .01em; }
-button { font: inherit; color: inherit; cursor: pointer; }
+button {
+  font: inherit; color: inherit; cursor: pointer;
+  /* Chặn trình duyệt chờ double-tap (~300ms) trên thiết bị cảm ứng */
+  touch-action: manipulation;
+}
 :where(button, [tabindex]):focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;

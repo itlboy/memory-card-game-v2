@@ -662,7 +662,7 @@ input:focus { outline: none; border-color: var(--accent); }
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 24px 16px; border: 2px solid var(--line); border-radius: 14px;
   background: var(--panel-soft); text-align: center;
-  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu tức thì */
 }
 @media (hover: hover) {
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }

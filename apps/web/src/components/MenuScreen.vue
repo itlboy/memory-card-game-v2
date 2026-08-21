@@ -345,7 +345,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 16px 12px; min-height: 44px;
   border: 2px solid var(--line); border-radius: 14px; background: var(--panel-soft);
-  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu tức thì */
   text-align: center;
 }
 @media (hover: hover) {

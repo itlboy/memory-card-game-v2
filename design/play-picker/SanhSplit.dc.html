@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Nunito', system-ui, sans-serif; color: #eef0fc; }
+    a { color: #8b7dff; } a:hover { color: #cf6bfa; }
+  </style>
+</helmet>
+<div style="width: 1300px; height: 760px; background: radial-gradient(50rem 30rem at 85% -10%, rgba(124,92,255,.2), transparent 60%), #0c0e1c; display: flex; flex-direction: column; gap: 14px; padding: 22px; overflow: hidden">
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <div style="font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 21px">B · Sảnh split</div>
+    <div style="color: #9ba3cd; font-size: 13px; max-width: 900px">Desktop chia đôi: trái là lời chào to kiểu editorial, phải là 3 hàng lựa chọn — hàng đầu (chơi một mình) nổi bật gradient làm CTA chính. Mobile thành list gọn. Tối giản, nhanh gọn. Đánh đổi: ít 'chất game', nghiêng về app.</div>
+  </div>
+  <div style="flex: 1; min-height: 0; display: flex; gap: 26px; align-items: stretch">
+    <div style="flex: 1; min-width: 0; display: flex; border: 2px solid rgba(148,152,220,.16); border-radius: 18px; background: #0c0e1c; overflow: hidden">
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 40px">
+    <span style="font-size: 34px">🃏</span>
+    <b style="font-family: 'Baloo 2', sans-serif; font-size: 34px; line-height: 1.15">Hôm nay<br>chơi kiểu gì?</b>
+    <span style="color: #9ba3cd; font-size: 14px; max-width: 300px">Lật thẻ, ghép cặp, phá kỷ lục — một mình hay cùng bạn bè.</span>
+  </div>
+  <div style="flex: 1.1; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 36px 40px 36px 0">
+    <div style="border-radius: 16px; background: linear-gradient(135deg, #8b7dff, #cf6bfa); padding: 18px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(139,125,255,.4)">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <b style="font-family: 'Baloo 2', sans-serif; font-size: 19px; color: #fff">Chơi một mình</b>
+            <span style="color: rgba(255,255,255,.85); font-size: 13px">Luyện trí nhớ, phá kỷ lục của chính bạn</span>
+          </div>
+          <span style="margin-left: auto; color: #fff; font-size: 22px">›</span>
+        </div>
+    <div style="border-radius: 14px; background: #1e2240; border: 1px solid rgba(148,152,220,.16); padding: 14px 18px; display: flex; align-items: center; gap: 14px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b7dff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a7 7 0 0 1 13.5-2.6"/><circle cx="17.5" cy="10" r="3"/><path d="M22 21v-.7a5 5 0 0 0-5-4.8"/></svg>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <b style="font-family: 'Baloo 2', sans-serif; font-size: 16px">Chơi nhiều người</b>
+        <span style="color: #9ba3cd; font-size: 12.5px">2–4 người thay lượt trên cùng máy</span>
+      </div>
+      <span style="margin-left: auto; color: #9ba3cd; font-size: 20px">›</span>
+    </div>
+    <div style="border-radius: 14px; background: #1e2240; border: 1px solid rgba(148,152,220,.16); padding: 14px 18px; display: flex; align-items: center; gap: 14px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b7dff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <b style="font-family: 'Baloo 2', sans-serif; font-size: 16px">Chơi online</b>
+        <span style="color: #9ba3cd; font-size: 12.5px">Tạo phòng, mời bạn bè bằng mã 6 số</span>
+      </div>
+      <span style="margin-left: auto; color: #9ba3cd; font-size: 20px">›</span>
+    </div>
+  </div>
+</div><div style="flex: 0 0 300px; display: flex; flex-direction: column; border: 2px solid rgba(148,152,220,.16); border-radius: 26px; background: #0c0e1c; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.5)">
+      <div style="padding: 10px 16px; border-bottom: 1px solid rgba(148,152,220,.16); display: flex; align-items: center; gap: 8px">
+        <span style="font-size: 15px">🃏</span>
+        <b style="font-family: 'Baloo 2', sans-serif; background: linear-gradient(100deg, #8b7dff, #cf6bfa); -webkit-background-clip: text; background-clip: text; color: transparent">Memory Match</b>
+      </div>
+      <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+        <b style="font-family: 'Baloo 2', sans-serif; font-size: 16px">Bạn muốn chơi thế nào?</b>
+        <div style="display: flex; flex-direction: column; gap: 10px; flex: 1; justify-content: center">
+  <div style="border-radius: 16px; background: linear-gradient(135deg, #8b7dff, #cf6bfa); padding: 18px 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(139,125,255,.4)">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <b style="font-family: 'Baloo 2', sans-serif; font-size: 19px; color: #fff">Chơi một mình</b>
+            <span style="color: rgba(255,255,255,.85); font-size: 13px">Phá kỷ lục của chính bạn</span>
+          </div>
+          <span style="margin-left: auto; color: #fff; font-size: 22px">›</span>
+        </div>
+  <div style="border-radius: 14px; background: #1e2240; border: 1px solid rgba(148,152,220,.16); padding: 14px 18px; display: flex; align-items: center; gap: 14px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b7dff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a7 7 0 0 1 13.5-2.6"/><circle cx="17.5" cy="10" r="3"/><path d="M22 21v-.7a5 5 0 0 0-5-4.8"/></svg>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <b style="font-family: 'Baloo 2', sans-serif; font-size: 16px">Chơi nhiều người</b>
+        <span style="color: #9ba3cd; font-size: 12.5px">2–4 người cùng máy</span>
+      </div>
+      <span style="margin-left: auto; color: #9ba3cd; font-size: 20px">›</span>
+    </div>
+  <div style="border-radius: 14px; background: #1e2240; border: 1px solid rgba(148,152,220,.16); padding: 14px 18px; display: flex; align-items: center; gap: 14px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b7dff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <b style="font-family: 'Baloo 2', sans-serif; font-size: 16px">Chơi online</b>
+        <span style="color: #9ba3cd; font-size: 12.5px">Mã phòng 6 số</span>
+      </div>
+      <span style="margin-left: auto; color: #9ba3cd; font-size: 20px">›</span>
+    </div>
+</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
