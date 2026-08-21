@@ -169,35 +169,43 @@ const THEMES = [
         <small v-if="p.id === o.myId.value">(bạn)</small>
         <span v-if="!p.connected" class="offline">rớt mạng…</span>
       </li>
-      <li v-for="n in 4 - (o.room.value?.players.length ?? 0)" :key="`empty-${n}`" class="empty">
-        Đang chờ người chơi… chia sẻ mã <b>{{ o.room.value?.code }}</b>
+      <li v-if="(o.room.value?.players.length ?? 0) < 4" class="empty">
+        Còn {{ 4 - (o.room.value?.players.length ?? 0) }} chỗ trống — chia sẻ mã
+        <b>{{ o.room.value?.code }}</b> để mời bạn bè
       </li>
     </ul>
 
     <template v-if="o.isHost.value">
-      <h3 class="section-title">Chế độ</h3>
-      <div class="chips">
-        <button
-          v-for="m in MODES" :key="m.id" class="chip compact" role="radio"
-          :aria-checked="o.room.value?.config.mode === m.id" type="button"
-          @click="o.setConfig({ mode: m.id })"
-        ><strong>{{ m.name }}</strong></button>
+      <!-- Mỗi nhóm cấu hình đúng một dòng: nhãn + chip cuộn ngang, nút Bắt đầu không bị đẩy -->
+      <div class="cfg-row" role="radiogroup" aria-label="Chế độ">
+        <span class="cfg-label">Chế độ</span>
+        <div class="cfg-chips">
+          <button
+            v-for="m in MODES" :key="m.id" class="chip mini" role="radio"
+            :aria-checked="o.room.value?.config.mode === m.id" type="button"
+            @click="o.setConfig({ mode: m.id })"
+          >{{ m.name }}</button>
+        </div>
       </div>
-      <h3 class="section-title">Lưới</h3>
-      <div class="chips">
-        <button
-          v-for="(g, k) in GRIDS" :key="k" class="chip compact" role="radio"
-          :aria-checked="o.room.value?.config.grid === k" type="button"
-          @click="o.setConfig({ grid: String(k) })"
-        ><strong>{{ String(k).replace('x', '×') }}</strong></button>
+      <div class="cfg-row" role="radiogroup" aria-label="Lưới">
+        <span class="cfg-label">Lưới</span>
+        <div class="cfg-chips">
+          <button
+            v-for="(g, k) in GRIDS" :key="k" class="chip mini" role="radio"
+            :aria-checked="o.room.value?.config.grid === k" type="button"
+            @click="o.setConfig({ grid: String(k) })"
+          >{{ String(k).replace('x', '×') }}</button>
+        </div>
       </div>
-      <h3 class="section-title">Theme</h3>
-      <div class="chips">
-        <button
-          v-for="t in THEMES" :key="t.id" class="chip compact" role="radio"
-          :aria-checked="o.room.value?.config.themeId === t.id" type="button"
-          @click="o.setConfig({ themeId: t.id })"
-        ><strong>{{ t.name }}</strong></button>
+      <div class="cfg-row" role="radiogroup" aria-label="Theme">
+        <span class="cfg-label">Theme</span>
+        <div class="cfg-chips">
+          <button
+            v-for="t in THEMES" :key="t.id" class="chip mini" role="radio"
+            :aria-checked="o.room.value?.config.themeId === t.id" type="button"
+            @click="o.setConfig({ themeId: t.id })"
+          >{{ t.name }}</button>
+        </div>
       </div>
       <button
         class="btn-primary" type="button"
@@ -354,6 +362,23 @@ input:focus { outline: none; border-color: var(--accent); }
   background: color-mix(in srgb, var(--bad) 14%, transparent);
 }
 .chip.compact { flex: 0 1 auto; min-width: 80px; }
+
+.cfg-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.cfg-label {
+  flex: 0 0 52px; font-family: var(--font-display); font-size: var(--text-xs);
+  text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700;
+}
+.cfg-chips {
+  flex: 1; min-width: 0; display: flex; gap: 6px;
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  padding: 2px;   /* chừa chỗ cho viền chip khi được chọn */
+}
+.cfg-chips::-webkit-scrollbar { display: none; }
+.chip.mini {
+  flex: 0 0 auto; min-height: 40px; min-width: 0; padding: 6px 12px;
+  font-size: var(--text-sm); font-weight: 700; white-space: nowrap;
+  display: inline-flex; align-items: center;
+}
 
 /* ---- trong ván ---- */
 .game { display: flex; flex-direction: column; gap: 8px; height: 100%; }
