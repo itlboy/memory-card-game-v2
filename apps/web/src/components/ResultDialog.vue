@@ -29,7 +29,35 @@ onMounted(() => {
   }
 });
 
+/** Pháo hoa: các vụ nổ so le quanh màn, mỗi vụ 18 spark toả tròn. */
+interface Spark { dx: string; dy: string; delay: string; dur: string; color: string }
+interface Burst { left: string; top: string; sparks: Spark[] }
+const FW_COLORS = ['#ffd54a', '#ff7b72', '#7ce38b', '#79c0ff', '#d2a8ff', '#ff9ff3'];
+const fireworks = computed<Burst[]>(() => {
+  if (props.summary.status !== 'won') return [];
+  return Array.from({ length: 5 }, (_, b) => {
+    const baseDelay = 0.15 + b * 0.55;
+    const color = FW_COLORS[(b * 2) % FW_COLORS.length]!;
+    return {
+      left: `${12 + ((b * 37) % 76)}%`,
+      top: `${10 + ((b * 23) % 38)}%`,
+      sparks: Array.from({ length: 18 }, (_, i) => {
+        const angle = (i / 18) * Math.PI * 2;
+        const dist = 60 + (i % 3) * 26;
+        return {
+          dx: `${Math.cos(angle) * dist}px`,
+          dy: `${Math.sin(angle) * dist + 28}px`,   // +28: rơi nhẹ theo trọng lực
+          delay: `${baseDelay}s`,
+          dur: `${0.8 + (i % 4) * 0.12}s`,
+          color: i % 5 === 0 ? '#ffffff' : color
+        };
+      })
+    };
+  });
+});
+
 /** Confetti: 60 mảnh giấy với vị trí/màu/độ trễ tất định theo chỉ số. */
+const sp0 = (b: Burst): string => b.sparks[0]?.delay ?? '0s';
 const CONFETTI_COLORS = ['#6a5cff', '#b74cf0', '#f59e0b', '#10b981', '#ef4444', '#38bdf8'];
 const confetti = computed(() => {
   if (props.summary.status !== 'won') return [];
@@ -62,6 +90,21 @@ const title = computed(() => {
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
     <div v-if="confetti.length" class="confetti" aria-hidden="true">
       <i v-for="(c, i) in confetti" :key="i" :style="c" />
+    </div>
+    <div v-if="fireworks.length" class="fireworks" aria-hidden="true">
+      <span
+        v-for="(b, bi) in fireworks" :key="bi"
+        class="burst" :style="{ left: b.left, top: b.top }"
+      >
+        <i
+          v-for="(sp, si) in b.sparks" :key="si"
+          :style="{
+            '--dx': sp.dx, '--dy': sp.dy, background: sp.color,
+            animationDelay: sp.delay, animationDuration: sp.dur
+          }"
+        />
+        <b :style="{ animationDelay: sp0(b) }" />
+      </span>
     </div>
     <div class="panel">
       <h2 id="resTitle">{{ title }}</h2>
@@ -137,6 +180,30 @@ h2 { margin: 0 0 4px; }
 }
 
 .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+
+.fireworks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.burst { position: absolute; }
+.burst i {
+  position: absolute; width: 7px; height: 7px; border-radius: 50%;
+  opacity: 0; box-shadow: 0 0 8px currentColor;
+  animation-name: fw-spark; animation-timing-function: cubic-bezier(.1, .7, .4, 1);
+  animation-fill-mode: forwards;
+}
+.burst b {
+  position: absolute; width: 14px; height: 14px; border-radius: 50%;
+  left: -7px; top: -7px; background: #fff; opacity: 0;
+  box-shadow: 0 0 30px 14px rgba(255, 255, 255, .85);
+  animation: fw-flash .35s ease-out forwards;
+}
+@keyframes fw-spark {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  75% { opacity: .95; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(.35); opacity: 0; }
+}
+@keyframes fw-flash {
+  0% { transform: scale(.3); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
 .confetti i {
   position: absolute; top: -3vh; width: 8px; height: 14px; border-radius: 2px;
   animation: fall linear forwards;

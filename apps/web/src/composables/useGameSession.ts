@@ -77,7 +77,7 @@ export function useGameSession() {
           break;
         case 'end':
           summary.value = e.summary;
-          e.summary.status === 'won' ? sfx.win() : sfx.lose();
+          e.summary.status === 'won' ? sfx.victory() : sfx.lose();
           break;
       }
     }

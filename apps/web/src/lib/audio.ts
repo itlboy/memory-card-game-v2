@@ -190,6 +190,40 @@ class Sfx {
       this.voice(f, { dur: 0.55, type: 'sine', gain: 0.028, delay: 0.42 }));
   }
 
+  /** Tiếng vỗ tay: chuỗi "clap" = noise bandpass ngắn, nhịp ngẫu nhiên dày dần rồi thưa. */
+  applause(duration = 2.4): void {
+    let t = 0.05;
+    while (t < duration) {
+      const fade = 1 - Math.max(0, (t - duration * 0.55) / (duration * 0.45));   // nhỏ dần về cuối
+      this.noise(0.03 + Math.random() * 0.025, {
+        freq: 1400 + Math.random() * 1400,
+        type: 'bandpass',
+        gain: (0.02 + Math.random() * 0.035) * Math.max(0.15, fade),
+        delay: t
+      });
+      t += 0.03 + Math.random() * 0.07;   // 10–30 tiếng vỗ mỗi giây
+    }
+  }
+
+  /** Một quả pháo hoa: rít bay lên → nổ trầm → lách tách. */
+  firework(delay = 0): void {
+    this.voice(380, { dur: 0.55, type: 'sine', gain: 0.02, delay, slideTo: 1250 });          // rít
+    this.noise(0.45, { freq: 160, type: 'lowpass', gain: 0.12, delay: delay + 0.6 });        // nổ
+    this.voice(90, { dur: 0.5, type: 'sine', gain: 0.06, delay: delay + 0.6, slideTo: 34 });
+    for (let i = 0; i < 9; i++) {                                                            // lách tách
+      this.noise(0.03, { freq: 5200 + Math.random() * 2500, gain: 0.02, delay: delay + 0.72 + i * 0.05 + Math.random() * 0.03 });
+    }
+  }
+
+  /** Đại tiệc chiến thắng: fanfare + vỗ tay + 3 quả pháo hoa so le. */
+  victory(): void {
+    this.win();
+    this.applause(2.6);
+    this.firework(0.15);
+    this.firework(0.85);
+    this.firework(1.5);
+  }
+
   lose(): void {
     this.voice(392, { dur: 0.5, type: 'sawtooth', gain: 0.04, slideTo: 196 });
     this.noise(0.3, { freq: 300, type: 'lowpass', gain: 0.05, delay: 0.15 });

@@ -296,7 +296,7 @@ export function useOnlineRoom() {
           setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
         case 'end':
-          e.summary.ranking[0]?.id === myId.value ? sfx.win() : sfx.lose();
+          e.summary.ranking[0]?.id === myId.value ? sfx.victory() : sfx.lose();
           endSession();
           break;
       }
