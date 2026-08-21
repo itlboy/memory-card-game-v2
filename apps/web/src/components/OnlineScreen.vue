@@ -610,12 +610,13 @@ input:focus { outline: none; border-color: var(--accent); }
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
-.theme-opt { padding: 10px 8px; gap: 3px; }
+.theme-opt { padding: 10px 6px; gap: 3px; container-type: inline-size; }
 .theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
+/* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
+   — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
 .tname {
-  font-size: var(--text-sm); line-height: 1.15; text-align: center;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: clamp(10px, 10.5cqw, 14px);
+  line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
 }
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
 .dots { display: flex; gap: 6px; }
