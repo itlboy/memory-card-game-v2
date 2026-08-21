@@ -124,8 +124,16 @@ onMounted(() => {
     setUrl(null);
   }
 
-  // Chốt snapshot lần cuối ngay trước khi trang bị đóng/reload
-  window.addEventListener('beforeunload', persistGame);
+  // Chốt snapshot lần cuối + hỏi confirm nếu đang dở việc (F5/đóng tab nhầm)
+  window.addEventListener('beforeunload', (e) => {
+    persistGame();
+    const inGame = screen.value === 'game' && !!session.game.value && !session.game.value.finished;
+    const inOnline = screen.value === 'online' && (onlineRef.value?.isBusy() ?? false);
+    if (inGame || inOnline) {
+      e.preventDefault();
+      e.returnValue = '';   // trình duyệt hiện hộp thoại xác nhận chuẩn
+    }
+  });
 });
 
 // Màn online (chưa vào phòng) cũng đánh dấu lên URL để F5 quay lại đúng chỗ

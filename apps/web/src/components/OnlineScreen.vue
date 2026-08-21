@@ -95,7 +95,13 @@ function quit(): void {
   exit();
 }
 
-defineExpose({ requestHome: quit });
+/** Đang dở việc (wizard tạo phòng / trong phòng / trong ván) — App hỏi confirm trước khi rời trang. */
+function isBusy(): boolean {
+  if (wizard.value !== null) return true;
+  return (o.phase.value === 'lobby' || o.phase.value === 'playing') && !o.spectator.value;
+}
+
+defineExpose({ requestHome: quit, isBusy });
 
 const inviteLink = computed(() =>
   `${location.origin}${location.pathname}?room=${o.room.value?.code ?? ''}`);
@@ -287,7 +293,7 @@ function openCfgWizard(): void {
           type="button"
           @click="wizToggleTheme(t.id)"
         >
-          <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 4).join(' ') }}</span>
+          <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
           <strong class="tname">{{ cfg.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
         </button>
       </div>
@@ -604,8 +610,8 @@ input:focus { outline: none; border-color: var(--accent); }
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
-.theme-opt { padding: 6px 4px; gap: 2px; }
-.theme-sample { font-size: clamp(13px, 4vw, 20px); letter-spacing: 1px; white-space: nowrap; }
+.theme-opt { padding: 10px 8px; gap: 3px; }
+.theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
 .tname {
   font-size: var(--text-sm); line-height: 1.15; text-align: center;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;

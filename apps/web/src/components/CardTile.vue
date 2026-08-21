@@ -61,6 +61,9 @@ const label = computed(() => {
   padding: 0; border: 0; background: transparent; perspective: 700px;
   animation: deal .38s cubic-bezier(.2, .9, .3, 1.2) backwards;
   animation-delay: var(--deal, 0ms);
+  /* Container query: nội dung thẻ to theo kích thước THẺ, không theo viewport —
+     bàn 2×2 thẻ to thì biểu tượng cũng to tương ứng */
+  container-type: inline-size;
 }
 @keyframes deal {
   from { opacity: 0; transform: translateY(14px) scale(.7); }
@@ -84,8 +87,8 @@ const label = computed(() => {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   border-radius: 12px; backface-visibility: hidden;
   box-shadow: var(--shadow-soft);
-  /* Biểu tượng lớn (~72% bề rộng thẻ) cho dễ nhìn, dễ ghi nhớ */
-  font-size: clamp(26px, 9.5vw, 58px);
+  /* Biểu tượng ~58% bề rộng thẻ — thẻ to là chữ to theo */
+  font-size: max(20px, 55cqw);
 }
 .back {
   overflow: hidden;

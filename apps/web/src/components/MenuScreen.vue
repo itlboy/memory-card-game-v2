@@ -241,7 +241,7 @@ function toggleTheme(id: string): void {
             type="button"
             @click="unlocked(t) && toggleTheme(t.id)"
           >
-            <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 4).join(' ') }}</span>
+            <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
             <strong class="tname">{{ themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
             <small v-if="!unlocked(t)">🔒 {{ t.unlockAt / 1000 }}k điểm</small>
           </button>
@@ -308,8 +308,8 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: var(--text-md); }
 .options.grid3 small, .theme-opt small { font-size: var(--text-xs); }
-.theme-opt { padding: 6px 4px; gap: 2px; }
-.theme-sample { font-size: clamp(13px, 4vw, 20px); letter-spacing: 1px; white-space: nowrap; }
+.theme-opt { padding: 10px 8px; gap: 3px; }
+.theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
 /* Tên theme: tối đa 2 dòng, không tràn khỏi ô nén */
 .tname {
   font-size: var(--text-sm); line-height: 1.15; text-align: center;
