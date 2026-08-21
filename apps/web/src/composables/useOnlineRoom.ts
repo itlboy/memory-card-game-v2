@@ -32,6 +32,9 @@ export function useOnlineRoom() {
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
   const bubbles = ref<Record<string, { emoji: QuickEmoji; key: number }>>({});
+  /** Emoji mới nhất phóng to giữa bàn cho ấn tượng. */
+  const emojiBlast = ref<{ emoji: QuickEmoji; name: string; key: number } | null>(null);
+  let blastTimer: ReturnType<typeof setTimeout> | undefined;
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
   /** Hạn chót lượt (ms cục bộ) — server gửi số giây còn lại, client đếm tiếp cho mượt. */
   const turnDeadline = ref(0);
@@ -178,6 +181,14 @@ export function useOnlineRoom() {
           ...bubbles.value,
           [msg.from]: { emoji: msg.emoji, key: (cur?.key ?? 0) + 1 }
         };
+        const sender = room.value?.players.find((p) => p.id === msg.from);
+        emojiBlast.value = {
+          emoji: msg.emoji,
+          name: msg.from === myId.value ? 'Bạn' : (sender?.name ?? ''),
+          key: (emojiBlast.value?.key ?? 0) + 1
+        };
+        clearTimeout(blastTimer);
+        blastTimer = setTimeout(() => { emojiBlast.value = null; }, 1900);
         sfx.select();
         setTimeout(() => {
           const rest = { ...bubbles.value };
@@ -308,7 +319,7 @@ export function useOnlineRoom() {
 
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
-    wrongPair, lastGain, turnBanner, bubbles, turnTimeLeft, timeBonusFor,
+    wrongPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor,
     createRoom, join, leave, resumeStored,
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => { send({ t: 'leave' }); leave(); },

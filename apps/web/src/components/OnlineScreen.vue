@@ -307,6 +307,14 @@ const THEMES = [
       <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
         +{{ o.lastGain.value.amount }}
       </span>
+      <!-- Emoji chat phóng to giữa bàn -->
+      <Transition name="blast">
+        <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
+          <span class="big">{{ o.emojiBlast.value.emoji }}</span>
+          <span class="from">{{ o.emojiBlast.value.name }}</span>
+        </div>
+      </Transition>
+
       <Transition name="banner">
         <div v-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
           <small v-if="o.turnBanner.value.frozen">❄️ {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
@@ -505,6 +513,33 @@ input:focus { outline: none; border-color: var(--accent); }
 .banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
+
+.emoji-blast {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  pointer-events: none; z-index: 6;
+}
+.emoji-blast .big {
+  font-size: clamp(64px, 22vw, 110px); line-height: 1;
+  filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .35));
+  animation: blast-pop 1.9s cubic-bezier(.2, 1.4, .4, 1) forwards;
+}
+.emoji-blast .from {
+  font-family: var(--font-display); font-weight: 700; font-size: var(--text-md);
+  color: #fff; padding: 2px 12px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--accent) 85%, black);
+  box-shadow: 0 4px 14px var(--card-back-glow);
+}
+@keyframes blast-pop {
+  0% { transform: scale(.2) rotate(-14deg); opacity: 0; }
+  18% { transform: scale(1.3) rotate(6deg); opacity: 1; }
+  30% { transform: scale(1) rotate(0); }
+  75% { transform: scale(1) translateY(0); opacity: 1; }
+  100% { transform: scale(.9) translateY(-46px); opacity: 0; }
+}
+.blast-enter-active { transition: opacity .1s; }
+.blast-leave-active { transition: opacity .25s; }
+.blast-leave-to { opacity: 0; }
 
 .emoji-bar { display: flex; gap: 4px; justify-content: center; }
 .emoji {
