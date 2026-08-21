@@ -33,7 +33,14 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
   flex: 1 1 150px; display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-width: 2px;
 }
-.player.active { border-color: var(--accent); }
+.player.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 4px 18px var(--card-back-glow);
+  animation: breathe 1.8s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% { box-shadow: 0 0 0 1px var(--accent), 0 4px 26px var(--card-back-glow); transform: translateY(-1px); }
+}
 .player.frozen { opacity: .6; }
 .avatar { font-size: 22px; }
 .meta { display: flex; flex-direction: column; min-width: 0; }

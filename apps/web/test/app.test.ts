@@ -34,23 +34,57 @@ beforeEach(() => {
 
 afterEach(() => wrapper?.unmount());
 
-const start = async (): Promise<void> => {
-  await wrapper.find('.btn-primary').trigger('click');
+/** Bấm nút/lựa chọn theo chữ hiển thị. */
+const click = async (text: string): Promise<void> => {
+  const btn = wrapper.findAll('button').find((b) => b.text().includes(text));
+  if (!btn) throw new Error(`Không thấy nút "${text}"`);
+  await btn.trigger('click');
   await flush();
 };
 
+/** Đi hết wizard chơi đơn: Một mình → chế độ → Bắt đầu. */
+const start = async (mode = 'Cổ điển'): Promise<void> => {
+  await click('Chơi một mình');
+  await click(mode);
+  await click('Bắt đầu');
+};
+
 describe('App', () => {
-  it('render menu và nạp theme từ JSON', async () => {
+  it('bước 1 của wizard chỉ hỏi một câu: chơi một mình hay nhiều người', async () => {
     wrapper = mount(App);
     await flush();
-    expect(wrapper.text()).toContain('Chế độ chơi');
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+    expect(wrapper.text()).toContain('Chơi một mình');
+    expect(wrapper.text()).toContain('Chơi nhiều người');
+    // Chưa hiện lưới/theme ở bước đầu — tránh rối
+    expect(wrapper.text()).not.toContain('Kích thước lưới');
+    expect(wrapper.text()).not.toContain('Theme thẻ');
+  });
+
+  it('theme nạp từ JSON hiện ở bước chọn bàn', async () => {
+    wrapper = mount(App);
+    await flush();
+    await click('Chơi một mình');
+    await click('Cổ điển');
     expect(wrapper.text()).toContain('Động vật');
-    expect(wrapper.findAll('[role="radio"]').length).toBeGreaterThan(5);
+    expect(wrapper.text()).toContain('Kích thước lưới');
+  });
+
+  it('nút quay lại đưa về bước trước', async () => {
+    wrapper = mount(App);
+    await flush();
+    await click('Chơi một mình');
+    expect(wrapper.text()).toContain('Chọn chế độ');
+    await wrapper.find('[aria-label="Quay lại"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
   it('theme chưa mở khoá thì bị vô hiệu hoá', async () => {
     wrapper = mount(App);
     await flush();
+    await click('Chơi một mình');
+    await click('Cổ điển');
     const locked = wrapper.findAll('.chip').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
   });
@@ -97,22 +131,26 @@ describe('App', () => {
   it('chọn Chiến dịch thì hiện bản đồ 20 màn, chỉ màn 1 mở khoá', async () => {
     wrapper = mount(App);
     await flush();
-    const campaign = wrapper.findAll('.chip').find((c) => c.text().includes('Chiến dịch'))!;
-    await campaign.trigger('click');
-    await flush();
+    await click('Chơi một mình');
+    await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(20);
     expect(nodes[0]!.attributes('disabled')).toBeUndefined();
     expect(nodes[1]!.attributes('disabled')).toBeDefined();
   });
 
-  it('chọn 2 người chơi thì hiện bảng người chơi và lượt hiện tại', async () => {
+  it('nhánh nhiều người: số người → chế độ → bàn chơi, vào ván có bảng người chơi', async () => {
     wrapper = mount(App);
     await flush();
-    const two = wrapper.findAll('.chip').find((c) => c.text().trim() === '2 người')!;
-    await two.trigger('click');
-    await flush();
-    await start();
+    await click('Chơi nhiều người');
+    expect(wrapper.text()).toContain('Mấy người chơi?');
+    await click('2 người');
+    // Nhiều người chỉ có 2 chế độ hợp lệ
+    expect(wrapper.text()).toContain('Cổ điển');
+    expect(wrapper.text()).toContain('Sinh tồn');
+    expect(wrapper.text()).not.toContain('Chiến dịch');
+    await click('Cổ điển');
+    await click('Bắt đầu');
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
   });

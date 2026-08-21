@@ -49,14 +49,22 @@ async function mountApp(): Promise<void> {
   await flush();
 }
 
-async function pickMode(name: string): Promise<void> {
-  await wrapper.findAll('.chip').find((c) => c.text().includes(name))!.trigger('click');
+/** Bấm nút theo chữ hiển thị. */
+async function click(text: string): Promise<void> {
+  const btn = wrapper.findAll('button').find((b) => b.text().includes(text));
+  if (!btn) throw new Error(`Không thấy nút "${text}"`);
+  await btn.trigger('click');
   await flush();
 }
 
+/** Đi tới bước "Chọn bàn chơi" của nhánh chơi đơn với chế độ cho trước. */
+async function pickMode(name: string): Promise<void> {
+  await click('Chơi một mình');
+  await click(name);
+}
+
 async function start(): Promise<void> {
-  await wrapper.find('.btn-primary').trigger('click');
-  await flush();
+  await click('Bắt đầu');
 }
 
 /** Ghép hết các cặp bằng cách đọc pairId từ engine. */
@@ -85,6 +93,7 @@ async function winGame(missFirst = false): Promise<void> {
 describe('luồng trọn ván', () => {
   it('thắng ván Cổ điển: hiện kết quả, lưu kỷ lục, mở thành tích không-lật-sai', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     await winGame();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
@@ -95,6 +104,7 @@ describe('luồng trọn ván', () => {
 
   it('ván có lật sai thì không được thành tích không-lật-sai', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     await winGame(true);
     expect(wrapper.text()).toContain('Hoàn thành');
@@ -103,6 +113,7 @@ describe('luồng trọn ván', () => {
 
   it('thắng lại với điểm thấp hơn thì không báo kỷ lục mới', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     await winGame();
     expect(wrapper.text()).toContain('Kỷ lục mới');
@@ -127,26 +138,28 @@ describe('luồng trọn ván', () => {
 
   it('nút Về menu đóng kết quả và quay lại menu', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     await winGame();
     await wrapper.findAll('[role="dialog"] .btn').find((b) => b.text() === 'Về menu')!.trigger('click');
     await flush();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain('Chế độ chơi');
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
   it('thoát giữa ván bằng nút ✕ quay về menu, không hiện kết quả', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
-    expect(wrapper.text()).toContain('Chế độ chơi');
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
   });
 
   it('thắng màn 1 Chiến dịch: lưu sao, hiện nút "Màn tiếp theo", mở khoá màn 2', async () => {
     await mountApp();
-    await pickMode('Chiến dịch');
+    await pickMode('Chiến dịch');                            // wizard nhảy thẳng tới bản đồ màn
     await wrapper.findAll('.node')[0]!.trigger('click');     // vào màn 1 (lưới 2×2)
     await flush();
     expect(wrapper.findAll('.card')).toHaveLength(4);
@@ -193,6 +206,7 @@ describe('luồng trọn ván', () => {
 describe('điều hướng bàn phím (NF-07)', () => {
   it('mũi tên di chuyển focus theo lưới 4 cột', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     const board = wrapper.find('[role="grid"]');
     const tiles = wrapper.findAll('.card');
@@ -209,6 +223,7 @@ describe('điều hướng bàn phím (NF-07)', () => {
 
   it('không đi ra ngoài biên lưới', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     const board = wrapper.find('[role="grid"]');
     const tiles = wrapper.findAll('.card');
@@ -222,6 +237,7 @@ describe('điều hướng bàn phím (NF-07)', () => {
 
   it('phím khác không bị chặn hành vi mặc định', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await start();
     const board = wrapper.find('[role="grid"]');
     await board.trigger('keydown', { key: 'Tab' });   // không ném lỗi là đạt
@@ -231,6 +247,7 @@ describe('điều hướng bàn phím (NF-07)', () => {
 describe('lưới nhỏ và ô trống', () => {
   it('ván 3×3 có 9 ô: 1 ô trống không bấm được, thắng với 4 cặp', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await wrapper.findAll('.chip').find((c) => c.text().startsWith('3×3'))!.trigger('click');
     await flush();
     await start();
@@ -244,6 +261,7 @@ describe('lưới nhỏ và ô trống', () => {
 
   it('ván 2×2 thắng chỉ với 2 cặp', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await wrapper.findAll('.chip').find((c) => c.text().startsWith('2×2'))!.trigger('click');
     await flush();
     await start();
@@ -254,6 +272,7 @@ describe('lưới nhỏ và ô trống', () => {
 
   it('bàn phím nhảy qua ô trống ở giữa lưới 3×3', async () => {
     await mountApp();
+    await pickMode('Cổ điển');
     await wrapper.findAll('.chip').find((c) => c.text().startsWith('3×3'))!.trigger('click');
     await flush();
     await start();

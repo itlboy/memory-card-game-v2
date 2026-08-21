@@ -106,6 +106,23 @@ const fitStyle = computed(() => {
         :style="gainStyle"
         aria-hidden="true"
       >+{{ s.lastGain.value.amount }}</span>
+
+      <!-- Banner chuyển lượt: hiện to giữa bàn rồi tự tan (MP-03) -->
+      <Transition name="banner">
+        <div
+          v-if="s.turnBanner.value"
+          :key="s.turnBanner.value.key"
+          class="turn-banner"
+          role="status"
+          aria-live="polite"
+        >
+          <small v-if="s.turnBanner.value.frozen">❄️ {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
+          <span class="who">
+            <span class="avatar">{{ s.turnBanner.value.avatar || '🎮' }}</span>
+            Đến lượt <b>{{ s.turnBanner.value.name }}</b>
+          </span>
+        </div>
+      </Transition>
     </div>
   </section>
 </template>
@@ -129,6 +146,27 @@ const fitStyle = computed(() => {
   20% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
   100% { opacity: 0; transform: translate(-50%, -170%) scale(1); }
 }
+
+.turn-banner {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 26px; border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  border: 2px solid var(--accent);
+  box-shadow: 0 10px 40px var(--card-back-glow), var(--shadow);
+  backdrop-filter: blur(6px);
+  pointer-events: none; z-index: 5; white-space: nowrap;
+}
+.turn-banner .who { display: flex; align-items: center; gap: 8px; font-size: clamp(17px, 4.5vw, 22px); }
+.turn-banner b { color: var(--accent); }
+.turn-banner .avatar { font-size: clamp(24px, 6vw, 32px); animation: wave .5s ease; }
+.turn-banner small { color: var(--muted); font-size: 12.5px; }
+@keyframes wave { 40% { transform: rotate(-12deg) scale(1.2); } 70% { transform: rotate(9deg); } }
+
+.banner-enter-active { transition: opacity .18s ease, transform .25s cubic-bezier(.3, 1.5, .5, 1); }
+.banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+.banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
+.banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
 .toast {
   margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 14px; text-align: center;
   background: color-mix(in srgb, var(--accent) 14%, transparent);

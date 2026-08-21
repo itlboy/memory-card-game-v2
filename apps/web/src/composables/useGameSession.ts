@@ -19,6 +19,9 @@ export function useGameSession() {
   const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
   /** Điểm vừa ghi + vị trí thẻ, cho hiệu ứng "+120" bay lên. `key` để ép re-render. */
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
+  /** Banner "Đến lượt X" khi chuyển người chơi (multiplayer). */
+  const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
+  let bannerTimer: ReturnType<typeof setTimeout> | undefined;
   const now = ref(0);
   let lastTickSecond = -1;
 
@@ -27,6 +30,8 @@ export function useGameSession() {
   const bump = (): void => { rev.value++; };
 
   function handle(events: GameEvent[]): void {
+    let frozenId: string | null = null;
+    let turnId: string | null = null;
     for (const e of events) {
       switch (e.type) {
         case 'flip': sfx.flip(); break;
@@ -46,11 +51,29 @@ export function useGameSession() {
           lastPower.value = e;
           setTimeout(() => { lastPower.value = null; }, 1600);
           break;
-        case 'turn': if (!e.skipped) sfx.turn(); break;
+        case 'turn':
+          if (e.skipped) { frozenId = e.playerId; }
+          else { turnId = e.playerId; sfx.turn(); }
+          break;
         case 'end':
           summary.value = e.summary;
           e.summary.status === 'won' ? sfx.win() : sfx.lose();
           break;
+      }
+    }
+    // Chỉ hiện banner khi lượt thực sự đổi sang người khác (multiplayer)
+    if (turnId && (game.value?.players.length ?? 0) > 1) {
+      const find = (id: string | null) => game.value?.players.find((p) => p.id === id);
+      const p = find(turnId);
+      if (p) {
+        turnBanner.value = {
+          name: p.name,
+          avatar: p.avatar ?? '',
+          frozen: find(frozenId)?.name ?? null,
+          key: (turnBanner.value?.key ?? 0) + 1
+        };
+        clearTimeout(bannerTimer);
+        bannerTimer = setTimeout(() => { turnBanner.value = null; }, 1500);
       }
     }
     if (events.length) bump();
@@ -82,6 +105,8 @@ export function useGameSession() {
     wrongPair.value = [];
     lastPower.value = null;
     lastGain.value = null;
+    turnBanner.value = null;
+    clearTimeout(bannerTimer);
     lastTickSecond = -1;
     now.value = clockNow();
     g.start(now.value);
@@ -159,7 +184,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary
   };
