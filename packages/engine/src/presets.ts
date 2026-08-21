@@ -1,0 +1,35 @@
+import type { GameConfig, Mode } from './types.js';
+
+export interface GridSpec { cols: number; rows: number; timeLimit: number }
+
+/** Lưới dùng cho chế độ chơi nhanh. */
+export const GRIDS: Record<string, GridSpec> = {
+  '4x4': { cols: 4, rows: 4, timeLimit: 70 },
+  '4x5': { cols: 4, rows: 5, timeLimit: 100 },
+  '6x6': { cols: 6, rows: 6, timeLimit: 190 }
+};
+
+export type GridKey = keyof typeof GRIDS;
+
+export interface PresetInput {
+  mode: Mode;
+  grid: string;
+  symbols: readonly string[];
+  seed: number;
+  players?: GameConfig['players'];
+}
+
+/** Cấu hình mặc định cho từng chế độ (mục 3.1 / 3.2). */
+export function presetConfig({ mode, grid, symbols, seed, players }: PresetInput): GameConfig {
+  const g = GRIDS[grid];
+  if (!g) throw new Error(`Lưới ${grid} không được hỗ trợ`);
+
+  const base: GameConfig = { mode, cols: g.cols, rows: g.rows, symbols, seed, players };
+  switch (mode) {
+    case 'classic':  return base;
+    case 'time':     return { ...base, timeLimit: g.timeLimit };
+    case 'survival': return { ...base, lives: 5, specialRate: 0.12 };
+    case 'peek':     return { ...base, peekMs: 4000, timeLimit: g.timeLimit };
+    case 'campaign': throw new Error('Campaign dùng levelConfig() thay cho presetConfig()');
+  }
+}

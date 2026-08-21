@@ -1,0 +1,150 @@
+import { MemoryGame } from '@mm/engine';
+import type { Card, GameConfig, GameEvent, Player, Summary } from '@mm/engine';
+import { computed, onScopeDispose, ref, shallowRef } from 'vue';
+import { sfx } from '@/lib/audio';
+
+/**
+ * Cầu nối engine ↔ Vue.
+ *
+ * Engine là nguồn sự thật duy nhất; Vue chỉ giữ một `shallowRef` tới instance và
+ * một số đếm `rev` để kích hoạt re-render. Cố tình KHÔNG bọc engine trong
+ * `reactive()`: engine phải sạch framework để server (Durable Object) dùng chung.
+ */
+export function useGameSession() {
+  const game = shallowRef<MemoryGame | null>(null);
+  const rev = ref(0);
+  const summary = shallowRef<Summary | null>(null);
+  /** Thẻ đang lắc vì ghép sai, để UI vẽ hiệu ứng. */
+  const wrongPair = ref<number[]>([]);
+  const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
+  const now = ref(0);
+
+  let raf = 0;
+  const clockNow = (): number => performance.now();
+  const bump = (): void => { rev.value++; };
+
+  function handle(events: GameEvent[]): void {
+    for (const e of events) {
+      switch (e.type) {
+        case 'flip': sfx.flip(); break;
+        case 'match': sfx.match(); break;
+        case 'miss':
+          sfx.miss();
+          wrongPair.value = e.indices;
+          setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
+          break;
+        case 'power':
+          e.power === 'bomb' ? sfx.bomb() : sfx.power();
+          lastPower.value = e;
+          setTimeout(() => { lastPower.value = null; }, 1600);
+          break;
+        case 'turn': if (!e.skipped) sfx.turn(); break;
+        case 'end':
+          summary.value = e.summary;
+          e.summary.status === 'won' ? sfx.win() : sfx.lose();
+          break;
+      }
+    }
+    if (events.length) bump();
+  }
+
+  function loop(): void {
+    const g = game.value;
+    if (g && !g.finished) {
+      now.value = clockNow();
+      handle(g.tick(now.value));
+      raf = requestAnimationFrame(loop);
+    } else {
+      raf = 0;
+    }
+  }
+
+  /** Bắt đầu ván mới. `seed` do lớp gọi truyền vào để engine giữ tính tất định. */
+  function start(config: GameConfig): MemoryGame {
+    stop();
+    const g = new MemoryGame(config);
+    game.value = g;
+    summary.value = null;
+    wrongPair.value = [];
+    lastPower.value = null;
+    now.value = clockNow();
+    g.start(now.value);
+    bump();
+    raf = requestAnimationFrame(loop);
+    return g;
+  }
+
+  function flip(index: number): void {
+    const g = game.value;
+    if (!g) return;
+    now.value = clockNow();
+    handle(g.flip(index, now.value));
+    if (!raf && !g.finished) raf = requestAnimationFrame(loop);
+  }
+
+  function stop(): void {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+  }
+
+  onScopeDispose(stop);
+
+  /* ---------- dữ liệu cho template (đọc qua rev để bám re-render) ---------- */
+
+  /** `touch()` khai báo phụ thuộc để computed chạy lại khi engine thay đổi. */
+  const touch = (): void => { void rev.value; };
+  const touchClock = (): void => { void rev.value; void now.value; };
+
+  // Trả về BẢN SAO, không phải mảng gốc của engine: từ Vue 3.4, computed nào trả
+  // về cùng reference sẽ không lan truyền thay đổi xuống computed/render phía sau —
+  // engine mutate tại chỗ nên nếu trả nguyên mảng thì HUD sẽ đứng yên.
+  const cards = computed<Card[]>(() => { touch(); return [...(game.value?.cards ?? [])]; });
+  const players = computed<Player[]>(() => {
+    touch();
+    return (game.value?.players ?? []).map((p) => ({ ...p }));
+  });
+  const current = computed<Player | null>(() => {
+    touch();
+    const p = game.value?.current;
+    return p ? { ...p } : null;
+  });
+  const matchedCount = computed(() => { touch(); return game.value?.matched.size ?? 0; });
+  const totalPairs = computed(() => { touch(); return game.value?.totalPairs ?? 0; });
+  const combo = computed(() => { touch(); return game.value?.combo() ?? 1; });
+  const revealingAll = computed(() => { touchClock(); return game.value?.revealingAll ?? false; });
+  const status = computed(() => { touch(); return game.value?.status ?? 'idle'; });
+  /** Bàn đang khoá vì chờ úp lại 2 thẻ sai — phải đi qua `rev` vì `game.locked`
+   *  là getter của class, Vue không theo dõi được trực tiếp. */
+  const locked = computed(() => { touchClock(); return game.value?.locked ?? false; });
+
+  const elapsed = computed(() => { touchClock(); return game.value?.elapsed(now.value) ?? 0; });
+  const timeLeft = computed(() => { touchClock(); return game.value?.timeLeft(now.value) ?? null; });
+  const movesLeft = computed(() => { touch(); return game.value?.movesLeft() ?? null; });
+  const moves = computed(() => { touch(); return game.value?.moves ?? 0; });
+
+  /** Thẻ nào đang ngửa mặt — tính lại theo cả rev và now (vì hé mở có hạn giờ). */
+  const faceUp = computed<Set<number>>(() => {
+    touchClock();
+    const g = game.value;
+    const set = new Set<number>();
+    if (!g) return set;
+    for (const c of g.cards) if (g.isFaceUp(c.index)) set.add(c.index);
+    return set;
+  });
+
+  const matchedSet = computed<Set<number>>(() => {
+    touch();
+    const g = game.value;
+    const set = new Set<number>();
+    if (!g) return set;
+    for (const c of g.cards) if (g.isMatched(c.index)) set.add(c.index);
+    return set;
+  });
+
+  return {
+    game, start, flip, stop,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower,
+    matchedCount, totalPairs, combo, revealingAll, status, locked,
+    elapsed, timeLeft, movesLeft, moves, summary
+  };
+}

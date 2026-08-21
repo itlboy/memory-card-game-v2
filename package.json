@@ -1,0 +1,15 @@
+{
+  "name": "memory-match",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Game thẻ bài trí nhớ (Memory Match) — monorepo",
+  "scripts": {
+    "dev": "pnpm --filter @mm/web dev",
+    "build": "pnpm --filter @mm/web build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "serve": "node server.js",
+    "dev:legacy": "node legacy/v1/server.js 3002"
+  },
+  "packageManager": "pnpm@10.0.0"
+}
