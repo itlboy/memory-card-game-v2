@@ -42,6 +42,9 @@ export function useOnlineRoom() {
   const elapsedMark = ref<{ sec: number; at: number } | null>(null);
   /** Đếm ngược 5 giây trước ván + người đi đầu. */
   const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
+  /** Mặt sau của ván — bốc ngẫu nhiên mỗi ván mới. */
+  const BACKS = ['stars', 'diamond', 'aurora'] as const;
+  const backStyle = ref<string>(BACKS[Math.floor(Math.random() * BACKS.length)]!);
   let lastCountdownSec = -1;
   const clock = ref(0);
   let lastUrgentTick = 0;
@@ -189,6 +192,7 @@ export function useOnlineRoom() {
         break;
 
       case 'countdown':
+        backStyle.value = BACKS[Math.floor(Math.random() * BACKS.length)]!;
         countdown.value = {
           endsAt: Date.now() + msg.endsInMs,
           firstId: msg.firstId,
@@ -361,7 +365,7 @@ export function useOnlineRoom() {
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
     wrongPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
-    countdown, countdownLeft,
+    countdown, countdownLeft, backStyle,
     createRoom, join, leave, resumeStored,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */

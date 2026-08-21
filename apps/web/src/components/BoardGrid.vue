@@ -11,6 +11,8 @@ const props = defineProps<{
   wrongPair: number[];
   revealingAll: boolean;
   locked: boolean;
+  /** Kiểu mặt sau của ván này. */
+  back?: string;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
@@ -54,6 +56,7 @@ defineExpose({
       v-for="card in cards"
       :key="card.index"
       :card="card"
+      :back="back ?? 'stars'"
       :deal-order="card.index"
       :face-up="faceUp.has(card.index)"
       :matched="matched.has(card.index)"

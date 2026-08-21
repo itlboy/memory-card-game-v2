@@ -19,6 +19,17 @@ const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
 /** Vào bằng link mời: chỉ hiện đúng một việc — nhập tên rồi vào phòng. */
 const invited = computed(() => !!props.joinCode);
+/** Bước của màn vào online: chọn việc trước, điền form sau. */
+const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
+
+function backEntry(): void {
+  if (entryStep.value !== 'choose' && !invited.value) {
+    entryStep.value = 'choose';
+    o.error.value = '';
+    return;
+  }
+  quit();
+}
 
 onMounted(() => {
   // Vào bằng link mời / F5 khi đang trong phòng: ưu tiên resume đúng phòng đó
@@ -158,7 +169,10 @@ const MODES = [
 ];
 const THEMES = [
   { id: 'animals', name: 'Động vật' }, { id: 'fruits', name: 'Trái cây' },
-  { id: 'flags', name: 'Cờ quốc gia' }, { id: 'tech', name: 'Công nghệ' }
+  { id: 'food', name: 'Đồ ăn' }, { id: 'sports', name: 'Thể thao' },
+  { id: 'flags', name: 'Cờ quốc gia' }, { id: 'nature', name: 'Thiên nhiên' },
+  { id: 'space', name: 'Vũ trụ' }, { id: 'tech', name: 'Công nghệ' },
+  { id: 'vehicles', name: 'Phương tiện' }
 ];
 </script>
 
@@ -166,47 +180,64 @@ const THEMES = [
   <!-- Một root duy nhất: component này nằm trong <Transition> của App,
        nhiều root sẽ làm Transition render trắng trang -->
   <div class="online">
-  <!-- NHẬP TÊN / TẠO / VÀO PHÒNG -->
+  <!-- VÀO ONLINE: bước 1 chọn việc, bước 2 điền form -->
   <section v-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Quay lại" type="button" @click="quit">‹</button>
-      <h2>Chơi online</h2>
+      <button class="btn back" aria-label="Quay lại" type="button" @click="backEntry">‹</button>
+      <h2>{{ entryStep === 'choose' ? 'Chơi online' : entryStep === 'create' ? 'Tạo phòng mới' : 'Vào phòng' }}</h2>
     </div>
 
-    <p v-if="invited" class="invite">
-      🎉 Bạn được mời vào phòng <b class="invite-code">{{ codeInput }}</b>
-    </p>
-
-    <label class="field">
-      <span>Tên của bạn</span>
-      <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="invited ? join() : create()">
-    </label>
-
-    <!-- Vào bằng link mời: một nút duy nhất, không hiện "Tạo phòng" để khỏi bấm nhầm -->
-    <button
-      v-if="invited" class="btn-primary"
-      :disabled="!name.trim() || o.phase.value === 'connecting'"
-      type="button" @click="join"
-    >
-      {{ o.phase.value === 'connecting' ? 'Đang vào phòng…' : 'Vào phòng chơi' }}
-    </button>
-
-    <template v-else>
-      <button class="btn-primary" :disabled="!name.trim() || o.phase.value === 'connecting'" type="button" @click="create">
-        {{ o.phase.value === 'connecting' ? 'Đang kết nối…' : 'Tạo phòng mới' }}
+    <!-- BƯỚC 1: tạo phòng hay vào phòng có sẵn -->
+    <div v-if="entryStep === 'choose'" class="options">
+      <button class="option" type="button" @click="entryStep = 'create'">
+        <span class="icon">✨</span>
+        <strong>Tạo phòng mới</strong>
+        <small>Lấy mã 6 số rồi mời bạn bè vào chơi</small>
       </button>
+      <button class="option" type="button" @click="entryStep = 'join'">
+        <span class="icon">🔢</span>
+        <strong>Vào phòng có sẵn</strong>
+        <small>Nhập mã 6 số bạn bè gửi cho</small>
+      </button>
+    </div>
 
-      <div class="divider"><span>hoặc vào phòng có sẵn</span></div>
+    <!-- BƯỚC 2a: tạo phòng — chỉ cần tên -->
+    <template v-else-if="entryStep === 'create'">
+      <label class="field">
+        <span>Tên của bạn</span>
+        <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="create">
+      </label>
+      <button class="btn-primary" :disabled="!name.trim() || o.phase.value === 'connecting'" type="button" @click="create">
+        {{ o.phase.value === 'connecting' ? 'Đang kết nối…' : 'Tạo phòng' }}
+      </button>
+    </template>
 
-      <div class="joinrow">
+    <!-- BƯỚC 2b: vào phòng — tên + mã (link mời thì mã điền sẵn, giấu ô mã) -->
+    <template v-else>
+      <p v-if="invited" class="invite">
+        🎉 Bạn được mời vào phòng <b class="invite-code">{{ codeInput }}</b>
+      </p>
+      <label class="field">
+        <span>Tên của bạn</span>
+        <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="join">
+      </label>
+      <label v-if="!invited" class="field">
+        <span>Mã phòng</span>
         <input
-          v-model="codeInput" class="code-input" maxlength="6" placeholder="MÃ PHÒNG"
-          autocapitalize="characters" spellcheck="false" @keydown.enter="join"
+          v-model="codeInput" class="code-input" maxlength="6" placeholder="••••••"
+          type="tel" inputmode="numeric" pattern="[0-9]*"
+          autocomplete="one-time-code" spellcheck="false"
+          @input="codeInput = codeInput.replace(/[^0-9]/g, '')"
+          @keydown.enter="join"
         >
-        <button class="btn join" :disabled="!name.trim() || codeInput.trim().length !== 6" type="button" @click="join">
-          Vào phòng
-        </button>
-      </div>
+      </label>
+      <button
+        class="btn-primary"
+        :disabled="!name.trim() || !codeValid || o.phase.value === 'connecting'"
+        type="button" @click="join"
+      >
+        {{ o.phase.value === 'connecting' ? 'Đang vào phòng…' : 'Vào phòng chơi' }}
+      </button>
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
@@ -342,6 +373,7 @@ const THEMES = [
         :cards="cards" :cols="o.view.value?.cols ?? 4"
         :face-up="faceUp" :matched="matchedSet"
         :wrong-pair="o.wrongPair.value" :revealing-all="false" :locked="locked"
+        :back="o.backStyle.value"
         @flip="o.flip"
       />
       <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
@@ -426,18 +458,22 @@ input {
 }
 input:focus { outline: none; border-color: var(--accent); }
 
-.divider {
-  display: flex; align-items: center; gap: 10px; margin: 18px 0 10px;
-  color: var(--muted); font-size: var(--text-sm);
+.options { display: grid; gap: 10px; }
+.option {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 24px 16px; border: 2px solid var(--line); border-radius: 14px;
+  background: var(--panel-soft); text-align: center;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
-.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
+.option .icon { font-size: 38px; }
+.option strong { font-family: var(--font-display); font-size: 17px; }
+.option small { color: var(--muted); font-size: 12.5px; }
 
-.joinrow { display: flex; gap: 8px; }
 .code-input {
-  flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .25em;
-  font-family: var(--font-display); font-weight: 700; text-align: center;
+  letter-spacing: .3em;
+  font-family: var(--font-display); font-weight: 700; text-align: center; font-size: 22px;
 }
-.join { white-space: nowrap; }
 
 .lobby-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px; }
 .lobby-list li {

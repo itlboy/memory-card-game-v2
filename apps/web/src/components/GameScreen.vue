@@ -103,6 +103,7 @@ const fitStyle = computed(() => {
         :wrong-pair="s.wrongPair.value"
         :revealing-all="s.revealingAll.value"
         :locked="locked"
+        :back="s.backStyle.value"
         @flip="s.flip"
       />
       <span

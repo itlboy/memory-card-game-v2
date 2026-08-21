@@ -59,13 +59,15 @@ async function click(text: string): Promise<void> {
   await flush();
 }
 
-/** Đi tới bước "Chọn bàn chơi" của nhánh chơi đơn với chế độ cho trước. */
+/** Đi tới bước chọn lưới của nhánh chơi đơn với chế độ cho trước. */
 async function pickMode(name: string): Promise<void> {
   await click('Chơi một mình');
   await click(name);
 }
 
-async function start(): Promise<void> {
+/** Từ bước lưới: chọn lưới (mặc định 4×4) rồi Bắt đầu ở bước theme. */
+async function start(grid = '4×4'): Promise<void> {
+  await click(grid);
   await click('Bắt đầu');
 }
 
@@ -278,9 +280,7 @@ describe('lưới nhỏ và ô trống', () => {
   it('ván 3×3 có 9 ô: 1 ô trống không bấm được, thắng với 4 cặp', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await wrapper.findAll('.chip').find((c) => c.text().startsWith('3×3'))!.trigger('click');
-    await flush();
-    await start();
+    await start('3×3');
     expect(wrapper.findAll('.card')).toHaveLength(9);
     const blanks = wrapper.findAll('.card.blank');
     expect(blanks).toHaveLength(1);
@@ -292,9 +292,7 @@ describe('lưới nhỏ và ô trống', () => {
   it('ván 2×2 thắng chỉ với 2 cặp', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await wrapper.findAll('.chip').find((c) => c.text().startsWith('2×2'))!.trigger('click');
-    await flush();
-    await start();
+    await start('2×2');
     expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
@@ -303,9 +301,7 @@ describe('lưới nhỏ và ô trống', () => {
   it('bàn phím nhảy qua ô trống ở giữa lưới 3×3', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await wrapper.findAll('.chip').find((c) => c.text().startsWith('3×3'))!.trigger('click');
-    await flush();
-    await start();
+    await start('3×3');
     const board = wrapper.find('[role="grid"]');
     const tile = (i: number) => board.find(`[data-index="${i}"]`);
     (tile(3).element as HTMLElement).focus();                 // ô trái của ô trống (index 4)
@@ -389,6 +385,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await click('Chơi nhiều người');
     await click('2 người');
     await click('Cổ điển');
+    await click('4×4');
     await click('Bắt đầu');
     await vi.advanceTimersByTimeAsync(5100);   // qua màn đếm ngược 5 giây
     await flush();
@@ -444,6 +441,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     await click('Chơi nhiều người');
     await click('2 người');
     await click('Cổ điển');
+    await click('4×4');
     await click('Bắt đầu');
     expect(wrapper.find('.countdown').exists()).toBe(true);
     expect(wrapper.text()).toContain('đi trước!');

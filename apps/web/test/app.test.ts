@@ -44,10 +44,11 @@ const click = async (text: string): Promise<void> => {
   await flush();
 };
 
-/** Đi hết wizard chơi đơn: Một mình → chế độ → Bắt đầu. */
-const start = async (mode = 'Cổ điển'): Promise<void> => {
+/** Đi hết wizard chơi đơn: Một mình → chế độ → lưới → Bắt đầu. */
+const start = async (mode = 'Cổ điển', grid = '4×4'): Promise<void> => {
   await click('Chơi một mình');
   await click(mode);
+  await click(grid);        // bước lưới riêng, chọn là tự sang theme
   await click('Bắt đầu');
 };
 
@@ -68,8 +69,11 @@ describe('App', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
+    expect(wrapper.text()).toContain('Kích thước lưới');   // bước lưới riêng
+    expect(wrapper.text()).not.toContain('Động vật');
+    await click('4×4');
+    expect(wrapper.text()).toContain('Chọn theme thẻ');    // bước theme riêng
     expect(wrapper.text()).toContain('Động vật');
-    expect(wrapper.text()).toContain('Kích thước lưới');
   });
 
   it('nút quay lại đưa về bước trước', async () => {
@@ -87,7 +91,8 @@ describe('App', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    const locked = wrapper.findAll('.chip').find((c) => c.text().includes('Bị khoá'))!;
+    await click('4×4');
+    const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
   });
 
@@ -152,6 +157,7 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Sinh tồn');
     expect(wrapper.text()).not.toContain('Chiến dịch');
     await click('Cổ điển');
+    await click('4×4');
     await click('Bắt đầu');
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
@@ -174,6 +180,7 @@ describe('multi-theme', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
+    await click('4×4');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
     expect(chip('Động vật').attributes('aria-checked')).toBe('true');
@@ -197,8 +204,15 @@ describe('màn online (điều hướng, không cần server)', () => {
     wrapper = mount(App, { attachTo: document.body });
     await flush();
     await click('Chơi online');
-    expect(wrapper.text()).toContain('Tên của bạn');
+    // Bước 1: chỉ hai lựa chọn, chưa hiện form
     expect(wrapper.text()).toContain('Tạo phòng mới');
+    expect(wrapper.text()).toContain('Vào phòng có sẵn');
+    expect(wrapper.text()).not.toContain('Tên của bạn');
+    await click('Tạo phòng mới');
+    expect(wrapper.text()).toContain('Tên của bạn');
+    await wrapper.find('[aria-label="Quay lại"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Vào phòng có sẵn');   // quay lại bước chọn
     // Quay lại — trước đây multi-root trong <Transition> làm trắng trang
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();

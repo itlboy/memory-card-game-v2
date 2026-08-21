@@ -28,7 +28,7 @@ const emit = defineEmits<{
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
-type Step = 'players' | 'count' | 'mode' | 'setup' | 'campaign';
+type Step = 'players' | 'count' | 'mode' | 'grid' | 'theme' | 'campaign';
 const step = ref<Step>('players');
 
 const isMulti = computed(() => props.playerCount > 1);
@@ -36,8 +36,8 @@ const isMulti = computed(() => props.playerCount > 1);
 /** Đường đi của wizard tuỳ nhánh, dùng cho chấm tiến độ và nút quay lại. */
 const path = computed<Step[]>(() =>
   isMulti.value
-    ? ['players', 'count', 'mode', 'setup']
-    : ['players', 'mode', props.mode === 'campaign' ? 'campaign' : 'setup']
+    ? ['players', 'count', 'mode', 'grid', 'theme']
+    : ['players', 'mode', ...(props.mode === 'campaign' ? ['campaign' as const] : ['grid' as const, 'theme' as const])]
 );
 const stepIndex = computed(() => path.value.indexOf(step.value));
 
@@ -45,7 +45,8 @@ const TITLES: Record<Step, string> = {
   players: 'Bạn muốn chơi thế nào?',
   count: 'Mấy người chơi?',
   mode: 'Chọn chế độ',
-  setup: 'Chọn bàn chơi',
+  grid: 'Kích thước lưới',
+  theme: 'Chọn theme thẻ',
   campaign: 'Chọn màn'
 };
 
@@ -76,7 +77,13 @@ function pickCount(n: number): void {
 function pickMode(m: Mode): void {
   sfx.select();
   emit('update:mode', m);
-  step.value = m === 'campaign' && !isMulti.value ? 'campaign' : 'setup';
+  step.value = m === 'campaign' && !isMulti.value ? 'campaign' : 'grid';
+}
+
+function pickGrid(k: string): void {
+  sfx.select();
+  emit('update:grid', k);
+  step.value = 'theme';
 }
 
 function back(): void {
@@ -170,30 +177,34 @@ function toggleTheme(id: string): void {
         />
       </div>
 
-      <!-- BƯỚC cuối: lưới + theme -->
-      <div v-else key="setup">
-        <h3 class="section-title">Kích thước lưới</h3>
-        <div class="chips" role="radiogroup" aria-label="Kích thước lưới">
-          <button
-            v-for="k in gridKeys" :key="k" class="chip compact" role="radio"
-            :aria-checked="grid === k" type="button"
-            @click="emit('update:grid', k)"
-          >
-            <strong>{{ k.replace('x', '×') }}</strong>
-            <small>{{ Math.floor(GRIDS[k]!.cols * GRIDS[k]!.rows / 2) }} cặp</small>
-          </button>
-        </div>
+      <!-- BƯỚC: kích thước lưới — chọn là sang bước theme -->
+      <div v-else-if="step === 'grid'" key="grid" class="options grid3">
+        <button
+          v-for="k in gridKeys" :key="k" class="option" type="button"
+          :aria-pressed="grid === k"
+          @click="pickGrid(k)"
+        >
+          <span class="grid-preview" aria-hidden="true">
+            <i v-for="n in Math.min(GRIDS[k]!.cols * GRIDS[k]!.rows, 16)" :key="n" />
+          </span>
+          <strong>{{ k.replace('x', '×') }}</strong>
+          <small>{{ Math.floor(GRIDS[k]!.cols * GRIDS[k]!.rows / 2) }} cặp</small>
+        </button>
+      </div>
 
-        <h3 class="section-title">Theme thẻ <small class="hint-multi">— chọn được nhiều</small></h3>
-        <div class="chips" role="group" aria-label="Theme thẻ">
+      <!-- BƯỚC cuối: theme (chọn được nhiều) + Bắt đầu -->
+      <div v-else key="theme">
+        <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
+        <div class="options grid2" role="group" aria-label="Theme thẻ">
           <button
-            v-for="t in themes" :key="t.id" class="chip compact" role="checkbox"
+            v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
             :aria-checked="themeIds.includes(t.id)"
             :aria-disabled="!unlocked(t)"
             :disabled="!unlocked(t)"
             type="button"
             @click="unlocked(t) && toggleTheme(t.id)"
           >
+            <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 4).join(' ') }}</span>
             <strong>{{ themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
             <small v-if="!unlocked(t)">🔒 cần {{ t.unlockAt }} điểm tích lũy</small>
             <small v-else>{{ t.symbols.length }} biểu tượng</small>
@@ -201,7 +212,7 @@ function toggleTheme(id: string): void {
         </div>
 
         <p v-if="themeTooSmall" class="warn" role="alert">
-          Theme này không đủ biểu tượng cho lưới {{ grid.replace('x', '×') }}. Hãy chọn lưới nhỏ hơn hoặc theme khác.
+          Chưa đủ biểu tượng cho lưới {{ grid.replace('x', '×') }}. Hãy chọn thêm theme hoặc lưới nhỏ hơn.
         </p>
 
         <button class="btn-primary" :disabled="themeTooSmall" type="button" @click="emit('start')">
@@ -220,7 +231,23 @@ function toggleTheme(id: string): void {
 </template>
 
 <style scoped>
-.hint-multi { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
+.options.grid3 { grid-template-columns: repeat(3, 1fr); }
+.options.grid2 { grid-template-columns: repeat(2, 1fr); }
+.grid-preview {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; width: 44px;
+}
+.grid-preview i {
+  aspect-ratio: 3 / 4; border-radius: 2px;
+  background: linear-gradient(150deg, var(--accent), var(--accent-2));
+  opacity: .75;
+}
+.theme-opt { padding: 14px 10px; }
+.theme-sample { font-size: 22px; letter-spacing: 2px; }
+.option[aria-checked='true'] {
+  border-color: var(--accent); background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
 .wizard-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { min-width: 44px; font-size: 22px; line-height: 1; padding: 4px 12px; }

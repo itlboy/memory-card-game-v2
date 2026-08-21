@@ -29,6 +29,10 @@ export function useGameSession() {
   let countdownUntil = 0;
   let lastCdSec = -1;
   const countdownLeft = ref<number | null>(null);
+  /** Mặt sau của ván này — bốc ngẫu nhiên mỗi ván cho đa dạng. */
+  const BACKS = ['stars', 'diamond', 'aurora'] as const;
+  const backStyle = ref<string>('stars');
+  const pickBack = (): void => { backStyle.value = BACKS[Math.floor(Math.random() * BACKS.length)]!; };
   /** Hiệu ứng "+10s" trên chip người vừa ghép đúng. */
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
 
@@ -146,6 +150,7 @@ export function useGameSession() {
     clearTimeout(bannerTimer);
     lastTickSecond = -1;
     now.value = clockNow();
+    pickBack();
     if (g.isMultiplayer) {
       // Multiplayer: đếm ngược 5 giây để người đi đầu không bị động
       countdownUntil = now.value + 5000;
@@ -251,6 +256,6 @@ export function useGameSession() {
     game, start, flip, stop, adopt,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
-    elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft
+    elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };
 }
