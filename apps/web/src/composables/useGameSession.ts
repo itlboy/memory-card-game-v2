@@ -110,6 +110,7 @@ export function useGameSession() {
     lastTickSecond = -1;
     now.value = clockNow();
     g.start(now.value);
+    sfx.deal(g.cards.length);
     bump();
     raf = requestAnimationFrame(loop);
     return g;

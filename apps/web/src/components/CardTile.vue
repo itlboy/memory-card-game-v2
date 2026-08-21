@@ -82,9 +82,23 @@ const label = computed(() => {
   box-shadow: var(--shadow-soft); font-size: clamp(18px, 6.5vw, 38px);
 }
 .back {
-  background: var(--card-back);
-  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, .25);
+  /* Hoa văn nhiều lớp: đốm sáng góc + kẻ chéo mờ + gradient thương hiệu */
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, .3), transparent 32%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .07) 0 5px, transparent 5px 11px),
+    var(--card-back);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, .3),
+    inset 0 0 0 2px rgba(255, 255, 255, .12);
+  overflow: hidden;
 }
+/* Vệt sáng lướt ngang khi hover */
+.back::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .28) 50%, transparent 62%);
+  transform: translateX(-110%);
+}
+.card:not(.up):not(.done):hover .back::after { animation: shine .6s ease; }
+@keyframes shine { to { transform: translateX(110%); } }
 .back .mark {
   color: rgba(255, 255, 255, .55); font-size: clamp(14px, 4.5vw, 24px);
   text-shadow: 0 1px 6px rgba(0, 0, 0, .25);
@@ -95,6 +109,7 @@ const label = computed(() => {
 .front {
   background: var(--card-face); border: 1px solid var(--line);
   transform: rotateY(180deg);
+  box-shadow: var(--shadow-soft), var(--inner-light);
 }
 .card.done { cursor: default; }
 .card.done .front {

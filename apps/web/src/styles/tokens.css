@@ -1,0 +1,93 @@
+/**
+ * Design tokens — nguồn sự thật duy nhất cho màu, chữ, khoảng cách, bóng đổ.
+ * Component chỉ dùng token, không hard-code giá trị.
+ */
+:root {
+  /* Typography — Baloo 2 cho tiêu đề/nút (tròn trịa, chất game), Nunito cho nội dung */
+  --font-display: 'Baloo 2', 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --text-xs: 11.5px;
+  --text-sm: 13px;
+  --text-md: 15.5px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+
+  /* Spacing scale (4px base) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
+  --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
+
+  /* Radius scale */
+  --r-sm: 10px; --r-md: 14px; --r-lg: 18px; --r-full: 999px;
+
+  /* Brand ramp */
+  --brand-300: #a99cff;
+  --brand-500: #6a5cff;
+  --brand-600: #5947e8;
+  --pink-500: #c44cf0;
+  --cyan-400: #38bdf8;
+
+  /* Semantic — light */
+  --bg: #edeffa;
+  --bg-glow-1: rgba(124, 92, 255, .2);
+  --bg-glow-2: rgba(56, 189, 248, .16);
+  --bg-glow-3: rgba(196, 76, 240, .1);
+  --panel: rgba(255, 255, 255, .86);
+  --panel-solid: #ffffff;
+  --panel-soft: #f5f6ff;
+  --fg: #1c1f36;
+  --muted: #63698c;
+  --accent: var(--brand-500);
+  --accent-2: var(--pink-500);
+  --accent-soft: rgba(106, 92, 255, .13);
+  --ok: #0ea371;
+  --warn: #ea8c00;
+  --gold: #d99e00;
+  --bad: #e5484d;
+  --line: rgba(96, 92, 168, .17);
+  --line-strong: rgba(96, 92, 168, .3);
+
+  --card-back: linear-gradient(150deg, #6a5cff 0%, #8b5cf6 52%, #c44cf0 100%);
+  --card-back-glow: rgba(106, 92, 255, .4);
+  --card-face: #ffffff;
+
+  /* Elevation — bóng 2 lớp + viền sáng trên cùng cho cảm giác "kính" */
+  --elev-1: 0 1px 3px rgba(30, 27, 75, .09), 0 4px 14px rgba(30, 27, 75, .08);
+  --elev-2: 0 2px 6px rgba(30, 27, 75, .1), 0 12px 32px rgba(30, 27, 75, .14);
+  --elev-3: 0 4px 12px rgba(30, 27, 75, .14), 0 24px 56px rgba(30, 27, 75, .2);
+  --inner-light: inset 0 1px 0 rgba(255, 255, 255, .65);
+
+  --radius: var(--r-lg);
+  --shadow: var(--elev-2);
+  --shadow-soft: var(--elev-1);
+}
+
+[data-theme='dark'] {
+  --bg: #0c0e1c;
+  --bg-glow-1: rgba(124, 92, 255, .2);
+  --bg-glow-2: rgba(34, 211, 238, .1);
+  --bg-glow-3: rgba(196, 76, 240, .12);
+  --panel: rgba(24, 27, 48, .88);
+  --panel-solid: #181b30;
+  --panel-soft: #1e2240;
+  --fg: #eef0fc;
+  --muted: #9ba3cd;
+  --accent: #8b7dff;
+  --accent-2: #cf6bfa;
+  --accent-soft: rgba(139, 125, 255, .17);
+  --ok: #2dd48f;
+  --warn: #fbaa2c;
+  --gold: #f7c948;
+  --bad: #f2555a;
+  --line: rgba(148, 152, 220, .16);
+  --line-strong: rgba(148, 152, 220, .32);
+
+  --card-back: linear-gradient(150deg, #5246d6 0%, #7440dd 52%, #a437e8 100%);
+  --card-back-glow: rgba(139, 125, 255, .45);
+  --card-face: #232849;
+
+  --elev-1: 0 1px 3px rgba(0, 0, 0, .4), 0 4px 14px rgba(0, 0, 0, .3);
+  --elev-2: 0 2px 6px rgba(0, 0, 0, .45), 0 12px 32px rgba(0, 0, 0, .4);
+  --elev-3: 0 4px 12px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .55);
+  --inner-light: inset 0 1px 0 rgba(255, 255, 255, .07);
+}

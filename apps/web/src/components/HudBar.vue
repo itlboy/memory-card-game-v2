@@ -38,10 +38,16 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 </template>
 
 <style scoped>
-.hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; }
+.hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; }
 .stat { display: flex; flex-direction: column; min-width: 52px; }
-.stat span { font-size: 11px; text-transform: uppercase; color: var(--muted); }
-.stat b { font-variant-numeric: tabular-nums; }
+.stat span {
+  font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); font-weight: 700;
+}
+.stat b {
+  font-variant-numeric: tabular-nums; font-family: var(--font-display);
+  font-size: var(--text-lg); line-height: 1.2;
+}
 .stat b i { font-style: normal; color: var(--muted); font-weight: 400; font-size: 13px; }
 .stat.urgent b { color: var(--bad); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .35; } }

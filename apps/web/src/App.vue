@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { levelConfig, levelSpec, presetConfig, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
-import { computed, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
@@ -32,6 +32,14 @@ const session = useGameSession();
 void loadThemes().then((list) => {
   themes.value = list;
   if (!list.some((t) => t.id === themeId.value)) themeId.value = list[0]?.id ?? 'animals';
+});
+
+onMounted(() => {
+  // iOS/Android chỉ cho phát âm sau cử chỉ người dùng — mở khoá ở tương tác đầu tiên
+  const unlock = (): void => sfx.unlock();
+  for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) {
+    document.addEventListener(ev, unlock, { once: true, passive: true });
+  }
 });
 
 /* ---------- tuỳ chọn hiển thị ---------- */

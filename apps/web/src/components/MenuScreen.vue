@@ -2,6 +2,7 @@
 import { GRIDS } from '@mm/engine';
 import type { Mode } from '@mm/engine';
 import { computed, ref } from 'vue';
+import { sfx } from '@/lib/audio';
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
@@ -58,6 +59,7 @@ const MULTI_MODES = SOLO_MODES.filter((m) => m.id === 'classic' || m.id === 'sur
 const modes = computed(() => (isMulti.value ? MULTI_MODES : SOLO_MODES));
 
 function pickPlayers(multi: boolean): void {
+  sfx.select();
   emit('update:playerCount', multi ? Math.max(2, props.playerCount) : 1);
   // Nhiều người chỉ có 2 chế độ; nếu đang giữ chế độ solo thì đưa về Cổ điển
   if (multi && props.mode !== 'classic' && props.mode !== 'survival') emit('update:mode', 'classic');
@@ -65,11 +67,13 @@ function pickPlayers(multi: boolean): void {
 }
 
 function pickCount(n: number): void {
+  sfx.select();
   emit('update:playerCount', n);
   step.value = 'mode';
 }
 
 function pickMode(m: Mode): void {
+  sfx.select();
   emit('update:mode', m);
   step.value = m === 'campaign' && !isMulti.value ? 'campaign' : 'setup';
 }
