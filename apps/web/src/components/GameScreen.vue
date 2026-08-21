@@ -82,6 +82,8 @@ const fitStyle = computed(() => {
       v-if="game.isMultiplayer"
       :players="s.players.value"
       :current-id="s.current.value?.id ?? ''"
+      :turn-left="s.turnTimeLeft.value"
+      :bonus-for="s.timeBonusFor.value"
     />
 
     <p v-if="s.revealingAll.value" class="toast peek" role="status">

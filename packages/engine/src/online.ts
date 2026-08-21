@@ -63,6 +63,8 @@ export interface GameView {
   totalPairs: number;
   status: string;
   timeLeft: number | null;
+  /** Giây còn lại của lượt hiện tại (đồng hồ 30s). */
+  turnTimeLeft: number | null;
   summary: Summary | null;
 }
 
@@ -94,6 +96,7 @@ export function publicView(
     totalPairs: game.totalPairs,
     status: game.status,
     timeLeft: game.timeLeft(now),
+    turnTimeLeft: game.turnTimeLeft(now),
     summary: game.summary()
   };
 }
@@ -146,7 +149,7 @@ export interface RoomInfo {
 
 /** Server → client. */
 export type ServerMsg =
-  | { t: 'welcome'; playerId: string; token: string; room: RoomInfo }
+  | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean }
   | { t: 'room'; room: RoomInfo }
   | { t: 'state'; view: GameView }
   | { t: 'events'; events: PublicEvent[]; view: GameView }

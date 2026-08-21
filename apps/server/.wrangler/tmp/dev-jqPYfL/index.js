@@ -93,6 +93,7 @@ var BASE_POINTS = 100;
 var MISS_PENALTY = 10;
 var TIME_BONUS_PER_SEC = 5;
 var FLIP_BACK_MS = 1e3;
+var TURN_BONUS_MS = 5e3;
 var COMBO_STEPS = [1, 1.2, 1.5, 2];
 function comboMultiplier(streak) {
   if (streak <= 0) return 1;
@@ -158,6 +159,8 @@ var MemoryGame = class _MemoryGame {
   revealUntil = 0;
   /** Chờ úp lại 2 thẻ khác nhau đến thời điểm này. */
   pendingUntil = 0;
+  /** Hạn chót của lượt hiện tại (ms). 0 = không dùng đồng hồ lượt. */
+  turnDeadline = 0;
   missStreakForShuffle = 0;
   rng;
   summaryCache = null;
@@ -203,6 +206,17 @@ var MemoryGame = class _MemoryGame {
     const limit = this.config.timeLimit ?? null;
     return limit === null ? null : Math.max(0, limit - this.elapsed(now));
   }
+  /** Giây còn lại của lượt hiện tại; null nếu không dùng đồng hồ lượt. */
+  turnTimeLeft(now) {
+    if (!this.turnDeadline || this.finished) return null;
+    return Math.max(0, (this.turnDeadline - now) / 1e3);
+  }
+  get turnLimitMs() {
+    return this.isMultiplayer && this.config.turnLimit ? this.config.turnLimit * 1e3 : 0;
+  }
+  armTurnClock(now) {
+    if (this.turnLimitMs) this.turnDeadline = now + this.turnLimitMs;
+  }
   movesLeft() {
     const limit = this.config.moveLimit ?? null;
     return limit === null ? null : Math.max(0, limit - this.moves);
@@ -224,6 +238,7 @@ var MemoryGame = class _MemoryGame {
       this.revealUntil = now + peek;
     } else {
       this.status = "playing";
+      this.armTurnClock(now);
     }
     return [];
   }
@@ -239,11 +254,19 @@ var MemoryGame = class _MemoryGame {
       if (this.status === "peeking") {
         this.status = "playing";
         this.startedAt = now;
+        this.armTurnClock(now);
       }
       out.push({ type: "peek-end" });
     }
     if (this.pendingUntil > 0 && now >= this.pendingUntil) {
       out.push(...this.resolvePending(now));
+    }
+    if (this.status === "playing" && !this.locked && this.turnDeadline && now >= this.turnDeadline) {
+      const player = this.current;
+      player.streak = 0;
+      this.selection = [];
+      out.push({ type: "turn-timeout", playerId: player.id });
+      out.push(...this.nextTurn(now));
     }
     const left = this.timeLeft(now);
     if (left !== null && left <= 0 && this.status === "playing") {
@@ -281,6 +304,10 @@ var MemoryGame = class _MemoryGame {
       this.selection = [];
       this.missStreakForShuffle = 0;
       out.push({ type: "match", indices: [a, b], gained, playerId: player.id });
+      if (this.turnDeadline) {
+        this.turnDeadline = Math.min(this.turnDeadline + TURN_BONUS_MS, now + this.turnLimitMs);
+        out.push({ type: "time-bonus", playerId: player.id, ms: TURN_BONUS_MS });
+      }
       if (this.matched.size === this.totalPairs) {
         out.push(...this.end("won", "cleared", now));
       } else if (this.movesLeft() === 0) {
@@ -317,11 +344,11 @@ var MemoryGame = class _MemoryGame {
       const hidden = this.cards.filter((c) => !c.blank && !this.matched.has(c.pairId)).map((c) => c.index);
       if (hidden.length > 2) out.push({ type: "reshuffle", indices: reshuffleHidden(this.cards, hidden, this.rng) });
     }
-    if (!this.finished && this.isMultiplayer) out.push(...this.nextTurn());
+    if (!this.finished && this.isMultiplayer) out.push(...this.nextTurn(now));
     return out;
   }
   /** Chuyển lượt, bỏ qua người đang bị đóng băng (MP-02, thẻ freeze). */
-  nextTurn() {
+  nextTurn(now) {
     const out = [];
     for (let guard = 0; guard < this.players.length + 1; guard++) {
       this.turnIndex = (this.turnIndex + 1) % this.players.length;
@@ -333,6 +360,7 @@ var MemoryGame = class _MemoryGame {
         continue;
       }
       out.push({ type: "turn", playerId: p.id, skipped: false });
+      this.armTurnClock(now);
       return out;
     }
     return out;
@@ -372,6 +400,7 @@ var MemoryGame = class _MemoryGame {
     this.status = status;
     this.endedAt = now;
     this.pendingUntil = 0;
+    this.turnDeadline = 0;
     this.selection = [];
     const seconds = Math.round(this.elapsed(now));
     let bonus = 0;
@@ -409,7 +438,7 @@ var MemoryGame = class _MemoryGame {
     if (this.current.id === playerId) {
       this.selection = [];
       this.pendingUntil = 0;
-      return this.nextTurn();
+      return this.nextTurn(now);
     }
     return [];
   }
@@ -431,6 +460,7 @@ var MemoryGame = class _MemoryGame {
       endedAt: this.endedAt,
       revealUntil: this.revealUntil,
       pendingUntil: this.pendingUntil,
+      turnDeadline: this.turnDeadline,
       missStreakForShuffle: this.missStreakForShuffle,
       rngState: this.rng.state,
       summaryCache: this.summaryCache && {
@@ -459,6 +489,7 @@ var MemoryGame = class _MemoryGame {
       endedAt: s.endedAt,
       revealUntil: s.revealUntil,
       pendingUntil: s.pendingUntil,
+      turnDeadline: s.turnDeadline ?? 0,
       missStreakForShuffle: s.missStreakForShuffle,
       rng: Rng.fromState(s.rngState),
       summaryCache: s.summaryCache ? {
@@ -490,6 +521,7 @@ function presetConfig({ mode, grid, symbols, seed, players }) {
   const g = GRIDS[grid];
   if (!g) throw new Error(`L\u01B0\u1EDBi ${grid} kh\xF4ng \u0111\u01B0\u1EE3c h\u1ED7 tr\u1EE3`);
   const base = { mode, cols: g.cols, rows: g.rows, symbols, seed, players };
+  if ((players?.length ?? 1) > 1) base.turnLimit = 15;
   switch (mode) {
     case "classic":
       return base;
@@ -538,6 +570,7 @@ function publicView(game, now, connected) {
     totalPairs: game.totalPairs,
     status: game.status,
     timeLeft: game.timeLeft(now),
+    turnTimeLeft: game.turnTimeLeft(now),
     summary: game.summary()
   };
 }
@@ -622,9 +655,8 @@ var RoomDO = class extends DurableObject {
     let player = token ? this.room.players.find((p) => p.token === token) : void 0;
     if (!player) {
       if (!name) return new Response("Thi\u1EBFu t\xEAn", { status: 400 });
-      if (this.room.status !== "lobby") return new Response("V\xE1n \u0111\xE3 b\u1EAFt \u0111\u1EA7u", { status: 409 });
-      if (this.room.players.length >= ROOM_LIMITS.maxPlayers) {
-        return new Response("Ph\xF2ng \u0111\xE3 \u0111\u1EE7 ng\u01B0\u1EDDi", { status: 409 });
+      if (this.room.status !== "lobby" || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
+        return this.acceptSpectator();
       }
       player = {
         id: crypto.randomUUID().slice(0, 8),
@@ -653,6 +685,21 @@ var RoomDO = class extends DurableObject {
     this.broadcast({ t: "room", room: this.roomInfo() }, player.id);
     if (this.game) this.send(pair[1], { t: "state", view: this.view() });
     await this.scheduleNext();
+    return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+  /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
+  acceptSpectator() {
+    const pair = new WebSocketPair();
+    this.ctx.acceptWebSocket(pair[1], ["spectator"]);
+    pair[1].serializeAttachment({ playerId: "" });
+    this.send(pair[1], {
+      t: "welcome",
+      playerId: "",
+      token: "",
+      spectator: true,
+      room: this.roomInfo()
+    });
+    if (this.game) this.send(pair[1], { t: "state", view: this.view() });
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
   async webSocketMessage(ws, raw) {
@@ -760,6 +807,7 @@ var RoomDO = class extends DurableObject {
     const now = Date.now();
     if (this.room?.status === "playing" && this.game && !this.game.finished) {
       if (this.game.locked) marks.push(now + (this.game.config.flipBackMs ?? 1e3));
+      if (this.game.turnDeadline) marks.push(this.game.turnDeadline + 50);
       const left = this.game.timeLeft(now);
       if (left !== null) marks.push(now + left * 1e3 + 50);
       for (const p of this.room.players) {
@@ -922,7 +970,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-rnhBif/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-AcxKDX/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -954,7 +1002,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-rnhBif/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-AcxKDX/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

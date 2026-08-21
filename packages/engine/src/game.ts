@@ -1,7 +1,7 @@
 import { buildDeck, reshuffleHidden } from './deck.js';
 import { Rng } from './rng.js';
 import {
-  FLIP_BACK_MS, MISS_PENALTY, comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
+  FLIP_BACK_MS, MISS_PENALTY, TURN_BONUS_MS, comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 import type {
   Card, GameConfig, GameEvent, GameStatus, Player, PlayerInit, Power, Summary
@@ -42,6 +42,8 @@ export class MemoryGame {
   revealUntil = 0;
   /** Chờ úp lại 2 thẻ khác nhau đến thời điểm này. */
   private pendingUntil = 0;
+  /** Hạn chót của lượt hiện tại (ms). 0 = không dùng đồng hồ lượt. */
+  turnDeadline = 0;
   private missStreakForShuffle = 0;
   private rng: Rng;
   private summaryCache: Summary | null = null;
@@ -83,6 +85,20 @@ export class MemoryGame {
     return limit === null ? null : Math.max(0, limit - this.elapsed(now));
   }
 
+  /** Giây còn lại của lượt hiện tại; null nếu không dùng đồng hồ lượt. */
+  turnTimeLeft(now: number): number | null {
+    if (!this.turnDeadline || this.finished) return null;
+    return Math.max(0, (this.turnDeadline - now) / 1000);
+  }
+
+  private get turnLimitMs(): number {
+    return this.isMultiplayer && this.config.turnLimit ? this.config.turnLimit * 1000 : 0;
+  }
+
+  private armTurnClock(now: number): void {
+    if (this.turnLimitMs) this.turnDeadline = now + this.turnLimitMs;
+  }
+
   movesLeft(): number | null {
     const limit = this.config.moveLimit ?? null;
     return limit === null ? null : Math.max(0, limit - this.moves);
@@ -104,6 +120,7 @@ export class MemoryGame {
       this.revealUntil = now + peek;
     } else {
       this.status = 'playing';
+      this.armTurnClock(now);
     }
     return [];
   }
@@ -119,12 +136,22 @@ export class MemoryGame {
     if (this.revealUntil > 0 && now >= this.revealUntil) {
       this.revealUntil = 0;
       // Peek chỉ tính thời gian từ lúc thẻ úp lại xuống
-      if (this.status === 'peeking') { this.status = 'playing'; this.startedAt = now; }
+      if (this.status === 'peeking') { this.status = 'playing'; this.startedAt = now; this.armTurnClock(now); }
       out.push({ type: 'peek-end' });
     }
 
     if (this.pendingUntil > 0 && now >= this.pendingUntil) {
       out.push(...this.resolvePending(now));
+    }
+
+    // Hết giờ lượt (multiplayer): huỷ thẻ đang mở dở, mất combo, chuyển lượt.
+    // Không xử khi đang khoá — lượt đằng nào cũng sắp chuyển ở resolvePending.
+    if (this.status === 'playing' && !this.locked && this.turnDeadline && now >= this.turnDeadline) {
+      const player = this.current;
+      player.streak = 0;
+      this.selection = [];
+      out.push({ type: 'turn-timeout', playerId: player.id });
+      out.push(...this.nextTurn(now));
     }
 
     const left = this.timeLeft(now);
@@ -169,6 +196,11 @@ export class MemoryGame {
       this.selection = [];
       this.missStreakForShuffle = 0;
       out.push({ type: 'match', indices: [a, b], gained, playerId: player.id });
+      if (this.turnDeadline) {
+        // +5 giây nhưng không vượt trần 15 giây tính từ bây giờ
+        this.turnDeadline = Math.min(this.turnDeadline + TURN_BONUS_MS, now + this.turnLimitMs);
+        out.push({ type: 'time-bonus', playerId: player.id, ms: TURN_BONUS_MS });
+      }
 
       if (this.matched.size === this.totalPairs) {
         out.push(...this.end('won', 'cleared', now));
@@ -214,12 +246,12 @@ export class MemoryGame {
       if (hidden.length > 2) out.push({ type: 'reshuffle', indices: reshuffleHidden(this.cards, hidden, this.rng) });
     }
 
-    if (!this.finished && this.isMultiplayer) out.push(...this.nextTurn());
+    if (!this.finished && this.isMultiplayer) out.push(...this.nextTurn(now));
     return out;
   }
 
   /** Chuyển lượt, bỏ qua người đang bị đóng băng (MP-02, thẻ freeze). */
-  private nextTurn(): GameEvent[] {
+  private nextTurn(now: number): GameEvent[] {
     const out: GameEvent[] = [];
     for (let guard = 0; guard < this.players.length + 1; guard++) {
       this.turnIndex = (this.turnIndex + 1) % this.players.length;
@@ -231,6 +263,7 @@ export class MemoryGame {
         continue;
       }
       out.push({ type: 'turn', playerId: p.id, skipped: false });
+      this.armTurnClock(now);
       return out;
     }
     return out;
@@ -274,6 +307,7 @@ export class MemoryGame {
     this.status = status;
     this.endedAt = now;
     this.pendingUntil = 0;
+    this.turnDeadline = 0;
     this.selection = [];
 
     const seconds = Math.round(this.elapsed(now));
@@ -315,7 +349,7 @@ export class MemoryGame {
     if (this.current.id === playerId) {
       this.selection = [];
       this.pendingUntil = 0;
-      return this.nextTurn();
+      return this.nextTurn(now);
     }
     return [];
   }
@@ -338,6 +372,7 @@ export class MemoryGame {
       endedAt: this.endedAt,
       revealUntil: this.revealUntil,
       pendingUntil: this.pendingUntil,
+      turnDeadline: this.turnDeadline,
       missStreakForShuffle: this.missStreakForShuffle,
       rngState: this.rng.state,
       summaryCache: this.summaryCache && {
@@ -367,6 +402,7 @@ export class MemoryGame {
       endedAt: s.endedAt,
       revealUntil: s.revealUntil,
       pendingUntil: s.pendingUntil,
+      turnDeadline: s.turnDeadline ?? 0,
       missStreakForShuffle: s.missStreakForShuffle,
       rng: Rng.fromState(s.rngState as number),
       summaryCache: s.summaryCache

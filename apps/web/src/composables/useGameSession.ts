@@ -24,6 +24,9 @@ export function useGameSession() {
   let bannerTimer: ReturnType<typeof setTimeout> | undefined;
   const now = ref(0);
   let lastTickSecond = -1;
+  let lastTurnTickAt = 0;
+  /** Hiệu ứng "+10s" trên chip người vừa ghép đúng. */
+  const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
 
   let raf = 0;
   // Date.now thay vì performance.now: mốc thời gian phải sống qua F5
@@ -56,6 +59,13 @@ export function useGameSession() {
         case 'turn':
           if (e.skipped) { frozenId = e.playerId; }
           else { turnId = e.playerId; sfx.turn(); }
+          break;
+        case 'turn-timeout':
+          sfx.miss();
+          break;
+        case 'time-bonus':
+          timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
+          setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
         case 'end':
           summary.value = e.summary;
@@ -91,6 +101,11 @@ export function useGameSession() {
       if (left !== null && left > 0 && left <= 10) {
         const sec = Math.ceil(left);
         if (sec !== lastTickSecond) { lastTickSecond = sec; sfx.tick(); }
+      }
+      // Đồng hồ lượt: dưới 10 giây tick dồn dập gấp đôi để giục người chơi
+      const turnLeft = g.turnTimeLeft(now.value);
+      if (turnLeft !== null && turnLeft > 0 && turnLeft <= 10) {
+        if (now.value - lastTurnTickAt >= 500) { lastTurnTickAt = now.value; sfx.tick(); }
       }
       raf = requestAnimationFrame(loop);
     } else {
@@ -179,6 +194,7 @@ export function useGameSession() {
   const elapsed = computed(() => { touchClock(); return game.value?.elapsed(now.value) ?? 0; });
   const timeLeft = computed(() => { touchClock(); return game.value?.timeLeft(now.value) ?? null; });
   const movesLeft = computed(() => { touch(); return game.value?.movesLeft() ?? null; });
+  const turnTimeLeft = computed(() => { touchClock(); return game.value?.turnTimeLeft(now.value) ?? null; });
   const moves = computed(() => { touch(); return game.value?.moves ?? 0; });
 
   /** Thẻ nào đang ngửa mặt — tính lại theo cả rev và now (vì hé mở có hạn giờ). */
@@ -202,8 +218,8 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop, adopt,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
-    elapsed, timeLeft, movesLeft, moves, summary
+    elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft
   };
 }

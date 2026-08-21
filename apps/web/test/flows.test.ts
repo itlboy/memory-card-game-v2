@@ -353,3 +353,56 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     expect(wrapper.text()).toContain('Màn1');
   });
 });
+
+describe('đồng hồ lượt (multiplayer cùng máy)', () => {
+  async function startTwoPlayer(): Promise<void> {
+    await mountApp();
+    await click('Chơi nhiều người');
+    await click('2 người');
+    await click('Cổ điển');
+    await click('Bắt đầu');
+  }
+
+  it('người đang tới lượt có đồng hồ đếm ngược từ 15s', async () => {
+    await startTwoPlayer();
+    expect(wrapper.find('.turn-clock').exists()).toBe(true);
+    expect(wrapper.find('.turn-clock').text()).toContain('15');
+    // Chỉ hiện trên đúng 1 chip — người đang tới lượt
+    expect(wrapper.findAll('.turn-clock')).toHaveLength(1);
+    expect(wrapper.find('.player.active .turn-clock').exists()).toBe(true);
+  });
+
+  it('dưới 10 giây đồng hồ chuyển trạng thái giục (đỏ, nhấp nháy)', async () => {
+    await startTwoPlayer();
+    expect(wrapper.find('.turn-clock.urgent').exists()).toBe(false);
+    await vi.advanceTimersByTimeAsync(6000);
+    await flush();
+    expect(wrapper.find('.turn-clock.urgent').exists()).toBe(true);
+  });
+
+  it('hết 15 giây thì tự chuyển lượt sang người kia', async () => {
+    await startTwoPlayer();
+    const firstActive = wrapper.find('.player.active b').text();
+    await vi.advanceTimersByTimeAsync(15_500);
+    await flush();
+    const nowActive = wrapper.find('.player.active b').text();
+    expect(nowActive).not.toBe(firstActive);
+    expect(wrapper.find('.turn-clock').text()).toContain('15');   // người mới đủ 15s
+  });
+
+  it('ghép đúng hiện +5s và đồng hồ không vượt trần 15', async () => {
+    await startTwoPlayer();
+    await vi.advanceTimersByTimeAsync(4000);       // còn ~11s
+    const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
+    const pairId = cards[0]!.pairId;
+    const [a, b] = cards.filter((c) => c.pairId === pairId).map((c) => c.index);
+    const tiles = wrapper.findAll('.card');
+    await tiles[a!]!.trigger('click');
+    await tiles[b!]!.trigger('click');
+    await flush();
+    expect(wrapper.find('.plus10').exists()).toBe(true);
+    const secs = Number(wrapper.find('.turn-clock').text().replace(/\D/g, ''));
+    expect(secs).toBeGreaterThan(11);
+    expect(secs).toBeLessThanOrEqual(15);           // trần 15
+  });
+});

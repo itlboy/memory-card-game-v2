@@ -81,9 +81,9 @@ export class RoomDO extends DurableObject<Env> {
     let player = token ? this.room.players.find((p) => p.token === token) : undefined;
     if (!player) {
       if (!name) return new Response('Thiếu tên', { status: 400 });
-      if (this.room.status !== 'lobby') return new Response('Ván đã bắt đầu', { status: 409 });
-      if (this.room.players.length >= ROOM_LIMITS.maxPlayers) {
-        return new Response('Phòng đã đủ người', { status: 409 });
+      // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác
+      if (this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
+        return this.acceptSpectator();
       }
       player = {
         id: crypto.randomUUID().slice(0, 8),
@@ -117,12 +117,24 @@ export class RoomDO extends DurableObject<Env> {
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
+  /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
+  private acceptSpectator(): Response {
+    const pair = new WebSocketPair();
+    this.ctx.acceptWebSocket(pair[1], ['spectator']);
+    pair[1].serializeAttachment({ playerId: '' } satisfies Attachment);
+    this.send(pair[1], {
+      t: 'welcome', playerId: '', token: '', spectator: true, room: this.roomInfo()
+    });
+    if (this.game) this.send(pair[1], { t: 'state', view: this.view() });
+    return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+
   override async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
     await this.load();
     if (!this.room) return;
     const att = ws.deserializeAttachment() as Attachment | null;
     const player = this.room.players.find((p) => p.id === att?.playerId);
-    if (!player) return;
+    if (!player) return;   // khán giả (playerId rỗng) không được gửi hành động
 
     let msg: ClientMsg;
     try {
@@ -239,6 +251,8 @@ export class RoomDO extends DurableObject<Env> {
     const now = Date.now();
     if (this.room?.status === 'playing' && this.game && !this.game.finished) {
       if (this.game.locked) marks.push(now + (this.game.config.flipBackMs ?? 1000));
+      // Đồng hồ 30 giây mỗi lượt: hết hạn thì alarm đánh thức để chuyển lượt
+      if (this.game.turnDeadline) marks.push(this.game.turnDeadline + 50);
       const left = this.game.timeLeft(now);
       if (left !== null) marks.push(now + left * 1000 + 50);
       for (const p of this.room.players) {

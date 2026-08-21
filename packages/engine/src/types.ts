@@ -61,6 +61,8 @@ export interface GameConfig {
   shuffleAfterMisses?: number;
   /** Độ trễ úp lại 2 thẻ khác nhau, ms. */
   flipBackMs?: number;
+  /** Giới hạn mỗi lượt (giây) — multiplayer. null = không giới hạn. */
+  turnLimit?: number | null;
   /** Mốc điểm đạt 2 và 3 sao (Campaign). */
   starThresholds?: readonly [number, number];
 }
@@ -89,5 +91,7 @@ export type GameEvent =
   | { type: 'peek-end' }
   | { type: 'reshuffle'; indices: number[] }
   | { type: 'turn'; playerId: string; skipped: boolean }
+  | { type: 'turn-timeout'; playerId: string }
+  | { type: 'time-bonus'; playerId: string; ms: number }
   | { type: 'life-lost'; playerId: string; livesLeft: number }
   | { type: 'end'; summary: Summary };

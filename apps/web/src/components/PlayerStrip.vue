@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import type { Player } from '@mm/engine';
 
-defineProps<{ players: Player[]; currentId: string }>();
+defineProps<{
+  players: Player[];
+  currentId: string;
+  /** Giây còn lại của lượt hiện tại (đồng hồ 30s); null = không dùng. */
+  turnLeft?: number | null;
+  /** Người vừa được +10s (ghép đúng), kèm key để lặp animation. */
+  bonusFor?: { playerId: string; key: number } | null;
+}>();
 
 const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 </script>
@@ -17,6 +24,16 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
     >
       <span class="avatar" aria-hidden="true">{{ p.avatar ?? AVATARS[i % AVATARS.length] }}</span>
       <b class="name">{{ p.name }}</b>
+      <span
+        v-if="p.id === currentId && turnLeft !== null && turnLeft !== undefined"
+        class="turn-clock"
+        :class="{ urgent: turnLeft <= 10 }"
+        role="timer"
+        :aria-label="`Còn ${Math.ceil(turnLeft)} giây`"
+      >⏱{{ Math.ceil(turnLeft) }}</span>
+      <Transition name="plus">
+        <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
+      </Transition>
       <span class="pts">{{ p.score }}</span>
       <small v-if="Number.isFinite(p.lives)" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
       <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng">❄️</span>
@@ -30,6 +47,7 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 .strip { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .player {
   /* Chip 1 dòng, nén hết cỡ để nhường diện tích cho bàn thẻ trên mobile */
+  position: relative;
   flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
   padding: 5px 9px; border-width: 2px; border-radius: 12px;
 }
@@ -51,6 +69,26 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
   margin-left: auto; font-family: var(--font-display); font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
+.turn-clock {
+  font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
+  padding: 1px 7px; border-radius: var(--r-full);
+  background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+}
+.turn-clock.urgent {
+  background: color-mix(in srgb, var(--bad) 16%, transparent);
+  color: var(--bad);
+  animation: clock-pulse .5s steps(2) infinite;   /* dưới 10s: nhấp nháy nhanh gấp đôi */
+}
+@keyframes clock-pulse { 50% { opacity: .45; transform: scale(1.12); } }
+.plus10 {
+  position: absolute; top: -18px; right: 8px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: var(--ok); text-shadow: 0 1px 6px rgba(0, 0, 0, .2); pointer-events: none;
+}
+.plus-enter-active { transition: transform .8s ease-out, opacity .8s ease-out; }
+.plus-enter-from { transform: translateY(10px); opacity: 0; }
+.plus-leave-active { transition: opacity .3s; }
+.plus-leave-to { opacity: 0; }
 .player.active .pts { color: var(--accent); }
 .lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
 .tag { font-size: 11px; }

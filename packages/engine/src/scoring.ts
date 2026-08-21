@@ -4,6 +4,8 @@ export const BASE_POINTS = 100;
 export const MISS_PENALTY = 10;
 export const TIME_BONUS_PER_SEC = 5;
 export const FLIP_BACK_MS = 1000;
+/** Ghép đúng được cộng thêm vào đồng hồ lượt (multiplayer), không vượt trần TURN_LIMIT. */
+export const TURN_BONUS_MS = 5_000;
 
 /** Hệ số combo theo chuỗi ghép đúng liên tiếp: cặp 1 = x1, 2 = x1.2, 3 = x1.5, 4+ = x2. */
 const COMBO_STEPS = [1, 1.2, 1.5, 2] as const;

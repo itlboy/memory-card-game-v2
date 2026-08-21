@@ -27,6 +27,8 @@ export function presetConfig({ mode, grid, symbols, seed, players }: PresetInput
   if (!g) throw new Error(`Lưới ${grid} không được hỗ trợ`);
 
   const base: GameConfig = { mode, cols: g.cols, rows: g.rows, symbols, seed, players };
+  // Multiplayer: mỗi người 15 giây cho lượt của mình
+  if ((players?.length ?? 1) > 1) base.turnLimit = 15;
   switch (mode) {
     case 'classic':  return base;
     case 'time':     return { ...base, timeLimit: g.timeLimit };

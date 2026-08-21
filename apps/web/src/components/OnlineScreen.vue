@@ -233,6 +233,17 @@ const THEMES = [
       >
         <span class="avatar">{{ p.avatar }}</span>
         <b>{{ p.name }}</b>
+        <span
+          v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
+          class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
+          role="timer" :aria-label="`Còn ${Math.ceil(o.turnTimeLeft.value)} giây`"
+        >⏱{{ Math.ceil(o.turnTimeLeft.value) }}</span>
+        <Transition name="plus">
+          <span
+            v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === p.id"
+            :key="o.timeBonusFor.value.key" class="plus10"
+          >+5s</span>
+        </Transition>
         <span class="pts">{{ p.score }}</span>
         <Transition name="bubble">
           <span v-if="o.bubbles.value[p.id]" :key="o.bubbles.value[p.id]!.key" class="bubble">
@@ -242,6 +253,9 @@ const THEMES = [
       </div>
     </div>
 
+    <p v-if="o.spectator.value" class="spectate" role="status">
+      👁️ Phòng đã bắt đầu — bạn đang xem trận đấu
+    </p>
     <p v-if="o.reconnecting.value" class="reconnect" role="status">📡 Mất kết nối — đang vào lại…</p>
 
     <div class="board-wrap">
@@ -265,8 +279,8 @@ const THEMES = [
       </Transition>
     </div>
 
-    <!-- Emoji chat (ON-08) -->
-    <div class="emoji-bar" aria-label="Gửi emoji">
+    <!-- Emoji chat (ON-08) — khán giả không gửi được -->
+    <div v-if="!o.spectator.value" class="emoji-bar" aria-label="Gửi emoji">
       <button
         v-for="e in QUICK_EMOJIS" :key="e" class="emoji" type="button"
         @click="o.sendEmoji(e)"
@@ -354,6 +368,26 @@ input:focus { outline: none; border-color: var(--accent); }
 .pchip .avatar { font-size: 18px; }
 .pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pchip .pts { margin-left: auto; font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
+.turn-clock {
+  font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
+  padding: 1px 7px; border-radius: var(--r-full);
+  background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+}
+.turn-clock.urgent {
+  background: color-mix(in srgb, var(--bad) 16%, transparent);
+  color: var(--bad);
+  animation: clock-pulse .5s steps(2) infinite;
+}
+@keyframes clock-pulse { 50% { opacity: .45; transform: scale(1.12); } }
+.plus10 {
+  position: absolute; top: -18px; right: 8px;
+  font-family: var(--font-display); font-size: 13px; font-weight: 700;
+  color: var(--ok); text-shadow: 0 1px 6px rgba(0, 0, 0, .2); pointer-events: none;
+}
+.plus-enter-active { transition: transform .8s ease-out, opacity .8s ease-out; }
+.plus-enter-from { transform: translateY(10px); opacity: 0; }
+.plus-leave-active { transition: opacity .3s; }
+.plus-leave-to { opacity: 0; }
 .pchip.active .pts { color: var(--accent); }
 .bubble {
   position: absolute; top: -26px; left: 8px; font-size: 22px;
@@ -367,6 +401,10 @@ input:focus { outline: none; border-color: var(--accent); }
 .reconnect {
   margin: 0; padding: 6px 12px; border-radius: var(--r-sm); text-align: center;
   font-size: var(--text-sm); background: color-mix(in srgb, var(--warn) 16%, transparent);
+}
+.spectate {
+  margin: 0; padding: 6px 12px; border-radius: var(--r-sm); text-align: center;
+  font-size: var(--text-sm); background: var(--accent-soft);
 }
 
 .board-wrap {

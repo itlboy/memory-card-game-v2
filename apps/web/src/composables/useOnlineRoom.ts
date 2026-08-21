@@ -25,12 +25,34 @@ export function useOnlineRoom() {
   const room = shallowRef<RoomInfo | null>(null);
   const view = shallowRef<GameView | null>(null);
   const myId = ref('');
+  const spectator = ref(false);
   const reconnecting = ref(false);
   /** Hiệu ứng phía client — cùng ngôn ngữ với chế độ offline. */
   const wrongPair = ref<number[]>([]);
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
   const bubbles = ref<Record<string, { emoji: QuickEmoji; key: number }>>({});
+  const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
+  /** Hạn chót lượt (ms cục bộ) — server gửi số giây còn lại, client đếm tiếp cho mượt. */
+  const turnDeadline = ref(0);
+  const clock = ref(0);
+  let lastUrgentTick = 0;
+  const clockTimer = setInterval(() => {
+    clock.value = Date.now();
+    // Tới lượt mình mà còn ≤10 giây: tick dồn dập mỗi 500ms để giục
+    const left = turnTimeLeft.value;
+    if (left !== null && left > 0 && left <= 10
+      && view.value?.currentId === myId.value
+      && clock.value - lastUrgentTick >= 500) {
+      lastUrgentTick = clock.value;
+      sfx.tick();
+    }
+  }, 200);
+
+  const turnTimeLeft = computed(() => {
+    if (!turnDeadline.value || view.value?.status !== 'playing' || view.value.summary) return null;
+    return Math.max(0, (turnDeadline.value - clock.value) / 1000);
+  });
 
   let ws: WebSocket | null = null;
   let token = '';
@@ -43,7 +65,8 @@ export function useOnlineRoom() {
 
   const isHost = computed(() => !!room.value && room.value.hostId === myId.value);
   const me = computed(() => room.value?.players.find((p) => p.id === myId.value) ?? null);
-  const myTurn = computed(() => !!view.value && view.value.currentId === myId.value);
+  const myTurn = computed(() =>
+    !spectator.value && !!view.value && !!myId.value && view.value.currentId === myId.value);
 
   function send(msg: ClientMsg): void {
     if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
@@ -102,9 +125,15 @@ export function useOnlineRoom() {
       case 'welcome':
         myId.value = msg.playerId;
         token = msg.token;
+        spectator.value = !!msg.spectator;
         reconnecting.value = false;
         reconnectDeadline = 0;
         room.value = msg.room;
+        if (msg.spectator) {
+          // Khán giả: phòng đã bắt đầu / đầy — chỉ xem, không lưu phiên
+          phase.value = msg.room.status === 'ended' ? 'ended' : 'playing';
+          break;
+        }
         phase.value = msg.room.status === 'lobby' ? 'lobby' : phase.value;
         try {
           sessionStorage.setItem(SESSION_KEY, JSON.stringify(
@@ -120,6 +149,7 @@ export function useOnlineRoom() {
 
       case 'state':
         view.value = msg.view;
+        syncTurnClock(msg.view);
         if (msg.view.status === 'playing') phase.value = 'playing';
         if (msg.view.summary) phase.value = 'ended';
         break;
@@ -127,6 +157,7 @@ export function useOnlineRoom() {
       case 'events':
         applyEvents(msg.events);
         view.value = msg.view;
+        syncTurnClock(msg.view);
         if (msg.view.status === 'playing') phase.value = 'playing';
         break;
 
@@ -154,6 +185,10 @@ export function useOnlineRoom() {
     }
   }
 
+  function syncTurnClock(v: GameView): void {
+    turnDeadline.value = v.turnTimeLeft === null ? 0 : Date.now() + v.turnTimeLeft * 1000;
+  }
+
   function applyEvents(events: PublicEvent[]): void {
     let frozenId: string | null = null;
     let turnId: string | null = null;
@@ -177,6 +212,13 @@ export function useOnlineRoom() {
         case 'turn':
           if (e.skipped) frozenId = e.playerId;
           else { turnId = e.playerId; sfx.turn(); }
+          break;
+        case 'turn-timeout':
+          sfx.miss();
+          break;
+        case 'time-bonus':
+          timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
+          setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
         case 'end':
           e.summary.ranking[0]?.id === myId.value ? sfx.win() : sfx.lose();
@@ -237,11 +279,11 @@ export function useOnlineRoom() {
     reconnectDeadline = 0;
   }
 
-  onScopeDispose(leaveSocket);
+  onScopeDispose(() => { leaveSocket(); clearInterval(clockTimer); });
 
   return {
-    phase, error, room, view, myId, isHost, me, myTurn, reconnecting,
-    wrongPair, lastGain, turnBanner, bubbles,
+    phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
+    wrongPair, lastGain, turnBanner, bubbles, turnTimeLeft, timeBonusFor,
     createRoom, join, leave, resumeStored,
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     start: () => send({ t: 'start' }),
