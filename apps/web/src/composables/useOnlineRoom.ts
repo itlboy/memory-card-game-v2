@@ -104,7 +104,8 @@ export function useOnlineRoom() {
 
     ws.onmessage = (e) => handle(JSON.parse(String(e.data)) as ServerMsg);
     ws.onclose = (e) => {
-      if (intentionalClose || e.code === 4000) return;
+      // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
+      if (intentionalClose || e.code === 4000 || e.code === 4001 || e.code === 4002) return;
       // Đang trong ván: tự vào lại trong hạn 30 giây (ON-07)
       if (token && (phase.value === 'playing' || phase.value === 'lobby')) {
         if (!reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
@@ -144,14 +145,14 @@ export function useOnlineRoom() {
       case 'room':
         room.value = msg.room;
         if (msg.room.status === 'lobby') phase.value = 'lobby';
-        if (msg.room.status === 'ended') phase.value = 'ended';
+        if (msg.room.status === 'ended') endSession();
         break;
 
       case 'state':
         view.value = msg.view;
         syncTurnClock(msg.view);
         if (msg.view.status === 'playing') phase.value = 'playing';
-        if (msg.view.summary) phase.value = 'ended';
+        if (msg.view.summary) endSession();
         break;
 
       case 'events':
@@ -159,6 +160,16 @@ export function useOnlineRoom() {
         view.value = msg.view;
         syncTurnClock(msg.view);
         if (msg.view.status === 'playing') phase.value = 'playing';
+        break;
+
+      case 'closed':
+        // Chủ phòng huỷ phòng: về màn vào phòng kèm thông báo
+        clearStored();
+        leaveSocket();
+        room.value = null;
+        view.value = null;
+        phase.value = 'error';
+        error.value = msg.message;
         break;
 
       case 'emoji': {
@@ -222,7 +233,7 @@ export function useOnlineRoom() {
           break;
         case 'end':
           e.summary.ranking[0]?.id === myId.value ? sfx.win() : sfx.lose();
-          phase.value = 'ended';
+          endSession();
           break;
       }
     }
@@ -240,6 +251,20 @@ export function useOnlineRoom() {
         bannerTimer = setTimeout(() => { turnBanner.value = null; }, 1500);
       }
     }
+  }
+
+  function clearStored(): void {
+    try { sessionStorage.removeItem(SESSION_KEY); } catch { /* bỏ qua */ }
+  }
+
+  /**
+   * Ván đã kết thúc: xoá phiên + làm sạch URL để F5/quay lại không bị hút
+   * ngược vào màn kết thúc của trận cũ nữa.
+   */
+  function endSession(): void {
+    phase.value = 'ended';
+    clearStored();
+    if (location.search.includes('room=')) history.replaceState(null, '', location.pathname);
   }
 
   /**
@@ -269,7 +294,7 @@ export function useOnlineRoom() {
 
   function leave(): void {
     leaveSocket();
-    try { sessionStorage.removeItem(SESSION_KEY); } catch { /* bỏ qua */ }
+    clearStored();
     phase.value = 'idle';
     room.value = null;
     view.value = null;
@@ -285,6 +310,10 @@ export function useOnlineRoom() {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
     wrongPair, lastGain, turnBanner, bubbles, turnTimeLeft, timeBonusFor,
     createRoom, join, leave, resumeStored,
+    /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
+    surrender: () => { send({ t: 'leave' }); leave(); },
+    /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */
+    cancelRoom: () => { send({ t: 'cancel' }); leave(); },
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     start: () => send({ t: 'start' }),
     again: () => send({ t: 'again' }),

@@ -752,6 +752,37 @@ var RoomDO = class extends DurableObject {
         await this.afterEvents(events);
         return;
       }
+      case "leave": {
+        if (this.room.status === "playing" && this.game && !this.game.finished) {
+          player.disconnectedAt = null;
+          const events = this.game.forfeit(player.id, Date.now());
+          await this.afterEvents(events);
+        } else if (this.room.status === "lobby") {
+          this.room.players = this.room.players.filter((p) => p.id !== player.id);
+          if (this.room.hostId === player.id) this.room.hostId = this.room.players[0]?.id ?? "";
+        }
+        for (const sock of this.ctx.getWebSockets(player.id)) sock.close(4001, "left");
+        if (!this.room.players.length) {
+          await this.ctx.storage.deleteAll();
+          this.room = null;
+          this.game = null;
+          return;
+        }
+        await this.save();
+        this.broadcast({ t: "room", room: this.roomInfo() });
+        await this.scheduleNext();
+        return;
+      }
+      case "cancel": {
+        if (player.id !== this.room.hostId) return;
+        this.broadcast({ t: "closed", message: "Ch\u1EE7 ph\xF2ng \u0111\xE3 hu\u1EF7 ph\xF2ng." });
+        for (const sock of this.ctx.getWebSockets()) sock.close(4002, "room-cancelled");
+        await this.ctx.storage.deleteAll();
+        await this.ctx.storage.deleteAlarm();
+        this.room = null;
+        this.game = null;
+        return;
+      }
       case "emoji": {
         if (!QUICK_EMOJIS.includes(msg.emoji)) return;
         this.broadcast({ t: "emoji", from: player.id, emoji: msg.emoji });

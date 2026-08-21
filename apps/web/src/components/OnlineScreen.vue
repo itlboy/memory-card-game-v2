@@ -3,6 +3,7 @@ import { GRIDS, QUICK_EMOJIS } from '@mm/engine';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
+import ConfirmDialog from './ConfirmDialog.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
@@ -45,11 +46,41 @@ function join(): void {
   remember();
   o.join(codeInput.value, name.value.trim());
 }
-function quit(): void {
+/** Nội dung popup xác nhận; null = không hiện. */
+const confirm = ref<{ title: string; body: string; label: string; action: () => void } | null>(null);
+
+function exit(): void {
   o.leave();
   history.replaceState(null, '', location.pathname);
   emit('back');
 }
+
+/** Thoát có xác nhận — dùng cho nút ✕ trong ván và khi bấm logo. */
+function quit(): void {
+  const phase = o.phase.value;
+  if (phase === 'playing' && !o.spectator.value) {
+    confirm.value = {
+      title: 'Đầu hàng?',
+      body: 'Bạn sẽ bị xử thua ván này và rời khỏi phòng.',
+      label: 'Đầu hàng & rời phòng',
+      action: () => { o.surrender(); exit(); }
+    };
+    return;
+  }
+  if (phase === 'lobby' && o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
+    confirm.value = {
+      title: 'Huỷ phòng?',
+      body: 'Phòng sẽ đóng và mọi người bị đưa ra ngoài.',
+      label: 'Huỷ phòng',
+      action: () => { o.cancelRoom(); exit(); }
+    };
+    return;
+  }
+  if (phase === 'lobby') { o.surrender(); exit(); return; }
+  exit();
+}
+
+defineExpose({ requestHome: quit });
 
 const inviteLink = computed(() =>
   `${location.origin}${location.pathname}?room=${o.room.value?.code ?? ''}`);
@@ -305,6 +336,13 @@ const THEMES = [
       @menu="quit"
     />
   </section>
+
+  <ConfirmDialog
+    v-if="confirm"
+    :title="confirm.title" :body="confirm.body" :confirm-label="confirm.label"
+    @confirm="confirm.action()"
+    @cancel="confirm = null"
+  />
 </template>
 
 <style scoped>

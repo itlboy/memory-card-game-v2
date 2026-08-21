@@ -149,14 +149,42 @@ describe('luồng trọn ván', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
-  it('thoát giữa ván bằng nút ✕ quay về menu, không hiện kết quả', async () => {
+  it('thoát giữa ván: hỏi xác nhận, đồng ý thì về menu', async () => {
     await mountApp();
     await pickMode('Cổ điển');
     await start();
+    await wrapper.findAll('.card')[0]!.trigger('click');       // ván đã "đang chơi"
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
+    // Popup xác nhận hiện ra, ván vẫn còn phía sau
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Thoát ván đang chơi?');
+    await click('Ở lại');
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false);
+    expect(wrapper.findAll('.card')).toHaveLength(16);          // vẫn trong ván
+    await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
+    await flush();
+    await click('Thoát ván');
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
+  });
+
+  it('bấm logo giữa ván cũng hỏi xác nhận; ở menu thì không hỏi', async () => {
+    await mountApp();
+    await click('Chơi một mình');
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false);   // menu: về thẳng
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+
+    await pickMode('Cổ điển');
+    await start();
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Thoát ván đang chơi?');
+    await click('Thoát ván');
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
   it('thắng màn 1 Chiến dịch: lưu sao, hiện nút "Màn tiếp theo", mở khoá màn 2', async () => {
@@ -296,6 +324,7 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     expect(location.search).toBe('?playing=1');
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
+    await click('Thoát ván');   // qua popup xác nhận
     expect(location.search).toBe('');
   });
 

@@ -2,6 +2,7 @@
 import { MemoryGame, levelConfig, levelSpec, presetConfig, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
+import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
@@ -31,6 +32,24 @@ const isRecord = ref(false);
 const freshAchievements = ref<string[]>([]);
 
 const session = useGameSession();
+const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
+const confirmQuit = ref(false);
+/** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
+const menuKey = ref(0);
+
+/** Bấm logo: về trang chủ — đang dở việc thì hỏi trước. */
+function goHome(): void {
+  if (screen.value === 'online') {
+    onlineRef.value?.requestHome();   // OnlineScreen tự hỏi đầu hàng / huỷ phòng
+    return;
+  }
+  if (screen.value === 'game' && session.game.value && !session.game.value.finished) {
+    confirmQuit.value = true;         // ván offline đang chơi
+    return;
+  }
+  menuKey.value++;
+  backToMenu();
+}
 
 /* ---------- state trên URL + khôi phục ván dở khi F5 ---------- */
 
@@ -203,12 +222,14 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     :dark="dark" :sound="sound" :total-score="totalScore"
     @toggle-dark="dark = !dark"
     @toggle-sound="sound = !sound"
+    @home="goHome"
   />
 
   <main>
     <Transition name="screen" mode="out-in">
     <MenuScreen
       v-if="screen === 'menu'"
+      :key="menuKey"
       :themes="themes"
       :mode="mode"
       :grid="grid"
@@ -226,6 +247,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
 
     <OnlineScreen
       v-else-if="screen === 'online'"
+      ref="onlineRef"
       :join-code="joinCode"
       @back="screen = 'menu'"
     />
@@ -235,10 +257,19 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :session="session"
       :game="session.game.value"
       :level-id="levelId ?? undefined"
-      @quit="backToMenu"
+      @quit="goHome"
     />
     </Transition>
   </main>
+
+  <ConfirmDialog
+    v-if="confirmQuit"
+    title="Thoát ván đang chơi?"
+    body="Ván này sẽ không được lưu kết quả."
+    confirm-label="Thoát ván"
+    @confirm="confirmQuit = false; menuKey++; backToMenu()"
+    @cancel="confirmQuit = false"
+  />
 
   <ResultDialog
     v-if="session.summary.value"

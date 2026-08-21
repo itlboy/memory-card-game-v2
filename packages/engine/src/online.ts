@@ -136,6 +136,8 @@ export type ClientMsg =
   | { t: 'start' }                                  // chỉ chủ phòng
   | { t: 'flip'; index: number }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
+  | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
+  | { t: 'cancel' }                                 // chủ phòng huỷ phòng
   | { t: 'emoji'; emoji: string }
   | { t: 'ping' };
 
@@ -154,5 +156,6 @@ export type ServerMsg =
   | { t: 'state'; view: GameView }
   | { t: 'events'; events: PublicEvent[]; view: GameView }
   | { t: 'emoji'; from: string; emoji: QuickEmoji }
+  | { t: 'closed'; message: string }
   | { t: 'error'; code: string; message: string }
   | { t: 'pong' };

@@ -1,11 +1,15 @@
 <script setup lang="ts">
 defineProps<{ dark: boolean; sound: boolean; totalScore: number }>();
-defineEmits<{ 'toggle-dark': []; 'toggle-sound': [] }>();
+defineEmits<{ 'toggle-dark': []; 'toggle-sound': []; home: [] }>();
 </script>
 
 <template>
   <header class="topbar">
-    <h1><span class="logo" aria-hidden="true">🃏</span><span class="name">Memory Match</span></h1>
+    <h1>
+      <button class="brand" type="button" aria-label="Về trang chủ" @click="$emit('home')">
+        <span class="logo" aria-hidden="true">🃏</span><span class="name">Memory Match</span>
+      </button>
+    </h1>
     <span class="total" :title="`Tổng điểm tích lũy: ${totalScore}`">⭐ {{ totalScore }}</span>
     <button class="btn" :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'" type="button" @click="$emit('toggle-dark')">
       {{ dark ? '☀️' : '🌙' }}
@@ -25,9 +29,11 @@ defineEmits<{ 'toggle-dark': []; 'toggle-sound': [] }>();
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
-h1 {
-  flex: 1; margin: 0; display: flex; align-items: center; gap: var(--sp-2);
-  font-size: var(--text-xl); font-weight: 800;
+h1 { flex: 1; margin: 0; font-size: var(--text-xl); font-weight: 800; }
+.brand {
+  display: flex; align-items: center; gap: var(--sp-2);
+  border: 0; background: none; padding: 0;
+  font: inherit; cursor: pointer;
 }
 .logo { font-size: 24px; filter: drop-shadow(0 2px 6px var(--card-back-glow)); }
 .name {
