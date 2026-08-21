@@ -322,4 +322,12 @@ main {
   padding: 12px; overflow-y: auto;
 }
 main > * { width: 100%; max-width: 760px; }
+
+/* Màn hình to: panel menu/online không kéo cao hết viewport thành cột
+   lêu nghêu — cap chiều cao, nổi giữa màn. Màn CHƠI vẫn full để bàn to. */
+@media (min-height: 900px) {
+  main { align-items: center; }
+  main > :deep(.panel), main > :deep(.online) { max-height: 820px; }
+  main > :deep(.game) { max-height: none; height: 100%; }
+}
 </style>

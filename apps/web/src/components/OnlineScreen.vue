@@ -628,21 +628,19 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
 
-/* Bước ít lựa chọn: ô cao tự nhiên, cụm canh giữa — không phình to/cách xa */
-.step-body.options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
-.step-body.options.loose > .option, .options.loose > .option { height: auto; max-height: none; }
-.options.loose .option { padding: 22px 16px; }
-.options.loose .option.wide { min-height: 76px; padding: 13px 16px; }
-
-/* Desktop: 2 lựa chọn đứng cạnh nhau thành tile (mock C bản desktop) */
+/* MỘT CỠ NÚT THỐNG NHẤT: mobile thanh 92px, desktop tile 170px */
+.step-body.options.loose, .options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
+.step-body.options.loose > .option, .options.loose > .option {
+  height: 92px; max-height: 92px; padding: 10px 16px;
+  flex-direction: row; gap: 14px; text-align: left; align-items: center;
+}
 @media (min-width: 700px) {
-  .options.loose { grid-template-columns: repeat(2, 1fr); gap: 22px; }
-  .options.loose .option { aspect-ratio: 1.5 / 1; max-height: 260px; }
-  .options.loose .option.wide {
-    flex-direction: column; text-align: center; gap: 10px;
-    aspect-ratio: auto; min-height: 170px;
+  .options.loose { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .step-body.options.loose > .option, .options.loose > .option {
+    height: 170px; max-height: 170px;
+    flex-direction: column; text-align: center; gap: 8px; padding: 18px 14px;
   }
-  .options.loose .option.wide .text { align-items: center; }
+  .options.loose .option .text, .options.loose .option.wide .text { align-items: center; }
 }
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */

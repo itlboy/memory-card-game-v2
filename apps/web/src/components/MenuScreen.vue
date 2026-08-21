@@ -285,24 +285,25 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
 
-/* Bước ít lựa chọn: ô cao tự nhiên, cụm canh giữa — không phình to/cách xa */
+/* MỘT CỠ NÚT THỐNG NHẤT cho mọi bước lựa chọn: mobile thanh 92px,
+   desktop tile 170px — ít nút hay nhiều nút đều cùng cỡ, cụm canh giữa */
 .step-body.options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
-.step-body.options.loose > .option { height: auto; max-height: none; }
-.options.loose .option.big { padding: 22px 16px; }
-.options.loose .option.wide { min-height: 76px; }
+.step-body.options.loose > .option {
+  height: 92px; max-height: 92px; padding: 10px 16px;
+}
+.options.loose .option.big { flex-direction: row; gap: 14px; text-align: left; align-items: center; }
+.options.loose .option.big small, .options.loose .option.big strong { display: block; }
+.options.loose .option.big .opt-icon { flex-shrink: 0; }
 
-/* Desktop: thanh dọc biến thành TILE đứng cạnh nhau (mock C bản desktop) —
-   cùng markup, chỉ đổi hình bằng breakpoint */
 @media (min-width: 700px) {
-  .step-body.options.loose { grid-template-columns: repeat(3, 1fr); gap: 22px; }
-  .options.loose .option.big { aspect-ratio: 1 / 1.02; max-height: 300px; padding: 24px; }
-  /* 5 chế độ: Chiến dịch nổi bật trọn hàng đầu, 4 chế độ còn lại 2×2 */
-  .step-body.options.loose.modes { grid-template-columns: repeat(2, 1fr); gap: 18px; }
-  .modes > .option.wide:first-child { grid-column: 1 / -1; }
-  .modes .option.wide {
-    flex-direction: column; text-align: center; gap: 10px;
-    min-height: 150px; padding: 22px 16px;
+  .step-body.options.loose { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .step-body.options.loose > .option {
+    height: 170px; max-height: 170px;
+    flex-direction: column; text-align: center; gap: 8px; padding: 18px 14px;
   }
+  /* 5 chế độ: Chiến dịch trọn hàng đầu (cùng chiều cao), 4 chế độ 2×2 */
+  .step-body.options.loose.modes { grid-template-columns: repeat(2, 1fr); }
+  .modes > .option.wide:first-child { grid-column: 1 / -1; }
   .modes .option.wide .text { align-items: center; }
   .modes .option.wide .text small { max-width: 340px; }
 }
@@ -390,9 +391,8 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option strong { font-size: 16px; }
 .option small { color: var(--muted); font-size: 12.5px; }
 
-.option.big { padding: 24px 16px; }
 .option.big .icon { font-size: 42px; }
-.option.big strong { font-size: 18px; }
+.option.big strong { font-size: 17px; }
 
 .option.wide { flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
