@@ -72,8 +72,10 @@ const label = computed(() => {
   transition: transform .34s cubic-bezier(.3, .8, .4, 1.1);
   will-change: transform;
 }
+@media (hover: hover) {
 .card:not(.up):not(.done):not([aria-disabled='true']):hover .inner {
   transform: translateY(-3px) rotateZ(-1.2deg);
+}
 }
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }
 .card.peek .inner { transition-duration: .2s; }
@@ -117,7 +119,9 @@ const label = computed(() => {
   background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .28) 50%, transparent 62%);
   transform: translateX(-110%);
 }
+@media (hover: hover) {
 .card:not(.up):not(.done):hover .back::after { animation: shine .6s ease; }
+}
 @keyframes shine { to { transform: translateX(110%); } }
 .front {
   background:

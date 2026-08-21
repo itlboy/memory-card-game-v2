@@ -6,9 +6,11 @@ import BoardGrid from './BoardGrid.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
+import type { RoomConfig } from '@mm/engine';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { store } from '@/lib/storage';
 import { sfx } from '@/lib/audio';
+import { loadThemes, type CardTheme } from '@/lib/themes';
 
 const props = defineProps<{ joinCode?: string }>();
 const emit = defineEmits<{ back: [] }>();
@@ -49,8 +51,8 @@ watch(() => o.room.value?.code, (code) => {
 function remember(): void { store.savePlayerNames([name.value.trim()]); }
 function create(): void {
   if (!name.value.trim()) return;
-  remember();
-  void o.createRoom(name.value.trim());
+  sfx.select();
+  wizard.value = 'mode';   // đi qua các bước chọn bàn như chơi một mình
 }
 const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
 
@@ -164,24 +166,150 @@ const startLabel = computed(() => {
 });
 
 const MODES = [
-  { id: 'classic' as const, name: 'Cổ điển' },
-  { id: 'survival' as const, name: 'Sinh tồn' }
+  { id: 'classic' as const, icon: '🧠', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
+  { id: 'survival' as const, icon: '❤️', name: 'Sinh tồn', desc: '5 mạng — lật sai là mất mạng' }
 ];
-const THEMES = [
-  { id: 'animals', name: 'Động vật' }, { id: 'fruits', name: 'Trái cây' },
-  { id: 'food', name: 'Đồ ăn' }, { id: 'sports', name: 'Thể thao' },
-  { id: 'flags', name: 'Cờ quốc gia' }, { id: 'nature', name: 'Thiên nhiên' },
-  { id: 'space', name: 'Vũ trụ' }, { id: 'tech', name: 'Công nghệ' },
-  { id: 'vehicles', name: 'Phương tiện' }
-];
+
+/** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */
+const allThemes = ref<CardTheme[]>([]);
+void loadThemes().then((list) => { allThemes.value = list; });
+const themeName = (id: string): string => allThemes.value.find((t) => t.id === id)?.name ?? id;
+
+/** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
+const wizard = ref<null | 'mode' | 'grid' | 'theme'>(null);
+const cfg = ref<RoomConfig>({ mode: 'classic', grid: '4x4', themeIds: ['animals'] });
+const editingInLobby = computed(() => o.phase.value === 'lobby');
+const WIZ_STEPS = ['mode', 'grid', 'theme'] as const;
+
+function isBlankCell(k: string, idx: number): boolean {
+  const g = GRIDS[k]!;
+  const total = g.cols * g.rows;
+  return total % 2 === 1 && idx === Math.floor(total / 2);
+}
+
+function wizToggleTheme(id: string): void {
+  const cur = cfg.value.themeIds;
+  const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+  if (next.length) cfg.value = { ...cfg.value, themeIds: next };
+}
+
+function wizBack(): void {
+  if (wizard.value === 'theme') { wizard.value = 'grid'; return; }
+  if (wizard.value === 'grid') { wizard.value = 'mode'; return; }
+  wizard.value = null;   // về nhập tên (tạo mới) hoặc lobby (đang chỉnh)
+}
+
+/** Đủ biểu tượng cho lưới đã chọn chưa? */
+const wizPool = computed(() => new Set(
+  allThemes.value.filter((t) => cfg.value.themeIds.includes(t.id)).flatMap((t) => t.symbols)
+).size);
+const wizTooSmall = computed(() => {
+  const g = GRIDS[cfg.value.grid];
+  return !!g && wizPool.value > 0 && wizPool.value < Math.floor((g.cols * g.rows) / 2);
+});
+
+const creatingRoom = ref(false);
+
+function wizFinish(): void {
+  if (editingInLobby.value) {
+    o.setConfig({ ...cfg.value });
+    wizard.value = null;
+    return;
+  }
+  remember();
+  creatingRoom.value = true;
+  void o.createRoom(name.value.trim(), { ...cfg.value });
+}
+
+// Tạo phòng xong (vào lobby) thì đóng wizard
+watch(o.phase, (ph) => {
+  if (creatingRoom.value && ph !== 'connecting' && ph !== 'idle') {
+    creatingRoom.value = false;
+    wizard.value = null;
+  }
+});
+
+function openCfgWizard(): void {
+  const c = o.room.value?.config;
+  if (c) cfg.value = { mode: c.mode, grid: c.grid, themeIds: [...c.themeIds] };
+  wizard.value = 'mode';
+}
 </script>
 
 <template>
   <!-- Một root duy nhất: component này nằm trong <Transition> của App,
        nhiều root sẽ làm Transition render trắng trang -->
   <div class="online">
+  <!-- WIZARD CHỌN BÀN CHƠI: dùng khi tạo phòng và khi chỉnh trong lobby -->
+  <section v-if="wizard" class="panel">
+    <div class="head">
+      <button class="btn back" aria-label="Quay lại" type="button" @click="wizBack">‹</button>
+      <h2>{{ wizard === 'mode' ? 'Chọn chế độ' : wizard === 'grid' ? 'Kích thước lưới' : 'Chọn theme thẻ' }}</h2>
+      <span class="dots" aria-hidden="true">
+        <i v-for="(st, i) in WIZ_STEPS" :key="st" :class="{ on: i <= WIZ_STEPS.indexOf(wizard) }" />
+      </span>
+    </div>
+
+    <div v-if="wizard === 'mode'" class="options">
+      <button
+        v-for="m in MODES" :key="m.id" class="option wide" type="button"
+        :aria-pressed="cfg.mode === m.id"
+        @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'grid'"
+      >
+        <span class="icon">{{ m.icon }}</span>
+        <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
+      </button>
+    </div>
+
+    <div v-else-if="wizard === 'grid'" class="options wiz-grids">
+      <button
+        v-for="(g, k) in GRIDS" :key="k" class="option" type="button"
+        :aria-pressed="cfg.grid === k"
+        @click="sfx.select(); cfg = { ...cfg, grid: String(k) }; wizard = 'theme'"
+      >
+        <span
+          class="grid-preview" aria-hidden="true"
+          :style="{ gridTemplateColumns: `repeat(${g.cols}, 1fr)`, width: `${g.cols * 9}px` }"
+        >
+          <i v-for="n in g.cols * g.rows" :key="n" :class="{ blank: isBlankCell(String(k), n - 1) }" />
+        </span>
+        <strong>{{ String(k).replace('x', '×') }}</strong>
+        <small>{{ Math.floor(g.cols * g.rows / 2) }} cặp</small>
+      </button>
+    </div>
+
+    <div v-else>
+      <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
+      <div class="options wiz-themes" role="group" aria-label="Theme thẻ">
+        <button
+          v-for="t in allThemes" :key="t.id" class="option theme-opt" role="checkbox"
+          :aria-checked="cfg.themeIds.includes(t.id)"
+          type="button"
+          @click="wizToggleTheme(t.id)"
+        >
+          <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 4).join(' ') }}</span>
+          <strong>{{ cfg.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
+        </button>
+      </div>
+
+      <p v-if="wizTooSmall" class="warn" role="alert">
+        Chưa đủ biểu tượng cho lưới {{ cfg.grid.replace('x', '×') }}. Hãy chọn thêm theme hoặc quay lại đổi lưới.
+      </p>
+
+      <button
+        class="btn-primary" type="button"
+        :disabled="wizTooSmall || o.phase.value === 'connecting'"
+        @click="wizFinish"
+      >
+        {{ editingInLobby ? 'Lưu bàn chơi' : o.phase.value === 'connecting' ? 'Đang tạo phòng…' : 'Tạo phòng' }}
+      </button>
+    </div>
+
+    <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
+  </section>
+
   <!-- VÀO ONLINE: bước 1 chọn việc, bước 2 điền form -->
-  <section v-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
+  <section v-else-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
     <div class="head">
       <button class="btn back" aria-label="Quay lại" type="button" @click="backEntry">‹</button>
       <h2>{{ entryStep === 'choose' ? 'Chơi online' : entryStep === 'create' ? 'Tạo phòng mới' : 'Vào phòng' }}</h2>
@@ -207,8 +335,8 @@ const THEMES = [
         <span>Tên của bạn</span>
         <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="create">
       </label>
-      <button class="btn-primary" :disabled="!name.trim() || o.phase.value === 'connecting'" type="button" @click="create">
-        {{ o.phase.value === 'connecting' ? 'Đang kết nối…' : 'Tạo phòng' }}
+      <button class="btn-primary" :disabled="!name.trim()" type="button" @click="create">
+        Tiếp tục
       </button>
     </template>
 
@@ -271,36 +399,14 @@ const THEMES = [
     </ul>
 
     <template v-if="o.isHost.value">
-      <!-- Mỗi nhóm cấu hình đúng một dòng: nhãn + chip cuộn ngang, nút Bắt đầu không bị đẩy -->
-      <div class="cfg-row" role="radiogroup" aria-label="Chế độ">
-        <span class="cfg-label">Chế độ</span>
-        <div class="cfg-chips">
-          <button
-            v-for="m in MODES" :key="m.id" class="chip mini" role="radio"
-            :aria-checked="o.room.value?.config.mode === m.id" type="button"
-            @click="o.setConfig({ mode: m.id })"
-          >{{ m.name }}</button>
-        </div>
-      </div>
-      <div class="cfg-row" role="radiogroup" aria-label="Lưới">
-        <span class="cfg-label">Lưới</span>
-        <div class="cfg-chips">
-          <button
-            v-for="(g, k) in GRIDS" :key="k" class="chip mini" role="radio"
-            :aria-checked="o.room.value?.config.grid === k" type="button"
-            @click="o.setConfig({ grid: String(k) })"
-          >{{ String(k).replace('x', '×') }}</button>
-        </div>
-      </div>
-      <div class="cfg-row" role="group" aria-label="Theme (chọn được nhiều)">
-        <span class="cfg-label">Theme</span>
-        <div class="cfg-chips">
-          <button
-            v-for="t in THEMES" :key="t.id" class="chip mini" role="checkbox"
-            :aria-checked="o.room.value?.config.themeIds.includes(t.id) ?? false" type="button"
-            @click="toggleTheme(t.id)"
-          >{{ o.room.value?.config.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</button>
-        </div>
+      <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
+      <div class="cfg-summary">
+        <span>
+          {{ o.room.value?.config.mode === 'survival' ? '❤️ Sinh tồn' : '🧠 Cổ điển' }}
+          · lưới <b>{{ o.room.value?.config.grid.replace('x', '×') }}</b>
+          · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
+        </span>
+        <button class="btn edit" type="button" @click="openCfgWizard">⚙️ Chỉnh</button>
       </div>
       <button
         class="btn-primary" type="button"
@@ -316,8 +422,10 @@ const THEMES = [
         {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
       </button>
       <p class="hint">
-        {{ o.room.value?.config.mode === 'survival' ? 'Sinh tồn' : 'Cổ điển' }}
-        · lưới {{ o.room.value?.config.grid.replace('x', '×') }} — chờ chủ phòng bắt đầu…
+        {{ o.room.value?.config.mode === 'survival' ? '❤️ Sinh tồn' : '🧠 Cổ điển' }}
+        · lưới {{ o.room.value?.config.grid.replace('x', '×') }}
+        · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
+        — chờ chủ phòng bắt đầu…
       </p>
     </template>
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
@@ -459,13 +567,49 @@ input {
 input:focus { outline: none; border-color: var(--accent); }
 
 .options { display: grid; gap: 10px; }
+.option.wide { flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px; }
+.option.wide .icon { font-size: 26px; }
+.option.wide .text { display: flex; flex-direction: column; gap: 1px; }
+.option[aria-pressed='true'], .option[aria-checked='true'] {
+  border-color: var(--accent); background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.options.wiz-grids { grid-template-columns: repeat(2, 1fr); }
+.options.wiz-themes { grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 560px) {
+  .options.wiz-grids { grid-template-columns: repeat(5, 1fr); }
+  .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }
+}
+.options.wiz-grids .option { padding: 12px 6px; }
+.grid-preview { display: grid; gap: 2px; min-height: 56px; align-content: center; max-width: 100%; }
+.grid-preview i {
+  aspect-ratio: 3 / 4; border-radius: 2px;
+  background: linear-gradient(150deg, var(--accent), var(--accent-2));
+  opacity: .75;
+}
+.grid-preview i.blank { background: transparent; }
+.theme-opt { padding: 14px 10px; }
+.theme-sample { font-size: 22px; letter-spacing: 2px; }
+.hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--accent); }
+.cfg-summary {
+  display: flex; align-items: center; gap: 10px; margin-top: 12px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-soft); font-size: var(--text-sm);
+}
+.cfg-summary span { flex: 1; min-width: 0; }
+.cfg-summary .edit { white-space: nowrap; }
 .option {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 24px 16px; border: 2px solid var(--line); border-radius: 14px;
   background: var(--panel-soft); text-align: center;
   transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
 }
+@media (hover: hover) {
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
+}
 .option .icon { font-size: 38px; }
 .option strong { font-family: var(--font-display); font-size: 17px; }
 .option small { color: var(--muted); font-size: 12.5px; }
@@ -655,5 +799,7 @@ input:focus { outline: none; border-color: var(--accent); }
   border-radius: var(--r-full); background: var(--panel);
   transition: transform .12s ease;
 }
+@media (hover: hover) {
 .emoji:hover { transform: translateY(-2px) scale(1.1); }
+}
 </style>

@@ -55,7 +55,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   box-shadow: var(--shadow-soft), var(--inner-light);
   transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
+@media (hover: hover) {
 .btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+}
 .btn:active { transform: translateY(0); box-shadow: none; }
 
 .btn-primary {
@@ -70,7 +72,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   box-shadow: 0 8px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .35);
   transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
+@media (hover: hover) {
 .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.07); }
+}
 .btn-primary:active { transform: translateY(0); }
 .btn:disabled, .btn-primary:disabled {
   opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; filter: none;
@@ -87,10 +91,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: var(--panel-soft);
   transition: transform .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
+@media (hover: hover) {
 .chip:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   box-shadow: var(--shadow-soft);
+}
 }
 .chip small { color: var(--muted); font-size: var(--text-xs); }
 .chip[aria-checked='true'] {

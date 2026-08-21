@@ -84,6 +84,8 @@ export function useOnlineRoom() {
 
   let ws: WebSocket | null = null;
   let token = '';
+  /** Config host đã chọn trước khi tạo phòng — gửi lên ngay sau welcome. */
+  let pendingConfig: Partial<RoomConfig> | null = null;
   let myName = '';
   let code = '';
   let intentionalClose = false;
@@ -100,9 +102,10 @@ export function useOnlineRoom() {
     if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
   }
 
-  async function createRoom(name: string): Promise<void> {
+  async function createRoom(name: string, config?: Partial<RoomConfig>): Promise<void> {
     phase.value = 'connecting';
     error.value = '';
+    pendingConfig = config ?? null;
     try {
       const res = await fetch(`${SERVER}/api/rooms`, { method: 'POST' });
       if (!res.ok) throw new Error(String(res.status));
@@ -168,6 +171,11 @@ export function useOnlineRoom() {
           sessionStorage.setItem(SESSION_KEY, JSON.stringify(
             { code, token, name: myName } satisfies StoredSession));
         } catch { /* riêng tư */ }
+        // Bàn chơi host đã chọn trong wizard trước khi tạo phòng
+        if (pendingConfig && msg.room.hostId === msg.playerId) {
+          send({ t: 'config', config: pendingConfig });
+          pendingConfig = null;
+        }
         break;
 
       case 'room':

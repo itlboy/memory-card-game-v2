@@ -291,7 +291,9 @@ function toggleTheme(id: string): void {
   transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   text-align: center;
 }
+@media (hover: hover) {
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
+}
 .option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 .option .icon { font-size: 30px; }
 .option strong { font-size: 16px; }
