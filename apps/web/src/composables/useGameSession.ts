@@ -25,6 +25,10 @@ export function useGameSession() {
   const now = ref(0);
   let lastTickSecond = -1;
   let lastTurnTickAt = 0;
+  /** Đếm ngược 5 giây trước ván multiplayer; 0 = không dùng. */
+  let countdownUntil = 0;
+  let lastCdSec = -1;
+  const countdownLeft = ref<number | null>(null);
   /** Hiệu ứng "+10s" trên chip người vừa ghép đúng. */
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
 
@@ -95,6 +99,22 @@ export function useGameSession() {
     const g = game.value;
     if (g && !g.finished) {
       now.value = clockNow();
+      // Đang đếm ngược: chưa cho engine chạy, tick mỗi giây
+      if (countdownUntil) {
+        const left = (countdownUntil - now.value) / 1000;
+        if (left > 0) {
+          const sec = Math.ceil(left);
+          countdownLeft.value = sec;
+          if (sec !== lastCdSec) { lastCdSec = sec; sfx.tick(); }
+          raf = requestAnimationFrame(loop);
+          return;
+        }
+        countdownUntil = 0;
+        countdownLeft.value = null;
+        g.start(now.value);
+        sfx.turn();
+        bump();
+      }
       handle(g.tick(now.value));
       // Tick cảnh báo mỗi giây trong 10 giây cuối
       const left = g.timeLeft(now.value);
@@ -126,7 +146,16 @@ export function useGameSession() {
     clearTimeout(bannerTimer);
     lastTickSecond = -1;
     now.value = clockNow();
-    g.start(now.value);
+    if (g.isMultiplayer) {
+      // Multiplayer: đếm ngược 5 giây để người đi đầu không bị động
+      countdownUntil = now.value + 5000;
+      lastCdSec = -1;
+      countdownLeft.value = 5;
+    } else {
+      countdownUntil = 0;
+      countdownLeft.value = null;
+      g.start(now.value);
+    }
     sfx.deal(g.cards.length);
     bump();
     raf = requestAnimationFrame(loop);
@@ -135,7 +164,7 @@ export function useGameSession() {
 
   function flip(index: number): void {
     const g = game.value;
-    if (!g) return;
+    if (!g || countdownUntil) return;
     now.value = clockNow();
     handle(g.flip(index, now.value));
     if (!raf && !g.finished) raf = requestAnimationFrame(loop);
@@ -149,6 +178,8 @@ export function useGameSession() {
   /** Nhận một ván đã khôi phục từ snapshot (F5 giữa ván) và chạy tiếp. */
   function adopt(g: MemoryGame): void {
     stop();
+    countdownUntil = 0;
+    countdownLeft.value = null;
     game.value = g;
     summary.value = g.summary();
     wrongPair.value = [];
@@ -220,6 +251,6 @@ export function useGameSession() {
     game, start, flip, stop, adopt,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
-    elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft
+    elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft
   };
 }

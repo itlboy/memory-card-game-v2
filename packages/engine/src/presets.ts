@@ -23,8 +23,9 @@ export interface PresetInput {
 
 /** Cấu hình mặc định cho từng chế độ (mục 3.1 / 3.2). */
 export function presetConfig({ mode, grid, symbols, seed, players }: PresetInput): GameConfig {
-  const g = GRIDS[grid];
-  if (!g) throw new Error(`Lưới ${grid} không được hỗ trợ`);
+  // Object.hasOwn: khoá như '__proto__' tra cứu ra Object.prototype (truthy)
+  if (!Object.hasOwn(GRIDS, grid)) throw new Error(`Lưới ${grid} không được hỗ trợ`);
+  const g = GRIDS[grid]!;
 
   const base: GameConfig = { mode, cols: g.cols, rows: g.rows, symbols, seed, players };
   // Multiplayer: mỗi người 15 giây cho lượt của mình

@@ -55,7 +55,10 @@ if (an.inbox.some((m) => m.t === 'room' && m.room.config.grid === '6x6')) fail('
 if (an.inbox.some((m) => m.t === 'state')) fail('khách start được ván!');
 console.log('✓ khách không đổi được config / không start được (ON-03, ON-09)');
 
+binh.send({ t: 'ready', ready: true });
+await new Promise((r) => setTimeout(r, 400));
 an.send({ t: 'start' });
+await new Promise((r) => setTimeout(r, 5600));   // qua đếm ngược 5 giây
 const st = await binh.wait((m) => m.t === 'state', 'state đầu ván');
 const view = st.view;
 if (view.cards.length !== 4) fail('bàn 2x2 phải có 4 thẻ');

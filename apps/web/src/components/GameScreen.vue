@@ -45,7 +45,7 @@ const lives = computed(() =>
     ? null
     : (s.players.value[0]?.lives ?? 0)
 );
-const locked = computed(() => s.locked.value || s.revealingAll.value);
+const locked = computed(() => s.locked.value || s.revealingAll.value || s.countdownLeft.value !== null);
 
 /**
  * Bàn thẻ phải lọt trọn màn hình, không cuộn: giới hạn bề rộng theo
@@ -113,6 +113,12 @@ const fitStyle = computed(() => {
         aria-hidden="true"
       >+{{ s.lastGain.value.amount }}</span>
 
+      <!-- Đếm ngược 5 giây trước ván multiplayer + báo người đi đầu -->
+      <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
+        <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
+        <span class="first">🎲 <b>{{ s.current.value?.name }}</b> đi trước!</span>
+      </div>
+
       <!-- Banner chuyển lượt: hiện to giữa bàn rồi tự tan (MP-03) -->
       <Transition name="banner">
         <div
@@ -152,6 +158,25 @@ const fitStyle = computed(() => {
   20% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
   100% { opacity: 0; transform: translate(-50%, -170%) scale(1); }
 }
+
+.countdown {
+  position: absolute; inset: 0; z-index: 7;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(3px); border-radius: var(--r-lg); pointer-events: none;
+}
+.countdown .num {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(80px, 30vw, 150px); line-height: 1; color: var(--accent);
+  text-shadow: 0 10px 40px var(--card-back-glow);
+  animation: cd-pop .9s cubic-bezier(.2, 1.4, .4, 1);
+}
+@keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
+.countdown .first {
+  font-size: clamp(16px, 4.5vw, 22px); padding: 6px 18px; border-radius: var(--r-full);
+  background: var(--panel); border: 2px solid var(--accent); box-shadow: var(--shadow);
+}
+.countdown .first b { color: var(--accent); }
 
 .turn-banner {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);

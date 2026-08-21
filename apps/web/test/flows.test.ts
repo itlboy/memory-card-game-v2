@@ -390,6 +390,8 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await click('2 người');
     await click('Cổ điển');
     await click('Bắt đầu');
+    await vi.advanceTimersByTimeAsync(5100);   // qua màn đếm ngược 5 giây
+    await flush();
   }
 
   it('người đang tới lượt có đồng hồ đếm ngược từ 15s', async () => {
@@ -433,5 +435,37 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     const secs = Number(wrapper.find('.turn-clock').text().replace(/\D/g, ''));
     expect(secs).toBeGreaterThan(11);
     expect(secs).toBeLessThanOrEqual(15);           // trần 15
+  });
+});
+
+describe('đếm ngược 5 giây trước ván multiplayer', () => {
+  it('hiện đếm ngược + tên người đi đầu, chưa lật được thẻ, hết 5s thì chơi', async () => {
+    await mountApp();
+    await click('Chơi nhiều người');
+    await click('2 người');
+    await click('Cổ điển');
+    await click('Bắt đầu');
+    expect(wrapper.find('.countdown').exists()).toBe(true);
+    expect(wrapper.text()).toContain('đi trước!');
+    // Trong lúc đếm ngược không lật được
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await flush();
+    expect(wrapper.findAll('.card.up')).toHaveLength(0);
+    await vi.advanceTimersByTimeAsync(5200);
+    await flush();
+    expect(wrapper.find('.countdown').exists()).toBe(false);
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await flush();
+    expect(wrapper.findAll('.card.up')).toHaveLength(1);   // giờ mới lật được
+  });
+
+  it('chơi đơn không có đếm ngược', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    expect(wrapper.find('.countdown').exists()).toBe(false);
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await flush();
+    expect(wrapper.findAll('.card.up')).toHaveLength(1);
   });
 });

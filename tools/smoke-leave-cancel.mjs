@@ -13,8 +13,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let code = await mkRoom();
 let a = await mk(code, 'An'), b = await mk(code, 'Binh');
 await sleep(500);
+b.ws.send(JSON.stringify({ t: 'ready', ready: true }));
+await sleep(400);
 a.ws.send(JSON.stringify({ t: 'start' }));
-await sleep(600);
+await sleep(5800);   // qua đếm ngược 5 giây
 b.ws.send(JSON.stringify({ t: 'leave' }));
 await sleep(800);
 const endEv = a.msgs.find((m) => m.t === 'events' && m.events.some((e) => e.type === 'end'));

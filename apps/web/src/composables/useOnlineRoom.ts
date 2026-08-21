@@ -38,10 +38,18 @@ export function useOnlineRoom() {
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
   /** Hạn chót lượt (ms cục bộ) — server gửi số giây còn lại, client đếm tiếp cho mượt. */
   const turnDeadline = ref(0);
+  /** Mốc thời gian đã trôi của ván (giây + thời điểm nhận) — đếm tiếp cục bộ. */
+  const elapsedMark = ref<{ sec: number; at: number } | null>(null);
+  /** Đếm ngược 5 giây trước ván + người đi đầu. */
+  const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
+  let lastCountdownSec = -1;
   const clock = ref(0);
   let lastUrgentTick = 0;
   const clockTimer = setInterval(() => {
     clock.value = Date.now();
+    // Đếm ngược trước ván: mỗi giây một tick
+    const cd = countdownLeft.value;
+    if (cd !== null && cd !== lastCountdownSec) { lastCountdownSec = cd; sfx.tick(); }
     // Tới lượt mình mà còn ≤10 giây: tick dồn dập mỗi 500ms để giục
     const left = turnTimeLeft.value;
     if (left !== null && left > 0 && left <= 10
@@ -55,6 +63,20 @@ export function useOnlineRoom() {
   const turnTimeLeft = computed(() => {
     if (!turnDeadline.value || view.value?.status !== 'playing' || view.value.summary) return null;
     return Math.max(0, (turnDeadline.value - clock.value) / 1000);
+  });
+
+  /** Giây đếm ngược còn lại; null = không trong giai đoạn đếm ngược. */
+  const countdownLeft = computed(() => {
+    if (!countdown.value) return null;
+    const left = (countdown.value.endsAt - clock.value) / 1000;
+    return left > 0 ? Math.ceil(left) : null;
+  });
+
+  const elapsed = computed(() => {
+    const m = elapsedMark.value;
+    if (!m) return 0;
+    if (view.value?.summary) return m.sec;                        // ván xong thì đứng
+    return m.sec + Math.max(0, (clock.value - m.at) / 1000);
   });
 
   let ws: WebSocket | null = null;
@@ -147,15 +169,33 @@ export function useOnlineRoom() {
 
       case 'room':
         room.value = msg.room;
-        if (msg.room.status === 'lobby') phase.value = 'lobby';
+        if (msg.room.status === 'lobby') {
+          phase.value = 'lobby';
+          view.value = null;          // "Chơi lại" đưa cả phòng về lobby — bỏ view ván cũ
+          countdown.value = null;
+        }
+        if (msg.room.status === 'playing') {
+          countdown.value = null;     // hết đếm ngược, ván chạy thật
+          phase.value = 'playing';
+        }
         if (msg.room.status === 'ended') endSession();
         break;
 
       case 'state':
         view.value = msg.view;
         syncTurnClock(msg.view);
-        if (msg.view.status === 'playing') phase.value = 'playing';
+        if (msg.view.status === 'playing' || room.value?.status === 'countdown') phase.value = 'playing';
         if (msg.view.summary) endSession();
+        break;
+
+      case 'countdown':
+        countdown.value = {
+          endsAt: Date.now() + msg.endsInMs,
+          firstId: msg.firstId,
+          firstName: msg.firstId === myId.value ? 'Bạn' : msg.firstName
+        };
+        phase.value = 'playing';
+        sfx.turn();
         break;
 
       case 'events':
@@ -209,6 +249,7 @@ export function useOnlineRoom() {
 
   function syncTurnClock(v: GameView): void {
     turnDeadline.value = v.turnTimeLeft === null ? 0 : Date.now() + v.turnTimeLeft * 1000;
+    elapsedMark.value = { sec: v.elapsed, at: Date.now() };
   }
 
   function applyEvents(events: PublicEvent[]): void {
@@ -319,8 +360,10 @@ export function useOnlineRoom() {
 
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
-    wrongPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor,
+    wrongPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
+    countdown, countdownLeft,
     createRoom, join, leave, resumeStored,
+    setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => { send({ t: 'leave' }); leave(); },
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */

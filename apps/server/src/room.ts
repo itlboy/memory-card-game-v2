@@ -20,6 +20,8 @@ interface RoomPlayer {
   token: string;
   /** Hạn chót vào lại; null = đang kết nối. */
   disconnectedAt: number | null;
+  /** Đã bấm sẵn sàng ở lobby. */
+  ready: boolean;
 }
 
 interface RoomState {
@@ -27,7 +29,9 @@ interface RoomState {
   hostId: string;
   config: RoomConfig;
   players: RoomPlayer[];
-  status: 'lobby' | 'playing' | 'ended';
+  status: 'lobby' | 'countdown' | 'playing' | 'ended';
+  /** Thời điểm hết đếm ngược 5 giây, khi status = 'countdown'. */
+  countdownEnd?: number;
 }
 
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
@@ -90,7 +94,8 @@ export class RoomDO extends DurableObject<Env> {
         name,
         avatar: AVATARS[this.room.players.length % AVATARS.length],
         token: crypto.randomUUID(),
-        disconnectedAt: null
+        disconnectedAt: null,
+        ready: false
       };
       this.room.players.push(player);
       if (!this.room.hostId) this.room.hostId = player.id;
@@ -115,6 +120,17 @@ export class RoomDO extends DurableObject<Env> {
     await this.scheduleNext();
 
     return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+
+  /**
+   * Gỡ một người khỏi phòng (đầu hàng / bị xử thua vì rớt mạng quá hạn).
+   * Chủ phòng rời thì chuyển quyền cho người kế tiếp — nếu không thì
+   * không ai còn bấm được "Chơi lại" hay huỷ phòng.
+   */
+  private removePlayer(id: string): void {
+    if (!this.room) return;
+    this.room.players = this.room.players.filter((p) => p.id !== id);
+    if (this.room.hostId === id) this.room.hostId = this.room.players[0]?.id ?? '';
   }
 
   /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
@@ -150,12 +166,22 @@ export class RoomDO extends DurableObject<Env> {
         // ON-03: chỉ chủ phòng chỉnh cấu hình, và chỉ khi còn ở lobby
         if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
         const c = msg.config;
-        if (c.grid && GRIDS[c.grid]) this.room.config.grid = c.grid;
+        // Object.hasOwn: khoá như '__proto__' tra cứu ra prototype (truthy) và làm crash lúc start
+        if (typeof c.grid === 'string' && Object.hasOwn(GRIDS, c.grid)) this.room.config.grid = c.grid;
         if (c.mode === 'classic' || c.mode === 'survival') this.room.config.mode = c.mode;
         if (Array.isArray(c.themeIds)) {
-          const valid = [...new Set(c.themeIds)].filter((id) => THEME_SYMBOLS[id]);
+          const valid = [...new Set(c.themeIds)]
+            .filter((id): id is string => typeof id === 'string' && Object.hasOwn(THEME_SYMBOLS, id));
           if (valid.length) this.room.config.themeIds = valid;
         }
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
+      case 'ready': {
+        if (this.room.status !== 'lobby') return;
+        player.ready = !!msg.ready;
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
         return;
@@ -166,23 +192,59 @@ export class RoomDO extends DurableObject<Env> {
         if (player.id !== this.room.hostId) return;
         if (msg.t === 'start' && this.room.status !== 'lobby') return;
         if (msg.t === 'again' && this.room.status !== 'ended') return;
+        // Chỉ những người còn kết nối mới vào ván mới — không chờ người đã đi hẳn
+        this.room.players = this.room.players.filter(
+          (p) => this.connected(p.id) || p.disconnectedAt !== null
+        );
+        if (this.room.hostId && !this.room.players.some((p) => p.id === this.room!.hostId)) {
+          this.room.hostId = this.room.players[0]?.id ?? '';
+        }
         if (this.room.players.length < ROOM_LIMITS.minPlayers) {
-          this.send(ws, { t: 'error', code: 'not-enough', message: 'Cần ít nhất 2 người chơi' });
+          this.send(ws, { t: 'error', code: 'not-enough', message: 'Cần ít nhất 2 người chơi đang kết nối' });
           return;
         }
-        this.startGame();
+        if (msg.t === 'again') {
+          // Chơi lại: quay về phòng chờ để mọi người bấm sẵn sàng lần nữa
+          this.room.status = 'lobby';
+          this.game = null;
+          await this.ctx.storage.delete('game');
+          for (const p of this.room.players) p.ready = false;
+          await this.save();
+          this.broadcast({ t: 'room', room: this.roomInfo() });
+          return;
+        }
+        // Chủ phòng mặc nhiên sẵn sàng; những người khác phải bấm đủ
+        const notReady = this.room.players.filter((p) => p.id !== this.room!.hostId && !p.ready);
+        if (notReady.length) {
+          this.send(ws, {
+            t: 'error', code: 'not-ready',
+            message: `Chưa sẵn sàng: ${notReady.map((p) => p.name).join(', ')}`
+          });
+          return;
+        }
+        // Dựng ván (thứ tự đi đã bốc ngẫu nhiên) nhưng CHƯA chạy —
+        // đếm ngược 5 giây để người đi đầu không bị động
+        this.prepareGame();
+        this.room.status = 'countdown';
+        this.room.countdownEnd = Date.now() + 5000;
         await this.save();
+        const first = this.game!.current;
         this.broadcast({ t: 'room', room: this.roomInfo() });
         this.broadcast({ t: 'state', view: this.view() });
-        await this.scheduleNext();
+        this.broadcast({
+          t: 'countdown', endsInMs: 5000, firstId: first.id, firstName: first.name
+        });
+        await this.ctx.storage.setAlarm(this.room.countdownEnd);
         return;
       }
 
       case 'flip': {
         if (!this.game || this.room.status !== 'playing') return;
-        // ON-09: server phán quyết — sai lượt thì bỏ qua, không tin client
+        // ON-09: server phán quyết — sai lượt thì bỏ qua, không tin client.
+        // typeof check trước: Number(null) = 0 sẽ thành lật thẻ 0 thật!
+        if (typeof msg.index !== 'number') return;
         if (this.game.current.id !== player.id) return;
-        const events = this.game.flip(Number(msg.index), Date.now());
+        const events = this.game.flip(msg.index, Date.now());
         if (!events.length) return;
         await this.afterEvents(events);
         return;
@@ -194,10 +256,8 @@ export class RoomDO extends DurableObject<Env> {
           player.disconnectedAt = null;
           const events = this.game.forfeit(player.id, Date.now());
           await this.afterEvents(events);
-        } else if (this.room.status === 'lobby') {
-          this.room.players = this.room.players.filter((p) => p.id !== player.id);
-          if (this.room.hostId === player.id) this.room.hostId = this.room.players[0]?.id ?? '';
         }
+        this.removePlayer(player.id);   // ván sau không còn chờ người đã đi
         for (const sock of this.ctx.getWebSockets(player.id)) sock.close(4001, 'left');
         if (!this.room.players.length) {
           await this.ctx.storage.deleteAll();
@@ -253,6 +313,14 @@ export class RoomDO extends DurableObject<Env> {
     } else {
       player.disconnectedAt = Date.now();   // ON-07: 30 giây để vào lại
     }
+    // Ván đã kết thúc và không còn socket nào: dọn phòng để mã dùng lại được
+    if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
+      await this.ctx.storage.deleteAll();
+      await this.ctx.storage.deleteAlarm();
+      this.room = null;
+      this.game = null;
+      return;
+    }
     await this.save();
     this.broadcast({ t: 'room', room: this.roomInfo() });
     await this.scheduleNext();
@@ -265,13 +333,25 @@ export class RoomDO extends DurableObject<Env> {
     if (!this.room) return;
     const now = Date.now();
 
+    // Hết đếm ngược 5 giây → ván thực sự bắt đầu, đồng hồ lượt chạy
+    if (this.room.status === 'countdown' && this.game && now >= (this.room.countdownEnd ?? 0)) {
+      this.game.start(now);
+      this.room.status = 'playing';
+      delete this.room.countdownEnd;
+      await this.save();
+      this.broadcast({ t: 'room', room: this.roomInfo() });
+      this.broadcast({ t: 'state', view: this.view() });
+    }
+
     // Xử thua người rớt mạng quá hạn (ON-07)
     if (this.game && this.room.status === 'playing') {
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null && now - p.disconnectedAt >= ROOM_LIMITS.reconnectMs) {
           p.disconnectedAt = null;
           const events = this.game.forfeit(p.id, now);
+          this.removePlayer(p.id);
           await this.afterEvents(events, false);
+          this.broadcast({ t: 'room', room: this.roomInfo() });
         }
       }
       // Úp lại thẻ sai / hết giờ
@@ -287,6 +367,7 @@ export class RoomDO extends DurableObject<Env> {
   private async scheduleNext(): Promise<void> {
     const marks: number[] = [];
     const now = Date.now();
+    if (this.room?.status === 'countdown' && this.room.countdownEnd) marks.push(this.room.countdownEnd);
     if (this.room?.status === 'playing' && this.game && !this.game.finished) {
       if (this.game.locked) marks.push(now + (this.game.config.flipBackMs ?? 1000));
       // Đồng hồ 30 giây mỗi lượt: hết hạn thì alarm đánh thức để chuyển lượt
@@ -303,7 +384,7 @@ export class RoomDO extends DurableObject<Env> {
 
   /* ---------- trợ giúp ---------- */
 
-  private startGame(): void {
+  private prepareGame(): void {
     const room = this.room!;
     // Trộn biểu tượng của mọi theme đã chọn (loại trùng)
     const symbols = [...new Set(
@@ -319,8 +400,6 @@ export class RoomDO extends DurableObject<Env> {
       seed,
       players: room.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))
     }));
-    this.game.start(Date.now());
-    room.status = 'playing';
   }
 
   /** Phát sự kiện + view mới cho cả phòng, cập nhật trạng thái phòng nếu ván xong. */
@@ -351,12 +430,12 @@ export class RoomDO extends DurableObject<Env> {
       status: room.status,
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
-        return gp
-          ? publicPlayer(gp, this.connected(p.id))
-          : {
+        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready };
+        return {
               id: p.id, name: p.name, avatar: p.avatar,
               score: 0, pairs: 0, bestStreak: 0, frozenTurns: 0,
-              doubleNext: false, forfeited: false, connected: this.connected(p.id)
+              doubleNext: false, forfeited: false, connected: this.connected(p.id),
+              lives: null, ready: p.ready
             };
       })
     };

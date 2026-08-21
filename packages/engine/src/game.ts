@@ -174,7 +174,8 @@ export class MemoryGame {
   flip(index: number, now: number): GameEvent[] {
     if (this.status === 'idle') this.start(now);
     if (this.status !== 'playing' || this.locked) return [];
-    if (index < 0 || index >= this.cards.length) return [];
+    // NaN/số thực/chuỗi vượt qua được cả hai phép so sánh biên — phải chặn tường minh
+    if (!Number.isInteger(index) || index < 0 || index >= this.cards.length) return [];
     if (this.cards[index]!.blank) return [];
     if (this.isMatched(index) || this.selection.includes(index)) return [];
     if (this.selection.length >= 2) return [];

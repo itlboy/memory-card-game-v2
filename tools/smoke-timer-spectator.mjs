@@ -1,4 +1,5 @@
 const SERVER = 'http://127.0.0.1:8787';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { code } = await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json();
 const mk = (name) => new Promise((res) => {
   const ws = new WebSocket(`${SERVER.replace('http','ws')}/ws/${code}?name=${encodeURIComponent(name)}`);
@@ -8,7 +9,10 @@ const mk = (name) => new Promise((res) => {
 });
 const a = await mk('An'), b = await mk('Binh');
 await new Promise((r) => setTimeout(r, 600));
+b.ws.send(JSON.stringify({ t: 'ready', ready: true }));
+await sleep(400);
 a.ws.send(JSON.stringify({ t: 'start' }));
+await sleep(5600);   // qua đếm ngược 5 giây
 await new Promise((r) => setTimeout(r, 800));
 const st = [...a.msgs].reverse().find((m) => m.view);
 console.log('turnTimeLeft đầu ván:', st.view.turnTimeLeft, '(phải ≤15)');

@@ -146,3 +146,29 @@ describe('view công khai (NF-04, ON-09)', () => {
     expect('symbol' in flip && flip.symbol).toBe(g.cards[slot]!.symbol);
   });
 });
+
+describe('rà soát: người bỏ cuộc không thể thắng', () => {
+  it('người dẫn điểm đầu hàng thì người còn lại thắng, kẻ bỏ cuộc xếp cuối', () => {
+    const g = twoP();
+    matchPair(g, 0);           // a +100, a đang dẫn
+    matchPair(g, 1);           // a +120
+    expect(g.players[0]!.score).toBeGreaterThan(0);
+    g.forfeit('a', 5000);      // người dẫn điểm bỏ cuộc
+    const s = g.summary()!;
+    expect(s.reason).toBe('forfeit');
+    expect(s.ranking[0]!.id).toBe('b');          // b thắng dù 0 điểm
+    expect(s.ranking.at(-1)!.id).toBe('a');
+    expect(s.ranking.at(-1)!.forfeited).toBe(true);
+  });
+
+  it('view công khai mang số mạng (Sinh tồn) và giây đã trôi', () => {
+    const g = twoP({ lives: 5 });
+    g.start(0);
+    missPair(g, 0, 1, 2000);
+    const view = publicView(g, 30_000, allOn);
+    expect(view.players[0]!.lives).toBe(4);
+    expect(view.elapsed).toBe(30);
+    const classic = publicView(twoP(), 0, allOn);
+    expect(classic.players[0]!.lives).toBeNull();
+  });
+});

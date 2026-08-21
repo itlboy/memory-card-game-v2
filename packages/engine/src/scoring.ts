@@ -34,13 +34,18 @@ export function starsFor(score: number, thresholds?: readonly [number, number]):
 }
 
 /**
- * Xếp hạng người chơi: điểm cao trước; hoà điểm thì so chuỗi đúng liên tiếp
- * dài nhất, rồi số cặp mở được (MP-04).
+ * Xếp hạng người chơi: người bỏ cuộc LUÔN đứng cuối (đầu hàng thì không thể
+ * thắng dù đang dẫn điểm); còn lại điểm cao trước, hoà thì so chuỗi đúng
+ * liên tiếp dài nhất, rồi số cặp mở được (MP-04).
  */
-export function rankPlayers<T extends { score: number; bestStreak: number; pairs: number }>(
-  players: readonly T[]
-): T[] {
+export function rankPlayers<T extends {
+  score: number; bestStreak: number; pairs: number; forfeited?: boolean;
+}>(players: readonly T[]): T[] {
   return [...players].sort(
-    (x, y) => y.score - x.score || y.bestStreak - x.bestStreak || y.pairs - x.pairs
+    (x, y) =>
+      Number(!!x.forfeited) - Number(!!y.forfeited)
+      || y.score - x.score
+      || y.bestStreak - x.bestStreak
+      || y.pairs - x.pairs
   );
 }

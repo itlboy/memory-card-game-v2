@@ -51,6 +51,10 @@ export interface PublicPlayer {
   doubleNext: boolean;
   forfeited: boolean;
   connected: boolean;
+  /** Mạng còn lại (Sinh tồn); null = chế độ không dùng mạng. */
+  lives: number | null;
+  /** Đã bấm sẵn sàng ở lobby (chủ phòng mặc nhiên sẵn sàng). */
+  ready?: boolean;
 }
 
 export interface GameView {
@@ -64,8 +68,10 @@ export interface GameView {
   totalPairs: number;
   status: string;
   timeLeft: number | null;
-  /** Giây còn lại của lượt hiện tại (đồng hồ 30s). */
+  /** Giây còn lại của lượt hiện tại (đồng hồ lượt). */
   turnTimeLeft: number | null;
+  /** Giây đã trôi của ván — client tự đếm tiếp giữa hai lần cập nhật. */
+  elapsed: number;
   summary: Summary | null;
 }
 
@@ -98,6 +104,7 @@ export function publicView(
     status: game.status,
     timeLeft: game.timeLeft(now),
     turnTimeLeft: game.turnTimeLeft(now),
+    elapsed: Math.floor(game.elapsed(now)),
     summary: game.summary()
   };
 }
@@ -107,7 +114,8 @@ export function publicPlayer(p: Player, connected: boolean): PublicPlayer {
     id: p.id, name: p.name, avatar: p.avatar,
     score: p.score, pairs: p.pairs, bestStreak: p.bestStreak,
     frozenTurns: p.frozenTurns, doubleNext: p.doubleNext,
-    forfeited: !!p.forfeited, connected
+    forfeited: !!p.forfeited, connected,
+    lives: Number.isFinite(p.lives) ? p.lives : null
   };
 }
 
@@ -137,6 +145,7 @@ export type ClientMsg =
   | { t: 'start' }                                  // chỉ chủ phòng
   | { t: 'flip'; index: number }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
+  | { t: 'ready'; ready: boolean }                  // sẵn sàng ở lobby
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng
   | { t: 'emoji'; emoji: string }
@@ -147,7 +156,7 @@ export interface RoomInfo {
   hostId: string;
   config: RoomConfig;
   players: PublicPlayer[];
-  status: 'lobby' | 'playing' | 'ended';
+  status: 'lobby' | 'countdown' | 'playing' | 'ended';
 }
 
 /** Server → client. */
@@ -155,6 +164,7 @@ export type ServerMsg =
   | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean }
   | { t: 'room'; room: RoomInfo }
   | { t: 'state'; view: GameView }
+  | { t: 'countdown'; endsInMs: number; firstId: string; firstName: string }
   | { t: 'events'; events: PublicEvent[]; view: GameView }
   | { t: 'emoji'; from: string; emoji: QuickEmoji }
   | { t: 'closed'; message: string }

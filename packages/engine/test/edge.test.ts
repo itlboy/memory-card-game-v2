@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
+import { presetConfig } from '../src/presets.js';
 import type { Power } from '../src/types.js';
 import { SYMBOLS, makeGame, matchPair, missPair, pairSlots } from './helpers.js';
 
@@ -175,5 +176,22 @@ describe('lưới lẻ ô (3×3 với ô trống)', () => {
     const blankAt = g.cards.findIndex((c) => c.blank);
     missPair(g, 0, 1);
     expect(g.cards[blankAt]!.blank).toBe(true);
+  });
+});
+
+describe('đầu vào bất thường (client không đáng tin — ON-09)', () => {
+  it('flip với NaN / số thực / ngoài biên không crash, bị bỏ qua', () => {
+    const g = makeGame();
+    for (const bad of [NaN, 1.5, Infinity, -Infinity, 2 ** 53, -1]) {
+      expect(g.flip(bad, 0)).toEqual([]);
+    }
+    expect(g.flip(-0, 0)).toHaveLength(1);   // -0 vẫn là ô 0 hợp lệ
+  });
+
+  it('presetConfig chặn khoá kế thừa từ prototype', () => {
+    for (const evil of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) {
+      expect(() => presetConfig({ mode: 'classic', grid: evil, symbols: SYMBOLS, seed: 1 }))
+        .toThrow(/không được hỗ trợ/);
+    }
   });
 });

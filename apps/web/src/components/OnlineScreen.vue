@@ -134,6 +134,24 @@ function toggleTheme(id: string): void {
   if (next.length) o.setConfig({ themeIds: next });
 }
 
+const meReady = computed(() => !!o.me.value?.ready);
+const readyCount = computed(() => {
+  const r = o.room.value;
+  if (!r) return { ok: 0, need: 0 };
+  const others = r.players.filter((p) => p.id !== r.hostId);
+  return { ok: others.filter((p) => p.ready).length, need: others.length };
+});
+const canStart = computed(() => {
+  const r = o.room.value;
+  return !!r && r.players.length >= 2 && readyCount.value.ok === readyCount.value.need;
+});
+const startLabel = computed(() => {
+  const r = o.room.value;
+  if (!r || r.players.length < 2) return 'Cần ít nhất 2 người…';
+  if (!canStart.value) return `Chờ sẵn sàng (${readyCount.value.ok}/${readyCount.value.need})…`;
+  return 'Bắt đầu';
+});
+
 const MODES = [
   { id: 'classic' as const, name: 'Cổ điển' },
   { id: 'survival' as const, name: 'Sinh tồn' }
@@ -211,6 +229,9 @@ const THEMES = [
         <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
         <small v-if="p.id === o.myId.value">(bạn)</small>
         <span v-if="!p.connected" class="offline">rớt mạng…</span>
+        <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
+          {{ p.id === o.room.value?.hostId ? '👑' : p.ready ? '✅ sẵn sàng' : '⌛ chưa sẵn sàng' }}
+        </span>
       </li>
       <li v-if="(o.room.value?.players.length ?? 0) < 4" class="empty">
         Còn {{ 4 - (o.room.value?.players.length ?? 0) }} chỗ trống — chia sẻ mã
@@ -252,16 +273,22 @@ const THEMES = [
       </div>
       <button
         class="btn-primary" type="button"
-        :disabled="(o.room.value?.players.length ?? 0) < 2"
+        :disabled="!canStart"
         @click="o.start()"
-      >
-        {{ (o.room.value?.players.length ?? 0) < 2 ? 'Cần ít nhất 2 người…' : 'Bắt đầu' }}
-      </button>
+      >{{ startLabel }}</button>
     </template>
-    <p v-else class="hint">
-      {{ o.room.value?.config.mode === 'survival' ? 'Sinh tồn' : 'Cổ điển' }}
-      · lưới {{ o.room.value?.config.grid.replace('x', '×') }} — chờ chủ phòng bắt đầu…
-    </p>
+    <template v-else>
+      <button
+        class="btn-primary" :class="{ 'is-ready': meReady }" type="button"
+        @click="o.setReady(!meReady)"
+      >
+        {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
+      </button>
+      <p class="hint">
+        {{ o.room.value?.config.mode === 'survival' ? 'Sinh tồn' : 'Cổ điển' }}
+        · lưới {{ o.room.value?.config.grid.replace('x', '×') }} — chờ chủ phòng bắt đầu…
+      </p>
+    </template>
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
   </section>
 
@@ -271,7 +298,7 @@ const THEMES = [
       :score="0" :moves="o.view.value?.moves ?? 0"
       :matched="o.view.value?.matchedPairs ?? 0"
       :total-pairs="o.view.value?.totalPairs ?? 0"
-      :combo="1" :elapsed="0"
+      :combo="1" :elapsed="o.elapsed.value"
       :time-left="o.view.value?.timeLeft ?? null"
       :moves-left="null" :lives="null" :multiplayer="true"
       @quit="quit"
@@ -284,6 +311,7 @@ const THEMES = [
       >
         <span class="avatar">{{ p.avatar }}</span>
         <b>{{ p.name }}</b>
+        <small v-if="p.lives !== null" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
         <span
           v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
           class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
@@ -319,6 +347,12 @@ const THEMES = [
       <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
         +{{ o.lastGain.value.amount }}
       </span>
+      <!-- Đếm ngược 5 giây trước ván + báo người đi đầu -->
+      <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
+        <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
+        <span class="first">🎲 <b>{{ o.countdown.value?.firstName }}</b> đi trước!</span>
+      </div>
+
       <!-- Emoji chat phóng to giữa bàn -->
       <Transition name="blast">
         <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
@@ -417,6 +451,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .lobby-list .avatar { font-size: 20px; }
 .lobby-list small { color: var(--muted); font-size: var(--text-xs); }
 .offline { margin-left: auto; font-size: var(--text-xs); color: var(--warn); }
+.ready-tag { margin-left: auto; font-size: var(--text-xs); color: var(--muted); white-space: nowrap; }
+.ready-tag.on { color: var(--ok); font-weight: 700; }
+.is-ready { background: var(--ok); box-shadow: 0 8px 22px color-mix(in srgb, var(--ok) 40%, transparent); }
 .hint { color: var(--muted); font-size: var(--text-sm); margin: 14px 0 0; }
 .warn {
   margin: 14px 0 0; padding: 10px 12px; border-radius: var(--r-sm); font-size: var(--text-sm);
@@ -453,6 +490,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .pchip.off { opacity: .55; }
 .pchip .avatar { font-size: 18px; }
 .pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pchip .lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
 .pchip .pts { margin-left: auto; font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
 .turn-clock {
   font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
@@ -528,6 +566,25 @@ input:focus { outline: none; border-color: var(--accent); }
 .banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
+
+.countdown {
+  position: absolute; inset: 0; z-index: 7;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(3px); border-radius: var(--r-lg); pointer-events: none;
+}
+.countdown .num {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(80px, 30vw, 150px); line-height: 1; color: var(--accent);
+  text-shadow: 0 10px 40px var(--card-back-glow);
+  animation: cd-pop .9s cubic-bezier(.2, 1.4, .4, 1);
+}
+@keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
+.countdown .first {
+  font-size: clamp(16px, 4.5vw, 22px); padding: 6px 18px; border-radius: var(--r-full);
+  background: var(--panel); border: 2px solid var(--accent); box-shadow: var(--shadow);
+}
+.countdown .first b { color: var(--accent); }
 
 .emoji-blast {
   position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
