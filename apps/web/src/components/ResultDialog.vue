@@ -126,6 +126,19 @@ h2 { margin: 0 0 4px; }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
+.stats { margin: 0; display: grid; gap: 6px; }
+.stats div { display: flex; justify-content: space-between; gap: 12px; }
+.stats dt { color: var(--muted); font-size: 14px; }
+.stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.ranking { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.ranking li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 4px 10px; }
+.ranking li:first-child b { color: var(--ok); }
+.ranking small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+
+.achievements { margin: 14px 0 0; padding: 12px; list-style: none; display: grid; gap: 6px;
+  background: color-mix(in srgb, var(--warn) 12%, transparent); border-radius: 10px; font-size: 13px; }
+
 .row { display: flex; gap: 8px; margin-top: 18px; }
 .row .btn { flex: 1; }
 .row .btn-primary { margin: 0; }
