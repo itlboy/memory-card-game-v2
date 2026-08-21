@@ -46,7 +46,8 @@ const totalStars = computed(() => Object.values(props.progress).reduce((n, p) =>
 @media (min-width: 560px) {
   .map { grid-template-columns: repeat(5, 1fr); }
 }
-li { display: flex; min-height: 0; }
+li { display: flex; min-height: 0; align-items: center; }
+.node { max-height: 96px; }
 .node {
   width: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 0; padding: 4px 2px; overflow: hidden;

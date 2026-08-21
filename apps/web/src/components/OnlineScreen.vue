@@ -288,7 +288,7 @@ function openCfgWizard(): void {
           @click="wizToggleTheme(t.id)"
         >
           <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 4).join(' ') }}</span>
-          <strong>{{ cfg.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
+          <strong class="tname">{{ cfg.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
         </button>
       </div>
 
@@ -581,6 +581,11 @@ input:focus { outline: none; border-color: var(--accent); }
 .step-body.options { display: grid; }
 .step-body.options, .options.fill {
   flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
+  /* Desktop màn cao: ô không kéo dài vô lý — cap chiều cao, canh giữa cell */
+  align-items: center;
+}
+.step-body.options > .option, .options.fill > .option {
+  height: 100%; max-height: 210px;
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
@@ -599,8 +604,13 @@ input:focus { outline: none; border-color: var(--accent); }
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
-.theme-opt { padding: 8px 6px; gap: 2px; }
-.theme-sample { font-size: clamp(15px, 4.5vw, 22px); letter-spacing: 1px; white-space: nowrap; }
+.theme-opt { padding: 6px 4px; gap: 2px; }
+.theme-sample { font-size: clamp(13px, 4vw, 20px); letter-spacing: 1px; white-space: nowrap; }
+.tname {
+  font-size: var(--text-sm); line-height: 1.15; text-align: center;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
 .dots { display: flex; gap: 6px; }
 .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }

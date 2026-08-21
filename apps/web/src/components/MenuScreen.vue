@@ -242,9 +242,8 @@ function toggleTheme(id: string): void {
             @click="unlocked(t) && toggleTheme(t.id)"
           >
             <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 4).join(' ') }}</span>
-            <strong>{{ themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
-            <small v-if="!unlocked(t)">🔒 cần {{ t.unlockAt }} điểm tích lũy</small>
-            <small v-else>{{ t.symbols.length }} biểu tượng</small>
+            <strong class="tname">{{ themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
+            <small v-if="!unlocked(t)">🔒 {{ t.unlockAt / 1000 }}k điểm</small>
           </button>
         </div>
 
@@ -276,6 +275,11 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .step-body.options { display: grid; }
 .step-body.options, .options.fill {
   flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
+  /* Desktop màn cao: ô không kéo dài vô lý — cap chiều cao, canh giữa cell */
+  align-items: center;
+}
+.step-body.options > .option, .options.fill > .option {
+  height: 100%; max-height: 210px;
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
 
@@ -304,8 +308,14 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: var(--text-md); }
 .options.grid3 small, .theme-opt small { font-size: var(--text-xs); }
-.theme-opt { padding: 8px 6px; gap: 2px; }
-.theme-sample { font-size: clamp(15px, 4.5vw, 22px); letter-spacing: 1px; white-space: nowrap; }
+.theme-opt { padding: 6px 4px; gap: 2px; }
+.theme-sample { font-size: clamp(13px, 4vw, 20px); letter-spacing: 1px; white-space: nowrap; }
+/* Tên theme: tối đa 2 dòng, không tràn khỏi ô nén */
+.tname {
+  font-size: var(--text-sm); line-height: 1.15; text-align: center;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .option[aria-checked='true'] {
   border-color: var(--accent); background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);
