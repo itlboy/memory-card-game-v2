@@ -4,8 +4,8 @@ import type { Env } from './room.js';
 
 export { RoomDO };
 
-/** Bỏ ký tự dễ nhầm (0/O, 1/I/L). */
-const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+/** Mã phòng toàn số — dễ đọc cho nhau qua điện thoại, gõ bằng bàn phím số. */
+const CODE_ALPHABET = '0123456789';
 
 function makeCode(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(ROOM_LIMITS.codeLength));
@@ -31,7 +31,7 @@ export default {
     }
 
     // Vào phòng: nâng cấp WebSocket rồi chuyển cho DO của phòng đó
-    const match = url.pathname.match(/^\/ws\/([A-Za-z0-9]{6})$/);
+    const match = url.pathname.match(/^\/ws\/([0-9]{6})$/);
     if (match) {
       const code = match[1]!.toUpperCase();
       const stub = env.ROOM.getByName(code);

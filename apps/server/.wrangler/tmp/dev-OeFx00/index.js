@@ -538,7 +538,7 @@ function presetConfig({ mode, grid, symbols, seed, players }) {
 __name(presetConfig, "presetConfig");
 
 // ../../packages/engine/src/online.ts
-var DEFAULT_ROOM_CONFIG = { mode: "classic", grid: "4x4", themeId: "animals" };
+var DEFAULT_ROOM_CONFIG = { mode: "classic", grid: "4x4", themeIds: ["animals"] };
 var ROOM_LIMITS = {
   maxPlayers: 4,
   minPlayers: 2,
@@ -723,7 +723,10 @@ var RoomDO = class extends DurableObject {
         const c = msg.config;
         if (c.grid && GRIDS[c.grid]) this.room.config.grid = c.grid;
         if (c.mode === "classic" || c.mode === "survival") this.room.config.mode = c.mode;
-        if (c.themeId && THEME_SYMBOLS[c.themeId]) this.room.config.themeId = c.themeId;
+        if (Array.isArray(c.themeIds)) {
+          const valid = [...new Set(c.themeIds)].filter((id) => THEME_SYMBOLS[id]);
+          if (valid.length) this.room.config.themeIds = valid;
+        }
         await this.save();
         this.broadcast({ t: "room", room: this.roomInfo() });
         return;
@@ -851,7 +854,10 @@ var RoomDO = class extends DurableObject {
   /* ---------- trợ giúp ---------- */
   startGame() {
     const room = this.room;
-    const symbols = THEME_SYMBOLS[room.config.themeId] ?? THEME_SYMBOLS["animals"];
+    const symbols = [...new Set(
+      room.config.themeIds.flatMap((id) => THEME_SYMBOLS[id] ?? [])
+    )];
+    if (!symbols.length) symbols.push(...THEME_SYMBOLS["animals"]);
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]);
     this.game = new MemoryGame(presetConfig({
       mode: room.config.mode,
@@ -922,7 +928,7 @@ var RoomDO = class extends DurableObject {
 };
 
 // src/index.ts
-var CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+var CODE_ALPHABET = "0123456789";
 function makeCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(ROOM_LIMITS.codeLength));
   return [...bytes].map((b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
@@ -941,7 +947,7 @@ var src_default = {
       const code = makeCode();
       return Response.json({ code }, { headers: CORS });
     }
-    const match = url.pathname.match(/^\/ws\/([A-Za-z0-9]{6})$/);
+    const match = url.pathname.match(/^\/ws\/([0-9]{6})$/);
     if (match) {
       const code = match[1].toUpperCase();
       const stub = env.ROOM.getByName(code);
@@ -1001,7 +1007,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-AcxKDX/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-oywZJz/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1033,7 +1039,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-AcxKDX/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-oywZJz/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

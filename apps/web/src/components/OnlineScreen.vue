@@ -41,8 +41,10 @@ function create(): void {
   remember();
   void o.createRoom(name.value.trim());
 }
+const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
+
 function join(): void {
-  if (!name.value.trim() || codeInput.value.trim().length !== 6) return;
+  if (!name.value.trim() || !codeValid.value) return;
   remember();
   o.join(codeInput.value, name.value.trim());
 }
@@ -125,6 +127,13 @@ const fitStyle = computed(() => {
   return { '--fit': `min(100%, calc((100dvh - 300px) * ${(v.cols * 3) / (v.rows * 4)}))` };
 });
 
+/** Bật/tắt theme trong lobby — luôn giữ ít nhất một. */
+function toggleTheme(id: string): void {
+  const cur = o.room.value?.config.themeIds ?? [];
+  const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+  if (next.length) o.setConfig({ themeIds: next });
+}
+
 const MODES = [
   { id: 'classic' as const, name: 'Cổ điển' },
   { id: 'survival' as const, name: 'Sinh tồn' }
@@ -136,6 +145,9 @@ const THEMES = [
 </script>
 
 <template>
+  <!-- Một root duy nhất: component này nằm trong <Transition> của App,
+       nhiều root sẽ làm Transition render trắng trang -->
+  <div class="online">
   <!-- NHẬP TÊN / TẠO / VÀO PHÒNG -->
   <section v-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
     <div class="head">
@@ -228,14 +240,14 @@ const THEMES = [
           >{{ String(k).replace('x', '×') }}</button>
         </div>
       </div>
-      <div class="cfg-row" role="radiogroup" aria-label="Theme">
+      <div class="cfg-row" role="group" aria-label="Theme (chọn được nhiều)">
         <span class="cfg-label">Theme</span>
         <div class="cfg-chips">
           <button
-            v-for="t in THEMES" :key="t.id" class="chip mini" role="radio"
-            :aria-checked="o.room.value?.config.themeId === t.id" type="button"
-            @click="o.setConfig({ themeId: t.id })"
-          >{{ t.name }}</button>
+            v-for="t in THEMES" :key="t.id" class="chip mini" role="checkbox"
+            :aria-checked="o.room.value?.config.themeIds.includes(t.id) ?? false" type="button"
+            @click="toggleTheme(t.id)"
+          >{{ o.room.value?.config.themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</button>
         </div>
       </div>
       <button
@@ -351,9 +363,12 @@ const THEMES = [
     @confirm="confirm.action()"
     @cancel="confirm = null"
   />
+  </div>
 </template>
 
 <style scoped>
+.online { display: flex; flex-direction: column; height: 100%; }
+.online > .panel { height: fit-content; }
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { font-size: 22px; line-height: 1; padding: 4px 12px; }

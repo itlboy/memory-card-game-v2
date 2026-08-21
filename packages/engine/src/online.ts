@@ -11,10 +11,11 @@ import type { MemoryGame } from './game.js';
 export interface RoomConfig {
   mode: Extract<Mode, 'classic' | 'survival'>;
   grid: string;
-  themeId: string;
+  /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
+  themeIds: string[];
 }
 
-export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', grid: '4x4', themeId: 'animals' };
+export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', grid: '4x4', themeIds: ['animals'] };
 
 export const ROOM_LIMITS = {
   maxPlayers: 4,

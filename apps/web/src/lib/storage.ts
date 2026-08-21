@@ -5,7 +5,8 @@ export interface Prefs {
   sound: boolean;
   mode: Mode;
   grid: string;
-  theme: string;
+  /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
+  themes: string[];
   playerCount: number;
 }
 
@@ -13,7 +14,7 @@ export interface BestRecord { score: number; moves: number; seconds: number }
 export interface LevelProgress { stars: number; score: number }
 
 interface Save {
-  prefs?: Partial<Prefs>;
+  prefs?: Partial<Prefs> & { theme?: string };   // `theme` là khoá cũ (1 theme)
   best?: Record<string, BestRecord>;
   campaign?: Record<string, LevelProgress>;
   totalScore?: number;
@@ -24,7 +25,7 @@ interface Save {
 const KEY = 'mm.v2';
 
 const DEFAULT_PREFS: Prefs = {
-  dark: false, sound: true, mode: 'classic', grid: '4x4', theme: 'animals', playerCount: 1
+  dark: false, sound: true, mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
 };
 
 function read(): Save {
@@ -38,7 +39,12 @@ function write(save: Save): void {
 /** Tiến trình chơi đơn lưu cục bộ — không cần đăng nhập (mục 3.7). */
 export const store = {
   prefs(): Prefs {
-    return { ...DEFAULT_PREFS, ...read().prefs };
+    const saved = read().prefs ?? {};
+    const merged = { ...DEFAULT_PREFS, ...saved };
+    // Migration từ bản cũ chỉ lưu một theme
+    if (!saved.themes?.length && saved.theme) merged.themes = [saved.theme];
+    if (!merged.themes.length) merged.themes = ['animals'];
+    return merged;
   },
 
   savePrefs(patch: Partial<Prefs>): void {

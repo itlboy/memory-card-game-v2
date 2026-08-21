@@ -6,7 +6,7 @@ beforeEach(() => localStorage.clear());
 describe('tuỳ chọn', () => {
   it('trả về mặc định khi chưa có gì lưu', () => {
     expect(store.prefs()).toEqual({
-      dark: false, sound: true, mode: 'classic', grid: '4x4', theme: 'animals', playerCount: 1
+      dark: false, sound: true, mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
     });
   });
 
@@ -19,6 +19,16 @@ describe('tuỳ chọn', () => {
   it('dữ liệu hỏng thì rơi về mặc định, không ném lỗi', () => {
     localStorage.setItem('mm.v2', '{khong-phai-json');
     expect(store.prefs().grid).toBe('4x4');
+  });
+
+  it('migration từ bản cũ chỉ lưu một theme', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { theme: 'fruits' } }));
+    expect(store.prefs().themes).toEqual(['fruits']);
+  });
+
+  it('mảng theme rỗng thì rơi về mặc định', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { themes: [] } }));
+    expect(store.prefs().themes).toEqual(['animals']);
   });
 
   it('localStorage bị chặn (chế độ riêng tư) thì vẫn chạy', () => {

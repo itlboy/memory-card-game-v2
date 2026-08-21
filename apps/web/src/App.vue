@@ -19,7 +19,7 @@ const dark = ref(prefs.dark);
 const sound = ref(prefs.sound);
 const mode = ref<Mode>(prefs.mode);
 const grid = ref(prefs.grid in GRIDS ? prefs.grid : '4x4');
-const themeId = ref(prefs.theme);
+const themeIds = ref<string[]>(prefs.themes);
 const playerCount = ref(prefs.playerCount);
 const totalScore = ref(store.totalScore());
 
@@ -96,7 +96,8 @@ watch(
 
 void loadThemes().then((list) => {
   themes.value = list;
-  if (!list.some((t) => t.id === themeId.value)) themeId.value = list[0]?.id ?? 'animals';
+  const valid = themeIds.value.filter((id) => list.some((t) => t.id === id));
+  themeIds.value = valid.length ? valid : [list[0]?.id ?? 'animals'];
 });
 
 onMounted(() => {
@@ -108,9 +109,9 @@ onMounted(() => {
   // Khôi phục vị trí từ URL sau F5 / mở link mời
   const q = new URLSearchParams(location.search);
   const code = q.get('room');
-  if (code && /^[A-Za-z0-9]{6}$/.test(code)) {
+  if (code && /^\d{6}$/.test(code)) {
     // Online: giữ ?room=CODE trên URL suốt phiên — F5 quay lại đúng phòng
-    joinCode.value = code.toUpperCase();
+    joinCode.value = code;
     screen.value = 'online';
   } else if (q.get('playing') === '1') {
     // Ván offline dở: URL chỉ là con trỏ, ruột ván nằm trong snapshot
@@ -126,14 +127,17 @@ onMounted(() => {
 /* ---------- tuỳ chọn hiển thị ---------- */
 watchEffect(() => { document.documentElement.dataset.theme = dark.value ? 'dark' : 'light'; });
 watchEffect(() => { sfx.enabled = sound.value; });
-watch([dark, sound, mode, grid, themeId, playerCount], () => {
+watch([dark, sound, mode, grid, themeIds, playerCount], () => {
   store.savePrefs({
     dark: dark.value, sound: sound.value, mode: mode.value,
-    grid: grid.value, theme: themeId.value, playerCount: playerCount.value
+    grid: grid.value, themes: themeIds.value, playerCount: playerCount.value
   });
 });
 
-const symbols = computed(() => themes.value.find((t) => t.id === themeId.value)?.symbols ?? []);
+/** Trộn biểu tượng của mọi theme đã chọn, loại trùng. */
+const symbols = computed(() => [...new Set(
+  themes.value.filter((t) => themeIds.value.includes(t.id)).flatMap((t) => t.symbols)
+)]);
 
 function playerList(): PlayerInit[] | undefined {
   if (playerCount.value < 2) return undefined;
@@ -233,12 +237,12 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :themes="themes"
       :mode="mode"
       :grid="grid"
-      :theme-id="themeId"
+      :theme-ids="themeIds"
       :player-count="playerCount"
       :total-score="totalScore"
       @update:mode="mode = $event"
       @update:grid="grid = $event"
-      @update:theme-id="themeId = $event"
+      @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
       @start="startQuick"
       @start-level="startLevel"

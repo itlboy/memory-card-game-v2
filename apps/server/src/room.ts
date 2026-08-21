@@ -152,7 +152,10 @@ export class RoomDO extends DurableObject<Env> {
         const c = msg.config;
         if (c.grid && GRIDS[c.grid]) this.room.config.grid = c.grid;
         if (c.mode === 'classic' || c.mode === 'survival') this.room.config.mode = c.mode;
-        if (c.themeId && THEME_SYMBOLS[c.themeId]) this.room.config.themeId = c.themeId;
+        if (Array.isArray(c.themeIds)) {
+          const valid = [...new Set(c.themeIds)].filter((id) => THEME_SYMBOLS[id]);
+          if (valid.length) this.room.config.themeIds = valid;
+        }
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
         return;
@@ -302,7 +305,11 @@ export class RoomDO extends DurableObject<Env> {
 
   private startGame(): void {
     const room = this.room!;
-    const symbols = THEME_SYMBOLS[room.config.themeId] ?? THEME_SYMBOLS['animals']!;
+    // Trộn biểu tượng của mọi theme đã chọn (loại trùng)
+    const symbols = [...new Set(
+      room.config.themeIds.flatMap((id) => THEME_SYMBOLS[id] ?? [])
+    )];
+    if (!symbols.length) symbols.push(...THEME_SYMBOLS['animals']!);
     // Seed sinh tại server — client không bao giờ biết trước bàn thẻ (NF-04)
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]!);
     this.game = new MemoryGame(presetConfig({

@@ -167,3 +167,42 @@ describe('App', () => {
     expect(localStorage.getItem('mm.v2')).toContain('"dark":true');
   });
 });
+
+describe('multi-theme', () => {
+  it('chọn thêm theme thứ hai — cả hai cùng được đánh dấu', async () => {
+    wrapper = mount(App);
+    await flush();
+    await click('Chơi một mình');
+    await click('Cổ điển');
+    const chip = (name: string) =>
+      wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
+    expect(chip('Động vật').attributes('aria-checked')).toBe('true');
+    // "Bị khoá" chưa mở nên không toggle được; toggle Động vật đi thì phải giữ lại vì là theme cuối
+    await chip('Động vật').trigger('click');
+    await flush();
+    expect(chip('Động vật').attributes('aria-checked')).toBe('true');   // không cho bỏ hết
+    expect(localStorage.getItem('mm.v2') ?? '').not.toContain('"themes":[]');
+  });
+});
+
+describe('màn online (điều hướng, không cần server)', () => {
+  it('vào Chơi online rồi quay lại menu — cả hai chiều đều render nội dung', async () => {
+    // WebSocket giả không kết nối gì — chỉ cần màn entry render được
+    vi.stubGlobal('WebSocket', class {
+      onmessage: unknown = null; onclose: unknown = null; onerror: unknown = null;
+      readyState = 0;
+      close(): void { /* noop */ }
+      send(): void { /* noop */ }
+    });
+    wrapper = mount(App, { attachTo: document.body });
+    await flush();
+    await click('Chơi online');
+    expect(wrapper.text()).toContain('Tên của bạn');
+    expect(wrapper.text()).toContain('Tạo phòng mới');
+    // Quay lại — trước đây multi-root trong <Transition> làm trắng trang
+    await wrapper.find('[aria-label="Quay lại"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+    expect(wrapper.html().length).toBeGreaterThan(500);
+  });
+});

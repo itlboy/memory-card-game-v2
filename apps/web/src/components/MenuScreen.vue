@@ -12,7 +12,7 @@ const props = defineProps<{
   themes: CardTheme[];
   mode: Mode;
   grid: string;
-  themeId: string;
+  themeIds: string[];
   playerCount: number;
   totalScore: number;
 }>();
@@ -20,7 +20,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:mode': [Mode];
   'update:grid': [string];
-  'update:themeId': [string];
+  'update:themeIds': [string[]];
   'update:playerCount': [number];
   start: [];
   'start-level': [number];
@@ -93,9 +93,18 @@ const cells = computed(() => {
 });
 /** Theme phải đủ biểu tượng cho lưới đã chọn. */
 const themeTooSmall = computed(() => {
-  const t = props.themes.find((x) => x.id === props.themeId);
-  return !!t && t.symbols.length < Math.floor(cells.value / 2);
+  const pool = new Set(
+    props.themes.filter((t) => props.themeIds.includes(t.id)).flatMap((t) => t.symbols)
+  );
+  return pool.size > 0 && pool.size < Math.floor(cells.value / 2);
 });
+
+/** Bật/tắt một theme — luôn giữ ít nhất một theme được chọn. */
+function toggleTheme(id: string): void {
+  const cur = props.themeIds;
+  const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+  if (next.length) emit('update:themeIds', next);
+}
 </script>
 
 <template>
@@ -175,17 +184,17 @@ const themeTooSmall = computed(() => {
           </button>
         </div>
 
-        <h3 class="section-title">Theme thẻ</h3>
-        <div class="chips" role="radiogroup" aria-label="Theme thẻ">
+        <h3 class="section-title">Theme thẻ <small class="hint-multi">— chọn được nhiều</small></h3>
+        <div class="chips" role="group" aria-label="Theme thẻ">
           <button
-            v-for="t in themes" :key="t.id" class="chip compact" role="radio"
-            :aria-checked="themeId === t.id"
+            v-for="t in themes" :key="t.id" class="chip compact" role="checkbox"
+            :aria-checked="themeIds.includes(t.id)"
             :aria-disabled="!unlocked(t)"
             :disabled="!unlocked(t)"
             type="button"
-            @click="unlocked(t) && emit('update:themeId', t.id)"
+            @click="unlocked(t) && toggleTheme(t.id)"
           >
-            <strong>{{ t.name }}</strong>
+            <strong>{{ themeIds.includes(t.id) ? '✓ ' : '' }}{{ t.name }}</strong>
             <small v-if="!unlocked(t)">🔒 cần {{ t.unlockAt }} điểm tích lũy</small>
             <small v-else>{{ t.symbols.length }} biểu tượng</small>
           </button>
@@ -211,6 +220,7 @@ const themeTooSmall = computed(() => {
 </template>
 
 <style scoped>
+.hint-multi { text-transform: none; letter-spacing: 0; font-weight: 400; }
 .wizard-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { min-width: 44px; font-size: 22px; line-height: 1; padding: 4px 12px; }
