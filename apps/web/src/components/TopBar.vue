@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Moon, Sun, Volume2, VolumeX } from 'lucide-vue-next';
+
 defineProps<{ dark: boolean; sound: boolean; totalScore: number }>();
 defineEmits<{ 'toggle-dark': []; 'toggle-sound': []; home: [] }>();
 </script>
@@ -12,10 +14,12 @@ defineEmits<{ 'toggle-dark': []; 'toggle-sound': []; home: [] }>();
     </h1>
     <span class="total" :title="`Tổng điểm tích lũy: ${totalScore}`">⭐ {{ totalScore }}</span>
     <button class="btn" :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'" type="button" @click="$emit('toggle-dark')">
-      {{ dark ? '☀️' : '🌙' }}
+      <Sun v-if="dark" :size="20" />
+      <Moon v-else :size="20" />
     </button>
     <button class="btn" :aria-pressed="sound" aria-label="Bật/tắt âm thanh" type="button" @click="$emit('toggle-sound')">
-      {{ sound ? '🔊' : '🔇' }}
+      <Volume2 v-if="sound" :size="20" />
+      <VolumeX v-else :size="20" />
     </button>
   </header>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { GRIDS } from '@mm/engine';
+import { ChevronLeft } from 'lucide-vue-next';
 import type { Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
@@ -148,7 +149,7 @@ function toggleTheme(id: string): void {
 <template>
   <section class="panel">
     <header class="wizard-head">
-      <button v-if="stepIndex > 0" class="btn back" aria-label="Quay lại" type="button" @click="back">‹</button>
+      <button v-if="stepIndex > 0" class="btn back" aria-label="Quay lại" type="button" @click="back"><ChevronLeft :size="22" /></button>
       <h2>{{ TITLES[step] }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(s, i) in path" :key="s" :class="{ on: i <= stepIndex }" />

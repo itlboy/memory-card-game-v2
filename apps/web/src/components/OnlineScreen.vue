@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { GRIDS, QUICK_EMOJIS } from '@mm/engine';
+import { Check, ChevronLeft, Copy, Crown, Settings2, Timer } from 'lucide-vue-next';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
@@ -249,7 +250,7 @@ function openCfgWizard(): void {
   <!-- WIZARD CHỌN BÀN CHƠI: dùng khi tạo phòng và khi chỉnh trong lobby -->
   <section v-if="wizard" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Quay lại" type="button" @click="wizBack">‹</button>
+      <button class="btn back" aria-label="Quay lại" type="button" @click="wizBack"><ChevronLeft :size="22" /></button>
       <h2>{{ wizard === 'mode' ? 'Chọn chế độ' : wizard === 'grid' ? 'Kích thước lưới' : 'Chọn theme thẻ' }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(st, i) in WIZ_STEPS" :key="st" :class="{ on: i <= WIZ_STEPS.indexOf(wizard) }" />
@@ -317,7 +318,7 @@ function openCfgWizard(): void {
   <!-- VÀO ONLINE: bước 1 chọn việc, bước 2 điền form -->
   <section v-else-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Quay lại" type="button" @click="backEntry">‹</button>
+      <button class="btn back" aria-label="Quay lại" type="button" @click="backEntry"><ChevronLeft :size="22" /></button>
       <h2>{{ entryStep === 'choose' ? 'Chơi online' : entryStep === 'create' ? 'Tạo phòng mới' : 'Vào phòng' }}</h2>
     </div>
 
@@ -380,10 +381,12 @@ function openCfgWizard(): void {
   <!-- LOBBY -->
   <section v-else-if="o.phase.value === 'lobby'" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Rời phòng" type="button" @click="quit">‹</button>
+      <button class="btn back" aria-label="Rời phòng" type="button" @click="quit"><ChevronLeft :size="22" /></button>
       <h2>Phòng chờ</h2>
       <button class="btn code" type="button" :title="inviteLink" @click="copyLink">
-        {{ o.room.value?.code }} {{ copied ? '✓ đã chép' : '⧉' }}
+        {{ o.room.value?.code }}
+        <Check v-if="copied" :size="16" />
+        <Copy v-else :size="16" />
       </button>
     </div>
 
@@ -395,7 +398,8 @@ function openCfgWizard(): void {
         <small v-if="p.id === o.myId.value">(bạn)</small>
         <span v-if="!p.connected" class="offline">rớt mạng…</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
-          {{ p.id === o.room.value?.hostId ? '👑' : p.ready ? '✅ sẵn sàng' : '⌛ chưa sẵn sàng' }}
+          <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
+          <template v-else>{{ p.ready ? '✓ sẵn sàng' : 'chưa sẵn sàng' }}</template>
         </span>
       </li>
       <li v-if="(o.room.value?.players.length ?? 0) < 4" class="empty">
@@ -412,7 +416,7 @@ function openCfgWizard(): void {
           · lưới <b>{{ o.room.value?.config.grid.replace('x', '×') }}</b>
           · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
         </span>
-        <button class="btn edit" type="button" @click="openCfgWizard">⚙️ Chỉnh</button>
+        <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> Chỉnh</button>
       </div>
       <button
         class="btn-primary" type="button"
@@ -461,7 +465,7 @@ function openCfgWizard(): void {
           v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
           class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
           role="timer" :aria-label="`Còn ${Math.ceil(o.turnTimeLeft.value)} giây`"
-        >⏱{{ Math.ceil(o.turnTimeLeft.value) }}</span>
+        ><Timer :size="12" />{{ Math.ceil(o.turnTimeLeft.value) }}</span>
         <Transition name="plus">
           <span
             v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === p.id"
@@ -553,9 +557,14 @@ function openCfgWizard(): void {
 .head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { font-size: 22px; line-height: 1; padding: 4px 12px; }
 .code {
+  display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-display); font-weight: 700; letter-spacing: .12em;
   color: var(--accent);
 }
+.ready-tag { display: inline-flex; align-items: center; gap: 4px; }
+.crown { color: var(--gold); }
+.edit { display: inline-flex; align-items: center; gap: 5px; }
+.turn-clock { display: inline-flex; align-items: center; gap: 2px; }
 
 .invite {
   margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r-md);

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { clock } from '@/lib/format';
 
@@ -35,7 +36,7 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
       <span>Combo</span><b :key="combo">x{{ combo }}</b>
     </div>
     <div v-if="lives !== null" class="stat"><span>Mạng</span><b>{{ '❤️'.repeat(Math.max(0, lives)) || '—' }}</b></div>
-    <button class="btn quit" aria-label="Thoát về menu" type="button" @click="$emit('quit')">✕</button>
+    <button class="btn quit" aria-label="Thoát về menu" type="button" @click="$emit('quit')"><X :size="20" /></button>
   </div>
 </template>
 

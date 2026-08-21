@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Player } from '@mm/engine';
+import { Timer } from 'lucide-vue-next';
 
 defineProps<{
   players: Player[];
@@ -30,7 +31,7 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
         :class="{ urgent: turnLeft <= 10 }"
         role="timer"
         :aria-label="`Còn ${Math.ceil(turnLeft)} giây`"
-      >⏱{{ Math.ceil(turnLeft) }}</span>
+      ><Timer :size="12" />{{ Math.ceil(turnLeft) }}</span>
       <Transition name="plus">
         <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
       </Transition>
@@ -70,6 +71,7 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
   font-variant-numeric: tabular-nums;
 }
 .turn-clock {
+  display: inline-flex; align-items: center; gap: 2px;
   font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
   padding: 1px 7px; border-radius: var(--r-full);
   background: var(--accent-soft); color: var(--accent); white-space: nowrap;
