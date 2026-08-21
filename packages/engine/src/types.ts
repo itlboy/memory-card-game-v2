@@ -34,6 +34,8 @@ export interface Player extends PlayerInit {
   frozenTurns: number;
   /** Cặp kế tiếp được nhân đôi điểm (thẻ x2). */
   doubleNext: boolean;
+  /** Đã bỏ cuộc / bị xử thua (online: rớt mạng quá 30 giây — ON-07). */
+  forfeited?: boolean;
 }
 
 export interface GameConfig {
@@ -67,7 +69,7 @@ export type GameStatus = 'idle' | 'peeking' | 'playing' | 'won' | 'lost';
 
 export interface Summary {
   status: 'won' | 'lost';
-  reason: 'cleared' | 'timeout' | 'no-moves' | 'no-lives';
+  reason: 'cleared' | 'timeout' | 'no-moves' | 'no-lives' | 'forfeit';
   score: number;
   moves: number;
   seconds: number;

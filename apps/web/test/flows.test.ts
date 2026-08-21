@@ -134,7 +134,7 @@ describe('luồng trọn ván', () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Hết thời gian');
     expect(localStorage.getItem('mm.v2') ?? '').not.toContain('"time:4x4"');
-  });
+  }, 15_000);   // tua 71s giả × 16ms/frame nên cần trần thời gian cao hơn
 
   it('nút Về menu đóng kết quả và quay lại menu', async () => {
     await mountApp();

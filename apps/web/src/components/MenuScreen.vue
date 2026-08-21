@@ -24,6 +24,7 @@ const emit = defineEmits<{
   'update:playerCount': [number];
   start: [];
   'start-level': [number];
+  online: [];
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
@@ -119,6 +120,11 @@ const themeTooSmall = computed(() => {
           <span class="icon">👥</span>
           <strong>Chơi nhiều người</strong>
           <small>2–4 người thay lượt trên cùng máy này</small>
+        </button>
+        <button class="option big" type="button" @click="sfx.select(); emit('online')">
+          <span class="icon">🌐</span>
+          <strong>Chơi online</strong>
+          <small>Tạo phòng, mời bạn bè bằng mã 6 ký tự</small>
         </button>
       </div>
 

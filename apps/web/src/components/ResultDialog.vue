@@ -47,7 +47,8 @@ const REASON: Record<Summary['reason'], string> = {
   cleared: 'Bạn đã mở hết các cặp!',
   timeout: 'Hết thời gian.',
   'no-moves': 'Hết lượt lật.',
-  'no-lives': 'Hết mạng.'
+  'no-lives': 'Hết mạng.',
+  forfeit: 'Đối thủ đã rời trận.'
 };
 
 const title = computed(() => {

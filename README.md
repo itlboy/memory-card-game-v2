@@ -65,11 +65,32 @@ Thêm một mục vào `apps/web/public/data/themes.json`:
 
 Cần tối thiểu 18 biểu tượng cho lưới 6×6. `unlockAt` là điểm tích lũy cần có; `0` = mở sẵn.
 
-## Chưa làm (v2.0+)
+## Chơi online (v2.0)
 
-Online multiplayer (phòng riêng, quick match, Race), tài khoản, bảng xếp hạng toàn cầu,
-PWA offline, i18n. Backend dự kiến: **Cloudflare Durable Objects** — mỗi phòng là một
-DO instance chạy chính `packages/engine`, client chỉ gửi hành động lật.
+Backend: **Cloudflare Durable Objects** (`apps/server`) — mỗi phòng là một DO chạy
+chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào storage.
+
+- Tạo phòng mã 6 ký tự + link mời `?room=CODE` (ON-01), 2–4 người, chủ phòng chọn
+  chế độ/lưới/theme (ON-03), turn-based realtime (ON-04/05)
+- Server-authoritative: client chỉ gửi `{t:'flip'}`; payload không bao giờ chứa
+  thẻ úp (ON-09, NF-04); emoji chat danh sách đóng (ON-08)
+- Rớt mạng có 30 giây vào lại bằng token, quá hạn bị xử thua (ON-07)
+
+```bash
+pnpm dev:server     # wrangler dev tại http://localhost:8787
+pnpm dev            # web — mặc định trỏ VITE_SERVER_URL=http://localhost:8787
+pnpm smoke:online   # E2E: 2 client chơi trọn ván qua WebSocket (cần dev:server đang chạy)
+pnpm deploy:server  # wrangler deploy (cần đăng nhập Cloudflare)
+```
+
+Deploy production: chạy `pnpm deploy:server` lấy URL worker, rồi đặt biến build
+`VITE_SERVER_URL=https://memory-match-server.<account>.workers.dev` trong Cloudflare
+Pages và rebuild.
+
+## Chưa làm (v2.1+)
+
+Quick match (ON-02), chế độ Race (ON-06), tài khoản, bảng xếp hạng toàn cầu,
+PWA offline, i18n.
 
 ## Sai lệch có chủ ý so với SRS
 

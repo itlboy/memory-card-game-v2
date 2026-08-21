@@ -4,6 +4,7 @@ import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
+import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
@@ -22,7 +23,9 @@ const playerCount = ref(prefs.playerCount);
 const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
-const screen = ref<'menu' | 'game'>('menu');
+const screen = ref<'menu' | 'game' | 'online'>('menu');
+/** Mã phòng từ link mời (?room=ABC123). */
+const joinCode = ref('');
 const levelId = ref<number | null>(null);
 const isRecord = ref(false);
 const freshAchievements = ref<string[]>([]);
@@ -39,6 +42,13 @@ onMounted(() => {
   const unlock = (): void => sfx.unlock();
   for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) {
     document.addEventListener(ev, unlock, { once: true, passive: true });
+  }
+  // Link mời: ?room=ABC123 → vào thẳng màn online với mã đã điền sẵn (ON-01)
+  const code = new URLSearchParams(location.search).get('room');
+  if (code && /^[A-Za-z0-9]{6}$/.test(code)) {
+    joinCode.value = code.toUpperCase();
+    screen.value = 'online';
+    history.replaceState(null, '', location.pathname);
   }
 });
 
@@ -155,6 +165,13 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       @update:player-count="playerCount = $event"
       @start="startQuick"
       @start-level="startLevel"
+      @online="screen = 'online'"
+    />
+
+    <OnlineScreen
+      v-else-if="screen === 'online'"
+      :join-code="joinCode"
+      @back="screen = 'menu'"
     />
 
     <GameScreen

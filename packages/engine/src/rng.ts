@@ -10,6 +10,15 @@ export class Rng {
     this.s = (Math.trunc(seed) >>> 0) || 0x9e3779b9;
   }
 
+  /** Trạng thái nội bộ — dùng cho snapshot/restore. */
+  get state(): number { return this.s; }
+
+  static fromState(state: number): Rng {
+    const r = new Rng(1);
+    r.s = state >>> 0;
+    return r;
+  }
+
   /** Số thực trong [0, 1). */
   next(): number {
     this.s = (this.s + 0x6d2b79f5) >>> 0;

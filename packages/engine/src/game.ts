@@ -224,6 +224,7 @@ export class MemoryGame {
     for (let guard = 0; guard < this.players.length + 1; guard++) {
       this.turnIndex = (this.turnIndex + 1) % this.players.length;
       const p = this.current;
+      if (p.forfeited) continue;
       if (p.frozenTurns > 0) {
         p.frozenTurns--;
         out.push({ type: 'turn', playerId: p.id, skipped: true });
@@ -295,6 +296,89 @@ export class MemoryGame {
       ranking
     };
     return [{ type: 'end', summary: this.summaryCache }];
+  }
+
+  /**
+   * Xử thua một người chơi (online: rớt mạng quá hạn — ON-07).
+   * Còn lại 1 người thì ván kết thúc và người đó thắng.
+   */
+  forfeit(playerId: string, now: number): GameEvent[] {
+    const player = this.players.find((p) => p.id === playerId);
+    if (!player || player.forfeited || this.finished) return [];
+    player.forfeited = true;
+
+    const active = this.players.filter((p) => !p.forfeited);
+    if (this.isMultiplayer && active.length <= 1) {
+      return this.end('won', 'forfeit', now);
+    }
+    // Đang tới lượt người bỏ cuộc thì huỷ lựa chọn dở và chuyển lượt
+    if (this.current.id === playerId) {
+      this.selection = [];
+      this.pendingUntil = 0;
+      return this.nextTurn();
+    }
+    return [];
+  }
+
+  /**
+   * Ảnh chụp toàn bộ trạng thái để lưu trữ (Durable Object hibernation).
+   * `restore()` dựng lại đúng ván này, kể cả trạng thái sinh ngẫu nhiên.
+   */
+  snapshot(): string {
+    return JSON.stringify({
+      config: this.config,
+      cards: this.cards,
+      players: this.players.map((p) => ({ ...p, lives: p.lives === Infinity ? null : p.lives })),
+      status: this.status,
+      selection: this.selection,
+      matched: [...this.matched],
+      turnIndex: this.turnIndex,
+      moves: this.moves,
+      startedAt: this.startedAt,
+      endedAt: this.endedAt,
+      revealUntil: this.revealUntil,
+      pendingUntil: this.pendingUntil,
+      missStreakForShuffle: this.missStreakForShuffle,
+      rngState: this.rng.state,
+      summaryCache: this.summaryCache && {
+        ...this.summaryCache,
+        // Infinity không đi qua JSON — chuẩn hoá như players
+        ranking: this.summaryCache.ranking.map((p) => ({ ...p, lives: p.lives === Infinity ? null : p.lives }))
+      }
+    });
+  }
+
+  static restore(snapshot: string): MemoryGame {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const s = JSON.parse(snapshot) as any;
+    const g = Object.create(MemoryGame.prototype) as MemoryGame;
+    Object.assign(g, {
+      config: s.config,
+      cards: s.cards,
+      players: (s.players as (Omit<Player, 'lives'> & { lives: number | null })[]).map((p) => ({
+        ...p, lives: p.lives === null ? Infinity : p.lives
+      })),
+      status: s.status,
+      selection: s.selection,
+      matched: new Set(s.matched as number[]),
+      turnIndex: s.turnIndex,
+      moves: s.moves,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      revealUntil: s.revealUntil,
+      pendingUntil: s.pendingUntil,
+      missStreakForShuffle: s.missStreakForShuffle,
+      rng: Rng.fromState(s.rngState as number),
+      summaryCache: s.summaryCache
+        ? {
+            ...s.summaryCache,
+            ranking: (s.summaryCache.ranking as (Omit<Player, 'lives'> & { lives: number | null })[])
+              .map((p) => ({ ...p, lives: p.lives === null ? Infinity : p.lives }))
+          }
+        : null
+    });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    return g;
   }
 
   summary(): Summary | null { return this.summaryCache; }

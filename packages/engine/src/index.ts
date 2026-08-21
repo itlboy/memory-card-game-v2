@@ -12,3 +12,9 @@ export type { GridKey, GridSpec, PresetInput } from './presets.js';
 export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary
 } from './types.js';
+export {
+  DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS, publicEvents, publicPlayer, publicView
+} from './online.js';
+export type {
+  ClientMsg, GameView, PublicCard, PublicEvent, PublicPlayer, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+} from './online.js';

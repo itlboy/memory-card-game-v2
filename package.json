@@ -9,7 +9,10 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "serve": "node server.js",
-    "dev:legacy": "node legacy/v1/server.js 3002"
+    "dev:legacy": "node legacy/v1/server.js 3002",
+    "dev:server": "pnpm --filter @mm/server dev",
+    "smoke:online": "node tools/smoke-online.mjs",
+    "deploy:server": "pnpm --filter @mm/server deploy"
   },
   "packageManager": "pnpm@10.0.0"
 }
