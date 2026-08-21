@@ -245,11 +245,18 @@ function toggleTheme(id: string): void {
 
 <style scoped>
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
-.options.grid3 { grid-template-columns: repeat(3, 1fr); }
+.options.grid3 {
+  /* 10 cỡ bàn: 2 cột (mobile) hay 5 cột (desktop) đều chia hết — không lẻ ô thừa */
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 560px) {
+  .options.grid3 { grid-template-columns: repeat(5, 1fr); }
+}
 .options.grid2 { grid-template-columns: repeat(2, 1fr); }
 .grid-preview {
   display: grid; gap: 2px;
   min-height: 56px; align-content: center;
+  max-width: 100%;
 }
 .grid-preview i {
   aspect-ratio: 3 / 4; border-radius: 2px;
@@ -257,6 +264,7 @@ function toggleTheme(id: string): void {
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
+.options.grid3 .option { padding: 12px 6px; }
 .theme-opt { padding: 14px 10px; }
 .theme-sample { font-size: 22px; letter-spacing: 2px; }
 .option[aria-checked='true'] {
