@@ -541,9 +541,14 @@ function openCfgWizard(): void {
     </div>
 
     <!-- Emoji chat (ON-08) — khán giả không gửi được -->
-    <div v-if="!o.spectator.value" class="emoji-bar" aria-label="Gửi emoji">
+    <div
+      v-if="!o.spectator.value" class="emoji-bar"
+      :class="{ spent: !o.emojiReady.value }"
+      :aria-label="o.emojiReady.value ? 'Gửi emoji' : 'Gửi emoji — đợi chút, bạn vừa gửi liên tục'"
+    >
       <button
         v-for="e in QUICK_EMOJIS" :key="e" class="emoji" type="button"
+        :disabled="!o.emojiReady.value"
         @click="o.sendEmoji(e)"
       >{{ e }}</button>
     </div>
@@ -601,7 +606,14 @@ input {
 input:focus { outline: none; border-color: var(--accent); }
 
 .options { display: grid; gap: 10px; }
-.option.wide { flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px; }
+/* Ô nằm ngang: icon PHẢI dính lề trái. `justify-content: center` kế thừa từ
+   `.option` đẩy cụm icon+chữ vào giữa, nên mỗi ô icon lệch một chỗ tuỳ độ dài
+   chữ (đo được 20px đến 57px giữa các chế độ) — nhìn như xếp so le. */
+.option.wide {
+  flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px;
+  justify-content: flex-start;
+}
+.option.wide .text { flex: 1; min-width: 0; }
 .option.wide .icon { font-size: 26px; }
 .option.wide .text { display: flex; flex-direction: column; gap: 1px; }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
@@ -896,13 +908,23 @@ input:focus { outline: none; border-color: var(--accent); }
 .blast-leave-active { transition: opacity .25s; }
 .blast-leave-to { opacity: 0; }
 
-.emoji-bar { display: flex; gap: 4px; justify-content: center; }
+/* Thanh emoji nằm đè lên khu vực chơi nên để mờ; sáng hẳn khi người chơi thật
+   sự chạm vào nó (hover trên máy tính, focus/bấm trên điện thoại). */
+.emoji-bar {
+  display: flex; gap: 4px; justify-content: center;
+  opacity: .5;
+  transition: opacity .18s ease;
+}
+.emoji-bar:hover, .emoji-bar:focus-within, .emoji-bar:active { opacity: 1; }
+/* Hết lượt trong 10 giây: mờ hẳn để thấy rõ là đang chờ */
+.emoji-bar.spent { opacity: .28; }
 .emoji {
   min-width: 40px; min-height: 40px; font-size: 20px; border: 1px solid var(--line);
   border-radius: var(--r-full); background: var(--panel);
   transition: transform .12s ease;
 }
+.emoji:disabled { cursor: not-allowed; }
 @media (hover: hover) {
-.emoji:hover { transform: translateY(-2px) scale(1.1); }
+.emoji:not(:disabled):hover { transform: translateY(-2px) scale(1.1); }
 }
 </style>

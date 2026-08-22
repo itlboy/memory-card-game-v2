@@ -370,6 +370,32 @@ export function useOnlineRoom() {
 
   onScopeDispose(() => { leaveSocket(); clearInterval(clockTimer); });
 
+  /* ---------- chống spam emoji ---------- */
+  // Server mới là nơi thực sự chặn (client không đáng tin — ON-09); phần này chỉ
+  // để người chơi THẤY mình đã hết lượt, chứ không phải bấm mà chẳng có gì xảy ra.
+  const emojiSentAt: number[] = [];
+  const emojiReady = ref(true);
+  let emojiTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function refreshEmojiQuota(): void {
+    const cutoff = Date.now() - ROOM_LIMITS.emojiWindowMs;
+    while (emojiSentAt.length && emojiSentAt[0]! <= cutoff) emojiSentAt.shift();
+    emojiReady.value = emojiSentAt.length < ROOM_LIMITS.emojiBurst;
+    clearTimeout(emojiTimer);
+    if (!emojiReady.value) {
+      // Mở lại đúng lúc cái cũ nhất rơi ra khỏi cửa sổ
+      emojiTimer = setTimeout(refreshEmojiQuota, emojiSentAt[0]! + ROOM_LIMITS.emojiWindowMs - Date.now() + 30);
+    }
+  }
+
+  function sendEmoji(emoji: string): void {
+    refreshEmojiQuota();
+    if (!emojiReady.value) return;
+    emojiSentAt.push(Date.now());
+    send({ t: 'emoji', emoji });
+    refreshEmojiQuota();
+  }
+
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
     wrongPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
@@ -384,7 +410,9 @@ export function useOnlineRoom() {
     start: () => send({ t: 'start' }),
     again: () => send({ t: 'again' }),
     flip: (index: number) => send({ t: 'flip', index }),
-    sendEmoji: (emoji: string) => send({ t: 'emoji', emoji }),
+    sendEmoji,
+    /** Còn được gửi emoji không — dùng để làm mờ và chặn nút. */
+    emojiReady,
     roomCode: () => code
   };
 }

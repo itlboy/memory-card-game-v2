@@ -49,6 +49,10 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 export class RoomDO extends DurableObject<Env> {
   private room: RoomState | null = null;
   private game: MemoryGame | null = null;
+  /** Mốc thời gian các emoji gần nhất của từng người, để chặn spam.
+   *  Chỉ trong RAM: mất khi DO ngủ cũng không sao — spam là hành vi liên tục,
+   *  còn người ngủ dậy gửi lại một cái thì đáng được cho qua. */
+  private emojiLog = new Map<string, number[]>();
 
   /* ---------- nạp / lưu ---------- */
 
@@ -285,6 +289,7 @@ export class RoomDO extends DurableObject<Env> {
 
       case 'emoji': {
         if (!(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;   // ON-08: danh sách đóng
+        if (!this.allowEmoji(player.id)) return;   // vượt hạn mức thì nuốt êm
         this.broadcast({ t: 'emoji', from: player.id, emoji: msg.emoji as QuickEmoji });
         return;
       }
@@ -443,6 +448,20 @@ export class RoomDO extends DurableObject<Env> {
 
   private send(ws: WebSocket, msg: ServerMsg): void {
     try { ws.send(JSON.stringify(msg)); } catch { /* socket đã đóng */ }
+  }
+
+  /** Người này còn được gửi emoji không? Ghi nhận luôn lần gửi nếu được. */
+  private allowEmoji(playerId: string): boolean {
+    const now = Date.now();
+    const cutoff = now - ROOM_LIMITS.emojiWindowMs;
+    const recent = (this.emojiLog.get(playerId) ?? []).filter((t) => t > cutoff);
+    if (recent.length >= ROOM_LIMITS.emojiBurst) {
+      this.emojiLog.set(playerId, recent);
+      return false;
+    }
+    recent.push(now);
+    this.emojiLog.set(playerId, recent);
+    return true;
   }
 
   private broadcast(msg: ServerMsg, exceptWelcomeFor?: string): void {

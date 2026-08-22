@@ -22,7 +22,12 @@ export const ROOM_LIMITS = {
   minPlayers: 2,
   /** Rớt mạng quá hạn này thì bị xử thua (ON-07). */
   reconnectMs: 30_000,
-  codeLength: 6
+  codeLength: 6,
+  /** Chống spam emoji: tối đa `emojiBurst` lần trong `emojiWindowMs`.
+   *  Client dùng để làm mờ nút, server dùng để thực sự chặn (client không
+   *  đáng tin — ON-09), nên hai bên phải đọc cùng một con số. */
+  emojiBurst: 3,
+  emojiWindowMs: 10_000
 } as const;
 
 /** Emoji chat nhanh — danh sách đóng để tránh nội dung xấu (ON-08). */

@@ -419,7 +419,14 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option.big .icon { font-size: 42px; }
 .option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }
 
-.option.wide { flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px; }
+/* Ô nằm ngang: icon PHẢI dính lề trái. `justify-content: center` kế thừa từ
+   `.option` đẩy cụm icon+chữ vào giữa, nên mỗi ô icon lệch một chỗ tuỳ độ dài
+   chữ (đo được 20px đến 57px giữa các chế độ) — nhìn như xếp so le. */
+.option.wide {
+  flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px;
+  justify-content: flex-start;
+}
+.option.wide .text { flex: 1; min-width: 0; }
 .option.wide .icon { font-size: 26px; }
 .option.wide .text { display: flex; flex-direction: column; gap: 1px; }
 

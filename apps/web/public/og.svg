@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12142b"/><stop offset="1" stop-color="#1d1640"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="0.85" cy="0.1" r="0.6">
+      <stop offset="0" stop-color="#7c5cff" stop-opacity=".55"/><stop offset="1" stop-color="#7c5cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.05" cy="0.95" r="0.6">
+      <stop offset="0" stop-color="#38bdf8" stop-opacity=".4"/><stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cl" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6a5cff"/><stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="cr" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c44cf0"/><stop offset="1" stop-color="#ff5fa2"/>
+    </linearGradient>
+    <linearGradient id="wm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a99cff"/><stop offset="1" stop-color="#ff8fd0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- dấu hiệu: hai lá bài chồng nghiêng -->
+  <g transform="translate(150 315)">
+    <rect x="-96" y="-104" width="118" height="160" rx="26" fill="url(#cl)" transform="rotate(-14)"/>
+    <rect x="-16" y="-104" width="118" height="160" rx="26" fill="url(#cr)" transform="rotate(12)"/>
+  </g>
+
+  <text x="320" y="286" font-family="'Baloo 2','Trebuchet MS',sans-serif" font-size="118" font-weight="800" fill="url(#wm)">Lật Thẻ</text>
+  <text x="326" y="356" font-family="Nunito,'Segoe UI',sans-serif" font-size="38" fill="#c9cbe8">Game thẻ bài trí nhớ — lật, tìm cặp, phá kỷ lục</text>
+
+  <!-- ba thẻ mẫu -->
+  <g transform="translate(330 410)">
+    <rect width="92" height="122" rx="16" fill="#ffffff" opacity=".96"/>
+    <text x="46" y="82" font-size="56" text-anchor="middle">🦊</text>
+    <rect x="112" width="92" height="122" rx="16" fill="#ffffff" opacity=".96"/>
+    <text x="158" y="82" font-size="56" text-anchor="middle">🍕</text>
+    <rect x="224" width="92" height="122" rx="16" fill="url(#cl)"/>
+    <text x="270" y="86" font-size="52" text-anchor="middle" fill="#fff">?</text>
+  </g>
+  <text x="672" y="486" font-family="Nunito,'Segoe UI',sans-serif" font-size="27" fill="#9ba3cd">Chơi đơn · 2–4 người</text>
+  <text x="672" y="524" font-family="Nunito,'Segoe UI',sans-serif" font-size="27" fill="#9ba3cd">cùng máy · Phòng online</text>
+</svg>

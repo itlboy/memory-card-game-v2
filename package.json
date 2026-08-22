@@ -13,7 +13,8 @@
     "dev:server": "pnpm --filter @mm/server dev",
     "smoke:online": "node tools/smoke-online.mjs",
     "deploy:server": "pnpm --filter @mm/server deploy",
-    "dev:web": "pnpm --filter @mm/web dev"
+    "dev:web": "pnpm --filter @mm/web dev",
+    "smoke:chat": "node tools/smoke-chat-limit.mjs"
   },
   "packageManager": "pnpm@10.0.0"
 }
