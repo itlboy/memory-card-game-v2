@@ -54,8 +54,8 @@ server.js            Web server tĩnh cho bản build production
 
 | Nhóm | Nội dung |
 |---|---|
-| Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch 20 màn (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05) |
-| Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04) |
+| Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch 30 màn (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05) |
+| Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thẻ đặc biệt | Bom, x2, mắt thần, đóng băng — bật từ màn 3 của Chiến dịch (3.4) |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5) |
 | Nội dung | 5 theme nạp từ `apps/web/public/data/themes.json`, mở khoá bằng điểm tích lũy (3.6) |
@@ -77,8 +77,10 @@ Cần tối thiểu 18 biểu tượng cho lưới 6×6. `unlockAt` là điểm 
 Backend: **Cloudflare Durable Objects** (`apps/server`) — mỗi phòng là một DO chạy
 chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào storage.
 
-- Tạo phòng mã 6 ký tự + link mời `?room=CODE` (ON-01), 2–4 người, chủ phòng chọn
-  chế độ/lưới/theme (ON-03), turn-based realtime (ON-04/05)
+- Tạo phòng mã 6 chữ số + link mời `?room=CODE` (ON-01), 2–4 người, chủ phòng chọn
+  chế độ/lưới/theme (ON-03), turn-based realtime (ON-04/05). Chế độ dùng được
+  trong phòng: `ROOM_MODES` — mọi thứ trừ Chiến dịch
+- Emoji chat giới hạn 3 lần / 10 giây, chặn ở server (`ROOM_LIMITS.emojiBurst`)
 - Server-authoritative: client chỉ gửi `{t:'flip'}`; payload không bao giờ chứa
   thẻ úp (ON-09, NF-04); emoji chat danh sách đóng (ON-08)
 - Rớt mạng có 30 giây vào lại bằng token, quá hạn bị xử thua (ON-07)
