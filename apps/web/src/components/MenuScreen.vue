@@ -16,6 +16,9 @@ const props = defineProps<{
   themeIds: string[];
   playerCount: number;
   totalScore: number;
+  /** Số biểu tượng của các theme đang chọn — bản đồ Chiến dịch cần để biết màn
+   *  nào dựng được bàn. */
+  symbolCount: number;
 }>();
 
 const emit = defineEmits<{
@@ -226,6 +229,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <CampaignMap
           :progress="store.campaign()"
           :unlocked="store.unlockedLevel()"
+          :symbol-count="symbolCount"
           @play="emit('start-level', $event)"
         />
       </div>

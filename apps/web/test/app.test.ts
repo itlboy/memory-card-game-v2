@@ -1,3 +1,4 @@
+import { CAMPAIGN_LEVELS } from '@mm/engine';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
@@ -137,13 +138,13 @@ describe('App', () => {
     expect(wrapper.text()).toContain('100');
   });
 
-  it('chọn Chiến dịch thì hiện bản đồ 20 màn, chỉ màn 1 mở khoá', async () => {
+  it('chọn Chiến dịch thì hiện bản đồ đủ màn, chỉ màn 1 mở khoá', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
-    expect(nodes).toHaveLength(20);
+    expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.attributes('disabled')).toBeUndefined();
     expect(nodes[1]!.attributes('disabled')).toBeDefined();
   });

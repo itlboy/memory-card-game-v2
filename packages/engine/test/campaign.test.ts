@@ -6,16 +6,16 @@ import { SYMBOLS, clearBoard } from './helpers.js';
 describe('Campaign (SP-03)', () => {
   const levels = allLevels();
 
-  it('có đúng 20 màn, mọi màn có ít nhất 2 cặp', () => {
+  it('có đúng CAMPAIGN_LEVELS màn, mọi màn có ít nhất 2 cặp', () => {
     expect(levels).toHaveLength(CAMPAIGN_LEVELS);
     for (const l of levels) expect(Math.floor((l.cols * l.rows) / 2)).toBeGreaterThanOrEqual(2);
   });
 
-  it('vào ván từ dễ: màn 1 là 2×2, có màn 3×3, kết ở 6×8', () => {
+  it('vào ván từ dễ: màn 1 là 2×2, có màn 3×3, kết ở 8×8', () => {
     expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 2]);
     expect(levels.some((l) => l.cols === 3 && l.rows === 3)).toBe(true);
     const last = levels.at(-1)!;
-    expect([last.cols, last.rows]).toEqual([6, 8]);
+    expect([last.cols, last.rows]).toEqual([8, 8]);
   });
 
   it('lưới không bao giờ nhỏ lại và thời gian mỗi cặp siết dần', () => {
@@ -29,11 +29,19 @@ describe('Campaign (SP-03)', () => {
     }
   });
 
-  it('thẻ đặc biệt chỉ bật từ màn 3 và không vượt 15%', () => {
+  it('thẻ đặc biệt chỉ bật từ màn 3 và không vượt 20%', () => {
     expect(levels[0]!.specialRate).toBe(0);
     expect(levels[1]!.specialRate).toBe(0);
     expect(levels[2]!.specialRate).toBeGreaterThan(0);
-    for (const l of levels) expect(l.specialRate).toBeLessThanOrEqual(0.15);
+    // 0.2 chứ không phải 0.15: chiến dịch dài hơn nên trần cũng nới
+    for (const l of levels) expect(l.specialRate).toBeLessThanOrEqual(0.2 + 1e-9);
+  });
+
+  it('nửa sau chiến dịch siết mốc sao chặt hơn nửa đầu', () => {
+    const early = levels.find((l) => l.id === 5)!;
+    const late = levels.find((l) => l.id === CAMPAIGN_LEVELS)!;
+    const ratio = (l: typeof early): number => l.starThresholds[1] / perfectScore(Math.floor((l.cols * l.rows) / 2));
+    expect(ratio(late)).toBeGreaterThan(ratio(early));
   });
 
   it('mốc sao nằm dưới điểm hoàn hảo nên 3 sao là đạt được', () => {
@@ -57,7 +65,7 @@ describe('Campaign (SP-03)', () => {
 
   it('màn không tồn tại thì báo lỗi', () => {
     expect(() => levelSpec(0)).toThrow();
-    expect(() => levelSpec(21)).toThrow();
+    expect(() => levelSpec(CAMPAIGN_LEVELS + 1)).toThrow();
   });
 });
 

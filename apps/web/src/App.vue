@@ -238,8 +238,14 @@ function startQuick(): void {
 }
 
 function startLevel(id: number): void {
-  levelId.value = id;
-  launch(levelConfig(levelSpec(id), symbols.value, newSeed()));
+  // Engine ném lỗi nếu theme đang chọn không đủ biểu tượng cho lưới của màn —
+  // không bắt thì Vue chết giữa render và người chơi nhận màn hình trắng.
+  // Bản đồ đã chặn các màn đó, đây là lưới an toàn cuối.
+  try {
+    const cfg = levelConfig(levelSpec(id), symbols.value, newSeed());
+    levelId.value = id;
+    launch(cfg);
+  } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
 }
 
 function nextLevel(): void {
@@ -314,6 +320,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :theme-ids="themeIds"
       :player-count="playerCount"
       :total-score="totalScore"
+      :symbol-count="symbols.length"
       @update:mode="mode = $event"
       @update:grid="grid = $event"
       @update:theme-ids="themeIds = $event"
