@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MemoryGame } from '@mm/engine';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import PlayerStrip from './PlayerStrip.vue';
@@ -82,17 +82,50 @@ const lives = computed(() =>
 const locked = computed(() => s.locked.value || s.revealingAll.value || s.countdownLeft.value !== null);
 
 /**
- * Bàn thẻ phải lọt trọn màn hình, không cuộn: giới hạn bề rộng theo
- * (chiều cao viewport − phần khung phía trên) × tỉ lệ khung của lưới.
- * Thẻ tỉ lệ 3:4 nên lưới rộng/cao ≈ (cols·3)/(rows·4).
+ * Bàn thẻ phải lọt trọn màn hình và LẤP hết chỗ được chia.
+ * Cách cũ trừ một hằng số "chrome" đoán trước (230/255px) rồi khoá thẻ ở 3:4:
+ * hằng số đoán sai, và tỉ lệ cứng khiến lưới vuông trên màn dọc chạm bề rộng
+ * trước rồi bỏ không hàng trăm pixel chiều cao (4×4 thừa 301px trên iPhone 13).
+ * Giờ đo thật chỗ còn lại, và cho thẻ cao thêm tới 5:8 để lấp phần dư.
  */
-const fitStyle = computed(() => {
+const wrap = ref<HTMLElement | null>(null);
+const cardAspect = ref(0.75);
+const boardWidth = ref<number | null>(null);
+/** Thẻ không được gầy hơn mức này. 0,58 là tỉ lệ lá tarot — vẫn ra dáng lá bài,
+ *  mà lấp được phần chiều cao dư của lưới vuông trên màn dọc. */
+const MIN_ASPECT = 0.58;
+const MAX_ASPECT = 0.75;   // 3:4 — dáng lá bài chuẩn
+
+function measureBoard(): void {
+  const el = wrap.value;
+  if (!el) return;
   const { cols, rows } = props.game.config;
-  const chrome = props.game.isMultiplayer ? 255 : 230;   // topbar + HUD (+ chip người chơi) + đệm
-  return {
-    '--fit': `min(100%, calc((100dvh - ${chrome}px) * ${(cols * 3) / (rows * 4)}))`
-  };
+  const availW = el.clientWidth;
+  const availH = el.clientHeight;
+  if (!availW || !availH) return;
+  const gap = availW < 420 ? 6 : 8;
+  const cellW = (availW - gap * (cols - 1)) / cols;
+  const cellH = (availH - gap * (rows - 1)) / rows;
+  // Ưu tiên lấp cả hai chiều; kẹp trong khoảng dáng thẻ chấp nhận được
+  const ar = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, cellW / cellH));
+  const cardH = Math.min(cellH, cellW / ar);
+  cardAspect.value = ar;
+  boardWidth.value = Math.floor(cardH * ar * cols + gap * (cols - 1));
+}
+
+let ro: ResizeObserver | undefined;
+onMounted(() => {
+  measureBoard();
+  ro = new ResizeObserver(measureBoard);
+  if (wrap.value) ro.observe(wrap.value);
 });
+onBeforeUnmount(() => ro?.disconnect());
+watch(() => [props.game.config.cols, props.game.config.rows], measureBoard);
+
+const fitStyle = computed(() => ({
+  '--card-ar': String(cardAspect.value),
+  '--fit': boardWidth.value ? `${boardWidth.value}px` : '100%'
+}));
 </script>
 
 <template>
@@ -128,7 +161,7 @@ const fitStyle = computed(() => {
       {{ POWER_TEXT[s.lastPower.value.power] }}
     </p>
 
-    <div class="board-wrap">
+    <div ref="wrap" class="board-wrap">
       <BoardGrid
         ref="board"
         :cards="s.cards.value"

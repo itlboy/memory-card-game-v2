@@ -33,6 +33,20 @@ export function missPair(game: MemoryGame, x: number, y: number, now = 0): void 
   game.tick(now + (game.config.flipBackMs ?? 1000) + 1);
 }
 
+/** Hai lượt sai, trong đó lượt SAU đáng mất mạng: lượt đầu để lộ thẻ thứ nhất
+ *  của mỗi cặp (dò bài, không bị trừ), lượt sau lật thẻ còn lại — lúc đó thẻ
+ *  trùng đã lộ nên trượt là lỗi nhớ. Tổng cộng mất đúng 1 mạng. */
+export function missKnown(game: MemoryGame, x: number, y: number, now = 0): void {
+  const slots = pairSlots(game);
+  const gap = (game.config.flipBackMs ?? 1000) + 1;
+  game.flip(slots[x]![0], now);
+  game.flip(slots[y]![0], now);
+  game.tick(now + gap);
+  game.flip(slots[x]![1], now + gap);
+  game.flip(slots[y]![1], now + gap);
+  game.tick(now + gap * 2);
+}
+
 /** Giải sạch bàn. */
 export function clearBoard(game: MemoryGame, now = 0): void {
   for (let p = 0; p < game.totalPairs; p++) matchPair(game, p, now);

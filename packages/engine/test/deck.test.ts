@@ -77,7 +77,9 @@ describe('không xếp hai thẻ cùng cặp sát nhau', () => {
   // Lưới lớn cần tới 32 cặp — SYMBOLS chỉ có 24, nên dựng pool riêng cho test
   const POOL = Array.from({ length: 32 }, (_, i) => `s${i}`);
 
-  it.each([[2, 2], [3, 3], [3, 4], [4, 4], [4, 5], [5, 5], [5, 6], [6, 6], [8, 8]])(
+  // 2×2 nằm ngoài luật (xem chú thích trong deck.ts): chỉ có một cách xếp không
+  // kề nhau nên áp luật vào đó là ván nào cũng giống ván nào
+  it.each([[3, 3], [3, 4], [4, 4], [4, 5], [5, 5], [5, 6], [6, 6], [8, 8]])(
     'lưới %ix%i: không seed nào còn cặp kề nhau',
     (cols, rows) => {
       for (let seed = 1; seed <= 120; seed++) {
@@ -85,6 +87,17 @@ describe('không xếp hai thẻ cùng cặp sát nhau', () => {
       }
     }
   );
+
+  it('lưới 2×2 được miễn: không phải ván nào cũng xếp chéo', () => {
+    let diagonal = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const cards = buildDeck({ cols: 2, rows: 2, symbols: POOL, rng: new Rng(seed) });
+      if (cards[0]!.pairId === cards[3]!.pairId) diagonal++;
+    }
+    // Áp luật chống-kề vào 2×2 sẽ cho đúng 300/300; phải quanh mức ngẫu nhiên 1/3
+    expect(diagonal).toBeGreaterThan(60);
+    expect(diagonal).toBeLessThan(160);
+  });
 
   it('vẫn tất định: cùng seed cho cùng bàn', () => {
     const ids = (seed: number): number[] =>

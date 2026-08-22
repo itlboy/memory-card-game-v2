@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clearBoard, makeGame, matchPair, missPair, pairSlots } from './helpers.js';
+import { clearBoard, makeGame, matchPair, missKnown, missPair, pairSlots } from './helpers.js';
 
 describe('luật chơi cốt lõi (SRS mục 2)', () => {
   it('ghép đúng thì 2 thẻ giữ trạng thái mở và được lật tiếp', () => {
@@ -111,13 +111,20 @@ describe('Time Attack (SP-02)', () => {
 });
 
 describe('Survival (SP-04)', () => {
-  it('mỗi lượt sai mất 1 mạng, hết mạng là thua', () => {
+  it('lật hai thẻ chưa ai từng thấy thì KHÔNG mất mạng — đó là dò bài', () => {
     const g = makeGame({ mode: 'survival', lives: 3 });
     missPair(g, 0, 1);
+    expect(g.players[0]!.lives).toBe(3);
+    expect(g.players[0]!.misses).toBe(1);   // vẫn tính là lượt sai
+  });
+
+  it('trượt khi thẻ trùng đã lộ thì mất mạng, hết mạng là thua', () => {
+    const g = makeGame({ mode: 'survival', lives: 3 });
+    missKnown(g, 0, 1);
     expect(g.players[0]!.lives).toBe(2);
-    missPair(g, 0, 2);
+    missKnown(g, 2, 3);
     expect(g.players[0]!.lives).toBe(1);
-    missPair(g, 0, 3);
+    missKnown(g, 4, 5);
     expect(g.players[0]!.lives).toBe(0);
     expect(g.status).toBe('lost');
     expect(g.summary()!.reason).toBe('no-lives');

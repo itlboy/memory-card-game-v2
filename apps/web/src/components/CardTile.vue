@@ -57,7 +57,9 @@ const label = computed(() => {
   pointer-events: none; animation: none; background: transparent;
 }
 .card {
-  position: relative; aspect-ratio: 3 / 4; min-width: 44px; min-height: 44px;
+  /* Tỉ lệ do bàn quyết định (đo chỗ còn lại): 3:4 khi đủ chỗ, cao dần tới 5:8
+     để lấp chiều cao dư trên màn dọc. */
+  position: relative; aspect-ratio: var(--card-ar, 3 / 4); min-width: 44px; min-height: 44px;
   padding: 0; border: 0; background: transparent; perspective: 700px;
   animation: deal .38s cubic-bezier(.2, .9, .3, 1.2) backwards;
   animation-delay: var(--deal, 0ms);

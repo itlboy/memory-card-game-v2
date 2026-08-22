@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
 import { publicEvents, publicView } from '../src/online.js';
-import { SYMBOLS, matchPair, missPair, pairSlots } from './helpers.js';
+import { SYMBOLS, matchPair, missKnown, missPair, pairSlots } from './helpers.js';
 
 const twoP = (over = {}) => new MemoryGame({
   mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 777, shufflePlayers: false,
@@ -38,9 +38,14 @@ describe('snapshot / restore (DO hibernation)', () => {
 
   it('khôi phục ván có mạng (Infinity đi qua JSON an toàn)', () => {
     const a = twoP({ lives: 3 });
-    missPair(a, 0, 1);
+    // Mất mạng cần thẻ trùng đã lộ; hai lượt sai thuộc hai người khác nhau nên
+    // xét TỔNG mạng chứ không xét riêng người thứ nhất
+    missKnown(a, 0, 1);
+    const lost = (g: MemoryGame): number => 6 - g.players.reduce((n, p) => n + p.lives, 0);
+    expect(lost(a)).toBe(1);
     const b = MemoryGame.restore(a.snapshot());
-    expect(b.players[0]!.lives).toBe(2);
+    expect(lost(b)).toBe(1);
+    expect(b.players.map((p) => p.lives)).toEqual(a.players.map((p) => p.lives));
     const c = MemoryGame.restore(twoP().snapshot());
     expect(c.players[0]!.lives).toBe(Infinity);
   });
@@ -164,9 +169,10 @@ describe('rà soát: người bỏ cuộc không thể thắng', () => {
   it('view công khai mang số mạng (Sinh tồn) và giây đã trôi', () => {
     const g = twoP({ lives: 5 });
     g.start(0);
-    missPair(g, 0, 1, 2000);
+    missKnown(g, 0, 1, 2000);
     const view = publicView(g, 30_000, allOn);
-    expect(view.players[0]!.lives).toBe(4);
+    // Người trượt ở lượt SAU mới mất mạng (lượt đầu chỉ là dò bài)
+    expect(view.players.reduce((n, p) => n + (p.lives ?? 0), 0)).toBe(9);
     expect(view.elapsed).toBe(30);
     const classic = publicView(twoP(), 0, allOn);
     expect(classic.players[0]!.lives).toBeNull();

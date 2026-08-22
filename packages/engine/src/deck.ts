@@ -46,9 +46,14 @@ export function buildDeck(opts: DeckOptions): Card[] {
   // ~83% ván có cặp kề nhau (đo trên 200k ván) — người chơi bắt được cặp đó
   // ngay lượt đầu nên ván mất hết vị "trí nhớ". Vẫn tất định: mọi lần xáo lại
   // đều rút từ cùng một Rng theo seed.
+  // NGOẠI LỆ lưới nhỏ: 2×2 chỉ có 3 cách xếp và đúng MỘT cách không kề nhau
+  // (hai cặp chéo góc), nên áp luật vào đây là ván nào cũng y hệt ván nào —
+  // đoán được 100%, tệ hơn cả việc có cặp nằm cạnh.
   let placed = layout(rng.shuffle(draft), hasBlank, total);
-  for (let tries = 0; tries < MAX_SHUFFLE_TRIES && adjacentPairs(placed, cols, rows) > 0; tries++) {
-    placed = layout(rng.shuffle(draft), hasBlank, total);
+  if (pairCount >= 3) {
+    for (let tries = 0; tries < MAX_SHUFFLE_TRIES && adjacentPairs(placed, cols, rows) > 0; tries++) {
+      placed = layout(rng.shuffle(draft), hasBlank, total);
+    }
   }
   return placed.map((c, index) => ({ ...c, index }));
 }

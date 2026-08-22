@@ -178,7 +178,7 @@ const startLabel = computed(() => {
 // Màu neon từng chế độ — đồng bộ với wizard offline (hướng thiết kế C)
 const MODES = [
   { id: 'classic' as const, icon: Brain, g: 'g-blue', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
-  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — lật sai là mất mạng' }
+  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — quên thẻ đã mở là mất mạng' }
 ];
 
 /** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */

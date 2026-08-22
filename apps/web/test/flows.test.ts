@@ -209,18 +209,30 @@ describe('luồng trọn ván', () => {
     expect(localStorage.getItem('mm.v2')).toContain('"campaign"');
   });
 
-  it('Sinh tồn: HUD hiển thị mạng và mất dần khi lật sai', async () => {
+  it('Sinh tồn: HUD hiển thị mạng, chỉ mất khi thẻ trùng đã lộ', async () => {
     await mountApp();
     await pickMode('Sinh tồn');
     await start();
     expect(wrapper.text()).toContain('❤️ 5');
     const cards = session(wrapper).game.value!.cards;
-    const p0 = cards.filter((c) => c.pairId === cards[0]!.pairId)[0]!.index;
-    const other = cards.find((c) => c.pairId !== cards[0]!.pairId)!.index;
-    await wrapper.findAll('.card')[p0]!.trigger('click');
-    await wrapper.findAll('.card')[other]!.trigger('click');
-    await vi.advanceTimersByTimeAsync(1100);
-    await flush();
+    const pairA = cards.filter((c) => c.pairId === cards[0]!.pairId).map((c) => c.index);
+    const pairB = cards.filter((c) => c.pairId !== cards[0]!.pairId && !c.blank);
+    const bId = pairB[0]!.pairId;
+    const slotsB = cards.filter((c) => c.pairId === bId).map((c) => c.index);
+
+    const missTurn = async (i: number, j: number): Promise<void> => {
+      await wrapper.findAll('.card')[i]!.trigger('click');
+      await wrapper.findAll('.card')[j]!.trigger('click');
+      await vi.advanceTimersByTimeAsync(1100);
+      await flush();
+    };
+
+    // Lượt dò: cả hai thẻ đều chưa ai thấy → không mất mạng
+    await missTurn(pairA[0]!, slotsB[0]!);
+    expect(wrapper.text()).toContain('❤️ 5');
+
+    // Lượt sau: thẻ trùng của cả hai đã lộ ở lượt trước → mất mạng
+    await missTurn(pairA[1]!, slotsB[1]!);
     expect(wrapper.text()).toContain('❤️ 4');
     expect(wrapper.text()).not.toContain('❤️ 5');
   });

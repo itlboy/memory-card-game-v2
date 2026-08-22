@@ -80,7 +80,7 @@ const SOLO_MODES = [
   { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
   { id: 'classic' as Mode,  icon: Brain,  g: 'g-blue',   name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
   { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
-  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — lật sai là mất mạng' },
+  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — quên thẻ đã mở là mất mạng' },
   { id: 'peek' as Mode,     icon: Eye,    g: 'g-teal',   name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
 ];
 // Mỗi số người một màu riêng: ba ô cùng màu thì nhìn như một khối, mắt không

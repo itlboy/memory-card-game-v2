@@ -46,6 +46,9 @@ export class MemoryGame {
   turnDeadline = 0;
   private rng: Rng;
   private summaryCache: Summary | null = null;
+  /** Các ô người chơi ĐÃ TỪNG thấy mặt trước. Dùng để phán xử lỗi trong Sinh tồn:
+   *  lật hai thẻ mới toanh là phỏng đoán hợp lý, không phải sai sót. */
+  private seen = new Set<number>();
 
   constructor(config: GameConfig) {
     this.config = { flipBackMs: FLIP_BACK_MS, ...config };
@@ -199,6 +202,8 @@ export class MemoryGame {
       player.score += gained;
       player.pairs++;
       this.matched.add(this.cards[a]!.pairId);
+      this.seen.add(a);
+      this.seen.add(b);
       this.selection = [];
       out.push({ type: 'match', indices: [a, b], gained, playerId: player.id });
       if (this.turnDeadline) {
@@ -221,20 +226,32 @@ export class MemoryGame {
     const penalty = this.config.mode === 'classic' ? MISS_PENALTY : 0;
     if (penalty) player.score = Math.max(0, player.score - penalty);
 
-    if (this.config.lives != null) {
+    // Chỉ mất mạng khi ĐÁNG mất: thẻ vừa mở đã có thẻ trùng lộ ra từ trước, tức
+    // người chơi có đủ thông tin để ghép đúng mà vẫn trượt. Lật hai thẻ chưa ai
+    // từng thấy là bước dò cần thiết của trò chơi, trừ mạng ở đó là bất công.
+    const avoidable = this.hasKnownTwin(a) || this.hasKnownTwin(b);
+    if (this.config.lives != null && avoidable) {
       player.lives--;
       out.push({ type: 'life-lost', playerId: player.id, livesLeft: player.lives });
     }
+    this.seen.add(a);
+    this.seen.add(b);
 
     this.pendingUntil = now + (this.config.flipBackMs ?? FLIP_BACK_MS);
     out.push({ type: 'miss', indices: [a, b], penalty, hideAfterMs: this.config.flipBackMs ?? FLIP_BACK_MS });
 
-    if (this.config.lives != null && player.lives <= 0) {
+    if (this.config.lives != null && avoidable && player.lives <= 0) {
       out.push(...this.end('lost', 'no-lives', now));
     } else if (this.movesLeft() === 0) {
       out.push(...this.end('lost', 'no-moves', now));
     }
     return out;
+  }
+
+  /** Thẻ ở `index` có thẻ trùng nào ĐÃ từng lộ ra trước lượt này không? */
+  private hasKnownTwin(index: number): boolean {
+    const pairId = this.cards[index]!.pairId;
+    return this.cards.some((c) => c.index !== index && c.pairId === pairId && this.seen.has(c.index));
   }
 
   /** Úp lại 2 thẻ khác nhau và chuyển lượt. Gọi khi hết `flipBackMs`. */
@@ -371,7 +388,8 @@ export class MemoryGame {
       revealUntil: this.revealUntil,
       pendingUntil: this.pendingUntil,
       turnDeadline: this.turnDeadline,
-      rngState: this.rng.state,
+      seen: [...this.seen],        // thiếu cái này thì sau F5 hoặc hibernation
+      rngState: this.rng.state,    // engine "quên" thẻ nào đã lộ và phán xử sai
       summaryCache: this.summaryCache && {
         ...this.summaryCache,
         // Infinity không đi qua JSON — chuẩn hoá như players
@@ -400,6 +418,7 @@ export class MemoryGame {
       revealUntil: s.revealUntil,
       pendingUntil: s.pendingUntil,
       turnDeadline: s.turnDeadline ?? 0,
+      seen: new Set((s.seen as number[] | undefined) ?? []),
       rng: Rng.fromState(s.rngState as number),
       summaryCache: s.summaryCache
         ? {
