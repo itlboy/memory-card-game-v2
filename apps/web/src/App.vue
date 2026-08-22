@@ -321,13 +321,7 @@ main {
   flex: 1; min-height: 0; display: flex; justify-content: center;
   padding: 12px; overflow-y: auto;
 }
-main > * { width: 100%; max-width: 760px; }
-
-/* Màn hình to: panel CỐ ĐỊNH 820px — không ôm theo nội dung vì mỗi bước
-   một cỡ panel sẽ gây cảm giác bất ổn. Màn CHƠI vẫn full để bàn to. */
-@media (min-height: 900px) {
-  main { align-items: center; }
-  main > :deep(.panel), main > :deep(.online) { height: 820px; max-height: 820px; }
-  main > :deep(.game) { max-height: none; height: 100%; }
-}
+/* Cột app đã cố định bề rộng (440px trên desktop, full trên mobile) nên panel
+   chỉ cần chiếm trọn chỗ — không còn chặn 760px hay ghim 820px theo viewport. */
+main > * { width: 100%; }
 </style>

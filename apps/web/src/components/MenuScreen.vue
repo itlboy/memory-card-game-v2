@@ -221,7 +221,8 @@ function toggleTheme(id: string): void {
             class="grid-preview" aria-hidden="true"
             :style="{
               gridTemplateColumns: `repeat(${GRIDS[k]!.cols}, 1fr)`,
-              width: `${GRIDS[k]!.cols * 8}px`
+              gridTemplateRows: `repeat(${GRIDS[k]!.rows}, 1fr)`,
+              aspectRatio: `${GRIDS[k]!.cols * 3} / ${GRIDS[k]!.rows * 4}`
             }"
           >
             <i v-for="n in GRIDS[k]!.cols * GRIDS[k]!.rows" :key="n" :class="{ blank: isBlankCell(k, n - 1) }" />
@@ -303,48 +304,22 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .options.loose .option.big .opt-icon { grid-row: span 2; flex-shrink: 0; }
 .options.loose .option.big strong, .options.loose .option.big small { display: block; }
 
-@media (min-width: 700px) {
-  .step-body.options.loose { grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .step-body.options.loose > .option {
-    height: 100%; max-height: none;
-    flex-direction: column; text-align: center; gap: 10px; padding: 22px 18px;
-  }
-  /* Ô cao thì icon + chữ phải to theo, không thì ô rỗng ruột */
-  .step-body.options.loose > .option > .opt-icon { width: 56px; height: 56px; }
-  .step-body.options.loose > .option strong { font-size: 21px; }
-  .step-body.options.loose > .option small { font-size: 13.5px; }
-  .step-body.options.loose.modes > .option > .opt-icon { width: 40px; height: 40px; }
-  /* Desktop: ô "big" là grid nên flex-direction không ăn — xếp một cột, canh giữa */
-  .options.loose .option.big {
-    grid-template-columns: 1fr; row-gap: 10px; justify-items: center; text-align: center;
-  }
-  .options.loose .option.big .opt-icon { grid-row: auto; }
-  /* 5 chế độ: Chiến dịch trọn hàng đầu (cùng chiều cao), 4 chế độ 2×2 */
-  .step-body.options.loose.modes { grid-template-columns: repeat(2, 1fr); }
-  .modes > .option.wide:first-child { grid-column: 1 / -1; }
-  .modes .option.wide .text { align-items: center; }
-  .modes .option.wide .text small { max-width: 340px; }
-}
 
-
-.options.grid3 {
-  /* 12 cỡ bàn: 3 cột (mobile, 4 hàng) hay 4 cột (desktop, 3 hàng) đều tròn hàng */
-  grid-template-columns: repeat(3, 1fr);
-}
-@media (min-width: 560px) {
-  .options.grid3 { grid-template-columns: repeat(4, 1fr); }
-}
-.options.grid2 { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
-@media (min-width: 560px) {
-  .options.grid2 { grid-template-columns: repeat(4, 1fr); }
-}
+/* 12 cỡ bàn và 12 theme: LUÔN 3×4 — cột app cố định 440px ở mọi cỡ máy nên
+   không đổi số cột theo breakpoint nữa (media query đo viewport, không đo cột,
+   nên 4 cột sẽ vỡ trong cột hẹp). */
+.options.grid3 { grid-template-columns: repeat(3, 1fr); }
+.options.grid2 { grid-template-columns: repeat(3, 1fr); }
 .theme-step { gap: 0; }
+/* Preview co theo chỗ CÒN LẠI của ô: chiều cao cố định theo số hàng sẽ bị cắt
+   mất hàng khi ô nén (màn thấp), làm preview không còn đúng hình bàn nữa.
+   Tỷ lệ khung = cols*3 : rows*4 nên mỗi chấm vẫn giữ dáng lá bài 3:4. */
 .grid-preview {
   display: grid; gap: 1.5px;
-  align-content: center; max-width: 72%; min-height: 0;
+  flex: 1; min-height: 0; width: auto; max-width: 72%; margin: 0 auto;
 }
 .grid-preview i {
-  aspect-ratio: 3 / 4; border-radius: 2px; min-height: 0;
+  border-radius: 2px; min-height: 0; min-width: 0;
   background: linear-gradient(150deg, var(--accent), var(--accent-2));
   opacity: .75;
 }
@@ -361,6 +336,9 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option strong.tname {
   font-size: clamp(10px, 10.5cqw, 14px);
   line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
+  /* Cỡ chữ đã co theo bề rộng ô nên gần như không bao giờ tràn; ellipsis là
+     lưới an toàn cuối cho tên theme dài bất thường */
+  overflow: hidden; text-overflow: ellipsis;
 }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
 .option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {

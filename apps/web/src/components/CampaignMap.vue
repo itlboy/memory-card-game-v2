@@ -43,9 +43,6 @@ const totalStars = computed(() => Object.values(props.progress).reduce((n, p) =>
   grid-auto-rows: minmax(0, 1fr); overflow: hidden;
   gap: 6px; list-style: none; margin: 0; padding: 0;
 }
-@media (min-width: 560px) {
-  .map { grid-template-columns: repeat(5, 1fr); }
-}
 li { display: flex; min-height: 0; align-items: center; }
 .node { max-height: 96px; }
 .node {

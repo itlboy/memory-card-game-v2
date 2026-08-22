@@ -50,15 +50,14 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 .stats { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .quit { flex-shrink: 0; }
 .stat { display: flex; flex-direction: column; min-width: 52px; }
-@media (max-width: 480px) {
-  /* Máy hẹp: mọi chỉ số phải vừa MỘT dòng — 6 chỉ số của Sinh tồn trước đây
-     vượt đúng vài pixel nên bị wuống hàng, làm HUD cao gấp đôi */
-  .hud { gap: 6px; padding: 8px 10px; }
-  .stats { gap: 6px; }
-  .stat { min-width: 0; }
-  .stat span { font-size: 10px; letter-spacing: .03em; }
-  .stat b { font-size: var(--text-md); }
-}
+/* Cột app luôn hẹp (≤440px) nên đây là bố cục duy nhất, không đặt trong media
+   query: 6 chỉ số của Sinh tồn phải vừa MỘT dòng, trước đây vượt vài pixel nên
+   xuống hàng làm HUD cao gấp đôi. */
+.hud { gap: 6px; padding: 8px 10px; }
+.stats { gap: 6px; }
+.stat { min-width: 0; }
+.stat span { font-size: 10px; letter-spacing: .03em; }
+.stat b { font-size: var(--text-md); }
 .stat span {
   font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em;
   color: var(--muted); font-weight: 700;

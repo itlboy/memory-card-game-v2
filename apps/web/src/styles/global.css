@@ -30,6 +30,21 @@ body {
 /* Khoá chiều cao theo viewport để màn chơi không bao giờ phải cuộn (dvh né thanh URL mobile) */
 #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
 
+/* Desktop: KHÔNG kéo giãn layout ngang. App là một cột hẹp cố định canh giữa —
+   bên trong dùng đúng layout mobile, nên chỉ có MỘT bố cục phải nuôi, và mọi
+   màn vẫn tuân luật KHÔNG SCROLL. */
+@media (min-width: 700px) {
+  body {
+    display: flex; align-items: center; justify-content: center;
+    height: 100dvh; padding: 24px;
+  }
+  #app {
+    width: 440px; height: min(calc(100dvh - 48px), 920px);
+    border: 1px solid var(--line); border-radius: 28px;
+    overflow: hidden; box-shadow: var(--elev-3);
+  }
+}
+
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: .01em; }
 button {
   font: inherit; color: inherit; cursor: pointer;

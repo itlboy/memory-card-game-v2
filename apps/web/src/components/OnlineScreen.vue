@@ -290,7 +290,11 @@ function openCfgWizard(): void {
       >
         <span
           class="grid-preview" aria-hidden="true"
-          :style="{ gridTemplateColumns: `repeat(${g.cols}, 1fr)`, width: `${g.cols * 8}px` }"
+          :style="{
+            gridTemplateColumns: `repeat(${g.cols}, 1fr)`,
+            gridTemplateRows: `repeat(${g.rows}, 1fr)`,
+            aspectRatio: `${g.cols * 3} / ${g.rows * 4}`
+          }"
         >
           <i v-for="n in g.cols * g.rows" :key="n" :class="{ blank: isBlankCell(String(k), n - 1) }" />
         </span>
@@ -643,36 +647,19 @@ input:focus { outline: none; border-color: var(--accent); }
   justify-items: start; text-align: left;
 }
 .options.loose > .option:not(.wide) > .opt-icon { grid-row: span 2; }
-@media (min-width: 700px) {
-  .options.loose { grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  .step-body.options.loose > .option, .options.loose > .option {
-    height: 100%; max-height: none;
-    flex-direction: column; text-align: center; gap: 10px; padding: 22px 18px;
-  }
-  .options.loose .option .text, .options.loose .option.wide .text { align-items: center; }
-  /* Ô cao thì icon + chữ to theo, không thì ô rỗng ruột */
-  .options.loose > .option > .opt-icon { width: 56px; height: 56px; }
-  .options.loose > .option strong { font-size: 21px; }
-  .options.loose > .option small { font-size: 13.5px; }
-  .step-body.options.loose > .option > .opt-icon { width: 40px; height: 40px; }
-  /* Ô entry là grid nên flex-direction không ăn — xếp một cột, canh giữa */
-  .options.loose > .option:not(.wide) {
-    grid-template-columns: 1fr; row-gap: 10px; justify-items: center; text-align: center;
-  }
-  .options.loose > .option:not(.wide) > .opt-icon { grid-row: auto; }
-}
+/* LUÔN 3 cột — cột app cố định 440px, không đổi theo breakpoint */
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
-@media (min-width: 560px) {
-  .options.wiz-grids { grid-template-columns: repeat(4, 1fr); }
-  .options.wiz-themes { grid-template-columns: repeat(4, 1fr); }
-}
 .options.wiz-grids .option { padding: 6px 4px; gap: 2px; }
 .options.wiz-grids strong { font-size: var(--text-md); }
 .options.wiz-grids small, .theme-opt small { font-size: var(--text-xs); }
-.grid-preview { display: grid; gap: 1.5px; align-content: center; max-width: 72%; min-height: 0; }
+/* Preview co theo chỗ còn lại của ô — xem chú thích ở MenuScreen */
+.grid-preview {
+  display: grid; gap: 1.5px;
+  flex: 1; min-height: 0; width: auto; max-width: 72%; margin: 0 auto;
+}
 .grid-preview i {
-  aspect-ratio: 3 / 4; border-radius: 2px; min-height: 0;
+  border-radius: 2px; min-height: 0; min-width: 0;
   background: linear-gradient(150deg, var(--accent), var(--accent-2));
   opacity: .75;
 }
@@ -686,6 +673,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .option strong.tname {
   font-size: clamp(10px, 10.5cqw, 14px);
   line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
+  /* Cỡ chữ đã co theo bề rộng ô nên gần như không bao giờ tràn; ellipsis là
+     lưới an toàn cuối cho tên theme dài bất thường */
+  overflow: hidden; text-overflow: ellipsis;
 }
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
 .dots { display: flex; gap: 6px; }
