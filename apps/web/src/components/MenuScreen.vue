@@ -151,8 +151,19 @@ const themeTooSmall = computed(() => {
 function toggleTheme(id: string): void {
   const cur = props.themeIds;
   const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
-  if (next.length) emit('update:themeIds', next);
+  // Bỏ nốt theme cuối thì bàn không có biểu tượng nào — chặn, NHƯNG phải nói ra:
+  // trước đây bấm mà không có gì xảy ra, người chơi tưởng nút bị lỗi.
+  if (!next.length) {
+    themeWarn.value = true;
+    sfx.miss();
+    clearTimeout(themeWarnTimer);
+    themeWarnTimer = setTimeout(() => { themeWarn.value = false; }, 2000);
+    return;
+  }
+  emit('update:themeIds', next);
 }
+const themeWarn = ref(false);
+let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 </script>
 
 <template>
@@ -269,6 +280,7 @@ function toggleTheme(id: string): void {
           </button>
         </div>
 
+        <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
         <p v-if="themeTooSmall" class="warn" role="alert">
           Chưa đủ biểu tượng cho lưới {{ grid.replace('x', '×') }}. Hãy chọn thêm theme hoặc lưới nhỏ hơn.
         </p>

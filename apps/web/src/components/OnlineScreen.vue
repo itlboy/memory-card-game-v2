@@ -189,7 +189,8 @@ const fitStyle = computed(() => {
 function toggleTheme(id: string): void {
   const cur = o.room.value?.config.themeIds ?? [];
   const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
-  if (next.length) o.setConfig({ themeIds: next });
+  if (!next.length) { flashThemeWarn(); return; }
+  o.setConfig({ themeIds: next });
 }
 
 const meReady = computed(() => !!o.me.value?.ready);
@@ -218,12 +219,23 @@ const MODES = [
 
 /** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */
 const allThemes = ref<CardTheme[]>([]);
-void loadThemes().then((list) => { allThemes.value = list; });
+void loadThemes().then((list) => {
+  allThemes.value = list;
+  // Phòng online mặc định bật TẤT CẢ theme: bàn thẻ trộn nhiều bộ biểu tượng
+  // nên khó đoán hơn, và chủ phòng không phải đi chọn từng cái.
+  if (!cfg.value.themeIds.length) cfg.value = { ...cfg.value, themeIds: list.map((t) => t.id) };
+});
 const themeName = (id: string): string => allThemes.value.find((t) => t.id === id)?.name ?? id;
+/** Liệt kê hết 12 tên theme thì dòng cấu hình dài mấy dòng và vỡ bố cục. */
+function themeSummary(ids: string[]): string {
+  if (ids.length >= allThemes.value.length && allThemes.value.length) return `tất cả ${ids.length} theme`;
+  if (ids.length > 3) return `${ids.length} theme`;
+  return ids.map(themeName).join(', ');
+}
 
 /** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
 const wizard = ref<null | 'mode' | 'grid' | 'theme'>(null);
-const cfg = ref<RoomConfig>({ mode: 'classic', grid: '4x4', themeIds: ['animals'] });
+const cfg = ref<RoomConfig>({ mode: 'classic', grid: '4x4', themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
 const WIZ_STEPS = ['mode', 'grid', 'theme'] as const;
 
@@ -236,7 +248,19 @@ function isBlankCell(k: string, idx: number): boolean {
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
   const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
-  if (next.length) cfg.value = { ...cfg.value, themeIds: next };
+  // Bỏ nốt theme cuối thì bàn không có biểu tượng nào — chặn, NHƯNG phải nói ra:
+  // trước đây bấm mà không có gì xảy ra, người chơi tưởng nút bị lỗi.
+  if (!next.length) { flashThemeWarn(); return; }
+  cfg.value = { ...cfg.value, themeIds: next };
+}
+
+const themeWarn = ref(false);
+let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
+function flashThemeWarn(): void {
+  themeWarn.value = true;
+  sfx.miss();
+  clearTimeout(themeWarnTimer);
+  themeWarnTimer = setTimeout(() => { themeWarn.value = false; }, 2000);
 }
 
 function wizBack(): void {
@@ -356,6 +380,7 @@ function openCfgWizard(): void {
         </button>
       </div>
 
+      <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
       <p v-if="wizTooSmall" class="warn" role="alert">
         Chưa đủ biểu tượng cho lưới {{ cfg.grid.replace('x', '×') }}. Hãy chọn thêm theme hoặc quay lại đổi lưới.
       </p>
@@ -486,7 +511,7 @@ function openCfgWizard(): void {
         <span>
           {{ o.room.value?.config.mode === 'survival' ? '❤️ Sinh tồn' : '🧠 Cổ điển' }}
           · lưới <b>{{ o.room.value?.config.grid.replace('x', '×') }}</b>
-          · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
+          · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         </span>
         <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> Chỉnh</button>
       </div>
