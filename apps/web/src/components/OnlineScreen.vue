@@ -648,12 +648,17 @@ input:focus { outline: none; border-color: var(--accent); }
   justify-items: start; text-align: left;
 }
 .options.loose > .option:not(.wide) > .opt-icon { grid-row: span 2; }
+/* Chỉ ô XẾP DỌC mới chặn theo chiều cao. Ô `.wide` (icon và chữ nằm ngang) thấp
+   nhưng rộng — chặn theo chiều cao ở đó làm chữ tụt xuống vô cớ. */
+.options.loose > .option:not(.wide) strong { font-size: clamp(18px, min(9cqw, 13cqh), 30px); }
+.options.loose > .option:not(.wide) small { font-size: clamp(13px, min(5.4cqw, 8cqh), 18px); }
+.options.loose > .option:not(.wide) .opt-icon { width: clamp(34px, min(15cqw, 22cqh), 62px); height: auto; }
 /* LUÔN 3 cột — cột app cố định 440px, không đổi theo breakpoint */
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
 .options.wiz-grids .option { padding: 6px 4px; gap: 2px; }
-.options.wiz-grids strong { font-size: var(--text-md); }
-.options.wiz-grids small, .theme-opt small { font-size: var(--text-xs); }
+.options.wiz-grids strong { font-size: clamp(15.5px, 19cqw, 24px); }
+.options.wiz-grids small, .theme-opt small { font-size: clamp(11.5px, 12cqw, 14px); }
 /* Preview co theo chỗ còn lại của ô — xem chú thích ở MenuScreen */
 .grid-preview {
   display: grid; gap: 1.5px;
@@ -665,18 +670,19 @@ input:focus { outline: none; border-color: var(--accent); }
   opacity: .75;
 }
 .grid-preview i.blank { background: transparent; }
-.theme-opt { padding: 10px 6px; gap: 3px; container-type: inline-size; }
-.theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
+/* Đủ specificity để thắng `.option { padding: 24px 16px }` viết bên dưới */
+.options.wiz-themes .option.theme-opt { padding: 8px 5px; gap: 4px; }
+.theme-sample { font-size: clamp(15px, 26cqw, 32px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
 /* .option strong đặt 16px nên phải thắng specificity, không thì cqw vô hiệu
    và tên dài ("Thiên nhiên") bị cắt trong ô grid nén */
+/* Tên theme được phép xuống hai dòng: giữ một dòng thì bề rộng ô khoá cỡ chữ
+   ở 13px trong khi ô còn thừa chiều cao */
 .option strong.tname {
-  font-size: clamp(10px, 10.5cqw, 14px);
-  line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
-  /* Cỡ chữ đã co theo bề rộng ô nên gần như không bao giờ tràn; ellipsis là
-     lưới an toàn cuối cho tên theme dài bất thường */
-  overflow: hidden; text-overflow: ellipsis;
+  font-size: clamp(13px, 20cqw, 21px);
+  line-height: 1.15; text-align: center; max-width: 100%;
+  overflow-wrap: break-word;
 }
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
 .dots { display: flex; gap: 6px; }
@@ -694,6 +700,12 @@ input:focus { outline: none; border-color: var(--accent); }
   padding: 24px 16px; border: 2px solid var(--line); border-radius: 14px;
   background: var(--panel-soft); text-align: center;
   transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu tức thì */
+  /* Cỡ chữ co theo bề rộng Ô — giống MenuScreen. Ô lựa chọn chiếm trọn chỗ nên
+     chữ cố định 17px trông bé tí giữa khoảng trống. */
+  /* `size` (không phải inline-size) để cỡ chữ dùng được CẢ chiều cao ô: ô lớn
+     cao 320px mà chữ chỉ theo bề rộng thì vẫn lọt thỏm. An toàn vì chiều cao ô
+     do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
+  container-type: size;
 }
 @media (hover: hover) {
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
@@ -702,8 +714,8 @@ input:focus { outline: none; border-color: var(--accent); }
 .opt-icon { color: var(--accent); flex-shrink: 0; }
 .neon .opt-icon { color: #fff; }
 .neon small { color: rgba(255, 255, 255, .85); }
-.option strong { font-family: var(--font-display); font-size: 17px; }
-.option small { color: var(--muted); font-size: 12.5px; }
+.option strong { font-family: var(--font-display); font-size: clamp(17px, 8cqw, 28px); }
+.option small { color: var(--muted); font-size: clamp(12.5px, 5cqw, 17px); line-height: 1.35; }
 
 .code-input {
   letter-spacing: .3em;

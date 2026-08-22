@@ -51,9 +51,12 @@ async function mountApp(): Promise<void> {
   await flush();
 }
 
-/** Bấm nút theo chữ hiển thị. */
+/** Bấm nút theo chữ hiển thị hoặc theo aria-label (ô chọn số người chỉ hiện số
+ *  to + "người chơi", số thật nằm trong aria-label). */
 async function click(text: string): Promise<void> {
-  const btn = wrapper.findAll('button').find((b) => b.text().includes(text));
+  const btn = wrapper.findAll('button').find(
+    (b) => b.text().includes(text) || b.attributes('aria-label')?.includes(text)
+  );
   if (!btn) throw new Error(`Không thấy nút "${text}"`);
   await btn.trigger('click');
   await flush();
@@ -385,7 +388,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
   async function startTwoPlayer(): Promise<void> {
     await mountApp();
     await click('Chơi nhiều người');
-    await click('2 người');
+    await click('2 người chơi');
     await click('Cổ điển');
     await click('4×4');
     await click('Bắt đầu');
@@ -441,7 +444,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
   it('hiện đếm ngược + tên người đi đầu, chưa lật được thẻ, hết 5s thì chơi', async () => {
     await mountApp();
     await click('Chơi nhiều người');
-    await click('2 người');
+    await click('2 người chơi');
     await click('Cổ điển');
     await click('4×4');
     await click('Bắt đầu');

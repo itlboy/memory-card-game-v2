@@ -49,10 +49,11 @@ li { display: flex; min-height: 0; align-items: center; }
   width: 100%; min-height: 0; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 0; padding: 4px 2px; overflow: hidden;
   border: 2px solid var(--line); border-radius: 12px; background: transparent;
+  container-type: inline-size;   /* số màn co theo cỡ ô, như các ô lựa chọn khác */
 }
-.node b { font-size: 18px; }
-.node small { color: var(--muted); font-size: 11px; }
-.node .stars { font-size: 11px; color: var(--warn); letter-spacing: 1px; }
+.node b { font-size: clamp(18px, 26cqw, 26px); }
+.node small { color: var(--muted); font-size: clamp(11px, 15cqw, 14px); }
+.node .stars { font-size: clamp(11px, 14cqw, 15px); color: var(--warn); letter-spacing: 1px; }
 .node.cleared { border-color: var(--ok); }
 .node.locked { opacity: .45; }
 </style>

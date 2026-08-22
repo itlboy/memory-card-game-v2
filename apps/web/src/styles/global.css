@@ -90,6 +90,9 @@ button {
 /* Kích thước chạm tối thiểu 44px (NF-07) */
 .btn {
   min-height: 44px; min-width: 44px;
+  /* SVG là phần tử inline nên bị căn theo baseline chữ — icon lệch lên ~3,5px
+     so với tâm nút. Flex + center là cách duy nhất căn đúng cho mọi cỡ icon. */
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-3);
   border: 1px solid var(--line);
   border-radius: var(--r-md);

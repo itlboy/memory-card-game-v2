@@ -38,7 +38,9 @@ afterEach(() => wrapper?.unmount());
 
 /** Bấm nút/lựa chọn theo chữ hiển thị. */
 const click = async (text: string): Promise<void> => {
-  const btn = wrapper.findAll('button').find((b) => b.text().includes(text));
+  const btn = wrapper.findAll('button').find(
+    (b) => b.text().includes(text) || b.attributes('aria-label')?.includes(text)
+  );
   if (!btn) throw new Error(`Không thấy nút "${text}"`);
   await btn.trigger('click');
   await flush();
@@ -151,7 +153,7 @@ describe('App', () => {
     await flush();
     await click('Chơi nhiều người');
     expect(wrapper.text()).toContain('Mấy người chơi?');
-    await click('2 người');
+    await click('2 người chơi');
     // Nhiều người chỉ có 2 chế độ hợp lệ
     expect(wrapper.text()).toContain('Cổ điển');
     expect(wrapper.text()).toContain('Sinh tồn');

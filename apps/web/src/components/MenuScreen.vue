@@ -189,11 +189,12 @@ function toggleTheme(id: string): void {
       <div v-else-if="step === 'count'" key="count" class="step-body options loose counts">
         <button
           v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
+          :aria-label="`${c.n} người chơi`"
           :aria-pressed="playerCount === c.n"
           @click="pickCount(c.n)"
         >
           <span class="count-num" aria-hidden="true">{{ c.n }}</span>
-          <span class="text"><strong>{{ c.n }} người</strong><small>{{ c.desc }}</small></span>
+          <span class="text"><strong>người chơi</strong><small>{{ c.desc }}</small></span>
         </button>
       </div>
 
@@ -310,6 +311,11 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   text-align: left; justify-items: start;
 }
 .options.loose .option.big .opt-icon { grid-row: span 2; flex-shrink: 0; }
+/* Chỉ ô XẾP DỌC mới chặn theo chiều cao. Ô `.wide` (icon và chữ nằm ngang) thấp
+   nhưng rộng — chặn theo chiều cao ở đó làm chữ tụt xuống vô cớ. */
+.options.loose > .option:not(.wide) strong { font-size: clamp(18px, min(9cqw, 13cqh), 30px); }
+.options.loose > .option:not(.wide) small { font-size: clamp(13px, min(5.4cqw, 8cqh), 18px); }
+.options.loose > .option:not(.wide) .opt-icon { width: clamp(34px, min(15cqw, 22cqh), 62px); height: auto; }
 .options.loose .option.big strong, .options.loose .option.big small { display: block; }
 
 
@@ -389,7 +395,10 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   text-align: center;
   /* Cỡ chữ co theo bề rộng Ô (không phải theo màn hình): ô lựa chọn giờ chiếm
      trọn chỗ nên chữ cố định 16px trông bé tí giữa khoảng trống. */
-  container-type: inline-size;
+  /* `size` (không phải inline-size) để cỡ chữ dùng được CẢ chiều cao ô: ô lớn
+     cao 320px mà chữ chỉ theo bề rộng thì vẫn lọt thỏm. An toàn vì chiều cao ô
+     do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
+  container-type: size;
 }
 @media (hover: hover) {
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
