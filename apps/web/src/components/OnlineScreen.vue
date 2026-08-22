@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GRIDS, QUICK_EMOJIS } from '@mm/engine';
 import {
-  Brain, Check, ChevronLeft, Copy, Crown, Hash, Heart, Settings2, Share2, Sparkles, Timer
+  Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Settings2, Share2, Sparkles, Timer
 } from 'lucide-vue-next';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -212,9 +212,12 @@ const startLabel = computed(() => {
 });
 
 // Màu neon từng chế độ — đồng bộ với wizard offline (hướng thiết kế C)
+// Đủ mọi chế độ trừ Chiến dịch. Màu giữ đúng quy ước dùng xuyên suốt game.
 const MODES = [
   { id: 'classic' as const, icon: Brain, g: 'g-blue', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
-  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — quên thẻ đã mở là mất mạng' }
+  { id: 'time' as const, icon: Timer, g: 'g-amber', name: 'Đua thời gian', desc: 'Cả phòng đua trong một khoảng thời gian' },
+  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — quên thẻ đã mở là mất mạng' },
+  { id: 'peek' as const, icon: Eye, g: 'g-teal', name: 'Chớp nhoáng', desc: 'Cả phòng nhìn 4 giây rồi bàn úp lại' }
 ];
 
 /** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */
@@ -226,6 +229,11 @@ void loadThemes().then((list) => {
   if (!cfg.value.themeIds.length) cfg.value = { ...cfg.value, themeIds: list.map((t) => t.id) };
 });
 const themeName = (id: string): string => allThemes.value.find((t) => t.id === id)?.name ?? id;
+/** Nhãn chế độ của phòng. Hard-code hai nhánh thì thêm chế độ là hiện sai tên. */
+const MODE_LABEL: Record<string, string> = {
+  classic: '🧠 Cổ điển', time: '⏱️ Đua thời gian', survival: '❤️ Sinh tồn', peek: '👁️ Chớp nhoáng'
+};
+const modeLabel = (m?: string): string => MODE_LABEL[m ?? 'classic'] ?? '🧠 Cổ điển';
 /** Liệt kê hết 12 tên theme thì dòng cấu hình dài mấy dòng và vỡ bố cục. */
 function themeSummary(ids: string[]): string {
   if (ids.length >= allThemes.value.length && allThemes.value.length) return `tất cả ${ids.length} theme`;
@@ -509,7 +517,7 @@ function openCfgWizard(): void {
       <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
       <div class="cfg-summary">
         <span>
-          {{ o.room.value?.config.mode === 'survival' ? '❤️ Sinh tồn' : '🧠 Cổ điển' }}
+          {{ modeLabel(o.room.value?.config.mode) }}
           · lưới <b>{{ o.room.value?.config.grid.replace('x', '×') }}</b>
           · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         </span>
@@ -529,7 +537,7 @@ function openCfgWizard(): void {
         {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
       </button>
       <p class="hint">
-        {{ o.room.value?.config.mode === 'survival' ? '❤️ Sinh tồn' : '🧠 Cổ điển' }}
+        {{ modeLabel(o.room.value?.config.mode) }}
         · lưới {{ o.room.value?.config.grid.replace('x', '×') }}
         · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
         — chờ chủ phòng bắt đầu…

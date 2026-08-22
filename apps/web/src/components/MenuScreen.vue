@@ -16,6 +16,9 @@ const props = defineProps<{
   themeIds: string[];
   playerCount: number;
   totalScore: number;
+  /** Số biểu tượng của các theme đang chọn — bản đồ Chiến dịch cần để biết màn
+   *  nào dựng được bàn. */
+  symbolCount: number;
 }>();
 
 const emit = defineEmits<{
@@ -91,7 +94,9 @@ const COUNTS = [
   { n: 4, g: 'g-cyan',   desc: 'Bốn người, đông vui nhất' }
 ];
 
-const MULTI_MODES = SOLO_MODES.filter((m) => m.id === 'classic' || m.id === 'survival');
+/** Nhiều người chơi có đủ mọi chế độ, TRỪ Chiến dịch — chiến dịch là chuỗi màn
+ *  của riêng một người, không có nghĩa khi thay lượt nhau. */
+const MULTI_MODES = SOLO_MODES.filter((m) => m.id !== 'campaign');
 const modes = computed(() => (isMulti.value ? MULTI_MODES : SOLO_MODES));
 
 function pickPlayers(multi: boolean): void {
@@ -226,6 +231,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <CampaignMap
           :progress="store.campaign()"
           :unlocked="store.unlockedLevel()"
+          :symbol-count="symbolCount"
           @play="emit('start-level', $event)"
         />
       </div>

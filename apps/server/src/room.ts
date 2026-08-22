@@ -1,10 +1,10 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  DEFAULT_ROOM_CONFIG, GRIDS, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS,
+  DEFAULT_ROOM_CONFIG, GRIDS, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, ROOM_MODES,
   presetConfig, publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
-  ClientMsg, GameEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameEvent, QuickEmoji, RoomConfig, RoomInfo, RoomMode, ServerMsg
 } from '@mm/engine';
 import { THEME_SYMBOLS } from './themes.js';
 
@@ -172,7 +172,10 @@ export class RoomDO extends DurableObject<Env> {
         const c = msg.config;
         // Object.hasOwn: khoá như '__proto__' tra cứu ra prototype (truthy) và làm crash lúc start
         if (typeof c.grid === 'string' && Object.hasOwn(GRIDS, c.grid)) this.room.config.grid = c.grid;
-        if (c.mode === 'classic' || c.mode === 'survival') this.room.config.mode = c.mode;
+        // Mọi chế độ trừ Chiến dịch (chiến dịch là chuỗi màn của một người và
+        // dùng levelConfig, không đi qua presetConfig). Chỉ sửa ở client thì
+        // server âm thầm bỏ qua cấu hình và phòng vẫn chạy chế độ cũ.
+        if (ROOM_MODES.includes(c.mode as RoomMode)) this.room.config.mode = c.mode as RoomMode;
         if (Array.isArray(c.themeIds)) {
           const valid = [...new Set(c.themeIds)]
             .filter((id): id is string => typeof id === 'string' && Object.hasOwn(THEME_SYMBOLS, id));
