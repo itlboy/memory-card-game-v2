@@ -626,19 +626,40 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
 
-/* MỘT CỠ NÚT THỐNG NHẤT: mobile thanh 92px, desktop tile 170px */
-.step-body.options.loose, .options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
+/* Ô lựa chọn CHIA ĐỀU chỗ trống của panel — không còn thanh 92px nổi giữa
+   panel cao với khoảng trống trên dưới. Vẫn giữ luật KHÔNG SCROLL. */
+.step-body.options.loose, .options.loose { grid-auto-rows: minmax(0, 1fr); align-content: stretch; }
 .step-body.options.loose > .option, .options.loose > .option {
-  height: 92px; max-height: 92px; padding: 10px 16px;
+  height: 100%; max-height: none; padding: 12px 18px;
   flex-direction: row; gap: 14px; text-align: left; align-items: center;
 }
+/* Màn entry (chọn Tạo phòng / Vào phòng): .options.loose là con trực tiếp của
+   panel nên phải tự giãn, không thì 2 ô nổi trên với khoảng trống dưới */
+.online > .panel > .options.loose { flex: 1; min-height: 0; overflow: hidden; }
+/* Ô entry không có wrapper .text: grid để tiêu đề và mô tả XẾP DỌC */
+.options.loose > .option:not(.wide) {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
+  column-gap: 14px; row-gap: 2px; align-items: center; align-content: center;
+  justify-items: start; text-align: left;
+}
+.options.loose > .option:not(.wide) > .opt-icon { grid-row: span 2; }
 @media (min-width: 700px) {
   .options.loose { grid-template-columns: repeat(2, 1fr); gap: 20px; }
   .step-body.options.loose > .option, .options.loose > .option {
-    height: 170px; max-height: 170px;
-    flex-direction: column; text-align: center; gap: 8px; padding: 18px 14px;
+    height: 100%; max-height: none;
+    flex-direction: column; text-align: center; gap: 10px; padding: 22px 18px;
   }
   .options.loose .option .text, .options.loose .option.wide .text { align-items: center; }
+  /* Ô cao thì icon + chữ to theo, không thì ô rỗng ruột */
+  .options.loose > .option > .opt-icon { width: 56px; height: 56px; }
+  .options.loose > .option strong { font-size: 21px; }
+  .options.loose > .option small { font-size: 13.5px; }
+  .step-body.options.loose > .option > .opt-icon { width: 40px; height: 40px; }
+  /* Ô entry là grid nên flex-direction không ăn — xếp một cột, canh giữa */
+  .options.loose > .option:not(.wide) {
+    grid-template-columns: 1fr; row-gap: 10px; justify-items: center; text-align: center;
+  }
+  .options.loose > .option:not(.wide) > .opt-icon { grid-row: auto; }
 }
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
@@ -660,7 +681,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
-.tname {
+/* .option strong đặt 16px nên phải thắng specificity, không thì cqw vô hiệu
+   và tên dài ("Thiên nhiên") bị cắt trong ô grid nén */
+.option strong.tname {
   font-size: clamp(10px, 10.5cqw, 14px);
   line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
 }

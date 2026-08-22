@@ -285,22 +285,40 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 }
 .option { min-height: 0; overflow: hidden; justify-content: center; }
 
-/* MỘT CỠ NÚT THỐNG NHẤT cho mọi bước lựa chọn: mobile thanh 92px,
-   desktop tile 170px — ít nút hay nhiều nút đều cùng cỡ, cụm canh giữa */
-.step-body.options.loose { grid-auto-rows: minmax(0, auto); align-content: center; }
+/* Ô lựa chọn CHIA ĐỀU chỗ trống của panel: ít nút thì ô cao lên, nhiều nút thì
+   ô nén lại — không còn thanh 92px nổi giữa panel 820px với khoảng trống trên dưới.
+   Vẫn giữ luật KHÔNG SCROLL: grid nén trong chỗ còn lại, không đẩy trang dài ra. */
+.step-body.options.loose { grid-auto-rows: minmax(0, 1fr); align-content: stretch; }
 .step-body.options.loose > .option {
-  height: 92px; max-height: 92px; padding: 10px 16px;
+  height: 100%; max-height: none; padding: 12px 18px;
 }
-.options.loose .option.big { flex-direction: row; gap: 14px; text-align: left; align-items: center; }
-.options.loose .option.big small, .options.loose .option.big strong { display: block; }
-.options.loose .option.big .opt-icon { flex-shrink: 0; }
+/* Ô "big" không có wrapper .text: dùng grid để icon một cột, còn tiêu đề và
+   mô tả XẾP DỌC ở cột thứ hai — nằm ngang cùng hàng thì tiêu đề bị ngắt dòng */
+.options.loose .option.big {
+  display: grid; grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 14px; row-gap: 2px; align-items: center; align-content: center;
+  text-align: left; justify-items: start;
+}
+.options.loose .option.big .opt-icon { grid-row: span 2; flex-shrink: 0; }
+.options.loose .option.big strong, .options.loose .option.big small { display: block; }
 
 @media (min-width: 700px) {
   .step-body.options.loose { grid-template-columns: repeat(3, 1fr); gap: 20px; }
   .step-body.options.loose > .option {
-    height: 170px; max-height: 170px;
-    flex-direction: column; text-align: center; gap: 8px; padding: 18px 14px;
+    height: 100%; max-height: none;
+    flex-direction: column; text-align: center; gap: 10px; padding: 22px 18px;
   }
+  /* Ô cao thì icon + chữ phải to theo, không thì ô rỗng ruột */
+  .step-body.options.loose > .option > .opt-icon { width: 56px; height: 56px; }
+  .step-body.options.loose > .option strong { font-size: 21px; }
+  .step-body.options.loose > .option small { font-size: 13.5px; }
+  .step-body.options.loose.modes > .option > .opt-icon { width: 40px; height: 40px; }
+  /* Desktop: ô "big" là grid nên flex-direction không ăn — xếp một cột, canh giữa */
+  .options.loose .option.big {
+    grid-template-columns: 1fr; row-gap: 10px; justify-items: center; text-align: center;
+  }
+  .options.loose .option.big .opt-icon { grid-row: auto; }
   /* 5 chế độ: Chiến dịch trọn hàng đầu (cùng chiều cao), 4 chế độ 2×2 */
   .step-body.options.loose.modes { grid-template-columns: repeat(2, 1fr); }
   .modes > .option.wide:first-child { grid-column: 1 / -1; }
@@ -338,7 +356,9 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
-.tname {
+/* .option strong đặt 16px nên phải thắng specificity, không thì cqw vô hiệu
+   và tên dài ("Thiên nhiên") bị cắt trong ô grid nén */
+.option strong.tname {
   font-size: clamp(10px, 10.5cqw, 14px);
   line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
 }
