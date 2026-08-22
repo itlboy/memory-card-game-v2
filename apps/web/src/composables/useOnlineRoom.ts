@@ -1,9 +1,10 @@
-import { ROOM_LIMITS } from '@mm/engine';
+import { ROOM_LIMITS, isDraw } from '@mm/engine';
 import type {
   ClientMsg, GameView, PublicEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { sfx } from '@/lib/audio';
+import { store } from '@/lib/storage';
 
 /** Địa chỉ server online; đổi qua biến build VITE_SERVER_URL khi deploy. */
 const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined) ?? 'http://localhost:8787';
@@ -295,10 +296,32 @@ export function useOnlineRoom() {
           timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
           setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
-        case 'end':
-          e.summary.ranking[0]?.id === myId.value ? sfx.victory() : sfx.defeat();
+        case 'life-gain': {
+          const who = view.value?.players.find((p) => p.id === e.playerId);
+          sfx.unlockTheme();
+          lifeGain.value = { name: who?.name ?? '', key: (lifeGain.value?.key ?? 0) + 1 };
+          setTimeout(() => { lifeGain.value = null; }, 3200);
+          break;
+        }
+        case 'end': {
+          const draw = isDraw(e.summary.ranking);
+          // Tỷ số cả loạt trong phòng: chủ phòng bấm "chơi lại" nhiều ván nên
+          // đây là con số người trong phòng thực sự theo dõi. Giữ ở client theo
+          // TÊN (id đổi khi vào lại phòng), hoà thì không ai được cộng.
+          const champName = e.summary.ranking[0]?.name;
+          if (champName && !draw) {
+            seriesWins.value = { ...seriesWins.value, [champName]: (seriesWins.value[champName] ?? 0) + 1 };
+          }
+          const iLead = e.summary.ranking[0]?.id === myId.value;
+          if (draw) sfx.win();                     // hoà: mừng nhẹ, không fanfare
+          else if (iLead) sfx.victory();
+          else sfx.defeat();
+          // Điểm của CHÍNH mình được cộng vào tổng tích luỹ — chơi online cả
+          // buổi mà tổng không nhích thì không mở được theme nào
+          store.addScore(e.summary.ranking.find((p) => p.id === myId.value)?.score ?? 0);
           endSession();
           break;
+        }
       }
     }
     if (turnId) {
@@ -373,6 +396,11 @@ export function useOnlineRoom() {
   /* ---------- chống spam emoji ---------- */
   // Server mới là nơi thực sự chặn (client không đáng tin — ON-09); phần này chỉ
   // để người chơi THẤY mình đã hết lượt, chứ không phải bấm mà chẳng có gì xảy ra.
+  /** Số ván thắng của từng người trong phòng, theo tên. */
+  const seriesWins = ref<Record<string, number>>({});
+  /** Ai vừa hồi mạng (Sinh tồn). */
+  const lifeGain = ref<{ name: string; key: number } | null>(null);
+
   const emojiSentAt: number[] = [];
   const emojiReady = ref(true);
   /** Giây còn lại tới lúc gửi được tiếp; 0 khi đang rảnh. Hiện lên UI để người
@@ -425,6 +453,10 @@ export function useOnlineRoom() {
     emojiReady,
     /** Giây còn lại tới lúc gửi được tiếp (0 = đang rảnh). */
     emojiCooldown,
+    /** Số ván thắng trong loạt của phòng (theo tên). */
+    seriesWins,
+    /** Ai vừa hồi mạng (Sinh tồn). */
+    lifeGain,
     roomCode: () => code
   };
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MemoryGame, levelConfig, levelSpec, presetConfig, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
+import { MemoryGame, levelConfig, levelSpec, presetConfig, isDraw, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import CelebrationFx from './components/CelebrationFx.vue';
@@ -8,6 +8,7 @@ import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
+import RulesDialog from './components/RulesDialog.vue';
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
@@ -55,6 +56,11 @@ const levelId = ref<number | null>(null);
 const isRecord = ref(false);
 /** Tổng điểm TRƯỚC ván — để màn kết quả chạy số từ đây lên tổng mới. */
 const totalBefore = ref(0);
+/** Số ván THẮNG của từng người trong loạt đang chơi (nhiều người cùng máy).
+ *  Khoá theo danh sách tên: đổi người hoặc đổi số người là loạt mới, tự về 0 —
+ *  không thì tỷ số của nhóm cũ dính sang nhóm mới. */
+const seriesKey = ref('');
+const seriesWins = ref<Record<string, number>>({});
 const freshAchievements = ref<string[]>([]);
 /** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
 const showResult = ref(false);
@@ -63,6 +69,7 @@ let resultTimer: ReturnType<typeof setTimeout> | undefined;
 const session = useGameSession();
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 const confirmQuit = ref(false);
+const showRules = ref(false);
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
@@ -211,10 +218,17 @@ const symbols = computed(() => [...new Set(
 function playerList(): PlayerInit[] | undefined {
   if (playerCount.value < 2) return undefined;
   const saved = store.playerNames();
-  return Array.from({ length: playerCount.value }, (_, i) => ({
+  const list = Array.from({ length: playerCount.value }, (_, i) => ({
     id: `p${i + 1}`,
     name: saved[i] ?? `Người ${i + 1}`
   }));
+  // Nhóm khác (đổi tên hoặc đổi số người) thì bắt đầu loạt mới từ 0
+  const key = list.map((p) => p.name).join('|');
+  if (key !== seriesKey.value) {
+    seriesKey.value = key;
+    seriesWins.value = {};
+  }
+  return list;
 }
 
 /** Seed lấy từ ngoài engine để engine giữ tính tất định (dùng chung với server sau này). */
@@ -292,6 +306,17 @@ watch(session.summary, (s) => {
       livesLeft: player.lives,
       levelId: levelId.value ?? undefined
     }));
+  } else {
+    // Ván thi đấu cũng phải được cộng vào tổng tích luỹ, nếu không chơi nhiều
+    // người cả buổi mà điểm vẫn đứng yên — và theme khoá theo điểm nên người
+    // hay chơi cùng bạn bè không bao giờ mở được gì. Lấy điểm người dẫn đầu:
+    // đây là thành tích của MÁY này, không phân biệt được ai đang cầm.
+    store.addScore(s.ranking[0]?.score ?? 0);
+    // Tỷ số loạt: hoà thì không ai được cộng
+    const champ = s.ranking[0];
+    if (champ && !isDraw(s.ranking)) {
+      seriesWins.value = { ...seriesWins.value, [champ.name]: (seriesWins.value[champ.name] ?? 0) + 1 };
+    }
   }
   totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
@@ -305,6 +330,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
     @toggle-dark="dark = !dark"
+    @rules="showRules = true"
     @cycle-sound="cycleSound"
     @home="goHome"
   />
@@ -342,10 +368,13 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :session="session"
       :game="session.game.value"
       :level-id="levelId ?? undefined"
+      :series-wins="seriesWins"
       @quit="goHome"
     />
     </Transition>
   </main>
+
+  <RulesDialog v-if="showRules" @close="showRules = false" />
 
   <ConfirmDialog
     v-if="confirmQuit"
@@ -367,6 +396,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     :fresh-achievements="freshAchievements"
     :total-before="totalBefore"
     :total-after="totalScore"
+    :series-wins="seriesWins"
     :has-next="hasNext"
     @replay="replay"
     @next="nextLevel"

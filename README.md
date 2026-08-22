@@ -57,10 +57,33 @@ server.js            Web server tĩnh cho bản build production
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch 30 màn (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05) |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thẻ đặc biệt | Bom, x2, mắt thần, đóng băng — bật từ màn 3 của Chiến dịch (3.4) |
-| Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5) |
-| Nội dung | 5 theme nạp từ `apps/web/public/data/themes.json`, mở khoá bằng điểm tích lũy (3.6) |
+| Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
+| Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
 | Lưu trữ | Kỷ lục, sao Chiến dịch, tuỳ chọn, 7 thành tích — localStorage (3.7) |
-| Phi chức năng | Responsive 360px+, dark mode, âm thanh tắt được, điều hướng bàn phím, chạm ≥44px |
+| Phi chức năng | Responsive 320px+, dark mode, ba mức âm lượng, điều hướng bàn phím, chạm ≥44px, PWA chạy offline |
+
+### Luật riêng của từng chế độ
+
+Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng mở bảng
+"Luật chơi" (`RulesDialog.vue`) — sửa luật thì phải sửa cả chỗ đó.
+
+| Chế độ | Luật |
+|---|---|
+| Cổ điển | Không giới hạn thời gian; lật sai −10 điểm |
+| Đua thời gian | Đồng hồ đếm ngược; mỗi cặp đúng **+2 giây** (`MATCH_TIME_BONUS_MS`), xong sớm thưởng thêm điểm |
+| Sinh tồn | 5 mạng. Chỉ mất mạng khi thẻ vừa mở **đã từng lộ ra** — lật hai thẻ chưa ai thấy là dò bài, không bị trừ. Dưới 2 mạng mà ghép đúng **hai lần liền** thì hồi 1 mạng |
+| Chớp nhoáng | Hé mở cả bàn 4 giây đầu |
+| Chiến dịch | 30 màn, lưới lớn dần tới 8×8; nửa sau siết mốc sao. Màn cần nhiều biểu tượng hơn bộ theme đang chọn sẽ bị khoá kèm nhắc |
+
+### Luật chung cần biết khi sửa engine
+
+- Bàn thẻ **không xếp hai thẻ cùng cặp cạnh nhau** (`deck.ts`) — trừ lưới dưới
+  3 cặp, vì 2×2 chỉ có một cách xếp không kề nên ván nào cũng sẽ giống nhau.
+- Nhiều người: mỗi lượt **15 giây**, ghép đúng +5 giây (trần 15). Bằng điểm là
+  **hoà** (`isDraw`), không lấy người đầu danh sách làm người thắng.
+- Chơi nhiều ván với nhau có **tỷ số cả loạt** (số ván thắng), giữ ở client theo
+  tên người chơi.
+- Avatar rút theo **seed** nên mỗi ván một bộ khác, còn F5 giữa ván vẫn giữ nguyên.
 
 ### Thêm theme mới (không sửa code)
 

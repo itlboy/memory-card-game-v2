@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isDraw } from '@mm/engine';
 import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { byId } from '@/lib/achievements';
@@ -14,6 +15,8 @@ const props = defineProps<{
   /** Tổng điểm tích luỹ trước và sau ván — dùng cho hiệu ứng cộng vào tổng. */
   totalBefore: number;
   totalAfter: number;
+  /** Số ván thắng của từng người trong loạt đang chơi (theo tên). */
+  seriesWins?: Record<string, number>;
   /** Có màn kế tiếp trong Chiến dịch không. */
   hasNext: boolean;
 }>();
@@ -87,10 +90,30 @@ const REASON: Record<Summary['reason'], string> = {
   forfeit: 'Đối thủ đã rời trận.'
 };
 
+const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
+
+/** "Kiên 2 - 1 An" — tỷ số cả loạt, xếp theo số ván thắng. Chỉ hiện khi đã
+ *  chơi từ ván thứ hai: ván đầu thì tỷ số 1-0 chẳng nói lên điều gì. */
+const series = computed(() => {
+  const wins = props.seriesWins;
+  if (!props.multiplayer || !wins) return null;
+  const rows = props.summary.ranking
+    .map((p) => ({ name: p.name, w: wins[p.name] ?? 0 }))
+    .sort((a, b) => b.w - a.w);
+  const total = rows.reduce((n, r) => n + r.w, 0);
+  if (total < 2) return null;
+  return rows.length === 2
+    ? `${rows[0]!.name} ${rows[0]!.w} - ${rows[1]!.w} ${rows[1]!.name}`
+    : rows.map((r) => `${r.name} ${r.w}`).join(' · ');
+});
+
 const title = computed(() => {
   // Nhiều người: LUÔN xếp hạng, kể cả khi ván dừng vì hết giờ hay hết mạng —
   // lúc đó engine trả status 'lost' nhưng vẫn có người dẫn điểm, mà báo
   // "Chưa xong" thì cả phòng không biết ai thắng.
+  // Bằng điểm thì phải nói HOÀ: lấy người đầu danh sách rồi tuyên bố thắng là
+  // sai, thứ tự đó chỉ do sort quyết định.
+  if (draw.value) return 'Hoà rồi! 🤝';
   if (props.multiplayer) return `${props.summary.ranking[0]?.name} thắng! 🏆`;
   if (props.summary.status !== 'won') return 'Chưa xong 😢';
   return props.isRecord ? 'Kỷ lục mới! 🏆' : 'Hoàn thành! 🎉';
@@ -103,6 +126,10 @@ const title = computed(() => {
       <h2 id="resTitle">{{ title }}</h2>
       <p class="reason">{{ REASON[summary.reason] }}</p>
 
+      <!-- Tỷ số cả loạt: chơi với nhau nhiều ván thì đây mới là con số người ta
+           thực sự quan tâm, chứ không phải điểm của riêng ván vừa xong -->
+      <p v-if="series" class="series">🏅 {{ series }}</p>
+
       <p v-if="showStars && summary.status === 'won'" class="stars" :aria-label="`${summary.stars} trên 3 sao`">
         <span
           v-for="i in 3" :key="i"
@@ -113,7 +140,8 @@ const title = computed(() => {
 
       <ol v-if="multiplayer" class="ranking">
         <li v-for="(p, i) in summary.ranking" :key="p.id">
-          <span>{{ i + 1 }}. {{ p.name }}</span>
+          <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
+          <span>{{ draw && i < 2 ? 1 : i + 1 }}. {{ p.name }}</span>
           <b>{{ num(p.score) }}</b>
           <small>{{ p.pairs }} cặp · chuỗi {{ p.bestStreak }}</small>
         </li>
@@ -201,6 +229,14 @@ h2 { margin: 0 0 4px; }
   0% { transform: scale(.2) rotate(-30deg); opacity: 0; }
   60% { transform: scale(1.35) rotate(8deg); }
   100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.series {
+  margin: 0 0 10px; padding: 8px 14px; border-radius: var(--r-full);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: var(--text-lg); text-align: center;
+  font-variant-numeric: tabular-nums;
+  background: var(--accent-soft); color: var(--fg);
 }
 
 /* Điểm tổng: con số lớn nhất trong dialog, có nền sáng và ngôi sao dẫn */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { comboMultiplier, pairScore, starsFor, timeBonus } from '../src/scoring.js';
+import { comboMultiplier, isDraw, pairScore, starsFor, timeBonus } from '../src/scoring.js';
 
 describe('công thức điểm (SRS 3.5)', () => {
   it('combo: cặp đầu x1, rồi x1.2, x1.5, và trần x2', () => {
@@ -30,5 +30,25 @@ describe('công thức điểm (SRS 3.5)', () => {
     expect(starsFor(399, [400, 700])).toBe(1);
     expect(starsFor(700, [400, 700])).toBe(3);
     expect(starsFor(0, undefined)).toBe(3); // chế độ không xếp sao
+  });
+});
+
+describe('hoà', () => {
+  const p = (score: number, bestStreak = 1, pairs = 1): { score: number; bestStreak: number; pairs: number } =>
+    ({ score, bestStreak, pairs });
+
+  it('hai người dẫn đầu bằng hết mọi chỉ số thì là hoà', () => {
+    expect(isDraw([p(100), p(100)])).toBe(true);
+  });
+
+  it('hơn điểm, hơn chuỗi hay hơn số cặp thì không hoà', () => {
+    expect(isDraw([p(200), p(100)])).toBe(false);
+    expect(isDraw([p(100, 3), p(100, 1)])).toBe(false);
+    expect(isDraw([p(100, 1, 5), p(100, 1, 2)])).toBe(false);
+  });
+
+  it('một người không bao giờ hoà; người bỏ cuộc không tính', () => {
+    expect(isDraw([p(100)])).toBe(false);
+    expect(isDraw([p(100), { ...p(100), forfeited: true }])).toBe(false);
   });
 });

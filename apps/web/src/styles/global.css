@@ -36,12 +36,14 @@ body {
 @media (min-width: 700px) {
   body {
     display: flex; align-items: center; justify-content: center;
-    height: 100dvh; padding: 24px;
+    /* Chỉ chừa 8px: cột đã bo góc và có bóng nên không cần lề rộng, mà mỗi
+       pixel lề bớt đi là cột cao thêm — và cao thêm thì rộng thêm theo tỷ lệ. */
+    height: 100dvh; padding: 8px;
   }
   #app {
     /* Dùng TRỌN chiều cao cửa sổ — cắt chiều cao cho vừa tỷ lệ thì màn hình to
        hoá ra bỏ không nửa dưới. Đúng tỷ lệ bằng cách NỚI BỀ RỘNG theo chiều cao. */
-    height: calc(100dvh - 48px);
+    height: calc(100dvh - 16px);
     /* PHẢI huỷ min-height: 100% ở đầu file — nó ghi đè height nên mọi phép
        tính tỷ lệ đều vô hiệu (cửa sổ 1200 ra 440×1152 ≈ 0,38: hẹp và cao). */
     min-height: 0;
@@ -49,7 +51,7 @@ body {
        Sàn 390px vì dưới mức đó chữ Việt trong ô lựa chọn ngắt dòng xấu: cửa sổ
        quá thấp thì hy sinh tỷ lệ, không nén bề rộng. Không có trần — màn càng
        cao thì cột càng rộng, tỷ lệ vẫn y nguyên. */
-    width: max(390px, calc((100dvh - 48px) * 0.462));
+    width: max(390px, calc((100dvh - 16px) * 0.462));
     border: 1px solid var(--line); border-radius: 28px;
     overflow: hidden; box-shadow: var(--elev-3);
   }
@@ -151,20 +153,23 @@ button {
 }
 .chip[aria-disabled='true'] { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* ===== Arcade neon (hướng C): ô gradient màu riêng ===== */
+/* ===== Arcade neon (hướng C): ô gradient màu riêng =====
+   Bóng TRUNG TÍNH, không phải glow màu: glow 30px lan vào khe 10px giữa các ô
+   và nhuộm màu khoảng trống, làm mấy ô như dính thành một khối liền. Bóng tối
+   gọn + viền sáng bên trong mới cho ra cảm giác từng khối nổi lên. */
 .neon {
   border-color: transparent !important;
   color: #fff !important;
 }
 .neon small { color: rgba(255, 255, 255, .85) !important; }
 .neon .opt-icon, .neon .count-num { color: #fff !important; }
-.g-violet { background: linear-gradient(150deg, #6a5cff, #8b5cf6) !important; box-shadow: 0 10px 30px rgba(106, 92, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
-.g-pink   { background: linear-gradient(150deg, #c44cf0, #ff5fa2) !important; box-shadow: 0 10px 30px rgba(196, 76, 240, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
-.g-cyan   { background: linear-gradient(150deg, #2fb6f0, #38e0c8) !important; box-shadow: 0 10px 30px rgba(56, 189, 248, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
-.g-blue   { background: linear-gradient(150deg, #4c7dff, #5fb0ff) !important; box-shadow: 0 10px 30px rgba(76, 125, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
-.g-amber  { background: linear-gradient(150deg, #f59e0b, #ff7b45) !important; box-shadow: 0 10px 30px rgba(245, 158, 11, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
-.g-red    { background: linear-gradient(150deg, #ef4458, #ff5fa2) !important; box-shadow: 0 10px 30px rgba(239, 68, 88, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
-.g-teal   { background: linear-gradient(150deg, #14b8a6, #38e0c8) !important; box-shadow: 0 10px 30px rgba(20, 184, 166, .45), inset 0 1px 0 rgba(255, 255, 255, .3) !important; }
+.g-violet { background: linear-gradient(150deg, #6a5cff, #8b5cf6) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-pink   { background: linear-gradient(150deg, #c44cf0, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-cyan   { background: linear-gradient(150deg, #2fb6f0, #38e0c8) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-blue   { background: linear-gradient(150deg, #4c7dff, #5fb0ff) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-amber  { background: linear-gradient(150deg, #f59e0b, #ff7b45) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-red    { background: linear-gradient(150deg, #ef4458, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-teal   { background: linear-gradient(150deg, #14b8a6, #38e0c8) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 
 /* Chuyển màn mượt */
 .screen-enter-active { transition: opacity .22s ease, transform .22s ease; }

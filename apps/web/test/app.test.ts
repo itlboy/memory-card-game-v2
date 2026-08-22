@@ -149,15 +149,21 @@ describe('App', () => {
     expect(nodes[1]!.attributes('disabled')).toBeDefined();
   });
 
-  it('nhánh nhiều người: số người → chế độ → bàn chơi, vào ván có bảng người chơi', async () => {
+  it('nhánh nhiều người: số người → tên → chế độ → bàn chơi, vào ván có bảng người chơi', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhiều người');
     expect(wrapper.text()).toContain('Mấy người chơi?');
     await click('2 người chơi');
-    // Nhiều người chỉ có 2 chế độ hợp lệ
+    // Bước điền tên: đúng số ô theo số người, để trống thì lấy tên mặc định
+    expect(wrapper.text()).toContain('Tên từng người');
+    expect(wrapper.findAll('.name-row input')).toHaveLength(2);
+    await click('Tiếp tục');
+    // Nhiều người có mọi chế độ trừ Chiến dịch
     expect(wrapper.text()).toContain('Cổ điển');
     expect(wrapper.text()).toContain('Sinh tồn');
+    expect(wrapper.text()).toContain('Đua thời gian');
+    expect(wrapper.text()).toContain('Chớp nhoáng');
     expect(wrapper.text()).not.toContain('Chiến dịch');
     await click('Cổ điển');
     await click('4×4');
@@ -170,7 +176,11 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     expect(document.documentElement.dataset.theme).toBe('light');
-    await wrapper.findAll('header .btn')[0]!.trigger('click');
+    // Tìm theo nhãn, không theo vị trí: thanh trên cùng còn có nút Luật chơi và
+    // âm lượng, thêm nút mới là test theo index sẽ bấm nhầm
+    const darkBtn = wrapper.findAll('header .btn')
+      .find((b) => (b.attributes('aria-label') ?? '').includes('nền tối'));
+    await darkBtn!.trigger('click');
     await flush();
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem('mm.v2')).toContain('"dark":true');

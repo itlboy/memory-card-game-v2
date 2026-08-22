@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GRIDS } from '@mm/engine';
+import { CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import { Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
 import type { Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
@@ -32,8 +32,8 @@ const emit = defineEmits<{
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
-type Step = 'players' | 'count' | 'mode' | 'grid' | 'theme' | 'campaign';
-const STEPS: readonly Step[] = ['players', 'count', 'mode', 'grid', 'theme', 'campaign'];
+type Step = 'players' | 'count' | 'names' | 'mode' | 'grid' | 'theme' | 'campaign';
+const STEPS: readonly Step[] = ['players', 'count', 'names', 'mode', 'grid', 'theme', 'campaign'];
 
 /** Bước hiện tại nằm trên URL (?w=grid) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
@@ -62,7 +62,7 @@ const isMulti = computed(() => props.playerCount > 1);
 /** Đường đi của wizard tuỳ nhánh, dùng cho chấm tiến độ và nút quay lại. */
 const path = computed<Step[]>(() =>
   isMulti.value
-    ? ['players', 'count', 'mode', 'grid', 'theme']
+    ? ['players', 'count', 'names', 'mode', 'grid', 'theme']
     : ['players', 'mode', ...(props.mode === 'campaign' ? ['campaign' as const] : ['grid' as const, 'theme' as const])]
 );
 const stepIndex = computed(() => path.value.indexOf(step.value));
@@ -72,6 +72,7 @@ if (step.value !== 'players' && !path.value.includes(step.value)) step.value = '
 const TITLES: Record<Step, string> = {
   players: 'Bạn muốn chơi thế nào?',
   count: 'Mấy người chơi?',
+  names: 'Tên từng người',
   mode: 'Chọn chế độ',
   grid: 'Kích thước lưới',
   theme: 'Chọn theme thẻ',
@@ -80,10 +81,10 @@ const TITLES: Record<Step, string> = {
 
 // Mỗi chế độ một màu neon cố định — theo suốt game (hướng thiết kế C)
 const SOLO_MODES = [
-  { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
+  { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: `Đi từ dễ đến khó qua ${CAMPAIGN_LEVELS} màn · điểm cộng dồn` },
   { id: 'classic' as Mode,  icon: Brain,  g: 'g-blue',   name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
-  { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
-  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — quên thẻ đã mở là mất mạng' },
+  { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Ghép đúng được +2 giây · xong nhanh thưởng nhiều' },
+  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — quên thẻ đã mở là mất mạng, ghép 2 lần liền thì hồi' },
   { id: 'peek' as Mode,     icon: Eye,    g: 'g-teal',   name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
 ];
 // Mỗi số người một màu riêng: ba ô cùng màu thì nhìn như một khối, mắt không
@@ -110,6 +111,28 @@ function pickPlayers(multi: boolean): void {
 function pickCount(n: number): void {
   sfx.select();
   emit('update:playerCount', n);
+  syncNames(n);
+  step.value = 'names';
+}
+
+/* ---------- tên người chơi (nhiều người cùng máy) ---------- */
+const names = ref<string[]>([]);
+
+/** Dựng đủ n ô tên, giữ tên đã lưu từ lần chơi trước. */
+function syncNames(n: number): void {
+  const saved = store.playerNames();
+  names.value = Array.from({ length: n }, (_, i) => names.value[i] ?? saved[i] ?? '');
+}
+
+// F5 ngay ở bước này (?w=names) thì pickCount chưa từng chạy — phải tự dựng ô
+watch(step, (st) => { if (st === 'names') syncNames(props.playerCount); }, { immediate: true });
+
+/** Tên bỏ trống thì lấy "Người i" — không ép người chơi phải điền. */
+function confirmNames(): void {
+  const filled = names.value.map((v, i) => v.trim() || `Người ${i + 1}`);
+  store.savePlayerNames(filled);
+  names.value = filled;
+  sfx.select();
   step.value = 'mode';
 }
 
@@ -210,8 +233,26 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           @click="pickCount(c.n)"
         >
           <span class="count-num" aria-hidden="true">{{ c.n }}</span>
-          <span class="text"><strong>người chơi</strong><small>{{ c.desc }}</small></span>
+          <span class="text"><strong>Người chơi</strong><small>{{ c.desc }}</small></span>
         </button>
+      </div>
+
+      <!-- BƯỚC (nhiều người): điền tên từng người -->
+      <div v-else-if="step === 'names'" key="names" class="step-body names">
+        <p class="hint-multi">Để trống thì dùng "Người 1", "Người 2"…</p>
+        <div class="name-list">
+          <label v-for="(_, i) in names" :key="i" class="name-row">
+            <span class="name-no">{{ i + 1 }}</span>
+            <input
+              v-model="names[i]"
+              type="text" maxlength="12" enterkeyhint="next"
+              :placeholder="`Người ${i + 1}`"
+              :aria-label="`Tên người chơi ${i + 1}`"
+              @keydown.enter="confirmNames"
+            >
+          </label>
+        </div>
+        <button class="btn-primary" type="button" @click="confirmNames">Tiếp tục</button>
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
@@ -309,6 +350,28 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 <style scoped>
 .hint-multi { margin: 0 0 10px; color: var(--muted); font-size: var(--text-sm); }
 
+/* Điền tên: danh sách dồn lên trên, nút Tiếp tục ở dưới cùng như các bước khác */
+.names { justify-content: flex-start; }
+.name-list { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.name-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border: 2px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-soft);
+}
+.name-row:focus-within { border-color: var(--accent); }
+.name-no {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-md);
+  color: #fff; background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+}
+.name-row input {
+  flex: 1; min-width: 0;
+  border: 0; background: none; color: var(--fg);
+  font-family: var(--font-body); font-size: var(--text-lg); font-weight: 700;
+}
+.name-row input:focus { outline: none; }
+
 /* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
 section.panel { display: flex; flex-direction: column; min-height: 0; }
 .step-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -399,15 +462,20 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    chiều cao — hai dòng chữ to đọc dễ hơn một dòng chữ tí xíu.
    Selector phải thắng `.option strong` (0,1,1) nên mới viết dạng này. */
 .option strong.tname {
-  font-size: clamp(11px, min(20cqw, 24cqh), 21px);
-  line-height: 1.15; text-align: center; max-width: 100%;
+  /* Hệ số nhỏ hơn các nhãn khác vì Baloo 2 rộng và cao hơn Nunito — giữ 20cqw
+     thì tên hai dòng như "Cờ quốc gia" tràn khỏi ô. */
+  font-size: clamp(11px, min(16.5cqw, 20cqh), 19px);
+  /* 1,25 chứ không 1,15: Baloo 2 có phần trên/dưới chữ cao, dòng chật quá thì
+     dấu tiếng Việt của hai dòng chạm nhau. */
+  line-height: 1.25; text-align: center; max-width: 100%;
   overflow-wrap: break-word;
 }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
 .option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
   border-color: transparent;
   background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  box-shadow: 0 8px 26px rgba(106, 92, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
   color: #fff;
 }
 .option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }
@@ -462,8 +530,17 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   color: var(--accent); line-height: 1;
 }
 .neon .count-num { color: #fff; }
-.option strong { font-size: clamp(16px, 8cqw, 28px); }
-.option small { color: var(--muted); font-size: clamp(12.5px, 5cqw, 17px); line-height: 1.35; }
+/* Baloo 2 như mọi nhãn nút khác: OnlineScreen vẫn dùng font hiển thị nên để
+   Nunito ở đây làm hai màn cùng loại trông như hai app khác nhau. */
+/* Chặn theo CẢ chiều cao ô: Baloo 2 cao hơn Nunito nên ở màn thấp (320×568)
+   mô tả hai dòng tràn khỏi ô. */
+.option strong { font-family: var(--font-display); font-size: clamp(15px, min(8cqw, 26cqh), 28px); }
+.option small { color: var(--muted); font-size: clamp(11.5px, min(5cqw, 17cqh), 17px); line-height: 1.35; }
+/* Ô quá thấp (màn 320×568 chia 5 chế độ ra ô 68px) thì bỏ mô tả, giữ tên chế
+   độ — chữ đã ở cỡ nhỏ nhất, không co được nữa. */
+@container (max-height: 80px) {
+  .option.wide small { display: none; }
+}
 
 .option.big .icon { font-size: 42px; }
 .option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }

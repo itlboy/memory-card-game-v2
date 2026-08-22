@@ -105,6 +105,15 @@ export const store = {
 
   totalScore(): number { return read().totalScore ?? 0; },
 
+  /** Cộng điểm vào tổng tích luỹ mà không ghi kỷ lục — dùng cho ván thi đấu
+   *  (nhiều người / online), nơi kỷ lục theo lưới không có nghĩa. */
+  addScore(score: number): void {
+    if (score <= 0) return;
+    const s = read();
+    s.totalScore = (s.totalScore ?? 0) + score;
+    write(s);
+  },
+
   achievements(): string[] { return read().achievements ?? []; },
 
   /** Trả về danh sách thành tích vừa mở khoá lần này. */

@@ -2,8 +2,8 @@ export { MemoryGame } from './game.js';
 export { Rng, seedFrom } from './rng.js';
 export { buildDeck } from './deck.js';
 export {
-  BASE_POINTS, FLIP_BACK_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
-  comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
+  BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
+  comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 export { CAMPAIGN_LEVELS, allLevels, levelConfig, levelSpec, perfectScore } from './campaign.js';
 export { GRIDS, presetConfig } from './presets.js';

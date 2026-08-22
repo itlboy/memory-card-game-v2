@@ -94,7 +94,8 @@ li { display: flex; min-height: 0; align-items: stretch; }
 .node.next {
   border-color: transparent; color: #fff;
   background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  box-shadow: 0 6px 18px rgba(106, 92, 255, .45), inset 0 1px 0 rgba(255, 255, 255, .3);
+  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
 .node.next small { color: rgba(255, 255, 255, .85); }
 /* Sao vàng trên nền tím gần như không đọc được */

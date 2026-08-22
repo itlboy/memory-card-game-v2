@@ -330,12 +330,14 @@ class Sfx {
   }
 
   /** Một quả pháo hoa: rít bay lên → nổ trầm → lách tách. */
-  firework(delay = 0): void {
-    this.voice(380, { dur: 0.55, type: 'sine', gain: 0.02, delay, slideTo: 1250 });          // rít
-    this.noise(0.45, { freq: 160, type: 'lowpass', gain: 0.12, delay: delay + 0.6 });        // nổ
-    this.voice(90, { dur: 0.5, type: 'sine', gain: 0.06, delay: delay + 0.6, slideTo: 34 });
+  /** `level` nhân vào biên độ: pháo hoa còn nổ tiếp sau khi bảng kết quả hiện
+   *  lên, nhưng phải nhỏ hẳn để không lấn tiếng bấm nút của người chơi. */
+  firework(delay = 0, level = 1): void {
+    this.voice(380, { dur: 0.55, type: 'sine', gain: 0.02 * level, delay, slideTo: 1250 });   // rít
+    this.noise(0.45, { freq: 160, type: 'lowpass', gain: 0.12 * level, delay: delay + 0.6 }); // nổ
+    this.voice(90, { dur: 0.5, type: 'sine', gain: 0.06 * level, delay: delay + 0.6, slideTo: 34 });
     for (let i = 0; i < 9; i++) {                                                            // lách tách
-      this.noise(0.03, { freq: 5200 + Math.random() * 2500, gain: 0.02, delay: delay + 0.72 + i * 0.05 + Math.random() * 0.03 });
+      this.noise(0.03, { freq: 5200 + Math.random() * 2500, gain: 0.02 * level, delay: delay + 0.72 + i * 0.05 + Math.random() * 0.03 });
     }
   }
 
