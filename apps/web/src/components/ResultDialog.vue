@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isDraw } from '@mm/engine';
 import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { byId } from '@/lib/achievements';
@@ -87,10 +88,15 @@ const REASON: Record<Summary['reason'], string> = {
   forfeit: 'Đối thủ đã rời trận.'
 };
 
+const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
+
 const title = computed(() => {
   // Nhiều người: LUÔN xếp hạng, kể cả khi ván dừng vì hết giờ hay hết mạng —
   // lúc đó engine trả status 'lost' nhưng vẫn có người dẫn điểm, mà báo
   // "Chưa xong" thì cả phòng không biết ai thắng.
+  // Bằng điểm thì phải nói HOÀ: lấy người đầu danh sách rồi tuyên bố thắng là
+  // sai, thứ tự đó chỉ do sort quyết định.
+  if (draw.value) return 'Hoà rồi! 🤝';
   if (props.multiplayer) return `${props.summary.ranking[0]?.name} thắng! 🏆`;
   if (props.summary.status !== 'won') return 'Chưa xong 😢';
   return props.isRecord ? 'Kỷ lục mới! 🏆' : 'Hoàn thành! 🎉';
@@ -113,7 +119,8 @@ const title = computed(() => {
 
       <ol v-if="multiplayer" class="ranking">
         <li v-for="(p, i) in summary.ranking" :key="p.id">
-          <span>{{ i + 1 }}. {{ p.name }}</span>
+          <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
+          <span>{{ draw && i < 2 ? 1 : i + 1 }}. {{ p.name }}</span>
           <b>{{ num(p.score) }}</b>
           <small>{{ p.pairs }} cặp · chuỗi {{ p.bestStreak }}</small>
         </li>

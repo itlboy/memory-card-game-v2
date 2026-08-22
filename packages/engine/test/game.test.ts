@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { MemoryGame } from '../src/game.js';
 import { clearBoard, makeGame, matchPair, missKnown, missPair, pairSlots } from './helpers.js';
 
 describe('luật chơi cốt lõi (SRS mục 2)', () => {
@@ -91,11 +92,22 @@ describe('Time Attack (SP-02)', () => {
     expect(s.score).toBe(1370 + 250);
   });
 
+  it('ghép đúng được cộng 2 giây vào đồng hồ chung', () => {
+    const g = makeGame({ mode: 'time', timeLimit: 30 });
+    g.start(0);
+    const before = g.timeLeft(1000)!;
+    matchPair(g, 0, 1000);
+    // +2s bonus, cùng mốc thời gian nên chênh lệch đúng bằng phần thưởng
+    expect(g.timeLeft(1000)! - before).toBeCloseTo(2, 3);
+    // Thời gian ĐÃ CHƠI không được đổi, nếu không kỷ lục sẽ sai
+    expect(g.elapsed(1000)).toBeCloseTo(1, 3);
+  });
+
   it('hết thời gian là thua, không có thưởng thời gian', () => {
     const g = makeGame({ mode: 'time', timeLimit: 30 });
     g.start(0);
     matchPair(g, 0, 1000);
-    g.tick(31_000);
+    g.tick(33_100);   // 30s + 2s vừa được cộng nhờ ghép đúng
     expect(g.status).toBe('lost');
     expect(g.summary()!.reason).toBe('timeout');
     expect(g.summary()!.timeBonus).toBe(0);
@@ -167,5 +179,37 @@ describe('giới hạn lượt lật (Campaign)', () => {
     matchPair(g, 0);
     matchPair(g, 1);
     expect(g.status).toBe('won');
+  });
+});
+
+describe('avatar người chơi', () => {
+  const two = (seed: number): MemoryGame => makeGame({
+    seed, players: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }]
+  });
+
+  it('cùng seed cho cùng bộ avatar — F5 giữa ván không đổi mặt', () => {
+    expect(two(7).players.map((p) => p.avatar)).toEqual(two(7).players.map((p) => p.avatar));
+    expect(MemoryGame.restore(two(7).snapshot()).players.map((p) => p.avatar))
+      .toEqual(two(7).players.map((p) => p.avatar));
+  });
+
+  it('seed khác cho bộ khác — ván mới là bộ mặt mới', () => {
+    const sets = new Set<string>();
+    for (let seed = 1; seed <= 40; seed++) sets.add(two(seed).players.map((p) => p.avatar).join());
+    expect(sets.size).toBeGreaterThan(10);
+  });
+
+  it('trong một ván không ai trùng avatar', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const a = two(seed).players.map((p) => p.avatar);
+      expect(new Set(a).size).toBe(a.length);
+    }
+  });
+
+  it('avatar do bên ngoài đặt (online) được giữ nguyên', () => {
+    const g = makeGame({ players: [{ id: 'p1', name: 'A', avatar: '🐙' }, { id: 'p2', name: 'B' }] });
+    // Thứ tự đi được xáo theo seed nên phải tra theo id, không theo vị trí
+    expect(g.players.find((p) => p.id === 'p1')!.avatar).toBe('🐙');
+    expect(g.players.find((p) => p.id === 'p2')!.avatar).toBeTruthy();
   });
 });

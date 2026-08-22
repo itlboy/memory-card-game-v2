@@ -7,6 +7,10 @@ export const FLIP_BACK_MS = 1000;
 /** Ghép đúng được cộng thêm vào đồng hồ lượt (multiplayer), không vượt trần TURN_LIMIT. */
 export const TURN_BONUS_MS = 5_000;
 
+/** Đua thời gian: ghép đúng được cộng thêm giây vào đồng hồ CHUNG của ván —
+ *  ghép nhanh thì được chơi lâu hơn, thành ra càng đua càng có đà. */
+export const MATCH_TIME_BONUS_MS = 2_000;
+
 /** Hệ số combo theo chuỗi ghép đúng liên tiếp: cặp 1 = x1, 2 = x1.2, 3 = x1.5, 4+ = x2. */
 const COMBO_STEPS = [1, 1.2, 1.5, 2] as const;
 
@@ -38,6 +42,18 @@ export function starsFor(score: number, thresholds?: readonly [number, number]):
  * thắng dù đang dẫn điểm); còn lại điểm cao trước, hoà thì so chuỗi đúng
  * liên tiếp dài nhất, rồi số cặp mở được (MP-04).
  */
+/** Hai người dẫn đầu có CÙNG điểm, cùng chuỗi, cùng số cặp → hoà thật sự.
+ *  Không có hàm này thì UI cứ lấy người đầu danh sách và tuyên bố thắng, dù
+ *  thứ tự đó chỉ do sort ngẫu nhiên quyết định. */
+export function isDraw<T extends {
+  score: number; bestStreak: number; pairs: number; forfeited?: boolean;
+}>(ranking: readonly T[]): boolean {
+  const alive = ranking.filter((p) => !p.forfeited);
+  if (alive.length < 2) return false;
+  const [a, b] = alive as [T, T];
+  return a.score === b.score && a.bestStreak === b.bestStreak && a.pairs === b.pairs;
+}
+
 export function rankPlayers<T extends {
   score: number; bestStreak: number; pairs: number; forfeited?: boolean;
 }>(players: readonly T[]): T[] {

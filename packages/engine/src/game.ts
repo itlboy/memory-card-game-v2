@@ -1,13 +1,19 @@
 import { buildDeck } from './deck.js';
 import { Rng } from './rng.js';
 import {
-  FLIP_BACK_MS, MISS_PENALTY, TURN_BONUS_MS, comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
+  FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TURN_BONUS_MS,
+  comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 import type {
   Card, GameConfig, GameEvent, GameStatus, Player, PlayerInit, Power, Summary
 } from './types.js';
 
 const SOLO_POWERS: readonly Power[] = ['bomb', 'x2', 'eye'];
+
+/** Avatar mặc định cho ván nhiều người cùng máy. Gán theo SEED (không phải theo
+ *  thứ tự) nên mỗi ván mới là một bộ khác — nhưng F5 giữa ván hay khôi phục từ
+ *  snapshot vẫn ra đúng bộ cũ, vì cùng seed. */
+const AVATARS: readonly string[] = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐧', '🦁', '🐨', '🐮', '🐷'];
 
 function makePlayer(init: PlayerInit, lives: number | null): Player {
   return {
@@ -44,6 +50,9 @@ export class MemoryGame {
   private pendingUntil = 0;
   /** Hạn chót của lượt hiện tại (ms). 0 = không dùng đồng hồ lượt. */
   turnDeadline = 0;
+  /** Thời gian được cộng thêm nhờ ghép đúng (Đua thời gian). Tách khỏi
+   *  `startedAt` để `elapsed()` vẫn là thời gian thực đã chơi. */
+  private extraTimeMs = 0;
   private rng: Rng;
   private summaryCache: Summary | null = null;
   /** Các ô người chơi ĐÃ TỪNG thấy mặt trước. Dùng để phán xử lỗi trong Sinh tồn:
@@ -66,6 +75,12 @@ export class MemoryGame {
       ? config.players
       : [{ id: 'p1', name: 'Bạn' }];
     let players = inits.map((p) => makePlayer(p, config.lives ?? null));
+    // Avatar: chỉ gán cho người chưa có (online do server tự đặt). Rút từ danh
+    // sách đã xáo theo seed để mỗi ván một bộ khác nhau.
+    if (players.some((p) => !p.avatar)) {
+      const picked = this.rng.sample(AVATARS, players.length);
+      players = players.map((p, i) => (p.avatar ? p : { ...p, avatar: picked[i] }));
+    }
     // Thứ tự đi ngẫu nhiên theo seed — chủ phòng không mặc nhiên đi trước.
     // Tất định theo seed nên server/client và snapshot/restore vẫn khớp nhau.
     if (players.length > 1 && config.shufflePlayers !== false) {
@@ -90,7 +105,7 @@ export class MemoryGame {
 
   timeLeft(now: number): number | null {
     const limit = this.config.timeLimit ?? null;
-    return limit === null ? null : Math.max(0, limit - this.elapsed(now));
+    return limit === null ? null : Math.max(0, limit + this.extraTimeMs / 1000 - this.elapsed(now));
   }
 
   /** Giây còn lại của lượt hiện tại; null nếu không dùng đồng hồ lượt. */
@@ -210,6 +225,13 @@ export class MemoryGame {
         // +5 giây nhưng không vượt trần 15 giây tính từ bây giờ
         this.turnDeadline = Math.min(this.turnDeadline + TURN_BONUS_MS, now + this.turnLimitMs);
         out.push({ type: 'time-bonus', playerId: player.id, ms: TURN_BONUS_MS });
+      }
+      // Đua thời gian: ghép đúng được thêm giây vào đồng hồ chung. Giữ RIÊNG
+      // trong extraTimeMs, không cộng vào startedAt — làm thế thì `elapsed()`
+      // ngắn đi và thời gian hoàn thành ghi vào kỷ lục sẽ sai.
+      if (this.config.timeLimit != null) {
+        this.extraTimeMs += MATCH_TIME_BONUS_MS;
+        out.push({ type: 'time-bonus', playerId: player.id, ms: MATCH_TIME_BONUS_MS });
       }
 
       if (this.matched.size === this.totalPairs) {
@@ -388,6 +410,7 @@ export class MemoryGame {
       revealUntil: this.revealUntil,
       pendingUntil: this.pendingUntil,
       turnDeadline: this.turnDeadline,
+      extraTimeMs: this.extraTimeMs,
       seen: [...this.seen],        // thiếu cái này thì sau F5 hoặc hibernation
       rngState: this.rng.state,    // engine "quên" thẻ nào đã lộ và phán xử sai
       summaryCache: this.summaryCache && {
@@ -418,6 +441,7 @@ export class MemoryGame {
       revealUntil: s.revealUntil,
       pendingUntil: s.pendingUntil,
       turnDeadline: s.turnDeadline ?? 0,
+      extraTimeMs: (s.extraTimeMs as number | undefined) ?? 0,
       seen: new Set((s.seen as number[] | undefined) ?? []),
       rng: Rng.fromState(s.rngState as number),
       summaryCache: s.summaryCache

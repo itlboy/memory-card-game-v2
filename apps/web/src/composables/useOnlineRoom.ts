@@ -1,9 +1,10 @@
-import { ROOM_LIMITS } from '@mm/engine';
+import { ROOM_LIMITS, isDraw } from '@mm/engine';
 import type {
   ClientMsg, GameView, PublicEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { sfx } from '@/lib/audio';
+import { store } from '@/lib/storage';
 
 /** Địa chỉ server online; đổi qua biến build VITE_SERVER_URL khi deploy. */
 const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined) ?? 'http://localhost:8787';
@@ -295,10 +296,18 @@ export function useOnlineRoom() {
           timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
           setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
-        case 'end':
-          e.summary.ranking[0]?.id === myId.value ? sfx.victory() : sfx.defeat();
+        case 'end': {
+          const draw = isDraw(e.summary.ranking);
+          const iLead = e.summary.ranking[0]?.id === myId.value;
+          if (draw) sfx.win();                     // hoà: mừng nhẹ, không fanfare
+          else if (iLead) sfx.victory();
+          else sfx.defeat();
+          // Điểm của CHÍNH mình được cộng vào tổng tích luỹ — chơi online cả
+          // buổi mà tổng không nhích thì không mở được theme nào
+          store.addScore(e.summary.ranking.find((p) => p.id === myId.value)?.score ?? 0);
           endSession();
           break;
+        }
       }
     }
     if (turnId) {

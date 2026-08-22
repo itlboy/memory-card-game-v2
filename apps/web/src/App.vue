@@ -292,6 +292,12 @@ watch(session.summary, (s) => {
       livesLeft: player.lives,
       levelId: levelId.value ?? undefined
     }));
+  } else {
+    // Ván thi đấu cũng phải được cộng vào tổng tích luỹ, nếu không chơi nhiều
+    // người cả buổi mà điểm vẫn đứng yên — và theme khoá theo điểm nên người
+    // hay chơi cùng bạn bè không bao giờ mở được gì. Lấy điểm người dẫn đầu:
+    // đây là thành tích của MÁY này, không phân biệt được ai đang cầm.
+    store.addScore(s.ranking[0]?.score ?? 0);
   }
   totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
