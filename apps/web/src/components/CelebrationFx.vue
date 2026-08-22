@@ -18,18 +18,30 @@ const base = computed(() => props.seed ?? 7);
 const SOFT_START_MS = 4000;
 const SOFT_EVERY_MS = 1900;
 const SOFT_LEVEL = 0.18;
+/** Bảng kết quả hiện ở 5s (App.vue và OnlineScreen.vue), cho tiếng kéo thêm 2
+ *  giây rồi TẮT HẲN — người chơi cần đọc kết quả và bấm nút trong yên tĩnh.
+ *  Hình thì vẫn chạy tiếp. */
+const SOFT_STOP_MS = 7000;
 let softTimer: ReturnType<typeof setInterval> | undefined;
 let startTimer: ReturnType<typeof setTimeout> | undefined;
+let stopTimer: ReturnType<typeof setTimeout> | undefined;
+
+function hushSound(): void {
+  clearInterval(softTimer);
+  softTimer = undefined;
+}
 
 onMounted(() => {
   startTimer = setTimeout(() => {
     sfx.firework(0, SOFT_LEVEL);
     softTimer = setInterval(() => sfx.firework(0, SOFT_LEVEL), SOFT_EVERY_MS);
   }, SOFT_START_MS);
+  stopTimer = setTimeout(hushSound, SOFT_STOP_MS);
 });
 onBeforeUnmount(() => {
   clearTimeout(startTimer);
-  clearInterval(softTimer);
+  clearTimeout(stopTimer);
+  hushSound();
 });
 
 /** 8 vụ pháo hoa rải trong ~5.5 giây — phủ trọn khoảng chờ trước popup. */
