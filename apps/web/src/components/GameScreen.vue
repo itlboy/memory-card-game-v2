@@ -10,6 +10,8 @@ const props = defineProps<{
   session: ReturnType<typeof useGameSession>;
   game: MemoryGame;
   levelId?: number;
+  /** Số ván thắng của từng người trong loạt (theo tên). */
+  seriesWins?: Record<string, number>;
 }>();
 
 const emit = defineEmits<{ quit: [] }>();
@@ -152,6 +154,7 @@ const fitStyle = computed(() => ({
       :current-id="s.current.value?.id ?? ''"
       :turn-left="s.turnTimeLeft.value"
       :bonus-for="s.timeBonusFor.value"
+      :series-wins="seriesWins"
     />
 
     <div ref="wrap" class="board-wrap">

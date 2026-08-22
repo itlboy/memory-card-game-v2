@@ -9,6 +9,8 @@ defineProps<{
   turnLeft?: number | null;
   /** Người vừa được +10s (ghép đúng), kèm key để lặp animation. */
   bonusFor?: { playerId: string; key: number } | null;
+  /** Số ván đã thắng trong loạt (theo tên) — cho biết ai đang dẫn cả loạt. */
+  seriesWins?: Record<string, number>;
 }>();
 
 const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
@@ -35,6 +37,9 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
       <Transition name="plus">
         <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
       </Transition>
+      <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${seriesWins?.[p.name]} ván`">
+        🏅{{ seriesWins?.[p.name] }}
+      </span>
       <span class="pts" :data-pts-for="p.id">{{ p.score }}</span>
       <small v-if="Number.isFinite(p.lives)" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
       <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng">❄️</span>
@@ -65,6 +70,13 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 .name {
   font-size: 13px; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Số ván đã thắng trong loạt — biết ai đang dẫn mà không phải mở bảng kết quả */
+.wins {
+  flex-shrink: 0; font-size: 11px; font-weight: 800;
+  padding: 1px 5px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--gold) 30%, transparent);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 .pts {
   margin-left: auto; font-family: var(--font-display); font-size: 15px;

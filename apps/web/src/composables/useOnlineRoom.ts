@@ -298,6 +298,13 @@ export function useOnlineRoom() {
           break;
         case 'end': {
           const draw = isDraw(e.summary.ranking);
+          // Tỷ số cả loạt trong phòng: chủ phòng bấm "chơi lại" nhiều ván nên
+          // đây là con số người trong phòng thực sự theo dõi. Giữ ở client theo
+          // TÊN (id đổi khi vào lại phòng), hoà thì không ai được cộng.
+          const champName = e.summary.ranking[0]?.name;
+          if (champName && !draw) {
+            seriesWins.value = { ...seriesWins.value, [champName]: (seriesWins.value[champName] ?? 0) + 1 };
+          }
           const iLead = e.summary.ranking[0]?.id === myId.value;
           if (draw) sfx.win();                     // hoà: mừng nhẹ, không fanfare
           else if (iLead) sfx.victory();
@@ -382,6 +389,9 @@ export function useOnlineRoom() {
   /* ---------- chống spam emoji ---------- */
   // Server mới là nơi thực sự chặn (client không đáng tin — ON-09); phần này chỉ
   // để người chơi THẤY mình đã hết lượt, chứ không phải bấm mà chẳng có gì xảy ra.
+  /** Số ván thắng của từng người trong phòng, theo tên. */
+  const seriesWins = ref<Record<string, number>>({});
+
   const emojiSentAt: number[] = [];
   const emojiReady = ref(true);
   /** Giây còn lại tới lúc gửi được tiếp; 0 khi đang rảnh. Hiện lên UI để người
@@ -434,6 +444,8 @@ export function useOnlineRoom() {
     emojiReady,
     /** Giây còn lại tới lúc gửi được tiếp (0 = đang rảnh). */
     emojiCooldown,
+    /** Số ván thắng trong loạt của phòng (theo tên). */
+    seriesWins,
     roomCode: () => code
   };
 }

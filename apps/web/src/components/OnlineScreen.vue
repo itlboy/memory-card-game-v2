@@ -577,6 +577,9 @@ function openCfgWizard(): void {
             :key="o.timeBonusFor.value.key" class="plus10"
           >+5s</span>
         </Transition>
+        <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${o.seriesWins.value[p.name]} ván`">
+          🏅{{ o.seriesWins.value[p.name] }}
+        </span>
         <span class="pts">{{ p.score }}</span>
         <Transition name="bubble">
           <span v-if="o.bubbles.value[p.id]" :key="o.bubbles.value[p.id]!.key" class="bubble">
@@ -651,6 +654,7 @@ function openCfgWizard(): void {
       :is-record="false" :show-stars="false" :multiplayer="true"
       :fresh-achievements="[]" :has-next="false"
       :total-before="0" :total-after="0"
+      :series-wins="o.seriesWins.value"
       @replay="o.isHost.value ? o.again() : undefined"
       @next="o.again()"
       @menu="quit"
@@ -917,6 +921,13 @@ input:focus { outline: none; border-color: var(--accent); }
 .pchip .avatar { font-size: 18px; }
 .pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pchip .lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
+/* Số ván thắng trong loạt — thấy ai đang dẫn ngay trong ván */
+.pchip .wins {
+  flex-shrink: 0; font-size: 11px; font-weight: 800;
+  padding: 1px 5px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--gold) 30%, transparent);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
 .pchip .pts { margin-left: auto; font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
 .turn-clock {
   font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
