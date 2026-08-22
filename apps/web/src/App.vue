@@ -128,18 +128,29 @@ void loadThemes().then((list) => {
 });
 
 onMounted(() => {
-  // iOS/Android chỉ cho phát âm sau cử chỉ người dùng — mở khoá ở tương tác đầu tiên
-  const unlock = (): void => sfx.unlock();
-  for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) {
-    document.addEventListener(ev, unlock, { once: true, passive: true });
+  // iOS/Android chỉ cho phát âm sau CỬ CHỈ người dùng. Quan trọng: sau khi thoát
+  // ra home rồi vào lại, iOS đòi cử chỉ mới — nên phải gắn LẠI bộ mở khoá mỗi
+  // lần trang hiện lại, không chỉ một lần lúc mở app (đó là lý do trước đây vào
+  // lại vẫn mất tiếng: resume() gọi ngoài cử chỉ bị iOS từ chối).
+  const GESTURES = ['pointerdown', 'keydown', 'touchstart'] as const;
+  const unlock = (): void => {
+    sfx.unlock();
+    armUnlock();   // tự gắn lại cho lần sau
+  };
+  function armUnlock(): void {
+    for (const ev of GESTURES) {
+      document.removeEventListener(ev, unlock);
+      document.addEventListener(ev, unlock, { once: true, passive: true });
+    }
   }
-  // Quay lại app sau khi thoát ra home: iOS treo AudioContext và không tự chạy
-  // lại, phải gọi resume() nếu không sẽ mất tiếng đến khi tải lại trang.
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) sfx.resume();
-  });
-  window.addEventListener('focus', () => sfx.resume());
-  window.addEventListener('pageshow', () => sfx.resume());
+  armUnlock();
+
+  // Quay lại app: thử chạy lại ngay (có khi được), đồng thời vũ trang cử chỉ để
+  // lần chạm kế tiếp chắc chắn mở khoá được.
+  const wake = (): void => { sfx.resume(); armUnlock(); };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+  window.addEventListener('focus', wake);
+  window.addEventListener('pageshow', wake);
   // Khôi phục vị trí từ URL sau F5 / mở link mời
   const q = new URLSearchParams(location.search);
   const code = q.get('room');

@@ -72,7 +72,9 @@ class Sfx {
   private ac(): AudioContext | null {
     try {
       if (!this.ctx) {
-        const ctx = new AudioContext();
+        const Ctor: typeof AudioContext =
+          window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new Ctor();
         const master = ctx.createGain();
         master.gain.value = this.vol;
 
@@ -122,22 +124,41 @@ class Sfx {
         this.ctx = ctx;
         this.master = master;
       }
-      if (this.ctx.state === 'suspended') void this.ctx.resume();
+      if (this.ctx.state !== 'running') void this.ctx.resume().catch(() => { /* chờ cử chỉ */ });
       return this.master ? this.ctx : null;
     } catch { return null; }
   }
 
-  /** iOS treo AudioContext khi app xuống nền và KHÔNG tự chạy lại khi quay lại
-   *  — người chơi thoát ra home rồi vào lại là mất tiếng cho tới khi tải lại
-   *  trang. Gọi hàm này mỗi lần trang hiện lại để dựng AudioContext trở lại. */
+  /** Bỏ hẳn AudioContext hiện tại để lần phát sau dựng cái mới. */
+  private dispose(): void {
+    const ctx = this.ctx;
+    this.ctx = null;
+    this.master = null;
+    this.noiseBuf = null;      // buffer thuộc context cũ, không dùng lại được
+    try { void ctx?.close(); } catch { /* đã đóng */ }
+  }
+
+  /** Gọi mỗi lần trang hiện lại. iOS treo AudioContext khi app xuống nền, và
+   *  đôi khi giết hẳn: state vẫn báo 'running' nhưng currentTime đứng im và
+   *  không ra tiếng nào. Trường hợp đó chỉ dựng context mới mới cứu được —
+   *  resume() suông là lý do trước đây vẫn mất tiếng.
+   *  Lưu ý: iOS chỉ cho resume trong cử chỉ người dùng, nên App còn gắn lại
+   *  unlock() vào lần chạm kế tiếp; hai lớp này bù cho nhau. */
   resume(): void {
     const ctx = this.ctx;
     if (!ctx) return;
-    // Safari có thể để trạng thái 'interrupted' (ngoài chuẩn) sau cuộc gọi/khoá máy
-    if (ctx.state !== 'running') void ctx.resume().catch(() => { /* cần cử chỉ mới */ });
+    if (ctx.state === 'closed') { this.dispose(); return; }
+    void ctx.resume().catch(() => { /* cần cử chỉ mới */ });
+    // Đồng hồ của context phải chạy; đứng im nghĩa là nó đã chết
+    const t0 = ctx.currentTime;
+    setTimeout(() => {
+      if (this.ctx !== ctx) return;
+      if (ctx.state === 'closed' || (ctx.state === 'running' && ctx.currentTime === t0)) this.dispose();
+    }, 350);
   }
 
-  /** Gọi trong cử chỉ đầu tiên của người dùng — bắt buộc để iOS cho phát âm. */
+  /** Gọi trong cử chỉ đầu tiên của người dùng — bắt buộc để iOS cho phát âm.
+   *  Gọi lại được nhiều lần: sau khi quay lại app cần mở khoá lần nữa. */
   unlock(): void {
     const ctx = this.ac();
     if (!ctx) return;
