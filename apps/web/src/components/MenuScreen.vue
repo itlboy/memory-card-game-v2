@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { GRIDS } from '@mm/engine';
-import { Brain, ChevronLeft, Eye, Globe, Heart, Map, Timer, User, Users } from 'lucide-vue-next';
+import { Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
 import type { Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
@@ -249,13 +249,23 @@ function toggleTheme(id: string): void {
             v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
             :aria-checked="themeIds.includes(t.id)"
             :aria-disabled="!unlocked(t)"
+            :aria-label="unlocked(t) ? t.name : `${t.name} — cần ${t.unlockAt / 1000}k điểm`"
             :disabled="!unlocked(t)"
             type="button"
             @click="unlocked(t) && toggleTheme(t.id)"
           >
             <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
             <strong class="tname">{{ t.name }}</strong>
-            <small v-if="!unlocked(t)">🔒 {{ t.unlockAt / 1000 }}k điểm</small>
+            <!-- Badge khoá ở góc đã nói trạng thái; ở đây chỉ cần mốc điểm -->
+            <small v-if="!unlocked(t)">{{ t.unlockAt / 1000 }}k điểm</small>
+            <!-- Dấu chọn / khoá nằm TUYỆT ĐỐI ở góc: nằm trong luồng thì nó chiếm
+                 một dòng và đẩy tên theme tràn ra khỏi ô -->
+            <span v-if="themeIds.includes(t.id)" class="tick" aria-hidden="true">
+              <Check :size="12" />
+            </span>
+            <span v-else-if="!unlocked(t)" class="tick locked" aria-hidden="true">
+              <Lock :size="11" />
+            </span>
           </button>
         </div>
 
@@ -340,17 +350,38 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .grid-preview i.blank { background: transparent; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: clamp(15.5px, 19cqw, 24px); }
-.options.grid3 small, .theme-opt small { font-size: clamp(11.5px, 12cqw, 14px); }
+.options.grid3 small, .theme-opt small { font-size: clamp(10px, min(12cqw, 15cqh), 14px); }
 /* Phải đủ specificity để thắng `.option { padding: 16px 12px }` viết bên dưới —
    padding 12px hai bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
-.options.grid2 .option.theme-opt { padding: 8px 5px; gap: 4px; }
-.theme-sample { font-size: clamp(15px, 26cqw, 32px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
+.options.grid2 .option.theme-opt { padding: 8px 5px; gap: 4px; position: relative; }
+/* Cỡ chữ phải co theo CẢ chiều cao: màn thấp (320×568) ô chỉ còn 46px, chỉ tính
+   theo bề rộng thì nội dung tràn ra ngoài cả 12 ô. */
+.theme-sample {
+  font-size: clamp(13px, min(26cqw, 30cqh), 32px);
+  letter-spacing: 1px; white-space: nowrap; opacity: .9;
+}
+/* Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
+   phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
+   chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình. */
+@container (max-height: 74px) {
+  .theme-sample { display: none; }
+  .theme-opt small { display: none; }
+}
+/* Dấu chọn: badge tròn ở góc, không chiếm chỗ trong luồng */
+.tick {
+  position: absolute; top: 3px; right: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--accent);
+  box-shadow: 0 2px 6px rgba(30, 27, 75, .3);
+}
+.tick.locked { background: var(--panel-solid); color: var(--muted); }
 /* Tên theme: cỡ chữ co theo bề rộng ô và ĐƯỢC PHÉP xuống dòng. Giữ một dòng thì
    cỡ chữ bị bề rộng ô (chỉ ~89px) khoá ở 12px trong khi ô còn trống gần 80px
    chiều cao — hai dòng chữ to đọc dễ hơn một dòng chữ tí xíu.
    Selector phải thắng `.option strong` (0,1,1) nên mới viết dạng này. */
 .option strong.tname {
-  font-size: clamp(13px, 20cqw, 21px);
+  font-size: clamp(11px, min(20cqw, 24cqh), 21px);
   line-height: 1.15; text-align: center; max-width: 100%;
   overflow-wrap: break-word;
 }

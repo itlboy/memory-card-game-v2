@@ -375,18 +375,28 @@ export function useOnlineRoom() {
   // để người chơi THẤY mình đã hết lượt, chứ không phải bấm mà chẳng có gì xảy ra.
   const emojiSentAt: number[] = [];
   const emojiReady = ref(true);
-  let emojiTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Giây còn lại tới lúc gửi được tiếp; 0 khi đang rảnh. Hiện lên UI để người
+   *  chơi biết phải chờ bao lâu, chứ không phải bấm mãi mà không hiểu vì sao. */
+  const emojiCooldown = ref(0);
+  let emojiTimer: ReturnType<typeof setInterval> | undefined;
 
   function refreshEmojiQuota(): void {
     const cutoff = Date.now() - ROOM_LIMITS.emojiWindowMs;
     while (emojiSentAt.length && emojiSentAt[0]! <= cutoff) emojiSentAt.shift();
     emojiReady.value = emojiSentAt.length < ROOM_LIMITS.emojiBurst;
-    clearTimeout(emojiTimer);
-    if (!emojiReady.value) {
-      // Mở lại đúng lúc cái cũ nhất rơi ra khỏi cửa sổ
-      emojiTimer = setTimeout(refreshEmojiQuota, emojiSentAt[0]! + ROOM_LIMITS.emojiWindowMs - Date.now() + 30);
+    if (emojiReady.value) {
+      emojiCooldown.value = 0;
+      clearInterval(emojiTimer);
+      emojiTimer = undefined;
+      return;
     }
+    // Mở lại đúng lúc cái cũ nhất rơi ra khỏi cửa sổ
+    const openAt = emojiSentAt[0]! + ROOM_LIMITS.emojiWindowMs;
+    emojiCooldown.value = Math.max(1, Math.ceil((openAt - Date.now()) / 1000));
+    if (!emojiTimer) emojiTimer = setInterval(refreshEmojiQuota, 250);
   }
+
+  onScopeDispose(() => clearInterval(emojiTimer));
 
   function sendEmoji(emoji: string): void {
     refreshEmojiQuota();
@@ -413,6 +423,8 @@ export function useOnlineRoom() {
     sendEmoji,
     /** Còn được gửi emoji không — dùng để làm mờ và chặn nút. */
     emojiReady,
+    /** Giây còn lại tới lúc gửi được tiếp (0 = đang rảnh). */
+    emojiCooldown,
     roomCode: () => code
   };
 }
