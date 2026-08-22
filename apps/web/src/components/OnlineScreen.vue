@@ -559,6 +559,10 @@ function openCfgWizard(): void {
         :disabled="!o.emojiReady.value"
         @click="o.sendEmoji(e)"
       >{{ e }}</button>
+      <!-- Hết lượt: nói rõ còn phải chờ mấy giây -->
+      <span v-if="o.emojiCooldown.value" class="cooldown" role="status">
+        🧊 {{ o.emojiCooldown.value }}s
+      </span>
     </div>
 
     <CelebrationFx v-if="o.view.value?.summary && iWon" />
@@ -889,10 +893,13 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .countdown .first b { color: var(--accent); }
 
+/* Emoji người khác gửi bay giữa bàn chơi — để hơi trong, người chơi vẫn theo
+   được thẻ bên dưới trong lúc nó bay qua. */
 .emoji-blast {
   position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   pointer-events: none; z-index: 6;
+  opacity: .78;
 }
 .emoji-blast .big {
   font-size: clamp(64px, 22vw, 110px); line-height: 1;
@@ -916,16 +923,22 @@ input:focus { outline: none; border-color: var(--accent); }
 .blast-leave-active { transition: opacity .25s; }
 .blast-leave-to { opacity: 0; }
 
-/* Thanh emoji nằm đè lên khu vực chơi nên để mờ; sáng hẳn khi người chơi thật
-   sự chạm vào nó (hover trên máy tính, focus/bấm trên điện thoại). */
 .emoji-bar {
   display: flex; gap: 4px; justify-content: center;
-  opacity: .5;
   transition: opacity .18s ease;
 }
-.emoji-bar:hover, .emoji-bar:focus-within, .emoji-bar:active { opacity: 1; }
-/* Hết lượt trong 10 giây: mờ hẳn để thấy rõ là đang chờ */
-.emoji-bar.spent { opacity: .28; }
+/* Hết lượt trong 10 giây: mờ đi để thấy rõ là đang chờ */
+.emoji-bar { position: relative; }
+.emoji-bar.spent .emoji { opacity: .35; }
+.cooldown {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  padding: 4px 12px; border-radius: var(--r-full);
+  background: var(--panel-solid); border: 2px solid var(--accent);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  pointer-events: none;
+}
 .emoji {
   min-width: 40px; min-height: 40px; font-size: 20px; border: 1px solid var(--line);
   border-radius: var(--r-full); background: var(--panel);

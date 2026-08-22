@@ -12,7 +12,7 @@
     "dev:legacy": "node legacy/v1/server.js 3002",
     "dev:server": "pnpm --filter @mm/server dev",
     "smoke:online": "node tools/smoke-online.mjs",
-    "deploy:server": "pnpm --filter @mm/server deploy",
+    "deploy:server": "pnpm --filter @mm/server run deploy",
     "dev:web": "pnpm --filter @mm/web dev",
     "smoke:chat": "node tools/smoke-chat-limit.mjs"
   },
