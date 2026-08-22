@@ -12,12 +12,33 @@ import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
 import { sfx } from './lib/audio';
-import { store } from './lib/storage';
+import { store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
 
 const prefs = store.prefs();
 const dark = ref(prefs.dark);
-const sound = ref(prefs.sound);
+const soundLevel = ref<SoundLevel>(prefs.soundLevel);
+/** Độ to của từng mức. "nhỏ" phải nghe rõ trong phòng yên tĩnh mà không ồn. */
+const SOUND_GAIN: Record<SoundLevel, number> = { off: 0, low: 1.2, high: 3.5 };
+/** Nút chạy con thoi tắt → nhỏ → to rồi to → nhỏ → tắt: không bao giờ nhảy
+ *  thẳng từ to sang tắt, nên bấm quá tay vẫn còn nghe được. */
+const soundUp = ref(true);
+function cycleSound(): void {
+  const cur = soundLevel.value;
+  if (cur === 'low') soundLevel.value = soundUp.value ? 'high' : 'off';
+  else {
+    soundLevel.value = 'low';
+    soundUp.value = cur === 'off';   // vừa ở tắt thì đi lên, vừa ở to thì đi xuống
+  }
+  // Áp mức MỚI trước khi phát, không thì tiếng xác nhận vẫn ở mức cũ
+  applySound();
+  sfx.select();   // mức tắt thì im — chính nó cũng là phản hồi
+}
+
+function applySound(): void {
+  sfx.enabled = soundLevel.value !== 'off';
+  if (soundLevel.value !== 'off') sfx.volume = SOUND_GAIN[soundLevel.value];
+}
 const mode = ref<Mode>(prefs.mode);
 const grid = ref(prefs.grid in GRIDS ? prefs.grid : '4x4');
 const themeIds = ref<string[]>(prefs.themes);
@@ -156,10 +177,10 @@ watch(screen, (sc) => {
 
 /* ---------- tuỳ chọn hiển thị ---------- */
 watchEffect(() => { document.documentElement.dataset.theme = dark.value ? 'dark' : 'light'; });
-watchEffect(() => { sfx.enabled = sound.value; });
-watch([dark, sound, mode, grid, themeIds, playerCount], () => {
+watchEffect(applySound);
+watch([dark, soundLevel, mode, grid, themeIds, playerCount], () => {
   store.savePrefs({
-    dark: dark.value, sound: sound.value, mode: mode.value,
+    dark: dark.value, sound: soundLevel.value !== 'off', soundLevel: soundLevel.value, mode: mode.value,
     grid: grid.value, themes: themeIds.value, playerCount: playerCount.value
   });
 });
@@ -258,9 +279,9 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
 
 <template>
   <TopBar
-    :dark="dark" :sound="sound" :total-score="totalScore"
+    :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
     @toggle-dark="dark = !dark"
-    @toggle-sound="sound = !sound"
+    @cycle-sound="cycleSound"
     @home="goHome"
   />
 

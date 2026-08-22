@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { Moon, Sun, Volume2, VolumeX } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { Moon, Sun, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import { num } from '@/lib/format';
+import type { SoundLevel } from '@/lib/storage';
 
-const props = defineProps<{ dark: boolean; sound: boolean; totalScore: number }>();
-defineEmits<{ 'toggle-dark': []; 'toggle-sound': []; home: [] }>();
+const props = defineProps<{ dark: boolean; soundLevel: SoundLevel; totalScore: number }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; home: [] }>();
+
+const SOUND_LABEL: Record<SoundLevel, string> = {
+  off: 'Âm thanh: đang tắt',
+  low: 'Âm thanh: nhỏ',
+  high: 'Âm thanh: to'
+};
+const soundIcon = computed(() =>
+  props.soundLevel === 'off' ? VolumeX : props.soundLevel === 'low' ? Volume1 : Volume2);
 
 /** Số đang hiển thị — chạy dần lên số thật để người chơi THẤY điểm được cộng. */
 const shown = ref(props.totalScore);
@@ -69,9 +78,15 @@ watch(() => props.totalScore, (to, from) => {
       <Sun v-if="dark" :size="20" />
       <Moon v-else :size="20" />
     </button>
-    <button class="btn" :aria-pressed="sound" aria-label="Bật/tắt âm thanh" type="button" @click="$emit('toggle-sound')">
-      <Volume2 v-if="sound" :size="20" />
-      <VolumeX v-else :size="20" />
+    <!-- Một nút xoay vòng tắt → nhỏ → to: tắt hẳn hay để to là hai lựa chọn quá
+         thô, nhiều người muốn nghe nhưng không muốn ồn -->
+    <button
+      class="btn snd" :class="`lv-${soundLevel}`"
+      :aria-label="`${SOUND_LABEL[soundLevel]} — bấm để đổi`"
+      :title="SOUND_LABEL[soundLevel]"
+      type="button" @click="$emit('cycle-sound')"
+    >
+      <component :is="soundIcon" :size="20" />
     </button>
   </header>
 </template>
@@ -137,6 +152,10 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   font-size: var(--text-md); color: inherit;
 }
 .star-ico { width: 14px; height: 14px; flex-shrink: 0; }
+/* Mức âm lượng phải nhìn ra ngay, không chỉ dựa vào hình cái loa */
+.snd.lv-off { color: var(--muted); }
+.snd.lv-low { color: var(--accent); }
+.snd.lv-high { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
 /* Điểm vừa tăng: viên nảy một nhịp */
 .total.pop { animation: total-pop .3s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes total-pop { 45% { transform: scale(1.12); } }

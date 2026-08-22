@@ -22,9 +22,12 @@ interface VoiceOpts {
 
 /** Âm lượng mặc định. Mọi tiếng trong file này dùng gain rất nhỏ (0,03–0,14)
  *  để chồng nhau không vỡ, nên nhân chung ở master. Chỉnh nhanh khi thử:
- *  gõ trong console `sfx.volume = 2.5`, hoặc mở app với `?vol=2.5`
- *  (giá trị được nhớ lại cho lần sau). Trần 4 để không méo tiếng. */
-const DEFAULT_VOLUME = 2.2;
+ *  gõ trong console `sfx.volume = 4`, hoặc mở app với `?vol=4`
+ *  (giá trị được nhớ lại cho lần sau). */
+const DEFAULT_VOLUME = 3.5;
+/** Trần cao được vì đầu ra đi qua soft-clip: quá to thì tiếng "ấm" lại,
+ *  không xé loa như clip cứng. */
+const MAX_VOLUME = 8;
 const VOLUME_KEY = 'mm.volume';
 
 function initialVolume(): number {
@@ -32,12 +35,23 @@ function initialVolume(): number {
     const q = Number(new URLSearchParams(location.search).get('vol'));
     if (Number.isFinite(q) && q > 0) {
       localStorage.setItem(VOLUME_KEY, String(q));
-      return Math.min(4, q);
+      return Math.min(MAX_VOLUME, q);
     }
     const saved = Number(localStorage.getItem(VOLUME_KEY));
-    if (Number.isFinite(saved) && saved > 0) return Math.min(4, saved);
+    if (Number.isFinite(saved) && saved > 0) return Math.min(MAX_VOLUME, saved);
   } catch { /* chế độ riêng tư */ }
   return DEFAULT_VOLUME;
+}
+
+/** Đường cong tanh cho WaveShaper: |x| nhỏ gần như giữ nguyên, càng gần biên
+ *  càng bẹt dần về ±1 nên không bao giờ vượt ngưỡng và không sinh tiếng rè. */
+function softClipCurve(steps = 1024, drive = 1.6): Float32Array<ArrayBuffer> {
+  const curve = new Float32Array(new ArrayBuffer(steps * 4));
+  for (let i = 0; i < steps; i++) {
+    const x = (i / (steps - 1)) * 2 - 1;
+    curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
+  }
+  return curve;
 }
 
 class Sfx {
@@ -47,10 +61,10 @@ class Sfx {
   enabled = true;
   private vol = initialVolume();
 
-  /** 0–4. Ghi vào đây là đổi ngay và được nhớ cho lần mở sau. */
+  /** 0–8. Ghi vào đây là đổi ngay và được nhớ cho lần mở sau. */
   get volume(): number { return this.vol; }
   set volume(v: number) {
-    this.vol = Math.max(0, Math.min(4, v));
+    this.vol = Math.max(0, Math.min(MAX_VOLUME, v));
     if (this.master) this.master.gain.value = this.vol;
     try { localStorage.setItem(VOLUME_KEY, String(this.vol)); } catch { /* bỏ qua */ }
   }
@@ -59,11 +73,52 @@ class Sfx {
     try {
       if (!this.ctx) {
         const ctx = new AudioContext();
-        const comp = ctx.createDynamicsCompressor();
         const master = ctx.createGain();
         master.gain.value = this.vol;
+
+        // Compressor MẶC ĐỊNH nén rất nặng (ngưỡng -24dB, tỉ lệ 12:1) nên đẩy
+        // master lên bao nhiêu cũng bị bóp lại — đó là lý do tăng âm lượng mà
+        // nghe không to thêm. Đặt tay: chỉ gom đỉnh, giữ nguyên độ động.
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -14;
+        comp.knee.value = 12;
+        comp.ratio.value = 3;
+        comp.attack.value = 0.004;
+        comp.release.value = 0.18;
+
+        // Bù lại phần compressor đã nén — đây mới là chỗ làm tổng thể to lên
+        const makeup = ctx.createGain();
+        makeup.gain.value = 1.8;
+
+        // Limiter chặn cứng đỉnh: WaveShaper chỉ nhận input trong [-1, 1] và
+        // KẸP phần vượt (tức clip phẳng = đúng cái tiếng rè ta muốn tránh),
+        // nên phải hạ đỉnh xuống dưới 1 TRƯỚC khi vào nó.
+        const limiter = ctx.createDynamicsCompressor();
+        limiter.threshold.value = -4;
+        limiter.knee.value = 0;
+        limiter.ratio.value = 20;
+        // Attack cực ngắn: tiếng nổ/chũm choẹ lên đỉnh trong ~1ms, chậm hơn là
+        // đỉnh lọt qua trước khi limiter kịp kéo xuống
+        limiter.attack.value = 0.001;
+        limiter.release.value = 0.08;
+
+        // Soft-clip (tanh) là chốt cuối: bẻ cong dần phần đỉnh còn lại nên
+        // tiếng chỉ "ấm" lên chứ không xé.
+        const shaper = ctx.createWaveShaper();
+        shaper.curve = softClipCurve();
+        shaper.oversample = '4x';
+
+        // 0,85 chứ không phải 1: lọc nội suy của oversample '4x' làm sóng vọt
+        // quá biên vài phần trăm, phải chừa chỗ cho phần vọt đó
+        const out = ctx.createGain();
+        out.gain.value = 0.8;
+
         master.connect(comp);
-        comp.connect(ctx.destination);
+        comp.connect(makeup);
+        makeup.connect(limiter);
+        limiter.connect(shaper);
+        shaper.connect(out);
+        out.connect(ctx.destination);
         this.ctx = ctx;
         this.master = master;
       }

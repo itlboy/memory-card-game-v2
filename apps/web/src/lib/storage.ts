@@ -1,8 +1,13 @@
 import type { Mode } from '@mm/engine';
 
+/** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
+export type SoundLevel = 'off' | 'low' | 'high';
+
 export interface Prefs {
   dark: boolean;
+  /** Giữ lại để đọc bản lưu cũ; mức thật nằm ở `soundLevel`. */
   sound: boolean;
+  soundLevel: SoundLevel;
   mode: Mode;
   grid: string;
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
@@ -25,7 +30,8 @@ interface Save {
 const KEY = 'mm.v2';
 
 const DEFAULT_PREFS: Prefs = {
-  dark: false, sound: true, mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
+  dark: false, sound: true, soundLevel: 'high',
+  mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
 };
 
 function read(): Save {
@@ -44,6 +50,8 @@ export const store = {
     // Migration từ bản cũ chỉ lưu một theme
     if (!saved.themes?.length && saved.theme) merged.themes = [saved.theme];
     if (!merged.themes.length) merged.themes = ['animals'];
+    // Bản cũ chỉ có bật/tắt: người đang tắt tiếng thì giữ tắt, còn lại về "to"
+    if (!saved.soundLevel) merged.soundLevel = saved.sound === false ? 'off' : 'high';
     return merged;
   },
 

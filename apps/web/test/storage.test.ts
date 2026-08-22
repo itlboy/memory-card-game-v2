@@ -6,8 +6,16 @@ beforeEach(() => localStorage.clear());
 describe('tuỳ chọn', () => {
   it('trả về mặc định khi chưa có gì lưu', () => {
     expect(store.prefs()).toEqual({
-      dark: false, sound: true, mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
+      dark: false, sound: true, soundLevel: 'high',
+      mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
     });
+  });
+
+  it('bản lưu cũ chỉ có sound bật/tắt được chuyển sang ba mức', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { sound: false } }));
+    expect(store.prefs().soundLevel).toBe('off');
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { sound: true } }));
+    expect(store.prefs().soundLevel).toBe('high');
   });
 
   it('lưu từng phần, không xoá các tuỳ chọn khác', () => {
