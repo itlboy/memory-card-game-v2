@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { GRIDS, QUICK_EMOJIS } from '@mm/engine';
 import {
-  Brain, Check, ChevronLeft, Copy, Crown, Hash, Heart, Settings2, Sparkles, Timer
+  Brain, Check, ChevronLeft, Copy, Crown, Hash, Heart, Settings2, Share2, Sparkles, Timer
 } from 'lucide-vue-next';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -31,6 +31,7 @@ const NAME_HINTS = [
 const namePlaceholder = `VD: ${NAME_HINTS[Math.floor(Math.random() * NAME_HINTS.length)]!}`;
 const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
+const copiedCode = ref(false);
 /** Vào bằng link mời: chỉ hiện đúng một việc — nhập tên rồi vào phòng. */
 const invited = computed(() => !!props.joinCode);
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
@@ -117,6 +118,32 @@ defineExpose({ requestHome: quit, isBusy });
 
 const inviteLink = computed(() =>
   `${location.origin}${location.pathname}?room=${o.room.value?.code ?? ''}`);
+
+/** Copy riêng mã 6 số — bạn bè đọc mã qua điện thoại thì cần đúng phần này. */
+async function copyCode(): Promise<void> {
+  const code = o.room.value?.code ?? '';
+  try {
+    await navigator.clipboard.writeText(code);
+    copiedCode.value = true;
+    sfx.select();
+    setTimeout(() => { copiedCode.value = false; }, 1600);
+  } catch { /* trình duyệt chặn */ }
+}
+
+/** Chia sẻ link: trên điện thoại mở luôn bảng chia sẻ của hệ điều hành (Zalo,
+ *  Messenger…); máy tính không có thì lùi về copy. */
+async function shareLink(): Promise<void> {
+  const url = inviteLink.value;
+  const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+  if (nav.share) {
+    try {
+      await nav.share({ title: 'Lật Thẻ', text: `Vào chơi Lật Thẻ với mình — mã phòng ${o.room.value?.code ?? ''}`, url });
+      sfx.select();
+      return;
+    } catch { /* người dùng bấm huỷ — không coi là lỗi */ }
+  }
+  await copyLink();
+}
 
 async function copyLink(): Promise<void> {
   try {
@@ -322,6 +349,10 @@ function openCfgWizard(): void {
         >
           <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
           <strong class="tname">{{ t.name }}</strong>
+          <!-- Badge góc, không chiếm chỗ trong luồng (xem MenuScreen) -->
+          <span v-if="cfg.themeIds.includes(t.id)" class="tick" aria-hidden="true">
+            <Check :size="12" />
+          </span>
         </button>
       </div>
 
@@ -409,11 +440,25 @@ function openCfgWizard(): void {
     <div class="head">
       <button class="btn back" aria-label="Rời phòng" type="button" @click="quit"><ChevronLeft :size="22" /></button>
       <h2>Phòng chờ</h2>
-      <button class="btn code" type="button" :title="inviteLink" @click="copyLink">
-        {{ o.room.value?.code }}
-        <Check v-if="copied" :size="16" />
-        <Copy v-else :size="16" />
-      </button>
+    </div>
+
+    <!-- Mời bạn: phải nói RÕ bấm vào đâu để làm gì. Nút mã nhỏ ở góc trước đây
+         nhìn như chỉ để xem mã, nhiều người không biết là bấm được. -->
+    <div class="invite">
+      <div class="invite-code">
+        <span class="invite-label">Mã phòng</span>
+        <b class="code-big">{{ o.room.value?.code }}</b>
+      </div>
+      <div class="invite-actions">
+        <button class="btn invite-btn" type="button" @click="copyCode">
+          <Check v-if="copiedCode" :size="17" /><Copy v-else :size="17" />
+          {{ copiedCode ? 'Đã copy mã' : 'Copy mã' }}
+        </button>
+        <button class="btn invite-btn primary" type="button" :title="inviteLink" @click="shareLink">
+          <Check v-if="copied" :size="17" /><Share2 v-else :size="17" />
+          {{ copied ? 'Đã copy link' : 'Chia sẻ link' }}
+        </button>
+      </div>
     </div>
 
     <ul class="lobby-list">
@@ -428,9 +473,10 @@ function openCfgWizard(): void {
           <template v-else>{{ p.ready ? '✓ sẵn sàng' : 'chưa sẵn sàng' }}</template>
         </span>
       </li>
+      <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
+           làm dòng này vỡ chữ -->
       <li v-if="(o.room.value?.players.length ?? 0) < 4" class="empty">
-        Còn {{ 4 - (o.room.value?.players.length ?? 0) }} chỗ trống — chia sẻ mã
-        <b>{{ o.room.value?.code }}</b> để mời bạn bè
+        Còn {{ 4 - (o.room.value?.players.length ?? 0) }} chỗ trống
       </li>
     </ul>
 
@@ -695,8 +741,22 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .grid-preview i.blank { background: transparent; }
 /* Đủ specificity để thắng `.option { padding: 24px 16px }` viết bên dưới */
-.options.wiz-themes .option.theme-opt { padding: 8px 5px; gap: 4px; }
-.theme-sample { font-size: clamp(15px, 26cqw, 32px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
+.options.wiz-themes .option.theme-opt { padding: 8px 5px; gap: 4px; position: relative; }
+/* Co theo cả chiều cao — màn thấp ô chỉ còn ~46px (xem MenuScreen) */
+.theme-sample {
+  font-size: clamp(13px, min(26cqw, 30cqh), 32px);
+  letter-spacing: 1px; white-space: nowrap; opacity: .9;
+}
+@container (max-height: 74px) {
+  .theme-sample { display: none; }
+}
+.tick {
+  position: absolute; top: 3px; right: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--accent);
+  box-shadow: 0 2px 6px rgba(30, 27, 75, .3);
+}
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
 /* .option strong đặt 16px nên phải thắng specificity, không thì cqw vô hiệu
@@ -704,7 +764,7 @@ input:focus { outline: none; border-color: var(--accent); }
 /* Tên theme được phép xuống hai dòng: giữ một dòng thì bề rộng ô khoá cỡ chữ
    ở 13px trong khi ô còn thừa chiều cao */
 .option strong.tname {
-  font-size: clamp(13px, 20cqw, 21px);
+  font-size: clamp(11px, min(20cqw, 24cqh), 21px);
   line-height: 1.15; text-align: center; max-width: 100%;
   overflow-wrap: break-word;
 }
@@ -744,6 +804,31 @@ input:focus { outline: none; border-color: var(--accent); }
 .code-input {
   letter-spacing: .3em;
   font-family: var(--font-display); font-weight: 700; text-align: center; font-size: 22px;
+}
+
+/* Khối mời bạn vào phòng */
+.invite {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 0 0 12px; padding: 10px 12px;
+  border: 2px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: var(--r-md); background: var(--accent-soft);
+}
+.invite-code { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.invite-label { font-size: var(--text-sm); font-weight: 700; color: var(--muted); }
+.code-big {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(24px, 8vw, 34px); letter-spacing: .16em; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--accent);
+}
+.invite-actions { display: flex; gap: 8px; }
+.invite-btn {
+  flex: 1; gap: 6px;
+  font-size: var(--text-sm); font-weight: 700;
+}
+.invite-btn.primary {
+  border: 0; color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 6px 16px var(--card-back-glow);
 }
 
 .lobby-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px; }
