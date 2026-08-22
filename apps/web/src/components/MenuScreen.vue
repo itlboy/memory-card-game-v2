@@ -391,7 +391,11 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    Vẫn giữ luật KHÔNG SCROLL: grid nén trong chỗ còn lại, không đẩy trang dài ra. */
 .step-body.options.loose { grid-auto-rows: minmax(0, 1fr); align-content: stretch; }
 .step-body.options.loose > .option {
-  height: 100%; max-height: none; padding: 12px 18px;
+  height: 100%; max-height: none;
+  /* Padding dọc co theo chiều cao CỬA SỔ (không phải theo ô — dùng cqh ở đây
+     sinh vòng lặp): máy 320×568 ô chỉ cao 68px, padding cố định 12px ăn hết chỗ
+     của chú thích. */
+  padding: clamp(4px, 1.5vh, 12px) 18px;
 }
 /* Ô "big" không có wrapper .text: dùng grid để icon một cột, còn tiêu đề và
    mô tả XẾP DỌC ở cột thứ hai — nằm ngang cùng hàng thì tiêu đề bị ngắt dòng */
@@ -534,13 +538,11 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    Nunito ở đây làm hai màn cùng loại trông như hai app khác nhau. */
 /* Chặn theo CẢ chiều cao ô: Baloo 2 cao hơn Nunito nên ở màn thấp (320×568)
    mô tả hai dòng tràn khỏi ô. */
-.option strong { font-family: var(--font-display); font-size: clamp(15px, min(8cqw, 26cqh), 28px); }
-.option small { color: var(--muted); font-size: clamp(11.5px, min(5cqw, 17cqh), 17px); line-height: 1.35; }
-/* Ô quá thấp (màn 320×568 chia 5 chế độ ra ô 68px) thì bỏ mô tả, giữ tên chế
-   độ — chữ đã ở cỡ nhỏ nhất, không co được nữa. */
-@container (max-height: 80px) {
-  .option.wide small { display: none; }
-}
+.option strong { font-family: var(--font-display); font-size: clamp(12px, min(8cqw, 26cqh), 28px); }
+.option small { color: var(--muted); font-size: clamp(9.5px, min(5cqw, 17cqh), 17px); line-height: 1.3; }
+/* KHÔNG ẩn mô tả ở ô thấp — mất chú thích thì người chơi không biết chế độ đó
+   là gì. Thay vào đó để chữ co tiếp: min của clamp hạ xuống 12px/9,5px, đủ để
+   máy hẹp nhất (320×568, ô chỉ còn 40px lòng trong) vẫn hiện đủ hai phần. */
 
 .option.big .icon { font-size: 42px; }
 .option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }

@@ -47,11 +47,15 @@ body {
     /* PHẢI huỷ min-height: 100% ở đầu file — nó ghi đè height nên mọi phép
        tính tỷ lệ đều vô hiệu (cửa sổ 1200 ra 440×1152 ≈ 0,38: hẹp và cao). */
     min-height: 0;
-    /* Bề rộng suy từ chiều cao để giữ đúng tỷ lệ điện thoại 390:844 = 0,462.
-       Sàn 390px vì dưới mức đó chữ Việt trong ô lựa chọn ngắt dòng xấu: cửa sổ
-       quá thấp thì hy sinh tỷ lệ, không nén bề rộng. Không có trần — màn càng
-       cao thì cột càng rộng, tỷ lệ vẫn y nguyên. */
-    width: max(390px, calc((100dvh - 16px) * 0.462));
+    /* Tỷ lệ lấy theo VÙNG HIỂN THỊ THẬT của trình duyệt điện thoại, không phải
+       theo màn hình thiết bị: thanh địa chỉ ăn mất chiều cao nên khung thật
+       rộng hơn nhiều — iPhone 13 Safari 390×664 = 0,587; 14 Pro Max 0,581;
+       SE 0,563; Pixel 7 0,491. Dùng 390:844 = 0,462 (tỷ lệ *thiết bị*) làm cột
+       trên máy tính hẹp hơn hẳn so với khi chơi trên điện thoại thật.
+       0,55 nằm giữa dải đó. Sàn 390px cho cửa sổ thấp (chữ Việt trong ô lựa
+       chọn ngắt dòng xấu dưới mức đó); trần 600px để màn rất cao không kéo cột
+       rộng thành dáng máy tính bảng. */
+    width: clamp(390px, calc((100dvh - 16px) * 0.55), 600px);
     border: 1px solid var(--line); border-radius: 28px;
     overflow: hidden; box-shadow: var(--elev-3);
   }
