@@ -27,6 +27,7 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 
 <template>
   <div class="hud panel">
+    <div class="stats">
     <div v-if="levelId" class="stat"><span>Màn</span><b>{{ levelId }}</b></div>
     <div v-if="!multiplayer" class="stat"><span>Điểm</span><b>{{ score }}</b></div>
     <div v-if="!multiplayer" class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
@@ -35,14 +36,29 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
     <div v-if="!multiplayer" class="stat combo" :class="{ hot: combo >= 1.5, max: combo >= 2 }">
       <span>Combo</span><b :key="combo">x{{ combo }}</b>
     </div>
-    <div v-if="lives !== null" class="stat"><span>Mạng</span><b>{{ '❤️'.repeat(Math.max(0, lives)) || '—' }}</b></div>
+    <div v-if="lives !== null" class="stat"><span>Mạng</span><b>{{ lives > 0 ? `❤️ ${lives}` : '—' }}</b></div>
+    </div>
     <button class="btn quit" aria-label="Thoát về menu" type="button" @click="$emit('quit')"><X :size="20" /></button>
   </div>
 </template>
 
 <style scoped>
-.hud { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; }
+/* Nút thoát KHÔNG nằm cùng dòng wrap với các số: trước đây nhiều chỉ số
+   (Màn·Điểm·Lượt·Cặp·Còn lại·Combo·Mạng) đẩy nó rơi xuống hàng dưới. Giờ các
+   số wrap trong .stats, nút luôn dính góc phải. */
+.hud { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
+.stats { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.quit { flex-shrink: 0; }
 .stat { display: flex; flex-direction: column; min-width: 52px; }
+@media (max-width: 480px) {
+  /* Máy hẹp: mọi chỉ số phải vừa MỘT dòng — 6 chỉ số của Sinh tồn trước đây
+     vượt đúng vài pixel nên bị wuống hàng, làm HUD cao gấp đôi */
+  .hud { gap: 6px; padding: 8px 10px; }
+  .stats { gap: 6px; }
+  .stat { min-width: 0; }
+  .stat span { font-size: 10px; letter-spacing: .03em; }
+  .stat b { font-size: var(--text-md); }
+}
 .stat span {
   font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .06em;
   color: var(--muted); font-weight: 700;
@@ -61,5 +77,4 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
   text-shadow: 0 0 10px color-mix(in srgb, var(--gold) 60%, transparent);
 }
 @keyframes bump { 40% { transform: scale(1.35); } }
-.quit { margin-left: auto; }
 </style>

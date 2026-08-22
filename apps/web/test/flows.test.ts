@@ -210,7 +210,7 @@ describe('luồng trọn ván', () => {
     await mountApp();
     await pickMode('Sinh tồn');
     await start();
-    expect(wrapper.text()).toContain('❤️❤️❤️❤️❤️');
+    expect(wrapper.text()).toContain('❤️ 5');
     const cards = session(wrapper).game.value!.cards;
     const p0 = cards.filter((c) => c.pairId === cards[0]!.pairId)[0]!.index;
     const other = cards.find((c) => c.pairId !== cards[0]!.pairId)!.index;
@@ -218,8 +218,8 @@ describe('luồng trọn ván', () => {
     await wrapper.findAll('.card')[other]!.trigger('click');
     await vi.advanceTimersByTimeAsync(1100);
     await flush();
-    expect(wrapper.text()).toContain('❤️❤️❤️❤️');
-    expect(wrapper.text()).not.toContain('❤️❤️❤️❤️❤️');
+    expect(wrapper.text()).toContain('❤️ 4');
+    expect(wrapper.text()).not.toContain('❤️ 5');
   });
 
   it('Chớp nhoáng: thẻ hé mở lúc đầu và không bấm được, sau 4 giây thì úp lại', async () => {

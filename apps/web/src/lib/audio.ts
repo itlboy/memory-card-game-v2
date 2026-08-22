@@ -181,13 +181,22 @@ class Sfx {
     [660, 830, 990].forEach((f) => this.voice(f, { dur: 0.35, gain: 0.03 }));
   }
 
-  /** Fanfare thắng: rải hợp âm + chũm choẹ nhiễu + hợp âm chốt dày. */
+  /** Fanfare thắng: kèn rải nhanh → chũm choẹ → hợp âm Đô trưởng chốt dày,
+   *  có bass nâng và lớp lấp lánh cao ở đuôi cho ra chất "ăn mừng arcade". */
   win(): void {
-    [523, 659, 784, 1047].forEach((f, i) =>
-      this.voice(f, { dur: 0.18, type: 'triangle', gain: 0.055, delay: i * 0.09, detune: 6 }));
-    this.noise(0.5, { freq: 5200, gain: 0.035, delay: 0.36 });
+    // Rải kèn C–E–G–C rồi vống lên D–G cao: câu nhạc có hướng đi lên rõ ràng
+    [523, 659, 784, 1047, 1175, 1568].forEach((f, i) =>
+      this.voice(f, { dur: 0.16, type: 'triangle', gain: 0.06, delay: i * 0.075, detune: 7 }));
+    // Bass nâng cả hợp âm — thiếu nó fanfare nghe mỏng như tiếng điện thoại
+    this.voice(131, { dur: 0.9, type: 'sawtooth', gain: 0.045, delay: 0.44 });
+    this.voice(262, { dur: 0.9, type: 'triangle', gain: 0.035, delay: 0.44 });
+    this.noise(0.6, { freq: 5000, gain: 0.05, delay: 0.42 });                 // chũm choẹ
+    // Hợp âm chốt ngân dài
     [523, 659, 784, 1047].forEach((f) =>
-      this.voice(f, { dur: 0.55, type: 'sine', gain: 0.028, delay: 0.42 }));
+      this.voice(f, { dur: 1.1, type: 'triangle', gain: 0.032, delay: 0.46, detune: 8 }));
+    // Lấp lánh: ba nốt cao rơi xuống như bụi sao
+    [2637, 2093, 1568].forEach((f, i) =>
+      this.voice(f, { dur: 0.4, type: 'sine', gain: 0.03, delay: 0.85 + i * 0.12, detune: 4 }));
   }
 
   /** Tiếng vỗ tay: chuỗi "clap" = noise bandpass ngắn, nhịp ngẫu nhiên dày dần rồi thưa. */
@@ -215,18 +224,47 @@ class Sfx {
     }
   }
 
-  /** Đại tiệc chiến thắng: fanfare + vỗ tay + 3 quả pháo hoa so le. */
+  /** Đại tiệc chiến thắng: fanfare + vỗ tay + 5 quả pháo hoa so le, khớp với
+   *  5 giây hiệu ứng hình trước khi popup kết quả hiện ra. */
   victory(): void {
     this.win();
-    this.applause(2.6);
-    this.firework(0.15);
-    this.firework(0.85);
-    this.firework(1.5);
+    this.applause(3.4);
+    for (const t of [0.2, 0.85, 1.45, 2.2, 2.9]) this.firework(t);
   }
 
+  /** Thua: câu nhạc buồn — giai điệu La thứ đi xuống trên nền hợp âm Rê thứ,
+   *  nốt cuối tụt cao độ như tiếng thở dài. Dùng chung cho mọi kiểu thua. */
   lose(): void {
-    this.voice(392, { dur: 0.5, type: 'sawtooth', gain: 0.04, slideTo: 196 });
-    this.noise(0.3, { freq: 300, type: 'lowpass', gain: 0.05, delay: 0.15 });
+    // Giai điệu xuống dần: A–G–F–D, nốt sau nhẹ hơn nốt trước
+    const melody: [number, number][] = [[440, 0], [392, 0.34], [349, 0.68], [294, 1.02]];
+    for (const [freq, delay] of melody) {
+      this.voice(freq, { dur: 0.42, type: 'triangle', gain: 0.05, delay, detune: 9 });
+    }
+    // Nền hợp âm Rê thứ ngân suốt câu — cái làm nó "buồn" chứ không chỉ "sai"
+    for (const f of [147, 175, 220]) {
+      this.voice(f, { dur: 1.9, type: 'sine', gain: 0.03, delay: 0.04 });
+    }
+    // Nốt chốt tụt xuống: tiếng thở dài
+    this.voice(294, { dur: 0.9, type: 'triangle', gain: 0.045, delay: 1.42, slideTo: 196 });
+    this.noise(0.7, { freq: 400, type: 'lowpass', gain: 0.035, delay: 1.5 });
+  }
+
+  /** Thua khi đấu online: buồn hơn thua một mình — thêm tiếng xì xào thất vọng
+   *  và hai nốt tụt hẳn ở cuối, vì có người thắng ngay trước mắt mình. */
+  defeat(): void {
+    this.lose();
+    // Xì xào của "khán giả" — nhiễu lọc thấp dập dềnh, vào sau giai điệu
+    for (let i = 0; i < 7; i++) {
+      this.noise(0.34 + Math.random() * 0.2, {
+        freq: 500 + Math.random() * 400,
+        type: 'lowpass',
+        gain: 0.016 + Math.random() * 0.012,
+        delay: 1.6 + i * 0.16 + Math.random() * 0.1
+      });
+    }
+    // Hai nốt cuối trượt sâu — hết hy vọng
+    this.voice(233, { dur: 1.0, type: 'triangle', gain: 0.04, delay: 2.3, slideTo: 147 });
+    this.voice(117, { dur: 1.3, type: 'sine', gain: 0.045, delay: 2.5, slideTo: 82 });
   }
 
   /** Từng ngôi sao hiện ra trong dialog kết quả. */
