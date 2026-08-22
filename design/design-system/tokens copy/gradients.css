@@ -1,0 +1,27 @@
+:root{
+  /* Card back + its glow (drives every primary shadow in the game) */
+  --card-back:linear-gradient(150deg,#6a5cff 0%,#8b5cf6 52%,#c44cf0 100%); /* @kind color */
+  --card-back-glow:rgba(106,92,255,.4);
+  /* Primary action + selected-tile gradient */
+  --grad-primary:linear-gradient(135deg,var(--accent),var(--accent-2)); /* @kind color */
+  --grad-selected:linear-gradient(150deg,#6a5cff,#8b5cf6); /* @kind color */
+  /* Arcade-neon identity gradients — one fixed colour per game mode */
+  --g-violet:linear-gradient(150deg,#6a5cff,#8b5cf6); /* @kind color */
+  --g-pink:linear-gradient(150deg,#c44cf0,#ff5fa2); /* @kind color */
+  --g-cyan:linear-gradient(150deg,#2fb6f0,#38e0c8); /* @kind color */
+  --g-blue:linear-gradient(150deg,#4c7dff,#5fb0ff); /* @kind color */
+  --g-amber:linear-gradient(150deg,#f59e0b,#ff7b45); /* @kind color */
+  --g-red:linear-gradient(150deg,#ef4458,#ff5fa2); /* @kind color */
+  --g-teal:linear-gradient(150deg,#14b8a6,#38e0c8); /* @kind color */
+  --g-violet-glow:rgba(106,92,255,.45);
+  --g-pink-glow:rgba(196,76,240,.45);
+  --g-cyan-glow:rgba(56,189,248,.45);
+  --g-blue-glow:rgba(76,125,255,.45);
+  --g-amber-glow:rgba(245,158,11,.45);
+  --g-red-glow:rgba(239,68,88,.45);
+  --g-teal-glow:rgba(20,184,166,.45);
+}
+[data-theme='dark']{
+  --card-back:linear-gradient(150deg,#5246d6 0%,#7440dd 52%,#a437e8 100%); /* @kind color */
+  --card-back-glow:rgba(139,125,255,.45);
+}

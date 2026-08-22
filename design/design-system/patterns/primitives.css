@@ -1,0 +1,60 @@
+/* Reusable class primitives — verbatim from apps/web/src/styles/global.css */
+.panel{
+  background:var(--panel);
+  backdrop-filter:blur(var(--glass-blur));
+  -webkit-backdrop-filter:blur(var(--glass-blur));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:var(--sp-5);
+  box-shadow:var(--shadow),var(--inner-light);
+}
+.section-title{font-family:var(--font-display);font-size:var(--text-sm);text-transform:uppercase;letter-spacing:var(--tracking-eyebrow);color:var(--muted);margin:var(--sp-5) 0 var(--sp-2);font-weight:700}
+.section-title:first-child{margin-top:0}
+
+.btn{
+  min-height:var(--tap-min);min-width:var(--tap-min);
+  padding:var(--sp-2) var(--sp-3);
+  border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--panel-solid);
+  box-shadow:var(--shadow-soft),var(--inner-light);
+  transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+}
+@media (hover:hover){.btn:hover{transform:translateY(-1px);border-color:var(--accent)}}
+.btn:active{transform:translateY(0);box-shadow:none}
+.btn-primary{
+  min-height:50px;width:100%;margin-top:var(--sp-5);
+  border:0;border-radius:var(--r-md);
+  background:var(--grad-primary);color:#fff;
+  font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;letter-spacing:.02em;
+  box-shadow:0 8px 22px var(--card-back-glow),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+}
+@media (hover:hover){.btn-primary:hover{transform:translateY(-2px);filter:brightness(1.07)}}
+.btn-primary:active{transform:translateY(0)}
+.btn:disabled,.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;filter:none}
+.btn.danger{border:0;background:var(--bad);color:#fff;font-weight:700}
+.btn.link{width:100%;margin-top:var(--sp-2);border:0;background:transparent;color:var(--muted);font-size:var(--text-sm);box-shadow:none}
+
+.chips{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.chip{
+  flex:1 1 130px;min-height:var(--tap-min);
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:var(--sp-2) var(--sp-3);text-align:left;
+  border:2px solid var(--line);border-radius:var(--r-md);background:var(--panel-soft);
+  transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease;
+}
+@media (hover:hover){.chip:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--accent) 55%,var(--line));box-shadow:var(--shadow-soft)}}
+.chip small{color:var(--muted);font-size:var(--text-xs)}
+.chip[aria-checked='true']{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent),0 4px 14px var(--card-back-glow)}
+.chip[aria-disabled='true']{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* ===== Arcade neon: identity tiles keep their own colour at all times ===== */
+.neon{border-color:transparent!important;color:#fff!important}
+.neon small{color:rgba(255,255,255,.85)!important}
+.g-violet{background:var(--g-violet)!important;box-shadow:0 10px 30px var(--g-violet-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.g-pink{background:var(--g-pink)!important;box-shadow:0 10px 30px var(--g-pink-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.g-cyan{background:var(--g-cyan)!important;box-shadow:0 10px 30px var(--g-cyan-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.g-blue{background:var(--g-blue)!important;box-shadow:0 10px 30px var(--g-blue-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.g-amber{background:var(--g-amber)!important;box-shadow:0 10px 30px var(--g-amber-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.g-red{background:var(--g-red)!important;box-shadow:0 10px 30px var(--g-red-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.g-teal{background:var(--g-teal)!important;box-shadow:0 10px 30px var(--g-teal-glow),inset 0 1px 0 rgba(255,255,255,.3)!important}

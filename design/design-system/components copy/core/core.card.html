@@ -1,0 +1,43 @@
+<!-- @dsCard group="Components" viewport="700x300" name="Core" subtitle="Panel, buttons, wizard header, option tiles, chips, field" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<style>body{margin:0;padding:16px;font-family:var(--font-body)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { Panel, Button, WizardHeader, OptionTile, Chip, TextField, Icon } = window.MemoryMatchDesignSystem_ce0961;
+function Demo(){
+  return (
+    <Panel>
+      <WizardHeader title="Chọn chế độ" onBack={() => {}} steps={4} current={1} />
+      <div className="grid">
+        <OptionTile tone="g-violet" layout="wide" icon={<Icon name="map" size={26} />} title="Chiến dịch" description="20 màn · điểm cộng dồn" />
+        <OptionTile tone="g-blue" layout="wide" icon={<Icon name="brain" size={26} />} title="Cổ điển" description="Không giới hạn thời gian" selected />
+        <OptionTile tone="g-amber" layout="wide" icon={<Icon name="timer" size={26} />} title="Đua thời gian" description="Xong nhanh, thưởng nhiều" />
+      </div>
+      <div className="grid">
+        <OptionTile title="4×4" description="8 cặp" selected />
+        <OptionTile title="5×6" description="15 cặp" />
+        <OptionTile numeral={3} title="3 người" tone="g-pink" />
+      </div>
+      <div className="row">
+        <Button>Nút mặc định</Button>
+        <Button variant="danger">Thoát ván</Button>
+        <Button aria-label="Đóng"><Icon name="x" size={20} /></Button>
+        <Chip label="Sinh tồn" hint="5 mạng" selected compact />
+        <Chip label="Cổ điển" compact />
+      </div>
+      <div className="row" style={{ alignItems: 'flex-end' }}>
+        <TextField label="Tên của bạn" value="An" style={{ flex: 1, marginBottom: 0 }} />
+        <TextField label="Mã phòng" value="418203" code style={{ width: 170, marginBottom: 0 }} />
+      </div>
+      <Button variant="primary">Bắt đầu</Button>
+      <Button variant="link">Chơi lại màn này</Button>
+    </Panel>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+</script></body></html>
