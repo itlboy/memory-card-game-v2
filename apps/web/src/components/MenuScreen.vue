@@ -407,7 +407,8 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
   border-color: transparent;
   background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  box-shadow: 0 8px 26px rgba(106, 92, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
   color: #fff;
 }
 .option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }

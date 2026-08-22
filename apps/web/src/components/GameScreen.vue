@@ -154,14 +154,17 @@ const fitStyle = computed(() => ({
       :bonus-for="s.timeBonusFor.value"
     />
 
-    <p v-if="s.revealingAll.value" class="toast peek" role="status">
-      👀 Ghi nhớ vị trí các thẻ…
-    </p>
-    <p v-else-if="s.lastPower.value" class="toast" role="status">
-      {{ POWER_TEXT[s.lastPower.value.power] }}
-    </p>
-
     <div ref="wrap" class="board-wrap">
+      <!-- Thông báo NỔI trên bàn: để trong luồng thì mỗi lần hiện/ẩn là bàn thẻ
+           bị đẩy lên đẩy xuống, vừa khó chịu vừa dễ bấm nhầm ô. -->
+      <Transition name="toast">
+        <p v-if="s.revealingAll.value" class="toast peek" role="status">
+          👀 Ghi nhớ vị trí các thẻ…
+        </p>
+        <p v-else-if="s.lastPower.value" :key="s.lastPower.value.index" class="toast" role="status">
+          {{ POWER_TEXT[s.lastPower.value.power] }}
+        </p>
+      </Transition>
       <BoardGrid
         ref="board"
         :cards="s.cards.value"
@@ -295,9 +298,24 @@ const fitStyle = computed(() => ({
 .banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
+/* Nổi phía trên bàn, không đẩy bố cục. Chữ to hơn hẳn (14px cũ đọc không kịp)
+   và có nền đặc + bóng để nổi trên mặt thẻ. */
 .toast {
-  margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 14px; text-align: center;
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
+  z-index: 8; max-width: min(94%, 460px);
+  margin: 0; padding: 10px 16px; border-radius: var(--r-full);
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(15px, 4.2vw, 20px); line-height: 1.25; text-align: center;
+  color: var(--fg); background: var(--panel-solid);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: var(--shadow);
+  pointer-events: none;
 }
-.toast.peek { background: color-mix(in srgb, var(--warn) 18%, transparent); }
+.toast.peek { border-color: color-mix(in srgb, var(--warn) 65%, var(--line)); }
+.toast-enter-active { animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1); }
+.toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
+.toast-leave-to { opacity: 0; transform: translate(-50%, -8px); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, -14px) scale(.92); }
+}
 </style>

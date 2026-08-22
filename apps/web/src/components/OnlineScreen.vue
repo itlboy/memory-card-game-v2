@@ -711,7 +711,8 @@ input:focus { outline: none; border-color: var(--accent); }
 .option[aria-pressed='true']:not(.neon), .option[aria-checked='true']:not(.neon) {
   border-color: transparent;
   background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  box-shadow: 0 8px 26px rgba(106, 92, 255, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
   color: #fff;
 }
 .option[aria-pressed='true'] small, .option[aria-checked='true'] small { color: rgba(255, 255, 255, .85); }

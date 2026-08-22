@@ -62,7 +62,9 @@ export function useGameSession() {
         case 'power':
           e.power === 'bomb' ? sfx.bomb() : e.power === 'freeze' ? sfx.freeze() : sfx.power();
           lastPower.value = e;
-          setTimeout(() => { lastPower.value = null; }, 1600);
+          // 1,6 giây không đủ đọc một câu tiếng Việt có dấu — nhất là khi thẻ
+          // đang lật và mắt người chơi còn ở chỗ khác
+          setTimeout(() => { lastPower.value = null; }, 3200);
           break;
         case 'turn':
           if (e.skipped) { frozenId = e.playerId; }
