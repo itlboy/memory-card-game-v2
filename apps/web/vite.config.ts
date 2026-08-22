@@ -13,8 +13,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['data/themes.json'],
       manifest: {
-        name: 'Memory Match — Game Thẻ Bài Trí Nhớ',
-        short_name: 'Memory Match',
+        name: 'Lật Thẻ — Game Thẻ Bài Trí Nhớ',
+        short_name: 'Lật Thẻ',
         description: 'Game thẻ bài trí nhớ: lật thẻ, tìm cặp giống nhau, phá kỷ lục của chính bạn.',
         lang: 'vi',
         start_url: '/',

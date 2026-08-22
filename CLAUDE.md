@@ -1,4 +1,4 @@
-# Memory Match — ghi chú cho Claude
+# Lật Thẻ (Memory Match) — ghi chú cho Claude
 
 ## Ràng buộc thiết kế BẮT BUỘC
 

@@ -56,7 +56,7 @@ watch(() => props.totalScore, (to, from) => {
              kín header khi nằm trong flex. -->
         <span class="logo" aria-hidden="true">
           <i class="card-l" /><i class="card-r" />
-        </span><span class="name">Memory Match</span>
+        </span><span class="name">Lật Thẻ</span>
       </button>
     </h1>
 

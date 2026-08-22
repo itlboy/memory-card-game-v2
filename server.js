@@ -91,5 +91,5 @@ if (!fs.existsSync(path.join(ROOT, 'index.html'))) {
 }
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`▸ Memory Match (bản build): http://127.0.0.1:${PORT}  (Ctrl+C để dừng)`);
+  console.log(`▸ Lật Thẻ (bản build): http://127.0.0.1:${PORT}  (Ctrl+C để dừng)`);
 });

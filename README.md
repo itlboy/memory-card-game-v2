@@ -1,4 +1,4 @@
-# Memory Match — Game Thẻ Bài Trí Nhớ
+# Lật Thẻ — Game Thẻ Bài Trí Nhớ
 
 Game rèn luyện trí nhớ chạy trên trình duyệt. Hiện thực theo SRS v1.0, đã hoàn thành
 mốc **v1.0 + v1.1** của lộ trình (mục 6).
