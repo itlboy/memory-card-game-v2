@@ -1,9 +1,0 @@
-:root{
-  --sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;--sp-5:20px;--sp-6:24px;
-  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-full:999px;
-  --radius:var(--r-lg);
-  /* Board + touch */
-  --board-gap:8px;      /* 6px under 420px viewport */
-  --card-radius:12px;
-  --tap-min:44px;       /* NF-07 minimum touch target */
-}
