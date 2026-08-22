@@ -30,6 +30,8 @@ const screen = ref<'menu' | 'game' | 'online'>('menu');
 const joinCode = ref('');
 const levelId = ref<number | null>(null);
 const isRecord = ref(false);
+/** Tổng điểm TRƯỚC ván — để màn kết quả chạy số từ đây lên tổng mới. */
+const totalBefore = ref(0);
 const freshAchievements = ref<string[]>([]);
 /** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
 const showResult = ref(false);
@@ -110,6 +112,13 @@ onMounted(() => {
   for (const ev of ['pointerdown', 'keydown', 'touchstart'] as const) {
     document.addEventListener(ev, unlock, { once: true, passive: true });
   }
+  // Quay lại app sau khi thoát ra home: iOS treo AudioContext và không tự chạy
+  // lại, phải gọi resume() nếu không sẽ mất tiếng đến khi tải lại trang.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) sfx.resume();
+  });
+  window.addEventListener('focus', () => sfx.resume());
+  window.addEventListener('pageshow', () => sfx.resume());
   // Khôi phục vị trí từ URL sau F5 / mở link mời
   const q = new URLSearchParams(location.search);
   const code = q.get('room');
@@ -239,6 +248,7 @@ watch(session.summary, (s) => {
       levelId: levelId.value ?? undefined
     }));
   }
+  totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
   try { sessionStorage.removeItem(RESUME_KEY); } catch { /* bỏ qua */ }
 });
@@ -309,6 +319,8 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
     :fresh-achievements="freshAchievements"
+    :total-before="totalBefore"
+    :total-after="totalScore"
     :has-next="hasNext"
     @replay="replay"
     @next="nextLevel"

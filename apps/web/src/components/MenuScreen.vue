@@ -83,6 +83,14 @@ const SOLO_MODES = [
   { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — lật sai là mất mạng' },
   { id: 'peek' as Mode,     icon: Eye,    g: 'g-teal',   name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
 ];
+// Mỗi số người một màu riêng: ba ô cùng màu thì nhìn như một khối, mắt không
+// phân biệt được đang chọn cái nào
+const COUNTS = [
+  { n: 2, g: 'g-pink',   desc: 'Đấu tay đôi, thay lượt nhau' },
+  { n: 3, g: 'g-violet', desc: 'Ba người, ai nhớ giỏi nhất?' },
+  { n: 4, g: 'g-cyan',   desc: 'Bốn người, đông vui nhất' }
+];
+
 const MULTI_MODES = SOLO_MODES.filter((m) => m.id === 'classic' || m.id === 'survival');
 const modes = computed(() => (isMulti.value ? MULTI_MODES : SOLO_MODES));
 
@@ -178,14 +186,14 @@ function toggleTheme(id: string): void {
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="step-body options loose row3">
+      <div v-else-if="step === 'count'" key="count" class="step-body options loose counts">
         <button
-          v-for="n in [2, 3, 4]" :key="n" class="option neon g-pink" type="button"
-          :aria-pressed="playerCount === n"
-          @click="pickCount(n)"
+          v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
+          :aria-pressed="playerCount === c.n"
+          @click="pickCount(c.n)"
         >
-          <span class="count-num" aria-hidden="true">{{ n }}</span>
-          <strong>{{ n }} người</strong>
+          <span class="count-num" aria-hidden="true">{{ c.n }}</span>
+          <span class="text"><strong>{{ c.n }} người</strong><small>{{ c.desc }}</small></span>
         </button>
       </div>
 
@@ -364,7 +372,14 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .dots i.on { background: var(--accent); transform: scale(1.15); }
 
 .options { display: grid; gap: 10px; }
-.options.row3 { grid-template-columns: repeat(3, 1fr); }
+/* Số người chơi: 3 THANH NGANG chồng nhau. Xếp 3 cột thì trong cột app hẹp mỗi
+   ô chỉ còn ~100px rộng nhưng cao 650px — ra ba sọc dọc, không ai nhận ra là nút. */
+.options.loose.counts > .option {
+  flex-direction: row; justify-content: center; align-items: center;
+  gap: 14px; text-align: left;
+}
+.options.loose.counts .count-num { font-size: 40px; flex-shrink: 0; }
+.options.loose.counts .text { display: flex; flex-direction: column; gap: 1px; }
 
 .option {
   display: flex; flex-direction: column; align-items: center; gap: 4px;

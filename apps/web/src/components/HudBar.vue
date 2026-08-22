@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
 import { computed } from 'vue';
-import { clock } from '@/lib/format';
+import { clock, num } from '@/lib/format';
 
 const props = defineProps<{
   score: number;
@@ -32,7 +32,7 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
     <div class="stats">
     <div v-if="levelId" class="stat"><span>Màn</span><b>{{ levelId }}</b></div>
     <div v-if="!multiplayer" class="stat" data-score-target>
-      <span>Điểm</span><b :key="scoreBump" :class="{ bump: scoreBump }">{{ score }}</b>
+      <span>Điểm</span><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
     </div>
     <div v-if="!multiplayer" class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
     <div class="stat"><span>Cặp</span><b>{{ matched }}/{{ totalPairs }}</b></div>

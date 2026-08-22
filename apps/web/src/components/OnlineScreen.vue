@@ -554,6 +554,7 @@ function openCfgWizard(): void {
       :summary="o.view.value.summary"
       :is-record="false" :show-stars="false" :multiplayer="true"
       :fresh-achievements="[]" :has-next="false"
+      :total-before="0" :total-after="0"
       @replay="o.isHost.value ? o.again() : undefined"
       @next="o.again()"
       @menu="quit"

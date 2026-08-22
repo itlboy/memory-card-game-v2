@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Moon, Sun, Volume2, VolumeX } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
+import { num } from '@/lib/format';
 
 const props = defineProps<{ dark: boolean; sound: boolean; totalScore: number }>();
 defineEmits<{ 'toggle-dark': []; 'toggle-sound': []; home: [] }>();
@@ -50,7 +51,7 @@ watch(() => props.totalScore, (to, from) => {
       </button>
     </h1>
 
-    <span class="total" :class="{ pop: bump }" :key="bump" :title="`Tổng điểm tích lũy: ${totalScore}`">
+    <span class="total" :class="{ pop: bump }" :key="bump" :title="`Tổng điểm tích lũy: ${num(totalScore)}`">
       <!-- Sao vẽ bằng SVG, fill currentColor: emoji ⭐ mỗi máy một kiểu và bị
            tính là chữ nên ngắt dòng ở máy hẹp -->
       <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
@@ -59,9 +60,9 @@ watch(() => props.totalScore, (to, from) => {
           fill="currentColor"
         />
       </svg>
-      <b>{{ shown }}</b>
+      <b>{{ num(shown) }}</b>
       <Transition name="gain">
-        <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ gain.amount }}</i>
+        <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </span>
     <button class="btn" :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'" type="button" @click="$emit('toggle-dark')">

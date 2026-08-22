@@ -20,11 +20,40 @@ interface VoiceOpts {
   slideTo?: number;
 }
 
+/** Âm lượng mặc định. Mọi tiếng trong file này dùng gain rất nhỏ (0,03–0,14)
+ *  để chồng nhau không vỡ, nên nhân chung ở master. Chỉnh nhanh khi thử:
+ *  gõ trong console `sfx.volume = 2.5`, hoặc mở app với `?vol=2.5`
+ *  (giá trị được nhớ lại cho lần sau). Trần 4 để không méo tiếng. */
+const DEFAULT_VOLUME = 2.2;
+const VOLUME_KEY = 'mm.volume';
+
+function initialVolume(): number {
+  try {
+    const q = Number(new URLSearchParams(location.search).get('vol'));
+    if (Number.isFinite(q) && q > 0) {
+      localStorage.setItem(VOLUME_KEY, String(q));
+      return Math.min(4, q);
+    }
+    const saved = Number(localStorage.getItem(VOLUME_KEY));
+    if (Number.isFinite(saved) && saved > 0) return Math.min(4, saved);
+  } catch { /* chế độ riêng tư */ }
+  return DEFAULT_VOLUME;
+}
+
 class Sfx {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private noiseBuf: AudioBuffer | null = null;
   enabled = true;
+  private vol = initialVolume();
+
+  /** 0–4. Ghi vào đây là đổi ngay và được nhớ cho lần mở sau. */
+  get volume(): number { return this.vol; }
+  set volume(v: number) {
+    this.vol = Math.max(0, Math.min(4, v));
+    if (this.master) this.master.gain.value = this.vol;
+    try { localStorage.setItem(VOLUME_KEY, String(this.vol)); } catch { /* bỏ qua */ }
+  }
 
   private ac(): AudioContext | null {
     try {
@@ -32,7 +61,7 @@ class Sfx {
         const ctx = new AudioContext();
         const comp = ctx.createDynamicsCompressor();
         const master = ctx.createGain();
-        master.gain.value = 0.9;
+        master.gain.value = this.vol;
         master.connect(comp);
         comp.connect(ctx.destination);
         this.ctx = ctx;
@@ -41,6 +70,16 @@ class Sfx {
       if (this.ctx.state === 'suspended') void this.ctx.resume();
       return this.master ? this.ctx : null;
     } catch { return null; }
+  }
+
+  /** iOS treo AudioContext khi app xuống nền và KHÔNG tự chạy lại khi quay lại
+   *  — người chơi thoát ra home rồi vào lại là mất tiếng cho tới khi tải lại
+   *  trang. Gọi hàm này mỗi lần trang hiện lại để dựng AudioContext trở lại. */
+  resume(): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    // Safari có thể để trạng thái 'interrupted' (ngoài chuẩn) sau cuộc gọi/khoá máy
+    if (ctx.state !== 'running') void ctx.resume().catch(() => { /* cần cử chỉ mới */ });
   }
 
   /** Gọi trong cử chỉ đầu tiên của người dùng — bắt buộc để iOS cho phát âm. */

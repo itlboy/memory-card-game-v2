@@ -39,12 +39,17 @@ body {
     height: 100dvh; padding: 24px;
   }
   #app {
-    height: min(calc(100dvh - 48px), 920px);
-    /* Bề rộng SUY TỪ chiều cao để cột giữ đúng tỷ lệ điện thoại (390:844).
-       Khoá cứng 440px thì cửa sổ thấp ra 440×720 ≈ 0,61 — bè và lùn.
-       Sàn 390px vì dưới mức đó chữ Việt trong ô lựa chọn ngắt dòng xấu:
-       thà hy sinh tỷ lệ chứ không nén bề rộng. */
-    width: clamp(390px, calc((100dvh - 48px) * 0.462), 440px);
+    /* Dùng TRỌN chiều cao cửa sổ — cắt chiều cao cho vừa tỷ lệ thì màn hình to
+       hoá ra bỏ không nửa dưới. Đúng tỷ lệ bằng cách NỚI BỀ RỘNG theo chiều cao. */
+    height: calc(100dvh - 48px);
+    /* PHẢI huỷ min-height: 100% ở đầu file — nó ghi đè height nên mọi phép
+       tính tỷ lệ đều vô hiệu (cửa sổ 1200 ra 440×1152 ≈ 0,38: hẹp và cao). */
+    min-height: 0;
+    /* Bề rộng suy từ chiều cao để giữ đúng tỷ lệ điện thoại 390:844 = 0,462.
+       Sàn 390px vì dưới mức đó chữ Việt trong ô lựa chọn ngắt dòng xấu: cửa sổ
+       quá thấp thì hy sinh tỷ lệ, không nén bề rộng. Không có trần — màn càng
+       cao thì cột càng rộng, tỷ lệ vẫn y nguyên. */
+    width: max(390px, calc((100dvh - 48px) * 0.462));
     border: 1px solid var(--line); border-radius: 28px;
     overflow: hidden; box-shadow: var(--elev-3);
   }

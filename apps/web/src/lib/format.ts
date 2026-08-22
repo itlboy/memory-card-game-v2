@@ -4,3 +4,7 @@ export const clock = (seconds: number): string => {
 };
 
 export const starText = (n: number): string => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+/** Điểm có dấu phân nhóm: "12.480" dễ đọc hơn "12480" khi điểm lên vạn.
+ *  Dùng dấu chấm theo quy ước tiếng Việt. */
+export const num = (n: number): string => Math.round(n).toLocaleString('vi-VN');

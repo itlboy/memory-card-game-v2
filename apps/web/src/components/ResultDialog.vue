@@ -3,7 +3,7 @@ import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { byId } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
-import { clock } from '@/lib/format';
+import { clock, num } from '@/lib/format';
 
 const props = defineProps<{
   summary: Summary;
@@ -11,6 +11,9 @@ const props = defineProps<{
   showStars: boolean;
   multiplayer: boolean;
   freshAchievements: string[];
+  /** Tổng điểm tích luỹ trước và sau ván — dùng cho hiệu ứng cộng vào tổng. */
+  totalBefore: number;
+  totalAfter: number;
   /** Có màn kế tiếp trong Chiến dịch không. */
   hasNext: boolean;
 }>();
@@ -33,25 +36,47 @@ onMounted(() => {
   countScoreUp();
 });
 
-/** Đếm điểm lên với nhịp tick, dừng đúng ở tổng điểm. */
-function countScoreUp(): void {
-  const target = props.summary.score;
-  if (target <= 0 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    shownScore.value = target;
-    return;
+/** Tổng tích luỹ đang hiển thị + trạng thái hiệu ứng cộng vào tổng. */
+const shownTotal = ref(props.totalBefore);
+const totalGain = computed(() => Math.max(0, props.totalAfter - props.totalBefore));
+const totalPhase = ref<'idle' | 'flying' | 'landed'>('idle');
+
+/** Chạy một con số từ `from` tới `to`, gọi onDone khi xong. */
+function runCount(
+  from: number, to: number, dur: number,
+  set: (v: number) => void, tick: boolean, onDone?: () => void
+): void {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    set(to); onDone?.(); return;
   }
-  const dur = Math.min(1400, 500 + target * 1.2);
   const t0 = performance.now();
   let lastTick = 0;
   const step = (now: number): void => {
     const p = Math.min(1, (now - t0) / dur);
     const eased = 1 - Math.pow(1 - p, 3);
-    shownScore.value = Math.round(target * eased);
-    // Tick theo mốc điểm, không theo frame — 60fps sẽ thành tiếng rè
-    if (now - lastTick > 90 && p < 1) { lastTick = now; sfx.tick(); }
+    set(Math.round(from + (to - from) * eased));
+    // Tick theo mốc thời gian, không theo frame — 60fps sẽ thành tiếng rè
+    if (tick && now - lastTick > 90 && p < 1) { lastTick = now; sfx.tick(); }
     if (p < 1) requestAnimationFrame(step);
+    else onDone?.();
   };
   requestAnimationFrame(step);
+}
+
+/** Điểm ván đếm lên, rồi BAY vào tổng tích luỹ — hai con số phải nối được với
+ *  nhau, không thì người chơi không thấy ván này đóng góp gì vào tổng. */
+function countScoreUp(): void {
+  const target = props.summary.score;
+  if (target <= 0) { shownScore.value = target; shownTotal.value = props.totalAfter; return; }
+  runCount(0, target, Math.min(1400, 500 + target * 1.2), (v) => { shownScore.value = v; }, true, () => {
+    if (!totalGain.value) return;
+    totalPhase.value = 'flying';
+    setTimeout(() => {
+      totalPhase.value = 'landed';
+      sfx.star(2);
+      runCount(props.totalBefore, props.totalAfter, 700, (v) => { shownTotal.value = v; }, false);
+    }, 480);
+  });
 }
 
 const REASON: Record<Summary['reason'], string> = {
@@ -86,7 +111,7 @@ const title = computed(() => {
       <ol v-if="multiplayer" class="ranking">
         <li v-for="(p, i) in summary.ranking" :key="p.id">
           <span>{{ i + 1 }}. {{ p.name }}</span>
-          <b>{{ p.score }}</b>
+          <b>{{ num(p.score) }}</b>
           <small>{{ p.pairs }} cặp · chuỗi {{ p.bestStreak }}</small>
         </li>
       </ol>
@@ -104,8 +129,16 @@ const title = computed(() => {
             fill="url(#mmStarBig)"
           />
         </svg>
-        <b>{{ shownScore }}</b>
+        <b>{{ num(shownScore) }}</b>
         <small>điểm</small>
+        <!-- Điểm ván bay xuống nhập vào tổng tích luỹ -->
+        <i v-if="totalPhase === 'flying'" class="fly" aria-hidden="true">+{{ num(totalGain) }}</i>
+      </p>
+
+      <!-- Tổng tích luỹ: đích của điểm ván, sáng lên đúng lúc nhận -->
+      <p v-if="totalGain" class="total-row" :class="{ landed: totalPhase === 'landed' }">
+        <span>Tổng điểm</span>
+        <b>{{ num(shownTotal) }}</b>
       </p>
 
       <dl v-if="!multiplayer" class="stats">
@@ -188,6 +221,42 @@ h2 { margin: 0 0 4px; }
 }
 .score-big small { color: var(--muted); font-size: var(--text-sm); font-weight: 700; }
 @keyframes score-in { from { opacity: 0; transform: scale(.86); } }
+
+/* Con số "+N" rời khối điểm ván, bay xuống dòng Tổng điểm */
+.score-big { position: relative; }
+.fly {
+  position: absolute; left: 50%; top: 50%;
+  font-style: normal; font-family: var(--font-display); font-weight: 800;
+  font-size: var(--text-lg); color: #f0a500;
+  text-shadow: 0 2px 10px rgba(240, 165, 0, .55);
+  pointer-events: none;
+  animation: total-fly .5s cubic-bezier(.35, .05, .3, 1) forwards;
+}
+@keyframes total-fly {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.7); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.25); }
+  100% { opacity: 0; transform: translate(-50%, 190%) scale(.6); }
+}
+
+/* Dòng tổng tích luỹ */
+.total-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin: 0 0 12px; padding: 8px 14px;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  font-size: var(--text-sm); color: var(--muted);
+  transition: border-color .25s ease, background .25s ease;
+}
+.total-row b {
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums; color: var(--fg);
+}
+/* Lúc điểm cập bến: viền vàng thắp lên rồi số bắt đầu chạy */
+.total-row.landed {
+  border-color: color-mix(in srgb, var(--gold) 65%, transparent);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  animation: total-land .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+@keyframes total-land { 40% { transform: scale(1.03); } }
 
 .stats { margin: 0; display: grid; gap: 6px; }
 .stats div { display: flex; justify-content: space-between; gap: 12px; }
