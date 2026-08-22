@@ -27,13 +27,13 @@ describe('snapshot / restore (DO hibernation)', () => {
     expect(b.current.id).toBe(a.current.id);
   });
 
-  it('khôi phục giữ nguyên trạng thái ngẫu nhiên (thẻ xáo trộn giống nhau)', () => {
-    const a = twoP({ shuffleAfterMisses: 1 });
+  it('khôi phục giữ nguyên trạng thái ngẫu nhiên (ván đi tiếp giống nhau)', () => {
+    const a = twoP();
     a.start(0);
     const b = MemoryGame.restore(a.snapshot());
-    missPair(a, 0, 1, 100);   // kích hoạt xáo trộn ở cả hai bản
+    missPair(a, 0, 1, 100);
     missPair(b, 0, 1, 100);
-    expect(b.cards.map((c) => c.symbol)).toEqual(a.cards.map((c) => c.symbol));
+    expect(b.snapshot()).toBe(a.snapshot());
   });
 
   it('khôi phục ván có mạng (Infinity đi qua JSON an toàn)', () => {

@@ -170,13 +170,6 @@ describe('lưới lẻ ô (3×3 với ô trống)', () => {
     expect(g.revealingAll).toBe(true);
     expect(g.isFaceUp(blank.index)).toBe(false);
   });
-
-  it('thẻ xáo trộn không dịch chuyển ô trống', () => {
-    const g = makeGame({ cols: 3, rows: 3, shuffleAfterMisses: 1 });
-    const blankAt = g.cards.findIndex((c) => c.blank);
-    missPair(g, 0, 1);
-    expect(g.cards[blankAt]!.blank).toBe(true);
-  });
 });
 
 describe('đầu vào bất thường (client không đáng tin — ON-09)', () => {

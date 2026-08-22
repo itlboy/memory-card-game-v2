@@ -11,7 +11,7 @@ import { SYMBOLS } from './helpers.js';
 const run = (seed: number, actions: [number, number][]): { events: GameEvent[]; score: number } => {
   const g = new MemoryGame({
     mode: 'survival', cols: 6, rows: 6, symbols: SYMBOLS, seed,
-    specialRate: 0.15, shuffleAfterMisses: 3, lives: 99
+    specialRate: 0.15, lives: 99
   });
   g.start(0);
   const events: GameEvent[] = [];

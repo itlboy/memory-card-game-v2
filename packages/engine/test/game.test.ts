@@ -162,18 +162,3 @@ describe('giới hạn lượt lật (Campaign)', () => {
     expect(g.status).toBe('won');
   });
 });
-
-describe('thẻ xáo trộn', () => {
-  it('sau N lượt sai thì các thẻ chưa mở đổi chỗ', () => {
-    const g = makeGame({ shuffleAfterMisses: 2 });
-    matchPair(g, 0);
-    const before = g.cards.map((c) => c.symbol);
-    missPair(g, 1, 2);
-    expect(g.cards.map((c) => c.symbol)).toEqual(before);   // chưa đủ 2 lượt sai
-    missPair(g, 1, 3);
-    const after = g.cards.map((c) => c.symbol);
-    expect(after).not.toEqual(before);
-    // Cặp đã ghép không bị dịch chuyển
-    for (const i of pairSlots(g)[0]!) expect(after[i]).toBe(before[i]);
-  });
-});

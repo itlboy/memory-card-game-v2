@@ -57,8 +57,6 @@ export interface GameConfig {
   peekMs?: number;
   /** Tỉ lệ cặp mang thẻ đặc biệt, 0–1 (mặc định 0 = tắt). */
   specialRate?: number;
-  /** Sau bao nhiêu lượt sai thì các thẻ chưa mở tự đổi chỗ. 0 = tắt. */
-  shuffleAfterMisses?: number;
   /** Độ trễ úp lại 2 thẻ khác nhau, ms. */
   flipBackMs?: number;
   /** Giới hạn mỗi lượt (giây) — multiplayer. null = không giới hạn. */
@@ -91,7 +89,6 @@ export type GameEvent =
   | { type: 'miss'; indices: [number, number]; penalty: number; hideAfterMs: number }
   | { type: 'power'; power: Power; index: number; affected: number[] }
   | { type: 'peek-end' }
-  | { type: 'reshuffle'; indices: number[] }
   | { type: 'turn'; playerId: string; skipped: boolean }
   | { type: 'turn-timeout'; playerId: string }
   | { type: 'time-bonus'; playerId: string; ms: number }

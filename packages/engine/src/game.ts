@@ -1,4 +1,4 @@
-import { buildDeck, reshuffleHidden } from './deck.js';
+import { buildDeck } from './deck.js';
 import { Rng } from './rng.js';
 import {
   FLIP_BACK_MS, MISS_PENALTY, TURN_BONUS_MS, comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
@@ -44,7 +44,6 @@ export class MemoryGame {
   private pendingUntil = 0;
   /** Hạn chót của lượt hiện tại (ms). 0 = không dùng đồng hồ lượt. */
   turnDeadline = 0;
-  private missStreakForShuffle = 0;
   private rng: Rng;
   private summaryCache: Summary | null = null;
 
@@ -201,7 +200,6 @@ export class MemoryGame {
       player.pairs++;
       this.matched.add(this.cards[a]!.pairId);
       this.selection = [];
-      this.missStreakForShuffle = 0;
       out.push({ type: 'match', indices: [a, b], gained, playerId: player.id });
       if (this.turnDeadline) {
         // +5 giây nhưng không vượt trần 15 giây tính từ bây giờ
@@ -245,13 +243,6 @@ export class MemoryGame {
     this.pendingUntil = 0;
     this.selection = [];
     const out: GameEvent[] = [];
-
-    const every = this.config.shuffleAfterMisses ?? 0;
-    if (every > 0 && ++this.missStreakForShuffle >= every) {
-      this.missStreakForShuffle = 0;
-      const hidden = this.cards.filter((c) => !c.blank && !this.matched.has(c.pairId)).map((c) => c.index);
-      if (hidden.length > 2) out.push({ type: 'reshuffle', indices: reshuffleHidden(this.cards, hidden, this.rng) });
-    }
 
     if (!this.finished && this.isMultiplayer) out.push(...this.nextTurn(now));
     return out;
@@ -380,7 +371,6 @@ export class MemoryGame {
       revealUntil: this.revealUntil,
       pendingUntil: this.pendingUntil,
       turnDeadline: this.turnDeadline,
-      missStreakForShuffle: this.missStreakForShuffle,
       rngState: this.rng.state,
       summaryCache: this.summaryCache && {
         ...this.summaryCache,
@@ -410,7 +400,6 @@ export class MemoryGame {
       revealUntil: s.revealUntil,
       pendingUntil: s.pendingUntil,
       turnDeadline: s.turnDeadline ?? 0,
-      missStreakForShuffle: s.missStreakForShuffle,
       rng: Rng.fromState(s.rngState as number),
       summaryCache: s.summaryCache
         ? {

@@ -9,8 +9,6 @@ export interface Level {
   timeLimit: number;
   /** Tỉ lệ cặp đặc biệt (0 nếu màn chưa bật). */
   specialRate: number;
-  /** Sau bao nhiêu lượt sai thì thẻ chưa mở đổi chỗ (0 = tắt). */
-  shuffleAfterMisses: number;
   starThresholds: [number, number];
 }
 
@@ -45,7 +43,6 @@ export function levelSpec(id: number): Level {
   return {
     id, cols, rows, timeLimit,
     specialRate: id >= 3 ? Math.min(0.15, 0.1 + (id - 3) * 0.005) : 0,   // bật từ màn 3 (mục 3.4)
-    shuffleAfterMisses: id >= 8 ? Math.max(2, 5 - Math.floor((id - 8) / 5)) : 0,
     starThresholds: [Math.round(perfect * 0.55), Math.round(perfect * 0.8)]
   };
 }
@@ -63,7 +60,6 @@ export function levelConfig(level: Level, symbols: readonly string[], seed: numb
     seed,
     timeLimit: level.timeLimit,
     specialRate: level.specialRate,
-    shuffleAfterMisses: level.shuffleAfterMisses,
     starThresholds: level.starThresholds
   };
 }

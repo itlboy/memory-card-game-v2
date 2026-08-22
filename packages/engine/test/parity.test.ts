@@ -13,7 +13,7 @@ type Action = { index: number; at: number };
 
 const CONFIG: GameConfig = {
   mode: 'classic', cols: 6, rows: 6, symbols: SYMBOLS, seed: 987654,
-  specialRate: 0.15, shuffleAfterMisses: 3, flipBackMs: 800,
+  specialRate: 0.15, flipBackMs: 800,
   players: [{ id: 'a', name: 'An' }, { id: 'b', name: 'Bình' }]
 };
 

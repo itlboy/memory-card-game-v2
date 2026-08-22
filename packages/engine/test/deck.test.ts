@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildDeck, reshuffleHidden } from '../src/deck.js';
+import { buildDeck } from '../src/deck.js';
 import { Rng } from '../src/rng.js';
 import { SYMBOLS } from './helpers.js';
 
@@ -57,18 +57,39 @@ describe('dựng bộ thẻ', () => {
   it('specialRate = 0 thì không có thẻ đặc biệt nào', () => {
     expect(deck({ cols: 6, rows: 6, specialRate: 0 }).some((c) => c.power)).toBe(false);
   });
+});
 
-  it('xáo trộn chỉ đảo các ô chưa mở và giữ nguyên đủ số thẻ', () => {
-    const cards = deck();
-    const hidden = [2, 3, 5, 8, 11];
-    const before = cards.map((c) => c.symbol);
-    reshuffleHidden(cards, hidden, new Rng(42));
-    // Ô ngoài danh sách không đổi
-    for (let i = 0; i < cards.length; i++) {
-      if (!hidden.includes(i)) expect(cards[i]!.symbol).toBe(before[i]);
+describe('không xếp hai thẻ cùng cặp sát nhau', () => {
+  /** Đếm cặp nằm kề theo hàng/cột — cài lại độc lập với engine để test có giá trị. */
+  const adjacent = (cards: readonly { pairId: number }[], cols: number, rows: number): number => {
+    let n = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const id = cards[r * cols + c]!.pairId;
+        if (id < 0) continue;   // ô trống
+        if (c + 1 < cols && cards[r * cols + c + 1]!.pairId === id) n++;
+        if (r + 1 < rows && cards[(r + 1) * cols + c]!.pairId === id) n++;
+      }
     }
-    // Tập biểu tượng trong các ô chưa mở được bảo toàn
-    expect(hidden.map((i) => cards[i]!.symbol).sort()).toEqual(hidden.map((i) => before[i]!).sort());
-    expect(cards.every((c, i) => c.index === i)).toBe(true);
+    return n;
+  };
+
+  // Lưới lớn cần tới 32 cặp — SYMBOLS chỉ có 24, nên dựng pool riêng cho test
+  const POOL = Array.from({ length: 32 }, (_, i) => `s${i}`);
+
+  it.each([[2, 2], [3, 3], [3, 4], [4, 4], [4, 5], [5, 5], [5, 6], [6, 6], [8, 8]])(
+    'lưới %ix%i: không seed nào còn cặp kề nhau',
+    (cols, rows) => {
+      for (let seed = 1; seed <= 120; seed++) {
+        expect(adjacent(buildDeck({ cols, rows, symbols: POOL, rng: new Rng(seed) }), cols, rows)).toBe(0);
+      }
+    }
+  );
+
+  it('vẫn tất định: cùng seed cho cùng bàn', () => {
+    const ids = (seed: number): number[] =>
+      buildDeck({ cols: 5, rows: 6, symbols: SYMBOLS, rng: new Rng(seed) }).map((c) => c.pairId);
+    expect(ids(42)).toEqual(ids(42));
+    expect(ids(42)).not.toEqual(ids(43));
   });
 });
