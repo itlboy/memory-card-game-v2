@@ -9,11 +9,17 @@ import type { MemoryGame } from './game.js';
 /* ---------- cấu hình phòng (ON-03) ---------- */
 
 export interface RoomConfig {
-  mode: Extract<Mode, 'classic' | 'survival'>;
+  /** Mọi chế độ trừ Chiến dịch — xem ROOM_MODES bên dưới. */
+  mode: Exclude<Mode, 'campaign'>;
   grid: string;
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
   themeIds: string[];
 }
+
+/** Chế độ dùng được trong phòng nhiều người: mọi thứ trừ Chiến dịch — chiến
+ *  dịch là chuỗi màn của riêng một người và dựng bàn qua levelConfig(). */
+export const ROOM_MODES = ['classic', 'time', 'survival', 'peek'] as const;
+export type RoomMode = (typeof ROOM_MODES)[number];
 
 /** themeIds rỗng = server tự dùng TẤT CẢ theme nó có. Ghi cứng một theme thì
  *  phòng tạo nhanh (chưa qua wizard) chỉ có một bộ biểu tượng. */
@@ -97,7 +103,10 @@ export function publicView(
     cards: game.cards.map((c) => {
       if (c.blank) return { index: c.index, state: 'down' as const, blank: true };
       const matched = game.isMatched(c.index);
-      const up = matched || game.selection.includes(c.index);
+      // Chớp nhoáng / thẻ mắt thần hé mở TOÀN BÀN trong vài giây — thiếu điều
+      // kiện này thì chế độ đó ở phòng online chỉ hiện một bàn úp im lìm.
+      // Vẫn an toàn theo NF-04: engine trên server mới quyết định lúc nào hé.
+      const up = matched || game.revealingAll || game.selection.includes(c.index);
       if (!up) return { index: c.index, state: 'down' as const };
       return {
         index: c.index,

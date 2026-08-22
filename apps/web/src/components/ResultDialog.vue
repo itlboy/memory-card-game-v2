@@ -88,8 +88,11 @@ const REASON: Record<Summary['reason'], string> = {
 };
 
 const title = computed(() => {
-  if (props.summary.status !== 'won') return 'Chưa xong 😢';
+  // Nhiều người: LUÔN xếp hạng, kể cả khi ván dừng vì hết giờ hay hết mạng —
+  // lúc đó engine trả status 'lost' nhưng vẫn có người dẫn điểm, mà báo
+  // "Chưa xong" thì cả phòng không biết ai thắng.
   if (props.multiplayer) return `${props.summary.ranking[0]?.name} thắng! 🏆`;
+  if (props.summary.status !== 'won') return 'Chưa xong 😢';
   return props.isRecord ? 'Kỷ lục mới! 🏆' : 'Hoàn thành! 🎉';
 });
 </script>
