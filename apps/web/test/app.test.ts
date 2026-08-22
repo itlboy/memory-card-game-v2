@@ -176,7 +176,11 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     expect(document.documentElement.dataset.theme).toBe('light');
-    await wrapper.findAll('header .btn')[0]!.trigger('click');
+    // Tìm theo nhãn, không theo vị trí: thanh trên cùng còn có nút Luật chơi và
+    // âm lượng, thêm nút mới là test theo index sẽ bấm nhầm
+    const darkBtn = wrapper.findAll('header .btn')
+      .find((b) => (b.attributes('aria-label') ?? '').includes('nền tối'));
+    await darkBtn!.trigger('click');
     await flush();
     expect(document.documentElement.dataset.theme).toBe('dark');
     expect(localStorage.getItem('mm.v2')).toContain('"dark":true');

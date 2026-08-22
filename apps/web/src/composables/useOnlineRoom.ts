@@ -296,6 +296,13 @@ export function useOnlineRoom() {
           timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
           setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
+        case 'life-gain': {
+          const who = view.value?.players.find((p) => p.id === e.playerId);
+          sfx.unlockTheme();
+          lifeGain.value = { name: who?.name ?? '', key: (lifeGain.value?.key ?? 0) + 1 };
+          setTimeout(() => { lifeGain.value = null; }, 3200);
+          break;
+        }
         case 'end': {
           const draw = isDraw(e.summary.ranking);
           // Tỷ số cả loạt trong phòng: chủ phòng bấm "chơi lại" nhiều ván nên
@@ -391,6 +398,8 @@ export function useOnlineRoom() {
   // để người chơi THẤY mình đã hết lượt, chứ không phải bấm mà chẳng có gì xảy ra.
   /** Số ván thắng của từng người trong phòng, theo tên. */
   const seriesWins = ref<Record<string, number>>({});
+  /** Ai vừa hồi mạng (Sinh tồn). */
+  const lifeGain = ref<{ name: string; key: number } | null>(null);
 
   const emojiSentAt: number[] = [];
   const emojiReady = ref(true);
@@ -446,6 +455,8 @@ export function useOnlineRoom() {
     emojiCooldown,
     /** Số ván thắng trong loạt của phòng (theo tên). */
     seriesWins,
+    /** Ai vừa hồi mạng (Sinh tồn). */
+    lifeGain,
     roomCode: () => code
   };
 }

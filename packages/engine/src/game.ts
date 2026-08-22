@@ -221,6 +221,14 @@ export class MemoryGame {
       this.seen.add(b);
       this.selection = [];
       out.push({ type: 'match', indices: [a, b], gained, playerId: player.id });
+
+      // Sinh tồn: đang nguy (dưới 2 mạng) mà ghép đúng hai lần liên tiếp thì
+      // được hồi 1 mạng. Chỉ hồi khi đang nguy — nếu không thì người chơi giỏi
+      // cứ thế tích mạng và chế độ mất hết sức ép.
+      if (this.config.lives != null && player.lives < 2 && player.streak >= 2 && player.streak % 2 === 0) {
+        player.lives++;
+        out.push({ type: 'life-gain', playerId: player.id, livesLeft: player.lives });
+      }
       if (this.turnDeadline) {
         // +5 giây nhưng không vượt trần 15 giây tính từ bây giờ
         this.turnDeadline = Math.min(this.turnDeadline + TURN_BONUS_MS, now + this.turnLimitMs);

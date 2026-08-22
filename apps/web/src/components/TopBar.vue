@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { Moon, Sun, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Moon, Sun, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { num } from '@/lib/format';
 import type { SoundLevel } from '@/lib/storage';
 
 const props = defineProps<{ dark: boolean; soundLevel: SoundLevel; totalScore: number }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; home: [] }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; home: []; rules: [] }>();
 
 const SOUND_LABEL: Record<SoundLevel, string> = {
   off: 'Âm thanh: đang tắt',
@@ -74,6 +74,9 @@ watch(() => props.totalScore, (to, from) => {
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </span>
+    <button class="btn" aria-label="Luật chơi" title="Luật chơi" type="button" @click="$emit('rules')">
+      <HelpCircle :size="20" />
+    </button>
     <button class="btn" :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'" type="button" @click="$emit('toggle-dark')">
       <Sun v-if="dark" :size="20" />
       <Moon v-else :size="20" />

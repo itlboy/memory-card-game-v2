@@ -215,8 +215,8 @@ const startLabel = computed(() => {
 // Đủ mọi chế độ trừ Chiến dịch. Màu giữ đúng quy ước dùng xuyên suốt game.
 const MODES = [
   { id: 'classic' as const, icon: Brain, g: 'g-blue', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
-  { id: 'time' as const, icon: Timer, g: 'g-amber', name: 'Đua thời gian', desc: 'Cả phòng đua trong một khoảng thời gian' },
-  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — quên thẻ đã mở là mất mạng' },
+  { id: 'time' as const, icon: Timer, g: 'g-amber', name: 'Đua thời gian', desc: 'Cả phòng đua chung đồng hồ, ghép đúng được +2 giây' },
+  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — quên thẻ đã mở là mất mạng, ghép 2 lần liền thì hồi' },
   { id: 'peek' as const, icon: Eye, g: 'g-teal', name: 'Chớp nhoáng', desc: 'Cả phòng nhìn 4 giây rồi bàn úp lại' }
 ];
 
@@ -620,7 +620,11 @@ function openCfgWizard(): void {
       </Transition>
 
       <Transition name="banner">
-        <div v-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
+        <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
+          <span class="who">❤️ <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
+          <small>Ghép đúng hai lần liền khi đang nguy</small>
+        </div>
+        <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
           <small v-if="o.turnBanner.value.frozen">❄️ {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
           <span class="who">
             <span class="avatar">{{ o.turnBanner.value.avatar || '🎮' }}</span>
@@ -802,8 +806,12 @@ input:focus { outline: none; border-color: var(--accent); }
 /* Tên theme được phép xuống hai dòng: giữ một dòng thì bề rộng ô khoá cỡ chữ
    ở 13px trong khi ô còn thừa chiều cao */
 .option strong.tname {
-  font-size: clamp(11px, min(20cqw, 24cqh), 21px);
-  line-height: 1.15; text-align: center; max-width: 100%;
+  /* Hệ số nhỏ hơn các nhãn khác vì Baloo 2 rộng và cao hơn Nunito — giữ 20cqw
+     thì tên hai dòng như "Cờ quốc gia" tràn khỏi ô. */
+  font-size: clamp(11px, min(16.5cqw, 20cqh), 19px);
+  /* 1,25 chứ không 1,15: Baloo 2 có phần trên/dưới chữ cao, dòng chật quá thì
+     dấu tiếng Việt của hai dòng chạm nhau. */
+  line-height: 1.25; text-align: center; max-width: 100%;
   overflow-wrap: break-word;
 }
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
@@ -836,8 +844,15 @@ input:focus { outline: none; border-color: var(--accent); }
 .opt-icon { color: var(--accent); flex-shrink: 0; }
 .neon .opt-icon { color: #fff; }
 .neon small { color: rgba(255, 255, 255, .85); }
-.option strong { font-family: var(--font-display); font-size: clamp(17px, 8cqw, 28px); }
-.option small { color: var(--muted); font-size: clamp(12.5px, 5cqw, 17px); line-height: 1.35; }
+/* Chặn theo CẢ chiều cao ô: Baloo 2 cao hơn Nunito nên ở màn thấp (320×568)
+   mô tả hai dòng tràn khỏi ô. */
+.option strong { font-family: var(--font-display); font-size: clamp(15px, min(8cqw, 26cqh), 28px); }
+.option small { color: var(--muted); font-size: clamp(11.5px, min(5cqw, 17cqh), 17px); line-height: 1.35; }
+/* Ô quá thấp (màn 320×568 chia 5 chế độ ra ô 68px) thì bỏ mô tả, giữ tên chế
+   độ — chữ đã ở cỡ nhỏ nhất, không co được nữa. */
+@container (max-height: 80px) {
+  .option.wide small { display: none; }
+}
 
 .code-input {
   letter-spacing: .3em;
@@ -996,6 +1011,7 @@ input:focus { outline: none; border-color: var(--accent); }
   backdrop-filter: blur(6px); pointer-events: none; z-index: 5; white-space: nowrap;
 }
 .turn-banner .who { display: flex; align-items: center; gap: 8px; font-size: clamp(17px, 4.5vw, 22px); }
+.turn-banner.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
 .turn-banner b { color: var(--accent); }
 .turn-banner .avatar { font-size: clamp(24px, 6vw, 32px); }
 .turn-banner small { color: var(--muted); font-size: 12.5px; }

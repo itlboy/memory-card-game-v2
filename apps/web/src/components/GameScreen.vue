@@ -164,6 +164,9 @@ const fitStyle = computed(() => ({
         <p v-if="s.revealingAll.value" class="toast peek" role="status">
           👀 Ghi nhớ vị trí các thẻ…
         </p>
+        <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" role="status">
+          ❤️ Hồi 1 mạng — ghép đúng hai lần liền!
+        </p>
         <p v-else-if="s.lastPower.value" :key="s.lastPower.value.index" class="toast" role="status">
           {{ POWER_TEXT[s.lastPower.value.power] }}
         </p>
@@ -315,6 +318,7 @@ const fitStyle = computed(() => ({
   pointer-events: none;
 }
 .toast.peek { border-color: color-mix(in srgb, var(--warn) 65%, var(--line)); }
+.toast.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
 .toast-enter-active { animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1); }
 .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .toast-leave-to { opacity: 0; transform: translate(-50%, -8px); }

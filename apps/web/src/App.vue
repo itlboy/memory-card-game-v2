@@ -8,6 +8,7 @@ import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
+import RulesDialog from './components/RulesDialog.vue';
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
@@ -68,6 +69,7 @@ let resultTimer: ReturnType<typeof setTimeout> | undefined;
 const session = useGameSession();
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 const confirmQuit = ref(false);
+const showRules = ref(false);
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
@@ -328,6 +330,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
     @toggle-dark="dark = !dark"
+    @rules="showRules = true"
     @cycle-sound="cycleSound"
     @home="goHome"
   />
@@ -370,6 +373,8 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     />
     </Transition>
   </main>
+
+  <RulesDialog v-if="showRules" @close="showRules = false" />
 
   <ConfirmDialog
     v-if="confirmQuit"

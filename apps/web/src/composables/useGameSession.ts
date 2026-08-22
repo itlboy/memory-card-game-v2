@@ -17,6 +17,9 @@ export function useGameSession() {
   /** Thẻ đang lắc vì ghép sai, để UI vẽ hiệu ứng. */
   const wrongPair = ref<number[]>([]);
   const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
+  /** Vừa hồi mạng (Sinh tồn) — phải báo rõ, không thì tim trên HUD tự nhiều
+   *  thêm một cái và người chơi không hiểu vì sao. */
+  const lifeGain = ref<{ key: number } | null>(null);
   /** Điểm vừa ghi + vị trí thẻ, cho hiệu ứng "+120" bay lên. `key` để ép re-render. */
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   /** Banner "Đến lượt X" khi chuyển người chơi (multiplayer). */
@@ -72,6 +75,11 @@ export function useGameSession() {
           break;
         case 'turn-timeout':
           sfx.miss();
+          break;
+        case 'life-gain':
+          sfx.unlockTheme();
+          lifeGain.value = { key: (lifeGain.value?.key ?? 0) + 1 };
+          setTimeout(() => { lifeGain.value = null; }, 3200);
           break;
         case 'time-bonus':
           timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
@@ -256,7 +264,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop, adopt,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, turnBanner, timeBonusFor,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, lifeGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };

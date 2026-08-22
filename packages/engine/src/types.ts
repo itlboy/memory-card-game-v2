@@ -93,4 +93,5 @@ export type GameEvent =
   | { type: 'turn-timeout'; playerId: string }
   | { type: 'time-bonus'; playerId: string; ms: number }
   | { type: 'life-lost'; playerId: string; livesLeft: number }
+  | { type: 'life-gain'; playerId: string; livesLeft: number }
   | { type: 'end'; summary: Summary };

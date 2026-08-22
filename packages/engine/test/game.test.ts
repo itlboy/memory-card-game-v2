@@ -213,3 +213,42 @@ describe('avatar người chơi', () => {
     expect(g.players.find((p) => p.id === 'p2')!.avatar).toBeTruthy();
   });
 });
+
+describe('Sinh tồn: hồi mạng khi đang nguy', () => {
+  /** Ghép đúng n cặp liên tiếp cho cùng một người (chơi đơn nên không đổi lượt). */
+  const matchStreak = (g: MemoryGame, n: number): void => {
+    for (let i = 0; i < n; i++) matchPair(g, i, i * 100);
+  };
+
+  it('dưới 2 mạng, ghép đúng 2 lần liên tiếp thì được +1 mạng', () => {
+    const g = makeGame({ mode: 'survival', lives: 3 });
+    missKnown(g, 0, 1);          // 3 -> 2
+    missKnown(g, 2, 3);          // 2 -> 1, giờ đang nguy
+    expect(g.players[0]!.lives).toBe(1);
+    matchStreak(g, 2);
+    expect(g.players[0]!.lives).toBe(2);
+  });
+
+  it('đủ 2 mạng trở lên thì KHÔNG hồi thêm', () => {
+    const g = makeGame({ mode: 'survival', lives: 3 });
+    matchStreak(g, 4);           // chuỗi 4 nhưng mạng vẫn đầy
+    expect(g.players[0]!.lives).toBe(3);
+  });
+
+  it('chế độ không dùng mạng thì không có gì xảy ra', () => {
+    const g = makeGame({ mode: 'classic' });
+    matchStreak(g, 2);
+    expect(g.players[0]!.lives).toBe(Infinity);
+  });
+
+  it('phát sự kiện life-gain để UI báo cho người chơi', () => {
+    const g = makeGame({ mode: 'survival', lives: 3 });
+    missKnown(g, 0, 1);
+    missKnown(g, 2, 3);
+    const slots = pairSlots(g);
+    g.flip(slots[4]![0], 0); g.flip(slots[4]![1], 0);
+    const ev = g.flip(slots[5]![0], 10);
+    const out = [...ev, ...g.flip(slots[5]![1], 20)];
+    expect(out.some((e) => e.type === 'life-gain')).toBe(true);
+  });
+});

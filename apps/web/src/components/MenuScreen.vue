@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GRIDS } from '@mm/engine';
+import { CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
 import { Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
 import type { Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
@@ -81,10 +81,10 @@ const TITLES: Record<Step, string> = {
 
 // Mỗi chế độ một màu neon cố định — theo suốt game (hướng thiết kế C)
 const SOLO_MODES = [
-  { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: 'Đi từ dễ đến khó qua 20 màn · điểm cộng dồn' },
+  { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: `Đi từ dễ đến khó qua ${CAMPAIGN_LEVELS} màn · điểm cộng dồn` },
   { id: 'classic' as Mode,  icon: Brain,  g: 'g-blue',   name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
-  { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Xong càng nhanh, thưởng càng nhiều' },
-  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — quên thẻ đã mở là mất mạng' },
+  { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Ghép đúng được +2 giây · xong nhanh thưởng nhiều' },
+  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — quên thẻ đã mở là mất mạng, ghép 2 lần liền thì hồi' },
   { id: 'peek' as Mode,     icon: Eye,    g: 'g-teal',   name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
 ];
 // Mỗi số người một màu riêng: ba ô cùng màu thì nhìn như một khối, mắt không
@@ -233,7 +233,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           @click="pickCount(c.n)"
         >
           <span class="count-num" aria-hidden="true">{{ c.n }}</span>
-          <span class="text"><strong>người chơi</strong><small>{{ c.desc }}</small></span>
+          <span class="text"><strong>Người chơi</strong><small>{{ c.desc }}</small></span>
         </button>
       </div>
 
@@ -462,8 +462,12 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    chiều cao — hai dòng chữ to đọc dễ hơn một dòng chữ tí xíu.
    Selector phải thắng `.option strong` (0,1,1) nên mới viết dạng này. */
 .option strong.tname {
-  font-size: clamp(11px, min(20cqw, 24cqh), 21px);
-  line-height: 1.15; text-align: center; max-width: 100%;
+  /* Hệ số nhỏ hơn các nhãn khác vì Baloo 2 rộng và cao hơn Nunito — giữ 20cqw
+     thì tên hai dòng như "Cờ quốc gia" tràn khỏi ô. */
+  font-size: clamp(11px, min(16.5cqw, 20cqh), 19px);
+  /* 1,25 chứ không 1,15: Baloo 2 có phần trên/dưới chữ cao, dòng chật quá thì
+     dấu tiếng Việt của hai dòng chạm nhau. */
+  line-height: 1.25; text-align: center; max-width: 100%;
   overflow-wrap: break-word;
 }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
@@ -526,8 +530,17 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   color: var(--accent); line-height: 1;
 }
 .neon .count-num { color: #fff; }
-.option strong { font-size: clamp(16px, 8cqw, 28px); }
-.option small { color: var(--muted); font-size: clamp(12.5px, 5cqw, 17px); line-height: 1.35; }
+/* Baloo 2 như mọi nhãn nút khác: OnlineScreen vẫn dùng font hiển thị nên để
+   Nunito ở đây làm hai màn cùng loại trông như hai app khác nhau. */
+/* Chặn theo CẢ chiều cao ô: Baloo 2 cao hơn Nunito nên ở màn thấp (320×568)
+   mô tả hai dòng tràn khỏi ô. */
+.option strong { font-family: var(--font-display); font-size: clamp(15px, min(8cqw, 26cqh), 28px); }
+.option small { color: var(--muted); font-size: clamp(11.5px, min(5cqw, 17cqh), 17px); line-height: 1.35; }
+/* Ô quá thấp (màn 320×568 chia 5 chế độ ra ô 68px) thì bỏ mô tả, giữ tên chế
+   độ — chữ đã ở cỡ nhỏ nhất, không co được nữa. */
+@container (max-height: 80px) {
+  .option.wide small { display: none; }
+}
 
 .option.big .icon { font-size: 42px; }
 .option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }
