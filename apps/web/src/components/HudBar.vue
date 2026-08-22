@@ -16,6 +16,8 @@ const props = defineProps<{
   levelId?: number;
   /** Nhiều người chơi: ẩn Điểm/Lượt/Combo — các số này nằm trong chip từng người. */
   multiplayer?: boolean;
+  /** Đổi số này để con số Điểm nảy một nhịp (khi điểm vừa bay tới). */
+  scoreBump?: number;
 }>();
 
 defineEmits<{ quit: [] }>();
@@ -29,7 +31,9 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
   <div class="hud panel">
     <div class="stats">
     <div v-if="levelId" class="stat"><span>Màn</span><b>{{ levelId }}</b></div>
-    <div v-if="!multiplayer" class="stat"><span>Điểm</span><b>{{ score }}</b></div>
+    <div v-if="!multiplayer" class="stat" data-score-target>
+      <span>Điểm</span><b :key="scoreBump" :class="{ bump: scoreBump }">{{ score }}</b>
+    </div>
     <div v-if="!multiplayer" class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
     <div class="stat"><span>Cặp</span><b>{{ matched }}/{{ totalPairs }}</b></div>
     <div class="stat" :class="{ urgent }"><span>{{ timeLabel }}</span><b>{{ timeText }}</b></div>
@@ -67,6 +71,12 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
   font-size: var(--text-lg); line-height: 1.2;
 }
 .stat b i { font-style: normal; color: var(--muted); font-weight: 400; font-size: 13px; }
+/* Điểm vừa được cộng bay tới: con số nảy và thắp vàng — nối liền hiệu ứng
+   trên bàn với chỗ điểm thật sự được ghi */
+.stat b.bump { animation: score-bump .4s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes score-bump {
+  45% { transform: scale(1.4); color: var(--gold); }
+}
 .stat.urgent b { color: var(--bad); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .35; } }
 .combo b { display: inline-block; animation: bump .3s cubic-bezier(.3, 1.6, .5, 1); }

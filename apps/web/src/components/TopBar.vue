@@ -1,18 +1,69 @@
 <script setup lang="ts">
 import { Moon, Sun, Volume2, VolumeX } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
-defineProps<{ dark: boolean; sound: boolean; totalScore: number }>();
+const props = defineProps<{ dark: boolean; sound: boolean; totalScore: number }>();
 defineEmits<{ 'toggle-dark': []; 'toggle-sound': []; home: [] }>();
+
+/** Số đang hiển thị — chạy dần lên số thật để người chơi THẤY điểm được cộng. */
+const shown = ref(props.totalScore);
+/** Bong bóng "+N" bay lên mỗi lần điểm tăng. */
+const gain = ref<{ amount: number; key: number } | null>(null);
+const bump = ref(0);
+let raf = 0;
+let gainTimer: ReturnType<typeof setTimeout> | undefined;
+
+watch(() => props.totalScore, (to, from) => {
+  const delta = to - from;
+  if (delta > 0) {
+    gain.value = { amount: delta, key: (gain.value?.key ?? 0) + 1 };
+    bump.value++;
+    clearTimeout(gainTimer);
+    gainTimer = setTimeout(() => { gain.value = null; }, 1500);
+  }
+  // Điểm nhảy thẳng sang số mới thì không ai kịp nhận ra là mình vừa được cộng
+  cancelAnimationFrame(raf);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || delta <= 0) { shown.value = to; return; }
+  const dur = Math.min(1200, 380 + Math.abs(delta) * 1.6);
+  const t0 = performance.now();
+  const step = (now: number): void => {
+    const p = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);            // chậm dần về cuối
+    shown.value = Math.round(from + delta * eased);
+    if (p < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+});
 </script>
 
 <template>
   <header class="topbar">
     <h1>
       <button class="brand" type="button" aria-label="Về trang chủ" @click="$emit('home')">
-        <span class="logo" aria-hidden="true">🃏</span><span class="name">Memory Match</span>
+        <!-- Hai lá bài chồng nghiêng — emoji 🃏 mỗi máy vẽ một kiểu, không dùng
+             được làm dấu hiệu thương hiệu. Khung CỐ ĐỊNH 30×30 để không giãn
+             kín header khi nằm trong flex. -->
+        <span class="logo" aria-hidden="true">
+          <i class="card-l" /><i class="card-r" />
+        </span><span class="name">Memory Match</span>
       </button>
     </h1>
-    <span class="total" :title="`Tổng điểm tích lũy: ${totalScore}`">⭐ {{ totalScore }}</span>
+
+    <span class="total" :class="{ pop: bump }" :key="bump" :title="`Tổng điểm tích lũy: ${totalScore}`">
+      <!-- Sao vẽ bằng SVG, fill currentColor: emoji ⭐ mỗi máy một kiểu và bị
+           tính là chữ nên ngắt dòng ở máy hẹp -->
+      <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12 2.6l2.83 6.05 6.62.72-4.95 4.45 1.4 6.5L12 16.9l-5.9 3.42 1.4-6.5L2.55 9.37l6.62-.72z"
+          fill="currentColor"
+        />
+      </svg>
+      <b>{{ shown }}</b>
+      <Transition name="gain">
+        <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ gain.amount }}</i>
+      </Transition>
+    </span>
     <button class="btn" :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'" type="button" @click="$emit('toggle-dark')">
       <Sun v-if="dark" :size="20" />
       <Moon v-else :size="20" />
@@ -42,7 +93,25 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   font: inherit; cursor: pointer;
   min-width: 0; max-width: 100%;
 }
-.logo { font-size: 24px; flex-shrink: 0; filter: drop-shadow(0 2px 6px var(--card-back-glow)); }
+/* Khung cố định — bắt buộc tường minh, để tự do trong flex là nó giãn kín header */
+.logo {
+  position: relative; flex-shrink: 0;
+  width: 30px; height: 30px;
+  display: inline-block;
+}
+.logo i {
+  position: absolute; top: 4px;
+  width: 17px; height: 23px; border-radius: 5px;
+  box-shadow: 0 2px 6px rgba(30, 27, 75, .25);
+}
+.logo .card-l {
+  left: 0; transform: rotate(-14deg);
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+}
+.logo .card-r {
+  right: 0; transform: rotate(12deg);
+  background: linear-gradient(150deg, #c44cf0, #ff5fa2);
+}
 .name {
   background: linear-gradient(100deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
@@ -51,12 +120,42 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   white-space: nowrap;
 }
 /* Huy hiệu điểm không bao giờ bị flex nén hay ngắt dòng */
+/* Viên điểm vàng: đủ tương phản để đọc trên cả nền sáng và nền tối */
 .total {
+  position: relative;
   flex-shrink: 0; white-space: nowrap;
-  font-size: var(--text-sm); font-weight: 700; color: var(--muted);
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px 4px 8px; border-radius: var(--r-full);
+  color: #4a2f00;
+  background: linear-gradient(135deg, #ffd76a, #f0a500);
+  box-shadow: 0 4px 12px rgba(240, 165, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+.total b {
+  font-family: var(--font-display); font-weight: 800;
   font-variant-numeric: tabular-nums;
-  padding: 4px 10px; border-radius: var(--r-full);
-  background: var(--accent-soft);
+  font-size: var(--text-md); color: inherit;
+}
+.star-ico { width: 14px; height: 14px; flex-shrink: 0; }
+/* Điểm vừa tăng: viên nảy một nhịp */
+.total.pop { animation: total-pop .3s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes total-pop { 45% { transform: scale(1.12); } }
+/* Bong bóng "+N" trôi XUỐNG dưới huy hiệu — bay lên thì tràn khỏi đỉnh
+   viewport (và bị cột desktop overflow:hidden cắt mất) */
+.gain {
+  position: absolute; left: 50%; top: calc(100% + 2px);
+  transform: translateX(-50%);
+  font-style: normal; font-family: var(--font-display); font-weight: 800;
+  font-size: var(--text-md); color: #f0a500;
+  text-shadow: 0 2px 8px rgba(240, 165, 0, .55);
+  pointer-events: none;
+}
+.gain-enter-active { animation: gain-fly 1.5s ease-out forwards; }
+.gain-leave-active { display: none; }
+@keyframes gain-fly {
+  0% { opacity: 0; transform: translate(-50%, -8px) scale(.7); }
+  18% { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+  70% { opacity: 1; transform: translate(-50%, 8px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, 20px) scale(.95); }
 }
 /* Máy rất hẹp (320px): nới chỗ cho wordmark bằng cách thu padding/gap,
    không thu chữ thêm nữa — dưới 17px là khó đọc */

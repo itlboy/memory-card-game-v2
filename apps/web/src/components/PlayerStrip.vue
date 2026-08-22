@@ -35,7 +35,7 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
       <Transition name="plus">
         <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
       </Transition>
-      <span class="pts">{{ p.score }}</span>
+      <span class="pts" :data-pts-for="p.id">{{ p.score }}</span>
       <small v-if="Number.isFinite(p.lives)" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
       <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng">❄️</span>
       <span v-else-if="p.doubleNext" class="tag" title="Cặp tới nhân đôi điểm">✖️2</span>

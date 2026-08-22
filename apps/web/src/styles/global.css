@@ -39,7 +39,12 @@ body {
     height: 100dvh; padding: 24px;
   }
   #app {
-    width: 440px; height: min(calc(100dvh - 48px), 920px);
+    height: min(calc(100dvh - 48px), 920px);
+    /* Bề rộng SUY TỪ chiều cao để cột giữ đúng tỷ lệ điện thoại (390:844).
+       Khoá cứng 440px thì cửa sổ thấp ra 440×720 ≈ 0,61 — bè và lùn.
+       Sàn 390px vì dưới mức đó chữ Việt trong ô lựa chọn ngắt dòng xấu:
+       thà hy sinh tỷ lệ chứ không nén bề rộng. */
+    width: clamp(390px, calc((100dvh - 48px) * 0.462), 440px);
     border: 1px solid var(--line); border-radius: 28px;
     overflow: hidden; box-shadow: var(--elev-3);
   }

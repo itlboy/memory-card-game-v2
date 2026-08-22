@@ -18,6 +18,9 @@ const props = defineProps<{
 const emit = defineEmits<{ replay: []; next: []; menu: [] }>();
 const primary = ref<HTMLButtonElement | null>(null);
 const shownStars = ref(0);
+/** Điểm chạy dần từ 0 lên tổng — con số nhảy sẵn thì không ai cảm nhận được
+ *  là mình vừa ghi được bao nhiêu. */
+const shownScore = ref(0);
 
 onMounted(() => {
   primary.value?.focus();
@@ -27,7 +30,29 @@ onMounted(() => {
       setTimeout(() => { shownStars.value = i; sfx.star(i); }, 350 * i);
     }
   }
+  countScoreUp();
 });
+
+/** Đếm điểm lên với nhịp tick, dừng đúng ở tổng điểm. */
+function countScoreUp(): void {
+  const target = props.summary.score;
+  if (target <= 0 || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    shownScore.value = target;
+    return;
+  }
+  const dur = Math.min(1400, 500 + target * 1.2);
+  const t0 = performance.now();
+  let lastTick = 0;
+  const step = (now: number): void => {
+    const p = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - p, 3);
+    shownScore.value = Math.round(target * eased);
+    // Tick theo mốc điểm, không theo frame — 60fps sẽ thành tiếng rè
+    if (now - lastTick > 90 && p < 1) { lastTick = now; sfx.tick(); }
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 
 const REASON: Record<Summary['reason'], string> = {
   cleared: 'Bạn đã mở hết các cặp!',
@@ -66,8 +91,24 @@ const title = computed(() => {
         </li>
       </ol>
 
-      <dl v-else class="stats">
-        <div><dt>Điểm</dt><dd>{{ summary.score }}</dd></div>
+      <!-- Điểm là phần thưởng của cả ván: cho nó cỡ chữ xứng đáng và đếm dần lên -->
+      <p v-if="!multiplayer" class="score-big" :aria-label="`${summary.score} điểm`">
+        <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="mmStarBig" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffd76a" /><stop offset="1" stop-color="#f59e0b" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M12 2.6l2.83 6.05 6.62.72-4.95 4.45 1.4 6.5L12 16.9l-5.9 3.42 1.4-6.5L2.55 9.37l6.62-.72z"
+            fill="url(#mmStarBig)"
+          />
+        </svg>
+        <b>{{ shownScore }}</b>
+        <small>điểm</small>
+      </p>
+
+      <dl v-if="!multiplayer" class="stats">
         <div v-if="summary.timeBonus"><dt>Thưởng thời gian</dt><dd>+{{ summary.timeBonus }}</dd></div>
         <div><dt>Số lượt</dt><dd>{{ summary.moves }}</dd></div>
         <div><dt>Thời gian</dt><dd>{{ clock(summary.seconds) }}</dd></div>
@@ -125,6 +166,28 @@ h2 { margin: 0 0 4px; }
   60% { transform: scale(1.35) rotate(8deg); }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
+
+/* Điểm tổng: con số lớn nhất trong dialog, có nền sáng và ngôi sao dẫn */
+.score-big {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 4px 0 12px; padding: 10px 16px;
+  border-radius: var(--r-md);
+  background: linear-gradient(150deg,
+    color-mix(in srgb, var(--gold) 16%, transparent),
+    color-mix(in srgb, var(--accent) 12%, transparent));
+  animation: score-in .45s cubic-bezier(.3, 1.5, .5, 1);
+}
+.score-big .star-ico {
+  width: 26px; height: 26px;
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--gold) 55%, transparent));
+}
+.score-big b {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: var(--text-2xl); line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.score-big small { color: var(--muted); font-size: var(--text-sm); font-weight: 700; }
+@keyframes score-in { from { opacity: 0; transform: scale(.86); } }
 
 .stats { margin: 0; display: grid; gap: 6px; }
 .stats div { display: flex; justify-content: space-between; gap: 12px; }

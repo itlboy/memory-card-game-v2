@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MemoryGame } from '@mm/engine';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import PlayerStrip from './PlayerStrip.vue';
@@ -25,6 +25,40 @@ const POWER_TEXT: Record<string, string> = {
 };
 
 const soloScore = computed(() => s.players.value[0]?.score ?? 0);
+
+/** Điểm vừa cộng có phải combo không — combo mới có vòng sáng lan. */
+const gainHot = computed(() => s.combo.value >= 1.5);
+/** Đổi số này để con số Điểm ở HUD nảy đúng lúc điểm bay tới. */
+const scoreBump = ref(0);
+const gainEl = ref<HTMLElement | null>(null);
+let bumpTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Đích của điểm bay: ô "Điểm" ở HUD, hoặc ô điểm trong chip người đang chơi. */
+function scoreTarget(): Element | null {
+  const root = gainEl.value?.closest('.game');
+  if (!root) return null;
+  const id = s.current.value?.id;
+  return props.game.isMultiplayer && id
+    ? root.querySelector(`[data-pts-for="${id}"]`)
+    : root.querySelector('[data-score-target] b');
+}
+
+// Điểm phải BAY VỀ chỗ nó được ghi, không thì con số hiện lên rồi tan đi mà
+// người chơi không nối được với ô Điểm. Toạ độ đo thật vì HUD đổi bố cục
+// theo chế độ (multiplayer ẩn Điểm, Sinh tồn thêm Mạng…).
+watch(() => s.lastGain.value?.key, async (key) => {
+  if (!key) return;
+  clearTimeout(bumpTimer);
+  await nextTick();
+  const el = gainEl.value;
+  const target = scoreTarget();
+  if (!el || !target) return;
+  const from = el.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  el.style.setProperty('--to-x', `${to.left + to.width / 2 - (from.left + from.width / 2)}px`);
+  el.style.setProperty('--to-y', `${to.top + to.height / 2 - (from.top + from.height / 2)}px`);
+  bumpTimer = setTimeout(() => { scoreBump.value++; }, 850);   // đúng lúc cập bến
+});
 
 /** Vị trí hiệu ứng "+điểm": tâm của ô thẻ vừa ghép, tính theo % của lưới. */
 const gainStyle = computed(() => {
@@ -75,6 +109,7 @@ const fitStyle = computed(() => {
       :lives="lives"
       :level-id="levelId"
       :multiplayer="game.isMultiplayer"
+      :score-bump="scoreBump"
       @quit="emit('quit')"
     />
 
@@ -106,13 +141,23 @@ const fitStyle = computed(() => {
         :back="s.backStyle.value"
         @flip="s.flip"
       />
-      <span
-        v-if="s.lastGain.value"
-        :key="s.lastGain.value.key"
-        class="gain"
-        :style="gainStyle"
-        aria-hidden="true"
-      >+{{ s.lastGain.value.amount }}</span>
+      <template v-if="s.lastGain.value">
+        <span
+          ref="gainEl"
+          :key="s.lastGain.value.key"
+          class="gain"
+          :style="gainStyle"
+          aria-hidden="true"
+        >+{{ s.lastGain.value.amount }}</span>
+        <!-- Vòng sáng chỉ dành cho combo: thường xuyên quá thì hết đặc biệt -->
+        <span
+          v-if="gainHot"
+          :key="`ring-${s.lastGain.value.key}`"
+          class="gain-ring"
+          :style="gainStyle"
+          aria-hidden="true"
+        />
+      </template>
 
       <!-- Đếm ngược 5 giây trước ván multiplayer + báo người đi đầu -->
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
@@ -147,17 +192,35 @@ const fitStyle = computed(() => {
   display: flex; align-items: center; justify-content: center;
 }
 .board-wrap :deep(.board) { width: var(--fit, 100%); }
+/* Số điểm bật lên ở tâm thẻ vừa ghép rồi BỊ HÚT về ô Điểm. Đích truyền vào
+   bằng --to-x/--to-y (đo bằng getBoundingClientRect) chứ không phải % cố định,
+   vì HUD đổi bố cục theo chế độ chơi. */
 .gain {
+  --to-x: 0px; --to-y: -120px;
   position: absolute; transform: translate(-50%, -50%);
-  font-weight: 800; font-size: clamp(16px, 4vw, 24px); color: var(--gold);
-  text-shadow: 0 1px 8px rgba(0, 0, 0, .35);
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(18px, 4.5vw, 26px); color: var(--gold);
+  text-shadow: 0 2px 10px rgba(217, 158, 0, .5);
   pointer-events: none;
-  animation: rise 1s ease-out forwards;
+  animation: gain-suck 1.05s cubic-bezier(.35, .05, .3, 1) forwards;
 }
-@keyframes rise {
-  0% { opacity: 0; transform: translate(-50%, -30%) scale(.7); }
-  20% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
-  100% { opacity: 0; transform: translate(-50%, -170%) scale(1); }
+@keyframes gain-suck {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1.35); }
+  45% { opacity: 1; transform: translate(calc(-50% + var(--to-x) * .18), calc(-50% + var(--to-y) * .18)) scale(1.2); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--to-x)), calc(-50% + var(--to-y))) scale(.45); }
+}
+/* Vòng sáng lan từ thẻ — chỉ khi đang có combo */
+.gain-ring {
+  position: absolute;
+  width: 70px; height: 70px; margin: -35px 0 0 -35px;
+  border: 3px solid var(--gold); border-radius: 50%;
+  pointer-events: none;
+  animation: gain-ring .7s ease-out forwards;
+}
+@keyframes gain-ring {
+  0% { opacity: .9; transform: scale(.4); }
+  100% { opacity: 0; transform: scale(2.6); }
 }
 
 .countdown {
