@@ -42,7 +42,10 @@ const idOf = (x) => last(x, 'welcome').playerId;
 const byId = (id) => [host, b, c].find((x) => idOf(x) === id);
 let view = cur(), scorer = null, tries = 0;
 const missed = new Set();
-while (!scorer && tries++ < 10) {
+// Deck không còn xếp hai thẻ cùng cặp cạnh nhau, mà vòng dò dưới đây luôn thử
+// từ cặp ô gần nhau nhất — đúng những cặp bị loại. Với lưới 4×4 có thể phải
+// thử tới 15 lượt mới ra một cặp, nên giới hạn 10 là quá chặt.
+while (!scorer && tries++ < 30) {
   for (const cl of [host, b, c]) cl.msgs = cl.msgs.filter((m) => m.t !== 'events');
   const actor = byId(view.currentId);
   const down = view.cards.filter((k) => k.state === 'down').map((k) => k.index);

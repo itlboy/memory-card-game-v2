@@ -21,6 +21,14 @@ const emit = defineEmits<{ back: [] }>();
 
 const o = useOnlineRoom();
 const name = ref(store.playerNames()[0] ?? '');
+/** Tên gợi ý trong ô nhập. Đặt tên vui thì bạn bè trong phòng dễ nhớ nhau hơn
+ *  là "Người 1", "Người 2" — nên gợi ý bằng biệt danh thay vì một tên khô. */
+const NAME_HINTS = [
+  'Cáo Nhanh Tay', 'Mèo Trí Nhớ', 'Sóc Lật Thẻ', 'Gấu Bình Tĩnh',
+  'Cú Đêm', 'Hổ Con', 'Cá Heo Vui', 'Thỏ Tinh Mắt',
+  'Rồng Nhỏ', 'Ong Chăm Chỉ', 'Panda Ngủ Muộn', 'Sói Đơn Độc'
+];
+const namePlaceholder = `VD: ${NAME_HINTS[Math.floor(Math.random() * NAME_HINTS.length)]!}`;
 const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
 /** Vào bằng link mời: chỉ hiện đúng một việc — nhập tên rồi vào phòng. */
@@ -358,7 +366,7 @@ function openCfgWizard(): void {
     <template v-else-if="entryStep === 'create'">
       <label class="field">
         <span>Tên của bạn</span>
-        <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="create">
+        <input v-model="name" maxlength="16" :placeholder="namePlaceholder" @keydown.enter="create">
       </label>
       <button class="btn-primary" :disabled="!name.trim()" type="button" @click="create">
         Tiếp tục
@@ -372,7 +380,7 @@ function openCfgWizard(): void {
       </p>
       <label class="field">
         <span>Tên của bạn</span>
-        <input v-model="name" maxlength="16" placeholder="VD: An" @keydown.enter="join">
+        <input v-model="name" maxlength="16" :placeholder="namePlaceholder" @keydown.enter="join">
       </label>
       <label v-if="!invited" class="field">
         <span>Mã phòng</span>

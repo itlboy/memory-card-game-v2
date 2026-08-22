@@ -47,6 +47,12 @@
 
 ## Quy trình
 
+- **NHÁNH: làm việc trên `develop`, KHÔNG commit thẳng vào `main`.** `main` là
+  nhánh phát hành — Cloudflare Pages build production từ đó, nên mọi commit vào
+  `main` là lên thẳng tay người chơi. Xong việc và test sạch thì merge
+  `develop` → `main` (`pnpm test` + `pnpm typecheck` + `pnpm build` phải xanh,
+  và các luật giao diện ở phần trên phải được kiểm bằng ảnh/đo DOM thật).
+  Nhánh chính tên là `main`, không phải `master`.
 - `pnpm dev` = web :3001 + wrangler :8787 song song. `pnpm test` (engine +
   web), `pnpm smoke:online` và các script `tools/smoke-*.mjs` là E2E thật
   qua wrangler dev (cần server đang chạy). Deploy server: `pnpm deploy:server`
