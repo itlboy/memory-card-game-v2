@@ -18,8 +18,10 @@ import { loadThemes, type CardTheme } from './lib/themes';
 const prefs = store.prefs();
 const dark = ref(prefs.dark);
 const soundLevel = ref<SoundLevel>(prefs.soundLevel);
-/** Độ to của từng mức. "nhỏ" phải nghe rõ trong phòng yên tĩnh mà không ồn. */
-const SOUND_GAIN: Record<SoundLevel, number> = { off: 0, low: 1.2, high: 3.5 };
+/** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
+ *  tính) là quá to; 2,6 nghe rõ mà không giật mình, "nhỏ" thì đủ để biết mình
+ *  vừa bấm gì trong phòng yên tĩnh. */
+const SOUND_GAIN: Record<SoundLevel, number> = { off: 0, low: 1, high: 2.6 };
 /** Nút chạy con thoi tắt → nhỏ → to rồi to → nhỏ → tắt: không bao giờ nhảy
  *  thẳng từ to sang tắt, nên bấm quá tay vẫn còn nghe được. */
 const soundUp = ref(true);

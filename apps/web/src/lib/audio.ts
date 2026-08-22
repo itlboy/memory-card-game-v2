@@ -22,9 +22,9 @@ interface VoiceOpts {
 
 /** Âm lượng mặc định. Mọi tiếng trong file này dùng gain rất nhỏ (0,03–0,14)
  *  để chồng nhau không vỡ, nên nhân chung ở master. Chỉnh nhanh khi thử:
- *  gõ trong console `sfx.volume = 4`, hoặc mở app với `?vol=4`
+ *  gõ trong console `sfx.volume = 3`, hoặc mở app với `?vol=3`
  *  (giá trị được nhớ lại cho lần sau). */
-const DEFAULT_VOLUME = 3.5;
+const DEFAULT_VOLUME = 2.6;
 /** Trần cao được vì đầu ra đi qua soft-clip: quá to thì tiếng "ấm" lại,
  *  không xé loa như clip cứng. */
 const MAX_VOLUME = 8;

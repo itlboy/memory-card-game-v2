@@ -333,20 +333,20 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 }
 .grid-preview i.blank { background: transparent; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
-.options.grid3 strong { font-size: var(--text-md); }
-.options.grid3 small, .theme-opt small { font-size: var(--text-xs); }
-.theme-opt { padding: 10px 6px; gap: 3px; container-type: inline-size; }
-.theme-sample { font-size: clamp(12px, 3.5vw, 17px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
-/* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
-   — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
-/* .option strong đặt 16px nên phải thắng specificity, không thì cqw vô hiệu
-   và tên dài ("Thiên nhiên") bị cắt trong ô grid nén */
+.options.grid3 strong { font-size: clamp(15.5px, 19cqw, 24px); }
+.options.grid3 small, .theme-opt small { font-size: clamp(11.5px, 12cqw, 14px); }
+/* Phải đủ specificity để thắng `.option { padding: 16px 12px }` viết bên dưới —
+   padding 12px hai bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
+.options.grid2 .option.theme-opt { padding: 8px 5px; gap: 4px; }
+.theme-sample { font-size: clamp(15px, 26cqw, 32px); letter-spacing: 1px; white-space: nowrap; opacity: .9; }
+/* Tên theme: cỡ chữ co theo bề rộng ô và ĐƯỢC PHÉP xuống dòng. Giữ một dòng thì
+   cỡ chữ bị bề rộng ô (chỉ ~89px) khoá ở 12px trong khi ô còn trống gần 80px
+   chiều cao — hai dòng chữ to đọc dễ hơn một dòng chữ tí xíu.
+   Selector phải thắng `.option strong` (0,1,1) nên mới viết dạng này. */
 .option strong.tname {
-  font-size: clamp(10px, 10.5cqw, 14px);
-  line-height: 1.2; text-align: center; white-space: nowrap; max-width: 100%;
-  /* Cỡ chữ đã co theo bề rộng ô nên gần như không bao giờ tràn; ellipsis là
-     lưới an toàn cuối cho tên theme dài bất thường */
-  overflow: hidden; text-overflow: ellipsis;
+  font-size: clamp(13px, 20cqw, 21px);
+  line-height: 1.15; text-align: center; max-width: 100%;
+  overflow-wrap: break-word;
 }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
 .option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
@@ -387,6 +387,9 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   border: 2px solid var(--line); border-radius: 14px; background: var(--panel-soft);
   transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu tức thì */
   text-align: center;
+  /* Cỡ chữ co theo bề rộng Ô (không phải theo màn hình): ô lựa chọn giờ chiếm
+     trọn chỗ nên chữ cố định 16px trông bé tí giữa khoảng trống. */
+  container-type: inline-size;
 }
 @media (hover: hover) {
 .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
@@ -401,11 +404,11 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   color: var(--accent); line-height: 1;
 }
 .neon .count-num { color: #fff; }
-.option strong { font-size: 16px; }
-.option small { color: var(--muted); font-size: 12.5px; }
+.option strong { font-size: clamp(16px, 8cqw, 28px); }
+.option small { color: var(--muted); font-size: clamp(12.5px, 5cqw, 17px); line-height: 1.35; }
 
 .option.big .icon { font-size: 42px; }
-.option.big strong { font-size: 17px; }
+.option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }
 
 .option.wide { flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
