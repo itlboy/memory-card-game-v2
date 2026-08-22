@@ -30,7 +30,7 @@
   </g>
 
   <text x="320" y="286" font-family="'Baloo 2','Trebuchet MS',sans-serif" font-size="118" font-weight="800" fill="url(#wm)">Lật Thẻ</text>
-  <text x="326" y="356" font-family="Nunito,'Segoe UI',sans-serif" font-size="38" fill="#c9cbe8">Game thẻ bài trí nhớ — lật, tìm cặp, phá kỷ lục</text>
+  <text x="326" y="356" font-family="Nunito,'Segoe UI',sans-serif" font-size="33" fill="#c9cbe8">Rèn luyện trí nhớ — chơi một mình hoặc với bạn bè</text>
 
   <!-- ba thẻ mẫu -->
   <g transform="translate(330 410)">
@@ -41,6 +41,6 @@
     <rect x="224" width="92" height="122" rx="16" fill="url(#cl)"/>
     <text x="270" y="86" font-size="52" text-anchor="middle" fill="#fff">?</text>
   </g>
-  <text x="672" y="486" font-family="Nunito,'Segoe UI',sans-serif" font-size="27" fill="#9ba3cd">Chơi đơn · 2–4 người</text>
+  <text x="672" y="486" font-family="Nunito,'Segoe UI',sans-serif" font-size="27" fill="#9ba3cd">Chơi đơn · Nhiều người</text>
   <text x="672" y="524" font-family="Nunito,'Segoe UI',sans-serif" font-size="27" fill="#9ba3cd">cùng máy · Phòng online</text>
 </svg>
