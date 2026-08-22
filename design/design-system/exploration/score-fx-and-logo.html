@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi"><head><meta charset="utf-8"><title>Hiệu ứng cộng điểm & logo — phương án</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;padding:28px;font-family:var(--font-body);color:var(--fg)}
+h2{font-family:var(--font-display);font-size:15px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0 0 14px}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:34px}
+.opt{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--elev-1);padding:14px;display:flex;flex-direction:column;gap:10px}
+.opt h3{margin:0;font-family:var(--font-display);font-size:15px}
+.opt p{margin:0;font-size:12px;color:var(--muted);line-height:1.35;min-height:32px}
+.stage{position:relative;height:200px;border-radius:14px;background:var(--panel-soft);border:1px solid var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hud{position:absolute;top:8px;left:8px;display:flex;flex-direction:column;background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;padding:4px 10px;box-shadow:var(--elev-1);z-index:3}
+.hud span{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.hud b{font-family:var(--font-display);font-size:16px;font-variant-numeric:tabular-nums;line-height:1.1}
+.hud b.bump{animation:bump .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{40%{transform:scale(1.4);color:var(--gold)}}
+.card{width:66px;aspect-ratio:3/4;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:34px;
+ background:radial-gradient(circle at 50% 58%,var(--accent-soft),transparent 62%),var(--card-face);
+ border:1px solid var(--ok);box-shadow:inset 0 0 0 2px var(--ok),0 0 14px color-mix(in srgb,var(--ok) 45%,transparent)}
+.fx{position:absolute;left:50%;top:50%;pointer-events:none;font-family:var(--font-display);font-weight:800}
+button.play{border:1px solid var(--line);background:var(--panel-solid);border-radius:var(--r-md);min-height:36px;font-size:13px;font-weight:700;box-shadow:var(--elev-1)}
+
+/* A — hiện tại */
+.fx-a{color:var(--gold);font-size:22px;text-shadow:0 1px 8px rgba(0,0,0,.35);animation:riseA 1s ease-out forwards}
+@keyframes riseA{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}20%{opacity:1;transform:translate(-50%,-60%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-170%) scale(1)}}
+
+/* B — hút về HUD */
+.fx-b{color:var(--gold);font-size:26px;text-shadow:0 2px 10px rgba(217,158,0,.5);animation:suckB 1.05s cubic-bezier(.35,.05,.3,1) forwards}
+@keyframes suckB{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}18%{opacity:1;transform:translate(-50%,-95%) scale(1.35)}45%{opacity:1;transform:translate(-50%,-110%) scale(1.2)}100%{opacity:0;transform:translate(-260%,-330%) scale(.45)}}
+
+/* C — vòng sáng + số */
+.fx-c{color:var(--gold);font-size:30px;text-shadow:0 2px 12px rgba(217,158,0,.55);animation:popC .95s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes popC{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}22%{opacity:1;transform:translate(-50%,-70%) scale(1.5)}45%{transform:translate(-50%,-85%) scale(1.05)}100%{opacity:0;transform:translate(-50%,-150%) scale(1)}}
+.ring{position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px 0 0 -35px;border-radius:50%;border:3px solid var(--gold);animation:ringC .7s ease-out forwards}
+@keyframes ringC{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(2.6)}}
+
+/* D — combo + hạt vàng */
+.fx-d{color:#fff;font-size:26px;padding:3px 14px;border-radius:999px;background:linear-gradient(135deg,#f7b500,#ff7b45);
+ box-shadow:0 6px 20px rgba(245,158,11,.5);animation:popD 1.1s cubic-bezier(.2,1.4,.4,1) forwards;white-space:nowrap}
+.fx-d small{font-size:11px;letter-spacing:.08em;margin-left:6px;opacity:.9}
+@keyframes popD{0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(-8deg)}20%{opacity:1;transform:translate(-50%,-80%) scale(1.15) rotate(3deg)}55%{transform:translate(-50%,-95%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-165%) scale(.95)}}
+.spark{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:sparkD .8s cubic-bezier(.1,.7,.4,1) forwards}
+@keyframes sparkD{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+
+/* ---- logo marks ---- */
+.markrow{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel-solid);border:1px solid var(--line);border-radius:12px;box-shadow:var(--elev-1)}
+.wm{font-family:var(--font-display);font-weight:800;font-size:19px;background:linear-gradient(100deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.pill{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:800;padding:4px 10px;border-radius:999px;font-variant-numeric:tabular-nums}
+.pill.soft{background:var(--accent-soft);color:var(--muted)}
+.pill.gold{background:linear-gradient(135deg,#ffd76a,#f0a500);color:#4a2f00;box-shadow:0 4px 12px rgba(240,165,0,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.pill.outline{background:transparent;border:2px solid var(--gold);color:var(--gold)}
+.star{width:14px;height:14px;display:block}
+/* mark 1: emoji hiện tại */
+.m-emoji{font-size:24px;filter:drop-shadow(0 2px 6px var(--card-back-glow))}
+/* mark 2: hai lá bài chồng nghiêng */
+.m-cards{position:relative;width:30px;height:30px;flex-shrink:0}
+.m-cards i{position:absolute;width:17px;height:23px;border-radius:5px;top:4px;box-shadow:0 2px 6px rgba(30,27,75,.25)}
+.m-cards i:first-child{left:0;transform:rotate(-14deg);background:linear-gradient(150deg,#6a5cff,#8b5cf6)}
+.m-cards i:last-child{right:0;transform:rotate(12deg);background:linear-gradient(150deg,#c44cf0,#ff5fa2)}
+/* mark 3: ô vuông bo góc 2×2 */
+.m-grid{width:30px;height:30px;border-radius:9px;background:linear-gradient(150deg,#6a5cff,#c44cf0);display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:5px;box-sizing:border-box;flex-shrink:0;box-shadow:0 4px 12px var(--card-back-glow)}
+.m-grid i{border-radius:2.5px;background:rgba(255,255,255,.92)}
+.m-grid i:nth-child(2),.m-grid i:nth-child(3){background:rgba(255,255,255,.42)}
+/* mark 4: lá bài mang chữ M */
+.m-letter{width:26px;height:34px;border-radius:6px;background:linear-gradient(150deg,#6a5cff,#c44cf0);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:17px;flex-shrink:0;box-shadow:0 4px 12px var(--card-back-glow),inset 0 1px 0 rgba(255,255,255,.35)}
+</style></head>
+<body>
+
+<h2>1 · Hiệu ứng cộng điểm khi ghép đúng</h2>
+<div class="row" id="fxrow">
+  <div class="opt"><h3>A · Hiện tại</h3><p>Số vàng bay lên rồi mờ dần. Không liên hệ gì với ô Điểm ở HUD.</p>
+    <div class="stage" data-fx="a"><div class="hud"><span>Điểm</span><b>1240</b></div><div class="card">🦊</div></div>
+    <button class="play">Chạy lại</button></div>
+  <div class="opt"><h3>B · Hút về ô Điểm</h3><p>Số bật lên, rồi bay theo đường cong vào ô Điểm; con số ở HUD nảy lên cùng lúc. Người chơi thấy rõ điểm đi đâu.</p>
+    <div class="stage" data-fx="b"><div class="hud"><span>Điểm</span><b>1240</b></div><div class="card">🦊</div></div>
+    <button class="play">Chạy lại</button></div>
+  <div class="opt"><h3>C · Vòng sáng + số lớn</h3><p>Một vòng vàng lan ra từ thẻ vừa ghép, số to gấp rưỡi hiện tại. Mạnh về cảm giác "trúng", vẫn nhẹ.</p>
+    <div class="stage" data-fx="c"><div class="hud"><span>Điểm</span><b>1240</b></div><div class="card">🦊</div></div>
+    <button class="play">Chạy lại</button></div>
+  <div class="opt"><h3>D · Viên điểm + combo</h3><p>Số nằm trong viên thuốc gradient vàng, kèm nhãn combo và hạt sáng bung ra. Đậm chất arcade nhất.</p>
+    <div class="stage" data-fx="d"><div class="hud"><span>Điểm</span><b>1240</b></div><div class="card">🦊</div></div>
+    <button class="play">Chạy lại</button></div>
+</div>
+
+<h2>2 · Dấu hiệu thương hiệu và huy hiệu điểm</h2>
+<div class="markrow">
+  <div class="opt"><h3>A · Hiện tại</h3><p>Emoji 🃏 + ⭐. Phụ thuộc font emoji của từng máy, mỗi nơi hiện một kiểu.</p>
+    <div class="bar"><span class="m-emoji">🃏</span><span class="wm">Memory Match</span><span class="pill soft">⭐ 1265</span></div></div>
+  <div class="opt"><h3>B · Hai lá bài chồng</h3><p>Hai lá nghiêng vào nhau, tím và hồng — đúng hai màu thương hiệu, đọc được ở 16px.</p>
+    <div class="bar"><span class="m-cards"><i></i><i></i></span><span class="wm">Memory Match</span><span class="pill gold"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>1265</span></div></div>
+  <div class="opt"><h3>C · Bốn ô úp</h3><p>Gợi trực tiếp bàn thẻ 2×2: hai ô sáng đã mở, hai ô mờ còn úp. Dùng tốt làm favicon.</p>
+    <div class="bar"><span class="m-grid"><i></i><i></i><i></i><i></i></span><span class="wm">Memory Match</span><span class="pill outline"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>1265</span></div></div>
+  <div class="opt"><h3>D · Lá bài chữ M</h3><p>Một lá bài mang chữ M. Gọn nhất, hoạt động cả khi chỉ còn 20px.</p>
+    <div class="bar"><span class="m-letter">M</span><span class="wm">Memory Match</span><span class="pill gold"><svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>1265</span></div></div>
+</div>
+
+<script>
+function run(stage){
+  const kind = stage.dataset.fx;
+  stage.querySelectorAll('.fx,.ring,.spark').forEach(n => n.remove());
+  const hud = stage.querySelector('.hud b');
+  const n = document.createElement('span');
+  n.className = 'fx fx-' + kind;
+  if (kind === 'd') { n.innerHTML = '+150<small>COMBO x2</small>'; } else { n.textContent = '+150'; }
+  if (kind === 'c') {
+    const r = document.createElement('i'); r.className = 'ring'; stage.appendChild(r);
+  }
+  if (kind === 'd') {
+    for (let i = 0; i < 10; i++) {
+      const s = document.createElement('i'); s.className = 'spark';
+      const a = (i / 10) * Math.PI * 2;
+      s.style.setProperty('--dx', Math.cos(a) * 54 + 'px');
+      s.style.setProperty('--dy', Math.sin(a) * 54 + 'px');
+      s.style.animationDelay = (i % 3) * 40 + 'ms';
+      stage.appendChild(s);
+    }
+  }
+  stage.appendChild(n);
+  if (kind === 'b') setTimeout(() => { hud.textContent = '1390'; hud.classList.add('bump'); setTimeout(() => hud.classList.remove('bump'), 420); }, 850);
+  else setTimeout(() => { hud.textContent = '1390'; }, 500);
+  setTimeout(() => { hud.textContent = '1240'; }, 2400);
+}
+document.querySelectorAll('.stage').forEach((s) => { run(s); s.addEventListener('click', () => run(s)); });
+document.querySelectorAll('.play').forEach((b) => b.addEventListener('click', () => run(b.previousElementSibling)));
+setInterval(() => document.querySelectorAll('.stage').forEach(run), 3200);
+</script>
+</body></html>

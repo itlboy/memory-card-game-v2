@@ -1,5 +1,5 @@
-/* UI-kit layout rules, mirroring the breakpoints in MenuScreen.vue / App.vue,
-   with one deliberate change: steps FILL their panel instead of floating in it. */
+/* One layout for every screen size: the product is designed at phone proportions,
+   and wide screens simply centre that column instead of stretching it. */
 .mm-shell{display:flex;flex-direction:column;height:100dvh}
 .mm-main{flex:1;min-height:0;display:flex;justify-content:center;padding:12px}
 .mm-col{width:100%;max-width:760px;display:flex;flex-direction:column;min-height:0}
@@ -7,37 +7,17 @@
 /* Identity steps: a few big tiles that share the whole step body */
 .mm-loose{display:grid;gap:10px;grid-auto-rows:minmax(0,1fr);align-content:stretch;flex:1;min-height:0;overflow:hidden}
 .mm-loose>button{height:100%;max-height:none;padding:12px 18px}
-.mm-loose.mm-cols3{grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(0,1fr)}
+.mm-loose.mm-cols3{grid-template-columns:repeat(3,1fr)}
 
 /* Steps that must fit every option without scrolling (12 grids, 12 themes, 20 levels) */
 .mm-fill{display:grid;gap:10px;flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);overflow:hidden;align-items:stretch;grid-template-columns:repeat(3,1fr)}
 .mm-fill>button{height:100%;max-height:none}
 .mm-map{grid-template-columns:repeat(4,1fr)}
 
-@media (min-width:560px){
-  .mm-fill{grid-template-columns:repeat(4,1fr)}
-  .mm-map{grid-template-columns:repeat(5,1fr)}
-}
+/* Wide screens: hold the phone column in the middle of the glow field */
 @media (min-width:700px){
-  .mm-loose{grid-template-columns:repeat(3,1fr);gap:20px}
-  .mm-loose>button{flex-direction:column!important;text-align:center!important;gap:10px!important;padding:22px 18px!important;justify-content:center!important;max-height:340px}
-  .mm-loose>button>span{align-items:center;text-align:center}
-  /* Five modes: Chiến dịch spans the top row, the other four sit 2×2 */
-  .mm-loose.mm-modes{grid-template-columns:repeat(2,1fr)}
-  .mm-loose.mm-modes>button:first-child{grid-column:1 / -1}
-  .mm-loose.mm-modes>button>span>small{max-width:340px}
-  /* Tiles are tall on desktop — scale the glyph and label up so they read as posters */
-  .mm-loose>button>svg{width:56px!important;height:56px!important}
-  .mm-loose>button strong{font-size:21px}
-  .mm-loose>button small{font-size:13.5px}
-  .mm-loose.mm-modes>button>svg{width:40px!important;height:40px!important}
+  .mm-shell{width:440px;margin:0 auto;height:min(calc(100dvh - 48px),920px);align-self:center;
+    border-radius:28px;overflow:hidden;box-shadow:var(--elev-3);border:1px solid var(--line)}
+  body.mm-desktop-view{display:flex;align-items:center;justify-content:center;height:100dvh;padding:24px;box-sizing:border-box}
+  .mm-col{max-width:none}
 }
-/* Phone preview: the app rendered at real device width inside a desktop page */
-body.mm-phone-view .mm-loose{grid-template-columns:1fr;gap:10px}
-body.mm-phone-view .mm-loose>button{flex-direction:row!important;text-align:left!important;padding:12px 16px!important;justify-content:flex-start!important;max-height:none}
-body.mm-phone-view .mm-loose>button>span{align-items:flex-start!important;text-align:left!important}
-body.mm-phone-view .mm-loose.mm-cols3{grid-template-columns:repeat(3,1fr)}
-body.mm-phone-view .mm-loose.mm-cols3>button{flex-direction:column!important;justify-content:center!important}
-body.mm-phone-view .mm-loose.mm-cols3>button>span{align-items:center!important;text-align:center!important}
-body.mm-phone-view .mm-fill{grid-template-columns:repeat(3,1fr)}
-body.mm-phone-view .mm-map{grid-template-columns:repeat(4,1fr)}
