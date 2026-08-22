@@ -15,7 +15,9 @@ export interface RoomConfig {
   themeIds: string[];
 }
 
-export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', grid: '4x4', themeIds: ['animals'] };
+/** themeIds rỗng = server tự dùng TẤT CẢ theme nó có. Ghi cứng một theme thì
+ *  phòng tạo nhanh (chưa qua wizard) chỉ có một bộ biểu tượng. */
+export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', grid: '4x4', themeIds: [] };
 
 export const ROOM_LIMITS = {
   maxPlayers: 4,

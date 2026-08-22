@@ -126,7 +126,12 @@ watch(
 void loadThemes().then((list) => {
   themes.value = list;
   const valid = themeIds.value.filter((id) => list.some((t) => t.id === id));
-  themeIds.value = valid.length ? valid : [list[0]?.id ?? 'animals'];
+  // Chưa từng chọn (hoặc bản lưu trỏ tới theme không còn tồn tại): lấy TẤT CẢ
+  // theme đang mở khoá — bàn thẻ đa dạng ngay ván đầu, và người chơi thấy luôn
+  // là chọn được nhiều. Đã chọn rồi thì tôn trọng lựa chọn của họ.
+  themeIds.value = valid.length
+    ? valid
+    : list.filter((t) => t.unlockAt <= totalScore.value).map((t) => t.id);
 });
 
 onMounted(() => {

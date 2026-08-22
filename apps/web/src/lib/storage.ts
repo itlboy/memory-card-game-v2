@@ -30,8 +30,11 @@ interface Save {
 const KEY = 'mm.v2';
 
 const DEFAULT_PREFS: Prefs = {
+  // themes rỗng = chưa từng chọn; App sẽ điền TẤT CẢ theme đang mở khoá.
+  // Đặt sẵn ['animals'] thì người mới chỉ có một theme và không nhận ra là
+  // chọn được nhiều.
   dark: false, sound: true, soundLevel: 'high',
-  mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
+  mode: 'classic', grid: '4x4', themes: [], playerCount: 1
 };
 
 function read(): Save {
@@ -49,7 +52,8 @@ export const store = {
     const merged = { ...DEFAULT_PREFS, ...saved };
     // Migration từ bản cũ chỉ lưu một theme
     if (!saved.themes?.length && saved.theme) merged.themes = [saved.theme];
-    if (!merged.themes.length) merged.themes = ['animals'];
+    // KHÔNG ép về ['animals'] khi rỗng: rỗng là tín hiệu "chưa từng chọn", để
+    // App điền tất cả theme đang mở khoá.
     // Bản cũ chỉ có bật/tắt: người đang tắt tiếng thì giữ tắt, còn lại về "to"
     if (!saved.soundLevel) merged.soundLevel = saved.sound === false ? 'off' : 'high';
     return merged;

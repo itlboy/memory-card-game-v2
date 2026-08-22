@@ -395,7 +395,9 @@ export class RoomDO extends DurableObject<Env> {
     const symbols = [...new Set(
       room.config.themeIds.flatMap((id) => THEME_SYMBOLS[id] ?? [])
     )];
-    if (!symbols.length) symbols.push(...THEME_SYMBOLS['animals']!);
+    // themeIds rỗng (phòng tạo nhanh, chưa qua wizard) → dùng TẤT CẢ theme
+    // server có, thay vì tụt về một bộ duy nhất
+    if (!symbols.length) symbols.push(...new Set(Object.values(THEME_SYMBOLS).flat()));
     // Seed sinh tại server — client không bao giờ biết trước bàn thẻ (NF-04)
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]!);
     this.game = new MemoryGame(presetConfig({

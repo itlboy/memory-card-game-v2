@@ -7,7 +7,7 @@ describe('tuỳ chọn', () => {
   it('trả về mặc định khi chưa có gì lưu', () => {
     expect(store.prefs()).toEqual({
       dark: false, sound: true, soundLevel: 'high',
-      mode: 'classic', grid: '4x4', themes: ['animals'], playerCount: 1
+      mode: 'classic', grid: '4x4', themes: [], playerCount: 1
     });
   });
 
@@ -34,9 +34,14 @@ describe('tuỳ chọn', () => {
     expect(store.prefs().themes).toEqual(['fruits']);
   });
 
-  it('mảng theme rỗng thì rơi về mặc định', () => {
+  it('mảng theme rỗng được giữ nguyên — App hiểu là "chưa chọn" và bật tất cả', () => {
     localStorage.setItem('mm.v2', JSON.stringify({ prefs: { themes: [] } }));
-    expect(store.prefs().themes).toEqual(['animals']);
+    expect(store.prefs().themes).toEqual([]);
+  });
+
+  it('bản lưu cũ chỉ có một theme (khoá `theme`) vẫn được chuyển sang mảng', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { theme: 'fruits' } }));
+    expect(store.prefs().themes).toEqual(['fruits']);
   });
 
   it('localStorage bị chặn (chế độ riêng tư) thì vẫn chạy', () => {
