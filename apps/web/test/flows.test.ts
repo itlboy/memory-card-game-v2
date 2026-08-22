@@ -401,6 +401,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await mountApp();
     await click('Chơi nhiều người');
     await click('2 người chơi');
+    await click('Tiếp tục');        // bước điền tên — để trống, dùng "Người 1/2"
     await click('Cổ điển');
     await click('4×4');
     await click('Bắt đầu');
@@ -457,6 +458,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     await mountApp();
     await click('Chơi nhiều người');
     await click('2 người chơi');
+    await click('Tiếp tục');        // bước điền tên
     await click('Cổ điển');
     await click('4×4');
     await click('Bắt đầu');
