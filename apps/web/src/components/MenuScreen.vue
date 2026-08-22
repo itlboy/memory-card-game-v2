@@ -348,6 +348,8 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 </template>
 
 <style scoped>
+/* KHÔNG SCROLL: panel chiếm trọn viewport (khung một bước nằm ở wizard.css) */
+section.panel { display: flex; flex-direction: column; min-height: 0; }
 .hint-multi { margin: 0 0 10px; color: var(--muted); font-size: var(--text-sm); }
 
 /* Điền tên: danh sách dồn lên trên, nút Tiếp tục ở dưới cùng như các bước khác */
@@ -372,19 +374,6 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 }
 .name-row input:focus { outline: none; }
 
-/* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
-section.panel { display: flex; flex-direction: column; min-height: 0; }
-.step-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.step-body.options { display: grid; }
-.step-body.options, .options.fill {
-  flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
-  /* Desktop màn cao: ô không kéo dài vô lý — cap chiều cao, canh giữa cell */
-  align-items: center;
-}
-.step-body.options > .option, .options.fill > .option {
-  height: 100%; max-height: 210px;
-}
-.option { min-height: 0; overflow: hidden; justify-content: center; }
 
 /* Ô lựa chọn CHIA ĐỀU chỗ trống của panel: ít nút thì ô cao lên, nhiều nút thì
    ô nén lại — không còn thanh 92px nổi giữa panel 820px với khoảng trống trên dưới.
@@ -406,11 +395,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   text-align: left; justify-items: start;
 }
 .options.loose .option.big .opt-icon { grid-row: span 2; flex-shrink: 0; }
-/* Chỉ ô XẾP DỌC mới chặn theo chiều cao. Ô `.wide` (icon và chữ nằm ngang) thấp
-   nhưng rộng — chặn theo chiều cao ở đó làm chữ tụt xuống vô cớ. */
-.options.loose > .option:not(.wide) strong { font-size: clamp(18px, min(9cqw, 13cqh), 30px); }
-.options.loose > .option:not(.wide) small { font-size: clamp(13px, min(5.4cqw, 8cqh), 18px); }
-.options.loose > .option:not(.wide) .opt-icon { width: clamp(34px, min(15cqw, 22cqh), 62px); height: auto; }
 .options.loose .option.big strong, .options.loose .option.big small { display: block; }
 
 
@@ -420,59 +404,18 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
 .options.grid2 { grid-template-columns: repeat(3, 1fr); }
 .theme-step { gap: 0; }
-/* Preview co theo chỗ CÒN LẠI của ô: chiều cao cố định theo số hàng sẽ bị cắt
-   mất hàng khi ô nén (màn thấp), làm preview không còn đúng hình bàn nữa.
-   Tỷ lệ khung = cols*3 : rows*4 nên mỗi chấm vẫn giữ dáng lá bài 3:4. */
-.grid-preview {
-  display: grid; gap: 1.5px;
-  flex: 1; min-height: 0; width: auto; max-width: 72%; margin: 0 auto;
-}
-.grid-preview i {
-  border-radius: 2px; min-height: 0; min-width: 0;
-  background: linear-gradient(150deg, var(--accent), var(--accent-2));
-  opacity: .75;
-}
-.grid-preview i.blank { background: transparent; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: clamp(15.5px, 19cqw, 24px); }
 .options.grid3 small, .theme-opt small { font-size: clamp(10px, min(12cqw, 15cqh), 14px); }
 /* Phải đủ specificity để thắng `.option { padding: 16px 12px }` viết bên dưới —
    padding 12px hai bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
 .options.grid2 .option.theme-opt { padding: 8px 5px; gap: 4px; position: relative; }
-/* Cỡ chữ phải co theo CẢ chiều cao: màn thấp (320×568) ô chỉ còn 46px, chỉ tính
-   theo bề rộng thì nội dung tràn ra ngoài cả 12 ô. */
-.theme-sample {
-  font-size: clamp(13px, min(26cqw, 30cqh), 32px);
-  letter-spacing: 1px; white-space: nowrap; opacity: .9;
-}
 /* Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
    phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
    chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình. */
 @container (max-height: 74px) {
   .theme-sample { display: none; }
   .theme-opt small { display: none; }
-}
-/* Dấu chọn: badge tròn ở góc, không chiếm chỗ trong luồng */
-.tick {
-  position: absolute; top: 3px; right: 3px;
-  width: 18px; height: 18px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: #fff; color: var(--accent);
-  box-shadow: 0 2px 6px rgba(30, 27, 75, .3);
-}
-.tick.locked { background: var(--panel-solid); color: var(--muted); }
-/* Tên theme: cỡ chữ co theo bề rộng ô và ĐƯỢC PHÉP xuống dòng. Giữ một dòng thì
-   cỡ chữ bị bề rộng ô (chỉ ~89px) khoá ở 12px trong khi ô còn trống gần 80px
-   chiều cao — hai dòng chữ to đọc dễ hơn một dòng chữ tí xíu.
-   Selector phải thắng `.option strong` (0,1,1) nên mới viết dạng này. */
-.option strong.tname {
-  /* Hệ số nhỏ hơn các nhãn khác vì Baloo 2 rộng và cao hơn Nunito — giữ 20cqw
-     thì tên hai dòng như "Cờ quốc gia" tràn khỏi ô. */
-  font-size: clamp(11px, min(16.5cqw, 20cqh), 19px);
-  /* 1,25 chứ không 1,15: Baloo 2 có phần trên/dưới chữ cao, dòng chật quá thì
-     dấu tiếng Việt của hai dòng chạm nhau. */
-  line-height: 1.25; text-align: center; max-width: 100%;
-  overflow-wrap: break-word;
 }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
 .option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
@@ -491,14 +434,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .wizard-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { min-width: 44px; font-size: 22px; line-height: 1; padding: 4px 12px; }
-.dots { display: flex; gap: 6px; }
-.dots i {
-  width: 8px; height: 8px; border-radius: 50%; background: var(--line);
-  transition: background .2s, transform .2s;
-}
-.dots i.on { background: var(--accent); transform: scale(1.15); }
 
-.options { display: grid; gap: 10px; }
 /* Số người chơi: 3 THANH NGANG chồng nhau. Xếp 3 cột thì trong cột app hẹp mỗi
    ô chỉ còn ~100px rộng nhưng cao 650px — ra ba sọc dọc, không ai nhận ra là nút. */
 .options.loose.counts > .option {
@@ -521,42 +457,19 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
      do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
   container-type: size;
 }
-@media (hover: hover) {
-.option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
-}
 .option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 .option .icon { font-size: 30px; }
-.opt-icon { color: var(--accent); flex-shrink: 0; }
-.neon .opt-icon { color: #fff; }
-.neon small { color: rgba(255, 255, 255, .85); }
 .count-num {
   font-family: var(--font-display); font-weight: 800; font-size: 34px;
   color: var(--accent); line-height: 1;
 }
 .neon .count-num { color: #fff; }
-/* Baloo 2 như mọi nhãn nút khác: OnlineScreen vẫn dùng font hiển thị nên để
-   Nunito ở đây làm hai màn cùng loại trông như hai app khác nhau. */
-/* Chặn theo CẢ chiều cao ô: Baloo 2 cao hơn Nunito nên ở màn thấp (320×568)
-   mô tả hai dòng tràn khỏi ô. */
-.option strong { font-family: var(--font-display); font-size: clamp(12px, min(8cqw, 26cqh), 28px); }
-.option small { color: var(--muted); font-size: clamp(9.5px, min(5cqw, 17cqh), 17px); line-height: 1.3; }
-/* KHÔNG ẩn mô tả ở ô thấp — mất chú thích thì người chơi không biết chế độ đó
-   là gì. Thay vào đó để chữ co tiếp: min của clamp hạ xuống 12px/9,5px, đủ để
-   máy hẹp nhất (320×568, ô chỉ còn 40px lòng trong) vẫn hiện đủ hai phần. */
-
 .option.big .icon { font-size: 42px; }
 .option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }
 
-/* Ô nằm ngang: icon PHẢI dính lề trái. `justify-content: center` kế thừa từ
-   `.option` đẩy cụm icon+chữ vào giữa, nên mỗi ô icon lệch một chỗ tuỳ độ dài
-   chữ (đo được 20px đến 57px giữa các chế độ) — nhìn như xếp so le. */
-.option.wide {
-  flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px;
-  justify-content: flex-start;
-}
-.option.wide .text { flex: 1; min-width: 0; }
+/* Riêng màn này ô ngang có padding hẹp hơn (dáng ô đã cao sẵn) */
+.option.wide { padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
-.option.wide .text { display: flex; flex-direction: column; gap: 1px; }
 
 .step-enter-active { transition: opacity .18s ease, transform .18s ease; }
 .step-enter-from { opacity: 0; transform: translateX(14px); }

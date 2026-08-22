@@ -704,17 +704,9 @@ input {
 }
 input:focus { outline: none; border-color: var(--accent); }
 
-.options { display: grid; gap: 10px; }
-/* Ô nằm ngang: icon PHẢI dính lề trái. `justify-content: center` kế thừa từ
-   `.option` đẩy cụm icon+chữ vào giữa, nên mỗi ô icon lệch một chỗ tuỳ độ dài
-   chữ (đo được 20px đến 57px giữa các chế độ) — nhìn như xếp so le. */
-.option.wide {
-  flex-direction: row; text-align: left; gap: 14px; padding: 13px 16px;
-  justify-content: flex-start;
-}
-.option.wide .text { flex: 1; min-width: 0; }
+/* Riêng màn này ô ngang có padding hẹp hơn */
+.option.wide { padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
-.option.wide .text { display: flex; flex-direction: column; gap: 1px; }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
 .option[aria-pressed='true']:not(.neon), .option[aria-checked='true']:not(.neon) {
   border-color: transparent;
@@ -729,19 +721,8 @@ input:focus { outline: none; border-color: var(--accent); }
 .option.wide.neon[aria-pressed='true'] {
   outline: 3px solid rgba(255, 255, 255, .85); outline-offset: -3px;
 }
-/* KHÔNG SCROLL: panel chiếm trọn viewport, bước hiện tại co giãn trong chỗ còn lại */
+/* KHÔNG SCROLL: panel chiếm trọn viewport (khung một bước nằm ở wizard.css) */
 .online > .panel { display: flex; flex-direction: column; min-height: 0; flex: 1; }
-.step-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.step-body.options { display: grid; }
-.step-body.options, .options.fill {
-  flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
-  /* Desktop màn cao: ô không kéo dài vô lý — cap chiều cao, canh giữa cell */
-  align-items: center;
-}
-.step-body.options > .option, .options.fill > .option {
-  height: 100%; max-height: 210px;
-}
-.option { min-height: 0; overflow: hidden; justify-content: center; }
 
 /* Ô lựa chọn CHIA ĐỀU chỗ trống của panel — không còn thanh 92px nổi giữa
    panel cao với khoảng trống trên dưới. Vẫn giữ luật KHÔNG SCROLL. */
@@ -764,64 +745,20 @@ input:focus { outline: none; border-color: var(--accent); }
   justify-items: start; text-align: left;
 }
 .options.loose > .option:not(.wide) > .opt-icon { grid-row: span 2; }
-/* Chỉ ô XẾP DỌC mới chặn theo chiều cao. Ô `.wide` (icon và chữ nằm ngang) thấp
-   nhưng rộng — chặn theo chiều cao ở đó làm chữ tụt xuống vô cớ. */
-.options.loose > .option:not(.wide) strong { font-size: clamp(18px, min(9cqw, 13cqh), 30px); }
-.options.loose > .option:not(.wide) small { font-size: clamp(13px, min(5.4cqw, 8cqh), 18px); }
-.options.loose > .option:not(.wide) .opt-icon { width: clamp(34px, min(15cqw, 22cqh), 62px); height: auto; }
 /* LUÔN 3 cột — cột app cố định 440px, không đổi theo breakpoint */
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
 .options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
 .options.wiz-grids .option { padding: 6px 4px; gap: 2px; }
 .options.wiz-grids strong { font-size: clamp(15.5px, 19cqw, 24px); }
 .options.wiz-grids small, .theme-opt small { font-size: clamp(11.5px, 12cqw, 14px); }
-/* Preview co theo chỗ còn lại của ô — xem chú thích ở MenuScreen */
-.grid-preview {
-  display: grid; gap: 1.5px;
-  flex: 1; min-height: 0; width: auto; max-width: 72%; margin: 0 auto;
-}
-.grid-preview i {
-  border-radius: 2px; min-height: 0; min-width: 0;
-  background: linear-gradient(150deg, var(--accent), var(--accent-2));
-  opacity: .75;
-}
-.grid-preview i.blank { background: transparent; }
 /* Đủ specificity để thắng `.option { padding: 24px 16px }` viết bên dưới */
 .options.wiz-themes .option.theme-opt { padding: 8px 5px; gap: 4px; position: relative; }
-/* Co theo cả chiều cao — màn thấp ô chỉ còn ~46px (xem MenuScreen) */
-.theme-sample {
-  font-size: clamp(13px, min(26cqw, 30cqh), 32px);
-  letter-spacing: 1px; white-space: nowrap; opacity: .9;
-}
 @container (max-height: 74px) {
   .theme-sample { display: none; }
 }
-.tick {
-  position: absolute; top: 3px; right: 3px;
-  width: 18px; height: 18px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: #fff; color: var(--accent);
-  box-shadow: 0 2px 6px rgba(30, 27, 75, .3);
-}
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
-/* .option strong đặt 16px nên phải thắng specificity, không thì cqw vô hiệu
-   và tên dài ("Thiên nhiên") bị cắt trong ô grid nén */
-/* Tên theme được phép xuống hai dòng: giữ một dòng thì bề rộng ô khoá cỡ chữ
-   ở 13px trong khi ô còn thừa chiều cao */
-.option strong.tname {
-  /* Hệ số nhỏ hơn các nhãn khác vì Baloo 2 rộng và cao hơn Nunito — giữ 20cqw
-     thì tên hai dòng như "Cờ quốc gia" tràn khỏi ô. */
-  font-size: clamp(11px, min(16.5cqw, 20cqh), 19px);
-  /* 1,25 chứ không 1,15: Baloo 2 có phần trên/dưới chữ cao, dòng chật quá thì
-     dấu tiếng Việt của hai dòng chạm nhau. */
-  line-height: 1.25; text-align: center; max-width: 100%;
-  overflow-wrap: break-word;
-}
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
-.dots { display: flex; gap: 6px; }
-.dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
-.dots i.on { background: var(--accent); }
 .cfg-summary {
   display: flex; align-items: center; gap: 10px; margin-top: 12px;
   padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
@@ -841,17 +778,7 @@ input:focus { outline: none; border-color: var(--accent); }
      do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
   container-type: size;
 }
-@media (hover: hover) {
-.option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
-}
 .option .icon { font-size: 38px; }
-.opt-icon { color: var(--accent); flex-shrink: 0; }
-.neon .opt-icon { color: #fff; }
-.neon small { color: rgba(255, 255, 255, .85); }
-/* Chặn theo CẢ chiều cao ô: Baloo 2 cao hơn Nunito nên ở màn thấp (320×568)
-   mô tả hai dòng tràn khỏi ô. */
-.option strong { font-family: var(--font-display); font-size: clamp(12px, min(8cqw, 26cqh), 28px); }
-.option small { color: var(--muted); font-size: clamp(9.5px, min(5cqw, 17cqh), 17px); line-height: 1.3; }
 /* KHÔNG ẩn mô tả ở ô thấp — mất chú thích thì người chơi không biết chế độ đó
    là gì. Thay vào đó để chữ co tiếp: min của clamp hạ xuống 12px/9,5px, đủ để
    máy hẹp nhất (320×568, ô chỉ còn 40px lòng trong) vẫn hiện đủ hai phần. */
