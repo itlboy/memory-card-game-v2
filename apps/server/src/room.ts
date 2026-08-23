@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  DEFAULT_ROOM_CONFIG, GRIDS, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, ROOM_MODES,
+  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, ROOM_MODES,
   presetConfig, publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
@@ -170,11 +170,14 @@ export class RoomDO extends DurableObject<Env> {
         // ON-03: chỉ chủ phòng chỉnh cấu hình, và chỉ khi còn ở lobby
         if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
         const c = msg.config;
-        // Object.hasOwn: khoá như '__proto__' tra cứu ra prototype (truthy) và làm crash lúc start
-        if (typeof c.grid === 'string' && Object.hasOwn(GRIDS, c.grid)) this.room.config.grid = c.grid;
-        // Mọi chế độ trừ Chiến dịch (chiến dịch là chuỗi màn của một người và
-        // dùng levelConfig, không đi qua presetConfig). Chỉ sửa ở client thì
-        // server âm thầm bỏ qua cấu hình và phòng vẫn chạy chế độ cũ.
+        // Số màn từ client: phải là số nguyên trong khoảng, không thì presetConfig
+        // ném lỗi ngay lúc bắt đầu ván và cả phòng bị treo (ON-09)
+        if (Number.isInteger(c.level) && c.level! >= 1 && c.level! <= CAMPAIGN_LEVELS) {
+          this.room.config.level = c.level!;
+        }
+        // Mọi chế độ trừ Chiến dịch — chiến dịch là chuỗi cấp của riêng một
+        // người. Chỉ sửa ở client thì server âm thầm bỏ qua cấu hình và phòng
+        // vẫn chạy chế độ cũ.
         if (ROOM_MODES.includes(c.mode as RoomMode)) this.room.config.mode = c.mode as RoomMode;
         if (Array.isArray(c.themeIds)) {
           const valid = [...new Set(c.themeIds)]
@@ -405,7 +408,7 @@ export class RoomDO extends DurableObject<Env> {
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]!);
     this.game = new MemoryGame(presetConfig({
       mode: room.config.mode,
-      grid: room.config.grid,
+      level: room.config.level,
       symbols,
       seed,
       players: room.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))

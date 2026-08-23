@@ -55,6 +55,10 @@ export interface GameConfig {
   lives?: number | null;
   /** Thời gian hé mở đầu ván, ms (Peek). 0 = tắt. */
   peekMs?: number;
+  /** Số cặp thật của bàn. Thiếu thì lấy floor(cols*rows/2) như trước.
+   *  Có tham số này vì bàn được phép chừa vài ô trống, để số thẻ tăng đúng 2
+   *  mỗi màn chiến dịch. */
+  pairs?: number;
   /** Tỉ lệ cặp mang thẻ đặc biệt, 0–1 (mặc định 0 = tắt). */
   specialRate?: number;
   /** Độ trễ úp lại 2 thẻ khác nhau, ms. */

@@ -12,19 +12,24 @@ export interface DeckOptions {
   specialRate?: number;
   /** Loại hiệu ứng được phép (chế độ chơi đơn không có 'freeze'). */
   allowedPowers?: readonly Power[];
+  /** Số cặp mong muốn. Thiếu thì lấy tối đa lưới chứa được. Ít hơn mức tối đa
+   *  thì phần dư thành ô trống — nhờ vậy số thẻ tăng đúng 2 mỗi màn. */
+  pairs?: number;
 }
 
 export function buildDeck(opts: DeckOptions): Card[] {
   const { cols, rows, symbols, rng } = opts;
   const total = cols * rows;
-  if (total < 4) throw new Error('Lưới không hợp lệ');
+  // Bàn nhỏ nhất là 2 thẻ (màn tập của chiến dịch), không phải 4
+  if (total < 2) throw new Error('Lưới không hợp lệ');
 
-  // Lưới lẻ ô (3×3, 5×5...): ô chính giữa để trống, phần còn lại chia cặp
-  const hasBlank = total % 2 === 1;
-  const pairCount = Math.floor(total / 2);
+  const maxPairs = Math.floor(total / 2);
+  const pairCount = Math.min(opts.pairs ?? maxPairs, maxPairs);
+  if (pairCount < 1) throw new Error('Bàn phải có ít nhất 1 cặp');
   if (symbols.length < pairCount) {
     throw new Error(`Theme chỉ có ${symbols.length} biểu tượng, cần ${pairCount} cho lưới ${cols}x${rows}`);
   }
+  const blanks = total - pairCount * 2;
 
   const picked = rng.sample(symbols, pairCount);
   const allowed = opts.allowedPowers?.length ? opts.allowedPowers : POWERS;
@@ -49,10 +54,10 @@ export function buildDeck(opts: DeckOptions): Card[] {
   // NGOẠI LỆ lưới nhỏ: 2×2 chỉ có 3 cách xếp và đúng MỘT cách không kề nhau
   // (hai cặp chéo góc), nên áp luật vào đây là ván nào cũng y hệt ván nào —
   // đoán được 100%, tệ hơn cả việc có cặp nằm cạnh.
-  let placed = layout(rng.shuffle(draft), hasBlank, total);
+  let placed = layout(rng.shuffle(draft), blanks, cols, total);
   if (pairCount >= 3) {
     for (let tries = 0; tries < MAX_SHUFFLE_TRIES && adjacentPairs(placed, cols, rows) > 0; tries++) {
-      placed = layout(rng.shuffle(draft), hasBlank, total);
+      placed = layout(rng.shuffle(draft), blanks, cols, total);
     }
   }
   return placed.map((c, index) => ({ ...c, index }));
@@ -62,15 +67,27 @@ export function buildDeck(opts: DeckOptions): Card[] {
  *  nên cần dư; hết lượt vẫn còn cặp kề thì nhận bàn cuối, không bao giờ treo. */
 const MAX_SHUFFLE_TRIES = 200;
 
-/** Chèn ô trống vào chính giữa lưới để bố cục cân đối. */
+/**
+ * Chèn ô trống cho vừa lưới. Một ô trống (lưới lẻ như 3×3) đặt chính giữa bàn
+ * như trước. Nhiều ô trống thì dồn vào GIỮA HÀNG CUỐI: hàng cuối ngắn lại
+ * nhưng vẫn cân hai bên, thay vì rải rác làm bàn nhìn như bị khuyết.
+ */
 function layout(
   shuffled: Omit<Card, 'index'>[],
-  hasBlank: boolean,
+  blanks: number,
+  cols: number,
   total: number
 ): Omit<Card, 'index'>[] {
-  if (!hasBlank) return shuffled;
+  if (blanks <= 0) return shuffled;
+  const blank = (): Omit<Card, 'index'> => ({ pairId: -1, symbol: '', blank: true });
   const out = shuffled.slice();
-  out.splice(Math.floor(total / 2), 0, { pairId: -1, symbol: '', blank: true });
+  if (blanks === 1) {
+    out.splice(Math.floor(total / 2), 0, blank());
+    return out;
+  }
+  const lastRowStart = total - cols;
+  const offset = Math.floor((cols - blanks) / 2);
+  for (let i = 0; i < blanks; i++) out.splice(lastRowStart + offset + i, 0, blank());
   return out;
 }
 

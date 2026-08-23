@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MemoryGame, levelConfig, levelSpec, presetConfig, isDraw, CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
+import { MemoryGame, presetConfig, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
 import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import CelebrationFx from './components/CelebrationFx.vue';
@@ -43,7 +43,7 @@ function applySound(): void {
   if (soundLevel.value !== 'off') sfx.volume = SOUND_GAIN[soundLevel.value];
 }
 const mode = ref<Mode>(prefs.mode);
-const grid = ref(prefs.grid in GRIDS ? prefs.grid : '4x4');
+const level = ref(Math.min(CAMPAIGN_LEVELS, Math.max(1, prefs.level)));
 const themeIds = ref<string[]>(prefs.themes);
 const playerCount = ref(prefs.playerCount);
 const totalScore = ref(store.totalScore());
@@ -203,12 +203,18 @@ watch(screen, (sc) => {
 /* ---------- tuỳ chọn hiển thị ---------- */
 watchEffect(() => { document.documentElement.dataset.theme = dark.value ? 'dark' : 'light'; });
 watchEffect(applySound);
-watch([dark, soundLevel, mode, grid, themeIds, playerCount], () => {
+watch([dark, soundLevel, mode, level, themeIds, playerCount], () => {
   store.savePrefs({
     dark: dark.value, sound: soundLevel.value !== 'off', soundLevel: soundLevel.value, mode: mode.value,
-    grid: grid.value, themes: themeIds.value, playerCount: playerCount.value
+    level: level.value, themes: themeIds.value, playerCount: playerCount.value
   });
 });
+
+/** Biểu tượng của MỌI theme đang mở khoá — trần trên của số cặp chơi được, để
+ *  bản đồ cấp biết cấp nào không bộ theme nào gánh nổi. */
+const maxSymbols = computed(() => new Set(
+  themes.value.filter((t) => t.unlockAt <= totalScore.value).flatMap((t) => t.symbols)
+).size);
 
 /** Trộn biểu tượng của mọi theme đã chọn, loại trùng. */
 const symbols = computed(() => [...new Set(
@@ -243,21 +249,20 @@ function launch(config: GameConfig): void {
   persistGame();
 }
 
-function startQuick(): void {
-  levelId.value = null;
-  launch(presetConfig({
-    mode: mode.value, grid: grid.value, symbols: symbols.value,
-    seed: newSeed(), players: playerList()
-  }));
-}
-
+/** Vào một cấp. MỌI chế độ đều qua đây, nên chế độ nào cũng có cấp tiếp theo
+ *  để chơi tiếp — trước đây chỉ Chiến dịch có, các chế độ khác chơi xong chỉ
+ *  còn "chơi lại" và "về trang chủ". */
 function startLevel(id: number): void {
-  // Engine ném lỗi nếu theme đang chọn không đủ biểu tượng cho lưới của màn —
+  // Engine ném lỗi nếu theme đang chọn không đủ biểu tượng cho bàn của cấp —
   // không bắt thì Vue chết giữa render và người chơi nhận màn hình trắng.
-  // Bản đồ đã chặn các màn đó, đây là lưới an toàn cuối.
+  // Bản đồ đã chặn các cấp đó, đây là lưới an toàn cuối.
   try {
-    const cfg = levelConfig(levelSpec(id), symbols.value, newSeed());
+    const cfg = presetConfig({
+      mode: mode.value, level: id, symbols: symbols.value,
+      seed: newSeed(), players: playerList()
+    });
     levelId.value = id;
+    level.value = id;
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
 }
@@ -268,7 +273,7 @@ function nextLevel(): void {
 }
 
 function replay(): void {
-  levelId.value ? startLevel(levelId.value) : startQuick();
+  startLevel(levelId.value ?? level.value);
 }
 
 function backToMenu(): void {
@@ -290,14 +295,14 @@ watch(session.summary, (s) => {
 
   const player = game.players[0]!;
   if (!game.isMultiplayer) {
-    if (levelId.value) {
-      if (s.status === 'won') store.saveLevel(levelId.value, s.stars, s.score);
-    } else {
-      isRecord.value = s.status === 'won'
-        && store.saveResult(game.config.mode, grid.value, {
-          score: s.score, moves: s.moves, seconds: s.seconds
-        });
-    }
+    const id = levelId.value ?? level.value;
+    // Cấp và kỷ lục ghi RIÊNG: saveLevel mở cấp sau (chế độ không xếp sao thì
+    // 1 sao = đã qua), saveResult giữ kỷ lục và cộng điểm vào tổng.
+    if (s.status === 'won') store.saveLevel(game.config.mode, id, Math.max(1, s.stars), s.score);
+    isRecord.value = s.status === 'won'
+      && store.saveResult(game.config.mode, id, {
+        score: s.score, moves: s.moves, seconds: s.seconds
+      });
     freshAchievements.value = store.unlockAchievements(earned({
       summary: s,
       mode: game.config.mode,
@@ -342,16 +347,16 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :key="menuKey"
       :themes="themes"
       :mode="mode"
-      :grid="grid"
+      :level="level"
       :theme-ids="themeIds"
       :player-count="playerCount"
       :total-score="totalScore"
       :symbol-count="symbols.length"
+      :max-symbol-count="maxSymbols"
       @update:mode="mode = $event"
-      @update:grid="grid = $event"
+      @update:level="level = $event"
       @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
-      @start="startQuick"
       @start-level="startLevel"
       @online="screen = 'online'"
     />

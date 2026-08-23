@@ -83,11 +83,11 @@ describe('đồng hồ lượt 15 giây (multiplayer)', () => {
 
   it('presetConfig: multiplayer tự bật 30s, chơi đơn thì không', () => {
     const mp = presetConfig({
-      mode: 'classic', grid: '4x4', symbols: SYMBOLS, seed: 1,
+      mode: 'classic', level: 7, symbols: SYMBOLS, seed: 1,
       players: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }]
     });
     expect(mp.turnLimit).toBe(15);
-    const solo = presetConfig({ mode: 'classic', grid: '4x4', symbols: SYMBOLS, seed: 1 });
+    const solo = presetConfig({ mode: 'classic', level: 7, symbols: SYMBOLS, seed: 1 });
     expect(solo.turnLimit).toBeUndefined();
   });
 

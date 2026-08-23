@@ -24,6 +24,9 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   history.replaceState(null, '', location.pathname);
+  // Mọi chế độ giờ đi qua bản đồ cấp, mặc định chỉ mở cấp 1 (bàn 2 thẻ). Test
+  // cần bàn lớn nên mở sẵn hết; test nào kiểm chính việc khoá thì tự xoá đi.
+  localStorage.setItem('mm.v2', JSON.stringify({ levels: { 'classic:49': { stars: 1, score: 0 } } }));
   // Phải giả cả performance (đồng hồ của engine) và rAF (vòng tick của session)
   vi.useFakeTimers({ toFake: [
     'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date',
@@ -62,15 +65,15 @@ async function click(text: string): Promise<void> {
   await flush();
 }
 
-/** Đi tới bước chọn lưới của nhánh chơi đơn với chế độ cho trước. */
+/** Đi tới bước theme của nhánh chơi đơn với chế độ cho trước. */
 async function pickMode(name: string): Promise<void> {
   await click('Chơi một mình');
   await click(name);
 }
 
-/** Từ bước lưới: chọn lưới (mặc định 4×4) rồi Bắt đầu ở bước theme. */
-async function start(grid = '4×4'): Promise<void> {
-  await click(grid);
+/** Từ bước cấp độ: chọn cấp rồi Bắt đầu ở bước theme. Cấp 8 = 8 cặp = bàn 4×4. */
+async function start(level = 8): Promise<void> {
+  await click(`Cấp ${level},`);
   await click('Bắt đầu');
 }
 
@@ -107,7 +110,7 @@ describe('luồng trọn ván', () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Kỷ lục mới');
     expect(wrapper.text()).toContain('Trí nhớ siêu phàm');   // misses = 0
-    expect(localStorage.getItem('mm.v2')).toContain('"classic:4x4"');
+    expect(localStorage.getItem('mm.v2')).toContain('"classic:L8"');
   });
 
   it('ván có lật sai thì không được thành tích không-lật-sai', async () => {
@@ -125,7 +128,7 @@ describe('luồng trọn ván', () => {
     await start();
     await winGame();
     expect(wrapper.text()).toContain('Kỷ lục mới');
-    await wrapper.find('[role="dialog"] .btn-primary').trigger('click');   // chơi lại
+    await click('Chơi lại cấp này');   // nút chính giờ là "Cấp tiếp theo""
     await flush();
     await winGame(true);                                     // kém hơn: có 1 lượt sai
     expect(wrapper.text()).toContain('Hoàn thành');
@@ -194,19 +197,18 @@ describe('luồng trọn ván', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
-  it('thắng màn 1 Chiến dịch: lưu sao, hiện nút "Màn tiếp theo", mở khoá màn 2', async () => {
+  it('thắng cấp 2 Chiến dịch: lưu sao, hiện nút "Cấp tiếp theo", mở khoá cấp sau', async () => {
     await mountApp();
-    await pickMode('Chiến dịch');                            // wizard nhảy thẳng tới bản đồ màn
-    await wrapper.findAll('.node')[0]!.trigger('click');     // vào màn 1 (lưới 2×2)
-    await flush();
+    await pickMode('Chiến dịch');
+    await start(2);                                          // cấp 2 = 2 cặp = bàn 2×2
     expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
-    expect(wrapper.text()).toContain('Màn tiếp theo');
+    expect(wrapper.text()).toContain('Cấp tiếp theo');
     expect(wrapper.text()).toMatch(/★/);
-    await wrapper.find('[role="dialog"] .btn-primary').trigger('click');   // sang màn 2
+    await wrapper.find('[role="dialog"] .btn-primary').trigger('click');   // sang cấp 3
     await flush();
     expect(wrapper.findAll('.card').length).toBeGreaterThan(0);
-    expect(localStorage.getItem('mm.v2')).toContain('"campaign"');
+    expect(localStorage.getItem('mm.v2')).toContain('"campaign:2"');
   });
 
   it('Sinh tồn: HUD hiển thị mạng, chỉ mất khi thẻ trùng đã lộ', async () => {
@@ -293,15 +295,15 @@ describe('điều hướng bàn phím (NF-07)', () => {
   });
 });
 
-describe('lưới nhỏ và ô trống', () => {
-  it('ván 3×3 có 9 ô: 1 ô trống không bấm được, thắng với 4 cặp', async () => {
+describe('bàn nhỏ và ô trống', () => {
+  it('bàn lẻ ô (3×5): 1 ô trống không bấm được, thắng với 7 cặp', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await start('3×3');
-    expect(wrapper.findAll('.card')).toHaveLength(9);
+    await start(7);   // cấp 7 = 7 cặp = 14 thẻ trên bàn 3×5, thừa một ô
+    expect(wrapper.findAll('.card')).toHaveLength(15);
     const blanks = wrapper.findAll('.card.blank');
     expect(blanks).toHaveLength(1);
-    expect(wrapper.text()).toContain('0/4');
+    expect(wrapper.text()).toContain('0/7');
     await winGame();
     expect(wrapper.text()).toContain('Kỷ lục mới');   // thắng lần đầu = kỷ lục
   });
@@ -309,23 +311,23 @@ describe('lưới nhỏ và ô trống', () => {
   it('ván 2×2 thắng chỉ với 2 cặp', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await start('2×2');
+    await start(2);   // cấp 2 = 2 cặp = bàn 2×2
     expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
   });
 
-  it('bàn phím nhảy qua ô trống ở giữa lưới 3×3', async () => {
+  it('bàn phím nhảy qua ô trống ở giữa bàn', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await start('3×3');
+    await start(7);   // cấp 7 = bàn 3×5, ô trống ở chính giữa (index 7)
     const board = wrapper.find('[role="grid"]');
     const tile = (i: number) => board.find(`[data-index="${i}"]`);
-    (tile(3).element as HTMLElement).focus();                 // ô trái của ô trống (index 4)
+    (tile(6).element as HTMLElement).focus();                 // ô trái của ô trống
     await board.trigger('keydown', { key: 'ArrowRight' });
-    expect(document.activeElement).toBe(tile(5).element);     // nhảy qua ô trống
+    expect(document.activeElement).toBe(tile(8).element);     // nhảy qua ô trống
     await board.trigger('keydown', { key: 'ArrowLeft' });
-    expect(document.activeElement).toBe(tile(3).element);
+    expect(document.activeElement).toBe(tile(6).element);
   });
 });
 
@@ -383,16 +385,15 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     expect(wrapper.findAll('.card')).toHaveLength(0);
   });
 
-  it('reload giữa màn Chiến dịch giữ nguyên số màn', async () => {
+  it('reload giữa cấp Chiến dịch giữ nguyên số cấp', async () => {
     await mountApp();
     await pickMode('Chiến dịch');
-    await wrapper.findAll('.node')[0]!.trigger('click');
-    await flush();
+    await start(2);
     window.dispatchEvent(new Event('beforeunload'));
     wrapper.unmount();
     await mountApp();
-    expect(wrapper.findAll('.card')).toHaveLength(4);   // màn 1 = 2×2
-    expect(wrapper.text()).toContain('Màn1');
+    expect(wrapper.findAll('.card')).toHaveLength(4);   // cấp 2 = 2×2
+    expect(wrapper.text()).toContain('Cấp2');
   });
 });
 
@@ -403,8 +404,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await click('2 người chơi');
     await click('Tiếp tục');        // bước điền tên — để trống, dùng "Người 1/2"
     await click('Cổ điển');
-    await click('4×4');
-    await click('Bắt đầu');
+    await start();
     await vi.advanceTimersByTimeAsync(5100);   // qua màn đếm ngược 5 giây
     await flush();
   }
@@ -460,8 +460,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     await click('2 người chơi');
     await click('Tiếp tục');        // bước điền tên
     await click('Cổ điển');
-    await click('4×4');
-    await click('Bắt đầu');
+    await start();
     expect(wrapper.find('.countdown').exists()).toBe(true);
     expect(wrapper.text()).toContain('đi trước!');
     // Trong lúc đếm ngược không lật được
@@ -488,16 +487,16 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
 });
 
 describe('F5 giữ bước wizard (?w= trên URL)', () => {
-  it('đi tới bước lưới, F5 vẫn đứng ở bước lưới', async () => {
+  it('đi tới bước cấp độ, F5 vẫn đứng ở bước cấp độ', async () => {
     await mountApp();
     await click('Chơi một mình');
     expect(location.search).toBe('?w=mode');
     await click('Cổ điển');
-    expect(location.search).toBe('?w=grid');
+    expect(location.search).toBe('?w=level');
     wrapper.unmount();
-    await mountApp();                                    // "F5"
-    expect(wrapper.text()).toContain('Kích thước lưới'); // vẫn ở bước lưới
-    await click('4×4');
+    await mountApp();                                  // "F5"
+    expect(wrapper.text()).toContain('Chọn cấp độ');   // vẫn ở bước cấp độ
+    await click('Cấp 8,');
     expect(location.search).toBe('?w=theme');
   });
 

@@ -12,6 +12,8 @@ const props = defineProps<{
   disabled: boolean;
   /** Thứ tự chia bài lúc vào ván, cho animation so le. */
   dealOrder: number;
+  /** Tổng số thẻ — dùng để nén độ so le cho bàn lớn. */
+  cardCount?: number;
   /** Kiểu mặt sau của ván này: stars | diamond | aurora. */
   back: string;
 }>();
@@ -19,6 +21,13 @@ const props = defineProps<{
 const emit = defineEmits<{ flip: [index: number] }>();
 
 const POWER_ICON: Record<string, string> = { bomb: '💥', x2: '✖️', eye: '👁️', freeze: '❄️' };
+
+/** Chia bài xong trong ~700ms bất kể bàn to cỡ nào. 28ms/thẻ cố định thì bàn
+ *  10×10 phải chờ gần 3 giây mới thấy thẻ cuối — người chơi tưởng game treo. */
+const dealStagger = computed(() => {
+  const n = props.cardCount ?? 16;
+  return Math.round(props.dealOrder * Math.min(28, 700 / n));
+});
 
 const label = computed(() => {
   const pos = `Thẻ ${props.card.index + 1}`;
@@ -34,7 +43,7 @@ const label = computed(() => {
     v-else
     class="card"
     :class="{ up: faceUp, done: matched, wrong, peek: peeking }"
-    :style="{ '--deal': `${dealOrder * 28}ms` }"
+    :style="{ '--deal': `${dealStagger}ms` }"
     :aria-label="label"
     :aria-disabled="disabled || matched ? 'true' : 'false'"
     :data-index="card.index"
@@ -75,7 +84,6 @@ const label = computed(() => {
   position: absolute; inset: 0; border-radius: 12px;
   transform-style: preserve-3d;
   transition: transform .34s cubic-bezier(.3, .8, .4, 1.1);
-  will-change: transform;
 }
 @media (hover: hover) {
 .card:not(.up):not(.done):not([aria-disabled='true']):hover .inner {
@@ -153,7 +161,7 @@ const label = computed(() => {
   position: absolute; top: 2px; right: 3px; font-size: 11px; line-height: 1;
   animation: twinkle 1.6s ease-in-out infinite;
 }
-@keyframes twinkle { 50% { transform: scale(1.25); filter: brightness(1.3); } }
+@keyframes twinkle { 50% { transform: scale(1.25); opacity: .8; } }
 
 .card.wrong .inner { animation: shake .32s; }
 @keyframes shake {

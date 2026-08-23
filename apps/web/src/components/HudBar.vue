@@ -30,7 +30,7 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 <template>
   <div class="hud panel">
     <div class="stats">
-    <div v-if="levelId" class="stat"><span>Màn</span><b>{{ levelId }}</b></div>
+    <div v-if="levelId" class="stat"><span>Cấp</span><b>{{ levelId }}</b></div>
     <div v-if="!multiplayer" class="stat" data-score-target>
       <span>Điểm</span><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
     </div>

@@ -65,6 +65,7 @@ export class MemoryGame {
     this.cards = buildDeck({
       cols: config.cols,
       rows: config.rows,
+      pairs: config.pairs,
       symbols: config.symbols,
       rng: this.rng,
       specialRate: config.specialRate ?? 0,
@@ -91,7 +92,8 @@ export class MemoryGame {
 
   /* ---------- truy vấn ---------- */
 
-  get totalPairs(): number { return Math.floor(this.cards.length / 2); }
+  /** Đếm thẻ THẬT: bàn có thể chừa ô trống nên cards.length/2 không còn đúng. */
+  get totalPairs(): number { return this.cards.filter((c) => !c.blank).length / 2; }
   get current(): Player { return this.players[this.turnIndex]!; }
   get isMultiplayer(): boolean { return this.players.length > 1; }
   get finished(): boolean { return this.status === 'won' || this.status === 'lost'; }
