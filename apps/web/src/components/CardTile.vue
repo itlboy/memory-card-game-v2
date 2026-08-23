@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Card } from '@mm/engine';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { DEAL_SETTLE_MS, dealStep } from '@/lib/timing';
+import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealStep } from '@/lib/timing';
 
 const props = defineProps<{
   card: Card;
@@ -60,11 +60,47 @@ watch(() => props.faceUp, (up, was) => {
  * chia bài không thấy lắc gì cả (đúng hiện tượng đã gặp).
  */
 const dealt = ref(false);
+/**
+ * Animation `deal` đã chạy XONG hẳn (kể cả phần lắc tắt dần) chưa.
+ *
+ * Cần một cờ riêng vì `.card` khai báo `animation: deal` cố định: hết nhịp hover
+ * là animation-name quay về `deal` và nó CHẠY LẠI TỪ ĐẦU — đo được cú nhảy 29°,
+ * quét chuột qua bàn thành nháy loạn. Có cờ này thì đặt `animation: none`, khe
+ * animation của .card trống, hover mượn xong trả lại cũng không có gì để chạy.
+ */
+const settled = ref(false);
 let dealTimer: ReturnType<typeof setTimeout> | undefined;
+let settleTimer: ReturnType<typeof setTimeout> | undefined;
 onMounted(() => {
   dealTimer = setTimeout(() => { dealt.value = true; }, dealStagger.value + DEAL_SETTLE_MS);
+  settleTimer = setTimeout(() => { settled.value = true; }, dealStagger.value + DEAL_ANIM_MS);
 });
-onUnmounted(() => { clearTimeout(dealTimer); clearTimeout(flipTimer); });
+onUnmounted(() => {
+  clearTimeout(dealTimer); clearTimeout(settleTimer);
+  clearTimeout(flipTimer); clearTimeout(hoverTimer);
+});
+
+/**
+ * Nhịp lắc khi trỏ chuột vào. Bật bằng JS rồi để nó CHẠY HẾT, không gắn vào
+ * `:hover`.
+ *
+ * Vì sao: gắn `:hover` thì rời chuột là animation bị cắt giữa nhịp, transform
+ * nhảy thẳng về 0 — quét chuột qua cả bàn thành hàng loạt cú nhảy, nhìn như
+ * nháy. Bật một lần và bỏ qua mọi lần vào lại trong lúc còn đang lắc thì mỗi lá
+ * lắc đúng một nhịp, dù chuột có quét qua bao nhiêu lần.
+ */
+const hoverWob = ref(false);
+let hoverTimer: ReturnType<typeof setTimeout> | undefined;
+const HOVER_WOB_MS = 1400;
+/** Chỉ thiết bị có con trỏ thật; máy cảm ứng thì `pointerenter` bắn cả khi chạm. */
+const canHover = typeof matchMedia === 'function' && matchMedia('(hover: hover)').matches;
+
+function onEnter(): void {
+  if (!canHover || hoverWob.value || !settled.value) return;
+  if (props.faceUp || props.matched || props.disabled || props.peeking || props.pending) return;
+  hoverWob.value = true;
+  hoverTimer = setTimeout(() => { hoverWob.value = false; }, HOVER_WOB_MS);
+}
 
 const label = computed(() => {
   const pos = `Thẻ ${props.card.index + 1}`;
@@ -80,7 +116,8 @@ const label = computed(() => {
     v-else
     class="card"
     :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending, dealt,
-      'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down' }"
+      'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down',
+      'wob-hover': hoverWob, settled }"
     :style="{
       '--deal': `${dealStagger}ms`,
       '--wob': card.index % 2 ? 1 : -1,
@@ -96,6 +133,7 @@ const label = computed(() => {
     :data-index="card.index"
     role="gridcell"
     type="button"
+    @pointerenter="onEnter"
     @click="!disabled && !matched && emit('flip', card.index)"
   >
     <span class="inner">
@@ -158,15 +196,17 @@ const label = computed(() => {
  * mỗi lần đưa chuột ra khỏi một lá vừa úp (đã đo được: -180°). Hai animation ở
  * hai lớp thì chồng nhau được, không cái nào phải nhường cái nào.
  *
+ * Và bật bằng class `.wob-hover` do JS gắn, KHÔNG bằng selector `:hover` — xem
+ * `onEnter` trong script: `:hover` thì rời chuột là cắt giữa nhịp, nháy cả bàn.
+ *
  * `perspective()` viết trong transform vì thuộc tính `perspective` của .card chỉ
  * áp cho con nó.
  *
  * Chỉ khi `.dealt`: lúc chia bài, chính .card đang chạy animation `deal`.
  */
-@media (hover: hover) {
-.card.dealt:not(.up):not(.done):not([aria-disabled='true']):hover {
-  animation: hover-wob 1.4s linear;
-}
+/* Xong nhịp chia bài thì BỎ khai báo animation: xem `settled` trong script. */
+.card.settled { animation: none; }
+.card.wob-hover { animation: hover-wob 1.4s linear; }
 @keyframes hover-wob {
   0%   { transform: perspective(700px) translateY(-3px) rotateY(0); }
   14%  { transform: perspective(700px) translateY(-3px) rotateY(calc(5deg * var(--wob, 1))); }
@@ -175,7 +215,6 @@ const label = computed(() => {
   62%  { transform: perspective(700px) translateY(-3px) rotateY(calc(-1deg * var(--wob, 1))); }
   78%  { transform: perspective(700px) translateY(-3px) rotateY(calc(0.6deg * var(--wob, 1))); }
   100% { transform: perspective(700px) translateY(-3px) rotateY(0); }
-}
 }
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }
 

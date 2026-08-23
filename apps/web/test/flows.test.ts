@@ -1026,7 +1026,29 @@ describe('hover không được làm lộ bài', () => {
     for (const r of hoverRules) {
       expect(r, `rule hover không được đụng animation của .inner: ${r}`).not.toMatch(/animation/);
     }
-    // Và nhịp lắc hover phải gắn vào .card
-    expect(css).toMatch(/\.card\.dealt:not\(\.up\)[^{]*:hover \{\s*animation: hover-wob/);
+    // Và nhịp lắc hover phải gắn vào .card qua class, không qua :hover
+    expect(css).toContain('.card.wob-hover { animation: hover-wob');
+  });
+});
+
+describe('nhịp lắc không được nháy', () => {
+  it('không animation nào của thẻ gắn vào selector :hover — rời chuột là cắt giữa nhịp', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+    // Lấy phần <style>
+    const style = css.slice(css.indexOf('<style'));
+    // Chỉ xét animation làm ĐỔI CHỖ/HÌNH của thẻ (trên .card hoặc .inner). Hiệu
+    // ứng trang trí trên ::after (vệt sáng lướt) bị cắt cũng không sao: nó chạy
+    // ra ngoài mép thẻ nên cắt giữa nhịp là biến mất, không nhảy về chỗ khác.
+    for (const line of style.split('\n')) {
+      if (!line.includes(':hover') || !/animation:\s*(?!none)/.test(line)) continue;
+      const target = line.split('{')[0] ?? '';
+      if (target.includes('::after') || target.includes('::before')) continue;
+      throw new Error(`animation gắn vào :hover sẽ bị cắt giữa nhịp khi rời chuột: ${line.trim()}`);
+    }
+    // Nhịp hover phải do class JS gắn
+    expect(style).toContain('.card.wob-hover { animation: hover-wob');
+    // Và khai báo `deal` phải được TẮT sau khi chạy xong, không thì hết nhịp
+    // hover là deal chạy lại từ đầu (đo được cú nhảy 29°).
+    expect(style).toContain('.card.settled { animation: none; }');
   });
 });

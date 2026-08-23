@@ -27,3 +27,6 @@ export const dealSpan = (cards: number): number => dealStep(cards) * Math.max(0,
  * animation — phần còn lại chỉ là lắc tắt dần, lật lúc đó vẫn mượt.
  */
 export const DEAL_SETTLE_MS = 400;
+
+/** Cả animation `deal` dài bấy nhiêu ms, kể cả đoạn lắc tắt dần ở cuối. */
+export const DEAL_ANIM_MS = 2400;

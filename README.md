@@ -70,6 +70,16 @@ trong khi các bước sau ra 22,7px, cùng một wizard hai cỡ chữ. Ghi đ�
   lá chưa bao giờ bị lật; mà keyframe đó mở ở `rotateY(180deg)` — mặt TRƯỚC
   hướng ra ngoài — nên mỗi lá úp đều loé nội dung rồi mới quay về úp. **Lộ bài**,
   thấy rõ nhất khi F5 giữa ván (cả bàn loé một nhịp). Có test chặn.
+- **Đừng gắn animation làm đổi hình thẻ vào `:hover`.** Rời chuột là animation bị
+  cắt GIỮA NHỊP, transform nhảy về giá trị nền — quét chuột qua bàn thành nháy
+  loạn. Bật bằng class do JS gắn rồi để nó chạy hết (`onEnter` → `.wob-hover`),
+  và bỏ qua lần vào lại khi còn đang lắc. Hiệu ứng trang trí trên `::after` thì
+  gắn `:hover` được: nó chạy ra ngoài mép thẻ nên cắt giữa nhịp là biến mất.
+- **Khai báo animation cố định trên `.card` là bẫy kép.** Hết nhịp hover thì
+  animation-name quay về `deal` và nó CHẠY LẠI TỪ ĐẦU (đo được cú nhảy 29°). Vì
+  thế có cờ `settled` → `.card.settled { animation: none }`: chia bài xong thì
+  khe animation của `.card` phải TRỐNG, hover mượn xong trả lại cũng không có gì
+  để chạy. Có test chặn.
 - **Hover và cú lật phải ở HAI LỚP khác nhau**: nhịp lắc lúc hover gắn vào
   `.card`, animation lật gắn vào `.inner`. Để chung một lớp thì hover ghi đè
   animation lật, và lúc RỜI chuột `flip-down` chạy lại từ khung đầu —
