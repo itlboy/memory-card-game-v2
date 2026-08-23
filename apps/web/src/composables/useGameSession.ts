@@ -184,7 +184,7 @@ export function useGameSession() {
       botWatch();
       const pick = botPick(publicView(g2, now.value, () => true), botMem, botRandom, level);
       botThinking.value = false;
-      if (pick !== null) flip(pick);
+      if (pick !== null) applyFlip(pick);
     }, BOT_SPECS[level].thinkMs);
   }
 
@@ -209,7 +209,10 @@ export function useGameSession() {
         bump();
       }
       handle(g.tick(now.value));
-      if (botLevel.value) botTurn();
+      // Nhìn bàn MỖI KHUNG, không phải chỉ lúc tới lượt mình: thẻ người chơi
+      // lật rồi úp lại sẽ không bao giờ vào ký ức bot nếu chỉ nhìn theo lượt —
+      // bot hoá ra mù trước mọi nước của đối thủ, chơi như đánh một mình.
+      if (botLevel.value) { botWatch(); botTurn(); }
       // Tick cảnh báo mỗi giây trong 10 giây cuối
       const left = g.timeLeft(now.value);
       if (left !== null && left > 0 && left <= 10) {
@@ -263,12 +266,27 @@ export function useGameSession() {
     return g;
   }
 
-  function flip(index: number): void {
+  /** Đang là lượt của máy — người chơi không được lật hộ nó. */
+  const botTurnNow = computed(() => {
+    touch();
+    return !!botLevel.value && game.value?.current.id === BOT_ID && !game.value.finished;
+  });
+
+  /** Đưa nước lật vào engine. Chỉ dùng nội bộ — bot đi qua đây, người chơi đi
+   *  qua `flip()` (có chốt chặn lượt). */
+  function applyFlip(index: number): void {
     const g = game.value;
     if (!g || countdownUntil) return;
     now.value = clockNow();
     handle(g.flip(index, now.value));
     if (!raf && !g.finished) raf = requestAnimationFrame(loop);
+  }
+
+  /** Người chơi bấm. Chặn ở GỐC chứ không chỉ khoá giao diện: bấm trong lượt
+   *  máy thì nước đó ghi vào tài khoản MÁY — tự tay mở thẻ cho đối thủ ăn. */
+  function flip(index: number): void {
+    if (botLevel.value && game.value?.current.id === BOT_ID) return;
+    applyFlip(index);
   }
 
   /** Bật/tắt đối thủ máy. Gọi TRƯỚC start() để ván mới gieo đúng rng cho bot. */
@@ -366,7 +384,7 @@ export function useGameSession() {
   });
 
   return {
-    game, start, flip, stop, adopt, setBot, botLevel, botThinking,
+    game, start, flip, stop, adopt, setBot, botLevel, botThinking, botTurnNow,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle

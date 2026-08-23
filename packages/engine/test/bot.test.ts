@@ -191,3 +191,20 @@ describe('bot: độ khó có thật sự khác nhau', () => {
     expect(normal, 'thường phải hơn dễ').toBeLessThan(easy);
   });
 });
+
+describe('bot nhớ cả thẻ ĐỐI THỦ mở', () => {
+  it('người chơi lật một cặp không khớp rồi úp lại — bot vẫn biết hai lá đó', () => {
+    const mem = createBotMemory();
+    // Lượt của người chơi: hai lá đang lộ, bot chỉ đứng nhìn
+    observe(mem, view([
+      { state: 'up', symbol: 'A' }, { state: 'up', symbol: 'B' },
+      { state: 'down' }, { state: 'down' }
+    ]), 'hard');
+    // Úp lại, tới lượt bot
+    observe(mem, view([
+      { state: 'down' }, { state: 'down' }, { state: 'down' }, { state: 'down' }
+    ]), 'hard');
+    expect([...mem.keys()].sort()).toEqual([0, 1]);
+    expect(mem.get(0)?.symbol).toBe('A');
+  });
+});

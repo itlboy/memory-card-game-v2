@@ -24,7 +24,7 @@ const POWER_TEXT: Record<string, string> = {
   bomb: '💥 Thẻ bom! Hai cặp đã mở bị úp lại.',
   swap: '🔀 Tráo đổi! Hai thẻ vừa đổi chỗ nhau.',
   x2: '✖️ Cặp tiếp theo được nhân đôi điểm!',
-  eye: '👁️ Mắt thần — nhìn nhanh trong 2 giây!',
+  eye: '👁️ Mắt thần — cả bàn hé mở 5 giây!',
   freeze: '❄️ Đóng băng — đối thủ mất một lượt!'
 };
 
@@ -83,7 +83,10 @@ const lives = computed(() =>
     ? null
     : (s.players.value[0]?.lives ?? 0)
 );
-const locked = computed(() => s.locked.value || s.revealingAll.value || s.countdownLeft.value !== null);
+// Lượt của máy cũng là bàn KHOÁ: không khoá thì người chơi bấm được, mà nước
+// đó lại tính cho máy — tự tay mở thẻ cho đối thủ.
+const locked = computed(() =>
+  s.locked.value || s.revealingAll.value || s.countdownLeft.value !== null || s.botTurnNow.value);
 /** Ván Chớp nhoáng: màn đếm ngược nói sắp mở bài thay vì báo người đi đầu. */
 const isPeek = computed(() => (props.game.config.peekMs ?? 0) > 0);
 
@@ -125,9 +128,9 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
       :series-wins="seriesWins"
     />
 
-    <div ref="wrap" class="board-wrap">
-      <!-- Thông báo NỔI trên bàn: để trong luồng thì mỗi lần hiện/ẩn là bàn thẻ
-           bị đẩy lên đẩy xuống, vừa khó chịu vừa dễ bấm nhầm ô. -->
+    <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
+    <div class="notice-bar">
+      <!-- Thẻ đặc biệt / hé mở / hồi mạng -->
       <Transition name="toast">
         <p v-if="s.revealingAll.value" class="toast peek" role="status">
           <!-- Chữ ngắn để thông báo gọn MỘT dòng: hai dòng thì nó che thêm một
@@ -142,6 +145,25 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
           {{ POWER_TEXT[s.lastPower.value.power] }}
         </p>
       </Transition>
+      <!-- Chuyển lượt (MP-03) -->
+      <Transition name="banner">
+        <div
+          v-if="s.turnBanner.value"
+          :key="s.turnBanner.value.key"
+          class="turn-banner"
+          role="status"
+          aria-live="polite"
+        >
+          <small v-if="s.turnBanner.value.frozen">❄️ {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
+          <span class="who">
+            <span class="avatar">{{ s.turnBanner.value.avatar || '🎮' }}</span>
+            Đến lượt <b>{{ s.turnBanner.value.name }}</b>
+          </span>
+        </div>
+      </Transition>
+    </div>
+
+    <div ref="wrap" class="board-wrap">
       <BoardGrid
         ref="board"
         :cards="s.cards.value"
@@ -181,22 +203,6 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
         <span v-else class="first">🎲 <b>{{ s.current.value?.name }}</b> đi trước!</span>
       </div>
 
-      <!-- Banner chuyển lượt: hiện to giữa bàn rồi tự tan (MP-03) -->
-      <Transition name="banner">
-        <div
-          v-if="s.turnBanner.value"
-          :key="s.turnBanner.value.key"
-          class="turn-banner"
-          role="status"
-          aria-live="polite"
-        >
-          <small v-if="s.turnBanner.value.frozen">❄️ {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
-          <span class="who">
-            <span class="avatar">{{ s.turnBanner.value.avatar || '🎮' }}</span>
-            Đến lượt <b>{{ s.turnBanner.value.name }}</b>
-          </span>
-        </div>
-      </Transition>
     </div>
   </section>
 </template>
@@ -260,10 +266,11 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
 }
 .countdown .first b { color: var(--accent); }
 
+/* Nằm trong .notice-bar nên phải gọn MỘT DÒNG: xếp dọc là dải phải cao gấp
+   đôi, mà chỗ đó lấy từ bàn thẻ. */
 .turn-banner {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 14px 26px; border-radius: 16px;
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  padding: 7px 16px; border-radius: var(--r-full);
   background: color-mix(in srgb, var(--panel) 88%, transparent);
   border: 2px solid var(--accent);
   box-shadow: 0 10px 40px var(--card-back-glow), var(--shadow);
@@ -277,15 +284,14 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
 @keyframes wave { 40% { transform: rotate(-12deg) scale(1.2); } 70% { transform: rotate(9deg); } }
 
 .banner-enter-active { transition: opacity .18s ease, transform .25s cubic-bezier(.3, 1.5, .5, 1); }
-.banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+.banner-enter-from { opacity: 0; transform: translateX(-50%) scale(.6); }
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
+.banner-leave-to { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(.95); }
 /* GIỮA bàn, không đẩy bố cục. Trước đây nằm sát mép trên (top: 8px) nên che
    đúng hàng thẻ đầu — chỗ người chơi đang bấm. Giữa bàn thì đọc xong là biến,
    và hơi trong suốt để vẫn thấy thẻ phía sau. */
 .toast {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  z-index: 8; max-width: min(94%, 460px);
+  max-width: min(94%, 460px);
   margin: 0; padding: 10px 16px; border-radius: var(--r-full);
   font-family: var(--font-display); font-weight: 700;
   font-size: clamp(15px, 4.2vw, 20px); line-height: 1.25; text-align: center;
@@ -309,9 +315,9 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
 .toast.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
 .toast-enter-active { animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1); }
 .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.toast-leave-to { opacity: 0; transform: translate(-50%, -60%) scale(.96); }
+.toast-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.96); }
 @keyframes toast-in {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(.88); }
-  to { opacity: .93; transform: translate(-50%, -50%) scale(1); }
+  from { opacity: 0; transform: translateX(-50%) scale(.88); }
+  to { opacity: .93; transform: translateX(-50%) scale(1); }
 }
 </style>

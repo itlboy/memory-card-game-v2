@@ -51,14 +51,14 @@ describe('thẻ đặc biệt (SRS 3.4)', () => {
     expect(g.players[0]!.score).toBe(340 + 150);
   });
 
-  it('thẻ mắt thần hé mở toàn bàn 2 giây', () => {
+  it('thẻ mắt thần hé mở toàn bàn 5 giây', () => {
     const { g, slot } = withPower('eye', 4);
     g.start(0);
     g.flip(slot, 1000);
     expect(g.revealingAll).toBe(true);
-    g.tick(2500);
+    g.tick(5500);
     expect(g.revealingAll).toBe(true);
-    g.tick(3001);
+    g.tick(6001);
     expect(g.revealingAll).toBe(false);
   });
 

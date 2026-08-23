@@ -74,10 +74,12 @@ server.js            Web server tĩnh cho bản build production
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
-| Thẻ đặc biệt | Tráo đổi, x2, mắt thần, đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nên hay gặp nhất. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
+| Đấu với máy | 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot ngu / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot ngu" **không** cộng điểm tích luỹ |
+| Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
 | Lưu trữ | Kỷ lục và sao theo từng chế độ, tuỳ chọn, 7 thành tích — localStorage (3.7) |
+| Thông báo trong ván | Thông báo (thẻ đặc biệt, chuyển lượt, emoji đối thủ) nổi ở **dải trên mép bàn** (`.notice-bar`), cao 0px và ĐÈ lên HUD — không hiện giữa bàn (che chỗ đang bấm) và không chiếm chỗ (bàn thẻ co giãn mỗi lần thông báo hiện/tan) |
 | Phi chức năng | Responsive 320px+, dark mode, ba mức âm lượng, điều hướng bàn phím, chạm ≥44px, PWA chạy offline |
 
 ### Luật riêng của từng chế độ
@@ -92,6 +94,31 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 | Sinh tồn | 5 mạng. Chỉ mất mạng khi thẻ vừa mở **đã từng lộ ra** — lật hai thẻ chưa ai thấy là dò bài, không bị trừ. Dưới 2 mạng mà ghép đúng **hai lần liền** thì hồi 1 mạng |
 | Chớp nhoáng | Đếm ngược 5 giây báo trước, rồi hé mở cả bàn — thời gian nhìn giãn theo số thẻ (`peekMsFor`: 2 giây + 0,26 giây mỗi thẻ, nên bàn 42 thẻ được 13 giây) |
 | Chiến dịch | Riêng chế độ này xếp 1–3 sao; nửa sau siết mốc sao. Cấp cần nhiều biểu tượng hơn bộ theme khả dụng sẽ bị khoá kèm nhắc |
+
+### Đối thủ máy (bot)
+
+- Bot **chỉ đọc `publicView`** — đúng payload mà client online nhận. Thẻ úp không
+  có `symbol` trong đó (NF-04), nên bot không thể gian lận về mặt kiến trúc, chứ
+  không phải vì nó "tự nguyện không xem". ĐỪNG BAO GIỜ truyền `MemoryGame` hay
+  `Card[]` vào `bot.ts`.
+- Độ khó đến từ **giới hạn ký ức**, không phải từ việc cho bot cố tình lật sai:
+  mỗi nước đi qua, khả năng nhớ một lá nhân thêm `retain`, nên bot quên dần tự
+  nhiên. Bot biết hết rồi giả vờ sai thì người chơi nhận ra ngay là giả.
+
+  | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | nghĩ |
+  |---|---|---|---|---|
+  | Bot ngu | 0,72 | ~2,1 | 26% | 1,2s |
+  | Bot bình thường | 0,90 | ~6,6 | 10% | 0,9s |
+  | Bot Pro | 0,96 | ~17 | 4% | 0,7s |
+  | Bot siêu đẳng | 0,995 | ~138 | 0% | 0,55s |
+
+- Bộ điều khiển ở `useGameSession`: `botWatch()` chạy **mỗi khung**, không chỉ lúc
+  tới lượt bot — nhìn theo lượt thì thẻ người chơi lật rồi úp lại không bao giờ
+  vào ký ức bot, bot hoá ra mù trước mọi nước của đối thủ.
+- Lượt của bot thì `flip()` của người chơi bị **chặn ở gốc** (không chỉ khoá giao
+  diện): bấm được trong lượt bot nghĩa là người chơi tự tay mở thẻ cho bot ăn.
+- Bot đi qua `applyFlip()`, người chơi đi qua `flip()`. Nhập hai đường lại là bot
+  tự chặn chính nó.
 
 ### Luật chung cần biết khi sửa engine
 

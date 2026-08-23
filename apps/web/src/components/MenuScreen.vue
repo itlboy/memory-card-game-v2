@@ -277,7 +277,11 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           :aria-pressed="playerCount === c.n"
           @click="pickCount(c.n)"
         >
-          <Users class="opt-icon" :size="40" aria-hidden="true" />
+          <!-- Đúng bằng số người: 2 người thì 2 hình, 4 người thì 4 hình. Một
+               icon "nhóm" dùng chung cho cả ba ô thì mắt không đọc ra số nào. -->
+          <span class="who-icons" :class="{ pair: c.n === 4 }" aria-hidden="true">
+            <User v-for="i in c.n" :key="i" class="opt-icon" :size="26" />
+          </span>
           <span class="text"><strong>{{ c.n }} người chơi</strong><small>{{ c.desc }}</small></span>
         </button>
       </div>
@@ -435,6 +439,16 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .options.grid2 { grid-template-columns: repeat(3, 1fr); }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
+
+/* Bó icon người: 4 hình vẫn phải vừa cột icon, nên cho phép xuống hai hàng và
+   xếp khít lại. */
+.who-icons {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 1px; max-width: 62px; flex-shrink: 0;
+}
+.who-icons .opt-icon { width: clamp(18px, 7cqw, 27px); height: auto; }
+/* 4 người xếp 2+2 cho vuông vắn; 3 người vẫn một hàng ba */
+.who-icons.pair { max-width: 58px; }
 
 .theme-step { gap: 0; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }

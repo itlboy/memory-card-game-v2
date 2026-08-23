@@ -134,25 +134,9 @@ watch(() => o.view.value?.summary, (s) => {
     </p>
     <p v-if="o.reconnecting.value" class="reconnect" role="status">📡 Mất kết nối — đang vào lại…</p>
 
-    <div ref="wrap" class="board-wrap">
-      <BoardGrid
-        :cards="cards" :cols="o.view.value?.cols ?? 4"
-        :face-up="faceUp" :matched="matchedSet"
-        :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value" :pending="o.pending.value"
-        :revealing-all="false" :locked="locked"
-        :back="o.backStyle.value"
-        @flip="o.flip"
-      />
-      <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
-        +{{ o.lastGain.value.amount }}
-      </span>
-      <!-- Đếm ngược 5 giây trước ván + báo người đi đầu -->
-      <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
-        <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
-        <span class="first">🎲 <b>{{ o.countdown.value?.firstName }}</b> đi trước!</span>
-      </div>
-
-      <!-- Emoji chat phóng to giữa bàn -->
+    <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
+    <div class="notice-bar">
+      <!-- Emoji người kia gửi -->
       <Transition name="blast">
         <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
           <span class="big">{{ o.emojiBlast.value.emoji }}</span>
@@ -173,6 +157,26 @@ watch(() => o.view.value?.summary, (s) => {
           </span>
         </div>
       </Transition>
+    </div>
+
+    <div ref="wrap" class="board-wrap">
+      <BoardGrid
+        :cards="cards" :cols="o.view.value?.cols ?? 4"
+        :face-up="faceUp" :matched="matchedSet"
+        :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value" :pending="o.pending.value"
+        :revealing-all="false" :locked="locked"
+        :back="o.backStyle.value"
+        @flip="o.flip"
+      />
+      <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
+        +{{ o.lastGain.value.amount }}
+      </span>
+      <!-- Đếm ngược 5 giây trước ván + báo người đi đầu -->
+      <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
+        <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
+        <span class="first">🎲 <b>{{ o.countdown.value?.firstName }}</b> đi trước!</span>
+      </div>
+
     </div>
 
     <!-- Mất mạng hẳn thì nói to, vì lúc đó bấm gì cũng không ăn -->
@@ -316,10 +320,11 @@ watch(() => o.view.value?.summary, (s) => {
   100% { opacity: 0; transform: translate(-50%, -170%) scale(1); }
 }
 
+/* Nằm trong .notice-bar nên phải gọn MỘT DÒNG: xếp dọc là dải phải cao gấp
+   đôi, mà chỗ đó lấy từ bàn thẻ. */
 .turn-banner {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 14px 26px; border-radius: 16px;
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  padding: 7px 16px; border-radius: var(--r-full);
   background: color-mix(in srgb, var(--panel-solid) 90%, transparent);
   border: 2px solid var(--accent);
   box-shadow: 0 10px 40px var(--card-back-glow), var(--shadow);
@@ -331,9 +336,9 @@ watch(() => o.view.value?.summary, (s) => {
 .turn-banner .avatar { font-size: clamp(24px, 6vw, 32px); }
 .turn-banner small { color: var(--muted); font-size: 12.5px; }
 .banner-enter-active { transition: opacity .18s ease, transform .25s cubic-bezier(.3, 1.5, .5, 1); }
-.banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+.banner-enter-from { opacity: 0; transform: translateX(-50%) scale(.6); }
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
+.banner-leave-to { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(.95); }
 
 /* inset: -4px chứ không phải 0: lớp phủ phải TRÙM QUA mép một chút, không thì
    góc bo của khung app hở một vành mỏng nhìn rất khó chịu. Bỏ border-radius vì
@@ -358,16 +363,15 @@ watch(() => o.view.value?.summary, (s) => {
 }
 .countdown .first b { color: var(--accent); }
 
-/* Emoji người khác gửi bay giữa bàn chơi — để hơi trong, người chơi vẫn theo
-   được thẻ bên dưới trong lúc nó bay qua. */
+/* Emoji người kia gửi: nằm trong dải thông báo TRÊN bàn, xếp ngang một dòng —
+   trước đây nó phóng 110px giữa bàn, đúng lúc đối thủ đang chờ mình đi thì cả
+   bàn bị che. */
 .emoji-blast {
-  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  pointer-events: none; z-index: 6;
-  opacity: .78;
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  pointer-events: none;
 }
 .emoji-blast .big {
-  font-size: clamp(64px, 22vw, 110px); line-height: 1;
+  font-size: clamp(30px, 8vw, 44px); line-height: 1;
   filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .35));
   animation: blast-pop 1.9s cubic-bezier(.2, 1.4, .4, 1) forwards;
 }
@@ -378,11 +382,10 @@ watch(() => o.view.value?.summary, (s) => {
   box-shadow: 0 4px 14px var(--card-back-glow);
 }
 @keyframes blast-pop {
-  0% { transform: scale(.2) rotate(-14deg); opacity: 0; }
-  18% { transform: scale(1.3) rotate(6deg); opacity: 1; }
-  30% { transform: scale(1) rotate(0); }
-  75% { transform: scale(1) translateY(0); opacity: 1; }
-  100% { transform: scale(.9) translateY(-46px); opacity: 0; }
+  0% { transform: translateX(-50%) scale(.3) rotate(-14deg); opacity: 0; }
+  20% { transform: translateX(-50%) scale(1.25) rotate(6deg); opacity: 1; }
+  32% { transform: translateX(-50%) scale(1) rotate(0); }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 .blast-enter-active { transition: opacity .1s; }
 .blast-leave-active { transition: opacity .25s; }

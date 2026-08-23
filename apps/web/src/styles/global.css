@@ -215,3 +215,20 @@ button {
     transition-duration: .01ms !important;
   }
 }
+
+/* ---------- dải thông báo trên bàn chơi ---------- */
+
+/*
+ * Thông báo (thẻ đặc biệt, chuyển lượt, emoji người kia gửi) nổi NGAY TRÊN mép
+ * bàn thẻ. Hai điều nó cố tình KHÔNG làm:
+ *  - không hiện giữa bàn: che đúng chỗ đang bấm, mà lúc mắt thần hé cả bàn thì
+ *    che nghĩa là mất luôn thứ người chơi vừa trả giá để xem;
+ *  - không chiếm chỗ (height: 0): chiếm chỗ thì bàn thẻ bị đẩy xuống và co lại
+ *    mỗi lần thông báo hiện/tan. Nó ĐÈ lên HUD / thanh người chơi phía trên —
+ *    những thứ đó đọc lúc nào cũng được, thông báo thì chỉ hiện một nhịp.
+ */
+.notice-bar { position: relative; height: 0; z-index: 20; }
+.notice-bar > * {
+  position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
+  margin: 0; white-space: nowrap; max-width: 100%;
+}

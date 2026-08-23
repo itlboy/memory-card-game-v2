@@ -43,10 +43,10 @@ export interface BotSpec {
  *   Siêu đẳng    retain 0,995 → nửa đời ~138 nước (nhớ trọn một ván)
  */
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy:   { retain: 0.72,  mistake: 0.26, thinkMs: 1200, name: 'Ngu',         avatar: '🐣' },
-  normal: { retain: 0.90,  mistake: 0.10, thinkMs: 900,  name: 'Bình thường', avatar: '🤖' },
-  hard:   { retain: 0.96,  mistake: 0.04, thinkMs: 700,  name: 'Pro',         avatar: '👾' },
-  insane: { retain: 0.995, mistake: 0,    thinkMs: 550,  name: 'Siêu đẳng',   avatar: '🦾' }
+  easy:   { retain: 0.72,  mistake: 0.26, thinkMs: 1200, name: 'Bot ngu',         avatar: '🐣' },
+  normal: { retain: 0.90,  mistake: 0.10, thinkMs: 900,  name: 'Bot bình thường', avatar: '🤖' },
+  hard:   { retain: 0.96,  mistake: 0.04, thinkMs: 700,  name: 'Bot Pro',         avatar: '👾' },
+  insane: { retain: 0.995, mistake: 0,    thinkMs: 550,  name: 'Bot siêu đẳng',   avatar: '🦾' }
 };
 
 /** Một lá trong ký ức: biểu tượng và nước đi lúc nhìn thấy. */

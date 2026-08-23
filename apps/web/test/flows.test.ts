@@ -5,7 +5,7 @@ import App from '@/App.vue';
 
 /** Truy cập engine bên trong App để chơi tất định. */
 type Session = {
-  game: { value: { cards: { index: number; pairId: number; blank?: boolean }[]; totalPairs: number } | null };
+  game: { value: { cards: { index: number; pairId: number; blank?: boolean; power?: string }[]; totalPairs: number } | null };
 };
 const session = (w: VueWrapper): Session => (w.vm as unknown as { session: Session }).session;
 
@@ -216,11 +216,18 @@ describe('luồng trọn ván', () => {
     await pickMode('Sinh tồn');
     await start();
     expect(wrapper.text()).toContain('❤️ 5');
+    // Chỉ dùng cặp KHÔNG mang thẻ đặc biệt: bấm nhầm lá mắt thần là cả bàn lật
+    // lên, lượt dò không còn tính là lật sai — seed là ngẫu nhiên nên test sẽ
+    // đỏ thất thường (đã đỏ thật một lần).
     const cards = session(wrapper).game.value!.cards;
-    const pairA = cards.filter((c) => c.pairId === cards[0]!.pairId).map((c) => c.index);
-    const pairB = cards.filter((c) => c.pairId !== cards[0]!.pairId && !c.blank);
-    const bId = pairB[0]!.pairId;
-    const slotsB = cards.filter((c) => c.pairId === bId).map((c) => c.index);
+    const plain = new Map<number, number[]>();
+    for (const c of cards) {
+      if (c.blank || c.power) continue;
+      plain.set(c.pairId, [...(plain.get(c.pairId) ?? []), c.index]);
+    }
+    const clean = [...plain.values()].filter((ix) => ix.length === 2);
+    expect(clean.length, 'bàn phải còn ít nhất hai cặp thường').toBeGreaterThanOrEqual(2);
+    const [pairA, slotsB] = clean as [number[], number[]];
 
     const missTurn = async (i: number, j: number): Promise<void> => {
       await wrapper.findAll('.card')[i]!.trigger('click');
@@ -766,6 +773,17 @@ describe('vào online rồi về trang chủ', () => {
 
 describe('đấu với máy', () => {
   /** Vào ván đấu máy ở mức cho trước. */
+  /** Tắt bot để tự ghép hết bàn: hai test điểm bên dưới kiểm LUẬT CỘNG ĐIỂM,
+   *  nếu để bot cùng lật thì nó chen vào giữa hai cú bấm của một cặp và ván
+   *  không bao giờ xong — test đỏ thất thường. Việc bot tự đi có test riêng. */
+  async function muteBot(): Promise<void> {
+    (wrapper.vm as unknown as { session: { setBot: (l: null) => void } }).session.setBot(null);
+    // Bot vừa lật sai thì bàn đang KHOÁ chờ úp lại; bấm tiếp trong lúc đó là
+    // engine bỏ nước, ghép hết bàn thành ghép được 0 cặp.
+    await vi.advanceTimersByTimeAsync(1300);
+    await flush();
+  }
+
   async function startVsBot(level: string): Promise<void> {
     await click('Đấu với máy');
     await click(level);
@@ -781,7 +799,7 @@ describe('đấu với máy', () => {
 
   it('ván đấu máy có đúng hai người: người chơi và máy', async () => {
     await mountApp();
-    await startVsBot('Pro');
+    await startVsBot('Bot Pro');
     const names = wrapper.findAll('.card').length > 0
       ? (wrapper.vm as unknown as { session: { players: { value: { id: string }[] } } }).session.players.value
       : [];
@@ -790,7 +808,7 @@ describe('đấu với máy', () => {
 
   it('máy TỰ lật khi tới lượt nó — không cần người chơi bấm hộ', async () => {
     await mountApp();
-    await startVsBot('Pro');
+    await startVsBot('Bot Pro');
     await vi.advanceTimersByTimeAsync(5200);   // đếm ngược vào ván
     await flush();
     const s = (wrapper.vm as unknown as {
@@ -812,10 +830,11 @@ describe('đấu với máy', () => {
 
   it('mức Ngu KHÔNG cộng điểm tích luỹ — cày máy dễ không mở được theme', async () => {
     await mountApp();
-    await startVsBot('Ngu');
+    await startVsBot('Bot ngu');
     await vi.advanceTimersByTimeAsync(5200);
     await flush();
     const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
+    await muteBot();
     await winGame();
     const after = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
     expect(wrapper.text(), 'ván phải thật sự kết thúc, nếu không phép so điểm vô nghĩa')
@@ -823,13 +842,56 @@ describe('đấu với máy', () => {
     expect(after).toBe(before);
   });
 
-  it('mức Pro thì CÓ cộng điểm — chốt là phép so trên kia không đúng vì ván treo', async () => {
+  it('mức Pro cộng ĐÚNG điểm của người, không cộng điểm của bot', async () => {
     await mountApp();
-    await startVsBot('Pro');
+    await startVsBot('Bot Pro');
     await vi.advanceTimersByTimeAsync(5200);
     await flush();
+    await muteBot();
+    const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
     await winGame();
+    const s = (wrapper.vm as unknown as {
+      session: { summary: { value: { ranking: { id: string; score: number }[] } | null } }
+    }).session.summary.value!;
+    // Ai đi trước là ngẫu nhiên theo seed, nên điểm người có thể là 0 — điều
+    // phải đúng là phần CỘNG VÀO khớp điểm người, và không bao giờ là điểm bot.
+    const mine = s.ranking.find((r) => r.id !== 'bot')!.score;
     const after = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
-    expect(after).toBeGreaterThan(0);
+    expect(after - before).toBe(mine);
+  });
+});
+
+describe('lượt của bot thì người chơi bị chặn', () => {
+  it('bấm thẻ trong lượt máy KHÔNG tính — nếu tính thì người tự mở thẻ cho máy ăn', async () => {
+    await mountApp();
+    await click('Đấu với máy');
+    await click('Bot siêu đẳng');
+    await click('Cổ điển');
+    await click('Cấp 8,');
+    await click('Bắt đầu');
+    await vi.advanceTimersByTimeAsync(5200);
+    await flush();
+    const s = (wrapper.vm as unknown as {
+      session: {
+        setBot: (l: null) => void; moves: { value: number };
+        current: { value: { id: string } | null }; botTurnNow: { value: boolean };
+      }
+    }).session;
+    // Dừng bot lại để lượt của nó đứng yên, rồi thử bấm thay nó
+    if (s.current.value?.id !== 'bot') {
+      const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
+      await wrapper.findAll('.card')[cards[0]!.index]!.trigger('click');
+      await wrapper.findAll('.card')[cards[2]!.index]!.trigger('click');
+      await vi.advanceTimersByTimeAsync(1200);
+      await flush();
+    }
+    expect(s.current.value?.id, 'phải đang là lượt máy mới kiểm được').toBe('bot');
+    expect(s.botTurnNow.value).toBe(true);
+    s.setBot(null);            // treo bot lại, lượt vẫn của nó
+    const before = s.moves.value;
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await wrapper.findAll('.card')[1]!.trigger('click');
+    await flush();
+    expect(s.moves.value, 'nước bấm trong lượt máy phải bị bỏ').toBe(before);
   });
 });

@@ -379,7 +379,9 @@ export class MemoryGame {
         player.doubleNext = true;
         break;
       case 'eye':
-        this.revealUntil = now + 2000;
+        // 5 giây, không phải 2: bàn 40 thẻ thì 2 giây chỉ đủ đưa mắt qua một
+        // góc, thẻ đắt nhất bàn mà gần như không dùng được.
+        this.revealUntil = now + 5000;
         affected = this.cards.map((c) => c.index);
         break;
       case 'freeze': {
