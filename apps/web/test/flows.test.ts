@@ -197,10 +197,10 @@ describe('luồng trọn ván', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
-  it('thắng cấp 2 Chiến dịch: lưu sao, hiện nút "Cấp tiếp theo", mở khoá cấp sau', async () => {
+  it('thắng cấp 1 Chiến dịch: lưu sao, hiện nút "Cấp tiếp theo", mở khoá cấp sau', async () => {
     await mountApp();
     await pickMode('Chiến dịch');
-    await start(2);                                          // cấp 2 = 2 cặp = bàn 2×2
+    await start(1);                                          // cấp 1 = 2 cặp = bàn 2×2
     expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
     expect(wrapper.text()).toContain('Cấp tiếp theo');
@@ -208,7 +208,7 @@ describe('luồng trọn ván', () => {
     await wrapper.find('[role="dialog"] .btn-primary').trigger('click');   // sang cấp 3
     await flush();
     expect(wrapper.findAll('.card').length).toBeGreaterThan(0);
-    expect(localStorage.getItem('mm.v2')).toContain('"campaign:2"');
+    expect(localStorage.getItem('mm.v2')).toContain('"campaign:1"');
   });
 
   it('Sinh tồn: HUD hiển thị mạng, chỉ mất khi thẻ trùng đã lộ', async () => {
@@ -298,39 +298,26 @@ describe('điều hướng bàn phím (NF-07)', () => {
   });
 });
 
-describe('bàn nhỏ và ô trống', () => {
-  it('bàn lẻ ô (3×5): 1 ô trống không bấm được, thắng với 7 cặp', async () => {
+describe('bàn nhỏ và bàn đầy', () => {
+  it('cấp 1 là bàn 2×2, thắng với 2 cặp', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await start(7);   // cấp 7 = 7 cặp = 14 thẻ trên bàn 3×5, thừa một ô
-    expect(wrapper.findAll('.card')).toHaveLength(15);
-    const blanks = wrapper.findAll('.card.blank');
-    expect(blanks).toHaveLength(1);
-    expect(wrapper.text()).toContain('0/7');
-    await winGame();
-    expect(wrapper.text()).toContain('Kỷ lục mới');   // thắng lần đầu = kỷ lục
-  });
-
-  it('ván 2×2 thắng chỉ với 2 cặp', async () => {
-    await mountApp();
-    await pickMode('Cổ điển');
-    await start(2);   // cấp 2 = 2 cặp = bàn 2×2
+    await start(1);
     expect(wrapper.findAll('.card')).toHaveLength(4);
+    expect(wrapper.findAll('.card.blank')).toHaveLength(0);
     await winGame();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
   });
 
-  it('bàn phím nhảy qua ô trống ở giữa bàn', async () => {
+  it('bàn kín đúng cols×rows, không ô trống nào', async () => {
+    // Engine đã kiểm cả 50 cấp (test/symmetry.test.ts); ở đây chỉ xác nhận UI
+    // vẽ đúng số ô đó, không tự thêm ô trống nào.
     await mountApp();
     await pickMode('Cổ điển');
-    await start(7);   // cấp 7 = bàn 3×5, ô trống ở chính giữa (index 7)
-    const board = wrapper.find('[role="grid"]');
-    const tile = (i: number) => board.find(`[data-index="${i}"]`);
-    (tile(6).element as HTMLElement).focus();                 // ô trái của ô trống
-    await board.trigger('keydown', { key: 'ArrowRight' });
-    expect(document.activeElement).toBe(tile(8).element);     // nhảy qua ô trống
-    await board.trigger('keydown', { key: 'ArrowLeft' });
-    expect(document.activeElement).toBe(tile(6).element);
+    await start(20);
+    const g = session(wrapper).game.value!;
+    expect(wrapper.findAll('.card')).toHaveLength(g.config.cols * g.config.rows);
+    expect(wrapper.findAll('.card.blank')).toHaveLength(0);
   });
 });
 
@@ -391,12 +378,12 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
   it('reload giữa cấp Chiến dịch giữ nguyên số cấp', async () => {
     await mountApp();
     await pickMode('Chiến dịch');
-    await start(2);
+    await start(1);
     window.dispatchEvent(new Event('beforeunload'));
     wrapper.unmount();
     await mountApp();
-    expect(wrapper.findAll('.card')).toHaveLength(4);   // cấp 2 = 2×2
-    expect(wrapper.text()).toContain('Cấp2');
+    expect(wrapper.findAll('.card')).toHaveLength(4);   // cấp 1 = 2×2
+    expect(wrapper.text()).toContain('Cấp1');
   });
 });
 

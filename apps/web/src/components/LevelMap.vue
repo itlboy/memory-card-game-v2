@@ -41,13 +41,12 @@ const chapters = computed(() => CHAPTERS.map((c) => {
     active: nextLevel.value != null && nextLevel.value >= c.from && nextLevel.value <= c.to,
     /* Khoá cả chặng: chưa mở tới cấp đầu tiên của nó. */
     locked: c.from > props.unlocked,
-    /* Chặng mà bàn không to thêm được nữa (đã cán trần 50 thẻ): ghi một con số
-       thôi, và nói rõ độ khó đến từ thời gian — không thì người chơi thấy hai
-       chặng cuối cùng một cỡ bàn và tưởng game lặp. */
     cards: list[0]!.pairs === list.at(-1)!.pairs
       ? `${list[0]!.pairs * 2} thẻ`
       : `${list[0]!.pairs * 2} – ${list.at(-1)!.pairs * 2} thẻ`,
-    byTime: list[0]!.pairs === list.at(-1)!.pairs,
+    /* Nhiều cấp trong chặng dùng chung một cỡ bàn, khác nhau ở thời gian. Nói
+       ra, không thì người chơi thấy hai cấp cùng cỡ bàn và tưởng game lặp. */
+    byTime: new Set(list.map((l) => l.pairs)).size < list.length,
     blocked: list.filter((l) => l.id <= props.unlocked && needsMore(l)).length
   };
 }));
@@ -118,7 +117,7 @@ watch(nextLevel, scrollToActive);
         </ol>
 
         <footer>
-          <span>{{ c.cards }}<template v-if="c.byTime"> · thời gian siết dần</template></span>
+          <span>{{ c.cards }}<template v-if="c.byTime"> · giờ siết dần</template></span>
           <span v-if="c.blocked" class="need-theme">
             <TriangleAlert :size="13" /> {{ c.blocked }} cấp cần thêm theme
           </span>

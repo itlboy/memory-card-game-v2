@@ -15,65 +15,66 @@ export interface Level {
   starThresholds: [number, number];
 }
 
-/** Mỗi màn thêm ĐÚNG 2 thẻ: màn 1 có 2 cặp, màn cuối có 50 cặp. Tăng đều như
- *  vậy thì độ khó lên từ tốn và người chơi luôn thấy màn sau khác màn trước —
- *  thang cũ gộp ba màn liền vào cùng một cỡ bàn nên chơi thấy lặp. */
-export const CAMPAIGN_LEVELS = 50;
-/** Cạnh bàn lớn nhất, dùng cho bàn trần 5×10. */
-const MAX_SIDE = 10;
-/** Bàn không dài quá mức này (rows/cols) — dài hơn thì thành một dải, khó nhớ
- *  vị trí. 2,0 để bàn trần 5×10 hợp lệ: khung app là cột dọc nên bàn cao gấp
- *  đôi bề rộng vẫn vừa, còn dài hơn nữa thì thẻ bé quá. */
-const MAX_RATIO = 2;
-/** Trần 50 thẻ = 25 cặp. 100 thẻ (10×10) thì mỗi thẻ trên điện thoại chỉ còn
- *  hơn 30px và một ván kéo dài quá lâu — chơi thành khổ, không còn vui. */
-const MAX_PAIRS = 25;
-/** Từ cấp này trở đi bàn không to thêm nữa; độ khó lên bằng thời gian ngắn dần
- *  và nhiều thẻ đặc biệt hơn. */
-const PLATEAU_FROM = MAX_PAIRS;
-
-/** Cấp N có N cặp cho tới trần 25 cặp (50 thẻ): cấp 1 là cấp tập 2 thẻ, cấp 25
- *  là bàn 5×10 kín. Từ cấp 26 bàn giữ nguyên 50 thẻ — xem PLATEAU_FROM. */
-export const pairsForLevel = (id: number): number => Math.min(MAX_PAIRS, id);
-/** Số cặp lớn nhất chiến dịch đòi (màn cuối) — UI dùng để cảnh báo trước khi
- *  người chơi lao vào màn mà bộ theme đang chọn không đủ biểu tượng. */
-export const CAMPAIGN_MAX_PAIRS = pairsForLevel(CAMPAIGN_LEVELS);
-
 /**
- * Chọn bàn cho một số cặp cho trước. Số thẻ chẵn nhưng không phải số nào cũng
- * chia thành lưới chữ nhật đầy, nên bàn được phép có vài Ô TRỐNG — miễn chúng
- * nằm gọn trong một hàng.
+ * Thang cấp dựng từ một BẢNG BÀN cố định, không tính ra từ số cặp nữa.
  *
- * Ưu tiên ĐẦU TIÊN là xếp được ĐỐI XỨNG. Ô trống lệch về một bên làm bàn trông
- * như bị khuyết, rất khó chịu lúc chia bài. Chỉ hai kiểu ô trống là đối xứng
- * được: một ô đúng giữa bàn (lưới toàn cạnh lẻ), hoặc số ô CHẴN chia đều hai
- * đầu hàng cuối (xem layout()). Số ô trống lẻ từ 3 trở lên thì không kiểu nào
- * cân, nên bị đẩy xuống cuối danh sách.
+ * Ba điều kiện phải cùng đúng, và chỉ một tập bàn hữu hạn thoả được cả ba:
  *
- * Sau đó: ít ô trống nhất → tỷ lệ gần 1,3 (dáng khung dọc) → bàn nhỏ hơn.
+ * 1. Bàn ĐẦY — không ô trống nào. Nghĩa là cols × rows phải đúng bằng số thẻ.
+ *    Đây là chỗ luật "mỗi cấp +2 thẻ" chết: 10 thẻ chỉ chia được thành 2×5,
+ *    14 thẻ chỉ 2×7, 22 thẻ chỉ 2×11… vì số thẻ là 2 lần một số nguyên tố.
+ *    Nên 8 mức cặp KHÔNG tồn tại bàn đầy nào dùng được, và thang cấp bỏ chúng.
+ * 2. Tỷ lệ cân — rows/cols ≤ 2. Bàn 2×5 là một dải dài ngoẵng, nhớ vị trí gần
+ *    như bất khả trên khung dọc.
+ * 3. Lá bài không dưới 44px (NF-07) trên máy NHỎ NHẤT. Đo thật trên iPhone SE
+ *    (chỗ trống của bàn 351×510): bàn 42 thẻ cho lá 51px, 48 thẻ chỉ còn 44px
+ *    sát đáy, còn 50 thẻ (5×10) tụt xuống 34px — dưới ngưỡng chạm. Vì vậy trần
+ *    là 42 thẻ, không phải 50.
+ * 4. Bàn phải LẤP được chỗ trống, không hở hai bên. Bàn cao hơn vùng bàn thì
+ *    chiều cao chạm trần trước và bề rộng thừa ra thành hai dải trống. Đo thật
+ *    trên iPhone SE: bàn 2×4 chỉ dùng 72% diện tích, bàn 4×7 dùng 82% — nên hai
+ *    cỡ đó bị loại dù thoả ba điều kiện trên. Chín cỡ còn lại dùng 99,6% diện
+ *    tích, tệ nhất 96%. Đổi lại: số thẻ nhảy 6→12 và 24→30 chứ không tăng đều.
+ *
+ * `levels` là số cấp mỗi cỡ bàn giữ. Cỡ nhỏ giữ ít cấp để mở đầu đi nhanh, cỡ
+ * lớn giữ nhiều cấp để phần cuối có chiều sâu. Trong cùng một cỡ bàn, cấp sau
+ * vẫn khó hơn cấp trước vì thời gian siết dần (xem timeLimit).
  */
-export function gridForPairs(pairs: number): { cols: number; rows: number } {
-  // Màn tập: hai thẻ cạnh nhau. Vòng lặp dưới đòi cols >= 2 và cols <= rows nên
-  // không sinh được bàn 1 cặp nào coi được (2×2 thì hai ô trống trên bốn ô).
-  if (pairs === 1) return { cols: 2, rows: 1 };
-  let best: { cols: number; rows: number; key: [number, number, number, number] } | null = null;
-  const need = pairs * 2;
-  for (let cols = 2; cols <= MAX_SIDE; cols++) {
-    for (let rows = cols; rows <= MAX_SIDE; rows++) {
-      const total = cols * rows;
-      if (total < need) continue;
-      const waste = total - need;
-      if (waste > cols - 1) continue;          // ô trống phải gọn trong một hàng
-      if (rows / cols > MAX_RATIO) continue;
-      const lopsided = waste % 2 === 1 && waste !== 1 ? 1 : 0;
-      const key: [number, number, number, number] = [
-        lopsided, waste, Math.abs(rows / cols - 1.3), total
-      ];
-      if (!best || key < best.key) best = { cols, rows, key };
-    }
+const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
+  { cols: 2, rows: 2, levels: 1 },    //  4 thẻ
+  { cols: 2, rows: 3, levels: 1 },    //  6 thẻ
+  { cols: 3, rows: 4, levels: 3 },    // 12 thẻ
+  { cols: 4, rows: 4, levels: 4 },    // 16 thẻ
+  { cols: 4, rows: 5, levels: 5 },    // 20 thẻ
+  { cols: 4, rows: 6, levels: 6 },    // 24 thẻ
+  { cols: 5, rows: 6, levels: 7 },    // 30 thẻ
+  { cols: 6, rows: 6, levels: 10 },   // 36 thẻ
+  { cols: 6, rows: 7, levels: 13 }    // 42 thẻ
+];
+
+/** Bàn của từng cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */
+const LADDER: readonly { cols: number; rows: number; pairs: number }[] =
+  BOARDS.flatMap((b) =>
+    Array.from({ length: b.levels }, () => ({
+      cols: b.cols, rows: b.rows, pairs: (b.cols * b.rows) / 2
+    }))
+  );
+
+export const CAMPAIGN_LEVELS = LADDER.length;
+
+/** Số cặp của một cấp. */
+export const pairsForLevel = (id: number): number => boardForLevel(id).pairs;
+
+/** Số cặp lớn nhất chiến dịch đòi (cấp cuối) — UI dùng để cảnh báo trước khi
+ *  người chơi lao vào cấp mà bộ theme đang chọn không đủ biểu tượng. */
+export const CAMPAIGN_MAX_PAIRS = Math.max(...LADDER.map((l) => l.pairs));
+
+/** Bàn của một cấp. Ném lỗi với số cấp rác — số cấp đến từ CLIENT (ON-09). */
+export function boardForLevel(id: number): { cols: number; rows: number; pairs: number } {
+  if (!Number.isInteger(id) || id < 1 || id > LADDER.length) {
+    throw new Error(`Màn ${id} không tồn tại`);
   }
-  if (!best) throw new Error(`Không xếp được bàn cho ${pairs} cặp`);
-  return { cols: best.cols, rows: best.rows };
+  return LADDER[id - 1]!;
 }
 
 /** Điểm tối đa lý thuyết: ghép đúng liên tiếp toàn bộ, không lật sai. */
@@ -101,30 +102,20 @@ export const CHAPTERS: readonly Chapter[] = [
 ];
 
 export function levelSpec(id: number): Level {
-  // Phải chặn cả số lẻ và NaN: số màn giờ do CLIENT gửi lên (mọi chế độ đều
-  // chọn màn), mà client không đáng tin — ON-09.
-  if (!Number.isInteger(id) || id < 1 || id > CAMPAIGN_LEVELS) {
-    throw new Error(`Màn ${id} không tồn tại`);
-  }
+  const { cols, rows, pairs } = boardForLevel(id);
 
-  const pairs = pairsForLevel(id);
-  const { cols, rows } = gridForPairs(pairs);
-
-  // Thời gian nới theo số cặp nhưng siết 2 giây mỗi cấp. Từ cấp 26 bàn không to
-  // thêm được nữa (trần 50 thẻ) nên đây thành thứ DUY NHẤT làm cấp sau khó hơn
-  // cấp trước — cứ siết đều, chặn dưới ở 2 giây mỗi cặp để còn chơi được.
-  const timeLimit = Math.max(pairs * 2, pairs * 9 - (id - 1) * 2);
+  // Mốc 9 giây mỗi cặp, siết ĐÚNG 2 giây mỗi cấp, sàn 3 giây mỗi cặp. Bước phải
+  // là số nguyên giây: siết theo tỷ lệ (0,1 giây mỗi cặp) thì ở bàn nhỏ mỗi cấp
+  // chỉ giảm 0,4 giây, làm tròn xong hai cấp liền nhau ra cùng một con số —
+  // cấp sau không khó hơn cấp trước nữa. Đây là thứ DUY NHẤT phân biệt các cấp
+  // dùng chung một cỡ bàn (xem BOARDS).
+  const timeLimit = Math.max(pairs * 3, pairs * 9 - (id - 1) * 2);
 
   // Nửa sau chiến dịch siết sao: cùng một bàn nhưng đòi chơi sạch hơn mới đủ sao
   const hard = id > CAMPAIGN_LEVELS / 2;
   const perfect = perfectScore(pairs);
-  // Thẻ đặc biệt bật từ cấp 3 (mục 3.4). Qua mốc bàn hết to thì nới trần lên
-  // 0,3 — cùng với đồng hồ, đây là chỗ còn lại để tăng độ khó.
-  const specialRate = id < 3
-    ? 0
-    : id <= PLATEAU_FROM
-      ? Math.min(0.2, 0.1 + (id - 3) * 0.005)
-      : Math.min(0.3, 0.2 + (id - PLATEAU_FROM) * 0.004);
+  // Thẻ đặc biệt bật từ cấp 3 (mục 3.4), dày dần tới trần 30%.
+  const specialRate = id < 3 ? 0 : Math.min(0.3, 0.1 + (id - 3) * 0.0045);
   return {
     id, cols, rows, pairs, timeLimit, specialRate,
     starThresholds: hard

@@ -10,50 +10,42 @@ describe('Campaign (SP-03)', () => {
     expect(levels).toHaveLength(CAMPAIGN_LEVELS);
   });
 
-  it('cấp 1 là cấp tập 2 thẻ, bàn to nhất là 5×10 kín 50 thẻ', () => {
-    expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 1]);
-    expect(levels[0]!.pairs).toBe(1);
+  it('cấp 1 là bàn 2×2, cấp cuối là bàn 6×7 (42 thẻ)', () => {
+    expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 2]);
+    expect(levels[0]!.pairs).toBe(2);
     const last = levels.at(-1)!;
-    expect([last.cols, last.rows]).toEqual([5, 10]);
-    expect(last.pairs).toBe(25);                       // bàn kín, không ô trống
+    expect([last.cols, last.rows]).toEqual([6, 7]);
+    expect(last.pairs).toBe(21);
   });
 
-  it('mỗi cấp thêm 1 cặp cho tới trần 25 cặp, bàn luôn đủ chỗ', () => {
-    for (let i = 0; i < levels.length; i++) {
-      const l = levels[i]!;
-      expect(l.pairs).toBe(Math.min(25, i + 1));
-      const total = l.cols * l.rows;
-      expect(total).toBeGreaterThanOrEqual(l.pairs * 2);
-      if (l.pairs === 1) continue;                     // cấp tập 2×1 là ngoại lệ
-      // Ô trống phải gọn trong một hàng, không thì bàn nhìn khuyết
-      expect(total - l.pairs * 2).toBeLessThanOrEqual(l.cols - 1);
-      expect(l.rows / l.cols).toBeLessThanOrEqual(2);
+  it('bàn không bao giờ nhỏ lại qua các cấp', () => {
+    for (let i = 1; i < levels.length; i++) {
+      expect(levels[i]!.pairs, `cấp ${i + 1}`).toBeGreaterThanOrEqual(levels[i - 1]!.pairs);
     }
   });
 
-  it('quá trần thì bàn giữ nguyên, độ khó lên bằng thời gian và thẻ đặc biệt', () => {
-    const at25 = levels[24]!, at50 = levels[49]!;
-    expect([at50.cols, at50.rows]).toEqual([at25.cols, at25.rows]);   // cùng bàn
-    expect(at50.timeLimit).toBeLessThan(at25.timeLimit);              // siết giờ
-    expect(at50.specialRate).toBeGreaterThan(at25.specialRate);       // nhiều thẻ đặc biệt
-  });
-
-  it('lưới không bao giờ nhỏ lại và thời gian mỗi cặp siết dần', () => {
+  it('cấp sau luôn khó hơn cấp trước: bàn to hơn, hoặc cùng bàn mà ít giờ hơn', () => {
     for (let i = 1; i < levels.length; i++) {
       const prev = levels[i - 1]!, cur = levels[i]!;
-      expect(cur.cols * cur.rows).toBeGreaterThanOrEqual(prev.cols * prev.rows);
-      expect(cur.timeLimit / cur.pairs).toBeLessThan(prev.timeLimit / prev.pairs);
+      const harder = cur.pairs > prev.pairs || cur.timeLimit < prev.timeLimit;
+      expect(harder, `cấp ${cur.id} không khó hơn cấp ${prev.id}`).toBe(true);
     }
   });
 
-  it('thẻ đặc biệt bật từ cấp 3, trần 20% khi bàn còn to lên và 30% sau đó', () => {
+  it('nhiều cấp liền nhau dùng chung một cỡ bàn, và cấp sau ít giờ hơn', () => {
+    const same = levels.filter((l, i) => i > 0 && l.pairs === levels[i - 1]!.pairs);
+    expect(same.length).toBeGreaterThan(0);        // có thật, không phải giả định
+    for (const l of same) {
+      const prev = levels[l.id - 2]!;
+      expect(l.timeLimit, `cấp ${l.id}`).toBeLessThan(prev.timeLimit);
+    }
+  });
+
+  it('thẻ đặc biệt bật từ cấp 3, dày dần tới trần 30%', () => {
     expect(levels[0]!.specialRate).toBe(0);
     expect(levels[1]!.specialRate).toBe(0);
     expect(levels[2]!.specialRate).toBeGreaterThan(0);
-    for (const l of levels) {
-      // Quá cấp 25 bàn hết to thêm được, nên nới trần để còn chỗ tăng độ khó
-      expect(l.specialRate, `cấp ${l.id}`).toBeLessThanOrEqual((l.id <= 25 ? 0.2 : 0.3) + 1e-9);
-    }
+    for (const l of levels) expect(l.specialRate, `cấp ${l.id}`).toBeLessThanOrEqual(0.3 + 1e-9);
   });
 
   it('nửa sau chiến dịch siết mốc sao chặt hơn nửa đầu', () => {

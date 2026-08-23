@@ -54,12 +54,13 @@ server.js            Web server tĩnh cho bản build production
 
 | Nhóm | Nội dung |
 |---|---|
-| Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch 30 màn (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05) |
+| Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
-| Thẻ đặc biệt | Bom, x2, mắt thần, đóng băng — bật từ màn 3 của Chiến dịch (3.4) |
+| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung |
+| Thẻ đặc biệt | Bom, x2, mắt thần, đóng băng — bật từ cấp 3 (3.4) |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
-| Lưu trữ | Kỷ lục, sao Chiến dịch, tuỳ chọn, 7 thành tích — localStorage (3.7) |
+| Lưu trữ | Kỷ lục và sao theo từng chế độ, tuỳ chọn, 7 thành tích — localStorage (3.7) |
 | Phi chức năng | Responsive 320px+, dark mode, ba mức âm lượng, điều hướng bàn phím, chạm ≥44px, PWA chạy offline |
 
 ### Luật riêng của từng chế độ
@@ -72,13 +73,18 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 | Cổ điển | Không giới hạn thời gian; lật sai −10 điểm |
 | Đua thời gian | Đồng hồ đếm ngược; mỗi cặp đúng **+2 giây** (`MATCH_TIME_BONUS_MS`), xong sớm thưởng thêm điểm |
 | Sinh tồn | 5 mạng. Chỉ mất mạng khi thẻ vừa mở **đã từng lộ ra** — lật hai thẻ chưa ai thấy là dò bài, không bị trừ. Dưới 2 mạng mà ghép đúng **hai lần liền** thì hồi 1 mạng |
-| Chớp nhoáng | Hé mở cả bàn 4 giây đầu |
-| Chiến dịch | 30 màn, lưới lớn dần tới 8×8; nửa sau siết mốc sao. Màn cần nhiều biểu tượng hơn bộ theme đang chọn sẽ bị khoá kèm nhắc |
+| Chớp nhoáng | Đếm ngược 5 giây báo trước, rồi hé mở cả bàn — thời gian nhìn giãn theo số thẻ (`peekMsFor`: 2 giây + 0,26 giây mỗi thẻ, nên bàn 42 thẻ được 13 giây) |
+| Chiến dịch | Riêng chế độ này xếp 1–3 sao; nửa sau siết mốc sao. Cấp cần nhiều biểu tượng hơn bộ theme khả dụng sẽ bị khoá kèm nhắc |
 
 ### Luật chung cần biết khi sửa engine
 
 - Bàn thẻ **không xếp hai thẻ cùng cặp cạnh nhau** (`deck.ts`) — trừ lưới dưới
   3 cặp, vì 2×2 chỉ có một cách xếp không kề nên ván nào cũng sẽ giống nhau.
+- Cỡ bàn lấy từ bảng `BOARDS` trong `campaign.ts`, KHÔNG tính ra từ số cặp. Bảng
+  đó là tập bàn duy nhất thoả cùng lúc bốn điều kiện: kín hết ô (không ô trống),
+  tỷ lệ ≤ 2, lá bài ≥ 44px trên máy nhỏ nhất, và lấp được chỗ trống không hở hai
+  bên. Thêm cỡ bàn mới thì phải kiểm lại cả bốn — lý do từng cỡ bị loại nằm ở
+  chú thích của `BOARDS`.
 - Nhiều người: mỗi lượt **15 giây**, ghép đúng +5 giây (trần 15). Bằng điểm là
   **hoà** (`isDraw`), không lấy người đầu danh sách làm người thắng.
 - Chơi nhiều ván với nhau có **tỷ số cả loạt** (số ván thắng), giữ ở client theo

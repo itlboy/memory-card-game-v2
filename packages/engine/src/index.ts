@@ -6,7 +6,7 @@ export {
   comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 export {
-  CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, gridForPairs, levelConfig,
+  CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel, levelConfig,
   levelSpec, pairsForLevel, perfectScore
 } from './campaign.js';
 export { peekMsFor, presetConfig } from './presets.js';

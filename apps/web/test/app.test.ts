@@ -250,30 +250,30 @@ describe('màn online (điều hướng, không cần server)', () => {
 });
 
 describe('bước chọn cấp độ', () => {
-  it('đủ 50 cấp, cấp 1 là 2 thẻ và cấp cuối 100 thẻ', async () => {
+  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 42 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
+    expect(nodes[0]!.text()).toContain('4 thẻ');
+    expect(nodes.at(-1)!.text()).toContain('42 thẻ');
     // Bốn chặng, mỗi chặng một thẻ có tên riêng
     expect(wrapper.findAll('.chapter')).toHaveLength(4);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
     expect(wrapper.text()).toContain('Chặng 4 · Bậc thầy');
-    // Chặng ghi khoảng số thẻ; chặng quá trần nói rõ độ khó đến từ thời gian
-    expect(wrapper.text()).toContain('2 – 20 thẻ');
-    expect(wrapper.text()).toContain('thời gian siết dần');
+    // Chặng ghi khoảng số thẻ, và nói rõ trong chặng còn siết giờ
+    expect(wrapper.text()).toContain('4 – 20 thẻ');
+    expect(wrapper.text()).toContain('giờ siết dần');
   });
 
-  it('cấp cần nhiều biểu tượng hơn bộ theme đang chọn thì bị chặn và có cảnh báo', async () => {
+  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 42 thẻ chỉ đòi 21 biểu tượng', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    const blocked = wrapper.findAll('.node.nosym');
-    expect(blocked.length).toBeGreaterThan(0);
-    expect(blocked[0]!.attributes('disabled')).toBeDefined();
-    expect(wrapper.text()).toContain('cần thêm theme');
+    expect(wrapper.findAll('.node.nosym')).toHaveLength(0);
+    expect(wrapper.text()).not.toContain('cần thêm theme');
   });
 });

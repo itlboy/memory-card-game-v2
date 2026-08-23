@@ -98,7 +98,16 @@ const boardWidth = ref<number | null>(null);
 /** Thẻ không được gầy hơn mức này. 0,58 là tỉ lệ lá tarot — vẫn ra dáng lá bài,
  *  mà lấp được phần chiều cao dư của lưới vuông trên màn dọc. */
 const MIN_ASPECT = 0.58;
-const MAX_ASPECT = 0.75;   // 3:4 — dáng lá bài chuẩn
+/**
+ * Trần tỷ lệ: thẻ được phép nở ngang tới VUÔNG. Khoá ở 3:4 (dáng lá bài chuẩn)
+ * thì bàn hẹp và cao bị chặn chiều cao trước, bề rộng thừa ra thành hai dải
+ * trống hai bên — đo trên iPhone SE: bàn 2×4 hở 160px, gần một nửa bề rộng.
+ *
+ * Cho tới 1,0 thì diện tích dùng được lên từ 88,5% tới 97,1% (tính trên 11 cỡ
+ * bàn × 3 cỡ máy). Nới thêm tới 1,2 được 99,4% nhưng thẻ thành rộng hơn cao,
+ * không còn ra hình lá bài nữa — nên dừng ở vuông.
+ */
+const MAX_ASPECT = 1;
 
 function measureBoard(): void {
   const el = wrap.value;
