@@ -101,6 +101,16 @@ const REASON: Record<Summary['reason'], string> = {
 
 const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
 
+/**
+ * "Bạn đã mở hết các cặp!" chỉ đúng khi chơi MỘT MÌNH. Ván thi đấu mà bàn do đối
+ * thủ dọn thì câu đó thành sai sự thật — đã thấy thật: dòng trên ghi "Bot siêu
+ * đẳng thắng!", dòng dưới lại khen người chơi mở hết cặp.
+ */
+const reasonText = computed(() =>
+  props.multiplayer && props.summary.reason === 'cleared'
+    ? 'Bàn đã dọn sạch.'
+    : REASON[props.summary.reason]);
+
 /** "Kiên 2 - 1 An" — tỷ số cả loạt, xếp theo số ván thắng. Chỉ hiện khi đã
  *  chơi từ ván thứ hai: ván đầu thì tỷ số 1-0 chẳng nói lên điều gì. */
 const series = computed(() => {
@@ -133,7 +143,7 @@ const title = computed(() => {
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
     <div class="panel">
       <h2 id="resTitle">{{ title }}</h2>
-      <p class="reason">{{ REASON[summary.reason] }}</p>
+      <p class="reason">{{ reasonText }}</p>
 
       <!-- Tỷ số cả loạt: chơi với nhau nhiều ván thì đây mới là con số người ta
            thực sự quan tâm, chứ không phải điểm của riêng ván vừa xong -->

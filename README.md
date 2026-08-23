@@ -116,7 +116,7 @@ server.js            Web server tĩnh cho bản build production
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
-| Đấu với máy | Thắng ván đấu bot cũng MỞ cấp sau (ai chỉ đấu bot từng mắc mãi ở cấp 1). 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
+| Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Bot siêu đẳng rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
@@ -370,6 +370,13 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   `0,5 ** (1 / nửa đời)`; nhích `retain` "một chút" không bằng nhớ dai thêm "một
   chút". Và luôn ĐO lại độ khó sau khi đổi: bộ 2/4/5/6 nhìn có vẻ giãn đều nhưng
   đo ra Pro và Siêu đẳng chỉ chênh 6%, người chơi không phân biệt được.
+- **Mốc mở cấp phải là thành tích CỦA NGƯỜI, không phải trạng thái bàn.** Trong
+  ván đấu bot thì bàn sạch không chứng minh gì — bot dọn phần lớn. Và mọi nút
+  dẫn tới cấp sau phải hỏi lại `store.unlockedLevel()`, đừng chỉ so `id + 1`:
+  nút không biết cấp đó có mở hay không.
+- **Computed đọc localStorage phải có mốc phản ứng riêng** (`progressRev`), không
+  thì nó nhớ mãi giá trị cũ. Đừng lấy `totalScore` làm mốc: ván Bot dễ không
+  cộng điểm, gán lại cùng một số thì Vue không coi là thay đổi.
 - **Trần cho thẻ đặc biệt mạnh.** Không chặn thì bàn 21 cặp ra tới 6 lá tráo,
   ván thành may rủi (`POWER_MAX`).
 

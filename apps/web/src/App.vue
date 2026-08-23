@@ -50,6 +50,13 @@ const playerCount = ref(prefs.playerCount);
 /** Đấu với máy: mức của máy, null là không đấu máy. KHÔNG lưu vào prefs — mở
  *  app lên phải là trang chủ bình thường, không tự nhảy vào ván đấu máy. */
 const botLevel = ref<BotLevel | null>(null);
+/**
+ * Số đếm "tiến độ vừa đổi". Cần vì store đọc localStorage — computed nào gọi
+ * store.unlockedLevel() không có phụ thuộc phản ứng nào, sẽ nhớ mãi giá trị cũ.
+ * KHÔNG dùng totalScore làm mốc: ván đấu Bot dễ không cộng điểm, gán lại cùng
+ * một số thì Vue không coi là thay đổi.
+ */
+const progressRev = ref(0);
 const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
@@ -349,12 +356,17 @@ watch(session.summary, (s) => {
     // người cả buổi mà điểm vẫn đứng yên — và theme khoá theo điểm nên người
     // hay chơi cùng bạn bè không bao giờ mở được gì. Lấy điểm người dẫn đầu:
     // đây là thành tích của MÁY này, không phân biệt được ai đang cầm.
-    // Dọn sạch bàn thì CẤP SAU MỞ, kể cả khi ván đó đấu với máy. Trước đây chỉ
-    // nhánh chơi đơn gọi saveLevel, nên ai chỉ đấu bot thì mắc mãi ở cấp 1 —
-    // đúng lỗi đã gặp. Không xét thắng/thua: người chơi đã đi hết bàn của cấp
-    // này, việc thua bot là chuyện của bảng điểm, không phải chuyện khoá cấp.
+    // Đấu bot MỞ được cấp sau, nhưng chỉ khi NGƯỜI THẮNG (hoặc hoà).
+    //
+    // Vì sao không phải "bàn sạch là mở": trong ván đấu bot thì phần lớn bàn do
+    // BOT dọn. Chọn Bot siêu đẳng rồi ngồi xem nó phá là mở hết cấp mà không
+    // chơi gì — thang cấp mất nghĩa. Ngược lại, cấm hẳn thì ai chỉ đấu bot lại
+    // mắc mãi ở cấp 1. Thắng bot là bằng chứng đã chơi được cấp này; muốn dễ
+    // thì hạ mức bot xuống, vẫn phải tự lật đủ cặp.
     if (botLevel.value && s.status === 'won') {
-      store.saveLevel(game.config.mode, levelId.value ?? level.value, 1, 0);
+      const champ = s.ranking[0];
+      const humanWon = !!champ && (champ.id !== 'bot' || isDraw(s.ranking));
+      if (humanWon) store.saveLevel(game.config.mode, levelId.value ?? level.value, 1, 0);
     }
     // Đấu máy: chỉ cộng điểm CỦA NGƯỜI, và mức Dễ thì không tính — nếu tính,
     // cày máy dễ là cách nhanh nhất để mở hết theme, mọi mốc điểm mất nghĩa.
@@ -371,10 +383,22 @@ watch(session.summary, (s) => {
   }
   totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
+  progressRev.value++;
   try { sessionStorage.removeItem(RESUME_KEY); } catch { /* bỏ qua */ }
 });
 
-const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVELS);
+/**
+ * Có nút "Cấp tiếp theo" hay không. Phải hỏi CẢ store, không chỉ so số cấp:
+ * thua bot thì cấp sau KHÔNG được mở (xem watcher kết quả), mà nút vẫn hiện thì
+ * bấm vào là nhảy vào cấp chưa mở — bản đồ khoá nó nhưng nút thì không biết.
+ * Hiện "Chơi lại" thay thế, đúng thứ người chơi cần lúc vừa thua.
+ */
+const hasNext = computed(() => {
+  void progressRev.value;                   // đếm để computed chạy lại sau mỗi ván
+  const id = levelId.value;
+  if (!id || id >= CAMPAIGN_LEVELS) return false;
+  return store.unlockedLevel() > id;
+});
 </script>
 
 <template>

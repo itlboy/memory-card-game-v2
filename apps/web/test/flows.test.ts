@@ -944,7 +944,35 @@ describe('mở khoá cấp sau', () => {
   /** Số cấp đang mở, đọc từ bản đồ cấp. */
   const openNodes = (): number => wrapper.findAll('.node:not(.locked)').length;
 
-  it('thắng ván ĐẤU MÁY cũng mở cấp sau — không thì ai chỉ đấu bot sẽ mắc mãi ở cấp 1', async () => {
+  it('THUA bot thì KHÔNG mở cấp — không thì cứ để bot siêu đẳng phá là mở hết', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await click('Đấu với máy');
+    await click('Bot Pro');
+    await click('Cổ điển');
+    await click('Cấp 1,');
+    await click('Bắt đầu');
+    await vi.advanceTimersByTimeAsync(5200);
+    await flush();
+    await muteBotOf(wrapper);
+    // Bơm điểm cho bot để nó dẫn đầu lúc kết ván: mô phỏng đúng tình huống
+    // "để bot phá bàn" mà không phải điều khiển được lượt của nó trong test.
+    const g = session(wrapper).game.value! as unknown as { players: { id: string; score: number }[] };
+    g.players.find((p) => p.id === 'bot')!.score = 99_999;
+    await winGame();
+    const champ = (wrapper.vm as unknown as {
+      session: { summary: { value: { ranking: { id: string }[] } | null } }
+    }).session.summary.value?.ranking[0];
+    expect(champ?.id, 'bot phải dẫn đầu để phép kiểm có nghĩa').toBe('bot');
+    expect(localStorage.getItem('mm.v2') ?? '', 'thua bot thì KHÔNG được mở cấp')
+      .not.toContain('"classic:1"');
+    // Và nút "Cấp tiếp theo" KHÔNG được hiện: cấp sau chưa mở, bấm vào là nhảy
+    // vào cấp bị khoá. Thay bằng "Chơi lại".
+    expect(wrapper.text()).not.toContain('Cấp tiếp theo');
+    expect(wrapper.text()).toContain('Chơi lại');
+  });
+
+  it('THẮNG ván đấu máy thì mở cấp sau — không thì ai chỉ đấu bot sẽ mắc mãi ở cấp 1', async () => {
     localStorage.removeItem('mm.v2');   // bắt đầu sạch: chỉ cấp 1 được mở
     await mountApp();
     await click('Đấu với máy');
@@ -956,8 +984,12 @@ describe('mở khoá cấp sau', () => {
     await vi.advanceTimersByTimeAsync(5200);
     await flush();
     await muteBotOf(wrapper);
+    // Ép lượt về NGƯỜI trước khi ghép: ghép đúng thì giữ lượt, nên ai đang tới
+    // lượt sẽ ăn trọn bàn. Bot đi trước là bot thắng và test kiểm sai thứ.
+    forceHumanTurn(wrapper);
     await winGame();
     expect(localStorage.getItem('mm.v2')).toContain('"classic:1"');
+    expect(wrapper.text(), 'thắng thì phải có nút sang cấp sau').toContain('Cấp tiếp theo');
 
     // Về trang chủ rồi vào lại bước cấp độ: cấp 2 phải mở
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
@@ -968,6 +1000,14 @@ describe('mở khoá cấp sau', () => {
     expect(openNodes(), 'thắng cấp 1 thì cấp 2 phải mở').toBeGreaterThanOrEqual(2);
   });
 });
+
+/** Đưa lượt về người chơi (id 'p1'). */
+function forceHumanTurn(w: VueWrapper): void {
+  const g = (w.vm as unknown as {
+    session: { game: { value: { players: { id: string }[]; turnIndex: number } | null } }
+  }).session.game.value!;
+  g.turnIndex = g.players.findIndex((p) => p.id !== 'bot');
+}
 
 /** Tắt bot rồi chờ hết khoá bàn — dùng lại ở nhiều describe. */
 async function muteBotOf(w: VueWrapper): Promise<void> {
