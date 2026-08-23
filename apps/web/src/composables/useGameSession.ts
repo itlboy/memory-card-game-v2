@@ -190,8 +190,11 @@ export function useGameSession() {
       const pick = botPick(publicView(g2, now.value, () => true), botMem, botRandom, level);
       botThinking.value = false;
       if (pick !== null) applyFlip(pick);
-      // Số lá còn úp/chưa ghép: quyết định có cần "nghĩ" hay không
-    }, botThinkMs(level, botRandom, unmatchedLeft(g)));
+      // `closing`: đang mở dở một lá, nước này chỉ là lật nốt
+    }, botThinkMs(level, botRandom, {
+      cardsLeft: unmatchedLeft(g),
+      closing: g.selection.length === 1
+    }));
   }
 
   function loop(): void {

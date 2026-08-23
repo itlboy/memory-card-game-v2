@@ -816,11 +816,17 @@ describe('đấu với máy', () => {
     }).session;
     // Máy đi trước thì nó phải tự đi; người đi trước thì lật hộ một nước cho tới lượt máy
     if (s.current.value?.id !== 'bot') {
+      // Phải là hai lá LỆCH nhau: bấm hai lá bất kỳ có lúc trúng đúng một cặp,
+      // ghép đúng thì người chơi GIỮ lượt, bot không bao giờ được đi và test đỏ
+      // ngẫu nhiên (đã đỏ thật, ~1/15 bàn).
       const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
-      await wrapper.findAll('.card')[cards[0]!.index]!.trigger('click');
-      await wrapper.findAll('.card')[cards[1]!.index]!.trigger('click');
+      const a = cards[0]!;
+      const b = cards.find((c) => c.pairId !== a.pairId)!;
+      await wrapper.findAll('.card')[a.index]!.trigger('click');
+      await wrapper.findAll('.card')[b.index]!.trigger('click');
       await vi.advanceTimersByTimeAsync(1200);
       await flush();
+      expect(s.current.value?.id, 'lật lệch thì lượt phải sang máy').toBe('bot');
     }
     const before = s.moves.value;
     // Nhịp nghĩ là một KHOẢNG (Bot Pro tới 3,5s mỗi nước), nên phải chờ dư cho
@@ -881,9 +887,13 @@ describe('lượt của bot thì người chơi bị chặn', () => {
     }).session;
     // Dừng bot lại để lượt của nó đứng yên, rồi thử bấm thay nó
     if (s.current.value?.id !== 'bot') {
+      // Hai lá LỆCH nhau: `cards[0]` với `cards[2]` có lúc trúng đúng một cặp,
+      // ghép đúng thì người chơi giữ lượt và không bao giờ tới lượt máy để kiểm.
       const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
-      await wrapper.findAll('.card')[cards[0]!.index]!.trigger('click');
-      await wrapper.findAll('.card')[cards[2]!.index]!.trigger('click');
+      const a = cards[0]!;
+      const other = cards.find((c) => c.pairId !== a.pairId)!;
+      await wrapper.findAll('.card')[a.index]!.trigger('click');
+      await wrapper.findAll('.card')[other.index]!.trigger('click');
       await vi.advanceTimersByTimeAsync(1500);
       await flush();
     }

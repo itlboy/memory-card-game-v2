@@ -142,21 +142,42 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   mỗi nước đi qua, khả năng nhớ một lá nhân thêm `retain`, nên bot quên dần tự
   nhiên. Bot biết hết rồi giả vờ sai thì người chơi nhận ra ngay là giả.
 
-  | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | nghĩ |
-  |---|---|---|---|---|
-  | Bot dễ | 0,7071 | 2 | 30% | 2–5s |
-  | Bot bình thường | 0,8409 | 4 | 20% | 1–4s |
-  | Bot Pro | 0,9170 | 8 | 10% | 0,7–3,5s |
-  | Bot siêu đẳng | 0,9439 | 12 | 5% | 0,5–2s |
+  | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ |
+  |---|---|---|---|
+  | Bot dễ | 0,7071 | 2 | 60% |
+  | Bot bình thường | 0,8409 | 4 | 40% |
+  | Bot Pro | 0,9170 | 8 | 20% |
+  | Bot siêu đẳng | 0,9439 | 12 | 10% |
 
   `retain = 0,5 ** (1 / nửa đời)` — sửa nửa đời thì tính lại, đừng đoán.
-  "Nhớ lẫn chỗ" = có cặp trong ký ức nhưng vẫn đi bốc lá khác. Nhịp nghĩ là một
-  KHOẢNG rút bằng rng của bot (`botThinkMs`): nhịp cố định nghe ra ngay là máy,
-  và khoảng của các mức chồng nhau nên không đếm thời gian mà đoán được mức.
+  "Nhớ lẫn chỗ" = có cặp trong ký ức nhưng vẫn đi bốc lá khác.
 
-- **Nước cuối thì không nghĩ.** Còn đúng một cặp trên bàn thì bot lật ngay
-  (`LAST_PAIR_MS`, 300ms): hai lá đó chắc chắn khớp, ngồi "suy nghĩ" 3 giây
-  trước một nước không thể sai là giả tạo lộ liễu.
+  **Ghi nhớ là 100%**, chỉ có nhớ LẠI mới là xác suất; và ở nước ngay sau khi
+  thấy thì `retain ** 0 = 1` nên mức nào cũng nhớ chắc. Vì thế `mistake` là van
+  duy nhất chặn bot ăn một cặp nó vừa thấy. Đã cân nhắc thêm tham số `encode`
+  (xác suất ghi được vào đầu) rồi BỎ: người chơi không phân biệt được "không kịp
+  ghi" với "biết mà lật trượt", mà hai van cùng diễn một chuyện thì mỗi lần cân
+  bằng phải nghĩ cả hai.
+
+  Số đo (số lần lật để bot một mình dọn sạch bàn, 40 seed):
+
+  | bàn | Bot dễ | bình thường | Pro | siêu đẳng |
+  |---|---|---|---|---|
+  | 4×4 (8 cặp) | 36,1 | 30,4 | 27,4 | 26,4 |
+  | 6×7 (21 cặp) | 161,9 | 116,8 | 86,7 | 77,5 |
+
+  Hai điều đọc ra từ bảng này: **bàn nhỏ thì bốn mức gần như bằng nhau** (lật hết
+  một lượt là biết cả bàn, trí nhớ không kịp phát huy) — muốn cảm nhận khác biệt
+  phải từ bàn 20 thẻ trở lên; và **với Bot dễ thì `mistake` gần như vô tác dụng**
+  (nâng 30%→60% chỉ làm nó chậm thêm 4,6%) vì nửa đời 2 nước thì nó hiếm khi có
+  cặp nào trong đầu để mà bỏ. Muốn Bot dễ yếu hơn nữa thì giảm NỬA ĐỜI.
+
+  Nhịp nghĩ: 400–3000ms, **giống nhau ở mọi mức** — cho bot giỏi nghĩ nhanh hơn
+  thì ngồi đếm thời gian là đoán ra mức, mà độ khó vốn nằm ở trí nhớ. Rút bằng
+  rng của bot nên vẫn tất định (`botThinkMs`). Hai ngoại lệ cắt thời gian chờ:
+  lá THỨ HAI của lượt chỉ 250–800ms (đã cân nhắc ở lá đầu, nghĩ lâu cả hai lá
+  làm một lượt dài tới 6 giây), và còn đúng một cặp thì 300ms.
+
 - Bộ điều khiển ở `useGameSession`: `botWatch()` chạy **mỗi khung**, không chỉ lúc
   tới lượt bot — nhìn theo lượt thì thẻ người chơi lật rồi úp lại không bao giờ
   vào ký ức bot, bot hoá ra mù trước mọi nước của đối thủ.
@@ -298,6 +319,14 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 - **Đọc cả dòng `Test Files`, không chỉ `Tests`.** Đã một lần grep mỗi dòng
   `Tests ` rồi tưởng xanh, trong khi `Test Files 1 failed`.
+- **Test bấm "hai lá bất kỳ" để nhường lượt là bẫy**: khoảng 1/15 bàn thì đúng
+  hai lá đó khớp nhau, ghép đúng thì người chơi GIỮ lượt và bot không bao giờ
+  được đi. Ba test đấu bot đã đỏ vì chuyện này. Phải chọn lá có `pairId` khác.
+- **Mốc chờ mặc định 5 giây của vitest quá chặt cho test web ở đây** (đã nâng lên
+  30s): test đẩy đồng hồ ảo qua vài giây ván đấu, mỗi 16ms ảo là một khung
+  `requestAnimationFrame` chạy cả vòng lặp session — 5 giây ván là hơn 300 khung.
+  Máy đang tải (ví dụ `pnpm dev` đang bật) là vượt mốc 5 giây THẬT. Dấu hiệu nhận
+  ra: test đỏ ở đúng mốc 5044/15030ms và không có dòng `AssertionError`.
 - **Test đỏ thất thường = test đang phụ thuộc thứ ngẫu nhiên.** Seed lấy từ
   `Math.random()`, nên test Sinh tồn bấm phải lá "mắt thần" là cả bàn lật lên và
   lượt dò không còn tính là sai. Sửa bằng cách CHỌN dữ liệu không có yếu tố đó

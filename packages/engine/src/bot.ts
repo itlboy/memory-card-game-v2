@@ -43,36 +43,52 @@ export interface BotSpec {
  * Sửa nửa đời thì phải TÍNH LẠI retain, đừng đoán — quan hệ là hàm số mũ nên
  * nhích retain một chút không tương ứng với nhớ dai thêm một chút.
  *
- *   | mức             | nửa đời | retain | nhớ lẫn chỗ | nghĩ      |
- *   | Bot dễ         |  2 nước | 0,7071 | 30%         | 2–5s      |
- *   | Bot bình thường |  4 nước | 0,8409 | 20%         | 1–4s      |
- *   | Bot Pro         |  8 nước | 0,9170 | 10%         | 0,7–3,5s  |
- *   | Bot siêu đẳng   | 12 nước | 0,9439 |  5%         | 0,5–2s    |
+ *   | mức             | nửa đời | retain | nhớ lẫn chỗ |
+ *   | Bot dễ          |  2 nước | 0,7071 | 60%         |
+ *   | Bot bình thường |  4 nước | 0,8409 | 40%         |
+ *   | Bot Pro         |  8 nước | 0,9170 | 20%         |
+ *   | Bot siêu đẳng   | 12 nước | 0,9439 | 10%         |
  *
- * Bot càng giỏi càng nghĩ nhanh, và khoảng nghĩ của các mức CHỒNG NHAU: nếu mỗi
- * mức một nhịp riêng biệt thì đếm thời gian là đoán được mình đang đấu mức nào.
+ * NHỊP NGHĨ GIỐNG NHAU Ở MỌI MỨC (400–3000ms) — có chủ đích. Cho bot giỏi nghĩ
+ * nhanh hơn thì đếm thời gian là đoán ra mình đang đấu mức nào, mà độ khó vốn
+ * nằm ở TRÍ NHỚ chứ không ở tốc độ. Bot dễ nghĩ lâu cũng chỉ làm người chơi chờ.
  */
+export const THINK_MIN_MS = 400;
+export const THINK_MAX_MS = 3000;
+
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy:   { retain: 0.7071, mistake: 0.30, thinkMinMs: 2000, thinkMaxMs: 5000, name: 'Bot dễ',         avatar: '🐣' },
-  normal: { retain: 0.8409, mistake: 0.20, thinkMinMs: 1000, thinkMaxMs: 4000, name: 'Bot bình thường', avatar: '🤖' },
-  hard:   { retain: 0.9170, mistake: 0.10, thinkMinMs: 700,  thinkMaxMs: 3500, name: 'Bot Pro',         avatar: '👾' },
-  insane: { retain: 0.9439, mistake: 0.05, thinkMinMs: 500,  thinkMaxMs: 2000, name: 'Bot siêu đẳng',   avatar: '🦾' }
+  easy:   { retain: 0.7071, mistake: 0.60, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot dễ',         avatar: '🐣' },
+  normal: { retain: 0.8409, mistake: 0.40, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot bình thường', avatar: '🤖' },
+  hard:   { retain: 0.9170, mistake: 0.20, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot Pro',         avatar: '👾' },
+  insane: { retain: 0.9439, mistake: 0.10, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot siêu đẳng',   avatar: '🦾' }
 };
 
 /**
  * Lần nghĩ này lâu bao nhiêu ms. Rút từ `rng` của bot nên vẫn TẤT ĐỊNH: cùng
  * seed thì cùng nhịp, test và replay không lệch.
  */
-export function botThinkMs(level: BotLevel, rng: Rng, cardsLeft = Infinity): number {
+export function botThinkMs(
+  level: BotLevel,
+  rng: Rng,
+  opts: { cardsLeft?: number; closing?: boolean } = {}
+): number {
+  const { cardsLeft = Infinity, closing = false } = opts;
   // Còn đúng một cặp thì không có gì để nghĩ — hai lá đó chắc chắn khớp nhau.
   // Ngồi "suy nghĩ" 3 giây trước một nước không thể sai là giả tạo lộ liễu.
   if (cardsLeft <= 2) return LAST_PAIR_MS;
+  // Lá THỨ HAI của lượt: đã cân nhắc ở lá đầu rồi, lá này chỉ là hệ quả. Người
+  // thật cũng vậy — đắn đo chỗ mở đầu, rồi lật lá kia rất nhanh. Nghĩ lâu cả
+  // hai lá làm một lượt của bot dài tới 6 giây, người chơi ngồi không.
+  if (closing) return Math.round(FOLLOW_MIN_MS + rng.next() * (FOLLOW_MAX_MS - FOLLOW_MIN_MS));
   const { thinkMinMs, thinkMaxMs } = BOT_SPECS[level];
   return Math.round(thinkMinMs + rng.next() * (thinkMaxMs - thinkMinMs));
 }
 
 /** Nước cuối: chỉ đủ để mắt kịp thấy con trỏ chuyển, không phải để "nghĩ". */
 export const LAST_PAIR_MS = 300;
+/** Lá thứ hai trong cùng một lượt. */
+export const FOLLOW_MIN_MS = 250;
+export const FOLLOW_MAX_MS = 800;
 
 /** Một lá trong ký ức: biểu tượng và nước đi lúc nhìn thấy. */
 export interface BotSeen { symbol: string; at: number }

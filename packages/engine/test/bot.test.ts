@@ -225,12 +225,20 @@ describe('nhịp nghĩ của bot', () => {
     expect(got.size, 'nhịp cố định thì nghe ra ngay là máy').toBeGreaterThan(30);
   });
 
-  it('bot giỏi nghĩ nhanh hơn bot kém', () => {
-    const order: BotLevel[] = ['easy', 'normal', 'hard', 'insane'];
-    for (let i = 1; i < order.length; i++) {
-      const a = BOT_SPECS[order[i - 1]!], b = BOT_SPECS[order[i]!];
-      expect(b.thinkMinMs).toBeLessThan(a.thinkMinMs);
-      expect(b.thinkMaxMs).toBeLessThan(a.thinkMaxMs);
+  it('mọi mức nghĩ trong CÙNG một khoảng — độ khó nằm ở trí nhớ, không ở tốc độ', () => {
+    // Cho bot giỏi nghĩ nhanh hơn thì ngồi đếm thời gian là đoán ra mức.
+    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+      expect(BOT_SPECS[l].thinkMinMs, l).toBe(400);
+      expect(BOT_SPECS[l].thinkMaxMs, l).toBe(3000);
+    }
+  });
+
+  it('lá thứ hai của lượt nghĩ nhanh — đã cân nhắc ở lá đầu rồi', () => {
+    const rng = botRng(11);
+    for (let i = 0; i < 30; i++) {
+      const ms = botThinkMs('normal', rng, { closing: true });
+      expect(ms).toBeGreaterThanOrEqual(250);
+      expect(ms).toBeLessThanOrEqual(800);
     }
   });
 
@@ -244,14 +252,14 @@ describe('nước cuối thì bot không nghĩ', () => {
   it('còn 2 lá thì bấm ngay, dưới 1 giây, mức nào cũng vậy', () => {
     for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
       for (let seed = 1; seed <= 30; seed++) {
-        const ms = botThinkMs(l, botRng(seed), 2);
+        const ms = botThinkMs(l, botRng(seed), { cardsLeft: 2 });
         expect(ms, `${l} seed ${seed}`).toBeLessThan(1000);
       }
     }
   });
 
   it('còn nhiều lá thì vẫn nghĩ theo khoảng của mức', () => {
-    const ms = botThinkMs('easy', botRng(3), 20);
+    const ms = botThinkMs('easy', botRng(3), { cardsLeft: 20 });
     expect(ms).toBeGreaterThanOrEqual(BOT_SPECS.easy.thinkMinMs);
   });
 });
