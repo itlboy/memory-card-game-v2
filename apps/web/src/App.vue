@@ -349,6 +349,13 @@ watch(session.summary, (s) => {
     // người cả buổi mà điểm vẫn đứng yên — và theme khoá theo điểm nên người
     // hay chơi cùng bạn bè không bao giờ mở được gì. Lấy điểm người dẫn đầu:
     // đây là thành tích của MÁY này, không phân biệt được ai đang cầm.
+    // Dọn sạch bàn thì CẤP SAU MỞ, kể cả khi ván đó đấu với máy. Trước đây chỉ
+    // nhánh chơi đơn gọi saveLevel, nên ai chỉ đấu bot thì mắc mãi ở cấp 1 —
+    // đúng lỗi đã gặp. Không xét thắng/thua: người chơi đã đi hết bàn của cấp
+    // này, việc thua bot là chuyện của bảng điểm, không phải chuyện khoá cấp.
+    if (botLevel.value && s.status === 'won') {
+      store.saveLevel(game.config.mode, levelId.value ?? level.value, 1, 0);
+    }
     // Đấu máy: chỉ cộng điểm CỦA NGƯỜI, và mức Dễ thì không tính — nếu tính,
     // cày máy dễ là cách nhanh nhất để mở hết theme, mọi mốc điểm mất nghĩa.
     if (botLevel.value) {

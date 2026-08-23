@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
@@ -935,5 +937,56 @@ describe('không lộ nội dung thẻ đang úp', () => {
     await tiles()[cards[0]!.index]!.trigger('click');
     await flush();
     expect(tiles()[cards[0]!.index]!.classes()).toContain('wob-up');
+  });
+});
+
+describe('mở khoá cấp sau', () => {
+  /** Số cấp đang mở, đọc từ bản đồ cấp. */
+  const openNodes = (): number => wrapper.findAll('.node:not(.locked)').length;
+
+  it('thắng ván ĐẤU MÁY cũng mở cấp sau — không thì ai chỉ đấu bot sẽ mắc mãi ở cấp 1', async () => {
+    localStorage.removeItem('mm.v2');   // bắt đầu sạch: chỉ cấp 1 được mở
+    await mountApp();
+    await click('Đấu với máy');
+    await click('Bot Pro');
+    await click('Cổ điển');
+    expect(openNodes(), 'lúc đầu chỉ mở cấp 1').toBe(1);
+    await click('Cấp 1,');
+    await click('Bắt đầu');
+    await vi.advanceTimersByTimeAsync(5200);
+    await flush();
+    await muteBotOf(wrapper);
+    await winGame();
+    expect(localStorage.getItem('mm.v2')).toContain('"classic:1"');
+
+    // Về trang chủ rồi vào lại bước cấp độ: cấp 2 phải mở
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    await click('Đấu với máy');
+    await click('Bot Pro');
+    await click('Cổ điển');
+    expect(openNodes(), 'thắng cấp 1 thì cấp 2 phải mở').toBeGreaterThanOrEqual(2);
+  });
+});
+
+/** Tắt bot rồi chờ hết khoá bàn — dùng lại ở nhiều describe. */
+async function muteBotOf(w: VueWrapper): Promise<void> {
+  (w.vm as unknown as { session: { setBot: (l: null) => void } }).session.setBot(null);
+  await vi.advanceTimersByTimeAsync(1300);
+  await flush();
+}
+
+describe('hover không được làm lộ bài', () => {
+  it('nhịp lắc lúc hover nằm ở lớp NGOÀI, không ghi đè animation lật của .inner', () => {
+    // Lộ bài xảy ra khi hover và animation lật ở CÙNG một phần tử: rời chuột
+    // là `flip-down` chạy lại từ khung đầu — mà khung đầu là rotateY(180deg),
+    // mặt trước quay ra ngoài (đo được -180° trên trình duyệt thật).
+    const css = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+    const hoverRules = css.split('\n').filter((l) => l.includes(':hover') && l.includes('.inner'));
+    for (const r of hoverRules) {
+      expect(r, `rule hover không được đụng animation của .inner: ${r}`).not.toMatch(/animation/);
+    }
+    // Và nhịp lắc hover phải gắn vào .card
+    expect(css).toMatch(/\.card\.dealt:not\(\.up\)[^{]*:hover \{\s*animation: hover-wob/);
   });
 });

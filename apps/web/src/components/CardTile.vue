@@ -148,22 +148,33 @@ const label = computed(() => {
   transform-style: preserve-3d;
   transition: transform .34s cubic-bezier(.3, .8, .4, 1.1);
 }
-/* Trỏ chuột vào: lá bài khẽ lắc rồi đứng lại — CÙNG TRỤC với cú lật (rotateY),
-   không phải nghiêng xoay tròn. Biên độ nhỏ hơn lúc lật vì đây chỉ là "nó nhận
-   ra bạn đang nhắm nó", chưa phải một hành động. */
+/*
+ * Trỏ chuột vào: lá bài khẽ lắc rồi đứng lại — cùng trục với cú lật (rotateY),
+ * biên độ nhỏ hơn vì đây chỉ là "nó nhận ra bạn đang nhắm nó".
+ *
+ * Lắc ở lớp NGOÀI (.card), không phải .inner. Vì sao: .inner đang giữ animation
+ * lật; hover ghi đè lên nó thì lúc RỜI chuột, `flip-down` chạy lại TỪ ĐẦU — mà
+ * khung đầu của nó là `rotateY(180deg)`, tức mặt trước quay ra ngoài. **Lộ bài**
+ * mỗi lần đưa chuột ra khỏi một lá vừa úp (đã đo được: -180°). Hai animation ở
+ * hai lớp thì chồng nhau được, không cái nào phải nhường cái nào.
+ *
+ * `perspective()` viết trong transform vì thuộc tính `perspective` của .card chỉ
+ * áp cho con nó.
+ *
+ * Chỉ khi `.dealt`: lúc chia bài, chính .card đang chạy animation `deal`.
+ */
 @media (hover: hover) {
-.card:not(.up):not(.done):not([aria-disabled='true']):hover .inner {
-  transform: translateY(-3px);
+.card.dealt:not(.up):not(.done):not([aria-disabled='true']):hover {
   animation: hover-wob 1.4s linear;
 }
 @keyframes hover-wob {
-  0%   { transform: translateY(-3px) rotateY(0); }
-  14%  { transform: translateY(-3px) rotateY(calc(5deg * var(--wob, 1))); }
-  30%  { transform: translateY(-3px) rotateY(calc(-3deg * var(--wob, 1))); }
-  46%  { transform: translateY(-3px) rotateY(calc(1.8deg * var(--wob, 1))); }
-  62%  { transform: translateY(-3px) rotateY(calc(-1deg * var(--wob, 1))); }
-  78%  { transform: translateY(-3px) rotateY(calc(0.6deg * var(--wob, 1))); }
-  100% { transform: translateY(-3px) rotateY(0); }
+  0%   { transform: perspective(700px) translateY(-3px) rotateY(0); }
+  14%  { transform: perspective(700px) translateY(-3px) rotateY(calc(5deg * var(--wob, 1))); }
+  30%  { transform: perspective(700px) translateY(-3px) rotateY(calc(-3deg * var(--wob, 1))); }
+  46%  { transform: perspective(700px) translateY(-3px) rotateY(calc(1.8deg * var(--wob, 1))); }
+  62%  { transform: perspective(700px) translateY(-3px) rotateY(calc(-1deg * var(--wob, 1))); }
+  78%  { transform: perspective(700px) translateY(-3px) rotateY(calc(0.6deg * var(--wob, 1))); }
+  100% { transform: perspective(700px) translateY(-3px) rotateY(0); }
 }
 }
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }

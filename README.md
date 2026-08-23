@@ -70,6 +70,11 @@ trong khi các bước sau ra 22,7px, cùng một wizard hai cỡ chữ. Ghi đ�
   lá chưa bao giờ bị lật; mà keyframe đó mở ở `rotateY(180deg)` — mặt TRƯỚC
   hướng ra ngoài — nên mỗi lá úp đều loé nội dung rồi mới quay về úp. **Lộ bài**,
   thấy rõ nhất khi F5 giữa ván (cả bàn loé một nhịp). Có test chặn.
+- **Hover và cú lật phải ở HAI LỚP khác nhau**: nhịp lắc lúc hover gắn vào
+  `.card`, animation lật gắn vào `.inner`. Để chung một lớp thì hover ghi đè
+  animation lật, và lúc RỜI chuột `flip-down` chạy lại từ khung đầu —
+  `rotateY(180deg)`, mặt trước quay ra ngoài. **Lộ bài mỗi lần đưa chuột ra khỏi
+  một lá vừa úp** (đo được -180°). Có test chặn.
 - **Một lá chỉ nên có một animation chạy cùng lúc**: cái sau ghi đè cái trước.
   Vì thế nhịp lắc lúc lật chỉ bật sau khi chia bài xong (cờ `.dealt`) — trước đó
   animation `deal` lo phần lắc; chạy cả hai thì hoá ra chia bài không lắc gì.
@@ -111,7 +116,7 @@ server.js            Web server tĩnh cho bản build production
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
-| Đấu với máy | 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
+| Đấu với máy | Thắng ván đấu bot cũng MỞ cấp sau (ai chỉ đấu bot từng mắc mãi ở cấp 1). 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
@@ -383,6 +388,10 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 ### Sửa file bằng script
 
+- **Xoá một rule CSS thì đếm lại dấu `}`.** Xoá rule cuối trong khối
+  `@media` để lại dấu đóng thừa → cả file style 500, trang trắng. Kiểm nhanh:
+  `curl -s "http://localhost:3001/src/components/X.vue?vue&type=style&index=0&scoped=true&lang.css" | head -2`
+  — ra HTML thay vì JS là đang lỗi.
 - **Patch bằng python PHẢI `assert old in s`.** Đã hai lần patch fail âm thầm gây
   bug ngoài production.
 - Cắt một khối bằng `s.index("...")` thì mốc kết thúc phải là chuỗi DUY NHẤT —
