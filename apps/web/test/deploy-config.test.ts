@@ -41,3 +41,24 @@ describe('cấu hình deploy Worker gộp', () => {
     expect(raw).not.toMatch(/"cache"\s*:/);
   });
 });
+
+/**
+ * Cloudflare không biết gì về nhánh git — nó chỉ nhìn `name`, mà `name` nằm
+ * trong repo nên MỌI nhánh đều mang cùng một tên. Deploy từ nhánh đang làm là
+ * ghi thẳng lên bản người chơi đang dùng. Environment `staging` là cách duy
+ * nhất để tách (worker có Durable Object thì không được cấp preview URL).
+ */
+describe('môi trường thử tách khỏi production', () => {
+  const staging = cfg.env?.staging;
+
+  it('staging có TÊN KHÁC — cùng tên là cùng worker, cùng phòng chơi', () => {
+    expect(staging?.name).toBeTruthy();
+    expect(staging.name).not.toBe(cfg.name);
+  });
+
+  it('staging PHẢI tự khai durable_objects — wrangler không kế thừa khoá này', () => {
+    // Thiếu thì staging deploy ra worker không có binding nào và vào phòng là
+    // lỗi. Wrangler chỉ CẢNH BÁO chứ không chặn, nên phải có test.
+    expect(staging?.durable_objects?.bindings?.[0]?.class_name).toBe('RoomDO');
+  });
+});

@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "memory-match-server",
+  // Tên này PHẢI khớp tên worker trên Cloudflare, vì `wrangler deploy` lấy tên
+  // từ đây chứ không từ dashboard. Lệch tên là code đi vào worker khác và worker
+  // bạn tạo cứ trả 404 mãi.
+  "name": "memory-card-game-v2",
   "main": "src/index.ts",
   "compatibility_date": "2025-06-01",
 
@@ -30,5 +33,29 @@
     "bindings": [{ "name": "ROOM", "class_name": "RoomDO" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomDO"] }],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+
+  // Môi trường THỬ, tách hẳn khỏi bản người chơi đang dùng.
+  //
+  // Vì sao cần: Cloudflare không biết gì về nhánh git, nó chỉ nhìn `name`. Mà
+  // `name` nằm trong repo nên MỌI nhánh đều mang cùng một tên — deploy từ nhánh
+  // đang làm là ghi thẳng lên production. Đổi tên là cách duy nhất để tách.
+  //
+  // Tên khác ⇒ worker khác ⇒ namespace Durable Object khác, nên phòng chơi ở
+  // staging hoàn toàn riêng, thử gì cũng không đụng ai.
+  //
+  // PHẢI khai lại durable_objects ở đây: wrangler KHÔNG kế thừa khoá này xuống
+  // environment (nó cảnh báo "durable_objects is not inherited by environments").
+  // Thiếu là staging deploy ra worker không có binding nào — vào phòng là lỗi.
+  //
+  // Worker có Durable Object thì Cloudflare KHÔNG cấp preview URL, nên đây cũng
+  // là cách thay thế duy nhất cho preview theo nhánh.
+  "env": {
+    "staging": {
+      "name": "memory-card-game-v2-staging",
+      "durable_objects": {
+        "bindings": [{ "name": "ROOM", "class_name": "RoomDO" }]
+      }
+    }
+  }
 }
