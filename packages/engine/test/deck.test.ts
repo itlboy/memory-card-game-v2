@@ -112,3 +112,40 @@ describe('không xếp hai thẻ cùng cặp sát nhau', () => {
     expect(ids(42)).not.toEqual(ids(43));
   });
 });
+
+describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
+  const build = (pairs: number, rate: number, seed = 5): ReturnType<typeof deck> => {
+    const side = Math.ceil(Math.sqrt(pairs * 2));
+    return deck({
+      cols: side, rows: Math.ceil((pairs * 2) / side), pairs,
+      specialRate: rate, allowedPowers: ['swap', 'x2', 'eye'], rng: new Rng(seed)
+    });
+  };
+
+  it('tỉ lệ nhỏ trên bàn nhỏ vẫn ra ÍT NHẤT một thẻ đặc biệt', () => {
+    // 6 cặp × 7% = 0,42 — làm tròn xuống là 0, nên cấp đầu chiến dịch không bao
+    // giờ thấy thẻ đặc biệt nào dù luật nói có
+    const cards = build(6, 0.07);
+    expect(cards.filter((c) => c.power).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('bàn dưới 3 cặp thì KHÔNG nhồi hiệu ứng', () => {
+    expect(build(2, 0.3).filter((c) => c.power).length).toBe(0);
+  });
+
+  it('tỉ lệ 0 thì không có thẻ đặc biệt nào', () => {
+    expect(build(10, 0).filter((c) => c.power).length).toBe(0);
+  });
+
+  it('thẻ tráo hay gặp hơn hai loại kia (trọng số gấp đôi)', () => {
+    const count = { swap: 0, other: 0 };
+    for (let seed = 1; seed <= 200; seed++) {
+      for (const c of build(12, 0.25, seed * 7)) {
+        if (c.power === 'swap') count.swap++;
+        else if (c.power) count.other++;
+      }
+    }
+    // Trọng số 2:1:1 → thẻ tráo chiếm khoảng một nửa, chắc chắn hơn từng loại kia
+    expect(count.swap).toBeGreaterThan(count.other / 2);
+  });
+});

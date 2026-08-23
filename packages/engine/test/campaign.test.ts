@@ -41,11 +41,18 @@ describe('Campaign (SP-03)', () => {
     }
   });
 
-  it('thẻ đặc biệt bật từ cấp 3, dày dần tới trần 30%', () => {
-    expect(levels[0]!.specialRate).toBe(0);
-    expect(levels[1]!.specialRate).toBe(0);
-    expect(levels[2]!.specialRate).toBeGreaterThan(0);
-    for (const l of levels) expect(l.specialRate, `cấp ${l.id}`).toBeLessThanOrEqual(0.3 + 1e-9);
+  it('thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%', () => {
+    // Có từ cấp 1 (chứ không chặn tới cấp 3): chặn thì cộng với việc bàn nhỏ làm
+    // tròn xuống 0, người chơi phải tới cấp 25 mới gặp thẻ tráo lần đầu.
+    expect(levels[0]!.specialRate).toBeGreaterThan(0);
+    for (const l of levels) {
+      expect(l.specialRate, `cấp ${l.id}`).toBeLessThanOrEqual(0.3 + 1e-9);
+    }
+    // Đơn điệu tăng: cấp khó không bao giờ ít thẻ đặc biệt hơn cấp dễ
+    for (let i = 1; i < levels.length; i++) {
+      expect(levels[i]!.specialRate).toBeGreaterThanOrEqual(levels[i - 1]!.specialRate);
+    }
+    expect(levels.at(-1)!.specialRate).toBeCloseTo(0.3, 5);
   });
 
   it('nửa sau chiến dịch siết mốc sao chặt hơn nửa đầu', () => {

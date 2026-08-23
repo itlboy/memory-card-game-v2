@@ -114,8 +114,11 @@ export function levelSpec(id: number): Level {
   // Nửa sau chiến dịch siết sao: cùng một bàn nhưng đòi chơi sạch hơn mới đủ sao
   const hard = id > CAMPAIGN_LEVELS / 2;
   const perfect = perfectScore(pairs);
-  // Thẻ đặc biệt bật từ cấp 3 (mục 3.4), dày dần tới trần 30%.
-  const specialRate = id < 3 ? 0 : Math.min(0.3, 0.1 + (id - 3) * 0.0045);
+  // Thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%. Trước đây
+  // chặn tới cấp 3 mới bật, mà bàn nhỏ lại làm tròn xuống 0 nên thực tế phải
+  // tới cấp 25 người chơi mới gặp thẻ tráo — coi như không có tính năng đó.
+  // Cấp 1 là bàn tập 2 thẻ nên buildDeck tự bỏ qua (cần ít nhất 3 cặp).
+  const specialRate = Math.min(0.3, 0.06 + (id - 1) * 0.005);
   return {
     id, cols, rows, pairs, timeLimit, specialRate,
     starThresholds: hard

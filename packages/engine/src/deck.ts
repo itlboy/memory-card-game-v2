@@ -23,6 +23,20 @@ export interface DeckOptions {
   pairs?: number;
 }
 
+/** Trọng số bốc hiệu ứng — càng lớn càng hay gặp. Loại không có tên ở đây thì
+ *  trọng số 1. */
+const POWER_WEIGHT: Partial<Record<Power, number>> = { swap: 2 };
+
+function pickPower(allowed: readonly Power[], rng: Rng): Power {
+  const total = allowed.reduce((n, p) => n + (POWER_WEIGHT[p] ?? 1), 0);
+  let r = rng.next() * total;
+  for (const p of allowed) {
+    r -= POWER_WEIGHT[p] ?? 1;
+    if (r <= 0) return p;
+  }
+  return allowed[allowed.length - 1]!;
+}
+
 export function buildDeck(opts: DeckOptions): Card[] {
   const { cols, rows, symbols, rng } = opts;
   const total = cols * rows;
@@ -39,13 +53,23 @@ export function buildDeck(opts: DeckOptions): Card[] {
 
   const picked = rng.sample(symbols, pairCount);
   const allowed = opts.allowedPowers?.length ? opts.allowedPowers : PLAYABLE_POWERS;
-  const specialCount = Math.floor(pairCount * Math.max(0, Math.min(1, opts.specialRate ?? 0)));
+  // LÀM TRÒN LÊN, và luôn có ít nhất một cặp đặc biệt khi tỉ lệ > 0. Làm tròn
+  // xuống thì bàn nhỏ ra 0: 6 cặp × 10% = 0,6 → 0, nên cấp đầu chiến dịch không
+  // bao giờ thấy thẻ đặc biệt nào dù luật nói có 10%. Chặn dưới ở 3 cặp để bàn
+  // 2 cặp (cấp tập) không bị nhồi hiệu ứng.
+  const rate = Math.max(0, Math.min(1, opts.specialRate ?? 0));
+  const specialCount = rate > 0 && pairCount >= 3
+    ? Math.max(1, Math.round(pairCount * rate))
+    : 0;
   // Cặp nào mang hiệu ứng — chọn tất định theo seed
   const specialPairs = new Set(rng.sample([...picked.keys()], specialCount));
 
   const draft: Omit<Card, 'index'>[] = [];
   picked.forEach((symbol, pairId) => {
-    const power = specialPairs.has(pairId) ? allowed[rng.int(allowed.length)]! : undefined;
+    // Bốc có TRỌNG SỐ: thẻ tráo nặng gấp đôi hai loại kia. Bốc đều thì bàn có
+    // một thẻ đặc biệt chỉ 1/3 khả năng là thẻ tráo, nên người chơi hầu như
+    // không gặp nó ở cấp thấp.
+    const power = specialPairs.has(pairId) ? pickPower(allowed, rng) : undefined;
     // Hiệu ứng chỉ gắn trên MỘT thẻ của cặp: lật đúng thẻ đó mới kích hoạt
     const carrier = rng.int(2);
     for (let k = 0; k < 2; k++) {
