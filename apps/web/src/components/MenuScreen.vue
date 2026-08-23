@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CAMPAIGN_LEVELS, GRIDS } from '@mm/engine';
+import { CAMPAIGN_LEVELS, levelSpec } from '@mm/engine';
 import { Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
 import type { Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
@@ -7,12 +7,13 @@ import { sfx } from '@/lib/audio';
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
-import CampaignMap from './CampaignMap.vue';
+import LevelMap from './LevelMap.vue';
 
 const props = defineProps<{
   themes: CardTheme[];
   mode: Mode;
-  grid: string;
+  /** Cấp độ đang chọn — quyết định cỡ bàn, dùng cho MỌI chế độ. */
+  level: number;
   themeIds: string[];
   playerCount: number;
   totalScore: number;
@@ -23,19 +24,18 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:mode': [Mode];
-  'update:grid': [string];
+  'update:level': [number];
   'update:themeIds': [string[]];
   'update:playerCount': [number];
-  start: [];
   'start-level': [number];
   online: [];
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
-type Step = 'players' | 'count' | 'names' | 'mode' | 'grid' | 'theme' | 'campaign';
-const STEPS: readonly Step[] = ['players', 'count', 'names', 'mode', 'grid', 'theme', 'campaign'];
+type Step = 'players' | 'count' | 'names' | 'mode' | 'theme' | 'level';
+const STEPS: readonly Step[] = ['players', 'count', 'names', 'mode', 'theme', 'level'];
 
-/** Bước hiện tại nằm trên URL (?w=grid) để F5 không bị bật về bước 1. */
+/** Bước hiện tại nằm trên URL (?w=level) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
   try {
     const w = new URLSearchParams(location.search).get('w') as Step | null;
@@ -60,10 +60,12 @@ watch(step, (st) => {
 const isMulti = computed(() => props.playerCount > 1);
 
 /** Đường đi của wizard tuỳ nhánh, dùng cho chấm tiến độ và nút quay lại. */
+// Theme đứng TRƯỚC cấp độ: số biểu tượng của bộ theme quyết định cấp nào dựng
+// được bàn, nên phải biết theme rồi mới vẽ đúng bản đồ cấp.
 const path = computed<Step[]>(() =>
   isMulti.value
-    ? ['players', 'count', 'names', 'mode', 'grid', 'theme']
-    : ['players', 'mode', ...(props.mode === 'campaign' ? ['campaign' as const] : ['grid' as const, 'theme' as const])]
+    ? ['players', 'count', 'names', 'mode', 'theme', 'level']
+    : ['players', 'mode', 'theme', 'level']
 );
 const stepIndex = computed(() => path.value.indexOf(step.value));
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
@@ -74,9 +76,8 @@ const TITLES: Record<Step, string> = {
   count: 'Mấy người chơi?',
   names: 'Tên từng người',
   mode: 'Chọn chế độ',
-  grid: 'Kích thước lưới',
   theme: 'Chọn theme thẻ',
-  campaign: 'Chọn màn'
+  level: 'Chọn cấp độ'
 };
 
 // Mỗi chế độ một màu neon cố định — theo suốt game (hướng thiết kế C)
@@ -139,19 +140,6 @@ function confirmNames(): void {
 function pickMode(m: Mode): void {
   sfx.select();
   emit('update:mode', m);
-  step.value = m === 'campaign' && !isMulti.value ? 'campaign' : 'grid';
-}
-
-/** Ô chính giữa của lưới lẻ để trống — preview vẽ đúng như bàn thật. */
-function isBlankCell(k: string, idx: number): boolean {
-  const g = GRIDS[k]!;
-  const total = g.cols * g.rows;
-  return total % 2 === 1 && idx === Math.floor(total / 2);
-}
-
-function pickGrid(k: string): void {
-  sfx.select();
-  emit('update:grid', k);
   step.value = 'theme';
 }
 
@@ -160,20 +148,11 @@ function back(): void {
   if (i > 0) step.value = path.value[i - 1]!;
 }
 
-const gridKeys = Object.keys(GRIDS);
 const unlocked = (t: CardTheme): boolean => t.unlockAt <= props.totalScore;
-const best = computed(() => store.best(props.mode, props.grid));
-const cells = computed(() => {
-  const g = GRIDS[props.grid];
-  return g ? g.cols * g.rows : 0;
-});
-/** Theme phải đủ biểu tượng cho lưới đã chọn. */
-const themeTooSmall = computed(() => {
-  const pool = new Set(
-    props.themes.filter((t) => props.themeIds.includes(t.id)).flatMap((t) => t.symbols)
-  );
-  return pool.size > 0 && pool.size < Math.floor(cells.value / 2);
-});
+const best = computed(() => store.best(props.mode, props.level));
+/** Sao/đã qua tính riêng từng chế độ; mở khoá thì dùng chung (xem storage). */
+const progress = computed(() => store.progress(props.mode));
+const unlockedLevel = computed(() => store.unlockedLevel());
 
 /** Bật/tắt một theme — luôn giữ ít nhất một theme được chọn. */
 function toggleTheme(id: string): void {
@@ -267,40 +246,8 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         </button>
       </div>
 
-      <!-- BƯỚC: bản đồ Chiến dịch -->
-      <div v-else-if="step === 'campaign'" key="campaign" class="step-body">
-        <CampaignMap
-          :progress="store.campaign()"
-          :unlocked="store.unlockedLevel()"
-          :symbol-count="symbolCount"
-          @play="emit('start-level', $event)"
-        />
-      </div>
-
-      <!-- BƯỚC: kích thước lưới — chọn là sang bước theme -->
-      <div v-else-if="step === 'grid'" key="grid" class="step-body options grid3">
-        <button
-          v-for="k in gridKeys" :key="k" class="option" type="button"
-          :aria-pressed="grid === k"
-          @click="pickGrid(k)"
-        >
-          <span
-            class="grid-preview" aria-hidden="true"
-            :style="{
-              gridTemplateColumns: `repeat(${GRIDS[k]!.cols}, 1fr)`,
-              gridTemplateRows: `repeat(${GRIDS[k]!.rows}, 1fr)`,
-              aspectRatio: `${GRIDS[k]!.cols * 3} / ${GRIDS[k]!.rows * 4}`
-            }"
-          >
-            <i v-for="n in GRIDS[k]!.cols * GRIDS[k]!.rows" :key="n" :class="{ blank: isBlankCell(k, n - 1) }" />
-          </span>
-          <strong>{{ k.replace('x', '×') }}</strong>
-          <small>{{ Math.floor(GRIDS[k]!.cols * GRIDS[k]!.rows / 2) }} cặp</small>
-        </button>
-      </div>
-
-      <!-- BƯỚC cuối: theme (chọn được nhiều) + Bắt đầu -->
-      <div v-else key="theme" class="step-body theme-step">
+      <!-- BƯỚC: theme (chọn được nhiều) — bộ theme quyết định cấp nào chơi được -->
+      <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
         <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
         <div class="options grid2 fill" role="group" aria-label="Theme thẻ">
           <button
@@ -328,19 +275,27 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         </div>
 
         <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
-        <p v-if="themeTooSmall" class="warn" role="alert">
-          Chưa đủ biểu tượng cho lưới {{ grid.replace('x', '×') }}. Hãy chọn thêm theme hoặc lưới nhỏ hơn.
-        </p>
 
-        <button class="btn-primary" :disabled="themeTooSmall" type="button" @click="emit('start')">
-          Bắt đầu
-        </button>
+        <button class="btn-primary" type="button" @click="step = 'level'">Tiếp tục</button>
+      </div>
 
+      <!-- BƯỚC cuối: chọn cấp độ. MỌI chế độ đều qua đây — trước kia chỉ Chiến
+           dịch có bản đồ, các chế độ khác chọn 1 trong 12 cỡ bàn cố định, nên
+           cùng một việc lại có hai kiểu chọn và chỉ Chiến dịch mới chơi tiếp
+           được cấp sau. -->
+      <div v-else key="level" class="step-body">
+        <LevelMap
+          :progress="progress"
+          :unlocked="unlockedLevel"
+          :symbol-count="symbolCount"
+          :show-stars="mode === 'campaign'"
+          @play="emit('start-level', $event)"
+        />
         <p class="best">
           <template v-if="best">
-            Kỷ lục: <b>{{ best.score }}</b> điểm · {{ best.moves }} lượt · {{ clock(best.seconds) }}
+            Kỷ lục cấp {{ level }}: <b>{{ best.score }}</b> điểm · {{ best.moves }} lượt · {{ clock(best.seconds) }}
           </template>
-          <template v-else>Chưa có kỷ lục cho lưới {{ grid.replace('x', '×') }}.</template>
+          <template v-else>Bấm một cấp để chơi.</template>
         </p>
       </div>
     </Transition>

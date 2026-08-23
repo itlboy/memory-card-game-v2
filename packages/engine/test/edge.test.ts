@@ -181,10 +181,10 @@ describe('đầu vào bất thường (client không đáng tin — ON-09)', () 
     expect(g.flip(-0, 0)).toHaveLength(1);   // -0 vẫn là ô 0 hợp lệ
   });
 
-  it('presetConfig chặn khoá kế thừa từ prototype', () => {
-    for (const evil of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) {
-      expect(() => presetConfig({ mode: 'classic', grid: evil, symbols: SYMBOLS, seed: 1 }))
-        .toThrow(/không được hỗ trợ/);
+  it('presetConfig chặn số màn rác', () => {
+    for (const evil of [0, -1, 1.5, NaN, 999]) {
+      expect(() => presetConfig({ mode: 'classic', level: evil, symbols: SYMBOLS, seed: 1 }))
+        .toThrow(/không tồn tại/);
     }
   });
 });

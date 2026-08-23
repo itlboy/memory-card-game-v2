@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { GRIDS } from '@mm/engine';
+import { DEFAULT_ROOM_CONFIG, levelSpec } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Settings2, Share2, Sparkles, Timer
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import ConfirmDialog from './ConfirmDialog.vue';
+import LevelMap from './LevelMap.vue';
 import OnlineGame from './OnlineGame.vue';
 import type { RoomConfig } from '@mm/engine';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
@@ -207,16 +208,13 @@ function themeSummary(ids: string[]): string {
 }
 
 /** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
-const wizard = ref<null | 'mode' | 'grid' | 'theme'>(null);
-const cfg = ref<RoomConfig>({ mode: 'classic', grid: '4x4', themeIds: [] });
+// Cùng thứ tự với wizard chơi đơn: chế độ → theme → cấp độ. Theme đứng trước
+// vì số biểu tượng quyết định cấp nào dựng được bàn.
+const wizard = ref<null | 'mode' | 'theme' | 'level'>(null);
+const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
-const WIZ_STEPS = ['mode', 'grid', 'theme'] as const;
-
-function isBlankCell(k: string, idx: number): boolean {
-  const g = GRIDS[k]!;
-  const total = g.cols * g.rows;
-  return total % 2 === 1 && idx === Math.floor(total / 2);
-}
+const WIZ_STEPS = ['mode', 'theme', 'level'] as const;
+const WIZ_TITLES = { mode: 'Chọn chế độ', theme: 'Chọn theme thẻ', level: 'Chọn cấp độ' } as const;
 
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
@@ -237,19 +235,28 @@ function flashThemeWarn(): void {
 }
 
 function wizBack(): void {
-  if (wizard.value === 'theme') { wizard.value = 'grid'; return; }
-  if (wizard.value === 'grid') { wizard.value = 'mode'; return; }
+  if (wizard.value === 'level') { wizard.value = 'theme'; return; }
+  if (wizard.value === 'theme') { wizard.value = 'mode'; return; }
   wizard.value = null;   // về nhập tên (tạo mới) hoặc lobby (đang chỉnh)
 }
 
-/** Đủ biểu tượng cho lưới đã chọn chưa? */
 const wizPool = computed(() => new Set(
   allThemes.value.filter((t) => cfg.value.themeIds.includes(t.id)).flatMap((t) => t.symbols)
 ).size);
-const wizTooSmall = computed(() => {
-  const g = GRIDS[cfg.value.grid];
-  return !!g && wizPool.value > 0 && wizPool.value < Math.floor((g.cols * g.rows) / 2);
+
+/** Số thẻ của cấp phòng đang chọn — nói "cấp 12" suông thì không ai hình dung
+ *  được bàn to cỡ nào. */
+const cardCount = computed(() => {
+  const lv = o.room.value?.config.level;
+  return lv ? levelSpec(lv).pairs * 2 : 0;
 });
+
+/** Chọn cấp là chốt luôn cấu hình — bản đồ đã chặn cấp thiếu biểu tượng. */
+function wizPickLevel(id: number): void {
+  sfx.select();
+  cfg.value = { ...cfg.value, level: id };
+  wizFinish();
+}
 
 const creatingRoom = ref(false);
 
@@ -274,7 +281,7 @@ watch(o.phase, (ph) => {
 
 function openCfgWizard(): void {
   const c = o.room.value?.config;
-  if (c) cfg.value = { mode: c.mode, grid: c.grid, themeIds: [...c.themeIds] };
+  if (c) cfg.value = { mode: c.mode, level: c.level, themeIds: [...c.themeIds] };
   wizard.value = 'mode';
 }
 </script>
@@ -287,7 +294,7 @@ function openCfgWizard(): void {
   <section v-if="wizard" class="panel">
     <div class="head">
       <button class="btn back" aria-label="Quay lại" type="button" @click="wizBack"><ChevronLeft :size="22" /></button>
-      <h2>{{ wizard === 'mode' ? 'Chọn chế độ' : wizard === 'grid' ? 'Kích thước lưới' : 'Chọn theme thẻ' }}</h2>
+      <h2>{{ WIZ_TITLES[wizard!] }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(st, i) in WIZ_STEPS" :key="st" :class="{ on: i <= WIZ_STEPS.indexOf(wizard) }" />
       </span>
@@ -297,32 +304,20 @@ function openCfgWizard(): void {
       <button
         v-for="m in MODES" :key="m.id" class="option wide neon" :class="m.g" type="button"
         :aria-pressed="cfg.mode === m.id"
-        @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'grid'"
+        @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'theme'"
       >
         <component :is="m.icon" class="opt-icon" :size="26" />
         <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
       </button>
     </div>
 
-    <div v-else-if="wizard === 'grid'" class="step-body options wiz-grids">
-      <button
-        v-for="(g, k) in GRIDS" :key="k" class="option" type="button"
-        :aria-pressed="cfg.grid === k"
-        @click="sfx.select(); cfg = { ...cfg, grid: String(k) }; wizard = 'theme'"
-      >
-        <span
-          class="grid-preview" aria-hidden="true"
-          :style="{
-            gridTemplateColumns: `repeat(${g.cols}, 1fr)`,
-            gridTemplateRows: `repeat(${g.rows}, 1fr)`,
-            aspectRatio: `${g.cols * 3} / ${g.rows * 4}`
-          }"
-        >
-          <i v-for="n in g.cols * g.rows" :key="n" :class="{ blank: isBlankCell(String(k), n - 1) }" />
-        </span>
-        <strong>{{ String(k).replace('x', '×') }}</strong>
-        <small>{{ Math.floor(g.cols * g.rows / 2) }} cặp</small>
-      </button>
+    <div v-else-if="wizard === 'level'" class="step-body">
+      <LevelMap
+        :progress="store.progress(cfg.mode)"
+        :unlocked="store.unlockedLevel()"
+        :symbol-count="wizPool"
+        @play="wizPickLevel"
+      />
     </div>
 
     <div v-else class="step-body">
@@ -344,16 +339,13 @@ function openCfgWizard(): void {
       </div>
 
       <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
-      <p v-if="wizTooSmall" class="warn" role="alert">
-        Chưa đủ biểu tượng cho lưới {{ cfg.grid.replace('x', '×') }}. Hãy chọn thêm theme hoặc quay lại đổi lưới.
-      </p>
 
       <button
         class="btn-primary" type="button"
-        :disabled="wizTooSmall || o.phase.value === 'connecting'"
-        @click="wizFinish"
+        :disabled="o.phase.value === 'connecting'"
+        @click="wizard = 'level'"
       >
-        {{ editingInLobby ? 'Lưu bàn chơi' : o.phase.value === 'connecting' ? 'Đang tạo phòng…' : 'Tạo phòng' }}
+        Tiếp tục
       </button>
     </div>
 
@@ -473,7 +465,7 @@ function openCfgWizard(): void {
       <div class="cfg-summary">
         <span>
           {{ modeLabel(o.room.value?.config.mode) }}
-          · lưới <b>{{ o.room.value?.config.grid.replace('x', '×') }}</b>
+          · cấp <b>{{ o.room.value?.config.level }}</b> ({{ cardCount }} thẻ)
           · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         </span>
         <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> Chỉnh</button>
@@ -493,7 +485,7 @@ function openCfgWizard(): void {
       </button>
       <p class="hint">
         {{ modeLabel(o.room.value?.config.mode) }}
-        · lưới {{ o.room.value?.config.grid.replace('x', '×') }}
+        · cấp {{ o.room.value?.config.level }} ({{ cardCount }} thẻ)
         · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
         — chờ chủ phòng bắt đầu…
       </p>

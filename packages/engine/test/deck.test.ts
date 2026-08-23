@@ -26,9 +26,15 @@ describe('dựng bộ thẻ', () => {
     expect(a.map((x) => x.symbol)).not.toEqual(c.map((x) => x.symbol));
   });
 
-  it('từ chối lưới dưới 4 ô và theme không đủ biểu tượng', () => {
-    expect(() => deck({ cols: 1, rows: 2 })).toThrow(/không hợp lệ/);
+  it('từ chối lưới dưới 2 ô và theme không đủ biểu tượng', () => {
+    expect(() => deck({ cols: 1, rows: 1 })).toThrow(/không hợp lệ/);
     expect(() => deck({ symbols: ['a', 'b'] })).toThrow(/biểu tượng/);
+  });
+
+  it('bàn 2 thẻ (màn tập) dựng được', () => {
+    const cards = deck({ cols: 2, rows: 1 });
+    expect(cards).toHaveLength(2);
+    expect(cards[0]!.symbol).toBe(cards[1]!.symbol);
   });
 
   it('lưới lẻ ô (3×3): ô chính giữa để trống, còn lại 4 cặp đủ đôi', () => {

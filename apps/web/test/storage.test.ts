@@ -7,7 +7,7 @@ describe('tuỳ chọn', () => {
   it('trả về mặc định khi chưa có gì lưu', () => {
     expect(store.prefs()).toEqual({
       dark: false, sound: true, soundLevel: 'high',
-      mode: 'classic', grid: '4x4', themes: [], playerCount: 1
+      mode: 'classic', level: 1, themes: [], playerCount: 1
     });
   });
 
@@ -20,13 +20,13 @@ describe('tuỳ chọn', () => {
 
   it('lưu từng phần, không xoá các tuỳ chọn khác', () => {
     store.savePrefs({ dark: true });
-    store.savePrefs({ grid: '6x6' });
-    expect(store.prefs()).toMatchObject({ dark: true, grid: '6x6', sound: true });
+    store.savePrefs({ level: 12 });
+    expect(store.prefs()).toMatchObject({ dark: true, level: 12, sound: true });
   });
 
   it('dữ liệu hỏng thì rơi về mặc định, không ném lỗi', () => {
     localStorage.setItem('mm.v2', '{khong-phai-json');
-    expect(store.prefs().grid).toBe('4x4');
+    expect(store.prefs().level).toBe(1);
   });
 
   it('migration từ bản cũ chỉ lưu một theme', () => {
@@ -84,41 +84,60 @@ describe('kỷ lục', () => {
   });
 });
 
-describe('tiến trình Chiến dịch', () => {
-  it('mặc định chỉ mở màn 1', () => {
+describe('tiến trình các cấp', () => {
+  it('mặc định chỉ mở cấp 1', () => {
     expect(store.unlockedLevel()).toBe(1);
-    expect(store.campaign()).toEqual({});
+    expect(store.progress('campaign')).toEqual({});
   });
 
-  it('qua màn thì mở màn kế tiếp', () => {
-    store.saveLevel(1, 2, 800);
+  it('qua cấp thì mở cấp kế tiếp', () => {
+    store.saveLevel('campaign', 1, 2, 800);
     expect(store.unlockedLevel()).toBe(2);
-    store.saveLevel(2, 1, 600);
+    store.saveLevel('campaign', 2, 1, 600);
     expect(store.unlockedLevel()).toBe(3);
   });
 
   it('chơi lại chỉ nâng, không hạ số sao và điểm', () => {
-    store.saveLevel(3, 3, 1200);
-    store.saveLevel(3, 1, 400);
-    expect(store.campaign()['3']).toEqual({ stars: 3, score: 1200 });
+    store.saveLevel('campaign', 3, 3, 1200);
+    store.saveLevel('campaign', 3, 1, 400);
+    expect(store.progress('campaign')['3']).toEqual({ stars: 3, score: 1200 });
   });
 
   it('nâng sao khi chơi lại tốt hơn', () => {
-    store.saveLevel(3, 1, 400);
-    store.saveLevel(3, 3, 1300);
-    expect(store.campaign()['3']).toEqual({ stars: 3, score: 1300 });
+    store.saveLevel('campaign', 3, 1, 400);
+    store.saveLevel('campaign', 3, 3, 1300);
+    expect(store.progress('campaign')['3']).toEqual({ stars: 3, score: 1300 });
   });
 
-  it('mọi lần chơi màn đều cộng vào điểm tích lũy', () => {
-    store.saveLevel(1, 3, 1000);
-    store.saveLevel(1, 1, 200);
-    expect(store.totalScore()).toBe(1200);
-  });
-
-  it('mở khoá tính theo màn cao nhất đã qua, không phụ thuộc thứ tự lưu', () => {
-    store.saveLevel(5, 1, 100);
-    store.saveLevel(2, 1, 100);
+  it('mở khoá tính theo cấp cao nhất đã qua, không phụ thuộc thứ tự lưu', () => {
+    store.saveLevel('campaign', 5, 1, 100);
+    store.saveLevel('campaign', 2, 1, 100);
     expect(store.unlockedLevel()).toBe(6);
+  });
+
+  it('sao tính RIÊNG từng chế độ, nhưng mở khoá dùng CHUNG', () => {
+    store.saveLevel('classic', 4, 1, 500);
+    expect(store.progress('classic')['4']).toBeDefined();
+    expect(store.progress('survival')['4']).toBeUndefined();  // sao riêng
+    expect(store.unlockedLevel()).toBe(5);                    // mở khoá chung
+  });
+
+  it('saveLevel KHÔNG cộng điểm — saveResult mới cộng, gọi cả hai không tính hai lần', () => {
+    store.saveLevel('classic', 1, 1, 1000);
+    expect(store.totalScore()).toBe(0);
+    store.saveResult('classic', 1, { score: 1000, moves: 2, seconds: 5 });
+    expect(store.totalScore()).toBe(1000);
+  });
+
+  it('đọc được tiến độ Chiến dịch của bản lưu cũ (khoá không mang chế độ)', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ campaign: { '7': { stars: 2, score: 900 } } }));
+    expect(store.progress('campaign')['7']).toEqual({ stars: 2, score: 900 });
+    expect(store.unlockedLevel()).toBe(8);
+  });
+
+  it('bản lưu cũ chỉ có cỡ bàn thì đổi sang cấp có cùng số cặp', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { grid: '6x6' } }));
+    expect(store.prefs().level).toBe(18);   // 6×6 = 18 cặp
   });
 });
 

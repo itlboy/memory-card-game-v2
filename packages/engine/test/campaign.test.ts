@@ -6,24 +6,25 @@ import { SYMBOLS, clearBoard } from './helpers.js';
 describe('Campaign (SP-03)', () => {
   const levels = allLevels();
 
-  it('có đúng CAMPAIGN_LEVELS màn, mọi màn có ít nhất 2 cặp', () => {
+  it('có đúng CAMPAIGN_LEVELS màn', () => {
     expect(levels).toHaveLength(CAMPAIGN_LEVELS);
-    for (const l of levels) expect(Math.floor((l.cols * l.rows) / 2)).toBeGreaterThanOrEqual(2);
   });
 
-  it('vào ván từ dễ: màn 1 là 2×2, kết ở 10×10', () => {
-    expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 2]);
-    expect(levels[0]!.pairs).toBe(2);
+  it('màn 1 là màn tập 2 thẻ, màn cuối là 10×10 kín 100 thẻ', () => {
+    expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 1]);
+    expect(levels[0]!.pairs).toBe(1);
     const last = levels.at(-1)!;
     expect([last.cols, last.rows]).toEqual([10, 10]);
+    expect(last.pairs).toBe(50);                       // bàn kín, không ô trống
   });
 
   it('mỗi màn thêm đúng 1 cặp (2 thẻ) và bàn luôn đủ chỗ', () => {
     for (let i = 0; i < levels.length; i++) {
       const l = levels[i]!;
-      expect(l.pairs).toBe(i + 2);
+      expect(l.pairs).toBe(i + 1);
       const total = l.cols * l.rows;
       expect(total).toBeGreaterThanOrEqual(l.pairs * 2);
+      if (l.pairs === 1) continue;                     // màn tập 2×1 là ngoại lệ
       // Ô trống phải gọn trong một hàng, không thì bàn nhìn khuyết
       expect(total - l.pairs * 2).toBeLessThanOrEqual(l.cols - 1);
       expect(l.rows / l.cols).toBeLessThanOrEqual(1.75);

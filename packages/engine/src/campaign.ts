@@ -18,8 +18,7 @@ export interface Level {
 /** Mỗi màn thêm ĐÚNG 2 thẻ: màn 1 có 2 cặp, màn cuối có 50 cặp. Tăng đều như
  *  vậy thì độ khó lên từ tốn và người chơi luôn thấy màn sau khác màn trước —
  *  thang cũ gộp ba màn liền vào cùng một cỡ bàn nên chơi thấy lặp. */
-export const CAMPAIGN_LEVELS = 49;
-const FIRST_PAIRS = 2;
+export const CAMPAIGN_LEVELS = 50;
 /** Cạnh bàn lớn nhất. 10×10 = 100 thẻ; hơn nữa thì trên điện thoại mỗi thẻ
  *  không còn đủ 44px để bấm. */
 const MAX_SIDE = 10;
@@ -27,7 +26,9 @@ const MAX_SIDE = 10;
  *  vị trí và cũng khó nhìn trên cột app dọc. */
 const MAX_RATIO = 1.75;
 
-export const pairsForLevel = (id: number): number => FIRST_PAIRS + (id - 1);
+/** Màn N có đúng N cặp: màn 1 là màn tập 2 thẻ (dạy động tác lật), màn 50 là
+ *  bàn 10×10 kín 100 thẻ. Nhờ vậy tròn 50 màn mà vẫn đúng "mỗi màn +2 thẻ". */
+export const pairsForLevel = (id: number): number => id;
 /** Số cặp lớn nhất chiến dịch đòi (màn cuối) — UI dùng để cảnh báo trước khi
  *  người chơi lao vào màn mà bộ theme đang chọn không đủ biểu tượng. */
 export const CAMPAIGN_MAX_PAIRS = pairsForLevel(CAMPAIGN_LEVELS);
@@ -40,6 +41,9 @@ export const CAMPAIGN_MAX_PAIRS = pairsForLevel(CAMPAIGN_LEVELS);
  * Ưu tiên: ít ô trống nhất → tỷ lệ gần 1,3 (dáng khung dọc) → bàn nhỏ hơn.
  */
 export function gridForPairs(pairs: number): { cols: number; rows: number } {
+  // Màn tập: hai thẻ cạnh nhau. Vòng lặp dưới đòi cols >= 2 và cols <= rows nên
+  // không sinh được bàn 1 cặp nào coi được (2×2 thì hai ô trống trên bốn ô).
+  if (pairs === 1) return { cols: 2, rows: 1 };
   let best: { cols: number; rows: number; key: [number, number, number] } | null = null;
   const need = pairs * 2;
   for (let cols = 2; cols <= MAX_SIDE; cols++) {
@@ -65,7 +69,11 @@ export function perfectScore(pairs: number): number {
 }
 
 export function levelSpec(id: number): Level {
-  if (id < 1 || id > CAMPAIGN_LEVELS) throw new Error(`Màn ${id} không tồn tại`);
+  // Phải chặn cả số lẻ và NaN: số màn giờ do CLIENT gửi lên (mọi chế độ đều
+  // chọn màn), mà client không đáng tin — ON-09.
+  if (!Number.isInteger(id) || id < 1 || id > CAMPAIGN_LEVELS) {
+    throw new Error(`Màn ${id} không tồn tại`);
+  }
 
   const pairs = pairsForLevel(id);
   const { cols, rows } = gridForPairs(pairs);

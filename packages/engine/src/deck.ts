@@ -20,11 +20,12 @@ export interface DeckOptions {
 export function buildDeck(opts: DeckOptions): Card[] {
   const { cols, rows, symbols, rng } = opts;
   const total = cols * rows;
-  if (total < 4) throw new Error('Lưới không hợp lệ');
+  // Bàn nhỏ nhất là 2 thẻ (màn tập của chiến dịch), không phải 4
+  if (total < 2) throw new Error('Lưới không hợp lệ');
 
   const maxPairs = Math.floor(total / 2);
   const pairCount = Math.min(opts.pairs ?? maxPairs, maxPairs);
-  if (pairCount < 2) throw new Error('Bàn phải có ít nhất 2 cặp');
+  if (pairCount < 1) throw new Error('Bàn phải có ít nhất 1 cặp');
   if (symbols.length < pairCount) {
     throw new Error(`Theme chỉ có ${symbols.length} biểu tượng, cần ${pairCount} cho lưới ${cols}x${rows}`);
   }

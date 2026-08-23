@@ -187,7 +187,7 @@ const title = computed(() => {
 
       <div class="row">
         <button v-if="hasNext && summary.status === 'won'" ref="primary" class="btn btn-primary" type="button" @click="emit('next')">
-          Màn tiếp theo
+          Cấp tiếp theo
         </button>
         <button v-else ref="primary" class="btn btn-primary" type="button" @click="emit('replay')">
           Chơi lại
@@ -195,7 +195,7 @@ const title = computed(() => {
         <button class="btn" type="button" @click="emit('menu')">Về menu</button>
       </div>
       <button v-if="hasNext && summary.status === 'won'" class="btn link" type="button" @click="emit('replay')">
-        Chơi lại màn này
+        Chơi lại cấp này
       </button>
     </div>
   </div>

@@ -11,7 +11,8 @@ import type { MemoryGame } from './game.js';
 export interface RoomConfig {
   /** Mọi chế độ trừ Chiến dịch — xem ROOM_MODES bên dưới. */
   mode: Exclude<Mode, 'campaign'>;
-  grid: string;
+  /** Cấp độ (1..CAMPAIGN_LEVELS) — quyết định cỡ bàn, giống hệt chơi đơn. */
+  level: number;
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
   themeIds: string[];
 }
@@ -23,7 +24,8 @@ export type RoomMode = (typeof ROOM_MODES)[number];
 
 /** themeIds rỗng = server tự dùng TẤT CẢ theme nó có. Ghi cứng một theme thì
  *  phòng tạo nhanh (chưa qua wizard) chỉ có một bộ biểu tượng. */
-export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', grid: '4x4', themeIds: [] };
+// Cấp 8 = 8 cặp = bàn 4×4, cỡ bàn quen thuộc cho phòng tạo nhanh
+export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', level: 8, themeIds: [] };
 
 export const ROOM_LIMITS = {
   maxPlayers: 4,

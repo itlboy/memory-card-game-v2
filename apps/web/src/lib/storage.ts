@@ -1,3 +1,4 @@
+import { CAMPAIGN_LEVELS } from '@mm/engine';
 import type { Mode } from '@mm/engine';
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
@@ -9,7 +10,8 @@ export interface Prefs {
   sound: boolean;
   soundLevel: SoundLevel;
   mode: Mode;
-  grid: string;
+  /** Màn đang chọn (1..CAMPAIGN_LEVELS) — mọi chế độ đều chọn màn. */
+  level: number;
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
   themes: string[];
   playerCount: number;
@@ -21,6 +23,9 @@ export interface LevelProgress { stars: number; score: number }
 interface Save {
   prefs?: Partial<Prefs> & { theme?: string };   // `theme` là khoá cũ (1 theme)
   best?: Record<string, BestRecord>;
+  /** Tiến độ màn của TỪNG chế độ, khoá `${mode}:${id}`. */
+  levels?: Record<string, LevelProgress>;
+  /** Khoá cũ: chỉ có tiến độ Chiến dịch. Đọc để chuyển sang `levels`. */
   campaign?: Record<string, LevelProgress>;
   totalScore?: number;
   achievements?: string[];
@@ -29,12 +34,21 @@ interface Save {
 
 const KEY = 'mm.v2';
 
+/** Cỡ bàn cũ ('4x4') → số màn có đúng số cặp đó. Bản cũ chỉ lưu cỡ bàn. */
+function levelFromOldGrid(grid: string | undefined): number {
+  const m = /^(\d+)x(\d+)$/.exec(grid ?? '');
+  if (!m) return 1;
+  const pairs = Math.floor((Number(m[1]) * Number(m[2])) / 2);
+  // Cấp n có đúng n cặp
+  return Math.min(CAMPAIGN_LEVELS, Math.max(1, pairs));
+}
+
 const DEFAULT_PREFS: Prefs = {
   // themes rỗng = chưa từng chọn; App sẽ điền TẤT CẢ theme đang mở khoá.
   // Đặt sẵn ['animals'] thì người mới chỉ có một theme và không nhận ra là
   // chọn được nhiều.
   dark: false, sound: true, soundLevel: 'high',
-  mode: 'classic', grid: '4x4', themes: [], playerCount: 1
+  mode: 'classic', level: 1, themes: [], playerCount: 1
 };
 
 function read(): Save {
@@ -56,6 +70,9 @@ export const store = {
     // App điền tất cả theme đang mở khoá.
     // Bản cũ chỉ có bật/tắt: người đang tắt tiếng thì giữ tắt, còn lại về "to"
     if (!saved.soundLevel) merged.soundLevel = saved.sound === false ? 'off' : 'high';
+    // Bản cũ lưu cỡ bàn ('4x4'); đổi sang số màn có cùng số cặp để người chơi
+    // quay lại không bị đẩy về bàn 2×2
+    if (!saved.level) merged.level = levelFromOldGrid((saved as { grid?: string }).grid);
     return merged;
   },
 
@@ -65,15 +82,15 @@ export const store = {
     write(s);
   },
 
-  best(mode: Mode, grid: string): BestRecord | null {
-    return read().best?.[`${mode}:${grid}`] ?? null;
+  best(mode: Mode, level: number): BestRecord | null {
+    return read().best?.[`${mode}:L${level}`] ?? null;
   },
 
   /** Ghi kết quả ván; trả về true nếu là kỷ lục mới. */
-  saveResult(mode: Mode, grid: string, r: BestRecord): boolean {
+  saveResult(mode: Mode, level: number, r: BestRecord): boolean {
     const s = read();
     s.best ??= {};
-    const key = `${mode}:${grid}`;
+    const key = `${mode}:L${level}`;
     const better = !s.best[key] || r.score > s.best[key]!.score;
     if (better) s.best[key] = r;
     s.totalScore = (s.totalScore ?? 0) + r.score;
@@ -81,26 +98,52 @@ export const store = {
     return better;
   },
 
-  campaign(): Record<string, LevelProgress> {
-    return read().campaign ?? {};
+  /** Tiến độ các màn của MỘT chế độ. Mỗi chế độ một chuỗi màn riêng, nên qua
+   *  màn 10 của Cổ điển không mở sẵn màn 10 của Sinh tồn. */
+  progress(mode: Mode): Record<string, LevelProgress> {
+    const s = read();
+    const out: Record<string, LevelProgress> = {};
+    // Bản cũ chỉ có tiến độ Chiến dịch, nằm ở khoá `campaign` không mang chế độ
+    if (mode === 'campaign') Object.assign(out, s.campaign ?? {});
+    for (const [k, v] of Object.entries(s.levels ?? {})) {
+      const [m, id] = k.split(':');
+      if (m === mode && id) out[id] = v;
+    }
+    return out;
   },
 
-  /** Lưu sao của một màn Campaign; chỉ ghi khi tốt hơn lần trước. */
-  saveLevel(id: number, stars: number, score: number): void {
+  /** Lưu tiến độ một cấp; chỉ ghi khi tốt hơn lần trước. KHÔNG cộng điểm vào
+   *  tổng — việc đó là của saveResult(), gọi cả hai thì điểm bị tính hai lần.
+   *  Chế độ không xếp sao thì truyền stars = 1 để đánh dấu "đã qua". */
+  saveLevel(mode: Mode, id: number, stars: number, score: number): void {
     const s = read();
-    s.campaign ??= {};
-    const prev = s.campaign[String(id)];
+    s.levels ??= {};
+    const key = `${mode}:${id}`;
+    const prev = s.levels[key] ?? (mode === 'campaign' ? s.campaign?.[String(id)] : undefined);
     if (!prev || stars > prev.stars || score > prev.score) {
-      s.campaign[String(id)] = { stars: Math.max(stars, prev?.stars ?? 0), score: Math.max(score, prev?.score ?? 0) };
+      s.levels[key] = {
+        stars: Math.max(stars, prev?.stars ?? 0),
+        score: Math.max(score, prev?.score ?? 0)
+      };
     }
-    s.totalScore = (s.totalScore ?? 0) + score;
     write(s);
   },
 
-  /** Màn cao nhất được phép chơi: đã qua màn n thì mở màn n+1. */
+  /**
+   * Cấp cao nhất được phép chơi: qua cấp n thì mở cấp n+1. Mở khoá dùng CHUNG
+   * cho mọi chế độ — tách riêng thì đổi sang Sinh tồn là lại phải bò từ bàn 2
+   * thẻ, dù người chơi đã qua cấp 20 ở Cổ điển. Sao và kỷ lục thì vẫn riêng
+   * từng chế độ (xem progress()).
+   */
   unlockedLevel(): number {
-    const done = Object.entries(this.campaign()).filter(([, v]) => v.stars > 0).map(([k]) => Number(k));
-    return done.length ? Math.max(...done) + 1 : 1;
+    const s = read();
+    const ids = [
+      ...Object.entries(s.campaign ?? {}).filter(([, v]) => v.stars > 0).map(([k]) => Number(k)),
+      ...Object.entries(s.levels ?? {})
+        .filter(([, v]) => v.stars > 0)
+        .map(([k]) => Number(k.split(':')[1]))
+    ].filter((n) => Number.isFinite(n));
+    return ids.length ? Math.min(CAMPAIGN_LEVELS, Math.max(...ids) + 1) : 1;
   },
 
   totalScore(): number { return read().totalScore ?? 0; },

@@ -5,10 +5,13 @@ export {
   BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
   comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
-export { CAMPAIGN_LEVELS, allLevels, levelConfig, levelSpec, perfectScore } from './campaign.js';
-export { GRIDS, presetConfig } from './presets.js';
+export {
+  CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, allLevels, gridForPairs, levelConfig, levelSpec,
+  pairsForLevel, perfectScore
+} from './campaign.js';
+export { presetConfig } from './presets.js';
 export type { Level } from './campaign.js';
-export type { GridKey, GridSpec, PresetInput } from './presets.js';
+export type { PresetInput } from './presets.js';
 export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary
 } from './types.js';

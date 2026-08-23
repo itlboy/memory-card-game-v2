@@ -22,6 +22,9 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
   history.replaceState(null, '', location.pathname);
+  // Mọi chế độ giờ đi qua bản đồ cấp, mặc định chỉ mở cấp 1 (bàn 2 thẻ). Test
+  // cần bàn lớn nên mở sẵn hết; test nào kiểm chính việc khoá thì tự xoá đi.
+  localStorage.setItem('mm.v2', JSON.stringify({ levels: { 'classic:49': { stars: 1, score: 0 } } }));
   vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(THEMES), {
     headers: { 'Content-Type': 'application/json' }
   })));
@@ -47,12 +50,23 @@ const click = async (text: string): Promise<void> => {
   await flush();
 };
 
-/** Đi hết wizard chơi đơn: Một mình → chế độ → lưới → Bắt đầu. */
-const start = async (mode = 'Cổ điển', grid = '4×4'): Promise<void> => {
+/**
+ * Mở khoá tới cấp `n`. Mọi chế độ giờ đều đi qua bản đồ cấp, mà mặc định chỉ
+ * mở cấp 1 (bàn 2 thẻ) — muốn test bàn 4×4 thì phải có tiến độ trước.
+ * PHẢI gọi TRƯỚC mount: prefs và tiến độ đọc lúc dựng component.
+ */
+const unlockTo = (n: number): void => {
+  localStorage.setItem('mm.v2', JSON.stringify({
+    levels: { [`classic:${n - 1}`]: { stars: 1, score: 0 } }
+  }));
+};
+
+/** Đi hết wizard chơi đơn: Một mình → chế độ → theme → chọn cấp. Cấp 8 = 4×4. */
+const start = async (mode = 'Cổ điển', level = 8): Promise<void> => {
   await click('Chơi một mình');
   await click(mode);
-  await click(grid);        // bước lưới riêng, chọn là tự sang theme
-  await click('Bắt đầu');
+  await click('Tiếp tục');       // bước theme → sang bản đồ cấp
+  await click(`Cấp ${level},`);
 };
 
 describe('App', () => {
@@ -62,8 +76,8 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(wrapper.text()).toContain('Chơi một mình');
     expect(wrapper.text()).toContain('Chơi nhiều người');
-    // Chưa hiện lưới/theme ở bước đầu — tránh rối
-    expect(wrapper.text()).not.toContain('Kích thước lưới');
+    // Chưa hiện cấp/theme ở bước đầu — tránh rối
+    expect(wrapper.text()).not.toContain('Chọn cấp độ');
     expect(wrapper.text()).not.toContain('Theme thẻ');
   });
 
@@ -71,12 +85,12 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
-    await click('Cổ điển');
-    expect(wrapper.text()).toContain('Kích thước lưới');   // bước lưới riêng
     expect(wrapper.text()).not.toContain('Động vật');
-    await click('4×4');
-    expect(wrapper.text()).toContain('Chọn theme thẻ');    // bước theme riêng
+    await click('Cổ điển');
+    expect(wrapper.text()).toContain('Chọn theme thẻ');    // theme đứng trước cấp
     expect(wrapper.text()).toContain('Động vật');
+    await click('Tiếp tục');
+    expect(wrapper.text()).toContain('Chọn cấp độ');
   });
 
   it('nút quay lại đưa về bước trước', async () => {
@@ -94,7 +108,6 @@ describe('App', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    await click('4×4');
     const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
   });
@@ -138,11 +151,13 @@ describe('App', () => {
     expect(wrapper.text()).toContain('100');
   });
 
-  it('chọn Chiến dịch thì hiện bản đồ đủ màn, chỉ màn 1 mở khoá', async () => {
+  it('chọn Chiến dịch thì hiện bản đồ đủ cấp, chưa chơi thì chỉ mở cấp 1', async () => {
+    localStorage.clear();          // xoá tiến độ mở sẵn của beforeEach
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Chiến dịch');
+    await click('Tiếp tục');       // qua bước theme
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.attributes('disabled')).toBeUndefined();
@@ -166,8 +181,8 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Chớp nhoáng');
     expect(wrapper.text()).not.toContain('Chiến dịch');
     await click('Cổ điển');
-    await click('4×4');
-    await click('Bắt đầu');
+    await click('Tiếp tục');       // bước theme
+    await click('Cấp 1,');         // cấp mặc định mở sẵn
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
   });
@@ -193,7 +208,6 @@ describe('multi-theme', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    await click('4×4');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
     expect(chip('Động vật').attributes('aria-checked')).toBe('true');
@@ -234,34 +248,30 @@ describe('màn online (điều hướng, không cần server)', () => {
   });
 });
 
-describe('bước chọn lưới', () => {
-  it('có đủ 12 cỡ bàn, trần 8×8, preview vẽ đúng hình dạng bàn', async () => {
+describe('bước chọn cấp độ', () => {
+  it('đủ 50 cấp, cấp 1 là 2 thẻ và cấp cuối 100 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    const options = wrapper.findAll('.option');
-    expect(options.length).toBe(12);   // 3×4 mobile / 4×3 desktop — tròn hàng
-    expect(wrapper.text()).toContain('8×8');
-    expect(wrapper.text()).toContain('32 cặp');
-    expect(wrapper.text()).not.toContain('8×10');
-    // Preview 3×3: 9 ô, ô chính giữa trống (đúng như bàn thật)
-    const p33 = options.find((o) => o.text().includes('3×3'))!.findAll('.grid-preview i');
-    expect(p33).toHaveLength(9);
-    expect(p33[4]!.classes()).toContain('blank');
-    // Preview 8×8: 64 ô, không ô trống
-    const p88 = options.find((o) => o.text().includes('8×8'))!.findAll('.grid-preview i');
-    expect(p88).toHaveLength(64);
-    expect(p88.every((i) => !i.classes().includes('blank'))).toBe(true);
+    await click('Tiếp tục');
+    const nodes = wrapper.findAll('.node');
+    expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
+    expect(nodes[0]!.text()).toContain('2 thẻ');
+    expect(nodes.at(-1)!.text()).toContain('100 thẻ');
+    // Ghi SỐ THẺ chứ không ghi cỡ lưới: năm cấp cuối cùng nằm trong bàn 10×10
+    expect(wrapper.text()).not.toContain('10×10');
   });
 
-  it('8×8 với một theme 24 biểu tượng thì cảnh báo chọn thêm theme', async () => {
+  it('cấp cần nhiều biểu tượng hơn bộ theme đang chọn thì bị chặn và có cảnh báo', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    await click('8×8');
-    expect(wrapper.text()).toContain('Chưa đủ biểu tượng');
-    expect(wrapper.find('.btn-primary').attributes('disabled')).toBeDefined();
+    await click('Tiếp tục');
+    const blocked = wrapper.findAll('.node.nosym');
+    expect(blocked.length).toBeGreaterThan(0);
+    expect(blocked[0]!.attributes('disabled')).toBeDefined();
+    expect(wrapper.text()).toContain('cần thêm theme');
   });
 });
