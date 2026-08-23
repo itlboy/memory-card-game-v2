@@ -219,12 +219,12 @@ class Sfx {
   }
 
   /** Tiếng "gió/giấy" từ nhiễu trắng qua lọc — cho lật thẻ, chia bài, nổ. */
-  private noise(dur: number, opts: { freq?: number; type?: BiquadFilterType; gain?: number; delay?: number } = {}): void {
+  private noise(dur: number, opts: { freq?: number; type?: BiquadFilterType; gain?: number; delay?: number; q?: number } = {}): void {
     if (!this.enabled) return;
     const ctx = this.ac();
     if (!ctx || !this.master) return;
     try {
-      const { freq = 2400, type = 'highpass', gain = 0.05, delay = 0 } = opts;
+      const { freq = 2400, type = 'highpass', gain = 0.05, delay = 0, q } = opts;
       if (!this.noiseBuf) {
         const len = Math.floor(ctx.sampleRate * 0.5);
         this.noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
@@ -237,6 +237,8 @@ class Sfx {
       const filter = ctx.createBiquadFilter();
       filter.type = type;
       filter.frequency.value = freq;
+      // Q hẹp = tiếng đục, mềm; Q rộng = sáng và sắc. Tiếng chia bài cần đục.
+      if (q !== undefined) filter.Q.value = q;
       const g = ctx.createGain();
       g.gain.setValueAtTime(gain, t0);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
@@ -259,14 +261,20 @@ class Sfx {
   /**
    * Chia bài đầu ván: chuỗi tiếng giấy trải ĐÚNG bằng thời gian hiệu ứng hình
    * (xem lib/timing). Không cần một tiếng cho mỗi thẻ — bàn 50 thẻ thì 50
-   * tiếng chồng nhau thành tiếng rít; 12 tiếng rải đều là đủ dày.
+   * tiếng chồng nhau thành tiếng rít; 8 tiếng rải đều là đủ dày.
+   *
+   * Đục và ngắn, không sáng: bản trước dùng highpass 2200–3400Hz nên nghe
+   * "rẹt rẹt" xót tai. Bandpass quanh 700–1000Hz với Q hẹp cho ra tiếng "phụp"
+   * mềm như bìa giấy đặt xuống mặt bàn, cộng một tiếng trầm rất nhẹ để có thân.
    */
   deal(cards: number): void {
     const span = dealSpan(cards) / 1000;
-    const ticks = Math.max(1, Math.min(cards, 12));
+    const ticks = Math.max(1, Math.min(cards, 8));
     for (let i = 0; i < ticks; i++) {
       const delay = ticks > 1 ? (i / (ticks - 1)) * span : 0;
-      this.noise(0.05, { freq: 2200 + (i / ticks) * 1200, gain: 0.03, delay });
+      const k = ticks > 1 ? i / (ticks - 1) : 0;
+      this.noise(0.035, { type: 'bandpass', q: 1.4, freq: 700 + k * 300, gain: 0.05, delay });
+      this.voice(150 + k * 40, { dur: 0.05, type: 'sine', gain: 0.02, delay });
     }
   }
 

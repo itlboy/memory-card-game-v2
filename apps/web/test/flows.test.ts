@@ -823,14 +823,16 @@ describe('đấu với máy', () => {
       await flush();
     }
     const before = s.moves.value;
-    await vi.advanceTimersByTimeAsync(4000);   // thời gian nghĩ + hai nước lật
+    // Nhịp nghĩ là một KHOẢNG (Bot Pro tới 3,5s mỗi nước), nên phải chờ dư cho
+    // hai nước lật, không thì test đỏ đúng lúc bot rút phải nhịp chậm.
+    await vi.advanceTimersByTimeAsync(12_000);
     await flush();
     expect(s.moves.value, 'máy phải tự đi được ít nhất một nước').toBeGreaterThan(before);
   });
 
   it('mức Ngu KHÔNG cộng điểm tích luỹ — cày máy dễ không mở được theme', async () => {
     await mountApp();
-    await startVsBot('Bot ngu');
+    await startVsBot('Bot dễ');
     await vi.advanceTimersByTimeAsync(5200);
     await flush();
     const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
@@ -882,7 +884,7 @@ describe('lượt của bot thì người chơi bị chặn', () => {
       const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
       await wrapper.findAll('.card')[cards[0]!.index]!.trigger('click');
       await wrapper.findAll('.card')[cards[2]!.index]!.trigger('click');
-      await vi.advanceTimersByTimeAsync(1200);
+      await vi.advanceTimersByTimeAsync(1500);
       await flush();
     }
     expect(s.current.value?.id, 'phải đang là lượt máy mới kiểm được').toBe('bot');

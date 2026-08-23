@@ -1,6 +1,6 @@
 export { MemoryGame } from './game.js';
 export { Rng, seedFrom } from './rng.js';
-export { BOT_SPECS, botPick, botRng, createBotMemory, observe } from './bot.js';
+export { BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, observe } from './bot.js';
 export type { BotLevel, BotMemory, BotSpec } from './bot.js';
 export { buildDeck } from './deck.js';
 export {

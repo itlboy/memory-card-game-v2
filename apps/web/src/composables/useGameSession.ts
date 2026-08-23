@@ -1,7 +1,7 @@
 import { MemoryGame } from '@mm/engine';
 import type { Card, GameConfig, GameEvent, Player, Summary } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
-import { BOT_SPECS, botPick, botRng, createBotMemory, observe, publicView } from '@mm/engine';
+import { botPick, botRng, botThinkMs, createBotMemory, observe, publicView } from '@mm/engine';
 import type { BotLevel, BotMemory } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 
@@ -185,7 +185,7 @@ export function useGameSession() {
       const pick = botPick(publicView(g2, now.value, () => true), botMem, botRandom, level);
       botThinking.value = false;
       if (pick !== null) applyFlip(pick);
-    }, BOT_SPECS[level].thinkMs);
+    }, botThinkMs(level, botRandom));
   }
 
   function loop(): void {

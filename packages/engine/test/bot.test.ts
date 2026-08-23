@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOT_SPECS, botPick, botRng, createBotMemory, observe } from '../src/bot.js';
+import { BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, observe } from '../src/bot.js';
 import type { BotLevel } from '../src/bot.js';
 import { MemoryGame } from '../src/game.js';
 import { publicView } from '../src/online.js';
@@ -108,9 +108,12 @@ describe('bot: quên dần theo thời gian', () => {
     return hits / N;
   }
 
-  it('vừa thấy thì mức nào cũng nhớ', () => {
+  it('vừa thấy thì mức nào cũng dùng được cặp — trừ phần nhớ lẫn chỗ', () => {
+    // Mốc là `1 - mistake`, không phải một số cứng: `recallRate` đi qua cả cú
+    // tung "nhớ lẫn chỗ", nên Bot dễ (30%) không bao giờ vượt 0,70.
     for (const level of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
-      expect(recallRate(level, 0), level).toBeGreaterThan(0.7);
+      const ceiling = 1 - BOT_SPECS[level].mistake;
+      expect(recallRate(level, 0), level).toBeGreaterThan(ceiling - 0.06);
     }
   });
 
@@ -206,5 +209,33 @@ describe('bot nhớ cả thẻ ĐỐI THỦ mở', () => {
     ]), 'hard');
     expect([...mem.keys()].sort()).toEqual([0, 1]);
     expect(mem.get(0)?.symbol).toBe('A');
+  });
+});
+
+describe('nhịp nghĩ của bot', () => {
+  it('mỗi nước một nhịp khác nhau, luôn nằm trong khoảng của mức', () => {
+    const rng = botRng(5);
+    const got = new Set<number>();
+    for (let i = 0; i < 40; i++) {
+      const ms = botThinkMs('normal', rng);
+      expect(ms).toBeGreaterThanOrEqual(BOT_SPECS.normal.thinkMinMs);
+      expect(ms).toBeLessThanOrEqual(BOT_SPECS.normal.thinkMaxMs);
+      got.add(ms);
+    }
+    expect(got.size, 'nhịp cố định thì nghe ra ngay là máy').toBeGreaterThan(30);
+  });
+
+  it('bot giỏi nghĩ nhanh hơn bot kém', () => {
+    const order: BotLevel[] = ['easy', 'normal', 'hard', 'insane'];
+    for (let i = 1; i < order.length; i++) {
+      const a = BOT_SPECS[order[i - 1]!], b = BOT_SPECS[order[i]!];
+      expect(b.thinkMinMs).toBeLessThan(a.thinkMinMs);
+      expect(b.thinkMaxMs).toBeLessThan(a.thinkMaxMs);
+    }
+  });
+
+  it('cùng seed thì cùng nhịp — bot phải tất định', () => {
+    const a = Array.from({ length: 10 }, (_, i) => botThinkMs('hard', botRng(9 + i * 0)));
+    expect(new Set(a).size).toBe(1);   // cùng rng mới tạo → cùng số đầu tiên
   });
 });

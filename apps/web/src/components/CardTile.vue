@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Card } from '@mm/engine';
-import { computed } from 'vue';
-import { dealStep } from '@/lib/timing';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { DEAL_SETTLE_MS, dealStep } from '@/lib/timing';
 
 const props = defineProps<{
   card: Card;
@@ -31,6 +31,18 @@ const POWER_ICON: Record<string, string> = { bomb: '💥', swap: '🔀', x2: '�
 /** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
 const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));
 
+/**
+ * Đã đáp xuống bàn xong chưa. Lắc lúc lật chỉ bật SAU khi chia xong: hai
+ * animation cùng chạy trên một lá thì cái sau ghi đè cái trước, thành ra lúc
+ * chia bài không thấy lắc gì cả (đúng hiện tượng đã gặp).
+ */
+const dealt = ref(false);
+let dealTimer: ReturnType<typeof setTimeout> | undefined;
+onMounted(() => {
+  dealTimer = setTimeout(() => { dealt.value = true; }, dealStagger.value + DEAL_SETTLE_MS);
+});
+onUnmounted(() => clearTimeout(dealTimer));
+
 const label = computed(() => {
   const pos = `Thẻ ${props.card.index + 1}`;
   if (props.matched) return `${pos}, ${props.card.symbol}, đã ghép đúng`;
@@ -44,7 +56,7 @@ const label = computed(() => {
   <button
     v-else
     class="card"
-    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending }"
+    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending, dealt }"
     :style="{
       '--deal': `${dealStagger}ms`,
       '--wob': card.index % 2 ? 1 : -1,
@@ -81,14 +93,30 @@ const label = computed(() => {
      để lấp chiều cao dư trên màn dọc. */
   position: relative; aspect-ratio: var(--card-ar, 3 / 4); min-width: 44px; min-height: 44px;
   padding: 0; border: 0; background: transparent; perspective: 700px;
-  animation: deal .38s cubic-bezier(.2, .9, .3, 1.2) backwards;
+  /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
+     với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
+  animation: deal 2.4s linear backwards;
   animation-delay: var(--deal, 0ms);
   /* Container query: nội dung thẻ to theo kích thước THẺ, không theo viewport —
      bàn 2×2 thẻ to thì biểu tượng cũng to tương ứng */
   container-type: inline-size;
 }
 @keyframes deal {
-  from { opacity: 0; transform: translateY(14px) scale(.7); }
+  /* perspective() viết trong transform, không dùng thuộc tính `perspective`
+     của .card: thuộc tính đó chỉ tạo chiều sâu cho CON (tức .inner), lá bài tự
+     quay quanh trục dọc mà thiếu nó thì trông như bị bóp bề ngang. */
+  0% {
+    opacity: 0; transform: perspective(700px) translateY(16px) scale(.72) rotateY(calc(-22deg * var(--wob, 1)));
+    animation-timing-function: cubic-bezier(.2, .9, .3, 1);
+  }
+  16%   { opacity: 1; transform: perspective(700px) translateY(0) scale(1) rotateY(calc(9deg * var(--wob, 1))); }
+  28%   { transform: perspective(700px) rotateY(calc(-5.4deg * var(--wob, 1))); }
+  40%   { transform: perspective(700px) rotateY(calc(3.2deg * var(--wob, 1))); }
+  52%   { transform: perspective(700px) rotateY(calc(-1.9deg * var(--wob, 1))); }
+  64%   { transform: perspective(700px) rotateY(calc(1.1deg * var(--wob, 1))); }
+  76%   { transform: perspective(700px) rotateY(calc(-0.7deg * var(--wob, 1))); }
+  88%   { transform: perspective(700px) rotateY(calc(0.4deg * var(--wob, 1))); }
+  100%  { transform: none; }
 }
 
 .inner {
@@ -96,41 +124,72 @@ const label = computed(() => {
   transform-style: preserve-3d;
   transition: transform .34s cubic-bezier(.3, .8, .4, 1.1);
 }
+/* Trỏ chuột vào: lá bài khẽ lắc rồi đứng lại — CÙNG TRỤC với cú lật (rotateY),
+   không phải nghiêng xoay tròn. Biên độ nhỏ hơn lúc lật vì đây chỉ là "nó nhận
+   ra bạn đang nhắm nó", chưa phải một hành động. */
 @media (hover: hover) {
 .card:not(.up):not(.done):not([aria-disabled='true']):hover .inner {
-  transform: translateY(-3px) rotateZ(-1.2deg);
+  transform: translateY(-3px);
+  animation: hover-wob 1.4s linear;
+}
+@keyframes hover-wob {
+  0%   { transform: translateY(-3px) rotateY(0); }
+  14%  { transform: translateY(-3px) rotateY(calc(5deg * var(--wob, 1))); }
+  30%  { transform: translateY(-3px) rotateY(calc(-3deg * var(--wob, 1))); }
+  46%  { transform: translateY(-3px) rotateY(calc(1.8deg * var(--wob, 1))); }
+  62%  { transform: translateY(-3px) rotateY(calc(-1deg * var(--wob, 1))); }
+  78%  { transform: translateY(-3px) rotateY(calc(0.6deg * var(--wob, 1))); }
+  100% { transform: translateY(-3px) rotateY(0); }
 }
 }
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }
 
 /**
- * Lắc nhẹ lúc thẻ vừa đáp: lật xong (hoặc úp xong) thì thẻ nghiêng qua lại một
- * nhịp rồi mới đứng yên — thẻ thật đặt xuống bàn không bao giờ dừng khựng.
+ * Lắc nhẹ lúc thẻ vừa lật xong: nó đi QUÁ mốc một chút rồi đảo chiều, biên độ
+ * giảm dần và tắt hẳn sau ~2,2 giây — như cánh cửa bản lề đóng lại.
  *
- * Vì sao là animation chứ không phải transition: transition chỉ đi được một
- * chiều từ giá trị cũ sang mới, không diễn được nhịp quá đà rồi trả về. Khung
- * cuối trùng đúng với transform tĩnh của trạng thái nên hết animation không
- * giật. `--wob` đảo dấu theo ô để cả bàn không lắc cùng một phía như đồng ca.
+ * Lắc trên ĐÚNG TRỤC LẬT (rotateY, trái–phải), không phải rotateZ: thẻ lật quanh
+ * trục dọc mà lại lắc xoay tròn trong mặt phẳng thì hai chuyển động không cùng
+ * một trục, mắt thấy sai ngay. Vì thế biên độ ở đây tính bằng độ QUÁ mốc 180°
+ * (hoặc 0°), và phải lớn hơn kiểu rotateZ mới thấy — quay quanh trục dọc thì
+ * mỗi độ chỉ ăn vào bề rộng nhìn thấy.
  *
+ * Vì sao animation chứ không phải transition: transition chỉ đi một chiều từ giá
+ * trị cũ sang mới, không diễn được chuỗi lắc tắt dần. Khung cuối trùng đúng
+ * transform tĩnh của trạng thái nên hết animation không giật. `--wob` đảo dấu
+ * theo ô để cả bàn không lắc cùng một phía như đồng ca.
+ *
+ * Chỉ bật khi `.dealt`: lúc chia bài, animation `deal` trên .card đã lo phần lắc
+ * rồi — chạy cả hai thì cái trên .inner đè lên, hoá ra chia bài không lắc.
  * KHÔNG áp cho `peek` (cả bàn hé mở, lắc hết thành rung màn hình) và `pending`
  * (đang dừng ở 90 độ chờ server).
  */
-.card.up:not(.peek):not(.pending) .inner { animation: flip-up .46s cubic-bezier(.3, .8, .4, 1.05); }
-.card:not(.up):not(.done):not(.peek):not(.pending) .inner { animation: flip-down .46s cubic-bezier(.3, .8, .4, 1.05); }
+.card.dealt.up:not(.peek):not(.pending) .inner { animation: flip-up 2.2s linear; }
+.card.dealt:not(.up):not(.done):not(.peek):not(.pending) .inner { animation: flip-down 2.2s linear; }
 
 @keyframes flip-up {
-  0%   { transform: rotateY(0); }
-  68%  { transform: rotateY(180deg) rotateZ(0); }
-  80%  { transform: rotateY(180deg) rotateZ(calc(-2deg * var(--wob, 1))) scale(1.02); }
-  91%  { transform: rotateY(180deg) rotateZ(calc(1.1deg * var(--wob, 1))); }
-  100% { transform: rotateY(180deg); }
+  0%    { transform: rotateY(0); animation-timing-function: cubic-bezier(.3, .8, .4, 1); }
+  24%   { transform: rotateY(180deg); }
+  33.5% { transform: rotateY(calc(180deg + 7deg * var(--wob, 1))); }
+  43%   { transform: rotateY(calc(180deg - 4.2deg * var(--wob, 1))); }
+  52.5% { transform: rotateY(calc(180deg + 2.5deg * var(--wob, 1))); }
+  62%   { transform: rotateY(calc(180deg - 1.5deg * var(--wob, 1))); }
+  71.5% { transform: rotateY(calc(180deg + 0.9deg * var(--wob, 1))); }
+  81%   { transform: rotateY(calc(180deg - 0.5deg * var(--wob, 1))); }
+  90.5% { transform: rotateY(calc(180deg + 0.3deg * var(--wob, 1))); }
+  100%  { transform: rotateY(180deg); }
 }
 @keyframes flip-down {
-  0%   { transform: rotateY(180deg); }
-  68%  { transform: rotateY(0) rotateZ(0); }
-  80%  { transform: rotateY(0) rotateZ(calc(2deg * var(--wob, 1))) scale(1.02); }
-  91%  { transform: rotateY(0) rotateZ(calc(-1.1deg * var(--wob, 1))); }
-  100% { transform: rotateY(0); }
+  0%    { transform: rotateY(180deg); animation-timing-function: cubic-bezier(.3, .8, .4, 1); }
+  24%   { transform: rotateY(0); }
+  33.5% { transform: rotateY(calc(-7deg * var(--wob, 1))); }
+  43%   { transform: rotateY(calc(4.2deg * var(--wob, 1))); }
+  52.5% { transform: rotateY(calc(-2.5deg * var(--wob, 1))); }
+  62%   { transform: rotateY(calc(1.5deg * var(--wob, 1))); }
+  71.5% { transform: rotateY(calc(-0.9deg * var(--wob, 1))); }
+  81%   { transform: rotateY(calc(0.5deg * var(--wob, 1))); }
+  90.5% { transform: rotateY(calc(-0.3deg * var(--wob, 1))); }
+  100%  { transform: rotateY(0); }
 }
 /* Người chọn "giảm chuyển động" thì bỏ hẳn nhịp lắc, giữ lại cú lật */
 @media (prefers-reduced-motion: reduce) {

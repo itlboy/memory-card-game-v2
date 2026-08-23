@@ -20,3 +20,10 @@ export const dealStep = (cards: number): number =>
 
 /** Thời điểm thẻ CUỐI bay vào — cũng là lúc tiếng chia bài phải dứt. */
 export const dealSpan = (cards: number): number => dealStep(cards) * Math.max(0, cards - 1);
+
+/**
+ * Thẻ coi như đã đáp xuống bàn sau bấy nhiêu ms tính từ lúc nó bắt đầu bay vào.
+ * Bằng đúng đoạn "hạ cánh" của keyframe `deal` (16% của 2,4s), không phải cả
+ * animation — phần còn lại chỉ là lắc tắt dần, lật lúc đó vẫn mượt.
+ */
+export const DEAL_SETTLE_MS = 400;

@@ -74,7 +74,7 @@ server.js            Web server tĩnh cho bản build production
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
-| Đấu với máy | 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot ngu / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot ngu" **không** cộng điểm tích luỹ |
+| Đấu với máy | 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
@@ -107,12 +107,15 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | nghĩ |
   |---|---|---|---|---|
-  | Bot ngu | 0,7071 | 2 | 26% | 1,2s |
-  | Bot bình thường | 0,8409 | 4 | 10% | 0,9s |
-  | Bot Pro | 0,8706 | 5 | 4% | 0,7s |
-  | Bot siêu đẳng | 0,8909 | 6 | 0% | 0,55s |
+  | Bot dễ | 0,7071 | 2 | 30% | 2–5s |
+  | Bot bình thường | 0,8409 | 4 | 20% | 1–4s |
+  | Bot Pro | 0,9170 | 8 | 10% | 0,7–3,5s |
+  | Bot siêu đẳng | 0,9439 | 12 | 5% | 0,5–2s |
 
   `retain = 0,5 ** (1 / nửa đời)` — sửa nửa đời thì tính lại, đừng đoán.
+  "Nhớ lẫn chỗ" = có cặp trong ký ức nhưng vẫn đi bốc lá khác. Nhịp nghĩ là một
+  KHOẢNG rút bằng rng của bot (`botThinkMs`): nhịp cố định nghe ra ngay là máy,
+  và khoảng của các mức chồng nhau nên không đếm thời gian mà đoán được mức.
 
 - Bộ điều khiển ở `useGameSession`: `botWatch()` chạy **mỗi khung**, không chỉ lúc
   tới lượt bot — nhìn theo lượt thì thẻ người chơi lật rồi úp lại không bao giờ
