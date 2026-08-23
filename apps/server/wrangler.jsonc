@@ -3,6 +3,29 @@
   "name": "memory-match-server",
   "main": "src/index.ts",
   "compatibility_date": "2025-06-01",
+
+  // Worker này phục vụ CẢ web đã build lẫn phòng online. Trước đây web nằm ở
+  // Cloudflare Pages, worker nằm riêng: hai lần deploy, hai host, và đã hai lần
+  // xảy ra chuyện web mới chạy với server cũ vì quên deploy worker.
+  //
+  // Durable Object BUỘC phải ở Worker, không đặt được trong Pages project
+  // ("You cannot create and deploy a Durable Object within a Pages project"),
+  // nên gộp theo chiều này chứ không phải chiều ngược lại.
+  //
+  // Request file tĩnh KHÔNG gọi vào code Worker và Cloudflare không tính phí
+  // ("Requests to static assets are free and unlimited"), nên gộp lại không
+  // làm tăng chi phí. Tuyệt đối KHÔNG bật Workers Cache: bật là request file
+  // tĩnh chuyển thành có phí.
+  "assets": {
+    "directory": "../web/dist",
+    // Đường dẫn không khớp file nào thì trả index.html — app một trang, mọi
+    // trạng thái nằm ở query string
+    "not_found_handling": "single-page-application",
+    // BẮT BUỘC: không có dòng này thì SPA fallback nuốt luôn /api và /ws, trả
+    // index.html cho lời gọi API. Danh sách này ép hai nhánh đó vào Worker.
+    "run_worker_first": ["/api/*", "/ws/*"]
+  },
+
   "durable_objects": {
     "bindings": [{ "name": "ROOM", "class_name": "RoomDO" }]
   },

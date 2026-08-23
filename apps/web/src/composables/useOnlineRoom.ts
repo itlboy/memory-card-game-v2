@@ -6,8 +6,15 @@ import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { sfx } from '@/lib/audio';
 import { store } from '@/lib/storage';
 
-/** Địa chỉ server online; đổi qua biến build VITE_SERVER_URL khi deploy. */
-const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined) ?? 'http://localhost:8787';
+/**
+ * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
+ * giờ là một Worker duy nhất (xem apps/server/wrangler.jsonc), nên không còn
+ * phải khai địa chỉ server cho từng môi trường — thiếu khai là hỏng im lặng.
+ * Lúc dev thì vite ở :3001 còn wrangler ở :8787 nên vẫn cần địa chỉ riêng.
+ * VITE_SERVER_URL vẫn được tôn trọng để trỏ tay khi cần.
+ */
+const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined)
+  ?? (import.meta.env.DEV ? 'http://localhost:8787' : location.origin);
 const WS_SERVER = SERVER.replace(/^http/, 'ws');
 
 type Phase = 'idle' | 'connecting' | 'lobby' | 'playing' | 'ended' | 'error';

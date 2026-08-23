@@ -47,9 +47,10 @@ const roomUpd = await an.wait((m) => m.t === 'room' && m.room.players.length ===
 console.log('✓ 2 người trong phòng:', roomUpd.room.players.map((p) => p.name).join(', '));
 
 // Chủ phòng chỉnh cấu hình; khách chỉnh phải bị từ chối
-an.send({ t: 'config', config: { level: 2 } });
-const cfg = await binh.wait((m) => m.t === 'room' && m.room.config.level === 2, 'config cấp 2');
-console.log('✓ chủ phòng đổi sang cấp 2 (bàn 2×2)');
+// Cấp 1 là bàn nhỏ nhất — ván ngắn nhất để smoke chạy nhanh
+an.send({ t: 'config', config: { level: 1 } });
+const cfg = await binh.wait((m) => m.t === 'room' && m.room.config.level === 1, 'config cấp 1');
+console.log('✓ chủ phòng đổi sang cấp 1 (bàn nhỏ nhất)');
 // Chỉ soi các tin ĐẾN SAU đây: inbox còn giữ tin lúc phòng mới lập (cấp mặc
 // định), xét cả inbox thì assertion nào cũng đỏ
 const mark = an.inbox.length;
@@ -60,7 +61,7 @@ an.send({ t: 'config', config: { level: 999 } });
 an.send({ t: 'config', config: { level: 2.5 } });
 binh.send({ t: 'start' });                                     // khách không được start
 await new Promise((r) => setTimeout(r, 400));
-if (an.inbox.slice(mark).some((m) => m.t === 'room' && m.room.config.level !== 2)) {
+if (an.inbox.slice(mark).some((m) => m.t === 'room' && m.room.config.level !== 1)) {
   fail('config bị đổi sai — khách đổi được, hoặc số cấp rác lọt qua!');
 }
 if (an.inbox.some((m) => m.t === 'state')) fail('khách start được ván!');
@@ -72,7 +73,11 @@ an.send({ t: 'start' });
 await new Promise((r) => setTimeout(r, 5600));   // qua đếm ngược 5 giây
 const st = await binh.wait((m) => m.t === 'state', 'state đầu ván');
 const view = st.view;
-if (view.cards.length !== 4) fail('bàn 2x2 phải có 4 thẻ');
+// SUY RA từ view, không ghi cứng: thang cấp đổi thì con số ghi cứng làm smoke
+// đỏ oan (đã xảy ra khi cấp 2 chuyển từ bàn 2×2 sang 2×3)
+if (view.cards.length !== view.cols * view.rows) fail('số thẻ không khớp cols×rows');
+if (view.totalPairs * 2 !== view.cards.length) fail('bàn phải kín, không ô trống');
+console.log(`  bàn ${view.cols}×${view.rows} = ${view.cards.length} thẻ, ${view.totalPairs} cặp`);
 if (view.cards.some((c) => c.symbol)) fail('LỘ THẺ ÚP! (NF-04)');
 console.log('✓ ván bắt đầu, không thẻ nào lộ symbol');
 
@@ -83,7 +88,7 @@ await new Promise((r) => setTimeout(r, 300));
 if ([an, binh].some((c) => c.inbox.some((m) => m.t === 'events'))) fail('sai lượt mà vẫn lật được!');
 console.log('✓ lật sai lượt bị server bỏ qua (ON-09)');
 
-// Chơi trọn ván 2x2: lật 0,1 — nếu trượt thì server tự úp lại, thử cặp khác
+// Chơi trọn ván: lật 0,1 — nếu trượt thì server tự úp lại, thử cặp khác
 async function flipBoth(c, i, j) {
   c.send({ t: 'flip', index: i });
   await Promise.all([an, binh].map((x) => x.wait((m) => m.t === 'events' && m.events.some((e) => e.type === 'flip' && e.index === i), `flip ${i}`)));

@@ -48,15 +48,22 @@
 ## Quy trình
 
 - **NHÁNH: làm việc trên `develop`, KHÔNG commit thẳng vào `main`.** `main` là
-  nhánh phát hành — Cloudflare Pages build production từ đó, nên mọi commit vào
-  `main` là lên thẳng tay người chơi. Xong việc và test sạch thì merge
+  nhánh phát hành. Xong việc và test sạch thì merge
   `develop` → `main` (`pnpm test` + `pnpm typecheck` + `pnpm build` phải xanh,
   và các luật giao diện ở phần trên phải được kiểm bằng ảnh/đo DOM thật).
   Nhánh chính tên là `main`, không phải `master`.
 - `pnpm dev` = web :3001 + wrangler :8787 song song. `pnpm test` (engine +
   web), `pnpm smoke:online` và các script `tools/smoke-*.mjs` là E2E thật
-  qua wrangler dev (cần server đang chạy). Deploy server: `pnpm deploy:server`
-  (đổi engine/protocol là PHẢI deploy lại worker).
+  qua wrangler dev (cần server đang chạy); đặt `MM_SERVER=<url>` để soi chính
+  worker đã deploy.
+- **Deploy: `pnpm release`** — web và phòng online nằm trong MỘT Worker
+  (`apps/server/wrangler.jsonc` có khối `assets`), nên chỉ một lệnh, không còn
+  chuyện web mới chạy với server cũ. `pnpm deploy:server` chỉ deploy worker mà
+  KHÔNG build lại web — dùng khi biết chắc web không đổi. Không đặt Durable
+  Object trong Pages được, nên `RoomDO` buộc ở Worker và gộp theo chiều này.
+  `/api/*` và `/ws/*` phải nằm trong `run_worker_first`, bỏ ra là SPA fallback
+  trả index.html cho lời gọi API (có test chặn). Đừng bật Workers Cache —
+  request file tĩnh sẽ chuyển thành có phí.
 - Patch bằng python replace PHẢI có `assert old in s` — đã 2 lần patch fail
   âm thầm gây bug ngoài production (bàn phím số).
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server

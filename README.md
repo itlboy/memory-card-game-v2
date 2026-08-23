@@ -116,14 +116,36 @@ chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào sto
 
 ```bash
 pnpm dev:server     # wrangler dev tại http://localhost:8787
-pnpm dev            # web — mặc định trỏ VITE_SERVER_URL=http://localhost:8787
+pnpm dev            # web :3001 + wrangler :8787 song song
 pnpm smoke:online   # E2E: 2 client chơi trọn ván qua WebSocket (cần dev:server đang chạy)
-pnpm deploy:server  # wrangler deploy (cần đăng nhập Cloudflare)
+                    # MM_SERVER=<url> để soi chính worker đã deploy
+pnpm release        # build web + deploy CẢ web và server trong một Worker
 ```
 
-Deploy production: chạy `pnpm deploy:server` lấy URL worker, rồi đặt biến build
-`VITE_SERVER_URL=https://memory-match-server.<account>.workers.dev` trong Cloudflare
-Pages và rebuild.
+### Deploy: MỘT Worker duy nhất
+
+Web và phòng online nằm trong cùng một Worker (`apps/server/wrangler.jsonc`), nên
+`pnpm release` là lệnh deploy duy nhất. Trước đây web ở Cloudflare Pages còn
+worker deploy riêng: hai lần deploy, hai host, và đã hai lần xảy ra chuyện web
+mới chạy với server cũ vì quên deploy worker.
+
+Không gộp theo chiều ngược lại được: Cloudflare không cho đặt Durable Object
+trong Pages project (*"You cannot create and deploy a Durable Object within a
+Pages project"*), nên `RoomDO` buộc phải ở Worker.
+
+| Đường dẫn | Ai xử lý | Tính phí |
+|---|---|---|
+| `/api/*`, `/ws/*` | code Worker (`run_worker_first`) | có — WebSocket chỉ tính lúc bắt tay, tin nhắn sau đó miễn phí |
+| còn lại | tầng static assets, KHÔNG gọi Worker | không — *"static assets are free and unlimited"* |
+
+Ba điều dễ làm hỏng:
+
+- Bỏ `run_worker_first` thì SPA fallback trả `index.html` cho `/api/rooms` —
+  client nhận HTML, lỗi lúc chạy, không có gì báo đỏ. Có test chặn
+  (`apps/web/test/deploy-config.test.ts`).
+- **Đừng bật Workers Cache**: bật là request file tĩnh chuyển thành có phí.
+- Client tự lấy `location.origin` ở bản build, nên KHÔNG cần `VITE_SERVER_URL`
+  nữa. Biến đó vẫn được tôn trọng nếu muốn trỏ tay.
 
 ## Chưa làm (v2.1+)
 
