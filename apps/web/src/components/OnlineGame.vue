@@ -4,6 +4,7 @@ import type { Card } from '@mm/engine';
 import { Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
+import { useBoardFit } from '@/composables/useBoardFit';
 import CelebrationFx from './CelebrationFx.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
@@ -46,10 +47,15 @@ const gainStyle = computed(() => {
   };
 });
 
-const fitStyle = computed(() => {
+/**
+ * Đo chỗ trống thật, y như màn chơi đơn. Trước đây chỗ này tự tính bằng hằng số
+ * `100dvh - 300px` — đoán chiều cao thanh HUD cộng bảng người chơi. Con số đoán
+ * sai ngay khi bố cục đổi, và nó không biết gì về khoảng tỷ lệ lá bài, nên cùng
+ * một cấp mà bàn online lệch hẳn so với bàn chơi đơn.
+ */
+const { wrap, fitStyle } = useBoardFit(() => {
   const v = o.view.value;
-  if (!v) return {};
-  return { '--fit': `min(100%, calc((100dvh - 300px) * ${(v.cols * 3) / (v.rows * 4)}))` };
+  return v ? { cols: v.cols, rows: v.rows } : null;
 });
 
 /** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
@@ -112,7 +118,7 @@ watch(() => o.view.value?.summary, (s) => {
     </p>
     <p v-if="o.reconnecting.value" class="reconnect" role="status">📡 Mất kết nối — đang vào lại…</p>
 
-    <div class="board-wrap">
+    <div ref="wrap" class="board-wrap">
       <BoardGrid
         :cards="cards" :cols="o.view.value?.cols ?? 4"
         :face-up="faceUp" :matched="matchedSet"

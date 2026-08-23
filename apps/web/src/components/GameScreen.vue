@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MemoryGame } from '@mm/engine';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useBoardFit } from '@/composables/useBoardFit';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import PlayerStrip from './PlayerStrip.vue';
@@ -91,55 +92,10 @@ const isPeek = computed(() => (props.game.config.peekMs ?? 0) > 0);
  * Cách cũ trừ một hằng số "chrome" đoán trước (230/255px) rồi khoá thẻ ở 3:4:
  * hằng số đoán sai, và tỉ lệ cứng khiến lưới vuông trên màn dọc chạm bề rộng
  * trước rồi bỏ không hàng trăm pixel chiều cao (4×4 thừa 301px trên iPhone 13).
- * Giờ đo thật chỗ còn lại, và cho thẻ cao thêm tới 5:8 để lấp phần dư.
+ * Giờ đo thật chỗ còn lại. Logic nằm ở useBoardFit, DÙNG CHUNG với màn online —
+ * hai bản riêng là hai bản lệch nhau.
  */
-const wrap = ref<HTMLElement | null>(null);
-const cardAspect = ref(0.75);
-const boardWidth = ref<number | null>(null);
-/** Thẻ không được gầy hơn mức này. 0,58 là tỉ lệ lá tarot — vẫn ra dáng lá bài,
- *  mà lấp được phần chiều cao dư của lưới vuông trên màn dọc. */
-const MIN_ASPECT = 0.58;
-/**
- * Trần tỷ lệ: thẻ được phép nở ngang tới VUÔNG. Khoá ở 3:4 (dáng lá bài chuẩn)
- * thì bàn hẹp và cao bị chặn chiều cao trước, bề rộng thừa ra thành hai dải
- * trống hai bên — đo trên iPhone SE: bàn 2×4 hở 160px, gần một nửa bề rộng.
- *
- * Cho tới 1,0 thì diện tích dùng được lên từ 88,5% tới 97,1% (tính trên 11 cỡ
- * bàn × 3 cỡ máy). Nới thêm tới 1,2 được 99,4% nhưng thẻ thành rộng hơn cao,
- * không còn ra hình lá bài nữa — nên dừng ở vuông.
- */
-const MAX_ASPECT = 1;
-
-function measureBoard(): void {
-  const el = wrap.value;
-  if (!el) return;
-  const { cols, rows } = props.game.config;
-  const availW = el.clientWidth;
-  const availH = el.clientHeight;
-  if (!availW || !availH) return;
-  const gap = availW < 420 ? 6 : 8;
-  const cellW = (availW - gap * (cols - 1)) / cols;
-  const cellH = (availH - gap * (rows - 1)) / rows;
-  // Ưu tiên lấp cả hai chiều; kẹp trong khoảng dáng thẻ chấp nhận được
-  const ar = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, cellW / cellH));
-  const cardH = Math.min(cellH, cellW / ar);
-  cardAspect.value = ar;
-  boardWidth.value = Math.floor(cardH * ar * cols + gap * (cols - 1));
-}
-
-let ro: ResizeObserver | undefined;
-onMounted(() => {
-  measureBoard();
-  ro = new ResizeObserver(measureBoard);
-  if (wrap.value) ro.observe(wrap.value);
-});
-onBeforeUnmount(() => ro?.disconnect());
-watch(() => [props.game.config.cols, props.game.config.rows], measureBoard);
-
-const fitStyle = computed(() => ({
-  '--card-ar': String(cardAspect.value),
-  '--fit': boardWidth.value ? `${boardWidth.value}px` : '100%'
-}));
+const { wrap, fitStyle } = useBoardFit(() => props.game.config);
 </script>
 
 <template>
