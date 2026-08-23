@@ -15,6 +15,20 @@
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
 - Kích thước chạm tối thiểu 44px (NF-07); lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
+- **Vùng chạm ≠ HÌNH của nút.** Nút nhỏ mà vẫn phải 44px thì nới vùng chạm bằng
+  `::after { inset: -8px }`, đừng phình cái nút lên (nút thoát 44px từng kéo cao
+  cả HUD). Nhớ ghi đè cả `min-width`/`min-height` — `.btn` toàn cục đặt 44px.
+- **Không lộ bài, kể cả trong một khung hình.** Mọi animation bắt đầu ở
+  `rotateY(180deg)` là mặt TRƯỚC hướng ra ngoài; đừng bật animation lật bằng
+  selector trạng thái (`:not(.up)` đúng với cả lá chưa từng lật) — để JS gắn
+  class đúng lúc lá ĐỔI mặt. Đây là lỗi đã xảy ra thật, thấy rõ khi F5 giữa ván.
+- **Lắc thẻ phải cùng trục với cú lật** (`rotateY`, không `rotateZ`), biên độ
+  giảm dần; một lá chỉ một animation chạy cùng lúc (cái sau đè cái trước).
+- Cỡ chữ wizard dùng chung `.option strong` / `.option small` ở wizard.css.
+  KHÔNG ghi đè cỡ chữ theo dáng ô — đã gây chuyện bước 1 chữ 18px trong khi các
+  bước sau 22,7px.
+- Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
+  và không chiếm chỗ của bàn thẻ.
 
 ## Hướng thiết kế đã chốt: C · Arcade neon
 
@@ -65,7 +79,20 @@
   trả index.html cho lời gọi API (có test chặn). Đừng bật Workers Cache —
   request file tĩnh sẽ chuyển thành có phí.
 - Patch bằng python replace PHẢI có `assert old in s` — đã 2 lần patch fail
-  âm thầm gây bug ngoài production (bàn phím số).
+  âm thầm gây bug ngoài production (bàn phím số). Cắt khối bằng `s.index()` thì
+  mốc kết thúc phải là chuỗi DUY NHẤT.
+- **Sửa CSS xong phải ĐO `getComputedStyle`**, đừng tin là đã sửa: đã hai lần
+  rule trùng ở cuối file âm thầm ghi đè (cỡ chữ HUD, cỡ nút thoát).
+- Đọc kết quả test phải xem cả dòng `Test Files`, không chỉ `Tests` — đã một lần
+  tưởng xanh trong khi `Test Files 1 failed`.
+- Test đỏ thất thường = đang phụ thuộc ngẫu nhiên (seed bàn thẻ). Sửa bằng cách
+  chọn dữ liệu không có yếu tố đó, KHÔNG phải chạy lại cho tới lúc xanh.
+- Bot: người chơi đi `flip()` (có chốt chặn lượt), bot đi `applyFlip()`. Nhập
+  một đường là bot tự chặn chính nó, ván treo. Bot phải `observe` MỖI KHUNG, nếu
+  không nó mù trước mọi nước của đối thủ.
+- Đổi độ khó bot: nửa đời ký ức ↔ `retain` là hàm số mũ
+  (`retain = 0,5 ** (1 / nửa đời)`), và luôn đo lại số lần lật để dọn bàn — số
+  nhìn có vẻ giãn đều vẫn có thể ra hai mức gần như bằng nhau.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).

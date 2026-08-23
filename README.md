@@ -42,16 +42,42 @@ thành hai hàng — vừa xấu vừa ăn chỗ của bàn thẻ.
 **Điểm tích luỹ hiện gọn** (`numShort`: 90.000 → "90k"). Số đầy đủ làm huy hiệu
 phình ra và cắt mất chữ trong tên game.
 
-- **Nhịp lắc lúc lật do JS bật (`.wob-up` / `.wob-down`), không do selector
-  trạng thái.** `.card:not(.up) .inner { animation: flip-down }` áp cho MỌI lá
-  đang úp kể cả lá chưa từng lật, mà keyframe đó mở ở `rotateY(180deg)` — mặt
-  trước hướng ra ngoài — nên cả bàn loé nội dung một nhịp. **Lộ bài.** Thấy rõ
-  nhất khi F5 giữa ván. Có test chặn.
-- Nút thoát trên HUD: HÌNH 28px cho vừa chiều cao HUD, VÙNG CHẠM vẫn 44px nhờ
-  `::after { inset: -8px }`. Hai chuyện khác nhau — nút nhìn thấy đúng 44px thì
-  cao hơn cả HUD, mà thu vùng chạm xuống 28px là phạm NF-07. Nhớ ghi đè cả
-  `min-width`/`min-height`: `.btn` toàn cục đặt 44px, chỉ khai báo width/height
-  thì nút vẫn nở lại.
+**Thông báo trong ván nổi trên mép bàn** (`.notice-bar` trong global.css), cao
+`0px` và đè lên HUD. Hai điều nó cố tình không làm: không hiện giữa bàn (che
+đúng chỗ đang bấm, mà lúc mắt thần hé cả bàn thì che nghĩa là mất luôn thứ vừa
+trả giá để xem), và không chiếm chỗ (chiếm chỗ thì bàn thẻ co giãn mỗi lần
+thông báo hiện/tan, thẻ nhảy dưới ngón tay).
+
+**Vùng chạm và HÌNH của nút là hai chuyện khác nhau.** Nút thoát trên HUD:
+hình 28px cho vừa chiều cao dòng, vùng chạm vẫn 44px (NF-07) nhờ
+`::after { inset: -8px }`. Để nút nhìn thấy đúng 44px thì nó cao hơn cả HUD;
+thu vùng chạm xuống 28px thì ngón tay không bấm được.
+
+**Cỡ chữ trong wizard dùng chung `.option strong` / `.option small`** ở
+wizard.css. Đừng ghi đè cỡ chữ theo dáng ô — đã có hai rule làm thế
+(`.options.loose > .option:not(.wide)` và `.option.big`) khiến bước 1 ra 18px
+trong khi các bước sau ra 22,7px, cùng một wizard hai cỡ chữ. Ghi đè ICON thì
+được, icon ô lớn thật sự cần nở theo ô.
+
+### Hiệu ứng lá bài (CardTile)
+
+- **Lắc phải cùng TRỤC với cú lật.** Thẻ lật quanh trục dọc (`rotateY`) nên nhịp
+  lắc cũng phải là `rotateY` đi quá mốc rồi đảo chiều — như cánh cửa bản lề.
+  Dùng `rotateZ` (xoay tròn trong mặt phẳng) thì hai chuyển động khác trục, mắt
+  thấy sai ngay.
+- **Nhịp lắc do JS bật (`.wob-up` / `.wob-down`), KHÔNG do selector trạng thái.**
+  `.card:not(.up) .inner { animation: flip-down }` áp cho MỌI lá đang úp, kể cả
+  lá chưa bao giờ bị lật; mà keyframe đó mở ở `rotateY(180deg)` — mặt TRƯỚC
+  hướng ra ngoài — nên mỗi lá úp đều loé nội dung rồi mới quay về úp. **Lộ bài**,
+  thấy rõ nhất khi F5 giữa ván (cả bàn loé một nhịp). Có test chặn.
+- **Một lá chỉ nên có một animation chạy cùng lúc**: cái sau ghi đè cái trước.
+  Vì thế nhịp lắc lúc lật chỉ bật sau khi chia bài xong (cờ `.dealt`) — trước đó
+  animation `deal` lo phần lắc; chạy cả hai thì hoá ra chia bài không lắc gì.
+- **`perspective` là thuộc tính áp cho CON, không áp cho chính nó.** `.card` có
+  `perspective: 700px` nên `.inner` quay có chiều sâu, còn chính `.card` quay thì
+  phải viết `transform: perspective(700px) rotateY(...)`, không thì trông như bị
+  bóp bề ngang.
+- Mọi nhịp lắc tắt hẳn khi người dùng bật "giảm chuyển động".
 
 ## Cấu trúc
 
@@ -241,6 +267,89 @@ Ba điều dễ làm hỏng:
 
 Quick match (ON-02), chế độ Race (ON-06), tài khoản, bảng xếp hạng toàn cầu,
 PWA offline, i18n.
+
+## Bẫy đã sập — đọc trước khi sửa
+
+Mỗi dòng ở đây là một lỗi ĐÃ xảy ra thật, không phải lo xa. Kèm cách phát hiện,
+vì thứ khó nhất không phải sửa mà là biết mình đang sai.
+
+### CSS
+
+- **Rule trùng ở cuối file vẫn đang ghi đè.** Sửa cỡ chữ trong HudBar không có
+  tác dụng vì cuối file còn `.stat span`/`.stat b` khai báo lại; sửa cỡ chữ
+  wizard cũng vậy. **Cách phát hiện:** ĐO `getComputedStyle`, đừng tin là đã
+  sửa. Một lần đo bằng Playwright chỉ mất 30 giây và cho con số thật.
+- **`.btn` toàn cục đặt `min-width`/`min-height: 44px`.** Khai báo `width`/
+  `height` nhỏ hơn thì nút vẫn nở lại — phải ghi đè cả hai cặp. Cùng loại bẫy
+  với trên: đo, đừng đoán.
+- **`animation` trên cùng một phần tử thì cái sau đè cái trước**, không cộng
+  gộp. Hai hiệu ứng cùng lúc = mất một cái, im lặng.
+- **Transition không diễn được nhịp tắt dần.** `transition` chỉ đi một chiều từ
+  giá trị cũ sang mới; muốn quá đà rồi trả về, hay lắc giảm biên độ, phải dùng
+  `@keyframes`.
+- **Selector trạng thái ≠ "vừa mới đổi trạng thái".** `:not(.up)` đúng với cả lá
+  chưa bao giờ lật. Cần "vừa đổi" thì phải để JS gắn class một lần (xem
+  `flipAnim` trong CardTile) — đây chính là cái gây lộ bài.
+
+### Test
+
+- **Đọc cả dòng `Test Files`, không chỉ `Tests`.** Đã một lần grep mỗi dòng
+  `Tests ` rồi tưởng xanh, trong khi `Test Files 1 failed`.
+- **Test đỏ thất thường = test đang phụ thuộc thứ ngẫu nhiên.** Seed lấy từ
+  `Math.random()`, nên test Sinh tồn bấm phải lá "mắt thần" là cả bàn lật lên và
+  lượt dò không còn tính là sai. Sửa bằng cách CHỌN dữ liệu không có yếu tố đó
+  (chỉ lấy cặp không mang thẻ đặc biệt), không phải bằng cách thử lại.
+- **Test xanh vì lý do sai.** Test "mức dễ không cộng điểm" từng xanh khi ván
+  chưa kết thúc (điểm hai đầu đều 0). Luôn kèm một mệnh đề chốt rằng tình huống
+  đã thật sự xảy ra (`expect(...).toContain('Chơi lại')`), và một test đối chứng
+  chiều ngược lại.
+- **Bot chen vào giữa hai cú bấm của một cặp** làm bàn khoá và nước sau bị bỏ →
+  ghép hết bàn mà được 0 cặp. Test nào kiểm chuyện khác thì tắt bot đi
+  (`session.setBot(null)`) và chờ hết khoá trước.
+- **Nhịp nghĩ của bot là một KHOẢNG** nên `advanceTimersByTime` phải chờ dư,
+  không thì test đỏ đúng lúc bot rút phải nhịp chậm.
+
+### Probe bằng Playwright
+
+- **`NFD` không tách được `Đ`/`đ`.** Bỏ dấu để so chữ thì "Đấu với máy" thành
+  "Đau voi may", không phải "Dau voi may" — locator trượt và im lặng trả về
+  false. So bằng đoạn không có `đ`, hoặc bấm theo `.option` thứ n.
+- **Đo góc quay 3D phải dùng ma trận**, `asin` không phân biệt 0° với 180°.
+  Lấy `atan2(-m.m13, m.m11)` từ `DOMMatrix`.
+- Trước khi kết luận "không thấy phần tử", dump `textContent` của mọi `button` —
+  đã nhiều lần tưởng lỗi code trong khi chỉ là chuỗi tìm sai.
+
+### Engine và bot
+
+- **Bot phải nhìn bàn mỗi khung, không phải mỗi lượt.** Nhìn theo lượt thì thẻ
+  người chơi lật rồi úp lại không bao giờ vào ký ức — bot mù trước mọi nước của
+  đối thủ, chơi như đánh một mình.
+- **Đường lật của bot và của người phải TÁCH.** Thêm chốt chặn lượt vào `flip()`
+  mà bot cũng gọi `flip()` thì bot tự chặn chính nó, ván treo vĩnh viễn. Bot đi
+  `applyFlip()`, người đi `flip()`.
+- **Chặn nước đi ở GỐC, không chỉ khoá giao diện.** Bấm được trong lượt bot thì
+  nước đó ghi vào tài khoản bot — người chơi tự tay mở thẻ cho đối thủ ăn điểm.
+- **`retain` và nửa đời ký ức là quan hệ hàm số mũ.** Đổi nửa đời thì phải tính
+  `0,5 ** (1 / nửa đời)`; nhích `retain` "một chút" không bằng nhớ dai thêm "một
+  chút". Và luôn ĐO lại độ khó sau khi đổi: bộ 2/4/5/6 nhìn có vẻ giãn đều nhưng
+  đo ra Pro và Siêu đẳng chỉ chênh 6%, người chơi không phân biệt được.
+- **Trần cho thẻ đặc biệt mạnh.** Không chặn thì bàn 21 cặp ra tới 6 lá tráo,
+  ván thành may rủi (`POWER_MAX`).
+
+### Âm thanh
+
+- **Nhiễu lọc highpass ở 2–3kHz nghe "rẹt rẹt" xót tai.** Tiếng giấy/bìa nên
+  dùng bandpass quanh 700–1000Hz với Q hẹp, cộng một nốt trầm rất nhẹ để có
+  thân. Ít tiếng mà đúng dải còn hơn nhiều tiếng.
+- iOS treo `AudioContext` khi app xuống nền: mọi đường vào phải kiểm lại context
+  còn sống (`verifyAlive`), `suspended` coi như chết và dựng lại.
+
+### Sửa file bằng script
+
+- **Patch bằng python PHẢI `assert old in s`.** Đã hai lần patch fail âm thầm gây
+  bug ngoài production.
+- Cắt một khối bằng `s.index("...")` thì mốc kết thúc phải là chuỗi DUY NHẤT —
+  một lần cắt trúng `</div>` sai chỗ làm hỏng template, phải `git checkout` lại.
 
 ## Sai lệch có chủ ý so với SRS
 
