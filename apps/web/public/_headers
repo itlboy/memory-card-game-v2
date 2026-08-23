@@ -1,0 +1,33 @@
+# Luật cache cho Cloudflare Pages. Vì sao cần ghi tay: tên file JS/CSS có hash
+# nội dung nên cache được vĩnh viễn, nhưng index.html thì KHÔNG có hash — trình
+# duyệt giữ lại bản cũ là người chơi tiếp tục chạy phiên bản cũ, dù bản mới đã
+# lên, tới khi cache hết hạn.
+
+# Trang: luôn hỏi lại server trước khi dùng. Đây là mắt xích quyết định — HTML
+# cũ trỏ tới tên asset cũ, nên nó cache là cả bản deploy mới thành vô nghĩa.
+#
+# Dùng no-cache chứ KHÔNG dùng no-store: no-cache buộc trình duyệt hỏi lại mỗi
+# lần (không có bản mới thì server trả 304, gần như không tốn gì), còn no-store
+# cấm lưu hẳn — service worker sẽ không precache được index.html và app mất khả
+# năng chạy offline, đúng thứ PWA dựng lên để có.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+
+# Service worker và manifest: cũng không có hash trong tên. Riêng sw.js mà bị
+# cache thì người chơi mắc kẹt ở service worker cũ, và nó lại giữ tiếp bản cũ
+# của mọi thứ khác — hỏng kép.
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+# Asset có hash trong tên: nội dung đổi thì TÊN đổi, nên bản cũ không bao giờ bị
+# trả nhầm. Cache một năm, immutable để trình duyệt khỏi hỏi lại.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Ảnh và dữ liệu theme không có hash: cache ngắn rồi hỏi lại.
+/data/*
+  Cache-Control: public, max-age=300, must-revalidate
