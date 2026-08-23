@@ -506,7 +506,9 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 .option .icon { font-size: 30px; }
 .option.big .icon { font-size: 42px; }
-.option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }
+/* KHÔNG ghi đè cỡ chữ ở đây: cả wizard dùng chung `.option strong` trong
+   wizard.css, ghi đè riêng cho ô .big là nguồn gốc chuyện bước 1 chữ nhỏ hơn
+   các bước sau. */
 
 /* Riêng màn này ô ngang có padding hẹp hơn (dáng ô đã cao sẵn) */
 .option.wide { padding: 13px 16px; }

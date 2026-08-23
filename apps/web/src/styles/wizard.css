@@ -52,9 +52,9 @@
 }
 .option.wide .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 
-/* Ô lớn xếp dọc: chữ và icon nở theo chiều nhỏ hơn của ô */
-.options.loose > .option:not(.wide) strong { font-size: clamp(18px, min(9cqw, 13cqh), 30px); }
-.options.loose > .option:not(.wide) small { font-size: clamp(13px, min(5.4cqw, 8cqh), 18px); }
+/* Ô lớn xếp dọc: chỉ ICON nở theo ô, CỠ CHỮ dùng chung với mọi ô khác.
+   Trước đây chỗ này ghi đè cả cỡ chữ (hệ số 13cqh/8cqh) nên bước 1 ra 18px/13px
+   trong khi các bước sau ra 22,7px/14,2px — cùng một wizard mà hai cỡ chữ. */
 .options.loose > .option:not(.wide) .opt-icon { width: clamp(34px, min(15cqw, 22cqh), 62px); height: auto; }
 
 /* ---------- preview lưới trên ô cỡ bàn ---------- */
