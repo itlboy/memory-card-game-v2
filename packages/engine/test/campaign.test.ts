@@ -11,21 +11,30 @@ describe('Campaign (SP-03)', () => {
     for (const l of levels) expect(Math.floor((l.cols * l.rows) / 2)).toBeGreaterThanOrEqual(2);
   });
 
-  it('vào ván từ dễ: màn 1 là 2×2, có màn 3×3, kết ở 8×8', () => {
+  it('vào ván từ dễ: màn 1 là 2×2, kết ở 10×10', () => {
     expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 2]);
-    expect(levels.some((l) => l.cols === 3 && l.rows === 3)).toBe(true);
+    expect(levels[0]!.pairs).toBe(2);
     const last = levels.at(-1)!;
-    expect([last.cols, last.rows]).toEqual([8, 8]);
+    expect([last.cols, last.rows]).toEqual([10, 10]);
+  });
+
+  it('mỗi màn thêm đúng 1 cặp (2 thẻ) và bàn luôn đủ chỗ', () => {
+    for (let i = 0; i < levels.length; i++) {
+      const l = levels[i]!;
+      expect(l.pairs).toBe(i + 2);
+      const total = l.cols * l.rows;
+      expect(total).toBeGreaterThanOrEqual(l.pairs * 2);
+      // Ô trống phải gọn trong một hàng, không thì bàn nhìn khuyết
+      expect(total - l.pairs * 2).toBeLessThanOrEqual(l.cols - 1);
+      expect(l.rows / l.cols).toBeLessThanOrEqual(1.75);
+    }
   });
 
   it('lưới không bao giờ nhỏ lại và thời gian mỗi cặp siết dần', () => {
     for (let i = 1; i < levels.length; i++) {
       const prev = levels[i - 1]!, cur = levels[i]!;
       expect(cur.cols * cur.rows).toBeGreaterThanOrEqual(prev.cols * prev.rows);
-      const perPair = (l: typeof cur) => l.timeLimit / Math.floor((l.cols * l.rows) / 2);
-      if (cur.cols === prev.cols && cur.rows === prev.rows) {
-        expect(perPair(cur)).toBeLessThan(perPair(prev));
-      }
+      expect(cur.timeLimit / cur.pairs).toBeLessThan(prev.timeLimit / prev.pairs);
     }
   });
 

@@ -58,6 +58,7 @@ defineExpose({
       :card="card"
       :back="back ?? 'stars'"
       :deal-order="card.index"
+      :card-count="cards.length"
       :face-up="faceUp.has(card.index)"
       :matched="matched.has(card.index)"
       :wrong="wrongPair.includes(card.index)"
