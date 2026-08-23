@@ -24,6 +24,8 @@ const props = defineProps<{
    *  người chơi tưởng nút không ăn. */
   rematchSent?: boolean;
   rematchWaiting?: string[];
+  /** Tên những người KHÁC đã bấm chơi lại — bên chưa bấm cần thấy để biết mà bấm. */
+  rematchFrom?: string[];
   /** Không còn đủ người kết nối để chơi lại — ẩn nút thay vì để bấm vô nghĩa. */
   rematchBlocked?: boolean;
 }>();
@@ -215,6 +217,11 @@ const title = computed(() => {
       <p v-else-if="rematchSent && rematchWaiting?.length" class="waiting" role="status">
         ⏳ Chờ <b>{{ rematchWaiting.join(', ') }}</b> bấm chơi lại…
       </p>
+      <!-- Mình CHƯA bấm mà người kia đã bấm: phải nói ra, không thì họ chờ mà
+           mình không biết là đang chờ cái gì -->
+      <p v-else-if="rematchFrom?.length" class="waiting want" role="status">
+        🔁 <b>{{ rematchFrom.join(', ') }}</b> muốn chơi lại — bấm <b>Chơi lại</b> để vào ván mới
+      </p>
     </div>
   </div>
 </template>
@@ -224,6 +231,8 @@ const title = computed(() => {
   margin: 10px 0 0; text-align: center; color: var(--muted);
   font-size: var(--text-sm);
 }
+/* Lời mời chơi lại: nổi hơn dòng "đang chờ", vì đây là việc CẦN người đọc làm gì */
+.waiting.want { color: var(--accent); font-weight: 700; }
 .overlay {
   position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
   padding: 20px; background: rgba(6, 9, 18, .3);   /* nền nhạt để thấy pháo hoa phía sau */
@@ -324,10 +333,27 @@ h2 { margin: 0 0 4px; }
 .stats dt { color: var(--muted); font-size: 14px; }
 .stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
 
-.ranking { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.ranking li { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 4px 10px; }
+/* Bảng xếp hạng là NỘI DUNG CHÍNH của bảng kết quả nhiều người, không phải chú
+   thích: tên và điểm cỡ chữ lớn, dòng "7 cặp · chuỗi 4" cũng nâng từ 12px lên
+   var(--text-sm) cho đọc được mà không phải nhíu mắt. Mỗi hàng có nền riêng để
+   tách người này với người kia. */
+.ranking { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ranking li {
+  display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 10px;
+  padding: 8px 12px; border-radius: var(--r-md);
+  background: var(--panel-soft);
+}
+.ranking li > span {
+  font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg);
+  min-width: 0; overflow-wrap: anywhere;
+}
+.ranking li b {
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl);
+  font-variant-numeric: tabular-nums;
+}
+.ranking li:first-child { background: color-mix(in srgb, var(--ok) 12%, var(--panel-soft)); }
 .ranking li:first-child b { color: var(--ok); }
-.ranking small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+.ranking small { grid-column: 1 / -1; color: var(--muted); font-size: var(--text-sm); }
 
 .achievements { margin: 14px 0 0; padding: 12px; list-style: none; display: grid; gap: 6px;
   background: color-mix(in srgb, var(--warn) 12%, transparent); border-radius: 10px; font-size: 13px; }

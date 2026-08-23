@@ -659,3 +659,55 @@ describe('thanh trên cùng không cắt tên game', () => {
     expect(numShort(90_000).length).toBeLessThan((90_000).toLocaleString('vi-VN').length);
   });
 });
+
+describe('bảng kết quả nhiều người', () => {
+  const summary = {
+    status: 'won' as const, reason: 'cleared' as const, score: 0, moves: 20, seconds: 60,
+    stars: 0, bestStreak: 0, timeBonus: 0, pairs: 0,
+    ranking: [
+      { id: 'a', name: 'Kiên', score: 740, pairs: 7, bestStreak: 4 },
+      { id: 'b', name: 'An', score: 260, pairs: 3, bestStreak: 2 }
+    ]
+  };
+  const base = {
+    summary, isRecord: false, showStars: false, multiplayer: true,
+    freshAchievements: [], hasNext: false, totalBefore: 0, totalAfter: 0
+  };
+
+  it('hiện đủ tên, điểm và dòng "cặp · chuỗi" của từng người', async () => {
+    const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
+    const w = mount(ResultDialog, { props: base });
+    expect(w.find('.ranking').html()).toContain('Kiên');
+    expect(w.find('.ranking small').text()).toBe('7 cặp · chuỗi 4');
+    // Hai hàng, hàng đầu là người thắng
+    const rows = w.findAll('.ranking li');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.text()).toContain('Kiên');
+    expect(rows[0]!.find('b').text()).toBe('740');
+  });
+
+  it('người kia bấm chơi lại thì mình thấy lời mời', async () => {
+    const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
+    // Mình CHƯA bấm, An đã bấm
+    const w = mount(ResultDialog, { props: { ...base, rematchSent: false, rematchFrom: ['An'] } });
+    expect(w.find('.waiting.want').text()).toContain('An');
+    expect(w.find('.waiting.want').text()).toContain('muốn chơi lại');
+  });
+
+  it('mình bấm rồi thì thấy đang chờ ai, không thấy lời mời', async () => {
+    const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
+    const w = mount(ResultDialog, {
+      props: { ...base, rematchSent: true, rematchWaiting: ['An'], rematchFrom: [] }
+    });
+    expect(w.find('.waiting').text()).toContain('Chờ');
+    expect(w.find('.waiting.want').exists()).toBe(false);
+  });
+
+  it('đối phương rời hẳn thì không còn nút chơi lại', async () => {
+    const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
+    const w = mount(ResultDialog, { props: { ...base, rematchBlocked: true } });
+    expect(w.text()).toContain('đã rời phòng');
+    const labels = w.findAll('button').map((b) => b.text());
+    expect(labels.some((t) => t.includes('Chơi lại'))).toBe(false);
+  });
+});

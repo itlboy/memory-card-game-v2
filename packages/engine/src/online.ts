@@ -80,6 +80,21 @@ export interface PublicPlayer {
   ready?: boolean;
 }
 
+/**
+ * Kiểu mặt sau lá bài. Nằm ở engine để CLIENT VÀ SERVER dùng cùng một danh
+ * sách — trước đây mỗi client tự bốc bằng Math.random() nên hai người chơi cùng
+ * một bàn lại thấy hai kiểu mặt sau khác nhau.
+ */
+export const CARD_BACKS = ['stars', 'diamond', 'aurora'] as const;
+export type CardBack = (typeof CARD_BACKS)[number];
+
+/** Mặt sau của một ván, suy từ seed nên mọi người trong phòng thấy giống nhau.
+ *  Băm seed thay vì lấy `seed % 3` để không hé ra quan hệ trực tiếp với seed. */
+export function backForSeed(seed: number): CardBack {
+  const h = Math.imul(seed >>> 0, 2654435761) >>> 0;
+  return CARD_BACKS[h % CARD_BACKS.length]!;
+}
+
 export interface GameView {
   cols: number;
   rows: number;
@@ -96,6 +111,8 @@ export interface GameView {
   /** Giây đã trôi của ván — client tự đếm tiếp giữa hai lần cập nhật. */
   elapsed: number;
   summary: Summary | null;
+  /** Mặt sau lá bài của ván này — server quyết để cả phòng thấy giống nhau. */
+  back: CardBack;
 }
 
 /** Chuyển trạng thái engine thành view an toàn để gửi client. */
@@ -131,7 +148,8 @@ export function publicView(
     timeLeft: game.timeLeft(now),
     turnTimeLeft: game.turnTimeLeft(now),
     elapsed: Math.floor(game.elapsed(now)),
-    summary: game.summary()
+    summary: game.summary(),
+    back: backForSeed(game.config.seed)
   };
 }
 

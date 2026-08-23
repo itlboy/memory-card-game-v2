@@ -81,3 +81,27 @@ describe('thẻ tráo đổi (swap)', () => {
     expect(() => g.flip(0, 10)).not.toThrow();
   });
 });
+
+describe('mặt sau lá bài (online)', () => {
+  it('cùng một seed thì cùng một mặt sau — cả phòng thấy giống nhau', async () => {
+    const { backForSeed, CARD_BACKS } = await import('../src/online.js');
+    for (const seed of [1, 42, 999, 123456]) {
+      expect(backForSeed(seed)).toBe(backForSeed(seed));
+      expect(CARD_BACKS).toContain(backForSeed(seed));
+    }
+  });
+
+  it('seed khác nhau thì có đổi mặt sau, không cứng một kiểu', async () => {
+    const { backForSeed } = await import('../src/online.js');
+    const seen = new Set(Array.from({ length: 60 }, (_, i) => backForSeed(i * 7919)));
+    expect(seen.size).toBeGreaterThan(1);
+  });
+
+  it('publicView mang mặt sau, để client không phải tự bốc', async () => {
+    const { publicView } = await import('../src/online.js');
+    const g = new MemoryGame({ mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 77 });
+    g.start(0);
+    const { backForSeed } = await import('../src/online.js');
+    expect(publicView(g, 0, () => true).back).toBe(backForSeed(77));
+  });
+});

@@ -3,6 +3,7 @@ import type {
   ClientMsg, GameView, PublicEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
+import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 import { store } from '@/lib/storage';
 
@@ -60,6 +61,17 @@ export function useOnlineRoom() {
   /** Mình đã bấm "chơi lại" chưa. */
   const iWantAgain = computed(() =>
     !!myId.value && (room.value?.againVotes ?? []).includes(myId.value));
+  /** Tên những người KHÁC đã bấm chơi lại. Bên chưa bấm phải thấy dòng này, nếu
+   *  không thì đối phương bấm xong mà bên này không hay biết gì. */
+  const againFrom = computed(() => {
+    const r = room.value;
+    if (!r) return [] as string[];
+    return (r.againVotes ?? [])
+      .filter((id) => id !== myId.value)
+      .map((id) => r.players.find((p) => p.id === id)?.name)
+      .filter((n): n is string => !!n);
+  });
+
   /** Tên những người CÒN chưa bấm — để nói rõ đang chờ ai. */
   const againWaiting = computed(() => {
     const r = room.value;
@@ -70,8 +82,17 @@ export function useOnlineRoom() {
 
   /* ---------- nhịp tim: đo độ trễ mạng của CHÍNH MÌNH ---------- */
 
-  /** Độ trễ vòng đi-về, ms. null = chưa đo được lần nào. */
+  /**
+   * Độ trễ vòng đi-về, ms. null = chưa đo được lần nào.
+   *
+   * Hiện số GIỮA của 5 nhịp gần nhất, không hiện nhịp mới nhất: mạng thật dao
+   * động 50–60ms rồi thỉnh thoảng vọt 300ms, mà hiện số tức thời thì chip nhảy
+   * loạn — vừa khó đọc vừa làm người chơi tưởng mạng đang tệ trong khi chỉ là
+   * một nhịp lẻ.
+   */
   const ping = ref<number | null>(null);
+  /** 5 nhịp gần nhất, để lấy số giữa. */
+  const pingSamples: number[] = [];
   /** Mất bao lâu chưa nhận được pong — dùng để biết mình đang mất mạng. */
   const pingLost = ref(0);
   let pingSentAt = 0;
@@ -87,6 +108,14 @@ export function useOnlineRoom() {
     const beat = (): void => {
       if (ws?.readyState !== WebSocket.OPEN) return;
       if (pingSentAt) pingLost.value += 1;   // nhịp trước chưa có trả lời
+      // Mất 3 nhịp liền (12 giây) là socket coi như chết. iOS treo kết nối khi
+      // người chơi rời app mà readyState vẫn báo OPEN, nên KHÔNG có bước này
+      // thì họ ngồi nhìn chip đỏ mãi tới khi tự tải lại trang.
+      if (pingLost.value >= 3 && code && token) {
+        reconnecting.value = true;
+        connect(code, myName, token);
+        return;
+      }
       pingSentAt = performance.now();
       ws.send(JSON.stringify({ t: 'ping' }));
     };
@@ -99,6 +128,7 @@ export function useOnlineRoom() {
     pingSentAt = 0;
     pingLost.value = 0;
     ping.value = null;
+    pingSamples.length = 0;
   }
 
   /** Ô đã bấm nhưng server chưa xác nhận — UI lật tới 90 độ để bấm là thấy phản hồi. */
@@ -136,8 +166,9 @@ export function useOnlineRoom() {
   /** Đếm ngược 5 giây trước ván + người đi đầu. */
   const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
   /** Mặt sau của ván — bốc ngẫu nhiên mỗi ván mới. */
-  const BACKS = ['stars', 'diamond', 'aurora'] as const;
-  const backStyle = ref<string>(BACKS[Math.floor(Math.random() * BACKS.length)]!);
+  /** Mặt sau lấy TỪ SERVER: bốc tại client thì hai người chơi cùng một bàn lại
+   *  thấy hai kiểu khác nhau — đúng lỗi đã gặp. */
+  const backStyle = computed<string>(() => view.value?.back ?? CARD_BACKS[0]);
   let lastCountdownSec = -1;
   const clock = ref(0);
   let lastUrgentTick = 0;
@@ -317,7 +348,6 @@ export function useOnlineRoom() {
         break;
 
       case 'countdown':
-        backStyle.value = BACKS[Math.floor(Math.random() * BACKS.length)]!;
         countdown.value = {
           endsAt: Date.now() + msg.endsInMs,
           firstId: msg.firstId,
@@ -374,7 +404,10 @@ export function useOnlineRoom() {
 
       case 'pong':
         if (pingSentAt) {
-          ping.value = Math.round(performance.now() - pingSentAt);
+          pingSamples.push(Math.round(performance.now() - pingSentAt));
+          if (pingSamples.length > 5) pingSamples.shift();
+          const sorted = [...pingSamples].sort((a, b) => a - b);
+          ping.value = sorted[Math.floor(sorted.length / 2)]!;
           pingSentAt = 0;
           pingLost.value = 0;
         }
@@ -509,8 +542,11 @@ export function useOnlineRoom() {
     if (pingLost.value >= 2) return 'lost';
     const p = ping.value;
     if (p === null) return 'ok';
-    if (p < 120) return 'good';
-    if (p < 350) return 'ok';
+    // Mốc chọn theo mạng thật đo được: 50–60ms là bình thường nên phải nằm
+    // trong "tốt"; 300ms là lúc bấm thẻ đã thấy trễ nên phải chuyển vàng, chứ
+    // để trần 350 thì đúng lúc đáng cảnh báo lại vẫn màu trung tính.
+    if (p < 100) return 'good';
+    if (p < 250) return 'ok';
     return 'bad';
   });
 
@@ -536,7 +572,24 @@ export function useOnlineRoom() {
     reconnectDeadline = 0;
   }
 
-  onScopeDispose(() => { leaveSocket(); clearInterval(clockTimer); });
+  /**
+   * Quay lại app (đổi tab, mở lại từ màn khoá): đo ngay một nhịp thay vì đợi
+   * hết 4 giây. Trên iPhone đây là lúc dễ phát hiện socket đã chết trong lúc
+   * app nằm nền.
+   */
+  function onWake(): void {
+    if (document.visibilityState !== 'visible') return;
+    if (pingTimer) startHeartbeat();
+  }
+  document.addEventListener('visibilitychange', onWake);
+  window.addEventListener('pageshow', onWake);
+
+  onScopeDispose(() => {
+    document.removeEventListener('visibilitychange', onWake);
+    window.removeEventListener('pageshow', onWake);
+    leaveSocket();
+    clearInterval(clockTimer);
+  });
 
   /* ---------- chống spam emoji ---------- */
   // Server mới là nơi thực sự chặn (client không đáng tin — ON-09); phần này chỉ
@@ -601,6 +654,7 @@ export function useOnlineRoom() {
     },
     iWantAgain,
     againWaiting,
+    againFrom,
     flip: (index: number) => {
       // Phản hồi NGAY, không chờ server. Vòng đi-về đo được 69ms lúc bình
       // thường nhưng có lúc vọt 376ms, và trong suốt khoảng đó màn hình không
