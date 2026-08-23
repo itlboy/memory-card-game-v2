@@ -84,12 +84,14 @@ export function useOnlineRoom() {
    */
   function startHeartbeat(): void {
     stopHeartbeat();
-    pingTimer = setInterval(() => {
+    const beat = (): void => {
       if (ws?.readyState !== WebSocket.OPEN) return;
       if (pingSentAt) pingLost.value += 1;   // nhịp trước chưa có trả lời
       pingSentAt = performance.now();
       ws.send(JSON.stringify({ t: 'ping' }));
-    }, 4000);
+    };
+    beat();   // đo ngay, không thì 4 giây đầu ván chỗ hiện ping còn trống
+    pingTimer = setInterval(beat, 4000);
   }
   function stopHeartbeat(): void {
     if (pingTimer) clearInterval(pingTimer);

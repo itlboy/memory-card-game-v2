@@ -455,6 +455,13 @@ function openCfgWizard(): void {
         <b>{{ p.name }}</b>
         <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
         <small v-if="p.id === o.myId.value">(bạn)</small>
+        <!-- Ping hiện từ PHÒNG CHỜ, không đợi vào ván: biết mạng mình thế nào
+             trước khi bắt đầu thì còn kịp xử lý. -->
+        <span
+          v-if="p.id === o.myId.value && p.connected"
+          class="ping" :class="o.netQuality.value"
+          :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
+        >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
         <span v-if="!p.connected" class="offline">rớt mạng…</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
           <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
@@ -651,6 +658,17 @@ input:focus { outline: none; border-color: var(--accent); }
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 6px 16px var(--card-back-glow);
 }
+
+/* Ping: giống chip trong màn chơi (OnlineGame) để nhìn ra ngay là cùng một thứ */
+.ping {
+  flex-shrink: 0; font-size: 10px; font-weight: 800; white-space: nowrap;
+  padding: 1px 5px; border-radius: var(--r-full);
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok);
+}
+.ping.ok  { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+.ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
 
 .lobby-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px; }
 .lobby-list li {

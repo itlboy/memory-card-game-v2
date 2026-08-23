@@ -98,6 +98,13 @@ watch(() => o.view.value?.summary, (s) => {
              kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
         <span v-if="p.forfeited" class="netbad" title="Đã rời phòng">🚪 đã rời</span>
         <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">📴 mất mạng</span>
+        <!-- Ping của MÌNH, gắn cạnh tên mình cho khỏi phải đoán là của ai. Luôn
+             hiện: người chơi muốn biết mạng mình thế nào, không chỉ lúc có sự cố. -->
+        <span
+          v-else-if="p.id === o.myId.value"
+          class="ping" :class="o.netQuality.value"
+          :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
+        >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
         <small v-if="p.lives !== null" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
         <span
           v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
@@ -168,11 +175,9 @@ watch(() => o.view.value?.summary, (s) => {
       </Transition>
     </div>
 
-    <!-- Mạng của mình: chỉ hiện khi đáng lo, không chiếm chỗ lúc mọi thứ ổn -->
-    <p v-if="o.netQuality.value !== 'good'" class="mynet" :class="o.netQuality.value" role="status">
-      <template v-if="o.netQuality.value === 'lost'">📴 Mạng của bạn đang có vấn đề…</template>
-      <template v-else-if="o.netQuality.value === 'bad'">🐢 Mạng chậm — {{ o.ping.value }}ms</template>
-      <template v-else-if="o.ping.value !== null">📶 {{ o.ping.value }}ms</template>
+    <!-- Mất mạng hẳn thì nói to, vì lúc đó bấm gì cũng không ăn -->
+    <p v-if="o.netQuality.value === 'lost'" class="mynet lost" role="status">
+      📴 Mạng của bạn đang có vấn đề…
     </p>
 
     <!-- Emoji chat (ON-08) — khán giả không gửi được -->
@@ -230,8 +235,18 @@ watch(() => o.view.value?.summary, (s) => {
   margin: 0; text-align: center; font-size: var(--text-xs); color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.mynet.bad { color: var(--warn); font-weight: 700; }
 .mynet.lost { color: var(--bad); font-weight: 800; }
+/* Ping: chip nhỏ, đủ đọc mà không tranh chỗ với tên và điểm. Màu nói chất lượng
+   nên không cần thêm chữ giải thích. */
+.ping {
+  flex-shrink: 0; font-size: 10px; font-weight: 800; white-space: nowrap;
+  padding: 1px 5px; border-radius: var(--r-full);
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok);
+}
+.ping.ok  { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+.ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+.ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
 .pchip .avatar { font-size: 18px; }
 .pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pchip .lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
