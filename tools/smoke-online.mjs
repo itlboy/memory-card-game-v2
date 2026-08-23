@@ -1,5 +1,7 @@
 // Smoke test E2E: 2 client chơi trọn ván qua wrangler dev (Node 22 có sẵn WebSocket)
-const SERVER = 'http://127.0.0.1:8787';
+// Mặc định đánh vào wrangler dev; đặt MM_SERVER để soi worker đã deploy thật,
+// ví dụ MM_SERVER=https://memory-match-server.nkien-bk.workers.dev
+const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const WS = SERVER.replace('http', 'ws');
 const fail = (m) => { console.error('✗', m); process.exit(1); };
 
@@ -45,13 +47,22 @@ const roomUpd = await an.wait((m) => m.t === 'room' && m.room.players.length ===
 console.log('✓ 2 người trong phòng:', roomUpd.room.players.map((p) => p.name).join(', '));
 
 // Chủ phòng chỉnh cấu hình; khách chỉnh phải bị từ chối
-an.send({ t: 'config', config: { grid: '2x2' } });
-const cfg = await binh.wait((m) => m.t === 'room' && m.room.config.grid === '2x2', 'config 2x2');
-console.log('✓ chủ phòng đổi lưới 2x2');
-binh.send({ t: 'config', config: { grid: '6x6' } });          // phải bị bỏ qua
+an.send({ t: 'config', config: { level: 2 } });
+const cfg = await binh.wait((m) => m.t === 'room' && m.room.config.level === 2, 'config cấp 2');
+console.log('✓ chủ phòng đổi sang cấp 2 (bàn 2×2)');
+// Chỉ soi các tin ĐẾN SAU đây: inbox còn giữ tin lúc phòng mới lập (cấp mặc
+// định), xét cả inbox thì assertion nào cũng đỏ
+const mark = an.inbox.length;
+binh.send({ t: 'config', config: { level: 18 } });             // phải bị bỏ qua
+// Số cấp rác cũng phải bị bỏ qua, không thì presetConfig ném lỗi lúc start và
+// treo cả phòng (ON-09)
+an.send({ t: 'config', config: { level: 999 } });
+an.send({ t: 'config', config: { level: 2.5 } });
 binh.send({ t: 'start' });                                     // khách không được start
 await new Promise((r) => setTimeout(r, 400));
-if (an.inbox.some((m) => m.t === 'room' && m.room.config.grid === '6x6')) fail('khách đổi được config!');
+if (an.inbox.slice(mark).some((m) => m.t === 'room' && m.room.config.level !== 2)) {
+  fail('config bị đổi sai — khách đổi được, hoặc số cấp rác lọt qua!');
+}
 if (an.inbox.some((m) => m.t === 'state')) fail('khách start được ván!');
 console.log('✓ khách không đổi được config / không start được (ON-03, ON-09)');
 
