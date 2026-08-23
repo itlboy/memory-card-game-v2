@@ -1,5 +1,5 @@
 /**
- * Chống spam emoji (3 lần / 10 giây) — E2E thật qua wrangler dev.
+ * Chống spam emoji (3 lần / cửa sổ ROOM_LIMITS.emojiWindowMs) — E2E thật qua wrangler dev.
  * Chạy: pnpm dev:server (hoặc pnpm dev) rồi `node tools/smoke-chat-limit.mjs`.
  * Kiểm ở SERVER vì client không đáng tin (ON-09): người sửa client vẫn phải
  * chịu hạn mức.
@@ -39,8 +39,8 @@ console.log('✓ gửi dồn 5 lần chỉ 3 cái được phát');
 const before = heard(other);
 host.send({ t: 'emoji', emoji: E2 });
 await sleep(400);
-if (heard(other) !== before) fail('cái thứ tư vẫn lọt qua trong cửa sổ 10 giây');
-console.log('✓ trong cửa sổ 10 giây không lọt thêm cái nào');
+if (heard(other) !== before) fail('cái thứ tư vẫn lọt qua trong cửa sổ chống spam');
+console.log('✓ trong cửa sổ chống spam không lọt thêm cái nào');
 
 // Hạn mức tính RIÊNG từng người
 other.send({ t: 'emoji', emoji: E2 });
@@ -48,13 +48,17 @@ await sleep(400);
 if (heard(host) < 1) fail('người khác bị chặn oan vì hạn mức của host');
 console.log('✓ hạn mức tính riêng từng người');
 
-// Hết cửa sổ thì gửi lại được
+// Hết cửa sổ thì gửi lại được. Chờ theo ĐÚNG hằng số của engine, không ghi cứng
+// 10 giây — đổi emojiWindowMs là test này đỏ oan.
+const WINDOW = Number(
+  /emojiWindowMs:\s*([0-9_]+)/.exec(src)[1].replace(/_/g, '')
+);
 const beforeWait = heard(other);
-await sleep(10_000);
+await sleep(WINDOW + 800);
 host.send({ t: 'emoji', emoji: E3 });
 await sleep(500);
-if (heard(other) !== beforeWait + 1) fail('sau 10 giây vẫn không gửi lại được');
-console.log('✓ sau 10 giây được gửi lại');
+if (heard(other) !== beforeWait + 1) fail(`sau ${WINDOW / 1000} giây vẫn không gửi lại được`);
+console.log(`✓ sau ${WINDOW / 1000} giây được gửi lại`);
 
 console.log('\nCHAT LIMIT SMOKE OK');
 process.exit(0);

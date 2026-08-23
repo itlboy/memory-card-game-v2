@@ -25,6 +25,23 @@ trong viewport — nút hành động chính không bao giờ bị đẩy khỏi
 Lưới lựa chọn dùng `grid-auto-rows: minmax(0, 1fr)` để tự nén theo chỗ còn
 lại; thêm lựa chọn = ô nhỏ đi, không dài trang ra. Chi tiết xem CLAUDE.md.
 
+`#app` có `overflow: hidden` ở khối CHUNG, không chỉ khối desktop. Thiếu nó thì
+bất kỳ thứ gì tràn ra đều làm cả trang cuộn được, lộ một khoảng trắng sâu bên
+dưới — lỗi rất khó tái hiện vì phụ thuộc nội dung đang hiện.
+
+**Bàn thẻ đo chỗ trống thật** (`useBoardFit`), dùng chung cho chơi đơn và online.
+Đừng tính bằng hằng số kiểu `100dvh - 300px`: hằng số đoán sai ngay khi bố cục
+đổi, và nó không biết gì về khoảng tỷ lệ lá bài. Tỷ lệ thẻ được phép tới VUÔNG
+(1,0) — khoá ở 3:4 thì bàn cao bị chặn chiều cao trước, bề rộng thừa thành hai
+dải trống (đo trên iPhone SE: bàn 2×4 hở 160px).
+
+**Thanh emoji luôn MỘT hàng**: đúng 8 emoji, nút `flex: 1 1 auto` với sàn 34px
+và trần 44px. Thêm cái thứ 9 là nút co xuống dưới ngưỡng bấm được, hoặc gãy
+thành hai hàng — vừa xấu vừa ăn chỗ của bàn thẻ.
+
+**Điểm tích luỹ hiện gọn** (`numShort`: 90.000 → "90k"). Số đầy đủ làm huy hiệu
+phình ra và cắt mất chữ trong tên game.
+
 ## Cấu trúc
 
 ```
@@ -56,7 +73,7 @@ server.js            Web server tĩnh cho bản build production
 |---|---|
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
-| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung |
+| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần, đóng băng — bật từ cấp 3 (3.4). **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
@@ -90,6 +107,17 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 - Chơi nhiều ván với nhau có **tỷ số cả loạt** (số ván thắng), giữ ở client theo
   tên người chơi.
 - Avatar rút theo **seed** nên mỗi ván một bộ khác, còn F5 giữa ván vẫn giữ nguyên.
+- **Thẻ bom đang TẮT**, không xoá: xem `PLAYABLE_POWERS` trong `deck.ts`. Bật lại
+  chỉ là thêm `'bomb'` vào danh sách, luật xử lý còn nguyên và bản lưu cũ vẫn đọc
+  được. Thay bằng thẻ **tráo đổi** (`'swap'`) — hoán chỗ hai thẻ đang úp.
+- Thẻ tráo đổi phải chuyển cả tập `seen` theo LÁ BÀI, không theo ô: "đã từng lộ
+  ra" là thuộc tính của lá bài, không chuyển thì Sinh tồn trừ mạng oan.
+- Hiệu ứng tráo làm ở UI theo kiểu ngược: engine đã đổi chỗ xong, UI đặt mỗi lá
+  về chỗ CŨ rồi kéo về 0. Mặt sau mọi lá giống hệt nhau nên KHÔNG có animation
+  thì người chơi không thể biết vừa xảy ra gì.
+- Chớp nhoáng: thời gian nhìn giãn theo số thẻ (`peekMsFor` = 2 giây + 0,26 giây
+  mỗi thẻ), kèm đếm ngược 5 giây báo trước. Cố định 4 giây thì bàn nhỏ thừa thãi
+  mà bàn lớn không ai nhớ nổi.
 
 ### Thêm theme mới (không sửa code)
 
@@ -107,9 +135,22 @@ Backend: **Cloudflare Durable Objects** (`apps/server`) — mỗi phòng là m�
 chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào storage.
 
 - Tạo phòng mã 6 chữ số + link mời `?room=CODE` (ON-01), 2–4 người, chủ phòng chọn
-  chế độ/lưới/theme (ON-03), turn-based realtime (ON-04/05). Chế độ dùng được
+  chế độ/cấp độ/theme (ON-03), turn-based realtime (ON-04/05). Chế độ dùng được
   trong phòng: `ROOM_MODES` — mọi thứ trừ Chiến dịch
-- Emoji chat giới hạn 3 lần / 10 giây, chặn ở server (`ROOM_LIMITS.emojiBurst`)
+- **Mã phòng phải tồn tại thật.** `POST /api/rooms` gọi `RoomDO.open()` đánh dấu
+  phòng đã mở; `GET /api/rooms/:code` cho client kiểm trước khi mở WebSocket.
+  Thiếu bước này thì MỌI mã 6 số đều "vào được" (Durable Object sinh theo tên),
+  nên gõ sai là lập phòng mới trong im lặng
+- **Chơi lại là bỏ phiếu**, không phải quyền của chủ phòng: ai cũng bấm được,
+  `RoomInfo.againVotes` cho cả phòng thấy ai đã bấm, đủ phiếu thì tự về lobby.
+  Đối phương rời hẳn thì nút biến mất thay vì bấm vô nghĩa
+- **Bấm thẻ phản hồi ngay**, không chờ hết vòng đi-về: ô vừa bấm lật tới đúng 90
+  độ (cạnh thẻ, chưa thấy mặt nên không phạm NF-04), view về mới lật nốt
+- **Ping đo bằng auto-response**: `setWebSocketAutoResponse` trả lời `{t:'ping'}`
+  ngay ở tầng runtime nên KHÔNG đánh thức Durable Object — đây là chỗ tốn tiền
+  nhất nếu làm sai (DO tính phí theo thời gian thức). Chỉ hiện ping của MÌNH;
+  không đo được ping của người kia, với họ chỉ hiện trạng thái kết nối
+- Emoji chat giới hạn 3 lần / 5 giây, chặn ở server (`ROOM_LIMITS.emojiBurst` và `emojiWindowMs`)
 - Server-authoritative: client chỉ gửi `{t:'flip'}`; payload không bao giờ chứa
   thẻ úp (ON-09, NF-04); emoji chat danh sách đóng (ON-08)
 - Rớt mạng có 30 giây vào lại bằng token, quá hạn bị xử thua (ON-07)
