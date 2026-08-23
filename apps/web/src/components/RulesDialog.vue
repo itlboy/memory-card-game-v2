@@ -17,7 +17,7 @@ const MODES = [
 ];
 
 const POWERS = [
-  { icon: '💥', name: 'Bom', text: 'Hai cặp đã mở bị úp lại.' },
+  { icon: '🔀', name: 'Tráo đổi', text: 'Hai thẻ đang úp đổi chỗ nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
   { icon: '✖️', name: 'Nhân đôi', text: 'Cặp tiếp theo được nhân đôi điểm.' },
   { icon: '👁️', name: 'Mắt thần', text: 'Hé mở cả bàn trong 2 giây.' },
   { icon: '❄️', name: 'Đóng băng', text: 'Đối thủ mất một lượt (chỉ khi chơi nhiều người).' }

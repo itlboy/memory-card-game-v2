@@ -252,6 +252,15 @@ class Sfx {
     }
   }
 
+  /** Tráo hai thẻ: hai tiếng giấy trượt qua nhau, cao rồi thấp — nghe ra "đổi
+   *  chỗ" chứ không phải một tiếng bấm đơn lẻ. */
+  swap(): void {
+    this.noise(0.09, { freq: 3200, gain: 0.05 });
+    this.noise(0.09, { freq: 1800, gain: 0.05, delay: 0.11 });
+    this.voice(880, { dur: 0.07, type: 'triangle', gain: 0.035 });
+    this.voice(660, { dur: 0.09, type: 'triangle', gain: 0.035, delay: 0.11 });
+  }
+
   /** Chọn mục trong menu. */
   select(): void {
     this.voice(700, { dur: 0.06, type: 'triangle', gain: 0.045 });

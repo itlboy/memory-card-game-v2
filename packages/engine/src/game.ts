@@ -8,7 +8,8 @@ import type {
   Card, GameConfig, GameEvent, GameStatus, Player, PlayerInit, Power, Summary
 } from './types.js';
 
-const SOLO_POWERS: readonly Power[] = ['bomb', 'x2', 'eye'];
+/** Chơi đơn không có 'freeze' (không có đối thủ để đóng băng). */
+const SOLO_POWERS: readonly Power[] = ['swap', 'x2', 'eye'];
 
 /** Avatar mặc định cho ván nhiều người cùng máy. Gán theo SEED (không phải theo
  *  thứ tự) nên mỗi ván mới là một bộ khác — nhưng F5 giữa ván hay khôi phục từ
@@ -316,6 +317,25 @@ export class MemoryGame {
     return out;
   }
 
+  /**
+   * Đổi chỗ hai thẻ trên bàn. Phải sửa cả `index` của chúng (index LÀ vị trí,
+   * UI và mọi luật đều tra theo nó) và cả tập `seen` — "đã từng lộ ra" thuộc về
+   * LÁ BÀI chứ không thuộc về ô, nếu không thì Sinh tồn trừ mạng oan.
+   */
+  private swapCards(a: number, b: number): void {
+    const ca = this.cards[a]!, cb = this.cards[b]!;
+    // index là readonly nên dựng bản sao thay vì gán — spread giữ nguyên
+    // powerUsed và mọi trường khác
+    this.cards[a] = { ...cb, index: a };
+    this.cards[b] = { ...ca, index: b };
+    const sa = this.seen.has(a), sb = this.seen.has(b);
+    if (sa !== sb) {
+      // Chỉ một trong hai từng lộ: chuyển dấu đó sang ô mới của lá bài đó
+      this.seen.delete(sa ? a : b);
+      this.seen.add(sa ? b : a);
+    }
+  }
+
   /** Kích hoạt thẻ đặc biệt (mục 3.4). */
   private trigger(card: Card, now: number): GameEvent[] {
     card.powerUsed = true;
@@ -331,6 +351,20 @@ export class MemoryGame {
         for (const pairId of victims) this.matched.delete(pairId);
         affected = this.cards.filter((c) => victims.includes(c.pairId)).map((c) => c.index);
         player.pairs = Math.max(0, player.pairs - victims.length);
+        break;
+      }
+      case 'swap': {
+        // Tráo chỗ hai thẻ ĐANG ÚP và chưa ghép: người chơi đã nhớ vị trí chúng
+        // thì giờ phải nhớ lại. Không đụng thẻ đang mở dở hay thẻ đã ghép —
+        // tráo thẻ đang mở thì người chơi thấy nội dung nhảy chỗ, vô lý.
+        const hidden = this.cards
+          .filter((c) => !c.blank && !this.isMatched(c.index) && !this.selection.includes(c.index))
+          .map((c) => c.index);
+        if (hidden.length >= 2) {
+          const [a, b] = this.rng.sample(hidden, 2) as [number, number];
+          this.swapCards(a, b);
+          affected = [a, b];
+        }
         break;
       }
       case 'x2':

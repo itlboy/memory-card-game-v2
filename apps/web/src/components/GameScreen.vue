@@ -21,6 +21,7 @@ onMounted(() => board.value?.focusFirst());
 const s = props.session;
 const POWER_TEXT: Record<string, string> = {
   bomb: '💥 Thẻ bom! Hai cặp đã mở bị úp lại.',
+  swap: '🔀 Tráo đổi! Hai thẻ vừa đổi chỗ nhau.',
   x2: '✖️ Cặp tiếp theo được nhân đôi điểm!',
   eye: '👁️ Mắt thần — nhìn nhanh trong 2 giây!',
   freeze: '❄️ Đóng băng — đối thủ mất một lượt!'
@@ -192,6 +193,7 @@ const fitStyle = computed(() => ({
         :face-up="s.faceUp.value"
         :matched="s.matchedSet.value"
         :wrong-pair="s.wrongPair.value"
+        :swap="s.swapPair.value"
         :revealing-all="s.revealingAll.value"
         :locked="locked"
         :back="s.backStyle.value"

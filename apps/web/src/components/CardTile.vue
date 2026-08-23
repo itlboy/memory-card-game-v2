@@ -15,13 +15,16 @@ const props = defineProps<{
   dealOrder: number;
   /** Tổng số thẻ — dùng để nén độ so le cho bàn lớn. */
   cardCount?: number;
+  /** Chỗ CŨ của lá bài này so với chỗ mới, khi vừa bị thẻ tráo đổi hoán chỗ.
+   *  Animation chạy từ đó về 0 nên mắt thấy nó bay sang chỗ mới. */
+  swapFrom?: { dx: number; dy: number; sign: number };
   /** Kiểu mặt sau của ván này: stars | diamond | aurora. */
   back: string;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
 
-const POWER_ICON: Record<string, string> = { bomb: '💥', x2: '✖️', eye: '👁️', freeze: '❄️' };
+const POWER_ICON: Record<string, string> = { bomb: '💥', swap: '🔀', x2: '✖️', eye: '👁️', freeze: '❄️' };
 
 /** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
 const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));
@@ -39,8 +42,16 @@ const label = computed(() => {
   <button
     v-else
     class="card"
-    :class="{ up: faceUp, done: matched, wrong, peek: peeking }"
-    :style="{ '--deal': `${dealStagger}ms` }"
+    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom }"
+    :style="{
+      '--deal': `${dealStagger}ms`,
+      ...(swapFrom ? {
+        '--sx': `${swapFrom.dx}px`,
+        '--sy': `${swapFrom.dy}px`,
+        '--sr': `${swapFrom.sign * 7}deg`,
+        zIndex: swapFrom.sign > 0 ? 7 : 6
+      } : {})
+    }"
     :aria-label="label"
     :aria-disabled="disabled || matched ? 'true' : 'false'"
     :data-index="card.index"
@@ -159,6 +170,16 @@ const label = computed(() => {
   animation: twinkle 1.6s ease-in-out infinite;
 }
 @keyframes twinkle { 50% { transform: scale(1.25); opacity: .8; } }
+
+/* Tráo đổi: lá bài bắt đầu ở CHỖ CŨ rồi bay về chỗ mới, hơi nâng lên và nghiêng
+   để hai lá thấy rõ là đang đổi chỗ nhau chứ không phải trôi đi đâu. z-index để
+   nó bay TRÊN các thẻ khác thay vì bị che. */
+.card.swapping { animation: swap-move .58s cubic-bezier(.35, .85, .3, 1); }
+@keyframes swap-move {
+  from { transform: translate(var(--sx, 0), var(--sy, 0)) scale(1); }
+  45%  { transform: translate(calc(var(--sx, 0) * .5), calc(var(--sy, 0) * .5)) scale(1.1) rotate(var(--sr, 7deg)); }
+  to   { transform: translate(0, 0) scale(1) rotate(0); }
+}
 
 .card.wrong .inner { animation: shake .32s; }
 @keyframes shake {

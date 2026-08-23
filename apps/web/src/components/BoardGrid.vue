@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Card } from '@mm/engine';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import CardTile from './CardTile.vue';
 
 const props = defineProps<{
@@ -13,10 +13,34 @@ const props = defineProps<{
   locked: boolean;
   /** Kiểu mặt sau của ván này. */
   back?: string;
+  /** Hai ô vừa bị thẻ tráo đổi hoán chỗ. */
+  swap?: { a: number; b: number; key: number } | null;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
 const grid = ref<HTMLElement | null>(null);
+
+/**
+ * Hiệu ứng tráo thẻ. Engine đã đổi chỗ xong rồi, nên ở đây làm ngược: đặt thẻ
+ * về chỗ CŨ của nó bằng transform, rồi để animation kéo về 0 — mắt thấy hai lá
+ * bay chéo qua nhau vào chỗ mới. Đo bằng rect thật chứ không tính từ cols và cỡ
+ * thẻ: bàn co giãn theo màn hình nên tính tay là sai.
+ */
+const swapFrom = ref<Record<number, { dx: number; dy: number; sign: number }>>({});
+watch(() => props.swap?.key, () => {
+  const sw = props.swap;
+  if (!sw || !grid.value) { swapFrom.value = {}; return; }
+  const kids = grid.value.children;
+  const ra = kids[sw.a]?.getBoundingClientRect();
+  const rb = kids[sw.b]?.getBoundingClientRect();
+  if (!ra || !rb) return;
+  // sign ngược dấu: hai lá nghiêng ngược chiều và một lá bay TRÊN lá kia. Giữa
+  // đường bay chúng gặp nhau ở cùng một điểm, cùng dáng thì trông như một lá.
+  swapFrom.value = {
+    [sw.a]: { dx: rb.left - ra.left, dy: rb.top - ra.top, sign: 1 },
+    [sw.b]: { dx: ra.left - rb.left, dy: ra.top - rb.top, sign: -1 }
+  };
+});
 
 /** Điều hướng lưới bằng bàn phím (NF-07). */
 function onKeydown(e: KeyboardEvent): void {
@@ -64,6 +88,7 @@ defineExpose({
       :wrong="wrongPair.includes(card.index)"
       :peeking="revealingAll"
       :disabled="locked"
+      :swap-from="swapFrom[card.index]"
       @flip="emit('flip', $event)"
     />
   </div>

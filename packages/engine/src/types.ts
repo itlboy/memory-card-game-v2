@@ -1,7 +1,9 @@
 export type Mode = 'classic' | 'time' | 'campaign' | 'survival' | 'peek';
 
 /** Hiệu ứng gắn trên một thẻ đơn lẻ, kích hoạt ngay khi thẻ đó được lật (mục 3.4). */
-export type Power = 'bomb' | 'x2' | 'eye' | 'freeze';
+/** 'bomb' còn trong kiểu nhưng ĐANG TẮT — xem PLAYABLE_POWERS trong deck.ts.
+ *  Giữ lại để bản lưu cũ (snapshot, phòng online đang chạy) đọc được. */
+export type Power = 'bomb' | 'swap' | 'x2' | 'eye' | 'freeze';
 
 export interface Card {
   readonly index: number;

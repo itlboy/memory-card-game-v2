@@ -30,6 +30,8 @@ export function useOnlineRoom() {
   const reconnecting = ref(false);
   /** Hiệu ứng phía client — cùng ngôn ngữ với chế độ offline. */
   const wrongPair = ref<number[]>([]);
+  /** Hai ô vừa bị thẻ tráo đổi hoán chỗ — BoardGrid dùng để chạy hiệu ứng. */
+  const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
   const bubbles = ref<Record<string, { emoji: QuickEmoji; key: number }>>({});
@@ -283,7 +285,16 @@ export function useOnlineRoom() {
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;
         case 'power':
-          e.power === 'bomb' ? sfx.bomb() : e.power === 'freeze' ? sfx.freeze() : sfx.power();
+          if (e.power === 'bomb') sfx.bomb();
+          else if (e.power === 'freeze') sfx.freeze();
+          else if (e.power === 'swap') sfx.swap();
+          else sfx.power();
+          // Mặt sau mọi lá bài giống hệt nhau, nên không có hiệu ứng thì cả
+          // phòng không ai biết vừa có hai thẻ đổi chỗ (giống chơi đơn)
+          if (e.power === 'swap' && e.affected.length === 2) {
+            swapPair.value = { a: e.affected[0]!, b: e.affected[1]!, key: (swapPair.value?.key ?? 0) + 1 };
+            setTimeout(() => { swapPair.value = null; }, 620);
+          }
           break;
         case 'turn':
           if (e.skipped) frozenId = e.playerId;
@@ -436,7 +447,7 @@ export function useOnlineRoom() {
 
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
-    wrongPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
+    wrongPair, swapPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
     countdown, countdownLeft, backStyle,
     createRoom, join, leave, resumeStored,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),

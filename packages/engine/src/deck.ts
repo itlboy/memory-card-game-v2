@@ -1,7 +1,13 @@
 import { Rng } from './rng.js';
 import type { Card, Power } from './types.js';
 
-const POWERS: readonly Power[] = ['bomb', 'x2', 'eye', 'freeze'];
+/**
+ * Thẻ đặc biệt được phép xuất hiện. 'bomb' TẠM TẮT: úp lại hai cặp đã mở là
+ * đòn quá nặng, mất cả công người chơi vừa bỏ ra. Thay bằng 'swap' — chỉ tráo
+ * chỗ hai thẻ đang úp, có hiệu ứng chỉ rõ hai thẻ nào, nên khó mà vẫn công
+ * bằng. Bật lại bomb thì thêm vào danh sách này, luật xử lý vẫn còn nguyên.
+ */
+const PLAYABLE_POWERS: readonly Power[] = ['swap', 'x2', 'eye', 'freeze'];
 
 export interface DeckOptions {
   cols: number;
@@ -32,7 +38,7 @@ export function buildDeck(opts: DeckOptions): Card[] {
   const blanks = total - pairCount * 2;
 
   const picked = rng.sample(symbols, pairCount);
-  const allowed = opts.allowedPowers?.length ? opts.allowedPowers : POWERS;
+  const allowed = opts.allowedPowers?.length ? opts.allowedPowers : PLAYABLE_POWERS;
   const specialCount = Math.floor(pairCount * Math.max(0, Math.min(1, opts.specialRate ?? 0)));
   // Cặp nào mang hiệu ứng — chọn tất định theo seed
   const specialPairs = new Set(rng.sample([...picked.keys()], specialCount));

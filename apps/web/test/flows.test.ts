@@ -553,3 +553,53 @@ describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
     expect(wrapper.find('.peek-clock').exists()).toBe(false);
   });
 });
+
+describe('thẻ tráo đổi', () => {
+  /** Gắn thẻ tráo đổi vào một ô đang úp rồi lật ô đó. */
+  async function triggerSwap(): Promise<void> {
+    const g = session(wrapper).game.value!;
+    for (const c of g.cards) (c as { power?: string }).power = undefined;
+    (g.cards[0] as { power?: string }).power = 'swap';
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await flush();
+  }
+
+  it('hai thẻ bay chéo qua nhau ngay, và bay TRÊN các thẻ khác', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start(12);
+    await triggerSwap();
+
+    const flying = wrapper.findAll('.card.swapping');
+    expect(flying).toHaveLength(2);
+    // Mỗi thẻ mang độ lệch tới chỗ CŨ của nó; hai độ lệch phải ngược dấu nhau
+    const offs = flying.map((c) => (c.attributes('style') ?? ''));
+    for (const st of offs) expect(st).toMatch(/--sx:/);
+    expect(offs[0]).not.toBe(offs[1]);
+  });
+
+  it('thông báo đợi thẻ đáp mới hiện — hiện ngay thì chữ che đúng hai thẻ đang bay', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start(12);
+    await triggerSwap();
+
+    // Đang bay: chưa có chữ nào che bàn
+    expect(wrapper.find('.toast').exists()).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(700);
+    await flush();
+    expect(wrapper.find('.toast').text()).toContain('Tráo đổi');
+    expect(wrapper.findAll('.card.swapping')).toHaveLength(0);   // đã đáp
+  });
+
+  it('thẻ bom đang tắt: không ván nào sinh ra nó', async () => {
+    await mountApp();
+    await pickMode('Sinh tồn');       // Sinh tồn luôn có thẻ đặc biệt
+    await start(20);
+    const g = session(wrapper).game.value!;
+    const powers = g.cards.map((c) => c.power).filter(Boolean);
+    expect(powers.length).toBeGreaterThan(0);
+    expect(powers).not.toContain('bomb');
+  });
+});

@@ -17,6 +17,10 @@ export function useGameSession() {
   /** Thẻ đang lắc vì ghép sai, để UI vẽ hiệu ứng. */
   const wrongPair = ref<number[]>([]);
   const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
+  /** Hai ô vừa bị thẻ tráo đổi hoán chỗ, kèm key để lặp lại animation. */
+  const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
+  /** Thời gian hai thẻ bay — phải khớp keyframes `swap-move` trong CardTile. */
+  const SWAP_MS = 620;
   /** Vừa hồi mạng (Sinh tồn) — phải báo rõ, không thì tim trên HUD tự nhiều
    *  thêm một cái và người chơi không hiểu vì sao. */
   const lifeGain = ref<{ key: number } | null>(null);
@@ -63,7 +67,25 @@ export function useGameSession() {
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;
         case 'power':
-          e.power === 'bomb' ? sfx.bomb() : e.power === 'freeze' ? sfx.freeze() : sfx.power();
+          if (e.power === 'bomb') sfx.bomb();
+          else if (e.power === 'freeze') sfx.freeze();
+          else if (e.power === 'swap') sfx.swap();
+          else sfx.power();
+          // Hai ô bị tráo: UI cho chúng bay chéo qua nhau. Mặt sau mọi lá bài
+          // giống hệt nhau (NF), nên KHÔNG có hiệu ứng thì người chơi không thể
+          // biết vừa có gì xảy ra.
+          if (e.power === 'swap' && e.affected.length === 2) {
+            swapPair.value = { a: e.affected[0]!, b: e.affected[1]!, key: (swapPair.value?.key ?? 0) + 1 };
+            setTimeout(() => { swapPair.value = null; }, SWAP_MS);
+            // Thông báo nằm GIỮA bàn, mà hai thẻ cũng bay qua giữa bàn — hiện
+            // ngay thì chữ che đúng thứ cần cho người chơi xem. Đợi thẻ đáp
+            // xuống rồi mới nói vừa xảy ra chuyện gì.
+            setTimeout(() => {
+              lastPower.value = e;
+              setTimeout(() => { lastPower.value = null; }, 3200);
+            }, SWAP_MS);
+            break;
+          }
           lastPower.value = e;
           // 1,6 giây không đủ đọc một câu tiếng Việt có dấu — nhất là khi thẻ
           // đang lật và mắt người chơi còn ở chỗ khác
@@ -155,6 +177,7 @@ export function useGameSession() {
     summary.value = null;
     wrongPair.value = [];
     lastPower.value = null;
+    swapPair.value = null;
     lastGain.value = null;
     turnBanner.value = null;
     clearTimeout(bannerTimer);
@@ -201,6 +224,7 @@ export function useGameSession() {
     summary.value = g.summary();
     wrongPair.value = [];
     lastPower.value = null;
+    swapPair.value = null;
     lastGain.value = null;
     turnBanner.value = null;
     lastTickSecond = -1;
@@ -274,7 +298,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop, adopt,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, lifeGain, turnBanner, timeBonusFor,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };
