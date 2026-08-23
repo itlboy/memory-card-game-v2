@@ -354,17 +354,25 @@ export class MemoryGame {
         break;
       }
       case 'swap': {
-        // Tráo chỗ hai thẻ ĐANG ÚP và chưa ghép: người chơi đã nhớ vị trí chúng
-        // thì giờ phải nhớ lại. Không đụng thẻ đang mở dở hay thẻ đã ghép —
-        // tráo thẻ đang mở thì người chơi thấy nội dung nhảy chỗ, vô lý.
-        const hidden = this.cards
-          .filter((c) => !c.blank && !this.isMatched(c.index) && !this.selection.includes(c.index))
+        // Chỉ tráo thẻ ĐÃ TỪNG LỘ RA mà chưa ghép được. Tráo hai thẻ chưa ai mở
+        // là vô nghĩa: người chơi không có ký ức nào về chúng để mà bị phá, nên
+        // chỉ còn cái animation cho vui. Cũng không đụng thẻ đang mở dở (thấy
+        // nội dung nhảy chỗ trước mắt là vô lý) và thẻ đã ghép.
+        const swappable = this.cards
+          .filter((c) => !c.blank
+            && this.seen.has(c.index)
+            && !this.isMatched(c.index)
+            && !this.selection.includes(c.index))
           .map((c) => c.index);
-        if (hidden.length >= 2) {
-          const [a, b] = this.rng.sample(hidden, 2) as [number, number];
-          this.swapCards(a, b);
-          affected = [a, b];
+        if (swappable.length < 2) {
+          // Chưa có gì đáng tráo (đầu ván): ĐỂ DÀNH thẻ này cho lần sau thay vì
+          // tiêu nó vào một cú tráo không ai nhận ra.
+          card.powerUsed = false;
+          return [];
         }
+        const [a, b] = this.rng.sample(swappable, 2) as [number, number];
+        this.swapCards(a, b);
+        affected = [a, b];
         break;
       }
       case 'x2':

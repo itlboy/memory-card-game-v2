@@ -555,12 +555,25 @@ describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
 });
 
 describe('thẻ tráo đổi', () => {
-  /** Gắn thẻ tráo đổi vào một ô đang úp rồi lật ô đó. */
+  /**
+   * Lộ ra hai thẻ không thành cặp (để chúng vào tập "đã thấy"), rồi lật thẻ mang
+   * power tráo. Phải có bước lộ trước: thẻ tráo chỉ tráo thẻ ĐÃ TỪNG LỘ, nên lật
+   * nó ngay nước đầu thì đúng theo luật là không tráo gì cả.
+   */
   async function triggerSwap(): Promise<void> {
     const g = session(wrapper).game.value!;
     for (const c of g.cards) (c as { power?: string }).power = undefined;
-    (g.cards[0] as { power?: string }).power = 'swap';
-    await wrapper.findAll('.card')[0]!.trigger('click');
+    const tiles = () => wrapper.findAll('.card');
+    const a = g.cards[0]!;
+    const b = g.cards.find((c) => c.pairId !== a.pairId)!;
+    await tiles()[a.index]!.trigger('click');
+    await tiles()[b.index]!.trigger('click');
+    await vi.advanceTimersByTimeAsync(1200);        // chờ hai thẻ úp lại
+    await flush();
+
+    const carrier = g.cards.find((c) => c.index !== a.index && c.index !== b.index)!;
+    (g.cards[carrier.index] as { power?: string }).power = 'swap';
+    await tiles()[carrier.index]!.trigger('click');
     await flush();
   }
 

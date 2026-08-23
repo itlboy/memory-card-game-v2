@@ -109,7 +109,10 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 - Avatar rút theo **seed** nên mỗi ván một bộ khác, còn F5 giữa ván vẫn giữ nguyên.
 - **Thẻ bom đang TẮT**, không xoá: xem `PLAYABLE_POWERS` trong `deck.ts`. Bật lại
   chỉ là thêm `'bomb'` vào danh sách, luật xử lý còn nguyên và bản lưu cũ vẫn đọc
-  được. Thay bằng thẻ **tráo đổi** (`'swap'`) — hoán chỗ hai thẻ đang úp.
+  được. Thay bằng thẻ **tráo đổi** (`'swap'`) — hoán chỗ hai thẻ ĐÃ TỪNG LỘ RA
+  mà chưa ghép được. Tráo thẻ chưa ai mở là vô nghĩa: người chơi không có ký ức
+  nào về chúng để bị phá, chỉ còn cái animation cho vui. Chưa đủ hai thẻ như vậy
+  (đầu ván) thì KHÔNG tráo và để dành thẻ cho lần sau (`powerUsed = false`).
 - Thẻ tráo đổi phải chuyển cả tập `seen` theo LÁ BÀI, không theo ô: "đã từng lộ
   ra" là thuộc tính của lá bài, không chuyển thì Sinh tồn trừ mạng oan.
 - Hiệu ứng tráo làm ở UI theo kiểu ngược: engine đã đổi chỗ xong, UI đặt mỗi lá

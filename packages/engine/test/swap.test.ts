@@ -22,63 +22,85 @@ const snapshotOf = (cards: readonly Card[]): string[] =>
   cards.map((c) => `${c.index}:${c.pairId}`);
 
 describe('thẻ tráo đổi (swap)', () => {
-  it('đổi chỗ đúng hai thẻ, và báo rõ hai ô nào', () => {
+  /**
+   * Lộ ra hai thẻ KHÔNG thành cặp rồi để chúng úp lại — sau bước này chúng nằm
+   * trong tập `seen`, tức là "người chơi đã thấy". Thẻ tráo chỉ được phép tráo
+   * loại này: tráo thẻ chưa ai mở thì người chơi không có ký ức nào để bị phá.
+   */
+  function revealTwo(g: MemoryGame): number[] {
+    const first = g.cards[0]!;
+    const other = g.cards.find((c) => c.pairId !== first.pairId)!;
+    g.flip(first.index, 10);
+    g.flip(other.index, 20);
+    g.tick(20 + 3000);                       // hết flipBackMs, hai thẻ úp lại
+    return [first.index, other.index];
+  }
+
+  it('chỉ tráo thẻ ĐÃ TỪNG LỘ RA', () => {
+    const g = gameWithSwapAt(15);
+    const seen = revealTwo(g);
+    const before = snapshotOf(g.cards);
+    const events = g.flip(15, 100);
+    const power = events.find((e) => e.type === 'power');
+    expect(power, 'phải kích hoạt thẻ tráo').toBeDefined();
+    const affected = power!.type === 'power' ? power!.affected : [];
+    expect(affected).toHaveLength(2);
+    // Hai ô bị tráo PHẢI nằm trong số đã lộ
+    for (const i of affected) expect(seen).toContain(i);
+
+    const after = snapshotOf(g.cards);
+    expect(before.filter((v, i) => v !== after[i]).length).toBe(2);
+  });
+
+  it('chưa thẻ nào lộ ra thì KHÔNG tráo, và để dành thẻ cho lần sau', () => {
     const g = gameWithSwapAt(0);
     const before = snapshotOf(g.cards);
     const events = g.flip(0, 100);
-    const power = events.find((e) => e.type === 'power');
-    expect(power).toBeDefined();
-    expect(power!.type === 'power' && power!.power).toBe('swap');
-    const affected = power!.type === 'power' ? power!.affected : [];
-    expect(affected).toHaveLength(2);
-
-    const after = snapshotOf(g.cards);
-    const moved = before.filter((v, i) => v !== after[i]).length;
-    expect(moved).toBe(2);                       // đúng hai ô đổi nội dung
-    const [a, b] = affected as [number, number];
-    expect(new Set([a, b]).size).toBe(2);        // không tráo một ô với chính nó
+    expect(events.find((e) => e.type === 'power')).toBeUndefined();
+    expect(snapshotOf(g.cards)).toEqual(before);      // bàn y nguyên
+    expect(g.cards[0]!.powerUsed).toBe(false);        // chưa tiêu, còn dùng được
   });
 
   it('index luôn khớp vị trí sau khi tráo — mọi luật tra theo index', () => {
-    const g = gameWithSwapAt(0);
-    g.flip(0, 100);
+    const g = gameWithSwapAt(15);
+    revealTwo(g);
+    g.flip(15, 100);
     g.cards.forEach((c, i) => expect(c.index, `ô ${i}`).toBe(i));
   });
 
   it('không tráo thẻ đang mở dở: nội dung nhảy chỗ trước mắt là vô lý', () => {
-    const g = gameWithSwapAt(0);
-    const events = g.flip(0, 100);
+    const g = gameWithSwapAt(15);
+    revealTwo(g);
+    const events = g.flip(15, 100);
     const power = events.find((e) => e.type === 'power')!;
     const affected = power.type === 'power' ? power.affected : [];
-    expect(affected).not.toContain(0);           // ô vừa lật
+    expect(affected).not.toContain(15);
   });
 
   it('không tráo thẻ đã ghép', () => {
     const g = new MemoryGame({ mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 3 });
     g.start(0);
-    // Ghép một cặp trước
+    // Ghép một cặp — nó vào `seen` nhưng đã matched nên phải bị loại
     const first = g.cards[0]!;
     const twin = g.cards.find((c) => c.pairId === first.pairId && c.index !== first.index)!;
     g.flip(first.index, 10);
     g.flip(twin.index, 20);
     const matchedIdx = [first.index, twin.index];
 
-    // Rồi bật swap
+    // Rồi lộ thêm hai thẻ khác để có cái mà tráo
+    const rest = g.cards.filter((c) => !matchedIdx.includes(c.index));
+    const a = rest[0]!, b = rest.find((c) => c.pairId !== a.pairId)!;
+    g.flip(a.index, 30);
+    g.flip(b.index, 40);
+    g.tick(40 + 3000);
+
     for (const c of g.cards) (c as { power?: string }).power = undefined;
-    const target = g.cards.find((c) => !matchedIdx.includes(c.index))!;
+    const target = rest.find((c) => c.index !== a.index && c.index !== b.index)!;
     (g.cards[target.index] as { power?: string }).power = 'swap';
-    const events = g.flip(target.index, 30);
+    const events = g.flip(target.index, 50);
     const power = events.find((e) => e.type === 'power');
     const affected = power?.type === 'power' ? power.affected : [];
     for (const i of matchedIdx) expect(affected).not.toContain(i);
-  });
-
-  it('bàn thiếu thẻ úp để tráo thì không nổ lỗi, chỉ không tráo gì', () => {
-    const g = new MemoryGame({ mode: 'classic', cols: 2, rows: 2, symbols: SYMBOLS, seed: 5 });
-    g.start(0);
-    (g.cards[0] as { power?: string }).power = 'swap';
-    // Lật ô 0: chỉ còn 3 thẻ úp nên vẫn tráo được; kiểm là không ném lỗi
-    expect(() => g.flip(0, 10)).not.toThrow();
   });
 });
 
