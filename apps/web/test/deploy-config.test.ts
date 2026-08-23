@@ -43,22 +43,25 @@ describe('cấu hình deploy Worker gộp', () => {
 });
 
 /**
- * Cloudflare không biết gì về nhánh git — nó chỉ nhìn `name`, mà `name` nằm
- * trong repo nên MỌI nhánh đều mang cùng một tên. Deploy từ nhánh đang làm là
- * ghi thẳng lên bản người chơi đang dùng. Environment `staging` là cách duy
- * nhất để tách (worker có Durable Object thì không được cấp preview URL).
+ * KHÔNG khai environment nào trong wrangler.jsonc.
+ *
+ * Vì sao chặn bằng test: mỗi environment là một worker RIÊNG trên tài khoản
+ * Cloudflare, và `wrangler deploy --env <tên>` TẠO worker đó nếu chưa có. Thêm
+ * environment lặng lẽ nghĩa là thêm một script có thể sinh tài nguyên trên tài
+ * khoản người khác — phải là quyết định có chủ đích, không phải hệ quả phụ của
+ * một lần refactor.
+ *
+ * Muốn thêm lại thì xoá test này và nói rõ trong commit vì sao.
  */
-describe('môi trường thử tách khỏi production', () => {
-  const staging = cfg.env?.staging;
-
-  it('staging có TÊN KHÁC — cùng tên là cùng worker, cùng phòng chơi', () => {
-    expect(staging?.name).toBeTruthy();
-    expect(staging.name).not.toBe(cfg.name);
+describe('không tự sinh worker ngoài production', () => {
+  it('wrangler.jsonc không khai environment nào', () => {
+    expect(cfg.env).toBeUndefined();
   });
 
-  it('staging PHẢI tự khai durable_objects — wrangler không kế thừa khoá này', () => {
-    // Thiếu thì staging deploy ra worker không có binding nào và vào phòng là
-    // lỗi. Wrangler chỉ CẢNH BÁO chứ không chặn, nên phải có test.
-    expect(staging?.durable_objects?.bindings?.[0]?.class_name).toBe('RoomDO');
+  it('không có script nào deploy bằng --env', () => {
+    const root = JSON.parse(readFileSync(resolve(process.cwd(), '../../package.json'), 'utf8'));
+    const server = JSON.parse(readFileSync(resolve(process.cwd(), '../server/package.json'), 'utf8'));
+    const all = Object.values({ ...root.scripts, ...server.scripts }).join(' ');
+    expect(all).not.toContain('--env');
   });
 });
