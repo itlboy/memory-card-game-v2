@@ -261,6 +261,18 @@ class Sfx {
     this.voice(660, { dur: 0.09, type: 'triangle', gain: 0.035, delay: 0.11 });
   }
 
+  /** Có người bấm sẵn sàng — hai nốt đi LÊN, nghe ra "xong rồi". */
+  ready(): void {
+    this.voice(660, { dur: 0.08, type: 'triangle', gain: 0.05 });
+    this.voice(990, { dur: 0.12, type: 'triangle', gain: 0.045, delay: 0.08 });
+  }
+
+  /** Có người huỷ sẵn sàng — hai nốt đi XUỐNG, ngược chiều với ready(). */
+  unready(): void {
+    this.voice(660, { dur: 0.08, type: 'triangle', gain: 0.045 });
+    this.voice(440, { dur: 0.12, type: 'triangle', gain: 0.04, delay: 0.08 });
+  }
+
   /** Chọn mục trong menu. */
   select(): void {
     this.voice(700, { dur: 0.06, type: 'triangle', gain: 0.045 });

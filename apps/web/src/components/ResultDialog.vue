@@ -19,6 +19,11 @@ const props = defineProps<{
   seriesWins?: Record<string, number>;
   /** Có màn kế tiếp trong Chiến dịch không. */
   hasNext: boolean;
+  /** Ván online: mình đã bấm chơi lại chưa, và còn chờ ai. Có hai giá trị này
+   *  thì nút đổi thành trạng thái chờ — trước đây bấm xong nút y nguyên nên
+   *  người chơi tưởng nút không ăn. */
+  rematchSent?: boolean;
+  rematchWaiting?: string[];
 }>();
 
 const emit = defineEmits<{ replay: []; next: []; menu: [] }>();
@@ -189,19 +194,31 @@ const title = computed(() => {
         <button v-if="hasNext && summary.status === 'won'" ref="primary" class="btn btn-primary" type="button" @click="emit('next')">
           Cấp tiếp theo
         </button>
-        <button v-else ref="primary" class="btn btn-primary" type="button" @click="emit('replay')">
-          Chơi lại
+        <button
+          v-else ref="primary" class="btn btn-primary" type="button"
+          :disabled="rematchSent"
+          @click="emit('replay')"
+        >
+          {{ rematchSent ? 'Đã bấm chơi lại' : 'Chơi lại' }}
         </button>
         <button class="btn" type="button" @click="emit('menu')">Về menu</button>
       </div>
       <button v-if="hasNext && summary.status === 'won'" class="btn link" type="button" @click="emit('replay')">
         Chơi lại cấp này
       </button>
+      <!-- Nói rõ đang chờ ai, không thì hai bên cùng ngồi đợi nhau -->
+      <p v-if="rematchSent && rematchWaiting?.length" class="waiting" role="status">
+        ⏳ Chờ <b>{{ rematchWaiting.join(', ') }}</b> bấm chơi lại…
+      </p>
     </div>
   </div>
 </template>
 
 <style scoped>
+.waiting {
+  margin: 10px 0 0; text-align: center; color: var(--muted);
+  font-size: var(--text-sm);
+}
 .overlay {
   position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
   padding: 20px; background: rgba(6, 9, 18, .3);   /* nền nhạt để thấy pháo hoa phía sau */

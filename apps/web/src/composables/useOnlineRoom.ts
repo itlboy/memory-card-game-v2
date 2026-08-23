@@ -37,6 +37,37 @@ export function useOnlineRoom() {
   const reconnecting = ref(false);
   /** Hiệu ứng phía client — cùng ngôn ngữ với chế độ offline. */
   const wrongPair = ref<number[]>([]);
+  /**
+   * So trạng thái sẵn sàng cũ với mới rồi phát tiếng. Phát theo THAY ĐỔI chứ
+   * không theo cú bấm của mình: server gửi cùng một tin cho cả phòng, nên hai
+   * bên đều nghe và đều biết đối phương vừa làm gì.
+   */
+  function announceReady(next: RoomInfo): void {
+    const before = room.value;
+    if (!before) return;
+    // Có người vừa bấm "chơi lại": phát tiếng cho cả phòng, không thì bên kia
+    // bấm mà bên này không hay biết gì
+    const wasVotes = new Set(before.againVotes ?? []);
+    for (const id of next.againVotes ?? []) if (!wasVotes.has(id)) sfx.ready();
+    if (next.status !== 'lobby') return;
+    for (const p of next.players) {
+      const was = before.players.find((q) => q.id === p.id);
+      if (!was || !!was.ready === !!p.ready) continue;
+      if (p.ready) sfx.ready(); else sfx.unready();
+    }
+  }
+
+  /** Mình đã bấm "chơi lại" chưa. */
+  const iWantAgain = computed(() =>
+    !!myId.value && (room.value?.againVotes ?? []).includes(myId.value));
+  /** Tên những người CÒN chưa bấm — để nói rõ đang chờ ai. */
+  const againWaiting = computed(() => {
+    const r = room.value;
+    if (!r) return [] as string[];
+    const voted = new Set(r.againVotes ?? []);
+    return r.players.filter((p) => p.connected && !voted.has(p.id)).map((p) => p.name);
+  });
+
   /** Ô đã bấm nhưng server chưa xác nhận — UI lật tới 90 độ để bấm là thấy phản hồi. */
   const pending = ref<Set<number>>(new Set());
 
@@ -146,8 +177,27 @@ export function useOnlineRoom() {
     }
   }
 
-  function join(roomCode: string, name: string): void {
-    connect(roomCode.trim().toUpperCase(), name);
+  /**
+   * Vào phòng có sẵn. Kiểm mã TRƯỚC khi mở WebSocket: mã sai thì socket chỉ
+   * đóng lặng lẽ, người chơi không biết vì sao — mà trước đây còn tệ hơn, mã
+   * sai được lập thành phòng mới nên họ ngồi chờ mãi một người sẽ không tới.
+   */
+  async function join(roomCode: string, name: string): Promise<void> {
+    const c = roomCode.trim();
+    phase.value = 'connecting';
+    error.value = '';
+    try {
+      const res = await fetch(`${SERVER}/api/rooms/${c}`);
+      const { exists } = (await res.json()) as { exists: boolean };
+      if (!exists) {
+        phase.value = 'idle';
+        error.value = `Không có phòng nào mang mã ${c}. Kiểm lại mã giúp mình nhé.`;
+        return;
+      }
+    } catch {
+      // Không kiểm được (mất mạng) thì cứ thử kết nối — server vẫn chặn mã lạ
+    }
+    connect(c, name);
   }
 
   function connect(roomCode: string, name: string, useToken = ''): void {
@@ -208,6 +258,9 @@ export function useOnlineRoom() {
         break;
 
       case 'room':
+        // Ai đó bấm sẵn sàng hay huỷ: phát tiếng cho CẢ PHÒNG nghe. Trước đây
+        // bấm xong im lặng nên không ai biết đối phương đã sẵn sàng hay chưa.
+        announceReady(msg.room);
         room.value = msg.room;
         if (msg.room.status === 'lobby') {
           phase.value = 'lobby';
@@ -488,7 +541,14 @@ export function useOnlineRoom() {
     cancelRoom: () => { send({ t: 'cancel' }); leave(); },
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     start: () => send({ t: 'start' }),
-    again: () => send({ t: 'again' }),
+    again: () => {
+      // Phản hồi ngay tại chỗ, y như bấm thẻ: chờ server xác nhận mới đổi gì
+      // thì người bấm tưởng nút bị hỏng
+      sfx.ready();
+      send({ t: 'again' });
+    },
+    iWantAgain,
+    againWaiting,
     flip: (index: number) => {
       // Phản hồi NGAY, không chờ server. Vòng đi-về đo được 69ms lúc bình
       // thường nhưng có lúc vọt 376ms, và trong suốt khoảng đó màn hình không

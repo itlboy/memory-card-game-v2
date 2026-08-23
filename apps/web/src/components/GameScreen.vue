@@ -239,11 +239,13 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
   100% { opacity: 0; transform: scale(2.6); }
 }
 
+/* Xem chú thích cùng khối trong OnlineGame: trùm qua mép 4px và KHÔNG tự bo
+   góc, để khung app cắt — bo 18px trong khung bo 28px thì hở một vành mỏng. */
 .countdown {
-  position: absolute; inset: 0; z-index: 7;
+  position: absolute; inset: -4px; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter: blur(3px); border-radius: var(--r-lg); pointer-events: none;
+  backdrop-filter: blur(3px); pointer-events: none;
 }
 .countdown .num {
   font-family: var(--font-display); font-weight: 800;

@@ -184,7 +184,9 @@ watch(() => o.view.value?.summary, (s) => {
       :fresh-achievements="[]" :has-next="false"
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
-      @replay="o.isHost.value ? o.again() : undefined"
+      :rematch-sent="o.iWantAgain.value"
+      :rematch-waiting="o.againWaiting.value"
+      @replay="o.again()"
       @next="o.again()"
       @menu="emit('quit')"
     />
@@ -288,11 +290,15 @@ watch(() => o.view.value?.summary, (s) => {
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
 
+/* inset: -4px chứ không phải 0: lớp phủ phải TRÙM QUA mép một chút, không thì
+   góc bo của khung app hở một vành mỏng nhìn rất khó chịu. Bỏ border-radius vì
+   khung app đã cắt (overflow: hidden) — để bán kính 18px trong khi khung bo 28px
+   chính là chỗ sinh ra vành hở đó. */
 .countdown {
-  position: absolute; inset: 0; z-index: 7;
+  position: absolute; inset: -4px; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter: blur(3px); border-radius: var(--r-lg); pointer-events: none;
+  backdrop-filter: blur(3px); pointer-events: none;
 }
 .countdown .num {
   font-family: var(--font-display); font-weight: 800;
@@ -337,8 +343,13 @@ watch(() => o.view.value?.summary, (s) => {
 .blast-leave-active { transition: opacity .25s; }
 .blast-leave-to { opacity: 0; }
 
+/* 10 emoji × 40px + 9 khe = 436px, rộng hơn khung app (366px) nên tràn 23px mỗi
+   bên, sát mép trông rất chật. Cho phép xuống hàng và chừa lề hai bên: trên máy
+   hẹp thành hai hàng, máy rộng vẫn một hàng. Bàn thẻ tự co theo vì nó ĐO chỗ
+   trống thật (useBoardFit), không cần sửa gì thêm. */
 .emoji-bar {
-  display: flex; gap: 4px; justify-content: center;
+  display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
+  padding: 0 6px;
   transition: opacity .18s ease;
 }
 /* Hết lượt trong 10 giây: mờ đi để thấy rõ là đang chờ */

@@ -30,7 +30,15 @@ body {
   background-attachment: fixed;
 }
 /* Khoá chiều cao theo viewport để màn chơi không bao giờ phải cuộn (dvh né thanh URL mobile) */
-#app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+/* overflow: hidden PHẢI có ở đây, không chỉ trong khối desktop. Thiếu nó thì
+   bất kỳ thứ gì tràn ra (thanh emoji từng tràn 23px) đều làm cả trang cuộn
+   được, lộ ra một khoảng trắng sâu bên dưới — lỗi rất khó tái hiện vì phụ
+   thuộc vào nội dung đang hiện. */
+#app {
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh;
+  overflow: hidden;
+}
 
 /* Desktop: KHÔNG kéo giãn layout ngang. App là một cột hẹp cố định canh giữa —
    bên trong dùng đúng layout mobile, nên chỉ có MỘT bố cục phải nuôi, và mọi

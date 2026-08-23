@@ -27,7 +27,19 @@ export default {
     // Tạo phòng: trả về mã 6 ký tự (ON-01)
     if (url.pathname === '/api/rooms' && request.method === 'POST') {
       const code = makeCode();
+      // Đánh dấu phòng đã mở. Thiếu bước này thì MỌI mã 6 số đều "vào được"
+      // (Durable Object sinh theo tên), nên gõ sai là lập phòng mới trong im
+      // lặng thay vì báo lỗi.
+      await env.ROOM.getByName(code).open();
       return Response.json({ code }, { headers: CORS });
+    }
+
+    // Kiểm mã trước khi mở WebSocket, để báo lỗi rõ ràng thay vì để socket
+    // đóng không rõ nguyên nhân
+    const check = url.pathname.match(/^\/api\/rooms\/([0-9]{6})$/);
+    if (check && request.method === 'GET') {
+      const exists = await env.ROOM.getByName(check[1]!).exists();
+      return Response.json({ exists }, { headers: CORS });
     }
 
     // Vào phòng: nâng cấp WebSocket rồi chuyển cho DO của phòng đó

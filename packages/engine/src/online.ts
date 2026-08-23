@@ -178,6 +178,9 @@ export interface RoomInfo {
   config: RoomConfig;
   players: PublicPlayer[];
   status: 'lobby' | 'countdown' | 'playing' | 'ended';
+  /** Id những người đã bấm "chơi lại" sau khi ván kết thúc. Cần gửi cho client
+   *  vì trước đây bấm xong không ai biết ai đã bấm — kể cả chính mình. */
+  againVotes?: string[];
 }
 
 /** Server → client. */

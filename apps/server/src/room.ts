@@ -53,6 +53,9 @@ export class RoomDO extends DurableObject<Env> {
    *  Chỉ trong RAM: mất khi DO ngủ cũng không sao — spam là hành vi liên tục,
    *  còn người ngủ dậy gửi lại một cái thì đáng được cho qua. */
   private emojiLog = new Map<string, number[]>();
+  /** Ai đã bấm "chơi lại" sau ván này. Chỉ trong RAM: DO ngủ giữa lúc chờ thì
+   *  coi như mọi người bấm lại — thà hỏi lại còn hơn mở ván mà một bên chưa muốn. */
+  private againVotes = new Set<string>();
 
   /* ---------- nạp / lưu ---------- */
 
@@ -70,6 +73,24 @@ export class RoomDO extends DurableObject<Env> {
 
   /* ---------- kết nối ---------- */
 
+  /**
+   * Đánh dấu phòng này ĐÃ ĐƯỢC MỞ. Gọi từ POST /api/rooms.
+   *
+   * Vì sao cần: Durable Object sinh ra theo tên, nên `getByName(code)` với mã
+   * nào cũng tạo ra một phòng. Không có dấu này thì gõ sai một số là lặng lẽ
+   * lập phòng mới và ngồi chờ mãi — người chơi tưởng bạn mình chưa vào.
+   */
+  async open(): Promise<void> {
+    await this.ctx.storage.put('created', true);
+  }
+
+  /** Phòng có thật hay không — dùng cho GET /api/rooms/:code. */
+  async exists(): Promise<boolean> {
+    if (await this.ctx.storage.get<boolean>('created')) return true;
+    // Phòng lập TRƯỚC khi có dấu `created` (bản cũ) vẫn phải chạy được
+    return (await this.ctx.storage.get('room')) != null;
+  }
+
   override async fetch(request: Request): Promise<Response> {
     if (request.headers.get('Upgrade') !== 'websocket') {
       return new Response('WebSocket only', { status: 426 });
@@ -81,9 +102,17 @@ export class RoomDO extends DurableObject<Env> {
     const name = (url.searchParams.get('name') ?? '').trim().slice(0, 16);
     const token = url.searchParams.get('token') ?? '';
 
-    this.room ??= {
-      code, hostId: '', config: { ...DEFAULT_ROOM_CONFIG }, players: [], status: 'lobby'
-    };
+    // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
+    // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
+    // tin (ON-09) nên chặn cả ở đây.
+    if (!this.room) {
+      if (!(await this.exists())) {
+        return new Response('Phòng không tồn tại', { status: 404 });
+      }
+      this.room = {
+        code, hostId: '', config: { ...DEFAULT_ROOM_CONFIG }, players: [], status: 'lobby'
+      };
+    }
 
     // Vào lại bằng token (ON-07) hay người chơi mới?
     let player = token ? this.room.players.find((p) => p.token === token) : undefined;
@@ -197,11 +226,40 @@ export class RoomDO extends DurableObject<Env> {
         return;
       }
 
-      case 'start':
       case 'again': {
+        if (this.room.status !== 'ended') return;
+        // MỌI người bấm được, không riêng chủ phòng. Trước đây server lặng lẽ
+        // bỏ qua lượt bấm của khách: họ bấm mà không thấy gì xảy ra, còn chủ
+        // phòng thì không biết đối phương có muốn chơi nữa hay không.
+        this.againVotes.add(player.id);
+        const here = this.room.players.filter((p) => this.connected(p.id));
+        const allWant = here.length >= ROOM_LIMITS.minPlayers
+          && here.every((p) => this.againVotes.has(p.id));
+        if (!allWant) {
+          // Chưa đủ: phát cho cả phòng biết ai đã bấm
+          await this.save();
+          this.broadcast({ t: 'room', room: this.roomInfo() });
+          return;
+        }
+        this.againVotes.clear();
+        // Đủ phiếu: về phòng chờ để mọi người bấm sẵn sàng lần nữa
+        this.room.players = here;
+        if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
+          this.room.hostId = this.room.players[0]?.id ?? '';
+        }
+        this.room.status = 'lobby';
+        this.game = null;
+        await this.ctx.storage.delete('game');
+        for (const p of this.room.players) p.ready = false;
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
+      case 'start': {
         if (player.id !== this.room.hostId) return;
-        if (msg.t === 'start' && this.room.status !== 'lobby') return;
-        if (msg.t === 'again' && this.room.status !== 'ended') return;
+        if (this.room.status !== 'lobby') return;
+        this.againVotes.clear();
         // Chỉ những người còn kết nối mới vào ván mới — không chờ người đã đi hẳn
         this.room.players = this.room.players.filter(
           (p) => this.connected(p.id) || p.disconnectedAt !== null
@@ -211,16 +269,6 @@ export class RoomDO extends DurableObject<Env> {
         }
         if (this.room.players.length < ROOM_LIMITS.minPlayers) {
           this.send(ws, { t: 'error', code: 'not-enough', message: 'Cần ít nhất 2 người chơi đang kết nối' });
-          return;
-        }
-        if (msg.t === 'again') {
-          // Chơi lại: quay về phòng chờ để mọi người bấm sẵn sàng lần nữa
-          this.room.status = 'lobby';
-          this.game = null;
-          await this.ctx.storage.delete('game');
-          for (const p of this.room.players) p.ready = false;
-          await this.save();
-          this.broadcast({ t: 'room', room: this.roomInfo() });
           return;
         }
         // Chủ phòng mặc nhiên sẵn sàng; những người khác phải bấm đủ
@@ -441,6 +489,7 @@ export class RoomDO extends DurableObject<Env> {
       hostId: room.hostId,
       config: room.config,
       status: room.status,
+      againVotes: [...this.againVotes],
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
         if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready };
