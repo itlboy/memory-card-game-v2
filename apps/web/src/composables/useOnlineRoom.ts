@@ -37,6 +37,25 @@ export function useOnlineRoom() {
   const reconnecting = ref(false);
   /** Hiệu ứng phía client — cùng ngôn ngữ với chế độ offline. */
   const wrongPair = ref<number[]>([]);
+  /** Ô đã bấm nhưng server chưa xác nhận — UI lật tới 90 độ để bấm là thấy phản hồi. */
+  const pending = ref<Set<number>>(new Set());
+
+  /**
+   * Bỏ khỏi `pending` những ô server đã trả lời. Không xoá sạch cả tập: người
+   * chơi bấm ô thứ hai trước khi view của ô thứ nhất về là chuyện thường, xoá
+   * sạch thì ô thứ hai bật ngược về mặt úp rồi lật lại — thấy giật.
+   *
+   * Ô nào server vẫn báo 'down' thì giữ, vì có thể view này chưa kịp mang câu
+   * trả lời cho nó. Lượt bị từ chối (không phải lượt mình) không có view riêng
+   * nào cả, nên phải có hẹn giờ dọn ở flip().
+   */
+  function settlePending(v: GameView): void {
+    if (!pending.value.size) return;
+    const still = new Set(
+      [...pending.value].filter((i) => v.cards[i]?.state === 'down')
+    );
+    if (still.size !== pending.value.size) pending.value = still;
+  }
   /** Hai ô vừa bị thẻ tráo đổi hoán chỗ — BoardGrid dùng để chạy hiệu ứng. */
   const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
@@ -204,6 +223,7 @@ export function useOnlineRoom() {
 
       case 'state':
         view.value = msg.view;
+        settlePending(msg.view);
         syncTurnClock(msg.view);
         if (msg.view.status === 'playing' || room.value?.status === 'countdown') phase.value = 'playing';
         if (msg.view.summary) endSession();
@@ -223,6 +243,7 @@ export function useOnlineRoom() {
       case 'events':
         applyEvents(msg.events);
         view.value = msg.view;
+        settlePending(msg.view);
         syncTurnClock(msg.view);
         if (msg.view.status === 'playing') phase.value = 'playing';
         break;
@@ -279,7 +300,10 @@ export function useOnlineRoom() {
     let turnId: string | null = null;
     for (const e of events) {
       switch (e.type) {
-        case 'flip': sfx.flip(); break;
+        case 'flip':
+          // Thẻ mình tự bấm đã phát tiếng ngay lúc bấm rồi; phát lại là nghe đôi
+          if (!pending.value.has(e.index)) sfx.flip();
+          break;
         case 'match': {
           const streak = 1 + (view.value?.players.find((p) => p.id === e.playerId)?.bestStreak ?? 0);
           sfx.match(Math.min(streak, 4));
@@ -465,7 +489,26 @@ export function useOnlineRoom() {
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     start: () => send({ t: 'start' }),
     again: () => send({ t: 'again' }),
-    flip: (index: number) => send({ t: 'flip', index }),
+    flip: (index: number) => {
+      // Phản hồi NGAY, không chờ server. Vòng đi-về đo được 69ms lúc bình
+      // thường nhưng có lúc vọt 376ms, và trong suốt khoảng đó màn hình không
+      // có gì thay đổi — chính khoảng lặng đó là cảm giác lag, không phải con
+      // số. Đánh dấu "đang chờ" để UI lật thẻ tới 90 độ (cạnh thẻ, CHƯA thấy
+      // mặt nên không bịa thông tin — NF-04 vẫn nguyên), rồi khi view về mới
+      // lật nốt sang mặt thật.
+      pending.value = new Set(pending.value).add(index);
+      sfx.flip();
+      send({ t: 'flip', index });
+      // Lượt bị server bỏ qua (không phải lượt mình) không sinh view nào, nên
+      // không có gì dọn `pending` — hẹn giờ trả thẻ về mặt úp
+      setTimeout(() => {
+        if (!pending.value.has(index)) return;
+        const left = new Set(pending.value);
+        left.delete(index);
+        pending.value = left;
+      }, 1500);
+    },
+    pending,
     sendEmoji,
     /** Còn được gửi emoji không — dùng để làm mờ và chặn nút. */
     emojiReady,

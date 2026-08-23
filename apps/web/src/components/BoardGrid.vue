@@ -15,6 +15,8 @@ const props = defineProps<{
   back?: string;
   /** Hai ô vừa bị thẻ tráo đổi hoán chỗ. */
   swap?: { a: number; b: number; key: number } | null;
+  /** Ô đã bấm nhưng server chưa xác nhận (chỉ ván online). */
+  pending?: Set<number>;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
@@ -89,6 +91,7 @@ defineExpose({
       :peeking="revealingAll"
       :disabled="locked"
       :swap-from="swapFrom[card.index]"
+      :pending="pending?.has(card.index) ?? false"
       @flip="emit('flip', $event)"
     />
   </div>

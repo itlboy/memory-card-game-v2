@@ -603,3 +603,45 @@ describe('thẻ tráo đổi', () => {
     expect(powers).not.toContain('bomb');
   });
 });
+
+describe('phản hồi tức thì khi bấm thẻ (ván online)', () => {
+  /**
+   * Ván online là server-authoritative: bấm thẻ chỉ gửi `{t:'flip'}` rồi chờ
+   * view về. Vòng đi-về đo trên bản thật là 69ms lúc thường nhưng có lúc vọt
+   * 376ms, và trong suốt khoảng đó màn hình KHÔNG đổi gì — đó là cảm giác lag.
+   *
+   * Cách chữa: đánh dấu ô vừa bấm là `pending`, CardTile lật tới đúng 90 độ —
+   * cạnh thẻ, chưa thấy mặt nào nên không bịa thông tin (NF-04 vẫn nguyên).
+   */
+  it('ô vừa bấm nhận class pending ngay, và mất khi server xác nhận', async () => {
+    // Dựng trực tiếp trên CardTile: chạy cả phòng online trong unit test thì
+    // phải giả WebSocket, mà thứ cần kiểm ở đây chỉ là trạng thái hiển thị.
+    const { default: CardTile } = await import('@/components/CardTile.vue');
+    const card = { index: 0, pairId: 1, symbol: '🦊' };
+
+    const waiting = mount(CardTile, {
+      props: { card, dealOrder: 0, faceUp: false, matched: false, wrong: false, peeking: false, disabled: false, pending: true }
+    });
+    expect(waiting.find('.card').classes()).toContain('pending');
+    expect(waiting.find('.card').classes()).not.toContain('up');
+
+    const confirmed = mount(CardTile, {
+      props: { card, dealOrder: 0, faceUp: true, matched: false, wrong: false, peeking: false, disabled: false, pending: false }
+    });
+    expect(confirmed.find('.card').classes()).toContain('up');
+    expect(confirmed.find('.card').classes()).not.toContain('pending');
+  });
+
+  it('thẻ đã ngửa thì pending không được ghi đè — 90 độ chỉ dành cho lúc chờ', async () => {
+    const { default: CardTile } = await import('@/components/CardTile.vue');
+    // Trạng thái chuyển tiếp: server đã xác nhận (faceUp) mà pending chưa dọn
+    const w = mount(CardTile, {
+      props: {
+        card: { index: 0, pairId: 1, symbol: '🦊' }, dealOrder: 0,
+        faceUp: true, matched: false, wrong: false, peeking: false, disabled: false, pending: true
+      }
+    });
+    // CSS dùng `.pending:not(.up)`, nên có cả hai class thì .up thắng
+    expect(w.find('.card').classes()).toContain('up');
+  });
+});

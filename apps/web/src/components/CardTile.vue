@@ -18,6 +18,8 @@ const props = defineProps<{
   /** Chỗ CŨ của lá bài này so với chỗ mới, khi vừa bị thẻ tráo đổi hoán chỗ.
    *  Animation chạy từ đó về 0 nên mắt thấy nó bay sang chỗ mới. */
   swapFrom?: { dx: number; dy: number; sign: number };
+  /** Đã bấm, đang chờ server xác nhận (ván online). */
+  pending?: boolean;
   /** Kiểu mặt sau của ván này: stars | diamond | aurora. */
   back: string;
 }>();
@@ -42,7 +44,7 @@ const label = computed(() => {
   <button
     v-else
     class="card"
-    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom }"
+    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending }"
     :style="{
       '--deal': `${dealStagger}ms`,
       ...(swapFrom ? {
@@ -99,6 +101,13 @@ const label = computed(() => {
 }
 }
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }
+/**
+ * Đã bấm, đang chờ server: lật tới ĐÚNG 90 độ — cạnh thẻ, chưa thấy mặt nào.
+ * Vì sao dừng ở 90: server chưa gửi biểu tượng (thẻ úp không bao giờ có symbol
+ * trong payload — NF-04), nên lật quá 90 là phải bịa ra một mặt. Dừng ở cạnh
+ * thì bấm là thấy thẻ động ngay, và khi view về thì nó lật nốt liền mạch.
+ */
+.card.pending:not(.up):not(.done) .inner { transform: rotateY(90deg); }
 .card.peek .inner { transition-duration: .2s; }
 
 .face {

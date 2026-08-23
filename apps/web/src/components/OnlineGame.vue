@@ -122,7 +122,7 @@ watch(() => o.view.value?.summary, (s) => {
       <BoardGrid
         :cards="cards" :cols="o.view.value?.cols ?? 4"
         :face-up="faceUp" :matched="matchedSet"
-        :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value"
+        :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value" :pending="o.pending.value"
         :revealing-all="false" :locked="locked"
         :back="o.backStyle.value"
         @flip="o.flip"
