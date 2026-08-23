@@ -8,6 +8,7 @@
  *
  * Mọi tiếng đều đi qua master gain + compressor để nhiều nốt chồng nhau không vỡ.
  */
+import { dealSpan } from './timing.js';
 
 interface VoiceOpts {
   dur?: number;
@@ -237,11 +238,17 @@ class Sfx {
     this.voice(640, { dur: 0.05, type: 'triangle', gain: 0.035 });
   }
 
-  /** Chia bài đầu ván: chuỗi tiếng giấy so le theo số thẻ. */
+  /**
+   * Chia bài đầu ván: chuỗi tiếng giấy trải ĐÚNG bằng thời gian hiệu ứng hình
+   * (xem lib/timing). Không cần một tiếng cho mỗi thẻ — bàn 50 thẻ thì 50
+   * tiếng chồng nhau thành tiếng rít; 12 tiếng rải đều là đủ dày.
+   */
   deal(cards: number): void {
-    const n = Math.min(cards, 10);
-    for (let i = 0; i < n; i++) {
-      this.noise(0.05, { freq: 2200 + i * 120, gain: 0.03, delay: i * 0.035 });
+    const span = dealSpan(cards) / 1000;
+    const ticks = Math.max(1, Math.min(cards, 12));
+    for (let i = 0; i < ticks; i++) {
+      const delay = ticks > 1 ? (i / (ticks - 1)) * span : 0;
+      this.noise(0.05, { freq: 2200 + (i / ticks) * 1200, gain: 0.03, delay });
     }
   }
 

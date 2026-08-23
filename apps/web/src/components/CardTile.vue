@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Card } from '@mm/engine';
 import { computed } from 'vue';
+import { dealStep } from '@/lib/timing';
 
 const props = defineProps<{
   card: Card;
@@ -22,12 +23,8 @@ const emit = defineEmits<{ flip: [index: number] }>();
 
 const POWER_ICON: Record<string, string> = { bomb: '💥', x2: '✖️', eye: '👁️', freeze: '❄️' };
 
-/** Chia bài xong trong ~700ms bất kể bàn to cỡ nào. 28ms/thẻ cố định thì bàn
- *  10×10 phải chờ gần 3 giây mới thấy thẻ cuối — người chơi tưởng game treo. */
-const dealStagger = computed(() => {
-  const n = props.cardCount ?? 16;
-  return Math.round(props.dealOrder * Math.min(28, 700 / n));
-});
+/** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
+const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));
 
 const label = computed(() => {
   const pos = `Thẻ ${props.card.index + 1}`;
