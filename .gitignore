@@ -5,3 +5,6 @@ dist/
 
 # State/cache do wrangler dev sinh ra — không phải mã nguồn
 .wrangler/
+
+# Ảnh chụp kiểm tra giao diện lỡ ghi vào thư mục "undefined" (đường dẫn sai)
+undefined/
