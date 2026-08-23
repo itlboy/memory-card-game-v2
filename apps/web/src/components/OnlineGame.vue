@@ -21,6 +21,11 @@ const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
 const emit = defineEmits<{ quit: [] }>();
 const o = props.o;
 
+/** Còn đủ người để chơi lại không. Trước đây đối phương thoát rồi mà nút "chơi
+ *  lại" vẫn bấm được — bấm xong ngồi chờ một người đã đi hẳn. */
+const enoughToRematch = computed(() =>
+  (o.view.value?.players ?? []).filter((p) => p.connected && !p.forfeited).length >= 2);
+
 /* ---------- map view server → props của BoardGrid ---------- */
 const cards = computed<Card[]>(() =>
   (o.view.value?.cards ?? []).map((c) => ({
@@ -89,6 +94,10 @@ watch(() => o.view.value?.summary, (s) => {
       >
         <span class="avatar">{{ p.avatar }}</span>
         <b>{{ p.name }}</b>
+        <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
+             kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
+        <span v-if="p.forfeited" class="netbad" title="Đã rời phòng">🚪 đã rời</span>
+        <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">📴 mất mạng</span>
         <small v-if="p.lives !== null" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
         <span
           v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
@@ -159,6 +168,13 @@ watch(() => o.view.value?.summary, (s) => {
       </Transition>
     </div>
 
+    <!-- Mạng của mình: chỉ hiện khi đáng lo, không chiếm chỗ lúc mọi thứ ổn -->
+    <p v-if="o.netQuality.value !== 'good'" class="mynet" :class="o.netQuality.value" role="status">
+      <template v-if="o.netQuality.value === 'lost'">📴 Mạng của bạn đang có vấn đề…</template>
+      <template v-else-if="o.netQuality.value === 'bad'">🐢 Mạng chậm — {{ o.ping.value }}ms</template>
+      <template v-else-if="o.ping.value !== null">📶 {{ o.ping.value }}ms</template>
+    </p>
+
     <!-- Emoji chat (ON-08) — khán giả không gửi được -->
     <div
       v-if="!o.spectator.value" class="emoji-bar"
@@ -186,6 +202,7 @@ watch(() => o.view.value?.summary, (s) => {
       :series-wins="o.seriesWins.value"
       :rematch-sent="o.iWantAgain.value"
       :rematch-waiting="o.againWaiting.value"
+      :rematch-blocked="!enoughToRematch"
       @replay="o.again()"
       @next="o.again()"
       @menu="emit('quit')"
@@ -203,6 +220,18 @@ watch(() => o.view.value?.summary, (s) => {
 }
 .pchip.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 4px 18px var(--card-back-glow); }
 .pchip.off { opacity: .55; }
+.netbad {
+  flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
+  padding: 1px 5px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad);
+}
+/* Mạng của mình: một dòng mảnh, chỉ hiện khi có gì đáng nói */
+.mynet {
+  margin: 0; text-align: center; font-size: var(--text-xs); color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.mynet.bad { color: var(--warn); font-weight: 700; }
+.mynet.lost { color: var(--bad); font-weight: 800; }
 .pchip .avatar { font-size: 18px; }
 .pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pchip .lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }

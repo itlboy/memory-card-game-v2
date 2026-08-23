@@ -68,6 +68,37 @@ export function useOnlineRoom() {
     return r.players.filter((p) => p.connected && !voted.has(p.id)).map((p) => p.name);
   });
 
+  /* ---------- nhịp tim: đo độ trễ mạng của CHÍNH MÌNH ---------- */
+
+  /** Độ trễ vòng đi-về, ms. null = chưa đo được lần nào. */
+  const ping = ref<number | null>(null);
+  /** Mất bao lâu chưa nhận được pong — dùng để biết mình đang mất mạng. */
+  const pingLost = ref(0);
+  let pingSentAt = 0;
+  let pingTimer: ReturnType<typeof setInterval> | undefined;
+
+  /**
+   * 4 giây một nhịp. Server trả lời bằng auto-response nên KHÔNG đánh thức
+   * Durable Object (không tính tiền thời gian chạy), còn tin vào tính theo tỷ
+   * lệ 20:1 nên hai người chơi cả tiếng cũng chỉ tốn vài trăm request.
+   */
+  function startHeartbeat(): void {
+    stopHeartbeat();
+    pingTimer = setInterval(() => {
+      if (ws?.readyState !== WebSocket.OPEN) return;
+      if (pingSentAt) pingLost.value += 1;   // nhịp trước chưa có trả lời
+      pingSentAt = performance.now();
+      ws.send(JSON.stringify({ t: 'ping' }));
+    }, 4000);
+  }
+  function stopHeartbeat(): void {
+    if (pingTimer) clearInterval(pingTimer);
+    pingTimer = undefined;
+    pingSentAt = 0;
+    pingLost.value = 0;
+    ping.value = null;
+  }
+
   /** Ô đã bấm nhưng server chưa xác nhận — UI lật tới 90 độ để bấm là thấy phản hồi. */
   const pending = ref<Set<number>>(new Set());
 
@@ -212,6 +243,7 @@ export function useOnlineRoom() {
     if (useToken) params.set('token', useToken);
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
 
+    ws.onopen = () => startHeartbeat();
     ws.onmessage = (e) => handle(JSON.parse(String(e.data)) as ServerMsg);
     ws.onclose = (e) => {
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
@@ -339,6 +371,11 @@ export function useOnlineRoom() {
         break;
 
       case 'pong':
+        if (pingSentAt) {
+          ping.value = Math.round(performance.now() - pingSentAt);
+          pingSentAt = 0;
+          pingLost.value = 0;
+        }
         break;
     }
   }
@@ -465,8 +502,19 @@ export function useOnlineRoom() {
     } catch { return false; }
   }
 
+  /** Chất lượng mạng của MÌNH, gộp thành ba mức cho UI. */
+  const netQuality = computed<'good' | 'ok' | 'bad' | 'lost'>(() => {
+    if (pingLost.value >= 2) return 'lost';
+    const p = ping.value;
+    if (p === null) return 'ok';
+    if (p < 120) return 'good';
+    if (p < 350) return 'ok';
+    return 'bad';
+  });
+
   function leaveSocket(): void {
     clearTimeout(reconnectTimer);
+    stopHeartbeat();
     if (ws) {
       intentionalClose = true;
       try { ws.close(); } catch { /* đã đóng */ }
@@ -541,6 +589,8 @@ export function useOnlineRoom() {
     cancelRoom: () => { send({ t: 'cancel' }); leave(); },
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     start: () => send({ t: 'start' }),
+    ping,
+    netQuality,
     again: () => {
       // Phản hồi ngay tại chỗ, y như bấm thẻ: chờ server xác nhận mới đổi gì
       // thì người bấm tưởng nút bị hỏng

@@ -53,6 +53,21 @@ export class RoomDO extends DurableObject<Env> {
    *  Chỉ trong RAM: mất khi DO ngủ cũng không sao — spam là hành vi liên tục,
    *  còn người ngủ dậy gửi lại một cái thì đáng được cho qua. */
   private emojiLog = new Map<string, number[]>();
+  /**
+   * Trả lời ping ngay ở tầng runtime, KHÔNG đánh thức Durable Object.
+   *
+   * Vì sao quan trọng về tiền: DO tính phí theo thời gian nó thức. Nếu mỗi ping
+   * đều gọi vào code thì hai người chơi ping 4 giây một lần là DO thức suốt ván
+   * — tài liệu Cloudflare nói rõ tin auto-response "will not incur additional
+   * wall-clock time, and so they will not be charged". Tin vào vẫn tính vào số
+   * request nhưng theo tỷ lệ 20:1, tức 100 tin = 5 request.
+   */
+  private armPingAutoResponse(): void {
+    this.ctx.setWebSocketAutoResponse(
+      new WebSocketRequestResponsePair(JSON.stringify({ t: 'ping' }), JSON.stringify({ t: 'pong' }))
+    );
+  }
+
   /** Ai đã bấm "chơi lại" sau ván này. Chỉ trong RAM: DO ngủ giữa lúc chờ thì
    *  coi như mọi người bấm lại — thà hỏi lại còn hơn mở ván mà một bên chưa muốn. */
   private againVotes = new Set<string>();
@@ -141,6 +156,7 @@ export class RoomDO extends DurableObject<Env> {
     for (const ws of this.ctx.getWebSockets(player.id)) ws.close(4000, 'replaced');
 
     const pair = new WebSocketPair();
+    this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], [player.id]);
     pair[1].serializeAttachment({ playerId: player.id } satisfies Attachment);
 
@@ -169,6 +185,7 @@ export class RoomDO extends DurableObject<Env> {
   /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
   private acceptSpectator(): Response {
     const pair = new WebSocketPair();
+    this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], ['spectator']);
     pair[1].serializeAttachment({ playerId: '' } satisfies Attachment);
     this.send(pair[1], {

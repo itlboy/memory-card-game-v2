@@ -24,6 +24,8 @@ const props = defineProps<{
    *  người chơi tưởng nút không ăn. */
   rematchSent?: boolean;
   rematchWaiting?: string[];
+  /** Không còn đủ người kết nối để chơi lại — ẩn nút thay vì để bấm vô nghĩa. */
+  rematchBlocked?: boolean;
 }>();
 
 const emit = defineEmits<{ replay: []; next: []; menu: [] }>();
@@ -195,7 +197,7 @@ const title = computed(() => {
           Cấp tiếp theo
         </button>
         <button
-          v-else ref="primary" class="btn btn-primary" type="button"
+          v-else-if="!rematchBlocked" ref="primary" class="btn btn-primary" type="button"
           :disabled="rematchSent"
           @click="emit('replay')"
         >
@@ -207,7 +209,10 @@ const title = computed(() => {
         Chơi lại cấp này
       </button>
       <!-- Nói rõ đang chờ ai, không thì hai bên cùng ngồi đợi nhau -->
-      <p v-if="rematchSent && rematchWaiting?.length" class="waiting" role="status">
+      <p v-if="rematchBlocked" class="waiting" role="status">
+        🚪 Người chơi kia đã rời phòng — không chơi lại được nữa.
+      </p>
+      <p v-else-if="rematchSent && rematchWaiting?.length" class="waiting" role="status">
         ⏳ Chờ <b>{{ rematchWaiting.join(', ') }}</b> bấm chơi lại…
       </p>
     </div>
