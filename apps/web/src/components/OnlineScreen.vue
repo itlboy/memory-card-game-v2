@@ -684,7 +684,12 @@ input:focus { outline: none; border-color: var(--accent); }
 .offline { margin-left: auto; font-size: var(--text-xs); color: var(--warn); }
 .ready-tag { margin-left: auto; font-size: var(--text-xs); color: var(--muted); white-space: nowrap; }
 .ready-tag.on { color: var(--ok); font-weight: 700; }
-.is-ready { background: var(--ok); box-shadow: 0 8px 22px color-mix(in srgb, var(--ok) 40%, transparent); }
+/* --ok-solid chứ không phải --ok: nút này có chữ TRẮNG, mà trắng trên --ok chỉ
+   đạt 3,23:1 (cần 4,5) nên nhìn mờ và mỏi mắt. Bóng vẫn dùng màu sáng cho nổi. */
+.is-ready {
+  background: var(--ok-solid);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--ok) 40%, transparent);
+}
 .hint { color: var(--muted); font-size: var(--text-sm); margin: 14px 0 0; }
 .warn {
   margin: 14px 0 0; padding: 10px 12px; border-radius: var(--r-sm); font-size: var(--text-sm);

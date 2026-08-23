@@ -40,10 +40,23 @@
   --accent: var(--brand-500);
   --accent-2: var(--pink-500);
   --accent-soft: rgba(106, 92, 255, .13);
-  --ok: #0ea371;
-  --warn: #ea8c00;
-  --gold: #d99e00;
-  --bad: #e5484d;
+  /* Đậm hơn bản đầu để ĐỌC ĐƯỢC trên nền panel sáng. Đo trên --panel-soft:
+     bản cũ #0ea371 chỉ 3,00:1, #ea8c00 chỉ 2,36:1 — dưới chuẩn 4,5:1 nên chữ
+     trông mờ và mỏi mắt. Vàng chỉ cần 3:1 vì chỉ dùng cho sao và vương miện
+     (yếu tố đồ hoạ, không phải chữ để đọc). */
+  --ok: #0b815a;
+  --warn: #a36100;
+  --gold: #b88600;
+  --bad: #dd1f25;
+
+  /* Bản ĐẬM để làm NỀN cho chữ trắng. Các màu trên là để làm CHỮ hoặc viền —
+     dùng chúng làm nền thì chữ trắng đọc rất mệt, đo được: trắng trên --ok chỉ
+     3,23:1 (chuẩn WCAG AA đòi 4,5), trắng trên --gold còn 2,38:1. Bốn giá trị
+     dưới đây giữ nguyên sắc, chỉ hạ độ sáng tới khi vừa đủ 4,5:1 với trắng. */
+  --ok-solid: #0c875d;
+  --warn-solid: #aa6600;
+  --gold-solid: #946c00;
+  --bad-solid: #e12d33;
   --line: rgba(96, 92, 168, .17);
   --line-strong: rgba(96, 92, 168, .3);
 
@@ -79,6 +92,14 @@
   --warn: #fbaa2c;
   --gold: #f7c948;
   --bad: #f2555a;
+
+  /* Nền tối: các màu trên sáng hơn để đọc được trên nền tối, nhưng làm NỀN thì
+     càng tệ (trắng trên --ok chỉ 1,92:1). Bản đậm giữ nguyên như chế độ sáng —
+     chữ trắng cần nền đậm bất kể giao diện sáng hay tối. */
+  --ok-solid: #0c875d;
+  --warn-solid: #aa6600;
+  --gold-solid: #946c00;
+  --bad-solid: #e12d33;
   --line: rgba(148, 152, 220, .16);
   --line-strong: rgba(148, 152, 220, .32);
 

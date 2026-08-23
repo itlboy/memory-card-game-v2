@@ -31,6 +31,7 @@ p { margin: 0; color: var(--muted); font-size: var(--text-md); }
 .row { display: flex; gap: 8px; margin-top: 18px; }
 .row .btn { flex: 1; min-height: 48px; }
 .danger {
-  border: 0; background: var(--bad); color: #fff; font-weight: 700;
+  /* --bad-solid: chữ trắng trên --bad chỉ 3,91:1, chưa đạt 4,5 */
+  border: 0; background: var(--bad-solid); color: #fff; font-weight: 700;
 }
 </style>
