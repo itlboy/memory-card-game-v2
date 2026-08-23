@@ -63,10 +63,16 @@ export const BOT_SPECS: Record<BotLevel, BotSpec> = {
  * Lần nghĩ này lâu bao nhiêu ms. Rút từ `rng` của bot nên vẫn TẤT ĐỊNH: cùng
  * seed thì cùng nhịp, test và replay không lệch.
  */
-export function botThinkMs(level: BotLevel, rng: Rng): number {
+export function botThinkMs(level: BotLevel, rng: Rng, cardsLeft = Infinity): number {
+  // Còn đúng một cặp thì không có gì để nghĩ — hai lá đó chắc chắn khớp nhau.
+  // Ngồi "suy nghĩ" 3 giây trước một nước không thể sai là giả tạo lộ liễu.
+  if (cardsLeft <= 2) return LAST_PAIR_MS;
   const { thinkMinMs, thinkMaxMs } = BOT_SPECS[level];
   return Math.round(thinkMinMs + rng.next() * (thinkMaxMs - thinkMinMs));
 }
+
+/** Nước cuối: chỉ đủ để mắt kịp thấy con trỏ chuyển, không phải để "nghĩ". */
+export const LAST_PAIR_MS = 300;
 
 /** Một lá trong ký ức: biểu tượng và nước đi lúc nhìn thấy. */
 export interface BotSeen { symbol: string; at: number }

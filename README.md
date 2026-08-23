@@ -154,6 +154,9 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   KHOẢNG rút bằng rng của bot (`botThinkMs`): nhịp cố định nghe ra ngay là máy,
   và khoảng của các mức chồng nhau nên không đếm thời gian mà đoán được mức.
 
+- **Nước cuối thì không nghĩ.** Còn đúng một cặp trên bàn thì bot lật ngay
+  (`LAST_PAIR_MS`, 300ms): hai lá đó chắc chắn khớp, ngồi "suy nghĩ" 3 giây
+  trước một nước không thể sai là giả tạo lộ liễu.
 - Bộ điều khiển ở `useGameSession`: `botWatch()` chạy **mỗi khung**, không chỉ lúc
   tới lượt bot — nhìn theo lượt thì thẻ người chơi lật rồi úp lại không bao giờ
   vào ký ức bot, bot hoá ra mù trước mọi nước của đối thủ.
@@ -338,6 +341,11 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 ### Âm thanh
 
+- **Sóng VUÔNG ở ~1kHz nghe như báo lỗi lò vi sóng**: hoạ âm bậc lẻ dồn đúng dải
+  tai người nhạy nhất (2–4kHz). Tiếng đếm ngược cũ dùng nó. Giờ đếm ngược là một
+  câu nhạc ngũ cung đi lên (C5 D5 E5 G5 A5, tam giác + quãng tám rất nhẹ) và vào
+  ván là hợp âm C trưởng rải nhanh đọng ở C6 — câu nhạc dựng lên rồi được giải
+  quyết, nghe ra "bắt đầu!" chứ không phải một tiếng bíp nữa.
 - **Nhiễu lọc highpass ở 2–3kHz nghe "rẹt rẹt" xót tai.** Tiếng giấy/bìa nên
   dùng bandpass quanh 700–1000Hz với Q hẹp, cộng một nốt trầm rất nhẹ để có
   thân. Ít tiếng mà đúng dải còn hơn nhiều tiếng.

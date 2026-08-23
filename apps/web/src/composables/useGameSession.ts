@@ -156,6 +156,11 @@ export function useGameSession() {
     botThinking.value = false;
   }
 
+  /** Số lá chưa ghép được trên bàn (bỏ ô trống). */
+  function unmatchedLeft(g: MemoryGame): number {
+    return g.cards.filter((c) => !c.blank && !g.isMatched(c.index)).length;
+  }
+
   /** Nhìn bàn qua view công khai và ghi vào ký ức của bot. */
   function botWatch(): void {
     const g = game.value;
@@ -185,7 +190,8 @@ export function useGameSession() {
       const pick = botPick(publicView(g2, now.value, () => true), botMem, botRandom, level);
       botThinking.value = false;
       if (pick !== null) applyFlip(pick);
-    }, botThinkMs(level, botRandom));
+      // Số lá còn úp/chưa ghép: quyết định có cần "nghĩ" hay không
+    }, botThinkMs(level, botRandom, unmatchedLeft(g)));
   }
 
   function loop(): void {
@@ -198,14 +204,14 @@ export function useGameSession() {
         if (left > 0) {
           const sec = Math.ceil(left);
           countdownLeft.value = sec;
-          if (sec !== lastCdSec) { lastCdSec = sec; sfx.tick(); }
+          if (sec !== lastCdSec) { lastCdSec = sec; sfx.countdown(sec); }
           raf = requestAnimationFrame(loop);
           return;
         }
         countdownUntil = 0;
         countdownLeft.value = null;
         g.start(now.value);
-        sfx.turn();
+        sfx.go();
         bump();
       }
       handle(g.tick(now.value));

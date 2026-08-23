@@ -340,6 +340,36 @@ class Sfx {
   /** Đồng hồ sắp cạn — tick khô, gọi mỗi giây trong 10 giây cuối. */
   tick(): void { this.voice(1000, { dur: 0.035, type: 'square', gain: 0.028 }); }
 
+  /**
+   * Đếm ngược vào ván: mỗi giây một nốt của gam ngũ cung ĐI LÊN, tới nốt cuối
+   * thì `go()` giải quyết lên quãng tám. Nghe ra một câu nhạc ngắn có hướng —
+   * biết ván sắp bắt đầu mà không bị giục.
+   *
+   * Vì sao không dùng `tick()`: sóng VUÔNG ở 1000Hz đầy hoạ âm bậc lẻ, đúng dải
+   * tai người nhạy nhất (2–4kHz), nên nghe như tiếng báo lỗi lò vi sóng. Sóng
+   * tam giác mềm hơn nhiều, cộng một nốt quãng tám rất nhẹ cho ra tiếng chuông.
+   */
+  countdown(secLeft: number): void {
+    const SCALE = [523.25, 587.33, 659.25, 783.99, 880];   // C5 D5 E5 G5 A5
+    const f = SCALE[Math.min(SCALE.length - 1, Math.max(0, 5 - secLeft))] ?? 523.25;
+    this.voice(f, { dur: 0.26, type: 'triangle', gain: 0.05 });
+    this.voice(f * 2, { dur: 0.14, type: 'sine', gain: 0.018, delay: 0.01 });
+  }
+
+  /**
+   * Vào ván: hợp âm trưởng rải nhanh rồi đọng lại ở quãng tám — câu nhạc mà
+   * `countdown()` dựng lên được giải quyết ở đây, nên nghe ra "bắt đầu!" chứ
+   * không phải một tiếng bíp nữa.
+   */
+  go(): void {
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      this.voice(f, { dur: 0.5, type: 'triangle', gain: 0.045, delay: i * 0.055, detune: 6 });
+    });
+    this.voice(1046.5, { dur: 0.6, type: 'sine', gain: 0.035, delay: 0.165 });
+    // Hơi gió rất nhẹ ở dưới cho hợp âm có thân, không để nó trơ trọi
+    this.noise(0.22, { type: 'bandpass', q: 0.9, freq: 420, gain: 0.02 });
+  }
+
   /** Chuyển lượt: "ding-dong" hai nốt gọi sự chú ý. */
   turn(): void {
     this.voice(784, { dur: 0.12, type: 'triangle', gain: 0.05 });

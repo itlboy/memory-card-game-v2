@@ -239,3 +239,19 @@ describe('nhịp nghĩ của bot', () => {
     expect(new Set(a).size).toBe(1);   // cùng rng mới tạo → cùng số đầu tiên
   });
 });
+
+describe('nước cuối thì bot không nghĩ', () => {
+  it('còn 2 lá thì bấm ngay, dưới 1 giây, mức nào cũng vậy', () => {
+    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+      for (let seed = 1; seed <= 30; seed++) {
+        const ms = botThinkMs(l, botRng(seed), 2);
+        expect(ms, `${l} seed ${seed}`).toBeLessThan(1000);
+      }
+    }
+  });
+
+  it('còn nhiều lá thì vẫn nghĩ theo khoảng của mức', () => {
+    const ms = botThinkMs('easy', botRng(3), 20);
+    expect(ms).toBeGreaterThanOrEqual(BOT_SPECS.easy.thinkMinMs);
+  });
+});

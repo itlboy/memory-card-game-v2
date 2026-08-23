@@ -176,7 +176,9 @@ export function useOnlineRoom() {
     clock.value = Date.now();
     // Đếm ngược trước ván: mỗi giây một tick
     const cd = countdownLeft.value;
-    if (cd !== null && cd !== lastCountdownSec) { lastCountdownSec = cd; sfx.tick(); }
+    if (cd !== null && cd !== lastCountdownSec) { lastCountdownSec = cd; sfx.countdown(cd); }
+    // Đếm xong: hợp âm vào ván, giải quyết câu nhạc mà countdown() dựng lên
+    if (cd === null && lastCountdownSec > 0) { lastCountdownSec = -1; sfx.go(); }
     // Tới lượt mình mà còn ≤10 giây: tick dồn dập mỗi 500ms để giục
     const left = turnTimeLeft.value;
     if (left !== null && left > 0 && left <= 10
@@ -354,7 +356,9 @@ export function useOnlineRoom() {
           firstName: msg.firstId === myId.value ? 'Bạn' : msg.firstName
         };
         phase.value = 'playing';
-        sfx.turn();
+        // "Sắp bắt đầu": nốt đầu của câu đếm ngược, không dùng ding-dong chuyển
+        // lượt — hai việc khác nhau thì không nên cùng một tiếng.
+        sfx.countdown(5);
         break;
 
       case 'events':
