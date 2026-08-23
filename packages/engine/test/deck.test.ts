@@ -149,3 +149,25 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
     expect(count.swap).toBeGreaterThan(count.other / 2);
   });
 });
+
+describe('trần số lần tráo mỗi bàn', () => {
+  it('không bàn nào có quá 2 thẻ tráo — tráo nhiều thì chơi thành may rủi', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const cards = buildDeck({
+        cols: 6, rows: 7, pairs: 21, symbols: SYMBOLS,
+        specialRate: 0.3, allowedPowers: ['swap', 'x2', 'eye'], rng: new Rng(seed * 13)
+      });
+      const swaps = cards.filter((c) => c.power === 'swap').length;
+      expect(swaps, `seed ${seed}`).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('chặn trần rồi vẫn còn thẻ đặc biệt khác, không bỏ trống chỗ', () => {
+    const cards = buildDeck({
+      cols: 6, rows: 7, pairs: 21, symbols: SYMBOLS,
+      specialRate: 0.3, allowedPowers: ['swap', 'x2', 'eye'], rng: new Rng(99)
+    });
+    const powers = cards.filter((c) => c.power).length;
+    expect(powers).toBeGreaterThan(2);        // trần chỉ áp cho swap, không cắt tổng
+  });
+});

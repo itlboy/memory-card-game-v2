@@ -1,6 +1,8 @@
 import { MemoryGame } from '@mm/engine';
 import type { Card, GameConfig, GameEvent, Player, Summary } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
+import { BOT_SPECS, botPick, botRng, createBotMemory, observe, publicView } from '@mm/engine';
+import type { BotLevel, BotMemory } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 
 /**
@@ -131,6 +133,61 @@ export function useGameSession() {
     if (events.length) bump();
   }
 
+  /* ---------- đối thủ máy ---------- */
+
+  /**
+   * Bot chỉ được nhìn `publicView` — đúng thứ client online nhận, và view đó
+   * không bao giờ chứa biểu tượng của thẻ đang úp (NF-04). Nên bot KHÔNG THỂ
+   * gian lận: không phải vì nó tự nguyện không xem bàn thẻ, mà vì nó không có
+   * tham chiếu nào tới bàn thẻ.
+   */
+  const botLevel = ref<BotLevel | null>(null);
+  let botMem: BotMemory = createBotMemory();
+  let botRandom = botRng(1);
+  let botTimer: ReturnType<typeof setTimeout> | undefined;
+  const BOT_ID = 'bot';
+
+  /** Bot đang nghĩ — UI khoá bàn để người chơi không lật hộ nó. */
+  const botThinking = ref(false);
+
+  function stopBot(): void {
+    if (botTimer) clearTimeout(botTimer);
+    botTimer = undefined;
+    botThinking.value = false;
+  }
+
+  /** Nhìn bàn qua view công khai và ghi vào ký ức của bot. */
+  function botWatch(): void {
+    const g = game.value;
+    if (!g || !botLevel.value) return;
+    observe(botMem, publicView(g, now.value, () => true), botLevel.value);
+  }
+
+  /**
+   * Tới lượt bot thì hẹn giờ rồi lật. Hẹn giờ để người chơi THẤY nó đang nghĩ;
+   * lật tức thì thì cảm giác như bị máy tính bắn nhanh, không ra đối thủ.
+   */
+  function botTurn(): void {
+    const g = game.value;
+    const level = botLevel.value;
+    if (!g || !level || g.finished) { stopBot(); return; }
+    if (g.current.id !== BOT_ID || countdownUntil) { stopBot(); return; }
+    // Bàn đang khoá (hai thẻ chờ úp lại) thì đợi, không hỏi nước nào — engine
+    // bỏ qua nước thứ ba và bot mất lượt oan
+    if (botTimer) return;
+    botThinking.value = true;
+    botTimer = setTimeout(() => {
+      botTimer = undefined;
+      const g2 = game.value;
+      if (!g2 || g2.finished || g2.current.id !== BOT_ID) { stopBot(); return; }
+      if (locked.value) { botThinking.value = false; return; }   // thử lại ở tick sau
+      botWatch();
+      const pick = botPick(publicView(g2, now.value, () => true), botMem, botRandom, level);
+      botThinking.value = false;
+      if (pick !== null) flip(pick);
+    }, BOT_SPECS[level].thinkMs);
+  }
+
   function loop(): void {
     const g = game.value;
     if (g && !g.finished) {
@@ -152,6 +209,7 @@ export function useGameSession() {
         bump();
       }
       handle(g.tick(now.value));
+      if (botLevel.value) botTurn();
       // Tick cảnh báo mỗi giây trong 10 giây cuối
       const left = g.timeLeft(now.value);
       if (left !== null && left > 0 && left <= 10) {
@@ -183,6 +241,9 @@ export function useGameSession() {
     clearTimeout(bannerTimer);
     lastTickSecond = -1;
     now.value = clockNow();
+    stopBot();
+    botMem = createBotMemory();
+    botRandom = botRng(config.seed);
     pickBack();
     // Đếm ngược 5 giây trước khi ván chạy. Multiplayer cần để người đi đầu
     // không bị động; Chớp nhoáng cần vì cả bàn bật lên rồi úp lại chỉ trong 4
@@ -210,7 +271,15 @@ export function useGameSession() {
     if (!raf && !g.finished) raf = requestAnimationFrame(loop);
   }
 
+  /** Bật/tắt đối thủ máy. Gọi TRƯỚC start() để ván mới gieo đúng rng cho bot. */
+  function setBot(level: BotLevel | null): void {
+    stopBot();
+    botLevel.value = level;
+    botMem = createBotMemory();
+  }
+
   function stop(): void {
+    stopBot();
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
   }
@@ -297,7 +366,7 @@ export function useGameSession() {
   });
 
   return {
-    game, start, flip, stop, adopt,
+    game, start, flip, stop, adopt, setBot, botLevel, botThinking,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle

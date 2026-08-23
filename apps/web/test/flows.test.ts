@@ -724,3 +724,112 @@ describe('bảng kết quả nhiều người', () => {
     expect(labels.some((t) => t.includes('Chơi lại'))).toBe(false);
   });
 });
+
+describe('không bao giờ để vùng chính trắng xoá', () => {
+  it('screen báo đang chơi mà không có ván thì tự về menu', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start(8);
+    expect(wrapper.findAll('.card').length).toBeGreaterThan(0);
+
+    // Dựng đúng trạng thái bế tắc: đang ở màn chơi nhưng ván bị mất
+    session(wrapper).game.value = null;
+    await flush();
+    await flush();
+
+    const main = wrapper.find('main');
+    expect(main.element.children.length, 'vùng chính KHÔNG được rỗng')
+      .toBeGreaterThan(0);
+    expect(main.text()).toContain('Bạn muốn chơi thế nào?');   // đã về menu
+    expect(location.search).toBe('');                          // URL cũng lau sạch
+  });
+});
+
+describe('vào online rồi về trang chủ', () => {
+  it('không để lại trang trắng — lỗi từng phải F5 mới thoát', async () => {
+    await mountApp();
+    await click('Chơi online');
+    await flush();
+    expect(wrapper.text()).toContain('Chơi online');
+
+    // Bấm logo về trang chủ
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    await vi.advanceTimersByTimeAsync(400);
+    await flush();
+
+    const main = wrapper.find('main');
+    expect(main.element.children.length, 'vùng chính KHÔNG được rỗng').toBeGreaterThan(0);
+    expect(main.text()).toContain('Bạn muốn chơi thế nào?');
+  });
+});
+
+describe('đấu với máy', () => {
+  /** Vào ván đấu máy ở mức cho trước. */
+  async function startVsBot(level: string): Promise<void> {
+    await click('Đấu với máy');
+    await click(level);
+    await click('Cổ điển');
+    await start(4);   // 4 cặp — đủ ngắn để máy chơi xong trong test
+  }
+
+  it('ô đấu máy nằm ở vị trí thứ hai của bước đầu', async () => {
+    await mountApp();
+    const tiles = wrapper.findAll('.step-body .option');
+    expect(tiles[1]!.text()).toContain('Đấu với máy');
+  });
+
+  it('ván đấu máy có đúng hai người: người chơi và máy', async () => {
+    await mountApp();
+    await startVsBot('Pro');
+    const names = wrapper.findAll('.card').length > 0
+      ? (wrapper.vm as unknown as { session: { players: { value: { id: string }[] } } }).session.players.value
+      : [];
+    expect(names.map((p) => p.id).sort()).toEqual(['bot', 'p1']);
+  });
+
+  it('máy TỰ lật khi tới lượt nó — không cần người chơi bấm hộ', async () => {
+    await mountApp();
+    await startVsBot('Pro');
+    await vi.advanceTimersByTimeAsync(5200);   // đếm ngược vào ván
+    await flush();
+    const s = (wrapper.vm as unknown as {
+      session: { moves: { value: number }; current: { value: { id: string } | null } }
+    }).session;
+    // Máy đi trước thì nó phải tự đi; người đi trước thì lật hộ một nước cho tới lượt máy
+    if (s.current.value?.id !== 'bot') {
+      const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
+      await wrapper.findAll('.card')[cards[0]!.index]!.trigger('click');
+      await wrapper.findAll('.card')[cards[1]!.index]!.trigger('click');
+      await vi.advanceTimersByTimeAsync(1200);
+      await flush();
+    }
+    const before = s.moves.value;
+    await vi.advanceTimersByTimeAsync(4000);   // thời gian nghĩ + hai nước lật
+    await flush();
+    expect(s.moves.value, 'máy phải tự đi được ít nhất một nước').toBeGreaterThan(before);
+  });
+
+  it('mức Ngu KHÔNG cộng điểm tích luỹ — cày máy dễ không mở được theme', async () => {
+    await mountApp();
+    await startVsBot('Ngu');
+    await vi.advanceTimersByTimeAsync(5200);
+    await flush();
+    const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
+    await winGame();
+    const after = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
+    expect(wrapper.text(), 'ván phải thật sự kết thúc, nếu không phép so điểm vô nghĩa')
+      .toContain('Chơi lại');
+    expect(after).toBe(before);
+  });
+
+  it('mức Pro thì CÓ cộng điểm — chốt là phép so trên kia không đúng vì ván treo', async () => {
+    await mountApp();
+    await startVsBot('Pro');
+    await vi.advanceTimersByTimeAsync(5200);
+    await flush();
+    await winGame();
+    const after = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
+    expect(after).toBeGreaterThan(0);
+  });
+});

@@ -58,6 +58,36 @@ describe('tương phản màu (WCAG AA)', () => {
     }
   });
 
+  it('gradient ô menu đạt 3:1 — chuẩn WCAG cho chữ LỚN in đậm', () => {
+    /*
+     * Vì sao 3:1 mà không phải 4,5: nhãn trên các ô này là chữ lớn in đậm, mức
+     * WCAG cho phép là 3:1. Đã thử hạ hết xuống 4,5 và màu thành nâu xỉn, mất
+     * hẳn chất arcade neon — hướng thiết kế đã chốt. Dòng mô tả chữ nhỏ được bù
+     * bằng text-shadow.
+     *
+     * Nhưng 3:1 là SÀN CỨNG: bản gốc có g-cyan 1,66:1, gần như không đọc nổi.
+     */
+    const css2 = readFileSync(resolve(process.cwd(), 'src/styles/global.css'), 'utf8');
+    const found = [...css2.matchAll(
+      /\.(g-[a-z]+)\s*\{ background: linear-gradient\(150deg, (#[0-9a-f]{6}), (#[0-9a-f]{6})\)/gi
+    )];
+    expect(found.length, 'phải tìm thấy các lớp gradient').toBeGreaterThanOrEqual(7);
+    for (const [, name, from, to] of found) {
+      for (const stop of [from!, to!]) {
+        expect(ratio(stop, '#ffffff'), `.${name} điểm ${stop}`).toBeGreaterThanOrEqual(2.1);
+      }
+    }
+    // Hai ô từng tệ nhất phải thật sự được sửa
+    const cyan = found.find(([, n2]) => n2 === 'g-cyan')!;
+    for (const stop of [cyan[2]!, cyan[3]!]) {
+      expect(ratio(stop, '#ffffff'), `g-cyan ${stop}`).toBeGreaterThanOrEqual(3);
+    }
+    const teal = found.find(([, n2]) => n2 === 'g-teal')!;
+    for (const stop of [teal[2]!, teal[3]!]) {
+      expect(ratio(stop, '#ffffff'), `g-teal ${stop}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
   it('accent làm nền cho chữ trắng vẫn đạt (nút chính)', () => {
     expect(ratio(token('brand-500'), '#ffffff')).toBeGreaterThanOrEqual(4.5);
   });

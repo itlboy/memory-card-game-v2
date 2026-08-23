@@ -35,6 +35,12 @@
 
 @media (hover: hover) {
   .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
+  /* Ô neon đã có màu riêng: viền accent lúc hover trông như một vành sáng lạc
+     tông (nhìn rõ nhất trên ô cam). Nâng nhẹ và làm đậm bóng là đủ. */
+  .option.neon:hover {
+    border-color: transparent;
+    box-shadow: var(--elev-2), inset 0 1px 0 rgba(255, 255, 255, .32);
+  }
 }
 
 /* Ô nằm ngang: icon PHẢI dính lề trái. justify-content: center kế thừa từ

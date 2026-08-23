@@ -47,6 +47,7 @@ const label = computed(() => {
     :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending }"
     :style="{
       '--deal': `${dealStagger}ms`,
+      '--wob': card.index % 2 ? 1 : -1,
       ...(swapFrom ? {
         '--sx': `${swapFrom.dx}px`,
         '--sy': `${swapFrom.dy}px`,
@@ -101,6 +102,40 @@ const label = computed(() => {
 }
 }
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }
+
+/**
+ * Lắc nhẹ lúc thẻ vừa đáp: lật xong (hoặc úp xong) thì thẻ nghiêng qua lại một
+ * nhịp rồi mới đứng yên — thẻ thật đặt xuống bàn không bao giờ dừng khựng.
+ *
+ * Vì sao là animation chứ không phải transition: transition chỉ đi được một
+ * chiều từ giá trị cũ sang mới, không diễn được nhịp quá đà rồi trả về. Khung
+ * cuối trùng đúng với transform tĩnh của trạng thái nên hết animation không
+ * giật. `--wob` đảo dấu theo ô để cả bàn không lắc cùng một phía như đồng ca.
+ *
+ * KHÔNG áp cho `peek` (cả bàn hé mở, lắc hết thành rung màn hình) và `pending`
+ * (đang dừng ở 90 độ chờ server).
+ */
+.card.up:not(.peek):not(.pending) .inner { animation: flip-up .46s cubic-bezier(.3, .8, .4, 1.05); }
+.card:not(.up):not(.done):not(.peek):not(.pending) .inner { animation: flip-down .46s cubic-bezier(.3, .8, .4, 1.05); }
+
+@keyframes flip-up {
+  0%   { transform: rotateY(0); }
+  68%  { transform: rotateY(180deg) rotateZ(0); }
+  80%  { transform: rotateY(180deg) rotateZ(calc(-2deg * var(--wob, 1))) scale(1.02); }
+  91%  { transform: rotateY(180deg) rotateZ(calc(1.1deg * var(--wob, 1))); }
+  100% { transform: rotateY(180deg); }
+}
+@keyframes flip-down {
+  0%   { transform: rotateY(180deg); }
+  68%  { transform: rotateY(0) rotateZ(0); }
+  80%  { transform: rotateY(0) rotateZ(calc(2deg * var(--wob, 1))) scale(1.02); }
+  91%  { transform: rotateY(0) rotateZ(calc(-1.1deg * var(--wob, 1))); }
+  100% { transform: rotateY(0); }
+}
+/* Người chọn "giảm chuyển động" thì bỏ hẳn nhịp lắc, giữ lại cú lật */
+@media (prefers-reduced-motion: reduce) {
+  .card .inner { animation: none !important; }
+}
 /**
  * Đã bấm, đang chờ server: lật tới ĐÚNG 90 độ — cạnh thẻ, chưa thấy mặt nào.
  * Vì sao dừng ở 90: server chưa gửi biểu tượng (thẻ úp không bao giờ có symbol

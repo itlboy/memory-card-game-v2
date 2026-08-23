@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CAMPAIGN_LEVELS, levelSpec } from '@mm/engine';
-import { Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
-import type { Mode } from '@mm/engine';
+import { BOT_SPECS, CAMPAIGN_LEVELS, levelSpec } from '@mm/engine';
+import { Bot, Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
+import type { BotLevel, Mode } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
 import type { CardTheme } from '@/lib/themes';
@@ -23,6 +23,8 @@ const props = defineProps<{
    *  này: cấp mà không bộ nào đủ thì có chọn theme kiểu gì cũng không chơi
    *  được, còn lại để bước theme phía sau lo. */
   maxSymbolCount: number;
+  /** Đang đấu với máy ở mức nào, null là không đấu máy. */
+  botLevel: BotLevel | null;
 }>();
 
 const emit = defineEmits<{
@@ -30,13 +32,14 @@ const emit = defineEmits<{
   'update:level': [number];
   'update:themeIds': [string[]];
   'update:playerCount': [number];
+  'update:botLevel': [BotLevel | null];
   'start-level': [number];
   online: [];
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
-type Step = 'players' | 'count' | 'names' | 'mode' | 'level' | 'theme';
-const STEPS: readonly Step[] = ['players', 'count', 'names', 'mode', 'level', 'theme'];
+type Step = 'players' | 'bot' | 'count' | 'names' | 'mode' | 'level' | 'theme';
+const STEPS: readonly Step[] = ['players', 'bot', 'count', 'names', 'mode', 'level', 'theme'];
 
 /** Bước hiện tại nằm trên URL (?w=level) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
@@ -66,17 +69,19 @@ const isMulti = computed(() => props.playerCount > 1);
 // Cấp độ đứng TRƯỚC theme: chọn chơi cấp nào là quyết định chính, còn theme là
 // trang trí. Bản đồ cấp chỉ chặn cấp mà KHÔNG bộ theme nào đủ biểu tượng; bước
 // theme sau đó cảnh báo nếu bộ đang chọn không đủ cho cấp này.
-const path = computed<Step[]>(() =>
-  isMulti.value
+const path = computed<Step[]>(() => {
+  if (props.botLevel) return ['players', 'bot', 'mode', 'level', 'theme'];
+  return isMulti.value
     ? ['players', 'count', 'names', 'mode', 'level', 'theme']
-    : ['players', 'mode', 'level', 'theme']
-);
+    : ['players', 'mode', 'level', 'theme'];
+});
 const stepIndex = computed(() => path.value.indexOf(step.value));
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
 if (step.value !== 'players' && !path.value.includes(step.value)) step.value = 'players';
 
 const TITLES: Record<Step, string> = {
   players: 'Bạn muốn chơi thế nào?',
+  bot: 'Máy chơi giỏi cỡ nào?',
   count: 'Mấy người chơi?',
   names: 'Tên từng người',
   mode: 'Chọn chế độ',
@@ -103,10 +108,35 @@ const COUNTS = [
 /** Nhiều người chơi có đủ mọi chế độ, TRỪ Chiến dịch — chiến dịch là chuỗi màn
  *  của riêng một người, không có nghĩa khi thay lượt nhau. */
 const MULTI_MODES = SOLO_MODES.filter((m) => m.id !== 'campaign');
-const modes = computed(() => (isMulti.value ? MULTI_MODES : SOLO_MODES));
+const modes = computed(() => (isMulti.value || props.botLevel ? MULTI_MODES : SOLO_MODES));
+
+/** Bốn mức của máy. Mô tả nói bằng CẢM GIÁC chơi (và nói cho vui), không nói
+ *  "retain 0,72" — trọng số là chuyện của engine. */
+const BOT_CHOICES = [
+  { id: 'easy' as BotLevel,   g: 'g-teal',   desc: 'Bot này hay quên, mở trước quên sau. Không tính điểm nhé.' },
+  { id: 'normal' as BotLevel, g: 'g-blue',   desc: 'Bot này mới học xong lớp 5' },
+  { id: 'hard' as BotLevel,   g: 'g-amber',  desc: 'Bot này trình độ đại học đấy, hãy cẩn thận' },
+  { id: 'insane' as BotLevel, g: 'g-red',    desc: 'Thắng được bot này tôi gọi bạn bằng cụ' }
+];
+
+function pickBotMode(): void {
+  sfx.select();
+  emit('update:playerCount', 1);
+  emit('update:botLevel', props.botLevel ?? 'normal');
+  step.value = 'bot';
+}
+
+function pickBotLevel(l: BotLevel): void {
+  sfx.select();
+  emit('update:botLevel', l);
+  // Máy chỉ đấu 1v1 và không có Chiến dịch (chuỗi màn của riêng một người)
+  if (props.mode === 'campaign') emit('update:mode', 'classic');
+  step.value = 'mode';
+}
 
 function pickPlayers(multi: boolean): void {
   sfx.select();
+  emit('update:botLevel', null);
   emit('update:playerCount', multi ? Math.max(2, props.playerCount) : 1);
   // Nhiều người chỉ có 2 chế độ; nếu đang giữ chế độ solo thì đưa về Cổ điển
   if (multi && props.mode !== 'classic' && props.mode !== 'survival') emit('update:mode', 'classic');
@@ -210,6 +240,11 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           <strong>Chơi một mình</strong>
           <small>Luyện trí nhớ, phá kỷ lục của chính bạn</small>
         </button>
+        <button class="option big neon g-amber" type="button" @click="pickBotMode()">
+          <Bot class="opt-icon" :size="40" />
+          <strong>Đấu với máy</strong>
+          <small>Một mình vẫn có đối thủ — máy chơi ngay trên máy bạn, không cần mạng</small>
+        </button>
         <button class="option big neon g-pink" type="button" @click="pickPlayers(true)">
           <Users class="opt-icon" :size="40" />
           <strong>Chơi nhiều người</strong>
@@ -222,16 +257,28 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         </button>
       </div>
 
+      <!-- BƯỚC (đấu máy): mức của máy -->
+      <div v-else-if="step === 'bot'" key="bot" class="step-body options loose">
+        <button
+          v-for="b in BOT_CHOICES" :key="b.id" class="option wide neon" :class="b.g" type="button"
+          :aria-pressed="botLevel === b.id"
+          @click="pickBotLevel(b.id)"
+        >
+          <span class="bot-face" aria-hidden="true">{{ BOT_SPECS[b.id].avatar }}</span>
+          <span class="text"><strong>{{ BOT_SPECS[b.id].name }}</strong><small>{{ b.desc }}</small></span>
+        </button>
+      </div>
+
       <!-- BƯỚC 2 (nhiều người): số người -->
       <div v-else-if="step === 'count'" key="count" class="step-body options loose counts">
         <button
-          v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
+          v-for="c in COUNTS" :key="c.n" class="option wide neon" :class="c.g" type="button"
           :aria-label="`${c.n} người chơi`"
           :aria-pressed="playerCount === c.n"
           @click="pickCount(c.n)"
         >
-          <span class="count-num" aria-hidden="true">{{ c.n }}</span>
-          <span class="text"><strong>Người chơi</strong><small>{{ c.desc }}</small></span>
+          <Users class="opt-icon" :size="40" aria-hidden="true" />
+          <span class="text"><strong>{{ c.n }} người chơi</strong><small>{{ c.desc }}</small></span>
         </button>
       </div>
 
@@ -386,6 +433,9 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    nên 4 cột sẽ vỡ trong cột hẹp). */
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
 .options.grid2 { grid-template-columns: repeat(3, 1fr); }
+/* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
+.bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
+
 .theme-step { gap: 0; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: clamp(15.5px, 19cqw, 24px); }
@@ -424,7 +474,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   flex-direction: row; justify-content: center; align-items: center;
   gap: 14px; text-align: left;
 }
-.options.loose.counts .count-num { font-size: 40px; flex-shrink: 0; }
 .options.loose.counts .text { display: flex; flex-direction: column; gap: 1px; }
 
 .option {
@@ -442,11 +491,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 }
 .option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 .option .icon { font-size: 30px; }
-.count-num {
-  font-family: var(--font-display); font-weight: 800; font-size: 34px;
-  color: var(--accent); line-height: 1;
-}
-.neon .count-num { color: #fff; }
 .option.big .icon { font-size: 42px; }
 .option.big strong { font-size: clamp(17px, 8.6cqw, 28px); }
 

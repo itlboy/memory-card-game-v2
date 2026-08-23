@@ -27,14 +27,23 @@ export interface DeckOptions {
  *  trọng số 1. */
 const POWER_WEIGHT: Partial<Record<Power, number>> = { swap: 2 };
 
-function pickPower(allowed: readonly Power[], rng: Rng): Power {
-  const total = allowed.reduce((n, p) => n + (POWER_WEIGHT[p] ?? 1), 0);
+/** TRẦN số lần mỗi loại hiệu ứng xuất hiện trong một bàn. Thẻ tráo giới hạn 2:
+ *  bàn lớn tính theo tỉ lệ ra tới 6 thẻ tráo, tráo liên tục thì người chơi không
+ *  còn dựa được vào ký ức nào nữa, thành ra chơi bằng may. */
+const POWER_MAX: Partial<Record<Power, number>> = { swap: 2 };
+
+function pickPower(allowed: readonly Power[], rng: Rng, used: Map<Power, number>): Power {
+  const open = allowed.filter((p) => (used.get(p) ?? 0) < (POWER_MAX[p] ?? Infinity));
+  const pool = open.length ? open : allowed;
+  const total = pool.reduce((n, p) => n + (POWER_WEIGHT[p] ?? 1), 0);
   let r = rng.next() * total;
-  for (const p of allowed) {
+  for (const p of pool) {
     r -= POWER_WEIGHT[p] ?? 1;
-    if (r <= 0) return p;
+    if (r <= 0) { used.set(p, (used.get(p) ?? 0) + 1); return p; }
   }
-  return allowed[allowed.length - 1]!;
+  const last = pool[pool.length - 1]!;
+  used.set(last, (used.get(last) ?? 0) + 1);
+  return last;
 }
 
 export function buildDeck(opts: DeckOptions): Card[] {
@@ -64,12 +73,13 @@ export function buildDeck(opts: DeckOptions): Card[] {
   // Cặp nào mang hiệu ứng — chọn tất định theo seed
   const specialPairs = new Set(rng.sample([...picked.keys()], specialCount));
 
+  const powerUse = new Map<Power, number>();
   const draft: Omit<Card, 'index'>[] = [];
   picked.forEach((symbol, pairId) => {
     // Bốc có TRỌNG SỐ: thẻ tráo nặng gấp đôi hai loại kia. Bốc đều thì bàn có
     // một thẻ đặc biệt chỉ 1/3 khả năng là thẻ tráo, nên người chơi hầu như
     // không gặp nó ở cấp thấp.
-    const power = specialPairs.has(pairId) ? pickPower(allowed, rng) : undefined;
+    const power = specialPairs.has(pairId) ? pickPower(allowed, rng, powerUse) : undefined;
     // Hiệu ứng chỉ gắn trên MỘT thẻ của cặp: lật đúng thẻ đó mới kích hoạt
     const carrier = rng.int(2);
     for (let k = 0; k < 2; k++) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MemoryGame, presetConfig, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
-import type { GameConfig, Mode, PlayerInit } from '@mm/engine';
+import { BOT_SPECS } from '@mm/engine';
+import type { BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import CelebrationFx from './components/CelebrationFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
@@ -46,6 +47,9 @@ const mode = ref<Mode>(prefs.mode);
 const level = ref(Math.min(CAMPAIGN_LEVELS, Math.max(1, prefs.level)));
 const themeIds = ref<string[]>(prefs.themes);
 const playerCount = ref(prefs.playerCount);
+/** Đấu với máy: mức của máy, null là không đấu máy. KHÔNG lưu vào prefs — mở
+ *  app lên phải là trang chủ bình thường, không tự nhảy vào ván đấu máy. */
+const botLevel = ref<BotLevel | null>(null);
 const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
@@ -101,7 +105,7 @@ function persistGame(): void {
   const g = session.game.value;
   if (!g || g.finished) return;
   try {
-    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ snap: g.snapshot(), levelId: levelId.value }));
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ snap: g.snapshot(), levelId: levelId.value, bot: botLevel.value }));
   } catch { /* chế độ riêng tư */ }
 }
 
@@ -115,8 +119,12 @@ function restoreGame(): boolean {
   try {
     const raw = sessionStorage.getItem(RESUME_KEY);
     if (!raw) return false;
-    const blob = JSON.parse(raw) as { snap: string; levelId: number | null };
+    const blob = JSON.parse(raw) as { snap: string; levelId: number | null; bot?: BotLevel | null };
     const g = MemoryGame.restore(blob.snap);
+    // Ván đấu máy khôi phục sau F5: phải bật lại bộ điều khiển, không thì tới
+    // lượt máy là ván treo vĩnh viễn. Mức lưu kèm snapshot.
+    botLevel.value = blob.bot ?? null;
+    session.setBot(botLevel.value);
     if (g.finished) return false;
     levelId.value = blob.levelId;
     session.adopt(g);
@@ -222,6 +230,15 @@ const symbols = computed(() => [...new Set(
 )]);
 
 function playerList(): PlayerInit[] | undefined {
+  // Đấu máy: người chơi luôn đi trước, máy là 'bot' — id này khớp với id mà
+  // bộ điều khiển trong useGameSession chờ tới lượt
+  if (botLevel.value) {
+    const spec = BOT_SPECS[botLevel.value];
+    return [
+      { id: 'p1', name: store.playerNames()[0] ?? 'Bạn' },
+      { id: 'bot', name: spec.name, avatar: spec.avatar }
+    ];
+  }
   if (playerCount.value < 2) return undefined;
   const saved = store.playerNames();
   const list = Array.from({ length: playerCount.value }, (_, i) => ({
@@ -239,6 +256,21 @@ function playerList(): PlayerInit[] | undefined {
 
 /** Seed lấy từ ngoài engine để engine giữ tính tất định (dùng chung với server sau này). */
 const newSeed = (): number => Math.floor(Math.random() * 0xffffffff) || 1;
+
+/**
+ * Trạng thái không nhất quán thì tự chữa: `screen` báo đang chơi mà không có ván
+ * nào là bế tắc — vùng chính rỗng và người chơi chỉ còn cách tải lại trang. Đưa
+ * về menu và lau URL.
+ */
+watch(
+  () => [screen.value, !!session.game.value] as const,
+  ([sc, hasGame]) => {
+    if (sc === 'game' && !hasGame) {
+      screen.value = 'menu';
+      setUrl(null);
+    }
+  }
+);
 
 function launch(config: GameConfig): void {
   isRecord.value = false;
@@ -263,6 +295,7 @@ function startLevel(id: number): void {
     });
     levelId.value = id;
     level.value = id;
+    session.setBot(botLevel.value);
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
 }
@@ -316,7 +349,13 @@ watch(session.summary, (s) => {
     // người cả buổi mà điểm vẫn đứng yên — và theme khoá theo điểm nên người
     // hay chơi cùng bạn bè không bao giờ mở được gì. Lấy điểm người dẫn đầu:
     // đây là thành tích của MÁY này, không phân biệt được ai đang cầm.
-    store.addScore(s.ranking[0]?.score ?? 0);
+    // Đấu máy: chỉ cộng điểm CỦA NGƯỜI, và mức Dễ thì không tính — nếu tính,
+    // cày máy dễ là cách nhanh nhất để mở hết theme, mọi mốc điểm mất nghĩa.
+    if (botLevel.value) {
+      if (botLevel.value !== 'easy') {
+        store.addScore(s.ranking.find((r) => r.id !== 'bot')?.score ?? 0);
+      }
+    } else store.addScore(s.ranking[0]?.score ?? 0);
     // Tỷ số loạt: hoà thì không ai được cộng
     const champ = s.ranking[0];
     if (champ && !isDraw(s.ranking)) {
@@ -340,8 +379,13 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     @home="goHome"
   />
 
+  <!-- Transition KHÔNG dùng mode="out-in": đo được là pha vào không bao giờ chạy
+       sau khi màn online rời đi, để lại vùng chính TRẮNG XOÁ và chỉ F5 mới thoát
+       được (screen đã là 'menu' mà Vue vẫn render một comment rỗng). Chồng hai
+       màn một nhịp rồi cho màn cũ tách khỏi luồng (.screen-leave-active) là đủ
+       mượt mà không có trạng thái bế tắc nào. -->
   <main>
-    <Transition name="screen" mode="out-in">
+    <Transition name="screen">
     <MenuScreen
       v-if="screen === 'menu'"
       :key="menuKey"
@@ -350,6 +394,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :level="level"
       :theme-ids="themeIds"
       :player-count="playerCount"
+      :bot-level="botLevel"
       :total-score="totalScore"
       :symbol-count="symbols.length"
       :max-symbol-count="maxSymbols"
@@ -357,6 +402,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       @update:level="level = $event"
       @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
+      @update:bot-level="botLevel = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
     />
@@ -369,12 +415,38 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
     />
 
     <GameScreen
-      v-else-if="session.game.value"
+      v-else-if="screen === 'game' && session.game.value"
       :session="session"
       :game="session.game.value"
       :level-id="levelId ?? undefined"
       :series-wins="seriesWins"
       @quit="goHome"
+    />
+
+    <!-- Nhánh CUỐI bắt buộc phải có. Trước đây chuỗi kết thúc ở điều kiện
+         `session.game.value`, nên trạng thái nào không khớp là vùng chính RỖNG:
+         thanh trên vẫn hiện (nó ở ngoài) mà giữa trang trắng xoá, và không có
+         đường nào thoát ngoài tải lại. Watcher bên dưới tự đưa về menu; khối này
+         là lưới an toàn cho một frame giữa hai trạng thái. -->
+    <MenuScreen
+      v-else
+      :key="`fallback-${menuKey}`"
+      :themes="themes"
+      :mode="mode"
+      :level="level"
+      :theme-ids="themeIds"
+      :player-count="playerCount"
+      :bot-level="botLevel"
+      :total-score="totalScore"
+      :symbol-count="symbols.length"
+      :max-symbol-count="maxSymbols"
+      @update:mode="mode = $event"
+      @update:level="level = $event"
+      @update:theme-ids="themeIds = $event"
+      @update:player-count="playerCount = $event"
+      @update:bot-level="botLevel = $event"
+      @start-level="startLevel"
+      @online="screen = 'online'"
     />
     </Transition>
   </main>
@@ -411,6 +483,9 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
 
 <style scoped>
 main {
+  /* position: relative để màn đang rời (.screen-leave-active, inset: 0) neo
+     theo đây thay vì theo viewport */
+  position: relative;
   flex: 1; min-height: 0; display: flex; justify-content: center;
   padding: 12px; overflow-y: auto;
 }

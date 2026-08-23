@@ -50,14 +50,14 @@ describe('bot: chiến thuật', () => {
       { state: 'down' }, { state: 'down' }, { state: 'down' }, { state: 'down' }
     ]);
     const mem = createBotMemory();
-    mem.set(4, 'A');            // đã thấy lá A ở ô 4
+    mem.set(4, { symbol: 'A', at: 0 });   // đã thấy lá A ở ô 4
     expect(botPick(v, mem, botRng(1), 'hard')).toBe(4);
   });
 
   it('đầu lượt, ký ức có sẵn một cặp thì lật cặp đó', () => {
     const v = view(Array.from({ length: 6 }, () => ({ state: 'down' as const })));
     const mem = createBotMemory();
-    mem.set(1, 'B'); mem.set(5, 'B');
+    mem.set(1, { symbol: 'B', at: 0 }); mem.set(5, { symbol: 'B', at: 0 });
     const pick = botPick(v, mem, botRng(1), 'hard');
     expect([1, 5]).toContain(pick);
   });
@@ -65,7 +65,7 @@ describe('bot: chiến thuật', () => {
   it('không nhớ gì thì lật lá CHƯA TỪNG THẤY, không lật lại lá cũ vô ích', () => {
     const v = view(Array.from({ length: 6 }, () => ({ state: 'down' as const })));
     const mem = createBotMemory();
-    mem.set(0, 'X'); mem.set(1, 'Y');   // hai lá đã thấy, không thành cặp
+    mem.set(0, { symbol: 'X', at: 0 }); mem.set(1, { symbol: 'Y', at: 0 });
     for (let seed = 1; seed < 30; seed++) {
       expect([0, 1]).not.toContain(botPick(v, mem, botRng(seed), 'hard'));
     }
@@ -90,22 +90,44 @@ describe('bot: chiến thuật', () => {
   });
 });
 
-describe('bot: ký ức theo độ khó', () => {
-  it('mức dễ quên lá cũ khi vượt hạn, mức khó nhớ hết', () => {
-    const mk = (level: BotLevel): number => {
-      const mem = createBotMemory();
-      // Lộ 6 lá lần lượt, mỗi lần một lá
-      for (let i = 0; i < 6; i++) {
-        const cards = Array.from({ length: 6 }, (_, j) => (
-          j === i ? { state: 'up' as const, symbol: `s${j}` } : { state: 'down' as const }
-        ));
-        observe(mem, view(cards), level);
-      }
-      return mem.size;
-    };
-    expect(mk('easy')).toBe(BOT_SPECS.easy.memory);
-    expect(mk('normal')).toBe(6);       // hạn 8, thấy 6 nên nhớ hết
-    expect(mk('hard')).toBe(6);
+describe('bot: quên dần theo thời gian', () => {
+  /** Sau `age` nước, bot còn nhớ một lá bao nhiêu phần trăm (đo 2000 lần). */
+  function recallRate(level: BotLevel, age: number): number {
+    const mem = createBotMemory();
+    mem.set(0, { symbol: 'A', at: 0 });
+    mem.set(5, { symbol: 'A', at: 0 });
+    let hits = 0;
+    const N = 2000;
+    for (let i = 0; i < N; i++) {
+      const v = view(Array.from({ length: 6 }, () => ({ state: 'down' as const })));
+      v.moves = age;
+      // Nhớ được cặp thì nó lật ô 0 hoặc 5; quên thì bốc lá khác
+      const pick = botPick(v, mem, botRng(i * 31 + 1), level);
+      if (pick === 0 || pick === 5) hits++;
+    }
+    return hits / N;
+  }
+
+  it('vừa thấy thì mức nào cũng nhớ', () => {
+    for (const level of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+      expect(recallRate(level, 0), level).toBeGreaterThan(0.7);
+    }
+  });
+
+  it('càng lâu càng dễ quên', () => {
+    for (const level of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+      const fresh = recallRate(level, 0);
+      const old = recallRate(level, 20);
+      expect(old, `${level}: nhớ sau 20 nước phải kém lúc vừa thấy`).toBeLessThan(fresh);
+    }
+  });
+
+  it('bot giỏi quên CHẬM hơn bot kém — ở cùng độ tuổi ký ức', () => {
+    const age = 8;
+    const rates = (['easy', 'normal', 'hard', 'insane'] as BotLevel[]).map((l) => recallRate(l, age));
+    for (let i = 1; i < rates.length; i++) {
+      expect(rates[i]!, `mức ${i} phải nhớ dai hơn mức ${i - 1}`).toBeGreaterThan(rates[i - 1]!);
+    }
   });
 
   it('thẻ đã ghép bị xoá khỏi ký ức — nó chiếm chỗ mà không dùng được nữa', () => {
@@ -121,69 +143,51 @@ describe('bot: ký ức theo độ khó', () => {
 
 describe('bot: độ khó có thật sự khác nhau', () => {
   /**
-   * Cho hai bot đánh nhau trọn ván, trả về số cặp mỗi bên ghép được.
+   * Số nước cần để một bot dọn sạch bàn MỘT MÌNH. Đây là thước đo trung thực
+   * của trí nhớ; bàn 4×4 tối thiểu là 16 lượt lật.
    *
-   * PHẢI observe NGAY SAU mỗi lần lật, trước khi tick. Lần đầu tôi viết harness
-   * này theo thứ tự tick-rồi-observe, và thế là bot nhớ được 0 lá: tick đã úp
-   * hai thẻ lại nên view không còn symbol nào. Ký ức thành vô nghĩa, ba mức độ
-   * khó chơi y như nhau, và chênh lệch đo được chỉ là nhiễu. Client thật cũng
-   * phải observe mỗi lần view đổi, kể cả view ngay sau lá thứ hai.
+   * KHÔNG dùng đối đầu bot-với-bot để so độ khó: đo thử thì bot khó đi 1096 nước
+   * còn bot dễ chỉ 514, và bot dễ lại ghi nhiều cặp hơn. Không phải bot khó dở —
+   * đó là lợi thế đi sau có thật trong game trí nhớ, ai lộ hai lá mới ra thì
+   * người kế tiếp dùng được ngay thông tin đó. Đối đầu đo lượt chơi, không đo
+   * trí nhớ.
    */
-  function duel(levelA: BotLevel, levelB: BotLevel, seed: number): [number, number] {
-    const g = new MemoryGame({
-      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed,
-      players: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }]
-    });
+  function flipsToClear(level: BotLevel, seed: number): number {
+    const g = new MemoryGame({ mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed });
     g.start(0);
-    const mem = { a: createBotMemory(), b: createBotMemory() };
-    const rng = { a: botRng(seed), b: botRng(seed + 1) };
-    const level = { a: levelA, b: levelB };
-    const look = (now: number): GameView => {
-      const v = publicView(g, now, () => true);
-      observe(mem.a, v, level.a);
-      observe(mem.b, v, level.b);
-      return v;
-    };
+    const mem = createBotMemory();
+    const rng = botRng(seed);
     let now = 0;
-    for (let step = 0; step < 600 && !g.finished; step++) {
-      const v = look(now);
-      // Bàn đang KHOÁ (hai thẻ đã mở, chờ úp lại): không hỏi bot nước nào, vì
-      // engine bỏ qua nước thứ ba. Bỏ bước này thì bot mất lượt liên tục, cả hai
-      // bên thành chơi ngẫu nhiên và ký ức không còn tác dụng — đúng cái đã che
-      // mất khác biệt giữa các mức độ khó trong lần đo đầu.
-      if (v.cards.filter((c) => c.state === 'up').length >= 2) {
-        now += 1200;
-        g.tick(now);
-        continue;
-      }
-      const pick = botPick(v, mem[g.current.id as 'a' | 'b'], rng[g.current.id as 'a' | 'b'],
-        level[g.current.id as 'a' | 'b']);
+    let flips = 0;
+    for (let step = 0; step < 800 && !g.finished; step++) {
+      const v = publicView(g, now, () => true);
+      observe(mem, v, level);
+      if (v.cards.filter((c) => c.state === 'up').length >= 2) { now += 1200; g.tick(now); continue; }
+      const pick = botPick(v, mem, rng, level);
       if (pick === null) break;
       g.flip(pick, now);
-      look(now);              // nhìn NGAY sau khi lật, lúc symbol còn hiện
+      flips++;
+      observe(mem, publicView(g, now, () => true), level);
       now += 60;
       g.tick(now);
     }
-    const pa = g.players.find((p) => p.id === 'a')!.pairs;
-    const pb = g.players.find((p) => p.id === 'b')!.pairs;
-    return [pa, pb];
+    return g.finished ? flips : Infinity;
   }
 
-  it('bot khó ghép được nhiều cặp hơn bot dễ trên nhiều ván', () => {
-    let hard = 0, easy = 0;
-    for (let seed = 1; seed <= 40; seed++) {
-      const [h, e] = duel('hard', 'easy', seed * 37);
-      hard += h; easy += e;
-    }
-    // Đòi hơn HẲN, không phải hơn sát sao: sát sao thì chỉ là nhiễu ngẫu nhiên,
-    // và đúng cái đó đã che mất lỗi "bot nhớ 0 lá" trong lần viết đầu.
-    expect(hard).toBeGreaterThan(easy * 1.3);
-  });
+  const average = (level: BotLevel): number => {
+    let total = 0;
+    for (let seed = 1; seed <= 60; seed++) total += flipsToClear(level, seed * 37);
+    return total / 60;
+  };
 
-  it('ván bot đấu bot luôn kết thúc, không treo', () => {
-    for (let seed = 1; seed <= 10; seed++) {
-      const [a, b] = duel('normal', 'normal', seed * 91);
-      expect(a + b).toBe(8);          // 4×4 = 8 cặp, ghép hết
-    }
+  it('bot giỏi dọn bàn bằng ít nước hơn — và ai cũng dọn xong', () => {
+    const easy = average('easy');
+    const normal = average('normal');
+    const hard = average('hard');
+    expect(easy).toBeLessThan(Infinity);
+    // Tối thiểu lý thuyết là 16 lượt lật cho 8 cặp
+    expect(hard).toBeGreaterThanOrEqual(16);
+    expect(hard, 'khó phải hơn thường').toBeLessThan(normal);
+    expect(normal, 'thường phải hơn dễ').toBeLessThan(easy);
   });
 });
