@@ -82,6 +82,8 @@ const lives = computed(() =>
     : (s.players.value[0]?.lives ?? 0)
 );
 const locked = computed(() => s.locked.value || s.revealingAll.value || s.countdownLeft.value !== null);
+/** Ván Chớp nhoáng: màn đếm ngược nói sắp mở bài thay vì báo người đi đầu. */
+const isPeek = computed(() => (props.game.config.peekMs ?? 0) > 0);
 
 /**
  * Bàn thẻ phải lọt trọn màn hình và LẤP hết chỗ được chia.
@@ -162,7 +164,10 @@ const fitStyle = computed(() => ({
            bị đẩy lên đẩy xuống, vừa khó chịu vừa dễ bấm nhầm ô. -->
       <Transition name="toast">
         <p v-if="s.revealingAll.value" class="toast peek" role="status">
-          👀 Ghi nhớ vị trí các thẻ…
+          <!-- Chữ ngắn để thông báo gọn MỘT dòng: hai dòng thì nó che thêm một
+               hàng thẻ, mà đây đúng là lúc người chơi cần nhìn cả bàn. -->
+          👀 Ghi nhớ vị trí!
+          <b v-if="s.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(s.peekLeft.value) }}s</b>
         </p>
         <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" role="status">
           ❤️ Hồi 1 mạng — ghép đúng hai lần liền!
@@ -201,10 +206,12 @@ const fitStyle = computed(() => ({
         />
       </template>
 
-      <!-- Đếm ngược 5 giây trước ván multiplayer + báo người đi đầu -->
+      <!-- Đếm ngược 5 giây trước ván: báo người đi đầu (multiplayer), hoặc báo
+           trước khi cả bàn bật lên (Chớp nhoáng) -->
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
-        <span class="first">🎲 <b>{{ s.current.value?.name }}</b> đi trước!</span>
+        <span v-if="isPeek" class="first">👀 Sắp mở cả bàn — <b>chuẩn bị ghi nhớ!</b></span>
+        <span v-else class="first">🎲 <b>{{ s.current.value?.name }}</b> đi trước!</span>
       </div>
 
       <!-- Banner chuyển lượt: hiện to giữa bàn rồi tự tan (MP-03) -->
@@ -322,6 +329,14 @@ const fitStyle = computed(() => ({
   pointer-events: none;
 }
 .toast.peek { border-color: color-mix(in srgb, var(--warn) 65%, var(--line)); }
+/* Đồng hồ đếm giây còn lại của lúc hé mở — cùng dòng với thông báo, không đẩy
+   bố cục; số cố định bề rộng để 3s→2s không làm dòng chữ nhảy qua nhảy lại. */
+.peek-clock {
+  display: inline-block; min-width: 2.2em; margin-left: 4px;
+  padding: 1px 7px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn);
+  font-variant-numeric: tabular-nums;
+}
 .toast.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
 .toast-enter-active { animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1); }
 .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }

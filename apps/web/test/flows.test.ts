@@ -243,6 +243,8 @@ describe('luồng trọn ván', () => {
     await mountApp();
     await pickMode('Chớp nhoáng');
     await start();
+    await vi.advanceTimersByTimeAsync(5100);   // đếm ngược báo trước 5 giây
+    await flush();
     expect(wrapper.text()).toContain('Ghi nhớ vị trí');
     expect(wrapper.findAll('.card.up, .card.peek').length).toBeGreaterThan(0);
     await wrapper.findAll('.card')[0]!.trigger('click');     // bị chặn khi đang hé mở
@@ -524,5 +526,39 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
     wrapper.unmount();
     await mountApp();
     expect(wrapper.text()).toContain('Vào phòng có sẵn');   // đứng ở màn online
+  });
+});
+
+describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
+  it('đếm ngược 5 giây kèm lời báo, rồi hé mở 4 giây có đồng hồ', async () => {
+    await mountApp();
+    await pickMode('Chớp nhoáng');
+    await start();
+
+    // Chưa mở bài: đang đếm ngược, và nói rõ sắp có gì thay vì báo người đi đầu
+    expect(wrapper.find('.countdown').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Sắp mở cả bàn');
+    expect(wrapper.findAll('.card.peek')).toHaveLength(0);
+
+    await vi.advanceTimersByTimeAsync(5100);
+    await flush();
+
+    // Hết đếm ngược thì cả bàn hé mở, kèm số giây còn lại
+    expect(wrapper.find('.countdown').exists()).toBe(false);
+    expect(wrapper.findAll('.card.peek').length).toBeGreaterThan(0);
+    expect(wrapper.text()).toContain('Ghi nhớ vị trí');
+    expect(wrapper.find('.peek-clock').text()).toMatch(/^[1-4]s$/);
+
+    // Đồng hồ chạy xuống chứ không đứng
+    const before = wrapper.find('.peek-clock').text();
+    await vi.advanceTimersByTimeAsync(2000);
+    await flush();
+    expect(wrapper.find('.peek-clock').text()).not.toBe(before);
+
+    // Hết 4 giây thì bài úp lại và chơi được
+    await vi.advanceTimersByTimeAsync(2200);
+    await flush();
+    expect(wrapper.findAll('.card.peek')).toHaveLength(0);
+    expect(wrapper.find('.peek-clock').exists()).toBe(false);
   });
 });

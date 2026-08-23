@@ -161,8 +161,10 @@ export function useGameSession() {
     lastTickSecond = -1;
     now.value = clockNow();
     pickBack();
-    if (g.isMultiplayer) {
-      // Multiplayer: đếm ngược 5 giây để người đi đầu không bị động
+    // Đếm ngược 5 giây trước khi ván chạy. Multiplayer cần để người đi đầu
+    // không bị động; Chớp nhoáng cần vì cả bàn bật lên rồi úp lại chỉ trong 4
+    // giây — không báo trước thì người chơi chưa kịp nhìn đã hết.
+    if (g.isMultiplayer || (g.config.peekMs ?? 0) > 0) {
       countdownUntil = now.value + 5000;
       lastCdSec = -1;
       countdownLeft.value = 5;
@@ -232,6 +234,14 @@ export function useGameSession() {
   const totalPairs = computed(() => { touch(); return game.value?.totalPairs ?? 0; });
   const combo = computed(() => { touch(); return game.value?.combo() ?? 1; });
   const revealingAll = computed(() => { touchClock(); return game.value?.revealingAll ?? false; });
+  /** Giây còn lại của lúc hé mở cả bàn. Không có đồng hồ thì bài úp xuống đột
+   *  ngột, người chơi không biết còn bao lâu để nhìn. */
+  const peekLeft = computed(() => {
+    touchClock();
+    const g = game.value;
+    if (!g?.revealUntil) return null;
+    return Math.max(0, (g.revealUntil - now.value) / 1000);
+  });
   const status = computed(() => { touch(); return game.value?.status ?? 'idle'; });
   /** Bàn đang khoá vì chờ úp lại 2 thẻ sai — phải đi qua `rev` vì `game.locked`
    *  là getter của class, Vue không theo dõi được trực tiếp. */
@@ -265,7 +275,7 @@ export function useGameSession() {
   return {
     game, start, flip, stop, adopt,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, lastGain, lifeGain, turnBanner, timeBonusFor,
-    matchedCount, totalPairs, combo, revealingAll, status, locked,
+    matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };
 }
