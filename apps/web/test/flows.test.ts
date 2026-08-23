@@ -645,3 +645,17 @@ describe('phản hồi tức thì khi bấm thẻ (ván online)', () => {
     expect(w.find('.card').classes()).toContain('up');
   });
 });
+
+describe('thanh trên cùng không cắt tên game', () => {
+  it('điểm sáu chữ số hiện gọn, không đẩy tên game ra ngoài', async () => {
+    const { numShort } = await import('@/lib/format');
+    // Dưới 10 nghìn giữ nguyên cho dễ đọc từng điểm
+    expect(numShort(0)).toBe('0');
+    expect(numShort(9_999)).toBe('9.999');
+    // Từ 10 nghìn trở lên mới gọn — đây là mốc huy hiệu bắt đầu phình ra
+    expect(numShort(90_000)).toBe('90k');
+    expect(numShort(1_250_000)).toBe('1,3tr');
+    // Chuỗi gọn phải NGẮN hơn hẳn chuỗi đầy đủ, không thì gọn làm gì
+    expect(numShort(90_000).length).toBeLessThan((90_000).toLocaleString('vi-VN').length);
+  });
+});

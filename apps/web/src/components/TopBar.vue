@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { HelpCircle, Moon, Sun, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
-import { num } from '@/lib/format';
+import { num, numShort } from '@/lib/format';
 import type { SoundLevel } from '@/lib/storage';
 
 const props = defineProps<{ dark: boolean; soundLevel: SoundLevel; totalScore: number }>();
@@ -69,7 +69,7 @@ watch(() => props.totalScore, (to, from) => {
           fill="currentColor"
         />
       </svg>
-      <b>{{ num(shown) }}</b>
+      <b>{{ numShort(shown) }}</b>
       <Transition name="gain">
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
@@ -131,7 +131,10 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   right: 0; transform: rotate(12deg);
   background: linear-gradient(150deg, #c44cf0, #ff5fa2);
 }
+/* Tên game KHÔNG được co: nó là dấu hiệu thương hiệu, cắt mất một chữ còn tệ
+   hơn là huy hiệu điểm phải gọn lại (xem numShort). */
 .name {
+  flex-shrink: 0;
   background: linear-gradient(100deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;

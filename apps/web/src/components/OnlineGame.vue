@@ -372,12 +372,11 @@ watch(() => o.view.value?.summary, (s) => {
 .blast-leave-active { transition: opacity .25s; }
 .blast-leave-to { opacity: 0; }
 
-/* 10 emoji × 40px + 9 khe = 436px, rộng hơn khung app (366px) nên tràn 23px mỗi
-   bên, sát mép trông rất chật. Cho phép xuống hàng và chừa lề hai bên: trên máy
-   hẹp thành hai hàng, máy rộng vẫn một hàng. Bàn thẻ tự co theo vì nó ĐO chỗ
-   trống thật (useBoardFit), không cần sửa gì thêm. */
+/* LUÔN một hàng. Cho xuống hàng thì trên điện thoại thành hai hàng, vừa xấu vừa
+   ăn chỗ của bàn thẻ. Các nút co giãn để tự vừa bề rộng: 8 emoji trên iPhone SE
+   ra ~39px mỗi nút, trên máy rộng thì chặn ở 44px cho khỏi phình to. */
 .emoji-bar {
-  display: flex; flex-wrap: wrap; gap: 4px; justify-content: center;
+  display: flex; flex-wrap: nowrap; gap: 4px; justify-content: center;
   padding: 0 6px;
   transition: opacity .18s ease;
 }
@@ -394,7 +393,10 @@ watch(() => o.view.value?.summary, (s) => {
   pointer-events: none;
 }
 .emoji {
-  min-width: 40px; min-height: 40px; font-size: 20px; border: 1px solid var(--line);
+  /* min-width 34px là sàn: hẹp hơn thì ngón tay bấm trượt. flex 1 1 auto để
+     chúng chia đều chỗ còn lại thay vì tràn ra ngoài khung. */
+  flex: 1 1 auto; min-width: 34px; max-width: 44px;
+  min-height: 40px; font-size: 20px; border: 1px solid var(--line);
   border-radius: var(--r-full); background: var(--panel);
   transition: transform .12s ease;
 }
