@@ -47,8 +47,11 @@ phình ra và cắt mất chữ trong tên game.
   đang úp kể cả lá chưa từng lật, mà keyframe đó mở ở `rotateY(180deg)` — mặt
   trước hướng ra ngoài — nên cả bàn loé nội dung một nhịp. **Lộ bài.** Thấy rõ
   nhất khi F5 giữa ván. Có test chặn.
-- Nút thoát trên HUD giữ vùng chạm 44px (NF-07) nhưng dùng `margin-block` âm để
-  không kéo cao cả HUD. Bỏ 44px cho HUD thấp lại là sai — ngón tay không bấm được.
+- Nút thoát trên HUD: HÌNH 28px cho vừa chiều cao HUD, VÙNG CHẠM vẫn 44px nhờ
+  `::after { inset: -8px }`. Hai chuyện khác nhau — nút nhìn thấy đúng 44px thì
+  cao hơn cả HUD, mà thu vùng chạm xuống 28px là phạm NF-07. Nhớ ghi đè cả
+  `min-width`/`min-height`: `.btn` toàn cục đặt 44px, chỉ khai báo width/height
+  thì nút vẫn nở lại.
 
 ## Cấu trúc
 

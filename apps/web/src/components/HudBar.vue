@@ -60,14 +60,19 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 .hud { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
 .stats { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 /*
- * Nút thoát giữ NGUYÊN vùng chạm 44px (NF-07) nhưng không được kéo cao cả HUD:
- * `margin-block` âm cho nó tràn ra ngoài dòng, chiều cao HUD do các con số
- * quyết định. Bỏ 44px để HUD thấp lại là sai — ngón tay không bấm được.
+ * Nút thoát: HÌNH nhỏ (28px, vừa chiều cao HUD) nhưng VÙNG CHẠM vẫn 44px nhờ
+ * lớp ::after nới ra ngoài 8px mỗi phía. Hai thứ đó là hai chuyện khác nhau —
+ * để nút nhìn thấy đúng 44px thì nó cao hơn cả HUD, còn thu vùng chạm xuống
+ * 28px là phạm NF-07, ngón tay không bấm được.
  */
 .quit {
-  flex-shrink: 0; width: 44px; height: 44px; padding: 0;
-  margin-block: -10px;
+  flex-shrink: 0; position: relative;
+  /* min-* phải ghi đè: `.btn` toàn cục đặt min-height/min-width 44px, chỉ khai
+     báo width/height thôi thì nút vẫn nở lại 44px. */
+  width: 28px; height: 28px; min-width: 28px; min-height: 28px; padding: 0;
 }
+.quit::after { content: ''; position: absolute; inset: -8px; }
+
 /* Cùng một dòng thì phải có vạch ngăn, không thì "Cấp 8 Cặp 0/8" đọc thành một
    chuỗi số liền nhau. */
 .stat + .stat { border-left: 1px solid var(--line); padding-left: 6px; }
