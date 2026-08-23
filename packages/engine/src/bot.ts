@@ -33,20 +33,22 @@ export interface BotSpec {
 }
 
 /**
- * Bốn mức khác nhau ở chỗ NHỚ ĐƯỢC BAO LÂU. Cột "nửa đời" là số nước đi sau đó
- * khả năng nhớ một lá còn 50% — Ngu thì quên gần như ngay, Siêu đẳng gần như
- * không quên gì.
+ * Bốn mức khác nhau ở chỗ NHỚ ĐƯỢC BAO LÂU. "Nửa đời" là số nước đi sau đó khả
+ * năng nhớ một lá còn 50%; `retain` suy ra từ đó: `retain = 0,5 ** (1 / nửa đời)`.
  *
- *   Ngu          retain 0,72  → nửa đời ~2,1 nước
- *   Bình thường  retain 0,90  → nửa đời ~6,6 nước
- *   Pro          retain 0,96  → nửa đời ~17 nước
- *   Siêu đẳng    retain 0,995 → nửa đời ~138 nước (nhớ trọn một ván)
+ *   Bot ngu          nửa đời 2 nước → retain 0,7071
+ *   Bot bình thường  nửa đời 4 nước → retain 0,8409
+ *   Bot Pro          nửa đời 5 nước → retain 0,8706
+ *   Bot siêu đẳng    nửa đời 6 nước → retain 0,8909
+ *
+ * Sửa nửa đời thì phải tính lại `retain`, đừng đoán: quan hệ là hàm số mũ nên
+ * "nhích retain lên một chút" không tương ứng với "nhớ dai thêm một chút".
  */
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy:   { retain: 0.72,  mistake: 0.26, thinkMs: 1200, name: 'Bot ngu',         avatar: '🐣' },
-  normal: { retain: 0.90,  mistake: 0.10, thinkMs: 900,  name: 'Bot bình thường', avatar: '🤖' },
-  hard:   { retain: 0.96,  mistake: 0.04, thinkMs: 700,  name: 'Bot Pro',         avatar: '👾' },
-  insane: { retain: 0.995, mistake: 0,    thinkMs: 550,  name: 'Bot siêu đẳng',   avatar: '🦾' }
+  easy:   { retain: 0.7071, mistake: 0.26, thinkMs: 1200, name: 'Bot ngu',         avatar: '🐣' },
+  normal: { retain: 0.8409, mistake: 0.10, thinkMs: 900,  name: 'Bot bình thường', avatar: '🤖' },
+  hard:   { retain: 0.8706, mistake: 0.04, thinkMs: 700,  name: 'Bot Pro',         avatar: '👾' },
+  insane: { retain: 0.8909, mistake: 0,    thinkMs: 550,  name: 'Bot siêu đẳng',   avatar: '🦾' }
 };
 
 /** Một lá trong ký ức: biểu tượng và nước đi lúc nhìn thấy. */

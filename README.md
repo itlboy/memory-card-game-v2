@@ -107,10 +107,12 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | nghĩ |
   |---|---|---|---|---|
-  | Bot ngu | 0,72 | ~2,1 | 26% | 1,2s |
-  | Bot bình thường | 0,90 | ~6,6 | 10% | 0,9s |
-  | Bot Pro | 0,96 | ~17 | 4% | 0,7s |
-  | Bot siêu đẳng | 0,995 | ~138 | 0% | 0,55s |
+  | Bot ngu | 0,7071 | 2 | 26% | 1,2s |
+  | Bot bình thường | 0,8409 | 4 | 10% | 0,9s |
+  | Bot Pro | 0,8706 | 5 | 4% | 0,7s |
+  | Bot siêu đẳng | 0,8909 | 6 | 0% | 0,55s |
+
+  `retain = 0,5 ** (1 / nửa đời)` — sửa nửa đời thì tính lại, đừng đoán.
 
 - Bộ điều khiển ở `useGameSession`: `botWatch()` chạy **mỗi khung**, không chỉ lúc
   tới lượt bot — nhìn theo lượt thì thẻ người chơi lật rồi úp lại không bao giờ
