@@ -150,11 +150,25 @@ class Sfx {
     if (!ctx) return;
     if (ctx.state === 'closed') { this.dispose(); return; }
     void ctx.resume().catch(() => { /* cần cử chỉ mới */ });
-    // Đồng hồ của context phải chạy; đứng im nghĩa là nó đã chết
+    this.verifyAlive(ctx);
+  }
+
+  /**
+   * Kiểm context có SỐNG THẬT không, chết thì bỏ để lần sau dựng cái mới.
+   *
+   * Vì sao phải kiểm bằng đồng hồ: iOS đôi khi giết context nhưng `state` vẫn
+   * báo 'running' và `resume()` vẫn resolve như thường — chỉ có `currentTime`
+   * đứng im. Không có phép kiểm này thì người chơi chạm mãi mà vẫn im lặng, và
+   * không có gì tự phục hồi.
+   */
+  private verifyAlive(ctx: AudioContext): void {
     const t0 = ctx.currentTime;
     setTimeout(() => {
       if (this.ctx !== ctx) return;
-      if (ctx.state === 'closed' || (ctx.state === 'running' && ctx.currentTime === t0)) this.dispose();
+      const stuck = ctx.state === 'running' && ctx.currentTime === t0;
+      // 'suspended' sau khi đã cố resume trong một cử chỉ cũng là chết: iOS
+      // không bao giờ cho nó chạy lại nữa
+      if (ctx.state === 'closed' || stuck || ctx.state === 'suspended') this.dispose();
     }, 350);
   }
 
@@ -171,6 +185,10 @@ class Sfx {
       src.connect(ctx.destination);
       src.start(0);
     } catch { /* bỏ qua */ }
+    // Mở khoá xong PHẢI kiểm lại. Thiếu bước này là lỗ hổng đã gây "thỉnh
+    // thoảng iPhone mất tiếng mà không rõ vì sao": cử chỉ gọi resume() thành
+    // công trên giấy tờ, context vẫn chết, và không còn gì phát hiện ra.
+    this.verifyAlive(ctx);
   }
 
   /** Một nốt nhạc với envelope mềm; detune tạo cảm giác "dày" hai lớp. */
