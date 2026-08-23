@@ -897,3 +897,33 @@ describe('lượt của bot thì người chơi bị chặn', () => {
     expect(s.moves.value, 'nước bấm trong lượt máy phải bị bỏ').toBe(before);
   });
 });
+
+describe('không lộ nội dung thẻ đang úp', () => {
+  it('vào ván xong, thẻ úp KHÔNG chạy animation lật — keyframe lật-xuống mở ở mặt trước', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    // Qua hết cửa sổ chia bài rồi mới xét: lúc này lá úp phải "im", nếu có
+    // class lắc thì nó bắt đầu ở rotateY(180deg) — mặt trước quay ra ngoài.
+    await vi.advanceTimersByTimeAsync(1500);
+    await flush();
+    const down = wrapper.findAll('.card:not(.up):not(.done)');
+    expect(down.length).toBeGreaterThan(0);
+    for (const c of down) {
+      expect(c.classes(), 'thẻ úp không được lắc khi chưa từng bị lật').not.toContain('wob-down');
+    }
+  });
+
+  it('lật lên rồi úp lại thì MỚI lắc', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    await vi.advanceTimersByTimeAsync(1500);
+    await flush();
+    const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
+    const tiles = () => wrapper.findAll('.card');
+    await tiles()[cards[0]!.index]!.trigger('click');
+    await flush();
+    expect(tiles()[cards[0]!.index]!.classes()).toContain('wob-up');
+  });
+});

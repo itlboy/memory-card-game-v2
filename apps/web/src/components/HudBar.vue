@@ -59,7 +59,15 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
    số wrap trong .stats, nút luôn dính góc phải. */
 .hud { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
 .stats { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.quit { flex-shrink: 0; width: 32px; height: 32px; padding: 0; }
+/*
+ * Nút thoát giữ NGUYÊN vùng chạm 44px (NF-07) nhưng không được kéo cao cả HUD:
+ * `margin-block` âm cho nó tràn ra ngoài dòng, chiều cao HUD do các con số
+ * quyết định. Bỏ 44px để HUD thấp lại là sai — ngón tay không bấm được.
+ */
+.quit {
+  flex-shrink: 0; width: 44px; height: 44px; padding: 0;
+  margin-block: -10px;
+}
 /* Cùng một dòng thì phải có vạch ngăn, không thì "Cấp 8 Cặp 0/8" đọc thành một
    chuỗi số liền nhau. */
 .stat + .stat { border-left: 1px solid var(--line); padding-left: 6px; }
@@ -80,7 +88,7 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 .stat b { font-size: 15px; line-height: 1.1; }
 .stat { gap: 3px; }
 .stat + .stat { padding-left: 4px; }
-.hud { gap: 4px; padding: 4px 8px; }
+.hud { gap: 4px; padding: 7px 8px; }
 .stats { gap: 4px; }
 .stat span { color: var(--muted); font-weight: 700; }
 .stat b {

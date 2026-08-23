@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Card } from '@mm/engine';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DEAL_SETTLE_MS, dealStep } from '@/lib/timing';
 
 const props = defineProps<{
@@ -32,6 +32,29 @@ const POWER_ICON: Record<string, string> = { bomb: '💥', swap: '🔀', x2: '�
 const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));
 
 /**
+ * Hướng lật vừa xảy ra, để chạy đúng một lần nhịp lắc — `null` là không lắc.
+ *
+ * Vì sao phải theo dõi bằng JS chứ không viết thẳng `.card:not(.up) .inner`:
+ * quy tắc CSS đó đúng với MỌI lá đang úp, kể cả lá chưa bao giờ được lật. Mà
+ * keyframe `flip-down` bắt đầu ở `rotateY(180deg)` — tức mặt TRƯỚC đang hướng
+ * ra ngoài — nên mỗi lá úp đều loé nội dung ra rồi mới quay về úp. Lộ bài.
+ * (Thấy rõ nhất khi F5 giữa ván: cả bàn loé một nhịp.)
+ */
+const flipAnim = ref<'up' | 'down' | null>(null);
+let flipTimer: ReturnType<typeof setTimeout> | undefined;
+const FLIP_WOBBLE_MS = 2200;
+
+watch(() => props.faceUp, (up, was) => {
+  if (up === was) return;
+  // Hé mở cả bàn (peek/mắt thần) và lúc chờ server thì không lắc: cả bàn lắc
+  // một lượt thành rung màn hình, còn `pending` đang dừng ở 90 độ.
+  if (props.peeking || props.pending) return;
+  flipAnim.value = up ? 'up' : 'down';
+  clearTimeout(flipTimer);
+  flipTimer = setTimeout(() => { flipAnim.value = null; }, FLIP_WOBBLE_MS);
+});
+
+/**
  * Đã đáp xuống bàn xong chưa. Lắc lúc lật chỉ bật SAU khi chia xong: hai
  * animation cùng chạy trên một lá thì cái sau ghi đè cái trước, thành ra lúc
  * chia bài không thấy lắc gì cả (đúng hiện tượng đã gặp).
@@ -41,7 +64,7 @@ let dealTimer: ReturnType<typeof setTimeout> | undefined;
 onMounted(() => {
   dealTimer = setTimeout(() => { dealt.value = true; }, dealStagger.value + DEAL_SETTLE_MS);
 });
-onUnmounted(() => clearTimeout(dealTimer));
+onUnmounted(() => { clearTimeout(dealTimer); clearTimeout(flipTimer); });
 
 const label = computed(() => {
   const pos = `Thẻ ${props.card.index + 1}`;
@@ -56,7 +79,8 @@ const label = computed(() => {
   <button
     v-else
     class="card"
-    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending, dealt }"
+    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending, dealt,
+      'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down' }"
     :style="{
       '--deal': `${dealStagger}ms`,
       '--wob': card.index % 2 ? 1 : -1,
@@ -159,13 +183,13 @@ const label = computed(() => {
  * transform tĩnh của trạng thái nên hết animation không giật. `--wob` đảo dấu
  * theo ô để cả bàn không lắc cùng một phía như đồng ca.
  *
- * Chỉ bật khi `.dealt`: lúc chia bài, animation `deal` trên .card đã lo phần lắc
- * rồi — chạy cả hai thì cái trên .inner đè lên, hoá ra chia bài không lắc.
- * KHÔNG áp cho `peek` (cả bàn hé mở, lắc hết thành rung màn hình) và `pending`
- * (đang dừng ở 90 độ chờ server).
+ * Bật bằng class `.wob-up` / `.wob-down` mà JS gắn ĐÚNG LÚC lá đổi mặt (xem
+ * `flipAnim` trong script) — chi tiết vì sao không dùng selector trạng thái ở
+ * đó. Cũng chỉ chạy khi `.dealt`: lúc chia bài, animation `deal` trên .card đã
+ * lo phần lắc, chạy cả hai thì cái trên .inner đè lên.
  */
-.card.dealt.up:not(.peek):not(.pending) .inner { animation: flip-up 2.2s linear; }
-.card.dealt:not(.up):not(.done):not(.peek):not(.pending) .inner { animation: flip-down 2.2s linear; }
+.card.wob-up .inner { animation: flip-up 2.2s linear; }
+.card.wob-down .inner { animation: flip-down 2.2s linear; }
 
 @keyframes flip-up {
   0%    { transform: rotateY(0); animation-timing-function: cubic-bezier(.3, .8, .4, 1); }

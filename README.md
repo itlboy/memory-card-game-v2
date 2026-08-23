@@ -42,6 +42,14 @@ thành hai hàng — vừa xấu vừa ăn chỗ của bàn thẻ.
 **Điểm tích luỹ hiện gọn** (`numShort`: 90.000 → "90k"). Số đầy đủ làm huy hiệu
 phình ra và cắt mất chữ trong tên game.
 
+- **Nhịp lắc lúc lật do JS bật (`.wob-up` / `.wob-down`), không do selector
+  trạng thái.** `.card:not(.up) .inner { animation: flip-down }` áp cho MỌI lá
+  đang úp kể cả lá chưa từng lật, mà keyframe đó mở ở `rotateY(180deg)` — mặt
+  trước hướng ra ngoài — nên cả bàn loé nội dung một nhịp. **Lộ bài.** Thấy rõ
+  nhất khi F5 giữa ván. Có test chặn.
+- Nút thoát trên HUD giữ vùng chạm 44px (NF-07) nhưng dùng `margin-block` âm để
+  không kéo cao cả HUD. Bỏ 44px cho HUD thấp lại là sai — ngón tay không bấm được.
+
 ## Cấu trúc
 
 ```
