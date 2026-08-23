@@ -239,7 +239,7 @@ describe('luồng trọn ván', () => {
     expect(wrapper.text()).not.toContain('❤️ 5');
   });
 
-  it('Chớp nhoáng: thẻ hé mở lúc đầu và không bấm được, sau 4 giây thì úp lại', async () => {
+  it('Chớp nhoáng: thẻ hé mở lúc đầu và không bấm được, hết giờ nhìn thì úp lại', async () => {
     await mountApp();
     await pickMode('Chớp nhoáng');
     await start();
@@ -250,7 +250,8 @@ describe('luồng trọn ván', () => {
     await wrapper.findAll('.card')[0]!.trigger('click');     // bị chặn khi đang hé mở
     await flush();
     expect(session(wrapper).game.value!.cards.length).toBe(16);
-    await vi.advanceTimersByTimeAsync(4200);
+    // Thời gian nhìn giãn theo số thẻ (16 thẻ ≈ 6,2 giây) nên lấy từ engine
+    await vi.advanceTimersByTimeAsync((session(wrapper).game.value!.config.peekMs ?? 0) + 300);
     await flush();
     expect(wrapper.text()).not.toContain('Ghi nhớ vị trí');
   });
@@ -530,7 +531,7 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
 });
 
 describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
-  it('đếm ngược 5 giây kèm lời báo, rồi hé mở 4 giây có đồng hồ', async () => {
+  it('đếm ngược 5 giây kèm lời báo, rồi hé mở có đồng hồ đếm xuống', async () => {
     await mountApp();
     await pickMode('Chớp nhoáng');
     await start();
@@ -547,7 +548,10 @@ describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
     expect(wrapper.find('.countdown').exists()).toBe(false);
     expect(wrapper.findAll('.card.peek').length).toBeGreaterThan(0);
     expect(wrapper.text()).toContain('Ghi nhớ vị trí');
-    expect(wrapper.find('.peek-clock').text()).toMatch(/^[1-4]s$/);
+    // Bàn 16 thẻ được hơn 6 giây nhìn (2s + 16×0,26s)
+    const peekMs = session(wrapper).game.value!.config.peekMs!;
+    expect(peekMs).toBe(6160);
+    expect(wrapper.find('.peek-clock').text()).toBe(`${Math.ceil(peekMs / 1000)}s`);
 
     // Đồng hồ chạy xuống chứ không đứng
     const before = wrapper.find('.peek-clock').text();
@@ -555,8 +559,8 @@ describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
     await flush();
     expect(wrapper.find('.peek-clock').text()).not.toBe(before);
 
-    // Hết 4 giây thì bài úp lại và chơi được
-    await vi.advanceTimersByTimeAsync(2200);
+    // Hết giờ nhìn thì bài úp lại và chơi được
+    await vi.advanceTimersByTimeAsync(peekMs);
     await flush();
     expect(wrapper.findAll('.card.peek')).toHaveLength(0);
     expect(wrapper.find('.peek-clock').exists()).toBe(false);

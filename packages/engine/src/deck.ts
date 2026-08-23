@@ -68,9 +68,15 @@ export function buildDeck(opts: DeckOptions): Card[] {
 const MAX_SHUFFLE_TRIES = 200;
 
 /**
- * Chèn ô trống cho vừa lưới. Một ô trống (lưới lẻ như 3×3) đặt chính giữa bàn
- * như trước. Nhiều ô trống thì dồn vào GIỮA HÀNG CUỐI: hàng cuối ngắn lại
- * nhưng vẫn cân hai bên, thay vì rải rác làm bàn nhìn như bị khuyết.
+ * Chèn ô trống cho vừa lưới, LUÔN đối xứng theo trục dọc — ô trống lệch một bên
+ * làm bàn trông như bị khuyết, nhìn rất khó chịu lúc chia bài.
+ *
+ * Một ô trống: đặt đúng ô giữa bàn. Chỉ xảy ra khi tổng số ô lẻ, tức cả hai
+ * cạnh đều lẻ, nên ô giữa đúng là tâm bàn.
+ *
+ * Nhiều ô trống (luôn CHẴN — gridForPairs đã tránh số lẻ ≥3): chia đều HAI ĐẦU
+ * hàng cuối, để hàng cuối thành một hàng ngắn nằm giữa. Trước đây dồn cả cụm
+ * vào giữa hàng cuối, lệch nửa ô khi (cols - blanks) lẻ.
  */
 function layout(
   shuffled: Omit<Card, 'index'>[],
@@ -86,8 +92,10 @@ function layout(
     return out;
   }
   const lastRowStart = total - cols;
-  const offset = Math.floor((cols - blanks) / 2);
-  for (let i = 0; i < blanks; i++) out.splice(lastRowStart + offset + i, 0, blank());
+  const left = Math.floor(blanks / 2);
+  // Chèn bên PHẢI trước: chèn bên trái xong thì các chỉ số phía sau đã dịch
+  for (let i = 0; i < blanks - left; i++) out.push(blank());
+  for (let i = 0; i < left; i++) out.splice(lastRowStart, 0, blank());
   return out;
 }
 

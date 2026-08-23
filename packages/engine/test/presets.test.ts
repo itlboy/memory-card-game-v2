@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { presetConfig } from '../src/presets.js';
+import { peekMsFor, presetConfig } from '../src/presets.js';
 import { CAMPAIGN_LEVELS, levelSpec } from '../src/campaign.js';
 import { SYMBOLS } from './helpers.js';
 
@@ -30,7 +30,10 @@ describe('cấu hình mặc định theo chế độ (SRS 3.1)', () => {
 
   it('Peek: hé mở 4 giây rồi tính giờ', () => {
     const c = make('peek');
-    expect(c.peekMs).toBe(4000);
+    // Giãn theo số thẻ: cấp 7 = 14 thẻ → 2s + 14×0,26s
+    expect(c.peekMs).toBe(peekMsFor(levelSpec(L).pairs * 2));
+    expect(peekMsFor(50)).toBe(15_000);            // neo: bàn 50 thẻ được 15 giây
+    expect(peekMsFor(4)).toBeLessThan(peekMsFor(50));
     expect(c.timeLimit).toBe(levelSpec(L).timeLimit);
   });
 

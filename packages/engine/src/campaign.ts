@@ -42,15 +42,21 @@ export const CAMPAIGN_MAX_PAIRS = pairsForLevel(CAMPAIGN_LEVELS);
 /**
  * Chọn bàn cho một số cặp cho trước. Số thẻ chẵn nhưng không phải số nào cũng
  * chia thành lưới chữ nhật đầy, nên bàn được phép có vài Ô TRỐNG — miễn chúng
- * nằm gọn trong một hàng để bố cục vẫn cân.
+ * nằm gọn trong một hàng.
  *
- * Ưu tiên: ít ô trống nhất → tỷ lệ gần 1,3 (dáng khung dọc) → bàn nhỏ hơn.
+ * Ưu tiên ĐẦU TIÊN là xếp được ĐỐI XỨNG. Ô trống lệch về một bên làm bàn trông
+ * như bị khuyết, rất khó chịu lúc chia bài. Chỉ hai kiểu ô trống là đối xứng
+ * được: một ô đúng giữa bàn (lưới toàn cạnh lẻ), hoặc số ô CHẴN chia đều hai
+ * đầu hàng cuối (xem layout()). Số ô trống lẻ từ 3 trở lên thì không kiểu nào
+ * cân, nên bị đẩy xuống cuối danh sách.
+ *
+ * Sau đó: ít ô trống nhất → tỷ lệ gần 1,3 (dáng khung dọc) → bàn nhỏ hơn.
  */
 export function gridForPairs(pairs: number): { cols: number; rows: number } {
   // Màn tập: hai thẻ cạnh nhau. Vòng lặp dưới đòi cols >= 2 và cols <= rows nên
   // không sinh được bàn 1 cặp nào coi được (2×2 thì hai ô trống trên bốn ô).
   if (pairs === 1) return { cols: 2, rows: 1 };
-  let best: { cols: number; rows: number; key: [number, number, number] } | null = null;
+  let best: { cols: number; rows: number; key: [number, number, number, number] } | null = null;
   const need = pairs * 2;
   for (let cols = 2; cols <= MAX_SIDE; cols++) {
     for (let rows = cols; rows <= MAX_SIDE; rows++) {
@@ -59,7 +65,10 @@ export function gridForPairs(pairs: number): { cols: number; rows: number } {
       const waste = total - need;
       if (waste > cols - 1) continue;          // ô trống phải gọn trong một hàng
       if (rows / cols > MAX_RATIO) continue;
-      const key: [number, number, number] = [waste, Math.abs(rows / cols - 1.3), total];
+      const lopsided = waste % 2 === 1 && waste !== 1 ? 1 : 0;
+      const key: [number, number, number, number] = [
+        lopsided, waste, Math.abs(rows / cols - 1.3), total
+      ];
       if (!best || key < best.key) best = { cols, rows, key };
     }
   }

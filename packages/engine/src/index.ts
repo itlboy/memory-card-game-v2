@@ -9,7 +9,7 @@ export {
   CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, gridForPairs, levelConfig,
   levelSpec, pairsForLevel, perfectScore
 } from './campaign.js';
-export { presetConfig } from './presets.js';
+export { peekMsFor, presetConfig } from './presets.js';
 export type { Chapter, Level } from './campaign.js';
 export type { PresetInput } from './presets.js';
 export type {
