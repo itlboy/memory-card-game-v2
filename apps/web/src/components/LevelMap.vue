@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { allLevels } from '@mm/engine';
+import { CHAPTERS, allLevels, type Level } from '@mm/engine';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { Lock, TriangleAlert } from 'lucide-vue-next';
 import type { LevelProgress } from '@/lib/storage';
 import { starText } from '@/lib/format';
 
 const props = defineProps<{
   progress: Record<string, LevelProgress>;
   unlocked: number;
-  /** Số biểu tượng của các theme đang chọn. Cấp độ cần nhiều cặp hơn số này thì
-   *  KHÔNG dựng được bàn — phải chặn ở đây, không thì engine ném lỗi và màn
-   *  hình trắng xoá. */
+  /** Số biểu tượng lớn nhất có thể gom được. Cấp cần nhiều cặp hơn số này thì
+   *  KHÔNG bộ theme nào dựng được bàn — phải chặn ở đây, không thì engine ném
+   *  lỗi và màn hình trắng xoá. */
   symbolCount: number;
   /** Chiến dịch xếp sao; các chế độ khác chỉ đánh dấu đã qua. */
   showStars?: boolean;
@@ -17,118 +18,208 @@ const props = defineProps<{
 const emit = defineEmits<{ play: [id: number] }>();
 
 const levels = allLevels();
-const totalStars = computed(() => Object.values(props.progress).reduce((n, p) => n + p.stars, 0));
-const cleared = computed(() => Object.values(props.progress).filter((p) => p.stars > 0).length);
+const starsOf = (id: number): number => props.progress[String(id)]?.stars ?? 0;
+const cleared = (id: number): boolean => starsOf(id) > 0;
+const needsMore = (l: Level): boolean => l.pairs > props.symbolCount;
+
 /** Cấp cần chơi tiếp: đã mở khoá nhưng chưa qua. Bản đồ phải chỉ rõ đi đâu
  *  tiếp, không thì người chơi phải tự dò trong 50 ô giống nhau. */
 const nextLevel = computed(() =>
-  levels.find((l) => l.id <= props.unlocked && (props.progress[String(l.id)]?.stars ?? 0) === 0)?.id ?? null);
-/** Cấp đòi nhiều biểu tượng hơn bộ theme đang chọn. */
-const needsMore = (l: { pairs: number }): boolean => l.pairs > props.symbolCount;
-const blocked = computed(() => levels.filter((l) => l.id <= props.unlocked && needsMore(l)).length);
+  levels.find((l) => l.id <= props.unlocked && !cleared(l.id))?.id ?? null);
 
-/* Cuộn tới cấp đang chờ chơi. 50 ô không vừa một màn hình, mà mở ra thấy cấp 1
-   thì người chơi đã qua 20 cấp phải tự cuộn đi tìm mỗi lần vào. */
+const doneCount = computed(() => levels.filter((l) => cleared(l.id)).length);
+const totalStars = computed(() => levels.reduce((n, l) => n + starsOf(l.id), 0));
+
+/** Mỗi chặng kèm sẵn số liệu để template không phải tính trong v-for. */
+const chapters = computed(() => CHAPTERS.map((c) => {
+  const list = levels.filter((l) => l.id >= c.from && l.id <= c.to);
+  const done = list.filter((l) => cleared(l.id)).length;
+  return {
+    ...c, list, done,
+    /* Chặng coi là "đang chơi" nếu cấp cần chơi tiếp nằm trong nó — thẻ đó được
+       thắp sáng để mắt tìm thấy ngay giữa bốn thẻ. */
+    active: nextLevel.value != null && nextLevel.value >= c.from && nextLevel.value <= c.to,
+    /* Khoá cả chặng: chưa mở tới cấp đầu tiên của nó. */
+    locked: c.from > props.unlocked,
+    /* Chặng mà bàn không to thêm được nữa (đã cán trần 50 thẻ): ghi một con số
+       thôi, và nói rõ độ khó đến từ thời gian — không thì người chơi thấy hai
+       chặng cuối cùng một cỡ bàn và tưởng game lặp. */
+    cards: list[0]!.pairs === list.at(-1)!.pairs
+      ? `${list[0]!.pairs * 2} thẻ`
+      : `${list[0]!.pairs * 2} – ${list.at(-1)!.pairs * 2} thẻ`,
+    byTime: list[0]!.pairs === list.at(-1)!.pairs,
+    blocked: list.filter((l) => l.id <= props.unlocked && needsMore(l)).length
+  };
+}));
+
+/* Cuộn tới chặng đang chơi. Mở ra mà thấy chặng 1 thì người đã qua 20 cấp phải
+   tự cuộn đi tìm mỗi lần vào. */
 const list = ref<HTMLElement | null>(null);
-async function scrollToNext(): Promise<void> {
+async function scrollToActive(): Promise<void> {
   await nextTick();
-  const el = list.value?.querySelector<HTMLElement>('.node.next, .node.last-cleared');
+  const el = list.value?.querySelector<HTMLElement>('.chapter.active');
   if (!el || !list.value) return;
   // scrollIntoView cuộn cả trang trên một số trình duyệt; tính tay để CHỈ khung này cuộn
-  list.value.scrollTop = Math.max(0, el.offsetTop - list.value.clientHeight / 2 + el.offsetHeight / 2);
+  list.value.scrollTop = Math.max(0, el.offsetTop - 8);
 }
-onMounted(scrollToNext);
-watch(nextLevel, scrollToNext);
+onMounted(scrollToActive);
+watch(nextLevel, scrollToActive);
 </script>
 
 <template>
   <div class="wrap">
     <p class="summary">
-      <template v-if="showStars">Đã đạt <b>{{ totalStars }}</b> / {{ levels.length * 3 }} sao</template>
-      <template v-else>Đã qua <b>{{ cleared }}</b> / {{ levels.length }} cấp</template>
-      <span v-if="blocked" class="need-theme">· cần thêm theme cho {{ blocked }} cấp lớn</span>
+      <template v-if="showStars">
+        Đã đạt <b>{{ totalStars }}</b> / {{ levels.length * 3 }} sao
+      </template>
+      <template v-else>Đã qua <b>{{ doneCount }}</b> / {{ levels.length }} cấp</template>
     </p>
+
     <!-- Ngoại lệ DUY NHẤT của luật không scroll: 50 cấp không thể nén vừa một
          màn hình mà ô vẫn đủ 44px để bấm. Cuộn nằm TRONG khung này, cả trang
          vẫn khoá 100dvh. -->
-    <ol ref="list" class="map">
-      <li v-for="l in levels" :key="l.id">
-        <button
-          class="node"
-          :class="{
-            locked: l.id > unlocked,
-            cleared: (progress[String(l.id)]?.stars ?? 0) > 0,
-            'last-cleared': l.id === unlocked - 1,
-            next: l.id === nextLevel && !needsMore(l),
-            nosym: l.id <= unlocked && needsMore(l)
-          }"
-          :disabled="l.id > unlocked || needsMore(l)"
-          :aria-label="`Cấp ${l.id}, ${l.pairs * 2} thẻ${
-            l.id > unlocked ? ', chưa mở khoá' : needsMore(l) ? ', cần chọn thêm theme' : ''
-          }`"
-          type="button"
-          @click="emit('play', l.id)"
-        >
-          <b>{{ l.id }}</b>
-          <!-- Ghi SỐ THẺ chứ không ghi cỡ lưới: năm cấp cuối đều nằm trong bàn
-               10×10 (chỉ khác số ô trống), ghi lưới thì nhìn như lặp lại. -->
-          <small>{{ l.pairs * 2 }} thẻ</small>
-          <span v-if="l.id > unlocked" class="stars">🔒</span>
-          <span v-else-if="showStars" class="stars">{{ starText(progress[String(l.id)]?.stars ?? 0) }}</span>
-          <span v-else-if="(progress[String(l.id)]?.stars ?? 0) > 0" class="stars">✓</span>
-        </button>
-      </li>
-    </ol>
+    <div ref="list" class="chapters">
+      <section
+        v-for="c in chapters" :key="c.id"
+        class="chapter" :class="{ active: c.active, locked: c.locked, done: c.done === c.list.length }"
+      >
+        <header>
+          <h3>Chặng {{ c.id }} · {{ c.name }}</h3>
+          <Lock v-if="c.locked" class="ch-lock" :size="15" />
+          <b v-else class="tally">{{ c.done }}/{{ c.list.length }}</b>
+        </header>
+
+        <ol class="nodes">
+          <li v-for="l in c.list" :key="l.id">
+            <button
+              class="node"
+              :class="{
+                locked: l.id > unlocked,
+                cleared: cleared(l.id),
+                next: l.id === nextLevel && !needsMore(l),
+                nosym: l.id <= unlocked && needsMore(l)
+              }"
+              :disabled="l.id > unlocked || needsMore(l)"
+              :aria-label="`Cấp ${l.id}, ${l.pairs * 2} thẻ${
+                l.id > unlocked ? ', chưa mở khoá' : needsMore(l) ? ', cần chọn thêm theme' : ''
+              }`"
+              type="button"
+              @click="emit('play', l.id)"
+            >
+              <b>{{ l.id }}</b>
+              <span v-if="showStars && cleared(l.id)" class="stars">{{ starText(starsOf(l.id)) }}</span>
+              <span v-else-if="cleared(l.id)" class="stars">✓</span>
+              <!-- Ô khoá vẫn ghi số cấp và số thẻ để người chơi biết phía trước
+                   là gì; chỉ trạng thái khác (mờ + ổ khoá nhỏ ở góc). -->
+              <small v-else>{{ l.pairs * 2 }} thẻ</small>
+              <Lock v-if="l.id > unlocked" class="node-lock" :size="10" aria-hidden="true" />
+            </button>
+          </li>
+        </ol>
+
+        <footer>
+          <span>{{ c.cards }}<template v-if="c.byTime"> · thời gian siết dần</template></span>
+          <span v-if="c.blocked" class="need-theme">
+            <TriangleAlert :size="13" /> {{ c.blocked }} cấp cần thêm theme
+          </span>
+        </footer>
+      </section>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.summary { margin: 0 0 8px; color: var(--muted); font-size: 14px; }
-/* 5 cột để tròn hàng (50 = 5×10). Hàng cao cố định + cuộn dọc: nén 50 ô vào
-   chỗ còn lại thì mỗi ô chỉ còn ~30px, dưới ngưỡng chạm 44px (NF-07). */
-.map {
+.summary { margin: 0 0 8px; color: var(--muted); font-size: var(--text-sm); }
+.chapters {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  grid-auto-rows: 62px;
-  gap: 8px; list-style: none; margin: 0; padding: 2px;
+  display: flex; flex-direction: column; gap: 12px;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;   /* cuộn hết bản đồ thì KHÔNG kéo theo cả trang */
+  padding: 2px;
 }
-li { display: flex; min-height: 0; align-items: stretch; }
+
+/* ---------- thẻ một chặng ---------- */
+
+.chapter {
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  background: var(--panel-soft); padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+/* Chặng đang chơi: viền tím + bóng, ô duy nhất mắt dừng lại ở giữa bốn thẻ */
+.chapter.active {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: var(--elev-1);
+}
+.chapter.done { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.chapter.locked { opacity: .62; }
+
+.chapter header { display: flex; align-items: center; gap: 8px; }
+.chapter h3 {
+  margin: 0; flex: 1; min-width: 0;
+  font-family: var(--font-display); font-weight: 700; font-size: var(--text-md);
+}
+.chapter.done h3 { color: var(--ok); }
+.tally { font-size: var(--text-xs); font-weight: 800; color: var(--muted); }
+.chapter.active .tally { color: var(--accent); }
+.chapter.done .tally { color: var(--ok); }
+.ch-lock { color: var(--muted); flex-shrink: 0; }
+
+.chapter footer {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: var(--text-xs); color: var(--muted);
+}
+.need-theme {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--warn); font-weight: 700; margin-left: auto;
+}
+
+/* ---------- ô một cấp ---------- */
+
+/* 5 cột: cỡ chặng đều là bội của 5 nên hàng cuối luôn đầy. Ô vuông theo bề
+   rộng, tối thiểu 44px cho ngón tay (NF-07). */
+.nodes {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px; list-style: none; margin: 0; padding: 0;
+}
+.nodes li { display: flex; }
 .node {
-  width: 100%; height: 100%; min-height: 0;
+  width: 100%; aspect-ratio: 1; min-height: 44px;
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 1px; padding: 4px 2px; overflow: hidden;
-  border: 2px solid var(--line); border-radius: 12px; background: var(--panel-soft);
+  justify-content: center; gap: 1px; padding: 2px; overflow: hidden;
+  border: 2px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-solid); color: var(--fg);
   container-type: inline-size;   /* số cấp co theo cỡ ô, như các ô lựa chọn khác */
 }
-.node b { font-family: var(--font-display); font-weight: 800; font-size: clamp(16px, 24cqw, 26px); }
-.node small { color: var(--muted); font-size: clamp(9px, 13cqw, 13px); white-space: nowrap; }
-.node .stars { font-size: clamp(10px, 14cqw, 15px); color: var(--gold); letter-spacing: 1px; }
+.node b { font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 40cqw, 22px); }
+.node small { color: var(--muted); font-size: clamp(8px, 22cqw, 11px); white-space: nowrap; }
+.node .stars { font-size: clamp(8px, 24cqw, 11px); color: var(--gold); letter-spacing: .5px; }
 
 /* Đã qua: nền xanh nhạt + viền xanh, đọc được ngay là "xong rồi" */
 .node.cleared {
-  border-color: var(--ok);
-  background: color-mix(in srgb, var(--ok) 14%, var(--panel-soft));
+  border-color: color-mix(in srgb, var(--ok) 50%, transparent);
+  background: color-mix(in srgb, var(--ok) 12%, var(--panel-solid));
 }
-/* Cấp cần chơi tiếp: ô duy nhất mang gradient thương hiệu — mắt tìm thấy ngay */
+/* Cấp cần chơi tiếp: ô duy nhất mang gradient thương hiệu, hơi lớn hơn */
 .node.next {
   border-color: transparent; color: #fff;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
-  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
+  background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
+  /* Bóng trung tính + vòng mảnh, không glow màu — glow lan vào khe giữa các ô
+     làm chúng dính vào nhau */
+  box-shadow: 0 0 0 3px var(--accent-soft), var(--elev-1);
 }
-.node.next small { color: rgba(255, 255, 255, .85); }
-/* Sao vàng trên nền tím gần như không đọc được */
-.node.next .stars { color: rgba(255, 255, 255, .9); }
-/* Khoá: mờ nhưng vẫn đọc được số cấp và số thẻ — .45 nhợt quá, mất cấu trúc */
-.node.locked { opacity: .6; background: transparent; }
-/* Đã mở nhưng bộ theme đang chọn không đủ biểu tượng cho bàn này */
+.node.next small { color: rgba(255, 255, 255, .88); font-weight: 700; }
+/* Khoá: mờ đi nhưng vẫn đọc được số cấp và số thẻ, kèm ổ khoá nhỏ ở góc */
+.node.locked { background: transparent; color: var(--muted); opacity: .72; }
+.node { position: relative; }
+.node-lock { position: absolute; top: 2px; right: 2px; color: var(--muted); }
+/* Đã mở nhưng không bộ theme nào đủ biểu tượng cho bàn này */
 .node.nosym {
   border-color: color-mix(in srgb, var(--warn) 60%, var(--line));
   background: color-mix(in srgb, var(--warn) 12%, transparent);
-  opacity: .85;
 }
-.need-theme { color: var(--warn); font-weight: 700; }
+
+@media (hover: hover) {
+  .node:not(:disabled):hover { border-color: var(--accent); transform: translateY(-1px); }
+}
 </style>

@@ -6,11 +6,11 @@ export {
   comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 export {
-  CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, allLevels, gridForPairs, levelConfig, levelSpec,
-  pairsForLevel, perfectScore
+  CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, gridForPairs, levelConfig,
+  levelSpec, pairsForLevel, perfectScore
 } from './campaign.js';
 export { presetConfig } from './presets.js';
-export type { Level } from './campaign.js';
+export type { Chapter, Level } from './campaign.js';
 export type { PresetInput } from './presets.js';
 export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary

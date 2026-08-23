@@ -61,12 +61,12 @@ const unlockTo = (n: number): void => {
   }));
 };
 
-/** Đi hết wizard chơi đơn: Một mình → chế độ → theme → chọn cấp. Cấp 8 = 4×4. */
+/** Đi hết wizard chơi đơn: Một mình → chế độ → cấp → Bắt đầu. Cấp 8 = 4×4. */
 const start = async (mode = 'Cổ điển', level = 8): Promise<void> => {
   await click('Chơi một mình');
   await click(mode);
-  await click('Tiếp tục');       // bước theme → sang bản đồ cấp
   await click(`Cấp ${level},`);
+  await click('Bắt đầu');
 };
 
 describe('App', () => {
@@ -87,10 +87,10 @@ describe('App', () => {
     await click('Chơi một mình');
     expect(wrapper.text()).not.toContain('Động vật');
     await click('Cổ điển');
-    expect(wrapper.text()).toContain('Chọn theme thẻ');    // theme đứng trước cấp
+    expect(wrapper.text()).toContain('Chọn cấp độ');       // cấp đứng trước theme
+    await click('Cấp 8,');
+    expect(wrapper.text()).toContain('Chọn theme thẻ');
     expect(wrapper.text()).toContain('Động vật');
-    await click('Tiếp tục');
-    expect(wrapper.text()).toContain('Chọn cấp độ');
   });
 
   it('nút quay lại đưa về bước trước', async () => {
@@ -108,6 +108,7 @@ describe('App', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
+    await click('Cấp 8,');
     const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
   });
@@ -157,7 +158,6 @@ describe('App', () => {
     await flush();
     await click('Chơi một mình');
     await click('Chiến dịch');
-    await click('Tiếp tục');       // qua bước theme
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.attributes('disabled')).toBeUndefined();
@@ -181,8 +181,8 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Chớp nhoáng');
     expect(wrapper.text()).not.toContain('Chiến dịch');
     await click('Cổ điển');
-    await click('Tiếp tục');       // bước theme
     await click('Cấp 1,');         // cấp mặc định mở sẵn
+    await click('Bắt đầu');
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
   });
@@ -208,6 +208,7 @@ describe('multi-theme', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
+    await click('Cấp 8,');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
     expect(chip('Động vật').attributes('aria-checked')).toBe('true');
@@ -254,13 +255,15 @@ describe('bước chọn cấp độ', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    await click('Tiếp tục');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
-    expect(nodes[0]!.text()).toContain('2 thẻ');
-    expect(nodes.at(-1)!.text()).toContain('100 thẻ');
-    // Ghi SỐ THẺ chứ không ghi cỡ lưới: năm cấp cuối cùng nằm trong bàn 10×10
-    expect(wrapper.text()).not.toContain('10×10');
+    // Bốn chặng, mỗi chặng một thẻ có tên riêng
+    expect(wrapper.findAll('.chapter')).toHaveLength(4);
+    expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
+    expect(wrapper.text()).toContain('Chặng 4 · Bậc thầy');
+    // Chặng ghi khoảng số thẻ; chặng quá trần nói rõ độ khó đến từ thời gian
+    expect(wrapper.text()).toContain('2 – 20 thẻ');
+    expect(wrapper.text()).toContain('thời gian siết dần');
   });
 
   it('cấp cần nhiều biểu tượng hơn bộ theme đang chọn thì bị chặn và có cảnh báo', async () => {
@@ -268,7 +271,6 @@ describe('bước chọn cấp độ', () => {
     await flush();
     await click('Chơi một mình');
     await click('Cổ điển');
-    await click('Tiếp tục');
     const blocked = wrapper.findAll('.node.nosym');
     expect(blocked.length).toBeGreaterThan(0);
     expect(blocked[0]!.attributes('disabled')).toBeDefined();

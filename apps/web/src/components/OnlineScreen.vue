@@ -208,13 +208,12 @@ function themeSummary(ids: string[]): string {
 }
 
 /** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
-// Cùng thứ tự với wizard chơi đơn: chế độ → theme → cấp độ. Theme đứng trước
-// vì số biểu tượng quyết định cấp nào dựng được bàn.
-const wizard = ref<null | 'mode' | 'theme' | 'level'>(null);
+// Cùng thứ tự với wizard chơi đơn: chế độ → cấp độ → theme.
+const wizard = ref<null | 'mode' | 'level' | 'theme'>(null);
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
-const WIZ_STEPS = ['mode', 'theme', 'level'] as const;
-const WIZ_TITLES = { mode: 'Chọn chế độ', theme: 'Chọn theme thẻ', level: 'Chọn cấp độ' } as const;
+const WIZ_STEPS = ['mode', 'level', 'theme'] as const;
+const WIZ_TITLES = { mode: 'Chọn chế độ', level: 'Chọn cấp độ', theme: 'Chọn theme thẻ' } as const;
 
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
@@ -235,10 +234,13 @@ function flashThemeWarn(): void {
 }
 
 function wizBack(): void {
-  if (wizard.value === 'level') { wizard.value = 'theme'; return; }
-  if (wizard.value === 'theme') { wizard.value = 'mode'; return; }
+  if (wizard.value === 'theme') { wizard.value = 'level'; return; }
+  if (wizard.value === 'level') { wizard.value = 'mode'; return; }
   wizard.value = null;   // về nhập tên (tạo mới) hoặc lobby (đang chỉnh)
 }
+
+/** Biểu tượng của MỌI theme server có — trần trên cho bản đồ cấp. */
+const allSymbols = computed(() => new Set(allThemes.value.flatMap((t) => t.symbols)).size);
 
 const wizPool = computed(() => new Set(
   allThemes.value.filter((t) => cfg.value.themeIds.includes(t.id)).flatMap((t) => t.symbols)
@@ -251,12 +253,15 @@ const cardCount = computed(() => {
   return lv ? levelSpec(lv).pairs * 2 : 0;
 });
 
-/** Chọn cấp là chốt luôn cấu hình — bản đồ đã chặn cấp thiếu biểu tượng. */
 function wizPickLevel(id: number): void {
   sfx.select();
   cfg.value = { ...cfg.value, level: id };
-  wizFinish();
+  wizard.value = 'theme';
 }
+
+/** Bộ theme đang chọn đủ biểu tượng cho cấp đã chọn chưa? */
+const wizTooSmall = computed(() =>
+  wizPool.value > 0 && wizPool.value < levelSpec(cfg.value.level).pairs);
 
 const creatingRoom = ref(false);
 
@@ -304,7 +309,7 @@ function openCfgWizard(): void {
       <button
         v-for="m in MODES" :key="m.id" class="option wide neon" :class="m.g" type="button"
         :aria-pressed="cfg.mode === m.id"
-        @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'theme'"
+        @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'level'"
       >
         <component :is="m.icon" class="opt-icon" :size="26" />
         <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
@@ -315,7 +320,7 @@ function openCfgWizard(): void {
       <LevelMap
         :progress="store.progress(cfg.mode)"
         :unlocked="store.unlockedLevel()"
-        :symbol-count="wizPool"
+        :symbol-count="allSymbols"
         @play="wizPickLevel"
       />
     </div>
@@ -339,13 +344,16 @@ function openCfgWizard(): void {
       </div>
 
       <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
+      <p v-if="wizTooSmall" class="warn" role="alert">
+        Chưa đủ biểu tượng cho cấp {{ cfg.level }}. Hãy chọn thêm theme.
+      </p>
 
       <button
         class="btn-primary" type="button"
-        :disabled="o.phase.value === 'connecting'"
-        @click="wizard = 'level'"
+        :disabled="wizTooSmall || o.phase.value === 'connecting'"
+        @click="wizFinish"
       >
-        Tiếp tục
+        {{ editingInLobby ? 'Lưu bàn chơi' : o.phase.value === 'connecting' ? 'Đang tạo phòng…' : 'Tạo phòng' }}
       </button>
     </div>
 

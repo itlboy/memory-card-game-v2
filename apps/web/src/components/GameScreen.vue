@@ -304,10 +304,11 @@ const fitStyle = computed(() => ({
 .banner-enter-from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .banner-leave-to { opacity: 0; transform: translate(-50%, -85%) scale(.95); }
-/* Nổi phía trên bàn, không đẩy bố cục. Chữ to hơn hẳn (14px cũ đọc không kịp)
-   và có nền đặc + bóng để nổi trên mặt thẻ. */
+/* GIỮA bàn, không đẩy bố cục. Trước đây nằm sát mép trên (top: 8px) nên che
+   đúng hàng thẻ đầu — chỗ người chơi đang bấm. Giữa bàn thì đọc xong là biến,
+   và hơi trong suốt để vẫn thấy thẻ phía sau. */
 .toast {
-  position: absolute; left: 50%; top: 8px; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   z-index: 8; max-width: min(94%, 460px);
   margin: 0; padding: 10px 16px; border-radius: var(--r-full);
   font-family: var(--font-display); font-weight: 700;
@@ -315,14 +316,18 @@ const fitStyle = computed(() => ({
   color: var(--fg); background: var(--panel-solid);
   border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
   box-shadow: var(--shadow);
+  opacity: .93;
+  /* Làm mờ thẻ ngay dưới thông báo, để chữ đọc được mà bàn vẫn hiện ra */
+  backdrop-filter: blur(2px);
   pointer-events: none;
 }
 .toast.peek { border-color: color-mix(in srgb, var(--warn) 65%, var(--line)); }
 .toast.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
 .toast-enter-active { animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1); }
 .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
-.toast-leave-to { opacity: 0; transform: translate(-50%, -8px); }
+.toast-leave-to { opacity: 0; transform: translate(-50%, -60%) scale(.96); }
 @keyframes toast-in {
-  from { opacity: 0; transform: translate(-50%, -14px) scale(.92); }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.88); }
+  to { opacity: .93; transform: translate(-50%, -50%) scale(1); }
 }
 </style>

@@ -71,10 +71,10 @@ async function pickMode(name: string): Promise<void> {
   await click(name);
 }
 
-/** Từ bước theme: qua bản đồ rồi chọn cấp. Cấp 8 = 8 cặp = bàn 4×4. */
+/** Từ bước cấp độ: chọn cấp rồi Bắt đầu ở bước theme. Cấp 8 = 8 cặp = bàn 4×4. */
 async function start(level = 8): Promise<void> {
-  await click('Tiếp tục');
   await click(`Cấp ${level},`);
+  await click('Bắt đầu');
 }
 
 /** Ghép hết các cặp bằng cách đọc pairId từ engine. */
@@ -200,8 +200,7 @@ describe('luồng trọn ván', () => {
   it('thắng cấp 2 Chiến dịch: lưu sao, hiện nút "Cấp tiếp theo", mở khoá cấp sau', async () => {
     await mountApp();
     await pickMode('Chiến dịch');
-    await click('Tiếp tục');                                 // qua bước theme
-    await click('Cấp 2,');                                   // 2 cặp = bàn 2×2
+    await start(2);                                          // cấp 2 = 2 cặp = bàn 2×2
     expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
     expect(wrapper.text()).toContain('Cấp tiếp theo');
@@ -297,14 +296,14 @@ describe('điều hướng bàn phím (NF-07)', () => {
 });
 
 describe('bàn nhỏ và ô trống', () => {
-  it('ván 3×3 có 9 ô: 1 ô trống không bấm được, thắng với 4 cặp', async () => {
+  it('bàn lẻ ô (3×5): 1 ô trống không bấm được, thắng với 7 cặp', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await start(4);   // cấp 4 = 4 cặp = bàn 3×3, một ô trống
-    expect(wrapper.findAll('.card')).toHaveLength(9);
+    await start(7);   // cấp 7 = 7 cặp = 14 thẻ trên bàn 3×5, thừa một ô
+    expect(wrapper.findAll('.card')).toHaveLength(15);
     const blanks = wrapper.findAll('.card.blank');
     expect(blanks).toHaveLength(1);
-    expect(wrapper.text()).toContain('0/4');
+    expect(wrapper.text()).toContain('0/7');
     await winGame();
     expect(wrapper.text()).toContain('Kỷ lục mới');   // thắng lần đầu = kỷ lục
   });
@@ -318,17 +317,17 @@ describe('bàn nhỏ và ô trống', () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
   });
 
-  it('bàn phím nhảy qua ô trống ở giữa lưới 3×3', async () => {
+  it('bàn phím nhảy qua ô trống ở giữa bàn', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await start(4);   // cấp 4 = 4 cặp = bàn 3×3, một ô trống
+    await start(7);   // cấp 7 = bàn 3×5, ô trống ở chính giữa (index 7)
     const board = wrapper.find('[role="grid"]');
     const tile = (i: number) => board.find(`[data-index="${i}"]`);
-    (tile(3).element as HTMLElement).focus();                 // ô trái của ô trống (index 4)
+    (tile(6).element as HTMLElement).focus();                 // ô trái của ô trống
     await board.trigger('keydown', { key: 'ArrowRight' });
-    expect(document.activeElement).toBe(tile(5).element);     // nhảy qua ô trống
+    expect(document.activeElement).toBe(tile(8).element);     // nhảy qua ô trống
     await board.trigger('keydown', { key: 'ArrowLeft' });
-    expect(document.activeElement).toBe(tile(3).element);
+    expect(document.activeElement).toBe(tile(6).element);
   });
 });
 
@@ -389,8 +388,7 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
   it('reload giữa cấp Chiến dịch giữ nguyên số cấp', async () => {
     await mountApp();
     await pickMode('Chiến dịch');
-    await click('Tiếp tục');
-    await click('Cấp 2,');
+    await start(2);
     window.dispatchEvent(new Event('beforeunload'));
     wrapper.unmount();
     await mountApp();
@@ -489,17 +487,17 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
 });
 
 describe('F5 giữ bước wizard (?w= trên URL)', () => {
-  it('đi tới bước theme, F5 vẫn đứng ở bước theme', async () => {
+  it('đi tới bước cấp độ, F5 vẫn đứng ở bước cấp độ', async () => {
     await mountApp();
     await click('Chơi một mình');
     expect(location.search).toBe('?w=mode');
     await click('Cổ điển');
-    expect(location.search).toBe('?w=theme');
-    wrapper.unmount();
-    await mountApp();                                   // "F5"
-    expect(wrapper.text()).toContain('Chọn theme thẻ'); // vẫn ở bước theme
-    await click('Tiếp tục');
     expect(location.search).toBe('?w=level');
+    wrapper.unmount();
+    await mountApp();                                  // "F5"
+    expect(wrapper.text()).toContain('Chọn cấp độ');   // vẫn ở bước cấp độ
+    await click('Cấp 8,');
+    expect(location.search).toBe('?w=theme');
   });
 
   it('logo về trang chủ thì URL sạch và về bước 1 — mất trạng thái là chủ đích', async () => {

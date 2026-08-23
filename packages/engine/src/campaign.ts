@@ -19,16 +19,22 @@ export interface Level {
  *  vậy thì độ khó lên từ tốn và người chơi luôn thấy màn sau khác màn trước —
  *  thang cũ gộp ba màn liền vào cùng một cỡ bàn nên chơi thấy lặp. */
 export const CAMPAIGN_LEVELS = 50;
-/** Cạnh bàn lớn nhất. 10×10 = 100 thẻ; hơn nữa thì trên điện thoại mỗi thẻ
- *  không còn đủ 44px để bấm. */
+/** Cạnh bàn lớn nhất, dùng cho bàn trần 5×10. */
 const MAX_SIDE = 10;
 /** Bàn không dài quá mức này (rows/cols) — dài hơn thì thành một dải, khó nhớ
- *  vị trí và cũng khó nhìn trên cột app dọc. */
-const MAX_RATIO = 1.75;
+ *  vị trí. 2,0 để bàn trần 5×10 hợp lệ: khung app là cột dọc nên bàn cao gấp
+ *  đôi bề rộng vẫn vừa, còn dài hơn nữa thì thẻ bé quá. */
+const MAX_RATIO = 2;
+/** Trần 50 thẻ = 25 cặp. 100 thẻ (10×10) thì mỗi thẻ trên điện thoại chỉ còn
+ *  hơn 30px và một ván kéo dài quá lâu — chơi thành khổ, không còn vui. */
+const MAX_PAIRS = 25;
+/** Từ cấp này trở đi bàn không to thêm nữa; độ khó lên bằng thời gian ngắn dần
+ *  và nhiều thẻ đặc biệt hơn. */
+const PLATEAU_FROM = MAX_PAIRS;
 
-/** Màn N có đúng N cặp: màn 1 là màn tập 2 thẻ (dạy động tác lật), màn 50 là
- *  bàn 10×10 kín 100 thẻ. Nhờ vậy tròn 50 màn mà vẫn đúng "mỗi màn +2 thẻ". */
-export const pairsForLevel = (id: number): number => id;
+/** Cấp N có N cặp cho tới trần 25 cặp (50 thẻ): cấp 1 là cấp tập 2 thẻ, cấp 25
+ *  là bàn 5×10 kín. Từ cấp 26 bàn giữ nguyên 50 thẻ — xem PLATEAU_FROM. */
+export const pairsForLevel = (id: number): number => Math.min(MAX_PAIRS, id);
 /** Số cặp lớn nhất chiến dịch đòi (màn cuối) — UI dùng để cảnh báo trước khi
  *  người chơi lao vào màn mà bộ theme đang chọn không đủ biểu tượng. */
 export const CAMPAIGN_MAX_PAIRS = pairsForLevel(CAMPAIGN_LEVELS);
@@ -68,6 +74,23 @@ export function perfectScore(pairs: number): number {
   return total;
 }
 
+/**
+ * Bốn chặng của thang cấp. Chia chặng để bản đồ 50 cấp không còn là một lưới
+ * 50 ô giống nhau: mỗi chặng là một thẻ có tên, có tiến độ riêng, cuộn ngắn
+ * hẳn và người chơi thấy mình đang đi qua từng chương.
+ *
+ * Cỡ chặng đều là bội của 5 để lưới 5 cột luôn TRÒN HÀNG (không ô lẻ ở hàng
+ * cuối). Ranh chặng 2 đặt đúng ở cấp 25 — chỗ bàn cán trần 50 thẻ, từ đó độ
+ * khó chuyển sang siết thời gian.
+ */
+export interface Chapter { id: number; name: string; from: number; to: number }
+export const CHAPTERS: readonly Chapter[] = [
+  { id: 1, name: 'Nhập môn',   from: 1,  to: 10 },
+  { id: 2, name: 'Tăng tốc',   from: 11, to: 25 },
+  { id: 3, name: 'Thử thách',  from: 26, to: 35 },
+  { id: 4, name: 'Bậc thầy',   from: 36, to: 50 }
+];
+
 export function levelSpec(id: number): Level {
   // Phải chặn cả số lẻ và NaN: số màn giờ do CLIENT gửi lên (mọi chế độ đều
   // chọn màn), mà client không đáng tin — ON-09.
@@ -78,16 +101,23 @@ export function levelSpec(id: number): Level {
   const pairs = pairsForLevel(id);
   const { cols, rows } = gridForPairs(pairs);
 
-  // Thời gian nới theo số cặp nhưng siết theo bước nguyên 2 giây mỗi màn,
-  // để hai màn cùng bậc lưới không bao giờ có cùng giới hạn (làm tròn dễ gây trùng)
-  const timeLimit = Math.max(pairs * 4, pairs * 9 - (id - 1) * 2);
+  // Thời gian nới theo số cặp nhưng siết 2 giây mỗi cấp. Từ cấp 26 bàn không to
+  // thêm được nữa (trần 50 thẻ) nên đây thành thứ DUY NHẤT làm cấp sau khó hơn
+  // cấp trước — cứ siết đều, chặn dưới ở 2 giây mỗi cặp để còn chơi được.
+  const timeLimit = Math.max(pairs * 2, pairs * 9 - (id - 1) * 2);
 
   // Nửa sau chiến dịch siết sao: cùng một bàn nhưng đòi chơi sạch hơn mới đủ sao
   const hard = id > CAMPAIGN_LEVELS / 2;
   const perfect = perfectScore(pairs);
+  // Thẻ đặc biệt bật từ cấp 3 (mục 3.4). Qua mốc bàn hết to thì nới trần lên
+  // 0,3 — cùng với đồng hồ, đây là chỗ còn lại để tăng độ khó.
+  const specialRate = id < 3
+    ? 0
+    : id <= PLATEAU_FROM
+      ? Math.min(0.2, 0.1 + (id - 3) * 0.005)
+      : Math.min(0.3, 0.2 + (id - PLATEAU_FROM) * 0.004);
   return {
-    id, cols, rows, pairs, timeLimit,
-    specialRate: id >= 3 ? Math.min(0.2, 0.1 + (id - 3) * 0.005) : 0,   // bật từ màn 3 (mục 3.4)
+    id, cols, rows, pairs, timeLimit, specialRate,
     starThresholds: hard
       ? [Math.round(perfect * 0.62), Math.round(perfect * 0.85)]
       : [Math.round(perfect * 0.55), Math.round(perfect * 0.8)]

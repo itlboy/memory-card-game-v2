@@ -17,9 +17,12 @@ const props = defineProps<{
   themeIds: string[];
   playerCount: number;
   totalScore: number;
-  /** Số biểu tượng của các theme đang chọn — bản đồ Chiến dịch cần để biết màn
-   *  nào dựng được bàn. */
+  /** Số biểu tượng của các theme đang chọn — bước theme dùng để cảnh báo. */
   symbolCount: number;
+  /** Số biểu tượng của TẤT CẢ theme đang mở khoá. Bản đồ cấp chặn theo con số
+   *  này: cấp mà không bộ nào đủ thì có chọn theme kiểu gì cũng không chơi
+   *  được, còn lại để bước theme phía sau lo. */
+  maxSymbolCount: number;
 }>();
 
 const emit = defineEmits<{
@@ -32,8 +35,8 @@ const emit = defineEmits<{
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
-type Step = 'players' | 'count' | 'names' | 'mode' | 'theme' | 'level';
-const STEPS: readonly Step[] = ['players', 'count', 'names', 'mode', 'theme', 'level'];
+type Step = 'players' | 'count' | 'names' | 'mode' | 'level' | 'theme';
+const STEPS: readonly Step[] = ['players', 'count', 'names', 'mode', 'level', 'theme'];
 
 /** Bước hiện tại nằm trên URL (?w=level) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
@@ -60,12 +63,13 @@ watch(step, (st) => {
 const isMulti = computed(() => props.playerCount > 1);
 
 /** Đường đi của wizard tuỳ nhánh, dùng cho chấm tiến độ và nút quay lại. */
-// Theme đứng TRƯỚC cấp độ: số biểu tượng của bộ theme quyết định cấp nào dựng
-// được bàn, nên phải biết theme rồi mới vẽ đúng bản đồ cấp.
+// Cấp độ đứng TRƯỚC theme: chọn chơi cấp nào là quyết định chính, còn theme là
+// trang trí. Bản đồ cấp chỉ chặn cấp mà KHÔNG bộ theme nào đủ biểu tượng; bước
+// theme sau đó cảnh báo nếu bộ đang chọn không đủ cho cấp này.
 const path = computed<Step[]>(() =>
   isMulti.value
-    ? ['players', 'count', 'names', 'mode', 'theme', 'level']
-    : ['players', 'mode', 'theme', 'level']
+    ? ['players', 'count', 'names', 'mode', 'level', 'theme']
+    : ['players', 'mode', 'level', 'theme']
 );
 const stepIndex = computed(() => path.value.indexOf(step.value));
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
@@ -76,8 +80,8 @@ const TITLES: Record<Step, string> = {
   count: 'Mấy người chơi?',
   names: 'Tên từng người',
   mode: 'Chọn chế độ',
-  theme: 'Chọn theme thẻ',
-  level: 'Chọn cấp độ'
+  level: 'Chọn cấp độ',
+  theme: 'Chọn theme thẻ'
 };
 
 // Mỗi chế độ một màu neon cố định — theo suốt game (hướng thiết kế C)
@@ -140,6 +144,12 @@ function confirmNames(): void {
 function pickMode(m: Mode): void {
   sfx.select();
   emit('update:mode', m);
+  step.value = 'level';
+}
+
+function pickLevel(id: number): void {
+  sfx.select();
+  emit('update:level', id);
   step.value = 'theme';
 }
 
@@ -150,6 +160,15 @@ function back(): void {
 
 const unlocked = (t: CardTheme): boolean => t.unlockAt <= props.totalScore;
 const best = computed(() => store.best(props.mode, props.level));
+/** Số cặp mà cấp đang chọn cần — bước theme dùng để cảnh báo thiếu biểu tượng. */
+const pairsNeeded = computed(() => levelSpec(props.level).pairs);
+/** Bộ theme đang chọn có đủ biểu tượng cho cấp đã chọn chưa? */
+const themeTooSmall = computed(() => {
+  const pool = new Set(
+    props.themes.filter((t) => props.themeIds.includes(t.id)).flatMap((t) => t.symbols)
+  );
+  return pool.size > 0 && pool.size < pairsNeeded.value;
+});
 /** Sao/đã qua tính riêng từng chế độ; mở khoá thì dùng chung (xem storage). */
 const progress = computed(() => store.progress(props.mode));
 const unlockedLevel = computed(() => store.unlockedLevel());
@@ -246,8 +265,22 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         </button>
       </div>
 
-      <!-- BƯỚC: theme (chọn được nhiều) — bộ theme quyết định cấp nào chơi được -->
-      <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
+      <!-- BƯỚC: chọn cấp độ. MỌI chế độ đều qua đây — trước kia chỉ Chiến dịch
+           có bản đồ, các chế độ khác chọn 1 trong 12 cỡ bàn cố định, nên cùng
+           một việc lại có hai kiểu chọn và chỉ Chiến dịch mới chơi tiếp được
+           cấp sau. -->
+      <div v-else-if="step === 'level'" key="level" class="step-body">
+        <LevelMap
+          :progress="progress"
+          :unlocked="unlockedLevel"
+          :symbol-count="maxSymbolCount"
+          :show-stars="mode === 'campaign'"
+          @play="pickLevel"
+        />
+      </div>
+
+      <!-- BƯỚC cuối: theme (chọn được nhiều) + Bắt đầu -->
+      <div v-else key="theme" class="step-body theme-step">
         <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
         <div class="options grid2 fill" role="group" aria-label="Theme thẻ">
           <button
@@ -275,27 +308,22 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         </div>
 
         <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
+        <p v-if="themeTooSmall" class="warn" role="alert">
+          Chưa đủ biểu tượng cho cấp {{ level }} ({{ pairsNeeded }} cặp). Hãy chọn thêm theme.
+        </p>
 
-        <button class="btn-primary" type="button" @click="step = 'level'">Tiếp tục</button>
-      </div>
+        <button
+          class="btn-primary" :disabled="themeTooSmall" type="button"
+          @click="emit('start-level', level)"
+        >
+          Bắt đầu cấp {{ level }}
+        </button>
 
-      <!-- BƯỚC cuối: chọn cấp độ. MỌI chế độ đều qua đây — trước kia chỉ Chiến
-           dịch có bản đồ, các chế độ khác chọn 1 trong 12 cỡ bàn cố định, nên
-           cùng một việc lại có hai kiểu chọn và chỉ Chiến dịch mới chơi tiếp
-           được cấp sau. -->
-      <div v-else key="level" class="step-body">
-        <LevelMap
-          :progress="progress"
-          :unlocked="unlockedLevel"
-          :symbol-count="symbolCount"
-          :show-stars="mode === 'campaign'"
-          @play="emit('start-level', $event)"
-        />
         <p class="best">
           <template v-if="best">
             Kỷ lục cấp {{ level }}: <b>{{ best.score }}</b> điểm · {{ best.moves }} lượt · {{ clock(best.seconds) }}
           </template>
-          <template v-else>Bấm một cấp để chơi.</template>
+          <template v-else>Chưa có kỷ lục cho cấp {{ level }}.</template>
         </p>
       </div>
     </Transition>

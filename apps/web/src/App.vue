@@ -210,6 +210,12 @@ watch([dark, soundLevel, mode, level, themeIds, playerCount], () => {
   });
 });
 
+/** Biểu tượng của MỌI theme đang mở khoá — trần trên của số cặp chơi được, để
+ *  bản đồ cấp biết cấp nào không bộ theme nào gánh nổi. */
+const maxSymbols = computed(() => new Set(
+  themes.value.filter((t) => t.unlockAt <= totalScore.value).flatMap((t) => t.symbols)
+).size);
+
 /** Trộn biểu tượng của mọi theme đã chọn, loại trùng. */
 const symbols = computed(() => [...new Set(
   themes.value.filter((t) => themeIds.value.includes(t.id)).flatMap((t) => t.symbols)
@@ -346,6 +352,7 @@ const hasNext = computed(() => !!levelId.value && levelId.value < CAMPAIGN_LEVEL
       :player-count="playerCount"
       :total-score="totalScore"
       :symbol-count="symbols.length"
+      :max-symbol-count="maxSymbols"
       @update:mode="mode = $event"
       @update:level="level = $event"
       @update:theme-ids="themeIds = $event"

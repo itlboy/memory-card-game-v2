@@ -1,0 +1,14 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "A · Chặng đường" },
+    { "file": "DirectionB.dc.html", "x": 510, "y": 0, "w": 390, "h": 844, "title": "B · Bàn thẻ thu nhỏ" },
+    { "file": "DirectionC.dc.html", "x": 1020, "y": 0, "w": 390, "h": 844, "title": "C · Tiêu điểm một cấp" }
+  ],
+  "annotations": [
+    { "id": "brief", "x": 0, "y": -190, "w": 420, "text": "Chọn cấp độ — 50 cấp, khung điện thoại 390×844\n\nBa hướng, cùng token của app (Baloo 2 + Nunito, tím #6a5cff→#8b5cf6, bo 14-26px).\nĐể nền tối cho dễ so sánh; bản sáng chỉ đổi token.\n\nTrạng thái phải đọc được ngay: đã qua (xanh + sao) · đang chờ chơi (tím, nổi bật) ·\nkhoá (mờ + ổ khoá) · thiếu theme (viền cam + dấu cảnh báo)." },
+    { "id": "note-a", "x": 0, "y": 890, "w": 390, "text": "A · CHẶNG ĐƯỜNG\n50 cấp chia 5 chặng 10 cấp, mỗi chặng một thẻ có tên và tiến độ riêng.\n\nĐược: cuộn ngắn hẳn, có cảm giác đi qua từng chương; ô 46px thoải mái cho ngón tay; cảnh báo thiếu theme nằm ngay dưới chặng liên quan chứ không phải một dòng chung chung.\n\nMất: phải đặt tên 5 chặng; chiều cao mỗi thẻ chặng khá lớn nên vẫn cuộn khi xem chặng cuối." },
+    { "id": "note-b", "x": 510, "y": 890, "w": 390, "text": "B · BÀN THẺ THU NHỎ\nMỗi cấp là một lá bài; lưới chấm bên trong to dần theo số thẻ, nên độ khó tăng dần THẤY được chứ không phải đọc số.\n\nĐược: thẻ \"Chơi tiếp\" trên cùng giải quyết 90% lượt vào màn; 4 cột nên ô rộng, số sao và số thẻ đọc rõ.\n\nMất: lưới chấm ở cấp 40+ dày quá sẽ thành một khối đặc; phần dưới vẫn là lưới dài 13 hàng." },
+    { "id": "note-c", "x": 1020, "y": 890, "w": 390, "text": "C · TIÊU ĐIỂM MỘT CẤP\nMột cấp chiếm giữa màn, hai cấp kề hé ra hai bên, kéo ngang để đổi. Dải 50 chấm dưới cùng để nhảy nhanh và cho thấy toàn bộ tiến độ trong một cái nhìn.\n\nĐược: KHÔNG cuộn dọc — đúng luật của app; nút chơi to nhất màn hình.\n\nMất: muốn tới cấp 40 phải kéo nhiều lần hoặc bấm chấm nhỏ 8px (dưới ngưỡng 44px, chỉ nên coi là dải xem tiến độ kèm nhảy thô)." }
+  ],
+  "launch": { "view": "canvas" }
+}
