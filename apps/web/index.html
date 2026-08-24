@@ -15,23 +15,27 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Lật Thẻ">
 
-  <!-- Thẻ chia sẻ. og:image PHẢI là URL tuyệt đối — Facebook/Zalo không hiểu
+  <!-- Thẻ chia sẻ. og:image và og:url PHẢI là URL TUYỆT ĐỐI — con bọ đọc thẻ
+       không phải trình duyệt, nó không có ngữ cảnh trang để ghép đường dẫn
+       tương đối. Nhưng KHÔNG viết cứng tên miền: đã dính lỗi thật — đổi tên miền
+       sang thebai.hello314.com mà quên sửa ba dòng này, nên mọi link chia sẻ trỏ
+       về tên miền cũ đã chết (530). Lấy từ VITE_SITE_URL (.env), có test chặn.
        đường dẫn tương đối; đổi domain thì phải sửa cả ba dòng dưới. -->
   <meta name="description" content="Game thẻ bài rèn luyện trí nhớ, nhiều chế độ hấp dẫn để chơi một mình hoặc với bạn bè. Tạo phòng online bằng mã 6 số.">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Lật Thẻ">
   <meta property="og:locale" content="vi_VN">
-  <meta property="og:url" content="https://ghi-nho-the-bai.hello314.com/">
+  <meta property="og:url" content="%VITE_SITE_URL%/">
   <meta property="og:title" content="Lật Thẻ">
   <meta property="og:description" content="Game thẻ bài rèn luyện trí nhớ, nhiều chế độ hấp dẫn để chơi một mình hoặc với bạn bè.">
-  <meta property="og:image" content="https://ghi-nho-the-bai.hello314.com/og.jpg">
+  <meta property="og:image" content="%VITE_SITE_URL%/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Lật Thẻ — game thẻ bài trí nhớ: hai lá bài và ba thẻ đang lật">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Lật Thẻ">
   <meta name="twitter:description" content="Game thẻ bài rèn luyện trí nhớ, nhiều chế độ hấp dẫn để chơi một mình hoặc với bạn bè.">
-  <meta name="twitter:image" content="https://ghi-nho-the-bai.hello314.com/og.jpg">
+  <meta name="twitter:image" content="%VITE_SITE_URL%/og.jpg">
 </head>
 <body>
   <div id="app"></div>

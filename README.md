@@ -333,6 +333,18 @@ pnpm smoke:online   # E2E: 2 client chơi trọn ván qua WebSocket (cần dev:s
 pnpm release        # build web + deploy CẢ web và server trong một Worker
 ```
 
+### Thẻ chia sẻ (og / twitter)
+
+`og:image` và `og:url` **buộc phải là URL tuyệt đối** — con bọ đọc thẻ (Facebook,
+Zalo, Telegram, X) không phải trình duyệt, nó không có ngữ cảnh trang để ghép
+đường dẫn tương đối. Icon và manifest thì tương đối được, vì trình duyệt đọc.
+
+Tên miền lấy từ `VITE_SITE_URL` trong `apps/web/.env`, Vite thay `%VITE_SITE_URL%`
+lúc build. **Đổi tên miền thì sửa đúng một chỗ đó.** Trước đây ba dòng og viết
+cứng tên miền, và đã dính lỗi thật: đổi sang `thebai.hello314.com` mà quên sửa,
+nên mọi link chia sẻ trỏ về tên miền cũ đã chết (530 / error 1033) — mất ảnh, sai
+URL chuẩn tắc, không có gì báo. Giờ có test chặn (`test/share-tags.test.ts`).
+
 ### Deploy: MỘT Worker duy nhất
 
 Web và phòng online nằm trong cùng một Worker (`apps/server/wrangler.jsonc`), nên
