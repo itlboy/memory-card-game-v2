@@ -964,9 +964,12 @@ describe('mở khoá cấp sau', () => {
     expect(champ?.id, 'bot phải dẫn đầu để phép kiểm có nghĩa').toBe('bot');
     expect(localStorage.getItem('mm.v2') ?? '', 'thua bot thì KHÔNG được mở cấp')
       .not.toContain('"classic:1"');
-    // Và nút "Cấp tiếp theo" KHÔNG được hiện: cấp sau chưa mở, bấm vào là nhảy
-    // vào cấp bị khoá. Thay bằng "Chơi lại".
-    expect(wrapper.text()).not.toContain('Cấp tiếp theo');
+    // Nút "Cấp tiếp theo" vẫn ở đúng chỗ nhưng bị TẮT — biến mất thì hai nút còn
+    // lại nhảy chỗ mỗi ván. Điều phải đúng là không bấm được vào cấp chưa mở.
+    const next = wrapper.findAll('[role="dialog"] button')
+      .find((b) => b.text().includes('Cấp tiếp theo'));
+    expect(next, 'nút cấp sau phải vẫn hiện để bố cục đứng yên').toBeTruthy();
+    expect(next!.attributes('disabled'), 'nhưng phải bị tắt').toBeDefined();
     expect(wrapper.text()).toContain('Chơi lại');
   });
 
@@ -1102,5 +1105,49 @@ describe('bản đồ cấp hiện số thẻ', () => {
     const locked = wrapper.findAll('.node.locked');
     expect(locked.length).toBeGreaterThan(0);
     expect(locked[0]!.text()).toMatch(/\d+ thẻ/);
+  });
+});
+
+describe('bố cục nút ở màn kết quả', () => {
+  /** Ba nút, đúng thứ tự: chơi lại · cấp tiếp theo · về menu. */
+  const labels = (): string[] => wrapper.findAll('[role="dialog"] button')
+    .map((b) => b.text()).filter((t) => t.length > 0);
+
+  it('thắng: hàng trên là "Chơi lại cấp này" rồi "Cấp tiếp theo", "Về menu" ở dưới', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    await winGame();
+    const l = labels();
+    expect(l[0]).toContain('Chơi lại cấp này');
+    expect(l[1]).toContain('Cấp tiếp theo');
+    expect(l[2]).toContain('Về menu');
+    // Cả hai nút hàng trên đều bấm được, và cùng là nút nổi bật
+    const btns = wrapper.findAll('[role="dialog"] .row button');
+    expect(btns).toHaveLength(2);
+    for (const b of btns) {
+      expect(b.classes()).toContain('btn-primary');
+      expect(b.attributes('disabled')).toBeUndefined();
+    }
+  });
+
+  it('THUA: bố cục y nguyên, chỉ nút cấp sau bị tắt', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await pickMode('Đua thời gian');
+    await click('Cấp 1,');
+    await click('Bắt đầu');
+    // Hết giờ mà chưa ghép xong → thua
+    await vi.advanceTimersByTimeAsync(120_000);
+    await flush();
+    await vi.advanceTimersByTimeAsync(1500);
+    await flush();
+    expect(wrapper.text()).toContain('Hết thời gian');
+    const l = labels();
+    expect(l[0]).toContain('Chơi lại');
+    expect(l[1]).toContain('Cấp tiếp theo');
+    expect(l[2]).toContain('Về menu');
+    const next = wrapper.findAll('[role="dialog"] .row button')[1]!;
+    expect(next.attributes('disabled'), 'thua thì cấp sau phải tắt').toBeDefined();
   });
 });

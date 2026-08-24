@@ -506,6 +506,7 @@ const hasNext = computed(() => {
     :total-after="totalScore"
     :series-wins="seriesWins"
     :has-next="hasNext"
+    :level-id="levelId ?? level"
     @replay="replay"
     @next="nextLevel"
     @menu="backToMenu"

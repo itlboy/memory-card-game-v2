@@ -19,6 +19,10 @@ const props = defineProps<{
   seriesWins?: Record<string, number>;
   /** Có màn kế tiếp trong Chiến dịch không. */
   hasNext: boolean;
+  /** Cấp đang chơi; không có nghĩa là ván lẻ, không thuộc thang cấp. */
+  levelId?: number;
+  /** Ván online: không có thang cấp nên không có "cấp tiếp theo". */
+  multiplayerOnline?: boolean;
   /** Ván online: mình đã bấm chơi lại chưa, và còn chờ ai. Có hai giá trị này
    *  thì nút đổi thành trạng thái chờ — trước đây bấm xong nút y nguyên nên
    *  người chơi tưởng nút không ăn. */
@@ -100,6 +104,17 @@ const REASON: Record<Summary['reason'], string> = {
 };
 
 const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
+
+/**
+ * Có chỗ cho nút "Cấp tiếp theo" hay không, và có bấm được hay không — hai
+ * chuyện khác nhau. Ván lẻ (không thuộc thang cấp) thì không hiện; còn khi thuộc
+ * thang cấp mà cấp sau chưa mở thì HIỆN NHƯNG TẮT, để bố cục đứng yên giữa các
+ * ván. Ván online không có thang cấp nên cũng không hiện.
+ */
+const showNext = computed(() => props.levelId !== undefined && !props.multiplayerOnline);
+const canNext = computed(() => props.hasNext && props.summary.status === 'won');
+/** Ván thuộc thang cấp thì nói rõ "cấp này", không thì chỉ "Chơi lại". */
+const replayLabel = computed(() => (props.levelId === undefined ? 'Chơi lại' : 'Chơi lại cấp này'));
 
 /**
  * "Bạn đã mở hết các cặp!" chỉ đúng khi chơi MỘT MÌNH. Ván thi đấu mà bàn do đối
@@ -204,22 +219,35 @@ const title = computed(() => {
         </li>
       </ul>
 
+      <!--
+        Hàng trên: hai lối đi TIẾP, cạnh nhau, cùng nổi bật — chơi lại bên trái,
+        cấp sau bên phải. "Về menu" xuống hàng dưới vì nó là lối RA, không phải
+        lối tiếp; để chung một hàng thì ba nút ngang nhau, mắt không biết chọn gì.
+      -->
       <div class="row">
-        <button v-if="hasNext && summary.status === 'won'" ref="primary" class="btn btn-primary" type="button" @click="emit('next')">
-          Cấp tiếp theo
-        </button>
         <button
-          v-else-if="!rematchBlocked" ref="primary" class="btn btn-primary" type="button"
+          v-if="!rematchBlocked" ref="primary" class="btn btn-primary" type="button"
           :disabled="rematchSent"
           @click="emit('replay')"
         >
-          {{ rematchSent ? 'Đã bấm chơi lại' : 'Chơi lại' }}
+          {{ rematchSent ? 'Đã bấm chơi lại' : replayLabel }}
         </button>
-        <button class="btn" type="button" @click="emit('menu')">Về menu</button>
+        <!--
+          Cấp sau CHƯA MỞ (thua, hoặc thua bot) thì nút vẫn ở đúng chỗ nhưng tắt
+          màu và không bấm được — biến mất thì hai nút còn lại nhảy chỗ mỗi ván,
+          mà người chơi cần cái nhìn ổn định để bấm theo phản xạ.
+        -->
+        <button
+          v-if="showNext"
+          class="btn btn-primary next-level" type="button"
+          :disabled="!canNext"
+          :title="canNext ? '' : 'Cấp sau chưa mở — thắng ván này trước'"
+          @click="canNext && emit('next')"
+        >
+          Cấp tiếp theo
+        </button>
       </div>
-      <button v-if="hasNext && summary.status === 'won'" class="btn link" type="button" @click="emit('replay')">
-        Chơi lại cấp này
-      </button>
+      <button class="btn link" type="button" @click="emit('menu')">Về menu</button>
       <!-- Nói rõ đang chờ ai, không thì hai bên cùng ngồi đợi nhau -->
       <p v-if="rematchBlocked" class="waiting" role="status">
         🚪 Người chơi kia đã rời phòng — không chơi lại được nữa.
@@ -371,5 +399,10 @@ h2 { margin: 0 0 4px; }
 .row { display: flex; gap: 8px; margin-top: 18px; }
 .row .btn { flex: 1; }
 .row .btn-primary { margin: 0; }
+/* Cấp sau chưa mở: xám hẳn, không gradient — nhìn là biết chưa bấm được */
+.row .btn-primary:disabled {
+  background: var(--line); color: var(--muted);
+  box-shadow: none; cursor: not-allowed; opacity: 1;
+}
 .link { width: 100%; margin-top: 8px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
 </style>

@@ -206,7 +206,7 @@ watch(() => o.view.value?.summary, (s) => {
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
       :is-record="false" :show-stars="false" :multiplayer="true"
-      :fresh-achievements="[]" :has-next="false"
+      :fresh-achievements="[]" :has-next="false" :multiplayer-online="true"
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
       :rematch-sent="o.iWantAgain.value"
