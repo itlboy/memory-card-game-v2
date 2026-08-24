@@ -284,8 +284,10 @@ watch(() => o.view.value?.summary, (s) => {
 .plus-leave-active { transition: opacity .3s; }
 .plus-leave-to { opacity: 0; }
 .pchip.active .pts { color: var(--accent); }
+/* Bong bóng trên chip người chơi: cũng gấp đôi (22px → 44px), lệch lên cao hơn
+   cho khỏi che tên. */
 .bubble {
-  position: absolute; top: -26px; left: 8px; font-size: 22px;
+  position: absolute; top: -44px; left: 4px; font-size: 44px;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .25)); z-index: 4;
 }
 .bubble-enter-active { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1), opacity .2s; }
@@ -377,8 +379,11 @@ watch(() => o.view.value?.summary, (s) => {
   display: flex; flex-direction: row; align-items: center; gap: 8px;
   pointer-events: none;
 }
+/* Gấp đôi cỡ cũ (30–44px → 60–88px): emoji người kia gửi là lời "nói", phải đọc
+   được từ xa. Nó nằm trong .notice-bar (cao 0px) nên phóng to KHÔNG đẩy bàn thẻ
+   xuống — chỉ đè lên HUD một nhịp rồi tan. Nút BẤM để gửi giữ nguyên cỡ. */
 .emoji-blast .big {
-  font-size: clamp(30px, 8vw, 44px); line-height: 1;
+  font-size: clamp(60px, 16vw, 88px); line-height: 1;
   filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .35));
   animation: blast-pop 1.9s cubic-bezier(.2, 1.4, .4, 1) forwards;
 }

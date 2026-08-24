@@ -1203,3 +1203,25 @@ describe('không ô nào bị dính viền "đang chọn"', () => {
     expect(checked.length, 'theme là chọn nhiều, phải đánh dấu ô đang bật').toBeGreaterThan(0);
   });
 });
+
+describe('emoji lúc chat to gấp đôi nút bấm', () => {
+  it('emoji người kia gửi và bong bóng trên chip đều lớn hơn nút gửi', () => {
+    const css = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
+    const px = (sel: string): number => {
+      const at = css.indexOf(sel);
+      expect(at, `không thấy rule ${sel}`).toBeGreaterThan(-1);
+      const rule = css.slice(at, css.indexOf('}', at));
+      // lấy số px đầu tiên trong font-size (với clamp thì đó là sàn)
+      const m = /font-size:[^;]*?(\d+)px/.exec(rule);
+      expect(m, `rule ${sel} phải có font-size theo px`).toBeTruthy();
+      return Number(m![1]);
+    };
+    // Neo vào ĐẦU DÒNG: '.emoji {' còn khớp cả trong '.emoji-bar.spent .emoji {'
+    // (rule đó không có font-size) — đúng cái bẫy vừa làm test đỏ.
+    const nutGui = px('\n.emoji {');        // nút BẤM để gửi — không được phóng
+    const blast = px('.emoji-blast .big');  // emoji hiện ra khi có người gửi
+    const bubble = px('\n.bubble {');         // bong bóng trên chip người chơi
+    expect(blast).toBeGreaterThanOrEqual(nutGui * 2);
+    expect(bubble).toBeGreaterThanOrEqual(nutGui * 2);
+  });
+});
