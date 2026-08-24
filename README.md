@@ -339,11 +339,28 @@ pnpm release        # build web + deploy CẢ web và server trong một Worker
 Zalo, Telegram, X) không phải trình duyệt, nó không có ngữ cảnh trang để ghép
 đường dẫn tương đối. Icon và manifest thì tương đối được, vì trình duyệt đọc.
 
-Tên miền lấy từ `VITE_SITE_URL` trong `apps/web/.env`, Vite thay `%VITE_SITE_URL%`
-lúc build. **Đổi tên miền thì sửa đúng một chỗ đó.** Trước đây ba dòng og viết
-cứng tên miền, và đã dính lỗi thật: đổi sang `thebai.hello314.com` mà quên sửa,
+HAI biến trong `apps/web/.env`, Vite thay `%VITE_...%` lúc build:
+
+| Biến | Dùng cho | Đổi tên miền thì |
+|---|---|---|
+| `VITE_SITE_URL` | `og:url` — URL CHUẨN TẮC, chỗ người bấm link sẽ tới | phải sửa |
+| `VITE_ASSET_URL` | `og:image`, `twitter:image` — chỉ để tải ảnh | đặt địa chỉ ổn định (`*.workers.dev`) thì không phải sửa |
+
+**Đừng trỏ `og:url` sang địa chỉ khác** dù nó ổn định hơn: link chia sẻ sẽ đưa
+người chơi sang origin khác, mà điểm/sao/kỷ lục nằm trong `localStorage` theo
+origin — sang origin mới là mất sạch, không cách nào chuyển.
+
+Đã dính lỗi thật: đổi sang `thebai.hello314.com` mà quên sửa ba dòng og viết cứng,
 nên mọi link chia sẻ trỏ về tên miền cũ đã chết (530 / error 1033) — mất ảnh, sai
-URL chuẩn tắc, không có gì báo. Giờ có test chặn (`test/share-tags.test.ts`).
+URL chuẩn tắc, **không có gì báo vì trang vẫn chạy tốt**.
+
+Hai lớp chặn:
+- `test/share-tags.test.ts` — không được viết cứng tên miền, hai biến phải là
+  https tuyệt đối, `og.jpg` phải có thật.
+- `pnpm check:share` (tự chạy cuối `pnpm release`) — GỌI THẬT lên bản đã deploy:
+  trang chính 200, thẻ không còn placeholder, `og:url` trỏ về đúng trang đang
+  kiểm, và ảnh og tải được đúng `content-type: image/*`. Unit test không biết giá
+  trị của biến có còn sống hay không; chỉ gọi thật mới biết.
 
 ### Deploy: MỘT Worker duy nhất
 

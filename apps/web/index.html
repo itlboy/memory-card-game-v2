@@ -15,11 +15,21 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Lật Thẻ">
 
-  <!-- Thẻ chia sẻ. og:image và og:url PHẢI là URL TUYỆT ĐỐI — con bọ đọc thẻ
-       không phải trình duyệt, nó không có ngữ cảnh trang để ghép đường dẫn
-       tương đối. Nhưng KHÔNG viết cứng tên miền: đã dính lỗi thật — đổi tên miền
-       sang thebai.hello314.com mà quên sửa ba dòng này, nên mọi link chia sẻ trỏ
-       về tên miền cũ đã chết (530). Lấy từ VITE_SITE_URL (.env), có test chặn.
+  <!--
+    Thẻ chia sẻ. og:image và og:url PHẢI là URL TUYỆT ĐỐI — con bọ đọc thẻ không
+    phải trình duyệt, nó không có ngữ cảnh trang để ghép đường dẫn tương đối.
+
+    HAI biến, KHÔNG viết cứng tên miền (đã dính lỗi thật: đổi sang
+    thebai.hello314.com mà quên sửa, mọi link chia sẻ trỏ về tên miền cũ đã chết):
+
+      VITE_SITE_URL  — trang người chơi thật sự vào. `og:url` BUỘC dùng cái này:
+                       nó là URL chuẩn tắc, chia sẻ ra là người ta bấm vào đó.
+                       Trỏ nó sang địa chỉ khác là đẩy người chơi sang origin
+                       khác, mất sạch điểm và kỷ lục đang lưu trong localStorage.
+      VITE_ASSET_URL — địa chỉ ỔN ĐỊNH chỉ để tải ẢNH og (ví dụ đường
+                       *.workers.dev, không bao giờ đổi). Đổi tên miền thì thẻ
+                       ảnh vẫn sống. Để trống thì dùng luôn VITE_SITE_URL.
+  -->
        đường dẫn tương đối; đổi domain thì phải sửa cả ba dòng dưới. -->
   <meta name="description" content="Game thẻ bài rèn luyện trí nhớ, nhiều chế độ hấp dẫn để chơi một mình hoặc với bạn bè. Tạo phòng online bằng mã 6 số.">
   <meta property="og:type" content="website">
@@ -28,14 +38,14 @@
   <meta property="og:url" content="%VITE_SITE_URL%/">
   <meta property="og:title" content="Lật Thẻ">
   <meta property="og:description" content="Game thẻ bài rèn luyện trí nhớ, nhiều chế độ hấp dẫn để chơi một mình hoặc với bạn bè.">
-  <meta property="og:image" content="%VITE_SITE_URL%/og.jpg">
+  <meta property="og:image" content="%VITE_ASSET_URL%/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Lật Thẻ — game thẻ bài trí nhớ: hai lá bài và ba thẻ đang lật">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Lật Thẻ">
   <meta name="twitter:description" content="Game thẻ bài rèn luyện trí nhớ, nhiều chế độ hấp dẫn để chơi một mình hoặc với bạn bè.">
-  <meta name="twitter:image" content="%VITE_SITE_URL%/og.jpg">
+  <meta name="twitter:image" content="%VITE_ASSET_URL%/og.jpg">
 </head>
 <body>
   <div id="app"></div>
