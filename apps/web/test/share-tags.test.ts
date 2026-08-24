@@ -61,3 +61,19 @@ describe('nội dung ảnh og không được chứa con số', () => {
     expect(co, 'ảnh chia sẻ nói "nhiều …", không nói con số').toEqual([]);
   });
 });
+
+describe('index.html không rò chữ ra trang', () => {
+  it('comment cân bằng và không có chữ nào lọt ra ngoài thẻ trong <head>', () => {
+    // Lỗi thật: sửa chú thích tạo ra comment LỒNG NHAU, `-->` đóng sớm nên phần
+    // còn lại hiện thành chữ giữa trang. Trang vẫn chạy nên không ai nghi.
+    expect(html.split('<!--').length, 'số <!-- phải bằng số -->')
+      .toBe(html.split('-->').length);
+
+    const head = html.slice(html.indexOf('<head>') + 6, html.indexOf('</head>'));
+    const khongComment = head.replace(/<!--[\s\S]*?-->/g, '');
+    const roiRa = khongComment.split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0 && !l.startsWith('<'));
+    expect(roiRa, 'chữ lọt ra ngoài thẻ sẽ hiện lên trang').toEqual([]);
+  });
+});

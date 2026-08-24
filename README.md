@@ -515,6 +515,11 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 ### Sửa file bằng script
 
+- **Sửa chú thích HTML thì đếm lại `<!--` và `-->`.** Chèn chú thích mới chồng lên
+  chú thích cũ tạo ra comment LỒNG NHAU: `-->` đóng sớm, phần còn lại hiện thành
+  chữ giữa trang — mà trang vẫn chạy nên không ai nghi. Đã xảy ra thật ở
+  `index.html`. Có test chặn (số `<!--` phải bằng số `-->`, và trong `<head>`
+  không dòng nào ngoài chú thích mà không bắt đầu bằng `<`).
 - **Xoá một rule CSS thì đếm lại dấu `}`.** Xoá rule cuối trong khối
   `@media` để lại dấu đóng thừa → cả file style 500, trang trắng. Kiểm nhanh:
   `curl -s "http://localhost:3001/src/components/X.vue?vue&type=style&index=0&scoped=true&lang.css" | head -2`
