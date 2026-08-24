@@ -38,13 +38,26 @@ describe('thẻ chia sẻ', () => {
     // Trỏ og:url sang địa chỉ khác là đẩy người bấm link sang origin khác — mất
     // sạch điểm và kỷ lục đang lưu trong localStorage của origin cũ.
     expect(html).toContain('<meta property="og:url" content="%VITE_SITE_URL%/">');
-    expect(html).toContain('<meta property="og:image" content="%VITE_ASSET_URL%/og.jpg">');
-    expect(html).toContain('<meta name="twitter:image" content="%VITE_ASSET_URL%/og.jpg">');
+    expect(html).toMatch(/og:image" content="%VITE_ASSET_URL%\/og\.jpg\?v=\d+"/);
+    expect(html).toMatch(/twitter:image" content="%VITE_ASSET_URL%\/og\.jpg\?v=\d+"/);
   });
 
   it('ảnh og có thật trong public/, đúng cỡ đã khai 1200×630', () => {
     expect(existsSync(resolve(process.cwd(), 'public/og.jpg')), 'thiếu public/og.jpg').toBe(true);
+    // Nguồn dựng ảnh phải còn trong repo: ảnh nhị phân không xem được lịch sử
+    // thay đổi, còn HTML thì sửa chữ là xong.
+    expect(existsSync(resolve(process.cwd(), '../../tools/og/og.html')), 'thiếu nguồn dựng ảnh og').toBe(true);
     expect(html).toContain('<meta property="og:image:width" content="1200">');
     expect(html).toContain('<meta property="og:image:height" content="630">');
+  });
+});
+
+describe('nội dung ảnh og không được chứa con số', () => {
+  it('nguồn dựng ảnh không ghi số cấp/mức/chế độ — số đổi mà ảnh bị cache rất lâu', () => {
+    const src = readFileSync(resolve(process.cwd(), '../../tools/og/og.html'), 'utf8');
+    // Chỉ soi phần <body>: phần chú thích ở đầu file có nhắc số để giải thích lý do
+    const body = src.slice(src.indexOf('<body>'));
+    const co = [...body.matchAll(/\d+\s*(cấp|mức|chế độ|số|thẻ|người)/g)].map((m) => m[0]);
+    expect(co, 'ảnh chia sẻ nói "nhiều …", không nói con số').toEqual([]);
   });
 });

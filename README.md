@@ -354,6 +354,12 @@ origin — sang origin mới là mất sạch, không cách nào chuyển.
 nên mọi link chia sẻ trỏ về tên miền cũ đã chết (530 / error 1033) — mất ảnh, sai
 URL chuẩn tắc, **không có gì báo vì trang vẫn chạy tốt**.
 
+Ảnh og dựng từ **HTML** (`tools/og/og.html`) rồi chụp bằng `node tools/og/render.mjs`
+— sửa nội dung là sửa chữ, và xem được lịch sử thay đổi trong git (ảnh nhị phân
+thì không). **Không ghi con số nào** trong ảnh (50 cấp, 4 mức bot…): số đổi liên
+tục mà thẻ chia sẻ bị Facebook/Zalo cache rất lâu, ảnh sẽ nói sai hàng tháng mà
+không ai biết. Đổi ảnh thì nâng `?v=` trong `og:image` để chúng lấy bản mới.
+
 Hai lớp chặn:
 - `test/share-tags.test.ts` — không được viết cứng tên miền, hai biến phải là
   https tuyệt đối, `og.jpg` phải có thật.
