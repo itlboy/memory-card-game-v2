@@ -42,24 +42,11 @@ const matchedSet = computed(() => new Set(
 const locked = computed(() => !o.myTurn.value || o.view.value?.status !== 'playing');
 
 /*
- * Xếp tầng cho dải thông báo: thông báo chuyển lượt và emoji người kia gửi có
- * thể tới CÙNG LÚC, mà cả hai neo một chỗ nên cái sau đè cái trước và mất một
- * thông tin.
- *
- * Luật: cái nào tới SAU thì nằm CAO HƠN (như tin nhắn mới đẩy tin cũ lên). Và
- * khi chỉ có một thứ hiện thì nó luôn về đúng tầng dưới — không để một thông báo
- * lẻ treo lơ lửng ở tầng trên.
+ * Emoji chat KHÔNG còn nằm trong dải thông báo (đã teleport ra body, nổi trên
+ * header), nên nó không thể đè thông báo chuyển lượt nữa — bỏ luôn phần xếp tầng
+ * trước đây phải làm cho hai thứ đó. Màn chơi đơn vẫn cần xếp tầng vì ở đó hai
+ * thông báo cùng nằm trong dải (xem GameScreen.vue).
  */
-const newest = ref<'emoji' | 'banner'>('banner');
-watch(() => o.emojiBlast.value?.key, (k) => { if (k !== undefined) newest.value = 'emoji'; });
-watch(
-  () => o.lifeGain.value?.key ?? o.turnBanner.value?.key,
-  (k) => { if (k !== undefined) newest.value = 'banner'; }
-);
-const bothShown = computed(() =>
-  !!o.emojiBlast.value && !!(o.lifeGain.value ?? o.turnBanner.value));
-/** Chỉ nâng khi CẢ HAI đang hiện, và chỉ nâng cái tới sau. */
-const raised = (who: 'emoji' | 'banner'): boolean => bothShown.value && newest.value === who;
 
 /** Vị trí "+điểm": tâm ô thẻ vừa ghép, tính theo % của lưới. */
 const gainStyle = computed(() => {
@@ -154,20 +141,28 @@ watch(() => o.view.value?.summary, (s) => {
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
     <div class="notice-bar">
-      <!-- Emoji người kia gửi -->
-      <Transition name="blast">
-        <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" :class="{ raised: raised('emoji') }" aria-hidden="true">
-          <span class="big">{{ o.emojiBlast.value.emoji }}</span>
-          <span class="from">{{ o.emojiBlast.value.name }}</span>
-        </div>
-      </Transition>
+      <!--
+        Emoji người kia gửi: TELEPORT ra <body> và dùng position: fixed.
+        Vì sao không để trong dải thông báo: `main` có `overflow: auto` (bản đồ
+        cấp cần cuộn), nên mọi thứ nhô lên trên mép `main` đều BỊ CẮT — nhìn ra
+        thành "emoji nằm dưới header". Không phải chuyện z-index, mà là bị cắt.
+        Ra ngoài body thì nó nổi trên tất cả, kể cả header.
+      -->
+      <Teleport to="body">
+        <Transition name="blast">
+          <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
+            <span class="big">{{ o.emojiBlast.value.emoji }}</span>
+            <span class="from">{{ o.emojiBlast.value.name }}</span>
+          </div>
+        </Transition>
+      </Teleport>
 
       <Transition name="banner">
-        <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" :class="{ raised: raised('banner') }" role="status" aria-live="polite">
+        <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
           <span class="who">❤️ <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
           <small>Ghép đúng hai lần liền khi đang nguy</small>
         </div>
-        <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" :class="{ raised: raised('banner') }" role="status" aria-live="polite">
+        <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
           <small v-if="o.turnBanner.value.frozen">❄️ {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
           <span class="who">
             <span class="avatar">{{ o.turnBanner.value.avatar || '🎮' }}</span>
@@ -391,19 +386,21 @@ watch(() => o.view.value?.summary, (s) => {
    một câu nói bay đi. 1,9s đúng bằng lúc composable xoá emojiBlast nên nó tan
    hết rồi mới rời DOM, không bị cắt ngang. */
 .emoji-blast {
+  /* fixed + z-index cao: nổi trên MỌI thứ kể cả header. Neo theo mép trên màn
+     hình vì nó đã ra khỏi cây DOM của màn chơi. */
+  position: fixed; top: 10px; left: 50%; z-index: 60;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   pointer-events: none;
-  animation: blast-float 1.9s ease-out forwards;
+  animation: blast-float 1.15s ease-out forwards;
 }
+/* Trôi lên NHANH và dứt khoát: nó là một câu nói bay đi, không phải thứ cần đọc
+   lâu — tên người gửi ở ngay dưới đã nói đủ. */
 @keyframes blast-float {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(12px); }
-  12%  { opacity: 1; transform: translateX(-50%) translateY(0); }
-  70%  { opacity: 1; transform: translateX(-50%) translateY(-14px); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-42px); }
+  0%   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.9); }
+  14%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  55%  { opacity: 1; transform: translateX(-50%) translateY(-26px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-72px); }
 }
-/* Tầng TRÊN, dành cho thông báo tới sau khi cả hai đang hiện. Nó lấn lên vùng
-   HUD — chỗ đó đọc lúc nào cũng được, còn thông báo chỉ hiện một nhịp. */
-.notice-bar > .raised { bottom: 58px; }
 /* Gấp đôi cỡ cũ (30–44px → 60–88px): emoji người kia gửi là lời "nói", phải đọc
    được từ xa. Nó nằm trong .notice-bar (cao 0px) nên phóng to KHÔNG đẩy bàn thẻ
    xuống — chỉ đè lên HUD một nhịp rồi tan. Nút BẤM để gửi giữ nguyên cỡ. */

@@ -197,13 +197,16 @@ watch(nextLevel, scrollToActive);
   font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 38cqw, 21px);
   line-height: 1.05;
 }
-.node.cleared b { margin-top: 6px; }   /* chừa hàng sao ở trên */
+.node.cleared b { margin-top: 13px; }   /* chừa hàng sao ở trên */
 .node small { color: var(--muted); font-size: clamp(8px, 22cqw, 11px); white-space: nowrap; }
-/* Sao/dấu tick ở GÓC TRÊN, không chiếm dòng: dòng đó là của số thẻ. */
+/* Sao/dấu tick ở GÓC TRÊN, không chiếm dòng: dòng đó là của số thẻ. Cách mép
+   trên một khoảng thở — dán sát mép trông như bị tràn ra ngoài ô. */
 .node .stars {
-  position: absolute; top: 1px; left: 0; right: 0;
+  position: absolute; top: 6px; left: 0; right: 0;
   font-size: clamp(7px, 19cqw, 10px); color: var(--gold); letter-spacing: 0;
-  line-height: 1; white-space: nowrap; overflow: hidden;
+  /* line-height 1 cắt mất phần dưới của ngôi sao (đo được scrollHeight vượt
+     clientHeight); overflow: hidden thì cắt im lặng, không ai thấy. */
+  line-height: 1.2; white-space: nowrap;
 }
 
 /* Đã qua: nền xanh nhạt + viền xanh, đọc được ngay là "xong rồi" */

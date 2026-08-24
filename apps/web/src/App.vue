@@ -388,16 +388,20 @@ watch(session.summary, (s) => {
 });
 
 /**
- * Có nút "Cấp tiếp theo" hay không. Phải hỏi CẢ store, không chỉ so số cấp:
- * thua bot thì cấp sau KHÔNG được mở (xem watcher kết quả), mà nút vẫn hiện thì
- * bấm vào là nhảy vào cấp chưa mở — bản đồ khoá nó nhưng nút thì không biết.
- * Hiện "Chơi lại" thay thế, đúng thứ người chơi cần lúc vừa thua.
+ * Có nút "Cấp tiếp theo" bấm được hay không.
+ *
+ * Chơi MỘT MÌNH thì phải hỏi store: thua thì cấp sau chưa mở, nút vẫn bấm được
+ * là nhảy vào cấp bị khoá — bản đồ khoá nó nhưng nút thì không biết.
+ *
+ * Các nhánh khác (nhiều người cùng máy, đấu máy) mở sẵn hết cấp nên luôn đi tiếp
+ * được, thắng hay thua cũng vậy — cùng luật với bản đồ cấp ở MenuScreen.
  */
 const hasNext = computed(() => {
   void progressRev.value;                   // đếm để computed chạy lại sau mỗi ván
   const id = levelId.value;
   if (!id || id >= CAMPAIGN_LEVELS) return false;
-  return store.unlockedLevel() > id;
+  const soloLadder = playerCount.value < 2 && !botLevel.value;
+  return soloLadder ? store.unlockedLevel() > id : true;
 });
 </script>
 

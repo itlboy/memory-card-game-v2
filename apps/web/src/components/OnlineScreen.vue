@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DEFAULT_ROOM_CONFIG, levelSpec } from '@mm/engine';
+import { CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, levelSpec } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Settings2, Share2, Sparkles, Timer
 } from 'lucide-vue-next';
@@ -316,9 +316,12 @@ function openCfgWizard(): void {
     </div>
 
     <div v-else-if="wizard === 'level'" class="step-body">
+      <!-- MỞ SẴN HẾT cấp độ: thang cấp chỉ có nghĩa khi chơi một mình. Hai người
+           trong phòng thì mỗi máy mở tới một cấp khác nhau, khoá lại thành ra
+           tranh cãi chọn bàn nào. -->
       <LevelMap
         :progress="store.progress(cfg.mode)"
-        :unlocked="store.unlockedLevel()"
+        :unlocked="CAMPAIGN_LEVELS"
         :symbol-count="allSymbols"
         @play="wizPickLevel"
       />

@@ -97,8 +97,41 @@ export function useOnlineRoom() {
   const pingLost = ref(0);
   /** Lý do đang có sự cố đường truyền, '' là không có. Hiện lên UI. */
   const netTrouble = ref('');
-  /** Hẹn giờ chờ server xác nhận nước vừa bấm. */
-  let ackTimer: ReturnType<typeof setTimeout> | undefined;
+  /**
+   * Hẹn giờ chờ xác nhận, MỘT CÁI CHO MỖI Ô.
+   *
+   * Dùng chung một biến là bug thật đã gặp: bấm dồn nhiều ô thì mỗi lần bấm lại
+   * `clearTimeout` cái của ô trước, nên chỉ ô cuối được giải phóng. Các ô còn lại
+   * mắc trong `pending` vĩnh viễn, mà ô pending được vẽ xoay 90° — nhìn từ cạnh
+   * nên coi như THẺ BỊ MẤT trên bàn.
+   */
+  const ackTimers = new Map<number, ReturnType<typeof setTimeout>>();
+  /**
+   * ĐẾM số view server đã gửi. Dùng để phân biệt hai ca rất khác nhau: server im
+   * hẳn (phải vào lại) và server có trả lời nhưng BỎ QUA nước bấm (chỉ cần thả ô
+   * ra, vào lại là vô ích và còn làm giật màn hình).
+   *
+   * Đếm chứ không so mốc thời gian: dưới đồng hồ giả của test, `Date.now()` đứng
+   * yên nên hai mốc bằng nhau và phép so sai — đã đỏ đúng vì chuyện đó.
+   */
+  let viewCount = 0;
+
+  function clearAck(index?: number): void {
+    if (index === undefined) {
+      for (const t of ackTimers.values()) clearTimeout(t);
+      ackTimers.clear();
+      return;
+    }
+    const t = ackTimers.get(index);
+    if (t) { clearTimeout(t); ackTimers.delete(index); }
+  }
+
+  /** Bỏ một ô khỏi `pending` và huỷ hẹn giờ của nó. */
+  function unpend(index: number): void {
+    clearAck(index);
+    if (!pending.value.has(index)) return;
+    pending.value = new Set([...pending.value].filter((i) => i !== index));
+  }
   let pingSentAt = 0;
   let pingTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -158,6 +191,7 @@ export function useOnlineRoom() {
     const still = new Set(
       [...pending.value].filter((i) => v.cards[i]?.state === 'down')
     );
+    for (const i of pending.value) if (!still.has(i)) clearAck(i);
     if (still.size !== pending.value.size) pending.value = still;
   }
   /** Hai ô vừa bị thẻ tráo đổi hoán chỗ — BoardGrid dùng để chạy hiệu ứng. */
@@ -414,7 +448,9 @@ export function useOnlineRoom() {
           key: (emojiBlast.value?.key ?? 0) + 1
         };
         clearTimeout(blastTimer);
-        blastTimer = setTimeout(() => { emojiBlast.value = null; }, 1900);
+        // Bằng đúng thời lượng animation blast-float trong OnlineGame.vue: dài
+        // hơn thì emoji đã tan mà DOM còn treo, ngắn hơn thì bị cắt giữa nhịp.
+        blastTimer = setTimeout(() => { emojiBlast.value = null; }, 1150);
         sfx.select();
         break;
       }
@@ -438,8 +474,9 @@ export function useOnlineRoom() {
 
   function syncTurnClock(v: GameView): void {
     turnDeadline.value = v.turnTimeLeft === null ? 0 : Date.now() + v.turnTimeLeft * 1000;
-    // View về = server còn nghe: huỷ canh xác nhận và xoá cờ sự cố
-    clearTimeout(ackTimer);
+    // View về = server còn nghe: xoá cờ sự cố và ghi mốc. Hẹn giờ của từng ô do
+    // settlePending() dọn theo trạng thái thật.
+    viewCount++;
     netTrouble.value = '';
     elapsedMark.value = { sec: v.elapsed, at: Date.now() };
   }
@@ -576,7 +613,7 @@ export function useOnlineRoom() {
 
   function leaveSocket(): void {
     clearTimeout(reconnectTimer);
-    clearTimeout(ackTimer);
+    clearAck();
     stopHeartbeat();
     if (ws) {
       intentionalClose = true;
@@ -687,27 +724,37 @@ export function useOnlineRoom() {
       // số. Đánh dấu "đang chờ" để UI lật thẻ tới 90 độ (cạnh thẻ, CHƯA thấy
       // mặt nên không bịa thông tin — NF-04 vẫn nguyên), rồi khi view về mới
       // lật nốt sang mặt thật.
+      // Chặn ngay ở client những cú bấm server CHẮC CHẮN bỏ qua: không phải lượt
+      // mình, hoặc đã có 2 ô đang chờ/đang mở. Gửi làm gì cũng bị bỏ, mà ô đó lại
+      // mắc trong `pending` và bị vẽ xoay 90° — trông như thẻ biến mất. Đây đúng
+      // là điều xảy ra khi bấm spam.
+      const upNow = (view.value?.cards ?? []).filter((c) => c.state === 'up').length;
+      if (!myTurn.value || upNow + pending.value.size >= 2 || pending.value.has(index)) return;
+
       pending.value = new Set(pending.value).add(index);
       sfx.flip();
       if (!send({ t: 'flip', index })) {
         // Socket không mở: nước bấm này ĐÃ MẤT. Nói ra và vào lại ngay, đừng để
         // người chơi bấm vào chỗ không ai nghe cho tới khi hết lượt.
-        pending.value = new Set([...pending.value].filter((i) => i !== index));
+        unpend(index);
         reconnectNow('Mất kết nối — đang vào lại…');
         return;
       }
       netTrouble.value = '';
-      // Canh xác nhận: server nhận được thì view mới về trong vài chục ms. Quá
-      // FLIP_ACK_MS mà im lặng thì hoặc tin bị rơi, hoặc socket chết mà
-      // readyState vẫn báo OPEN (iOS treo kết nối đúng kiểu này) — vào lại để
-      // lấy trạng thái thật, KHÔNG gửi lại nước cũ (gửi lại có thể thành lật
-      // thêm một thẻ nếu nước đầu đã tới).
-      clearTimeout(ackTimer);
-      ackTimer = setTimeout(() => {
+      // Canh xác nhận RIÊNG cho ô này: server nhận được thì view về trong vài
+      // chục ms. Quá FLIP_ACK_MS mà im lặng thì hoặc tin bị rơi, hoặc socket
+      // chết mà readyState vẫn báo OPEN (iOS treo kết nối đúng kiểu này) — thả ô
+      // ra rồi vào lại lấy trạng thái thật, KHÔNG gửi lại nước cũ (nước đầu có
+      // thể đã tới, gửi lại thành lật thêm một thẻ).
+      clearAck(index);
+      const viewsLucBam = viewCount;
+      ackTimers.set(index, setTimeout(() => {
+        ackTimers.delete(index);
         if (!pending.value.has(index)) return;
-        pending.value = new Set([...pending.value].filter((i) => i !== index));
-        reconnectNow('Mạng chậm — đang đồng bộ lại…');
-      }, FLIP_ACK_MS);
+        const serverConNoi = viewCount > viewsLucBam;
+        unpend(index);          // thả ô ra trước: ô treo ở 90 độ trông như MẤT thẻ
+        if (!serverConNoi) reconnectNow('Mạng chậm — đang đồng bộ lại…');
+      }, FLIP_ACK_MS));
     },
     pending,
     sendEmoji,

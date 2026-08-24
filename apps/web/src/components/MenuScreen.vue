@@ -201,7 +201,18 @@ const themeTooSmall = computed(() => {
 });
 /** Sao/đã qua tính riêng từng chế độ; mở khoá thì dùng chung (xem storage). */
 const progress = computed(() => store.progress(props.mode));
-const unlockedLevel = computed(() => store.unlockedLevel());
+
+/**
+ * CHỈ CHƠI MỘT MÌNH mới đi theo thang cấp. Nhiều người cùng máy, đấu máy và
+ * online thì mở sẵn hết.
+ *
+ * Vì sao: thang cấp là để dẫn người mới đi từ dễ tới khó, chuyện đó chỉ có nghĩa
+ * khi chơi một mình. Bạn bè ngồi cạnh nhau hay hai người trong phòng online thì
+ * họ muốn chọn bàn to nhỏ theo ý — bắt họ "cày" mở khoá là gò bó vô ích, mà máy
+ * của ai mở tới đâu lại khác nhau nên còn thành tranh cãi chọn bàn nào.
+ */
+const unlockedLevel = computed(() =>
+  isMulti.value || props.botLevel ? CAMPAIGN_LEVELS : store.unlockedLevel());
 
 /** Bật/tắt một theme — luôn giữ ít nhất một theme được chọn. */
 function toggleTheme(id: string): void {

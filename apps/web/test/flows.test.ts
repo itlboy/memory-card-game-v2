@@ -964,12 +964,13 @@ describe('mở khoá cấp sau', () => {
     expect(champ?.id, 'bot phải dẫn đầu để phép kiểm có nghĩa').toBe('bot');
     expect(localStorage.getItem('mm.v2') ?? '', 'thua bot thì KHÔNG được mở cấp')
       .not.toContain('"classic:1"');
-    // Nút "Cấp tiếp theo" vẫn ở đúng chỗ nhưng bị TẮT — biến mất thì hai nút còn
-    // lại nhảy chỗ mỗi ván. Điều phải đúng là không bấm được vào cấp chưa mở.
+    // Nút "Cấp tiếp theo" vẫn bấm được: đấu bot MỞ SẴN hết cấp (thang cấp chỉ
+    // dành cho chơi một mình). Điều phải đúng là THANG CẤP của chơi đơn không bị
+    // ghi thêm — tức không thể để bot phá bàn rồi mở cấp cho chế độ một mình.
     const next = wrapper.findAll('[role="dialog"] button')
       .find((b) => b.text().includes('Cấp tiếp theo'));
-    expect(next, 'nút cấp sau phải vẫn hiện để bố cục đứng yên').toBeTruthy();
-    expect(next!.attributes('disabled'), 'nhưng phải bị tắt').toBeDefined();
+    expect(next, 'nút cấp sau phải vẫn hiện').toBeTruthy();
+    expect(next!.attributes('disabled'), 'đấu bot thì đi tiếp được, thắng hay thua').toBeUndefined();
     expect(wrapper.text()).toContain('Chơi lại');
   });
 
@@ -979,7 +980,7 @@ describe('mở khoá cấp sau', () => {
     await click('Đấu với máy');
     await click('Bot Pro');
     await click('Cổ điển');
-    expect(openNodes(), 'lúc đầu chỉ mở cấp 1').toBe(1);
+    expect(openNodes(), 'đấu bot thì mở sẵn hết cấp').toBeGreaterThan(1);
     await click('Cấp 1,');
     await click('Bắt đầu');
     await passCountdown();
@@ -991,13 +992,14 @@ describe('mở khoá cấp sau', () => {
     expect(localStorage.getItem('mm.v2')).toContain('"classic:1"');
     expect(wrapper.text(), 'thắng thì phải có nút sang cấp sau').toContain('Cấp tiếp theo');
 
-    // Về trang chủ rồi vào lại bước cấp độ: cấp 2 phải mở
+    // Và thang cấp của CHƠI MỘT MÌNH cũng được mở theo (thắng bot là bằng chứng
+    // đã chơi được cấp này)
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
     await flush();
-    await click('Đấu với máy');
-    await click('Bot Pro');
+    await click('Chơi một mình');
     await click('Cổ điển');
-    expect(openNodes(), 'thắng cấp 1 thì cấp 2 phải mở').toBeGreaterThanOrEqual(2);
+    expect(openNodes(), 'thắng cấp 1 với bot thì chơi đơn cũng mở cấp 2')
+      .toBeGreaterThanOrEqual(2);
   });
 });
 
@@ -1242,10 +1244,65 @@ describe('hai thông báo cùng lúc thì không đè nhau', () => {
     expect(toast.classes(), 'một mình thì KHÔNG nâng tầng').not.toContain('raised');
   });
 
-  it('quy tắc tầng viết đúng một chỗ trong CSS, dùng cho cả hai loại thông báo', () => {
-    for (const file of ['GameScreen.vue', 'OnlineGame.vue']) {
-      const css = readFileSync(resolve(process.cwd(), `src/components/${file}`), 'utf8');
-      expect(css, `${file} phải có tầng trên cho .raised`).toContain('.notice-bar > .raised');
-    }
+  it('màn chơi đơn có tầng trên cho thông báo tới trước', () => {
+    // Chỉ màn chơi đơn cần: bên online, emoji đã teleport ra body nên nó không
+    // nằm chung dải với thông báo chuyển lượt nữa.
+    const css = readFileSync(resolve(process.cwd(), 'src/components/GameScreen.vue'), 'utf8');
+    expect(css).toContain('.notice-bar > .raised');
+  });
+});
+
+describe('chỉ CHƠI MỘT MÌNH mới khoá cấp', () => {
+  const openNodes = (): number => wrapper.findAll('.node:not(.locked)').length;
+  const allNodes = (): number => wrapper.findAll('.node').length;
+
+  it('chơi một mình: đi theo thang cấp, ban đầu chỉ mở cấp 1', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await pickMode('Cổ điển');
+    expect(openNodes()).toBe(1);
+  });
+
+  it('nhiều người cùng máy: mở sẵn HẾT — bắt bạn bè cày mở khoá là gò bó', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await click('Chơi nhiều người');
+    await click('2 người chơi');
+    await click('Tiếp tục');
+    await click('Cổ điển');
+    expect(openNodes(), 'mọi cấp phải mở').toBe(allNodes());
+  });
+
+  it('đấu máy: mở sẵn HẾT', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await click('Đấu với máy');
+    await click('Bot Pro');
+    await click('Cổ điển');
+    expect(openNodes()).toBe(allNodes());
+  });
+});
+
+describe('phiên bản ở cuối bảng Luật chơi', () => {
+  it('hiện số phiên bản, ngày giờ build và tuổi bản build', async () => {
+    await mountApp();
+    await wrapper.find('[aria-label="Luật chơi"]').trigger('click');
+    await flush();
+    const box = wrapper.find('.build');
+    expect(box.exists(), 'phải có chân trang phiên bản').toBe(true);
+    expect(box.text()).toMatch(/^v\d+\.\d+\.\d+/);        // v1.1.0
+    expect(box.text()).toMatch(/\d{2}\/\d{2}\/\d{4}/);     // 25/08/2026
+    expect(box.text()).toMatch(/(trước|vừa xong)/);        // tuổi bản build
+  });
+
+  it('tuổi bản build đếm theo ngày/giờ/phút/giây và bỏ đơn vị bằng 0', async () => {
+    await mountApp();
+    await wrapper.find('[aria-label="Luật chơi"]').trigger('click');
+    await flush();
+    const txt = wrapper.find('.build').text();
+    // Mốc build trong test là 01/01/2026 nên tuổi phải tính bằng ngày
+    expect(txt).toMatch(/\d+ ngày/);
+    // Và không được hiện "0 ngày" / "0 giờ"
+    expect(txt).not.toMatch(/\b0 (ngày|giờ|phút)/);
   });
 });

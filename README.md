@@ -135,7 +135,7 @@ server.js            Web server tĩnh cho bản build production
 |---|---|
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
-| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Ô cấp LUÔN ghi số thẻ (mọi trạng thái: đã qua, đang tới, khoá) — sao và ổ khoá là dấu ở góc, không giành chỗ của nó. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
+| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. **CHỈ chơi một mình mới bị khoá** — nhiều người cùng máy, đấu bot và online mở sẵn hết (thang cấp là để dẫn người mới, chuyện đó chỉ có nghĩa khi chơi một mình; hai người trong phòng mà mỗi máy mở tới một cấp khác nhau thì thành tranh cãi chọn bàn nào). Ô cấp LUÔN ghi số thẻ (mọi trạng thái: đã qua, đang tới, khoá) — sao và ổ khoá là dấu ở góc, không giành chỗ của nó. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
 | Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Bot siêu đẳng rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
@@ -398,6 +398,16 @@ Ba điều dễ làm hỏng:
 Quick match (ON-02), chế độ Race (ON-06), tài khoản, bảng xếp hạng toàn cầu,
 PWA offline, i18n.
 
+## Phiên bản đang chạy
+
+Cuối bảng **Luật chơi** (nút `?`) hiện `v<phiên bản> · build <ngày giờ VN>` kèm
+tuổi bản build đếm từng giây. Hai biến do Vite nhúng lúc build (`define` trong
+vite.config.ts): `__BUILD_AT__` đã định dạng sẵn theo giờ Việt Nam — KHÔNG gửi mốc
+ISO cho client tự định dạng, vì máy người chơi có thể lệch múi giờ và lúc đó con
+số không còn là "ngày tôi build"; `__BUILD_ISO__` chỉ dùng để tính tuổi. Nhớ khai
+cùng hai biến đó trong vitest.config.ts, thiếu là test chạm vào chúng thành
+ReferenceError.
+
 ## Bẫy đã sập — đọc trước khi sửa
 
 Mỗi dòng ở đây là một lỗi ĐÃ xảy ra thật, không phải lo xa. Kèm cách phát hiện,
@@ -444,6 +454,15 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 - **Bot chen vào giữa hai cú bấm của một cặp** làm bàn khoá và nước sau bị bỏ →
   ghép hết bàn mà được 0 cặp. Test nào kiểm chuyện khác thì tắt bot đi
   (`session.setBot(null)`) và chờ hết khoá trước.
+- **`pending` (ô đã bấm, chờ server) được vẽ XOAY 90° — ô mắc lại trong đó trông
+  như THẺ BỊ MẤT trên bàn.** Đã gặp thật khi bấm spam: hẹn giờ dọn dùng CHUNG một
+  biến nên mỗi cú bấm mới `clearTimeout` cái của ô trước, chỉ ô cuối được giải
+  phóng. Giờ mỗi ô một hẹn giờ riêng (`ackTimers`), cộng thêm chặn ngay ở client
+  những cú bấm server chắc chắn bỏ qua (không phải lượt mình, đã có 2 ô đang mở).
+- **Phân biệt "server im" với "server bỏ qua nước bấm".** Im hẳn thì phải vào lại;
+  bỏ qua thì chỉ cần thả ô ra, vào lại là vô ích và còn làm giật màn hình. Đếm số
+  view đã nhận (`viewCount`), ĐỪNG so mốc `Date.now()`: dưới đồng hồ giả của test
+  nó đứng yên nên phép so sai — đã đỏ đúng vì chuyện đó.
 - **`send()` của WebSocket phải TRẢ VỀ có gửi được hay không.** Bỏ tin âm thầm
   khi socket không mở là lỗi đã gặp: người chơi bấm thẻ, tin rơi, và nhịp tim
   phải 3 nhịp × 4 giây = 12 giây mới kết luận socket chết — trong khi một lượt
@@ -515,6 +534,10 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 ### Sửa file bằng script
 
+- **`main` có `overflow: auto`** (bản đồ cấp cần cuộn), nên mọi thứ nhô lên trên
+  mép `main` đều BỊ CẮT — nhìn ra thành "nằm dưới header", và người ta sẽ đi sửa
+  z-index vô ích. Muốn nổi trên header thì phải `<Teleport to="body">` + `fixed`
+  (xem emoji chat trong OnlineGame.vue).
 - **Sửa chú thích HTML thì đếm lại `<!--` và `-->`.** Chèn chú thích mới chồng lên
   chú thích cũ tạo ra comment LỒNG NHAU: `-->` đóng sớm, phần còn lại hiện thành
   chữ giữa trang — mà trang vẫn chạy nên không ai nghi. Đã xảy ra thật ở

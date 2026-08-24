@@ -297,8 +297,8 @@ export class RoomDO extends DurableObject<Env> {
           });
           return;
         }
-        // Dựng ván (thứ tự đi đã bốc ngẫu nhiên) nhưng CHƯA chạy —
-        // đếm ngược 5 giây để người đi đầu không bị động
+        // Dựng ván (thứ tự đi đã bốc ngẫu nhiên) nhưng CHƯA chạy — đếm ngược
+        // (ROOM_LIMITS.countdownMs) để người đi đầu không bị động
         this.prepareGame();
         this.room.status = 'countdown';
         this.room.countdownEnd = Date.now() + ROOM_LIMITS.countdownMs;
@@ -307,7 +307,12 @@ export class RoomDO extends DurableObject<Env> {
         this.broadcast({ t: 'room', room: this.roomInfo() });
         this.broadcast({ t: 'state', view: this.view() });
         this.broadcast({
-          t: 'countdown', endsInMs: 5000, firstId: first.id, firstName: first.name
+          // PHẢI suy từ countdownEnd, đừng viết số: viết cứng 5000 trong khi hạn
+          // thật là 3 giây làm client hiện "5" rồi nhảy thẳng xuống "3" — đúng
+          // lỗi đã bị phản ánh, và không test nào bắt được vì hai chỗ đọc hai số.
+          t: 'countdown',
+          endsInMs: this.room.countdownEnd - Date.now(),
+          firstId: first.id, firstName: first.name
         });
         await this.ctx.storage.setAlarm(this.room.countdownEnd);
         return;

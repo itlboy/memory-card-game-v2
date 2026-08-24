@@ -118,7 +118,9 @@ const bothShown = computed(() => {
   const toast = s.revealingAll.value || !!s.lifeGain.value || !!s.lastPower.value;
   return toast && !!s.turnBanner.value;
 });
-const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.value === who;
+/** Nâng cái tới TRƯỚC lên tầng trên; cái tới SAU ở lại tầng dưới sát bàn thẻ,
+ *  đúng chỗ mắt đang nhìn. Chỉ nâng khi CẢ HAI đang hiện. */
+const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.value !== who;
 </script>
 
 <template>
@@ -296,8 +298,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
 
 /* Nằm trong .notice-bar nên phải gọn MỘT DÒNG: xếp dọc là dải phải cao gấp
    đôi, mà chỗ đó lấy từ bàn thẻ. */
-/* Tầng TRÊN của dải, dành cho thông báo tới sau khi cả hai đang hiện. Nó lấn
-   lên vùng HUD — chỗ đó đọc lúc nào cũng được, thông báo chỉ hiện một nhịp. */
+/* Tầng TRÊN của dải, dành cho thông báo tới TRƯỚC (nó đã hiện một lúc, sắp tan).
+   Lấn lên vùng HUD — chỗ đó đọc lúc nào cũng được. */
 .notice-bar > .raised { bottom: 58px; }
 
 .turn-banner {

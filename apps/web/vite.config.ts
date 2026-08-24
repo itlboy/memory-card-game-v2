@@ -3,7 +3,29 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+/**
+ * Phiên bản và NGÀY BUILD nhúng lúc build, hiện ở cuối bảng Luật chơi.
+ *
+ * Định dạng ngay tại đây theo giờ Việt Nam, KHÔNG gửi mốc ISO cho client tự
+ * định dạng: máy người chơi có thể lệch múi giờ hoặc sai đồng hồ, lúc đó con số
+ * hiện ra không còn là "ngày tôi build" nữa — mà đó chính là thứ cần biết khi
+ * hỏi "máy bạn đang chạy bản nào".
+ */
+const buildAt = new Intl.DateTimeFormat('vi-VN', {
+  timeZone: 'Asia/Ho_Chi_Minh',
+  day: '2-digit', month: '2-digit', year: 'numeric',
+  hour: '2-digit', minute: '2-digit', hour12: false
+}).format(new Date());
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '1.1.0'),
+    __BUILD_AT__: JSON.stringify(buildAt),
+    // Mốc ISO để tính "bao lâu trước". Phải có CẢ HAI: ngày giờ đã định dạng thì
+    // không lệch theo máy người chơi, còn tuổi bản build thì bắt buộc phải so với
+    // đồng hồ của họ.
+    __BUILD_ISO__: JSON.stringify(new Date().toISOString())
+  },
   plugins: [
     vue(),
     // Trình duyệt mobile giải phóng tab khi người chơi rời app; không có cache thì

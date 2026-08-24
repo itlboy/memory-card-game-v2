@@ -1,9 +1,41 @@
 <script setup lang="ts">
 import { CAMPAIGN_LEVELS } from '@mm/engine';
 import { X } from 'lucide-vue-next';
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const emit = defineEmits<{ close: [] }>();
+
+/* ---------- phiên bản & tuổi bản build ---------- */
+
+const version = __APP_VERSION__;
+/** Ngày giờ build, ĐÃ định dạng theo giờ Việt Nam lúc build (xem vite.config). */
+const builtAt = __BUILD_AT__;
+
+/** "3 ngày 4 giờ 12 phút 5 giây trước" — cắt bỏ các đơn vị đầu bằng 0. */
+function doiThanhChu(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return 'vừa xong';
+  const giay = Math.floor(ms / 1000);
+  const phan = [
+    { n: Math.floor(giay / 86400), ten: 'ngày' },
+    { n: Math.floor((giay % 86400) / 3600), ten: 'giờ' },
+    { n: Math.floor((giay % 3600) / 60), ten: 'phút' },
+    { n: giay % 60, ten: 'giây' }
+  ];
+  while (phan.length && phan[0]!.n === 0) phan.shift();
+  if (!phan.length) return 'vừa xong';
+  return `${phan.map((p) => `${p.n} ${p.ten}`).join(' ')} trước`;
+}
+
+const ago = ref(doiThanhChu(Date.now() - Date.parse(__BUILD_ISO__)));
+let tick: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  // Đếm từng giây: người chơi mở bảng này ra đúng lúc vừa deploy thì thấy con số
+  // chạy, biết ngay là bản mới.
+  tick = setInterval(() => {
+    ago.value = doiThanhChu(Date.now() - Date.parse(__BUILD_ISO__));
+  }, 1000);
+});
+onUnmounted(() => clearInterval(tick));
 const closeBtn = ref<HTMLButtonElement | null>(null);
 onMounted(() => closeBtn.value?.focus());
 
@@ -77,11 +109,26 @@ const POWERS = [
       </div>
 
       <button class="btn btn-primary" type="button" @click="emit('close')">Đã hiểu</button>
+
+      <!-- Phiên bản + ngày build. Để ở đây vì đây là chỗ người chơi tìm khi cần
+           trả lời "máy tôi đang chạy bản nào" — không cần một màn hình riêng. -->
+      <p class="build">
+        <b>v{{ version }}</b> · build {{ builtAt }}
+        <span class="ago">({{ ago }})</span>
+      </p>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Chân trang phiên bản: mờ, nhỏ, không giành sự chú ý với nội dung luật chơi */
+.build {
+  margin: 12px 0 0; text-align: center;
+  font-size: 12px; color: var(--muted); line-height: 1.5;
+}
+.build b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.build .ago { display: block; opacity: .85; font-variant-numeric: tabular-nums; }
+
 .overlay {
   position: fixed; inset: 0; z-index: 20;
   display: flex; align-items: center; justify-content: center; padding: 12px;

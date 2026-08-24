@@ -60,7 +60,22 @@ async function enterRoom(): Promise<FakeWS> {
     t: 'welcome', playerId: 'p1', token: 'tok', spectator: false,
     room: { code: 'ABCDEF', hostId: 'p1', status: 'playing', players: [], config: {} }
   }) });
+  // Và một view nói rõ ĐANG LÀ LƯỢT MÌNH: client chặn sẵn cú bấm mà server chắc
+  // chắn bỏ qua (không phải lượt mình, hoặc đã có 2 ô đang mở) — không dựng lượt
+  // thì flip() không gửi gì và test kiểm sai thứ.
+  ws.onmessage?.({ data: JSON.stringify({ t: 'state', view: viewCuaToi('p1') }) });
   return ws;
+}
+
+/** View 12 ô úp hết, lượt của `currentId`. */
+function viewCuaToi(currentId: string): unknown {
+  return {
+    cols: 4, rows: 3,
+    cards: Array.from({ length: 12 }, (_, index) => ({ index, state: 'down' })),
+    players: [{ id: 'p1', name: 'Kiên' }, { id: 'p2', name: 'Bạn' }],
+    currentId, moves: 0, matchedPairs: 0, totalPairs: 6, status: 'playing',
+    timeLeft: null, turnTimeLeft: 15, elapsed: 0, summary: null, back: 'stars'
+  };
 }
 
 describe('nước bấm bị rơi', () => {
@@ -101,33 +116,23 @@ describe('nước bấm bị rơi', () => {
   it('server trả lời kịp thì không báo sự cố gì', async () => {
     const ws = await enterRoom();
     room.flip(2);
-    ws.onmessage?.({ data: JSON.stringify({
-      t: 'state',
-      view: {
-        cols: 2, rows: 2, cards: [], players: [], currentId: 'p1', moves: 1,
-        matchedPairs: 0, totalPairs: 2, status: 'playing', timeLeft: null,
-        turnTimeLeft: 15, elapsed: 1, summary: null, back: 'stars'
-      }
-    }) });
+    ws.onmessage?.({ data: JSON.stringify({ t: 'state', view: viewCuaToi('p1') }) });
     vi.advanceTimersByTime(3000);
     expect(room.netTrouble.value).toBe('');
   });
 });
 
-describe('emoji chat không bị thông báo đè', () => {
-  it('cái tới SAU nằm tầng trên — không cố định cái nào luôn ở trên', async () => {
+describe('emoji chat nổi trên header', () => {
+  it('teleport ra body và dùng position: fixed — trong dải thông báo thì bị `main` cắt', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
     const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
-    // Tầng do class `.raised` quyết, gắn theo cái tới sau (biến `newest`)
-    expect(src).toContain('.notice-bar > .raised');
-    expect(src, 'phải theo dõi cái nào tới sau').toContain("newest");
-    expect(src).toMatch(/raised\('emoji'\)/);
-    expect(src).toMatch(/raised\('banner'\)/);
-    // Và KHÔNG được đặt bottom cứng cho emoji: cố định thì lúc chỉ có một mình
-    // nó cũng treo lơ lửng ở tầng trên
+    // `main` có overflow: auto (bản đồ cấp cần cuộn) nên thứ gì nhô lên trên mép
+    // main đều bị CẮT — nhìn ra thành "emoji nằm dưới header". Không phải z-index.
+    expect(src, 'phải teleport ra body').toContain('<Teleport to="body">');
     const at = src.indexOf('.emoji-blast {');
     const rule = src.slice(at, src.indexOf('}', at));
-    expect(rule).not.toMatch(/bottom:/);
+    expect(rule).toContain('position: fixed');
+    expect(rule).toMatch(/z-index:\s*\d+/);
   });
 });
