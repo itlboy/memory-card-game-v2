@@ -157,12 +157,17 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   mỗi nước đi qua, khả năng nhớ một lá nhân thêm `retain`, nên bot quên dần tự
   nhiên. Bot biết hết rồi giả vờ sai thì người chơi nhận ra ngay là giả.
 
-  | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ |
-  |---|---|---|---|
-  | Bot dễ | 0,7071 | 2 | 60% |
-  | Bot bình thường | 0,8409 | 4 | 40% |
-  | Bot Pro | 0,9170 | 8 | 20% |
-  | Bot siêu đẳng | 0,9439 | 12 | 10% |
+  | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | sức chứa |
+  |---|---|---|---|---|
+  | Bot dễ | 0,7071 | 2 | 60% | 3 lá |
+  | Bot bình thường | 0,8409 | 4 | 40% | 5 lá |
+  | Bot Pro | 0,9170 | 8 | 20% | 8 lá |
+  | Bot siêu đẳng | 0,9439 | 12 | 10% | 14 lá |
+
+  **Ba loại quên khác nhau, đừng lẫn:** `retain` là phai theo diễn biến ván
+  (`retain ** tuổi`); `mistake` là lỡ tay ở đúng nước đang đi; `capacity` là
+  nhiễu do QUÁ TẢI — mỗi lá phải giữ vượt sức chứa thì khả năng nhớ MỌI lá nhân
+  thêm `CROWD` (0,96). Quá tải 10 lá là chỉ còn nhớ được ~66% so với lúc rảnh.
 
   `retain = 0,5 ** (1 / nửa đời)` — sửa nửa đời thì tính lại, đừng đoán.
   "Nhớ lẫn chỗ" = có cặp trong ký ức nhưng vẫn đi bốc lá khác.
@@ -176,16 +181,19 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   Số đo (số lần lật để bot một mình dọn sạch bàn, 40 seed):
 
-  | bàn | Bot dễ | bình thường | Pro | siêu đẳng |
-  |---|---|---|---|---|
-  | 4×4 (8 cặp) | 36,1 | 30,4 | 27,4 | 26,4 |
-  | 6×7 (21 cặp) | 161,9 | 116,8 | 86,7 | 77,5 |
+  | bàn | hoàn hảo | Bot dễ | bình thường | Pro | siêu đẳng |
+  |---|---|---|---|---|---|
+  | 4×4 (8 cặp) | 16 | 40 | 32 | 27 | 26 |
+  | 4×6 (12 cặp) | 24 | 92 | 59 | 44 | 42 |
+  | 6×7 (21 cặp) | 42 | 296 | 193 | 112 | 78 |
 
-  Hai điều đọc ra từ bảng này: **bàn nhỏ thì bốn mức gần như bằng nhau** (lật hết
-  một lượt là biết cả bàn, trí nhớ không kịp phát huy) — muốn cảm nhận khác biệt
-  phải từ bàn 20 thẻ trở lên; và **với Bot dễ thì `mistake` gần như vô tác dụng**
-  (nâng 30%→60% chỉ làm nó chậm thêm 4,6%) vì nửa đời 2 nước thì nó hiếm khi có
-  cặp nào trong đầu để mà bỏ. Muốn Bot dễ yếu hơn nữa thì giảm NỬA ĐỜI.
+  Ba điều đọc ra từ bảng: **bàn càng lớn thì bốn mức càng giãn** — đó là việc của
+  `capacity`, bàn 42 thẻ thì Bot dễ (sức chứa 3) quá tải nặng còn Bot siêu đẳng
+  (14) gần như không; **bàn nhỏ thì các mức vẫn sát nhau** (lật hết một lượt là
+  biết cả bàn, trí nhớ không kịp phát huy); và **với Bot dễ thì `mistake` gần như
+  vô tác dụng** (nâng 30%→60% chỉ làm nó chậm thêm 4,6%) vì nửa đời 2 nước thì nó
+  hiếm khi có cặp nào trong đầu để mà bỏ — muốn Bot dễ yếu hơn nữa thì giảm NỬA
+  ĐỜI hoặc SỨC CHỨA, đừng nâng `mistake`.
 
   Nhịp nghĩ: 400–3000ms, **giống nhau ở mọi mức** — cho bot giỏi nghĩ nhanh hơn
   thì ngồi đếm thời gian là đoán ra mức, mà độ khó vốn nằm ở trí nhớ. Rút bằng

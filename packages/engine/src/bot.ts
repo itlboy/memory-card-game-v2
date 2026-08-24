@@ -27,6 +27,15 @@ export interface BotSpec {
   /** Xác suất nhớ lẫn chỗ ngay lúc vừa thấy (lỗi ghi nhớ, không phải lỗi phai). */
   mistake: number;
   /**
+   * Giữ được bao nhiêu lá trong đầu mà chưa bị nhiễu. Vượt số này thì mỗi lá
+   * thêm làm khả năng nhớ MỌI lá giảm đi một nhịp (`CROWD`) — đúng như người
+   * thật: nhớ 3 lá thì chắc, nhớ 20 lá thì lẫn lộn hết.
+   *
+   * Đây là loại quên KHÁC hai loại kia: `retain` là phai theo thời gian,
+   * `mistake` là lỡ tay ở nước đang đi, còn đây là nhiễu do quá tải.
+   */
+  capacity: number;
+  /**
    * Khoảng thời gian nghĩ trước khi lật, ms — để người chơi thấy nó đang suy
    * nghĩ. Là KHOẢNG chứ không phải một số: nhịp cố định nghe ra ngay là máy,
    * mỗi nước một nhịp khác thì giống người đang cân nhắc.
@@ -43,11 +52,11 @@ export interface BotSpec {
  * Sửa nửa đời thì phải TÍNH LẠI retain, đừng đoán — quan hệ là hàm số mũ nên
  * nhích retain một chút không tương ứng với nhớ dai thêm một chút.
  *
- *   | mức             | nửa đời | retain | nhớ lẫn chỗ |
- *   | Bot dễ          |  2 nước | 0,7071 | 60%         |
- *   | Bot bình thường |  4 nước | 0,8409 | 40%         |
- *   | Bot Pro         |  8 nước | 0,9170 | 20%         |
- *   | Bot siêu đẳng   | 12 nước | 0,9439 | 10%         |
+ *   | mức             | nửa đời | retain | nhớ lẫn chỗ | sức chứa |
+ *   | Bot dễ          |  2 nước | 0,7071 | 60%         |  3 lá    |
+ *   | Bot bình thường |  4 nước | 0,8409 | 40%         |  5 lá    |
+ *   | Bot Pro         |  8 nước | 0,9170 | 20%         |  8 lá    |
+ *   | Bot siêu đẳng   | 12 nước | 0,9439 | 10%         | 14 lá    |
  *
  * NHỊP NGHĨ GIỐNG NHAU Ở MỌI MỨC (400–3000ms) — có chủ đích. Cho bot giỏi nghĩ
  * nhanh hơn thì đếm thời gian là đoán ra mình đang đấu mức nào, mà độ khó vốn
@@ -57,10 +66,10 @@ export const THINK_MIN_MS = 400;
 export const THINK_MAX_MS = 3000;
 
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy:   { retain: 0.7071, mistake: 0.60, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot dễ',         avatar: '🐣' },
-  normal: { retain: 0.8409, mistake: 0.40, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot bình thường', avatar: '🤖' },
-  hard:   { retain: 0.9170, mistake: 0.20, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot Pro',         avatar: '👾' },
-  insane: { retain: 0.9439, mistake: 0.10, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot siêu đẳng',   avatar: '🦾' }
+  easy:   { retain: 0.7071, mistake: 0.60, capacity: 3, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot dễ',         avatar: '🐣' },
+  normal: { retain: 0.8409, mistake: 0.40, capacity: 5, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot bình thường', avatar: '🤖' },
+  hard:   { retain: 0.9170, mistake: 0.20, capacity: 8, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot Pro',         avatar: '👾' },
+  insane: { retain: 0.9439, mistake: 0.10, capacity: 14, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot siêu đẳng',   avatar: '🦾' }
 };
 
 /**
@@ -115,13 +124,29 @@ export function observe(memory: BotMemory, view: GameView, _level: BotLevel): vo
 }
 
 /**
- * Bot có còn nhớ lá này không. Càng thấy lâu rồi càng dễ quên, và bot giỏi thì
- * quên chậm hơn — đúng như trí nhớ người.
+ * Mỗi lá phải nhớ VƯỢT sức chứa thì khả năng nhớ nhân thêm hệ số này. 0,96
+ * nghĩa là quá tải 10 lá thì chỉ còn nhớ được 0,96^10 ≈ 66% so với lúc rảnh.
+ *
+ * Dùng CHUNG cho mọi mức, khác biệt nằm ở `capacity`: thêm một con số cho mỗi
+ * mức là mỗi lần cân bằng phải nghĩ bốn số thay vì một.
  */
-function recalls(seen: BotSeen, clock: number, level: BotLevel, rng: Rng): boolean {
+export const CROWD = 0.96;
+
+/**
+ * Bot có còn nhớ lá này không. Ba thứ cùng làm nó quên:
+ *  - thấy lâu rồi (`retain ** tuổi`) — phai dần theo diễn biến ván;
+ *  - đang phải giữ quá nhiều lá (`CROWD ** quá tải`) — nhiễu do quá tải;
+ *  - và bot giỏi thì cả hai đều nhẹ hơn.
+ *
+ * `load` là số lá đang phải nhớ (thẻ đã ghép bị xoá khỏi ký ức nên không tính).
+ */
+function recalls(
+  seen: BotSeen, clock: number, level: BotLevel, rng: Rng, load: number
+): boolean {
   const spec = BOT_SPECS[level];
   const age = Math.max(0, clock - seen.at);
-  return rng.next() < spec.retain ** age;
+  const crowd = Math.max(0, load - spec.capacity);
+  return rng.next() < spec.retain ** age * CROWD ** crowd;
 }
 
 /** Những lá bot CÒN nhớ, trong số các ô đang úp. */
@@ -129,9 +154,12 @@ function recalled(
   memory: BotMemory, downSet: Set<number>, clock: number, level: BotLevel, rng: Rng
 ): Map<number, string> {
   const out = new Map<number, string>();
+  // Tải tính trên các lá CÒN ÚP mà bot đang nhớ: lá đã ghép không còn chiếm
+  // đầu nó nữa (observe() xoá), mà lá đang mở thì nhìn thấy chứ không phải nhớ.
+  const load = [...memory.keys()].filter((i) => downSet.has(i)).length;
   for (const [index, seen] of memory) {
     if (!downSet.has(index)) continue;
-    if (recalls(seen, clock, level, rng)) out.set(index, seen.symbol);
+    if (recalls(seen, clock, level, rng, load)) out.set(index, seen.symbol);
   }
   return out;
 }

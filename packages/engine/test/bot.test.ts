@@ -263,3 +263,44 @@ describe('nước cuối thì bot không nghĩ', () => {
     expect(ms).toBeGreaterThanOrEqual(BOT_SPECS.easy.thinkMinMs);
   });
 });
+
+describe('nhiễu do quá tải ký ức', () => {
+  /** Tỉ lệ bot dùng được cặp đã biết, khi trong đầu có `load` lá đang úp. */
+  function recallWithLoad(level: BotLevel, load: number): number {
+    const mem = createBotMemory();
+    // Cặp cần nhớ ở ô 0 và 1; các lá còn lại là "hàng nhiễu", biểu tượng khác nhau
+    mem.set(0, { symbol: 'A', at: 0 });
+    mem.set(1, { symbol: 'A', at: 0 });
+    for (let i = 2; i < load; i++) mem.set(i, { symbol: `N${i}`, at: 0 });
+    let hits = 0;
+    const N = 3000;
+    for (let s = 0; s < N; s++) {
+      const v = view(Array.from({ length: Math.max(load, 4) }, () => ({ state: 'down' as const })));
+      const pick = botPick(v, mem, botRng(s * 31 + 1), level);
+      if (pick === 0 || pick === 1) hits++;
+    }
+    return hits / N;
+  }
+
+  it('giữ càng nhiều lá thì nhớ càng kém — cùng một tuổi ký ức', () => {
+    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+      const nhe = recallWithLoad(l, BOT_SPECS[l].capacity);        // vừa đủ sức chứa
+      const nang = recallWithLoad(l, BOT_SPECS[l].capacity + 14);  // quá tải 14 lá
+      expect(nang, `${l}: quá tải phải nhớ kém hơn`).toBeLessThan(nhe);
+    }
+  });
+
+  it('trong sức chứa thì KHÔNG bị phạt — nhớ ít lá là nhớ chắc', () => {
+    // Hai tải đều nằm dưới sức chứa: tỉ lệ phải xấp xỉ nhau (chỉ lệch do ngẫu nhiên)
+    const a = recallWithLoad('insane', 4);
+    const b = recallWithLoad('insane', 8);
+    expect(Math.abs(a - b)).toBeLessThan(0.06);
+  });
+
+  it('bot giỏi chịu tải tốt hơn bot kém', () => {
+    const load = 20;
+    const easy = recallWithLoad('easy', load);
+    const insane = recallWithLoad('insane', load);
+    expect(insane).toBeGreaterThan(easy);
+  });
+});
