@@ -34,7 +34,12 @@
 
 - **Màn định danh** (mỗi ô một thứ khác nhau — cách chơi, chế độ, entry
   online): ô gradient MÀU RIÊNG luôn bật, chữ/icon trắng (class
-  `.neon .g-*` trong global.css); đang chọn thì thắp outline trắng.
+  `.neon .g-*` trong global.css).
+- Viền trắng "đang chọn" (`aria-pressed`/`aria-checked`) CHỈ dùng cho ô thật sự
+  có trạng thái bật/tắt (theme, cỡ bàn). Bước nào **bấm là đi luôn** (số người,
+  mức bot, chế độ) thì KHÔNG gắn: ở đó không có gì để bật/tắt, mà giá trị nhớ từ
+  lần trước lại làm một ô sáng viền ngay khi vừa vào bước — người chơi đọc ra
+  thành "nút bị dính trạng thái active". Có test chặn.
 - **Màn cấu hình** (lưới, theme): ô nền tối; Ô ĐƯỢC CHỌN bùng gradient
   tím + glow (`aria-checked/pressed` + `:not(.neon)`).
 - Màu cố định từng chế độ, dùng xuyên suốt: Chiến dịch g-violet ·

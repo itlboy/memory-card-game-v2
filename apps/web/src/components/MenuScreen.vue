@@ -261,7 +261,6 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       <div v-else-if="step === 'bot'" key="bot" class="step-body options loose">
         <button
           v-for="b in BOT_CHOICES" :key="b.id" class="option wide neon" :class="b.g" type="button"
-          :aria-pressed="botLevel === b.id"
           @click="pickBotLevel(b.id)"
         >
           <span class="bot-face" aria-hidden="true">{{ BOT_SPECS[b.id].avatar }}</span>
@@ -274,7 +273,6 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <button
           v-for="c in COUNTS" :key="c.n" class="option wide neon" :class="c.g" type="button"
           :aria-label="`${c.n} người chơi`"
-          :aria-pressed="playerCount === c.n"
           @click="pickCount(c.n)"
         >
           <!-- Đúng bằng số người: 2 người thì 2 hình, 4 người thì 4 hình. Một
@@ -308,7 +306,6 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       <div v-else-if="step === 'mode'" key="mode" class="step-body options loose modes">
         <button
           v-for="m in modes" :key="m.id" class="option wide neon" :class="m.g" type="button"
-          :aria-pressed="mode === m.id"
           @click="pickMode(m.id)"
         >
           <component :is="m.icon" class="opt-icon" :size="26" />
@@ -475,6 +472,14 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }
 .option[aria-pressed='true'] .grid-preview i { background: rgba(255, 255, 255, .9); }
 /* Ô neon màu riêng (chế độ, số người) đang chọn: thắp viền trắng, giữ màu gốc */
+/*
+ * Viền trắng = ĐANG CHỌN, chỉ dành cho ô THẬT SỰ có trạng thái bật/tắt.
+ *
+ * Các bước "bấm là đi luôn" (số người, mức bot, chế độ) KHÔNG dùng aria-pressed
+ * nữa: ở đó chẳng có gì để bật/tắt, mà giá trị nhớ từ lần chơi trước lại làm một
+ * ô sáng viền ngay khi vừa vào bước — người chơi đọc ra thành "nút đang bị dính
+ * trạng thái active", đúng như đã bị phản ánh.
+ */
 .option.neon[aria-pressed='true'], .option.neon[aria-checked='true'] {
   outline: 3px solid rgba(255, 255, 255, .85); outline-offset: -3px;
 }

@@ -247,8 +247,15 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
 
 /* Xem chú thích cùng khối trong OnlineGame: trùm qua mép 4px và KHÔNG tự bo
    góc, để khung app cắt — bo 18px trong khung bo 28px thì hở một vành mỏng. */
+/*
+ * Cân giữa CẢ MÀN HÌNH, không phải giữa bàn thẻ. `position: absolute` trong
+ * .board-wrap thì tâm cụm nằm ở tâm BÀN — mà bàn bắt đầu dưới HUD nên tâm đó
+ * thấp hơn tâm màn hình 63px (đo trên iPhone 13), đọc ra thành lệch xuống dưới,
+ * càng rõ trên máy màn ngắn. `fixed` + inset 0 đưa cụm về đúng giữa: con số nhích
+ * lên, tên người đi đầu nằm dưới nó.
+ */
 .countdown {
-  position: absolute; inset: -4px; z-index: 7;
+  position: fixed; inset: 0; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
   backdrop-filter: blur(3px); pointer-events: none;

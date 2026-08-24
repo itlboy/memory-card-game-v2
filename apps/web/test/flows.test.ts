@@ -1151,3 +1151,55 @@ describe('bố cục nút ở màn kết quả', () => {
     expect(next.attributes('disabled'), 'thua thì cấp sau phải tắt').toBeDefined();
   });
 });
+
+describe('màn đếm ngược cân giữa màn hình', () => {
+  it('overlay đếm ngược dùng position: fixed, không phải absolute trong bàn thẻ', () => {
+    // absolute trong .board-wrap thì cụm cân giữa BÀN, mà bàn bắt đầu dưới HUD
+    // nên tâm nó thấp hơn tâm màn hình (đo được 63px trên iPhone 13) — đọc ra
+    // thành lệch xuống dưới, rõ nhất trên máy màn ngắn.
+    for (const file of ['GameScreen.vue', 'OnlineGame.vue']) {
+      const css = readFileSync(resolve(process.cwd(), `src/components/${file}`), 'utf8');
+      const block = css.slice(css.indexOf('.countdown {'));
+      const rule = block.slice(0, block.indexOf('}'));
+      expect(rule, `${file}: overlay phải fixed`).toContain('position: fixed');
+      expect(rule, `${file}: phải phủ trọn màn hình`).toContain('inset: 0');
+    }
+  });
+
+  it('có số đếm và tên người đi đầu, số ở trên tên ở dưới', async () => {
+    await mountApp();
+    await pickMode('Chớp nhoáng');
+    await start();
+    const cd = wrapper.find('.countdown');
+    expect(cd.exists()).toBe(true);
+    const kids = cd.element.children;
+    expect(kids[0]!.className, 'con đầu là số đếm').toContain('num');
+    expect(kids[1]!.className, 'con thứ hai là dòng báo').toContain('first');
+  });
+});
+
+describe('không ô nào bị dính viền "đang chọn"', () => {
+  it('bước chế độ: chọn lần trước KHÔNG làm ô sáng viền lúc vừa vào', async () => {
+    // Chơi Đua thời gian một lần để nó được nhớ vào prefs
+    await mountApp();
+    await click('Chơi một mình');
+    await click('Đua thời gian');
+    await flush();
+    // Về trang chủ rồi vào lại bước chế độ
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    await click('Chơi một mình');
+    for (const tile of wrapper.findAll('.step-body .option')) {
+      expect(tile.attributes('aria-pressed'), `ô "${tile.text().slice(0, 14)}" không được mang aria-pressed`)
+        .toBeUndefined();
+    }
+  });
+
+  it('bước có trạng thái thật (theme) VẪN đánh dấu ô đang chọn', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await click('Cấp 1,');
+    const checked = wrapper.findAll('.step-body [aria-checked="true"]');
+    expect(checked.length, 'theme là chọn nhiều, phải đánh dấu ô đang bật').toBeGreaterThan(0);
+  });
+});

@@ -308,7 +308,6 @@ function openCfgWizard(): void {
     <div v-if="wizard === 'mode'" class="step-body options loose">
       <button
         v-for="m in MODES" :key="m.id" class="option wide neon" :class="m.g" type="button"
-        :aria-pressed="cfg.mode === m.id"
         @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'level'"
       >
         <component :is="m.icon" class="opt-icon" :size="26" />
