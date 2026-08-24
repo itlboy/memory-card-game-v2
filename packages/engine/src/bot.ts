@@ -116,10 +116,17 @@ export const createBotMemory = (): BotMemory => new Map();
  *
  * Thẻ đã ghép thì xoá: nó không còn dùng được nữa mà lại chiếm chỗ.
  */
-export function observe(memory: BotMemory, view: GameView, _level: BotLevel): void {
+export function observe(memory: BotMemory, view: GameView, level: BotLevel): void {
   for (const c of view.cards) {
     if (c.state === 'matched') { memory.delete(c.index); continue; }
     if (c.state === 'up' && c.symbol) memory.set(c.index, { symbol: c.symbol, at: view.moves });
+  }
+  // Quên hẳn thứ quá cũ: xem FORGET_HALF_LIVES. Phải làm ở đây chứ không ở
+  // recalls(), vì recalls() chỉ TRẢ LỜI có nhớ hay không, còn cái chiếm chỗ
+  // trong đầu là bản ghi.
+  const limit = FORGET_HALF_LIVES * halfLifeMoves(level);
+  for (const [index, seen] of memory) {
+    if (view.moves - seen.at > limit) memory.delete(index);
   }
 }
 
@@ -131,6 +138,23 @@ export function observe(memory: BotMemory, view: GameView, _level: BotLevel): vo
  * mức là mỗi lần cân bằng phải nghĩ bốn số thay vì một.
  */
 export const CROWD = 0.96;
+
+/**
+ * Bản ghi cũ hơn bấy nhiêu LẦN nửa đời thì bị xoá khỏi ký ức.
+ *
+ * Vì sao phải xoá chứ không để nguyên: cú "quên" ở `recalls()` chỉ tính cho nước
+ * đang đi, bản ghi vẫn nằm đó và vẫn tính vào TẢI. Thành ra bot kém rơi vào vòng
+ * xoáy — quên trước khi kịp ghép, bản ghi dồn lại, tải cao nên càng quên, càng
+ * quên thì càng không ghép được. Người thật không thế: thứ đã quên hẳn thì rơi
+ * khỏi đầu luôn, không làm mình nhiễu nữa.
+ *
+ * 3 lần nửa đời = khả năng nhớ còn 1/8, coi như đã mất hẳn.
+ */
+export const FORGET_HALF_LIVES = 3;
+
+/** Nửa đời ký ức của một mức, tính bằng SỐ NƯỚC đi. */
+export const halfLifeMoves = (level: BotLevel): number =>
+  Math.log(0.5) / Math.log(BOT_SPECS[level].retain);
 
 /**
  * Bot có còn nhớ lá này không. Ba thứ cùng làm nó quên:

@@ -169,6 +169,17 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   nhiễu do QUÁ TẢI — mỗi lá phải giữ vượt sức chứa thì khả năng nhớ MỌI lá nhân
   thêm `CROWD` (0,96). Quá tải 10 lá là chỉ còn nhớ được ~66% so với lúc rảnh.
 
+  **Tải là giao của hai thứ**: lá bot ĐÃ TỪNG THẤY *và* hiện đang ÚP. Không tính
+  lá chưa bao giờ thấy, lá đã ghép (`observe()` xoá), và 1–2 lá đang ngửa (nhìn
+  thấy chứ không phải nhớ).
+
+  **Bản ghi quá cũ bị XOÁ HẲN** (`FORGET_HALF_LIVES` = 3 lần nửa đời: Bot dễ 6
+  nước, Bot siêu đẳng 36 nước). Cú "quên" ở `recalls()` chỉ trả lời có nhớ ra hay
+  không — bản ghi vẫn chiếm chỗ và vẫn tính vào tải. Không xoá thì bot kém rơi vào
+  VÒNG XOÁY: quên trước khi kịp ghép → bản ghi dồn lại → tải cao nên càng quên →
+  càng không ghép được. Đo được: Bot dễ trên bàn 6×7 mất 296 lần lật, xoá rồi còn
+  166. Người thật cũng vậy — thứ đã quên hẳn thì không làm mình nhiễu nữa.
+
   `retain = 0,5 ** (1 / nửa đời)` — sửa nửa đời thì tính lại, đừng đoán.
   "Nhớ lẫn chỗ" = có cặp trong ký ức nhưng vẫn đi bốc lá khác.
 
@@ -183,13 +194,14 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   | bàn | hoàn hảo | Bot dễ | bình thường | Pro | siêu đẳng |
   |---|---|---|---|---|---|
-  | 4×4 (8 cặp) | 16 | 40 | 32 | 27 | 26 |
-  | 4×6 (12 cặp) | 24 | 92 | 59 | 44 | 42 |
-  | 6×7 (21 cặp) | 42 | 296 | 193 | 112 | 78 |
+  | 4×4 (8 cặp) | 16 | 37 | 31 | 27 | 26 |
+  | 4×6 (12 cặp) | 24 | 72 | 56 | 44 | 42 |
+  | 6×7 (21 cặp) | 42 | 166 | 137 | 100 | 77 |
 
   Ba điều đọc ra từ bảng: **bàn càng lớn thì bốn mức càng giãn** — đó là việc của
-  `capacity`, bàn 42 thẻ thì Bot dễ (sức chứa 3) quá tải nặng còn Bot siêu đẳng
-  (14) gần như không; **bàn nhỏ thì các mức vẫn sát nhau** (lật hết một lượt là
+  `capacity`; **hình phạt quá tải hầu như không đụng tới Bot siêu đẳng** (sức chứa
+  14 mà tải trung bình chỉ 8,4 — chỉ 5% số nước bị quá tải, bàn 4×6 thì 0%), vì
+  bot nhớ giỏi tiêu thụ cặp ngay khi vừa học được nên ký ức luôn vơi; **bàn nhỏ thì các mức vẫn sát nhau** (lật hết một lượt là
   biết cả bàn, trí nhớ không kịp phát huy); và **với Bot dễ thì `mistake` gần như
   vô tác dụng** (nâng 30%→60% chỉ làm nó chậm thêm 4,6%) vì nửa đời 2 nước thì nó
   hiếm khi có cặp nào trong đầu để mà bỏ — muốn Bot dễ yếu hơn nữa thì giảm NỬA

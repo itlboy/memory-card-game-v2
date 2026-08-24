@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, observe } from '../src/bot.js';
+import { BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, halfLifeMoves, observe } from '../src/bot.js';
 import type { BotLevel } from '../src/bot.js';
 import { MemoryGame } from '../src/game.js';
 import { publicView } from '../src/online.js';
@@ -302,5 +302,49 @@ describe('nhiễu do quá tải ký ức', () => {
     const easy = recallWithLoad('easy', load);
     const insane = recallWithLoad('insane', load);
     expect(insane).toBeGreaterThan(easy);
+  });
+});
+
+describe('quên hẳn bản ghi quá cũ', () => {
+  it('bản ghi cũ hơn 3 lần nửa đời bị XOÁ, không chỉ là "không nhớ ra"', () => {
+    const mem = createBotMemory();
+    const down = Array.from({ length: 6 }, () => ({ state: 'down' as const }));
+    // Thấy lá ở ô 0 tại nước 0
+    const v0 = view([{ state: 'up', symbol: 'A' }, ...down.slice(1)]);
+    v0.moves = 0;
+    observe(mem, v0, 'easy');
+    expect(mem.has(0)).toBe(true);
+
+    // Bot dễ có nửa đời 2 nước → xoá sau 6 nước
+    const v1 = view(down);
+    v1.moves = 5;
+    observe(mem, v1, 'easy');
+    expect(mem.has(0), 'chưa tới hạn thì còn giữ').toBe(true);
+    const v2 = view(down);
+    v2.moves = 9;
+    observe(mem, v2, 'easy');
+    expect(mem.has(0), 'quá hạn thì xoá hẳn, không còn chiếm chỗ trong đầu').toBe(false);
+  });
+
+  it('bot giỏi giữ bản ghi lâu hơn bot kém', () => {
+    const order: BotLevel[] = ['easy', 'normal', 'hard', 'insane'];
+    for (let i = 1; i < order.length; i++) {
+      expect(halfLifeMoves(order[i]!)).toBeGreaterThan(halfLifeMoves(order[i - 1]!));
+    }
+  });
+
+  it('nhờ xoá bản ghi cũ mà TẢI không phình vô hạn — chặn vòng xoáy quên-dồn-quên', () => {
+    const mem = createBotMemory();
+    // Mô phỏng 60 nước, mỗi nước thấy một lá mới trên bàn 40 lá
+    for (let move = 0; move < 60; move++) {
+      const cards = Array.from({ length: 40 }, (_, i) => (
+        i === move % 40 ? { state: 'up' as const, symbol: `S${i}` } : { state: 'down' as const }
+      ));
+      const v = view(cards);
+      v.moves = move;
+      observe(mem, v, 'easy');
+    }
+    // Nửa đời 2 nước → cửa sổ 6 nước → giữ khoảng 7 bản ghi, không phải 40
+    expect(mem.size).toBeLessThanOrEqual(8);
   });
 });
