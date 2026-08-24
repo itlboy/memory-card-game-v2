@@ -320,6 +320,13 @@ export class RoomDO extends DurableObject<Env> {
 
       case 'flip': {
         if (!this.game || this.room.status !== 'playing') return;
+        // TỰ CHỮA chuỗi alarm: bất kể nước này có hợp lệ hay không, hẹn lại giờ.
+        // Nếu vì lý do nào đó alarm bị mất (DO ngủ đông, alarm bị ghi đè, một
+        // nhánh nào đó xoá alarm khi chưa nạp đủ trạng thái) thì bàn đứng im
+        // VĨNH VIỄN: hai thẻ mở, đồng hồ lượt 0, không ai làm gì được — đúng lỗi
+        // đã gặp trên production mà tôi chưa tái hiện được ở local. Hẹn lại ở đây
+        // rất rẻ và biến "treo vĩnh viễn" thành "chậm một nước".
+        await this.scheduleNext();
         // ON-09: server phán quyết — sai lượt thì bỏ qua, không tin client.
         // typeof check trước: Number(null) = 0 sẽ thành lật thẻ 0 thật!
         if (typeof msg.index !== 'number') return;

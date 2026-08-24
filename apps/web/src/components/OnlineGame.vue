@@ -379,8 +379,6 @@ watch(() => o.view.value?.summary, (s) => {
    trước đây nó phóng 110px giữa bàn, đúng lúc đối thủ đang chờ mình đi thì cả
    bàn bị che.
 
-   Tầng trên/dưới do `.raised` quyết định — xem `newest` trong script.
-
    Xếp DỌC: biểu tượng trên, TÊN người gửi ngay dưới — đọc được ai vừa nói mà
    không cần dấu nhỏ trên chip người chơi (đã bỏ). Cả cụm trôi lên và mờ dần như
    một câu nói bay đi. 1,9s đúng bằng lúc composable xoá emojiBlast nên nó tan

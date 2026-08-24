@@ -454,6 +454,16 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 - **Bot chen vào giữa hai cú bấm của một cặp** làm bàn khoá và nước sau bị bỏ →
   ghép hết bàn mà được 0 cặp. Test nào kiểm chuyện khác thì tắt bot đi
   (`session.setBot(null)`) và chờ hết khoá trước.
+- **BÀN TREO (chưa rõ nguyên nhân gốc).** Đã gặp trên production: hai thẻ mở,
+  đồng hồ lượt về 0, cả hai người chơi không làm gì được, mấy chục giây sau mới
+  tự chạy tiếp. Local KHÔNG tái hiện được (`pnpm smoke:freeze` cho thấy server
+  úp lại + chuyển lượt sau đúng 1 giây). Nghi ngờ: chuỗi alarm của Durable Object
+  bị mất — `scheduleNext()` gọi `deleteAlarm()` khi không có mốc nào, nên chỉ cần
+  một nhánh chạy vào đó lúc trạng thái chưa nạp đủ là đứt.
+  Hai lớp phòng: server hẹn lại giờ ở MỌI tin `flip` (rẻ, biến "treo vĩnh viễn"
+  thành "chậm một nước"), và client có watchdog — đồng hồ lượt về 0 mà server im
+  4 giây thì NÓI RA rồi tự đồng bộ lại. Soi production: `MM_SERVER=... pnpm
+  smoke:freeze`.
 - **`pending` (ô đã bấm, chờ server) được vẽ XOAY 90° — ô mắc lại trong đó trông
   như THẺ BỊ MẤT trên bàn.** Đã gặp thật khi bấm spam: hẹn giờ dọn dùng CHUNG một
   biến nên mỗi cú bấm mới `clearTimeout` cái của ô trước, chỉ ô cuối được giải

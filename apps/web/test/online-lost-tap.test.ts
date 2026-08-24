@@ -136,3 +136,86 @@ describe('emoji chat nổi trên header', () => {
     expect(rule).toMatch(/z-index:\s*\d+/);
   });
 });
+
+describe('chặn cú bấm server chắc chắn bỏ qua', () => {
+  /** Gửi view: 12 ô, `up` là các ô đang mở, lượt của `currentId`. */
+  function guiView(ws: FakeWS, currentId: string, up: number[] = []): void {
+    ws.onmessage?.({ data: JSON.stringify({ t: 'state', view: {
+      cols: 4, rows: 3,
+      cards: Array.from({ length: 12 }, (_, index) => ({
+        index, state: up.includes(index) ? 'up' : 'down', symbol: up.includes(index) ? 'A' : undefined
+      })),
+      players: [{ id: 'p1', name: 'Kiên' }, { id: 'p2', name: 'Bạn' }],
+      currentId, moves: 0, matchedPairs: 0, totalPairs: 6, status: 'playing',
+      timeLeft: null, turnTimeLeft: 15, elapsed: 0, summary: null, back: 'stars'
+    } }) });
+  }
+
+  it('KHÔNG phải lượt mình thì không gửi và không treo ô nào', async () => {
+    const ws = await enterRoom();
+    guiView(ws, 'p2');
+    const truoc = ws.flips.length;
+    room.flip(3);
+    expect(ws.flips.length, 'không gửi').toBe(truoc);
+    expect(room.pending.value.size, 'không treo ô — ô treo bị vẽ xoay 90°, trông như MẤT thẻ').toBe(0);
+  });
+
+  it('bấm ô thứ BA khi đã có hai ô cho lượt này thì bỏ qua', async () => {
+    const ws = await enterRoom();
+    guiView(ws, 'p1');
+    room.flip(0);
+    room.flip(1);
+    const truoc = ws.flips.length;
+    room.flip(2);
+    expect(ws.flips.length).toBe(truoc);
+    expect(room.pending.value.size).toBeLessThanOrEqual(2);
+  });
+
+  it('bấm ô đang MỞ hoặc bấm hai lần cùng một ô thì bỏ qua', async () => {
+    const ws = await enterRoom();
+    guiView(ws, 'p1', [5]);          // ô 5 đang mở
+    const truoc = ws.flips.length;
+    room.flip(5);
+    expect(ws.flips.length, 'ô đang mở').toBe(truoc);
+    room.flip(7);
+    const sauMotO = ws.flips.length;
+    room.flip(7);
+    expect(ws.flips.length, 'bấm lại cùng ô').toBe(sauMotO);
+  });
+
+  it('bấm dồn hai ô hợp lệ thì CẢ HAI đều được thả ra sau hạn, không ô nào treo lại', async () => {
+    const ws = await enterRoom();
+    guiView(ws, 'p1');
+    room.flip(0);
+    room.flip(1);
+    expect(room.pending.value.size).toBe(2);
+    // Server im: mỗi ô phải có hẹn giờ RIÊNG. Dùng chung một hẹn giờ là chỉ ô
+    // cuối được thả, ô kia treo vĩnh viễn ở 90 độ — đúng lỗi "mất thẻ" đã gặp.
+    vi.advanceTimersByTime(2000);
+    expect(room.pending.value.size, 'không ô nào được treo lại').toBe(0);
+  });
+});
+
+describe('bàn treo thì phải nói ra và tự đồng bộ', () => {
+  it('đồng hồ lượt về 0 mà server im 4 giây → báo cho người chơi và vào lại', async () => {
+    const ws = await enterRoom();
+    const soLanMo = FakeWS.opened;
+    // View: đang chơi, đồng hồ lượt ĐÃ HẾT, hai thẻ còn mở — đúng ảnh chụp lỗi
+    ws.onmessage?.({ data: JSON.stringify({ t: 'state', view: {
+      cols: 4, rows: 3,
+      cards: Array.from({ length: 12 }, (_, index) => ({
+        index, state: index < 2 ? 'up' : 'down', symbol: index < 2 ? `S${index}` : undefined
+      })),
+      players: [{ id: 'p1', name: 'Kiên' }, { id: 'p2', name: 'kkkk' }],
+      currentId: 'p2', moves: 2, matchedPairs: 0, totalPairs: 6, status: 'playing',
+      timeLeft: 60, turnTimeLeft: 0, elapsed: 5, summary: null, back: 'stars'
+    } }) });
+
+    vi.advanceTimersByTime(1000);
+    expect(room.netTrouble.value, 'chưa tới hạn thì đừng vội báo').toBe('');
+    vi.advanceTimersByTime(4000);
+    expect(room.netTrouble.value, 'phải NÓI RA, không để người chơi ngồi nhìn màn hình chết')
+      .not.toBe('');
+    expect(FakeWS.opened, 'và tự đồng bộ lại').toBeGreaterThan(soLanMo);
+  });
+});

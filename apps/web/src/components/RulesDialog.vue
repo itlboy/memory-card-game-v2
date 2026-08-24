@@ -127,7 +127,7 @@ const POWERS = [
   font-size: 12px; color: var(--muted); line-height: 1.5;
 }
 .build b { color: var(--fg); font-variant-numeric: tabular-nums; }
-.build .ago { display: block; opacity: .85; font-variant-numeric: tabular-nums; }
+.build .ago { opacity: .85; font-variant-numeric: tabular-nums; }
 
 .overlay {
   position: fixed; inset: 0; z-index: 20;

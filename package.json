@@ -12,6 +12,7 @@
     "dev:legacy": "node legacy/v1/server.js 3002",
     "dev:server": "pnpm --filter @mm/server dev",
     "smoke:online": "node tools/smoke-online.mjs",
+    "smoke:freeze": "node tools/smoke-freeze.mjs",
     "release": "pnpm build && pnpm --filter @mm/server run deploy && node tools/check-share-tags.mjs",
     "check:share": "node tools/check-share-tags.mjs",
     "deploy:server": "pnpm --filter @mm/server run deploy",

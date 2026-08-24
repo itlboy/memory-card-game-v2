@@ -176,6 +176,15 @@ export function useOnlineRoom() {
    * vẫn kịp cứu lượt 15 giây.
    */
   const FLIP_ACK_MS = 1_500;
+  /**
+   * Đồng hồ lượt về 0 mà server im bấy nhiêu ms thì coi như bàn treo.
+   *
+   * 4 giây: server chỉ cần ~50ms để chuyển lượt sau khi đồng hồ hết, nên 4 giây
+   * là chắc chắn có chuyện. Đủ ngắn để người chơi chưa kịp bỏ đi.
+   */
+  const STUCK_MS = 4_000;
+  /** Lúc bắt đầu thấy bàn đứng im; 0 = đang bình thường. */
+  let stuckSince = 0;
 
   /**
    * Bỏ khỏi `pending` những ô server đã trả lời. Không xoá sạch cả tập: người
@@ -222,6 +231,19 @@ export function useOnlineRoom() {
     if (cd !== null && cd !== lastCountdownSec) { lastCountdownSec = cd; sfx.countdown(cd); }
     // Đếm xong: hợp âm vào ván, giải quyết câu nhạc mà countdown() dựng lên
     if (cd === null && lastCountdownSec > 0) { lastCountdownSec = -1; sfx.go(); }
+    // BÀN ĐỨNG IM: đồng hồ lượt đã về 0 mà server không nói gì thêm. Có thể là
+    // chuỗi alarm phía server bị đứt (đã gặp thật: hai thẻ mở, đồng hồ 0, không
+    // ai làm gì được). Người chơi KHÔNG được ngồi nhìn màn hình chết mà không
+    // biết vì sao — nói ra, rồi tự đồng bộ lại.
+    const tLuot = turnTimeLeft.value;
+    if (view.value?.status === 'playing' && tLuot === 0 && !reconnecting.value) {
+      if (!stuckSince) stuckSince = clock.value;
+      else if (clock.value - stuckSince >= STUCK_MS) {
+        stuckSince = 0;
+        reconnectNow('Bàn không phản hồi — đang đồng bộ lại…');
+      }
+    } else stuckSince = 0;
+
     // Tới lượt mình mà còn ≤10 giây: tick dồn dập mỗi 500ms để giục
     const left = turnTimeLeft.value;
     if (left !== null && left > 0 && left <= 10
@@ -613,7 +635,11 @@ export function useOnlineRoom() {
 
   function leaveSocket(): void {
     clearTimeout(reconnectTimer);
+    // Xoá hẹn giờ thì PHẢI xoá luôn `pending`: bỏ hẹn giờ mà giữ ô đang chờ là ô
+    // đó treo vĩnh viễn ở 90 độ — trông như mất thẻ. Vào lại xong server gửi
+    // view thật nên không mất thông tin gì.
     clearAck();
+    pending.value = new Set();
     stopHeartbeat();
     if (ws) {
       intentionalClose = true;
@@ -728,8 +754,13 @@ export function useOnlineRoom() {
       // mình, hoặc đã có 2 ô đang chờ/đang mở. Gửi làm gì cũng bị bỏ, mà ô đó lại
       // mắc trong `pending` và bị vẽ xoay 90° — trông như thẻ biến mất. Đây đúng
       // là điều xảy ra khi bấm spam.
-      const upNow = (view.value?.cards ?? []).filter((c) => c.state === 'up').length;
-      if (!myTurn.value || upNow + pending.value.size >= 2 || pending.value.has(index)) return;
+      const cards = view.value?.cards ?? [];
+      const upNow = cards.filter((c) => c.state === 'up').length;
+      const oNay = cards[index];
+      if (!myTurn.value) return;
+      if (oNay && oNay.state !== 'down') return;    // ô đang mở / đã ghép
+      if (pending.value.has(index)) return;         // bấm hai lần cùng một ô
+      if (upNow + pending.value.size >= 2) return;  // đã đủ hai ô cho lượt này
 
       pending.value = new Set(pending.value).add(index);
       sfx.flip();
