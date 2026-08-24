@@ -53,10 +53,17 @@ export interface BotSpec {
  * nhích retain một chút không tương ứng với nhớ dai thêm một chút.
  *
  *   | mức             | nửa đời | retain | nhớ lẫn chỗ | sức chứa |
- *   | Bot dễ          |  2 nước | 0,7071 | 60%         |  3 lá    |
- *   | Bot bình thường |  4 nước | 0,8409 | 40%         |  5 lá    |
- *   | Bot Pro         |  8 nước | 0,9170 | 20%         |  8 lá    |
- *   | Bot siêu đẳng   | 12 nước | 0,9439 | 10%         | 14 lá    |
+ *   | Bot dễ          |  5 nước | 0,8706 | 60%         |  3 lá    |
+ *   | Bot bình thường | 17 nước | 0,9600 | 40%         |  5 lá    |
+ *   | Bot Pro         | 26 nước | 0,9737 | 20%         |  8 lá    |
+ *   | Bot siêu đẳng   | 38 nước | 0,9819 | 10%         | 14 lá    |
+ *
+ * NỬA ĐỜI TÍNH THEO NƯỚC CỦA CẢ VÁN, KHÔNG PHẢI LƯỢT CỦA BOT. Bot chỉ tồn tại
+ * trong trận 1v1, nên nước của đối thủ cũng làm ký ức nó già đi: nửa đời 38 nước
+ * chỉ là ~19 lượt của chính nó. Đây là lý do bộ số cũ (2-4-8-12) đo trên ván
+ * chơi MỘT MÌNH thì trông ổn (77 lần lật, gần hoàn hảo) nhưng vào trận thật thì
+ * mức đỉnh thắng 0% — thước đo sai. Cân bằng bot PHẢI đo bằng tỉ lệ thắng 1v1
+ * (xem test/duel.test.ts), không đo bằng số lần lật khi chơi một mình.
  *
  * NHỊP NGHĨ GIỐNG NHAU Ở MỌI MỨC (400–3000ms) — có chủ đích. Cho bot giỏi nghĩ
  * nhanh hơn thì đếm thời gian là đoán ra mình đang đấu mức nào, mà độ khó vốn
@@ -66,10 +73,10 @@ export const THINK_MIN_MS = 400;
 export const THINK_MAX_MS = 3000;
 
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy:   { retain: 0.7071, mistake: 0.60, capacity: 3, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot dễ',         avatar: '🐣' },
-  normal: { retain: 0.8409, mistake: 0.40, capacity: 5, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot bình thường', avatar: '🤖' },
-  hard:   { retain: 0.9170, mistake: 0.20, capacity: 8, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot Pro',         avatar: '👾' },
-  insane: { retain: 0.9439, mistake: 0.10, capacity: 14, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot siêu đẳng',   avatar: '🦾' }
+  easy:   { retain: 0.8706, mistake: 0.60, capacity: 3, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot dễ',         avatar: '🐣' },
+  normal: { retain: 0.9600, mistake: 0.40, capacity: 5, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot bình thường', avatar: '🤖' },
+  hard:   { retain: 0.9737, mistake: 0.20, capacity: 8, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot Pro',         avatar: '👾' },
+  insane: { retain: 0.9819, mistake: 0.10, capacity: 14, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot siêu đẳng',   avatar: '🦾' }
 };
 
 /**

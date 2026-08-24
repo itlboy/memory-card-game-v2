@@ -881,32 +881,25 @@ describe('lượt của bot thì người chơi bị chặn', () => {
     await click('Bắt đầu');
     await vi.advanceTimersByTimeAsync(5200);
     await flush();
-    const s = (wrapper.vm as unknown as {
-      session: {
-        setBot: (l: null) => void; moves: { value: number };
-        current: { value: { id: string } | null }; botTurnNow: { value: boolean };
-      }
-    }).session;
-    // Dừng bot lại để lượt của nó đứng yên, rồi thử bấm thay nó
-    if (s.current.value?.id !== 'bot') {
-      // Hai lá LỆCH nhau: `cards[0]` với `cards[2]` có lúc trúng đúng một cặp,
-      // ghép đúng thì người chơi giữ lượt và không bao giờ tới lượt máy để kiểm.
-      const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
-      const a = cards[0]!;
-      const other = cards.find((c) => c.pairId !== a.pairId)!;
-      await wrapper.findAll('.card')[a.index]!.trigger('click');
-      await wrapper.findAll('.card')[other.index]!.trigger('click');
-      await vi.advanceTimersByTimeAsync(1500);
-      await flush();
-    }
-    expect(s.current.value?.id, 'phải đang là lượt máy mới kiểm được').toBe('bot');
-    expect(s.botTurnNow.value).toBe(true);
-    s.setBot(null);            // treo bot lại, lượt vẫn của nó
-    const before = s.moves.value;
+
+    // ĐẶT lượt về máy thay vì chơi cho tới lượt máy: nhờ vào nhịp đi của bot là
+    // test phụ thuộc thời gian, đổi tham số trí nhớ của bot là đỏ oan (đã đỏ
+    // đúng như thế khi nửa đời ký ức tăng lên).
+    //
+    // Và ĐỌC THẲNG ENGINE, không qua computed: đặt turnIndex không kích `rev`
+    // nên computed của Vue còn giữ giá trị cũ — cũng đã đỏ oan vì chuyện này.
+    const g = session(wrapper).game.value! as unknown as {
+      players: { id: string }[]; turnIndex: number; moves: number;
+      current: { id: string };
+    };
+    g.turnIndex = g.players.findIndex((p) => p.id === 'bot');
+    expect(g.current.id, 'phải đang là lượt máy mới kiểm được').toBe('bot');
+
+    const before = g.moves;
     await wrapper.findAll('.card')[0]!.trigger('click');
     await wrapper.findAll('.card')[1]!.trigger('click');
     await flush();
-    expect(s.moves.value, 'nước bấm trong lượt máy phải bị bỏ').toBe(before);
+    expect(g.moves, 'nước bấm trong lượt máy phải bị bỏ').toBe(before);
   });
 });
 

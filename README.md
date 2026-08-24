@@ -159,10 +159,14 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | sức chứa |
   |---|---|---|---|---|
-  | Bot dễ | 0,7071 | 2 | 60% | 3 lá |
-  | Bot bình thường | 0,8409 | 4 | 40% | 5 lá |
-  | Bot Pro | 0,9170 | 8 | 20% | 8 lá |
-  | Bot siêu đẳng | 0,9439 | 12 | 10% | 14 lá |
+  | Bot dễ | 0,8706 | 5 | 60% | 3 lá |
+  | Bot bình thường | 0,9600 | 17 | 40% | 5 lá |
+  | Bot Pro | 0,9737 | 26 | 20% | 8 lá |
+  | Bot siêu đẳng | 0,9819 | 38 | 10% | 14 lá |
+
+  **Nửa đời tính theo NƯỚC CỦA CẢ VÁN, không phải lượt của bot.** Bot chỉ tồn tại
+  trong trận 1v1 nên nước của đối thủ cũng làm ký ức nó già đi: nửa đời 38 nước
+  chỉ là ~19 lượt của chính nó.
 
   **Ba loại quên khác nhau, đừng lẫn:** `retain` là phai theo diễn biến ván
   (`retain ** tuổi`); `mistake` là lỡ tay ở đúng nước đang đi; `capacity` là
@@ -190,7 +194,29 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   ghi" với "biết mà lật trượt", mà hai van cùng diễn một chuyện thì mỗi lần cân
   bằng phải nghĩ cả hai.
 
-  Số đo (số lần lật để bot một mình dọn sạch bàn, 40 seed):
+  **CÂN BẰNG BOT PHẢI ĐO BẰNG TỈ LỆ THẮNG 1v1** (`test/duel.test.ts`), không đo
+  bằng số lần lật khi bot chơi một mình. Đây là lỗi phương pháp đã mắc thật: bộ
+  số cũ (nửa đời 2-4-8-12) cho phép đo solo rất đẹp — mức đỉnh 77 lần lật trên
+  bàn 42 thẻ, tức 1,8 lần lối chơi hoàn hảo — nhưng vào trận thật nó thắng **0%**.
+  Vì solo không có ai làm ký ức nó già đi giữa hai lượt. Người dùng phát hiện
+  trước cả test: "cháu tôi thắng suốt".
+
+  Tỉ lệ bot thắng-hoặc-hoà, đối thủ mô phỏng hai hạng — KHÁ (ghi 80% những gì
+  thấy, nửa đời ~9,5 nước) và GIỎI (ghi 95%, nửa đời ~69 nước), đổi lượt đi trước
+  để bỏ lợi thế người đi đầu:
+
+  | bàn | Bot dễ | bình thường | Pro | siêu đẳng |
+  |---|---|---|---|---|
+  | 4×4 | 23% / 13% | 53% / 25% | 73% / 55% | 75% / 60% |
+  | 4×6 | 5% / 8% | 48% / 15% | 53% / 28% | 63% / 38% |
+  | 6×7 | 13% / 0% | 20% / 3% | 73% / 18% | 93% / 40% |
+
+  Sweep từng van cho thấy **chỉ nửa đời có tác dụng ở mức cao**: hạ sức chứa của
+  Bot siêu đẳng từ 14 xuống 9 chỉ làm nó chậm thêm 5%, còn `mistake` 20%→15% ở
+  Pro thì gần như không đổi. Muốn đổi độ khó thì đổi NỬA ĐỜI.
+
+  Số đo phụ (số lần lật để bot một mình dọn sạch bàn, 40 seed) — chỉ để tham
+  khảo, KHÔNG dùng làm mốc cân bằng:
 
   | bàn | hoàn hảo | Bot dễ | bình thường | Pro | siêu đẳng |
   |---|---|---|---|---|---|
@@ -375,6 +401,12 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   (`session.setBot(null)`) và chờ hết khoá trước.
 - **Nhịp nghĩ của bot là một KHOẢNG** nên `advanceTimersByTime` phải chờ dư,
   không thì test đỏ đúng lúc bot rút phải nhịp chậm.
+- **Đừng "chơi cho tới lượt bot" trong test** — ĐẶT `turnIndex` thẳng. Nhờ vào
+  nhịp đi của bot là test phụ thuộc thời gian: đổi tham số trí nhớ của bot làm nó
+  hay giữ lượt hơn, thế là đỏ oan.
+- **Đặt state thẳng vào engine thì computed của Vue KHÔNG cập nhật** (nó bám số
+  đếm `rev`, mà chỉ engine tự bump). Test nào can thiệp engine thì đọc lại thẳng
+  engine, đừng đọc qua computed — đã đỏ oan vì đúng chuyện này.
 
 ### Probe bằng Playwright
 
@@ -396,6 +428,11 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   `applyFlip()`, người đi `flip()`.
 - **Chặn nước đi ở GỐC, không chỉ khoá giao diện.** Bấm được trong lượt bot thì
   nước đó ghi vào tài khoản bot — người chơi tự tay mở thẻ cho đối thủ ăn điểm.
+- **ĐO ĐÚNG THỨ.** Cân bằng bot đo bằng tỉ lệ thắng 1v1, không phải số lần lật
+  khi chơi một mình — bot chỉ tồn tại trong 1v1, mà ở đó nước của đối thủ cũng
+  làm ký ức nó già đi, nửa đời thực tế chỉ còn một nửa. Đã đo cẩn thận suốt mấy
+  lượt, báo cáo đầy số, mà đo sai thứ: mức đỉnh "gần như hoàn hảo" theo phép đo
+  solo thực ra thắng 0% trong trận thật.
 - **`retain` và nửa đời ký ức là quan hệ hàm số mũ.** Đổi nửa đời thì phải tính
   `0,5 ** (1 / nửa đời)`; nhích `retain` "một chút" không bằng nhớ dai thêm "một
   chút". Và luôn ĐO lại độ khó sau khi đổi: bộ 2/4/5/6 nhìn có vẻ giãn đều nhưng

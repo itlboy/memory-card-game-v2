@@ -315,13 +315,14 @@ describe('quên hẳn bản ghi quá cũ', () => {
     observe(mem, v0, 'easy');
     expect(mem.has(0)).toBe(true);
 
-    // Bot dễ có nửa đời 2 nước → xoá sau 6 nước
+    // Hạn suy ra từ nửa đời, KHÔNG viết số cứng: đổi nửa đời là test đỏ oan
+    const limit = 3 * halfLifeMoves('easy');
     const v1 = view(down);
-    v1.moves = 5;
+    v1.moves = Math.floor(limit) - 1;
     observe(mem, v1, 'easy');
     expect(mem.has(0), 'chưa tới hạn thì còn giữ').toBe(true);
     const v2 = view(down);
-    v2.moves = 9;
+    v2.moves = Math.ceil(limit) + 1;
     observe(mem, v2, 'easy');
     expect(mem.has(0), 'quá hạn thì xoá hẳn, không còn chiếm chỗ trong đầu').toBe(false);
   });
@@ -335,8 +336,8 @@ describe('quên hẳn bản ghi quá cũ', () => {
 
   it('nhờ xoá bản ghi cũ mà TẢI không phình vô hạn — chặn vòng xoáy quên-dồn-quên', () => {
     const mem = createBotMemory();
-    // Mô phỏng 60 nước, mỗi nước thấy một lá mới trên bàn 40 lá
-    for (let move = 0; move < 60; move++) {
+    // Mô phỏng 200 nước, mỗi nước thấy một lá mới trên bàn 40 lá
+    for (let move = 0; move < 200; move++) {
       const cards = Array.from({ length: 40 }, (_, i) => (
         i === move % 40 ? { state: 'up' as const, symbol: `S${i}` } : { state: 'down' as const }
       ));
@@ -344,7 +345,8 @@ describe('quên hẳn bản ghi quá cũ', () => {
       v.moves = move;
       observe(mem, v, 'easy');
     }
-    // Nửa đời 2 nước → cửa sổ 6 nước → giữ khoảng 7 bản ghi, không phải 40
-    expect(mem.size).toBeLessThanOrEqual(8);
+    // Cửa sổ = 3 lần nửa đời, nên số bản ghi giữ lại xấp xỉ đó — không phải 40
+    const win = 3 * halfLifeMoves('easy');
+    expect(mem.size).toBeLessThanOrEqual(Math.ceil(win) + 2);
   });
 });
