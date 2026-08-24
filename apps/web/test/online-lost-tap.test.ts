@@ -219,3 +219,30 @@ describe('bàn treo thì phải nói ra và tự đồng bộ', () => {
     expect(FakeWS.opened, 'và tự đồng bộ lại').toBeGreaterThan(soLanMo);
   });
 });
+
+describe('mất mạng: bàn phải khoá và nói ra', () => {
+  it('mất kết nối thì flip() không gửi gì — bấm vào hư không là tưởng game hỏng', async () => {
+    const ws = await enterRoom();
+    ws.readyState = 3;                       // socket chết
+    const truoc = ws.flips.length;
+    room.flip(4);
+    expect(ws.flips.length).toBe(truoc);
+    expect(room.netTrouble.value).not.toBe('');
+  });
+
+  it('đối thủ mất kết nối thì view báo `connected: false` để UI giải thích', async () => {
+    const ws = await enterRoom();
+    ws.onmessage?.({ data: JSON.stringify({ t: 'state', view: {
+      cols: 4, rows: 3,
+      cards: Array.from({ length: 12 }, (_, index) => ({ index, state: 'down' })),
+      players: [
+        { id: 'p1', name: 'Kiên', connected: true, forfeited: false },
+        { id: 'p2', name: 'kkkk', connected: false, forfeited: false }
+      ],
+      currentId: 'p2', moves: 0, matchedPairs: 0, totalPairs: 6, status: 'playing',
+      timeLeft: null, turnTimeLeft: 8, elapsed: 1, summary: null, back: 'stars'
+    } }) });
+    const kia = room.view.value!.players.find((p) => p.id !== room.myId.value)!;
+    expect(kia.connected, 'UI dựa vào cờ này để hiện "đang chờ đối thủ"').toBe(false);
+  });
+});

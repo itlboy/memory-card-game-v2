@@ -20,6 +20,9 @@ interface RoomPlayer {
   token: string;
   /** Hạn chót vào lại; null = đang kết nối. */
   disconnectedAt: number | null;
+  /** Lần cuối server NHẬN được tin từ người này. Dùng để phát hiện mất mạng im
+   *  lặng (cắt TCP không sinh close). */
+  lastSeen?: number;
   /** Đã bấm sẵn sàng ở lobby. */
   ready: boolean;
 }
@@ -46,6 +49,15 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
  * WebSocket Hibernation giữ phòng rẻ khi không ai thao tác; trạng thái phòng
  * và snapshot engine nằm trong storage nên DO bị evict vẫn khôi phục được.
  */
+/**
+ * Không nhận được tin nào từ một người trong bấy nhiêu ms thì coi là mất kết nối.
+ *
+ * Client gửi `alive` mỗi 4 giây, nên 9 giây là hai nhịp trượt — đủ dung sai cho
+ * mạng xấu. Phải NGẮN HƠN đồng hồ lượt (15 giây): đo được cảnh người kia ngồi
+ * nhìn bàn im suốt 15 giây mà không được báo gì, chính là điều đã bị phản ánh.
+ */
+const SILENT_MS = 9_000;
+
 export class RoomDO extends DurableObject<Env> {
   private room: RoomState | null = null;
   private game: MemoryGame | null = null;
@@ -201,6 +213,10 @@ export class RoomDO extends DurableObject<Env> {
     const att = ws.deserializeAttachment() as Attachment | null;
     const player = this.room.players.find((p) => p.id === att?.playerId);
     if (!player) return;   // khán giả (playerId rỗng) không được gửi hành động
+
+    // Mọi tin nhắn đều là bằng chứng "còn sống" — ghi mốc trước khi xử lý.
+    player.lastSeen = Date.now();
+    if (player.disconnectedAt !== null) player.disconnectedAt = null;
 
     let msg: ClientMsg;
     try {
@@ -370,6 +386,10 @@ export class RoomDO extends DurableObject<Env> {
         return;
       }
 
+      case 'alive':
+        // Chỉ ghi mốc; mốc đã được cập nhật ở đầu hàm cho MỌI tin nhắn.
+        return;
+
       case 'emoji': {
         if (!(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;   // ON-08: danh sách đóng
         if (!this.allowEmoji(player.id)) return;   // vượt hạn mức thì nuốt êm
@@ -431,6 +451,29 @@ export class RoomDO extends DurableObject<Env> {
       this.broadcast({ t: 'state', view: this.view() });
     }
 
+    /*
+     * MẤT MẠNG IM LẶNG: cắt TCP không sinh sự kiện close, nên chỉ dựa vào close
+     * là server tưởng người đó vẫn đang chơi — đối thủ ngồi nhìn bàn im không
+     * hiểu gì, và hạn 30 giây xử thua không bao giờ chạy. Đã đo được đúng cảnh
+     * này bằng hai trình duyệt và cắt mạng một bên.
+     *
+     * Client gửi `alive` mỗi ~12 giây, nên quá SILENT_MS không thấy tin nào là
+     * coi như mất kết nối. Mốc tính từ lần cuối thấy họ, không phải từ bây giờ.
+     */
+    if (this.room.status === 'playing') {
+      let doi = false;
+      for (const p of this.room.players) {
+        if (p.disconnectedAt !== null) continue;
+        const seen = p.lastSeen ?? 0;
+        if (seen && now - seen > SILENT_MS) { p.disconnectedAt = seen; doi = true; }
+      }
+      if (doi) {
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        this.broadcast({ t: 'state', view: this.view() });
+      }
+    }
+
     // Xử thua người rớt mạng quá hạn (ON-07)
     if (this.game && this.room.status === 'playing') {
       for (const p of this.room.players) {
@@ -464,6 +507,9 @@ export class RoomDO extends DurableObject<Env> {
       if (left !== null) marks.push(now + left * 1000 + 50);
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null) marks.push(p.disconnectedAt + ROOM_LIMITS.reconnectMs);
+        // Cả mốc phát hiện mất mạng im lặng: không có nó thì alarm không bao giờ
+        // thức đúng lúc để nhận ra người kia đã đi.
+        else if (p.lastSeen) marks.push(p.lastSeen + SILENT_MS + 500);
       }
     }
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));

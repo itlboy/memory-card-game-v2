@@ -155,6 +155,11 @@ export function useOnlineRoom() {
       }
       pingSentAt = performance.now();
       ws.send(JSON.stringify({ t: 'ping' }));
+      // Kèm một tin ĐI VÀO Durable Object mỗi nhịp (4 giây): `ping` được server tự
+      // trả lời nên DO không thức, tức DO không biết ai còn kết nối — xem chú
+      // thích `alive` trong engine/online.ts. Phải đủ dày để phát hiện mất mạng
+      // NHANH HƠN đồng hồ lượt 15 giây, không thì đối thủ ngồi nhìn bàn im.
+      ws.send(JSON.stringify({ t: 'alive' }));
     };
     beat();   // đo ngay, không thì 4 giây đầu ván chỗ hiện ping còn trống
     pingTimer = setInterval(beat, 4000);

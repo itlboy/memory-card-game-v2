@@ -13,6 +13,7 @@
     "dev:server": "pnpm --filter @mm/server dev",
     "smoke:online": "node tools/smoke-online.mjs",
     "smoke:freeze": "node tools/smoke-freeze.mjs",
+    "smoke:offline": "node tools/smoke-offline.mjs",
     "release": "pnpm build && pnpm --filter @mm/server run deploy && node tools/check-share-tags.mjs",
     "check:share": "node tools/check-share-tags.mjs",
     "deploy:server": "pnpm --filter @mm/server run deploy",

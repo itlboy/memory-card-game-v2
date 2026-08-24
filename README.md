@@ -454,7 +454,19 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 - **Bot chen vào giữa hai cú bấm của một cặp** làm bàn khoá và nước sau bị bỏ →
   ghép hết bàn mà được 0 cặp. Test nào kiểm chuyện khác thì tắt bot đi
   (`session.setBot(null)`) và chờ hết khoá trước.
-- **BÀN TREO (chưa rõ nguyên nhân gốc).** Đã gặp trên production: hai thẻ mở,
+- **MẤT MẠNG IM LẶNG là nguyên nhân của cảnh "bàn treo".** Cắt TCP (mất wifi,
+  đổi mạng, iOS treo kết nối) KHÔNG sinh sự kiện `close`, nên server tưởng người
+  đó vẫn đang chơi. Đo bằng hai trình duyệt thật (`pnpm smoke:offline`):
+  - Bên mất mạng thấy bàn ĐÓNG BĂNG — thẻ vẫn mở, đồng hồ lượt đếm về 0 rồi
+    đứng, vì client tính mọi thứ tại chỗ từ view cuối cùng. Đây chính là cảnh
+    trong ảnh báo lỗi. Dấu hiệu nhận ra: đồng hồ lượt = 0 mà không có gì xảy ra.
+  - Bên còn mạng KHÔNG được báo gì và hạn 30 giây xử thua không bao giờ chạy, vì
+    `disconnectedAt` chỉ được đặt trong `webSocketClose`.
+  Vá: client gửi `alive` mỗi 4 giây (KHÁC `ping` — `ping` do
+  `setWebSocketAutoResponse` tự trả lời nên DO không thức, không biết ai còn
+  sống); server coi im quá `SILENT_MS` = 9 giây là mất kết nối. 9 giây phải NGẮN
+  HƠN đồng hồ lượt 15 giây, không thì đối thủ vẫn ngồi nhìn bàn im.
+- **BÀN TREO — nghi vấn còn lại.** Đã gặp trên production: hai thẻ mở,
   đồng hồ lượt về 0, cả hai người chơi không làm gì được, mấy chục giây sau mới
   tự chạy tiếp. Local KHÔNG tái hiện được (`pnpm smoke:freeze` cho thấy server
   úp lại + chuyển lượt sau đúng 1 giây). Nghi ngờ: chuỗi alarm của Durable Object

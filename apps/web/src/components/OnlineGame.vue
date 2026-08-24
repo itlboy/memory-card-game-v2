@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { QUICK_EMOJIS } from '@mm/engine';
+import { QUICK_EMOJIS, ROOM_LIMITS } from '@mm/engine';
 import type { Card } from '@mm/engine';
 import { Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -39,7 +39,21 @@ const faceUp = computed(() => new Set(
   (o.view.value?.cards ?? []).filter((c) => c.state !== 'down').map((c) => c.index)));
 const matchedSet = computed(() => new Set(
   (o.view.value?.cards ?? []).filter((c) => c.state === 'matched').map((c) => c.index)));
-const locked = computed(() => !o.myTurn.value || o.view.value?.status !== 'playing');
+/**
+ * Bàn khoá khi: không phải lượt mình, ván chưa chạy, HOẶC đang mất kết nối.
+ *
+ * Thêm điều kiện mạng vì đo được: lúc mất mạng, bàn vẫn bấm được mà mỗi cú bấm
+ * rơi vào hư không — người chơi tưởng game hỏng. Khoá lại thì cái họ thấy khớp
+ * với sự thật: đang không nói được với server.
+ */
+const locked = computed(() =>
+  !o.myTurn.value || o.view.value?.status !== 'playing'
+  || o.reconnecting.value || !!o.netTrouble.value);
+
+/** Người chơi khác đang mất kết nối — bên còn online phải biết vì sao bàn im. */
+const doiThuMatMang = computed(() =>
+  (o.view.value?.players ?? []).find((p) => p.id !== o.myId.value && !p.connected && !p.forfeited) ?? null);
+const choBaoLau = Math.round(ROOM_LIMITS.reconnectMs / 1000);
 
 /*
  * Emoji chat KHÔNG còn nằm trong dải thông báo (đã teleport ra body, nổi trên
@@ -138,6 +152,12 @@ watch(() => o.view.value?.summary, (s) => {
     <!-- Nước bấm không tới được server: phải NÓI RA. Im lặng thì người chơi cứ
          bấm vào chỗ không ai nghe cho tới khi hết lượt. -->
     <p v-else-if="o.netTrouble.value" class="reconnect" role="status">⚠️ {{ o.netTrouble.value }}</p>
+    <!-- Đối thủ mất mạng: bàn sẽ im tới khi hết đồng hồ lượt của họ. Không nói ra
+         thì người còn lại ngồi nhìn bàn chết mà tưởng game hỏng — đúng thứ đã bị
+         phản ánh. -->
+    <p v-else-if="doiThuMatMang" class="reconnect" role="status">
+      ⏳ <b>{{ doiThuMatMang.name }}</b> mất kết nối — chờ tối đa {{ choBaoLau }} giây
+    </p>
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
     <div class="notice-bar">

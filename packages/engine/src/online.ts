@@ -196,7 +196,16 @@ export type ClientMsg =
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng
   | { t: 'emoji'; emoji: string }
-  | { t: 'ping' };
+  | { t: 'ping' }
+  /**
+   * Báo còn sống. KHÁC `ping`: `ping` do server tự trả lời (setWebSocketAutoResponse)
+   * nên KHÔNG đánh thức Durable Object — nghĩa là DO không biết ai còn kết nối.
+   * Mất mạng kiểu cắt TCP không sinh sự kiện close, nên nếu chỉ dựa vào close thì
+   * server tưởng người đó vẫn đang chơi: đối thủ ngồi nhìn bàn im mà không được
+   * báo gì, và hạn 30 giây xử thua cũng không bao giờ chạy. Tin này đi thẳng vào
+   * DO để nó ghi mốc "lần cuối thấy còn sống".
+   */
+  | { t: 'alive' };
 
 export interface RoomInfo {
   code: string;
