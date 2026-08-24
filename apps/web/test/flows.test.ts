@@ -1205,23 +1205,47 @@ describe('không ô nào bị dính viền "đang chọn"', () => {
 });
 
 describe('emoji lúc chat to gấp đôi nút bấm', () => {
-  it('emoji người kia gửi và bong bóng trên chip đều lớn hơn nút gửi', () => {
+  it('emoji người kia gửi lớn hơn hẳn nút gửi, và có TÊN người gửi kèm dưới', () => {
     const css = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
     const px = (sel: string): number => {
       const at = css.indexOf(sel);
       expect(at, `không thấy rule ${sel}`).toBeGreaterThan(-1);
       const rule = css.slice(at, css.indexOf('}', at));
-      // lấy số px đầu tiên trong font-size (với clamp thì đó là sàn)
       const m = /font-size:[^;]*?(\d+)px/.exec(rule);
       expect(m, `rule ${sel} phải có font-size theo px`).toBeTruthy();
       return Number(m![1]);
     };
     // Neo vào ĐẦU DÒNG: '.emoji {' còn khớp cả trong '.emoji-bar.spent .emoji {'
-    // (rule đó không có font-size) — đúng cái bẫy vừa làm test đỏ.
-    const nutGui = px('\n.emoji {');        // nút BẤM để gửi — không được phóng
-    const blast = px('.emoji-blast .big');  // emoji hiện ra khi có người gửi
-    const bubble = px('\n.bubble {');         // bong bóng trên chip người chơi
-    expect(blast).toBeGreaterThanOrEqual(nutGui * 2);
-    expect(bubble).toBeGreaterThanOrEqual(nutGui * 2);
+    expect(px('.emoji-blast .big')).toBeGreaterThanOrEqual(px('\n.emoji {') * 2);
+    // Xếp DỌC (biểu tượng trên, tên dưới) và trôi lên mờ dần
+    const at = css.indexOf('.emoji-blast {');
+    const rule = css.slice(at, css.indexOf('}', at));
+    expect(rule).toContain('flex-direction: column');
+    expect(rule).toContain('blast-float');
+    // Dấu nhỏ trên chip người chơi đã bỏ — tên nằm ngay dưới emoji rồi
+    expect(css, 'không còn bong bóng trên chip').not.toContain('class="bubble"');
+  });
+});
+
+
+describe('hai thông báo cùng lúc thì không đè nhau', () => {
+  it('cái tới SAU nằm tầng trên; một mình thì về tầng dưới', async () => {
+    await mountApp();
+    await pickMode('Chớp nhoáng');
+    await start(4);
+    await passCountdown();
+    await flush();
+
+    // Chớp nhoáng: đang hé mở cả bàn → có toast, chưa có banner chuyển lượt
+    const toast = wrapper.find('.notice-bar .toast');
+    expect(toast.exists()).toBe(true);
+    expect(toast.classes(), 'một mình thì KHÔNG nâng tầng').not.toContain('raised');
+  });
+
+  it('quy tắc tầng viết đúng một chỗ trong CSS, dùng cho cả hai loại thông báo', () => {
+    for (const file of ['GameScreen.vue', 'OnlineGame.vue']) {
+      const css = readFileSync(resolve(process.cwd(), `src/components/${file}`), 'utf8');
+      expect(css, `${file} phải có tầng trên cho .raised`).toContain('.notice-bar > .raised');
+    }
   });
 });

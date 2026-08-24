@@ -99,6 +99,26 @@ const isPeek = computed(() => (props.game.config.peekMs ?? 0) > 0);
  * hai bản riêng là hai bản lệch nhau.
  */
 const { wrap, fitStyle } = useBoardFit(() => props.game.config);
+
+/*
+ * Xếp tầng cho dải thông báo: thông báo (thẻ đặc biệt / hé mở / hồi mạng) và
+ * banner chuyển lượt có thể tới CÙNG LÚC, mà cả hai neo một chỗ nên cái sau đè
+ * cái trước.
+ *
+ * Luật: cái nào tới SAU nằm CAO HƠN; chỉ có một thứ hiện thì nó về đúng tầng
+ * dưới, không treo lơ lửng. Cùng luật với màn online (OnlineGame.vue).
+ */
+const newest = ref<'toast' | 'banner'>('toast');
+watch(
+  () => [s.lastPower.value?.index, s.lifeGain.value?.key, s.revealingAll.value] as const,
+  () => { newest.value = 'toast'; }
+);
+watch(() => s.turnBanner.value?.key, (k) => { if (k !== undefined) newest.value = 'banner'; });
+const bothShown = computed(() => {
+  const toast = s.revealingAll.value || !!s.lifeGain.value || !!s.lastPower.value;
+  return toast && !!s.turnBanner.value;
+});
+const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.value === who;
 </script>
 
 <template>
@@ -132,16 +152,16 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
     <div class="notice-bar">
       <!-- Thẻ đặc biệt / hé mở / hồi mạng -->
       <Transition name="toast">
-        <p v-if="s.revealingAll.value" class="toast peek" role="status">
+        <p v-if="s.revealingAll.value" class="toast peek" :class="{ raised: raised('toast') }" role="status">
           <!-- Chữ ngắn để thông báo gọn MỘT dòng: hai dòng thì nó che thêm một
                hàng thẻ, mà đây đúng là lúc người chơi cần nhìn cả bàn. -->
           👀 Ghi nhớ vị trí!
           <b v-if="s.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(s.peekLeft.value) }}s</b>
         </p>
-        <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" role="status">
+        <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" :class="{ raised: raised('toast') }" role="status">
           ❤️ Hồi 1 mạng — ghép đúng hai lần liền!
         </p>
-        <p v-else-if="s.lastPower.value" :key="s.lastPower.value.index" class="toast" role="status">
+        <p v-else-if="s.lastPower.value" :key="s.lastPower.value.index" class="toast" :class="{ raised: raised('toast') }" role="status">
           {{ POWER_TEXT[s.lastPower.value.power] }}
         </p>
       </Transition>
@@ -151,6 +171,7 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
           v-if="s.turnBanner.value"
           :key="s.turnBanner.value.key"
           class="turn-banner"
+          :class="{ raised: raised('banner') }"
           role="status"
           aria-live="polite"
         >
@@ -275,6 +296,10 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
 
 /* Nằm trong .notice-bar nên phải gọn MỘT DÒNG: xếp dọc là dải phải cao gấp
    đôi, mà chỗ đó lấy từ bàn thẻ. */
+/* Tầng TRÊN của dải, dành cho thông báo tới sau khi cả hai đang hiện. Nó lấn
+   lên vùng HUD — chỗ đó đọc lúc nào cũng được, thông báo chỉ hiện một nhịp. */
+.notice-bar > .raised { bottom: 58px; }
+
 .turn-banner {
   display: flex; flex-direction: row; align-items: center; gap: 8px;
   padding: 7px 16px; border-radius: var(--r-full);

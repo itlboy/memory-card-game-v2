@@ -95,6 +95,10 @@ export function useOnlineRoom() {
   const pingSamples: number[] = [];
   /** Mất bao lâu chưa nhận được pong — dùng để biết mình đang mất mạng. */
   const pingLost = ref(0);
+  /** Lý do đang có sự cố đường truyền, '' là không có. Hiện lên UI. */
+  const netTrouble = ref('');
+  /** Hẹn giờ chờ server xác nhận nước vừa bấm. */
+  let ackTimer: ReturnType<typeof setTimeout> | undefined;
   let pingSentAt = 0;
   let pingTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -133,6 +137,12 @@ export function useOnlineRoom() {
 
   /** Ô đã bấm nhưng server chưa xác nhận — UI lật tới 90 độ để bấm là thấy phản hồi. */
   const pending = ref<Set<number>>(new Set());
+  /**
+   * Chờ server xác nhận nước bấm bao lâu thì coi như tin đã rơi. Vòng đi-về đo
+   * được 69ms lúc bình thường và 376ms lúc tệ, nên 1,5 giây là dư an toàn mà
+   * vẫn kịp cứu lượt 15 giây.
+   */
+  const FLIP_ACK_MS = 1_500;
 
   /**
    * Bỏ khỏi `pending` những ô server đã trả lời. Không xoá sạch cả tập: người
@@ -154,7 +164,6 @@ export function useOnlineRoom() {
   const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
-  const bubbles = ref<Record<string, { emoji: QuickEmoji; key: number }>>({});
   /** Emoji mới nhất phóng to giữa bàn cho ấn tượng. */
   const emojiBlast = ref<{ emoji: QuickEmoji; name: string; key: number } | null>(null);
   let blastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -224,8 +233,26 @@ export function useOnlineRoom() {
   const myTurn = computed(() =>
     !spectator.value && !!view.value && !!myId.value && view.value.currentId === myId.value);
 
-  function send(msg: ClientMsg): void {
-    if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
+  /** Gửi tin; trả về false nếu socket không mở (tin bị bỏ). */
+  function send(msg: ClientMsg): boolean {
+    if (ws?.readyState !== WebSocket.OPEN) return false;
+    ws.send(JSON.stringify(msg));
+    return true;
+  }
+
+  /**
+   * Vào lại NGAY, không đợi nhịp tim.
+   *
+   * Vì sao cần: nhịp tim 4 giây và chỉ kết luận socket chết sau 3 nhịp trượt —
+   * tức tới 12 giây. Một lượt chỉ có 15 giây, nên người chơi có thể CHÁY TRỌN
+   * LƯỢT trước khi client kịp nhận ra là mình đang nói vào chỗ không ai nghe.
+   * Đúng lỗi đã bị phản ánh: "bấm rồi mà server không phản hồi, mất lượt luôn".
+   */
+  function reconnectNow(why: string): void {
+    if (!code || !token || reconnecting.value) return;
+    netTrouble.value = why;
+    reconnecting.value = true;
+    connect(code, myName, token);
   }
 
   async function createRoom(name: string, config?: Partial<RoomConfig>): Promise<void> {
@@ -380,11 +407,6 @@ export function useOnlineRoom() {
         break;
 
       case 'emoji': {
-        const cur = bubbles.value[msg.from];
-        bubbles.value = {
-          ...bubbles.value,
-          [msg.from]: { emoji: msg.emoji, key: (cur?.key ?? 0) + 1 }
-        };
         const sender = room.value?.players.find((p) => p.id === msg.from);
         emojiBlast.value = {
           emoji: msg.emoji,
@@ -394,11 +416,6 @@ export function useOnlineRoom() {
         clearTimeout(blastTimer);
         blastTimer = setTimeout(() => { emojiBlast.value = null; }, 1900);
         sfx.select();
-        setTimeout(() => {
-          const rest = { ...bubbles.value };
-          delete rest[msg.from];
-          bubbles.value = rest;
-        }, 2200);
         break;
       }
 
@@ -421,6 +438,9 @@ export function useOnlineRoom() {
 
   function syncTurnClock(v: GameView): void {
     turnDeadline.value = v.turnTimeLeft === null ? 0 : Date.now() + v.turnTimeLeft * 1000;
+    // View về = server còn nghe: huỷ canh xác nhận và xoá cờ sự cố
+    clearTimeout(ackTimer);
+    netTrouble.value = '';
     elapsedMark.value = { sec: v.elapsed, at: Date.now() };
   }
 
@@ -556,6 +576,7 @@ export function useOnlineRoom() {
 
   function leaveSocket(): void {
     clearTimeout(reconnectTimer);
+    clearTimeout(ackTimer);
     stopHeartbeat();
     if (ws) {
       intentionalClose = true;
@@ -638,7 +659,7 @@ export function useOnlineRoom() {
 
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
-    wrongPair, swapPair, lastGain, turnBanner, bubbles, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
+    wrongPair, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
     countdown, countdownLeft, backStyle,
     createRoom, join, leave, resumeStored,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
@@ -649,7 +670,7 @@ export function useOnlineRoom() {
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     start: () => send({ t: 'start' }),
     ping,
-    netQuality,
+    netQuality, netTrouble,
     again: () => {
       // Phản hồi ngay tại chỗ, y như bấm thẻ: chờ server xác nhận mới đổi gì
       // thì người bấm tưởng nút bị hỏng
@@ -668,15 +689,25 @@ export function useOnlineRoom() {
       // lật nốt sang mặt thật.
       pending.value = new Set(pending.value).add(index);
       sfx.flip();
-      send({ t: 'flip', index });
-      // Lượt bị server bỏ qua (không phải lượt mình) không sinh view nào, nên
-      // không có gì dọn `pending` — hẹn giờ trả thẻ về mặt úp
-      setTimeout(() => {
+      if (!send({ t: 'flip', index })) {
+        // Socket không mở: nước bấm này ĐÃ MẤT. Nói ra và vào lại ngay, đừng để
+        // người chơi bấm vào chỗ không ai nghe cho tới khi hết lượt.
+        pending.value = new Set([...pending.value].filter((i) => i !== index));
+        reconnectNow('Mất kết nối — đang vào lại…');
+        return;
+      }
+      netTrouble.value = '';
+      // Canh xác nhận: server nhận được thì view mới về trong vài chục ms. Quá
+      // FLIP_ACK_MS mà im lặng thì hoặc tin bị rơi, hoặc socket chết mà
+      // readyState vẫn báo OPEN (iOS treo kết nối đúng kiểu này) — vào lại để
+      // lấy trạng thái thật, KHÔNG gửi lại nước cũ (gửi lại có thể thành lật
+      // thêm một thẻ nếu nước đầu đã tới).
+      clearTimeout(ackTimer);
+      ackTimer = setTimeout(() => {
         if (!pending.value.has(index)) return;
-        const left = new Set(pending.value);
-        left.delete(index);
-        pending.value = left;
-      }, 1500);
+        pending.value = new Set([...pending.value].filter((i) => i !== index));
+        reconnectNow('Mạng chậm — đang đồng bộ lại…');
+      }, FLIP_ACK_MS);
     },
     pending,
     sendEmoji,

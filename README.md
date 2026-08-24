@@ -42,6 +42,16 @@ thành hai hàng — vừa xấu vừa ăn chỗ của bàn thẻ.
 **Điểm tích luỹ hiện gọn** (`numShort`: 90.000 → "90k"). Số đầy đủ làm huy hiệu
 phình ra và cắt mất chữ trong tên game.
 
+**Hai thông báo cùng lúc thì XẾP TẦNG, cái tới sau ở trên** (`.raised`, xem
+`newest` trong GameScreen/OnlineGame). Cùng neo một chỗ thì cái sau đè cái trước
+và mất một thông tin; mà cố định "emoji luôn ở trên" thì lúc nó hiện một mình lại
+treo lơ lửng. Chỉ nâng khi CẢ HAI đang hiện.
+
+**Emoji chat**: biểu tượng lớn (60–88px), TÊN người gửi ngay dưới, cả cụm trôi
+lên và mờ dần trong 1,9s — đúng bằng lúc composable xoá `emojiBlast` nên nó tan
+hết rồi mới rời DOM. Không còn dấu nhỏ trên chip người chơi (tên đã nằm ngay
+dưới emoji), nên state `bubbles` cũng bỏ luôn.
+
 **Thông báo trong ván nổi trên mép bàn** (`.notice-bar` trong global.css), cao
 `0px` và đè lên HUD. Hai điều nó cố tình không làm: không hiện giữa bàn (che
 đúng chỗ đang bấm, mà lúc mắt thần hé cả bàn thì che nghĩa là mất luôn thứ vừa
@@ -399,6 +409,14 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 - **Bot chen vào giữa hai cú bấm của một cặp** làm bàn khoá và nước sau bị bỏ →
   ghép hết bàn mà được 0 cặp. Test nào kiểm chuyện khác thì tắt bot đi
   (`session.setBot(null)`) và chờ hết khoá trước.
+- **`send()` của WebSocket phải TRẢ VỀ có gửi được hay không.** Bỏ tin âm thầm
+  khi socket không mở là lỗi đã gặp: người chơi bấm thẻ, tin rơi, và nhịp tim
+  phải 3 nhịp × 4 giây = 12 giây mới kết luận socket chết — trong khi một lượt
+  chỉ 15 giây, nên họ CHÁY TRỌN LƯỢT mà không hiểu vì sao. Giờ gửi thất bại là
+  vào lại NGAY (`reconnectNow`) và nói ra trên UI; ngoài ra có canh xác nhận
+  1,5s cho trường hợp socket báo OPEN mà server im (iOS treo kết nối đúng kiểu
+  này). KHÔNG gửi lại nước cũ — nước đầu có thể đã tới, gửi lại thành lật thêm
+  một thẻ; vào lại rồi lấy trạng thái thật từ server.
 - **Nhịp nghĩ của bot là một KHOẢNG** nên `advanceTimersByTime` phải chờ dư,
   không thì test đỏ đúng lúc bot rút phải nhịp chậm.
 - **Đừng "chơi cho tới lượt bot" trong test** — ĐẶT `turnIndex` thẳng. Nhờ vào

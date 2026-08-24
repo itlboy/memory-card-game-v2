@@ -41,6 +41,26 @@ const matchedSet = computed(() => new Set(
   (o.view.value?.cards ?? []).filter((c) => c.state === 'matched').map((c) => c.index)));
 const locked = computed(() => !o.myTurn.value || o.view.value?.status !== 'playing');
 
+/*
+ * Xếp tầng cho dải thông báo: thông báo chuyển lượt và emoji người kia gửi có
+ * thể tới CÙNG LÚC, mà cả hai neo một chỗ nên cái sau đè cái trước và mất một
+ * thông tin.
+ *
+ * Luật: cái nào tới SAU thì nằm CAO HƠN (như tin nhắn mới đẩy tin cũ lên). Và
+ * khi chỉ có một thứ hiện thì nó luôn về đúng tầng dưới — không để một thông báo
+ * lẻ treo lơ lửng ở tầng trên.
+ */
+const newest = ref<'emoji' | 'banner'>('banner');
+watch(() => o.emojiBlast.value?.key, (k) => { if (k !== undefined) newest.value = 'emoji'; });
+watch(
+  () => o.lifeGain.value?.key ?? o.turnBanner.value?.key,
+  (k) => { if (k !== undefined) newest.value = 'banner'; }
+);
+const bothShown = computed(() =>
+  !!o.emojiBlast.value && !!(o.lifeGain.value ?? o.turnBanner.value));
+/** Chỉ nâng khi CẢ HAI đang hiện, và chỉ nâng cái tới sau. */
+const raised = (who: 'emoji' | 'banner'): boolean => bothShown.value && newest.value === who;
+
 /** Vị trí "+điểm": tâm ô thẻ vừa ghép, tính theo % của lưới. */
 const gainStyle = computed(() => {
   const g = o.lastGain.value;
@@ -121,11 +141,6 @@ watch(() => o.view.value?.summary, (s) => {
           🏅{{ o.seriesWins.value[p.name] }}
         </span>
         <span class="pts">{{ p.score }}</span>
-        <Transition name="bubble">
-          <span v-if="o.bubbles.value[p.id]" :key="o.bubbles.value[p.id]!.key" class="bubble">
-            {{ o.bubbles.value[p.id]!.emoji }}
-          </span>
-        </Transition>
       </div>
     </div>
 
@@ -133,23 +148,26 @@ watch(() => o.view.value?.summary, (s) => {
       👁️ Phòng đã bắt đầu — bạn đang xem trận đấu
     </p>
     <p v-if="o.reconnecting.value" class="reconnect" role="status">📡 Mất kết nối — đang vào lại…</p>
+    <!-- Nước bấm không tới được server: phải NÓI RA. Im lặng thì người chơi cứ
+         bấm vào chỗ không ai nghe cho tới khi hết lượt. -->
+    <p v-else-if="o.netTrouble.value" class="reconnect" role="status">⚠️ {{ o.netTrouble.value }}</p>
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
     <div class="notice-bar">
       <!-- Emoji người kia gửi -->
       <Transition name="blast">
-        <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
+        <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" :class="{ raised: raised('emoji') }" aria-hidden="true">
           <span class="big">{{ o.emojiBlast.value.emoji }}</span>
           <span class="from">{{ o.emojiBlast.value.name }}</span>
         </div>
       </Transition>
 
       <Transition name="banner">
-        <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
+        <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" :class="{ raised: raised('banner') }" role="status" aria-live="polite">
           <span class="who">❤️ <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
           <small>Ghép đúng hai lần liền khi đang nguy</small>
         </div>
-        <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
+        <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" :class="{ raised: raised('banner') }" role="status" aria-live="polite">
           <small v-if="o.turnBanner.value.frozen">❄️ {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
           <span class="who">
             <span class="avatar">{{ o.turnBanner.value.avatar || '🎮' }}</span>
@@ -284,16 +302,6 @@ watch(() => o.view.value?.summary, (s) => {
 .plus-leave-active { transition: opacity .3s; }
 .plus-leave-to { opacity: 0; }
 .pchip.active .pts { color: var(--accent); }
-/* Bong bóng trên chip người chơi: cũng gấp đôi (22px → 44px), lệch lên cao hơn
-   cho khỏi che tên. */
-.bubble {
-  position: absolute; top: -44px; left: 4px; font-size: 44px;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .25)); z-index: 4;
-}
-.bubble-enter-active { transition: transform .25s cubic-bezier(.3, 1.6, .5, 1), opacity .2s; }
-.bubble-enter-from { transform: scale(.3) translateY(8px); opacity: 0; }
-.bubble-leave-active { transition: opacity .3s, transform .3s; }
-.bubble-leave-to { opacity: 0; transform: translateY(-10px); }
 
 .reconnect {
   margin: 0; padding: 6px 12px; border-radius: var(--r-sm); text-align: center;
@@ -374,18 +382,35 @@ watch(() => o.view.value?.summary, (s) => {
 
 /* Emoji người kia gửi: nằm trong dải thông báo TRÊN bàn, xếp ngang một dòng —
    trước đây nó phóng 110px giữa bàn, đúng lúc đối thủ đang chờ mình đi thì cả
-   bàn bị che. */
+   bàn bị che.
+
+   Tầng trên/dưới do `.raised` quyết định — xem `newest` trong script.
+
+   Xếp DỌC: biểu tượng trên, TÊN người gửi ngay dưới — đọc được ai vừa nói mà
+   không cần dấu nhỏ trên chip người chơi (đã bỏ). Cả cụm trôi lên và mờ dần như
+   một câu nói bay đi. 1,9s đúng bằng lúc composable xoá emojiBlast nên nó tan
+   hết rồi mới rời DOM, không bị cắt ngang. */
 .emoji-blast {
-  display: flex; flex-direction: row; align-items: center; gap: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
   pointer-events: none;
+  animation: blast-float 1.9s ease-out forwards;
 }
+@keyframes blast-float {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  12%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  70%  { opacity: 1; transform: translateX(-50%) translateY(-14px); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-42px); }
+}
+/* Tầng TRÊN, dành cho thông báo tới sau khi cả hai đang hiện. Nó lấn lên vùng
+   HUD — chỗ đó đọc lúc nào cũng được, còn thông báo chỉ hiện một nhịp. */
+.notice-bar > .raised { bottom: 58px; }
 /* Gấp đôi cỡ cũ (30–44px → 60–88px): emoji người kia gửi là lời "nói", phải đọc
    được từ xa. Nó nằm trong .notice-bar (cao 0px) nên phóng to KHÔNG đẩy bàn thẻ
    xuống — chỉ đè lên HUD một nhịp rồi tan. Nút BẤM để gửi giữ nguyên cỡ. */
 .emoji-blast .big {
   font-size: clamp(60px, 16vw, 88px); line-height: 1;
   filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .35));
-  animation: blast-pop 1.9s cubic-bezier(.2, 1.4, .4, 1) forwards;
+  animation: blast-pop .5s cubic-bezier(.2, 1.4, .4, 1);
 }
 .emoji-blast .from {
   font-family: var(--font-display); font-weight: 700; font-size: var(--text-md);
@@ -393,11 +418,12 @@ watch(() => o.view.value?.summary, (s) => {
   background: color-mix(in srgb, var(--accent) 85%, black);
   box-shadow: 0 4px 14px var(--card-back-glow);
 }
+/* Nảy vào một nhịp. KHÔNG có translateX ở đây: cụm CHA mới là cái căn giữa,
+   để đây thì nó lệch nửa bề rộng. */
 @keyframes blast-pop {
-  0% { transform: translateX(-50%) scale(.3) rotate(-14deg); opacity: 0; }
-  20% { transform: translateX(-50%) scale(1.25) rotate(6deg); opacity: 1; }
-  32% { transform: translateX(-50%) scale(1) rotate(0); }
-  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  0%   { transform: scale(.3) rotate(-14deg); }
+  55%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
 }
 .blast-enter-active { transition: opacity .1s; }
 .blast-leave-active { transition: opacity .25s; }
