@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { DEAL_WINDOW_MS, dealSpan, dealStep } from '@/lib/timing';
 
-/** Hình và tiếng chia bài từng lấy hai công thức khác nhau nên lệch hẳn:
- *  bàn 4 thẻ hình xong sau 84ms mà tiếng kêu tới 350ms. Test này khoá lại. */
-describe('nhịp chia bài (hình và tiếng dùng chung)', () => {
+/**
+ * Nhịp chia bài (chỉ còn phần HÌNH — tiếng chia bài đã bỏ theo yêu cầu, nó gây
+ * khó chịu; `dealSpan` giữ lại vì nó là mốc "thẻ cuối đã bay vào", CardTile dùng
+ * để biết lúc nào chia xong).
+ */
+describe('nhịp chia bài', () => {
   it('bàn nhỏ giữ độ so le 28ms, bàn lớn nén lại', () => {
     expect(dealStep(4)).toBe(28);
     expect(dealStep(16)).toBe(28);
@@ -16,12 +19,9 @@ describe('nhịp chia bài (hình và tiếng dùng chung)', () => {
     }
   });
 
-  it('thẻ cuối bay vào đúng lúc tiếng cuối vang — cùng một dealSpan', () => {
+  it('dealSpan đúng bằng lúc thẻ CUỐI bay vào', () => {
     for (const n of [4, 16, 50]) {
-      // Hình: thẻ thứ n-1 có delay = dealStep * (n-1)
-      const lastCardDelay = dealStep(n) * (n - 1);
-      // Tiếng: tiếng thứ 12 (cuối) có delay = dealSpan
-      expect(lastCardDelay).toBeCloseTo(dealSpan(n), 6);
+      expect(dealStep(n) * (n - 1)).toBeCloseTo(dealSpan(n), 6);
     }
   });
 

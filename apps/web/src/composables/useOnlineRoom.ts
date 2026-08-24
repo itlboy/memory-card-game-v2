@@ -163,7 +163,7 @@ export function useOnlineRoom() {
   const turnDeadline = ref(0);
   /** Mốc thời gian đã trôi của ván (giây + thời điểm nhận) — đếm tiếp cục bộ. */
   const elapsedMark = ref<{ sec: number; at: number } | null>(null);
-  /** Đếm ngược 5 giây trước ván + người đi đầu. */
+  /** Đếm ngược trước ván (ROOM_LIMITS.countdownMs) + người đi đầu. */
   const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
   /** Mặt sau của ván — bốc ngẫu nhiên mỗi ván mới. */
   /** Mặt sau lấy TỪ SERVER: bốc tại client thì hai người chơi cùng một bàn lại

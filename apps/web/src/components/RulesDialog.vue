@@ -13,7 +13,7 @@ const MODES = [
   { icon: '🧠', name: 'Cổ điển', text: 'Không giới hạn thời gian. Lật sai bị trừ 10 điểm.' },
   { icon: '⏱️', name: 'Đua thời gian', text: 'Có đồng hồ đếm ngược. Mỗi lần ghép đúng được cộng 2 giây, xong sớm thì thưởng thêm điểm.' },
   { icon: '❤️', name: 'Sinh tồn', text: '5 mạng. Chỉ mất mạng khi thẻ vừa mở đã từng lộ ra — lật hai thẻ mới toanh là dò bài, không bị trừ. Dưới 2 mạng mà ghép đúng hai lần liền thì hồi 1 mạng.' },
-  { icon: '👁️', name: 'Chớp nhoáng', text: 'Đếm ngược 5 giây rồi cả bàn hé mở — bàn càng nhiều thẻ càng được nhìn lâu (bàn lớn nhất 42 thẻ được 13 giây). Nhớ được bao nhiêu thì ghép bấy nhiêu.' }
+  { icon: '👁️', name: 'Chớp nhoáng', text: 'Đếm ngược 3 giây rồi cả bàn hé mở — bàn càng nhiều thẻ càng được nhìn lâu (bàn lớn nhất 42 thẻ được 13 giây). Nhớ được bao nhiêu thì ghép bấy nhiêu.' }
 ];
 
 const POWERS = [

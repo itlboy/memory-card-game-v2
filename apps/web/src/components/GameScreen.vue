@@ -195,7 +195,7 @@ const { wrap, fitStyle } = useBoardFit(() => props.game.config);
         />
       </template>
 
-      <!-- Đếm ngược 5 giây trước ván: báo người đi đầu (multiplayer), hoặc báo
+      <!-- Đếm ngược trước ván: báo người đi đầu (multiplayer), hoặc báo
            trước khi cả bàn bật lên (Chớp nhoáng) -->
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>

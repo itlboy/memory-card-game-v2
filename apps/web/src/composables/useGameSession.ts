@@ -1,4 +1,4 @@
-import { MemoryGame } from '@mm/engine';
+import { MemoryGame, ROOM_LIMITS } from '@mm/engine';
 import type { Card, GameConfig, GameEvent, Player, Summary } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { botPick, botRng, botThinkMs, createBotMemory, observe, publicView } from '@mm/engine';
@@ -34,7 +34,7 @@ export function useGameSession() {
   const now = ref(0);
   let lastTickSecond = -1;
   let lastTurnTickAt = 0;
-  /** Đếm ngược 5 giây trước ván multiplayer; 0 = không dùng. */
+  /** Đếm ngược trước ván multiplayer (ROOM_LIMITS.countdownMs); 0 = không dùng. */
   let countdownUntil = 0;
   let lastCdSec = -1;
   const countdownLeft = ref<number | null>(null);
@@ -257,19 +257,18 @@ export function useGameSession() {
     botMem = createBotMemory();
     botRandom = botRng(config.seed);
     pickBack();
-    // Đếm ngược 5 giây trước khi ván chạy. Multiplayer cần để người đi đầu
-    // không bị động; Chớp nhoáng cần vì cả bàn bật lên rồi úp lại chỉ trong 4
-    // giây — không báo trước thì người chơi chưa kịp nhìn đã hết.
+    // Đếm ngược trước khi ván chạy. Multiplayer cần để người đi đầu không bị
+    // động; Chớp nhoáng cần vì cả bàn bật lên rồi úp lại chỉ trong 4 giây —
+    // không báo trước thì người chơi chưa kịp nhìn đã hết.
     if (g.isMultiplayer || (g.config.peekMs ?? 0) > 0) {
-      countdownUntil = now.value + 5000;
+      countdownUntil = now.value + ROOM_LIMITS.countdownMs;
       lastCdSec = -1;
-      countdownLeft.value = 5;
+      countdownLeft.value = Math.ceil(ROOM_LIMITS.countdownMs / 1000);
     } else {
       countdownUntil = 0;
       countdownLeft.value = null;
       g.start(now.value);
     }
-    sfx.deal(g.cards.length);
     bump();
     raf = requestAnimationFrame(loop);
     return g;

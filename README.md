@@ -125,7 +125,7 @@ server.js            Web server tĩnh cho bản build production
 |---|---|
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
-| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
+| Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. Ô cấp LUÔN ghi số thẻ (mọi trạng thái: đã qua, đang tới, khoá) — sao và ổ khoá là dấu ở góc, không giành chỗ của nó. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
 | Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Bot siêu đẳng rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
@@ -144,7 +144,7 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 | Cổ điển | Không giới hạn thời gian; lật sai −10 điểm |
 | Đua thời gian | Đồng hồ đếm ngược; mỗi cặp đúng **+2 giây** (`MATCH_TIME_BONUS_MS`), xong sớm thưởng thêm điểm |
 | Sinh tồn | 5 mạng. Chỉ mất mạng khi thẻ vừa mở **đã từng lộ ra** — lật hai thẻ chưa ai thấy là dò bài, không bị trừ. Dưới 2 mạng mà ghép đúng **hai lần liền** thì hồi 1 mạng |
-| Chớp nhoáng | Đếm ngược 5 giây báo trước, rồi hé mở cả bàn — thời gian nhìn giãn theo số thẻ (`peekMsFor`: 2 giây + 0,26 giây mỗi thẻ, nên bàn 42 thẻ được 13 giây) |
+| Chớp nhoáng | Đếm ngược 3 giây báo trước, rồi hé mở cả bàn — thời gian nhìn giãn theo số thẻ (`peekMsFor`: 2 giây + 0,26 giây mỗi thẻ, nên bàn 42 thẻ được 13 giây) |
 | Chiến dịch | Riêng chế độ này xếp 1–3 sao; nửa sau siết mốc sao. Cấp cần nhiều biểu tượng hơn bộ theme khả dụng sẽ bị khoá kèm nhắc |
 
 ### Đối thủ máy (bot)

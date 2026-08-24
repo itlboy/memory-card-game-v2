@@ -8,7 +8,6 @@
  *
  * Mọi tiếng đều đi qua master gain + compressor để nhiều nốt chồng nhau không vỡ.
  */
-import { dealSpan } from './timing.js';
 
 interface VoiceOpts {
   dur?: number;
@@ -256,26 +255,6 @@ class Sfx {
   flip(): void {
     this.noise(0.07, { freq: 2800, gain: 0.06 });
     this.voice(640, { dur: 0.05, type: 'triangle', gain: 0.035 });
-  }
-
-  /**
-   * Chia bài đầu ván: chuỗi tiếng giấy trải ĐÚNG bằng thời gian hiệu ứng hình
-   * (xem lib/timing). Không cần một tiếng cho mỗi thẻ — bàn 50 thẻ thì 50
-   * tiếng chồng nhau thành tiếng rít; 8 tiếng rải đều là đủ dày.
-   *
-   * Đục và ngắn, không sáng: bản trước dùng highpass 2200–3400Hz nên nghe
-   * "rẹt rẹt" xót tai. Bandpass quanh 700–1000Hz với Q hẹp cho ra tiếng "phụp"
-   * mềm như bìa giấy đặt xuống mặt bàn, cộng một tiếng trầm rất nhẹ để có thân.
-   */
-  deal(cards: number): void {
-    const span = dealSpan(cards) / 1000;
-    const ticks = Math.max(1, Math.min(cards, 8));
-    for (let i = 0; i < ticks; i++) {
-      const delay = ticks > 1 ? (i / (ticks - 1)) * span : 0;
-      const k = ticks > 1 ? i / (ticks - 1) : 0;
-      this.noise(0.035, { type: 'bandpass', q: 1.4, freq: 700 + k * 300, gain: 0.05, delay });
-      this.voice(150 + k * 40, { dur: 0.05, type: 'sine', gain: 0.02, delay });
-    }
   }
 
   /** Tráo hai thẻ: hai tiếng giấy trượt qua nhau, cao rồi thấp — nghe ra "đổi

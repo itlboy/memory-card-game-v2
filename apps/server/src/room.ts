@@ -301,7 +301,7 @@ export class RoomDO extends DurableObject<Env> {
         // đếm ngược 5 giây để người đi đầu không bị động
         this.prepareGame();
         this.room.status = 'countdown';
-        this.room.countdownEnd = Date.now() + 5000;
+        this.room.countdownEnd = Date.now() + ROOM_LIMITS.countdownMs;
         await this.save();
         const first = this.game!.current;
         this.broadcast({ t: 'room', room: this.roomInfo() });

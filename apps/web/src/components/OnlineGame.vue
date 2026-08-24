@@ -171,7 +171,7 @@ watch(() => o.view.value?.summary, (s) => {
       <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
         +{{ o.lastGain.value.amount }}
       </span>
-      <!-- Đếm ngược 5 giây trước ván + báo người đi đầu -->
+      <!-- Đếm ngược trước ván + báo người đi đầu -->
       <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
         <span class="first">🎲 <b>{{ o.countdown.value?.firstName }}</b> đi trước!</span>

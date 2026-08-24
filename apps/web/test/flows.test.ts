@@ -4,6 +4,8 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
+import { ROOM_LIMITS } from '@mm/engine';
+import { sfx } from '@/lib/audio';
 
 /** Truy cập engine bên trong App để chơi tất định. */
 type Session = {
@@ -15,6 +17,16 @@ const THEMES = {
   themes: [{ id: 'animals', name: 'Động vật', unlockAt: 0,
     symbols: Array.from({ length: 24 }, (_, i) => `S${i}`) }]
 };
+
+/**
+ * Chờ hết màn đếm ngược vào ván. ĐỌC TỪ HẰNG SỐ, không viết số cứng: đổi
+ * countdownMs (5s → 3s) là cả loạt test đỏ vì phần dư của cú advance bị tính
+ * vào đồng hồ lượt / đồng hồ hé mở (đã đỏ đúng như thế, 3 test).
+ */
+async function passCountdown(): Promise<void> {
+  await vi.advanceTimersByTimeAsync(ROOM_LIMITS.countdownMs + 100);
+  await flush();
+}
 
 async function flush(times = 4): Promise<void> {
   for (let i = 0; i < times; i++) { await nextTick(); await Promise.resolve(); }
@@ -98,7 +110,9 @@ async function winGame(missFirst = false): Promise<void> {
     await tiles()[b]!.trigger('click');
     await flush();
   }
-  // Thắng xong ăn mừng 5s rồi popup mới hiện
+  // Thắng xong ăn mừng 5s rồi popup mới hiện. KHÔNG dùng passCountdown() ở đây:
+  // đây là màn ăn mừng (App.vue: resultTimer 5000ms), không phải đếm ngược vào
+  // ván — hai con số khác nhau và không liên quan gì nhau.
   await vi.advanceTimersByTimeAsync(5100);
   await flush();
 }
@@ -252,8 +266,7 @@ describe('luồng trọn ván', () => {
     await mountApp();
     await pickMode('Chớp nhoáng');
     await start();
-    await vi.advanceTimersByTimeAsync(5100);   // đếm ngược báo trước 5 giây
-    await flush();
+    await passCountdown();
     expect(wrapper.text()).toContain('Ghi nhớ vị trí');
     expect(wrapper.findAll('.card.up, .card.peek').length).toBeGreaterThan(0);
     await wrapper.findAll('.card')[0]!.trigger('click');     // bị chặn khi đang hé mở
@@ -404,8 +417,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await click('Tiếp tục');        // bước điền tên — để trống, dùng "Người 1/2"
     await click('Cổ điển');
     await start();
-    await vi.advanceTimersByTimeAsync(5100);   // qua màn đếm ngược 5 giây
-    await flush();
+    await passCountdown();
   }
 
   it('người đang tới lượt có đồng hồ đếm ngược từ 15s', async () => {
@@ -466,8 +478,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     await wrapper.findAll('.card')[0]!.trigger('click');
     await flush();
     expect(wrapper.findAll('.card.up')).toHaveLength(0);
-    await vi.advanceTimersByTimeAsync(5200);
-    await flush();
+    await passCountdown();
     expect(wrapper.find('.countdown').exists()).toBe(false);
     await wrapper.findAll('.card')[0]!.trigger('click');
     await flush();
@@ -537,8 +548,7 @@ describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
     expect(wrapper.text()).toContain('Sắp mở cả bàn');
     expect(wrapper.findAll('.card.peek')).toHaveLength(0);
 
-    await vi.advanceTimersByTimeAsync(5100);
-    await flush();
+    await passCountdown();
 
     // Hết đếm ngược thì cả bàn hé mở, kèm số giây còn lại
     expect(wrapper.find('.countdown').exists()).toBe(false);
@@ -811,8 +821,7 @@ describe('đấu với máy', () => {
   it('máy TỰ lật khi tới lượt nó — không cần người chơi bấm hộ', async () => {
     await mountApp();
     await startVsBot('Bot Pro');
-    await vi.advanceTimersByTimeAsync(5200);   // đếm ngược vào ván
-    await flush();
+    await passCountdown();
     const s = (wrapper.vm as unknown as {
       session: { moves: { value: number }; current: { value: { id: string } | null } }
     }).session;
@@ -841,8 +850,7 @@ describe('đấu với máy', () => {
   it('mức Ngu KHÔNG cộng điểm tích luỹ — cày máy dễ không mở được theme', async () => {
     await mountApp();
     await startVsBot('Bot dễ');
-    await vi.advanceTimersByTimeAsync(5200);
-    await flush();
+    await passCountdown();
     const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
     await muteBot();
     await winGame();
@@ -855,8 +863,7 @@ describe('đấu với máy', () => {
   it('mức Pro cộng ĐÚNG điểm của người, không cộng điểm của bot', async () => {
     await mountApp();
     await startVsBot('Bot Pro');
-    await vi.advanceTimersByTimeAsync(5200);
-    await flush();
+    await passCountdown();
     await muteBot();
     const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
     await winGame();
@@ -879,8 +886,7 @@ describe('lượt của bot thì người chơi bị chặn', () => {
     await click('Cổ điển');
     await click('Cấp 8,');
     await click('Bắt đầu');
-    await vi.advanceTimersByTimeAsync(5200);
-    await flush();
+    await passCountdown();
 
     // ĐẶT lượt về máy thay vì chơi cho tới lượt máy: nhờ vào nhịp đi của bot là
     // test phụ thuộc thời gian, đổi tham số trí nhớ của bot là đỏ oan (đã đỏ
@@ -945,8 +951,7 @@ describe('mở khoá cấp sau', () => {
     await click('Cổ điển');
     await click('Cấp 1,');
     await click('Bắt đầu');
-    await vi.advanceTimersByTimeAsync(5200);
-    await flush();
+    await passCountdown();
     await muteBotOf(wrapper);
     // Bơm điểm cho bot để nó dẫn đầu lúc kết ván: mô phỏng đúng tình huống
     // "để bot phá bàn" mà không phải điều khiển được lượt của nó trong test.
@@ -974,8 +979,7 @@ describe('mở khoá cấp sau', () => {
     expect(openNodes(), 'lúc đầu chỉ mở cấp 1').toBe(1);
     await click('Cấp 1,');
     await click('Bắt đầu');
-    await vi.advanceTimersByTimeAsync(5200);
-    await flush();
+    await passCountdown();
     await muteBotOf(wrapper);
     // Ép lượt về NGƯỜI trước khi ghép: ghép đúng thì giữ lượt, nên ai đang tới
     // lượt sẽ ăn trọn bàn. Bot đi trước là bot thắng và test kiểm sai thứ.
@@ -1043,5 +1047,60 @@ describe('nhịp lắc không được nháy', () => {
     // Và khai báo `deal` phải được TẮT sau khi chạy xong, không thì hết nhịp
     // hover là deal chạy lại từ đầu (đo được cú nhảy 29°).
     expect(style).toContain('.card.settled { animation: none; }');
+  });
+});
+
+describe('đếm ngược vào ván', () => {
+  it('dài đúng ROOM_LIMITS.countdownMs (3 giây), và client-server đọc CHUNG con số', async () => {
+    await mountApp();
+    await pickMode('Chớp nhoáng');
+    await start();
+    const s = (wrapper.vm as unknown as {
+      session: { countdownLeft: { value: number | null } }
+    }).session;
+    expect(s.countdownLeft.value).toBe(Math.ceil(ROOM_LIMITS.countdownMs / 1000));
+
+    // Chưa hết hạn thì vẫn còn đếm
+    await vi.advanceTimersByTimeAsync(ROOM_LIMITS.countdownMs - 400);
+    await flush();
+    expect(s.countdownLeft.value).not.toBeNull();
+
+    // Qua hạn thì vào ván
+    await vi.advanceTimersByTimeAsync(700);
+    await flush();
+    expect(s.countdownLeft.value).toBeNull();
+  });
+
+  it('KHÔNG còn tiếng chia bài — nó gây khó chịu, đã bỏ', () => {
+    expect((sfx as unknown as Record<string, unknown>).deal).toBeUndefined();
+  });
+});
+
+describe('bản đồ cấp hiện số thẻ', () => {
+  it('cấp ĐÃ QUA vẫn hiện số thẻ — đó là thông tin để chọn cấp', async () => {
+    // Qua cấp 1 và 2, mở tới cấp 3
+    localStorage.setItem('mm.v2', JSON.stringify({
+      levels: { 'classic:1': { stars: 3, score: 900 }, 'classic:2': { stars: 1, score: 100 } }
+    }));
+    await mountApp();
+    await pickMode('Cổ điển');
+    const nodes = wrapper.findAll('.node');
+    expect(nodes.length).toBeGreaterThan(3);
+    // Trước đây số thẻ nằm trong nhánh v-else của phần sao, nên ô đã qua chỉ
+    // hiện sao và MẤT số thẻ.
+    for (const n of nodes.slice(0, 3)) {
+      expect(n.text(), `ô "${n.text()}" phải ghi số thẻ`).toMatch(/\d+ thẻ/);
+    }
+    expect(nodes[0]!.classes(), 'ô cấp 1 phải là ô đã qua').toContain('cleared');
+    expect(nodes[0]!.text()).toMatch(/\d+ thẻ/);
+  });
+
+  it('ô KHOÁ cũng ghi số thẻ, để người chơi biết phía trước là gì', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await pickMode('Cổ điển');
+    const locked = wrapper.findAll('.node.locked');
+    expect(locked.length).toBeGreaterThan(0);
+    expect(locked[0]!.text()).toMatch(/\d+ thẻ/);
   });
 });

@@ -37,7 +37,10 @@ export const ROOM_LIMITS = {
    *  Client dùng để làm mờ nút, server dùng để thực sự chặn (client không
    *  đáng tin — ON-09), nên hai bên phải đọc cùng một con số. */
   emojiBurst: 3,
-  emojiWindowMs: 5_000
+  emojiWindowMs: 5_000,
+  /** Đếm ngược trước khi ván chạy. Client và server PHẢI đọc cùng con số này,
+   *  lệch nhau là một bên đã cho lật khi bên kia còn đang đếm. */
+  countdownMs: 3_000
 } as const;
 
 /**

@@ -106,11 +106,14 @@ watch(nextLevel, scrollToActive);
               @click="emit('play', l.id)"
             >
               <b>{{ l.id }}</b>
-              <span v-if="showStars && cleared(l.id)" class="stars">{{ starText(starsOf(l.id)) }}</span>
-              <span v-else-if="cleared(l.id)" class="stars">✓</span>
-              <!-- Ô khoá vẫn ghi số cấp và số thẻ để người chơi biết phía trước
-                   là gì; chỉ trạng thái khác (mờ + ổ khoá nhỏ ở góc). -->
-              <small v-else>{{ l.pairs * 2 }} thẻ</small>
+              <!-- SỐ THẺ LUÔN HIỆN, mọi trạng thái: đây là thông tin để chọn cấp.
+                   Trước đây nó nằm trong nhánh v-else của phần sao, nên cấp ĐÃ QUA
+                   hiện sao thay cho số thẻ — mất đúng thứ người chơi cần. Sao và
+                   ổ khoá chuyển thành dấu ở GÓC nên không giành chỗ của nó. -->
+              <small>{{ l.pairs * 2 }} thẻ</small>
+              <span v-if="cleared(l.id)" class="stars" aria-hidden="true">
+                {{ showStars ? starText(starsOf(l.id)) : '✓' }}
+              </span>
               <Lock v-if="l.id > unlocked" class="node-lock" :size="10" aria-hidden="true" />
             </button>
           </li>
@@ -190,9 +193,18 @@ watch(nextLevel, scrollToActive);
   background: var(--panel-solid); color: var(--fg);
   container-type: inline-size;   /* số cấp co theo cỡ ô, như các ô lựa chọn khác */
 }
-.node b { font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 40cqw, 22px); }
+.node b {
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 38cqw, 21px);
+  line-height: 1.05;
+}
+.node.cleared b { margin-top: 6px; }   /* chừa hàng sao ở trên */
 .node small { color: var(--muted); font-size: clamp(8px, 22cqw, 11px); white-space: nowrap; }
-.node .stars { font-size: clamp(8px, 24cqw, 11px); color: var(--gold); letter-spacing: .5px; }
+/* Sao/dấu tick ở GÓC TRÊN, không chiếm dòng: dòng đó là của số thẻ. */
+.node .stars {
+  position: absolute; top: 1px; left: 0; right: 0;
+  font-size: clamp(7px, 19cqw, 10px); color: var(--gold); letter-spacing: 0;
+  line-height: 1; white-space: nowrap; overflow: hidden;
+}
 
 /* Đã qua: nền xanh nhạt + viền xanh, đọc được ngay là "xong rồi" */
 .node.cleared {
