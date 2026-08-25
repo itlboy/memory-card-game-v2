@@ -40,18 +40,70 @@ const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.c
  * ra ngoài — nên mỗi lá úp đều loé nội dung ra rồi mới quay về úp. Lộ bài.
  * (Thấy rõ nhất khi F5 giữa ván: cả bàn loé một nhịp.)
  */
-const flipAnim = ref<'up' | 'down' | null>(null);
+const flipAnim = ref<'up' | 'down' | 'tail' | null>(null);
 let flipTimer: ReturnType<typeof setTimeout> | undefined;
 const FLIP_WOBBLE_MS = 2200;
+/** Đúng bằng transition-duration của .inner — mốc lá bài lật xong. */
+const FLIP_MS = 340;
+/** Phần lắc tắt dần, tính từ lúc lá đã nằm ở 180 độ (xem @keyframes wob-tail). */
+const TAIL_MS = 1700;
+
+/**
+ * ĐANG CHỜ SERVER (chỉ có ở phòng online): lá đã lật tới 90 độ và sẽ lật nốt khi
+ * câu trả lời về. Phải nhớ việc đó, vì lúc câu trả lời về thì `pending` và
+ * `faceUp` đổi TRONG CÙNG MỘT NHỊP — đọc `props.pending` trong watcher thì nó đã
+ * là false rồi.
+ *
+ * Đây là gốc của cảnh "giật giật khi mở lá bài" ở online, đo được với trễ
+ * 87ms/chiều (ping 175ms): lá đang ở 80,2° thì nhảy thẳng lên 180° trong MỘT
+ * frame. Vì cả `flip-up` (0% = rotateY(0)) và `shake` (mọi keyframe = 180deg)
+ * đều là animation với góc TUYỆT ĐỐI, nên khi chúng chiếm quyền giữa lúc
+ * transition đang chạy, lá bài nhảy phắt về góc mở đầu của keyframe.
+ */
+const daCho = ref(false);
+/** Thời điểm lá lật xong sau khi chờ server; 0 = không phải đường đó. */
+let choXongLuc = 0;
+watch(() => props.pending, (p) => { if (p) daCho.value = true; });
 
 watch(() => props.faceUp, (up, was) => {
   if (up === was) return;
-  // Hé mở cả bàn (peek/mắt thần) và lúc chờ server thì không lắc: cả bàn lắc
-  // một lượt thành rung màn hình, còn `pending` đang dừng ở 90 độ.
-  if (props.peeking || props.pending) return;
+  // Hé mở cả bàn (peek/mắt thần) thì không lắc: cả bàn lắc một lượt thành rung
+  // màn hình.
+  if (props.peeking) return;
+  // Vừa chờ server xong: lá đang ở 90 độ, để TRANSITION đi nốt 90→180 cho liền
+  // mạch, rồi mới chạy phần lắc (wob-tail bắt đầu ĐÚNG ở 180 nên không nhảy).
+  if (up && daCho.value) {
+    daCho.value = false;
+    choXongLuc = Date.now() + FLIP_MS;
+    clearTimeout(flipTimer);
+    flipTimer = setTimeout(() => {
+      flipAnim.value = 'tail';
+      flipTimer = setTimeout(() => { flipAnim.value = null; }, TAIL_MS);
+    }, FLIP_MS);
+    return;
+  }
+  if (props.pending) return;
   flipAnim.value = up ? 'up' : 'down';
   clearTimeout(flipTimer);
   flipTimer = setTimeout(() => { flipAnim.value = null; }, FLIP_WOBBLE_MS);
+});
+
+/**
+ * Lắc "ghép sai" phải đợi lá lật xong.
+ *
+ * Ở online, tin `miss` về CÙNG LÚC với trạng thái mở, nên gắn `wrong` ngay là
+ * `shake` (keyframe nào cũng rotateY(180deg)) chiếm quyền lúc lá còn ở 90 độ —
+ * lá nhảy phắt lên 180 và cú lật biến mất. Mà lắc một lá người chơi chưa kịp
+ * thấy mặt thì cũng chẳng nói lên điều gì.
+ */
+const lacSai = ref(false);
+let lacTimer: ReturnType<typeof setTimeout> | undefined;
+watch(() => props.wrong, (w) => {
+  clearTimeout(lacTimer);
+  if (!w) { lacSai.value = false; return; }
+  const conLai = choXongLuc - Date.now();
+  if (conLai > 0) lacTimer = setTimeout(() => { lacSai.value = true; }, conLai);
+  else lacSai.value = true;
 });
 
 /**
@@ -115,8 +167,9 @@ const label = computed(() => {
   <button
     v-else
     class="card"
-    :class="{ up: faceUp, done: matched, wrong, peek: peeking, swapping: !!swapFrom, pending, dealt,
+    :class="{ up: faceUp, done: matched, wrong: lacSai, peek: peeking, swapping: !!swapFrom, pending, dealt,
       'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down',
+      'wob-tail': dealt && flipAnim === 'tail',
       'wob-hover': hoverWob, settled }"
     :style="{
       '--deal': `${dealStagger}ms`,
@@ -239,6 +292,7 @@ const label = computed(() => {
  * lo phần lắc, chạy cả hai thì cái trên .inner đè lên.
  */
 .card.wob-up .inner { animation: flip-up 2.2s linear; }
+.card.wob-tail .inner { animation: wob-tail 1.7s linear; }
 .card.wob-down .inner { animation: flip-down 2.2s linear; }
 
 @keyframes flip-up {
@@ -251,6 +305,22 @@ const label = computed(() => {
   71.5% { transform: rotateY(calc(180deg + 0.9deg * var(--wob, 1))); }
   81%   { transform: rotateY(calc(180deg - 0.5deg * var(--wob, 1))); }
   90.5% { transform: rotateY(calc(180deg + 0.3deg * var(--wob, 1))); }
+  100%  { transform: rotateY(180deg); }
+}
+/*
+ * Chỉ PHẦN LẮC, bắt đầu ĐÚNG ở 180 độ — dùng cho đường online: lá đã lật tới
+ * 180 bằng transition rồi mới lắc, nên không có cú nhảy nào. Các mốc lấy từ
+ * flip-up, quy về đoạn sau 24% (528ms→2200ms của flip-up = 0→100% ở đây).
+ */
+@keyframes wob-tail {
+  0%    { transform: rotateY(180deg); }
+  12.5% { transform: rotateY(calc(180deg + 7deg * var(--wob, 1))); }
+  25%   { transform: rotateY(calc(180deg - 4.2deg * var(--wob, 1))); }
+  37.5% { transform: rotateY(calc(180deg + 2.5deg * var(--wob, 1))); }
+  50%   { transform: rotateY(calc(180deg - 1.5deg * var(--wob, 1))); }
+  62.5% { transform: rotateY(calc(180deg + 0.9deg * var(--wob, 1))); }
+  75%   { transform: rotateY(calc(180deg - 0.5deg * var(--wob, 1))); }
+  87.5% { transform: rotateY(calc(180deg + 0.3deg * var(--wob, 1))); }
   100%  { transform: rotateY(180deg); }
 }
 @keyframes flip-down {

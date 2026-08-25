@@ -1323,3 +1323,54 @@ describe('phiên bản ở cuối bảng Luật chơi', () => {
     expect(txt).not.toMatch(/\b0 (ngày|giờ|phút)/);
   });
 });
+
+/*
+ * "GIẬT GIẬT KHI MỞ LÁ BÀI" ở phòng online — đã đo được với trễ 87ms/chiều
+ * (ping 175ms): lá đang ở 80,2° thì nhảy thẳng lên 180° trong MỘT frame (96,2°).
+ *
+ * Gốc: cả `flip-up` (0% = rotateY(0)) và `shake` (mọi keyframe = rotateY(180deg))
+ * đều là animation với góc TUYỆT ĐỐI. Ở online, lá dừng ở 90° chờ server; khi câu
+ * trả lời về thì `pending` tắt và `faceUp` bật TRONG CÙNG MỘT NHỊP, animation
+ * chiếm quyền giữa lúc transition đang chạy và lá nhảy phắt về góc mở đầu của
+ * keyframe. Chơi đơn không có đường này nên không bao giờ thấy.
+ *
+ * Test đọc nguồn vì đây là luật CSS + thứ tự nhịp Vue: dựng lại cảnh này trong
+ * jsdom thì không có layout, không có transition, không đo được góc nào.
+ */
+describe('lật thẻ online không được nhảy góc', () => {
+  const src = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+
+  it('có nhớ trạng thái vừa-chờ-server, vì pending và faceUp đổi cùng một nhịp', () => {
+    // Đọc props.pending trong watcher của faceUp thì nó ĐÃ là false — cái guard
+    // `if (props.pending) return` một mình không bao giờ bắt được đường online.
+    expect(src).toMatch(/const daCho = ref\(false\)/);
+    expect(src).toMatch(/watch\(\(\) => props\.pending/);
+  });
+
+  it('lắc sau khi chờ server phải bắt đầu ĐÚNG ở 180 độ (wob-tail), không phải 0', () => {
+    // '@keyframes wob-tail {' có dấu ngoặc: chuỗi không ngoặc còn khớp cả chú
+    // thích ở đầu file, cắt từ đó ra thì đọc phải comment thay vì keyframes.
+    const at = src.indexOf('@keyframes wob-tail {');
+    expect(at, 'thiếu keyframes wob-tail').toBeGreaterThan(-1);
+    const kf = src.slice(at, src.indexOf('}\n', src.indexOf('100%', at)));
+    expect(kf, 'wob-tail phải mở màn ở 180deg').toMatch(/0%\s*\{\s*transform: rotateY\(180deg\)/);
+    // flip-up thì ngược lại: nó mở màn ở 0 độ, nên KHÔNG được dùng cho đường online
+    const up = src.slice(src.indexOf('@keyframes flip-up'));
+    expect(up.slice(0, 120)).toMatch(/0%\s*\{\s*transform: rotateY\(0\)/);
+  });
+
+  it('lắc "ghép sai" đi qua lacSai, không gắn thẳng prop wrong', () => {
+    // shake ép rotateY(180deg) ở mọi keyframe: gắn lúc lá còn ở 90° là lá nhảy
+    // phắt lên 180 và cú lật biến mất.
+    expect(src).toMatch(/wrong: lacSai/);
+    expect(src, 'shake vẫn phải cùng trục rotateY với cú lật').toMatch(
+      /@keyframes shake[\s\S]{0,200}rotateY\(180deg\)/
+    );
+  });
+
+  it('mốc hoãn lắc bằng đúng transition-duration của .inner', () => {
+    const flipMs = Number(/const FLIP_MS = (\d+)/.exec(src)![1]);
+    const trans = /transition: transform \.(\d+)s/.exec(src)![1];
+    expect(flipMs, `FLIP_MS phải bằng transition .${trans}s`).toBe(Number(trans) * 10);
+  });
+});
