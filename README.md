@@ -167,44 +167,27 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   mỗi nước đi qua, khả năng nhớ một lá nhân thêm `retain`, nên bot quên dần tự
   nhiên. Bot biết hết rồi giả vờ sai thì người chơi nhận ra ngay là giả.
 
-  | Mức | `retain` | nửa đời (nước) | nhớ lẫn chỗ | sức chứa |
+  **MỖI MỨC CHỈ MỘT CON SỐ**: `skill` 1..10 trong `BOT_SKILL` — chỗ duy nhất cần
+  sửa khi muốn bot mạnh/yếu đi. Mọi tham số suy ra từ nó (`specFrom`):
+
+  | Mức | `skill` | nửa đời | nhớ lẫn chỗ | sức chứa |
   |---|---|---|---|---|
-  | Bot dễ | 0,8706 | 5 | 60% | 3 lá |
-  | Bot bình thường | 0,9600 | 17 | 40% | 5 lá |
-  | Bot Pro | 0,9737 | 26 | 20% | 8 lá |
-  | Bot siêu đẳng | 0,9819 | 38 | 10% | 14 lá |
+  | Bot dễ | **1** | 3 nước | 45% | 3 lá |
+  | Bot bình thường | **2** | 9 nước | 40% | 4 lá |
+  | Bot Pro | **6** | 17 nước | 20% | 9 lá |
+  | Bot siêu đẳng | **10** | 34 nước | 0% | 14 lá |
 
-  **Nửa đời tính theo NƯỚC CỦA CẢ VÁN, không phải lượt của bot.** Bot chỉ tồn tại
-  trong trận 1v1 nên nước của đối thủ cũng làm ký ức nó già đi: nửa đời 38 nước
-  chỉ là ~19 lượt của chính nó.
+  Nửa đời là **bảng neo** (`HALF_LIFE_BY_SKILL`), không phải công thức trơn: tỉ lệ
+  thắng không tuyến tính theo trí nhớ — có ngưỡng ở quãng 14→17 nước, chỗ ký ức
+  bắt đầu sống sót qua một lượt quét hết bàn 42 thẻ, dưới ngưỡng thắng ~20% mà trên
+  ngưỡng vọt lên ~63%. Công thức trơn đi qua ngưỡng đó rất khó kiểm soát.
 
-  **Ba loại quên khác nhau, đừng lẫn:** `retain` là phai theo diễn biến ván
-  (`retain ** tuổi`); `mistake` là lỡ tay ở đúng nước đang đi; `capacity` là
-  nhiễu do QUÁ TẢI — mỗi lá phải giữ vượt sức chứa thì khả năng nhớ MỌI lá nhân
-  thêm `CROWD` (0,96). Quá tải 10 lá là chỉ còn nhớ được ~66% so với lúc rảnh.
+  Đo được (40 ván mỗi điểm, đối thủ KHÁ, bàn 6×7): skill 1 → 5% · 2 → 10% ·
+  4 → 20% · 6 → 63% · 8 → 78% · 10 → 88%. **Hai đầu thang bị chặn**: sàn ~5% vì
+  bot mù vẫn thắng nhờ may, trần ~90% vì đối thủ cũng có lúc may. Nên đừng kỳ vọng
+  tỉ lệ thắng tỉ lệ thuận với skill.
 
-  **Tải là giao của hai thứ**: lá bot ĐÃ TỪNG THẤY *và* hiện đang ÚP. Không tính
-  lá chưa bao giờ thấy, lá đã ghép (`observe()` xoá), và 1–2 lá đang ngửa (nhìn
-  thấy chứ không phải nhớ).
-
-  **Bản ghi quá cũ bị XOÁ HẲN** (`FORGET_HALF_LIVES` = 3 lần nửa đời: Bot dễ 6
-  nước, Bot siêu đẳng 36 nước). Cú "quên" ở `recalls()` chỉ trả lời có nhớ ra hay
-  không — bản ghi vẫn chiếm chỗ và vẫn tính vào tải. Không xoá thì bot kém rơi vào
-  VÒNG XOÁY: quên trước khi kịp ghép → bản ghi dồn lại → tải cao nên càng quên →
-  càng không ghép được. Đo được: Bot dễ trên bàn 6×7 mất 296 lần lật, xoá rồi còn
-  166. Người thật cũng vậy — thứ đã quên hẳn thì không làm mình nhiễu nữa.
-
-  `retain = 0,5 ** (1 / nửa đời)` — sửa nửa đời thì tính lại, đừng đoán.
-  "Nhớ lẫn chỗ" = có cặp trong ký ức nhưng vẫn đi bốc lá khác.
-
-  **Ghi nhớ là 100%**, chỉ có nhớ LẠI mới là xác suất; và ở nước ngay sau khi
-  thấy thì `retain ** 0 = 1` nên mức nào cũng nhớ chắc. Vì thế `mistake` là van
-  duy nhất chặn bot ăn một cặp nó vừa thấy. Đã cân nhắc thêm tham số `encode`
-  (xác suất ghi được vào đầu) rồi BỎ: người chơi không phân biệt được "không kịp
-  ghi" với "biết mà lật trượt", mà hai van cùng diễn một chuyện thì mỗi lần cân
-  bằng phải nghĩ cả hai.
-
-  **CÂN BẰNG BOT PHẢI ĐO BẰNG TỈ LỆ THẮNG 1v1** (`test/duel.test.ts`), không đo
+    **CÂN BẰNG BOT PHẢI ĐO BẰNG TỈ LỆ THẮNG 1v1** (`test/duel.test.ts`), không đo
   bằng số lần lật khi bot chơi một mình. Đây là lỗi phương pháp đã mắc thật: bộ
   số cũ (nửa đời 2-4-8-12) cho phép đo solo rất đẹp — mức đỉnh 77 lần lật trên
   bàn 42 thẻ, tức 1,8 lần lối chơi hoàn hảo — nhưng vào trận thật nó thắng **0%**.

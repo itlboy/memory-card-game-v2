@@ -18,6 +18,8 @@ import type { GameView } from './online.js';
 export type BotLevel = 'easy' | 'normal' | 'hard' | 'insane';
 
 export interface BotSpec {
+  /** Điểm trình độ 1..10 — nguồn của mọi tham số bên dưới. */
+  skill: number;
   /**
    * Tỉ lệ CÒN NHỚ sau mỗi nước đi. 0,9 nghĩa là qua mỗi nước, khả năng nhớ một
    * lá còn 90% so với trước — nhớ mờ dần đúng như người thật, chứ không phải
@@ -47,36 +49,74 @@ export interface BotSpec {
 }
 
 /**
- * Bốn mức khác nhau ở chỗ NHỚ ĐƯỢC BAO LÂU. "Nửa đời" là số nước đi sau đó khả
- * năng nhớ một lá còn 50%; `retain` suy ra từ đó: `retain = 0,5 ** (1 / nửa đời)`.
- * Sửa nửa đời thì phải TÍNH LẠI retain, đừng đoán — quan hệ là hàm số mũ nên
- * nhích retain một chút không tương ứng với nhớ dai thêm một chút.
+ * MỖI MỨC CHỈ MỘT CON SỐ: `skill` từ 1 tới 10. Mọi tham số khác suy ra từ nó.
  *
- *   | mức             | nửa đời | retain | nhớ lẫn chỗ | sức chứa |
- *   | Bot dễ          |  5 nước | 0,8706 | 60%         |  3 lá    |
- *   | Bot bình thường | 17 nước | 0,9600 | 40%         |  5 lá    |
- *   | Bot Pro         | 26 nước | 0,9737 | 20%         |  8 lá    |
- *   | Bot siêu đẳng   | 38 nước | 0,9819 | 10%         | 14 lá    |
+ * Vì sao: trước đây mỗi mức có 3 con số rời (nửa đời, nhớ lẫn chỗ, sức chứa) và
+ * chúng tương tác nhau, nên chỉnh một cái là phải đo lại cả ba — thêm một mức
+ * mới thì phải cân từ đầu. Giờ thêm mức chỉ cần chọn một số.
  *
- * NỬA ĐỜI TÍNH THEO NƯỚC CỦA CẢ VÁN, KHÔNG PHẢI LƯỢT CỦA BOT. Bot chỉ tồn tại
- * trong trận 1v1, nên nước của đối thủ cũng làm ký ức nó già đi: nửa đời 38 nước
- * chỉ là ~19 lượt của chính nó. Đây là lý do bộ số cũ (2-4-8-12) đo trên ván
- * chơi MỘT MÌNH thì trông ổn (77 lần lật, gần hoàn hảo) nhưng vào trận thật thì
- * mức đỉnh thắng 0% — thước đo sai. Cân bằng bot PHẢI đo bằng tỉ lệ thắng 1v1
- * (xem test/duel.test.ts), không đo bằng số lần lật khi chơi một mình.
- *
- * NHỊP NGHĨ GIỐNG NHAU Ở MỌI MỨC (400–3000ms) — có chủ đích. Cho bot giỏi nghĩ
- * nhanh hơn thì đếm thời gian là đoán ra mình đang đấu mức nào, mà độ khó vốn
- * nằm ở TRÍ NHỚ chứ không ở tốc độ. Bot dễ nghĩ lâu cũng chỉ làm người chơi chờ.
+ * Thang `skill` neo theo TỈ LỆ THẮNG trước người chơi khá trên bàn 42 thẻ, vì đó
+ * là thứ người chơi cảm nhận được: skill 1 ≈ thắng 1/10 ván, skill 10 ≈ thắng 9/10.
+ * Ba hằng số dưới đây được DÒ bằng `duel-helper`, không phải đặt cho đẹp.
  */
+export const SKILL_MIN = 1;
+export const SKILL_MAX = 10;
+
+/**
+ * Nửa đời ký ức (số nước) cho skill 1..10 — BẢNG NEO, không phải công thức.
+ *
+ * Vì sao bảng: tỉ lệ thắng KHÔNG tuyến tính theo trí nhớ. Có một ngưỡng ở quãng
+ * 14→17 nước, chỗ ký ức bắt đầu sống sót qua một lượt quét hết bàn 42 thẻ — dưới
+ * ngưỡng bot thắng ~20%, trên ngưỡng vọt lên ~63%. Công thức trơn nào cũng đi
+ * qua ngưỡng đó một cách khó kiểm soát; bảng thì đặt được từng bậc đúng chỗ.
+ *
+ * Đo bằng `duel-helper`, 40 ván mỗi điểm, đối thủ KHÁ, bàn 6×7:
+ *   skill 1 → 5%   ·  2 → 10%  ·  4 → 20%  ·  6 → 63%  ·  8 → 78%  ·  10 → 88%
+ * Sửa bảng thì PHẢI đo lại, đừng đoán.
+ */
+const HALF_LIFE_BY_SKILL = [3, 9, 12, 14, 15, 17, 20, 24, 29, 34] as const;
+
+const halfLifeFor = (skill: number): number => {
+  const i = Math.round(skill) - SKILL_MIN;
+  return HALF_LIFE_BY_SKILL[Math.min(HALF_LIFE_BY_SKILL.length - 1, Math.max(0, i))]!;
+};
+/** Nhớ lẫn chỗ: giảm thẳng từ 45% ở skill 1 xuống 0 ở skill 10. */
+const mistakeFor = (skill: number): number =>
+  Math.max(0, 0.45 * (1 - (skill - SKILL_MIN) / (SKILL_MAX - SKILL_MIN)));
+/** Sức chứa (số lá giữ được mà chưa bị nhiễu) theo skill. */
+const capacityFor = (skill: number): number => Math.round(2 + skill * 1.2);
+
+/** Dựng tham số đầy đủ từ MỘT con số. */
+export function specFrom(skill: number, name: string, avatar: string): BotSpec {
+  const s = Math.min(SKILL_MAX, Math.max(SKILL_MIN, skill));
+  return {
+    skill: s,
+    retain: 0.5 ** (1 / halfLifeFor(s)),
+    mistake: mistakeFor(s),
+    capacity: capacityFor(s),
+    thinkMinMs: THINK_MIN_MS,
+    thinkMaxMs: THINK_MAX_MS,
+    name,
+    avatar
+  };
+}
+
 export const THINK_MIN_MS = 400;
 export const THINK_MAX_MS = 3000;
 
+/** Điểm trình độ của bốn mức — CHỖ DUY NHẤT cần sửa khi muốn bot mạnh/yếu đi. */
+export const BOT_SKILL: Record<BotLevel, number> = {
+  easy: 1,
+  normal: 2,
+  hard: 6,
+  insane: 10
+};
+
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy:   { retain: 0.8706, mistake: 0.60, capacity: 3, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot dễ',         avatar: '🐣' },
-  normal: { retain: 0.9600, mistake: 0.40, capacity: 5, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot bình thường', avatar: '🤖' },
-  hard:   { retain: 0.9737, mistake: 0.20, capacity: 8, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot Pro',         avatar: '👾' },
-  insane: { retain: 0.9819, mistake: 0.10, capacity: 14, thinkMinMs: THINK_MIN_MS, thinkMaxMs: THINK_MAX_MS, name: 'Bot siêu đẳng',   avatar: '🦾' }
+  easy: specFrom(BOT_SKILL.easy, 'Bot dễ', '🐣'),
+  normal: specFrom(BOT_SKILL.normal, 'Bot bình thường', '🤖'),
+  hard: specFrom(BOT_SKILL.hard, 'Bot Pro', '👾'),
+  insane: specFrom(BOT_SKILL.insane, 'Bot siêu đẳng', '🦾')
 };
 
 /**

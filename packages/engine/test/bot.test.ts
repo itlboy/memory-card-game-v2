@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, halfLifeMoves, observe } from '../src/bot.js';
+import { BOT_SKILL, BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, halfLifeMoves, observe, specFrom } from '../src/bot.js';
 import type { BotLevel } from '../src/bot.js';
 import { MemoryGame } from '../src/game.js';
 import { publicView } from '../src/online.js';
@@ -348,5 +348,36 @@ describe('quên hẳn bản ghi quá cũ', () => {
     // Cửa sổ = 3 lần nửa đời, nên số bản ghi giữ lại xấp xỉ đó — không phải 40
     const win = 3 * halfLifeMoves('easy');
     expect(mem.size).toBeLessThanOrEqual(Math.ceil(win) + 2);
+  });
+});
+
+describe('mỗi mức chỉ một con số', () => {
+  it('mọi tham số suy ra từ `skill`, không đặt tay từng cái', () => {
+    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+      const s = BOT_SPECS[l];
+      const laiSuyRa = specFrom(s.skill, s.name, s.avatar);
+      expect(s.retain, `${l}: retain phải khớp công thức từ skill`).toBeCloseTo(laiSuyRa.retain, 10);
+      expect(s.mistake).toBeCloseTo(laiSuyRa.mistake, 10);
+      expect(s.capacity).toBe(laiSuyRa.capacity);
+    }
+  });
+
+  it('skill cao hơn thì nhớ dai hơn, ít lẫn chỗ hơn, chứa được nhiều hơn', () => {
+    const bac = [1, 2, 4, 6, 8, 10].map((k) => specFrom(k, 'x', 'x'));
+    for (let i = 1; i < bac.length; i++) {
+      expect(bac[i]!.retain, `skill ${bac[i]!.skill}`).toBeGreaterThan(bac[i - 1]!.retain);
+      expect(bac[i]!.mistake).toBeLessThan(bac[i - 1]!.mistake);
+      expect(bac[i]!.capacity).toBeGreaterThan(bac[i - 1]!.capacity);
+    }
+  });
+
+  it('skill ngoài thang 1..10 bị kẹp, không sinh tham số vô lý', () => {
+    expect(specFrom(0, 'x', 'x').skill).toBe(1);
+    expect(specFrom(99, 'x', 'x').skill).toBe(10);
+    expect(specFrom(99, 'x', 'x').mistake).toBe(0);
+  });
+
+  it('bốn mức đang dùng đúng thang 1 · 2 · 6 · 10', () => {
+    expect([BOT_SKILL.easy, BOT_SKILL.normal, BOT_SKILL.hard, BOT_SKILL.insane]).toEqual([1, 2, 6, 10]);
   });
 });
