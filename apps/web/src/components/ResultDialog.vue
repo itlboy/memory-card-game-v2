@@ -23,15 +23,19 @@ const props = defineProps<{
   levelId?: number;
   /** Ván online: không có thang cấp nên không có "cấp tiếp theo". */
   multiplayerOnline?: boolean;
-  /** Ván online: mình đã bấm chơi lại chưa, và còn chờ ai. Có hai giá trị này
-   *  thì nút đổi thành trạng thái chờ — trước đây bấm xong nút y nguyên nên
-   *  người chơi tưởng nút không ăn. */
+  /** Ván online: mình đã bấm chơi lại chưa. Nút đổi thành trạng thái chờ —
+   *  trước đây bấm xong nút y nguyên nên người chơi tưởng nút không ăn. */
   rematchSent?: boolean;
-  rematchWaiting?: string[];
-  /** Tên những người KHÁC đã bấm chơi lại — bên chưa bấm cần thấy để biết mà bấm. */
-  rematchFrom?: string[];
   /** Không còn đủ người kết nối để chơi lại — ẩn nút thay vì để bấm vô nghĩa. */
   rematchBlocked?: boolean;
+  /**
+   * Trạng thái chơi lại của TỪNG người, tra theo id: 'in' = đã bấm chơi tiếp,
+   * 'out' = đã rời phòng. Không có tên trong map = chưa bấm, không gắn nhãn.
+   *
+   * Tra theo ID chứ không theo tên: hai người trùng tên là chuyện có thật, mà
+   * dòng thông báo cũ đã bỏ chỉ có TÊN nên không phân biệt được ai với ai.
+   */
+  rematchState?: Record<string, 'in' | 'out'>;
 }>();
 
 const emit = defineEmits<{ replay: []; next: []; menu: [] }>();
@@ -175,7 +179,16 @@ const title = computed(() => {
       <ol v-if="multiplayer" class="ranking">
         <li v-for="(p, i) in summary.ranking" :key="p.id">
           <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
-          <span>{{ draw && i < 2 ? 1 : i + 1 }}. {{ p.name }}</span>
+          <span>
+            {{ draw && i < 2 ? 1 : i + 1 }}. {{ p.name }}
+            <!--
+              Ai muốn chơi tiếp, ai đã đi: nhãn nằm NGAY CẠNH TÊN, không phải ở
+              dòng thông báo dưới nút. Bảng xếp hạng vốn đã là chỗ mắt đang đọc
+              tên từng người, nên gắn vào đây là đọc một lần biết cả hai chuyện.
+            -->
+            <i v-if="rematchState?.[p.id] === 'in'" class="tag in">✅ Chơi tiếp</i>
+            <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">🚪 Đã thoát</i>
+          </span>
           <b>{{ num(p.score) }}</b>
           <small>{{ p.pairs }} cặp · chuỗi {{ p.bestStreak }}</small>
         </li>
@@ -248,17 +261,14 @@ const title = computed(() => {
         </button>
       </div>
       <button class="btn link" type="button" @click="emit('menu')">Về menu</button>
-      <!-- Nói rõ đang chờ ai, không thì hai bên cùng ngồi đợi nhau -->
+      <!--
+        Chỉ còn MỘT dòng ở đây: "đang chờ ai" và "ai muốn chơi lại" đã chuyển
+        thành nhãn cạnh tên trong bảng xếp hạng (đọc ở đúng chỗ mắt đang nhìn).
+        Dòng này giữ lại vì nó giải thích chuyện KHÔNG thấy được ở bảng: vì sao
+        nút "Chơi lại" biến mất.
+      -->
       <p v-if="rematchBlocked" class="waiting" role="status">
         🚪 Người chơi kia đã rời phòng — không chơi lại được nữa.
-      </p>
-      <p v-else-if="rematchSent && rematchWaiting?.length" class="waiting" role="status">
-        ⏳ Chờ <b>{{ rematchWaiting.join(', ') }}</b> bấm chơi lại…
-      </p>
-      <!-- Mình CHƯA bấm mà người kia đã bấm: phải nói ra, không thì họ chờ mà
-           mình không biết là đang chờ cái gì -->
-      <p v-else-if="rematchFrom?.length" class="waiting want" role="status">
-        🔁 <b>{{ rematchFrom.join(', ') }}</b> muốn chơi lại — bấm <b>Chơi lại</b> để vào ván mới
       </p>
 
       <!-- Chat vẫn phải chạy sau khi ván xong: overlay này che kín màn chơi nên
@@ -403,6 +413,28 @@ h2 { margin: 0 0 4px; }
 .ranking li:first-child { background: color-mix(in srgb, var(--ok) 12%, var(--panel-soft)); }
 .ranking li:first-child b { color: var(--ok); }
 .ranking small { grid-column: 1 / -1; color: var(--muted); font-size: var(--text-sm); }
+/* Nhãn "Chơi tiếp" / "Đã thoát": nhỏ và không in nghiêng (dùng <i> cho gọn thẻ,
+   không phải để nghiêng), nằm cùng dòng với tên nhưng KHÔNG chiếm chỗ của điểm.
+   white-space: nowrap để nó không bị ngắt giữa biểu tượng và chữ. */
+.ranking .tag {
+  font-style: normal; white-space: nowrap;
+  font-family: var(--font-body); font-weight: 700; font-size: var(--text-xs);
+  padding: 2px 8px; border-radius: var(--r-full); vertical-align: middle;
+  margin-left: 6px;
+}
+/* Xanh --ok-solid chứ không phải --ok: chữ nhỏ 700 trên nền mờ, --ok chỉ đạt
+   ~3,2:1 nên đọc mờ. Nền mờ cùng màu để nhãn là một chip, không phải chữ trôi. */
+.ranking .tag.in {
+  color: var(--ok-solid);
+  background: color-mix(in srgb, var(--ok) 16%, transparent);
+}
+.ranking .tag.out {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+}
+/* Hàng nhất có nền xanh nhạt sẵn — nhãn xanh trên đó thành chìm, nên đổi nền
+   nhãn sang trắng mờ để vẫn tách ra khỏi hàng. */
+.ranking li:first-child .tag.in { background: color-mix(in srgb, var(--ok) 26%, transparent); }
 
 .achievements { margin: 14px 0 0; padding: 12px; list-style: none; display: grid; gap: 6px;
   background: color-mix(in srgb, var(--warn) 12%, transparent); border-radius: 10px; font-size: 13px; }

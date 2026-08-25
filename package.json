@@ -18,7 +18,10 @@
     "check:share": "node tools/check-share-tags.mjs",
     "deploy:server": "pnpm --filter @mm/server run deploy",
     "dev:web": "pnpm --filter @mm/web dev",
-    "smoke:chat": "node tools/smoke-chat-limit.mjs"
+    "smoke:chat": "node tools/smoke-chat-limit.mjs",
+    "smoke:leave": "node tools/smoke-leave-cancel.mjs",
+    "smoke:timer": "node tools/smoke-timer-spectator.mjs",
+    "smoke:audit": "node tools/smoke-audit.mjs"
   },
   "packageManager": "pnpm@10.0.0"
 }

@@ -718,21 +718,35 @@ describe('bảng kết quả nhiều người', () => {
     expect(rows[0]!.find('b').text()).toBe('740');
   });
 
-  it('người kia bấm chơi lại thì mình thấy lời mời', async () => {
+  /*
+   * "Ai muốn chơi tiếp / ai đã đi" đọc ngay CẠNH TÊN trong bảng xếp hạng, không
+   * còn là dòng thông báo dưới nút: bảng đã là chỗ mắt đang đọc tên từng người.
+   * Tra theo ID, nên hai người trùng tên vẫn ra hai nhãn khác nhau.
+   */
+  it('ai đã bấm chơi tiếp thì nhãn nằm ngay cạnh TÊN người đó', async () => {
     const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
-    // Mình CHƯA bấm, An đã bấm
-    const w = mount(ResultDialog, { props: { ...base, rematchSent: false, rematchFrom: ['An'] } });
-    expect(w.find('.waiting.want').text()).toContain('An');
-    expect(w.find('.waiting.want').text()).toContain('muốn chơi lại');
+    const w = mount(ResultDialog, { props: { ...base, rematchState: { b: 'in' } } });
+    const rows = w.findAll('.ranking li');
+    expect(rows[1]!.text()).toContain('An');
+    expect(rows[1]!.find('.tag.in').text()).toContain('Chơi tiếp');
+    // Người chưa bấm KHÔNG gắn nhãn — không thì cả bảng đầy nhãn, đọc không ra ai
+    expect(rows[0]!.find('.tag').exists()).toBe(false);
   });
 
-  it('mình bấm rồi thì thấy đang chờ ai, không thấy lời mời', async () => {
+  it('ai đã thoát thì nhãn "Đã thoát" cạnh tên, không lẫn với "Chơi tiếp"', async () => {
     const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
-    const w = mount(ResultDialog, {
-      props: { ...base, rematchSent: true, rematchWaiting: ['An'], rematchFrom: [] }
-    });
-    expect(w.find('.waiting').text()).toContain('Chờ');
-    expect(w.find('.waiting.want').exists()).toBe(false);
+    const w = mount(ResultDialog, { props: { ...base, rematchState: { a: 'in', b: 'out' } } });
+    const rows = w.findAll('.ranking li');
+    expect(rows[0]!.find('.tag.in').text()).toContain('Chơi tiếp');
+    expect(rows[1]!.find('.tag.out').text()).toContain('Đã thoát');
+    expect(rows[1]!.find('.tag.in').exists()).toBe(false);
+  });
+
+  it('không còn dòng thông báo "đang chờ" / "muốn chơi lại" dưới nút', async () => {
+    const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
+    const w = mount(ResultDialog, { props: { ...base, rematchState: { a: 'in' } } });
+    expect(w.text()).not.toContain('muốn chơi lại');
+    expect(w.text()).not.toContain('Chờ');
   });
 
   it('đối phương rời hẳn thì không còn nút chơi lại', async () => {

@@ -1,4 +1,4 @@
-const SERVER = 'http://127.0.0.1:8787';
+const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { code } = await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json();
 const mk = (name) => new Promise((res) => {

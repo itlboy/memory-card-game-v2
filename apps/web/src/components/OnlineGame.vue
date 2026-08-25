@@ -28,6 +28,26 @@ const o = props.o;
 const enoughToRematch = computed(() =>
   (o.view.value?.players ?? []).filter((p) => p.connected && !p.forfeited).length >= 2);
 
+/**
+ * Trạng thái chơi lại của từng người, tra theo ID — nguồn sự thật là
+ * `room.againVotes` (ai đã bấm) và `room.players` (ai còn trong phòng).
+ *
+ * Người đã thoát thì bị xoá khỏi `room.players` nhưng VẪN còn trong
+ * `summary.ranking` — chính nhờ vậy mới có chỗ để gắn nhãn "Đã thoát".
+ */
+const rematchState = computed<Record<string, 'in' | 'out'>>(() => {
+  const r = o.room.value;
+  if (!r) return {};
+  const votes = new Set(r.againVotes ?? []);
+  const out: Record<string, 'in' | 'out'> = {};
+  for (const p of o.view.value?.players ?? []) {
+    const inRoom = r.players.some((q) => q.id === p.id);
+    if (votes.has(p.id)) out[p.id] = 'in';
+    else if (!inRoom || p.forfeited) out[p.id] = 'out';
+  }
+  return out;
+});
+
 /* ---------- map view server → props của BoardGrid ---------- */
 const cards = computed<Card[]>(() =>
   (o.view.value?.cards ?? []).map((c) => ({
@@ -217,9 +237,8 @@ watch(() => o.view.value?.summary, (s) => {
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
       :rematch-sent="o.iWantAgain.value"
-      :rematch-waiting="o.againWaiting.value"
-      :rematch-from="o.againFrom.value"
       :rematch-blocked="!enoughToRematch"
+      :rematch-state="rematchState"
       @replay="o.again()"
       @next="o.again()"
       @menu="emit('quit')"

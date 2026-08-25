@@ -448,8 +448,26 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
     `disconnectedAt` chỉ được đặt trong `webSocketClose`.
   Vá: client gửi `alive` mỗi 4 giây (KHÁC `ping` — `ping` do
   `setWebSocketAutoResponse` tự trả lời nên DO không thức, không biết ai còn
-  sống); server coi im quá `SILENT_MS` = 9 giây là mất kết nối. 9 giây phải NGẮN
-  HƠN đồng hồ lượt 15 giây, không thì đối thủ vẫn ngồi nhìn bàn im.
+  sống); server coi im quá `SILENT_MS` = 20 giây là mất kết nối. Trần là 25 giây:
+  lúc phát hiện, `disconnectedAt` được LÙI về `lastSeen`, nên hạn xử thua vẫn là
+  30 giây kể từ lần cuối thấy họ — đặt bằng 30 là vừa phát hiện đã xử thua luôn.
+  (Mức cũ 9 giây cắt oan: tab nền bị trình duyệt bóp `setInterval`.) Client còn
+  đập nhịp NGAY khi tab hiện lại (`visibilitychange`), và nối lại luôn nếu socket
+  đã chết trong lúc ở nền — iOS treo kết nối mà `readyState` vẫn báo OPEN.
+- **VÒNG ĐỜI MỘT PHÒNG** (không có TTL chung, phòng sống theo người trong nó):
+
+  | Trạng thái | Sống bao lâu |
+  |---|---|
+  | Lập rồi không ai vào | 10 phút (`UNUSED_ROOM_MS`) |
+  | Lobby còn người | vô hạn; im quá 2 phút thì bị gỡ khỏi phòng (`IDLE_SILENT_MS`) |
+  | Lobby rỗng | 10 phút (`EMPTY_LOBBY_MS`) |
+  | Trong ván, rớt mạng | 20 giây → báo mất kết nối; 30 giây → xử thua |
+  | Ván xong, hết socket | xoá ngay |
+
+  `EMPTY_LOBBY_MS` sinh ra từ luồng chia link trên điện thoại: tạo phòng → rời
+  app sang Zalo dán link → quay lại. Trước đây người cuối rời lobby là
+  `deleteAll()` NGAY, nên cái link vừa gửi đã chết trước khi bạn kịp bấm.
+  `pnpm smoke:leave` có bước kiểm đúng luồng này.
 - **BÀN TREO — nghi vấn còn lại.** Đã gặp trên production: hai thẻ mở,
   đồng hồ lượt về 0, cả hai người chơi không làm gì được, mấy chục giây sau mới
   tự chạy tiếp. Local KHÔNG tái hiện được (`pnpm smoke:freeze` cho thấy server
