@@ -454,6 +454,13 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   (Mức cũ 9 giây cắt oan: tab nền bị trình duyệt bóp `setInterval`.) Client còn
   đập nhịp NGAY khi tab hiện lại (`visibilitychange`), và nối lại luôn nếu socket
   đã chết trong lúc ở nền — iOS treo kết nối mà `readyState` vẫn báo OPEN.
+- **HÉ MỞ CẢ BÀN trong phòng online** (Chớp nhoáng đầu ván, thẻ Mắt thần): lúc
+  đó `flip()` bị chặn (`status = 'peeking'`) nên KHÔNG nước đi nào làm engine
+  nhích — thứ duy nhất kết thúc được nó là alarm. `scheduleNext()` từng không
+  hẹn mốc `revealUntil`: đo trên wrangler, bàn 6 thẻ đáng hé 3,6 giây thì nằm mở
+  **15,5 giây**, tới khi một alarm khác tình cờ nổ. `GameView.peekLeft` chở số
+  giây còn lại (client không giữ engine, không tự tính được), client đổi thành
+  mốc rồi tự đếm cho mượt. `pnpm smoke:peek` canh cả hai.
 - **VÒNG ĐỜI MỘT PHÒNG** (không có TTL chung, phòng sống theo người trong nó):
 
   | Trạng thái | Sống bao lâu |

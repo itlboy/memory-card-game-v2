@@ -178,3 +178,34 @@ describe('rà soát: người bỏ cuộc không thể thắng', () => {
     expect(classic.players[0]!.lives).toBeNull();
   });
 });
+
+/*
+ * Phòng online chơi Chớp nhoáng: client KHÔNG có cách nào tự biết còn mấy giây
+ * hé mở — nó không giữ engine, và lúc hé mở thì `flip()` bị chặn nên chẳng có
+ * sự kiện nào chạy. Thiếu `peekLeft` là người chơi phải tự đoán, đúng ở cái chế
+ * độ mà từng giây đều đáng giá. Cùng trường này dùng cho thẻ Mắt thần.
+ */
+describe('view chở thời gian hé mở cả bàn', () => {
+  const peek = () => twoP({ mode: 'peek', peekMs: 4_000 });
+
+  it('đang hé mở thì peekLeft là số giây còn lại, mọi thẻ đều mở', () => {
+    const g = peek();
+    g.start(1_000);
+    const v = publicView(g, 2_500, allOn);
+    expect(v.peekLeft).toBeCloseTo(2.5, 3);
+    expect(v.cards.every((c) => c.state === 'up')).toBe(true);
+  });
+
+  it('hết hé mở thì peekLeft về null', () => {
+    const g = peek();
+    g.start(1_000);
+    g.tick(5_100);
+    expect(publicView(g, 5_100, allOn).peekLeft).toBeNull();
+  });
+
+  it('chế độ không hé mở thì luôn null', () => {
+    const g = twoP();
+    g.start(0);
+    expect(publicView(g, 500, allOn).peekLeft).toBeNull();
+  });
+});

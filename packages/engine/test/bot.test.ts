@@ -14,7 +14,7 @@ function view(cards: { state: 'down' | 'up' | 'matched'; symbol?: string }[]): G
     cols: 3, rows: 2,
     cards: cards.map((c, index) => ({ index, ...c })),
     players: [], currentId: 'bot', moves: 0, matchedPairs: 0, totalPairs: 3,
-    status: 'playing', timeLeft: null, turnTimeLeft: null, elapsed: 0,
+    status: 'playing', timeLeft: null, turnTimeLeft: null, peekLeft: null, elapsed: 0,
     summary: null, back: 'stars'
   };
 }

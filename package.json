@@ -21,7 +21,8 @@
     "smoke:chat": "node tools/smoke-chat-limit.mjs",
     "smoke:leave": "node tools/smoke-leave-cancel.mjs",
     "smoke:timer": "node tools/smoke-timer-spectator.mjs",
-    "smoke:audit": "node tools/smoke-audit.mjs"
+    "smoke:audit": "node tools/smoke-audit.mjs",
+    "smoke:peek": "node tools/smoke-peek.mjs"
   },
   "packageManager": "pnpm@10.0.0"
 }

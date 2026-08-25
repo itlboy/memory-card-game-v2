@@ -115,6 +115,14 @@ export interface GameView {
   timeLeft: number | null;
   /** Giây còn lại của lượt hiện tại (đồng hồ lượt). */
   turnTimeLeft: number | null;
+  /**
+   * Giây còn lại của giai đoạn HÉ MỞ CẢ BÀN; null = không đang hé mở.
+   *
+   * Không có nó thì phòng online chơi Chớp nhoáng phải TỰ ĐOÁN còn bao lâu —
+   * đúng cái chế độ mà từng giây đều đáng giá. Dùng cho cả thẻ Mắt thần (hé cả
+   * bàn 5 giây), vì cùng một `revealUntil`.
+   */
+  peekLeft: number | null;
   /** Giây đã trôi của ván — client tự đếm tiếp giữa hai lần cập nhật. */
   elapsed: number;
   summary: Summary | null;
@@ -154,6 +162,7 @@ export function publicView(
     status: game.status,
     timeLeft: game.timeLeft(now),
     turnTimeLeft: game.turnTimeLeft(now),
+    peekLeft: game.revealUntil > 0 ? Math.max(0, (game.revealUntil - now) / 1000) : null,
     elapsed: Math.floor(game.elapsed(now)),
     summary: game.summary(),
     back: backForSeed(game.config.seed)

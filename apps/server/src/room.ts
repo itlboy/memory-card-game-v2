@@ -627,6 +627,15 @@ export class RoomDO extends DurableObject<Env> {
     if (this.room?.status === 'countdown' && this.room.countdownEnd) marks.push(this.room.countdownEnd);
     if (this.room?.status === 'playing' && this.game && !this.game.finished) {
       if (this.game.locked) marks.push(now + (this.game.config.flipBackMs ?? 1000));
+      /*
+       * HẾT HÉ MỞ CẢ BÀN (Chớp nhoáng, và thẻ Mắt thần ở mọi chế độ).
+       *
+       * Thiếu mốc này là bàn nằm mở tới khi một alarm KHÁC tình cờ nổ: lúc hé
+       * mở, `flip()` bị chặn (status = 'peeking') nên không nước đi nào làm
+       * engine nhích, và không có gì khác đánh thức DO. Đo được trên wrangler:
+       * bàn 6 thẻ đáng hé 3,6 giây thì nằm mở 15,5 giây — hơn bốn lần.
+       */
+      if (this.game.revealUntil > 0) marks.push(this.game.revealUntil + 50);
       // Đồng hồ 30 giây mỗi lượt: hết hạn thì alarm đánh thức để chuyển lượt
       if (this.game.turnDeadline) marks.push(this.game.turnDeadline + 50);
       const left = this.game.timeLeft(now);

@@ -185,6 +185,20 @@ watch(() => o.view.value?.summary, (s) => {
     <div class="notice-bar">
       <EmojiBlast :o="o" />
 
+      <!--
+        HÉ MỞ CẢ BÀN (Chớp nhoáng đầu ván, hoặc thẻ Mắt thần): phải NÓI RA và
+        đếm ngược. Trước đây phòng online không hiện gì cả — người chơi thấy cả
+        bàn mở ra rồi tự úp lại, phải tự đoán còn mấy giây, đúng ở cái chế độ mà
+        từng giây đều đáng giá. Dùng lại y hệt .toast.peek của GameScreen để
+        chơi đơn và chơi online nhìn ra là cùng một thứ.
+      -->
+      <Transition name="banner">
+        <p v-if="o.revealingAll.value" class="toast peek" role="status">
+          👀 Ghi nhớ vị trí!
+          <b v-if="o.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(o.peekLeft.value) }}s</b>
+        </p>
+      </Transition>
+
       <Transition name="banner">
         <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
           <span class="who">❤️ <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
@@ -205,7 +219,7 @@ watch(() => o.view.value?.summary, (s) => {
         :cards="cards" :cols="o.view.value?.cols ?? 4"
         :face-up="faceUp" :matched="matchedSet"
         :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value" :pending="o.pending.value"
-        :revealing-all="false" :locked="locked"
+        :revealing-all="o.revealingAll.value" :locked="locked"
         :back="o.backStyle.value"
         @flip="o.flip"
       />
@@ -338,6 +352,27 @@ watch(() => o.view.value?.summary, (s) => {
   0% { opacity: 0; transform: translate(-50%, -30%) scale(.7); }
   20% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); }
   100% { opacity: 0; transform: translate(-50%, -170%) scale(1); }
+}
+
+/* HÉ MỞ CẢ BÀN: cùng dáng với banner chuyển lượt (đều nổi trong .notice-bar),
+   chỉ đổi viền sang màu cảnh báo — giống hệt .toast.peek ở GameScreen, để chơi
+   đơn và chơi online đọc ra là cùng một thứ. Một dòng, không che thêm hàng thẻ:
+   đây đúng là lúc người chơi cần nhìn cả bàn. */
+.toast.peek {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--panel-solid) 90%, transparent);
+  border: 2px solid color-mix(in srgb, var(--warn) 65%, var(--line));
+  box-shadow: 0 10px 40px var(--card-back-glow), var(--shadow);
+  backdrop-filter: blur(6px); pointer-events: none; z-index: 5; white-space: nowrap;
+  font-size: clamp(15px, 4vw, 19px); font-weight: 700;
+}
+/* Số cố định bề rộng: 3s→2s không được làm dòng chữ nhảy qua nhảy lại */
+.peek-clock {
+  display: inline-block; min-width: 2.2em; text-align: center;
+  padding: 1px 7px; border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Nằm trong .notice-bar nên phải gọn MỘT DÒNG: xếp dọc là dải phải cao gấp
