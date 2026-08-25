@@ -134,9 +134,6 @@ export function useOnlineRoom() {
   }
   let pingSentAt = 0;
   let pingTimer: ReturnType<typeof setInterval> | undefined;
-  /** Bộ nghe `visibilitychange` của nhịp tim hiện tại — phải gỡ đúng cái đã gắn.
-   *  Khai báo Ở ĐÂY, trên chỗ dùng: `let` đặt dưới là vùng chết (TDZ). */
-  let khiHienLai: (() => void) | undefined;
 
   /**
    * 4 giây một nhịp. Server trả lời bằng auto-response nên KHÔNG đánh thức
@@ -166,32 +163,9 @@ export function useOnlineRoom() {
     };
     beat();   // đo ngay, không thì 4 giây đầu ván chỗ hiện ping còn trống
     pingTimer = setInterval(beat, 4000);
-    /*
-     * TAB QUAY LẠI thì đập nhịp NGAY, không đợi hết 4 giây.
-     *
-     * Vì sao cần: trình duyệt bóp `setInterval` của tab nền (Chrome ~1 lần/phút,
-     * iOS treo hẳn), nên rời app đi mời bạn là nhịp ngừng — server thấy im tiếng
-     * và tính là mất kết nối. Nới ngưỡng SILENT_MS chỉ mua thêm thời gian; thứ
-     * chữa đúng gốc là nói "tôi còn đây" ngay giây quay lại.
-     *
-     * Socket đã chết trong lúc ở nền (iOS vẫn báo readyState OPEN nhưng không
-     * chuyển được gì) thì nối lại luôn, đừng chờ ba nhịp trượt nữa.
-     */
-    khiHienLai = (): void => {
-      if (document.visibilityState !== 'visible') return;
-      if (ws?.readyState !== WebSocket.OPEN && code && token) {
-        reconnecting.value = true;
-        connect(code, myName, token);
-        return;
-      }
-      beat();
-    };
-    document.addEventListener('visibilitychange', khiHienLai);
   }
   function stopHeartbeat(): void {
     if (pingTimer) clearInterval(pingTimer);
-    if (khiHienLai) document.removeEventListener('visibilitychange', khiHienLai);
-    khiHienLai = undefined;
     pingTimer = undefined;
     pingSentAt = 0;
     pingLost.value = 0;
@@ -711,7 +685,20 @@ export function useOnlineRoom() {
    */
   function onWake(): void {
     if (document.visibilityState !== 'visible') return;
-    if (pingTimer) startHeartbeat();
+    if (!pingTimer) return;                  // không ở trong phòng thì chẳng có gì để đánh thức
+    /*
+     * Socket đã CHẾT trong lúc ở nền thì nối lại LUÔN, đừng đập nhịp vào một
+     * đường đã đứt rồi chờ ba nhịp trượt (12 giây) mới kết luận. Trên iOS
+     * `readyState` còn báo OPEN cho một kết nối đã treo, nên `send()` không ném
+     * lỗi mà tin cũng không tới — đó là lý do vẫn phải có nhịp tim, chứ chỗ này
+     * chỉ bắt được ca socket đóng hẳn.
+     */
+    if (ws?.readyState !== WebSocket.OPEN && code && token) {
+      reconnecting.value = true;
+      connect(code, myName, token);
+      return;
+    }
+    startHeartbeat();                        // khởi động lại = đập một nhịp ngay
   }
   document.addEventListener('visibilitychange', onWake);
   window.addEventListener('pageshow', onWake);
