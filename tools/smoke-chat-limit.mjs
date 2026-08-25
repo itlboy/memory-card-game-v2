@@ -1,5 +1,5 @@
 /**
- * Chống spam emoji (3 lần / cửa sổ ROOM_LIMITS.emojiWindowMs) — E2E thật qua wrangler dev.
+ * Chống spam emoji (ROOM_LIMITS.emojiBurst lần / emojiWindowMs) — E2E thật qua wrangler dev.
  * Chạy: pnpm dev:server (hoặc pnpm dev) rồi `node tools/smoke-chat-limit.mjs`.
  * Kiểm ở SERVER vì client không đáng tin (ON-09): người sửa client vẫn phải
  * chịu hạn mức.
@@ -29,17 +29,20 @@ const other = await mk(code, 'B');
 await sleep(600);
 const heard = (c) => c.msgs.filter((m) => m.t === 'emoji').length;
 
-// Gửi dồn 5 cái: chỉ 3 cái đầu được phát
-for (let i = 0; i < 5; i++) { host.send({ t: 'emoji', emoji: E1 }); await sleep(60); }
+// Hạn mức đọc từ engine, KHÔNG ghi cứng — đổi emojiBurst là test này đỏ oan.
+const BURST = Number(/emojiBurst:\s*([0-9_]+)/.exec(src)[1].replace(/_/g, ''));
+
+// Gửi dồn quá hạn mức: chỉ BURST cái đầu được phát
+for (let i = 0; i < BURST + 2; i++) { host.send({ t: 'emoji', emoji: E1 }); await sleep(40); }
 await sleep(500);
-if (heard(other) !== 3) fail(`gửi dồn 5 lần, người kia nhận ${heard(other)} (phải là 3)`);
-console.log('✓ gửi dồn 5 lần chỉ 3 cái được phát');
+if (heard(other) !== BURST) fail(`gửi dồn ${BURST + 2} lần, người kia nhận ${heard(other)} (phải là ${BURST})`);
+console.log(`✓ gửi dồn ${BURST + 2} lần chỉ ${BURST} cái được phát`);
 
 // Vẫn bị chặn khi cửa sổ chưa trôi qua
 const before = heard(other);
 host.send({ t: 'emoji', emoji: E2 });
 await sleep(400);
-if (heard(other) !== before) fail('cái thứ tư vẫn lọt qua trong cửa sổ chống spam');
+if (heard(other) !== before) fail('cái vượt hạn mức vẫn lọt qua trong cửa sổ chống spam');
 console.log('✓ trong cửa sổ chống spam không lọt thêm cái nào');
 
 // Hạn mức tính RIÊNG từng người

@@ -38,6 +38,11 @@ body {
   display: flex; flex-direction: column;
   height: 100vh; height: 100dvh;
   overflow: hidden;
+  /* Bề rộng CỘT NỘI DUNG của game, để hộp thoại đo theo được. Trên điện thoại
+     cột là cả màn hình; trên máy tính nó bị khoá bởi khối @media dưới đây. Hộp
+     thoại tự đặt max-width riêng thì nó hẹp hơn cột (luật chơi từng 460px trong
+     cột 600px, nhìn ra thành một cột chữ hẹp giữa màn hình). */
+  --col-w: 100%;
 }
 
 /* Desktop: KHÔNG kéo giãn layout ngang. App là một cột hẹp cố định canh giữa —
@@ -66,6 +71,9 @@ body {
        chọn ngắt dòng xấu dưới mức đó); trần 600px để màn rất cao không kéo cột
        rộng thành dáng máy tính bảng. */
     width: clamp(390px, calc((100dvh - 16px) * 0.55), 600px);
+    /* GIỐNG HỆT `width` ở trên — sửa một chỗ phải sửa cả hai, lệch nhau là hộp
+       thoại không còn khớp mép cột. */
+    --col-w: clamp(390px, calc((100dvh - 16px) * 0.55), 600px);
     border: 1px solid var(--line); border-radius: 28px;
     overflow: hidden; box-shadow: var(--elev-3);
   }

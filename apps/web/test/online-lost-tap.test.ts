@@ -126,7 +126,7 @@ describe('emoji chat nổi trên header', () => {
   it('teleport ra body và dùng position: fixed — trong dải thông báo thì bị `main` cắt', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
+    const src = readFileSync(resolve(process.cwd(), 'src/components/EmojiBlast.vue'), 'utf8');
     // `main` có overflow: auto (bản đồ cấp cần cuộn) nên thứ gì nhô lên trên mép
     // main đều bị CẮT — nhìn ra thành "emoji nằm dưới header". Không phải z-index.
     expect(src, 'phải teleport ra body').toContain('<Teleport to="body">');

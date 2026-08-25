@@ -220,6 +220,10 @@ export function useOnlineRoom() {
   const turnDeadline = ref(0);
   /** Mốc thời gian đã trôi của ván (giây + thời điểm nhận) — đếm tiếp cục bộ. */
   const elapsedMark = ref<{ sec: number; at: number } | null>(null);
+  /** Hạn chót của giai đoạn hé mở cả bàn (ms cục bộ); 0 = không hé mở.
+   *  Giống `turnDeadline`: server gửi SỐ GIÂY còn lại, client đổi thành mốc rồi
+   *  tự đếm — không thì đồng hồ nhảy giật theo nhịp tin nhắn. */
+  const peekDeadline = ref(0);
   /** Đếm ngược trước ván (ROOM_LIMITS.countdownMs) + người đi đầu. */
   const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
   /** Mặt sau của ván — bốc ngẫu nhiên mỗi ván mới. */
@@ -270,6 +274,14 @@ export function useOnlineRoom() {
     const left = (countdown.value.endsAt - clock.value) / 1000;
     return left > 0 ? Math.ceil(left) : null;
   });
+
+  /** Giây còn lại của lúc hé mở cả bàn; null = không đang hé mở. */
+  const peekLeft = computed(() => {
+    if (!peekDeadline.value) return null;
+    return Math.max(0, (peekDeadline.value - clock.value) / 1000);
+  });
+  /** Cả bàn đang hé mở (Chớp nhoáng đầu ván, hoặc thẻ Mắt thần). */
+  const revealingAll = computed(() => view.value?.status === 'peeking' || (peekLeft.value ?? 0) > 0);
 
   const elapsed = computed(() => {
     const m = elapsedMark.value;
@@ -506,6 +518,7 @@ export function useOnlineRoom() {
     viewCount++;
     netTrouble.value = '';
     elapsedMark.value = { sec: v.elapsed, at: Date.now() };
+    peekDeadline.value = v.peekLeft === null ? 0 : Date.now() + v.peekLeft * 1000;
   }
 
   function applyEvents(events: PublicEvent[]): void {
@@ -672,7 +685,20 @@ export function useOnlineRoom() {
    */
   function onWake(): void {
     if (document.visibilityState !== 'visible') return;
-    if (pingTimer) startHeartbeat();
+    if (!pingTimer) return;                  // không ở trong phòng thì chẳng có gì để đánh thức
+    /*
+     * Socket đã CHẾT trong lúc ở nền thì nối lại LUÔN, đừng đập nhịp vào một
+     * đường đã đứt rồi chờ ba nhịp trượt (12 giây) mới kết luận. Trên iOS
+     * `readyState` còn báo OPEN cho một kết nối đã treo, nên `send()` không ném
+     * lỗi mà tin cũng không tới — đó là lý do vẫn phải có nhịp tim, chứ chỗ này
+     * chỉ bắt được ca socket đóng hẳn.
+     */
+    if (ws?.readyState !== WebSocket.OPEN && code && token) {
+      reconnecting.value = true;
+      connect(code, myName, token);
+      return;
+    }
+    startHeartbeat();                        // khởi động lại = đập một nhịp ngay
   }
   document.addEventListener('visibilitychange', onWake);
   window.addEventListener('pageshow', onWake);
@@ -728,6 +754,7 @@ export function useOnlineRoom() {
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
     wrongPair, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
+    peekLeft, revealingAll,
     countdown, countdownLeft, backStyle,
     createRoom, join, leave, resumeStored,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),

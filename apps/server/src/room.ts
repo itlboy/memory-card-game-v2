@@ -35,6 +35,8 @@ interface RoomState {
   status: 'lobby' | 'countdown' | 'playing' | 'ended';
   /** Thời điểm hết đếm ngược 5 giây, khi status = 'countdown'. */
   countdownEnd?: number;
+  /** Lúc phòng ở lobby mà KHÔNG còn ai. Xem EMPTY_LOBBY_MS. */
+  emptyAt?: number;
 }
 
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
@@ -52,11 +54,63 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 /**
  * Không nhận được tin nào từ một người trong bấy nhiêu ms thì coi là mất kết nối.
  *
- * Client gửi `alive` mỗi 4 giây, nên 9 giây là hai nhịp trượt — đủ dung sai cho
- * mạng xấu. Phải NGẮN HƠN đồng hồ lượt (15 giây): đo được cảnh người kia ngồi
- * nhìn bàn im suốt 15 giây mà không được báo gì, chính là điều đã bị phản ánh.
+ * Client gửi `alive` mỗi 4 giây, nên 20 giây là tha được BỐN nhịp trượt. Mức cũ
+ * 9 giây (hai nhịp) cắt oan quá nhiều: chuyển sang app khác một nhịp là trình
+ * duyệt bóp `setInterval` của tab nền xuống còn 1 lần/phút, 4G nấc nhẹ một nhịp
+ * rưỡi cũng đủ vượt ngưỡng — người chơi bị báo "rớt mạng" trong khi mạng không
+ * có vấn đề gì.
+ *
+ * TRẦN LÀ 25 GIÂY, không tuỳ ý: lúc phát hiện, `disconnectedAt` được LÙI về
+ * `lastSeen` chứ không phải `now`, nên hạn xử thua vẫn là 30 giây kể từ lần cuối
+ * thấy họ (ROOM_LIMITS.reconnectMs). Đặt bằng hoặc quá 30 giây là vừa phát hiện
+ * đã xử thua luôn, mất sạch cửa vào lại.
+ *
+ * Không còn cần ngắn hơn đồng hồ lượt (15 giây): hết lượt thì engine tự
+ * `turn-timeout` chuyển lượt, bàn KHÔNG treo — muộn ở đây chỉ là cái nhãn "mất
+ * kết nối" hiện chậm, không phải ván đứng im.
+ *
+ * Nới ngưỡng còn RẺ hơn: alarm hẹn tại `lastSeen + SILENT_MS`, nên mỗi người
+ * chơi từ ~380 lần đánh thức DO mỗi giờ xuống còn ~170.
  */
-const SILENT_MS = 9_000;
+const SILENT_MS = 20_000;
+
+/**
+ * Ngoài ván (lobby / đã kết thúc), im bấy nhiêu ms thì bị gỡ khỏi phòng.
+ *
+ * Vì sao KHÔNG dùng luôn SILENT_MS 20 giây: ở lobby người ta ngồi chờ nhau,
+ * chuyện thường là mở app khác đi mời bạn — trình duyệt bóp `setInterval` của
+ * tab nền xuống còn 1 lần/phút, nên 20 giây là đá họ ra khỏi phòng của chính
+ * mình. Ngoài ván không có gì gấp: 2 phút chỉ để dọn phòng CHẾT.
+ *
+ * Vì sao cần: cắt mạng kiểu không sinh sự kiện `close` (rút Wi-Fi, iOS treo kết
+ * nối) thì `webSocketClose` không bao giờ chạy. Trước đây watchdog chỉ soi khi
+ * status = 'playing' và `scheduleNext()` không hẹn alarm nào ở lobby, nên phòng
+ * đó SỐNG VĨNH VIỄN: giữ mã phòng, đếm là một người "đang chờ".
+ */
+const IDLE_SILENT_MS = 120_000;
+
+/**
+ * Phòng đã lập (POST /api/rooms) mà không ai vào trong bấy nhiêu ms thì xoá.
+ *
+ * `open()` ghi cờ `created` để mã sai không lặng lẽ thành phòng mới. Cờ đó
+ * không tự mất, nên bấm "Tạo phòng" rồi đóng tab để lại một mẩu rác vĩnh viễn.
+ */
+const UNUSED_ROOM_MS = 600_000;
+
+/**
+ * Lobby không còn ai thì phòng còn sống thêm bấy nhiêu ms trước khi bị xoá.
+ *
+ * Vì sao KHÔNG xoá ngay: luồng chia link là "tạo phòng → thoát ra → gửi link
+ * cho bạn → quay lại". Xoá ngay lúc người cuối rời lobby thì cái link vừa gửi
+ * đã chết trước khi bạn kịp bấm, và người nhận thấy "Phòng không tồn tại" —
+ * chính người tạo phòng cũng không vào lại được phòng của mình.
+ *
+ * 10 phút, không phải 5: gần như ai cũng chơi trên ĐIỆN THOẠI, mà ở đó "gửi
+ * link" là rời app sang Zalo/Messenger, gõ vài câu, chờ bạn tải trang. iOS còn
+ * treo hẳn kết nối của tab nền nên người tạo phòng thường bị tính là đã đi.
+ * Giữ một phòng rỗng chỉ tốn một mẩu storage và MỘT alarm, nên thà rộng tay.
+ */
+const EMPTY_LOBBY_MS = 600_000;
 
 export class RoomDO extends DurableObject<Env> {
   private room: RoomState | null = null;
@@ -109,6 +163,9 @@ export class RoomDO extends DurableObject<Env> {
    */
   async open(): Promise<void> {
     await this.ctx.storage.put('created', true);
+    await this.ctx.storage.put('openedAt', Date.now());
+    // Không ai vào thì alarm này là thứ duy nhất dọn được mẩu rác đó
+    await this.ctx.storage.setAlarm(Date.now() + UNUSED_ROOM_MS);
   }
 
   /** Phòng có thật hay không — dùng cho GET /api/rooms/:code. */
@@ -159,6 +216,7 @@ export class RoomDO extends DurableObject<Env> {
       };
       this.room.players.push(player);
       if (!this.room.hostId) this.room.hostId = player.id;
+      delete this.room.emptyAt;   // phòng có người trở lại, không còn hẹn xoá
     } else {
       player.disconnectedAt = null;
       if (name) player.name = name;
@@ -363,6 +421,15 @@ export class RoomDO extends DurableObject<Env> {
         this.removePlayer(player.id);   // ván sau không còn chờ người đã đi
         for (const sock of this.ctx.getWebSockets(player.id)) sock.close(4001, 'left');
         if (!this.room.players.length) {
+          // Ở lobby thì giữ mã phòng thêm EMPTY_LOBBY_MS cho cái link đã gửi;
+          // ván đã chạy rồi thì không còn gì để quay lại, xoá luôn.
+          if (this.room.status === 'lobby') {
+            this.room.emptyAt = Date.now();
+            this.room.hostId = '';
+            await this.save();
+            await this.scheduleNext();
+            return;
+          }
           await this.ctx.storage.deleteAll();
           this.room = null;
           this.game = null;
@@ -413,9 +480,12 @@ export class RoomDO extends DurableObject<Env> {
       this.room.players = this.room.players.filter((p) => p.id !== player.id);
       if (this.room.hostId === player.id) this.room.hostId = this.room.players[0]?.id ?? '';
       if (!this.room.players.length) {
-        await this.ctx.storage.deleteAll();
-        this.room = null;
-        this.game = null;
+        // KHÔNG xoá ngay: mã phòng phải còn sống để cái link vừa gửi đi dùng
+        // được (xem EMPTY_LOBBY_MS). Alarm sẽ dọn nếu hết giờ vẫn không ai vào.
+        this.room.emptyAt = Date.now();
+        this.room.hostId = '';
+        await this.save();
+        await this.scheduleNext();
         return;
       }
     } else {
@@ -438,8 +508,17 @@ export class RoomDO extends DurableObject<Env> {
 
   override async alarm(): Promise<void> {
     await this.load();
-    if (!this.room) return;
     const now = Date.now();
+
+    // Phòng lập mà không ai vào: chưa từng có `room` thì đây là mẩu rác, xoá luôn
+    if (!this.room) {
+      const openedAt = (await this.ctx.storage.get<number>('openedAt')) ?? 0;
+      if (openedAt && now - openedAt >= UNUSED_ROOM_MS) {
+        await this.ctx.storage.deleteAll();
+        await this.ctx.storage.deleteAlarm();
+      }
+      return;
+    }
 
     // Hết đếm ngược 5 giây → ván thực sự bắt đầu, đồng hồ lượt chạy
     if (this.room.status === 'countdown' && this.game && now >= (this.room.countdownEnd ?? 0)) {
@@ -452,12 +531,59 @@ export class RoomDO extends DurableObject<Env> {
     }
 
     /*
+     * MẤT MẠNG IM LẶNG NGOÀI VÁN (lobby / đã kết thúc): không có khối này thì
+     * phòng có người "mất mạng im lặng" sống vĩnh viễn — xem IDLE_SILENT_MS.
+     * Ngưỡng dài hơn hẳn trong ván vì ngoài ván không có gì gấp, mà đá oan một
+     * người đang ngồi chờ ở phòng của chính họ thì tệ hơn là để phòng rác thêm
+     * một phút.
+     */
+    // Lobby rỗng quá hạn: cái link đã hết cửa dùng, giờ mới xoá thật
+    if (this.room.emptyAt && now - this.room.emptyAt >= EMPTY_LOBBY_MS) {
+      await this.ctx.storage.deleteAll();
+      await this.ctx.storage.deleteAlarm();
+      this.room = null;
+      this.game = null;
+      return;
+    }
+
+    if (this.room.status === 'lobby' || this.room.status === 'ended') {
+      const truoc = this.room.players.length;
+      // `lastSeen` chưa có (vừa vào, chưa gửi tin nào) thì GIỮ: chưa có bằng
+      // chứng gì để đá người ta ra.
+      this.room.players = this.room.players.filter(
+        (p) => !p.lastSeen || now - p.lastSeen <= IDLE_SILENT_MS
+      );
+      if (this.room.players.length !== truoc) {
+        if (!this.room.players.length) {
+          if (this.room.status === 'lobby') {
+            this.room.emptyAt = now;   // vẫn cho link sống thêm EMPTY_LOBBY_MS
+            this.room.hostId = '';
+            await this.save();
+            await this.scheduleNext();
+            return;
+          }
+          await this.ctx.storage.deleteAll();
+          await this.ctx.storage.deleteAlarm();
+          this.room = null;
+          this.game = null;
+          return;
+        }
+        // Chủ phòng im tiếng thì phải chuyển quyền, không thì không ai bấm được gì
+        if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
+          this.room.hostId = this.room.players[0]!.id;
+        }
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+      }
+    }
+
+    /*
      * MẤT MẠNG IM LẶNG: cắt TCP không sinh sự kiện close, nên chỉ dựa vào close
      * là server tưởng người đó vẫn đang chơi — đối thủ ngồi nhìn bàn im không
      * hiểu gì, và hạn 30 giây xử thua không bao giờ chạy. Đã đo được đúng cảnh
      * này bằng hai trình duyệt và cắt mạng một bên.
      *
-     * Client gửi `alive` mỗi ~12 giây, nên quá SILENT_MS không thấy tin nào là
+     * Client gửi `alive` mỗi 4 giây, nên quá SILENT_MS không thấy tin nào là
      * coi như mất kết nối. Mốc tính từ lần cuối thấy họ, không phải từ bây giờ.
      */
     if (this.room.status === 'playing') {
@@ -501,6 +627,15 @@ export class RoomDO extends DurableObject<Env> {
     if (this.room?.status === 'countdown' && this.room.countdownEnd) marks.push(this.room.countdownEnd);
     if (this.room?.status === 'playing' && this.game && !this.game.finished) {
       if (this.game.locked) marks.push(now + (this.game.config.flipBackMs ?? 1000));
+      /*
+       * HẾT HÉ MỞ CẢ BÀN (Chớp nhoáng, và thẻ Mắt thần ở mọi chế độ).
+       *
+       * Thiếu mốc này là bàn nằm mở tới khi một alarm KHÁC tình cờ nổ: lúc hé
+       * mở, `flip()` bị chặn (status = 'peeking') nên không nước đi nào làm
+       * engine nhích, và không có gì khác đánh thức DO. Đo được trên wrangler:
+       * bàn 6 thẻ đáng hé 3,6 giây thì nằm mở 15,5 giây — hơn bốn lần.
+       */
+      if (this.game.revealUntil > 0) marks.push(this.game.revealUntil + 50);
       // Đồng hồ 30 giây mỗi lượt: hết hạn thì alarm đánh thức để chuyển lượt
       if (this.game.turnDeadline) marks.push(this.game.turnDeadline + 50);
       const left = this.game.timeLeft(now);
@@ -511,6 +646,16 @@ export class RoomDO extends DurableObject<Env> {
         // thức đúng lúc để nhận ra người kia đã đi.
         else if (p.lastSeen) marks.push(p.lastSeen + SILENT_MS + 500);
       }
+    }
+    // Ngoài ván cũng phải có alarm: đây là thứ duy nhất phát hiện được người
+    // "mất mạng im lặng" ở lobby. Trước đây chỗ này rơi vào nhánh deleteAlarm()
+    // nên phòng chết không ai dọn.
+    if (this.room?.status === 'lobby' || this.room?.status === 'ended') {
+      for (const p of this.room.players) {
+        if (p.lastSeen) marks.push(p.lastSeen + IDLE_SILENT_MS + 500);
+      }
+      // Phòng rỗng: không có mốc này thì nó không bao giờ bị dọn
+      if (this.room.emptyAt) marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
     }
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));
     else await this.ctx.storage.deleteAlarm();

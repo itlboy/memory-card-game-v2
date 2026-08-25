@@ -138,7 +138,11 @@ const POWERS = [
 /* Panel cao tối đa theo viewport; RIÊNG phần nội dung được cuộn — luật dài hơn
    một màn hình là chuyện bình thường, còn tiêu đề và nút đóng phải luôn thấy. */
 .rules {
-  width: 100%; max-width: 460px; max-height: calc(100dvh - 24px);
+  /* Rộng ĐÚNG BẰNG cột nội dung của game (--col-w ở global.css), không phải một
+     con số riêng: 460px cố định nằm trong cột 600px trên máy tính đọc ra thành
+     một cột chữ hẹp lọt giữa màn hình, mà luật chơi là trang chữ dài — nó cần
+     mọi pixel bề rộng đang có. */
+  width: 100%; max-width: var(--col-w); max-height: calc(100dvh - 24px);
   display: flex; flex-direction: column; min-height: 0;
 }
 .rules-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }

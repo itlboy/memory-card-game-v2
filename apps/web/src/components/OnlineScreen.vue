@@ -7,6 +7,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import LevelMap from './LevelMap.vue';
 import OnlineGame from './OnlineGame.vue';
+import EmojiBar from './EmojiBar.vue';
+import EmojiBlast from './EmojiBlast.vue';
 import type { RoomConfig } from '@mm/engine';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { store } from '@/lib/storage';
@@ -507,11 +509,21 @@ function openCfgWizard(): void {
         — chờ chủ phòng bắt đầu…
       </p>
     </template>
+    <!-- Chat ngay ở phòng chờ: lúc ngồi đợi nhau mới là lúc cần nói chuyện
+         nhất. Server không hề chặn emoji theo trạng thái phòng, nên đây chỉ là
+         chuyện thêm giao diện. -->
+    <div class="lobby-chat">
+      <EmojiBar :o="o" />
+    </div>
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
   </section>
 
-  <!-- TRONG VÁN — xem OnlineGame.vue -->
+  <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
   <OnlineGame v-else :o="o" @quit="quit" />
+
+  <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
+       được mount một bản: trong ván đã có bản của OnlineGame. -->
+  <EmojiBlast v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
 
   <ConfirmDialog
     v-if="confirm"
@@ -672,7 +684,12 @@ input:focus { outline: none; border-color: var(--accent); }
 .ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
 
-.lobby-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px; }
+.lobby-list {
+  list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px;
+  /* Co được: thêm thanh chat bên dưới thì danh sách nhường chỗ, KHÔNG đẩy nút
+     chính ra khỏi màn hình (quy tắc không-scroll). */
+  min-height: 0; overflow-y: auto;
+}
 .lobby-list li {
   display: flex; align-items: center; gap: 8px; padding: 10px 12px;
   border: 2px solid var(--line); border-radius: var(--r-md); background: var(--panel-soft);
@@ -693,6 +710,10 @@ input:focus { outline: none; border-color: var(--accent); }
   box-shadow: 0 8px 22px color-mix(in srgb, var(--ok) 40%, transparent);
 }
 .hint { color: var(--muted); font-size: var(--text-sm); margin: 14px 0 0; }
+/* Thanh chat lobby: dán xuống đáy panel (margin-top: auto) để nó không chen vào
+   giữa danh sách người chơi và nút chính. KHÔNG SCROLL: nó chỉ cao 40px và
+   .lobby-list được phép co lại, nên nút "Bắt đầu" vẫn nằm trong màn hình. */
+.lobby-chat { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .warn {
   margin: 14px 0 0; padding: 10px 12px; border-radius: var(--r-sm); font-size: var(--text-sm);
   background: color-mix(in srgb, var(--bad) 14%, transparent);

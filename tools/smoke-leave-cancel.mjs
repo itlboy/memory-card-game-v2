@@ -1,12 +1,19 @@
-const SERVER = 'http://127.0.0.1:8787';
+const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json()).code;
-const mk = (code, name) => new Promise((res) => {
+// Hạn chờ 5 giây: server từ chối (404) thì `onopen` KHÔNG BAO GIỜ chạy, và
+// node lặng lẽ thoát với mã 0 ở `await` treo — test nhìn ra thành XANH trong khi
+// nó chưa chạy tới đâu. Đã thật sự xảy ra: hai bước cuối của file này chưa từng
+// được kiểm.
+const mk = (code, name) => new Promise((res, rej) => {
   const ws = new WebSocket(`${SERVER.replace('http','ws')}/ws/${code}?name=${name}`);
   const c = { ws, msgs: [], closed: null };
+  const hetgio = setTimeout(() => rej(new Error(`không mở được socket vào phòng ${code}`)), 5000);
   ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
   ws.onclose = (e) => { c.closed = e.code; };
-  ws.onopen = () => res(c);
+  ws.onerror = () => { clearTimeout(hetgio); rej(new Error(`socket lỗi khi vào phòng ${code}`)); };
+  ws.onopen = () => { clearTimeout(hetgio); res(c); };
 });
+const roomExists = async (c) => (await (await fetch(`${SERVER}/api/rooms/${c}`)).json()).exists;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 1) Đầu hàng giữa ván → người còn lại thắng ngay (reason forfeit)
@@ -35,14 +42,11 @@ if (!b.msgs.some((m) => m.t === 'closed')) { console.log('✗ khách không nh�
 // client thoát dựa trên message 'closed'; mã đóng socket chỉ là phòng hờ
 console.log('✓ huỷ phòng: khách nhận thông báo closed' + (b.closed ? ' + socket đóng ' + b.closed : ''));
 
-// Phòng đã huỷ thì vào lại phải thành phòng trống mới (không còn ván cũ)
-const c2 = await mk(code, 'Moi');
-await sleep(600);
-const w2 = c2.msgs.find((m) => m.t === 'welcome');
-if (!w2 || w2.spectator || w2.room.players.length !== 1) {
-  console.log('✗ phòng cũ chưa được dọn:', JSON.stringify(w2?.room?.players?.length)); process.exit(1);
-}
-console.log('✓ storage phòng đã dọn sạch — mã cũ dùng lại thành phòng mới');
+// Phòng đã huỷ thì MÃ CHẾT HẲN — không phải "vào lại thành phòng trống mới".
+// Chủ phòng bấm huỷ là chủ ý dẹp phòng, mà mã còn sống thì người vào sau tưởng
+// mình đang chờ trong phòng của bạn.
+if (await roomExists(code)) { console.log('✗ phòng đã huỷ mà mã vẫn còn sống'); process.exit(1); }
+console.log('✓ huỷ phòng: storage dọn sạch, mã chết hẳn');
 
 // 3) Khách gửi cancel → bị bỏ qua
 code = await mkRoom();
@@ -52,6 +56,25 @@ b.ws.send(JSON.stringify({ t: 'cancel' }));
 await sleep(600);
 if (a.closed || a.msgs.some((m) => m.t === 'closed')) { console.log('✗ khách huỷ được phòng!'); process.exit(1); }
 console.log('✓ khách không huỷ được phòng (chỉ chủ phòng)');
+
+// 4) LUỒNG CHIA LINK: tạo phòng → thoát ra gửi link → bạn vào được.
+// Trước đây người cuối rời lobby là phòng bị xoá NGAY, nên cái link vừa gửi đã
+// chết trước khi bạn kịp bấm. Đa phần chơi trên điện thoại, mà ở đó "gửi link"
+// đúng là rời app đi.
+code = await mkRoom();
+a = await mk(code, 'Chu');
+await sleep(500);
+a.ws.close();                       // thoát ra để đi gửi link
+await sleep(1500);
+if (!await roomExists(code)) { console.log('✗ phòng chết ngay khi chủ phòng thoát'); process.exit(1); }
+const ban = await mk(code, 'Ban');   // bạn bấm link
+await sleep(600);
+const wBan = ban.msgs.find((m) => m.t === 'welcome');
+if (!wBan || wBan.spectator) { console.log('✗ bạn vào bằng link mà thành khán giả'); process.exit(1); }
+if (wBan.room.hostId !== wBan.playerId) {
+  console.log('✗ phòng rỗng mà người vào đầu tiên không được làm chủ phòng'); process.exit(1);
+}
+console.log('✓ chia link: chủ phòng thoát ra, phòng vẫn sống, bạn vào được và làm chủ phòng');
 
 console.log('\nLEAVE/CANCEL OK');
 process.exit(0);

@@ -303,7 +303,8 @@ chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào sto
   ngay ở tầng runtime nên KHÔNG đánh thức Durable Object — đây là chỗ tốn tiền
   nhất nếu làm sai (DO tính phí theo thời gian thức). Chỉ hiện ping của MÌNH;
   không đo được ping của người kia, với họ chỉ hiện trạng thái kết nối
-- Emoji chat giới hạn 3 lần / 5 giây, chặn ở server (`ROOM_LIMITS.emojiBurst` và `emojiWindowMs`)
+- Emoji chat giới hạn 10 lần / 4 giây, chặn ở server (`ROOM_LIMITS.emojiBurst` và `emojiWindowMs`);
+  gửi được cả ở phòng chờ và trong bảng kết quả
 - Server-authoritative: client chỉ gửi `{t:'flip'}`; payload không bao giờ chứa
   thẻ úp (ON-09, NF-04); emoji chat danh sách đóng (ON-08)
 - Rớt mạng có 30 giây vào lại bằng token, quá hạn bị xử thua (ON-07)
@@ -447,8 +448,33 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
     `disconnectedAt` chỉ được đặt trong `webSocketClose`.
   Vá: client gửi `alive` mỗi 4 giây (KHÁC `ping` — `ping` do
   `setWebSocketAutoResponse` tự trả lời nên DO không thức, không biết ai còn
-  sống); server coi im quá `SILENT_MS` = 9 giây là mất kết nối. 9 giây phải NGẮN
-  HƠN đồng hồ lượt 15 giây, không thì đối thủ vẫn ngồi nhìn bàn im.
+  sống); server coi im quá `SILENT_MS` = 20 giây là mất kết nối. Trần là 25 giây:
+  lúc phát hiện, `disconnectedAt` được LÙI về `lastSeen`, nên hạn xử thua vẫn là
+  30 giây kể từ lần cuối thấy họ — đặt bằng 30 là vừa phát hiện đã xử thua luôn.
+  (Mức cũ 9 giây cắt oan: tab nền bị trình duyệt bóp `setInterval`.) Client còn
+  đập nhịp NGAY khi tab hiện lại (`visibilitychange`), và nối lại luôn nếu socket
+  đã chết trong lúc ở nền — iOS treo kết nối mà `readyState` vẫn báo OPEN.
+- **HÉ MỞ CẢ BÀN trong phòng online** (Chớp nhoáng đầu ván, thẻ Mắt thần): lúc
+  đó `flip()` bị chặn (`status = 'peeking'`) nên KHÔNG nước đi nào làm engine
+  nhích — thứ duy nhất kết thúc được nó là alarm. `scheduleNext()` từng không
+  hẹn mốc `revealUntil`: đo trên wrangler, bàn 6 thẻ đáng hé 3,6 giây thì nằm mở
+  **15,5 giây**, tới khi một alarm khác tình cờ nổ. `GameView.peekLeft` chở số
+  giây còn lại (client không giữ engine, không tự tính được), client đổi thành
+  mốc rồi tự đếm cho mượt. `pnpm smoke:peek` canh cả hai.
+- **VÒNG ĐỜI MỘT PHÒNG** (không có TTL chung, phòng sống theo người trong nó):
+
+  | Trạng thái | Sống bao lâu |
+  |---|---|
+  | Lập rồi không ai vào | 10 phút (`UNUSED_ROOM_MS`) |
+  | Lobby còn người | vô hạn; im quá 2 phút thì bị gỡ khỏi phòng (`IDLE_SILENT_MS`) |
+  | Lobby rỗng | 10 phút (`EMPTY_LOBBY_MS`) |
+  | Trong ván, rớt mạng | 20 giây → báo mất kết nối; 30 giây → xử thua |
+  | Ván xong, hết socket | xoá ngay |
+
+  `EMPTY_LOBBY_MS` sinh ra từ luồng chia link trên điện thoại: tạo phòng → rời
+  app sang Zalo dán link → quay lại. Trước đây người cuối rời lobby là
+  `deleteAll()` NGAY, nên cái link vừa gửi đã chết trước khi bạn kịp bấm.
+  `pnpm smoke:leave` có bước kiểm đúng luồng này.
 - **BÀN TREO — nghi vấn còn lại.** Đã gặp trên production: hai thẻ mở,
   đồng hồ lượt về 0, cả hai người chơi không làm gì được, mấy chục giây sau mới
   tự chạy tiếp. Local KHÔNG tái hiện được (`pnpm smoke:freeze` cho thấy server
