@@ -461,6 +461,16 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   **15,5 giây**, tới khi một alarm khác tình cờ nổ. `GameView.peekLeft` chở số
   giây còn lại (client không giữ engine, không tự tính được), client đổi thành
   mốc rồi tự đếm cho mượt. `pnpm smoke:peek` canh cả hai.
+- **LẬT THẺ ONLINE GIẬT** — animation với góc TUYỆT ĐỐI chiếm quyền giữa lúc
+  transition đang chạy. Ở online lá dừng ở 90° chờ server; khi câu trả lời về thì
+  `pending` tắt và `faceUp` bật TRONG CÙNG MỘT NHỊP, `flip-up` (0% = rotateY(0))
+  hoặc `shake` (mọi keyframe = 180deg) vào cuộc và lá nhảy phắt về góc mở đầu của
+  keyframe. Đo với trễ 87ms/chiều (ping 175ms): **96,2° trong một frame** → sau
+  khi vá còn 15° (chính là nhịp úp lại bình thường). Cách vá: nhớ trạng thái
+  vừa-chờ-server (`daCho`) vì `props.pending` trong watcher đã là false, để
+  transition đi nốt 90→180, rồi mới chạy `wob-tail` (bắt đầu ĐÚNG ở 180°); lắc
+  "ghép sai" hoãn đúng `FLIP_MS`. Chơi đơn không có đường này nên không bao giờ
+  thấy — đừng thử tái hiện ở chế độ chơi đơn.
 - **VÒNG ĐỜI MỘT PHÒNG** (không có TTL chung, phòng sống theo người trong nó):
 
   | Trạng thái | Sống bao lâu |
