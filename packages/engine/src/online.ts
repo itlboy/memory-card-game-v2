@@ -35,9 +35,13 @@ export const ROOM_LIMITS = {
   codeLength: 6,
   /** Chống spam emoji: tối đa `emojiBurst` lần trong `emojiWindowMs`.
    *  Client dùng để làm mờ nút, server dùng để thực sự chặn (client không
-   *  đáng tin — ON-09), nên hai bên phải đọc cùng một con số. */
-  emojiBurst: 3,
-  emojiWindowMs: 5_000,
+   *  đáng tin — ON-09), nên hai bên phải đọc cùng một con số.
+   *  10 lần / 4 giây (2,5 lần/giây): đủ nhanh để đối đáp qua lại như nói
+   *  chuyện — mức cũ 3 lần / 5 giây khiến gửi ba cái là ngồi chờ, mà chat
+   *  emoji là chuyện của những nhịp liên tiếp. Vẫn còn trần để một người
+   *  không nhấn giữ mà lấp kín màn hình người khác. */
+  emojiBurst: 10,
+  emojiWindowMs: 4_000,
   /** Đếm ngược trước khi ván chạy. Client và server PHẢI đọc cùng con số này,
    *  lệch nhau là một bên đã cho lật khi bên kia còn đang đếm. */
   countdownMs: 3_000

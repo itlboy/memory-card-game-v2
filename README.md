@@ -303,7 +303,8 @@ chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào sto
   ngay ở tầng runtime nên KHÔNG đánh thức Durable Object — đây là chỗ tốn tiền
   nhất nếu làm sai (DO tính phí theo thời gian thức). Chỉ hiện ping của MÌNH;
   không đo được ping của người kia, với họ chỉ hiện trạng thái kết nối
-- Emoji chat giới hạn 3 lần / 5 giây, chặn ở server (`ROOM_LIMITS.emojiBurst` và `emojiWindowMs`)
+- Emoji chat giới hạn 10 lần / 4 giây, chặn ở server (`ROOM_LIMITS.emojiBurst` và `emojiWindowMs`);
+  gửi được cả ở phòng chờ và trong bảng kết quả
 - Server-authoritative: client chỉ gửi `{t:'flip'}`; payload không bao giờ chứa
   thẻ úp (ON-09, NF-04); emoji chat danh sách đóng (ON-08)
 - Rớt mạng có 30 giây vào lại bằng token, quá hạn bị xử thua (ON-07)

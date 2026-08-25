@@ -1208,7 +1208,10 @@ describe('không ô nào bị dính viền "đang chọn"', () => {
 
 describe('emoji lúc chat to gấp đôi nút bấm', () => {
   it('emoji người kia gửi lớn hơn hẳn nút gửi, và có TÊN người gửi kèm dưới', () => {
-    const css = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
+    // Thanh gửi ở EmojiBar.vue, emoji người kia gửi ở EmojiBlast.vue — đọc cả hai
+    const css = ['EmojiBar.vue', 'EmojiBlast.vue']
+      .map((f) => readFileSync(resolve(process.cwd(), `src/components/${f}`), 'utf8'))
+      .join('\n');
     const px = (sel: string): number => {
       const at = css.indexOf(sel);
       expect(at, `không thấy rule ${sel}`).toBeGreaterThan(-1);

@@ -260,11 +260,22 @@ const title = computed(() => {
       <p v-else-if="rematchFrom?.length" class="waiting want" role="status">
         🔁 <b>{{ rematchFrom.join(', ') }}</b> muốn chơi lại — bấm <b>Chơi lại</b> để vào ván mới
       </p>
+
+      <!-- Chat vẫn phải chạy sau khi ván xong: overlay này che kín màn chơi nên
+           thanh emoji của OnlineGame không bấm tới được. Chờ nhau bấm "Chơi lại"
+           là đúng lúc người ta muốn nói chuyện nhất. -->
+      <div class="chat-slot"><slot name="chat" /></div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Thanh chat trong bảng kết quả: cách nút một nhịp, viền trên để tách khỏi
+   khu vực nút bấm — không thì mắt đọc emoji thành một hàng nút hành động. */
+.chat-slot:not(:empty) {
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
 .waiting {
   margin: 10px 0 0; text-align: center; color: var(--muted);
   font-size: var(--text-sm);

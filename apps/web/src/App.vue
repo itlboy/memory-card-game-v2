@@ -242,7 +242,11 @@ function playerList(): PlayerInit[] | undefined {
   if (botLevel.value) {
     const spec = BOT_SPECS[botLevel.value];
     return [
-      { id: 'p1', name: store.playerNames()[0] ?? 'Bạn' },
+      // Đấu máy LUÔN là "Bạn", không lấy tên đã lưu: tên là chuyện của phòng
+      // online (và của nhiều người cùng máy). Lôi tên sót lại từ đó sang đây thì
+      // người chơi thấy một cái tên mình chưa từng đặt cho ván này, mà nhánh
+      // đấu máy lại không có bước nhập tên để sửa (MenuScreen bỏ bước 'names').
+      { id: 'p1', name: 'Bạn' },
       { id: 'bot', name: spec.name, avatar: spec.avatar }
     ];
   }

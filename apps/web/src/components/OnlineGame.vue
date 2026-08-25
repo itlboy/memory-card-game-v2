@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { QUICK_EMOJIS, ROOM_LIMITS } from '@mm/engine';
+import { ROOM_LIMITS } from '@mm/engine';
 import type { Card } from '@mm/engine';
 import { Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -8,6 +8,8 @@ import { useBoardFit } from '@/composables/useBoardFit';
 import CelebrationFx from './CelebrationFx.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
+import EmojiBar from './EmojiBar.vue';
+import EmojiBlast from './EmojiBlast.vue';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 
 /**
@@ -161,21 +163,7 @@ watch(() => o.view.value?.summary, (s) => {
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
     <div class="notice-bar">
-      <!--
-        Emoji người kia gửi: TELEPORT ra <body> và dùng position: fixed.
-        Vì sao không để trong dải thông báo: `main` có `overflow: auto` (bản đồ
-        cấp cần cuộn), nên mọi thứ nhô lên trên mép `main` đều BỊ CẮT — nhìn ra
-        thành "emoji nằm dưới header". Không phải chuyện z-index, mà là bị cắt.
-        Ra ngoài body thì nó nổi trên tất cả, kể cả header.
-      -->
-      <Teleport to="body">
-        <Transition name="blast">
-          <div v-if="o.emojiBlast.value" :key="o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
-            <span class="big">{{ o.emojiBlast.value.emoji }}</span>
-            <span class="from">{{ o.emojiBlast.value.name }}</span>
-          </div>
-        </Transition>
-      </Teleport>
+      <EmojiBlast :o="o" />
 
       <Transition name="banner">
         <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
@@ -217,22 +205,8 @@ watch(() => o.view.value?.summary, (s) => {
       📴 Mạng của bạn đang có vấn đề…
     </p>
 
-    <!-- Emoji chat (ON-08) — khán giả không gửi được -->
-    <div
-      v-if="!o.spectator.value" class="emoji-bar"
-      :class="{ spent: !o.emojiReady.value }"
-      :aria-label="o.emojiReady.value ? 'Gửi emoji' : 'Gửi emoji — đợi chút, bạn vừa gửi liên tục'"
-    >
-      <button
-        v-for="e in QUICK_EMOJIS" :key="e" class="emoji" type="button"
-        :disabled="!o.emojiReady.value"
-        @click="o.sendEmoji(e)"
-      >{{ e }}</button>
-      <!-- Hết lượt: nói rõ còn phải chờ mấy giây -->
-      <span v-if="o.emojiCooldown.value" class="cooldown" role="status">
-        🧊 {{ o.emojiCooldown.value }}s
-      </span>
-    </div>
+    <!-- Emoji chat (ON-08) — xem EmojiBar.vue -->
+    <EmojiBar :o="o" />
 
     <CelebrationFx v-if="o.view.value?.summary && iWon" />
     <ResultDialog
@@ -249,7 +223,9 @@ watch(() => o.view.value?.summary, (s) => {
       @replay="o.again()"
       @next="o.again()"
       @menu="emit('quit')"
-    />
+    >
+      <template #chat><EmojiBar :o="o" /></template>
+    </ResultDialog>
   </section>
 </template>
 
@@ -395,85 +371,7 @@ watch(() => o.view.value?.summary, (s) => {
 }
 .countdown .first b { color: var(--accent); }
 
-/* Emoji người kia gửi: nằm trong dải thông báo TRÊN bàn, xếp ngang một dòng —
-   trước đây nó phóng 110px giữa bàn, đúng lúc đối thủ đang chờ mình đi thì cả
-   bàn bị che.
 
-   Xếp DỌC: biểu tượng trên, TÊN người gửi ngay dưới — đọc được ai vừa nói mà
-   không cần dấu nhỏ trên chip người chơi (đã bỏ). Cả cụm trôi lên và mờ dần như
-   một câu nói bay đi. 1,9s đúng bằng lúc composable xoá emojiBlast nên nó tan
-   hết rồi mới rời DOM, không bị cắt ngang. */
-.emoji-blast {
-  /* fixed + z-index cao: nổi trên MỌI thứ kể cả header. Neo theo mép trên màn
-     hình vì nó đã ra khỏi cây DOM của màn chơi. */
-  position: fixed; top: 10px; left: 50%; z-index: 60;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  pointer-events: none;
-  animation: blast-float 1.15s ease-out forwards;
-}
-/* Trôi lên NHANH và dứt khoát: nó là một câu nói bay đi, không phải thứ cần đọc
-   lâu — tên người gửi ở ngay dưới đã nói đủ. */
-@keyframes blast-float {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.9); }
-  14%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-  55%  { opacity: 1; transform: translateX(-50%) translateY(-26px); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-72px); }
-}
-/* Gấp đôi cỡ cũ (30–44px → 60–88px): emoji người kia gửi là lời "nói", phải đọc
-   được từ xa. Nó nằm trong .notice-bar (cao 0px) nên phóng to KHÔNG đẩy bàn thẻ
-   xuống — chỉ đè lên HUD một nhịp rồi tan. Nút BẤM để gửi giữ nguyên cỡ. */
-.emoji-blast .big {
-  font-size: clamp(60px, 16vw, 88px); line-height: 1;
-  filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .35));
-  animation: blast-pop .5s cubic-bezier(.2, 1.4, .4, 1);
-}
-.emoji-blast .from {
-  font-family: var(--font-display); font-weight: 700; font-size: var(--text-md);
-  color: #fff; padding: 2px 12px; border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--accent) 85%, black);
-  box-shadow: 0 4px 14px var(--card-back-glow);
-}
-/* Nảy vào một nhịp. KHÔNG có translateX ở đây: cụm CHA mới là cái căn giữa,
-   để đây thì nó lệch nửa bề rộng. */
-@keyframes blast-pop {
-  0%   { transform: scale(.3) rotate(-14deg); }
-  55%  { transform: scale(1.2) rotate(5deg); }
-  100% { transform: scale(1) rotate(0); }
-}
-.blast-enter-active { transition: opacity .1s; }
-.blast-leave-active { transition: opacity .25s; }
-.blast-leave-to { opacity: 0; }
 
-/* LUÔN một hàng. Cho xuống hàng thì trên điện thoại thành hai hàng, vừa xấu vừa
-   ăn chỗ của bàn thẻ. Các nút co giãn để tự vừa bề rộng: 8 emoji trên iPhone SE
-   ra ~39px mỗi nút, trên máy rộng thì chặn ở 44px cho khỏi phình to. */
-.emoji-bar {
-  display: flex; flex-wrap: nowrap; gap: 4px; justify-content: center;
-  padding: 0 6px;
-  transition: opacity .18s ease;
-}
-/* Hết lượt trong 10 giây: mờ đi để thấy rõ là đang chờ */
-.emoji-bar { position: relative; }
-.emoji-bar.spent .emoji { opacity: .35; }
-.cooldown {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  padding: 4px 12px; border-radius: var(--r-full);
-  background: var(--panel-solid); border: 2px solid var(--accent);
-  box-shadow: var(--shadow-soft);
-  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
-  font-variant-numeric: tabular-nums; white-space: nowrap;
-  pointer-events: none;
-}
-.emoji {
-  /* min-width 34px là sàn: hẹp hơn thì ngón tay bấm trượt. flex 1 1 auto để
-     chúng chia đều chỗ còn lại thay vì tràn ra ngoài khung. */
-  flex: 1 1 auto; min-width: 34px; max-width: 44px;
-  min-height: 40px; font-size: 20px; border: 1px solid var(--line);
-  border-radius: var(--r-full); background: var(--panel);
-  transition: transform .12s ease;
-}
-.emoji:disabled { cursor: not-allowed; }
-@media (hover: hover) {
-.emoji:not(:disabled):hover { transform: translateY(-2px) scale(1.1); }
-}
+
 </style>
