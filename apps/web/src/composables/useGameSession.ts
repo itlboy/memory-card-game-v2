@@ -68,6 +68,17 @@ export function useGameSession() {
           wrongPair.value = e.indices;
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;
+        /*
+         * XÁO THẺ (tuỳ chọn "Xáo thẻ"): dùng lại đúng hiệu ứng bay chéo của thẻ
+         * Tráo đổi. BẮT BUỘC phải chỉ ra hai ô nào — mặt sau mọi lá giống hệt
+         * nhau nên không có hiệu ứng thì người chơi không thể biết vừa có gì xảy
+         * ra, và họ sẽ nghĩ là mình nhớ sai chứ không phải bàn vừa động.
+         */
+        case 'shuffle':
+          sfx.swap();
+          swapPair.value = { a: e.affected[0], b: e.affected[1], key: (swapPair.value?.key ?? 0) + 1 };
+          setTimeout(() => { swapPair.value = null; }, SWAP_MS);
+          break;
         case 'power':
           if (e.power === 'bomb') sfx.bomb();
           else if (e.power === 'freeze') sfx.freeze();
