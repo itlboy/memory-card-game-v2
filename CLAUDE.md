@@ -115,6 +115,9 @@
   vì solo không có ai làm ký ức bot già đi giữa hai lượt.
 - Bàn nhỏ có TRẦN ~57% dù bot nhớ tuyệt đối — ván ngắn nên ai bốc trúng cặp mới
   là chính. Đừng cân bằng bàn nhỏ bằng cách nâng trí nhớ.
+- Hai mức cạnh nhau phải cách nhau ĐỦ RỘNG: đường tỉ lệ thắng bão hoà ở quãng
+  nửa đời 12→15 rồi mới dựng lại từ 18, nên 12 và 15 ra hai mức gần như bằng
+  nhau (bàn nhỏ và vừa bằng hệt nhau). Thang đang dùng: 3 · 6 · 12 · 20.
 - **Đổi thể thức chơi thì PHẢI cập nhật hướng dẫn.** Luật chơi được kể lại ở
   `RulesDialog.vue` (và tóm tắt ở ô chọn trong `OnlineScreen.vue`, dòng cấu hình
   phòng chờ, thẻ chia sẻ og). Thêm/bỏ/đổi một luật mà quên chỗ này là người chơi

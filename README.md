@@ -174,8 +174,8 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   |---|---|---|---|
   | Bot dễ | **3** nước | 0,794 | 20,6% |
   | Bot bình thường | **6** | 0,891 | 10,9% |
-  | Bot Pro | **9** | 0,926 | 7,4% |
-  | Bot siêu đẳng | **12** | 0,944 | 5,6% |
+  | Bot Pro | **12** | 0,944 | 5,6% |
+  | Bot siêu đẳng | **20** | 0,966 | 3,4% |
 
   Nửa đời = số nước để khả năng nhớ một lá còn một nửa. Đơn vị là NƯỚC ĐI, không
   phải giây: người chơi ngồi nghĩ lâu không làm bot quên thêm. Xúc xắc tung lại
@@ -191,17 +191,22 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   - **Độ khó không còn tự giãn theo cỡ bàn.** `capacity` từng làm bot yếu tệ hẳn
     trên bàn lớn (phải nhớ nhiều lá cùng lúc). Giờ chỉ tuổi ký ức mới ảnh hưởng.
-  - **Bot siêu đẳng nhẹ đi**: 88% → 75% ở bàn 6×7. Muốn nó đáng tên thì nửa đời
-    cần cỡ 20 (đo được 86%).
+  - Bot siêu đẳng từng nhẹ đi khi mới bỏ hai tham số (88% → 75%); nới nửa đời lên
+    20 thì trở lại 88%.
 
   Tỉ lệ thắng trước đối thủ KHÁ (ghi 80% những gì thấy, nửa đời ~9,5 nước), 60 ván
   mỗi ô, đổi lượt đi trước để bỏ lợi thế người đi đầu:
 
   | bàn | Bot dễ | bình thường | Pro | siêu đẳng |
   |---|---|---|---|---|
-  | 12 thẻ | 42% | 43% | 52% | 55% |
-  | 24 thẻ | 22% | 35% | 53% | 53% |
-  | 42 thẻ | 3% | 25% | 47% | 70% |
+  | 12 thẻ | 42% | 43% | 55% | 57% |
+  | 24 thẻ | 22% | 35% | 53% | 63% |
+  | 42 thẻ | 3% | 25% | 70% | 88% |
+
+  **KHOẢNG CÁCH GIỮA HAI MỨC CAO PHẢI ĐỦ RỘNG.** Đường tỉ lệ thắng bão hoà ở
+  quãng nửa đời 12→15 rồi mới dựng lại từ 18: đặt siêu đẳng là 15 thì nó ra
+  55/53/75 trong khi Pro (12) ra 55/53/70 — bằng nhau ở bàn nhỏ và vừa, người
+  chơi không phân biệt được hai mức cao nhất. Nên siêu đẳng là **20**.
 
   **BÀN NHỎ CÓ TRẦN, KHÔNG PHẢI DO BOT YẾU**: cho bot nhớ TUYỆT ĐỐI (nửa đời
   100.000, quên 0%) thì bàn 42 thẻ nó thắng 100% — nhưng bàn 12 thẻ vẫn chỉ 57%.
