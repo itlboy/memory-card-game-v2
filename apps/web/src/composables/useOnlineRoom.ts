@@ -542,6 +542,17 @@ export function useOnlineRoom() {
           wrongPair.value = e.indices;
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;
+        /*
+         * XÁO THẺ trong phòng online — thiếu nhánh này là cả phòng thấy bàn tự
+         * đổi chỗ mà KHÔNG hiệu ứng, không tiếng gì: mặt sau mọi lá giống hệt
+         * nhau nên họ chỉ kết luận là mình nhớ sai. Đúng lỗi đã bị phản ánh:
+         * "ghi là xáo 2 lần mà lại không xáo".
+         */
+        case 'shuffle':
+          sfx.swap();
+          swapPair.value = { a: e.affected[0], b: e.affected[1], key: (swapPair.value?.key ?? 0) + 1 };
+          setTimeout(() => { swapPair.value = null; }, 620);
+          break;
         case 'power':
           if (e.power === 'bomb') sfx.bomb();
           else if (e.power === 'freeze') sfx.freeze();

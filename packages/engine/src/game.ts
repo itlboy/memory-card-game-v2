@@ -57,6 +57,8 @@ export class MemoryGame {
   private extraTimeMs = 0;
   /** Số lần đã xáo thẻ trong ván này (tuỳ chọn "Xáo thẻ"). */
   private shuffled = 0;
+  /** Nước đi lúc xáo lần cuối — mốc tính khoảng cách tới lần sau. */
+  private lastShuffleAt = 0;
   private rng: Rng;
   private summaryCache: Summary | null = null;
   /** Các ô người chơi ĐÃ TỪNG thấy mặt trước. Dùng để phán xử lỗi trong Sinh tồn:
@@ -253,6 +255,10 @@ export class MemoryGame {
       } else if (this.movesLeft() === 0) {
         out.push(...this.end('lost', 'no-moves', now));
       }
+      // Xáo thẻ cũng phải xét ở đây, không chỉ sau khi lật sai: ghép đúng vẫn là
+      // một nước đi. Trước đây chỉ xét trong resolvePending() — vốn chỉ chạy khi
+      // lật sai — nên mọi mốc rơi vào một nước ghép đúng là mất luôn.
+      out.push(...this.maybeShuffle());
       return out;
     }
 
@@ -315,7 +321,13 @@ export class MemoryGame {
   private get shuffleEvery(): number {
     const lan = this.config.shuffleCount ?? 0;
     if (lan <= 0) return 0;
-    return Math.max(2, Math.round((this.totalPairs * 2) / lan));
+    /*
+     * Chia theo SỐ LƯỢT một ván thật sự tốn, không theo số thẻ. Đo bằng bot mức
+     * "thường": bàn 12 thẻ hết ~12 lượt, 24 thẻ ~32, 42 thẻ ~71 — tức xấp xỉ
+     * 1,7 lượt mỗi cặp, không phải 2 lượt mỗi cặp như công thức cũ giả định.
+     * Lấy hụt số lượt thì nhịp dài hơn ván, và lần xáo cuối không bao giờ tới.
+     */
+    return Math.max(2, Math.floor((this.totalPairs * 1.7) / lan));
   }
 
   /**
@@ -331,7 +343,14 @@ export class MemoryGame {
     if (!nhip || this.finished) return [];
     const lan = this.config.shuffleCount ?? 0;
     if (this.shuffled >= lan) return [];
-    if (this.moves === 0 || this.moves % nhip !== 0) return [];
+    /*
+     * Đo KHOẢNG CÁCH từ lần xáo trước, không dùng `moves % nhip`. Phép chia lấy
+     * dư đòi mốc rơi CHÍNH XÁC vào một nước có xét xáo; trượt một nước là mất
+     * luôn mốc đó. Đo được hậu quả: bàn 12 thẻ hứa 3 lần mà thật chỉ 1,6, bàn 4–6
+     * thẻ hứa 1 lần mà thật 0,1 — người chơi bật tuỳ chọn lên và thấy nó KHÔNG
+     * HOẠT ĐỘNG. Kiểu ">= nhịp" thì mốc trượt được bù ở nước kế tiếp.
+     */
+    if (this.moves === 0 || this.moves - this.lastShuffleAt < nhip) return [];
 
     const duoc = this.cards
       .filter((c) => !c.blank && !this.isMatched(c.index) && !this.selection.includes(c.index))
@@ -341,6 +360,7 @@ export class MemoryGame {
     const [a, b] = this.rng.sample(duoc, 2) as [number, number];
     this.swapCards(a, b);
     this.shuffled++;
+    this.lastShuffleAt = this.moves;
     return [{ type: 'shuffle', affected: [a, b] }];
   }
 
