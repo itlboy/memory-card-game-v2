@@ -358,6 +358,8 @@ watch(session.summary, (s) => {
       mode: game.config.mode,
       cells: game.cards.length,
       misses: player.misses,
+      lives: game.config.lives ?? null,
+      peekMs: game.config.peekMs ?? 0,
       livesLeft: player.lives,
       levelId: levelId.value ?? undefined
     }));

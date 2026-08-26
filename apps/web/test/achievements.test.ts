@@ -8,7 +8,8 @@ const summary = (over: Partial<Summary> = {}): Summary => ({
 });
 
 const ctx = (over = {}) => ({
-  summary: summary(), mode: 'classic', cells: 16, misses: 2, livesLeft: Infinity, ...over
+  summary: summary(), mode: 'classic', cells: 16, misses: 2, livesLeft: Infinity,
+  lives: null as number | null, peekMs: 0, ...over
 });
 
 describe('xét thành tích', () => {
@@ -33,15 +34,23 @@ describe('xét thành tích', () => {
     expect(earned(ctx({ summary: summary({ bestStreak: 5 }) }))).not.toContain('combo-master');
   });
 
-  it('Người sống sót: thắng Sinh tồn còn nguyên 5 mạng', () => {
-    expect(earned(ctx({ mode: 'survival', livesLeft: 5 }))).toContain('survivor');
-    expect(earned(ctx({ mode: 'survival', livesLeft: 4 }))).not.toContain('survivor');
-    expect(earned(ctx({ mode: 'classic', livesLeft: 5 }))).not.toContain('survivor');
+  /*
+   * Xét theo LUẬT THẬT của bàn, không theo tên chế độ: bỏ chế độ thì `mode` luôn
+   * là 'classic' ở chơi nhanh, nên hai thành tích này từng thành bất khả thi mà
+   * không có gì báo đỏ. So với số mạng BAN ĐẦU chứ không với hằng số 5 — số mạng
+   * giờ tuỳ cỡ bàn (bàn 42 thẻ có tới 56 mạng ở mức "nhiều").
+   */
+  it('Người sống sót: bàn có bật mạng và đi hết ván không mất mạng nào', () => {
+    expect(earned(ctx({ lives: 3, livesLeft: 3 }))).toContain('survivor');
+    expect(earned(ctx({ lives: 56, livesLeft: 56 }))).toContain('survivor');
+    expect(earned(ctx({ lives: 3, livesLeft: 2 }))).not.toContain('survivor');
+    expect(earned(ctx({ lives: null, livesLeft: Infinity })), 'tắt mạng thì không tính')
+      .not.toContain('survivor');
   });
 
-  it('Thần nhãn: thắng chế độ Chớp nhoáng', () => {
-    expect(earned(ctx({ mode: 'peek' }))).toContain('blind-seer');
-    expect(earned(ctx({ mode: 'classic' }))).not.toContain('blind-seer');
+  it('Thần nhãn: bàn có bật xem trước', () => {
+    expect(earned(ctx({ peekMs: 6000 }))).toContain('blind-seer');
+    expect(earned(ctx({ peekMs: 0 }))).not.toContain('blind-seer');
   });
 
   it('Chiến dịch: mốc màn 10 và mốc 3 sao', () => {
