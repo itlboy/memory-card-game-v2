@@ -10,6 +10,8 @@ import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog from './components/RulesDialog.vue';
+import { useBackCloser } from '@/composables/useBackGuard';
+import { ghiQuery } from '@/lib/appUrl';
 import IconDefs from './components/IconDefs.vue';
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
@@ -88,6 +90,22 @@ const showRules = ref(false);
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
+/* ---------- nút Back của trình duyệt ----------
+ * Mục tiêu: lỡ bấm Back theo thói quen thì KHÔNG bị ném ra khỏi web. Mỗi thứ
+ * đang mở chiếm một mục lịch sử; Back đóng cái trên cùng. Chỉ khi đứng ở trang
+ * chủ, không còn gì mở, thì Back mới thật sự rời trang — đúng như mong đợi.
+ */
+// Hộp thoại đóng TRƯỚC mọi thứ bên dưới nó
+useBackCloser(30, () => showRules.value, () => { showRules.value = false; });
+useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; });
+/**
+ * Đang trong ván / phòng online: Back làm đúng việc của nút logo — tức là HỎI
+ * trước khi bỏ ván dở, không lặng lẽ thoát. popstate không huỷ được nên phải
+ * hỏi SAU khi đã lùi; `goHome()` tự lo chuyện đó, và hộp hỏi mà nó mở ra sẽ
+ * thành chốt mới cho cú Back kế tiếp.
+ */
+useBackCloser(20, () => screen.value !== 'menu', goHome);
+
 /** Bấm logo: về trang chủ — đang dở việc thì hỏi trước. */
 function goHome(): void {
   if (screen.value === 'online') {
@@ -106,10 +124,8 @@ function goHome(): void {
 
 const RESUME_KEY = 'mm.resume';
 
-/** Ghi query state vào URL (không đẩy history mới). */
-function setUrl(query: string | null): void {
-  history.replaceState(null, '', location.pathname + (query ? `?${query}` : ''));
-}
+/** Ghi query state vào URL (không đẩy history mới) — xem lib/appUrl.ts. */
+const setUrl = ghiQuery;
 
 /** Lưu snapshot ván đang chơi — gọi sau mỗi biến động và trước khi rời trang. */
 function persistGame(): void {

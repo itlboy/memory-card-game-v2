@@ -1,4 +1,5 @@
 import { ROOM_LIMITS, isDraw } from '@mm/engine';
+import { ghiUrl } from '@/lib/appUrl';
 import type {
   ClientMsg, GameView, PublicEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
@@ -634,7 +635,7 @@ export function useOnlineRoom() {
   function endSession(): void {
     phase.value = 'ended';
     clearStored();
-    if (location.search.includes('room=')) history.replaceState(null, '', location.pathname);
+    if (location.search.includes('room=')) ghiUrl(location.pathname);
   }
 
   /**
