@@ -399,19 +399,26 @@ export class MemoryGame {
         break;
       }
       case 'swap': {
-        // Chỉ tráo thẻ ĐÃ TỪNG LỘ RA mà chưa ghép được. Tráo hai thẻ chưa ai mở
-        // là vô nghĩa: người chơi không có ký ức nào về chúng để mà bị phá, nên
-        // chỉ còn cái animation cho vui. Cũng không đụng thẻ đang mở dở (thấy
-        // nội dung nhảy chỗ trước mắt là vô lý) và thẻ đã ghép.
-        const swappable = this.cards
+        /*
+         * ƯU TIÊN thẻ ĐÃ TỪNG LỘ RA — tráo thứ người chơi đang nhớ mới là cái
+         * làm nên thẻ này. Nhưng KHÔNG được đứng im khi chưa lộ thẻ nào: bốc
+         * trúng lá tráo ngay nước đầu (rất dễ xảy ra sau màn xem trước, lúc bàn
+         * vừa úp lại) thì người chơi bấm mà chẳng thấy gì xảy ra, và họ kết luận
+         * là nút hỏng. Không có thẻ nào đã lộ thì tráo cả thẻ chưa mở.
+         *
+         * Cả hai nhánh đều tránh thẻ đang mở dở (thấy nội dung nhảy chỗ trước
+         * mắt là vô lý) và thẻ đã ghép xong.
+         */
+        const conTrenBan = this.cards
           .filter((c) => !c.blank
-            && this.seen.has(c.index)
             && !this.isMatched(c.index)
             && !this.selection.includes(c.index))
           .map((c) => c.index);
+        const daLo = conTrenBan.filter((i) => this.seen.has(i));
+        const swappable = daLo.length >= 2 ? daLo : conTrenBan;
         if (swappable.length < 2) {
-          // Chưa có gì đáng tráo (đầu ván): ĐỂ DÀNH thẻ này cho lần sau thay vì
-          // tiêu nó vào một cú tráo không ai nhận ra.
+          // Cả bàn không còn nổi hai thẻ để tráo (cuối ván): ĐỂ DÀNH thẻ này cho
+          // lần sau thay vì tiêu nó vào một cú tráo không có gì để tráo.
           card.powerUsed = false;
           return [];
         }
