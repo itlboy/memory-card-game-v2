@@ -18,25 +18,14 @@ import type { GameView } from './online.js';
 export type BotLevel = 'easy' | 'normal' | 'hard' | 'insane';
 
 export interface BotSpec {
-  /** Điểm trình độ 1..10 — nguồn của mọi tham số bên dưới. */
-  skill: number;
+  /** Nửa đời ký ức, tính bằng SỐ NƯỚC ĐI — con số duy nhất quyết định độ khó. */
+  halfLife: number;
   /**
-   * Tỉ lệ CÒN NHỚ sau mỗi nước đi. 0,9 nghĩa là qua mỗi nước, khả năng nhớ một
-   * lá còn 90% so với trước — nhớ mờ dần đúng như người thật, chứ không phải
-   * nhớ tuyệt đối rồi đột ngột quên hẳn.
+   * Tỉ lệ CÒN NHỚ sau mỗi nước đi, suy từ `halfLife`. 0,9 nghĩa là qua mỗi nước,
+   * khả năng nhớ một lá còn 90% so với trước — nhớ mờ dần đúng như người thật,
+   * chứ không phải nhớ tuyệt đối rồi đột ngột quên hẳn.
    */
   retain: number;
-  /** Xác suất nhớ lẫn chỗ ngay lúc vừa thấy (lỗi ghi nhớ, không phải lỗi phai). */
-  mistake: number;
-  /**
-   * Giữ được bao nhiêu lá trong đầu mà chưa bị nhiễu. Vượt số này thì mỗi lá
-   * thêm làm khả năng nhớ MỌI lá giảm đi một nhịp (`CROWD`) — đúng như người
-   * thật: nhớ 3 lá thì chắc, nhớ 20 lá thì lẫn lộn hết.
-   *
-   * Đây là loại quên KHÁC hai loại kia: `retain` là phai theo thời gian,
-   * `mistake` là lỡ tay ở nước đang đi, còn đây là nhiễu do quá tải.
-   */
-  capacity: number;
   /**
    * Khoảng thời gian nghĩ trước khi lật, ms — để người chơi thấy nó đang suy
    * nghĩ. Là KHOẢNG chứ không phải một số: nhịp cố định nghe ra ngay là máy,
@@ -49,51 +38,36 @@ export interface BotSpec {
 }
 
 /**
- * MỖI MỨC CHỈ MỘT CON SỐ: `skill` từ 1 tới 10. Mọi tham số khác suy ra từ nó.
+ * MỖI MỨC CHỈ MỘT CON SỐ: nửa đời ký ức, tính bằng số nước đi.
  *
- * Vì sao: trước đây mỗi mức có 3 con số rời (nửa đời, nhớ lẫn chỗ, sức chứa) và
- * chúng tương tác nhau, nên chỉnh một cái là phải đo lại cả ba — thêm một mức
- * mới thì phải cân từ đầu. Giờ thêm mức chỉ cần chọn một số.
+ * Trước đây có ba tham số: `retain` (phai theo thời gian), `mistake` (nhớ lẫn
+ * chỗ ngay lúc vừa thấy) và `capacity` + `CROWD` (nhiễu do quá tải). Chúng
+ * TƯƠNG TÁC nhau nên chỉnh một cái là phải đo lại cả ba — và hai cái sau chỉ
+ * làm cùng một việc theo đường khác: khiến bot quên. Bỏ chúng đi thì độ khó chỉ
+ * còn một trục, đọc ra ngay từ con số.
  *
- * Thang `skill` neo theo TỈ LỆ THẮNG trước người chơi khá trên bàn 42 thẻ, vì đó
- * là thứ người chơi cảm nhận được: skill 1 ≈ thắng 1/10 ván, skill 10 ≈ thắng 9/10.
- * Ba hằng số dưới đây được DÒ bằng `duel-helper`, không phải đặt cho đẹp.
+ * Cái mất: `capacity` từng làm độ khó GIÃN THEO CỠ BÀN (bot yếu tệ hẳn trên bàn
+ * lớn vì phải nhớ nhiều). Không có nó, chênh lệch giữa các mức trên bàn nhỏ hẹp
+ * lại — đo được ở duel.test.ts.
+ *
+ * Đổi bảng này thì PHẢI đo lại bằng `duel-helper`, đừng đoán: tỉ lệ thắng không
+ * tuyến tính theo trí nhớ, có một ngưỡng ở quãng nửa đời 8→13 nước (chỗ ký ức
+ * bắt đầu sống sót qua một lượt quét hết bàn 42 thẻ) — dưới ngưỡng bot thắng
+ * ~43%, trên ngưỡng vọt lên ~68%.
  */
-export const SKILL_MIN = 1;
-export const SKILL_MAX = 10;
-
-/**
- * Nửa đời ký ức (số nước) cho skill 1..10 — BẢNG NEO, không phải công thức.
- *
- * Vì sao bảng: tỉ lệ thắng KHÔNG tuyến tính theo trí nhớ. Có một ngưỡng ở quãng
- * 14→17 nước, chỗ ký ức bắt đầu sống sót qua một lượt quét hết bàn 42 thẻ — dưới
- * ngưỡng bot thắng ~20%, trên ngưỡng vọt lên ~63%. Công thức trơn nào cũng đi
- * qua ngưỡng đó một cách khó kiểm soát; bảng thì đặt được từng bậc đúng chỗ.
- *
- * Đo bằng `duel-helper`, 40 ván mỗi điểm, đối thủ KHÁ, bàn 6×7:
- *   skill 1 → 5%   ·  2 → 10%  ·  4 → 20%  ·  6 → 63%  ·  8 → 78%  ·  10 → 88%
- * Sửa bảng thì PHẢI đo lại, đừng đoán.
- */
-const HALF_LIFE_BY_SKILL = [3, 9, 12, 14, 15, 17, 20, 24, 29, 34] as const;
-
-const halfLifeFor = (skill: number): number => {
-  const i = Math.round(skill) - SKILL_MIN;
-  return HALF_LIFE_BY_SKILL[Math.min(HALF_LIFE_BY_SKILL.length - 1, Math.max(0, i))]!;
+export const BOT_HALF_LIFE: Record<BotLevel, number> = {
+  easy: 3,
+  normal: 6,
+  hard: 9,
+  insane: 12
 };
-/** Nhớ lẫn chỗ: giảm thẳng từ 45% ở skill 1 xuống 0 ở skill 10. */
-const mistakeFor = (skill: number): number =>
-  Math.max(0, 0.45 * (1 - (skill - SKILL_MIN) / (SKILL_MAX - SKILL_MIN)));
-/** Sức chứa (số lá giữ được mà chưa bị nhiễu) theo skill. */
-const capacityFor = (skill: number): number => Math.round(2 + skill * 1.2);
 
 /** Dựng tham số đầy đủ từ MỘT con số. */
-export function specFrom(skill: number, name: string, avatar: string): BotSpec {
-  const s = Math.min(SKILL_MAX, Math.max(SKILL_MIN, skill));
+export function specFrom(halfLife: number, name: string, avatar: string): BotSpec {
+  const h = Math.max(1, halfLife);
   return {
-    skill: s,
-    retain: 0.5 ** (1 / halfLifeFor(s)),
-    mistake: mistakeFor(s),
-    capacity: capacityFor(s),
+    halfLife: h,
+    retain: 0.5 ** (1 / h),
     thinkMinMs: THINK_MIN_MS,
     thinkMaxMs: THINK_MAX_MS,
     name,
@@ -104,19 +78,11 @@ export function specFrom(skill: number, name: string, avatar: string): BotSpec {
 export const THINK_MIN_MS = 400;
 export const THINK_MAX_MS = 3000;
 
-/** Điểm trình độ của bốn mức — CHỖ DUY NHẤT cần sửa khi muốn bot mạnh/yếu đi. */
-export const BOT_SKILL: Record<BotLevel, number> = {
-  easy: 1,
-  normal: 2,
-  hard: 6,
-  insane: 10
-};
-
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy: specFrom(BOT_SKILL.easy, 'Bot dễ', '🐣'),
-  normal: specFrom(BOT_SKILL.normal, 'Bot bình thường', '🤖'),
-  hard: specFrom(BOT_SKILL.hard, 'Bot Pro', '👾'),
-  insane: specFrom(BOT_SKILL.insane, 'Bot siêu đẳng', '🦾')
+  easy: specFrom(BOT_HALF_LIFE.easy, 'Bot dễ', '🐣'),
+  normal: specFrom(BOT_HALF_LIFE.normal, 'Bot bình thường', '🤖'),
+  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot Pro', '👾'),
+  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot siêu đẳng', '🦾')
 };
 
 /**
@@ -178,15 +144,6 @@ export function observe(memory: BotMemory, view: GameView, level: BotLevel): voi
 }
 
 /**
- * Mỗi lá phải nhớ VƯỢT sức chứa thì khả năng nhớ nhân thêm hệ số này. 0,96
- * nghĩa là quá tải 10 lá thì chỉ còn nhớ được 0,96^10 ≈ 66% so với lúc rảnh.
- *
- * Dùng CHUNG cho mọi mức, khác biệt nằm ở `capacity`: thêm một con số cho mỗi
- * mức là mỗi lần cân bằng phải nghĩ bốn số thay vì một.
- */
-export const CROWD = 0.96;
-
-/**
  * Bản ghi cũ hơn bấy nhiêu LẦN nửa đời thì bị xoá khỏi ký ức.
  *
  * Vì sao phải xoá chứ không để nguyên: cú "quên" ở `recalls()` chỉ tính cho nước
@@ -200,24 +157,15 @@ export const CROWD = 0.96;
 export const FORGET_HALF_LIVES = 3;
 
 /** Nửa đời ký ức của một mức, tính bằng SỐ NƯỚC đi. */
-export const halfLifeMoves = (level: BotLevel): number =>
-  Math.log(0.5) / Math.log(BOT_SPECS[level].retain);
+export const halfLifeMoves = (level: BotLevel): number => BOT_SPECS[level].halfLife;
 
 /**
- * Bot có còn nhớ lá này không. Ba thứ cùng làm nó quên:
- *  - thấy lâu rồi (`retain ** tuổi`) — phai dần theo diễn biến ván;
- *  - đang phải giữ quá nhiều lá (`CROWD ** quá tải`) — nhiễu do quá tải;
- *  - và bot giỏi thì cả hai đều nhẹ hơn.
- *
- * `load` là số lá đang phải nhớ (thẻ đã ghép bị xoá khỏi ký ức nên không tính).
+ * Bot có còn nhớ lá này không — chỉ một thứ làm nó quên: thấy lâu rồi.
+ * `retain ** tuổi`, tuổi tính bằng số nước đi kể từ lúc nhìn thấy.
  */
-function recalls(
-  seen: BotSeen, clock: number, level: BotLevel, rng: Rng, load: number
-): boolean {
-  const spec = BOT_SPECS[level];
+function recalls(seen: BotSeen, clock: number, level: BotLevel, rng: Rng): boolean {
   const age = Math.max(0, clock - seen.at);
-  const crowd = Math.max(0, load - spec.capacity);
-  return rng.next() < spec.retain ** age * CROWD ** crowd;
+  return rng.next() < BOT_SPECS[level].retain ** age;
 }
 
 /** Những lá bot CÒN nhớ, trong số các ô đang úp. */
@@ -225,12 +173,9 @@ function recalled(
   memory: BotMemory, downSet: Set<number>, clock: number, level: BotLevel, rng: Rng
 ): Map<number, string> {
   const out = new Map<number, string>();
-  // Tải tính trên các lá CÒN ÚP mà bot đang nhớ: lá đã ghép không còn chiếm
-  // đầu nó nữa (observe() xoá), mà lá đang mở thì nhìn thấy chứ không phải nhớ.
-  const load = [...memory.keys()].filter((i) => downSet.has(i)).length;
   for (const [index, seen] of memory) {
     if (!downSet.has(index)) continue;
-    if (recalls(seen, clock, level, rng, load)) out.set(index, seen.symbol);
+    if (recalls(seen, clock, level, rng)) out.set(index, seen.symbol);
   }
   return out;
 }
@@ -279,9 +224,10 @@ export function botPick(
     return (fresh.length ? rng.sample(fresh, 1) : rng.sample(down, 1))[0]!;
   }
 
-  // 2. Ký ức có cặp sẵn — trừ khi nhớ lẫn chỗ
+  // 2. Ký ức có cặp sẵn thì lật cặp đó. Không còn cửa "nhớ lẫn chỗ": nhớ được
+  // là ghép đúng, còn sai thì phải do QUÊN — một trục độ khó duy nhất.
   const pair = knownPair(known);
-  if (pair && rng.next() >= spec.mistake) return pair[0]!;
+  if (pair) return pair[0]!;
 
   // 3. Học lá mới
   const fresh = down.filter((i) => !memory.has(i));

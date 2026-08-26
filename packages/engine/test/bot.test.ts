@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BOT_SKILL, BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, halfLifeMoves, observe, specFrom } from '../src/bot.js';
+import { BOT_HALF_LIFE, BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, halfLifeMoves, observe, specFrom } from '../src/bot.js';
 import type { BotLevel } from '../src/bot.js';
 import { MemoryGame } from '../src/game.js';
 import { publicView } from '../src/online.js';
@@ -108,12 +108,11 @@ describe('bot: quên dần theo thời gian', () => {
     return hits / N;
   }
 
-  it('vừa thấy thì mức nào cũng dùng được cặp — trừ phần nhớ lẫn chỗ', () => {
-    // Mốc là `1 - mistake`, không phải một số cứng: `recallRate` đi qua cả cú
-    // tung "nhớ lẫn chỗ", nên Bot dễ (30%) không bao giờ vượt 0,70.
+  /* Không còn "nhớ lẫn chỗ": vừa thấy là mức nào cũng dùng được cặp, không có
+   * cửa nào tung ra sai. Sai thì phải do QUÊN — một trục độ khó duy nhất. */
+  it('vừa thấy thì MỌI mức đều dùng được cặp', () => {
     for (const level of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
-      const ceiling = 1 - BOT_SPECS[level].mistake;
-      expect(recallRate(level, 0), level).toBeGreaterThan(ceiling - 0.06);
+      expect(recallRate(level, 0), level).toBeGreaterThan(0.94);
     }
   });
 
@@ -282,27 +281,23 @@ describe('nhiễu do quá tải ký ức', () => {
     return hits / N;
   }
 
-  it('giữ càng nhiều lá thì nhớ càng kém — cùng một tuổi ký ức', () => {
-    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
-      const nhe = recallWithLoad(l, BOT_SPECS[l].capacity);        // vừa đủ sức chứa
-      const nang = recallWithLoad(l, BOT_SPECS[l].capacity + 14);  // quá tải 14 lá
-      expect(nang, `${l}: quá tải phải nhớ kém hơn`).toBeLessThan(nhe);
+  /*
+   * BỎ CƠ CHẾ QUÁ TẢI (`capacity` + `CROWD`). Nó và `mistake` cùng làm một việc
+   * với `retain` — khiến bot quên — chỉ theo đường khác, mà ba thứ tương tác
+   * nhau nên chỉnh một cái phải đo lại cả ba. Giờ số lá đang nhớ KHÔNG ảnh
+   * hưởng khả năng nhớ; chỉ tuổi ký ức mới ảnh hưởng.
+   *
+   * Cái mất, ghi lại để đừng ai tưởng là lỗi: độ khó không còn tự giãn theo cỡ
+   * bàn. Trước đây bot yếu tệ hẳn trên bàn lớn vì phải nhớ nhiều lá cùng lúc.
+   */
+  it('số lá đang nhớ KHÔNG còn ảnh hưởng khả năng nhớ', () => {
+    for (const l of ['easy', 'insane'] as BotLevel[]) {
+      const it_ = recallWithLoad(l, 4);
+      const nhieu = recallWithLoad(l, 20);
+      expect(Math.abs(it_ - nhieu), `${l}: tải không được ảnh hưởng`).toBeLessThan(0.06);
     }
   });
 
-  it('trong sức chứa thì KHÔNG bị phạt — nhớ ít lá là nhớ chắc', () => {
-    // Hai tải đều nằm dưới sức chứa: tỉ lệ phải xấp xỉ nhau (chỉ lệch do ngẫu nhiên)
-    const a = recallWithLoad('insane', 4);
-    const b = recallWithLoad('insane', 8);
-    expect(Math.abs(a - b)).toBeLessThan(0.06);
-  });
-
-  it('bot giỏi chịu tải tốt hơn bot kém', () => {
-    const load = 20;
-    const easy = recallWithLoad('easy', load);
-    const insane = recallWithLoad('insane', load);
-    expect(insane).toBeGreaterThan(easy);
-  });
 });
 
 describe('quên hẳn bản ghi quá cũ', () => {
@@ -352,32 +347,28 @@ describe('quên hẳn bản ghi quá cũ', () => {
 });
 
 describe('mỗi mức chỉ một con số', () => {
-  it('mọi tham số suy ra từ `skill`, không đặt tay từng cái', () => {
+  it('retain suy ra từ nửa đời, không đặt tay', () => {
     for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
       const s = BOT_SPECS[l];
-      const laiSuyRa = specFrom(s.skill, s.name, s.avatar);
-      expect(s.retain, `${l}: retain phải khớp công thức từ skill`).toBeCloseTo(laiSuyRa.retain, 10);
-      expect(s.mistake).toBeCloseTo(laiSuyRa.mistake, 10);
-      expect(s.capacity).toBe(laiSuyRa.capacity);
+      expect(s.retain, `${l}`).toBeCloseTo(0.5 ** (1 / s.halfLife), 10);
+      expect(s.retain).toBeCloseTo(specFrom(s.halfLife, s.name, s.avatar).retain, 10);
     }
   });
 
-  it('skill cao hơn thì nhớ dai hơn, ít lẫn chỗ hơn, chứa được nhiều hơn', () => {
-    const bac = [1, 2, 4, 6, 8, 10].map((k) => specFrom(k, 'x', 'x'));
+  it('nửa đời dài hơn thì nhớ dai hơn', () => {
+    const bac = [3, 6, 9, 12, 20].map((h) => specFrom(h, 'x', 'x'));
     for (let i = 1; i < bac.length; i++) {
-      expect(bac[i]!.retain, `skill ${bac[i]!.skill}`).toBeGreaterThan(bac[i - 1]!.retain);
-      expect(bac[i]!.mistake).toBeLessThan(bac[i - 1]!.mistake);
-      expect(bac[i]!.capacity).toBeGreaterThan(bac[i - 1]!.capacity);
+      expect(bac[i]!.retain, `nửa đời ${bac[i]!.halfLife}`).toBeGreaterThan(bac[i - 1]!.retain);
     }
   });
 
-  it('skill ngoài thang 1..10 bị kẹp, không sinh tham số vô lý', () => {
-    expect(specFrom(0, 'x', 'x').skill).toBe(1);
-    expect(specFrom(99, 'x', 'x').skill).toBe(10);
-    expect(specFrom(99, 'x', 'x').mistake).toBe(0);
+  it('nửa đời vô lý bị kẹp về sàn 1 nước', () => {
+    expect(specFrom(0, 'x', 'x').halfLife).toBe(1);
+    expect(specFrom(-5, 'x', 'x').halfLife).toBe(1);
   });
 
-  it('bốn mức đang dùng đúng thang 1 · 2 · 6 · 10', () => {
-    expect([BOT_SKILL.easy, BOT_SKILL.normal, BOT_SKILL.hard, BOT_SKILL.insane]).toEqual([1, 2, 6, 10]);
+  it('bốn mức đang dùng nửa đời 3 · 6 · 9 · 12', () => {
+    expect([BOT_HALF_LIFE.easy, BOT_HALF_LIFE.normal, BOT_HALF_LIFE.hard, BOT_HALF_LIFE.insane])
+      .toEqual([3, 6, 9, 12]);
   });
 });

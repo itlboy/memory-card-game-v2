@@ -12,6 +12,10 @@ import type { BotLevel } from '../src/bot.js';
  *
  * Đối thủ mô phỏng có hai hạng: KHÁ (ghi 80% những gì thấy, nửa đời ~9,5 nước)
  * và GIỎI (ghi 95%, nửa đời ~69 nước).
+ *
+ * Bộ số hiện tại (nửa đời 3 · 6 · 9 · 12) đo trước KHÁ trên bàn 6×7, n = 24:
+ * 4% → 25% → 58% → 75%. Ngưỡng dưới đây đặt có biên, nhưng seed là CỐ ĐỊNH nên
+ * con số không dao động giữa các lần chạy — đổi `BOT_HALF_LIFE` thì đo lại.
  */
 const LEVELS: BotLevel[] = ['easy', 'normal', 'hard', 'insane'];
 
