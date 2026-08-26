@@ -31,7 +31,7 @@ const POWER_TEXT: Record<string, string> = {
   eye: 'Mắt thần — cả bàn hé mở 5 giây!',
   freeze: 'Đóng băng — đối thủ mất một lượt!'
 };
-const POWER_ICON: Record<string, IconName> = { swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
+const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 const soloScore = computed(() => s.players.value[0]?.score ?? 0);
 

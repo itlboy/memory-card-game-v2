@@ -9,7 +9,8 @@ import type {
 } from './types.js';
 
 /** Chơi đơn không có 'freeze' (không có đối thủ để đóng băng). */
-const SOLO_POWERS: readonly Power[] = ['x2', 'eye'];
+/** Chơi đơn có đủ mọi thứ TRỪ Đóng băng — không có đối thủ nào để đóng băng. */
+const SOLO_POWERS: readonly Power[] = ['bomb', 'swap', 'x2', 'eye'];
 
 /** Avatar mặc định cho ván nhiều người cùng máy. Gán theo SEED (không phải theo
  *  thứ tự) nên mỗi ván mới là một bộ khác — nhưng F5 giữa ván hay khôi phục từ

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_OPTIONS, OPTION_KEYS, configFromOptions, livesFor, optionSummary,
-  peekSecondsFor, sanitizeOptions, shuffleCountFor, specialPairsFor
+  peekSecondsFor, sanitizeOptions, shuffleCountFor, specialCardsFor
 } from '../src/options.js';
 import { levelSpec, CAMPAIGN_LEVELS } from '../src/campaign.js';
 import { MemoryGame } from '../src/game.js';
@@ -119,14 +119,14 @@ describe('bật/tắt từng tuỳ chọn', () => {
     expect(c.specialRate).toBeGreaterThan(0);
   });
 
-  it('thẻ đặc biệt tính theo SỐ CẶP, không phải tỉ lệ bốc đại', () => {
+  it('thẻ đặc biệt tính theo SỐ THẺ (hiệu ứng chỉ gắn một thẻ của cặp)', () => {
     const lv = 6;
     const cap = levelSpec(lv).pairs;
     for (const muc of [1, 2, 3] as const) {
       const c = configFromOptions({
         options: { ...DEFAULT_OPTIONS, special: muc }, level: lv, symbols: SYMBOLS, seed: 1
       });
-      expect(Math.round(c.specialRate! * cap)).toBe(specialPairsFor(cap, muc));
+      expect(Math.round(c.specialRate! * cap)).toBe(specialCardsFor(cap, muc));
     }
   });
 });

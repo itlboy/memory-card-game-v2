@@ -73,7 +73,17 @@
         <circle cx="30.4" cy="11.2" r="2.3" fill="#fff" opacity=".9" />
       </symbol>
 
+      <linearGradient id="mmg-bomb" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f97316" /><stop offset="1" stop-color="#dc2626" />
+      </linearGradient>
+
       <!-- ── Thẻ đặc biệt ── -->
+      <symbol id="mmi-bomb" viewBox="0 0 40 40">
+        <rect width="40" height="40" rx="12" fill="url(#mmg-bomb)" />
+        <circle cx="18.5" cy="23.5" r="8.5" fill="#fff" />
+        <path d="M24.2 16.4 27 13.6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" />
+        <path d="M27.6 9.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z" fill="#fff" />
+      </symbol>
       <symbol id="mmi-swap" viewBox="0 0 40 40">
         <rect width="40" height="40" rx="12" fill="url(#mmg-swap)" />
         <rect x="9" y="11.5" width="9.5" height="13" rx="2.6" fill="#fff" opacity=".95" />

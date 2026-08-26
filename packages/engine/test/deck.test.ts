@@ -156,17 +156,48 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
     expect(Math.max(...so) / Math.min(...so)).toBeLessThan(1.35);
   });
 
-  it('thẻ Tráo đổi KHÔNG còn nằm trong bộ mặc định', () => {
-    // KHÔNG truyền allowedPowers: đây mới là bộ thẻ thật sự được phát trong ván.
-    // (Helper `build` ở trên chỉ định tay danh sách, nên nó không kiểm được điều này.)
-    for (let seed = 1; seed <= 120; seed++) {
+  /*
+   * ĐỦ NĂM LOẠI và chia ĐỀU NHẤT có thể. Bốc từng cái độc lập thì bàn 4 thẻ đặc
+   * biệt hoàn toàn có thể ra bốn quả bom — đúng loại xui khiến người chơi thấy
+   * trò chơi bất công, và cũng là lý do bom từng bị tắt hẳn.
+   */
+  it('không loại nào xuất hiện quá hai lần trong một bàn', () => {
+    for (let seed = 1; seed <= 300; seed++) {
+      const cards = deck({
+        cols: 6, rows: 7, pairs: 21, symbols: SYMBOLS,
+        specialRate: 0.9, rng: new Rng(seed * 11)
+      });
+      const dem = new Map<string, number>();
+      for (const c of cards) if (c.power) dem.set(c.power, (dem.get(c.power) ?? 0) + 1);
+      for (const [loai, n] of dem) {
+        expect(n, `seed ${seed}: ${loai} xuất hiện ${n} lần`).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
+  it('số lần giữa các loại chênh nhau tối đa MỘT', () => {
+    for (let seed = 1; seed <= 300; seed++) {
       const cards = deck({
         cols: 6, rows: 6, pairs: 18, symbols: SYMBOLS,
-        specialRate: 0.4, rng: new Rng(seed * 11)
+        specialRate: 0.35, rng: new Rng(seed * 7)
       });
-      expect(cards.some((c) => c.power === 'swap'), `seed ${seed}`).toBe(false);
-      expect(cards.some((c) => c.power === 'bomb'), `seed ${seed}`).toBe(false);
+      const dem = new Map<string, number>();
+      for (const c of cards) if (c.power) dem.set(c.power, (dem.get(c.power) ?? 0) + 1);
+      if (dem.size < 2) continue;
+      const so = [...dem.values()];
+      expect(Math.max(...so) - Math.min(...so), `seed ${seed}`).toBeLessThanOrEqual(1);
     }
+  });
+
+  it('bộ mặc định có đủ NĂM loại, kể cả bom và tráo đổi', () => {
+    const thay = new Set<string>();
+    for (let seed = 1; seed <= 60; seed++) {
+      for (const c of deck({
+        cols: 6, rows: 7, pairs: 21, symbols: SYMBOLS,
+        specialRate: 0.5, rng: new Rng(seed * 13)
+      })) if (c.power) thay.add(c.power);
+    }
+    expect([...thay].sort()).toEqual(['bomb', 'eye', 'freeze', 'swap', 'x2']);
   });
 });
 
