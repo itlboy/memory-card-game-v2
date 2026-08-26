@@ -119,8 +119,17 @@ export function shuffleCountFor(the: number, muc: 1 | 2 | 3): number {
   return Math.max(1, Math.ceil(the / chia));
 }
 
-/** Số CẶP mang thẻ đặc biệt. */
-export function specialPairsFor(cap: number, muc: 1 | 2 | 3): number {
+/**
+ * Số THẺ mang hiệu ứng đặc biệt.
+ *
+ * Đơn vị là THẺ chứ không phải cặp: hiệu ứng chỉ gắn trên MỘT thẻ của cặp (xem
+ * `carrier` trong deck.ts), nên một "cặp đặc biệt" thật ra là đúng một thẻ có
+ * huy hiệu trên bàn. Nói "1 cặp" là nói sai với thứ người chơi đếm được.
+ *
+ * Trần thật nằm ở deck.ts: mỗi loại tối đa 2 lần, nên nhiều nhất 10 thẻ (chơi
+ * đơn 8 vì không có Đóng băng).
+ */
+export function specialCardsFor(cap: number, muc: 1 | 2 | 3): number {
   const chia = muc === 1 ? 8 : muc === 2 ? 5 : 3;
   return Math.max(1, Math.ceil(cap / chia));
 }
@@ -174,7 +183,7 @@ export function configFromOptions({ options, level, symbols, seed, players }: Bu
   if (options.peek > 0) cfg.peekMs = peekSecondsFor(the, options.peek as 1 | 2 | 3) * 1000;
   if (options.shuffle > 0) cfg.shuffleCount = shuffleCountFor(the, options.shuffle as 1 | 2 | 3);
   if (options.special > 0) {
-    cfg.specialRate = specialPairsFor(spec.pairs, options.special as 1 | 2 | 3) / spec.pairs;
+    cfg.specialRate = specialCardsFor(spec.pairs, options.special as 1 | 2 | 3) / spec.pairs;
   }
   return cfg;
 }
@@ -193,6 +202,6 @@ export function optionSummary(key: OptionKey, muc: OptLevel, level: number): str
     case 'lives':   return `${livesFor(the, muc as 1 | 2 | 3)} mạng`;
     case 'peek':    return `${peekSecondsFor(the, muc as 1 | 2 | 3)} giây`;
     case 'shuffle': return `xáo ${shuffleCountFor(the, muc as 1 | 2 | 3)} lần`;
-    case 'special': return `${specialPairsFor(spec.pairs, muc as 1 | 2 | 3)} cặp`;
+    case 'special': return `${specialCardsFor(spec.pairs, muc as 1 | 2 | 3)} thẻ`;
   }
 }

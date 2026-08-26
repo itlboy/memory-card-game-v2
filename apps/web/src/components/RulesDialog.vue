@@ -58,7 +58,8 @@ const OPTIONS: readonly { icon: IconName; name: string; text: string }[] = [
 ];
 
 const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
-  { icon: 'swap', name: 'Tráo đổi', text: 'Hai thẻ BẠN ĐÃ TỪNG MỞ mà chưa ghép được sẽ đổi chỗ nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
+  { icon: 'swap', name: 'Tráo đổi', text: 'Hai thẻ chưa ghép được đổi chỗ cho nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
+  { icon: 'bomb', name: 'Bom', text: 'Hai cặp đã mở bị úp trở lại. Điểm giữ nguyên, nhưng phải tìm lại chúng.' },
   { icon: 'x2', name: 'Nhân đôi', text: 'Cặp tiếp theo được nhân đôi điểm.' },
   { icon: 'eye', name: 'Mắt thần', text: 'Hé mở cả bàn trong 5 giây.' },
   { icon: 'freeze', name: 'Đóng băng', text: 'Đối thủ mất một lượt (chỉ khi chơi nhiều người).' }

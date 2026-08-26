@@ -32,9 +32,10 @@ const emit = defineEmits<{ flip: [index: number] }>();
  * Huy hiệu thẻ đặc biệt trên MẶT TRƯỚC lá bài. Dùng CÙNG bộ icon với bảng Luật
  * chơi và màn tuỳ chọn — emoji mỗi hệ điều hành vẽ một kiểu, và người chơi đọc
  * luật xong phải nhận ra ngay đúng cái vừa đọc khi nó hiện trên bàn.
- * `bomb` không nằm trong bộ thẻ đang phát (SOLO_POWERS), giữ emoji làm đường lui.
+ * Đủ cả năm loại đang phát. Nhánh emoji bên dưới chỉ còn là đường lui cho loại
+ * lạ (ván cũ khôi phục từ sessionStorage của một bản khác).
  */
-const POWER_ICON: Record<string, IconName> = { swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
+const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 /** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
 const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));

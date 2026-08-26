@@ -18,7 +18,7 @@
  */
 export type IconName =
   | 'time' | 'lives' | 'peek' | 'shuffle' | 'special'
-  | 'swap' | 'x2' | 'eye' | 'freeze' | 'campaign';
+  | 'swap' | 'bomb' | 'x2' | 'eye' | 'freeze' | 'campaign';
 
 const props = withDefaults(defineProps<{ name: IconName; size?: number }>(), { size: 24 });
 </script>

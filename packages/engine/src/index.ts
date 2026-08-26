@@ -17,7 +17,7 @@ export {
 export { peekMsFor, presetConfig } from './presets.js';
 export {
   DEFAULT_OPTIONS, OPTION_KEYS, OPTION_LABELS, clampOpt, configFromOptions,
-  livesFor, optionSummary, peekSecondsFor, sanitizeOptions, shuffleCountFor, specialPairsFor
+  livesFor, optionSummary, peekSecondsFor, sanitizeOptions, shuffleCountFor, specialCardsFor
 } from './options.js';
 export type { BoardOptions, OptLevel, OptionKey } from './options.js';
 export type { Chapter, Level } from './campaign.js';

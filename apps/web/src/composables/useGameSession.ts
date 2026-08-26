@@ -26,6 +26,8 @@ export function useGameSession() {
   /** Vừa hồi mạng (Sinh tồn) — phải báo rõ, không thì tim trên HUD tự nhiều
    *  thêm một cái và người chơi không hiểu vì sao. */
   const lifeGain = ref<{ key: number } | null>(null);
+  /** Vừa MẤT một mạng, kèm số mạng còn lại — để HUD giật và nói ra. */
+  const lifeLost = ref<{ left: number; key: number } | null>(null);
   /** Điểm vừa ghi + vị trí thẻ, cho hiệu ứng "+120" bay lên. `key` để ép re-render. */
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   /** Banner "Đến lượt X" khi chuyển người chơi (multiplayer). */
@@ -112,9 +114,20 @@ export function useGameSession() {
           sfx.miss();
           break;
         case 'life-gain':
-          sfx.unlockTheme();
+          sfx.lifeGain();
           lifeGain.value = { key: (lifeGain.value?.key ?? 0) + 1 };
           setTimeout(() => { lifeGain.value = null; }, 3200);
+          break;
+        /*
+         * MẤT MẠNG phải NÓI RA. Người chơi đang nhìn bàn thẻ, không nhìn HUD —
+         * số tim bớt đi một là thứ gần như không ai để ý (đúng điều đã bị phản
+         * ánh). Ba lớp báo cùng lúc: tiếng trầm rơi, chỉ số mạng trên HUD giật
+         * đỏ, và một dòng nổi giữa bàn nói còn mấy mạng.
+         */
+        case 'life-lost':
+          sfx.lifeLost();
+          lifeLost.value = { left: e.livesLeft, key: (lifeLost.value?.key ?? 0) + 1 };
+          setTimeout(() => { lifeLost.value = null; }, 2600);
           break;
         case 'time-bonus':
           timeBonusFor.value = { playerId: e.playerId, key: (timeBonusFor.value?.key ?? 0) + 1 };
@@ -404,7 +417,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop, adopt, setBot, botLevel, botThinking, botTurnNow,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, turnBanner, timeBonusFor,
+    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };

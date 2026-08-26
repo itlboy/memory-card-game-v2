@@ -672,14 +672,21 @@ describe('thẻ tráo đổi', () => {
     expect(wrapper.findAll('.card.swapping')).toHaveLength(0);   // đã đáp
   });
 
-  it('thẻ bom đang tắt: không ván nào sinh ra nó', async () => {
+  /*
+   * Bom đã được BẬT LẠI. Nó từng bị tắt vì "đòn quá nặng", nhưng cái khó chịu
+   * thật không phải bản thân hiệu ứng mà là chuyện bàn dồn nhiều thẻ cùng loại
+   * — nay mỗi loại tối đa hai lần và chênh nhau không quá một, nên không có
+   * bàn-toàn-bom nữa. Đổi lại phải canh: KHÔNG loại nào được quá hai lần.
+   */
+  it('không loại thẻ đặc biệt nào xuất hiện quá hai lần trong một bàn', async () => {
     await mountApp();
-    await pickMode('Sinh tồn');       // Sinh tồn luôn có thẻ đặc biệt
+    await pickMode('Sinh tồn');       // luôn có thẻ đặc biệt
     await start(20);
     const g = session(wrapper).game.value!;
-    const powers = g.cards.map((c) => c.power).filter(Boolean);
-    expect(powers.length).toBeGreaterThan(0);
-    expect(powers).not.toContain('bomb');
+    const dem = new Map<string, number>();
+    for (const c of g.cards) if (c.power) dem.set(c.power, (dem.get(c.power) ?? 0) + 1);
+    expect([...dem.values()].length, 'bàn phải có thẻ đặc biệt').toBeGreaterThan(0);
+    for (const [loai, n] of dem) expect(n, `${loai} xuất hiện ${n} lần`).toBeLessThanOrEqual(2);
   });
 });
 

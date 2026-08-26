@@ -6,6 +6,8 @@ import {
   Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Settings2, Share2, Sparkles, Timer
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useBackCloser } from '@/composables/useBackGuard';
+import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
 import LevelMap from './LevelMap.vue';
 import OnlineGame from './OnlineGame.vue';
@@ -61,7 +63,7 @@ onMounted(() => {
 
 // Đang trong phòng thì URL luôn mang ?room=CODE để F5 quay lại đúng chỗ
 watch(() => o.room.value?.code, (code) => {
-  if (code) history.replaceState(null, '', `${location.pathname}?room=${code}`);
+  if (code) ghiUrl(`${location.pathname}?room=${code}`);
 });
 
 function remember(): void { store.savePlayerNames([name.value.trim()]); }
@@ -82,7 +84,7 @@ const confirm = ref<{ title: string; body: string; label: string; action: () => 
 
 function exit(): void {
   o.leave();
-  history.replaceState(null, '', location.pathname);
+  ghiUrl(location.pathname);
   emit('back');
 }
 
@@ -259,6 +261,20 @@ function wizBack(): void {
   if (wizard.value === 'options') { wizard.value = 'theme'; return; }
   wizard.value = null;   // về nhập tên (tạo mới) hoặc lobby (đang chỉnh)
 }
+
+/*
+ * NÚT BACK CỦA TRÌNH DUYỆT trong màn online. Độ sâu gộp hai thứ xếp chồng nhau:
+ * bước của màn vào (chọn việc → điền form) và bước của wizard chọn bàn. Vào
+ * bằng link mời thì màn vào chỉ có đúng một bước, nên không tính thêm.
+ *
+ * Không tính phòng chờ: rời phòng là việc phải HỎI (đầu hàng / huỷ phòng), và
+ * App đã gắn một lớp cho cả màn online lo việc đó.
+ */
+useBackCloser(15, () => !!wizard.value || (entryStep.value !== 'choose' && !invited.value), () => {
+  if (wizard.value) { wizBack(); return; }
+  entryStep.value = 'choose';
+  o.error.value = '';
+});
 
 /** Biểu tượng của MỌI theme server có — trần trên cho bản đồ cấp. */
 const allSymbols = computed(() => new Set(allThemes.value.flatMap((t) => t.symbols)).size);

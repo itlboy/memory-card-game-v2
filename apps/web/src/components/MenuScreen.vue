@@ -3,6 +3,8 @@ import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, opti
 import { Bot, Check, ChevronLeft, Globe, Lock, Map, User, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
+import { useBackCloser } from '@/composables/useBackGuard';
+import { ghiQuery } from '@/lib/appUrl';
 import { sfx } from '@/lib/audio';
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
@@ -73,8 +75,7 @@ watch(step, (st) => {
   } else {
     q.set('w', st);
   }
-  const qs = q.toString();
-  history.replaceState(null, '', location.pathname + (qs ? `?${qs}` : ''));
+  ghiQuery(q.toString() || null);
 }, { immediate: true });
 
 const isMulti = computed(() => props.playerCount > 1);
@@ -231,6 +232,15 @@ function back(): void {
   const i = stepIndex.value;
   if (i > 0) step.value = path.value[i - 1]!;
 }
+
+/*
+ * NÚT BACK CỦA TRÌNH DUYỆT lùi đúng một bước wizard, y như nút mũi tên trong
+ * app. Trước đây mọi bước đều ghi URL bằng replaceState nên lịch sử chỉ có một
+ * mục, và Back ở bước 5 là văng thẳng ra khỏi web.
+ *
+ * Độ sâu = chỉ số bước: ở bước đầu là 0 (Back lúc đó mới thật sự rời trang).
+ */
+useBackCloser(10, () => stepIndex.value > 0, back);
 
 const unlocked = (t: CardTheme): boolean => t.unlockAt <= props.totalScore;
 const best = computed(() => store.best(props.mode, props.level));

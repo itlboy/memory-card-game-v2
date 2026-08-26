@@ -14,6 +14,8 @@ const props = defineProps<{
   timeLeft: number | null;
   movesLeft: number | null;
   lives: number | null;
+  /** Khoá đổi mỗi lần MẤT mạng — dùng để chạy lại hiệu ứng giật đỏ. */
+  lifeLostKey?: number;
   levelId?: number;
   /** Nhiều người chơi: ẩn Điểm/Lượt/Combo — các số này nằm trong chip từng người. */
   multiplayer?: boolean;
@@ -46,7 +48,7 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
     <div v-if="!multiplayer" class="stat combo" :class="{ hot: combo >= 1.5, max: combo >= 2 }">
       <b :key="combo" aria-label="Combo">x{{ combo }}</b>
     </div>
-    <div v-if="lives !== null" class="stat">
+    <div v-if="lives !== null" :key="`hp-${lifeLostKey ?? 0}`" class="stat" :class="{ hurt: (lifeLostKey ?? 0) > 0 }">
       <b class="lives-b" aria-label="Mạng còn lại">
         <template v-if="lives > 0"><OptionIcon name="lives" :size="15" />{{ lives }}</template>
         <template v-else>—</template>
@@ -123,4 +125,20 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
    mạng tụt từ 10 xuống 9. */
 .lives-b { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
 .lives-b :deep(.opt-ico) { border-radius: 4px; }
+/* Vừa mất một mạng: giật đỏ một nhịp. Gắn qua :key nên mỗi lần mất là animation
+   CHẠY LẠI TỪ ĐẦU — không có key thì mất mạng lần hai không hiện gì cả. */
+.stat.hurt { animation: hp-hurt .55s ease-out; }
+@keyframes hp-hurt {
+  0%   { transform: scale(1); }
+  18%  { transform: scale(1.35); filter: drop-shadow(0 0 8px var(--bad)); }
+  40%  { transform: scale(.95) translateX(-3px); }
+  60%  { transform: scale(1.05) translateX(3px); }
+  80%  { transform: translateX(-1px); }
+  100% { transform: none; }
+}
+.stat.hurt b { color: var(--bad); animation: hp-red 1.1s ease-out; }
+@keyframes hp-red { 0%, 45% { color: var(--bad); } 100% { color: inherit; } }
+@media (prefers-reduced-motion: reduce) {
+  .stat.hurt { animation: none; }
+}
 </style>

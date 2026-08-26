@@ -2,12 +2,18 @@ import { Rng } from './rng.js';
 import type { Card, Power } from './types.js';
 
 /**
- * Thẻ đặc biệt được phép xuất hiện. 'bomb' TẠM TẮT: úp lại hai cặp đã mở là
- * đòn quá nặng, mất cả công người chơi vừa bỏ ra. Thay bằng 'swap' — chỉ tráo
- * chỗ hai thẻ đang úp, có hiệu ứng chỉ rõ hai thẻ nào, nên khó mà vẫn công
- * bằng. Bật lại bomb thì thêm vào danh sách này, luật xử lý vẫn còn nguyên.
+ * Thẻ đặc biệt được phép xuất hiện.
+ *
+ * Đủ cả năm loại. Bom (úp lại hai cặp đã mở) và Tráo đổi từng bị tắt vì "quá
+ * nặng" và "lạc quẻ", nhưng cái làm chúng khó chịu không phải bản thân hiệu ứng
+ * mà là chuyện bàn có thể dồn nhiều thẻ cùng loại. Nay việc chia đã đổi: mỗi
+ * loại xuất hiện TỐI ĐA HAI lần và số lần giữa các loại chênh nhau không quá
+ * một, nên không bàn nào biến thành bàn-toàn-bom.
  */
-const PLAYABLE_POWERS: readonly Power[] = ['swap', 'x2', 'eye', 'freeze'];
+const PLAYABLE_POWERS: readonly Power[] = ['bomb', 'swap', 'x2', 'eye', 'freeze'];
+
+/** TRẦN mỗi loại trong một bàn. Xem chiaPowers(). */
+const TRAN_MOI_LOAI = 2;
 
 export interface DeckOptions {
   cols: number;
@@ -23,27 +29,24 @@ export interface DeckOptions {
   pairs?: number;
 }
 
-/** Trọng số bốc hiệu ứng — càng lớn càng hay gặp. Loại không có tên ở đây thì
- *  trọng số 1. */
-const POWER_WEIGHT: Partial<Record<Power, number>> = { swap: 2 };
-
-/** TRẦN số lần mỗi loại hiệu ứng xuất hiện trong một bàn. Thẻ tráo giới hạn 2:
- *  bàn lớn tính theo tỉ lệ ra tới 6 thẻ tráo, tráo liên tục thì người chơi không
- *  còn dựa được vào ký ức nào nữa, thành ra chơi bằng may. */
-const POWER_MAX: Partial<Record<Power, number>> = { swap: 2 };
-
-function pickPower(allowed: readonly Power[], rng: Rng, used: Map<Power, number>): Power {
-  const open = allowed.filter((p) => (used.get(p) ?? 0) < (POWER_MAX[p] ?? Infinity));
-  const pool = open.length ? open : allowed;
-  const total = pool.reduce((n, p) => n + (POWER_WEIGHT[p] ?? 1), 0);
-  let r = rng.next() * total;
-  for (const p of pool) {
-    r -= POWER_WEIGHT[p] ?? 1;
-    if (r <= 0) { used.set(p, (used.get(p) ?? 0) + 1); return p; }
+/**
+ * Chia `count` thẻ đặc biệt ĐỀU NHẤT có thể giữa các loại được phép.
+ *
+ * Bốc từng cái độc lập thì bàn 4 thẻ đặc biệt hoàn toàn có thể ra bốn quả bom —
+ * đúng loại xui khiến người chơi thấy trò chơi bất công. Ở đây chia theo VÒNG:
+ * mỗi vòng phát mỗi loại nhiều nhất một lần, thứ tự trong vòng xáo theo seed.
+ * Hệ quả: số lần giữa hai loại chênh nhau tối đa 1, và không loại nào quá
+ * TRAN_MOI_LOAI lần.
+ */
+function chiaPowers(allowed: readonly Power[], count: number, rng: Rng): Power[] {
+  const ra: Power[] = [];
+  for (let vong = 0; vong < TRAN_MOI_LOAI && ra.length < count; vong++) {
+    for (const p of rng.shuffle(allowed)) {
+      if (ra.length >= count) break;
+      ra.push(p);
+    }
   }
-  const last = pool[pool.length - 1]!;
-  used.set(last, (used.get(last) ?? 0) + 1);
-  return last;
+  return rng.shuffle(ra);   // xáo lần cuối: không thì cặp nào cũng theo thứ tự vòng
 }
 
 export function buildDeck(opts: DeckOptions): Card[] {
@@ -68,18 +71,19 @@ export function buildDeck(opts: DeckOptions): Card[] {
   // 2 cặp (cấp tập) không bị nhồi hiệu ứng.
   const rate = Math.max(0, Math.min(1, opts.specialRate ?? 0));
   const specialCount = rate > 0 && pairCount >= 3
-    ? Math.max(1, Math.round(pairCount * rate))
+    // Trần cứng: nhiều hơn số loại × TRAN_MOI_LOAI thì không chia đều được nữa,
+    // và bàn cũng chẳng còn chỗ cho trí nhớ.
+    ? Math.min(Math.max(1, Math.round(pairCount * rate)), allowed.length * TRAN_MOI_LOAI)
     : 0;
   // Cặp nào mang hiệu ứng — chọn tất định theo seed
-  const specialPairs = new Set(rng.sample([...picked.keys()], specialCount));
+  const specialPairs = [...rng.sample([...picked.keys()], specialCount)];
+  // Hiệu ứng của từng cặp đó, chia đều giữa các loại
+  const powerOf = new Map<number, Power>();
+  chiaPowers(allowed, specialPairs.length, rng).forEach((p, i) => powerOf.set(specialPairs[i]!, p));
 
-  const powerUse = new Map<Power, number>();
   const draft: Omit<Card, 'index'>[] = [];
   picked.forEach((symbol, pairId) => {
-    // Bốc có TRỌNG SỐ: thẻ tráo nặng gấp đôi hai loại kia. Bốc đều thì bàn có
-    // một thẻ đặc biệt chỉ 1/3 khả năng là thẻ tráo, nên người chơi hầu như
-    // không gặp nó ở cấp thấp.
-    const power = specialPairs.has(pairId) ? pickPower(allowed, rng, powerUse) : undefined;
+    const power = powerOf.get(pairId);
     // Hiệu ứng chỉ gắn trên MỘT thẻ của cặp: lật đúng thẻ đó mới kích hoạt
     const carrier = rng.int(2);
     for (let k = 0; k < 2; k++) {
