@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { MemoryGame, presetConfig, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
+import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
 import { BOT_SPECS } from '@mm/engine';
-import type { BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
+import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
 import CelebrationFx from './components/CelebrationFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
@@ -10,6 +10,7 @@ import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog from './components/RulesDialog.vue';
+import IconDefs from './components/IconDefs.vue';
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
@@ -44,6 +45,9 @@ function applySound(): void {
   if (soundLevel.value !== 'off') sfx.volume = SOUND_GAIN[soundLevel.value];
 }
 const mode = ref<Mode>(prefs.mode);
+/** Tuỳ chọn bàn chơi — chỉ dùng cho "chơi nhanh"; Chiến dịch có luật riêng
+ *  từng màn nên KHÔNG đi qua đây. */
+const options = ref<BoardOptions>(prefs.options);
 const level = ref(Math.min(CAMPAIGN_LEVELS, Math.max(1, prefs.level)));
 const themeIds = ref<string[]>(prefs.themes);
 const playerCount = ref(prefs.playerCount);
@@ -218,10 +222,11 @@ watch(screen, (sc) => {
 /* ---------- tuỳ chọn hiển thị ---------- */
 watchEffect(() => { document.documentElement.dataset.theme = dark.value ? 'dark' : 'light'; });
 watchEffect(applySound);
-watch([dark, soundLevel, mode, level, themeIds, playerCount], () => {
+watch([dark, soundLevel, mode, level, themeIds, playerCount, options], () => {
   store.savePrefs({
     dark: dark.value, sound: soundLevel.value !== 'off', soundLevel: soundLevel.value, mode: mode.value,
-    level: level.value, themes: themeIds.value, playerCount: playerCount.value
+    level: level.value, themes: themeIds.value, playerCount: playerCount.value,
+    options: options.value
   });
 });
 
@@ -300,10 +305,11 @@ function startLevel(id: number): void {
   // không bắt thì Vue chết giữa render và người chơi nhận màn hình trắng.
   // Bản đồ đã chặn các cấp đó, đây là lưới an toàn cuối.
   try {
-    const cfg = presetConfig({
-      mode: mode.value, level: id, symbols: symbols.value,
-      seed: newSeed(), players: playerList()
-    });
+    // Chiến dịch giữ nguyên presetConfig: luật của nó do TỪNG MÀN quyết định
+    // (mốc sao, tỉ lệ thẻ đặc biệt tăng dần), không phải do người chơi đặt.
+    const cfg = mode.value === 'campaign'
+      ? presetConfig({ mode: 'campaign', level: id, symbols: symbols.value, seed: newSeed(), players: playerList() })
+      : configFromOptions({ options: options.value, level: id, symbols: symbols.value, seed: newSeed(), players: playerList() });
     levelId.value = id;
     level.value = id;
     session.setBot(botLevel.value);
@@ -434,6 +440,7 @@ const hasNext = computed(() => {
       :theme-ids="themeIds"
       :player-count="playerCount"
       :bot-level="botLevel"
+      :options="options"
       :total-score="totalScore"
       :symbol-count="symbols.length"
       :max-symbol-count="maxSymbols"
@@ -442,6 +449,7 @@ const hasNext = computed(() => {
       @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
       @update:bot-level="botLevel = $event"
+      @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
     />
@@ -476,6 +484,7 @@ const hasNext = computed(() => {
       :theme-ids="themeIds"
       :player-count="playerCount"
       :bot-level="botLevel"
+      :options="options"
       :total-score="totalScore"
       :symbol-count="symbols.length"
       :max-symbol-count="maxSymbols"
@@ -484,11 +493,16 @@ const hasNext = computed(() => {
       @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
       @update:bot-level="botLevel = $event"
+      @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
     />
     </Transition>
   </main>
+
+  <!-- Kho hình + gradient cho <OptionIcon>. Mount ĐÚNG MỘT LẦN: id gradient là
+       toàn cục, nhiều bản sao thì mọi icon lấy chung một màu. -->
+  <IconDefs />
 
   <RulesDialog v-if="showRules" @close="showRules = false" />
 

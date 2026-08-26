@@ -44,13 +44,19 @@ export const DEFAULT_OPTIONS: BoardOptions = {
   time: 2, lives: 0, peek: 0, shuffle: 0, special: 1
 };
 
-/** Nhãn hiện trên nút của từng mức, theo thứ tự 0..3. */
+/**
+ * Nhãn trên nút, theo thứ tự 0..3.
+ *
+ * Mức giữa là "Vừa" chứ không phải "Bình thường": đo trên iPhone SE (375px) thì
+ * bốn nút chia nhau 73px mỗi cái, mà "Bình thường" ở cỡ chữ 11px cần 74px — bị
+ * cắt thành "Bình thườ…". Nghĩa vẫn y nguyên, chỉ ngắn hơn một chữ.
+ */
 export const OPTION_LABELS: Record<OptionKey, readonly [string, string, string, string]> = {
-  time: ['Vô hạn', 'Thong thả', 'Bình thường', 'Nhanh'],
-  lives: ['Vô hạn', 'Nhiều', 'Bình thường', 'Ít'],
-  peek: ['Không', 'Ngắn', 'Bình thường', 'Lâu'],
-  shuffle: ['Không', 'Ít', 'Bình thường', 'Nhiều'],
-  special: ['Không', 'Ít', 'Bình thường', 'Nhiều']
+  time: ['Vô hạn', 'Thong thả', 'Vừa', 'Nhanh'],
+  lives: ['Vô hạn', 'Nhiều', 'Vừa', 'Ít'],
+  peek: ['Không', 'Ngắn', 'Vừa', 'Lâu'],
+  shuffle: ['Không', 'Ít', 'Vừa', 'Nhiều'],
+  special: ['Không', 'Ít', 'Vừa', 'Nhiều']
 } as const;
 
 const ceilTo = (x: number, buoc: number): number => Math.ceil(x / buoc) * buoc;

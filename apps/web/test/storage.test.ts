@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { store } from '@/lib/storage';
+import { DEFAULT_OPTIONS } from '@mm/engine';
 
 beforeEach(() => localStorage.clear());
 
@@ -7,7 +8,8 @@ describe('tuỳ chọn', () => {
   it('trả về mặc định khi chưa có gì lưu', () => {
     expect(store.prefs()).toEqual({
       dark: false, sound: true, soundLevel: 'high',
-      mode: 'classic', level: 1, themes: [], playerCount: 1
+      mode: 'classic', level: 1, themes: [], playerCount: 1,
+      options: DEFAULT_OPTIONS
     });
   });
 

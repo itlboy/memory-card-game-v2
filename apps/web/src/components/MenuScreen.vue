@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { BOT_SPECS, CAMPAIGN_LEVELS, levelSpec } from '@mm/engine';
-import { Bot, Brain, Check, ChevronLeft, Eye, Globe, Heart, Lock, Map, Timer, User, Users } from 'lucide-vue-next';
-import type { BotLevel, Mode } from '@mm/engine';
+import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary } from '@mm/engine';
+import { Bot, Check, ChevronLeft, Globe, Lock, Map, User, Users } from 'lucide-vue-next';
+import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
 import LevelMap from './LevelMap.vue';
+import OptionIcon from './OptionIcon.vue';
+import type { IconName } from './OptionIcon.vue';
 
 const props = defineProps<{
   themes: CardTheme[];
@@ -25,6 +27,8 @@ const props = defineProps<{
   maxSymbolCount: number;
   /** Đang đấu với máy ở mức nào, null là không đấu máy. */
   botLevel: BotLevel | null;
+  /** Tuỳ chọn bàn chơi (năm công tắc 0..3). Chiến dịch không dùng tới. */
+  options: BoardOptions;
 }>();
 
 const emit = defineEmits<{
@@ -34,12 +38,22 @@ const emit = defineEmits<{
   'update:playerCount': [number];
   'update:botLevel': [BotLevel | null];
   'start-level': [number];
+  'update:options': [BoardOptions];
   online: [];
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
-type Step = 'players' | 'bot' | 'count' | 'names' | 'mode' | 'level' | 'theme';
-const STEPS: readonly Step[] = ['players', 'bot', 'count', 'names', 'mode', 'level', 'theme'];
+/*
+ * KHÔNG CÒN BƯỚC "CHỌN CHẾ ĐỘ". Bốn chế độ cũ (cổ điển, đua thời gian, sinh
+ * tồn, chớp nhoáng) hoá ra chỉ là bốn tổ hợp cờ của cùng một engine, nên chúng
+ * thành năm công tắc ở bước `options`, bật cái nào cũng được.
+ *
+ * Chiến dịch KHÔNG theo đường đó: 50 màn nối nhau, mở khoá dần, có mốc sao —
+ * đó là một hành trình có luật riêng từng màn, không phải bàn chơi tự chọn.
+ * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
+ */
+type Step = 'players' | 'bot' | 'count' | 'names' | 'level' | 'theme' | 'options';
+const STEPS: readonly Step[] = ['players', 'bot', 'count', 'names', 'level', 'theme', 'options'];
 
 /** Bước hiện tại nằm trên URL (?w=level) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
@@ -70,10 +84,12 @@ const isMulti = computed(() => props.playerCount > 1);
 // trang trí. Bản đồ cấp chỉ chặn cấp mà KHÔNG bộ theme nào đủ biểu tượng; bước
 // theme sau đó cảnh báo nếu bộ đang chọn không đủ cho cấp này.
 const path = computed<Step[]>(() => {
-  if (props.botLevel) return ['players', 'bot', 'mode', 'level', 'theme'];
+  // Chiến dịch: luật do từng màn quyết định, không có bước tuỳ chọn
+  if (props.mode === 'campaign') return ['players', 'level', 'theme'];
+  if (props.botLevel) return ['players', 'bot', 'level', 'theme', 'options'];
   return isMulti.value
-    ? ['players', 'count', 'names', 'mode', 'level', 'theme']
-    : ['players', 'mode', 'level', 'theme'];
+    ? ['players', 'count', 'names', 'level', 'theme', 'options']
+    : ['players', 'level', 'theme', 'options'];
 });
 const stepIndex = computed(() => path.value.indexOf(step.value));
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
@@ -84,19 +100,11 @@ const TITLES: Record<Step, string> = {
   bot: 'Máy chơi giỏi cỡ nào?',
   count: 'Mấy người chơi?',
   names: 'Tên từng người',
-  mode: 'Chọn chế độ',
   level: 'Chọn cấp độ',
-  theme: 'Chọn theme thẻ'
+  theme: 'Chọn theme thẻ',
+  options: 'Bàn chơi'
 };
 
-// Mỗi chế độ một màu neon cố định — theo suốt game (hướng thiết kế C)
-const SOLO_MODES = [
-  { id: 'campaign' as Mode, icon: Map,    g: 'g-violet', name: 'Chiến dịch',    desc: `Đi từ dễ đến khó qua ${CAMPAIGN_LEVELS} màn · điểm cộng dồn` },
-  { id: 'classic' as Mode,  icon: Brain,  g: 'g-blue',   name: 'Cổ điển',       desc: 'Thong thả, không giới hạn thời gian' },
-  { id: 'time' as Mode,     icon: Timer,  g: 'g-amber',  name: 'Đua thời gian', desc: 'Ghép đúng được +2 giây · xong nhanh thưởng nhiều' },
-  { id: 'survival' as Mode, icon: Heart,  g: 'g-red',    name: 'Sinh tồn',      desc: '5 mạng — quên thẻ đã mở là mất mạng, ghép 2 lần liền thì hồi' },
-  { id: 'peek' as Mode,     icon: Eye,    g: 'g-teal',   name: 'Chớp nhoáng',   desc: 'Nhìn 4 giây, nhớ hết, rồi lật' }
-];
 // Mỗi số người một màu riêng: ba ô cùng màu thì nhìn như một khối, mắt không
 // phân biệt được đang chọn cái nào
 const COUNTS = [
@@ -104,11 +112,6 @@ const COUNTS = [
   { n: 3, g: 'g-violet', desc: 'Ba người, ai nhớ giỏi nhất?' },
   { n: 4, g: 'g-cyan',   desc: 'Bốn người, đông vui nhất' }
 ];
-
-/** Nhiều người chơi có đủ mọi chế độ, TRỪ Chiến dịch — chiến dịch là chuỗi màn
- *  của riêng một người, không có nghĩa khi thay lượt nhau. */
-const MULTI_MODES = SOLO_MODES.filter((m) => m.id !== 'campaign');
-const modes = computed(() => (isMulti.value || props.botLevel ? MULTI_MODES : SOLO_MODES));
 
 /** Bốn mức của máy. Mô tả nói bằng CẢM GIÁC chơi (và nói cho vui), không nói
  *  "retain 0,72" — trọng số là chuyện của engine. */
@@ -131,16 +134,26 @@ function pickBotLevel(l: BotLevel): void {
   emit('update:botLevel', l);
   // Máy chỉ đấu 1v1 và không có Chiến dịch (chuỗi màn của riêng một người)
   if (props.mode === 'campaign') emit('update:mode', 'classic');
-  step.value = 'mode';
+  step.value = 'level';
+}
+
+/** Chiến dịch: một mình, không bot, và KHÔNG qua bảng tuỳ chọn. */
+function pickCampaign(): void {
+  sfx.select();
+  emit('update:mode', 'campaign');
+  emit('update:playerCount', 1);
+  emit('update:botLevel', null);
+  step.value = 'level';
 }
 
 function pickPlayers(multi: boolean): void {
   sfx.select();
   emit('update:botLevel', null);
   emit('update:playerCount', multi ? Math.max(2, props.playerCount) : 1);
-  // Nhiều người chỉ có 2 chế độ; nếu đang giữ chế độ solo thì đưa về Cổ điển
-  if (multi && props.mode !== 'classic' && props.mode !== 'survival') emit('update:mode', 'classic');
-  step.value = multi ? 'count' : 'mode';
+  // Chơi nhanh luôn dùng khoá lưu 'classic' — kỷ lục và tiến độ giữ nguyên chỗ
+  // cũ, còn luật ván thì do bảng tuỳ chọn quyết định.
+  emit('update:mode', 'classic');
+  step.value = multi ? 'count' : 'level';
 }
 
 function pickCount(n: number): void {
@@ -168,13 +181,44 @@ function confirmNames(): void {
   store.savePlayerNames(filled);
   names.value = filled;
   sfx.select();
-  step.value = 'mode';
+  step.value = 'level';
 }
 
-function pickMode(m: Mode): void {
+/**
+ * Năm hàng tuỳ chọn. Tên và mô tả nói bằng thứ người chơi thấy trên bàn, không
+ * nói tên cờ trong engine.
+ *
+ * ĐÚNG NĂM HÀNG, không thêm: đo trên iPhone SE (390×667) thì mỗi hàng 73px và
+ * còn dư 44px — hàng thứ sáu cần 80px, tức là tràn. Muốn thêm thì phải gộp hàng
+ * chứ không được để trang dài ra (luật KHÔNG SCROLL).
+ */
+const OPTION_ROWS: readonly { key: OptionKey; icon: IconName; name: string }[] = [
+  { key: 'time',    icon: 'time',    name: 'Thời gian' },
+  { key: 'lives',   icon: 'lives',   name: 'Số mạng' },
+  { key: 'peek',    icon: 'peek',    name: 'Xem trước' },
+  { key: 'shuffle', icon: 'shuffle', name: 'Xáo thẻ' },
+  { key: 'special', icon: 'special', name: 'Thẻ đặc biệt' }
+];
+
+/** Giá trị THẬT của từng hàng cho cấp đang chọn — không bắt người chơi đoán
+ *  "Nhanh" nghĩa là bao nhiêu giây. */
+const optionHints = computed<Record<string, string>>(() => {
+  const out: Record<string, string> = {};
+  for (const k of OPTION_KEYS) out[k] = optionSummary(k, props.options[k], props.level) ?? 'tắt';
+  return out;
+});
+
+function setOption(key: OptionKey, muc: OptLevel): void {
+  if (props.options[key] === muc) return;
   sfx.select();
-  emit('update:mode', m);
-  step.value = 'level';
+  emit('update:options', { ...props.options, [key]: muc });
+}
+
+/** Xong bước theme: chiến dịch chơi luôn, còn lại sang bảng tuỳ chọn. */
+function xongTheme(): void {
+  if (props.mode === 'campaign') { emit('start-level', props.level); return; }
+  sfx.select();
+  step.value = 'options';
 }
 
 function pickLevel(id: number): void {
@@ -246,10 +290,20 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
     <Transition name="step" mode="out-in">
       <!-- BƯỚC 1: một mình hay nhiều người -->
       <div v-if="step === 'players'" key="players" class="step-body options loose">
-        <button class="option big neon g-violet" type="button" @click="pickPlayers(false)">
+        <!--
+          Chiến dịch lên thẳng đây, thành một LỐI ĐI RIÊNG chứ không phải một
+          "chế độ" ngang hàng với các tuỳ chọn: nó là chuỗi 50 màn mở khoá dần,
+          luật cố định sẵn từng màn, nên không có bảng tuỳ chọn.
+        -->
+        <button class="option big neon g-violet" type="button" @click="pickCampaign()">
+          <Map class="opt-icon" :size="40" />
+          <strong>Chiến dịch</strong>
+          <small>{{ CAMPAIGN_LEVELS }} màn từ dễ đến khó · điểm cộng dồn vào tổng</small>
+        </button>
+        <button class="option big neon g-blue" type="button" @click="pickPlayers(false)">
           <User class="opt-icon" :size="40" />
-          <strong>Chơi một mình</strong>
-          <small>Luyện trí nhớ, phá kỷ lục của chính bạn</small>
+          <strong>Chơi nhanh</strong>
+          <small>Một ván lẻ, bàn chơi do bạn đặt luật</small>
         </button>
         <button class="option big neon g-amber" type="button" @click="pickBotMode()">
           <Bot class="opt-icon" :size="40" />
@@ -314,16 +368,6 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
-      <div v-else-if="step === 'mode'" key="mode" class="step-body options loose modes">
-        <button
-          v-for="m in modes" :key="m.id" class="option wide neon" :class="m.g" type="button"
-          @click="pickMode(m.id)"
-        >
-          <component :is="m.icon" class="opt-icon" :size="26" />
-          <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
-        </button>
-      </div>
-
       <!-- BƯỚC: chọn cấp độ. MỌI chế độ đều qua đây — trước kia chỉ Chiến dịch
            có bản đồ, các chế độ khác chọn 1 trong 12 cỡ bàn cố định, nên cùng
            một việc lại có hai kiểu chọn và chỉ Chiến dịch mới chơi tiếp được
@@ -338,8 +382,8 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         />
       </div>
 
-      <!-- BƯỚC cuối: theme (chọn được nhiều) + Bắt đầu -->
-      <div v-else key="theme" class="step-body theme-step">
+      <!-- BƯỚC: theme (chọn được nhiều) -->
+      <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
         <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
         <div class="options grid2 fill" role="group" aria-label="Theme thẻ">
           <button
@@ -371,11 +415,12 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           Chưa đủ biểu tượng cho cấp {{ level }} ({{ pairsNeeded }} cặp). Hãy chọn thêm theme.
         </p>
 
+        <!-- Chiến dịch vào thẳng màn; chơi nhanh còn một bước đặt luật bàn -->
         <button
           class="btn-primary" :disabled="themeTooSmall" type="button"
-          @click="emit('start-level', level)"
+          @click="xongTheme()"
         >
-          Bắt đầu cấp {{ level }}
+          {{ mode === 'campaign' ? `Bắt đầu cấp ${level}` : 'Tiếp' }}
         </button>
 
         <p class="best">
@@ -384,6 +429,33 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           </template>
           <template v-else>Chưa có kỷ lục cho cấp {{ level }}.</template>
         </p>
+      </div>
+
+      <!--
+        BƯỚC: tuỳ chọn bàn chơi — thay cho bước chọn chế độ cũ.
+        Mỗi hàng thật sự có trạng thái bật/tắt nên viền "đang chọn" ở đây là
+        ĐÚNG (khác các bước bấm-là-đi như số người hay mức bot).
+      -->
+      <div v-else key="options" class="step-body opt-list">
+        <div v-for="row in OPTION_ROWS" :key="row.key" class="opt-row">
+          <div class="opt-head">
+            <OptionIcon :name="row.icon" :size="24" />
+            <span class="opt-name">{{ row.name }}</span>
+            <span class="opt-hint">{{ optionHints[row.key] }}</span>
+          </div>
+          <div class="seg" role="group" :aria-label="row.name">
+            <button
+              v-for="(nhan, muc) in OPTION_LABELS[row.key]" :key="nhan"
+              class="seg-btn" :class="{ zero: muc === 0 }" type="button"
+              :aria-pressed="options[row.key] === muc"
+              @click="setOption(row.key, muc as OptLevel)"
+            >{{ nhan }}</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" type="button" @click="emit('start-level', level)">
+          Bắt đầu cấp {{ level }}
+        </button>
       </div>
     </Transition>
   </section>
@@ -539,4 +611,55 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .warn { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 13px;
   background: color-mix(in srgb, var(--bad) 14%, transparent); }
 .best { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
+/* ── BẢNG TUỲ CHỌN BÀN CHƠI ───────────────────────────────────────────────
+   Năm hàng phải vừa iPhone SE mà KHÔNG cuộn. Đo trên Chrome: hàng 73px, năm
+   hàng + nút còn dư 44px. Hàng thứ sáu cần 80px nên sẽ tràn — muốn thêm tuỳ
+   chọn thì phải gộp hàng, đừng để trang dài ra. */
+.opt-list {
+  display: flex; flex-direction: column; gap: 7px;
+  min-height: 0; overflow: hidden;
+}
+.opt-row {
+  flex: 0 0 auto;
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-soft); padding: 6px 9px 7px;
+}
+.opt-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.opt-name { font-family: var(--font-display); font-weight: 800; font-size: var(--text-md); }
+/* Giá trị THẬT của cấp đang chọn. tabular-nums để số không nhảy khi đổi mức. */
+.opt-hint {
+  margin-left: auto; font-size: var(--text-xs); color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  max-width: 45%; overflow: hidden; text-overflow: ellipsis;
+}
+.seg { display: flex; gap: 4px; }
+/* 11px chứ không 12: "Bình thường" ở 12px bị cắt thành "Bình thườ…" trên bàn
+   390px — đã đo. Ghi đè min-height của .btn toàn cục (44px) vì đây không phải
+   nút hành động; vùng chạm nới bằng ::after bên dưới. */
+.seg-btn {
+  flex: 1 1 0; min-width: 0; min-height: 30px; height: 30px; padding: 0 3px;
+  position: relative;
+  border: 1px solid var(--line); border-radius: var(--r-full);
+  background: var(--panel-solid); color: var(--muted);
+  font-family: var(--font-body); font-weight: 700; font-size: 11px;
+  letter-spacing: -.01em; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+/* Vùng chạm ≠ hình của nút (NF-07): nút 30px, vùng chạm 46px. */
+.seg-btn::after { content: ''; position: absolute; inset: -8px; }
+.seg-btn[aria-pressed="true"] {
+  background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
+  border-color: transparent; color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 4px 14px var(--card-back-glow);
+}
+/* Mức TẮT không bùng gradient: nó là trạng thái "không có gì", không đáng sáng
+   lên như một lựa chọn — chỉ cần thấy rõ là đang ở đó. */
+.seg-btn.zero[aria-pressed="true"] {
+  background: var(--panel-solid); color: var(--fg);
+  border-color: var(--line-strong); box-shadow: none;
+}
+@media (hover: hover) {
+  .seg-btn:not([aria-pressed="true"]):hover { border-color: var(--line-strong); color: var(--fg); }
+}
+
 </style>
