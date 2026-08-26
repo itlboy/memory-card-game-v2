@@ -118,7 +118,7 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
     const side = Math.ceil(Math.sqrt(pairs * 2));
     return deck({
       cols: side, rows: Math.ceil((pairs * 2) / side), pairs,
-      specialRate: rate, allowedPowers: ['x2', 'eye'], rng: new Rng(seed)
+      specialRate: rate, allowedPowers: ['x2', 'swap'], rng: new Rng(seed)
     });
   };
 
@@ -189,7 +189,7 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
     }
   });
 
-  it('bộ mặc định có đủ NĂM loại, kể cả bom và tráo đổi', () => {
+  it('bộ mặc định có đủ các loại đang bật, kể cả bom và tráo đổi', () => {
     const thay = new Set<string>();
     for (let seed = 1; seed <= 60; seed++) {
       for (const c of deck({
@@ -197,7 +197,9 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
         specialRate: 0.5, rng: new Rng(seed * 13)
       })) if (c.power) thay.add(c.power);
     }
-    expect([...thay].sort()).toEqual(['bomb', 'eye', 'freeze', 'swap', 'x2']);
+    // 'eye' (Mắt thần) tạm tắt: mở cả bàn nhiều lần thì nhìn loạn, mà nó cũng
+    // đè lên đúng việc tuỳ chọn "Xem trước" đang làm có kiểm soát hơn.
+    expect([...thay].sort()).toEqual(['bomb', 'freeze', 'swap', 'x2']);
   });
 });
 

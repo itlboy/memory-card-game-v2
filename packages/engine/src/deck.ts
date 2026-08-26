@@ -4,13 +4,18 @@ import type { Card, Power } from './types.js';
 /**
  * Thẻ đặc biệt được phép xuất hiện.
  *
- * Đủ cả năm loại. Bom (úp lại hai cặp đã mở) và Tráo đổi từng bị tắt vì "quá
- * nặng" và "lạc quẻ", nhưng cái làm chúng khó chịu không phải bản thân hiệu ứng
- * mà là chuyện bàn có thể dồn nhiều thẻ cùng loại. Nay việc chia đã đổi: mỗi
- * loại xuất hiện TỐI ĐA HAI lần và số lần giữa các loại chênh nhau không quá
- * một, nên không bàn nào biến thành bàn-toàn-bom.
+ * Bom (úp lại hai cặp đã mở) và Tráo đổi từng bị tắt vì "quá nặng" và "lạc
+ * quẻ", nhưng cái làm chúng khó chịu không phải bản thân hiệu ứng mà là chuyện
+ * bàn có thể dồn nhiều thẻ cùng loại. Nay việc chia đã đổi: mỗi loại xuất hiện
+ * TỐI ĐA HAI lần và số lần giữa các loại chênh nhau không quá một, nên không
+ * bàn nào biến thành bàn-toàn-bom.
+ *
+ * 'eye' (Mắt thần — hé cả bàn 5 giây) TẠM TẮT: bàn mở ra quá nhiều lần thì nhìn
+ * loạn, mà nó lại đè lên đúng thứ tuỳ chọn "Xem trước" đang làm một cách có
+ * kiểm soát. Luật xử lý vẫn còn nguyên trong game.ts — bật lại chỉ cần thêm tên
+ * vào danh sách này, và ván đang chơi dở lưu từ bản trước vẫn khôi phục được.
  */
-const PLAYABLE_POWERS: readonly Power[] = ['bomb', 'swap', 'x2', 'eye', 'freeze'];
+const PLAYABLE_POWERS: readonly Power[] = ['bomb', 'swap', 'x2', 'freeze'];
 
 /** TRẦN mỗi loại trong một bàn. Xem chiaPowers(). */
 const TRAN_MOI_LOAI = 2;

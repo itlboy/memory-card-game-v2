@@ -116,8 +116,15 @@ describe('view công khai (NF-04, ON-09)', () => {
         expect(c.symbol).toBeTruthy();
       }
     }
-    // JSON gửi đi tuyệt đối không chứa symbol của thẻ úp
-    const payload = JSON.stringify(view);
+    /*
+     * Phần THẺ của payload tuyệt đối không chứa biểu tượng của thẻ úp.
+     *
+     * Soi `view.cards` chứ không soi cả JSON: AVATAR người chơi cũng là emoji và
+     * trùng được với biểu tượng thẻ (đã báo oan thật — "Bình" mang avatar 🐸 mà
+     * bàn cũng có thẻ 🐸). Tìm chuỗi trên cả payload thì mỗi lần trùng như vậy
+     * là một lần đỏ oan, còn lỗ thật thì vẫn nằm trong `cards`.
+     */
+    const payload = JSON.stringify(view.cards);
     const hidden = g.cards.filter((c) => !g.isFaceUp(c.index) && !c.blank);
     const revealed = new Set(view.cards.filter((c) => c.symbol).map((c) => c.symbol));
     for (const c of hidden) {
