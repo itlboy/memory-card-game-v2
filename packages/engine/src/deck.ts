@@ -2,12 +2,18 @@ import { Rng } from './rng.js';
 import type { Card, Power } from './types.js';
 
 /**
- * Thẻ đặc biệt được phép xuất hiện. 'bomb' TẠM TẮT: úp lại hai cặp đã mở là
- * đòn quá nặng, mất cả công người chơi vừa bỏ ra. Thay bằng 'swap' — chỉ tráo
- * chỗ hai thẻ đang úp, có hiệu ứng chỉ rõ hai thẻ nào, nên khó mà vẫn công
- * bằng. Bật lại bomb thì thêm vào danh sách này, luật xử lý vẫn còn nguyên.
+ * Thẻ đặc biệt được phép xuất hiện — TẤT CẢ đều là thứ TỐT cho người bốc được.
+ *
+ * 'bomb' tắt: úp lại hai cặp đã mở là đòn quá nặng, mất cả công người chơi vừa
+ * bỏ ra. 'swap' (Tráo đổi) cũng đã bỏ, vì nó là cái DUY NHẤT trong nhóm làm hại
+ * chính người bốc được — lạc quẻ tới mức phải bù bằng trọng số ×2 cho hay gặp
+ * rồi lại chặn tối đa 2 thẻ mỗi bàn kẻo ván thành đỏ đen. Việc làm khó trí nhớ
+ * giao hẳn cho tuỳ chọn "Xáo thẻ": đều đặn, cả phòng biết trước, chỉnh được mức.
+ *
+ * Luật xử lý cả hai vẫn còn nguyên trong game.ts — bật lại chỉ cần thêm tên vào
+ * danh sách này, và ván đang chơi dở lưu từ bản cũ vẫn khôi phục được.
  */
-const PLAYABLE_POWERS: readonly Power[] = ['swap', 'x2', 'eye', 'freeze'];
+const PLAYABLE_POWERS: readonly Power[] = ['x2', 'eye', 'freeze'];
 
 export interface DeckOptions {
   cols: number;
@@ -23,27 +29,17 @@ export interface DeckOptions {
   pairs?: number;
 }
 
-/** Trọng số bốc hiệu ứng — càng lớn càng hay gặp. Loại không có tên ở đây thì
- *  trọng số 1. */
-const POWER_WEIGHT: Partial<Record<Power, number>> = { swap: 2 };
-
-/** TRẦN số lần mỗi loại hiệu ứng xuất hiện trong một bàn. Thẻ tráo giới hạn 2:
- *  bàn lớn tính theo tỉ lệ ra tới 6 thẻ tráo, tráo liên tục thì người chơi không
- *  còn dựa được vào ký ức nào nữa, thành ra chơi bằng may. */
-const POWER_MAX: Partial<Record<Power, number>> = { swap: 2 };
-
-function pickPower(allowed: readonly Power[], rng: Rng, used: Map<Power, number>): Power {
-  const open = allowed.filter((p) => (used.get(p) ?? 0) < (POWER_MAX[p] ?? Infinity));
-  const pool = open.length ? open : allowed;
-  const total = pool.reduce((n, p) => n + (POWER_WEIGHT[p] ?? 1), 0);
-  let r = rng.next() * total;
-  for (const p of pool) {
-    r -= POWER_WEIGHT[p] ?? 1;
-    if (r <= 0) { used.set(p, (used.get(p) ?? 0) + 1); return p; }
-  }
-  const last = pool[pool.length - 1]!;
-  used.set(last, (used.get(last) ?? 0) + 1);
-  return last;
+/**
+ * Bốc đều tay giữa các loại được phép.
+ *
+ * Trước đây chỗ này có TRỌNG SỐ (thẻ Tráo đổi ×2 cho hay gặp) và TRẦN (tối đa 2
+ * thẻ Tráo mỗi bàn, kẻo tráo liên tục thì ký ức vô dụng và ván thành đỏ đen).
+ * Cả hai sinh ra chỉ để bù cho một loại thẻ lạc quẻ — nay bỏ thẻ đó rồi thì
+ * chúng thành code chết, nên xoá luôn thay vì để lại một cơ chế không ai dùng
+ * mà vẫn phải đọc. Cần chặn lại loại nào thì thêm ở đây, kèm LÝ DO.
+ */
+function pickPower(allowed: readonly Power[], rng: Rng): Power {
+  return rng.sample(allowed, 1)[0]!;
 }
 
 export function buildDeck(opts: DeckOptions): Card[] {
@@ -73,13 +69,12 @@ export function buildDeck(opts: DeckOptions): Card[] {
   // Cặp nào mang hiệu ứng — chọn tất định theo seed
   const specialPairs = new Set(rng.sample([...picked.keys()], specialCount));
 
-  const powerUse = new Map<Power, number>();
   const draft: Omit<Card, 'index'>[] = [];
   picked.forEach((symbol, pairId) => {
     // Bốc có TRỌNG SỐ: thẻ tráo nặng gấp đôi hai loại kia. Bốc đều thì bàn có
     // một thẻ đặc biệt chỉ 1/3 khả năng là thẻ tráo, nên người chơi hầu như
     // không gặp nó ở cấp thấp.
-    const power = specialPairs.has(pairId) ? pickPower(allowed, rng, powerUse) : undefined;
+    const power = specialPairs.has(pairId) ? pickPower(allowed, rng) : undefined;
     // Hiệu ứng chỉ gắn trên MỘT thẻ của cặp: lật đúng thẻ đó mới kích hoạt
     const carrier = rng.int(2);
     for (let k = 0; k < 2; k++) {

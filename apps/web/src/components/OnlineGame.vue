@@ -207,7 +207,14 @@ watch(() => o.view.value?.summary, (s) => {
       </Transition>
 
       <Transition name="banner">
-        <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
+        <div v-if="o.lifeLost.value" :key="`hp-${o.lifeLost.value.key}`" class="turn-banner hurt" role="status" aria-live="polite">
+          <span class="who">
+            <OptionIcon name="lives" :size="19" />
+            <b>{{ o.lifeLost.value.cuaToi ? 'Bạn' : o.lifeLost.value.name }}</b>
+            {{ o.lifeLost.value.left > 0 ? `mất 1 mạng — còn ${o.lifeLost.value.left}` : 'hết mạng!' }}
+          </span>
+        </div>
+        <div v-else-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
           <span class="who"><OptionIcon name="lives" :size="19" /> <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
           <small>Ghép đúng hai lần liền khi đang nguy</small>
         </div>
@@ -400,6 +407,18 @@ watch(() => o.view.value?.summary, (s) => {
 .ico-line { display: inline-flex; align-items: center; gap: 5px; }
 .turn-banner .who { display: flex; align-items: center; gap: 8px; font-size: clamp(17px, 4.5vw, 22px); }
 .turn-banner.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
+/* Mất mạng: viền đỏ + lắc một nhịp — tin xấu không được trông như mọi thông báo khác */
+.turn-banner.hurt {
+  border-color: color-mix(in srgb, var(--bad) 75%, var(--line));
+  animation: hp-shake .4s ease-out;
+}
+.turn-banner.hurt b { color: var(--bad); }
+@keyframes hp-shake {
+  0%, 100% { margin-left: 0; }
+  25% { margin-left: -5px; }
+  60% { margin-left: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .turn-banner.hurt { animation: none; } }
 .turn-banner b { color: var(--accent); }
 .turn-banner .avatar { font-size: clamp(24px, 6vw, 32px); }
 .turn-banner small { color: var(--muted); font-size: 12.5px; }

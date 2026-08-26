@@ -566,9 +566,24 @@ export function useOnlineRoom() {
           break;
         case 'life-gain': {
           const who = view.value?.players.find((p) => p.id === e.playerId);
-          sfx.unlockTheme();
+          sfx.lifeGain();
           lifeGain.value = { name: who?.name ?? '', key: (lifeGain.value?.key ?? 0) + 1 };
           setTimeout(() => { lifeGain.value = null; }, 3200);
+          break;
+        }
+        /*
+         * MẤT MẠNG: người chơi đang nhìn bàn thẻ chứ không nhìn chip người chơi,
+         * nên số tim bớt đi một là thứ gần như không ai để ý. Chỉ kêu tiếng khi
+         * MÌNH mất — mất mạng của đối thủ là tin vui, không đáng giật mình.
+         */
+        case 'life-lost': {
+          const who = view.value?.players.find((p) => p.id === e.playerId);
+          if (e.playerId === myId.value) sfx.lifeLost();
+          lifeLost.value = {
+            name: who?.name ?? '', left: e.livesLeft, cuaToi: e.playerId === myId.value,
+            key: (lifeLost.value?.key ?? 0) + 1
+          };
+          setTimeout(() => { lifeLost.value = null; }, 2600);
           break;
         }
         case 'end': {
@@ -717,6 +732,8 @@ export function useOnlineRoom() {
   const seriesWins = ref<Record<string, number>>({});
   /** Ai vừa hồi mạng (Sinh tồn). */
   const lifeGain = ref<{ name: string; key: number } | null>(null);
+  /** Ai vừa MẤT một mạng, còn mấy mạng, và có phải mình không. */
+  const lifeLost = ref<{ name: string; left: number; cuaToi: boolean; key: number } | null>(null);
 
   const emojiSentAt: number[] = [];
   const emojiReady = ref(true);
@@ -829,6 +846,7 @@ export function useOnlineRoom() {
     seriesWins,
     /** Ai vừa hồi mạng (Sinh tồn). */
     lifeGain,
+    lifeLost,
     roomCode: () => code
   };
 }

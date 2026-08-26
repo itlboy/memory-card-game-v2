@@ -300,6 +300,26 @@ class Sfx {
     this.noise(0.12, { freq: 240, type: 'lowpass', gain: 0.07, delay: 0.02 });
   }
 
+  /**
+   * MẤT MỘT MẠNG — nặng hơn tiếng ghép sai hẳn một bậc, vì đây là mất mát thật
+   * chứ không phải một nước hụt.
+   *
+   * Hai nhịp trầm rơi xuống như tiếng tim hụt, cộng một tiếng "rắc" khô: người
+   * chơi đang nhìn bàn thẻ chứ không nhìn HUD, nên con số tim bớt đi một là thứ
+   * gần như không ai để ý — âm thanh mới là cái kéo mắt họ lên.
+   */
+  lifeLost(): void {
+    this.voice(320, { dur: 0.16, type: 'sine', gain: 0.075, slideTo: 180 });
+    this.voice(240, { dur: 0.26, type: 'sine', gain: 0.06, slideTo: 110, delay: 0.14 });
+    this.noise(0.16, { freq: 300, type: 'lowpass', gain: 0.08, delay: 0.02 });
+  }
+
+  /** Hồi lại một mạng: ngược chiều tiếng mất mạng — hai nhịp đi LÊN. */
+  lifeGain(): void {
+    this.voice(392, { dur: 0.14, type: 'triangle', gain: 0.05, slideTo: 523 });
+    this.voice(523, { dur: 0.22, type: 'triangle', gain: 0.045, slideTo: 784, delay: 0.12 });
+  }
+
   power(): void {
     [660, 880, 1320].forEach((f, i) => this.voice(f, { dur: 0.09, type: 'square', gain: 0.03, delay: i * 0.05 }));
   }

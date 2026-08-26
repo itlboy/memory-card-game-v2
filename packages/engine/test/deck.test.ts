@@ -118,7 +118,7 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
     const side = Math.ceil(Math.sqrt(pairs * 2));
     return deck({
       cols: side, rows: Math.ceil((pairs * 2) / side), pairs,
-      specialRate: rate, allowedPowers: ['swap', 'x2', 'eye'], rng: new Rng(seed)
+      specialRate: rate, allowedPowers: ['x2', 'eye'], rng: new Rng(seed)
     });
   };
 
@@ -137,37 +137,36 @@ describe('thẻ đặc biệt: có mặt cả ở bàn nhỏ', () => {
     expect(build(10, 0).filter((c) => c.power).length).toBe(0);
   });
 
-  it('thẻ tráo hay gặp hơn hai loại kia (trọng số gấp đôi)', () => {
-    const count = { swap: 0, other: 0 };
-    for (let seed = 1; seed <= 200; seed++) {
+  /*
+   * Thẻ Tráo đổi đã bị bỏ khỏi bộ thẻ đang phát: nó là cái duy nhất trong nhóm
+   * làm hại chính người bốc được, mà việc làm khó trí nhớ đã có tuỳ chọn "Xáo
+   * thẻ" lo. Trọng số ×2 và trần 2 thẻ/bàn sinh ra chỉ để bù cho sự lạc quẻ đó,
+   * nên cũng đi theo. Giờ mọi loại đều bằng nhau.
+   */
+  it('không loại nào được ưu ái hơn loại nào', () => {
+    const dem = new Map<string, number>();
+    for (let seed = 1; seed <= 300; seed++) {
       for (const c of build(12, 0.25, seed * 7)) {
-        if (c.power === 'swap') count.swap++;
-        else if (c.power) count.other++;
+        if (c.power) dem.set(c.power, (dem.get(c.power) ?? 0) + 1);
       }
     }
-    // Trọng số 2:1:1 → thẻ tráo chiếm khoảng một nửa, chắc chắn hơn từng loại kia
-    expect(count.swap).toBeGreaterThan(count.other / 2);
+    const so = [...dem.values()];
+    expect(so.length, 'phải gặp cả hai loại của chơi đơn').toBeGreaterThanOrEqual(2);
+    // Lệch nhau quá 35% là có ai đó đang được ưu ái mà không ghi ra ở đâu
+    expect(Math.max(...so) / Math.min(...so)).toBeLessThan(1.35);
   });
-});
 
-describe('trần số lần tráo mỗi bàn', () => {
-  it('không bàn nào có quá 2 thẻ tráo — tráo nhiều thì chơi thành may rủi', () => {
-    for (let seed = 1; seed <= 300; seed++) {
-      const cards = buildDeck({
-        cols: 6, rows: 7, pairs: 21, symbols: SYMBOLS,
-        specialRate: 0.3, allowedPowers: ['swap', 'x2', 'eye'], rng: new Rng(seed * 13)
+  it('thẻ Tráo đổi KHÔNG còn nằm trong bộ mặc định', () => {
+    // KHÔNG truyền allowedPowers: đây mới là bộ thẻ thật sự được phát trong ván.
+    // (Helper `build` ở trên chỉ định tay danh sách, nên nó không kiểm được điều này.)
+    for (let seed = 1; seed <= 120; seed++) {
+      const cards = deck({
+        cols: 6, rows: 6, pairs: 18, symbols: SYMBOLS,
+        specialRate: 0.4, rng: new Rng(seed * 11)
       });
-      const swaps = cards.filter((c) => c.power === 'swap').length;
-      expect(swaps, `seed ${seed}`).toBeLessThanOrEqual(2);
+      expect(cards.some((c) => c.power === 'swap'), `seed ${seed}`).toBe(false);
+      expect(cards.some((c) => c.power === 'bomb'), `seed ${seed}`).toBe(false);
     }
   });
-
-  it('chặn trần rồi vẫn còn thẻ đặc biệt khác, không bỏ trống chỗ', () => {
-    const cards = buildDeck({
-      cols: 6, rows: 7, pairs: 21, symbols: SYMBOLS,
-      specialRate: 0.3, allowedPowers: ['swap', 'x2', 'eye'], rng: new Rng(99)
-    });
-    const powers = cards.filter((c) => c.power).length;
-    expect(powers).toBeGreaterThan(2);        // trần chỉ áp cho swap, không cắt tổng
-  });
 });
+

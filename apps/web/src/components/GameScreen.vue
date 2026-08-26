@@ -140,6 +140,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       :time-left="s.timeLeft.value"
       :moves-left="s.movesLeft.value"
       :lives="lives"
+      :life-lost-key="s.lifeLost.value?.key ?? 0"
       :level-id="levelId"
       :multiplayer="game.isMultiplayer"
       :score-bump="scoreBump"
@@ -164,6 +165,12 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
                hàng thẻ, mà đây đúng là lúc người chơi cần nhìn cả bàn. -->
           <OptionIcon name="peek" :size="20" /> Ghi nhớ vị trí!
           <b v-if="s.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(s.peekLeft.value) }}s</b>
+        </p>
+        <p v-else-if="s.lifeLost.value" :key="`hp-${s.lifeLost.value.key}`" class="toast hurt" :class="{ raised: raised('toast') }" role="status">
+          <OptionIcon name="lives" :size="20" />
+          Mất 1 mạng —
+          <b v-if="s.lifeLost.value.left > 0">còn {{ s.lifeLost.value.left }}</b>
+          <b v-else>hết mạng rồi!</b>
         </p>
         <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" :class="{ raised: raised('toast') }" role="status">
           <OptionIcon name="lives" :size="20" /> Hồi 1 mạng — ghép đúng hai lần liền!
@@ -360,6 +367,19 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
   font-variant-numeric: tabular-nums;
 }
 .toast.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
+/* Mất mạng: viền đỏ và lắc nhẹ một nhịp — đây là tin xấu, không được trông
+   giống mọi thông báo khác. */
+.toast.hurt {
+  border-color: color-mix(in srgb, var(--bad) 75%, var(--line));
+  animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1), hp-shake .4s .12s ease-out;
+}
+.toast.hurt b { color: var(--bad); }
+@keyframes hp-shake {
+  0%, 100% { margin-left: 0; }
+  25% { margin-left: -5px; }
+  60% { margin-left: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .toast.hurt { animation: none; } }
 .toast-enter-active { animation: toast-in .32s cubic-bezier(.3, 1.5, .5, 1); }
 .toast-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .toast-leave-to { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.96); }
