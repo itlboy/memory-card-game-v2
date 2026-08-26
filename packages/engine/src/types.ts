@@ -63,6 +63,14 @@ export interface GameConfig {
   pairs?: number;
   /** Tỉ lệ cặp mang thẻ đặc biệt, 0–1 (mặc định 0 = tắt). */
   specialRate?: number;
+  /**
+   * Số lần XÁO THẺ trong cả ván (tuỳ chọn "Xáo thẻ"). 0 = tắt.
+   *
+   * Mỗi lần: hai thẻ chưa ghép đổi chỗ cho nhau. Trải đều theo số nước đi, xem
+   * `shuffleEvery` trong game.ts. Đây là tuỳ chọn duy nhất đánh thẳng vào trí
+   * nhớ vị trí thay vì vào đồng hồ, nên mặc định TẮT.
+   */
+  shuffleCount?: number;
   /** Độ trễ úp lại 2 thẻ khác nhau, ms. */
   flipBackMs?: number;
   /** Giới hạn mỗi lượt (giây) — multiplayer. null = không giới hạn. */
@@ -95,6 +103,9 @@ export type GameEvent =
   | { type: 'miss'; indices: [number, number]; penalty: number; hideAfterMs: number }
   | { type: 'power'; power: Power; index: number; affected: number[] }
   | { type: 'peek-end' }
+  /** Hai thẻ vừa bị XÁO đổi chỗ (tuỳ chọn "Xáo thẻ"). UI phải chỉ rõ hai ô nào,
+   *  không thì người chơi tưởng mình nhớ sai. */
+  | { type: 'shuffle'; affected: [number, number] }
   | { type: 'turn'; playerId: string; skipped: boolean }
   | { type: 'turn-timeout'; playerId: string }
   | { type: 'time-bonus'; playerId: string; ms: number }

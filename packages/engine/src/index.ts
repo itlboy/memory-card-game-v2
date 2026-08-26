@@ -15,6 +15,11 @@ export {
   levelSpec, pairsForLevel, perfectScore
 } from './campaign.js';
 export { peekMsFor, presetConfig } from './presets.js';
+export {
+  DEFAULT_OPTIONS, OPTION_KEYS, OPTION_LABELS, clampOpt, configFromOptions,
+  livesFor, optionSummary, peekSecondsFor, sanitizeOptions, shuffleCountFor, specialPairsFor
+} from './options.js';
+export type { BoardOptions, OptLevel, OptionKey } from './options.js';
 export type { Chapter, Level } from './campaign.js';
 export type { PresetInput } from './presets.js';
 export type {

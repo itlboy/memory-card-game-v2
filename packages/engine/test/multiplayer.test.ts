@@ -32,9 +32,9 @@ describe('Local multiplayer (MP-01…MP-04)', () => {
   it('điểm tính riêng cho từng người', () => {
     const g = four();
     matchPair(g, 0);        // An +100
-    missPair(g, 1, 2);      // An -10 → 90, sang Bình
+    missPair(g, 1, 2);      // lật sai không trừ điểm nữa, chỉ chuyển lượt
     matchPair(g, 1);        // Bình +100
-    expect(g.players[0]!.score).toBe(90);
+    expect(g.players[0]!.score).toBe(100);
     expect(g.players[1]!.score).toBe(100);
   });
 
