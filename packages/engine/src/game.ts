@@ -1,7 +1,7 @@
 import { buildDeck } from './deck.js';
 import { Rng } from './rng.js';
 import {
-  FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TURN_BONUS_MS,
+  FLIP_BACK_MS, MATCH_TIME_BONUS_MS, TURN_BONUS_MS,
   comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 import type {
@@ -54,6 +54,8 @@ export class MemoryGame {
   /** Thời gian được cộng thêm nhờ ghép đúng (Đua thời gian). Tách khỏi
    *  `startedAt` để `elapsed()` vẫn là thời gian thực đã chơi. */
   private extraTimeMs = 0;
+  /** Số lần đã xáo thẻ trong ván này (tuỳ chọn "Xáo thẻ"). */
+  private shuffled = 0;
   private rng: Rng;
   private summaryCache: Summary | null = null;
   /** Các ô người chơi ĐÃ TỪNG thấy mặt trước. Dùng để phán xử lỗi trong Sinh tồn:
@@ -256,8 +258,10 @@ export class MemoryGame {
     // Lật sai
     player.streak = 0;
     player.misses++;
-    const penalty = this.config.mode === 'classic' ? MISS_PENALTY : 0;
-    if (penalty) player.score = Math.max(0, player.score - penalty);
+    // Không còn phạt điểm khi lật sai. Trước đây chỉ chế độ Cổ điển trừ 10
+    // điểm, và đó là chỗ DUY NHẤT CÒN LẠI trong engine đọc `config.mode` — bỏ
+    // nó đi thì `mode` chỉ còn là khoá lưu kỷ lục, không còn là luật chơi.
+    const penalty = 0;
 
     // Chỉ mất mạng khi ĐÁNG mất: thẻ vừa mở đã có thẻ trùng lộ ra từ trước, tức
     // người chơi có đủ thông tin để ghép đúng mà vẫn trượt. Lật hai thẻ chưa ai
@@ -294,8 +298,49 @@ export class MemoryGame {
     this.selection = [];
     const out: GameEvent[] = [];
 
+    out.push(...this.maybeShuffle());
     if (!this.finished && this.isMultiplayer) out.push(...this.nextTurn(now));
     return out;
+  }
+
+  /**
+   * Cách nhau bao nhiêu NƯỚC ĐI thì xáo một lần.
+   *
+   * Một ván dọn sạch bàn tốn cỡ 2 nước mỗi cặp, nên chia quãng đó cho số lần
+   * xáa muốn có. Sàn 2 nước: dày hơn nữa thì bàn đổi chỗ gần như mỗi lượt, trí
+   * nhớ thành vô dụng và ván biến thành đỏ đen — đúng thứ trò chơi này không
+   * nên trở thành.
+   */
+  private get shuffleEvery(): number {
+    const lan = this.config.shuffleCount ?? 0;
+    if (lan <= 0) return 0;
+    return Math.max(2, Math.round((this.totalPairs * 2) / lan));
+  }
+
+  /**
+   * Xáo thẻ nếu tới nhịp: hai thẻ CHƯA GHÉP đổi chỗ cho nhau.
+   *
+   * Khác thẻ đặc biệt Tráo đổi ở chỗ KHÔNG đòi thẻ phải "đã từng lộ ra": đây là
+   * luật của cả bàn, người chơi biết trước là bàn sẽ động, nên xáo cả thẻ chưa ai
+   * mở vẫn công bằng. Vẫn không đụng thẻ đang mở dở (thấy nội dung nhảy chỗ
+   * trước mắt là vô lý) và thẻ đã ghép.
+   */
+  private maybeShuffle(): GameEvent[] {
+    const nhip = this.shuffleEvery;
+    if (!nhip || this.finished) return [];
+    const lan = this.config.shuffleCount ?? 0;
+    if (this.shuffled >= lan) return [];
+    if (this.moves === 0 || this.moves % nhip !== 0) return [];
+
+    const duoc = this.cards
+      .filter((c) => !c.blank && !this.isMatched(c.index) && !this.selection.includes(c.index))
+      .map((c) => c.index);
+    if (duoc.length < 2) return [];
+
+    const [a, b] = this.rng.sample(duoc, 2) as [number, number];
+    this.swapCards(a, b);
+    this.shuffled++;
+    return [{ type: 'shuffle', affected: [a, b] }];
   }
 
   /** Chuyển lượt, bỏ qua người đang bị đóng băng (MP-02, thẻ freeze). */
@@ -354,19 +399,26 @@ export class MemoryGame {
         break;
       }
       case 'swap': {
-        // Chỉ tráo thẻ ĐÃ TỪNG LỘ RA mà chưa ghép được. Tráo hai thẻ chưa ai mở
-        // là vô nghĩa: người chơi không có ký ức nào về chúng để mà bị phá, nên
-        // chỉ còn cái animation cho vui. Cũng không đụng thẻ đang mở dở (thấy
-        // nội dung nhảy chỗ trước mắt là vô lý) và thẻ đã ghép.
-        const swappable = this.cards
+        /*
+         * ƯU TIÊN thẻ ĐÃ TỪNG LỘ RA — tráo thứ người chơi đang nhớ mới là cái
+         * làm nên thẻ này. Nhưng KHÔNG được đứng im khi chưa lộ thẻ nào: bốc
+         * trúng lá tráo ngay nước đầu (rất dễ xảy ra sau màn xem trước, lúc bàn
+         * vừa úp lại) thì người chơi bấm mà chẳng thấy gì xảy ra, và họ kết luận
+         * là nút hỏng. Không có thẻ nào đã lộ thì tráo cả thẻ chưa mở.
+         *
+         * Cả hai nhánh đều tránh thẻ đang mở dở (thấy nội dung nhảy chỗ trước
+         * mắt là vô lý) và thẻ đã ghép xong.
+         */
+        const conTrenBan = this.cards
           .filter((c) => !c.blank
-            && this.seen.has(c.index)
             && !this.isMatched(c.index)
             && !this.selection.includes(c.index))
           .map((c) => c.index);
+        const daLo = conTrenBan.filter((i) => this.seen.has(i));
+        const swappable = daLo.length >= 2 ? daLo : conTrenBan;
         if (swappable.length < 2) {
-          // Chưa có gì đáng tráo (đầu ván): ĐỂ DÀNH thẻ này cho lần sau thay vì
-          // tiêu nó vào một cú tráo không ai nhận ra.
+          // Cả bàn không còn nổi hai thẻ để tráo (cuối ván): ĐỂ DÀNH thẻ này cho
+          // lần sau thay vì tiêu nó vào một cú tráo không có gì để tráo.
           card.powerUsed = false;
           return [];
         }

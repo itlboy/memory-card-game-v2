@@ -62,6 +62,18 @@ afterEach(() => {
 });
 
 async function mountApp(): Promise<void> {
+  /*
+   * Mặc định của TEST là bàn trơn: chơi nhanh, TẮT thẻ đặc biệt.
+   *
+   * Vì sao tắt: rất nhiều test đọc trước danh sách thẻ rồi bấm theo chỉ số. Thẻ
+   * Tráo đổi làm hai thẻ đổi chỗ giữa chừng nên danh sách đó thành sai và ván
+   * không bao giờ kết thúc — đỏ thất thường theo seed. Test nào cần thẻ đặc
+   * biệt thì bật rõ ràng (xem `pickMode('Sinh tồn')`).
+   *
+   * Chỉ `pickMode('Chiến dịch')` mới đặt về null — không đặt lại ở đây thì test
+   * sau thừa hưởng nhánh của test trước.
+   */
+  luatDangCho = { 'Thẻ đặc biệt': 'Không' };
   wrapper = mount(App, { attachTo: document.body });
   await flush();
   await vi.advanceTimersByTimeAsync(10);
@@ -80,15 +92,51 @@ async function click(text: string): Promise<void> {
 }
 
 /** Đi tới bước theme của nhánh chơi đơn với chế độ cho trước. */
+/*
+ * KHÔNG CÒN BƯỚC CHỌN CHẾ ĐỘ. Bốn chế độ cũ giờ là các mức trong bảng tuỳ chọn
+ * ở cuối wizard, nên `pickMode('Sinh tồn')` chỉ GHI NHỚ luật cần bật, còn
+ * `start()` mới thật sự bấm chúng. Giữ nguyên chữ ký cũ để mọi test đang nói
+ * bằng tên chế độ vẫn đọc được — cái chúng kiểm là luật, không phải cái tên.
+ */
+const LUAT_CUA_CHE_DO: Record<string, Record<string, string>> = {
+  'Cổ điển':        { 'Thời gian': 'Vô hạn', 'Thẻ đặc biệt': 'Không' },
+  'Đua thời gian':  { 'Thời gian': 'Vừa', 'Thẻ đặc biệt': 'Không' },
+  'Sinh tồn':       { 'Thời gian': 'Vô hạn', 'Số mạng': 'Vừa', 'Thẻ đặc biệt': 'Vừa' },
+  'Chớp nhoáng':    { 'Xem trước': 'Vừa', 'Thẻ đặc biệt': 'Không' }
+};
+let luatDangCho: Record<string, string> | null = null;
+
 async function pickMode(name: string): Promise<void> {
-  await click('Chơi một mình');
-  await click(name);
+  if (name === 'Chiến dịch') { luatDangCho = null; await click('Chiến dịch'); return; }
+  luatDangCho = LUAT_CUA_CHE_DO[name] ?? {};
+  await click('Chơi nhanh');
 }
 
-/** Từ bước cấp độ: chọn cấp rồi Bắt đầu ở bước theme. Cấp 8 = 8 cặp = bàn 4×4. */
+/** Qua nốt bước theme rồi bảng tuỳ chọn. Chiến dịch không có bảng tuỳ chọn nên
+ *  bước theme của nó đã là nút "Bắt đầu cấp N" luôn. */
+async function xongTuyChon(): Promise<void> {
+  const tiep = wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
+  if (tiep) { await tiep.trigger('click'); await flush(); }
+  await click('Bắt đầu');
+}
+
+/** Bấm một mức trong bảng tuỳ chọn, tra theo TÊN HÀNG để không phụ thuộc thứ tự. */
+async function chonMuc(hang: string, muc: string): Promise<void> {
+  const row = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === hang);
+  if (!row) throw new Error(`Không thấy hàng tuỳ chọn "${hang}"`);
+  const btn = row.findAll('.seg-btn').find((b) => b.text() === muc);
+  if (!btn) throw new Error(`Hàng "${hang}" không có mức "${muc}"`);
+  await btn.trigger('click');
+  await flush();
+}
+
+/** Từ bước cấp độ: chọn cấp, qua theme, đặt luật rồi Bắt đầu. Cấp 8 = bàn 4×4. */
 async function start(level = 8): Promise<void> {
   await click(`Cấp ${level},`);
-  await click('Bắt đầu');
+  if (luatDangCho === null) { await click('Bắt đầu'); return; }   // Chiến dịch: vào thẳng
+  await click('Tiếp');                                            // xong bước theme
+  for (const [hang, muc] of Object.entries(luatDangCho)) await chonMuc(hang, muc);
+  await click('Bắt đầu cấp');
 }
 
 /** Ghép hết các cặp bằng cách đọc pairId từ engine. */
@@ -197,7 +245,7 @@ describe('luồng trọn ván', () => {
 
   it('bấm logo giữa ván cũng hỏi xác nhận; ở menu thì không hỏi', async () => {
     await mountApp();
-    await click('Chơi một mình');
+    await click('Chơi nhanh');
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false);   // menu: về thẳng
@@ -231,7 +279,10 @@ describe('luồng trọn ván', () => {
     await mountApp();
     await pickMode('Sinh tồn');
     await start();
-    expect(wrapper.text()).toContain('❤️ 5');
+    // 3 mạng chứ không phải 5: số mạng giờ neo theo cỡ bàn (bàn 16 thẻ, mức
+    // "Vừa" = sống sót 60% số ván), không còn là hằng số của một chế độ.
+    // Đọc qua aria-label vì HUD giờ vẽ icon gradient + số, không phải emoji.
+    expect(wrapper.find('[aria-label="Mạng còn lại"]').text()).toBe('3');
     // Chỉ dùng cặp KHÔNG mang thẻ đặc biệt: bấm nhầm lá mắt thần là cả bàn lật
     // lên, lượt dò không còn tính là lật sai — seed là ngẫu nhiên nên test sẽ
     // đỏ thất thường (đã đỏ thật một lần).
@@ -254,12 +305,12 @@ describe('luồng trọn ván', () => {
 
     // Lượt dò: cả hai thẻ đều chưa ai thấy → không mất mạng
     await missTurn(pairA[0]!, slotsB[0]!);
-    expect(wrapper.text()).toContain('❤️ 5');
+    expect(wrapper.find('[aria-label="Mạng còn lại"]').text(), 'lượt dò không được mất mạng').toBe('3');
 
     // Lượt sau: thẻ trùng của cả hai đã lộ ở lượt trước → mất mạng
     await missTurn(pairA[1]!, slotsB[1]!);
-    expect(wrapper.text()).toContain('❤️ 4');
-    expect(wrapper.text()).not.toContain('❤️ 5');
+    expect(wrapper.find('[aria-label="Mạng còn lại"]').text()).toBe('2');
+
   });
 
   it('Chớp nhoáng: thẻ hé mở lúc đầu và không bấm được, hết giờ nhìn thì úp lại', async () => {
@@ -382,7 +433,7 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     expect(wrapper.findAll('.card')).toHaveLength(16);
     expect(wrapper.findAll('.card.done')).toHaveLength(2);   // cặp đã ghép còn nguyên
     expect(wrapper.text()).toContain('1/8');
-    expect(wrapper.text()).toContain('90');                  // 100 - 10 điểm phạt
+    expect(wrapper.text()).toContain('100');   // không còn phạt −10 khi lật sai                  // 100 - 10 điểm phạt
     expect(wrapper.text()).toContain('Lượt2');
   });
 
@@ -415,7 +466,6 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await click('Chơi nhiều người');
     await click('2 người chơi');
     await click('Tiếp tục');        // bước điền tên — để trống, dùng "Người 1/2"
-    await click('Cổ điển');
     await start();
     await passCountdown();
   }
@@ -470,7 +520,6 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     await click('Chơi nhiều người');
     await click('2 người chơi');
     await click('Tiếp tục');        // bước điền tên
-    await click('Cổ điển');
     await start();
     expect(wrapper.find('.countdown').exists()).toBe(true);
     expect(wrapper.text()).toContain('đi trước!');
@@ -499,9 +548,8 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
 describe('F5 giữ bước wizard (?w= trên URL)', () => {
   it('đi tới bước cấp độ, F5 vẫn đứng ở bước cấp độ', async () => {
     await mountApp();
-    await click('Chơi một mình');
-    expect(location.search).toBe('?w=mode');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
+    expect(location.search).toBe('?w=level');
     expect(location.search).toBe('?w=level');
     wrapper.unmount();
     await mountApp();                                  // "F5"
@@ -512,8 +560,7 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
 
   it('logo về trang chủ thì URL sạch và về bước 1 — mất trạng thái là chủ đích', async () => {
     await mountApp();
-    await click('Chơi một mình');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
@@ -556,7 +603,7 @@ describe('Chớp nhoáng: báo trước rồi mới mở bài', () => {
     expect(wrapper.text()).toContain('Ghi nhớ vị trí');
     // Bàn 16 thẻ được hơn 6 giây nhìn (2s + 16×0,26s)
     const peekMs = session(wrapper).game.value!.config.peekMs!;
-    expect(peekMs).toBe(6160);
+    expect(peekMs).toBe(6000);
     expect(wrapper.find('.peek-clock').text()).toBe(`${Math.ceil(peekMs / 1000)}s`);
 
     // Đồng hồ chạy xuống chứ không đứng
@@ -813,14 +860,15 @@ describe('đấu với máy', () => {
   async function startVsBot(level: string): Promise<void> {
     await click('Đấu với máy');
     await click(level);
-    await click('Cổ điển');
     await start(4);   // 4 cặp — đủ ngắn để máy chơi xong trong test
   }
 
-  it('ô đấu máy nằm ở vị trí thứ hai của bước đầu', async () => {
+  it('ô đấu máy nằm ngay sau Chiến dịch và Chơi nhanh ở bước đầu', async () => {
     await mountApp();
     const tiles = wrapper.findAll('.step-body .option');
-    expect(tiles[1]!.text()).toContain('Đấu với máy');
+    expect(tiles[0]!.text()).toContain('Chiến dịch');
+    expect(tiles[1]!.text()).toContain('Chơi nhanh');
+    expect(tiles[2]!.text()).toContain('Đấu với máy');
   });
 
   it('ván đấu máy có đúng hai người: người chơi và máy', async () => {
@@ -897,9 +945,8 @@ describe('lượt của bot thì người chơi bị chặn', () => {
     await mountApp();
     await click('Đấu với máy');
     await click('Bot siêu đẳng');
-    await click('Cổ điển');
     await click('Cấp 8,');
-    await click('Bắt đầu');
+    await xongTuyChon();
     await passCountdown();
 
     // ĐẶT lượt về máy thay vì chơi cho tới lượt máy: nhờ vào nhịp đi của bot là
@@ -962,9 +1009,8 @@ describe('mở khoá cấp sau', () => {
     await mountApp();
     await click('Đấu với máy');
     await click('Bot Pro');
-    await click('Cổ điển');
     await click('Cấp 1,');
-    await click('Bắt đầu');
+    await xongTuyChon();
     await passCountdown();
     await muteBotOf(wrapper);
     // Bơm điểm cho bot để nó dẫn đầu lúc kết ván: mô phỏng đúng tình huống
@@ -993,10 +1039,9 @@ describe('mở khoá cấp sau', () => {
     await mountApp();
     await click('Đấu với máy');
     await click('Bot Pro');
-    await click('Cổ điển');
     expect(openNodes(), 'đấu bot thì mở sẵn hết cấp').toBeGreaterThan(1);
     await click('Cấp 1,');
-    await click('Bắt đầu');
+    await xongTuyChon();
     await passCountdown();
     await muteBotOf(wrapper);
     // Ép lượt về NGƯỜI trước khi ghép: ghép đúng thì giữ lượt, nên ai đang tới
@@ -1010,8 +1055,7 @@ describe('mở khoá cấp sau', () => {
     // đã chơi được cấp này)
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
     await flush();
-    await click('Chơi một mình');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
     expect(openNodes(), 'thắng cấp 1 với bot thì chơi đơn cũng mở cấp 2')
       .toBeGreaterThanOrEqual(2);
   });
@@ -1152,7 +1196,7 @@ describe('bố cục nút ở màn kết quả', () => {
     await mountApp();
     await pickMode('Đua thời gian');
     await click('Cấp 1,');
-    await click('Bắt đầu');
+    await xongTuyChon();
     // Hết giờ mà chưa ghép xong → thua
     await vi.advanceTimersByTimeAsync(120_000);
     await flush();
@@ -1195,16 +1239,14 @@ describe('màn đếm ngược cân giữa màn hình', () => {
 });
 
 describe('không ô nào bị dính viền "đang chọn"', () => {
-  it('bước chế độ: chọn lần trước KHÔNG làm ô sáng viền lúc vừa vào', async () => {
-    // Chơi Đua thời gian một lần để nó được nhớ vào prefs
+  it('bước bấm-là-đi: lựa chọn lần trước KHÔNG làm ô sáng viền lúc vừa vào', async () => {
+    // Đi một vòng để lựa chọn được nhớ vào prefs
     await mountApp();
-    await click('Chơi một mình');
-    await click('Đua thời gian');
+    await click('Chơi nhanh');
     await flush();
-    // Về trang chủ rồi vào lại bước chế độ
+    // Về trang chủ rồi vào lại bước đầu
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
     await flush();
-    await click('Chơi một mình');
     for (const tile of wrapper.findAll('.step-body .option')) {
       expect(tile.attributes('aria-pressed'), `ô "${tile.text().slice(0, 14)}" không được mang aria-pressed`)
         .toBeUndefined();
@@ -1286,7 +1328,6 @@ describe('chỉ CHƠI MỘT MÌNH mới khoá cấp', () => {
     await click('Chơi nhiều người');
     await click('2 người chơi');
     await click('Tiếp tục');
-    await click('Cổ điển');
     expect(openNodes(), 'mọi cấp phải mở').toBe(allNodes());
   });
 
@@ -1295,7 +1336,6 @@ describe('chỉ CHƠI MỘT MÌNH mới khoá cấp', () => {
     await mountApp();
     await click('Đấu với máy');
     await click('Bot Pro');
-    await click('Cổ điển');
     expect(openNodes()).toBe(allNodes());
   });
 });
@@ -1337,6 +1377,37 @@ describe('phiên bản ở cuối bảng Luật chơi', () => {
  * Test đọc nguồn vì đây là luật CSS + thứ tự nhịp Vue: dựng lại cảnh này trong
  * jsdom thì không có layout, không có transition, không đo được góc nào.
  */
+/*
+ * Trong một dãy CHỌN-MỘT, mục đang chọn luôn phải trông như đang chọn — kể cả
+ * mức tắt ("Vô hạn" / "Không"), vốn là nút ĐẦU TIÊN của mọi hàng.
+ *
+ * Lỗi đã bị phản ánh thật: mức tắt trước đây chỉ đổi viền cho "đỡ ồn", nên khi
+ * bàn để mặc định thì bốn hàng đầu đều trông như CHƯA CHỌN GÌ — người chơi
+ * không đọc ra được là mình đang tắt hay là nút bị hỏng.
+ */
+describe('bảng tuỳ chọn: hàng nào cũng có đúng một nút đang chọn', () => {
+  it('kể cả khi mức đang chọn là mức tắt (nút đầu hàng)', async () => {
+    await mountApp();
+    await click('Chơi nhanh');
+    await click('Cấp 1,');
+    await click('Tiếp');
+    // Đưa MỌI hàng về mức tắt — đây là cảnh dễ trông thành "không chọn gì nhất"
+    for (const hang of ['Thời gian', 'Số mạng', 'Xem trước', 'Xáo thẻ', 'Thẻ đặc biệt']) {
+      const row = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === hang)!;
+      const tat = row.findAll('.seg-btn')[0]!;          // nút đầu = mức tắt
+      await tat.trigger('click');
+      await flush();
+      const sang = row.findAll('.seg-btn').filter((b) => b.attributes('aria-pressed') === 'true');
+      expect(sang, `hàng "${hang}" phải có ĐÚNG MỘT nút đang chọn`).toHaveLength(1);
+      expect(sang[0]!.text(), `hàng "${hang}": nút đang chọn phải là nút vừa bấm`).toBe(tat.text());
+    }
+    // Và không nút nào mang class riêng làm nó nhạt đi so với các mức khác
+    const src = readFileSync(resolve(process.cwd(), 'src/components/MenuScreen.vue'), 'utf8');
+    expect(src, 'mức tắt không được có luật CSS riêng làm nó trông như chưa chọn')
+      .not.toMatch(/\.seg-btn\.zero\[aria-pressed/);
+  });
+});
+
 describe('lật thẻ online không được nhảy góc', () => {
   const src = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
 

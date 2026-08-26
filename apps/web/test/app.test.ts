@@ -62,19 +62,42 @@ const unlockTo = (n: number): void => {
 };
 
 /** Đi hết wizard chơi đơn: Một mình → chế độ → cấp → Bắt đầu. Cấp 8 = 4×4. */
-const start = async (mode = 'Cổ điển', level = 8): Promise<void> => {
-  await click('Chơi một mình');
-  await click(mode);
-  await click(`Cấp ${level},`);
+/**
+ * Qua nốt bước theme rồi bảng tuỳ chọn (chỉ chơi nhanh mới có bảng đó), và TẮT
+ * thẻ đặc biệt.
+ *
+ * Vì sao tắt: các test dưới đây đọc trước bàn thẻ rồi bấm theo chỉ số. Bấm trúng
+ * lá Tráo đổi thì hai thẻ đổi chỗ và chỉ số thành sai, bấm trúng Mắt thần thì cả
+ * bàn bật lên — mà thẻ đặc biệt rải theo seed ngẫu nhiên nên test đỏ THẤT
+ * THƯỜNG (đã đỏ thật 2/4 lần chạy). Chọn dữ liệu không có yếu tố ngẫu nhiên đó,
+ * không phải chạy lại cho tới lúc xanh.
+ */
+const xongTuyChon = async (): Promise<void> => {
+  const tiep = wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
+  if (tiep) {
+    await tiep.trigger('click');
+    await flush();
+    const hang = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === 'Thẻ đặc biệt');
+    const tat = hang?.findAll('.seg-btn').find((b) => b.text() === 'Không');
+    if (tat) { await tat.trigger('click'); await flush(); }
+  }
   await click('Bắt đầu');
 };
 
+/** Đi hết wizard chơi nhanh: Chơi nhanh → cấp → theme → tuỳ chọn → Bắt đầu. */
+const start = async (_mode = '', level = 8): Promise<void> => {
+  await click('Chơi nhanh');
+  await click(`Cấp ${level},`);
+  await xongTuyChon();
+};
+
 describe('App', () => {
-  it('bước 1 của wizard chỉ hỏi một câu: chơi một mình hay nhiều người', async () => {
+  it('bước 1 là nơi chọn LỐI ĐI: chiến dịch, chơi nhanh, đấu máy, nhiều người, online', async () => {
     wrapper = mount(App);
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
-    expect(wrapper.text()).toContain('Chơi một mình');
+    expect(wrapper.text()).toContain('Chơi nhanh');
+    expect(wrapper.text()).toContain('Chiến dịch');
     expect(wrapper.text()).toContain('Chơi nhiều người');
     // Chưa hiện cấp/theme ở bước đầu — tránh rối
     expect(wrapper.text()).not.toContain('Chọn cấp độ');
@@ -84,9 +107,8 @@ describe('App', () => {
   it('theme nạp từ JSON hiện ở bước chọn bàn', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
+    await click('Chơi nhanh');
     expect(wrapper.text()).not.toContain('Động vật');
-    await click('Cổ điển');
     expect(wrapper.text()).toContain('Chọn cấp độ');       // cấp đứng trước theme
     await click('Cấp 8,');
     expect(wrapper.text()).toContain('Chọn theme thẻ');
@@ -96,8 +118,8 @@ describe('App', () => {
   it('nút quay lại đưa về bước trước', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
-    expect(wrapper.text()).toContain('Chọn chế độ');
+    await click('Chơi nhanh');
+    expect(wrapper.text()).toContain('Chọn cấp độ');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
@@ -106,8 +128,7 @@ describe('App', () => {
   it('theme chưa mở khoá thì bị vô hiệu hoá', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
     await click('Cấp 8,');
     const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
@@ -156,7 +177,7 @@ describe('App', () => {
     localStorage.clear();          // xoá tiến độ mở sẵn của beforeEach
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
+    // Chiến dịch giờ là lối đi RIÊNG ngay ở màn đầu, không nằm sau "chơi một mình"
     await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
@@ -175,14 +196,10 @@ describe('App', () => {
     expect(wrapper.findAll('.name-row input')).toHaveLength(2);
     await click('Tiếp tục');
     // Nhiều người có mọi chế độ trừ Chiến dịch
-    expect(wrapper.text()).toContain('Cổ điển');
-    expect(wrapper.text()).toContain('Sinh tồn');
-    expect(wrapper.text()).toContain('Đua thời gian');
-    expect(wrapper.text()).toContain('Chớp nhoáng');
+
     expect(wrapper.text()).not.toContain('Chiến dịch');
-    await click('Cổ điển');
     await click('Cấp 1,');         // cấp mặc định mở sẵn
-    await click('Bắt đầu');
+    await xongTuyChon();
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
   });
@@ -206,8 +223,7 @@ describe('multi-theme', () => {
   it('chọn thêm theme thứ hai — cả hai cùng được đánh dấu', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
     await click('Cấp 8,');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
@@ -253,8 +269,7 @@ describe('bước chọn cấp độ', () => {
   it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 42 thẻ', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.text()).toContain('4 thẻ');
@@ -271,8 +286,7 @@ describe('bước chọn cấp độ', () => {
   it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 42 thẻ chỉ đòi 21 biểu tượng', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi một mình');
-    await click('Cổ điển');
+    await click('Chơi nhanh');
     expect(wrapper.findAll('.node.nosym')).toHaveLength(0);
     expect(wrapper.text()).not.toContain('cần thêm theme');
   });

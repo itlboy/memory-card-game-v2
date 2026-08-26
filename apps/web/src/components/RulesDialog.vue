@@ -2,6 +2,8 @@
 import { CAMPAIGN_LEVELS } from '@mm/engine';
 import { X } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
+import OptionIcon from './OptionIcon.vue';
+import type { IconName } from './OptionIcon.vue';
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -39,20 +41,27 @@ onUnmounted(() => clearInterval(tick));
 const closeBtn = ref<HTMLButtonElement | null>(null);
 onMounted(() => closeBtn.value?.focus());
 
-/** Luật viết theo giọng của game: nói với "bạn", mỗi dòng một điều, không sáo. */
-const MODES = [
-  { icon: '🗺️', name: 'Chiến dịch', text: `${CAMPAIGN_LEVELS} màn từ dễ đến khó. Qua màn mới mở màn sau, điểm cộng dồn vào tổng.` },
-  { icon: '🧠', name: 'Cổ điển', text: 'Không giới hạn thời gian. Lật sai bị trừ 10 điểm.' },
-  { icon: '⏱️', name: 'Đua thời gian', text: 'Có đồng hồ đếm ngược. Mỗi lần ghép đúng được cộng 2 giây, xong sớm thì thưởng thêm điểm.' },
-  { icon: '❤️', name: 'Sinh tồn', text: '5 mạng. Chỉ mất mạng khi thẻ vừa mở đã từng lộ ra — lật hai thẻ mới toanh là dò bài, không bị trừ. Dưới 2 mạng mà ghép đúng hai lần liền thì hồi 1 mạng.' },
-  { icon: '👁️', name: 'Chớp nhoáng', text: 'Đếm ngược 3 giây rồi cả bàn hé mở — bàn càng nhiều thẻ càng được nhìn lâu (bàn lớn nhất 42 thẻ được 13 giây). Nhớ được bao nhiêu thì ghép bấy nhiêu.' }
+/*
+ * Luật viết theo giọng của game: nói với "bạn", mỗi dòng một điều, không sáo.
+ *
+ * KHÔNG CÒN MỤC "CÁC CHẾ ĐỘ". Bốn chế độ cũ đã tan thành năm tuỳ chọn bàn chơi,
+ * nên mục này phải kể đúng thứ người chơi thấy trong màn cài đặt — icon dùng
+ * CHUNG một bộ với màn đó, để đọc luật xong nhận ra ngay hàng nào là hàng nào
+ * (quy tắc ở CLAUDE.md: đổi thể thức chơi thì phải cập nhật hướng dẫn).
+ */
+const OPTIONS: readonly { icon: IconName; name: string; text: string }[] = [
+  { icon: 'time', name: 'Thời gian', text: 'Đồng hồ đếm ngược cho cả ván. Ghép đúng được cộng 2 giây, xong sớm thì thưởng thêm điểm. Tắt thì chơi thong thả bao lâu cũng được.' },
+  { icon: 'lives', name: 'Số mạng', text: 'Chỉ mất mạng khi thẻ vừa mở ĐÃ TỪNG lộ ra — lật hai thẻ mới toanh là dò bài, không bị trừ. Sắp hết mạng mà ghép đúng hai lần liền thì hồi 1 mạng. Bàn càng lớn càng cho nhiều mạng.' },
+  { icon: 'peek', name: 'Xem trước', text: 'Đầu ván cả bàn hé mở cho bạn nhìn, có đồng hồ đếm ngược. Bàn càng nhiều thẻ càng được nhìn lâu.' },
+  { icon: 'shuffle', name: 'Xáo thẻ', text: 'Thỉnh thoảng hai thẻ chưa ghép đổi chỗ cho nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
+  { icon: 'special', name: 'Thẻ đặc biệt', text: 'Rải thêm thẻ có phép vào bàn (xem ngay bên dưới).' }
 ];
 
-const POWERS = [
-  { icon: '🔀', name: 'Tráo đổi', text: 'Hai thẻ BẠN ĐÃ TỪNG MỞ mà chưa ghép được sẽ đổi chỗ nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
-  { icon: '✖️', name: 'Nhân đôi', text: 'Cặp tiếp theo được nhân đôi điểm.' },
-  { icon: '👁️', name: 'Mắt thần', text: 'Hé mở cả bàn trong 5 giây.' },
-  { icon: '❄️', name: 'Đóng băng', text: 'Đối thủ mất một lượt (chỉ khi chơi nhiều người).' }
+const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
+  { icon: 'swap', name: 'Tráo đổi', text: 'Hai thẻ BẠN ĐÃ TỪNG MỞ mà chưa ghép được sẽ đổi chỗ nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
+  { icon: 'x2', name: 'Nhân đôi', text: 'Cặp tiếp theo được nhân đôi điểm.' },
+  { icon: 'eye', name: 'Mắt thần', text: 'Hé mở cả bàn trong 5 giây.' },
+  { icon: 'freeze', name: 'Đóng băng', text: 'Đối thủ mất một lượt (chỉ khi chơi nhiều người).' }
 ];
 </script>
 
@@ -78,23 +87,34 @@ const POWERS = [
         <ul class="plain">
           <li><b>100 điểm</b> mỗi cặp đúng.</li>
           <li>Ghép đúng liên tiếp được nhân thêm: <b>x1,2 · x1,5 · x2</b>.</li>
-          <li>Chiến dịch xếp <b>1–3 sao</b> theo điểm đạt được.</li>
+          <li>Lật sai <b>không bị trừ điểm</b> — nhưng mất chuỗi nhân điểm đang có.</li>
           <li>Điểm mọi ván cộng vào <b>tổng tích luỹ</b> — đủ điểm thì mở thêm theme.</li>
         </ul>
 
-        <h3>Các chế độ</h3>
+        <h3>Tuỳ chọn bàn chơi</h3>
         <ul class="items">
-          <li v-for="m in MODES" :key="m.name">
-            <span class="ico" aria-hidden="true">{{ m.icon }}</span>
-            <span><b>{{ m.name }}</b> — {{ m.text }}</span>
+          <li v-for="o in OPTIONS" :key="o.name">
+            <OptionIcon :name="o.icon" :size="22" />
+            <span><b>{{ o.name }}</b> — {{ o.text }}</span>
           </li>
         </ul>
 
         <h3>Thẻ đặc biệt</h3>
         <ul class="items">
           <li v-for="p in POWERS" :key="p.name">
-            <span class="ico" aria-hidden="true">{{ p.icon }}</span>
+            <OptionIcon :name="p.icon" :size="22" />
             <span><b>{{ p.name }}</b> — {{ p.text }}</span>
+          </li>
+        </ul>
+
+        <h3>Chiến dịch</h3>
+        <ul class="items">
+          <li>
+            <OptionIcon name="campaign" :size="22" />
+            <span>
+              <b>{{ CAMPAIGN_LEVELS }} màn</b> từ dễ đến khó, luật cố định sẵn từng màn nên
+              không có bảng tuỳ chọn. Qua màn mới mở màn sau, xếp 1–3 sao theo điểm.
+            </span>
           </li>
         </ul>
 
@@ -157,6 +177,8 @@ const POWERS = [
 .plain, .items { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
 .plain li { font-size: var(--text-md); line-height: 1.45; padding-left: 14px; position: relative; }
 .plain li::before { content: '·'; position: absolute; left: 3px; color: var(--accent); font-weight: 800; }
-.items li { display: flex; gap: 9px; font-size: var(--text-md); line-height: 1.45; }
-.ico { flex-shrink: 0; font-size: 19px; line-height: 1.3; }
+/* align-items: flex-start + nhích 2px: icon là ô vuông 22px, canh giữa theo
+   dòng đầu thì nó trôi xuống giữa đoạn khi chữ dài hai ba dòng. */
+.items li { display: flex; gap: 9px; align-items: flex-start; font-size: var(--text-md); line-height: 1.45; }
+.items :deep(.opt-ico) { margin-top: 2px; }
 </style>

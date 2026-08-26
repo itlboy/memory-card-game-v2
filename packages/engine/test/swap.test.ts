@@ -52,13 +52,46 @@ describe('thẻ tráo đổi (swap)', () => {
     expect(before.filter((v, i) => v !== after[i]).length).toBe(2);
   });
 
-  it('chưa thẻ nào lộ ra thì KHÔNG tráo, và để dành thẻ cho lần sau', () => {
+  /*
+   * Lỗi đã bị phản ánh thật: bốc trúng lá tráo ngay nước ĐẦU (rất dễ xảy ra
+   * ngay sau màn xem trước, lúc bàn vừa úp lại) thì trước đây thẻ đứng im —
+   * người chơi bấm mà chẳng thấy gì và kết luận là nút hỏng. Giờ chưa lộ thẻ
+   * nào thì tráo cả thẻ chưa mở, miễn là CÓ chuyện xảy ra.
+   */
+  it('chưa thẻ nào lộ ra thì vẫn tráo — bấm phải thấy có gì đó xảy ra', () => {
     const g = gameWithSwapAt(0);
     const before = snapshotOf(g.cards);
     const events = g.flip(0, 100);
-    expect(events.find((e) => e.type === 'power')).toBeUndefined();
-    expect(snapshotOf(g.cards)).toEqual(before);      // bàn y nguyên
-    expect(g.cards[0]!.powerUsed).toBe(false);        // chưa tiêu, còn dùng được
+    const ev = events.find((e) => e.type === 'power');
+    expect(ev, 'phải phát ra sự kiện power').toBeDefined();
+    expect(snapshotOf(g.cards), 'bàn phải thật sự đổi').not.toEqual(before);
+    expect(g.cards[0]!.powerUsed, 'thẻ đã tiêu').toBe(true);
+  });
+
+  it('nhưng ƯU TIÊN thẻ đã lộ: có đủ hai thẻ đã lộ thì chỉ tráo trong số đó', () => {
+    const g = gameWithSwapAt(15);
+    revealTwo(g);
+    const daLo = [...g.cards].filter((c) => !c.blank).map((c) => c.index)
+      .filter((i) => (g as unknown as { seen: Set<number> }).seen.has(i));
+    const ev = g.flip(15, 100).find((e) => e.type === 'power');
+    for (const i of (ev as { affected: number[] }).affected) {
+      expect(daLo, `ô ${i} bị tráo dù chưa từng lộ, trong khi có thẻ đã lộ`).toContain(i);
+    }
+  });
+
+  it('cuối ván không còn nổi hai thẻ để tráo thì ĐỂ DÀNH thẻ, không tiêu phí', () => {
+    const g = gameWithSwapAt(0);
+    // Ghép sạch mọi cặp trừ cặp chứa ô 0 → bàn chỉ còn 2 ô, mà một trong hai
+    // đang là ô vừa bấm nên không còn đủ hai ô hợp lệ để tráo
+    const conLai = g.cards.filter((c) => !c.blank && c.index !== 0);
+    for (const c of conLai) {
+      if (c.pairId === g.cards[0]!.pairId) continue;
+      (g as unknown as { matched: Set<number> }).matched.add(c.pairId);
+    }
+    const before = snapshotOf(g.cards);
+    g.flip(0, 100);
+    expect(snapshotOf(g.cards)).toEqual(before);
+    expect(g.cards[0]!.powerUsed, 'chưa tiêu, còn dùng được lần sau').toBe(false);
   });
 
   it('index luôn khớp vị trí sau khi tráo — mọi luật tra theo index', () => {

@@ -1,8 +1,22 @@
-import { CAMPAIGN_LEVELS } from '@mm/engine';
-import type { Mode } from '@mm/engine';
+import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, sanitizeOptions } from '@mm/engine';
+import type { BoardOptions, Mode } from '@mm/engine';
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
 export type SoundLevel = 'off' | 'low' | 'high';
+
+/**
+ * Người chơi cũ mở game lên phải thấy đúng kiểu bàn mình quen, dù bốn chế độ đã
+ * tan thành tuỳ chọn. Chỉ chạy MỘT LẦN: sau đó `options` có trong bản lưu và
+ * nhánh này không đụng tới nữa.
+ */
+function optionsFromOldMode(mode: Mode | undefined): Partial<BoardOptions> {
+  switch (mode) {
+    case 'time':     return { time: 2 };
+    case 'survival': return { time: 0, lives: 2, special: 2 };
+    case 'peek':     return { time: 2, peek: 2 };
+    default:         return {};
+  }
+}
 
 export interface Prefs {
   dark: boolean;
@@ -15,6 +29,9 @@ export interface Prefs {
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
   themes: string[];
   playerCount: number;
+  /** Tuỳ chọn bàn chơi (năm công tắc 0..3) — nhớ giữa các ván để người chơi
+   *  không phải đặt lại luật mỗi lần vào. */
+  options: BoardOptions;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -48,7 +65,8 @@ const DEFAULT_PREFS: Prefs = {
   // Đặt sẵn ['animals'] thì người mới chỉ có một theme và không nhận ra là
   // chọn được nhiều.
   dark: false, sound: true, soundLevel: 'high',
-  mode: 'classic', level: 1, themes: [], playerCount: 1
+  mode: 'classic', level: 1, themes: [], playerCount: 1,
+  options: DEFAULT_OPTIONS
 };
 
 function read(): Save {
@@ -73,6 +91,10 @@ export const store = {
     // Bản cũ lưu cỡ bàn ('4x4'); đổi sang số màn có cùng số cặp để người chơi
     // quay lại không bị đẩy về bàn 2×2
     if (!saved.level) merged.level = levelFromOldGrid((saved as { grid?: string }).grid);
+    // Bản lưu cũ không có `options`, và bản lưu tay có thể hỏng: lọc về khoảng
+    // hợp lệ thay vì tin. Bản cũ từng chơi Sinh tồn/Chớp nhoáng thì tuỳ chọn
+    // tương ứng bật sẵn, để họ mở game lên vẫn thấy đúng kiểu mình quen.
+    merged.options = sanitizeOptions(saved.options ?? optionsFromOldMode(saved.mode));
     return merged;
   },
 

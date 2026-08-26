@@ -31,8 +31,9 @@ const code = await mkRoom();
 const a = await mk(code, 'An');
 const b = await mk(code, 'Binh');
 await sleep(500);
-// Cấp 2 = bàn nhỏ để peekMs ngắn, test không phải chờ lâu
-a.send({ t: 'config', config: { mode: 'peek', level: 2 } });
+// Cấp 2 = bàn nhỏ để thời gian hé ngắn, test không phải chờ lâu.
+// KHÔNG còn `mode`: luật phòng giờ là năm tuỳ chọn (xem engine/options.ts).
+a.send({ t: 'config', config: { level: 2, options: { time: 0, lives: 0, peek: 2, shuffle: 0, special: 0 } } });
 await sleep(300);
 b.send({ t: 'ready', ready: true });
 await sleep(300);

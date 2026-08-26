@@ -461,6 +461,18 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   **15,5 giây**, tới khi một alarm khác tình cờ nổ. `GameView.peekLeft` chở số
   giây còn lại (client không giữ engine, không tự tính được), client đổi thành
   mốc rồi tự đếm cho mượt. `pnpm smoke:peek` canh cả hai.
+- **KHÔNG CÒN "CHẾ ĐỘ"** — bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine
+  (`presetConfig` mỗi cái đúng một dòng), nay là năm tuỳ chọn bàn chơi trong
+  `packages/engine/src/options.ts`. `mode` chỉ còn là khoá lưu kỷ lục. Hai chỗ
+  từng âm thầm hỏng khi đổi: thành tích `survivor`/`blind-seer` xét theo tên chế
+  độ nên thành BẤT KHẢ THI (giờ xét theo `config.lives`/`config.peekMs`), và bảng
+  Luật chơi vẫn kể năm chế độ không còn tồn tại. Đổi thể thức chơi thì phải rà
+  lại cả hai — không có test nào tự đỏ.
+- **SỐ MẠNG NEO THEO BẢNG ĐO, không chia số thẻ cho hằng số.** Cho bot mức
+  "thường" chơi 120 ván mỗi cỡ bàn: số lần lật sai đáng trách tăng theo BÌNH
+  PHƯƠNG số thẻ (12 thẻ trượt 2 lần, 42 thẻ trượt 40). Chia `thẻ/2·/4·/8` thì
+  bàn nhỏ mức nào cũng không chết nổi còn bàn lớn mức nào cũng chết chắc. Bảng
+  neo cho 90%·60%·30% số ván sống sót; đo lại khi đổi luật mất mạng hoặc đổi bot.
 - **LẬT THẺ ONLINE GIẬT** — animation với góc TUYỆT ĐỐI chiếm quyền giữa lúc
   transition đang chạy. Ở online lá dừng ở 90° chờ server; khi câu trả lời về thì
   `pending` tắt và `faceUp` bật TRONG CÙNG MỘT NHỊP, `flip-up` (0% = rotateY(0))

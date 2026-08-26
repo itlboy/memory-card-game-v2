@@ -53,16 +53,22 @@ describe('Classic (SP-01)', () => {
     expect(g.summary()!.bestStreak).toBe(8);
   });
 
-  it('lật sai bị trừ 10 điểm và reset combo', () => {
+  /*
+   * Lật sai KHÔNG còn trừ điểm. Trước đây chỉ chế độ Cổ điển trừ 10, và đó là
+   * chỗ cuối cùng trong engine đọc `config.mode`; bỏ chế độ thì bỏ luôn phạt.
+   * Cái giá của lật sai giờ nằm ở chỗ khác: mất combo, mất thời gian, và mất
+   * mạng nếu bàn có bật tuỳ chọn mạng.
+   */
+  it('lật sai KHÔNG trừ điểm, nhưng reset combo', () => {
     const g = makeGame();
     matchPair(g, 0);                 // +100, streak 1
     matchPair(g, 1);                 // +120, streak 2
     expect(g.players[0]!.score).toBe(220);
-    missPair(g, 2, 3);               // -10, streak về 0
-    expect(g.players[0]!.score).toBe(210);
+    missPair(g, 2, 3);               // điểm giữ nguyên, streak về 0
+    expect(g.players[0]!.score, 'không còn phạt điểm').toBe(220);
     expect(g.players[0]!.streak).toBe(0);
     matchPair(g, 2);                 // combo khởi động lại từ x1
-    expect(g.players[0]!.score).toBe(310);
+    expect(g.players[0]!.score).toBe(320);
     expect(g.summary()).toBeNull();
   });
 

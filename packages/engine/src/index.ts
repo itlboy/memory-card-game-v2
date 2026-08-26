@@ -15,16 +15,21 @@ export {
   levelSpec, pairsForLevel, perfectScore
 } from './campaign.js';
 export { peekMsFor, presetConfig } from './presets.js';
+export {
+  DEFAULT_OPTIONS, OPTION_KEYS, OPTION_LABELS, clampOpt, configFromOptions,
+  livesFor, optionSummary, peekSecondsFor, sanitizeOptions, shuffleCountFor, specialPairsFor
+} from './options.js';
+export type { BoardOptions, OptLevel, OptionKey } from './options.js';
 export type { Chapter, Level } from './campaign.js';
 export type { PresetInput } from './presets.js';
 export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary
 } from './types.js';
 export {
-  CARD_BACKS, DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS, ROOM_MODES,
+  CARD_BACKS, DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS,
   backForSeed, publicEvents, publicPlayer, publicView
 } from './online.js';
 export type {
   CardBack, ClientMsg, GameView, PublicCard, PublicEvent, PublicPlayer, QuickEmoji,
-  RoomConfig, RoomInfo, RoomMode, ServerMsg
+  RoomConfig, RoomInfo, ServerMsg
 } from './online.js';
