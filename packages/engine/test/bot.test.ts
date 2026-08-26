@@ -367,8 +367,10 @@ describe('mỗi mức chỉ một con số', () => {
     expect(specFrom(-5, 'x', 'x').halfLife).toBe(1);
   });
 
-  it('bốn mức đang dùng nửa đời 3 · 6 · 9 · 12', () => {
+  /* Siêu đẳng cách Pro tới 8 nước là CÓ CHỦ ĐÍCH: đường tỉ lệ thắng bão hoà ở
+   * quãng 12→15, đặt 15 thì hai mức cao nhất bằng nhau ở bàn nhỏ và vừa. */
+  it('bốn mức đang dùng nửa đời 3 · 6 · 12 · 20', () => {
     expect([BOT_HALF_LIFE.easy, BOT_HALF_LIFE.normal, BOT_HALF_LIFE.hard, BOT_HALF_LIFE.insane])
-      .toEqual([3, 6, 9, 12]);
+      .toEqual([3, 6, 12, 20]);
   });
 });

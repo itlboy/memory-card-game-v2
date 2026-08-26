@@ -54,12 +54,18 @@ export interface BotSpec {
  * tuyến tính theo trí nhớ, có một ngưỡng ở quãng nửa đời 8→13 nước (chỗ ký ức
  * bắt đầu sống sót qua một lượt quét hết bàn 42 thẻ) — dưới ngưỡng bot thắng
  * ~43%, trên ngưỡng vọt lên ~68%.
+ *
+ * SIÊU ĐẲNG LÀ 20, KHÔNG PHẢI 15: đo được nửa đời 15 cho 55/53/75 (bàn 12/24/42
+ * thẻ) trong khi Pro ở nửa đời 12 cho 55/53/70 — hai mức cao nhất BẰNG NHAU ở
+ * bàn nhỏ và vừa, chỉ chênh 5 điểm ở bàn lớn, tức người chơi không phân biệt
+ * được. Đường tỉ lệ thắng bão hoà ở quãng 12→15 rồi mới dựng lại từ 18. Nới lên
+ * 20 thì ra 57/63/88, tách rõ ở cả ba cỡ bàn.
  */
 export const BOT_HALF_LIFE: Record<BotLevel, number> = {
   easy: 3,
   normal: 6,
-  hard: 9,
-  insane: 12
+  hard: 12,
+  insane: 20
 };
 
 /** Dựng tham số đầy đủ từ MỘT con số. */

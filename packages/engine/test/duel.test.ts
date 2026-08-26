@@ -13,8 +13,8 @@ import type { BotLevel } from '../src/bot.js';
  * Đối thủ mô phỏng có hai hạng: KHÁ (ghi 80% những gì thấy, nửa đời ~9,5 nước)
  * và GIỎI (ghi 95%, nửa đời ~69 nước).
  *
- * Bộ số hiện tại (nửa đời 3 · 6 · 9 · 12) đo trước KHÁ trên bàn 6×7, n = 24:
- * 4% → 25% → 58% → 75%. Ngưỡng dưới đây đặt có biên, nhưng seed là CỐ ĐỊNH nên
+ * Bộ số hiện tại (nửa đời 3 · 6 · 12 · 20) đo trước KHÁ trên bàn 6×7, n = 24:
+ * 4% → 25% → 75% → 83%. Ngưỡng dưới đây đặt có biên, nhưng seed là CỐ ĐỊNH nên
  * con số không dao động giữa các lần chạy — đổi `BOT_HALF_LIFE` thì đo lại.
  */
 const LEVELS: BotLevel[] = ['easy', 'normal', 'hard', 'insane'];
@@ -39,7 +39,9 @@ describe('cân bằng trận 1v1 (thước đo thật của bot)', () => {
     expect(vsKha('insane', 6, 7)).toBeGreaterThan(70);
   });
 
-  it('Bot Pro là đối thủ ngang ngửa, không phải bao thắng', () => {
+  /* Pro nay ở nửa đời 12 nên nó THẮNG NHIỀU HƠN người khá (75%), không còn
+   * "ngang ngửa" — nhưng vẫn phải có cửa thua, nếu không thì mức trên vô nghĩa. */
+  it('Bot Pro mạnh nhưng KHÔNG bao thắng', () => {
     const r = vsKha('hard', 6, 7);
     expect(r).toBeGreaterThan(45);
     expect(r).toBeLessThan(90);
