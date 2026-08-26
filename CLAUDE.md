@@ -98,6 +98,12 @@
 - Đổi độ khó bot: nửa đời ký ức ↔ `retain` là hàm số mũ
   (`retain = 0,5 ** (1 / nửa đời)`), và luôn đo lại số lần lật để dọn bàn — số
   nhìn có vẻ giãn đều vẫn có thể ra hai mức gần như bằng nhau.
+- **Đổi thể thức chơi thì PHẢI cập nhật hướng dẫn.** Luật chơi được kể lại ở
+  `RulesDialog.vue` (và tóm tắt ở ô chọn trong `OnlineScreen.vue`, dòng cấu hình
+  phòng chờ, thẻ chia sẻ og). Thêm/bỏ/đổi một luật mà quên chỗ này là người chơi
+  đọc thấy một thứ không còn tồn tại — mà không có test nào đỏ. Rà bằng cách tìm
+  thẳng tên luật trong toàn bộ mã nguồn, đừng đi theo trí nhớ. Icon trong hướng
+  dẫn dùng CÙNG bộ với icon của luật đó trong màn chơi, để đọc xong nhận ra ngay.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).
