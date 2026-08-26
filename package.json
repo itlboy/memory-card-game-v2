@@ -22,7 +22,8 @@
     "smoke:leave": "node tools/smoke-leave-cancel.mjs",
     "smoke:timer": "node tools/smoke-timer-spectator.mjs",
     "smoke:audit": "node tools/smoke-audit.mjs",
-    "smoke:peek": "node tools/smoke-peek.mjs"
+    "smoke:peek": "node tools/smoke-peek.mjs",
+    "smoke:options": "node tools/smoke-options.mjs"
   },
   "packageManager": "pnpm@10.0.0"
 }

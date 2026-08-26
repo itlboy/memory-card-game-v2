@@ -26,10 +26,10 @@ export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary
 } from './types.js';
 export {
-  CARD_BACKS, DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS, ROOM_MODES,
+  CARD_BACKS, DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS,
   backForSeed, publicEvents, publicPlayer, publicView
 } from './online.js';
 export type {
   CardBack, ClientMsg, GameView, PublicCard, PublicEvent, PublicPlayer, QuickEmoji,
-  RoomConfig, RoomInfo, RoomMode, ServerMsg
+  RoomConfig, RoomInfo, ServerMsg
 } from './online.js';

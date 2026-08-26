@@ -3,29 +3,37 @@
  * và client. Nguyên tắc NF-04: client KHÔNG BAO GIỜ nhận biểu tượng của thẻ
  * đang úp; server chỉ gửi những gì đã lộ trên bàn.
  */
-import type { GameEvent, Mode, Player, Summary } from './types.js';
+import { DEFAULT_OPTIONS } from './options.js';
+import type { BoardOptions } from './options.js';
+import type { GameEvent, Player, Summary } from './types.js';
 import type { MemoryGame } from './game.js';
 
 /* ---------- cấu hình phòng (ON-03) ---------- */
 
 export interface RoomConfig {
-  /** Mọi chế độ trừ Chiến dịch — xem ROOM_MODES bên dưới. */
-  mode: Exclude<Mode, 'campaign'>;
   /** Cấp độ (1..CAMPAIGN_LEVELS) — quyết định cỡ bàn, giống hệt chơi đơn. */
   level: number;
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
   themeIds: string[];
+  /**
+   * Tuỳ chọn bàn chơi (năm công tắc 0..3) — thay cho `mode` cũ.
+   *
+   * Client KHÔNG đáng tin (ON-09): server phải cho cả bộ này qua
+   * `sanitizeOptions` trước khi dùng, không thì một client sửa tay gửi lên
+   * `lives: 999` hay `peek: 99` là dựng ra ván không ai chơi nổi.
+   */
+  options: BoardOptions;
 }
 
-/** Chế độ dùng được trong phòng nhiều người: mọi thứ trừ Chiến dịch — chiến
- *  dịch là chuỗi màn của riêng một người và dựng bàn qua levelConfig(). */
-export const ROOM_MODES = ['classic', 'time', 'survival', 'peek'] as const;
-export type RoomMode = (typeof ROOM_MODES)[number];
+/** Chiến dịch KHÔNG mở được trong phòng: nó là chuỗi màn của riêng một người,
+ *  mở khoá dần theo tiến độ cá nhân. Phòng luôn là một ván lẻ. */
 
 /** themeIds rỗng = server tự dùng TẤT CẢ theme nó có. Ghi cứng một theme thì
  *  phòng tạo nhanh (chưa qua wizard) chỉ có một bộ biểu tượng. */
 // Cấp 8 = 8 cặp = bàn 4×4, cỡ bàn quen thuộc cho phòng tạo nhanh
-export const DEFAULT_ROOM_CONFIG: RoomConfig = { mode: 'classic', level: 8, themeIds: [] };
+export const DEFAULT_ROOM_CONFIG: RoomConfig = {
+  level: 8, themeIds: [], options: DEFAULT_OPTIONS
+};
 
 export const ROOM_LIMITS = {
   maxPlayers: 4,

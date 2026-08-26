@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, levelSpec } from '@mm/engine';
+import {
+  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary
+} from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Settings2, Share2, Sparkles, Timer
 } from 'lucide-vue-next';
@@ -9,7 +11,9 @@ import LevelMap from './LevelMap.vue';
 import OnlineGame from './OnlineGame.vue';
 import EmojiBar from './EmojiBar.vue';
 import EmojiBlast from './EmojiBlast.vue';
-import type { RoomConfig } from '@mm/engine';
+import type { OptLevel, OptionKey, RoomConfig } from '@mm/engine';
+import OptionIcon from './OptionIcon.vue';
+import type { IconName } from './OptionIcon.vue';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { store } from '@/lib/storage';
 import { sfx } from '@/lib/audio';
@@ -64,7 +68,7 @@ function remember(): void { store.savePlayerNames([name.value.trim()]); }
 function create(): void {
   if (!name.value.trim()) return;
   sfx.select();
-  wizard.value = 'mode';   // đi qua các bước chọn bàn như chơi một mình
+  wizard.value = 'level';   // đi qua các bước chọn bàn như chơi một mình
 }
 const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
 
@@ -179,14 +183,20 @@ const startLabel = computed(() => {
   return 'Bắt đầu';
 });
 
-// Màu neon từng chế độ — đồng bộ với wizard offline (hướng thiết kế C)
-// Đủ mọi chế độ trừ Chiến dịch. Màu giữ đúng quy ước dùng xuyên suốt game.
-const MODES = [
-  { id: 'classic' as const, icon: Brain, g: 'g-blue', name: 'Cổ điển', desc: 'Lật sai −10 điểm, thong thả' },
-  { id: 'time' as const, icon: Timer, g: 'g-amber', name: 'Đua thời gian', desc: 'Cả phòng đua chung đồng hồ, ghép đúng được +2 giây' },
-  { id: 'survival' as const, icon: Heart, g: 'g-red', name: 'Sinh tồn', desc: '5 mạng — quên thẻ đã mở là mất mạng, ghép 2 lần liền thì hồi' },
-  { id: 'peek' as const, icon: Eye, g: 'g-teal', name: 'Chớp nhoáng', desc: 'Cả phòng nhìn 4 giây rồi bàn úp lại' }
+/** Năm hàng tuỳ chọn — giống hệt wizard chơi đơn, để hai chỗ đọc ra là một. */
+const OPTION_ROWS: readonly { key: OptionKey; icon: IconName; name: string }[] = [
+  { key: 'time',    icon: 'time',    name: 'Thời gian' },
+  { key: 'lives',   icon: 'lives',   name: 'Số mạng' },
+  { key: 'peek',    icon: 'peek',    name: 'Xem trước' },
+  { key: 'shuffle', icon: 'shuffle', name: 'Xáo thẻ' },
+  { key: 'special', icon: 'special', name: 'Thẻ đặc biệt' }
 ];
+
+function setWizOption(key: OptionKey, muc: OptLevel): void {
+  if (cfg.value.options[key] === muc) return;
+  sfx.select();
+  cfg.value = { ...cfg.value, options: { ...cfg.value.options, [key]: muc } };
+}
 
 /** Danh sách theme đầy đủ (tên + biểu tượng mẫu) từ data/themes.json. */
 const allThemes = ref<CardTheme[]>([]);
@@ -197,11 +207,20 @@ void loadThemes().then((list) => {
   if (!cfg.value.themeIds.length) cfg.value = { ...cfg.value, themeIds: list.map((t) => t.id) };
 });
 const themeName = (id: string): string => allThemes.value.find((t) => t.id === id)?.name ?? id;
-/** Nhãn chế độ của phòng. Hard-code hai nhánh thì thêm chế độ là hiện sai tên. */
-const MODE_LABEL: Record<string, string> = {
-  classic: '🧠 Cổ điển', time: '⏱️ Đua thời gian', survival: '❤️ Sinh tồn', peek: '👁️ Chớp nhoáng'
+/**
+ * Luật của phòng KHÔNG còn là một cái tên, nên phòng chờ nói ra bằng chip — và
+ * chỉ hiện thứ ĐANG BẬT. Bàn không tuỳ chọn gì thì dòng này rỗng, đúng như nó
+ * nên vậy: không có luật lạ nào để đọc.
+ */
+const OPTION_ICONS: Record<OptionKey, IconName> = {
+  time: 'time', lives: 'lives', peek: 'peek', shuffle: 'shuffle', special: 'special'
 };
-const modeLabel = (m?: string): string => MODE_LABEL[m ?? 'classic'] ?? '🧠 Cổ điển';
+function optionChips(c?: RoomConfig): { key: OptionKey; icon: IconName; text: string }[] {
+  if (!c) return [];
+  return OPTION_KEYS
+    .map((k) => ({ key: k, icon: OPTION_ICONS[k], text: optionSummary(k, c.options[k], c.level) ?? '' }))
+    .filter((x) => x.text !== '');
+}
 /** Liệt kê hết 12 tên theme thì dòng cấu hình dài mấy dòng và vỡ bố cục. */
 function themeSummary(ids: string[]): string {
   if (ids.length >= allThemes.value.length && allThemes.value.length) return `tất cả ${ids.length} theme`;
@@ -211,11 +230,11 @@ function themeSummary(ids: string[]): string {
 
 /** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
 // Cùng thứ tự với wizard chơi đơn: chế độ → cấp độ → theme.
-const wizard = ref<null | 'mode' | 'level' | 'theme'>(null);
+const wizard = ref<null | 'level' | 'theme' | 'options'>(null);
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
-const WIZ_STEPS = ['mode', 'level', 'theme'] as const;
-const WIZ_TITLES = { mode: 'Chọn chế độ', level: 'Chọn cấp độ', theme: 'Chọn theme thẻ' } as const;
+const WIZ_STEPS = ['level', 'theme', 'options'] as const;
+const WIZ_TITLES = { level: 'Chọn cấp độ', theme: 'Chọn theme thẻ', options: 'Bàn chơi' } as const;
 
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
@@ -237,7 +256,7 @@ function flashThemeWarn(): void {
 
 function wizBack(): void {
   if (wizard.value === 'theme') { wizard.value = 'level'; return; }
-  if (wizard.value === 'level') { wizard.value = 'mode'; return; }
+  if (wizard.value === 'options') { wizard.value = 'theme'; return; }
   wizard.value = null;   // về nhập tên (tạo mới) hoặc lobby (đang chỉnh)
 }
 
@@ -288,8 +307,8 @@ watch(o.phase, (ph) => {
 
 function openCfgWizard(): void {
   const c = o.room.value?.config;
-  if (c) cfg.value = { mode: c.mode, level: c.level, themeIds: [...c.themeIds] };
-  wizard.value = 'mode';
+  if (c) cfg.value = { level: c.level, themeIds: [...c.themeIds], options: { ...c.options } };
+  wizard.value = 'level';
 }
 </script>
 
@@ -307,29 +326,19 @@ function openCfgWizard(): void {
       </span>
     </div>
 
-    <div v-if="wizard === 'mode'" class="step-body options loose">
-      <button
-        v-for="m in MODES" :key="m.id" class="option wide neon" :class="m.g" type="button"
-        @click="sfx.select(); cfg = { ...cfg, mode: m.id }; wizard = 'level'"
-      >
-        <component :is="m.icon" class="opt-icon" :size="26" />
-        <span class="text"><strong>{{ m.name }}</strong><small>{{ m.desc }}</small></span>
-      </button>
-    </div>
-
-    <div v-else-if="wizard === 'level'" class="step-body">
+    <div v-if="wizard === 'level'" class="step-body">
       <!-- MỞ SẴN HẾT cấp độ: thang cấp chỉ có nghĩa khi chơi một mình. Hai người
            trong phòng thì mỗi máy mở tới một cấp khác nhau, khoá lại thành ra
            tranh cãi chọn bàn nào. -->
       <LevelMap
-        :progress="store.progress(cfg.mode)"
+        :progress="store.progress('classic')"
         :unlocked="CAMPAIGN_LEVELS"
         :symbol-count="allSymbols"
         @play="wizPickLevel"
       />
     </div>
 
-    <div v-else class="step-body">
+    <div v-else-if="wizard === 'theme'" class="step-body">
       <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
       <div class="options wiz-themes fill" role="group" aria-label="Theme thẻ">
         <button
@@ -354,7 +363,35 @@ function openCfgWizard(): void {
 
       <button
         class="btn-primary" type="button"
-        :disabled="wizTooSmall || o.phase.value === 'connecting'"
+        :disabled="wizTooSmall"
+        @click="wizard = 'options'"
+      >
+        Tiếp
+      </button>
+    </div>
+
+    <!-- BƯỚC CUỐI: tuỳ chọn bàn chơi, giống hệt wizard chơi đơn. Cả phòng chơi
+         chung một bàn nên đây là luật của tất cả mọi người. -->
+    <div v-else class="step-body opt-list">
+      <div v-for="row in OPTION_ROWS" :key="row.key" class="opt-row">
+        <div class="opt-head">
+          <OptionIcon :name="row.icon" :size="24" />
+          <span class="opt-name">{{ row.name }}</span>
+          <span class="opt-hint">{{ optionSummary(row.key, cfg.options[row.key], cfg.level) ?? 'tắt' }}</span>
+        </div>
+        <div class="seg" role="group" :aria-label="row.name">
+          <button
+            v-for="(nhan, muc) in OPTION_LABELS[row.key]" :key="nhan"
+            class="seg-btn" :class="{ zero: muc === 0 }" type="button"
+            :aria-pressed="cfg.options[row.key] === muc"
+            @click="setWizOption(row.key, muc as OptLevel)"
+          >{{ nhan }}</button>
+        </div>
+      </div>
+
+      <button
+        class="btn-primary" type="button"
+        :disabled="o.phase.value === 'connecting'"
         @click="wizFinish"
       >
         {{ editingInLobby ? 'Lưu bàn chơi' : o.phase.value === 'connecting' ? 'Đang tạo phòng…' : 'Tạo phòng' }}
@@ -483,11 +520,17 @@ function openCfgWizard(): void {
       <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
       <div class="cfg-summary">
         <span>
-          {{ modeLabel(o.room.value?.config.mode) }}
-          · cấp <b>{{ o.room.value?.config.level }}</b> ({{ cardCount }} thẻ)
+          Cấp <b>{{ o.room.value?.config.level }}</b> ({{ cardCount }} thẻ)
           · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         </span>
         <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> Chỉnh</button>
+      </div>
+      <!-- Chỉ hiện tuỳ chọn ĐANG BẬT: bàn trơn thì dòng này rỗng, và không có
+           gì để đọc là đúng — không có luật lạ nào. -->
+      <div v-if="optionChips(o.room.value?.config).length" class="cfg-chips">
+        <span v-for="c in optionChips(o.room.value?.config)" :key="c.key" class="cfg-chip">
+          <OptionIcon :name="c.icon" :size="17" />{{ c.text }}
+        </span>
       </div>
       <button
         class="btn-primary" type="button"
@@ -502,10 +545,14 @@ function openCfgWizard(): void {
       >
         {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
       </button>
+      <div v-if="optionChips(o.room.value?.config).length" class="cfg-chips">
+        <span v-for="c in optionChips(o.room.value?.config)" :key="c.key" class="cfg-chip">
+          <OptionIcon :name="c.icon" :size="17" />{{ c.text }}
+        </span>
+      </div>
       <p class="hint">
-        {{ modeLabel(o.room.value?.config.mode) }}
-        · cấp {{ o.room.value?.config.level }} ({{ cardCount }} thẻ)
-        · {{ o.room.value?.config.themeIds.map(themeName).join(', ') }}
+        Cấp {{ o.room.value?.config.level }} ({{ cardCount }} thẻ)
+        · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — chờ chủ phòng bắt đầu…
       </p>
     </template>
@@ -738,4 +785,57 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 
 /* ---- trong ván ---- */
+/* ── Bảng tuỳ chọn: giống hệt wizard chơi đơn (MenuScreen), cùng số đo ── */
+.opt-list { display: flex; flex-direction: column; gap: 7px; min-height: 0; overflow: hidden; }
+.opt-row {
+  flex: 0 0 auto; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-soft); padding: 6px 9px 7px;
+}
+.opt-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.opt-name { font-family: var(--font-display); font-weight: 800; font-size: var(--text-md); }
+.opt-hint {
+  margin-left: auto; font-size: var(--text-xs); color: var(--muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  max-width: 45%; overflow: hidden; text-overflow: ellipsis;
+}
+.seg { display: flex; gap: 4px; }
+.seg-btn {
+  flex: 1 1 0; min-width: 0; min-height: 30px; height: 30px; padding: 0 3px;
+  position: relative;
+  border: 1px solid var(--line); border-radius: var(--r-full);
+  background: var(--panel-solid); color: var(--muted);
+  font-family: var(--font-body); font-weight: 700; font-size: 11px;
+  letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Vùng chạm 46px trong khi nút cao 30px (NF-07) */
+.seg-btn::after { content: ''; position: absolute; inset: -8px; }
+.seg-btn[aria-pressed="true"] {
+  background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
+  border-color: transparent; color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 4px 14px var(--card-back-glow);
+}
+.seg-btn.zero[aria-pressed="true"] {
+  background: var(--panel-solid); color: var(--fg);
+  border-color: var(--line-strong); box-shadow: none;
+}
+@media (hover: hover) {
+  .seg-btn:not([aria-pressed="true"]):hover { border-color: var(--line-strong); color: var(--fg); }
+}
+
+/* Chip luật của phòng: chỉ hiện thứ đang bật.
+   align-items: center + flex: 0 0 auto là BẮT BUỘC: panel là flex column nên
+   mặc định con bị kéo giãn, và chip cao vọt lên 90px (đã chụp thấy). */
+.cfg-chips {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px;
+  align-items: center; align-content: flex-start; flex: 0 0 auto;
+}
+.cfg-chip {
+  display: inline-flex; align-items: center; align-self: flex-start; gap: 4px;
+  flex: 0 0 auto; line-height: 1.5;
+  font-size: var(--text-xs); font-weight: 800; padding: 3px 9px 3px 4px;
+  border-radius: var(--r-full); background: var(--accent-soft); color: var(--fg);
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.cfg-chip :deep(.opt-ico) { border-radius: 5px; }
+
 </style>

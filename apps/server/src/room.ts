@@ -1,10 +1,10 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, ROOM_MODES,
-  presetConfig, publicEvents, publicPlayer, publicView, seedFrom
+  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
+  publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
-  ClientMsg, GameEvent, QuickEmoji, RoomConfig, RoomInfo, RoomMode, ServerMsg
+  ClientMsg, GameEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { THEME_SYMBOLS } from './themes.js';
 
@@ -298,7 +298,13 @@ export class RoomDO extends DurableObject<Env> {
         // Mọi chế độ trừ Chiến dịch — chiến dịch là chuỗi cấp của riêng một
         // người. Chỉ sửa ở client thì server âm thầm bỏ qua cấu hình và phòng
         // vẫn chạy chế độ cũ.
-        if (ROOM_MODES.includes(c.mode as RoomMode)) this.room.config.mode = c.mode as RoomMode;
+        /*
+         * Tuỳ chọn bàn chơi: LỌC TỪNG CỜ, không tin cái client gửi lên (ON-09).
+         * `sanitizeOptions` kéo mọi mức về khoảng 0..3, nên một client sửa tay
+         * gửi `lives: 999` hay `peek: 99` cũng chỉ ra bàn hợp lệ. Đây là chỗ
+         * DUY NHẤT cấu hình phòng đi vào server.
+         */
+        if (c.options) this.room.config.options = sanitizeOptions(c.options);
         if (Array.isArray(c.themeIds)) {
           const valid = [...new Set(c.themeIds)]
             .filter((id): id is string => typeof id === 'string' && Object.hasOwn(THEME_SYMBOLS, id));
@@ -674,8 +680,10 @@ export class RoomDO extends DurableObject<Env> {
     if (!symbols.length) symbols.push(...new Set(Object.values(THEME_SYMBOLS).flat()));
     // Seed sinh tại server — client không bao giờ biết trước bàn thẻ (NF-04)
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]!);
-    this.game = new MemoryGame(presetConfig({
-      mode: room.config.mode,
+    // Lọc lại lần nữa ngay trước khi dựng ván: bản lưu trong storage có thể là
+    // của bản cũ (chưa có `options`) hoặc đã bị sửa ở đâu đó.
+    this.game = new MemoryGame(configFromOptions({
+      options: sanitizeOptions(room.config.options),
       level: room.config.level,
       symbols,
       seed,
