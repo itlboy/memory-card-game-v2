@@ -6,6 +6,9 @@ import {
 import { levelSpec, CAMPAIGN_LEVELS } from '../src/campaign.js';
 import { MemoryGame } from '../src/game.js';
 import { SYMBOLS, matchPair, pairSlots } from './helpers.js';
+import { publicView } from '../src/online.js';
+import { botPick, createBotMemory, observe } from '../src/bot.js';
+import { Rng } from '../src/rng.js';
 import type { GameEvent } from '../src/types.js';
 
 /** Lật sai một lượt và TRẢ VỀ sự kiện — helpers.missPair trả void nên không
@@ -200,6 +203,54 @@ describe('xáo thẻ', () => {
       expect(a).toHaveLength(2);
       expect(a[0]).not.toBe(a[1]);
     }
+  });
+
+  /*
+   * SỐ LẦN XÁO THẬT PHẢI KHỚP SỐ ĐÃ HỨA. Lỗi đã bị phản ánh: người chơi bật tuỳ
+   * chọn lên và thấy nó "không hoạt động". Hai nguyên nhân cộng lại:
+   *
+   *  1. `maybeShuffle` chỉ được gọi trong `resolvePending()`, vốn chỉ chạy khi
+   *     LẬT SAI — nên mọi mốc rơi vào một nước ghép đúng là mất luôn;
+   *  2. mốc xét bằng `moves % nhịp`, đòi rơi CHÍNH XÁC vào một nước có xét, trượt
+   *     một nước là mất mốc đó.
+   *
+   * Đo trước khi vá: bàn 12 thẻ hứa 3 lần mà thật 1,6; bàn 24 thẻ hứa 5 mà thật
+   * 3,5. Sau khi vá: khớp chính xác từ bàn 16 thẻ trở lên.
+   */
+  it('xáo ĐÚNG số lần đã hứa — chơi trọn ván bằng bot', () => {
+    for (const [level, muc] of [[15, 1], [15, 2], [15, 3], [21, 3], [38, 2]] as const) {
+      const cfg = configFromOptions({
+        options: { ...DEFAULT_OPTIONS, time: 0, special: 0, shuffle: muc },
+        level, symbols: SYMBOLS, seed: 4242
+      });
+      const hua = cfg.shuffleCount!;
+      const g = new MemoryGame({ ...cfg, players: [{ id: 'p', name: 'P' }], flipBackMs: 1 });
+      g.start(0);
+      const mem = createBotMemory();
+      const rng = new Rng(99);
+      let t = 0, xao = 0, i = 0;
+      while (!g.finished && i++ < 4000) {
+        t += 50;
+        g.tick(t);
+        const v = publicView(g, t, () => true);
+        observe(mem, v, 'normal');
+        if (g.locked) continue;
+        const pick = botPick(v, mem, rng, 'normal');
+        if (pick === null) break;
+        for (const e of g.flip(pick, t)) if (e.type === 'shuffle') xao++;
+        for (const e of g.tick(t + 5)) if (e.type === 'shuffle') xao++;
+      }
+      expect(xao, `cấp ${level} mức ${muc}: hứa ${hua} lần`).toBe(hua);
+    }
+  });
+
+  it('bàn quá nhỏ thì ván ngắn hơn cả một nhịp xáo — có chủ đích, không phải lỗi', () => {
+    // Bàn 4 thẻ hết đúng 2–3 lượt, mà nhịp tối thiểu là 2 lượt và lần xáo cuối
+    // không chạy sau khi ván kết thúc. Xáo trên bàn 2 cặp cũng chẳng có nghĩa gì.
+    const cfg = configFromOptions({
+      options: { ...DEFAULT_OPTIONS, shuffle: 3 }, level: 1, symbols: SYMBOLS, seed: 1
+    });
+    expect(cfg.shuffleCount).toBe(1);
   });
 
   it('tất định: cùng seed thì bàn sau khi xáo giống hệt nhau', () => {
