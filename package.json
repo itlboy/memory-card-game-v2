@@ -23,7 +23,11 @@
     "smoke:timer": "node tools/smoke-timer-spectator.mjs",
     "smoke:audit": "node tools/smoke-audit.mjs",
     "smoke:peek": "node tools/smoke-peek.mjs",
-    "smoke:options": "node tools/smoke-options.mjs"
+    "smoke:options": "node tools/smoke-options.mjs",
+    "node:build": "pnpm --filter @mm/node-server build",
+    "node:dev": "pnpm build && pnpm --filter @mm/node-server build && cd apps/node-server && WEB_DIR=../../apps/web/dist node dist/server.mjs",
+    "docker:build": "docker build -f apps/node-server/Dockerfile -t lat-the-server .",
+    "docker:run": "docker run --rm -p 8080:8080 lat-the-server"
   },
   "packageManager": "pnpm@10.0.0"
 }

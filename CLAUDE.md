@@ -82,6 +82,11 @@
   web), `pnpm smoke:online` và các script `tools/smoke-*.mjs` là E2E thật
   qua wrangler dev (cần server đang chạy); đặt `MM_SERVER=<url>` để soi chính
   worker đã deploy.
+- **Server dự phòng (Node)**: `pnpm node:dev` chạy ở cổng 8080, `pnpm
+  docker:build` đóng ảnh. GitHub Action `.github/workflows/docker.yml` chạy test
+  + bộ smoke THẲNG vào server Node rồi mới đẩy ảnh lên GHCR (amd64 + arm64, vì
+  VPS ở Việt Nam hay là ARM). Deploy Cloudflare vẫn là `pnpm release` chạy tay —
+  Action không đụng tới.
 - **Deploy: `pnpm release`** — web và phòng online nằm trong MỘT Worker
   (`apps/server/wrangler.jsonc` có khối `assets`), nên chỉ một lệnh, không còn
   chuyện web mới chạy với server cũ. `pnpm deploy:server` chỉ deploy worker mà
@@ -118,6 +123,22 @@
 - Hai mức cạnh nhau phải cách nhau ĐỦ RỘNG: đường tỉ lệ thắng bão hoà ở quãng
   nửa đời 12→15 rồi mới dựng lại từ 18, nên 12 và 15 ra hai mức gần như bằng
   nhau (bàn nhỏ và vừa bằng hệt nhau). Thang đang dùng: 3 · 6 · 12 · 20.
+- **HAI CHỖ CHẠY SERVER, MỘT BỘ LUẬT.** `apps/server` (Cloudflare Worker + Durable
+  Object) và `apps/node-server` (Node, dự phòng — đặt được ở Hà Nội khi CF lag).
+  Luật phòng dùng CHUNG `apps/server/src/room.ts`: node-server nạp thẳng lớp
+  `RoomDO` và chỉ thay tầng dưới bằng `cf-shim.ts`. **Đừng bao giờ tạo bản luật
+  thứ hai cho Node** — hai bản sẽ lệch nhau ở đúng những chỗ đã tốn hàng loạt sự
+  cố để tìm ra (mất mạng im lặng, bàn treo, chia link, kiểm biên tuỳ chọn).
+
+  Nhưng TẦNG HTTP thì có hai bản, nên **đổi/thêm endpoint là phải sửa CẢ HAI**:
+  `apps/server/src/index.ts` và `apps/node-server/src/index.ts` (route
+  `/api/rooms`, `/api/rooms/:code`, `/ws/:code`, sinh mã phòng, CORS, thứ tự
+  API-trước-SPA-fallback). Có test canh hai bên khớp nhau. Sửa `themes.ts` cũng
+  vậy — bản Node dùng chung file của apps/server.
+
+  Đổi bất cứ gì trong room.ts thì chạy bộ smoke với CẢ HAI: `pnpm dev:server` rồi
+  `MM_SERVER=http://127.0.0.1:8787 …`, và `pnpm node:dev` rồi
+  `MM_SERVER=http://127.0.0.1:8080 …`.
 - **Đổi thể thức chơi thì PHẢI cập nhật hướng dẫn.** Luật chơi được kể lại ở
   `RulesDialog.vue` (và tóm tắt ở ô chọn trong `OnlineScreen.vue`, dòng cấu hình
   phòng chờ, thẻ chia sẻ og). Thêm/bỏ/đổi một luật mà quên chỗ này là người chơi

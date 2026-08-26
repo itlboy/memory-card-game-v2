@@ -8,6 +8,28 @@ importers:
 
   .: {}
 
+  apps/node-server:
+    dependencies:
+      '@mm/engine':
+        specifier: workspace:*
+        version: link:../../packages/engine
+      ws:
+        specifier: ^8.18.0
+        version: 8.21.3
+    devDependencies:
+      '@types/node':
+        specifier: ^26.2.0
+        version: 26.2.0
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
+      esbuild:
+        specifier: ^0.21.5
+        version: 0.21.5
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   apps/server:
     dependencies:
       '@mm/engine':
