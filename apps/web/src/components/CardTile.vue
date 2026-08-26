@@ -2,6 +2,8 @@
 import type { Card } from '@mm/engine';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealStep } from '@/lib/timing';
+import OptionIcon from './OptionIcon.vue';
+import type { IconName } from './OptionIcon.vue';
 
 const props = defineProps<{
   card: Card;
@@ -26,7 +28,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{ flip: [index: number] }>();
 
-const POWER_ICON: Record<string, string> = { bomb: '💥', swap: '🔀', x2: '✖️', eye: '👁️', freeze: '❄️' };
+/**
+ * Huy hiệu thẻ đặc biệt trên MẶT TRƯỚC lá bài. Dùng CÙNG bộ icon với bảng Luật
+ * chơi và màn tuỳ chọn — emoji mỗi hệ điều hành vẽ một kiểu, và người chơi đọc
+ * luật xong phải nhận ra ngay đúng cái vừa đọc khi nó hiện trên bàn.
+ * `bomb` không nằm trong bộ thẻ đang phát (SOLO_POWERS), giữ emoji làm đường lui.
+ */
+const POWER_ICON: Record<string, IconName> = { swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 /** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
 const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));
@@ -193,7 +201,10 @@ const label = computed(() => {
       <span class="face back" :class="`bk-${back}`" aria-hidden="true"></span>
       <span class="face front" aria-hidden="true">
         {{ card.symbol }}
-        <span v-if="card.power && !card.powerUsed" class="badge">{{ POWER_ICON[card.power] }}</span>
+        <span v-if="card.power && !card.powerUsed" class="badge">
+          <OptionIcon v-if="POWER_ICON[card.power]" :name="POWER_ICON[card.power]!" :size="14" />
+          <template v-else>💥</template>
+        </span>
       </span>
     </span>
   </button>
@@ -415,6 +426,12 @@ const label = computed(() => {
 .badge {
   position: absolute; top: 2px; right: 3px; font-size: 11px; line-height: 1;
   animation: twinkle 1.6s ease-in-out infinite;
+}
+/* Icon gradient thay emoji: bo góc nhỏ hơn ô icon thường (14px mà bo 8px thì
+   thành gần tròn), và có viền sáng để nổi trên mọi màu mặt thẻ. */
+.badge :deep(.opt-ico) {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1.5px var(--card-face), 0 1px 3px rgba(0, 0, 0, .35);
 }
 @keyframes twinkle { 50% { transform: scale(1.25); opacity: .8; } }
 

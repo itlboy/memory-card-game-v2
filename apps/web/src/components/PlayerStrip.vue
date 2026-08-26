@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Player } from '@mm/engine';
+import OptionIcon from './OptionIcon.vue';
 import { Timer } from 'lucide-vue-next';
 
 defineProps<{
@@ -41,9 +42,18 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
         🏅{{ seriesWins?.[p.name] }}
       </span>
       <span class="pts" :data-pts-for="p.id">{{ p.score }}</span>
-      <small v-if="Number.isFinite(p.lives)" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
-      <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng">❄️</span>
-      <span v-else-if="p.doubleNext" class="tag" title="Cặp tới nhân đôi điểm">✖️2</span>
+      <!--
+        Vẽ TỪNG trái tim chỉ tới 5 mạng; hơn thì hiện số. Số mạng giờ neo theo cỡ
+        bàn nên bàn 42 thẻ có tới 56 mạng — 56 trái tim thì tràn cả dải và chẳng
+        ai đếm.
+      -->
+      <small v-if="Number.isFinite(p.lives)" class="lives">
+        <template v-if="p.lives <= 0">💔</template>
+        <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
+        <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
+      </small>
+      <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng"><OptionIcon name="freeze" :size="14" /></span>
+      <span v-else-if="p.doubleNext" class="tag" title="Cặp tới nhân đôi điểm"><OptionIcon name="x2" :size="14" /></span>
       <span v-if="p.id === currentId" class="sr-only">Đang chơi</span>
     </li>
   </ul>
@@ -104,8 +114,16 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 .plus-leave-active { transition: opacity .3s; }
 .plus-leave-to { opacity: 0; }
 .player.active .pts { color: var(--accent); }
-.lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
-.tag { font-size: 11px; }
+.lives {
+  font-size: 10px; letter-spacing: -2px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 2px;
+}
+/* Số mạng đi kèm icon: bỏ letter-spacing âm (dành cho chuỗi trái tim), không thì
+   số dính vào icon. */
+.lives :deep(.opt-ico) { border-radius: 4px; }
+.lives:has(.opt-ico) { letter-spacing: 0; font-size: 11px; font-weight: 800; }
+.tag { font-size: 11px; display: inline-flex; align-items: center; }
+.tag :deep(.opt-ico) { border-radius: 4px; }
 .sr-only {
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap;

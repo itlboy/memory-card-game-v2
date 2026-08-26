@@ -5,6 +5,8 @@ import { useBoardFit } from '@/composables/useBoardFit';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import PlayerStrip from './PlayerStrip.vue';
+import OptionIcon from './OptionIcon.vue';
+import type { IconName } from './OptionIcon.vue';
 import type { useGameSession } from '@/composables/useGameSession';
 
 const props = defineProps<{
@@ -20,13 +22,16 @@ const board = ref<InstanceType<typeof BoardGrid> | null>(null);
 onMounted(() => board.value?.focusFirst());
 
 const s = props.session;
+/* Chữ và icon TÁCH RIÊNG: icon là <OptionIcon> (cùng bộ với Luật chơi và màn
+ * tuỳ chọn), không phải emoji nhét trong chuỗi. */
 const POWER_TEXT: Record<string, string> = {
-  bomb: '💥 Thẻ bom! Hai cặp đã mở bị úp lại.',
-  swap: '🔀 Tráo đổi! Hai thẻ vừa đổi chỗ nhau.',
-  x2: '✖️ Cặp tiếp theo được nhân đôi điểm!',
-  eye: '👁️ Mắt thần — cả bàn hé mở 5 giây!',
-  freeze: '❄️ Đóng băng — đối thủ mất một lượt!'
+  bomb: 'Thẻ bom! Hai cặp đã mở bị úp lại.',
+  swap: 'Tráo đổi! Hai thẻ vừa đổi chỗ nhau.',
+  x2: 'Cặp tiếp theo được nhân đôi điểm!',
+  eye: 'Mắt thần — cả bàn hé mở 5 giây!',
+  freeze: 'Đóng băng — đối thủ mất một lượt!'
 };
+const POWER_ICON: Record<string, IconName> = { swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 const soloScore = computed(() => s.players.value[0]?.score ?? 0);
 
@@ -157,13 +162,14 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
         <p v-if="s.revealingAll.value" class="toast peek" :class="{ raised: raised('toast') }" role="status">
           <!-- Chữ ngắn để thông báo gọn MỘT dòng: hai dòng thì nó che thêm một
                hàng thẻ, mà đây đúng là lúc người chơi cần nhìn cả bàn. -->
-          👀 Ghi nhớ vị trí!
+          <OptionIcon name="peek" :size="20" /> Ghi nhớ vị trí!
           <b v-if="s.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(s.peekLeft.value) }}s</b>
         </p>
         <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" :class="{ raised: raised('toast') }" role="status">
-          ❤️ Hồi 1 mạng — ghép đúng hai lần liền!
+          <OptionIcon name="lives" :size="20" /> Hồi 1 mạng — ghép đúng hai lần liền!
         </p>
         <p v-else-if="s.lastPower.value" :key="s.lastPower.value.index" class="toast" :class="{ raised: raised('toast') }" role="status">
+          <OptionIcon v-if="POWER_ICON[s.lastPower.value.power]" :name="POWER_ICON[s.lastPower.value.power]!" :size="20" />
           {{ POWER_TEXT[s.lastPower.value.power] }}
         </p>
       </Transition>
@@ -177,7 +183,9 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
           role="status"
           aria-live="polite"
         >
-          <small v-if="s.turnBanner.value.frozen">❄️ {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
+          <small v-if="s.turnBanner.value.frozen" class="ico-line">
+            <OptionIcon name="freeze" :size="15" /> {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt
+          </small>
           <span class="who">
             <span class="avatar">{{ s.turnBanner.value.avatar || '🎮' }}</span>
             Đến lượt <b>{{ s.turnBanner.value.name }}</b>
@@ -222,7 +230,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
            trước khi cả bàn bật lên (Chớp nhoáng) -->
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
-        <span v-if="isPeek" class="first">👀 Sắp mở cả bàn — <b>chuẩn bị ghi nhớ!</b></span>
+        <span v-if="isPeek" class="first"><OptionIcon name="peek" :size="18" /> Sắp mở cả bàn — <b>chuẩn bị ghi nhớ!</b></span>
         <span v-else class="first">🎲 <b>{{ s.current.value?.name }}</b> đi trước!</span>
       </div>
 
@@ -290,7 +298,10 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
   animation: cd-pop .9s cubic-bezier(.2, 1.4, .4, 1);
 }
 @keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
+/* Icon + chữ trên MỘT dòng: dải này nằm giữa bàn nên hai dòng là che thêm một
+   hàng thẻ, đúng lúc người chơi đang cần nhìn cả bàn. */
 .countdown .first {
+  display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: nowrap;
   font-size: clamp(16px, 4.5vw, 22px); padding: 6px 18px; border-radius: var(--r-full);
   background: var(--panel); border: 2px solid var(--accent); box-shadow: var(--shadow);
 }
@@ -338,6 +349,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
   pointer-events: none;
 }
 .toast.peek { border-color: color-mix(in srgb, var(--warn) 65%, var(--line)); }
+/* Icon trong thông báo: canh giữa theo dòng chữ, không đẩy dải cao thêm */
+.toast, .ico-line { display: flex; align-items: center; justify-content: center; gap: 7px; }
 /* Đồng hồ đếm giây còn lại của lúc hé mở — cùng dòng với thông báo, không đẩy
    bố cục; số cố định bề rộng để 3s→2s không làm dòng chữ nhảy qua nhảy lại. */
 .peek-clock {

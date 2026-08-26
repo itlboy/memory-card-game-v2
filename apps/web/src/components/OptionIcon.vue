@@ -33,5 +33,12 @@ const props = withDefaults(defineProps<{ name: IconName; size?: number }>(), { s
 </template>
 
 <style scoped>
-.opt-ico { display: block; flex: 0 0 auto; border-radius: 8px; }
+/* inline-block chứ KHÔNG phải block: icon hay nằm GIỮA một dòng chữ ("Sắp mở cả
+   bàn — chuẩn bị ghi nhớ!"), mà block thì nó tự chiếm trọn một dòng và đẩy chữ
+   xuống dòng thứ hai — đã thấy thật ở thông báo đếm ngược trước ván.
+   vertical-align: middle để nó ngồi giữa dòng chữ thay vì tụt xuống đường cơ sở. */
+.opt-ico {
+  display: inline-block; vertical-align: middle;
+  flex: 0 0 auto; border-radius: 8px;
+}
 </style>

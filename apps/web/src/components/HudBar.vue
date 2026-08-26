@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { X } from 'lucide-vue-next';
+import OptionIcon from './OptionIcon.vue';
 import { computed } from 'vue';
 import { clock, num } from '@/lib/format';
 
@@ -40,13 +41,16 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
     <div v-if="!multiplayer" class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
     <div class="stat"><span>Cặp</span><b>{{ matched }}/{{ totalPairs }}</b></div>
     <div class="stat" :class="{ urgent }"><span>{{ timeLabel }}</span><b>{{ timeText }}</b></div>
-    <!-- Combo và Mạng KHÔNG cần nhãn: "x2" và "❤️ 5" tự nói ra nó là gì, mà
+    <!-- Combo và Mạng KHÔNG cần nhãn: "x2" và icon tim kèm số tự nói ra nó là gì, mà
          hai chữ đó ăn hơn 90px của một dòng chỉ rộng 320px. -->
     <div v-if="!multiplayer" class="stat combo" :class="{ hot: combo >= 1.5, max: combo >= 2 }">
       <b :key="combo" aria-label="Combo">x{{ combo }}</b>
     </div>
     <div v-if="lives !== null" class="stat">
-      <b aria-label="Mạng còn lại">{{ lives > 0 ? `❤️ ${lives}` : '—' }}</b>
+      <b class="lives-b" aria-label="Mạng còn lại">
+        <template v-if="lives > 0"><OptionIcon name="lives" :size="15" />{{ lives }}</template>
+        <template v-else>—</template>
+      </b>
     </div>
     </div>
     <button class="btn quit" aria-label="Thoát về menu" type="button" @click="$emit('quit')"><X :size="20" /></button>
@@ -115,4 +119,8 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
   text-shadow: 0 0 10px color-mix(in srgb, var(--gold) 60%, transparent);
 }
 @keyframes bump { 40% { transform: scale(1.35); } }
+/* Icon tim + số: canh giữa theo dòng, số dùng tabular-nums để không nhảy khi
+   mạng tụt từ 10 xuống 9. */
+.lives-b { display: inline-flex; align-items: center; gap: 3px; font-variant-numeric: tabular-nums; }
+.lives-b :deep(.opt-ico) { border-radius: 4px; }
 </style>

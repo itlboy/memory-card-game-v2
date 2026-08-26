@@ -382,7 +382,7 @@ function openCfgWizard(): void {
         <div class="seg" role="group" :aria-label="row.name">
           <button
             v-for="(nhan, muc) in OPTION_LABELS[row.key]" :key="nhan"
-            class="seg-btn" :class="{ zero: muc === 0 }" type="button"
+            class="seg-btn" type="button"
             :aria-pressed="cfg.options[row.key] === muc"
             @click="setWizOption(row.key, muc as OptLevel)"
           >{{ nhan }}</button>
@@ -809,14 +809,14 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 /* Vùng chạm 46px trong khi nút cao 30px (NF-07) */
 .seg-btn::after { content: ''; position: absolute; inset: -8px; }
+/* MỌI mức đang chọn đều sáng như nhau, kể cả mức tắt ("Vô hạn" / "Không").
+   Trước đây mức tắt chỉ đổi viền cho "đỡ ồn", nhưng trong một dãy chọn-một thì
+   người chơi nhìn vào chỉ thấy MỘT HÀNG KHÔNG CÓ NÚT NÀO ĐƯỢC CHỌN — không đọc
+   ra được là mình đang tắt hay chưa chọn gì. */
 .seg-btn[aria-pressed="true"] {
   background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
   border-color: transparent; color: #fff;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 4px 14px var(--card-back-glow);
-}
-.seg-btn.zero[aria-pressed="true"] {
-  background: var(--panel-solid); color: var(--fg);
-  border-color: var(--line-strong); box-shadow: none;
 }
 @media (hover: hover) {
   .seg-btn:not([aria-pressed="true"]):hover { border-color: var(--line-strong); color: var(--fg); }

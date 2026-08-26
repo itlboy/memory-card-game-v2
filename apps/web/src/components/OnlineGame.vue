@@ -9,6 +9,7 @@ import CelebrationFx from './CelebrationFx.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
+import OptionIcon from './OptionIcon.vue';
 import EmojiBlast from './EmojiBlast.vue';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 
@@ -148,7 +149,13 @@ watch(() => o.view.value?.summary, (s) => {
           class="ping" :class="o.netQuality.value"
           :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
         >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
-        <small v-if="p.lives !== null" class="lives">{{ '❤️'.repeat(Math.max(0, p.lives)) || '💔' }}</small>
+        <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
+             tràn cả chip người chơi. -->
+        <small v-if="p.lives !== null" class="lives">
+          <template v-if="p.lives <= 0">💔</template>
+          <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
+          <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
+        </small>
         <span
           v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
           class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
@@ -194,18 +201,20 @@ watch(() => o.view.value?.summary, (s) => {
       -->
       <Transition name="banner">
         <p v-if="o.revealingAll.value" class="toast peek" role="status">
-          👀 Ghi nhớ vị trí!
+          <OptionIcon name="peek" :size="20" /> Ghi nhớ vị trí!
           <b v-if="o.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(o.peekLeft.value) }}s</b>
         </p>
       </Transition>
 
       <Transition name="banner">
         <div v-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
-          <span class="who">❤️ <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
+          <span class="who"><OptionIcon name="lives" :size="19" /> <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
           <small>Ghép đúng hai lần liền khi đang nguy</small>
         </div>
         <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
-          <small v-if="o.turnBanner.value.frozen">❄️ {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt</small>
+          <small v-if="o.turnBanner.value.frozen" class="ico-line">
+            <OptionIcon name="freeze" :size="15" /> {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt
+          </small>
           <span class="who">
             <span class="avatar">{{ o.turnBanner.value.avatar || '🎮' }}</span>
             Đến lượt <b>{{ o.turnBanner.value.name }}</b>
@@ -296,7 +305,10 @@ watch(() => o.view.value?.summary, (s) => {
 .ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
 .pchip .avatar { font-size: 18px; }
 .pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pchip .lives { font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
+.pchip .lives { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
+/* Dạng SỐ (trên 5 mạng): bỏ letter-spacing âm vốn dành cho chuỗi trái tim */
+.pchip .lives:has(.opt-ico) { letter-spacing: 0; font-size: 11px; font-weight: 800; }
+.pchip .lives :deep(.opt-ico) { border-radius: 4px; }
 /* Số ván thắng trong loạt — thấy ai đang dẫn ngay trong ván */
 .pchip .wins {
   flex-shrink: 0; font-size: 11px; font-weight: 800;
@@ -359,7 +371,7 @@ watch(() => o.view.value?.summary, (s) => {
    đơn và chơi online đọc ra là cùng một thứ. Một dòng, không che thêm hàng thẻ:
    đây đúng là lúc người chơi cần nhìn cả bàn. */
 .toast.peek {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
   padding: 7px 16px; border-radius: var(--r-full);
   background: color-mix(in srgb, var(--panel-solid) 90%, transparent);
   border: 2px solid color-mix(in srgb, var(--warn) 65%, var(--line));
@@ -385,6 +397,7 @@ watch(() => o.view.value?.summary, (s) => {
   box-shadow: 0 10px 40px var(--card-back-glow), var(--shadow);
   backdrop-filter: blur(6px); pointer-events: none; z-index: 5; white-space: nowrap;
 }
+.ico-line { display: inline-flex; align-items: center; gap: 5px; }
 .turn-banner .who { display: flex; align-items: center; gap: 8px; font-size: clamp(17px, 4.5vw, 22px); }
 .turn-banner.life { border-color: color-mix(in srgb, var(--ok) 70%, var(--line)); }
 .turn-banner b { color: var(--accent); }

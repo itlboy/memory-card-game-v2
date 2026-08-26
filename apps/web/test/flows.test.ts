@@ -280,8 +280,9 @@ describe('luồng trọn ván', () => {
     await pickMode('Sinh tồn');
     await start();
     // 3 mạng chứ không phải 5: số mạng giờ neo theo cỡ bàn (bàn 16 thẻ, mức
-    // "Bình thường" = sống sót 60% số ván), không còn là hằng số của một chế độ.
-    expect(wrapper.text()).toContain('❤️ 3');
+    // "Vừa" = sống sót 60% số ván), không còn là hằng số của một chế độ.
+    // Đọc qua aria-label vì HUD giờ vẽ icon gradient + số, không phải emoji.
+    expect(wrapper.find('[aria-label="Mạng còn lại"]').text()).toBe('3');
     // Chỉ dùng cặp KHÔNG mang thẻ đặc biệt: bấm nhầm lá mắt thần là cả bàn lật
     // lên, lượt dò không còn tính là lật sai — seed là ngẫu nhiên nên test sẽ
     // đỏ thất thường (đã đỏ thật một lần).
@@ -304,12 +305,12 @@ describe('luồng trọn ván', () => {
 
     // Lượt dò: cả hai thẻ đều chưa ai thấy → không mất mạng
     await missTurn(pairA[0]!, slotsB[0]!);
-    expect(wrapper.text()).toContain('❤️ 3');
+    expect(wrapper.find('[aria-label="Mạng còn lại"]').text(), 'lượt dò không được mất mạng').toBe('3');
 
     // Lượt sau: thẻ trùng của cả hai đã lộ ở lượt trước → mất mạng
     await missTurn(pairA[1]!, slotsB[1]!);
-    expect(wrapper.text()).toContain('❤️ 2');
-    expect(wrapper.text()).not.toContain('❤️ 5');
+    expect(wrapper.find('[aria-label="Mạng còn lại"]').text()).toBe('2');
+
   });
 
   it('Chớp nhoáng: thẻ hé mở lúc đầu và không bấm được, hết giờ nhìn thì úp lại', async () => {
@@ -1376,6 +1377,37 @@ describe('phiên bản ở cuối bảng Luật chơi', () => {
  * Test đọc nguồn vì đây là luật CSS + thứ tự nhịp Vue: dựng lại cảnh này trong
  * jsdom thì không có layout, không có transition, không đo được góc nào.
  */
+/*
+ * Trong một dãy CHỌN-MỘT, mục đang chọn luôn phải trông như đang chọn — kể cả
+ * mức tắt ("Vô hạn" / "Không"), vốn là nút ĐẦU TIÊN của mọi hàng.
+ *
+ * Lỗi đã bị phản ánh thật: mức tắt trước đây chỉ đổi viền cho "đỡ ồn", nên khi
+ * bàn để mặc định thì bốn hàng đầu đều trông như CHƯA CHỌN GÌ — người chơi
+ * không đọc ra được là mình đang tắt hay là nút bị hỏng.
+ */
+describe('bảng tuỳ chọn: hàng nào cũng có đúng một nút đang chọn', () => {
+  it('kể cả khi mức đang chọn là mức tắt (nút đầu hàng)', async () => {
+    await mountApp();
+    await click('Chơi nhanh');
+    await click('Cấp 1,');
+    await click('Tiếp');
+    // Đưa MỌI hàng về mức tắt — đây là cảnh dễ trông thành "không chọn gì nhất"
+    for (const hang of ['Thời gian', 'Số mạng', 'Xem trước', 'Xáo thẻ', 'Thẻ đặc biệt']) {
+      const row = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === hang)!;
+      const tat = row.findAll('.seg-btn')[0]!;          // nút đầu = mức tắt
+      await tat.trigger('click');
+      await flush();
+      const sang = row.findAll('.seg-btn').filter((b) => b.attributes('aria-pressed') === 'true');
+      expect(sang, `hàng "${hang}" phải có ĐÚNG MỘT nút đang chọn`).toHaveLength(1);
+      expect(sang[0]!.text(), `hàng "${hang}": nút đang chọn phải là nút vừa bấm`).toBe(tat.text());
+    }
+    // Và không nút nào mang class riêng làm nó nhạt đi so với các mức khác
+    const src = readFileSync(resolve(process.cwd(), 'src/components/MenuScreen.vue'), 'utf8');
+    expect(src, 'mức tắt không được có luật CSS riêng làm nó trông như chưa chọn')
+      .not.toMatch(/\.seg-btn\.zero\[aria-pressed/);
+  });
+});
+
 describe('lật thẻ online không được nhảy góc', () => {
   const src = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
 
