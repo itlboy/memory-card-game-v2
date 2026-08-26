@@ -167,64 +167,54 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
   mỗi nước đi qua, khả năng nhớ một lá nhân thêm `retain`, nên bot quên dần tự
   nhiên. Bot biết hết rồi giả vờ sai thì người chơi nhận ra ngay là giả.
 
-  **MỖI MỨC CHỈ MỘT CON SỐ**: `skill` 1..10 trong `BOT_SKILL` — chỗ duy nhất cần
-  sửa khi muốn bot mạnh/yếu đi. Mọi tham số suy ra từ nó (`specFrom`):
+  **MỖI MỨC CHỈ MỘT CON SỐ**: nửa đời ký ức trong `BOT_HALF_LIFE` — chỗ duy nhất
+  cần sửa khi muốn bot mạnh/yếu đi. `retain` suy ra từ nó: `0.5 ** (1/nửa đời)`.
 
-  | Mức | `skill` | nửa đời | nhớ lẫn chỗ | sức chứa |
-  |---|---|---|---|---|
-  | Bot dễ | **1** | 3 nước | 45% | 3 lá |
-  | Bot bình thường | **2** | 9 nước | 40% | 4 lá |
-  | Bot Pro | **6** | 17 nước | 20% | 9 lá |
-  | Bot siêu đẳng | **10** | 34 nước | 0% | 14 lá |
+  | Mức | nửa đời | `retain` | quên mỗi nước |
+  |---|---|---|---|
+  | Bot dễ | **3** nước | 0,794 | 20,6% |
+  | Bot bình thường | **6** | 0,891 | 10,9% |
+  | Bot Pro | **9** | 0,926 | 7,4% |
+  | Bot siêu đẳng | **12** | 0,944 | 5,6% |
 
-  Nửa đời là **bảng neo** (`HALF_LIFE_BY_SKILL`), không phải công thức trơn: tỉ lệ
-  thắng không tuyến tính theo trí nhớ — có ngưỡng ở quãng 14→17 nước, chỗ ký ức
-  bắt đầu sống sót qua một lượt quét hết bàn 42 thẻ, dưới ngưỡng thắng ~20% mà trên
-  ngưỡng vọt lên ~63%. Công thức trơn đi qua ngưỡng đó rất khó kiểm soát.
+  Nửa đời = số nước để khả năng nhớ một lá còn một nửa. Đơn vị là NƯỚC ĐI, không
+  phải giây: người chơi ngồi nghĩ lâu không làm bot quên thêm. Xúc xắc tung lại
+  MỖI LƯỢT nên "quên" không vĩnh viễn — chỉ khi bản ghi quá `FORGET_HALF_LIVES`
+  (3) lần nửa đời thì mới bị xoá hẳn khỏi ký ức. Trong cùng một lượt thì tuổi ký
+  ức = 0 nên bot luôn nhớ: nó không bao giờ lật một lá rồi quên mình vừa lật gì.
 
-  Đo được (40 ván mỗi điểm, đối thủ KHÁ, bàn 6×7): skill 1 → 5% · 2 → 10% ·
-  4 → 20% · 6 → 63% · 8 → 78% · 10 → 88%. **Hai đầu thang bị chặn**: sàn ~5% vì
-  bot mù vẫn thắng nhờ may, trần ~90% vì đối thủ cũng có lúc may. Nên đừng kỳ vọng
-  tỉ lệ thắng tỉ lệ thuận với skill.
+  **ĐÃ BỎ `mistake` VÀ `capacity`.** Trước đây có ba tham số: `retain` (phai theo
+  thời gian), `mistake` (nhớ lẫn chỗ ngay lúc vừa thấy) và `capacity` + `CROWD`
+  (nhiễu do quá tải). Cả ba cùng làm một việc — khiến bot quên — nhưng tương tác
+  nhau nên chỉnh một cái là phải đo lại cả ba. Cái phải trả giá, ghi lại để đừng
+  ai tưởng là lỗi:
 
-    **CÂN BẰNG BOT PHẢI ĐO BẰNG TỈ LỆ THẮNG 1v1** (`test/duel.test.ts`), không đo
-  bằng số lần lật khi bot chơi một mình. Đây là lỗi phương pháp đã mắc thật: bộ
-  số cũ (nửa đời 2-4-8-12) cho phép đo solo rất đẹp — mức đỉnh 77 lần lật trên
-  bàn 42 thẻ, tức 1,8 lần lối chơi hoàn hảo — nhưng vào trận thật nó thắng **0%**.
-  Vì solo không có ai làm ký ức nó già đi giữa hai lượt. Người dùng phát hiện
-  trước cả test: "cháu tôi thắng suốt".
+  - **Độ khó không còn tự giãn theo cỡ bàn.** `capacity` từng làm bot yếu tệ hẳn
+    trên bàn lớn (phải nhớ nhiều lá cùng lúc). Giờ chỉ tuổi ký ức mới ảnh hưởng.
+  - **Bot siêu đẳng nhẹ đi**: 88% → 75% ở bàn 6×7. Muốn nó đáng tên thì nửa đời
+    cần cỡ 20 (đo được 86%).
 
-  Tỉ lệ bot thắng-hoặc-hoà, đối thủ mô phỏng hai hạng — KHÁ (ghi 80% những gì
-  thấy, nửa đời ~9,5 nước) và GIỎI (ghi 95%, nửa đời ~69 nước), đổi lượt đi trước
-  để bỏ lợi thế người đi đầu:
+  Tỉ lệ thắng trước đối thủ KHÁ (ghi 80% những gì thấy, nửa đời ~9,5 nước), 60 ván
+  mỗi ô, đổi lượt đi trước để bỏ lợi thế người đi đầu:
 
   | bàn | Bot dễ | bình thường | Pro | siêu đẳng |
   |---|---|---|---|---|
-  | 4×4 | 23% / 13% | 53% / 25% | 73% / 55% | 75% / 60% |
-  | 4×6 | 5% / 8% | 48% / 15% | 53% / 28% | 63% / 38% |
-  | 6×7 | 13% / 0% | 20% / 3% | 73% / 18% | 93% / 40% |
+  | 12 thẻ | 42% | 43% | 52% | 55% |
+  | 24 thẻ | 22% | 35% | 53% | 53% |
+  | 42 thẻ | 3% | 25% | 47% | 70% |
 
-  Sweep từng van cho thấy **chỉ nửa đời có tác dụng ở mức cao**: hạ sức chứa của
-  Bot siêu đẳng từ 14 xuống 9 chỉ làm nó chậm thêm 5%, còn `mistake` 20%→15% ở
-  Pro thì gần như không đổi. Muốn đổi độ khó thì đổi NỬA ĐỜI.
+  **BÀN NHỎ CÓ TRẦN, KHÔNG PHẢI DO BOT YẾU**: cho bot nhớ TUYỆT ĐỐI (nửa đời
+  100.000, quên 0%) thì bàn 42 thẻ nó thắng 100% — nhưng bàn 12 thẻ vẫn chỉ 57%.
+  Bàn nhỏ thì ai cũng nhớ được, ván ngắn, nên ai bốc trúng cặp mới là chính. Đừng
+  cố cân bằng bàn nhỏ bằng cách nâng trí nhớ.
 
-  Số đo phụ (số lần lật để bot một mình dọn sạch bàn, 40 seed) — chỉ để tham
-  khảo, KHÔNG dùng làm mốc cân bằng:
-
-  | bàn | hoàn hảo | Bot dễ | bình thường | Pro | siêu đẳng |
-  |---|---|---|---|---|---|
-  | 4×4 (8 cặp) | 16 | 37 | 31 | 27 | 26 |
-  | 4×6 (12 cặp) | 24 | 72 | 56 | 44 | 42 |
-  | 6×7 (21 cặp) | 42 | 166 | 137 | 100 | 77 |
-
-  Ba điều đọc ra từ bảng: **bàn càng lớn thì bốn mức càng giãn** — đó là việc của
-  `capacity`; **hình phạt quá tải hầu như không đụng tới Bot siêu đẳng** (sức chứa
-  14 mà tải trung bình chỉ 8,4 — chỉ 5% số nước bị quá tải, bàn 4×6 thì 0%), vì
-  bot nhớ giỏi tiêu thụ cặp ngay khi vừa học được nên ký ức luôn vơi; **bàn nhỏ thì các mức vẫn sát nhau** (lật hết một lượt là
-  biết cả bàn, trí nhớ không kịp phát huy); và **với Bot dễ thì `mistake` gần như
-  vô tác dụng** (nâng 30%→60% chỉ làm nó chậm thêm 4,6%) vì nửa đời 2 nước thì nó
-  hiếm khi có cặp nào trong đầu để mà bỏ — muốn Bot dễ yếu hơn nữa thì giảm NỬA
-  ĐỜI hoặc SỨC CHỨA, đừng nâng `mistake`.
+  **CÂN BẰNG BOT PHẢI ĐO BẰNG TỈ LỆ THẮNG 1v1** (`test/duel.test.ts`), không đo
+  bằng số lần lật khi bot chơi một mình. Đây là lỗi phương pháp đã mắc thật: bộ
+  số cũ cho phép đo solo rất đẹp — mức đỉnh 77 lần lật trên bàn 42 thẻ, tức 1,8
+  lần lối chơi hoàn hảo — nhưng vào trận thật nó thắng **0%**. Vì solo không có ai
+  làm ký ức nó già đi giữa hai lượt. Người dùng phát hiện trước cả test: "cháu
+  tôi thắng suốt". Và trong 1v1, nước của ĐỐI THỦ cũng làm ký ức bot già đi, nên
+  nửa đời hiệu dụng tính theo lượt của riêng bot chỉ còn một nửa.
 
   Nhịp nghĩ: 400–3000ms, **giống nhau ở mọi mức** — cho bot giỏi nghĩ nhanh hơn
   thì ngồi đếm thời gian là đoán ra mức, mà độ khó vốn nằm ở trí nhớ. Rút bằng

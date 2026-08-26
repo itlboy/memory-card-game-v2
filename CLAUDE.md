@@ -107,9 +107,14 @@
 - Bot: người chơi đi `flip()` (có chốt chặn lượt), bot đi `applyFlip()`. Nhập
   một đường là bot tự chặn chính nó, ván treo. Bot phải `observe` MỖI KHUNG, nếu
   không nó mù trước mọi nước của đối thủ.
-- Đổi độ khó bot: nửa đời ký ức ↔ `retain` là hàm số mũ
-  (`retain = 0,5 ** (1 / nửa đời)`), và luôn đo lại số lần lật để dọn bàn — số
-  nhìn có vẻ giãn đều vẫn có thể ra hai mức gần như bằng nhau.
+- Bot chỉ có MỘT tham số: nửa đời ký ức (`BOT_HALF_LIFE`), `retain` suy ra bằng
+  `0,5 ** (1 / nửa đời)`. `mistake` và `capacity` đã bỏ — ba tham số cùng làm một
+  việc (khiến bot quên) mà tương tác nhau, chỉnh một cái là phải đo lại cả ba.
+  Đổi bảng thì PHẢI đo bằng TỈ LỆ THẮNG 1v1 (`test/duel.test.ts`), đừng đo số lần
+  lật khi bot chơi một mình: bộ số cũ đo solo rất đẹp mà vào trận thật thắng 0%,
+  vì solo không có ai làm ký ức bot già đi giữa hai lượt.
+- Bàn nhỏ có TRẦN ~57% dù bot nhớ tuyệt đối — ván ngắn nên ai bốc trúng cặp mới
+  là chính. Đừng cân bằng bàn nhỏ bằng cách nâng trí nhớ.
 - **Đổi thể thức chơi thì PHẢI cập nhật hướng dẫn.** Luật chơi được kể lại ở
   `RulesDialog.vue` (và tóm tắt ở ô chọn trong `OnlineScreen.vue`, dòng cấu hình
   phòng chờ, thẻ chia sẻ og). Thêm/bỏ/đổi một luật mà quên chỗ này là người chơi
