@@ -42,9 +42,16 @@
   thành "nút bị dính trạng thái active". Có test chặn.
 - **Màn cấu hình** (lưới, theme): ô nền tối; Ô ĐƯỢC CHỌN bùng gradient
   tím + glow (`aria-checked/pressed` + `:not(.neon)`).
-- Màu cố định từng chế độ, dùng xuyên suốt: Chiến dịch g-violet ·
-  Cổ điển g-blue · Đua thời gian g-amber · Sinh tồn g-red ·
-  Chớp nhoáng g-teal; nhánh người chơi: solo tím / local hồng / online cyan.
+- **KHÔNG CÒN "CHẾ ĐỘ".** Bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine,
+  nay là năm tuỳ chọn bàn chơi (`packages/engine/src/options.ts`): thời gian ·
+  số mạng · xem trước · xáo thẻ · thẻ đặc biệt, mỗi cái 4 mức 0..3. Chiến dịch
+  KHÔNG đi qua đó — nó là hành trình 50 màn có luật riêng từng màn.
+  `mode` chỉ còn là KHOÁ LƯU kỷ lục/tiến độ, không còn luật chơi nào đọc nó.
+- Năm màu cũ theo sang năm tuỳ chọn (icon `<OptionIcon>`): thời gian g-amber ·
+  mạng g-red · xem trước g-teal · xáo thẻ tím · thẻ đặc biệt g-blue; Chiến dịch
+  giữ g-violet. Nhánh người chơi: solo xanh / local hồng / online cyan.
+  Gradient của icon khai báo MỘT LẦN ở `IconDefs.vue` — id gradient là toàn cục,
+  mount nhiều bản là mọi icon lấy chung một màu.
 - Trạng thái chọn đổi màu TỨC THÌ (không transition màu — chỉ hover
   desktop mới transition transform/shadow).
 
@@ -92,6 +99,11 @@
   tưởng xanh trong khi `Test Files 1 failed`.
 - Test đỏ thất thường = đang phụ thuộc ngẫu nhiên (seed bàn thẻ). Sửa bằng cách
   chọn dữ liệu không có yếu tố đó, KHÔNG phải chạy lại cho tới lúc xanh.
+- Số của tuỳ chọn: **làm tròn LÊN**, không bao giờ để số thập phân tới tay người
+  chơi (thời gian tròn lên bội số 5 giây). Số mạng neo theo BẢNG ĐO tỉ lệ sống
+  sót, không chia số thẻ cho hằng số — số lần lật sai tăng theo bình phương số
+  thẻ, nên chia tuyến tính làm ba mức dính vào nhau ở bàn nhỏ và cùng chết ở bàn
+  lớn. Đo lại bảng bằng bot khi đổi luật mất mạng.
 - Bot: người chơi đi `flip()` (có chốt chặn lượt), bot đi `applyFlip()`. Nhập
   một đường là bot tự chặn chính nó, ván treo. Bot phải `observe` MỖI KHUNG, nếu
   không nó mù trước mọi nước của đối thủ.
