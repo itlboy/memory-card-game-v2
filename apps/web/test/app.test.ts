@@ -62,10 +62,25 @@ const unlockTo = (n: number): void => {
 };
 
 /** Đi hết wizard chơi đơn: Một mình → chế độ → cấp → Bắt đầu. Cấp 8 = 4×4. */
-/** Qua nốt bước theme rồi bảng tuỳ chọn (chỉ chơi nhanh mới có bảng đó). */
+/**
+ * Qua nốt bước theme rồi bảng tuỳ chọn (chỉ chơi nhanh mới có bảng đó), và TẮT
+ * thẻ đặc biệt.
+ *
+ * Vì sao tắt: các test dưới đây đọc trước bàn thẻ rồi bấm theo chỉ số. Bấm trúng
+ * lá Tráo đổi thì hai thẻ đổi chỗ và chỉ số thành sai, bấm trúng Mắt thần thì cả
+ * bàn bật lên — mà thẻ đặc biệt rải theo seed ngẫu nhiên nên test đỏ THẤT
+ * THƯỜNG (đã đỏ thật 2/4 lần chạy). Chọn dữ liệu không có yếu tố ngẫu nhiên đó,
+ * không phải chạy lại cho tới lúc xanh.
+ */
 const xongTuyChon = async (): Promise<void> => {
   const tiep = wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
-  if (tiep) { await tiep.trigger('click'); await flush(); }
+  if (tiep) {
+    await tiep.trigger('click');
+    await flush();
+    const hang = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === 'Thẻ đặc biệt');
+    const tat = hang?.findAll('.seg-btn').find((b) => b.text() === 'Không');
+    if (tat) { await tat.trigger('click'); await flush(); }
+  }
   await click('Bắt đầu');
 };
 
