@@ -49,10 +49,10 @@
   và khoá lưu kỷ lục không phải đổi — mỗi cỡ bàn một khoá. Thời gian gốc ngoài
   Chiến dịch là `baseTimeLimit = cặp×9`, KHÔNG dùng `levelSpec().timeLimit`
   (con số đó còn trừ 2 giây mỗi cấp, là cách Chiến dịch siết dần).
-- **Mặc định năm tuỳ chọn = MỨC 1 cả năm.** Người chơi mới gặp đủ năm luật ở nấc
-  nhẹ nhất; ai không thích thì hạ về 0 và lựa chọn đó được LƯU (`prefs.options`),
-  mặc định chỉ áp cho người chơi mới. Test nào cần bàn trơn phải khai rõ cả năm
-  hàng, đừng dựa vào mặc định.
+- **Mặc định năm tuỳ chọn = MỨC 0 cả năm** (bàn trơn, thuần trí nhớ). Người chơi
+  tự bật thứ mình muốn và lựa chọn đó được LƯU (`prefs.options`), nên mặc định
+  chỉ áp cho người chơi mới. Test nào cần một luật cụ thể phải khai rõ cả năm
+  hàng, đừng dựa vào mặc định — nó đã đổi hai lần.
 - **KHÔNG CÒN "CHẾ ĐỘ".** Bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine,
   nay là năm tuỳ chọn bàn chơi (`packages/engine/src/options.ts`): thời gian ·
   số mạng · xem trước · xáo thẻ · thẻ đặc biệt, mỗi cái 4 mức 0..3. Chiến dịch
