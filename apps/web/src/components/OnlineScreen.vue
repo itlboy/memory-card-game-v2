@@ -135,12 +135,20 @@ async function copyCode(): Promise<void> {
   } catch { /* trình duyệt chặn */ }
 }
 
-/** Copy link mời. KHÔNG dùng `navigator.share` nữa: bảng chia sẻ của hệ điều
+/**
+ * Lời mời đem đi dán: CÂU MỜI + mã phòng + link, đúng như bảng chia sẻ của hệ
+ * điều hành từng gửi đi. Dán một phát vào Zalo/Messenger là bạn bè hiểu ngay,
+ * chứ một cái link trần thì người nhận không biết là gì.
+ */
+const inviteText = computed(() =>
+  `Vào chơi Lật Thẻ với mình — mã phòng ${o.room.value?.code ?? ''}\n${inviteLink.value}`);
+
+/** Copy lời mời. KHÔNG dùng `navigator.share` nữa: bảng chia sẻ của hệ điều
  *  hành đòi thêm 2–3 chạm mới tới được app muốn gửi, mà thứ người chơi cần chỉ
- *  là cái link nằm trong clipboard để dán vào chỗ họ đang chat. */
+ *  là nội dung nằm sẵn trong clipboard để dán vào chỗ họ đang chat. */
 async function copyLink(): Promise<void> {
   try {
-    await navigator.clipboard.writeText(inviteLink.value);
+    await navigator.clipboard.writeText(inviteText.value);
     copied.value = true;
     sfx.select();
     setTimeout(() => { copied.value = false; }, 1600);
@@ -483,7 +491,7 @@ function openCfgWizard(): void {
           <Check v-if="copiedCode" :size="17" /><Copy v-else :size="17" />
           {{ copiedCode ? 'Đã copy mã' : 'Copy mã' }}
         </button>
-        <button class="btn invite-btn primary" type="button" :title="inviteLink" @click="copyLink">
+        <button class="btn invite-btn primary" type="button" :title="inviteText" @click="copyLink">
           <Check v-if="copied" :size="17" /><Link2 v-else :size="17" />
           {{ copied ? 'Đã copy link' : 'Copy link' }}
         </button>
