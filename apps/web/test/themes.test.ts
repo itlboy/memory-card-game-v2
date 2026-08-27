@@ -88,6 +88,23 @@ describe('file themes.json thực trong repo', () => {
    * Trùng là có chủ đích — cá heo vừa là động vật vừa là sinh vật biển — nên
    * không cấm; thứ phải đúng là POOL CUỐI CÙNG đủ cho bàn lớn nhất.
    */
+  it('theme MỞ SẴN xếp trước theme còn khoá, dù nằm cuối file', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(raw, { status: 200 })));
+    const list = await loadThemes();
+    const mocs = list.map((t) => t.unlockAt);
+    expect(mocs, 'mốc mở khoá phải không giảm').toEqual([...mocs].sort((a, b) => a - b));
+    // Và đúng cái bẫy đã xảy ra: theme mở sẵn thêm sau cùng vẫn phải lên trước
+    const cuoiFile = (JSON.parse(raw) as { themes: { id: string; unlockAt: number }[] }).themes.at(-1)!;
+    if (cuoiFile.unlockAt === 0) {
+      const viTri = list.findIndex((t) => t.id === cuoiFile.id);
+      const viTriKhoaDau = list.findIndex((t) => t.unlockAt > 0);
+      expect(viTri, `${cuoiFile.id} mở sẵn nhưng đứng sau nhóm khoá`).toBeLessThan(viTriKhoaDau);
+    }
+  });
+
   it('theme mở sẵn gộp lại đủ biểu tượng cho bàn lớn nhất', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
