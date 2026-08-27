@@ -4,7 +4,7 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
-import { ROOM_LIMITS } from '@mm/engine';
+import { BOARD_SIZES, ROOM_LIMITS, levelSpec } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 
 /** Truy cập engine bên trong App để chơi tất định. */
@@ -73,7 +73,7 @@ async function mountApp(): Promise<void> {
    * Chỉ `pickMode('Chiến dịch')` mới đặt về null — không đặt lại ở đây thì test
    * sau thừa hưởng nhánh của test trước.
    */
-  luatDangCho = { 'Thẻ đặc biệt': 'Không' };
+  luatDangCho = { ...TAT_HET };
   wrapper = mount(App, { attachTo: document.body });
   await flush();
   await vi.advanceTimersByTimeAsync(10);
@@ -98,11 +98,18 @@ async function click(text: string): Promise<void> {
  * `start()` mới thật sự bấm chúng. Giữ nguyên chữ ký cũ để mọi test đang nói
  * bằng tên chế độ vẫn đọc được — cái chúng kiểm là luật, không phải cái tên.
  */
+const TAT_HET = {
+  'Thời gian': 'Vô hạn', 'Số mạng': 'Vô hạn', 'Xem trước': 'Không',
+  'Xáo thẻ': 'Không', 'Thẻ đặc biệt': 'Không'
+} as const;
+// Khai đủ CẢ NĂM hàng ở mỗi bộ, không dựa vào mặc định: mặc định là thứ có thể
+// đổi (đã đổi một lần, từ "chỉ đồng hồ" sang "cả năm luật ở mức 1") và test bám
+// vào nó thì hàng loạt ván đổi luật giữa chừng mà không ai sửa test có chủ đích.
 const LUAT_CUA_CHE_DO: Record<string, Record<string, string>> = {
-  'Cổ điển':        { 'Thời gian': 'Vô hạn', 'Thẻ đặc biệt': 'Không' },
-  'Đua thời gian':  { 'Thời gian': 'Vừa', 'Thẻ đặc biệt': 'Không' },
-  'Sinh tồn':       { 'Thời gian': 'Vô hạn', 'Số mạng': 'Vừa', 'Thẻ đặc biệt': 'Vừa' },
-  'Chớp nhoáng':    { 'Xem trước': 'Vừa', 'Thẻ đặc biệt': 'Không' }
+  'Cổ điển':        { ...TAT_HET },
+  'Đua thời gian':  { ...TAT_HET, 'Thời gian': 'Vừa' },
+  'Sinh tồn':       { ...TAT_HET, 'Số mạng': 'Vừa', 'Thẻ đặc biệt': 'Vừa' },
+  'Chớp nhoáng':    { ...TAT_HET, 'Xem trước': 'Vừa' }
 };
 let luatDangCho: Record<string, string> | null = null;
 
@@ -117,6 +124,12 @@ async function pickMode(name: string): Promise<void> {
 async function xongTuyChon(): Promise<void> {
   const tiep = wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
   if (tiep) { await tiep.trigger('click'); await flush(); }
+  // Tắt sạch năm luật: mặc định nay bật cả năm ở mức 1, mà những test dùng hàm
+  // này chỉ muốn một bàn trơn để lật cho hết (có mạng thì bot làm thua ván, có
+  // xem trước thì bàn còn đang khoá).
+  if (wrapper.find('.opt-row').exists()) {
+    for (const [hang, muc] of Object.entries(TAT_HET)) await chonMuc(hang, muc);
+  }
   await click('Bắt đầu');
 }
 
@@ -130,13 +143,25 @@ async function chonMuc(hang: string, muc: string): Promise<void> {
   await flush();
 }
 
-/** Từ bước cấp độ: chọn cấp, qua theme, đặt luật rồi Bắt đầu. Cấp 8 = bàn 4×4. */
+/** Chọn bàn ở bước đầu. Chiến dịch vẫn là bản đồ cấp; các chế độ khác nay chọn
+ *  SỐ THẺ nên nhãn là "16 thẻ". */
+/** Cấp đại diện của cỡ bàn mà `level` rơi vào — khoá lưu kỷ lục ngoài Chiến
+ *  dịch dùng số này, một khoá cho mỗi cỡ bàn. */
+const banDe = (level: number): number =>
+  BOARD_SIZES.find((b) => b.pairs === levelSpec(level).pairs)!.level;
+
+async function chonBan(level: number): Promise<void> {
+  if (luatDangCho === null) { await click(`Cấp ${level},`); return; }
+  await click(`${levelSpec(level).pairs * 2} thẻ`);
+}
+
+/** Từ bước chọn bàn: chọn bàn, qua theme, đặt luật rồi Bắt đầu. Cấp 8 = bàn 4×4. */
 async function start(level = 8): Promise<void> {
-  await click(`Cấp ${level},`);
+  await chonBan(level);
   if (luatDangCho === null) { await click('Bắt đầu'); return; }   // Chiến dịch: vào thẳng
   await click('Tiếp');                                            // xong bước theme
   for (const [hang, muc] of Object.entries(luatDangCho)) await chonMuc(hang, muc);
-  await click('Bắt đầu cấp');
+  await click('Bắt đầu');
 }
 
 /** Ghép hết các cặp bằng cách đọc pairId từ engine. */
@@ -174,7 +199,7 @@ describe('luồng trọn ván', () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Kỷ lục mới');
     expect(wrapper.text()).toContain('Trí nhớ siêu phàm');   // misses = 0
-    expect(localStorage.getItem('mm.v2')).toContain('"classic:L8"');
+    expect(localStorage.getItem('mm.v2')).toContain(`"classic:L${banDe(8)}"`);
   });
 
   it('ván có lật sai thì không được thành tích không-lật-sai', async () => {
@@ -204,7 +229,7 @@ describe('luồng trọn ván', () => {
     await pickMode('Đua thời gian');
     await start();
     await wrapper.findAll('.card')[0]!.trigger('click');     // khởi động đồng hồ
-    await vi.advanceTimersByTimeAsync(71_000);               // giới hạn 4x4 là 70s
+    await vi.advanceTimersByTimeAsync(76_000);               // giới hạn 4×4 mức Vừa là 75s
     await vi.advanceTimersByTimeAsync(1100);                 // thua: popup vào sau 1 giây
     await flush();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
@@ -553,8 +578,8 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
     expect(location.search).toBe('?w=level');
     wrapper.unmount();
     await mountApp();                                  // "F5"
-    expect(wrapper.text()).toContain('Chọn cấp độ');   // vẫn ở bước cấp độ
-    await click('Cấp 8,');
+    expect(wrapper.text()).toContain('Chọn số thẻ');   // vẫn ở bước cấp độ
+    await chonBan(8);
     expect(location.search).toBe('?w=theme');
   });
 
@@ -952,7 +977,7 @@ describe('lượt của bot thì người chơi bị chặn', () => {
     await mountApp();
     await click('Đấu với máy');
     await click('Bot siêu đẳng');
-    await click('Cấp 8,');
+    await chonBan(8);
     await xongTuyChon();
     await passCountdown();
 
@@ -1008,15 +1033,13 @@ describe('không lộ nội dung thẻ đang úp', () => {
 });
 
 describe('mở khoá cấp sau', () => {
-  /** Số cấp đang mở, đọc từ bản đồ cấp. */
-  const openNodes = (): number => wrapper.findAll('.node:not(.locked)').length;
 
   it('THUA bot thì KHÔNG mở cấp — không thì cứ để bot siêu đẳng phá là mở hết', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await click('Đấu với máy');
     await click('Bot Pro');
-    await click('Cấp 1,');
+    await chonBan(1);
     await xongTuyChon();
     await passCountdown();
     await muteBotOf(wrapper);
@@ -1046,8 +1069,7 @@ describe('mở khoá cấp sau', () => {
     await mountApp();
     await click('Đấu với máy');
     await click('Bot Pro');
-    expect(openNodes(), 'đấu bot thì mở sẵn hết cấp').toBeGreaterThan(1);
-    await click('Cấp 1,');
+    await chonBan(1);
     await xongTuyChon();
     await passCountdown();
     await muteBotOf(wrapper);
@@ -1063,8 +1085,9 @@ describe('mở khoá cấp sau', () => {
     await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
     await flush();
     await click('Chơi nhanh');
-    expect(openNodes(), 'thắng cấp 1 với bot thì chơi đơn cũng mở cấp 2')
-      .toBeGreaterThanOrEqual(2);
+    // Thang cấp của chơi đơn không còn khoá gì (chọn thẳng số thẻ), nên thứ
+    // phải đúng chỉ là TIẾN ĐỘ đã được ghi — kiểm ở dòng `classic:1` phía trên.
+    expect(wrapper.findAll('.size-grid .option').length).toBe(BOARD_SIZES.length);
   });
 });
 
@@ -1147,13 +1170,14 @@ describe('đếm ngược vào ván', () => {
 });
 
 describe('bản đồ cấp hiện số thẻ', () => {
+  // Bản đồ cấp nay CHỈ còn ở Chiến dịch: các chế độ khác chọn thẳng số thẻ.
   it('cấp ĐÃ QUA vẫn hiện số thẻ — đó là thông tin để chọn cấp', async () => {
     // Qua cấp 1 và 2, mở tới cấp 3
     localStorage.setItem('mm.v2', JSON.stringify({
-      levels: { 'classic:1': { stars: 3, score: 900 }, 'classic:2': { stars: 1, score: 100 } }
+      levels: { 'campaign:1': { stars: 3, score: 900 }, 'campaign:2': { stars: 1, score: 100 } }
     }));
     await mountApp();
-    await pickMode('Cổ điển');
+    await pickMode('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes.length).toBeGreaterThan(3);
     // Trước đây số thẻ nằm trong nhánh v-else của phần sao, nên ô đã qua chỉ
@@ -1168,7 +1192,7 @@ describe('bản đồ cấp hiện số thẻ', () => {
   it('ô KHOÁ cũng ghi số thẻ, để người chơi biết phía trước là gì', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
-    await pickMode('Cổ điển');
+    await pickMode('Chiến dịch');
     const locked = wrapper.findAll('.node.locked');
     expect(locked.length).toBeGreaterThan(0);
     expect(locked[0]!.text()).toMatch(/\d+ thẻ/);
@@ -1202,8 +1226,7 @@ describe('bố cục nút ở màn kết quả', () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await pickMode('Đua thời gian');
-    await click('Cấp 1,');
-    await xongTuyChon();
+    await start(1);
     // Hết giờ mà chưa ghép xong → thua
     await vi.advanceTimersByTimeAsync(120_000);
     await flush();
@@ -1263,7 +1286,7 @@ describe('không ô nào bị dính viền "đang chọn"', () => {
   it('bước có trạng thái thật (theme) VẪN đánh dấu ô đang chọn', async () => {
     await mountApp();
     await pickMode('Cổ điển');
-    await click('Cấp 1,');
+    await chonBan(1);
     const checked = wrapper.findAll('.step-body [aria-checked="true"]');
     expect(checked.length, 'theme là chọn nhiều, phải đánh dấu ô đang bật').toBeGreaterThan(0);
   });
@@ -1318,32 +1341,48 @@ describe('hai thông báo cùng lúc thì không đè nhau', () => {
   });
 });
 
-describe('chỉ CHƠI MỘT MÌNH mới khoá cấp', () => {
-  const openNodes = (): number => wrapper.findAll('.node:not(.locked)').length;
-  const allNodes = (): number => wrapper.findAll('.node').length;
+describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
+  /** Ô cỡ bàn còn bấm được (chỉ bị chặn khi bộ theme thiếu biểu tượng). */
+  const oMo = (): number => wrapper.findAll('.size-grid .option:not([disabled])').length;
+  const oTatCa = (): number => wrapper.findAll('.size-grid .option').length;
 
-  it('chơi một mình: đi theo thang cấp, ban đầu chỉ mở cấp 1', async () => {
+  it('chơi một mình: KHÔNG còn thang cấp — mọi cỡ bàn chọn được ngay từ đầu', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await pickMode('Cổ điển');
-    expect(openNodes()).toBe(1);
+    expect(wrapper.findAll('.node').length, 'không còn bản đồ cấp ở chế độ thường').toBe(0);
+    // Không còn ô nào bị KHOÁ theo tiến độ. Ô duy nhất có thể bấm không được là
+    // ô mà bộ theme đang mở chưa đủ biểu tượng — lý do khác hẳn, và có ghi rõ
+    // trên ô.
+    expect(oTatCa()).toBe(BOARD_SIZES.length);
+    for (const o of wrapper.findAll('.size-grid .option[disabled]')) {
+      expect(o.text()).toContain('thiếu biểu tượng');
+    }
   });
 
-  it('nhiều người cùng máy: mở sẵn HẾT — bắt bạn bè cày mở khoá là gò bó', async () => {
+  it('nhiều người cùng máy: cũng là lưới số thẻ', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await click('Chơi nhiều người');
     await click('2 người chơi');
     await click('Tiếp tục');
-    expect(openNodes(), 'mọi cấp phải mở').toBe(allNodes());
+    expect(oMo(), 'mọi cỡ bàn phải mở').toBeGreaterThanOrEqual(oTatCa() - 1);
   });
 
-  it('đấu máy: mở sẵn HẾT', async () => {
+  it('đấu máy: cũng là lưới số thẻ', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await click('Đấu với máy');
     await click('Bot Pro');
-    expect(openNodes()).toBe(allNodes());
+    expect(oMo()).toBeGreaterThanOrEqual(oTatCa() - 1);
+  });
+
+  it('Chiến dịch VẪN giữ bản đồ cấp — ở đó cấp mới là độ khó thật', async () => {
+    localStorage.removeItem('mm.v2');
+    await mountApp();
+    await pickMode('Chiến dịch');
+    expect(wrapper.findAll('.node').length).toBeGreaterThan(1);
+    expect(wrapper.findAll('.size-grid').length).toBe(0);
   });
 });
 
@@ -1396,7 +1435,7 @@ describe('bảng tuỳ chọn: hàng nào cũng có đúng một nút đang ch�
   it('kể cả khi mức đang chọn là mức tắt (nút đầu hàng)', async () => {
     await mountApp();
     await click('Chơi nhanh');
-    await click('Cấp 1,');
+    await chonBan(1);
     await click('Tiếp');
     // Đưa MỌI hàng về mức tắt — đây là cảnh dễ trông thành "không chọn gì nhất"
     for (const hang of ['Thời gian', 'Số mạng', 'Xem trước', 'Xáo thẻ', 'Thẻ đặc biệt']) {

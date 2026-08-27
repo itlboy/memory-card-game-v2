@@ -10,7 +10,7 @@
   lưới lựa chọn `grid-auto-rows: minmax(0, 1fr); overflow: hidden` để các ô
   tự nén theo chỗ còn lại. Thêm lựa chọn mới = ô nhỏ lại, KHÔNG dài trang ra.
 - Lưới lựa chọn phải **tròn hàng** (không ô lẻ thừa hàng cuối):
-  12 cỡ bàn = 3×4 (mobile) / 4×3 (desktop); 12 theme = 3×4 / 4×3.
+  10 cỡ bàn = 2×5; 12 theme = 3×4 / 4×3.
 - Hiệu ứng `:hover` phải bọc trong `@media (hover: hover)` — thiết bị cảm
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
 - Kích thước chạm tối thiểu 44px (NF-07); lưới lẻ ô (3×3, 5×5) có ô trống
@@ -42,6 +42,17 @@
   thành "nút bị dính trạng thái active". Có test chặn.
 - **Màn cấu hình** (lưới, theme): ô nền tối; Ô ĐƯỢC CHỌN bùng gradient
   tím + glow (`aria-checked/pressed` + `:not(.neon)`).
+- **CẤP CHỈ CÒN LÀ ĐỘ KHÓ TRONG CHIẾN DỊCH.** Ngoài Chiến dịch, bước đầu là
+  chọn SỐ THẺ (`SizeGrid.vue`, 10 cỡ trong `BOARD_SIZES`), không phải bản đồ 50
+  cấp: ở đó cấp chỉ quyết định cỡ bàn, còn độ khó nằm ở năm tuỳ chọn. Giá trị
+  phát ra vẫn là một số CẤP hợp lệ (cấp đầu tiên của mỗi cỡ) để engine, server
+  và khoá lưu kỷ lục không phải đổi — mỗi cỡ bàn một khoá. Thời gian gốc ngoài
+  Chiến dịch là `baseTimeLimit = cặp×9`, KHÔNG dùng `levelSpec().timeLimit`
+  (con số đó còn trừ 2 giây mỗi cấp, là cách Chiến dịch siết dần).
+- **Mặc định năm tuỳ chọn = MỨC 1 cả năm.** Người chơi mới gặp đủ năm luật ở nấc
+  nhẹ nhất; ai không thích thì hạ về 0 và lựa chọn đó được LƯU (`prefs.options`),
+  mặc định chỉ áp cho người chơi mới. Test nào cần bàn trơn phải khai rõ cả năm
+  hàng, đừng dựa vào mặc định.
 - **KHÔNG CÒN "CHẾ ĐỘ".** Bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine,
   nay là năm tuỳ chọn bàn chơi (`packages/engine/src/options.ts`): thời gian ·
   số mạng · xem trước · xáo thẻ · thẻ đặc biệt, mỗi cái 4 mức 0..3. Chiến dịch

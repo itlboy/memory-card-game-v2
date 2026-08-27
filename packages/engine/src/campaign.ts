@@ -27,9 +27,14 @@ export interface Level {
  * 2. Tỷ lệ cân — rows/cols ≤ 2. Bàn 2×5 là một dải dài ngoẵng, nhớ vị trí gần
  *    như bất khả trên khung dọc.
  * 3. Lá bài không dưới 44px (NF-07) trên máy NHỎ NHẤT. Đo thật trên iPhone SE
- *    (chỗ trống của bàn 351×510): bàn 42 thẻ cho lá 51px, 48 thẻ chỉ còn 44px
- *    sát đáy, còn 50 thẻ (5×10) tụt xuống 34px — dưới ngưỡng chạm. Vì vậy trần
- *    là 42 thẻ, không phải 50.
+ *    (chỗ trống của bàn 351×510, gap 6px): bàn 42 thẻ cho lá 51px, bàn 56 thẻ
+ *    (7×8) còn 44px — vừa sát ngưỡng, nên đó là TRẦN.
+ *
+ *    Chặn ở đây là CHIỀU CAO, không phải số thẻ: bàn càng nhiều HÀNG thì mỗi ô
+ *    càng thấp, mà lá giữ tỷ lệ 3:4 nên bề rộng tụt theo. Vì vậy 60 thẻ không
+ *    dùng được dù chỉ hơn 56 có bốn lá — 60 chỉ chia được 6×10 (5×12 tỷ lệ 2,4
+ *    đã bị điều kiện 2 loại), mười hàng cho ô cao 45,6px → lá rộng 34px. Cùng
+ *    lý do đã loại 5×10 trước đây.
  * 4. Bàn phải LẤP được chỗ trống, không hở hai bên. Bàn cao hơn vùng bàn thì
  *    chiều cao chạm trần trước và bề rộng thừa ra thành hai dải trống. Đo thật
  *    trên iPhone SE: bàn 2×4 chỉ dùng 72% diện tích, bàn 4×7 dùng 82% — nên hai
@@ -49,7 +54,8 @@ const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
   { cols: 4, rows: 6, levels: 6 },    // 24 thẻ
   { cols: 5, rows: 6, levels: 7 },    // 30 thẻ
   { cols: 6, rows: 6, levels: 10 },   // 36 thẻ
-  { cols: 6, rows: 7, levels: 13 }    // 42 thẻ
+  { cols: 6, rows: 7, levels: 10 },   // 42 thẻ
+  { cols: 7, rows: 8, levels: 3 }     // 56 thẻ — trần mới
 ];
 
 /** Bàn của từng cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */
@@ -61,6 +67,30 @@ const LADDER: readonly { cols: number; rows: number; pairs: number }[] =
   );
 
 export const CAMPAIGN_LEVELS = LADDER.length;
+
+/**
+ * CHÍN CỠ BÀN — thứ mà các chế độ NGOÀI Chiến dịch thật sự chọn.
+ *
+ * Thang 50 cấp là chuyện riêng của Chiến dịch: nhiều cấp dùng chung một cỡ bàn
+ * và chỉ khác nhau ở đồng hồ. Đem thang đó cho chế độ thường thì người chơi
+ * phải đọc "Cấp 37" để đoán ra "36 thẻ" — trong khi thứ họ muốn chọn chỉ là số
+ * thẻ, còn độ khó đã nằm ở năm tuỳ chọn bàn chơi.
+ *
+ * `level` là cấp ĐẦU TIÊN dùng cỡ bàn đó. Giữ lại một số cấp hợp lệ cho mỗi cỡ
+ * để không phải đổi engine, server (kiểm biên `level`) và khoá lưu kỷ lục —
+ * mỗi cỡ bàn từ nay có đúng một khoá.
+ */
+export const BOARD_SIZES: readonly { cols: number; rows: number; pairs: number; level: number }[] =
+  BOARDS.map((b, i) => ({
+    cols: b.cols, rows: b.rows, pairs: (b.cols * b.rows) / 2,
+    level: BOARDS.slice(0, i).reduce((n, x) => n + x.levels, 0) + 1
+  }));
+
+/** Cỡ bàn của một cấp bất kỳ, quy về mục tương ứng trong BOARD_SIZES. */
+export const sizeForLevel = (id: number): (typeof BOARD_SIZES)[number] => {
+  const { pairs } = boardForLevel(id);
+  return BOARD_SIZES.find((s) => s.pairs === pairs)!;
+};
 
 /** Số cặp của một cấp. */
 export const pairsForLevel = (id: number): number => boardForLevel(id).pairs;

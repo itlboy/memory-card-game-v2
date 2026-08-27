@@ -11,12 +11,12 @@ export {
   comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus
 } from './scoring.js';
 export {
-  CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel, levelConfig,
-  levelSpec, pairsForLevel, perfectScore
+  BOARD_SIZES, CAMPAIGN_LEVELS, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,
+  levelConfig, levelSpec, pairsForLevel, perfectScore, sizeForLevel
 } from './campaign.js';
 export { peekMsFor, presetConfig } from './presets.js';
 export {
-  DEFAULT_OPTIONS, OPTION_KEYS, OPTION_LABELS, clampOpt, configFromOptions,
+  DEFAULT_OPTIONS, OPTION_KEYS, OPTION_LABELS, baseTimeLimit, clampOpt, configFromOptions,
   livesFor, optionSummary, peekSecondsFor, sanitizeOptions, shuffleCountFor, specialCardsFor
 } from './options.js';
 export type { BoardOptions, OptLevel, OptionKey } from './options.js';

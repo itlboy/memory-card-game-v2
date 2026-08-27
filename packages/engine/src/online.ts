@@ -30,9 +30,11 @@ export interface RoomConfig {
 
 /** themeIds rỗng = server tự dùng TẤT CẢ theme nó có. Ghi cứng một theme thì
  *  phòng tạo nhanh (chưa qua wizard) chỉ có một bộ biểu tượng. */
-// Cấp 8 = 8 cặp = bàn 4×4, cỡ bàn quen thuộc cho phòng tạo nhanh
+// Cấp 6 = 8 cặp = bàn 4×4, cỡ bàn quen thuộc cho phòng tạo nhanh. Số này phải
+// là cấp ĐẠI DIỆN của cỡ bàn (`BOARD_SIZES`), không phải một cấp bất kỳ có cùng
+// cỡ: lobby tô ô đang chọn bằng cách so đúng số này.
 export const DEFAULT_ROOM_CONFIG: RoomConfig = {
-  level: 8, themeIds: [], options: DEFAULT_OPTIONS
+  level: 6, themeIds: [], options: DEFAULT_OPTIONS
 };
 
 export const ROOM_LIMITS = {
