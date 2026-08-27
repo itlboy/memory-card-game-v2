@@ -23,3 +23,29 @@ export const numShort = (n: number): string => {
   if (v < 1_000_000) return `${Math.round(v / 1000)}k`;
   return `${(v / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}tr`;
 };
+
+/**
+ * Tuổi bản build thành chữ: "238 ngày 15 giờ trước", "3 phút 12 giây trước".
+ *
+ * Chỉ giữ HAI đơn vị lớn nhất khác 0. Bản cũ liệt kê cả bốn và chỉ cắt các đơn
+ * vị 0 Ở ĐẦU, nên một đơn vị 0 nằm GIỮA vẫn hiện ra: "238 ngày 15 giờ 0 phút
+ * 56 giây trước". Chuyện đó chỉ xảy ra đúng phút thứ 0 của mỗi giờ nên test đỏ
+ * thất thường theo giờ chạy CI — và với bản build 238 ngày tuổi thì số giây
+ * cũng chẳng ai cần đọc.
+ */
+export function buildAgeText(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return 'vừa xong';
+  const giay = Math.floor(ms / 1000);
+  const phan = [
+    { n: Math.floor(giay / 86400), ten: 'ngày' },
+    { n: Math.floor((giay % 86400) / 3600), ten: 'giờ' },
+    { n: Math.floor((giay % 3600) / 60), ten: 'phút' },
+    { n: giay % 60, ten: 'giây' }
+  ];
+  // Hai đơn vị KHÁC 0 đầu tiên, bỏ qua đơn vị 0 nằm giữa: "3 ngày 0 giờ 12 phút"
+  // đọc thành "3 ngày 12 phút", không phải "3 ngày" — giữ được thông tin mà vẫn
+  // không bao giờ in ra một số 0.
+  const co = phan.filter((p) => p.n > 0).slice(0, 2);
+  if (!co.length) return 'vừa xong';
+  return `${co.map((p) => `${p.n} ${p.ten}`).join(' ')} trước`;
+}

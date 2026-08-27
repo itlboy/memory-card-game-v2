@@ -2,6 +2,7 @@
 import { CAMPAIGN_LEVELS } from '@mm/engine';
 import { X } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
+import { buildAgeText } from '@/lib/format';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 
@@ -13,28 +14,13 @@ const version = __APP_VERSION__;
 /** Ngày giờ build, ĐÃ định dạng theo giờ Việt Nam lúc build (xem vite.config). */
 const builtAt = __BUILD_AT__;
 
-/** "3 ngày 4 giờ 12 phút 5 giây trước" — cắt bỏ các đơn vị đầu bằng 0. */
-function doiThanhChu(ms: number): string {
-  if (!Number.isFinite(ms) || ms < 0) return 'vừa xong';
-  const giay = Math.floor(ms / 1000);
-  const phan = [
-    { n: Math.floor(giay / 86400), ten: 'ngày' },
-    { n: Math.floor((giay % 86400) / 3600), ten: 'giờ' },
-    { n: Math.floor((giay % 3600) / 60), ten: 'phút' },
-    { n: giay % 60, ten: 'giây' }
-  ];
-  while (phan.length && phan[0]!.n === 0) phan.shift();
-  if (!phan.length) return 'vừa xong';
-  return `${phan.map((p) => `${p.n} ${p.ten}`).join(' ')} trước`;
-}
-
-const ago = ref(doiThanhChu(Date.now() - Date.parse(__BUILD_ISO__)));
+const ago = ref(buildAgeText(Date.now() - Date.parse(__BUILD_ISO__)));
 let tick: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
   // Đếm từng giây: người chơi mở bảng này ra đúng lúc vừa deploy thì thấy con số
   // chạy, biết ngay là bản mới.
   tick = setInterval(() => {
-    ago.value = doiThanhChu(Date.now() - Date.parse(__BUILD_ISO__));
+    ago.value = buildAgeText(Date.now() - Date.parse(__BUILD_ISO__));
   }, 1000);
 });
 onUnmounted(() => clearInterval(tick));
