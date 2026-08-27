@@ -18,8 +18,14 @@
 .options { display: grid; gap: 10px; }
 .step-body.options,
 .options.fill {
-  flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); overflow: hidden;
+  flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr);
   align-items: center;
+  /* `overflow: clip` + `overflow-clip-margin` thay cho `overflow: hidden`: vẫn
+     chặn lưới làm dài trang (luật KHÔNG SCROLL), nhưng chừa 4px cho phần ô nhô
+     lên khi hover. Với `hidden`, ô ở HÀNG TRÊN CÙNG bị cắt mất đúng 2px viền
+     trên lúc hover — nhìn như nút vỡ mất một cạnh. */
+  overflow: clip;
+  overflow-clip-margin: 4px;
 }
 .step-body.options > .option,
 .options.fill > .option { height: 100%; max-height: 210px; }
@@ -65,6 +71,14 @@
 
 @media (hover: hover) {
   .option:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-soft); }
+  /* Hover phải ĐỔI NỀN, không chỉ đổi viền: viền tím mà nền y nguyên thì người
+     chơi đọc ra "ô này đang được chọn" — trong khi ô ĐANG CHỌN đã là khối
+     gradient tím đặc. Nền tím rất nhạt (`--accent-soft`) tách hẳn hai trạng
+     thái: nhạt = con trỏ đang ở đây, đặc = đã chọn.
+     Không áp cho ô neon (đã có màu riêng) và ô đang chọn (đã là gradient). */
+  .option:hover:not(.neon):not([aria-checked='true']):not([aria-pressed='true']) {
+    background: var(--accent-soft);
+  }
   /* Ô neon đã có màu riêng: viền accent lúc hover trông như một vành sáng lạc
      tông (nhìn rõ nhất trên ô cam). Nâng nhẹ và làm đậm bóng là đủ. */
   .option.neon:hover {
