@@ -100,7 +100,7 @@ const xongTuyChon = async (): Promise<void> => {
 /** Đi hết wizard chơi nhanh: Chơi nhanh → cấp → theme → tuỳ chọn → Bắt đầu. */
 const start = async (_mode = '', cards = 16): Promise<void> => {
   await click('Chơi nhanh');
-  await click(`${cards} thẻ, bàn`);
+  await click(`${cards} thẻ`);
   await xongTuyChon();
 };
 
@@ -123,7 +123,7 @@ describe('App', () => {
     await click('Chơi nhanh');
     expect(wrapper.text()).not.toContain('Động vật');
     expect(wrapper.text()).toContain('Chọn số thẻ');       // bước chọn bàn đứng trước theme
-    await click('16 thẻ, bàn');
+    await click('16 thẻ');
     expect(wrapper.text()).toContain('Chọn theme thẻ');
     expect(wrapper.text()).toContain('Động vật');
   });
@@ -142,7 +142,7 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh');
-    await click('16 thẻ, bàn');
+    await click('16 thẻ');
     const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
   });
@@ -211,7 +211,7 @@ describe('App', () => {
     // Nhiều người có mọi chế độ trừ Chiến dịch
 
     expect(wrapper.text()).not.toContain('Chiến dịch');
-    await click('4 thẻ, bàn');         // cấp mặc định mở sẵn
+    await click('4 thẻ');         // cấp mặc định mở sẵn
     await xongTuyChon();
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
@@ -237,7 +237,7 @@ describe('multi-theme', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh');
-    await click('16 thẻ, bàn');
+    await click('16 thẻ');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
     // Chưa từng chọn thì App bật SẴN mọi theme đang mở khoá

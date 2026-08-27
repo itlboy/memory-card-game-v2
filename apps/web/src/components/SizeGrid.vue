@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { BOARD_SIZES } from '@mm/engine';
-import { TriangleAlert } from 'lucide-vue-next';
 
 /**
  * CHỌN SỐ THẺ — bước thay cho "chọn cấp độ" ở mọi chế độ ngoài Chiến dịch.
@@ -9,6 +8,10 @@ import { TriangleAlert } from 'lucide-vue-next';
  * ở bước sau. Thứ duy nhất cấp còn quyết định là cỡ bàn, nên hỏi thẳng số thẻ.
  * Giá trị phát ra vẫn là một số CẤP hợp lệ (`BOARD_SIZES[].level`) để engine,
  * server và khoá lưu kỷ lục không phải đổi gì.
+ *
+ * Ô chỉ có MỘT con số. Bản đầu vẽ thêm hình bàn thu nhỏ trong mỗi ô, và nó vừa
+ * thừa (người chơi chọn số thẻ, không chọn hình dáng bàn) vừa bóp chữ xuống
+ * còn không đọc được — năm hàng thì ô chỉ cao 88px, hình bàn ăn hết chỗ.
  */
 const props = defineProps<{
   /** Cấp đang chọn — dùng để tô ô tương ứng. */
@@ -19,7 +22,6 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ play: [level: number] }>();
 
-const cardsOf = (pairs: number): number => pairs * 2;
 const blocked = (pairs: number): boolean => pairs > props.symbolCount;
 </script>
 
@@ -27,44 +29,42 @@ const blocked = (pairs: number): boolean => pairs > props.symbolCount;
   <div class="options fill size-grid" role="radiogroup" aria-label="Số thẻ">
     <button
       v-for="s in BOARD_SIZES" :key="s.level"
-      class="option" type="button" role="radio"
+      class="option size-opt" type="button" role="radio"
       :aria-checked="props.level === s.level"
       :aria-disabled="blocked(s.pairs)"
-      :aria-label="`${cardsOf(s.pairs)} thẻ, bàn ${s.cols} nhân ${s.rows}`"
+      :aria-label="`${s.pairs * 2} thẻ`"
       :disabled="blocked(s.pairs)"
       @click="emit('play', s.level)"
     >
-      <!-- Hình bàn thu nhỏ: đọc "6×7" không hình dung ra bàn, nhìn thì thấy ngay -->
-      <span
-        class="grid-preview" aria-hidden="true"
-        :style="{ gridTemplateColumns: `repeat(${s.cols}, 1fr)`, aspectRatio: `${s.cols * 3} / ${s.rows * 4}` }"
-      >
-        <i v-for="n in s.cols * s.rows" :key="n" />
-      </span>
-      <span class="text">
-        <strong>{{ cardsOf(s.pairs) }} thẻ</strong>
-        <small v-if="blocked(s.pairs)" class="need">
-          <TriangleAlert :size="11" /> thiếu biểu tượng
-        </small>
-        <small v-else>{{ s.cols }}×{{ s.rows }}</small>
-      </span>
+      <strong class="num">{{ s.pairs * 2 }}</strong>
+      <small>{{ blocked(s.pairs) ? 'thiếu biểu tượng' : 'thẻ' }}</small>
     </button>
   </div>
 </template>
 
 <style scoped>
 /* MƯỜI cỡ bàn = 2 cột × 5 hàng, TRÒN HÀNG (không ô lẻ ở hàng cuối). Không dùng
-   `.grid3` được: 10 không chia hết cho 3 nên hàng cuối còn một ô lệch hẳn sang
-   trái. Cột app cố định 440px nên hai cột vẫn cho ô rộng ~210px. */
-.size-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: minmax(0, 1fr); }
-/* Ô nằm ngang: hình bàn bên trái, chữ bên phải. Năm hàng thì ô thấp, xếp dọc
-   sẽ bóp hình bàn xuống còn vài pixel. */
-.size-grid .option {
-  flex-direction: row; align-items: center; justify-content: center;
-  gap: 10px; padding: 6px 10px;
+   `.grid3` toàn cục được: 10 không chia hết cho 3 nên hàng cuối còn một ô lệch
+   hẳn sang trái. Cột app cố định 440px nên hai cột vẫn cho ô rộng ~190px. */
+.size-grid { grid-template-columns: repeat(2, 1fr); }
+/* `container-type` PHẢI khai lại ở đây: bản khai trong MenuScreen nằm trong
+   `<style scoped>` nên không với tới ô của component con, và thiếu nó thì `cqh`
+   rơi về viewport — con số giữ nguyên 40px kể cả trên ô cao 68px (đo được). */
+.size-opt { gap: 0; padding: 4px; container-type: size; }
+
+/* Con số là toàn bộ nội dung ô nên được phép to hơn `.option strong` chung, và
+   co theo CHIỀU CAO ô là chính: năm hàng thì chiều cao mới là thứ khan hiếm.
+   tabular-nums để "4" và "56" không làm ô nhảy chữ. */
+.size-opt .num {
+  font-size: clamp(24px, min(34cqw, 52cqh), 46px);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
 }
-.size-grid .option .text { display: flex; flex-direction: column; align-items: flex-start; }
-.size-grid .grid-preview { max-width: none; width: auto; height: 100%; margin: 0; flex: 0 0 auto; }
-.size-grid .option[disabled] { opacity: .45; }
-.need { display: inline-flex; align-items: center; gap: 3px; color: var(--warn, #f59e0b); }
+/* `.option small` toàn cục tính theo 5cqw — hợp với ô có icon và hai dòng chữ,
+   nhưng ở đây ô chỉ có số nên nó co xuống 9,5px (đo được), bé đến mức thừa. */
+.size-opt small {
+  letter-spacing: .3px;
+  font-size: clamp(11px, min(11cqw, 17cqh), 15px);
+}
+.size-opt[disabled] { opacity: .45; }
 </style>

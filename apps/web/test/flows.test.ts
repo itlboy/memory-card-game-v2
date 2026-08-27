@@ -144,7 +144,7 @@ async function chonMuc(hang: string, muc: string): Promise<void> {
 }
 
 /** Chọn bàn ở bước đầu. Chiến dịch vẫn là bản đồ cấp; các chế độ khác nay chọn
- *  SỐ THẺ nên nhãn là "16 thẻ, bàn 4 nhân 4". */
+ *  SỐ THẺ nên nhãn là "16 thẻ". */
 /** Cấp đại diện của cỡ bàn mà `level` rơi vào — khoá lưu kỷ lục ngoài Chiến
  *  dịch dùng số này, một khoá cho mỗi cỡ bàn. */
 const banDe = (level: number): number =>
@@ -152,7 +152,7 @@ const banDe = (level: number): number =>
 
 async function chonBan(level: number): Promise<void> {
   if (luatDangCho === null) { await click(`Cấp ${level},`); return; }
-  await click(`${levelSpec(level).pairs * 2} thẻ, bàn`);
+  await click(`${levelSpec(level).pairs * 2} thẻ`);
 }
 
 /** Từ bước chọn bàn: chọn bàn, qua theme, đặt luật rồi Bắt đầu. Cấp 8 = bàn 4×4. */
