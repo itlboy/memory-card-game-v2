@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CAMPAIGN_MAX_PAIRS } from '@mm/engine';
 import { loadThemes } from '@/lib/themes';
 
 const ok = (body: unknown) => async () =>
@@ -68,13 +69,31 @@ describe('file themes.json thực trong repo', () => {
     expect(themes.some((t) => t.unlockAt === 0)).toBe(true);
   });
 
-  it('đúng 12 theme: 6 mở sẵn + 6 khoá bằng điểm (lưới 3×4)', async () => {
+  // Lưới theme phải TRÒN HÀNG trong cột 3 ô: 12 → 3×4, 15 → 3×5. Thêm theme thì
+  // số theme phải chia hết cho 3, không thì hàng cuối còn ô lẻ lệch sang trái.
+  it('số theme chia hết cho 3 để lưới tròn hàng, và có đủ theme mở sẵn', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
     const { themes } = JSON.parse(raw) as { themes: { unlockAt: number }[] };
-    expect(themes).toHaveLength(12);
-    expect(themes.filter((t) => t.unlockAt === 0)).toHaveLength(6);
-    expect(themes.filter((t) => t.unlockAt > 0)).toHaveLength(6);
+    expect(themes.length % 3, `${themes.length} theme không tròn hàng 3 cột`).toBe(0);
+    expect(themes.filter((t) => t.unlockAt === 0).length, 'theme mở sẵn')
+      .toBeGreaterThanOrEqual(6);
+    expect(themes.filter((t) => t.unlockAt > 0).length, 'theme khoá bằng điểm')
+      .toBeGreaterThanOrEqual(6);
+  });
+
+  /*
+   * Trộn theme thì biểu tượng trùng bị GỘP (Set), nên pool nhỏ hơn tổng cộng.
+   * Trùng là có chủ đích — cá heo vừa là động vật vừa là sinh vật biển — nên
+   * không cấm; thứ phải đúng là POOL CUỐI CÙNG đủ cho bàn lớn nhất.
+   */
+  it('theme mở sẵn gộp lại đủ biểu tượng cho bàn lớn nhất', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
+    const { themes } = JSON.parse(raw) as { themes: { unlockAt: number; symbols: string[] }[] };
+    const pool = new Set(themes.filter((t) => t.unlockAt === 0).flatMap((t) => t.symbols));
+    expect(pool.size, 'pool của theme mở sẵn').toBeGreaterThanOrEqual(CAMPAIGN_MAX_PAIRS);
   });
 });
