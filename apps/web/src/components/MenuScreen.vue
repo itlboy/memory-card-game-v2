@@ -567,7 +567,10 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 /* Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
    phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
    chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình. */
-@container (max-height: 74px) {
+/* Ngưỡng 52px, không phải 74px: từ 12 lên 15 theme thì lưới thành 3×5 và ô tụt
+   xuống 58px ở iPhone SE — ngưỡng cũ ẩn emoji ở gần như mọi máy, ô theme chỉ
+   còn mỗi dòng chữ. Đo ở 52px: emoji 13px + tên 14px + gap vẫn nằm gọn. */
+@container (max-height: 52px) {
   .theme-sample { display: none; }
   .theme-opt small { display: none; }
 }
