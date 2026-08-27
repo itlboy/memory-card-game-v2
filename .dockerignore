@@ -1,0 +1,20 @@
+# Build context của Docker: KHÔNG gửi những thứ nặng mà ảnh không cần.
+#
+# Thiếu file này thì `docker build` copy cả `node_modules` (hàng GB) và mọi
+# `dist` sang daemon TRƯỚC khi chạy dòng đầu tiên của Dockerfile — chậm, tốn
+# đĩa, và đã làm ĐẦY Ổ ĐĨA một lần khi build thử ở máy. Dockerfile tự cài lại
+# dependency bằng pnpm nên bản trên máy là thừa.
+node_modules
+**/node_modules
+dist
+**/dist
+.wrangler
+.git
+.github
+*.log
+
+# Chỉ dành cho máy của người viết code
+.DS_Store
+.vscode
+.idea
+coverage

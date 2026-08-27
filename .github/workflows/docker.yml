@@ -31,12 +31,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # KHÔNG khai `version` ở đây: repo đã ghi `packageManager: pnpm@10.0.0`
+      # trong package.json, khai cả hai chỗ thì action dừng với
+      # "Multiple versions of pnpm specified". Để một nguồn duy nhất, và nâng
+      # pnpm thì chỉ sửa package.json.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+      # Node 22, KHÔNG phải 20, vì hai lý do:
+      #  - bộ smoke dùng `WebSocket` TOÀN CỤC, mà Node 20 chưa có nó (phải bật
+      #    cờ --experimental-websocket); chạy trên 20 là "WebSocket is not defined";
+      #  - Node 20 đã hết hạn hỗ trợ từ 4/2026.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Đóng ảnh từ code chưa chạy test là cách chắc nhất để đẩy lỗi lên máy chủ
