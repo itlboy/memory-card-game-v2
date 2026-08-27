@@ -51,7 +51,7 @@ onMounted(() => closeBtn.value?.focus());
  */
 const OPTIONS: readonly { icon: IconName; name: string; text: string }[] = [
   { icon: 'time', name: 'Thời gian', text: 'Đồng hồ đếm ngược cho cả ván. Ghép đúng được cộng 2 giây, xong sớm thì thưởng thêm điểm. Tắt thì chơi thong thả bao lâu cũng được.' },
-  { icon: 'lives', name: 'Số mạng', text: 'Chỉ mất mạng khi thẻ vừa mở ĐÃ TỪNG lộ ra — lật hai thẻ mới toanh là dò bài, không bị trừ. Sắp hết mạng mà ghép đúng hai lần liền thì hồi 1 mạng. Bàn càng lớn càng cho nhiều mạng.' },
+  { icon: 'lives', name: 'Số mạng', text: 'Chỉ mất mạng khi thẻ LẬT ĐẦU đã có lá trùng lộ ra từ trước — tức bạn biết lá kia nằm đâu mà vẫn bấm sai. Lá lật đầu còn mới thì bạn đang dò bài, bốc trúng lá nào cũng không bị trừ. Sắp hết mạng mà ghép đúng hai lần liền thì hồi 1 mạng. Bàn càng lớn càng cho nhiều mạng.' },
   { icon: 'peek', name: 'Xem trước', text: 'Đầu ván cả bàn hé mở cho bạn nhìn, có đồng hồ đếm ngược. Bàn càng nhiều thẻ càng được nhìn lâu.' },
   { icon: 'shuffle', name: 'Xáo thẻ', text: 'Thỉnh thoảng hai thẻ chưa ghép đổi chỗ cho nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
   { icon: 'special', name: 'Thẻ đặc biệt', text: 'Rải thêm thẻ có phép vào bàn (xem ngay bên dưới).' }

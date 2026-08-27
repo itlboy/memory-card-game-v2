@@ -136,6 +136,47 @@ describe('Survival (SP-04)', () => {
     expect(g.players[0]!.misses).toBe(1);   // vẫn tính là lượt sai
   });
 
+  /*
+   * Ca người chơi phản ánh, và là lý do luật chỉ xét thẻ LẬT ĐẦU:
+   * đã từng thấy lá bánh thứ nhất; lượt sau mở lá cờ MỚI TOANH rồi bốc trúng lá
+   * bánh thứ hai. Lúc chọn lá thứ hai, thứ duy nhất biết được là "cờ", mà đôi
+   * của cờ thì chưa ai thấy — không có cách nào chọn đúng, nên không được trừ.
+   */
+  it('thẻ ĐẦU mới toanh thì KHÔNG mất mạng, dù thẻ SAU có đôi đã lộ', () => {
+    const g = makeGame({ mode: 'survival', lives: 3 });
+    const slots = pairSlots(g);
+    const gap = (g.config.flipBackMs ?? 1000) + 1;
+
+    // Lượt 1: lộ lá "bánh" thứ nhất (và một lá khác) — cả hai đều mới, không trừ
+    g.flip(slots[0]![0], 0);
+    g.flip(slots[1]![0], 0);
+    g.tick(gap);
+    expect(g.players[0]!.lives, 'hai thẻ mới toanh: không trừ').toBe(3);
+
+    // Lượt 2: mở lá "cờ" mới toanh trước, rồi bốc trúng lá "bánh" thứ hai
+    g.flip(slots[2]![0], gap);
+    g.flip(slots[0]![1], gap);
+    g.tick(gap * 2);
+    expect(g.players[0]!.lives, 'thẻ đầu mới toanh: đang dò, không trừ').toBe(3);
+    expect(g.players[0]!.misses, 'vẫn tính là lượt sai').toBe(2);
+  });
+
+  it('thẻ ĐẦU có đôi đã lộ mà vẫn bấm sai thì MẤT mạng — biết chỗ mà không chọn', () => {
+    const g = makeGame({ mode: 'survival', lives: 3 });
+    const slots = pairSlots(g);
+    const gap = (g.config.flipBackMs ?? 1000) + 1;
+
+    g.flip(slots[0]![0], 0);
+    g.flip(slots[1]![0], 0);
+    g.tick(gap);
+
+    // Lật lá còn lại của đôi 0 TRƯỚC: giờ biết đôi của nó nằm đâu, chọn sai là lỗi
+    g.flip(slots[0]![1], gap);
+    g.flip(slots[2]![0], gap);
+    g.tick(gap * 2);
+    expect(g.players[0]!.lives).toBe(2);
+  });
+
   it('trượt khi thẻ trùng đã lộ thì mất mạng, hết mạng là thua', () => {
     const g = makeGame({ mode: 'survival', lives: 3 });
     missKnown(g, 0, 1);

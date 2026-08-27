@@ -270,10 +270,17 @@ export class MemoryGame {
     // nó đi thì `mode` chỉ còn là khoá lưu kỷ lục, không còn là luật chơi.
     const penalty = 0;
 
-    // Chỉ mất mạng khi ĐÁNG mất: thẻ vừa mở đã có thẻ trùng lộ ra từ trước, tức
-    // người chơi có đủ thông tin để ghép đúng mà vẫn trượt. Lật hai thẻ chưa ai
-    // từng thấy là bước dò cần thiết của trò chơi, trừ mạng ở đó là bất công.
-    const avoidable = this.hasKnownTwin(a) || this.hasKnownTwin(b);
+    // Chỉ mất mạng khi ĐÁNG mất, và điều đó chỉ xét trên thẻ LẬT ĐẦU (`a`):
+    // lật a xong người chơi mới biết mình cần tìm gì, nếu đôi của a ĐÃ lộ ra
+    // trước đó thì họ biết nó nằm đâu mà vẫn bấm chỗ khác — đó mới là lỗi.
+    //
+    // KHÔNG xét thẻ thứ hai (`b`). Lúc chọn b, thứ duy nhất người chơi biết là
+    // a; nếu đôi của a chưa từng lộ thì mọi ô đều như nhau, họ đang dò. Bốc
+    // trúng một lá đã từng lộ ra (thuộc đôi khác) là chuyện may rủi, không phải
+    // sai lầm — điều kiện cũ `hasKnownTwin(a) || hasKnownTwin(b)` trừ mạng cả
+    // ở đây, đúng ca người chơi phản ánh: mở thẻ cờ mới toanh rồi bốc trúng
+    // thẻ bánh đã lộ, và bị trừ mạng dù không có cách nào chọn khác.
+    const avoidable = this.hasKnownTwin(a);
     if (this.config.lives != null && avoidable) {
       player.lives--;
       out.push({ type: 'life-lost', playerId: player.id, livesLeft: player.lives });
