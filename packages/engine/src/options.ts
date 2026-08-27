@@ -34,14 +34,17 @@ export const OPTION_KEYS = ['time', 'lives', 'peek', 'shuffle', 'special'] as co
 export type OptionKey = (typeof OPTION_KEYS)[number];
 
 /**
- * Mặc định = bàn cổ điển thuần trí nhớ, chỉ có đồng hồ.
+ * Mặc định = MỨC 1 ở cả năm hàng: mọi tính năng đều BẬT nhưng ở nấc nhẹ nhất.
  *
- * Xáo thẻ mặc định TẮT, và điều đó là cố ý: nó là tuỳ chọn duy nhất phá vào
- * chính thứ trò chơi này đo (trí nhớ vị trí), nên phải là thứ người chơi chủ
- * động bật chứ không phải thứ tự dưng xảy ra với họ.
+ * Chọn đồng đều mức 1 chứ không phải "tắt hết" hay "mỗi hàng một kiểu": bật
+ * nhẹ thì người chơi lần đầu GẶP được cả năm luật (kể cả xáo thẻ và thẻ đặc
+ * biệt — trước đây mặc định tắt nên gần như không ai thấy chúng tồn tại), mà
+ * vẫn là nấc dễ thở nhất. Ai không thích hàng nào thì hạ về 0, và lựa chọn đó
+ * được LƯU lại cho lần sau (xem `prefs` trong apps/web/src/lib/storage.ts) —
+ * mặc định này chỉ áp cho người chơi mới.
  */
 export const DEFAULT_OPTIONS: BoardOptions = {
-  time: 2, lives: 0, peek: 0, shuffle: 0, special: 1
+  time: 1, lives: 1, peek: 1, shuffle: 1, special: 1
 };
 
 /**
@@ -60,6 +63,17 @@ export const OPTION_LABELS: Record<OptionKey, readonly [string, string, string, 
 } as const;
 
 const ceilTo = (x: number, buoc: number): number => Math.ceil(x / buoc) * buoc;
+
+/**
+ * Thời gian gốc của một bàn NGOÀI Chiến dịch: 9 giây mỗi cặp, không hơn không
+ * kém.
+ *
+ * Không dùng `levelSpec().timeLimit` nữa vì con số đó còn trừ 2 giây mỗi cấp —
+ * đó là cách Chiến dịch làm khó dần trong cùng một cỡ bàn. Ngoài Chiến dịch,
+ * cấp không còn là độ khó (chỉ là cỡ bàn), nên mang phần siết đó theo thì hai
+ * bàn cùng số thẻ lại có đồng hồ khác nhau mà không gì trên màn hình giải thích.
+ */
+export const baseTimeLimit = (pairs: number): number => pairs * 9;
 
 /**
  * BẢNG MẠNG — neo theo TỈ LỆ SỐNG SÓT, không phải chia số thẻ cho một hằng số.
@@ -164,6 +178,7 @@ export interface BuildInput {
 export function configFromOptions({ options, level, symbols, seed, players }: BuildInput): GameConfig {
   const spec = levelSpec(level);
   const the = spec.pairs * 2;
+  const goc = baseTimeLimit(spec.pairs);
 
   const cfg: GameConfig = {
     // `mode` chỉ còn là KHOÁ LƯU (kỷ lục, thành tích, tiến độ) — không còn luật
@@ -177,7 +192,7 @@ export function configFromOptions({ options, level, symbols, seed, players }: Bu
   if (options.time > 0) {
     const heSo = options.time === 1 ? 1.5 : options.time === 2 ? 1 : 0.7;
     // Tròn lên bội số 5 giây: 1:05 dễ đọc hơn 1:02, mà chênh lệch không đáng kể
-    cfg.timeLimit = ceilTo(spec.timeLimit * heSo, 5);
+    cfg.timeLimit = ceilTo(goc * heSo, 5);
   }
   if (options.lives > 0) cfg.lives = livesFor(the, options.lives as 1 | 2 | 3);
   if (options.peek > 0) cfg.peekMs = peekSecondsFor(the, options.peek as 1 | 2 | 3) * 1000;
@@ -196,7 +211,7 @@ export function optionSummary(key: OptionKey, muc: OptLevel, level: number): str
   switch (key) {
     case 'time': {
       const heSo = muc === 1 ? 1.5 : muc === 2 ? 1 : 0.7;
-      const giay = ceilTo(spec.timeLimit * heSo, 5);
+      const giay = ceilTo(baseTimeLimit(spec.pairs) * heSo, 5);
       return `${Math.floor(giay / 60)}:${String(giay % 60).padStart(2, '0')}`;
     }
     case 'lives':   return `${livesFor(the, muc as 1 | 2 | 3)} mạng`;

@@ -10,6 +10,7 @@ import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
 import LevelMap from './LevelMap.vue';
+import SizeGrid from './SizeGrid.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 
@@ -101,7 +102,7 @@ const TITLES: Record<Step, string> = {
   bot: 'Máy chơi giỏi cỡ nào?',
   count: 'Mấy người chơi?',
   names: 'Tên từng người',
-  level: 'Chọn cấp độ',
+  level: 'Chọn cấp độ',   // đổi theo chế độ, xem `title`
   theme: 'Chọn theme thẻ',
   options: 'Bàn chơi'
 };
@@ -242,6 +243,17 @@ function back(): void {
  */
 useBackCloser(10, () => stepIndex.value > 0, back);
 
+/** Bước chọn bàn đổi tên theo chế độ: Chiến dịch chọn CẤP (bản đồ), các chế độ
+ *  khác chọn SỐ THẺ. Cùng một bước nhưng hỏi hai thứ khác nhau. */
+/** Tên bàn để nhắc lại trong các câu (kỷ lục, cảnh báo thiếu biểu tượng).
+ *  Chiến dịch nói "cấp 12", chế độ khác nói "bàn 24 thẻ" — vì ngoài Chiến dịch
+ *  số cấp không còn là thứ người chơi từng nhìn thấy trên màn hình. */
+const tenBan = computed(() =>
+  props.mode === 'campaign' ? `cấp ${props.level}` : `bàn ${pairsNeeded.value * 2} thẻ`);
+
+const tieuDe = computed(() =>
+  step.value === 'level' && props.mode !== 'campaign' ? 'Chọn số thẻ' : TITLES[step.value]);
+
 const unlocked = (t: CardTheme): boolean => t.unlockAt <= props.totalScore;
 const best = computed(() => store.best(props.mode, props.level));
 /** Số cặp mà cấp đang chọn cần — bước theme dùng để cảnh báo thiếu biểu tượng. */
@@ -291,7 +303,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
   <section class="panel">
     <header class="wizard-head">
       <button v-if="stepIndex > 0" class="btn back" aria-label="Quay lại" type="button" @click="back"><ChevronLeft :size="22" /></button>
-      <h2>{{ TITLES[step] }}</h2>
+      <h2>{{ tieuDe }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(s, i) in path" :key="s" :class="{ on: i <= stepIndex }" />
       </span>
@@ -383,13 +395,18 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
            một việc lại có hai kiểu chọn và chỉ Chiến dịch mới chơi tiếp được
            cấp sau. -->
       <div v-else-if="step === 'level'" key="level" class="step-body">
+        <!-- Chiến dịch: bản đồ 50 màn, vì ở đó cấp THẬT SỰ là độ khó (sao, mở
+             khoá, thời gian siết dần). Chế độ khác: cấp chỉ còn là cỡ bàn nên
+             hỏi thẳng số thẻ, độ khó để bước tuỳ chọn lo. -->
         <LevelMap
+          v-if="mode === 'campaign'"
           :progress="progress"
           :unlocked="unlockedLevel"
           :symbol-count="maxSymbolCount"
-          :show-stars="mode === 'campaign'"
+          :show-stars="true"
           @play="pickLevel"
         />
+        <SizeGrid v-else :level="level" :symbol-count="maxSymbolCount" @play="pickLevel" />
       </div>
 
       <!-- BƯỚC: theme (chọn được nhiều) -->
@@ -422,7 +439,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 
         <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
         <p v-if="themeTooSmall" class="warn" role="alert">
-          Chưa đủ biểu tượng cho cấp {{ level }} ({{ pairsNeeded }} cặp). Hãy chọn thêm theme.
+          Chưa đủ biểu tượng cho {{ tenBan }} ({{ pairsNeeded }} cặp). Hãy chọn thêm theme.
         </p>
 
         <!-- Chiến dịch vào thẳng màn; chơi nhanh còn một bước đặt luật bàn -->
@@ -435,9 +452,9 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 
         <p class="best">
           <template v-if="best">
-            Kỷ lục cấp {{ level }}: <b>{{ best.score }}</b> điểm · {{ best.moves }} lượt · {{ clock(best.seconds) }}
+            Kỷ lục {{ tenBan }}: <b>{{ best.score }}</b> điểm · {{ best.moves }} lượt · {{ clock(best.seconds) }}
           </template>
-          <template v-else>Chưa có kỷ lục cho cấp {{ level }}.</template>
+          <template v-else>Chưa có kỷ lục cho {{ tenBan }}.</template>
         </p>
       </div>
 
@@ -464,7 +481,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         </div>
 
         <button class="btn-primary" type="button" @click="emit('start-level', level)">
-          Bắt đầu cấp {{ level }}
+          Bắt đầu — {{ tenBan }}
         </button>
       </div>
     </Transition>

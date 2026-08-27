@@ -41,8 +41,8 @@ describe('bàn của mọi cấp đều đầy và cân', () => {
     }
   });
 
-  it('trần 42 thẻ: hơn nữa thì lá bài tụt dưới ngưỡng chạm 44px trên máy nhỏ', () => {
+  it('trần 56 thẻ: hơn nữa thì lá bài tụt dưới ngưỡng chạm 44px trên máy nhỏ', () => {
     const max = Math.max(...boards.map((b) => b.spec.pairs * 2));
-    expect(max).toBe(42);
+    expect(max).toBe(56);
   });
 });

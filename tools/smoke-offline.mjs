@@ -41,7 +41,7 @@ await A.locator('.option').nth(0).click(); await A.waitForTimeout(450);
 await A.locator('input').first().fill('An');
 await A.getByRole('button', { name: 'Tiếp tục' }).click(); await A.waitForTimeout(500);
 await A.locator('.option').first().click(); await A.waitForTimeout(450);          // Cổ điển
-await A.locator('.node:not(.locked)').nth(2).click(); await A.waitForTimeout(450);  // cấp 3 = 12 thẻ
+await A.locator('.size-grid .option').nth(2).click(); await A.waitForTimeout(450);  // ô thứ 3 = 12 thẻ
 await A.locator('.btn-primary').first().click(); await A.waitForTimeout(1300);
 const code = await A.evaluate(() => document.body.innerText.match(/\b[A-Z0-9]{6}\b/)?.[0]);
 log('phòng', code);

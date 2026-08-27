@@ -48,7 +48,10 @@ console.log('✓ 2 người trong phòng:', roomUpd.room.players.map((p) => p.na
 
 // Chủ phòng chỉnh cấu hình; khách chỉnh phải bị từ chối
 // Cấp 1 là bàn nhỏ nhất — ván ngắn nhất để smoke chạy nhanh
-an.send({ t: 'config', config: { level: 1 } });
+// Tắt sạch năm tuỳ chọn: mặc định nay bật cả năm ở mức 1, mà "xem trước" giữ
+// bàn hé mở mấy giây đầu nên nước lật đầu tiên của smoke rơi vào lúc bàn khoá.
+const BAN_TRON = { time: 0, lives: 0, peek: 0, shuffle: 0, special: 0 };
+an.send({ t: 'config', config: { level: 1, options: BAN_TRON } });
 const cfg = await binh.wait((m) => m.t === 'room' && m.room.config.level === 1, 'config cấp 1');
 console.log('✓ chủ phòng đổi sang cấp 1 (bàn nhỏ nhất)');
 // Chỉ soi các tin ĐẾN SAU đây: inbox còn giữ tin lúc phòng mới lập (cấp mặc

@@ -7,6 +7,10 @@ import App from '@/App.vue';
 const THEMES = {
   themes: [
     { id: 'animals', name: 'Động vật', unlockAt: 0, symbols: Array.from({ length: 24 }, (_, i) => `A${i}`) },
+    // Theme mở sẵn THỨ HAI, để tổng biểu tượng đủ cho bàn lớn nhất (56 thẻ = 28
+    // cặp). Bản thật có sáu theme mở sẵn; một theme 24 biểu tượng thì không bộ
+    // đơn lẻ nào dựng nổi bàn trần, và đó là ý đồ — phải trộn theme.
+    { id: 'food', name: 'Đồ ăn', unlockAt: 0, symbols: Array.from({ length: 24 }, (_, i) => `F${i}`) },
     { id: 'locked', name: 'Bị khoá', unlockAt: 999999, symbols: Array.from({ length: 24 }, (_, i) => `B${i}`) }
   ]
 };
@@ -61,7 +65,7 @@ const unlockTo = (n: number): void => {
   }));
 };
 
-/** Đi hết wizard chơi đơn: Một mình → chế độ → cấp → Bắt đầu. Cấp 8 = 4×4. */
+/** Đi hết wizard chơi đơn: Một mình → chế độ → số thẻ → Bắt đầu. 16 thẻ = 4×4. */
 /**
  * Qua nốt bước theme rồi bảng tuỳ chọn (chỉ chơi nhanh mới có bảng đó), và TẮT
  * thẻ đặc biệt.
@@ -77,17 +81,26 @@ const xongTuyChon = async (): Promise<void> => {
   if (tiep) {
     await tiep.trigger('click');
     await flush();
-    const hang = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === 'Thẻ đặc biệt');
-    const tat = hang?.findAll('.seg-btn').find((b) => b.text() === 'Không');
-    if (tat) { await tat.trigger('click'); await flush(); }
+    // Tắt SẠCH năm luật, không riêng thẻ đặc biệt: mặc định nay bật cả năm ở
+    // mức 1, mà "xem trước" hé cả bàn lúc vào ván nên các phép kiểm đọc mặt thẻ
+    // ngay sau khi bắt đầu sẽ thấy bàn đang ngửa.
+    const TAT: Record<string, string> = {
+      'Thời gian': 'Vô hạn', 'Số mạng': 'Vô hạn', 'Xem trước': 'Không',
+      'Xáo thẻ': 'Không', 'Thẻ đặc biệt': 'Không'
+    };
+    for (const [ten, muc] of Object.entries(TAT)) {
+      const hang = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === ten);
+      const tat = hang?.findAll('.seg-btn').find((b) => b.text() === muc);
+      if (tat) { await tat.trigger('click'); await flush(); }
+    }
   }
   await click('Bắt đầu');
 };
 
 /** Đi hết wizard chơi nhanh: Chơi nhanh → cấp → theme → tuỳ chọn → Bắt đầu. */
-const start = async (_mode = '', level = 8): Promise<void> => {
+const start = async (_mode = '', cards = 16): Promise<void> => {
   await click('Chơi nhanh');
-  await click(`Cấp ${level},`);
+  await click(`${cards} thẻ, bàn`);
   await xongTuyChon();
 };
 
@@ -100,7 +113,7 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Chiến dịch');
     expect(wrapper.text()).toContain('Chơi nhiều người');
     // Chưa hiện cấp/theme ở bước đầu — tránh rối
-    expect(wrapper.text()).not.toContain('Chọn cấp độ');
+    expect(wrapper.text()).not.toContain('Chọn số thẻ');
     expect(wrapper.text()).not.toContain('Theme thẻ');
   });
 
@@ -109,8 +122,8 @@ describe('App', () => {
     await flush();
     await click('Chơi nhanh');
     expect(wrapper.text()).not.toContain('Động vật');
-    expect(wrapper.text()).toContain('Chọn cấp độ');       // cấp đứng trước theme
-    await click('Cấp 8,');
+    expect(wrapper.text()).toContain('Chọn số thẻ');       // bước chọn bàn đứng trước theme
+    await click('16 thẻ, bàn');
     expect(wrapper.text()).toContain('Chọn theme thẻ');
     expect(wrapper.text()).toContain('Động vật');
   });
@@ -119,7 +132,7 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh');
-    expect(wrapper.text()).toContain('Chọn cấp độ');
+    expect(wrapper.text()).toContain('Chọn số thẻ');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
@@ -129,7 +142,7 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh');
-    await click('Cấp 8,');
+    await click('16 thẻ, bàn');
     const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
   });
@@ -198,7 +211,7 @@ describe('App', () => {
     // Nhiều người có mọi chế độ trừ Chiến dịch
 
     expect(wrapper.text()).not.toContain('Chiến dịch');
-    await click('Cấp 1,');         // cấp mặc định mở sẵn
+    await click('4 thẻ, bàn');         // cấp mặc định mở sẵn
     await xongTuyChon();
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
@@ -224,14 +237,21 @@ describe('multi-theme', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh');
-    await click('Cấp 8,');
+    await click('16 thẻ, bàn');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
+    // Chưa từng chọn thì App bật SẴN mọi theme đang mở khoá
     expect(chip('Động vật').attributes('aria-checked')).toBe('true');
-    // "Bị khoá" chưa mở nên không toggle được; toggle Động vật đi thì phải giữ lại vì là theme cuối
+    expect(chip('Đồ ăn').attributes('aria-checked')).toBe('true');
+    // Bỏ một cái thì cái kia ở lại
+    await chip('Đồ ăn').trigger('click');
+    await flush();
+    expect(chip('Đồ ăn').attributes('aria-checked')).toBe('false');
+    expect(chip('Động vật').attributes('aria-checked')).toBe('true');
+    // Bỏ nốt cái cuối thì bị chặn — bàn không có biểu tượng nào thì không dựng được
     await chip('Động vật').trigger('click');
     await flush();
-    expect(chip('Động vật').attributes('aria-checked')).toBe('true');   // không cho bỏ hết
+    expect(chip('Động vật').attributes('aria-checked')).toBe('true');
     expect(localStorage.getItem('mm.v2') ?? '').not.toContain('"themes":[]');
   });
 });
@@ -265,15 +285,15 @@ describe('màn online (điều hướng, không cần server)', () => {
   });
 });
 
-describe('bước chọn cấp độ', () => {
-  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 42 thẻ', async () => {
+describe('bản đồ cấp của Chiến dịch', () => {
+  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 56 thẻ', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh');
+    await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.text()).toContain('4 thẻ');
-    expect(nodes.at(-1)!.text()).toContain('42 thẻ');
+    expect(nodes.at(-1)!.text()).toContain('56 thẻ');
     // Bốn chặng, mỗi chặng một thẻ có tên riêng
     expect(wrapper.findAll('.chapter')).toHaveLength(4);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
@@ -283,10 +303,10 @@ describe('bước chọn cấp độ', () => {
     expect(wrapper.text()).toContain('giờ siết dần');
   });
 
-  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 42 thẻ chỉ đòi 21 biểu tượng', async () => {
+  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 56 thẻ đòi 28 biểu tượng', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh');
+    await click('Chiến dịch');
     expect(wrapper.findAll('.node.nosym')).toHaveLength(0);
     expect(wrapper.text()).not.toContain('cần thêm theme');
   });

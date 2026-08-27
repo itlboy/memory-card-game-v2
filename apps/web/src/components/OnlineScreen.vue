@@ -3,13 +3,13 @@ import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary
 } from '@mm/engine';
 import {
-  Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Settings2, Share2, Sparkles, Timer
+  Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Link2, Settings2, Sparkles, Timer
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
-import LevelMap from './LevelMap.vue';
+import SizeGrid from './SizeGrid.vue';
 import OnlineGame from './OnlineGame.vue';
 import EmojiBar from './EmojiBar.vue';
 import EmojiBlast from './EmojiBlast.vue';
@@ -135,21 +135,9 @@ async function copyCode(): Promise<void> {
   } catch { /* trình duyệt chặn */ }
 }
 
-/** Chia sẻ link: trên điện thoại mở luôn bảng chia sẻ của hệ điều hành (Zalo,
- *  Messenger…); máy tính không có thì lùi về copy. */
-async function shareLink(): Promise<void> {
-  const url = inviteLink.value;
-  const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
-  if (nav.share) {
-    try {
-      await nav.share({ title: 'Lật Thẻ', text: `Vào chơi Lật Thẻ với mình — mã phòng ${o.room.value?.code ?? ''}`, url });
-      sfx.select();
-      return;
-    } catch { /* người dùng bấm huỷ — không coi là lỗi */ }
-  }
-  await copyLink();
-}
-
+/** Copy link mời. KHÔNG dùng `navigator.share` nữa: bảng chia sẻ của hệ điều
+ *  hành đòi thêm 2–3 chạm mới tới được app muốn gửi, mà thứ người chơi cần chỉ
+ *  là cái link nằm trong clipboard để dán vào chỗ họ đang chat. */
 async function copyLink(): Promise<void> {
   try {
     await navigator.clipboard.writeText(inviteLink.value);
@@ -236,7 +224,7 @@ const wizard = ref<null | 'level' | 'theme' | 'options'>(null);
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
 const WIZ_STEPS = ['level', 'theme', 'options'] as const;
-const WIZ_TITLES = { level: 'Chọn cấp độ', theme: 'Chọn theme thẻ', options: 'Bàn chơi' } as const;
+const WIZ_TITLES = { level: 'Chọn số thẻ', theme: 'Chọn theme thẻ', options: 'Bàn chơi' } as const;
 
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
@@ -343,15 +331,11 @@ function openCfgWizard(): void {
     </div>
 
     <div v-if="wizard === 'level'" class="step-body">
-      <!-- MỞ SẴN HẾT cấp độ: thang cấp chỉ có nghĩa khi chơi một mình. Hai người
-           trong phòng thì mỗi máy mở tới một cấp khác nhau, khoá lại thành ra
-           tranh cãi chọn bàn nào. -->
-      <LevelMap
-        :progress="store.progress('classic')"
-        :unlocked="CAMPAIGN_LEVELS"
-        :symbol-count="allSymbols"
-        @play="wizPickLevel"
-      />
+      <!-- Phòng online chọn SỐ THẺ, không đi theo thang cấp: thang cấp chỉ có
+           nghĩa khi chơi một mình (mỗi máy mở tới một cấp khác nhau, khoá lại
+           thành ra tranh cãi chọn bàn nào), mà độ khó thì đã nằm ở bước tuỳ
+           chọn ngay sau đây. -->
+      <SizeGrid :level="cfg.level" :symbol-count="allSymbols" @play="wizPickLevel" />
     </div>
 
     <div v-else-if="wizard === 'theme'" class="step-body">
@@ -374,7 +358,7 @@ function openCfgWizard(): void {
 
       <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
       <p v-if="wizTooSmall" class="warn" role="alert">
-        Chưa đủ biểu tượng cho cấp {{ cfg.level }}. Hãy chọn thêm theme.
+        Chưa đủ biểu tượng cho bàn {{ levelSpec(cfg.level).pairs * 2 }} thẻ. Hãy chọn thêm theme.
       </p>
 
       <button
@@ -499,9 +483,9 @@ function openCfgWizard(): void {
           <Check v-if="copiedCode" :size="17" /><Copy v-else :size="17" />
           {{ copiedCode ? 'Đã copy mã' : 'Copy mã' }}
         </button>
-        <button class="btn invite-btn primary" type="button" :title="inviteLink" @click="shareLink">
-          <Check v-if="copied" :size="17" /><Share2 v-else :size="17" />
-          {{ copied ? 'Đã copy link' : 'Chia sẻ link' }}
+        <button class="btn invite-btn primary" type="button" :title="inviteLink" @click="copyLink">
+          <Check v-if="copied" :size="17" /><Link2 v-else :size="17" />
+          {{ copied ? 'Đã copy link' : 'Copy link' }}
         </button>
       </div>
     </div>
@@ -536,7 +520,7 @@ function openCfgWizard(): void {
       <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
       <div class="cfg-summary">
         <span>
-          Cấp <b>{{ o.room.value?.config.level }}</b> ({{ cardCount }} thẻ)
+          <b>{{ cardCount }} thẻ</b>
           · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         </span>
         <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> Chỉnh</button>
@@ -567,8 +551,7 @@ function openCfgWizard(): void {
         </span>
       </div>
       <p class="hint">
-        Cấp {{ o.room.value?.config.level }} ({{ cardCount }} thẻ)
-        · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
+        {{ cardCount }} thẻ · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — chờ chủ phòng bắt đầu…
       </p>
     </template>

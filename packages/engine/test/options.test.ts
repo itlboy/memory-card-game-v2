@@ -92,13 +92,17 @@ describe('ba mức phải THẬT SỰ khác nhau', () => {
 });
 
 describe('bật/tắt từng tuỳ chọn', () => {
-  it('mặc định: chỉ có đồng hồ và ít thẻ đặc biệt, KHÔNG xáo và KHÔNG mạng', () => {
+  // Mặc định nay là MỨC 1 ở cả năm hàng: người chơi mới gặp đủ năm luật, mỗi
+  // luật ở nấc nhẹ nhất. Trước đây mặc định tắt xáo và tắt mạng nên hai tính
+  // năng đó gần như không ai biết là có.
+  it('mặc định: cả năm luật đều BẬT ở mức nhẹ nhất', () => {
     const c = build();
     expect(c.timeLimit).toBeGreaterThan(0);
-    expect(c.lives ?? null, 'mạng mặc định phải tắt').toBeNull();
-    expect(c.shuffleCount ?? 0, 'xáo mặc định phải tắt').toBe(0);
-    expect(c.peekMs ?? 0).toBe(0);
+    expect(c.lives, 'mạng phải bật').toBeGreaterThan(0);
+    expect(c.shuffleCount, 'xáo phải bật').toBeGreaterThan(0);
+    expect(c.peekMs, 'xem trước phải bật').toBeGreaterThan(0);
     expect(c.specialRate).toBeGreaterThan(0);
+    for (const k of OPTION_KEYS) expect(DEFAULT_OPTIONS[k], `${k} mặc định`).toBe(1);
   });
 
   it('mức 0 nghĩa là cờ đó KHÔNG xuất hiện trong config', () => {
@@ -220,7 +224,7 @@ describe('xáo thẻ', () => {
   it('xáo ĐÚNG số lần đã hứa — chơi trọn ván bằng bot', () => {
     for (const [level, muc] of [[15, 1], [15, 2], [15, 3], [21, 3], [38, 2]] as const) {
       const cfg = configFromOptions({
-        options: { ...DEFAULT_OPTIONS, time: 0, special: 0, shuffle: muc },
+        options: { time: 0, lives: 0, peek: 0, special: 0, shuffle: muc },
         level, symbols: SYMBOLS, seed: 4242
       });
       const hua = cfg.shuffleCount!;
