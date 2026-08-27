@@ -26,7 +26,37 @@
 
 /* ---------- ô lựa chọn ---------- */
 
-.option { min-height: 0; overflow: hidden; justify-content: center; }
+/*
+ * NỀN TẢNG của MỘT Ô LỰA CHỌN — dùng chung cho mọi màn có wizard.
+ *
+ * Khối này từng được chép hai bản, một trong `<style scoped>` của MenuScreen và
+ * một trong OnlineScreen. Scoped nghĩa là component CON không nhận: `SizeGrid`
+ * hiện ra với nút mặc định của trình duyệt (nền xám, viền outset, góc vuông,
+ * chữ nằm ngang) vì nó là component riêng. Đưa lên đây để chỗ nào cũng có, và
+ * hai bản chép kia đã xoá.
+ */
+.option {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 16px 12px; min-height: 0;
+  border: 2px solid var(--line); border-radius: 14px; background: var(--panel-soft);
+  color: var(--fg); text-align: center; overflow: hidden;
+  transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu TỨC THÌ */
+  /* `size` (không phải inline-size) để cỡ chữ dùng được CẢ chiều cao ô: ô lớn
+     cao 320px mà chữ chỉ theo bề rộng thì vẫn lọt thỏm. An toàn vì chiều cao ô
+     do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
+  container-type: size;
+}
+.option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+/* Ô ĐANG CHỌN ở màn cấu hình (cỡ bàn, theme): bùng gradient tím. Bóng trung
+   tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau. */
+.option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
+  border-color: transparent;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
+  color: #fff;
+}
+.option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }
+.option[disabled] { opacity: .45; }
 .option strong { font-family: var(--font-display); font-size: clamp(12px, min(8cqw, 26cqh), 28px); }
 .option small { color: var(--muted); font-size: clamp(9.5px, min(5cqw, 17cqh), 17px); line-height: 1.3; }
 .opt-icon { color: var(--accent); flex-shrink: 0; }
@@ -56,23 +86,6 @@
    Trước đây chỗ này ghi đè cả cỡ chữ (hệ số 13cqh/8cqh) nên bước 1 ra 18px/13px
    trong khi các bước sau ra 22,7px/14,2px — cùng một wizard mà hai cỡ chữ. */
 .options.loose > .option:not(.wide) .opt-icon { width: clamp(34px, min(15cqw, 22cqh), 62px); height: auto; }
-
-/* ---------- preview lưới trên ô cỡ bàn ---------- */
-
-/* Preview co theo chỗ CÒN LẠI của ô: chiều cao cố định theo số hàng sẽ bị cắt
-   mất hàng khi ô nén (màn thấp), làm preview không còn đúng hình bàn nữa.
-   Tỷ lệ khung = cols*3 : rows*4 nên mỗi chấm vẫn giữ dáng lá bài 3:4. */
-.grid-preview {
-  display: grid; gap: 1.5px;
-  flex: 1; min-height: 0; width: auto; max-width: 72%; margin: 0 auto;
-}
-.grid-preview i {
-  border-radius: 2px; min-height: 0; min-width: 0;
-  background: linear-gradient(150deg, var(--accent), var(--accent-2));
-  opacity: .75;
-}
-.grid-preview i.blank { background: transparent; }
-.option[aria-pressed='true'] .grid-preview i { background: rgba(255, 255, 255, .9); }
 
 /* ---------- ô theme ---------- */
 

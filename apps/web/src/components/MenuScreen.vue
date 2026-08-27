@@ -572,15 +572,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   .theme-opt small { display: none; }
 }
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
-.option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
-  border-color: transparent;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
-  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
-  color: #fff;
-}
-.option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }
-.option[aria-pressed='true'] .grid-preview i { background: rgba(255, 255, 255, .9); }
 /* Ô neon màu riêng (chế độ, số người) đang chọn: thắp viền trắng, giữ màu gốc */
 /*
  * Viền trắng = ĐANG CHỌN, chỉ dành cho ô THẬT SỰ có trạng thái bật/tắt.
@@ -605,20 +596,8 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 }
 .options.loose.counts .text { display: flex; flex-direction: column; gap: 1px; }
 
-.option {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 16px 12px; min-height: 44px;
-  border: 2px solid var(--line); border-radius: 14px; background: var(--panel-soft);
-  transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu tức thì */
-  text-align: center;
-  /* Cỡ chữ co theo bề rộng Ô (không phải theo màn hình): ô lựa chọn giờ chiếm
-     trọn chỗ nên chữ cố định 16px trông bé tí giữa khoảng trống. */
-  /* `size` (không phải inline-size) để cỡ chữ dùng được CẢ chiều cao ô: ô lớn
-     cao 320px mà chữ chỉ theo bề rộng thì vẫn lọt thỏm. An toàn vì chiều cao ô
-     do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
-  container-type: size;
-}
-.option[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+/* Nền tảng của ô lựa chọn nay ở wizard.css (dùng chung cho cả component con,
+   xem chú thích ở đó). Dưới đây chỉ còn phần RIÊNG của màn này. */
 .option .icon { font-size: 30px; }
 .option.big .icon { font-size: 42px; }
 /* KHÔNG ghi đè cỡ chữ ở đây: cả wizard dùng chung `.option strong` trong

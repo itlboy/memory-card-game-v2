@@ -45,12 +45,12 @@ const blocked = (pairs: number): boolean => pairs > props.symbolCount;
 <style scoped>
 /* MƯỜI cỡ bàn = 2 cột × 5 hàng, TRÒN HÀNG (không ô lẻ ở hàng cuối). Không dùng
    `.grid3` toàn cục được: 10 không chia hết cho 3 nên hàng cuối còn một ô lệch
-   hẳn sang trái. Cột app cố định 440px nên hai cột vẫn cho ô rộng ~190px. */
+   hẳn sang trái. Cột app cố định 440px nên hai cột vẫn cho ô rộng ~190px.
+
+   Dáng ô, viền, bo góc, hover và trạng thái đang chọn đều lấy từ `.option`
+   trong wizard.css — KHÔNG chép lại ở đây. */
 .size-grid { grid-template-columns: repeat(2, 1fr); }
-/* `container-type` PHẢI khai lại ở đây: bản khai trong MenuScreen nằm trong
-   `<style scoped>` nên không với tới ô của component con, và thiếu nó thì `cqh`
-   rơi về viewport — con số giữ nguyên 40px kể cả trên ô cao 68px (đo được). */
-.size-opt { gap: 0; padding: 4px; container-type: size; }
+.size-opt { gap: 0; padding: 4px; }
 
 /* Con số là toàn bộ nội dung ô nên được phép to hơn `.option strong` chung, và
    co theo CHIỀU CAO ô là chính: năm hàng thì chiều cao mới là thứ khan hiếm.
@@ -66,5 +66,4 @@ const blocked = (pairs: number): boolean => pairs > props.symbolCount;
   letter-spacing: .3px;
   font-size: clamp(11px, min(11cqw, 17cqh), 15px);
 }
-.size-opt[disabled] { opacity: .45; }
 </style>

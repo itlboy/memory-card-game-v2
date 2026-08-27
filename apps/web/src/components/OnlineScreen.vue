@@ -613,16 +613,7 @@ input:focus { outline: none; border-color: var(--accent); }
 /* Riêng màn này ô ngang có padding hẹp hơn */
 .option.wide { padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
-/* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
-.option[aria-pressed='true']:not(.neon), .option[aria-checked='true']:not(.neon) {
-  border-color: transparent;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
-  /* Bóng trung tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau */
-  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
-  color: #fff;
-}
-.option[aria-pressed='true'] small, .option[aria-checked='true'] small { color: rgba(255, 255, 255, .85); }
-.option[aria-pressed='true'] .grid-preview i { background: rgba(255, 255, 255, .9); }
+/* Ô cấu hình được chọn: gradient neon — quy tắc chung ở wizard.css */
 /* Chế độ (neon sẵn màu riêng): ô đang chọn thắp viền trắng thay vì đổi màu */
 .option.wide.neon[aria-pressed='true'] {
   outline: 3px solid rgba(255, 255, 255, .85); outline-offset: -3px;
@@ -672,18 +663,9 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .cfg-summary span { flex: 1; min-width: 0; }
 .cfg-summary .edit { white-space: nowrap; }
-.option {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 24px 16px; border: 2px solid var(--line); border-radius: 14px;
-  background: var(--panel-soft); text-align: center;
-  transition: transform .15s ease, box-shadow .15s ease;   /* chọn đổi màu tức thì */
-  /* Cỡ chữ co theo bề rộng Ô — giống MenuScreen. Ô lựa chọn chiếm trọn chỗ nên
-     chữ cố định 17px trông bé tí giữa khoảng trống. */
-  /* `size` (không phải inline-size) để cỡ chữ dùng được CẢ chiều cao ô: ô lớn
-     cao 320px mà chữ chỉ theo bề rộng thì vẫn lọt thỏm. An toàn vì chiều cao ô
-     do lưới quyết định, không do nội dung — không sinh vòng lặp layout. */
-  container-type: size;
-}
+/* Nền tảng của ô lựa chọn nay ở wizard.css. Màn này ô cao hơn nên chỉ nới
+   padding, phần còn lại dùng chung. */
+.option { padding: 24px 16px; }
 .option .icon { font-size: 38px; }
 /* KHÔNG ẩn mô tả ở ô thấp — mất chú thích thì người chơi không biết chế độ đó
    là gì. Thay vào đó để chữ co tiếp: min của clamp hạ xuống 12px/9,5px, đủ để
