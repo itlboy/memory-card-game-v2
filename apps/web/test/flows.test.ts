@@ -1398,15 +1398,21 @@ describe('phiên bản ở cuối bảng Luật chơi', () => {
     expect(box.text()).toMatch(/(trước|vừa xong)/);        // tuổi bản build
   });
 
-  it('tuổi bản build đếm theo ngày/giờ/phút/giây và bỏ đơn vị bằng 0', async () => {
+  /*
+   * Chỉ kiểm ĐƯỜNG DÂY: bảng luật có gọi hàm đổi tuổi build thành chữ. Luật của
+   * hàm (giữ hai đơn vị, không in số 0) được kiểm tất định ở build-age.test.ts.
+   *
+   * Bản cũ của test này soi thẳng chuỗi và đòi "không có 0 phút" trong khi hàm
+   * lúc đó chỉ cắt số 0 ở đầu — nên nó ĐỎ đúng vào phút thứ 0 của mỗi giờ, tức
+   * thất thường theo giờ chạy CI. Test không được phụ thuộc lúc nó chạy.
+   */
+  it('tuổi bản build hiện theo đơn vị thời gian, không in số 0', async () => {
     await mountApp();
     await wrapper.find('[aria-label="Luật chơi"]').trigger('click');
     await flush();
     const txt = wrapper.find('.build').text();
-    // Mốc build trong test là 01/01/2026 nên tuổi phải tính bằng ngày
-    expect(txt).toMatch(/\d+ ngày/);
-    // Và không được hiện "0 ngày" / "0 giờ"
-    expect(txt).not.toMatch(/\b0 (ngày|giờ|phút)/);
+    expect(txt).toMatch(/\d+ (ngày|giờ|phút|giây) trước|vừa xong/);
+    expect(txt).not.toMatch(/\b0 (ngày|giờ|phút|giây)/);
   });
 });
 
