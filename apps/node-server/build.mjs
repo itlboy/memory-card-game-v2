@@ -23,7 +23,7 @@ await build({
   outfile: 'dist/server.mjs',
   bundle: true,
   platform: 'node',
-  target: 'node20',
+  target: 'node22',
   format: 'esm',
   sourcemap: true,
   external: ['ws'],

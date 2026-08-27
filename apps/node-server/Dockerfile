@@ -3,7 +3,7 @@
 # Vì sao gộp web vào đây: bản Cloudflare cũng gộp (một Worker phục vụ cả hai), nên
 # gộp ở đây thì hai bên hành xử giống nhau — không có chuyện web mới chạy với
 # server cũ. Chỉ cần mở đúng một cổng.
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 RUN corepack enable
 
@@ -20,7 +20,7 @@ COPY . .
 # Web build ra apps/web/dist; server gói thành một file
 RUN pnpm --filter @mm/web build && pnpm --filter @mm/node-server build
 
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080 WEB_DIR=/app/web
 # `ws` để external nên phải có thật trong ảnh chạy
