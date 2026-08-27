@@ -92,17 +92,16 @@ describe('ba mức phải THẬT SỰ khác nhau', () => {
 });
 
 describe('bật/tắt từng tuỳ chọn', () => {
-  // Mặc định nay là MỨC 1 ở cả năm hàng: người chơi mới gặp đủ năm luật, mỗi
-  // luật ở nấc nhẹ nhất. Trước đây mặc định tắt xáo và tắt mạng nên hai tính
-  // năng đó gần như không ai biết là có.
-  it('mặc định: cả năm luật đều BẬT ở mức nhẹ nhất', () => {
+  // Mặc định là BÀN TRƠN: cả năm hàng ở mức 0. Ván đầu của người chơi mới không
+  // có luật lạ nào; muốn gì thì tự bật, và lựa chọn được lưu cho lần sau.
+  it('mặc định: bàn trơn, không luật nào bật', () => {
     const c = build();
-    expect(c.timeLimit).toBeGreaterThan(0);
-    expect(c.lives, 'mạng phải bật').toBeGreaterThan(0);
-    expect(c.shuffleCount, 'xáo phải bật').toBeGreaterThan(0);
-    expect(c.peekMs, 'xem trước phải bật').toBeGreaterThan(0);
-    expect(c.specialRate).toBeGreaterThan(0);
-    for (const k of OPTION_KEYS) expect(DEFAULT_OPTIONS[k], `${k} mặc định`).toBe(1);
+    expect(c.timeLimit ?? null, 'không đồng hồ').toBeNull();
+    expect(c.lives ?? null, 'không mạng').toBeNull();
+    expect(c.shuffleCount ?? 0, 'không xáo').toBe(0);
+    expect(c.peekMs ?? 0, 'không hé bài').toBe(0);
+    expect(c.specialRate ?? 0, 'không thẻ đặc biệt').toBe(0);
+    for (const k of OPTION_KEYS) expect(DEFAULT_OPTIONS[k], `${k} mặc định`).toBe(0);
   });
 
   it('mức 0 nghĩa là cờ đó KHÔNG xuất hiện trong config', () => {

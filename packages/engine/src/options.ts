@@ -34,17 +34,16 @@ export const OPTION_KEYS = ['time', 'lives', 'peek', 'shuffle', 'special'] as co
 export type OptionKey = (typeof OPTION_KEYS)[number];
 
 /**
- * Mặc định = MỨC 1 ở cả năm hàng: mọi tính năng đều BẬT nhưng ở nấc nhẹ nhất.
+ * Mặc định = MỨC 0 ở cả năm hàng: bàn trơn, thuần trí nhớ.
  *
- * Chọn đồng đều mức 1 chứ không phải "tắt hết" hay "mỗi hàng một kiểu": bật
- * nhẹ thì người chơi lần đầu GẶP được cả năm luật (kể cả xáo thẻ và thẻ đặc
- * biệt — trước đây mặc định tắt nên gần như không ai thấy chúng tồn tại), mà
- * vẫn là nấc dễ thở nhất. Ai không thích hàng nào thì hạ về 0, và lựa chọn đó
- * được LƯU lại cho lần sau (xem `prefs` trong apps/web/src/lib/storage.ts) —
- * mặc định này chỉ áp cho người chơi mới.
+ * Không đồng hồ, không mạng, không hé bài, không xáo, không thẻ đặc biệt — ván
+ * đầu tiên của một người chơi mới là trò lật thẻ đúng nghĩa, không có luật lạ
+ * nào bất ngờ ập đến. Năm hàng tuỳ chọn nằm ngay đó để họ tự bật thứ mình muốn,
+ * và lựa chọn đó được LƯU cho lần sau (`prefs` trong apps/web/src/lib/storage.ts)
+ * nên mặc định này chỉ áp cho người chơi mới.
  */
 export const DEFAULT_OPTIONS: BoardOptions = {
-  time: 1, lives: 1, peek: 1, shuffle: 1, special: 1
+  time: 0, lives: 0, peek: 0, shuffle: 0, special: 0
 };
 
 /**
