@@ -312,6 +312,40 @@ pnpm smoke:online   # E2E: 2 client chơi trọn ván qua WebSocket (cần dev:s
 pnpm release        # build web + deploy CẢ web và server trong một Worker
 ```
 
+### Giả nhiều người vào phòng (`tools/gia-nguoi.mjs`)
+
+Test phòng đông người mà không phải mở 10 tab và tự bấm cho từng người:
+
+```bash
+node tools/gia-nguoi.mjs "https://thebai.hello314.com/?room=525473" --so 5
+node tools/gia-nguoi.mjs 525473 --so 3          # chỉ mã 6 số thì lấy MM_SERVER (mặc định :8787)
+```
+
+Mỗi người giả nối WebSocket như client thật: vào phòng → tự bấm sẵn sàng → tới
+lượt thì tự lật, có TRÍ NHỚ (nhớ mọi thẻ từng ngửa, kể cả do người khác lật) nên
+chơi ra dáng người thật. Hết ván tự bấm "Chơi lại". Ctrl+C là tất cả gửi `leave`
+rồi đóng, không để lại chỗ ma.
+
+| Cờ | Ý nghĩa |
+|---|---|
+| `--so <n>` | số người giả (mặc định 4; phòng tối đa 10 kể cả bạn) |
+| `--ten A,B,C` | đặt tên tay — chạy nhiều nhóm cùng lúc thì tên khỏi trùng |
+| `--tre <ms>` | nghĩ bao lâu trước khi lật (mặc định 900) |
+| `--no-nho` | lật bừa, không nhớ gì |
+| `--no-choi` | chỉ đứng cho đông, không chơi |
+| `--no-choi-lai` | hết ván thì thôi, không xin chơi lại |
+| `--tu-bat` | người giả đầu tiên nếu là CHỦ phòng thì tự bấm Bắt đầu — xem ván tự chạy mà không cần người thật |
+| `--emoji <ms>` | thỉnh thoảng thả emoji |
+| `GN_DEBUG=1` | in từng nước lật |
+
+Hai chỗ dễ sập khi sửa tool này: bàn cập nhật tới bằng `t:'events'` (có kèm
+`view`) chứ không chỉ `t:'state'` — chỉ nghe `state` là bot đứng im sau nước đầu;
+và emoji phải nằm trong `QUICK_EMOJIS` của engine, cái lạ bị server nuốt êm.
+Ván mới phải QUÊN SẠCH ký ức: bàn xáo lại nhưng chỉ số ô vẫn 0..n.
+
+"Chơi lại" đòi MỌI người còn kết nối cùng bấm, nên khi có người thật trong phòng
+thì bạn cũng phải bấm — bot chỉ lo phần của mình.
+
 ### Thẻ chia sẻ (og / twitter)
 
 `og:image` và `og:url` **buộc phải là URL tuyệt đối** — con bọ đọc thẻ (Facebook,

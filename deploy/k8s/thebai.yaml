@@ -128,7 +128,9 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    # Hai tên miền, MỘT pod. Client lấy địa chỉ server bằng `location.origin`
+    # Hai tên miền, MỘT pod. `thebai.hello314.com` là TÊN CHÍNH người chơi vào
+    # (từ 29.08.2026 — trước đó tên này trỏ vào Cloudflare Worker, nay đã đổi
+    # chỗ: Worker giữ `thebai2.hello314.com`, còn tên chính về cụm này). Client lấy địa chỉ server bằng `location.origin`
     # (xem apps/web/src/composables/useOnlineRoom.ts), nên mở bằng tên nào thì
     # phòng online chạy trên chính tên đó — không CORS, không cần build riêng
     # cho từng tên miền, và cả hai cùng đi theo bản mới mà Keel thay.
@@ -142,7 +144,7 @@ spec:
                 name: thebai-server
                 port:
                   number: 80
-    - host: thebai2.hello314.com
+    - host: thebai.hello314.com
       http:
         paths:
           - path: /

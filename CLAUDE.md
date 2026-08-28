@@ -84,6 +84,28 @@
   F5 không mất chỗ đứng; logo về trang chủ thì lau sạch URL (chủ đích).
   MenuScreen chỉ được đụng param `w`; App giữ phần còn lại.
 
+## Kích thước để TEST và VẼ MOCKUP
+
+- **Dùng VÙNG WEB, không phải kích thước màn hình.** Người chơi mở game trong
+  trình duyệt điện thoại, nên phải trừ thanh địa chỉ (trên) và thanh công cụ
+  (dưới) của Safari/Chrome. Lấy 932px cho iPhone 15 Pro Max là tự cho mình thừa
+  gần 200px không có thật — rồi mọi phép đo "không scroll" đều sai theo.
+
+  | máy | màn hình | **vùng web (dùng cái này)** |
+  |---|---|---|
+  | iPhone SE (nhỏ nhất còn phải đỡ) | 375 × 667 | **375 × 553** |
+  | iPhone 14 / 15 | 390 × 844 | **390 × 664** |
+  | iPhone 15 Pro Max | 430 × 932 | **430 × 745** |
+
+  Ba con số vùng web trên là mức thanh địa chỉ ĐANG HIỆN — trạng thái xấu nhất,
+  và là trạng thái người chơi thấy khi vừa mở trang. Cuộn xuống thì thanh thu
+  lại và cao thêm ~85px, nhưng đừng thiết kế dựa vào đó: màn phòng chờ và màn
+  chơi vốn KHÔNG SCROLL nên thanh không bao giờ tự thu.
+
+- Chỗ trống của BÀN THẺ thì đã trừ sẵn HUD và dải người chơi: 351×510 (SE) và
+  366×618 (iPhone 14) — xem `AREAS` trong `apps/web/test/board-fit.test.ts`.
+  Đừng lẫn hai loại số này với nhau.
+
 ## Quy trình
 
 - **NHÁNH: làm việc trên `develop`, KHÔNG commit thẳng vào `main`.** `main` là
@@ -161,8 +183,11 @@
   `strategy: Recreate`. Muốn scale thì thứ phải làm trước là ĐỊNH TUYẾN DÍNH
   theo mã phòng (mọi kết nối của một mã luôn về đúng một pod), không phải thêm
   kho dữ liệu.
-- **Cụm k8s ở nhà** (`deploy/k8s/`): server Node còn chạy thêm trên MicroK8s ở Hà Nội
-  tại `thebai-server.hello314.com`, namespace `thebai`. Push vào `main` → Action đẩy
+- **Cụm k8s ở nhà** (`deploy/k8s/`): server Node là bản CHÍNH, chạy trên MicroK8s ở Hà
+  Nội tại `thebai.hello314.com` (tên chính người chơi vào) và `thebai-server.hello314.com`,
+  namespace `thebai`. Cloudflare Worker lùi về `thebai2.hello314.com` làm dự phòng
+  (đổi chỗ ngày 29.08.2026 — tên miền của Worker là *Custom Domain* ở tầng account,
+  không nằm trong `wrangler.jsonc`; chi tiết ở sổ tay `my-secrets`). Push vào `main` → Action đẩy
   ảnh lên GHCR → **Keel** hỏi registry mỗi 2 phút rồi tự thay ảnh; KHÔNG có kubeconfig
   nào trong GitHub Secret. **`replicas` phải giữ nguyên 1 và `strategy: Recreate`** —
   phòng online nằm trong bộ nhớ tiến trình, hai pod là hai kho phòng riêng, người nhập

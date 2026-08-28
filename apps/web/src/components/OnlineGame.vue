@@ -448,6 +448,8 @@ watch(() => o.view.value?.summary, (s) => {
   position: relative; flex: 1 1 0; min-width: 0;
   display: flex; flex-direction: column; align-items: center;
   border-radius: 9px; padding: 1px 0;
+  /* Mỗi ô tự biết mình rộng bao nhiêu, để quyết định có đủ chỗ cho điểm không */
+  container-type: inline-size;
 }
 /* Người ĐI NGAY SAU: nền nhạt. Chỉ một dấu hiệu, không viền — mười ô có viền
    thì hàng này thành một dãy hộp, mắt không bắt được ô nào đang được chỉ. */
@@ -457,6 +459,20 @@ watch(() => o.view.value?.summary, (s) => {
 .mini .mpts {
   font-size: 10px; font-weight: 800; color: var(--muted);
   font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+/*
+ * Ô QUÁ HẸP THÌ BỎ ĐIỂM, giữ avatar.
+ *
+ * Đo trên iPhone SE (vùng web 375×553) với 10 người: mỗi ô chỉ còn 17,2px, mà
+ * "100" đã cần 18px — cả chín ô đều tràn, và số càng lớn càng thò sang ô bên
+ * cạnh (12345 thò 6,4px). Chữ chồng lên nhau đọc còn tệ hơn không có chữ.
+ *
+ * 22px là mốc đủ cho ba chữ số ở cỡ 10px. Mất điểm ở đây không mất thông tin:
+ * bảng đầy đủ (nút danh sách cuối dải) vẫn có điểm của mọi người, và người
+ * ĐANG ĐI thì điểm nằm ngay trên chip lượt.
+ */
+@container (max-width: 22px) {
+  .mini .mpts { display: none; }
 }
 .mini .dot {
   position: absolute; top: 0; right: 12%;

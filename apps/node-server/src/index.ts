@@ -312,11 +312,33 @@ async function khoiPhuc(): Promise<void> {
   console.log(`[kho] dựng lại ${daLuu.size} phòng từ lần chạy trước`);
 }
 
-/** Tắt êm: đẩy nốt phần đang chờ ghi, không thì mất vài giây cuối. */
+/**
+ * Tắt êm: đẩy nốt phần đang chờ ghi, rồi thoát.
+ *
+ * CÓ HẠN CHỜ, và đó là phần quan trọng: `dongKho()` chờ database nuốt nốt lô
+ * cuối, nhưng nếu database không phản hồi thì nó chờ MÃI. Đo được: treo
+ * MariaDB lại rồi gửi SIGTERM — tiến trình sống thêm 22 giây trước khi
+ * Kubernetes phải SIGKILL. Mà mỗi giây đó là một giây phòng online đứt, vì
+ * `Recreate` chờ pod cũ biến mất hẳn rồi mới dựng pod mới.
+ *
+ * 1,5 giây là quá đủ cho một lô ghi bình thường (gom 300ms, vài câu lệnh trên
+ * mạng nội bộ). Quá hạn thì bỏ, thoát luôn: mất vài trăm mili giây cuối của
+ * một phòng còn hơn giữ cả server không chết.
+ */
+const HAN_TAT_MS = 1500;
+let dangTat = false;
 for (const tin of ['SIGTERM', 'SIGINT'] as const) {
   process.on(tin, () => {
+    // Nhấn Ctrl+C hai lần, hoặc k8s gửi lại tín hiệu: đừng chạy chồng
+    if (dangTat) { process.exit(0); return; }
+    dangTat = true;
     void (async () => {
-      try { await kho?.dongKho(); } catch { /* đang tắt */ }
+      try {
+        await Promise.race([
+          kho?.dongKho() ?? Promise.resolve(),
+          new Promise((r) => setTimeout(r, HAN_TAT_MS))
+        ]);
+      } catch { /* đang tắt, kệ */ }
       process.exit(0);
     })();
   });
