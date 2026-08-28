@@ -126,8 +126,39 @@ export interface RoomBox {
  * ĐÚNG một cái: room.ts đặt lại alarm liên tục và trông đợi cái sau ghi đè cái
  * trước (`scheduleNext`).
  */
-export function taoBoiCanh(onAlarm: () => Promise<void>, khiRong: () => void): RoomBox {
-  const kho = new Map<string, unknown>();
+/**
+ * Móc để lưu phòng xuống kho bền (MySQL). Không truyền thì y như cũ: phòng chỉ
+ * sống trong RAM và biến mất khi tiến trình chết.
+ *
+ * `luu` được gọi sau MỖI thay đổi — kho tự lo việc gộp lại; ở đây không được
+ * `await` gì cả, vì hàm này nằm trên đường đi của mỗi nước lật thẻ.
+ */
+export interface MocLuu {
+  luu(duLieu: Record<string, unknown>, alarmLuc: number | null): void;
+  xoa(): void;
+}
+
+export function taoBoiCanh(
+  onAlarm: () => Promise<void>,
+  khiRong: () => void,
+  moc?: MocLuu,
+  banDau?: Record<string, unknown>
+): RoomBox {
+  const kho = new Map<string, unknown>(Object.entries(banDau ?? {}));
+  /** Mốc alarm đang hẹn — phải lưu kèm, không thì phòng khôi phục xong nằm chết
+   *  không ai đánh thức (ván không tick, phòng rác không được dọn). */
+  let alarmLuc: number | null = null;
+  /*
+   * ĐÃ DẸP HẲN. `depPhong()` gọi `deleteAll()` rồi `deleteAlarm()` ngay sau —
+   * mà `deleteAlarm` cũng lưu, nên nó GHI ĐÈ lệnh xoá bằng một bản ghi rỗng và
+   * phòng đã huỷ sống lại trong database dưới dạng rác. Đo được thật: huỷ một
+   * phòng mà số dòng trong bảng vẫn tăng.
+   *
+   * Sau khi dẹp thì mọi lệnh lưu đều bị bỏ qua — phòng này đã chết, không còn
+   * gì đáng ghi nữa.
+   */
+  let daDep = false;
+  const luu = (): void => { if (!daDep) moc?.luu(Object.fromEntries(kho), alarmLuc); };
   const box: RoomBox = {
     autoResponse: null,
     sockets: new Set(),
@@ -135,25 +166,32 @@ export function taoBoiCanh(onAlarm: () => Promise<void>, khiRong: () => void): R
     ctx: {
       storage: {
         get: async <T>(k: string) => kho.get(k) as T | undefined,
-        put: async (k, v) => { kho.set(k, v); },
-        delete: async (k) => kho.delete(k),
+        put: async (k, v) => { kho.set(k, v); luu(); },
+        delete: async (k) => { const co = kho.delete(k); luu(); return co; },
         deleteAll: async () => {
           kho.clear();
+          daDep = true;
+          moc?.xoa();
           // Phòng đã dọn sạch: bỏ luôn khỏi bảng phòng của tiến trình, không thì
           // mã phòng vẫn "tồn tại" vì bản ghi rỗng còn nằm đó.
           khiRong();
         },
         setAlarm: async (when: number) => {
           if (box.alarmTimer) clearTimeout(box.alarmTimer);
+          alarmLuc = when;
           const cho = Math.max(0, when - Date.now());
           box.alarmTimer = setTimeout(() => {
             box.alarmTimer = null;
+            alarmLuc = null;
             void onAlarm().catch((e) => console.error('[room] alarm lỗi:', e));
           }, cho);
+          luu();
         },
         deleteAlarm: async () => {
           if (box.alarmTimer) clearTimeout(box.alarmTimer);
           box.alarmTimer = null;
+          alarmLuc = null;
+          luu();
         }
       },
       acceptWebSocket: (ws, tags) => {

@@ -27,7 +27,9 @@ RUN pnpm --filter @mm/web build && pnpm --filter @mm/node-server build
 # `ws` cũng cài Ở ĐÂY (kiến trúc máy build) rồi COPY sang: nó là JS thuần, không
 # có phần biên dịch, nên `npm i` trong ảnh arm64 chỉ là thêm một lần QEMU vô ích.
 # Nhờ vậy ảnh cuối KHÔNG còn lệnh RUN nào — arm64 chỉ là mấy lớp COPY.
-RUN mkdir /deps && cd /deps && npm i --omit=dev ws@8 --silent
+# `mysql2` cùng đường với `ws`: để external nên phải có thật trong ảnh chạy.
+# Nó là JS thuần (không có phần biên dịch) nên cài ở tầng build rồi COPY sang.
+RUN mkdir /deps && cd /deps && npm i --omit=dev ws@8 mysql2@3 --silent
 
 FROM node:22-alpine
 WORKDIR /app

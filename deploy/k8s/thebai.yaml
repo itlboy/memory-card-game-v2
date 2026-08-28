@@ -27,10 +27,13 @@ metadata:
     keel.sh/trigger: poll
     keel.sh/pollSchedule: "@every 2m"
 spec:
-  # PHẢI LÀ 1. Phòng online nằm trong BỘ NHỚ của tiến trình (không có Redis,
-  # không có Durable Object ở bản Node), nên hai pod là hai kho phòng riêng:
-  # người tạo phòng vào pod A, người nhập mã vào pod B sẽ báo "không có phòng".
-  # Muốn scale thì phải làm tầng chia sẻ trạng thái trước.
+  # PHẢI LÀ 1, KỂ CẢ KHI ĐÃ CÓ MYSQL. Phòng có được lưu xuống database thì đó
+  # cũng chỉ là để sống sót qua một lần thay ảnh — nó KHÔNG cho chạy nhiều pod:
+  # WebSocket dính vào một pod, engine chạy trong RAM của chính pod đó, alarm là
+  # setTimeout trong pod, và broadcast không đi qua database. Hai pod là hai bản
+  # sao cùng một phòng ghi đè nhau, còn hai người cùng mã phòng thì không thấy
+  # nhau. Thứ phải làm trước khi scale là ĐỊNH TUYẾN DÍNH theo mã phòng, không
+  # phải thêm kho dữ liệu.
   replicas: 1
   strategy:
     # Recreate chứ không RollingUpdate: rolling sẽ có lúc hai pod cùng sống,
@@ -57,6 +60,22 @@ spec:
               value: "8080"
             - name: NODE_ENV
               value: production
+            # Phòng ghi xuống MySQL để CẬP NHẬT ẢNH KHÔNG MẤT PHÒNG (xem
+            # mysql.yaml và apps/node-server/src/kho-mysql.ts). Bỏ biến này thì
+            # server vẫn chạy — chỉ quay lại hành vi cũ: phòng chỉ ở trong RAM.
+            # Ghi là ghi TRỄ nên MySQL không nằm trên đường đi của nước lật thẻ.
+            # THỨ TỰ QUAN TRỌNG: k8s chỉ thay $(VAR) bằng biến đã khai
+            # TRƯỚC nó trong danh sách này. Đặt MYSQL_URL lên trên là nó giữ
+            # nguyên chuỗi "$(MYSQL_ROOT_PASSWORD)" và mọi kết nối sai mật khẩu.
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: thebai-mysql
+                  key: MYSQL_ROOT_PASSWORD
+            # Mật khẩu nằm trong URL nên PHẢI tránh ký tự @ : / ? # trong đó —
+            # không thì URL vỡ. Chọn mật khẩu chỉ gồm chữ và số là xong.
+            - name: MYSQL_URL
+              value: "mysql://root:$(MYSQL_ROOT_PASSWORD)@thebai-mysql:3306/latthe"
           readinessProbe:
             httpGet: { path: /health, port: http }
             initialDelaySeconds: 3
