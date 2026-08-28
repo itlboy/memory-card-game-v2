@@ -1,0 +1,48 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Hiện tại · 179px cho hai khối",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 780
+    },
+    {
+      "file": "MotHang.dc.html",
+      "title": "A · Một hàng (56px)",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 780
+    },
+    {
+      "file": "MaTrenTieuDe.dc.html",
+      "title": "B · Mã lên tiêu đề (32px)",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 780
+    },
+    {
+      "file": "MoRaKhiCan.dc.html",
+      "title": "C · Mở ra khi cần (40px)",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 780
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-gon",
+      "x": 0,
+      "y": -230,
+      "w": 1800,
+      "text": "PHÒNG CHỜ GỌN HƠN — chỗ tiết kiệm được đổi thẳng thành dòng người chơi (mỗi dòng 54px).\n\nHiện tại: mã phòng 107px + công khai/riêng tư 72px = 179px cho hai thứ chỉ dùng lúc mời bạn, trong khi phòng chứa tới 10 người.\nBa phương án đều giữ: vùng chạm ≥44px, không scroll, trạng thái đổi tức thì.\n\nA — gộp hết vào một dải: mã to vừa đủ đọc qua điện thoại, hai nút chia sẻ thành icon, công tắc thành chip. Đổi lại chip công khai hẹp, chữ phải ngắn.\nB — mã nằm ngay trong tiêu đề (hàng đó vốn đã có, không tốn thêm dòng nào), chia sẻ thành một nút icon, công tắc là chip 32px. Gọn nhất, nhưng mã bé nhất — đọc mã cho bạn qua điện thoại sẽ khó hơn.\nC — bình thường chỉ một dải mỏng 40px; chạm \"Mời bạn\" mới bung ra hai nút copy. Hợp với thực tế: mã phòng dùng đúng một lần lúc mời, sau đó nằm không."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
