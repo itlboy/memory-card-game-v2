@@ -62,11 +62,19 @@ jobs:
             curl -sf -m 1 http://127.0.0.1:8090/health >/dev/null && break || sleep 1
           done
           export MM_SERVER=http://127.0.0.1:8090
-          node tools/smoke-online.mjs
-          node tools/smoke-options.mjs
-          node tools/smoke-peek.mjs
-          node tools/smoke-leave-cancel.mjs
+          # Bốn bộ smoke chạy SONG SONG: mỗi bộ tự tạo phòng riêng bằng mã riêng
+          # nên không bộ nào thấy phòng của bộ khác. Đo thật trên server Node:
+          # 50s tuần tự → 16s song song. Phải tự gom exit code — `wait` không có
+          # tham số trả về 0 kể cả khi một tiến trình con chết, là cách chắc nhất
+          # để smoke đỏ mà ảnh vẫn được đẩy đi.
+          pids=""
+          for s in online options peek leave-cancel; do
+            node "tools/smoke-$s.mjs" & pids="$pids $!"
+          done
+          rc=0
+          for p in $pids; do wait "$p" || rc=1; done
           kill "$(cat /tmp/srv.pid)"
+          exit $rc
 
   dong-anh:
     name: Đóng và đẩy ảnh
