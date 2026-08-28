@@ -652,13 +652,27 @@ input:focus { outline: none; border-color: var(--accent); }
 .options.loose > .option:not(.wide) > .opt-icon { grid-row: span 2; }
 /* LUÔN 3 cột — cột app cố định 440px, không đổi theo breakpoint */
 .options.wiz-grids { grid-template-columns: repeat(3, 1fr); }
-.options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 12 theme = 3×4 */
+.options.wiz-themes { grid-template-columns: repeat(3, 1fr); }   /* 15 theme = 3×5 */
 .options.wiz-grids .option { padding: 6px 4px; gap: 2px; }
 .options.wiz-grids strong { font-size: clamp(15.5px, 19cqw, 24px); }
 .options.wiz-grids small, .theme-opt small { font-size: clamp(11.5px, 12cqw, 14px); }
 /* Đủ specificity để thắng `.option { padding: 24px 16px }` viết bên dưới */
 .options.wiz-themes .option.theme-opt { padding: 8px 5px; gap: 4px; position: relative; }
-@container (max-height: 74px) {
+/* NGƯỠNG ĐO TRÊN CONTENT BOX, KHÔNG PHẢI CHIỀU CAO Ô — `.option` có
+   `container-type: size` nên truy vấn nhận chiều cao PHẦN NỘI DUNG (ô trừ
+   padding 8+8 và viền 2+2).
+
+   Phải KHỚP với ngưỡng bên `MenuScreen.vue`: hai màn cùng vẽ một lưới theme,
+   để lệch là một màn mất emoji còn màn kia không, và không test nào đỏ. Đúng
+   lỗi đã xảy ra: MenuScreen sửa xuống 45px còn chỗ này vẫn 74px, nên phòng
+   online mất emoji trên iPhone.
+
+   Đo thật bằng CDP ở 430 rộng, dpr3, mobile (display của .theme-sample ·
+   contentBox của .theme-opt), với ngưỡng cũ 74px:
+     932 ô 116.8 content 96.8 hiện · 800 ô 90.4 content 70.4 ẨN · 740 ô 78.4
+     content 58.4 ẩn · 720 ô 74.4 content 54.4 ẩn · 667 ô 63.8 content 43.8 ẩn
+   Safari trên iPhone 15 Pro Max còn ~740px cao → ô 78px, thừa chỗ mà vẫn ẩn. */
+@container (max-height: 45px) {
   .theme-sample { display: none; }
 }
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
