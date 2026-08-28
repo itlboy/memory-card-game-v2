@@ -776,7 +776,13 @@ function openCfgWizard(): void {
 .online { display: flex; flex-direction: column; height: 100%; }
 /* ---------- DANH SÁCH PHÒNG CÔNG KHAI (ON-10) ---------- */
 
-.tao-phong { margin-top: 0; }
+/* `.btn-primary` toàn cục KHÔNG phải flex — chữ nằm theo dòng bình thường.
+   Nút này là nút primary duy nhất có icon, mà SVG inline thì canh theo baseline
+   của chữ nên dấu + tụt xuống lệch hẳn. Cho riêng nút này thành flex. */
+.tao-phong {
+  margin-top: 0;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
 .list-head { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; }
 .list-head h3 { flex: 1; margin: 0; font-family: var(--font-display); font-size: var(--text-md); }
 .list-head .count {
