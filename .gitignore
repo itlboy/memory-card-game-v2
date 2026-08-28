@@ -8,3 +8,9 @@ dist/
 
 # Ảnh chụp kiểm tra giao diện lỡ ghi vào thư mục "undefined" (đường dẫn sai)
 undefined/
+
+# Canvas thiết kế: giữ NGUỒN (.dc.html + canvas.json), bỏ BẢN DỰNG.
+# File dựng nặng ~2,6MB vì nhúng cả code editor vào; dựng lại được bằng một
+# lệnh từ đám nguồn cạnh nó, nên vào git chỉ tổ phồng repo mỗi lần sửa.
+.design/*.html
+!.design/*.dc.html

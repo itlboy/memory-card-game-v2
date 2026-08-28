@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+:root{
+  --font-display:'Baloo 2','Nunito',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,sans-serif;
+  --text-xs:11.5px;--text-sm:13px;--text-md:15.5px;--text-lg:18px;--text-xl:22px;
+  --bg:#edeffa;--panel:rgba(255,255,255,.86);--panel-solid:#ffffff;--panel-soft:#f5f6ff;
+  --fg:#1c1f36;--muted:#63698c;--accent:#6a5cff;--accent-2:#c44cf0;
+  --accent-soft:rgba(106,92,255,.13);--line:rgba(96,92,168,.17);--line-strong:rgba(96,92,168,.3);
+  --ok:#0b815a;--gold:#b88600;--bad:#dd1f25;
+  --elev-1:0 1px 3px rgba(30,27,75,.09),0 4px 14px rgba(30,27,75,.08);
+  --elev-2:0 2px 6px rgba(30,27,75,.1),0 12px 32px rgba(30,27,75,.14);
+  --inner-light:inset 0 1px 0 rgba(255,255,255,.65);
+  --cyan-a:#109edb;--cyan-b:#1aa793;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;width:390px;height:844px;overflow:hidden;
+  font:400 16px/1.5 var(--font-body);color:var(--fg);
+  background:
+    radial-gradient(52rem 34rem at 88% -10%,rgba(124,92,255,.2),transparent 60%),
+    radial-gradient(46rem 32rem at -12% 104%,rgba(56,189,248,.16),transparent 55%),
+    var(--bg);
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:#5947e8}
+.app{display:flex;flex-direction:column;gap:14px;height:100%;padding:16px 14px}
+.ttl{margin:0;font-family:var(--font-display);font-size:var(--text-lg);font-weight:700}
+.sub{margin:0;font-size:var(--text-xs);color:var(--muted);line-height:1.45}
+.case{display:flex;flex-direction:column;gap:7px}
+.cap{
+  display:flex;align-items:center;gap:6px;
+  font-size:var(--text-xs);font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.card{
+  background:var(--panel);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:18px;padding:14px;
+  box-shadow:var(--elev-2),var(--inner-light);
+}
+.tradeoff{
+  margin-top:auto;padding:12px 13px;border-radius:14px;
+  background:rgba(255,255,255,.6);border:1px solid var(--line);
+  font-size:var(--text-xs);line-height:1.5;color:var(--muted);
+}
+.tradeoff b{color:var(--fg)}
+.seg{
+  display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:6px;
+  padding:5px;border-radius:16px;background:var(--panel-soft);
+  border:1px solid var(--line);
+}
+.seg .opt{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:52px;padding:7px 8px;border-radius:12px;
+  border:2px solid transparent;background:transparent;color:var(--muted);
+  font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;
+}
+.seg .opt.sel{
+  color:#fff;border-color:transparent;
+  background:linear-gradient(150deg,var(--cyan-a),var(--cyan-b));
+  box-shadow:var(--elev-1),inset 0 1px 0 rgba(255,255,255,.32);
+}
+.seg .opt .ic{display:flex}
+.seg .opt.sel.priv{background:linear-gradient(150deg,#6f5bd6,#8f4fd0)}
+.hint{
+  display:flex;align-items:flex-start;gap:7px;margin-top:9px;
+  font-size:var(--text-xs);line-height:1.45;color:var(--muted);
+}
+.hint .dot{
+  flex-shrink:0;width:7px;height:7px;margin-top:5px;border-radius:99px;
+  background:var(--cyan-a);
+}
+.hint.priv .dot{background:#8f4fd0}
+.ro .seg{opacity:1}
+.ro .opt:not(.sel){opacity:.42}
+.rotag{
+  display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:3px 9px;
+  border-radius:99px;background:var(--accent-soft);
+  font-size:var(--text-xs);font-weight:700;color:var(--accent);
+}
+  </style>
+</helmet>
+<div class="app">
+  <div>
+    <h1 class="ttl">A · Hai ô cạnh nhau</h1>
+    <p class="sub">Cả hai lựa chọn cùng hiện. Ô đang chọn bùng màu, ô kia xám — đọc một cái là biết mình đang ở đâu và bấm sang đâu.</p>
+  </div>
+
+  <div class="case">
+    <span class="cap">Chủ phòng · đang công khai</span>
+    <div class="card">
+      <div class="seg">
+        <span class="opt sel"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg></span>Công khai</span>
+        <span class="opt"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>Riêng tư</span>
+      </div>
+      <div class="hint"><span class="dot"></span>Đang hiện trong danh sách phòng — ai cũng vào được.</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <span class="cap">Chủ phòng · đang riêng tư</span>
+    <div class="card">
+      <div class="seg">
+        <span class="opt"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg></span>Công khai</span>
+        <span class="opt sel priv"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>Riêng tư</span>
+      </div>
+      <div class="hint priv"><span class="dot"></span>Không hiện trong danh sách — chỉ ai có mã 6 số mới vào được.</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <span class="cap">Khách · chỉ đọc</span>
+    <div class="card ro">
+      <div class="seg">
+        <span class="opt"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg></span>Công khai</span>
+        <span class="opt sel priv"><span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></span>Riêng tư</span>
+      </div>
+      <span class="rotag"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg> Chỉ chủ phòng đổi được</span>
+    </div>
+  </div>
+
+  <div class="tradeoff">
+    <b>Được:</b> rõ nhất — trạng thái và lựa chọn còn lại nằm cạnh nhau, không phải suy ra từ một cái công tắc.<br>
+    <b>Mất:</b> cao hơn công tắc cũ ~26px, và ô không chọn vẫn chiếm chỗ.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
