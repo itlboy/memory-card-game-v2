@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@mm/engine": "workspace:*",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "mysql2": "^3.11.5"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",

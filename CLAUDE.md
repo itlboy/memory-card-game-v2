@@ -121,6 +121,26 @@
   + bộ smoke THẲNG vào server Node rồi mới đẩy ảnh lên GHCR (amd64 + arm64, vì
   VPS ở Việt Nam hay là ARM). Deploy Cloudflare vẫn là `pnpm release` chạy tay —
   Action không đụng tới.
+- **PHÒNG LƯU XUỐNG MYSQL** (`apps/node-server/src/kho-mysql.ts`, bật bằng biến
+  `MYSQL_URL`): không có nó thì mỗi lần Keel thay ảnh là mọi phòng đang mở biến
+  mất. Ghi là GHI TRỄ (gộp 300ms, chạy sau) vì `save()` chạy sau MỖI nước lật
+  thẻ — MySQL không được nằm trên đường đi của một nước đi; đo bằng bộ smoke thì
+  có và không có MySQL không phân biệt được. Nguồn ĐỌC vẫn là Map trong RAM.
+  Không đặt `MYSQL_URL` thì server chạy y như cũ, nên dev và CI không cần
+  database. Khôi phục lúc khởi động PHẢI đặt lại alarm (ở Node alarm chỉ là
+  `setTimeout`, chết theo tiến trình) — thiếu là phòng nằm chết, ván không tick.
+  Và sau `deleteAll()` mọi lệnh lưu phải bị BỎ QUA: `depPhong()` gọi
+  `deleteAlarm()` ngay sau đó, mà nó cũng lưu, nên nó ghi đè lệnh xoá bằng một
+  bản ghi rỗng và phòng đã huỷ sống lại thành rác. Cả hai lỗi này đã xảy ra
+  thật; `tools/smoke-kho.mjs` canh (cần server có `MYSQL_URL`, truyền
+  `--restart "<lệnh>"` để kiểm cả phần khởi động lại).
+- **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
+  WebSocket dính vào một pod, engine chạy trong RAM pod đó, alarm cũng ở đó, và
+  broadcast không đi qua database — hai pod là hai bản sao cùng một phòng ghi đè
+  nhau, hai người cùng mã phòng không thấy nhau. `replicas` vẫn PHẢI là 1 và
+  `strategy: Recreate`. Muốn scale thì thứ phải làm trước là ĐỊNH TUYẾN DÍNH
+  theo mã phòng (mọi kết nối của một mã luôn về đúng một pod), không phải thêm
+  kho dữ liệu.
 - **Cụm k8s ở nhà** (`deploy/k8s/`): server Node còn chạy thêm trên MicroK8s ở Hà Nội
   tại `thebai-server.hello314.com`, namespace `thebai`. Push vào `main` → Action đẩy
   ảnh lên GHCR → **Keel** hỏi registry mỗi 2 phút rồi tự thay ảnh; KHÔNG có kubeconfig

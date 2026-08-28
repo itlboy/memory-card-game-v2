@@ -1,0 +1,218 @@
+# MariaDB + phpMyAdmin cho Lật Thẻ — chỗ lưu phòng để CẬP NHẬT ẢNH KHÔNG MẤT PHÒNG.
+#
+# Vì sao có: phòng của server Node nằm trong RAM tiến trình, nên mỗi lần Keel
+# thay ảnh là mọi phòng đang mở biến mất — người chơi giữa ván bị văng ra, mã
+# phòng chết theo. Server ghi phòng xuống đây (xem apps/node-server/src/kho-mysql.ts)
+# và dựng lại lúc khởi động.
+#
+# CÁI NÀY KHÔNG CHO CHẠY NHIỀU POD. Nó chỉ giải quyết "sống sót qua deploy".
+# Nhiều pod vướng chỗ khác hẳn: WebSocket dính vào một pod, engine chạy trong
+# RAM pod đó, alarm cũng ở đó. Muốn nhiều pod thì phải có ĐỊNH TUYẾN DÍNH theo
+# mã phòng trước — xem ghi chú cuối file.
+#
+# Ghi là GHI TRỄ (gộp 300ms, chạy sau): MySQL không nằm trên đường đi của một
+# nước lật thẻ. Đo bằng bộ smoke: có và không có MySQL đều 7,6–9,6 giây, không
+# phân biệt được.
+# ---------- MẬT KHẨU KHÔNG NẰM TRONG FILE NÀY ----------
+#
+# Secret `thebai-mysql` cố ý KHÔNG khai ở đây. Để nó trong manifest thì mỗi lần
+# `kubectl apply -f` là ghi đè mật khẩu thật bằng chuỗi mẫu trong repo —
+# database vẫn chạy với mật khẩu cũ trong ổ đĩa, còn pod thì nối bằng mật khẩu
+# mới: sai mật khẩu, phòng không lưu được, mà không có gì báo đỏ.
+#
+# Tạo một lần bằng tay (mật khẩu thật cất trong my-secrets):
+#
+#   kubectl -n thebai create secret generic thebai-mysql \
+#     --from-literal=MARIADB_ROOT_PASSWORD='<mật khẩu>' \
+#     --from-literal=MYSQL_ROOT_PASSWORD='<cùng mật khẩu>' \
+#     --from-literal=MARIADB_DATABASE=latthe \
+#     --from-literal=MYSQL_DATABASE=latthe
+#
+# Mật khẩu CHỈ GỒM CHỮ VÀ SỐ: nó được nhét vào MYSQL_URL, mà @ : / ? # làm vỡ
+# URL. Khai cả hai tiền tố vì ảnh mariadb đọc MARIADB_*, còn MYSQL_* giữ cho
+# tương thích nếu sau này đổi lại ảnh mysql.
+# StatefulSet, KHÔNG phải Deployment: đây là workload có trạng thái.
+#
+#  - `volumeClaimTemplates` buộc ổ đĩa vào ĐÚNG danh tính pod (thebai-mysql-0),
+#    nên không có chuyện pod mới vô tình mọc ra bên cạnh và cùng gắn một ổ.
+#  - Deployment thì tính an toàn đó chỉ đến từ việc NHỚ giữ `strategy: Recreate`.
+#    Ai đó đổi sang RollingUpdate là có lúc hai mariadbd cùng ghi một thư mục
+#    dữ liệu — hỏng dữ liệu, mà không có gì chặn.
+#  - Tên pod cố định, và PVC KHÔNG bị xoá theo khi xoá StatefulSet: dữ liệu
+#    không biến mất chỉ vì một lần `kubectl delete`.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: thebai-mysql
+  namespace: thebai
+  labels: { app: thebai-mysql }
+spec:
+  serviceName: thebai-mysql
+  replicas: 1
+  selector:
+    matchLabels: { app: thebai-mysql }
+  template:
+    metadata:
+      labels: { app: thebai-mysql }
+    spec:
+      containers:
+        - name: mariadb
+          # MariaDB, không phải MySQL của Oracle. Ảnh có sẵn arm64 — cụm ở Hà
+          # Nội chạy ARM nên đây là điều kiện bắt buộc, không phải tuỳ chọn.
+          image: mariadb:12.3.3
+          args:
+            # Phòng là dữ liệu SỐNG NGẮN, mất vài giây cuối khi mất điện cũng
+            # chỉ là mất một nước đi. Đổi lấy: không phải fsync mỗi giao dịch.
+            - --innodb-flush-log-at-trx-commit=2
+          envFrom:
+            - secretRef: { name: thebai-mysql }
+          ports:
+            - name: mysql
+              containerPort: 3306
+          volumeMounts:
+            - name: du-lieu
+              mountPath: /var/lib/mysql
+          # Chờ MySQL thật sự trả lời được rồi mới cho server nối vào
+          # `healthcheck.sh` là script ảnh mariadb kèm sẵn — dùng nó thay cho
+          # `mysqladmin ping` thì không phải nhét mật khẩu vào dòng lệnh (nó bị
+          # thấy trong `ps` của container).
+          readinessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 100m, memory: 512Mi }
+            limits: { memory: 1Gi }
+  volumeClaimTemplates:
+    - metadata:
+        name: du-lieu
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            # Một phòng cỡ vài KB, và phòng chết bị xoá khỏi bảng. 2Gi là rộng
+            # rãi tới mức không bao giờ phải nghĩ lại.
+            storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thebai-mysql
+  namespace: thebai
+spec:
+  # HEADLESS (clusterIP: None) — service quản danh tính của StatefulSet. Chỉ
+  # nghe TRONG cụm, không ingress: database không bao giờ hở ra Internet.
+  # Với một replica, `thebai-mysql:3306` phân giải thẳng ra IP của pod.
+  clusterIP: None
+  selector: { app: thebai-mysql }
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+---
+# ---------- phpMyAdmin: chỗ NHÌN vào dữ liệu ----------
+#
+# Đặt sau Cloudflare Access hoặc Basic Auth trước khi mở ra Internet: nó cho
+# toàn quyền trên database. Ingress dưới đây đã bật basic-auth, cần một Secret
+# `thebai-mysql-auth` kiểu htpasswd — cách tạo ghi ở cuối file.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thebai-phpmyadmin
+  namespace: thebai
+  labels: { app: thebai-phpmyadmin }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: thebai-phpmyadmin }
+  template:
+    metadata:
+      labels: { app: thebai-phpmyadmin }
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin:5-apache
+          env:
+            - name: PMA_HOST
+              value: thebai-mysql
+            - name: PMA_PORT
+              value: "3306"
+            # Đăng nhập bằng chính tài khoản MySQL, không nhét sẵn mật khẩu vào
+            # trang — ai mở được trang vẫn phải biết mật khẩu database.
+            - name: UPLOAD_LIMIT
+              value: 16M
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            requests: { cpu: 20m, memory: 96Mi }
+            limits: { memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thebai-phpmyadmin
+  namespace: thebai
+spec:
+  type: ClusterIP
+  selector: { app: thebai-phpmyadmin }
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thebai-phpmyadmin
+  namespace: thebai
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # HAI LỚP KHÓA, vì trang này cho toàn quyền trên database:
+    #   1. basic auth ở ingress (Secret thebai-mysql-auth),
+    #   2. mật khẩu MySQL ở chính trang đăng nhập.
+    # Bỏ lớp 1 thì cả Internet gõ thử mật khẩu database của bạn được.
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: thebai-mysql-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Lat The quan tri database"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: pa-thebai.hello314.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-phpmyadmin
+                port:
+                  number: 80
+# ---------------------------------------------------------------------------
+# ÁP DỤNG
+#
+#   1. Đổi MYSQL_ROOT_PASSWORD ở Secret bên trên (mật khẩu thật để my-secrets).
+#   2. Tạo khoá cho trang quản trị:
+#        htpasswd -c auth <tên-đăng-nhập>
+#        kubectl -n thebai create secret generic thebai-mysql-auth --from-file=auth
+#   3. kubectl apply -f deploy/k8s/mysql.yaml
+#   4. Thêm MYSQL_URL vào Deployment thebai-server (xem thebai.yaml) rồi apply.
+#
+# Trang quản trị: https://pa-thebai.hello314.com (wildcard *.hello314.com đã trỏ
+# sẵn tunnel, không phải thêm DNS). Đăng nhập bằng chính tài khoản MariaDB.
+#
+# VỀ NHIỀU POD — cái này KHÔNG mở đường cho việc đó:
+#   - WebSocket dính vào một pod; hai người cùng phòng có thể rơi vào hai pod
+#     khác nhau và không thấy nhau (broadcast không đi qua database).
+#   - Engine sống trong RAM của pod; hai pod cùng nạp một phòng rồi ghi đè nhau.
+#   - Alarm là setTimeout trong pod, hai pod là đồng hồ chạy đôi.
+#   - Sổ phòng công khai cũng là Map trong RAM từng pod.
+# Muốn nhiều pod thì thứ cần là ĐỊNH TUYẾN DÍNH theo mã phòng — mọi kết nối của
+# một mã luôn về đúng một pod — chứ không phải thêm database. Đó chính là thứ
+# Durable Object cho sẵn ở bản Cloudflare.

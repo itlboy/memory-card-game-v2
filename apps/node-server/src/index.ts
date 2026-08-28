@@ -5,6 +5,7 @@ import { WebSocketServer, type WebSocket as WsSocket } from 'ws';
 import { ROOM_LIMITS } from '@mm/engine';
 import { RoomDO } from '../../server/src/room.js';
 import { soPhongTrongRam } from '../../server/src/sophong.js';
+import { moKho, type Kho } from './kho-mysql.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -86,13 +87,18 @@ const soPhong = soPhongTrongRam();
  * ở đó mọi mã đều "có" một Durable Object, còn phòng CÓ THẬT hay không thì
  * `exists()` mới trả lời — nên ở đây cũng dựng vô điều kiện.
  */
-function layPhong(code: string): Phong {
+function layPhong(code: string, banDau?: Record<string, unknown>): Phong {
   const co = phongs.get(code);
   if (co) return co;
   let p: Phong;
   const box = taoBoiCanh(
     () => p.room.alarm(),
-    () => { phongs.delete(code); }
+    () => { phongs.delete(code); kho?.xoa(code); },
+    kho ? {
+      luu: (duLieu, alarmLuc) => kho!.ghi(code, duLieu, alarmLuc),
+      xoa: () => kho!.xoa(code)
+    } : undefined,
+    banDau
   );
   // `RoomDO` chỉ đọc `this.ctx`; `env` không dùng tới ở nhánh nào của Node.
   // `RoomDO` đọc `this.ctx` và `this.env.SO_PHONG` (sổ phòng công khai).
@@ -275,8 +281,54 @@ server.on('upgrade', (req, socket, head) => {
   });
 });
 
+/* ---------- kho bền: phòng sống sót qua cập nhật ảnh ---------- */
+
+let kho: Kho | null = null;
+
+/**
+ * Dựng lại các phòng đã lưu, rồi mới nhận request.
+ *
+ * Thứ PHẢI làm cùng: đặt lại alarm. Ở CF, alarm là của Durable Object nên nó
+ * sống qua mọi thứ; ở Node nó chỉ là `setTimeout`, chết theo tiến trình. Thiếu
+ * bước này thì phòng khôi phục xong nằm chết — ván không tick, người rớt không
+ * bao giờ bị xử, phòng rác không ai dọn. Mốc đã qua thì chạy NGAY (đặt 0), đó
+ * đúng là việc lẽ ra phải làm trong lúc server đang tắt.
+ *
+ * KHÔNG đụng gì tới `disconnectedAt` của người chơi: sau khởi động lại không
+ * còn socket nào, mà `connected()` đã tính cả điều kiện "có socket" nên tự khắc
+ * đúng. Việc phát hiện ai đã đi hẳn để watchdog trong room.ts lo, y như một lần
+ * mất mạng bình thường — thêm luật riêng cho ca này là bắt đầu có HAI bộ luật.
+ */
+async function khoiPhuc(): Promise<void> {
+  if (!kho) return;
+  const daLuu = await kho.napTatCa();
+  if (!daLuu.size) return;
+  for (const [code, { duLieu, alarmLuc }] of daLuu) {
+    const { box } = layPhong(code, duLieu);
+    if (alarmLuc !== null) {
+      void box.ctx.storage.setAlarm(Math.max(alarmLuc, Date.now()));
+    }
+  }
+  console.log(`[kho] dựng lại ${daLuu.size} phòng từ lần chạy trước`);
+}
+
+/** Tắt êm: đẩy nốt phần đang chờ ghi, không thì mất vài giây cuối. */
+for (const tin of ['SIGTERM', 'SIGINT'] as const) {
+  process.on(tin, () => {
+    void (async () => {
+      try { await kho?.dong(); } catch { /* đang tắt */ }
+      process.exit(0);
+    })();
+  });
+}
+
+kho = await moKho(process.env.MYSQL_URL);
+await khoiPhuc();
+
 server.listen(PORT, () => {
   console.log(`Lật Thẻ — server dự phòng chạy ở http://localhost:${PORT}`);
   console.log(`  web tĩnh: ${WEB_DIR}`);
-  console.log('  phòng nằm trong RAM: restart là mất phòng đang mở');
+  console.log(kho
+    ? '  phòng lưu xuống MySQL: cập nhật ảnh không mất phòng đang mở'
+    : '  phòng nằm trong RAM: restart là mất phòng đang mở (đặt MYSQL_URL để giữ)');
 });
