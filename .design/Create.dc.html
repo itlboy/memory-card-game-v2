@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+:root{
+  --font-display:'Baloo 2','Nunito',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,sans-serif;
+  --text-xs:11.5px;--text-sm:13px;--text-md:15.5px;--text-lg:18px;--text-xl:22px;
+  --bg:#edeffa;--panel:rgba(255,255,255,.86);--panel-solid:#ffffff;--panel-soft:#f5f6ff;
+  --fg:#1c1f36;--muted:#63698c;--accent:#6a5cff;--accent-2:#c44cf0;
+  --accent-soft:rgba(106,92,255,.13);--line:rgba(96,92,168,.17);--line-strong:rgba(96,92,168,.3);
+  --ok:#0b815a;--gold:#b88600;--bad:#dd1f25;--muted-line:rgba(96,92,168,.17);
+  --elev-1:0 1px 3px rgba(30,27,75,.09),0 4px 14px rgba(30,27,75,.08);
+  --elev-2:0 2px 6px rgba(30,27,75,.1),0 12px 32px rgba(30,27,75,.14);
+  --card-back-glow:rgba(106,92,255,.4);
+  --inner-light:inset 0 1px 0 rgba(255,255,255,.65);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;width:390px;height:844px;overflow:hidden;
+  font:400 16px/1.5 var(--font-body);color:var(--fg);
+  background:
+    radial-gradient(52rem 34rem at 88% -10%,rgba(124,92,255,.2),transparent 60%),
+    radial-gradient(46rem 32rem at -12% 104%,rgba(56,189,248,.16),transparent 55%),
+    var(--bg);
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:#5947e8}
+.app{display:flex;flex-direction:column;height:100%;padding:8px}
+.panel{
+  display:flex;flex-direction:column;flex:1;min-height:0;
+  background:var(--panel);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:18px;padding:20px;
+  box-shadow:var(--elev-2),var(--inner-light);
+}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.head h2{flex:1;margin:0;font-family:var(--font-display);font-size:19px;font-weight:700}
+.back{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;min-height:44px;padding:4px 12px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-solid);
+  box-shadow:var(--elev-1),var(--inner-light);color:var(--fg);
+}
+.btn-primary{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:50px;width:100%;border:0;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;letter-spacing:.02em;
+  box-shadow:0 8px 22px var(--card-back-glow),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:8px 12px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-solid);
+  box-shadow:var(--elev-1),var(--inner-light);color:var(--fg);
+  font:inherit;font-size:var(--text-sm);font-weight:700;
+}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field span{font-size:var(--text-sm);font-weight:700;color:var(--muted)}
+.input{
+  display:flex;align-items:center;min-height:48px;padding:0 14px;
+  border:2px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.input.ph{color:var(--muted)}
+
+
+.toggle{
+  display:flex;align-items:center;gap:12px;min-height:64px;padding:11px 13px;
+  border:2px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.toggle.on{
+  border-color:transparent;color:#fff;
+  background:linear-gradient(150deg,#109edb,#1aa793);
+  box-shadow:var(--elev-1),inset 0 1px 0 rgba(255,255,255,.32);
+}
+.toggle .ti{flex-shrink:0;display:flex}
+.toggle .tb{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.toggle .tt{font-family:var(--font-display);font-size:var(--text-md);font-weight:700}
+.toggle .ts{font-size:var(--text-xs);line-height:1.35;color:var(--muted)}
+.toggle.on .ts{color:rgba(255,255,255,.88)}
+.sw{
+  flex-shrink:0;width:50px;height:29px;border-radius:999px;padding:3px;
+  background:var(--line-strong);display:flex;
+}
+.sw .knob{width:23px;height:23px;border-radius:999px;background:#fff;box-shadow:0 1px 3px rgba(30,27,75,.3)}
+.toggle.on .sw{background:rgba(255,255,255,.38);justify-content:flex-end}
+
+.spacer{flex:1;min-height:0}
+.hint{
+  margin:12px 0 0;padding:11px 13px;border-radius:14px;
+  background:var(--accent-soft);color:var(--muted);
+  font-size:var(--text-xs);line-height:1.45;
+}
+.hint b{color:var(--accent)}
+.pv{
+  display:flex;align-items:center;gap:11px;margin:16px 0 0;padding:10px 12px;
+  border:2px dashed var(--line-strong);border-radius:14px;background:var(--panel-soft);
+}
+.pv .av{
+  display:flex;align-items:center;justify-content:center;width:38px;height:38px;
+  border-radius:11px;font-size:20px;flex-shrink:0;
+  background:linear-gradient(150deg,#6a5cff,#8b5cf6);box-shadow:var(--elev-1);
+}
+.pv .b{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.pv .l{font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--muted)}
+.pv .n{font-family:var(--font-display);font-size:var(--text-md);font-weight:700}
+
+  </style>
+</helmet>
+<div class="app">
+  <div class="panel">
+    <div class="head">
+      <span class="back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M15 18l-6-6 6-6"/></svg></span>
+      <h2>Tạo phòng mới</h2>
+    </div>
+
+    <label class="field">
+      <span>Tên của bạn</span>
+      <div class="input">Kiên</div>
+    </label>
+
+    <div class="toggle on">
+      <span class="ti"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg></span>
+      <span class="tb">
+        <span class="tt">Phòng công khai</span>
+        <span class="ts">Ai cũng thấy phòng trong danh sách và vào chơi được</span>
+      </span>
+      <span class="sw"><span class="knob"></span></span>
+    </div>
+
+    <div class="pv">
+      <span class="av">🦊</span>
+      <span class="b">
+        <span class="l">TÊN PHÒNG TRONG DANH SÁCH</span>
+        <span class="n">Phòng của Kiên</span>
+      </span>
+    </div>
+
+    <p class="hint">Phòng lấy <b>tên của bạn</b> — không phải gõ thêm gì. Tắt công tắc thì phòng biến khỏi danh sách, bạn tự gửi mã cho bạn bè.</p>
+
+    <div class="spacer"></div>
+    <div class="btn-primary">Tiếp tục</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

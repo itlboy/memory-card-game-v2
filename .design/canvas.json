@@ -1,0 +1,173 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Phòng công khai"
+    },
+    {
+      "id": "page-2",
+      "name": "Dải 10 người"
+    },
+    {
+      "id": "page-3",
+      "name": "Nút công khai"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "1 · Chơi online",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1"
+    },
+    {
+      "file": "Empty.dc.html",
+      "title": "2 · Danh sách rỗng",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1"
+    },
+    {
+      "file": "Loading.dc.html",
+      "title": "3 · Đang tải",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1"
+    },
+    {
+      "file": "Create.dc.html",
+      "title": "4 · Tạo phòng mới",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1"
+    },
+    {
+      "file": "Lobby.dc.html",
+      "title": "5 · Phòng chờ",
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1"
+    },
+    {
+      "file": "JoinCode.dc.html",
+      "title": "6 · Vào bằng mã",
+      "x": 2350,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-1"
+    },
+    {
+      "file": "StripA.dc.html",
+      "title": "A · Thu gọn dần",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-2"
+    },
+    {
+      "file": "StripB.dc.html",
+      "title": "B · Chip lượt + avatar",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-2"
+    },
+    {
+      "file": "StripC.dc.html",
+      "title": "C · Hai hàng nén",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-2"
+    },
+    {
+      "file": "SoPhongA.dc.html",
+      "title": "A · Hai ô cạnh nhau",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-3"
+    },
+    {
+      "file": "SoPhongB.dc.html",
+      "title": "B · Hai thẻ giải thích",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-3"
+    },
+    {
+      "file": "SoPhongC.dc.html",
+      "title": "C · Trạng thái + hành động",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-3"
+    },
+    {
+      "file": "SoPhongD.dc.html",
+      "title": "D · Công tắc có nhãn",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "page": "page-3"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-flow",
+      "x": 0,
+      "y": -150,
+      "w": 900,
+      "page": "page-1",
+      "text": "Luồng mới: vào Chơi online là THẤY NGAY danh sách phòng công khai + nút Tạo phòng mới.\nHai thao tác cũ (chọn \"Tạo phòng\" / \"Vào phòng có sẵn\") gộp thành một màn."
+    },
+    {
+      "id": "note-private",
+      "x": 1410,
+      "y": -150,
+      "w": 900,
+      "page": "page-1",
+      "text": "Riêng tư = ẨN KHỎI DANH SÁCH, vào bằng mã 6 số sẵn có. Không thêm mật khẩu riêng: mã phòng vốn đã là bí mật, thêm mật khẩu là bắt người chơi truyền tay hai thứ.\nTên phòng = tên chủ phòng, không phải gõ thêm."
+    },
+    {
+      "id": "note-strip",
+      "x": 0,
+      "y": -190,
+      "w": 1330,
+      "page": "page-2",
+      "text": "BÀN 10 NGƯỜI — cùng một cảnh (bàn 36 thẻ, Kiên đang đi) để so diện tích dải người chơi ăn của bàn thẻ.\nA cao 46px · B cao 44px · C cao 66px. Bản đang có trên develop là C.\nTên người chơi: A và B chỉ hiện tên NGƯỜI ĐANG ĐI (những người khác đọc bằng avatar), C hiện đủ 10 tên nhưng mỗi tên chỉ còn ~11px và cắt sớm."
+    },
+    {
+      "id": "note-sophong",
+      "x": 0,
+      "y": -190,
+      "w": 1800,
+      "page": "page-3",
+      "text": "NÚT CÔNG KHAI / RIÊNG TƯ — bản đang chạy là một công tắc có nhãn TỰ ĐỔI theo trạng thái (\"Phòng công khai\" ↔ \"Phòng riêng tư\").\nĐó là chỗ mơ hồ: chữ đang hiện là trạng thái HIỆN TẠI hay là thứ sẽ thành sau khi bấm? Không có gì trên nút trả lời được.\n\nBốn phương án dưới đây đều dựng cả BA cảnh: chủ phòng đang công khai, chủ phòng đang riêng tư, và khách (chỉ đọc).\nMọi vùng chạm ≥44px; đổi trạng thái tức thì, không transition màu."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-3"
+  }
+}

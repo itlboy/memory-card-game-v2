@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+:root{
+  --font-display:'Baloo 2','Nunito',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,sans-serif;
+  --text-xs:11.5px;--text-sm:13px;--text-md:15.5px;--text-lg:18px;--text-xl:22px;
+  --bg:#edeffa;--panel:rgba(255,255,255,.86);--panel-solid:#ffffff;--panel-soft:#f5f6ff;
+  --fg:#1c1f36;--muted:#63698c;--accent:#6a5cff;--accent-2:#c44cf0;
+  --accent-soft:rgba(106,92,255,.13);--line:rgba(96,92,168,.17);--line-strong:rgba(96,92,168,.3);
+  --ok:#0b815a;--gold:#b88600;--bad:#dd1f25;--muted-line:rgba(96,92,168,.17);
+  --elev-1:0 1px 3px rgba(30,27,75,.09),0 4px 14px rgba(30,27,75,.08);
+  --elev-2:0 2px 6px rgba(30,27,75,.1),0 12px 32px rgba(30,27,75,.14);
+  --card-back-glow:rgba(106,92,255,.4);
+  --inner-light:inset 0 1px 0 rgba(255,255,255,.65);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;width:390px;height:844px;overflow:hidden;
+  font:400 16px/1.5 var(--font-body);color:var(--fg);
+  background:
+    radial-gradient(52rem 34rem at 88% -10%,rgba(124,92,255,.2),transparent 60%),
+    radial-gradient(46rem 32rem at -12% 104%,rgba(56,189,248,.16),transparent 55%),
+    var(--bg);
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:#5947e8}
+.app{display:flex;flex-direction:column;height:100%;padding:8px}
+.panel{
+  display:flex;flex-direction:column;flex:1;min-height:0;
+  background:var(--panel);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:18px;padding:20px;
+  box-shadow:var(--elev-2),var(--inner-light);
+}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.head h2{flex:1;margin:0;font-family:var(--font-display);font-size:19px;font-weight:700}
+.back{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;min-height:44px;padding:4px 12px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-solid);
+  box-shadow:var(--elev-1),var(--inner-light);color:var(--fg);
+}
+.btn-primary{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:50px;width:100%;border:0;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;letter-spacing:.02em;
+  box-shadow:0 8px 22px var(--card-back-glow),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;padding:8px 12px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-solid);
+  box-shadow:var(--elev-1),var(--inner-light);color:var(--fg);
+  font:inherit;font-size:var(--text-sm);font-weight:700;
+}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field span{font-size:var(--text-sm);font-weight:700;color:var(--muted)}
+.input{
+  display:flex;align-items:center;min-height:48px;padding:0 14px;
+  border:2px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.input.ph{color:var(--muted)}
+
+
+.toggle{
+  display:flex;align-items:center;gap:12px;min-height:64px;padding:11px 13px;
+  border:2px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.toggle.on{
+  border-color:transparent;color:#fff;
+  background:linear-gradient(150deg,#109edb,#1aa793);
+  box-shadow:var(--elev-1),inset 0 1px 0 rgba(255,255,255,.32);
+}
+.toggle .ti{flex-shrink:0;display:flex}
+.toggle .tb{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.toggle .tt{font-family:var(--font-display);font-size:var(--text-md);font-weight:700}
+.toggle .ts{font-size:var(--text-xs);line-height:1.35;color:var(--muted)}
+.toggle.on .ts{color:rgba(255,255,255,.88)}
+.sw{
+  flex-shrink:0;width:50px;height:29px;border-radius:999px;padding:3px;
+  background:var(--line-strong);display:flex;
+}
+.sw .knob{width:23px;height:23px;border-radius:999px;background:#fff;box-shadow:0 1px 3px rgba(30,27,75,.3)}
+.toggle.on .sw{background:rgba(255,255,255,.38);justify-content:flex-end}
+
+.invite{
+  display:flex;flex-direction:column;gap:8px;margin:0 0 12px;padding:10px 12px;
+  border:2px solid color-mix(in srgb,var(--accent) 35%,var(--line));
+  border-radius:14px;background:var(--accent-soft);
+}
+.invite-code{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.invite-label{font-size:var(--text-sm);font-weight:700;color:var(--muted)}
+.code-big{
+  font-family:var(--font-display);font-weight:800;font-size:31px;
+  letter-spacing:.16em;line-height:1;color:var(--accent);
+}
+.invite-actions{display:flex;gap:8px}
+.invite-actions .btn{flex:1}
+.invite-actions .btn.primary{
+  border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  box-shadow:0 6px 16px var(--card-back-glow);
+}
+.ppl{display:flex;flex-direction:column;gap:6px;list-style:none;margin:12px 0 0;padding:0;flex:1;min-height:0;overflow:hidden}
+.ppl li{
+  display:flex;align-items:center;gap:9px;min-height:48px;padding:7px 11px;
+  border:2px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.ppl .avatar{font-size:19px}
+.ppl b{font-family:var(--font-display);font-size:var(--text-md);font-weight:700}
+.ppl small{font-size:var(--text-xs);color:var(--muted)}
+.ppl .grow{flex:1}
+.ppl .crown{color:var(--gold);display:flex}
+.ppl .ready{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:var(--text-xs);font-weight:800;color:var(--ok);
+}
+.ppl .waiting{font-size:var(--text-xs);font-weight:700;color:var(--muted)}
+.ppl .slot{
+  justify-content:center;border-style:dashed;border-color:var(--line-strong);
+  color:var(--muted);font-size:var(--text-sm);background:transparent;
+}
+.cfg{
+  display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.cfg .t{flex:1;font-size:var(--text-sm)}
+.cfg .t b{font-family:var(--font-display);font-size:var(--text-md)}
+.tog-slim{min-height:52px;margin-top:10px}
+
+  </style>
+</helmet>
+<div class="app">
+  <div class="panel">
+    <div class="head">
+      <span class="back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M15 18l-6-6 6-6"/></svg></span>
+      <h2>Phòng của Kiên</h2>
+      <span class="ppl crown" style="display:flex"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 18h18l-1.4-9-4.1 3L12 6l-3.5 6-4.1-3z"/></svg></span>
+    </div>
+
+    <div class="invite">
+      <div class="invite-code">
+        <span class="invite-label">Mã phòng</span>
+        <span class="code-big">860 982</span>
+        <span class="btn" style="min-height:36px;padding:6px 10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg></span>
+      </div>
+      <div class="invite-actions">
+        <span class="btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg> Copy mã</span>
+        <span class="btn primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M9.5 14.5l5-5"/><path d="M12.7 7.3l1.6-1.6a3.5 3.5 0 0 1 5 5l-1.6 1.6"/><path d="M11.3 16.7l-1.6 1.6a3.5 3.5 0 0 1-5-5l1.6-1.6"/></svg> Copy link</span>
+      </div>
+    </div>
+
+    <div class="toggle on tog-slim">
+      <span class="ti"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg></span>
+      <span class="tb">
+        <span class="tt">Phòng công khai</span>
+        <span class="ts">Đang hiện trong danh sách phòng</span>
+      </span>
+      <span class="sw"><span class="knob"></span></span>
+    </div>
+
+    <ul class="ppl">
+      <li>
+        <span class="avatar">🦊</span><b>Kiên</b>
+        <small>chủ phòng (bạn)</small>
+        <span class="grow"></span>
+        <span class="crown"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M3 18h18l-1.4-9-4.1 3L12 6l-3.5 6-4.1-3z"/></svg></span>
+      </li>
+      <li>
+        <span class="avatar">🐼</span><b>Mai Anh</b>
+        <span class="grow"></span>
+        <span class="ready"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M4 12.5l5 5L20 6.5"/></svg> sẵn sàng</span>
+      </li>
+      <li>
+        <span class="avatar">🐯</span><b>Tuấn</b>
+        <span class="grow"></span>
+        <span class="waiting">chưa sẵn sàng</span>
+      </li>
+      <li class="slot">Còn 7 chỗ trống</li>
+    </ul>
+
+    <div class="cfg">
+      <span class="t"><b>16 thẻ</b> · tất cả 15 theme</span>
+      <span class="btn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg> Chỉnh</span>
+    </div>
+
+    <div class="btn-primary">Bắt đầu ván</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
