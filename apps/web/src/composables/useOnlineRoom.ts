@@ -803,6 +803,24 @@ export function useOnlineRoom() {
    * Có phiên dở dang trong sessionStorage (reload trang giữa ván)?
    * `matchCode`: chỉ resume nếu đúng phòng đó (khi vào bằng link mời).
    */
+  /**
+   * Có phiên cũ để vào lại không — TRẢ LỜI ĐỒNG BỘ, không kết nối gì cả.
+   *
+   * Màn online cần biết điều này ở nhịp dựng ĐẦU TIÊN. `resumeStored()` chỉ chạy
+   * trong `onMounted`, mà tới lúc đó khung đầu tiên đã vẽ xong rồi: F5 giữa
+   * phòng thì `?room=CODE` làm màn "🎉 Bạn được mời vào phòng" loé lên một cái
+   * rồi mới nhảy vào phòng — giật và khó hiểu, vì người ta có được ai mời đâu,
+   * họ đang ngồi trong phòng đó.
+   */
+  function coPhienLuu(matchCode?: string): boolean {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return false;
+      const s = JSON.parse(raw) as StoredSession;
+      return !matchCode || s.code === matchCode;
+    } catch { return false; }
+  }
+
   function resumeStored(matchCode?: string): boolean {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
@@ -962,7 +980,7 @@ export function useOnlineRoom() {
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */
     symbolNeuDuocPhep,
     countdown, countdownLeft, backStyle,
-    createRoom, join, leave, retry, resumeStored,
+    createRoom, join, leave, retry, resumeStored, coPhienLuu,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => { send({ t: 'leave' }); leave(); },

@@ -55,6 +55,22 @@ watch(() => o.error.value, (e) => {
 
 /** Vào bằng link mời VÀ lời mời còn dùng được. */
 const invited = computed(() => !!props.joinCode && !loiMoiHong.value);
+
+/*
+ * ĐANG VÀO LẠI PHÒNG CŨ (F5 giữa phòng), khác hẳn với ĐƯỢC MỜI.
+ *
+ * Đọc sessionStorage NGAY ở nhịp dựng đầu tiên, trước khung hình đầu tiên —
+ * `onMounted` là quá muộn: tới đó màn "🎉 Bạn được mời vào phòng" đã vẽ xong và
+ * loé lên một cái trước khi nhảy vào phòng. Người đang ngồi trong phòng mà bị
+ * mời vào chính phòng đó thì đọc chẳng ra gì.
+ *
+ * Tự tắt khi phòng đã về (o.room có) hoặc khi vào lại hỏng (phase 'error' /
+ * 'idle') — lúc đó mới rơi về màn nhập tên bình thường.
+ */
+const dangVaoLai = ref(o.coPhienLuu(props.joinCode));
+watch(() => o.phase.value, (p) => {
+  if (p === 'error' || p === 'idle') dangVaoLai.value = false;
+});
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
 const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
 
@@ -659,6 +675,14 @@ function openCfgWizard(): void {
 
     <!-- BƯỚC 2b: vào phòng — tên + mã (link mời thì mã điền sẵn, giấu ô mã) -->
     <template v-else>
+      <!-- F5 giữa phòng: nói đúng việc đang xảy ra, đừng mời người ta vào chính
+           cái phòng họ đang ngồi. -->
+      <div v-if="dangVaoLai" class="vao-lai" role="status">
+        <RefreshCw :size="26" class="quay" />
+        <p class="vl-t">Đang vào lại phòng<b v-if="codeInput"> {{ codeInput }}</b>…</p>
+        <p class="vl-s">Giữ nguyên tên và chỗ ngồi của bạn.</p>
+      </div>
+      <template v-else>
       <p v-if="invited" class="invite">
         🎉 Bạn được mời vào phòng <b class="invite-code">{{ codeInput }}</b>
       </p>
@@ -683,6 +707,7 @@ function openCfgWizard(): void {
       >
         {{ o.phase.value === 'connecting' ? 'Đang vào phòng…' : 'Vào phòng chơi' }}
       </button>
+      </template>
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
@@ -881,6 +906,16 @@ function openCfgWizard(): void {
 .icon-btn:disabled { opacity: .5; }
 .quay { animation: quay 1s linear infinite; }
 @keyframes quay { to { transform: rotate(360deg); } }
+
+/* F5 giữa phòng: một khung chờ yên tĩnh thay cho lời mời loé lên. Canh giữa
+   chỗ trống còn lại nên nó không nhảy chỗ khi phòng về. */
+.vao-lai {
+  display: flex; flex: 1; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  color: var(--muted); text-align: center;
+}
+.vao-lai .vl-t { margin: 0; font-family: var(--font-display); font-size: var(--text-md); color: var(--fg); }
+.vao-lai .vl-s { margin: 0; font-size: var(--text-xs); }
 
 /* Vòng đếm ngược tới lần tự làm mới sau: viền chạy vơi dần quanh con số, nằm
    TRONG cái nút 36px sẵn có nên hàng tiêu đề không cao thêm chút nào. */
