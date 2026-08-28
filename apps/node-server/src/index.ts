@@ -93,10 +93,10 @@ function layPhong(code: string, banDau?: Record<string, unknown>): Phong {
   let p: Phong;
   const box = taoBoiCanh(
     () => p.room.alarm(),
-    () => { phongs.delete(code); kho?.xoa(code); },
+    () => { phongs.delete(code); },
     kho ? {
       luu: (duLieu, alarmLuc) => kho!.ghi(code, duLieu, alarmLuc),
-      xoa: () => kho!.xoa(code)
+      dong: (lyDo) => kho!.dong(code, lyDo)
     } : undefined,
     banDau
   );
@@ -316,7 +316,7 @@ async function khoiPhuc(): Promise<void> {
 for (const tin of ['SIGTERM', 'SIGINT'] as const) {
   process.on(tin, () => {
     void (async () => {
-      try { await kho?.dong(); } catch { /* đang tắt */ }
+      try { await kho?.dongKho(); } catch { /* đang tắt */ }
       process.exit(0);
     })();
   });

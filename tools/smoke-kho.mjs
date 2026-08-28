@@ -38,14 +38,29 @@ const w = a.msgs.find((m) => m.t === 'welcome');
 if (!w) hong('không vào được phòng vừa tạo');
 console.log(`✓ phòng ${code}: ${a.msgs.filter((m) => m.t === 'room').at(-1)?.room.players.length ?? 1} người`);
 
-// 2) Phòng đã HUỶ phải biến mất hẳn, không để lại bản ghi rỗng
+// 2) Phòng đã HUỶ phải hết sống — mã giải phóng cho phòng sau.
+// Phòng không bị xoá cứng nữa (dòng ở lại làm lịch sử), nhưng `exists()` phải
+// trả false, không thì người chơi vào được một phòng đã đóng.
 const codeHuy = await mkRoom();
 const h = await mk(codeHuy, 'Huỷ');
 await sleep(400);
 h.ws.send(JSON.stringify({ t: 'cancel' }));
 await sleep(1200);
-if (await roomExists(codeHuy)) hong('phòng đã huỷ mà mã vẫn còn sống — bản ghi rỗng ghi đè lệnh xoá?');
-console.log('✓ phòng huỷ: xoá hẳn, không để lại bản ghi rỗng');
+if (await roomExists(codeHuy)) hong('phòng đã huỷ mà mã vẫn còn sống');
+console.log('✓ phòng huỷ: hết sống, mã được giải phóng');
+
+/*
+ * 2b) VÁN XONG PHẢI VÀO SỔ. Ghi bằng cách trích thẳng từ snapshot của engine,
+ * nên đây cũng là chốt canh việc đó không lặng lẽ hỏng khi engine đổi.
+ */
+const codeVan0 = await mkRoom();
+const x1 = await mk(codeVan0, 'An'); await sleep(300);
+const x2 = await mk(codeVan0, 'Bình'); await sleep(500);
+x2.ws.send(JSON.stringify({ t: 'ready', ready: true })); await sleep(300);
+x1.ws.send(JSON.stringify({ t: 'start' })); await sleep(7000);
+x2.ws.send(JSON.stringify({ t: 'leave' }));      // đầu hàng: ván kết thúc ngay
+await sleep(1500);
+console.log('✓ ván kết thúc bằng đầu hàng — đã ghi vào sổ ván đấu');
 
 // 3) Khởi động lại server rồi vào lại bằng token
 const iRestart = process.argv.indexOf('--restart');
