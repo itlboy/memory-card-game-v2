@@ -6,7 +6,7 @@ import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
   Link2, Lock, Plus, RefreshCw, Settings2, Timer, Users
 } from 'lucide-vue-next';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -55,6 +55,22 @@ watch(() => o.error.value, (e) => {
 
 /** Vào bằng link mời VÀ lời mời còn dùng được. */
 const invited = computed(() => !!props.joinCode && !loiMoiHong.value);
+
+/*
+ * ĐANG VÀO LẠI PHÒNG CŨ (F5 giữa phòng), khác hẳn với ĐƯỢC MỜI.
+ *
+ * Đọc sessionStorage NGAY ở nhịp dựng đầu tiên, trước khung hình đầu tiên —
+ * `onMounted` là quá muộn: tới đó màn "🎉 Bạn được mời vào phòng" đã vẽ xong và
+ * loé lên một cái trước khi nhảy vào phòng. Người đang ngồi trong phòng mà bị
+ * mời vào chính phòng đó thì đọc chẳng ra gì.
+ *
+ * Tự tắt khi phòng đã về (o.room có) hoặc khi vào lại hỏng (phase 'error' /
+ * 'idle') — lúc đó mới rơi về màn nhập tên bình thường.
+ */
+const dangVaoLai = ref(o.coPhienLuu(props.joinCode));
+watch(() => o.phase.value, (p) => {
+  if (p === 'error' || p === 'idle') dangVaoLai.value = false;
+});
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
 const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
 
@@ -92,11 +108,9 @@ onMounted(() => {
 
 /*
  * Quay lại bước chọn (thoát khỏi form, hoặc vừa rời một phòng) thì làm mới danh
- * sách: phòng vừa nãy có thể đã đầy hoặc đã vào ván. Không đặt hẹn giờ tự làm
- * mới — người chơi ngồi ở màn này vài giây rồi đi, mà mỗi nhịp là một lần đánh
- * thức Durable Object sổ phòng cho MỌI người đang mở màn.
+ * sách: phòng vừa nãy có thể đã đầy hoặc đã vào ván.
  */
-watch(entryStep, (b) => { if (b === 'choose') void o.taiPhongCongKhai(); });
+watch(entryStep, (b) => { if (b === 'choose') { void o.taiPhongCongKhai(); datLaiDem(); } });
 
 // Đang trong phòng thì URL luôn mang ?room=CODE để F5 quay lại đúng chỗ
 watch(() => o.room.value?.code, (code) => {
@@ -279,6 +293,68 @@ function themeSummary(ids: string[]): string {
 /** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
 // Cùng thứ tự với wizard chơi đơn: chế độ → cấp độ → theme.
 const wizard = ref<null | 'level' | 'theme' | 'options'>(null);
+
+/* ---------- TỰ LÀM MỚI DANH SÁCH PHÒNG ----------
+ *
+ * Danh sách phòng cũ đứng im cho tới khi người chơi tự bấm nút xoay: bạn tạo
+ * phòng ở máy bên cạnh mà người kia ngồi nhìn màn hình trống, không biết là
+ * phải bấm gì.
+ *
+ * Mỗi nhịp là một lần đánh thức Durable Object sổ phòng cho MỌI người đang mở
+ * màn này, nên hai chốt phải giữ:
+ *   - CHỈ chạy ở bước 'choose'. Đang điền form hay đang trong phòng thì danh
+ *     sách không ai nhìn, đếm tiếp là trả tiền cho cái không ai đọc.
+ *   - DỪNG HẲN khi tab xuống nền. Không có chốt này thì mỗi tab bị bỏ quên là
+ *     một cái máy gõ cửa DO mãi mãi — mà trên điện thoại tab nền là chuyện
+ *     thường xuyên nhất.
+ * Quay lại tab thì làm mới NGAY: đó đúng là lúc người ta muốn thấy danh sách
+ * mới nhất, và cũng bù cho quãng vừa nằm im.
+ */
+const CHU_KY_S = 10;
+const demNguoc = ref(CHU_KY_S);
+let nhip: ReturnType<typeof setInterval> | undefined;
+
+function datLaiDem(): void { demNguoc.value = CHU_KY_S; }
+
+/** Bấm tay: làm mới ngay và đếm lại từ đầu — không thì vừa bấm xong một giây
+ *  sau nó tự làm mới lần nữa. */
+function lamMoiNgay(): void {
+  datLaiDem();
+  void o.taiPhongCongKhai();
+}
+
+function chay(): void {
+  if (nhip) return;
+  datLaiDem();
+  nhip = setInterval(() => {
+    if (demNguoc.value > 1) { demNguoc.value -= 1; return; }
+    datLaiDem();
+    void o.taiPhongCongKhai();
+  }, 1000);
+}
+
+function dung(): void {
+  clearInterval(nhip);
+  nhip = undefined;
+}
+
+/** Chỉ đếm khi danh sách đang thật sự hiện ra trước mắt ai đó. */
+const dangXemDanhSach = computed(() =>
+  entryStep.value === 'choose' && !wizard.value
+  && (o.phase.value === 'idle' || o.phase.value === 'error'));
+
+function theoDoiHienThi(): void {
+  if (document.visibilityState === 'visible' && dangXemDanhSach.value) {
+    void o.taiPhongCongKhai();   // vừa quay lại: đưa ngay bản mới nhất
+    chay();
+  } else {
+    dung();
+  }
+}
+
+watch(dangXemDanhSach, (co) => { if (co) chay(); else dung(); }, { immediate: true });
+onMounted(() => { document.addEventListener('visibilitychange', theoDoiHienThi); });
+onUnmounted(() => { dung(); document.removeEventListener('visibilitychange', theoDoiHienThi); });
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
 const WIZ_STEPS = ['level', 'theme', 'options'] as const;
@@ -514,10 +590,28 @@ function openCfgWizard(): void {
       <div class="list-head">
         <h3>Phòng đang chờ</h3>
         <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
+        <!-- Đếm ngược tới lần tự làm mới sau. Con số nằm TRONG nút, thay chỗ
+             cái mũi tên xoay: người chơi vẫn bấm được bất cứ lúc nào, mà không
+             phải đoán bao giờ danh sách tự mới. Lúc đang tải thì mũi tên quay
+             trở lại — đó mới là thứ cần nói tại thời điểm đó. -->
         <button
-          class="icon-btn" type="button" aria-label="Làm mới danh sách"
-          :disabled="o.dangTaiPhong.value" @click="o.taiPhongCongKhai()"
-        ><RefreshCw :size="18" :class="{ quay: o.dangTaiPhong.value }" /></button>
+          class="icon-btn dem" type="button"
+          :aria-label="o.dangTaiPhong.value ? 'Đang làm mới danh sách' : `Làm mới danh sách — tự làm mới sau ${demNguoc} giây`"
+          :disabled="o.dangTaiPhong.value" @click="lamMoiNgay()"
+        >
+          <RefreshCw v-if="o.dangTaiPhong.value" :size="18" class="quay" />
+          <template v-else>
+            <svg class="vong" viewBox="0 0 32 32" aria-hidden="true">
+              <circle class="ray" cx="16" cy="16" r="14" />
+              <circle
+                class="chay" cx="16" cy="16" r="14"
+                :stroke-dasharray="87.96"
+                :stroke-dashoffset="87.96 * (1 - demNguoc / 10)"
+              />
+            </svg>
+            <span class="so">{{ demNguoc }}</span>
+          </template>
+        </button>
       </div>
 
       <!-- Đang tải LẦN ĐẦU: khung xám thay vì chữ "đang tải" — người chơi thấy
@@ -581,6 +675,14 @@ function openCfgWizard(): void {
 
     <!-- BƯỚC 2b: vào phòng — tên + mã (link mời thì mã điền sẵn, giấu ô mã) -->
     <template v-else>
+      <!-- F5 giữa phòng: nói đúng việc đang xảy ra, đừng mời người ta vào chính
+           cái phòng họ đang ngồi. -->
+      <div v-if="dangVaoLai" class="vao-lai" role="status">
+        <RefreshCw :size="26" class="quay" />
+        <p class="vl-t">Đang vào lại phòng<b v-if="codeInput"> {{ codeInput }}</b>…</p>
+        <p class="vl-s">Giữ nguyên tên và chỗ ngồi của bạn.</p>
+      </div>
+      <template v-else>
       <p v-if="invited" class="invite">
         🎉 Bạn được mời vào phòng <b class="invite-code">{{ codeInput }}</b>
       </p>
@@ -605,6 +707,7 @@ function openCfgWizard(): void {
       >
         {{ o.phase.value === 'connecting' ? 'Đang vào phòng…' : 'Vào phòng chơi' }}
       </button>
+      </template>
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
@@ -803,6 +906,38 @@ function openCfgWizard(): void {
 .icon-btn:disabled { opacity: .5; }
 .quay { animation: quay 1s linear infinite; }
 @keyframes quay { to { transform: rotate(360deg); } }
+
+/* F5 giữa phòng: một khung chờ yên tĩnh thay cho lời mời loé lên. Canh giữa
+   chỗ trống còn lại nên nó không nhảy chỗ khi phòng về. */
+.vao-lai {
+  display: flex; flex: 1; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  color: var(--muted); text-align: center;
+}
+.vao-lai .vl-t { margin: 0; font-family: var(--font-display); font-size: var(--text-md); color: var(--fg); }
+.vao-lai .vl-s { margin: 0; font-size: var(--text-xs); }
+
+/* Vòng đếm ngược tới lần tự làm mới sau: viền chạy vơi dần quanh con số, nằm
+   TRONG cái nút 36px sẵn có nên hàng tiêu đề không cao thêm chút nào. */
+.icon-btn.dem .vong {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  transform: rotate(-90deg);   /* bắt đầu vơi từ 12 giờ */
+}
+.icon-btn.dem .ray {
+  fill: none; stroke: var(--line); stroke-width: 2.5;
+}
+.icon-btn.dem .chay {
+  fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round;
+  /* Vơi từng giây MỘT NHỊP, khớp đúng con số bên trong. Không transition mượt:
+     nhìn vòng chạy trơn mà số nhảy từng bậc thì hai thứ đá nhau. */
+  transition: none;
+}
+.icon-btn.dem .so {
+  position: relative;   /* nổi trên vòng */
+  font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700;
+  font-variant-numeric: tabular-nums;   /* số không nhảy ngang khi 10 → 9 */
+  color: var(--muted);
+}
 
 /* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): nó chiếm chỗ còn lại và tự
    cuộn BÊN TRONG khi có nhiều phòng. */
