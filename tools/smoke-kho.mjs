@@ -67,4 +67,58 @@ if (w2.room.hostId !== w.playerId) hong('mất quyền chủ phòng sau khi kh�
 const ten = w2.room.players.map((p) => p.name).sort().join(',');
 if (ten !== 'Kiên,Mai') hong(`người trong phòng sai sau khi khôi phục: ${ten}`);
 console.log(`✓ sau khởi động lại: phòng còn, vào lại giữ nguyên id/tên/chỗ chủ phòng (${ten})`);
+
+/*
+ * 4) VÁN ĐANG CHƠI — phần đáng giá nhất. Phòng chờ sống sót thì mới chỉ chứng
+ * minh được cái vỏ; thứ người chơi tiếc là bàn đang dở: thẻ nào đã ghép, ai
+ * được bao nhiêu điểm, đang tới lượt ai. Và sau khôi phục thẻ úp vẫn KHÔNG
+ * được lộ symbol (NF-04) — snapshot lưu cả bàn thật, nên đây đúng là chỗ dễ
+ * rò ra nếu đường dựng view bị làm sai.
+ */
+const view = (c) => [...c.msgs].reverse().find((m) => m.view)?.view;
+const codeVan = await mkRoom();
+const p1 = await mk(codeVan, 'Kiên'); await sleep(300);
+const p2 = await mk(codeVan, 'Mai');  await sleep(500);
+const w1 = p1.msgs.find((m) => m.t === 'welcome');
+p2.ws.send(JSON.stringify({ t: 'ready', ready: true })); await sleep(300);
+p1.ws.send(JSON.stringify({ t: 'start' })); await sleep(7000);
+
+// Chơi tới khi ghép được một cặp, để bàn có trạng thái thật chứ không trắng tinh
+const truot = new Set();
+for (let vong = 0; vong < 14; vong++) {
+  const v = view(p1);
+  if (!v || v.status !== 'playing') break;
+  if (v.cards.filter((c) => c.state === 'matched').length >= 2) break;
+  const down = v.cards.filter((c) => c.state === 'down').map((c) => c.index);
+  if (down.length < 2) break;
+  let [i, j] = [down[0], down[1]];
+  outer: for (const x of down) for (const y of down) if (x < y && !truot.has(`${x},${y}`)) { i = x; j = y; break outer; }
+  const p = v.currentId === w1.playerId ? p1 : p2;
+  p.ws.send(JSON.stringify({ t: 'flip', index: i })); await sleep(260);
+  p.ws.send(JSON.stringify({ t: 'flip', index: j })); await sleep(1400);
+  if (view(p1)?.cards.find((c) => c.index === i)?.state !== 'matched') truot.add(`${i},${j}`);
+}
+const T = view(p1);
+if (!T || T.status !== 'playing') hong('không dựng được ván đang chơi để thử');
+const daGhep = (v) => v.cards.filter((c) => c.state === 'matched').length;
+const diem = (v) => [...v.players].sort((x, y) => x.name.localeCompare(y.name))
+  .map((p) => `${p.name}=${p.score}`).join(' ');
+console.log(`  trước: ${daGhep(T)} thẻ đã ghép · ${diem(T)} · lượt ${T.currentId.slice(0, 6)}`);
+
+execSync(process.argv[iRestart + 1], { stdio: 'ignore', shell: '/bin/bash' });
+for (let i = 0; i < 40; i++) {
+  try { if ((await fetch(`${SERVER}/health`)).ok) break; } catch { /* chưa lên */ }
+  await sleep(500);
+}
+const lai2 = await mk(codeVan, 'Kiên', w1.token);
+await sleep(1500);
+const V = view(lai2);
+if (!V) hong('ván đang chơi không khôi phục được — không nhận được view nào');
+if (V.cards.some((c) => c.state === 'down' && c.symbol)) hong('LỘ THẺ ÚP sau khi khôi phục (NF-04)');
+if (daGhep(V) !== daGhep(T)) hong(`số thẻ đã ghép đổi: ${daGhep(T)} → ${daGhep(V)}`);
+if (diem(V) !== diem(T)) hong(`điểm đổi: "${diem(T)}" → "${diem(V)}"`);
+if (V.currentId !== T.currentId) hong(`lượt đổi: ${T.currentId.slice(0, 6)} → ${V.currentId.slice(0, 6)}`);
+console.log(`  sau:   ${daGhep(V)} thẻ đã ghép · ${diem(V)} · lượt ${V.currentId.slice(0, 6)}`);
+console.log('✓ ván ĐANG CHƠI giữ nguyên qua khởi động lại: thẻ, điểm, lượt — và thẻ úp vẫn không lộ');
+
 xong('\nKHO SMOKE OK');
