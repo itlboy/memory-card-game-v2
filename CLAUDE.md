@@ -128,6 +128,21 @@
   sót, không chia số thẻ cho hằng số — số lần lật sai tăng theo bình phương số
   thẻ, nên chia tuyến tính làm ba mức dính vào nhau ở bàn nhỏ và cùng chết ở bàn
   lớn. Đo lại bảng bằng bot khi đổi luật mất mạng.
+- **BÀN-BIẾT-TRƯỚC (`t:'predeal'`)**: server gửi nội dung CẢ BÀN cho client để lật
+  thẻ hiện ngay, khỏi chờ vòng đi-về (đo được 180ms qua Cloudflare tunnel). Công tắc
+  DUY NHẤT là `PREDEAL` ở `apps/server/src/flags.ts` (`PREDEAL=0` tắt gấp không cần
+  build lại). Không có cờ nào ở client — tắt ở server là client không có gì trong tay
+  và tự về hành vi chờ server.
+  Đánh đổi đã chấp nhận: mở DevTools là thấy cả bàn; trò chơi với bạn bè nên KHÔNG
+  chống bằng code. Nhưng phải chống LỖI CỦA MÌNH làm lộ bài, bằng ba lớp — **đừng phá
+  lớp nào**: (1) dữ liệu đi bằng thông điệp RIÊNG, KHÔNG trộn vào `GameView`, nên
+  `view.cards[].symbol` của thẻ úp vẫn rỗng; (2) client chỉ rót symbol vào ô ĐƯỢC PHÉP
+  ngửa, qua đúng một cửa `symbolNeuDuocPhep()` — `predeal` KHÔNG được xuất ra khỏi
+  composable; (3) `test/predeal.test.ts` canh cả hai (đã kiểm ngược: đọc thẳng
+  `predeal` hay bỏ chốt là test đỏ).
+  Móc gửi đặt trong `send`/`broadcast` của room.ts, KHÔNG rải ở từng chỗ dựng view —
+  rải ra là có ngày thêm đường gửi mà quên. Gửi lại cả bàn kèm MỖI view (không chỉ lúc
+  bắt đầu) vì xáo thẻ và thẻ Tráo đổi đổi chỗ thẻ giữa ván, bản đồ theo index sẽ lệch.
 - Bot: người chơi đi `flip()` (có chốt chặn lượt), bot đi `applyFlip()`. Nhập
   một đường là bot tự chặn chính nó, ván treo. Bot phải `observe` MỖI KHUNG, nếu
   không nó mù trước mọi nước của đối thủ.

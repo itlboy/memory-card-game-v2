@@ -1,11 +1,12 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
-  publicEvents, publicPlayer, publicView, seedFrom
+  predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
-  ClientMsg, GameEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameEvent, PredealMsg, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
+import { PREDEAL } from './flags.js';
 import { THEME_SYMBOLS } from './themes.js';
 
 export interface Env {
@@ -732,7 +733,29 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private send(ws: WebSocket, msg: ServerMsg): void {
-    try { ws.send(JSON.stringify(msg)); } catch { /* socket đã đóng */ }
+    try {
+      const kem = this.predealKem(msg);
+      if (kem) ws.send(kem);
+      ws.send(JSON.stringify(msg));
+    } catch { /* socket đã đóng */ }
+  }
+
+  /**
+   * Nếu đang gửi một cái view và cờ PREDEAL bật thì trả về thông điệp `predeal`
+   * để gửi KÈM ngay trước đó.
+   *
+   * Đặt móc ở đây — trong đúng hai hàm gửi — chứ không rải ở 6 chỗ dựng
+   * `t:'state'`/`t:'events'`: rải ra là chắc chắn có ngày thêm chỗ gửi thứ 7 mà
+   * quên, rồi bàn lệch sau một lần xáo mà không ai hiểu tại sao.
+   *
+   * Gửi TRƯỚC view, không phải sau: client xử lý view xong là đã có thể vẽ, nên
+   * dữ liệu phải có sẵn trước đó.
+   */
+  private predealKem(msg: ServerMsg): string | null {
+    if (!PREDEAL) return null;
+    if (msg.t !== 'state' && msg.t !== 'events') return null;
+    if (!this.game) return null;
+    return JSON.stringify({ t: 'predeal', symbols: predealSymbols(this.game) } satisfies PredealMsg);
   }
 
   /** Người này còn được gửi emoji không? Ghi nhận luôn lần gửi nếu được. */
@@ -751,8 +774,12 @@ export class RoomDO extends DurableObject<Env> {
 
   private broadcast(msg: ServerMsg, exceptWelcomeFor?: string): void {
     const raw = JSON.stringify(msg);
+    const kem = this.predealKem(msg);
     for (const ws of this.ctx.getWebSockets()) {
-      try { ws.send(raw); } catch { /* bỏ qua socket chết */ }
+      try {
+        if (kem) ws.send(kem);
+        ws.send(raw);
+      } catch { /* bỏ qua socket chết */ }
     }
     void exceptWelcomeFor;
   }

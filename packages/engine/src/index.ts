@@ -27,9 +27,9 @@ export type {
 } from './types.js';
 export {
   CARD_BACKS, DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS,
-  backForSeed, publicEvents, publicPlayer, publicView
+  backForSeed, predealSymbols, publicEvents, publicPlayer, publicView
 } from './online.js';
 export type {
-  CardBack, ClientMsg, GameView, PublicCard, PublicEvent, PublicPlayer, QuickEmoji,
-  RoomConfig, RoomInfo, ServerMsg
+  CardBack, ClientMsg, GameView, PredealMsg, PublicCard, PublicEvent, PublicPlayer,
+  QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from './online.js';

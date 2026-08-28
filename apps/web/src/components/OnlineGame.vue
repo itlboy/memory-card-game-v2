@@ -54,12 +54,32 @@ const cards = computed<Card[]>(() =>
   (o.view.value?.cards ?? []).map((c) => ({
     index: c.index,
     pairId: -1,
-    symbol: c.symbol ?? '',
+    // Đi qua `symbolNeuDuocPhep`, KHÔNG đọc bàn-biết-trước trực tiếp: nó chỉ
+    // nhả symbol cho ô server đã báo ngửa, hoặc ô mình vừa bấm đang chờ trả
+    // lời. Nhờ vậy thẻ úp vẫn nhận `''` đúng như khi chưa có tính năng này.
+    symbol: o.symbolNeuDuocPhep(c.index, c.symbol, c.state !== 'down'),
     ...(c.power ? { power: c.power as Card['power'] } : {}),
     ...(c.blank ? { blank: true } : {})
   })));
-const faceUp = computed(() => new Set(
-  (o.view.value?.cards ?? []).filter((c) => c.state !== 'down').map((c) => c.index)));
+/**
+ * Ô nào đang ngửa. Gồm cả ô mình VỪA BẤM còn chờ server, NHƯNG chỉ khi đã biết
+ * trước nội dung ô đó — đây chính là chỗ tiết kiệm ~180ms: lật hẳn luôn thay vì
+ * treo 90° chờ trả lời.
+ *
+ * Server tắt cờ PREDEAL thì `symbolNeuDuocPhep` trả '' nên ô chờ KHÔNG vào tập
+ * này, và mọi thứ về đúng hành vi treo 90° như trước — không cần cờ ở client.
+ *
+ * Server từ chối nước đi (bấm sai lượt chẳng hạn) thì `settlePending` bỏ ô khỏi
+ * `pending`, ô rời tập này và úp lại.
+ */
+const faceUp = computed(() => {
+  const s = new Set(
+    (o.view.value?.cards ?? []).filter((c) => c.state !== 'down').map((c) => c.index));
+  for (const i of o.pending.value) {
+    if (o.symbolNeuDuocPhep(i, undefined, false)) s.add(i);
+  }
+  return s;
+});
 const matchedSet = computed(() => new Set(
   (o.view.value?.cards ?? []).filter((c) => c.state === 'matched').map((c) => c.index)));
 /**
