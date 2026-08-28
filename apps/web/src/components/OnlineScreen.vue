@@ -217,11 +217,68 @@ function join(): void {
 /** Nội dung popup xác nhận; null = không hiện. */
 const confirm = ref<{ title: string; body: string; label: string; action: () => void } | null>(null);
 
+/**
+ * Bấm nút xác nhận: chạy việc RỒI ĐÓNG HỘP.
+ *
+ * Trước đây chỉ gọi `action()` và không đóng gì. Các việc khác (rời phòng, huỷ
+ * phòng) đều chuyển màn nên hộp biến mất theo — che mất chuyện nó chưa bao giờ
+ * tự đóng. Đến "mời ra" thì lộ: việc đó xong vẫn ở nguyên màn phòng chờ, nên
+ * hộp nằm lại giữa màn hình.
+ */
+function xacNhan(): void {
+  const viec = confirm.value?.action;
+  confirm.value = null;
+  viec?.();
+}
+
 function exit(): void {
   o.leave();
   ghiUrl(location.pathname);
   emit('back');
 }
+
+/**
+ * Hỏi rời phòng chờ, rồi đi tới `sau`.
+ *
+ * Tách ra vì có BA đường cùng rời phòng chờ và chúng phải hỏi GIỐNG NHAU, chỉ
+ * khác đích đến: nút ‹ và nút Back của trình duyệt lùi về danh sách phòng, còn
+ * nút logo thì về trang chủ. Trước đây mỗi đường tự viết một kiểu, nên nút ‹
+ * lại nhảy thẳng về trang chủ — bỏ qua mất màn danh sách phòng mà người chơi
+ * vừa đi qua để vào đây.
+ */
+function hoiRoiPhong(sau: () => void): void {
+  if (o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
+    confirm.value = {
+      title: 'Huỷ phòng?',
+      body: 'Phòng sẽ đóng và mọi người bị đưa ra ngoài.',
+      label: 'Huỷ phòng',
+      action: () => { o.cancelRoom(); sau(); }
+    };
+    return;
+  }
+  const motMinh = (o.room.value?.players.length ?? 0) <= 1;
+  confirm.value = {
+    title: 'Rời phòng?',
+    body: motMinh
+      ? 'Mã phòng còn sống thêm 10 phút — bạn hoặc bạn bè vẫn vào lại được bằng mã đó.'
+      : 'Bạn rời khỏi phòng này; những người còn lại vẫn chơi tiếp được.',
+    label: 'Rời phòng',
+    action: () => { o.surrender(); sau(); }
+  };
+}
+
+/** Về màn DANH SÁCH PHÒNG — lùi đúng một bậc, không văng ra trang chủ. */
+function veDanhSachPhong(): void {
+  o.leave();
+  ghiUrl(location.pathname);
+  entryStep.value = 'choose';
+  o.error.value = '';
+  void o.taiPhongCongKhai();
+}
+
+/** Nút ‹ ở phòng chờ: lùi về danh sách phòng, KHÔNG về trang chủ. Đường đi là
+ *  trang chủ → danh sách phòng → phòng chờ, nên lùi một bậc là danh sách. */
+function backLobby(): void { hoiRoiPhong(veDanhSachPhong); }
 
 /** Thoát có xác nhận — dùng cho nút ✕ trong ván và khi bấm logo. */
 function quit(): void {
@@ -235,37 +292,10 @@ function quit(): void {
     };
     return;
   }
-  if (phase === 'lobby' && o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
-    confirm.value = {
-      title: 'Huỷ phòng?',
-      body: 'Phòng sẽ đóng và mọi người bị đưa ra ngoài.',
-      label: 'Huỷ phòng',
-      action: () => { o.cancelRoom(); exit(); }
-    };
-    return;
-  }
-  /*
-   * Ở PHÒNG CHỜ CŨNG PHẢI HỎI, kể cả khi đang một mình.
-   *
-   * Trước đây nhánh này rời thẳng không nói gì — mà đó đúng là cảnh hay gặp
-   * nhất: vừa bấm Tạo phòng xong, chưa ai vào, lỡ chạm nút logo hay vuốt lùi
-   * là mất phòng cùng cái mã vừa gửi cho bạn bè, không kịp hiểu chuyện gì.
-   *
-   * Nói luôn cả chuyện mã còn sống 10 phút: người ta thường thoát ra CHÍNH LÀ
-   * để đi gửi link, nên câu đó biến một cảnh báo đáng sợ thành một lời trấn an.
-   */
-  if (phase === 'lobby') {
-    const motMinh = (o.room.value?.players.length ?? 0) <= 1;
-    confirm.value = {
-      title: 'Rời phòng?',
-      body: motMinh
-        ? 'Mã phòng còn sống thêm 10 phút — bạn hoặc bạn bè vẫn vào lại được bằng mã đó.'
-        : 'Bạn rời khỏi phòng này; những người còn lại vẫn chơi tiếp được.',
-      label: 'Rời phòng',
-      action: () => { o.surrender(); exit(); }
-    };
-    return;
-  }
+  // Ở phòng chờ CŨNG phải hỏi, kể cả khi đang một mình: vừa tạo phòng xong,
+  // chưa ai vào, lỡ chạm là mất phòng cùng cái mã vừa gửi cho bạn bè. Đích ở
+  // đây là TRANG CHỦ vì đó đúng là việc của nút logo.
+  if (phase === 'lobby') { hoiRoiPhong(exit); return; }
   exit();
 }
 
@@ -514,34 +544,7 @@ useBackCloser(15, () => !!wizard.value || (entryStep.value !== 'choose' && !invi
  * màn online để vào phòng khác ngay. Chủ phòng còn người khác trong phòng thì
  * vẫn HỎI trước — huỷ phòng là đá cả nhóm ra, không phải việc lùi một bậc.
  */
-useBackCloser(25, () => o.phase.value === 'lobby', () => {
-  const veEntry = (): void => {
-    o.leave();
-    ghiUrl(location.pathname);
-    entryStep.value = 'choose';
-    o.error.value = '';
-  };
-  if (o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
-    confirm.value = {
-      title: 'Huỷ phòng?',
-      body: 'Phòng sẽ đóng và mọi người bị đưa ra ngoài.',
-      label: 'Huỷ phòng',
-      action: () => { o.cancelRoom(); veEntry(); }
-    };
-    return;
-  }
-  // Back cũng HỎI như nút logo — cùng một việc thì phải cùng một lời hỏi, không
-  // thì rời bằng đường này mất phòng còn đường kia thì không.
-  const motMinh = (o.room.value?.players.length ?? 0) <= 1;
-  confirm.value = {
-    title: 'Rời phòng?',
-    body: motMinh
-      ? 'Mã phòng còn sống thêm 10 phút — bạn hoặc bạn bè vẫn vào lại được bằng mã đó.'
-      : 'Bạn rời khỏi phòng này; những người còn lại vẫn chơi tiếp được.',
-    label: 'Rời phòng',
-    action: () => { o.surrender(); veEntry(); }
-  };
-});
+useBackCloser(25, () => o.phase.value === 'lobby', () => hoiRoiPhong(veDanhSachPhong));
 
 /** Biểu tượng của MỌI theme server có — trần trên cho bản đồ cấp. */
 const allSymbols = computed(() => new Set(allThemes.value.flatMap((t) => t.symbols)).size);
@@ -842,7 +845,7 @@ function openCfgWizard(): void {
   <!-- LOBBY -->
   <section v-else-if="o.phase.value === 'lobby'" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Rời phòng" type="button" @click="quit"><ChevronLeft :size="22" /></button>
+      <button class="btn back" aria-label="Rời phòng" type="button" @click="backLobby"><ChevronLeft :size="22" /></button>
       <!-- Tên phòng LÀ tên chủ phòng — đúng cái người khác thấy trong danh sách
            công khai. Không có ô gõ tên phòng: một cái tên nữa để nghĩ ra là một
            bước nữa trước khi được chơi. -->
@@ -1028,7 +1031,7 @@ function openCfgWizard(): void {
   <ConfirmDialog
     v-if="confirm"
     :title="confirm.title" :body="confirm.body" :confirm-label="confirm.label"
-    @confirm="confirm.action()"
+    @confirm="xacNhan()"
     @cancel="confirm = null"
   />
   </div>
