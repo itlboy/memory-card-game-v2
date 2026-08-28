@@ -29,6 +29,15 @@ interface RoomPlayer {
   id: string;
   name: string;
   avatar?: string;
+  /**
+   * Định danh BỀN của trình duyệt (client sinh, lưu localStorage).
+   *
+   * Khác `id`: `id` chỉ sống trong một phòng, cấp mới mỗi lần vào. Cái này
+   * theo người qua mọi phòng, nên sổ ván đấu mới cộng được theo NGƯỜI. Client
+   * gửi lên nên KHÔNG đáng tin (ON-09): chỉ dùng để thống kê, tuyệt đối không
+   * dùng để cấp quyền — ai cũng sửa tay được.
+   */
+  clientId?: string;
   /** Bí mật để vào lại sau khi rớt mạng (ON-07). */
   token: string;
   /** Hạn chót vào lại; null = đang kết nối. */
@@ -327,6 +336,8 @@ export class RoomDO extends DurableObject<Env> {
     const url = new URL(request.url);
     const code = url.searchParams.get('code') ?? '';
     const name = (url.searchParams.get('name') ?? '').trim().slice(0, 16);
+    // Cắt 64: đây là chuỗi client gửi lên, không tin độ dài của nó
+    const clientId = (url.searchParams.get('cid') ?? '').trim().slice(0, 64) || undefined;
     const token = url.searchParams.get('token') ?? '';
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
@@ -353,6 +364,7 @@ export class RoomDO extends DurableObject<Env> {
       player = {
         id: crypto.randomUUID().slice(0, 8),
         name,
+        clientId,
         // Avatar CHƯA AI TRONG PHÒNG DÙNG. Lấy theo `players.length` thì chỉ
         // đúng khi không ai từng rời đi: một người rời là số đó tụt xuống và
         // người vào sau đội trùng avatar của người đang ngồi đó.
@@ -368,6 +380,7 @@ export class RoomDO extends DurableObject<Env> {
       player.disconnectedAt = null;
       delete this.room.emptyAt;   // người giữ chỗ đã về, không còn hẹn xoá
       if (name) player.name = name;
+      if (clientId) player.clientId = clientId;
     }
 
     // Đóng socket cũ của cùng người chơi (mở tab mới / reconnect nhanh)

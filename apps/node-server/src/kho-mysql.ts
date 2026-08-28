@@ -101,12 +101,28 @@ const TAO_BANG: readonly string[] = [
      INDEX idx_rooms_open (closed_at)
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
+  `CREATE TABLE IF NOT EXISTS players (
+     client_id    VARCHAR(64)  NOT NULL PRIMARY KEY,
+     name         VARCHAR(32)  NULL,
+     -- Số PHÒNG đã vào không để ở đây: đếm được chính xác bằng
+     --   SELECT COUNT(DISTINCT room_id) FROM room_players WHERE client_id = ?
+     -- còn cộng dồn thì sai ngay lần đầu ai đó ghi lại hai lần.
+     matches      INT          NOT NULL DEFAULT 0,
+     wins         INT          NOT NULL DEFAULT 0,
+     first_seen   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     last_seen    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+
   `CREATE TABLE IF NOT EXISTS room_players (
      room_id         BIGINT       NOT NULL,
      player_id       VARCHAR(32)  NOT NULL,
      seat            SMALLINT     NOT NULL DEFAULT 0,
      name            VARCHAR(32)  NOT NULL,
      avatar          VARCHAR(16)  NULL,
+     -- Định danh bền của trình duyệt. KHÔNG khoá ngoại về bảng players: client
+     -- gửi lên nên không đáng tin, mà khoá ngoại thì một chuỗi rác là chặn cả
+     -- lượt ghi phòng — hỏng ván vì một con số thống kê là sai thứ tự ưu tiên.
+     client_id       VARCHAR(64)  NULL,
      token           VARCHAR(64)  NULL,
      is_ready        TINYINT(1)   NOT NULL DEFAULT 0,
      disconnected_at BIGINT       NULL,
@@ -115,6 +131,7 @@ const TAO_BANG: readonly string[] = [
      left_at         BIGINT       NOT NULL DEFAULT 0,
      updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
      PRIMARY KEY (room_id, player_id),
+     INDEX idx_room_players_client (client_id),
      CONSTRAINT fk_room_players_room FOREIGN KEY (room_id)
        REFERENCES rooms(id) ON DELETE CASCADE
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
@@ -234,7 +251,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     emptyAt?: number;
     config: { level: number; themeIds: string[]; options: Record<string, number> };
     players: {
-      id: string; name: string; avatar?: string; token: string;
+      id: string; name: string; avatar?: string; token: string; clientId?: string;
       ready: boolean; disconnectedAt: number | null; lastSeen?: number;
     }[];
   }
@@ -301,16 +318,17 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
          */
         await c.query(
           `INSERT INTO room_players
-             (room_id, player_id, seat, name, avatar, token, is_ready,
+             (room_id, player_id, seat, name, avatar, client_id, token, is_ready,
               disconnected_at, last_seen, joined_at, left_at)
            VALUES ?
            ON DUPLICATE KEY UPDATE
              seat = VALUES(seat), name = VALUES(name), avatar = VALUES(avatar),
-             token = VALUES(token), is_ready = VALUES(is_ready),
+             client_id = VALUES(client_id), token = VALUES(token),
+             is_ready = VALUES(is_ready),
              disconnected_at = VALUES(disconnected_at), last_seen = VALUES(last_seen),
              left_at = 0`,
           [ps.map((p, i) => [
-            id, p.id, i, p.name, p.avatar ?? null, p.token,
+            id, p.id, i, p.name, p.avatar ?? null, p.clientId ?? null, p.token,
             p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0
           ])]
         );
@@ -335,6 +353,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
           [themes.map((t) => [id, t])]);
       }
 
+      await ghiNguoiChoi(c, ps);
       await ghiMatch(c, id, room, gameState);
       await c.commit();
     } catch (e) {
@@ -343,6 +362,27 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     } finally {
       c.release();
     }
+  }
+
+  /**
+   * Sổ NGƯỜI CHƠI: mỗi trình duyệt một dòng, cộng dồn theo thời gian.
+   *
+   * `rooms_joined` chỉ tăng ở lần ĐẦU thấy người đó trong một phòng — nếu tăng
+   * mỗi lần ghi thì sau một ván nó thành hàng trăm, vì `save()` chạy sau mỗi
+   * nước lật thẻ. Chốt là `daDemPhong`: nhớ những cặp (phòng, người) đã đếm.
+   *
+   * `name` ghi đè bằng tên gần nhất — người ta đổi tên thì sổ theo tên mới.
+   */
+  async function ghiNguoiChoi(
+    c: PoolConnection, ps: { id: string; name: string; clientId?: string }[]
+  ): Promise<void> {
+    const moi = ps.filter((p) => p.clientId);
+    if (!moi.length) return;
+    await c.query(
+      `INSERT INTO players (client_id, name) VALUES ?
+       ON DUPLICATE KEY UPDATE name = VALUES(name), last_seen = CURRENT_TIMESTAMP`,
+      [moi.map((p) => [p.clientId, p.name])]
+    );
   }
 
   /**
@@ -368,7 +408,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
 
     const xh = (sum.ranking as { name: string; score: number }[] | undefined) ?? g.players ?? [];
     const nhat = xh[0];
-    await c.execute(
+    const [kq] = await c.execute(
       `INSERT IGNORE INTO matches
          (room_id, seq, level, pairs, status, reason, moves, seconds,
           winner_name, winner_score, player_count, ranking, started_at, ended_at)
@@ -383,6 +423,44 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         JSON.stringify(xh), g.startedAt ?? 0, g.endedAt
       ]
     );
+
+    /*
+     * Cộng vào sổ người chơi — CHỈ KHI dòng matches vừa rồi là dòng MỚI.
+     * `affectedRows` của INSERT IGNORE bằng 0 khi bị bỏ qua vì trùng khoá, mà
+     * `ghiMatch` chạy lại sau MỖI lần ghi phòng — thiếu chốt này thì một ván
+     * được cộng hàng chục lần.
+     */
+    if (!((kq as { affectedRows?: number }).affectedRows ?? 0)) return;
+
+    /*
+     * Tra client_id từ BẢNG room_players, không từ `room.players` đang có
+     * trong bộ nhớ: người đầu hàng bị gỡ khỏi danh sách đó ngay lúc thua, nên
+     * tra theo bộ nhớ thì họ không bao giờ được tính là đã chơi ván nào. Đã
+     * gặp thật — người thua ra sổ với 0 ván.
+     *
+     * Bảng thì còn đủ vì người rời chỉ bị đánh dấu `left_at`, không xoá.
+     */
+    const tenTrongVan = xh.map((p) => p.name);
+    if (tenTrongVan.length) {
+      await c.query(
+        `UPDATE players SET matches = matches + 1 WHERE client_id IN (
+           SELECT client_id FROM (
+             SELECT DISTINCT client_id FROM room_players
+             WHERE room_id = ? AND client_id IS NOT NULL AND name IN (?)
+           ) AS t)`,
+        [roomId, tenTrongVan]
+      );
+    }
+    if (nhat?.name) {
+      await c.query(
+        `UPDATE players SET wins = wins + 1 WHERE client_id IN (
+           SELECT client_id FROM (
+             SELECT DISTINCT client_id FROM room_players
+             WHERE room_id = ? AND client_id IS NOT NULL AND name = ?
+           ) AS t)`,
+        [roomId, nhat.name]
+      );
+    }
   }
 
   /**
