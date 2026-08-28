@@ -244,6 +244,13 @@ export type ClientMsg =
    * trước — nên phải sửa được tại chỗ, không bắt thoát phòng ra rồi vào lại.
    */
   | { t: 'rename'; name: string }
+  /**
+   * Chủ phòng mời một người ra khỏi phòng.
+   *
+   * Dùng khi ai đó vào nhầm, hoặc khi một người rớt mạng và cả phòng phải chờ
+   * hết hạn giữ chỗ mới đi tiếp được.
+   */
+  | { t: 'kick'; playerId: string }
   | { t: 'ping' }
   /**
    * Báo còn sống. KHÁC `ping`: `ping` do server tự trả lời (setWebSocketAutoResponse)

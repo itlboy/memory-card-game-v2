@@ -26,6 +26,14 @@ function demRule(ten: string): number {
 }
 
 describe('nút công khai / riêng tư', () => {
+  it('KHÔNG có chữ giải thích thừa quanh hai ô', () => {
+    // Hai ô Công khai / Riêng tư đã tự nói hết. Dòng "đang hiện trong danh
+    // sách…" và nhãn "chỉ chủ phòng đổi được" chỉ làm phòng chờ dài ra, mà
+    // phòng chờ là màn KHÔNG ĐƯỢC SCROLL.
+    expect(src).not.toContain('Đang hiện trong danh sách phòng');
+    expect(src).not.toContain('Chỉ chủ phòng đổi được');
+  });
+
   it('bày CẢ HAI lựa chọn, không phải một công tắc có nhãn tự đổi', () => {
     expect(src, 'phải có nhóm radio hai ô').toContain('role="radiogroup"');
     expect(src.match(/role="radio"/g)?.length, 'đúng hai ô').toBe(2);
@@ -37,7 +45,7 @@ describe('nút công khai / riêng tư', () => {
   });
 
   it('mỗi tên class chỉ có ĐÚNG MỘT rule — rule trùng ghi đè im lặng', () => {
-    for (const ten of ['sp-seg', 'sp-hint', 'sp-rotag', 'sophong']) {
+    for (const ten of ['sp-seg', 'sophong']) {
       expect(demRule(ten), `.${ten} bị khai nhiều lần`).toBeLessThanOrEqual(1);
     }
     // Và không được quay lại những tên đã có chủ trong file này
@@ -46,7 +54,7 @@ describe('nút công khai / riêng tư', () => {
   });
 
   it('ô đang chọn đổi màu tức thì, không transition', () => {
-    const khoi = src.slice(src.indexOf('.sp-seg {'), src.indexOf('.sp-rotag {'));
+    const khoi = src.slice(src.indexOf('.sp-seg {'), src.indexOf('.sophong.ro'));
     expect(khoi, 'không được có transition trên ô chọn').not.toContain('transition');
   });
 

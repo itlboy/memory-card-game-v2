@@ -4,7 +4,7 @@ import {
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
-  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, Users
+  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users
 } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -68,8 +68,17 @@ const invited = computed(() => !!props.joinCode && !loiMoiHong.value);
  * 'idle') — lúc đó mới rơi về màn nhập tên bình thường.
  */
 const dangVaoLai = ref(o.coPhienLuu(props.joinCode));
-watch(() => o.phase.value, (p) => {
+watch(() => o.phase.value, (p, truoc) => {
   if (p === 'error' || p === 'idle') dangVaoLai.value = false;
+  /*
+   * Vừa bị đưa ra khỏi phòng (chủ phòng huỷ, hoặc mình bị mời ra): về đúng màn
+   * DANH SÁCH PHÒNG, không để lại ở form nhập mã của phòng vừa mất. Dòng báo
+   * lý do vẫn hiện ngay dưới, nên không ai phải đoán chuyện gì xảy ra.
+   */
+  if (p === 'idle' && (truoc === 'lobby' || truoc === 'playing' || truoc === 'ended')) {
+    entryStep.value = 'choose';
+    void o.taiPhongCongKhai();
+  }
 });
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
 const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
@@ -165,6 +174,26 @@ function luuTen(): void {
   if (!t || t === name.value) return;
   name.value = t;
   o.doiTen(t);
+}
+
+/**
+ * Hỏi trước khi mời một người ra — không có đường hoàn tác, mà bấm nhầm thì
+ * người kia bị văng ra thật.
+ *
+ * Người đang RỚT MẠNG nói khác: đó là lý do hay dùng tính năng này nhất (cả
+ * phòng phải chờ hết hạn giữ chỗ mới đi tiếp được), nên nói thẳng ra là mời ra
+ * thì đi tiếp được ngay.
+ */
+function hoiMoiRa(id: string, ten: string, dangKetNoi: boolean): void {
+  sfx.select();
+  confirm.value = {
+    title: `Mời ${ten} ra khỏi phòng?`,
+    body: dangKetNoi
+      ? 'Họ bị đưa ra ngoài ngay và không tự vào lại được — vẫn vào lại được nếu bạn cho họ mã phòng.'
+      : `${ten} đang rớt mạng. Mời ra thì phòng khỏi phải chờ họ nối lại.`,
+    label: 'Mời ra',
+    action: () => o.moiRa(id)
+  };
 }
 
 function batDauTao(): void {
@@ -859,15 +888,6 @@ function openCfgWizard(): void {
           <span>Riêng tư</span>
         </button>
       </div>
-      <p class="sp-hint" :class="{ priv: !o.room.value?.congKhai }">
-        <span class="dot" aria-hidden="true"></span>
-        <span>{{
-          o.room.value?.congKhai
-            ? 'Đang hiện trong danh sách phòng — ai cũng vào được.'
-            : 'Không hiện trong danh sách — chỉ ai có mã 6 số mới vào được.'
-        }}</span>
-      </p>
-      <p v-if="!o.isHost.value" class="sp-rotag"><Lock :size="13" /> Chỉ chủ phòng đổi được</p>
     </div>
 
     <ul class="lobby-list">
@@ -904,6 +924,15 @@ function openCfgWizard(): void {
           <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
           <template v-else>{{ p.ready ? '✓ sẵn sàng' : 'chưa sẵn sàng' }}</template>
         </span>
+        <!-- Mời ra: chỉ CHỦ PHÒNG thấy, và không bao giờ hiện ở dòng của chính
+             mình — muốn đi thì có nút rời phòng, đi đường đó mới chuyển quyền
+             chủ phòng cho người khác. Nhạt và nhỏ: đây là việc hiếm làm, không
+             được tranh chỗ với thứ người ta nhìn hàng ngày. -->
+        <button
+          v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra" type="button"
+          :aria-label="`Mời ${p.name} ra khỏi phòng`" :title="`Mời ${p.name} ra khỏi phòng`"
+          @click="hoiMoiRa(p.id, p.name, p.connected)"
+        ><UserMinus :size="15" /></button>
       </li>
       <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
            làm dòng này vỡ chữ -->
@@ -1168,25 +1197,8 @@ function openCfgWizard(): void {
   box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
 .sp-seg .sp-opt.priv.sel { background: linear-gradient(150deg, #6f5bd6, #8f4fd0); }
-.sp-hint {
-  display: flex; align-items: flex-start; gap: 7px; margin: 9px 0 0;
-  font-size: var(--text-xs); line-height: 1.45; color: var(--muted);
-}
-.sp-hint .dot {
-  flex-shrink: 0; width: 7px; height: 7px; margin-top: 5px;
-  border-radius: var(--r-full); background: #109edb;
-}
-.sp-hint.priv .dot { background: #8f4fd0; }
-/* Khách (không phải chủ phòng): chỉ ĐỌC. Ô đang chọn giữ nguyên màu — họ vẫn
-   cần biết phòng mình đang ở là công khai hay riêng tư; chỉ ô KHÔNG chọn mờ đi
-   để thấy nó không bấm được. */
 .sophong.ro .sp-opt:not(.sel) { opacity: .42; }
 .sp-seg .sp-opt:disabled { cursor: default; }
-.sp-rotag {
-  display: inline-flex; align-items: center; gap: 5px; margin: 9px 0 0;
-  padding: 3px 9px; border-radius: var(--r-full); background: var(--accent-soft);
-  font-size: var(--text-xs); font-weight: 700; color: var(--accent);
-}
 
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .head h2 { flex: 1; margin: 0; font-size: 19px; }
@@ -1351,6 +1363,20 @@ input:focus { outline: none; border-color: var(--accent); }
   padding: 4px 8px; border: 2px solid var(--accent); border-radius: 9px;
   background: var(--panel-solid); color: var(--fg);
   font-family: var(--font-display); font-size: var(--text-md); font-weight: 700;
+}
+
+/* Mời ra: mờ và nhỏ, chỉ đậm lên khi rê vào — việc hiếm làm thì đừng tranh chỗ
+   với thứ người ta nhìn hàng ngày. Vùng chạm vẫn 44px qua ::after. */
+.nut-moi-ra {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0;
+  border: 0; border-radius: 8px; background: transparent;
+  color: var(--muted); opacity: .5;
+}
+.nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
+@media (hover: hover) {
+  .nut-moi-ra:hover { opacity: 1; color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
 }
 
 .lobby-list {

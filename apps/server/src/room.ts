@@ -688,6 +688,44 @@ export class RoomDO extends DurableObject<Env> {
         return;
       }
 
+      /*
+       * MỜI MỘT NGƯỜI RA KHỎI PHÒNG — chỉ chủ phòng.
+       *
+       * Ba chốt, thiếu cái nào cũng thành lỗ hổng hoặc lỗi thật:
+       *  - chỉ CHỦ PHÒNG, và không tự mời chính mình ra (muốn đi thì có nút rời
+       *    phòng, đi đường đó mới chuyển quyền chủ phòng cho người khác);
+       *  - báo LÝ DO cho người bị mời trước khi đóng, không thì họ chỉ thấy mất
+       *    kết nối và ngồi đợi mãi;
+       *  - đóng bằng mã RIÊNG (4003) để client biết ĐỪNG NỐI LẠI. Client tự vào
+       *    lại mỗi 500ms, nên đóng suông là họ quay vào ngay lập tức.
+       *
+       * Giữa ván thì tính là xử thua, y như đầu hàng — bỏ một người ra khỏi bàn
+       * mà không kết sổ thì engine còn chờ lượt của họ.
+       */
+      case 'kick': {
+        if (player.id !== this.room.hostId) return;
+        const ai = String(msg.playerId ?? '');
+        if (!ai || ai === player.id) return;
+        const nan = this.room.players.find((p) => p.id === ai);
+        if (!nan) return;
+
+        for (const sock of this.ctx.getWebSockets(ai)) {
+          this.send(sock, { t: 'closed', message: 'Chủ phòng đã mời bạn ra khỏi phòng.' });
+          sock.close(4003, 'kicked');
+        }
+        if (this.room.status === 'playing' && this.game) {
+          const events = this.game.forfeit(ai, Date.now());
+          this.removePlayer(ai);
+          await this.afterEvents(events, false);
+        } else {
+          this.removePlayer(ai);
+        }
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        if (this.game) this.broadcast({ t: 'state', view: this.view() });
+        return;
+      }
+
       case 'emoji': {
         if (!(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;   // ON-08: danh sách đóng
         if (!this.allowEmoji(player.id)) return;   // vượt hạn mức thì nuốt êm
