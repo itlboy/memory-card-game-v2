@@ -10,10 +10,12 @@
   lưới lựa chọn `grid-auto-rows: minmax(0, 1fr); overflow: hidden` để các ô
   tự nén theo chỗ còn lại. Thêm lựa chọn mới = ô nhỏ lại, KHÔNG dài trang ra.
 - Lưới lựa chọn phải **tròn hàng** (không ô lẻ thừa hàng cuối):
-  10 cỡ bàn = 2×5; 12 theme = 3×4 / 4×3.
+  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 9 mức số người = 3×3.
 - Hiệu ứng `:hover` phải bọc trong `@media (hover: hover)` — thiết bị cảm
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
-- Kích thước chạm tối thiểu 44px (NF-07); lưới lẻ ô (3×3, 5×5) có ô trống
+- Kích thước chạm tối thiểu 44px (NF-07) — NGOẠI LỆ đã chốt: hai cỡ bàn lớn
+  nhất (72 và 100 thẻ) cố ý phá ngưỡng, là bàn siêu khó người chơi tự chọn;
+  mọi cỡ ≤56 thẻ vẫn phải giữ, có test canh. Lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
 - **Vùng chạm ≠ HÌNH của nút.** Nút nhỏ mà vẫn phải 44px thì nới vùng chạm bằng
   `::after { inset: -8px }`, đừng phình cái nút lên (nút thoát 44px từng kéo cao
@@ -43,7 +45,7 @@
 - **Màn cấu hình** (lưới, theme): ô nền tối; Ô ĐƯỢC CHỌN bùng gradient
   tím + glow (`aria-checked/pressed` + `:not(.neon)`).
 - **CẤP CHỈ CÒN LÀ ĐỘ KHÓ TRONG CHIẾN DỊCH.** Ngoài Chiến dịch, bước đầu là
-  chọn SỐ THẺ (`SizeGrid.vue`, 10 cỡ trong `BOARD_SIZES`), không phải bản đồ 50
+  chọn SỐ THẺ (`SizeGrid.vue`, 12 cỡ trong `BOARD_SIZES`, 4→100 thẻ), không phải bản đồ 50
   cấp: ở đó cấp chỉ quyết định cỡ bàn, còn độ khó nằm ở năm tuỳ chọn. Giá trị
   phát ra vẫn là một số CẤP hợp lệ (cấp đầu tiên của mỗi cỡ) để engine, server
   và khoá lưu kỷ lục không phải đổi — mỗi cỡ bàn một khoá. Thời gian gốc ngoài
@@ -89,6 +91,15 @@
   `develop` → `main` (`pnpm test` + `pnpm typecheck` + `pnpm build` phải xanh,
   và các luật giao diện ở phần trên phải được kiểm bằng ảnh/đo DOM thật).
   Nhánh chính tên là `main`, không phải `master`.
+- **Hạn giữ chỗ khi rớt mạng là 5 PHÚT** (`ROOM_LIMITS.reconnectMs`, và
+  `IDLE_SILENT_MS` ở room.ts phải khớp). Mốc cũ 30 giây khiến khoá màn hình một
+  lúc là mất chỗ, rồi vào lại được cấp chỗ MỚI — một người hoá hai. Nới không
+  treo ván: hết lượt thì engine tự `turn-timeout`. Client tự nối lại có backoff,
+  `onWake` thử lại cả khi đã báo lỗi, và màn lỗi có nút "Thử lại" (`o.retry()`).
+- **Hết ván online phải còn đường VỀ PHÒNG CHỜ** (`t:'tolobby'`, một người bấm
+  là đủ). `t:'again'` đòi mọi người còn kết nối cùng bấm nên khi đối phương đã
+  đi thì không bao giờ đủ phiếu — thiếu `tolobby` thì người ở lại chỉ còn lối về
+  menu và MẤT PHÒNG. Có `tools/smoke-tolobby.mjs` canh.
 - `pnpm dev` = web :3001 + wrangler :8787 song song. `pnpm test` (engine +
   web), `pnpm smoke:online` và các script `tools/smoke-*.mjs` là E2E thật
   qua wrangler dev (cần server đang chạy); đặt `MM_SERVER=<url>` để soi chính
@@ -123,6 +134,10 @@
   tưởng xanh trong khi `Test Files 1 failed`.
 - Test đỏ thất thường = đang phụ thuộc ngẫu nhiên (seed bàn thẻ). Sửa bằng cách
   chọn dữ liệu không có yếu tố đó, KHÔNG phải chạy lại cho tới lúc xanh.
+- **BÀN XÁO NGẪU NHIÊN HOÀN TOÀN.** Không còn luật chống "hai thẻ cùng cặp nằm
+  kề nhau" (trước đây xáo lại tới 200 lần cho tới khi sạch). Đã bỏ theo quyết
+  định của chủ dự án — đừng thêm lại; `deck.test.ts` canh phân bố đúng mức ngẫu
+  nhiên nên vòng lọc quay lại là test đỏ.
 - Số của tuỳ chọn: **làm tròn LÊN**, không bao giờ để số thập phân tới tay người
   chơi (thời gian tròn lên bội số 5 giây). Số mạng neo theo BẢNG ĐO tỉ lệ sống
   sót, không chia số thẻ cho hằng số — số lần lật sai tăng theo bình phương số

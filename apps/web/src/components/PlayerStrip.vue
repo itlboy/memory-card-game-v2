@@ -14,7 +14,8 @@ defineProps<{
   seriesWins?: Record<string, number>;
 }>();
 
-const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
+// Đủ 10 con — bàn local nay tới 10 người, lặp lại là hai người cùng mặt.
+const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
 </script>
 
 <template>
@@ -60,11 +61,15 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
 </template>
 
 <style scoped>
-.strip { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
+/* XUỐNG HÀNG khi đông người. Bàn local/online nay tới 10 người: ép cả 10 chip
+   vào MỘT hàng trên iPhone SE là mỗi chip 29px — không còn chỗ cho tên lẫn
+   điểm. `min-width: 78px` là mốc chip còn đọc được; tới 4 người vẫn gọn một
+   hàng (4×78 = 312 < 351), từ 5 người trở lên tự tràn xuống hàng thứ hai. */
+.strip { display: flex; flex-wrap: wrap; gap: 4px 6px; list-style: none; margin: 0; padding: 0; }
 .player {
   /* Chip 1 dòng, nén hết cỡ để nhường diện tích cho bàn thẻ trên mobile */
   position: relative;
-  flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
+  flex: 1 1 0; min-width: 78px; display: flex; align-items: center; gap: 6px;
   padding: 5px 9px; border-width: 2px; border-radius: 12px;
 }
 .player.active {

@@ -27,7 +27,7 @@ const SESSION_KEY = 'mm.online';
 /**
  * Client online: mọi luật chơi nằm trên server (ON-09) — composable này chỉ
  * gửi hành động, nhận sự kiện + view đã che thẻ úp, và lo tự vào lại khi
- * rớt mạng trong hạn 30 giây (ON-07).
+ * rớt mạng trong hạn ROOM_LIMITS.reconnectMs (ON-07).
  */
 export function useOnlineRoom() {
   const phase = ref<Phase>('idle');
@@ -37,6 +37,9 @@ export function useOnlineRoom() {
   const myId = ref('');
   const spectator = ref(false);
   const reconnecting = ref(false);
+  /** Còn đủ thứ để nối lại (mã phòng + token) → màn lỗi hiện nút "Thử lại".
+   *  Ref chứ không phải computed: `code`/`token` là biến thường, không phản ứng. */
+  const coThuLai = ref(false);
   /** Hiệu ứng phía client — cùng ngôn ngữ với chế độ offline. */
   const wrongPair = ref<number[]>([]);
   /**
@@ -244,7 +247,9 @@ export function useOnlineRoom() {
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
   /** Emoji mới nhất phóng to giữa bàn cho ấn tượng. */
-  const emojiBlast = ref<{ emoji: QuickEmoji; name: string; key: number } | null>(null);
+  // `from` = id người gửi: EmojiBlast dùng nó để tìm chip của người đó và bay
+  // lên TỪ ĐÚNG CHỖ ĐÓ, thay vì luôn nổi giữa mép trên màn hình.
+  const emojiBlast = ref<{ emoji: QuickEmoji; name: string; from: string; key: number } | null>(null);
   let blastTimer: ReturnType<typeof setTimeout> | undefined;
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
   /** Hạn chót lượt (ms cục bộ) — server gửi số giây còn lại, client đếm tiếp cho mượt. */
@@ -330,6 +335,8 @@ export function useOnlineRoom() {
   let intentionalClose = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let reconnectDeadline = 0;
+  /** Số lần thử liên tiếp — dùng để giãn dần khoảng chờ. Về 0 khi nối được. */
+  let reconnectTries = 0;
   let bannerTimer: ReturnType<typeof setTimeout> | undefined;
 
   const isHost = computed(() => !!room.value && room.value.hostId === myId.value);
@@ -402,6 +409,7 @@ export function useOnlineRoom() {
     intentionalClose = false;
     code = roomCode;
     myName = name;
+    coThuLai.value = Boolean(useToken);
     phase.value = phase.value === 'playing' ? 'playing' : 'connecting';
     error.value = '';
 
@@ -414,12 +422,22 @@ export function useOnlineRoom() {
     ws.onclose = (e) => {
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
       if (intentionalClose || e.code === 4000 || e.code === 4001 || e.code === 4002) return;
-      // Đang trong ván: tự vào lại trong hạn 30 giây (ON-07)
-      if (token && (phase.value === 'playing' || phase.value === 'lobby')) {
+      // Tự vào lại trong hạn giữ chỗ của server (ON-07). Kể cả ở màn kết quả:
+      // phòng vẫn sống, mất socket ở đó mà bỏ luôn thì "Về phòng chờ" hết cửa.
+      if (token && phase.value !== 'idle') {
         if (!reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
         if (Date.now() < reconnectDeadline) {
           reconnecting.value = true;
-          reconnectTimer = setTimeout(() => connect(code, myName, token), 1500);
+          /*
+           * BACKOFF, không phải 1,5 giây đều đặn: hạn giữ chỗ nay là 5 phút, cứ
+           * 1,5 giây một lần là 200 lần mở socket vào một server có khi đang
+           * chết — vừa tốn pin vừa tự đập chính mình. Tăng dần tới trần 10 giây,
+           * và `onWake` vẫn nối lại NGAY khi người chơi mở màn hình lên, nên
+           * chờ lâu ở đây không làm chậm ca thường gặp nhất.
+           */
+          reconnectTries += 1;
+          const cho = Math.min(10_000, 1_500 * 2 ** Math.min(reconnectTries - 1, 3));
+          reconnectTimer = setTimeout(() => connect(code, myName, token), cho);
           return;
         }
       }
@@ -434,9 +452,11 @@ export function useOnlineRoom() {
       case 'welcome':
         myId.value = msg.playerId;
         token = msg.token;
+        coThuLai.value = true;
         spectator.value = !!msg.spectator;
         reconnecting.value = false;
         reconnectDeadline = 0;
+        reconnectTries = 0;
         room.value = msg.room;
         if (msg.spectator) {
           // Khán giả: phòng đã bắt đầu / đầy — chỉ xem, không lưu phiên
@@ -524,6 +544,7 @@ export function useOnlineRoom() {
         emojiBlast.value = {
           emoji: msg.emoji,
           name: msg.from === myId.value ? 'Bạn' : (sender?.name ?? ''),
+          from: msg.from,
           key: (emojiBlast.value?.key ?? 0) + 1
         };
         clearTimeout(blastTimer);
@@ -732,6 +753,20 @@ export function useOnlineRoom() {
     }
   }
 
+  /**
+   * Thử nối lại bằng tay sau khi đã báo mất kết nối. Đặt lại cả hạn lẫn bộ đếm
+   * backoff, vì đây là một lượt thử MỚI do người chơi chủ động — giữ hạn cũ thì
+   * bấm xong lại rơi thẳng về 'error'.
+   */
+  function retry(): void {
+    if (!code || !token) return;
+    reconnectDeadline = 0;
+    reconnectTries = 0;
+    reconnecting.value = true;
+    error.value = '';
+    connect(code, myName, token);
+  }
+
   function leave(): void {
     leaveSocket();
     clearStored();
@@ -742,6 +777,7 @@ export function useOnlineRoom() {
     token = '';
     error.value = '';
     reconnectDeadline = 0;
+    coThuLai.value = false;
   }
 
   /**
@@ -751,6 +787,14 @@ export function useOnlineRoom() {
    */
   function onWake(): void {
     if (document.visibilityState !== 'visible') return;
+    /*
+     * ĐÃ BỎ CUỘC RỒI VẪN THỬ LẠI. Khoá màn hình lâu thì socket chết, hạn thử
+     * lại chạy hết trong lúc máy ngủ và phase về 'error' — lúc đó `pingTimer`
+     * cũng đã tắt nên chốt bên dưới bỏ qua, người chơi mở máy lên chỉ thấy
+     * "Mất kết nối" đứng im dù phòng vẫn còn sống. Mở màn hình LÀ tín hiệu rõ
+     * nhất để thử lại một lần nữa.
+     */
+    if (phase.value === 'error' && code && token) { retry(); return; }
     if (!pingTimer) return;                  // không ở trong phòng thì chẳng có gì để đánh thức
     /*
      * Socket đã CHẾT trong lúc ở nền thì nối lại LUÔN, đừng đập nhịp vào một
@@ -820,14 +864,14 @@ export function useOnlineRoom() {
   }
 
   return {
-    phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
+    phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator,
     wrongPair, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
     /** Cửa DUY NHẤT lấy symbol để vẽ. Đừng đọc `predeal` từ ngoài — đọc trực
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */
     symbolNeuDuocPhep,
     countdown, countdownLeft, backStyle,
-    createRoom, join, leave, resumeStored,
+    createRoom, join, leave, retry, resumeStored,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => { send({ t: 'leave' }); leave(); },
@@ -843,6 +887,9 @@ export function useOnlineRoom() {
       sfx.ready();
       send({ t: 'again' });
     },
+    /** Về phòng chờ, giữ nguyên mã phòng. Một người bấm là cả phòng về lobby —
+     *  khác 'again' (phải đủ phiếu), nên đây là lối thoát khi đối phương đã đi. */
+    veLobby: () => { sfx.select(); send({ t: 'tolobby' }); },
     iWantAgain,
     againWaiting,
     againFrom,

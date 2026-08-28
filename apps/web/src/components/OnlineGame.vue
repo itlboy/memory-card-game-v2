@@ -155,6 +155,7 @@ watch(() => o.view.value?.summary, (s) => {
       <div
         v-for="p in o.view.value?.players" :key="p.id"
         class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
+        :data-chip-for="p.id"
       >
         <span class="avatar">{{ p.avatar }}</span>
         <b>{{ p.name }}</b>
@@ -291,6 +292,7 @@ watch(() => o.view.value?.summary, (s) => {
       :rematch-state="rematchState"
       @replay="o.again()"
       @next="o.again()"
+      @lobby="o.veLobby()"
       @menu="emit('quit')"
     >
       <template #chat><EmojiBar :o="o" /></template>

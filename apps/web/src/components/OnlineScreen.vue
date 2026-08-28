@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary
+  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Link2, Settings2, Sparkles, Timer
@@ -470,6 +470,11 @@ function openCfgWizard(): void {
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
+    <!-- Mất kết nối mà phòng vẫn còn (token còn trong sessionStorage): cho bấm
+         thử lại tại chỗ, đừng bắt người ta gõ lại mã phòng. -->
+    <button v-if="o.phase.value === 'error' && o.coThuLai.value" class="btn primary" type="button" @click="o.retry()">
+      Thử lại
+    </button>
   </section>
 
   <!-- LOBBY -->
@@ -499,7 +504,7 @@ function openCfgWizard(): void {
     </div>
 
     <ul class="lobby-list">
-      <li v-for="p in o.room.value?.players" :key="p.id" :class="{ off: !p.connected }">
+      <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
         <span class="avatar">{{ p.avatar }}</span>
         <b>{{ p.name }}</b>
         <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
@@ -519,8 +524,10 @@ function openCfgWizard(): void {
       </li>
       <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
            làm dòng này vỡ chữ -->
-      <li v-if="(o.room.value?.players.length ?? 0) < 4" class="empty">
-        Còn {{ 4 - (o.room.value?.players.length ?? 0) }} chỗ trống
+      <!-- Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng: đã từng ghi 4 ở đây và
+           lệch với server khi đổi trần. -->
+      <li v-if="(o.room.value?.players.length ?? 0) < ROOM_LIMITS.maxPlayers" class="empty">
+        Còn {{ ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0) }} chỗ trống
       </li>
     </ul>
 

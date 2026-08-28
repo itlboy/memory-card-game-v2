@@ -4,6 +4,20 @@
 
 * { box-sizing: border-box; }
 html, body, #app { margin: 0; min-height: 100%; }
+/*
+ * KHOÁ CUỘN Ở CẢ <html> VÀ <body>, không chỉ ở #app.
+ *
+ * `#app { overflow: hidden }` chỉ chặn thứ tràn BÊN TRONG nó. Bất cứ gì nằm
+ * ngoài #app — nội dung teleport ra <body> (EmojiBlast), lớp phủ của trình
+ * duyệt, hay một khoảnh khắc `100dvh` đo lệch lúc thanh URL của Safari trượt —
+ * đều vẫn kéo dài được document, và cả trang cuộn xuống một khoảng trắng sâu
+ * đúng bằng một màn hình. Đã bị phản ánh ở phòng online (ảnh chụp: panel ở
+ * trên, dưới là một viewport trắng).
+ *
+ * LƯU Ý: đây là chốt chặn cứng, KHÔNG phải là đã tìm ra thủ phạm. Chỗ nào cần
+ * cuộn thật (bản đồ 50 cấp) vẫn cuộn trong `main`, không đụng tới cái này.
+ */
+html, body { height: 100%; overflow: hidden; }
 html {
   /* Chặn double-tap zoom toàn cục + kéo giật rubber-band làm xê dịch khi bấm */
   touch-action: manipulation;
@@ -203,6 +217,8 @@ button {
 .g-amber  { background: linear-gradient(150deg, #f59e0b, #ff7b45) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-red    { background: linear-gradient(150deg, #ef4458, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-teal   { background: linear-gradient(150deg, #12a696, #1aa793) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-lime   { background: linear-gradient(150deg, #4d9b1f, #7cb518) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-orange { background: linear-gradient(150deg, #e2620c, #f59e0b) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 
 /* Chuyển màn mượt */
 .screen-enter-active { transition: opacity .22s ease, transform .22s ease; }

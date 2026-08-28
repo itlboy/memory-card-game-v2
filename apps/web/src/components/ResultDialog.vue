@@ -38,7 +38,7 @@ const props = defineProps<{
   rematchState?: Record<string, 'in' | 'out'>;
 }>();
 
-const emit = defineEmits<{ replay: []; next: []; menu: [] }>();
+const emit = defineEmits<{ replay: []; next: []; menu: []; lobby: [] }>();
 const primary = ref<HTMLButtonElement | null>(null);
 const shownStars = ref(0);
 /** Điểm chạy dần từ 0 lên tổng — con số nhảy sẵn thì không ai cảm nhận được
@@ -260,6 +260,15 @@ const title = computed(() => {
           Cấp tiếp theo
         </button>
       </div>
+      <!--
+        Phòng ONLINE: "Về phòng chờ" là lối ra MẶC ĐỊNH, không phải "Về menu".
+        "Chơi lại" cần MỌI người còn kết nối cùng bấm, nên khi đối phương thoát
+        giữa chừng thì nó không bao giờ đủ phiếu — trước đây người ở lại chỉ còn
+        đường về menu, và thế là mất phòng, phải tạo mã mới mời lại từ đầu.
+      -->
+      <button v-if="multiplayerOnline" class="btn" type="button" @click="emit('lobby')">
+        Về phòng chờ
+      </button>
       <button class="btn link" type="button" @click="emit('menu')">Về menu</button>
       <!--
         Chỉ còn MỘT dòng ở đây: "đang chờ ai" và "ai muốn chơi lại" đã chuyển

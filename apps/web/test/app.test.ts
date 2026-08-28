@@ -6,11 +6,11 @@ import App from '@/App.vue';
 
 const THEMES = {
   themes: [
-    { id: 'animals', name: 'Động vật', unlockAt: 0, symbols: Array.from({ length: 24 }, (_, i) => `A${i}`) },
+    { id: 'animals', name: 'Động vật', unlockAt: 0, symbols: Array.from({ length: 30 }, (_, i) => `A${i}`) },
     // Theme mở sẵn THỨ HAI, để tổng biểu tượng đủ cho bàn lớn nhất (56 thẻ = 28
     // cặp). Bản thật có sáu theme mở sẵn; một theme 24 biểu tượng thì không bộ
     // đơn lẻ nào dựng nổi bàn trần, và đó là ý đồ — phải trộn theme.
-    { id: 'food', name: 'Đồ ăn', unlockAt: 0, symbols: Array.from({ length: 24 }, (_, i) => `F${i}`) },
+    { id: 'food', name: 'Đồ ăn', unlockAt: 0, symbols: Array.from({ length: 30 }, (_, i) => `F${i}`) },
     { id: 'locked', name: 'Bị khoá', unlockAt: 999999, symbols: Array.from({ length: 24 }, (_, i) => `B${i}`) }
   ]
 };
@@ -286,14 +286,14 @@ describe('màn online (điều hướng, không cần server)', () => {
 });
 
 describe('bản đồ cấp của Chiến dịch', () => {
-  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 56 thẻ', async () => {
+  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 100 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.text()).toContain('4 thẻ');
-    expect(nodes.at(-1)!.text()).toContain('56 thẻ');
+    expect(nodes.at(-1)!.text()).toContain('100 thẻ');
     // Bốn chặng, mỗi chặng một thẻ có tên riêng
     expect(wrapper.findAll('.chapter')).toHaveLength(4);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
@@ -303,7 +303,7 @@ describe('bản đồ cấp của Chiến dịch', () => {
     expect(wrapper.text()).toContain('giờ siết dần');
   });
 
-  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 56 thẻ đòi 28 biểu tượng', async () => {
+  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 100 thẻ đòi 50 biểu tượng', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');

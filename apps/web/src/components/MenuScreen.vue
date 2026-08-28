@@ -107,12 +107,27 @@ const TITLES: Record<Step, string> = {
   options: 'Bàn chơi'
 };
 
-// Mỗi số người một màu riêng: ba ô cùng màu thì nhìn như một khối, mắt không
-// phân biệt được đang chọn cái nào
+/**
+ * Số người cùng máy: 2..10 — ĐÚNG CHÍN Ô, tròn hàng thành lưới 3×3 (luật lưới
+ * tròn hàng ở CLAUDE.md). Thêm/bớt một ô là hàng cuối lòi ô lẻ.
+ *
+ * Mỗi số một màu riêng: hai ô cùng màu cạnh nhau thì nhìn như một khối, mắt
+ * không đọc ra đang chọn cái nào. Chín ô = chín gradient, nên global.css có
+ * thêm g-lime và g-orange.
+ *
+ * Bỏ dòng mô tả: chín ô mô tả dài thì mỗi ô còn ~60px cao, chữ bị cắt. Ở đây
+ * con SỐ chính là nội dung.
+ */
 const COUNTS = [
-  { n: 2, g: 'g-pink',   desc: 'Đấu tay đôi, thay lượt nhau' },
-  { n: 3, g: 'g-violet', desc: 'Ba người, ai nhớ giỏi nhất?' },
-  { n: 4, g: 'g-cyan',   desc: 'Bốn người, đông vui nhất' }
+  { n: 2,  g: 'g-pink' },
+  { n: 3,  g: 'g-violet' },
+  { n: 4,  g: 'g-cyan' },
+  { n: 5,  g: 'g-blue' },
+  { n: 6,  g: 'g-teal' },
+  { n: 7,  g: 'g-lime' },
+  { n: 8,  g: 'g-amber' },
+  { n: 9,  g: 'g-orange' },
+  { n: 10, g: 'g-red' }
 ];
 
 /** Bốn mức của máy. Mô tả nói bằng CẢM GIÁC chơi (và nói cho vui), không nói
@@ -335,7 +350,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <button class="option big neon g-pink" type="button" @click="pickPlayers(true)">
           <Users class="opt-icon" :size="40" />
           <strong>Chơi nhiều người</strong>
-          <small>2–4 người thay lượt trên cùng máy này</small>
+          <small>2–10 người thay lượt trên cùng máy này</small>
         </button>
         <button class="option big neon g-cyan" type="button" @click="sfx.select(); emit('online')">
           <Globe class="opt-icon" :size="40" />
@@ -356,18 +371,17 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="step-body options loose counts">
+      <div v-else-if="step === 'count'" key="count" class="step-body options grid3 counts">
         <button
-          v-for="c in COUNTS" :key="c.n" class="option wide neon" :class="c.g" type="button"
+          v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
           :aria-label="`${c.n} người chơi`"
           @click="pickCount(c.n)"
         >
-          <!-- Đúng bằng số người: 2 người thì 2 hình, 4 người thì 4 hình. Một
-               icon "nhóm" dùng chung cho cả ba ô thì mắt không đọc ra số nào. -->
-          <span class="who-icons" :class="{ pair: c.n === 4 }" aria-hidden="true">
-            <User v-for="i in c.n" :key="i" class="opt-icon" :size="26" />
-          </span>
-          <span class="text"><strong>{{ c.n }} người chơi</strong><small>{{ c.desc }}</small></span>
+          <!-- MỘT icon người + con số, không vẽ đủ n hình nữa: tới 10 người thì
+               bó hình thành một mảng lấm chấm, đếm còn chậm hơn đọc số. -->
+          <User class="opt-icon" :size="24" aria-hidden="true" />
+          <strong>{{ c.n }}</strong>
+          <small>người</small>
         </button>
       </div>
 
@@ -547,15 +561,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 
-/* Bó icon người: 4 hình vẫn phải vừa cột icon, nên cho phép xuống hai hàng và
-   xếp khít lại. */
-.who-icons {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 1px; max-width: 62px; flex-shrink: 0;
-}
-.who-icons .opt-icon { width: clamp(18px, 7cqw, 27px); height: auto; }
-/* 4 người xếp 2+2 cho vuông vắn; 3 người vẫn một hàng ba */
-.who-icons.pair { max-width: 58px; }
 
 .theme-step { gap: 0; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
@@ -595,13 +600,12 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { min-width: 44px; font-size: 22px; line-height: 1; padding: 4px 12px; }
 
-/* Số người chơi: 3 THANH NGANG chồng nhau. Xếp 3 cột thì trong cột app hẹp mỗi
-   ô chỉ còn ~100px rộng nhưng cao 650px — ra ba sọc dọc, không ai nhận ra là nút. */
-.options.loose.counts > .option {
-  flex-direction: row; justify-content: center; align-items: center;
-  gap: 14px; text-align: left;
-}
-.options.loose.counts .text { display: flex; flex-direction: column; gap: 1px; }
+/* Số người chơi: LƯỚI 3×3 (2..10). Bản cũ là 3 thanh ngang chồng nhau — với
+   chín lựa chọn thì chín thanh ngang cao ~60px mỗi cái là tràn viewport, mà
+   luật là KHÔNG SCROLL. Lưới 3×3 để ô tự nén theo chỗ còn lại. */
+.options.grid3.counts > .option { gap: 2px; padding: 6px 4px; }
+.options.grid3.counts .opt-icon { width: clamp(16px, 16cqw, 26px); height: auto; }
+.options.grid3.counts strong { font-size: clamp(20px, min(30cqw, 34cqh), 40px); line-height: 1; }
 
 /* Nền tảng của ô lựa chọn nay ở wizard.css (dùng chung cho cả component con,
    xem chú thích ở đó). Dưới đây chỉ còn phần RIÊNG của màn này. */

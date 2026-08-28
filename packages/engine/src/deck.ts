@@ -96,25 +96,18 @@ export function buildDeck(opts: DeckOptions): Card[] {
     }
   });
 
-  // Xáo cho đến khi không còn cặp nào nằm sát nhau. Xáo thuần ngẫu nhiên để
-  // ~83% ván có cặp kề nhau (đo trên 200k ván) — người chơi bắt được cặp đó
-  // ngay lượt đầu nên ván mất hết vị "trí nhớ". Vẫn tất định: mọi lần xáo lại
-  // đều rút từ cùng một Rng theo seed.
-  // NGOẠI LỆ lưới nhỏ: 2×2 chỉ có 3 cách xếp và đúng MỘT cách không kề nhau
-  // (hai cặp chéo góc), nên áp luật vào đây là ván nào cũng y hệt ván nào —
-  // đoán được 100%, tệ hơn cả việc có cặp nằm cạnh.
-  let placed = layout(rng.shuffle(draft), blanks, cols, total);
-  if (pairCount >= 3) {
-    for (let tries = 0; tries < MAX_SHUFFLE_TRIES && adjacentPairs(placed, cols, rows) > 0; tries++) {
-      placed = layout(rng.shuffle(draft), blanks, cols, total);
-    }
-  }
+  /*
+   * XÁO ĐÚNG MỘT LẦN — NGẪU NHIÊN HOÀN TOÀN, không lọc gì.
+   *
+   * Trước đây xáo lại (tối đa 200 lần) cho tới khi không còn cặp nào nằm sát
+   * nhau, vì xáo thuần thì ~83% ván có ít nhất một cặp kề (đo trên 200k ván) và
+   * người chơi bắt được cặp đó ngay lượt đầu. Đã BỎ theo quyết định của chủ dự
+   * án: để bàn thật sự ngẫu nhiên. Đừng "sửa lại" — đây là chủ ý, không phải
+   * thiếu sót; có test canh phân bố đúng mức ngẫu nhiên.
+   */
+  const placed = layout(rng.shuffle(draft), blanks, cols, total);
   return placed.map((c, index) => ({ ...c, index }));
 }
-
-/** Số lần xáo lại tối đa — lưới nhỏ (2×2) chỉ có 1/3 cách xếp không kề nhau,
- *  nên cần dư; hết lượt vẫn còn cặp kề thì nhận bàn cuối, không bao giờ treo. */
-const MAX_SHUFFLE_TRIES = 200;
 
 /**
  * Chèn ô trống cho vừa lưới, LUÔN đối xứng theo trục dọc — ô trống lệch một bên
@@ -148,20 +141,3 @@ function layout(
   return out;
 }
 
-/** Đếm số cặp có hai thẻ nằm sát nhau theo hàng hoặc cột. */
-function adjacentPairs(
-  cards: readonly Omit<Card, 'index'>[],
-  cols: number,
-  rows: number
-): number {
-  let count = 0;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const id = cards[r * cols + c]?.pairId;
-      if (id === undefined || id < 0) continue;   // ô trống không tính
-      if (c + 1 < cols && cards[r * cols + c + 1]?.pairId === id) count++;
-      if (r + 1 < rows && cards[(r + 1) * cols + c]?.pairId === id) count++;
-    }
-  }
-  return count;
-}

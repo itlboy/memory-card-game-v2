@@ -38,10 +38,22 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
 };
 
 export const ROOM_LIMITS = {
-  maxPlayers: 4,
+  maxPlayers: 10,
   minPlayers: 2,
-  /** Rớt mạng quá hạn này thì bị xử thua (ON-07). */
-  reconnectMs: 30_000,
+  /**
+   * Rớt mạng quá hạn này thì bị xử thua (ON-07).
+   *
+   * 5 PHÚT, không phải 30 giây. Ai cũng chơi trên điện thoại: khoá màn hình một
+   * lúc, nhận cuộc gọi, chuyển sang Zalo trả lời một câu — iOS treo hẳn kết nối
+   * của tab nền, và với hạn 30 giây thì quay lại là đã bị xoá khỏi phòng. Tệ
+   * hơn: token cũ không còn ứng với ai nên vào lại được cấp CHỖ MỚI, thành ra
+   * một người hoá hai (đúng lỗi đã bị phản ánh).
+   *
+   * Nới không làm treo ván: hết lượt thì engine tự `turn-timeout` chuyển lượt,
+   * người rớt mạng chỉ bị bỏ lượt liên tục chứ bàn vẫn chạy. Ai muốn dứt điểm
+   * sớm thì bấm đầu hàng — chỗ đó xử thua NGAY, không chờ hạn này.
+   */
+  reconnectMs: 300_000,
   codeLength: 6,
   /** Chống spam emoji: tối đa `emojiBurst` lần trong `emojiWindowMs`.
    *  Client dùng để làm mờ nút, server dùng để thực sự chặn (client không
@@ -215,6 +227,7 @@ export type ClientMsg =
   | { t: 'start' }                                  // chỉ chủ phòng
   | { t: 'flip'; index: number }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
+  | { t: 'tolobby' }                                // về phòng chờ (một người bấm là đủ)
   | { t: 'ready'; ready: boolean }                  // sẵn sàng ở lobby
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng

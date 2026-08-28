@@ -61,10 +61,10 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
  * rưỡi cũng đủ vượt ngưỡng — người chơi bị báo "rớt mạng" trong khi mạng không
  * có vấn đề gì.
  *
- * TRẦN LÀ 25 GIÂY, không tuỳ ý: lúc phát hiện, `disconnectedAt` được LÙI về
- * `lastSeen` chứ không phải `now`, nên hạn xử thua vẫn là 30 giây kể từ lần cuối
- * thấy họ (ROOM_LIMITS.reconnectMs). Đặt bằng hoặc quá 30 giây là vừa phát hiện
- * đã xử thua luôn, mất sạch cửa vào lại.
+ * TRẦN LÀ ROOM_LIMITS.reconnectMs, không tuỳ ý: lúc phát hiện, `disconnectedAt`
+ * được LÙI về `lastSeen` chứ không phải `now`, nên hạn xử thua tính từ lần cuối
+ * thấy họ. Đặt bằng hoặc quá hạn đó là vừa phát hiện đã xử thua luôn, mất sạch
+ * cửa vào lại. (Hạn nay là 5 phút nên 20 giây rất thoải mái.)
  *
  * Không còn cần ngắn hơn đồng hồ lượt (15 giây): hết lượt thì engine tự
  * `turn-timeout` chuyển lượt, bàn KHÔNG treo — muộn ở đây chỉ là cái nhãn "mất
@@ -88,7 +88,10 @@ const SILENT_MS = 20_000;
  * status = 'playing' và `scheduleNext()` không hẹn alarm nào ở lobby, nên phòng
  * đó SỐNG VĨNH VIỄN: giữ mã phòng, đếm là một người "đang chờ".
  */
-const IDLE_SILENT_MS = 120_000;
+// 5 phút, khớp với ROOM_LIMITS.reconnectMs: hai con số này là CÙNG một câu hỏi
+// ("im bao lâu thì coi như đã đi"), lệch nhau là ngoài ván bị đá sớm hơn trong
+// ván — đúng cảnh ngồi chờ ở lobby, khoá màn hình 2 phút, quay lại mất phòng.
+const IDLE_SILENT_MS = 300_000;
 
 /**
  * Phòng đã lập (POST /api/rooms) mà không ai vào trong bấy nhiêu ms thì xoá.
@@ -243,6 +246,27 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   /**
+   * Đưa phòng từ 'ended' về 'lobby': giữ mã phòng và cấu hình, bỏ ván cũ, mọi
+   * người bấm sẵn sàng lại. `giuLai` là danh sách người được ở lại (người đã
+   * rớt hẳn thì không giữ chỗ nữa — họ vẫn vào lại bằng mã phòng được).
+   */
+  private async veLobby(giuLai: RoomPlayer[]): Promise<void> {
+    if (!this.room) return;
+    this.againVotes.clear();
+    this.room.players = giuLai;
+    if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
+      this.room.hostId = this.room.players[0]?.id ?? '';
+    }
+    this.room.status = 'lobby';
+    this.game = null;
+    await this.ctx.storage.delete('game');
+    for (const p of this.room.players) p.ready = false;
+    await this.save();
+    this.broadcast({ t: 'room', room: this.roomInfo() });
+    await this.scheduleNext();
+  }
+
+  /**
    * Gỡ một người khỏi phòng (đầu hàng / bị xử thua vì rớt mạng quá hạn).
    * Chủ phòng rời thì chuyển quyền cho người kế tiếp — nếu không thì
    * không ai còn bấm được "Chơi lại" hay huỷ phòng.
@@ -339,18 +363,23 @@ export class RoomDO extends DurableObject<Env> {
           this.broadcast({ t: 'room', room: this.roomInfo() });
           return;
         }
-        this.againVotes.clear();
         // Đủ phiếu: về phòng chờ để mọi người bấm sẵn sàng lần nữa
-        this.room.players = here;
-        if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
-          this.room.hostId = this.room.players[0]?.id ?? '';
-        }
-        this.room.status = 'lobby';
-        this.game = null;
-        await this.ctx.storage.delete('game');
-        for (const p of this.room.players) p.ready = false;
-        await this.save();
-        this.broadcast({ t: 'room', room: this.roomInfo() });
+        await this.veLobby(here);
+        return;
+      }
+
+      /*
+       * VỀ PHÒNG CHỜ — một người bấm là đủ, KHÔNG cần phiếu như 'again'.
+       *
+       * 'again' đòi mọi người còn kết nối cùng bấm, nên khi đối phương thoát
+       * giữa chừng thì nó không bao giờ đủ phiếu: người còn lại kẹt ở màn kết
+       * quả, chỉ còn lối "Về menu" — và thế là MẤT PHÒNG, phải tạo mã mới rồi
+       * mời lại từ đầu. Ván đã xong rồi thì đưa phòng về lobby chẳng cắt ngang
+       * của ai; ai chưa muốn chơi tiếp cứ ngồi ở lobby hoặc tự thoát.
+       */
+      case 'tolobby': {
+        if (this.room.status !== 'ended') return;
+        await this.veLobby(this.room.players.filter((p) => this.connected(p.id)));
         return;
       }
 
@@ -419,7 +448,7 @@ export class RoomDO extends DurableObject<Env> {
       }
 
       case 'leave': {
-        // Đầu hàng giữa ván: xử thua ngay, không chờ hạn 30 giây
+        // Đầu hàng giữa ván: xử thua ngay, không chờ hạn vào lại
         if (this.room.status === 'playing' && this.game && !this.game.finished) {
           player.disconnectedAt = null;
           const events = this.game.forfeit(player.id, Date.now());
@@ -496,7 +525,7 @@ export class RoomDO extends DurableObject<Env> {
         return;
       }
     } else {
-      player.disconnectedAt = Date.now();   // ON-07: 30 giây để vào lại
+      player.disconnectedAt = Date.now();   // ON-07: có ROOM_LIMITS.reconnectMs để vào lại
     }
     // Ván đã kết thúc và không còn socket nào: dọn phòng để mã dùng lại được
     if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
@@ -587,7 +616,7 @@ export class RoomDO extends DurableObject<Env> {
     /*
      * MẤT MẠNG IM LẶNG: cắt TCP không sinh sự kiện close, nên chỉ dựa vào close
      * là server tưởng người đó vẫn đang chơi — đối thủ ngồi nhìn bàn im không
-     * hiểu gì, và hạn 30 giây xử thua không bao giờ chạy. Đã đo được đúng cảnh
+     * hiểu gì, và hạn xử thua không bao giờ chạy. Đã đo được đúng cảnh
      * này bằng hai trình duyệt và cắt mạng một bên.
      *
      * Client gửi `alive` mỗi 4 giây, nên quá SILENT_MS không thấy tin nào là
