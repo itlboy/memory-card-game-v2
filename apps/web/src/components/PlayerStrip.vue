@@ -238,10 +238,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .lives:has(.opt-ico) { letter-spacing: 0; font-size: 11px; font-weight: 800; }
 .tag { font-size: 11px; display: inline-flex; align-items: center; }
 .tag :deep(.opt-ico) { border-radius: 4px; }
-.sr-only {
-  position: absolute; width: 1px; height: 1px; overflow: hidden;
-  clip: rect(0 0 0 0); white-space: nowrap;
-}
+/* .sr-only nay ở global.css — nó là tiện ích chung, không của riêng màn nào. */
 
 /* ---------- DẢI GỌN (từ 5 người) ---------- */
 

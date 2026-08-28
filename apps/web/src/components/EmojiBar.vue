@@ -42,14 +42,30 @@ const props = defineProps<{
 
 <style scoped>
 /* LUÔN một hàng. Cho xuống hàng thì trên điện thoại thành hai hàng, vừa xấu vừa
-   ăn chỗ của bàn thẻ. Các nút co giãn để tự vừa bề rộng: 8 emoji trên iPhone SE
-   ra ~39px mỗi nút, trên máy rộng thì chặn ở 44px cho khỏi phình to. */
+   ăn chỗ của bàn thẻ.
+   
+   NÚT GIỮ NGUYÊN CỠ, MÁY HẸP THÌ ẨN BỚT — không cho chúng co lại. Trước đây
+   nút co giãn (`flex: 1 1 auto`), nên thêm một emoji là TẤT CẢ bé đi: đo trên
+   iPhone SE, cái thứ 9 kéo cả thanh từ 31px xuống 29,4px. Máy rộng thì thừa
+   chỗ, chẳng có lý do gì bắt nó chịu theo máy hẹp nhất. */
 .emoji-bar {
   display: flex; flex-wrap: nowrap; gap: 4px; justify-content: center;
   padding: 0 6px;
   position: relative;
+  overflow: hidden;
+  container-type: inline-size;
   transition: opacity .18s ease;
 }
+/*
+ * Không đủ chỗ thì bỏ bớt từ CUỐI danh sách — nên thứ tự trong QUICK_EMOJIS
+ * chính là thứ tự ưu tiên: cái hay dùng đặt trước.
+ *
+ * Mốc tính từ cỡ nút thật: mỗi nút 31px + gap 4px, nên n emoji cần
+ * 35n − 4 px. 9 cái = 311px, 8 cái = 276px.
+ */
+@container (max-width: 310px) { .emoji:nth-child(n+9) { display: none; } }
+@container (max-width: 275px) { .emoji:nth-child(n+8) { display: none; } }
+@container (max-width: 240px) { .emoji:nth-child(n+7) { display: none; } }
 /* Hết hạn mức: mờ đi để thấy rõ là đang chờ */
 .emoji-bar.spent .emoji { opacity: .35; }
 .cooldown {
@@ -65,8 +81,8 @@ const props = defineProps<{
   /* Nhỏ đi 30% so với bản đầu (34/44/40/20px): thanh này chỉ là chỗ BẤM, còn
      thứ cần đọc là emoji người kia gửi (EmojiBlast). Nút bé thì nó nhường chỗ
      cho bàn thẻ và không tranh mắt với nút hành động.
-     flex 1 1 auto để chúng chia đều chỗ còn lại thay vì tràn ra ngoài khung. */
-  flex: 1 1 auto; min-width: 24px; max-width: 31px;
+     CỐ ĐỊNH 31px: thêm một emoji không được phép làm mọi nút khác bé đi. */
+  flex: 0 0 31px;
   min-height: 28px; font-size: 14px; border: 1px solid var(--line);
   border-radius: var(--r-full); background: var(--panel);
   transition: transform .12s ease;

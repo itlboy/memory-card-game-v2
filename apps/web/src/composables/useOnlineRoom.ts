@@ -520,7 +520,8 @@ export function useOnlineRoom() {
     ws.onmessage = (e) => handle(JSON.parse(String(e.data)) as ServerMsg);
     ws.onclose = (e) => {
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
-      if (intentionalClose || e.code === 4000 || e.code === 4001 || e.code === 4002) return;
+      // 4003: bị chủ phòng mời ra — KHÔNG nối lại, không thì quay vào ngay
+      if (intentionalClose || (e.code >= 4000 && e.code <= 4003)) return;
       // Tự vào lại trong hạn giữ chỗ của server (ON-07). Kể cả ở màn kết quả:
       // phòng vẫn sống, mất socket ở đó mà bỏ luôn thì "Về phòng chờ" hết cửa.
       if (token && phase.value !== 'idle') {
@@ -624,12 +625,21 @@ export function useOnlineRoom() {
         break;
 
       case 'closed':
-        // Chủ phòng huỷ phòng: về màn vào phòng kèm thông báo
+        /*
+         * Phòng đóng (chủ phòng huỷ) hoặc bị mời ra: về MÀN CHỜ kèm một dòng
+         * báo, không phải màn lỗi.
+         *
+         * `phase = 'idle'` chứ không phải `'error'`: đây không phải sự cố, chỉ
+         * là phòng hết. Đẩy vào màn lỗi thì người chơi nhìn thấy nút "Thử lại"
+         * cho một phòng không còn tồn tại — còn ở màn chờ thì họ thấy ngay
+         * danh sách phòng khác và nút tạo phòng mới.
+         */
         clearStored();
         leaveSocket();
         room.value = null;
         view.value = null;
-        phase.value = 'error';
+        coThuLai.value = false;
+        phase.value = 'idle';
         error.value = msg.message;
         break;
 
@@ -991,6 +1001,16 @@ export function useOnlineRoom() {
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */
     cancelRoom: () => { send({ t: 'cancel' }); leave(); },
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
+    /** Chủ phòng mời một người ra khỏi phòng. */
+    moiRa: (playerId: string) => { sfx.miss(); send({ t: 'kick', playerId }); },
+    /** Đổi tên mình — nhớ luôn cho lần chơi sau. */
+    doiTen: (ten: string) => {
+      const t = ten.trim().slice(0, 16);
+      if (!t) return;
+      store.savePlayerNames([t]);
+      sfx.select();
+      send({ t: 'rename', name: t });
+    },
     start: () => send({ t: 'start' }),
     ping,
     netQuality, netTrouble,

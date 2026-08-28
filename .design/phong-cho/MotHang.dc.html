@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+  <style>
+:root{
+  --font-display:'Baloo 2','Nunito',system-ui,sans-serif;
+  --font-body:'Nunito',system-ui,sans-serif;
+  --text-xs:11.5px;--text-sm:13px;--text-md:15.5px;--text-lg:18px;
+  --bg:#edeffa;--panel:rgba(255,255,255,.86);--panel-solid:#fff;--panel-soft:#f5f6ff;
+  --fg:#1c1f36;--muted:#63698c;--accent:#6a5cff;--accent-2:#c44cf0;
+  --accent-soft:rgba(106,92,255,.13);--line:rgba(96,92,168,.17);--line-strong:rgba(96,92,168,.3);
+  --ok:#0b815a;--gold:#b88600;
+  --elev-1:0 1px 3px rgba(30,27,75,.09),0 4px 14px rgba(30,27,75,.08);
+  --elev-2:0 2px 6px rgba(30,27,75,.1),0 12px 32px rgba(30,27,75,.14);
+  --inner-light:inset 0 1px 0 rgba(255,255,255,.65);
+  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-full:999px;
+  --cyan-a:#109edb;--cyan-b:#1aa793;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;width:390px;height:780px;overflow:hidden;
+  font:400 16px/1.5 var(--font-body);color:var(--fg);
+  background:
+    radial-gradient(52rem 34rem at 88% -10%,rgba(124,92,255,.2),transparent 60%),
+    radial-gradient(46rem 32rem at -12% 104%,rgba(56,189,248,.16),transparent 55%),
+    var(--bg);
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:#5947e8}
+.app{display:flex;flex-direction:column;height:100%;padding:8px}
+.panel{
+  display:flex;flex-direction:column;flex:1;min-height:0;gap:12px;
+  background:var(--panel);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:18px;padding:16px;
+  box-shadow:var(--elev-2),var(--inner-light);
+}
+.head{display:flex;align-items:center;gap:10px}
+.head h2{flex:1;margin:0;font-family:var(--font-display);font-size:19px;font-weight:700}
+.back{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:44px;min-height:44px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-solid);
+  box-shadow:var(--elev-1),var(--inner-light);color:var(--fg);
+}
+.ppl{list-style:none;margin:0;padding:0;display:grid;gap:8px;flex:1;min-height:0;align-content:start}
+.ppl li{
+  display:flex;align-items:center;gap:10px;min-height:54px;padding:8px 12px;
+  border:1px solid var(--line);border-radius:14px;background:var(--panel-soft);
+}
+.ppl .av{font-size:22px}
+.ppl b{font-family:var(--font-display);font-size:var(--text-md);font-weight:700}
+.ppl small{font-size:var(--text-xs);color:var(--muted)}
+.ppl .grow{flex:1}
+.tag-ready{font-size:var(--text-xs);font-weight:700;color:var(--ok)}
+.tag-wait{font-size:var(--text-xs);color:var(--muted)}
+.slot{justify-content:center;color:var(--muted);font-size:var(--text-sm);border-style:dashed}
+.btn-primary{
+  display:flex;align-items:center;justify-content:center;
+  min-height:50px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;
+  font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;
+  box-shadow:0 8px 22px rgba(106,92,255,.4),inset 0 1px 0 rgba(255,255,255,.35);
+}
+.cfg{
+  display:flex;align-items:center;gap:8px;font-size:var(--text-sm);color:var(--muted);
+}
+.emoji-row{display:flex;gap:4px;justify-content:center;padding-top:2px}
+.emoji-row span{
+  width:31px;height:28px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);border-radius:var(--r-full);background:var(--panel);font-size:14px;
+}
+.cao{
+  position:absolute;right:10px;
+  font-family:var(--font-display);font-size:10px;font-weight:800;letter-spacing:.06em;
+  color:var(--accent);background:rgba(106,92,255,.12);
+  padding:1px 6px;border-radius:var(--r-full);
+}
+.dodac{position:relative}
+/* A — MỘT HÀNG: mã phòng, hai nút chia sẻ và công tắc nằm chung một dải 56px */
+.dai{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px 6px 12px;
+  border:2px solid color-mix(in srgb,var(--accent) 35%,var(--line));
+  border-radius:var(--r-md);background:var(--accent-soft);
+}
+.ma{
+  font-family:var(--font-display);font-weight:800;font-size:23px;letter-spacing:.1em;
+  line-height:1;font-variant-numeric:tabular-nums;color:var(--accent);
+}
+.ico{
+  width:44px;height:44px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);border-radius:12px;background:var(--panel-solid);color:var(--fg);
+  box-shadow:var(--elev-1);
+}
+.ico.hot{border:0;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+.ck{
+  display:flex;align-items:center;gap:6px;height:44px;padding:0 12px;flex-shrink:0;
+  border-radius:12px;color:#fff;
+  background:linear-gradient(150deg,var(--cyan-a),var(--cyan-b));
+  font-family:var(--font-display);font-size:var(--text-sm);font-weight:700;
+}
+  </style>
+</helmet>
+<div class="app">
+  <div class="panel">
+    <div class="head"><span class="back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span><h2>Kiên</h2></div>
+
+    <div class="dodac">
+      <div class="dai">
+        <span class="ma">993 125</span>
+        <span class="grow" style="flex:1"></span>
+        <span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg></span>
+        <span class="ico hot"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5l5-5"/><path d="M12.7 7.3l1.6-1.6a3.5 3.5 0 0 1 5 5l-1.6 1.6"/><path d="M11.3 16.7l-1.6 1.6a3.5 3.5 0 0 1-5-5l1.6-1.6"/></svg></span>
+        <span class="ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></svg> Công khai</span>
+      </div>
+      <span class="cao" style="top:-9px">56px · tiết kiệm 123px</span>
+    </div>
+
+    <ul class="ppl">
+      <li><span class="av">🦊</span><b>Kiên</b><small>chủ phòng</small><span class="grow"></span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b88600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18l-1.4-9-4.1 3L12 6l-3.5 6-4.1-3z"/></svg></li>
+      <li><span class="av">🐼</span><b>Mai Anh</b><span class="grow"></span><span class="tag-ready">✓ sẵn sàng</span></li>
+      <li><span class="av">🐯</span><b>Tuấn</b><span class="grow"></span><span class="tag-wait">chưa sẵn sàng</span></li>
+      <li><span class="av">🐸</span><b>Hà</b><span class="grow"></span><span class="tag-ready">✓ sẵn sàng</span></li>
+      <li><span class="av">🐵</span><b>Bốp</b><span class="grow"></span><span class="tag-wait">chưa sẵn sàng</span></li>
+      <li class="slot">Còn 5 chỗ trống</li>
+    </ul>
+
+    <div class="cfg"><b style="color:var(--fg)">16 thẻ</b> · tất cả 15 theme</div>
+    <div class="btn-primary">Bắt đầu ván</div>
+    <div class="emoji-row"><span>😂</span><span>🐔</span><span>🐌</span><span>🐢</span><span>💩</span><span>😭</span><span>😡</span><span>🔥</span><span>🎉</span></div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

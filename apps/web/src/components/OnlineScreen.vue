@@ -4,9 +4,9 @@ import {
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
-  Link2, Lock, Plus, RefreshCw, Settings2, Timer, Users
+  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users
 } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -68,8 +68,17 @@ const invited = computed(() => !!props.joinCode && !loiMoiHong.value);
  * 'idle') — lúc đó mới rơi về màn nhập tên bình thường.
  */
 const dangVaoLai = ref(o.coPhienLuu(props.joinCode));
-watch(() => o.phase.value, (p) => {
+watch(() => o.phase.value, (p, truoc) => {
   if (p === 'error' || p === 'idle') dangVaoLai.value = false;
+  /*
+   * Vừa bị đưa ra khỏi phòng (chủ phòng huỷ, hoặc mình bị mời ra): về đúng màn
+   * DANH SÁCH PHÒNG, không để lại ở form nhập mã của phòng vừa mất. Dòng báo
+   * lý do vẫn hiện ngay dưới, nên không ai phải đoán chuyện gì xảy ra.
+   */
+  if (p === 'idle' && (truoc === 'lobby' || truoc === 'playing' || truoc === 'ended')) {
+    entryStep.value = 'choose';
+    void o.taiPhongCongKhai();
+  }
 });
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
 const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
@@ -132,6 +141,70 @@ function create(): void {
   if (!name.value.trim()) return;
   sfx.select();
   wizard.value = 'level';   // đi qua các bước chọn bàn như chơi một mình
+}
+
+/**
+ * Bấm "Tạo phòng mới": ĐÃ CÓ TÊN thì đi thẳng vào chọn bàn.
+ *
+ * Tên được nhớ từ lần trước (`store.playerNames`), nên bắt gõ lại mỗi lần là
+ * một bước thừa hoàn toàn — người chơi nhìn thấy đúng cái tên mình vẫn dùng,
+ * điền sẵn, rồi phải bấm "Tiếp tục" để xác nhận nó vẫn là nó. Đổi tên thì làm
+ * ngay trong phòng chờ được (nút cạnh tên mình), nên không mất đường nào.
+ */
+/* ---------- ĐỔI TÊN NGAY TRONG PHÒNG CHỜ ----------
+ * Tên được nhớ từ lần trước và bước nhập tên đã bỏ đi, nên đây là chỗ DUY NHẤT
+ * sửa được — phải luôn có, cho mọi người, không riêng chủ phòng.
+ */
+/* Hai khối bung ra từ dải mỏng. Mở cái này thì đóng cái kia — hai khối cùng
+   bung là dải trên cùng cao bằng khối cũ, mất sạch chỗ vừa tiết kiệm được. */
+const moMoi = ref(false);
+const moChonCK = ref(false);
+
+const suaTen = ref(false);
+const tenMoi = ref('');
+const oTen = ref<HTMLInputElement | null>(null);
+
+function moSuaTen(hienTai: string): void {
+  tenMoi.value = hienTai;
+  suaTen.value = true;
+  sfx.select();
+  // Chờ ô hiện ra rồi mới chọn hết chữ: mở ra là gõ đè được ngay
+  void nextTick(() => { oTen.value?.select(); });
+}
+
+function luuTen(): void {
+  if (!suaTen.value) return;      // `blur` còn bắn sau khi Esc đã đóng
+  suaTen.value = false;
+  const t = tenMoi.value.trim();
+  if (!t || t === name.value) return;
+  name.value = t;
+  o.doiTen(t);
+}
+
+/**
+ * Hỏi trước khi mời một người ra — không có đường hoàn tác, mà bấm nhầm thì
+ * người kia bị văng ra thật.
+ *
+ * Người đang RỚT MẠNG nói khác: đó là lý do hay dùng tính năng này nhất (cả
+ * phòng phải chờ hết hạn giữ chỗ mới đi tiếp được), nên nói thẳng ra là mời ra
+ * thì đi tiếp được ngay.
+ */
+function hoiMoiRa(id: string, ten: string, dangKetNoi: boolean): void {
+  sfx.select();
+  confirm.value = {
+    title: `Mời ${ten} ra khỏi phòng?`,
+    body: dangKetNoi
+      ? 'Họ bị đưa ra ngoài ngay và không tự vào lại được — vẫn vào lại được nếu bạn cho họ mã phòng.'
+      : `${ten} đang rớt mạng. Mời ra thì phòng khỏi phải chờ họ nối lại.`,
+    label: 'Mời ra',
+    action: () => o.moiRa(id)
+  };
+}
+
+function batDauTao(): void {
+  if (name.value.trim()) { create(); return; }
+  sfx.select();
+  entryStep.value = 'create';
 }
 const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
 
@@ -623,34 +696,30 @@ function openCfgWizard(): void {
       thành một dòng ở dưới, dành cho phòng riêng tư.
     -->
     <template v-if="entryStep === 'choose'">
-      <button class="btn-primary tao-phong" type="button" @click="entryStep = 'create'">
+      <button class="btn-primary tao-phong" type="button" @click="batDauTao()">
         <Plus :size="22" /> Tạo phòng mới
       </button>
 
       <div class="list-head">
         <h3>Phòng đang chờ</h3>
         <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
-        <!-- Đếm ngược tới lần tự làm mới sau. Con số nằm TRONG nút, thay chỗ
-             cái mũi tên xoay: người chơi vẫn bấm được bất cứ lúc nào, mà không
-             phải đoán bao giờ danh sách tự mới. Lúc đang tải thì mũi tên quay
-             trở lại — đó mới là thứ cần nói tại thời điểm đó. -->
+        <!-- Nhịp tự làm mới: một vòng tròn NHỎ vơi dần, không số, không viền.
+             Đây là thứ liếc qua chứ không phải thứ để bấm — cái đáng bấm ở màn
+             này là "Tạo phòng mới" và các dòng phòng. Bấm vào vẫn làm mới ngay
+             được, nhưng nó không xin ai chú ý. -->
         <button
-          class="icon-btn dem" type="button"
-          :aria-label="o.dangTaiPhong.value ? 'Đang làm mới danh sách' : `Làm mới danh sách — tự làm mới sau ${demNguoc} giây`"
+          class="nhip" type="button"
+          :aria-label="o.dangTaiPhong.value ? 'Đang làm mới danh sách' : `Tự làm mới sau ${demNguoc} giây — bấm để làm mới ngay`"
           :disabled="o.dangTaiPhong.value" @click="lamMoiNgay()"
         >
-          <RefreshCw v-if="o.dangTaiPhong.value" :size="18" class="quay" />
-          <template v-else>
-            <svg class="vong" viewBox="0 0 32 32" aria-hidden="true">
-              <circle class="ray" cx="16" cy="16" r="14" />
-              <circle
-                class="chay" cx="16" cy="16" r="14"
-                :stroke-dasharray="87.96"
-                :stroke-dashoffset="87.96 * (1 - demNguoc / 10)"
-              />
-            </svg>
-            <span class="so">{{ demNguoc }}</span>
-          </template>
+          <svg viewBox="0 0 24 24" aria-hidden="true" :class="{ quay: o.dangTaiPhong.value }">
+            <circle class="ray" cx="12" cy="12" r="9" />
+            <circle
+              class="chay" cx="12" cy="12" r="9"
+              :stroke-dasharray="56.55"
+              :stroke-dashoffset="o.dangTaiPhong.value ? 42 : 56.55 * (1 - demNguoc / 10)"
+            />
+          </svg>
         </button>
       </div>
 
@@ -780,36 +849,56 @@ function openCfgWizard(): void {
       <h2>{{ tenPhong }}</h2>
     </div>
 
-    <!-- Mời bạn: phải nói RÕ bấm vào đâu để làm gì. Nút mã nhỏ ở góc trước đây
-         nhìn như chỉ để xem mã, nhiều người không biết là bấm được. -->
-    <div class="invite">
-      <div class="invite-code">
-        <span class="invite-label">Mã phòng</span>
-        <b class="code-big">{{ o.room.value?.code }}</b>
-      </div>
-      <div class="invite-actions">
-        <button class="btn invite-btn" type="button" @click="copyCode">
-          <Check v-if="copiedCode" :size="17" /><Copy v-else :size="17" />
-          {{ copiedCode ? 'Đã copy mã' : 'Copy mã' }}
-        </button>
-        <button class="btn invite-btn primary" type="button" :title="inviteText" @click="copyLink">
-          <Check v-if="copied" :size="17" /><Link2 v-else :size="17" />
-          {{ copied ? 'Đã copy link' : 'Copy link' }}
-        </button>
-      </div>
+    <!--
+      DẢI MỎNG: mã phòng + hai chip. Cả hai thứ ở đây (mời bạn, đổi công khai)
+      chỉ dùng MỘT LẦN lúc mở phòng rồi nằm không cả ván, nên chúng không được
+      chiếm chỗ thường trực của danh sách người chơi — phòng chứa tới 10 người.
+      Đo bản cũ: 107px + 72px = 179px, tức hơn ba dòng người chơi.
+    -->
+    <div class="dai-mong">
+      <b class="ma-nho">{{ o.room.value?.code }}</b>
+      <span class="grow"></span>
+      <!-- Chip trạng thái: mở ra hai ô chọn chứ KHÔNG đổi ngay. Đổi ngay thì
+           lại rơi vào chỗ mơ hồ của công tắc cũ — không biết chữ đang hiện là
+           trạng thái hiện tại hay thứ sẽ thành sau khi bấm. -->
+      <button
+        class="pill ck" :class="{ priv: !o.room.value?.congKhai, doc: !o.isHost.value }"
+        type="button" :disabled="!o.isHost.value" :aria-expanded="moChonCK"
+        :aria-label="o.room.value?.congKhai ? 'Phòng công khai — chạm để đổi' : 'Phòng riêng tư — chạm để đổi'"
+        @click="moChonCK = !moChonCK; moMoi = false"
+      >
+        <Globe v-if="o.room.value?.congKhai" :size="15" /><Lock v-else :size="15" />
+        {{ o.room.value?.congKhai ? 'Công khai' : 'Riêng tư' }}
+      </button>
+      <button
+        class="pill moi" type="button" :aria-expanded="moMoi"
+        @click="moMoi = !moMoi; moChonCK = false"
+      ><Link2 :size="15" /> Mời bạn</button>
+    </div>
+
+    <!-- Bung ra khi chạm "Mời bạn" -->
+    <div v-if="moMoi" class="bung">
+      <button class="btn bung-btn" type="button" @click="copyCode">
+        <Check v-if="copiedCode" :size="17" /><Copy v-else :size="17" />
+        {{ copiedCode ? 'Đã copy mã' : 'Copy mã' }}
+      </button>
+      <button class="btn bung-btn primary" type="button" :title="inviteText" @click="copyLink">
+        <Check v-if="copied" :size="17" /><Link2 v-else :size="17" />
+        {{ copied ? 'Đã copy link' : 'Copy link' }}
+      </button>
     </div>
 
     <!--
-      Công khai hay riêng tư. Chỉ CHỦ PHÒNG bấm được, nhưng ai cũng ĐỌC được:
-      người vào phòng cần biết phòng mình đang ngồi có hiện cho người lạ không.
+      Công khai hay riêng tư — bung ra khi chạm chip. Chỉ CHỦ PHÒNG mở được,
+      nhưng ai cũng ĐỌC được trạng thái ngay trên chip: người vào phòng cần biết
+      phòng mình đang ngồi có hiện cho người lạ không.
     -->
-    <div class="sophong" :class="{ ro: !o.isHost.value }">
+    <div v-if="moChonCK" class="sophong">
       <div class="sp-seg" role="radiogroup" aria-label="Ai vào được phòng này">
         <button
           class="sp-opt" :class="{ sel: o.room.value?.congKhai }" type="button"
           role="radio" :aria-checked="o.room.value?.congKhai ? 'true' : 'false'"
-          :disabled="!o.isHost.value"
-          @click="o.datCongKhai(true)"
+          @click="o.datCongKhai(true); moChonCK = false"
         >
           <Globe :size="19" />
           <span>Công khai</span>
@@ -817,30 +906,36 @@ function openCfgWizard(): void {
         <button
           class="sp-opt priv" :class="{ sel: !o.room.value?.congKhai }" type="button"
           role="radio" :aria-checked="o.room.value?.congKhai ? 'false' : 'true'"
-          :disabled="!o.isHost.value"
-          @click="o.datCongKhai(false)"
+          @click="o.datCongKhai(false); moChonCK = false"
         >
           <Lock :size="19" />
           <span>Riêng tư</span>
         </button>
       </div>
-      <p class="sp-hint" :class="{ priv: !o.room.value?.congKhai }">
-        <span class="dot" aria-hidden="true"></span>
-        <span>{{
-          o.room.value?.congKhai
-            ? 'Đang hiện trong danh sách phòng — ai cũng vào được.'
-            : 'Không hiện trong danh sách — chỉ ai có mã 6 số mới vào được.'
-        }}</span>
-      </p>
-      <p v-if="!o.isHost.value" class="sp-rotag"><Lock :size="13" /> Chỉ chủ phòng đổi được</p>
     </div>
 
     <ul class="lobby-list">
       <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
         <span class="avatar">{{ p.avatar }}</span>
-        <b>{{ p.name }}</b>
+        <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
+             không ai đổi được tên người khác. -->
+        <template v-if="p.id === o.myId.value && suaTen">
+          <input
+            ref="oTen" v-model="tenMoi" class="sua-ten" maxlength="16"
+            aria-label="Tên của bạn"
+            @keydown.enter="luuTen()" @keydown.esc="suaTen = false" @blur="luuTen()"
+          >
+        </template>
+        <template v-else>
+          <b>{{ p.name }}</b>
+          <button
+            v-if="p.id === o.myId.value" class="nut-sua" type="button"
+            aria-label="Đổi tên" title="Đổi tên"
+            @click="moSuaTen(p.name)"
+          ><Pencil :size="14" /></button>
+        </template>
         <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
-        <small v-if="p.id === o.myId.value">(bạn)</small>
+        <small v-if="p.id === o.myId.value && !suaTen">(bạn)</small>
         <!-- Ping hiện từ PHÒNG CHỜ, không đợi vào ván: biết mạng mình thế nào
              trước khi bắt đầu thì còn kịp xử lý. -->
         <span
@@ -853,6 +948,15 @@ function openCfgWizard(): void {
           <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
           <template v-else>{{ p.ready ? '✓ sẵn sàng' : 'chưa sẵn sàng' }}</template>
         </span>
+        <!-- Mời ra: chỉ CHỦ PHÒNG thấy, và không bao giờ hiện ở dòng của chính
+             mình — muốn đi thì có nút rời phòng, đi đường đó mới chuyển quyền
+             chủ phòng cho người khác. Nhạt và nhỏ: đây là việc hiếm làm, không
+             được tranh chỗ với thứ người ta nhìn hàng ngày. -->
+        <button
+          v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra" type="button"
+          :aria-label="`Mời ${p.name} ra khỏi phòng`" :title="`Mời ${p.name} ra khỏi phòng`"
+          @click="hoiMoiRa(p.id, p.name, p.connected)"
+        ><UserMinus :size="15" /></button>
       </li>
       <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
            làm dòng này vỡ chữ -->
@@ -886,12 +990,9 @@ function openCfgWizard(): void {
       >{{ startLabel }}</button>
     </template>
     <template v-else>
-      <button
-        class="btn-primary" :class="{ 'is-ready': meReady }" type="button"
-        @click="o.setReady(!meReady)"
-      >
-        {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
-      </button>
+      <!-- Bàn chơi ĐỌC TRƯỚC KHI BẤM: đây là thứ người ta cần biết để quyết
+           định có sẵn sàng hay không, nên nó phải nằm TRÊN nút. Ở dưới thì đọc
+           xong mới thấy, mà lúc đó đã bấm rồi. -->
       <div v-if="optionChips(o.room.value?.config).length" class="cfg-chips">
         <span v-for="c in optionChips(o.room.value?.config)" :key="c.key" class="cfg-chip">
           <OptionIcon :name="c.icon" :size="17" />{{ c.text }}
@@ -901,6 +1002,12 @@ function openCfgWizard(): void {
         {{ cardCount }} thẻ · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — chờ chủ phòng bắt đầu…
       </p>
+      <button
+        class="btn-primary" :class="{ 'is-ready': meReady }" type="button"
+        @click="o.setReady(!meReady)"
+      >
+        {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
+      </button>
     </template>
     <!-- Chat ngay ở phòng chờ: lúc ngồi đợi nhau mới là lúc cần nói chuyện
          nhất. Server không hề chặn emoji theo trạng thái phòng, nên đây chỉ là
@@ -969,27 +1076,32 @@ function openCfgWizard(): void {
 .vao-lai .vl-t { margin: 0; font-family: var(--font-display); font-size: var(--text-md); color: var(--fg); }
 .vao-lai .vl-s { margin: 0; font-size: var(--text-xs); }
 
-/* Vòng đếm ngược tới lần tự làm mới sau: viền chạy vơi dần quanh con số, nằm
-   TRONG cái nút 36px sẵn có nên hàng tiêu đề không cao thêm chút nào. */
-.icon-btn.dem .vong {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  transform: rotate(-90deg);   /* bắt đầu vơi từ 12 giờ */
+/*
+ * Nhịp tự làm mới — CHỈ LÀ MỘT BIỂU TƯỢNG, không phải nút.
+ *
+ * Bản trước là một nút có viền, có nền, có con số đếm ngược to bằng chữ thường:
+ * nó hút mắt ngang với "Tạo phòng mới" trong khi chẳng có việc gì đáng làm ở
+ * đó. Nay bỏ hết trang trí, còn một vòng tròn mảnh vơi dần — biết là danh sách
+ * đang tự cập nhật là đủ, không cần biết còn mấy giây.
+ */
+.nhip {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; min-width: 0; min-height: 0; padding: 0;
+  border: 0; background: none; color: var(--muted); opacity: .75;
 }
-.icon-btn.dem .ray {
-  fill: none; stroke: var(--line); stroke-width: 2.5;
-}
-.icon-btn.dem .chay {
-  fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round;
-  /* Vơi từng giây MỘT NHỊP, khớp đúng con số bên trong. Không transition mượt:
-     nhìn vòng chạy trơn mà số nhảy từng bậc thì hai thứ đá nhau. */
+/* Vùng chạm vẫn 44px dù hình chỉ 20px (NF-07) — nới bằng ::after, không phình
+   cái biểu tượng lên. */
+.nhip::after { content: ''; position: absolute; inset: -12px; }
+.nhip svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.nhip .ray { fill: none; stroke: currentColor; stroke-width: 1.6; opacity: .3; }
+.nhip .chay {
+  fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round;
+  /* Vơi từng giây một nhịp; không transition để khỏi lệch với nhịp đếm. */
   transition: none;
 }
-.icon-btn.dem .so {
-  position: relative;   /* nổi trên vòng */
-  font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700;
-  font-variant-numeric: tabular-nums;   /* số không nhảy ngang khi 10 → 9 */
-  color: var(--muted);
-}
+.nhip svg.quay { animation: quay 1s linear infinite; }
+.nhip:disabled { cursor: default; }
 
 /* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): nó chiếm chỗ còn lại và tự
    cuộn BÊN TRONG khi có nhiều phòng. */
@@ -1092,7 +1204,8 @@ function openCfgWizard(): void {
  * Bày cả hai lựa chọn ra thì không còn gì phải suy: ô sáng là chỗ mình đang
  * đứng, ô kia là chỗ bấm sang.
  */
-.sophong { margin: 10px 0 0; }
+/* Khối chọn công khai chỉ hiện khi chạm chip — nằm ngay dưới dải mỏng. */
+.sophong { margin: 0 0 8px; }
 .sp-seg {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
   padding: 5px; border: 1px solid var(--line); border-radius: var(--r-md);
@@ -1112,25 +1225,8 @@ function openCfgWizard(): void {
   box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
 .sp-seg .sp-opt.priv.sel { background: linear-gradient(150deg, #6f5bd6, #8f4fd0); }
-.sp-hint {
-  display: flex; align-items: flex-start; gap: 7px; margin: 9px 0 0;
-  font-size: var(--text-xs); line-height: 1.45; color: var(--muted);
-}
-.sp-hint .dot {
-  flex-shrink: 0; width: 7px; height: 7px; margin-top: 5px;
-  border-radius: var(--r-full); background: #109edb;
-}
-.sp-hint.priv .dot { background: #8f4fd0; }
-/* Khách (không phải chủ phòng): chỉ ĐỌC. Ô đang chọn giữ nguyên màu — họ vẫn
-   cần biết phòng mình đang ở là công khai hay riêng tư; chỉ ô KHÔNG chọn mờ đi
-   để thấy nó không bấm được. */
 .sophong.ro .sp-opt:not(.sel) { opacity: .42; }
 .sp-seg .sp-opt:disabled { cursor: default; }
-.sp-rotag {
-  display: inline-flex; align-items: center; gap: 5px; margin: 9px 0 0;
-  padding: 3px 9px; border-radius: var(--r-full); background: var(--accent-soft);
-  font-size: var(--text-xs); font-weight: 700; color: var(--accent);
-}
 
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .head h2 { flex: 1; margin: 0; font-size: 19px; }
@@ -1240,26 +1336,43 @@ input:focus { outline: none; border-color: var(--accent); }
   font-family: var(--font-display); font-weight: 700; text-align: center; font-size: 22px;
 }
 
-/* Khối mời bạn vào phòng */
-.invite {
-  display: flex; flex-direction: column; gap: 8px;
-  margin: 0 0 12px; padding: 10px 12px;
-  border: 2px solid color-mix(in srgb, var(--accent) 35%, var(--line));
-  border-radius: var(--r-md); background: var(--accent-soft);
+/* ---------- DẢI MỎNG: mã phòng + hai chip ----------
+ * Mời bạn và đổi công khai đều là việc làm MỘT LẦN lúc mở phòng rồi thôi, nên
+ * chúng không được chiếm chỗ thường trực của danh sách người chơi — phòng chứa
+ * tới 10 người, mỗi dòng 54px. Bản cũ tốn 179px cho hai khối này, tức hơn ba
+ * dòng người chơi. Nay 40px, phần còn lại chỉ hiện khi chạm.
+ */
+.dai-mong {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 40px; margin: 0 0 8px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-soft);
 }
-.invite-code { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.invite-label { font-size: var(--text-sm); font-weight: 700; color: var(--muted); }
-.code-big {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(24px, 8vw, 34px); letter-spacing: .16em; line-height: 1;
-  font-variant-numeric: tabular-nums; color: var(--accent);
+.ma-nho {
+  font-family: var(--font-display); font-weight: 800; font-size: 17px;
+  letter-spacing: .09em; color: var(--accent); font-variant-numeric: tabular-nums;
 }
-.invite-actions { display: flex; gap: 8px; }
-.invite-btn {
-  flex: 1; gap: 6px;
-  font-size: var(--text-sm); font-weight: 700;
+.dai-mong .grow { flex: 1; }
+.pill {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 26px; min-height: 0; min-width: 0; padding: 0 10px;
+  border: 0; border-radius: var(--r-full);
+  font-size: var(--text-xs); font-weight: 700;
 }
-.invite-btn.primary {
+/* Vùng chạm 44px mà chip vẫn 26px (NF-07) — nới bằng ::after, đừng phình chip
+   lên, phình là cả dải cao lại như cũ. */
+.pill::after { content: ''; position: absolute; inset: -9px; }
+.pill.ck { color: #fff; background: linear-gradient(150deg, #109edb, #1aa793); }
+.pill.ck.priv { background: linear-gradient(150deg, #6f5bd6, #8f4fd0); }
+/* Khách: chip vẫn ĐỌC được trạng thái, chỉ không bấm được */
+.pill.ck.doc { opacity: .85; }
+.pill.ck:disabled { cursor: default; }
+.pill.moi { color: var(--accent); background: var(--accent-soft); }
+
+/* Bung ra khi chạm "Mời bạn" */
+.bung { display: flex; gap: 8px; margin: 0 0 8px; }
+.bung-btn { flex: 1; gap: 6px; font-size: var(--text-sm); font-weight: 700; }
+.bung-btn.primary {
   border: 0; color: #fff;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 6px 16px var(--card-back-glow);
@@ -1275,6 +1388,41 @@ input:focus { outline: none; border-color: var(--accent); }
 .ping.ok  { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
 .ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
+
+/* Đổi tên tại chỗ: nút bút chì nhỏ cạnh tên mình, và ô nhập thay đúng chỗ cái
+   tên — không mở hộp thoại, không đẩy dòng nào nhảy chỗ. */
+.nut-sua {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0; margin-left: -2px;
+  border: 0; border-radius: 8px; background: transparent; color: var(--muted);
+}
+/* Vùng chạm 44px mà KHÔNG phình cái nút — phình là hàng người chơi cao thêm và
+   danh sách ngắn đi một dòng (xem luật ở CLAUDE.md). */
+.nut-sua::after { content: ''; position: absolute; inset: -9px; }
+@media (hover: hover) {
+  .nut-sua:hover { background: var(--accent-soft); color: var(--accent); }
+}
+.sua-ten {
+  flex: 1; min-width: 0; max-width: 190px;
+  padding: 4px 8px; border: 2px solid var(--accent); border-radius: 9px;
+  background: var(--panel-solid); color: var(--fg);
+  font-family: var(--font-display); font-size: var(--text-md); font-weight: 700;
+}
+
+/* Mời ra: mờ và nhỏ, chỉ đậm lên khi rê vào — việc hiếm làm thì đừng tranh chỗ
+   với thứ người ta nhìn hàng ngày. Vùng chạm vẫn 44px qua ::after. */
+.nut-moi-ra {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0;
+  border: 0; border-radius: 8px; background: transparent;
+  color: var(--muted); opacity: .5;
+}
+.nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
+@media (hover: hover) {
+  .nut-moi-ra:hover { opacity: 1; color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+}
 
 .lobby-list {
   list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px;
