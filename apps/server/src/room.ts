@@ -666,6 +666,28 @@ export class RoomDO extends DurableObject<Env> {
         // Chỉ ghi mốc; mốc đã được cập nhật ở đầu hàm cho MỌI tin nhắn.
         return;
 
+      /*
+       * ĐỔI TÊN — ai cũng đổi được, cả ở phòng chờ lẫn giữa ván.
+       *
+       * Phải sửa ở HAI CHỖ: `room.players` (danh sách phòng chờ) và người chơi
+       * trong engine (bảng điểm, chip lượt). Sửa một chỗ là tên hiện một đằng
+       * một nẻo tuỳ người đang nhìn màn nào.
+       *
+       * Tên rỗng thì bỏ qua: client chặn rồi, nhưng client KHÔNG ĐÁNG TIN
+       * (ON-09) — để lọt một tên rỗng là chip người chơi thành khoảng trắng.
+       */
+      case 'rename': {
+        const ten = String(msg.name ?? '').trim().slice(0, 16);
+        if (!ten || ten === player.name) return;
+        player.name = ten;
+        const trongVan = this.game?.players.find((p) => p.id === player.id);
+        if (trongVan) trongVan.name = ten;
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        if (this.game) this.broadcast({ t: 'state', view: this.view() });
+        return;
+      }
+
       case 'emoji': {
         if (!(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;   // ON-08: danh sách đóng
         if (!this.allowEmoji(player.id)) return;   // vượt hạn mức thì nuốt êm

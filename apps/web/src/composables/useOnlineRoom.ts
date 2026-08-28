@@ -991,6 +991,14 @@ export function useOnlineRoom() {
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */
     cancelRoom: () => { send({ t: 'cancel' }); leave(); },
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
+    /** Đổi tên mình — nhớ luôn cho lần chơi sau. */
+    doiTen: (ten: string) => {
+      const t = ten.trim().slice(0, 16);
+      if (!t) return;
+      store.savePlayerNames([t]);
+      sfx.select();
+      send({ t: 'rename', name: t });
+    },
     start: () => send({ t: 'start' }),
     ping,
     netQuality, netTrouble,

@@ -71,14 +71,18 @@ export const ROOM_LIMITS = {
 
 /**
  * Emoji chat nhanh — danh sách đóng để tránh nội dung xấu (ON-08).
- * Nghiêng về trêu đùa vui: 🐔 gà (chê đánh dở), 🐌 chậm như sên, 💩 dở.
+ * Nghiêng về trêu đùa vui: 🐔 gà (chê đánh dở), 🐌 chậm như sên, 💩 dở,
+ * 🐢 rùa (chúc may mắn — khác hẳn 🐌, đừng gộp hai cái làm một).
  * Bỏ 👍 / 😮 / 🤔 vì chỉ là phản ứng suông, không tạo được không khí đùa nhau.
  *
- * ĐÚNG 8 cái, không thêm: thanh emoji phải nằm gọn MỘT hàng trên điện thoại nhỏ
- * nhất (iPhone SE còn 339px cho thanh này). Thêm cái thứ 9 là nút co xuống dưới
- * 34px, bấm bằng ngón tay thành khó.
+ * THỨ TỰ Ở ĐÂY LÀ THỨ TỰ ƯU TIÊN. Thanh emoji giữ nguyên cỡ nút (31px) và ẩn
+ * bớt từ CUỐI khi máy hẹp, thay vì bóp nhỏ mọi nút — máy rộng thừa chỗ thì
+ * chẳng có lý do gì bắt nó chịu theo máy hẹp nhất. Đo được: iPhone SE hiện 8
+ * cái, iPhone 15 Pro Max hiện đủ 9. Nên cái hay dùng phải đặt TRƯỚC; thêm emoji
+ * mới cứ thêm, nhưng biết là máy nhỏ sẽ không thấy nó.
+ * Mốc nằm ở EmojiBar.vue (container query, mỗi nút 31px + gap 4px).
  */
-export const QUICK_EMOJIS = ['😂', '🐔', '🐌', '💩', '😭', '😡', '🔥', '🎉'] as const;
+export const QUICK_EMOJIS = ['😂', '🐔', '🐌', '🐢', '💩', '😭', '😡', '🔥', '🎉'] as const;
 export type QuickEmoji = (typeof QUICK_EMOJIS)[number];
 
 /* ---------- view công khai ---------- */
@@ -233,6 +237,13 @@ export type ClientMsg =
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng
   | { t: 'emoji'; emoji: string }
+  /**
+   * Đổi tên. AI CŨNG đổi được, và đổi được cả trong ván.
+   *
+   * Tên là thứ duy nhất người khác nhận ra mình, mà nó được nhớ từ lần chơi
+   * trước — nên phải sửa được tại chỗ, không bắt thoát phòng ra rồi vào lại.
+   */
+  | { t: 'rename'; name: string }
   | { t: 'ping' }
   /**
    * Báo còn sống. KHÁC `ping`: `ping` do server tự trả lời (setWebSocketAutoResponse)

@@ -4,9 +4,9 @@ import {
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
-  Link2, Lock, Plus, RefreshCw, Settings2, Timer, Users
+  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, Users
 } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -132,6 +132,45 @@ function create(): void {
   if (!name.value.trim()) return;
   sfx.select();
   wizard.value = 'level';   // đi qua các bước chọn bàn như chơi một mình
+}
+
+/**
+ * Bấm "Tạo phòng mới": ĐÃ CÓ TÊN thì đi thẳng vào chọn bàn.
+ *
+ * Tên được nhớ từ lần trước (`store.playerNames`), nên bắt gõ lại mỗi lần là
+ * một bước thừa hoàn toàn — người chơi nhìn thấy đúng cái tên mình vẫn dùng,
+ * điền sẵn, rồi phải bấm "Tiếp tục" để xác nhận nó vẫn là nó. Đổi tên thì làm
+ * ngay trong phòng chờ được (nút cạnh tên mình), nên không mất đường nào.
+ */
+/* ---------- ĐỔI TÊN NGAY TRONG PHÒNG CHỜ ----------
+ * Tên được nhớ từ lần trước và bước nhập tên đã bỏ đi, nên đây là chỗ DUY NHẤT
+ * sửa được — phải luôn có, cho mọi người, không riêng chủ phòng.
+ */
+const suaTen = ref(false);
+const tenMoi = ref('');
+const oTen = ref<HTMLInputElement | null>(null);
+
+function moSuaTen(hienTai: string): void {
+  tenMoi.value = hienTai;
+  suaTen.value = true;
+  sfx.select();
+  // Chờ ô hiện ra rồi mới chọn hết chữ: mở ra là gõ đè được ngay
+  void nextTick(() => { oTen.value?.select(); });
+}
+
+function luuTen(): void {
+  if (!suaTen.value) return;      // `blur` còn bắn sau khi Esc đã đóng
+  suaTen.value = false;
+  const t = tenMoi.value.trim();
+  if (!t || t === name.value) return;
+  name.value = t;
+  o.doiTen(t);
+}
+
+function batDauTao(): void {
+  if (name.value.trim()) { create(); return; }
+  sfx.select();
+  entryStep.value = 'create';
 }
 const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
 
@@ -623,7 +662,7 @@ function openCfgWizard(): void {
       thành một dòng ở dưới, dành cho phòng riêng tư.
     -->
     <template v-if="entryStep === 'choose'">
-      <button class="btn-primary tao-phong" type="button" @click="entryStep = 'create'">
+      <button class="btn-primary tao-phong" type="button" @click="batDauTao()">
         <Plus :size="22" /> Tạo phòng mới
       </button>
 
@@ -838,9 +877,25 @@ function openCfgWizard(): void {
     <ul class="lobby-list">
       <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
         <span class="avatar">{{ p.avatar }}</span>
-        <b>{{ p.name }}</b>
+        <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
+             không ai đổi được tên người khác. -->
+        <template v-if="p.id === o.myId.value && suaTen">
+          <input
+            ref="oTen" v-model="tenMoi" class="sua-ten" maxlength="16"
+            aria-label="Tên của bạn"
+            @keydown.enter="luuTen()" @keydown.esc="suaTen = false" @blur="luuTen()"
+          >
+        </template>
+        <template v-else>
+          <b>{{ p.name }}</b>
+          <button
+            v-if="p.id === o.myId.value" class="nut-sua" type="button"
+            aria-label="Đổi tên" title="Đổi tên"
+            @click="moSuaTen(p.name)"
+          ><Pencil :size="14" /></button>
+        </template>
         <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
-        <small v-if="p.id === o.myId.value">(bạn)</small>
+        <small v-if="p.id === o.myId.value && !suaTen">(bạn)</small>
         <!-- Ping hiện từ PHÒNG CHỜ, không đợi vào ván: biết mạng mình thế nào
              trước khi bắt đầu thì còn kịp xử lý. -->
         <span
@@ -1275,6 +1330,27 @@ input:focus { outline: none; border-color: var(--accent); }
 .ping.ok  { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
 .ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
+
+/* Đổi tên tại chỗ: nút bút chì nhỏ cạnh tên mình, và ô nhập thay đúng chỗ cái
+   tên — không mở hộp thoại, không đẩy dòng nào nhảy chỗ. */
+.nut-sua {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0; margin-left: -2px;
+  border: 0; border-radius: 8px; background: transparent; color: var(--muted);
+}
+/* Vùng chạm 44px mà KHÔNG phình cái nút — phình là hàng người chơi cao thêm và
+   danh sách ngắn đi một dòng (xem luật ở CLAUDE.md). */
+.nut-sua::after { content: ''; position: absolute; inset: -9px; }
+@media (hover: hover) {
+  .nut-sua:hover { background: var(--accent-soft); color: var(--accent); }
+}
+.sua-ten {
+  flex: 1; min-width: 0; max-width: 190px;
+  padding: 4px 8px; border: 2px solid var(--accent); border-radius: 9px;
+  background: var(--panel-solid); color: var(--fg);
+  font-family: var(--font-display); font-size: var(--text-md); font-weight: 700;
+}
 
 .lobby-list {
   list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px;
