@@ -48,6 +48,11 @@ spec:
       labels:
         app: thebai-server
     spec:
+      # Pod cũ phải chết NHANH: `Recreate` chờ nó biến mất hẳn rồi mới dựng pod
+      # mới, nên mỗi giây nấn ná ở đây là một giây phòng online đứt. Server bắt
+      # SIGTERM, đẩy nốt phần chờ ghi rồi thoát ngay — không cần 30 giây mặc
+      # định để làm việc đó.
+      terminationGracePeriodSeconds: 5
       containers:
         - name: server
           image: ghcr.io/itlboy/memory-card-game-v2/lat-the-server:latest
@@ -76,10 +81,14 @@ spec:
             # không thì URL vỡ. Chọn mật khẩu chỉ gồm chữ và số là xong.
             - name: MYSQL_URL
               value: "mysql://root:$(MYSQL_ROOT_PASSWORD)@thebai-mysql:3306/latthe"
+          # Hỏi SỚM và DÀY. Server Node lên trong khoảng một giây, nên chờ 3
+          # giây rồi kiểm mỗi 5 giây là tự thêm vài giây chết vào mỗi lần
+          # deploy — mà client chỉ im lặng 5 giây đầu trước khi báo "mất kết
+          # nối" cho người chơi. Đo được: 7 giây trước khi sửa.
           readinessProbe:
             httpGet: { path: /health, port: http }
-            initialDelaySeconds: 3
-            periodSeconds: 5
+            initialDelaySeconds: 1
+            periodSeconds: 1
           livenessProbe:
             httpGet: { path: /health, port: http }
             initialDelaySeconds: 15
