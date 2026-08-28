@@ -71,10 +71,31 @@ const ban = await mk(code, 'Ban');   // bạn bấm link
 await sleep(600);
 const wBan = ban.msgs.find((m) => m.t === 'welcome');
 if (!wBan || wBan.spectator) { console.log('✗ bạn vào bằng link mà thành khán giả'); process.exit(1); }
-if (wBan.room.hostId !== wBan.playerId) {
-  console.log('✗ phòng rỗng mà người vào đầu tiên không được làm chủ phòng'); process.exit(1);
+console.log('✓ chia link: chủ phòng thoát ra, phòng vẫn sống, bạn vào được');
+
+/*
+ * QUYỀN CHỦ PHÒNG KHÔNG ĐỔI CHỦ NGAY. Rớt kết nối ở lobby còn được giữ chỗ
+ * LOBBY_HOLD_MS (30 giây thật; smoke chạy server với LOBBY_HOLD_MS=2000) —
+ * không có nó thì khoá màn hình một nhịp là mất quyền trong phòng của chính
+ * mình. Hết hạn mà không quay lại thì mới chuyển quyền cho người còn ngồi đó.
+ */
+if (wBan.room.hostId === wBan.playerId) {
+  console.log('✗ chủ phòng vừa rớt đã bị tước quyền ngay, không có hạn giữ chỗ'); process.exit(1);
 }
-console.log('✓ chia link: chủ phòng thoát ra, phòng vẫn sống, bạn vào được và làm chủ phòng');
+console.log('✓ trong hạn giữ chỗ: quyền chủ phòng vẫn thuộc người vừa rớt');
+
+// Chờ quá hạn giữ chỗ: người rớt bị gỡ, quyền chuyển cho người còn lại
+await sleep(3500);
+const doi = ban.msgs.filter((m) => m.t === 'room').at(-1);
+if (!doi || doi.room.hostId !== wBan.playerId) {
+  console.log('✗ hết hạn giữ chỗ mà quyền chủ phòng không chuyển cho người còn lại');
+  process.exit(1);
+}
+if (doi.room.players.length !== 1) {
+  console.log(`✗ hết hạn giữ chỗ mà người rớt vẫn nằm trong phòng (${doi.room.players.length} người)`);
+  process.exit(1);
+}
+console.log('✓ hết hạn giữ chỗ: người rớt bị gỡ, quyền chủ phòng chuyển sang người còn lại');
 
 console.log('\nLEAVE/CANCEL OK');
 process.exit(0);

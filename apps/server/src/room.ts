@@ -6,7 +6,7 @@ import {
 import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
-import { PREDEAL } from './flags.js';
+import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_SYMBOLS } from './themes.js';
 import { pairsForLevel } from '@mm/engine';
 import { soPhongTuBinding, type SoPhong } from './sophong.js';
@@ -140,6 +140,23 @@ const UNUSED_ROOM_MS = 600_000;
  * Giữ một phòng rỗng chỉ tốn một mẩu storage và MỘT alarm, nên thà rộng tay.
  */
 const EMPTY_LOBBY_MS = 600_000;
+
+/**
+ * Ở LOBBY, rớt kết nối thì còn giữ CHỖ VÀ QUYỀN CHỦ PHÒNG bấy nhiêu ms.
+ *
+ * Trước đây `webSocketClose` ở lobby gỡ người ta khỏi phòng NGAY và chuyển
+ * quyền chủ phòng ngay lập tức. Hậu quả thật: chủ phòng chuyển tab, khoá màn
+ * hình, hay sóng chập một nhịp là mất quyền — quay lại thành khách trong phòng
+ * của chính mình, không bấm Bắt đầu được nữa. Nó còn kéo theo avatar trùng:
+ * avatar cấp theo `players.length`, người bị gỡ làm số đó tụt xuống nên người
+ * vào sau nhận đúng avatar của người đang còn trong phòng.
+ *
+ * 30 giây là đủ cho một lần mất sóng / chuyển app rồi quay lại, mà vẫn ngắn để
+ * người bỏ đi thật không chiếm chỗ lâu. Khác IDLE_SILENT_MS (5 phút): mốc kia
+ * dành cho mất mạng IM LẶNG — không có bằng chứng gì nên phải rộng tay; ở đây
+ * socket đã đóng hẳn, ta biết chắc họ đã rớt.
+ */
+// Con số thật nằm ở flags.ts để bộ smoke hạ xuống được (đừng hạ khi chạy thật).
 
 export class RoomDO extends DurableObject<Env> {
   private room: RoomState | null = null;
@@ -326,7 +343,10 @@ export class RoomDO extends DurableObject<Env> {
       player = {
         id: crypto.randomUUID().slice(0, 8),
         name,
-        avatar: AVATARS[this.room.players.length % AVATARS.length],
+        // Avatar CHƯA AI TRONG PHÒNG DÙNG. Lấy theo `players.length` thì chỉ
+        // đúng khi không ai từng rời đi: một người rời là số đó tụt xuống và
+        // người vào sau đội trùng avatar của người đang ngồi đó.
+        avatar: this.avatarConTrong(),
         token: crypto.randomUUID(),
         disconnectedAt: null,
         ready: false
@@ -336,6 +356,7 @@ export class RoomDO extends DurableObject<Env> {
       delete this.room.emptyAt;   // phòng có người trở lại, không còn hẹn xoá
     } else {
       player.disconnectedAt = null;
+      delete this.room.emptyAt;   // người giữ chỗ đã về, không còn hẹn xoá
       if (name) player.name = name;
     }
 
@@ -525,7 +546,10 @@ export class RoomDO extends DurableObject<Env> {
           return;
         }
         // Chủ phòng mặc nhiên sẵn sàng; những người khác phải bấm đủ
-        const notReady = this.room.players.filter((p) => p.id !== this.room!.hostId && !p.ready);
+        // Chỉ đòi người CÒN KẾT NỐI bấm sẵn sàng: người đang trong hạn giữ chỗ
+        // (LOBBY_HOLD_MS) không bấm được gì, tính họ vào là phòng kẹt tới 30 giây.
+        const notReady = this.room.players.filter(
+          (p) => p.id !== this.room!.hostId && !p.ready && this.connected(p.id));
         if (notReady.length) {
           this.send(ws, {
             t: 'error', code: 'not-ready',
@@ -638,14 +662,14 @@ export class RoomDO extends DurableObject<Env> {
     if (this.ctx.getWebSockets(player.id).some((s) => s !== ws)) return;
 
     if (this.room.status === 'lobby') {
-      // Ở lobby thì rời phòng luôn
-      this.room.players = this.room.players.filter((p) => p.id !== player.id);
-      if (this.room.hostId === player.id) this.room.hostId = this.room.players[0]?.id ?? '';
-      if (!this.room.players.length) {
-        // KHÔNG xoá ngay: mã phòng phải còn sống để cái link vừa gửi đi dùng
-        // được (xem EMPTY_LOBBY_MS). Alarm sẽ dọn nếu hết giờ vẫn không ai vào.
+      // GIỮ CHỖ, không gỡ ngay: LOBBY_HOLD_MS để họ nối lại, và quyền chủ phòng
+      // ở nguyên chỗ cũ trong lúc đó.
+      player.disconnectedAt = Date.now();
+      if (!this.room.players.some((p) => this.connected(p.id))) {
+        // Không còn ai ĐANG kết nối: mã phòng vẫn phải sống để cái link vừa gửi
+        // đi dùng được (xem EMPTY_LOBBY_MS). Alarm sẽ dọn nếu hết giờ vẫn vắng.
+        // KHÔNG xoá players và KHÔNG bỏ hostId — người rớt còn hạn quay lại.
         this.room.emptyAt = Date.now();
-        this.room.hostId = '';
         await this.save();
         await this.scheduleNext();
         return;
@@ -706,6 +730,25 @@ export class RoomDO extends DurableObject<Env> {
       this.room = null;
       this.game = null;
       return;
+    }
+
+    /*
+     * HẾT HẠN GIỮ CHỖ Ở LOBBY (LOBBY_HOLD_MS): giờ mới gỡ thật, và giờ mới
+     * chuyển quyền chủ phòng. Trước khối này chạy, người rớt vẫn là chủ phòng.
+     */
+    if (this.room.status === 'lobby') {
+      const truoc = this.room.players.length;
+      this.room.players = this.room.players.filter(
+        (p) => p.disconnectedAt === null || now - p.disconnectedAt < LOBBY_HOLD_MS
+      );
+      if (this.room.players.length !== truoc) {
+        if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
+          this.room.hostId = this.room.players[0]?.id ?? '';
+        }
+        if (!this.room.players.length) this.room.emptyAt = now;
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+      }
     }
 
     if (this.room.status === 'lobby' || this.room.status === 'ended') {
@@ -815,6 +858,11 @@ export class RoomDO extends DurableObject<Env> {
     if (this.room?.status === 'lobby' || this.room?.status === 'ended') {
       for (const p of this.room.players) {
         if (p.lastSeen) marks.push(p.lastSeen + IDLE_SILENT_MS + 500);
+        // Hết hạn giữ chỗ ở lobby: thiếu mốc này thì người rớt nằm lại phòng tới
+        // khi một alarm KHÁC tình cờ nổ, và quyền chủ phòng treo theo.
+        if (this.room.status === 'lobby' && p.disconnectedAt !== null) {
+          marks.push(p.disconnectedAt + LOBBY_HOLD_MS + 500);
+        }
       }
       // Phòng rỗng: không có mốc này thì nó không bao giờ bị dọn
       if (this.room.emptyAt) marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
@@ -859,6 +907,17 @@ export class RoomDO extends DurableObject<Env> {
 
   private view() {
     return publicView(this.game!, Date.now(), (id) => this.connected(id));
+  }
+
+  /**
+   * Avatar chưa ai trong phòng đang đội. AVATARS có 10 con, đúng bằng
+   * ROOM_LIMITS.maxPlayers, nên luôn còn ít nhất một con trống; hết sạch (không
+   * xảy ra được, nhưng đừng để trả về undefined) thì quay vòng như cũ.
+   */
+  private avatarConTrong(): string {
+    const dangDung = new Set(this.room!.players.map((p) => p.avatar));
+    return AVATARS.find((a) => !dangDung.has(a))
+      ?? AVATARS[this.room!.players.length % AVATARS.length]!;
   }
 
   private connected(id: string): boolean {
