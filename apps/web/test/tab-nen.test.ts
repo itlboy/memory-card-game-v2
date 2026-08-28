@@ -91,7 +91,12 @@ describe('tab quay lại từ nền', () => {
 
     quayLaiTab();
     expect(FakeWS.opened, 'phải mở kết nối mới ngay khi tab hiện lại').toBe(soLanMo + 1);
-    expect(room.reconnecting.value).toBe(true);
+    /* IM LẶNG trong 5 giây đầu: nối lại chạy ngay, nhưng người chơi chưa được
+       thấy gì. Gần như lần nào cũng vá xong trước mốc đó, và nháy dòng đỏ cho
+       một lần chớp sóng thì đọc thành "mạng lởm" giữa ván. */
+    expect(room.reconnecting.value, 'chưa tới 5 giây thì chưa báo gì').toBe(false);
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(room.reconnecting.value, 'rớt quá 5 giây thì mới báo').toBe(true);
   });
 
   it('tab ẩn đi thì KHÔNG đập nhịp — chỉ lúc hiện lại mới đập', async () => {

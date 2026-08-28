@@ -25,6 +25,31 @@ interface StoredSession { code: string; token: string; name: string }
 const SESSION_KEY = 'mm.online';
 
 /**
+ * Rớt kết nối thì thử lại ĐỀU ĐẶN mỗi bấy nhiêu ms — không backoff.
+ *
+ * Bản trước giãn dần 1,5 → 3 → 6 → 10 giây để đỡ đập một server có khi đang
+ * chết. Nhưng ca thật hay gặp không phải server chết, mà là sóng chớp một nhịp
+ * giữa ván: giãn ra thành người chơi ngồi chờ tới 10 giây cho một sự cố đã hết
+ * từ lâu, mà một lượt chỉ có 15 giây. Thử dày thì gần như lần nào cũng nối lại
+ * xong trước khi có ai kịp nhận ra.
+ *
+ * Đánh đổi đã biết: server chết hẳn thì trong hạn 5 phút sẽ có tới ~600 lượt mở
+ * socket. Chấp nhận — mở một WebSocket vào cổng không ai nghe là rẻ, và đây là
+ * lựa chọn của chủ dự án.
+ */
+const RECONNECT_EVERY_MS = 500;
+
+/**
+ * Rớt liên tục bấy nhiêu ms thì MỚI báo cho người chơi biết.
+ *
+ * Dưới ngưỡng này tuyệt đối im lặng: với nhịp thử 500ms, một lần chớp sóng
+ * thường được vá trong 1-2 lượt thử, và nháy dòng "mất kết nối" cho chuyện đó
+ * chỉ làm người ta hoảng giữa ván. Báo là báo MỘT lần cho cả đợt (xem
+ * `batNoiLai`), không phải mỗi lượt thử một dòng.
+ */
+const BANNER_AFTER_MS = 5_000;
+
+/**
  * Client online: mọi luật chơi nằm trên server (ON-09) — composable này chỉ
  * gửi hành động, nhận sự kiện + view đã che thẻ úp, và lo tự vào lại khi
  * rớt mạng trong hạn ROOM_LIMITS.reconnectMs (ON-07).
@@ -37,6 +62,8 @@ export function useOnlineRoom() {
   const myId = ref('');
   const spectator = ref(false);
   const reconnecting = ref(false);
+  /** Đã kêu tiếng "vào phòng rồi" chưa — mỗi phiên đúng một lần. */
+  let daVaoPhong = false;
 
   /* ---------- danh sách phòng công khai (ON-10) ---------- */
 
@@ -183,7 +210,7 @@ export function useOnlineRoom() {
       // người chơi rời app mà readyState vẫn báo OPEN, nên KHÔNG có bước này
       // thì họ ngồi nhìn chip đỏ mãi tới khi tự tải lại trang.
       if (pingLost.value >= 3 && code && token) {
-        reconnecting.value = true;
+        batNoiLai();
         connect(code, myName, token);
         return;
       }
@@ -311,7 +338,7 @@ export function useOnlineRoom() {
     // ai làm gì được). Người chơi KHÔNG được ngồi nhìn màn hình chết mà không
     // biết vì sao — nói ra, rồi tự đồng bộ lại.
     const tLuot = turnTimeLeft.value;
-    if (view.value?.status === 'playing' && tLuot === 0 && !reconnecting.value) {
+    if (view.value?.status === 'playing' && tLuot === 0 && !dangNoiLai) {
       if (!stuckSince) stuckSince = clock.value;
       else if (clock.value - stuckSince >= STUCK_MS) {
         stuckSince = 0;
@@ -365,8 +392,17 @@ export function useOnlineRoom() {
   let intentionalClose = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let reconnectDeadline = 0;
-  /** Số lần thử liên tiếp — dùng để giãn dần khoảng chờ. Về 0 khi nối được. */
-  let reconnectTries = 0;
+  /**
+   * ĐANG nối lại — cờ NỘI BỘ, bật NGAY từ nhịp rớt đầu tiên.
+   *
+   * Tách khỏi `reconnecting` (cờ hiển thị) vì hai câu hỏi khác nhau: cái này trả
+   * lời "đã có một lượt nối lại đang chạy chưa" nên phải đúng tức thì, không thì
+   * `reconnectNow` mở chồng mấy cái socket một lúc.
+   */
+  let dangNoiLai = false;
+  /** Mốc rớt đầu tiên, để biết đã im lặng đủ BANNER_AFTER_MS chưa. */
+  let rotTu = 0;
+  let bannerNoiLai: ReturnType<typeof setTimeout> | undefined;
   let bannerTimer: ReturnType<typeof setTimeout> | undefined;
 
   const isHost = computed(() => !!room.value && room.value.hostId === myId.value);
@@ -389,10 +425,39 @@ export function useOnlineRoom() {
    * LƯỢT trước khi client kịp nhận ra là mình đang nói vào chỗ không ai nghe.
    * Đúng lỗi đã bị phản ánh: "bấm rồi mà server không phản hồi, mất lượt luôn".
    */
+  /**
+   * Bắt đầu (hoặc tiếp tục) một đợt nối lại.
+   *
+   * IM LẶNG TRONG BANNER_AFTER_MS ĐẦU. Gần như mọi lần rớt là chớp nhoáng —
+   * đổi sóng, wifi sang 4G, iOS treo tab một nhịp — và nối lại xong trước khi
+   * người chơi kịp nhận ra. Báo ngay là mỗi lần sóng chớp lại nháy một dòng đỏ
+   * giữa ván, đọc thành "mạng lởm" trong khi chẳng có gì hỏng.
+   *
+   * Và CHỈ BẬT MỘT LẦN cho cả đợt: hẹn giờ chỉ đặt khi chưa có đợt nào chạy
+   * (`rotTu === 0`), nên hai chục lượt thử của một đợt vẫn là ĐÚNG MỘT dòng
+   * thông báo, không nháy đi nháy lại theo từng lượt.
+   */
+  function batNoiLai(): void {
+    dangNoiLai = true;
+    if (rotTu) return;               // đợt cũ còn chạy: không đặt lại gì cả
+    rotTu = Date.now();
+    bannerNoiLai = setTimeout(() => { reconnecting.value = true; }, BANNER_AFTER_MS);
+  }
+
+  /** Nối được rồi: tắt cả cờ lẫn hẹn giờ, dòng thông báo biến mất (hoặc chưa
+   *  từng kịp hiện). */
+  function tatNoiLai(): void {
+    dangNoiLai = false;
+    rotTu = 0;
+    clearTimeout(bannerNoiLai);
+    bannerNoiLai = undefined;
+    reconnecting.value = false;
+  }
+
   function reconnectNow(why: string): void {
-    if (!code || !token || reconnecting.value) return;
+    if (!code || !token || dangNoiLai) return;
     netTrouble.value = why;
-    reconnecting.value = true;
+    batNoiLai();
     connect(code, myName, token);
   }
 
@@ -457,17 +522,8 @@ export function useOnlineRoom() {
       if (token && phase.value !== 'idle') {
         if (!reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
         if (Date.now() < reconnectDeadline) {
-          reconnecting.value = true;
-          /*
-           * BACKOFF, không phải 1,5 giây đều đặn: hạn giữ chỗ nay là 5 phút, cứ
-           * 1,5 giây một lần là 200 lần mở socket vào một server có khi đang
-           * chết — vừa tốn pin vừa tự đập chính mình. Tăng dần tới trần 10 giây,
-           * và `onWake` vẫn nối lại NGAY khi người chơi mở màn hình lên, nên
-           * chờ lâu ở đây không làm chậm ca thường gặp nhất.
-           */
-          reconnectTries += 1;
-          const cho = Math.min(10_000, 1_500 * 2 ** Math.min(reconnectTries - 1, 3));
-          reconnectTimer = setTimeout(() => connect(code, myName, token), cho);
+          batNoiLai();
+          reconnectTimer = setTimeout(() => connect(code, myName, token), RECONNECT_EVERY_MS);
           return;
         }
       }
@@ -484,9 +540,8 @@ export function useOnlineRoom() {
         token = msg.token;
         coThuLai.value = true;
         spectator.value = !!msg.spectator;
-        reconnecting.value = false;
+        tatNoiLai();
         reconnectDeadline = 0;
-        reconnectTries = 0;
         room.value = msg.room;
         if (msg.spectator) {
           // Khán giả: phòng đã bắt đầu / đầy — chỉ xem, không lưu phiên
@@ -509,6 +564,11 @@ export function useOnlineRoom() {
         // Ai đó bấm sẵn sàng hay huỷ: phát tiếng cho CẢ PHÒNG nghe. Trước đây
         // bấm xong im lặng nên không ai biết đối phương đã sẵn sàng hay chưa.
         announceReady(msg.room);
+        /* Vào phòng XONG thì phải có tiếng báo: bấm "Vào phòng chơi" rồi màn
+           hình đổi lặng lẽ, người chơi không biết mình đã vào hay còn đang chờ.
+           Chỉ kêu LẦN ĐẦU của mỗi phiên — `room` về liên tục mỗi khi ai đó bấm
+           sẵn sàng hay đổi cấu hình, kêu mỗi lần là thành ồn. */
+        if (!daVaoPhong) { daVaoPhong = true; sfx.go(); }
         room.value = msg.room;
         if (msg.room.status === 'lobby') {
           phase.value = 'lobby';
@@ -791,8 +851,7 @@ export function useOnlineRoom() {
   function retry(): void {
     if (!code || !token) return;
     reconnectDeadline = 0;
-    reconnectTries = 0;
-    reconnecting.value = true;
+    batNoiLai();
     error.value = '';
     connect(code, myName, token);
   }
@@ -800,6 +859,7 @@ export function useOnlineRoom() {
   function leave(): void {
     leaveSocket();
     clearStored();
+    daVaoPhong = false;
     phase.value = 'idle';
     room.value = null;
     view.value = null;
@@ -834,7 +894,7 @@ export function useOnlineRoom() {
      * chỉ bắt được ca socket đóng hẳn.
      */
     if (ws?.readyState !== WebSocket.OPEN && code && token) {
-      reconnecting.value = true;
+      batNoiLai();
       connect(code, myName, token);
       return;
     }
