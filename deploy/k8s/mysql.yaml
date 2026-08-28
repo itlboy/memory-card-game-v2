@@ -1,4 +1,4 @@
-# MySQL + phpMyAdmin cho Lật Thẻ — chỗ lưu phòng để CẬP NHẬT ẢNH KHÔNG MẤT PHÒNG.
+# MariaDB + phpMyAdmin cho Lật Thẻ — chỗ lưu phòng để CẬP NHẬT ẢNH KHÔNG MẤT PHÒNG.
 #
 # Vì sao có: phòng của server Node nằm trong RAM tiến trình, nên mỗi lần Keel
 # thay ảnh là mọi phòng đang mở biến mất — người chơi giữa ván bị văng ra, mã
@@ -13,43 +13,42 @@
 # Ghi là GHI TRỄ (gộp 300ms, chạy sau): MySQL không nằm trên đường đi của một
 # nước lật thẻ. Đo bằng bộ smoke: có và không có MySQL đều 7,6–9,6 giây, không
 # phân biệt được.
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: thebai-mysql
-  namespace: thebai
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      # Một phòng cỡ vài KB, và phòng chết bị xoá khỏi bảng. 2Gi là rộng rãi
-      # tới mức không bao giờ phải nghĩ lại.
-      storage: 2Gi
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: thebai-mysql
-  namespace: thebai
-stringData:
-  # ĐỔI TRƯỚC KHI ÁP: đây là chỗ giữ chỗ. Mật khẩu thật để trong my-secrets,
-  # đừng commit vào repo này. Database chỉ nghe trong cụm (ClusterIP, không
-  # ingress) nên nó không hở ra Internet — nhưng đó không phải lý do để dùng
-  # mật khẩu mẫu.
-  MYSQL_ROOT_PASSWORD: "DOI_MAT_KHAU_NAY"
-  MYSQL_DATABASE: latthe
----
+# ---------- MẬT KHẨU KHÔNG NẰM TRONG FILE NÀY ----------
+#
+# Secret `thebai-mysql` cố ý KHÔNG khai ở đây. Để nó trong manifest thì mỗi lần
+# `kubectl apply -f` là ghi đè mật khẩu thật bằng chuỗi mẫu trong repo —
+# database vẫn chạy với mật khẩu cũ trong ổ đĩa, còn pod thì nối bằng mật khẩu
+# mới: sai mật khẩu, phòng không lưu được, mà không có gì báo đỏ.
+#
+# Tạo một lần bằng tay (mật khẩu thật cất trong my-secrets):
+#
+#   kubectl -n thebai create secret generic thebai-mysql \
+#     --from-literal=MARIADB_ROOT_PASSWORD='<mật khẩu>' \
+#     --from-literal=MYSQL_ROOT_PASSWORD='<cùng mật khẩu>' \
+#     --from-literal=MARIADB_DATABASE=latthe \
+#     --from-literal=MYSQL_DATABASE=latthe
+#
+# Mật khẩu CHỈ GỒM CHỮ VÀ SỐ: nó được nhét vào MYSQL_URL, mà @ : / ? # làm vỡ
+# URL. Khai cả hai tiền tố vì ảnh mariadb đọc MARIADB_*, còn MYSQL_* giữ cho
+# tương thích nếu sau này đổi lại ảnh mysql.
+# StatefulSet, KHÔNG phải Deployment: đây là workload có trạng thái.
+#
+#  - `volumeClaimTemplates` buộc ổ đĩa vào ĐÚNG danh tính pod (thebai-mysql-0),
+#    nên không có chuyện pod mới vô tình mọc ra bên cạnh và cùng gắn một ổ.
+#  - Deployment thì tính an toàn đó chỉ đến từ việc NHỚ giữ `strategy: Recreate`.
+#    Ai đó đổi sang RollingUpdate là có lúc hai mariadbd cùng ghi một thư mục
+#    dữ liệu — hỏng dữ liệu, mà không có gì chặn.
+#  - Tên pod cố định, và PVC KHÔNG bị xoá theo khi xoá StatefulSet: dữ liệu
+#    không biến mất chỉ vì một lần `kubectl delete`.
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: thebai-mysql
   namespace: thebai
   labels: { app: thebai-mysql }
 spec:
+  serviceName: thebai-mysql
   replicas: 1
-  strategy:
-    # Recreate: hai pod MySQL cùng gắn một ổ đĩa là hỏng dữ liệu.
-    type: Recreate
   selector:
     matchLabels: { app: thebai-mysql }
   template:
@@ -57,8 +56,10 @@ spec:
       labels: { app: thebai-mysql }
     spec:
       containers:
-        - name: mysql
-          image: mysql:8.4
+        - name: mariadb
+          # MariaDB, không phải MySQL của Oracle. Ảnh có sẵn arm64 — cụm ở Hà
+          # Nội chạy ARM nên đây là điều kiện bắt buộc, không phải tuỳ chọn.
+          image: mariadb:12.3.3
           args:
             # Phòng là dữ liệu SỐNG NGẮN, mất vài giây cuối khi mất điện cũng
             # chỉ là mất một nước đi. Đổi lấy: không phải fsync mỗi giao dịch.
@@ -72,23 +73,32 @@ spec:
             - name: du-lieu
               mountPath: /var/lib/mysql
           # Chờ MySQL thật sự trả lời được rồi mới cho server nối vào
+          # `healthcheck.sh` là script ảnh mariadb kèm sẵn — dùng nó thay cho
+          # `mysqladmin ping` thì không phải nhét mật khẩu vào dòng lệnh (nó bị
+          # thấy trong `ps` của container).
           readinessProbe:
             exec:
-              command: ["sh", "-c", "mysqladmin ping -h127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\""]
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             exec:
-              command: ["sh", "-c", "mysqladmin ping -h127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\""]
+              command: ["healthcheck.sh", "--connect", "--innodb_initialized"]
             initialDelaySeconds: 60
             periodSeconds: 30
           resources:
             requests: { cpu: 100m, memory: 512Mi }
             limits: { memory: 1Gi }
-      volumes:
-        - name: du-lieu
-          persistentVolumeClaim:
-            claimName: thebai-mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: du-lieu
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            # Một phòng cỡ vài KB, và phòng chết bị xoá khỏi bảng. 2Gi là rộng
+            # rãi tới mức không bao giờ phải nghĩ lại.
+            storage: 2Gi
 ---
 apiVersion: v1
 kind: Service
@@ -96,8 +106,10 @@ metadata:
   name: thebai-mysql
   namespace: thebai
 spec:
-  # ClusterIP: chỉ nghe TRONG cụm. Không ingress cho MySQL.
-  type: ClusterIP
+  # HEADLESS (clusterIP: None) — service quản danh tính của StatefulSet. Chỉ
+  # nghe TRONG cụm, không ingress: database không bao giờ hở ra Internet.
+  # Với một replica, `thebai-mysql:3306` phân giải thẳng ra IP của pod.
+  clusterIP: None
   selector: { app: thebai-mysql }
   ports:
     - name: mysql
@@ -168,11 +180,11 @@ metadata:
     # Bỏ lớp 1 thì cả Internet gõ thử mật khẩu database của bạn được.
     nginx.ingress.kubernetes.io/auth-type: basic
     nginx.ingress.kubernetes.io/auth-secret: thebai-mysql-auth
-    nginx.ingress.kubernetes.io/auth-realm: "Lat The — quan tri database"
+    nginx.ingress.kubernetes.io/auth-realm: "Lat The quan tri database"
 spec:
   ingressClassName: nginx
   rules:
-    - host: thebai-db.hello314.com
+    - host: pa-thebai.hello314.com
       http:
         paths:
           - path: /
@@ -191,6 +203,9 @@ spec:
 #        kubectl -n thebai create secret generic thebai-mysql-auth --from-file=auth
 #   3. kubectl apply -f deploy/k8s/mysql.yaml
 #   4. Thêm MYSQL_URL vào Deployment thebai-server (xem thebai.yaml) rồi apply.
+#
+# Trang quản trị: https://pa-thebai.hello314.com (wildcard *.hello314.com đã trỏ
+# sẵn tunnel, không phải thêm DNS). Đăng nhập bằng chính tài khoản MariaDB.
 #
 # VỀ NHIỀU POD — cái này KHÔNG mở đường cho việc đó:
 #   - WebSocket dính vào một pod; hai người cùng phòng có thể rơi vào hai pod

@@ -45,7 +45,13 @@ export interface Kho {
  */
 const GOM_MS = 300;
 
-/** Bảng chỉ có một dòng cho mỗi phòng; `du_lieu` là toàn bộ kho của phòng đó. */
+/**
+ * Bảng chỉ có một dòng cho mỗi phòng; `du_lieu` là toàn bộ kho của phòng đó.
+ *
+ * Chạy được trên CẢ MySQL lẫn MariaDB (cụm đang dùng MariaDB 12.3). Trên
+ * MariaDB kiểu `JSON` chỉ là bí danh của LONGTEXT kèm ràng buộc kiểm tra, nên
+ * đừng dùng cú pháp JSON riêng của MySQL ở đây.
+ */
 const TAO_BANG = `
   CREATE TABLE IF NOT EXISTS phong (
     code       VARCHAR(16)  NOT NULL PRIMARY KEY,
@@ -93,7 +99,11 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
           await conn.execute('DELETE FROM phong WHERE code = ?', [code]);
         } else {
           await conn.execute(
-            `INSERT INTO phong (code, du_lieu, alarm_luc) VALUES (?, CAST(? AS JSON), ?)
+            // KHÔNG `CAST(? AS JSON)`: MySQL nuốt được nhưng MariaDB thì
+            // không, và lỗi đó im lặng — bảng cứ rỗng, phòng không bao giờ
+            // khôi phục. Cột nhận thẳng chuỗi ở cả hai loại (trên MariaDB
+            // `JSON` chỉ là bí danh của LONGTEXT).
+            `INSERT INTO phong (code, du_lieu, alarm_luc) VALUES (?, ?, ?)
              ON DUPLICATE KEY UPDATE du_lieu = VALUES(du_lieu), alarm_luc = VALUES(alarm_luc)`,
             [code, JSON.stringify(gt.duLieu), gt.alarmLuc]
           );
