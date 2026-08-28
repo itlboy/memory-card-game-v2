@@ -26,7 +26,7 @@ const avatarOf = (p: Player, i: number): string => p.avatar ?? AVATARS[i % AVATA
  * điểm, nên giữ nguyên dạng cũ (người chơi đã quen). Từ 5 người, chia đều một
  * hàng là mỗi chip 68px rồi 33px ở 10 người: tên biến thành "Ma…" và điểm rơi
  * ra ngoài. Xếp hai hàng thì đọc được tên nhưng ăn thêm 20px chiều cao của bàn
- * thẻ — mà bàn nay tới 100 thẻ, 20px đó thấy rõ.
+ * thẻ — mà bàn nay tới 88 thẻ, 20px đó thấy rõ.
  *
  * Dải gọn nói đúng hai điều người chơi cần giữa ván: ĐANG TỚI AI (chip lớn có
  * tên + đồng hồ) và SẮP TỚI AI (avatar đầu hàng được tô nền). Tên đầy đủ của

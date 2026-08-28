@@ -323,14 +323,14 @@ describe('màn online (điều hướng, không cần server)', () => {
 });
 
 describe('bản đồ cấp của Chiến dịch', () => {
-  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 100 thẻ', async () => {
+  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 88 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.text()).toContain('4 thẻ');
-    expect(nodes.at(-1)!.text()).toContain('100 thẻ');
+    expect(nodes.at(-1)!.text()).toContain('88 thẻ');
     // Bốn chặng, mỗi chặng một thẻ có tên riêng
     expect(wrapper.findAll('.chapter')).toHaveLength(4);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
@@ -340,7 +340,7 @@ describe('bản đồ cấp của Chiến dịch', () => {
     expect(wrapper.text()).toContain('giờ siết dần');
   });
 
-  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 100 thẻ đòi 50 biểu tượng', async () => {
+  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 88 thẻ đòi 44 biểu tượng', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');

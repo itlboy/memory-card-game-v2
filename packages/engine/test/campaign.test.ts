@@ -10,12 +10,12 @@ describe('Campaign (SP-03)', () => {
     expect(levels).toHaveLength(CAMPAIGN_LEVELS);
   });
 
-  it('cấp 1 là bàn 2×2, cấp cuối là bàn 10×10 (100 thẻ)', () => {
+  it('cấp 1 là bàn 2×2, cấp cuối là bàn 8×11 (88 thẻ)', () => {
     expect([levels[0]!.cols, levels[0]!.rows]).toEqual([2, 2]);
     expect(levels[0]!.pairs).toBe(2);
     const last = levels.at(-1)!;
-    expect([last.cols, last.rows]).toEqual([10, 10]);
-    expect(last.pairs).toBe(50);
+    expect([last.cols, last.rows]).toEqual([8, 11]);
+    expect(last.pairs).toBe(44);
   });
 
   it('bàn không bao giờ nhỏ lại qua các cấp', () => {

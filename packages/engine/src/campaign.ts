@@ -30,12 +30,15 @@ export interface Level {
  *    (chỗ trống của bàn 351×510, gap 6px): bàn 42 thẻ cho lá 51px, bàn 56 thẻ
  *    (7×8) còn 44px — vừa sát ngưỡng, nên đó là TRẦN.
  *
- *    Chặn ở đây là CHIỀU CAO, không phải số thẻ: bàn càng nhiều HÀNG thì mỗi ô
- *    càng thấp, mà lá giữ tỷ lệ 3:4 nên bề rộng tụt theo.
+ *    Chặn ở đây là SỐ CỘT, không phải số thẻ và cũng không phải số hàng. Đo
+ *    thật (computeFit, iPhone SE): 8×9, 8×10 và 8×11 đều cho lá 38,6px y hệt
+ *    nhau — thêm hàng KHÔNG làm lá bé đi, vì bàn cao quá thì cả bàn co lại theo
+ *    tỷ lệ chứ ô không dẹt xuống. Còn 10 cột thì gap ăn mất chỗ: (351−9×6)/10 =
+ *    29,7px. Nên muốn nhiều thẻ mà lá vẫn to thì THÊM HÀNG, đừng thêm cột.
  *
  *    NGOẠI LỆ ĐÃ CHỐT (yêu cầu của chủ dự án): hai cỡ CUỐI — 8×9 (72 thẻ) và
- *    10×10 (100 thẻ) — CỐ Ý phá trần 44px. Đo trên iPhone SE: 72 thẻ cho lá
- *    ~38px, 100 thẻ ~30px. Đây là bàn "siêu khó" người chơi tự chọn, không phải
+ *    8×11 (88 thẻ) — CỐ Ý phá trần 44px. Đo trên iPhone SE: cả hai cho lá
+ *    38,6px. Đây là bàn "siêu khó" người chơi tự chọn, không phải
  *    cỡ mặc định; đừng "sửa" bằng cách bỏ chúng đi, và cũng đừng lấy chúng làm
  *    tiền lệ để thêm cỡ mới — mọi cỡ khác vẫn phải ≥44px.
  * 4. Bàn phải LẤP được chỗ trống, không hở hai bên. Bàn cao hơn vùng bàn thì
@@ -60,7 +63,7 @@ const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
   { cols: 6, rows: 7, levels: 9 },    // 42 thẻ
   { cols: 7, rows: 8, levels: 3 },    // 56 thẻ
   { cols: 8, rows: 9, levels: 1 },    // 72 thẻ
-  { cols: 10, rows: 10, levels: 1 }   // 100 thẻ — trần mới
+  { cols: 8, rows: 11, levels: 1 }    // 88 thẻ — trần mới
 ];
 
 /** Bàn của từng cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */

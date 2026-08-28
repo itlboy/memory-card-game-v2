@@ -10,7 +10,7 @@ import PlayerStrip from '../src/components/PlayerStrip.vue';
  *
  * Bàn nay tới 10 người. Chia đều một hàng cho 10 chip là mỗi chip 33px trên
  * iPhone SE — tên biến mất, điểm rơi ra ngoài; xếp hai hàng thì đọc được tên
- * nhưng ăn thêm ~20px chiều cao của bàn thẻ, mà bàn nay tới 100 thẻ. Nên từ 5
+ * nhưng ăn thêm ~20px chiều cao của bàn thẻ, mà bàn nay tới 88 thẻ. Nên từ 5
  * người trở lên dải đổi sang dạng GỌN: một chip lớn cho người đang đi (có tên
  * và đồng hồ) + hàng avatar cho những người còn lại, tên đầy đủ đọc ở bảng.
  */
