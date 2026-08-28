@@ -45,14 +45,21 @@ watch(() => props.o.emojiBlast.value?.key, () => {
   const ten = chip!.querySelector('b')?.getBoundingClientRect();
   const av = chip!.querySelector('.avatar')?.getBoundingClientRect();
   let x: number;
-  if (ten && ten.width > 0) x = ten.left;                 // chữ bắt đầu ở đâu
-  else if (av && av.width > 0) x = av.left + av.width / 2; // không có tên: giữa avatar
-  else x = r.left + r.width / 2;
+  /*
+   * `y` là ĐÁY của dòng tên, không phải mép trên chip — emoji mọc LÊN từ đúng
+   * dòng chữ đó (xem `.anchored` trong style: nó tự dịch lên 100% chiều cao
+   * mình, nên cạnh dưới emoji nằm ngay trên dòng tên). Lấy mép trên chip thì
+   * emoji lơ lửng cao hơn cái tên một đoạn, đọc ra thành "của ai đó ở trên".
+   */
+  let y: number;
+  if (ten && ten.width > 0) { x = ten.left; y = ten.bottom; }
+  else if (av && av.width > 0) { x = av.left + av.width / 2; y = av.bottom; }
+  else { x = r.left + r.width / 2; y = r.bottom; }
 
   /* Emoji rộng tới 88px và căn giữa quanh `x`, nên tên nằm sát mép màn hình là
      nó thò ra ngoài. Kẹp lại vừa đủ để cả con emoji còn trong khung. */
   const le = 48;
-  neo.value = { x: Math.min(Math.max(x, le), window.innerWidth - le), y: r.top };
+  neo.value = { x: Math.min(Math.max(x, le), window.innerWidth - le), y };
 }, { flush: 'post' });
 </script>
 
@@ -89,6 +96,18 @@ watch(() => props.o.emojiBlast.value?.key, () => {
   14%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   55%  { opacity: 1; transform: translateX(-50%) translateY(-26px); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-72px); }
+}
+/*
+ * Bản NEO VÀO TÊN: `top` được đặt đúng đáy dòng tên, nên phải tự kéo mình lên
+ * trọn chiều cao (-100%) thì cạnh dưới emoji mới nằm ngay trên dòng chữ — và
+ * nó mọc lên TỪ ĐÓ. Thiếu -100% thì emoji đổ xuống che mất cái tên.
+ */
+.emoji-blast.anchored { animation-name: blast-float-neo; }
+@keyframes blast-float-neo {
+  0%   { opacity: 0; transform: translate(-50%, calc(-100% + 16px)) scale(.9); }
+  14%  { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+  55%  { opacity: 1; transform: translate(-50%, calc(-100% - 26px)); }
+  100% { opacity: 0; transform: translate(-50%, calc(-100% - 72px)); }
 }
 .emoji-blast .big {
   font-size: clamp(60px, 16vw, 88px); line-height: 1;

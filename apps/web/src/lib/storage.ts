@@ -47,6 +47,8 @@ interface Save {
   totalScore?: number;
   achievements?: string[];
   names?: string[];
+  /** Định danh BỀN của trình duyệt này — xem `clientId()`. */
+  clientId?: string;
 }
 
 const KEY = 'mm.v2';
@@ -191,6 +193,28 @@ export const store = {
       write(s);
     }
     return fresh;
+  },
+
+  /**
+   * Định danh bền của TRÌNH DUYỆT này, sinh một lần rồi giữ mãi.
+   *
+   * Vì sao cần: `playerId` do server cấp lại mỗi lần vào phòng, còn `token` chỉ
+   * sống trong một phiên — nên hai ván của cùng một người trông như hai người
+   * xa lạ, và hai người trùng tên thì trông như một. Có cái này thì sổ ván đấu
+   * mới cộng lại theo NGƯỜI được, mà không cần đăng nhập gì cả.
+   *
+   * Nó định danh TRÌNH DUYỆT chứ không phải con người: đổi máy hay xoá dữ liệu
+   * web là thành người mới, còn hai người dùng chung một máy thì bị tính là
+   * một. Chấp nhận được cho một trò chơi với bạn bè — đừng dùng nó cho thứ gì
+   * cần biết chắc ai là ai.
+   */
+  clientId(): string {
+    const s = read();
+    if (s.clientId) return s.clientId;
+    const id = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`).slice(0, 36);
+    s.clientId = id;
+    write(s);
+    return id;
   },
 
   playerNames(): string[] { return read().names ?? []; },

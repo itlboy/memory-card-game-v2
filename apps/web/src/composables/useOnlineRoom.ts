@@ -510,6 +510,10 @@ export function useOnlineRoom() {
 
     const params = new URLSearchParams({ name });
     if (useToken) params.set('token', useToken);
+    // Định danh bền của trình duyệt (xem storage.clientId): thứ duy nhất cho
+    // phép cộng lịch sử ván đấu theo NGƯỜI. Không có nó thì `playerId` đổi mỗi
+    // lần vào phòng, còn tên thì hai người trùng tên là một.
+    params.set('cid', store.clientId());
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
 
     ws.onopen = () => startHeartbeat();
