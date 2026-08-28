@@ -61,9 +61,46 @@ spec:
           # Nội chạy ARM nên đây là điều kiện bắt buộc, không phải tuỳ chọn.
           image: mariadb:12.3.3
           args:
-            # Phòng là dữ liệu SỐNG NGẮN, mất vài giây cuối khi mất điện cũng
-            # chỉ là mất một nước đi. Đổi lấy: không phải fsync mỗi giao dịch.
+            # ---- GIẢM I/O ĐĨA ----
+            # Phòng là dữ liệu SỐNG NGẮN và có nguồn chân lý ở RAM của server:
+            # mất vài giây cuối khi mất điện chỉ là mất một nước đi, còn mất cả
+            # database cũng chỉ là quay về hành vi cũ (phòng biến mất khi deploy).
+            # Nên ở đây đánh đổi độ bền lấy tốc độ là đúng — nhưng chỉ đúng VỚI
+            # DỮ LIỆU NÀY, đừng chép sang một database khác.
+            #
+            # Không fsync mỗi giao dịch, gom lại mỗi giây:
             - --innodb-flush-log-at-trx-commit=2
+            # KHÔNG ghi đúp. Mặc định InnoDB ghi mỗi trang HAI LẦN (vùng
+            # doublewrite rồi mới tới chỗ thật) để chống trang rách khi mất điện
+            # giữa chừng. Tắt là giảm gần một nửa lượng ghi.
+            - --innodb-doublewrite=0
+            # Đĩa là SSD — đo được 0,93ms mỗi lần ghi đồng bộ (đĩa quay khoảng
+            # 10ms). Hai mặc định dưới đây là thiết lập cho đĩa quay:
+            #  - flush-neighbors gom các trang KỀ NHAU để tiết kiệm lần quay đầu
+            #    đọc; trên SSD không có đầu đọc, nó chỉ ghi thừa;
+            #  - io-capacity=200 là trần IOPS cho đĩa quay, thấp hơn SSD hàng
+            #    chục lần, khiến InnoDB dồn việc lại rồi ghi ộc một lúc.
+            - --innodb-flush-neighbors=0
+            - --innodb-io-capacity=1000
+            - --innodb-io-capacity-max=2000
+            # Cả database chỉ vài MB nên buffer pool này giữ trọn dữ liệu trong
+            # RAM: sau vài giây đầu gần như không còn lần ĐỌC đĩa nào.
+            - --innodb-buffer-pool-size=256M
+            # Bảng nhỏ và ghi liên tục: để InnoDB tự tính lại thống kê mỗi lần
+            # dữ liệu đổi 10% là ghi thừa mà kế hoạch truy vấn chẳng khác gì.
+            - --innodb-stats-auto-recalc=0
+            #
+            # ĐÃ ĐO, VÀ Ở TẢI HIỆN TẠI KHÔNG THẤY KHÁC BIỆT. 2400 giao dịch
+            # kiểu-ghi-phòng: trước 9882 KB log / 790ms, sau 9909 KB / 608ms —
+            # tức trong khoảng nhiễu. Lý do: doublewrite chỉ chạm tới việc ghi
+            # TRANG DỮ LIỆU, mà cả database vài MB nằm gọn trong buffer pool nên
+            # trang bẩn gần như không phải xuống đĩa; thứ chi phối phép đo là
+            # ghi LOG, và log không đi qua doublewrite.
+            #
+            # Giữ lại vì hai lý do KHÁC: dự phòng cho lúc dữ liệu vượt buffer
+            # pool (khi đó doublewrite mới thành gánh nặng thật), và bớt hao mòn
+            # ghi trên SSD. Đừng quảng cáo nó là tối ưu tốc độ — đo rồi, không
+            # phải vậy.
           envFrom:
             - secretRef: { name: thebai-mysql }
           ports:
