@@ -113,6 +113,7 @@ const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
 
 function join(): void {
   if (!name.value.trim() || !codeValid.value) return;
+  sfx.select();   // bấm là kêu NGAY, đừng đợi server — vòng đi-về có thể tới vài giây
   remember();
   o.join(codeInput.value, name.value.trim());
 }
@@ -159,13 +160,15 @@ function isBusy(): boolean {
 defineExpose({ requestHome: quit, isBusy });
 
 /**
- * Tên phòng = "Phòng của <chủ phòng>". Chủ phòng có thể đổi giữa chừng (người
+ * Tên phòng = TÊN CHỦ PHÒNG, trần trụi. Thêm "Phòng của" vào chỉ tốn chỗ mà
+ * không nói thêm gì — đang đứng trong phòng thì ai cũng biết đó là phòng.
+ * Chủ phòng có thể đổi giữa chừng (người
  * cũ rời đi), nên đọc từ danh sách người chơi mỗi lần chứ không nhớ lại.
  */
 const tenPhong = computed(() => {
   const r = o.room.value;
   const chu = r?.players.find((p) => p.id === r.hostId) ?? r?.players[0];
-  return chu ? `Phòng của ${chu.name}` : 'Phòng chờ';
+  return chu ? chu.name : 'Phòng chờ';
 });
 
 const inviteLink = computed(() =>
@@ -317,6 +320,38 @@ useBackCloser(15, () => !!wizard.value || (entryStep.value !== 'choose' && !invi
   if (wizard.value) { wizBack(); return; }
   entryStep.value = 'choose';
   o.error.value = '';
+});
+
+/**
+ * ĐANG Ở PHÒNG CHỜ: Back lùi về màn online, KHÔNG văng ra trang chủ.
+ *
+ * Ưu tiên 25 để thắng lớp 20 của App (`screen !== 'menu'` → `goHome`). Lớp đó
+ * gọi `quit()`, mà `quit()` ở phòng chờ thì `exit()` → `emit('back')` → App về
+ * menu. Tức một cú Back nhảy luôn HAI bậc: mất phòng VÀ mất luôn màn online,
+ * trong khi thứ người chơi muốn lùi chỉ là bậc trên cùng.
+ *
+ * Vẫn rời phòng thật (không có chuyện đứng ngoài mà còn giữ chỗ), nhưng ở lại
+ * màn online để vào phòng khác ngay. Chủ phòng còn người khác trong phòng thì
+ * vẫn HỎI trước — huỷ phòng là đá cả nhóm ra, không phải việc lùi một bậc.
+ */
+useBackCloser(25, () => o.phase.value === 'lobby', () => {
+  const veEntry = (): void => {
+    o.leave();
+    ghiUrl(location.pathname);
+    entryStep.value = 'choose';
+    o.error.value = '';
+  };
+  if (o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
+    confirm.value = {
+      title: 'Huỷ phòng?',
+      body: 'Phòng sẽ đóng và mọi người bị đưa ra ngoài.',
+      label: 'Huỷ phòng',
+      action: () => { o.cancelRoom(); veEntry(); }
+    };
+    return;
+  }
+  o.surrender();
+  veEntry();
 });
 
 /** Biểu tượng của MỌI theme server có — trần trên cho bản đồ cấp. */
@@ -499,7 +534,7 @@ function openCfgWizard(): void {
           <button class="room" type="button" @click="vaoPhongCongKhai(r.code)">
             <span class="av">{{ r.avatar }}</span>
             <span class="body">
-              <span class="rname">Phòng của {{ r.chuPhong }}</span>
+              <span class="rname">{{ r.chuPhong }}</span>
               <span class="meta">
                 <i><LayoutGrid :size="14" /> {{ r.the }} thẻ</i>
                 <i><Users :size="14" /> {{ r.nguoi }}/{{ r.toiDa }}</i>
@@ -613,23 +648,37 @@ function openCfgWizard(): void {
       Công khai hay riêng tư. Chỉ CHỦ PHÒNG bấm được, nhưng ai cũng ĐỌC được:
       người vào phòng cần biết phòng mình đang ngồi có hiện cho người lạ không.
     -->
-    <button
-      class="congkhai" :class="{ on: o.room.value?.congKhai }" type="button"
-      :disabled="!o.isHost.value"
-      :aria-pressed="o.room.value?.congKhai ? 'true' : 'false'"
-      @click="o.datCongKhai(!o.room.value?.congKhai)"
-    >
-      <span class="ci"><Globe v-if="o.room.value?.congKhai" :size="21" /><Lock v-else :size="21" /></span>
-      <span class="cb">
-        <span class="ct">{{ o.room.value?.congKhai ? 'Phòng công khai' : 'Phòng riêng tư' }}</span>
-        <span class="cs">{{
+    <div class="sophong" :class="{ ro: !o.isHost.value }">
+      <div class="sp-seg" role="radiogroup" aria-label="Ai vào được phòng này">
+        <button
+          class="sp-opt" :class="{ sel: o.room.value?.congKhai }" type="button"
+          role="radio" :aria-checked="o.room.value?.congKhai ? 'true' : 'false'"
+          :disabled="!o.isHost.value"
+          @click="o.datCongKhai(true)"
+        >
+          <Globe :size="19" />
+          <span>Công khai</span>
+        </button>
+        <button
+          class="sp-opt priv" :class="{ sel: !o.room.value?.congKhai }" type="button"
+          role="radio" :aria-checked="o.room.value?.congKhai ? 'false' : 'true'"
+          :disabled="!o.isHost.value"
+          @click="o.datCongKhai(false)"
+        >
+          <Lock :size="19" />
+          <span>Riêng tư</span>
+        </button>
+      </div>
+      <p class="sp-hint" :class="{ priv: !o.room.value?.congKhai }">
+        <span class="dot" aria-hidden="true"></span>
+        <span>{{
           o.room.value?.congKhai
-            ? 'Đang hiện trong danh sách phòng, ai cũng vào được'
-            : 'Không hiện trong danh sách — chỉ ai có mã 6 số mới vào được'
+            ? 'Đang hiện trong danh sách phòng — ai cũng vào được.'
+            : 'Không hiện trong danh sách — chỉ ai có mã 6 số mới vào được.'
         }}</span>
-      </span>
-      <span class="sw" aria-hidden="true"><span class="knob"></span></span>
-    </button>
+      </p>
+      <p v-if="!o.isHost.value" class="sp-rotag"><Lock :size="13" /> Chỉ chủ phòng đổi được</p>
+    </div>
 
     <ul class="lobby-list">
       <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
@@ -830,39 +879,54 @@ function openCfgWizard(): void {
   color: var(--accent); font: inherit; font-size: var(--text-sm); font-weight: 700;
 }
 
-/* ---------- CÔNG TẮC CÔNG KHAI ---------- */
+/* ---------- CÔNG KHAI / RIÊNG TƯ ---------- */
 
-.congkhai {
-  display: flex; align-items: center; gap: 12px; width: 100%;
-  min-height: 52px; margin: 10px 0 0; padding: 9px 12px; text-align: left;
-  border: 2px solid var(--line); border-radius: var(--r-md);
-  background: var(--panel-soft); color: var(--fg); font: inherit;
+/*
+ * HAI Ô CẠNH NHAU, không phải công tắc. Bản cũ là một switch có nhãn TỰ ĐỔI
+ * theo trạng thái ("Phòng công khai" ↔ "Phòng riêng tư") — đọc dòng chữ đó
+ * không biết được nó đang tả trạng thái HIỆN TẠI hay thứ sẽ thành sau khi bấm.
+ * Bày cả hai lựa chọn ra thì không còn gì phải suy: ô sáng là chỗ mình đang
+ * đứng, ô kia là chỗ bấm sang.
+ */
+.sophong { margin: 10px 0 0; }
+.sp-seg {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+  padding: 5px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-soft);
 }
-.congkhai.on {
-  border-color: transparent; color: #fff;
-  background: linear-gradient(150deg, #109edb, #1aa793);
+.sp-seg .sp-opt {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: 52px; padding: 7px 8px;
+  border: 2px solid transparent; border-radius: var(--r-sm);
+  background: transparent; color: var(--muted);
+  font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700;
+}
+/* Ô ĐANG CHỌN bùng gradient — cyan cho công khai, tím cho riêng tư. Hai màu
+   khác nhau để liếc một cái là biết đang ở nhánh nào, không phải đọc chữ. */
+.sp-seg .sp-opt.sel {
+  color: #fff; background: linear-gradient(150deg, #109edb, #1aa793);
   box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
-.congkhai .ci { flex-shrink: 0; display: flex; color: var(--muted); }
-.congkhai.on .ci { color: #fff; }
-.congkhai .cb { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
-.congkhai .ct { font-family: var(--font-display); font-size: var(--text-md); font-weight: 700; }
-.congkhai .cs { font-size: var(--text-xs); line-height: 1.35; color: var(--muted); }
-.congkhai.on .cs { color: rgba(255, 255, 255, .88); }
-.sw {
-  flex-shrink: 0; display: flex; width: 50px; height: 29px; padding: 3px;
-  border-radius: var(--r-full); background: var(--line-strong);
+.sp-seg .sp-opt.priv.sel { background: linear-gradient(150deg, #6f5bd6, #8f4fd0); }
+.sp-hint {
+  display: flex; align-items: flex-start; gap: 7px; margin: 9px 0 0;
+  font-size: var(--text-xs); line-height: 1.45; color: var(--muted);
 }
-.sw .knob {
-  width: 23px; height: 23px; border-radius: var(--r-full);
-  background: #fff; box-shadow: 0 1px 3px rgba(30, 27, 75, .3);
-  transition: none;   /* trạng thái đổi TỨC THÌ, như mọi ô chọn khác */
+.sp-hint .dot {
+  flex-shrink: 0; width: 7px; height: 7px; margin-top: 5px;
+  border-radius: var(--r-full); background: #109edb;
 }
-.congkhai.on .sw { background: rgba(255, 255, 255, .38); justify-content: flex-end; }
-/* Khách (không phải chủ phòng): chỉ ĐỌC. Không làm mờ hẳn — họ vẫn cần biết
-   phòng mình đang ở là công khai hay riêng tư. */
-.congkhai:disabled { opacity: 1; }
-.congkhai:disabled .sw { opacity: .55; }
+.sp-hint.priv .dot { background: #8f4fd0; }
+/* Khách (không phải chủ phòng): chỉ ĐỌC. Ô đang chọn giữ nguyên màu — họ vẫn
+   cần biết phòng mình đang ở là công khai hay riêng tư; chỉ ô KHÔNG chọn mờ đi
+   để thấy nó không bấm được. */
+.sophong.ro .sp-opt:not(.sel) { opacity: .42; }
+.sp-seg .sp-opt:disabled { cursor: default; }
+.sp-rotag {
+  display: inline-flex; align-items: center; gap: 5px; margin: 9px 0 0;
+  padding: 3px 9px; border-radius: var(--r-full); background: var(--accent-soft);
+  font-size: var(--text-xs); font-weight: 700; color: var(--accent);
+}
 
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .head h2 { flex: 1; margin: 0; font-size: 19px; }

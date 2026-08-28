@@ -266,7 +266,7 @@ const title = computed(() => {
         giữa chừng thì nó không bao giờ đủ phiếu — trước đây người ở lại chỉ còn
         đường về menu, và thế là mất phòng, phải tạo mã mới mời lại từ đầu.
       -->
-      <button v-if="multiplayerOnline" class="btn" type="button" @click="emit('lobby')">
+      <button v-if="multiplayerOnline" class="btn to-lobby" type="button" @click="emit('lobby')">
         Về phòng chờ
       </button>
       <button class="btn link" type="button" @click="emit('menu')">Về menu</button>
@@ -456,5 +456,9 @@ h2 { margin: 0 0 4px; }
   background: var(--line); color: var(--muted);
   box-shadow: none; cursor: not-allowed; opacity: 1;
 }
+/* Nút này đứng MỘT MÌNH ngoài `.row`, nên không hưởng `flex: 1` của hàng trên:
+   thiếu bề rộng riêng là nó co vào vừa chữ và nằm lệch trái, trong khi "Chơi
+   lại" và "Về menu" trên dưới nó đều kéo hết bề ngang. */
+.to-lobby { display: block; width: 100%; margin-top: 8px; }
 .link { width: 100%; margin-top: 8px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
 </style>
