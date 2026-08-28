@@ -35,6 +35,18 @@ describe('tự làm mới danh sách phòng', () => {
     expect(src).toMatch(/onUnmounted\(\(\) => \{[\s\S]{0,200}removeEventListener\('visibilitychange'/);
   });
 
+  it('nhịp làm mới là BIỂU TƯỢNG, không phải nút', () => {
+    // Chỗ này chẳng có việc gì đáng làm, nên nó không được hút mắt ngang với
+    // "Tạo phòng mới". Không viền, không nền, không con số đếm ngược.
+    expect(src, 'không còn con số đếm ngược hiển thị').not.toContain('class="so"');
+    const khoi = src.slice(src.indexOf('.nhip {'), src.indexOf('.nhip:disabled'));
+    expect(khoi).toMatch(/border:\s*0/);
+    expect(khoi).toMatch(/background:\s*none/);
+    // Vùng chạm vẫn phải 44px dù hình chỉ 20px (NF-07)
+    expect(khoi).toMatch(/width:\s*20px/);
+    expect(src).toMatch(/\.nhip::after[^}]*inset:\s*-12px/);
+  });
+
   it('bấm tay thì đếm lại từ đầu', () => {
     // Không thì vừa bấm xong một giây sau nó tự làm mới lần nữa
     expect(src).toMatch(/function lamMoiNgay\(\)[\s\S]{0,120}datLaiDem\(\)/);

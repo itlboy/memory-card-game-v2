@@ -669,27 +669,23 @@ function openCfgWizard(): void {
       <div class="list-head">
         <h3>Phòng đang chờ</h3>
         <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
-        <!-- Đếm ngược tới lần tự làm mới sau. Con số nằm TRONG nút, thay chỗ
-             cái mũi tên xoay: người chơi vẫn bấm được bất cứ lúc nào, mà không
-             phải đoán bao giờ danh sách tự mới. Lúc đang tải thì mũi tên quay
-             trở lại — đó mới là thứ cần nói tại thời điểm đó. -->
+        <!-- Nhịp tự làm mới: một vòng tròn NHỎ vơi dần, không số, không viền.
+             Đây là thứ liếc qua chứ không phải thứ để bấm — cái đáng bấm ở màn
+             này là "Tạo phòng mới" và các dòng phòng. Bấm vào vẫn làm mới ngay
+             được, nhưng nó không xin ai chú ý. -->
         <button
-          class="icon-btn dem" type="button"
-          :aria-label="o.dangTaiPhong.value ? 'Đang làm mới danh sách' : `Làm mới danh sách — tự làm mới sau ${demNguoc} giây`"
+          class="nhip" type="button"
+          :aria-label="o.dangTaiPhong.value ? 'Đang làm mới danh sách' : `Tự làm mới sau ${demNguoc} giây — bấm để làm mới ngay`"
           :disabled="o.dangTaiPhong.value" @click="lamMoiNgay()"
         >
-          <RefreshCw v-if="o.dangTaiPhong.value" :size="18" class="quay" />
-          <template v-else>
-            <svg class="vong" viewBox="0 0 32 32" aria-hidden="true">
-              <circle class="ray" cx="16" cy="16" r="14" />
-              <circle
-                class="chay" cx="16" cy="16" r="14"
-                :stroke-dasharray="87.96"
-                :stroke-dashoffset="87.96 * (1 - demNguoc / 10)"
-              />
-            </svg>
-            <span class="so">{{ demNguoc }}</span>
-          </template>
+          <svg viewBox="0 0 24 24" aria-hidden="true" :class="{ quay: o.dangTaiPhong.value }">
+            <circle class="ray" cx="12" cy="12" r="9" />
+            <circle
+              class="chay" cx="12" cy="12" r="9"
+              :stroke-dasharray="56.55"
+              :stroke-dashoffset="o.dangTaiPhong.value ? 42 : 56.55 * (1 - demNguoc / 10)"
+            />
+          </svg>
         </button>
       </div>
 
@@ -1024,27 +1020,32 @@ function openCfgWizard(): void {
 .vao-lai .vl-t { margin: 0; font-family: var(--font-display); font-size: var(--text-md); color: var(--fg); }
 .vao-lai .vl-s { margin: 0; font-size: var(--text-xs); }
 
-/* Vòng đếm ngược tới lần tự làm mới sau: viền chạy vơi dần quanh con số, nằm
-   TRONG cái nút 36px sẵn có nên hàng tiêu đề không cao thêm chút nào. */
-.icon-btn.dem .vong {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  transform: rotate(-90deg);   /* bắt đầu vơi từ 12 giờ */
+/*
+ * Nhịp tự làm mới — CHỈ LÀ MỘT BIỂU TƯỢNG, không phải nút.
+ *
+ * Bản trước là một nút có viền, có nền, có con số đếm ngược to bằng chữ thường:
+ * nó hút mắt ngang với "Tạo phòng mới" trong khi chẳng có việc gì đáng làm ở
+ * đó. Nay bỏ hết trang trí, còn một vòng tròn mảnh vơi dần — biết là danh sách
+ * đang tự cập nhật là đủ, không cần biết còn mấy giây.
+ */
+.nhip {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; min-width: 0; min-height: 0; padding: 0;
+  border: 0; background: none; color: var(--muted); opacity: .75;
 }
-.icon-btn.dem .ray {
-  fill: none; stroke: var(--line); stroke-width: 2.5;
-}
-.icon-btn.dem .chay {
-  fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round;
-  /* Vơi từng giây MỘT NHỊP, khớp đúng con số bên trong. Không transition mượt:
-     nhìn vòng chạy trơn mà số nhảy từng bậc thì hai thứ đá nhau. */
+/* Vùng chạm vẫn 44px dù hình chỉ 20px (NF-07) — nới bằng ::after, không phình
+   cái biểu tượng lên. */
+.nhip::after { content: ''; position: absolute; inset: -12px; }
+.nhip svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.nhip .ray { fill: none; stroke: currentColor; stroke-width: 1.6; opacity: .3; }
+.nhip .chay {
+  fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round;
+  /* Vơi từng giây một nhịp; không transition để khỏi lệch với nhịp đếm. */
   transition: none;
 }
-.icon-btn.dem .so {
-  position: relative;   /* nổi trên vòng */
-  font-family: var(--font-display); font-size: var(--text-sm); font-weight: 700;
-  font-variant-numeric: tabular-nums;   /* số không nhảy ngang khi 10 → 9 */
-  color: var(--muted);
-}
+.nhip svg.quay { animation: quay 1s linear infinite; }
+.nhip:disabled { cursor: default; }
 
 /* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): nó chiếm chỗ còn lại và tự
    cuộn BÊN TRONG khi có nhiều phòng. */
