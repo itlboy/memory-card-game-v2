@@ -46,18 +46,23 @@ export interface Kho {
 const GOM_MS = 300;
 
 /**
- * Bảng chỉ có một dòng cho mỗi phòng; `du_lieu` là toàn bộ kho của phòng đó.
+ * Bảng chỉ có một dòng cho mỗi phòng; `data` là toàn bộ kho của phòng đó.
+ *
+ * TÊN BẢNG VÀ CỘT ĐỂ TIẾNG ANH, khác với phần còn lại của mã nguồn. Schema là
+ * thứ người ngoài nhìn thấy — qua phpMyAdmin, qua một câu SQL ai đó gõ vội —
+ * nên nó đi theo quy ước chung của database, không theo quy ước đặt tên trong
+ * repo này.
  *
  * Chạy được trên CẢ MySQL lẫn MariaDB (cụm đang dùng MariaDB 12.3). Trên
  * MariaDB kiểu `JSON` chỉ là bí danh của LONGTEXT kèm ràng buộc kiểm tra, nên
  * đừng dùng cú pháp JSON riêng của MySQL ở đây.
  */
 const TAO_BANG = `
-  CREATE TABLE IF NOT EXISTS phong (
+  CREATE TABLE IF NOT EXISTS rooms (
     code       VARCHAR(16)  NOT NULL PRIMARY KEY,
-    du_lieu    JSON         NOT NULL,
-    alarm_luc  BIGINT       NULL,
-    cap_nhat   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    data       JSON         NOT NULL,
+    alarm_at   BIGINT       NULL,
+    updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`;
 
 /**
@@ -96,15 +101,15 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     for (const [code, gt] of lo) {
       try {
         if (gt === null) {
-          await conn.execute('DELETE FROM phong WHERE code = ?', [code]);
+          await conn.execute('DELETE FROM rooms WHERE code = ?', [code]);
         } else {
           await conn.execute(
             // KHÔNG `CAST(? AS JSON)`: MySQL nuốt được nhưng MariaDB thì
             // không, và lỗi đó im lặng — bảng cứ rỗng, phòng không bao giờ
             // khôi phục. Cột nhận thẳng chuỗi ở cả hai loại (trên MariaDB
             // `JSON` chỉ là bí danh của LONGTEXT).
-            `INSERT INTO phong (code, du_lieu, alarm_luc) VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE du_lieu = VALUES(du_lieu), alarm_luc = VALUES(alarm_luc)`,
+            `INSERT INTO rooms (code, data, alarm_at) VALUES (?, ?, ?)
+             ON DUPLICATE KEY UPDATE data = VALUES(data), alarm_at = VALUES(alarm_at)`,
             [code, JSON.stringify(gt.duLieu), gt.alarmLuc]
           );
         }
@@ -120,11 +125,11 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     async napTatCa() {
       const ra = new Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null }>();
       try {
-        const [rows] = await conn.query('SELECT code, du_lieu, alarm_luc FROM phong');
-        for (const r of rows as { code: string; du_lieu: unknown; alarm_luc: number | null }[]) {
+        const [rows] = await conn.query('SELECT code, data, alarm_at FROM rooms');
+        for (const r of rows as { code: string; data: unknown; alarm_at: number | null }[]) {
           // Driver trả JSON đã parse sẵn hoặc còn là chuỗi, tuỳ phiên bản
-          const d = typeof r.du_lieu === 'string' ? JSON.parse(r.du_lieu) : r.du_lieu;
-          ra.set(r.code, { duLieu: d as DuLieuPhong, alarmLuc: r.alarm_luc });
+          const d = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+          ra.set(r.code, { duLieu: d as DuLieuPhong, alarmLuc: r.alarm_at });
         }
       } catch (e) {
         console.error('[kho] nạp phòng lỗi, bắt đầu với kho rỗng:', (e as Error).message);
