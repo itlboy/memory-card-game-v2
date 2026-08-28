@@ -176,6 +176,36 @@ export function useOnlineRoom() {
 
   /** Ô đã bấm nhưng server chưa xác nhận — UI lật tới 90 độ để bấm là thấy phản hồi. */
   const pending = ref<Set<number>>(new Set());
+
+  /**
+   * Nội dung cả bàn, do server gửi trước (`t:'predeal'`) để lật thẻ hiện NGAY,
+   * không phải chờ vòng đi-về ~180ms. Server tắt cờ `PREDEAL` là biến này rỗng
+   * và mọi thứ quay về hành vi chờ server như cũ — không có cờ nào ở client.
+   *
+   * ĐỂ RIÊNG, KHÔNG nhét vào `view`: `view.cards[].symbol` của thẻ úp phải tiếp
+   * tục rỗng, để một cái `v-if` sai hay một animation bắt đầu sai góc không thể
+   * lôi cả bàn ra trước mắt người chơi. Cửa duy nhất lấy dữ liệu này là
+   * `symbolNeuDuocPhep()` bên dưới.
+   *
+   * KHÔNG dùng ref sâu cho Map: thay cả Map mới mỗi lần nhận, theo đúng lối
+   * `pending` đang làm.
+   */
+  const predeal = ref<Map<number, string>>(new Map());
+
+  /**
+   * Symbol để VẼ cho một ô — cửa duy nhất mà bàn-biết-trước chảy ra tầng UI.
+   *
+   * Chỉ trả về khi ô đó ĐƯỢC PHÉP ngửa:
+   *   - server đã báo `up`/`matched` (thì symbol có sẵn trong view rồi), hoặc
+   *   - chính mình vừa bấm và đang chờ server trả lời (`pending`) — đây đúng là
+   *     chỗ tiết kiệm được 180ms.
+   * Mọi ô khác trả `''`. Sai điều kiện ở đây là lộ bài, nên có test canh riêng.
+   */
+  function symbolNeuDuocPhep(index: number, tuView: string | undefined, ngua: boolean): string {
+    if (tuView) return tuView;
+    if (!ngua && !pending.value.has(index)) return '';
+    return predeal.value.get(index) ?? '';
+  }
   /**
    * Chờ server xác nhận nước bấm bao lâu thì coi như tin đã rơi. Vòng đi-về đo
    * được 69ms lúc bình thường và 376ms lúc tệ, nên 1,5 giây là dư an toàn mà
@@ -460,6 +490,15 @@ export function useOnlineRoom() {
         // "Sắp bắt đầu": nốt đầu của câu đếm ngược, không dùng ding-dong chuyển
         // lượt — hai việc khác nhau thì không nên cùng một tiếng.
         sfx.countdown(5);
+        break;
+
+      case 'predeal':
+        // Nhận lại cả bàn mỗi lần server gửi view. Cố ý làm vậy: xáo thẻ và thẻ
+        // đặc biệt Tráo đổi đổi chỗ thẻ giữa ván, nên bản đồ theo index sẽ lệch;
+        // nhận lại cả bàn thì không bao giờ lệch, khỏi cần lớp đồng bộ nào.
+        predeal.value = new Map(
+          Object.entries(msg.symbols).map(([i, sym]) => [Number(i), sym]),
+        );
         break;
 
       case 'events':
@@ -784,6 +823,9 @@ export function useOnlineRoom() {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, spectator,
     wrongPair, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
+    /** Cửa DUY NHẤT lấy symbol để vẽ. Đừng đọc `predeal` từ ngoài — đọc trực
+     *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */
+    symbolNeuDuocPhep,
     countdown, countdownLeft, backStyle,
     createRoom, join, leave, resumeStored,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),

@@ -241,8 +241,36 @@ export interface RoomInfo {
   againVotes?: string[];
 }
 
+/**
+ * Toàn bộ nội dung bàn, để client lật thẻ hiện ngay không phải chờ vòng đi-về.
+ * Bật/tắt bằng `PREDEAL` ở `apps/server/src/flags.ts`.
+ *
+ * Vì sao là thông điệp RIÊNG chứ không thêm field vào `GameView`: trộn vào view
+ * là mọi chỗ đang vẽ từ view đều có thể vô tình vẽ ra thẻ úp. Tách ra thì
+ * `view.cards[].symbol` của thẻ úp vẫn rỗng đúng như trước, và client phải cố ý
+ * đi lấy chỗ khác mới có — không lấy được do nhầm.
+ *
+ * Gửi kèm MỖI lần gửi view, không phải chỉ lúc bắt đầu ván: xáo thẻ và thẻ đặc
+ * biệt Tráo đổi đều đổi chỗ thẻ giữa ván, nên bản đồ theo index sẽ lệch. Gửi lại
+ * cả bàn thì không bao giờ lệch — bàn to nhất cũng chỉ vài trăm byte, rẻ hơn
+ * nhiều so với một lớp logic đồng bộ hoá sai lúc nào không biết.
+ */
+export interface PredealMsg {
+  t: 'predeal';
+  /** index thẻ → symbol. Thẻ trống (`blank`) không có mặt. */
+  symbols: Record<number, string>;
+}
+
+/** Dựng bản đồ index → symbol cho cả bàn. */
+export function predealSymbols(game: MemoryGame): Record<number, string> {
+  const out: Record<number, string> = {};
+  for (const c of game.cards) if (!c.blank) out[c.index] = c.symbol;
+  return out;
+}
+
 /** Server → client. */
 export type ServerMsg =
+  | PredealMsg
   | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean }
   | { t: 'room'; room: RoomInfo }
   | { t: 'state'; view: GameView }
