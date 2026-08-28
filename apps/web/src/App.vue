@@ -67,7 +67,15 @@ const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
 const screen = ref<'menu' | 'game' | 'online'>('menu');
-/** Mã phòng từ link mời (?room=ABC123). */
+/**
+ * Mã phòng từ link mời (?room=ABC123).
+ *
+ * PHẢI XOÁ khi rời màn online (xem `@back` bên dưới). Trước đây nó chỉ được
+ * đặt một lần lúc mount và giữ nguyên suốt phiên, nên: vào bằng link mời →
+ * thoát ra menu → bấm "Chơi online" lại là màn online vẫn thấy `joinCode` cũ,
+ * tự nối vào PHÒNG CŨ (đã chết) rồi báo lỗi — mà ô nhập mã thì bị ẩn vì đang ở
+ * nhánh "được mời". Đúng lỗi đã bị phản ánh: không còn chỗ nào nhập mã mới.
+ */
 const joinCode = ref('');
 const levelId = ref<number | null>(null);
 const isRecord = ref(false);
@@ -476,7 +484,7 @@ const hasNext = computed(() => {
       v-else-if="screen === 'online'"
       ref="onlineRef"
       :join-code="joinCode"
-      @back="screen = 'menu'"
+      @back="screen = 'menu'; joinCode = ''"
     />
 
     <GameScreen

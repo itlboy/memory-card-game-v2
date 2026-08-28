@@ -283,6 +283,42 @@ describe('màn online (điều hướng, không cần server)', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(wrapper.html().length).toBeGreaterThan(500);
   });
+
+  /*
+   * VÀO BẰNG LINK MỜI RỒI THOÁT: lần sau vào màn online phải là màn TRẮNG, không
+   * được nhớ mã cũ. `joinCode` từng chỉ được đặt một lần lúc mount và giữ nguyên
+   * suốt phiên, nên lần thứ hai màn online vẫn coi mình là "được mời": tự nối vào
+   * phòng cũ (đã chết) rồi báo lỗi, mà ô nhập mã lại bị ẩn vì đang ở nhánh được
+   * mời — người chơi kẹt ở một màn lỗi không có đường đi tiếp.
+   */
+  it('thoát khỏi phòng vào bằng link mời: lần sau vào lại KHÔNG nhớ mã cũ', async () => {
+    vi.stubGlobal('WebSocket', class {
+      onmessage: unknown = null; onclose: unknown = null; onerror: unknown = null;
+      onopen: unknown = null;
+      readyState = 0;
+      close(): void { /* noop */ }
+      send(): void { /* noop */ }
+    });
+    history.replaceState(null, '', '/?room=123456');
+    wrapper = mount(App, { attachTo: document.body });
+    await flush();
+    // Được mời: đi thẳng vào form, ô mã bị ẩn vì mã đã có trong link
+    expect(wrapper.text()).toContain('Bạn được mời vào phòng');
+    expect(wrapper.text()).not.toContain('Mã phòng');
+
+    // Thoát ra menu
+    await wrapper.find('[aria-label="Quay lại"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+
+    // Vào lại: phải là bước chọn việc, KHÔNG phải màn "được mời" của phòng cũ
+    await click('Chơi online');
+    expect(wrapper.text()).not.toContain('Bạn được mời vào phòng');
+    expect(wrapper.text()).toContain('Vào phòng có sẵn');
+    await click('Vào phòng có sẵn');
+    expect(wrapper.text()).toContain('Mã phòng');   // có chỗ nhập mã mới
+    history.replaceState(null, '', '/');
+  });
 });
 
 describe('bản đồ cấp của Chiến dịch', () => {

@@ -38,7 +38,22 @@ const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
 const copiedCode = ref(false);
 /** Vào bằng link mời: chỉ hiện đúng một việc — nhập tên rồi vào phòng. */
-const invited = computed(() => !!props.joinCode);
+/*
+ * Lời mời đã HẾT DÙNG ĐƯỢC: bật khi cú nối theo link mời báo lỗi (phòng đã chết,
+ * mã sai). Từ lúc đó màn này thôi coi mình là "được mời" và hiện lại ô nhập mã —
+ * nhánh được mời cố tình ẩn ô đó, nên không có cờ này thì người chơi bị kẹt ở một
+ * màn báo lỗi không có đường nào đi tiếp.
+ */
+const loiMoiHong = ref(false);
+watch(() => o.error.value, (e) => {
+  if (!e || !props.joinCode) return;
+  loiMoiHong.value = true;
+  // Lau ?room= khỏi URL: giữ lại thì F5 lại lao vào đúng cái phòng chết đó.
+  if (location.search.includes('room=')) ghiUrl(location.pathname);
+});
+
+/** Vào bằng link mời VÀ lời mời còn dùng được. */
+const invited = computed(() => !!props.joinCode && !loiMoiHong.value);
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
 const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
 
