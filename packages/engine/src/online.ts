@@ -38,10 +38,22 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
 };
 
 export const ROOM_LIMITS = {
-  maxPlayers: 4,
+  maxPlayers: 10,
   minPlayers: 2,
-  /** Rớt mạng quá hạn này thì bị xử thua (ON-07). */
-  reconnectMs: 30_000,
+  /**
+   * Rớt mạng quá hạn này thì bị xử thua (ON-07).
+   *
+   * 5 PHÚT, không phải 30 giây. Ai cũng chơi trên điện thoại: khoá màn hình một
+   * lúc, nhận cuộc gọi, chuyển sang Zalo trả lời một câu — iOS treo hẳn kết nối
+   * của tab nền, và với hạn 30 giây thì quay lại là đã bị xoá khỏi phòng. Tệ
+   * hơn: token cũ không còn ứng với ai nên vào lại được cấp CHỖ MỚI, thành ra
+   * một người hoá hai (đúng lỗi đã bị phản ánh).
+   *
+   * Nới không làm treo ván: hết lượt thì engine tự `turn-timeout` chuyển lượt,
+   * người rớt mạng chỉ bị bỏ lượt liên tục chứ bàn vẫn chạy. Ai muốn dứt điểm
+   * sớm thì bấm đầu hàng — chỗ đó xử thua NGAY, không chờ hạn này.
+   */
+  reconnectMs: 300_000,
   codeLength: 6,
   /** Chống spam emoji: tối đa `emojiBurst` lần trong `emojiWindowMs`.
    *  Client dùng để làm mờ nút, server dùng để thực sự chặn (client không
@@ -215,6 +227,8 @@ export type ClientMsg =
   | { t: 'start' }                                  // chỉ chủ phòng
   | { t: 'flip'; index: number }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
+  | { t: 'tolobby' }                                // về phòng chờ (một người bấm là đủ)
+  | { t: 'public'; on: boolean }                    // chủ phòng bật/tắt hiện trong danh sách
   | { t: 'ready'; ready: boolean }                  // sẵn sàng ở lobby
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng
@@ -239,6 +253,33 @@ export interface RoomInfo {
   /** Id những người đã bấm "chơi lại" sau khi ván kết thúc. Cần gửi cho client
    *  vì trước đây bấm xong không ai biết ai đã bấm — kể cả chính mình. */
   againVotes?: string[];
+  /** Có hiện trong danh sách phòng công khai không (ON-10). Chủ phòng bật/tắt
+   *  được ngay ở phòng chờ, nên client phải thấy trạng thái hiện tại. */
+  congKhai: boolean;
+}
+
+/**
+ * MỘT DÒNG trong danh sách phòng công khai (ON-10).
+ *
+ * Cố tình MỎNG: chỉ đủ để người chơi quyết định có vào hay không. Không mang
+ * danh sách người chơi, không mang cấu hình đầy đủ — danh sách này ai cũng đọc
+ * được mà không cần vào phòng, nên càng ít thứ rò ra càng tốt, và mỗi byte đều
+ * nhân với số phòng đang mở.
+ *
+ * `chuPhong` là TÊN CHỦ PHÒNG: phòng không có tên riêng, người chơi nhận ra nó
+ * qua "Phòng của Kiên". Không bắt gõ thêm một cái tên nữa.
+ */
+export interface PublicRoom {
+  code: string;
+  chuPhong: string;
+  avatar: string;
+  /** Số người đang ở trong phòng, và trần của phòng. */
+  nguoi: number;
+  toiDa: number;
+  /** Số THẺ (không phải số cặp) — người chơi đọc bằng số thẻ ở mọi màn khác. */
+  the: number;
+  /** Mốc tạo phòng, để client sắp phòng mới lên trước. */
+  luc: number;
 }
 
 /**

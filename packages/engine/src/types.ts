@@ -47,7 +47,7 @@ export interface GameConfig {
   /** Bộ biểu tượng của theme; cần ít nhất cols*rows/2 phần tử. */
   symbols: readonly string[];
   seed: number;
-  /** 1 người = chơi đơn; 2–4 người = local/online multiplayer. */
+  /** 1 người = chơi đơn; 2–10 người = local/online multiplayer. */
   players?: readonly PlayerInit[];
   /** Giới hạn thời gian (giây). null = không giới hạn. */
   timeLimit?: number | null;

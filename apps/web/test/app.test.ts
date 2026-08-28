@@ -6,11 +6,11 @@ import App from '@/App.vue';
 
 const THEMES = {
   themes: [
-    { id: 'animals', name: 'Động vật', unlockAt: 0, symbols: Array.from({ length: 24 }, (_, i) => `A${i}`) },
+    { id: 'animals', name: 'Động vật', unlockAt: 0, symbols: Array.from({ length: 30 }, (_, i) => `A${i}`) },
     // Theme mở sẵn THỨ HAI, để tổng biểu tượng đủ cho bàn lớn nhất (56 thẻ = 28
     // cặp). Bản thật có sáu theme mở sẵn; một theme 24 biểu tượng thì không bộ
     // đơn lẻ nào dựng nổi bàn trần, và đó là ý đồ — phải trộn theme.
-    { id: 'food', name: 'Đồ ăn', unlockAt: 0, symbols: Array.from({ length: 24 }, (_, i) => `F${i}`) },
+    { id: 'food', name: 'Đồ ăn', unlockAt: 0, symbols: Array.from({ length: 30 }, (_, i) => `F${i}`) },
     { id: 'locked', name: 'Bị khoá', unlockAt: 999999, symbols: Array.from({ length: 24 }, (_, i) => `B${i}`) }
   ]
 };
@@ -268,32 +268,69 @@ describe('màn online (điều hướng, không cần server)', () => {
     wrapper = mount(App, { attachTo: document.body });
     await flush();
     await click('Chơi online');
-    // Bước 1: chỉ hai lựa chọn, chưa hiện form
+    // Bước 1: nút tạo phòng + danh sách phòng công khai, chưa hiện form
     expect(wrapper.text()).toContain('Tạo phòng mới');
-    expect(wrapper.text()).toContain('Vào phòng có sẵn');
+    expect(wrapper.text()).toContain('Phòng đang chờ');
+    expect(wrapper.text()).toContain('Nhập mã 6 số');
     expect(wrapper.text()).not.toContain('Tên của bạn');
     await click('Tạo phòng mới');
     expect(wrapper.text()).toContain('Tên của bạn');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
-    expect(wrapper.text()).toContain('Vào phòng có sẵn');   // quay lại bước chọn
+    expect(wrapper.text()).toContain('Phòng đang chờ');   // quay lại bước chọn
     // Quay lại — trước đây multi-root trong <Transition> làm trắng trang
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(wrapper.html().length).toBeGreaterThan(500);
   });
+
+  /*
+   * VÀO BẰNG LINK MỜI RỒI THOÁT: lần sau vào màn online phải là màn TRẮNG, không
+   * được nhớ mã cũ. `joinCode` từng chỉ được đặt một lần lúc mount và giữ nguyên
+   * suốt phiên, nên lần thứ hai màn online vẫn coi mình là "được mời": tự nối vào
+   * phòng cũ (đã chết) rồi báo lỗi, mà ô nhập mã lại bị ẩn vì đang ở nhánh được
+   * mời — người chơi kẹt ở một màn lỗi không có đường đi tiếp.
+   */
+  it('thoát khỏi phòng vào bằng link mời: lần sau vào lại KHÔNG nhớ mã cũ', async () => {
+    vi.stubGlobal('WebSocket', class {
+      onmessage: unknown = null; onclose: unknown = null; onerror: unknown = null;
+      onopen: unknown = null;
+      readyState = 0;
+      close(): void { /* noop */ }
+      send(): void { /* noop */ }
+    });
+    history.replaceState(null, '', '/?room=123456');
+    wrapper = mount(App, { attachTo: document.body });
+    await flush();
+    // Được mời: đi thẳng vào form, ô mã bị ẩn vì mã đã có trong link
+    expect(wrapper.text()).toContain('Bạn được mời vào phòng');
+    expect(wrapper.text()).not.toContain('Mã phòng');
+
+    // Thoát ra menu
+    await wrapper.find('[aria-label="Quay lại"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+
+    // Vào lại: phải là bước chọn việc, KHÔNG phải màn "được mời" của phòng cũ
+    await click('Chơi online');
+    expect(wrapper.text()).not.toContain('Bạn được mời vào phòng');
+    expect(wrapper.text()).toContain('Phòng đang chờ');
+    await click('Nhập mã 6 số');
+    expect(wrapper.text()).toContain('Mã phòng');   // có chỗ nhập mã mới
+    history.replaceState(null, '', '/');
+  });
 });
 
 describe('bản đồ cấp của Chiến dịch', () => {
-  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 56 thẻ', async () => {
+  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 100 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');
     const nodes = wrapper.findAll('.node');
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.text()).toContain('4 thẻ');
-    expect(nodes.at(-1)!.text()).toContain('56 thẻ');
+    expect(nodes.at(-1)!.text()).toContain('100 thẻ');
     // Bốn chặng, mỗi chặng một thẻ có tên riêng
     expect(wrapper.findAll('.chapter')).toHaveLength(4);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
@@ -303,7 +340,7 @@ describe('bản đồ cấp của Chiến dịch', () => {
     expect(wrapper.text()).toContain('giờ siết dần');
   });
 
-  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 56 thẻ đòi 28 biểu tượng', async () => {
+  it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 100 thẻ đòi 50 biểu tượng', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');

@@ -7,53 +7,68 @@
  * body thì nó nổi trên tất cả, kể cả header và bảng kết quả (z-index 60 > 10).
  *
  * CHỈ ĐƯỢC MOUNT MỘT LẦN trong cây: hai lần là hiện hai emoji chồng nhau.
+ *
+ * BAY LÊN TỪ CHIP NGƯỜI GỬI, không còn nổi giữa mép trên màn hình: đọc "ai vừa
+ * nói" bằng CHỖ nó xuất phát thì nhanh hơn đọc cái tên dán dưới emoji. Chip
+ * được đánh dấu bằng `data-chip-for="<id người chơi>"` (màn chơi: `.pchip`;
+ * phòng chờ: `li` trong `.lobby-list`) — đo `getBoundingClientRect` ngay lúc
+ * hiện. Không tìm thấy chip (khán giả, người vừa rời) thì rơi về mép trên giữa
+ * màn hình như cũ.
  */
 import type { QuickEmoji } from '@mm/engine';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
-  o: { emojiBlast: { value: { emoji: QuickEmoji; name: string; key: number } | null } };
+  o: { emojiBlast: { value: { emoji: QuickEmoji; name: string; from: string; key: number } | null } };
 }>();
+
+/** Toạ độ điểm xuất phát (tâm chip). null = chưa đo được → dùng mép trên giữa. */
+const neo = ref<{ x: number; y: number } | null>(null);
+
+watch(() => props.o.emojiBlast.value?.key, () => {
+  const blast = props.o.emojiBlast.value;
+  if (!blast) return;
+  const chip = document.querySelector(`[data-chip-for="${CSS.escape(blast.from)}"]`);
+  const r = chip?.getBoundingClientRect();
+  // Chip cao 0 = đang ẩn (màn khác đang hiện): coi như không tìm thấy.
+  neo.value = r && r.height > 0 ? { x: r.left + r.width / 2, y: r.top } : null;
+}, { flush: 'post' });
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="blast">
-      <div v-if="props.o.emojiBlast.value" :key="props.o.emojiBlast.value.key" class="emoji-blast" aria-hidden="true">
+      <div
+        v-if="props.o.emojiBlast.value"
+        :key="props.o.emojiBlast.value.key"
+        class="emoji-blast"
+        :class="{ anchored: !!neo }"
+        :style="neo ? { left: `${neo.x}px`, top: `${neo.y}px` } : undefined"
+        aria-hidden="true"
+      >
         <span class="big">{{ props.o.emojiBlast.value.emoji }}</span>
-        <span class="from">{{ props.o.emojiBlast.value.name }}</span>
+        <span v-if="!neo" class="from">{{ props.o.emojiBlast.value.name }}</span>
       </div>
     </Transition>
   </Teleport>
 </template>
 
 <style scoped>
-/* Emoji người kia gửi: nằm trong dải thông báo TRÊN bàn, xếp ngang một dòng —
-   trước đây nó phóng 110px giữa bàn, đúng lúc đối thủ đang chờ mình đi thì cả
-   bàn bị che.
-
-   Xếp DỌC: biểu tượng trên, TÊN người gửi ngay dưới — đọc được ai vừa nói mà
-   không cần dấu nhỏ trên chip người chơi (đã bỏ). Cả cụm trôi lên và mờ dần như
-   một câu nói bay đi. 1,9s đúng bằng lúc composable xoá emojiBlast nên nó tan
-   hết rồi mới rời DOM, không bị cắt ngang. */
 .emoji-blast {
-  /* fixed + z-index cao: nổi trên MỌI thứ kể cả header. Neo theo mép trên màn
-     hình vì nó đã ra khỏi cây DOM của màn chơi. */
+  /* fixed + z-index cao: nổi trên MỌI thứ kể cả header. */
   position: fixed; top: 10px; left: 50%; z-index: 60;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   pointer-events: none;
   animation: blast-float 1.15s ease-out forwards;
 }
 /* Trôi lên NHANH và dứt khoát: nó là một câu nói bay đi, không phải thứ cần đọc
-   lâu — tên người gửi ở ngay dưới đã nói đủ. */
+   lâu. */
 @keyframes blast-float {
   0%   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(.9); }
   14%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   55%  { opacity: 1; transform: translateX(-50%) translateY(-26px); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-72px); }
 }
-/* Gấp đôi cỡ cũ (30–44px → 60–88px): emoji người kia gửi là lời "nói", phải đọc
-   được từ xa. Nó nằm trong .notice-bar (cao 0px) nên phóng to KHÔNG đẩy bàn thẻ
-   xuống — chỉ đè lên HUD một nhịp rồi tan. Nút BẤM để gửi giữ nguyên cỡ. */
 .emoji-blast .big {
   font-size: clamp(60px, 16vw, 88px); line-height: 1;
   filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .35));
@@ -65,6 +80,30 @@ const props = defineProps<{
   background: color-mix(in srgb, var(--accent) 85%, black);
   box-shadow: 0 4px 14px var(--card-back-glow);
 }
+
+/*
+ * NEO VÀO CHIP NGƯỜI GỬI. `left`/`top` do JS đặt = tâm ngang và mép trên của
+ * chip; `translate(-50%, -100%)` kéo emoji lên nằm ngay TRÊN chip rồi bay tiếp.
+ *
+ * Bỏ nhãn tên ở nhánh này: chỗ xuất phát đã nói ai gửi, mà giữ cái nhãn thì nó
+ * che đúng cái chip vừa chỉ vào.
+ *
+ * Cỡ chữ 20px — bằng avatar trong chip (`.pchip .avatar` 18px, `.lobby-list
+ * .avatar` cũng cỡ đó), nhỉnh một chút để nổi hơn nền. Bản cũ 60–88px là để đọc
+ * từ xa khi nó nổi một mình giữa màn hình; neo vào chip rồi thì cỡ đó phủ kín
+ * cả dải người chơi.
+ */
+.emoji-blast.anchored { animation: blast-rise 1.15s ease-out forwards; }
+.emoji-blast.anchored .big {
+  font-size: 20px;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .3));
+}
+@keyframes blast-rise {
+  0%   { opacity: 0; transform: translate(-50%, -100%) translateY(10px) scale(.6); }
+  16%  { opacity: 1; transform: translate(-50%, -100%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -100%) translateY(-58px) scale(1); }
+}
+
 /* Nảy vào một nhịp. KHÔNG có translateX ở đây: cụm CHA mới là cái căn giữa,
    để đây thì nó lệch nửa bề rộng. */
 @keyframes blast-pop {

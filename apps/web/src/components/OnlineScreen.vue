@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {
-  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary
+  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
 import {
-  Brain, Check, ChevronLeft, Copy, Crown, Eye, Hash, Heart, Link2, Settings2, Sparkles, Timer
+  Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
+  Link2, Lock, Plus, RefreshCw, Settings2, Timer, Users
 } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -38,7 +39,22 @@ const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
 const copiedCode = ref(false);
 /** Vào bằng link mời: chỉ hiện đúng một việc — nhập tên rồi vào phòng. */
-const invited = computed(() => !!props.joinCode);
+/*
+ * Lời mời đã HẾT DÙNG ĐƯỢC: bật khi cú nối theo link mời báo lỗi (phòng đã chết,
+ * mã sai). Từ lúc đó màn này thôi coi mình là "được mời" và hiện lại ô nhập mã —
+ * nhánh được mời cố tình ẩn ô đó, nên không có cờ này thì người chơi bị kẹt ở một
+ * màn báo lỗi không có đường nào đi tiếp.
+ */
+const loiMoiHong = ref(false);
+watch(() => o.error.value, (e) => {
+  if (!e || !props.joinCode) return;
+  loiMoiHong.value = true;
+  // Lau ?room= khỏi URL: giữ lại thì F5 lại lao vào đúng cái phòng chết đó.
+  if (location.search.includes('room=')) ghiUrl(location.pathname);
+});
+
+/** Vào bằng link mời VÀ lời mời còn dùng được. */
+const invited = computed(() => !!props.joinCode && !loiMoiHong.value);
 /** Bước của màn vào online: chọn việc trước, điền form sau. */
 const entryStep = ref<'choose' | 'create' | 'join'>(invited.value ? 'join' : 'choose');
 
@@ -51,6 +67,19 @@ function backEntry(): void {
   quit();
 }
 
+/**
+ * Bấm một phòng trong danh sách: vào thẳng, không hỏi mã.
+ *
+ * Vẫn cần TÊN — nếu chưa có tên đã nhớ thì rẽ sang form nhập (mã điền sẵn) chứ
+ * không nhảy vào phòng với một cái tên rỗng.
+ */
+function vaoPhongCongKhai(code: string): void {
+  codeInput.value = code;
+  if (!name.value.trim()) { entryStep.value = 'join'; return; }
+  remember();
+  o.join(code, name.value.trim());
+}
+
 onMounted(() => {
   // Vào bằng link mời / F5 khi đang trong phòng: ưu tiên resume đúng phòng đó
   if (invited.value) {
@@ -58,8 +87,16 @@ onMounted(() => {
     if (name.value.trim()) join();                // link mời + đã nhớ tên: vào luôn
     return;
   }
-  o.resumeStored();
+  if (!o.resumeStored()) void o.taiPhongCongKhai();
 });
+
+/*
+ * Quay lại bước chọn (thoát khỏi form, hoặc vừa rời một phòng) thì làm mới danh
+ * sách: phòng vừa nãy có thể đã đầy hoặc đã vào ván. Không đặt hẹn giờ tự làm
+ * mới — người chơi ngồi ở màn này vài giây rồi đi, mà mỗi nhịp là một lần đánh
+ * thức Durable Object sổ phòng cho MỌI người đang mở màn.
+ */
+watch(entryStep, (b) => { if (b === 'choose') void o.taiPhongCongKhai(); });
 
 // Đang trong phòng thì URL luôn mang ?room=CODE để F5 quay lại đúng chỗ
 watch(() => o.room.value?.code, (code) => {
@@ -120,6 +157,16 @@ function isBusy(): boolean {
 }
 
 defineExpose({ requestHome: quit, isBusy });
+
+/**
+ * Tên phòng = "Phòng của <chủ phòng>". Chủ phòng có thể đổi giữa chừng (người
+ * cũ rời đi), nên đọc từ danh sách người chơi mỗi lần chứ không nhớ lại.
+ */
+const tenPhong = computed(() => {
+  const r = o.room.value;
+  const chu = r?.players.find((p) => p.id === r.hostId) ?? r?.players[0];
+  return chu ? `Phòng của ${chu.name}` : 'Phòng chờ';
+});
 
 const inviteLink = computed(() =>
   `${location.origin}${location.pathname}?room=${o.room.value?.code ?? ''}`);
@@ -416,19 +463,75 @@ function openCfgWizard(): void {
       <h2>{{ entryStep === 'choose' ? 'Chơi online' : entryStep === 'create' ? 'Tạo phòng mới' : 'Vào phòng' }}</h2>
     </div>
 
-    <!-- BƯỚC 1: tạo phòng hay vào phòng có sẵn -->
-    <div v-if="entryStep === 'choose'" class="options loose">
-      <button class="option neon g-violet" type="button" @click="entryStep = 'create'">
-        <Sparkles class="opt-icon" :size="34" />
-        <strong>Tạo phòng mới</strong>
-        <small>Lấy mã 6 số rồi mời bạn bè vào chơi</small>
+    <!--
+      BƯỚC 1: nút tạo phòng + DANH SÁCH PHÒNG ĐANG CHỜ.
+
+      Trước đây đây là hai ô "Tạo phòng mới" / "Vào phòng có sẵn", tức là ai
+      muốn chơi cũng phải có sẵn một cái mã ai đó gửi cho. Giờ mở màn này ra là
+      thấy ngay phòng nào đang chờ người, bấm một cái là vào — nhập mã tụt xuống
+      thành một dòng ở dưới, dành cho phòng riêng tư.
+    -->
+    <template v-if="entryStep === 'choose'">
+      <button class="btn-primary tao-phong" type="button" @click="entryStep = 'create'">
+        <Plus :size="22" /> Tạo phòng mới
       </button>
-      <button class="option neon g-cyan" type="button" @click="entryStep = 'join'">
-        <Hash class="opt-icon" :size="34" />
-        <strong>Vào phòng có sẵn</strong>
-        <small>Nhập mã 6 số bạn bè gửi cho</small>
+
+      <div class="list-head">
+        <h3>Phòng đang chờ</h3>
+        <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
+        <button
+          class="icon-btn" type="button" aria-label="Làm mới danh sách"
+          :disabled="o.dangTaiPhong.value" @click="o.taiPhongCongKhai()"
+        ><RefreshCw :size="18" :class="{ quay: o.dangTaiPhong.value }" /></button>
+      </div>
+
+      <!-- Đang tải LẦN ĐẦU: khung xám thay vì chữ "đang tải" — người chơi thấy
+           ngay danh sách sắp có mấy dòng, và không bị nhấp nháy khi nó hiện ra. -->
+      <ul v-if="o.dangTaiPhong.value" class="rooms" aria-busy="true">
+        <li v-for="i in 4" :key="i" class="room sk">
+          <span class="av-sk"></span>
+          <span class="body"><span class="bar w1"></span><span class="bar w2"></span></span>
+        </li>
+      </ul>
+
+      <ul v-else-if="o.phongCongKhai.value.length" class="rooms">
+        <li v-for="r in o.phongCongKhai.value" :key="r.code">
+          <button class="room" type="button" @click="vaoPhongCongKhai(r.code)">
+            <span class="av">{{ r.avatar }}</span>
+            <span class="body">
+              <span class="rname">Phòng của {{ r.chuPhong }}</span>
+              <span class="meta">
+                <i><LayoutGrid :size="14" /> {{ r.the }} thẻ</i>
+                <i><Users :size="14" /> {{ r.nguoi }}/{{ r.toiDa }}</i>
+              </span>
+            </span>
+            <span class="slots" :class="{ tight: r.toiDa - r.nguoi <= 1 }">
+              <b>{{ r.toiDa - r.nguoi }}</b><small>CHỖ</small>
+            </span>
+            <ChevronRight :size="18" class="go" />
+          </button>
+        </li>
+      </ul>
+
+      <!-- Trống vì LỖI ≠ trống vì không có phòng nào: nói khác nhau, vì cách xử
+           lý của người chơi cũng khác (bấm thử lại / tự tạo phòng). -->
+      <div v-else class="empty">
+        <span class="art"><Globe :size="36" :stroke-width="1.9" /></span>
+        <template v-if="o.loiTaiPhong.value">
+          <h4>Không xem được danh sách</h4>
+          <p>Mạng đang trục trặc. Bạn vẫn tạo phòng mới hoặc vào bằng mã được.</p>
+          <button class="btn" type="button" @click="o.taiPhongCongKhai()">Thử lại</button>
+        </template>
+        <template v-else>
+          <h4>Chưa có phòng nào đang chờ</h4>
+          <p>Bạn tạo phòng đầu tiên đi — phòng của bạn sẽ hiện ở đây cho người khác vào chơi.</p>
+        </template>
+      </div>
+
+      <button class="link-row" type="button" @click="entryStep = 'join'">
+        <Hash :size="18" /> Có mã phòng? Nhập mã 6 số
       </button>
-    </div>
+    </template>
 
     <!-- BƯỚC 2a: tạo phòng — chỉ cần tên -->
     <template v-else-if="entryStep === 'create'">
@@ -470,13 +573,21 @@ function openCfgWizard(): void {
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
+    <!-- Mất kết nối mà phòng vẫn còn (token còn trong sessionStorage): cho bấm
+         thử lại tại chỗ, đừng bắt người ta gõ lại mã phòng. -->
+    <button v-if="o.phase.value === 'error' && o.coThuLai.value" class="btn primary" type="button" @click="o.retry()">
+      Thử lại
+    </button>
   </section>
 
   <!-- LOBBY -->
   <section v-else-if="o.phase.value === 'lobby'" class="panel">
     <div class="head">
       <button class="btn back" aria-label="Rời phòng" type="button" @click="quit"><ChevronLeft :size="22" /></button>
-      <h2>Phòng chờ</h2>
+      <!-- Tên phòng LÀ tên chủ phòng — đúng cái người khác thấy trong danh sách
+           công khai. Không có ô gõ tên phòng: một cái tên nữa để nghĩ ra là một
+           bước nữa trước khi được chơi. -->
+      <h2>{{ tenPhong }}</h2>
     </div>
 
     <!-- Mời bạn: phải nói RÕ bấm vào đâu để làm gì. Nút mã nhỏ ở góc trước đây
@@ -498,8 +609,30 @@ function openCfgWizard(): void {
       </div>
     </div>
 
+    <!--
+      Công khai hay riêng tư. Chỉ CHỦ PHÒNG bấm được, nhưng ai cũng ĐỌC được:
+      người vào phòng cần biết phòng mình đang ngồi có hiện cho người lạ không.
+    -->
+    <button
+      class="congkhai" :class="{ on: o.room.value?.congKhai }" type="button"
+      :disabled="!o.isHost.value"
+      :aria-pressed="o.room.value?.congKhai ? 'true' : 'false'"
+      @click="o.datCongKhai(!o.room.value?.congKhai)"
+    >
+      <span class="ci"><Globe v-if="o.room.value?.congKhai" :size="21" /><Lock v-else :size="21" /></span>
+      <span class="cb">
+        <span class="ct">{{ o.room.value?.congKhai ? 'Phòng công khai' : 'Phòng riêng tư' }}</span>
+        <span class="cs">{{
+          o.room.value?.congKhai
+            ? 'Đang hiện trong danh sách phòng, ai cũng vào được'
+            : 'Không hiện trong danh sách — chỉ ai có mã 6 số mới vào được'
+        }}</span>
+      </span>
+      <span class="sw" aria-hidden="true"><span class="knob"></span></span>
+    </button>
+
     <ul class="lobby-list">
-      <li v-for="p in o.room.value?.players" :key="p.id" :class="{ off: !p.connected }">
+      <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
         <span class="avatar">{{ p.avatar }}</span>
         <b>{{ p.name }}</b>
         <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
@@ -519,8 +652,10 @@ function openCfgWizard(): void {
       </li>
       <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
            làm dòng này vỡ chữ -->
-      <li v-if="(o.room.value?.players.length ?? 0) < 4" class="empty">
-        Còn {{ 4 - (o.room.value?.players.length ?? 0) }} chỗ trống
+      <!-- Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng: đã từng ghi 4 ở đây và
+           lệch với server khi đổi trần. -->
+      <li v-if="(o.room.value?.players.length ?? 0) < ROOM_LIMITS.maxPlayers" class="empty">
+        Còn {{ ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0) }} chỗ trống
       </li>
     </ul>
 
@@ -590,6 +725,145 @@ function openCfgWizard(): void {
 
 <style scoped>
 .online { display: flex; flex-direction: column; height: 100%; }
+/* ---------- DANH SÁCH PHÒNG CÔNG KHAI (ON-10) ---------- */
+
+.tao-phong { margin-top: 0; }
+.list-head { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; }
+.list-head h3 { flex: 1; margin: 0; font-family: var(--font-display); font-size: var(--text-md); }
+.list-head .count {
+  font-size: var(--text-xs); font-weight: 800; color: var(--accent);
+  background: var(--accent-soft); padding: 3px 9px; border-radius: var(--r-full);
+}
+/* Nút làm mới nhỏ mà vùng chạm vẫn 44px: nới bằng ::after, đừng phình nút —
+   phình là hàng tiêu đề cao thêm và danh sách ngắn đi một dòng. Ghi đè cả
+   min-width/min-height vì `.btn` toàn cục đặt 44px. */
+.icon-btn {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; min-width: 0; min-height: 0; padding: 0;
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--panel-solid); color: var(--muted); box-shadow: var(--elev-1);
+}
+.icon-btn::after { content: ''; position: absolute; inset: -4px; }
+.icon-btn:disabled { opacity: .5; }
+.quay { animation: quay 1s linear infinite; }
+@keyframes quay { to { transform: rotate(360deg); } }
+
+/* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): nó chiếm chỗ còn lại và tự
+   cuộn BÊN TRONG khi có nhiều phòng. */
+.rooms {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 8px;
+  list-style: none; margin: 0; padding: 0;
+}
+.rooms > li { flex-shrink: 0; }
+.room {
+  width: 100%; display: flex; align-items: center; gap: 11px;
+  min-height: 64px; padding: 9px 11px; text-align: left;
+  border: 2px solid var(--line); border-radius: var(--r-md); background: var(--panel-soft);
+  color: var(--fg); font: inherit;
+}
+.room .av {
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; font-size: 22px;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
+}
+.room .body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.room .rname {
+  font-family: var(--font-display); font-size: var(--text-md); font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.room .meta {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--muted); font-size: var(--text-xs); font-weight: 600;
+}
+.room .meta i { display: inline-flex; align-items: center; gap: 3px; font-style: normal; }
+/* Số CHỖ TRỐNG, không phải số người: người chơi quét danh sách để tìm chỗ vào,
+   nên con số to nhất phải trả lời đúng câu hỏi đó. Sắp đầy thì đổi sang vàng. */
+.room .slots {
+  display: flex; flex-direction: column; align-items: center; gap: 1px; flex-shrink: 0;
+  padding: 4px 9px; border-radius: 12px;
+  background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok);
+}
+.room .slots b { font-family: var(--font-display); font-size: var(--text-md); font-weight: 800; line-height: 1; }
+.room .slots small { font-size: 9.5px; font-weight: 700; letter-spacing: .02em; }
+.room .slots.tight { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); }
+.room .go { color: var(--muted); flex-shrink: 0; }
+@media (hover: hover) {
+  .room:hover { border-color: var(--accent); background: var(--accent-soft); }
+}
+
+/* Khung xám lúc tải: đúng dáng một dòng phòng, để danh sách hiện ra không nhảy */
+.room.sk { pointer-events: none; }
+.room.sk .av-sk, .room.sk .bar {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--line-strong) 55%, transparent),
+    color-mix(in srgb, var(--line-strong) 100%, transparent),
+    color-mix(in srgb, var(--line-strong) 55%, transparent));
+  background-size: 200% 100%; animation: lap 1.3s linear infinite;
+}
+.room.sk .av-sk { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; }
+.room.sk .bar { height: 12px; border-radius: var(--r-full); }
+.room.sk .bar.w1 { width: 58%; }
+.room.sk .bar.w2 { width: 42%; height: 10px; margin-top: 7px; }
+@keyframes lap { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 24px 18px; text-align: center;
+  border: 2px dashed var(--line-strong); border-radius: var(--r-md); background: var(--panel-soft);
+}
+.empty .art {
+  display: flex; align-items: center; justify-content: center;
+  width: 74px; height: 74px; border-radius: 22px; color: #fff;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: 0 10px 26px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .32);
+}
+.empty h4 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); }
+.empty p { margin: 0; max-width: 250px; color: var(--muted); font-size: var(--text-sm); line-height: 1.45; }
+
+.link-row {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; min-height: 44px; margin-top: 14px; padding-top: 13px;
+  border: 0; border-top: 1px solid var(--line); background: none;
+  color: var(--accent); font: inherit; font-size: var(--text-sm); font-weight: 700;
+}
+
+/* ---------- CÔNG TẮC CÔNG KHAI ---------- */
+
+.congkhai {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 52px; margin: 10px 0 0; padding: 9px 12px; text-align: left;
+  border: 2px solid var(--line); border-radius: var(--r-md);
+  background: var(--panel-soft); color: var(--fg); font: inherit;
+}
+.congkhai.on {
+  border-color: transparent; color: #fff;
+  background: linear-gradient(150deg, #109edb, #1aa793);
+  box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
+}
+.congkhai .ci { flex-shrink: 0; display: flex; color: var(--muted); }
+.congkhai.on .ci { color: #fff; }
+.congkhai .cb { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.congkhai .ct { font-family: var(--font-display); font-size: var(--text-md); font-weight: 700; }
+.congkhai .cs { font-size: var(--text-xs); line-height: 1.35; color: var(--muted); }
+.congkhai.on .cs { color: rgba(255, 255, 255, .88); }
+.sw {
+  flex-shrink: 0; display: flex; width: 50px; height: 29px; padding: 3px;
+  border-radius: var(--r-full); background: var(--line-strong);
+}
+.sw .knob {
+  width: 23px; height: 23px; border-radius: var(--r-full);
+  background: #fff; box-shadow: 0 1px 3px rgba(30, 27, 75, .3);
+  transition: none;   /* trạng thái đổi TỨC THÌ, như mọi ô chọn khác */
+}
+.congkhai.on .sw { background: rgba(255, 255, 255, .38); justify-content: flex-end; }
+/* Khách (không phải chủ phòng): chỉ ĐỌC. Không làm mờ hẳn — họ vẫn cần biết
+   phòng mình đang ở là công khai hay riêng tư. */
+.congkhai:disabled { opacity: 1; }
+.congkhai:disabled .sw { opacity: .55; }
+
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { font-size: 22px; line-height: 1; padding: 4px 12px; }

@@ -30,8 +30,20 @@
   },
 
   "durable_objects": {
-    "bindings": [{ "name": "ROOM", "class_name": "RoomDO" }]
+    "bindings": [
+      { "name": "ROOM", "class_name": "RoomDO" },
+      // Sổ phòng công khai (ON-10): MỘT instance duy nhất cho cả worker, tên
+      // "so-phong". Phải là Durable Object chứ không phải KV — KV nhất quán
+      // cuối cùng, nên vừa tạo phòng xong mở danh sách sẽ chưa thấy phòng của
+      // chính mình. Xem apps/server/src/sophong-do.ts.
+      { "name": "SO_PHONG_DO", "class_name": "SoPhongDO" }
+    ]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["RoomDO"] }],
+  // Mỗi lớp DO mới phải có migration tag RIÊNG, cộng dồn — sửa tag cũ là
+  // Cloudflare coi như migration đó đã chạy và lớp mới không bao giờ được tạo.
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["RoomDO"] },
+    { "tag": "v2", "new_sqlite_classes": ["SoPhongDO"] }
+  ],
   "observability": { "enabled": true }
 }

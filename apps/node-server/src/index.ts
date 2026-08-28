@@ -4,6 +4,7 @@ import { extname, join, normalize } from 'node:path';
 import { WebSocketServer, type WebSocket as WsSocket } from 'ws';
 import { ROOM_LIMITS } from '@mm/engine';
 import { RoomDO } from '../../server/src/room.js';
+import { soPhongTrongRam } from '../../server/src/sophong.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -70,6 +71,17 @@ interface Phong { room: RoomDO; box: RoomBox }
 const phongs = new Map<string, Phong>();
 
 /**
+ * Sổ phòng công khai (ON-10) — ở Node chỉ là một Map.
+ *
+ * Bản Cloudflare phải dựng hẳn một Durable Object cho việc này vì ở đó KHÔNG
+ * liệt kê được các DO đang sống. Node thì mọi phòng vốn đã nằm trong RAM của
+ * đúng một tiến trình (replicas PHẢI là 1, xem deploy/k8s/thebai.yaml), nên
+ * liệt kê chỉ là lọc một Map. Cùng interface `SoPhong`, nên `RoomDO` chạy y
+ * nguyên không biết mình đang ở đâu.
+ */
+const soPhong = soPhongTrongRam();
+
+/**
  * Lấy (hoặc dựng) phòng theo mã. Tương đương `env.ROOM.getByName(code)` của CF:
  * ở đó mọi mã đều "có" một Durable Object, còn phòng CÓ THẬT hay không thì
  * `exists()` mới trả lời — nên ở đây cũng dựng vô điều kiện.
@@ -83,7 +95,8 @@ function layPhong(code: string): Phong {
     () => { phongs.delete(code); }
   );
   // `RoomDO` chỉ đọc `this.ctx`; `env` không dùng tới ở nhánh nào của Node.
-  p = { room: new RoomDO(box.ctx as never, {} as never), box };
+  // `RoomDO` đọc `this.ctx` và `this.env.SO_PHONG` (sổ phòng công khai).
+  p = { room: new RoomDO(box.ctx as never, { SO_PHONG: soPhong } as never), box };
   phongs.set(code, p);
   return p;
 }
@@ -217,6 +230,16 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
 
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
+
+  /*
+   * Danh sách phòng công khai (ON-10). PHẢI đứng TRƯỚC `/api/rooms/:code` —
+   * cùng lý do như bản Cloudflare (xem apps/server/src/index.ts), và hai tầng
+   * HTTP này có test canh phải khớp nhau.
+   */
+  if (url.pathname === '/api/rooms/public' && req.method === 'GET') {
+    void soPhong.liet().then((rooms) => json(res, { rooms }));
+    return;
+  }
 
   // Tạo phòng (ON-01)
   if (url.pathname === '/api/rooms' && req.method === 'POST') {

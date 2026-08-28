@@ -34,8 +34,11 @@ describe('tính cỡ bàn thẻ', () => {
     }
   });
 
-  it('lá bài không bao giờ dưới ngưỡng chạm 44px (NF-07)', () => {
-    for (const l of allLevels()) {
+  /* Hai cỡ lớn nhất (72 và 100 thẻ) CỐ Ý phá ngưỡng — bàn siêu khó người chơi
+     tự chọn, xem chú thích BOARDS trong campaign.ts. Mọi cỡ còn lại vẫn phải
+     giữ 44px, nên chốt này lọc theo số thẻ chứ không bỏ hẳn. */
+  it('lá bài không bao giờ dưới ngưỡng chạm 44px (NF-07), trừ hai cỡ lớn nhất', () => {
+    for (const l of allLevels().filter((x) => x.pairs * 2 <= 56)) {
       for (const [name, [w, h]] of Object.entries(AREAS)) {
         const { width } = computeFit(w, h, l.cols, l.rows);
         const gap = w < 420 ? 6 : 8;

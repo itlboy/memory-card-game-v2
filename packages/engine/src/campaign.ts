@@ -31,14 +31,17 @@ export interface Level {
  *    (7×8) còn 44px — vừa sát ngưỡng, nên đó là TRẦN.
  *
  *    Chặn ở đây là CHIỀU CAO, không phải số thẻ: bàn càng nhiều HÀNG thì mỗi ô
- *    càng thấp, mà lá giữ tỷ lệ 3:4 nên bề rộng tụt theo. Vì vậy 60 thẻ không
- *    dùng được dù chỉ hơn 56 có bốn lá — 60 chỉ chia được 6×10 (5×12 tỷ lệ 2,4
- *    đã bị điều kiện 2 loại), mười hàng cho ô cao 45,6px → lá rộng 34px. Cùng
- *    lý do đã loại 5×10 trước đây.
+ *    càng thấp, mà lá giữ tỷ lệ 3:4 nên bề rộng tụt theo.
+ *
+ *    NGOẠI LỆ ĐÃ CHỐT (yêu cầu của chủ dự án): hai cỡ CUỐI — 8×9 (72 thẻ) và
+ *    10×10 (100 thẻ) — CỐ Ý phá trần 44px. Đo trên iPhone SE: 72 thẻ cho lá
+ *    ~38px, 100 thẻ ~30px. Đây là bàn "siêu khó" người chơi tự chọn, không phải
+ *    cỡ mặc định; đừng "sửa" bằng cách bỏ chúng đi, và cũng đừng lấy chúng làm
+ *    tiền lệ để thêm cỡ mới — mọi cỡ khác vẫn phải ≥44px.
  * 4. Bàn phải LẤP được chỗ trống, không hở hai bên. Bàn cao hơn vùng bàn thì
  *    chiều cao chạm trần trước và bề rộng thừa ra thành hai dải trống. Đo thật
  *    trên iPhone SE: bàn 2×4 chỉ dùng 72% diện tích, bàn 4×7 dùng 82% — nên hai
- *    cỡ đó bị loại dù thoả ba điều kiện trên. Chín cỡ còn lại dùng 99,6% diện
+ *    cỡ đó bị loại dù thoả ba điều kiện trên. Các cỡ còn lại dùng 99,6% diện
  *    tích, tệ nhất 96%. Đổi lại: số thẻ nhảy 6→12 và 24→30 chứ không tăng đều.
  *
  * `levels` là số cấp mỗi cỡ bàn giữ. Cỡ nhỏ giữ ít cấp để mở đầu đi nhanh, cỡ
@@ -53,9 +56,11 @@ const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
   { cols: 4, rows: 5, levels: 5 },    // 20 thẻ
   { cols: 4, rows: 6, levels: 6 },    // 24 thẻ
   { cols: 5, rows: 6, levels: 7 },    // 30 thẻ
-  { cols: 6, rows: 6, levels: 10 },   // 36 thẻ
-  { cols: 6, rows: 7, levels: 10 },   // 42 thẻ
-  { cols: 7, rows: 8, levels: 3 }     // 56 thẻ — trần mới
+  { cols: 6, rows: 6, levels: 9 },    // 36 thẻ
+  { cols: 6, rows: 7, levels: 9 },    // 42 thẻ
+  { cols: 7, rows: 8, levels: 3 },    // 56 thẻ
+  { cols: 8, rows: 9, levels: 1 },    // 72 thẻ
+  { cols: 10, rows: 10, levels: 1 }   // 100 thẻ — trần mới
 ];
 
 /** Bàn của từng cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */
@@ -69,7 +74,10 @@ const LADDER: readonly { cols: number; rows: number; pairs: number }[] =
 export const CAMPAIGN_LEVELS = LADDER.length;
 
 /**
- * CHÍN CỠ BÀN — thứ mà các chế độ NGOÀI Chiến dịch thật sự chọn.
+ * MƯỜI HAI CỠ BÀN — thứ mà các chế độ NGOÀI Chiến dịch thật sự chọn.
+ *
+ * Số cỡ phải TRÒN HÀNG trong lưới chọn (xem CLAUDE.md): 12 = 3×4 / 4×3. Thêm
+ * hay bớt một cỡ là lưới lòi ô lẻ ở hàng cuối — phải đổi theo cặp.
  *
  * Thang 50 cấp là chuyện riêng của Chiến dịch: nhiều cấp dùng chung một cỡ bàn
  * và chỉ khác nhau ở đồng hồ. Đem thang đó cho chế độ thường thì người chơi

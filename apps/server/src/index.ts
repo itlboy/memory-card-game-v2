@@ -1,8 +1,21 @@
 import { ROOM_LIMITS } from '@mm/engine';
 import { RoomDO } from './room.js';
-import type { Env } from './room.js';
+import type { Env as RoomEnv } from './room.js';
+import { SoPhongDO } from './sophong-do.js';
+import { soPhongTuBinding } from './sophong.js';
 
-export { RoomDO };
+export { RoomDO, SoPhongDO };
+
+/**
+ * Env của worker = env của phòng + binding sổ phòng.
+ *
+ * `SO_PHONG` trong RoomEnv là interface đã BỌC; ở đây `SO_PHONG_DO` là binding
+ * Durable Object thô. Hai tên khác nhau có chủ đích: RoomDO không được chạm vào
+ * binding thô, nó chỉ biết cái interface — y như cách cf-shim giấu tầng dưới.
+ */
+export interface Env extends RoomEnv {
+  SO_PHONG_DO: DurableObjectNamespace<SoPhongDO>;
+}
 
 /** Mã phòng toàn số — dễ đọc cho nhau qua điện thoại, gõ bằng bàn phím số. */
 const CODE_ALPHABET = '0123456789';
@@ -23,6 +36,18 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+
+    /*
+     * Danh sách phòng công khai (ON-10) — màn "Chơi online" gọi ngay khi mở.
+     *
+     * PHẢI đứng TRƯỚC `/api/rooms/:code`: mẫu kia cũng khớp một đoạn 6 ký tự,
+     * và tuy "public" không phải 6 chữ số nên hiện chưa đụng nhau, đặt sau là
+     * đặt một cái bẫy cho lần đổi mã phòng tiếp theo.
+     */
+    if (url.pathname === '/api/rooms/public' && request.method === 'GET') {
+      const rooms = await soPhongTuBinding(env.SO_PHONG_DO).liet();
+      return Response.json({ rooms }, { headers: CORS });
+    }
 
     // Tạo phòng: trả về mã 6 ký tự (ON-01)
     if (url.pathname === '/api/rooms' && request.method === 'POST') {

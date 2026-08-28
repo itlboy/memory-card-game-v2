@@ -65,7 +65,12 @@ describe('dựng bộ thẻ', () => {
   });
 });
 
-describe('không xếp hai thẻ cùng cặp sát nhau', () => {
+/*
+ * KHÔNG CÒN LUẬT CHỐNG CẶP KỀ. Bàn xáo ngẫu nhiên hoàn toàn (quyết định của chủ
+ * dự án). Bộ test này giữ lại nhưng đổi hướng: canh cho bàn ĐÚNG LÀ ngẫu nhiên —
+ * ai đó lặng lẽ thêm lại vòng lọc thì số cặp kề tụt về 0 và test đỏ.
+ */
+describe('xếp thẻ ngẫu nhiên hoàn toàn', () => {
   /** Đếm cặp nằm kề theo hàng/cột — cài lại độc lập với engine để test có giá trị. */
   const adjacent = (cards: readonly { pairId: number }[], cols: number, rows: number): number => {
     let n = 0;
@@ -83,24 +88,30 @@ describe('không xếp hai thẻ cùng cặp sát nhau', () => {
   // Lưới lớn cần tới 32 cặp — SYMBOLS chỉ có 24, nên dựng pool riêng cho test
   const POOL = Array.from({ length: 32 }, (_, i) => `s${i}`);
 
-  // 2×2 nằm ngoài luật (xem chú thích trong deck.ts): chỉ có một cách xếp không
-  // kề nhau nên áp luật vào đó là ván nào cũng giống ván nào
+  /*
+   * Cặp kề PHẢI xuất hiện — và xuất hiện thường xuyên. Ngưỡng lấy rộng tay vì
+   * đây là chuyện xác suất: xáo thuần thì ~83% ván có ít nhất một cặp kề, nên
+   * đòi trên 50/120 là vẫn cách xa mọi biến động seed, mà bắt ngay được bất kỳ
+   * vòng lọc nào bị thêm lại (vòng lọc cho đúng 0/120).
+   */
   it.each([[3, 3], [3, 4], [4, 4], [4, 5], [5, 5], [5, 6], [6, 6], [8, 8]])(
-    'lưới %ix%i: không seed nào còn cặp kề nhau',
+    'lưới %ix%i: có cặp kề nhau như một bàn xáo thuần ngẫu nhiên',
     (cols, rows) => {
+      let coKe = 0;
       for (let seed = 1; seed <= 120; seed++) {
-        expect(adjacent(buildDeck({ cols, rows, symbols: POOL, rng: new Rng(seed) }), cols, rows)).toBe(0);
+        if (adjacent(buildDeck({ cols, rows, symbols: POOL, rng: new Rng(seed) }), cols, rows) > 0) coKe++;
       }
+      expect(coKe, `${cols}×${rows}: ${coKe}/120 ván có cặp kề`).toBeGreaterThan(50);
     }
   );
 
-  it('lưới 2×2 được miễn: không phải ván nào cũng xếp chéo', () => {
+  it('lưới 2×2: không phải ván nào cũng xếp chéo', () => {
     let diagonal = 0;
     for (let seed = 1; seed <= 300; seed++) {
       const cards = buildDeck({ cols: 2, rows: 2, symbols: POOL, rng: new Rng(seed) });
       if (cards[0]!.pairId === cards[3]!.pairId) diagonal++;
     }
-    // Áp luật chống-kề vào 2×2 sẽ cho đúng 300/300; phải quanh mức ngẫu nhiên 1/3
+    // Vòng lọc chống-kề sẽ cho đúng 300/300; phải quanh mức ngẫu nhiên 1/3
     expect(diagonal).toBeGreaterThan(60);
     expect(diagonal).toBeLessThan(160);
   });
