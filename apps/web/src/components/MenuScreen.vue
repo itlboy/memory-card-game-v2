@@ -567,10 +567,14 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 /* Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
    phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
    chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình. */
-/* Ngưỡng 52px, không phải 74px: từ 12 lên 15 theme thì lưới thành 3×5 và ô tụt
-   xuống 58px ở iPhone SE — ngưỡng cũ ẩn emoji ở gần như mọi máy, ô theme chỉ
-   còn mỗi dòng chữ. Đo ở 52px: emoji 13px + tên 14px + gap vẫn nằm gọn. */
-@container (max-height: 52px) {
+/* NGƯỠNG ĐO TRÊN CONTENT BOX, KHÔNG PHẢI CHIỀU CAO Ô. `.option` có
+   `container-type: size` nên truy vấn nhận chiều cao PHẦN NỘI DUNG: ô cao 68px
+   trừ padding 8+8 và viền 2+2 chỉ còn 48px — ngưỡng "52px" hoá ra ẩn emoji ngay
+   ở ô 72px, đúng lỗi mất icon trên iPhone 15 Pro Max (Safari còn ~720px cao,
+   ô theme 68px). Ngưỡng 45px = ô ~65px — đúng chỗ chữ bắt đầu bị cắt (đo
+   scrollHeight > clientHeight): 430×720 ô 68px HIỆN không cắt · 430×700 ô 64px
+   ẩn · 430×568 ô 38px ẩn. */
+@container (max-height: 45px) {
   .theme-sample { display: none; }
   .theme-opt small { display: none; }
 }
