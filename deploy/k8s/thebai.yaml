@@ -100,7 +100,21 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
+    # Hai tên miền, MỘT pod. Client lấy địa chỉ server bằng `location.origin`
+    # (xem apps/web/src/composables/useOnlineRoom.ts), nên mở bằng tên nào thì
+    # phòng online chạy trên chính tên đó — không CORS, không cần build riêng
+    # cho từng tên miền, và cả hai cùng đi theo bản mới mà Keel thay.
     - host: thebai-server.hello314.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-server
+                port:
+                  number: 80
+    - host: thebai2.hello314.com
       http:
         paths:
           - path: /
