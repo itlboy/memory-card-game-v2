@@ -15,6 +15,16 @@ const mk = (code, name) => new Promise((res, rej) => {
 });
 const roomExists = async (c) => (await (await fetch(`${SERVER}/api/rooms/${c}`)).json()).exists;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+/*
+ * Hạn giữ chỗ ở lobby của SERVER đang test — đọc từ ĐÚNG biến môi trường mà
+ * server đọc (apps/server/src/flags.ts), mặc định 30 giây.
+ *
+ * Vì sao không viết cứng một con số nhỏ: chạy cục bộ với LOBBY_HOLD_MS=2000 thì
+ * xanh, còn CI không đặt biến nên server giữ mặc định 30 giây và bước cuối đỏ
+ * oan. Đã xảy ra thật. Đặt biến cho CẢ server lẫn smoke thì bước này nhanh;
+ * quên đặt thì chỉ chậm, không sai.
+ */
+const HOLD = Number(process.env.LOBBY_HOLD_MS ?? 30_000);
 
 // 1) Đầu hàng giữa ván → người còn lại thắng ngay (reason forfeit)
 let code = await mkRoom();
@@ -75,7 +85,7 @@ console.log('✓ chia link: chủ phòng thoát ra, phòng vẫn sống, bạn v
 
 /*
  * QUYỀN CHỦ PHÒNG KHÔNG ĐỔI CHỦ NGAY. Rớt kết nối ở lobby còn được giữ chỗ
- * LOBBY_HOLD_MS (30 giây thật; smoke chạy server với LOBBY_HOLD_MS=2000) —
+ * LOBBY_HOLD_MS (mặc định 30 giây; xem HOLD ở đầu file) —
  * không có nó thì khoá màn hình một nhịp là mất quyền trong phòng của chính
  * mình. Hết hạn mà không quay lại thì mới chuyển quyền cho người còn ngồi đó.
  */
@@ -85,7 +95,7 @@ if (wBan.room.hostId === wBan.playerId) {
 console.log('✓ trong hạn giữ chỗ: quyền chủ phòng vẫn thuộc người vừa rớt');
 
 // Chờ quá hạn giữ chỗ: người rớt bị gỡ, quyền chuyển cho người còn lại
-await sleep(3500);
+await sleep(HOLD + 1500);
 const doi = ban.msgs.filter((m) => m.t === 'room').at(-1);
 if (!doi || doi.room.hostId !== wBan.playerId) {
   console.log('✗ hết hạn giữ chỗ mà quyền chủ phòng không chuyển cho người còn lại');

@@ -56,7 +56,11 @@ jobs:
         run: |
           pnpm --filter @mm/node-server build
           cd apps/node-server
-          PORT=8090 WEB_DIR=../../apps/web/dist node dist/server.mjs & echo $! > /tmp/srv.pid
+          # LOBBY_HOLD_MS=2000: smoke-leave-cancel phải chờ HẾT hạn giữ chỗ ở
+          # lobby để kiểm quyền chủ phòng có chuyển không. Mặc định 30 giây là
+          # đúng cho máy chạy thật nhưng bắt CI ngồi chờ 30 giây vô ích.
+          # smoke đọc cùng biến này nên hai bên luôn khớp.
+          PORT=8090 LOBBY_HOLD_MS=2000 WEB_DIR=../../apps/web/dist node dist/server.mjs & echo $! > /tmp/srv.pid
           cd ../..
           for i in $(seq 1 30); do
             curl -sf -m 1 http://127.0.0.1:8090/health >/dev/null && break || sleep 1
@@ -69,7 +73,7 @@ jobs:
           # để smoke đỏ mà ảnh vẫn được đẩy đi.
           pids=""
           for s in online options peek leave-cancel; do
-            node "tools/smoke-$s.mjs" & pids="$pids $!"
+            LOBBY_HOLD_MS=2000 node "tools/smoke-$s.mjs" & pids="$pids $!"
           done
           rc=0
           for p in $pids; do wait "$p" || rc=1; done
