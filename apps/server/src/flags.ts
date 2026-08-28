@@ -29,6 +29,16 @@
 export const PREDEAL: boolean = doc_env('PREDEAL') !== '0';
 
 /**
+ * Ở lobby, rớt kết nối thì giữ CHỖ VÀ QUYỀN CHỦ PHÒNG bấy nhiêu ms (xem
+ * LOBBY_HOLD_MS trong room.ts để biết vì sao có mốc này).
+ *
+ * Cho đặt qua `LOBBY_HOLD_MS` chỉ để BỘ SMOKE khỏi phải ngồi chờ 30 giây thật.
+ * Đừng hạ nó trên máy chạy thật: đúng 30 giây đó là thứ giữ quyền chủ phòng
+ * qua một lần mất sóng.
+ */
+export const LOBBY_HOLD_MS: number = Number(doc_env('LOBBY_HOLD_MS') ?? 30_000);
+
+/**
  * Đọc biến môi trường mà không giả định đang chạy ở đâu. Worker không có
  * `process`, Node không có `env` toàn cục — chạm thẳng vào là ném lỗi ở một
  * trong hai nơi.

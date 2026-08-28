@@ -134,7 +134,7 @@ let resultTimer: ReturnType<typeof setTimeout> | undefined;
  * TỪ 5 NGƯỜI TRỞ LÊN ĐỔI SANG DẢI GỌN — cùng luật với PlayerStrip (chơi cùng
  * máy), xem chú thích đầy đủ ở đó. Tóm lại: chia đều một hàng cho 10 người là
  * mỗi chip 33px, tên biến mất và điểm rơi ra ngoài; xếp hai hàng thì ăn thêm
- * 20px chiều cao của bàn — mà bàn nay tới 100 thẻ.
+ * 20px chiều cao của bàn — mà bàn nay tới 88 thẻ.
  */
 const gonStrip = computed(() => (o.view.value?.players.length ?? 0) > 4);
 

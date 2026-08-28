@@ -15,7 +15,7 @@ const session = (w: VueWrapper): Session => (w.vm as unknown as { session: Sessi
 
 const THEMES = {
   themes: [{ id: 'animals', name: 'Động vật', unlockAt: 0,
-    // 50 biểu tượng = đủ cho cỡ lớn nhất (bàn 10×10 = 50 cặp); bộ 24 cũ làm
+    // 50 biểu tượng = đủ cho cỡ lớn nhất (bàn 8×11 = 44 cặp); bộ 24 cũ làm
     // hai cỡ cuối bị khoá "thiếu biểu tượng" và mọi chốt "mọi cỡ đều mở" đỏ.
     symbols: Array.from({ length: 50 }, (_, i) => `S${i}`) }]
 };

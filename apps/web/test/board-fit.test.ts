@@ -34,7 +34,7 @@ describe('tính cỡ bàn thẻ', () => {
     }
   });
 
-  /* Hai cỡ lớn nhất (72 và 100 thẻ) CỐ Ý phá ngưỡng — bàn siêu khó người chơi
+  /* Hai cỡ lớn nhất (72 và 88 thẻ) CỐ Ý phá ngưỡng — bàn siêu khó người chơi
      tự chọn, xem chú thích BOARDS trong campaign.ts. Mọi cỡ còn lại vẫn phải
      giữ 44px, nên chốt này lọc theo số thẻ chứ không bỏ hẳn. */
   it('lá bài không bao giờ dưới ngưỡng chạm 44px (NF-07), trừ hai cỡ lớn nhất', () => {

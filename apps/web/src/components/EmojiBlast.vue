@@ -8,12 +8,21 @@
  *
  * CHỈ ĐƯỢC MOUNT MỘT LẦN trong cây: hai lần là hiện hai emoji chồng nhau.
  *
- * BAY LÊN TỪ CHIP NGƯỜI GỬI, không còn nổi giữa mép trên màn hình: đọc "ai vừa
- * nói" bằng CHỖ nó xuất phát thì nhanh hơn đọc cái tên dán dưới emoji. Chip
- * được đánh dấu bằng `data-chip-for="<id người chơi>"` (màn chơi: `.pchip`;
- * phòng chờ: `li` trong `.lobby-list`) — đo `getBoundingClientRect` ngay lúc
- * hiện. Không tìm thấy chip (khán giả, người vừa rời) thì rơi về mép trên giữa
- * màn hình như cũ.
+ * BAY LÊN TỪ ĐÚNG CÁI TÊN, không phải từ tâm chip: mắt đang đọc tên để biết ai
+ * đang nói, nên emoji phải mọc lên ngay từ chữ đó. Tâm chip thì rơi vào khoảng
+ * giữa avatar và điểm số — một chỗ chẳng thuộc về ai.
+ *
+ * Ba mức, lấy được cái nào thì dùng cái đó:
+ *   1. `<b>` trong chip = TÊN. Neo vào MÉP TRÁI của nó (chữ bắt đầu ở đâu thì
+ *      emoji mọc ở đó), cả bốn dạng chip đều đặt tên trong `<b>`.
+ *   2. Chip hẹp không còn chỗ cho tên (dạng `.mini` từ 5 người trở lên): neo vào
+ *      TÂM avatar — đó là toàn bộ những gì nhận ra người đó.
+ *   3. Không tìm thấy chip nào (khán giả, người vừa rời): mép trên giữa màn hình
+ *      như cũ, kèm cái tên dán dưới emoji.
+ *
+ * Chip được đánh dấu bằng `data-chip-for="<id người chơi>"` (màn chơi: `.pchip`,
+ * `.turn-chip`, `.mini`; phòng chờ: `li` trong `.lobby-list`) — đo
+ * `getBoundingClientRect` ngay lúc hiện.
  */
 import type { QuickEmoji } from '@mm/engine';
 import { ref, watch } from 'vue';
@@ -31,7 +40,19 @@ watch(() => props.o.emojiBlast.value?.key, () => {
   const chip = document.querySelector(`[data-chip-for="${CSS.escape(blast.from)}"]`);
   const r = chip?.getBoundingClientRect();
   // Chip cao 0 = đang ẩn (màn khác đang hiện): coi như không tìm thấy.
-  neo.value = r && r.height > 0 ? { x: r.left + r.width / 2, y: r.top } : null;
+  if (!r || r.height === 0) { neo.value = null; return; }
+
+  const ten = chip!.querySelector('b')?.getBoundingClientRect();
+  const av = chip!.querySelector('.avatar')?.getBoundingClientRect();
+  let x: number;
+  if (ten && ten.width > 0) x = ten.left;                 // chữ bắt đầu ở đâu
+  else if (av && av.width > 0) x = av.left + av.width / 2; // không có tên: giữa avatar
+  else x = r.left + r.width / 2;
+
+  /* Emoji rộng tới 88px và căn giữa quanh `x`, nên tên nằm sát mép màn hình là
+     nó thò ra ngoài. Kẹp lại vừa đủ để cả con emoji còn trong khung. */
+  const le = 48;
+  neo.value = { x: Math.min(Math.max(x, le), window.innerWidth - le), y: r.top };
 }, { flush: 'post' });
 </script>
 

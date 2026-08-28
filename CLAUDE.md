@@ -14,7 +14,7 @@
 - Hiệu ứng `:hover` phải bọc trong `@media (hover: hover)` — thiết bị cảm
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
 - Kích thước chạm tối thiểu 44px (NF-07) — NGOẠI LỆ đã chốt: hai cỡ bàn lớn
-  nhất (72 và 100 thẻ) cố ý phá ngưỡng, là bàn siêu khó người chơi tự chọn;
+  nhất (72 và 88 thẻ) cố ý phá ngưỡng, là bàn siêu khó người chơi tự chọn;
   mọi cỡ ≤56 thẻ vẫn phải giữ, có test canh. Lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
 - **Vùng chạm ≠ HÌNH của nút.** Nút nhỏ mà vẫn phải 44px thì nới vùng chạm bằng
@@ -45,7 +45,7 @@
 - **Màn cấu hình** (lưới, theme): ô nền tối; Ô ĐƯỢC CHỌN bùng gradient
   tím + glow (`aria-checked/pressed` + `:not(.neon)`).
 - **CẤP CHỈ CÒN LÀ ĐỘ KHÓ TRONG CHIẾN DỊCH.** Ngoài Chiến dịch, bước đầu là
-  chọn SỐ THẺ (`SizeGrid.vue`, 12 cỡ trong `BOARD_SIZES`, 4→100 thẻ), không phải bản đồ 50
+  chọn SỐ THẺ (`SizeGrid.vue`, 12 cỡ trong `BOARD_SIZES`, 4→88 thẻ), không phải bản đồ 50
   cấp: ở đó cấp chỉ quyết định cỡ bàn, còn độ khó nằm ở năm tuỳ chọn. Giá trị
   phát ra vẫn là một số CẤP hợp lệ (cấp đầu tiên của mỗi cỡ) để engine, server
   và khoá lưu kỷ lục không phải đổi — mỗi cỡ bàn một khoá. Thời gian gốc ngoài
