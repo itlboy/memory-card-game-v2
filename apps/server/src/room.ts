@@ -276,8 +276,18 @@ export class RoomDO extends DurableObject<Env> {
    * deleteAll trần thì bản ghi trong sổ sống tiếp tới khi hết hạn 15 phút, và
    * suốt quãng đó ai bấm vào phòng đó cũng nhận "Phòng không tồn tại".
    */
-  private async depPhong(): Promise<void> {
+  /**
+   * Dẹp phòng. `lyDo` chỉ để GHI LẠI, không đổi hành vi nào.
+   *
+   * Đi bằng một key trong storage rồi mới `deleteAll()`, chứ không thêm tham số
+   * vào `deleteAll` — đó là API của Durable Object, sửa nó là chỉ bản Node có
+   * còn Cloudflare thì không. Cách này chạy y nhau ở cả hai chỗ: bản CF ghi
+   * thêm một key rồi xoá sạch (vô hại), bản Node đọc nó ra ngay trước khi xoá
+   * để biết vì sao phòng đóng.
+   */
+  private async depPhong(lyDo: 'cancelled' | 'empty' | 'expired' | 'ended' = 'ended'): Promise<void> {
     const code = this.room?.code;
+    await this.ctx.storage.put('closeReason', lyDo);
     await this.ctx.storage.deleteAll();
     this.kySoCuoi = null;
     if (!code) return;
@@ -616,7 +626,7 @@ export class RoomDO extends DurableObject<Env> {
             await this.scheduleNext();
             return;
           }
-          await this.depPhong();
+          await this.depPhong('empty');
           this.room = null;
           this.game = null;
           return;
@@ -632,7 +642,7 @@ export class RoomDO extends DurableObject<Env> {
         if (player.id !== this.room.hostId) return;
         this.broadcast({ t: 'closed', message: 'Chủ phòng đã huỷ phòng.' });
         for (const sock of this.ctx.getWebSockets()) sock.close(4002, 'room-cancelled');
-        await this.depPhong();
+        await this.depPhong('cancelled');
         await this.ctx.storage.deleteAlarm();
         this.room = null;
         this.game = null;
@@ -679,7 +689,7 @@ export class RoomDO extends DurableObject<Env> {
     }
     // Ván đã kết thúc và không còn socket nào: dọn phòng để mã dùng lại được
     if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
-      await this.depPhong();
+      await this.depPhong('ended');
       await this.ctx.storage.deleteAlarm();
       this.room = null;
       this.game = null;
@@ -700,7 +710,7 @@ export class RoomDO extends DurableObject<Env> {
     if (!this.room) {
       const openedAt = (await this.ctx.storage.get<number>('openedAt')) ?? 0;
       if (openedAt && now - openedAt >= UNUSED_ROOM_MS) {
-        await this.depPhong();
+        await this.depPhong('expired');
         await this.ctx.storage.deleteAlarm();
       }
       return;
@@ -725,7 +735,7 @@ export class RoomDO extends DurableObject<Env> {
      */
     // Lobby rỗng quá hạn: cái link đã hết cửa dùng, giờ mới xoá thật
     if (this.room.emptyAt && now - this.room.emptyAt >= EMPTY_LOBBY_MS) {
-      await this.depPhong();
+      await this.depPhong('empty');
       await this.ctx.storage.deleteAlarm();
       this.room = null;
       this.game = null;
@@ -767,7 +777,7 @@ export class RoomDO extends DurableObject<Env> {
             await this.scheduleNext();
             return;
           }
-          await this.depPhong();
+          await this.depPhong('empty');
           await this.ctx.storage.deleteAlarm();
           this.room = null;
           this.game = null;

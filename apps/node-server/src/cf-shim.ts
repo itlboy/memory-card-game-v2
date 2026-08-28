@@ -135,7 +135,8 @@ export interface RoomBox {
  */
 export interface MocLuu {
   luu(duLieu: Record<string, unknown>, alarmLuc: number | null): void;
-  xoa(): void;
+  /** Phòng dẹp hẳn. `lyDo` do room.ts ghi vào storage ngay trước `deleteAll()`. */
+  dong(lyDo: string): void;
 }
 
 export function taoBoiCanh(
@@ -169,9 +170,16 @@ export function taoBoiCanh(
         put: async (k, v) => { kho.set(k, v); luu(); },
         delete: async (k) => { const co = kho.delete(k); luu(); return co; },
         deleteAll: async () => {
+          /*
+           * Lý do đóng phải đọc TRƯỚC khi xoá sạch: room.ts ghi nó vào storage
+           * ngay trước lệnh này (xem `depPhong`). Đi đường vòng như vậy vì
+           * `deleteAll` là API của Durable Object — thêm tham số vào đó thì chỉ
+           * bản Node có, còn Cloudflare thì không.
+           */
+          const lyDo = String(kho.get('closeReason') ?? 'ended');
           kho.clear();
           daDep = true;
-          moc?.xoa();
+          moc?.dong(lyDo);
           // Phòng đã dọn sạch: bỏ luôn khỏi bảng phòng của tiến trình, không thì
           // mã phòng vẫn "tồn tại" vì bản ghi rỗng còn nằm đó.
           khiRong();

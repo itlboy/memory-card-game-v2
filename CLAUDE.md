@@ -121,6 +121,26 @@
   + bộ smoke THẲNG vào server Node rồi mới đẩy ảnh lên GHCR (amd64 + arm64, vì
   VPS ở Việt Nam hay là ARM). Deploy Cloudflare vẫn là `pnpm release` chạy tay —
   Action không đụng tới.
+- **SCHEMA PHÒNG LÀ BỐN BẢNG CHUẨN HOÁ** (`rooms` · `room_players` ·
+  `room_themes` · `matches`). Ba luật dễ hiểu sai:
+  (1) `rooms.id` là ĐỊNH DANH, `code` chỉ là một giá trị — phòng không bị xoá
+  cứng nữa nên nếu `code` làm khoá chính thì mã 6 số không bao giờ tái dùng
+  được; (2) `closed_at` và `left_at` là SỐ NGUYÊN, `0` = đang sống, nhờ vậy đặt
+  được `UNIQUE (code, closed_at)`: chỉ MỘT phòng sống giữ một mã, còn phòng đã
+  đóng thì trùng mã bao nhiêu cũng được; (3) mọi truy vấn tìm phòng đang sống
+  PHẢI có `closed_at = 0` — quên là phòng đã đóng sống lại và người chơi vào
+  được. Đóng phòng phải xoá `game_state` (4KB snapshot vô dụng) và `token`
+  (bí mật vào lại một phòng không còn). Phòng đóng quá 30 ngày bị xoá cứng lúc
+  khởi động; `matches` KHÔNG đi theo — lịch sử ván đấu sống lâu hơn phòng.
+  `matches` trích thẳng từ `engine.snapshot()` (`summaryCache` + `endedAt`), nên
+  không phải sửa room.ts; `INSERT IGNORE` + `UNIQUE (room_id, ended_at)` làm nó
+  idempotent. `game_state` giữ nguyên khối JSON vì đó là ruột engine, không phải
+  thực thể — tách ra là buộc database đổi theo mỗi lần đổi luật chơi.
+- **KHO DÙNG POOL, KHÔNG PHẢI MỘT CONNECTION**: ghi một phòng là một giao dịch
+  (rooms + room_players + room_themes cùng đúng hoặc cùng sai), mà hai giao dịch
+  chồng nhau trên cùng connection thì `beginTransaction` thứ hai lặng lẽ commit
+  cái thứ nhất. Kho giữ bảng tra `mã → id` trong RAM và PHẢI xoá khỏi đó khi
+  phòng đóng, không thì phòng mới dùng lại mã cũ sẽ ghi đè phòng đã đóng.
 - **PHÒNG LƯU XUỐNG MYSQL** (`apps/node-server/src/kho-mysql.ts`, bật bằng biến
   `MYSQL_URL`): không có nó thì mỗi lần Keel thay ảnh là mọi phòng đang mở biến
   mất. Ghi là GHI TRỄ (gộp 300ms, chạy sau) vì `save()` chạy sau MỖI nước lật
