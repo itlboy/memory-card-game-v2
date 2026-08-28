@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ROOM_LIMITS } from '@mm/engine';
 import type { Card } from '@mm/engine';
-import { Timer } from 'lucide-vue-next';
+import { List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
@@ -130,6 +130,32 @@ const { wrap, fitStyle } = useBoardFit(() => {
 /** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
 const showResult = ref(false);
 let resultTimer: ReturnType<typeof setTimeout> | undefined;
+/**
+ * TỪ 5 NGƯỜI TRỞ LÊN ĐỔI SANG DẢI GỌN — cùng luật với PlayerStrip (chơi cùng
+ * máy), xem chú thích đầy đủ ở đó. Tóm lại: chia đều một hàng cho 10 người là
+ * mỗi chip 33px, tên biến mất và điểm rơi ra ngoài; xếp hai hàng thì ăn thêm
+ * 20px chiều cao của bàn — mà bàn nay tới 100 thẻ.
+ */
+const gonStrip = computed(() => (o.view.value?.players.length ?? 0) > 4);
+
+const dangDi = computed(() => {
+  const ps = o.view.value?.players ?? [];
+  return ps.find((p) => p.id === o.view.value?.currentId) ?? ps[0];
+});
+
+/** Những người không đang đi, xoay vòng để người ĐI NGAY SAU đứng đầu hàng. */
+const khac = computed(() => {
+  const ps = o.view.value?.players ?? [];
+  if (!ps.length) return [];
+  const at = ps.findIndex((p) => p.id === o.view.value?.currentId);
+  const start = at < 0 ? 1 : at + 1;
+  return Array.from({ length: ps.length - 1 }, (_, k) => ps[(start + k) % ps.length]!);
+});
+
+/** Bảng đầy đủ (tên, điểm, mạng, ai mất mạng) — chỉ mở khi người chơi bấm. */
+const moBang = ref(false);
+watch(() => o.view.value?.players.length, () => { moBang.value = false; });
+
 const iWon = computed(() => o.view.value?.summary?.ranking[0]?.id === o.myId.value);
 watch(() => o.view.value?.summary, (s) => {
   clearTimeout(resultTimer);
@@ -151,48 +177,123 @@ watch(() => o.view.value?.summary, (s) => {
       @quit="emit('quit')"
     />
 
-    <div class="strip">
-      <div
-        v-for="p in o.view.value?.players" :key="p.id"
-        class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
-        :data-chip-for="p.id"
-      >
-        <span class="avatar">{{ p.avatar }}</span>
-        <b>{{ p.name }}</b>
-        <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
-             kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
-        <span v-if="p.forfeited" class="netbad" title="Đã rời phòng">🚪 đã rời</span>
-        <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">📴 mất mạng</span>
-        <!-- Ping của MÌNH, gắn cạnh tên mình cho khỏi phải đoán là của ai. Luôn
-             hiện: người chơi muốn biết mạng mình thế nào, không chỉ lúc có sự cố. -->
-        <span
-          v-else-if="p.id === o.myId.value"
-          class="ping" :class="o.netQuality.value"
-          :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
-        >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
-        <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
-             tràn cả chip người chơi. -->
-        <small v-if="p.lives !== null" class="lives">
-          <template v-if="p.lives <= 0">💔</template>
-          <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
-          <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
-        </small>
-        <span
-          v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
-          class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
-          role="timer" :aria-label="`Còn ${Math.ceil(o.turnTimeLeft.value)} giây`"
-        ><Timer :size="12" />{{ Math.ceil(o.turnTimeLeft.value) }}</span>
-        <Transition name="plus">
+    <div class="strip-wrap">
+      <!-- TỚI 4 NGƯỜI: dạng cũ, mỗi người một chip có tên -->
+      <div v-if="!gonStrip" class="strip">
+        <div
+          v-for="p in o.view.value?.players" :key="p.id"
+          class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
+          :data-chip-for="p.id"
+        >
+          <span class="avatar">{{ p.avatar }}</span>
+          <b>{{ p.name }}</b>
+          <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
+               kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
+          <span v-if="p.forfeited" class="netbad" title="Đã rời phòng">🚪 đã rời</span>
+          <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">📴 mất mạng</span>
+          <!-- Ping của MÌNH, gắn cạnh tên mình cho khỏi phải đoán là của ai. Luôn
+               hiện: người chơi muốn biết mạng mình thế nào, không chỉ lúc có sự cố. -->
           <span
-            v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === p.id"
-            :key="o.timeBonusFor.value.key" class="plus10"
-          >+5s</span>
-        </Transition>
-        <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${o.seriesWins.value[p.name]} ván`">
-          🏅{{ o.seriesWins.value[p.name] }}
-        </span>
-        <span class="pts">{{ p.score }}</span>
+            v-else-if="p.id === o.myId.value"
+            class="ping" :class="o.netQuality.value"
+            :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
+          >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
+          <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
+               tràn cả chip người chơi. -->
+          <small v-if="p.lives !== null" class="lives">
+            <template v-if="p.lives <= 0">💔</template>
+            <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
+            <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
+          </small>
+          <span
+            v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
+            class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
+            role="timer" :aria-label="`Còn ${Math.ceil(o.turnTimeLeft.value)} giây`"
+          ><Timer :size="12" />{{ Math.ceil(o.turnTimeLeft.value) }}</span>
+          <Transition name="plus">
+            <span
+              v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === p.id"
+              :key="o.timeBonusFor.value.key" class="plus10"
+            >+5s</span>
+          </Transition>
+          <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${o.seriesWins.value[p.name]} ván`">
+            🏅{{ o.seriesWins.value[p.name] }}
+          </span>
+          <span class="pts">{{ p.score }}</span>
+        </div>
       </div>
+
+      <!-- TỪ 5 NGƯỜI: chip lượt + hàng avatar. `data-chip-for` phải có ở CẢ HAI
+           dạng — EmojiBlast tìm chip theo id để bay lên từ đúng chỗ người gửi. -->
+      <div v-else-if="dangDi" class="strip gon">
+        <div class="turn-chip" :data-chip-for="dangDi.id" :class="{ off: !dangDi.connected || dangDi.forfeited }">
+          <span class="avatar">{{ dangDi.avatar }}</span>
+          <span class="tb">
+            <b class="nm">{{ dangDi.name }}</b>
+            <span class="sub">
+              <template v-if="o.turnTimeLeft.value !== null">
+                <Timer :size="11" /><span :class="{ urgent: o.turnTimeLeft.value <= 10 }">{{ Math.ceil(o.turnTimeLeft.value) }}s</span> ·
+              </template>
+              <template v-if="dangDi.id === o.myId.value">lượt bạn</template>
+              <template v-else>đang đi</template>
+            </span>
+          </span>
+          <Transition name="plus">
+            <span
+              v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === dangDi.id"
+              :key="o.timeBonusFor.value.key" class="plus10"
+            >+5s</span>
+          </Transition>
+          <span class="pts">{{ dangDi.score }}</span>
+        </div>
+
+        <ul class="rest">
+          <li
+            v-for="(p, k) in khac" :key="p.id"
+            class="mini" :class="{ next: k === 0, off: !p.connected || p.forfeited }"
+            :data-chip-for="p.id"
+            :title="`${p.name} — ${p.score} điểm`"
+          >
+            <span class="avatar">{{ p.avatar }}</span>
+            <!-- Mất mạng / đã rời: một chấm đỏ thay cho chữ. Ở cỡ này không có
+                 chỗ cho "📴 mất mạng", mà bỏ hẳn thì bên kia biến mất không lý do. -->
+            <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? 'Đã rời phòng' : 'Mất kết nối'"></span>
+            <span class="mpts">{{ p.score }}</span>
+            <span class="sr-only">{{ p.name }}: {{ p.score }} điểm</span>
+          </li>
+          <li class="more">
+            <button
+              type="button" class="more-btn"
+              :aria-expanded="moBang" aria-label="Bảng người chơi"
+              @click="moBang = !moBang"
+            ><List :size="15" /></button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Bảng đầy đủ: nổi ĐÈ lên bàn, không chen vào dòng — chen vào là mỗi lần
+           mở lại bóp bàn thẻ rồi bung ra, thẻ nhảy chỗ giữa ván. Sắp theo ĐIỂM. -->
+      <Transition name="sheet">
+        <ul v-if="moBang && gonStrip" class="sheet panel" aria-label="Bảng người chơi">
+          <li
+            v-for="(p, i) in [...(o.view.value?.players ?? [])].sort((a, b) => b.score - a.score)" :key="p.id"
+            :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
+          >
+            <span class="rank">{{ i + 1 }}</span>
+            <span class="avatar">{{ p.avatar }}</span>
+            <b class="nm">{{ p.name }}</b>
+            <span v-if="p.forfeited" class="netbad">🚪 đã rời</span>
+            <span v-else-if="!p.connected" class="netbad">📴 mất mạng</span>
+            <small v-if="p.lives !== null" class="lives">
+              <template v-if="p.lives <= 0">💔</template>
+              <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
+              <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
+            </small>
+            <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins">🏅{{ o.seriesWins.value[p.name] }}</span>
+            <span class="pts">{{ p.score }}</span>
+          </li>
+        </ul>
+      </Transition>
     </div>
 
     <p v-if="o.spectator.value" class="spectate" role="status">
@@ -302,7 +403,105 @@ watch(() => o.view.value?.summary, (s) => {
 
 <style scoped>
 .game { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+/* Bọc để bảng đầy đủ neo được (absolute) mà không đụng tới dòng của bàn thẻ. */
+.strip-wrap { position: relative; }
 .strip { display: flex; gap: 6px; }
+
+/* ---------- DẢI GỌN (từ 5 người) — cùng ngôn ngữ với PlayerStrip ---------- */
+
+.strip.gon { align-items: stretch; }
+/* Chip người đang đi: khối gradient đặc, KHÔNG viền nhấp nháy như .pchip.active —
+   ở đây nó đã là thứ duy nhất có màu, thêm animation nữa là dải bồn chồn. */
+.turn-chip {
+  position: relative; flex-shrink: 0;
+  display: flex; align-items: center; gap: 7px; padding: 5px 9px;
+  border-radius: 12px; color: #fff;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: 0 4px 16px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+.turn-chip.off { opacity: .55; }
+.turn-chip .avatar { font-size: 18px; }
+.turn-chip .tb { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.turn-chip .nm {
+  font-family: var(--font-display); font-size: 12.5px; font-weight: 800;
+  max-width: 92px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.turn-chip .sub {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9.5px; font-weight: 700; opacity: .92;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* Sắp hết giờ: nhấp nháy NGAY TRONG chip lượt — đồng hồ đã ở chỗ mắt đang nhìn */
+.turn-chip .sub .urgent { animation: clock-pulse .5s steps(2) infinite; }
+.turn-chip .pts {
+  margin-left: 2px; font-family: var(--font-display); font-size: 17px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.turn-chip .plus10 { color: #fff; }
+
+.rest {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px;
+  padding: 0 4px; list-style: none; margin: 0;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+}
+.mini {
+  position: relative; flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center;
+  border-radius: 9px; padding: 1px 0;
+}
+/* Người ĐI NGAY SAU: nền nhạt. Chỉ một dấu hiệu, không viền — mười ô có viền
+   thì hàng này thành một dãy hộp, mắt không bắt được ô nào đang được chỉ. */
+.mini.next { background: var(--accent-soft); }
+.mini.off { opacity: .5; }
+.mini .avatar { font-size: 15px; line-height: 1.05; }
+.mini .mpts {
+  font-size: 10px; font-weight: 800; color: var(--muted);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.mini .dot {
+  position: absolute; top: 0; right: 12%;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--bad); box-shadow: 0 0 0 1.5px var(--panel-solid);
+}
+.more { flex-shrink: 0; display: flex; align-items: center; }
+/* Nút nhỏ mà vùng chạm vẫn phải 44px: nới bằng ::after, KHÔNG phình cái nút
+   (phình là dải cao thêm — đúng thứ dải gọn đang tiết kiệm). Phải ghi đè cả
+   min-width/min-height vì `.btn` toàn cục đặt 44px. */
+.more-btn {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0;
+  border: 0; border-radius: 8px; background: transparent; color: var(--muted);
+}
+.more-btn::after { content: ''; position: absolute; inset: -9px; }
+.more-btn[aria-expanded='true'] { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- BẢNG ĐẦY ĐỦ ---------- */
+
+.sheet {
+  position: absolute; z-index: 12; top: calc(100% + 6px); left: 0; right: 0;
+  display: flex; flex-direction: column; gap: 3px;
+  max-height: 58vh; overflow: auto;
+  list-style: none; margin: 0; padding: 8px;
+}
+.sheet li {
+  display: flex; align-items: center; gap: 8px;
+  min-height: 34px; padding: 3px 7px; border-radius: 9px;
+}
+.sheet li.active { background: var(--accent-soft); }
+.sheet li.off { opacity: .6; }
+.sheet .rank {
+  flex-shrink: 0; width: 17px; text-align: center;
+  font-family: var(--font-display); font-size: 12px; font-weight: 800; color: var(--muted);
+}
+.sheet .avatar { font-size: 17px; }
+.sheet .nm {
+  flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sheet .pts { font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
+.sheet-enter-active, .sheet-leave-active { transition: opacity .14s ease, transform .14s ease; }
+.sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
 .pchip {
   position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
   padding: 5px 9px; border: 2px solid var(--line); border-radius: 12px;
