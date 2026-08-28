@@ -51,3 +51,35 @@ describe('luật cache (public/_headers)', () => {
     expect(cacheControl('/index.html')).not.toContain('no-store');
   });
 });
+
+/**
+ * `_headers` chỉ Cloudflare đọc — server Node bỏ qua hoàn toàn. Nên bản Node
+ * phải tự đặt Cache-Control, và luật hai bên phải KHỚP. Lệch nhau là hai nơi
+ * hành xử khác nhau: đã xảy ra thật trên thebai2.hello314.com — ảnh mới lên pod
+ * rồi mà trình duyệt vẫn chạy bản cũ, vì Node trả index.html không kèm
+ * Cache-Control.
+ */
+describe('server Node đặt cùng luật cache với _headers', () => {
+  const nodeSrc = readFileSync(
+    resolve(process.cwd(), '../node-server/src/index.ts'), 'utf8',
+  );
+
+  it('có hàm đặt Cache-Control cho file tĩnh', () => {
+    expect(nodeSrc).toMatch(/Cache-Control/);
+    expect(nodeSrc).toMatch(/function cacheControl/);
+  });
+
+  it('index.html / sw.js / manifest đều no-cache, giống _headers', () => {
+    const m = /if \(\/\(index\\.html\|sw\\.js\|manifest\\.webmanifest\)\$\/\.test\(file\)\) return '([^']+)'/.exec(nodeSrc);
+    expect(m, 'không thấy luật no-cache cho index.html/sw.js/manifest').toBeTruthy();
+    expect(m![1]).toBe(cacheControl('/index.html'));
+    expect(m![1]).toBe(cacheControl('/sw.js'));
+  });
+
+  it('asset có hash cache dài và immutable, giống _headers', () => {
+    const m = /assets\[\/\\\\\]\/\.test\(file\)\) return '([^']+)'/.exec(nodeSrc)
+      ?? /return '(public, max-age=\d+, immutable)'/.exec(nodeSrc);
+    expect(m, 'không thấy luật immutable cho /assets/').toBeTruthy();
+    expect(m![1]).toBe(cacheControl('/assets/*'));
+  });
+});
