@@ -1,7 +1,7 @@
 import { ROOM_LIMITS, isDraw } from '@mm/engine';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
-  ClientMsg, GameView, PublicEvent, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
@@ -37,6 +37,36 @@ export function useOnlineRoom() {
   const myId = ref('');
   const spectator = ref(false);
   const reconnecting = ref(false);
+
+  /* ---------- danh sách phòng công khai (ON-10) ---------- */
+
+  const phongCongKhai = ref<PublicRoom[]>([]);
+  /** Đang tải danh sách lần ĐẦU (chưa có gì để hiện) — màn dùng để vẽ skeleton. */
+  const dangTaiPhong = ref(false);
+  /** Lần làm mới gần nhất thất bại? Danh sách trống vì lỗi ≠ trống vì không có
+   *  phòng nào, và hai cái đó phải nói khác nhau. */
+  const loiTaiPhong = ref(false);
+
+  /**
+   * Tải danh sách phòng đang chờ.
+   *
+   * KHÔNG ném lỗi ra ngoài: danh sách hỏng thì màn online vẫn phải dùng được —
+   * người chơi còn tạo phòng và nhập mã được như trước khi có tính năng này.
+   */
+  async function taiPhongCongKhai(): Promise<void> {
+    if (!phongCongKhai.value.length) dangTaiPhong.value = true;
+    try {
+      const res = await fetch(`${SERVER}/api/rooms/public`);
+      if (!res.ok) throw new Error(String(res.status));
+      const data = (await res.json()) as { rooms?: PublicRoom[] };
+      phongCongKhai.value = data.rooms ?? [];
+      loiTaiPhong.value = false;
+    } catch {
+      loiTaiPhong.value = true;
+    } finally {
+      dangTaiPhong.value = false;
+    }
+  }
   /** Còn đủ thứ để nối lại (mã phòng + token) → màn lỗi hiện nút "Thử lại".
    *  Ref chứ không phải computed: `code`/`token` là biến thường, không phản ứng. */
   const coThuLai = ref(false);
@@ -865,6 +895,7 @@ export function useOnlineRoom() {
 
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator,
+    phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
     wrongPair, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
     /** Cửa DUY NHẤT lấy symbol để vẽ. Đừng đọc `predeal` từ ngoài — đọc trực
@@ -890,6 +921,8 @@ export function useOnlineRoom() {
     /** Về phòng chờ, giữ nguyên mã phòng. Một người bấm là cả phòng về lobby —
      *  khác 'again' (phải đủ phiếu), nên đây là lối thoát khi đối phương đã đi. */
     veLobby: () => { sfx.select(); send({ t: 'tolobby' }); },
+    /** Chủ phòng bật/tắt hiện trong danh sách công khai (ON-10). */
+    datCongKhai: (on: boolean) => { sfx.select(); send({ t: 'public', on }); },
     iWantAgain,
     againWaiting,
     againFrom,

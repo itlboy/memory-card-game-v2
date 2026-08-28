@@ -4,13 +4,25 @@ import {
   predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
-  ClientMsg, GameEvent, PredealMsg, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { PREDEAL } from './flags.js';
 import { THEME_SYMBOLS } from './themes.js';
+import { pairsForLevel } from '@mm/engine';
+import { soPhongTuBinding, type SoPhong } from './sophong.js';
 
 export interface Env {
   ROOM: DurableObjectNamespace<RoomDO>;
+  /**
+   * Sổ phòng công khai (ON-10). Cài sẵn bởi tầng dưới: Cloudflare bọc binding
+   * Durable Object, Node đưa thẳng một Map. KHÔNG BẮT BUỘC — thiếu nó thì phòng
+   * vẫn chạy y nguyên, chỉ là không ai thấy nó trong danh sách; đó là cách một
+   * tính năng phụ nên hỏng, chứ không phải làm chết cả phòng.
+   */
+  SO_PHONG?: SoPhong;
+  /** Binding Durable Object của sổ phòng (chỉ có trên Cloudflare). RoomDO không
+   *  đụng thẳng vào nó — `this.so` bọc lại thành `SoPhong`. */
+  SO_PHONG_DO?: { getByName(name: string): { fetch(request: Request): Promise<Response> } };
 }
 
 interface RoomPlayer {
@@ -34,6 +46,18 @@ interface RoomState {
   config: RoomConfig;
   players: RoomPlayer[];
   status: 'lobby' | 'countdown' | 'playing' | 'ended';
+  /**
+   * Có hiện trong danh sách phòng công khai không (ON-10).
+   *
+   * MẶC ĐỊNH BẬT: danh sách chỉ có nghĩa khi nó có phòng, mà mặc định tắt thì
+   * gần như không ai bật lên và tính năng coi như không tồn tại. Ai muốn chơi
+   * riêng với bạn bè thì tắt công tắc — phòng biến khỏi danh sách và chỉ ai có
+   * mã 6 số mới vào được.
+   *
+   * KHÔNG có mật khẩu riêng: mã phòng vốn đã là bí mật (6 số, chỉ chủ phòng
+   * biết và tự gửi đi), thêm một lớp nữa là bắt người chơi truyền tay hai thứ.
+   */
+  congKhai: boolean;
   /** Thời điểm hết đếm ngược 5 giây, khi status = 'countdown'. */
   countdownEnd?: number;
   /** Lúc phòng ở lobby mà KHÔNG còn ai. Xem EMPTY_LOBBY_MS. */
@@ -43,7 +67,8 @@ interface RoomState {
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
 interface Attachment { playerId: string }
 
-const AVATARS = ['🦊', '🐼', '🐯', '🐸'];
+// Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
+const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
 
 /**
  * Một phòng chơi = một Durable Object (ON-01…ON-09).
@@ -154,6 +179,93 @@ export class RoomDO extends DurableObject<Env> {
   private async save(): Promise<void> {
     if (this.room) await this.ctx.storage.put('room', this.room);
     if (this.game) await this.ctx.storage.put('game', this.game.snapshot());
+    await this.dongBoSo();
+  }
+
+  /* ---------- sổ phòng công khai (ON-10) ---------- */
+
+  /**
+   * CHỮ KÝ của phòng trên danh sách: đúng những thứ một dòng danh sách hiện ra.
+   * Chưa đổi thì không việc gì phải khai lại.
+   */
+  private chuKySo(): string {
+    const r = this.room;
+    if (!r || !r.congKhai || r.status !== 'lobby') return '';
+    const chu = r.players.find((p) => p.id === r.hostId) ?? r.players[0];
+    if (!chu) return '';
+    return [r.code, chu.name, chu.avatar ?? '', r.players.length, r.config.level].join('|');
+  }
+
+  /** Chữ ký lần khai gần nhất; `null` = chưa từng đồng bộ trong lần thức này. */
+  private kySoCuoi: string | null = null;
+
+  /**
+   * Đưa phòng lên/xuống sổ cho khớp trạng thái hiện tại.
+   *
+   * ĐẶT TRONG `save()`, không rải ở từng chỗ: mọi thay đổi trạng thái phòng đều
+   * đi qua save, nên một móc ở đây là đủ — rải ra là có ngày thêm một lối đổi
+   * trạng thái mà quên khai, và cái sai đó im lặng (phòng chết nằm lại trong
+   * danh sách, hoặc phòng thật không bao giờ hiện ra).
+   *
+   * Chốt `chuKySo()` là thứ giữ cho nó rẻ: save() chạy sau MỖI nước lật thẻ, mà
+   * chữ ký chỉ đổi khi có người vào/ra, đổi cấu hình, hay đổi trạng thái phòng.
+   *
+   * KHÔNG BAO GIỜ ném ra ngoài: sổ hỏng thì cùng lắm là phòng không hiện trong
+   * danh sách — không được phép làm hỏng ván đang chơi.
+   */
+  /**
+   * Sổ phòng, dù đang chạy ở đâu. Node đưa thẳng một `SoPhong` (Map trong RAM);
+   * Cloudflare chỉ có binding DO thô, bọc tại chỗ. Không có cái nào thì tính
+   * năng danh sách coi như tắt — phòng vẫn chạy đủ.
+   */
+  private get so(): SoPhong | undefined {
+    if (this.env?.SO_PHONG) return this.env.SO_PHONG;
+    if (this.env?.SO_PHONG_DO) return soPhongTuBinding(this.env.SO_PHONG_DO);
+    return undefined;
+  }
+
+  private async dongBoSo(): Promise<void> {
+    const so = this.so;
+    if (!so || !this.room) return;
+    const ky = this.chuKySo();
+    if (ky === this.kySoCuoi) return;
+    this.kySoCuoi = ky;
+    try {
+      if (!ky) { await so.xoa(this.room.code); return; }
+      const r = this.room;
+      const chu = r.players.find((p) => p.id === r.hostId) ?? r.players[0]!;
+      const phong: PublicRoom = {
+        code: r.code,
+        chuPhong: chu.name,
+        avatar: chu.avatar ?? AVATARS[0]!,
+        nguoi: r.players.length,
+        toiDa: ROOM_LIMITS.maxPlayers,
+        the: pairsForLevel(r.config.level) * 2,
+        luc: Date.now()
+      };
+      await so.khai(phong);
+    } catch (e) {
+      // Khai lại ở lần save sau: quên chữ ký đi, đừng để một lần lỗi mạng khoá
+      // phòng khỏi danh sách cho tới khi có thay đổi tiếp theo.
+      this.kySoCuoi = null;
+      console.error('[sổ phòng] không đồng bộ được:', e);
+    }
+  }
+
+  /**
+   * Xoá sạch phòng — storage LẪN sổ công khai.
+   *
+   * Dùng thay cho `storage.deleteAll()` ở MỌI lối dọn phòng (sáu chỗ). Gọi
+   * deleteAll trần thì bản ghi trong sổ sống tiếp tới khi hết hạn 15 phút, và
+   * suốt quãng đó ai bấm vào phòng đó cũng nhận "Phòng không tồn tại".
+   */
+  private async depPhong(): Promise<void> {
+    const code = this.room?.code;
+    await this.ctx.storage.deleteAll();
+    this.kySoCuoi = null;
+    if (!code) return;
+    try { await this.so?.xoa(code); }
+    catch (e) { console.error('[sổ phòng] không gỡ được phòng đã đóng:', e); }
   }
 
   /* ---------- kết nối ---------- */
@@ -198,7 +310,8 @@ export class RoomDO extends DurableObject<Env> {
         return new Response('Phòng không tồn tại', { status: 404 });
       }
       this.room = {
-        code, hostId: '', config: { ...DEFAULT_ROOM_CONFIG }, players: [], status: 'lobby'
+        code, hostId: '', config: { ...DEFAULT_ROOM_CONFIG }, players: [],
+        status: 'lobby', congKhai: true
       };
     }
 
@@ -377,6 +490,19 @@ export class RoomDO extends DurableObject<Env> {
        * mời lại từ đầu. Ván đã xong rồi thì đưa phòng về lobby chẳng cắt ngang
        * của ai; ai chưa muốn chơi tiếp cứ ngồi ở lobby hoặc tự thoát.
        */
+      /*
+       * Bật/tắt hiện trong danh sách công khai (ON-10). Chỉ CHỦ PHÒNG, và chỉ ở
+       * lobby: vào ván rồi thì phòng tự rời danh sách (chữ ký rỗng), có bật lên
+       * cũng không hiện, mà nút đổi được lại làm người ta tưởng ngược lại.
+       */
+      case 'public': {
+        if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
+        this.room.congKhai = msg.on === true;
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
       case 'tolobby': {
         if (this.room.status !== 'ended') return;
         await this.veLobby(this.room.players.filter((p) => this.connected(p.id)));
@@ -466,7 +592,7 @@ export class RoomDO extends DurableObject<Env> {
             await this.scheduleNext();
             return;
           }
-          await this.ctx.storage.deleteAll();
+          await this.depPhong();
           this.room = null;
           this.game = null;
           return;
@@ -482,7 +608,7 @@ export class RoomDO extends DurableObject<Env> {
         if (player.id !== this.room.hostId) return;
         this.broadcast({ t: 'closed', message: 'Chủ phòng đã huỷ phòng.' });
         for (const sock of this.ctx.getWebSockets()) sock.close(4002, 'room-cancelled');
-        await this.ctx.storage.deleteAll();
+        await this.depPhong();
         await this.ctx.storage.deleteAlarm();
         this.room = null;
         this.game = null;
@@ -529,7 +655,7 @@ export class RoomDO extends DurableObject<Env> {
     }
     // Ván đã kết thúc và không còn socket nào: dọn phòng để mã dùng lại được
     if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
-      await this.ctx.storage.deleteAll();
+      await this.depPhong();
       await this.ctx.storage.deleteAlarm();
       this.room = null;
       this.game = null;
@@ -550,7 +676,7 @@ export class RoomDO extends DurableObject<Env> {
     if (!this.room) {
       const openedAt = (await this.ctx.storage.get<number>('openedAt')) ?? 0;
       if (openedAt && now - openedAt >= UNUSED_ROOM_MS) {
-        await this.ctx.storage.deleteAll();
+        await this.depPhong();
         await this.ctx.storage.deleteAlarm();
       }
       return;
@@ -575,7 +701,7 @@ export class RoomDO extends DurableObject<Env> {
      */
     // Lobby rỗng quá hạn: cái link đã hết cửa dùng, giờ mới xoá thật
     if (this.room.emptyAt && now - this.room.emptyAt >= EMPTY_LOBBY_MS) {
-      await this.ctx.storage.deleteAll();
+      await this.depPhong();
       await this.ctx.storage.deleteAlarm();
       this.room = null;
       this.game = null;
@@ -598,7 +724,7 @@ export class RoomDO extends DurableObject<Env> {
             await this.scheduleNext();
             return;
           }
-          await this.ctx.storage.deleteAll();
+          await this.depPhong();
           await this.ctx.storage.deleteAlarm();
           this.room = null;
           this.game = null;
@@ -748,6 +874,9 @@ export class RoomDO extends DurableObject<Env> {
       config: room.config,
       status: room.status,
       againVotes: [...this.againVotes],
+      // Phòng cũ lưu trước ON-10 không có trường này — coi như công khai, đúng
+      // với mặc định của phòng mới.
+      congKhai: room.congKhai !== false,
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
         if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready };

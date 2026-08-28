@@ -31,5 +31,5 @@ export {
 } from './online.js';
 export type {
   CardBack, ClientMsg, GameView, PredealMsg, PublicCard, PublicEvent, PublicPlayer,
-  QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from './online.js';

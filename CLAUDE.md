@@ -96,6 +96,18 @@
   lúc là mất chỗ, rồi vào lại được cấp chỗ MỚI — một người hoá hai. Nới không
   treo ván: hết lượt thì engine tự `turn-timeout`. Client tự nối lại có backoff,
   `onWake` thử lại cả khi đã báo lỗi, và màn lỗi có nút "Thử lại" (`o.retry()`).
+- **SỔ PHÒNG CÔNG KHAI (ON-10)**: màn "Chơi online" mở ra là thấy danh sách
+  phòng đang chờ (`GET /api/rooms/public`). Phòng mặc định CÔNG KHAI; chủ phòng
+  tắt công tắc thì phòng ẩn khỏi danh sách nhưng vẫn vào được bằng mã 6 số —
+  KHÔNG có mật khẩu riêng (mã phòng vốn đã là bí mật, thêm lớp nữa là bắt người
+  chơi truyền tay hai thứ). Tên phòng LÀ tên chủ phòng, không có ô gõ tên.
+  Cloudflare KHÔNG liệt kê được Durable Object, nên phòng phải tự KHAI lên một
+  DO singleton (`SoPhongDO`); Node chỉ là một Map. Cả hai sau cùng interface
+  `SoPhong` (`sophong.ts`), RoomDO không biết mình chạy ở đâu.
+  Móc đồng bộ nằm trong `save()` — MỘT chỗ, có chốt `chuKySo()` để không khai
+  lại sau mỗi nước lật thẻ; và mọi lối xoá phòng phải gọi `depPhong()` chứ không
+  `storage.deleteAll()` trần, không thì phòng chết nằm lại trong danh sách. Có
+  `tools/smoke-sophong.mjs` chạy với cả hai server.
 - **Hết ván online phải còn đường VỀ PHÒNG CHỜ** (`t:'tolobby'`, một người bấm
   là đủ). `t:'again'` đòi mọi người còn kết nối cùng bấm nên khi đối phương đã
   đi thì không bao giờ đủ phiếu — thiếu `tolobby` thì người ở lại chỉ còn lối về

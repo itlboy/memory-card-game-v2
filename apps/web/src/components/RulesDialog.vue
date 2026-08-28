@@ -106,7 +106,12 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
 
         <h3>Chơi nhiều người</h3>
         <ul class="plain">
-          <li>Thay lượt nhau trên cùng máy, hoặc mở phòng online bằng mã 6 số.</li>
+          <li>Thay lượt nhau trên cùng máy, hoặc mở phòng online — tới <b>10 người</b>.</li>
+          <li>
+            Phòng online mặc định <b>công khai</b>: ai vào mục Chơi online cũng thấy và
+            vào chơi được. Chủ phòng tắt công tắc thì phòng thành <b>riêng tư</b> —
+            không hiện trong danh sách, chỉ ai có <b>mã 6 số</b> mới vào được.
+          </li>
           <li>Lật sai thì chuyển lượt. Ghép đúng được lật tiếp.</li>
           <li>Mỗi lượt có <b>15 giây</b>; ghép đúng được thêm 5 giây (tối đa 15).</li>
           <li>Hết ván ai nhiều điểm hơn thì thắng; bằng điểm là <b>hoà</b>.</li>

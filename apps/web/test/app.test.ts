@@ -268,15 +268,16 @@ describe('màn online (điều hướng, không cần server)', () => {
     wrapper = mount(App, { attachTo: document.body });
     await flush();
     await click('Chơi online');
-    // Bước 1: chỉ hai lựa chọn, chưa hiện form
+    // Bước 1: nút tạo phòng + danh sách phòng công khai, chưa hiện form
     expect(wrapper.text()).toContain('Tạo phòng mới');
-    expect(wrapper.text()).toContain('Vào phòng có sẵn');
+    expect(wrapper.text()).toContain('Phòng đang chờ');
+    expect(wrapper.text()).toContain('Nhập mã 6 số');
     expect(wrapper.text()).not.toContain('Tên của bạn');
     await click('Tạo phòng mới');
     expect(wrapper.text()).toContain('Tên của bạn');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
-    expect(wrapper.text()).toContain('Vào phòng có sẵn');   // quay lại bước chọn
+    expect(wrapper.text()).toContain('Phòng đang chờ');   // quay lại bước chọn
     // Quay lại — trước đây multi-root trong <Transition> làm trắng trang
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
@@ -314,8 +315,8 @@ describe('màn online (điều hướng, không cần server)', () => {
     // Vào lại: phải là bước chọn việc, KHÔNG phải màn "được mời" của phòng cũ
     await click('Chơi online');
     expect(wrapper.text()).not.toContain('Bạn được mời vào phòng');
-    expect(wrapper.text()).toContain('Vào phòng có sẵn');
-    await click('Vào phòng có sẵn');
+    expect(wrapper.text()).toContain('Phòng đang chờ');
+    await click('Nhập mã 6 số');
     expect(wrapper.text()).toContain('Mã phòng');   // có chỗ nhập mã mới
     history.replaceState(null, '', '/');
   });

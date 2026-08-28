@@ -228,6 +228,7 @@ export type ClientMsg =
   | { t: 'flip'; index: number }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
   | { t: 'tolobby' }                                // về phòng chờ (một người bấm là đủ)
+  | { t: 'public'; on: boolean }                    // chủ phòng bật/tắt hiện trong danh sách
   | { t: 'ready'; ready: boolean }                  // sẵn sàng ở lobby
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng
@@ -252,6 +253,33 @@ export interface RoomInfo {
   /** Id những người đã bấm "chơi lại" sau khi ván kết thúc. Cần gửi cho client
    *  vì trước đây bấm xong không ai biết ai đã bấm — kể cả chính mình. */
   againVotes?: string[];
+  /** Có hiện trong danh sách phòng công khai không (ON-10). Chủ phòng bật/tắt
+   *  được ngay ở phòng chờ, nên client phải thấy trạng thái hiện tại. */
+  congKhai: boolean;
+}
+
+/**
+ * MỘT DÒNG trong danh sách phòng công khai (ON-10).
+ *
+ * Cố tình MỎNG: chỉ đủ để người chơi quyết định có vào hay không. Không mang
+ * danh sách người chơi, không mang cấu hình đầy đủ — danh sách này ai cũng đọc
+ * được mà không cần vào phòng, nên càng ít thứ rò ra càng tốt, và mỗi byte đều
+ * nhân với số phòng đang mở.
+ *
+ * `chuPhong` là TÊN CHỦ PHÒNG: phòng không có tên riêng, người chơi nhận ra nó
+ * qua "Phòng của Kiên". Không bắt gõ thêm một cái tên nữa.
+ */
+export interface PublicRoom {
+  code: string;
+  chuPhong: string;
+  avatar: string;
+  /** Số người đang ở trong phòng, và trần của phòng. */
+  nguoi: number;
+  toiDa: number;
+  /** Số THẺ (không phải số cặp) — người chơi đọc bằng số thẻ ở mọi màn khác. */
+  the: number;
+  /** Mốc tạo phòng, để client sắp phòng mới lên trước. */
+  luc: number;
 }
 
 /**

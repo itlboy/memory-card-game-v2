@@ -607,7 +607,7 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
     expect(location.search).toBe('?online=1');
     wrapper.unmount();
     await mountApp();
-    expect(wrapper.text()).toContain('Vào phòng có sẵn');   // đứng ở màn online
+    expect(wrapper.text()).toContain('Phòng đang chờ');   // đứng ở màn online
   });
 });
 

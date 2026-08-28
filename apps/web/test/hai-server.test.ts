@@ -50,7 +50,11 @@ describe('tầng HTTP: hai bản phải khớp', () => {
     { ten: 'tạo phòng', cf: /'\/api\/rooms'/, node: /'\/api\/rooms'/ },
     { ten: 'kiểm mã phòng', cf: /\\\/api\\\/rooms\\\/\(\[0-9\]\{6\}\)/, node: /\\\/api\\\/rooms\\\/\(\[0-9\]\{6\}\)/ },
     { ten: 'vào phòng qua WebSocket', cf: /\\\/ws\\\/\(\[0-9\]\{6\}\)/, node: /\\\/ws\\\/\(\[0-9\]\{6\}\)/ },
-    { ten: 'health', cf: /'\/health'/, node: /'\/health'/ }
+    { ten: 'health', cf: /'\/health'/, node: /'\/health'/ },
+    {
+      ten: 'danh sách phòng công khai',
+      cf: /'\/api\/rooms\/public'/, node: /'\/api\/rooms\/public'/
+    }
   ];
 
   for (const e of ENDPOINTS) {
@@ -59,6 +63,23 @@ describe('tầng HTTP: hai bản phải khớp', () => {
       expect(node, `bản Node thiếu ${e.ten} — đổi endpoint thì phải sửa cả hai`).toMatch(e.node);
     });
   }
+
+  /*
+   * `/api/rooms/public` phải đứng TRƯỚC `/api/rooms/:code`. Hôm nay chưa đụng
+   * nhau (mẫu kia đòi 6 CHỮ SỐ, "public" không khớp), nhưng đảo thứ tự là đặt
+   * sẵn một cái bẫy cho lần đổi bảng ký tự mã phòng — và cái bẫy đó im lặng:
+   * danh sách trả về `{exists:false}` thay vì phòng.
+   */
+  it('danh sách công khai đứng trước route mã phòng, ở cả hai bản', () => {
+    for (const [ten, src] of [['Cloudflare', cf], ['Node', node]] as const) {
+      const pub = src.indexOf("/api/rooms/public");
+      const theoMa = src.search(/\\\/api\\\/rooms\\\/\(\[0-9\]\{6\}\)/);
+      expect(pub, `${ten}: không thấy route danh sách công khai`).toBeGreaterThan(-1);
+      expect(theoMa, `${ten}: không thấy route theo mã phòng`).toBeGreaterThan(-1);
+      expect(pub, `${ten}: /api/rooms/public phải khai báo trước /api/rooms/:code`)
+        .toBeLessThan(theoMa);
+    }
+  });
 
   it('mã phòng sinh giống nhau: 6 ký tự, toàn số', () => {
     for (const [ten, src] of [['Cloudflare', cf], ['Node', node]] as const) {
