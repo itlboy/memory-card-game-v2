@@ -89,9 +89,19 @@ function backEntry(): void {
  * Vẫn cần TÊN — nếu chưa có tên đã nhớ thì rẽ sang form nhập (mã điền sẵn) chứ
  * không nhảy vào phòng với một cái tên rỗng.
  */
+/** Phòng đang bấm vào — để chính DÒNG ĐÓ báo là đang vào. */
+const dangVaoPhong = ref('');
+watch(() => o.phase.value, (p) => {
+  // Vào xong (lobby/playing) hay hỏng (error/idle) thì thôi quay
+  if (p !== 'connecting') dangVaoPhong.value = '';
+});
+
 function vaoPhongCongKhai(code: string): void {
+  if (dangVaoPhong.value) return;          // đang vào rồi, đừng bấm chồng
+  sfx.select();                            // bấm là kêu NGAY, đừng đợi server
   codeInput.value = code;
   if (!name.value.trim()) { entryStep.value = 'join'; return; }
+  dangVaoPhong.value = code;
   remember();
   o.join(code, name.value.trim());
 }
@@ -625,19 +635,31 @@ function openCfgWizard(): void {
 
       <ul v-else-if="o.phongCongKhai.value.length" class="rooms">
         <li v-for="r in o.phongCongKhai.value" :key="r.code">
-          <button class="room" type="button" @click="vaoPhongCongKhai(r.code)">
+          <!-- Dòng ĐANG VÀO tự báo lấy: mũi tên thành vòng quay, chữ đổi theo.
+               Báo ở chính chỗ ngón tay vừa chạm thì không phải đi tìm xem
+               chuyện gì đang xảy ra. Các dòng khác mờ đi để khỏi bấm nhầm. -->
+          <button
+            class="room" type="button"
+            :class="{ vao: dangVaoPhong === r.code, mo: dangVaoPhong && dangVaoPhong !== r.code }"
+            :disabled="!!dangVaoPhong"
+            @click="vaoPhongCongKhai(r.code)"
+          >
             <span class="av">{{ r.avatar }}</span>
             <span class="body">
               <span class="rname">{{ r.chuPhong }}</span>
               <span class="meta">
-                <i><LayoutGrid :size="14" /> {{ r.the }} thẻ</i>
-                <i><Users :size="14" /> {{ r.nguoi }}/{{ r.toiDa }}</i>
+                <template v-if="dangVaoPhong === r.code">Đang vào phòng…</template>
+                <template v-else>
+                  <i><LayoutGrid :size="14" /> {{ r.the }} thẻ</i>
+                  <i><Users :size="14" /> {{ r.nguoi }}/{{ r.toiDa }}</i>
+                </template>
               </span>
             </span>
-            <span class="slots" :class="{ tight: r.toiDa - r.nguoi <= 1 }">
+            <span v-if="dangVaoPhong !== r.code" class="slots" :class="{ tight: r.toiDa - r.nguoi <= 1 }">
               <b>{{ r.toiDa - r.nguoi }}</b><small>CHỖ</small>
             </span>
-            <ChevronRight :size="18" class="go" />
+            <RefreshCw v-if="dangVaoPhong === r.code" :size="18" class="go quay" />
+            <ChevronRight v-else :size="18" class="go" />
           </button>
         </li>
       </ul>
@@ -969,6 +991,17 @@ function openCfgWizard(): void {
   color: var(--muted); font-size: var(--text-xs); font-weight: 600;
 }
 .room .meta i { display: inline-flex; align-items: center; gap: 3px; font-style: normal; }
+
+/* ĐANG VÀO PHÒNG NÀY: viền tím + chữ đổi màu, ngay tại dòng vừa chạm. Không
+   transition — trạng thái đổi tức thì như mọi ô chọn khác. */
+.room.vao {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.room.vao .meta { color: var(--accent); font-weight: 700; }
+/* Các dòng còn lại lùi ra sau, để không ai bấm chồng lên nhau */
+.room.mo { opacity: .45; }
+.room:disabled { cursor: default; }
 /* Số CHỖ TRỐNG, không phải số người: người chơi quét danh sách để tìm chỗ vào,
    nên con số to nhất phải trả lời đúng câu hỏi đó. Sắp đầy thì đổi sang vàng. */
 .room .slots {
