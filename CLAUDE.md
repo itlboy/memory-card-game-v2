@@ -98,6 +98,14 @@
   + bộ smoke THẲNG vào server Node rồi mới đẩy ảnh lên GHCR (amd64 + arm64, vì
   VPS ở Việt Nam hay là ARM). Deploy Cloudflare vẫn là `pnpm release` chạy tay —
   Action không đụng tới.
+- **Cụm k8s ở nhà** (`deploy/k8s/`): server Node còn chạy thêm trên MicroK8s ở Hà Nội
+  tại `thebai-server.hello314.com`, namespace `thebai`. Push vào `main` → Action đẩy
+  ảnh lên GHCR → **Keel** hỏi registry mỗi 2 phút rồi tự thay ảnh; KHÔNG có kubeconfig
+  nào trong GitHub Secret. **`replicas` phải giữ nguyên 1 và `strategy: Recreate`** —
+  phòng online nằm trong bộ nhớ tiến trình, hai pod là hai kho phòng riêng, người nhập
+  mã vào pod kia sẽ nhận "không có phòng". Chi tiết ở `deploy/k8s/thebai.yaml`; sổ tay
+  hạ tầng nằm ở repo `my-secrets` (`docs/services/thebai-server.md`) và phải cập nhật
+  cùng lúc khi đổi gì ở đây.
 - **Deploy: `pnpm release`** — web và phòng online nằm trong MỘT Worker
   (`apps/server/wrangler.jsonc` có khối `assets`), nên chỉ một lệnh, không còn
   chuyện web mới chạy với server cũ. `pnpm deploy:server` chỉ deploy worker mà

@@ -1,0 +1,126 @@
+# Lật Thẻ — server dự phòng chạy trên cụm MicroK8s ở nhà.
+#
+# Đường đi của một request:
+#   thebai-server.hello314.com
+#     → Cloudflare (wildcard *.hello314.com trỏ tunnel kien-server-main-vm)
+#     → route mặc định của tunnel → ingress-nginx
+#     → service thebai-server:80 → pod cổng 8080
+#
+# Không cần thêm bản ghi DNS: wildcard đã lo. Không cần TLS ở đây: Cloudflare
+# cắt TLS ở biên, trong cụm chạy http trần như mọi dịch vụ khác.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: thebai
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thebai-server
+  namespace: thebai
+  labels:
+    app: thebai-server
+  annotations:
+    # Keel theo dõi ảnh này và tự thay khi GHCR có bản mới.
+    # force + latest: so DIGEST chứ không so tên tag, vì tag `latest` không đổi tên.
+    keel.sh/policy: force
+    keel.sh/trigger: poll
+    keel.sh/pollSchedule: "@every 2m"
+spec:
+  # PHẢI LÀ 1. Phòng online nằm trong BỘ NHỚ của tiến trình (không có Redis,
+  # không có Durable Object ở bản Node), nên hai pod là hai kho phòng riêng:
+  # người tạo phòng vào pod A, người nhập mã vào pod B sẽ báo "không có phòng".
+  # Muốn scale thì phải làm tầng chia sẻ trạng thái trước.
+  replicas: 1
+  strategy:
+    # Recreate chứ không RollingUpdate: rolling sẽ có lúc hai pod cùng sống,
+    # đúng cái vừa nói ở trên. Đổi lại là có ~10 giây đứt khi cập nhật — chấp
+    # nhận được, và ván đang chơi vốn cũng mất khi pod chết.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: thebai-server
+  template:
+    metadata:
+      labels:
+        app: thebai-server
+    spec:
+      containers:
+        - name: server
+          image: ghcr.io/itlboy/memory-card-game-v2/lat-the-server:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: production
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 50m, memory: 96Mi }
+            limits: { memory: 384Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thebai-server
+  namespace: thebai
+spec:
+  # ClusterIP, KHÔNG LoadBalancer: đường ra Internet duy nhất là tunnel.
+  type: ClusterIP
+  selector:
+    app: thebai-server
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thebai-server
+  namespace: thebai
+  annotations:
+    # WebSocket: phòng online giữ kết nối mở lâu. Thiếu timeout dài thì nginx
+    # cắt ngang giữa ván sau 60 giây mặc định.
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    # Hai tên miền, MỘT pod. Client lấy địa chỉ server bằng `location.origin`
+    # (xem apps/web/src/composables/useOnlineRoom.ts), nên mở bằng tên nào thì
+    # phòng online chạy trên chính tên đó — không CORS, không cần build riêng
+    # cho từng tên miền, và cả hai cùng đi theo bản mới mà Keel thay.
+    - host: thebai-server.hello314.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-server
+                port:
+                  number: 80
+    - host: thebai2.hello314.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-server
+                port:
+                  number: 80

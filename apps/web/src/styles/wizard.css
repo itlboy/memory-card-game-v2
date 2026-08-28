@@ -106,8 +106,8 @@
 /* Cỡ chữ co theo CẢ chiều cao: màn thấp (320×568) ô chỉ còn 46px, chỉ tính theo
    bề rộng thì nội dung tràn ra ngoài cả 12 ô. */
 .theme-sample {
-  font-size: clamp(13px, min(26cqw, 30cqh), 32px);
-  letter-spacing: 1px; white-space: nowrap; opacity: .9;
+  font-size: clamp(11px, min(26cqw, 30cqh), 32px);
+  letter-spacing: .5px; white-space: nowrap; opacity: .9; line-height: 1.1;
 }
 /* Tên theme được phép xuống hai dòng. Hệ số nhỏ hơn các nhãn khác vì Baloo 2
    rộng và cao hơn Nunito; line-height 1,25 để dấu tiếng Việt hai dòng không
