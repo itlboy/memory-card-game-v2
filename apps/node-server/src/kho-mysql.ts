@@ -169,6 +169,24 @@ const TAO_BANG: readonly string[] = [
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
 ];
 
+/**
+ * VÁ CỘT cho bảng đã tồn tại.
+ *
+ * `CREATE TABLE IF NOT EXISTS` chỉ tạo bảng MỚI — bảng đã có thì nó bỏ qua im
+ * lặng, kể cả khi thiếu cột. Nên thêm một cột vào code là chạy được ở máy sạch
+ * mà hỏng ở nơi đã chạy: câu INSERT nhắc tới cột không tồn tại, lỗi rơi vào
+ * `catch` của kho, và phòng lặng lẽ không được lưu nữa. Đã suýt dính khi thêm
+ * `client_id`.
+ *
+ * Đây là migration tối giản: mỗi mục là (bảng, cột, định nghĩa) và chỉ chạy khi
+ * cột chưa có. Thêm cột mới vào code thì THÊM MỘT DÒNG Ở ĐÂY.
+ */
+const VA_COT: readonly [string, string, string][] = [
+  ['room_players', 'client_id', 'VARCHAR(64) NULL'],
+  ['rooms', 'opened_at', 'BIGINT NOT NULL DEFAULT 0'],
+  ['rooms', 'close_reason', 'VARCHAR(16) NULL']
+];
+
 /** Phòng đã đóng quá bấy nhiêu thì xoá cứng. Không có bước này thì xoá mềm làm
  *  bảng phình mãi: mỗi ngày vài trăm dòng, 99% là phòng chết. */
 const GIU_PHONG_DONG_MS = 30 * 24 * 60 * 60 * 1000;
@@ -198,6 +216,17 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     try {
       // Tuần tự: room_players/room_themes/matches có khoá ngoại trỏ vào rooms.
       for (const cau of TAO_BANG) await c.query(cau);
+      for (const [bang, cot, dinhNghia] of VA_COT) {
+        const [co] = await c.query(
+          `SELECT 1 FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
+          [bang, cot]
+        );
+        if (!(co as unknown[]).length) {
+          await c.query(`ALTER TABLE \`${bang}\` ADD COLUMN \`${cot}\` ${dinhNghia}`);
+          console.log(`[kho] vá cột thiếu: ${bang}.${cot}`);
+        }
+      }
     } finally { c.release(); }
   } catch (e) {
     console.error('[kho] không mở được MySQL, chạy tiếp bằng RAM:', (e as Error).message);
