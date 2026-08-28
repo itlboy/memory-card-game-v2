@@ -171,7 +171,28 @@ function quit(): void {
     };
     return;
   }
-  if (phase === 'lobby') { o.surrender(); exit(); return; }
+  /*
+   * Ở PHÒNG CHỜ CŨNG PHẢI HỎI, kể cả khi đang một mình.
+   *
+   * Trước đây nhánh này rời thẳng không nói gì — mà đó đúng là cảnh hay gặp
+   * nhất: vừa bấm Tạo phòng xong, chưa ai vào, lỡ chạm nút logo hay vuốt lùi
+   * là mất phòng cùng cái mã vừa gửi cho bạn bè, không kịp hiểu chuyện gì.
+   *
+   * Nói luôn cả chuyện mã còn sống 10 phút: người ta thường thoát ra CHÍNH LÀ
+   * để đi gửi link, nên câu đó biến một cảnh báo đáng sợ thành một lời trấn an.
+   */
+  if (phase === 'lobby') {
+    const motMinh = (o.room.value?.players.length ?? 0) <= 1;
+    confirm.value = {
+      title: 'Rời phòng?',
+      body: motMinh
+        ? 'Mã phòng còn sống thêm 10 phút — bạn hoặc bạn bè vẫn vào lại được bằng mã đó.'
+        : 'Bạn rời khỏi phòng này; những người còn lại vẫn chơi tiếp được.',
+      label: 'Rời phòng',
+      action: () => { o.surrender(); exit(); }
+    };
+    return;
+  }
   exit();
 }
 
@@ -436,8 +457,17 @@ useBackCloser(25, () => o.phase.value === 'lobby', () => {
     };
     return;
   }
-  o.surrender();
-  veEntry();
+  // Back cũng HỎI như nút logo — cùng một việc thì phải cùng một lời hỏi, không
+  // thì rời bằng đường này mất phòng còn đường kia thì không.
+  const motMinh = (o.room.value?.players.length ?? 0) <= 1;
+  confirm.value = {
+    title: 'Rời phòng?',
+    body: motMinh
+      ? 'Mã phòng còn sống thêm 10 phút — bạn hoặc bạn bè vẫn vào lại được bằng mã đó.'
+      : 'Bạn rời khỏi phòng này; những người còn lại vẫn chơi tiếp được.',
+    label: 'Rời phòng',
+    action: () => { o.surrender(); veEntry(); }
+  };
 });
 
 /** Biểu tượng của MỌI theme server có — trần trên cho bản đồ cấp. */
