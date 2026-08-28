@@ -1,0 +1,89 @@
+# Keel — thứ duy nhất làm cho "push code là tự lên bản mới" thành hiện thực.
+#
+# Nó hỏi GHCR vài phút một lần, thấy digest của ảnh khác với digest đang chạy thì
+# thay image trong deployment. Chọn cách này thay vì để GitHub Action đẩy vào cụm
+# vì cụm chỉ vào được qua Tailscale — cách kia buộc phải cất kubeconfig vào GitHub
+# Secret và cho runner join Tailscale. Ở đây không có gì phải mở ra ngoài.
+#
+# Keel chỉ đụng vào workload CÓ annotation `keel.sh/policy`, nên cài xong nó vẫn
+# nằm im cho tới khi mình gắn nhãn cho một deployment.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: keel
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: keel
+  namespace: keel
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: keel
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "secrets", "pods"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps", "extensions"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  - apiGroups: ["batch"]
+    resources: ["cronjobs"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: keel
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: keel
+subjects:
+  - kind: ServiceAccount
+    name: keel
+    namespace: keel
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keel
+  namespace: keel
+  labels:
+    app: keel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keel
+  template:
+    metadata:
+      labels:
+        app: keel
+    spec:
+      serviceAccountName: keel
+      containers:
+        - name: keel
+          image: keelhq/keel:0.20.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 9300
+          env:
+            # Bật cơ chế hỏi registry theo chu kỳ (thứ mình cần), tắt phần
+            # thông báo và giao diện web cho gọn.
+            - name: POLL
+              value: "true"
+            - name: BASIC_AUTH_USER
+              value: ""
+            - name: BASIC_AUTH_PASSWORD
+              value: ""
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 20m, memory: 48Mi }
+            limits: { memory: 192Mi }
