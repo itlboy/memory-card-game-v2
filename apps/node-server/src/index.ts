@@ -158,6 +158,34 @@ function json(res: ServerResponse, data: unknown, status = 200): void {
 }
 
 /**
+ * Luật cache, PHẢI khớp `apps/web/public/_headers`.
+ *
+ * Vì sao phải viết lại ở đây: `_headers` là định dạng RIÊNG của Cloudflare —
+ * chỉ Pages/Worker đọc nó, Node bỏ qua hoàn toàn. Thiếu chỗ này thì server Node
+ * trả file tĩnh KHÔNG kèm Cache-Control, trình duyệt tự suy đoán và giữ
+ * `index.html` cũ; HTML cũ trỏ tới tên asset cũ nên cả bản deploy mới thành vô
+ * nghĩa. Nặng hơn: `sw.js` bị giữ lại là người chơi mắc kẹt ở service worker
+ * cũ, và nó lại giữ tiếp bản cũ của mọi thứ khác. Đây là lỗi đã xảy ra thật
+ * trên `thebai2.hello314.com`: ảnh mới lên pod rồi mà trình duyệt vẫn chạy bản
+ * cũ.
+ *
+ * Sửa luật ở đây thì phải sửa cả `_headers` — hai bản cache lệch nhau là hai
+ * nơi hành xử khác nhau, đúng thứ tốn hàng loạt sự cố để tìm ra.
+ */
+function cacheControl(file: string): string {
+  // Asset có hash trong tên: nội dung đổi thì TÊN đổi, không bao giờ trả nhầm
+  // bản cũ → cache một năm.
+  if (/[/\\]assets[/\\]/.test(file)) return 'public, max-age=31536000, immutable';
+  // Không có hash trong tên → luôn hỏi lại. no-cache chứ KHÔNG no-store:
+  // no-store cấm lưu hẳn, service worker mất khả năng precache và app mất chạy
+  // offline — đúng thứ PWA dựng lên để có.
+  if (/(index\.html|sw\.js|manifest\.webmanifest)$/.test(file)) return 'no-cache';
+  // Ảnh và dữ liệu theme: cache ngắn rồi hỏi lại.
+  if (/[/\\]data[/\\]/.test(file)) return 'public, max-age=300, must-revalidate';
+  return 'no-cache';
+}
+
+/**
  * Trả file tĩnh của web đã build, và mọi đường không khớp thì trả index.html
  * (SPA fallback). `/api/*` và `/ws/*` đã được chặn TRƯỚC đó — bỏ thứ tự này ra
  * là lời gọi API nhận về index.html, đúng cái bẫy mà bản Cloudflare có test
@@ -174,7 +202,10 @@ async function traFileTinh(url: URL, res: ServerResponse): Promise<void> {
   }
   try {
     const buf = await readFile(file);
-    res.writeHead(200, { 'Content-Type': MIME[extname(file)] ?? 'application/octet-stream' });
+    res.writeHead(200, {
+      'Content-Type': MIME[extname(file)] ?? 'application/octet-stream',
+      'Cache-Control': cacheControl(file),
+    });
     res.end(buf);
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
