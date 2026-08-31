@@ -139,6 +139,21 @@ export function useOnlineRoom() {
   /** Hiệu ứng phía client — cùng ngôn ngữ với chế độ offline. */
   const wrongPair = ref<number[]>([]);
   /**
+   * GIỮ THẺ MỞ ĐỦ LÂU CHO NGƯỜI XEM — index → symbol.
+   *
+   * Server đếm `flipBackMs` từ lúc NÓ xử nước đi, rồi úp lại và gửi view mới.
+   * Nhưng người kia nhận tin trễ: mạng lag 500ms thì họ chỉ còn 300ms để nhìn,
+   * và nếu view "đã úp" tới sát ngay sau đó thì thẻ loé lên rồi tắt — đúng lỗi
+   * đã bị phản ánh: "mở rồi úp rất nhanh, không xem được".
+   *
+   * Nên client GHIM hai lá đó ngửa, đếm đủ `hideAfterMs` KỂ TỪ LÚC NHẬN, bất kể
+   * view mới nói gì. Người xem luôn được đủ thời gian như nhau, dù mạng ai lag.
+   *
+   * KHÔNG lộ bài: chỉ ghim thẻ mà server VỪA BÁO NGỬA trong chính tin nhắn đó —
+   * symbol chụp từ `view` đi kèm, không lấy từ bàn-biết-trước.
+   */
+  const giuMo = ref<Map<number, string>>(new Map());
+  /**
    * So trạng thái sẵn sàng cũ với mới rồi phát tiếng. Phát theo THAY ĐỔI chứ
    * không theo cú bấm của mình: server gửi cùng một tin cho cả phòng, nên hai
    * bên đều nghe và đều biết đối phương vừa làm gì.
@@ -656,7 +671,7 @@ export function useOnlineRoom() {
         break;
 
       case 'events':
-        applyEvents(msg.events);
+        applyEvents(msg.events, msg.view);
         view.value = msg.view;
         settlePending(msg.view);
         syncTurnClock(msg.view);
@@ -725,7 +740,7 @@ export function useOnlineRoom() {
     peekDeadline.value = v.peekLeft === null ? 0 : Date.now() + v.peekLeft * 1000;
   }
 
-  function applyEvents(events: PublicEvent[]): void {
+  function applyEvents(events: PublicEvent[], viewMoi?: GameView): void {
     let frozenId: string | null = null;
     let turnId: string | null = null;
     for (const e of events) {
@@ -740,11 +755,29 @@ export function useOnlineRoom() {
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
           break;
         }
-        case 'miss':
+        case 'miss': {
           sfx.miss();
           wrongPair.value = e.indices;
-          setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
+          /*
+           * Chụp symbol từ `viewMoi` — view ĐI KÈM tin này — chứ không phải
+           * `view.value`: chỗ này chạy TRƯỚC khi view mới được gán, nên
+           * `view.value` còn là view cũ, chưa có lá thứ hai.
+           */
+          const ghim = new Map(giuMo.value);
+          for (const i of e.indices) {
+            const sym = viewMoi?.cards.find((c) => c.index === i)?.symbol;
+            if (sym) ghim.set(i, sym);
+          }
+          giuMo.value = ghim;
+          const het = e.indices;
+          setTimeout(() => {
+            wrongPair.value = [];
+            const con = new Map(giuMo.value);
+            for (const i of het) con.delete(i);
+            giuMo.value = con;
+          }, e.hideAfterMs);
           break;
+        }
         /*
          * XÁO THẺ trong phòng online — thiếu nhánh này là cả phòng thấy bàn tự
          * đổi chỗ mà KHÔNG hiệu ứng, không tiếng gì: mặt sau mọi lá giống hệt
@@ -1020,7 +1053,7 @@ export function useOnlineRoom() {
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
-    wrongPair, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
+    wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
     /** Cửa DUY NHẤT lấy symbol để vẽ. Đừng đọc `predeal` từ ngoài — đọc trực
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */

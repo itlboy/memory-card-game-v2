@@ -282,6 +282,14 @@
   đọc thấy một thứ không còn tồn tại — mà không có test nào đỏ. Rà bằng cách tìm
   thẳng tên luật trong toàn bộ mã nguồn, đừng đi theo trí nhớ. Icon trong hướng
   dẫn dùng CÙNG bộ với icon của luật đó trong màn chơi, để đọc xong nhận ra ngay.
+- **Lưới chọn theme CUỘN TRONG KHUNG, không nén ô nhỏ dần** — khác luật chung
+  của wizard (`grid-auto-rows: minmax(0,1fr)`, thêm ô thì ô bé lại). Theme còn
+  thêm mãi, mà đo trên iPhone SE với 15 theme thì ô đã chỉ còn 34,7px, dưới
+  ngưỡng chạm. Nay ô cố định 68px và danh sách tự cuộn — nút "Tiếp" vẫn đứng
+  yên nên KHÔNG phá luật KHÔNG SCROLL. Chiều cao phải XÁC ĐỊNH (`height: 68px`,
+  không phải `auto` + `min-height`): `.option` có `container-type: size`, mà
+  container query chỉ giải được khi chiều cao xác định — để auto thì truy vấn
+  nhận 0 và hàng emoji mẫu bị ẩn ở mọi cỡ ô.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).

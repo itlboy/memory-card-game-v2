@@ -52,6 +52,18 @@ export class MemoryGame {
   private pendingUntil = 0;
   /** Hạn chót của lượt hiện tại (ms). 0 = không dùng đồng hồ lượt. */
   turnDeadline = 0;
+  /**
+   * Lúc đồng hồ lượt bị TẠM DỪNG vì người đang đi mất kết nối; 0 = đang chạy.
+   *
+   * Mất mạng không phải lỗi của người chơi, nên không được tính vào thời gian
+   * suy nghĩ của họ: trước đây `turnDeadline` là mốc tuyệt đối nên rớt sóng vài
+   * giây là mất trắng lượt, quay lại thấy đã sang lượt người khác.
+   *
+   * Engine KHÔNG tự biết ai đang kết nối — đó là chuyện của tầng phòng. Nó chỉ
+   * cung cấp `tamDungLuot`/`chayTiepLuot` và giữ đúng luật tất định: không đọc
+   * đồng hồ hệ thống, mọi thời điểm đi qua tham số `now`.
+   */
+  turnPausedAt = 0;
   /** Thời gian được cộng thêm nhờ ghép đúng (Đua thời gian). Tách khỏi
    *  `startedAt` để `elapsed()` vẫn là thời gian thực đã chơi. */
   private extraTimeMs = 0;
@@ -119,7 +131,30 @@ export class MemoryGame {
   /** Giây còn lại của lượt hiện tại; null nếu không dùng đồng hồ lượt. */
   turnTimeLeft(now: number): number | null {
     if (!this.turnDeadline || this.finished) return null;
-    return Math.max(0, (this.turnDeadline - now) / 1000);
+    // Đang tạm dừng: đóng băng ở con số lúc dừng, đừng để nó tiếp tục tụt.
+    const moc = this.turnPausedAt || now;
+    return Math.max(0, (this.turnDeadline - moc) / 1000);
+  }
+
+  /**
+   * Tạm dừng đồng hồ lượt — người đang đi vừa mất kết nối.
+   *
+   * Gọi nhiều lần liên tiếp là vô hại (giữ mốc dừng đầu tiên), vì tầng phòng
+   * phát hiện mất mạng bằng hai đường: socket đóng, và watchdog nhịp tim.
+   */
+  tamDungLuot(now: number): void {
+    if (!this.turnDeadline || this.turnPausedAt || this.finished) return;
+    this.turnPausedAt = now;
+  }
+
+  /**
+   * Chạy tiếp — dời hạn đúng bằng khoảng đã dừng, nên người chơi nhận lại đúng
+   * số giây còn lại lúc rớt, không hơn không kém.
+   */
+  chayTiepLuot(now: number): void {
+    if (!this.turnPausedAt) return;
+    this.turnDeadline += now - this.turnPausedAt;
+    this.turnPausedAt = 0;
   }
 
   private get turnLimitMs(): number {
@@ -127,6 +162,9 @@ export class MemoryGame {
   }
 
   private armTurnClock(now: number): void {
+    // Lượt mới thì bỏ luôn trạng thái tạm dừng của lượt cũ — không thì người
+    // sau nhận một đồng hồ đang đứng im.
+    this.turnPausedAt = 0;
     if (this.turnLimitMs) this.turnDeadline = now + this.turnLimitMs;
   }
 
@@ -177,7 +215,10 @@ export class MemoryGame {
 
     // Hết giờ lượt (multiplayer): huỷ thẻ đang mở dở, mất combo, chuyển lượt.
     // Không xử khi đang khoá — lượt đằng nào cũng sắp chuyển ở resolvePending.
-    if (this.status === 'playing' && !this.locked && this.turnDeadline && now >= this.turnDeadline) {
+    // `turnPausedAt`: người đang đi mất kết nối thì đồng hồ đứng, không xử hết
+    // giờ — nếu không, họ mất lượt vì cái không phải lỗi của mình.
+    if (this.status === 'playing' && !this.locked && !this.turnPausedAt
+        && this.turnDeadline && now >= this.turnDeadline) {
       const player = this.current;
       player.streak = 0;
       this.selection = [];
@@ -479,6 +520,7 @@ export class MemoryGame {
     this.endedAt = now;
     this.pendingUntil = 0;
     this.turnDeadline = 0;
+    this.turnPausedAt = 0;
     this.selection = [];
 
     const seconds = Math.round(this.elapsed(now));
@@ -544,6 +586,7 @@ export class MemoryGame {
       revealUntil: this.revealUntil,
       pendingUntil: this.pendingUntil,
       turnDeadline: this.turnDeadline,
+      turnPausedAt: this.turnPausedAt,
       extraTimeMs: this.extraTimeMs,
       seen: [...this.seen],        // thiếu cái này thì sau F5 hoặc hibernation
       rngState: this.rng.state,    // engine "quên" thẻ nào đã lộ và phán xử sai
@@ -575,6 +618,7 @@ export class MemoryGame {
       revealUntil: s.revealUntil,
       pendingUntil: s.pendingUntil,
       turnDeadline: s.turnDeadline ?? 0,
+      turnPausedAt: s.turnPausedAt ?? 0,
       extraTimeMs: (s.extraTimeMs as number | undefined) ?? 0,
       seen: new Set((s.seen as number[] | undefined) ?? []),
       rng: Rng.fromState(s.rngState as number),
