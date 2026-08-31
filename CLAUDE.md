@@ -113,6 +113,17 @@
   `develop` → `main` (`pnpm test` + `pnpm typecheck` + `pnpm build` phải xanh,
   và các luật giao diện ở phần trên phải được kiểm bằng ảnh/đo DOM thật).
   Nhánh chính tên là `main`, không phải `master`.
+- **PHIÊN ONLINE NẰM Ở `localStorage`, KHÔNG PHẢI `sessionStorage`** (`token` +
+  `code` + `name` + `luc`, khoá `mm.online`). `token` là thứ DUY NHẤT server
+  dùng để nhận ra ai vào lại, nên để trong sessionStorage là nó chết theo cái
+  TAB: đóng tab rồi mở lại thành người lạ — id mới, avatar mới, chiếm thêm một
+  chỗ. Đo được thật: phòng hiện ra `Kiên🦊 Mai🐼 Kiên🐯`, một người hoá hai.
+  Đổi chỗ lưu KHÔNG đụng bảo mật — token vẫn do server sinh và vẫn là bí mật
+  riêng. Nhưng PHẢI có hạn (`HAN_PHIEN_MS`, 30 phút): localStorage sống mãi nên
+  thiếu hạn là hôm sau bấm "Chơi online" bị kéo vào phòng đã chết. Ván OFFLINE
+  thì ngược lại, vẫn ở sessionStorage — nó gắn với `?playing=1` của một tab.
+  `clientId` (localStorage, bền) CHỈ để thống kê, KHÔNG dùng nhận diện: client
+  tự gửi nên ai cũng gửi được `cid` của người khác để chiếm chỗ họ.
 - **Hạn giữ chỗ khi rớt mạng là 5 PHÚT** (`ROOM_LIMITS.reconnectMs`, và
   `IDLE_SILENT_MS` ở room.ts phải khớp). Mốc cũ 30 giây khiến khoá màn hình một
   lúc là mất chỗ, rồi vào lại được cấp chỗ MỚI — một người hoá hai. Nới không
