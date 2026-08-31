@@ -57,7 +57,11 @@ const cards = computed<Card[]>(() =>
     // Đi qua `symbolNeuDuocPhep`, KHÔNG đọc bàn-biết-trước trực tiếp: nó chỉ
     // nhả symbol cho ô server đã báo ngửa, hoặc ô mình vừa bấm đang chờ trả
     // lời. Nhờ vậy thẻ úp vẫn nhận `''` đúng như khi chưa có tính năng này.
-    symbol: o.symbolNeuDuocPhep(c.index, c.symbol, c.state !== 'down'),
+    // `giuMo`: hai lá vừa lật sai được GHIM ngửa đủ thời gian xem, kể cả khi
+    // view mới đã báo úp — xem chú thích ở useOnlineRoom. Chỉ chứa thẻ server
+    // vừa báo ngửa nên không lộ bài.
+    symbol: o.symbolNeuDuocPhep(c.index, c.symbol, c.state !== 'down')
+      || o.giuMo.value.get(c.index) || '',
     ...(c.power ? { power: c.power as Card['power'] } : {}),
     ...(c.blank ? { blank: true } : {})
   })));
@@ -78,6 +82,8 @@ const faceUp = computed(() => {
   for (const i of o.pending.value) {
     if (o.symbolNeuDuocPhep(i, undefined, false)) s.add(i);
   }
+  // Hai lá vừa lật sai: giữ ngửa cho đủ thời gian xem, dù server đã úp
+  for (const i of o.giuMo.value.keys()) s.add(i);
   return s;
 });
 const matchedSet = computed(() => new Set(

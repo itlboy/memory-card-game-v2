@@ -383,6 +383,7 @@ export class RoomDO extends DurableObject<Env> {
       delete this.room.emptyAt;   // người giữ chỗ đã về, không còn hẹn xoá
       if (name) player.name = name;
       if (clientId) player.clientId = clientId;
+      this.nhipDongHoLuot();      // họ về rồi, đồng hồ chạy tiếp
     }
 
     // Đóng socket cũ của cùng người chơi (mở tab mới / reconnect nhanh)
@@ -771,6 +772,7 @@ export class RoomDO extends DurableObject<Env> {
       }
     } else {
       player.disconnectedAt = Date.now();   // ON-07: có ROOM_LIMITS.reconnectMs để vào lại
+      this.nhipDongHoLuot();
     }
     // Ván đã kết thúc và không còn socket nào: dọn phòng để mã dùng lại được
     if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
@@ -894,6 +896,7 @@ export class RoomDO extends DurableObject<Env> {
         if (seen && now - seen > SILENT_MS) { p.disconnectedAt = seen; doi = true; }
       }
       if (doi) {
+        this.nhipDongHoLuot();
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
         this.broadcast({ t: 'state', view: this.view() });
@@ -911,6 +914,8 @@ export class RoomDO extends DurableObject<Env> {
           this.broadcast({ t: 'room', room: this.roomInfo() });
         }
       }
+      // Đồng hồ lượt theo kịp trạng thái kết nối TRƯỚC khi tick xử hết giờ
+      this.nhipDongHoLuot();
       // Úp lại thẻ sai / hết giờ
       const events = this.game.tick(now);
       if (events.length) await this.afterEvents(events, false);
@@ -936,8 +941,12 @@ export class RoomDO extends DurableObject<Env> {
        * bàn 6 thẻ đáng hé 3,6 giây thì nằm mở 15,5 giây — hơn bốn lần.
        */
       if (this.game.revealUntil > 0) marks.push(this.game.revealUntil + 50);
-      // Đồng hồ 30 giây mỗi lượt: hết hạn thì alarm đánh thức để chuyển lượt
-      if (this.game.turnDeadline) marks.push(this.game.turnDeadline + 50);
+      // Đồng hồ 30 giây mỗi lượt: hết hạn thì alarm đánh thức để chuyển lượt.
+      // Đang TẠM DỪNG (người đi mất kết nối) thì đừng hẹn: mốc cũ đã trôi qua,
+      // hẹn nó chỉ làm alarm nổ liên tục mà chẳng có gì để xử.
+      if (this.game.turnDeadline && !this.game.turnPausedAt) {
+        marks.push(this.game.turnDeadline + 50);
+      }
       const left = this.game.timeLeft(now);
       if (left !== null) marks.push(now + left * 1000 + 50);
       for (const p of this.room.players) {
@@ -998,6 +1007,26 @@ export class RoomDO extends DurableObject<Env> {
     this.broadcast({ t: 'events', events: publicEvents(this.game, events), view: this.view() });
     if (this.room.status === 'ended') this.broadcast({ t: 'room', room: this.roomInfo() });
     if (save) await this.scheduleNext();
+  }
+
+  /**
+   * Đồng hồ lượt phải ĐỨNG khi người đang đi mất kết nối.
+   *
+   * Mất mạng không phải lỗi của người chơi — trước đây `turnDeadline` là mốc
+   * tuyệt đối nên rớt sóng vài giây là mất trắng lượt, quay lại đã sang lượt
+   * người khác. Gọi ở MỘT chỗ (`nhipDongHoLuot`) và gọi từ mọi lối có thể đổi
+   * trạng thái kết nối, chứ đừng rải logic ra từng chỗ — rải ra là có ngày
+   * thêm một lối mà quên.
+   *
+   * KHÔNG sợ dừng vô hạn: hạn giữ chỗ `ROOM_LIMITS.reconnectMs` vẫn chạy độc
+   * lập, quá hạn thì người đó bị xử thua và lượt sang người khác.
+   */
+  private nhipDongHoLuot(): void {
+    if (!this.game || !this.room || this.room.status !== 'playing') return;
+    const dangDi = this.game.current?.id;
+    if (!dangDi) return;
+    if (this.connected(dangDi)) this.game.chayTiepLuot(Date.now());
+    else this.game.tamDungLuot(Date.now());
   }
 
   private view() {

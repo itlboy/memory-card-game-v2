@@ -4,7 +4,7 @@ import {
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
-  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users
+  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users, X
 } from 'lucide-vue-next';
 import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -179,8 +179,14 @@ function moSuaTen(hienTai: string): void {
   void nextTick(() => { oTen.value?.select(); });
 }
 
+/** Bỏ dở việc đổi tên, giữ nguyên tên cũ. */
+function huySuaTen(): void {
+  suaTen.value = false;
+  tenMoi.value = '';
+}
+
 function luuTen(): void {
-  if (!suaTen.value) return;      // `blur` còn bắn sau khi Esc đã đóng
+  if (!suaTen.value) return;
   suaTen.value = false;
   const t = tenMoi.value.trim();
   if (!t || t === name.value) return;
@@ -937,8 +943,19 @@ function openCfgWizard(): void {
           <input
             ref="oTen" v-model="tenMoi" class="sua-ten" maxlength="16"
             aria-label="Tên của bạn"
-            @keydown.enter="luuTen()" @keydown.esc="suaTen = false" @blur="luuTen()"
+            @keydown.enter="luuTen()" @keydown.esc="huySuaTen()"
           >
+          <!-- NÚT LƯU rõ ràng. Trước đây chỉ có Enter và blur — Enter thì trên
+               điện thoại phải mở bàn phím rồi tìm nút xanh, còn blur thì không
+               ai biết là bấm ra ngoài sẽ lưu. Không có gì trên màn hình nói
+               rằng đã xong hay chưa. -->
+          <button
+            class="nut-luu" type="button" aria-label="Lưu tên"
+            :disabled="!tenMoi.trim()" @click="luuTen()"
+          ><Check :size="16" /></button>
+          <button
+            class="nut-huy" type="button" aria-label="Huỷ đổi tên" @click="huySuaTen()"
+          ><X :size="16" /></button>
         </template>
         <template v-else>
           <b>{{ p.name }}</b>
@@ -1410,8 +1427,21 @@ input:focus { outline: none; border-color: var(--accent); }
 @media (hover: hover) {
   .nut-sua:hover { background: var(--accent-soft); color: var(--accent); }
 }
+/* Hai nút Lưu / Huỷ: hình 28px nhưng vùng chạm 44px (NF-07), nới bằng ::after
+   chứ không phình nút — phình là dòng người chơi cao thêm và danh sách ngắn đi. */
+.nut-luu, .nut-huy {
+  position: relative; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; min-width: 0; min-height: 0; padding: 0;
+  border: 0; border-radius: 9px;
+}
+.nut-luu::after, .nut-huy::after { content: ''; position: absolute; inset: -8px; }
+.nut-luu { background: var(--accent); color: #fff; }
+.nut-luu:disabled { opacity: .45; cursor: default; }
+.nut-huy { background: var(--panel-soft); color: var(--muted); }
+
 .sua-ten {
-  flex: 1; min-width: 0; max-width: 190px;
+  flex: 1; min-width: 0; max-width: 140px;
   padding: 4px 8px; border: 2px solid var(--accent); border-radius: 9px;
   background: var(--panel-solid); color: var(--fg);
   font-family: var(--font-display); font-size: var(--text-md); font-weight: 700;

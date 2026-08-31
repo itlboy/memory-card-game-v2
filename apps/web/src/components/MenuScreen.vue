@@ -563,6 +563,38 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 
 
 .theme-step { gap: 0; }
+/*
+ * LƯỚI THEME CUỘN TRONG KHUNG, không nén ô nhỏ dần.
+ *
+ * Luật chung của wizard là `grid-auto-rows: minmax(0, 1fr)` — thêm lựa chọn thì
+ * ô nhỏ lại, KHÔNG dài trang ra. Đúng cho những bước có số ô cố định (12 cỡ
+ * bàn, 9 mức người chơi). Nhưng theme thì còn thêm mãi, và đo trên iPhone SE
+ * (vùng web 375×553) với 15 theme thì ô đã chỉ còn 34,7px — dưới ngưỡng chạm
+ * 44px, thêm nữa là bấm không trúng.
+ *
+ * Nên riêng bước này: ô giữ chiều cao tối thiểu, danh sách tự cuộn. KHÔNG phá
+ * luật KHÔNG SCROLL — cuộn nằm TRONG khung, nút "Tiếp" vẫn đứng yên chỗ cũ,
+ * y như danh sách phòng ở màn online.
+ */
+.theme-step .options.fill {
+  grid-auto-rows: minmax(56px, auto);
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: clip;
+  scrollbar-width: thin;
+  /* Chừa 4px cho ô nhô lên khi hover, giống lý do ở wizard.css */
+  padding: 4px 2px;
+}
+/* min-height trên chính Ô: đặt ở grid-auto-rows là vô ích, vì ô có
+   `height: auto` nên nó co theo nội dung mà nội dung lại co theo container. */
+/* 68px, KHÔNG phải 60: ngưỡng ẩn emoji mẫu đo trên CONTENT BOX (xem chú thích
+   ở @container bên dưới), nên ô 60px trừ padding 8+8 và viền 2+2 chỉ còn 40px
+   — dưới ngưỡng 45px, và hàng emoji mẫu biến mất. 68px cho content box 48px. */
+/* CHIỀU CAO XÁC ĐỊNH, không phải `height: auto` + min-height: `.option` có
+   `container-type: size`, mà container query chỉ giải được khi chiều cao là xác
+   định — để auto thì truy vấn nhận 0 và hàng emoji mẫu bị ẩn ở MỌI cỡ ô.
+   68px: content box 48px, trên ngưỡng 45px của @container bên dưới. */
+.theme-step .options.fill > .option { height: 68px; max-height: none; }
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: clamp(15.5px, 19cqw, 24px); }
 .options.grid3 small, .theme-opt small { font-size: clamp(10px, min(12cqw, 15cqh), 14px); }
