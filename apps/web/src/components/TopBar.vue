@@ -107,11 +107,16 @@ watch(() => props.totalScore, (to, from) => {
    làm TopBar cao gấp đôi, cũng không bị cắt chữ */
 h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-xl)); font-weight: 800; }
 .brand {
+  position: relative;
   display: flex; align-items: center; gap: var(--sp-2);
   border: 0; background: none; padding: 0;
   font: inherit; cursor: pointer;
   min-width: 0; max-width: 100%;
 }
+/* Logo cao 30px nhưng là nút VỀ TRANG CHỦ, nên vùng chạm phải đủ 44px (NF-07).
+   Nới bằng ::after chứ đừng phình cái logo lên — header cao thêm là bàn thẻ hụt
+   đi đúng chừng ấy. 30 + 7×2 = 44. */
+.brand::after { content: ''; position: absolute; inset: -7px -4px; }
 /* Khung cố định — bắt buộc tường minh, để tự do trong flex là nó giãn kín header */
 .logo {
   position: relative; flex-shrink: 0;

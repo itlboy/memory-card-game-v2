@@ -6,10 +6,17 @@ import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
   Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users
 } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
+/*
+ * Nạp KHI CẦN, không nằm trong gói chính: hộp này kéo theo thư viện vẽ QR
+ * (~47KB chưa nén) mà cả ván chỉ mở đúng một lần lúc mời bạn — có người còn
+ * không mở lần nào. Bắt mọi người tải nó ngay từ khung hình đầu là trả giá cho
+ * thứ hầu hết không dùng tới.
+ */
+const ChiaSeDialog = defineAsyncComponent(() => import('./ChiaSeDialog.vue'));
 import SizeGrid from './SizeGrid.vue';
 import OnlineGame from './OnlineGame.vue';
 import EmojiBar from './EmojiBar.vue';
@@ -419,6 +426,17 @@ function optionChips(c?: RoomConfig): { key: OptionKey; icon: IconName; text: st
 }
 /** Liệt kê hết 12 tên theme thì dòng cấu hình dài mấy dòng và vỡ bố cục. */
 function themeSummary(ids: string[]): string {
+  /*
+   * RỖNG NGHĨA LÀ TẤT CẢ, không phải "không có theme nào": server hiểu
+   * `themeIds: []` là dùng mọi theme nó có (xem DEFAULT_ROOM_CONFIG trong
+   * engine) — đó là cấu hình của phòng tạo nhanh, chưa qua wizard.
+   *
+   * Thiếu nhánh này thì hàm trả chuỗi RỖNG và dòng tóm tắt hiện ra
+   * "16 thẻ · — chờ chủ phòng bắt đầu…", cụt lủn giữa hai dấu câu.
+   */
+  if (!ids.length) {
+    return allThemes.value.length ? `tất cả ${allThemes.value.length} theme` : 'tất cả theme';
+  }
   if (ids.length >= allThemes.value.length && allThemes.value.length) return `tất cả ${ids.length} theme`;
   if (ids.length > 3) return `${ids.length} theme`;
   return ids.map(themeName).join(', ');
@@ -544,6 +562,11 @@ useBackCloser(15, () => !!wizard.value || (entryStep.value !== 'choose' && !invi
  * màn online để vào phòng khác ngay. Chủ phòng còn người khác trong phòng thì
  * vẫn HỎI trước — huỷ phòng là đá cả nhóm ra, không phải việc lùi một bậc.
  */
+/* Hộp chia sẻ đóng TRƯỚC mọi thứ: đang mở hộp mà bấm Back thì thứ người ta
+   muốn đóng là cái hộp, không phải rời phòng. */
+useBackCloser(35, () => moMoi.value, () => { moMoi.value = false; });
+useBackCloser(35, () => moChonCK.value, () => { moChonCK.value = false; });
+
 useBackCloser(25, () => o.phase.value === 'lobby', () => hoiRoiPhong(veDanhSachPhong));
 
 /** Biểu tượng của MỌI theme server có — trần trên cho bản đồ cấp. */
@@ -874,21 +897,9 @@ function openCfgWizard(): void {
         {{ o.room.value?.congKhai ? 'Công khai' : 'Riêng tư' }}
       </button>
       <button
-        class="pill moi" type="button" :aria-expanded="moMoi"
-        @click="moMoi = !moMoi; moChonCK = false"
+        class="pill moi" type="button" :aria-haspopup="true"
+        @click="moMoi = true; moChonCK = false"
       ><Link2 :size="15" /> Mời bạn</button>
-    </div>
-
-    <!-- Bung ra khi chạm "Mời bạn" -->
-    <div v-if="moMoi" class="bung">
-      <button class="btn bung-btn" type="button" @click="copyCode">
-        <Check v-if="copiedCode" :size="17" /><Copy v-else :size="17" />
-        {{ copiedCode ? 'Đã copy mã' : 'Copy mã' }}
-      </button>
-      <button class="btn bung-btn primary" type="button" :title="inviteText" @click="copyLink">
-        <Check v-if="copied" :size="17" /><Link2 v-else :size="17" />
-        {{ copied ? 'Đã copy link' : 'Copy link' }}
-      </button>
     </div>
 
     <!--
@@ -1028,6 +1039,14 @@ function openCfgWizard(): void {
        được mount một bản: trong ván đã có bản của OnlineGame. -->
   <EmojiBlast v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
 
+  <!-- Hộp chia sẻ: mã QR + mã 6 số + hai nút copy. Có nút đóng, bấm nền hay
+       Esc cũng đóng, và nút Back của trình duyệt đóng nó trước tiên. -->
+  <ChiaSeDialog
+    v-if="moMoi && o.room.value"
+    :code="o.room.value.code" :link="inviteLink" :invite-text="inviteText"
+    @close="moMoi = false"
+  />
+
   <ConfirmDialog
     v-if="confirm"
     :title="confirm.title" :body="confirm.body" :confirm-label="confirm.label"
@@ -1054,18 +1073,6 @@ function openCfgWizard(): void {
   font-size: var(--text-xs); font-weight: 800; color: var(--accent);
   background: var(--accent-soft); padding: 3px 9px; border-radius: var(--r-full);
 }
-/* Nút làm mới nhỏ mà vùng chạm vẫn 44px: nới bằng ::after, đừng phình nút —
-   phình là hàng tiêu đề cao thêm và danh sách ngắn đi một dòng. Ghi đè cả
-   min-width/min-height vì `.btn` toàn cục đặt 44px. */
-.icon-btn {
-  position: relative; flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; min-width: 0; min-height: 0; padding: 0;
-  border: 1px solid var(--line); border-radius: 12px;
-  background: var(--panel-solid); color: var(--muted); box-shadow: var(--elev-1);
-}
-.icon-btn::after { content: ''; position: absolute; inset: -4px; }
-.icon-btn:disabled { opacity: .5; }
 .quay { animation: quay 1s linear infinite; }
 @keyframes quay { to { transform: rotate(360deg); } }
 
@@ -1239,11 +1246,8 @@ function openCfgWizard(): void {
   font-family: var(--font-display); font-weight: 700; letter-spacing: .12em;
   color: var(--accent);
 }
-.ready-tag { display: inline-flex; align-items: center; gap: 4px; }
 .crown { color: var(--gold); }
 .edit { display: inline-flex; align-items: center; gap: 5px; }
-.turn-clock { display: inline-flex; align-items: center; gap: 2px; }
-
 .invite {
   margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r-md);
   background: var(--accent-soft); font-size: var(--text-md); text-align: center;
@@ -1444,7 +1448,10 @@ input:focus { outline: none; border-color: var(--accent); }
 .lobby-list .avatar { font-size: 20px; }
 .lobby-list small { color: var(--muted); font-size: var(--text-xs); }
 .offline { margin-left: auto; font-size: var(--text-xs); color: var(--warn); }
-.ready-tag { margin-left: auto; font-size: var(--text-xs); color: var(--muted); white-space: nowrap; }
+.ready-tag {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: auto;
+  font-size: var(--text-xs); color: var(--muted); white-space: nowrap;
+}
 .ready-tag.on { color: var(--ok); font-weight: 700; }
 /* --ok-solid chứ không phải --ok: nút này có chữ TRẮNG, mà trắng trên --ok chỉ
    đạt 3,23:1 (cần 4,5) nên nhìn mờ và mỏi mắt. Bóng vẫn dùng màu sáng cho nổi. */
@@ -1462,18 +1469,6 @@ input:focus { outline: none; border-color: var(--accent); }
   background: color-mix(in srgb, var(--bad) 14%, transparent);
 }
 .chip.compact { flex: 0 1 auto; min-width: 80px; }
-
-.cfg-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-.cfg-label {
-  flex: 0 0 52px; font-family: var(--font-display); font-size: var(--text-xs);
-  text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700;
-}
-.cfg-chips {
-  flex: 1; min-width: 0; display: flex; gap: 6px;
-  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-  padding: 2px;   /* chừa chỗ cho viền chip khi được chọn */
-}
-.cfg-chips::-webkit-scrollbar { display: none; }
 .chip.mini {
   flex: 0 0 auto; min-height: 40px; min-width: 0; padding: 6px 12px;
   font-size: var(--text-sm); font-weight: 700; white-space: nowrap;

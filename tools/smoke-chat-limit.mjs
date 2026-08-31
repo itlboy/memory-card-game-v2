@@ -63,5 +63,25 @@ await sleep(500);
 if (heard(other) !== beforeWait + 1) fail(`sau ${WINDOW / 1000} giây vẫn không gửi lại được`);
 console.log(`✓ sau ${WINDOW / 1000} giây được gửi lại`);
 
+
+/*
+ * ĐỔI TÊN cũng phải có hạn mức, cùng lý do với emoji: mỗi lệnh là một `save()`
+ * cộng hai lần broadcast cho CẢ PHÒNG. Đo trước khi vá: 50 lệnh ra đúng 50 bản
+ * cập nhật — một người đủ làm cả phòng nhấp nháy và ghi database 50 lần, trong
+ * khi emoji thì chỉ lọt 10.
+ */
+{
+  const codeR = await mkRoom();
+  const x = await mk(codeR, 'Kien');
+  const y = await mk(codeR, 'Nguoixem');
+  await sleep(600);
+  y.msgs.length = 0;
+  for (let i = 0; i < 30; i++) x.send({ t: 'rename', name: `Kien ${i}` });
+  await sleep(1200);
+  const n = y.msgs.filter((m) => m.t === 'room').length;
+  if (n > 3) fail(`đổi tên KHÔNG bị chặn: 30 lệnh ra ${n} bản cập nhật cho cả phòng`);
+  console.log(`✓ đổi tên có hạn mức: 30 lệnh chỉ lọt ${n} lần`);
+}
+
 console.log('\nCHAT LIMIT SMOKE OK');
 process.exit(0);

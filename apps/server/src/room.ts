@@ -174,6 +174,8 @@ export class RoomDO extends DurableObject<Env> {
    *  Chỉ trong RAM: mất khi DO ngủ cũng không sao — spam là hành vi liên tục,
    *  còn người ngủ dậy gửi lại một cái thì đáng được cho qua. */
   private emojiLog = new Map<string, number[]>();
+  /** Mốc các lần đổi tên gần đây, để chặn spam — xem `choDoiTen`. */
+  private doiTenLog = new Map<string, number[]>();
   /**
    * Trả lời ping ngay ở tầng runtime, KHÔNG đánh thức Durable Object.
    *
@@ -679,6 +681,16 @@ export class RoomDO extends DurableObject<Env> {
       case 'rename': {
         const ten = String(msg.name ?? '').trim().slice(0, 16);
         if (!ten || ten === player.name) return;
+        /*
+         * HẠN MỨC, y như emoji. Mỗi lần đổi tên là một `save()` cộng hai lần
+         * broadcast cho CẢ PHÒNG — không chặn thì một người gửi 50 lệnh là 50
+         * lần cả phòng nhấp nháy và 50 lần ghi xuống database. Đo được thật:
+         * 50 lệnh ra đúng 50 bản cập nhật, trong khi emoji chỉ lọt 10.
+         *
+         * Đổi tên là việc làm một lần rồi thôi, nên hạn có thể chặt hơn emoji
+         * nhiều mà không ai thấy vướng.
+         */
+        if (!this.choDoiTen(player.id)) return;
         player.name = ten;
         const trongVan = this.game?.players.find((p) => p.id === player.id);
         if (trongVan) trongVan.name = ten;
@@ -1056,6 +1068,26 @@ export class RoomDO extends DurableObject<Env> {
     if (msg.t !== 'state' && msg.t !== 'events') return null;
     if (!this.game) return null;
     return JSON.stringify({ t: 'predeal', symbols: predealSymbols(this.game) } satisfies PredealMsg);
+  }
+
+  /**
+   * Người này còn được đổi tên không? Ghi nhận luôn lần đổi nếu được.
+   *
+   * Ba lần trong mười giây: đủ để sửa một cái tên gõ nhầm vài lượt, mà không đủ
+   * để làm phiền ai. Vượt hạn thì NUỐT ÊM như emoji — báo lỗi cho người spam
+   * chỉ tổ cho họ biết chốt nằm ở đâu.
+   */
+  private choDoiTen(playerId: string): boolean {
+    const now = Date.now();
+    const cutoff = now - 10_000;
+    const gan = (this.doiTenLog.get(playerId) ?? []).filter((t) => t > cutoff);
+    if (gan.length >= 3) {
+      this.doiTenLog.set(playerId, gan);
+      return false;
+    }
+    gan.push(now);
+    this.doiTenLog.set(playerId, gan);
+    return true;
   }
 
   /** Người này còn được gửi emoji không? Ghi nhận luôn lần gửi nếu được. */
