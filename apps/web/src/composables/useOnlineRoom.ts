@@ -21,8 +21,47 @@ const WS_SERVER = SERVER.replace(/^http/, 'ws');
 
 type Phase = 'idle' | 'connecting' | 'lobby' | 'playing' | 'ended' | 'error';
 
-interface StoredSession { code: string; token: string; name: string }
+interface StoredSession { code: string; token: string; name: string; luc?: number }
 const SESSION_KEY = 'mm.online';
+
+/**
+ * PHIÊN NẰM Ở localStorage, KHÔNG PHẢI sessionStorage.
+ *
+ * `token` là thứ DUY NHẤT server dùng để nhận ra ai vào lại (`room.ts`: tìm
+ * người theo token, không khớp thì cấp danh tính mới). Để nó trong
+ * sessionStorage nghĩa là nó chết theo cái TAB: đóng tab rồi mở lại, hay mở
+ * bằng tab mới, là thành người lạ — id mới, avatar mới, chiếm thêm một chỗ
+ * trong phòng. Đo được thật: một người hoá hai, cùng tên, khác avatar.
+ *
+ * Đổi chỗ lưu KHÔNG đụng gì tới mô hình bảo mật: token vẫn do server sinh và
+ * vẫn là bí mật riêng của người đó. Nó chỉ sống lâu hơn cái tab.
+ */
+
+/**
+ * Phiên cũ hơn ngần này thì bỏ.
+ *
+ * localStorage sống mãi, nên không có hạn thì hôm sau bấm "Chơi online" là bị
+ * kéo thẳng vào cái phòng đã chết từ đời nào. 30 phút: rộng hơn nhiều so với
+ * mọi mốc phía server (giữ chỗ 5 phút trong ván, 30 giây ở phòng chờ, phòng
+ * rỗng sống 10 phút) nên không bao giờ cắt ngang một lần quay lại thật, mà vẫn
+ * đủ ngắn để không ai bị lôi vào phòng của hôm qua.
+ */
+const HAN_PHIEN_MS = 30 * 60 * 1000;
+
+/** Đọc phiên còn hạn; quá hạn thì dọn luôn và coi như không có. */
+function docPhien(): StoredSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as StoredSession;
+    if (!s?.token || !s?.code) return null;
+    if (s.luc && Date.now() - s.luc > HAN_PHIEN_MS) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return s;
+  } catch { return null; }
+}
 
 /**
  * Rớt kết nối thì thử lại ĐỀU ĐẶN mỗi bấy nhiêu ms — không backoff.
@@ -555,9 +594,9 @@ export function useOnlineRoom() {
         }
         phase.value = msg.room.status === 'lobby' ? 'lobby' : phase.value;
         try {
-          sessionStorage.setItem(SESSION_KEY, JSON.stringify(
-            { code, token, name: myName } satisfies StoredSession));
-        } catch { /* riêng tư */ }
+          localStorage.setItem(SESSION_KEY, JSON.stringify(
+            { code, token, name: myName, luc: Date.now() } satisfies StoredSession));
+        } catch { /* chế độ riêng tư chặn ghi */ }
         // Bàn chơi host đã chọn trong wizard trước khi tạo phòng
         if (pendingConfig && msg.room.hostId === msg.playerId) {
           send({ t: 'config', config: pendingConfig });
@@ -800,7 +839,7 @@ export function useOnlineRoom() {
   }
 
   function clearStored(): void {
-    try { sessionStorage.removeItem(SESSION_KEY); } catch { /* bỏ qua */ }
+    try { localStorage.removeItem(SESSION_KEY); } catch { /* bỏ qua */ }
   }
 
   /**
@@ -814,7 +853,7 @@ export function useOnlineRoom() {
   }
 
   /**
-   * Có phiên dở dang trong sessionStorage (reload trang giữa ván)?
+   * Có phiên dở dang trong localStorage (reload trang, hay đóng tab mở lại)?
    * `matchCode`: chỉ resume nếu đúng phòng đó (khi vào bằng link mời).
    */
   /**
@@ -827,24 +866,17 @@ export function useOnlineRoom() {
    * họ đang ngồi trong phòng đó.
    */
   function coPhienLuu(matchCode?: string): boolean {
-    try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
-      if (!raw) return false;
-      const s = JSON.parse(raw) as StoredSession;
-      return !matchCode || s.code === matchCode;
-    } catch { return false; }
+    const s = docPhien();
+    return !!s && (!matchCode || s.code === matchCode);
   }
 
   function resumeStored(matchCode?: string): boolean {
-    try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
-      if (!raw) return false;
-      const s = JSON.parse(raw) as StoredSession;
-      if (matchCode && s.code !== matchCode) return false;
-      token = s.token;
-      connect(s.code, s.name, s.token);
-      return true;
-    } catch { return false; }
+    const s = docPhien();
+    if (!s) return false;
+    if (matchCode && s.code !== matchCode) return false;
+    token = s.token;
+    connect(s.code, s.name, s.token);
+    return true;
   }
 
   /** Chất lượng mạng của MÌNH, gộp thành ba mức cho UI. */

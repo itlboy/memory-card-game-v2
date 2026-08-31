@@ -835,7 +835,7 @@ function openCfgWizard(): void {
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
-    <!-- Mất kết nối mà phòng vẫn còn (token còn trong sessionStorage): cho bấm
+    <!-- Mất kết nối mà phòng vẫn còn (token còn trong localStorage): cho bấm
          thử lại tại chỗ, đừng bắt người ta gõ lại mã phòng. -->
     <button v-if="o.phase.value === 'error' && o.coThuLai.value" class="btn primary" type="button" @click="o.retry()">
       Thử lại
