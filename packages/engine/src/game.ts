@@ -142,6 +142,11 @@ export class MemoryGame {
    * Gọi nhiều lần liên tiếp là vô hại (giữ mốc dừng đầu tiên), vì tầng phòng
    * phát hiện mất mạng bằng hai đường: socket đóng, và watchdog nhịp tim.
    */
+  /** Đồng hồ lượt có đang đứng không — để tầng phòng biết khi nào cần báo. */
+  turnDangDung(): boolean {
+    return this.turnPausedAt !== 0;
+  }
+
   tamDungLuot(now: number): void {
     if (!this.turnDeadline || this.turnPausedAt || this.finished) return;
     this.turnPausedAt = now;

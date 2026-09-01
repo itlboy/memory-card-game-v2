@@ -128,6 +128,26 @@ const SILENT_MS = 20_000;
 const IDLE_SILENT_MS = 300_000;
 
 /**
+ * Im lặng bấy nhiêu là ĐỦ ĐỂ DỪNG ĐỒNG HỒ LƯỢT — khác hẳn SILENT_MS.
+ *
+ * Hai câu hỏi khác nhau, trước đây trót dùng chung một ngưỡng:
+ *   - SILENT_MS (20s): "người này còn ở đây không?" → chip xám, xử thua.
+ *   - LAG_MS (7s):     "đường truyền của người này có kịp đưa nước đi lên
+ *                       không?" → dừng đồng hồ lượt.
+ *
+ * Dùng SILENT_MS cho câu hỏi thứ hai là SAI Ở BẢN CHẤT: một lượt chỉ có 15
+ * giây (`turnLimit`), mà mốc phát hiện lại là 20 giây — tức nghẽn mạng đủ để
+ * NUỐT TRỌN một lượt vẫn không bao giờ chạm ngưỡng, đồng hồ chạy suốt và
+ * người chơi mất lượt y như chưa từng sửa gì. Đây đúng là chuyện người chơi
+ * báo lại sau lần sửa trước.
+ *
+ * 7 giây neo theo nhịp `alive` 3 giây: hụt hai nhịp liền mới dừng, nên nhấp
+ * nháy một nhịp không làm đồng hồ giật. Dừng nhầm cũng vô hại — nước đi kế
+ * tiếp cho đồng hồ chạy lại ngay.
+ */
+const LAG_MS = 7_000;
+
+/**
  * Phòng đã lập (POST /api/rooms) mà không ai vào trong bấy nhiêu ms thì xoá.
  *
  * `open()` ghi cờ `created` để mã sai không lặng lẽ thành phòng mới. Cờ đó
@@ -914,8 +934,10 @@ export class RoomDO extends DurableObject<Env> {
           this.broadcast({ t: 'room', room: this.roomInfo() });
         }
       }
-      // Đồng hồ lượt theo kịp trạng thái kết nối TRƯỚC khi tick xử hết giờ
-      this.nhipDongHoLuot();
+      // Đồng hồ lượt theo kịp trạng thái kết nối TRƯỚC khi tick xử hết giờ.
+      // Đổi trạng thái thì BÁO NGAY: không có tin này, máy đối phương vẫn đếm
+      // lùi theo mốc cũ rồi giật ngược lên khi view sau tới.
+      if (this.nhipDongHoLuot()) this.broadcast({ t: 'state', view: this.view() });
       // Úp lại thẻ sai / hết giờ
       const events = this.game.tick(now);
       if (events.length) await this.afterEvents(events, false);
@@ -951,6 +973,9 @@ export class RoomDO extends DurableObject<Env> {
       if (left !== null) marks.push(now + left * 1000 + 50);
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null) marks.push(p.disconnectedAt + ROOM_LIMITS.reconnectMs);
+        // Mốc dừng đồng hồ lượt của NGƯỜI ĐANG ĐI: không có nó thì chẳng gì
+        // đánh thức DO trong lúc họ nghẽn mạng, và đồng hồ chạy tới hết lượt.
+        if (p.id === this.game?.current?.id && p.lastSeen) marks.push(p.lastSeen + LAG_MS + 200);
         // Cả mốc phát hiện mất mạng im lặng: không có nó thì alarm không bao giờ
         // thức đúng lúc để nhận ra người kia đã đi.
         else if (p.lastSeen) marks.push(p.lastSeen + SILENT_MS + 500);
@@ -1021,12 +1046,20 @@ export class RoomDO extends DurableObject<Env> {
    * KHÔNG sợ dừng vô hạn: hạn giữ chỗ `ROOM_LIMITS.reconnectMs` vẫn chạy độc
    * lập, quá hạn thì người đó bị xử thua và lượt sang người khác.
    */
-  private nhipDongHoLuot(): void {
-    if (!this.game || !this.room || this.room.status !== 'playing') return;
+  private nhipDongHoLuot(): boolean {
+    if (!this.game || !this.room || this.room.status !== 'playing') return false;
     const dangDi = this.game.current?.id;
-    if (!dangDi) return;
-    if (this.connected(dangDi)) this.game.chayTiepLuot(Date.now());
-    else this.game.tamDungLuot(Date.now());
+    if (!dangDi) return false;
+    const truoc = this.game.turnDangDung();
+    const now = Date.now();
+    const p = this.room.players.find((x) => x.id === dangDi);
+    // KHÔNG dùng `connected()`: nó chỉ đổi khi socket đóng hẳn hoặc im 20 giây,
+    // mà lượt chỉ dài 15 giây — xem LAG_MS.
+    const nghen = !p || p.disconnectedAt !== null
+      || (p.lastSeen ? now - p.lastSeen > LAG_MS : false);
+    if (nghen) this.game.tamDungLuot(now);
+    else this.game.chayTiepLuot(now);
+    return this.game.turnDangDung() !== truoc;
   }
 
   private view() {

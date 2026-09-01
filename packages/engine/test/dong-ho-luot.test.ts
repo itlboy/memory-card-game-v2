@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
 
@@ -77,3 +78,20 @@ describe('đồng hồ lượt khi mất kết nối', () => {
     expect(g.turnPausedAt, 'người sau nhận một đồng hồ đang đứng im').toBe(0);
   });
 });
+
+describe('mốc dừng phải sớm hơn một lượt', () => {
+  it('LAG_MS < turnLimit, không thì nghẽn nuốt trọn lượt vẫn không ai biết', async () => {
+    const room = await readFile(
+      new URL('../../../apps/server/src/room.ts', import.meta.url), 'utf8');
+    const lag = /const LAG_MS = ([\d_]+)/.exec(room);
+    expect(lag, 'thiếu LAG_MS').not.toBeNull();
+    const ms = Number(lag![1]!.replace(/_/g, ''));
+    // turnLimit = 15s (options.ts/presets.ts). Ngưỡng dừng đồng hồ PHẢI nhỏ hơn
+    // hẳn — đây đúng là lỗi đã lọt: mốc cũ là SILENT_MS 20s, dài hơn cả lượt.
+    expect(ms).toBeLessThan(15_000 / 2);
+
+    // Và không được quay về dùng `connected()`: nó chỉ đổi ở 20 giây.
+    const than = room.slice(room.indexOf('private nhipDongHoLuot'));
+    expect(than.slice(0, 700)).not.toMatch(/this\.connected\(dangDi\)/);
+  });
+})

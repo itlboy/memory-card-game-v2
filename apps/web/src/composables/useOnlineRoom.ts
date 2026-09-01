@@ -210,6 +210,8 @@ export function useOnlineRoom() {
   const pingSamples: number[] = [];
   /** Mất bao lâu chưa nhận được pong — dùng để biết mình đang mất mạng. */
   const pingLost = ref(0);
+  /** Mốc lúc mất tiếng server, để đồng hồ lượt đứng lại — xem `ngungDem`. */
+  const dungTu = ref(0);
   /** Lý do đang có sự cố đường truyền, '' là không có. Hiện lên UI. */
   const netTrouble = ref('');
   /**
@@ -259,11 +261,16 @@ export function useOnlineRoom() {
     stopHeartbeat();
     const beat = (): void => {
       if (ws?.readyState !== WebSocket.OPEN) return;
-      if (pingSentAt) pingLost.value += 1;   // nhịp trước chưa có trả lời
-      // Mất 3 nhịp liền (12 giây) là socket coi như chết. iOS treo kết nối khi
+      if (pingSentAt) {
+        pingLost.value += 1;   // nhịp trước chưa có trả lời
+        if (!dungTu.value) dungTu.value = Date.now();
+      }
+      // Mất 2 nhịp liền (6 giây) là socket coi như chết. Ngưỡng cũ 3 nhịp ×
+      // 4 giây = 12 giây, dài hơn cả một lượt 15 giây — tức socket treo mà máy
+      // vẫn báo OPEN thì người chơi mất gần trọn lượt trước khi ta thử lại. iOS treo kết nối khi
       // người chơi rời app mà readyState vẫn báo OPEN, nên KHÔNG có bước này
       // thì họ ngồi nhìn chip đỏ mãi tới khi tự tải lại trang.
-      if (pingLost.value >= 3 && code && token) {
+      if (pingLost.value >= 2 && code && token) {
         batNoiLai();
         connect(code, myName, token);
         return;
@@ -277,13 +284,18 @@ export function useOnlineRoom() {
       ws.send(JSON.stringify({ t: 'alive' }));
     };
     beat();   // đo ngay, không thì 4 giây đầu ván chỗ hiện ping còn trống
-    pingTimer = setInterval(beat, 4000);
+    // 3 giây, không phải 4: `alive` chính là bằng chứng duy nhất server có để
+    // biết đường truyền còn thông, mà ngưỡng dừng đồng hồ bên đó (LAG_MS) là 7
+    // giây — nhịp phải đủ dày để hụt HAI nhịp mới chạm ngưỡng, không thì một
+    // nhịp trễ vặt cũng làm đồng hồ giật.
+    pingTimer = setInterval(beat, 3000);
   }
   function stopHeartbeat(): void {
     if (pingTimer) clearInterval(pingTimer);
     pingTimer = undefined;
     pingSentAt = 0;
     pingLost.value = 0;
+    dungTu.value = 0;
     ping.value = null;
     pingSamples.length = 0;
   }
@@ -412,8 +424,24 @@ export function useOnlineRoom() {
 
   const turnTimeLeft = computed(() => {
     if (!turnDeadline.value || view.value?.status !== 'playing' || view.value.summary) return null;
-    return Math.max(0, (turnDeadline.value - clock.value) / 1000);
+    // ĐỨNG LẠI KHI ĐANG MẤT TIẾNG SERVER. `turnDeadline` là mốc tuyệt đối lấy
+    // từ view gần nhất, nên trong lúc nghẽn mạng KHÔNG có view nào tới mà số
+    // vẫn tụt đều — người chơi nhìn thấy mình mất lượt vì đường truyền, đúng
+    // cái vừa được sửa ở server. Server đã dừng đồng hồ (LAG_MS), đây chỉ là
+    // cho màn hình kể đúng chuyện đó. Neo vào lúc mất tiếng chứ không phải lúc
+    // này, không thì mỗi lần vẽ lại là một mốc mới và đồng hồ đứng luôn.
+    const moc = ngungDem.value || clock.value;
+    return Math.max(0, (turnDeadline.value - moc) / 1000);
   });
+
+  /**
+   * Mốc lúc bắt đầu mất tiếng server (0 = đang nghe bình thường).
+   *
+   * Một nhịp ping hụt là đã đủ nghi ngờ: nhịp 3 giây, nên tới đây đã im ít
+   * nhất 3 giây trong khi lượt chỉ dài 15. Thà đứng nhầm một nhịp — pong hay
+   * view tới là chạy tiếp ngay, và mốc thật vẫn do server giữ.
+   */
+  const ngungDem = computed(() => (pingLost.value > 0 || reconnecting.value ? dungTu.value : 0));
 
   /** Giây đếm ngược còn lại; null = không trong giai đoạn đếm ngược. */
   const countdownLeft = computed(() => {
@@ -725,6 +753,7 @@ export function useOnlineRoom() {
           ping.value = sorted[Math.floor(sorted.length / 2)]!;
           pingSentAt = 0;
           pingLost.value = 0;
+          dungTu.value = 0;   // nghe lại được: đồng hồ chạy tiếp
         }
         break;
     }
@@ -736,6 +765,7 @@ export function useOnlineRoom() {
     // settlePending() dọn theo trạng thái thật.
     viewCount++;
     netTrouble.value = '';
+    dungTu.value = 0;   // view về = server còn nghe, đồng hồ hết lý do đứng
     elapsedMark.value = { sec: v.elapsed, at: Date.now() };
     peekDeadline.value = v.peekLeft === null ? 0 : Date.now() + v.peekLeft * 1000;
   }
