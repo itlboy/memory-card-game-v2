@@ -860,7 +860,11 @@ function openCfgWizard(): void {
            cái phòng họ đang ngồi. -->
       <div v-if="dangVaoLai" class="vao-lai" role="status">
         <RefreshCw :size="26" class="quay" />
-        <p class="vl-t">Đang vào lại phòng<b v-if="codeInput"> {{ codeInput }}</b>…</p>
+        <!-- `&nbsp;` chứ KHÔNG phải dấu cách thường: trình biên dịch template của
+             Vue chạy `whitespace: 'condense'`, nó cắt khoảng trắng đầu/cuối trong
+             con của một thẻ — nên " {{ code }}" viết trong <b> ra thành dính liền
+             "phòngABC123". Khoảng trắng không ngắt là ký tự thật, không bị cắt. -->
+        <p class="vl-t">Đang vào lại phòng<b v-if="codeInput">&nbsp;{{ codeInput }}</b>…</p>
         <p class="vl-s">Giữ nguyên tên và chỗ ngồi của bạn.</p>
       </div>
       <template v-else>
