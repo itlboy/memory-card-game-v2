@@ -83,7 +83,20 @@ interface RoomState {
 }
 
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
-interface Attachment { playerId: string }
+/**
+ * `goi`: client này có hiểu view DẠNG GỌN không (`?pv=1` lúc mở socket).
+ *
+ * KHÔNG ĐƯỢC mặc định là có. Web này là PWA: service worker giữ bản JS cũ
+ * trong cache, nên ngay sau mỗi lần deploy luôn có người đang chạy client cũ
+ * hơn server — họ nhận `{n, o}`, đọc `view.cards` ra `undefined`, và thấy BÀN
+ * TRẮNG KHÔNG CÓ THẺ NÀO. Đã xảy ra thật trên iPhone, ngay lần deploy đầu sau
+ * khi đổi cách gói.
+ *
+ * Nói cách khác: dạng trên dây chỉ được đổi khi CLIENT tự khai là hiểu, không
+ * bao giờ do server tự quyết. Đây là luật chung cho mọi thay đổi giao thức sau
+ * này, không riêng gì việc gói view.
+ */
+interface Attachment { playerId: string; goi?: boolean }
 
 // Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
@@ -370,6 +383,8 @@ export class RoomDO extends DurableObject<Env> {
     // Cắt 64: đây là chuỗi client gửi lên, không tin độ dài của nó
     const clientId = (url.searchParams.get('cid') ?? '').trim().slice(0, 64) || undefined;
     const token = url.searchParams.get('token') ?? '';
+    // Client có khai là hiểu view dạng gọn không — xem `Attachment.goi`.
+    const goi = url.searchParams.get('pv') === '1';
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
     // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
@@ -390,7 +405,7 @@ export class RoomDO extends DurableObject<Env> {
       if (!name) return new Response('Thiếu tên', { status: 400 });
       // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác
       if (this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
-        return this.acceptSpectator();
+        return this.acceptSpectator(goi);
       }
       player = {
         id: crypto.randomUUID().slice(0, 8),
@@ -421,7 +436,7 @@ export class RoomDO extends DurableObject<Env> {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], [player.id]);
-    pair[1].serializeAttachment({ playerId: player.id } satisfies Attachment);
+    pair[1].serializeAttachment({ playerId: player.id, goi } satisfies Attachment);
 
     await this.save();
     this.send(pair[1], {
@@ -468,11 +483,11 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
-  private acceptSpectator(): Response {
+  private acceptSpectator(goi: boolean): Response {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], ['spectator']);
-    pair[1].serializeAttachment({ playerId: '' } satisfies Attachment);
+    pair[1].serializeAttachment({ playerId: '', goi } satisfies Attachment);
     this.send(pair[1], {
       t: 'welcome', playerId: '', token: '', spectator: true, room: this.roomInfo()
     });
@@ -1177,8 +1192,15 @@ export class RoomDO extends DurableObject<Env> {
     try {
       const kem = this.predealKem(msg);
       if (kem) ws.send(kem);
-      ws.send(this.gay(msg));
+      ws.send(this.gay(msg, this.hieuGoi(ws)));
     } catch { /* socket đã đóng */ }
+  }
+
+  /** Socket này có hiểu view dạng gọn không — xem `Attachment.goi`. */
+  private hieuGoi(ws: WebSocket): boolean {
+    try {
+      return (ws.deserializeAttachment() as Attachment | null)?.goi === true;
+    } catch { return false; }
   }
 
   /**
@@ -1189,8 +1211,8 @@ export class RoomDO extends DurableObject<Env> {
    * client nhận một cái view nửa nọ nửa kia. `unpackView` nhận cả hai dạng nên
    * bên nhận không cần biết bên gửi chọn dạng nào.
    */
-  private gay(msg: ServerMsg): string {
-    if ((msg.t === 'state' || msg.t === 'events') && 'cards' in msg.view) {
+  private gay(msg: ServerMsg, hieuGoi: boolean): string {
+    if (hieuGoi && (msg.t === 'state' || msg.t === 'events') && 'cards' in msg.view) {
       return JSON.stringify({ ...msg, view: packView(msg.view) });
     }
     return JSON.stringify(msg);
@@ -1261,12 +1283,16 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private broadcast(msg: ServerMsg, exceptWelcomeFor?: string): void {
-    const raw = this.gay(msg);
+    // HAI bản: phòng có thể vừa có client mới vừa có client cũ trong cache
+    // service worker. Dựng lười, phòng thường chỉ dùng một trong hai.
+    let goiRoi: string | undefined;
+    let dayDu: string | undefined;
     const kem = this.predealKem(msg, true);
     for (const ws of this.ctx.getWebSockets()) {
       try {
         if (kem) ws.send(kem);
-        ws.send(raw);
+        if (this.hieuGoi(ws)) ws.send(goiRoi ??= this.gay(msg, true));
+        else ws.send(dayDu ??= this.gay(msg, false));
       } catch { /* bỏ qua socket chết */ }
     }
     void exceptWelcomeFor;

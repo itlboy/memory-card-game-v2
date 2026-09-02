@@ -659,6 +659,18 @@ export function useOnlineRoom() {
     // phép cộng lịch sử ván đấu theo NGƯỜI. Không có nó thì `playerId` đổi mỗi
     // lần vào phòng, còn tên thì hai người trùng tên là một.
     params.set('cid', store.clientId());
+    /*
+     * KHAI LÀ HIỂU VIEW DẠNG GỌN. Server chỉ gửi dạng gọn cho ai khai — mặc
+     * định vẫn là dạng đầy đủ.
+     *
+     * Bắt buộc phải có, vì web này là PWA: service worker giữ bản JS cũ trong
+     * cache, nên ngay sau mỗi lần deploy luôn có người đang chạy client cũ hơn
+     * server. Không có cờ này thì họ nhận `{n, o}`, đọc `view.cards` ra
+     * `undefined` và thấy BÀN TRẮNG KHÔNG CÓ THẺ NÀO — đã xảy ra thật trên
+     * iPhone. Luật chung: đổi dạng trên dây thì CLIENT khai, đừng để server
+     * tự quyết.
+     */
+    params.set('pv', '1');
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
 
     ws.onopen = () => startHeartbeat();
