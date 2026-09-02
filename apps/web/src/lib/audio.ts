@@ -29,6 +29,14 @@ const DEFAULT_VOLUME = 2.6;
  *  không xé loa như clip cứng. */
 const MAX_VOLUME = 8;
 const VOLUME_KEY = 'mm.volume';
+/**
+ * Khoảng chờ trước khi phát tiếng bấm mặc định (ms).
+ *
+ * 90ms: đủ cho handler `click` của Vue chạy xong và xếp lịch tiếng riêng của
+ * nút (pointerdown → click trên iOS quãng 30-60ms), mà vẫn dưới ngưỡng ~120ms
+ * tai nghe ra là "trễ". Ngắn hơn là nút có tiếng riêng kêu hai lần.
+ */
+const CHO_MS = 90;
 
 function initialVolume(): number {
   try {
@@ -60,6 +68,9 @@ class Sfx {
   private noiseBuf: AudioBuffer | null = null;
   enabled = true;
   private vol = initialVolume();
+  /** Mốc (performance.now) lần CUỐI có tiếng thật được xếp lịch. Tiếng bấm mặc
+   *  định đọc con số này để biết nút vừa bấm có tự phát tiếng riêng hay không. */
+  private mocPhat = -1;
 
   /** 0–8. Ghi vào đây là đổi ngay và được nhớ cho lần mở sau. */
   get volume(): number { return this.vol; }
@@ -195,6 +206,7 @@ class Sfx {
     if (!this.enabled) return;
     const ctx = this.ac();
     if (!ctx || !this.master) return;
+    this.mocPhat = performance.now();
     try {
       const { dur = 0.12, type = 'sine', gain = 0.06, delay = 0, detune = 0, slideTo } = o;
       const t0 = ctx.currentTime + delay;
@@ -222,6 +234,7 @@ class Sfx {
     if (!this.enabled) return;
     const ctx = this.ac();
     if (!ctx || !this.master) return;
+    this.mocPhat = performance.now();
     try {
       const { freq = 2400, type = 'highpass', gain = 0.05, delay = 0, q } = opts;
       if (!this.noiseBuf) {
@@ -276,6 +289,34 @@ class Sfx {
   unready(): void {
     this.voice(660, { dur: 0.08, type: 'triangle', gain: 0.045 });
     this.voice(440, { dur: 0.12, type: 'triangle', gain: 0.04, delay: 0.08 });
+  }
+
+  /**
+   * Tiếng bấm CHUNG cho mọi nút — nhẹ và trung tính hơn `select()` vì nó phát
+   * ở khắp nơi (kể cả nút thoát, đóng hộp thoại, mũi tên quay lại).
+   */
+  click(): void {
+    this.voice(520, { dur: 0.045, type: 'triangle', gain: 0.04 });
+    this.noise(0.03, { freq: 3200, gain: 0.025 });
+  }
+
+  /**
+   * Tiếng bấm MẶC ĐỊNH: chỉ phát khi nút vừa bấm KHÔNG tự phát tiếng gì.
+   *
+   * Vì sao làm ở một chỗ thay vì gắn `sfx` vào từng nút: đã đếm được hơn 60 nút
+   * trong app và số đó còn tăng, nên "gắn tay từng nút" nghĩa là mỗi nút mới
+   * thêm sau này lại là một nút im lặng — đúng cái lỗi người chơi vừa báo (nút
+   * thoát bàn không kêu gì). Ở đây nút nào cũng có tiếng theo mặc định.
+   *
+   * Cách tránh phát HAI tiếng: chờ `CHO_MS` rồi mới xét — nút có tiếng riêng
+   * (lật thẻ, sẵn sàng, đổi âm lượng) đã kịp xếp lịch tiếng của nó trong khoảng
+   * đó và `mocPhat` nhích lên, ta im. Không đảo lại thành "phát trước rồi huỷ":
+   * WebAudio đã xếp lịch thì không rút lại được.
+   */
+  clickMacDinh(): void {
+    if (!this.enabled) return;
+    const truoc = this.mocPhat;
+    setTimeout(() => { if (this.mocPhat === truoc) this.click(); }, CHO_MS);
   }
 
   /** Chọn mục trong menu. */
