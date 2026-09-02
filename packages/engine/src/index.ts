@@ -26,7 +26,8 @@ export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary
 } from './types.js';
 export {
-  CARD_BACKS, DEFAULT_ROOM_CONFIG, QUICK_EMOJIS, ROOM_LIMITS,
+  BANG_MAU_BACK, CARD_BACKS, CARD_BACKS_CU, DEFAULT_ROOM_CONFIG, HOA_TIET_BACK,
+  QUICK_EMOJIS, ROOM_LIMITS, backVeCu,
   backForSeed, packView, predealSymbols, publicEvents, publicPlayer, publicView, unpackView
 } from './online.js';
 export type {

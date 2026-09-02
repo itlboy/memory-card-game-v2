@@ -70,9 +70,11 @@ describe('lưới theme: co giãn khi thêm theme', () => {
       .toBeGreaterThan(nguong);
   });
 
-  it('danh sách TỰ CUỘN trong khung, không nén ô nhỏ dần', () => {
+  it('còn chỗ thì ô GIÃN, hết chỗ thì CUỘN — không nén ô xuống dưới sàn', () => {
+    // `minmax(sàn, 1fr)`: giãn khi thừa chỗ, dừng ở sàn khi thiếu rồi cuộn.
+    expect(css).toMatch(/grid-auto-rows:\s*minmax\(var\(--o-cao\),\s*1fr\)/);
     expect(css).toMatch(/overflow-y:\s*auto/);
-    expect(css, 'nén ô là luật của các bước khác, không phải của theme')
+    expect(css, 'nén xuống 0 là luật của các bước khác, không phải của theme')
       .not.toMatch(/grid-auto-rows:\s*minmax\(0,\s*1fr\)/);
   });
 

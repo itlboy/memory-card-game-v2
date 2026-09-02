@@ -114,25 +114,98 @@ export interface PublicPlayer {
 }
 
 /**
- * Kiểu mặt sau lá bài. Nằm ở engine để CLIENT VÀ SERVER dùng cùng một danh
- * sách — trước đây mỗi client tự bốc bằng Math.random() nên hai người chơi cùng
- * một bàn lại thấy hai kiểu mặt sau khác nhau.
- */
-/**
- * Mặt sau của lá bài. Ba kiểu đầu là tông TÍM của giao diện; ba kiểu sau cố ý
- * đi màu khác (lục · cam · xanh biển) để bàn nào ra bàn ấy nhìn không lẫn.
+ * MẶT SAU LÁ BÀI = HOẠ TIẾT × BẢNG MÀU, sinh bằng mã.
  *
- * Thêm một tên vào đây thì PHẢI thêm class `.back.bk-<tên>` ở CardTile.vue —
- * thiếu là mặt sau ra một ô trắng trơn. Có test canh hai danh sách khớp nhau.
+ * Nằm ở engine để CLIENT VÀ SERVER dùng cùng một danh sách — trước đây mỗi
+ * client tự bốc bằng `Math.random()` nên hai người chơi cùng một bàn lại thấy
+ * hai kiểu mặt sau khác nhau.
+ *
+ * Trước đây mỗi mặt sau là một khối CSS viết tay kèm data-URI SVG dài, nên 6
+ * kiểu đã chiếm gần hết file và kiểu thứ 7 lại là một khối nữa. Nay hoạ tiết là
+ * MẶT NẠ (`mask`), màu là một bảng gradient — một file hoạ tiết chạy được với
+ * mọi bảng màu, nên 10 × 7 cho 70 mặt sau từ 17 mục.
+ *
+ * Id trên dây là `<hoạ tiết>.<bảng màu>` (ví dụ `xoay.cham`); client tự dựng
+ * style từ id, xem `apps/web/src/styles/card-backs.css`.
  */
-export const CARD_BACKS = ['stars', 'diamond', 'aurora', 'leaf', 'ember', 'ocean'] as const;
+export const HOA_TIET_BACK = [
+  // Trung tính — hình học, không mang nghĩa nên đi được với cả bảy bảng màu
+  'sao', 'thoi', 'xoay', 'cuc-quang', 'hoa', 'khung',
+  // Có nghĩa — hình gợi một thứ cụ thể. Chủ dự án đã xem cả 70 tổ hợp và chốt
+  // GIỮ HẾT, kể cả cặp lệch tông (lửa xanh, biển lửa): coi là màu tưởng tượng.
+  'la', 'lua', 'song', 'tuyet'
+] as const;
+
+/** Bảy sắc cầu vồng. Không lấy màu nguyên bản: mỗi bảng phải phân biệt được khi
+ *  thẻ chỉ còn 34px (bàn 88 thẻ). Cả bảy dùng mực TRẮNG, không có ngoại lệ. */
+export const BANG_MAU_BACK = ['do', 'cam', 'vang', 'luc', 'lam', 'cham', 'tim'] as const;
+
+export type HoaTietBack = (typeof HOA_TIET_BACK)[number];
+export type BangMauBack = (typeof BANG_MAU_BACK)[number];
+
+/**
+ * 70 mặt sau, sinh từ hai danh sách trên.
+ *
+ * Thêm một hoạ tiết hay một bảng màu thì PHẢI thêm khối CSS cùng tên ở
+ * `apps/web/src/styles/card-backs.css` — thiếu là lá bài ra Ô TRẮNG TRƠN. Có
+ * test canh hai bên khớp nhau.
+ */
+export const CARD_BACKS = HOA_TIET_BACK.flatMap(
+  (ht) => BANG_MAU_BACK.map((mau) => `${ht}.${mau}` as const)
+);
 export type CardBack = (typeof CARD_BACKS)[number];
 
-/** Mặt sau của một ván, suy từ seed nên mọi người trong phòng thấy giống nhau.
- *  Băm seed thay vì lấy `seed % 3` để không hé ra quan hệ trực tiếp với seed. */
+/**
+ * SÁU TÊN CŨ — chỉ để nói chuyện với CLIENT CŨ.
+ *
+ * Web là PWA: service worker giữ bản JS cũ trong cache, nên ngay sau MỖI lần
+ * deploy luôn có người đang chạy client cũ hơn server — đó là trạng thái bình
+ * thường của vài phút đầu, không phải ca hiếm. Client cũ chỉ biết class
+ * `.bk-stars`… nên server gửi `xoay.cham` là mặt sau ra Ô TRẮNG TRƠN giữa ván,
+ * đúng kiểu sự cố "bàn trắng không có thẻ" đã xảy ra một lần. Vì vậy client mới
+ * KHAI `?bv=2` lúc mở socket, và server hạ id về một trong sáu tên này cho ai
+ * chưa khai.
+ */
+export const CARD_BACKS_CU = ['stars', 'diamond', 'aurora', 'leaf', 'ember', 'ocean'] as const;
+export type CardBackCu = (typeof CARD_BACKS_CU)[number];
+
+/** Hoạ tiết nào hạ về tên cũ nào. Bốn hoạ tiết mới không có tên cũ tương ứng
+ *  nên gán theo cái gần nhất về hình — client cũ chỉ cần thấy MỘT mặt sau hợp
+ *  lệ, không cần đúng hình. */
+const HA_VE_CU: Record<HoaTietBack, CardBackCu> = {
+  sao: 'stars',
+  thoi: 'diamond',
+  'cuc-quang': 'aurora',
+  la: 'leaf',
+  lua: 'ember',
+  song: 'ocean',
+  xoay: 'aurora',
+  hoa: 'stars',
+  khung: 'diamond',
+  tuyet: 'stars'
+};
+
+/** Hạ một id mới về tên cũ. Nhận cả tên cũ (trả nguyên) nên gọi bao nhiêu lần
+ *  cũng an toàn, và id lạ cũng ra một tên hợp lệ chứ không ra rỗng. */
+export function backVeCu(back: string): CardBackCu {
+  if ((CARD_BACKS_CU as readonly string[]).includes(back)) return back as CardBackCu;
+  const ht = back.split('.')[0] as HoaTietBack;
+  return HA_VE_CU[ht] ?? 'stars';
+}
+
+/**
+ * Mặt sau của một ván, suy từ seed nên mọi người trong phòng thấy giống nhau.
+ *
+ * Băm seed thay vì lấy `seed % n` để không hé ra quan hệ trực tiếp với seed. Băm
+ * RIÊNG hoạ tiết và bảng màu (hai muối khác nhau) chứ không băm một lần rồi lấy
+ * `h % 70`: băm một lần thì hai chiều dính nhau — cùng một hoạ tiết sẽ luôn kéo
+ * theo đúng một bảng màu ở những seed cách nhau bội số của 10.
+ */
 export function backForSeed(seed: number): CardBack {
-  const h = Math.imul(seed >>> 0, 2654435761) >>> 0;
-  return CARD_BACKS[h % CARD_BACKS.length]!;
+  const bam = (muoi: number): number => Math.imul((seed >>> 0) + muoi, 2654435761) >>> 0;
+  const ht = HOA_TIET_BACK[bam(0) % HOA_TIET_BACK.length]!;
+  const mau = BANG_MAU_BACK[bam(0x9e3779b9) % BANG_MAU_BACK.length]!;
+  return `${ht}.${mau}` as CardBack;
 }
 
 export interface GameView {
@@ -160,7 +233,9 @@ export interface GameView {
   elapsed: number;
   summary: Summary | null;
   /** Mặt sau lá bài của ván này — server quyết để cả phòng thấy giống nhau. */
-  back: CardBack;
+  /** Id mặt sau. Hai dạng: id mới `hoạ tiết.bảng màu`, hoặc một trong sáu tên
+   *  CŨ khi người nhận là client chưa khai `?bv=2` — xem `backVeCu`. */
+  back: CardBack | CardBackCu;
 }
 
 /**

@@ -15,7 +15,10 @@ const WS = SERVER.replace('http', 'ws');
 const hong = (m) => { console.error('✗', m); process.exit(1); };
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** `pv` để trống = client CŨ, không biết mở gói; 'pv=1' = client mới. */
+/**
+ * `pv` để trống = client CŨ (không biết mở gói view, và chỉ biết SÁU tên mặt sau
+ * cũ); `pv=1&bv=2` = client mới.
+ */
 function mo(code, q) {
   const ws = new WebSocket(`${WS}/ws/${code}?${q}`);
   const c = { ws, msgs: [], send: (m) => ws.send(JSON.stringify(m)) };
@@ -27,7 +30,7 @@ const viewCuoi = (c) => [...c.msgs].reverse().find((m) => m.view)?.view;
 const { code, token } = await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json();
 // Chủ phòng chạy bản CŨ, khách chạy bản MỚI — đúng cảnh giữa hai lần deploy.
 const cu = await mo(code, `token=${token}&name=Cu`); await cho(300);
-const moi = await mo(code, 'name=Moi&pv=1'); await cho(300);
+const moi = await mo(code, 'name=Moi&pv=1&bv=2'); await cho(300);
 moi.send({ t: 'ready', ready: true }); await cho(300);
 cu.send({ t: 'start' }); await cho(7000);
 
@@ -58,6 +61,19 @@ const soNgua = (v) => (v.cards ?? Array.from({ length: v.n }, (_, i) =>
   v.o.find((c) => c.index === i) ?? { state: 'down' })).filter((c) => c.state === 'up').length;
 if (soNgua(sau) !== 1) hong(`nước đi không kèm seq bị nuốt — client cũ bấm mà không lật được (${soNgua(truoc)}→${soNgua(sau)})`);
 console.log('✓ nước đi không kèm `seq` vẫn lật được thẻ');
+
+// MẶT SAU: client cũ chỉ biết sáu tên `stars|diamond|aurora|leaf|ember|ocean`.
+// Server gửi id mới `<hoạ tiết>.<bảng màu>` cho nó là không class CSS nào khớp
+// và MẶT SAU RA Ô TRẮNG TRƠN giữa ván — cùng loại sự cố với bàn trắng ở trên.
+const CU = ['stars', 'diamond', 'aurora', 'leaf', 'ember', 'ocean'];
+if (!CU.includes(vCu.back)) {
+  hong(`client cũ nhận mặt sau dạng mới "${vCu.back}" — mặt sau sẽ ra ô trắng trơn`);
+}
+console.log(`✓ client cũ nhận tên mặt sau cũ: ${vCu.back}`);
+if (!/^[a-z-]+\.[a-z]+$/.test(vMoi.back)) {
+  hong(`client mới nhận mặt sau dạng cũ "${vMoi.back}" — mất 64 trong 70 kiểu`);
+}
+console.log(`✓ client mới nhận id đầy đủ: ${vMoi.back}`);
 
 console.log('\nCLIENT-CU SMOKE OK');
 process.exit(0);

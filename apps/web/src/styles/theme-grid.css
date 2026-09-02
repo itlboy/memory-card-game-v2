@@ -38,8 +38,19 @@
    * emoji mẫu không bị ẩn oan. `--app-h` do `useViewportLock.ts` đặt.
    */
   --o-cao: clamp(66px, calc(var(--app-h, 100dvh) * 0.105), 96px);
-  grid-auto-rows: var(--o-cao);
-  align-content: start;
+  /*
+   * `minmax(--o-cao, 1fr)`, KHÔNG phải `var(--o-cao)` cố định.
+   *
+   * Cố định thì máy cao còn một khoảng trống to phía dưới mà ô vẫn bé — đúng
+   * điều đã bị phản ánh. Với `1fr`: còn chỗ thì hàng giãn ra lấp hết, hết chỗ
+   * thì hàng dừng ở `--o-cao` và danh sách cuộn (`1fr` không co xuống dưới min).
+   *
+   * Vẫn giải được container query: `.option` cần chiều cao XÁC ĐỊNH, mà chiều
+   * cao do LƯỚI quyết định là xác định — chỉ `height: auto` (co theo nội dung)
+   * mới làm truy vấn nhận 0. Các bước khác của wizard cũng dùng `1fr` như vậy.
+   */
+  grid-auto-rows: minmax(var(--o-cao), 1fr);
+  align-content: stretch;
   /* 12px, không phải 10: hai ô theme cạnh nhau đều là khối gradient đậm nên mép
      chúng dính vào nhau đọc ra thành một khối — người chơi đã phản ánh. */
   gap: 12px 10px;
@@ -58,7 +69,10 @@
 /* Chiều cao đặt trên chính Ô: để ở `grid-auto-rows` một mình là chưa đủ, vì
    `.options.fill > .option { height: 100% }` của wizard.css sẽ thắng. */
 .options.theme-grid > .option.theme-opt {
-  height: var(--o-cao);
+  /* Ô cao bằng HÀNG, để hàng giãn thì ô giãn theo. `min-height` giữ sàn cho
+     trường hợp ô nằm ngoài lưới (không xảy ra, nhưng rẻ). */
+  height: 100%;
+  min-height: var(--o-cao);
   max-height: none;
   /* Đủ specificity để thắng `.option { padding: 16px 12px }` — padding 12px hai
      bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */

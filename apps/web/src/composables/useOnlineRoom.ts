@@ -401,7 +401,7 @@ export function useOnlineRoom() {
   /** Mặt sau của ván — bốc ngẫu nhiên mỗi ván mới. */
   /** Mặt sau lấy TỪ SERVER: bốc tại client thì hai người chơi cùng một bàn lại
    *  thấy hai kiểu khác nhau — đúng lỗi đã gặp. */
-  const backStyle = computed<string>(() => view.value?.back ?? CARD_BACKS[0]);
+  const backStyle = computed<string>(() => view.value?.back ?? CARD_BACKS[0]!);
   let lastCountdownSec = -1;
   const clock = ref(0);
   let lastUrgentTick = 0;
@@ -671,6 +671,11 @@ export function useOnlineRoom() {
      * tự quyết.
      */
     params.set('pv', '1');
+    /* KHAI DẠNG MẶT SAU. `bv=2` = hiểu id `<hoạ tiết>.<bảng màu>`; ai không khai
+       thì server hạ về sáu tên cũ (`backVeCu`). Cùng lý do với `pv` ở trên: nếu
+       server cứ gửi id mới thì client cũ trong cache không khớp class nào và mặt
+       sau ra Ô TRẮNG TRƠN giữa ván. */
+    params.set('bv', '2');
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
 
     ws.onopen = () => startHeartbeat();
