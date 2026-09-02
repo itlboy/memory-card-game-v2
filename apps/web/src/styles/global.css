@@ -64,6 +64,26 @@ body {
   display: flex; flex-direction: column;
   height: 100vh; height: 100dvh;
   overflow: hidden;
+  /*
+   * CHỪA VÙNG AN TOÀN CỦA iOS — bắt buộc, vì index.html đặt
+   * `viewport-fit=cover`.
+   *
+   * `viewport-fit=cover` cho trang trải ra tận mép máy, tức là TRÙM LÊN dải
+   * home indicator ở đáy. Dải đó iOS giữ cho cử chỉ hệ thống: nút nào nằm
+   * trong đó thì chạm vào là hệ thống ăn mất cú chạm — vuốt lên ra màn hình
+   * chính, giữ lâu thì gọi trợ lý ảo. Người chơi báo đúng chuyện này: hàng nút
+   * dưới cùng và icon chat bấm vào lại hoá ra kích hoạt Siri. Nặng nhất ở chế
+   * độ PWA (không có thanh công cụ trình duyệt đẩy nội dung lên hộ).
+   *
+   * Đệm ở #app chứ không ở từng nút: #app khoá `100dvh` nên đệm nằm TRONG
+   * chiều cao đã khoá, không đẩy gì ra ngoài màn hình — luật KHÔNG SCROLL
+   * nguyên vẹn. Máy không có tai thỏ thì `env()` trả 0, không đổi gì.
+   */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  box-sizing: border-box;
   /* Bề rộng CỘT NỘI DUNG của game, để hộp thoại đo theo được. Trên điện thoại
      cột là cả màn hình; trên máy tính nó bị khoá bởi khối @media dưới đây. Hộp
      thoại tự đặt max-width riêng thì nó hẹp hơn cột (luật chơi từng 460px trong

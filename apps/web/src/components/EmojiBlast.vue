@@ -84,7 +84,9 @@ watch(() => props.o.emojiBlast.value?.key, () => {
 <style scoped>
 .emoji-blast {
   /* fixed + z-index cao: nổi trên MỌI thứ kể cả header. */
-  position: fixed; top: 10px; left: 50%; z-index: 60;
+  /* Teleport ra <body> nên KHÔNG hưởng đệm vùng an toàn của #app — phải tự
+     cộng, không thì trên máy có tai thỏ nó nằm dưới thanh trạng thái. */
+  position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; z-index: 60;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   pointer-events: none;
   animation: blast-float 1.15s ease-out forwards;
