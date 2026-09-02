@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
-import { MemoryGame } from '../src/game.js';
+import { MemoryGame, TURN_PAUSE_CAP_MS } from '../src/game.js';
 
 /**
  * ĐỒNG HỒ LƯỢT PHẢI ĐỨNG khi người đang đi mất kết nối.
@@ -77,30 +77,33 @@ describe('đồng hồ lượt khi mất kết nối', () => {
    * đó làm ván TREO HẲN — tệ hơn hẳn cái nó định chữa (mất một lượt).
    */
   it('quá trần thì đồng hồ CHẠY TIẾP dù chưa ai gỡ tạm dừng', () => {
+    // Neo vào hằng số, đừng chép tay con số — trần đã đổi từ 30 giây lên 5 phút.
+    const het = 11_000 + TURN_PAUSE_CAP_MS;
     const g = dungBan();
     g.tamDungLuot(11_000);                    // còn 20 giây
-    expect(g.turnTimeLeft(41_000)).toBe(20);  // vừa hết trần: mới đứng đủ 30 giây
-    expect(g.turnTimeLeft(51_000)).toBe(10);  // từ đây chạy tiếp như không có gì
-    expect(g.turnTimeLeft(61_000)).toBe(0);
-    expect(g.tick(61_000).some((e) => e.type === 'turn-timeout'),
+    expect(g.turnTimeLeft(het)).toBe(20);     // vừa hết trần: đứng đủ quota
+    expect(g.turnTimeLeft(het + 10_000)).toBe(10);   // từ đây chạy tiếp như thường
+    expect(g.turnTimeLeft(het + 20_000)).toBe(0);
+    expect(g.tick(het + 20_000).some((e) => e.type === 'turn-timeout'),
       'ván treo vĩnh viễn vì một client câm').toBe(true);
   });
 
   it('quota dừng CỘNG DỒN trong một lượt, không làm mới sau mỗi lần rớt', () => {
     const g = dungBan();
-    for (let i = 0; i < 4; i++) {             // 4 lần rớt, mỗi lần 10 giây
+    const lan = TURN_PAUSE_CAP_MS / 10_000 + 2;   // dừng 10 giây mỗi lần, quá quota
+    for (let i = 0; i < lan; i++) {
       g.tamDungLuot(11_000 + i * 20_000);
       g.chayTiepLuot(21_000 + i * 20_000);
     }
-    // Chỉ 30 trong 40 giây được bù, nên hạn chỉ lùi 30 giây chứ không phải 40.
-    expect(g.turnPausedMs).toBe(30_000);
+    // Cộng dồn, và bị chặn ở trần chứ không phải tổng thời gian đã dừng.
+    expect(g.turnPausedMs).toBe(TURN_PAUSE_CAP_MS);
   });
 
   it('lượt mới được cấp lại quota dừng đầy', () => {
     const g = dungBan();
     g.tamDungLuot(11_000);
-    g.chayTiepLuot(41_000);                   // dùng hết trần
-    g.tick(71_000);                           // hết giờ → sang lượt người kia
+    g.chayTiepLuot(11_000 + TURN_PAUSE_CAP_MS);        // dùng hết trần
+    g.tick(41_000 + TURN_PAUSE_CAP_MS);                // hết giờ → sang lượt người kia
     expect(g.turnPausedMs, 'người sau phải được cấp lại quota').toBe(0);
   });
 

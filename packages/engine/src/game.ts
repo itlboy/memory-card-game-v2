@@ -9,14 +9,19 @@ import type {
 } from './types.js';
 
 /**
- * Trần tổng thời gian đồng hồ lượt được phép ĐỨNG trong một lượt.
+ * Trần tổng thời gian đồng hồ được phép ĐỨNG trong một lượt.
  *
- * 30 giây: đủ để đi qua một cú nghẽn mạng di động dài (đường hầm, thang máy,
- * chuyển trạm) mà không mất lượt, nhưng không đủ để một client câm biến ván
- * thành treo. Người mất mạng thật quá mốc này chưa mất gì cả — họ chỉ mất
- * lượt, còn chỗ trong phòng vẫn được giữ tới `ROOM_LIMITS.reconnectMs`.
+ * 5 PHÚT, khớp `ROOM_LIMITS.reconnectMs` — người mất mạng được ĐÓNG BĂNG ván
+ * cho tới đúng lúc họ mất chỗ trong phòng. Trần 30 giây cũ vô nghĩa với người
+ * chơi: nghẽn quá nửa phút là vẫn mất lượt trong khi chỗ vẫn còn giữ 5 phút,
+ * nên "được giữ chỗ" mà quay lại thì ván đã đi tiếp không có mình.
+ *
+ * VẪN PHẢI CÓ TRẦN: việc dừng dựa vào nhịp `alive` do CLIENT gửi, nên một
+ * client câm (bản cũ trong cache service worker, công cụ tự viết) sẽ treo ván.
+ * Neo vào cùng con số với hạn giữ chỗ là hết trần thì người đó cũng vừa bị xử
+ * thua và lượt sang người khác — hai cơ chế không còn cãi nhau.
  */
-export const TURN_PAUSE_CAP_MS = 30_000;
+export const TURN_PAUSE_CAP_MS = 300_000;
 
 /** Chơi đơn không có 'freeze' (không có đối thủ để đóng băng). */
 /** Chơi đơn có đủ mọi thứ TRỪ Đóng băng — không có đối thủ nào để đóng băng. */
@@ -139,9 +144,16 @@ export class MemoryGame {
   get locked(): boolean { return this.pendingUntil > 0; }
   get revealingAll(): boolean { return this.status === 'peeking' || this.revealUntil > 0; }
 
+  /**
+   * Giây đã chơi. Lúc đồng hồ đang ĐỨNG (người đi mất kết nối) thì con số này
+   * đứng theo: đóng băng là đóng băng MỌI đồng hồ, không riêng đồng hồ lượt —
+   * nếu không, người rớt mạng giữ được lượt nhưng ván vẫn thua vì hết giờ.
+   * Phần đã dừng của những lần trước được `chayTiepLuot` cộng vào
+   * `extraTimeMs`, nên tổng thời gian liền mạch qua lúc chạy tiếp.
+   */
   elapsed(now: number): number {
     if (this.startedAt === null) return 0;
-    return ((this.endedAt ?? now) - this.startedAt) / 1000;
+    return ((this.endedAt ?? this.mocLuot(now)) - this.startedAt) / 1000;
   }
 
   timeLeft(now: number): number | null {
@@ -206,6 +218,9 @@ export class MemoryGame {
     const bu = this.buDuoc(now);
     this.turnDeadline += bu;
     this.turnPausedMs += bu;
+    // Trả lại cho ĐỒNG HỒ VÁN đúng khoảng vừa đứng — `elapsed()` đọc mốc thật
+    // trở lại ngay khi hết dừng, không có chỗ này là tổng thời gian nhảy vọt.
+    this.extraTimeMs += bu;
     this.turnPausedAt = 0;
   }
 
