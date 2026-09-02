@@ -17,6 +17,15 @@
   nhất (72 và 88 thẻ) cố ý phá ngưỡng, là bàn siêu khó người chơi tự chọn;
   mọi cỡ ≤56 thẻ vẫn phải giữ, có test canh. Lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
+- **CÓ `viewport-fit=cover` THÌ PHẢI CÓ `env(safe-area-inset-*)`.** index.html
+  đặt `cover` để trang trải ra tận mép máy, nhưng thế cũng là cho trang TRÙM
+  LÊN dải home indicator ở đáy — dải đó iOS giữ cho cử chỉ hệ thống, nút nào
+  nằm trong là bị hệ thống ăn mất cú chạm (vuốt lên ra màn hình chính, giữ lâu
+  thì gọi trợ lý ảo). Người chơi báo đúng chuyện này. Đệm ở `#app` kèm
+  `box-sizing: border-box`: #app khoá `100dvh` nên đệm nằm TRONG chiều cao đã
+  khoá, không phá luật KHÔNG SCROLL. Thứ TELEPORT ra `<body>` (EmojiBlast) nằm
+  ngoài #app nên phải tự cộng `env()`. Đo trên iPhone 14 giả lập: đáy hàng nút
+  từ 33px (trong dải 34px) lên 67px.
 - **Vùng chạm ≠ HÌNH của nút.** Nút nhỏ mà vẫn phải 44px thì nới vùng chạm bằng
   `::after { inset: -8px }`, đừng phình cái nút lên (nút thoát 44px từng kéo cao
   cả HUD). Nhớ ghi đè cả `min-width`/`min-height` — `.btn` toàn cục đặt 44px.
