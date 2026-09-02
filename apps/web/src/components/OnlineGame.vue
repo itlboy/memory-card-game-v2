@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ROOM_LIMITS } from '@mm/engine';
+import { ROOM_LIMITS, isDraw } from '@mm/engine';
+import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
-import CelebrationFx from './CelebrationFx.vue';
-import DefeatFx from './DefeatFx.vue';
+import KetCucFx from './KetCucFx.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
@@ -164,6 +164,17 @@ const moBang = ref(false);
 watch(() => o.view.value?.players.length, () => { moBang.value = false; });
 
 const iWon = computed(() => o.view.value?.summary?.ranking[0]?.id === o.myId.value);
+/** HOÀ không phải thua: tiếng đã là `sfx.win()` nhẹ, nên hình cũng không được
+ *  là tro rơi. Thiếu phép kiểm này thì hoà xong nhìn y như vừa bị hạ. */
+const hoa = computed(() => {
+  const s = o.view.value?.summary;
+  return !!s && isDraw(s.ranking);
+});
+/** Kết cục dưới góc nhìn CỦA TÔI — thứ quyết định hình nào chạy. */
+const loaiKetCuc = computed<LoaiKetCuc>(() => (hoa.value ? 'hoa' : iWon.value ? 'thang' : 'thua'));
+/** Seed để bốc hình. View online không mang seed nên lấy mã phòng — cùng phòng,
+ *  cùng ván thì mọi lần dựng lại view vẫn ra đúng một hình. */
+const seedVan = computed(() => Number(o.roomCode()) || 7);
 watch(() => o.view.value?.summary, (s) => {
   clearTimeout(resultTimer);
   showResult.value = false;
@@ -393,9 +404,9 @@ watch(() => o.view.value?.summary, (s) => {
     <!-- Emoji chat (ON-08) — xem EmojiBar.vue -->
     <EmojiBar :o="o" />
 
-    <CelebrationFx v-if="o.view.value?.summary && iWon" />
-    <!-- Thua phải có hình RIÊNG, không được để trống: xem DefeatFx. -->
-    <DefeatFx v-else-if="o.view.value?.summary" />
+    <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
+         rơi; thua phải có hình riêng, không được để trống. -->
+    <KetCucFx v-if="o.view.value?.summary" :loai="loaiKetCuc" :seed="seedVan" />
     <ResultDialog
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"

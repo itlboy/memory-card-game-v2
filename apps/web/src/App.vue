@@ -3,7 +3,7 @@ import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS } 
 import { BOT_SPECS } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, onMounted, ref, watch, watchEffect } from 'vue';
-import CelebrationFx from './components/CelebrationFx.vue';
+import KetCucFx from './components/KetCucFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
@@ -426,10 +426,8 @@ watch(session.summary, (s) => {
     // chơi gì — thang cấp mất nghĩa. Ngược lại, cấm hẳn thì ai chỉ đấu bot lại
     // mắc mãi ở cấp 1. Thắng bot là bằng chứng đã chơi được cấp này; muốn dễ
     // thì hạ mức bot xuống, vẫn phải tự lật đủ cặp.
-    if (botLevel.value && s.status === 'won') {
-      const champ = s.ranking[0];
-      const humanWon = !!champ && (champ.id !== 'bot' || isDraw(s.ranking));
-      if (humanWon) store.saveLevel(game.config.mode, levelId.value ?? level.value, 1, 0);
+    if (botLevel.value && session.thang.value) {   // `thang` xét cả trường hợp bot dẫn đầu
+      store.saveLevel(game.config.mode, levelId.value ?? level.value, 1, 0);
     }
     // Đấu máy: chỉ cộng điểm CỦA NGƯỜI, và mức Dễ thì không tính — nếu tính,
     // cày máy dễ là cách nhanh nhất để mở hết theme, mọi mốc điểm mất nghĩa.
@@ -568,7 +566,17 @@ const hasNext = computed(() => {
     @cancel="confirmQuit = false"
   />
 
-  <CelebrationFx v-if="session.summary.value?.status === 'won' && screen === 'game'" />
+  <!--
+    THẮNG · THUA · HOÀ phải nhìn ra KHÁC NHAU. `status === 'won'` chỉ là "bàn
+    đã sạch", nên thua bot cũng từng được pháo hoa — xem `session.loaiKetCuc`.
+    Ván offline thua thì trước đây trống trơn, giống hệt một ván đang chơi dở.
+    Hình cụ thể bốc theo seed trong `lib/ketcuc-fx.ts`, không nằm ở đây.
+  -->
+  <KetCucFx
+    v-if="session.summary.value && screen === 'game'"
+    :loai="session.loaiKetCuc.value"
+    :seed="session.game.value?.config.seed"
+  />
 
   <ResultDialog
     v-if="session.summary.value && showResult"

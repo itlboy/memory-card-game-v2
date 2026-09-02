@@ -1,9 +1,10 @@
-import { MemoryGame, ROOM_LIMITS } from '@mm/engine';
+import { CARD_BACKS, MemoryGame, ROOM_LIMITS, isDraw } from '@mm/engine';
 import type { Card, GameConfig, GameEvent, Player, Summary } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { botPick, botRng, botThinkMs, createBotMemory, observe, publicView } from '@mm/engine';
 import type { BotLevel, BotMemory } from '@mm/engine';
 import { sfx } from '@/lib/audio';
+import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 /**
  * Cầu nối engine ↔ Vue.
@@ -41,7 +42,7 @@ export function useGameSession() {
   let lastCdSec = -1;
   const countdownLeft = ref<number | null>(null);
   /** Mặt sau của ván này — bốc ngẫu nhiên mỗi ván cho đa dạng. */
-  const BACKS = ['stars', 'diamond', 'aurora'] as const;
+  const BACKS = CARD_BACKS;
   const backStyle = ref<string>('stars');
   const pickBack = (): void => { backStyle.value = BACKS[Math.floor(Math.random() * BACKS.length)]!; };
   /** Hiệu ứng "+10s" trên chip người vừa ghép đúng. */
@@ -135,7 +136,20 @@ export function useGameSession() {
           break;
         case 'end':
           summary.value = e.summary;
-          e.summary.status === 'won' ? sfx.victory() : sfx.lose();
+          /*
+           * `status: 'won'` chỉ có nghĩa BÀN ĐÃ SẠCH — không phải "tôi thắng".
+           * Đấu máy mà máy dọn nhiều cặp hơn thì vẫn là 'won', nên trước đây
+           * thua bot vẫn được pháo hoa và nhạc chiến thắng. Người chơi báo đúng
+           * chuyện này. Phải hỏi `nguoiChoiThang()`, đừng đọc `status` trần.
+           */
+          // Hoà: mừng NHẸ (`win()`), không fanfare + vỗ tay + pháo hoa — khớp
+          // với nhánh online, chứ không phải hai kiểu ăn mừng cho cùng kết cục.
+          if (isDraw(e.summary.ranking)) sfx.win();
+          else if (nguoiChoiThang(e.summary)) sfx.victory();
+          // Thua BOT dùng `defeat()` như thua online: có kẻ thắng ngay trước
+          // mắt mình, khác hẳn ván một mình hết giờ (`lose()`).
+          else if (botLevel.value) sfx.defeat();
+          else sfx.lose();
           break;
       }
     }
@@ -415,8 +429,37 @@ export function useGameSession() {
     return set;
   });
 
+  /**
+   * NGƯỜI ĐANG NGỒI TRƯỚC MÁY có thắng không — thứ quyết định pháo hoa hay tro rơi.
+   *
+   * Ba trường hợp khác nhau, đừng gộp:
+   *  - một mình: bàn sạch là thắng;
+   *  - đấu máy: chỉ thắng khi NGƯỜI dẫn đầu (hoặc hoà) — bàn sạch mà bot dẫn
+   *    thì là THUA, dù `status` vẫn là 'won';
+   *  - nhiều người cùng máy: luôn có người thắng và người đó đang ở đây, nên
+   *    mừng bình thường.
+   */
+  function nguoiChoiThang(s: Summary | null): boolean {
+    if (!s || s.status !== 'won') return false;
+    // Nhận ra ván đấu máy qua BẢNG XẾP HẠNG, không qua cờ `botLevel`: cờ đó tắt
+    // được giữa ván (tắt bot để xem lại bàn, và test cũng làm thế), lúc ấy ván
+    // vẫn có một người chơi tên 'bot' đang dẫn đầu.
+    const champ = s.ranking[0];
+    if (!champ || !s.ranking.some((p) => p.id === BOT_ID)) return true;
+    return champ.id !== BOT_ID || isDraw(s.ranking);
+  }
+
+  /** Cho UI chọn hiệu ứng: xem `lib/ketcuc-fx.ts`. */
+  const thang = computed(() => nguoiChoiThang(summary.value));
+  /** Kết cục dưới góc nhìn của người đang ngồi trước máy — hoà KHÔNG phải thua. */
+  const loaiKetCuc = computed<LoaiKetCuc>(() => {
+    const s = summary.value;
+    if (s && isDraw(s.ranking)) return 'hoa';
+    return thang.value ? 'thang' : 'thua';
+  });
+
   return {
-    game, start, flip, stop, adopt, setBot, botLevel, botThinking, botTurnNow,
+    game, start, flip, stop, adopt, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc,
     cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle

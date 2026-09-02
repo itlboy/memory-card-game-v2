@@ -71,8 +71,10 @@ async function vaoVanRoiKetThuc(winnerId: string) {
 describe('kết ván online trên DOM thật', () => {
   it('THẮNG: pháo hoa, không có tro; bảng hiện ở 2,2 giây', async () => {
     const w = await vaoVanRoiKetThuc('p1');
-    expect(w.find('.celebration').exists(), 'thắng phải có màn ăn mừng').toBe(true);
-    expect(w.find('.defeat-fx').exists(), 'thắng mà hiện màn thua').toBe(false);
+    // Một component cho ba kết cục, phân biệt bằng `data-loai`.
+    expect(w.find('.ketcuc-fx[data-loai="thang"]').exists(), 'thắng phải có màn ăn mừng').toBe(true);
+    expect(w.find('.ketcuc-fx[data-loai="thua"]').exists(), 'thắng mà hiện màn thua').toBe(false);
+    expect(w.findAll('.ketcuc-fx .fx-tan').length, 'thắng mà có tro rơi').toBe(0);
 
     // Bảng tỉ số: chưa có ở 2,1s, có ở 2,3s. Mốc cũ là 5 giây — năm giây nhìn
     // một bàn đứng im là lâu thật, mà pháo hoa vẫn chạy tiếp phía sau bảng.
@@ -88,9 +90,15 @@ describe('kết ván online trên DOM thật', () => {
     vi.advanceTimersByTime(1200); await nextTick(); await nextTick();
     expect(w.findComponent({ name: 'ResultDialog' }).exists(),
       'người thua không có gì để xem, đừng bắt chờ lâu bằng người thắng').toBe(true);
-    expect(w.find('.defeat-fx').exists(), 'thua phải có màn riêng').toBe(true);
-    expect(w.find('.celebration').exists(), 'thua mà bắn pháo hoa').toBe(false);
-    expect(w.findAll('.defeat-fx .tan').length, 'phải có hạt tro').toBeGreaterThan(10);
-    expect(w.find('.defeat-fx .toi').exists(), 'phải có lớp tối dần').toBe(true);
+    expect(w.find('.ketcuc-fx[data-loai="thua"]').exists(), 'thua phải có màn riêng').toBe(true);
+    expect(w.find('.ketcuc-fx[data-loai="thang"]').exists(), 'thua mà bắn pháo hoa').toBe(false);
+    expect(w.findAll('.ketcuc-fx .fx-giay').length, 'confetti lọt vào màn thua').toBe(0);
+    // Bốn hình thua đều có tro; hai lớp nền thì mọi hình thua đều mang.
+    expect(w.findAll('.ketcuc-fx .fx-tan').length, 'phải có hạt tro').toBeGreaterThan(10);
+    expect(w.find('.ketcuc-fx .fx-toi').exists(), 'phải có lớp tối dần').toBe(true);
+    expect(
+      w.find('.ketcuc-fx .fx-xam').exists() || w.find('.ketcuc-fx .fx-nhoe').exists(),
+      'phải có lớp rút màu — thứ làm hình thua đọc ra ngay'
+    ).toBe(true);
   });
 });
