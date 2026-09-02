@@ -118,7 +118,14 @@ export interface PublicPlayer {
  * sách — trước đây mỗi client tự bốc bằng Math.random() nên hai người chơi cùng
  * một bàn lại thấy hai kiểu mặt sau khác nhau.
  */
-export const CARD_BACKS = ['stars', 'diamond', 'aurora'] as const;
+/**
+ * Mặt sau của lá bài. Ba kiểu đầu là tông TÍM của giao diện; ba kiểu sau cố ý
+ * đi màu khác (lục · cam · xanh biển) để bàn nào ra bàn ấy nhìn không lẫn.
+ *
+ * Thêm một tên vào đây thì PHẢI thêm class `.back.bk-<tên>` ở CardTile.vue —
+ * thiếu là mặt sau ra một ô trắng trơn. Có test canh hai danh sách khớp nhau.
+ */
+export const CARD_BACKS = ['stars', 'diamond', 'aurora', 'leaf', 'ember', 'ocean'] as const;
 export type CardBack = (typeof CARD_BACKS)[number];
 
 /** Mặt sau của một ván, suy từ seed nên mọi người trong phòng thấy giống nhau.

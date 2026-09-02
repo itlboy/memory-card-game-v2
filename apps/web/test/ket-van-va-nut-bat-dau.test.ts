@@ -45,26 +45,29 @@ describe('kết ván: thắng và thua phải khác nhau, và bảng hiện sớ
   });
 
   it('THUA có hiệu ứng hình riêng, không phải chỉ có tiếng', () => {
-    expect(game).toContain('DefeatFx');
-    // Hai nhánh loại trừ nhau: chồng cả pháo hoa lẫn tro là vô nghĩa.
-    expect(game).toMatch(/<CelebrationFx v-if="[^"]*iWon" \/>\s*(<!--[\s\S]*?-->\s*)?<DefeatFx v-else-if=/);
+    // Một component cho cả ba kết cục; hình cụ thể do sổ đăng ký bốc.
+    expect(game).toContain('KetCucFx');
+    expect(game, 'phải truyền loại kết cục, không hard-code một hình')
+      .toMatch(/:loai="loaiKetCuc"/);
   });
 
-  it('hiệu ứng thua đọc ra KHÁC hẳn ăn mừng, không chỉ khác tên file', () => {
-    const thua = doc('components/DefeatFx.vue');
-    const thang = doc('components/CelebrationFx.vue');
-    expect(thang, 'ăn mừng: pháo hoa + confetti').toMatch(/confetti|burst/);
-    expect(thua, 'thua: tro rơi xuống, nền tối dần').toMatch(/tro-roi/);
-    expect(thua).toMatch(/toi-dan/);
-    // Kiểm phần CHẠY THẬT, không phải chữ trong chú thích: không có lớp giấy
-    // màu (.paper) hay chùm pháo (.burst) nào của bên thắng lọt sang.
-    const css = thua.slice(thua.indexOf('<style'));
-    expect(css).not.toMatch(/\.paper\b/);
-    expect(css).not.toMatch(/\.burst\b/);
+  it('hiệu ứng thua đọc ra KHÁC hẳn ăn mừng, không chỉ khác tên hình', () => {
+    const so = doc('lib/ketcuc-fx.ts');
+    const css = doc('styles/ketcuc-fx.css');
+    // Thắng: confetti + chùm pháo. Thua: rút màu + tro rơi + tối dần.
+    expect(so).toMatch(/fx-giay/);
+    expect(css).toMatch(/fx-tro-roi/);
+    expect(css).toMatch(/fx-toi-dan/);
+    expect(css, 'lớp rút màu là thứ làm hình thua đọc ra ngay').toMatch(/grayscale/);
+    // Không hình thua nào được mang lớp của bên thắng (và ngược lại).
+    const khoi = (loai) => so.split(`loai: '${loai}'`).slice(1)
+      .map((k) => k.slice(0, k.indexOf('\n  }'))).join('\n');
+    expect(khoi('thua'), 'confetti lọt sang màn thua').not.toMatch(/fx-giay|fx-tia\b/);
+    expect(khoi('thang'), 'tro lọt sang màn thắng').not.toMatch(/fx-tan|fx-xam/);
     // Không chặn thao tác, không thì bảng tỉ số bấm không được.
-    expect(thua).toMatch(/pointer-events: none/);
+    expect(css).toMatch(/pointer-events: none/);
     // Tôn trọng người tắt hiệu ứng chuyển động.
-    expect(thua).toMatch(/prefers-reduced-motion/);
+    expect(css).toMatch(/prefers-reduced-motion/);
   });
 
   it('tiếng thắng và tiếng thua là hai hàm khác nhau', () => {

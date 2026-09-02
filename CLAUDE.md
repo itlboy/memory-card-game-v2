@@ -17,6 +17,24 @@
   nhất (72 và 88 thẻ) cố ý phá ngưỡng, là bàn siêu khó người chơi tự chọn;
   mọi cỡ ≤56 thẻ vẫn phải giữ, có test canh. Lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
+- **HIỆU ỨNG KẾT VÁN VÀ MẶT SAU LÁ BÀI NẰM Ở SỔ RIÊNG.** Thêm/sửa/xoá chỉ đụng
+  hai file, không sửa component nào:
+  · hiệu ứng: một mục trong `lib/ketcuc-fx.ts` + một khối cùng tên ở
+  `styles/ketcuc-fx.css`. `KetCucFx.vue` là component DUY NHẤT cho cả ba kết
+  cục (thay `CelebrationFx`/`DefeatFx` cũ), nhận `loai` + `seed`.
+  · mặt sau: một tên trong `CARD_BACKS` (engine) + một khối ở
+  `styles/card-backs.css`. Thiếu khối là lá bài ra Ô TRẮNG TRƠN.
+  Luật: mỗi loại kết cục ≥4 hình (test canh); bốc theo SEED chứ không
+  `Math.random()` — F5 giữa lúc xem kết quả không được đổi hình, và view online
+  dựng lại nhiều lần vẫn phải ra đúng một hình. Mọi mặt sau dùng chung khuôn
+  SVG `viewBox="0 0 100 133"` + `center / 100% 100%` để hoạ tiết đứng đúng chỗ ở
+  mọi cỡ thẻ, và CẢ BÀN dùng một kiểu (khác nhau = đánh dấu bài).
+- **`summary.status === 'won'` KHÔNG PHẢI "TÔI THẮNG"** — nó chỉ nói BÀN ĐÃ SẠCH.
+  Đấu máy mà máy dọn nhiều cặp hơn thì vẫn 'won', nên đọc `status` trần là thua
+  bot vẫn được pháo hoa (đã xảy ra thật, người chơi báo). Dùng
+  `session.loaiKetCuc` (offline) / `loaiKetCuc` ở OnlineGame (online); cả hai
+  nhận ra ván đấu máy qua BẢNG XẾP HẠNG chứ không qua cờ `botLevel` — cờ đó tắt
+  được giữa ván. HOÀ là kết cục thứ ba, không được rơi vào nhánh thua.
 - **CÓ `viewport-fit=cover` THÌ PHẢI CÓ `env(safe-area-inset-*)`.** index.html
   đặt `cover` để trang trải ra tận mép máy, nhưng thế cũng là cho trang TRÙM
   LÊN dải home indicator ở đáy — dải đó iOS giữ cho cử chỉ hệ thống, nút nào
