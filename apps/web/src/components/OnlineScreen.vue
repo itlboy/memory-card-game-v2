@@ -6,7 +6,7 @@ import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
   Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users, X
 } from 'lucide-vue-next';
-import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
 import ConfirmDialog from './ConfirmDialog.vue';
@@ -385,6 +385,34 @@ const canStart = computed(() => {
   const r = o.room.value;
   return !!r && r.players.length >= 2 && readyCount.value.ok === readyCount.value.need;
 });
+/**
+ * Đã bấm "Bắt đầu" và đang chờ server mở ván.
+ *
+ * Bấm xong mà nút đứng im như chưa bấm thì người ta bấm tiếp — nhất là khi
+ * mạng chậm, đúng lúc phản hồi lâu nhất. Cần cả TIẾNG (biết là máy đã nhận) và
+ * HÌNH (biết là đang chờ ai đó, không phải mình bấm hụt).
+ *
+ * Tự tắt khi `room.status` rời khỏi 'lobby' (server đã mở đếm ngược), hoặc sau
+ * `HAN_MO_VAN` — treo cái spinner vĩnh viễn khi tin rơi mất còn tệ hơn không có.
+ */
+const dangMoVan = ref(false);
+const HAN_MO_VAN = 6000;
+let moVanTimer: ReturnType<typeof setTimeout> | undefined;
+
+function batDauVan(): void {
+  if (dangMoVan.value || !canStart.value) return;
+  sfx.go();                                  // kêu NGAY, đừng đợi server
+  dangMoVan.value = true;
+  clearTimeout(moVanTimer);
+  moVanTimer = setTimeout(() => { dangMoVan.value = false; }, HAN_MO_VAN);
+  o.start();
+}
+
+watch(() => o.room.value?.status, (st) => {
+  if (st && st !== 'lobby') { clearTimeout(moVanTimer); dangMoVan.value = false; }
+});
+onBeforeUnmount(() => clearTimeout(moVanTimer));
+
 const startLabel = computed(() => {
   const r = o.room.value;
   if (!r || r.players.length < 2) return 'Cần ít nhất 2 người…';
@@ -1016,9 +1044,10 @@ function openCfgWizard(): void {
       </div>
       <button
         class="btn-primary" type="button"
-        :disabled="!canStart"
-        @click="o.start()"
-      >{{ startLabel }}</button>
+        :class="{ dangMo: dangMoVan }"
+        :disabled="!canStart || dangMoVan"
+        @click="batDauVan()"
+      ><span v-if="dangMoVan" class="quay" aria-hidden="true" />{{ dangMoVan ? 'Đang mở ván…' : startLabel }}</button>
     </template>
     <template v-else>
       <!-- Bàn chơi ĐỌC TRƯỚC KHI BẤM: đây là thứ người ta cần biết để quyết
@@ -1559,4 +1588,22 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .cfg-chip :deep(.opt-ico) { border-radius: 5px; }
 
+
+/* Vòng quay của nút "Bắt đầu" — bấm xong phải thấy máy ĐANG LÀM GÌ ĐÓ, không
+   thì người ta tưởng bấm hụt và bấm tiếp, đúng lúc mạng chậm nhất. */
+.btn-primary .quay {
+  display: inline-block;
+  width: 16px; height: 16px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 2px solid rgb(255 255 255 / 35%);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: quay-tron 0.7s linear infinite;
+}
+.btn-primary.dangMo { opacity: 0.85; }
+@keyframes quay-tron { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary .quay { animation-duration: 2.4s; }
+}
 </style>

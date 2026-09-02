@@ -6,6 +6,7 @@ import { computed, ref, watch } from 'vue';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
 import CelebrationFx from './CelebrationFx.vue';
+import DefeatFx from './DefeatFx.vue';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
@@ -167,7 +168,13 @@ watch(() => o.view.value?.summary, (s) => {
   clearTimeout(resultTimer);
   showResult.value = false;
   if (!s) return;
-  resultTimer = setTimeout(() => { showResult.value = true; }, iWon.value ? 5000 : 1500);
+  /*
+   * BẢNG TỈ SỐ HIỆN SỚM. Mốc cũ là 5 giây cho người thắng — đủ dài để hết pháo
+   * hoa, nhưng người chơi thì muốn biết NGAY tỉ số, và năm giây nhìn một bàn
+   * đứng im là lâu thật. Hiệu ứng vẫn chạy tiếp phía sau bảng, nên rút xuống
+   * không mất gì. Người thua sớm hơn nữa: họ không có gì để xem.
+   */
+  resultTimer = setTimeout(() => { showResult.value = true; }, iWon.value ? 2200 : 1100);
 });
 </script>
 
@@ -387,6 +394,8 @@ watch(() => o.view.value?.summary, (s) => {
     <EmojiBar :o="o" />
 
     <CelebrationFx v-if="o.view.value?.summary && iWon" />
+    <!-- Thua phải có hình RIÊNG, không được để trống: xem DefeatFx. -->
+    <DefeatFx v-else-if="o.view.value?.summary" />
     <ResultDialog
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"

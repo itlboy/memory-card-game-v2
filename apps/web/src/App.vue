@@ -365,7 +365,9 @@ watch(session.summary, (s) => {
   const game = session.game.value;
   if (!s || !game) return;
   // Thắng: để pháo hoa + vỗ tay chiếm sóng 5 giây rồi popup mới vào
-  resultTimer = setTimeout(() => { showResult.value = true; }, s.status === 'won' ? 5000 : 1000);
+  // Cùng lý do với bản online (OnlineGame.vue): 5 giây nhìn bàn đứng im là lâu
+  // thật, mà hiệu ứng vẫn chạy tiếp phía sau bảng nên rút xuống không mất gì.
+  resultTimer = setTimeout(() => { showResult.value = true; }, s.status === 'won' ? 2200 : 1000);
 
   const player = game.players[0]!;
   if (!game.isMultiplayer) {
