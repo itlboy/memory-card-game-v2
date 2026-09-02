@@ -402,6 +402,8 @@ export function useOnlineRoom() {
   /** Mặt sau lấy TỪ SERVER: bốc tại client thì hai người chơi cùng một bàn lại
    *  thấy hai kiểu khác nhau — đúng lỗi đã gặp. */
   const backStyle = computed<string>(() => view.value?.back ?? CARD_BACKS[0]!);
+  /** Lá vừa được mở (bởi bất kỳ ai trong phòng) — bàn loé một vòng sáng ở đó. */
+  const vuaMo = ref<{ index: number; key: number } | null>(null);
   let lastCountdownSec = -1;
   const clock = ref(0);
   let lastUrgentTick = 0;
@@ -873,6 +875,13 @@ export function useOnlineRoom() {
         case 'flip':
           // Thẻ mình tự bấm đã phát tiếng ngay lúc bấm rồi; phát lại là nghe đôi
           if (!pending.value.has(e.index)) sfx.flip();
+          /*
+           * BÁO RA LÁ ĐỐI THỦ VỪA MỞ. Người chơi phản ánh: bàn nhiều thẻ thì
+           * không thấy đối phương mở lá nào, tới lượt mình đã quên mất. Loé cho
+           * MỌI lá vừa mở, kể cả lá của chính mình — với mình nó thành dấu xác
+           * nhận server đã nhận nước đi.
+           */
+          vuaMo.value = { index: e.index, key: (vuaMo.value?.key ?? 0) + 1 };
           break;
         case 'match': {
           const streak = 1 + (view.value?.players.find((p) => p.id === e.playerId)?.bestStreak ?? 0);
@@ -1250,7 +1259,7 @@ export function useOnlineRoom() {
       netTrouble.value = '';
       canhAck(index);
     },
-    pending,
+    pending, vuaMo,
     sendEmoji,
     /** Còn được gửi emoji không — dùng để làm mờ và chặn nút. */
     emojiReady,

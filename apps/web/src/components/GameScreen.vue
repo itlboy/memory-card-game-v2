@@ -210,6 +210,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
         :matched="s.matchedSet.value"
         :wrong-pair="s.wrongPair.value"
         :swap="s.swapPair.value"
+        :vua-mo="s.vuaMo.value"
         :revealing-all="s.revealingAll.value"
         :locked="locked"
         :back="s.backStyle.value"

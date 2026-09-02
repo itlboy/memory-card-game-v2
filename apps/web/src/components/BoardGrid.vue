@@ -17,6 +17,9 @@ const props = defineProps<{
   swap?: { a: number; b: number; key: number } | null;
   /** Ô đã bấm nhưng server chưa xác nhận (chỉ ván online). */
   pending?: Set<number>;
+  /** Lá VỪA ĐƯỢC MỞ bởi bất kỳ ai, kèm số đếm để lặp lại hiệu ứng. Trên bàn
+   *  56–88 thẻ, không có tín hiệu này thì đối thủ mở lá nào cũng không ai thấy. */
+  vuaMo?: { index: number; key: number } | null;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
@@ -83,7 +86,8 @@ defineExpose({
       :key="card.index"
       :card="card"
       :back="back ?? 'stars'"
-      :deal-order="card.index"
+      :row="Math.floor(card.index / cols)"
+      :rows="Math.ceil(cards.length / cols)"
       :card-count="cards.length"
       :face-up="faceUp.has(card.index)"
       :matched="matched.has(card.index)"
@@ -92,6 +96,7 @@ defineExpose({
       :disabled="locked"
       :swap-from="swapFrom[card.index]"
       :pending="pending?.has(card.index) ?? false"
+      :vua-mo="vuaMo && vuaMo.index === card.index ? { key: vuaMo.key } : null"
       @flip="emit('flip', $event)"
     />
   </div>

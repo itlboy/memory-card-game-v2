@@ -19,6 +19,8 @@ export function useGameSession() {
   const summary = shallowRef<Summary | null>(null);
   /** Thẻ đang lắc vì ghép sai, để UI vẽ hiệu ứng. */
   const wrongPair = ref<number[]>([]);
+  /** Lá vừa được mở (bởi người hay bởi máy) — bàn dùng để loé một vòng sáng. */
+  const vuaMo = ref<{ index: number; key: number } | null>(null);
   const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
   /** Hai ô vừa bị thẻ tráo đổi hoán chỗ, kèm key để lặp lại animation. */
   const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
@@ -59,7 +61,17 @@ export function useGameSession() {
     let turnId: string | null = null;
     for (const e of events) {
       switch (e.type) {
-        case 'flip': sfx.flip(); break;
+        case 'flip':
+          sfx.flip();
+          /*
+           * BÁO RA LÁ VỪA MỞ — kể cả lá do MÁY mở.
+           *
+           * Trên bàn lớn, nước đi của bot lọt giữa một rừng thẻ và người chơi
+           * không thấy nó vừa mở lá nào; quay lại thì bàn đã khác. Cùng một tín
+           * hiệu dùng cho ván online (đối thủ mở lá nào).
+           */
+          vuaMo.value = { index: e.index, key: (vuaMo.value?.key ?? 0) + 1 };
+          break;
         case 'match': {
           const streak = game.value?.players.find((p) => p.id === e.playerId)?.streak ?? 1;
           sfx.match(streak);
@@ -460,7 +472,7 @@ export function useGameSession() {
 
   return {
     game, start, flip, stop, adopt, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc,
-    cards, players, current, faceUp, matchedSet, wrongPair, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
+    cards, players, current, faceUp, matchedSet, wrongPair, vuaMo, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
   };
