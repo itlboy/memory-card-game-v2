@@ -1,56 +1,117 @@
 /*
- * HÌNH MẶT SAU LÁ BÀI — đi cặp với `CARD_BACKS` ở `packages/engine/src/online.ts`.
+ * MẶT SAU LÁ BÀI = HOẠ TIẾT × BẢNG MÀU.
  *
- * THÊM MỘT KIỂU = một tên trong `CARD_BACKS` + một khối ở đây. Thiếu khối là lá
- * bài ra ô TRẮNG TRƠN, nên `test/mat-sau.test.ts` canh hai danh sách khớp nhau.
+ * Đi cặp với `HOA_TIET_BACK` và `BANG_MAU_BACK` ở `packages/engine/src/online.ts`
+ * (engine giữ danh sách vì server suy mặt sau từ seed để cả phòng thấy giống
+ * nhau). THÊM MỘT HOẠ TIẾT hay MỘT BẢNG MÀU = một tên ở đó + một khối ở đây;
+ * thiếu khối là lá bài ra Ô TRẮNG TRƠN, nên `test/mat-sau.test.ts` canh hai bên
+ * khớp nhau.
+ *
+ * Cơ chế: hoạ tiết là MẶT NẠ (`mask`) trên một lớp mực phẳng, màu là gradient
+ * của lớp dưới. Nhờ tách hai thứ, MỘT file hoạ tiết chạy với MỌI bảng màu —
+ * 10 × 7 = 70 mặt sau từ 17 khối CSS, thay vì 70 khối viết tay.
  *
  * Ba luật của mọi khối:
- *  1. Cùng khuôn SVG `viewBox="0 0 100 133"` và cùng `center / 100% 100%
- *     no-repeat` — hoạ tiết phải đứng đúng chỗ ở MỌI cỡ thẻ (bàn 88 thẻ thì lá
- *     chỉ còn ~34px).
- *  2. Không dùng `background-size: cover` hay hoạ tiết lặp theo px: cỡ thẻ khác
- *     nhau giữa các bàn sẽ cắt hoạ tiết khác nhau.
- *  3. Cả bàn dùng CHUNG một kiểu (`backStyle` của ván) — mỗi lá một hình là
+ *  1. Cùng khuôn SVG `viewBox="0 0 100 133"` và cùng `center / 100% 100%` —
+ *     hoạ tiết phải đứng đúng chỗ ở MỌI cỡ thẻ (bàn 88 thẻ thì lá chỉ ~34px).
+ *  2. Nét mảnh nhất ≥ 2,2px trên khuôn đó. Dưới mức ấy là mất nét ở thẻ nhỏ —
+ *     lưới của Kim cương từng là 1,4px và nhoè thành một mảng.
+ *  3. Cả bàn dùng CHUNG một mặt sau (`backStyle` của ván) — mỗi lá một hình là
  *     đánh dấu bài.
  *
- * Để ở CSS toàn cục vì `CardTile.vue` gắn class động `bk-${back}`; `<style
- * scoped>` vẫn chạy được nhưng khiến file component phình lên vì mỗi kiểu là
- * một data-URI dài.
+ * Mực TRẮNG cho cả bảy bảng, không ngoại lệ: bản đầu cho bảng Vàng mực đậm để
+ * đủ tương phản, nhưng nó là bảng duy nhất đi ngược quy ước nên nhìn lạc hẳn.
  */
-.back.bk-stars {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 133%22%3E %3Cg fill=%22rgba(255,255,255,0.9)%22 transform=%22translate(38,54) scale(1.05)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3Cg fill=%22rgba(255,255,255,0.55)%22 transform=%22translate(14,14) scale(0.5)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3Cg fill=%22rgba(255,255,255,0.35)%22 transform=%22translate(72,20) scale(0.34)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3Cg fill=%22rgba(255,255,255,0.6)%22 transform=%22translate(76,96) scale(0.44)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3Cg fill=%22rgba(255,255,255,0.4)%22 transform=%22translate(16,100) scale(0.3)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3Cg fill=%22rgba(255,255,255,0.3)%22 transform=%22translate(52,16) scale(0.26)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3Cg fill=%22rgba(255,255,255,0.45)%22 transform=%22translate(10,60) scale(0.36)%22%3E%3Cpath d=%22M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z%22/%3E%3C/g%3E %3C/svg%3E") center / 100% 100% no-repeat,
-    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, .22), transparent 45%),
-    linear-gradient(160deg, #4c3fd6 0%, #7b46e6 55%, #b74cf0 100%);
+
+/*
+ * PHẢI DÙNG `.face.back`, KHÔNG ĐƯỢC DÙNG `.back` TRẦN.
+ *
+ * `back` là một tên quá phổ thông: nút quay lại ở wizard và màn online là
+ * `<button class="btn back">`. Bản đầu của file này viết `.back::before` nên nó
+ * dính luôn cái nút đó, và vì `--bk-ht` không có giá trị thì `mask` thành không
+ * hợp lệ → mất mặt nạ → cái ::before biến thành một TẤM TRẮNG 92% đặc. Nút lại
+ * `position: static` nên `inset: 0` neo vào `.panel`, thành ra tấm trắng phủ
+ * KÍN CẢ PANEL: chữ mờ hết, và ô nào được hover thì nhảy lên lớp riêng nên hiện
+ * rõ trở lại — đúng cảnh "trắng tinh, di chuột thì nhấp nháy" người chơi báo.
+ *
+ * Hai lớp chặn, đừng bỏ lớp nào:
+ *  1. selector có `.face` — nút quay lại không bao giờ có class đó;
+ *  2. `--bk-ht` mặc định là một SVG RỖNG, nên phần tử nào lỡ khớp mà không khai
+ *     hoạ tiết thì mặt nạ che sạch, không vẽ gì cả.
+ */
+:root {
+  --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20133%22%3E%3C/svg%3E");
 }
-.back.bk-diamond {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 133%22%3E %3Cdefs%3E%3Cpattern id=%22dm%22 width=%2220%22 height=%2220%22 patternUnits=%22userSpaceOnUse%22 patternTransform=%22rotate(45)%22%3E %3Cpath d=%22M0 10 H20 M10 0 V20%22 stroke=%22rgba(255,255,255,0.22)%22 stroke-width=%221.4%22 fill=%22none%22/%3E %3C/pattern%3E%3C/defs%3E %3Crect width=%22100%22 height=%22133%22 fill=%22url(%23dm)%22/%3E %3Cg transform=%22translate(50,66.5)%22%3E %3Crect x=%22-17%22 y=%22-17%22 width=%2234%22 height=%2234%22 transform=%22rotate(45)%22 fill=%22rgba(255,255,255,0.14)%22 stroke=%22rgba(255,255,255,0.85)%22 stroke-width=%222%22/%3E %3Crect x=%22-10%22 y=%22-10%22 width=%2220%22 height=%2220%22 transform=%22rotate(45)%22 fill=%22rgba(255,255,255,0.9)%22/%3E %3C/g%3E%3C/svg%3E") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #5a4be0 0%, #6a5cff 100%);
-  box-shadow: var(--shadow-soft), inset 0 0 0 2px rgba(255, 255, 255, .5),
-    inset 0 0 0 5px rgba(255, 255, 255, .18);
+
+/* Lớp mực + mặt nạ hoạ tiết. Dùng `::before` chứ KHÔNG `::after`: `::after` đã
+   là vệt sáng lướt ngang lúc hover ở CardTile.vue. */
+.face.back::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, .92);
+  -webkit-mask: var(--bk-ht) center / 100% 100% no-repeat;
+  mask: var(--bk-ht) center / 100% 100% no-repeat;
 }
-.back.bk-aurora {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 133%22 preserveAspectRatio=%22none%22%3E %3Cpath d=%22M0 92 C 22 76, 40 108, 62 88 S 96 70, 100 84 L100 133 L0 133 Z%22 fill=%22rgba(56,189,248,0.5)%22/%3E %3Cpath d=%22M0 104 C 26 92, 46 120, 70 102 S 100 90, 100 100 L100 133 L0 133 Z%22 fill=%22rgba(196,76,240,0.55)%22/%3E %3Cpath d=%22M0 118 C 30 108, 52 130, 78 116 S 100 108, 100 114 L100 133 L0 133 Z%22 fill=%22rgba(255,255,255,0.2)%22/%3E %3Ccircle cx=%2226%22 cy=%2230%22 r=%221.6%22 fill=%22rgba(255,255,255,0.9)%22/%3E %3Ccircle cx=%2270%22 cy=%2218%22 r=%221.1%22 fill=%22rgba(255,255,255,0.7)%22/%3E %3Ccircle cx=%2252%22 cy=%2244%22 r=%221.3%22 fill=%22rgba(255,255,255,0.8)%22/%3E %3Ccircle cx=%2284%22 cy=%2252%22 r=%221%22 fill=%22rgba(255,255,255,0.6)%22/%3E %3C/svg%3E") center / 100% 100% no-repeat,
-    radial-gradient(circle at 72% 12%, rgba(255, 255, 255, .16), transparent 40%),
-    linear-gradient(185deg, #241c6e 0%, #4c3fd6 62%, #7b46e6 100%);
+
+/* Gradient của bảng màu, cùng góc 162deg cho cả bảy để bàn nào cũng cùng hướng sáng. */
+.face.back[class*="bk-mau-"] {
+  background: linear-gradient(162deg, var(--bk-1), var(--bk-2) 56%, var(--bk-3));
 }
-.back.bk-leaf {
-  background:
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C0.82%29%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M50%2040%20C%2033%2054%2C%2033%2080%2C%2050%2096%20C%2067%2080%2C%2067%2054%2C%2050%2040%20Z%22%2F%3E%3Cpath%20d%3D%22M50%2044%20V%2092%22%2F%3E%3Cpath%20d%3D%22M50%2058%20L%2040%2064%20M50%2058%20L%2060%2064%20M50%2072%20L%2041%2078%20M50%2072%20L%2059%2078%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22rgba%28255%2C255%2C255%2C0.3%29%22%3E%3Cellipse%20cx%3D%2218%22%20cy%3D%2220%22%20rx%3D%227%22%20ry%3D%224%22%20transform%3D%22rotate%28-28%2018%2020%29%22%2F%3E%3Cellipse%20cx%3D%2282%22%20cy%3D%2226%22%20rx%3D%226%22%20ry%3D%223.4%22%20transform%3D%22rotate%2824%2082%2026%29%22%2F%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%22112%22%20rx%3D%226%22%20ry%3D%223.4%22%20transform%3D%22rotate%2818%2020%20112%29%22%2F%3E%3Cellipse%20cx%3D%2280%22%20cy%3D%22108%22%20rx%3D%227%22%20ry%3D%224%22%20transform%3D%22rotate%28-22%2080%20108%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat,
-    radial-gradient(circle at 28% 16%, rgba(255, 255, 255, .2), transparent 46%),
-    linear-gradient(162deg, #065f46 0%, #0f9b6c 58%, #34d399 100%);
-}
-.back.bk-ember {
-  background:
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C0.85%29%22%20stroke-width%3D%222.2%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%229%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C0.42%29%22%20stroke-width%3D%221.6%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%2219%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%2229%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22rgba%28255%2C255%2C255%2C0.28%29%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2290.0%22%20y2%3D%2266.5%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2278.3%22%20y2%3D%2294.8%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250.0%22%20y2%3D%22106.5%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2221.7%22%20y2%3D%2294.8%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2210.0%22%20y2%3D%2266.5%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2221.7%22%20y2%3D%2238.2%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250.0%22%20y2%3D%2226.5%22%20%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2278.3%22%20y2%3D%2238.2%22%20%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%224%22%20fill%3D%22rgba%28255%2C255%2C255%2C0.95%29%22%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat,
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .18), transparent 52%),
-    linear-gradient(168deg, #7c2d12 0%, #dc4a1e 56%, #f59e0b 100%);
-}
-.back.bk-ocean {
-  background:
-    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C0.4%29%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M6%2044%20q%2011%20-9%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3Cpath%20d%3D%22M6%2066.5%20q%2011%20-9%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3Cpath%20d%3D%22M6%2089%20q%2011%20-9%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22rgba%28255%2C255%2C255%2C0.78%29%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M6%2055%20q%2011%20-10%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3Cpath%20d%3D%22M6%2078%20q%2011%20-10%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat,
-    radial-gradient(circle at 74% 14%, rgba(255, 255, 255, .16), transparent 42%),
-    linear-gradient(184deg, #082f49 0%, #0369a1 58%, #22d3ee 100%);
-}
+
+/* ---------- 10 hoạ tiết ---------- */
+
+/* Sao */
+.face.back.bk-ht-sao { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22%23fff%22%3E%3Cg%20transform%3D%22translate%2830%2C44%29%20scale%281.9%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%288%2C8%29%20scale%280.95%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2866%2C12%29%20scale%280.7%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2870%2C92%29%20scale%280.85%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2810%2C96%29%20scale%280.6%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2846%2C8%29%20scale%280.5%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%284%2C56%29%20scale%280.66%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2876%2C56%29%20scale%280.5%29%22%3E%3Cpath%20d%3D%22M12%202%20L14.2%209.8%20L22%2012%20L14.2%2014.2%20L12%2022%20L9.8%2014.2%20L2%2012%20L9.8%209.8%20Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Kim cương */
+.face.back.bk-ht-thoi { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22dm%22%20width%3D%2234%22%20height%3D%2234%22%20patternUnits%3D%22userSpaceOnUse%22%20patternTransform%3D%22rotate%2845%29%22%3E%3Cpath%20d%3D%22M0%2017%20H34%20M17%200%20V34%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.6%22%20fill%3D%22none%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%22%20height%3D%22133%22%20fill%3D%22url%28%23dm%29%22%20opacity%3D%220.5%22%2F%3E%3Cg%20transform%3D%22translate%2850%2C66.5%29%22%3E%3Crect%20x%3D%22-17%22%20y%3D%22-17%22%20width%3D%2234%22%20height%3D%2234%22%20transform%3D%22rotate%2845%29%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.6%22%2F%3E%3Crect%20x%3D%22-10%22%20y%3D%22-10%22%20width%3D%2220%22%20height%3D%2220%22%20transform%3D%22rotate%2845%29%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Xoáy ốc */
+.face.back.bk-ht-xoay { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cpath%20d%3D%22M50.0%2066.5%20L50.4%2066.6%20L50.8%2066.8%20L51.1%2067.1%20L51.4%2067.5%20L51.5%2068.0%20L51.5%2068.6%20L51.3%2069.2%20L51.0%2069.8%20L50.5%2070.3%20L49.9%2070.8%20L49.1%2071.1%20L48.3%2071.3%20L47.3%2071.3%20L46.3%2071.2%20L45.3%2070.8%20L44.3%2070.2%20L43.4%2069.5%20L42.6%2068.5%20L41.9%2067.3%20L41.5%2066.0%20L41.3%2064.6%20L41.3%2063.0%20L41.6%2061.5%20L42.2%2059.9%20L43.0%2058.4%20L44.2%2057.1%20L45.6%2055.9%20L47.3%2054.9%20L49.1%2054.2%20L51.1%2053.8%20L53.2%2053.7%20L55.4%2054.0%20L57.6%2054.6%20L59.6%2055.7%20L61.6%2057.1%20L63.3%2058.8%20L64.7%2060.9%20L65.9%2063.2%20L66.6%2065.8%20L66.9%2068.5%20L66.8%2071.3%20L66.2%2074.1%20L65.1%2076.8%20L63.6%2079.4%20L61.7%2081.7%20L59.3%2083.8%20L56.6%2085.4%20L53.5%2086.6%20L50.3%2087.4%20L46.9%2087.6%20L43.5%2087.2%20L40.0%2086.3%20L36.8%2084.8%20L33.7%2082.8%20L31.0%2080.2%20L28.7%2077.2%20L26.8%2073.8%20L25.6%2070.1%20L24.9%2066.1%20L24.8%2062.0%20L25.5%2058.0%20L26.8%2053.9%20L28.7%2050.1%20L31.3%2046.7%20L34.5%2043.6%20L38.1%2041.0%20L42.2%2039.0%20L46.7%2037.7%20L51.3%2037.1%20L56.1%2037.3%20L60.8%2038.2%20L65.4%2040.0%20L69.7%2042.4%20L73.6%2045.6%20L77.0%2049.4%20L79.7%2053.7%20L81.8%2058.5%20L83.1%2063.6%20L83.6%2069.0%20L83.2%2074.4%20L81.9%2079.7%20L79.7%2084.9%20L76.7%2089.6%20L73.0%2093.9%20L68.5%2097.6%20L63.5%20100.6%20L58.0%20102.7%20L52.1%20103.9%20L46.1%20104.2%20L40.0%20103.5%20L34.1%20101.8%20L28.4%2099.2%20L23.2%2095.7%20L18.6%2091.3%20L14.6%2086.2%20L11.6%2080.4%20L9.4%2074.2%20L8.3%2067.7%20L8.2%2060.9%20L9.2%2054.2%20L11.3%2047.7%20L14.4%2041.5%20L18.6%2035.9%20L23.6%2030.9%20L29.4%2026.8%20L35.9%2023.6%20L42.8%2021.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M50.0%2066.5%20L49.6%2066.4%20L49.2%2066.2%20L48.9%2065.9%20L48.6%2065.5%20L48.5%2065.0%20L48.5%2064.4%20L48.7%2063.8%20L49.0%2063.2%20L49.5%2062.7%20L50.1%2062.2%20L50.9%2061.9%20L51.7%2061.7%20L52.7%2061.7%20L53.7%2061.8%20L54.7%2062.2%20L55.7%2062.8%20L56.6%2063.5%20L57.4%2064.5%20L58.1%2065.7%20L58.5%2067.0%20L58.7%2068.4%20L58.7%2070.0%20L58.4%2071.5%20L57.8%2073.1%20L57.0%2074.6%20L55.8%2075.9%20L54.4%2077.1%20L52.7%2078.1%20L50.9%2078.8%20L48.9%2079.2%20L46.8%2079.3%20L44.6%2079.0%20L42.4%2078.4%20L40.4%2077.3%20L38.4%2075.9%20L36.7%2074.2%20L35.3%2072.1%20L34.1%2069.8%20L33.4%2067.2%20L33.1%2064.5%20L33.2%2061.7%20L33.8%2058.9%20L34.9%2056.2%20L36.4%2053.6%20L38.3%2051.3%20L40.7%2049.2%20L43.4%2047.6%20L46.5%2046.4%20L49.7%2045.6%20L53.1%2045.4%20L56.5%2045.8%20L60.0%2046.7%20L63.2%2048.2%20L66.3%2050.2%20L69.0%2052.8%20L71.3%2055.8%20L73.2%2059.2%20L74.4%2062.9%20L75.1%2066.9%20L75.2%2071.0%20L74.5%2075.0%20L73.2%2079.1%20L71.3%2082.9%20L68.7%2086.3%20L65.5%2089.4%20L61.9%2092.0%20L57.8%2094.0%20L53.3%2095.3%20L48.7%2095.9%20L43.9%2095.7%20L39.2%2094.8%20L34.6%2093.0%20L30.3%2090.6%20L26.4%2087.4%20L23.0%2083.6%20L20.3%2079.3%20L18.2%2074.5%20L16.9%2069.4%20L16.4%2064.0%20L16.8%2058.6%20L18.1%2053.3%20L20.3%2048.1%20L23.3%2043.4%20L27.0%2039.1%20L31.5%2035.4%20L36.5%2032.4%20L42.0%2030.3%20L47.9%2029.1%20L53.9%2028.8%20L60.0%2029.5%20L65.9%2031.2%20L71.6%2033.8%20L76.8%2037.3%20L81.4%2041.7%20L85.4%2046.8%20L88.4%2052.6%20L90.6%2058.8%20L91.7%2065.3%20L91.8%2072.1%20L90.8%2078.8%20L88.7%2085.3%20L85.6%2091.5%20L81.4%2097.1%20L76.4%20102.1%20L70.6%20106.2%20L64.1%20109.4%20L57.2%20111.5%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%224%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fsvg%3E"); }
+
+/* Cực quang */
+.face.back.bk-ht-cuc-quang { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M0%2092%20C%2022%2076%2C%2040%20108%2C%2062%2088%20S%2096%2070%2C%20100%2084%20L100%20133%20L0%20133%20Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.55%22%2F%3E%3Cpath%20d%3D%22M0%20104%20C%2026%2092%2C%2046%20120%2C%2070%20102%20S%20100%2090%2C%20100%20100%20L100%20133%20L0%20133%20Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.75%22%2F%3E%3Cpath%20d%3D%22M0%20118%20C%2030%20108%2C%2052%20130%2C%2078%20116%20S%20100%20108%2C%20100%20114%20L100%20133%20L0%20133%20Z%22%20fill%3D%22%23fff%22%20opacity%3D%220.35%22%2F%3E%3Cg%20fill%3D%22%23fff%22%3E%3Ccircle%20cx%3D%2226%22%20cy%3D%2230%22%20r%3D%222.2%22%2F%3E%3Ccircle%20cx%3D%2270%22%20cy%3D%2218%22%20r%3D%221.8%22%2F%3E%3Ccircle%20cx%3D%2252%22%20cy%3D%2244%22%20r%3D%222%22%2F%3E%3Ccircle%20cx%3D%2284%22%20cy%3D%2252%22%20r%3D%221.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Hoa tám cánh */
+.face.back.bk-ht-hoa { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%280%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%2845%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%2890%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%28135%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%28180%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%28225%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%28270%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Cellipse%20cx%3D%2250%22%20cy%3D%2246%22%20rx%3D%227%22%20ry%3D%2217%22%20transform%3D%22rotate%28315%2050%2066.5%29%22%20fill%3D%22%23fff%22%20opacity%3D%220.85%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%227%22%20fill%3D%22%23fff%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%2230%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20opacity%3D%220.5%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%2237%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.2%22%20opacity%3D%220.28%22%2F%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.4%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2216%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%2286%22%20cy%3D%2216%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%22117%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%2286%22%20cy%3D%22117%22%20r%3D%223%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Khung cổ */
+.face.back.bk-ht-khung { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20x%3D%227%22%20y%3D%227%22%20width%3D%2286%22%20height%3D%22119%22%20rx%3D%227%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.8%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2214%22%20width%3D%2272%22%20height%3D%22105%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.2%22%20opacity%3D%220.55%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20opacity%3D%220.8%22%3E%3Cpath%20d%3D%22M14%2030%20A%2016%2016%200%200%201%2030%2014%22%2F%3E%3Cpath%20d%3D%22M86%2030%20A%2016%2016%200%200%200%2070%2014%22%2F%3E%3Cpath%20d%3D%22M14%20103%20A%2016%2016%200%200%200%2030%20119%22%2F%3E%3Cpath%20d%3D%22M86%20103%20A%2016%2016%200%200%201%2070%20119%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2850%2C66.5%29%22%3E%3Crect%20x%3D%22-15%22%20y%3D%22-15%22%20width%3D%2230%22%20height%3D%2230%22%20transform%3D%22rotate%2845%29%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.6%22%2F%3E%3Crect%20x%3D%22-7%22%20y%3D%22-7%22%20width%3D%2214%22%20height%3D%2214%22%20transform%3D%22rotate%2845%29%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.75%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2226%22%20r%3D%222.6%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%22107%22%20r%3D%222.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Lá */
+.face.back.bk-ht-la { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M50%2040%20C%2033%2054%2C%2033%2080%2C%2050%2096%20C%2067%2080%2C%2067%2054%2C%2050%2040%20Z%22%2F%3E%3Cpath%20d%3D%22M50%2044%20V%2092%22%2F%3E%3Cpath%20d%3D%22M50%2058%20L%2040%2064%20M50%2058%20L%2060%2064%20M50%2072%20L%2041%2078%20M50%2072%20L%2059%2078%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23fff%22%20opacity%3D%220.4%22%3E%3Cellipse%20cx%3D%2218%22%20cy%3D%2220%22%20rx%3D%227%22%20ry%3D%224%22%20transform%3D%22rotate%28-28%2018%2020%29%22%2F%3E%3Cellipse%20cx%3D%2282%22%20cy%3D%2226%22%20rx%3D%226%22%20ry%3D%223.4%22%20transform%3D%22rotate%2824%2082%2026%29%22%2F%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%22112%22%20rx%3D%226%22%20ry%3D%223.4%22%20transform%3D%22rotate%2818%2020%20112%29%22%2F%3E%3Cellipse%20cx%3D%2280%22%20cy%3D%22108%22%20rx%3D%227%22%20ry%3D%224%22%20transform%3D%22rotate%28-22%2080%20108%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Lửa */
+.face.back.bk-ht-lua { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%229%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.2%22%20opacity%3D%220.5%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%2219%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%2229%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.42%22%3E%3Cline%20x1%3D%2263.0%22%20y1%3D%2266.5%22%20x2%3D%2290.0%22%20y2%3D%2266.5%22%2F%3E%3Cline%20x1%3D%2259.2%22%20y1%3D%2275.7%22%20x2%3D%2278.3%22%20y2%3D%2294.8%22%2F%3E%3Cline%20x1%3D%2250.0%22%20y1%3D%2279.5%22%20x2%3D%2250.0%22%20y2%3D%22106.5%22%2F%3E%3Cline%20x1%3D%2240.8%22%20y1%3D%2275.7%22%20x2%3D%2221.7%22%20y2%3D%2294.8%22%2F%3E%3Cline%20x1%3D%2237.0%22%20y1%3D%2266.5%22%20x2%3D%2210.0%22%20y2%3D%2266.5%22%2F%3E%3Cline%20x1%3D%2240.8%22%20y1%3D%2257.3%22%20x2%3D%2221.7%22%20y2%3D%2238.2%22%2F%3E%3Cline%20x1%3D%2250.0%22%20y1%3D%2253.5%22%20x2%3D%2250.0%22%20y2%3D%2226.5%22%2F%3E%3Cline%20x1%3D%2259.2%22%20y1%3D%2257.3%22%20x2%3D%2278.3%22%20y2%3D%2238.2%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2266.5%22%20r%3D%224.5%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fsvg%3E"); }
+
+/* Sóng */
+.face.back.bk-ht-song { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%220.45%22%3E%3Cpath%20d%3D%22M6%2044%20q%2011%20-9%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3Cpath%20d%3D%22M6%2066.5%20q%2011%20-9%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3Cpath%20d%3D%22M6%2089%20q%2011%20-9%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.8%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M6%2055%20q%2011%20-10%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3Cpath%20d%3D%22M6%2078%20q%2011%20-10%2022%200%20t%2022%200%20t%2022%200%20t%2022%200%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+/* Tuyết */
+.face.back.bk-ht-tuyet { --bk-ht: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20133%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%3E%3Cg%20transform%3D%22rotate%280%2050%2066.5%29%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250%22%20y2%3D%2230%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2241%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2259%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2243%22%20y2%3D%2246%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2257%22%20y2%3D%2246%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%2860%2050%2066.5%29%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250%22%20y2%3D%2230%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2241%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2259%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2243%22%20y2%3D%2246%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2257%22%20y2%3D%2246%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28120%2050%2066.5%29%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250%22%20y2%3D%2230%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2241%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2259%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2243%22%20y2%3D%2246%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2257%22%20y2%3D%2246%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28180%2050%2066.5%29%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250%22%20y2%3D%2230%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2241%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2259%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2243%22%20y2%3D%2246%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2257%22%20y2%3D%2246%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28240%2050%2066.5%29%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250%22%20y2%3D%2230%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2241%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2259%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2243%22%20y2%3D%2246%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2257%22%20y2%3D%2246%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22rotate%28300%2050%2066.5%29%22%3E%3Cline%20x1%3D%2250%22%20y1%3D%2266.5%22%20x2%3D%2250%22%20y2%3D%2230%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2241%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2242%22%20x2%3D%2259%22%20y2%3D%2234%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2243%22%20y2%3D%2246%22%2F%3E%3Cline%20x1%3D%2250%22%20y1%3D%2253%22%20x2%3D%2257%22%20y2%3D%2246%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+
+/* ---------- 7 bảng màu (bảy sắc cầu vồng) ---------- */
+
+/* Đỏ sậm, không phải đỏ tươi — đỏ tươi trên nền tối rung mắt */
+.face.back.bk-mau-do { --bk-1: #7f1d1d; --bk-2: #c0272d; --bk-3: #f87171; }
+
+/* Mốc cuối dừng ở cam đào */
+.face.back.bk-mau-cam { --bk-1: #7c2d12; --bk-2: #dc4a1e; --bk-3: #fb923c; }
+
+/* Mực trắng ở mốc sáng nhất chỉ ~1,1:1 nên hoạ tiết chỗ đó nhạt — đã xem thật và chốt là đọc được */
+.face.back.bk-mau-vang { --bk-1: #78350f; --bk-2: #d97706; --bk-3: #fde047; }
+
+/* Bảng của mặt sau "Lá" bản cũ */
+.face.back.bk-mau-luc { --bk-1: #065f46; --bk-2: #0f9b6c; --bk-3: #34d399; }
+
+/* Bảng của mặt sau "Biển" bản cũ */
+.face.back.bk-mau-lam { --bk-1: #082f49; --bk-2: #0369a1; --bk-3: #22d3ee; }
+
+/* Sát tím nhất — mốc giữa phải xanh hẳn để phân biệt được */
+.face.back.bk-mau-cham { --bk-1: #1e1b4b; --bk-2: #3730a3; --bk-3: #6366f1; }
+
+/* Tông thương hiệu; ba mặt sau đầu tiên của game đều ở đây */
+.face.back.bk-mau-tim { --bk-1: #4c1d95; --bk-2: #7c3aed; --bk-3: #c084fc; }

@@ -367,8 +367,11 @@
   một bản và chúng lệch nhau hai lần: ngưỡng ẩn emoji (phòng online mất emoji
   trên iPhone), rồi cơ chế ô-cao-tối-thiểu (24 theme bên online bóp ô còn ~30px,
   dính sát nhau). Số cột `repeat(auto-fill, minmax(84px, 1fr))` nên thêm theme
-  là máy rộng xếp thêm cột; chiều cao ô `clamp(66px, --app-h*0.105, 96px)` —
-  PHẢI là số xác định vì `.option` có `container-type: size`.
+  là máy rộng xếp thêm cột; hàng `minmax(clamp(66px, --app-h*0.105, 96px), 1fr)`
+  — còn chỗ thì ô GIÃN lấp hết, hết chỗ thì dừng ở sàn rồi cuộn (đặt cứng
+  `var(--o-cao)` là máy cao còn một khoảng trống to mà ô vẫn bé). Chiều cao do
+  LƯỚI quyết định vẫn là xác định nên `container-type: size` giải được; chỉ
+  `height: auto` mới làm truy vấn nhận 0.
 - **`#app` LẤY CHIỀU CAO TỪ `--app-h` (JS đo), `100dvh` chỉ là dự phòng.**
   `useViewportLock.ts` đo `innerHeight` và kéo document về 0 ở mọi lối trang hiện
   lại, kèm `history.scrollRestoration = 'manual'`. Không có nó thì mở lại Chrome

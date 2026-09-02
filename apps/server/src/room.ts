@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
-  packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
+  backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
@@ -85,6 +85,9 @@ interface RoomState {
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
 /**
  * `goi`: client này có hiểu view DẠNG GỌN không (`?pv=1` lúc mở socket).
+ * `bv`: client này hiểu dạng mặt sau nào (`?bv=2` = id `hoạ tiết.bảng màu`).
+ *   Chưa khai thì server hạ về sáu tên cũ — xem `backVeCu` ở engine. ĐỔI DẠNG
+ *   TRÊN DÂY THÌ CLIENT KHAI, SERVER KHÔNG TỰ QUYẾT.
  *
  * KHÔNG ĐƯỢC mặc định là có. Web này là PWA: service worker giữ bản JS cũ
  * trong cache, nên ngay sau mỗi lần deploy luôn có người đang chạy client cũ
@@ -96,7 +99,7 @@ interface RoomState {
  * bao giờ do server tự quyết. Đây là luật chung cho mọi thay đổi giao thức sau
  * này, không riêng gì việc gói view.
  */
-interface Attachment { playerId: string; goi?: boolean }
+interface Attachment { playerId: string; goi?: boolean; bv?: number }
 
 // Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
@@ -385,6 +388,8 @@ export class RoomDO extends DurableObject<Env> {
     const token = url.searchParams.get('token') ?? '';
     // Client có khai là hiểu view dạng gọn không — xem `Attachment.goi`.
     const goi = url.searchParams.get('pv') === '1';
+    // Dạng mặt sau client hiểu được; thiếu = client cũ, chỉ biết sáu tên cũ.
+    const bv = Number(url.searchParams.get('bv')) || 1;
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
     // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
@@ -405,7 +410,7 @@ export class RoomDO extends DurableObject<Env> {
       if (!name) return new Response('Thiếu tên', { status: 400 });
       // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác
       if (this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
-        return this.acceptSpectator(goi);
+        return this.acceptSpectator(goi, bv);
       }
       player = {
         id: crypto.randomUUID().slice(0, 8),
@@ -436,7 +441,7 @@ export class RoomDO extends DurableObject<Env> {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], [player.id]);
-    pair[1].serializeAttachment({ playerId: player.id, goi } satisfies Attachment);
+    pair[1].serializeAttachment({ playerId: player.id, goi, bv } satisfies Attachment);
 
     await this.save();
     this.send(pair[1], {
@@ -483,11 +488,11 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
-  private acceptSpectator(goi: boolean): Response {
+  private acceptSpectator(goi: boolean, bv: number): Response {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], ['spectator']);
-    pair[1].serializeAttachment({ playerId: '', goi } satisfies Attachment);
+    pair[1].serializeAttachment({ playerId: '', goi, bv } satisfies Attachment);
     this.send(pair[1], {
       t: 'welcome', playerId: '', token: '', spectator: true, room: this.roomInfo()
     });
@@ -1194,7 +1199,7 @@ export class RoomDO extends DurableObject<Env> {
     try {
       const kem = this.predealKem(msg);
       if (kem) ws.send(kem);
-      ws.send(this.gay(msg, this.hieuGoi(ws)));
+      ws.send(this.gay(msg, this.hieuGoi(ws), this.hieuBack(ws)));
     } catch { /* socket đã đóng */ }
   }
 
@@ -1202,6 +1207,13 @@ export class RoomDO extends DurableObject<Env> {
   private hieuGoi(ws: WebSocket): boolean {
     try {
       return (ws.deserializeAttachment() as Attachment | null)?.goi === true;
+    } catch { return false; }
+  }
+
+  /** Socket này có hiểu id mặt sau dạng `hoạ tiết.bảng màu` không (`?bv=2`). */
+  private hieuBack(ws: WebSocket): boolean {
+    try {
+      return ((ws.deserializeAttachment() as Attachment | null)?.bv ?? 1) >= 2;
     } catch { return false; }
   }
 
@@ -1213,11 +1225,18 @@ export class RoomDO extends DurableObject<Env> {
    * client nhận một cái view nửa nọ nửa kia. `unpackView` nhận cả hai dạng nên
    * bên nhận không cần biết bên gửi chọn dạng nào.
    */
-  private gay(msg: ServerMsg, hieuGoi: boolean): string {
-    if (hieuGoi && (msg.t === 'state' || msg.t === 'events') && 'cards' in msg.view) {
-      return JSON.stringify({ ...msg, view: packView(msg.view) });
+  private gay(msg: ServerMsg, hieuGoi: boolean, hieuBack: boolean): string {
+    let m = msg;
+    // Client chưa khai `?bv=2` chỉ biết sáu tên mặt sau cũ; gửi id mới cho nó là
+    // không class nào khớp và mặt sau ra Ô TRẮNG TRƠN giữa ván.
+    if (!hieuBack && (m.t === 'state' || m.t === 'events' || m.t === 'welcome')
+        && 'view' in m && m.view) {
+      m = { ...m, view: { ...m.view, back: backVeCu(m.view.back) } } as ServerMsg;
     }
-    return JSON.stringify(msg);
+    if (hieuGoi && (m.t === 'state' || m.t === 'events') && 'cards' in m.view) {
+      return JSON.stringify({ ...m, view: packView(m.view) });
+    }
+    return JSON.stringify(m);
   }
 
   /**
@@ -1285,16 +1304,22 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private broadcast(msg: ServerMsg, exceptWelcomeFor?: string): void {
-    // HAI bản: phòng có thể vừa có client mới vừa có client cũ trong cache
-    // service worker. Dựng lười, phòng thường chỉ dùng một trong hai.
-    let goiRoi: string | undefined;
-    let dayDu: string | undefined;
+    // BỐN bản: phòng có thể vừa có client mới vừa có client cũ trong cache
+    // service worker, và có HAI thứ khai riêng — dạng view gọn (`?pv=1`) và dạng
+    // id mặt sau (`?bv=2`). Dựng LƯỜI theo từng tổ hợp thực sự có trong phòng;
+    // phòng thường chỉ dùng một bản.
+    const ban = new Map<string, string>();
+    const layBan = (goi: boolean, back: boolean): string => {
+      const khoa = `${goi ? 'g' : '-'}${back ? 'b' : '-'}`;
+      let v = ban.get(khoa);
+      if (v === undefined) ban.set(khoa, v = this.gay(msg, goi, back));
+      return v;
+    };
     const kem = this.predealKem(msg, true);
     for (const ws of this.ctx.getWebSockets()) {
       try {
         if (kem) ws.send(kem);
-        if (this.hieuGoi(ws)) ws.send(goiRoi ??= this.gay(msg, true));
-        else ws.send(dayDu ??= this.gay(msg, false));
+        ws.send(layBan(this.hieuGoi(ws), this.hieuBack(ws)));
       } catch { /* bỏ qua socket chết */ }
     }
     void exceptWelcomeFor;

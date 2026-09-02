@@ -22,11 +22,41 @@ const props = defineProps<{
   swapFrom?: { dx: number; dy: number; sign: number };
   /** Đã bấm, đang chờ server xác nhận (ván online). */
   pending?: boolean;
-  /** Kiểu mặt sau của ván này: stars | diamond | aurora. */
+  /** Mặt sau của ván này, dạng `<hoạ tiết>.<bảng màu>` (ví dụ `xoay.cham`).
+   *  Nhận cả sáu tên CŨ (`stars`…) vì server có thể gửi dạng đó cho client chưa
+   *  khai `?bv=2`, và ván offline khôi phục từ sessionStorage của bản cũ cũng
+   *  mang tên cũ — xem `lopMatSau`. */
   back: string;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
+
+/**
+ * Hai class của mặt sau, tách từ một id.
+ *
+ * Hoạ tiết và bảng màu là hai class riêng (`bk-ht-*` + `bk-mau-*`) nên 10 + 7
+ * khối CSS phủ được 70 mặt sau — xem `styles/card-backs.css`.
+ *
+ * Ba đường vào phải chịu được, thiếu đường nào là mặt sau ra Ô TRẮNG TRƠN:
+ *  - id mới `xoay.cham`;
+ *  - sáu tên CŨ (`stars`…): server hạ về dạng đó cho client chưa khai `?bv=2`,
+ *    và ván offline khôi phục từ sessionStorage của một bản cũ cũng mang tên cũ;
+ *  - id LẠ hoặc rỗng (bản dựng lệch, dữ liệu hỏng) — rơi về `sao.tim`.
+ */
+const CU_SANG_MOI: Record<string, string> = {
+  stars: 'sao.tim',
+  diamond: 'thoi.cham',
+  aurora: 'cuc-quang.cham',
+  leaf: 'la.luc',
+  ember: 'lua.cam',
+  ocean: 'song.lam'
+};
+
+const lopMatSau = computed<string[]>(() => {
+  const id = CU_SANG_MOI[props.back] ?? props.back ?? '';
+  const [ht, mau] = id.split('.');
+  return [`bk-ht-${ht || 'sao'}`, `bk-mau-${mau || 'tim'}`];
+});
 
 /**
  * Huy hiệu thẻ đặc biệt trên MẶT TRƯỚC lá bài. Dùng CÙNG bộ icon với bảng Luật
@@ -199,7 +229,7 @@ const label = computed(() => {
     @click="!disabled && !matched && emit('flip', card.index)"
   >
     <span class="inner">
-      <span class="face back" :class="`bk-${back}`" aria-hidden="true"></span>
+      <span class="face back" :class="lopMatSau" aria-hidden="true"></span>
       <span class="face front" aria-hidden="true">
         {{ card.symbol }}
         <span v-if="card.power && !card.powerUsed" class="badge">
@@ -372,12 +402,10 @@ const label = computed(() => {
   box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, .3),
     inset 0 0 0 2px rgba(255, 255, 255, .12);
 }
-/* Hình của từng mặt sau nằm ở `styles/card-backs.css` — thêm/xoá một kiểu chỉ
-   đụng file đó và CARD_BACKS ở engine. Ở đây chỉ còn phần chung của mọi mặt sau.
-   (mặt sau PHẢI giống hệt nhau trên cả bàn, khác đi là "đánh dấu bài") */
-/* Ba mặt sau MÀU KHÁC — cùng khuôn SVG 100x133 và cùng `center / 100% 100%`
-   nên mọi lá trên bàn vẫn giống hệt nhau (khác đi là đánh dấu bài). */
-/* Vệt sáng lướt ngang khi hover */
+/* Hoạ tiết và gradient của từng mặt sau nằm ở `styles/card-backs.css` (mặt nạ +
+   bảng màu, 10 × 7). Ở đây chỉ còn phần chung của mọi mặt sau.
+   Cả bàn dùng CHUNG một mặt sau — khác nhau giữa các lá là "đánh dấu bài". */
+/* Vệt sáng lướt ngang khi hover. Dùng `::after` nên hoạ tiết phải ở `::before`. */
 .back::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .28) 50%, transparent 62%);
