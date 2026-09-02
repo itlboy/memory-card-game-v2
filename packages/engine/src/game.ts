@@ -8,6 +8,16 @@ import type {
   Card, GameConfig, GameEvent, GameStatus, Player, PlayerInit, Power, Summary
 } from './types.js';
 
+/**
+ * Trần tổng thời gian đồng hồ lượt được phép ĐỨNG trong một lượt.
+ *
+ * 30 giây: đủ để đi qua một cú nghẽn mạng di động dài (đường hầm, thang máy,
+ * chuyển trạm) mà không mất lượt, nhưng không đủ để một client câm biến ván
+ * thành treo. Người mất mạng thật quá mốc này chưa mất gì cả — họ chỉ mất
+ * lượt, còn chỗ trong phòng vẫn được giữ tới `ROOM_LIMITS.reconnectMs`.
+ */
+export const TURN_PAUSE_CAP_MS = 30_000;
+
 /** Chơi đơn không có 'freeze' (không có đối thủ để đóng băng). */
 /** Chơi đơn có đủ mọi thứ TRỪ Đóng băng — không có đối thủ nào để đóng băng. */
 const SOLO_POWERS: readonly Power[] = ['bomb', 'swap', 'x2'];
@@ -64,6 +74,17 @@ export class MemoryGame {
    * đồng hồ hệ thống, mọi thời điểm đi qua tham số `now`.
    */
   turnPausedAt = 0;
+  /**
+   * Đã dừng tổng cộng bao nhiêu ms trong LƯỢT NÀY (không tính lần đang dừng).
+   *
+   * Có để chặn trần: dừng đồng hồ dựa vào việc người chơi còn gửi nhịp sống
+   * hay không, mà đó là thứ ta không kiểm soát nổi — client cũ nằm trong cache
+   * của service worker, một bản dựng lỗi, hay đơn giản là ai đó nối bằng công
+   * cụ riêng. Dừng KHÔNG CÓ TRẦN thì những ca đó làm ván TREO HẲN, tệ hơn hẳn
+   * cái nó định chữa (mất một lượt). Quá trần thì đồng hồ chạy tiếp, hết giờ
+   * chuyển lượt như thường — người mất mạng thật vẫn còn hạn giữ chỗ 5 phút.
+   */
+  turnPausedMs = 0;
   /** Thời gian được cộng thêm nhờ ghép đúng (Đua thời gian). Tách khỏi
    *  `startedAt` để `elapsed()` vẫn là thời gian thực đã chơi. */
   private extraTimeMs = 0;
@@ -132,8 +153,7 @@ export class MemoryGame {
   turnTimeLeft(now: number): number | null {
     if (!this.turnDeadline || this.finished) return null;
     // Đang tạm dừng: đóng băng ở con số lúc dừng, đừng để nó tiếp tục tụt.
-    const moc = this.turnPausedAt || now;
-    return Math.max(0, (this.turnDeadline - moc) / 1000);
+    return Math.max(0, (this.turnDeadline - this.mocLuot(now)) / 1000);
   }
 
   /**
@@ -149,7 +169,31 @@ export class MemoryGame {
 
   tamDungLuot(now: number): void {
     if (!this.turnDeadline || this.turnPausedAt || this.finished) return;
+    if (this.turnPausedMs >= TURN_PAUSE_CAP_MS) return;   // hết quota dừng của lượt này
     this.turnPausedAt = now;
+  }
+
+  /**
+   * Mốc thời gian mà đồng hồ lượt "đang thấy".
+   *
+   * Đang dừng thì đồng hồ đứng ở lúc bắt đầu dừng — nhưng CHỈ TỚI HẾT TRẦN.
+   * Quá trần rồi thì thời gian chạy tiếp như không có gì, kể cả khi chưa ai gỡ
+   * tạm dừng. Nhờ vậy quên gỡ (hoặc không bao giờ gỡ được) không làm ván treo.
+   */
+  private mocLuot(now: number): number {
+    return now - this.buDuoc(now);
+  }
+
+  /**
+   * Lần dừng ĐANG diễn ra được bù bao nhiêu ms — tối đa là quota còn lại.
+   *
+   * Trong trần thì bằng đúng thời gian đã dừng (đồng hồ đứng yên); vượt trần
+   * thì dừng ở quota còn lại, và từ đó thời gian chạy tiếp như thường.
+   */
+  private buDuoc(now: number): number {
+    if (!this.turnPausedAt) return 0;
+    const conDuoc = Math.max(0, TURN_PAUSE_CAP_MS - this.turnPausedMs);
+    return Math.min(Math.max(0, now - this.turnPausedAt), conDuoc);
   }
 
   /**
@@ -158,7 +202,10 @@ export class MemoryGame {
    */
   chayTiepLuot(now: number): void {
     if (!this.turnPausedAt) return;
-    this.turnDeadline += now - this.turnPausedAt;
+    // Chỉ cộng bù phần NẰM TRONG TRẦN — phần vượt trần đồng hồ đã chạy rồi.
+    const bu = this.buDuoc(now);
+    this.turnDeadline += bu;
+    this.turnPausedMs += bu;
     this.turnPausedAt = 0;
   }
 
@@ -170,6 +217,7 @@ export class MemoryGame {
     // Lượt mới thì bỏ luôn trạng thái tạm dừng của lượt cũ — không thì người
     // sau nhận một đồng hồ đang đứng im.
     this.turnPausedAt = 0;
+    this.turnPausedMs = 0;
     if (this.turnLimitMs) this.turnDeadline = now + this.turnLimitMs;
   }
 
@@ -222,8 +270,8 @@ export class MemoryGame {
     // Không xử khi đang khoá — lượt đằng nào cũng sắp chuyển ở resolvePending.
     // `turnPausedAt`: người đang đi mất kết nối thì đồng hồ đứng, không xử hết
     // giờ — nếu không, họ mất lượt vì cái không phải lỗi của mình.
-    if (this.status === 'playing' && !this.locked && !this.turnPausedAt
-        && this.turnDeadline && now >= this.turnDeadline) {
+    if (this.status === 'playing' && !this.locked
+        && this.turnDeadline && this.mocLuot(now) >= this.turnDeadline) {
       const player = this.current;
       player.streak = 0;
       this.selection = [];
@@ -526,6 +574,7 @@ export class MemoryGame {
     this.pendingUntil = 0;
     this.turnDeadline = 0;
     this.turnPausedAt = 0;
+    this.turnPausedMs = 0;
     this.selection = [];
 
     const seconds = Math.round(this.elapsed(now));
@@ -592,6 +641,7 @@ export class MemoryGame {
       pendingUntil: this.pendingUntil,
       turnDeadline: this.turnDeadline,
       turnPausedAt: this.turnPausedAt,
+      turnPausedMs: this.turnPausedMs,
       extraTimeMs: this.extraTimeMs,
       seen: [...this.seen],        // thiếu cái này thì sau F5 hoặc hibernation
       rngState: this.rng.state,    // engine "quên" thẻ nào đã lộ và phán xử sai
@@ -624,6 +674,7 @@ export class MemoryGame {
       pendingUntil: s.pendingUntil,
       turnDeadline: s.turnDeadline ?? 0,
       turnPausedAt: s.turnPausedAt ?? 0,
+      turnPausedMs: s.turnPausedMs ?? 0,
       extraTimeMs: (s.extraTimeMs as number | undefined) ?? 0,
       seen: new Set((s.seen as number[] | undefined) ?? []),
       rng: Rng.fromState(s.rngState as number),

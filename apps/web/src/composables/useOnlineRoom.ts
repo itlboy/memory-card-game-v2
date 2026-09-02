@@ -1,4 +1,4 @@
-import { ROOM_LIMITS, isDraw } from '@mm/engine';
+import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
   ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
@@ -224,6 +224,18 @@ export function useOnlineRoom() {
    */
   const ackTimers = new Map<number, ReturnType<typeof setTimeout>>();
   /**
+   * Số thứ tự nước lật, để server bỏ được tin TRÙNG và nhờ vậy ta DÁM GỬI LẠI.
+   *
+   * Khởi tạo bằng `Date.now()` chứ không phải 0: tải lại trang giữa ván mà đếm
+   * lại từ đầu là mọi nước đi mới rơi vào vùng "đã xử rồi" của server và bị
+   * nuốt sạch — im lặng, không lỗi nào hiện ra. Mốc thời gian thì lần sau bao
+   * giờ cũng lớn hơn lần trước. `welcome.flipSeq` còn kéo nó lên trên con số
+   * server đang giữ, phòng khi đồng hồ máy bị chỉnh lùi.
+   */
+  let flipSeq = Date.now();
+  /** `seq` đã dùng cho từng ô đang chờ — gửi lại phải giữ NGUYÊN số cũ. */
+  const seqCuaO = new Map<number, number>();
+  /**
    * ĐẾM số view server đã gửi. Dùng để phân biệt hai ca rất khác nhau: server im
    * hẳn (phải vào lại) và server có trả lời nhưng BỎ QUA nước bấm (chỉ cần thả ô
    * ra, vào lại là vô ích và còn làm giật màn hình).
@@ -246,6 +258,7 @@ export function useOnlineRoom() {
   /** Bỏ một ô khỏi `pending` và huỷ hẹn giờ của nó. */
   function unpend(index: number): void {
     clearAck(index);
+    seqCuaO.delete(index);
     if (!pending.value.has(index)) return;
     pending.value = new Set([...pending.value].filter((i) => i !== index));
   }
@@ -408,7 +421,9 @@ export function useOnlineRoom() {
       if (!stuckSince) stuckSince = clock.value;
       else if (clock.value - stuckSince >= STUCK_MS) {
         stuckSince = 0;
-        reconnectNow('Bàn không phản hồi — đang đồng bộ lại…');
+        // Xin lại trạng thái trên socket đang mở TRƯỚC. Chỉ khi cả cái đó cũng
+        // không đi được mới mở lại kết nối — thang rẻ trước, đắt sau.
+        if (!send({ t: 'resync' })) reconnectNow('Bàn không phản hồi — đang đồng bộ lại…');
       }
     } else stuckSince = 0;
 
@@ -536,6 +551,54 @@ export function useOnlineRoom() {
     reconnecting.value = false;
   }
 
+  /**
+   * Gửi lại những nước lật chưa được xác nhận, sau khi nối lại xong.
+   *
+   * Đây là nửa còn lại của `seq`: giữ `pending` qua lần vào lại mới chỉ để cái
+   * ô còn đứng đó chờ, phải có ai đó gửi lại thì nó mới thành nước đi. Giữ
+   * NGUYÊN `seq` cũ, không cấp số mới — số cũ mới là thứ cho server nhận ra
+   * đây vẫn là nước đi ấy chứ không phải một nước thứ hai.
+   */
+  function guiLaiChoGui(): void {
+    for (const index of pending.value) {
+      const seq = seqCuaO.get(index);
+      if (seq === undefined) { unpend(index); continue; }
+      if (!send({ t: 'flip', index, seq })) return;
+      canhAck(index);
+    }
+  }
+
+  /**
+   * Canh xác nhận cho MỘT ô: server nhận được thì view về trong vài chục ms.
+   *
+   * Quá `FLIP_ACK_MS` mà im lặng thì GỬI LẠI — chứ không thả ô ra và bỏ nước đi
+   * như bản trước. Bản trước không dám gửi lại vì tin không có danh tính (nước
+   * đầu có thể đã tới, gửi lại thành lật thêm một thẻ); nay có `seq` nên server
+   * bỏ được tin trùng, và gửi lại là việc đúng đắn nhất một game đi lần lượt
+   * nên làm.
+   *
+   * Thử hai lần rồi mới `resync` (một tin nhỏ trên socket đang mở), rồi mới
+   * tính tới chuyện mở lại socket. Thang này đi từ RẺ tới ĐẮT, ngược hẳn với
+   * bản trước — bản trước gặp nghi ngờ đầu tiên đã mở lại socket, mà bắt tay
+   * lại chính là thứ dễ hỏng nhất trên mạng yếu.
+   */
+  function canhAck(index: number, lan = 0): void {
+    clearAck(index);
+    const viewsLucBam = viewCount;
+    ackTimers.set(index, setTimeout(() => {
+      ackTimers.delete(index);
+      if (!pending.value.has(index)) return;
+      const seq = seqCuaO.get(index);
+      if (seq === undefined) return unpend(index);
+      if (lan < 2 && send({ t: 'flip', index, seq })) return canhAck(index, lan + 1);
+      if (lan < 3 && send({ t: 'resync' })) return canhAck(index, lan + 1);
+      // Hết đường rẻ: thả ô ra (ô treo ở 90 độ trông như MẤT thẻ) rồi nối lại.
+      const serverConNoi = viewCount > viewsLucBam;
+      unpend(index);
+      if (!serverConNoi) reconnectNow('Mạng chậm — đang đồng bộ lại…');
+    }, FLIP_ACK_MS));
+  }
+
   function reconnectNow(why: string): void {
     if (!code || !token || dangNoiLai) return;
     netTrouble.value = why;
@@ -614,6 +677,12 @@ export function useOnlineRoom() {
           return;
         }
       }
+      // HẾT ĐƯỜNG. Thả nốt những ô đang chờ: nay `pending` được giữ qua các lần
+      // vào lại (để gửi lại nước đi), nên chỗ này là lối duy nhất dọn nó — bỏ
+      // sót là ô nằm treo ở 90 độ trên màn lỗi, trông như bàn mất thẻ.
+      clearAck();
+      pending.value = new Set();
+      seqCuaO.clear();
       phase.value = 'error';
       error.value ||= 'Mất kết nối với phòng.';
     };
@@ -630,6 +699,10 @@ export function useOnlineRoom() {
         tatNoiLai();
         reconnectDeadline = 0;
         room.value = msg.room;
+        // Bộ đếm phải nằm TRÊN con số server đang giữ, không thì nước đi mới bị
+        // chốt chống trùng nuốt — xem `flipSeq`.
+        if (typeof msg.flipSeq === 'number' && msg.flipSeq >= flipSeq) flipSeq = msg.flipSeq + 1;
+        guiLaiChoGui();
         if (msg.spectator) {
           // Khán giả: phòng đã bắt đầu / đầy — chỉ xem, không lưu phiên
           phase.value = msg.room.status === 'ended' ? 'ended' : 'playing';
@@ -669,13 +742,15 @@ export function useOnlineRoom() {
         if (msg.room.status === 'ended') endSession();
         break;
 
-      case 'state':
-        view.value = msg.view;
-        settlePending(msg.view);
-        syncTurnClock(msg.view);
-        if (msg.view.status === 'playing' || room.value?.status === 'countdown') phase.value = 'playing';
-        if (msg.view.summary) endSession();
+      case 'state': {
+        const v = unpackView(msg.view);
+        view.value = v;
+        settlePending(v);
+        syncTurnClock(v);
+        if (v.status === 'playing' || room.value?.status === 'countdown') phase.value = 'playing';
+        if (v.summary) endSession();
         break;
+      }
 
       case 'countdown':
         countdown.value = {
@@ -690,21 +765,24 @@ export function useOnlineRoom() {
         break;
 
       case 'predeal':
-        // Nhận lại cả bàn mỗi lần server gửi view. Cố ý làm vậy: xáo thẻ và thẻ
-        // đặc biệt Tráo đổi đổi chỗ thẻ giữa ván, nên bản đồ theo index sẽ lệch;
-        // nhận lại cả bàn thì không bao giờ lệch, khỏi cần lớp đồng bộ nào.
+        // Cả bàn, gửi khi bàn ĐỔI CHỖ THẺ (xáo thẻ, thẻ Tráo đổi) và mỗi khi
+        // server nói riêng với một socket. Trước đây gửi kèm MỌI view — đúng
+        // nhưng tốn ~1KB thừa sau mỗi nước lật trên bàn 88 thẻ, vì bàn có đổi
+        // đâu. Vẫn không cần lớp đồng bộ nào: cứ nhận là thay trọn bản đồ.
         predeal.value = new Map(
           Object.entries(msg.symbols).map(([i, sym]) => [Number(i), sym]),
         );
         break;
 
-      case 'events':
-        applyEvents(msg.events, msg.view);
-        view.value = msg.view;
-        settlePending(msg.view);
-        syncTurnClock(msg.view);
-        if (msg.view.status === 'playing') phase.value = 'playing';
+      case 'events': {
+        const v = unpackView(msg.view);
+        applyEvents(msg.events, v);
+        view.value = v;
+        settlePending(v);
+        syncTurnClock(v);
+        if (v.status === 'playing') phase.value = 'playing';
         break;
+      }
 
       case 'closed':
         /*
@@ -957,11 +1035,11 @@ export function useOnlineRoom() {
 
   function leaveSocket(): void {
     clearTimeout(reconnectTimer);
-    // Xoá hẹn giờ thì PHẢI xoá luôn `pending`: bỏ hẹn giờ mà giữ ô đang chờ là ô
-    // đó treo vĩnh viễn ở 90 độ — trông như mất thẻ. Vào lại xong server gửi
-    // view thật nên không mất thông tin gì.
+    // GIỮ `pending` qua lần vào lại — trước đây xoá sạch ở đây, nên chớp mạng
+    // đúng lúc bấm là cú bấm bốc hơi. Nay nước đi được GỬI LẠI sau khi nối
+    // (`guiLaiChoGui`), an toàn nhờ chốt chống trùng theo `seq` ở server. Vẫn
+    // xoá hẹn giờ: hẹn cũ đếm từ trước lúc rớt, để lại là nó nổ ngay khi vừa về.
     clearAck();
-    pending.value = new Set();
     stopHeartbeat();
     if (ws) {
       intentionalClose = true;
@@ -1143,29 +1221,17 @@ export function useOnlineRoom() {
       if (upNow + pending.value.size >= 2) return;  // đã đủ hai ô cho lượt này
 
       pending.value = new Set(pending.value).add(index);
+      const seq = ++flipSeq;
+      seqCuaO.set(index, seq);
       sfx.flip();
-      if (!send({ t: 'flip', index })) {
-        // Socket không mở: nước bấm này ĐÃ MẤT. Nói ra và vào lại ngay, đừng để
-        // người chơi bấm vào chỗ không ai nghe cho tới khi hết lượt.
-        unpend(index);
+      if (!send({ t: 'flip', index, seq })) {
+        // Socket không mở. KHÔNG bỏ nước đi nữa: giữ nguyên ô đang chờ, nối lại
+        // rồi `guiLaiChoGui()` gửi lại đúng nước ấy với đúng `seq` ấy.
         reconnectNow('Mất kết nối — đang vào lại…');
         return;
       }
       netTrouble.value = '';
-      // Canh xác nhận RIÊNG cho ô này: server nhận được thì view về trong vài
-      // chục ms. Quá FLIP_ACK_MS mà im lặng thì hoặc tin bị rơi, hoặc socket
-      // chết mà readyState vẫn báo OPEN (iOS treo kết nối đúng kiểu này) — thả ô
-      // ra rồi vào lại lấy trạng thái thật, KHÔNG gửi lại nước cũ (nước đầu có
-      // thể đã tới, gửi lại thành lật thêm một thẻ).
-      clearAck(index);
-      const viewsLucBam = viewCount;
-      ackTimers.set(index, setTimeout(() => {
-        ackTimers.delete(index);
-        if (!pending.value.has(index)) return;
-        const serverConNoi = viewCount > viewsLucBam;
-        unpend(index);          // thả ô ra trước: ô treo ở 90 độ trông như MẤT thẻ
-        if (!serverConNoi) reconnectNow('Mạng chậm — đang đồng bộ lại…');
-      }, FLIP_ACK_MS));
+      canhAck(index);
     },
     pending,
     sendEmoji,

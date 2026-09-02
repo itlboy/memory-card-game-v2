@@ -6,9 +6,18 @@ import { effectScope, type EffectScope } from 'vue';
  * Nước bấm KHÔNG TỚI ĐƯỢC SERVER thì phải cứu được lượt.
  *
  * Lỗi thật đã bị phản ánh: "bấm rồi mà server không phản hồi, người chơi bị quá
- * giờ luôn và không được bấm lại". Hai nguyên nhân: `send()` âm thầm bỏ tin khi
- * socket không mở, và nhịp tim phải 3 nhịp × 4 giây = 12 giây mới kết luận socket
- * chết — trong khi một lượt chỉ có 15 giây.
+ * giờ luôn và không được bấm lại".
+ *
+ * HỢP ĐỒNG NAY ĐÃ ĐỔI, và đây là chỗ ghi lại nó. Bản trước, gặp im lặng là
+ * THẢ Ô RA VÀ BỎ NƯỚC ĐI, rồi mở lại socket — không dám gửi lại, vì trên dây
+ * một nước cũ gửi lại trông y hệt lật thêm một thẻ. Nay mỗi nước mang `seq`,
+ * server bỏ tin trùng, nên thang xử lý đi từ RẺ tới ĐẮT:
+ *   1,5s im  → GỬI LẠI đúng nước ấy với đúng `seq` ấy
+ *   3,0s im  → gửi lại lần nữa
+ *   4,5s im  → `resync` (xin lại trạng thái trên socket đang mở)
+ *   6,0s im  → lúc đó mới thả ô và mở lại kết nối
+ * Ngược hẳn bản trước: bản trước gặp nghi ngờ đầu tiên đã đập kết nối, mà bắt
+ * tay TCP+TLS+WS lại đúng là thứ dễ hỏng nhất trên mạng yếu.
  */
 
 /** WebSocket giả: mở/đóng theo lệnh, ghi lại tin đã gửi. */
@@ -25,12 +34,33 @@ class FakeWS {
     FakeWS.last = this;
     FakeWS.opened++;
   }
+  /**
+   * Có tự trả `pong` không.
+   *
+   * Nhịp tim kết luận socket chết sau 2 nhịp hụt (6 giây) rồi tự mở lại kết
+   * nối. Trong đời thật server trả lời nên chuyện đó không xảy ra; ở test mà
+   * để im thì đúng giây thứ 6 nhịp tim nhảy vào và che mất thang xử lý đang đo.
+   */
+  tuPong = true;
   open(): void { this.readyState = 1; this.onopen?.(); }
-  send(data: string): void { this.sent.push(data); }
+  send(data: string): void {
+    this.sent.push(data);
+    if (this.tuPong && (JSON.parse(data) as { t: string }).t === 'ping') {
+      queueMicrotask(() => this.onmessage?.({ data: JSON.stringify({ t: 'pong' }) }));
+    }
+  }
   close(): void { this.readyState = 3; }
   get flips(): number[] {
     return this.sent.map((s) => JSON.parse(s) as { t: string; index?: number })
       .filter((m) => m.t === 'flip').map((m) => m.index!);
+  }
+  /** Các `seq` đã gửi kèm nước lật ô này — gửi lại phải giữ NGUYÊN số cũ. */
+  seqCua(index: number): number[] {
+    return this.sent.map((s) => JSON.parse(s) as { t: string; index?: number; seq?: number })
+      .filter((m) => m.t === 'flip' && m.index === index).map((m) => m.seq!);
+  }
+  dem(t: string): number {
+    return this.sent.filter((s) => (JSON.parse(s) as { t: string }).t === t).length;
   }
 }
 
@@ -86,8 +116,10 @@ describe('nước bấm bị rơi', () => {
 
     room.flip(4);
     expect(room.netTrouble.value, 'phải nói ra là mất kết nối').not.toBe('');
-    expect(room.pending.value.has(4), 'không để thẻ treo ở trạng thái chờ').toBe(false);
-    expect(FakeWS.opened, 'phải mở kết nối mới NGAY, không chờ 12 giây nhịp tim')
+    // GIỮ ô lại, khác hẳn bản trước. Nối lại xong nước đi được gửi lại — bỏ nó
+    // ở đây là cú bấm bốc hơi đúng lúc mạng chớp, đúng lỗi người chơi báo.
+    expect(room.pending.value.has(4), 'nước đi phải được giữ để gửi lại').toBe(true);
+    expect(FakeWS.opened, 'phải mở kết nối mới NGAY, không chờ nhịp tim')
       .toBeGreaterThan(soLanMo);
   });
 
@@ -99,18 +131,40 @@ describe('nước bấm bị rơi', () => {
     expect(room.pending.value.has(7), 'đang chờ xác nhận').toBe(true);
 
     vi.advanceTimersByTime(1400);
-    expect(FakeWS.opened, 'chưa tới hạn thì đừng vội vào lại').toBe(soLanMo);
+    expect(ws.flips.filter((i) => i === 7), 'chưa tới hạn thì đừng vội').toHaveLength(1);
 
     vi.advanceTimersByTime(300);
-    expect(room.netTrouble.value).not.toBe('');
-    expect(FakeWS.opened, 'quá hạn thì vào lại để lấy trạng thái thật').toBeGreaterThan(soLanMo);
+    expect(ws.flips.filter((i) => i === 7), 'quá hạn thì GỬI LẠI').toHaveLength(2);
+    expect(FakeWS.opened, 'gửi lại là đủ, chưa cần đập kết nối').toBe(soLanMo);
   });
 
-  it('KHÔNG gửi lại nước cũ khi đồng bộ — gửi lại có thể thành lật thêm một thẻ', async () => {
+  it('gửi lại phải giữ NGUYÊN seq — số mới thì server hiểu thành lật thêm thẻ', async () => {
     const ws = await enterRoom();
     room.flip(9);
-    vi.advanceTimersByTime(2000);
-    expect(ws.flips.filter((i) => i === 9)).toHaveLength(1);
+    vi.advanceTimersByTime(5000);
+    const seqs = ws.seqCua(9);
+    expect(seqs.length, 'phải có gửi lại').toBeGreaterThan(1);
+    expect(new Set(seqs).size, 'mỗi lần một seq mới = lật thêm thẻ ở server').toBe(1);
+  });
+
+  it('thang xử lý đi từ RẺ tới ĐẮT: gửi lại → resync → mới mở lại socket', async () => {
+    const ws = await enterRoom();
+    const soLanMo = FakeWS.opened;
+    room.flip(9);
+
+    vi.advanceTimersByTime(1600);
+    expect(ws.flips.filter((i) => i === 9), '1,5s: gửi lại').toHaveLength(2);
+    vi.advanceTimersByTime(1500);
+    expect(ws.flips.filter((i) => i === 9), '3s: gửi lại lần nữa').toHaveLength(3);
+    expect(ws.dem('resync'), 'chưa tới lượt resync').toBe(0);
+
+    vi.advanceTimersByTime(1500);
+    expect(ws.dem('resync'), '4,5s: xin lại trạng thái trên socket đang mở').toBe(1);
+    expect(FakeWS.opened, 'vẫn chưa đập kết nối').toBe(soLanMo);
+
+    vi.advanceTimersByTime(1500);
+    expect(room.pending.value.has(9), '6s: hết đường rẻ, thả ô ra').toBe(false);
+    expect(FakeWS.opened, 'và mới mở lại kết nối').toBeGreaterThan(soLanMo);
   });
 
   it('server trả lời kịp thì không báo sự cố gì', async () => {
@@ -183,16 +237,35 @@ describe('chặn cú bấm server chắc chắn bỏ qua', () => {
     expect(ws.flips.length, 'bấm lại cùng ô').toBe(sauMotO);
   });
 
-  it('bấm dồn hai ô hợp lệ thì CẢ HAI đều được thả ra sau hạn, không ô nào treo lại', async () => {
+  it('bấm dồn hai ô thì MỖI Ô một hẹn giờ riêng — không ô nào bị bỏ quên', async () => {
     const ws = await enterRoom();
     guiView(ws, 'p1');
     room.flip(0);
     room.flip(1);
     expect(room.pending.value.size).toBe(2);
     // Server im: mỗi ô phải có hẹn giờ RIÊNG. Dùng chung một hẹn giờ là chỉ ô
-    // cuối được thả, ô kia treo vĩnh viễn ở 90 độ — đúng lỗi "mất thẻ" đã gặp.
-    vi.advanceTimersByTime(2000);
-    expect(room.pending.value.size, 'không ô nào được treo lại').toBe(0);
+    // cuối được lo, ô kia không bao giờ được gửi lại — đúng lỗi "mất thẻ" đã gặp.
+    vi.advanceTimersByTime(1600);
+    expect(ws.flips.filter((i) => i === 0), 'ô 0 được gửi lại').toHaveLength(2);
+    expect(ws.flips.filter((i) => i === 1), 'ô 1 cũng vậy').toHaveLength(2);
+  });
+
+  it('hết hạn giữ chỗ mà vẫn không nối lại được thì THẢ hết ô đang chờ', async () => {
+    // `pending` nay được giữ qua các lần vào lại để còn gửi lại nước đi, nên
+    // nhánh bỏ cuộc là lối DUY NHẤT dọn nó. Bỏ sót là ô nằm treo ở 90 độ ngay
+    // trên màn báo lỗi, trông như bàn mất thẻ.
+    const ws = await enterRoom();
+    guiView(ws, 'p1');
+    room.flip(0);
+    room.flip(1);
+    ws.readyState = 3;
+    // Lần đóng ĐẦU chỉ đặt hạn giữ chỗ rồi hẹn thử lại — phải có nó trước, rồi
+    // mới tua qua hạn, thì lần đóng sau mới rơi vào nhánh bỏ cuộc.
+    ws.onclose?.({ code: 1006 } as never);
+    vi.setSystemTime(Date.now() + 10 * 60_000);   // quá hạn giữ chỗ 5 phút
+    FakeWS.last!.onclose?.({ code: 1006 } as never);
+    expect(room.phase.value).toBe('error');
+    expect(room.pending.value.size, 'ô treo lại trên màn lỗi').toBe(0);
   });
 });
 
@@ -214,9 +287,10 @@ describe('bàn treo thì phải nói ra và tự đồng bộ', () => {
     vi.advanceTimersByTime(1000);
     expect(room.netTrouble.value, 'chưa tới hạn thì đừng vội báo').toBe('');
     vi.advanceTimersByTime(4000);
-    expect(room.netTrouble.value, 'phải NÓI RA, không để người chơi ngồi nhìn màn hình chết')
-      .not.toBe('');
-    expect(FakeWS.opened, 'và tự đồng bộ lại').toBeGreaterThan(soLanMo);
+    // Đồng bộ lại bằng `resync` trên socket đang mở — RẺ hơn hẳn mở lại kết nối,
+    // và đúng lúc mạng yếu thì bắt tay lại mới là thứ dễ hỏng nhất.
+    expect(ws.dem('resync'), 'phải tự đồng bộ lại').toBeGreaterThan(0);
+    expect(FakeWS.opened, 'chưa cần đập kết nối khi socket vẫn đi được').toBe(soLanMo);
   });
 });
 
@@ -226,7 +300,7 @@ describe('mất mạng: bàn phải khoá và nói ra', () => {
     ws.readyState = 3;                       // socket chết
     const truoc = ws.flips.length;
     room.flip(4);
-    expect(ws.flips.length).toBe(truoc);
+    expect(ws.flips.length, 'socket chết thì không gửi vào hư không').toBe(truoc);
     expect(room.netTrouble.value).not.toBe('');
   });
 

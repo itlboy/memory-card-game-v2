@@ -1,3 +1,4 @@
+import { moGoiTin } from './lib-view.mjs';
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json()).code;
 // Hạn chờ 5 giây: server từ chối (404) thì `onopen` KHÔNG BAO GIỜ chạy, và
@@ -8,7 +9,7 @@ const mk = (code, name) => new Promise((res, rej) => {
   const ws = new WebSocket(`${SERVER.replace('http','ws')}/ws/${code}?name=${name}`);
   const c = { ws, msgs: [], closed: null };
   const hetgio = setTimeout(() => rej(new Error(`không mở được socket vào phòng ${code}`)), 5000);
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onclose = (e) => { c.closed = e.code; };
   ws.onerror = () => { clearTimeout(hetgio); rej(new Error(`socket lỗi khi vào phòng ${code}`)); };
   ws.onopen = () => { clearTimeout(hetgio); res(c); };

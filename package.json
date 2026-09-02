@@ -29,6 +29,7 @@
     "docker:build": "docker build -f apps/node-server/Dockerfile -t lat-the-server .",
     "docker:run": "docker run --rm -p 8080:8080 lat-the-server",
     "smoke:kho": "node tools/smoke-kho.mjs",
+    "smoke:guilai": "node tools/smoke-guilai.mjs",
     "smoke:kick": "node tools/smoke-kick.mjs"
   },
   "packageManager": "pnpm@10.0.0"

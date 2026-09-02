@@ -1,3 +1,4 @@
+import { moGoiTin } from './lib-view.mjs';
 /**
  * Chống spam emoji (ROOM_LIMITS.emojiBurst lần / emojiWindowMs) — E2E thật qua wrangler dev.
  * Chạy: pnpm dev:server (hoặc pnpm dev) rồi `node tools/smoke-chat-limit.mjs`.
@@ -19,7 +20,7 @@ const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 
 const mk = (code, name) => new Promise((res) => {
   const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${name}`);
   const c = { name, ws, msgs: [], send: (m) => ws.send(JSON.stringify(m)) };
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onopen = () => res(c);
 });
 

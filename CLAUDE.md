@@ -246,6 +246,40 @@
   Móc gửi đặt trong `send`/`broadcast` của room.ts, KHÔNG rải ở từng chỗ dựng view —
   rải ra là có ngày thêm đường gửi mà quên. Gửi lại cả bàn kèm MỖI view (không chỉ lúc
   bắt đầu) vì xáo thẻ và thẻ Tráo đổi đổi chỗ thẻ giữa ván, bản đồ theo index sẽ lệch.
+- **NƯỚC ĐI PHẢI GỬI LẠI ĐƯỢC — đây là lý do thật khiến game đi lần lượt vẫn
+  hỏng vì mạng.** Mỗi `flip` mang `seq` tăng dần của riêng người gửi, server nhớ
+  `lastFlipSeq` và BỎ tin trùng (nhưng vẫn trả view, không thì người gửi ngồi
+  chờ tới hết lượt). Không có `seq` thì gửi lại một nước cũ trên dây trông y hệt
+  lật thêm một thẻ, nên client không dám gửi lại và nước đi rơi là mất luôn.
+  Client khởi tạo bộ đếm bằng `Date.now()` chứ không phải 0 — tải lại trang giữa
+  ván mà đếm lại từ đầu là mọi nước đi mới bị chốt chống trùng nuốt sạch, im
+  lặng, không lỗi nào hiện ra; `welcome.flipSeq` còn kéo nó lên trên số server
+  đang giữ. `pending` được GIỮ qua các lần vào lại và gửi lại sau khi nối
+  (`guiLaiChoGui`), nên nhánh bỏ cuộc là lối DUY NHẤT dọn nó.
+- **Thang xử lý sự cố đi từ RẺ tới ĐẮT**: 1,5s im → gửi lại · 3s → gửi lại ·
+  4,5s → `t:'resync'` (xin lại trạng thái trên socket ĐANG MỞ) · 6s → mới mở lại
+  socket. Đừng đảo lại: bắt tay TCP+TLS+WS chính là thứ dễ hỏng nhất trên mạng
+  yếu, nên lấy nó làm cách chữa đầu tiên là mạng càng yếu càng hỏng thêm.
+- **Đồng hồ lượt DỪNG khi người đang đi nghẽn mạng, nhưng CÓ TRẦN**
+  (`TURN_PAUSE_CAP_MS` 30 giây, cộng dồn trong một lượt, cấp lại mỗi lượt).
+  Trần là bắt buộc: việc dừng dựa vào nhịp `alive` do CLIENT gửi — bản cũ nằm
+  trong cache service worker, một bản dựng lỗi, hay ai đó nối bằng công cụ riêng
+  đều làm ván TREO HẲN, tệ hơn hẳn cái nó định chữa. Ngưỡng phát hiện nghẽn là
+  `LAG_MS` 7 giây ở room.ts, KHÁC `SILENT_MS` 20 giây (hai câu hỏi khác nhau:
+  "còn ở đây không" và "đường truyền có kịp đưa nước đi lên không"). Mọi mốc đẩy
+  vào `scheduleNext` PHẢI ở tương lai — mốc quá khứ làm alarm nổ vòng và nuốt
+  luôn những mốc khác (đo được: bàn Chớp nhoáng nằm hé mở 10,9 giây thay vì 3,6).
+- **`turnLimit` = `TURN_LIMIT_SEC` 25 giây, không phải 15.** 15 giây là gốc của
+  gần hết chuyện "mạng yếu là hỏng": ngưỡng phát hiện nghẽn phải ngắn hơn nó, mà
+  mạng di động nghẽn 5-10 giây là thường, nên 15 không chừa chỗ cho cơ chế cứu
+  nào. Neo test vào hằng số, đừng chép tay con số.
+- **VIEW GỬI Ở DẠNG GỌN** (`packView`/`unpackView`): bỏ mảng `cards`, chỉ mang
+  `n` và những ô KHÔNG úp trơn. Gói ở đúng hai hàm gửi của room.ts, không rải ra
+  từng chỗ dựng view. `unpackView` nhận CẢ HAI dạng nên bên nhận không cần biết
+  bên gửi chọn dạng nào. `predeal` chỉ phát cho cả phòng khi bàn THỰC SỰ đổi chỗ
+  thẻ (xáo thẻ, thẻ Tráo đổi); đường `send()` tới một socket thì vẫn gửi đủ.
+  Bộ smoke mở gói bằng `tools/lib-view.mjs`. Đo thật trên bàn 88 thẻ: 6 nước lật
+  từ 8.049 byte xuống 1.423.
 - Bot: người chơi đi `flip()` (có chốt chặn lượt), bot đi `applyFlip()`. Nhập
   một đường là bot tự chặn chính nó, ván treo. Bot phải `observe` MỖI KHUNG, nếu
   không nó mù trước mọi nước của đối thủ.

@@ -4,7 +4,7 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
-import { BOARD_SIZES, ROOM_LIMITS, levelSpec } from '@mm/engine';
+import { TURN_LIMIT_SEC, BOARD_SIZES, ROOM_LIMITS, levelSpec } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 
 /** Truy cập engine bên trong App để chơi tất định. */
@@ -497,10 +497,10 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await passCountdown();
   }
 
-  it('người đang tới lượt có đồng hồ đếm ngược từ 15s', async () => {
+  it('người đang tới lượt có đồng hồ đếm ngược từ đầu', async () => {
     await startTwoPlayer();
     expect(wrapper.find('.turn-clock').exists()).toBe(true);
-    expect(wrapper.find('.turn-clock').text()).toContain('15');
+    expect(wrapper.find('.turn-clock').text()).toContain(String(TURN_LIMIT_SEC));
     // Chỉ hiện trên đúng 1 chip — người đang tới lượt
     expect(wrapper.findAll('.turn-clock')).toHaveLength(1);
     expect(wrapper.find('.player.active .turn-clock').exists()).toBe(true);
@@ -509,24 +509,25 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
   it('dưới 10 giây đồng hồ chuyển trạng thái giục (đỏ, nhấp nháy)', async () => {
     await startTwoPlayer();
     expect(wrapper.find('.turn-clock.urgent').exists()).toBe(false);
-    await vi.advanceTimersByTimeAsync(6000);
+    await vi.advanceTimersByTimeAsync((TURN_LIMIT_SEC - 9) * 1000);
     await flush();
     expect(wrapper.find('.turn-clock.urgent').exists()).toBe(true);
   });
 
-  it('hết 15 giây thì tự chuyển lượt sang người kia', async () => {
+  it('hết lượt thì tự chuyển sang người kia', async () => {
     await startTwoPlayer();
     const firstActive = wrapper.find('.player.active b').text();
-    await vi.advanceTimersByTimeAsync(15_500);
+    await vi.advanceTimersByTimeAsync(TURN_LIMIT_SEC * 1000 + 500);
     await flush();
     const nowActive = wrapper.find('.player.active b').text();
     expect(nowActive).not.toBe(firstActive);
-    expect(wrapper.find('.turn-clock').text()).toContain('15');   // người mới đủ 15s
+    // Người mới nhận một đồng hồ ĐẦY, không phải phần thừa của lượt trước
+    expect(wrapper.find('.turn-clock').text()).toContain(String(TURN_LIMIT_SEC));
   });
 
-  it('ghép đúng hiện +5s và đồng hồ không vượt trần 15', async () => {
+  it('ghép đúng hiện +5s và đồng hồ không vượt trần', async () => {
     await startTwoPlayer();
-    await vi.advanceTimersByTimeAsync(4000);       // còn ~11s
+    await vi.advanceTimersByTimeAsync(4000);       // còn ~ trần trừ 4
     const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
     const pairId = cards[0]!.pairId;
     const [a, b] = cards.filter((c) => c.pairId === pairId).map((c) => c.index);
@@ -536,8 +537,8 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await flush();
     expect(wrapper.find('.plus10').exists()).toBe(true);
     const secs = Number(wrapper.find('.turn-clock').text().replace(/\D/g, ''));
-    expect(secs).toBeGreaterThan(11);
-    expect(secs).toBeLessThanOrEqual(15);           // trần 15
+    expect(secs).toBeGreaterThan(TURN_LIMIT_SEC - 4);
+    expect(secs).toBeLessThanOrEqual(TURN_LIMIT_SEC);
   });
 });
 

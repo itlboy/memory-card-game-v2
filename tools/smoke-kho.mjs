@@ -12,6 +12,7 @@
 //  2. `depPhong()` gọi deleteAll rồi deleteAlarm ngay sau; deleteAlarm cũng lưu
 //     nên nó GHI ĐÈ lệnh xoá bằng một bản ghi rỗng — phòng đã huỷ sống lại
 //     trong database dưới dạng rác, và bảng cứ thế phình lên mãi.
+import { moGoiTin } from './lib-view.mjs';
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8080';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json()).code;
@@ -21,7 +22,7 @@ const mk = (code, name, token) => new Promise((res, rej) => {
   const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${encodeURIComponent(name)}${q}`);
   const c = { ws, msgs: [] };
   const hetgio = setTimeout(() => rej(new Error(`không mở được socket vào phòng ${code}`)), 5000);
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onopen = () => { clearTimeout(hetgio); res(c); };
   ws.onerror = () => { clearTimeout(hetgio); rej(new Error('socket lỗi')); };
 });

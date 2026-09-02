@@ -10,6 +10,7 @@
 //
 // Dấu hiệu HỎNG: sau dòng events(flip+miss) mà quá ~1,5 giây không thấy
 // events(turn) thì chuỗi alarm phía server đã đứt.
+import { moGoiTin } from './lib-view.mjs';
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const WS = SERVER.replace('http', 'ws');
 const T0 = Date.now();
@@ -19,7 +20,7 @@ class C {
   connect(code) {
     this.ws = new WebSocket(`${WS}/ws/${code}?name=${encodeURIComponent(this.name)}`);
     this.ws.onmessage = (e) => {
-      const m = JSON.parse(e.data);
+      const m = moGoiTin(JSON.parse(e.data));
       if (m.view) this.view = m.view;
       if (m.t === 'welcome') { this.id = m.playerId; this.ok = true; }
       const nhan = m.t === 'events' ? `events(${m.events.map((x) => x.type).join('+')})` : m.t;

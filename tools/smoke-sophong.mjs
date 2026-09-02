@@ -1,3 +1,4 @@
+import { moGoiTin } from './lib-view.mjs';
 /*
  * SỔ PHÒNG CÔNG KHAI (ON-10) — danh sách phòng đang chờ ở màn "Chơi online".
  *
@@ -12,7 +13,7 @@ const mk = (code, name) => new Promise((res, rej) => {
   const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${name}`);
   const c = { ws, msgs: [], closed: null };
   const hetgio = setTimeout(() => rej(new Error(`không mở được socket vào phòng ${code}`)), 5000);
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onclose = (e) => { c.closed = e.code; };
   ws.onerror = () => { clearTimeout(hetgio); rej(new Error('socket lỗi')); };
   ws.onopen = () => { clearTimeout(hetgio); res(c); };
