@@ -273,6 +273,15 @@
   gần hết chuyện "mạng yếu là hỏng": ngưỡng phát hiện nghẽn phải ngắn hơn nó, mà
   mạng di động nghẽn 5-10 giây là thường, nên 15 không chừa chỗ cho cơ chế cứu
   nào. Neo test vào hằng số, đừng chép tay con số.
+- **ĐỔI DẠNG TRÊN DÂY THÌ CLIENT KHAI, SERVER KHÔNG TỰ QUYẾT.** Web là PWA:
+  service worker giữ bản JS cũ trong cache, nên ngay sau MỖI lần deploy luôn có
+  người đang chạy client cũ hơn server — đó là trạng thái bình thường của vài
+  phút đầu, không phải ca hiếm. Đã hỏng thật: server đổi sang gửi view dạng gọn
+  cho TẤT CẢ, client cũ đọc `view.cards` ra `undefined`, người chơi trên iPhone
+  (và mọi trình duyệt điện thoại) thấy BÀN TRẮNG KHÔNG CÓ THẺ NÀO; máy tính
+  không dính vì nó tải bản mới liên tục. Nay client khai `?pv=1` lúc mở socket,
+  server lưu vào `Attachment.goi` và `broadcast` dựng HAI bản. Chốt tương tự cho
+  `seq`: tin không kèm `seq` vẫn phải chạy. `tools/smoke-client-cu.mjs` canh.
 - **VIEW GỬI Ở DẠNG GỌN** (`packView`/`unpackView`): bỏ mảng `cards`, chỉ mang
   `n` và những ô KHÔNG úp trơn. Gói ở đúng hai hàm gửi của room.ts, không rải ra
   từng chỗ dựng view. `unpackView` nhận CẢ HAI dạng nên bên nhận không cần biết
