@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Card } from '@mm/engine';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealStep } from '@/lib/timing';
+import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealDelay } from '@/lib/timing';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 
@@ -13,15 +13,25 @@ const props = defineProps<{
   /** Đang được thẻ mắt thần / Peek hé mở, không phải do người chơi lật. */
   peeking: boolean;
   disabled: boolean;
-  /** Thứ tự chia bài lúc vào ván, cho animation so le. */
-  dealOrder: number;
-  /** Tổng số thẻ — dùng để nén độ so le cho bàn lớn. */
-  cardCount?: number;
+  /** Hàng thứ mấy trên bàn (0 = trên cùng) — quyết định thứ tự chia bài: cả
+   *  một hàng bay vào cùng lúc, hàng trên trước hàng dưới. */
+  row?: number;
+  /** Bàn có bao nhiêu hàng, để dồn nhịp lại khi bàn nhiều hàng (xem
+   *  `DEAL_TOTAL_CAP_MS`): 11 hàng × 500ms là 5 giây ngồi chờ mỗi ván. */
+  rows?: number;
   /** Chỗ CŨ của lá bài này so với chỗ mới, khi vừa bị thẻ tráo đổi hoán chỗ.
    *  Animation chạy từ đó về 0 nên mắt thấy nó bay sang chỗ mới. */
   swapFrom?: { dx: number; dy: number; sign: number };
   /** Đã bấm, đang chờ server xác nhận (ván online). */
   pending?: boolean;
+  /**
+   * Lá này VỪA ĐƯỢC MỞ (bởi bất kỳ ai), kèm số đếm để lặp lại hiệu ứng.
+   *
+   * Trên bàn lớn (56–88 thẻ) người chơi thường KHÔNG thấy đối thủ vừa mở lá
+   * nào — đúng điều đã bị phản ánh. Nên lá vừa mở phát một quầng sáng cho cả
+   * phòng thấy, không riêng người bấm.
+   */
+  vuaMo?: { key: number } | null;
   /** Mặt sau của ván này, dạng `<hoạ tiết>.<bảng màu>` (ví dụ `xoay.cham`).
    *  Nhận cả sáu tên CŨ (`stars`…) vì server có thể gửi dạng đó cho client chưa
    *  khai `?bv=2`, và ván offline khôi phục từ sessionStorage của bản cũ cũng
@@ -68,7 +78,8 @@ const lopMatSau = computed<string[]>(() => {
 const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 /** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
-const dealStagger = computed(() => Math.round(props.dealOrder * dealStep(props.cardCount ?? 16)));
+/* Trễ theo HÀNG: cả hàng bay vào cùng lúc, hàng trên trước hàng dưới. */
+const dealStagger = computed(() => dealDelay(props.row ?? 0, props.rows ?? 1));
 
 /**
  * Hướng lật vừa xảy ra, để chạy đúng một lần nhịp lắc — `null` là không lắc.
@@ -168,30 +179,104 @@ onMounted(() => {
 });
 onUnmounted(() => {
   clearTimeout(dealTimer); clearTimeout(settleTimer);
-  clearTimeout(flipTimer); clearTimeout(hoverTimer);
+  clearTimeout(flipTimer);
 });
 
 /**
- * Nhịp lắc khi trỏ chuột vào. Bật bằng JS rồi để nó CHẠY HẾT, không gắn vào
- * `:hover`.
+ * TRỎ CHUỘT VÀO THÌ LÁ PHÓNG TO; RỜI CHUỘT LÀ NHỎ LẠI NGAY.
  *
- * Vì sao: gắn `:hover` thì rời chuột là animation bị cắt giữa nhịp, transform
- * nhảy thẳng về 0 — quét chuột qua cả bàn thành hàng loạt cú nhảy, nhìn như
- * nháy. Bật một lần và bỏ qua mọi lần vào lại trong lúc còn đang lắc thì mỗi lá
- * lắc đúng một nhịp, dù chuột có quét qua bao nhiêu lần.
+ * Bản trước là một animation 1,4 giây chạy cho hết (phóng to + lắc tắt dần), bật
+ * bằng class rồi hẹn giờ tắt. Hệ quả: rời chuột rồi lá vẫn to thêm hơn một giây
+ * — người chơi báo đúng chuyện đó. Nay dùng TRANSITION thay animation:
+ *   vào 0,28s · ra 1s, và rời chuột là bắt đầu nhỏ lại NGAY từ cỡ đang có.
+ *
+ * Vì sao vẫn không dùng selector `:hover`: nó cũng chạy được với transition,
+ * nhưng ta phải chặn hover ở lá đã ngửa / đã ghép / đang chờ server, mà những
+ * điều kiện đó chỉ JS biết. Giữ một cửa `onEnter`/`onLeave` cho gọn.
+ *
+ * Nhịp LẮC bị bỏ: nó là animation, mà animation thì không cắt giữa nhịp cho êm
+ * được — đúng lý do bản cũ phải chạy hết 1,4 giây.
  */
 const hoverWob = ref(false);
-let hoverTimer: ReturnType<typeof setTimeout> | undefined;
-const HOVER_WOB_MS = 1400;
 /** Chỉ thiết bị có con trỏ thật; máy cảm ứng thì `pointerenter` bắn cả khi chạm. */
 const canHover = typeof matchMedia === 'function' && matchMedia('(hover: hover)').matches;
 
-function onEnter(): void {
-  if (!canHover || hoverWob.value || !settled.value) return;
-  if (props.faceUp || props.matched || props.disabled || props.peeking || props.pending) return;
-  hoverWob.value = true;
-  hoverTimer = setTimeout(() => { hoverWob.value = false; }, HOVER_WOB_MS);
+/** Lá này có được phép phóng to không — lá đã ngửa/đã ghép/đang chờ thì không. */
+function hoverDuoc(): boolean {
+  if (!canHover || !settled.value) return false;
+  return !(props.faceUp || props.matched || props.disabled || props.peeking || props.pending);
 }
+
+function onEnter(): void {
+  if (hoverDuoc()) hoverWob.value = true;
+}
+
+/* ---------- ngón tay đặt xuống (điện thoại) ----------
+ *
+ * Người chơi chủ yếu ở trên điện thoại, mà ở đó KHÔNG CÓ hover: ngón tay còn
+ * che mất lá. Nên phản hồi phải nằm ở khoảnh khắc ĐẶT XUỐNG — và ở ván online,
+ * đó đúng là quãng chờ server trả lời.
+ *
+ * Hai lớp cùng lúc: lá lún 6% (90ms) và một quầng sáng ở ĐÚNG chỗ vừa chạm.
+ * Quầng sáng nói được điều cú lún không nói: máy nhận đúng lá, đúng điểm.
+ */
+const nhan = ref(false);
+/** Toạ độ điểm chạm trong lá, dạng phần trăm — CSS đọc để đặt quầng sáng. */
+const diemCham = ref<{ x: string; y: string }>({ x: '50%', y: '50%' });
+
+function onDown(e: PointerEvent): void {
+  if (props.disabled || props.matched || props.faceUp || props.peeking) return;
+  const el = e.currentTarget as HTMLElement;
+  const r = el.getBoundingClientRect();
+  diemCham.value = {
+    x: `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`,
+    y: `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`
+  };
+  nhan.value = true;
+  // Giữ mọi sự kiện con trỏ về đúng lá này: kéo ngón ra ngoài rồi nhấc lên mà
+  // không có capture thì `pointerup` bắn ở phần tử khác và lá dính trạng thái nhấn.
+  el.setPointerCapture?.(e.pointerId);
+}
+
+function onUp(): void {
+  nhan.value = false;
+}
+
+/* ---------- loé viền một nhịp khi lá đổi mặt ----------
+ * Đặt riêng khỏi cú lật: cú lật là chuyển động của lá, còn cái này là DẤU
+ * "vừa xảy ra" — nó còn dùng lại được cho lá do người khác mở.
+ */
+const LOE_MS = 520;
+const loe = ref(false);
+let loeTimer: ReturnType<typeof setTimeout> | undefined;
+
+function bungLoe(): void {
+  loe.value = false;
+  clearTimeout(loeTimer);
+  // Một nhịp chờ để trình duyệt thấy class biến mất rồi mới gắn lại; không có
+  // bước này thì lật hai lá liền nhau, lá thứ hai không loé.
+  requestAnimationFrame(() => {
+    loe.value = true;
+    loeTimer = setTimeout(() => { loe.value = false; }, LOE_MS);
+  });
+}
+
+// Lá ĐỔI MẶT (do mình hay do ai cũng vậy) thì loé một nhịp.
+watch(() => props.faceUp, (up, truoc) => { if (up && !truoc) bungLoe(); });
+// Và lá vừa được mở — tín hiệu riêng từ engine/server, để trên bàn 88 thẻ người
+// chơi còn lại nhìn ra ngay lá nào vừa mở.
+watch(() => props.vuaMo?.key, (k) => { if (k) bungLoe(); });
+
+function onLeave(): void {
+  hoverWob.value = false;
+}
+
+// Lá vừa được lật (hoặc vừa bị khoá) thì thu về ngay, đừng đợi chuột rời: con
+// trỏ vẫn đang nằm trên nó mà lá thì không còn ở trạng thái được phóng to.
+watch(
+  () => [props.faceUp, props.matched, props.disabled, props.peeking, props.pending],
+  () => { if (hoverWob.value && !hoverDuoc()) hoverWob.value = false; }
+);
 
 const label = computed(() => {
   const pos = `Thẻ ${props.card.index + 1}`;
@@ -209,9 +294,11 @@ const label = computed(() => {
     :class="{ up: faceUp, done: matched, wrong: lacSai, peek: peeking, swapping: !!swapFrom, pending, dealt,
       'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down',
       'wob-tail': dealt && flipAnim === 'tail',
-      'wob-hover': hoverWob, settled }"
+      'wob-hover': hoverWob, nhan, loe, settled }"
     :style="{
       '--deal': `${dealStagger}ms`,
+      '--cx': diemCham.x,
+      '--cy': diemCham.y,
       '--wob': card.index % 2 ? 1 : -1,
       ...(swapFrom ? {
         '--sx': `${swapFrom.dx}px`,
@@ -226,6 +313,10 @@ const label = computed(() => {
     role="gridcell"
     type="button"
     @pointerenter="onEnter"
+    @pointerleave="onLeave"
+    @pointerdown="onDown"
+    @pointerup="onUp"
+    @pointercancel="onUp"
     @click="!disabled && !matched && emit('flip', card.index)"
   >
     <span class="inner">
@@ -252,29 +343,42 @@ const label = computed(() => {
   padding: 0; border: 0; background: transparent; perspective: 700px;
   /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
      với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
-  animation: deal 2.4s linear backwards;
+  /* 520ms, khớp `DEAL_ANIM_MS` — đổi một chỗ thì phải đổi chỗ kia, vì JS dùng
+     con số đó để biết lúc nào lá đã nằm yên (`settled`). */
+  animation: deal 0.52s linear backwards;
   animation-delay: var(--deal, 0ms);
   /* Container query: nội dung thẻ to theo kích thước THẺ, không theo viewport —
      bàn 2×2 thẻ to thì biểu tượng cũng to tương ứng */
   container-type: inline-size;
 }
 @keyframes deal {
-  /* perspective() viết trong transform, không dùng thuộc tính `perspective`
-     của .card: thuộc tính đó chỉ tạo chiều sâu cho CON (tức .inner), lá bài tự
-     quay quanh trục dọc mà thiếu nó thì trông như bị bóp bề ngang. */
+  /*
+   * LÚN RỒI NỞ RA — cả bàn đọc thành MỘT GỢN SÓNG chạy từ trên xuống.
+   *
+   * Bản trước là "bay vào": lá xuất phát ở scale 0,72 lệch dưới 16px và xoay
+   * -22°, rồi lắc tắt dần suốt 2,4 giây. Ba chuyển động cùng lúc trên hàng chục
+   * lá là thứ đọc ra thành GIẬT, và không có hướng nào để mắt đi theo.
+   *
+   * Nay chỉ còn MỘT chuyển động, một chiều: lá hiện ra ở cỡ lún (0,92 — như vừa
+   * bị ấn xuống mặt bàn) rồi nở về đúng cỡ. Mỗi hàng lệch nhau 100ms
+   * (`DEAL_ROW_GAP_MS`), nên cái nở đó truyền xuống như gợn sóng.
+   *
+   * Nở QUÁ một chút (1,015) rồi mới về 1: không có bước đó thì cái nở dừng đột
+   * ngột, đọc ra như hình bị cắt chứ không phải một vật nảy lên.
+   *
+   * `perspective()` giữ lại dù không còn xoay: nó là chỗ neo cho những animation
+   * khác cũng chạy trên `.card` (hover, lắc lúc lật) để không đứt mạch.
+   */
   0% {
-    opacity: 0; transform: perspective(700px) translateY(16px) scale(.72) rotateY(calc(-22deg * var(--wob, 1)));
+    opacity: 0;
+    transform: perspective(700px) scale(0.92);
     animation-timing-function: cubic-bezier(.2, .9, .3, 1);
   }
-  16%   { opacity: 1; transform: perspective(700px) translateY(0) scale(1) rotateY(calc(9deg * var(--wob, 1))); }
-  28%   { transform: perspective(700px) rotateY(calc(-5.4deg * var(--wob, 1))); }
-  40%   { transform: perspective(700px) rotateY(calc(3.2deg * var(--wob, 1))); }
-  52%   { transform: perspective(700px) rotateY(calc(-1.9deg * var(--wob, 1))); }
-  64%   { transform: perspective(700px) rotateY(calc(1.1deg * var(--wob, 1))); }
-  76%   { transform: perspective(700px) rotateY(calc(-0.7deg * var(--wob, 1))); }
-  88%   { transform: perspective(700px) rotateY(calc(0.4deg * var(--wob, 1))); }
-  100%  { transform: none; }
+  22%  { opacity: 1; transform: perspective(700px) scale(0.955); }
+  62%  { transform: perspective(700px) scale(1.015); }
+  100% { transform: none; }
 }
+
 
 .inner {
   position: absolute; inset: 0; border-radius: 12px;
@@ -301,16 +405,77 @@ const label = computed(() => {
  */
 /* Xong nhịp chia bài thì BỎ khai báo animation: xem `settled` trong script. */
 .card.settled { animation: none; }
-.card.wob-hover { animation: hover-wob 1.4s linear; }
-@keyframes hover-wob {
-  0%   { transform: perspective(700px) translateY(-3px) rotateY(0); }
-  14%  { transform: perspective(700px) translateY(-3px) rotateY(calc(5deg * var(--wob, 1))); }
-  30%  { transform: perspective(700px) translateY(-3px) rotateY(calc(-3deg * var(--wob, 1))); }
-  46%  { transform: perspective(700px) translateY(-3px) rotateY(calc(1.8deg * var(--wob, 1))); }
-  62%  { transform: perspective(700px) translateY(-3px) rotateY(calc(-1deg * var(--wob, 1))); }
-  78%  { transform: perspective(700px) translateY(-3px) rotateY(calc(0.6deg * var(--wob, 1))); }
-  100% { transform: perspective(700px) translateY(-3px) rotateY(0); }
+/*
+ * HAI NHỊP KHÁC NHAU, cố ý:
+ *  · vào 0,28s — phản hồi phải gần như tức thì, chậm hơn là thấy "nặng";
+ *  · ra 1,0s  — thu về từ tốn cho êm mắt, và vì `transition` nội suy từ CỠ ĐANG
+ *    CÓ nên rời chuột giữa lúc đang phóng vẫn mượt, không có cú nhảy nào.
+ * Đường cong `ease-out` cho cả hai: nhanh ở đầu, chậm dần về cuối.
+ */
+.card.settled { transition: transform 1s cubic-bezier(.22, .61, .36, 1); }
+/*
+ * PHÓNG TO, không nhấc lên. Bản trước nhấc `translateY(-3px)`; cùng biên độ thị
+ * giác nhưng phóng to đọc ra là "lá này đang được chỉ vào" rõ hơn, và không bị
+ * lẫn với cú nhấc của thẻ vừa ghép đúng.
+ *
+ * `z-index` phải nâng theo: lá to ra 5% là mép nó chờm sang ô bên cạnh, không
+ * nâng thì lá kế bên (vẽ sau trong DOM) cắt mất phần chờm đó. Chọn 4 để vẫn
+ * nằm DƯỚI hai mốc 6/7 của thẻ Tráo đổi đang bay.
+ *
+ * 1,05 là mức đã đo trên bàn 88 thẻ (lá 34px): dưới 1,04 thì gần như không thấy,
+ * trên 1,07 thì lá chờm hẳn lên hàng trên và nhìn như bàn bị xô lệch.
+ */
+/*
+ * NGÓN TAY ĐẶT XUỐNG: lún 6% trong 90ms.
+ *
+ * Đây là phản hồi DUY NHẤT người chơi trên điện thoại có được trước khi biết
+ * kết quả — cảm ứng không có hover, và ở ván online thì lá còn phải chờ server.
+ * 90ms vì nó phải kịp trong một cú chạm; chậm hơn là nhấc ngón rồi mới thấy.
+ *
+ * Đặt TRƯỚC `.wob-hover` trong file để hover (chuột) thắng khi cả hai cùng có —
+ * chuột thì đã phóng to sẵn, lún thêm là giật.
+ */
+.card.nhan { transform: perspective(700px) scale(0.94); transition-duration: 0.09s; }
+
+/* Quầng sáng ở ĐÚNG chỗ vừa chạm — nói được điều cú lún không nói: máy nhận
+   đúng lá, đúng điểm. Nằm trên `.back` nên chỉ hiện ở lá còn úp. */
+.card.nhan .back::before {
+  background:
+    radial-gradient(26% 20% at var(--cx, 50%) var(--cy, 50%), rgba(255, 255, 255, .55), transparent 72%),
+    rgba(255, 255, 255, .92);
 }
+
+/*
+ * LOÉ VIỀN MỘT NHỊP khi lá đổi mặt — và cũng khi lá do NGƯỜI KHÁC mở.
+ *
+ * Trên bàn 56–88 thẻ, đối thủ mở lá nào thường không ai thấy (đã bị phản ánh):
+ * cú lật chỉ chiếm ~34px giữa một rừng thẻ. Vòng sáng chạy ra ngoài mép nên bắt
+ * được mắt ở tầm nhìn ngoại vi, mà không đụng gì tới lá.
+ *
+ * `pointer-events: none` để nó không ăn mất cú chạm kế tiếp.
+ */
+.card.loe::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--accent), 0 0 18px 5px color-mix(in srgb, var(--accent) 55%, transparent);
+  animation: card-loe 0.52s ease-out forwards;
+}
+@keyframes card-loe {
+  0%   { opacity: 1; transform: scale(0.97); }
+  100% { opacity: 0; transform: scale(1.07); }
+}
+
+.card.wob-hover {
+  transform: perspective(700px) scale(1.05);
+  transition-duration: 0.28s;
+  /* Lá to ra 5% là mép chờm sang ô bên cạnh; không nâng thì lá kế bên (vẽ sau
+     trong DOM) cắt mất phần chờm. Vẫn dưới hai mốc 6/7 của thẻ Tráo đổi. */
+  z-index: 4;
+}
+
 .card.up .inner, .card.done .inner { transform: rotateY(180deg); }
 
 /**
@@ -380,6 +545,10 @@ const label = computed(() => {
 /* Người chọn "giảm chuyển động" thì bỏ hẳn nhịp lắc, giữ lại cú lật */
 @media (prefers-reduced-motion: reduce) {
   .card .inner { animation: none !important; }
+  /* Giữ cú LÚN và quầng sáng (chúng là phản hồi, không phải trang trí), bỏ vòng
+     sáng chạy ra ngoài. */
+  .card.loe::after { animation: none; }
+  .card { transition-duration: 0.01ms !important; }
 }
 /**
  * Đã bấm, đang chờ server: lật tới ĐÚNG 90 độ — cạnh thẻ, chưa thấy mặt nào.

@@ -51,6 +51,31 @@
   `rotateY(180deg)` là mặt TRƯỚC hướng ra ngoài; đừng bật animation lật bằng
   selector trạng thái (`:not(.up)` đúng với cả lá chưa từng lật) — để JS gắn
   class đúng lúc lá ĐỔI mặt. Đây là lỗi đã xảy ra thật, thấy rõ khi F5 giữa ván.
+- **CHẠM VÀO LÁ BÀI — ba lớp, ba lý do khác nhau** (`CardTile.vue`):
+  · **Ngón tay đặt xuống** (`.card.nhan`): lún 0,94 trong 90ms + quầng sáng ở
+  ĐÚNG điểm chạm (`--cx/--cy`). Đây là phản hồi DUY NHẤT người chơi điện thoại
+  có trước khi biết kết quả — cảm ứng không có hover, và ván online còn phải chờ
+  server. Phải có `setPointerCapture`: kéo ngón ra ngoài rồi nhấc thì `pointerup`
+  bắn ở phần tử khác và lá dính trạng thái nhấn.
+  · **Hover** (`.card.wob-hover`): phóng to 1,05 — vào 0,28s, ra 1s. Dùng
+  `transition` chứ KHÔNG `animation`: animation không cắt giữa nhịp cho êm được,
+  nên bản cũ phải chạy hết 1,4s và rời chuột rồi lá vẫn to thêm hơn một giây
+  (người chơi báo). `z-index: 4` vì lá to ra là mép chờm sang ô bên cạnh.
+  · **Loé viền** (`.card.loe`, 520ms): dấu "lá này VỪA MỞ", phát cho MỌI lá vừa
+  mở — kể cả lá do đối thủ hoặc do MÁY mở. Trên bàn 56–88 thẻ không ai thấy đối
+  phương mở lá nào (đã bị phản ánh); vòng sáng chạy ra ngoài mép nên bắt được
+  mắt ở tầm nhìn ngoại vi. Tín hiệu đi từ event `flip` → `vuaMo` (ở cả
+  `useGameSession` và `useOnlineRoom`) → BoardGrid → CardTile.
+- **CHIA THẺ THEO HÀNG, LÚN RỒI NỞ** (`lib/timing.ts` + keyframes `deal`):
+  mỗi hàng lệch nhau `DEAL_ROW_GAP_MS` 100ms, hàng trên trước; mỗi lá hiện ở cỡ
+  0,92 rồi nở về 1 (nở quá 1,015 rồi mới về, không thì cái nở dừng đột ngột).
+  Cả bàn đọc thành MỘT gợn sóng. Bản cũ so le 28ms mỗi THẺ và mỗi lá bay vào từ
+  scale 0,72 + lệch 16px + xoay 22° rồi lắc tắt dần 2,4 giây — ba chuyển động
+  cùng lúc trên hàng chục lá, đó chính là cái "giật".
+  `DEAL_ANIM_MS` (520ms) PHẢI khớp `animation: deal 0.52s` trong CSS: JS dùng con
+  số đó để biết lá đã nằm yên (`settled`, tức mở lại hover) — bản cũ khai 2,4s
+  nên nó khoá hover hơn hai giây sau khi lá đã yên. `DEAL_TOTAL_CAP_MS` 3 giây là
+  chốt chặn cho lúc thử nhịp cao (500ms × 11 hàng = 5 giây chờ trước nước đi đầu).
 - **Lắc thẻ phải cùng trục với cú lật** (`rotateY`, không `rotateZ`), biên độ
   giảm dần; một lá chỉ một animation chạy cùng lúc (cái sau đè cái trước).
 - Cỡ chữ wizard dùng chung `.option strong` / `.option small` ở wizard.css.

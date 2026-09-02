@@ -1119,8 +1119,28 @@ describe('hover không được làm lộ bài', () => {
     for (const r of hoverRules) {
       expect(r, `rule hover không được đụng animation của .inner: ${r}`).not.toMatch(/animation/);
     }
-    // Và nhịp lắc hover phải gắn vào .card qua class, không qua :hover
-    expect(css).toContain('.card.wob-hover { animation: hover-wob');
+    /*
+     * HOVER LÀ PHÓNG TO BẰNG TRANSITION, KHÔNG PHẢI ANIMATION.
+     *
+     * Animation không cắt giữa nhịp cho êm được — bản cũ phải để nó chạy hết
+     * 1,4 giây, nên rời chuột rồi lá vẫn to thêm hơn một giây (đã bị phản ánh).
+     * Transition nội suy từ cỡ ĐANG CÓ nên rời chuột là thu về ngay.
+     */
+    const khoi = /\.card\.wob-hover \{([^}]*)\}/.exec(css)![1];
+    expect(khoi, 'quay lại animation là rời chuột không thu về ngay được')
+      .not.toContain('animation');
+    expect(khoi).toMatch(/scale\(1\.0[3-7]\)/);
+    expect(khoi, 'đổi sang phóng to rồi thì bỏ hẳn nhấc lên').not.toContain('translateY');
+    const z = Number(/z-index:\s*(\d+)/.exec(khoi)![1]);
+    expect(z, 'lá phóng to bị lá kế bên cắt mép').toBeGreaterThan(0);
+    expect(z, 'chờm lên thẻ Tráo đổi đang bay').toBeLessThan(6);
+    expect(khoi, 'nhịp vào phải nhanh').toMatch(/transition-duration:\s*0?\.2[0-9]s/);
+    const ra = /\.card\.settled \{ transition: transform ([\d.]+)s/.exec(css);
+    expect(ra, 'thiếu transition ở .card.settled thì không có nhịp thu về').not.toBeNull();
+    expect(Number(ra![1]), 'nhịp thu về là 1 giây').toBeCloseTo(1, 1);
+    const vue = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+    expect(vue, 'thiếu pointerleave là lá không bao giờ thu về khi rời chuột')
+      .toContain('@pointerleave="onLeave"');
   });
 });
 
@@ -1139,7 +1159,8 @@ describe('nhịp lắc không được nháy', () => {
       throw new Error(`animation gắn vào :hover sẽ bị cắt giữa nhịp khi rời chuột: ${line.trim()}`);
     }
     // Nhịp hover phải do class JS gắn
-    expect(style).toContain('.card.wob-hover { animation: hover-wob');
+    expect(style, 'hover phải là transition, không phải animation')
+      .toMatch(/\.card\.wob-hover \{[^}]*transform: perspective\(700px\) scale/);
     // Và khai báo `deal` phải được TẮT sau khi chạy xong, không thì hết nhịp
     // hover là deal chạy lại từ đầu (đo được cú nhảy 29°).
     expect(style).toContain('.card.settled { animation: none; }');

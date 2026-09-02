@@ -8,25 +8,51 @@
  * nhất thì hai bên không bao giờ lệch nữa.
  */
 
-/** Độ so le tối đa giữa hai thẻ liền nhau. */
-export const DEAL_STEP_MS = 28;
-/** Tổng thời gian chia bài không vượt mức này, bàn to cỡ nào cũng vậy — 28ms
- *  mỗi thẻ ở bàn 50 thẻ là chờ gần 1,4 giây, người chơi tưởng game treo. */
-export const DEAL_WINDOW_MS = 700;
+/**
+ * CHIA THEO HÀNG, KHÔNG THEO TỪNG THẺ.
+ *
+ * Bản trước so le 28ms một THẺ, nên bàn 88 thẻ có 88 animation lệch nhau lăn
+ * bánh cùng lúc — nhìn ra thành giật, và không đọc được thứ tự nào cả. Nay cả
+ * một hàng bay vào cùng lúc, hàng trên trước hàng dưới: mỗi lúc chỉ một, hai
+ * hàng đang chuyển động, và mắt đi theo được.
+ */
 
-/** Khoảng cách giữa hai thẻ liền nhau, tính theo tổng số thẻ trên bàn. */
-export const dealStep = (cards: number): number =>
-  Math.min(DEAL_STEP_MS, DEAL_WINDOW_MS / Math.max(1, cards));
+/** Khoảng cách giữa hai HÀNG liền nhau. */
+export const DEAL_ROW_GAP_MS = 100;
+/**
+ * Trần cho tổng thời gian chia bài — CHỐT CHẶN, không phải mức thường dùng.
+ *
+ * Ở nhịp 100ms hiện tại thì trần này không bao giờ chạm: bàn nhiều hàng nhất là
+ * 88 thẻ (8×11) chỉ mất 1,0 giây. Giữ nó lại vì nhịp là thứ hay được chỉnh —
+ * lúc thử 500ms thì đúng bàn đó mất 5 giây, mà ván online thì 5 giây đó nằm
+ * TRƯỚC nước đi đầu tiên. Quá trần thì các hàng tự dồn lại gần nhau hơn.
+ */
+export const DEAL_TOTAL_CAP_MS = 3000;
 
-/** Thời điểm thẻ CUỐI bay vào — cũng là lúc tiếng chia bài phải dứt. */
-export const dealSpan = (cards: number): number => dealStep(cards) * Math.max(0, cards - 1);
+/** Khoảng cách giữa hai hàng, đã kẹp theo trần tổng. */
+export const dealRowGap = (rows: number): number =>
+  Math.min(DEAL_ROW_GAP_MS, DEAL_TOTAL_CAP_MS / Math.max(1, rows - 1));
+
+/** Thẻ ở HÀNG này bắt đầu bay vào lúc nào (ms tính từ đầu ván). */
+export const dealDelay = (row: number, rows: number): number =>
+  Math.round(Math.max(0, row) * dealRowGap(rows));
+
+/** Thời điểm HÀNG CUỐI bắt đầu bay vào. */
+export const dealSpan = (rows: number): number => dealDelay(rows - 1, rows);
 
 /**
- * Thẻ coi như đã đáp xuống bàn sau bấy nhiêu ms tính từ lúc nó bắt đầu bay vào.
- * Bằng đúng đoạn "hạ cánh" của keyframe `deal` (16% của 2,4s), không phải cả
- * animation — phần còn lại chỉ là lắc tắt dần, lật lúc đó vẫn mượt.
+ * Thẻ coi như đã đáp xuống bàn sau bấy nhiêu ms tính từ lúc nó hiện ra.
+ *
+ * Bằng đoạn NỞ RA của keyframe `deal` (tới 62% của 520ms): từ mốc đó lá đã ở
+ * gần đúng cỡ, bấm vào lật lúc này vẫn mượt. Phần còn lại chỉ là nảy về 1.
  */
-export const DEAL_SETTLE_MS = 400;
+export const DEAL_SETTLE_MS = 320;
 
-/** Cả animation `deal` dài bấy nhiêu ms, kể cả đoạn lắc tắt dần ở cuối. */
-export const DEAL_ANIM_MS = 2400;
+/**
+ * Cả animation `deal` dài bấy nhiêu ms.
+ *
+ * 520ms, không phải 2,4 giây như bản cũ: bản cũ có một đoạn lắc tắt dần rất dài
+ * ở cuối, mà chính nó khoá `settled` — tức là khoá cả hiệu ứng hover — hơn hai
+ * giây sau khi lá đã nằm yên trên bàn.
+ */
+export const DEAL_ANIM_MS = 520;

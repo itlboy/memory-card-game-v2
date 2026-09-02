@@ -381,6 +381,7 @@ watch(() => o.view.value?.summary, (s) => {
         :cards="cards" :cols="o.view.value?.cols ?? 4"
         :face-up="faceUp" :matched="matchedSet"
         :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value" :pending="o.pending.value"
+        :vua-mo="o.vuaMo.value"
         :revealing-all="o.revealingAll.value" :locked="locked"
         :back="o.backStyle.value"
         @flip="o.flip"
