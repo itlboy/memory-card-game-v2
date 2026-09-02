@@ -426,7 +426,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       <!-- BƯỚC: theme (chọn được nhiều) -->
       <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
         <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
-        <div class="options grid2 fill" role="group" aria-label="Theme thẻ">
+        <div class="options theme-grid" role="group" aria-label="Theme thẻ">
           <button
             v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
             :aria-checked="themeIds.includes(t.id)"
@@ -557,64 +557,16 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    không đổi số cột theo breakpoint nữa (media query đo viewport, không đo cột,
    nên 4 cột sẽ vỡ trong cột hẹp). */
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
-.options.grid2 { grid-template-columns: repeat(3, 1fr); }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 
 
 .theme-step { gap: 0; }
-/*
- * LƯỚI THEME CUỘN TRONG KHUNG, không nén ô nhỏ dần.
- *
- * Luật chung của wizard là `grid-auto-rows: minmax(0, 1fr)` — thêm lựa chọn thì
- * ô nhỏ lại, KHÔNG dài trang ra. Đúng cho những bước có số ô cố định (12 cỡ
- * bàn, 9 mức người chơi). Nhưng theme thì còn thêm mãi, và đo trên iPhone SE
- * (vùng web 375×553) với 15 theme thì ô đã chỉ còn 34,7px — dưới ngưỡng chạm
- * 44px, thêm nữa là bấm không trúng.
- *
- * Nên riêng bước này: ô giữ chiều cao tối thiểu, danh sách tự cuộn. KHÔNG phá
- * luật KHÔNG SCROLL — cuộn nằm TRONG khung, nút "Tiếp" vẫn đứng yên chỗ cũ,
- * y như danh sách phòng ở màn online.
- */
-.theme-step .options.fill {
-  grid-auto-rows: minmax(56px, auto);
-  align-content: start;
-  overflow-y: auto;
-  overflow-x: clip;
-  scrollbar-width: thin;
-  /* Chừa 4px cho ô nhô lên khi hover, giống lý do ở wizard.css */
-  padding: 4px 2px;
-}
-/* min-height trên chính Ô: đặt ở grid-auto-rows là vô ích, vì ô có
-   `height: auto` nên nó co theo nội dung mà nội dung lại co theo container. */
-/* 68px, KHÔNG phải 60: ngưỡng ẩn emoji mẫu đo trên CONTENT BOX (xem chú thích
-   ở @container bên dưới), nên ô 60px trừ padding 8+8 và viền 2+2 chỉ còn 40px
-   — dưới ngưỡng 45px, và hàng emoji mẫu biến mất. 68px cho content box 48px. */
-/* CHIỀU CAO XÁC ĐỊNH, không phải `height: auto` + min-height: `.option` có
-   `container-type: size`, mà container query chỉ giải được khi chiều cao là xác
-   định — để auto thì truy vấn nhận 0 và hàng emoji mẫu bị ẩn ở MỌI cỡ ô.
-   68px: content box 48px, trên ngưỡng 45px của @container bên dưới. */
-.theme-step .options.fill > .option { height: 68px; max-height: none; }
+/* Lưới theme dùng CSS chung ở `styles/theme-grid.css` — hai màn (đây và
+   OnlineScreen) từng có hai bản riêng và lệch nhau ở đúng chỗ khó thấy. */
 .options.grid3 .option { padding: 6px 4px; gap: 2px; }
 .options.grid3 strong { font-size: clamp(15.5px, 19cqw, 24px); }
 .options.grid3 small, .theme-opt small { font-size: clamp(10px, min(12cqw, 15cqh), 14px); }
-/* Phải đủ specificity để thắng `.option { padding: 16px 12px }` viết bên dưới —
-   padding 12px hai bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
-.options.grid2 .option.theme-opt { padding: 8px 5px; gap: 4px; position: relative; }
-/* Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
-   phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
-   chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình. */
-/* NGƯỠNG ĐO TRÊN CONTENT BOX, KHÔNG PHẢI CHIỀU CAO Ô. `.option` có
-   `container-type: size` nên truy vấn nhận chiều cao PHẦN NỘI DUNG: ô cao 68px
-   trừ padding 8+8 và viền 2+2 chỉ còn 48px — ngưỡng "52px" hoá ra ẩn emoji ngay
-   ở ô 72px, đúng lỗi mất icon trên iPhone 15 Pro Max (Safari còn ~720px cao,
-   ô theme 68px). Ngưỡng 45px = ô ~65px — đúng chỗ chữ bắt đầu bị cắt (đo
-   scrollHeight > clientHeight): 430×720 ô 68px HIỆN không cắt · 430×700 ô 64px
-   ẩn · 430×568 ô 38px ẩn. */
-@container (max-height: 45px) {
-  .theme-sample { display: none; }
-  .theme-opt small { display: none; }
-}
 /* Ô cấu hình được chọn: bùng gradient neon (hướng C) */
 /* Ô neon màu riêng (chế độ, số người) đang chọn: thắp viền trắng, giữ màu gốc */
 /*

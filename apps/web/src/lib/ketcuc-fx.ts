@@ -211,10 +211,11 @@ export const HIEU_UNG: readonly HieuUng[] = [
       XAM,
       {
         lop: 'fx-tat-den',
-        // Tắt từ MÉP vào giữa: hai dải giữa tắt sau cùng và nhạt hơn, nên bàn
-        // thẻ vẫn nhìn được — người thua còn muốn xem lại bàn.
+        // Tắt từ MÉP vào giữa — hai dải giữa tắt SAU CÙNG, nên mắt đi theo được
+        // hướng "đèn đang lụi dần". Độ đậm thì mọi dải như nhau: để dải giữa
+        // nhạt hơn là nó đọc ra thành một khoảng trắng kẻ ngang (đã bị báo lỗi).
         con: [0, 5, 1, 4, 2, 3].map((hang, thu) => ({
-          lop: hang === 2 || hang === 3 ? 'fx-dai fx-dai-giua' : 'fx-dai',
+          lop: 'fx-dai',
           style: { order: String(hang), animationDelay: `${thu * 130}ms` }
         }))
       },

@@ -62,7 +62,17 @@ body {
    thuộc vào nội dung đang hiện. */
 #app {
   display: flex; flex-direction: column;
-  height: 100vh; height: 100dvh;
+  /*
+   * CHIỀU CAO ĐO BẰNG JS (`--app-h`, xem `useViewportLock.ts`) — `dvh` chỉ là
+   * dự phòng cho khoảnh khắc trước khi JS chạy.
+   *
+   * Vì sao không tin `100dvh` một mình: lúc iOS Chrome khôi phục tab, nó dựng
+   * lại trang trước khi chốt xong chiều cao thanh công cụ, nên `dvh` ra số CŨ
+   * và `#app` cao hơn vùng nhìn thấy — người chơi báo "header mất, dưới footer
+   * có khoảng trắng, kéo không được" (kéo không được vì html/body
+   * `overflow: hidden`).
+   */
+  height: 100vh; height: 100dvh; height: var(--app-h, 100dvh);
   overflow: hidden;
   /*
    * CHỪA VÙNG AN TOÀN CỦA iOS — bắt buộc, vì index.html đặt
@@ -99,7 +109,7 @@ body {
     display: flex; align-items: center; justify-content: center;
     /* Chỉ chừa 8px: cột đã bo góc và có bóng nên không cần lề rộng, mà mỗi
        pixel lề bớt đi là cột cao thêm — và cao thêm thì rộng thêm theo tỷ lệ. */
-    height: 100dvh; padding: 8px;
+    height: 100dvh; height: var(--app-h, 100dvh); padding: 8px;
   }
   #app {
     /* Dùng TRỌN chiều cao cửa sổ — cắt chiều cao cho vừa tỷ lệ thì màn hình to

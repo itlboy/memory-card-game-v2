@@ -1,0 +1,90 @@
+/*
+ * LƯỚI CHỌN THEME — MỘT bản dùng cho CẢ HAI màn (MenuScreen và OnlineScreen).
+ *
+ * Vì sao tách ra đây: hai màn từng có hai bản CSS riêng cho cùng một lưới, và
+ * chúng lệch nhau đúng những chỗ khó thấy nhất. Đã xảy ra thật hai lần —
+ * MenuScreen hạ ngưỡng ẩn emoji xuống 45px còn OnlineScreen vẫn 74px (phòng
+ * online mất emoji trên iPhone); rồi MenuScreen thêm cơ chế ô-cao-tối-thiểu +
+ * tự cuộn còn OnlineScreen thì không, nên 24 theme bóp ô lại còn ~30px, dính sát
+ * nhau, bấm không trúng. Nay hai màn cùng dùng class `.theme-grid`, muốn đổi thì
+ * đổi ở một chỗ.
+ *
+ * KHÔNG dùng luật chung của wizard (`grid-auto-rows: minmax(0, 1fr)` — thêm ô
+ * thì ô nhỏ lại) vì theme còn thêm mãi: 24 theme mà nén trong một khung là ô
+ * xuống dưới ngưỡng chạm 44px. Ở đây ô giữ cỡ, danh sách tự cuộn TRONG khung —
+ * nút "Tiếp"/"Tạo phòng" vẫn đứng yên nên luật KHÔNG SCROLL nguyên vẹn.
+ */
+
+.options.theme-grid {
+  /*
+   * SỐ CỘT TỰ TÍNH THEO BỀ RỘNG, không phải `repeat(3, 1fr)` cứng.
+   *
+   * Thêm theme thì máy rộng tự xếp thêm cột thay vì ô nào cũng bé lại. Đo trong
+   * cột app: 375px → 3 cột · 430px → 4 cột · cột desktop 440px → 4 cột.
+   * `minmax(84px, 1fr)` là mức đã đo: dưới 84px thì tên theme hai chữ
+   * ("Nhạc cụ", "Huyền thoại") bắt đầu vỡ dòng xấu.
+   */
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  /*
+   * CHIỀU CAO Ô CO THEO MÀN, nhưng vẫn là số XÁC ĐỊNH.
+   *
+   * `.option` có `container-type: size`, mà container query chỉ giải được khi
+   * chiều cao xác định — để `auto` là truy vấn nhận 0 và hàng emoji mẫu bị ẩn ở
+   * MỌI cỡ ô. `clamp()` vẫn là số xác định nên vừa co được vừa giữ được truy vấn.
+   *
+   * 10,5% chiều cao app: SE (vùng web 553) → 58 → chặn ở sàn 66 · iPhone 14
+   * (664) → 69,7 · Pro Max (745) → 78 · desktop cột 900 → 94,5 → chặn ở trần 96.
+   * Sàn 66px cho content box 46px, trên ngưỡng 45px của @container dưới đây nên
+   * emoji mẫu không bị ẩn oan. `--app-h` do `useViewportLock.ts` đặt.
+   */
+  --o-cao: clamp(66px, calc(var(--app-h, 100dvh) * 0.105), 96px);
+  grid-auto-rows: var(--o-cao);
+  align-content: start;
+  /* 12px, không phải 10: hai ô theme cạnh nhau đều là khối gradient đậm nên mép
+     chúng dính vào nhau đọc ra thành một khối — người chơi đã phản ánh. */
+  gap: 12px 10px;
+  /* Co được trong khung: thiếu `min-height: 0` thì phần tử grid nằm trong flex
+     column KHÔNG chịu nhỏ hơn nội dung, và `overflow-y` không bao giờ chạy —
+     lưới đẩy nút chính ra khỏi màn hình đúng như luật KHÔNG SCROLL cấm. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: clip;
+  scrollbar-width: thin;
+  /* Chừa 4px cho ô nhô lên khi hover, cùng lý do với wizard.css */
+  padding: 4px 2px;
+}
+
+/* Chiều cao đặt trên chính Ô: để ở `grid-auto-rows` một mình là chưa đủ, vì
+   `.options.fill > .option { height: 100% }` của wizard.css sẽ thắng. */
+.options.theme-grid > .option.theme-opt {
+  height: var(--o-cao);
+  max-height: none;
+  /* Đủ specificity để thắng `.option { padding: 16px 12px }` — padding 12px hai
+     bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
+  padding: 8px 5px;
+  gap: 4px;
+  position: relative;
+}
+
+.options.theme-grid .theme-opt small {
+  font-size: clamp(10px, min(12cqw, 15cqh), 14px);
+}
+
+/*
+ * Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
+ * phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
+ * chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình.
+ *
+ * NGƯỠNG ĐO TRÊN CONTENT BOX, KHÔNG PHẢI CHIỀU CAO Ô. `.option` có
+ * `container-type: size` nên truy vấn nhận chiều cao PHẦN NỘI DUNG: ô 68px trừ
+ * padding 8+8 và viền 2+2 chỉ còn 48px — ngưỡng "52px" hoá ra ẩn emoji ngay ở ô
+ * 72px, đúng lỗi mất icon trên iPhone 15 Pro Max (Safari còn ~720px cao).
+ * Ngưỡng 45px = ô ~65px, đúng chỗ chữ bắt đầu bị cắt (đo scrollHeight >
+ * clientHeight): 430×720 ô 68px HIỆN không cắt · 430×700 ô 64px ẩn · 430×568
+ * ô 38px ẩn.
+ */
+@container (max-height: 45px) {
+  .theme-sample { display: none; }
+  .theme-opt small { display: none; }
+}

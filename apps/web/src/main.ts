@@ -4,6 +4,7 @@ import App from './App.vue';
 import { sfx } from './lib/audio';
 import './styles/global.css';
 import './styles/card-backs.css';
+import './styles/theme-grid.css';
 import './styles/ketcuc-fx.css';
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event

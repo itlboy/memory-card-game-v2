@@ -362,6 +362,23 @@
   đọc thấy một thứ không còn tồn tại — mà không có test nào đỏ. Rà bằng cách tìm
   thẳng tên luật trong toàn bộ mã nguồn, đừng đi theo trí nhớ. Icon trong hướng
   dẫn dùng CÙNG bộ với icon của luật đó trong màn chơi, để đọc xong nhận ra ngay.
+- **LƯỚI THEME LÀ MỘT BẢN CSS DÙNG CHUNG** (`styles/theme-grid.css`), hai màn
+  (MenuScreen và OnlineScreen) chỉ gắn class `.theme-grid`. Trước đây mỗi màn
+  một bản và chúng lệch nhau hai lần: ngưỡng ẩn emoji (phòng online mất emoji
+  trên iPhone), rồi cơ chế ô-cao-tối-thiểu (24 theme bên online bóp ô còn ~30px,
+  dính sát nhau). Số cột `repeat(auto-fill, minmax(84px, 1fr))` nên thêm theme
+  là máy rộng xếp thêm cột; chiều cao ô `clamp(66px, --app-h*0.105, 96px)` —
+  PHẢI là số xác định vì `.option` có `container-type: size`.
+- **`#app` LẤY CHIỀU CAO TỪ `--app-h` (JS đo), `100dvh` chỉ là dự phòng.**
+  `useViewportLock.ts` đo `innerHeight` và kéo document về 0 ở mọi lối trang hiện
+  lại, kèm `history.scrollRestoration = 'manual'`. Không có nó thì mở lại Chrome
+  trên iPhone là header nằm ngoài màn hình và dưới footer có một khoảng trắng —
+  trình duyệt dựng lại trang trước khi chốt chiều cao thanh công cụ (dvh ra số
+  cũ) VÀ khôi phục luôn vị trí cuộn, mà `html, body { overflow: hidden }` khoá
+  mất đường kéo về. Đừng lấy `visualViewport.height`: nó co khi bàn phím mở.
+- **Lớp hiệu ứng kết ván ở `z-index: 9`, DƯỚI hộp kết quả (10).** `DefeatFx` cũ
+  để 40 nên lớp xám và vết rạn phủ luôn lên bảng tỉ số (đã bị báo lỗi, có ảnh).
+  Đặt dưới còn làm `backdrop-filter` chỉ lọc bàn thẻ và HUD, đúng thứ cần lọc.
 - **Lưới chọn theme CUỘN TRONG KHUNG, không nén ô nhỏ dần** — khác luật chung
   của wizard (`grid-auto-rows: minmax(0,1fr)`, thêm ô thì ô bé lại). Theme còn
   thêm mãi, mà đo trên iPhone SE với 15 theme thì ô đã chỉ còn 34,7px, dưới
