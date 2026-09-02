@@ -1,14 +1,14 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
-  predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
+  packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
 } from '@mm/engine';
 import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_SYMBOLS } from './themes.js';
-import { pairsForLevel } from '@mm/engine';
+import { TURN_PAUSE_CAP_MS, pairsForLevel } from '@mm/engine';
 import { soPhongTuBinding, type SoPhong } from './sophong.js';
 
 export interface Env {
@@ -45,6 +45,15 @@ interface RoomPlayer {
   /** Lần cuối server NHẬN được tin từ người này. Dùng để phát hiện mất mạng im
    *  lặng (cắt TCP không sinh close). */
   lastSeen?: number;
+  /**
+   * `seq` của nước lật gần nhất đã XỬ của người này — chốt chống trùng.
+   *
+   * Nhờ nó client dám gửi lại một nước đi khi không thấy hồi âm: gửi lại là
+   * chuyện bình thường của một game đi lần lượt, cái không bình thường là mất
+   * hẳn nước đi vì không dám gửi lại. Nằm trong bản ghi phòng nên sống qua cả
+   * lúc DO ngủ đông. Ván mới thì đặt lại.
+   */
+  lastFlipSeq?: number;
   /** Đã bấm sẵn sàng ở lobby. */
   ready: boolean;
 }
@@ -126,6 +135,26 @@ const SILENT_MS = 20_000;
 // ("im bao lâu thì coi như đã đi"), lệch nhau là ngoài ván bị đá sớm hơn trong
 // ván — đúng cảnh ngồi chờ ở lobby, khoá màn hình 2 phút, quay lại mất phòng.
 const IDLE_SILENT_MS = 300_000;
+
+/**
+ * Im lặng bấy nhiêu là ĐỦ ĐỂ DỪNG ĐỒNG HỒ LƯỢT — khác hẳn SILENT_MS.
+ *
+ * Hai câu hỏi khác nhau, trước đây trót dùng chung một ngưỡng:
+ *   - SILENT_MS (20s): "người này còn ở đây không?" → chip xám, xử thua.
+ *   - LAG_MS (7s):     "đường truyền của người này có kịp đưa nước đi lên
+ *                       không?" → dừng đồng hồ lượt.
+ *
+ * Dùng SILENT_MS cho câu hỏi thứ hai là SAI Ở BẢN CHẤT: một lượt chỉ có 15
+ * giây (`turnLimit`), mà mốc phát hiện lại là 20 giây — tức nghẽn mạng đủ để
+ * NUỐT TRỌN một lượt vẫn không bao giờ chạm ngưỡng, đồng hồ chạy suốt và
+ * người chơi mất lượt y như chưa từng sửa gì. Đây đúng là chuyện người chơi
+ * báo lại sau lần sửa trước.
+ *
+ * 7 giây neo theo nhịp `alive` 3 giây: hụt hai nhịp liền mới dừng, nên nhấp
+ * nháy một nhịp không làm đồng hồ giật. Dừng nhầm cũng vô hại — nước đi kế
+ * tiếp cho đồng hồ chạy lại ngay.
+ */
+const LAG_MS = 7_000;
 
 /**
  * Phòng đã lập (POST /api/rooms) mà không ai vào trong bấy nhiêu ms thì xoá.
@@ -396,7 +425,8 @@ export class RoomDO extends DurableObject<Env> {
 
     await this.save();
     this.send(pair[1], {
-      t: 'welcome', playerId: player.id, token: player.token, room: this.roomInfo()
+      t: 'welcome', playerId: player.id, token: player.token, room: this.roomInfo(),
+      flipSeq: player.lastFlipSeq ?? 0
     });
     this.broadcast({ t: 'room', room: this.roomInfo() }, player.id);
     if (this.game) this.send(pair[1], { t: 'state', view: this.view() });
@@ -460,6 +490,9 @@ export class RoomDO extends DurableObject<Env> {
     // Mọi tin nhắn đều là bằng chứng "còn sống" — ghi mốc trước khi xử lý.
     player.lastSeen = Date.now();
     if (player.disconnectedAt !== null) player.disconnectedAt = null;
+    // Họ lên tiếng thì đồng hồ chạy lại NGAY, không đợi alarm: đây là lối duy
+    // nhất gỡ tạm dừng, vì `scheduleNext` cố ý không hẹn alarm khi đang dừng.
+    if (this.nhipDongHoLuot()) this.broadcast({ t: 'state', view: this.view() });
 
     let msg: ClientMsg;
     try {
@@ -469,6 +502,16 @@ export class RoomDO extends DurableObject<Env> {
     switch (msg.t) {
       case 'ping':
         this.send(ws, { t: 'pong' });
+        return;
+
+      /*
+       * Xin lại trạng thái trên chính socket đang mở — vài chục byte, không
+       * bắt tay lại. Thay cho thói quen cũ là mở lại socket mỗi khi nghi ngờ,
+       * mà bắt tay TCP+TLS+WS lại đúng là thứ dễ hỏng nhất trên mạng yếu.
+       */
+      case 'resync':
+        this.send(ws, { t: 'room', room: this.roomInfo() });
+        if (this.game) this.send(ws, { t: 'state', view: this.view() });
         return;
 
       case 'config': {
@@ -616,7 +659,27 @@ export class RoomDO extends DurableObject<Env> {
         // ON-09: server phán quyết — sai lượt thì bỏ qua, không tin client.
         // typeof check trước: Number(null) = 0 sẽ thành lật thẻ 0 thật!
         if (typeof msg.index !== 'number') return;
-        if (this.game.current.id !== player.id) return;
+        /*
+         * CHỐNG TRÙNG. Client gửi lại nước đi khi im lặng quá lâu — không có
+         * chốt này thì lần gửi lại thành lật THÊM một thẻ, đúng nỗi sợ khiến
+         * bản trước không dám gửi lại và để nước đi rơi mất luôn.
+         *
+         * Trùng thì vẫn phải TRẢ VỀ VIEW: người gửi đang chờ hồi âm, im lặng ở
+         * đây là họ ngồi đợi tới hết hạn rồi lại gửi lại lần nữa.
+         */
+        if (typeof msg.seq === 'number') {
+          if (msg.seq <= (player.lastFlipSeq ?? 0)) {
+            this.send(ws, { t: 'state', view: this.view() });
+            return;
+          }
+          player.lastFlipSeq = msg.seq;
+        }
+        if (this.game.current.id !== player.id) {
+          // Sai lượt: cũng phải trả view. Hay gặp nhất là gửi lại một nước đã
+          // được xử xong và lượt đã sang người khác — im lặng là client treo.
+          this.send(ws, { t: 'state', view: this.view() });
+          return;
+        }
         const events = this.game.flip(msg.index, Date.now());
         if (!events.length) return;
         await this.afterEvents(events);
@@ -914,8 +977,10 @@ export class RoomDO extends DurableObject<Env> {
           this.broadcast({ t: 'room', room: this.roomInfo() });
         }
       }
-      // Đồng hồ lượt theo kịp trạng thái kết nối TRƯỚC khi tick xử hết giờ
-      this.nhipDongHoLuot();
+      // Đồng hồ lượt theo kịp trạng thái kết nối TRƯỚC khi tick xử hết giờ.
+      // Đổi trạng thái thì BÁO NGAY: không có tin này, máy đối phương vẫn đếm
+      // lùi theo mốc cũ rồi giật ngược lên khi view sau tới.
+      if (this.nhipDongHoLuot()) this.broadcast({ t: 'state', view: this.view() });
       // Úp lại thẻ sai / hết giờ
       const events = this.game.tick(now);
       if (events.length) await this.afterEvents(events, false);
@@ -946,14 +1011,41 @@ export class RoomDO extends DurableObject<Env> {
       // hẹn nó chỉ làm alarm nổ liên tục mà chẳng có gì để xử.
       if (this.game.turnDeadline && !this.game.turnPausedAt) {
         marks.push(this.game.turnDeadline + 50);
+      } else if (this.game.turnPausedAt) {
+        // ĐANG DỪNG: vẫn phải hẹn, ở mốc HẾT TRẦN (TURN_PAUSE_CAP_MS). Việc
+        // dừng dựa vào nhịp sống của client, mà client có thể câm hẳn — không
+        // có mốc này thì không gì đánh thức DO nữa và ván treo thật.
+        const conDuoc = Math.max(0, TURN_PAUSE_CAP_MS - this.game.turnPausedMs);
+        // Hết trần thì đồng hồ chạy tiếp, nên hạn thật lùi đúng bằng quota còn lại.
+        marks.push(this.game.turnDeadline + conDuoc + 50);
       }
       const left = this.game.timeLeft(now);
       if (left !== null) marks.push(now + left * 1000 + 50);
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null) marks.push(p.disconnectedAt + ROOM_LIMITS.reconnectMs);
-        // Cả mốc phát hiện mất mạng im lặng: không có nó thì alarm không bao giờ
-        // thức đúng lúc để nhận ra người kia đã đi.
-        else if (p.lastSeen) marks.push(p.lastSeen + SILENT_MS + 500);
+        /*
+         * Mốc dừng đồng hồ lượt của NGƯỜI ĐANG ĐI: không có nó thì chẳng gì
+         * đánh thức DO trong lúc họ nghẽn mạng, và đồng hồ chạy tới hết lượt.
+         *
+         * HAI ĐIỀU KIỆN, thiếu cái nào cũng thành lỗi thật:
+         *  - `> now`: mốc trong QUÁ KHỨ làm alarm nổ lại ngay lập tức, mà điều
+         *    kiện sinh ra nó thì không tự hết — alarm quay vòng và nuốt luôn
+         *    những mốc khác. Đo được: bàn Chớp nhoáng nằm hé mở 10,9 giây thay
+         *    vì 3,6 vì mốc hé mở không bao giờ tới lượt.
+         *  - đã dừng rồi thì thôi: dừng xong không còn gì để làm cho tới khi
+         *    người đó lên tiếng, mà lúc họ lên tiếng thì `webSocketMessage` cho
+         *    đồng hồ chạy lại ngay, không cần alarm nào.
+         */
+        if (p.id === this.game?.current?.id) {
+          const moc = (p.lastSeen ?? 0) + LAG_MS + 200;
+          if (p.lastSeen && moc > now && !this.game?.turnPausedAt) marks.push(moc);
+        }
+        // Cả mốc phát hiện mất mạng im lặng: không có nó thì alarm không bao
+        // giờ thức đúng lúc để nhận ra người kia đã đi. Cùng lý do trên, mốc
+        // quá khứ làm alarm quay vòng nên phải lọc.
+        if (p.lastSeen && p.lastSeen + SILENT_MS + 500 > now) {
+          marks.push(p.lastSeen + SILENT_MS + 500);
+        }
       }
     }
     // Ngoài ván cũng phải có alarm: đây là thứ duy nhất phát hiện được người
@@ -1021,12 +1113,20 @@ export class RoomDO extends DurableObject<Env> {
    * KHÔNG sợ dừng vô hạn: hạn giữ chỗ `ROOM_LIMITS.reconnectMs` vẫn chạy độc
    * lập, quá hạn thì người đó bị xử thua và lượt sang người khác.
    */
-  private nhipDongHoLuot(): void {
-    if (!this.game || !this.room || this.room.status !== 'playing') return;
+  private nhipDongHoLuot(): boolean {
+    if (!this.game || !this.room || this.room.status !== 'playing') return false;
     const dangDi = this.game.current?.id;
-    if (!dangDi) return;
-    if (this.connected(dangDi)) this.game.chayTiepLuot(Date.now());
-    else this.game.tamDungLuot(Date.now());
+    if (!dangDi) return false;
+    const truoc = this.game.turnDangDung();
+    const now = Date.now();
+    const p = this.room.players.find((x) => x.id === dangDi);
+    // KHÔNG dùng `connected()`: nó chỉ đổi khi socket đóng hẳn hoặc im 20 giây,
+    // mà lượt chỉ dài 15 giây — xem LAG_MS.
+    const nghen = !p || p.disconnectedAt !== null
+      || (p.lastSeen ? now - p.lastSeen > LAG_MS : false);
+    if (nghen) this.game.tamDungLuot(now);
+    else this.game.chayTiepLuot(now);
+    return this.game.turnDangDung() !== truoc;
   }
 
   private view() {
@@ -1077,8 +1177,23 @@ export class RoomDO extends DurableObject<Env> {
     try {
       const kem = this.predealKem(msg);
       if (kem) ws.send(kem);
-      ws.send(JSON.stringify(msg));
+      ws.send(this.gay(msg));
     } catch { /* socket đã đóng */ }
+  }
+
+  /**
+   * Chuỗi hoá một thông điệp, có GÓI LẠI view trước khi gửi.
+   *
+   * Gói ở đây — trong đúng hai hàm gửi — chứ không ở từng chỗ dựng view, cùng
+   * lý do với `predealKem`: rải ra là có ngày thêm một đường gửi mà quên, rồi
+   * client nhận một cái view nửa nọ nửa kia. `unpackView` nhận cả hai dạng nên
+   * bên nhận không cần biết bên gửi chọn dạng nào.
+   */
+  private gay(msg: ServerMsg): string {
+    if ((msg.t === 'state' || msg.t === 'events') && 'cards' in msg.view) {
+      return JSON.stringify({ ...msg, view: packView(msg.view) });
+    }
+    return JSON.stringify(msg);
   }
 
   /**
@@ -1092,12 +1207,24 @@ export class RoomDO extends DurableObject<Env> {
    * Gửi TRƯỚC view, không phải sau: client xử lý view xong là đã có thể vẽ, nên
    * dữ liệu phải có sẵn trước đó.
    */
-  private predealKem(msg: ServerMsg): string | null {
+  private predealKem(msg: ServerMsg, chiKhiDoi = false): string | null {
     if (!PREDEAL) return null;
     if (msg.t !== 'state' && msg.t !== 'events') return null;
     if (!this.game) return null;
-    return JSON.stringify({ t: 'predeal', symbols: predealSymbols(this.game) } satisfies PredealMsg);
+    const symbols = predealSymbols(this.game);
+    const dau = JSON.stringify(symbols);
+    // ĐƯỜNG BROADCAST CHỈ GỬI KHI BÀN THỰC SỰ ĐỔI CHỖ THẺ. Cả bàn đi kèm MỖI
+    // view là để xáo thẻ và thẻ Tráo đổi không làm bản đồ theo index lệch —
+    // nhưng bàn chỉ đổi ở đúng những lúc đó, còn lại là gửi lại y nguyên thứ
+    // client đang cầm. Trên bàn 88 thẻ đó là ~1KB thừa sau mỗi nước lật.
+    // Đường `send()` tới MỘT socket thì vẫn gửi đủ: người vừa vào chưa có gì.
+    if (chiKhiDoi && dau === this.predealDau) return null;
+    this.predealDau = dau;
+    return JSON.stringify({ t: 'predeal', symbols } satisfies PredealMsg);
   }
+
+  /** Dấu của thứ tự thẻ lần gần nhất đã phát cho cả phòng — xem `predealKem`. */
+  private predealDau = '';
 
   /**
    * Người này còn được đổi tên không? Ghi nhận luôn lần đổi nếu được.
@@ -1134,8 +1261,8 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private broadcast(msg: ServerMsg, exceptWelcomeFor?: string): void {
-    const raw = JSON.stringify(msg);
-    const kem = this.predealKem(msg);
+    const raw = this.gay(msg);
+    const kem = this.predealKem(msg, true);
     for (const ws of this.ctx.getWebSockets()) {
       try {
         if (kem) ws.send(kem);

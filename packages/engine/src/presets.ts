@@ -7,6 +7,22 @@ import type { GameConfig, Mode } from './types.js';
  * nhớ nổi. Neo ở 50 thẻ = 15 giây (2 + 0,26 mỗi thẻ), nên bàn 4 thẻ được 3 giây
  * và bàn 16 thẻ được hơn 6 giây.
  */
+/**
+ * Giây cho MỖI LƯỢT ở phòng nhiều người.
+ *
+ * 15 giây là con số cũ, và nó chính là gốc của gần hết chuyện "mạng yếu là
+ * hỏng": một game đi lần lượt vốn không quan tâm độ trễ — nước đi tới muộn hai
+ * giây thì đã sao — nhưng có một cái đếm ngược tuyệt đối chạy song song thì mọi
+ * cú nghẽn mạng đều biến thành MẤT LƯỢT. Ngưỡng phát hiện mất kết nối phải
+ * ngắn hơn nó, mà mạng di động nghẽn 5-10 giây là chuyện thường, nên 15 giây
+ * không chừa chỗ cho bất cứ cơ chế cứu nào.
+ *
+ * 25 giây vẫn đủ giục người chơi (bàn 88 thẻ thì nghĩ lâu là bình thường), mà
+ * chừa lại biên thật cho đường truyền. Đồng hồ vẫn DỪNG khi người đang đi
+ * nghẽn mạng — xem LAG_MS ở room.ts.
+ */
+export const TURN_LIMIT_SEC = 25;
+
 export const peekMsFor = (cards: number): number => 2_000 + Math.round(cards * 260);
 
 export interface PresetInput {
@@ -30,8 +46,7 @@ export function presetConfig({ mode, level, symbols, seed, players }: PresetInpu
   const base: GameConfig = {
     mode, cols: spec.cols, rows: spec.rows, pairs: spec.pairs, symbols, seed, players
   };
-  // Multiplayer: mỗi người 15 giây cho lượt của mình
-  if ((players?.length ?? 1) > 1) base.turnLimit = 15;
+  if ((players?.length ?? 1) > 1) base.turnLimit = TURN_LIMIT_SEC;
 
   switch (mode) {
     case 'classic':  return base;

@@ -1,3 +1,4 @@
+import { moGoiTin } from './lib-view.mjs';
 #!/usr/bin/env node
 // Giả vờ nhiều người vào một phòng, để test đông người mà không cần mở 10 tab.
 //
@@ -67,7 +68,7 @@ class NguoiGia {
       this.ws = new WebSocket(`${WS}/ws/${CODE}?${p}`);
       const hong = setTimeout(() => reject(new Error('quá hạn nối: ' + this.name)), 10000);
       this.ws.onmessage = (e) => {
-        let msg; try { msg = JSON.parse(e.data); } catch { return; }
+        let msg; try { msg = moGoiTin(JSON.parse(e.data)); } catch { return; }
         if (msg.t === 'welcome') { clearTimeout(hong); this.id = msg.playerId; resolve(msg); }
         this.nhan(msg).catch(() => {});
       };

@@ -156,6 +156,52 @@ export interface GameView {
   back: CardBack;
 }
 
+/**
+ * View ở DẠNG GỬI TRÊN DÂY — bỏ mảng `cards`, chỉ mang những ô KHÔNG phải
+ * "úp trơn".
+ *
+ * Vì sao đáng làm: bàn lớn nhất 88 thẻ thì gần hết một cái view là 88 lần lặp
+ * `{"index":n,"state":"down"}` — 27 byte mỗi ô, không mang tin gì mà client
+ * chưa biết. Đo thật: view của bàn 88 thẻ là 2.998 byte, trong khi thông tin
+ * thực sự mới ("người A vừa lật ô 17") chỉ khoảng 20 byte. Mà cái view ấy đi
+ * lại sau MỖI nước lật, kèm cả `predeal` nữa.
+ *
+ * Ô úp trơn suy ra được từ `n` nên không cần gửi: cái gì không có trong `o` thì
+ * là ô úp. Ô trống (`blank`) và ô đang ngửa/đã ghép thì có mặt đầy đủ.
+ */
+export interface WireView extends Omit<GameView, 'cards'> {
+  /** Tổng số ô của bàn. */
+  n: number;
+  /** Chỉ những ô không phải "úp trơn" — ngửa, đã ghép, hoặc ô trống. */
+  o: PublicCard[];
+}
+
+/** Gói view lại để gửi. Xem `WireView`. */
+export function packView(v: GameView): WireView {
+  const { cards, ...con } = v;
+  return {
+    ...con,
+    n: cards.length,
+    o: cards.filter((c) => c.state !== 'down' || c.blank)
+  };
+}
+
+/**
+ * Mở gói view nhận được.
+ *
+ * CHẤP NHẬN CẢ HAI DẠNG một cách có chủ đích: đã có `cards` thì trả nguyên si.
+ * Nhờ vậy đổi cách gói không bắt mọi thứ đọc view (client, bộ smoke, công cụ
+ * soi) phải đổi cùng một lúc, và server cũ với client mới vẫn nói chuyện được.
+ */
+export function unpackView(v: GameView | WireView): GameView {
+  if ('cards' in v) return v;
+  const { n, o, ...con } = v;
+  const tra = new Map(o.map((c) => [c.index, c]));
+  const cards: PublicCard[] = Array.from({ length: n }, (_, i) =>
+    tra.get(i) ?? { index: i, state: 'down' as const });
+  return { ...con, cards };
+}
+
 /** Chuyển trạng thái engine thành view an toàn để gửi client. */
 export function publicView(
   game: MemoryGame,
@@ -229,7 +275,30 @@ export function publicEvents(game: MemoryGame, events: GameEvent[]): PublicEvent
 export type ClientMsg =
   | { t: 'config'; config: Partial<RoomConfig> }   // chỉ chủ phòng
   | { t: 'start' }                                  // chỉ chủ phòng
-  | { t: 'flip'; index: number }
+  /**
+   * Lật một ô. `seq` là SỐ THỨ TỰ TĂNG DẦN của riêng người gửi.
+   *
+   * Không có nó thì một nước đi rơi giữa đường là mất luôn: client KHÔNG DÁM
+   * gửi lại, vì server không phân biệt được "gửi lại nước cũ" với "lật thêm
+   * một thẻ nữa" — hai thứ đó trên dây y hệt nhau. Đó là lý do thật của cảm
+   * giác "bấm mà không ăn" trên mạng yếu, và là lỗi kiến trúc chứ không phải
+   * lỗi đường truyền: một game đi lần lượt đáng lẽ chỉ cần gửi lại tới khi
+   * nhận được là xong.
+   *
+   * Có `seq`, server nhớ số cuối đã xử của từng người và BỎ QUA tin trùng
+   * (vẫn trả về view để client thôi chờ). Nhờ vậy client gửi lại thoải mái.
+   * Thiếu `seq` (client cũ) thì server xử như trước, không ai vỡ.
+   */
+  | { t: 'flip'; index: number; seq?: number }
+  /**
+   * Xin lại trạng thái hiện tại trên CHÍNH socket đang mở.
+   *
+   * Trước đây mọi sự cố nhỏ — rơi một tin, bàn có vẻ đứng — đều được "chữa"
+   * bằng cách mở lại socket. Mà bắt tay TCP+TLS+WS chính là thứ dễ hỏng nhất
+   * trên mạng yếu, nên cách chữa lại làm hỏng thêm đúng lúc đang yếu nhất.
+   * Một tin vài chục byte trên đường đã thông thì rẻ hơn nhiều lần.
+   */
+  | { t: 'resync' }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
   | { t: 'tolobby' }                                // về phòng chờ (một người bấm là đủ)
   | { t: 'public'; on: boolean }                    // chủ phòng bật/tắt hiện trong danh sách
@@ -330,11 +399,18 @@ export function predealSymbols(game: MemoryGame): Record<number, string> {
 /** Server → client. */
 export type ServerMsg =
   | PredealMsg
-  | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean }
+  /**
+   * `flipSeq` = số thứ tự nước lật cuối server đã xử của người này.
+   *
+   * Client nhảy bộ đếm của mình lên trên con số đó. Không có nó thì một người
+   * tải lại trang giữa ván sẽ bắt đầu đếm lại từ đầu, và mọi nước đi của họ bị
+   * chốt chống trùng nuốt sạch — im lặng, không lỗi, không cách nào đoán ra.
+   */
+  | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean; flipSeq?: number }
   | { t: 'room'; room: RoomInfo }
-  | { t: 'state'; view: GameView }
+  | { t: 'state'; view: GameView | WireView }
   | { t: 'countdown'; endsInMs: number; firstId: string; firstName: string }
-  | { t: 'events'; events: PublicEvent[]; view: GameView }
+  | { t: 'events'; events: PublicEvent[]; view: GameView | WireView }
   | { t: 'emoji'; from: string; emoji: QuickEmoji }
   | { t: 'closed'; message: string }
   | { t: 'error'; code: string; message: string }

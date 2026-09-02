@@ -1,6 +1,7 @@
 // Smoke test E2E: 2 client chơi trọn ván qua wrangler dev (Node 22 có sẵn WebSocket)
 // Mặc định đánh vào wrangler dev; đặt MM_SERVER để soi worker đã deploy thật,
 // ví dụ MM_SERVER=https://memory-match-server.nkien-bk.workers.dev
+import { moGoiTin } from './lib-view.mjs';
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const WS = SERVER.replace('http', 'ws');
 const fail = (m) => { console.error('✗', m); process.exit(1); };
@@ -12,7 +13,7 @@ class Client {
     if (token) p.set('token', token);
     this.ws = new WebSocket(`${WS}/ws/${code}?${p}`);
     this.ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
+      const msg = moGoiTin(JSON.parse(e.data));
       const i = this.waiters.findIndex((w) => w.pred(msg));
       if (i >= 0) this.waiters.splice(i, 1)[0].resolve(msg);
       else this.inbox.push(msg);

@@ -1,3 +1,4 @@
+import { moGoiTin } from './lib-view.mjs';
 /**
  * TUỲ CHỌN BÀN CHƠI trong phòng online — E2E thật qua wrangler dev.
  *
@@ -20,7 +21,7 @@ const mk = (code, name) => new Promise((res, rej) => {
   const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${name}`);
   const c = { ws, msgs: [], send: (m) => ws.send(JSON.stringify(m)) };
   const t = setTimeout(() => rej(new Error('không mở được socket')), 5000);
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onopen = () => { clearTimeout(t); res(c); };
 });
 const view = (c) => [...c.msgs].reverse().find((m) => m.view)?.view;

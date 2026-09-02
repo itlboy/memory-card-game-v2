@@ -15,13 +15,13 @@ const base = computed(() => props.seed ?? 7);
 // Hình thì lặp mãi, nhưng TIẾNG phải lùi về sau: sfx.victory() đã nổ 5 quả to
 // trong ~3 giây đầu; từ đó trở đi chỉ điểm nhẹ để người chơi còn nghe được tiếng
 // bấm nút trên bảng kết quả.
-const SOFT_START_MS = 4000;
+const SOFT_START_MS = 2600;
 const SOFT_EVERY_MS = 1900;
 const SOFT_LEVEL = 0.18;
-/** Bảng kết quả hiện ở 5s (App.vue và OnlineScreen.vue), cho tiếng kéo thêm 2
- *  giây rồi TẮT HẲN — người chơi cần đọc kết quả và bấm nút trong yên tĩnh.
- *  Hình thì vẫn chạy tiếp. */
-const SOFT_STOP_MS = 7000;
+/** Bảng kết quả nay hiện ở 2,2s (OnlineGame.vue) chứ không phải 5s, cho tiếng
+ *  kéo thêm ~3 giây rồi TẮT HẲN — người chơi cần đọc kết quả và bấm nút trong
+ *  yên tĩnh. Hình thì vẫn chạy tiếp phía sau bảng. */
+const SOFT_STOP_MS = 5200;
 let softTimer: ReturnType<typeof setInterval> | undefined;
 let startTimer: ReturnType<typeof setTimeout> | undefined;
 let stopTimer: ReturnType<typeof setTimeout> | undefined;

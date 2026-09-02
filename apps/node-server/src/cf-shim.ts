@@ -60,8 +60,29 @@ export class MmSocket {
   send(data: string): void {
     if (this.raw.readyState === 1) this.raw.send(data);
   }
+  /**
+   * ĐÓNG SAU KHI ĐÃ ĐẨY HẾT TIN ĐANG CHỜ.
+   *
+   * room.ts có chỗ `send(lý do)` rồi `close()` ngay dòng sau (mời ra khỏi
+   * phòng, phòng bị đóng). Trên Workers thì tin kịp đi; còn `ws` của Node đẩy
+   * frame theo nhịp vòng lặp sự kiện, nên đóng ngay trong cùng một tick là gói
+   * tin bị bỏ lại — người bị mời ra chỉ thấy "mất kết nối", không biết vì sao.
+   * Đo được bằng `tools/smoke-kick.mjs` chạy vào server Node.
+   *
+   * Chờ `bufferedAmount` về 0 rồi mới đóng, có trần 300ms để một socket nghẽn
+   * không giữ kết nối lại mãi.
+   */
   close(code?: number, reason?: string): void {
-    try { this.raw.close(code, reason); } catch { /* đã đóng */ }
+    const dong = (): void => {
+      try { this.raw.close(code, reason); } catch { /* đã đóng */ }
+    };
+    if (this.raw.readyState !== 1) return dong();
+    const han = Date.now() + 300;
+    const cho = (): void => {
+      if (this.raw.readyState !== 1 || this.raw.bufferedAmount === 0 || Date.now() > han) dong();
+      else setTimeout(cho, 10);
+    };
+    setTimeout(cho, 0);
   }
   serializeAttachment(v: unknown): void { this.attachment = v; }
   deserializeAttachment(): unknown { return this.attachment; }

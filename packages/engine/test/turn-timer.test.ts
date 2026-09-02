@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
-import { presetConfig } from '../src/presets.js';
+import { TURN_LIMIT_SEC, presetConfig } from '../src/presets.js';
 import { SYMBOLS, matchPair, missPair, pairSlots } from './helpers.js';
 
 const timed = (over = {}) => new MemoryGame({
@@ -81,12 +81,15 @@ describe('đồng hồ lượt 15 giây (multiplayer)', () => {
     expect(g.tick(99_000).some((e) => e.type === 'turn-timeout')).toBe(false);
   });
 
-  it('presetConfig: multiplayer tự bật 30s, chơi đơn thì không', () => {
+  it('presetConfig: multiplayer tự bật đồng hồ lượt, chơi đơn thì không', () => {
     const mp = presetConfig({
       mode: 'classic', level: 7, symbols: SYMBOLS, seed: 1,
       players: [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }]
     });
-    expect(mp.turnLimit).toBe(15);
+    // Neo vào hằng số, không phải một con số chép tay: giá trị này đã đổi
+    // (15 → 25) đúng vì 15 giây không chừa chỗ cho mạng yếu, và sẽ còn cân lại.
+    expect(mp.turnLimit).toBe(TURN_LIMIT_SEC);
+    expect(TURN_LIMIT_SEC).toBeGreaterThanOrEqual(20);
     const solo = presetConfig({ mode: 'classic', level: 7, symbols: SYMBOLS, seed: 1 });
     expect(solo.turnLimit).toBeUndefined();
   });

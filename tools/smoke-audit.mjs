@@ -1,10 +1,11 @@
+import { moGoiTin } from './lib-view.mjs';
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json()).code;
 const mk = (code, name) => new Promise((res) => {
   const ws = new WebSocket(`${SERVER.replace('http','ws')}/ws/${code}?name=${name}`);
   const c = { name, ws, msgs: [], send: (m) => ws.send(JSON.stringify(m)) };
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onclose = (e) => console.log('   [socket', name, 'đóng', e.code, e.reason + ']');
   ws.onerror = () => console.log('   [socket', name, 'lỗi]');
   ws.onopen = () => res(c);

@@ -1,4 +1,5 @@
 import { levelSpec } from './campaign.js';
+import { TURN_LIMIT_SEC } from './presets.js';
 import type { GameConfig } from './types.js';
 
 /**
@@ -186,7 +187,7 @@ export function configFromOptions({ options, level, symbols, seed, players }: Bu
     cols: spec.cols, rows: spec.rows, pairs: spec.pairs,
     symbols, seed, players
   };
-  if ((players?.length ?? 1) > 1) cfg.turnLimit = 15;
+  if ((players?.length ?? 1) > 1) cfg.turnLimit = TURN_LIMIT_SEC;
 
   if (options.time > 0) {
     const heSo = options.time === 1 ? 1.5 : options.time === 2 ? 1 : 0.7;

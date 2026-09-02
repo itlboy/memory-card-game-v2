@@ -5,6 +5,7 @@
 // Cái bẫy lớn nhất: client TỰ NỐI LẠI mỗi 500ms. Đóng socket suông là người bị
 // mời ra quay vào ngay lập tức — nên phải đóng bằng mã RIÊNG (4003) để client
 // biết đừng thử lại. Bài cuối ở đây canh đúng chuyện đó.
+import { moGoiTin } from './lib-view.mjs';
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json()).code;
@@ -12,7 +13,7 @@ const mk = (code, name) => new Promise((res, rej) => {
   const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${encodeURIComponent(name)}`);
   const c = { ws, msgs: [], closed: null, send: (m) => ws.send(JSON.stringify(m)) };
   const hetgio = setTimeout(() => rej(new Error(`không mở được socket vào phòng ${code}`)), 5000);
-  ws.onmessage = (e) => c.msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
   ws.onclose = (e) => { c.closed = e.code; };
   ws.onerror = () => { clearTimeout(hetgio); rej(new Error('socket lỗi')); };
   ws.onopen = () => { clearTimeout(hetgio); res(c); };
