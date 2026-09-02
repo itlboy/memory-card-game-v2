@@ -202,6 +202,31 @@ onMounted(() => {
   }
   armUnlock();
 
+  /*
+   * MỌI NÚT ĐỀU CÓ TIẾNG — gắn ở MỘT chỗ, không rải vào từng handler.
+   *
+   * Người chơi báo nút thoát bàn bấm mà im lặng; rà lại thì còn cả loạt nút
+   * khác cùng cảnh (đóng hộp thoại, mũi tên quay lại, sao chép link, mở hướng
+   * dẫn). Gắn tay từng nút không giải quyết được gốc: nút mới thêm sau này lại
+   * im. Ở đây bắt trên `pointerdown` PHA CAPTURE của document nên không handler
+   * nào chặn được, và `sfx.clickMacDinh()` tự im nếu nút đó có tiếng riêng.
+   *
+   * `data-nosfx` để một nút chủ đích không kêu (nút gạt âm lượng ở mức TẮT).
+   */
+  const KHONG_KEU = '[data-nosfx]';
+  const chamNut = (e: Event): void => {
+    const el = (e.target as Element | null)?.closest?.('button, [role="button"], a[href]');
+    if (!el || el.closest(KHONG_KEU)) return;
+    if (el instanceof HTMLButtonElement && el.disabled) return;
+    if (el.getAttribute('aria-disabled') === 'true') return;
+    sfx.clickMacDinh();
+  };
+  document.addEventListener('pointerdown', chamNut, { capture: true, passive: true });
+  // Bàn phím: pointerdown không nổ, mà Enter/Space trên nút vẫn là "bấm nút".
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') chamNut(e);
+  }, { capture: true, passive: true });
+
   // Quay lại app: thử chạy lại ngay (có khi được), đồng thời vũ trang cử chỉ để
   // lần chạm kế tiếp chắc chắn mở khoá được.
   const wake = (): void => { sfx.resume(); armUnlock(); };

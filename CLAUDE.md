@@ -38,6 +38,13 @@
 - Cỡ chữ wizard dùng chung `.option strong` / `.option small` ở wizard.css.
   KHÔNG ghi đè cỡ chữ theo dáng ô — đã gây chuyện bước 1 chữ 18px trong khi các
   bước sau 22,7px.
+- **MỌI NÚT ĐỀU CÓ TIẾNG, gắn ở MỘT chỗ.** `App.vue` bắt `pointerdown` ở PHA
+  CAPTURE của document rồi gọi `sfx.clickMacDinh()`; nút nào có tiếng riêng thì
+  hàm đó tự im (chờ `CHO_MS` 90ms, thấy `mocPhat` đã nhích là bỏ). Đừng đi gắn
+  `sfx` vào từng handler: app đã hơn 60 nút và mỗi nút thêm sau sẽ lại là một
+  nút im lặng — đúng lỗi "bấm thoát bàn không kêu gì" người chơi đã báo. Muốn
+  một nút chủ đích không kêu thì đặt `data-nosfx`. Có
+  `test/nut-co-tieng.test.ts` canh cả hai nửa.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
