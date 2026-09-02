@@ -13,7 +13,18 @@
 .ketcuc-fx {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  /*
+   * DƯỚI HỘP THOẠI (`ResultDialog` ở z-index 10), KHÔNG PHẢI TRÊN.
+   *
+   * `DefeatFx` cũ đặt 40 nên lớp xám + vết rạn phủ luôn lên bảng tỉ số — người
+   * chơi báo đúng chuyện này, có ảnh: cả bảng "Bot siêu đẳng thắng!" bị làm xám
+   * và mấy vệt nứt kẻ ngang qua chữ.
+   *
+   * Đặt 9 còn làm `backdrop-filter` của lớp rút màu ĂN ĐÚNG THỨ CẦN ăn: nó chỉ
+   * lọc những gì vẽ BÊN DƯỚI nó, tức bàn thẻ và HUD — bảng kết quả nằm trên nên
+   * vẫn nguyên màu và đọc được. Đừng nâng số này lên.
+   */
+  z-index: 9;
   overflow: hidden;
   pointer-events: none;
   /* Chu kỳ một vụ pháo hoa: nổ ở đầu rồi nghỉ hết chu kỳ. 8 vụ lệch nhau 0,7s
@@ -233,13 +244,20 @@
   display: flex;
   flex-direction: column;
 }
+/*
+ * MỌI DẢI CÙNG MỘT ĐỘ ĐẬM.
+ *
+ * Bản đầu để hai dải giữa nhạt hơn (34% so với 78%) với ý "chừa chỗ nhìn lại
+ * bàn". Trên nền sáng thì hai dải đó sáng hơn hẳn bốn dải kia, đọc ra thành một
+ * KHOẢNG TRẮNG kẻ ngang giữa màn — người chơi báo "cứ như bị lỗi". Nay đậm đều
+ * 62%: vẫn còn thấy bàn xuyên qua, mà không có dải nào lạc ra khỏi bộ.
+ */
 .fx-dai {
   flex: 1;
-  background: rgb(4 5 12 / 78%);
+  background: rgb(4 5 12 / 62%);
   opacity: 0;
   animation: fx-dai-tat 320ms ease-out forwards;
 }
-.fx-dai-giua { background: rgb(4 5 12 / 34%); }
 @keyframes fx-dai-tat { to { opacity: 1; } }
 
 /* Cú giật của KHUNG BÀN lúc kết ván. Lớp này gắn vào khung bàn thẻ, KHÔNG phải

@@ -17,6 +17,7 @@ import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
 import { sfx } from './lib/audio';
+import { useViewportLock } from './composables/useViewportLock';
 import { store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
 
@@ -92,6 +93,9 @@ const showResult = ref(false);
 let resultTimer: ReturnType<typeof setTimeout> | undefined;
 
 const session = useGameSession();
+/* Khoá chiều cao thật + kéo document về 0 mỗi lần trang hiện lại — không có nó
+   thì mở lại Chrome trên iPhone là header nằm ngoài màn hình. */
+useViewportLock();
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 const confirmQuit = ref(false);
 const showRules = ref(false);

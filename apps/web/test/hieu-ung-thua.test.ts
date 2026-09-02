@@ -129,6 +129,16 @@ describe('sổ đăng ký hiệu ứng', () => {
     expect(thieu, 'lớp không có CSS = hiệu ứng vô hình').toEqual([]);
   });
 
+  it('lớp hiệu ứng nằm DƯỚI hộp kết quả', () => {
+    // Lỗi đã xảy ra thật (có ảnh): lớp xám + vết rạn phủ lên cả bảng tỉ số.
+    const css = readFileSync(resolve(process.cwd(), 'src/styles/ketcuc-fx.css'), 'utf8');
+    const dialog = readFileSync(resolve(process.cwd(), 'src/components/ResultDialog.vue'), 'utf8');
+    const zFx = Number(/\.ketcuc-fx \{[\s\S]*?z-index: (\d+)/.exec(css)![1]);
+    const zHop = Number(/position: fixed; inset: 0; z-index: (\d+)/.exec(dialog)![1]);
+    expect(zFx, 'hiệu ứng đè lên bảng tỉ số thì không ai đọc được kết quả')
+      .toBeLessThan(zHop);
+  });
+
   it('bốc theo SEED nên tất định — F5 không đổi hình', () => {
     for (const loai of ['thang', 'thua', 'hoa'] as const) {
       for (let seed = 0; seed < 200; seed++) {
