@@ -270,7 +270,10 @@
   socket. Đừng đảo lại: bắt tay TCP+TLS+WS chính là thứ dễ hỏng nhất trên mạng
   yếu, nên lấy nó làm cách chữa đầu tiên là mạng càng yếu càng hỏng thêm.
 - **Đồng hồ lượt DỪNG khi người đang đi nghẽn mạng, nhưng CÓ TRẦN**
-  (`TURN_PAUSE_CAP_MS` 30 giây, cộng dồn trong một lượt, cấp lại mỗi lượt).
+  (`TURN_PAUSE_CAP_MS` 5 PHÚT, neo đúng `ROOM_LIMITS.reconnectMs`, cộng dồn
+  trong một lượt, cấp lại mỗi lượt). Dừng là dừng MỌI đồng hồ: `elapsed()` cũng
+  đứng theo, không thì giữ được lượt mà vẫn thua vì hết giờ ván. Trần cũ 30 giây
+  vô nghĩa với người chơi — chỗ trong phòng giữ 5 phút mà lượt mất sau 30 giây.
   Trần là bắt buộc: việc dừng dựa vào nhịp `alive` do CLIENT gửi — bản cũ nằm
   trong cache service worker, một bản dựng lỗi, hay ai đó nối bằng công cụ riêng
   đều làm ván TREO HẲN, tệ hơn hẳn cái nó định chữa. Ngưỡng phát hiện nghẽn là

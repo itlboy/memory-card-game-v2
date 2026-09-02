@@ -1126,7 +1126,9 @@ export class RoomDO extends DurableObject<Env> {
    * thêm một lối mà quên.
    *
    * KHÔNG sợ dừng vô hạn: hạn giữ chỗ `ROOM_LIMITS.reconnectMs` vẫn chạy độc
-   * lập, quá hạn thì người đó bị xử thua và lượt sang người khác.
+   * lập, quá hạn thì người đó bị xử thua và lượt sang người khác — và
+   * `TURN_PAUSE_CAP_MS` nay neo đúng vào con số đó, nên ván ĐÓNG BĂNG suốt thời
+   * gian người kia còn giữ chỗ, không mất lượt oan ở giây thứ 30 nữa.
    */
   private nhipDongHoLuot(): boolean {
     if (!this.game || !this.room || this.room.status !== 'playing') return false;
