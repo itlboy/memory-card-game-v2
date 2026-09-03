@@ -137,7 +137,9 @@ describe('hoạ tiết PHẢI VẼ ĐƯỢC THẬT', () => {
    * đáy lá, đúng điều người chơi báo. Hoạ tiết nằm giữa lá thì KHÔNG cần, vì
    * kéo giãn chỉ làm hình méo.
    */
-  const RA_MEP = ['cuc-quang', 'thoi', 'khung'];
+  // `thoi` từng ở đây: nó có một lưới chéo trải kín lá. Chủ dự án bỏ lưới đó,
+  // giờ nó chỉ còn hình kim cương giữa lá nên phải GIỮ tỉ lệ.
+  const RA_MEP = ['cuc-quang', 'khung'];
   for (const ht of RA_MEP) {
     it(`"${ht}" vẽ tới mép nên phải kéo giãn theo ô`, () => {
       const svg = uris.find(([t]) => t === ht)![1];
