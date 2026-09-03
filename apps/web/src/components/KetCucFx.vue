@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { sfx } from '@/lib/audio';
-import { bocHieuUng } from '@/lib/ketcuc-fx';
+import { HET_HOI_MS, bocHieuUng, conLai } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 /**
@@ -22,7 +22,26 @@ const props = defineProps<{
 }>();
 
 const hieuUng = computed(() => bocHieuUng(props.loai, props.seed ?? 7));
-const lops = computed(() => hieuUng.value.dung(props.seed ?? 7));
+/*
+ * HẠT BAY CÓ HẠN — hiệu ứng không được chạy mãi.
+ *
+ * Hiệu ứng nằm DƯỚI bảng kết quả, và bảng đó ở trên màn hình rất lâu: người
+ * chơi đọc tỉ số rồi mới bấm. Mọi hạt (confetti, tia pháo, tro) đều khai
+ * animation `infinite`, nên trước đây chúng quay cho tới lúc component bị gỡ —
+ * `phao-hoa` là 230 phần tử cùng chạy, các hiệu ứng thua thì kèm một lớp
+ * `backdrop-filter` trùm cả màn. Trên điện thoại đó là cả CPU lẫn GPU bị chiếm
+ * đúng vào lúc người chơi bấm "Chơi lại", mà ngay sau cú chạm còn phải dựng một
+ * bàn thẻ mới — người chơi báo "bấm chơi lại delay tới vài chục giây".
+ *
+ * Sau `HET_HOI_MS` chỉ giữ lớp nền (animation `forwards`, đã dừng sẵn nên gỡ
+ * hạt đi không làm mất không khí kết ván).
+ */
+const hetHoi = ref(false);
+let hoiTimer: ReturnType<typeof setTimeout> | undefined;
+const lops = computed(() => {
+  const tatCa = hieuUng.value.dung(props.seed ?? 7);
+  return hetHoi.value ? conLai(tatCa) : tatCa;
+});
 
 /*
  * TIẾNG PHÁO HOA KÉO THÊM (chỉ màn thắng).
@@ -45,6 +64,7 @@ function imTieng(): void {
 }
 
 onMounted(() => {
+  hoiTimer = setTimeout(() => { hetHoi.value = true; }, HET_HOI_MS);
   if (props.loai !== 'thang') return;
   startTimer = setTimeout(() => {
     sfx.firework(0, SOFT_LEVEL);
@@ -54,6 +74,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(hoiTimer);
   clearTimeout(startTimer);
   clearTimeout(stopTimer);
   imTieng();
