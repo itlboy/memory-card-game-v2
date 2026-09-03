@@ -26,6 +26,18 @@ export interface LopFx {
   lop: string;
   style?: Record<string, string>;
   con?: LopFx[];
+  /**
+   * HẠT BAY — lớp có animation `infinite`, phải BỎ ĐI khi hết hơi.
+   *
+   * Vì sao cần đánh dấu: hiệu ứng nằm dưới bảng kết quả và ở đó rất lâu (người
+   * chơi đọc tỉ số, bấm nút, đôi khi để đó). `phao-hoa` là 230 phần tử cùng
+   * chạy animation vô hạn, mấy hiệu ứng thua thì thêm một lớp `backdrop-filter`
+   * trùm cả màn — điện thoại quay mãi như thế thì cú chạm "Chơi lại" phải xếp
+   * hàng sau nó, mà ngay sau cú chạm còn dựng cả một bàn thẻ mới. `KetCucFx` gỡ
+   * mọi lớp `tam` ở mốc `HET_HOI_MS`; lớp nền (animation `forwards`, đã dừng
+   * sẵn) thì giữ để không khí kết ván không biến mất giữa lúc đang xem.
+   */
+  tam?: boolean;
 }
 
 export interface HieuUng {
@@ -51,6 +63,7 @@ const MAU_CONFETTI = ['#6a5cff', '#c44cf0', '#ea8c00', '#0ea371', '#e5484d', '#3
 function confetti(seed: number): LopFx[] {
   return Array.from({ length: 70 }, (_, i) => ({
     lop: 'fx-giay',
+    tam: true,
     style: {
       left: `${(i * 37 + seed) % 100}%`,
       background: MAU_CONFETTI[i % MAU_CONFETTI.length]!,
@@ -69,6 +82,7 @@ function tro(seed: number): LopFx[] {
     return {
       // Vài hạt là than CÒN ĐỎ: một điểm màu duy nhất trên nền đã bị rút hết màu
       lop: i % 9 === 0 ? 'fx-tan fx-than' : 'fx-tan',
+      tam: true,
       style: {
         left: `${(i * 29 + seed * 11) % 100}%`,
         width: `${d}px`,
@@ -103,6 +117,7 @@ export const HIEU_UNG: readonly HieuUng[] = [
         const mau = MAU_PHAO_HOA[(b * 2 + seed) % MAU_PHAO_HOA.length]!;
         return {
           lop: 'fx-no',
+          tam: true,
           style: {
             left: `${10 + ((b * 37 + seed * 13) % 80)}%`,
             top: `${8 + ((b * 23 + seed * 7) % 45)}%`
@@ -133,7 +148,7 @@ export const HIEU_UNG: readonly HieuUng[] = [
     ten: 'Bùng sáng',
     loai: 'thang',
     dung: (seed) => [
-      { lop: 'fx-tia-quay' },
+      { lop: 'fx-tia-quay', tam: true },
       { lop: 'fx-loe-trang' },
       ...confetti(seed + 3)
     ]
@@ -146,6 +161,7 @@ export const HIEU_UNG: readonly HieuUng[] = [
       const d = 9 + (i % 5) * 3;
       return {
         lop: 'fx-sao',
+        tam: true,
         style: {
           left: `${(i * 41 + seed * 7) % 100}%`,
           width: `${d}px`,
@@ -167,6 +183,7 @@ export const HIEU_UNG: readonly HieuUng[] = [
     dung: (seed) => [
       ...Array.from({ length: 4 }, (_, i) => ({
         lop: 'fx-song',
+        tam: true,
         style: {
           color: MAU_PHAO_HOA[(i * 2 + seed) % MAU_PHAO_HOA.length]!,
           animationDelay: `${i * 480}ms`
@@ -278,4 +295,18 @@ export function hieuUngCua(loai: LoaiKetCuc): HieuUng[] {
 export function bocHieuUng(loai: LoaiKetCuc, seed: number): HieuUng {
   const ds = hieuUngCua(loai);
   return ds[bam(seed, ds.length) % ds.length]!;
+}
+
+/**
+ * Hạt bay tắt sau bấy nhiêu ms kể từ lúc hiệu ứng hiện ra.
+ *
+ * 9 giây: bảng kết quả vào ở 2,2s và tiếng pháo hoa đã im ở 5,2s, nên tới mốc
+ * này người chơi đã ngắm xong. Từ đó về sau chỉ còn lớp nền tĩnh — máy rảnh tay
+ * để nhận cú chạm và dựng bàn mới.
+ */
+export const HET_HOI_MS = 9000;
+
+/** Bỏ các lớp `tam` — dùng khi hiệu ứng đã hết hơi. */
+export function conLai(lops: LopFx[]): LopFx[] {
+  return lops.filter((l) => !l.tam);
 }
