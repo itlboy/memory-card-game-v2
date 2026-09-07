@@ -78,7 +78,10 @@ defineExpose({
     class="board"
     role="grid"
     aria-label="Bàn thẻ"
-    :style="{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }"
+    :style="{
+      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+      gridTemplateRows: `repeat(${Math.ceil(cards.length / cols)}, minmax(0, 1fr))`
+    }"
     @keydown="onKeydown"
   >
     <CardTile
@@ -106,5 +109,15 @@ defineExpose({
 .board {
   /* --card-gap do useBoardFit đặt: cỡ bàn được tính với đúng khe hở này. */
   display: grid; gap: var(--card-gap, 8px); width: 100%; touch-action: manipulation;
+  /* CHIỀU CAO DO KHUNG QUYẾT ĐỊNH, KHÔNG DO SỐ ĐO CỦA JS.
+     computeFit tính chiều cao thẻ vừa KHÍT chỗ trống — không chừa lấy một px —
+     nên chỉ cần số đo lệch một nhịp là bàn tràn ra ngoài khung: đo xong rồi
+     dải người chơi mới mọc thêm chip ping / dòng "mạng có vấn đề", hay view
+     online về sau số đo đầu tiên. Đúng cảnh bàn 88 thẻ online tràn xuống dưới
+     thanh emoji (người chơi báo, có ảnh).
+     Nay hàng là `1fr` của khung bao và bàn cao đúng 100% khung, nên thẻ CO
+     THEO chỗ thật còn lại; số của JS chỉ còn quyết định BỀ RỘNG (tức dáng thẻ).
+     Tràn trở thành chuyện không thể xảy ra, không phụ thuộc lúc nào đo. */
+  height: 100%; max-width: 100%;
 }
 </style>
