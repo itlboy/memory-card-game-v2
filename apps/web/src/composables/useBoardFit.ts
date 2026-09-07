@@ -29,22 +29,26 @@ export const MAX_ASPECT = 1;
  * Phần tính thuần, tách ra để test được mà không cần dựng component.
  * @returns tỷ lệ lá bài và bề rộng bàn (px)
  */
+export function gapFor(availW: number): number {
+  return availW < 420 ? 6 : 8;
+}
+
 export function computeFit(
   availW: number, availH: number, cols: number, rows: number
-): { aspect: number; width: number } {
-  const gap = availW < 420 ? 6 : 8;
+): { aspect: number; width: number; gap: number } {
+  const gap = gapFor(availW);
   const cellW = (availW - gap * (cols - 1)) / cols;
   const cellH = (availH - gap * (rows - 1)) / rows;
   // Ưu tiên lấp cả hai chiều; kẹp trong khoảng dáng thẻ chấp nhận được
   const aspect = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, cellW / cellH));
   const cardH = Math.min(cellH, cellW / aspect);
-  return { aspect, width: Math.floor(cardH * aspect * cols + gap * (cols - 1)) };
+  return { aspect, gap, width: Math.floor(cardH * aspect * cols + gap * (cols - 1)) };
 }
 
 export interface BoardFit {
   /** Gắn vào phần tử bao bàn thẻ; đây là thứ được đo. */
   wrap: Ref<HTMLElement | null>;
-  /** Biến CSS cho `.board`: `--card-ar` và `--fit`. */
+  /** Biến CSS cho `.board`: `--card-ar`, `--fit` và `--card-gap`. */
   fitStyle: Ref<Record<string, string>>;
 }
 
@@ -56,6 +60,7 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
   const wrap = ref<HTMLElement | null>(null);
   const cardAspect = ref(0.75);
   const boardWidth = ref<number | null>(null);
+  const boardGap = ref(8);
 
   function measure(): void {
     const el = wrap.value;
@@ -67,6 +72,7 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
     const fit = computeFit(availW, availH, s.cols, s.rows);
     cardAspect.value = fit.aspect;
     boardWidth.value = fit.width;
+    boardGap.value = fit.gap;
   }
 
   let ro: ResizeObserver | undefined;
@@ -82,7 +88,11 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
 
   const fitStyle = computed(() => ({
     '--card-ar': String(cardAspect.value),
-    '--fit': boardWidth.value ? `${boardWidth.value}px` : '100%'
+    '--fit': boardWidth.value ? `${boardWidth.value}px` : '100%',
+    /* Khe hở PHẢI do JS quyết định, không phải media query theo viewport: trên
+       iPhone 15 Pro Max viewport 430px (CSS lấy 8px) mà khung bàn chỉ 406px
+       (JS lấy 6px) — bàn 88 thẻ tính theo 6px rồi vẽ bằng 8px là tràn ra ngoài. */
+    '--card-gap': `${boardGap.value}px`
   }));
 
   return { wrap, fitStyle };
