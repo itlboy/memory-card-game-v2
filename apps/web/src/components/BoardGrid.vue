@@ -104,7 +104,7 @@ defineExpose({
 
 <style scoped>
 .board {
-  display: grid; gap: 8px; width: 100%; touch-action: manipulation;
+  /* --card-gap do useBoardFit đặt: cỡ bàn được tính với đúng khe hở này. */
+  display: grid; gap: var(--card-gap, 8px); width: 100%; touch-action: manipulation;
 }
-@media (max-width: 420px) { .board { gap: 6px; } }
 </style>

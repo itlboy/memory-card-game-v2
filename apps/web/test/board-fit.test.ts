@@ -3,7 +3,13 @@ import { MAX_ASPECT, MIN_ASPECT, computeFit } from '@/composables/useBoardFit';
 import { allLevels } from '@mm/engine';
 
 /** Chỗ trống thật của bàn, đo trên máy nhỏ nhất và máy phổ thông. */
-const AREAS = { 'iPhone SE': [351, 510], 'iPhone 14': [366, 618] } as const;
+const AREAS = {
+  'iPhone SE': [351, 510],
+  'iPhone 14': [366, 618],
+  // Pro Max: vùng web 430×745 trừ đệm hai bên và HUD. Máy này từng tràn bàn 88
+  // thẻ vì viewport ≥420 (CSS gap 8) mà khung bàn <420 (JS gap 6).
+  'iPhone 15 Pro Max': [406, 700]
+} as const;
 
 describe('tính cỡ bàn thẻ', () => {
   it('tỷ lệ lá bài luôn nằm trong khoảng cho phép', () => {
@@ -44,6 +50,17 @@ describe('tính cỡ bàn thẻ', () => {
         const gap = w < 420 ? 6 : 8;
         const cardW = (width - gap * (l.cols - 1)) / l.cols;
         expect(cardW, `cấp ${l.id} (${l.cols}×${l.rows}) @ ${name}`).toBeGreaterThanOrEqual(44);
+      }
+    }
+  });
+
+  it('hàng thẻ vẽ bằng đúng khe hở đã tính — không hàng nào rộng hơn khung', () => {
+    for (const l of allLevels()) {
+      for (const [name, [w, h]] of Object.entries(AREAS)) {
+        const { width, gap } = computeFit(w, h, l.cols, l.rows);
+        const cardW = (width - gap * (l.cols - 1)) / l.cols;
+        expect(cardW * l.cols + gap * (l.cols - 1), `cấp ${l.id} @ ${name}`)
+          .toBeLessThanOrEqual(w);
       }
     }
   });

@@ -339,7 +339,11 @@ const label = computed(() => {
 .card {
   /* Tỉ lệ do bàn quyết định (đo chỗ còn lại): 3:4 khi đủ chỗ, cao dần tới 5:8
      để lấp chiều cao dư trên màn dọc. */
-  position: relative; aspect-ratio: var(--card-ar, 3 / 4); min-width: 44px; min-height: 44px;
+  /* KHÔNG có sàn 44px ở đây: cỡ thẻ do useBoardFit tính ra vừa khít khung, nên
+     một sàn cứng chỉ làm hàng thẻ rộng hơn bàn và TRÀN ra ngoài (bàn 72/88 thẻ
+     cố ý dưới ngưỡng chạm — xem chú thích BOARDS trong campaign.ts). Ngưỡng
+     44px cho mọi cỡ ≤56 thẻ được canh bằng test board-fit. */
+  position: relative; aspect-ratio: var(--card-ar, 3 / 4); min-width: 0; min-height: 0;
   padding: 0; border: 0; background: transparent; perspective: 700px;
   /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
      với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
