@@ -343,7 +343,12 @@ const label = computed(() => {
      một sàn cứng chỉ làm hàng thẻ rộng hơn bàn và TRÀN ra ngoài (bàn 72/88 thẻ
      cố ý dưới ngưỡng chạm — xem chú thích BOARDS trong campaign.ts). Ngưỡng
      44px cho mọi cỡ ≤56 thẻ được canh bằng test board-fit. */
-  position: relative; aspect-ratio: var(--card-ar, 3 / 4); min-width: 0; min-height: 0;
+  /* `height: 100%` (lấp trọn hàng `1fr` của bàn) là thứ QUYẾT ĐỊNH chiều cao;
+     `aspect-ratio` chỉ còn là dự phòng cho lúc bàn chưa có chiều cao xác định.
+     Ngược lại — để tỉ lệ quyết định chiều cao — là cả bàn cao theo con số JS đo
+     được, lệch một nhịp là tràn ra ngoài khung (xem chú thích trong BoardGrid). */
+  position: relative; aspect-ratio: var(--card-ar, 3 / 4); height: 100%;
+  min-width: 0; min-height: 0;
   padding: 0; border: 0; background: transparent; perspective: 700px;
   /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
      với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
