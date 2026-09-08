@@ -279,12 +279,33 @@ export function useOnlineRoom() {
         pingLost.value += 1;   // nhịp trước chưa có trả lời
         if (!dungTu.value) dungTu.value = Date.now();
       }
-      // Mất 2 nhịp liền (6 giây) là socket coi như chết. Ngưỡng cũ 3 nhịp ×
-      // 4 giây = 12 giây, dài hơn cả một lượt 15 giây — tức socket treo mà máy
-      // vẫn báo OPEN thì người chơi mất gần trọn lượt trước khi ta thử lại. iOS treo kết nối khi
-      // người chơi rời app mà readyState vẫn báo OPEN, nên KHÔNG có bước này
-      // thì họ ngồi nhìn chip đỏ mãi tới khi tự tải lại trang.
-      if (pingLost.value >= 2 && code && token) {
+      /*
+       * MẤT NHỊP THÌ CŨNG ĐI TỪ RẺ TỚI ĐẮT.
+       *
+       * iOS treo kết nối khi người chơi rời app mà `readyState` vẫn báo OPEN,
+       * nên phải có đường tự cứu — nhưng bản trước mất 2 nhịp (6 giây) là MỞ
+       * LẠI SOCKET ngay, tức lấy bắt tay TCP+TLS+WS làm cách chữa đầu tiên,
+       * đúng thứ dễ hỏng nhất trên mạng yếu (xem thang xử lý của nước đi: 1,5s
+       * gửi lại · 3s gửi lại · 4,5s resync · 6s mới mở lại socket).
+       *
+       * Đo được hậu quả trên iPhone thật: mạng di động nghẽn 6–10 giây là
+       * thường, nên client tự đá socket ĐANG SỐNG rồi bắt tay lại giữa lúc mạng
+       * tệ nhất — mỗi lần như vậy là một dòng "Mất kết nối — đang vào lại…" và
+       * một cục tin dồn về sau đó, đọc ra thành "nghe tiếng trước, thấy hình
+       * sau" (người chơi báo, có ảnh).
+       *
+       * Nay: mất 2 nhịp → XIN LẠI TRẠNG THÁI trên socket đang mở (vài chục
+       * byte, không bắt tay); mất 3 nhịp (12 giây) mới mở lại. 12 giây giờ nằm
+       * gọn trong một lượt 25 giây (TURN_LIMIT_SEC) và đồng hồ lượt còn tự dừng
+       * khi server thấy mình nghẽn, nên không mất lượt oan như hồi lượt 15 giây.
+       */
+      if (pingLost.value === 2 && send({ t: 'resync' })) {
+        pingSentAt = performance.now();
+        ws.send(JSON.stringify({ t: 'ping' }));
+        ws.send(JSON.stringify({ t: 'alive' }));
+        return;
+      }
+      if (pingLost.value >= 3 && code && token) {
         batNoiLai();
         connect(code, myName, token);
         return;
