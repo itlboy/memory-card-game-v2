@@ -32,6 +32,10 @@ export interface Prefs {
   /** Tuỳ chọn bàn chơi (năm công tắc 0..3) — nhớ giữa các ván để người chơi
    *  không phải đặt lại luật mỗi lần vào. */
   options: BoardOptions;
+  /** Bảng đo nhịp (fps, trễ gói tin → khung hình) hiện ở góc màn hình.
+   *  Lưu lại vì lỗi cần soi thường chỉ hiện trên MỘT máy cụ thể: bật một lần
+   *  rồi chơi qua nhiều ván, khỏi phải nhớ thêm `?debug=1` vào mọi đường vào. */
+  debug: boolean;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -68,7 +72,7 @@ const DEFAULT_PREFS: Prefs = {
   // chọn được nhiều.
   dark: false, sound: true, soundLevel: 'high',
   mode: 'classic', level: 1, themes: [], playerCount: 1,
-  options: DEFAULT_OPTIONS
+  options: DEFAULT_OPTIONS, debug: false
 };
 
 function read(): Save {

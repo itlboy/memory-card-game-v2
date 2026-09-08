@@ -19,7 +19,13 @@ import IconDefs from './components/IconDefs.vue';
  * tin về lúc nào, nên KHÔNG được mount ngoài lúc đang soi lỗi.
  */
 const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
-const moDo = new URLSearchParams(location.search).get('debug') === '1';
+/**
+ * Bật bằng nút trong bảng hướng dẫn (nhớ trong localStorage) HOẶC bằng `?debug=1`
+ * cho một lần. `?debug=1` cũng GHI vào bản lưu, để mở link một lần rồi chơi tiếp
+ * mấy ván sau vẫn còn số đo — lỗi cần soi thường không xuất hiện ở ván đầu.
+ */
+const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
+watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
@@ -565,9 +571,13 @@ const hasNext = computed(() => {
   <!-- Kho hình + gradient cho <OptionIcon>. Mount ĐÚNG MỘT LẦN: id gradient là
        toàn cục, nhiều bản sao thì mọi icon lấy chung một màu. -->
   <IconDefs />
-  <DoNhip v-if="moDo" />
+  <DoNhip v-if="debug" />
 
-  <RulesDialog v-if="showRules" @close="showRules = false" />
+  <RulesDialog
+    v-if="showRules" :debug="debug"
+    @close="showRules = false"
+    @update:debug="debug = $event"
+  />
 
   <ConfirmDialog
     v-if="confirmQuit"

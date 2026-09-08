@@ -118,6 +118,11 @@ defineExpose({
      Nay hàng là `1fr` của khung bao và bàn cao đúng 100% khung, nên thẻ CO
      THEO chỗ thật còn lại; số của JS chỉ còn quyết định BỀ RỘNG (tức dáng thẻ).
      Tràn trở thành chuyện không thể xảy ra, không phụ thuộc lúc nào đo. */
-  height: 100%; max-width: 100%;
+  /* Cao đúng cỡ thẻ đã tính (`--fit-h`), KHÔNG phải 100% khung: ép 100% thì chỗ
+     dư biến thành lá bài dài ngoằng — trên máy tính bàn 16 thẻ ra đúng cảnh đó,
+     lá cao gấp rưỡi mà khe 6px trông như dính vào nhau (đã bị báo, có ảnh).
+     `max-height: 100%` giữ nguyên điều đã chốt: số đo lệch một nhịp cũng không
+     tràn, vì hàng là `1fr` nên thẻ co theo chiều cao thật của khung. */
+  height: var(--fit-h, 100%); max-height: 100%; max-width: 100%;
 }
 </style>

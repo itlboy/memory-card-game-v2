@@ -6,7 +6,8 @@ import { buildAgeText } from '@/lib/format';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 
-const emit = defineEmits<{ close: [] }>();
+const props = defineProps<{ debug: boolean }>();
+const emit = defineEmits<{ close: []; 'update:debug': [boolean] }>();
 
 /* ---------- phiên bản & tuổi bản build ---------- */
 
@@ -127,11 +128,29 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
         <b>v{{ version }}</b> · build {{ builtAt }}
         <span class="ago">({{ ago }})</span>
       </p>
+
+      <!-- DƯỚI CÙNG, sau cả số bản dựng: đây là công cụ soi lỗi, không phải một
+           tính năng chơi. Đặt cạnh số bản dựng vì hai thứ luôn được hỏi cùng
+           nhau ("máy bạn chạy bản nào, số đo ra sao"). -->
+      <button
+        class="nut-do" type="button"
+        :aria-pressed="props.debug ? 'true' : 'false'"
+        @click="emit('update:debug', !props.debug)"
+      >{{ props.debug ? '● Đang đo nhịp — bấm để tắt' : 'Bật bảng đo nhịp' }}</button>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Nút soi lỗi: cố tình NHẠT và nhỏ hơn mọi nút khác trong bảng — nó không phải
+   thứ người chơi cần bấm, chỉ là chỗ để bật khi được nhờ đọc số đo. */
+.nut-do {
+  display: block; width: 100%; margin-top: 6px;
+  min-height: 34px; padding: 6px 10px; border-radius: 9px;
+  border: 1px dashed var(--line-strong); background: transparent;
+  color: var(--muted); font: inherit; font-size: var(--text-xs); font-weight: 700;
+}
+.nut-do[aria-pressed='true'] { border-style: solid; border-color: var(--bad); color: var(--bad); }
 /* Chân trang phiên bản: mờ, nhỏ, không giành sự chú ý với nội dung luật chơi */
 .build {
   margin: 12px 0 0; text-align: center;

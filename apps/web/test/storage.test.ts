@@ -9,7 +9,9 @@ describe('tuỳ chọn', () => {
     expect(store.prefs()).toEqual({
       dark: false, sound: true, soundLevel: 'high',
       mode: 'classic', level: 1, themes: [], playerCount: 1,
-      options: DEFAULT_OPTIONS
+      options: DEFAULT_OPTIONS,
+      // Bảng đo nhịp phải TẮT với người chơi mới — nó là công cụ soi lỗi
+      debug: false
     });
   });
 

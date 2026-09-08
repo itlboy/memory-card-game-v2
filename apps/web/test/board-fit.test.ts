@@ -65,6 +65,22 @@ describe('tính cỡ bàn thẻ', () => {
     }
   });
 
+  /* Lá bài phải giữ DÁNG THẺ, không bị kéo dài cho kín khung: bàn cao đúng bằng
+     cỡ thẻ đã chọn, nên khi còn dư chiều cao thì để dư. Bản trước ép bàn cao
+     100% khung và máy tính ra lá cao ngoằng, khe hở trông như dính (có ảnh). */
+  it('bàn không bao giờ cao hơn chỗ được chia, và cao đúng theo cỡ thẻ', () => {
+    for (const l of allLevels()) {
+      for (const [name, [w, h]] of Object.entries(AREAS)) {
+        const { height, aspect, gap, width } = computeFit(w, h, l.cols, l.rows);
+        expect(height, `cấp ${l.id} @ ${name}`).toBeLessThanOrEqual(h);
+        // chiều cao phải khớp chính cỡ thẻ suy ra từ bề rộng — hai số một phép tính
+        const cardW = (width - gap * (l.cols - 1)) / l.cols;
+        const tinh = (cardW / aspect) * l.rows + gap * (l.rows - 1);
+        expect(Math.abs(height - tinh), `cấp ${l.id} @ ${name}`).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
   it('chỗ trống ít hơn thì bàn nhỏ theo, không tràn ra ngoài', () => {
     // Màn online có thêm bảng người chơi nên chiều cao ít hơn chơi đơn
     const solo = computeFit(366, 618, 4, 5);
