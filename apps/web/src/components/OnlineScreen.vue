@@ -404,7 +404,16 @@ function batDauVan(): void {
   sfx.go();                                  // kêu NGAY, đừng đợi server
   dangMoVan.value = true;
   clearTimeout(moVanTimer);
-  moVanTimer = setTimeout(() => { dangMoVan.value = false; }, HAN_MO_VAN);
+  moVanTimer = setTimeout(() => {
+    dangMoVan.value = false;
+    /*
+     * HẾT HẠN MÀ VÁN KHÔNG MỞ THÌ PHẢI NÓI. Bản trước chỉ tắt cái spinner, nên
+     * người chơi thấy nút nhá lên rồi quay về mà không biết vì sao — đúng cảnh
+     * đã bị báo (lúc đó server vừa được thay ảnh nên tin `start` rơi mất). Chỉ
+     * nói khi CHƯA có lỗi nào từ server: lời của server luôn cụ thể hơn.
+     */
+    if (!o.error.value) o.error.value = 'Chưa mở được ván — mạng vừa chập. Bấm lại nhé.';
+  }, HAN_MO_VAN);
   o.start();
 }
 

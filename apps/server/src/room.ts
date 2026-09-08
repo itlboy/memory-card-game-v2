@@ -620,8 +620,29 @@ export class RoomDO extends DurableObject<Env> {
       }
 
       case 'start': {
-        if (player.id !== this.room.hostId) return;
-        if (this.room.status !== 'lobby') return;
+        /*
+         * MỌI LỜI TỪ CHỐI ĐỀU PHẢI NÓI RA.
+         *
+         * Hai nhánh này trước đây `return` im lặng, nên trên máy chủ phòng cái
+         * nút chỉ nhá "Đang mở ván…" rồi quay về "Bắt đầu" mà không một chữ nào
+         * — đúng cảnh đã bị báo, và không cách nào tự đoán ra. Hay gặp nhất là
+         * sau khi server được thay ảnh: socket đứt, client vào lại, và nếu nó
+         * không còn là chủ phòng (hoặc phòng đã sang đếm ngược) thì bấm mãi
+         * không có gì xảy ra.
+         */
+        if (player.id !== this.room.hostId) {
+          this.send(ws, { t: 'error', code: 'not-host', message: 'Chỉ chủ phòng mở được ván.' });
+          return;
+        }
+        if (this.room.status !== 'lobby') {
+          this.send(ws, {
+            t: 'error', code: 'not-lobby',
+            message: this.room.status === 'countdown'
+              ? 'Ván đang đếm ngược rồi.'
+              : 'Ván đang chạy — không mở lại được từ đây.'
+          });
+          return;
+        }
         this.againVotes.clear();
         // Chỉ những người còn kết nối mới vào ván mới — không chờ người đã đi hẳn
         this.room.players = this.room.players.filter(

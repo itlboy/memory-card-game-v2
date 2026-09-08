@@ -10,7 +10,9 @@ describe('nút "Bắt đầu" phải phản hồi ngay khi bấm', () => {
   it('kêu NGAY lúc bấm, không đợi server', () => {
     const i = src.indexOf('function batDauVan()');
     expect(i, 'thiếu hàm bấm bắt đầu').toBeGreaterThan(-1);
-    const than = src.slice(i, i + 400);
+    // Cắt TRỌN thân hàm, không phải 400 ký tự đầu: cửa sổ cố định làm test đỏ
+    // ngay khi thêm một chú thích vào giữa hàm, mà thứ tự gọi thì vẫn đúng.
+    const than = src.slice(i, src.indexOf('\n}', i));
     // Tiếng phải nằm TRƯỚC lời gọi lên server: đợi server là mạng chậm thành
     // bấm xong im ru, và người ta bấm tiếp.
     expect(than.indexOf('sfx.')).toBeGreaterThan(-1);
