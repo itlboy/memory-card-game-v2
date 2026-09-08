@@ -88,6 +88,22 @@
   nút im lặng — đúng lỗi "bấm thoát bàn không kêu gì" người chơi đã báo. Muốn
   một nút chủ đích không kêu thì đặt `data-nosfx`. Có
   `test/nut-co-tieng.test.ts` canh cả hai nửa.
+- **CHI PHÍ CỦA MỘT NHỊP CẬP NHẬT BÀN TÍNH THEO SỐ LÁ — bàn 88 thẻ ONLINE là ca
+  xấu nhất.** Server broadcast lại CẢ view mỗi nhịp đồng hồ lượt, không chỉ khi
+  có nước đi, nên mỗi giây Vue patch lại 88 component dù trên bàn không đổi gì.
+  Offline cùng chi phí đó mà không ai thấy vì bàn chỉ đổi lúc người chơi bấm.
+  Ba luật rút ra, đã đo trên bàn 8×11 (ms mỗi nhịp, Chrome desktop):
+  · mặt sau vẽ bằng ẢNH NỀN, KHÔNG `mask` — mask là một bộ đệm nhân điểm ảnh cho
+  MỖI lá: mask+hàng auto 0,94ms · mask+hàng `1fr` 1,38ms · ảnh nền+`1fr` 0,88ms.
+  Hoạ tiết vốn là mực TRẮNG kèm opacity từng nét nên hai cách cho ra cùng hình.
+  · các computed dựng bàn (`cards`, `faceUp`, `matchedSet` ở OnlineGame) phải
+  GIỮ NGUYÊN THAM CHIẾU khi chữ ký nội dung không đổi (`giuNeuGiong`) — nhịp đồng
+  hồ khi đó không đụng tới bàn thẻ. Chữ ký phải sinh từ chính dữ liệu dựng ra,
+  viết tay là có ngày thiếu một mẩu và bàn đứng hình.
+  · bàn ≥56 thẻ BỎ cú lắc 2,2 giây sau khi lật (chỉ còn transition 340ms): lá
+  ~34px thì cái lắc gần như không thấy, mà máy vẫn vẽ lại lá đó suốt 2,2 giây.
+  Đo bằng harness Chrome headless (`--dump-dom` + `document.title`), đừng đoán;
+  FPS/rAF KHÔNG đo được ở máy này (thiếu display link), nên đo ms style+layout.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 

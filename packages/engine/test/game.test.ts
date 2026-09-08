@@ -1,3 +1,4 @@
+import { FLIP_BACK_MS } from '../src/scoring.js';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
 import { clearBoard, makeGame, matchPair, missKnown, missPair, pairSlots } from './helpers.js';
@@ -18,9 +19,9 @@ describe('luật chơi cốt lõi (SRS mục 2)', () => {
     g.flip(slots[0]![0], 0);
     g.flip(slots[1]![0], 0);
     expect(g.locked).toBe(true);
-    g.tick(500);
+    g.tick(FLIP_BACK_MS - 1);
     expect(g.locked).toBe(true);           // chưa tới hạn thì vẫn mở
-    g.tick(1001);
+    g.tick(FLIP_BACK_MS + 1);
     expect(g.locked).toBe(false);
     expect(g.isFaceUp(slots[0]![0])).toBe(false);
   });

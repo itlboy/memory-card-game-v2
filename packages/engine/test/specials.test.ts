@@ -1,3 +1,4 @@
+import { FLIP_BACK_MS } from '../src/scoring.js';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
 import type { Power } from '../src/types.js';
@@ -70,7 +71,7 @@ describe('thẻ đặc biệt (SRS 3.4)', () => {
     expect(g.matched.size).toBe(0);
 
     g.flip(pairSlots(g)[7]![0], 0);      // ghép sai để úp thẻ bom xuống lại
-    g.tick(1001);
+    g.tick(FLIP_BACK_MS + 1);
     expect(g.isFaceUp(slot)).toBe(false);
 
     matchPair(g, 0, 2000);               // mở lại 1 cặp

@@ -59,7 +59,10 @@ describe('mỗi tên có CSS', () => {
   it('mực trắng cho CẢ BẢY bảng — không còn ngoại lệ', () => {
     const i = css.indexOf('.back::before {');
     const khoi = css.slice(i, css.indexOf('}', i));
-    expect(khoi).toMatch(/background: rgba\(255, 255, 255/);
+    expect(khoi, 'hoạ tiết phải vẽ bằng ẢNH NỀN — `mask` là 88 lớp đệm trên bàn 88 thẻ, một lá lật là cả bàn vẽ lại')
+      .toMatch(/background: var\(--bk-ht\)/);
+    expect(khoi, 'mực 92% nay là opacity của lớp ảnh').toMatch(/opacity: \.92/);
+    expect(khoi, 'còn mask thì cái đắt vẫn còn đó').not.toMatch(/mask:/);
     expect(css, 'mực đậm riêng cho một bảng là bảng đó nhìn lạc hẳn')
       .not.toMatch(/bk-mau-\w+\s*\{[^}]*--bk-muc/);
   });

@@ -31,3 +31,30 @@ describe('bàn thẻ không tràn ra ngoài khung', () => {
     expect(s.slice(s.indexOf('.card {'), s.indexOf('.card {') + 900)).toMatch(/height:\s*100%/);
   });
 });
+
+/**
+ * Bàn 88 thẻ ONLINE lag (người chơi báo 08.09.2026). Gốc: server gửi lại cả
+ * view mỗi nhịp đồng hồ lượt, nên mỗi giây Vue patch lại 88 component dù bàn
+ * không đổi gì — offline cùng chi phí mà không thấy, vì bàn chỉ đổi khi bấm.
+ * Đo trên bàn 8×11: 1,38ms style+layout mỗi nhịp ở máy tính, điện thoại chậm
+ * hơn nhiều lần.
+ */
+describe('bàn 88 thẻ online không phải dựng lại mỗi nhịp đồng hồ', () => {
+  const src = readFileSync(resolve(__dirname, '../src/components/OnlineGame.vue'), 'utf8');
+
+  it('cards / faceUp / matchedSet giữ nguyên tham chiếu khi nội dung không đổi', () => {
+    expect((src.match(/giuNeuGiong\(/g) ?? []).length,
+      'thiếu một chỗ là nhịp đồng hồ lại render cả bàn thẻ').toBeGreaterThanOrEqual(3);
+  });
+
+  it('mặt sau vẽ bằng ảnh nền, không mask — mask là một lớp đệm cho MỖI lá', () => {
+    const css = readFileSync(resolve(__dirname, '../src/styles/card-backs.css'), 'utf8');
+    expect(css).not.toMatch(/^\s*(-webkit-)?mask:/m);
+  });
+
+  it('bàn từ 56 thẻ trở lên không chạy cú lắc 2,2 giây sau khi lật', () => {
+    const card = readFileSync(resolve(__dirname, '../src/components/CardTile.vue'), 'utf8');
+    expect(card).toMatch(/banLon\s*=\s*computed\(\(\)\s*=>\s*\(props\.cardCount \?\? 0\) >= 56\)/);
+    expect((card.match(/if \(banLon\.value\) return;/g) ?? []).length).toBe(2);
+  });
+});
