@@ -110,3 +110,34 @@ describe('rớt kết nối', () => {
     expect(room.reconnecting.value, 'vẫn đang rớt thì giữ nguyên MỘT dòng, không tắt bật').toBe(true);
   });
 });
+
+/**
+ * NHỊP TIM CŨNG PHẢI ĐI TỪ RẺ TỚI ĐẮT.
+ *
+ * Bản trước mất 2 nhịp (6 giây) là mở lại socket ngay — lấy bắt tay TCP+TLS+WS
+ * làm cách chữa đầu tiên, đúng thứ dễ hỏng nhất trên mạng yếu. Mạng di động
+ * nghẽn 6–10 giây là thường, nên client tự đá một socket ĐANG SỐNG giữa lúc
+ * mạng tệ nhất; mỗi lần như vậy người chơi thấy "Mất kết nối" rồi một cục tin
+ * dồn về (đúng cảnh đã báo trên iPhone).
+ */
+describe('nhịp tim: xin lại trạng thái trước, mở lại socket sau', () => {
+  it('mất 2 nhịp thì gửi resync trên socket đang mở, KHÔNG mở socket mới', async () => {
+    const ws = FakeWS.last!;
+    const truoc = FakeWS.opened;
+    ws.sent.length = 0;
+    // ba nhịp tim mà không có pong nào: nhịp 2 phải là resync
+    await vi.advanceTimersByTimeAsync(4000);
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(ws.sent.some((t) => t.includes('resync')),
+      'phải xin lại trạng thái trên socket đang mở').toBe(true);
+    expect(FakeWS.opened, 'chưa được bắt tay lại ở nhịp này').toBe(truoc);
+  });
+
+  it('mất 3 nhịp (12 giây) thì mới mở lại socket', async () => {
+    const truoc = FakeWS.opened;
+    await vi.advanceTimersByTimeAsync(4000);
+    await vi.advanceTimersByTimeAsync(4000);
+    await vi.advanceTimersByTimeAsync(4000);
+    expect(FakeWS.opened, 'hết đường rẻ thì phải mở lại socket').toBeGreaterThan(truoc);
+  });
+});
