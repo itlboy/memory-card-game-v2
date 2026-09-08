@@ -52,9 +52,4 @@ describe('bàn 88 thẻ online không phải dựng lại mỗi nhịp đồng h
     expect(css).not.toMatch(/^\s*(-webkit-)?mask:/m);
   });
 
-  it('bàn từ 56 thẻ trở lên không chạy cú lắc 2,2 giây sau khi lật', () => {
-    const card = readFileSync(resolve(__dirname, '../src/components/CardTile.vue'), 'utf8');
-    expect(card).toMatch(/banLon\s*=\s*computed\(\(\)\s*=>\s*\(props\.cardCount \?\? 0\) >= 56\)/);
-    expect((card.match(/if \(banLon\.value\) return;/g) ?? []).length).toBe(2);
-  });
 });

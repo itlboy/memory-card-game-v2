@@ -2,7 +2,7 @@
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
 import { BOT_SPECS } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
-import { computed, onMounted, ref, watch, watchEffect } from 'vue';
+import { computed, defineAsyncComponent, onMounted, ref, watch, watchEffect } from 'vue';
 import KetCucFx from './components/KetCucFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameScreen from './components/GameScreen.vue';
@@ -13,6 +13,13 @@ import RulesDialog from './components/RulesDialog.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import IconDefs from './components/IconDefs.vue';
+/*
+ * BẢNG ĐO chỉ nạp khi có `?debug=1` — `defineAsyncComponent` nên người chơi
+ * thường không tải một byte nào của nó. Nó bọc `window.WebSocket` để biết gói
+ * tin về lúc nào, nên KHÔNG được mount ngoài lúc đang soi lỗi.
+ */
+const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
+const moDo = new URLSearchParams(location.search).get('debug') === '1';
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
@@ -558,6 +565,7 @@ const hasNext = computed(() => {
   <!-- Kho hình + gradient cho <OptionIcon>. Mount ĐÚNG MỘT LẦN: id gradient là
        toàn cục, nhiều bản sao thì mọi icon lấy chung một màu. -->
   <IconDefs />
+  <DoNhip v-if="moDo" />
 
   <RulesDialog v-if="showRules" @close="showRules = false" />
 

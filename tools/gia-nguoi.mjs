@@ -1,5 +1,5 @@
-import { moGoiTin } from './lib-view.mjs';
 #!/usr/bin/env node
+import { moGoiTin } from './lib-view.mjs';
 // Giả vờ nhiều người vào một phòng, để test đông người mà không cần mở 10 tab.
 //
 //   node tools/gia-nguoi.mjs "https://thebai2.hello314.com/?room=525473" --so 5

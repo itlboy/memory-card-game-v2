@@ -94,21 +94,16 @@ const dealStagger = computed(() => dealDelay(props.row ?? 0, props.rows ?? 1));
  */
 const flipAnim = ref<'up' | 'down' | 'tail' | null>(null);
 
-/**
- * BÀN LỚN THÌ CHỈ LẬT, KHÔNG LẮC.
+/*
+ * ĐÃ THỬ RỒI BỎ: cắt cú lắc 2,2 giây ở bàn ≥56 thẻ.
  *
- * Cú lật gồm hai phần: transition 340ms (lá quay), rồi keyframes lắc tắt dần
- * 2,2 GIÂY. Phần lắc chạy trên `.inner` — phần tử có perspective, hai mặt thẻ
- * và ba lớp box-shadow — nên suốt 2,2 giây đó lá được vẽ lại mỗi khung hình.
- * Trên bàn 4–36 thẻ không sao; trên bàn 88 thẻ, lá chỉ ~34px mà cái lắc gần
- * như không nhìn ra, còn máy thì vẫn trả đủ giá — cộng với nhịp lật liên tục
- * của ván online, đó là cái lag người chơi báo.
+ * Lý do bỏ: đo bằng Performance của Chrome (hãm CPU 6× cho giống điện thoại)
+ * trong ván online 88 thẻ thật, style + layout chỉ ~1ms mỗi giây — phần VẼ bàn
+ * thẻ không phải chỗ đắt, nên cắt hiệu ứng là trả giá thẩm mỹ mà không được gì
+ * (chủ dự án báo ngay: "hiệu ứng không có, rất thô"). Cái lag nằm ở chỗ khác.
  *
- * Mốc 56 thẻ: đúng ngưỡng đã dùng cho các quyết định "bàn lớn" khác trong app
- * (xem `vuaMo`). Từ đó trở lên chỉ còn transition 340ms — vẫn thấy lá quay,
- * chỉ không còn đuôi lắc.
+ * Nếu sau này thật sự cần cắt, hãy đo TRƯỚC bằng cùng cách đó và ghi số vào đây.
  */
-const banLon = computed(() => (props.cardCount ?? 0) >= 56);
 let flipTimer: ReturnType<typeof setTimeout> | undefined;
 const FLIP_WOBBLE_MS = 2200;
 /** Đúng bằng transition-duration của .inner — mốc lá bài lật xong. */
@@ -144,7 +139,6 @@ watch(() => props.faceUp, (up, was) => {
     daCho.value = false;
     choXongLuc = Date.now() + FLIP_MS;
     clearTimeout(flipTimer);
-    if (banLon.value) return;
     flipTimer = setTimeout(() => {
       flipAnim.value = 'tail';
       flipTimer = setTimeout(() => { flipAnim.value = null; }, TAIL_MS);
@@ -152,7 +146,6 @@ watch(() => props.faceUp, (up, was) => {
     return;
   }
   if (props.pending) return;
-  if (banLon.value) return;          // bàn lớn: chỉ transition, không lắc
   flipAnim.value = up ? 'up' : 'down';
   clearTimeout(flipTimer);
   flipTimer = setTimeout(() => { flipAnim.value = null; }, FLIP_WOBBLE_MS);
@@ -403,6 +396,17 @@ const label = computed(() => {
      được, lệch một nhịp là tràn ra ngoài khung (xem chú thích trong BoardGrid). */
   position: relative; aspect-ratio: var(--card-ar, 3 / 4); height: 100%;
   min-width: 0; min-height: 0;
+  /*
+   * ĐỔ BÓNG Ở ĐÂY, KHÔNG Ở HAI MẶT THẺ.
+   *
+   * `.inner` là phần tử QUAY. Bóng đặt trên mặt thẻ thì mỗi khung hình của cú
+   * lật, trình duyệt phải vẽ lại bóng đó ở một góc chiếu 3D mới — máy tính gánh
+   * được, iPhone thì không (đúng cảnh "máy tính mượt, điện thoại không" người
+   * chơi báo), và bàn 88 thẻ nhân chi phí đó lên. `.card` đứng yên trong lúc
+   * lật, mà hai mặt lại lấp kín nó (`inset: 0`) nên hình nhìn ra y như cũ: bóng
+   * vẽ MỘT LẦN rồi giữ nguyên suốt cú lật.
+   */
+  border-radius: 12px; box-shadow: var(--shadow-soft);
   padding: 0; border: 0; background: transparent; perspective: 700px;
   /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
      với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
@@ -525,6 +529,11 @@ const label = computed(() => {
   pointer-events: none;
   box-shadow: 0 0 0 2px var(--accent), 0 0 18px 5px color-mix(in srgb, var(--accent) 55%, transparent);
   animation: card-loe 0.52s ease-out forwards;
+  /* Cái bóng mờ 18px này bị PHÓNG TO trong lúc chạy. Không khai `will-change`
+     thì mỗi khung hình là một lần vẽ lại vùng mờ ở cỡ mới; khai rồi thì nó được
+     vẽ một lần rồi chỉ biến hình. Chỉ tốn cho lá vừa mở, và class tự mất sau
+     520ms nên không có lớp nào nằm lại. */
+  will-change: transform, opacity;
 }
 @keyframes card-loe {
   0%   { opacity: 1; transform: scale(0.97); }
@@ -636,13 +645,24 @@ const label = computed(() => {
 .face {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   border-radius: 12px; backface-visibility: hidden;
-  box-shadow: var(--shadow-soft);
+  /* Không box-shadow ở đây — xem chú thích ở `.card`. */
   /* Biểu tượng ~58% bề rộng thẻ — thẻ to là chữ to theo */
   font-size: max(20px, 55cqw);
 }
+/*
+ * CỠ CHỮ CỦA MẶT TRƯỚC KHÔNG GẮN VỚI TRẠNG THÁI.
+ *
+ * Biểu tượng to là thứ giúp NHỚ, nên mặt đã ngửa dùng cỡ lớn hơn hẳn. Nhưng
+ * phải khai ở `.front` chứ KHÔNG ở `.card.up .front`: mặt trước vốn chỉ thấy
+ * được khi lá đã ngửa, mà gắn theo trạng thái thì lúc bỏ class chữ tụt nhỏ
+ * NGAY GIỮA CÚ QUAY (thấy rõ trong 340ms lá úp lại sau khi lật sai), và lá vừa
+ * ghép đúng đổi sang `.done` cũng bị nhỏ lại đúng lúc người chơi đang nhìn nó.
+ * Khai một cỡ duy nhất thì không có lúc nào để nhỏ đi.
+ */
+.front { font-size: max(22px, 72cqw); }
 .back {
   overflow: hidden;
-  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, .3),
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3),
     inset 0 0 0 2px rgba(255, 255, 255, .12);
 }
 /* Hoạ tiết và gradient của từng mặt sau nằm ở `styles/card-backs.css` (mặt nạ +
@@ -659,12 +679,16 @@ const label = computed(() => {
 }
 @keyframes shine { to { transform: translateX(110%); } }
 .front {
+  /* Mặt ngửa SÁNG NGẢ KEM + viền vàng, không phải trắng nhạt như bản đầu: trên
+     bàn 56–88 thẻ lá ngửa cũ lẫn vào cả bàn, người chơi không thấy mình vừa mở
+     lá nào. Cách này chỉ đụng tới 1–2 lá đang ngửa nên bàn 88 thẻ không tốn
+     thêm gì (khác với việc làm mờ 86 lá còn úp). */
   background:
     radial-gradient(circle at 50% 58%, var(--accent-soft), transparent 62%),
-    var(--card-face);
-  border: 1px solid var(--line);
+    var(--card-face-up);
+  border: 1.5px solid var(--card-face-up-line);
   transform: rotateY(180deg);
-  box-shadow: var(--shadow-soft), var(--inner-light);
+  box-shadow: var(--inner-light);
 }
 .card.done { cursor: default; }
 .card.done .front {
@@ -687,7 +711,7 @@ const label = computed(() => {
    thành gần tròn), và có viền sáng để nổi trên mọi màu mặt thẻ. */
 .badge :deep(.opt-ico) {
   border-radius: 4px;
-  box-shadow: 0 0 0 1.5px var(--card-face), 0 1px 3px rgba(0, 0, 0, .35);
+  box-shadow: 0 0 0 1.5px var(--card-face-up), 0 1px 3px rgba(0, 0, 0, .35);
 }
 @keyframes twinkle { 50% { transform: scale(1.25); opacity: .8; } }
 
