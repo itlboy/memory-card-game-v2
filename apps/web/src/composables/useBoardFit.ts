@@ -35,14 +35,21 @@ export function gapFor(availW: number): number {
 
 export function computeFit(
   availW: number, availH: number, cols: number, rows: number
-): { aspect: number; width: number; gap: number } {
+): { aspect: number; width: number; height: number; gap: number } {
   const gap = gapFor(availW);
   const cellW = (availW - gap * (cols - 1)) / cols;
   const cellH = (availH - gap * (rows - 1)) / rows;
   // Ưu tiên lấp cả hai chiều; kẹp trong khoảng dáng thẻ chấp nhận được
   const aspect = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, cellW / cellH));
   const cardH = Math.min(cellH, cellW / aspect);
-  return { aspect, gap, width: Math.floor(cardH * aspect * cols + gap * (cols - 1)) };
+  return {
+    aspect, gap,
+    width: Math.floor(cardH * aspect * cols + gap * (cols - 1)),
+    /* Chiều cao ĐI THEO bề rộng, cùng một phép tính. Có nó thì bàn cao đúng cỡ
+       thẻ đã chọn: còn dư chỗ thì để dư, chứ không kéo lá dài ra cho kín khung
+       (đã xảy ra — máy tính bàn 16 thẻ ra lá cao ngoằng, khe 6px trông bé xíu). */
+    height: Math.floor(cardH * rows + gap * (rows - 1))
+  };
 }
 
 export interface BoardFit {
@@ -60,6 +67,7 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
   const wrap = ref<HTMLElement | null>(null);
   const cardAspect = ref(0.75);
   const boardWidth = ref<number | null>(null);
+  const boardHeight = ref<number | null>(null);
   const boardGap = ref(8);
 
   function measure(): void {
@@ -72,6 +80,7 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
     const fit = computeFit(availW, availH, s.cols, s.rows);
     cardAspect.value = fit.aspect;
     boardWidth.value = fit.width;
+    boardHeight.value = fit.height;
     boardGap.value = fit.gap;
   }
 
@@ -89,6 +98,9 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
   const fitStyle = computed(() => ({
     '--card-ar': String(cardAspect.value),
     '--fit': boardWidth.value ? `${boardWidth.value}px` : '100%',
+    /* Cặp với `--fit`: bàn cao đúng cỡ thẻ đã tính, và `.board` kẹp thêm
+       `max-height: 100%` nên số đo có lệch cũng không tràn ra ngoài khung. */
+    '--fit-h': boardHeight.value ? `${boardHeight.value}px` : '100%',
     /* Khe hở PHẢI do JS quyết định, không phải media query theo viewport: trên
        iPhone 15 Pro Max viewport 430px (CSS lấy 8px) mà khung bàn chỉ 406px
        (JS lấy 6px) — bàn 88 thẻ tính theo 6px rồi vẽ bằng 8px là tràn ra ngoài. */
