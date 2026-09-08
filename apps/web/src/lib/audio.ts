@@ -292,12 +292,18 @@ class Sfx {
   }
 
   /**
-   * Tiếng bấm CHUNG cho mọi nút — nhẹ và trung tính hơn `select()` vì nó phát
-   * ở khắp nơi (kể cả nút thoát, đóng hộp thoại, mũi tên quay lại).
+   * Tiếng bấm CHUNG cho mọi nút — CÙNG CHẤT với `select()` (hai nốt mềm đi lên,
+   * triangle rồi sine), chỉ nhẹ hơn vì nó phát ở khắp nơi: nút thoát, đóng hộp
+   * thoại, mũi tên quay lại.
+   *
+   * KHÔNG dùng dải nhiễu (`noise`) ở đây. Bản đầu là một nốt ngắn 45ms cộng một
+   * vệt nhiễu 3200Hz — đó chính là tiếng "tạch" khô, và khi nó phát ở hơn 60 nút
+   * thì nghe ra như bấm bàn phím cơ, khó chịu (chủ dự án báo). Tiếng của game
+   * vốn là nốt nhạc mềm; tiếng bấm mặc định phải nằm trong cùng bộ đó.
    */
   click(): void {
-    this.voice(520, { dur: 0.045, type: 'triangle', gain: 0.04 });
-    this.noise(0.03, { freq: 3200, gain: 0.025 });
+    this.voice(700, { dur: 0.055, type: 'triangle', gain: 0.033 });
+    this.voice(1050, { dur: 0.075, type: 'sine', gain: 0.026, delay: 0.04 });
   }
 
   /**

@@ -53,7 +53,11 @@ async function nap() {
   const goc = (sfx as unknown as { voice: (f: number, o?: unknown) => void }).voice;
   (sfx as unknown as { voice: (f: number, o?: unknown) => void }).voice =
     function (f, o) { oscs.push(f); goc.call(this, f, o); };
-  return { sfx, oscs };
+  const nhieu: number[] = [];
+  const gocNoise = (sfx as unknown as { noise: (d: number, o?: unknown) => void }).noise;
+  (sfx as unknown as { noise: (d: number, o?: unknown) => void }).noise =
+    function (d, o) { nhieu.push(d); gocNoise.call(this, d, o); };
+  return { sfx, oscs, nhieu };
 }
 
 describe('mọi nút đều có tiếng', () => {
@@ -63,6 +67,19 @@ describe('mọi nút đều có tiếng', () => {
     expect(oscs.length, 'chưa hết khoảng chờ mà đã kêu').toBe(0);
     await vi.advanceTimersByTimeAsync(200);
     expect(oscs.length, 'nút im lặng — đúng lỗi người chơi báo').toBeGreaterThan(0);
+  });
+
+  /* Tiếng bấm mặc định phát ở hơn 60 nút, nên chất tiếng của nó là chất tiếng
+     của cả app. Bản đầu có một vệt nhiễu 3200Hz kèm nốt 45ms: nghe ra "tạch"
+     khô như bàn phím cơ, chủ dự án báo là khó chịu. Nay chỉ còn nốt nhạc mềm,
+     cùng bộ với `select()`. */
+  it('tiếng bấm mặc định là NỐT NHẠC, không phải tiếng "tạch" khô', async () => {
+    const { sfx, oscs, nhieu } = await nap();
+    sfx.clickMacDinh();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(nhieu, 'dải nhiễu quay lại là tiếng bấm khô lại').toEqual([]);
+    expect(oscs.length, 'hai nốt mềm đi lên').toBe(2);
+    expect(oscs[1]!, 'nốt sau phải cao hơn nốt trước').toBeGreaterThan(oscs[0]!);
   });
 
   it('nút CÓ tiếng riêng thì KHÔNG kêu hai lần', async () => {
