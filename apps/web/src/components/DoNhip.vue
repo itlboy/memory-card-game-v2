@@ -1,108 +1,102 @@
 <script setup lang="ts">
 /**
- * ĐỒNG HỒ ĐO HIỆN TRÊN MÁY NGƯỜI CHƠI — bật bằng `?do=1`, mặc định KHÔNG mount.
+ * ĐỒNG HỒ ĐO HIỆN TRÊN MÁY NGƯỜI CHƠI — bật ở dưới cùng bảng hướng dẫn, hoặc
+ * `?debug=1`. Mặc định KHÔNG mount.
  *
  * Vì sao phải có: lag "lật thẻ nghe tiếng trước, thấy hình sau" chỉ xảy ra trên
- * iPhone. Đo ở Chrome trên máy tính (kể cả hãm CPU 6×) ra 8–10ms từ gói tin tới
- * lúc lá đổi class và ~1ms tới khung hình sau đó — tức KHÔNG tái hiện được. Máy
- * nào có lỗi thì phải đo trên chính máy đó.
+ * iPhone. Chrome trên máy tính, kể cả hãm CPU 6×, ra 8–10ms — không tái hiện
+ * được, nên đoán tiếp cũng chỉ là đoán.
  *
- * Ba mốc, đúng ba đoạn của một cú lật:
- *  · `tin→class`: gói tin WebSocket về tới lúc DOM đổi (JS + Vue).
- *  · `class→khung`: DOM đổi tới khung hình kế tiếp (chờ trình duyệt vẽ).
- *  · `fps` và `khung tệ nhất`: trình duyệt có kịp vẽ không — đây là chỗ duy
- *    nhất bắt được cảnh "class đổi rồi mà mắt chưa thấy gì".
+ * Số đo lấy từ `lib/do-nhip.ts` — ghi ngay tại chỗ nhận gói tin trong
+ * `useOnlineRoom`, KHÔNG bọc `window.WebSocket` ở đây: bật bảng lúc đang ở
+ * trong phòng thì socket đã mở từ trước và cái bọc không thấy gói nào (đo được
+ * thật: bảng hiện "0 gói" giữa lúc chơi).
  *
- * Nếu `tin→class` nhỏ mà `khung tệ nhất` lớn thì lỗi ở VẼ (paint/compositing),
- * không phải ở JS — và ngược lại. Đó là câu hỏi mà mọi phỏng đoán trước đây
- * không trả lời được.
+ * Đọc bảng:
+ *  · `tin→dom` lớn → nghẽn ở JS/Vue phía mình.
+ *  · `khung tệ nhất` lớn mà `tin→dom` nhỏ → nghẽn ở phần VẼ của trình duyệt.
+ *  · `im` lớn hoặc `nối lại` tăng dần → socket rớt, tin về dồn cục; cái "lag"
+ *    thấy được thật ra là chờ mạng. `đứt(1006)` là mạng rớt, `đứt(4000)` là
+ *    socket này bị một socket mới của CHÍNH MÌNH thay (vòng nối lại tự đá nhau).
+ *  · `lá trống` > 0 → có lá ngửa mà không có biểu tượng: đường symbol hỏng
+ *    (predeal/giuMo), đúng ô trắng trơn đã thấy trong ảnh người chơi gửi.
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { doNhip } from '@/lib/do-nhip';
 
 const fps = ref(0);
 const khungTeNhat = ref(0);
-const tinToiClass = ref<number | null>(null);
-const classToiKhung = ref<number | null>(null);
+const im = ref(0);
+const so = ref({ goi: 0, noiLai: 0, socket: '—', tinToiDom: 0, laTrong: 0, sauTrong: 0 });
 const soLa = ref(0);
-const soTin = ref(0);
 
 let raf = 0;
-let mo: MutationObserver | undefined;
-let tinCuoi = 0;
-let daGhiChoTinNay = true;
-const nhipKhung: number[] = [];
-
-/** Bọc WebSocket để biết gói tin về lúc nào. Chỉ bọc khi bảng đo được bật. */
-function bocWebSocket(): void {
-  const Goc = window.WebSocket;
-  const Boc = function (this: unknown, ...a: [string, ...unknown[]]) {
-    const s = new Goc(...(a as [string]));
-    s.addEventListener('message', () => {
-      tinCuoi = performance.now();
-      daGhiChoTinNay = false;
-      soTin.value++;
-    });
-    return s;
-  } as unknown as typeof WebSocket;
-  Boc.prototype = Goc.prototype;
-  window.WebSocket = Boc;
-}
+const nhip: number[] = [];
 
 onMounted(() => {
-  bocWebSocket();
-
-  mo = new MutationObserver((ms) => {
-    for (const m of ms) {
-      const el = m.target as HTMLElement;
-      if (!el.classList?.contains('card')) continue;
-      if (daGhiChoTinNay || !tinCuoi) continue;
-      daGhiChoTinNay = true;
-      const at = performance.now();
-      tinToiClass.value = Math.round(at - tinCuoi);
-      requestAnimationFrame(() => { classToiKhung.value = Math.round(performance.now() - at); });
-    }
-  });
-  mo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
-
   let truoc = performance.now();
   const vong = (t: number): void => {
-    const dt = t - truoc;
+    nhip.push(t - truoc);
     truoc = t;
-    nhipKhung.push(dt);
-    if (nhipKhung.length >= 30) {
-      const tong = nhipKhung.reduce((a, b) => a + b, 0);
-      fps.value = Math.round(1000 / (tong / nhipKhung.length));
-      khungTeNhat.value = Math.round(Math.max(...nhipKhung));
-      soLa.value = document.querySelectorAll('.card').length;
-      nhipKhung.length = 0;
+    if (nhip.length >= 30) {
+      const tong = nhip.reduce((a, b) => a + b, 0);
+      fps.value = Math.round(1000 / (tong / nhip.length));
+      khungTeNhat.value = Math.round(Math.max(...nhip));
+      nhip.length = 0;
+      // Lá ngửa mà rỗng: đọc từ DOM vì đây là cái MẮT thấy, không phải cái state nói.
+      const la = [...document.querySelectorAll('.card')];
+      soLa.value = la.length;
+      doNhip.laTrong = la.filter((e) => {
+        const c = e.className;
+        if (!c.includes('up') && !c.includes('done')) return false;
+        return !(e.querySelector('.front')?.textContent ?? '').trim();
+      }).length;
+      /* Ô trắng có HAI nguyên nhân khác nhau, và phải phân biệt được:
+         · `lá trống` = lá NGỬA mà không có biểu tượng (đường symbol hỏng);
+         · `sau trống` = lá ÚP mà mặt sau không có hoạ tiết (thiếu khối CSS
+           card-backs, đúng cảnh "Ô TRẮNG TRƠN" đã ghi trong CLAUDE.md). */
+      doNhip.sauTrong = la.filter((e) => {
+        if (/\bup\b|\bdone\b/.test(e.className)) return false;
+        const b = e.querySelector('.back');
+        if (!b) return true;
+        const bg = getComputedStyle(b, '::before').backgroundImage;
+        return !bg || bg === 'none';
+      }).length;
+      so.value = { goi: doNhip.goi, noiLai: doNhip.noiLai, socket: doNhip.socket,
+        tinToiDom: doNhip.tinToiDom, laTrong: doNhip.laTrong, sauTrong: doNhip.sauTrong };
+      im.value = doNhip.tinCuoi ? Math.round((t - doNhip.tinCuoi) / 100) / 10 : 0;
     }
     raf = requestAnimationFrame(vong);
   };
   raf = requestAnimationFrame(vong);
 });
 
-onBeforeUnmount(() => { cancelAnimationFrame(raf); mo?.disconnect(); });
+onBeforeUnmount(() => cancelAnimationFrame(raf));
 </script>
 
 <template>
   <div class="do-nhip" role="status" aria-label="Bảng đo nhịp">
     <b>{{ fps }} fps</b>
-    <span :class="{ te: khungTeNhat > 50 }">khung tệ nhất {{ khungTeNhat }}ms</span>
-    <span :class="{ te: (tinToiClass ?? 0) > 50 }">tin→class {{ tinToiClass ?? '–' }}ms</span>
-    <span :class="{ te: (classToiKhung ?? 0) > 50 }">class→khung {{ classToiKhung ?? '–' }}ms</span>
-    <span>{{ soLa }} lá · {{ soTin }} gói</span>
+    <span :class="{ te: khungTeNhat > 50 }">khung {{ khungTeNhat }}ms</span>
+    <span :class="{ te: so.tinToiDom > 50 }">tin→dom {{ so.tinToiDom }}ms</span>
+    <span :class="{ te: so.socket.startsWith('đứt') }">sk {{ so.socket }}</span>
+    <span :class="{ te: so.noiLai > 1 }">nối lại {{ so.noiLai }}</span>
+    <span :class="{ te: im > 8 }">im {{ im }}s</span>
+    <span :class="{ te: so.laTrong > 0 }">lá trống {{ so.laTrong }}</span>
+    <span :class="{ te: so.sauTrong > 0 }">sau trống {{ so.sauTrong }}</span>
+    <span>{{ soLa }} lá · {{ so.goi }} gói</span>
   </div>
 </template>
 
 <style scoped>
-/* Nổi trên mọi thứ, không ăn cú chạm, và không chiếm chỗ của bàn thẻ (position
-   fixed) — bảng đo không được làm sai chính cái nó đang đo. */
+/* Nổi trên mọi thứ, không ăn cú chạm, không chiếm chỗ của bàn thẻ (fixed) —
+   bảng đo không được làm sai chính cái nó đang đo. */
 .do-nhip {
   position: fixed; top: calc(env(safe-area-inset-top, 0px) + 4px); left: 4px; z-index: 99;
-  display: flex; flex-wrap: wrap; gap: 2px 8px; max-width: calc(100vw - 8px);
-  padding: 4px 7px; border-radius: 8px;
-  background: rgba(0, 0, 0, .72); color: #fff;
-  font: 700 10.5px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+  display: flex; flex-wrap: wrap; gap: 1px 7px; max-width: calc(100vw - 8px);
+  padding: 3px 6px; border-radius: 8px;
+  background: rgba(0, 0, 0, .78); color: #fff;
+  font: 700 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
   font-variant-numeric: tabular-nums; pointer-events: none;
 }
 .do-nhip b { color: #7dd3fc; }

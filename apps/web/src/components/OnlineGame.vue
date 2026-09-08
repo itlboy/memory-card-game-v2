@@ -113,8 +113,14 @@ const faceUp = computed(() => {
   for (const i of o.pending.value) {
     if (o.symbolNeuDuocPhep(i, undefined, false)) s.add(i);
   }
-  // Hai lá vừa lật sai: giữ ngửa cho đủ thời gian xem, dù server đã úp
-  for (const i of o.giuMo.value.keys()) s.add(i);
+  /*
+   * Hai lá vừa lật sai: giữ ngửa cho đủ thời gian xem, dù server đã úp.
+   *
+   * CHỈ ghim ô CÓ biểu tượng. Ghim một ô mà không có gì để vẽ thì lá mở ra
+   * TRẮNG TRƠN — người chơi thấy một ô trắng giữa bàn tím (đã bị báo, có ảnh).
+   * Thà để nó úp: úp là đúng với dữ liệu đang có trong tay.
+   */
+  for (const [i, sym] of o.giuMo.value) if (sym) s.add(i);
   // Set mới mỗi nhịp = BoardGrid render lại cả bàn; nội dung của Set CHÍNH LÀ
   // chữ ký của nó nên phép so này không thể bỏ sót gì.
   return giuNeuGiong(oFaceUp, [...s].sort((a, b) => a - b).join(','), () => s);
@@ -249,7 +255,9 @@ watch(() => o.view.value?.summary, (s) => {
           <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
                kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
           <span v-if="p.forfeited" class="netbad" title="Đã rời phòng">🚪 đã rời</span>
-          <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">📴 mất mạng</span>
+          <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">
+            📴<span class="chu"> mất mạng</span>
+          </span>
           <!-- Ping của MÌNH, gắn cạnh tên mình cho khỏi phải đoán là của ai. Luôn
                hiện: người chơi muốn biết mạng mình thế nào, không chỉ lúc có sự cố. -->
           <span
@@ -581,12 +589,19 @@ watch(() => o.view.value?.summary, (s) => {
 .sheet-enter-active, .sheet-leave-active { transition: opacity .14s ease, transform .14s ease; }
 .sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
 .pchip {
+  /* `container-type: inline-size` để nhãn "mất mạng" tự bỏ chữ khi chip hẹp —
+     truy vấn theo CHIP, không theo màn hình: cùng một màn hình, chip 2 người
+     rộng gấp đôi chip 4 người. */
+  container-type: inline-size;
   position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
   padding: 5px 9px; border: 2px solid var(--line); border-radius: 12px;
   background: var(--panel); box-shadow: var(--shadow-soft);
 }
 .pchip.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 4px 18px var(--card-back-glow); }
 .pchip.off { opacity: .55; }
+/* Chip 3–4 người thì hết chỗ cho cả chữ: giữ icon, bỏ chữ (title và nhãn cho
+   máy đọc vẫn còn). Bảng đầy đủ và dải gọn vẫn hiện đủ chữ. */
+@container (max-width: 150px) { .netbad .chu { display: none; } }
 .netbad {
   flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
   padding: 1px 5px; border-radius: var(--r-full);
@@ -610,7 +625,17 @@ watch(() => o.view.value?.summary, (s) => {
 .ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
 .pchip .avatar { font-size: 18px; }
-.pchip b { font-size: 13px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/*
+ * TÊN KHÔNG BAO GIỜ ĐƯỢC BIẾN MẤT HẲN.
+ *
+ * `netbad` (📴 mất mạng) và `ping` không co, nên trên chip hẹp chúng đẩy tên
+ * xuống 0px: người chơi chỉ còn thấy avatar và một nhãn đỏ, không biết nhãn đó
+ * của ai (đã bị báo, có ảnh — chip của chính mình mất tên giữa ván). Sàn 3,5em
+ * đủ cho vài ký tự đầu, phần thừa vẫn cắt bằng ellipsis như cũ.
+ */
+.pchip b {
+  font-size: 13px; min-width: 3.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .pchip .lives { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
 /* Dạng SỐ (trên 5 mạng): bỏ letter-spacing âm vốn dành cho chuỗi trái tim */
 .pchip .lives:has(.opt-ico) { letter-spacing: 0; font-size: 11px; font-weight: 800; }

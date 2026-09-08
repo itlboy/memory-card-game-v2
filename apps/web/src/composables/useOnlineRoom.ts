@@ -3,10 +3,11 @@ import { ghiUrl } from '@/lib/appUrl';
 import type {
   ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
-import { computed, onScopeDispose, ref, shallowRef } from 'vue';
+import { computed, onScopeDispose, ref, shallowRef, nextTick } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 import { store } from '@/lib/storage';
+import { doNhip } from '@/lib/do-nhip';
 
 /**
  * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
@@ -692,10 +693,26 @@ export function useOnlineRoom() {
        sau ra Ô TRẮNG TRƠN giữa ván. */
     params.set('bv', '2');
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
+    doNhip.noiLai++;
+    doNhip.socket = 'đang nối';
 
-    ws.onopen = () => startHeartbeat();
-    ws.onmessage = (e) => handle(JSON.parse(String(e.data)) as ServerMsg);
+    ws.onopen = () => { doNhip.socket = 'mở'; startHeartbeat(); };
+    ws.onmessage = (e) => {
+      // Đếm cho bảng đo (`?debug=1`). Ghi ở đây vì bật bảng lúc đã trong phòng
+      // thì cái bọc `window.WebSocket` không thấy socket này nữa.
+      doNhip.goi++;
+      doNhip.tinCuoi = performance.now();
+      const tin = JSON.parse(String(e.data)) as ServerMsg;
+      const t0 = performance.now();
+      handle(tin);
+      // Chỉ tính gói ĐỔI BÀN: 'room'/'ping' không làm bàn thẻ render lại.
+      if (tin.t === 'state' || tin.t === 'events') {
+        void nextTick(() => { doNhip.tinToiDom = Math.round(performance.now() - t0); });
+      }
+    };
     ws.onclose = (e) => {
+      doNhip.socket = `đứt(${e.code})`;
+      doNhip.maDong = e.code;
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
       // 4003: bị chủ phòng mời ra — KHÔNG nối lại, không thì quay vào ngay
       if (intentionalClose || (e.code >= 4000 && e.code <= 4003)) return;
@@ -932,6 +949,17 @@ export function useOnlineRoom() {
          * "ghi là xáo 2 lần mà lại không xáo".
          */
         case 'shuffle':
+          /*
+           * XÁO THẺ LÀ PHẢI THẢ HẾT GHIM.
+           *
+           * `giuMo` ghim "lá ở ô số i đang mở, biểu tượng là X" để hai lá lật
+           * sai được xem đủ 1,5 giây. Nhưng xáo thẻ (và thẻ Tráo đổi) đổi CHỖ
+           * các lá, nên ngay sau đó ô số i là một lá khác — cái ghim biến thành
+           * "mở một lá không liên quan, hiện biểu tượng của lá đã đi chỗ khác".
+           * Đó là lộ bài sai chỗ, và cũng là đường ra ô trắng trơn khi biểu
+           * tượng cũ không còn hợp với lá mới.
+           */
+          giuMo.value = new Map();
           sfx.swap();
           swapPair.value = { a: e.affected[0], b: e.affected[1], key: (swapPair.value?.key ?? 0) + 1 };
           setTimeout(() => { swapPair.value = null; }, 620);
