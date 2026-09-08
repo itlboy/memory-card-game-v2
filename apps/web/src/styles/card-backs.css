@@ -45,14 +45,27 @@
 
 /* Lớp mực + mặt nạ hoạ tiết. Dùng `::before` chứ KHÔNG `::after`: `::after` đã
    là vệt sáng lướt ngang lúc hover ở CardTile.vue. */
+/*
+ * HOẠ TIẾT LÀ ẢNH NỀN, KHÔNG PHẢI `mask`.
+ *
+ * Hai cách cho ra ĐÚNG một kết quả — hoạ tiết trong các file SVG đã là mực
+ * TRẮNG kèm `opacity` từng nét, nên "mực trắng 92% qua mặt nạ" và "ảnh trắng
+ * vẽ ở 92%" là một. Nhưng giá thì khác hẳn: `mask` bắt trình duyệt dựng thêm
+ * một bộ đệm và nhân từng điểm ảnh cho MỖI lá, mà bàn 88 thẻ là 88 lớp như thế
+ * — hễ một lá lật là cả bàn vẽ lại, đọc ra thành lag (người chơi báo, bàn 88
+ * thẻ online). Ảnh nền thì vẽ một lượt rồi thôi.
+ *
+ * Bỏ mặt nạ còn CHẶN LUÔN lỗi cũ: `--bk-ht` không có giá trị thì trước đây mặt
+ * nạ hoá không hợp lệ và cái ::before thành TẤM TRẮNG phủ kín panel; nay không
+ * có ảnh thì đơn giản là không vẽ gì.
+ */
 .face.back::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(255, 255, 255, .92);
-  -webkit-mask: var(--bk-ht) center / 100% 100% no-repeat;
-  mask: var(--bk-ht) center / 100% 100% no-repeat;
+  background: var(--bk-ht) center / 100% 100% no-repeat;
+  opacity: .92;
 }
 
 /* Gradient của bảng màu, cùng góc 162deg cho cả bảy để bàn nào cũng cùng hướng sáng. */

@@ -37,6 +37,8 @@ const props = defineProps<{
    *  khai `?bv=2`, và ván offline khôi phục từ sessionStorage của bản cũ cũng
    *  mang tên cũ — xem `lopMatSau`. */
   back: string;
+  /** Cả bàn có bao nhiêu thẻ. Dùng để CẮT hiệu ứng trên bàn lớn — xem `banLon`. */
+  cardCount?: number;
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
@@ -91,6 +93,22 @@ const dealStagger = computed(() => dealDelay(props.row ?? 0, props.rows ?? 1));
  * (Thấy rõ nhất khi F5 giữa ván: cả bàn loé một nhịp.)
  */
 const flipAnim = ref<'up' | 'down' | 'tail' | null>(null);
+
+/**
+ * BÀN LỚN THÌ CHỈ LẬT, KHÔNG LẮC.
+ *
+ * Cú lật gồm hai phần: transition 340ms (lá quay), rồi keyframes lắc tắt dần
+ * 2,2 GIÂY. Phần lắc chạy trên `.inner` — phần tử có perspective, hai mặt thẻ
+ * và ba lớp box-shadow — nên suốt 2,2 giây đó lá được vẽ lại mỗi khung hình.
+ * Trên bàn 4–36 thẻ không sao; trên bàn 88 thẻ, lá chỉ ~34px mà cái lắc gần
+ * như không nhìn ra, còn máy thì vẫn trả đủ giá — cộng với nhịp lật liên tục
+ * của ván online, đó là cái lag người chơi báo.
+ *
+ * Mốc 56 thẻ: đúng ngưỡng đã dùng cho các quyết định "bàn lớn" khác trong app
+ * (xem `vuaMo`). Từ đó trở lên chỉ còn transition 340ms — vẫn thấy lá quay,
+ * chỉ không còn đuôi lắc.
+ */
+const banLon = computed(() => (props.cardCount ?? 0) >= 56);
 let flipTimer: ReturnType<typeof setTimeout> | undefined;
 const FLIP_WOBBLE_MS = 2200;
 /** Đúng bằng transition-duration của .inner — mốc lá bài lật xong. */
@@ -126,6 +144,7 @@ watch(() => props.faceUp, (up, was) => {
     daCho.value = false;
     choXongLuc = Date.now() + FLIP_MS;
     clearTimeout(flipTimer);
+    if (banLon.value) return;
     flipTimer = setTimeout(() => {
       flipAnim.value = 'tail';
       flipTimer = setTimeout(() => { flipAnim.value = null; }, TAIL_MS);
@@ -133,6 +152,7 @@ watch(() => props.faceUp, (up, was) => {
     return;
   }
   if (props.pending) return;
+  if (banLon.value) return;          // bàn lớn: chỉ transition, không lắc
   flipAnim.value = up ? 'up' : 'down';
   clearTimeout(flipTimer);
   flipTimer = setTimeout(() => { flipAnim.value = null; }, FLIP_WOBBLE_MS);
@@ -233,13 +253,47 @@ function onDown(e: PointerEvent): void {
     y: `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`
   };
   nhan.value = true;
+  latBangConTro = false;
   // Giữ mọi sự kiện con trỏ về đúng lá này: kéo ngón ra ngoài rồi nhấc lên mà
   // không có capture thì `pointerup` bắn ở phần tử khác và lá dính trạng thái nhấn.
   el.setPointerCapture?.(e.pointerId);
 }
 
-function onUp(): void {
+/**
+ * LẬT NGAY LÚC NHẤC NGÓN, KHÔNG CHỜ EVENT `click`.
+ *
+ * Trước đây cú lật treo ở `@click`. Trên điện thoại, `click` là event TỔNG HỢP:
+ * trình duyệt chỉ bắn nó sau khi đã chắc cú chạm không phải mở đầu của một cử
+ * chỉ khác (chạm hai lần, kéo). Cộng thêm `setPointerCapture` (cần cho việc
+ * kéo ngón ra ngoài rồi nhấc) thì WebKit còn giữ lâu hơn — đọc ra thành "bấm
+ * xong một lúc lá mới mở", đúng cái người chơi báo. `pointerup` thì bắn ngay.
+ *
+ * Nhấc ngón NGOÀI lá thì không lật — y như mọi cái nút: đó là cách người chơi
+ * huỷ một cú bấm nhầm.
+ */
+let latBangConTro = false;
+
+function onUp(e: PointerEvent): void {
   nhan.value = false;
+  if (e.type === 'pointercancel') return;
+  if (props.disabled || props.matched) return;
+  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const trong = e.clientX >= r.left && e.clientX <= r.right
+    && e.clientY >= r.top && e.clientY <= r.bottom;
+  if (!trong) return;
+  latBangConTro = true;
+  emit('flip', props.card.index);
+}
+
+/**
+ * `click` chỉ còn cho BÀN PHÍM (Enter/Space trên nút) và những đường không có
+ * con trỏ. Cú click đi kèm sau `pointerup` bị bỏ ở đây, không thì mỗi lần chạm
+ * lật HAI lần — lá mở rồi úp lại ngay.
+ */
+function onClick(): void {
+  if (latBangConTro) { latBangConTro = false; return; }
+  if (props.disabled || props.matched) return;
+  emit('flip', props.card.index);
 }
 
 /* ---------- loé viền một nhịp khi lá đổi mặt ----------
@@ -317,7 +371,7 @@ const label = computed(() => {
     @pointerdown="onDown"
     @pointerup="onUp"
     @pointercancel="onUp"
-    @click="!disabled && !matched && emit('flip', card.index)"
+    @click="onClick"
   >
     <span class="inner">
       <span class="face back" :class="lopMatSau" aria-hidden="true"></span>
@@ -507,6 +561,17 @@ const label = computed(() => {
  * đó. Cũng chỉ chạy khi `.dealt`: lúc chia bài, animation `deal` trên .card đã
  * lo phần lắc, chạy cả hai thì cái trên .inner đè lên.
  */
+/*
+ * CHỈ LÁ ĐANG ĐỘNG MỚI ĐƯỢC LỚP RIÊNG.
+ *
+ * Không có `will-change` thì lá lật nằm chung lớp với cả bàn, nên mỗi khung hình
+ * của cú lật là 88 lá cùng được vẽ lại. Khai đúng lúc động và CHỈ lúc đó (JS bỏ
+ * class khi xong) — để thường trú thì 88 lớp GPU nằm đó suốt ván, đổi lag thành
+ * tốn bộ nhớ, trên máy yếu còn tệ hơn.
+ */
+.card.wob-up .inner, .card.wob-down .inner, .card.wob-tail .inner,
+.card.nhan .inner, .card.wrong .inner { will-change: transform; }
+
 .card.wob-up .inner { animation: flip-up 2.2s linear; }
 .card.wob-tail .inner { animation: wob-tail 1.7s linear; }
 .card.wob-down .inner { animation: flip-down 2.2s linear; }

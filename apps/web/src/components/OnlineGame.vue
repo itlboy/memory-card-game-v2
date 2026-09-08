@@ -51,7 +51,32 @@ const rematchState = computed<Record<string, 'in' | 'out'>>(() => {
 });
 
 /* ---------- map view server → props của BoardGrid ---------- */
-const cards = computed<Card[]>(() =>
+
+/**
+ * GIỮ NGUYÊN THAM CHIẾU KHI NỘI DUNG KHÔNG ĐỔI.
+ *
+ * Server gửi lại cả view mỗi nhịp đồng hồ lượt, không riêng lúc có nước đi. Mỗi
+ * view là một mảng 88 lá MỚI và những Set MỚI, nên Vue phải patch lại cả 88
+ * component dù trên bàn chẳng có gì khác — trong khi thứ thật sự đổi chỉ là con
+ * số đồng hồ trên HUD. Đo trên bàn 88 thẻ: mỗi nhịp như thế tốn 1,38ms style +
+ * layout ở máy tính, mà điện thoại chậm hơn nhiều lần và nhịp thì mỗi giây một
+ * lần — đó là cái lag chỉ thấy ở ván ONLINE (offline bàn chỉ đổi khi người chơi
+ * bấm). Bàn 88 thẻ ăn đủ vì chi phí tính theo số lá.
+ *
+ * `dauVan` là chữ ký nội dung: giống chữ ký thì trả về ĐÚNG mảng/Set cũ, Vue
+ * thấy tham chiếu không đổi và bỏ qua cả cây bàn thẻ. Chữ ký phải chứa MỌI thứ
+ * bên trong — thiếu một mẩu là bàn đứng hình không cập nhật, nên nó được sinh
+ * từ chính dữ liệu dựng ra, chứ không viết tay.
+ */
+function giuNeuGiong<T>(o: { ky: string; gt: T }, ky: string, dung: () => T): T {
+  if (o.ky !== ky) { o.ky = ky; o.gt = dung(); }
+  return o.gt;
+}
+const oCards = { ky: '', gt: [] as Card[] };
+const oFaceUp = { ky: '', gt: new Set<number>() };
+const oMatched = { ky: '', gt: new Set<number>() };
+
+const cardsRaw = computed<Card[]>(() =>
   (o.view.value?.cards ?? []).map((c) => ({
     index: c.index,
     pairId: -1,
@@ -66,6 +91,11 @@ const cards = computed<Card[]>(() =>
     ...(c.power ? { power: c.power as Card['power'] } : {}),
     ...(c.blank ? { blank: true } : {})
   })));
+const cards = computed<Card[]>(() => {
+  const ds = cardsRaw.value;
+  const ky = ds.map((c) => `${c.index}|${c.symbol}|${c.power ?? ''}|${c.blank ? 1 : 0}`).join(',');
+  return giuNeuGiong(oCards, ky, () => ds);
+});
 /**
  * Ô nào đang ngửa. Gồm cả ô mình VỪA BẤM còn chờ server, NHƯNG chỉ khi đã biết
  * trước nội dung ô đó — đây chính là chỗ tiết kiệm ~180ms: lật hẳn luôn thay vì
@@ -85,10 +115,15 @@ const faceUp = computed(() => {
   }
   // Hai lá vừa lật sai: giữ ngửa cho đủ thời gian xem, dù server đã úp
   for (const i of o.giuMo.value.keys()) s.add(i);
-  return s;
+  // Set mới mỗi nhịp = BoardGrid render lại cả bàn; nội dung của Set CHÍNH LÀ
+  // chữ ký của nó nên phép so này không thể bỏ sót gì.
+  return giuNeuGiong(oFaceUp, [...s].sort((a, b) => a - b).join(','), () => s);
 });
-const matchedSet = computed(() => new Set(
-  (o.view.value?.cards ?? []).filter((c) => c.state === 'matched').map((c) => c.index)));
+const matchedSet = computed(() => {
+  const s = new Set(
+    (o.view.value?.cards ?? []).filter((c) => c.state === 'matched').map((c) => c.index));
+  return giuNeuGiong(oMatched, [...s].sort((a, b) => a - b).join(','), () => s);
+});
 /**
  * Bàn khoá khi: không phải lượt mình, ván chưa chạy, HOẶC đang mất kết nối.
  *

@@ -1,3 +1,4 @@
+import { FLIP_BACK_MS } from '../src/scoring.js';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
 import { TURN_LIMIT_SEC, presetConfig } from '../src/presets.js';
@@ -57,7 +58,7 @@ describe('đồng hồ lượt 15 giây (multiplayer)', () => {
     g.start(0);
     missPair(g, 0, 1, 10_000);                   // An dùng 10s rồi trượt
     expect(g.current.id).toBe('b');
-    expect(g.turnTimeLeft(11_001)).toBe(15);
+    expect(g.turnTimeLeft(10_000 + FLIP_BACK_MS + 1)).toBe(15);
   });
 
   it('không kích hoạt khi đang khoá chờ úp thẻ', () => {
@@ -68,7 +69,7 @@ describe('đồng hồ lượt 15 giây (multiplayer)', () => {
     g.flip(slots[1]![0], 14_800);                // trượt sát nút → khoá
     const evs = g.tick(15_500);                  // quá hạn nhưng đang khoá
     expect(evs.some((e) => e.type === 'turn-timeout')).toBe(false);
-    g.tick(15_900);                              // hết khoá → chuyển lượt bình thường
+    g.tick(14_800 + FLIP_BACK_MS + 100);         // hết khoá → chuyển lượt bình thường
     expect(g.current.id).toBe('b');
   });
 

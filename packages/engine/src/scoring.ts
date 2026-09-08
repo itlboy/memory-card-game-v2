@@ -3,7 +3,15 @@
 export const BASE_POINTS = 100;
 export const MISS_PENALTY = 10;
 export const TIME_BONUS_PER_SEC = 5;
-export const FLIP_BACK_MS = 1000;
+/**
+ * Hai lá KHÔNG khớp thì nằm ngửa bấy nhiêu ms rồi mới úp lại.
+ *
+ * 1 giây là quá ngắn: đó là toàn bộ thời gian người chơi có để NHỚ hai lá vừa
+ * mở, mà trên bàn 56–88 thẻ thì mắt còn phải đi tìm chúng trong hàng chục ô.
+ * 1,5 giây đủ để đọc cả hai mà vẫn không thành ra chờ đợi. Server và client
+ * dùng chung con số này (`config.flipBackMs`), nên ván online cũng đổi theo.
+ */
+export const FLIP_BACK_MS = 1500;
 /** Ghép đúng được cộng thêm vào đồng hồ lượt (multiplayer), không vượt trần TURN_LIMIT. */
 export const TURN_BONUS_MS = 5_000;
 

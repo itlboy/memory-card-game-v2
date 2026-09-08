@@ -4,7 +4,7 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
-import { TURN_LIMIT_SEC, BOARD_SIZES, ROOM_LIMITS, levelSpec } from '@mm/engine';
+import { TURN_LIMIT_SEC, BOARD_SIZES, ROOM_LIMITS, FLIP_BACK_MS, levelSpec } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 
 /** Truy cập engine bên trong App để chơi tất định. */
@@ -177,7 +177,7 @@ async function winGame(missFirst = false): Promise<void> {
     const [p0, p1] = [...byPair.values()];
     await tiles()[p0![0]!]!.trigger('click');
     await tiles()[p1![0]!]!.trigger('click');
-    await vi.advanceTimersByTimeAsync(1100);   // chờ úp lại
+    await vi.advanceTimersByTimeAsync(FLIP_BACK_MS + 100);   // chờ úp lại
     await flush();
   }
   for (const [a, b] of byPair.values() as Iterable<[number, number]>) {
@@ -326,7 +326,7 @@ describe('luồng trọn ván', () => {
     const missTurn = async (i: number, j: number): Promise<void> => {
       await wrapper.findAll('.card')[i]!.trigger('click');
       await wrapper.findAll('.card')[j]!.trigger('click');
-      await vi.advanceTimersByTimeAsync(1100);
+      await vi.advanceTimersByTimeAsync(FLIP_BACK_MS + 100);
       await flush();
     };
 
@@ -662,7 +662,7 @@ describe('thẻ tráo đổi', () => {
     const b = g.cards.find((c) => c.pairId !== a.pairId)!;
     await tiles()[a.index]!.trigger('click');
     await tiles()[b.index]!.trigger('click');
-    await vi.advanceTimersByTimeAsync(1200);        // chờ hai thẻ úp lại
+    await vi.advanceTimersByTimeAsync(FLIP_BACK_MS + 200);        // chờ hai thẻ úp lại
     await flush();
 
     const carrier = g.cards.find((c) => c.index !== a.index && c.index !== b.index)!;
@@ -932,7 +932,7 @@ describe('đấu với máy', () => {
       const b = cards.find((c) => c.pairId !== a.pairId)!;
       await wrapper.findAll('.card')[a.index]!.trigger('click');
       await wrapper.findAll('.card')[b.index]!.trigger('click');
-      await vi.advanceTimersByTimeAsync(1200);
+      await vi.advanceTimersByTimeAsync(FLIP_BACK_MS + 200);
       await flush();
       expect(s.current.value?.id, 'lật lệch thì lượt phải sang máy').toBe('bot');
     }
