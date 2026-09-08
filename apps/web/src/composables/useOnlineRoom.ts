@@ -405,10 +405,23 @@ export function useOnlineRoom() {
   /** Lá vừa được mở (bởi bất kỳ ai trong phòng) — bàn loé một vòng sáng ở đó. */
   const vuaMo = ref<{ index: number; key: number } | null>(null);
   let lastCountdownSec = -1;
+/**
+ * ĐỒNG HỒ: NHỊP LOGIC 200ms, NHƯNG CHỈ ĐẨY VÀO REACTIVE MỖI GIÂY.
+ *
+ * Vòng phải chạy dày (200ms) để bắt bàn đứng im và giục tiếng tick, nhưng mọi
+ * thứ đọc `clock` (`turnTimeLeft`, `elapsed`, `countdownLeft`, `peekLeft`) đều
+ * hiện ra bằng GIÂY TRÒN — nên gán ref 5 lần/giây là bốn lần render không đổi
+ * lấy một điểm ảnh nào. Phần logic dùng `luc` (biến thường) để vẫn nhạy 200ms.
+ *
+ * KHÔNG phải nguyên nhân của cái lag ở bàn 88 thẻ online: ván offline gán ref
+ * reactive MỖI KHUNG HÌNH (60 lần/giây, xem `loop` ở useGameSession) mà vẫn
+ * mượt, nên tần suất render không phải chỗ đắt. Đây chỉ là bớt việc vô ích.
+ */
   const clock = ref(0);
   let lastUrgentTick = 0;
   const clockTimer = setInterval(() => {
-    clock.value = Date.now();
+    const luc = Date.now();
+    if (Math.floor(luc / 1000) !== Math.floor(clock.value / 1000)) clock.value = luc;
     // Đếm ngược trước ván: mỗi giây một tick
     const cd = countdownLeft.value;
     if (cd !== null && cd !== lastCountdownSec) { lastCountdownSec = cd; sfx.countdown(cd); }
@@ -420,8 +433,8 @@ export function useOnlineRoom() {
     // biết vì sao — nói ra, rồi tự đồng bộ lại.
     const tLuot = turnTimeLeft.value;
     if (view.value?.status === 'playing' && tLuot === 0 && !dangNoiLai) {
-      if (!stuckSince) stuckSince = clock.value;
-      else if (clock.value - stuckSince >= STUCK_MS) {
+      if (!stuckSince) stuckSince = luc;
+      else if (luc - stuckSince >= STUCK_MS) {
         stuckSince = 0;
         // Xin lại trạng thái trên socket đang mở TRƯỚC. Chỉ khi cả cái đó cũng
         // không đi được mới mở lại kết nối — thang rẻ trước, đắt sau.
@@ -433,8 +446,8 @@ export function useOnlineRoom() {
     const left = turnTimeLeft.value;
     if (left !== null && left > 0 && left <= 10
       && view.value?.currentId === myId.value
-      && clock.value - lastUrgentTick >= 500) {
-      lastUrgentTick = clock.value;
+      && luc - lastUrgentTick >= 500) {
+      lastUrgentTick = luc;
       sfx.tick();
     }
   }, 200);
