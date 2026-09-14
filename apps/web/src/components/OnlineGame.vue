@@ -297,7 +297,7 @@ watch(() => o.view.value?.summary, (s) => {
           <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${o.seriesWins.value[p.name]} ván`">
             🏅{{ o.seriesWins.value[p.name] }}
           </span>
-          <span class="pts" :class="{ dai: p.score >= 1000 }">{{ p.score }}</span>
+          <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }">{{ p.score }}</span>
         </div>
       </div>
 
@@ -633,8 +633,15 @@ watch(() => o.view.value?.summary, (s) => {
 }
 @media (prefers-reduced-motion: reduce) { .pchip.active { animation: none; } }
 .pchip.active b { font-size: 13.5px; }
-.pchip.active .pts { font-size: 17px; color: #fff; }
-.pchip.active .pts.dai { font-size: 15px; }
+/* Chip đang đi: điểm nằm trong một viên thuốc sáng — viên thuốc chỉ dành cho
+   chip này, chip chờ không đủ chỗ cho 16px đệm của nó. */
+.pchip.active .pts {
+  font-size: 19px; color: #fff;
+  padding: 1px 8px; border-radius: var(--r-full);
+  background: rgba(255, 255, 255, .18);
+}
+.pchip.active .pts.dai { font-size: 18px; }
+.pchip.active .pts.ratdai { font-size: 16px; }
 .pchip.active .ping { background: rgba(255, 255, 255, .18); color: #fff; }
 .pchip.active .lives { color: #fff; }
 /* Người đang chờ lùi lại một bước — tương phản làm chip đang đi nổi hơn hẳn
@@ -650,8 +657,14 @@ watch(() => o.view.value?.summary, (s) => {
  * chip: chip 200px khớp `max-width: 176px`. Đã đo hụt một lần vì tưởng ngược lại.
  */
 @container (max-width: 176px) { .pchip .ping { display: none; } }
-@container (max-width: 150px) { .pchip .turn-clock { display: none; } }  /* thanh dưới vẫn nói đủ */
-@container (max-width: 128px) { .pchip .lives { display: none; } }
+@container (max-width: 176px) { .pchip .turn-clock { display: none; } }  /* thanh dưới vẫn nói đủ */
+@container (max-width: 128px) {
+  .pchip .lives { display: none; }
+  /* Chip đang đi ở bàn 3–4 người: viên thuốc thu lại, nhưng con số vẫn to nhất chip. */
+  .pchip.active .pts { font-size: 17px; padding: 1px 5px; }
+  .pchip.active .pts.dai { font-size: 16px; }
+  .pchip.active .pts.ratdai { font-size: 14.5px; }
+}
 /* Chip CHỜ hẹp quá (bàn 4 người: nội dung còn 61px) thì bỏ TÊN, giữ avatar và
    ĐIỂM. Avatar đã là danh tính và tên đầy đủ còn đọc được ở bảng ☰ — điểm thì
    không có chỗ nào khác. Đây là lỗi thứ hai người chơi bắt được. */
@@ -722,10 +735,20 @@ watch(() => o.view.value?.summary, (s) => {
  * nên mọi phép đo phải thử tới đó. Có `test/diem-trong-chip.test.ts` canh.
  */
 .pchip .pts {
-  margin-left: auto; flex-shrink: 0;
-  font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums;
+  margin-left: auto; flex: none;
+  font-family: var(--font-display); font-size: 16px; font-weight: 800;
+  letter-spacing: -.01em; font-variant-numeric: tabular-nums;
 }
-.pchip .pts.dai { font-size: 13px; }
+/*
+ * ĐIỂM LÀ CON SỐ TO NHẤT TRONG CHIP, và điểm càng cao càng KHÔNG được nhỏ đi.
+ * Bản đầu làm ngược: `.dai` tụt xuống 13px, hoá ra ván càng hay thì điểm càng
+ * khó đọc. Nay chỉ hạ đúng một nấc mỗi khi thêm một chữ số, và chỗ để hạ lấy
+ * từ những thứ khác trong chip (ping, số giây) chứ không từ chính con số.
+ */
+.pchip .pts.dai { font-size: 15px; }        /* ≥ 1.000 */
+.pchip .pts.ratdai { font-size: 13.5px; }   /* ≥ 10.000 */
+/* Tên lùi xuống một bậc để con SỐ là thứ mắt bắt trước. */
+.pchip:not(.active) b { color: var(--muted); font-weight: 600; }
 .turn-clock {
   flex: none;
   font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;

@@ -91,7 +91,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${seriesWins?.[p.name]} ván`">
           🏅{{ seriesWins?.[p.name] }}
         </span>
-        <span class="pts" :class="{ dai: p.score >= 1000 }" :data-pts-for="p.id">{{ p.score }}</span>
+        <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }" :data-pts-for="p.id">{{ p.score }}</span>
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
              tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
         <small v-if="Number.isFinite(p.lives)" class="lives" :title="`${p.lives} mạng`">
@@ -208,8 +208,13 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .strip { align-items: center; padding: 4px 0; }
 /* Thứ tự hy sinh khi chip hẹp dần (ngưỡng là CONTENT-BOX, không phải bề rộng
    chip: chip 200px khớp `max-width: 176px`). */
-@container (max-width: 150px) { .player .turn-clock { display: none; } }
-@container (max-width: 128px) { .player .lives { display: none; } }
+@container (max-width: 176px) { .player .turn-clock { display: none; } }
+@container (max-width: 128px) {
+  .player .lives { display: none; }
+  .player.active .pts { font-size: 17px; padding: 1px 5px; }
+  .player.active .pts.dai { font-size: 16px; }
+  .player.active .pts.ratdai { font-size: 14.5px; }
+}
 @container (max-width: 72px) {
   .player:not(.active) .name { display: none; }
   .player:not(.active) { justify-content: space-between; }
@@ -235,13 +240,22 @@ watch(() => props.players.length, () => { moBang.value = false; });
  * là điểm 4 chữ số văng ra NGOÀI MÀN HÌNH (đo được trên iPhone 15 Pro Max).
  */
 .pts {
-  margin-left: auto; flex-shrink: 0;
-  font-family: var(--font-display); font-size: 15px;
-  font-variant-numeric: tabular-nums;
+  margin-left: auto; flex: none;
+  font-family: var(--font-display); font-size: 16px; font-weight: 800;
+  letter-spacing: -.01em; font-variant-numeric: tabular-nums;
 }
-.pts.dai { font-size: 13px; }
-.player.active .pts { font-size: 17px; color: #fff; }
-.player.active .pts.dai { font-size: 15px; }
+/* Điểm càng cao càng KHÔNG được nhỏ đi — xem chú thích ở OnlineGame.vue. Chỗ
+   để hạ lấy từ những thứ khác trong chip, không từ chính con số. */
+.pts.dai { font-size: 15px; }        /* ≥ 1.000 */
+.pts.ratdai { font-size: 13.5px; }   /* ≥ 10.000 */
+.player:not(.active) .name { color: var(--muted); font-weight: 600; }
+.player.active .pts {
+  font-size: 19px; color: #fff;
+  padding: 1px 8px; border-radius: var(--r-full);
+  background: rgba(255, 255, 255, .18);
+}
+.player.active .pts.dai { font-size: 18px; }
+.player.active .pts.ratdai { font-size: 16px; }
 .turn-clock {
   flex: none; display: inline-flex; align-items: center; gap: 2px;
   font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
