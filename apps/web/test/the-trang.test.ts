@@ -108,6 +108,12 @@ describe('nền dự phòng của lá bài', () => {
       .toMatch(/background: var\(--card-nen-du-phong\)/);
   });
 
+  it('nền dự phòng đổi theo MẶT ĐANG HƯỚNG RA', () => {
+    // Một màu tối cho mọi trạng thái thì lá đã ngửa lộ mảng tối giữa theme
+    // sáng (đã bị báo) — mặt trước vốn ngả kem.
+    expect(tile).toMatch(/\.card\.up, \.card\.done \{\s*background: var\(--card-face-up\)/);
+  });
+
   it('ô trống (lưới lẻ) vẫn phải trong suốt — nó không phải lá bài', () => {
     expect(tile).toMatch(/\.card\.blank \{[^}]*background: transparent/);
   });
