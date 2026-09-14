@@ -20,7 +20,7 @@ export function useGameSession() {
   /** Thẻ đang lắc vì ghép sai, để UI vẽ hiệu ứng. */
   const wrongPair = ref<number[]>([]);
   /** Lá vừa được mở (bởi người hay bởi máy) — bàn dùng để loé một vòng sáng. */
-  const vuaMo = ref<{ index: number; key: number } | null>(null);
+  const vuaMo = ref<{ index: number; key: number; cuaToi: boolean } | null>(null);
   const lastPower = ref<GameEvent & { type: 'power' } | null>(null);
   /** Hai ô vừa bị thẻ tráo đổi hoán chỗ, kèm key để lặp lại animation. */
   const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
@@ -70,7 +70,16 @@ export function useGameSession() {
            * không thấy nó vừa mở lá nào; quay lại thì bàn đã khác. Cùng một tín
            * hiệu dùng cho ván online (đối thủ mở lá nào).
            */
-          vuaMo.value = { index: e.index, key: (vuaMo.value?.key ?? 0) + 1 };
+          vuaMo.value = {
+            index: e.index,
+            key: (vuaMo.value?.key ?? 0) + 1,
+            /*
+             * Lá do MÁY mở mới cần hiệu ứng mạnh. Sự kiện `flip` không mang
+             * `playerId`, nhưng lá chỉ có thể do NGƯỜI ĐANG ĐI mở — và lượt
+             * chưa đổi vào lúc sự kiện này chạy.
+             */
+            cuaToi: game.value?.current?.id !== BOT_ID
+          };
           break;
         case 'match': {
           const streak = game.value?.players.find((p) => p.id === e.playerId)?.streak ?? 1;

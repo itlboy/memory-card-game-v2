@@ -121,6 +121,19 @@
   391/347/303/259px cho 9/8/7/6 nút. Để nguyên mốc cũ khi phóng nút là máy hẹp
   cố nhét 9 nút vào chỗ đủ 7 và cả thanh tràn. `test/diem-trong-chip.test.ts`
   SUY RA mốc từ cỡ nút chứ không chép tay, nên quên là đỏ.
+- **LÁ NGƯỜI KHÁC MỞ ≠ LÁ MÌNH MỞ.** Bàn 88 thẻ giữa ván có mấy chục lá ngửa,
+  một vòng loé 520ms lẫn mất, và nhìn lại cũng không biết lá nào vừa mở (người
+  chơi phản ánh). Nay `vuaMo` mang thêm `cuaToi`:
+  · lá MÌNH mở — giữ một nhịp 520ms, chỉ là dấu xác nhận (ngón tay đã biết chỗ);
+  · lá ĐỐI THỦ / MÁY mở — nở HAI nhịp trong 1,4s (một nhịp thì chớp mắt là lỡ)
+  rồi ĐỂ LẠI viền vàng tới khi lá úp lại hoặc được ghép. Phần "để lại" mới là
+  cái giải quyết "nhìn lại không biết lá nào" — hiệu ứng động chỉ nói lúc đang
+  chạy. Chọn bằng bài kiểm tra nhận diện (bấm đúng lá, đo ms) chứ không cảm tính.
+  Sự kiện `flip` KHÔNG mang `playerId` (payload cố ý gọn, NF-04) nên nhận ra lá
+  mình bằng `pending` (online) và bằng người-đang-đi (offline đấu bot).
+  **Viền nằm NGOÀI mép lá thì phải nâng z-index của CẢ LÁ** (5: trên wob-hover 4,
+  dưới hai mốc 6/7 của Tráo đổi) — không thì lá bên phải, vẽ sau trong DOM, đè
+  mất cạnh phải của viền. Đã bắt được đúng lỗi đó trên mockup.
 - **Ô TRẮNG TRƠN GIỮA BÀN TO = LỚP GPU BỊ THẢ, KHÔNG PHẢI LỖI TRẠNG THÁI.**
   Người chơi báo: lá ĐÃ TỪNG NGỬA, lúc úp lại thành ô trắng; chỉ gặp ở bàn 88
   thẻ. Đã loại hai nhánh khác: engine không có đường nào sinh thẻ rỗng

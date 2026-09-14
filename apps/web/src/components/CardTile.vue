@@ -31,7 +31,7 @@ const props = defineProps<{
    * nào — đúng điều đã bị phản ánh. Nên lá vừa mở phát một quầng sáng cho cả
    * phòng thấy, không riêng người bấm.
    */
-  vuaMo?: { key: number } | null;
+  vuaMo?: { key: number; cuaToi?: boolean } | null;
   /** Mặt sau của ván này, dạng `<hoạ tiết>.<bảng màu>` (ví dụ `xoay.cham`).
    *  Nhận cả sáu tên CŨ (`stars`…) vì server có thể gửi dạng đó cho client chưa
    *  khai `?bv=2`, và ván offline khôi phục từ sessionStorage của bản cũ cũng
@@ -313,25 +313,57 @@ function onClick(): void {
  * "vừa xảy ra" — nó còn dùng lại được cho lá do người khác mở.
  */
 const LOE_MS = 520;
+/*
+ * LÁ NGƯỜI KHÁC MỞ ĐƯỢC HIỆU ỨNG MẠNH HƠN HẲN — và để lại DẤU.
+ *
+ * Người chơi phản ánh: ở bàn 88 thẻ giữa ván, khi đã có mấy chục lá ngửa thì
+ * một vòng loé 520ms lẫn mất; nhìn lại cũng không biết lá nào vừa mở. Nên lá do
+ * ĐỐI THỦ (hoặc MÁY) mở nay:
+ *  · nở HAI NHỊP trong 1,4 giây — nhịp thứ hai bắt được mắt cả khi lúc nhịp đầu
+ *    người chơi đang nhìn chỗ khác (một nhịp thì chớp mắt là lỡ);
+ *  · rồi ĐỂ LẠI viền vàng trên lá đó tới khi nó úp lại hoặc được ghép. Đây mới
+ *    là phần giải quyết "nhìn lại không biết lá nào": hiệu ứng động chỉ nói
+ *    lúc nó đang chạy.
+ * Lá của CHÍNH MÌNH giữ nguyên một nhịp 520ms: ngón tay đã biết nó ở đâu, chỉ
+ * cần dấu xác nhận. Chọn bằng bài kiểm tra nhận diện có bấm-đúng-lá và đo thời
+ * gian, không phải chọn theo cảm tính.
+ */
+const LOE_DOI_MS = 1400;
 const loe = ref(false);
+const loeDoi = ref(false);
+/** Dấu còn lại trên lá do người khác mở, tới khi lá úp lại hoặc được ghép. */
+const giuDau = ref(false);
 let loeTimer: ReturnType<typeof setTimeout> | undefined;
 
-function bungLoe(): void {
+function bungLoe(cuaNguoiKhac = false): void {
   loe.value = false;
+  loeDoi.value = false;
   clearTimeout(loeTimer);
   // Một nhịp chờ để trình duyệt thấy class biến mất rồi mới gắn lại; không có
   // bước này thì lật hai lá liền nhau, lá thứ hai không loé.
   requestAnimationFrame(() => {
-    loe.value = true;
-    loeTimer = setTimeout(() => { loe.value = false; }, LOE_MS);
+    if (cuaNguoiKhac) {
+      loeDoi.value = true;
+      giuDau.value = true;
+      loeTimer = setTimeout(() => { loeDoi.value = false; }, LOE_DOI_MS);
+    } else {
+      loe.value = true;
+      loeTimer = setTimeout(() => { loe.value = false; }, LOE_MS);
+    }
   });
 }
 
-// Lá ĐỔI MẶT (do mình hay do ai cũng vậy) thì loé một nhịp.
+// Lá úp lại hoặc được ghép thì dấu hết việc: úp lại là không còn gì để chỉ,
+// còn ghép đúng đã có viền xanh của chính nó nói to hơn.
+watch(() => [props.faceUp, props.matched], ([up, xong]) => {
+  if (!up || xong) giuDau.value = false;
+});
+
+// Lá ĐỔI MẶT: loé một nhịp. Ở đây chưa biết ai mở nên coi như của mình —
+// tín hiệu `vuaMo` bên dưới mới mang thông tin đó và sẽ nâng cấp hiệu ứng.
 watch(() => props.faceUp, (up, truoc) => { if (up && !truoc) bungLoe(); });
-// Và lá vừa được mở — tín hiệu riêng từ engine/server, để trên bàn 88 thẻ người
-// chơi còn lại nhìn ra ngay lá nào vừa mở.
-watch(() => props.vuaMo?.key, (k) => { if (k) bungLoe(); });
+// Tín hiệu riêng từ engine/server: lá nào vừa mở, và CỦA AI.
+watch(() => props.vuaMo?.key, (k) => { if (k) bungLoe(props.vuaMo?.cuaToi === false); });
 
 function onLeave(): void {
   hoverWob.value = false;
@@ -360,7 +392,8 @@ const label = computed(() => {
     :class="{ up: faceUp, done: matched, wrong: lacSai, peek: peeking, swapping: !!swapFrom, pending, dealt,
       'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down',
       'wob-tail': dealt && flipAnim === 'tail',
-      'wob-hover': hoverWob, nhan, loe, settled, 'ban-lon': banLon }"
+      'wob-hover': hoverWob, nhan, loe, settled, 'ban-lon': banLon,
+      'loe-doi': loeDoi, 'giu-dau': giuDau }"
     :style="{
       '--deal': `${dealStagger}ms`,
       '--cx': diemCham.x,
@@ -580,6 +613,51 @@ const label = computed(() => {
   100% { opacity: 0; transform: scale(1.07); }
 }
 
+/*
+ * LÁ NGƯỜI KHÁC MỞ — xem chú thích ở `LOE_DOI_MS`.
+ * Vòng TRẮNG chứ không tím: trên bàn tím, trắng là thứ tách khỏi nền mạnh nhất,
+ * và nó không đụng vào mã màu nào đang có nghĩa (xanh = ghép đúng, đỏ = nguy).
+ */
+.card.loe-doi::after {
+  content: '';
+  position: absolute; inset: -3px;
+  border-radius: 14px; pointer-events: none;
+  box-shadow: 0 0 0 3px #fff, 0 0 22px 7px color-mix(in srgb, var(--accent) 75%, transparent);
+  animation: card-loe-doi 1.4s cubic-bezier(.2, .7, .3, 1) forwards;
+  will-change: transform, opacity;
+}
+.card.ban-lon.loe-doi::after { will-change: auto; }
+@keyframes card-loe-doi {
+  0%   { opacity: 1;   transform: scale(0.94); }
+  22%  { opacity: 1;   transform: scale(1.12); }
+  38%  { opacity: .55; transform: scale(1.00); }
+  60%  { opacity: 1;   transform: scale(1.14); }
+  100% { opacity: 0;   transform: scale(1.02); }
+}
+/*
+ * PHẢI NÂNG CẢ LÁ, KHÔNG CHỈ NÂNG CÁI VIỀN.
+ *
+ * Vòng loé và viền vàng đều nằm NGOÀI mép lá (`inset` âm), mà lá bên phải vẽ
+ * SAU trong DOM nên nó đè lên phần thò ra — người chơi thấy viền vàng bị cắt
+ * mất cạnh phải (đã bắt được trên mockup). `z-index` ở pseudo chỉ xếp bên trong
+ * lá, không ăn thua với lá khác.
+ *
+ * 5: trên `wob-hover` (4) vì dấu của đối thủ quan trọng hơn cái lá mình đang rê
+ * chuột, nhưng dưới hai mốc 6/7 của thẻ Tráo đổi — lá đang bay chỗ vẫn phải đi
+ * trên cùng.
+ */
+.card.loe, .card.loe-doi, .card.giu-dau { z-index: 5; }
+
+/* Dấu Ở LẠI: viền vàng trên lá người khác vừa mở, tới khi nó úp lại hoặc được
+   ghép. `z-index` ở đây là để viền không chui xuống dưới hai mặt thẻ (chúng nằm
+   trong `.inner`). */
+.card.giu-dau::before {
+  content: '';
+  position: absolute; inset: -2px; z-index: 3;
+  border-radius: 13px; pointer-events: none;
+  box-shadow: 0 0 0 2.5px var(--gold), 0 0 12px 2px color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
 .card.wob-hover {
   transform: perspective(700px) scale(1.05);
   transition-duration: 0.28s;
@@ -675,7 +753,7 @@ const label = computed(() => {
   .card .inner { animation: none !important; }
   /* Giữ cú LÚN và quầng sáng (chúng là phản hồi, không phải trang trí), bỏ vòng
      sáng chạy ra ngoài. */
-  .card.loe::after { animation: none; }
+  .card.loe::after, .card.loe-doi::after { animation: none; }
   .card { transition-duration: 0.01ms !important; }
 }
 /**

@@ -439,7 +439,7 @@ export function useOnlineRoom() {
    *  thấy hai kiểu khác nhau — đúng lỗi đã gặp. */
   const backStyle = computed<string>(() => view.value?.back ?? CARD_BACKS[0]!);
   /** Lá vừa được mở (bởi bất kỳ ai trong phòng) — bàn loé một vòng sáng ở đó. */
-  const vuaMo = ref<{ index: number; key: number } | null>(null);
+  const vuaMo = ref<{ index: number; key: number; cuaToi: boolean } | null>(null);
   let lastCountdownSec = -1;
 /**
  * ĐỒNG HỒ: NHỊP LOGIC 200ms, NHƯNG CHỈ ĐẨY VÀO REACTIVE MỖI GIÂY.
@@ -946,7 +946,21 @@ export function useOnlineRoom() {
            * MỌI lá vừa mở, kể cả lá của chính mình — với mình nó thành dấu xác
            * nhận server đã nhận nước đi.
            */
-          vuaMo.value = { index: e.index, key: (vuaMo.value?.key ?? 0) + 1 };
+          /*
+           * "CỦA AI" quyết định hiệu ứng mạnh tới đâu: lá của CHÍNH MÌNH thì
+           * ngón tay đã biết nó ở đâu, chỉ cần một nhịp xác nhận; lá của ĐỐI
+           * THỦ mới là thứ phải bắt được mắt ở bàn 88 thẻ.
+           *
+           * Sự kiện `flip` KHÔNG mang `playerId` (payload cố ý gọn — xem NF-04),
+           * nên nhận ra lá của mình bằng `pending`: lá mình bấm nằm trong đó cho
+           * tới khi server xác nhận, mà tin xác nhận CHÍNH LÀ sự kiện này — ngay
+           * dòng trên cũng đang dựa vào đúng tính chất ấy để khỏi kêu hai tiếng.
+           */
+          vuaMo.value = {
+            index: e.index,
+            key: (vuaMo.value?.key ?? 0) + 1,
+            cuaToi: pending.value.has(e.index)
+          };
           break;
         case 'match': {
           const streak = 1 + (view.value?.players.find((p) => p.id === e.playerId)?.bestStreak ?? 0);
