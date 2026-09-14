@@ -165,8 +165,21 @@ export function useGameSession() {
           break;
       }
     }
-    // Chỉ hiện banner khi lượt thực sự đổi sang người khác (multiplayer)
-    if (turnId && (game.value?.players.length ?? 0) > 1) {
+    /*
+     * BANNER "ĐẾN LƯỢT …" CHỈ CÒN Ở BÀN NHIỀU NGƯỜI THẬT, CHUNG MỘT MÁY.
+     *
+     * Ở đó nó là lời gọi ĐƯA MÁY cho người kế tiếp — không có nó thì người vừa
+     * đi xong không biết đến ai. Nhưng ĐẤU VỚI BOT đi chung đường này mà lại
+     * không có ai để gọi: chỉ một người ngồi trước máy, nên mỗi lượt lại một
+     * tấm banner đập vào giữa màn hình (người chơi báo). Ván online cũng đã tắt
+     * hẳn, xem BAO_DEN_LUOT ở useOnlineRoom.ts.
+     *
+     * Nhận ra ván đấu bot bằng BOT_ID TRONG DANH SÁCH NGƯỜI CHƠI, không bằng cờ
+     * `botLevel` — cờ đó tắt được giữa ván (cùng lý do vì sao chỗ xét thắng/thua
+     * đọc bảng xếp hạng chứ không đọc cờ).
+     */
+    const coBot = game.value?.players.some((p) => p.id === BOT_ID) ?? false;
+    if (turnId && (game.value?.players.length ?? 0) > 1 && !coBot) {
       const find = (id: string | null) => game.value?.players.find((p) => p.id === id);
       const p = find(turnId);
       if (p) {

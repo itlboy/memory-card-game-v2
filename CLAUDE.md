@@ -104,6 +104,23 @@
   ~34px thì cái lắc gần như không thấy, mà máy vẫn vẽ lại lá đó suốt 2,2 giây.
   Đo bằng harness Chrome headless (`--dump-dom` + `document.title`), đừng đoán;
   FPS/rAF KHÔNG đo được ở máy này (thiếu display link), nên đo ms style+layout.
+- **BANNER "ĐẾN LƯỢT …" NAY CHỈ CÒN Ở BÀN NHIỀU NGƯỜI THẬT CHUNG MỘT MÁY.**
+  Ở đó nó là lời gọi ĐƯA MÁY cho người kế tiếp. Hai chỗ còn lại đã tắt vì chip
+  của người đang đi nay nở rộng + gradient tím, nói đủ rồi, mà banner thì đập
+  vào giữa màn hình MỖI LƯỢT:
+  · ONLINE: công tắc `BAO_DEN_LUOT` ở đầu `useOnlineRoom.ts` (`false`);
+  · ĐẤU BOT: nhận ra bằng `BOT_ID` TRONG DANH SÁCH NGƯỜI CHƠI, không bằng cờ
+  `botLevel` — cờ đó tắt được giữa ván, cùng lý do vì sao chỗ xét thắng/thua
+  đọc bảng xếp hạng chứ không đọc cờ.
+  Chuyện ĐÓNG BĂNG vẫn báo ở cả hai: đó là SỰ KIỆN hiếm, không phải nhịp lặp
+  mỗi lượt, và chip chỉ đeo được một icon chứ không kể được chuyện. Người chơi
+  đã bác bản "chỉ bỏ banner của người khác, giữ banner của mình" — đừng dựng lại.
+- **ĐỔI CỠ NÚT EMOJI THÌ PHẢI TÍNH LẠI MỐC ẨN BỚT.** Thanh emoji không cho
+  xuống hàng và không cho nút co lại; máy hẹp thì ẩn từ CUỐI danh sách, nên mốc
+  tính từ cỡ nút thật: n nút cần `(cỡ + gap)·n − gap`. Nút nay 40px + gap 4 →
+  391/347/303/259px cho 9/8/7/6 nút. Để nguyên mốc cũ khi phóng nút là máy hẹp
+  cố nhét 9 nút vào chỗ đủ 7 và cả thanh tràn. `test/diem-trong-chip.test.ts`
+  SUY RA mốc từ cỡ nút chứ không chép tay, nên quên là đỏ.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
@@ -280,6 +297,25 @@
   mã vào pod kia sẽ nhận "không có phòng". Chi tiết ở `deploy/k8s/thebai.yaml`; sổ tay
   hạ tầng nằm ở repo `my-secrets` (`docs/services/thebai-server.md`) và phải cập nhật
   cùng lúc khi đổi gì ở đây.
+- **XONG VIỆC LÀ DEPLOY CẢ HAI NƠI, KHÔNG HỎI LẠI** (chủ dự án chốt 14.09.2026).
+  Một "lần giao hàng" đầy đủ gồm ĐỦ BỐN BƯỚC, thiếu bước nào là người chơi vẫn
+  thấy bản cũ ở một trong hai tên miền:
+  1. `pnpm typecheck` + `pnpm test` + `pnpm build` xanh;
+  2. commit trên `develop` → merge `--no-ff` sang `main` → `git push origin main develop`
+     (đẩy `main` là Action tự đóng ảnh, Keel thay pod Node ở Hà Nội sau vài phút);
+  3. `pnpm release` NGAY SAU ĐÓ cho bản Cloudflare dự phòng — Action KHÔNG đụng
+     tới Cloudflare, nên bỏ bước này là `thebai2` đứng lại ở bản cũ vô thời hạn;
+  4. kiểm cả hai tên miền bằng NỘI DUNG, không bằng hash.
+- **KIỂM DEPLOY BẰNG NỘI DUNG, ĐỪNG SO HASH FILE.** Hash của Vite phụ thuộc môi
+  trường build, nên hash CI KHÔNG BAO GIỜ trùng hash build ở máy — so hash là
+  thấy "khác" rồi kết luận nhầm "server còn cũ". Đã mất một buổi vì chuyện này:
+  chờ deploy, restart k8s tay, nghi oan Keel, trong khi bản mới đã chạy từ đầu.
+  Cách đúng là tìm một mẩu NỘI DUNG chỉ có ở bản mới:
+  ```bash
+  CSS=$(curl -s "https://thebai.hello314.com/?cb=$RANDOM" | grep -o '/assets/index-[^"]*\.css' | head -1)
+  curl -s "https://thebai.hello314.com$CSS" | grep -c 'flex: 0 0 40px'   # 1 = đã lên
+  ```
+  Soi thẳng trong pod khi cần: `node bin/secrets.mjs run k8s -- kubectl -n thebai exec deploy/thebai-server -- grep -l ... /app/web/assets/*`
 - **Deploy: `pnpm release`** — web và phòng online nằm trong MỘT Worker
   (`apps/server/wrangler.jsonc` có khối `assets`), nên chỉ một lệnh, không còn
   chuyện web mới chạy với server cũ. `pnpm deploy:server` chỉ deploy worker mà
