@@ -97,15 +97,20 @@ describe('banner báo lượt', () => {
   const online = readFileSync(resolve(process.cwd(), 'src/composables/useOnlineRoom.ts'), 'utf8');
   const local = readFileSync(resolve(process.cwd(), 'src/composables/useGameSession.ts'), 'utf8');
 
-  it('ván online: mặc định KHÔNG báo lượt của người khác', () => {
-    expect(online).toMatch(/const BAO_LUOT_NGUOI_KHAC = false;/);
+  it('ván online: mặc định KHÔNG hiện banner báo lượt', () => {
+    expect(online).toMatch(/const BAO_DEN_LUOT = false;/);
     expect(online, 'công tắc phải nằm trên đường đi của banner, không thì nó là hằng số chết')
-      .toMatch(/if \(p && \(BAO_LUOT_NGUOI_KHAC \|\| dangLuotMinh \|\| coDongBang\)\)/);
+      .toMatch(/if \(p && \(BAO_DEN_LUOT \|\| coDongBang\)\)/);
+  });
+
+  it('chuyện ĐÓNG BĂNG vẫn báo — nó là sự kiện hiếm, không phải nhịp mỗi lượt', () => {
+    expect(online).toMatch(/coDongBang/);
+    expect(online).toMatch(/frozen: find\(frozenId\)\?\.name \?\? null/);
   });
 
   it('bàn chơi chung máy vẫn báo MỌI lượt — đó là lời gọi đưa máy cho người kế tiếp', () => {
     expect(local).toMatch(/if \(turnId && \(game\.value\?\.players\.length \?\? 0\) > 1\)/);
-    expect(local).not.toMatch(/BAO_LUOT_NGUOI_KHAC/);
+    expect(local).not.toMatch(/BAO_DEN_LUOT/);
   });
 });
 
@@ -131,4 +136,35 @@ describe('điểm trên chip đang đi đọc được', () => {
         'chữ trắng trên nền trắng thì không đọc được').toBe(false);
     });
   }
+});
+
+/**
+ * NÚT EMOJI VÀ MỐC ẨN BỚT PHẢI ĐI CÙNG NHAU.
+ *
+ * Thanh emoji không cho xuống hàng và không cho nút co lại; máy hẹp thì ẩn bớt
+ * nút từ cuối danh sách. Mốc ẩn tính từ CỠ NÚT THẬT (n nút cần `(cỡ+gap)·n −
+ * gap`), nên đổi cỡ nút mà quên mốc là máy hẹp cố nhét đủ số nút vào chỗ không
+ * đủ, và cả thanh tràn ra ngoài.
+ */
+describe('thanh emoji', () => {
+  const src = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
+
+  it('mốc ẩn bớt khớp với cỡ nút hiện tại', () => {
+    const co = Number(/flex:\s*0 0 (\d+)px/.exec(src)![1]);
+    const gap = Number(/\.emoji-bar\s*\{[\s\S]*?gap:\s*(\d+)px/.exec(src)![1]);
+    const mocs = [...src.matchAll(/@container \(max-width: (\d+)px\) \{ \.emoji:nth-child\(n\+(\d+)\)/g)]
+      .map((m) => ({ moc: Number(m[1]), n: Number(m[2]) }));
+    expect(mocs.length, 'không thấy mốc ẩn nào').toBeGreaterThan(2);
+    for (const { moc, n } of mocs) {
+      // Ẩn nút thứ n khi hẹp hơn chỗ cần cho đúng n nút.
+      const can = (co + gap) * n - gap;
+      expect(moc, `mốc ẩn nút thứ ${n} phải là ${can - 1}px với nút ${co}px`).toBe(can - 1);
+    }
+  });
+
+  it('vùng chạm vẫn đủ 44px dù nút nhỏ hơn thế', () => {
+    const cao = Number(/min-height:\s*(\d+)px/.exec(src)![1]);
+    const noi = Number(/\.emoji::after[^}]*inset:\s*-(\d+)px/.exec(src)![1]);
+    expect(cao + noi * 2, 'nút + vùng nới phải đủ 44px (NF-07)').toBeGreaterThanOrEqual(44);
+  });
 });
