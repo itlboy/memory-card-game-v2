@@ -91,7 +91,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${seriesWins?.[p.name]} ván`">
           🏅{{ seriesWins?.[p.name] }}
         </span>
-        <span class="pts" :class="{ dai: p.score >= 1000 }" :data-pts-for="p.id">{{ p.score }}</span>
+        <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }" :data-pts-for="p.id">{{ p.score }}</span>
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
              tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
         <small v-if="Number.isFinite(p.lives)" class="lives" :title="`${p.lives} mạng`">
@@ -208,7 +208,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .strip { align-items: center; padding: 4px 0; }
 /* Thứ tự hy sinh khi chip hẹp dần (ngưỡng là CONTENT-BOX, không phải bề rộng
    chip: chip 200px khớp `max-width: 176px`). */
-@container (max-width: 150px) { .player .turn-clock { display: none; } }
+@container (max-width: 176px) { .player .turn-clock { display: none; } }
 @container (max-width: 128px) { .player .lives { display: none; } }
 @container (max-width: 72px) {
   .player:not(.active) .name { display: none; }
@@ -235,13 +235,29 @@ watch(() => props.players.length, () => { moBang.value = false; });
  * là điểm 4 chữ số văng ra NGOÀI MÀN HÌNH (đo được trên iPhone 15 Pro Max).
  */
 .pts {
-  margin-left: auto; flex-shrink: 0;
-  font-family: var(--font-display); font-size: 15px;
-  font-variant-numeric: tabular-nums;
+  margin-left: auto; flex: none;
+  font-family: var(--font-display); font-size: 16px; font-weight: 800;
+  letter-spacing: -.01em; font-variant-numeric: tabular-nums;
 }
-.pts.dai { font-size: 13px; }
-.player.active .pts { font-size: 17px; color: #fff; }
-.player.active .pts.dai { font-size: 15px; }
+/* Điểm càng cao càng KHÔNG được nhỏ đi — xem chú thích ở OnlineGame.vue. Chỗ
+   để hạ lấy từ những thứ khác trong chip, không từ chính con số. */
+.pts.dai { font-size: 15px; }        /* ≥ 1.000 */
+.pts.ratdai { font-size: 13.5px; }   /* ≥ 10.000 */
+.player:not(.active) .name { color: var(--muted); font-weight: 600; }
+.player.active .pts {
+  /*
+   * ĐẢO MÀU: mực tím đậm trên nền TRẮNG ĐẶC.
+   *
+   * Bản trước để chữ trắng trên nền trắng 18% — trên nền gradient tím thì viên
+   * thuốc mờ đó gần như cùng sáng với chữ, đọc rất khó (người chơi báo). Trắng
+   * đặc còn làm điểm thành vật SÁNG NHẤT cả dải, đúng vai nó phải đóng.
+   */
+  font-size: 19px; color: #3b1e8f;
+  padding: 1px 8px; border-radius: var(--r-full);
+  background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
+}
+.player.active .pts.dai { font-size: 18px; }
+.player.active .pts.ratdai { font-size: 16px; }
 .turn-clock {
   flex: none; display: inline-flex; align-items: center; gap: 2px;
   font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
@@ -360,4 +376,18 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .sheet .pts { font-size: 15px; }
 .sheet-enter-active, .sheet-leave-active { transition: opacity .14s ease, transform .14s ease; }
 .sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
+
+/*
+ * KHỐI NÀY PHẢI Ở CUỐI FILE.
+ *
+ * `.player.active .pts` trong @container có ĐÚNG BẰNG độ đặc hiệu với rule
+ * cùng tên ở trên, nên ai đứng sau người đó thắng. Đặt ở trên là truy vấn
+ * container chạy đúng mà cỡ chữ vẫn bị rule sau ghi đè — im lặng, không lỗi
+ * nào hiện ra. Đây là kiểu lỗi đã hai lần xảy ra ở dự án này.
+ */
+@container (max-width: 128px) {
+  .player.active .pts { font-size: 17px; padding: 1px 5px; }
+  .player.active .pts.dai { font-size: 16px; }
+  .player.active .pts.ratdai { font-size: 14.5px; }
+}
 </style>

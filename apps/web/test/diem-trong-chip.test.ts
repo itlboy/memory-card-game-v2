@@ -26,7 +26,8 @@ describe('điểm nằm trong chip người chơi', () => {
       it('điểm không co lại — nó là thứ CUỐI CÙNG bị hy sinh', () => {
         const sel = ten === 'OnlineGame.vue' ? '.pchip .pts {' : '\n.pts {';
         const khoi = src.slice(src.indexOf(sel), src.indexOf(sel) + 260);
-        expect(khoi, 'thiếu flex-shrink: 0 thì điểm bị nén rồi bị đẩy ra').toMatch(/flex-shrink:\s*0/);
+        // `flex: none` là dạng gọn của `0 0 auto` — cùng ý: điểm không co.
+        expect(khoi, 'điểm co được là nó bị nén rồi bị đẩy ra').toMatch(/flex-shrink:\s*0|flex:\s*none/);
       });
 
       it('chip cắt phần thừa — lưới an toàn cho mọi huy hiệu thêm sau này', () => {
@@ -57,14 +58,77 @@ describe('điểm nằm trong chip người chơi', () => {
         expect(src.slice(mo, mo + 420)).toMatch(/flex-grow:\s*1\.75/);
       });
 
+      it('điểm càng cao càng KHÔNG nhỏ đi — chỗ để hạ lấy từ thứ khác trong chip', () => {
+        // Bản đầu làm ngược: ≥1000 tụt thẳng xuống 13px, hoá ra ván càng hay
+        // thì điểm càng khó đọc. Nay mỗi chữ số thêm chỉ hạ một nấc nhỏ, và
+        // điểm vẫn to hơn mọi chữ khác trong chip (tên 13px).
+        const co = (sel: string): number => {
+          const mo = src.indexOf(sel);
+          const m = /font-size:\s*([\d.]+)px/.exec(src.slice(mo, mo + 200));
+          return m ? Number(m[1]) : 0;
+        };
+        const goc = ten === 'OnlineGame.vue' ? '.pchip .pts {' : '\n.pts {';
+        expect(co(goc)).toBeGreaterThanOrEqual(16);
+        expect(co(ten === 'OnlineGame.vue' ? '.pchip .pts.dai {' : '\n.pts.dai {')).toBeGreaterThanOrEqual(15);
+        expect(co(ten === 'OnlineGame.vue' ? '.pchip .pts.ratdai {' : '\n.pts.ratdai {')).toBeGreaterThanOrEqual(13.5);
+      });
+
       it('thứ tự hy sinh khi chip hẹp dần được khai bằng @container', () => {
         // Ngưỡng là CONTENT-BOX (chip trừ padding 18 + viền 4), không phải bề
         // rộng chip: chip 200px khớp `max-width: 176px`.
-        expect(src).toMatch(/@container \(max-width: 150px\)[^}]*turn-clock[^}]*display:\s*none/);
+        expect(src).toMatch(/@container \(max-width: 176px\)[^}]*turn-clock[^}]*display:\s*none/);
         expect(src).toMatch(/@container \(max-width: 128px\)[^}]*lives[^}]*display:\s*none/);
         // Bàn 4 người: chip CHỜ chỉ còn 61px nội dung — bỏ tên, giữ avatar + điểm.
         expect(src).toMatch(/@container \(max-width: 72px\)/);
       });
+    });
+  }
+});
+
+/**
+ * BANNER "ĐẾN LƯỢT …" CHỈ CÒN BÁO LƯỢT CỦA CHÍNH MÌNH (ván online).
+ *
+ * Chip của người đang đi nay nở rộng và sáng gradient nên "đang tới lượt ai"
+ * đã đọc được trên dải; ở bàn 4 người thì ba trên bốn lần banner là nói về
+ * người khác. Giữ lại đúng hai thứ chip không thay được: "Đến lượt bạn" và câu
+ * "X bị đóng băng, mất lượt".
+ */
+describe('banner báo lượt', () => {
+  const online = readFileSync(resolve(process.cwd(), 'src/composables/useOnlineRoom.ts'), 'utf8');
+  const local = readFileSync(resolve(process.cwd(), 'src/composables/useGameSession.ts'), 'utf8');
+
+  it('ván online: mặc định KHÔNG báo lượt của người khác', () => {
+    expect(online).toMatch(/const BAO_LUOT_NGUOI_KHAC = false;/);
+    expect(online, 'công tắc phải nằm trên đường đi của banner, không thì nó là hằng số chết')
+      .toMatch(/if \(p && \(BAO_LUOT_NGUOI_KHAC \|\| dangLuotMinh \|\| coDongBang\)\)/);
+  });
+
+  it('bàn chơi chung máy vẫn báo MỌI lượt — đó là lời gọi đưa máy cho người kế tiếp', () => {
+    expect(local).toMatch(/if \(turnId && \(game\.value\?\.players\.length \?\? 0\) > 1\)/);
+    expect(local).not.toMatch(/BAO_LUOT_NGUOI_KHAC/);
+  });
+});
+
+/**
+ * ĐIỂM TRÊN CHIP ĐANG ĐI PHẢI ĐỌC ĐƯỢC.
+ *
+ * Bản đầu để chữ trắng trên viên thuốc trắng 18% nằm trên nền gradient tím —
+ * chữ và nền gần như cùng sáng, người chơi báo khó nhìn. Nay đảo màu: mực tím
+ * đậm trên nền trắng ĐẶC. Rule này canh đúng chỗ đó, vì lỗi là "trắng trên
+ * trắng mờ" chứ không phải thiếu nền.
+ */
+describe('điểm trên chip đang đi đọc được', () => {
+  for (const [ten, src] of Object.entries(FILES)) {
+    it(ten, () => {
+      // Duyệt MỌI khối `.…active .pts { }` — trong file có cả bản thu nhỏ cho
+      // chip hẹp, và nó không đứng cạnh rule chính.
+      const re = /\.(?:pchip|player)\.active \.pts \{([^}]*)\}/g;
+      const khoi = [...src.matchAll(re)].map((m) => m[1]!);
+      expect(khoi.length, 'không thấy rule điểm của chip đang đi').toBeGreaterThan(0);
+      expect(khoi.filter((k) => /background:\s*#fff\b/.test(k)).length,
+        'nền viên thuốc phải ĐẶC, không phải trắng mờ').toBe(1);
+      expect(khoi.some((k) => /color:\s*#fff\b/.test(k)),
+        'chữ trắng trên nền trắng thì không đọc được').toBe(false);
     });
   }
 });

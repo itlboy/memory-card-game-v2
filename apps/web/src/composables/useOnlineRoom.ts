@@ -16,6 +16,20 @@ import { doNhip } from '@/lib/do-nhip';
  * Lúc dev thì vite ở :3001 còn wrangler ở :8787 nên vẫn cần địa chỉ riêng.
  * VITE_SERVER_URL vẫn được tôn trọng để trỏ tay khi cần.
  */
+/**
+ * CÔNG TẮC: banner có báo lượt của NGƯỜI KHÁC không (`true` = như trước).
+ *
+ * Để `false` vì chip của người đang đi nay nở rộng và sáng gradient — "đang tới
+ * lượt ai" đã đọc được ngay trên dải, banner nói lại là nhiễu, mà ở bàn 4 người
+ * thì ba trên bốn lần banner là nói về người khác. Bật lại chỉ bằng đúng dòng
+ * này, không phải đi dựng lại nhánh nào.
+ *
+ * Hai thứ KHÔNG đi theo công tắc này vì chip không thay được: "Đến lượt bạn"
+ * (bàn 88 thẻ thì mắt đang ở giữa bàn, dải nằm tít trên đầu) và câu "X bị đóng
+ * băng, mất lượt" (chip chỉ đeo được một icon, không kể được chuyện).
+ */
+const BAO_LUOT_NGUOI_KHAC = false;
+
 const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined)
   ?? (import.meta.env.DEV ? 'http://localhost:8787' : location.origin);
 const WS_SERVER = SERVER.replace(/^http/, 'ws');
@@ -1054,7 +1068,15 @@ export function useOnlineRoom() {
     if (turnId) {
       const find = (id: string | null) => room.value?.players.find((p) => p.id === id);
       const p = find(turnId);
-      if (p) {
+      /*
+       * Bàn chơi CHUNG MÁY (useGameSession) thì ngược lại, vẫn báo MỌI lượt: ở
+       * đó banner là lời gọi đưa máy cho người kế tiếp, không có khái niệm
+       * "lượt của bạn". Công tắc `BAO_LUOT_NGUOI_KHAC` ở đầu file chỉ chỉnh
+       * ván ONLINE.
+       */
+      const dangLuotMinh = p?.id === myId.value;
+      const coDongBang = find(frozenId) !== undefined;
+      if (p && (BAO_LUOT_NGUOI_KHAC || dangLuotMinh || coDongBang)) {
         turnBanner.value = {
           name: p.id === myId.value ? 'bạn' : p.name,
           avatar: p.avatar ?? '',
