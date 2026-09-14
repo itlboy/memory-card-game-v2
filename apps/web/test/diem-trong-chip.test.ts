@@ -108,3 +108,27 @@ describe('banner báo lượt', () => {
     expect(local).not.toMatch(/BAO_LUOT_NGUOI_KHAC/);
   });
 });
+
+/**
+ * ĐIỂM TRÊN CHIP ĐANG ĐI PHẢI ĐỌC ĐƯỢC.
+ *
+ * Bản đầu để chữ trắng trên viên thuốc trắng 18% nằm trên nền gradient tím —
+ * chữ và nền gần như cùng sáng, người chơi báo khó nhìn. Nay đảo màu: mực tím
+ * đậm trên nền trắng ĐẶC. Rule này canh đúng chỗ đó, vì lỗi là "trắng trên
+ * trắng mờ" chứ không phải thiếu nền.
+ */
+describe('điểm trên chip đang đi đọc được', () => {
+  for (const [ten, src] of Object.entries(FILES)) {
+    it(ten, () => {
+      // Duyệt MỌI khối `.…active .pts { }` — trong file có cả bản thu nhỏ cho
+      // chip hẹp, và nó không đứng cạnh rule chính.
+      const re = /\.(?:pchip|player)\.active \.pts \{([^}]*)\}/g;
+      const khoi = [...src.matchAll(re)].map((m) => m[1]!);
+      expect(khoi.length, 'không thấy rule điểm của chip đang đi').toBeGreaterThan(0);
+      expect(khoi.filter((k) => /background:\s*#fff\b/.test(k)).length,
+        'nền viên thuốc phải ĐẶC, không phải trắng mờ').toBe(1);
+      expect(khoi.some((k) => /color:\s*#fff\b/.test(k)),
+        'chữ trắng trên nền trắng thì không đọc được').toBe(false);
+    });
+  }
+});

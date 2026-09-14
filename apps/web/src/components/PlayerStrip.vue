@@ -209,12 +209,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
 /* Thứ tự hy sinh khi chip hẹp dần (ngưỡng là CONTENT-BOX, không phải bề rộng
    chip: chip 200px khớp `max-width: 176px`). */
 @container (max-width: 176px) { .player .turn-clock { display: none; } }
-@container (max-width: 128px) {
-  .player .lives { display: none; }
-  .player.active .pts { font-size: 17px; padding: 1px 5px; }
-  .player.active .pts.dai { font-size: 16px; }
-  .player.active .pts.ratdai { font-size: 14.5px; }
-}
+@container (max-width: 128px) { .player .lives { display: none; } }
 @container (max-width: 72px) {
   .player:not(.active) .name { display: none; }
   .player:not(.active) { justify-content: space-between; }
@@ -250,9 +245,16 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .pts.ratdai { font-size: 13.5px; }   /* ≥ 10.000 */
 .player:not(.active) .name { color: var(--muted); font-weight: 600; }
 .player.active .pts {
-  font-size: 19px; color: #fff;
+  /*
+   * ĐẢO MÀU: mực tím đậm trên nền TRẮNG ĐẶC.
+   *
+   * Bản trước để chữ trắng trên nền trắng 18% — trên nền gradient tím thì viên
+   * thuốc mờ đó gần như cùng sáng với chữ, đọc rất khó (người chơi báo). Trắng
+   * đặc còn làm điểm thành vật SÁNG NHẤT cả dải, đúng vai nó phải đóng.
+   */
+  font-size: 19px; color: #3b1e8f;
   padding: 1px 8px; border-radius: var(--r-full);
-  background: rgba(255, 255, 255, .18);
+  background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
 }
 .player.active .pts.dai { font-size: 18px; }
 .player.active .pts.ratdai { font-size: 16px; }
@@ -374,4 +376,18 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .sheet .pts { font-size: 15px; }
 .sheet-enter-active, .sheet-leave-active { transition: opacity .14s ease, transform .14s ease; }
 .sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
+
+/*
+ * KHỐI NÀY PHẢI Ở CUỐI FILE.
+ *
+ * `.player.active .pts` trong @container có ĐÚNG BẰNG độ đặc hiệu với rule
+ * cùng tên ở trên, nên ai đứng sau người đó thắng. Đặt ở trên là truy vấn
+ * container chạy đúng mà cỡ chữ vẫn bị rule sau ghi đè — im lặng, không lỗi
+ * nào hiện ra. Đây là kiểu lỗi đã hai lần xảy ra ở dự án này.
+ */
+@container (max-width: 128px) {
+  .player.active .pts { font-size: 17px; padding: 1px 5px; }
+  .player.active .pts.dai { font-size: 16px; }
+  .player.active .pts.ratdai { font-size: 14.5px; }
+}
 </style>

@@ -636,9 +636,16 @@ watch(() => o.view.value?.summary, (s) => {
 /* Chip đang đi: điểm nằm trong một viên thuốc sáng — viên thuốc chỉ dành cho
    chip này, chip chờ không đủ chỗ cho 16px đệm của nó. */
 .pchip.active .pts {
-  font-size: 19px; color: #fff;
+  /*
+   * ĐẢO MÀU: mực tím đậm trên nền TRẮNG ĐẶC.
+   *
+   * Bản trước để chữ trắng trên nền trắng 18% — trên nền gradient tím thì viên
+   * thuốc mờ đó gần như cùng sáng với chữ, đọc rất khó (người chơi báo). Trắng
+   * đặc còn làm điểm thành vật SÁNG NHẤT cả dải, đúng vai nó phải đóng.
+   */
+  font-size: 19px; color: #3b1e8f;
   padding: 1px 8px; border-radius: var(--r-full);
-  background: rgba(255, 255, 255, .18);
+  background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
 }
 .pchip.active .pts.dai { font-size: 18px; }
 .pchip.active .pts.ratdai { font-size: 16px; }
