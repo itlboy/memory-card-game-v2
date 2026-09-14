@@ -432,6 +432,21 @@ const label = computed(() => {
 </template>
 
 <style scoped>
+/*
+ * NỀN DỰ PHÒNG PHẢI THEO MẶT ĐANG HƯỚNG RA.
+ *
+ * Bản đầu để một màu tối cho mọi trạng thái: đúng với lá đang ÚP (mặt sau vốn
+ * là biển tím), nhưng lá đã NGỬA thì mặt trước ngả kem, nên giữa cú lật — và ở
+ * mép lá — người chơi thấy một mảng tối lạc hẳn trên theme sáng. Đã bị báo.
+ * Nền đổi theo trạng thái thì màu lộ ra luôn là màu của mặt SẮP thấy.
+ *
+ * PHẢI LÀ MỘT RULE RIÊNG ĐẶT SAU `.card`, đừng chèn vào giữa khối đó: lần đầu
+ * tôi chèn thẳng vào thân `.card` nên nó CẮT ĐÔI khối, và cả phần đuôi
+ * (animation chia bài + `container-type`) rơi sang chỉ áp cho lá đã ngửa —
+ * `container-type` mất là mọi cỡ chữ tính bằng `cqw` của lá úp sai hết.
+ */
+.card.up, .card.done { background: var(--card-face-up); }
+
 .card.blank {
   pointer-events: none; animation: none; background: transparent;
 }
@@ -481,17 +496,6 @@ const label = computed(() => {
    * quay nghiêng nên lá BIẾN MẤT một nhịp.
    */
   background: var(--card-nen-du-phong);
-}
-/*
- * NỀN DỰ PHÒNG PHẢI THEO MẶT ĐANG HƯỚNG RA.
- *
- * Bản đầu để một màu tối cho mọi trạng thái: đúng với lá đang ÚP (mặt sau vốn
- * là biển tím), nhưng lá đã NGỬA thì mặt trước ngả kem, nên giữa cú lật —
- * và ở mép lá — người chơi thấy một mảng tối lạc hẳn trên theme sáng. Đã bị
- * báo. Nền đổi theo trạng thái thì màu lộ ra luôn là màu của mặt SẮP thấy.
- */
-.card.up, .card.done {
-  background: var(--card-face-up);
   /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
      với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
   /* 520ms, khớp `DEAL_ANIM_MS` — đổi một chỗ thì phải đổi chỗ kia, vì JS dùng

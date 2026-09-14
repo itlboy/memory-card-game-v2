@@ -108,10 +108,23 @@ describe('nền dự phòng của lá bài', () => {
       .toMatch(/background: var\(--card-nen-du-phong\)/);
   });
 
+  it('khối .card không bị cắt đôi — đuôi của nó phải còn nguyên', () => {
+    /*
+     * Chèn rule mới vào GIỮA thân `.card` là cắt đôi khối: phần đuôi rơi sang
+     * selector mới. Đã xảy ra thật với đúng bản vá này — `container-type` và
+     * animation chia bài rơi sang chỉ áp cho lá đã ngửa, và mọi cỡ chữ tính
+     * bằng `cqw` của lá úp sai hết.
+     */
+    const mo = tile.indexOf('\n.card {');
+    const khoi = tile.slice(mo, tile.indexOf('\n}', mo));
+    expect(khoi, 'container-type phải ở trong chính khối .card').toContain('container-type: inline-size');
+    expect(khoi, 'animation chia bài phải ở trong chính khối .card').toContain('animation: deal');
+  });
+
   it('nền dự phòng đổi theo MẶT ĐANG HƯỚNG RA', () => {
     // Một màu tối cho mọi trạng thái thì lá đã ngửa lộ mảng tối giữa theme
     // sáng (đã bị báo) — mặt trước vốn ngả kem.
-    expect(tile).toMatch(/\.card\.up, \.card\.done \{\s*background: var\(--card-face-up\)/);
+    expect(tile).toMatch(/\.card\.up, \.card\.done \{ background: var\(--card-face-up\); \}/);
   });
 
   it('ô trống (lưới lẻ) vẫn phải trong suốt — nó không phải lá bài', () => {
