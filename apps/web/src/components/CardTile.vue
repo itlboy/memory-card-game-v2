@@ -407,7 +407,28 @@ const label = computed(() => {
    * vẽ MỘT LẦN rồi giữ nguyên suốt cú lật.
    */
   border-radius: 12px; box-shadow: var(--shadow-soft);
-  padding: 0; border: 0; background: transparent; perspective: 700px;
+  padding: 0; border: 0; perspective: 700px;
+  /*
+   * NỀN DỰ PHÒNG CỦA CẢ LÁ BÀI — lưới an toàn cho "Ô TRẮNG TRƠN".
+   *
+   * Người chơi báo: một lá đang NGỬA, lúc úp lại thì ra ô trắng trơn, giữa ván
+   * đấu bot trên bàn 88 thẻ ở iPhone. Không tái hiện được bằng bấm dồn dập
+   * trong jsdom (`test/the-trang.test.ts`), và engine không bao giờ sinh thẻ
+   * thiếu biểu tượng (buildDeck NÉM LỖI khi theme thiếu), nên nghi vấn còn lại
+   * là WebKit BỎ VẼ một lớp đã tách: bàn 88 thẻ × hai mặt `backface-visibility`
+   * + `will-change` lúc lắc là rất nhiều lớp ghép, và iOS thả backing store khi
+   * thiếu bộ nhớ — chỗ bị thả hiện ra TRẮNG.
+   *
+   * Không chữa được lỗi của trình duyệt từ đây, nhưng chữa được cái người chơi
+   * NHÌN THẤY: `.card` vốn trong suốt nên lớp hỏng để lộ nền trang (trắng).
+   * Cho nó một màu nền phẳng cùng tông mặt sau thì lớp hỏng chỉ còn là một lá
+   * bài sẫm màu — vẫn sai, nhưng không phải cái lỗ trắng giữa bàn. Màu PHẲNG,
+   * một giá trị, nên không thêm chi phí vẽ đáng kể cho bàn 88 thẻ.
+   *
+   * Nó còn lấp luôn khoảnh khắc lá đi qua đúng 90°: trước đây cả hai mặt đều
+   * quay nghiêng nên lá BIẾN MẤT một nhịp.
+   */
+  background: var(--card-nen-du-phong);
   /* Chia bài: đáp xuống rồi lắc TẮT DẦN trong ~2,4 giây. Trước đây chỉ 0,38s
      với cubic-bezier quá đà (1.2) — nảy một cái rồi đứng khựng, nhìn giật cục. */
   /* 520ms, khớp `DEAL_ANIM_MS` — đổi một chỗ thì phải đổi chỗ kia, vì JS dùng
