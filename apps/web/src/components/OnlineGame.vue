@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROOM_LIMITS, isDraw } from '@mm/engine';
+import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
@@ -267,16 +267,27 @@ watch(() => o.view.value?.summary, (s) => {
           >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
           <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
                tràn cả chip người chơi. -->
-          <small v-if="p.lives !== null" class="lives">
+          <!-- MẠNG HIỆN BẰNG SỐ, không phải chuỗi trái tim: chuỗi phình theo số
+               mạng (bàn 42 thẻ có tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi
+               chip. Một icon + một số thì rộng bao nhiêu mạng cũng như nhau. -->
+          <small v-if="p.lives !== null" class="lives" :title="`${p.lives} mạng`">
             <template v-if="p.lives <= 0">💔</template>
-            <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
           <span
             v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
             class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
             role="timer" :aria-label="`Còn ${Math.ceil(o.turnTimeLeft.value)} giây`"
-          ><Timer :size="12" />{{ Math.ceil(o.turnTimeLeft.value) }}</span>
+          >{{ Math.ceil(o.turnTimeLeft.value) }}s</span>
+          <!-- ĐỒNG HỒ LƯỢT CÒN LÀ MỘT THANH RÚT DẦN ở mép dưới chip. Nó nằm
+               `absolute` nên tốn 0px bề rộng — đúng thứ đang thiếu — và cái
+               đang cạn dần đọc nhanh hơn một con số. Số giây ở trên chỉ còn là
+               phần thêm, tự ẩn khi chip hẹp. -->
+          <span
+            v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
+            class="turn-bar" :class="{ urgent: o.turnTimeLeft.value <= 10 }" aria-hidden="true"
+            :style="{ '--con': Math.max(0, Math.min(1, o.turnTimeLeft.value / TURN_LIMIT_SEC)) }"
+          ></span>
           <Transition name="plus">
             <span
               v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === p.id"
@@ -286,7 +297,7 @@ watch(() => o.view.value?.summary, (s) => {
           <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${o.seriesWins.value[p.name]} ván`">
             🏅{{ o.seriesWins.value[p.name] }}
           </span>
-          <span class="pts">{{ p.score }}</span>
+          <span class="pts" :class="{ dai: p.score >= 1000 }">{{ p.score }}</span>
         </div>
       </div>
 
@@ -353,7 +364,6 @@ watch(() => o.view.value?.summary, (s) => {
             <span v-else-if="!p.connected" class="netbad">📴 mất mạng</span>
             <small v-if="p.lives !== null" class="lives">
               <template v-if="p.lives <= 0">💔</template>
-              <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
               <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
             </small>
             <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins">🏅{{ o.seriesWins.value[p.name] }}</span>
@@ -596,12 +606,59 @@ watch(() => o.view.value?.summary, (s) => {
   position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
   padding: 5px 9px; border: 2px solid var(--line); border-radius: 12px;
   background: var(--panel); box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  transition: flex-grow .22s ease, transform .22s ease;
 }
-.pchip.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 4px 18px var(--card-back-glow); }
+/* Dải người chơi phải chừa chỗ cho chip đang đi nở ra (scale 1.035) — không thì
+   bóng và mép trên của nó bị cắt mất. */
+.strip { align-items: center; padding: 4px 0; }
+/*
+ * CHIP CỦA NGƯỜI ĐANG ĐI NỞ RỘNG VÀ NỔI LÊN.
+ *
+ * Hai việc hoá ra là một: nó vừa là thứ bắt mắt nói "đang tới lượt ai" (trên
+ * điện thoại không có hover, dải người chơi là chỗ duy nhất nói điều đó), vừa
+ * chính là chip cần thêm diện tích — chip đang đi là chip đông thứ nhất: thêm
+ * ping, số giây và thanh thời gian. Chỗ đó lấy từ những người đang CHỜ, nên
+ * dải KHÔNG cao thêm một pixel nào và bàn thẻ không mất chỗ.
+ */
+.pchip.active {
+  flex-grow: 1.75; transform: scale(1.035); z-index: 2;
+  border-color: transparent; color: #fff;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: 0 6px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
+  animation: chip-breathe 1.8s ease-in-out infinite;
+}
+@keyframes chip-breathe {
+  50% { box-shadow: 0 8px 30px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3); }
+}
+@media (prefers-reduced-motion: reduce) { .pchip.active { animation: none; } }
+.pchip.active b { font-size: 13.5px; }
+.pchip.active .pts { font-size: 17px; color: #fff; }
+.pchip.active .pts.dai { font-size: 15px; }
+.pchip.active .ping { background: rgba(255, 255, 255, .18); color: #fff; }
+.pchip.active .lives { color: #fff; }
+/* Người đang chờ lùi lại một bước — tương phản làm chip đang đi nổi hơn hẳn
+   mà không phải tô thêm màu gì. */
+.pchip:not(.active) { opacity: .82; transform: scale(.97); }
 .pchip.off { opacity: .55; }
 /* Chip 3–4 người thì hết chỗ cho cả chữ: giữ icon, bỏ chữ (title và nhãn cho
    máy đọc vẫn còn). Bảng đầy đủ và dải gọn vẫn hiện đủ chữ. */
 @container (max-width: 150px) { .netbad .chu { display: none; } }
+/*
+ * THỨ TỰ HY SINH KHI CHIP HẸP DẦN — đo trên vùng web 430px với điểm 5 chữ số.
+ * Ngưỡng là CONTENT-BOX (chip trừ padding 18 và viền 4), không phải bề rộng
+ * chip: chip 200px khớp `max-width: 176px`. Đã đo hụt một lần vì tưởng ngược lại.
+ */
+@container (max-width: 176px) { .pchip .ping { display: none; } }
+@container (max-width: 150px) { .pchip .turn-clock { display: none; } }  /* thanh dưới vẫn nói đủ */
+@container (max-width: 128px) { .pchip .lives { display: none; } }
+/* Chip CHỜ hẹp quá (bàn 4 người: nội dung còn 61px) thì bỏ TÊN, giữ avatar và
+   ĐIỂM. Avatar đã là danh tính và tên đầy đủ còn đọc được ở bảng ☰ — điểm thì
+   không có chỗ nào khác. Đây là lỗi thứ hai người chơi bắt được. */
+@container (max-width: 72px) {
+  .pchip:not(.active) b { display: none; }
+  .pchip:not(.active) { justify-content: space-between; }
+}
 .netbad {
   flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
   padding: 1px 5px; border-radius: var(--r-full);
@@ -634,11 +691,13 @@ watch(() => o.view.value?.summary, (s) => {
  * đủ cho vài ký tự đầu, phần thừa vẫn cắt bằng ellipsis như cũ.
  */
 .pchip b {
-  font-size: 13px; min-width: 3.5em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex: 1 1 auto; font-size: 13px; min-width: 2.2em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.pchip .lives { display: inline-flex; align-items: center; gap: 2px; font-size: 10px; letter-spacing: -2px; white-space: nowrap; }
-/* Dạng SỐ (trên 5 mạng): bỏ letter-spacing âm vốn dành cho chuỗi trái tim */
-.pchip .lives:has(.opt-ico) { letter-spacing: 0; font-size: 11px; font-weight: 800; }
+.pchip .lives {
+  flex: none; display: inline-flex; align-items: center; gap: 2px;
+  font-size: 11px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
 .pchip .lives :deep(.opt-ico) { border-radius: 4px; }
 /* Số ván thắng trong loạt — thấy ai đang dẫn ngay trong ván */
 .pchip .wins {
@@ -647,17 +706,44 @@ watch(() => o.view.value?.summary, (s) => {
   background: color-mix(in srgb, var(--gold) 30%, transparent);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.pchip .pts { margin-left: auto; font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
-.turn-clock {
-  font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
-  padding: 1px 7px; border-radius: var(--r-full);
-  background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+/*
+ * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI.
+ *
+ * Điểm lên 4 chữ số là chip vỡ: mọi thứ trong chip đều `nowrap`, tên lại có sàn
+ * `min-width`, và chip không cắt phần thừa — mà `.pts` có `margin-left: auto`
+ * nên nó đứng cuối hàng và chính nó bị đẩy ra. Đo trên iPhone 15 Pro Max (vùng
+ * web 430): 3 người, điểm 1280 thì điểm nằm ở x=443, tức NGOÀI màn hình; người
+ * chơi đã báo. Ba chốt dưới đây, đừng gỡ cái nào:
+ *   · `flex-shrink: 0` ở `.pts` — điểm là thứ cuối cùng bị hy sinh;
+ *   · `overflow: hidden` ở `.pchip` — lưới an toàn, thêm huy hiệu mới vào chip
+ *     thì cùng lắm nó bị cắt trong chip chứ không văng ra ngoài màn hình;
+ *   · tên co được (`min-width: 2.2em`) nhưng không biến mất.
+ * Trần điểm lý thuyết là 5 chữ số (bàn 88 thẻ: 44 cặp × 200 + thưởng thời gian),
+ * nên mọi phép đo phải thử tới đó. Có `test/diem-trong-chip.test.ts` canh.
+ */
+.pchip .pts {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums;
 }
+.pchip .pts.dai { font-size: 13px; }
+.turn-clock {
+  flex: none;
+  font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--accent); white-space: nowrap;
+}
+.pchip.active .turn-clock { color: color-mix(in srgb, #fff 80%, transparent); }
 .turn-clock.urgent {
-  background: color-mix(in srgb, var(--bad) 16%, transparent);
   color: var(--bad);
   animation: clock-pulse .5s steps(2) infinite;
 }
+/* Thanh thời gian: `absolute` nên KHÔNG tốn bề rộng của hàng. */
+.turn-bar {
+  position: absolute; left: 0; bottom: 0; height: 3px;
+  width: calc(var(--con, 1) * 100%);
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg, color-mix(in srgb, #fff 55%, var(--accent)), #fff);
+}
+.turn-bar.urgent { background: linear-gradient(90deg, var(--bad), color-mix(in srgb, var(--bad) 40%, #fff)); }
 @keyframes clock-pulse { 50% { opacity: .45; transform: scale(1.12); } }
 .plus10 {
   position: absolute; top: -18px; right: 8px;
