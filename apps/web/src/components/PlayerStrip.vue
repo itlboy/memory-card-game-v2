@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Player } from '@mm/engine';
+import { TURN_LIMIT_SEC } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
 import { Timer, List } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -76,22 +77,25 @@ watch(() => props.players.length, () => { moBang.value = false; });
           :class="{ urgent: turnLeft <= 10 }"
           role="timer"
           :aria-label="`Còn ${Math.ceil(turnLeft)} giây`"
-        ><Timer :size="12" />{{ Math.ceil(turnLeft) }}</span>
+        >{{ Math.ceil(turnLeft) }}s</span>
+        <!-- Đồng hồ lượt còn là THANH RÚT DẦN ở mép dưới chip: `absolute` nên
+             tốn 0px bề rộng (xem chú thích ở .pts), và đọc nhanh hơn con số. -->
+        <span
+          v-if="p.id === currentId && turnLeft !== null && turnLeft !== undefined"
+          class="turn-bar" :class="{ urgent: turnLeft <= 10 }" aria-hidden="true"
+          :style="{ '--con': Math.max(0, Math.min(1, turnLeft / TURN_LIMIT_SEC)) }"
+        ></span>
         <Transition name="plus">
           <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
         </Transition>
         <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${seriesWins?.[p.name]} ván`">
           🏅{{ seriesWins?.[p.name] }}
         </span>
-        <span class="pts" :data-pts-for="p.id">{{ p.score }}</span>
-        <!--
-          Vẽ TỪNG trái tim chỉ tới 5 mạng; hơn thì hiện số. Số mạng giờ neo theo cỡ
-          bàn nên bàn 42 thẻ có tới 56 mạng — 56 trái tim thì tràn cả dải và chẳng
-          ai đếm.
-        -->
-        <small v-if="Number.isFinite(p.lives)" class="lives">
+        <span class="pts" :class="{ dai: p.score >= 1000 }" :data-pts-for="p.id">{{ p.score }}</span>
+        <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
+             tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
+        <small v-if="Number.isFinite(p.lives)" class="lives" :title="`${p.lives} mạng`">
           <template v-if="p.lives <= 0">💔</template>
-          <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
           <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
         </small>
         <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng"><OptionIcon name="freeze" :size="14" /></span>
@@ -157,7 +161,6 @@ watch(() => props.players.length, () => { moBang.value = false; });
           <b class="name">{{ p.name }}</b>
           <small v-if="Number.isFinite(p.lives)" class="lives">
             <template v-if="p.lives <= 0">💔</template>
-            <template v-else-if="p.lives <= 5">{{ '❤️'.repeat(p.lives) }}</template>
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
           <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins">🏅{{ seriesWins?.[p.name] }}</span>
@@ -177,24 +180,47 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .strip { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .player {
   /* Chip 1 dòng, nén hết cỡ để nhường diện tích cho bàn thẻ trên mobile */
+  container-type: inline-size;
   position: relative;
   flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
   padding: 5px 9px; border-width: 2px; border-radius: 12px;
+  overflow: hidden;
+  transition: flex-grow .22s ease, transform .22s ease;
 }
+/*
+ * CHIP CỦA NGƯỜI ĐANG ĐI NỞ RỘNG VÀ NỔI LÊN — xem chú thích dài ở
+ * OnlineGame.vue. Chỗ nở lấy từ những người đang chờ nên dải KHÔNG cao thêm,
+ * và chính chỗ đó là thứ chứa được điểm 4–5 chữ số.
+ */
 .player.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 4px 18px var(--card-back-glow);
+  flex-grow: 1.75; transform: scale(1.035); z-index: 2;
+  border-color: transparent; color: #fff;
+  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  box-shadow: 0 6px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
   animation: breathe 1.8s ease-in-out infinite;
 }
 @keyframes breathe {
-  50% { box-shadow: 0 0 0 1px var(--accent), 0 4px 26px var(--card-back-glow); transform: translateY(-1px); }
+  50% { box-shadow: 0 8px 30px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3); }
+}
+@media (prefers-reduced-motion: reduce) { .player.active { animation: none; } }
+.player:not(.active) { opacity: .82; transform: scale(.97); }
+/* Chừa chỗ cho chip nở ra, không thì mép trên và bóng của nó bị cắt. */
+.strip { align-items: center; padding: 4px 0; }
+/* Thứ tự hy sinh khi chip hẹp dần (ngưỡng là CONTENT-BOX, không phải bề rộng
+   chip: chip 200px khớp `max-width: 176px`). */
+@container (max-width: 150px) { .player .turn-clock { display: none; } }
+@container (max-width: 128px) { .player .lives { display: none; } }
+@container (max-width: 72px) {
+  .player:not(.active) .name { display: none; }
+  .player:not(.active) { justify-content: space-between; }
 }
 .player.frozen, .mini.frozen, .turn-chip.frozen { opacity: .6; }
 .avatar { font-size: 18px; }
 .name {
-  font-size: 13px; min-width: 0;
+  flex: 1 1 auto; font-size: 13px; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.player.active .name { font-size: 13.5px; }
 /* Số ván đã thắng trong loạt — biết ai đang dẫn mà không phải mở bảng kết quả */
 .wins {
   flex-shrink: 0; font-size: 11px; font-weight: 800;
@@ -202,21 +228,38 @@ watch(() => props.players.length, () => { moBang.value = false; });
   background: color-mix(in srgb, var(--gold) 30%, transparent);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+/*
+ * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI — xem chú thích đầy đủ ở OnlineGame.vue.
+ * Tóm tắt: `.pts` có `margin-left: auto` nên nó đứng cuối hàng, mà mọi thứ
+ * khác trong chip đều `nowrap`; thiếu `flex-shrink: 0` và `overflow: hidden`
+ * là điểm 4 chữ số văng ra NGOÀI MÀN HÌNH (đo được trên iPhone 15 Pro Max).
+ */
 .pts {
-  margin-left: auto; font-family: var(--font-display); font-size: 15px;
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--font-display); font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
+.pts.dai { font-size: 13px; }
+.player.active .pts { font-size: 17px; color: #fff; }
+.player.active .pts.dai { font-size: 15px; }
 .turn-clock {
-  display: inline-flex; align-items: center; gap: 2px;
-  font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums;
-  padding: 1px 7px; border-radius: var(--r-full);
-  background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+  flex: none; display: inline-flex; align-items: center; gap: 2px;
+  font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
+  color: var(--accent); white-space: nowrap;
 }
+.player.active .turn-clock { color: color-mix(in srgb, #fff 80%, transparent); }
 .turn-clock.urgent {
-  background: color-mix(in srgb, var(--bad) 16%, transparent);
   color: var(--bad);
   animation: clock-pulse .5s steps(2) infinite;   /* dưới 10s: nhấp nháy nhanh gấp đôi */
 }
+/* Thanh thời gian: `absolute` nên KHÔNG tốn bề rộng của hàng. */
+.turn-bar {
+  position: absolute; left: 0; bottom: 0; height: 3px;
+  width: calc(var(--con, 1) * 100%);
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg, color-mix(in srgb, #fff 55%, var(--accent)), #fff);
+}
+.turn-bar.urgent { background: linear-gradient(90deg, var(--bad), color-mix(in srgb, var(--bad) 40%, #fff)); }
 @keyframes clock-pulse { 50% { opacity: .45; transform: scale(1.12); } }
 .plus10 {
   position: absolute; top: -18px; right: 8px;
@@ -227,15 +270,14 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .plus-enter-from { transform: translateY(10px); opacity: 0; }
 .plus-leave-active { transition: opacity .3s; }
 .plus-leave-to { opacity: 0; }
-.player.active .pts { color: var(--accent); }
+
 .lives {
-  font-size: 10px; letter-spacing: -2px; white-space: nowrap;
+  flex: none; font-size: 11px; font-weight: 800; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   display: inline-flex; align-items: center; gap: 2px;
 }
-/* Số mạng đi kèm icon: bỏ letter-spacing âm (dành cho chuỗi trái tim), không thì
-   số dính vào icon. */
 .lives :deep(.opt-ico) { border-radius: 4px; }
-.lives:has(.opt-ico) { letter-spacing: 0; font-size: 11px; font-weight: 800; }
+.player.active .lives { color: #fff; }
 .tag { font-size: 11px; display: inline-flex; align-items: center; }
 .tag :deep(.opt-ico) { border-radius: 4px; }
 /* .sr-only nay ở global.css — nó là tiện ích chung, không của riêng màn nào. */
