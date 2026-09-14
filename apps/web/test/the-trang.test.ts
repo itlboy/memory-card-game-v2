@@ -133,14 +133,53 @@ describe('bàn to không xin lớp GPU riêng', () => {
     expect(tile, "class phải gắn lên .card thì CSS mới với tới").toMatch(/'ban-lon': banLon/);
   });
 
-  it('mọi chỗ xin lớp đều có bản huỷ cho bàn to, và đứng SAU', () => {
-    const xin = [...tile.matchAll(/([^\n{}]+)\{[^}]*will-change: transform/g)].map((m) => m[1]!.trim());
+  it('mọi chỗ xin lớp đều có bản huỷ cho bàn to, và bản huỷ đứng SAU', () => {
+    const viTri = (re: RegExp): number[] => [...tile.matchAll(re)].map((m) => m.index!);
+    const xin = viTri(/will-change: transform/g);
+    const huy = viTri(/will-change: auto/g);
     expect(xin.length, 'không thấy chỗ nào xin lớp').toBeGreaterThan(0);
-    const huy = tile.indexOf('will-change: auto');
-    expect(huy, 'thiếu bản huỷ thì bàn to vẫn xin lớp').toBeGreaterThan(0);
-    for (const sel of xin) {
-      expect(tile.indexOf(sel), `bản huỷ phải đứng SAU "${sel}" — cùng độ đặc hiệu thì cái sau thắng`)
-        .toBeLessThan(huy);
+    for (const i of xin) {
+      expect(huy.some((j) => j > i),
+        'mỗi chỗ xin lớp phải có một bản huỷ đứng SAU — cùng độ đặc hiệu thì cái sau thắng')
+        .toBe(true);
     }
+  });
+});
+
+/**
+ * LÁ NGƯỜI KHÁC MỞ PHẢI KHÁC HẲN LÁ MÌNH MỞ.
+ *
+ * Người chơi phản ánh: bàn 88 thẻ giữa ván, khi đã có mấy chục lá ngửa thì vòng
+ * loé 520ms lẫn mất, và nhìn lại cũng không biết lá nào vừa mở. Chọn bằng bài
+ * kiểm tra nhận diện (bấm đúng lá, đo thời gian) chứ không theo cảm tính.
+ */
+describe('dấu cho lá đối thủ vừa mở', () => {
+  const tile = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+  const online = readFileSync(resolve(process.cwd(), 'src/composables/useOnlineRoom.ts'), 'utf8');
+  const local = readFileSync(resolve(process.cwd(), 'src/composables/useGameSession.ts'), 'utf8');
+
+  it('tín hiệu mang theo CỦA AI, ở cả hai đường chơi', () => {
+    expect(online).toMatch(/cuaToi: pending\.value\.has\(e\.index\)/);
+    expect(local).toMatch(/cuaToi: game\.value\?\.current\?\.id !== BOT_ID/);
+  });
+
+  it('lá người khác mở nở HAI nhịp, không phải một', () => {
+    const kf = tile.slice(tile.indexOf('@keyframes card-loe-doi'), tile.indexOf('@keyframes card-loe-doi') + 400);
+    const dinh = [...kf.matchAll(/opacity: 1;/g)].length;
+    expect(dinh, 'một nhịp thì chớp mắt là lỡ — phải có hai đỉnh sáng').toBeGreaterThanOrEqual(3);
+  });
+
+  it('để lại DẤU sau khi hiệu ứng tắt, và dấu tự hết khi lá úp lại hoặc được ghép', () => {
+    expect(tile).toMatch(/\.card\.giu-dau::before/);
+    expect(tile, 'dấu phải tự dọn, không thì cả bàn dính viền vàng')
+      .toMatch(/if \(!up \|\| xong\) giuDau\.value = false;/);
+  });
+
+  it('lá mang dấu được nâng lớp — viền nằm NGOÀI mép lá nên lá bên phải đè lên', () => {
+    const m = /\.card\.loe, \.card\.loe-doi, \.card\.giu-dau \{ z-index: (\d+); \}/.exec(tile);
+    expect(m, 'thiếu dòng nâng lớp thì viền bị cắt mất cạnh phải').not.toBeNull();
+    const z = Number(m![1]);
+    expect(z, 'phải trên wob-hover (4)').toBeGreaterThan(4);
+    expect(z, 'nhưng dưới hai mốc 6/7 của thẻ Tráo đổi').toBeLessThan(6);
   });
 });
