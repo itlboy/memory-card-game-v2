@@ -60,12 +60,15 @@ const props = defineProps<{
  * Không đủ chỗ thì bỏ bớt từ CUỐI danh sách — nên thứ tự trong QUICK_EMOJIS
  * chính là thứ tự ưu tiên: cái hay dùng đặt trước.
  *
- * Mốc tính từ cỡ nút thật: mỗi nút 31px + gap 4px, nên n emoji cần
- * 35n − 4 px. 9 cái = 311px, 8 cái = 276px.
+ * Mốc tính từ cỡ nút thật: mỗi nút 40px + gap 4px, nên n emoji cần
+ * 44n − 4 px. Nút to thêm 30% thì MỌI MỐC PHẢI TÍNH LẠI — để nguyên là máy hẹp
+ * cố nhét 9 nút vào chỗ chỉ đủ 7, và cả thanh tràn ra ngoài.
+ * 9 cái = 392px, 8 cái = 348px, 7 cái = 304px, 6 cái = 260px.
  */
-@container (max-width: 310px) { .emoji:nth-child(n+9) { display: none; } }
-@container (max-width: 275px) { .emoji:nth-child(n+8) { display: none; } }
-@container (max-width: 240px) { .emoji:nth-child(n+7) { display: none; } }
+@container (max-width: 391px) { .emoji:nth-child(n+9) { display: none; } }
+@container (max-width: 347px) { .emoji:nth-child(n+8) { display: none; } }
+@container (max-width: 303px) { .emoji:nth-child(n+7) { display: none; } }
+@container (max-width: 259px) { .emoji:nth-child(n+6) { display: none; } }
 /* Hết hạn mức: mờ đi để thấy rõ là đang chờ */
 .emoji-bar.spent .emoji { opacity: .35; }
 .cooldown {
@@ -78,21 +81,20 @@ const props = defineProps<{
   pointer-events: none;
 }
 .emoji {
-  /* Nhỏ đi 30% so với bản đầu (34/44/40/20px): thanh này chỉ là chỗ BẤM, còn
-     thứ cần đọc là emoji người kia gửi (EmojiBlast). Nút bé thì nó nhường chỗ
-     cho bàn thẻ và không tranh mắt với nút hành động.
-     CỐ ĐỊNH 31px: thêm một emoji không được phép làm mọi nút khác bé đi. */
-  flex: 0 0 31px;
-  min-height: 28px; font-size: 14px; border: 1px solid var(--line);
+  /* TO THÊM 30% so với bản trước (31/28/14px): bản đó bé quá, khó bấm trúng và
+     khó nhận ra emoji nào (người chơi báo). Vẫn nhỏ hơn bản gốc 34/44/40px nên
+     thanh không giành lại chỗ của bàn thẻ.
+     CỐ ĐỊNH 40px: thêm một emoji không được phép làm mọi nút khác bé đi. */
+  flex: 0 0 40px;
+  min-height: 36px; font-size: 18px; border: 1px solid var(--line);
   border-radius: var(--r-full); background: var(--panel);
   transition: transform .12s ease;
   /* .btn toàn cục đặt 44px — phải ghi đè, không thì nút phình lại */
   padding: 0; position: relative;
 }
-/* Vùng chạm ≠ HÌNH của nút (NF-07): nút bé 28px nhưng nới vùng chạm ra ~44px
-   bằng ::after, chứ KHÔNG phình cái nút lên — phình là thanh này lại cao như cũ.
-   inset -8px theo trục dọc là 28+16=44px; ngang thì gap 4px đã nối liền nhau. */
-.emoji::after { content: ''; position: absolute; inset: -8px; }
+/* Vùng chạm ≠ HÌNH của nút (NF-07): nút 36px, nới thêm 4px mỗi bên là tròn
+   44px, chứ KHÔNG phình cái nút lên. */
+.emoji::after { content: ''; position: absolute; inset: -4px; }
 .emoji:disabled { cursor: not-allowed; }
 @media (hover: hover) {
   .emoji:not(:disabled):hover { transform: translateY(-2px) scale(1.1); }

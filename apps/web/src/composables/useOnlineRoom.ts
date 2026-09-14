@@ -17,18 +17,18 @@ import { doNhip } from '@/lib/do-nhip';
  * VITE_SERVER_URL vẫn được tôn trọng để trỏ tay khi cần.
  */
 /**
- * CÔNG TẮC: banner có báo lượt của NGƯỜI KHÁC không (`true` = như trước).
+ * CÔNG TẮC: có hiện banner "Đến lượt …" giữa ván online không (`true` = có).
  *
- * Để `false` vì chip của người đang đi nay nở rộng và sáng gradient — "đang tới
- * lượt ai" đã đọc được ngay trên dải, banner nói lại là nhiễu, mà ở bàn 4 người
- * thì ba trên bốn lần banner là nói về người khác. Bật lại chỉ bằng đúng dòng
- * này, không phải đi dựng lại nhánh nào.
+ * Để `false`. Chip của người đang đi nay nở rộng và sáng gradient nên "đang tới
+ * lượt ai" đã đọc được ngay trên dải; thêm một tấm banner đập vào giữa màn hình
+ * MỖI LƯỢT là phiền, kể cả tấm báo lượt của chính mình (người chơi báo sau khi
+ * thử bản chỉ còn báo lượt mình). Bật lại chỉ bằng đúng dòng này.
  *
- * Hai thứ KHÔNG đi theo công tắc này vì chip không thay được: "Đến lượt bạn"
- * (bàn 88 thẻ thì mắt đang ở giữa bàn, dải nằm tít trên đầu) và câu "X bị đóng
- * băng, mất lượt" (chip chỉ đeo được một icon, không kể được chuyện).
+ * Chuyện ĐÓNG BĂNG không đi theo công tắc: "X bị đóng băng, mất lượt" là một
+ * SỰ KIỆN hiếm, không phải nhịp lặp mỗi lượt, và chip chỉ đeo được một icon
+ * chứ không kể được chuyện.
  */
-const BAO_LUOT_NGUOI_KHAC = false;
+const BAO_DEN_LUOT = false;
 
 const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined)
   ?? (import.meta.env.DEV ? 'http://localhost:8787' : location.origin);
@@ -1074,9 +1074,8 @@ export function useOnlineRoom() {
        * "lượt của bạn". Công tắc `BAO_LUOT_NGUOI_KHAC` ở đầu file chỉ chỉnh
        * ván ONLINE.
        */
-      const dangLuotMinh = p?.id === myId.value;
       const coDongBang = find(frozenId) !== undefined;
-      if (p && (BAO_LUOT_NGUOI_KHAC || dangLuotMinh || coDongBang)) {
+      if (p && (BAO_DEN_LUOT || coDongBang)) {
         turnBanner.value = {
           name: p.id === myId.value ? 'bạn' : p.name,
           avatar: p.avatar ?? '',
