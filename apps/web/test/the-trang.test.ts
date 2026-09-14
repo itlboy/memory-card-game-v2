@@ -116,3 +116,31 @@ describe('nền dự phòng của lá bài', () => {
     expect((tokens.match(/--card-nen-du-phong:/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 });
+
+/**
+ * BÀN TO KHÔNG XIN LỚP GPU RIÊNG.
+ *
+ * `will-change: transform` xin cho mỗi lá đang động một lớp ghép. Ở bàn 88 thẻ,
+ * một nước của người cộng một nước của bot là hàng chục lá cùng giữ lớp riêng
+ * suốt 2,2 giây lắc; iOS thả backing store khi thiếu bộ nhớ và chỗ bị thả hiện
+ * ra TRẮNG — đúng cảnh người chơi báo, và chỉ gặp ở bàn to.
+ */
+describe('bàn to không xin lớp GPU riêng', () => {
+  const tile = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+
+  it('ngưỡng bàn lớn đọc từ số thẻ THẬT của bàn', () => {
+    expect(tile).toMatch(/const banLon = computed\(\(\) => \(props\.cardCount \?\? 0\) >= 56\)/);
+    expect(tile, "class phải gắn lên .card thì CSS mới với tới").toMatch(/'ban-lon': banLon/);
+  });
+
+  it('mọi chỗ xin lớp đều có bản huỷ cho bàn to, và đứng SAU', () => {
+    const xin = [...tile.matchAll(/([^\n{}]+)\{[^}]*will-change: transform/g)].map((m) => m[1]!.trim());
+    expect(xin.length, 'không thấy chỗ nào xin lớp').toBeGreaterThan(0);
+    const huy = tile.indexOf('will-change: auto');
+    expect(huy, 'thiếu bản huỷ thì bàn to vẫn xin lớp').toBeGreaterThan(0);
+    for (const sel of xin) {
+      expect(tile.indexOf(sel), `bản huỷ phải đứng SAU "${sel}" — cùng độ đặc hiệu thì cái sau thắng`)
+        .toBeLessThan(huy);
+    }
+  });
+});

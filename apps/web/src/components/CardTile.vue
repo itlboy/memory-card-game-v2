@@ -43,6 +43,25 @@ const props = defineProps<{
 
 const emit = defineEmits<{ flip: [index: number] }>();
 
+/*
+ * BÀN TO = KHÔNG XIN LỚP GPU RIÊNG NỮA.
+ *
+ * Người chơi báo ô trắng trơn CHỈ Ở BÀN TO (88 thẻ), và chỉ với lá ĐÃ TỪNG
+ * NGỬA lúc nó úp lại — tức mặt sau không được VẼ, chứ trạng thái vẫn đúng.
+ * `will-change: transform` là lời xin một lớp ghép riêng cho mỗi lá đang động;
+ * ở bàn 88 thẻ, một nước đi của người cộng một nước của bot là hàng chục lá
+ * cùng giữ lớp riêng suốt 2,2 giây lắc. iOS thả backing store khi thiếu bộ nhớ,
+ * và chỗ bị thả hiện ra TRẮNG — đúng cảnh đã bị báo, đúng chỗ chỉ bàn to mới có.
+ *
+ * Chú thích ở `will-change` bên dưới đã nói trước điều này: "để thường trú thì
+ * 88 lớp GPU nằm đó suốt ván, đổi lag thành tốn bộ nhớ, trên máy yếu còn tệ
+ * hơn". Ở bàn to thì cái giá đó tới trước cái lợi, nên bỏ hẳn lời xin; cú lắc
+ * vẫn chạy (đó là quyết định của chủ dự án, đừng cắt lại), chỉ là vẽ chung lớp.
+ *
+ * Ngưỡng 56 thẻ trùng với ngưỡng "bàn lớn" đã dùng ở những chỗ khác.
+ */
+const banLon = computed(() => (props.cardCount ?? 0) >= 56);
+
 /**
  * Hai class của mặt sau, tách từ một id.
  *
@@ -341,7 +360,7 @@ const label = computed(() => {
     :class="{ up: faceUp, done: matched, wrong: lacSai, peek: peeking, swapping: !!swapFrom, pending, dealt,
       'wob-up': dealt && flipAnim === 'up', 'wob-down': dealt && flipAnim === 'down',
       'wob-tail': dealt && flipAnim === 'tail',
-      'wob-hover': hoverWob, nhan, loe, settled }"
+      'wob-hover': hoverWob, nhan, loe, settled, 'ban-lon': banLon }"
     :style="{
       '--deal': `${dealStagger}ms`,
       '--cx': diemCham.x,
@@ -601,6 +620,11 @@ const label = computed(() => {
  */
 .card.wob-up .inner, .card.wob-down .inner, .card.wob-tail .inner,
 .card.nhan .inner, .card.wrong .inner { will-change: transform; }
+/* Bàn to: KHÔNG xin lớp riêng nữa — xem `banLon`. Phải đứng SAU khối trên,
+   cùng độ đặc hiệu thì cái sau thắng. */
+.card.ban-lon.wob-up .inner, .card.ban-lon.wob-down .inner, .card.ban-lon.wob-tail .inner,
+.card.ban-lon.nhan .inner, .card.ban-lon.wrong .inner { will-change: auto; }
+.card.ban-lon.loe::after { will-change: auto; }
 
 .card.wob-up .inner { animation: flip-up 2.2s linear; }
 .card.wob-tail .inner { animation: wob-tail 1.7s linear; }
