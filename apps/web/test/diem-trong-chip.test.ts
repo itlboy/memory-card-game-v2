@@ -68,3 +68,27 @@ describe('điểm nằm trong chip người chơi', () => {
     });
   }
 });
+
+/**
+ * BANNER "ĐẾN LƯỢT …" CHỈ CÒN BÁO LƯỢT CỦA CHÍNH MÌNH (ván online).
+ *
+ * Chip của người đang đi nay nở rộng và sáng gradient nên "đang tới lượt ai"
+ * đã đọc được trên dải; ở bàn 4 người thì ba trên bốn lần banner là nói về
+ * người khác. Giữ lại đúng hai thứ chip không thay được: "Đến lượt bạn" và câu
+ * "X bị đóng băng, mất lượt".
+ */
+describe('banner báo lượt', () => {
+  const online = readFileSync(resolve(process.cwd(), 'src/composables/useOnlineRoom.ts'), 'utf8');
+  const local = readFileSync(resolve(process.cwd(), 'src/composables/useGameSession.ts'), 'utf8');
+
+  it('ván online: mặc định KHÔNG báo lượt của người khác', () => {
+    expect(online).toMatch(/const BAO_LUOT_NGUOI_KHAC = false;/);
+    expect(online, 'công tắc phải nằm trên đường đi của banner, không thì nó là hằng số chết')
+      .toMatch(/if \(p && \(BAO_LUOT_NGUOI_KHAC \|\| dangLuotMinh \|\| coDongBang\)\)/);
+  });
+
+  it('bàn chơi chung máy vẫn báo MỌI lượt — đó là lời gọi đưa máy cho người kế tiếp', () => {
+    expect(local).toMatch(/if \(turnId && \(game\.value\?\.players\.length \?\? 0\) > 1\)/);
+    expect(local).not.toMatch(/BAO_LUOT_NGUOI_KHAC/);
+  });
+});
