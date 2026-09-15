@@ -103,12 +103,18 @@ export function specFrom(halfLife: number, name: string, avatar: string): BotSpe
 export const THINK_MIN_MS = 400;
 export const THINK_MAX_MS = 3000;
 
+/*
+ * MẶT CỦA NĂM MỨC ĐỌC RA MỘT THANG, không phải năm hình vui rời rạc: người chơi
+ * nhìn cả năm CÙNG MỘT LÚC ở bước chọn. Bộ cũ có ba mặt máy móc liền nhau
+ * (🤖 👾 🦾) nên ba mức giữa nhìn thoáng qua như nhau.
+ * Mặt phải đọc được ở ~34px — mặt nhiều chi tiết thành một vệt màu ở cỡ đó.
+ */
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
   easy: specFrom(BOT_HALF_LIFE.easy, 'Bot dễ', '🐣'),
-  normal: specFrom(BOT_HALF_LIFE.normal, 'Bot bình thường', '🤖'),
-  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot Pro', '👾'),
-  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot siêu đẳng', '🦾'),
-  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot thần thánh', '😇')
+  normal: specFrom(BOT_HALF_LIFE.normal, 'Bot bình thường', '🐥'),
+  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot Pro', '🥷'),
+  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot siêu đẳng', '🐯'),
+  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot thần thánh', '🔱')
 };
 
 /**
