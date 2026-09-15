@@ -202,3 +202,32 @@ describe('dấu cho lá đối thủ vừa mở', () => {
     expect(z, 'nhưng dưới hai mốc 6/7 của thẻ Tráo đổi').toBeLessThan(6);
   });
 });
+
+/**
+ * BẤM LÁ THỨ BA KHÔNG ĐƯỢC CÓ PHẢN HỒI GÌ (ván online).
+ *
+ * `flip()` vốn đã chặn ở tầng GỬI, nhưng chặn ở đó thì lá vẫn lún xuống và loé
+ * một quầng sáng trắng ở điểm chạm — người chơi báo "bấm lá khác thấy nháy
+ * trắng dù không được lật", và chỉ ra vì sao hay gặp ở bàn 88 thẻ: lá bé nên
+ * ngón tay dễ chạm nhầm thêm lá nữa. Phản hồi cho cú bấm KHÔNG có tác dụng là
+ * nói dối người chơi.
+ *
+ * Bàn offline không dính vì engine khoá sẵn suốt quãng hai lá sai nằm ngửa
+ * (`locked = pendingUntil > 0`) — đây là lỗi riêng của đường online.
+ */
+describe('đủ hai lá thì khoá cả bàn', () => {
+  const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
+
+  it('đếm theo VIEW của server, gồm cả hai lá sai đang chờ úp lại', () => {
+    const khoi = src.slice(src.indexOf('const daDuHaiLa'), src.indexOf('const locked'));
+    expect(khoi, "phải đếm ô state 'up' — quãng 1,5s hai lá sai còn ngửa cũng tính")
+      .toMatch(/c\.state === 'up'/);
+    expect(khoi, 'cộng cả ô đang chờ server, không thì bấm nhanh vẫn lọt')
+      .toMatch(/pending\.value\.size >= 2/);
+  });
+
+  it('cờ đó thật sự khoá bàn, không phải hằng số chết', () => {
+    const khoi = src.slice(src.indexOf('const locked'), src.indexOf('const locked') + 300);
+    expect(khoi).toMatch(/\|\| daDuHaiLa\.value/);
+  });
+});
