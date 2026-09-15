@@ -137,9 +137,32 @@ const matchedSet = computed(() => {
  * rơi vào hư không — người chơi tưởng game hỏng. Khoá lại thì cái họ thấy khớp
  * với sự thật: đang không nói được với server.
  */
+/*
+ * KHOÁ CẢ BÀN KHI ĐÃ ĐỦ HAI LÁ CHO LƯỢT NÀY.
+ *
+ * `flip()` vốn đã chặn cú bấm thứ ba (xem chú thích ở đó), nhưng chặn ở tầng
+ * GỬI thì lá vẫn nhận phản hồi chạm: lún xuống và loé một quầng sáng trắng ở
+ * điểm chạm. Người chơi báo đúng chuyện đó — "bấm lá khác thấy nháy trắng dù
+ * không được lật" — và họ chỉ ra lý do vì sao nó hay gặp ở bàn 88 thẻ: lá bé
+ * nên ngón tay dễ chạm nhầm thêm lá nữa.
+ *
+ * Phản hồi cho một cú bấm KHÔNG có tác dụng là nói dối người chơi: nó hứa "máy
+ * nhận rồi" trong khi nước đi bị bỏ. Khoá ở đây thì lá không lún, không loé,
+ * không đổi con trỏ — cái họ thấy khớp với cái thật sự xảy ra.
+ *
+ * Tính theo VIEW của server chứ không theo cờ riêng: `state === 'up'` gồm cả
+ * quãng 1,5 giây hai lá sai còn nằm ngửa trước khi úp lại — đúng quãng người
+ * chơi hay bấm thêm nhất.
+ */
+const daDuHaiLa = computed(() => {
+  const cards = o.view.value?.cards ?? [];
+  return cards.filter((c) => c.state === 'up').length + o.pending.value.size >= 2;
+});
+
 const locked = computed(() =>
   !o.myTurn.value || o.view.value?.status !== 'playing'
-  || o.reconnecting.value || !!o.netTrouble.value);
+  || o.reconnecting.value || !!o.netTrouble.value
+  || daDuHaiLa.value);
 
 /** Người chơi khác đang mất kết nối — bên còn online phải biết vì sao bàn im. */
 const doiThuMatMang = computed(() =>
