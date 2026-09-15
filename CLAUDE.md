@@ -136,18 +136,20 @@
   mất cạnh phải của viền. Đã bắt được đúng lỗi đó trên mockup.
 - **Ô TRẮNG TRƠN GIỮA BÀN TO = LỚP GPU BỊ THẢ, KHÔNG PHẢI LỖI TRẠNG THÁI.**
   Người chơi báo: lá ĐÃ TỪNG NGỬA, lúc úp lại thành ô trắng; chỉ gặp ở bàn 88
-  thẻ. Đã loại hai nhánh khác: engine không có đường nào sinh thẻ rỗng
-  (`buildDeck` NÉM LỖI khi theme thiếu biểu tượng), và bấm dồn dập không tái
-  hiện được (`test/the-trang.test.ts`). Còn lại: `will-change: transform` xin
-  cho MỖI lá đang động một lớp ghép, bàn 88 thẻ thì một nước của người cộng một
-  nước của bot là hàng chục lớp sống 2,2 giây; iOS thả backing store khi thiếu
-  bộ nhớ và chỗ bị thả hiện ra TRẮNG. Hai lớp chặn:
-  · bàn ≥56 thẻ KHÔNG xin lớp riêng nữa (`banLon` → class `ban-lon`, bản huỷ
-  `will-change: auto` phải đứng SAU khối xin vì cùng độ đặc hiệu);
-  · `.card` có nền phẳng `--card-nen-du-phong` nằm DƯỚI hai mặt thẻ, nên lớp nào
-  không được vẽ cũng chỉ ra lá bài sẫm màu chứ không ra lỗ trắng.
-  Cú lắc ở bàn to thì GIỮ — đã có lần cắt rồi trả lại, đó là quyết định của chủ
-  dự án.
+  thẻ. Đã loại hai nhánh: engine không có đường nào sinh thẻ rỗng (`buildDeck`
+  NÉM LỖI khi theme thiếu biểu tượng) và bấm dồn dập không tái hiện được
+  (`test/the-trang.test.ts`). Còn lại: `will-change: transform` xin cho MỖI lá
+  đang động một lớp ghép, bàn 88 thẻ thì một nước của người cộng một nước của
+  bot là hàng chục lớp sống 2,2 giây; iOS thả backing store khi thiếu bộ nhớ và
+  chỗ bị thả hiện ra TRẮNG. Cách chữa: bàn ≥56 thẻ KHÔNG xin lớp riêng nữa
+  (`banLon` → class `ban-lon`; bản huỷ `will-change: auto` phải đứng SAU khối
+  xin vì cùng độ đặc hiệu). Cú lắc ở bàn to thì GIỮ — đã có lần cắt rồi trả
+  lại, đó là quyết định của chủ dự án.
+  **ĐỪNG THÊM NỀN DỰ PHÒNG CHO `.card`.** Đã thử (một màu phẳng dưới hai mặt
+  thẻ, để lớp hỏng ra lá sẫm màu thay vì lỗ trắng) và đã GỠ: nó đổi diện mạo mà
+  không ai yêu cầu (lá thôi biến mất lúc quay qua 90°, và sắc tối lộ ở mép trên
+  theme sáng), rồi đẻ thêm lỗi khi vá vội. Chữa đúng chỗ là lớp GPU, không phải
+  che triệu chứng bằng một lớp sơn.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
