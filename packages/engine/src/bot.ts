@@ -15,7 +15,7 @@ import type { GameView } from './online.js';
  * thì sai một cách tự nhiên, đúng như người thật.
  */
 
-export type BotLevel = 'easy' | 'normal' | 'hard' | 'insane';
+export type BotLevel = 'easy' | 'normal' | 'hard' | 'insane' | 'divine';
 
 export interface BotSpec {
   /** Nửa đời ký ức, tính bằng SỐ NƯỚC ĐI — con số duy nhất quyết định độ khó. */
@@ -65,7 +65,26 @@ export const BOT_HALF_LIFE: Record<BotLevel, number> = {
   easy: 3,
   normal: 6,
   hard: 12,
-  insane: 20
+  insane: 20,
+  /*
+   * THẦN THÁNH — mức thứ năm, thêm theo yêu cầu của chủ dự án.
+   *
+   * ĐÂY LÀ CON SỐ DUY NHẤT ĐỂ CHỈNH ĐỘ KHÓ của mức này (nửa đời ký ức, tính
+   * bằng số nước đi). Càng lớn càng nhớ dai: `retain = 0.5 ** (1 / nửa đời)`.
+   * Đổi xong PHẢI đo lại bằng `duel.test.ts` — tỉ lệ thắng không tuyến tính
+   * theo trí nhớ. Đo trước người chơi KHÁ (n=24, bàn 12/24/42 thẻ):
+   *
+   *   nửa đời  20 (= siêu đẳng) → 67 · 67 · 83
+   *   nửa đời  40              → 67 · 75 · 92
+   *   nửa đời  60              → 71 · 79 · 100
+   *   nửa đời 999              → 75 · 88 · 100
+   *
+   * Chọn 999 — nhớ gần như tuyệt đối (`retain` ≈ 0,9993), đúng nghĩa "thần
+   * thánh", và là mức duy nhất tách rõ khỏi siêu đẳng ở CẢ BA cỡ bàn. Bàn nhỏ
+   * vẫn chỉ ~75% vì ván ngắn thì ai bốc trúng cặp trước mới là chính — trần đó
+   * là của luật chơi, không phải của trí nhớ, nên đừng nâng số để phá nó.
+   */
+  divine: 999
 };
 
 /** Dựng tham số đầy đủ từ MỘT con số. */
@@ -88,7 +107,8 @@ export const BOT_SPECS: Record<BotLevel, BotSpec> = {
   easy: specFrom(BOT_HALF_LIFE.easy, 'Bot dễ', '🐣'),
   normal: specFrom(BOT_HALF_LIFE.normal, 'Bot bình thường', '🤖'),
   hard: specFrom(BOT_HALF_LIFE.hard, 'Bot Pro', '👾'),
-  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot siêu đẳng', '🦾')
+  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot siêu đẳng', '🦾'),
+  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot thần thánh', '😇')
 };
 
 /**
