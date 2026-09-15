@@ -86,15 +86,18 @@ const props = defineProps<{
      thanh không giành lại chỗ của bàn thẻ.
      CỐ ĐỊNH 40px: thêm một emoji không được phép làm mọi nút khác bé đi. */
   flex: 0 0 40px;
-  min-height: 36px; font-size: 18px; border: 1px solid var(--line);
+  /* Cao 32 chứ không 36: glyph 18px không cần thêm chỗ, mà 4px này là chiều cao
+     lấy thẳng từ BÀN THẺ — bàn đang bị chặn bởi chiều cao nên mỗi px đều thành
+     bề rộng bỏ phí. Bề rộng và cỡ chữ giữ nguyên (đã chốt +30%). */
+  min-height: 32px; font-size: 18px; border: 1px solid var(--line);
   border-radius: var(--r-full); background: var(--panel);
   transition: transform .12s ease;
   /* .btn toàn cục đặt 44px — phải ghi đè, không thì nút phình lại */
   padding: 0; position: relative;
 }
-/* Vùng chạm ≠ HÌNH của nút (NF-07): nút 36px, nới thêm 4px mỗi bên là tròn
+/* Vùng chạm ≠ HÌNH của nút (NF-07): nút 32px, nới thêm 6px mỗi bên là tròn
    44px, chứ KHÔNG phình cái nút lên. */
-.emoji::after { content: ''; position: absolute; inset: -4px; }
+.emoji::after { content: ''; position: absolute; inset: -6px; }
 .emoji:disabled { cursor: not-allowed; }
 @media (hover: hover) {
   .emoji:not(:disabled):hover { transform: translateY(-2px) scale(1.1); }

@@ -26,6 +26,30 @@ export const MIN_ASPECT = 0.58;
 export const MAX_ASPECT = 1;
 
 /**
+ * BÀN LỚN ĐƯỢC NỞ NGANG QUÁ HÌNH VUÔNG.
+ *
+ * Khi chiều cao là thứ chặn — ván ONLINE luôn thế, vì khung chat ăn ~44px —
+ * thì trần vuông làm bề rộng thừa ra thành hai dải trống. Đo trên iPhone 15 Pro
+ * Max (khung bàn thật 406×500): bàn 88 thẻ chỉ lấp 89% bề rộng, phí 44px; trên
+ * SE còn 63%. Người chơi báo đúng chuyện này, kèm nhận xét sắc: chơi một mình
+ * (không có khung chat) thì không hở.
+ *
+ * Nới trần CHỈ CHO BÀN LỚN, vì cái giá của nó là dáng lá bài:
+ *  · bàn ≥42 thẻ — lá chỉ còn 28–48px, ở cỡ đó "dáng lá bài" gần như không đọc
+ *    được, mà mỗi pixel bề rộng đều quý. Ngưỡng ĐẶT Ở 42 chứ không 56 vì chính
+ *    bàn 42 thẻ là ca tệ nhất trên iPhone SE: trần vuông cho lá 38,8px — DƯỚI
+ *    ngưỡng chạm 44px — còn trần 1,25 kéo lên 48,6px. Nới trần ở đây vừa lấp
+ *    bề rộng vừa cứu luôn ngưỡng chạm;
+ *  · bàn nhỏ giữ trần vuông — lá đã 83–166px, kéo rộng thêm chỉ làm nó thành
+ *    thanh ngang chứ không dễ chơi hơn. Bàn 2×3 trên SE cần tới tỉ lệ 1,75 mới
+ *    lấp hết bề rộng: đó là lưới quá "béo" so với khung, không phải lỗi.
+ */
+export const MAX_ASPECT_BAN_LON = 1.25;
+export const NGUONG_BAN_LON = 42;
+export const tranTyLe = (cols: number, rows: number): number =>
+  cols * rows >= NGUONG_BAN_LON ? MAX_ASPECT_BAN_LON : MAX_ASPECT;
+
+/**
  * Phần tính thuần, tách ra để test được mà không cần dựng component.
  * @returns tỷ lệ lá bài và bề rộng bàn (px)
  */
@@ -40,7 +64,7 @@ export function computeFit(
   const cellW = (availW - gap * (cols - 1)) / cols;
   const cellH = (availH - gap * (rows - 1)) / rows;
   // Ưu tiên lấp cả hai chiều; kẹp trong khoảng dáng thẻ chấp nhận được
-  const aspect = Math.min(MAX_ASPECT, Math.max(MIN_ASPECT, cellW / cellH));
+  const aspect = Math.min(tranTyLe(cols, rows), Math.max(MIN_ASPECT, cellW / cellH));
   const cardH = Math.min(cellH, cellW / aspect);
   return {
     aspect, gap,

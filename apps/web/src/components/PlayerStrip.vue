@@ -205,7 +205,10 @@ watch(() => props.players.length, () => { moBang.value = false; });
 @media (prefers-reduced-motion: reduce) { .player.active { animation: none; } }
 .player:not(.active) { opacity: .82; transform: scale(.97); }
 /* Chừa chỗ cho chip nở ra, không thì mép trên và bóng của nó bị cắt. */
-.strip { align-items: center; padding: 4px 0; }
+/* Chừa chỗ cho chip đang đi nở ra (scale 1.035). 2px là đủ: chip cao ~40px thì
+   nở ra thêm 1,4px mỗi đầu. Đệm 4px cũ ăn 8px chiều cao của BÀN THẺ — mà bàn
+   đang bị chặn bởi chiều cao, nên 8px đó biến thành bề rộng bỏ phí. */
+.strip { align-items: center; padding: 2px 0; }
 /* Thứ tự hy sinh khi chip hẹp dần (ngưỡng là CONTENT-BOX, không phải bề rộng
    chip: chip 200px khớp `max-width: 176px`). */
 @container (max-width: 176px) { .player .turn-clock { display: none; } }
