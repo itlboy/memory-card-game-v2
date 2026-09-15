@@ -4,7 +4,7 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
-import { TURN_LIMIT_SEC, BOARD_SIZES, ROOM_LIMITS, FLIP_BACK_MS, levelSpec } from '@mm/engine';
+import { TURN_LIMIT_SEC, BOARD_SIZES, BOT_SPECS, ROOM_LIMITS, FLIP_BACK_MS, levelSpec } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 
 /** Truy cập engine bên trong App để chơi tất định. */
@@ -908,7 +908,7 @@ describe('đấu với máy', () => {
 
   it('ván đấu máy có đúng hai người: người chơi và máy', async () => {
     await mountApp();
-    await startVsBot('Bot Pro');
+    await startVsBot(BOT_SPECS.hard.name);
     const names = wrapper.findAll('.card').length > 0
       ? (wrapper.vm as unknown as { session: { players: { value: { id: string }[] } } }).session.players.value
       : [];
@@ -917,7 +917,7 @@ describe('đấu với máy', () => {
 
   it('máy TỰ lật khi tới lượt nó — không cần người chơi bấm hộ', async () => {
     await mountApp();
-    await startVsBot('Bot Pro');
+    await startVsBot(BOT_SPECS.hard.name);
     await passCountdown();
     const s = (wrapper.vm as unknown as {
       session: { moves: { value: number }; current: { value: { id: string } | null } }
@@ -946,7 +946,7 @@ describe('đấu với máy', () => {
 
   it('mức Ngu KHÔNG cộng điểm tích luỹ — cày máy dễ không mở được theme', async () => {
     await mountApp();
-    await startVsBot('Bot dễ');
+    await startVsBot(BOT_SPECS.easy.name);
     await passCountdown();
     const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
     await muteBot();
@@ -959,7 +959,7 @@ describe('đấu với máy', () => {
 
   it('mức Pro cộng ĐÚNG điểm của người, không cộng điểm của bot', async () => {
     await mountApp();
-    await startVsBot('Bot Pro');
+    await startVsBot(BOT_SPECS.hard.name);
     await passCountdown();
     await muteBot();
     const before = Number(JSON.parse(localStorage.getItem('mm.v2') ?? '{}').totalScore ?? 0);
@@ -979,7 +979,7 @@ describe('lượt của bot thì người chơi bị chặn', () => {
   it('bấm thẻ trong lượt máy KHÔNG tính — nếu tính thì người tự mở thẻ cho máy ăn', async () => {
     await mountApp();
     await click('Đấu với máy');
-    await click('Bot siêu đẳng');
+    await click(BOT_SPECS.insane.name);
     await chonBan(8);
     await xongTuyChon();
     await passCountdown();
@@ -1041,7 +1041,7 @@ describe('mở khoá cấp sau', () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await click('Đấu với máy');
-    await click('Bot Pro');
+    await click(BOT_SPECS.hard.name);
     await chonBan(1);
     await xongTuyChon();
     await passCountdown();
@@ -1071,7 +1071,7 @@ describe('mở khoá cấp sau', () => {
     localStorage.removeItem('mm.v2');   // bắt đầu sạch: chỉ cấp 1 được mở
     await mountApp();
     await click('Đấu với máy');
-    await click('Bot Pro');
+    await click(BOT_SPECS.hard.name);
     await chonBan(1);
     await xongTuyChon();
     await passCountdown();
@@ -1397,7 +1397,7 @@ describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await click('Đấu với máy');
-    await click('Bot Pro');
+    await click(BOT_SPECS.hard.name);
     expect(oMo()).toBeGreaterThanOrEqual(oTatCa() - 1);
   });
 
