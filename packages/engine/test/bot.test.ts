@@ -111,13 +111,13 @@ describe('bot: quên dần theo thời gian', () => {
   /* Không còn "nhớ lẫn chỗ": vừa thấy là mức nào cũng dùng được cặp, không có
    * cửa nào tung ra sai. Sai thì phải do QUÊN — một trục độ khó duy nhất. */
   it('vừa thấy thì MỌI mức đều dùng được cặp', () => {
-    for (const level of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+    for (const level of (Object.keys(BOT_SPECS) as BotLevel[])) {
       expect(recallRate(level, 0), level).toBeGreaterThan(0.94);
     }
   });
 
   it('càng lâu càng dễ quên', () => {
-    for (const level of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+    for (const level of (Object.keys(BOT_SPECS) as BotLevel[])) {
       const fresh = recallRate(level, 0);
       const old = recallRate(level, 20);
       expect(old, `${level}: nhớ sau 20 nước phải kém lúc vừa thấy`).toBeLessThan(fresh);
@@ -126,7 +126,7 @@ describe('bot: quên dần theo thời gian', () => {
 
   it('bot giỏi quên CHẬM hơn bot kém — ở cùng độ tuổi ký ức', () => {
     const age = 8;
-    const rates = (['easy', 'normal', 'hard', 'insane'] as BotLevel[]).map((l) => recallRate(l, age));
+    const rates = ((Object.keys(BOT_SPECS) as BotLevel[])).map((l) => recallRate(l, age));
     for (let i = 1; i < rates.length; i++) {
       expect(rates[i]!, `mức ${i} phải nhớ dai hơn mức ${i - 1}`).toBeGreaterThan(rates[i - 1]!);
     }
@@ -226,7 +226,7 @@ describe('nhịp nghĩ của bot', () => {
 
   it('mọi mức nghĩ trong CÙNG một khoảng — độ khó nằm ở trí nhớ, không ở tốc độ', () => {
     // Cho bot giỏi nghĩ nhanh hơn thì ngồi đếm thời gian là đoán ra mức.
-    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+    for (const l of (Object.keys(BOT_SPECS) as BotLevel[])) {
       expect(BOT_SPECS[l].thinkMinMs, l).toBe(400);
       expect(BOT_SPECS[l].thinkMaxMs, l).toBe(3000);
     }
@@ -249,7 +249,7 @@ describe('nhịp nghĩ của bot', () => {
 
 describe('nước cuối thì bot không nghĩ', () => {
   it('còn 2 lá thì bấm ngay, dưới 1 giây, mức nào cũng vậy', () => {
-    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+    for (const l of (Object.keys(BOT_SPECS) as BotLevel[])) {
       for (let seed = 1; seed <= 30; seed++) {
         const ms = botThinkMs(l, botRng(seed), { cardsLeft: 2 });
         expect(ms, `${l} seed ${seed}`).toBeLessThan(1000);
@@ -348,7 +348,7 @@ describe('quên hẳn bản ghi quá cũ', () => {
 
 describe('mỗi mức chỉ một con số', () => {
   it('retain suy ra từ nửa đời, không đặt tay', () => {
-    for (const l of ['easy', 'normal', 'hard', 'insane'] as BotLevel[]) {
+    for (const l of (Object.keys(BOT_SPECS) as BotLevel[])) {
       const s = BOT_SPECS[l];
       expect(s.retain, `${l}`).toBeCloseTo(0.5 ** (1 / s.halfLife), 10);
       expect(s.retain).toBeCloseTo(specFrom(s.halfLife, s.name, s.avatar).retain, 10);

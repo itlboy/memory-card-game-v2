@@ -17,7 +17,9 @@ import type { BotLevel } from '../src/bot.js';
  * 4% → 25% → 75% → 83%. Ngưỡng dưới đây đặt có biên, nhưng seed là CỐ ĐỊNH nên
  * con số không dao động giữa các lần chạy — đổi `BOT_HALF_LIFE` thì đo lại.
  */
-const LEVELS: BotLevel[] = ['easy', 'normal', 'hard', 'insane'];
+// ĐỌC THẲNG TỪ BẢNG, đừng chép tay: thêm một mức mà quên sửa chỗ này thì mức
+// mới không được canh gì cả — nó vào game với độ khó chưa ai đo.
+const LEVELS = Object.keys(BOT_SPECS) as BotLevel[];
 
 function rate(l: BotLevel, cols: number, rows: number, keep: number, hRetain: number, n = 24): number {
   let win = 0;

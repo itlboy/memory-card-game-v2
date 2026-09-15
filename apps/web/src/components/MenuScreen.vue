@@ -130,13 +130,16 @@ const COUNTS = [
   { n: 10, g: 'g-red' }
 ];
 
-/** Bốn mức của máy. Mô tả nói bằng CẢM GIÁC chơi (và nói cho vui), không nói
- *  "retain 0,72" — trọng số là chuyện của engine. */
+/** Năm mức của máy. Mô tả nói bằng CẢM GIÁC chơi (và nói cho vui), không nói
+ *  "retain 0,72" — trọng số là chuyện của engine.
+ *  Ô xếp MỘT CỘT nên thêm mức là mọi ô thấp xuống, KHÔNG làm trang dài ra
+ *  (luật KHÔNG SCROLL) — nhưng mỗi ô vẫn phải trên ngưỡng chạm 44px. */
 const BOT_CHOICES = [
-  { id: 'easy' as BotLevel,   g: 'g-teal',   desc: 'Bot này hay quên, mở trước quên sau. Không tính điểm nhé.' },
-  { id: 'normal' as BotLevel, g: 'g-blue',   desc: 'Bot này mới học xong lớp 5' },
-  { id: 'hard' as BotLevel,   g: 'g-amber',  desc: 'Bot này trình độ đại học đấy, hãy cẩn thận' },
-  { id: 'insane' as BotLevel, g: 'g-red',    desc: 'Thắng được bot này tôi gọi bạn bằng cụ' }
+  { id: 'easy' as BotLevel,   g: 'g-teal',   desc: 'Dành cho các em bé mới tập chơi thôi nhé.' },
+  { id: 'normal' as BotLevel, g: 'g-blue',   desc: 'Bạn phải thắng tôi mới được lên cấp cao hơn nhé.' },
+  { id: 'hard' as BotLevel,   g: 'g-amber',  desc: 'Bắt đầu khó hơn rồi nè, thắng được tôi là bạn rất giỏi.' },
+  { id: 'insane' as BotLevel, g: 'g-red',    desc: 'Tôi tin chắc bạn không thể nào thắng được tôi.' },
+  { id: 'divine' as BotLevel, g: 'g-violet', desc: 'Tôi nhớ hết. Bạn thắng được thì tôi gọi bạn là thầy.' }
 ];
 
 function pickBotMode(): void {
