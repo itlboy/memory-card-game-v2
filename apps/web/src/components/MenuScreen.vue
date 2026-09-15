@@ -139,7 +139,7 @@ const BOT_CHOICES = [
   { id: 'normal' as BotLevel, g: 'g-blue',   desc: 'Bạn phải thắng tôi mới được lên cấp cao hơn nhé.' },
   { id: 'hard' as BotLevel,   g: 'g-amber',  desc: 'Bắt đầu khó hơn rồi nè, thắng được tôi là bạn rất giỏi.' },
   { id: 'insane' as BotLevel, g: 'g-red',    desc: 'Tôi tin chắc bạn không thể nào thắng được tôi.' },
-  { id: 'divine' as BotLevel, g: 'g-violet', desc: 'Tôi nhớ hết. Bạn thắng được thì tôi gọi bạn là thầy.' }
+  { id: 'divine' as BotLevel, g: 'g-violet', desc: 'Tôi là vị thần trong bộ môn lật thẻ, chưa từng thua.' }
 ];
 
 function pickBotMode(): void {
