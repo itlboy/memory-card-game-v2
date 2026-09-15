@@ -108,12 +108,15 @@ export const THINK_MAX_MS = 3000;
  * nhìn cả năm CÙNG MỘT LÚC ở bước chọn. Bộ cũ có ba mặt máy móc liền nhau
  * (🤖 👾 🦾) nên ba mức giữa nhìn thoáng qua như nhau.
  * Mặt phải đọc được ở ~34px — mặt nhiều chi tiết thành một vệt màu ở cỡ đó.
+ * TÊN ĐI THEO MẶT, cùng một thế giới: gà mờ → gà cứng → ninja → mãnh hổ → thần
+ * thánh. Bộ tên cũ ("Bot Pro", "Bot siêu đẳng") nói bằng thứ bậc kỹ thuật nên
+ * đứng cạnh mặt ninja/hổ thành hai giọng khác nhau trong cùng một danh sách.
  */
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
-  easy: specFrom(BOT_HALF_LIFE.easy, 'Bot dễ', '🐣'),
-  normal: specFrom(BOT_HALF_LIFE.normal, 'Bot bình thường', '🐥'),
-  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot Pro', '🥷'),
-  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot siêu đẳng', '🐯'),
+  easy: specFrom(BOT_HALF_LIFE.easy, 'Bot gà mờ', '🐣'),
+  normal: specFrom(BOT_HALF_LIFE.normal, 'Bot gà cứng', '🐥'),
+  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot ninja', '🥷'),
+  insane: specFrom(BOT_HALF_LIFE.insane, 'Bot mãnh hổ', '🐯'),
   divine: specFrom(BOT_HALF_LIFE.divine, 'Bot thần thánh', '🔱')
 };
 
