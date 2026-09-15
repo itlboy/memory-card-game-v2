@@ -221,9 +221,22 @@
   lại và cao thêm ~85px, nhưng đừng thiết kế dựa vào đó: màn phòng chờ và màn
   chơi vốn KHÔNG SCROLL nên thanh không bao giờ tự thu.
 
-- Chỗ trống của BÀN THẺ thì đã trừ sẵn HUD và dải người chơi: 351×510 (SE) và
-  366×618 (iPhone 14) — xem `AREAS` trong `apps/web/test/board-fit.test.ts`.
-  Đừng lẫn hai loại số này với nhau.
+- **CHỖ TRỐNG CỦA BÀN THẺ — SỐ ĐO TỪ ẢNH VÁN THẬT, ĐỪNG ƯỚC LƯỢNG.**
+  Khung bàn khi chơi ONLINE (đã trừ header, HUD, dải người chơi, khung chat,
+  đệm, vùng an toàn): **351×308 (SE) · 366×419 (iPhone 14) · 406×500 (Pro Max)**
+  — xem `AREAS` trong `apps/web/test/board-fit.test.ts`. Chơi MỘT MÌNH thì cộng
+  thêm 44px (không có khung chat). Bộ số cũ (510/618/700) cao hơn thực tế tới
+  200px, nên mọi phép canh "lấp đủ bề rộng" từng luôn xanh trong khi bàn thật
+  hụt — nó đo một cái máy không tồn tại. Suy ra từ ảnh chụp: bàn 88 thẻ trên
+  Pro Max đo được 362×495 CSS px, khớp đúng `availH ≈ 500`.
+- **BÀN BỊ CHẶN BỞI CHIỀU CAO, NÊN MẤT CHIỀU CAO LÀ MẤT BỀ RỘNG.** Mỗi px lấy
+  của bàn (dải người chơi cao thêm, nút emoji cao thêm) biến thành hai dải
+  trống hai bên — người chơi nhìn ra ngay: "có khung chat thì hở hai bên, chơi
+  một mình thì không". Vì thế lá bài được nở NGANG QUÁ HÌNH VUÔNG ở bàn ≥42 thẻ
+  (`MAX_ASPECT_BAN_LON` 1,25, `NGUONG_BAN_LON` 42 ô): ở cỡ đó lá chỉ 28–48px,
+  dáng thẻ gần như không đọc được, mà nới trần vừa lấp bề rộng vừa CỨU NGƯỠNG
+  CHẠM (42 thẻ trên SE: 38,8px → 48,6px). Bàn nhỏ giữ trần vuông — lá đã
+  83–166px, kéo rộng thêm chỉ thành thanh ngang.
 
 ## Quy trình
 

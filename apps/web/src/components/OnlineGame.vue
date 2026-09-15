@@ -611,7 +611,10 @@ watch(() => o.view.value?.summary, (s) => {
 }
 /* Dải người chơi phải chừa chỗ cho chip đang đi nở ra (scale 1.035) — không thì
    bóng và mép trên của nó bị cắt mất. */
-.strip { align-items: center; padding: 4px 0; }
+/* Chừa chỗ cho chip đang đi nở ra (scale 1.035). 2px là đủ: chip cao ~40px thì
+   nở ra thêm 1,4px mỗi đầu. Đệm 4px cũ ăn 8px chiều cao của BÀN THẺ — mà bàn
+   đang bị chặn bởi chiều cao, nên 8px đó biến thành bề rộng bỏ phí. */
+.strip { align-items: center; padding: 2px 0; }
 /*
  * CHIP CỦA NGƯỜI ĐANG ĐI NỞ RỘNG VÀ NỔI LÊN.
  *
