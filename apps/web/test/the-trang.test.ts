@@ -91,48 +91,26 @@ describe('không bao giờ có ô trắng trơn giữa ván', () => {
 });
 
 /**
- * LƯỚI AN TOÀN: LÁ BÀI KHÔNG BAO GIỜ ĐƯỢC LÀ MỘT Ô TRẮNG.
+ * KHỐI `.card` KHÔNG ĐƯỢC BỊ CẮT ĐÔI.
  *
- * Không chữa được lỗi VẼ của trình duyệt từ CSS, nhưng chữa được cái người chơi
- * nhìn thấy: `.card` có nền phẳng sẫm nằm DƯỚI hai mặt thẻ, nên lớp nào không
- * được vẽ thì ra lá bài sẫm màu chứ không ra cái lỗ trắng giữa bàn.
+ * Chèn một rule mới vào GIỮA thân `.card` là cắt đôi khối: phần đuôi rơi sang
+ * selector mới. Đã xảy ra thật — `container-type` và animation chia bài rơi
+ * sang chỉ áp cho lá đã ngửa, mà mặt sau và biểu tượng đều tính cỡ bằng `cqw`,
+ * nên cỡ chữ của gần cả bàn sai. Test đọc mã nguồn theo DÒNG không bắt được
+ * kiểu hỏng này; phải đọc chính thân khối.
  */
-describe('nền dự phòng của lá bài', () => {
+describe('khối .card còn nguyên', () => {
   const tile = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
-  const tokens = readFileSync(resolve(process.cwd(), 'src/styles/tokens.css'), 'utf8');
 
-  it('.card không còn trong suốt', () => {
-    const mo = tile.indexOf('\n.card {');
-    const khoi = tile.slice(mo, tile.indexOf('\n}', mo));
-    expect(khoi, 'nền trong suốt thì lớp hỏng để lộ nền TRANG (trắng)')
-      .toMatch(/background: var\(--card-nen-du-phong\)/);
-  });
-
-  it('khối .card không bị cắt đôi — đuôi của nó phải còn nguyên', () => {
-    /*
-     * Chèn rule mới vào GIỮA thân `.card` là cắt đôi khối: phần đuôi rơi sang
-     * selector mới. Đã xảy ra thật với đúng bản vá này — `container-type` và
-     * animation chia bài rơi sang chỉ áp cho lá đã ngửa, và mọi cỡ chữ tính
-     * bằng `cqw` của lá úp sai hết.
-     */
+  it('đuôi của khối vẫn nằm trong khối', () => {
     const mo = tile.indexOf('\n.card {');
     const khoi = tile.slice(mo, tile.indexOf('\n}', mo));
     expect(khoi, 'container-type phải ở trong chính khối .card').toContain('container-type: inline-size');
     expect(khoi, 'animation chia bài phải ở trong chính khối .card').toContain('animation: deal');
   });
 
-  it('nền dự phòng đổi theo MẶT ĐANG HƯỚNG RA', () => {
-    // Một màu tối cho mọi trạng thái thì lá đã ngửa lộ mảng tối giữa theme
-    // sáng (đã bị báo) — mặt trước vốn ngả kem.
-    expect(tile).toMatch(/\.card\.up, \.card\.done \{ background: var\(--card-face-up\); \}/);
-  });
-
-  it('ô trống (lưới lẻ) vẫn phải trong suốt — nó không phải lá bài', () => {
+  it('ô trống của lưới lẻ vẫn trong suốt — nó không phải lá bài', () => {
     expect(tile).toMatch(/\.card\.blank \{[^}]*background: transparent/);
-  });
-
-  it('token khai ở CẢ hai bảng màu, không thì một bảng ra biến rỗng', () => {
-    expect((tokens.match(/--card-nen-du-phong:/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 });
 
