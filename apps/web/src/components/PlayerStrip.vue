@@ -2,6 +2,7 @@
 import type { Player } from '@mm/engine';
 import { TURN_LIMIT_SEC } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
+import MatBot from './MatBot.vue';
 import { Timer, List } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
@@ -69,7 +70,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         :class="{ active: p.id === currentId, frozen: p.frozenTurns > 0 }"
         :aria-current="p.id === currentId ? 'true' : undefined"
       >
-        <span class="avatar" aria-hidden="true">{{ avatarOf(p, i) }}</span>
+        <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
         <b class="name">{{ p.name }}</b>
         <span
           v-if="p.id === currentId && turnLeft !== null && turnLeft !== undefined"
@@ -107,7 +108,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
     <!-- TỪ 5 NGƯỜI: chip lượt + hàng avatar -->
     <div v-else class="strip gon" aria-label="Người chơi">
       <div class="turn-chip" :class="{ frozen: nguoiDangDi.frozenTurns > 0 }" aria-current="true">
-        <span class="avatar" aria-hidden="true">{{ avatarOf(nguoiDangDi, players.indexOf(nguoiDangDi)) }}</span>
+        <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(nguoiDangDi, players.indexOf(nguoiDangDi))" /></span>
         <span class="tb">
           <b class="name">{{ nguoiDangDi.name }}</b>
           <span class="sub">
@@ -130,7 +131,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           class="mini" :class="{ next: k === 0, frozen: p.frozenTurns > 0 }"
           :title="`${p.name} — ${p.score} điểm`"
         >
-          <span class="avatar" aria-hidden="true">{{ avatarOf(p, i) }}</span>
+          <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
           <span class="mpts" :data-pts-for="p.id">{{ p.score }}</span>
           <span class="sr-only">{{ p.name }}: {{ p.score }} điểm</span>
         </li>
@@ -157,7 +158,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           :class="{ active: p.id === currentId }"
         >
           <span class="rank">{{ i + 1 }}</span>
-          <span class="avatar" aria-hidden="true">{{ avatarOf(p, players.indexOf(p)) }}</span>
+          <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, players.indexOf(p))" /></span>
           <b class="name">{{ p.name }}</b>
           <small v-if="Number.isFinite(p.lives)" class="lives">
             <template v-if="p.lives <= 0">💔</template>

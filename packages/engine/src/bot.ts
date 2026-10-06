@@ -80,13 +80,13 @@ export const BOT_HALF_LIFE: Record<BotLevel, number> = {
    * thắng gần hết sang THUA 96% chỉ bằng một bước chọn.
    * Đo (n=24, bàn 4×4 / 4×6 / 6×7 / 6×9, % bot thắng, trước người YẾU):
    *   nửa đời 6 → 63·71·96·96   (hố)
-   *   nửa đời 3 → 54·63·71·75   (vào đúng giữa gà mờ 38·21·0·4 và ninja 83·88·100·100)
+   *   nửa đời 3 → 54·63·71·75   (vào đúng giữa gà mờ 38·21·0·4 và báo đen 83·88·100·100)
    */
   normal: 3,
   hard: 12,
   insane: 20,
   /*
-   * THẦN THÁNH — mức thứ năm, thêm theo yêu cầu của chủ dự án.
+   * RỒNG THẦN (trước là "thần thánh") — mức thứ năm, thêm theo yêu cầu của chủ dự án.
    *
    * ĐÂY LÀ CON SỐ DUY NHẤT ĐỂ CHỈNH ĐỘ KHÓ của mức này (nửa đời ký ức, tính
    * bằng số nước đi). Càng lớn càng nhớ dai: `retain = 0.5 ** (1 / nửa đời)`.
@@ -127,16 +127,24 @@ export const THINK_MAX_MS = 3000;
  * nhìn cả năm CÙNG MỘT LÚC ở bước chọn. Bộ cũ có ba mặt máy móc liền nhau
  * (🤖 👾 🦾) nên ba mức giữa nhìn thoáng qua như nhau.
  * Mặt phải đọc được ở ~34px — mặt nhiều chi tiết thành một vệt màu ở cỡ đó.
- * TÊN ĐI THEO MẶT, cùng một thế giới: gà mờ → gà cứng → ninja → mãnh hổ → thần
- * thánh. Bộ tên cũ ("Bot Pro", "Bot siêu đẳng") nói bằng thứ bậc kỹ thuật nên
+ * TÊN ĐI THEO MẶT, cùng một thế giới: gà mờ → gà cứng → báo đen → mãnh hổ → rồng
+ * thần (đổi tên 06.10.2026 theo chủ dự án; báo đen là SVG tự vẽ, rồng thần 🐲). Bộ tên cũ ("Bot Pro", "Bot siêu đẳng") nói bằng thứ bậc kỹ thuật nên
  * đứng cạnh mặt ninja/hổ thành hai giọng khác nhau trong cùng một danh sách.
  */
+/**
+ * MẶT BÁO ĐEN KHÔNG PHẢI EMOJI — là một KHOÁ, `MatBot.vue` ở web dịch ra SVG.
+ * Không có emoji nào là báo đen (🐆 là báo đốm, 🐈‍⬛ là mèo), chủ dự án duyệt
+ * bản tự vẽ (06.10.2026). Chuỗi cố ý không phải ký tự in được để chỗ nào quên
+ * dùng MatBot là lộ ngay ":bao-den:" chứ không im lặng ra một mặt sai.
+ */
+export const MAT_BAO_DEN = ':bao-den:';
+
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
   easy: specFrom(BOT_HALF_LIFE.easy, 'Bot gà mờ', '🐣'),
   normal: specFrom(BOT_HALF_LIFE.normal, 'Bot gà cứng', '🐥'),
-  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot ninja', '🥷'),
+  hard: specFrom(BOT_HALF_LIFE.hard, 'Bot báo đen', MAT_BAO_DEN),
   insane: specFrom(BOT_HALF_LIFE.insane, 'Bot mãnh hổ', '🐯'),
-  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot thần thánh', '🔱')
+  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot rồng thần', '🐲')
 };
 
 /**

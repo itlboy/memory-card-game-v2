@@ -5,6 +5,7 @@ import { useBoardFit } from '@/composables/useBoardFit';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import PlayerStrip from './PlayerStrip.vue';
+import MatBot from './MatBot.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 import type { useGameSession } from '@/composables/useGameSession';
@@ -194,7 +195,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
             <OptionIcon name="freeze" :size="15" /> {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt
           </small>
           <span class="who">
-            <span class="avatar">{{ s.turnBanner.value.avatar || '🎮' }}</span>
+            <span class="avatar"><MatBot :mat="s.turnBanner.value.avatar || '🎮'" /></span>
             Đến lượt <b>{{ s.turnBanner.value.name }}</b>
           </span>
         </div>

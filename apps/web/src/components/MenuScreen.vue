@@ -3,6 +3,7 @@ import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, opti
 import { Bot, Check, ChevronLeft, Globe, Lock, Map, User, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
+import MatBot from './MatBot.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import { sfx } from '@/lib/audio';
@@ -368,7 +369,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           v-for="b in BOT_CHOICES" :key="b.id" class="option wide neon" :class="b.g" type="button"
           @click="pickBotLevel(b.id)"
         >
-          <span class="bot-face" aria-hidden="true">{{ BOT_SPECS[b.id].avatar }}</span>
+          <span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span>
           <span class="text"><strong>{{ BOT_SPECS[b.id].name }}</strong><small>{{ b.desc }}</small></span>
         </button>
       </div>
