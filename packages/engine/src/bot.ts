@@ -128,7 +128,7 @@ export const THINK_MAX_MS = 3000;
  * (🤖 👾 🦾) nên ba mức giữa nhìn thoáng qua như nhau.
  * Mặt phải đọc được ở ~34px — mặt nhiều chi tiết thành một vệt màu ở cỡ đó.
  * TÊN ĐI THEO MẶT, cùng một thế giới: gà mờ → gà cứng → báo đen → mãnh hổ → rồng
- * thần (đổi tên 06.10.2026 theo chủ dự án; báo đen là SVG tự vẽ, rồng thần 🐲). Bộ tên cũ ("Bot Pro", "Bot siêu đẳng") nói bằng thứ bậc kỹ thuật nên
+ * thần (đổi tên 06.10.2026 theo chủ dự án; báo đen và rồng thần là SVG, xem MatBot.vue). Bộ tên cũ ("Bot Pro", "Bot siêu đẳng") nói bằng thứ bậc kỹ thuật nên
  * đứng cạnh mặt ninja/hổ thành hai giọng khác nhau trong cùng một danh sách.
  */
 /**
@@ -138,13 +138,15 @@ export const THINK_MAX_MS = 3000;
  * dùng MatBot là lộ ngay ":bao-den:" chứ không im lặng ra một mặt sai.
  */
 export const MAT_BAO_DEN = ':bao-den:';
+/** Rồng vàng óng ánh (Twemoji 🐉 đổi sang vàng, chủ dự án chọn 06.10.2026). */
+export const MAT_RONG_VANG = ':rong-vang:';
 
 export const BOT_SPECS: Record<BotLevel, BotSpec> = {
   easy: specFrom(BOT_HALF_LIFE.easy, 'Bot gà mờ', '🐣'),
   normal: specFrom(BOT_HALF_LIFE.normal, 'Bot gà cứng', '🐥'),
   hard: specFrom(BOT_HALF_LIFE.hard, 'Bot báo đen', MAT_BAO_DEN),
   insane: specFrom(BOT_HALF_LIFE.insane, 'Bot mãnh hổ', '🐯'),
-  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot rồng thần', '🐲')
+  divine: specFrom(BOT_HALF_LIFE.divine, 'Bot rồng thần', MAT_RONG_VANG)
 };
 
 /**

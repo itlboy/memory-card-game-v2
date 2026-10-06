@@ -155,7 +155,8 @@
   là cửa duy nhất dịch khoá ra hình. Màn có bot (PlayerStrip, MenuScreen,
   GameScreen) KHÔNG được in `{{ avatar }}` thẳng — `test/mat-bot.test.ts` canh;
   online không có bot nên OnlineGame in chữ trơn vẫn đúng. Thang 5 mức:
-  🐣 gà mờ · 🐥 gà cứng · báo đen (SVG) · 🐯 mãnh hổ · 🐲 rồng thần.
+  🐣 gà mờ · 🐥 gà cứng · báo đen (SVG tự vẽ) · 🐯 mãnh hổ · rồng thần (`MAT_RONG_VANG`,
+  Twemoji 🐉 đổi sang vàng — CC-BY 4.0, có dòng ghi công trong RulesDialog).
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 

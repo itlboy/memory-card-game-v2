@@ -115,6 +115,10 @@
         <path d="M10 13.4 16.4 11l7.2 2.6L30 11v16l-6.4 2.4-7.2-2.6L10 29.4Z" fill="#fff" opacity=".95" />
         <path d="M16.4 11v18.4M23.6 13.6V30" fill="none" stroke="#8b5cf6" stroke-width="1.9" />
       </symbol>
+      <!-- Vàng óng cho mặt Bot rồng thần (MatBot.vue). -->
+      <linearGradient id="mmg-vang" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ffe98a" /><stop offset=".5" stop-color="#f0b82a" /><stop offset="1" stop-color="#a86a05" />
+      </linearGradient>
     </defs>
   </svg>
 </template>

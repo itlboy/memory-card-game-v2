@@ -128,6 +128,8 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
         <b>v{{ version }}</b> · build {{ builtAt }}
         <span class="ago">({{ ago }})</span>
       </p>
+      <!-- Ghi công bắt buộc: mặt Bot rồng thần là hình 🐉 Twemoji (CC-BY 4.0) đổi màu. -->
+      <p class="build">Mặt rồng thần: Twemoji · CC-BY 4.0</p>
 
       <!-- DƯỚI CÙNG, sau cả số bản dựng: đây là công cụ soi lỗi, không phải một
            tính năng chơi. Đặt cạnh số bản dựng vì hai thứ luôn được hỏi cùng
