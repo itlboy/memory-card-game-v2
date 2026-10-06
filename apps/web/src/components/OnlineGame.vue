@@ -632,6 +632,16 @@ watch(() => o.view.value?.summary, (s) => {
   overflow: hidden;
   transition: flex-grow .22s ease, transform .22s ease;
 }
+/*
+ * CHIP CAO CỐ ĐỊNH 44px — DẢI KHÔNG ĐƯỢC ĐỔI CHIỀU CAO KHI CHUYỂN LƯỢT.
+ * Đo trên iPhone 15 Pro Max, bàn 3 người: chip đang đi cao 46,1px (viên điểm
+ * 19px) còn chip chờ 39,8px; lúc chuyển lượt chip mới còn HẸP trong 220ms
+ * transition flex-grow nên truy vấn container ≤128px hạ viên điểm xuống 17px →
+ * dải 48,5 → 45,5px → ResizeObserver đo lại → bàn 356 → 358px rồi quay về.
+ * Đúng cái "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo. Khoá chiều
+ * cao thì nội dung chip ra sao cũng không chạm tới bàn thẻ.
+ */
+.pchip { height: 44px; }
 /* Dải người chơi phải chừa chỗ cho chip đang đi nở ra (scale 1.035) — không thì
    bóng và mép trên của nó bị cắt mất. */
 /* Chừa chỗ cho chip đang đi nở ra (scale 1.035). 2px là đủ: chip cao ~40px thì

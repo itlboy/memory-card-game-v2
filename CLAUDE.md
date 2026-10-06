@@ -234,11 +234,19 @@
 - **BÀN BỊ CHẶN BỞI CHIỀU CAO, NÊN MẤT CHIỀU CAO LÀ MẤT BỀ RỘNG.** Mỗi px lấy
   của bàn (dải người chơi cao thêm, nút emoji cao thêm) biến thành hai dải
   trống hai bên — người chơi nhìn ra ngay: "có khung chat thì hở hai bên, chơi
-  một mình thì không". Vì thế lá bài được nở NGANG QUÁ HÌNH VUÔNG ở bàn ≥42 thẻ
-  (`MAX_ASPECT_BAN_LON` 1,25, `NGUONG_BAN_LON` 42 ô): ở cỡ đó lá chỉ 28–48px,
-  dáng thẻ gần như không đọc được, mà nới trần vừa lấp bề rộng vừa CỨU NGƯỠNG
-  CHẠM (42 thẻ trên SE: 38,8px → 48,6px). Bàn nhỏ giữ trần vuông — lá đã
-  83–166px, kéo rộng thêm chỉ thành thanh ngang.
+  một mình thì không". Vì thế lá bài được nở NGANG QUÁ HÌNH VUÔNG: trần tỉ lệ
+  `MAX_ASPECT` = 1,25 cho MỌI cỡ bàn (06.10.2026 — trước đó bàn <42 thẻ giữ
+  trần vuông, và chủ dự án gửi ảnh bàn 24 thẻ đấu máy trên Pro Max hở 25px mỗi
+  bên: 2×3 / 3×4 / 4×6 đều kẹt ở trần vuông, chỉ lấp 80–90%). Lá 4×6 nay 97×85,
+  dáng 5:4 vẫn là lá bài. Nới trần còn CỨU NGƯỠNG CHẠM (42 thẻ trên SE:
+  38,8px → 48,6px).
+- **CHIP NGƯỜI CHƠI CAO CỐ ĐỊNH 44px** (`.player` ở PlayerStrip, `.pchip` ở
+  OnlineGame). Chip đang đi (viên điểm 19px) cao 46px còn chip chờ 40px; lúc
+  chuyển lượt chip mới còn hẹp trong 220ms transition nên container query hạ
+  viên điểm → dải 48,5→45,5px → ResizeObserver đo lại → bàn 356→358→356px, đúng
+  "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo (đo trên Pro Max, bàn
+  3 người). Khoá chiều cao thì nội dung chip ra sao cũng không chạm tới bàn.
+  `test/chip-cao-co-dinh.test.ts` canh.
 
 ## Quy trình
 

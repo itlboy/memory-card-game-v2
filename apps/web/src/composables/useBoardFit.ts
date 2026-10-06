@@ -23,7 +23,16 @@ export const MIN_ASPECT = 0.58;
  * bàn × 3 cỡ máy). Nới thêm tới 1,2 được 99,4% nhưng thẻ thành rộng hơn cao,
  * không còn ra hình lá bài nữa — nên dừng ở vuông.
  */
-export const MAX_ASPECT = 1;
+/*
+ * TRẦN NAY LÀ 1,25 CHO MỌI CỠ BÀN (06.10.2026, chủ dự án gửi ảnh bàn 24 thẻ đấu
+ * máy trên iPhone 15 Pro Max: lá vuông 81px, hở 25px mỗi bên — "khoảng trống
+ * hai bên rất nhiều"). Tính trên khung đấu máy 406×490: 2×3 lấp 80%, 3×4 90%,
+ * 4×6 80% — ba cỡ này đều ĐANG KẸT Ở TRẦN VUÔNG, tỉ lệ cần để lấp hết là
+ * 1,26 / 1,11 / 1,27. Chơi MỘT MÌNH không hở vì không có dải người chơi (+55px
+ * chiều cao), đúng như người chơi nhận xét. Lá 4×6 sau sửa: 97×77, dáng 5:4 —
+ * vẫn là một lá bài, không phải thanh ngang.
+ */
+export const MAX_ASPECT = 1.25;
 
 /**
  * BÀN LỚN ĐƯỢC NỞ NGANG QUÁ HÌNH VUÔNG.
@@ -46,6 +55,8 @@ export const MAX_ASPECT = 1;
  */
 export const MAX_ASPECT_BAN_LON = 1.25;
 export const NGUONG_BAN_LON = 42;
+/* Hai trần nay BẰNG NHAU; giữ hàm để chỗ gọi và test không đổi, và để lúc nào
+   muốn tách lại hai bậc thì chỉ sửa đúng một dòng. */
 export const tranTyLe = (cols: number, rows: number): number =>
   cols * rows >= NGUONG_BAN_LON ? MAX_ASPECT_BAN_LON : MAX_ASPECT;
 
