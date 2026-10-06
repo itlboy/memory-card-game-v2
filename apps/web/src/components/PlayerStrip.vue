@@ -188,6 +188,16 @@ watch(() => props.players.length, () => { moBang.value = false; });
   transition: flex-grow .22s ease, transform .22s ease;
 }
 /*
+ * CHIP CAO CỐ ĐỊNH 44px — DẢI KHÔNG ĐƯỢC ĐỔI CHIỀU CAO KHI CHUYỂN LƯỢT.
+ * Đo trên iPhone 15 Pro Max, bàn 3 người: chip đang đi cao 46,1px (viên điểm
+ * 19px) còn chip chờ 39,8px; lúc chuyển lượt chip mới còn HẸP trong 220ms
+ * transition flex-grow nên truy vấn container ≤128px hạ viên điểm xuống 17px →
+ * dải 48,5 → 45,5px → ResizeObserver đo lại → bàn 356 → 358px rồi quay về.
+ * Đúng cái "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo. Khoá chiều
+ * cao thì nội dung chip ra sao cũng không chạm tới bàn thẻ.
+ */
+.player { height: 44px; }
+/*
  * CHIP CỦA NGƯỜI ĐANG ĐI NỞ RỘNG VÀ NỔI LÊN — xem chú thích dài ở
  * OnlineGame.vue. Chỗ nở lấy từ những người đang chờ nên dải KHÔNG cao thêm,
  * và chính chỗ đó là thứ chứa được điểm 4–5 chữ số.
