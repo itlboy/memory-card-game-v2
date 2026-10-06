@@ -150,6 +150,12 @@
   không ai yêu cầu (lá thôi biến mất lúc quay qua 90°, và sắc tối lộ ở mép trên
   theme sáng), rồi đẻ thêm lỗi khi vá vội. Chữa đúng chỗ là lớp GPU, không phải
   che triệu chứng bằng một lớp sơn.
+- **MẶT BOT BÁO ĐEN LÀ SVG, KHÔNG PHẢI EMOJI.** Avatar là chuỗi chạy xuyên
+  engine/lưu trữ; báo đen mang KHOÁ `MAT_BAO_DEN` (`:bao-den:`) và `MatBot.vue`
+  là cửa duy nhất dịch khoá ra hình. Màn có bot (PlayerStrip, MenuScreen,
+  GameScreen) KHÔNG được in `{{ avatar }}` thẳng — `test/mat-bot.test.ts` canh;
+  online không có bot nên OnlineGame in chữ trơn vẫn đúng. Thang 5 mức:
+  🐣 gà mờ · 🐥 gà cứng · báo đen (SVG) · 🐯 mãnh hổ · 🐲 rồng thần.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
