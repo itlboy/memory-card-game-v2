@@ -15,48 +15,30 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from 'vue'
  *  mà lấp được phần chiều cao dư của lưới vuông trên màn dọc. */
 export const MIN_ASPECT = 0.58;
 /**
- * Trần tỷ lệ: thẻ được phép nở ngang tới VUÔNG. Khoá ở 3:4 (dáng lá bài chuẩn)
- * thì bàn hẹp và cao bị chặn chiều cao trước, bề rộng thừa ra thành hai dải
- * trống hai bên — đo trên iPhone SE: bàn 2×4 hở 160px, gần một nửa bề rộng.
+ * TRẦN TỈ LỆ: thẻ được phép nở ngang tới 1,25 (dáng 5:4) — cho MỌI cỡ bàn.
  *
- * Cho tới 1,0 thì diện tích dùng được lên từ 88,5% tới 97,1% (tính trên 11 cỡ
- * bàn × 3 cỡ máy). Nới thêm tới 1,2 được 99,4% nhưng thẻ thành rộng hơn cao,
- * không còn ra hình lá bài nữa — nên dừng ở vuông.
- */
-/*
- * TRẦN NAY LÀ 1,25 CHO MỌI CỠ BÀN (06.10.2026, chủ dự án gửi ảnh bàn 24 thẻ đấu
- * máy trên iPhone 15 Pro Max: lá vuông 81px, hở 25px mỗi bên — "khoảng trống
- * hai bên rất nhiều"). Tính trên khung đấu máy 406×490: 2×3 lấp 80%, 3×4 90%,
- * 4×6 80% — ba cỡ này đều ĐANG KẸT Ở TRẦN VUÔNG, tỉ lệ cần để lấp hết là
- * 1,26 / 1,11 / 1,27. Chơi MỘT MÌNH không hở vì không có dải người chơi (+55px
- * chiều cao), đúng như người chơi nhận xét. Lá 4×6 sau sửa: 97×77, dáng 5:4 —
- * vẫn là một lá bài, không phải thanh ngang.
+ * Lịch sử, vì con số này đã đổi ba lần và lần nào cũng do người chơi báo:
+ *  · 3:4 (dáng lá bài chuẩn): bàn hẹp-cao bị chặn chiều cao trước, bề rộng
+ *    thừa thành hai dải trống — iPhone SE bàn 2×4 hở 160px, gần nửa bề rộng.
+ *  · 1,0 (vuông) cho bàn nhỏ, 1,25 cho bàn ≥42 thẻ: bàn lớn lá chỉ 28–48px,
+ *    dáng thẻ không đọc được mà mỗi px bề rộng đều quý, và nới trần ở đó còn
+ *    cứu ngưỡng chạm (42 thẻ trên SE: 38,8px → 48,6px).
+ *  · 1,25 cho tất cả (06.10.2026): chủ dự án gửi ảnh bàn 24 thẻ ĐẤU MÁY trên
+ *    iPhone 15 Pro Max — lá vuông 81px, hở 25px mỗi bên. Tính trên khung đấu
+ *    máy 406×490: 2×3 lấp 80%, 3×4 90%, 4×6 80%, cả ba KẸT Ở TRẦN VUÔNG (tỉ lệ
+ *    cần: 1,26 / 1,11 / 1,27). Chơi một mình không hở vì không có dải người
+ *    chơi (+55px chiều cao) — đúng nhận xét của người chơi. Lá 4×6 sau sửa đo
+ *    được 97×85, vẫn là lá bài chứ không phải thanh ngang.
+ *
+ * Cái "bàn 2×3 trên SE cần 1,75 mới lấp hết" vẫn đúng: lưới quá "béo" so với
+ * khung thì không lấp được, không phải lỗi — test chỉ đòi lấp hết KHI tỉ lệ
+ * chưa chạm trần.
  */
 export const MAX_ASPECT = 1.25;
-
-/**
- * BÀN LỚN ĐƯỢC NỞ NGANG QUÁ HÌNH VUÔNG.
- *
- * Khi chiều cao là thứ chặn — ván ONLINE luôn thế, vì khung chat ăn ~44px —
- * thì trần vuông làm bề rộng thừa ra thành hai dải trống. Đo trên iPhone 15 Pro
- * Max (khung bàn thật 406×500): bàn 88 thẻ chỉ lấp 89% bề rộng, phí 44px; trên
- * SE còn 63%. Người chơi báo đúng chuyện này, kèm nhận xét sắc: chơi một mình
- * (không có khung chat) thì không hở.
- *
- * Nới trần CHỈ CHO BÀN LỚN, vì cái giá của nó là dáng lá bài:
- *  · bàn ≥42 thẻ — lá chỉ còn 28–48px, ở cỡ đó "dáng lá bài" gần như không đọc
- *    được, mà mỗi pixel bề rộng đều quý. Ngưỡng ĐẶT Ở 42 chứ không 56 vì chính
- *    bàn 42 thẻ là ca tệ nhất trên iPhone SE: trần vuông cho lá 38,8px — DƯỚI
- *    ngưỡng chạm 44px — còn trần 1,25 kéo lên 48,6px. Nới trần ở đây vừa lấp
- *    bề rộng vừa cứu luôn ngưỡng chạm;
- *  · bàn nhỏ giữ trần vuông — lá đã 83–166px, kéo rộng thêm chỉ làm nó thành
- *    thanh ngang chứ không dễ chơi hơn. Bàn 2×3 trên SE cần tới tỉ lệ 1,75 mới
- *    lấp hết bề rộng: đó là lưới quá "béo" so với khung, không phải lỗi.
- */
+/* Hai trần nay BẰNG NHAU; giữ hàm `tranTyLe` để chỗ gọi và test không đổi, và
+   lúc nào muốn tách lại hai bậc thì chỉ sửa đúng một dòng. */
 export const MAX_ASPECT_BAN_LON = 1.25;
 export const NGUONG_BAN_LON = 42;
-/* Hai trần nay BẰNG NHAU; giữ hàm để chỗ gọi và test không đổi, và để lúc nào
-   muốn tách lại hai bậc thì chỉ sửa đúng một dòng. */
 export const tranTyLe = (cols: number, rows: number): number =>
   cols * rows >= NGUONG_BAN_LON ? MAX_ASPECT_BAN_LON : MAX_ASPECT;
 
