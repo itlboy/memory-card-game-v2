@@ -74,7 +74,15 @@ export const BOT_HALF_LIFE: Record<BotLevel, number> = {
    * trước đây vẫn thua 63-71% số ván.
    */
   easy: 1,
-  normal: 6,
+  /*
+   * GÀ CỨNG LÀ 3 — đúng con số gà mờ dùng TRƯỚC 06.10.2026, dời xuống một bậc
+   * cùng ngày: hạ gà mờ xuống sàn 1 làm hở một hố ở nấc 1→2, người yếu nhảy từ
+   * thắng gần hết sang THUA 96% chỉ bằng một bước chọn.
+   * Đo (n=24, bàn 4×4 / 4×6 / 6×7 / 6×9, % bot thắng, trước người YẾU):
+   *   nửa đời 6 → 63·71·96·96   (hố)
+   *   nửa đời 3 → 54·63·71·75   (vào đúng giữa gà mờ 38·21·0·4 và ninja 83·88·100·100)
+   */
+  normal: 3,
   hard: 12,
   insane: 20,
   /*
