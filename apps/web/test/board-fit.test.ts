@@ -32,7 +32,7 @@ describe('tính cỡ bàn thẻ', () => {
       for (const [name, [w, h]] of Object.entries(AREAS)) {
         const { aspect } = computeFit(w, h, l.cols, l.rows);
         expect(aspect, `cấp ${l.id} @ ${name}`).toBeGreaterThanOrEqual(MIN_ASPECT);
-        // Trần theo CỠ BÀN: bàn lớn được nở quá vuông để lấp nốt bề rộng.
+        // Trần nay 1,25 cho mọi cỡ; vẫn đọc qua tranTyLe() để tách lại hai bậc được.
         expect(aspect, `cấp ${l.id} @ ${name}`).toBeLessThanOrEqual(tranTyLe(l.cols, l.rows));
       }
     }
