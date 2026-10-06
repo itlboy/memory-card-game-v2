@@ -62,7 +62,18 @@ export interface BotSpec {
  * 20 thì ra 57/63/88, tách rõ ở cả ba cỡ bàn.
  */
 export const BOT_HALF_LIFE: Record<BotLevel, number> = {
-  easy: 3,
+  /*
+   * GÀ MỜ LÀ 1, KHÔNG PHẢI 3 — hạ theo yêu cầu của chủ dự án (06.10.2026).
+   * 1 là SÀN của thang (`specFrom` kẹp về 1): nhớ được đúng nước vừa rồi rồi
+   * quên một nửa mỗi nước (`retain` = 0,5). Muốn dễ hơn nữa thì phải thêm trục
+   * mới, không hạ được số này.
+   * Đo bằng `duel-helper` (n=24, bàn 4×4 / 4×6 / 6×7, % bot thắng):
+   *   nửa đời 3 → trước người KHÁ 21·8·0, trước người YẾU 54·63·71
+   *   nửa đời 1 → trước người KHÁ  8·4·0, trước người YẾU 38·21·0
+   * Cái sửa đúng chỗ là cột NGƯỜI YẾU: trẻ con đánh với gà mờ ở bàn vừa và lớn
+   * trước đây vẫn thua 63-71% số ván.
+   */
+  easy: 1,
   normal: 6,
   hard: 12,
   insane: 20,
