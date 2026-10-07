@@ -2,6 +2,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { createApp } from 'vue';
 import App from './App.vue';
 import { sfx } from './lib/audio';
+import { laApp } from './lib/native';
 import './styles/global.css';
 import './styles/card-backs.css';
 import './styles/theme-grid.css';
@@ -14,7 +15,8 @@ for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
 
 // Cache app shell để rời app rồi quay lại là hiện ngay (mobile hay giải phóng
 // tab); bản mới tự thay khi có deploy. Thiếu SW cũng không sao — app vẫn chạy.
-void registerSW({ immediate: true });
+// Trong app iOS gói bằng Capacitor web nằm sẵn trong máy, SW chỉ thêm một lớp cache lệch bản.
+if (!laApp) void registerSW({ immediate: true });
 
 // Mở sẵn cho console: `sfx.volume = 2.5` để thử âm lượng (giá trị được nhớ lại).
 // Không có dòng này thì `sfx` chỉ là biến trong module, console không thấy.

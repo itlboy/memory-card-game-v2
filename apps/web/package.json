@@ -8,15 +8,20 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 3001",
     "typecheck": "vue-tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:ios": "VITE_SERVER_URL=https://thebai.hello314.com vite build && cap sync ios",
+    "ios": "pnpm build:ios && cap open ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@mm/engine": "workspace:*",
     "lucide-vue-next": "^1.0.0",
     "qrcode": "^1.5.4",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "@types/qrcode": "^1.5.6",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitest/coverage-v8": "^2.1.9",
