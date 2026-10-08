@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { HelpCircle, Moon, Sun, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { HelpCircle, Menu, Moon, Sun, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import type { SoundLevel } from '@/lib/storage';
 
@@ -17,6 +18,24 @@ const SOUND_LABEL: Record<SoundLevel, string> = {
   low: 'Âm thanh: nhỏ',
   high: 'Âm thanh: to'
 };
+/*
+ * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
+ * trên iPhone 15 Pro Max (430px) viên điểm đã chờm lên chữ "Lật Thẻ" (ảnh người
+ * chơi gửi 08.10.2026). Hàng trên giờ chỉ còn logo · điểm · menu; thứ hiếm bấm
+ * (luật, nền, âm thanh, tài khoản) nằm trong menu thả xuống. Nút menu mang
+ * AVATAR khi đã đăng nhập để nhìn là biết mình đang là ai.
+ */
+const open = ref(false);
+const menuEl = ref<HTMLElement | null>(null);
+function dong(): void { open.value = false; }
+function ngoai(e: PointerEvent): void {
+  if (open.value && menuEl.value && !menuEl.value.contains(e.target as Node)) dong();
+}
+onMounted(() => document.addEventListener('pointerdown', ngoai, true));
+onUnmounted(() => document.removeEventListener('pointerdown', ngoai, true));
+// Nút Back của máy đóng menu trước mọi thứ khác (cùng mức với hộp thoại)
+useBackCloser(30, () => open.value, dong);
+
 const soundIcon = computed(() =>
   props.soundLevel === 'off' ? VolumeX : props.soundLevel === 'low' ? Volume1 : Volume2);
 
@@ -79,31 +98,46 @@ watch(() => props.totalScore, (to, from) => {
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </span>
-    <button
-      v-if="account" class="btn acc" :class="{ in: signedIn }"
-      :aria-label="signedIn ? 'Tài khoản của bạn' : 'Đăng nhập'" :title="signedIn ? 'Tài khoản' : 'Đăng nhập'"
-      type="button" @click="$emit('account')"
-    >
-      <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
-      <UserRound v-else :size="20" />
-    </button>
-    <button class="btn" aria-label="Luật chơi" title="Luật chơi" type="button" @click="$emit('rules')">
-      <HelpCircle :size="20" />
-    </button>
-    <button class="btn" :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'" type="button" @click="$emit('toggle-dark')">
-      <Sun v-if="dark" :size="20" />
-      <Moon v-else :size="20" />
-    </button>
-    <!-- Một nút xoay vòng tắt → nhỏ → to: tắt hẳn hay để to là hai lựa chọn quá
-         thô, nhiều người muốn nghe nhưng không muốn ồn -->
-    <button
-      class="btn snd" :class="`lv-${soundLevel}`"
-      :aria-label="`${SOUND_LABEL[soundLevel]} — bấm để đổi`"
-      :title="SOUND_LABEL[soundLevel]"
-      type="button" @click="$emit('cycle-sound')"
-    >
-      <component :is="soundIcon" :size="20" />
-    </button>
+    <div ref="menuEl" class="menu-wrap">
+      <button
+        class="btn menu-btn" :class="{ in: signedIn }"
+        aria-label="Menu" aria-haspopup="menu" :aria-expanded="open"
+        type="button" @click="open = !open"
+      >
+        <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
+        <Menu v-else :size="22" />
+      </button>
+      <div v-if="open" class="menu" role="menu" @keydown.esc="dong">
+        <button
+          v-if="account" class="item" role="menuitem" type="button"
+          :aria-label="signedIn ? 'Tài khoản của bạn' : 'Đăng nhập'"
+          @click="dong(); $emit('account')"
+        >
+          <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
+          <UserRound v-else :size="20" />
+          <span>{{ signedIn ? 'Tài khoản' : 'Đăng nhập' }}</span>
+        </button>
+        <button class="item" role="menuitem" aria-label="Luật chơi" type="button" @click="dong(); $emit('rules')">
+          <HelpCircle :size="20" /><span>Luật chơi</span>
+        </button>
+        <button
+          class="item" role="menuitem" type="button"
+          :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'"
+          @click="$emit('toggle-dark')"
+        >
+          <Sun v-if="dark" :size="20" /><Moon v-else :size="20" />
+          <span>{{ dark ? 'Nền sáng' : 'Nền tối' }}</span>
+        </button>
+        <!-- Xoay vòng tắt → nhỏ → to, menu Ở LẠI để thấy mức vừa đổi -->
+        <button
+          class="item snd" :class="`lv-${soundLevel}`" role="menuitem" type="button"
+          :aria-label="`${SOUND_LABEL[soundLevel]} — bấm để đổi`"
+          @click="$emit('cycle-sound')"
+        >
+          <component :is="soundIcon" :size="20" /><span>{{ SOUND_LABEL[soundLevel] }}</span>
+        </button>
+      </div>
+    </div>
   </header>
 </template>
 
@@ -207,6 +241,24 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   .topbar { gap: 6px; padding: var(--sp-2); }
   .total { padding: 4px 8px; }
 }
-.acc img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
-.acc.in { border-color: var(--accent); }
+.menu-wrap { position: relative; flex-shrink: 0; }
+.menu-btn img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.menu-btn.in { border-color: var(--accent); }
+/* Thả xuống dưới nút, canh phải; z trên bàn thẻ và dưới hộp thoại (20) */
+.menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 15;
+  min-width: 200px; padding: 6px; border-radius: 14px;
+  background: var(--panel-solid); border: 1px solid var(--line);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .28);
+  display: grid; gap: 2px;
+}
+.item {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: none; color: var(--fg); font: inherit; font-weight: 700; text-align: left;
+  cursor: pointer; white-space: nowrap;
+}
+.item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+@media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
+.item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 </style>
