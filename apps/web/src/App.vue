@@ -29,6 +29,8 @@ watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import { earned } from './lib/achievements';
+import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
+import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { useViewportLock } from './composables/useViewportLock';
 import { store, type SoundLevel } from './lib/storage';
@@ -122,6 +124,12 @@ const menuKey = ref(0);
  */
 // Hộp thoại đóng TRƯỚC mọi thứ bên dưới nó
 useBackCloser(30, () => showRules.value, () => { showRules.value = false; });
+/** Màn tài khoản (đăng nhập Google, điểm, danh hiệu). */
+const showAccount = ref(false);
+useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; });
+// Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
+// trong đó — đây là lớp phủ, không được chặn trang chủ.
+onMounted(() => { void taiKhoan.khoiDong(); });
 useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; });
 /**
  * Đang trong ván / phòng online: Back làm đúng việc của nút logo — tức là HỎI
@@ -421,7 +429,7 @@ watch(session.summary, (s) => {
       && store.saveResult(game.config.mode, id, {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
-    freshAchievements.value = store.unlockAchievements(earned({
+    const dat = earned({
       summary: s,
       mode: game.config.mode,
       cells: game.cards.length,
@@ -430,7 +438,13 @@ watch(session.summary, (s) => {
       peekMs: game.config.peekMs ?? 0,
       livesLeft: player.lives,
       levelId: levelId.value ?? undefined
-    }));
+    });
+    freshAchievements.value = store.unlockAchievements(dat);
+    // Có tài khoản thì ván này đi lên sổ của người chơi — một lần, ở đây.
+    void taiKhoan.ghiVan({
+      ketQua: s.status === 'won' ? 'thang' : 'thua', score: s.score,
+      boardKey: `${game.config.mode}:L${id}`, moves: s.moves, seconds: s.seconds, achievements: dat
+    });
   } else {
     // Ván thi đấu cũng phải được cộng vào tổng tích luỹ, nếu không chơi nhiều
     // người cả buổi mà điểm vẫn đứng yên — và theme khoá theo điểm nên người
@@ -449,9 +463,14 @@ watch(session.summary, (s) => {
     // Đấu máy: chỉ cộng điểm CỦA NGƯỜI, và mức Dễ thì không tính — nếu tính,
     // cày máy dễ là cách nhanh nhất để mở hết theme, mọi mốc điểm mất nghĩa.
     if (botLevel.value) {
-      if (botLevel.value !== 'easy') {
-        store.addScore(s.ranking.find((r) => r.id !== 'bot')?.score ?? 0);
-      }
+      const diemNguoi = s.ranking.find((r) => r.id !== 'bot')?.score ?? 0;
+      if (botLevel.value !== 'easy') store.addScore(diemNguoi);
+      // Đấu máy là ván CỦA MỘT NGƯỜI nên lên sổ tài khoản được; kết cục đọc
+      // `loaiKetCuc` (hoà là kết cục thứ ba). Nhiều người chung máy thì KHÔNG:
+      // không biết ai đang cầm máy.
+      void taiKhoan.ghiVan({
+        ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi
+      });
     } else store.addScore(s.ranking[0]?.score ?? 0);
     // Tỷ số loạt: hoà thì không ai được cộng
     const champ = s.ranking[0];
@@ -486,7 +505,9 @@ const hasNext = computed(() => {
 <template>
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
+    :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
+    @account="showAccount = true"
     @rules="showRules = true"
     @cycle-sound="cycleSound"
     @home="goHome"
@@ -572,6 +593,8 @@ const hasNext = computed(() => {
        toàn cục, nhiều bản sao thì mọi icon lấy chung một màu. -->
   <IconDefs />
   <DoNhip v-if="debug" />
+
+  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" />
 
   <RulesDialog
     v-if="showRules" :debug="debug"

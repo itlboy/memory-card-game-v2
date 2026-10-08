@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { HelpCircle, Moon, Sun, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Moon, Sun, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { num, numShort } from '@/lib/format';
 import type { SoundLevel } from '@/lib/storage';
 
-const props = defineProps<{ dark: boolean; soundLevel: SoundLevel; totalScore: number }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; home: []; rules: [] }>();
+/** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
+ *  `avatar`: ảnh Google của người đang đăng nhập, null là chưa đăng nhập. */
+const props = defineProps<{
+  dark: boolean; soundLevel: SoundLevel; totalScore: number;
+  account?: boolean; avatar?: string | null; signedIn?: boolean;
+}>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; home: []; rules: []; account: [] }>();
 
 const SOUND_LABEL: Record<SoundLevel, string> = {
   off: 'Âm thanh: đang tắt',
@@ -74,6 +79,14 @@ watch(() => props.totalScore, (to, from) => {
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </span>
+    <button
+      v-if="account" class="btn acc" :class="{ in: signedIn }"
+      :aria-label="signedIn ? 'Tài khoản của bạn' : 'Đăng nhập'" :title="signedIn ? 'Tài khoản' : 'Đăng nhập'"
+      type="button" @click="$emit('account')"
+    >
+      <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
+      <UserRound v-else :size="20" />
+    </button>
     <button class="btn" aria-label="Luật chơi" title="Luật chơi" type="button" @click="$emit('rules')">
       <HelpCircle :size="20" />
     </button>
@@ -194,4 +207,6 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   .topbar { gap: 6px; padding: var(--sp-2); }
   .total { padding: 4px 8px; }
 }
+.acc img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.acc.in { border-color: var(--accent); }
 </style>
