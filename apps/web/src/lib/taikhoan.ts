@@ -96,7 +96,28 @@ export async function khoiDong(): Promise<void> {
   } catch { san.value = false; return; }
   if (docToken()) {
     try { me.value = (await goi<{ me: HoSo }>('/api/me')).me; } catch { /* đã xử lý 401 ở goi() */ }
+    /*
+     * ĐỒNG BỘ NGAY LÚC MỞ APP, không chỉ lúc đăng nhập. Một tài khoản hai máy:
+     * máy B chơi, máy A mở lên phải thấy điểm mới. Bản đầu chỉ nạp hồ sơ để
+     * hiện avatar, nên điểm/kỷ lục/danh hiệu ở máy A đứng yên (người chơi báo).
+     */
+    await dongBo();
   }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void lamMoi();
+    });
+  }
+}
+
+/** Kéo hồ sơ mới nhất về (khi quay lại tab/app) — máy kia có thể vừa chơi. */
+export async function lamMoi(): Promise<void> {
+  if (!me.value) return;
+  try {
+    const r = await goi<{ me: HoSo }>('/api/me');
+    me.value = r.me;
+    keoVeMay(r.me);
+  } catch { /* 401 đã xử lý, lỗi mạng thì lần sau */ }
 }
 
 /**
@@ -140,6 +161,7 @@ function keoVeMay(h: HoSo): void {
   const thieu = h.totalScore - store.totalScore();
   if (thieu > 0) store.addScore(thieu);
   store.unlockAchievements(h.achievements);
+  store.mergeBest(h.best);
 }
 
 export function dangXuat(): void {
@@ -156,6 +178,7 @@ export async function ghiVan(van: VanBao): Promise<void> {
   try {
     const r = await goi<{ me: HoSo }>('/api/me/van', { method: 'POST', body: JSON.stringify(van) });
     me.value = r.me;
+    keoVeMay(r.me);   // máy kia vừa chơi thì tổng ở server cao hơn máy này
   } catch { /* mất một ván trong sổ còn hơn làm phiền người chơi */ }
 }
 
@@ -206,4 +229,4 @@ export async function veNutGoogle(el: HTMLElement, xong: (h: HoSo) => void, loi:
 }
 
 /** Gom một mối để App/OnlineGame gọi và để test giả lập. */
-export const taiKhoan = { san, me, dangTai, khoiDong, dangNhap, dangXuat, ghiVan, dongBo, bangXepHang, veNutGoogle };
+export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangXuat, ghiVan, dongBo, bangXepHang, veNutGoogle };

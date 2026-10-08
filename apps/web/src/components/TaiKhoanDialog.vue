@@ -2,7 +2,9 @@
 import { sizeForLevel } from '@mm/engine';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
-import { ACHIEVEMENTS } from '@/lib/achievements';
+import { ACHIEVEMENTS, type Achievement } from '@/lib/achievements';
+import { store } from '@/lib/storage';
+import DanhHieu from './DanhHieu.vue';
 import { num } from '@/lib/format';
 import { bangXepHang, dangTai, dangXuat, me, veNutGoogle, type DongBxh } from '@/lib/taikhoan';
 
@@ -12,7 +14,7 @@ import { bangXepHang, dangTai, dangXuat, me, veNutGoogle, type DongBxh } from '@
  * hạng. Khung giống RulesDialog: tiêu đề + nút đóng đứng yên, RUỘT cuộn —
  * nên không phá luật KHÔNG SCROLL của trang.
  */
-const emit = defineEmits<{ close: [] }>();
+const emit = defineEmits<{ close: []; 'chinh-phuc': [Achievement] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 const nutGoogle = ref<HTMLElement | null>(null);
 const loi = ref('');
@@ -59,7 +61,8 @@ const kyLuc = computed(() => {
     .sort((a, b) => a.cap - b.cap);
 });
 
-const daCo = computed(() => new Set(me.value?.achievements ?? []));
+/** Danh hiệu đã có: của tài khoản nếu đăng nhập, không thì của máy này. */
+const daCo = computed(() => new Set(me.value ? me.value.achievements : store.achievements()));
 </script>
 
 <template>
@@ -83,6 +86,7 @@ const daCo = computed(() => new Set(me.value?.achievements ?? []));
           <p v-if="dangTai" class="muted">Đang đăng nhập…</p>
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
           <button class="btn-link" type="button" @click="moBxh">Xem bảng xếp hạng</button>
+          <DanhHieu :da-co="daCo" @chinh-phuc="emit('chinh-phuc', $event)" />
           <ol v-if="tab === 'bxh' && bxh" class="bxh">
             <li v-for="(d, i) in bxh" :key="d.id">
               <span class="hang">{{ i + 1 }}</span>
@@ -123,13 +127,7 @@ const daCo = computed(() => new Set(me.value?.achievements ?? []));
               <div><dt>Tỉ lệ thắng</dt><dd>{{ tiLeThang }}%</dd></div>
             </dl>
 
-            <h3>Danh hiệu <small>{{ daCo.size }}/{{ ACHIEVEMENTS.length }}</small></h3>
-            <ul class="danh-hieu">
-              <li v-for="a in ACHIEVEMENTS" :key="a.id" :class="{ co: daCo.has(a.id) }">
-                <span class="huy" aria-hidden="true">{{ daCo.has(a.id) ? '🏅' : '🔒' }}</span>
-                <span><b>{{ a.name }}</b><br><small>{{ a.hint }}</small></span>
-              </li>
-            </ul>
+            <DanhHieu :da-co="daCo" @chinh-phuc="emit('chinh-phuc', $event)" />
 
             <h3>Kỷ lục</h3>
             <ul v-if="kyLuc.length" class="ky-luc">
@@ -183,6 +181,7 @@ const daCo = computed(() => new Set(me.value?.achievements ?? []));
 .muted { color: var(--muted); font-size: var(--text-sm); margin: 6px 0 0; }
 .loi { color: var(--bad); font-size: var(--text-sm); margin: 8px 0 0; }
 .chua { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.chua :deep(.danh-hieu) { width: 100%; text-align: left; margin-top: 10px; }
 .nut-google { min-height: 44px; display: flex; justify-content: center; }
 .btn-link {
   margin-top: 14px; border: 0; background: none; color: var(--accent);
@@ -219,14 +218,7 @@ h3 {
 }
 h3 small { font-weight: 400; letter-spacing: 0; text-transform: none; }
 
-.danh-hieu, .ky-luc, .bxh { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.danh-hieu li {
-  display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px;
-  background: color-mix(in srgb, var(--fg) 5%, transparent); opacity: .55; font-size: var(--text-sm);
-}
-.danh-hieu li.co { opacity: 1; background: color-mix(in srgb, var(--warn) 14%, transparent); }
-.danh-hieu .huy { font-size: 22px; flex: 0 0 auto; }
-.danh-hieu small { color: var(--muted); }
+.ky-luc, .bxh { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 
 .ky-luc li { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 6px 10px; border-radius: 10px;
   background: color-mix(in srgb, var(--fg) 5%, transparent); font-size: var(--text-sm); }

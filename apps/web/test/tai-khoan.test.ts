@@ -137,3 +137,47 @@ describe('server Node: tầng tài khoản', () => {
     expect(await xacMinhGoogle('ngan', 'cid', 1_000_000, gia(tot))).toBeNull();
   });
 });
+
+describe('đồng bộ nhiều máy', () => {
+  beforeEach(() => { localStorage.clear(); vi.resetModules(); });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('mở app có phiên → đồng bộ ngay (không chỉ lúc đăng nhập), kéo điểm/kỷ lục máy kia về', async () => {
+    localStorage.setItem('mm.auth', 'tk');
+    store.addScore(100);
+    const hoSo = {
+      id: 1, name: 'A', avatar: null, totalScore: 2500, matches: 9, wins: 5, losses: 4, draws: 0,
+      best: { 'classic:L3': { score: 700, moves: 4, seconds: 9 } }, achievements: ['board-36']
+    };
+    const goi: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      goi.push(url.replace(/^.*\/api/, '/api'));
+      if (url.endsWith('/api/auth/config')) return Response.json({ googleClientId: 'x' });
+      return Response.json({ me: hoSo });
+    }));
+    const tk = await import('@/lib/taikhoan');
+    await tk.khoiDong();
+    expect(goi).toContain('/api/me/dongbo');
+    expect(store.totalScore()).toBe(2500);
+    expect(store.best('classic', 3)?.score).toBe(700);
+    expect(store.achievements()).toContain('board-36');
+  });
+
+  it('quay lại tab → lamMoi kéo hồ sơ mới; ghiVan cũng kéo về', async () => {
+    localStorage.setItem('mm.auth', 'tk');
+    let tong = 100;
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      if (url.endsWith('/api/auth/config')) return Response.json({ googleClientId: 'x' });
+      return Response.json({ me: { id: 1, name: 'A', avatar: null, totalScore: tong, matches: 1, wins: 1, losses: 0, draws: 0, best: {}, achievements: [] } });
+    }));
+    const tk = await import('@/lib/taikhoan');
+    await tk.khoiDong();
+    expect(store.totalScore()).toBe(100);
+    tong = 900;                       // máy kia vừa chơi
+    await tk.lamMoi();
+    expect(store.totalScore()).toBe(900);
+    tong = 1300;
+    await tk.ghiVan({ ketQua: 'thang', score: 50 });
+    expect(store.totalScore()).toBe(1300);
+  });
+});

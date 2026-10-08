@@ -26,7 +26,7 @@ const PROFILE = `/tmp/mm-cdp-${process.pid}`;
 // Profile MỚI mỗi lần và bỏ qua service worker: PWA precache index.html, dùng
 // lại profile là đo bản build CŨ mà không hay (đã dính: đo xanh/đỏ ngược nhau).
 rmSync(PROFILE, { recursive: true, force: true });
-process.on('exit', () => rmSync(PROFILE, { recursive: true, force: true }));
+process.on('exit', () => { try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* Chrome còn ghi, lần sau xoá */ } });
 const chrome = spawn(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-first-run',
   '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -78,6 +78,26 @@ for (const [ten, w, h] of MAY) {
   const bi = kq.mucTren.filter((m) => !m.tren).map((m) => m.label);
   ok(bi.length === 0, `${ten}: mọi mục menu ở trên cùng tại tâm${bi.length ? ' — BỊ ĐÈ: ' + bi.join(', ') : ''}`);
   ok(kq.menu && kq.menu.r <= w + 0.5 && kq.menu.b <= h && kq.menu.l >= 0, `${ten}: menu nằm trọn trong viewport (${kq.menu?.l.toFixed(0)}..${kq.menu?.r.toFixed(0)} × ${kq.menu?.t.toFixed(0)}..${kq.menu?.b.toFixed(0)})`);
+
+  // Màn Tài khoản (nếu server có tài khoản): hộp nằm trọn viewport, nút "Chinh phục" không tràn
+  const coTk = await js(`!!document.querySelector('header .menu .item[aria-label="Đăng nhập"], header .menu .item[aria-label="Tài khoản của bạn"]')`);
+  if (coTk) {
+    await js(`document.querySelector('header .menu .item[aria-label="Đăng nhập"], header .menu .item[aria-label="Tài khoản của bạn"]').click()`);
+    await cho(300);
+    const tk = await js(`(() => {
+      const p = document.querySelector('[aria-label="Tài khoản"] .panel'); if (!p) return null;
+      const b = p.getBoundingClientRect();
+      const body = p.querySelector('.body');
+      const di = [...p.querySelectorAll('.di')].map((x) => x.getBoundingClientRect());
+      const tran = di.filter((r) => r.right > b.right - 8 || r.left < b.left + 8).length;
+      return { l: b.left, r: b.right, t: b.top, b: b.bottom, scrollW: body.scrollWidth, clientW: body.clientWidth, soDi: di.length, tran,
+        hangThap: [...p.querySelectorAll('.danh-hieu li')].filter((li) => li.getBoundingClientRect().height < 44).length };
+    })()`);
+    ok(tk && tk.l >= 0 && tk.r <= w + 0.5 && tk.t >= 0 && tk.b <= h + 0.5, `${ten}: hộp Tài khoản nằm trọn viewport`);
+    ok(tk && tk.scrollW <= tk.clientW, `${ten}: hộp Tài khoản không tràn ngang (${tk?.scrollW}/${tk?.clientW})`);
+    ok(tk && tk.soDi > 0 && tk.tran === 0, `${ten}: ${tk?.soDi} nút Chinh phục đều nằm trong hộp`);
+    ok(tk && tk.hangThap === 0, `${ten}: mọi hàng danh hiệu cao ≥44px (vùng chạm)`);
+  }
 }
 ws.close(); chrome.kill();
 console.log(loi ? `\n${loi} lỗi` : '\nmenu thanh trên: sạch');

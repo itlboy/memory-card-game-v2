@@ -28,7 +28,8 @@ const debug = ref(store.prefs().debug || new URLSearchParams(location.search).ge
 watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
-import { earned } from './lib/achievements';
+import { earned, levelChoCells, type Achievement } from './lib/achievements';
+import { DEFAULT_OPTIONS } from '@mm/engine';
 import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
@@ -130,6 +131,29 @@ useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; })
 // Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
 // trong đó — đây là lớp phủ, không được chặn trang chủ.
 onMounted(() => { void taiKhoan.khoiDong(); });
+// Hồ sơ đổi (đồng bộ từ máy khác về) → số trên thanh và theme mở theo điểm đổi theo
+watch(taiKhoanMe, () => { totalScore.value = store.totalScore(); progressRev.value++; });
+
+/**
+ * "CHINH PHỤC" một danh hiệu từ màn Tài khoản: dựng đúng bàn cần cho nó rồi
+ * vào ván luôn. Tuỳ chọn còn lại về 0 (bàn trơn) để điều kiện là tối thiểu.
+ */
+function chinhPhuc(a: Achievement): void {
+  showAccount.value = false;
+  const c = a.chinhPhuc;
+  if (!c) return;
+  if (c.online) { screen.value = 'online'; return; }
+  if (c.campaign) {
+    mode.value = 'campaign'; botLevel.value = null; playerCount.value = 1;
+    startLevel(store.unlockedLevel());
+    return;
+  }
+  mode.value = 'classic';
+  botLevel.value = c.bot ?? null;
+  playerCount.value = c.bot ? 2 : 1;
+  options.value = { ...DEFAULT_OPTIONS, ...(c.options ?? {}) };
+  startLevel(levelChoCells(c.cells ?? 8));
+}
 useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; });
 /**
  * Đang trong ván / phòng online: Back làm đúng việc của nút logo — tức là HỎI
@@ -437,7 +461,8 @@ watch(session.summary, (s) => {
       lives: game.config.lives ?? null,
       peekMs: game.config.peekMs ?? 0,
       livesLeft: player.lives,
-      levelId: levelId.value ?? undefined
+      levelId: levelId.value ?? undefined,
+      options: game.config.mode === 'campaign' ? null : options.value
     });
     freshAchievements.value = store.unlockAchievements(dat);
     // Có tài khoản thì ván này đi lên sổ của người chơi — một lần, ở đây.
@@ -468,8 +493,16 @@ watch(session.summary, (s) => {
       // Đấu máy là ván CỦA MỘT NGƯỜI nên lên sổ tài khoản được; kết cục đọc
       // `loaiKetCuc` (hoà là kết cục thứ ba). Nhiều người chung máy thì KHÔNG:
       // không biết ai đang cầm máy.
+      // Danh hiệu đấu máy (hạ gà cứng… rồng thần) xét theo KẾT CỤC CỦA NGƯỜI
+      const dat = earned({
+        summary: s, mode: game.config.mode, cells: game.cards.length,
+        misses: player.misses, lives: game.config.lives ?? null, peekMs: game.config.peekMs ?? 0,
+        livesLeft: player.lives, options: options.value, botLevel: botLevel.value,
+        ketQua: session.loaiKetCuc.value
+      });
+      freshAchievements.value = store.unlockAchievements(dat);
       void taiKhoan.ghiVan({
-        ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi
+        ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi, achievements: dat
       });
     } else store.addScore(s.ranking[0]?.score ?? 0);
     // Tỷ số loạt: hoà thì không ai được cộng
@@ -594,7 +627,7 @@ const hasNext = computed(() => {
   <IconDefs />
   <DoNhip v-if="debug" />
 
-  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" />
+  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @chinh-phuc="chinhPhuc" />
 
   <RulesDialog
     v-if="showRules" :debug="debug"
