@@ -6,6 +6,7 @@ import { ROOM_LIMITS } from '@mm/engine';
 import { RoomDO } from '../../server/src/room.js';
 import { soPhongTrongRam } from '../../server/src/sophong.js';
 import { moKho, type Kho } from './kho-mysql.js';
+import { moTaiKhoan, type TaiKhoan } from './taikhoan.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -63,7 +64,7 @@ function makeCode(): string {
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 };
 
 /* ---------- bảng phòng của tiến trình ---------- */
@@ -263,6 +264,22 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 
   if (url.pathname === '/health') { json(res, { ok: true, rooms: phongs.size }); return; }
 
+  /*
+   * Tài khoản (đăng nhập Google, điểm, danh hiệu) — CHỈ Ở BẢN NODE, và chỉ khi
+   * có MySQL + GOOGLE_CLIENT_ID. Không có thì `taiKhoan` là null và các đường
+   * `/api/auth/*`, `/api/me*`, `/api/bxh` rơi xuống 404 của fallback tĩnh —
+   * client dò `/api/auth/config` lúc mở app để biết mà giấu nút đăng nhập.
+   */
+  if (taiKhoan && url.pathname.startsWith('/api/')) {
+    void taiKhoan.xuLy(req, res, url, json).then((daXuLy) => {
+      if (!daXuLy) json(res, { error: 'Không có đường này' }, 404);
+    }).catch((e) => {
+      console.error('[taikhoan] lỗi:', (e as Error).message);
+      if (!res.headersSent) json(res, { error: 'Lỗi server' }, 500);
+    });
+    return;
+  }
+
   void traFileTinh(url, res);
 });
 
@@ -284,6 +301,7 @@ server.on('upgrade', (req, socket, head) => {
 /* ---------- kho bền: phòng sống sót qua cập nhật ảnh ---------- */
 
 let kho: Kho | null = null;
+let taiKhoan: TaiKhoan | null = null;
 
 /**
  * Dựng lại các phòng đã lưu, rồi mới nhận request.
@@ -345,6 +363,13 @@ for (const tin of ['SIGTERM', 'SIGINT'] as const) {
 }
 
 kho = await moKho(process.env.MYSQL_URL);
+taiKhoan = await moTaiKhoan(kho?.pool ?? null, process.env).catch((e) => {
+  console.error('[taikhoan] không mở được tầng tài khoản:', (e as Error).message);
+  return null;
+});
+console.log(taiKhoan
+  ? '  tài khoản: đăng nhập Google đang bật'
+  : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID)');
 await khoiPhuc();
 
 server.listen(PORT, () => {

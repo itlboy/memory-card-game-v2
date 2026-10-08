@@ -31,7 +31,8 @@
     "smoke:kho": "node tools/smoke-kho.mjs",
     "smoke:client-cu": "node tools/smoke-client-cu.mjs",
     "smoke:guilai": "node tools/smoke-guilai.mjs",
-    "smoke:kick": "node tools/smoke-kick.mjs"
+    "smoke:kick": "node tools/smoke-kick.mjs",
+    "smoke:taikhoan": "node tools/smoke-taikhoan.mjs"
   },
   "packageManager": "pnpm@10.0.0"
 }

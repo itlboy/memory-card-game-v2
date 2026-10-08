@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { SITE_URL } from '@/lib/native';
 import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
@@ -333,7 +334,7 @@ const tenPhong = computed(() => {
 });
 
 const inviteLink = computed(() =>
-  `${location.origin}${location.pathname}?room=${o.room.value?.code ?? ''}`);
+  `${SITE_URL}/?room=${o.room.value?.code ?? ''}`);
 
 /** Copy riêng mã 6 số — bạn bè đọc mã qua điện thoại thì cần đúng phần này. */
 async function copyCode(): Promise<void> {

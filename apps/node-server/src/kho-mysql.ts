@@ -36,6 +36,8 @@ export interface Kho {
   dong(code: string, lyDo: string): void;
   /** Đẩy nốt phần đang chờ rồi đóng kết nối — gọi khi server tắt. */
   dongKho(): Promise<void>;
+  /** Pool dùng chung cho tầng tài khoản (taikhoan.ts) — cùng database, cùng vòng đời. */
+  pool: Pool;
 }
 
 /**
@@ -553,6 +555,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
   }
 
   return {
+    pool,
     /**
      * Lắp lại phòng ĐANG SỐNG từ các cột, thành đúng hình dạng `ctx.storage` giữ.
      *

@@ -114,6 +114,9 @@ export const store = {
     return read().best?.[`${mode}:L${level}`] ?? null;
   },
 
+  /** Mọi kỷ lục đang có, khoá `mode:L<cấp>` — để đồng bộ lên tài khoản. */
+  allBest(): Record<string, BestRecord> { return { ...(read().best ?? {}) }; },
+
   /** Ghi kết quả ván; trả về true nếu là kỷ lục mới. */
   saveResult(mode: Mode, level: number, r: BestRecord): boolean {
     const s = read();

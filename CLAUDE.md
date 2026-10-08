@@ -336,6 +336,25 @@
   bản ghi rỗng và phòng đã huỷ sống lại thành rác. Cả hai lỗi này đã xảy ra
   thật; `tools/smoke-kho.mjs` canh (cần server có `MYSQL_URL`, truyền
   `--restart "<lệnh>"` để kiểm cả phần khởi động lại).
+- **TÀI KHOẢN (ĐĂNG NHẬP GOOGLE) CHỈ CÓ Ở SERVER NODE, LÀ LỚP PHỦ.**
+  `apps/node-server/src/taikhoan.ts` + `apps/web/src/lib/taikhoan.ts` +
+  `TaiKhoanDialog.vue`. Bật khi có CẢ `MYSQL_URL` và `GOOGLE_CLIENT_ID`; thiếu
+  một là `/api/auth/config` 404 và client GIẤU nút đăng nhập — bản Cloudflare
+  `thebai2` không bao giờ có. Không đăng nhập thì mọi thứ y như cũ: thành tích
+  vẫn ghi localStorage; có đăng nhập thì mỗi ván gửi THÊM một bản lên
+  (`ghiVan`, gọi ĐÚNG MỘT LẦN từ watcher kết ván — tổng điểm và số ván cộng dồn
+  ở server), và lúc đăng nhập đẩy bản cục bộ lên (`dongbo`: hợp theo MAX, gọi
+  lại không nhân đôi). Kết cục đọc `loaiKetCuc` (hoà là kết cục thứ ba); nhiều
+  người CHUNG MÁY thì KHÔNG lên sổ — không biết ai đang cầm máy. Khoá kỷ lục
+  là ĐÚNG khoá của `store.best()` (`mode:L<cấp>`), server lọc theo mẫu đó.
+  Google chỉ được hỏi lúc đăng nhập (`tokeninfo`), rồi server cấp phiên HMAC
+  30 ngày ở `localStorage` `mm.auth`; khoá ký suy từ `MYSQL_URL` nếu không đặt
+  `AUTH_SECRET` nên phiên sống qua lần thay pod. Không chống gian lận (cùng lý
+  do PREDEAL), chỉ kiểm biên. `tools/smoke-taikhoan.mjs` chạy thẳng SQL qua
+  server thật (cần `MYSQL_URL`, tự tạo và dọn user) — đã bắt được một lần
+  `dist/server.mjs` gói trước khi sửa: ĐỔI server Node là phải `node build.mjs`
+  lại trước khi smoke. Client ID tạo ở Google Cloud Console (OAuth client Web,
+  origin = `https://thebai.hello314.com`), đặt vào Secret `thebai-google`.
 - **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
   WebSocket dính vào một pod, engine chạy trong RAM pod đó, alarm cũng ở đó, và
   broadcast không đi qua database — hai pod là hai bản sao cùng một phòng ghi đè
