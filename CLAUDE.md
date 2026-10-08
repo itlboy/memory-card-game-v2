@@ -157,6 +157,14 @@
   online không có bot nên OnlineGame in chữ trơn vẫn đúng. Thang 5 mức:
   🐣 gà mờ · 🐥 gà cứng · báo đen (SVG tự vẽ) · 🐯 mãnh hổ · rồng thần (`MAT_RONG_VANG`,
   Twemoji 🐉 đổi sang vàng — CC-BY 4.0, có dòng ghi công trong RulesDialog).
+- **THANH TRÊN LÀ STACKING CONTEXT RIÊNG (backdrop-filter) NÊN PHẢI CÓ `z-index`.**
+  Menu thả xuống trong header từng bị `<main>` (đứng sau trong DOM) vẽ đè dù
+  menu đặt `z-index: 15` — z-index của con không thoát được context của cha.
+  `.topbar { position: relative; z-index: 15 }` (dưới hộp thoại 20). Đo bằng
+  `pnpm do:menu` (Chrome CDP, `elementFromPoint` tại tâm từng mục, ba cỡ máy,
+  cần `localhost:8080` đang chạy dist mới). Harness PHẢI profile sạch + bỏ qua
+  service worker: PWA precache index.html nên dùng lại profile là đo bản cũ —
+  đã dính, cho kết quả xanh/đỏ ngược nhau.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
