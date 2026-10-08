@@ -143,6 +143,11 @@ watch(() => props.totalScore, (to, from) => {
 
 <style scoped>
 .topbar {
+  /* backdrop-filter biến header thành stacking context riêng; không có z-index
+     thì <main> đứng sau trong DOM vẽ ĐÈ lên menu thả xuống dù menu đặt z-index
+     bao nhiêu (đã xảy ra thật trên iPhone). 15: trên bàn thẻ, dưới hộp thoại 20.
+     tools/do-menu-tren.mjs đo elementFromPoint để canh. */
+  position: relative; z-index: 15;
   display: flex; align-items: center; gap: var(--sp-2);
   padding: var(--sp-2) var(--sp-4);
   border-bottom: 1px solid var(--line);
