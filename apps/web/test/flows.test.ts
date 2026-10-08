@@ -1413,6 +1413,8 @@ describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
 describe('phiên bản ở cuối bảng Luật chơi', () => {
   it('hiện số phiên bản, ngày giờ build và tuổi bản build', async () => {
     await mountApp();
+    await wrapper.find('[aria-label="Menu"]').trigger('click');
+    await flush();
     await wrapper.find('[aria-label="Luật chơi"]').trigger('click');
     await flush();
     const box = wrapper.find('.build');
@@ -1432,6 +1434,8 @@ describe('phiên bản ở cuối bảng Luật chơi', () => {
    */
   it('tuổi bản build hiện theo đơn vị thời gian, không in số 0', async () => {
     await mountApp();
+    await wrapper.find('[aria-label="Menu"]').trigger('click');
+    await flush();
     await wrapper.find('[aria-label="Luật chơi"]').trigger('click');
     await flush();
     const txt = wrapper.find('.build').text();

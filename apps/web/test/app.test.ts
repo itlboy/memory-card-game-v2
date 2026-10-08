@@ -223,7 +223,10 @@ describe('App', () => {
     expect(document.documentElement.dataset.theme).toBe('light');
     // Tìm theo nhãn, không theo vị trí: thanh trên cùng còn có nút Luật chơi và
     // âm lượng, thêm nút mới là test theo index sẽ bấm nhầm
-    const darkBtn = wrapper.findAll('header .btn')
+    // Các nút này nay nằm trong menu thả xuống của thanh trên — mở menu trước
+    await wrapper.find('header [aria-label="Menu"]').trigger('click');
+    await flush();
+    const darkBtn = wrapper.findAll('header .item')
       .find((b) => (b.attributes('aria-label') ?? '').includes('nền tối'));
     await darkBtn!.trigger('click');
     await flush();
