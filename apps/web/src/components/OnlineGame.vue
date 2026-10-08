@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
 import { taiKhoan } from '@/lib/taikhoan';
+import { earned } from '@/lib/achievements';
+import { store } from '@/lib/storage';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
@@ -245,8 +247,16 @@ watch(() => o.view.value?.summary, (s) => {
   showResult.value = false;
   if (!s) return;
   // Lên sổ tài khoản (nếu đăng nhập): điểm CỦA TÔI và kết cục dưới góc nhìn của tôi.
+  // Danh hiệu online xét với những gì view cho biết (không có số lần lật sai)
+  const cfg = o.room.value?.config;
+  const dat = earned({
+    summary: s, mode: 'classic', cells: o.view.value?.cards.length ?? 0,
+    lives: null, peekMs: 0, options: cfg?.options ?? null, online: true, ketQua: loaiKetCuc.value
+  });
+  store.unlockAchievements(dat);
   void taiKhoan.ghiVan({
-    ketQua: loaiKetCuc.value, score: s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0
+    ketQua: loaiKetCuc.value, score: s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0,
+    achievements: dat
   });
   /*
    * BẢNG TỈ SỐ HIỆN SỚM. Mốc cũ là 5 giây cho người thắng — đủ dài để hết pháo

@@ -117,6 +117,17 @@ export const store = {
   /** Mọi kỷ lục đang có, khoá `mode:L<cấp>` — để đồng bộ lên tài khoản. */
   allBest(): Record<string, BestRecord> { return { ...(read().best ?? {}) }; },
 
+  /** Hợp kỷ lục kéo từ tài khoản về: chỉ ghi khi điểm CAO HƠN bản máy. */
+  mergeBest(records: Record<string, BestRecord>): void {
+    const s = read();
+    s.best ??= {};
+    let doi = false;
+    for (const [k, r] of Object.entries(records)) {
+      if (!s.best[k] || r.score > s.best[k]!.score) { s.best[k] = r; doi = true; }
+    }
+    if (doi) write(s);
+  },
+
   /** Ghi kết quả ván; trả về true nếu là kỷ lục mới. */
   saveResult(mode: Mode, level: number, r: BestRecord): boolean {
     const s = read();
