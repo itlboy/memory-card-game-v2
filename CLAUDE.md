@@ -354,7 +354,9 @@
   server thật (cần `MYSQL_URL`, tự tạo và dọn user) — đã bắt được một lần
   `dist/server.mjs` gói trước khi sửa: ĐỔI server Node là phải `node build.mjs`
   lại trước khi smoke. Client ID tạo ở Google Cloud Console (OAuth client Web,
-  origin = `https://thebai.hello314.com`), đặt vào Secret `thebai-google`.
+  origin = `https://thebai.hello314.com`), đặt vào Secret `thebai-google`. ĐÃ BẬT
+  08.10.2026 (project `lat-the-nkien`, tài khoản Google cá nhân). Đổi env trong
+  `thebai.yaml` là phải `kubectl apply` tay — Keel chỉ thay ảnh.
 - **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
   WebSocket dính vào một pod, engine chạy trong RAM pod đó, alarm cũng ở đó, và
   broadcast không đi qua database — hai pod là hai bản sao cùng một phòng ghi đè
@@ -362,8 +364,8 @@
   `strategy: Recreate`. Muốn scale thì thứ phải làm trước là ĐỊNH TUYẾN DÍNH
   theo mã phòng (mọi kết nối của một mã luôn về đúng một pod), không phải thêm
   kho dữ liệu.
-- **Cụm k8s ở nhà** (`deploy/k8s/`): server Node là bản CHÍNH, chạy trên MicroK8s ở Hà
-  Nội tại `thebai.hello314.com` (tên chính người chơi vào) và `thebai-server.hello314.com`,
+- **Cụm k8s cá nhân `kien-server-main`** (`deploy/k8s/`; ĐỪNG gọi "Hà Nội" — nhầm với
+  `k8s-hanoi` của SenPrints): server Node là bản CHÍNH, chạy trên MicroK8s tại `thebai.hello314.com` (tên chính người chơi vào) và `thebai-server.hello314.com`,
   namespace `thebai`. Cloudflare Worker lùi về `thebai2.hello314.com` làm dự phòng
   (đổi chỗ ngày 29.08.2026 — tên miền của Worker là *Custom Domain* ở tầng account,
   không nằm trong `wrangler.jsonc`; chi tiết ở sổ tay `my-secrets`). Push vào `main` → Action đẩy
