@@ -165,6 +165,14 @@
   cần `localhost:8080` đang chạy dist mới). Harness PHẢI profile sạch + bỏ qua
   service worker: PWA precache index.html nên dùng lại profile là đo bản cũ —
   đã dính, cho kết quả xanh/đỏ ngược nhau.
+- **RUNG THEO SỐ NHỊP, KHÔNG THEO ĐỘ DÀI** (`lib/rung.ts`, chốt 10.10.2026):
+  sai 1 chạm nhẹ · chuỗi 1 → 1 · 2–3 → 2 · 4–5 → 3 (cuối mạnh) · 6+ → 4, chốt
+  ở 4. Taptic Engine iPhone chỉ có cú chạm rời, không có "rung dài". Web trên
+  iPhone KHÔNG rung được (Safari không có `navigator.vibrate`) — chỉ bản app
+  (`@capacitor/haptics`) và Android; máy không rung được thì công tắc trong menu
+  TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (đấu máy lọc `BOT_ID`, online lọc `myId` /
+  `myTurn`). Gắn đúng hai chỗ phát `sfx.match`/`sfx.miss`, có `test/rung.test.ts`.
+  Thêm plugin Capacitor là phải `cap sync ios` (đã có trong `build:ios`).
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 

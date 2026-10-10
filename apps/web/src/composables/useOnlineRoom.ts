@@ -6,6 +6,7 @@ import type {
 import { computed, onScopeDispose, ref, shallowRef, nextTick } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
+import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
 
@@ -965,11 +966,14 @@ export function useOnlineRoom() {
         case 'match': {
           const streak = 1 + (view.value?.players.find((p) => p.id === e.playerId)?.bestStreak ?? 0);
           sfx.match(Math.min(streak, 4));
+          if (e.playerId === myId.value) rung.ghep(streak);
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
           break;
         }
         case 'miss': {
           sfx.miss();
+          // View mới chưa gán nên currentId vẫn là người vừa lật
+          if (myTurn.value) rung.sai();
           wrongPair.value = e.indices;
           /*
            * Chụp symbol từ `viewMoi` — view ĐI KÈM tin này — chứ không phải

@@ -11,7 +11,9 @@ describe('tuỳ chọn', () => {
       mode: 'classic', level: 1, themes: [], playerCount: 1,
       options: DEFAULT_OPTIONS,
       // Bảng đo nhịp phải TẮT với người chơi mới — nó là công cụ soi lỗi
-      debug: false
+      debug: false,
+      // Rung BẬT sẵn: máy không rung được thì công tắc tự ẩn, không ai bị làm phiền
+      rung: true
     });
   });
 

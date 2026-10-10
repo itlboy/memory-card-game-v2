@@ -4,6 +4,7 @@ import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { botPick, botRng, botThinkMs, createBotMemory, observe, publicView } from '@mm/engine';
 import type { BotLevel, BotMemory } from '@mm/engine';
 import { sfx } from '@/lib/audio';
+import { rung } from '@/lib/rung';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 /**
@@ -84,11 +85,15 @@ export function useGameSession() {
         case 'match': {
           const streak = game.value?.players.find((p) => p.id === e.playerId)?.streak ?? 1;
           sfx.match(streak);
+          // Rung theo nước CỦA NGƯỜI — rung theo nước máy thì điện thoại rung suốt
+          if (e.playerId !== BOT_ID) rung.ghep(streak);
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
           break;
         }
         case 'miss':
           sfx.miss();
+          // `miss` không mang playerId; lượt chưa đổi lúc này nên người đang đi là người lật
+          if (game.value?.current?.id !== BOT_ID) rung.sai();
           wrongPair.value = e.indices;
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;

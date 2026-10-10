@@ -33,6 +33,7 @@ import { DEFAULT_OPTIONS } from '@mm/engine';
 import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
+import { rung } from './lib/rung';
 import { useViewportLock } from './composables/useViewportLock';
 import { store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
@@ -40,6 +41,9 @@ import { loadThemes, type CardTheme } from './lib/themes';
 const prefs = store.prefs();
 const dark = ref(prefs.dark);
 const soundLevel = ref<SoundLevel>(prefs.soundLevel);
+/** Rung khi ghép thẻ — công tắc riêng cạnh âm thanh trong menu (lib/rung.ts). */
+const rungBat = ref(prefs.rung !== false);
+watch(rungBat, (v) => { rung.bat = v; store.savePrefs({ rung: v }); }, { immediate: true });
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
  *  tính) là quá to; 2,6 nghe rõ mà không giật mình, "nhỏ" thì đủ để biết mình
  *  vừa bấm gì trong phòng yên tĩnh. */
@@ -538,6 +542,8 @@ const hasNext = computed(() => {
 <template>
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
+    :rung="rungBat" :co-rung="rung.coTheRung()"
+    @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
     @account="showAccount = true"

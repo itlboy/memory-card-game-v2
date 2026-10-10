@@ -36,6 +36,8 @@ export interface Prefs {
    *  Lưu lại vì lỗi cần soi thường chỉ hiện trên MỘT máy cụ thể: bật một lần
    *  rồi chơi qua nhiều ván, khỏi phải nhớ thêm `?debug=1` vào mọi đường vào. */
   debug: boolean;
+  /** Rung khi ghép thẻ (lib/rung.ts). Mặc định bật. */
+  rung: boolean;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -72,7 +74,7 @@ const DEFAULT_PREFS: Prefs = {
   // chọn được nhiều.
   dark: false, sound: true, soundLevel: 'high',
   mode: 'classic', level: 1, themes: [], playerCount: 1,
-  options: DEFAULT_OPTIONS, debug: false
+  options: DEFAULT_OPTIONS, debug: false, rung: true
 };
 
 function read(): Save {
