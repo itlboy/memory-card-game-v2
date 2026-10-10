@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HelpCircle, Menu, Moon, Sun, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Menu, Moon, Smartphone, SmartphoneNfc, Sun, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
@@ -10,8 +10,10 @@ import type { SoundLevel } from '@/lib/storage';
 const props = defineProps<{
   dark: boolean; soundLevel: SoundLevel; totalScore: number;
   account?: boolean; avatar?: string | null; signedIn?: boolean;
+  /** Rung đang bật; `coRung`: máy có đường rung không (iPhone web thì không). */
+  rung?: boolean; coRung?: boolean;
 }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; home: []; rules: []; account: [] }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'toggle-rung': []; home: []; rules: []; account: [] }>();
 
 const SOUND_LABEL: Record<SoundLevel, string> = {
   off: 'Âm thanh: đang tắt',
@@ -135,6 +137,15 @@ watch(() => props.totalScore, (to, from) => {
           @click="$emit('cycle-sound')"
         >
           <component :is="soundIcon" :size="20" /><span>{{ SOUND_LABEL[soundLevel] }}</span>
+        </button>
+        <!-- Giấu khi máy không rung được (web trên iPhone): công tắc không làm gì là công tắc nói dối -->
+        <button
+          v-if="coRung" class="item rung" :class="{ tat: !rung }" role="menuitemcheckbox" type="button"
+          :aria-checked="!!rung" :aria-label="rung ? 'Rung: đang bật — bấm để tắt' : 'Rung: đang tắt — bấm để bật'"
+          @click="$emit('toggle-rung')"
+        >
+          <SmartphoneNfc v-if="rung" :size="20" /><Smartphone v-else :size="20" />
+          <span>{{ rung ? 'Rung: bật' : 'Rung: tắt' }}</span>
         </button>
       </div>
     </div>
@@ -263,6 +274,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   background: none; color: var(--fg); font: inherit; font-weight: 700; text-align: left;
   cursor: pointer; white-space: nowrap;
 }
+.item.rung.tat { color: var(--muted); }
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 @media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
 .item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
