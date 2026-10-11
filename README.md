@@ -1,7 +1,15 @@
 # Lật Thẻ — Game Thẻ Bài Trí Nhớ
 
-Game rèn luyện trí nhớ chạy trên trình duyệt. Hiện thực theo SRS v1.0, đã hoàn thành
-mốc **v1.0 + v1.1** của lộ trình (mục 6).
+Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS (Capacitor). Chơi một
+mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số; có tài
+khoản Google, 103 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+
+- Bản chính: https://thebai.hello314.com (server Node trên cụm k8s cá nhân
+  `kien-server-main`, có MySQL + đăng nhập Google)
+- Bản dự phòng: https://thebai2.hello314.com (Cloudflare Worker, chơi ẩn danh)
+
+Xem mục **Nhật ký thay đổi** ở cuối file cho những gì mới làm, và `CLAUDE.md` cho
+luật thiết kế/kiến trúc bắt buộc.
 
 ## Chạy nhanh
 
@@ -9,7 +17,7 @@ mốc **v1.0 + v1.1** của lộ trình (mục 6).
 pnpm install
 
 pnpm dev        # phát triển — Vite + HMR, http://localhost:3001
-pnpm test       # 60 test (engine + UI)
+pnpm test       # ~500 test (engine + UI) — đọc cả dòng `Test Files`
 pnpm typecheck  # tsc + vue-tsc
 pnpm build      # ra apps/web/dist
 pnpm serve      # web server Node thuần phục vụ bản build, http://127.0.0.1:3001
@@ -140,7 +148,11 @@ server.js            Web server tĩnh cho bản build production
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
-| Lưu trữ | Kỷ lục và sao theo từng chế độ, tuỳ chọn, 7 thành tích — localStorage (3.7) |
+| Lưu trữ | Kỷ lục, sao, tuỳ chọn, bộ đếm danh hiệu — localStorage (3.7). Đăng nhập thì đồng bộ lên tài khoản (xem dưới) |
+| Tài khoản | Đăng nhập Google (chỉ server Node, cần `MYSQL_URL` + `GOOGLE_CLIENT_ID`). Điểm, kỷ lục, danh hiệu đi theo người sang máy khác; mở app / quay lại tab / xong ván là đồng bộ, hợp theo MAX. Bảng xếp hạng top 20. Không đăng nhập vẫn chơi như cũ |
+| Danh hiệu | 103 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/103 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
+| Hiệu ứng kết ván | Năm cảnh cố định: thắng · kỷ lục · thua · thua máy (máy trêu) · hoà (`lib/ketcuc-fx.ts`), có chạm vào bàn thẻ (gợn sóng / lá rơi). Mở danh hiệu: huy hiệu theo bậc bay vào viên 🏅 (`MoKhoaFx.vue`). Mockup đã duyệt: https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 |
+| Rung | Theo số nhịp, tăng theo chuỗi ghép đúng (`lib/rung.ts`). Android web + app iOS (Haptics); web trên iPhone không rung được nên công tắc tự ẩn |
 | Thông báo trong ván | Thông báo (thẻ đặc biệt, chuyển lượt, emoji đối thủ) nổi ở **dải trên mép bàn** (`.notice-bar`), cao 0px và ĐÈ lên HUD — không hiện giữa bàn (che chỗ đang bấm) và không chiếm chỗ (bàn thẻ co giãn mỗi lần thông báo hiện/tan) |
 | Phi chức năng | Responsive 320px+, dark mode, ba mức âm lượng, điều hướng bàn phím, chạm ≥44px, PWA chạy offline |
 
@@ -290,8 +302,11 @@ chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào sto
   Thiếu bước này thì MỌI mã 6 số đều "vào được" (Durable Object sinh theo tên),
   nên gõ sai là lập phòng mới trong im lặng
 - **Chơi lại là bỏ phiếu**, không phải quyền của chủ phòng: ai cũng bấm được,
-  `RoomInfo.againVotes` cho cả phòng thấy ai đã bấm, đủ phiếu thì tự về lobby.
-  Đối phương rời hẳn thì nút biến mất thay vì bấm vô nghĩa
+  `RoomInfo.againVotes` cho cả phòng thấy ai đã bấm, đủ phiếu thì **vào ván mới
+  luôn** (đếm ngược), không bắt về phòng chờ bấm Sẵn sàng lại. Đối phương rời hẳn
+  thì dùng "Về phòng chờ" (`t:'tolobby'`), giữ nguyên mã phòng
+- **Người đi đầu xoay vòng** giữa các ván (`xoayNguoiDau` ở engine, dùng chung cho
+  online, nhiều người chung máy và đấu máy); ván đầu bốc ngẫu nhiên
 - **Bấm thẻ phản hồi ngay**, không chờ hết vòng đi-về: ô vừa bấm lật tới đúng 90
   độ (cạnh thẻ, chưa thấy mặt nên không phạm NF-04), view về mới lật nốt
 - **Ping đo bằng auto-response**: `setWebSocketAutoResponse` trả lời `{t:'ping'}`
@@ -302,13 +317,17 @@ chính `packages/engine`, WebSocket Hibernation, trạng thái snapshot vào sto
   gửi được cả ở phòng chờ và trong bảng kết quả
 - Server-authoritative: client chỉ gửi `{t:'flip'}`; payload không bao giờ chứa
   thẻ úp (ON-09, NF-04); emoji chat danh sách đóng (ON-08)
-- Rớt mạng có 30 giây vào lại bằng token, quá hạn bị xử thua (ON-07)
+- Rớt mạng có **5 phút** vào lại bằng token (phiên ở localStorage, hạn 30 phút), quá hạn bị xử thua (ON-07)
 
 ```bash
 pnpm dev:server     # wrangler dev tại http://localhost:8787
 pnpm dev            # web :3001 + wrangler :8787 song song
 pnpm smoke:online   # E2E: 2 client chơi trọn ván qua WebSocket (cần dev:server đang chạy)
                     # MM_SERVER=<url> để soi chính worker đã deploy
+node tools/smoke-choilai.mjs   # chơi thật 3 ván: Chơi lại vào ván luôn + xoay vòng người đi đầu
+pnpm smoke:taikhoan            # SQL tài khoản qua server Node thật (cần MYSQL_URL)
+pnpm do:menu                   # Chrome thật, 3 cỡ iPhone: menu, màn Danh hiệu, 1 ván thắng
+                               # + 1 ván thua hết giờ (cần localhost:8080 chạy dist mới)
 pnpm release        # build web + deploy CẢ web và server trong một Worker
 ```
 
@@ -406,10 +425,13 @@ Ba điều dễ làm hỏng:
 - Client tự lấy `location.origin` ở bản build, nên KHÔNG cần `VITE_SERVER_URL`
   nữa. Biến đó vẫn được tôn trọng nếu muốn trỏ tay.
 
-## Chưa làm (v2.1+)
+## Chưa làm
 
-Quick match (ON-02), chế độ Race (ON-06), tài khoản, bảng xếp hạng toàn cầu,
-PWA offline, i18n.
+Quick match (ON-02), chế độ Race (ON-06), i18n. Đề xuất đã chốt nhưng chưa làm:
+dải lối tắt trên trang chủ (danh hiệu gợi ý, chuỗi ngày 🔥, tiếp tục chiến dịch),
+menu thanh trên chia hai khối tài khoản / cài đặt, gộp "Chơi nhanh" + "Chơi nhiều
+người", màn đăng nhập ghi lợi ích bằng số thật, nút "Đổi bàn" ở bảng kết quả, đăng
+nhập trong app iOS (cần plugin native), E2E Playwright chạy trong CI.
 
 ## Phiên bản đang chạy
 
@@ -642,3 +664,26 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   Giữ được đúng luật chẵn ô và đúng tinh thần "lật trúng thì lãnh hậu quả".
 - **Thưởng thời gian chỉ áp dụng cho chơi đơn.** Ở chế độ luân phiên nhiều người, cộng
   điểm thời gian cho một người là vô nghĩa vì đồng hồ dùng chung.
+
+## Nhật ký thay đổi
+
+Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
+
+**11.10.2026**
+- Cảnh kết ván mới thay hẳn bộ cũ (thắng, kỷ lục, thua, thua máy, hoà), âm thanh viết lại.
+- Huy hiệu danh hiệu theo bậc bay vào viên 🏅; màn Danh hiệu mang màu bậc.
+- 103 danh hiệu, bộ đếm (thắng, thắng máy, thắng online, chuỗi ngày), gợi ý chinh phục.
+- Online: cả phòng bấm Chơi lại là vào ván luôn; người đi đầu xoay vòng (cả offline).
+- Nút mời người chơi ra khỏi phòng thành dấu X.
+- Sửa: chữ CHIẾN THẮNG mất dấu ("CHIỄN"); bảng kết quả lòi nút trên iPhone SE; dòng
+  Tổng điểm dính sát bảng xếp hạng.
+- Luật chơi: "Bật chế độ debug"; ghi công Twemoji chỉ trong chế độ debug và `/credits.txt`.
+
+**10.10.2026**
+- Rung khi ghép thẻ theo số nhịp; công tắc trong menu.
+
+**08–09.10.2026**
+- Tài khoản Google (project GCP `lat-the-nkien`, Secret `thebai-google`), đồng bộ nhiều máy.
+- Thanh trên gom thành logo · điểm · 🏅 · một nút menu (menu từng bị `<main>` vẽ đè —
+  header nay có `z-index`).
+
