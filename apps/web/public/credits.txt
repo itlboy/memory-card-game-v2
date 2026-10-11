@@ -1,0 +1,7 @@
+Lật Thẻ — ghi công tài nguyên bên thứ ba
+
+Hình mặt "Bot rồng thần": dựa trên emoji 🐉 của Twemoji
+  Bản quyền 2020 Twitter, Inc. và những người đóng góp khác
+  Giấy phép CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/
+  Nguồn: https://github.com/twitter/twemoji
+  Đã chỉnh sửa: đổi sang tông vàng.

@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
-  backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom
+  backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom, xoayNguoiDau
 } from '@mm/engine';
 import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
@@ -80,6 +80,13 @@ interface RoomState {
   countdownEnd?: number;
   /** Lúc phòng ở lobby mà KHÔNG còn ai. Xem EMPTY_LOBBY_MS. */
   emptyAt?: number;
+  /**
+   * Người ĐI ĐẦU ván trước — để ván sau XOAY VÒNG sang người kế tiếp (chủ dự
+   * án yêu cầu 11.10.2026; trước đây mỗi ván bốc ngẫu nhiên nên có người đi
+   * đầu ba ván liền). Không có (ván đầu, hay phòng vừa khôi phục từ MySQL — kho
+   * không giữ cột này) thì bốc ngẫu nhiên một lần.
+   */
+  nguoiDauTruoc?: string;
 }
 
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
@@ -586,8 +593,13 @@ export class RoomDO extends DurableObject<Env> {
           this.broadcast({ t: 'room', room: this.roomInfo() });
           return;
         }
-        // Đủ phiếu: về phòng chờ để mọi người bấm sẵn sàng lần nữa
-        await this.veLobby(here);
+        // Đủ phiếu: VÀO VÁN LUÔN (đếm ngược rồi chơi), không bắt về phòng chờ bấm
+        // Sẵn sàng lần nữa — ai cũng đã bấm Chơi lại, thế là đủ ý rồi.
+        this.againVotes.clear();
+        this.room.players = here;
+        if (!here.some((p) => p.id === this.room!.hostId)) this.room.hostId = here[0]?.id ?? '';
+        for (const p of here) p.ready = true;
+        await this.batDauDemNguoc();
         return;
       }
 
@@ -667,24 +679,7 @@ export class RoomDO extends DurableObject<Env> {
           });
           return;
         }
-        // Dựng ván (thứ tự đi đã bốc ngẫu nhiên) nhưng CHƯA chạy — đếm ngược
-        // (ROOM_LIMITS.countdownMs) để người đi đầu không bị động
-        this.prepareGame();
-        this.room.status = 'countdown';
-        this.room.countdownEnd = Date.now() + ROOM_LIMITS.countdownMs;
-        await this.save();
-        const first = this.game!.current;
-        this.broadcast({ t: 'room', room: this.roomInfo() });
-        this.broadcast({ t: 'state', view: this.view() });
-        this.broadcast({
-          // PHẢI suy từ countdownEnd, đừng viết số: viết cứng 5000 trong khi hạn
-          // thật là 3 giây làm client hiện "5" rồi nhảy thẳng xuống "3" — đúng
-          // lỗi đã bị phản ánh, và không test nào bắt được vì hai chỗ đọc hai số.
-          t: 'countdown',
-          endsInMs: this.room.countdownEnd - Date.now(),
-          firstId: first.id, firstName: first.name
-        });
-        await this.ctx.storage.setAlarm(this.room.countdownEnd);
+        await this.batDauDemNguoc();
         return;
       }
 
@@ -1110,6 +1105,34 @@ export class RoomDO extends DurableObject<Env> {
 
   /* ---------- trợ giúp ---------- */
 
+  /**
+   * Dựng ván và bắt đầu đếm ngược. MỘT chỗ cho cả "Bắt đầu" ở phòng chờ lẫn
+   * "Chơi lại" khi mọi người đã bấm — bản cũ của "Chơi lại" chỉ đưa cả phòng
+   * về phòng chờ rồi bắt bấm Sẵn sàng thêm lần nữa, nên hai người cùng bấm mà
+   * không thấy ván nào bắt đầu (chủ dự án báo 11.10.2026).
+   */
+  private async batDauDemNguoc(): Promise<void> {
+    if (!this.room) return;
+    // Dựng ván (thứ tự đi XOAY VÒNG, xem prepareGame) nhưng CHƯA chạy — đếm ngược
+    // (ROOM_LIMITS.countdownMs) để người đi đầu không bị động
+    this.prepareGame();
+    this.room.status = 'countdown';
+    this.room.countdownEnd = Date.now() + ROOM_LIMITS.countdownMs;
+    await this.save();
+    const first = this.game!.current;
+    this.broadcast({ t: 'room', room: this.roomInfo() });
+    this.broadcast({ t: 'state', view: this.view() });
+    this.broadcast({
+      // PHẢI suy từ countdownEnd, đừng viết số: viết cứng 5000 trong khi hạn
+      // thật là 3 giây làm client hiện "5" rồi nhảy thẳng xuống "3" — đúng
+      // lỗi đã bị phản ánh, và không test nào bắt được vì hai chỗ đọc hai số.
+      t: 'countdown',
+      endsInMs: this.room.countdownEnd - Date.now(),
+      firstId: first.id, firstName: first.name
+    });
+    await this.ctx.storage.setAlarm(this.room.countdownEnd);
+  }
+
   private prepareGame(): void {
     const room = this.room!;
     // Trộn biểu tượng của mọi theme đã chọn (loại trùng)
@@ -1123,13 +1146,27 @@ export class RoomDO extends DurableObject<Env> {
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]!);
     // Lọc lại lần nữa ngay trước khi dựng ván: bản lưu trong storage có thể là
     // của bản cũ (chưa có `options`) hoặc đã bị sửa ở đâu đó.
-    this.game = new MemoryGame(configFromOptions({
+    /*
+     * XOAY VÒNG NGƯỜI ĐI ĐẦU: giữ thứ tự VÀO PHÒNG, ván sau bắt đầu từ người
+     * ngay sau người đi đầu ván trước. Ván đầu (chưa có ai) thì bốc ngẫu nhiên
+     * — chủ phòng không mặc nhiên đi trước. Tắt `shufflePlayers` của engine:
+     * nó xáo lại mỗi ván và chính là thứ khiến lượt đầu "ngẫu nhiên mãi".
+     */
+    const xoay = xoayNguoiDau(
+      room.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar })),
+      room.nguoiDauTruoc,
+      crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32
+    );
+    room.nguoiDauTruoc = xoay[0]?.id;
+    const cfg = configFromOptions({
       options: sanitizeOptions(room.config.options),
       level: room.config.level,
       symbols,
       seed,
-      players: room.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))
-    }));
+      players: xoay
+    });
+    cfg.shufflePlayers = false;
+    this.game = new MemoryGame(cfg);
   }
 
   /** Phát sự kiện + view mới cho cả phòng, cập nhật trạng thái phòng nếu ván xong. */

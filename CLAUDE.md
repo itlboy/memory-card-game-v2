@@ -165,7 +165,9 @@
   GameScreen) KHÔNG được in `{{ avatar }}` thẳng — `test/mat-bot.test.ts` canh;
   online không có bot nên OnlineGame in chữ trơn vẫn đúng. Thang 5 mức:
   🐣 gà mờ · 🐥 gà cứng · báo đen (SVG tự vẽ) · 🐯 mãnh hổ · rồng thần (`MAT_RONG_VANG`,
-  Twemoji 🐉 đổi sang vàng — CC-BY 4.0, có dòng ghi công trong RulesDialog).
+  Twemoji 🐉 đổi sang vàng — CC-BY 4.0. Ghi công BẮT BUỘC theo giấy phép: nay ở
+  `public/credits.txt` và trong chế độ debug của RulesDialog — chủ dự án bỏ dòng ghi
+  công khỏi màn thường 11.10.2026, đừng xoá nốt hai chỗ này).
 - **THANH TRÊN LÀ STACKING CONTEXT RIÊNG (backdrop-filter) NÊN PHẢI CÓ `z-index`.**
   Menu thả xuống trong header từng bị `<main>` (đứng sau trong DOM) vẽ đè dù
   menu đặt `z-index: 15` — z-index của con không thoát được context của cha.
@@ -326,6 +328,17 @@
   lại sau mỗi nước lật thẻ; và mọi lối xoá phòng phải gọi `depPhong()` chứ không
   `storage.deleteAll()` trần, không thì phòng chết nằm lại trong danh sách. Có
   `tools/smoke-sophong.mjs` chạy với cả hai server.
+- **CHƠI LẠI ĐỦ PHIẾU LÀ VÀO VÁN LUÔN; NGƯỜI ĐI ĐẦU XOAY VÒNG** (11.10.2026, chủ
+  dự án báo). `t:'again'` đủ phiếu thì gọi `batDauDemNguoc()` — CÙNG hàm với nút
+  Bắt đầu — chứ không về phòng chờ bắt bấm Sẵn sàng lại (bản cũ: hai người cùng
+  bấm mà "không có hiện tượng gì"). Client ghi lại phiên ở tin `countdown` vì
+  kết ván đã xoá nó. Người đi đầu: `xoayNguoiDau()` ở ENGINE, dùng chung cho
+  room.ts và App (nhiều người cùng máy, đấu máy); chỗ gọi tắt `shufflePlayers`
+  — chính cái xáo đó làm lượt đầu ngẫu nhiên mỗi ván. Ván đầu bốc ngẫu nhiên
+  (online: crypto; offline: theo seed cho tất định). `nguoiDauTruoc` KHÔNG lưu
+  xuống MySQL: server khởi động lại thì ván kế bốc lại, chấp nhận được.
+  `tools/smoke-choilai.mjs` chơi thật 3 ván 2×2 bằng `predeal` (đã kiểm ngược:
+  luật cũ là đỏ).
 - **Hết ván online phải còn đường VỀ PHÒNG CHỜ** (`t:'tolobby'`, một người bấm
   là đủ). `t:'again'` đòi mọi người còn kết nối cùng bấm nên khi đối phương đã
   đi thì không bao giờ đủ phiếu — thiếu `tolobby` thì người ở lại chỉ còn lối về

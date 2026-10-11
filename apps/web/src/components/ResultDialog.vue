@@ -391,7 +391,10 @@ h2 { margin: 0 0 4px; }
 /* Dòng tổng tích luỹ */
 .total-row {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin: 0 0 12px; padding: 8px 14px;
+  /* Lề TRÊN: ván nhiều người thì dòng này đứng ngay dưới bảng xếp hạng, thiếu
+     lề là dính sát như lỗi (chủ dự án báo). Ván một mình thì lề dưới của khối
+     điểm phía trên gộp với lề này, không bị hở gấp đôi. */
+  margin: 10px 0 12px; padding: 8px 14px;
   border: 1px solid var(--line); border-radius: var(--r-md);
   font-size: var(--text-sm); color: var(--muted);
   transition: border-color .25s ease, background .25s ease;

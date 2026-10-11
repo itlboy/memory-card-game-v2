@@ -128,8 +128,6 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
         <b>v{{ version }}</b> · build {{ builtAt }}
         <span class="ago">({{ ago }})</span>
       </p>
-      <!-- Ghi công bắt buộc: mặt Bot rồng thần là hình 🐉 Twemoji (CC-BY 4.0) đổi màu. -->
-      <p class="build">Mặt rồng thần: Twemoji · CC-BY 4.0</p>
 
       <!-- DƯỚI CÙNG, sau cả số bản dựng: đây là công cụ soi lỗi, không phải một
            tính năng chơi. Đặt cạnh số bản dựng vì hai thứ luôn được hỏi cùng
@@ -138,7 +136,13 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
         class="nut-do" type="button"
         :aria-pressed="props.debug ? 'true' : 'false'"
         @click="emit('update:debug', !props.debug)"
-      >{{ props.debug ? '● Đang đo nhịp — bấm để tắt' : 'Bật bảng đo nhịp' }}</button>
+      >{{ props.debug ? '● Chế độ debug đang bật — bấm để tắt' : 'Bật chế độ debug' }}</button>
+      <!--
+        GHI CÔNG CC-BY 4.0 — giấy phép BẮT BUỘC ghi công nên không xoá hẳn được.
+        Chủ dự án yêu cầu bỏ khỏi màn thường (11.10.2026: "đừng hiển thị nhiều
+        gây rối"), nên chỉ hiện trong chế độ debug, và có thêm `/credits.txt`.
+      -->
+      <p v-if="props.debug" class="build">Hình mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0, đã đổi màu</p>
     </div>
   </div>
 </template>
