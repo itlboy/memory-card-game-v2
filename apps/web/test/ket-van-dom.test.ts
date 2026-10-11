@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { effectScope, nextTick, type EffectScope } from 'vue';
 import OnlineGame from '@/components/OnlineGame.vue';
+import { HIEN_BANG_MS } from '@/lib/ketcuc-fx';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
 
 class FakeWS {
@@ -69,36 +70,25 @@ async function vaoVanRoiKetThuc(winnerId: string) {
 }
 
 describe('kết ván online trên DOM thật', () => {
-  it('THẮNG: pháo hoa, không có tro; bảng hiện ở 2,2 giây', async () => {
+  it('THẮNG: cảnh chiến thắng, bảng hiện đúng mốc của cảnh', async () => {
     const w = await vaoVanRoiKetThuc('p1');
-    // Một component cho ba kết cục, phân biệt bằng `data-loai`.
-    expect(w.find('.ketcuc-fx[data-loai="thang"]').exists(), 'thắng phải có màn ăn mừng').toBe(true);
-    expect(w.find('.ketcuc-fx[data-loai="thua"]').exists(), 'thắng mà hiện màn thua').toBe(false);
-    expect(w.findAll('.ketcuc-fx .fx-tan').length, 'thắng mà có tro rơi').toBe(0);
-
-    // Bảng tỉ số: chưa có ở 2,1s, có ở 2,3s. Mốc cũ là 5 giây — năm giây nhìn
-    // một bàn đứng im là lâu thật, mà pháo hoa vẫn chạy tiếp phía sau bảng.
+    expect(w.find('.ketcuc-fx[data-canh="thang"]').exists(), 'thắng phải có cảnh ăn mừng').toBe(true);
+    expect(w.find('.ketcuc-fx .fx-thang').exists()).toBe(true);
+    expect(w.find('.ketcuc-fx .fx-thua').exists(), 'thắng mà hiện chữ thua').toBe(false);
     const bang = (): boolean => w.findComponent({ name: 'ResultDialog' }).exists();
-    vi.advanceTimersByTime(2100); await nextTick(); await nextTick();
+    vi.advanceTimersByTime(HIEN_BANG_MS.thang - 100); await nextTick(); await nextTick();
     expect(bang(), 'hiện sớm quá thì cướp mất khoảnh khắc ăn mừng').toBe(false);
     vi.advanceTimersByTime(300); await nextTick(); await nextTick();
-    expect(bang(), 'quá 2,4 giây mà bảng tỉ số chưa hiện').toBe(true);
+    expect(bang()).toBe(true);
   });
 
-  it('THUA: tro rơi và nền tối, KHÔNG có pháo hoa; bảng hiện sớm hơn bên thắng', async () => {
+  it('THUA: cảnh thua (chữ THUA RỒI + dòng an ủi), KHÔNG có chữ thắng', async () => {
     const w = await vaoVanRoiKetThuc('p2');
-    vi.advanceTimersByTime(1200); await nextTick(); await nextTick();
-    expect(w.findComponent({ name: 'ResultDialog' }).exists(),
-      'người thua không có gì để xem, đừng bắt chờ lâu bằng người thắng').toBe(true);
-    expect(w.find('.ketcuc-fx[data-loai="thua"]').exists(), 'thua phải có màn riêng').toBe(true);
-    expect(w.find('.ketcuc-fx[data-loai="thang"]').exists(), 'thua mà bắn pháo hoa').toBe(false);
-    expect(w.findAll('.ketcuc-fx .fx-giay').length, 'confetti lọt vào màn thua').toBe(0);
-    // Bốn hình thua đều có tro; hai lớp nền thì mọi hình thua đều mang.
-    expect(w.findAll('.ketcuc-fx .fx-tan').length, 'phải có hạt tro').toBeGreaterThan(10);
-    expect(w.find('.ketcuc-fx .fx-toi').exists(), 'phải có lớp tối dần').toBe(true);
-    expect(
-      w.find('.ketcuc-fx .fx-xam').exists() || w.find('.ketcuc-fx .fx-nhoe').exists(),
-      'phải có lớp rút màu — thứ làm hình thua đọc ra ngay'
-    ).toBe(true);
+    expect(w.find('.ketcuc-fx[data-canh="thua"]').exists(), 'thua phải có cảnh riêng').toBe(true);
+    expect(w.find('.ketcuc-fx .fx-thua').exists()).toBe(true);
+    expect(w.find('.ketcuc-fx .fx-an-ui').text()).toMatch(/Làm lại nhé/);
+    expect(w.find('.ketcuc-fx .fx-thang').exists(), 'thua mà hiện CHIẾN THẮNG').toBe(false);
+    vi.advanceTimersByTime(HIEN_BANG_MS.thua + 100); await nextTick(); await nextTick();
+    expect(w.findComponent({ name: 'ResultDialog' }).exists()).toBe(true);
   });
 });

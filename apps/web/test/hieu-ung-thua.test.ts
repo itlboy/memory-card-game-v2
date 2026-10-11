@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame, isDraw } from '@mm/engine';
-import { HIEU_UNG, TOI_THIEU_MOI_LOAI, bocHieuUng, hieuUngCua } from '@/lib/ketcuc-fx';
+import { BOT_SPECS } from '@mm/engine';
+import { CAU_TREU, HIEN_BANG_MS, TEN_CANH, chonCanh } from '@/lib/ketcuc-fx';
 import type { Summary } from '@mm/engine';
 
 /**
@@ -101,58 +102,46 @@ describe('mã nguồn giữ đúng luật', () => {
   });
 });
 
-describe('sổ đăng ký hiệu ứng', () => {
-  it(`mỗi loại có ít nhất ${TOI_THIEU_MOI_LOAI} hình`, () => {
-    for (const loai of ['thang', 'thua', 'hoa'] as const) {
-      expect(hieuUngCua(loai).length, `loại ${loai} quá ít hình, chơi vài ván là thấy lặp`)
-        .toBeGreaterThanOrEqual(TOI_THIEU_MOI_LOAI);
+describe('sổ cảnh kết ván (bộ mới 11.10.2026)', () => {
+  const css = readFileSync(resolve(process.cwd(), 'src/styles/ketcuc-fx.css'), 'utf8');
+  const vue = readFileSync(resolve(process.cwd(), 'src/components/KetCucFx.vue'), 'utf8');
+
+  it('mỗi tình huống ra đúng một cảnh; hoà KHÔNG rơi vào nhánh thua', () => {
+    expect(chonCanh('thang')).toBe('thang');
+    expect(chonCanh('thang', { kyLuc: true })).toBe('ky-luc');
+    expect(chonCanh('thua')).toBe('thua');
+    expect(chonCanh('thua', { matMay: '🐯' })).toBe('thua-may');
+    expect(chonCanh('hoa', { matMay: '🐯', kyLuc: true })).toBe('hoa');
+  });
+
+  it('mọi cảnh có tên và mốc hiện bảng kết quả trong khoảng 2–3 giây', () => {
+    for (const c of Object.keys(TEN_CANH) as (keyof typeof TEN_CANH)[]) {
+      expect(HIEN_BANG_MS[c], c).toBeGreaterThanOrEqual(1800);
+      expect(HIEN_BANG_MS[c], `${c}: người chơi chờ bảng tỉ số quá lâu`).toBeLessThanOrEqual(3000);
     }
   });
 
-  it('id không trùng nhau', () => {
-    const ids = HIEU_UNG.map((h) => h.id);
-    expect(new Set(ids).size).toBe(ids.length);
+  it('mọi lớp mà component dựng đều có CSS (thiếu = cảnh vô hình)', () => {
+    const lop = [...vue.matchAll(/class="([^"]+)"/g)].flatMap((m) => m[1]!.split(/\s+/)).filter((c) => c.startsWith('fx-'));
+    expect(lop.length).toBeGreaterThan(5);
+    for (const c of lop) expect(css, c).toContain(`.${c}`);
   });
 
-  it('mọi lớp mà sổ khai đều có CSS', () => {
-    const css = readFileSync(resolve(process.cwd(), 'src/styles/ketcuc-fx.css'), 'utf8');
-    const thieu: string[] = [];
-    for (const h of HIEU_UNG) {
-      const nhin = (ds: { lop: string; con?: { lop: string }[] }[]): void => {
-        for (const l of ds) {
-          for (const cl of l.lop.split(' ')) if (!css.includes(`.${cl}`)) thieu.push(`${h.id}: ${cl}`);
-          if (l.con) nhin(l.con);
-        }
-      };
-      nhin(h.dung(7) as { lop: string; con?: { lop: string }[] }[]);
-    }
-    expect(thieu, 'lớp không có CSS = hiệu ứng vô hình').toEqual([]);
+  it('mọi mức máy có câu trêu riêng', () => {
+    for (const spec of Object.values(BOT_SPECS)) expect(CAU_TREU[spec.avatar], spec.name).toBeTruthy();
   });
 
   it('lớp hiệu ứng nằm DƯỚI hộp kết quả', () => {
     // Lỗi đã xảy ra thật (có ảnh): lớp xám + vết rạn phủ lên cả bảng tỉ số.
-    const css = readFileSync(resolve(process.cwd(), 'src/styles/ketcuc-fx.css'), 'utf8');
     const dialog = readFileSync(resolve(process.cwd(), 'src/components/ResultDialog.vue'), 'utf8');
     const zFx = Number(/\.ketcuc-fx \{[\s\S]*?z-index: (\d+)/.exec(css)![1]);
     const zHop = Number(/position: fixed; inset: 0; z-index: (\d+)/.exec(dialog)![1]);
-    expect(zFx, 'hiệu ứng đè lên bảng tỉ số thì không ai đọc được kết quả')
-      .toBeLessThan(zHop);
+    expect(zFx, 'hiệu ứng đè lên bảng tỉ số thì không ai đọc được kết quả').toBeLessThan(zHop);
   });
 
-  it('bốc theo SEED nên tất định — F5 không đổi hình', () => {
-    for (const loai of ['thang', 'thua', 'hoa'] as const) {
-      for (let seed = 0; seed < 200; seed++) {
-        expect(bocHieuUng(loai, seed).id).toBe(bocHieuUng(loai, seed).id);
-        expect(bocHieuUng(loai, seed).loai).toBe(loai);
-      }
-    }
-  });
-
-  it('mọi hình đều bốc được ra — không có hình chết', () => {
-    for (const loai of ['thang', 'thua', 'hoa'] as const) {
-      const thay = new Set(Array.from({ length: 4000 }, (_, s) => bocHieuUng(loai, s).id));
-      expect(thay.size, `loại ${loai} có hình không bao giờ xuất hiện`)
-        .toBe(hieuUngCua(loai).length);
-    }
+  it('lá bài chỉ được động bằng translate/rotate/scale RIÊNG, không ghi đè transform (lộ bài)', () => {
+    const so = readFileSync(resolve(process.cwd(), 'src/lib/ketcuc-fx.ts'), 'utf8');
+    const khoiLa = so.slice(so.indexOf('export function chayCanh'));
+    expect(khoiLa).not.toMatch(/\{\s*transform:/);
   });
 });

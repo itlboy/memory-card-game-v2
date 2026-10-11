@@ -29,11 +29,12 @@ watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import {
-  ACHIEVEMENTS, daCo, earned, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
+  ACHIEVEMENTS, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
   type Achievement
 } from './lib/achievements';
 import DanhHieuDialog from './components/DanhHieuDialog.vue';
-import MoKhoaToast from './components/MoKhoaToast.vue';
+import MoKhoaFx from './components/MoKhoaFx.vue';
+import { HIEN_BANG_MS, chonCanh } from './lib/ketcuc-fx';
 import { DEFAULT_OPTIONS } from '@mm/engine';
 import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
@@ -159,6 +160,16 @@ const thongKe = computed(() => { void progressRev.value; return thongKeHienTai(t
 const themeKhoa = computed(() => Object.fromEntries(
   themes.value.filter((t) => t.unlockAt > totalScore.value).map((t) => [t.id, t.unlockAt])));
 const goiYVan = ref<Achievement | null>(null);
+/**
+ * Mặt máy vừa THẮNG mình — cảnh "máy trêu". Đọc từ BẢNG XẾP HẠNG, không từ cờ
+ * botLevel (cờ tắt được giữa ván, cùng lý do chỗ xét thắng/thua đọc bảng).
+ */
+const matMay = computed(() => {
+  const r = session.summary.value?.ranking[0];
+  return session.loaiKetCuc.value === 'thua' && r?.id === 'bot' ? (r.avatar ?? null) : null;
+});
+/** Cảnh kết ván của ván vừa xong — quyết định lúc nào bảng kết quả hiện. */
+const canhVan = () => chonCanh(session.loaiKetCuc.value, { kyLuc: isRecord.value, matMay: matMay.value });
 
 /**
  * "CHINH PHỤC" một danh hiệu từ màn Tài khoản: dựng đúng bàn cần cho nó rồi
@@ -473,7 +484,6 @@ watch(session.summary, (s) => {
   // Thắng: để pháo hoa + vỗ tay chiếm sóng 5 giây rồi popup mới vào
   // Cùng lý do với bản online (OnlineGame.vue): 5 giây nhìn bàn đứng im là lâu
   // thật, mà hiệu ứng vẫn chạy tiếp phía sau bảng nên rút xuống không mất gì.
-  resultTimer = setTimeout(() => { showResult.value = true; }, s.status === 'won' ? 2200 : 1000);
 
   const player = game.players[0]!;
   if (!game.isMultiplayer) {
@@ -499,7 +509,7 @@ watch(session.summary, (s) => {
       themeIds: themeIds.value, timeLimit: game.config.timeLimit ?? null, gio: new Date().getHours(),
       thongKe: thongKeHienTai(taiKhoanMe.value?.wins ?? 0)
     });
-    freshAchievements.value = moKhoa(dat);
+    freshAchievements.value = moKhoa(dat, { treMs: HIEN_BANG_MS[canhVan()] + 400 });
     // Có tài khoản thì ván này đi lên sổ của người chơi — một lần, ở đây.
     void taiKhoan.ghiVan({
       ketQua: s.status === 'won' ? 'thang' : 'thua', score: s.score,
@@ -540,7 +550,7 @@ watch(session.summary, (s) => {
         themeIds: themeIds.value, timeLimit: game.config.timeLimit ?? null, gio: new Date().getHours(),
         thongKe: thongKeHienTai(taiKhoanMe.value?.wins ?? 0)
       });
-      freshAchievements.value = moKhoa(dat);
+      freshAchievements.value = moKhoa(dat, { treMs: HIEN_BANG_MS[canhVan()] + 400 });
       void taiKhoan.ghiVan({
         ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi, achievements: dat
       });
@@ -554,6 +564,9 @@ watch(session.summary, (s) => {
   totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
   progressRev.value++;
+  // Bảng kết quả vào khi phần chính của cảnh đã chạy xong. Đặt SAU khi biết kỷ
+  // lục (isRecord) vì cảnh kỷ lục dài hơn cảnh thắng thường.
+  resultTimer = setTimeout(() => { showResult.value = true; }, HIEN_BANG_MS[canhVan()]);
   // Gợi ý tính SAU khi đã cộng ván này (điểm, bộ đếm, danh hiệu vừa mở)
   goiYVan.value = game.isMultiplayer && !botLevel.value
     ? null
@@ -583,7 +596,7 @@ const hasNext = computed(() => {
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
     :rung="rungBat" :co-rung="rung.coTheRung()"
-    :danh-hieu="{ co: daCo.length, tong: ACHIEVEMENTS.length }"
+    :danh-hieu="{ co: Math.max(0, daCo.length - vuaMo.length - dangKhoe), tong: ACHIEVEMENTS.length }"
     @danh-hieu="showDanhHieu = true"
     @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
@@ -680,7 +693,7 @@ const hasNext = computed(() => {
     v-if="showDanhHieu" :da-co="daCoSet" :tk="thongKe" :theme-khoa="themeKhoa"
     @close="showDanhHieu = false" @chinh-phuc="chinhPhuc"
   />
-  <MoKhoaToast />
+  <MoKhoaFx />
 
   <RulesDialog
     v-if="showRules" :debug="debug"
@@ -707,6 +720,8 @@ const hasNext = computed(() => {
     v-if="session.summary.value && screen === 'game'"
     :loai="session.loaiKetCuc.value"
     :seed="session.game.value?.config.seed"
+    :ky-luc="isRecord"
+    :mat-may="matMay"
   />
 
   <ResultDialog

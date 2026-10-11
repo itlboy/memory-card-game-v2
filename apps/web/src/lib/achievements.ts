@@ -2,6 +2,7 @@ import { BOARD_SIZES } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
 import { ref } from 'vue';
 import { store } from './storage';
+import type { BacDanhHieu } from './ketcuc-fx';
 
 /**
  * SỔ DANH HIỆU — 103 mục, 12 nhóm (mở rộng 11.10.2026).
@@ -75,6 +76,8 @@ export interface Achievement {
   chinhPhuc?: ChinhPhuc;
   tienDo?: (tk: ThongKe) => [number, number];
   biMat?: true;
+  /** Bậc huy hiệu — gán ở `bacCua()` theo độ khó, không khai tay từng mục. */
+  bac?: BacDanhHieu;
 }
 
 /** 24 theme — PHẢI khớp themes.json (test canh). */
@@ -179,6 +182,25 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'kien-tri', nhom: 'bi-mat', biMat: true, name: 'Kiên trì', hint: 'Thắng một ván dù đã lật sai từ 20 lần' },
   { id: 'ngang-tai', nhom: 'bi-mat', biMat: true, name: 'Kỳ phùng địch thủ', hint: 'Hoà một ván' }
 ];
+
+/**
+ * BẬC HUY HIỆU theo độ khó: Đồng · Bạc · Vàng · Bí mật. Một chỗ quyết định,
+ * suy từ id, để thêm danh hiệu mới không phải nhớ khai bậc.
+ */
+const VANG = new Set(['board-72', 'board-88', 'combo-12', 'hell-mode', 'bot-divine', 'divine-56', 'divine-88',
+  'wins-500', 'score-10m', 'campaign-50', 'stars3-50', 'online-50', 'days-30',
+  'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88']);
+const BAC = new Set(['board-36', 'board-42', 'board-56', 'combo-8', 'combo-10', 'iron-man', 'time-rush', 'shuffle-master',
+  'bot-hard', 'bot-insane', 'bot-wins-10', 'wins-50', 'wins-100', 'score-100k', 'score-1m',
+  'campaign-25', 'campaign-30', 'campaign-35', 'campaign-40', 'campaign-45', 'stars3-10', 'stars3-25',
+  'online-10', 'online-big', 'days-7', 'perfect-20', 'perfect-24', 'perfect-30', 'perfect-36', 'lightspeed']);
+export function bacCua(a: Achievement): BacDanhHieu {
+  if (a.biMat) return 'bi-mat';
+  if (VANG.has(a.id)) return 'vang';
+  if (BAC.has(a.id)) return 'bac';
+  return 'dong';
+}
+for (const a of ACHIEVEMENTS) a.bac = bacCua(a);
 
 export interface AchievementContext {
   summary: Summary;
@@ -290,18 +312,28 @@ const docDaCo = (): string[] => store.achievements().filter((id) => ID_SO.has(id
 
 /** Danh hiệu đã có (chỉ id có trong sổ) — reactive, cho viên 🏅 và các màn. */
 export const daCo = ref<string[]>(docDaCo());
-/** Hàng đợi danh hiệu vừa mở, để `MoKhoaToast` khoe từng cái. */
-export const vuaMo = ref<{ id: string; key: number }[]>([]);
+/** Hàng đợi danh hiệu vừa mở, để `MoKhoaFx` khoe từng cái. `luc`: không khoe
+ *  trước mốc này (performance.now) — để cảnh kết ván chạy xong đã. */
+export const vuaMo = ref<{ id: string; key: number; luc: number }[]>([]);
 let khoa = 0;
+/** Số huy hiệu ĐANG bay (0/1). Viên 🏅 trừ cả hàng đợi lẫn cái đang bay, nên
+ *  số trên viên chỉ nhích lên ĐÚNG LÚC huy hiệu chạm vào nó. */
+export const dangKhoe = ref(0);
 
 /**
  * CỬA DUY NHẤT để mở danh hiệu (thay vì gọi thẳng store). Trả về id MỚI.
  * `im`: đồng bộ từ tài khoản thì không khoe — người chơi không vừa làm gì.
  */
-export function moKhoa(ids: string[], { im = false } = {}): string[] {
+export function moKhoa(ids: string[], { im = false, treMs = 0 } = {}): string[] {
   const moi = store.unlockAchievements(ids.filter((id) => ID_SO.has(id)));
   daCo.value = docDaCo();
-  if (!im) for (const id of moi) vuaMo.value = [...vuaMo.value, { id, key: ++khoa }];
+  if (!im) {
+    const luc = (typeof performance === 'undefined' ? 0 : performance.now()) + treMs;
+    // Bậc cao khoe TRƯỚC: một ván mở năm danh hiệu thì cái đáng giá nhất không bị chôn cuối hàng
+    const thu = { 'bi-mat': 0, vang: 1, bac: 2, dong: 3 } as const;
+    const xep = [...moi].sort((a, b) => thu[byId(a)?.bac ?? 'dong'] - thu[byId(b)?.bac ?? 'dong']);
+    vuaMo.value = [...vuaMo.value, ...xep.map((id) => ({ id, key: ++khoa, luc }))];
+  }
   return moi;
 }
 

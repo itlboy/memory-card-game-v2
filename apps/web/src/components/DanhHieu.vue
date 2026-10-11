@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Achievement, ThongKe } from '@/lib/achievements';
 import { num } from '@/lib/format';
+import { MAU_BAC } from '@/lib/ketcuc-fx';
 
 /**
  * Danh sách danh hiệu của MỘT nhóm. Đã có thì sáng; chưa có thì mờ, kèm thanh
@@ -21,7 +22,12 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
 <template>
   <ul class="danh-hieu">
     <li v-for="a in ds" :key="a.id" :class="{ co: daCo.has(a.id) }">
-      <span class="huy" aria-hidden="true">{{ daCo.has(a.id) ? '🏅' : a.biMat ? '❓' : '🔒' }}</span>
+      <!-- Huy hiệu tròn mang MÀU BẬC, cùng bảng màu với cảnh mở khoá (MoKhoaFx) -->
+      <span
+        class="huy" :class="{ khoa: !daCo.has(a.id) }" :title="MAU_BAC[a.bac ?? 'dong'].ten"
+        :style="{ background: `linear-gradient(135deg, ${MAU_BAC[a.bac ?? 'dong'].a}, ${MAU_BAC[a.bac ?? 'dong'].b})` }"
+        aria-hidden="true"
+      >{{ daCo.has(a.id) ? '★' : a.biMat ? '?' : '' }}</span>
       <span class="chu">
         <b>{{ a.biMat && !daCo.has(a.id) ? 'Danh hiệu bí mật' : a.name }}</b><br>
         <small>{{ a.biMat && !daCo.has(a.id) ? 'Cứ chơi đi, sẽ có lúc lộ ra' : a.hint }}</small>
@@ -51,7 +57,13 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
 }
 .danh-hieu li:not(.co) .huy, .danh-hieu li:not(.co) .chu > b, .danh-hieu li:not(.co) .chu > small { opacity: .62; }
 .danh-hieu li.co { background: color-mix(in srgb, var(--warn) 14%, transparent); }
-.huy { font-size: 22px; flex: 0 0 auto; }
+.huy {
+  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 15px; font-weight: 800; color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .45); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .45);
+}
+/* Chưa có: vẫn thấy màu bậc (biết đây là danh hiệu vàng hay đồng) nhưng mờ hẳn */
+.huy.khoa { filter: grayscale(.55) brightness(.75); opacity: .55; }
 .chu { flex: 1; min-width: 0; }
 .chu small { color: var(--muted); }
 .tien-do {

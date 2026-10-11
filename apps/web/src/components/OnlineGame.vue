@@ -3,7 +3,7 @@ import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
 import { taiKhoan } from '@/lib/taikhoan';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
-import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
+import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -256,7 +256,7 @@ watch(() => o.view.value?.summary, (s) => {
     soNguoi: s.ranking.length, themeIds: cfg?.themeIds, gio: new Date().getHours(),
     thongKe: thongKeHienTai(taiKhoan.me.value?.wins ?? 0)
   });
-  moKhoa(dat);
+  moKhoa(dat, { treMs: HIEN_BANG_MS[chonCanh(loaiKetCuc.value)] + 400 });
   void taiKhoan.ghiVan({
     ketQua: loaiKetCuc.value, score: s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0,
     achievements: dat
@@ -267,7 +267,7 @@ watch(() => o.view.value?.summary, (s) => {
    * đứng im là lâu thật. Hiệu ứng vẫn chạy tiếp phía sau bảng, nên rút xuống
    * không mất gì. Người thua sớm hơn nữa: họ không có gì để xem.
    */
-  resultTimer = setTimeout(() => { showResult.value = true; }, iWon.value ? 2200 : 1100);
+  resultTimer = setTimeout(() => { showResult.value = true; }, HIEN_BANG_MS[chonCanh(loaiKetCuc.value)]);
 });
 </script>
 

@@ -158,8 +158,59 @@ for (const [ten, w, h] of MAY) {
   ok(kqv, `${ten}: chơi hết ván, bảng kết quả hiện`);
   ok(kqv && kqv.ngoaiMan.length === 0, `${ten}: mọi nút bảng kết quả nằm trong màn hình${kqv?.ngoaiMan.length ? ' — RA NGOÀI: ' + kqv.ngoaiMan.join(', ') : ''}`);
   ok(kqv && kqv.coGoiY && kqv.gyTren, `${ten}: có gợi ý danh hiệu kế tiếp ("${kqv?.goiY}") và nút Chinh phục bấm được`);
-  const huy = await js(`document.querySelector('header .dh b')?.textContent`);
-  ok(/^[1-9]\d*\//.test(huy ?? ''), `${ten}: viên 🏅 cộng lên sau ván (${huy})`);
+  const canh = await js(`document.querySelector('.ketcuc-fx')?.dataset.canh ?? null`);
+  ok(canh === 'thang' || canh === 'ky-luc', `${ten}: cảnh kết ván là chiến thắng (${canh})`);
+  const chu = await js(`(() => { const e = document.querySelector('.ketcuc-fx .fx-thang'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; })()`);
+  ok(chu && chu.l >= -1 && chu.r <= w + 1 && chu.t >= 0, `${ten}: chữ CHIẾN THẮNG nằm trong màn hình (${chu && chu.l.toFixed(0) + '..' + chu.r.toFixed(0)})`);
+  // Lá đã ghép phải vẫn NGỬA: cảnh chỉ được động bằng scale/translate riêng
+  const lat = await js(`[...document.querySelectorAll('.board button.card')].filter((c) => !c.classList.contains('up') && !c.classList.contains('done')).length`);
+  ok(lat === 0, `${ten}: cảnh thắng không lật úp lá nào (${lat} lá sai)`);
+  // Huy hiệu bay vào viên 🏅 sau khi bảng hiện; số trên viên nhích lên lúc chạm
+  let thayHuy = false, huy = '';
+  for (let i = 0; i < 40; i++) {
+    if (await js(`!!document.querySelector('.mk-huy')`)) thayHuy = true;
+    huy = await js(`document.querySelector('header .dh b')?.textContent ?? ''`);
+    if (thayHuy && /^[1-9]/.test(huy)) break;
+    await cho(250);
+  }
+  ok(thayHuy, `${ten}: cảnh huy hiệu mở khoá có hiện`);
+  ok(/^[1-9]\d*\//.test(huy), `${ten}: viên 🏅 cộng lên sau khi huy hiệu bay vào (${huy})`);
+
+}
+
+/* ---------- một ván THUA thật (hết giờ) trên SE ---------- */
+{
+  const [ten, w, h] = MAY[0];
+  await goi('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 3, mobile: true });
+  await js('localStorage.clear(); sessionStorage.clear(); true');
+  await goi('Page.navigate', { url: URL_APP + '?cb=' + Date.now() });
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('header .dh')`)); i++) await cho(250);
+  await js(`document.querySelector('header .dh').click()`); await cho(300);
+  const vao = await js(`(() => { const b = document.querySelector('[aria-label="Chinh phục: Chạy đua với giờ"]'); if (!b) return false; b.click(); return true; })()`);
+  ok(vao, `${ten}: vào ván đồng hồ Nhanh để thua thật`);
+  let canh = null;
+  for (let i = 0; i < 160 && !canh; i++) { canh = await js(`document.querySelector('.ketcuc-fx')?.dataset.canh ?? null`); if (!canh) await cho(500); }
+  ok(canh === 'thua', `${ten}: hết giờ ra cảnh THUA (${canh})`);
+  await cho(1600);
+  const t = await js(`(() => {
+    const c = document.querySelector('.ketcuc-fx .fx-thua')?.getBoundingClientRect();
+    const ds = [...document.querySelectorAll('.board button.card:not(.done)')];
+    return { chu: c ? { l: c.left, r: c.right, t: c.top, b: c.bottom } : null,
+      roi: ds.filter((x) => x.getBoundingClientRect().top > innerHeight).length, tong: ds.length,
+      lo: ds.filter((x) => x.classList.contains('up')).length,
+      anUi: document.querySelector('.ketcuc-fx .fx-an-ui')?.textContent };
+  })()`);
+  ok(t.chu && t.chu.t >= 0 && t.chu.b <= h && t.chu.l >= -1 && t.chu.r <= w + 1, `${ten}: chữ THUA RỒI nằm trong màn hình`);
+  ok(t.tong > 0 && t.roi === t.tong, `${ten}: ${t.roi}/${t.tong} lá chưa ghép đã rơi khỏi màn`);
+  ok(t.lo === 0, `${ten}: lá rơi vẫn ÚP, không lộ mặt (${t.lo} lá ngửa)`);
+  ok(/cặp nữa thôi|Suýt nữa/.test(t.anUi ?? ''), `${ten}: dòng an ủi: "${t.anUi}"`);
+  await cho(1200);
+  ok(await js(`!!document.querySelector('[aria-labelledby="resTitle"]')`), `${ten}: bảng kết quả hiện sau cảnh thua`);
+  // Bấm Chơi lại: lá phải về chỗ cũ (dọn cảnh huỷ animation rơi)
+  await js(`[...document.querySelectorAll('[aria-labelledby="resTitle"] button')].find((b) => /Chơi lại/.test(b.textContent))?.click()`);
+  await cho(1500);
+  const lai = await js(`[...document.querySelectorAll('.board button.card')].filter((x) => x.getBoundingClientRect().top > innerHeight).length`);
+  ok(lai === 0, `${ten}: Chơi lại thì bàn mới đủ lá, không còn lá nằm ngoài màn (${lai})`);
 }
 
 ws.close(); chrome.kill();

@@ -426,26 +426,22 @@ class Sfx {
     [660, 830, 990].forEach((f) => this.voice(f, { dur: 0.35, gain: 0.03 }));
   }
 
-  /** Fanfare thắng: kèn rải nhanh → chũm choẹ → hợp âm Đô trưởng chốt dày,
-   *  có bass nâng và lớp lấp lánh cao ở đuôi cho ra chất "ăn mừng arcade". */
+  /*
+   * TIẾNG KẾT VÁN — bộ mới theo mockup đã duyệt 11.10.2026
+   * (https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4). Mốc thời gian khớp
+   * với cảnh hình ở `lib/ketcuc-fx.ts`: chữ CHIẾN THẮNG đập ở ~0,35s.
+   */
+
+  /** HOÀ: hai nốt vang cùng lúc thành quãng năm đúng (cân bằng, không buồn
+   *  không vui) đúng lúc hai nửa màn chạm nhau, rồi hợp âm trưởng nhẹ. */
   win(): void {
-    // Rải kèn C–E–G–C rồi vống lên D–G cao: câu nhạc có hướng đi lên rõ ràng
-    [523, 659, 784, 1047, 1175, 1568].forEach((f, i) =>
-      this.voice(f, { dur: 0.16, type: 'triangle', gain: 0.06, delay: i * 0.075, detune: 7 }));
-    // Bass nâng cả hợp âm — thiếu nó fanfare nghe mỏng như tiếng điện thoại
-    this.voice(131, { dur: 0.9, type: 'sawtooth', gain: 0.045, delay: 0.44 });
-    this.voice(262, { dur: 0.9, type: 'triangle', gain: 0.035, delay: 0.44 });
-    this.noise(0.6, { freq: 5000, gain: 0.05, delay: 0.42 });                 // chũm choẹ
-    // Hợp âm chốt ngân dài
-    [523, 659, 784, 1047].forEach((f) =>
-      this.voice(f, { dur: 1.1, type: 'triangle', gain: 0.032, delay: 0.46, detune: 8 }));
-    // Lấp lánh: ba nốt cao rơi xuống như bụi sao
-    [2637, 2093, 1568].forEach((f, i) =>
-      this.voice(f, { dur: 0.4, type: 'sine', gain: 0.03, delay: 0.85 + i * 0.12, detune: 4 }));
+    this.voice(392, { dur: 0.9, type: 'triangle', gain: 0.05, delay: 0.55 });
+    this.voice(587, { dur: 0.9, type: 'triangle', gain: 0.05, delay: 0.55 });
+    [523, 659, 784].forEach((f) => this.voice(f, { dur: 1, type: 'sine', gain: 0.035, delay: 1.25 }));
   }
 
   /** Tiếng vỗ tay: chuỗi "clap" = noise bandpass ngắn, nhịp ngẫu nhiên dày dần rồi thưa. */
-  applause(duration = 2.4): void {
+  applause(duration = 2.4, delay = 0): void {
     let t = 0.05;
     while (t < duration) {
       const fade = 1 - Math.max(0, (t - duration * 0.55) / (duration * 0.45));   // nhỏ dần về cuối
@@ -453,65 +449,80 @@ class Sfx {
         freq: 1400 + Math.random() * 1400,
         type: 'bandpass',
         gain: (0.02 + Math.random() * 0.035) * Math.max(0.15, fade),
-        delay: t
+        delay: delay + t
       });
       t += 0.03 + Math.random() * 0.07;   // 10–30 tiếng vỗ mỗi giây
     }
   }
 
-  /** Một quả pháo hoa: rít bay lên → nổ trầm → lách tách. */
-  /** `level` nhân vào biên độ: pháo hoa còn nổ tiếp sau khi bảng kết quả hiện
-   *  lên, nhưng phải nhỏ hẳn để không lấn tiếng bấm nút của người chơi. */
+  /** Một quả pháo hoa: nổ trầm → lách tách. */
   firework(delay = 0, level = 1): void {
-    this.voice(380, { dur: 0.55, type: 'sine', gain: 0.02 * level, delay, slideTo: 1250 });   // rít
-    this.noise(0.45, { freq: 160, type: 'lowpass', gain: 0.12 * level, delay: delay + 0.6 }); // nổ
-    this.voice(90, { dur: 0.5, type: 'sine', gain: 0.06 * level, delay: delay + 0.6, slideTo: 34 });
-    for (let i = 0; i < 9; i++) {                                                            // lách tách
-      this.noise(0.03, { freq: 5200 + Math.random() * 2500, gain: 0.02 * level, delay: delay + 0.72 + i * 0.05 + Math.random() * 0.03 });
+    this.noise(0.4, { freq: 140, type: 'lowpass', gain: 0.16 * level, delay });
+    this.voice(90, { dur: 0.5, type: 'sine', gain: 0.06 * level, delay, slideTo: 34 });
+    for (let i = 0; i < 8; i++) {
+      this.noise(0.03, { freq: 5200 + Math.random() * 2500, gain: 0.02 * level, delay: delay + 0.1 + i * 0.04 + Math.random() * 0.03 });
     }
   }
 
-  /** Đại tiệc chiến thắng: fanfare + vỗ tay + 5 quả pháo hoa so le, khớp với
-   *  5 giây hiệu ứng hình trước khi popup kết quả hiện ra. */
+  /** THẮNG: kèn ba nốt đi lên + hợp âm trưởng ngân dài đúng lúc chữ đập,
+   *  chũm choẹ, hai tiếng "bụp" của hai ống pháo giấy, vỗ tay nền. */
   victory(): void {
-    this.win();
-    this.applause(3.4);
-    for (const t of [0.2, 0.85, 1.45, 2.2, 2.9]) this.firework(t);
+    const T = 0.35;                                  // khớp lúc chữ CHIẾN THẮNG đập
+    this.noise(0.5, { freq: 5000, gain: 0.06, delay: T });                         // chũm choẹ
+    this.noise(0.25, { freq: 160, type: 'lowpass', gain: 0.2, delay: T + 0.02 });  // ống pháo trái
+    this.noise(0.25, { freq: 160, type: 'lowpass', gain: 0.16, delay: T + 0.12 }); // ống pháo phải
+    [523, 659, 784].forEach((f, i) => this.voice(f, { dur: 0.3, type: 'sawtooth', gain: 0.045, delay: T + i * 0.12 }));
+    [523, 659, 784, 1047].forEach((f) => this.voice(f, { dur: 1.4, type: 'sawtooth', gain: 0.03, delay: T + 0.36 }));
+    [262, 392].forEach((f) => this.voice(f, { dur: 1.4, type: 'triangle', gain: 0.055, delay: T + 0.36 }));
+    this.applause(2, T + 0.15);
   }
 
-  /** Thua: câu nhạc buồn — giai điệu La thứ đi xuống trên nền hợp âm Rê thứ,
-   *  nốt cuối tụt cao độ như tiếng thở dài. Dùng chung cho mọi kiểu thua. */
+  /** KỶ LỤC MỚI: ba quả pháo hoa trầm + hợp âm cao hơn một quãng, lúc băng
+   *  vàng vắt ngang màn (~1,5s sau khi ván xong). */
+  kyLuc(delay = 1.5): void {
+    [0, 0.14, 0.28].forEach((t) => this.firework(delay + t));
+    [784, 988, 1175, 1568].forEach((f) => this.voice(f, { dur: 1, type: 'triangle', gain: 0.035, delay: delay + 0.1 }));
+  }
+
+  /** THUA: kèn trombone buồn kiểu hài — ba nốt trượt xuống, nốt cuối rung,
+   *  rồi tiếng "bộp" khi chữ THUA RỒI chạm đất. Thua phải nghe VUI để còn
+   *  muốn bấm Chơi lại. */
   lose(): void {
-    // Giai điệu xuống dần: A–G–F–D, nốt sau nhẹ hơn nốt trước
-    const melody: [number, number][] = [[440, 0], [392, 0.34], [349, 0.68], [294, 1.02]];
-    for (const [freq, delay] of melody) {
-      this.voice(freq, { dur: 0.42, type: 'triangle', gain: 0.05, delay, detune: 9 });
+    [392, 370, 349].forEach((f, i) => this.voice(f, { dur: 0.3, type: 'sawtooth', gain: 0.05, delay: 0.1 + i * 0.32 }));
+    // Nốt cuối: rung bằng chuỗi nốt trượt ngắn (voice không có LFO)
+    for (let i = 0; i < 6; i++) {
+      this.voice(i % 2 ? 318 : 334, { dur: 0.19, type: 'sawtooth', gain: 0.045, delay: 1.06 + i * 0.16, slideTo: i % 2 ? 334 : 318 });
     }
-    // Nền hợp âm Rê thứ ngân suốt câu — cái làm nó "buồn" chứ không chỉ "sai"
-    for (const f of [147, 175, 220]) {
-      this.voice(f, { dur: 1.9, type: 'sine', gain: 0.03, delay: 0.04 });
-    }
-    // Nốt chốt tụt xuống: tiếng thở dài
-    this.voice(294, { dur: 0.9, type: 'triangle', gain: 0.045, delay: 1.42, slideTo: 196 });
-    this.noise(0.7, { freq: 400, type: 'lowpass', gain: 0.035, delay: 1.5 });
+    this.noise(0.25, { freq: 220, type: 'lowpass', gain: 0.2, delay: 1.32 });       // chữ chạm đất
   }
 
-  /** Thua khi đấu online: buồn hơn thua một mình — thêm tiếng xì xào thất vọng
-   *  và hai nốt tụt hẳn ở cuối, vì có người thắng ngay trước mắt mình. */
+  /** THUA MÁY: máy cười "he he he" (ba nốt nảy đi xuống) rồi tiếng còi đồ
+   *  chơi. Khác hẳn thua đồng hồ: có một đối thủ đang trêu mình. */
   defeat(): void {
-    this.lose();
-    // Xì xào của "khán giả" — nhiễu lọc thấp dập dềnh, vào sau giai điệu
-    for (let i = 0; i < 7; i++) {
-      this.noise(0.34 + Math.random() * 0.2, {
-        freq: 500 + Math.random() * 400,
-        type: 'lowpass',
-        gain: 0.016 + Math.random() * 0.012,
-        delay: 1.6 + i * 0.16 + Math.random() * 0.1
-      });
+    this.voice(659, { dur: 0.15, type: 'triangle', gain: 0.05 });                 // máy dọn cặp cuối
+    [0, 1, 2].forEach((i) => {
+      const f = 784 * 2 ** (-i * 2 / 12);
+      this.voice(f, { dur: 0.1, type: 'square', gain: 0.04, delay: 0.85 + i * 0.16, slideTo: f * 0.8 });
+    });
+    this.voice(1319, { dur: 0.35, type: 'square', gain: 0.028, delay: 1.5, slideTo: 659 });
+  }
+
+  /** MỞ KHOÁ DANH HIỆU: chuỗi nốt đi lên, số nốt theo bậc. Bí mật mở bằng
+   *  hợp âm thứ bí ẩn rồi giải về trưởng. */
+  moKhoa(bac: 'dong' | 'bac' | 'vang' | 'bi-mat'): void {
+    const goc = 523;
+    const chuoi = { dong: [0, 4, 7], bac: [0, 4, 7, 12], vang: [0, 4, 7, 12, 16], 'bi-mat': [0, 3, 7, 12, 16] }[bac];
+    const tre = bac === 'bi-mat' ? 0.55 : 0;
+    if (bac === 'bi-mat') [262, 311, 392].forEach((f) => this.voice(f, { dur: 0.9, type: 'sine', gain: 0.04 }));
+    chuoi.forEach((n, i) => this.voice(goc * 2 ** (n / 12), { dur: 0.5, type: 'triangle', gain: 0.06, delay: tre + i * 0.09 }));
+    if (bac === 'vang' || bac === 'bi-mat') {
+      for (let i = 0; i < 10; i++) this.voice(2093 * 2 ** (((i % 5) * 2) / 12), { dur: 0.2, type: 'sine', gain: 0.018, delay: 0.5 + i * 0.05 });
     }
-    // Hai nốt cuối trượt sâu — hết hy vọng
-    this.voice(233, { dur: 1.0, type: 'triangle', gain: 0.04, delay: 2.3, slideTo: 147 });
-    this.voice(117, { dur: 1.3, type: 'sine', gain: 0.045, delay: 2.5, slideTo: 82 });
+  }
+
+  /** "Đinh" nhỏ khi huy hiệu chạm viên 🏅 trên thanh trên. */
+  dinh(): void {
+    this.voice(2093, { dur: 0.25, type: 'sine', gain: 0.05 });
   }
 
   /** Từng ngôi sao hiện ra trong dialog kết quả. */
