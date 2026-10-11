@@ -209,7 +209,10 @@ describe('luồng trọn ván', () => {
     await pickMode('Cổ điển');
     await start();
     await winGame(true);
-    expect(wrapper.text()).toContain('Hoàn thành');
+    // Ván đã xong và có danh hiệu mở (chữ "Hoàn thành" cũ nằm trong MÔ TẢ danh
+    // hiệu, nay bảng kết quả chỉ in tên)
+    expect(wrapper.text()).toContain('Bạn đã mở hết các cặp');
+    expect(wrapper.find('.achievements').exists()).toBe(true);
     // Soi đúng danh sách VỪA MỞ — tên danh hiệu còn có thể nằm ở dòng gợi ý "Chinh phục"
     expect(wrapper.find('.achievements').text()).not.toContain('Trí nhớ siêu phàm');
   });
