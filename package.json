@@ -33,7 +33,8 @@
     "smoke:guilai": "node tools/smoke-guilai.mjs",
     "smoke:kick": "node tools/smoke-kick.mjs",
     "smoke:taikhoan": "node tools/smoke-taikhoan.mjs",
-    "do:menu": "node tools/do-menu-tren.mjs"
+    "do:menu": "node tools/do-menu-tren.mjs",
+    "do:ngon-ngu": "node tools/do-ngon-ngu.mjs"
   },
   "packageManager": "pnpm@10.0.0"
 }

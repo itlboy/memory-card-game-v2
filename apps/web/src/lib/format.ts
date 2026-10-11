@@ -1,3 +1,4 @@
+import { bcp, ngonNgu } from './i18n';
 export const clock = (seconds: number): string => {
   const s = Math.max(0, Math.floor(seconds));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -7,7 +8,8 @@ export const starText = (n: number): string => '★'.repeat(n) + '☆'.repeat(3 
 
 /** Điểm có dấu phân nhóm: "12.480" dễ đọc hơn "12480" khi điểm lên vạn.
  *  Dùng dấu chấm theo quy ước tiếng Việt. */
-export const num = (n: number): string => Math.round(n).toLocaleString('vi-VN');
+/** Số theo ngôn ngữ đang chọn: "1.370" (vi, de…), "1,370" (en, ja…), "1 370" (fr, ru). */
+export const num = (n: number): string => Math.round(n).toLocaleString(bcp());
 
 /**
  * Số gọn cho chỗ hẹp: 90.000 → "90k", 1.250.000 → "1,3tr".
@@ -19,9 +21,10 @@ export const num = (n: number): string => Math.round(n).toLocaleString('vi-VN');
  */
 export const numShort = (n: number): string => {
   const v = Math.round(n);
-  if (v < 10_000) return v.toLocaleString('vi-VN');
+  if (v < 10_000) return v.toLocaleString(bcp());
   if (v < 1_000_000) return `${Math.round(v / 1000)}k`;
-  return `${(v / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}tr`;
+  // "tr" (triệu) chỉ người Việt hiểu; ngôn ngữ khác dùng "M" quốc tế
+  return `${(v / 1_000_000).toLocaleString(bcp(), { maximumFractionDigits: 1 })}${ngonNgu.value === 'vi' ? 'tr' : 'M'}`;
 };
 
 /**

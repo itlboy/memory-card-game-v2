@@ -3,8 +3,7 @@ import { resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { BOT_SPECS, OPTION_KEYS } from '@mm/engine';
 import vi from '@/locales/vi';
-import en from '@/locales/en';
-import { ngonNgu, t, td } from '@/lib/i18n';
+import { TU_DIEN, ngonNgu, t, td, theoMay } from '@/lib/i18n';
 
 /**
  * CHỐNG SÓT BẢN DỊCH (chủ dự án yêu cầu 12.10.2026) — ba lớp:
@@ -14,7 +13,8 @@ import { ngonNgu, t, td } from '@/lib/i18n';
  *     Việt viết thẳng (ngoài chú thích) là đỏ — thêm chữ mới mà quên đưa vào
  *     từ điển sẽ bị bắt ngay. Dòng nào CỐ Ý giữ tiếng Việt thì ghi `i18n-bo-qua`.
  */
-const BO = { en } as const;
+/** Mọi từ điển trừ bản gốc tiếng Việt. */
+const BO = Object.fromEntries(Object.entries(TU_DIEN).filter(([k]) => k !== 'vi'));
 const thamSo = (v: string): string[] => [...v.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!).sort();
 
 describe('đối chiếu từ điển', () => {
@@ -65,6 +65,17 @@ describe('đổi ngôn ngữ', () => {
     expect(t('fx.conCap', { n: 1 })).toMatch(/1 more pair /);
     expect(t('fx.conCap', { n: 3 })).toMatch(/3 more pairs/);
     expect(td('khoa.khong.co')).toBe('khoa.khong.co');
+  });
+  it('app đoán theo máy: lấy ngôn ngữ ĐẦU TIÊN của máy mà app có, không có thì English', () => {
+    expect(theoMay(['ja-JP', 'en-US'])).toBe('ja');
+    expect(theoMay(['zh-Hans-VN'])).toBe('zh');
+    expect(theoMay(['pt-BR'])).toBe('pt');
+    expect(theoMay(['in-ID'])).toBe('id');          // Android cũ
+    expect(theoMay(['sv-SE', 'vi-VN'])).toBe('vi'); // ngôn ngữ đầu không có → lấy cái sau
+    expect(theoMay(['sv-SE'])).toBe('en');
+  });
+  it('mọi ngôn ngữ trong danh sách chọn đều có từ điển', () => {
+    expect(Object.keys(TU_DIEN).length).toBeGreaterThanOrEqual(12);
   });
 });
 

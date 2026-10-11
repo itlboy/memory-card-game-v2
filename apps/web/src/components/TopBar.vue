@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { HelpCircle, Languages, Menu, Moon, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import type { SoundLevel } from '@/lib/storage';
@@ -27,6 +27,30 @@ defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; '
  * (luật, nền, âm thanh, tài khoản) nằm trong menu thả xuống. Nút menu mang
  * AVATAR khi đã đăng nhập để nhìn là biết mình đang là ai.
  */
+/*
+ * TÊN APP KHÔNG VỪA THÌ CHỈ GIỮ BIỂU TƯỢNG. Viên điểm rộng ra sau mỗi ván và tên
+ * mỗi ngôn ngữ dài khác nhau ("Lật Thẻ" vừa, "Flip Match" thì không) — trên iPhone
+ * SE chữ logo từng lòi đè lên viên điểm (tools/do-ngon-ngu.mjs bắt được, 11 ngôn
+ * ngữ). Ngưỡng phụ thuộc độ dài tên nên ĐO THẬT chứ không đặt cứng một con số.
+ */
+const h1El = ref<HTMLElement | null>(null);
+const tenEl = ref<HTMLElement | null>(null);
+const anTen = ref(false);
+function doTen(): void {
+  const h = h1El.value, ten = tenEl.value;
+  if (!h || !ten) return;
+  // Bề rộng CẦN = logo + khoảng cách + chữ (đo cả khi đang ẩn: scrollWidth của span vẫn đúng)
+  const logo = h.querySelector('.logo')?.getBoundingClientRect().width ?? 30;
+  anTen.value = logo + 8 + ten.scrollWidth > h.clientWidth + 0.5;
+}
+let ro: ResizeObserver | undefined;
+onMounted(() => {
+  if (typeof ResizeObserver === 'function' && h1El.value) { ro = new ResizeObserver(doTen); ro.observe(h1El.value); }
+  doTen();
+});
+onUnmounted(() => ro?.disconnect());
+watch(ngonNgu, () => nextTick(doTen));
+
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
@@ -75,14 +99,14 @@ watch(() => props.totalScore, (to, from) => {
 
 <template>
   <header class="topbar">
-    <h1>
+    <h1 ref="h1El" :class="{ 'an-ten': anTen }">
       <button class="brand" type="button" :aria-label="t('tb.veTrangChu')" @click="$emit('home')">
         <!-- Hai lá bài chồng nghiêng — emoji 🃏 mỗi máy vẽ một kiểu, không dùng
              được làm dấu hiệu thương hiệu. Khung CỐ ĐỊNH 30×30 để không giãn
              kín header khi nằm trong flex. -->
         <span class="logo" aria-hidden="true">
           <i class="card-l" /><i class="card-r" />
-        </span><span class="name">{{ t('tb.thuongHieu') }}</span>
+        </span><span ref="tenEl" class="name">{{ t('tb.thuongHieu') }}</span>
       </button>
     </h1>
 
@@ -165,13 +189,11 @@ watch(() => props.totalScore, (to, from) => {
         <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
         <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
           <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
-          <span class="nac">
-            <button
-              v-for="l in NGON_NGU" :key="l.id" type="button" role="menuitemradio" :lang="l.id"
-              :aria-checked="ngonNgu === l.id" :aria-label="l.ten"
-              @click="ngonNgu = l.id"
-            >{{ l.ngan }}</button>
-          </span>
+          <!-- 12 ngôn ngữ không vừa nút chia đoạn: dùng <select> gốc — trên điện thoại nó
+               mở bánh xe chọn của hệ điều hành, quen tay và không tràn menu -->
+          <select v-model="ngonNgu" class="chon-nn" :aria-label="t('tb.ngonNgu')" data-nosfx>
+            <option v-for="l in NGON_NGU" :key="l.id" :value="l.id" :lang="l.id">{{ l.ten }}</option>
+          </select>
         </div>
 
         <hr class="ke" />
@@ -232,6 +254,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 /* Tên game KHÔNG được co: nó là dấu hiệu thương hiệu, cắt mất một chữ còn tệ
    hơn là huy hiệu điểm phải gọn lại (xem numShort). */
+.an-ten .name { position: absolute; visibility: hidden; pointer-events: none; }
 .name {
   flex-shrink: 0;
   background: linear-gradient(100deg, var(--accent), var(--accent-2));
@@ -326,6 +349,13 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .sw.bat { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
 .sw.bat::after { left: 19px; }
 .item.am { cursor: default; }
+.chon-nn {
+  flex: 0 1 auto; min-width: 0; max-width: 140px; min-height: 34px; padding: 0 26px 0 10px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--panel-solid); color: var(--fg); font: inherit; font-size: 13px; font-weight: 800;
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
+}
 .nac { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: 0 0 auto; }
 .nac button {
   position: relative; min-height: 30px; min-width: 38px; padding: 0 8px; border: 0; background: transparent;
