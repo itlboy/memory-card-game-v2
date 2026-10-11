@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import vi from '@/locales/vi';
+import en from '@/locales/en';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { BOT_HALF_LIFE, BOT_SPECS } from '@mm/engine';
@@ -35,8 +37,9 @@ describe('các mức của máy', () => {
       expect(khoi, `mức ${m} không có ô chọn — engine có mà người chơi không vào được`)
         .toContain(`id: '${m}' as BotLevel`);
     }
-    const desc = [...khoi.matchAll(/desc: '([^']+)'/g)].map((x) => x[1]!);
-    expect(desc.length, 'số mô tả phải khớp số mức').toBe(MUC.length);
+    // Mô tả nay ở TỪ ĐIỂN (đa ngôn ngữ, 12.10.2026) — kiểm cả hai ngôn ngữ
+    const desc = MUC.flatMap((m) => [(vi as Record<string, string>)[`menu.bot.${m}`], (en as Record<string, unknown>)[`menu.bot.${m}`] as string]);
+    expect(desc.filter(Boolean).length, 'mức nào cũng phải có mô tả ở mọi ngôn ngữ').toBe(MUC.length * 2);
     for (const d of desc) {
       expect(d, 'mô tả nói bằng cảm giác chơi, không lộ tham số engine')
         .not.toMatch(/retain|nửa đời|half.?life|\d\.\d/i);

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import type { Player } from '@mm/engine';
 import { TURN_LIMIT_SEC } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
@@ -62,7 +63,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
 <template>
   <div class="wrap">
     <!-- TỚI 4 NGƯỜI: dạng cũ, mỗi người một chip có tên -->
-    <ul v-if="!gon" class="strip" aria-label="Người chơi">
+    <ul v-if="!gon" class="strip" :aria-label="t('ps.nguoiChoi')">
       <li
         v-for="(p, i) in players"
         :key="p.id"
@@ -77,7 +78,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           class="turn-clock"
           :class="{ urgent: turnLeft <= 10 }"
           role="timer"
-          :aria-label="`Còn ${Math.ceil(turnLeft)} giây`"
+          :aria-label="t('ps.conGiay', { n: Math.ceil(turnLeft) })"
         >{{ Math.ceil(turnLeft) }}s</span>
         <!-- Đồng hồ lượt còn là THANH RÚT DẦN ở mép dưới chip: `absolute` nên
              tốn 0px bề rộng (xem chú thích ở .pts), và đọc nhanh hơn con số. -->
@@ -89,24 +90,24 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <Transition name="plus">
           <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
         </Transition>
-        <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${seriesWins?.[p.name]} ván`">
+        <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: seriesWins?.[p.name] ?? 0 })">
           🏅{{ seriesWins?.[p.name] }}
         </span>
         <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }" :data-pts-for="p.id">{{ p.score }}</span>
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
              tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
-        <small v-if="Number.isFinite(p.lives)" class="lives" :title="`${p.lives} mạng`">
+        <small v-if="Number.isFinite(p.lives)" class="lives" :title="t('ps.mang', { n: p.lives })">
           <template v-if="p.lives <= 0">💔</template>
           <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
         </small>
-        <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng"><OptionIcon name="freeze" :size="14" /></span>
-        <span v-else-if="p.doubleNext" class="tag" title="Cặp tới nhân đôi điểm"><OptionIcon name="x2" :size="14" /></span>
-        <span v-if="p.id === currentId" class="sr-only">Đang chơi</span>
+        <span v-if="p.frozenTurns > 0" class="tag" :title="t('ps.dongBang')"><OptionIcon name="freeze" :size="14" /></span>
+        <span v-else-if="p.doubleNext" class="tag" :title="t('ps.nhanDoi')"><OptionIcon name="x2" :size="14" /></span>
+        <span v-if="p.id === currentId" class="sr-only">{{ t('ps.dangChoi') }}</span>
       </li>
     </ul>
 
     <!-- TỪ 5 NGƯỜI: chip lượt + hàng avatar -->
-    <div v-else class="strip gon" aria-label="Người chơi">
+    <div v-else class="strip gon" :aria-label="t('ps.nguoiChoi')">
       <div class="turn-chip" :class="{ frozen: nguoiDangDi.frozenTurns > 0 }" aria-current="true">
         <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(nguoiDangDi, players.indexOf(nguoiDangDi))" /></span>
         <span class="tb">
@@ -115,30 +116,30 @@ watch(() => props.players.length, () => { moBang.value = false; });
             <template v-if="turnLeft !== null && turnLeft !== undefined">
               <Timer :size="11" /><span :class="{ urgent: turnLeft <= 10 }">{{ Math.ceil(turnLeft) }}s</span> ·
             </template>
-            đang đi
+            {{ t('ps.dangDi') }}
           </span>
         </span>
         <Transition name="plus">
           <span v-if="bonusFor && bonusFor.playerId === nguoiDangDi.id" :key="bonusFor.key" class="plus10">+10s</span>
         </Transition>
         <span class="pts" :data-pts-for="nguoiDangDi.id">{{ nguoiDangDi.score }}</span>
-        <span class="sr-only">Đang chơi</span>
+        <span class="sr-only">{{ t('ps.dangChoi') }}</span>
       </div>
 
       <ul class="rest">
         <li
           v-for="({ p, i }, k) in nhungNguoiKhac" :key="p.id"
           class="mini" :class="{ next: k === 0, frozen: p.frozenTurns > 0 }"
-          :title="`${p.name} — ${p.score} điểm`"
+          :title="t('ps.diemCua', { ten: p.name, n: p.score })"
         >
           <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
           <span class="mpts" :data-pts-for="p.id">{{ p.score }}</span>
-          <span class="sr-only">{{ p.name }}: {{ p.score }} điểm</span>
+          <span class="sr-only">{{ t('ps.diemCuaSr', { ten: p.name, n: p.score }) }}</span>
         </li>
         <li class="more">
           <button
             type="button" class="more-btn"
-            :aria-expanded="moBang" aria-label="Bảng người chơi"
+            :aria-expanded="moBang" :aria-label="t('ps.bang')"
             @click="moBang = !moBang"
           ><List :size="15" /></button>
         </li>
@@ -152,7 +153,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
       đang dẫn.
     -->
     <Transition name="sheet">
-      <ul v-if="moBang && gon" class="sheet panel" aria-label="Bảng người chơi">
+      <ul v-if="moBang && gon" class="sheet panel" :aria-label="t('ps.bang')">
         <li
           v-for="(p, i) in [...players].sort((a, b) => b.score - a.score)" :key="p.id"
           :class="{ active: p.id === currentId }"
@@ -165,8 +166,8 @@ watch(() => props.players.length, () => { moBang.value = false; });
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
           <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins">🏅{{ seriesWins?.[p.name] }}</span>
-          <span v-if="p.frozenTurns > 0" class="tag" title="Bị đóng băng"><OptionIcon name="freeze" :size="13" /></span>
-          <span v-else-if="p.doubleNext" class="tag" title="Cặp tới nhân đôi điểm"><OptionIcon name="x2" :size="13" /></span>
+          <span v-if="p.frozenTurns > 0" class="tag" :title="t('ps.dongBang')"><OptionIcon name="freeze" :size="13" /></span>
+          <span v-else-if="p.doubleNext" class="tag" :title="t('ps.nhanDoi')"><OptionIcon name="x2" :size="13" /></span>
           <span class="pts">{{ p.score }}</span>
         </li>
       </ul>

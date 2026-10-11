@@ -4,6 +4,7 @@ import { byId, dangKhoe, vuaMo } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
 import { BoHat, MAU_BAC, type BacDanhHieu } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
+import { t, td } from '@/lib/i18n';
 
 /**
  * CẢNH MỞ KHOÁ DANH HIỆU (mockup đã duyệt 11.10.2026): màn tối một nấc, huy
@@ -108,10 +109,10 @@ onBeforeUnmount(() => { hen.forEach(clearTimeout); hat?.dung(); dangKhoe.value =
           </svg>
         </div>
         <div class="mk-chu" :class="{ di }" role="status">
-          <small>Mở khoá danh hiệu</small>
+          <small>{{ t('fx.moKhoa') }}</small>
           <b>{{ dh.name }}</b>
           <em>{{ dh.hint }}</em>
-          <span class="mk-bac" :style="{ background: `linear-gradient(135deg, ${mau.a}, ${mau.b})` }">{{ mau.ten }}</span>
+          <span class="mk-bac" :style="{ background: `linear-gradient(135deg, ${mau.a}, ${mau.b})` }">{{ td(`fx.bac.${bac}`) }}</span>
         </div>
       </template>
     </div>

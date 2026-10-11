@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import { onMounted, ref } from 'vue';
 
 defineProps<{ title: string; body: string; confirmLabel: string }>();
@@ -14,7 +15,7 @@ onMounted(() => btn.value?.focus());
       <p>{{ body }}</p>
       <div class="row">
         <button ref="btn" class="btn danger" type="button" @click="emit('confirm')">{{ confirmLabel }}</button>
-        <button class="btn" type="button" @click="emit('cancel')">Ở lại</button>
+        <button class="btn" type="button" @click="emit('cancel')">{{ t('chung.oLai') }}</button>
       </div>
     </div>
   </div>

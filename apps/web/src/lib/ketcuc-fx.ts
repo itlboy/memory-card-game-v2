@@ -1,3 +1,5 @@
+import { t, type KhoaDich } from './i18n';
+
 /**
  * SỔ CẢNH KẾT VÁN — bộ mới theo mockup chủ dự án duyệt 11.10.2026
  * (https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4), THAY HẲN bộ cũ.
@@ -87,19 +89,19 @@ export const VET_NUT: readonly string[] = [
   'M-34 -8 L-38 -24', 'M38 4 L42 22', 'M-40 2 L-48 -6'
 ];
 
-/** Câu trêu của từng mức máy, theo MẶT máy (avatar là thứ có sẵn trong ranking). */
-export const CAU_TREU: Record<string, string> = {
-  '🐣': 'Ơ… mình thắng thật à?',
-  '🐥': 'Hên thôi mà, hì!',
-  ':bao-den:': 'Nhanh như báo!',
-  '🐯': 'Gừ… lần sau nhé!',
-  ':rong-vang:': 'Ta là bất bại!'
+/** Câu trêu của từng mức máy, theo MẶT máy (avatar là thứ có sẵn trong ranking) → khoá dịch. */
+export const CAU_TREU: Record<string, KhoaDich> = {
+  '🐣': 'fx.treu.ga-mo',
+  '🐥': 'fx.treu.ga-cung',
+  ':bao-den:': 'fx.treu.bao-den',
+  '🐯': 'fx.treu.man-ho',
+  ':rong-vang:': 'fx.treu.rong'
 };
-export const cauTreu = (mat: string | null | undefined): string => (mat && CAU_TREU[mat]) || 'Hehe, lần sau nhé!';
+export const cauTreu = (mat: string | null | undefined): string => t((mat && CAU_TREU[mat]) || 'fx.treu.khac');
 
 /** Dòng an ủi khi thua: nói đúng còn thiếu bao nhiêu — lý do để bấm Chơi lại. */
 export function dongAnUi(capConLai: number): string {
-  return capConLai > 0 ? `Chỉ còn ${capConLai} cặp nữa thôi. Làm lại nhé?` : 'Suýt nữa thôi. Làm lại nhé?';
+  return capConLai > 0 ? t('fx.conCap', { n: capConLai }) : t('fx.suytNua');
 }
 
 /* ---------- hạt: pháo giấy, lấp lánh, bụi — một canvas, tự dừng ---------- */

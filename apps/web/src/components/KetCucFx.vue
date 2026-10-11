@@ -5,6 +5,7 @@ import { BoHat, bocBienThe, chayCanh, chonCanh, cauTreu, dongAnUi, TEN_CANH, VET
 import type { BienThe } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
+import { t } from '@/lib/i18n';
 import MatBot from './MatBot.vue';
 
 /**
@@ -83,9 +84,9 @@ onBeforeUnmount(() => don?.());
       <div
         class="fx-chu fx-thang fx-tieu-de"
         :class="{ 'fx-neon': bt === 'phao-hoa-dem', 'fx-vang-khoi': bt === 'vuong-mien' }"
-      >CHIẾN<br>THẮNG!</div>
+      ><template v-for="(dong, i) in t('fx.chienThang').split('|')" :key="i"><br v-if="i">{{ dong }}</template></div>
       <span v-if="bt === 'vuong-mien'" class="fx-vuong-mien" aria-hidden="true">👑</span>
-      <div v-if="canh === 'ky-luc'" class="fx-bang">KỶ LỤC MỚI!</div>
+      <div v-if="canh === 'ky-luc'" class="fx-bang">{{ t('fx.kyLucMoi') }}</div>
     </template>
 
     <!-- ===== THUA (3 biến thể) ===== -->
@@ -94,17 +95,17 @@ onBeforeUnmount(() => don?.());
       <div class="fx-crt-vach" />
       <div class="fx-quet" />
       <div class="fx-khoi-thua fx-go">
-        <div class="fx-game-over fx-tieu-de">GAME<br>OVER</div>
+        <div class="fx-game-over fx-tieu-de"><template v-for="(dong, i) in t('fx.gameOver').split('|')" :key="i"><br v-if="i">{{ dong }}</template></div>
         <p class="fx-an-ui fx-an-ui-go">{{ dongAnUi(capConLai) }}</p>
-        <p class="fx-nhan-nut">▶ BẤM CHƠI LẠI</p>
+        <p class="fx-nhan-nut">{{ t('fx.bamChoiLai') }}</p>
       </div>
     </template>
 
     <template v-else-if="canh === 'thua' && bt === 'tan-tro'">
       <div class="fx-toi" />
       <div class="fx-khoi-thua">
-        <div class="fx-chu fx-thua fx-tieu-de fx-tro-chu" aria-label="Thua rồi">
-          <span v-for="(c, i) in [...'THUA RỒI']" :key="i" class="fx-ky" :style="{ animationDelay: `${0.35 + i * 0.04}s, ${1.35 + i * 0.07}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
+        <div class="fx-chu fx-thua fx-tieu-de fx-tro-chu" :aria-label="t('fx.thuaRoi')">
+          <span v-for="(c, i) in [...t('fx.thuaRoi')]" :key="i" class="fx-ky" :style="{ animationDelay: `${0.35 + i * 0.04}s, ${1.35 + i * 0.07}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
         </div>
         <p class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
       </div>
@@ -121,8 +122,8 @@ onBeforeUnmount(() => don?.());
         </svg>
         <i class="fx-song" />
         <!-- Rơi TỪNG CHỮ, mỗi chữ nảy riêng -->
-        <div class="fx-chu fx-thua fx-tieu-de" aria-label="Thua rồi">
-          <span v-for="(c, i) in [...'THUA RỒI']" :key="i" class="fx-ky" :style="{ animationDelay: `${0.85 + i * 0.05}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
+        <div class="fx-chu fx-thua fx-tieu-de" :aria-label="t('fx.thuaRoi')">
+          <span v-for="(c, i) in [...t('fx.thuaRoi')]" :key="i" class="fx-ky" :style="{ animationDelay: `${0.85 + i * 0.05}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
         </div>
         <p class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
         <!-- Đám mây xui xẻo trôi tới đổ mưa lên chữ (mưa vẽ trên canvas) -->
@@ -139,7 +140,7 @@ onBeforeUnmount(() => don?.());
       <div class="fx-nua fx-trai" />
       <div class="fx-nua fx-phai" />
       <div class="fx-khoi-hoa">
-        <div class="fx-chu fx-hoa">HOÀ!</div>
+        <div class="fx-chu fx-hoa">{{ t('fx.hoa') }}</div>
         <p class="fx-bat-tay">🤝</p>
       </div>
     </template>

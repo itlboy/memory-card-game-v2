@@ -12,6 +12,7 @@ import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog, { type XemFx } from './components/RulesDialog.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
+import { t } from '@/lib/i18n';
 import IconDefs from './components/IconDefs.vue';
 /*
  * BẢNG ĐO chỉ nạp khi có `?debug=1` — `defineAsyncComponent` nên người chơi
@@ -765,9 +766,9 @@ const hasNext = computed(() => {
 
   <ConfirmDialog
     v-if="confirmQuit"
-    title="Thoát ván đang chơi?"
-    body="Ván này sẽ không được lưu kết quả."
-    confirm-label="Thoát ván"
+    :title="t('thoat.tieuDe')"
+    :body="t('thoat.than')"
+    :confirm-label="t('thoat.nut')"
     @confirm="confirmQuit = false; menuKey++; backToMenu()"
     @cancel="confirmQuit = false"
   />

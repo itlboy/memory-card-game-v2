@@ -210,6 +210,21 @@
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
+- **ĐA NGÔN NGỮ (bắt đầu 12.10.2026): MỌI chữ người chơi thấy đi qua `t()`.**
+  Bộ dịch tự viết `lib/i18n.ts`; từ điển `locales/vi.ts` (bản GỐC, giữ đúng từng
+  chữ — test giao diện đọc tiếng Việt) và `locales/en.ts` (khai kiểu `TuDien`:
+  thiếu khoá là typecheck đỏ). Khoá ghép động (`opt.${key}.${muc}`) đi `td()`.
+  MẶC ĐỊNH TIẾNG VIỆT, KHÔNG đoán theo trình duyệt (người Việt hay cài máy tiếng
+  Anh); đổi ở menu Cài đặt hoặc `?lang=en`, nhớ ở localStorage `mm.lang`.
+  `test/i18n.test.ts` chống sót ba lớp: đúng bộ khoá + không rỗng + tham số `{n}`
+  khớp; mọi khoá động có thật; và CHẶN CHỮ TIẾNG VIỆT VIẾT CỨNG trong các file đã
+  chuyển (`DA_CHUYEN`) — thêm chữ mới phải thêm khoá vào CẢ HAI từ điển. Dòng cố ý
+  giữ tiếng Việt ghi `i18n-bo-qua`. Đợt 1 xong: thanh trên, trang chủ + wizard,
+  màn chơi, bảng kết quả, cảnh kết ván. Đợt 2: online, tài khoản, danh hiệu; đợt 3:
+  Luật chơi, tên theme, nhãn engine (`optionSummary` đang dịch tạm theo mẫu ở
+  MenuScreen), lỗi server (dịch theo MÃ lỗi ở client), thẻ og. Chuyển xong file nào
+  thì thêm vào `DA_CHUYEN`.
+
 ## Hướng thiết kế đã chốt: C · Arcade neon
 
 - **Màn định danh** (mỗi ô một thứ khác nhau — cách chơi, chế độ, entry
