@@ -210,7 +210,8 @@ describe('luồng trọn ván', () => {
     await start();
     await winGame(true);
     expect(wrapper.text()).toContain('Hoàn thành');
-    expect(wrapper.text()).not.toContain('Trí nhớ siêu phàm');
+    // Soi đúng danh sách VỪA MỞ — tên danh hiệu còn có thể nằm ở dòng gợi ý "Chinh phục"
+    expect(wrapper.find('.achievements').text()).not.toContain('Trí nhớ siêu phàm');
   });
 
   it('thắng lại với điểm thấp hơn thì không báo kỷ lục mới', async () => {
@@ -1224,8 +1225,9 @@ describe('bản đồ cấp hiện số thẻ', () => {
 });
 
 describe('bố cục nút ở màn kết quả', () => {
-  /** Ba nút, đúng thứ tự: chơi lại · cấp tiếp theo · về menu. */
-  const labels = (): string[] => wrapper.findAll('[role="dialog"] button')
+  /** Ba nút ĐIỀU HƯỚNG, đúng thứ tự: chơi lại · cấp tiếp theo · về menu.
+   *  Bỏ nút "Chinh phục" của dòng gợi ý danh hiệu — nó là lời mời, không phải lối đi. */
+  const labels = (): string[] => wrapper.findAll('[role="dialog"] button:not(.di)')
     .map((b) => b.text()).filter((t) => t.length > 0);
 
   it('thắng: hàng trên là "Chơi lại cấp này" rồi "Cấp tiếp theo", "Về menu" ở dưới', async () => {

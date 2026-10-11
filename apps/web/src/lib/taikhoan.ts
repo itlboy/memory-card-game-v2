@@ -1,5 +1,6 @@
 import { ref, shallowRef } from 'vue';
 import { store } from './storage';
+import { moKhoa } from './achievements';
 
 /**
  * TÀI KHOẢN phía client — đăng nhập Google, hồ sơ, gửi kết quả ván.
@@ -160,7 +161,8 @@ export async function dongBo(): Promise<void> {
 function keoVeMay(h: HoSo): void {
   const thieu = h.totalScore - store.totalScore();
   if (thieu > 0) store.addScore(thieu);
-  store.unlockAchievements(h.achievements);
+  // Lặng lẽ: đồng bộ không phải là vừa đạt được gì
+  moKhoa(h.achievements, { im: true });
   store.mergeBest(h.best);
 }
 

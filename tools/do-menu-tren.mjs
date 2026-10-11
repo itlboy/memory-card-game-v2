@@ -55,6 +55,11 @@ const ok = (dk, msg) => { console.log(`${dk ? '✓' : '✗'} ${msg}`); if (!dk) 
 for (const [ten, w, h] of MAY) {
   await goi('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 3, mobile: true });
   await goi('Page.navigate', { url: URL_APP + (URL_APP.includes('?') ? '&' : '?') + 'cb=' + Date.now() });
+  // Mỗi cỡ máy là một người chơi MỚI: xoá bản lưu của lượt máy trước rồi tải lại
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('header')`)); i++) await cho(250);
+  await js('localStorage.clear(); sessionStorage.clear(); true');
+  await goi('Page.reload', { ignoreCache: true });
+  await cho(500);
   for (let i = 0; i < 40 && !(await js(`!!document.querySelector('header [aria-label="Menu"]')`)); i++) await cho(250);
   // Click rồi chờ Vue vẽ menu ở nhịp sau — đo cùng nhịp là thấy 0 mục
   await js(`document.querySelector('header [aria-label="Menu"]').click()`);
@@ -72,6 +77,10 @@ for (const [ten, w, h] of MAY) {
     });
     return { header, ten: r(ten), diem: r(diem), menu: menu ? r(menu) : null, mucTren, soMuc: items.length };
   })()`);
+  const dhViên = await js(`(() => { const d = document.querySelector('header .dh'); if (!d) return null; const b = d.getBoundingClientRect(); return { l: b.left, r: b.right, h: b.height }; })()`);
+  const menuL = await js(`document.querySelector('header .menu-btn').getBoundingClientRect().left`);
+  ok(dhViên && dhViên.l >= kq.diem.r - 0.5 && dhViên.r <= menuL + 0.5,
+    `${ten}: viên 🏅 nằm giữa viên điểm và nút menu, không chờm (điểm tới ${kq.diem.r.toFixed(1)}, 🏅 ${dhViên?.l.toFixed(1)}..${dhViên?.r.toFixed(1)}, menu từ ${menuL.toFixed(1)})`);
   const chom = kq.diem.l < kq.ten.r - 1;
   ok(!chom, `${ten} ${w}×${h}: viên điểm không chờm chữ (chữ tới ${kq.ten.r.toFixed(1)}px, điểm từ ${kq.diem.l.toFixed(1)}px); header cao ${kq.header.h.toFixed(1)}px`);
   ok(kq.soMuc >= 3, `${ten}: menu có ${kq.soMuc} mục`);
@@ -95,10 +104,64 @@ for (const [ten, w, h] of MAY) {
     })()`);
     ok(tk && tk.l >= 0 && tk.r <= w + 0.5 && tk.t >= 0 && tk.b <= h + 0.5, `${ten}: hộp Tài khoản nằm trọn viewport`);
     ok(tk && tk.scrollW <= tk.clientW, `${ten}: hộp Tài khoản không tràn ngang (${tk?.scrollW}/${tk?.clientW})`);
-    ok(tk && tk.soDi > 0 && tk.tran === 0, `${ten}: ${tk?.soDi} nút Chinh phục đều nằm trong hộp`);
-    ok(tk && tk.hangThap === 0, `${ten}: mọi hàng danh hiệu cao ≥44px (vùng chạm)`);
+    // Danh sách danh hiệu đã chuyển sang màn riêng; ở đây chỉ còn nút trỏ sang
+    const nutDh = await js(`(() => { const b = document.querySelector('[aria-label="Tài khoản"] .nut-dh'); if (!b) return null; const r = b.getBoundingClientRect(); return { h: r.height, tren: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('.nut-dh') === b }; })()`);
+    ok(nutDh && nutDh.h >= 44 && nutDh.tren, `${ten}: màn Tài khoản có nút Danh hiệu cao ≥44px, bấm được`);
   }
 }
+/* ---------- màn Danh hiệu + một ván thật tới bảng kết quả ---------- */
+for (const [ten, w, h] of MAY) {
+  await goi('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 3, mobile: true });
+  await js('localStorage.clear(); sessionStorage.clear(); true');
+  await goi('Page.navigate', { url: URL_APP + '?cb=' + Date.now() });
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('header .dh')`)); i++) await cho(250);
+  await js(`document.querySelector('header .dh').click()`);
+  await cho(300);
+  const dh = await js(`(() => {
+    const p = document.querySelector('[aria-label="Danh hiệu"] .panel'); if (!p) return null;
+    const b = p.getBoundingClientRect(), body = p.querySelector('.body');
+    const di = [...p.querySelectorAll('.di')];
+    const ngoai = di.filter((x) => { const r = x.getBoundingClientRect(); return r.right > b.right - 8 || r.left < b.left + 8; }).length;
+    const d = di[0]?.getBoundingClientRect();
+    const tren = d ? document.elementFromPoint(d.left + d.width / 2, d.top + d.height / 2) === di[0] : false;
+    return { l: b.left, r: b.right, t: b.top, b: b.bottom, sw: body.scrollWidth, cw: body.clientWidth, so: di.length, ngoai, tren,
+      tieuDe: p.querySelector('h2').textContent.trim() };
+  })()`);
+  ok(dh && dh.l >= 0 && dh.r <= w + 0.5 && dh.t >= 0 && dh.b <= h + 0.5, `${ten}: màn Danh hiệu mở từ viên 🏅, nằm trọn viewport (${dh?.tieuDe})`);
+  ok(dh && dh.sw <= dh.cw && dh.ngoai === 0 && dh.tren, `${ten}: ${dh?.so} nút Chinh phục nằm trong hộp, nút đầu bấm được, không tràn ngang`);
+
+  // Chinh phục "Bàn 4 thẻ" → vào ván 2×2 → lật tới khi xong
+  const vao = await js(`(() => { const b = document.querySelector('[aria-label="Chinh phục: Bàn 4 thẻ"]'); if (!b) return false; b.click(); return true; })()`);
+  ok(vao, `${ten}: có nút "Chinh phục: Bàn 4 thẻ" và bấm được`);
+  await cho(1800);
+  const soLa = await js(`document.querySelectorAll('button.card').length`);
+  ok(soLa === 4, `${ten}: bấm Chinh phục mở đúng bàn 4 thẻ (thấy ${soLa} lá)`);
+  for (let lan = 0; lan < 8; lan++) {
+    if (await js(`!!document.querySelector('[aria-labelledby="resTitle"]')`)) break;
+    const conLai = await js(`[...document.querySelectorAll('button.card')].map((b, i) => b.classList.contains('done') ? -1 : i).filter((i) => i >= 0)`);
+    if (conLai.length < 2) { await cho(800); continue; }
+    const a = conLai[0], b = conLai[1 + (lan % (conLai.length - 1))];
+    await js(`document.querySelectorAll('button.card')[${a}].click()`); await cho(450);
+    await js(`document.querySelectorAll('button.card')[${b}].click()`); await cho(1700);
+  }
+  for (let i = 0; i < 20 && !(await js(`!!document.querySelector('[aria-labelledby="resTitle"]')`)); i++) await cho(300);
+  await cho(600);
+  const kqv = await js(`(() => {
+    const o = document.querySelector('[aria-labelledby="resTitle"]'); if (!o) return null;
+    const p = o.querySelector('.panel'), b = p.getBoundingClientRect();
+    const nut = [...p.querySelectorAll('button')].filter((x) => x.offsetParent);
+    const ngoaiMan = nut.filter((x) => { const r = x.getBoundingClientRect(); return r.bottom > innerHeight || r.top < 0; }).map((x) => x.textContent.trim());
+    const gy = p.querySelector('.goi-y .di'); let gyTren = null;
+    if (gy) { const r = gy.getBoundingClientRect(); gyTren = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === gy; }
+    return { t: b.top, b: b.bottom, ngoaiMan, coGoiY: !!gy, gyTren, goiY: p.querySelector('.goi-y b')?.textContent };
+  })()`);
+  ok(kqv, `${ten}: chơi hết ván, bảng kết quả hiện`);
+  ok(kqv && kqv.ngoaiMan.length === 0, `${ten}: mọi nút bảng kết quả nằm trong màn hình${kqv?.ngoaiMan.length ? ' — RA NGOÀI: ' + kqv.ngoaiMan.join(', ') : ''}`);
+  ok(kqv && kqv.coGoiY && kqv.gyTren, `${ten}: có gợi ý danh hiệu kế tiếp ("${kqv?.goiY}") và nút Chinh phục bấm được`);
+  const huy = await js(`document.querySelector('header .dh b')?.textContent`);
+  ok(/^[1-9]\d*\//.test(huy ?? ''), `${ten}: viên 🏅 cộng lên sau ván (${huy})`);
+}
+
 ws.close(); chrome.kill();
 console.log(loi ? `\n${loi} lỗi` : '\nmenu thanh trên: sạch');
 process.exit(loi ? 1 : 0);

@@ -55,6 +55,26 @@ interface Save {
   names?: string[];
   /** Định danh BỀN của trình duyệt này — xem `clientId()`. */
   clientId?: string;
+  /** Bộ đếm cho danh hiệu đếm (lib/achievements.ts). */
+  boDem?: BoDem;
+}
+
+/**
+ * Bộ đếm cục bộ. Đăng nhập thì `wins` lấy MAX với số của tài khoản (xem
+ * `thongKeHienTai`); các bộ khác chỉ có ở máy.
+ */
+export interface BoDem {
+  wins: number; botWins: number; onlineWins: number;
+  /** Ngày chơi gần nhất, `YYYY-MM-DD` giờ máy. */
+  ngayCuoi: string;
+  chuoi: number; chuoiMax: number;
+}
+const BO_DEM_RONG: BoDem = { wins: 0, botWins: 0, onlineWins: 0, ngayCuoi: '', chuoi: 0, chuoiMax: 0 };
+
+/** `YYYY-MM-DD` theo giờ MÁY (người chơi nghĩ "hôm nay" theo giờ của họ). */
+export function ngayMay(d = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 const KEY = 'mm.v2';
@@ -202,6 +222,32 @@ export const store = {
   },
 
   achievements(): string[] { return read().achievements ?? []; },
+
+  boDem(): BoDem { return { ...BO_DEM_RONG, ...(read().boDem ?? {}) }; },
+
+  /**
+   * Cộng MỘT ván đã xong vào bộ đếm. Gọi đúng một lần mỗi ván, ở watcher kết
+   * ván. Chuỗi ngày: cùng ngày thì giữ, hôm qua thì +1, cách xa thì về 1.
+   */
+  ghiVanBoDem(v: { thang: boolean; may?: boolean; online?: boolean }, homNay = ngayMay()): BoDem {
+    const s = read();
+    const b: BoDem = { ...BO_DEM_RONG, ...(s.boDem ?? {}) };
+    if (v.thang) {
+      b.wins++;
+      if (v.may) b.botWins++;
+      if (v.online) b.onlineWins++;
+    }
+    if (b.ngayCuoi !== homNay) {
+      const homQua = new Date(`${homNay}T12:00:00`);
+      homQua.setDate(homQua.getDate() - 1);
+      b.chuoi = b.ngayCuoi === ngayMay(homQua) ? b.chuoi + 1 : 1;
+      b.ngayCuoi = homNay;
+      b.chuoiMax = Math.max(b.chuoiMax, b.chuoi);
+    }
+    s.boDem = b;
+    write(s);
+    return b;
+  },
 
   /** Trả về danh sách thành tích vừa mở khoá lần này. */
   unlockAchievements(ids: string[]): string[] {

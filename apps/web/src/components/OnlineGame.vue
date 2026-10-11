@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
 import { taiKhoan } from '@/lib/taikhoan';
-import { earned } from '@/lib/achievements';
+import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card } from '@mm/engine';
@@ -249,11 +249,14 @@ watch(() => o.view.value?.summary, (s) => {
   // Lên sổ tài khoản (nếu đăng nhập): điểm CỦA TÔI và kết cục dưới góc nhìn của tôi.
   // Danh hiệu online xét với những gì view cho biết (không có số lần lật sai)
   const cfg = o.room.value?.config;
+  store.ghiVanBoDem({ thang: loaiKetCuc.value === 'thang', online: true });
   const dat = earned({
     summary: s, mode: 'classic', cells: o.view.value?.cards.length ?? 0,
-    lives: null, peekMs: 0, options: cfg?.options ?? null, online: true, ketQua: loaiKetCuc.value
+    lives: null, peekMs: 0, options: cfg?.options ?? null, online: true, ketQua: loaiKetCuc.value,
+    soNguoi: s.ranking.length, themeIds: cfg?.themeIds, gio: new Date().getHours(),
+    thongKe: thongKeHienTai(taiKhoan.me.value?.wins ?? 0)
   });
-  store.unlockAchievements(dat);
+  moKhoa(dat);
   void taiKhoan.ghiVan({
     ketQua: loaiKetCuc.value, score: s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0,
     achievements: dat

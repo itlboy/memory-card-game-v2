@@ -2,7 +2,7 @@
 import { isDraw } from '@mm/engine';
 import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
-import { byId } from '@/lib/achievements';
+import { byId, type Achievement } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
 import { clock, num } from '@/lib/format';
 
@@ -12,6 +12,8 @@ const props = defineProps<{
   showStars: boolean;
   multiplayer: boolean;
   freshAchievements: string[];
+  /** Danh hiệu nên đi chinh phục tiếp (ván offline). */
+  goiY?: Achievement | null;
   /** Tổng điểm tích luỹ trước và sau ván — dùng cho hiệu ứng cộng vào tổng. */
   totalBefore: number;
   totalAfter: number;
@@ -38,7 +40,7 @@ const props = defineProps<{
   rematchState?: Record<string, 'in' | 'out'>;
 }>();
 
-const emit = defineEmits<{ replay: []; next: []; menu: []; lobby: [] }>();
+const emit = defineEmits<{ replay: []; next: []; menu: []; lobby: []; 'chinh-phuc': [Achievement] }>();
 const primary = ref<HTMLButtonElement | null>(null);
 const shownStars = ref(0);
 /** Điểm chạy dần từ 0 lên tổng — con số nhảy sẵn thì không ai cảm nhận được
@@ -226,11 +228,21 @@ const title = computed(() => {
         <div><dt>Chuỗi dài nhất</dt><dd>{{ summary.bestStreak }}</dd></div>
       </dl>
 
+      <!--
+        MỘT HÀNG CHIP, chỉ tên, tối đa hai rồi "+N". Bản cũ in tên + mô tả từng
+        dòng: một ván mở 4 danh hiệu là bảng cao quá iPhone SE và đẩy ba nút ra
+        ngoài màn hình (đo bằng tools/do-menu-tren.mjs). Mô tả đã có ở dải khoe
+        (MoKhoaToast) và màn Danh hiệu.
+      -->
       <ul v-if="freshAchievements.length" class="achievements">
-        <li v-for="id in freshAchievements" :key="id">
-          🏅 <b>{{ byId(id)?.name }}</b> — {{ byId(id)?.hint }}
-        </li>
+        <li v-for="id in freshAchievements.slice(0, 2)" :key="id">🏅 {{ byId(id)?.name }}</li>
+        <li v-if="freshAchievements.length > 2" class="them">+{{ freshAchievements.length - 2 }} danh hiệu</li>
       </ul>
+      <!-- Lời mời đi tiếp, ngay lúc người chơi còn hứng: một cú bấm là vào ván -->
+      <div v-if="goiY" class="goi-y">
+        <span class="txt">🎯 <b>{{ goiY.name }}</b><small>{{ goiY.hint }}</small></span>
+        <button class="di" type="button" :aria-label="`Chinh phục: ${goiY.name}`" @click="emit('chinh-phuc', goiY)">Chinh phục</button>
+      </div>
 
       <!--
         Hàng trên: hai lối đi TIẾP, cạnh nhau, cùng nổi bật — chơi lại bên trái,
@@ -445,9 +457,26 @@ h2 { margin: 0 0 4px; }
    nhãn sang trắng mờ để vẫn tách ra khỏi hàng. */
 .ranking li:first-child .tag.in { background: color-mix(in srgb, var(--ok) 26%, transparent); }
 
-.achievements { margin: 14px 0 0; padding: 12px; list-style: none; display: grid; gap: 6px;
-  background: color-mix(in srgb, var(--warn) 12%, transparent); border-radius: 10px; font-size: 13px; }
+.achievements { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
+.achievements li {
+  padding: 4px 10px; border-radius: 999px; font-weight: 800; white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00;
+}
+.achievements li.them { background: color-mix(in srgb, var(--warn) 18%, transparent); color: inherit; }
 
+.goi-y {
+  display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 8px 8px 12px;
+  border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 13px;
+}
+.goi-y .txt { flex: 1; min-width: 0; }
+.goi-y small { display: block; color: var(--muted); }
+.goi-y .di {
+  position: relative; flex: 0 0 auto; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.goi-y .di::after { content: ''; position: absolute; inset: -6px -4px; }
 .row { display: flex; gap: 8px; margin-top: 18px; }
 .row .btn { flex: 1; }
 .row .btn-primary { margin: 0; }
@@ -461,4 +490,29 @@ h2 { margin: 0 0 4px; }
    lại" và "Về menu" trên dưới nó đều kéo hết bề ngang. */
 .to-lobby { display: block; width: 100%; margin-top: 8px; }
 .link { width: 100%; margin-top: 8px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
+
+/*
+ * MÀN THẤP (iPhone SE: vùng web 553px). Đo thật: bảng cao 633px — kể cả trước
+ * khi có dòng gợi ý danh hiệu đã là ~537px > 513px chỗ trống, tiêu đề bị cắt
+ * mất. Gọn MỌI phần thay vì bỏ một phần: sao, khối điểm, bảng số liệu xếp hai
+ * cột, gợi ý chỉ giữ tên. Khối này PHẢI đứng cuối file để thắng các rule trên.
+ * tools/do-menu-tren.mjs canh mọi nút nằm trong màn hình ở ba cỡ máy.
+ */
+@media (max-height: 640px) {
+  .overlay { padding: 10px; }
+  .panel { padding: 14px 16px; }
+  h2 { font-size: var(--text-lg); }
+  .reason { margin-bottom: 6px; font-size: 13px; }
+  .stars { margin-bottom: 4px; font-size: 24px; letter-spacing: 4px; }
+  .score-big { margin: 2px 0 6px; padding: 6px 12px; }
+  .score-big b { font-size: var(--text-xl); }
+  .total-row { margin-bottom: 6px; padding: 5px 12px; }
+  .stats { grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+  .stats dt, .stats dd { font-size: 13px; }
+  .achievements { margin-top: 8px; }
+  .goi-y { margin-top: 6px; padding: 5px 6px 5px 10px; }
+  .goi-y small { display: none; }
+  .row { margin-top: 10px; }
+  .row .btn, .row .btn-primary { min-height: 46px; }
+}
 </style>

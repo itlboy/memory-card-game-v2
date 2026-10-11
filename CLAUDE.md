@@ -173,6 +173,17 @@
   TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (đấu máy lọc `BOT_ID`, online lọc `myId` /
   `myTurn`). Gắn đúng hai chỗ phát `sfx.match`/`sfx.miss`, có `test/rung.test.ts`.
   Thêm plugin Capacitor là phải `cap sync ios` (đã có trong `build:ios`).
+- **DANH HIỆU: 103 MỤC, MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
+  Mở khoá CHỈ qua `moKhoa()` (cập nhật viên 🏅 + hàng đợi khoe `MoKhoaToast`),
+  đừng gọi thẳng `store.unlockAchievements`. Danh hiệu đếm đọc `ThongKe`
+  (`store.boDem` + điểm + tiến độ Chiến dịch; `wins` lấy MAX với tài khoản) và
+  xét CẢ KHI THUA. Mỗi cỡ bàn là một lần chinh phục riêng — thắng bàn to không mở
+  bàn nhỏ. `chinhPhuc.cells` phải là cỡ CÓ THẬT trong `BOARD_SIZES` (không có bàn
+  8 thẻ — từng lặng lẽ mở nhầm bàn 4 thẻ, test bắt). Danh hiệu theme chép tay
+  `THEME_DH`, test canh khớp `themes.json`: thêm theme là thêm một dòng ở đây.
+  Bảng kết quả có khối `@media (max-height: 640px)` ở CUỐI file: trên SE bảng
+  từng cao 633px/553px, nút "Về menu" lòi khỏi màn hình (đã thế từ trước khi có
+  danh hiệu, tiêu đề bị cắt). `pnpm do:menu` chơi thật một ván 2×2 và canh.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 

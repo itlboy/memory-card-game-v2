@@ -28,7 +28,12 @@ const debug = ref(store.prefs().debug || new URLSearchParams(location.search).ge
 watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
-import { earned, levelChoCells, type Achievement } from './lib/achievements';
+import {
+  ACHIEVEMENTS, daCo, earned, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
+  type Achievement
+} from './lib/achievements';
+import DanhHieuDialog from './components/DanhHieuDialog.vue';
+import MoKhoaToast from './components/MoKhoaToast.vue';
 import { DEFAULT_OPTIONS } from '@mm/engine';
 import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
@@ -135,8 +140,25 @@ useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; })
 // Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
 // trong đó — đây là lớp phủ, không được chặn trang chủ.
 onMounted(() => { void taiKhoan.khoiDong(); });
-// Hồ sơ đổi (đồng bộ từ máy khác về) → số trên thanh và theme mở theo điểm đổi theo
-watch(taiKhoanMe, () => { totalScore.value = store.totalScore(); progressRev.value++; });
+// Hồ sơ đổi (đồng bộ từ máy khác về) → số trên thanh và theme mở theo điểm đổi
+// theo; danh hiệu đếm (tổng điểm, số ván thắng của tài khoản) mở lặng lẽ.
+watch(taiKhoanMe, (m) => {
+  totalScore.value = store.totalScore();
+  progressRev.value++;
+  napLaiDaCo();
+  moKhoa(xetThongKe(thongKeHienTai(m?.wins ?? 0)), { im: true });
+});
+
+/* ---------- danh hiệu ---------- */
+const showDanhHieu = ref(false);
+useBackCloser(30, () => showDanhHieu.value, () => { showDanhHieu.value = false; });
+const daCoSet = computed(() => new Set(daCo.value));
+/** Số liệu tích luỹ — đọc lại mỗi khi tiến độ đổi (progressRev). */
+const thongKe = computed(() => { void progressRev.value; return thongKeHienTai(taiKhoanMe.value?.wins ?? 0); });
+/** theme id → điểm cần để mở, chỉ những theme ĐANG KHOÁ. */
+const themeKhoa = computed(() => Object.fromEntries(
+  themes.value.filter((t) => t.unlockAt > totalScore.value).map((t) => [t.id, t.unlockAt])));
+const goiYVan = ref<Achievement | null>(null);
 
 /**
  * "CHINH PHỤC" một danh hiệu từ màn Tài khoản: dựng đúng bàn cần cho nó rồi
@@ -144,6 +166,9 @@ watch(taiKhoanMe, () => { totalScore.value = store.totalScore(); progressRev.val
  */
 function chinhPhuc(a: Achievement): void {
   showAccount.value = false;
+  showDanhHieu.value = false;
+  // Đang ở bảng kết quả: đóng nó trước, không thì nó nằm đè lên ván mới
+  if (session.summary.value) { session.stop(); session.summary.value = null; }
   const c = a.chinhPhuc;
   if (!c) return;
   if (c.online) { screen.value = 'online'; return; }
@@ -156,7 +181,10 @@ function chinhPhuc(a: Achievement): void {
   botLevel.value = c.bot ?? null;
   playerCount.value = c.bot ? 2 : 1;
   options.value = { ...DEFAULT_OPTIONS, ...(c.options ?? {}) };
-  startLevel(levelChoCells(c.cells ?? 8));
+  // Danh hiệu theme: chơi ĐÚNG một theme. Lựa chọn này được lưu như mọi lựa
+  // chọn theme khác — người chơi đổi lại ở bước chọn theme như thường.
+  if (c.theme) themeIds.value = [c.theme];
+  startLevel(levelChoCells(c.cells ?? 16));
 }
 useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; });
 /**
@@ -457,6 +485,7 @@ watch(session.summary, (s) => {
       && store.saveResult(game.config.mode, id, {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
+    store.ghiVanBoDem({ thang: s.status === 'won' });
     const dat = earned({
       summary: s,
       mode: game.config.mode,
@@ -466,9 +495,11 @@ watch(session.summary, (s) => {
       peekMs: game.config.peekMs ?? 0,
       livesLeft: player.lives,
       levelId: levelId.value ?? undefined,
-      options: game.config.mode === 'campaign' ? null : options.value
+      options: game.config.mode === 'campaign' ? null : options.value,
+      themeIds: themeIds.value, timeLimit: game.config.timeLimit ?? null, gio: new Date().getHours(),
+      thongKe: thongKeHienTai(taiKhoanMe.value?.wins ?? 0)
     });
-    freshAchievements.value = store.unlockAchievements(dat);
+    freshAchievements.value = moKhoa(dat);
     // Có tài khoản thì ván này đi lên sổ của người chơi — một lần, ở đây.
     void taiKhoan.ghiVan({
       ketQua: s.status === 'won' ? 'thang' : 'thua', score: s.score,
@@ -498,13 +529,18 @@ watch(session.summary, (s) => {
       // `loaiKetCuc` (hoà là kết cục thứ ba). Nhiều người chung máy thì KHÔNG:
       // không biết ai đang cầm máy.
       // Danh hiệu đấu máy (hạ gà cứng… rồng thần) xét theo KẾT CỤC CỦA NGƯỜI
+      const thangMay = session.loaiKetCuc.value === 'thang';
+      // Thắng Gà mờ không tính vào bộ đếm thắng máy (cùng lý do không cộng điểm)
+      store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy' });
       const dat = earned({
         summary: s, mode: game.config.mode, cells: game.cards.length,
         misses: player.misses, lives: game.config.lives ?? null, peekMs: game.config.peekMs ?? 0,
         livesLeft: player.lives, options: options.value, botLevel: botLevel.value,
-        ketQua: session.loaiKetCuc.value
+        ketQua: session.loaiKetCuc.value,
+        themeIds: themeIds.value, timeLimit: game.config.timeLimit ?? null, gio: new Date().getHours(),
+        thongKe: thongKeHienTai(taiKhoanMe.value?.wins ?? 0)
       });
-      freshAchievements.value = store.unlockAchievements(dat);
+      freshAchievements.value = moKhoa(dat);
       void taiKhoan.ghiVan({
         ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi, achievements: dat
       });
@@ -518,6 +554,10 @@ watch(session.summary, (s) => {
   totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
   progressRev.value++;
+  // Gợi ý tính SAU khi đã cộng ván này (điểm, bộ đếm, danh hiệu vừa mở)
+  goiYVan.value = game.isMultiplayer && !botLevel.value
+    ? null
+    : chonGoiY(new Set(daCo.value), thongKeHienTai(taiKhoanMe.value?.wins ?? 0), new Set(Object.keys(themeKhoa.value)));
   try { sessionStorage.removeItem(RESUME_KEY); } catch { /* bỏ qua */ }
 });
 
@@ -543,6 +583,8 @@ const hasNext = computed(() => {
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
     :rung="rungBat" :co-rung="rung.coTheRung()"
+    :danh-hieu="{ co: daCo.length, tong: ACHIEVEMENTS.length }"
+    @danh-hieu="showDanhHieu = true"
     @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
@@ -633,7 +675,12 @@ const hasNext = computed(() => {
   <IconDefs />
   <DoNhip v-if="debug" />
 
-  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @chinh-phuc="chinhPhuc" />
+  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" />
+  <DanhHieuDialog
+    v-if="showDanhHieu" :da-co="daCoSet" :tk="thongKe" :theme-khoa="themeKhoa"
+    @close="showDanhHieu = false" @chinh-phuc="chinhPhuc"
+  />
+  <MoKhoaToast />
 
   <RulesDialog
     v-if="showRules" :debug="debug"
@@ -669,6 +716,8 @@ const hasNext = computed(() => {
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
     :fresh-achievements="freshAchievements"
+    :goi-y="goiYVan"
+    @chinh-phuc="chinhPhuc"
     :total-before="totalBefore"
     :total-after="totalScore"
     :series-wins="seriesWins"
