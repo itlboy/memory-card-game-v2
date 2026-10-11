@@ -1,6 +1,16 @@
 import { ref, watch } from 'vue';
 import vi from '@/locales/vi';
 import en from '@/locales/en';
+import es from '@/locales/es';
+import pt from '@/locales/pt';
+import fr from '@/locales/fr';
+import de from '@/locales/de';
+import ja from '@/locales/ja';
+import ko from '@/locales/ko';
+import zh from '@/locales/zh';
+import ru from '@/locales/ru';
+import id from '@/locales/id';
+import th from '@/locales/th';
 import { laApp } from './native';
 
 /**
@@ -19,11 +29,31 @@ import { laApp } from './native';
  * Giá trị là chuỗi có `{tham_so}`, hoặc hàm khi câu đổi hình theo số (số nhiều
  * tiếng Anh: "1 pair" / "2 pairs").
  */
-export type NgonNgu = 'vi' | 'en';
-export const NGON_NGU: readonly { id: NgonNgu; ten: string; ngan: string }[] = [
-  { id: 'vi', ten: 'Tiếng Việt', ngan: 'VI' },
-  { id: 'en', ten: 'English', ngan: 'EN' }
-];
+/**
+ * 12 NGÔN NGỮ (12.10.2026, chủ dự án: "ít nhất 10 ngôn ngữ phổ biến trên App
+ * Store và CH Play"). Tên ghi bằng CHÍNH ngôn ngữ đó — người không đọc được
+ * tiếng Việt vẫn tìm ra tiếng của mình trong danh sách. `bcp` dùng cho định
+ * dạng số (`Intl`) và thuộc tính `lang` của trang.
+ * Chưa có tiếng Ả Rập: viết phải-sang-trái, phải lật cả bố cục — việc riêng.
+ */
+export const NGON_NGU = [
+  { id: 'vi', ten: 'Tiếng Việt', bcp: 'vi-VN' },
+  { id: 'en', ten: 'English', bcp: 'en-US' },
+  { id: 'es', ten: 'Español', bcp: 'es-ES' },
+  { id: 'pt', ten: 'Português (Brasil)', bcp: 'pt-BR' },
+  { id: 'fr', ten: 'Français', bcp: 'fr-FR' },
+  { id: 'de', ten: 'Deutsch', bcp: 'de-DE' },
+  { id: 'ja', ten: '日本語', bcp: 'ja-JP' },
+  { id: 'ko', ten: '한국어', bcp: 'ko-KR' },
+  { id: 'zh', ten: '简体中文', bcp: 'zh-CN' },
+  { id: 'ru', ten: 'Русский', bcp: 'ru-RU' },
+  { id: 'id', ten: 'Bahasa Indonesia', bcp: 'id-ID' },
+  { id: 'th', ten: 'ไทย', bcp: 'th-TH' }
+] as const;
+export type NgonNgu = (typeof NGON_NGU)[number]['id'];
+const LA_NGON_NGU = (x: unknown): x is NgonNgu => NGON_NGU.some((l) => l.id === x);
+/** Mã BCP-47 của ngôn ngữ đang chọn — cho `Intl.NumberFormat`. */
+export const bcp = (): string => NGON_NGU.find((l) => l.id === ngonNgu.value)?.bcp ?? 'vi-VN';
 
 type ThamSo = Record<string, string | number>;
 export type GiaTri = string | ((p: ThamSo) => string);
@@ -31,23 +61,35 @@ export type KhoaDich = keyof typeof vi;
 /** Kiểu của MỌI từ điển: đủ đúng các khoá của bản tiếng Việt. */
 export type TuDien = { [K in KhoaDich]: GiaTri };
 
-const BO: Record<NgonNgu, TuDien> = { vi, en };
+const BO: Record<NgonNgu, TuDien> = { vi, en, es, pt, fr, de, ja, ko, zh, ru, id, th };
+/** Mọi từ điển (trừ bản gốc) — cho test đối chiếu. */
+export const TU_DIEN = BO;
 const KHOA_LUU = 'mm.lang';
 
 function docBanDau(): NgonNgu {
   try {
     const q = new URLSearchParams(location.search).get('lang');
-    if (q === 'vi' || q === 'en') { localStorage.setItem(KHOA_LUU, q); return q; }
+    if (LA_NGON_NGU(q)) { localStorage.setItem(KHOA_LUU, q); return q; }
     const luu = localStorage.getItem(KHOA_LUU);
-    if (luu === 'vi' || luu === 'en') return luu;
+    if (LA_NGON_NGU(luu)) return luu;
     /*
      * TRONG APP (Capacitor) thì ĐOÁN THEO MÁY: ngôn ngữ của khung web iOS chính
      * là ngôn ngữ máy — kể cả khi người dùng chọn ngôn ngữ riêng cho app trong
      * Cài đặt iOS — nên đó là lựa chọn thật. Trên web thì không (xem đầu file).
      */
-    if (laApp && typeof navigator !== 'undefined') return /^vi\b/i.test(navigator.language) ? 'vi' : 'en';
+    if (laApp && typeof navigator !== 'undefined') return theoMay(navigator.languages ?? [navigator.language]);
   } catch { /* chế độ riêng tư / môi trường không có location */ }
   return 'vi';
+}
+
+/** Ngôn ngữ đầu tiên của máy mà app có; không có cái nào thì English. */
+export function theoMay(ds: readonly string[]): NgonNgu {
+  for (const tag of ds) {
+    const goc = tag.toLowerCase().split(/[-_]/)[0];
+    const ma = goc === 'in' ? 'id' : goc;   // Android cũ báo tiếng Indonesia là "in"
+    if (LA_NGON_NGU(ma)) return ma;
+  }
+  return 'en';
 }
 
 export const ngonNgu = ref<NgonNgu>(docBanDau());

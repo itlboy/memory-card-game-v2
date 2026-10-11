@@ -666,6 +666,12 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**12.10.2026 (12 ngôn ngữ)**
+- Tiếng Việt, English, Español, Português (Brasil), Français, Deutsch, 日本語, 한국어,
+  简体中文, Русский, Bahasa Indonesia, ไทย — chọn trong menu Cài đặt; app iOS tự chọn
+  theo ngôn ngữ máy. Số định dạng theo ngôn ngữ. `pnpm do:ngon-ngu` đo chữ tràn.
+- Bước số người: bốn thanh ngang.
+
 **12.10.2026 (đa ngôn ngữ, vá đợt 1)**
 - Tên app bản English: **Flip Match** (logo, tiêu đề tab, tên app iOS theo ngôn ngữ máy).
 - Sửa chữ tiếng Việt lọt vào bản English (tên danh hiệu, theme, máy, "Bạn", nhãn bàn

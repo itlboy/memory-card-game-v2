@@ -7,7 +7,7 @@ import ResultDialog from '@/components/ResultDialog.vue';
 import DanhHieuDialog from '@/components/DanhHieuDialog.vue';
 import KetCucFx from '@/components/KetCucFx.vue';
 import { byId } from '@/lib/achievements';
-import { ngonNgu, type NgonNgu } from '@/lib/i18n';
+import { NGON_NGU, ngonNgu, type NgonNgu } from '@/lib/i18n';
 
 /**
  * LỚP KIỂM THỨ TƯ — TRÊN MÀN HÌNH THẬT, KHÔNG PHẢI TRÊN MÃ NGUỒN.
@@ -25,9 +25,16 @@ import { ngonNgu, type NgonNgu } from '@/lib/i18n';
  * Chữ đến từ đâu cũng bị bắt. Màn nào dịch xong thì THÊM vào đây.
  */
 const DAU_VIET = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
+/**
+ * Ký tự CHỈ tiếng Việt có — dùng khi soi các ngôn ngữ khác. Dò cả bộ `DAU_VIET`
+ * là bắt nhầm chữ đúng chính tả của tiếng Bồ Đào Nha / Pháp / Tây Ban Nha / Đức
+ * (á é ó ê ô ã ç…: "Memória" bị báo là tiếng Việt — agent dịch phát hiện). Chữ
+ * Việt chỉ mang dấu sắc/huyền vẫn bị phép so "giống hệt bản tiếng Việt" bắt.
+ */
+const DAU_VIET_RIENG = /[ăằắẳẵặảạầấẩẫậẻẽẹềếểễệỉĩịỏọồốổỗộơờớởỡợủũụưừứửữựỳỷỹỵđ]/i;
 /** Cụm CỐ Ý giống nhau ở mọi ngôn ngữ: tên ngôn ngữ trong ô chọn, từ mượn. Tên app KHÔNG còn ở đây:
  *  bản English là "Flip Match" (chủ dự án chốt 12.10.2026). */
-const GIONG_NHAU = new Set(['Tiếng Việt', 'English', 'VI', 'EN', 'Menu', 'Online', 'GAME', 'OVER', 'GAME OVER', 'Combo']);
+const GIONG_NHAU = new Set(['Flip Match', 'Tiếng Việt', 'English', 'VI', 'EN', 'Menu', 'Online', 'GAME', 'OVER', 'GAME OVER', 'Combo']);
 
 const THEMES = {
   themes: [
@@ -127,31 +134,64 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
   return man;
 }
 
-function soSanh(viMan: Record<string, string[]>, enMan: Record<string, string[]>): string[] {
+/**
+ * So bản `lang` với bản GỐC (tiếng Việt) và — với ngôn ngữ không phải English —
+ * với bản English: cụm giống hệt English trong bản tiếng Nhật/Đức… là chỗ người
+ * dịch quên, để nguyên chữ nguồn.
+ */
+function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<string, string[]> | null, xMan: Record<string, string[]>): string[] {
   const loi: string[] = [];
-  for (const [ten, en] of Object.entries(enMan)) {
+  for (const [ten, ds] of Object.entries(xMan)) {
     const goc = new Set(viMan[ten] ?? []);
-    for (const c of en) {
-      if (GIONG_NHAU.has(c)) continue;
-      if (DAU_VIET.test(c)) loi.push(`[${ten}] còn chữ tiếng Việt: "${c}"`);
-      else if (goc.has(c)) loi.push(`[${ten}] chưa dịch (giống hệt bản tiếng Việt): "${c}"`);
+    const anh = new Set(enMan?.[ten] ?? []);
+    for (const c of ds) {
+      if (GIONG_NHAU.has(c) || NGON_NGU.some((l) => l.ten === c)) continue;
+      if (DAU_VIET_RIENG.test(c) && lang !== 'vi') loi.push(`[${lang}·${ten}] còn chữ tiếng Việt: "${c}"`);
+      else if (goc.has(c)) loi.push(`[${lang}·${ten}] chưa dịch (giống hệt bản tiếng Việt): "${c}"`);
+      else if (anh.has(c) && /[a-z]{3,}/i.test(c) && !DONG_NGUYEN[lang as NgonNgu]?.includes(c)) loi.push(`[${lang}·${ten}] còn để nguyên English: "${c}"`);
     }
   }
   return loi;
 }
 
-describe('bản English không còn chữ tiếng Việt trên các màn đã dịch', () => {
+/**
+ * TỪ ĐỒNG NGUYÊN hợp lệ: cụm giống hệt English vì ngôn ngữ đó VIẾT Y NHƯ VẬY, không
+ * phải quên dịch. Khai TỪNG từ cho TỪNG ngôn ngữ (không nới cả phép kiểm), để một câu
+ * English dài bị bỏ quên vẫn đỏ. Đã rà tay từng mục (12.10.2026).
+ */
+const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
+  es: ['Solo', 'Normal', 'pts', '999.999k pts'],
+  pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze'],
+  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', 'Secret', 'Bronze'],
+  de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold'],
+  id: ['Solo', 'Normal', 'Level 3']
+};
+
+/** Mọi ngôn ngữ trừ tiếng Việt (bản gốc). */
+const KHAC = NGON_NGU.map((l) => l.id).filter((l) => l !== 'vi') as NgonNgu[];
+
+describe('mọi ngôn ngữ không còn chữ chưa dịch trên các màn đã dịch', () => {
   it('trang chủ, menu, wizard, màn chơi (một mình + đấu máy)', async () => {
     const viMan = await duyetApp('vi');
     const enMan = await duyetApp('en');
-    expect(Object.keys(enMan).length).toBeGreaterThanOrEqual(9);
-    expect(soSanh(viMan, enMan)).toEqual([]);
-    expect(document.title, 'tiêu đề tab').not.toMatch(DAU_VIET);
-  }, 30_000);
+    const loi: string[] = [];
+    for (const l of KHAC) {
+      const x = l === 'en' ? enMan : await duyetApp(l);
+      expect(Object.keys(x).length).toBeGreaterThanOrEqual(9);
+      loi.push(...soSanh(l, viMan, l === 'en' ? null : enMan, x));
+      expect(document.title, `${l}: tiêu đề tab`).not.toMatch(DAU_VIET_RIENG);
+    }
+    expect(loi).toEqual([]);
+  }, 120_000);
 
   it('bảng kết quả, màn danh hiệu, mọi cảnh kết ván', async () => {
     const viMan = await duyetThanhPhan('vi');
     const enMan = await duyetThanhPhan('en');
-    expect(soSanh(viMan, enMan)).toEqual([]);
-  }, 30_000);
+    const loi: string[] = [];
+    for (const l of KHAC) {
+      const x = l === 'en' ? enMan : await duyetThanhPhan(l);
+      loi.push(...soSanh(l, viMan, l === 'en' ? null : enMan, x));
+    }
+    expect(loi).toEqual([]);
+  }, 120_000);
 });

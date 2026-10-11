@@ -230,6 +230,19 @@
   `lib/ten.ts` (`tenNguoi`, `tenBot`), dữ liệu ván giữ chữ gốc. Danh hiệu là getter
   (`dh()` trong achievements.ts) nên đổi ngôn ngữ là tên đổi theo. App iOS ĐOÁN
   ngôn ngữ theo máy (khác web) vì đó là lựa chọn thật của người dùng.
+  12 NGÔN NGỮ (12.10.2026): vi en es pt fr de ja ko zh ru id th — danh sách
+  `NGON_NGU` ở lib/i18n.ts, từ điển `locales/<mã>.ts` (mỗi file kiểu `TuDien`),
+  chọn bằng <select> trong menu. Thêm khoá = thêm vào CẢ 12 file (typecheck +
+  test đối chiếu đỏ nếu thiếu). Số định dạng theo ngôn ngữ (`num`/`numShort` đọc
+  `bcp()`; "tr" chỉ ở tiếng Việt, ngôn ngữ khác "M"). Lớp kiểm trên màn hình chạy
+  cho MỌI ngôn ngữ và so cả với bản English (bắt chỗ quên dịch); từ đồng nguyên
+  hợp lệ ("Solo", "Normal", "Bronze"…) khai TỪNG từ theo ngôn ngữ ở `DONG_NGUYEN`.
+  Ngôn ngữ khác chỉ dò ký tự RIÊNG tiếng Việt (ă ơ ư đ ạ ả…) — dò cả bộ dấu là bắt
+  nhầm "Memória". `pnpm do:ngon-ngu` đo chữ tràn nút trên iPhone SE cho cả 12 ngôn
+  ngữ, đo KHUNG CHỮ ĐANG HIỆN (không dùng scrollWidth: bỏ qua overflow:visible thì
+  báo sạch giả, còn ::after nới vùng chạm thì báo tràn giả; đã kiểm ngược). Tên app
+  không vừa thanh trên thì chỉ giữ biểu tượng (`anTen` ở TopBar, đo thật). Chưa có
+  tiếng Ả Rập (phải-sang-trái, phải lật bố cục).
   TÊN APP: "Lật Thẻ" (vi) / "Flip Match" (en) — chủ dự án chốt 12.10.2026 vì tên có
   dấu khó với người nước ngoài. Khoá `tb.thuongHieu` + `chung.tieuDeTrang` (tiêu đề
   tab, đặt trong `lib/i18n.ts`); app iOS đọc tên từ `ios/App/App/{en,vi}.lproj/
