@@ -116,9 +116,10 @@ const TITLES: Record<Step, string> = {
 };
 
 /**
- * Số người: 1..10 — MƯỜI Ô, tròn hàng thành lưới 5×2 (luật lưới tròn hàng ở
- * CLAUDE.md). "1" là chơi một mình: từ 11.10.2026 "Chơi nhanh" và "Chơi nhiều
- * người" gộp thành MỘT ô ở bước đầu, số người hỏi ở đây.
+ * Số người: 1..4 — BỐN Ô, lưới 2×2 (luật lưới tròn hàng ở CLAUDE.md). "1" là
+ * chơi một mình: từ 11.10.2026 "Chơi nhanh" và "Chơi nhiều người" gộp thành MỘT
+ * ô ở bước đầu. Trần 4 người do chủ dự án chốt: 10 người chung một máy "không
+ * chơi nổi". Online vẫn tới 10 (ROOM_LIMITS) — đó là mỗi người một máy.
  *
  * Mỗi số một màu riêng: hai ô cùng màu cạnh nhau thì nhìn như một khối, mắt
  * không đọc ra đang chọn cái nào. Chín ô = chín gradient, nên global.css có
@@ -128,16 +129,10 @@ const TITLES: Record<Step, string> = {
  * con SỐ chính là nội dung.
  */
 const COUNTS = [
-  { n: 1,  g: 'g-blue' },
-  { n: 2,  g: 'g-pink' },
-  { n: 3,  g: 'g-violet' },
-  { n: 4,  g: 'g-cyan' },
-  { n: 5,  g: 'g-indigo' },
-  { n: 6,  g: 'g-teal' },
-  { n: 7,  g: 'g-lime' },
-  { n: 8,  g: 'g-amber' },
-  { n: 9,  g: 'g-orange' },
-  { n: 10, g: 'g-red' }
+  { n: 1, g: 'g-blue' },
+  { n: 2, g: 'g-pink' },
+  { n: 3, g: 'g-violet' },
+  { n: 4, g: 'g-amber' }
 ];
 
 /** Năm mức của máy. Mô tả nói bằng CẢM GIÁC chơi (và nói cho vui), không nói
@@ -352,11 +347,11 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       nén lại cho vừa nên không phá luật KHÔNG SCROLL.
     -->
     <div v-if="step === 'players' && (goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1)" class="loi-tat">
-      <span v-if="(chuoiNgay ?? 0) > 1" class="chip lua" :title="`Chơi ${chuoiNgay} ngày liền`">🔥 {{ chuoiNgay }} ngày</span>
-      <button v-if="(manChienDich ?? 0) > 1" class="chip" type="button" @click="tiepChienDich">
-        <Map :size="15" aria-hidden="true" /><span>Màn {{ manChienDich }}</span>
+      <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua" :title="`Chơi ${chuoiNgay} ngày liền`">🔥 {{ chuoiNgay }} ngày</span>
+      <button v-if="(manChienDich ?? 0) > 1" class="lt-chip" type="button" @click="tiepChienDich">
+        <Map :size="15" aria-hidden="true" /><span class="ten">Màn {{ manChienDich }}</span>
       </button>
-      <button v-if="goiY" class="chip goi-y" type="button" :aria-label="`Chinh phục danh hiệu: ${goiY.name}`" @click="emit('chinh-phuc', goiY.id)">
+      <button v-if="goiY" class="lt-chip goi-y" type="button" :aria-label="`Chinh phục danh hiệu: ${goiY.name}`" @click="emit('chinh-phuc', goiY.id)">
         <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
       </button>
     </div>
@@ -377,7 +372,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <button class="option big neon g-blue" type="button" @click="pickPlayers()">
           <Users class="opt-icon" :size="40" />
           <strong>Chơi nhanh</strong>
-          <small>Một mình hoặc 2–10 người trên cùng máy, bàn do bạn đặt luật</small>
+          <small>Một mình hoặc 2–4 người trên cùng máy, bàn do bạn đặt luật</small>
         </button>
         <button class="option big neon g-amber" type="button" @click="pickBotMode()">
           <Bot class="opt-icon" :size="40" />
@@ -403,13 +398,13 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="step-body options grid5 counts">
+      <div v-else-if="step === 'count'" key="count" class="step-body options luoi-2x2 counts">
         <button
           v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
           :aria-label="`${c.n} người chơi`"
           @click="pickCount(c.n)"
         >
-          <!-- MỘT icon người + con số, không vẽ đủ n hình nữa: tới 10 người thì
+          <!-- MỘT icon người + con số, không vẽ đủ n hình nữa: nhiều người thì
                bó hình thành một mảng lấm chấm, đếm còn chậm hơn đọc số. -->
           <User class="opt-icon" :size="24" aria-hidden="true" />
           <strong>{{ c.n }}</strong>
@@ -589,23 +584,29 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    không đổi số cột theo breakpoint nữa (media query đo viewport, không đo cột,
    nên 4 cột sẽ vỡ trong cột hẹp). */
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
-.options.grid5 { grid-template-columns: repeat(5, 1fr); }
-.options.grid5.counts > .option { gap: 2px; padding: 6px 2px; }
-.options.grid5.counts .opt-icon { width: clamp(16px, 16cqw, 26px); height: auto; }
-.options.grid5.counts strong { font-size: clamp(20px, min(30cqw, 30cqh), 36px); line-height: 1; }
-.options.grid5.counts small { font-size: clamp(10px, min(14cqw, 13cqh), 13px); }
+.options.luoi-2x2 { grid-template-columns: repeat(2, 1fr); }
+.options.luoi-2x2.counts > .option { gap: 4px; padding: 10px 6px; }
+.options.luoi-2x2.counts .opt-icon { width: clamp(22px, 14cqw, 40px); height: auto; }
+.options.luoi-2x2.counts strong { font-size: clamp(28px, min(26cqw, 26cqh), 64px); line-height: 1; }
+.options.luoi-2x2.counts small { font-size: clamp(12px, min(9cqw, 9cqh), 16px); }
 
 .loi-tat { display: flex; gap: 6px; margin: 0 0 10px; flex: 0 0 auto; min-width: 0; }
-.loi-tat .chip {
-  position: relative; display: inline-flex; align-items: center; gap: 5px; min-width: 0;
+.loi-tat .lt-chip {
+  /* CHIA ĐỀU BỀ NGANG: số chip đổi theo người chơi (🔥 chỉ khi chuỗi ≥2 ngày,
+     "Màn N" chỉ khi đã chơi Chiến dịch), mà chip co theo chữ thì 1 hay 2 chip
+     đều lệch hẳn một bên (chủ dự án báo "không cân đối"). Mỗi chip một phần
+     bằng nhau, chữ canh giữa, dài thì cắt "…". */
+  flex: 1 1 0; justify-content: center;
+  /* Tên lớp RIÊNG `lt-chip`: `.chip` toàn cục xếp cột, đẩy icon lên TRÊN chữ (ảnh chủ dự án) */
+  position: relative; display: inline-flex; flex-direction: row; align-items: center; gap: 5px; min-width: 0;
   min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line);
   background: var(--panel-solid); color: var(--fg); font: inherit; font-size: 13px; font-weight: 800; white-space: nowrap;
 }
-.loi-tat button.chip { cursor: pointer; }
-.loi-tat button.chip::after { content: ''; position: absolute; inset: -5px -2px; }
-.loi-tat .chip.lua { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; border-color: transparent; }
-.loi-tat .chip.goi-y { flex: 1 1 auto; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
-.loi-tat .chip.goi-y .ten { overflow: hidden; text-overflow: ellipsis; }
+.loi-tat button.lt-chip { cursor: pointer; }
+.loi-tat button.lt-chip::after { content: ''; position: absolute; inset: -5px -2px; }
+.loi-tat .lt-chip.lua { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; border-color: transparent; }
+.loi-tat .lt-chip.goi-y { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+.loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 
@@ -633,9 +634,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { min-width: 44px; font-size: 22px; line-height: 1; padding: 4px 12px; }
 
-/* Số người chơi: LƯỚI 3×3 (2..10). Bản cũ là 3 thanh ngang chồng nhau — với
-   chín lựa chọn thì chín thanh ngang cao ~60px mỗi cái là tràn viewport, mà
-   luật là KHÔNG SCROLL. Lưới 3×3 để ô tự nén theo chỗ còn lại. */
+/* (Lưới số người cũ 3×3 cho 2..10 — nay là 2×2 cho 1..4, xem `.luoi-2x2`) */
 .options.grid3.counts > .option { gap: 2px; padding: 6px 4px; }
 .options.grid3.counts .opt-icon { width: clamp(16px, 16cqw, 26px); height: auto; }
 .options.grid3.counts strong { font-size: clamp(20px, min(30cqw, 34cqh), 40px); line-height: 1; }

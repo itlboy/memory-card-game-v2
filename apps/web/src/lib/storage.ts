@@ -123,6 +123,8 @@ export const store = {
     // hợp lệ thay vì tin. Bản cũ từng chơi Sinh tồn/Chớp nhoáng thì tuỳ chọn
     // tương ứng bật sẵn, để họ mở game lên vẫn thấy đúng kiểu mình quen.
     merged.options = sanitizeOptions(saved.options ?? optionsFromOldMode(saved.mode));
+    // Chơi chung một máy tối đa 4 người (11.10.2026); bản lưu cũ có thể còn 5–10
+    merged.playerCount = Math.min(4, Math.max(1, Number(merged.playerCount) || 1));
     return merged;
   },
 

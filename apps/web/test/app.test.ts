@@ -113,7 +113,7 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Chiến dịch');
     // "Chơi nhiều người" đã gộp vào "Chơi nhanh" (11.10.2026): số người hỏi ở bước sau
     expect(wrapper.text()).not.toContain('Chơi nhiều người');
-    expect(wrapper.text()).toContain('Một mình hoặc 2–10 người');
+    expect(wrapper.text()).toContain('Một mình hoặc 2–4 người');
     // Chưa hiện cấp/theme ở bước đầu — tránh rối
     expect(wrapper.text()).not.toContain('Chọn số thẻ');
     expect(wrapper.text()).not.toContain('Theme thẻ');

@@ -31,6 +31,35 @@ export const TEN_CANH: Record<CanhKetCuc, string> = {
   thang: 'Chiến thắng', 'ky-luc': 'Kỷ lục mới', thua: 'Thua rồi', 'thua-may': 'Máy thắng', hoa: 'Hoà'
 };
 
+/**
+ * BIẾN THỂ (11.10.2026, chủ dự án: "nhiều hiệu ứng thắng và thua, cái nào cũng
+ * nổi bật"). Cảnh thắng/kỷ lục và cảnh thua mỗi cảnh có nhiều biến thể, bốc
+ * THEO SEED của ván — F5 hay view online dựng lại vẫn ra đúng một biến thể.
+ * Kỷ lục = biến thể thắng + băng vàng KỶ LỤC MỚI phủ lên.
+ * Thêm biến thể: một id ở đây + nhánh trong `chayCanh` + khối CSS + template
+ * trong KetCucFx + tiếng trong `TIENG_BIEN_THE` của KetCucFx (test canh).
+ */
+export const BIEN_THE = {
+  thang: ['phao-giay', 'phao-hoa-dem', 'vuong-mien'],
+  thua: ['dap-vo', 'tan-tro', 'game-over']
+} as const;
+export type BienThe = (typeof BIEN_THE)[keyof typeof BIEN_THE][number];
+export const TEN_BIEN_THE: Record<BienThe, string> = {
+  'phao-giay': 'Pháo giấy', 'phao-hoa-dem': 'Pháo hoa đêm', 'vuong-mien': 'Vương miện',
+  'dap-vo': 'Đập vỡ màn', 'tan-tro': 'Tan thành tro', 'game-over': 'Game over'
+};
+
+/** Băm seed thành số 32-bit — bốc biến thể tất định theo ván. */
+function bam(seed: number): number {
+  return Math.imul((seed >>> 0) ^ 0x5bd1e995, 2654435761) >>> 0;
+}
+
+/** Biến thể của cảnh theo seed ván; cảnh không có biến thể thì null. */
+export function bocBienThe(canh: CanhKetCuc, seed: number): BienThe | null {
+  const ds: readonly BienThe[] | null = canh === 'thang' || canh === 'ky-luc' ? BIEN_THE.thang : canh === 'thua' ? BIEN_THE.thua : null;
+  return ds ? ds[bam(seed) % ds.length]! : null;
+}
+
 export function chonCanh(loai: LoaiKetCuc, o: { kyLuc?: boolean; matMay?: string | null } = {}): CanhKetCuc {
   if (loai === 'hoa') return 'hoa';
   if (loai === 'thang') return o.kyLuc ? 'ky-luc' : 'thang';
@@ -42,8 +71,21 @@ export function chonCanh(loai: LoaiKetCuc, o: { kyLuc?: boolean; matMay?: string
  * đó bảng nằm đè, hiệu ứng còn lại (hạt rơi nốt) chạy phía sau nó.
  */
 export const HIEN_BANG_MS: Record<CanhKetCuc, number> = {
-  thang: 2200, 'ky-luc': 2600, thua: 2400, 'thua-may': 2400, hoa: 2000
+  // Thua 2,9s: cảnh thua nay có cú đập vỡ màn (1,45s) và đám mây đổ mưa (1,6s→)
+  // Cảnh có nhiều biến thể thì mốc là của biến thể DÀI nhất (game over 2,9s)
+  thang: 2300, 'ky-luc': 2600, thua: 2900, 'thua-may': 2400, hoa: 2000
 };
+
+/** Vết nứt toả từ điểm chữ chạm đất — toạ độ quanh tâm (0,0) của khối chữ. */
+export const VET_NUT: readonly string[] = [
+  'M0 0 L-18 -10 L-34 -8 L-52 -22 L-70 -20 L-96 -34',
+  'M0 0 L-22 6 L-40 2 L-58 16 L-84 14',
+  'M0 0 L-8 20 L-20 30 L-26 50',
+  'M0 0 L16 -12 L30 -10 L44 -26 L66 -24 L92 -38',
+  'M0 0 L20 8 L38 4 L56 18 L78 16 L98 26',
+  'M0 0 L10 18 L24 28 L30 48',
+  'M-34 -8 L-38 -24', 'M38 4 L42 22', 'M-40 2 L-48 -6'
+];
 
 /** Câu trêu của từng mức máy, theo MẶT máy (avatar là thứ có sẵn trong ranking). */
 export const CAU_TREU: Record<string, string> = {
@@ -63,7 +105,7 @@ export function dongAnUi(capConLai: number): string {
 /* ---------- hạt: pháo giấy, lấp lánh, bụi — một canvas, tự dừng ---------- */
 
 interface Hat {
-  loai: 'giay' | 'sao' | 'bui';
+  loai: 'giay' | 'sao' | 'bui' | 'giot' | 'xu' | 'tro';
   x: number; y: number; vx: number; vy: number;
   trong: number; can: number; q: number; vq: number; r: number; mau: string; song: number;
 }
@@ -111,6 +153,28 @@ export class BoHat {
         trong: 0.05, can: 0.995, q: Math.random() * 6, vq: 0.1, r: 4, mau: mau[i % mau.length]!, song: 220 });
     }
   }
+  /** Giọt mưa rơi thẳng từ dải [x0, x1] ở độ cao y. */
+  giot(x0: number, x1: number, y: number, so: number): void {
+    for (let i = 0; i < so; i++) {
+      this.them({ loai: 'giot', x: x0 + Math.random() * (x1 - x0), y, vx: -0.6, vy: 6 + Math.random() * 3,
+        trong: 0.25, can: 1, q: 0, vq: 0, r: 7 + Math.random() * 5, mau: 'rgba(150,190,255,.85)', song: 48 });
+    }
+  }
+  /** Đồng xu vàng rơi xoay (vương miện). */
+  xu(so: number): void {
+    for (let i = 0; i < so; i++) {
+      this.them({ loai: 'xu', x: Math.random() * innerWidth, y: -16 - Math.random() * 60, vx: (Math.random() - 0.5) * 1.5, vy: 2 + Math.random() * 3,
+        trong: 0.18, can: 0.995, q: Math.random() * 6, vq: 0.15 + Math.random() * 0.15, r: 7 + Math.random() * 4, mau: '#ffd76a', song: 200 });
+    }
+  }
+  /** Tro bay theo gió (tan thành tro): bụi xám lẫn than đỏ, gió thổi sang phải. */
+  tro(x: number, y: number, w: number, h: number, so: number): void {
+    for (let i = 0; i < so; i++) {
+      this.them({ loai: 'tro', x: x + Math.random() * w, y: y + Math.random() * h, vx: 2 + Math.random() * 4, vy: -1.2 + Math.random() * 1.6,
+        trong: -0.015, can: 0.985, q: 0, vq: 0, r: 1.2 + Math.random() * 2.4,
+        mau: i % 7 === 0 ? 'rgba(255,120,60,.95)' : `rgba(${190 + (i % 3) * 20},${195 + (i % 3) * 20},${215 + (i % 3) * 15},.85)`, song: 70 + Math.random() * 40 });
+    }
+  }
   bui(x: number, y: number, so: number): void {
     for (let i = 0; i < so; i++) {
       this.them({ loai: 'bui', x: x + (Math.random() - 0.5) * 40, y, vx: (Math.random() - 0.5) * 1.2, vy: -Math.random() * 1.4,
@@ -128,6 +192,16 @@ export class BoHat {
       p.vy += p.trong; p.vx *= p.can; p.vy *= p.can; p.x += p.vx; p.y += p.vy; p.q += p.vq; p.song--;
       c.save(); c.globalAlpha = Math.min(1, p.song / 30); c.translate(p.x, p.y); c.rotate(p.q); c.fillStyle = p.mau;
       if (p.loai === 'giay') c.fillRect(-p.r, -p.r * 0.45, p.r * 2, p.r * 0.9 * Math.abs(Math.cos(p.q * 2)));
+      else if (p.loai === 'giot') { c.rotate(-p.q); c.fillRect(-1, -p.r, 2, p.r); }
+      else if (p.loai === 'xu') {
+        // Đồng xu xoay: ellipse co theo cos góc, mặt sáng/tối đổi khi lật
+        const k = Math.max(0.12, Math.abs(Math.cos(p.q)));
+        c.rotate(-p.q);
+        c.fillStyle = Math.cos(p.q) > 0 ? '#ffd76a' : '#d99a00';
+        c.beginPath(); c.ellipse(0, 0, p.r * k, p.r, 0, 0, 7); c.fill();
+        c.fillStyle = 'rgba(255,255,255,.55)';
+        c.beginPath(); c.ellipse(-p.r * k * 0.3, -p.r * 0.35, p.r * k * 0.25, p.r * 0.25, 0, 0, 7); c.fill();
+      }
       else if (p.loai === 'sao') {
         c.beginPath();
         for (let i = 0; i < 8; i++) { const rr = i % 2 ? p.r * 0.35 : p.r; c.lineTo(Math.cos(i * Math.PI / 4) * rr, Math.sin(i * Math.PI / 4) * rr); }
@@ -164,7 +238,7 @@ export interface SanKhau {
  * lá bài đang dùng `transform` cho cú lật, ghi đè nó là lá lật ngược lại và lộ
  * mặt (luật "không lộ bài, kể cả trong một khung hình").
  */
-export function chayCanh(canh: CanhKetCuc, s: SanKhau): () => void {
+export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null = null): () => void {
   const hen: ReturnType<typeof setTimeout>[] = [];
   const anim: Animation[] = [];
   const sau = (ms: number, f: () => void) => hen.push(setTimeout(f, s.giamChuyenDong ? Math.min(ms, 60) : ms));
@@ -185,7 +259,7 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau): () => void {
   switch (canh) {
     case 'thang':
     case 'ky-luc': {
-      // Gợn sóng toả từ tâm bàn: mỗi lá nảy 1,1 theo khoảng cách
+      // CHUNG mọi biến thể thắng: gợn sóng toả từ tâm bàn, mỗi lá nảy 1,1
       const ban = s.ban()?.getBoundingClientRect();
       if (ban && !giam) {
         const cx = ban.left + ban.width / 2, cy = ban.top + ban.height / 2;
@@ -195,11 +269,31 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau): () => void {
           gan(el, [{ scale: '1' }, { scale: '1.1' }, { scale: '1' }], { duration: 360, delay: d * 0.9, easing: 'ease-out' });
         }
       }
-      sau(350, () => {
-        rungMan(); s.rung(6);
-        s.hat.phao(0, H, -Math.PI / 3, giam ? 20 : 70, 15);
-        s.hat.phao(W, H, -Math.PI * 2 / 3, giam ? 20 : 70, 15);
-      });
+      if (bienThe === 'phao-hoa-dem') {
+        // Sáu quả pháo hoa nổ khắp trời, mỗi quả một bảng màu, rải trong ~2 giây
+        const BANG = [['#ff5fa8', '#ffd1ea'], ['#7ad7ff', '#e0f7ff'], ['#ffd76a', '#fff3c4'], ['#8b7dff', '#e3deff'], ['#3ddc97', '#d6ffee'], ['#ff7b4a', '#ffe0d1']];
+        ([[0.25, 0.22], [0.72, 0.16], [0.5, 0.3], [0.18, 0.42], [0.82, 0.38], [0.5, 0.12]] as const).forEach(([fx, fy], i) =>
+          sau(300 + i * 300, () => {
+            // Một quả = vòng ngoài to + vòng trong nhỏ + loé trắng ở tâm: một vòng đơn đọc ra thành "lấp lánh", không phải pháo hoa
+            const x = W * fx, y = H * fy, mau = BANG[i]!;
+            s.hat.long(x, y, giam ? 15 : 80, mau, 10);
+            s.hat.long(x, y, giam ? 6 : 34, [mau[1]!, '#ffffff'], 4.5);
+            s.hat.long(x, y, giam ? 2 : 8, ['#ffffff'], 1.5);
+            if (i % 2 === 0) s.rung(2);
+          }));
+        sau(450, () => { rungMan(); s.rung(6); });
+      } else if (bienThe === 'vuong-mien') {
+        // Vương miện (CSS) cắm xuống chữ ở ~1,0s: rung + bùng sao; rồi mưa đồng xu
+        sau(1000, () => { rungMan(); s.rung(6); s.hat.long(W / 2, H * 0.3, giam ? 15 : 50, ['#ffd76a', '#ffffff', '#f0a500'], 7); });
+        for (let t = 1100; t < 2600; t += 120) sau(t, () => s.hat.xu(giam ? 1 : 4));
+      } else {
+        // Pháo giấy: hai ống bắn chéo từ hai góc dưới
+        sau(350, () => {
+          rungMan(); s.rung(6);
+          s.hat.phao(0, H, -Math.PI / 3, giam ? 20 : 70, 15);
+          s.hat.phao(W, H, -Math.PI * 2 / 3, giam ? 20 : 70, 15);
+        });
+      }
       if (canh === 'ky-luc') sau(1500, () => {
         s.rung(6);
         ([[0.25, 0.3], [0.75, 0.26], [0.5, 0.18]] as const).forEach(([fx, fy], i) =>
@@ -210,6 +304,26 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau): () => void {
     case 'thua': {
       xam(0.85); s.rung(1);
       const chua = s.la().filter((el) => !el.classList.contains('done'));
+      if (bienThe === 'tan-tro') {
+        // Lá chưa ghép hoá tro (mờ + nhoè, KHÔNG đụng transform); chữ vỡ thành bụi bay theo gió
+        chua.forEach((el, i) => sau(300 + i * Math.min(60, 500 / Math.max(1, chua.length)), () =>
+          gan(el, [{ opacity: '1', filter: 'none' }, { opacity: '0.12', filter: 'grayscale(1) blur(3px)' }], { duration: 700, fill: 'forwards' })));
+        sau(1350, () => {
+          s.rung(2);
+          document.querySelectorAll<HTMLElement>('.ketcuc-fx .fx-ky').forEach((k, i) => sau(i * 70, () => {
+            const r = k.getBoundingClientRect();
+            if (r.width) s.hat.tro(r.left, r.top, r.width, r.height, giam ? 6 : 34);
+          }));
+        });
+        break;
+      }
+      if (bienThe === 'game-over') {
+        // Màn tắt kiểu TV cũ (CSS); lúc tắt thì rung một cú, lúc chữ hiện thì rung nhẹ
+        sau(250, () => s.rung(2));
+        sau(1250, () => s.rung(1));
+        break;
+      }
+      // Đập vỡ màn (mặc định)
       // Tổng so le chốt ở 600ms: 90ms mỗi lá thì bàn 88 thẻ mất 8 giây mới rơi xong
       const buoc = Math.min(90, 600 / Math.max(1, chua.length));
       chua.forEach((el, i) => sau(i * buoc, () => {
@@ -218,7 +332,18 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau): () => void {
           { translate: `0 ${H}px`, rotate: `${i % 2 ? 40 : -40}deg` }], { duration: 900, easing: 'cubic-bezier(.55,0,.9,.4)', fill: 'forwards' });
         if (!giam) s.hat.bui(r.left + r.width / 2, r.bottom, 10);
       }));
-      sau(1300, () => s.rung(2));
+      // CÚ ĐẬP: chữ chạm đất → rung màn mạnh + rung máy (vết nứt, sóng là CSS)
+      sau(1450, () => {
+        s.rung(6);
+        if (!giam) gan(s.man(), [
+          { translate: '0 0' }, { translate: '-9px 5px' }, { translate: '10px -6px' }, { translate: '-8px 4px' },
+          { translate: '7px -3px' }, { translate: '-4px 2px' }, { translate: '0 0' }], { duration: 520 });
+      });
+      // ĐÁM MÂY ĐỔ MƯA: mưa rơi từ chỗ đám mây đang đứng, tới ~3,7s là tạnh
+      for (let t = 1900; t < 3700; t += 70) sau(t, () => {
+        const may = document.querySelector('.fx-may-mua')?.getBoundingClientRect();
+        if (may && may.width) s.hat.giot(may.left + may.width * 0.15, may.right - may.width * 0.15, may.bottom - 6, giam ? 1 : 3);
+      });
       break;
     }
     case 'thua-may':

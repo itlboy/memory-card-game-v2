@@ -161,7 +161,7 @@ for (const [ten, w, h] of MAY) {
   const canh = await js(`document.querySelector('.ketcuc-fx')?.dataset.canh ?? null`);
   ok(canh === 'thang' || canh === 'ky-luc', `${ten}: cảnh kết ván là chiến thắng (${canh})`);
   const chu = await js(`(() => { const e = document.querySelector('.ketcuc-fx .fx-thang'); if (!e) return null; const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, t: r.top, b: r.bottom }; })()`);
-  ok(chu && chu.l >= -1 && chu.r <= w + 1 && chu.t >= 0, `${ten}: chữ CHIẾN THẮNG nằm trong màn hình (${chu && chu.l.toFixed(0) + '..' + chu.r.toFixed(0)})`);
+  ok(chu && chu.l >= -1 && chu.r <= w + 1 && chu.t >= 0, `${ten}: chữ CHIẾN THẮNG (${await js(`document.querySelector('.ketcuc-fx')?.dataset.bienThe`)}) nằm trong màn hình (${chu && chu.l.toFixed(0) + '..' + chu.r.toFixed(0)})`);
   // Lá đã ghép phải vẫn NGỬA: cảnh chỉ được động bằng scale/translate riêng
   const lat = await js(`[...document.querySelectorAll('.board button.card')].filter((c) => !c.classList.contains('up') && !c.classList.contains('done')).length`);
   ok(lat === 0, `${ten}: cảnh thắng không lật úp lá nào (${lat} lá sai)`);
@@ -192,16 +192,17 @@ for (const [ten, w, h] of MAY) {
   for (let i = 0; i < 160 && !canh; i++) { canh = await js(`document.querySelector('.ketcuc-fx')?.dataset.canh ?? null`); if (!canh) await cho(500); }
   ok(canh === 'thua', `${ten}: hết giờ ra cảnh THUA (${canh})`);
   await cho(1600);
+  const bienThe = await js(`document.querySelector('.ketcuc-fx')?.dataset.bienThe ?? null`);
   const t = await js(`(() => {
-    const c = document.querySelector('.ketcuc-fx .fx-thua')?.getBoundingClientRect();
+    const c = document.querySelector('.ketcuc-fx .fx-tieu-de')?.getBoundingClientRect();
     const ds = [...document.querySelectorAll('.board button.card:not(.done)')];
     return { chu: c ? { l: c.left, r: c.right, t: c.top, b: c.bottom } : null,
       roi: ds.filter((x) => x.getBoundingClientRect().top > innerHeight).length, tong: ds.length,
       lo: ds.filter((x) => x.classList.contains('up')).length,
       anUi: document.querySelector('.ketcuc-fx .fx-an-ui')?.textContent };
   })()`);
-  ok(t.chu && t.chu.t >= 0 && t.chu.b <= h && t.chu.l >= -1 && t.chu.r <= w + 1, `${ten}: chữ THUA RỒI nằm trong màn hình`);
-  ok(t.tong > 0 && t.roi === t.tong, `${ten}: ${t.roi}/${t.tong} lá chưa ghép đã rơi khỏi màn`);
+  ok(t.chu && t.chu.t >= 0 && t.chu.b <= h && t.chu.l >= -1 && t.chu.r <= w + 1, `${ten}: tiêu đề cảnh thua (${bienThe}) nằm trong màn hình`);
+  if (bienThe === 'dap-vo') ok(t.tong > 0 && t.roi === t.tong, `${ten}: ${t.roi}/${t.tong} lá chưa ghép đã rơi khỏi màn`);
   ok(t.lo === 0, `${ten}: lá rơi vẫn ÚP, không lộ mặt (${t.lo} lá ngửa)`);
   ok(/cặp nữa thôi|Suýt nữa/.test(t.anUi ?? ''), `${ten}: dòng an ủi: "${t.anUi}"`);
   await cho(1200);
@@ -232,7 +233,7 @@ for (const [ten, w, h] of MAY) {
   await js(`[...document.querySelectorAll('.option.big')].find((b) => /Chơi nhanh/.test(b.textContent)).click()`); await cho(500);
   const sn = await js(`(() => { const o = [...document.querySelectorAll('.counts .option')].map((e) => e.getBoundingClientRect());
     return { so: o.length, thap: Math.min(...o.map((r) => r.height)), hep: Math.min(...o.map((r) => r.width)), day: Math.max(...o.map((r) => r.bottom)), hang: new Set(o.map((r) => Math.round(r.top))).size }; })()`);
-  ok(sn.so === 10 && sn.hang === 2, `${ten}: bước số người có 10 ô, tròn 2 hàng (thấy ${sn.so} ô, ${sn.hang} hàng)`);
+  ok(sn.so === 4 && sn.hang === 2, `${ten}: bước số người có 4 ô (1–4 người), lưới 2×2 (thấy ${sn.so} ô, ${sn.hang} hàng)`);
   ok(sn.thap >= 44 && sn.hep >= 44 && sn.day <= h, `${ten}: ô số người ${sn.hep.toFixed(0)}×${sn.thap.toFixed(0)}px, nằm trong màn`);
 }
 {

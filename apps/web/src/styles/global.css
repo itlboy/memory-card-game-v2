@@ -256,8 +256,6 @@ button {
 .g-pink   { background: linear-gradient(150deg, #c44cf0, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-cyan   { background: linear-gradient(150deg, #109edb, #1aa793) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-blue   { background: linear-gradient(150deg, #4c7dff, #5fb0ff) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-/* Ô thứ mười của lưới số người (1..10): mười ô, mười màu — xem COUNTS ở MenuScreen */
-.g-indigo { background: linear-gradient(150deg, #5b4bd6, #8a6dff) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-amber  { background: linear-gradient(150deg, #f59e0b, #ff7b45) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-red    { background: linear-gradient(150deg, #ef4458, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-teal   { background: linear-gradient(150deg, #12a696, #1aa793) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }

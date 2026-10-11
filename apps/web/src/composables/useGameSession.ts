@@ -175,7 +175,8 @@ export function useGameSession() {
           // Thua BOT dùng `defeat()` như thua online: có kẻ thắng ngay trước
           // mắt mình, khác hẳn ván một mình hết giờ (`lose()`).
           else if (botLevel.value) sfx.defeat();
-          else sfx.lose();
+          // Thua thường: KHÔNG phát ở đây — ba biến thể thua nghe khác hẳn nhau, KetCucFx
+          // phát đúng tiếng của biến thể (TIENG_BIEN_THE).
           break;
       }
     }

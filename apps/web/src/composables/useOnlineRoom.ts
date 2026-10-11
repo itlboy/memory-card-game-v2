@@ -1079,7 +1079,7 @@ export function useOnlineRoom() {
           else if (iLead) sfx.victory();
           // Online không có máy: thua là kèn buồn kiểu hài (`lose`). `defeat` nay là
           // tiếng MÁY CƯỜI, chỉ dành cho cảnh máy trêu.
-          else sfx.lose();
+          // Thua: tiếng do KetCucFx phát theo biến thể (TIENG_BIEN_THE), không phát ở đây
           // Điểm của CHÍNH mình được cộng vào tổng tích luỹ — chơi online cả
           // buổi mà tổng không nhích thì không mở được theme nào
           store.addScore(e.summary.ranking.find((p) => p.id === myId.value)?.score ?? 0);
