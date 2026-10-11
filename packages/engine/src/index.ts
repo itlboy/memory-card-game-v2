@@ -6,6 +6,7 @@ export {
 } from './bot.js';
 export type { BotLevel, BotMemory, BotSpec } from './bot.js';
 export { buildDeck } from './deck.js';
+export { xoayNguoiDau } from './xoay.js';
 export {
   BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
   comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
-import { BOT_SPECS } from '@mm/engine';
+import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, defineAsyncComponent, onMounted, ref, watch, watchEffect } from 'vue';
 import KetCucFx from './components/KetCucFx.vue';
@@ -451,11 +451,28 @@ function startLevel(id: number): void {
     const cfg = mode.value === 'campaign'
       ? presetConfig({ mode: 'campaign', level: id, symbols: symbols.value, seed: newSeed(), players: playerList() })
       : configFromOptions({ options: options.value, level: id, symbols: symbols.value, seed: newSeed(), players: playerList() });
+    xoayLuotDau(cfg);
     levelId.value = id;
     level.value = id;
     session.setBot(botLevel.value);
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
+}
+
+/**
+ * XOAY VÒNG NGƯỜI ĐI ĐẦU (chủ dự án yêu cầu 11.10.2026) — nhiều người cùng máy và
+ * đấu máy. Giữ thứ tự người chơi như đã nhập, ván sau bắt đầu từ người ngay sau
+ * người đi đầu ván trước. Ván đầu (hay đổi người) thì bốc ngẫu nhiên một lần.
+ * Tắt `shufflePlayers` của engine: chính nó làm lượt đầu ngẫu nhiên mỗi ván.
+ * Online làm cùng luật ở server (`prepareGame` trong room.ts).
+ */
+let nguoiDauTruoc: string | null = null;
+function xoayLuotDau(cfg: GameConfig): void {
+  if (!cfg.players || cfg.players.length < 2) return;
+  // Ván đầu bốc theo SEED của ván (tất định: F5/khôi phục và test ra cùng người)
+  cfg.players = xoayNguoiDau(cfg.players, nguoiDauTruoc, new Rng(cfg.seed).next());
+  cfg.shufflePlayers = false;
+  nguoiDauTruoc = cfg.players[0]!.id;
 }
 
 function nextLevel(): void {

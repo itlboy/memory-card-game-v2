@@ -5,7 +5,7 @@ import {
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
-  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, UserMinus, Users, X
+  Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, Users, X
 } from 'lucide-vue-next';
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -1023,13 +1023,14 @@ function openCfgWizard(): void {
         </span>
         <!-- Mời ra: chỉ CHỦ PHÒNG thấy, và không bao giờ hiện ở dòng của chính
              mình — muốn đi thì có nút rời phòng, đi đường đó mới chuyển quyền
-             chủ phòng cho người khác. Nhạt và nhỏ: đây là việc hiếm làm, không
-             được tranh chỗ với thứ người ta nhìn hàng ngày. -->
+             chủ phòng cho người khác. Dấu X tròn (chủ dự án chọn 11.10.2026: icon
+             "người trừ" cũ mờ quá, không ai hiểu là nút bỏ người). Vẫn nhỏ, và
+             bấm vẫn hỏi xác nhận trước khi mời ra. -->
         <button
           v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra" type="button"
           :aria-label="`Mời ${p.name} ra khỏi phòng`" :title="`Mời ${p.name} ra khỏi phòng`"
           @click="hoiMoiRa(p.id, p.name, p.connected)"
-        ><UserMinus :size="15" /></button>
+        ><X :size="16" :stroke-width="2.6" /></button>
       </li>
       <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
            làm dòng này vỡ chữ -->
@@ -1477,12 +1478,12 @@ input:focus { outline: none; border-color: var(--accent); }
   position: relative; flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0;
-  border: 0; border-radius: 8px; background: transparent;
-  color: var(--muted); opacity: .5;
+  border: 0; border-radius: 50%;
+  background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad);
 }
 .nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
 @media (hover: hover) {
-  .nut-moi-ra:hover { opacity: 1; color: var(--bad); background: color-mix(in srgb, var(--bad) 12%, transparent); }
+  .nut-moi-ra:hover { background: var(--bad-solid); color: #fff; }
 }
 
 .lobby-list {

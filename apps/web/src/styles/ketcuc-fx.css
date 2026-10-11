@@ -27,7 +27,13 @@
 /* ---------- chữ lớn ---------- */
 .fx-chu {
   position: absolute; left: 0; right: 0; top: 34%;
-  text-align: center; line-height: .95; letter-spacing: .02em;
+  /*
+   * DẤU TIẾNG VIỆT NHÔ LÊN TRÊN KHUNG CHỮ. Chữ tô bằng `background-clip: text`
+   * nên chỉ phần nằm TRONG hộp mới có màu; dòng .95 cắt mất dấu sắc của "Ế"
+   * — "CHIẾN" hiện ra thành "CHIỄN" (chủ dự án báo, ảnh chụp xác nhận). Dòng
+   * 1,2 + đệm trên dưới 0,18em chừa chỗ cho hai tầng dấu (Ế, Ắ, Ầ…).
+   */
+  text-align: center; line-height: 1.2; padding-block: .18em; letter-spacing: .02em;
   font-family: var(--font-display); font-weight: 800;
 }
 .fx-thang {

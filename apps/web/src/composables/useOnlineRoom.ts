@@ -794,10 +794,7 @@ export function useOnlineRoom() {
           break;
         }
         phase.value = msg.room.status === 'lobby' ? 'lobby' : phase.value;
-        try {
-          localStorage.setItem(SESSION_KEY, JSON.stringify(
-            { code, token, name: myName, luc: Date.now() } satisfies StoredSession));
-        } catch { /* chế độ riêng tư chặn ghi */ }
+        luuPhien();
         // Bàn chơi host đã chọn trong wizard trước khi tạo phòng
         if (pendingConfig && msg.room.hostId === msg.playerId) {
           send({ t: 'config', config: pendingConfig });
@@ -838,6 +835,12 @@ export function useOnlineRoom() {
       }
 
       case 'countdown':
+        /*
+         * Ván mới có thể bắt đầu THẲNG từ màn kết quả (mọi người bấm Chơi lại),
+         * mà kết ván đã xoá phiên (`endSession`). Ghi lại ngay, không thì F5 giữa
+         * ván mới là thành người lạ — một người hoá hai.
+         */
+        if (!spectator.value && token) luuPhien();
         countdown.value = {
           endsAt: Date.now() + msg.endsInMs,
           firstId: msg.firstId,
@@ -1106,6 +1109,14 @@ export function useOnlineRoom() {
         bannerTimer = setTimeout(() => { turnBanner.value = null; }, 1500);
       }
     }
+  }
+
+  /** Ghi phiên (token) để đóng tab / F5 vẫn vào lại đúng chỗ. */
+  function luuPhien(): void {
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(
+        { code, token, name: myName, luc: Date.now() } satisfies StoredSession));
+    } catch { /* chế độ riêng tư chặn ghi */ }
   }
 
   function clearStored(): void {
