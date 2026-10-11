@@ -54,7 +54,11 @@ export const ngonNgu = ref<NgonNgu>(docBanDau());
 
 watch(ngonNgu, (l) => {
   try { localStorage.setItem(KHOA_LUU, l); } catch { /* bỏ qua */ }
-  if (typeof document !== 'undefined') document.documentElement.lang = l;
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = l;
+    // Tiêu đề tab theo ngôn ngữ (index.html chỉ có bản tiếng Việt cho máy đọc thẻ og)
+    document.title = t('chung.tieuDeTrang');
+  }
 }, { immediate: true });
 
 /** Tra một khoá ở ngôn ngữ đang chọn, điền `{tham_so}`. Thiếu bản dịch thì về tiếng Việt. */

@@ -228,7 +228,12 @@
   dấu. Màn dịch xong phải THÊM vào lớp này. Tên do app đặt dịch LÚC VẼ qua
   `lib/ten.ts` (`tenNguoi`, `tenBot`), dữ liệu ván giữ chữ gốc. Danh hiệu là getter
   (`dh()` trong achievements.ts) nên đổi ngôn ngữ là tên đổi theo. App iOS ĐOÁN
-  ngôn ngữ theo máy (khác web) vì đó là lựa chọn thật của người dùng. Đợt 1 xong: thanh trên, trang chủ + wizard,
+  ngôn ngữ theo máy (khác web) vì đó là lựa chọn thật của người dùng.
+  TÊN APP: "Lật Thẻ" (vi) / "Flip Match" (en) — chủ dự án chốt 12.10.2026 vì tên có
+  dấu khó với người nước ngoài. Khoá `tb.thuongHieu` + `chung.tieuDeTrang` (tiêu đề
+  tab, đặt trong `lib/i18n.ts`); app iOS đọc tên từ `ios/App/App/{en,vi}.lproj/
+  InfoPlist.strings` + `CFBundleLocalizations` — đổi tên là đổi CẢ hai chỗ. Tên PWA
+  (vite.config) và thẻ og (index.html) là tệp tĩnh một ngôn ngữ, còn tiếng Việt. Đợt 1 xong: thanh trên, trang chủ + wizard,
   màn chơi, bảng kết quả, cảnh kết ván, danh hiệu, tài khoản, tên theme/máy. Đợt 2: online; đợt 3:
   Luật chơi, tên theme, nhãn engine (`optionSummary` đang dịch tạm theo mẫu ở
   MenuScreen), lỗi server (dịch theo MÃ lỗi ở client), thẻ og. Chuyển xong file nào

@@ -25,8 +25,9 @@ import { ngonNgu, type NgonNgu } from '@/lib/i18n';
  * Chữ đến từ đâu cũng bị bắt. Màn nào dịch xong thì THÊM vào đây.
  */
 const DAU_VIET = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
-/** Cụm CỐ Ý giống nhau ở mọi ngôn ngữ: thương hiệu, tên ngôn ngữ trong ô chọn, từ mượn. */
-const GIONG_NHAU = new Set(['Lật Thẻ', 'Tiếng Việt', 'English', 'VI', 'EN', 'Menu', 'Online', 'GAME', 'OVER', 'GAME OVER', 'Combo']);
+/** Cụm CỐ Ý giống nhau ở mọi ngôn ngữ: tên ngôn ngữ trong ô chọn, từ mượn. Tên app KHÔNG còn ở đây:
+ *  bản English là "Flip Match" (chủ dự án chốt 12.10.2026). */
+const GIONG_NHAU = new Set(['Tiếng Việt', 'English', 'VI', 'EN', 'Menu', 'Online', 'GAME', 'OVER', 'GAME OVER', 'Combo']);
 
 const THEMES = {
   themes: [
@@ -145,6 +146,7 @@ describe('bản English không còn chữ tiếng Việt trên các màn đã d�
     const enMan = await duyetApp('en');
     expect(Object.keys(enMan).length).toBeGreaterThanOrEqual(9);
     expect(soSanh(viMan, enMan)).toEqual([]);
+    expect(document.title, 'tiêu đề tab').not.toMatch(DAU_VIET);
   }, 30_000);
 
   it('bảng kết quả, màn danh hiệu, mọi cảnh kết ván', async () => {

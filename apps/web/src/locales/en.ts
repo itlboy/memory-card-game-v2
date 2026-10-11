@@ -37,7 +37,8 @@ const en: TuDien = {
   'tb.ngonNgu': 'Language',
   'tb.luatChoi': 'How to play',
 
-  'tb.thuongHieu': 'Lật Thẻ',
+  'tb.thuongHieu': 'Flip Match',
+  'chung.tieuDeTrang': 'Flip Match — Memory Card Game',
   'hud.thoat': 'Quit to menu',
   'game.the.bomb': 'Bomb card! Two opened pairs flipped back down.',
   'game.the.swap': 'Swap! Two cards just traded places.',
