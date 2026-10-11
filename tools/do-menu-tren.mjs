@@ -213,6 +213,55 @@ for (const [ten, w, h] of MAY) {
   ok(lai === 0, `${ten}: Chơi lại thì bàn mới đủ lá, không còn lá nằm ngoài màn (${lai})`);
 }
 
+/* ---------- trang chủ: dải lối tắt, 4 ô chế độ, lưới 10 ô số người; Đổi bàn; chữ đậm ---------- */
+for (const [ten, w, h] of MAY) {
+  await goi('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 3, mobile: true });
+  await goi('Page.navigate', { url: URL_APP + '?cb=' + Date.now() });   // localStorage còn từ ván trước → có gợi ý
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.option.big')`)); i++) await cho(250);
+  await cho(400);
+  const tc = await js(`(() => {
+    const o = [...document.querySelectorAll('.option.big')].map((e) => e.getBoundingClientRect());
+    const loi = document.querySelector('.loi-tat')?.getBoundingClientRect();
+    return { so: o.length, thap: Math.min(...o.map((r) => r.height)), day: Math.max(...o.map((r) => r.bottom)), loi: loi ? { t: loi.top, b: loi.bottom, r: loi.right } : null,
+      cuon: document.documentElement.scrollHeight > innerHeight + 1 };
+  })()`);
+  ok(tc.so === 4, `${ten}: trang chủ còn 4 ô chế độ (thấy ${tc.so})`);
+  ok(tc.loi && tc.loi.r <= w + 0.5, `${ten}: dải lối tắt hiện và không tràn ngang`);
+  ok(tc.day <= h && !tc.cuon && tc.thap >= 44, `${ten}: 4 ô chế độ vừa màn, không cuộn, ô thấp nhất ${tc.thap.toFixed(0)}px`);
+  // Lưới số người
+  await js(`[...document.querySelectorAll('.option.big')].find((b) => /Chơi nhanh/.test(b.textContent)).click()`); await cho(500);
+  const sn = await js(`(() => { const o = [...document.querySelectorAll('.counts .option')].map((e) => e.getBoundingClientRect());
+    return { so: o.length, thap: Math.min(...o.map((r) => r.height)), hep: Math.min(...o.map((r) => r.width)), day: Math.max(...o.map((r) => r.bottom)), hang: new Set(o.map((r) => Math.round(r.top))).size }; })()`);
+  ok(sn.so === 10 && sn.hang === 2, `${ten}: bước số người có 10 ô, tròn 2 hàng (thấy ${sn.so} ô, ${sn.hang} hàng)`);
+  ok(sn.thap >= 44 && sn.hep >= 44 && sn.day <= h, `${ten}: ô số người ${sn.hep.toFixed(0)}×${sn.thap.toFixed(0)}px, nằm trong màn`);
+}
+{
+  // Đổi bàn: thắng một ván 2×2 rồi bấm → về bước chọn số thẻ
+  const [ten, w, h] = MAY[0];
+  await goi('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 3, mobile: true });
+  await goi('Page.navigate', { url: URL_APP + '?cb=' + Date.now() });
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('header .dh')`)); i++) await cho(250);
+  await js(`document.querySelector('header .dh').click()`); await cho(300);
+  await js(`document.querySelector('[aria-label="Chinh phục: Bàn 6 thẻ"], [aria-label="Chinh phục: Bàn 4 thẻ"]')?.click()`); await cho(1800);
+  for (let lan = 0; lan < 12; lan++) {
+    if (await js(`!!document.querySelector('[aria-labelledby="resTitle"]')`)) break;
+    const c = await js(`[...document.querySelectorAll('button.card')].map((b, i) => b.classList.contains('done') ? -1 : i).filter((i) => i >= 0)`);
+    if (c.length < 2) { await cho(800); continue; }
+    await js(`document.querySelectorAll('button.card')[${c[0]}].click()`); await cho(450);
+    await js(`document.querySelectorAll('button.card')[${c[1 + (lan % (c.length - 1))]}].click()`); await cho(1700);
+  }
+  for (let i = 0; i < 20 && !(await js(`!!document.querySelector('[aria-labelledby="resTitle"]')`)); i++) await cho(300);
+  await js(`[...document.querySelectorAll('[aria-labelledby="resTitle"] button')].find((b) => b.textContent.trim() === 'Đổi bàn')?.click()`);
+  await cho(800);
+  const db = await js(`JSON.stringify({ tieuDe: document.querySelector('.wizard-head h2')?.textContent, url: location.search })`);
+  ok(/Chọn số thẻ/.test(db) && /w=level/.test(db), `${ten}: Đổi bàn về bước chọn số thẻ (${db})`);
+  // Chữ đậm của theme Chữ & số: dựng một lá giả trong trang thật để đọc kiểu đã tính
+  const chu = await js(`(() => { const b = document.createElement('button'); b.className = 'card'; const f = document.createElement('span'); f.className = 'face front chu'; f.textContent = 'A';
+    const sc = [...document.styleSheets].flatMap((x) => { try { return [...x.cssRules]; } catch { return []; } }).find((r) => r.selectorText && r.selectorText.includes('.front.chu'));
+    return sc ? sc.style.fontWeight + ' ' + sc.style.fontFamily : 'không thấy luật .front.chu'; })()`);
+  ok(/800/.test(chu) && /font-display|Baloo/.test(chu), `${ten}: theme Chữ & số dùng nét 800 phông hiển thị (${chu})`);
+}
+
 ws.close(); chrome.kill();
 console.log(loi ? `\n${loi} lỗi` : '\nmenu thanh trên: sạch');
 process.exit(loi ? 1 : 0);

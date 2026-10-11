@@ -427,11 +427,8 @@ Ba điều dễ làm hỏng:
 
 ## Chưa làm
 
-Quick match (ON-02), chế độ Race (ON-06), i18n. Đề xuất đã chốt nhưng chưa làm:
-dải lối tắt trên trang chủ (danh hiệu gợi ý, chuỗi ngày 🔥, tiếp tục chiến dịch),
-menu thanh trên chia hai khối tài khoản / cài đặt, gộp "Chơi nhanh" + "Chơi nhiều
-người", màn đăng nhập ghi lợi ích bằng số thật, nút "Đổi bàn" ở bảng kết quả, đăng
-nhập trong app iOS (cần plugin native), E2E Playwright chạy trong CI.
+Quick match (ON-02), chế độ Race (ON-06), i18n, đăng nhập trong app iOS (cần plugin
+native), E2E Playwright chạy trong CI.
 
 ## Phiên bản đang chạy
 
@@ -668,6 +665,15 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 ## Nhật ký thay đổi
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
+
+**11.10.2026 (tối)**
+- Trang chủ: 4 ô chế độ ("Chơi nhanh" gộp một mình + nhiều người, chọn 1–10 người ở
+  bước sau) và dải lối tắt: 🔥 chuỗi ngày, tiếp tục chiến dịch, danh hiệu gợi ý.
+- Menu thanh trên: khối tài khoản (tên + ảnh) và khối Cài đặt với công tắc Nền tối,
+  Rung, ba nấc âm thanh Tắt/Nhỏ/To.
+- Màn đăng nhập ghi lợi ích bằng số danh hiệu và điểm thật của máy.
+- Bảng kết quả ván offline: "Đổi bàn" về thẳng bước chọn số thẻ.
+- Theme Chữ & số: nét đậm (Baloo 2, 800).
 
 **11.10.2026**
 - Cảnh kết ván mới thay hẳn bộ cũ (thắng, kỷ lục, thua, thua máy, hoà), âm thanh viết lại.

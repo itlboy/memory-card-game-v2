@@ -40,7 +40,7 @@ const props = defineProps<{
   rematchState?: Record<string, 'in' | 'out'>;
 }>();
 
-const emit = defineEmits<{ replay: []; next: []; menu: []; lobby: []; 'chinh-phuc': [Achievement] }>();
+const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; 'chinh-phuc': [Achievement] }>();
 const primary = ref<HTMLButtonElement | null>(null);
 const shownStars = ref(0);
 /** Điểm chạy dần từ 0 lên tổng — con số nhảy sẵn thì không ai cảm nhận được
@@ -281,7 +281,13 @@ const title = computed(() => {
       <button v-if="multiplayerOnline" class="btn to-lobby" type="button" @click="emit('lobby')">
         Về phòng chờ
       </button>
-      <button class="btn link" type="button" @click="emit('menu')">Về menu</button>
+      <!--
+        Ván offline: "Đổi bàn" về thẳng bước chọn cỡ bàn — người vừa chơi xong
+        thường muốn đổi cỡ, ít khi muốn về tận màn đầu (chủ dự án duyệt
+        11.10.2026). Online giữ "Về menu": ở đó không có bước chọn bàn.
+      -->
+      <button v-if="multiplayerOnline" class="btn link" type="button" @click="emit('menu')">Về menu</button>
+      <button v-else class="btn link" type="button" @click="emit('doi-ban')">Đổi bàn</button>
       <!--
         Chỉ còn MỘT dòng ở đây: "đang chờ ai" và "ai muốn chơi lại" đã chuyển
         thành nhãn cạnh tên trong bảng xếp hạng (đọc ở đúng chỗ mắt đang nhìn).

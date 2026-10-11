@@ -99,7 +99,7 @@ const xongTuyChon = async (): Promise<void> => {
 
 /** Đi hết wizard chơi nhanh: Chơi nhanh → cấp → theme → tuỳ chọn → Bắt đầu. */
 const start = async (_mode = '', cards = 16): Promise<void> => {
-  await click('Chơi nhanh');
+  await click('Chơi nhanh'); await click('1 người chơi');
   await click(`${cards} thẻ`);
   await xongTuyChon();
 };
@@ -111,7 +111,9 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(wrapper.text()).toContain('Chơi nhanh');
     expect(wrapper.text()).toContain('Chiến dịch');
-    expect(wrapper.text()).toContain('Chơi nhiều người');
+    // "Chơi nhiều người" đã gộp vào "Chơi nhanh" (11.10.2026): số người hỏi ở bước sau
+    expect(wrapper.text()).not.toContain('Chơi nhiều người');
+    expect(wrapper.text()).toContain('Một mình hoặc 2–10 người');
     // Chưa hiện cấp/theme ở bước đầu — tránh rối
     expect(wrapper.text()).not.toContain('Chọn số thẻ');
     expect(wrapper.text()).not.toContain('Theme thẻ');
@@ -120,7 +122,7 @@ describe('App', () => {
   it('theme nạp từ JSON hiện ở bước chọn bàn', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('1 người chơi');
     expect(wrapper.text()).not.toContain('Động vật');
     expect(wrapper.text()).toContain('Chọn số thẻ');       // bước chọn bàn đứng trước theme
     await click('16 thẻ');
@@ -131,8 +133,12 @@ describe('App', () => {
   it('nút quay lại đưa về bước trước', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('1 người chơi');
     expect(wrapper.text()).toContain('Chọn số thẻ');
+    // Lùi từng bước: chọn bàn → số người → màn đầu
+    await wrapper.find('[aria-label="Quay lại"]').trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Mấy người chơi?');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
@@ -141,7 +147,7 @@ describe('App', () => {
   it('theme chưa mở khoá thì bị vô hiệu hoá', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('1 người chơi');
     await click('16 thẻ');
     const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
     expect(locked.attributes('aria-disabled')).toBe('true');
@@ -201,7 +207,7 @@ describe('App', () => {
   it('nhánh nhiều người: số người → tên → chế độ → bàn chơi, vào ván có bảng người chơi', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhiều người');
+    await click('Chơi nhanh');
     expect(wrapper.text()).toContain('Mấy người chơi?');
     await click('2 người chơi');
     // Bước điền tên: đúng số ô theo số người, để trống thì lấy tên mặc định
@@ -239,7 +245,7 @@ describe('multi-theme', () => {
   it('chọn thêm theme thứ hai — cả hai cùng được đánh dấu', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('1 người chơi');
     await click('16 thẻ');
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;

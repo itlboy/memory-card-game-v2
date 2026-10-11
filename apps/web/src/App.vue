@@ -29,7 +29,7 @@ watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
 import { useGameSession } from './composables/useGameSession';
 import {
-  ACHIEVEMENTS, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
+  ACHIEVEMENTS, byId, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
   type Achievement
 } from './lib/achievements';
 import DanhHieuDialog from './components/DanhHieuDialog.vue';
@@ -41,7 +41,7 @@ import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
 import { useViewportLock } from './composables/useViewportLock';
-import { store, type SoundLevel } from './lib/storage';
+import { ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
 
 const prefs = store.prefs();
@@ -160,6 +160,21 @@ const thongKe = computed(() => { void progressRev.value; return thongKeHienTai(t
 const themeKhoa = computed(() => Object.fromEntries(
   themes.value.filter((t) => t.unlockAt > totalScore.value).map((t) => [t.id, t.unlockAt])));
 const goiYVan = ref<Achievement | null>(null);
+
+/* ---------- dải lối tắt trên trang chủ ---------- */
+const goiYTrangChu = computed(() => {
+  const a = chonGoiY(daCoSet.value, thongKe.value, new Set(Object.keys(themeKhoa.value)));
+  return a ? { id: a.id, name: a.name } : null;
+});
+/** Chuỗi ngày ĐANG GIỮ (không phải dài nhất): chơi hôm nay hoặc hôm qua mới còn. */
+const chuoiNgayNay = computed(() => {
+  void progressRev.value;
+  const b = store.boDem();
+  const homQua = new Date(); homQua.setDate(homQua.getDate() - 1);
+  return b.ngayCuoi === ngayMay() || b.ngayCuoi === ngayMay(homQua) ? b.chuoi : 0;
+});
+/** Màn chiến dịch đang mở — chỉ hiện khi đã chơi chiến dịch. */
+const manChienDich = computed(() => (thongKe.value.campaignMax > 0 ? store.unlockedLevel() : 0));
 /**
  * Mặt máy vừa THẮNG mình — cảnh "máy trêu". Đọc từ BẢNG XẾP HẠNG, không từ cờ
  * botLevel (cờ tắt được giữa ván, cùng lý do chỗ xét thắng/thua đọc bảng).
@@ -484,6 +499,14 @@ function replay(): void {
   startLevel(levelId.value ?? level.value);
 }
 
+/** "Đổi bàn" ở bảng kết quả: về menu nhưng đứng sẵn ở bước chọn cỡ bàn (hoặc
+ *  bản đồ màn nếu là Chiến dịch), giữ nguyên nhánh đang chơi. */
+function doiBan(): void {
+  backToMenu();
+  ghiQuery('w=level');
+  menuKey.value++;                     // dựng lại MenuScreen để nó đọc ?w=level
+}
+
 function backToMenu(): void {
   session.stop();
   session.summary.value = null;   // đóng dialog kết quả nếu đang mở
@@ -619,6 +642,8 @@ const hasNext = computed(() => {
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
     @account="showAccount = true"
+    @set-sound="(l: SoundLevel) => { soundLevel = l; applySound(); }"
+    :ten-tk="taiKhoanMe?.name"
     @rules="showRules = true"
     @cycle-sound="cycleSound"
     @home="goHome"
@@ -652,6 +677,8 @@ const hasNext = computed(() => {
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
+      :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
+      @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
 
     <OnlineScreen
@@ -696,6 +723,8 @@ const hasNext = computed(() => {
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
+      :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
+      @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
     </Transition>
   </main>
@@ -758,6 +787,7 @@ const hasNext = computed(() => {
     @replay="replay"
     @next="nextLevel"
     @menu="backToMenu"
+    @doi-ban="doiBan"
   />
 </template>
 

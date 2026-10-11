@@ -41,6 +41,9 @@ const props = defineProps<{
   cardCount?: number;
 }>();
 
+/** Ký hiệu là CHỮ/SỐ (theme Chữ & số) chứ không phải emoji → nét đậm, xem `.front.chu`. */
+const laChu = computed(() => /^[\x21-\x7E]{1,3}$/.test(props.card.symbol ?? ''));
+
 const emit = defineEmits<{ flip: [index: number] }>();
 
 /*
@@ -420,7 +423,7 @@ const label = computed(() => {
   >
     <span class="inner">
       <span class="face back" :class="lopMatSau" aria-hidden="true"></span>
-      <span class="face front" aria-hidden="true">
+      <span class="face front" :class="{ chu: laChu }" aria-hidden="true">
         {{ card.symbol }}
         <span v-if="card.power && !card.powerUsed" class="badge">
           <OptionIcon v-if="POWER_ICON[card.power]" :name="POWER_ICON[card.power]!" :size="14" />
@@ -763,6 +766,12 @@ const label = computed(() => {
  * Khai một cỡ duy nhất thì không có lúc nào để nhỏ đi.
  */
 .front { font-size: max(22px, 72cqw); }
+/*
+ * THEME CHỮ & SỐ: ký hiệu là CHỮ chứ không phải emoji, nên nó ăn phông thân bài
+ * ở nét thường và trông mảnh lọt thỏm giữa lá (chủ dự án báo 11.10.2026). Dùng
+ * phông hiển thị của game ở nét đậm nhất (800, đã tải sẵn) + màu đậm.
+ */
+.front.chu { font-family: var(--font-display); font-weight: 800; color: var(--fg); line-height: 1; }
 .back {
   overflow: hidden;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3),
