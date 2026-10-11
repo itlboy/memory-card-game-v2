@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { HIEN_BANG_MS } from '@/lib/ketcuc-fx';
 import { resolve } from 'node:path';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -236,7 +237,7 @@ describe('luồng trọn ván', () => {
     await start();
     await wrapper.findAll('.card')[0]!.trigger('click');     // khởi động đồng hồ
     await vi.advanceTimersByTimeAsync(76_000);               // giới hạn 4×4 mức Vừa là 75s
-    await vi.advanceTimersByTimeAsync(1100);                 // thua: popup vào sau 1 giây
+    await vi.advanceTimersByTimeAsync(HIEN_BANG_MS.thua + 100); // thua: popup vào sau cảnh thua
     await flush();
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Hết thời gian');

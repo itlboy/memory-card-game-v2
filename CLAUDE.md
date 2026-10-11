@@ -17,16 +17,25 @@
   nhất (72 và 88 thẻ) cố ý phá ngưỡng, là bàn siêu khó người chơi tự chọn;
   mọi cỡ ≤56 thẻ vẫn phải giữ, có test canh. Lưới lẻ ô (3×3, 5×5) có ô trống
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
-- **HIỆU ỨNG KẾT VÁN VÀ MẶT SAU LÁ BÀI NẰM Ở SỔ RIÊNG.** Thêm/sửa/xoá chỉ đụng
-  hai file, không sửa component nào:
-  · hiệu ứng: một mục trong `lib/ketcuc-fx.ts` + một khối cùng tên ở
-  `styles/ketcuc-fx.css`. `KetCucFx.vue` là component DUY NHẤT cho cả ba kết
-  cục (thay `CelebrationFx`/`DefeatFx` cũ), nhận `loai` + `seed`.
+- **CẢNH KẾT VÁN: MỘT CẢNH CỐ ĐỊNH CHO MỖI TÌNH HUỐNG** (bộ mới 11.10.2026, chủ
+  dự án duyệt mockup https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 và chốt
+  THAY bộ cũ — luật "≥4 hình mỗi kết cục, bốc theo seed" đã BỎ). Năm cảnh:
+  thắng · kỷ lục · thua · thua máy (máy trêu, câu theo mặt máy) · hoà, chọn ở
+  `chonCanh()`. `lib/ketcuc-fx.ts` lo chọn cảnh, mốc `HIEN_BANG_MS` (App và
+  OnlineGame đọc, đừng chép tay số) và chuyển động JS; chữ lớn là CSS có delay ở
+  `styles/ketcuc-fx.css`; `KetCucFx.vue` là component DUY NHẤT. Cảnh CHẠM BÀN
+  THẺ (gợn sóng, lá rơi) bằng thuộc tính RIÊNG `translate/rotate/scale`, KHÔNG
+  `transform` — lá đang dùng transform để lật, ghi đè là lộ mặt. Dọn cảnh phải
+  `cancel()` mọi animation, không thì Chơi lại ra bàn thiếu lá. Lá rơi so le tối
+  đa 600ms tổng (90ms/lá thì bàn 88 thẻ mất 8 giây — harness bắt). Tiếng vẫn ở
+  chỗ gọi (`victory/lose/defeat/win`), mốc khớp cảnh; online thua dùng `lose`,
+  `defeat` là tiếng MÁY CƯỜI. Huy hiệu danh hiệu: `MoKhoaFx` (z 19) bay vào viên
+  🏅, viên chỉ nhích khi chạm (`dangKhoe`), khoe sau khi bảng kết quả hiện
+  (`moKhoa(ids, { treMs })`), bậc cao trước.
+- **MẶT SAU LÁ BÀI NẰM Ở SỔ RIÊNG.** Thêm/sửa/xoá chỉ đụng hai file:
   · mặt sau: một tên trong `CARD_BACKS` (engine) + một khối ở
   `styles/card-backs.css`. Thiếu khối là lá bài ra Ô TRẮNG TRƠN.
-  Luật: mỗi loại kết cục ≥4 hình (test canh); bốc theo SEED chứ không
-  `Math.random()` — F5 giữa lúc xem kết quả không được đổi hình, và view online
-  dựng lại nhiều lần vẫn phải ra đúng một hình. Mọi mặt sau dùng chung khuôn
+  Mọi mặt sau dùng chung khuôn
   SVG `viewBox="0 0 100 133"` + `center / 100% 100%` để hoạ tiết đứng đúng chỗ ở
   mọi cỡ thẻ, và CẢ BÀN dùng một kiểu (khác nhau = đánh dấu bài).
 - **`summary.status === 'won'` KHÔNG PHẢI "TÔI THẮNG"** — nó chỉ nói BÀN ĐÃ SẠCH.

@@ -1,93 +1,81 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { sfx } from '@/lib/audio';
-import { HET_HOI_MS, bocHieuUng, conLai } from '@/lib/ketcuc-fx';
+import { BoHat, chayCanh, chonCanh, cauTreu, dongAnUi, TEN_CANH } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
+import { rung } from '@/lib/rung';
+import MatBot from './MatBot.vue';
 
 /**
- * HIỆU ỨNG KẾT VÁN — component DUY NHẤT cho cả thắng, thua và hoà.
+ * HIỆU ỨNG KẾT VÁN — component DUY NHẤT cho mọi kết cục (xem `lib/ketcuc-fx.ts`).
  *
- * Trước đây là hai component riêng (`CelebrationFx` + `DefeatFx`), nên thêm một
- * hình là thêm một file và sửa import ở hai chỗ dùng. Nay hình nằm trong sổ
- * `lib/ketcuc-fx.ts` + `styles/ketcuc-fx.css`; ở đây chỉ còn ba việc: bốc hiệu
- * ứng theo seed, dựng các lớp mà sổ khai, và lo phần TIẾNG kéo dài của màn thắng.
- *
- * Không chặn thao tác (`pointer-events: none` ở lớp bọc) — bảng kết quả hiện
- * lên phía trên và người chơi phải bấm được nút trong lúc hiệu ứng còn chạy.
+ * Phần CHỮ (CHIẾN THẮNG, THUA RỒI, HOÀ, băng kỷ lục, máy trêu) là DOM + CSS có
+ * delay; phần CHUYỂN ĐỘNG (hạt, lá bài gợn/rơi, rung màn) do `chayCanh` lo.
+ * Nằm ở z 9, DƯỚI bảng kết quả (10), không chặn chạm.
  */
 const props = defineProps<{
   loai: LoaiKetCuc;
-  /** Seed của ván: cùng ván thì luôn ra cùng một hình, F5 không đổi. */
+  /** Giữ để tương thích chỗ gọi; cảnh mới không bốc theo seed. */
   seed?: number;
+  /** Ván vừa phá kỷ lục → cảnh kỷ lục (băng vàng + pháo hoa). */
+  kyLuc?: boolean;
+  /** Mặt máy vừa THẮNG mình (đấu máy) → cảnh máy trêu. */
+  matMay?: string | null;
 }>();
 
-const hieuUng = computed(() => bocHieuUng(props.loai, props.seed ?? 7));
-/*
- * HẠT BAY CÓ HẠN — hiệu ứng không được chạy mãi.
- *
- * Hiệu ứng nằm DƯỚI bảng kết quả, và bảng đó ở trên màn hình rất lâu: người
- * chơi đọc tỉ số rồi mới bấm. Mọi hạt (confetti, tia pháo, tro) đều khai
- * animation `infinite`, nên trước đây chúng quay cho tới lúc component bị gỡ —
- * `phao-hoa` là 230 phần tử cùng chạy, các hiệu ứng thua thì kèm một lớp
- * `backdrop-filter` trùm cả màn. Trên điện thoại đó là cả CPU lẫn GPU bị chiếm
- * đúng vào lúc người chơi bấm "Chơi lại", mà ngay sau cú chạm còn phải dựng một
- * bàn thẻ mới — người chơi báo "bấm chơi lại delay tới vài chục giây".
- *
- * Sau `HET_HOI_MS` chỉ giữ lớp nền (animation `forwards`, đã dừng sẵn nên gỡ
- * hạt đi không làm mất không khí kết ván).
- */
-const hetHoi = ref(false);
-let hoiTimer: ReturnType<typeof setTimeout> | undefined;
-const lops = computed(() => {
-  const tatCa = hieuUng.value.dung(props.seed ?? 7);
-  return hetHoi.value ? conLai(tatCa) : tatCa;
-});
-
-/*
- * TIẾNG PHÁO HOA KÉO THÊM (chỉ màn thắng).
- *
- * `sfx.victory()` đã nổ 5 quả to trong ~3 giây đầu. Từ đó chỉ điểm nhẹ, rồi TẮT
- * HẲN ở 5,2s: bảng kết quả hiện ở 2,2s và người chơi cần đọc kết quả, bấm nút
- * trong yên tĩnh. Hình thì vẫn chạy tiếp phía sau bảng.
- */
-const SOFT_START_MS = 2600;
-const SOFT_EVERY_MS = 1900;
-const SOFT_LEVEL = 0.18;
-const SOFT_STOP_MS = 5200;
-let softTimer: ReturnType<typeof setInterval> | undefined;
-let startTimer: ReturnType<typeof setTimeout> | undefined;
-let stopTimer: ReturnType<typeof setTimeout> | undefined;
-
-function imTieng(): void {
-  clearInterval(softTimer);
-  softTimer = undefined;
-}
+const canh = computed(() => chonCanh(props.loai, { kyLuc: props.kyLuc, matMay: props.matMay }));
+const cv = ref<HTMLCanvasElement | null>(null);
+/** Số cặp còn úp lúc thua — đếm từ DOM bàn thẻ, đúng cho cả offline lẫn online. */
+const capConLai = ref(0);
+let don: (() => void) | undefined;
 
 onMounted(() => {
-  hoiTimer = setTimeout(() => { hetHoi.value = true; }, HET_HOI_MS);
-  if (props.loai !== 'thang') return;
-  startTimer = setTimeout(() => {
-    sfx.firework(0, SOFT_LEVEL);
-    softTimer = setInterval(() => sfx.firework(0, SOFT_LEVEL), SOFT_EVERY_MS);
-  }, SOFT_START_MS);
-  stopTimer = setTimeout(imTieng, SOFT_STOP_MS);
+  capConLai.value = Math.floor(document.querySelectorAll('.board button.card:not(.done)').length / 2);
+  if (canh.value === 'ky-luc') sfx.kyLuc();
+  if (!cv.value) return;
+  const giam = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  don = chayCanh(canh.value, {
+    hat: new BoHat(cv.value),
+    la: () => [...document.querySelectorAll<HTMLElement>('.board button.card')],
+    ban: () => document.querySelector<HTMLElement>('.board'),
+    man: () => document.getElementById('app'),
+    rung: (n) => (n <= 1 ? rung.sai() : rung.ghep(n)),
+    giamChuyenDong: giam
+  });
 });
-
-onBeforeUnmount(() => {
-  clearTimeout(hoiTimer);
-  clearTimeout(startTimer);
-  clearTimeout(stopTimer);
-  imTieng();
-});
+onBeforeUnmount(() => don?.());
 </script>
 
 <template>
-  <div class="ketcuc-fx" :data-loai="loai" :data-hieu-ung="hieuUng.id" aria-hidden="true">
-    <template v-for="(l, i) in lops" :key="i">
-      <i v-if="!l.con" :class="l.lop" :style="l.style" />
-      <span v-else :class="l.lop" :style="l.style">
-        <i v-for="(c, ci) in l.con" :key="ci" :class="c.lop" :style="c.style" />
-      </span>
+  <div class="ketcuc-fx" :data-loai="loai" :data-canh="canh" :aria-label="TEN_CANH[canh]" aria-hidden="true">
+    <canvas ref="cv" class="fx-hat" />
+
+    <template v-if="canh === 'thang' || canh === 'ky-luc'">
+      <div class="fx-toi" />
+      <div class="fx-chu fx-thang">CHIẾN<br>THẮNG!</div>
+      <div v-if="canh === 'ky-luc'" class="fx-bang">KỶ LỤC MỚI!</div>
+    </template>
+
+    <template v-else-if="canh === 'thua'">
+      <div class="fx-toi" />
+      <div class="fx-khoi-thua">
+        <div class="fx-chu fx-thua">THUA RỒI</div>
+        <p class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
+      </div>
+    </template>
+
+    <template v-else-if="canh === 'thua-may'">
+      <div class="fx-may"><MatBot :mat="matMay ?? ''" /></div>
+      <div class="fx-bong">{{ cauTreu(matMay) }}</div>
+    </template>
+
+    <template v-else>
+      <div class="fx-nua fx-trai" />
+      <div class="fx-nua fx-phai" />
+      <div class="fx-khoi-hoa">
+        <div class="fx-chu fx-hoa">HOÀ!</div>
+        <p class="fx-bat-tay">🤝</p>
+      </div>
     </template>
   </div>
 </template>

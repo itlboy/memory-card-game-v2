@@ -38,12 +38,8 @@ describe('nút "Bắt đầu" phải phản hồi ngay khi bấm', () => {
 describe('kết ván: thắng và thua phải khác nhau, và bảng hiện sớm', () => {
   const game = doc('components/OnlineGame.vue');
 
-  it('bảng tỉ số hiện sớm hơn hẳn mốc cũ 5 giây', () => {
-    const m = /showResult\.value = true; \}, iWon\.value \? (\d+) : (\d+)\)/.exec(game);
-    expect(m, 'không tìm thấy hẹn giờ bảng tỉ số').not.toBeNull();
-    const [thang, thua] = [Number(m![1]), Number(m![2])];
-    expect(thang, 'người thắng chờ quá lâu').toBeLessThanOrEqual(2500);
-    expect(thua, 'người thua không có gì để xem, đừng bắt chờ').toBeLessThan(thang);
+  it('bảng tỉ số hiện theo mốc của CẢNH, không chép tay con số', () => {
+    expect(game).toMatch(/showResult\.value = true; \}, HIEN_BANG_MS\[chonCanh\(loaiKetCuc\.value\)\]\)/);
   });
 
   it('THUA có hiệu ứng hình riêng, không phải chỉ có tiếng', () => {
@@ -53,28 +49,21 @@ describe('kết ván: thắng và thua phải khác nhau, và bảng hiện sớ
       .toMatch(/:loai="loaiKetCuc"/);
   });
 
-  it('hiệu ứng thua đọc ra KHÁC hẳn ăn mừng, không chỉ khác tên hình', () => {
-    const so = doc('lib/ketcuc-fx.ts');
+  it('cảnh thua đọc ra KHÁC hẳn ăn mừng', () => {
+    const vue = doc('components/KetCucFx.vue');
     const css = doc('styles/ketcuc-fx.css');
-    // Thắng: confetti + chùm pháo. Thua: rút màu + tro rơi + tối dần.
-    expect(so).toMatch(/fx-giay/);
-    expect(css).toMatch(/fx-tro-roi/);
-    expect(css).toMatch(/fx-toi-dan/);
-    expect(css, 'lớp rút màu là thứ làm hình thua đọc ra ngay').toMatch(/grayscale/);
-    // Không hình thua nào được mang lớp của bên thắng (và ngược lại).
-    const khoi = (loai) => so.split(`loai: '${loai}'`).slice(1)
-      .map((k) => k.slice(0, k.indexOf('\n  }'))).join('\n');
-    expect(khoi('thua'), 'confetti lọt sang màn thua').not.toMatch(/fx-giay|fx-tia\b/);
-    expect(khoi('thang'), 'tro lọt sang màn thắng').not.toMatch(/fx-tan|fx-xam/);
-    // Không chặn thao tác, không thì bảng tỉ số bấm không được.
+    // Thắng: chữ vàng đập + pháo giấy. Thua: bàn rút màu + lá rơi + chữ xám.
+    expect(vue).toMatch(/fx-thang/);
+    expect(vue).toMatch(/fx-thua/);
+    expect(doc('lib/ketcuc-fx.ts'), 'lớp rút màu là thứ làm hình thua đọc ra ngay').toMatch(/grayscale/);
     expect(css).toMatch(/pointer-events: none/);
-    // Tôn trọng người tắt hiệu ứng chuyển động.
     expect(css).toMatch(/prefers-reduced-motion/);
   });
 
   it('tiếng thắng và tiếng thua là hai hàm khác nhau', () => {
     const online = doc('composables/useOnlineRoom.ts');
     expect(online).toMatch(/sfx\.victory\(\)/);
-    expect(online).toMatch(/sfx\.defeat\(\)/);
+    // Online không có máy: thua là kèn buồn (`lose`); `defeat` là tiếng máy cười
+    expect(online).toMatch(/else sfx\.lose\(\)/);
   });
 });
