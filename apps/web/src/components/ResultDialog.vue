@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t, td } from '@/lib/i18n';
 import { isDraw } from '@mm/engine';
 import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
@@ -101,13 +102,6 @@ function countScoreUp(): void {
   });
 }
 
-const REASON: Record<Summary['reason'], string> = {
-  cleared: 'Bạn đã mở hết các cặp!',
-  timeout: 'Hết thời gian.',
-  'no-moves': 'Hết lượt lật.',
-  'no-lives': 'Hết mạng.',
-  forfeit: 'Đối thủ đã rời trận.'
-};
 
 const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
 
@@ -120,7 +114,7 @@ const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
 const showNext = computed(() => props.levelId !== undefined && !props.multiplayerOnline);
 const canNext = computed(() => props.hasNext && props.summary.status === 'won');
 /** Ván thuộc thang cấp thì nói rõ "cấp này", không thì chỉ "Chơi lại". */
-const replayLabel = computed(() => (props.levelId === undefined ? 'Chơi lại' : 'Chơi lại cấp này'));
+const replayLabel = computed(() => (props.levelId === undefined ? t('kq.choiLai') : t('kq.choiLaiCap')));
 
 /**
  * "Bạn đã mở hết các cặp!" chỉ đúng khi chơi MỘT MÌNH. Ván thi đấu mà bàn do đối
@@ -129,8 +123,8 @@ const replayLabel = computed(() => (props.levelId === undefined ? 'Chơi lại' 
  */
 const reasonText = computed(() =>
   props.multiplayer && props.summary.reason === 'cleared'
-    ? 'Bàn đã dọn sạch.'
-    : REASON[props.summary.reason]);
+    ? t('kq.banSach')
+    : td(`kq.ly.${props.summary.reason}`));
 
 /** "Kiên 2 - 1 An" — tỷ số cả loạt, xếp theo số ván thắng. Chỉ hiện khi đã
  *  chơi từ ván thứ hai: ván đầu thì tỷ số 1-0 chẳng nói lên điều gì. */
@@ -153,10 +147,10 @@ const title = computed(() => {
   // "Chưa xong" thì cả phòng không biết ai thắng.
   // Bằng điểm thì phải nói HOÀ: lấy người đầu danh sách rồi tuyên bố thắng là
   // sai, thứ tự đó chỉ do sort quyết định.
-  if (draw.value) return 'Hoà rồi! 🤝';
-  if (props.multiplayer) return `${props.summary.ranking[0]?.name} thắng! 🏆`;
-  if (props.summary.status !== 'won') return 'Chưa xong 😢';
-  return props.isRecord ? 'Kỷ lục mới! 🏆' : 'Hoàn thành! 🎉';
+  if (draw.value) return t('kq.hoa');
+  if (props.multiplayer) return t('kq.thang', { ten: props.summary.ranking[0]?.name ?? '' });
+  if (props.summary.status !== 'won') return t('kq.chuaXong');
+  return props.isRecord ? t('kq.kyLuc') : t('kq.hoanThanh');
 });
 </script>
 
@@ -170,7 +164,7 @@ const title = computed(() => {
            thực sự quan tâm, chứ không phải điểm của riêng ván vừa xong -->
       <p v-if="series" class="series">🏅 {{ series }}</p>
 
-      <p v-if="showStars && summary.status === 'won'" class="stars" :aria-label="`${summary.stars} trên 3 sao`">
+      <p v-if="showStars && summary.status === 'won'" class="stars" :aria-label="t('kq.saoAria', { n: summary.stars })">
         <span
           v-for="i in 3" :key="i"
           class="star"
@@ -188,16 +182,16 @@ const title = computed(() => {
               dòng thông báo dưới nút. Bảng xếp hạng vốn đã là chỗ mắt đang đọc
               tên từng người, nên gắn vào đây là đọc một lần biết cả hai chuyện.
             -->
-            <i v-if="rematchState?.[p.id] === 'in'" class="tag in">✅ Chơi tiếp</i>
-            <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">🚪 Đã thoát</i>
+            <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.choiTiep') }}</i>
+            <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.daThoat') }}</i>
           </span>
           <b>{{ num(p.score) }}</b>
-          <small>{{ p.pairs }} cặp · chuỗi {{ p.bestStreak }}</small>
+          <small>{{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}</small>
         </li>
       </ol>
 
       <!-- Điểm là phần thưởng của cả ván: cho nó cỡ chữ xứng đáng và đếm dần lên -->
-      <p v-if="!multiplayer" class="score-big" :aria-label="`${summary.score} điểm`">
+      <p v-if="!multiplayer" class="score-big" :aria-label="t('kq.diemAria', { n: summary.score })">
         <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
           <defs>
             <linearGradient id="mmStarBig" x1="0" y1="0" x2="0" y2="1">
@@ -210,22 +204,22 @@ const title = computed(() => {
           />
         </svg>
         <b>{{ num(shownScore) }}</b>
-        <small>điểm</small>
+        <small>{{ t('chung.diem') }}</small>
         <!-- Điểm ván bay xuống nhập vào tổng tích luỹ -->
         <i v-if="totalPhase === 'flying'" class="fly" aria-hidden="true">+{{ num(totalGain) }}</i>
       </p>
 
       <!-- Tổng tích luỹ: đích của điểm ván, sáng lên đúng lúc nhận -->
       <p v-if="totalGain" class="total-row" :class="{ landed: totalPhase === 'landed' }">
-        <span>Tổng điểm</span>
+        <span>{{ t('kq.tongDiem') }}</span>
         <b>{{ num(shownTotal) }}</b>
       </p>
 
       <dl v-if="!multiplayer" class="stats">
-        <div v-if="summary.timeBonus"><dt>Thưởng thời gian</dt><dd>+{{ summary.timeBonus }}</dd></div>
-        <div><dt>Số lượt</dt><dd>{{ summary.moves }}</dd></div>
-        <div><dt>Thời gian</dt><dd>{{ clock(summary.seconds) }}</dd></div>
-        <div><dt>Chuỗi dài nhất</dt><dd>{{ summary.bestStreak }}</dd></div>
+        <div v-if="summary.timeBonus"><dt>{{ t('kq.thuongGio') }}</dt><dd>+{{ summary.timeBonus }}</dd></div>
+        <div><dt>{{ t('kq.soLuot') }}</dt><dd>{{ summary.moves }}</dd></div>
+        <div><dt>{{ t('kq.thoiGian') }}</dt><dd>{{ clock(summary.seconds) }}</dd></div>
+        <div><dt>{{ t('kq.chuoiDai') }}</dt><dd>{{ summary.bestStreak }}</dd></div>
       </dl>
 
       <!--
@@ -236,12 +230,12 @@ const title = computed(() => {
       -->
       <ul v-if="freshAchievements.length" class="achievements">
         <li v-for="id in freshAchievements.slice(0, 2)" :key="id">🏅 {{ byId(id)?.name }}</li>
-        <li v-if="freshAchievements.length > 2" class="them">+{{ freshAchievements.length - 2 }} danh hiệu</li>
+        <li v-if="freshAchievements.length > 2" class="them">{{ t('kq.themDanhHieu', { n: freshAchievements.length - 2 }) }}</li>
       </ul>
       <!-- Lời mời đi tiếp, ngay lúc người chơi còn hứng: một cú bấm là vào ván -->
       <div v-if="goiY" class="goi-y">
         <span class="txt">🎯 <b>{{ goiY.name }}</b><small>{{ goiY.hint }}</small></span>
-        <button class="di" type="button" :aria-label="`Chinh phục: ${goiY.name}`" @click="emit('chinh-phuc', goiY)">Chinh phục</button>
+        <button class="di" type="button" :aria-label="t('kq.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY)">{{ t('kq.chinhPhuc') }}</button>
       </div>
 
       <!--
@@ -255,7 +249,7 @@ const title = computed(() => {
           :disabled="rematchSent"
           @click="emit('replay')"
         >
-          {{ rematchSent ? 'Đã bấm chơi lại' : replayLabel }}
+          {{ rematchSent ? t('kq.daBamChoiLai') : replayLabel }}
         </button>
         <!--
           Cấp sau CHƯA MỞ (thua, hoặc thua bot) thì nút vẫn ở đúng chỗ nhưng tắt
@@ -266,10 +260,10 @@ const title = computed(() => {
           v-if="showNext"
           class="btn btn-primary next-level" type="button"
           :disabled="!canNext"
-          :title="canNext ? '' : 'Cấp sau chưa mở — thắng ván này trước'"
+          :title="canNext ? '' : t('kq.capChuaMo')"
           @click="canNext && emit('next')"
         >
-          Cấp tiếp theo
+          {{ t('kq.capTiep') }}
         </button>
       </div>
       <!--
@@ -279,15 +273,15 @@ const title = computed(() => {
         đường về menu, và thế là mất phòng, phải tạo mã mới mời lại từ đầu.
       -->
       <button v-if="multiplayerOnline" class="btn to-lobby" type="button" @click="emit('lobby')">
-        Về phòng chờ
+        {{ t('kq.vePhongCho') }}
       </button>
       <!--
         Ván offline: "Đổi bàn" về thẳng bước chọn cỡ bàn — người vừa chơi xong
         thường muốn đổi cỡ, ít khi muốn về tận màn đầu (chủ dự án duyệt
         11.10.2026). Online giữ "Về menu": ở đó không có bước chọn bàn.
       -->
-      <button v-if="multiplayerOnline" class="btn link" type="button" @click="emit('menu')">Về menu</button>
-      <button v-else class="btn link" type="button" @click="emit('doi-ban')">Đổi bàn</button>
+      <button v-if="multiplayerOnline" class="btn link" type="button" @click="emit('menu')">{{ t('kq.veMenu') }}</button>
+      <button v-else class="btn link" type="button" @click="emit('doi-ban')">{{ t('kq.doiBan') }}</button>
       <!--
         Chỉ còn MỘT dòng ở đây: "đang chờ ai" và "ai muốn chơi lại" đã chuyển
         thành nhãn cạnh tên trong bảng xếp hạng (đọc ở đúng chỗ mắt đang nhìn).
@@ -295,7 +289,7 @@ const title = computed(() => {
         nút "Chơi lại" biến mất.
       -->
       <p v-if="rematchBlocked" class="waiting" role="status">
-        🚪 Người chơi kia đã rời phòng — không chơi lại được nữa.
+        {{ t('kq.doiThuRoi') }}
       </p>
 
       <!-- Chat vẫn phải chạy sau khi ván xong: overlay này che kín màn chơi nên

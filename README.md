@@ -666,6 +666,10 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**12.10.2026 (đa ngôn ngữ, đợt 1)**
+- Tiếng Việt / English: đổi ở menu Cài đặt hoặc `?lang=en`. Đã dịch thanh trên, trang
+  chủ và wizard, màn chơi, bảng kết quả, cảnh kết ván. Test chống sót bản dịch.
+
 **12.10.2026**
 - Hiệu ứng: 3 biến thể thắng (pháo giấy, pháo hoa đêm, vương miện) và 3 biến thể thua
   (đập vỡ màn có mây mưa, tan thành tro, game over kiểu TV cũ), bốc theo seed ván; mỗi

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t, td } from '@/lib/i18n';
 import type { MemoryGame } from '@mm/engine';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useBoardFit } from '@/composables/useBoardFit';
@@ -25,13 +26,6 @@ onMounted(() => board.value?.focusFirst());
 const s = props.session;
 /* Chữ và icon TÁCH RIÊNG: icon là <OptionIcon> (cùng bộ với Luật chơi và màn
  * tuỳ chọn), không phải emoji nhét trong chuỗi. */
-const POWER_TEXT: Record<string, string> = {
-  bomb: 'Thẻ bom! Hai cặp đã mở bị úp lại.',
-  swap: 'Tráo đổi! Hai thẻ vừa đổi chỗ nhau.',
-  x2: 'Cặp tiếp theo được nhân đôi điểm!',
-  eye: 'Mắt thần — cả bàn hé mở 5 giây!',
-  freeze: 'Đóng băng — đối thủ mất một lượt!'
-};
 const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 const soloScore = computed(() => s.players.value[0]?.score ?? 0);
@@ -164,21 +158,21 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
         <p v-if="s.revealingAll.value" class="toast peek" :class="{ raised: raised('toast') }" role="status">
           <!-- Chữ ngắn để thông báo gọn MỘT dòng: hai dòng thì nó che thêm một
                hàng thẻ, mà đây đúng là lúc người chơi cần nhìn cả bàn. -->
-          <OptionIcon name="peek" :size="20" /> Ghi nhớ vị trí!
+          <OptionIcon name="peek" :size="20" /> {{ t('game.ghiNho') }}
           <b v-if="s.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(s.peekLeft.value) }}s</b>
         </p>
         <p v-else-if="s.lifeLost.value" :key="`hp-${s.lifeLost.value.key}`" class="toast hurt" :class="{ raised: raised('toast') }" role="status">
           <OptionIcon name="lives" :size="20" />
-          Mất 1 mạng —
-          <b v-if="s.lifeLost.value.left > 0">còn {{ s.lifeLost.value.left }}</b>
-          <b v-else>hết mạng rồi!</b>
+          {{ t('game.matMang') }}
+          <b v-if="s.lifeLost.value.left > 0">{{ t('game.conMang', { n: s.lifeLost.value.left }) }}</b>
+          <b v-else>{{ t('game.hetMang') }}</b>
         </p>
         <p v-else-if="s.lifeGain.value" :key="`life-${s.lifeGain.value.key}`" class="toast life" :class="{ raised: raised('toast') }" role="status">
-          <OptionIcon name="lives" :size="20" /> Hồi 1 mạng — ghép đúng hai lần liền!
+          <OptionIcon name="lives" :size="20" /> {{ t('game.hoiMang') }}
         </p>
         <p v-else-if="s.lastPower.value" :key="s.lastPower.value.index" class="toast" :class="{ raised: raised('toast') }" role="status">
           <OptionIcon v-if="POWER_ICON[s.lastPower.value.power]" :name="POWER_ICON[s.lastPower.value.power]!" :size="20" />
-          {{ POWER_TEXT[s.lastPower.value.power] }}
+          {{ td(`game.the.${s.lastPower.value.power}`) }}
         </p>
       </Transition>
       <!-- Chuyển lượt (MP-03) -->
@@ -192,11 +186,11 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
           aria-live="polite"
         >
           <small v-if="s.turnBanner.value.frozen" class="ico-line">
-            <OptionIcon name="freeze" :size="15" /> {{ s.turnBanner.value.frozen }} bị đóng băng, mất lượt
+            <OptionIcon name="freeze" :size="15" /> {{ t('game.dongBang', { ten: s.turnBanner.value.frozen }) }}
           </small>
           <span class="who">
             <span class="avatar"><MatBot :mat="s.turnBanner.value.avatar || '🎮'" /></span>
-            Đến lượt <b>{{ s.turnBanner.value.name }}</b>
+            {{ t('game.denLuot') }} <b>{{ s.turnBanner.value.name }}</b>
           </span>
         </div>
       </Transition>
@@ -239,8 +233,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
            trước khi cả bàn bật lên (Chớp nhoáng) -->
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
-        <span v-if="isPeek" class="first"><OptionIcon name="peek" :size="18" /> Sắp mở cả bàn — <b>chuẩn bị ghi nhớ!</b></span>
-        <span v-else class="first">🎲 <b>{{ s.current.value?.name }}</b> đi trước!</span>
+        <span v-if="isPeek" class="first"><OptionIcon name="peek" :size="18" /> {{ t('game.sapMoBan') }} <b>{{ t('game.chuanBiNho') }}</b></span>
+        <span v-else class="first">🎲 <b>{{ t('game.diTruoc', { ten: s.current.value?.name ?? '' }) }}</b></span>
       </div>
 
     </div>

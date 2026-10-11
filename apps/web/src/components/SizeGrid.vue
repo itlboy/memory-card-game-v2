@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import { BOARD_SIZES } from '@mm/engine';
 
 /**
@@ -26,18 +27,18 @@ const blocked = (pairs: number): boolean => pairs > props.symbolCount;
 </script>
 
 <template>
-  <div class="options fill size-grid" role="radiogroup" aria-label="Số thẻ">
+  <div class="options fill size-grid" role="radiogroup" :aria-label="t('menu.soThe')">
     <button
       v-for="s in BOARD_SIZES" :key="s.level"
       class="option size-opt" type="button" role="radio"
       :aria-checked="props.level === s.level"
       :aria-disabled="blocked(s.pairs)"
-      :aria-label="`${s.pairs * 2} thẻ`"
+      :aria-label="t('menu.theN', { n: s.pairs * 2 })"
       :disabled="blocked(s.pairs)"
       @click="emit('play', s.level)"
     >
       <strong class="num">{{ s.pairs * 2 }}</strong>
-      <small>{{ blocked(s.pairs) ? 'thiếu biểu tượng' : 'thẻ' }}</small>
+      <small>{{ blocked(s.pairs) ? t('menu.thieuBieuTuong') : t('menu.the') }}</small>
     </button>
   </div>
 </template>

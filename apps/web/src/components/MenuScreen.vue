@@ -1,4 +1,18 @@
 <script setup lang="ts">
+import { t, td, ngonNgu } from '@/lib/i18n';
+/** Bí danh của `t` cho chỗ vòng lặp theme đã đặt tên biến là `t`. */
+const tr = t;
+
+/**
+ * Gợi ý số thật của tuỳ chọn do ENGINE sinh bằng tiếng Việt ("5 mạng", "30 giây",
+ * "xáo 3 lần", "4 thẻ"). Đợt 3 sẽ đưa nhãn engine vào từ điển; tới lúc đó dịch
+ * theo mẫu ở đây cho khỏi lẫn tiếng Việt trong bản English.
+ */
+function dichGoiYTuyChon(s: string | null): string | null {
+  if (!s || ngonNgu.value === 'vi') return s;
+  // i18n-bo-qua: mẫu tiếng Việt của engine là thứ ĐI DỊCH, không phải chữ hiển thị
+  return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
+}
 import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary } from '@mm/engine';
 import { Bot, Check, ChevronLeft, Globe, Lock, Map, User, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -105,15 +119,6 @@ const stepIndex = computed(() => path.value.indexOf(step.value));
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
 if (step.value !== 'players' && !path.value.includes(step.value)) step.value = 'players';
 
-const TITLES: Record<Step, string> = {
-  players: 'Bạn muốn chơi thế nào?',
-  bot: 'Máy chơi giỏi cỡ nào?',
-  count: 'Mấy người chơi?',
-  names: 'Tên từng người',
-  level: 'Chọn cấp độ',   // đổi theo chế độ, xem `title`
-  theme: 'Chọn theme thẻ',
-  options: 'Bàn chơi'
-};
 
 /**
  * Số người: 1..4 — BỐN Ô, lưới 2×2 (luật lưới tròn hàng ở CLAUDE.md). "1" là
@@ -140,11 +145,11 @@ const COUNTS = [
  *  Ô xếp MỘT CỘT nên thêm mức là mọi ô thấp xuống, KHÔNG làm trang dài ra
  *  (luật KHÔNG SCROLL) — nhưng mỗi ô vẫn phải trên ngưỡng chạm 44px. */
 const BOT_CHOICES = [
-  { id: 'easy' as BotLevel,   g: 'g-teal',   desc: 'Dành cho các em bé mới tập chơi thôi nhé.' },
-  { id: 'normal' as BotLevel, g: 'g-blue',   desc: 'Bạn phải thắng tôi mới được lên cấp cao hơn nhé.' },
-  { id: 'hard' as BotLevel,   g: 'g-amber',  desc: 'Bắt đầu khó hơn rồi nè, thắng được tôi là bạn rất giỏi.' },
-  { id: 'insane' as BotLevel, g: 'g-red',    desc: 'Tôi tin chắc bạn không thể nào thắng được tôi.' },
-  { id: 'divine' as BotLevel, g: 'g-violet', desc: 'Tôi là vị thần trong bộ môn lật thẻ, chưa từng thua.' }
+  { id: 'easy' as BotLevel,   g: 'g-teal' },
+  { id: 'normal' as BotLevel, g: 'g-blue' },
+  { id: 'hard' as BotLevel,   g: 'g-amber' },
+  { id: 'insane' as BotLevel, g: 'g-red' },
+  { id: 'divine' as BotLevel, g: 'g-violet' }
 ];
 
 function pickBotMode(): void {
@@ -211,7 +216,7 @@ watch(step, (st) => { if (st === 'names') syncNames(props.playerCount); }, { imm
 
 /** Tên bỏ trống thì lấy "Người i" — không ép người chơi phải điền. */
 function confirmNames(): void {
-  const filled = names.value.map((v, i) => v.trim() || `Người ${i + 1}`);
+  const filled = names.value.map((v, i) => v.trim() || t('menu.nguoiN', { n: i + 1 }));
   store.savePlayerNames(filled);
   names.value = filled;
   sfx.select();
@@ -226,19 +231,19 @@ function confirmNames(): void {
  * còn dư 44px — hàng thứ sáu cần 80px, tức là tràn. Muốn thêm thì phải gộp hàng
  * chứ không được để trang dài ra (luật KHÔNG SCROLL).
  */
-const OPTION_ROWS: readonly { key: OptionKey; icon: IconName; name: string }[] = [
-  { key: 'time',    icon: 'time',    name: 'Thời gian' },
-  { key: 'lives',   icon: 'lives',   name: 'Số mạng' },
-  { key: 'peek',    icon: 'peek',    name: 'Xem trước' },
-  { key: 'shuffle', icon: 'shuffle', name: 'Xáo thẻ' },
-  { key: 'special', icon: 'special', name: 'Thẻ đặc biệt' }
+const OPTION_ROWS: readonly { key: OptionKey; icon: IconName }[] = [
+  { key: 'time', icon: 'time' },
+  { key: 'lives', icon: 'lives' },
+  { key: 'peek', icon: 'peek' },
+  { key: 'shuffle', icon: 'shuffle' },
+  { key: 'special', icon: 'special' }
 ];
 
 /** Giá trị THẬT của từng hàng cho cấp đang chọn — không bắt người chơi đoán
  *  "Nhanh" nghĩa là bao nhiêu giây. */
 const optionHints = computed<Record<string, string>>(() => {
   const out: Record<string, string> = {};
-  for (const k of OPTION_KEYS) out[k] = optionSummary(k, props.options[k], props.level) ?? 'tắt';
+  for (const k of OPTION_KEYS) out[k] = dichGoiYTuyChon(optionSummary(k, props.options[k], props.level)) ?? t('menu.tat');
   return out;
 });
 
@@ -281,10 +286,10 @@ useBackCloser(10, () => stepIndex.value > 0, back);
  *  Chiến dịch nói "cấp 12", chế độ khác nói "bàn 24 thẻ" — vì ngoài Chiến dịch
  *  số cấp không còn là thứ người chơi từng nhìn thấy trên màn hình. */
 const tenBan = computed(() =>
-  props.mode === 'campaign' ? `cấp ${props.level}` : `bàn ${pairsNeeded.value * 2} thẻ`);
+  props.mode === 'campaign' ? t('menu.banCap', { n: props.level }) : t('menu.banThe', { n: pairsNeeded.value * 2 }));
 
 const tieuDe = computed(() =>
-  step.value === 'level' && props.mode !== 'campaign' ? 'Chọn số thẻ' : TITLES[step.value]);
+  step.value === 'level' && props.mode !== 'campaign' ? t('menu.chonSoThe') : td(`menu.buoc.${step.value}`));
 
 const unlocked = (t: CardTheme): boolean => t.unlockAt <= props.totalScore;
 const best = computed(() => store.best(props.mode, props.level));
@@ -334,7 +339,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 <template>
   <section class="panel">
     <header class="wizard-head">
-      <button v-if="stepIndex > 0" class="btn back" aria-label="Quay lại" type="button" @click="back"><ChevronLeft :size="22" /></button>
+      <button v-if="stepIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
       <h2>{{ tieuDe }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(s, i) in path" :key="s" :class="{ on: i <= stepIndex }" />
@@ -347,11 +352,11 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       nén lại cho vừa nên không phá luật KHÔNG SCROLL.
     -->
     <div v-if="step === 'players' && (goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1)" class="loi-tat">
-      <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua" :title="`Chơi ${chuoiNgay} ngày liền`">🔥 {{ chuoiNgay }} ngày</span>
+      <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })">🔥 {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
       <button v-if="(manChienDich ?? 0) > 1" class="lt-chip" type="button" @click="tiepChienDich">
-        <Map :size="15" aria-hidden="true" /><span class="ten">Màn {{ manChienDich }}</span>
+        <Map :size="15" aria-hidden="true" /><span class="ten">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
       </button>
-      <button v-if="goiY" class="lt-chip goi-y" type="button" :aria-label="`Chinh phục danh hiệu: ${goiY.name}`" @click="emit('chinh-phuc', goiY.id)">
+      <button v-if="goiY" class="lt-chip goi-y" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
         <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
       </button>
     </div>
@@ -366,23 +371,23 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         -->
         <button class="option big neon g-violet" type="button" @click="pickCampaign()">
           <Map class="opt-icon" :size="40" />
-          <strong>Chiến dịch</strong>
-          <small>{{ CAMPAIGN_LEVELS }} màn từ dễ đến khó · điểm cộng dồn vào tổng</small>
+          <strong>{{ t('menu.chienDich') }}</strong>
+          <small>{{ t('menu.chienDichMo', { n: CAMPAIGN_LEVELS }) }}</small>
         </button>
         <button class="option big neon g-blue" type="button" @click="pickPlayers()">
           <Users class="opt-icon" :size="40" />
-          <strong>Chơi nhanh</strong>
-          <small>Một mình hoặc 2–4 người trên cùng máy, bàn do bạn đặt luật</small>
+          <strong>{{ t('menu.choiNhanh') }}</strong>
+          <small>{{ t('menu.choiNhanhMo') }}</small>
         </button>
         <button class="option big neon g-amber" type="button" @click="pickBotMode()">
           <Bot class="opt-icon" :size="40" />
-          <strong>Đấu với máy</strong>
-          <small>Một mình vẫn có đối thủ — máy chơi ngay trên máy bạn, không cần mạng</small>
+          <strong>{{ t('menu.dauMay') }}</strong>
+          <small>{{ t('menu.dauMayMo') }}</small>
         </button>
         <button class="option big neon g-cyan" type="button" @click="sfx.select(); emit('online')">
           <Globe class="opt-icon" :size="40" />
-          <strong>Chơi online</strong>
-          <small>Tạo phòng, mời bạn bè bằng mã 6 ký tự</small>
+          <strong>{{ t('menu.online') }}</strong>
+          <small>{{ t('menu.onlineMo') }}</small>
         </button>
       </div>
 
@@ -393,7 +398,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           @click="pickBotLevel(b.id)"
         >
           <span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span>
-          <span class="text"><strong>{{ BOT_SPECS[b.id].name }}</strong><small>{{ b.desc }}</small></span>
+          <span class="text"><strong>{{ BOT_SPECS[b.id].name }}</strong><small>{{ td(`menu.bot.${b.id}`) }}</small></span>
         </button>
       </div>
 
@@ -401,33 +406,33 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       <div v-else-if="step === 'count'" key="count" class="step-body options luoi-2x2 counts">
         <button
           v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
-          :aria-label="`${c.n} người chơi`"
+          :aria-label="t('menu.soNguoiAria', { n: c.n })"
           @click="pickCount(c.n)"
         >
           <!-- MỘT icon người + con số, không vẽ đủ n hình nữa: nhiều người thì
                bó hình thành một mảng lấm chấm, đếm còn chậm hơn đọc số. -->
           <User class="opt-icon" :size="24" aria-hidden="true" />
           <strong>{{ c.n }}</strong>
-          <small>{{ c.n === 1 ? 'mình tôi' : 'người' }}</small>
+          <small>{{ c.n === 1 ? t('menu.minhToi') : t('menu.nguoi') }}</small>
         </button>
       </div>
 
       <!-- BƯỚC (nhiều người): điền tên từng người -->
       <div v-else-if="step === 'names'" key="names" class="step-body names">
-        <p class="hint-multi">Để trống thì dùng "Người 1", "Người 2"…</p>
+        <p class="hint-multi">{{ t('menu.goiYTen') }}</p>
         <div class="name-list">
           <label v-for="(_, i) in names" :key="i" class="name-row">
             <span class="name-no">{{ i + 1 }}</span>
             <input
               v-model="names[i]"
               type="text" maxlength="12" enterkeyhint="next"
-              :placeholder="`Người ${i + 1}`"
-              :aria-label="`Tên người chơi ${i + 1}`"
+              :placeholder="t('menu.nguoiN', { n: i + 1 })"
+              :aria-label="t('menu.tenNguoiAria', { n: i + 1 })"
               @keydown.enter="confirmNames"
             >
           </label>
         </div>
-        <button class="btn-primary" type="button" @click="confirmNames">Tiếp tục</button>
+        <button class="btn-primary" type="button" @click="confirmNames">{{ t('menu.tiepTuc') }}</button>
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
@@ -452,13 +457,13 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 
       <!-- BƯỚC: theme (chọn được nhiều) -->
       <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
-        <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
-        <div class="options theme-grid" role="group" aria-label="Theme thẻ">
+        <p class="hint-multi">{{ t('menu.nhieuTheme') }}</p>
+        <div class="options theme-grid" role="group" :aria-label="t('menu.themeThe')">
           <button
             v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
             :aria-checked="themeIds.includes(t.id)"
             :aria-disabled="!unlocked(t)"
-            :aria-label="unlocked(t) ? t.name : `${t.name} — cần ${t.unlockAt / 1000}k điểm`"
+            :aria-label="unlocked(t) ? t.name : tr('menu.themeKhoaAria', { ten: t.name, k: t.unlockAt / 1000 })"
             :disabled="!unlocked(t)"
             type="button"
             @click="unlocked(t) && toggleTheme(t.id)"
@@ -466,7 +471,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
             <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
             <strong class="tname">{{ t.name }}</strong>
             <!-- Badge khoá ở góc đã nói trạng thái; ở đây chỉ cần mốc điểm -->
-            <small v-if="!unlocked(t)">{{ t.unlockAt / 1000 }}k điểm</small>
+            <small v-if="!unlocked(t)">{{ tr('menu.themeKhoa', { k: t.unlockAt / 1000 }) }}</small>
             <!-- Dấu chọn / khoá nằm TUYỆT ĐỐI ở góc: nằm trong luồng thì nó chiếm
                  một dòng và đẩy tên theme tràn ra khỏi ô -->
             <span v-if="themeIds.includes(t.id)" class="tick" aria-hidden="true">
@@ -478,9 +483,9 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           </button>
         </div>
 
-        <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
+        <p v-if="themeWarn" class="warn" role="alert">{{ t('menu.itNhatMotTheme') }}</p>
         <p v-if="themeTooSmall" class="warn" role="alert">
-          Chưa đủ biểu tượng cho {{ tenBan }} ({{ pairsNeeded }} cặp). Hãy chọn thêm theme.
+          {{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}
         </p>
 
         <!-- Chiến dịch vào thẳng màn; chơi nhanh còn một bước đặt luật bàn -->
@@ -488,14 +493,14 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           class="btn-primary" :disabled="themeTooSmall" type="button"
           @click="xongTheme()"
         >
-          {{ mode === 'campaign' ? `Bắt đầu cấp ${level}` : 'Tiếp' }}
+          {{ mode === 'campaign' ? t('menu.batDauCap', { n: level }) : t('menu.tiep') }}
         </button>
 
         <p class="best">
           <template v-if="best">
-            Kỷ lục {{ tenBan }}: <b>{{ best.score }}</b> điểm · {{ best.moves }} lượt · {{ clock(best.seconds) }}
+            {{ t('menu.kyLuc', { ban: tenBan }) }}<b>{{ best.score }}</b>{{ t('menu.kyLucSau', { luot: best.moves, gio: clock(best.seconds) }) }}
           </template>
-          <template v-else>Chưa có kỷ lục cho {{ tenBan }}.</template>
+          <template v-else>{{ t('menu.chuaKyLuc', { ban: tenBan }) }}</template>
         </p>
       </div>
 
@@ -508,21 +513,21 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <div v-for="row in OPTION_ROWS" :key="row.key" class="opt-row">
           <div class="opt-head">
             <OptionIcon :name="row.icon" :size="24" />
-            <span class="opt-name">{{ row.name }}</span>
+            <span class="opt-name">{{ td(`opt.${row.key}`) }}</span>
             <span class="opt-hint">{{ optionHints[row.key] }}</span>
           </div>
-          <div class="seg" role="group" :aria-label="row.name">
+          <div class="seg" role="group" :aria-label="td(`opt.${row.key}`)">
             <button
               v-for="(nhan, muc) in OPTION_LABELS[row.key]" :key="nhan"
               class="seg-btn" type="button"
               :aria-pressed="options[row.key] === muc"
               @click="setOption(row.key, muc as OptLevel)"
-            >{{ nhan }}</button>
+            >{{ td(`opt.${row.key}.${muc}`) }}</button>
           </div>
         </div>
 
         <button class="btn-primary" type="button" @click="emit('start-level', level)">
-          Bắt đầu — {{ tenBan }}
+          {{ t('menu.batDau', { ban: tenBan }) }}
         </button>
       </div>
     </Transition>

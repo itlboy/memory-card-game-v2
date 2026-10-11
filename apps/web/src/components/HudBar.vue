@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import { X } from 'lucide-vue-next';
 import OptionIcon from './OptionIcon.vue';
 import { computed } from 'vue';
@@ -36,12 +37,12 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
 <template>
   <div class="hud panel">
     <div class="stats">
-    <div v-if="levelId" class="stat"><span>Cấp</span><b>{{ levelId }}</b></div>
+    <div v-if="levelId" class="stat"><span>{{ t('hud.cap') }}</span><b>{{ levelId }}</b></div>
     <div v-if="!multiplayer" class="stat" data-score-target>
-      <span>Điểm</span><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
+      <span>{{ t('hud.diem') }}</span><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
     </div>
-    <div v-if="!multiplayer" class="stat"><span>Lượt</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
-    <div class="stat"><span>Cặp</span><b>{{ matched }}/{{ totalPairs }}</b></div>
+    <div v-if="!multiplayer" class="stat"><span>{{ t('hud.luot') }}</span><b>{{ moves }}<i v-if="movesLeft !== null">/{{ moves + movesLeft }}</i></b></div>
+    <div class="stat"><span>{{ t('hud.cap2') }}</span><b>{{ matched }}/{{ totalPairs }}</b></div>
     <div class="stat" :class="{ urgent }"><span>{{ timeLabel }}</span><b>{{ timeText }}</b></div>
     <!-- Combo và Mạng KHÔNG cần nhãn: "x2" và icon tim kèm số tự nói ra nó là gì, mà
          hai chữ đó ăn hơn 90px của một dòng chỉ rộng 320px. -->
@@ -49,13 +50,13 @@ const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
       <b :key="combo" aria-label="Combo">x{{ combo }}</b>
     </div>
     <div v-if="lives !== null" :key="`hp-${lifeLostKey ?? 0}`" class="stat" :class="{ hurt: (lifeLostKey ?? 0) > 0 }">
-      <b class="lives-b" aria-label="Mạng còn lại">
+      <b class="lives-b" :aria-label="t('hud.mangConLai')">
         <template v-if="lives > 0"><OptionIcon name="lives" :size="15" />{{ lives }}</template>
         <template v-else>—</template>
       </b>
     </div>
     </div>
-    <button class="btn quit" aria-label="Thoát về menu" type="button" @click="$emit('quit')"><X :size="20" /></button>
+    <button class="btn quit" :aria-label="t('hud.thoat')" type="button" @click="$emit('quit')"><X :size="20" /></button>
   </div>
 </template>
 

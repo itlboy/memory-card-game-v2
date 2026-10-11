@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { HelpCircle, Menu, Moon, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Languages, Menu, Moon, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
@@ -19,11 +20,6 @@ const props = defineProps<{
 }>();
 defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
-const SOUND_LABEL: Record<SoundLevel, string> = {
-  off: 'Âm thanh: đang tắt',
-  low: 'Âm thanh: nhỏ',
-  high: 'Âm thanh: to'
-};
 /*
  * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
  * trên iPhone 15 Pro Max (430px) viên điểm đã chờm lên chữ "Lật Thẻ" (ảnh người
@@ -80,17 +76,17 @@ watch(() => props.totalScore, (to, from) => {
 <template>
   <header class="topbar">
     <h1>
-      <button class="brand" type="button" aria-label="Về trang chủ" @click="$emit('home')">
+      <button class="brand" type="button" :aria-label="t('tb.veTrangChu')" @click="$emit('home')">
         <!-- Hai lá bài chồng nghiêng — emoji 🃏 mỗi máy vẽ một kiểu, không dùng
              được làm dấu hiệu thương hiệu. Khung CỐ ĐỊNH 30×30 để không giãn
              kín header khi nằm trong flex. -->
         <span class="logo" aria-hidden="true">
           <i class="card-l" /><i class="card-r" />
-        </span><span class="name">Lật Thẻ</span>
+        </span><span class="name">{{ t('tb.thuongHieu') }}</span>
       </button>
     </h1>
 
-    <span class="total" :class="{ pop: bump }" :key="bump" :title="`Tổng điểm tích lũy: ${num(totalScore)}`">
+    <span class="total" :class="{ pop: bump }" :key="bump" :title="t('tb.tongDiem', { n: num(totalScore) })">
       <!-- Sao vẽ bằng SVG, fill currentColor: emoji ⭐ mỗi máy một kiểu và bị
            tính là chữ nên ngắt dòng ở máy hẹp -->
       <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
@@ -108,7 +104,7 @@ watch(() => props.totalScore, (to, from) => {
          ghép chung thì "536k · 10/103" đọc thành một con số khó hiểu. -->
     <button
       v-if="danhHieu" class="dh" type="button"
-      :aria-label="`Danh hiệu: ${danhHieu.co} trên ${danhHieu.tong} — xem danh sách`"
+      :aria-label="t('tb.danhHieuAria', { co: danhHieu.co, tong: danhHieu.tong })"
       @click="$emit('danh-hieu')"
     >
       <span aria-hidden="true">🏅</span><b>{{ danhHieu.co }}/{{ danhHieu.tong }}</b>
@@ -116,7 +112,7 @@ watch(() => props.totalScore, (to, from) => {
     <div ref="menuEl" class="menu-wrap">
       <button
         class="btn menu-btn" :class="{ in: signedIn }"
-        aria-label="Menu" aria-haspopup="menu" :aria-expanded="open"
+        :aria-label="t('tb.menu')" aria-haspopup="menu" :aria-expanded="open"
         type="button" @click="open = !open"
       >
         <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
@@ -130,45 +126,57 @@ watch(() => props.totalScore, (to, from) => {
       <div v-if="open" class="menu" role="menu" @keydown.esc="dong">
         <button
           v-if="account" class="item tk" role="menuitem" type="button"
-          :aria-label="signedIn ? 'Tài khoản của bạn' : 'Đăng nhập'"
+          :aria-label="signedIn ? t('tb.tkCuaBan') : t('tb.dangNhap')"
           @click="dong(); $emit('account')"
         >
           <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
           <UserRound v-else :size="20" />
-          <span class="tk-chu"><b>{{ signedIn ? (tenTk || 'Tài khoản') : 'Đăng nhập' }}</b>
-            <small>{{ signedIn ? 'Hồ sơ · xếp hạng' : 'Giữ điểm khi đổi máy' }}</small></span>
+          <span class="tk-chu"><b>{{ signedIn ? (tenTk || t('tb.taiKhoan')) : t('tb.dangNhap') }}</b>
+            <small>{{ signedIn ? t('tb.hoSoXepHang') : t('tb.giuDiem') }}</small></span>
         </button>
 
-        <p class="nhom" role="presentation">Cài đặt</p>
+        <p class="nhom" role="presentation">{{ t('tb.caiDat') }}</p>
         <button
           class="item cong-tac" role="menuitemcheckbox" type="button" :aria-checked="dark"
-          :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'"
+          :aria-label="dark ? t('tb.sangNenSang') : t('tb.sangNenToi')"
           @click="$emit('toggle-dark')"
         >
-          <Moon :size="20" /><span>Nền tối</span><i class="sw" :class="{ bat: dark }" aria-hidden="true" />
+          <Moon :size="20" /><span>{{ t('tb.nenToi') }}</span><i class="sw" :class="{ bat: dark }" aria-hidden="true" />
         </button>
-        <div class="item am" role="group" aria-label="Âm thanh">
-          <component :is="soundIcon" :size="20" /><span>Âm thanh</span>
+        <div class="item am" role="group" :aria-label="t('tb.amThanh')">
+          <component :is="soundIcon" :size="20" /><span>{{ t('tb.amThanh') }}</span>
           <span class="nac">
             <button
               v-for="l in (['off', 'low', 'high'] as const)" :key="l" type="button" role="menuitemradio"
-              :aria-checked="soundLevel === l" :aria-label="SOUND_LABEL[l]"
+              :aria-checked="soundLevel === l" :aria-label="td(`tb.am.${l}`)"
               @click="$emit('set-sound', l)"
-            >{{ l === 'off' ? 'Tắt' : l === 'low' ? 'Nhỏ' : 'To' }}</button>
+            >{{ td(`tb.amNgan.${l}`) }}</button>
           </span>
         </div>
         <!-- Giấu khi máy không rung được (web trên iPhone): công tắc không làm gì là công tắc nói dối -->
         <button
           v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
-          :aria-checked="!!rung" :aria-label="rung ? 'Rung: đang bật — bấm để tắt' : 'Rung: đang tắt — bấm để bật'"
+          :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
           @click="$emit('toggle-rung')"
         >
-          <SmartphoneNfc :size="20" /><span>Rung</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
+          <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
         </button>
 
+        <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
+        <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
+          <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
+          <span class="nac">
+            <button
+              v-for="l in NGON_NGU" :key="l.id" type="button" role="menuitemradio" :lang="l.id"
+              :aria-checked="ngonNgu === l.id" :aria-label="l.ten"
+              @click="ngonNgu = l.id"
+            >{{ l.ngan }}</button>
+          </span>
+        </div>
+
         <hr class="ke" />
-        <button class="item" role="menuitem" aria-label="Luật chơi" type="button" @click="dong(); $emit('rules')">
-          <HelpCircle :size="20" /><span>Luật chơi</span>
+        <button class="item" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
+          <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>
         </button>
       </div>
     </div>
