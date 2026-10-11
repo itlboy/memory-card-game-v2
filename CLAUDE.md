@@ -10,7 +10,8 @@
   lưới lựa chọn `grid-auto-rows: minmax(0, 1fr); overflow: hidden` để các ô
   tự nén theo chỗ còn lại. Thêm lựa chọn mới = ô nhỏ lại, KHÔNG dài trang ra.
 - Lưới lựa chọn phải **tròn hàng** (không ô lẻ thừa hàng cuối):
-  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 4 mức số người (1..4) = 2×2 — chơi
+  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 4 mức số người (1..4) = BỐN THANH NGANG
+  xếp dọc như bước mức máy (lưới 2×2 bị chê "hơi trống" 12.10.2026) — chơi
   chung một máy TỐI ĐA 4 người (chủ dự án chốt: 10 người "không chơi nổi");
   online vẫn tới 10. Dải lối tắt dùng lớp `lt-chip`, KHÔNG `.chip` (toàn cục, xếp cột).
   Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu còn 4 ô

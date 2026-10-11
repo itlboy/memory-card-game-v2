@@ -405,17 +405,23 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="step-body options luoi-2x2 counts">
+      <!--
+        BỐN THANH NGANG xếp dọc, giống bước mức máy (chủ dự án 12.10.2026: lưới 2×2
+        "hơi trống" — bốn ô vuông giữa một màn cao để lại hai dải trắng lớn). Thanh
+        ngang trải kín chiều cao như mọi bước wizard (luật KHÔNG SCROLL). Đủ n hình
+        người vì tối đa chỉ 4: đếm hình nhanh hơn đọc số.
+      -->
+      <div v-else-if="step === 'count'" key="count" class="step-body options loose counts">
         <button
-          v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
+          v-for="c in COUNTS" :key="c.n" class="option wide neon" :class="c.g" type="button"
           :aria-label="t('menu.soNguoiAria', { n: c.n })"
           @click="pickCount(c.n)"
         >
-          <!-- MỘT icon người + con số, không vẽ đủ n hình nữa: nhiều người thì
-               bó hình thành một mảng lấm chấm, đếm còn chậm hơn đọc số. -->
-          <User class="opt-icon" :size="24" aria-hidden="true" />
-          <strong>{{ c.n }}</strong>
-          <small>{{ c.n === 1 ? t('menu.minhToi') : t('menu.nguoi') }}</small>
+          <span class="hinh-nguoi" aria-hidden="true"><User v-for="i in c.n" :key="i" :size="22" /></span>
+          <span class="text">
+            <strong>{{ c.n === 1 ? t('menu.soNguoi.1') : t('menu.soNguoi.n', { n: c.n }) }}</strong>
+            <small>{{ td(`menu.soNguoiMo.${c.n}`) }}</small>
+          </span>
         </button>
       </div>
 
@@ -591,11 +597,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    không đổi số cột theo breakpoint nữa (media query đo viewport, không đo cột,
    nên 4 cột sẽ vỡ trong cột hẹp). */
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
-.options.luoi-2x2 { grid-template-columns: repeat(2, 1fr); }
-.options.luoi-2x2.counts > .option { gap: 4px; padding: 10px 6px; }
-.options.luoi-2x2.counts .opt-icon { width: clamp(22px, 14cqw, 40px); height: auto; }
-.options.luoi-2x2.counts strong { font-size: clamp(28px, min(26cqw, 26cqh), 64px); line-height: 1; }
-.options.luoi-2x2.counts small { font-size: clamp(12px, min(9cqw, 9cqh), 16px); }
 
 .loi-tat { display: flex; gap: 6px; margin: 0 0 10px; flex: 0 0 auto; min-width: 0; }
 .loi-tat .lt-chip {
@@ -615,6 +616,10 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .loi-tat .lt-chip.goi-y { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
 .loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
+.hinh-nguoi {
+  /* Đủ chỗ cho 4 hình trên MỘT hàng (4×22 + 3×2 = 94px): gãy thành 3 + 1 là xấu (ảnh chụp) */
+  flex: 0 0 auto; width: 96px; display: flex; flex-wrap: nowrap; gap: 2px; justify-content: center;
+}
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 
 
@@ -641,7 +646,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .wizard-head h2 { flex: 1; margin: 0; font-size: 19px; }
 .back { min-width: 44px; font-size: 22px; line-height: 1; padding: 4px 12px; }
 
-/* (Lưới số người cũ 3×3 cho 2..10 — nay là 2×2 cho 1..4, xem `.luoi-2x2`) */
+/* (Số người: bốn thanh ngang, xem template bước 'count' và `.hinh-nguoi`) */
 .options.grid3.counts > .option { gap: 2px; padding: 6px 4px; }
 .options.grid3.counts .opt-icon { width: clamp(16px, 16cqw, 26px); height: auto; }
 .options.grid3.counts strong { font-size: clamp(20px, min(30cqw, 34cqh), 40px); line-height: 1; }

@@ -339,6 +339,12 @@ const en: TuDien = {
   'la.daGhep': 'Card {n}, {ky}, matched',
   'la.ngua': 'Card {n}, {ky}',
   'la.chuaMo': 'Card {n}, face down',
+  'menu.soNguoi.1': 'Solo',
+  'menu.soNguoi.n': '{n} players',
+  'menu.soNguoiMo.1': 'Your own game, records count for you',
+  'menu.soNguoiMo.2': 'Two players take turns on one device',
+  'menu.soNguoiMo.3': 'Three players take turns on one device',
+  'menu.soNguoiMo.4': 'Four players take turns on one device',
 };
 
 export default en;
