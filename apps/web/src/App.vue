@@ -9,7 +9,7 @@ import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
-import RulesDialog from './components/RulesDialog.vue';
+import RulesDialog, { type XemFx } from './components/RulesDialog.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import IconDefs from './components/IconDefs.vue';
@@ -160,6 +160,16 @@ const thongKe = computed(() => { void progressRev.value; return thongKeHienTai(t
 const themeKhoa = computed(() => Object.fromEntries(
   themes.value.filter((t) => t.unlockAt > totalScore.value).map((t) => [t.id, t.unlockAt])));
 const goiYVan = ref<Achievement | null>(null);
+
+/* ---------- xem thử hiệu ứng (chế độ debug) ---------- */
+const xemFx = ref<(XemFx & { key: number }) | null>(null);
+let xemFxHen: ReturnType<typeof setTimeout> | undefined;
+function xemThuFx(fx: XemFx): void {
+  showRules.value = false;
+  clearTimeout(xemFxHen);
+  xemFx.value = { ...fx, key: (xemFx.value?.key ?? 0) + 1 };
+  xemFxHen = setTimeout(() => { xemFx.value = null; }, 4500);
+}
 
 /* ---------- dải lối tắt trên trang chủ ---------- */
 const goiYTrangChu = computed(() => {
@@ -740,11 +750,17 @@ const hasNext = computed(() => {
     @close="showDanhHieu = false" @chinh-phuc="chinhPhuc"
   />
   <MoKhoaFx />
+  <!-- Xem thử hiệu ứng (chế độ debug): dựng cảnh 4,5 giây rồi tự gỡ -->
+  <KetCucFx
+    v-if="xemFx" :key="xemFx.key" xem-thu
+    :loai="xemFx.loai" :bien-the="xemFx.bienThe ?? null" :ky-luc="xemFx.kyLuc" :mat-may="xemFx.matMay ?? null"
+  />
 
   <RulesDialog
     v-if="showRules" :debug="debug"
     @close="showRules = false"
     @update:debug="debug = $event"
+    @xem-fx="xemThuFx"
   />
 
   <ConfirmDialog

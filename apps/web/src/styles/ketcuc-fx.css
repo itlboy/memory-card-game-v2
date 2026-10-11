@@ -18,7 +18,15 @@
   overflow: hidden;
   pointer-events: none;
 }
-.fx-hat { position: absolute; inset: 0; width: 100%; height: 100%; }
+/*
+ * THỨ TỰ LỚP: nền tối/viền/màn TV (0) < canvas hạt (2) < chữ và khối chữ (3).
+ * Canvas đứng đầu trong DOM nên trước đây nằm DƯỚI lớp nền tối — pháo giấy,
+ * pháo hoa, tro đều bị lớp tối che bớt (ảnh chụp: pháo hoa đêm gần như không thấy).
+ */
+.fx-hat { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+.fx-chu, .fx-khoi-thua, .fx-khoi-hoa, .fx-bang, .fx-vuong-mien, .fx-may, .fx-bong { z-index: 3; }
+/* Mốc chung của chữ tiêu đề mọi biến thể — harness đo vị trí qua lớp này */
+.fx-tieu-de { will-change: auto; }
 
 /* Nền tối một nấc cho chữ nổi lên */
 .fx-toi { position: absolute; inset: 0; background: rgba(6, 8, 20, .45); animation: fx-hien .35s .3s both; }
@@ -58,20 +66,63 @@
 }
 @keyframes fx-vat { from { transform: translateX(-110%) rotate(-8deg); } to { transform: translateX(0) rotate(-8deg); } }
 
-/* Thua: chữ rơi từ trên xuống, đập nảy, chạm đất ở ~1,32s (khớp tiếng "bộp") */
+/* Thua: chữ rơi TỪNG KÝ TỰ, đập nảy; cú đập vỡ màn ở ~1,45s (khớp tiếng "rắc") */
 .fx-khoi-thua { position: absolute; left: 0; right: 0; top: 34%; text-align: center; padding-inline: 20px; }
 .fx-khoi-thua .fx-chu { position: static; }
 .fx-thua {
-  font-size: clamp(40px, 13vw, 56px); color: #c9cde6; text-shadow: 0 6px 0 #2a2d48;
-  animation: fx-roi .7s .9s ease-in both;
+  font-size: clamp(40px, 13vw, 56px); color: #d6d9ef; text-shadow: 0 6px 0 #2a2d48, 0 0 24px rgba(255, 60, 80, .35);
+  white-space: nowrap;
 }
+.fx-ky { display: inline-block; animation: fx-roi .5s ease-in both; }
 @keyframes fx-roi {
   0% { transform: translateY(-60vh); }
   60% { transform: translateY(0); }
   78% { transform: translateY(-18px); }
   100% { transform: translateY(0); }
 }
-.fx-an-ui { margin: 12px 0 0; font-size: 15px; font-weight: 700; color: #eef0fc; text-shadow: 0 2px 8px rgba(0, 0, 0, .6); animation: fx-hien .4s 1.5s both; }
+.fx-an-ui { margin: 12px 0 0; font-size: 15px; font-weight: 700; color: #eef0fc; text-shadow: 0 2px 8px rgba(0, 0, 0, .6); animation: fx-hien .4s 1.75s both; }
+
+/* Viền đỏ sẫm nhói vào lúc hết giờ, rồi đọng lại nhạt */
+.fx-vien {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(150, 10, 30, .55) 100%);
+  animation: fx-vien-nhoi .9s ease-out both;
+}
+@keyframes fx-vien-nhoi { 0% { opacity: 0; } 30% { opacity: 1; } 55% { opacity: .55; } 75% { opacity: .9; } 100% { opacity: .7; } }
+
+/* Vết nứt kính: vẽ dần theo nét từ tâm ra, lúc chữ chạm đất */
+.fx-nut {
+  position: absolute; left: 50%; top: 50%; width: min(118vw, 560px); height: auto;
+  transform: translate(-50%, -62%); overflow: visible;
+}
+.fx-nut path {
+  fill: none; stroke: rgba(235, 240, 255, .85); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 160; stroke-dashoffset: 160;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, .7));
+  animation: fx-nut-ve .35s ease-out both;
+}
+@keyframes fx-nut-ve { to { stroke-dashoffset: 0; } }
+
+/* Sóng chấn động: một vòng bung ra từ chỗ chữ chạm đất */
+.fx-song {
+  position: absolute; left: 50%; top: 28%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%;
+  border: 3px solid rgba(255, 120, 130, .8);
+  animation: fx-song-bung .6s 1.45s ease-out both;
+}
+@keyframes fx-song-bung { 0% { transform: scale(.2); opacity: 0; } 15% { opacity: 1; } 100% { transform: scale(7); opacity: 0; } }
+
+/* Đám mây xui: trôi vào từ mép phải, đứng trên chữ, đổ mưa (giọt vẽ trên canvas) */
+.fx-may-mua {
+  position: absolute; left: 50%; top: -72px; font-size: 56px; line-height: 1; margin-left: -28px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45));
+  animation: fx-may-troi 1.6s 1.6s cubic-bezier(.2, .8, .3, 1) both;
+}
+@keyframes fx-may-troi {
+  0% { transform: translateX(70vw); opacity: 0; }
+  20% { opacity: 1; }
+  70% { transform: translateX(-6px); }
+  100% { transform: translateX(0); }
+}
 
 /* Thua máy: mặt máy bật lên từ đáy, nhún, bong bóng trêu */
 .fx-may {
@@ -106,8 +157,84 @@
 }
 .fx-bat-tay { margin: 8px 0 0; font-size: 30px; animation: fx-hien .3s 1.5s both; }
 
+/* ===================== BIẾN THỂ THẮNG ===================== */
+/* Pháo hoa đêm: trời tối hẳn để pháo hoa nổi, chữ neon chớp như bảng hiệu bật đèn */
+.fx-toi.fx-dem { background: radial-gradient(ellipse at 50% 30%, rgba(16, 20, 64, .88), rgba(3, 4, 18, .96)); }
+.fx-thang.fx-neon {
+  background: none; -webkit-background-clip: border-box; background-clip: border-box;
+  color: #fff; -webkit-text-fill-color: #fff; filter: none;
+  text-shadow: 0 0 6px #fff, 0 0 14px #ff5fa8, 0 0 28px #ff5fa8, 0 0 48px #8b7dff;
+  animation: fx-dap .55s .35s cubic-bezier(.2, 1.6, .4, 1) both, fx-nhap 1.1s .95s both;
+}
+@keyframes fx-nhap { 0%, 100% { opacity: 1; } 12% { opacity: .35; } 22% { opacity: 1; } 34% { opacity: .55; } 46% { opacity: 1; } }
+
+/* Vương miện: tia vàng xoay chậm sau chữ, vương miện rơi cắm lên chữ ở ~1,0s */
+.fx-tia-vang {
+  position: absolute; left: 50%; top: 40%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 215, 106, .32) 0 7deg, transparent 7deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 8%, transparent 42%); mask: radial-gradient(circle, #000 8%, transparent 42%);
+  animation: fx-hien .5s .3s both, fx-tia-xoay 3.2s .3s linear both;
+}
+@keyframes fx-tia-xoay { to { transform: rotate(.28turn); } }
+.fx-thang.fx-vang-khoi { filter: drop-shadow(0 6px 0 #7a4b00) drop-shadow(0 0 40px rgba(255, 215, 106, .85)); }
+.fx-vuong-mien {
+  position: absolute; left: 50%; top: calc(34% - 64px); width: 80px; margin-left: -40px; text-align: center;
+  font-size: 64px; line-height: 1; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .45));
+  animation: fx-mien-roi .7s .45s cubic-bezier(.5, 0, .7, 1) both;
+}
+@keyframes fx-mien-roi {
+  0% { transform: translateY(-50vh) rotate(-30deg); opacity: 0; }
+  20% { opacity: 1; }
+  78% { transform: translateY(6px) rotate(-12deg); }
+  88% { transform: translateY(-10px) rotate(-12deg); }
+  100% { transform: translateY(0) rotate(-12deg); opacity: 1; }
+}
+
+/* ===================== BIẾN THỂ THUA ===================== */
+/* Tan thành tro: chữ hiện nguyên rồi tan dần trái → phải, bay theo gió (bụi vẽ trên canvas) */
+.fx-tro-chu .fx-ky { animation-name: fx-tro-hien, fx-tro-bay; animation-duration: .45s, .9s; animation-timing-function: ease-out, ease-in; animation-fill-mode: both, both; }
+@keyframes fx-tro-hien { from { opacity: 0; transform: scale(1.4); filter: blur(6px); } }
+@keyframes fx-tro-bay { to { opacity: 0; transform: translate(60px, -18px) rotate(14deg); filter: blur(8px); } }
+
+/* Game over: TV cũ tắt — loé trắng, co thành vạch, co thành chấm, tối hẳn; rồi chữ 8-bit chớp */
+.fx-crt-man { position: absolute; inset: 0; background: #05060c; animation: fx-hien .25s .55s both; }
+.fx-crt-vach {
+  position: absolute; inset: 0; background: #f4f6ff; transform-origin: center; opacity: 0;
+  animation: fx-crt-tat .9s .15s cubic-bezier(.5, 0, .3, 1) both;
+}
+@keyframes fx-crt-tat {
+  0% { opacity: 0; transform: scale(1, 1); }
+  10% { opacity: .9; }
+  45% { opacity: 1; transform: scale(1, .006); }
+  75% { opacity: 1; transform: scale(0, .006); }
+  100% { opacity: 0; transform: scale(0, .006); }
+}
+.fx-quet {
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .045) 0 1px, transparent 1px 3px);
+  animation: fx-hien .3s 1.1s both;
+}
+.fx-go { top: 30%; }
+.fx-game-over {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 900;
+  font-size: clamp(46px, 15vw, 66px); line-height: 1.05; letter-spacing: .12em;
+  color: #ff4d5e; text-shadow: 4px 4px 0 #6b0010, 0 0 22px rgba(255, 77, 94, .75);
+  animation: fx-hien .01s 1.2s both, fx-chop .5s 1.25s steps(2, jump-none) 3;
+}
+@keyframes fx-chop { 50% { opacity: 0; } }
+.fx-an-ui-go { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; color: #ffd76a; animation-delay: 1.9s; }
+.fx-nhan-nut {
+  margin: 10px 0 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 800;
+  font-size: 14px; letter-spacing: .14em; color: #eef0fc;
+  animation: fx-hien .01s 2.1s both, fx-chop .6s 2.2s steps(2, jump-none) 2;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .fx-thang, .fx-thua, .fx-hoa, .fx-bang, .fx-may, .fx-nua { animation-name: fx-hien !important; animation-duration: .2s !important; }
+  .fx-tia-vang, .fx-vuong-mien, .fx-crt-vach, .fx-game-over, .fx-nhan-nut, .fx-tro-chu .fx-ky { animation-name: fx-hien !important; animation-duration: .2s !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-thang, .fx-ky, .fx-hoa, .fx-bang, .fx-may, .fx-nua, .fx-may-mua, .fx-song { animation-name: fx-hien !important; animation-duration: .2s !important; }
+  .fx-nut path { animation-duration: .01s; }
 }
 
 /* ===================== HUY HIỆU DANH HIỆU (MoKhoaFx) ===================== */

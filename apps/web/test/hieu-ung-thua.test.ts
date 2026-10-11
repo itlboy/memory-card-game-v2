@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame, isDraw } from '@mm/engine';
 import { BOT_SPECS } from '@mm/engine';
-import { CAU_TREU, HIEN_BANG_MS, TEN_CANH, chonCanh } from '@/lib/ketcuc-fx';
+import { BIEN_THE, CAU_TREU, HIEN_BANG_MS, TEN_BIEN_THE, TEN_CANH, bocBienThe, chonCanh } from '@/lib/ketcuc-fx';
 import type { Summary } from '@mm/engine';
 
 /**
@@ -145,3 +145,34 @@ describe('sổ cảnh kết ván (bộ mới 11.10.2026)', () => {
     expect(khoiLa).not.toMatch(/\{\s*transform:/);
   });
 });
+
+describe('biến thể thắng / thua', () => {
+  it('mỗi loại có ít nhất 3 biến thể, đều có tên', () => {
+    for (const ds of [BIEN_THE.thang, BIEN_THE.thua]) {
+      expect(ds.length).toBeGreaterThanOrEqual(3);
+      for (const b of ds) expect(TEN_BIEN_THE[b]).toBeTruthy();
+    }
+  });
+  it('bốc theo SEED: cùng seed ra cùng biến thể, và mọi biến thể đều bốc ra được', () => {
+    expect(bocBienThe('thang', 123)).toBe(bocBienThe('thang', 123));
+    expect(bocBienThe('ky-luc', 99)).toBe(bocBienThe('thang', 99));   // kỷ lục dùng bộ thắng
+    for (const [canh, ds] of [['thang', BIEN_THE.thang], ['thua', BIEN_THE.thua]] as const) {
+      const ra = new Set(Array.from({ length: 300 }, (_, i) => bocBienThe(canh, i * 7919 + 1)));
+      for (const b of ds) expect(ra, `${canh}: ${b} không bao giờ ra`).toContain(b);
+    }
+    expect(bocBienThe('hoa', 1)).toBeNull();
+    expect(bocBienThe('thua-may', 1)).toBeNull();
+  });
+  it('mỗi biến thể có nhánh template, nhánh chuyển động và tiếng', () => {
+    const vue = readFileSync(resolve(process.cwd(), 'src/components/KetCucFx.vue'), 'utf8');
+    const so = readFileSync(resolve(process.cwd(), 'src/lib/ketcuc-fx.ts'), 'utf8');
+    for (const b of [...BIEN_THE.thang, ...BIEN_THE.thua]) {
+      expect(vue, `${b}: thiếu tiếng`).toMatch(new RegExp(`'${b}': \\(\\) =>`));
+      if (b !== 'phao-giay' && b !== 'dap-vo') {   // hai biến thể mặc định là nhánh else
+        expect(vue, `${b}: thiếu template`).toContain(`'${b}'`);
+        expect(so, `${b}: thiếu chuyển động`).toContain(`bienThe === '${b}'`);
+      }
+    }
+  });
+});
+

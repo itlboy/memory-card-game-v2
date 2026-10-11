@@ -488,12 +488,55 @@ class Sfx {
    *  rồi tiếng "bộp" khi chữ THUA RỒI chạm đất. Thua phải nghe VUI để còn
    *  muốn bấm Chơi lại. */
   lose(): void {
+    this.trombone();
+    // CÚ ĐẬP VỠ MÀN (1,45s): thịch trầm + kính nứt rắc rắc
+    this.noise(0.3, { freq: 120, type: 'lowpass', gain: 0.28, delay: 1.45 });
+    this.voice(70, { dur: 0.35, type: 'sine', gain: 0.09, delay: 1.45, slideTo: 38 });
+    [0, 0.05, 0.11, 0.2].forEach((t, i) => this.noise(0.05 + i * 0.01, { freq: 4200 - i * 500, gain: 0.07 - i * 0.012, delay: 1.47 + t }));
+    // MƯA LẮC RẮC từ đám mây xui (1,9 → 3,6s), nhỏ dần
+    for (let t = 1.9; t < 3.6; t += 0.045 + Math.random() * 0.05) {
+      this.noise(0.02, { freq: 2600 + Math.random() * 2400, gain: 0.012 * (1 - (t - 1.9) / 2), delay: t });
+    }
+  }
+
+  /** Kèn trombone buồn kiểu hài — phần GỐC chung của các biến thể thua có kèn. */
+  private trombone(): void {
     [392, 370, 349].forEach((f, i) => this.voice(f, { dur: 0.3, type: 'sawtooth', gain: 0.05, delay: 0.1 + i * 0.32 }));
-    // Nốt cuối: rung bằng chuỗi nốt trượt ngắn (voice không có LFO)
     for (let i = 0; i < 6; i++) {
       this.voice(i % 2 ? 318 : 334, { dur: 0.19, type: 'sawtooth', gain: 0.045, delay: 1.06 + i * 0.16, slideTo: i % 2 ? 334 : 318 });
     }
-    this.noise(0.25, { freq: 220, type: 'lowpass', gain: 0.2, delay: 1.32 });       // chữ chạm đất
+  }
+
+  /** THUA · TAN THÀNH TRO: kèn buồn + gió cuốn dâng lên đúng lúc chữ tan (1,35s). */
+  tanTro(): void {
+    this.trombone();
+    for (let i = 0; i < 16; i++) {
+      const t = 1.3 + i * 0.09;
+      this.noise(0.22, { freq: 300 + i * 40, type: 'bandpass', gain: 0.03 * Math.sin((i / 16) * Math.PI) + 0.005, delay: t, q: 0.7 });
+    }
+    for (let i = 0; i < 10; i++) this.noise(0.02, { freq: 5000 + Math.random() * 2000, gain: 0.015, delay: 1.4 + Math.random() * 1 });
+  }
+
+  /** THUA · GAME OVER: TV tắt "bzzt" (0,15s) rồi nhạc 8-bit đi xuống lúc chữ hiện (1,2s). */
+  gameOver(): void {
+    this.voice(900, { dur: 0.55, type: 'sine', gain: 0.05, delay: 0.15, slideTo: 50 });
+    this.noise(0.18, { freq: 3000, gain: 0.04, delay: 0.15 });
+    [784, 659, 523, 392, 330, 262].forEach((f, i) => this.voice(f, { dur: 0.13, type: 'square', gain: 0.035, delay: 1.2 + i * 0.13 }));
+    this.voice(98, { dur: 0.6, type: 'square', gain: 0.03, delay: 2.0, slideTo: 82 });
+  }
+
+  /** THẮNG · PHÁO HOA ĐÊM: sáu quả nổ khớp sáu chùm sáng trên trời (0,3s + 0,3s/quả). */
+  phaoHoaDem(): void {
+    for (let i = 0; i < 6; i++) this.firework(0.3 + i * 0.3, 0.75);
+  }
+
+  /** THẮNG · VƯƠNG MIỆN: tiếng chuông vàng lúc vương miện cắm xuống (1,0s), rồi mưa xu leng keng. */
+  vuongMien(): void {
+    [1568, 2093, 2637].forEach((f, i) => this.voice(f, { dur: 1.1 - i * 0.2, type: 'sine', gain: 0.05 - i * 0.012, delay: 1.0 }));
+    this.voice(784, { dur: 0.8, type: 'triangle', gain: 0.04, delay: 1.0 });
+    for (let t = 1.15; t < 2.6; t += 0.07 + Math.random() * 0.08) {
+      this.voice(2400 + Math.random() * 900, { dur: 0.09, type: 'triangle', gain: 0.018, delay: t });
+    }
   }
 
   /** THUA MÁY: máy cười "he he he" (ba nốt nảy đi xuống) rồi tiếng còi đồ

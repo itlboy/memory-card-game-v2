@@ -666,6 +666,13 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**12.10.2026**
+- Hiệu ứng: 3 biến thể thắng (pháo giấy, pháo hoa đêm, vương miện) và 3 biến thể thua
+  (đập vỡ màn có mây mưa, tan thành tro, game over kiểu TV cũ), bốc theo seed ván; mỗi
+  biến thể có tiếng riêng. Chế độ debug có khu "Xem thử hiệu ứng".
+- Sửa: hạt (pháo giấy, pháo hoa, tro) từng nằm dưới lớp nền tối nên bị mờ.
+- Chơi nhanh: 1–4 người (lưới 2×2). Dải lối tắt: chip chia đều, icon nằm ngang với chữ.
+
 **11.10.2026 (tối)**
 - Trang chủ: 4 ô chế độ ("Chơi nhanh" gộp một mình + nhiều người, chọn 1–10 người ở
   bước sau) và dải lối tắt: 🔥 chuỗi ngày, tiếp tục chiến dịch, danh hiệu gợi ý.

@@ -4,10 +4,21 @@ import { X } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import OptionIcon from './OptionIcon.vue';
+import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
 
 const props = defineProps<{ debug: boolean }>();
-const emit = defineEmits<{ close: []; 'update:debug': [boolean] }>();
+const emit = defineEmits<{ close: []; 'update:debug': [boolean]; 'xem-fx': [XemFx] }>();
+
+/** Khu "Xem thử hiệu ứng" (chỉ trong chế độ debug): duyệt từng cảnh mà không phải chơi tới kết ván. */
+export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean; matMay?: string }
+const XEM_THU: { ten: string; fx: XemFx }[] = [
+  ...BIEN_THE.thang.map((b) => ({ ten: `Thắng · ${TEN_BIEN_THE[b]}`, fx: { loai: 'thang' as const, bienThe: b } })),
+  { ten: 'Kỷ lục mới', fx: { loai: 'thang', bienThe: 'phao-giay', kyLuc: true } },
+  ...BIEN_THE.thua.map((b) => ({ ten: `Thua · ${TEN_BIEN_THE[b]}`, fx: { loai: 'thua' as const, bienThe: b } })),
+  { ten: 'Thua máy', fx: { loai: 'thua', matMay: '🐯' } },
+  { ten: 'Hoà', fx: { loai: 'hoa' } }
+];
 
 /* ---------- phiên bản & tuổi bản build ---------- */
 
@@ -107,7 +118,7 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
 
         <h3>Chơi nhiều người</h3>
         <ul class="plain">
-          <li>Thay lượt nhau trên cùng máy, hoặc mở phòng online — tới <b>10 người</b>.</li>
+          <li>Thay lượt nhau trên cùng máy (tới <b>4 người</b>), hoặc mở phòng online (tới <b>10 người</b>).</li>
           <li>
             Phòng online mặc định <b>công khai</b>: ai vào mục Chơi online cũng thấy và
             vào chơi được. Chủ phòng tắt công tắc thì phòng thành <b>riêng tư</b> —
@@ -142,6 +153,10 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
         Chủ dự án yêu cầu bỏ khỏi màn thường (11.10.2026: "đừng hiển thị nhiều
         gây rối"), nên chỉ hiện trong chế độ debug, và có thêm `/credits.txt`.
       -->
+      <div v-if="props.debug" class="xem-fx">
+        <p class="build">Xem thử hiệu ứng kết ván</p>
+        <button v-for="x in XEM_THU" :key="x.ten" class="nut-do" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
+      </div>
       <p v-if="props.debug" class="build">Hình mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0, đã đổi màu</p>
     </div>
   </div>
@@ -156,6 +171,8 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
   border: 1px dashed var(--line-strong); background: transparent;
   color: var(--muted); font: inherit; font-size: var(--text-xs); font-weight: 700;
 }
+.xem-fx { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6px; }
+.xem-fx .build { grid-column: 1 / -1; }
 .nut-do[aria-pressed='true'] { border-style: solid; border-color: var(--bad); color: var(--bad); }
 /* Chân trang phiên bản: mờ, nhỏ, không giành sự chú ý với nội dung luật chơi */
 .build {

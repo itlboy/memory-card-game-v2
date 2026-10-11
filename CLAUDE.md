@@ -10,7 +10,9 @@
   lưới lựa chọn `grid-auto-rows: minmax(0, 1fr); overflow: hidden` để các ô
   tự nén theo chỗ còn lại. Thêm lựa chọn mới = ô nhỏ lại, KHÔNG dài trang ra.
 - Lưới lựa chọn phải **tròn hàng** (không ô lẻ thừa hàng cuối):
-  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 10 mức số người (1..10) = 5×2.
+  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 4 mức số người (1..4) = 2×2 — chơi
+  chung một máy TỐI ĐA 4 người (chủ dự án chốt: 10 người "không chơi nổi");
+  online vẫn tới 10. Dải lối tắt dùng lớp `lt-chip`, KHÔNG `.chip` (toàn cục, xếp cột).
   Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu còn 4 ô
   (Chiến dịch · Chơi nhanh · Đấu máy · Online) + dải lối tắt (`.loi-tat`, NGOÀI
   lưới ô vì lưới chia đều 1fr), số người hỏi ở bước `count`.
@@ -22,7 +24,14 @@
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
 - **CẢNH KẾT VÁN: MỘT CẢNH CỐ ĐỊNH CHO MỖI TÌNH HUỐNG** (bộ mới 11.10.2026, chủ
   dự án duyệt mockup https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 và chốt
-  THAY bộ cũ — luật "≥4 hình mỗi kết cục, bốc theo seed" đã BỎ). Năm cảnh:
+  THAY bộ cũ). Thắng và thua mỗi loại có ≥3 BIẾN THỂ bốc THEO SEED ván
+  (`BIEN_THE`, `bocBienThe`): thắng = pháo giấy · pháo hoa đêm · vương miện;
+  thua = đập vỡ màn · tan thành tro · game over. Kỷ lục = biến thể thắng + băng
+  vàng. Thêm biến thể: id ở `BIEN_THE` + nhánh `chayCanh` + template + CSS + tiếng
+  `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
+  KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên
+  lớp nền tối (z 2) và dưới chữ (z 3) — từng nằm dưới, pháo hoa gần như vô hình.
+  Duyệt biến thể trên máy thật: chế độ debug → Luật chơi → "Xem thử hiệu ứng". Năm cảnh:
   thắng · kỷ lục · thua · thua máy (máy trêu, câu theo mặt máy) · hoà, chọn ở
   `chonCanh()`. `lib/ketcuc-fx.ts` lo chọn cảnh, mốc `HIEN_BANG_MS` (App và
   OnlineGame đọc, đừng chép tay số) và chuyển động JS; chữ lớn là CSS có delay ở
