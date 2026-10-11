@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { sfx } from '@/lib/audio';
-import { BoHat, bocBienThe, chayCanh, chonCanh, cauTreu, dongAnUi, TEN_CANH, VET_NUT } from '@/lib/ketcuc-fx';
+import { BoHat, bocBienThe, chayCanh, chonCanh, cauTreu, dongAnUi, VET_NUT } from '@/lib/ketcuc-fx';
 import type { BienThe } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
-import { t } from '@/lib/i18n';
+import { t, td } from '@/lib/i18n';
 import MatBot from './MatBot.vue';
 
 /**
@@ -74,7 +74,7 @@ onBeforeUnmount(() => don?.());
 </script>
 
 <template>
-  <div class="ketcuc-fx" :data-loai="loai" :data-canh="canh" :data-bien-the="bt ?? undefined" :aria-label="TEN_CANH[canh]" aria-hidden="true">
+  <div class="ketcuc-fx" :data-loai="loai" :data-canh="canh" :data-bien-the="bt ?? undefined" :aria-label="td(`fx.canh.${canh}`)" aria-hidden="true">
     <canvas ref="cv" class="fx-hat" />
 
     <!-- ===== THẮNG (3 biến thể) ===== -->

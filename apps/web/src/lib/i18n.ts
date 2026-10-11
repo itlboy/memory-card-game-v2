@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue';
 import vi from '@/locales/vi';
 import en from '@/locales/en';
+import { laApp } from './native';
 
 /**
  * ĐA NGÔN NGỮ — bộ dịch nhỏ tự viết (bắt đầu 12.10.2026).
@@ -39,6 +40,12 @@ function docBanDau(): NgonNgu {
     if (q === 'vi' || q === 'en') { localStorage.setItem(KHOA_LUU, q); return q; }
     const luu = localStorage.getItem(KHOA_LUU);
     if (luu === 'vi' || luu === 'en') return luu;
+    /*
+     * TRONG APP (Capacitor) thì ĐOÁN THEO MÁY: ngôn ngữ của khung web iOS chính
+     * là ngôn ngữ máy — kể cả khi người dùng chọn ngôn ngữ riêng cho app trong
+     * Cài đặt iOS — nên đó là lựa chọn thật. Trên web thì không (xem đầu file).
+     */
+    if (laApp && typeof navigator !== 'undefined') return /^vi\b/i.test(navigator.language) ? 'vi' : 'en';
   } catch { /* chế độ riêng tư / môi trường không có location */ }
   return 'vi';
 }

@@ -2,6 +2,7 @@ import { BOARD_SIZES } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
 import { ref } from 'vue';
 import { store } from './storage';
+import { td } from './i18n';
 import type { BacDanhHieu } from './ketcuc-fx';
 
 /**
@@ -53,25 +54,15 @@ export type NhomId =
   | 'nhap-mon' | 'thang' | 'diem' | 'ban' | 'hoan-hao' | 'luat'
   | 'may' | 'online' | 'chien-dich' | 'theme' | 'chuyen-can' | 'bi-mat';
 
-export const NHOM: { id: NhomId; ten: string }[] = [
-  { id: 'nhap-mon', ten: 'Nhập môn' },
-  { id: 'ban', ten: 'Chinh phục cỡ bàn' },
-  { id: 'may', ten: 'Đấu với máy' },
-  { id: 'luat', ten: 'Luật bàn' },
-  { id: 'thang', ten: 'Số ván thắng' },
-  { id: 'diem', ten: 'Tổng điểm' },
-  { id: 'hoan-hao', ten: 'Không sai lần nào' },
-  { id: 'chien-dich', ten: 'Chiến dịch' },
-  { id: 'online', ten: 'Online' },
-  { id: 'theme', ten: 'Bậc thầy theme' },
-  { id: 'chuyen-can', ten: 'Chuyên cần' },
-  { id: 'bi-mat', ten: 'Bí mật' }
-];
+const NHOM_ID: readonly NhomId[] = ['nhap-mon', 'ban', 'may', 'luat', 'thang', 'diem', 'hoan-hao', 'chien-dich', 'online', 'theme', 'chuyen-can', 'bi-mat'];
+/** Nhóm theo thứ tự hiển thị; `ten` đọc từ từ điển theo ngôn ngữ đang chọn. */
+export const NHOM: readonly { id: NhomId; readonly ten: string }[] = NHOM_ID.map((id) => ({ id, get ten() { return td(`dh.nhom.${id}`); } }));
 
 export interface Achievement {
   id: string;
-  name: string;
-  hint: string;
+  /** Tên và mô tả đọc từ TỪ ĐIỂN theo ngôn ngữ đang chọn (getter) — xem `dh()`. */
+  readonly name: string;
+  readonly hint: string;
   nhom: NhomId;
   chinhPhuc?: ChinhPhuc;
   tienDo?: (tk: ThongKe) => [number, number];
@@ -80,107 +71,112 @@ export interface Achievement {
   bac?: BacDanhHieu;
 }
 
-/** 24 theme — PHẢI khớp themes.json (test canh). */
-export const THEME_DH: readonly [id: string, ten: string][] = [
-  ['animals', 'Động vật'], ['food', 'Đồ ăn'], ['fruits', 'Trái cây'], ['nature', 'Thiên nhiên'],
-  ['smileys', 'Mặt cười'], ['sports', 'Thể thao'], ['flags', 'Cờ quốc gia'], ['ocean', 'Đại dương'],
-  ['space', 'Vũ trụ'], ['tech', 'Công nghệ'], ['vehicles', 'Phương tiện'], ['letters', 'Chữ & số'],
-  ['music', 'Nhạc cụ'], ['festive', 'Lễ hội'], ['myth', 'Huyền thoại'], ['flowers', 'Hoa lá'],
-  ['weather', 'Thời tiết'], ['jobs', 'Nghề nghiệp'], ['objects', 'Đồ vật'], ['clothes', 'Quần áo'],
-  ['buildings', 'Nhà cửa'], ['drinks', 'Đồ uống'], ['games', 'Trò chơi'], ['garden', 'Vườn nhà']
+/** 24 theme — PHẢI khớp themes.json (test canh). Tên theme ở từ điển (`theme.<id>`). */
+export const THEME_DH: readonly string[] = [
+  'animals', 'food', 'fruits', 'nature', 'smileys', 'sports', 'flags', 'ocean', 'space', 'tech', 'vehicles', 'letters',
+  'music', 'festive', 'myth', 'flowers', 'weather', 'jobs', 'objects', 'clothes', 'buildings', 'drinks', 'games', 'garden'
 ];
+/** Tên theme theo ngôn ngữ đang chọn. */
+/** Tên theme theo ngôn ngữ đang chọn; theme chưa có trong từ điển thì lùi về tên gốc
+ *  (không bao giờ hiện khoá thô). Test canh mọi theme của themes.json đều có khoá. */
+export const tenTheme = (id: string, tenGoc = id): string => {
+  const r = td(`theme.${id}`);
+  return r === `theme.${id}` ? tenGoc : r;
+};
 
 const CO_BAN = BOARD_SIZES.map((b) => b.cols * b.rows);
-const nghin = (n: number): string => (n >= 1_000_000 ? `${n / 1_000_000} triệu` : `${(n / 1000).toLocaleString('vi-VN')} nghìn`);
 
 /** Bàn vừa sức cho một ván chinh phục luật bàn / mức máy. */
 const BAN_VUA = 16;
 
+type ThamSoDh = Record<string, string | number>;
+/**
+ * Dựng một danh hiệu: `k` là gốc khoá dịch (`dh.<k>.ten` / `dh.<k>.goiY`), `p`
+ * là tham số TÍNH LÚC ĐỌC (tên theme phải đổi theo ngôn ngữ đang chọn).
+ * Tên/mô tả là GETTER nên template đọc lại đúng ngôn ngữ mỗi lần vẽ.
+ */
+function dh(o: Omit<Achievement, 'name' | 'hint'> & { k?: string; p?: () => ThamSoDh }): Achievement {
+  const { k = o.id, p, ...con } = o;
+  return Object.defineProperties({ ...con } as Achievement, {
+    name: { get: () => td(`dh.${k}.ten`, p?.()), enumerable: true },
+    hint: { get: () => td(`dh.${k}.goiY`, p?.()), enumerable: true }
+  });
+}
+
 export const ACHIEVEMENTS: Achievement[] = [
   // --- nhập môn ---
-  { id: 'first-win', nhom: 'nhap-mon', name: 'Khởi đầu', hint: 'Thắng ván đầu tiên', chinhPhuc: { cells: 6 } },
-  { id: 'flawless', nhom: 'nhap-mon', name: 'Trí nhớ siêu phàm', hint: 'Thắng một ván không lật sai lần nào', chinhPhuc: { cells: 12 } },
-  { id: 'lightspeed', nhom: 'nhap-mon', name: 'Tốc độ ánh sáng', hint: 'Hoàn thành lưới 4×4 dưới 30 giây', chinhPhuc: { cells: 16 } },
-  { id: 'combo-master', nhom: 'nhap-mon', name: 'Bậc thầy combo', hint: 'Đạt chuỗi 6 cặp đúng liên tiếp', chinhPhuc: { cells: 24 } },
-  { id: 'combo-8', nhom: 'nhap-mon', name: 'Combo rực lửa', hint: 'Đạt chuỗi 8 cặp đúng liên tiếp', chinhPhuc: { cells: 30 } },
-  { id: 'combo-10', nhom: 'nhap-mon', name: 'Chuỗi bất tận', hint: 'Đạt chuỗi 10 cặp đúng liên tiếp', chinhPhuc: { cells: 36 } },
-  { id: 'combo-12', nhom: 'nhap-mon', name: 'Thần combo', hint: 'Đạt chuỗi 12 cặp đúng liên tiếp', chinhPhuc: { cells: 42 } },
+  dh({ id: 'first-win', nhom: 'nhap-mon', chinhPhuc: { cells: 6 } }),
+  dh({ id: 'flawless', nhom: 'nhap-mon', chinhPhuc: { cells: 12 } }),
+  dh({ id: 'lightspeed', nhom: 'nhap-mon', chinhPhuc: { cells: 16 } }),
+  dh({ id: 'combo-master', nhom: 'nhap-mon', chinhPhuc: { cells: 24 } }),
+  dh({ id: 'combo-8', nhom: 'nhap-mon', chinhPhuc: { cells: 30 } }),
+  dh({ id: 'combo-10', nhom: 'nhap-mon', chinhPhuc: { cells: 36 } }),
+  dh({ id: 'combo-12', nhom: 'nhap-mon', chinhPhuc: { cells: 42 } }),
 
   // --- cỡ bàn: thắng + thắng không sai ---
-  ...CO_BAN.map((c): Achievement => ({
-    id: `board-${c}`, nhom: 'ban', name: `Bàn ${c} thẻ`, hint: `Thắng một ván bàn ${c} thẻ`, chinhPhuc: { cells: c }
-  })),
-  ...CO_BAN.map((c): Achievement => ({
-    id: `perfect-${c}`, nhom: 'hoan-hao', name: `Hoàn hảo ${c} thẻ`,
-    hint: `Thắng bàn ${c} thẻ mà không lật sai lần nào`, chinhPhuc: { cells: c }
-  })),
+  ...CO_BAN.map((c) => dh({ id: `board-${c}`, k: 'board', p: () => ({ n: c }), nhom: 'ban', chinhPhuc: { cells: c } })),
+  ...CO_BAN.map((c) => dh({ id: `perfect-${c}`, k: 'perfect', p: () => ({ n: c }), nhom: 'hoan-hao', chinhPhuc: { cells: c } })),
 
   // --- luật bàn ---
-  { id: 'survivor', nhom: 'luat', name: 'Người sống sót', hint: 'Thắng một ván có bật mạng mà không mất mạng nào', chinhPhuc: { cells: BAN_VUA, options: { lives: 2 } } },
-  { id: 'blind-seer', nhom: 'luat', name: 'Thần nhãn', hint: 'Thắng một ván có bật xem trước', chinhPhuc: { cells: BAN_VUA, options: { peek: 2 } } },
-  { id: 'time-rush', nhom: 'luat', name: 'Chạy đua với giờ', hint: 'Thắng một ván đồng hồ mức Nhanh', chinhPhuc: { cells: BAN_VUA, options: { time: 3 } } },
-  { id: 'shuffle-master', nhom: 'luat', name: 'Bậc thầy xáo bài', hint: 'Thắng một ván xáo thẻ mức Nhiều', chinhPhuc: { cells: BAN_VUA, options: { shuffle: 3 } } },
-  { id: 'special-win', nhom: 'luat', name: 'Phù thuỷ thẻ', hint: 'Thắng một ván có thẻ đặc biệt từ mức Bình thường', chinhPhuc: { cells: 24, options: { special: 2 } } },
-  { id: 'iron-man', nhom: 'luat', name: 'Người sắt', hint: 'Thắng một ván bật CẢ NĂM tuỳ chọn ở mức 2 trở lên', chinhPhuc: { cells: 24, options: { time: 2, lives: 2, peek: 2, shuffle: 2, special: 2 } } },
-  { id: 'hell-mode', nhom: 'luat', name: 'Địa ngục', hint: 'Thắng một ván bật CẢ NĂM tuỳ chọn ở mức cao nhất', chinhPhuc: { cells: 24, options: { time: 3, lives: 3, peek: 3, shuffle: 3, special: 3 } } },
+  dh({ id: 'survivor', nhom: 'luat', chinhPhuc: { cells: BAN_VUA, options: { lives: 2 } } }),
+  dh({ id: 'blind-seer', nhom: 'luat', chinhPhuc: { cells: BAN_VUA, options: { peek: 2 } } }),
+  dh({ id: 'time-rush', nhom: 'luat', chinhPhuc: { cells: BAN_VUA, options: { time: 3 } } }),
+  dh({ id: 'shuffle-master', nhom: 'luat', chinhPhuc: { cells: BAN_VUA, options: { shuffle: 3 } } }),
+  dh({ id: 'special-win', nhom: 'luat', chinhPhuc: { cells: 24, options: { special: 2 } } }),
+  dh({ id: 'iron-man', nhom: 'luat', chinhPhuc: { cells: 24, options: { time: 2, lives: 2, peek: 2, shuffle: 2, special: 2 } } }),
+  dh({ id: 'hell-mode', nhom: 'luat', chinhPhuc: { cells: 24, options: { time: 3, lives: 3, peek: 3, shuffle: 3, special: 3 } } }),
 
   // --- đấu máy ---
-  { id: 'bot-normal', nhom: 'may', name: 'Hạ gà cứng', hint: 'Thắng máy mức Gà cứng', chinhPhuc: { cells: BAN_VUA, bot: 'normal' } },
-  { id: 'bot-hard', nhom: 'may', name: 'Hạ báo đen', hint: 'Thắng máy mức Báo đen', chinhPhuc: { cells: 24, bot: 'hard' } },
-  { id: 'bot-insane', nhom: 'may', name: 'Hạ mãnh hổ', hint: 'Thắng máy mức Mãnh hổ', chinhPhuc: { cells: 24, bot: 'insane' } },
-  { id: 'bot-divine', nhom: 'may', name: 'Hạ rồng thần', hint: 'Thắng máy mức Rồng thần', chinhPhuc: { cells: 36, bot: 'divine' } },
-  { id: 'divine-56', nhom: 'may', name: 'Đồ long', hint: 'Thắng Rồng thần trên bàn 56 thẻ', chinhPhuc: { cells: 56, bot: 'divine' } },
-  { id: 'divine-88', nhom: 'may', name: 'Truyền thuyết', hint: 'Thắng Rồng thần trên bàn 88 thẻ', chinhPhuc: { cells: 88, bot: 'divine' } },
-  { id: 'bot-wins-10', nhom: 'may', name: 'Khắc tinh máy móc', hint: 'Thắng máy 10 ván (mức Gà cứng trở lên)', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, tienDo: (t) => [t.botWins, 10] },
+  dh({ id: 'bot-normal', nhom: 'may', chinhPhuc: { cells: BAN_VUA, bot: 'normal' } }),
+  dh({ id: 'bot-hard', nhom: 'may', chinhPhuc: { cells: 24, bot: 'hard' } }),
+  dh({ id: 'bot-insane', nhom: 'may', chinhPhuc: { cells: 24, bot: 'insane' } }),
+  dh({ id: 'bot-divine', nhom: 'may', chinhPhuc: { cells: 36, bot: 'divine' } }),
+  dh({ id: 'divine-56', nhom: 'may', chinhPhuc: { cells: 56, bot: 'divine' } }),
+  dh({ id: 'divine-88', nhom: 'may', chinhPhuc: { cells: 88, bot: 'divine' } }),
+  dh({ id: 'bot-wins-10', nhom: 'may', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, tienDo: (t) => [t.botWins, 10] }),
 
   // --- số ván thắng ---
-  ...([10, 50, 100, 500] as const).map((n): Achievement => ({
-    id: `wins-${n}`, nhom: 'thang', name: `${n} chiến thắng`, hint: `Thắng tổng cộng ${n} ván`,
-    chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.wins, n]
+  ...([10, 50, 100, 500] as const).map((n) => dh({
+    id: `wins-${n}`, k: 'wins', p: () => ({ n }), nhom: 'thang', chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.wins, n]
   })),
 
   // --- tổng điểm ---
-  ...([10_000, 100_000, 1_000_000, 10_000_000] as const).map((n): Achievement => ({
-    id: `score-${n >= 1_000_000 ? `${n / 1_000_000}m` : `${n / 1000}k`}`, nhom: 'diem',
-    name: `${nghin(n)} điểm`, hint: `Tích luỹ ${n.toLocaleString('vi-VN')} điểm`,
-    chinhPhuc: { cells: 36 }, tienDo: (t) => [t.totalScore, n]
+  ...([[10_000, '10k'], [100_000, '100k'], [1_000_000, '1m'], [10_000_000, '10m']] as const).map(([n, ma]) => dh({
+    id: `score-${ma}`, nhom: 'diem', chinhPhuc: { cells: 36 }, tienDo: (t) => [t.totalScore, n]
   })),
 
   // --- chiến dịch ---
-  ...[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((n): Achievement => ({
-    id: `campaign-${n}`, nhom: 'chien-dich', name: n === 50 ? 'Hết chiến dịch' : `Qua màn ${n}`,
-    hint: `Qua màn ${n} của Chiến dịch`, chinhPhuc: { campaign: true }, tienDo: (t) => [t.campaignMax, n]
+  ...[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((n) => dh({
+    id: `campaign-${n}`, k: n === 50 ? 'campaign-50' : 'campaign', p: () => ({ n }), nhom: 'chien-dich',
+    chinhPhuc: { campaign: true }, tienDo: (t) => [t.campaignMax, n]
   })),
-  { id: 'three-star', nhom: 'chien-dich', name: 'Hoàn hảo', hint: 'Đạt 3 sao ở một màn Chiến dịch', chinhPhuc: { campaign: true } },
-  ...([10, 25, 50] as const).map((n): Achievement => ({
-    id: `stars3-${n}`, nhom: 'chien-dich', name: `${n} màn ba sao`, hint: `Đạt 3 sao ở ${n} màn Chiến dịch`,
-    chinhPhuc: { campaign: true }, tienDo: (t) => [t.stars3, n]
+  dh({ id: 'three-star', nhom: 'chien-dich', chinhPhuc: { campaign: true } }),
+  ...([10, 25, 50] as const).map((n) => dh({
+    id: `stars3-${n}`, k: 'stars3', p: () => ({ n }), nhom: 'chien-dich', chinhPhuc: { campaign: true }, tienDo: (t) => [t.stars3, n]
   })),
 
   // --- online ---
-  { id: 'online-win', nhom: 'online', name: 'Vô địch phòng', hint: 'Thắng một ván online', chinhPhuc: { online: true } },
-  { id: 'online-10', nhom: 'online', name: 'Cao thủ online', hint: 'Thắng 10 ván online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, 10] },
-  { id: 'online-50', nhom: 'online', name: 'Huyền thoại online', hint: 'Thắng 50 ván online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, 50] },
-  { id: 'online-big', nhom: 'online', name: 'Vua đám đông', hint: 'Thắng một phòng online từ 5 người trở lên', chinhPhuc: { online: true } },
+  dh({ id: 'online-win', nhom: 'online', chinhPhuc: { online: true } }),
+  dh({ id: 'online-10', nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, 10] }),
+  dh({ id: 'online-50', nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, 50] }),
+  dh({ id: 'online-big', nhom: 'online', chinhPhuc: { online: true } }),
 
   // --- theme ---
-  ...THEME_DH.map(([id, ten]): Achievement => ({
-    id: `theme-${id}`, nhom: 'theme', name: `Bậc thầy ${ten}`,
-    hint: `Thắng bàn từ 16 thẻ chỉ dùng theme ${ten}`, chinhPhuc: { cells: 16, theme: id }
+  ...THEME_DH.map((id) => dh({
+    id: `theme-${id}`, k: 'theme', p: () => ({ theme: tenTheme(id) }), nhom: 'theme', chinhPhuc: { cells: 16, theme: id }
   })),
 
   // --- chuyên cần ---
-  ...([3, 7, 30] as const).map((n): Achievement => ({
-    id: `days-${n}`, nhom: 'chuyen-can', name: `${n} ngày liền`, hint: `Chơi xong ít nhất một ván mỗi ngày, ${n} ngày liên tiếp`,
-    chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.chuoiNgay, n]
+  ...([3, 7, 30] as const).map((n) => dh({
+    id: `days-${n}`, k: 'days', p: () => ({ n }), nhom: 'chuyen-can', chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.chuoiNgay, n]
   })),
 
   // --- bí mật: không có nút chinh phục, tên ẩn tới khi đạt ---
-  { id: 'giay-cuoi', nhom: 'bi-mat', biMat: true, name: 'Ngàn cân treo sợi tóc', hint: 'Thắng khi đồng hồ còn 3 giây hoặc ít hơn' },
-  { id: 'cu-dem', nhom: 'bi-mat', biMat: true, name: 'Cú đêm', hint: 'Thắng một ván trong khoảng 0–4 giờ sáng' },
-  { id: 'binh-minh', nhom: 'bi-mat', biMat: true, name: 'Đón bình minh', hint: 'Thắng một ván trong khoảng 5–6 giờ sáng' },
-  { id: 'kien-tri', nhom: 'bi-mat', biMat: true, name: 'Kiên trì', hint: 'Thắng một ván dù đã lật sai từ 20 lần' },
-  { id: 'ngang-tai', nhom: 'bi-mat', biMat: true, name: 'Kỳ phùng địch thủ', hint: 'Hoà một ván' }
+  dh({ id: 'giay-cuoi', nhom: 'bi-mat', biMat: true }),
+  dh({ id: 'cu-dem', nhom: 'bi-mat', biMat: true }),
+  dh({ id: 'binh-minh', nhom: 'bi-mat', biMat: true }),
+  dh({ id: 'kien-tri', nhom: 'bi-mat', biMat: true }),
+  dh({ id: 'ngang-tai', nhom: 'bi-mat', biMat: true })
 ];
 
 /**

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { tenNguoi } from '@/lib/ten';
 import { t, td } from '@/lib/i18n';
 import type { MemoryGame } from '@mm/engine';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
@@ -234,7 +235,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
         <span v-if="isPeek" class="first"><OptionIcon name="peek" :size="18" /> {{ t('game.sapMoBan') }} <b>{{ t('game.chuanBiNho') }}</b></span>
-        <span v-else class="first">🎲 <b>{{ t('game.diTruoc', { ten: s.current.value?.name ?? '' }) }}</b></span>
+        <span v-else class="first">🎲 <b>{{ t('game.diTruoc', { ten: tenNguoi(s.current.value) }) }}</b></span>
       </div>
 
     </div>

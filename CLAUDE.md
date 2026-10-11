@@ -219,8 +219,17 @@
   `test/i18n.test.ts` chống sót ba lớp: đúng bộ khoá + không rỗng + tham số `{n}`
   khớp; mọi khoá động có thật; và CHẶN CHỮ TIẾNG VIỆT VIẾT CỨNG trong các file đã
   chuyển (`DA_CHUYEN`) — thêm chữ mới phải thêm khoá vào CẢ HAI từ điển. Dòng cố ý
-  giữ tiếng Việt ghi `i18n-bo-qua`. Đợt 1 xong: thanh trên, trang chủ + wizard,
-  màn chơi, bảng kết quả, cảnh kết ván. Đợt 2: online, tài khoản, danh hiệu; đợt 3:
+  giữ tiếng Việt ghi `i18n-bo-qua`. LỚP THỨ TƯ (`test/i18n-man-hinh.test.ts`) là
+  lớp QUAN TRỌNG NHẤT: dựng từng màn ở cả hai ngôn ngữ, gom MỌI chữ hiển thị (text +
+  aria-label + title + placeholder) và đỏ khi bản English còn dấu tiếng Việt HOẶC
+  còn cụm GIỐNG HỆT bản tiếng Việt. Ba lớp kia chỉ nhìn mã nguồn nên đã để lọt
+  "Khởi đầu" lên trang chủ English (chủ dự án báo, có ảnh): chữ đến từ DỮ LIỆU (tên
+  danh hiệu, theme, máy, "Bạn") qua props; chữ không dấu như "Thua" lọt cả phép dò
+  dấu. Màn dịch xong phải THÊM vào lớp này. Tên do app đặt dịch LÚC VẼ qua
+  `lib/ten.ts` (`tenNguoi`, `tenBot`), dữ liệu ván giữ chữ gốc. Danh hiệu là getter
+  (`dh()` trong achievements.ts) nên đổi ngôn ngữ là tên đổi theo. App iOS ĐOÁN
+  ngôn ngữ theo máy (khác web) vì đó là lựa chọn thật của người dùng. Đợt 1 xong: thanh trên, trang chủ + wizard,
+  màn chơi, bảng kết quả, cảnh kết ván, danh hiệu, tài khoản, tên theme/máy. Đợt 2: online; đợt 3:
   Luật chơi, tên theme, nhãn engine (`optionSummary` đang dịch tạm theo mẫu ở
   MenuScreen), lỗi server (dịch theo MÃ lỗi ở client), thẻ og. Chuyển xong file nào
   thì thêm vào `DA_CHUYEN`.

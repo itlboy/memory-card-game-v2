@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { tenNguoi } from '@/lib/ten';
 import { t } from '@/lib/i18n';
 import type { Player } from '@mm/engine';
 import { TURN_LIMIT_SEC } from '@mm/engine';
@@ -72,7 +73,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         :aria-current="p.id === currentId ? 'true' : undefined"
       >
         <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
-        <b class="name">{{ p.name }}</b>
+        <b class="name">{{ tenNguoi(p) }}</b>
         <span
           v-if="p.id === currentId && turnLeft !== null && turnLeft !== undefined"
           class="turn-clock"
@@ -111,7 +112,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
       <div class="turn-chip" :class="{ frozen: nguoiDangDi.frozenTurns > 0 }" aria-current="true">
         <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(nguoiDangDi, players.indexOf(nguoiDangDi))" /></span>
         <span class="tb">
-          <b class="name">{{ nguoiDangDi.name }}</b>
+          <b class="name">{{ tenNguoi(nguoiDangDi) }}</b>
           <span class="sub">
             <template v-if="turnLeft !== null && turnLeft !== undefined">
               <Timer :size="11" /><span :class="{ urgent: turnLeft <= 10 }">{{ Math.ceil(turnLeft) }}s</span> ·
@@ -130,11 +131,11 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <li
           v-for="({ p, i }, k) in nhungNguoiKhac" :key="p.id"
           class="mini" :class="{ next: k === 0, frozen: p.frozenTurns > 0 }"
-          :title="t('ps.diemCua', { ten: p.name, n: p.score })"
+          :title="t('ps.diemCua', { ten: tenNguoi(p), n: p.score })"
         >
           <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
           <span class="mpts" :data-pts-for="p.id">{{ p.score }}</span>
-          <span class="sr-only">{{ t('ps.diemCuaSr', { ten: p.name, n: p.score }) }}</span>
+          <span class="sr-only">{{ t('ps.diemCuaSr', { ten: tenNguoi(p), n: p.score }) }}</span>
         </li>
         <li class="more">
           <button
@@ -160,7 +161,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         >
           <span class="rank">{{ i + 1 }}</span>
           <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, players.indexOf(p))" /></span>
-          <b class="name">{{ p.name }}</b>
+          <b class="name">{{ tenNguoi(p) }}</b>
           <small v-if="Number.isFinite(p.lives)" class="lives">
             <template v-if="p.lives <= 0">💔</template>
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>

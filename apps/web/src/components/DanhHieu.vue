@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t, td } from '@/lib/i18n';
 import type { Achievement, ThongKe } from '@/lib/achievements';
 import { num } from '@/lib/format';
 import { MAU_BAC } from '@/lib/ketcuc-fx';
@@ -24,13 +25,13 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
     <li v-for="a in ds" :key="a.id" :class="{ co: daCo.has(a.id) }">
       <!-- Huy hiệu tròn mang MÀU BẬC, cùng bảng màu với cảnh mở khoá (MoKhoaFx) -->
       <span
-        class="huy" :class="{ khoa: !daCo.has(a.id) }" :title="MAU_BAC[a.bac ?? 'dong'].ten"
+        class="huy" :class="{ khoa: !daCo.has(a.id) }" :title="td(`fx.bac.${a.bac ?? 'dong'}`)"
         :style="{ background: `linear-gradient(135deg, ${MAU_BAC[a.bac ?? 'dong'].a}, ${MAU_BAC[a.bac ?? 'dong'].b})` }"
         aria-hidden="true"
       >{{ daCo.has(a.id) ? '★' : a.biMat ? '?' : '' }}</span>
       <span class="chu">
-        <b>{{ a.biMat && !daCo.has(a.id) ? 'Danh hiệu bí mật' : a.name }}</b><br>
-        <small>{{ a.biMat && !daCo.has(a.id) ? 'Cứ chơi đi, sẽ có lúc lộ ra' : a.hint }}</small>
+        <b>{{ a.biMat && !daCo.has(a.id) ? t('dh.biMat') : a.name }}</b><br>
+        <small>{{ a.biMat && !daCo.has(a.id) ? t('dh.biMatGoiY') : a.hint }}</small>
         <span v-if="a.tienDo && !daCo.has(a.id)" class="tien-do">
           <i :style="{ width: `${Math.min(100, (a.tienDo(tk)[0] / a.tienDo(tk)[1]) * 100)}%` }" />
           <em>{{ num(Math.min(a.tienDo(tk)[0], a.tienDo(tk)[1])) }}/{{ num(a.tienDo(tk)[1]) }}</em>
@@ -38,12 +39,12 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
       </span>
       <template v-if="!daCo.has(a.id) && a.chinhPhuc">
         <small v-if="a.chinhPhuc.theme && themeKhoa[a.chinhPhuc.theme]" class="khoa">
-          Mở ở {{ num(themeKhoa[a.chinhPhuc.theme]!) }} điểm
+          {{ t('dhd.moO', { n: num(themeKhoa[a.chinhPhuc.theme]!) }) }}
         </small>
         <button
           v-else class="di" type="button"
-          :aria-label="`Chinh phục: ${a.name}`" @click="emit('chinh-phuc', a)"
-        >Chinh phục</button>
+          :aria-label="t('kq.chinhPhucAria', { ten: a.name })" @click="emit('chinh-phuc', a)"
+        >{{ t('kq.chinhPhuc') }}</button>
       </template>
     </li>
   </ul>
