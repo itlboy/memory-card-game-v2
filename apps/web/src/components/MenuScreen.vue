@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { tenBot } from '@/lib/ten';
+import { tenTheme } from '@/lib/achievements';
 import { t, td, ngonNgu } from '@/lib/i18n';
 /** Bí danh của `t` cho chỗ vòng lặp theme đã đặt tên biến là `t`. */
 const tr = t;
@@ -398,7 +400,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           @click="pickBotLevel(b.id)"
         >
           <span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span>
-          <span class="text"><strong>{{ BOT_SPECS[b.id].name }}</strong><small>{{ td(`menu.bot.${b.id}`) }}</small></span>
+          <span class="text"><strong>{{ tenBot(b.id) }}</strong><small>{{ td(`menu.bot.${b.id}`) }}</small></span>
         </button>
       </div>
 
@@ -463,13 +465,13 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
             v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
             :aria-checked="themeIds.includes(t.id)"
             :aria-disabled="!unlocked(t)"
-            :aria-label="unlocked(t) ? t.name : tr('menu.themeKhoaAria', { ten: t.name, k: t.unlockAt / 1000 })"
+            :aria-label="unlocked(t) ? tenTheme(t.id, t.name) : tr('menu.themeKhoaAria', { ten: tenTheme(t.id, t.name), k: t.unlockAt / 1000 })"
             :disabled="!unlocked(t)"
             type="button"
             @click="unlocked(t) && toggleTheme(t.id)"
           >
             <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
-            <strong class="tname">{{ t.name }}</strong>
+            <strong class="tname">{{ tenTheme(t.id, t.name) }}</strong>
             <!-- Badge khoá ở góc đã nói trạng thái; ở đây chỉ cần mốc điểm -->
             <small v-if="!unlocked(t)">{{ tr('menu.themeKhoa', { k: t.unlockAt / 1000 }) }}</small>
             <!-- Dấu chọn / khoá nằm TUYỆT ĐỐI ở góc: nằm trong luồng thì nó chiếm

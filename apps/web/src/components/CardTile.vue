@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealDelay } from '@/lib/timing';
@@ -380,10 +381,10 @@ watch(
 );
 
 const label = computed(() => {
-  const pos = `Thẻ ${props.card.index + 1}`;
-  if (props.matched) return `${pos}, ${props.card.symbol}, đã ghép đúng`;
-  if (props.faceUp) return `${pos}, ${props.card.symbol}`;
-  return `${pos}, chưa mở`;
+  const n = props.card.index + 1;
+  if (props.matched) return t('la.daGhep', { n, ky: props.card.symbol ?? '' });
+  if (props.faceUp) return t('la.ngua', { n, ky: props.card.symbol ?? '' });
+  return t('la.chuaMo', { n });
 });
 </script>
 

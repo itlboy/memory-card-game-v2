@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import type { Card } from '@mm/engine';
 import { ref, watch } from 'vue';
 import CardTile from './CardTile.vue';
@@ -77,7 +78,7 @@ defineExpose({
     ref="grid"
     class="board"
     role="grid"
-    aria-label="Bàn thẻ"
+    :aria-label="t('ban.aria')"
     :style="{
       gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
       gridTemplateRows: `repeat(${Math.ceil(cards.length / cols)}, minmax(0, 1fr))`

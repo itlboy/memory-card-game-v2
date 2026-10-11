@@ -161,7 +161,7 @@ describe('sổ 103 danh hiệu (11.10.2026)', () => {
   it('danh hiệu theme khớp ĐÚNG danh sách theme trong themes.json', () => {
     const raw = JSON.parse(readFileSync(resolve(process.cwd(), 'public/data/themes.json'), 'utf8'));
     const ds = (Array.isArray(raw) ? raw : raw.themes) as { id: string }[];
-    expect(THEME_DH.map(([id]) => id).sort()).toEqual(ds.map((t) => t.id).sort());
+    expect([...THEME_DH].sort()).toEqual(ds.map((t) => t.id).sort());
   });
 
   it('bí mật thì không có nút chinh phục; mọi danh hiệu không bí mật đều có', () => {

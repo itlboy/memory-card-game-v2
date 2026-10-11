@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import { sizeForLevel } from '@mm/engine';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -30,14 +31,14 @@ async function veNut(): Promise<void> {
   const el = nutGoogle.value;
   if (!el) return;
   try {
-    await veNutGoogle(el, () => { loi.value = ''; }, (e) => { loi.value = e.message === '401' ? 'Google không xác nhận được đăng nhập này.' : 'Đăng nhập không thành — thử lại sau.'; });
-  } catch { loi.value = 'Không tải được nút Google. Kiểm tra mạng rồi mở lại.'; }
+    await veNutGoogle(el, () => { loi.value = ''; }, (e) => { loi.value = e.message === '401' ? t('tk.loiGoogle') : t('tk.loiDangNhap'); });
+  } catch { loi.value = t('tk.loiNut'); }
 }
 
 async function moBxh(): Promise<void> {
   tab.value = 'bxh';
   if (bxh.value) return;
-  try { bxh.value = await bangXepHang(); } catch { loiBxh.value = 'Không tải được bảng xếp hạng.'; }
+  try { bxh.value = await bangXepHang(); } catch { loiBxh.value = t('tk.loiBxh'); }
 }
 
 const tiLeThang = computed(() => {
@@ -54,7 +55,7 @@ const kyLuc = computed(() => {
       const mm = /^([a-z]+):L(\d+)$/.exec(k);
       const cap = mm ? Number(mm[2]) : 0;
       const sz = cap ? sizeForLevel(cap) : null;
-      const ten = mm?.[1] === 'campaign' ? `Chiến dịch màn ${cap}` : sz ? `Bàn ${sz.cols * sz.rows} thẻ` : k;
+      const ten = mm?.[1] === 'campaign' ? t('tk.kyLucChienDich', { n: cap }) : sz ? t('tk.kyLucBan', { n: sz.cols * sz.rows }) : k;
       return { k, ten, cap, ...r };
     })
     .sort((a, b) => a.cap - b.cap);
@@ -67,11 +68,11 @@ const diemMay = store.totalScore();
 </script>
 
 <template>
-  <div class="overlay" role="dialog" aria-modal="true" aria-label="Tài khoản" @keydown.esc="emit('close')">
+  <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('tk.taiKhoan')" @keydown.esc="emit('close')">
     <div class="panel">
       <header class="head">
-        <h2>Tài khoản</h2>
-        <button ref="closeBtn" class="btn" aria-label="Đóng" type="button" @click="emit('close')">
+        <h2>{{ t('tk.taiKhoan') }}</h2>
+        <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>
@@ -83,21 +84,19 @@ const diemMay = store.totalScore();
                ta bấm hơn hẳn một câu chung chung về đồng bộ. -->
           <p class="lead">
             <template v-if="soDaCo || diemMay">
-              Đăng nhập để giữ <b>{{ soDaCo }} danh hiệu</b> và <b>{{ numShort(diemMay) }} điểm</b>
-              của máy này khi đổi máy, và có tên trên bảng xếp hạng.
+              {{ t('tk.loiIchSo1') }}<b>{{ t('tk.loiIchDanhHieu', { n: soDaCo }) }}</b>{{ t('tk.loiIchVa') }}<b>{{ t('tk.loiIchDiem', { n: numShort(diemMay) }) }}</b>{{ t('tk.loiIchSo2') }}
             </template>
             <template v-else>
-              Đăng nhập để điểm, kỷ lục và danh hiệu đi theo bạn sang máy khác
-              và có tên trên bảng xếp hạng.
+              {{ t('tk.loiIchChung') }}
             </template>
-            Không đăng nhập vẫn chơi bình thường.
+            {{ t('tk.vanChoi') }}
           </p>
           <div ref="nutGoogle" class="nut-google" data-nosfx />
-          <p v-if="dangTai" class="muted">Đang đăng nhập…</p>
+          <p v-if="dangTai" class="muted">{{ t('tk.dangDangNhap') }}</p>
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
-          <button class="btn-link" type="button" @click="moBxh">Xem bảng xếp hạng</button>
+          <button class="btn-link" type="button" @click="moBxh">{{ t('tk.xemBxh') }}</button>
 <button class="nut-dh" type="button" @click="emit('danh-hieu')">
-            🏅 <b>Danh hiệu</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
+            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
           </button>
           <ol v-if="tab === 'bxh' && bxh" class="bxh">
             <li v-for="(d, i) in bxh" :key="d.id">
@@ -106,7 +105,7 @@ const diemMay = store.totalScore();
               <span class="ten">{{ d.name }}</span>
               <b>{{ num(d.totalScore) }}</b>
             </li>
-            <li v-if="!bxh.length" class="muted">Chưa có ai trên bảng.</li>
+            <li v-if="!bxh.length" class="muted">{{ t('tk.chuaAi') }}</li>
           </ol>
           <p v-if="loiBxh" class="loi">{{ loiBxh }}</p>
         </div>
@@ -118,40 +117,40 @@ const diemMay = store.totalScore();
             <span v-else class="avatar chu">{{ me.name.slice(0, 1) }}</span>
             <div class="ten-khoi">
               <b class="ten">{{ me.name }}</b>
-              <span class="muted">{{ num(me.totalScore) }} điểm tích luỹ</span>
+              <span class="muted">{{ t('tk.diemTichLuy', { n: num(me.totalScore) }) }}</span>
             </div>
-            <button class="btn" type="button" aria-label="Đăng xuất" title="Đăng xuất" @click="dangXuat(); emit('close')">
+            <button class="btn" type="button" :aria-label="t('tk.dangXuat')" :title="t('tk.dangXuat')" @click="dangXuat(); emit('close')">
               <LogOut :size="18" />
             </button>
           </div>
 
           <div class="tabs" role="tablist">
-            <button class="tab" role="tab" type="button" :aria-selected="tab === 'hoso'" @click="tab = 'hoso'">Hồ sơ</button>
-            <button class="tab" role="tab" type="button" :aria-selected="tab === 'bxh'" @click="moBxh">Xếp hạng</button>
+            <button class="tab" role="tab" type="button" :aria-selected="tab === 'hoso'" @click="tab = 'hoso'">{{ t('tk.hoSo') }}</button>
+            <button class="tab" role="tab" type="button" :aria-selected="tab === 'bxh'" @click="moBxh">{{ t('tk.xepHang') }}</button>
           </div>
 
           <template v-if="tab === 'hoso'">
             <dl class="so">
-              <div><dt>Ván</dt><dd>{{ num(me.matches) }}</dd></div>
-              <div><dt>Thắng</dt><dd>{{ num(me.wins) }}</dd></div>
-              <div><dt>Thua</dt><dd>{{ num(me.losses) }}</dd></div>
-              <div><dt>Hoà</dt><dd>{{ num(me.draws) }}</dd></div>
-              <div><dt>Tỉ lệ thắng</dt><dd>{{ tiLeThang }}%</dd></div>
+              <div><dt>{{ t('tk.van') }}</dt><dd>{{ num(me.matches) }}</dd></div>
+              <div><dt>{{ t('tk.thang') }}</dt><dd>{{ num(me.wins) }}</dd></div>
+              <div><dt>{{ t('tk.thua') }}</dt><dd>{{ num(me.losses) }}</dd></div>
+              <div><dt>{{ t('tk.hoa') }}</dt><dd>{{ num(me.draws) }}</dd></div>
+              <div><dt>{{ t('tk.tiLe') }}</dt><dd>{{ tiLeThang }}%</dd></div>
             </dl>
 
             <button class="nut-dh" type="button" @click="emit('danh-hieu')">
-            🏅 <b>Danh hiệu</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
+            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
           </button>
 
-            <h3>Kỷ lục</h3>
+            <h3>{{ t('tk.kyLuc') }}</h3>
             <ul v-if="kyLuc.length" class="ky-luc">
               <li v-for="r in kyLuc" :key="r.k">
                 <span>{{ r.ten }}</span>
                 <b>{{ num(r.score) }}</b>
-                <small>{{ r.moves }} lượt · {{ r.seconds }}s</small>
+                <small>{{ t('tk.luotGiay', { luot: r.moves, giay: r.seconds }) }}</small>
               </li>
             </ul>
-            <p v-else class="muted">Chưa có kỷ lục nào — chơi một mình xong ván là có.</p>
+            <p v-else class="muted">{{ t('tk.chuaKyLuc') }}</p>
           </template>
 
           <template v-else>
@@ -160,13 +159,13 @@ const diemMay = store.totalScore();
                 <span class="hang">{{ i + 1 }}</span>
                 <img v-if="d.avatar" :src="d.avatar" alt="" referrerpolicy="no-referrer">
                 <span class="ten">{{ d.name }}</span>
-                <small>{{ d.wins }}/{{ d.matches }} thắng</small>
+                <small>{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</small>
                 <b>{{ num(d.totalScore) }}</b>
               </li>
-              <li v-if="!bxh.length" class="muted">Chưa có ai trên bảng — chơi một ván là bạn đứng đầu.</li>
+              <li v-if="!bxh.length" class="muted">{{ t('tk.chuaAiMoi') }}</li>
             </ol>
             <p v-else-if="loiBxh" class="loi">{{ loiBxh }}</p>
-            <p v-else class="muted">Đang tải…</p>
+            <p v-else class="muted">{{ t('tk.dangTai') }}</p>
           </template>
         </template>
       </div>

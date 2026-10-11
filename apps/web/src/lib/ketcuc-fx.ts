@@ -367,9 +367,10 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
 /* ---------- huy hiệu danh hiệu theo bậc ---------- */
 
 export type BacDanhHieu = 'dong' | 'bac' | 'vang' | 'bi-mat';
-export const MAU_BAC: Record<BacDanhHieu, { ten: string; a: string; b: string; tia: string }> = {
-  dong: { ten: 'Đồng', a: '#f3b27a', b: '#b56a33', tia: 'rgba(243,178,122,.28)' },
-  bac: { ten: 'Bạc', a: '#eef2ff', b: '#9aa6c8', tia: 'rgba(220,228,255,.3)' },
-  vang: { ten: 'Vàng', a: '#ffd76a', b: '#f0a500', tia: 'rgba(255,215,106,.38)' },
-  'bi-mat': { ten: 'Bí mật', a: '#b9f3ff', b: '#7a7dff', tia: 'rgba(185,243,255,.4)' }
+/** Màu của từng bậc. Tên bậc ở từ điển (`fx.bac.<bậc>`). */
+export const MAU_BAC: Record<BacDanhHieu, { a: string; b: string; tia: string }> = {
+  dong: { a: '#f3b27a', b: '#b56a33', tia: 'rgba(243,178,122,.28)' },
+  bac: { a: '#eef2ff', b: '#9aa6c8', tia: 'rgba(220,228,255,.3)' },
+  vang: { a: '#ffd76a', b: '#f0a500', tia: 'rgba(255,215,106,.38)' },
+  'bi-mat': { a: '#b9f3ff', b: '#7a7dff', tia: 'rgba(185,243,255,.4)' }
 };

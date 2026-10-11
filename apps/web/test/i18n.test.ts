@@ -46,7 +46,11 @@ describe('đối chiếu từ điển', () => {
       ...['players', 'bot', 'count', 'names', 'level', 'theme', 'options'].map((b) => `menu.buoc.${b}`),
       ...['cleared', 'timeout', 'no-moves', 'no-lives', 'forfeit'].map((r) => `kq.ly.${r}`),
       ...['off', 'low', 'high'].flatMap((l) => [`tb.am.${l}`, `tb.amNgan.${l}`]),
-      ...['dong', 'bac', 'vang', 'bi-mat'].map((b) => `fx.bac.${b}`)
+      ...['dong', 'bac', 'vang', 'bi-mat'].map((b) => `fx.bac.${b}`),
+      // Mọi theme thật và mọi nhóm danh hiệu, mức máy đều phải có tên dịch
+      ...((): { id: string }[] => { const j = JSON.parse(readFileSync(resolve(process.cwd(), 'public/data/themes.json'), 'utf8')); return Array.isArray(j) ? j : j.themes; })().map((t) => `theme.${t.id}`),
+      ...['nhap-mon', 'ban', 'may', 'luat', 'thang', 'diem', 'hoan-hao', 'chien-dich', 'online', 'theme', 'chuyen-can', 'bi-mat'].map((n) => `dh.nhom.${n}`),
+      ...Object.keys(BOT_SPECS).map((b) => `bot.${b}`)
     ];
     for (const k of dong) expect(k in vi, `thiếu khoá ${k}`).toBe(true);
   });
@@ -68,7 +72,9 @@ describe('đổi ngôn ngữ', () => {
 const DA_CHUYEN = [
   'components/TopBar.vue', 'components/HudBar.vue', 'components/SizeGrid.vue', 'components/ConfirmDialog.vue',
   'components/GameScreen.vue', 'components/PlayerStrip.vue', 'components/MenuScreen.vue',
-  'components/ResultDialog.vue', 'components/KetCucFx.vue', 'components/MoKhoaFx.vue'
+  'components/ResultDialog.vue', 'components/KetCucFx.vue', 'components/MoKhoaFx.vue',
+  'components/DanhHieu.vue', 'components/DanhHieuDialog.vue', 'components/TaiKhoanDialog.vue',
+  'components/BoardGrid.vue', 'components/CardTile.vue', 'lib/achievements.ts', 'lib/ten.ts'
 ];
 const DAU_VIET = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
 

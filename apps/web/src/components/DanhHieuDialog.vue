@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '@/lib/i18n';
 import { X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { ACHIEVEMENTS, NHOM, type Achievement, type ThongKe } from '@/lib/achievements';
@@ -24,27 +25,27 @@ const nhom = computed(() => NHOM.map((n) => {
 </script>
 
 <template>
-  <div class="overlay" role="dialog" aria-modal="true" aria-label="Danh hiệu" @keydown.esc="emit('close')">
+  <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('dhd.danhHieu')" @keydown.esc="emit('close')">
     <div class="panel">
       <header class="head">
-        <h2>Danh hiệu <small>{{ so }}/{{ ACHIEVEMENTS.length }}</small></h2>
-        <button ref="closeBtn" class="btn" aria-label="Đóng" type="button" @click="emit('close')">
+        <h2>{{ t('dhd.danhHieu') }} <small>{{ so }}/{{ ACHIEVEMENTS.length }}</small></h2>
+        <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>
       <div class="thanh"><i :style="{ width: `${(so / ACHIEVEMENTS.length) * 100}%` }" /></div>
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
-          Chưa có ({{ ACHIEVEMENTS.length - so }})
+          {{ t('dhd.chuaCo', { n: ACHIEVEMENTS.length - so }) }}
         </button>
-        <button class="tab" role="tab" type="button" :aria-selected="loc === 'tat-ca'" @click="loc = 'tat-ca'">Tất cả</button>
+        <button class="tab" role="tab" type="button" :aria-selected="loc === 'tat-ca'" @click="loc = 'tat-ca'">{{ t('dhd.tatCa') }}</button>
       </div>
       <div class="body">
         <section v-for="n in nhom" :key="n.id">
           <h3>{{ n.ten }} <small>{{ n.co }}/{{ n.tong }}</small></h3>
           <DanhHieu :ds="n.ds" :da-co="daCo" :tk="tk" :theme-khoa="themeKhoa" @chinh-phuc="emit('chinh-phuc', $event)" />
         </section>
-        <p v-if="!nhom.length" class="xong">Bạn đã có mọi danh hiệu. Huyền thoại thật sự! 🏆</p>
+        <p v-if="!nhom.length" class="xong">{{ t('dhd.coHet') }}</p>
       </div>
     </div>
   </div>

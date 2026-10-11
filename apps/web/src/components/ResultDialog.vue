@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { tenNguoi } from '@/lib/ten';
 import { t, td } from '@/lib/i18n';
 import { isDraw } from '@mm/engine';
 import type { Summary } from '@mm/engine';
@@ -132,7 +133,7 @@ const series = computed(() => {
   const wins = props.seriesWins;
   if (!props.multiplayer || !wins) return null;
   const rows = props.summary.ranking
-    .map((p) => ({ name: p.name, w: wins[p.name] ?? 0 }))
+    .map((p) => ({ name: tenNguoi(p), w: wins[p.name] ?? 0 }))
     .sort((a, b) => b.w - a.w);
   const total = rows.reduce((n, r) => n + r.w, 0);
   if (total < 2) return null;
@@ -148,7 +149,7 @@ const title = computed(() => {
   // Bằng điểm thì phải nói HOÀ: lấy người đầu danh sách rồi tuyên bố thắng là
   // sai, thứ tự đó chỉ do sort quyết định.
   if (draw.value) return t('kq.hoa');
-  if (props.multiplayer) return t('kq.thang', { ten: props.summary.ranking[0]?.name ?? '' });
+  if (props.multiplayer) return t('kq.thang', { ten: tenNguoi(props.summary.ranking[0]) });
   if (props.summary.status !== 'won') return t('kq.chuaXong');
   return props.isRecord ? t('kq.kyLuc') : t('kq.hoanThanh');
 });
@@ -176,7 +177,7 @@ const title = computed(() => {
         <li v-for="(p, i) in summary.ranking" :key="p.id">
           <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
           <span>
-            {{ draw && i < 2 ? 1 : i + 1 }}. {{ p.name }}
+            {{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}
             <!--
               Ai muốn chơi tiếp, ai đã đi: nhãn nằm NGAY CẠNH TÊN, không phải ở
               dòng thông báo dưới nút. Bảng xếp hạng vốn đã là chỗ mắt đang đọc
