@@ -1,0 +1,2 @@
+/* Tên app theo ngôn ngữ máy — xem lib/i18n.ts ở web (từ điển tb.thuongHieu) */
+"CFBundleDisplayName" = "Lật Thẻ";

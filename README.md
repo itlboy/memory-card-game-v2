@@ -667,6 +667,7 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
 **12.10.2026 (đa ngôn ngữ, vá đợt 1)**
+- Tên app bản English: **Flip Match** (logo, tiêu đề tab, tên app iOS theo ngôn ngữ máy).
 - Sửa chữ tiếng Việt lọt vào bản English (tên danh hiệu, theme, máy, "Bạn", nhãn bàn
   thẻ, tên bậc). Thêm lớp kiểm trên màn hình thật so chữ hai ngôn ngữ. App iOS tự
   chọn ngôn ngữ theo máy.

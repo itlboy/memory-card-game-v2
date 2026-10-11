@@ -40,7 +40,10 @@ const vi = {
   'tb.ngonNgu': 'Ngôn ngữ',
   'tb.luatChoi': 'Luật chơi',
 
+  /** Tên app. Bản English là "Flip Match" (chủ dự án: tên có dấu khó với người nước ngoài).
+   *  Đổi tên thì đổi CẢ ios/App/App/<lang>.lproj/InfoPlist.strings. */
   'tb.thuongHieu': 'Lật Thẻ',
+  'chung.tieuDeTrang': 'Lật Thẻ — Game Thẻ Bài Trí Nhớ',
   'hud.thoat': 'Thoát về menu',
   'game.the.bomb': 'Thẻ bom! Hai cặp đã mở bị úp lại.',
   'game.the.swap': 'Tráo đổi! Hai thẻ vừa đổi chỗ nhau.',

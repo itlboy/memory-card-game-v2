@@ -6,6 +6,13 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<!-- Ngôn ngữ app hỗ trợ: iOS hiện mục chọn ngôn ngữ riêng cho app trong Cài đặt, và
+	     đọc tên app (CFBundleDisplayName) từ en.lproj / vi.lproj theo ngôn ngữ máy -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>vi</string>
+	</array>
 	<key>CFBundleDisplayName</key>
         <string>Lật Thẻ</string>
 	<key>CFBundleExecutable</key>
