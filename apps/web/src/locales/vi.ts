@@ -344,6 +344,12 @@ const vi = {
   'la.daGhep': 'Thẻ {n}, {ky}, đã ghép đúng',
   'la.ngua': 'Thẻ {n}, {ky}',
   'la.chuaMo': 'Thẻ {n}, chưa mở',
+  'menu.soNguoi.1': 'Một mình',
+  'menu.soNguoi.n': '{n} người',
+  'menu.soNguoiMo.1': 'Ván của riêng bạn, kỷ lục tính cho bạn',
+  'menu.soNguoiMo.2': 'Hai người thay lượt trên cùng máy',
+  'menu.soNguoiMo.3': 'Ba người thay lượt trên cùng máy',
+  'menu.soNguoiMo.4': 'Bốn người thay lượt trên cùng máy',
 };
 
 export default vi;

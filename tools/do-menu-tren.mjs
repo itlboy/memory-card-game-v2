@@ -233,7 +233,7 @@ for (const [ten, w, h] of MAY) {
   await js(`[...document.querySelectorAll('.option.big')].find((b) => /Chơi nhanh/.test(b.textContent)).click()`); await cho(500);
   const sn = await js(`(() => { const o = [...document.querySelectorAll('.counts .option')].map((e) => e.getBoundingClientRect());
     return { so: o.length, thap: Math.min(...o.map((r) => r.height)), hep: Math.min(...o.map((r) => r.width)), day: Math.max(...o.map((r) => r.bottom)), hang: new Set(o.map((r) => Math.round(r.top))).size }; })()`);
-  ok(sn.so === 4 && sn.hang === 2, `${ten}: bước số người có 4 ô (1–4 người), lưới 2×2 (thấy ${sn.so} ô, ${sn.hang} hàng)`);
+  ok(sn.so === 4 && sn.hang === 4, `${ten}: bước số người là 4 thanh ngang xếp dọc (thấy ${sn.so} ô, ${sn.hang} hàng)`);
   ok(sn.thap >= 44 && sn.hep >= 44 && sn.day <= h, `${ten}: ô số người ${sn.hep.toFixed(0)}×${sn.thap.toFixed(0)}px, nằm trong màn`);
 }
 {
