@@ -2,9 +2,7 @@
 import { sizeForLevel } from '@mm/engine';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
-import { ACHIEVEMENTS, type Achievement } from '@/lib/achievements';
-import { store } from '@/lib/storage';
-import DanhHieu from './DanhHieu.vue';
+import { ACHIEVEMENTS, daCo as daCoRef } from '@/lib/achievements';
 import { num } from '@/lib/format';
 import { bangXepHang, dangTai, dangXuat, me, veNutGoogle, type DongBxh } from '@/lib/taikhoan';
 
@@ -14,7 +12,7 @@ import { bangXepHang, dangTai, dangXuat, me, veNutGoogle, type DongBxh } from '@
  * hạng. Khung giống RulesDialog: tiêu đề + nút đóng đứng yên, RUỘT cuộn —
  * nên không phá luật KHÔNG SCROLL của trang.
  */
-const emit = defineEmits<{ close: []; 'chinh-phuc': [Achievement] }>();
+const emit = defineEmits<{ close: []; 'danh-hieu': [] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 const nutGoogle = ref<HTMLElement | null>(null);
 const loi = ref('');
@@ -62,7 +60,8 @@ const kyLuc = computed(() => {
 });
 
 /** Danh hiệu đã có: của tài khoản nếu đăng nhập, không thì của máy này. */
-const daCo = computed(() => new Set(me.value ? me.value.achievements : store.achievements()));
+/** Đếm theo sổ của MÁY: đăng nhập là đã kéo danh hiệu tài khoản về máy (dongBo). */
+const soDaCo = computed(() => daCoRef.value.length);
 </script>
 
 <template>
@@ -86,7 +85,9 @@ const daCo = computed(() => new Set(me.value ? me.value.achievements : store.ach
           <p v-if="dangTai" class="muted">Đang đăng nhập…</p>
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
           <button class="btn-link" type="button" @click="moBxh">Xem bảng xếp hạng</button>
-          <DanhHieu :da-co="daCo" @chinh-phuc="emit('chinh-phuc', $event)" />
+<button class="nut-dh" type="button" @click="emit('danh-hieu')">
+            🏅 <b>Danh hiệu</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
+          </button>
           <ol v-if="tab === 'bxh' && bxh" class="bxh">
             <li v-for="(d, i) in bxh" :key="d.id">
               <span class="hang">{{ i + 1 }}</span>
@@ -127,7 +128,9 @@ const daCo = computed(() => new Set(me.value ? me.value.achievements : store.ach
               <div><dt>Tỉ lệ thắng</dt><dd>{{ tiLeThang }}%</dd></div>
             </dl>
 
-            <DanhHieu :da-co="daCo" @chinh-phuc="emit('chinh-phuc', $event)" />
+            <button class="nut-dh" type="button" @click="emit('danh-hieu')">
+            🏅 <b>Danh hiệu</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
+          </button>
 
             <h3>Kỷ lục</h3>
             <ul v-if="kyLuc.length" class="ky-luc">
@@ -233,4 +236,12 @@ h3 small { font-weight: 400; letter-spacing: 0; text-transform: none; }
 .bxh .ten { flex: 1; min-width: 0; }
 .bxh small { color: var(--muted); }
 .bxh b { font-variant-numeric: tabular-nums; }
+.nut-dh {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; margin-top: 12px;
+  padding: 0 14px; border-radius: 12px; border: 0; cursor: pointer; font: inherit; color: #4a2f00;
+  background: linear-gradient(135deg, #ffd76a, #f0a500); text-align: left;
+}
+.nut-dh b { flex: 1; }
+.nut-dh span { font-weight: 800; font-variant-numeric: tabular-nums; }
+.nut-dh i { font-style: normal; font-size: 22px; line-height: 1; }
 </style>

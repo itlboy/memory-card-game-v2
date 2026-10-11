@@ -1,6 +1,12 @@
 import type { Summary } from '@mm/engine';
 import { describe, expect, it } from 'vitest';
-import { ACHIEVEMENTS, byId, earned, levelChoCells } from '@/lib/achievements';
+import { BOARD_SIZES } from '@mm/engine';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import {
+  ACHIEVEMENTS, NHOM, THEME_DH, byId, daCo, earned, goiY, levelChoCells, moKhoa, vuaMo, xetThongKe
+} from '@/lib/achievements';
+import { store } from '@/lib/storage';
 
 const summary = (over: Partial<Summary> = {}): Summary => ({
   status: 'won', reason: 'cleared', score: 1000, moves: 8, seconds: 20,
@@ -54,8 +60,9 @@ describe('xét thành tích', () => {
   });
 
   it('Chiến dịch: mốc màn 10 và mốc 3 sao', () => {
-    expect(earned(ctx({ mode: 'campaign', levelId: 10 }))).toContain('campaign-10');
-    expect(earned(ctx({ mode: 'campaign', levelId: 9 }))).not.toContain('campaign-10');
+    // Mốc màn nay đọc từ BỘ ĐẾM (màn cao nhất đã qua), không từ màn vừa chơi
+    expect(earned(ctx({ mode: 'campaign', levelId: 10, thongKe: { wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 10, stars3: 0 } }))).toContain('campaign-10');
+    expect(earned(ctx({ mode: 'campaign', levelId: 9, thongKe: { wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 9, stars3: 0 } }))).not.toContain('campaign-10');
     expect(earned(ctx({ mode: 'campaign', levelId: 1 }))).toContain('three-star');
     expect(earned(ctx({ mode: 'campaign', levelId: 1, summary: summary({ stars: 2 }) })))
       .not.toContain('three-star');
@@ -64,7 +71,7 @@ describe('xét thành tích', () => {
   });
 
   it('một ván có thể mở nhiều thành tích cùng lúc', () => {
-    const got = earned(ctx({ mode: 'campaign', levelId: 12, misses: 0, cells: 16 }));
+    const got = earned(ctx({ mode: 'campaign', levelId: 12, misses: 0, cells: 16, thongKe: { wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 12, stars3: 0 } }));
     expect(got).toEqual(expect.arrayContaining(['flawless', 'lightspeed', 'combo-master', 'campaign-10', 'three-star']));
   });
 
@@ -92,10 +99,13 @@ describe('danh hiệu mới (08.10.2026)', () => {
     expect(earned(ctx({ ketQua: 'thang', botLevel: 'easy' }))).not.toContain('bot-normal');
   });
 
-  it('cỡ bàn: 36 / 56 / 88 thẻ xếp lồng nhau', () => {
-    expect(earned(ctx({ cells: 56 }))).toEqual(expect.arrayContaining(['board-36', 'board-56']));
-    expect(earned(ctx({ cells: 56 }))).not.toContain('board-88');
+  it('cỡ bàn: mỗi cỡ là MỘT lần chinh phục, thắng bàn to không mở bàn nhỏ', () => {
+    expect(earned(ctx({ cells: 56 }))).toContain('board-56');
+    expect(earned(ctx({ cells: 56 }))).not.toContain('board-36');
     expect(earned(ctx({ cells: 88 }))).toContain('board-88');
+    // Không sai lần nào thì thêm danh hiệu hoàn hảo của đúng cỡ đó
+    expect(earned(ctx({ cells: 56, misses: 0 }))).toContain('perfect-56');
+    expect(earned(ctx({ cells: 56, misses: 1 }))).not.toContain('perfect-56');
   });
 
   it('luật bàn đọc từ năm tuỳ chọn', () => {
@@ -112,9 +122,9 @@ describe('danh hiệu mới (08.10.2026)', () => {
     expect(r).not.toContain('flawless');
   });
 
-  it('chiến dịch: mốc 10 / 25 / 50', () => {
-    expect(earned(ctx({ mode: 'campaign', levelId: 25 }))).toEqual(expect.arrayContaining(['campaign-10', 'campaign-25']));
-    expect(earned(ctx({ mode: 'campaign', levelId: 50 }))).toContain('campaign-50');
+  it('chiến dịch: mốc 10 / 25 / 50 theo màn cao nhất đã qua', () => {
+    expect(earned(ctx({ mode: 'campaign', thongKe: { wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 25, stars3: 0 } }))).toEqual(expect.arrayContaining(['campaign-5', 'campaign-10', 'campaign-25']));
+    expect(earned(ctx({ mode: 'campaign', thongKe: { wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 50, stars3: 0 } }))).toContain('campaign-50');
   });
 
   it('mọi danh hiệu có id duy nhất và mọi id earned() trả về đều có trong sổ', () => {
@@ -132,5 +142,92 @@ describe('danh hiệu mới (08.10.2026)', () => {
     expect(levelChoCells(16)).toBeGreaterThan(0);
     expect(levelChoCells(88)).toBe(50);
     expect(levelChoCells(7)).toBe(1);   // không có cỡ này → về cấp 1
+  });
+});
+
+describe('sổ 103 danh hiệu (11.10.2026)', () => {
+  const tk = (o = {}) => ({ wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 0, stars3: 0, ...o });
+
+  it('đủ khoảng một trăm danh hiệu, mỗi nhóm khai trong NHOM', () => {
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(100);
+    const nhom = new Set(NHOM.map((n) => n.id));
+    for (const a of ACHIEVEMENTS) expect(nhom, a.id).toContain(a.nhom);
+  });
+
+  it('id hợp lệ với server (a-z0-9-, ≤32 ký tự) — sai là server lặng lẽ bỏ', () => {
+    for (const a of ACHIEVEMENTS) expect(a.id).toMatch(/^[a-z0-9-]{1,32}$/);
+  });
+
+  it('danh hiệu theme khớp ĐÚNG danh sách theme trong themes.json', () => {
+    const raw = JSON.parse(readFileSync(resolve(process.cwd(), 'public/data/themes.json'), 'utf8'));
+    const ds = (Array.isArray(raw) ? raw : raw.themes) as { id: string }[];
+    expect(THEME_DH.map(([id]) => id).sort()).toEqual(ds.map((t) => t.id).sort());
+  });
+
+  it('bí mật thì không có nút chinh phục; mọi danh hiệu không bí mật đều có', () => {
+    for (const a of ACHIEVEMENTS) {
+      if (a.biMat) expect(a.chinhPhuc, a.id).toBeUndefined();
+      else expect(a.chinhPhuc, a.id).toBeDefined();
+    }
+  });
+
+  it('chinh phục cỡ bàn trỏ tới cỡ có thật', () => {
+    for (const a of ACHIEVEMENTS) {
+      const c = a.chinhPhuc?.cells;
+      if (c != null) expect(levelChoCells(c), `${a.id}: ${c} thẻ`).toBe(BOARD_SIZES.find((b) => b.cols * b.rows === c)!.level);
+    }
+  });
+
+  it('danh hiệu đếm mở từ bộ đếm, kể cả khi THUA', () => {
+    const r = earned(ctx({ ketQua: 'thua', thongKe: tk({ wins: 10, totalScore: 100_000, chuoiNgay: 7 }) }));
+    expect(r).toEqual(expect.arrayContaining(['wins-10', 'score-10k', 'score-100k', 'days-3', 'days-7']));
+    expect(r).not.toContain('first-win');
+    expect(xetThongKe(tk({ wins: 9 }))).not.toContain('wins-10');
+  });
+
+  it('theme chỉ tính khi bàn dùng ĐÚNG một theme và từ 16 thẻ', () => {
+    expect(earned(ctx({ cells: 16, themeIds: ['ocean'] }))).toContain('theme-ocean');
+    expect(earned(ctx({ cells: 16, themeIds: ['ocean', 'space'] }))).not.toContain('theme-ocean');
+    expect(earned(ctx({ cells: 8, themeIds: ['ocean'] }))).not.toContain('theme-ocean');
+  });
+
+  it('bí mật: giây cuối, cú đêm, kiên trì, hoà', () => {
+    expect(earned(ctx({ timeLimit: 30, summary: summary({ seconds: 28 }) }))).toContain('giay-cuoi');
+    expect(earned(ctx({ timeLimit: 30, summary: summary({ seconds: 20 }) }))).not.toContain('giay-cuoi');
+    expect(earned(ctx({ gio: 2 }))).toContain('cu-dem');
+    expect(earned(ctx({ gio: 12 }))).not.toContain('cu-dem');
+    expect(earned(ctx({ misses: 20 }))).toContain('kien-tri');
+    expect(earned(ctx({ ketQua: 'hoa' }))).toEqual(['ngang-tai']);
+  });
+
+  it('gợi ý: ưu tiên danh hiệu đếm đã đi quá nửa đường; bỏ bí mật, online, theme khoá', () => {
+    const co = new Set(['first-win']);
+    expect(goiY(co, tk({ wins: 40 }))?.id).toBe('wins-50');
+    const g = goiY(co, tk());
+    expect(g && !g.biMat && !g.chinhPhuc?.online).toBe(true);
+    const tatCaTheme = new Set(ACHIEVEMENTS.filter((a) => a.nhom !== 'theme').map((a) => a.id));
+    expect(goiY(tatCaTheme, tk(), new Set(['animals']))?.id).not.toBe('theme-animals');
+  });
+});
+
+describe('bộ đếm và chuỗi ngày', () => {
+  it('cùng ngày giữ chuỗi, hôm sau +1, cách ngày về 1; chuỗi dài nhất được giữ', () => {
+    localStorage.clear();
+    expect(store.ghiVanBoDem({ thang: true }, '2026-10-01').chuoi).toBe(1);
+    expect(store.ghiVanBoDem({ thang: false }, '2026-10-01').chuoi).toBe(1);
+    expect(store.ghiVanBoDem({ thang: true, may: true }, '2026-10-02').chuoi).toBe(2);
+    expect(store.ghiVanBoDem({ thang: true, online: true }, '2026-10-03').chuoi).toBe(3);
+    const b = store.ghiVanBoDem({ thang: false }, '2026-10-06');
+    expect(b).toMatchObject({ chuoi: 1, chuoiMax: 3, wins: 3, botWins: 1, onlineWins: 1 });
+  });
+
+  it('moKhoa chỉ nhận id có trong sổ, và đưa danh hiệu mới vào hàng đợi khoe (trừ khi im)', () => {
+    localStorage.clear();
+    vuaMo.value = [];
+    expect(moKhoa(['first-win', 'khong-co-that'])).toEqual(['first-win']);
+    expect(vuaMo.value.map((v) => v.id)).toEqual(['first-win']);
+    moKhoa(['wins-10'], { im: true });
+    expect(vuaMo.value.length).toBe(1);
+    expect(daCo.value).toEqual(expect.arrayContaining(['first-win', 'wins-10']));
   });
 });

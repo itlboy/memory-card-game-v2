@@ -12,8 +12,10 @@ const props = defineProps<{
   account?: boolean; avatar?: string | null; signedIn?: boolean;
   /** Rung đang bật; `coRung`: máy có đường rung không (iPhone web thì không). */
   rung?: boolean; coRung?: boolean;
+  /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
+  danhHieu?: { co: number; tong: number };
 }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'toggle-rung': []; home: []; rules: []; account: [] }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
 const SOUND_LABEL: Record<SoundLevel, string> = {
   off: 'Âm thanh: đang tắt',
@@ -100,6 +102,15 @@ watch(() => props.totalScore, (to, from) => {
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </span>
+    <!-- Viên danh hiệu RIÊNG, không ghép vào viên điểm: hai thước đo khác nhau,
+         ghép chung thì "536k · 10/103" đọc thành một con số khó hiểu. -->
+    <button
+      v-if="danhHieu" class="dh" type="button"
+      :aria-label="`Danh hiệu: ${danhHieu.co} trên ${danhHieu.tong} — xem danh sách`"
+      @click="$emit('danh-hieu')"
+    >
+      <span aria-hidden="true">🏅</span><b>{{ danhHieu.co }}/{{ danhHieu.tong }}</b>
+    </button>
     <div ref="menuEl" class="menu-wrap">
       <button
         class="btn menu-btn" :class="{ in: signedIn }"
@@ -258,6 +269,18 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   .total { padding: 4px 8px; }
 }
 .menu-wrap { position: relative; flex-shrink: 0; }
+/* Cùng dáng viên điểm nhưng tím: nhìn là biết hai viên, hai thứ khác nhau */
+.dh {
+  position: relative; flex-shrink: 0; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 4px;
+  min-height: 0; min-width: 0; padding: 4px 9px 4px 6px; border: 0; border-radius: var(--r-full);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  font: inherit; cursor: pointer;
+}
+.dh span { font-size: 14px; line-height: 1; }
+.dh b { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; font-size: var(--text-md); }
+/* Viên cao ~30px; vùng chạm phải đủ 44px (NF-07) */
+.dh::after { content: ''; position: absolute; inset: -7px -3px; }
 .menu-btn img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
 .menu-btn.in { border-color: var(--accent); }
 /* Thả xuống dưới nút, canh phải; z trên bàn thẻ và dưới hộp thoại (20) */
