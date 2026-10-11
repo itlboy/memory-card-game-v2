@@ -61,7 +61,7 @@ describe('không bao giờ có ô trắng trơn giữa ván', () => {
     wrapper = mount(App, { attachTo: document.body });
     await flush(); await vi.advanceTimersByTimeAsync(10); await flush();
 
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('1 người chơi');
     await click('88 thẻ');
     await click('Tiếp');
     for (const [h, m] of Object.entries({ 'Thời gian': 'Vô hạn', 'Số mạng': 'Vô hạn',

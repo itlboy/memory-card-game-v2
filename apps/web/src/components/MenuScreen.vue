@@ -33,6 +33,11 @@ const props = defineProps<{
   botLevel: BotLevel | null;
   /** Tuỳ chọn bàn chơi (năm công tắc 0..3). Chiến dịch không dùng tới. */
   options: BoardOptions;
+  /** DẢI LỐI TẮT trên bước đầu: danh hiệu gợi ý, chuỗi ngày chơi, màn chiến
+   *  dịch đang mở. Thiếu thứ nào thì chip đó không hiện. */
+  goiY?: { id: string; name: string } | null;
+  chuoiNgay?: number;
+  manChienDich?: number;
 }>();
 
 const emit = defineEmits<{
@@ -44,6 +49,7 @@ const emit = defineEmits<{
   'start-level': [number];
   'update:options': [BoardOptions];
   online: [];
+  'chinh-phuc': [string];
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
@@ -90,9 +96,10 @@ const path = computed<Step[]>(() => {
   // Chiến dịch: luật do từng màn quyết định, không có bước tuỳ chọn
   if (props.mode === 'campaign') return ['players', 'level', 'theme'];
   if (props.botLevel) return ['players', 'bot', 'level', 'theme', 'options'];
+  // "Chơi nhanh" gộp cả một mình lẫn nhiều người: luôn hỏi số người trước
   return isMulti.value
     ? ['players', 'count', 'names', 'level', 'theme', 'options']
-    : ['players', 'level', 'theme', 'options'];
+    : ['players', 'count', 'level', 'theme', 'options'];
 });
 const stepIndex = computed(() => path.value.indexOf(step.value));
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
@@ -109,8 +116,9 @@ const TITLES: Record<Step, string> = {
 };
 
 /**
- * Số người cùng máy: 2..10 — ĐÚNG CHÍN Ô, tròn hàng thành lưới 3×3 (luật lưới
- * tròn hàng ở CLAUDE.md). Thêm/bớt một ô là hàng cuối lòi ô lẻ.
+ * Số người: 1..10 — MƯỜI Ô, tròn hàng thành lưới 5×2 (luật lưới tròn hàng ở
+ * CLAUDE.md). "1" là chơi một mình: từ 11.10.2026 "Chơi nhanh" và "Chơi nhiều
+ * người" gộp thành MỘT ô ở bước đầu, số người hỏi ở đây.
  *
  * Mỗi số một màu riêng: hai ô cùng màu cạnh nhau thì nhìn như một khối, mắt
  * không đọc ra đang chọn cái nào. Chín ô = chín gradient, nên global.css có
@@ -120,10 +128,11 @@ const TITLES: Record<Step, string> = {
  * con SỐ chính là nội dung.
  */
 const COUNTS = [
+  { n: 1,  g: 'g-blue' },
   { n: 2,  g: 'g-pink' },
   { n: 3,  g: 'g-violet' },
   { n: 4,  g: 'g-cyan' },
-  { n: 5,  g: 'g-blue' },
+  { n: 5,  g: 'g-indigo' },
   { n: 6,  g: 'g-teal' },
   { n: 7,  g: 'g-lime' },
   { n: 8,  g: 'g-amber' },
@@ -167,21 +176,30 @@ function pickCampaign(): void {
   step.value = 'level';
 }
 
-function pickPlayers(multi: boolean): void {
+function pickPlayers(): void {
   sfx.select();
   emit('update:botLevel', null);
-  emit('update:playerCount', multi ? Math.max(2, props.playerCount) : 1);
   // Chơi nhanh luôn dùng khoá lưu 'classic' — kỷ lục và tiến độ giữ nguyên chỗ
   // cũ, còn luật ván thì do bảng tuỳ chọn quyết định.
   emit('update:mode', 'classic');
-  step.value = multi ? 'count' : 'level';
+  step.value = 'count';
 }
 
 function pickCount(n: number): void {
   sfx.select();
   emit('update:playerCount', n);
+  if (n < 2) { step.value = 'level'; return; }   // một mình: không có bước tên
   syncNames(n);
   step.value = 'names';
+}
+
+/** Lối tắt: chơi tiếp chiến dịch ở màn đang mở, khỏi đi qua bản đồ. */
+function tiepChienDich(): void {
+  sfx.select();
+  emit('update:mode', 'campaign');
+  emit('update:playerCount', 1);
+  emit('update:botLevel', null);
+  emit('start-level', props.manChienDich ?? 1);
 }
 
 /* ---------- tên người chơi (nhiều người cùng máy) ---------- */
@@ -328,6 +346,21 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       </span>
     </header>
 
+    <!--
+      DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm. Nằm NGOÀI lưới ô
+      chế độ (lưới chia đều 1fr, đặt vào đó là chip cao bằng ô); ô chế độ tự
+      nén lại cho vừa nên không phá luật KHÔNG SCROLL.
+    -->
+    <div v-if="step === 'players' && (goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1)" class="loi-tat">
+      <span v-if="(chuoiNgay ?? 0) > 1" class="chip lua" :title="`Chơi ${chuoiNgay} ngày liền`">🔥 {{ chuoiNgay }} ngày</span>
+      <button v-if="(manChienDich ?? 0) > 1" class="chip" type="button" @click="tiepChienDich">
+        <Map :size="15" aria-hidden="true" /><span>Màn {{ manChienDich }}</span>
+      </button>
+      <button v-if="goiY" class="chip goi-y" type="button" :aria-label="`Chinh phục danh hiệu: ${goiY.name}`" @click="emit('chinh-phuc', goiY.id)">
+        <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
+      </button>
+    </div>
+
     <Transition name="step" mode="out-in">
       <!-- BƯỚC 1: một mình hay nhiều người -->
       <div v-if="step === 'players'" key="players" class="step-body options loose">
@@ -341,20 +374,15 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           <strong>Chiến dịch</strong>
           <small>{{ CAMPAIGN_LEVELS }} màn từ dễ đến khó · điểm cộng dồn vào tổng</small>
         </button>
-        <button class="option big neon g-blue" type="button" @click="pickPlayers(false)">
-          <User class="opt-icon" :size="40" />
+        <button class="option big neon g-blue" type="button" @click="pickPlayers()">
+          <Users class="opt-icon" :size="40" />
           <strong>Chơi nhanh</strong>
-          <small>Một ván lẻ, bàn chơi do bạn đặt luật</small>
+          <small>Một mình hoặc 2–10 người trên cùng máy, bàn do bạn đặt luật</small>
         </button>
         <button class="option big neon g-amber" type="button" @click="pickBotMode()">
           <Bot class="opt-icon" :size="40" />
           <strong>Đấu với máy</strong>
           <small>Một mình vẫn có đối thủ — máy chơi ngay trên máy bạn, không cần mạng</small>
-        </button>
-        <button class="option big neon g-pink" type="button" @click="pickPlayers(true)">
-          <Users class="opt-icon" :size="40" />
-          <strong>Chơi nhiều người</strong>
-          <small>2–10 người thay lượt trên cùng máy này</small>
         </button>
         <button class="option big neon g-cyan" type="button" @click="sfx.select(); emit('online')">
           <Globe class="opt-icon" :size="40" />
@@ -375,7 +403,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       </div>
 
       <!-- BƯỚC 2 (nhiều người): số người -->
-      <div v-else-if="step === 'count'" key="count" class="step-body options grid3 counts">
+      <div v-else-if="step === 'count'" key="count" class="step-body options grid5 counts">
         <button
           v-for="c in COUNTS" :key="c.n" class="option neon" :class="c.g" type="button"
           :aria-label="`${c.n} người chơi`"
@@ -385,7 +413,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
                bó hình thành một mảng lấm chấm, đếm còn chậm hơn đọc số. -->
           <User class="opt-icon" :size="24" aria-hidden="true" />
           <strong>{{ c.n }}</strong>
-          <small>người</small>
+          <small>{{ c.n === 1 ? 'mình tôi' : 'người' }}</small>
         </button>
       </div>
 
@@ -561,6 +589,23 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    không đổi số cột theo breakpoint nữa (media query đo viewport, không đo cột,
    nên 4 cột sẽ vỡ trong cột hẹp). */
 .options.grid3 { grid-template-columns: repeat(3, 1fr); }
+.options.grid5 { grid-template-columns: repeat(5, 1fr); }
+.options.grid5.counts > .option { gap: 2px; padding: 6px 2px; }
+.options.grid5.counts .opt-icon { width: clamp(16px, 16cqw, 26px); height: auto; }
+.options.grid5.counts strong { font-size: clamp(20px, min(30cqw, 30cqh), 36px); line-height: 1; }
+.options.grid5.counts small { font-size: clamp(10px, min(14cqw, 13cqh), 13px); }
+
+.loi-tat { display: flex; gap: 6px; margin: 0 0 10px; flex: 0 0 auto; min-width: 0; }
+.loi-tat .chip {
+  position: relative; display: inline-flex; align-items: center; gap: 5px; min-width: 0;
+  min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--panel-solid); color: var(--fg); font: inherit; font-size: 13px; font-weight: 800; white-space: nowrap;
+}
+.loi-tat button.chip { cursor: pointer; }
+.loi-tat button.chip::after { content: ''; position: absolute; inset: -5px -2px; }
+.loi-tat .chip.lua { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; border-color: transparent; }
+.loi-tat .chip.goi-y { flex: 1 1 auto; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+.loi-tat .chip.goi-y .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 

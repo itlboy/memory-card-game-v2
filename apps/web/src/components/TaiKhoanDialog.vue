@@ -3,7 +3,8 @@ import { sizeForLevel } from '@mm/engine';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { ACHIEVEMENTS, daCo as daCoRef } from '@/lib/achievements';
-import { num } from '@/lib/format';
+import { num, numShort } from '@/lib/format';
+import { store } from '@/lib/storage';
 import { bangXepHang, dangTai, dangXuat, me, veNutGoogle, type DongBxh } from '@/lib/taikhoan';
 
 /**
@@ -62,6 +63,7 @@ const kyLuc = computed(() => {
 /** Danh hiệu đã có: của tài khoản nếu đăng nhập, không thì của máy này. */
 /** Đếm theo sổ của MÁY: đăng nhập là đã kéo danh hiệu tài khoản về máy (dongBo). */
 const soDaCo = computed(() => daCoRef.value.length);
+const diemMay = store.totalScore();
 </script>
 
 <template>
@@ -77,9 +79,18 @@ const soDaCo = computed(() => daCoRef.value.length);
       <div class="body">
         <!-- Chưa đăng nhập -->
         <div v-if="!me" class="chua">
+          <!-- Nói bằng SỐ THẬT của máy này: "giữ 12 danh hiệu, 536k điểm" kéo người
+               ta bấm hơn hẳn một câu chung chung về đồng bộ. -->
           <p class="lead">
-            Đăng nhập để <b>điểm, kỷ lục và danh hiệu</b> đi theo bạn sang máy khác
-            và có tên trên bảng xếp hạng. Không đăng nhập vẫn chơi bình thường.
+            <template v-if="soDaCo || diemMay">
+              Đăng nhập để giữ <b>{{ soDaCo }} danh hiệu</b> và <b>{{ numShort(diemMay) }} điểm</b>
+              của máy này khi đổi máy, và có tên trên bảng xếp hạng.
+            </template>
+            <template v-else>
+              Đăng nhập để điểm, kỷ lục và danh hiệu đi theo bạn sang máy khác
+              và có tên trên bảng xếp hạng.
+            </template>
+            Không đăng nhập vẫn chơi bình thường.
           </p>
           <div ref="nutGoogle" class="nut-google" data-nosfx />
           <p v-if="dangTai" class="muted">Đang đăng nhập…</p>

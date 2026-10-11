@@ -10,7 +10,10 @@
   lưới lựa chọn `grid-auto-rows: minmax(0, 1fr); overflow: hidden` để các ô
   tự nén theo chỗ còn lại. Thêm lựa chọn mới = ô nhỏ lại, KHÔNG dài trang ra.
 - Lưới lựa chọn phải **tròn hàng** (không ô lẻ thừa hàng cuối):
-  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 9 mức số người = 3×3.
+  12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 10 mức số người (1..10) = 5×2.
+  Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu còn 4 ô
+  (Chiến dịch · Chơi nhanh · Đấu máy · Online) + dải lối tắt (`.loi-tat`, NGOÀI
+  lưới ô vì lưới chia đều 1fr), số người hỏi ở bước `count`.
 - Hiệu ứng `:hover` phải bọc trong `@media (hover: hover)` — thiết bị cảm
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
 - Kích thước chạm tối thiểu 44px (NF-07) — NGOẠI LỆ đã chốt: hai cỡ bàn lớn

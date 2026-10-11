@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HelpCircle, Menu, Moon, Smartphone, SmartphoneNfc, Sun, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Menu, Moon, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
@@ -12,10 +12,12 @@ const props = defineProps<{
   account?: boolean; avatar?: string | null; signedIn?: boolean;
   /** Rung đang bật; `coRung`: máy có đường rung không (iPhone web thì không). */
   rung?: boolean; coRung?: boolean;
+  /** Tên tài khoản Google đang đăng nhập — hiện ở khối tài khoản của menu. */
+  tenTk?: string | null;
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
   danhHieu?: { co: number; tong: number };
 }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
 const SOUND_LABEL: Record<SoundLevel, string> = {
   off: 'Âm thanh: đang tắt',
@@ -120,43 +122,53 @@ watch(() => props.totalScore, (to, from) => {
         <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
         <Menu v-else :size="22" />
       </button>
+      <!--
+        HAI KHỐI (duyệt 11.10.2026): trên là TÀI KHOẢN (ai đang chơi), dưới là
+        CÀI ĐẶT dạng công tắc — người chơi thấy trạng thái cả ba thứ một lúc
+        thay vì phải bấm xoay vòng để đoán. Bấm công tắc thì menu ở lại.
+      -->
       <div v-if="open" class="menu" role="menu" @keydown.esc="dong">
         <button
-          v-if="account" class="item" role="menuitem" type="button"
+          v-if="account" class="item tk" role="menuitem" type="button"
           :aria-label="signedIn ? 'Tài khoản của bạn' : 'Đăng nhập'"
           @click="dong(); $emit('account')"
         >
           <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
           <UserRound v-else :size="20" />
-          <span>{{ signedIn ? 'Tài khoản' : 'Đăng nhập' }}</span>
+          <span class="tk-chu"><b>{{ signedIn ? (tenTk || 'Tài khoản') : 'Đăng nhập' }}</b>
+            <small>{{ signedIn ? 'Hồ sơ · xếp hạng' : 'Giữ điểm khi đổi máy' }}</small></span>
         </button>
-        <button class="item" role="menuitem" aria-label="Luật chơi" type="button" @click="dong(); $emit('rules')">
-          <HelpCircle :size="20" /><span>Luật chơi</span>
-        </button>
+
+        <p class="nhom" role="presentation">Cài đặt</p>
         <button
-          class="item" role="menuitem" type="button"
+          class="item cong-tac" role="menuitemcheckbox" type="button" :aria-checked="dark"
           :aria-label="dark ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'"
           @click="$emit('toggle-dark')"
         >
-          <Sun v-if="dark" :size="20" /><Moon v-else :size="20" />
-          <span>{{ dark ? 'Nền sáng' : 'Nền tối' }}</span>
+          <Moon :size="20" /><span>Nền tối</span><i class="sw" :class="{ bat: dark }" aria-hidden="true" />
         </button>
-        <!-- Xoay vòng tắt → nhỏ → to, menu Ở LẠI để thấy mức vừa đổi -->
-        <button
-          class="item snd" :class="`lv-${soundLevel}`" role="menuitem" type="button"
-          :aria-label="`${SOUND_LABEL[soundLevel]} — bấm để đổi`"
-          @click="$emit('cycle-sound')"
-        >
-          <component :is="soundIcon" :size="20" /><span>{{ SOUND_LABEL[soundLevel] }}</span>
-        </button>
+        <div class="item am" role="group" aria-label="Âm thanh">
+          <component :is="soundIcon" :size="20" /><span>Âm thanh</span>
+          <span class="nac">
+            <button
+              v-for="l in (['off', 'low', 'high'] as const)" :key="l" type="button" role="menuitemradio"
+              :aria-checked="soundLevel === l" :aria-label="SOUND_LABEL[l]"
+              @click="$emit('set-sound', l)"
+            >{{ l === 'off' ? 'Tắt' : l === 'low' ? 'Nhỏ' : 'To' }}</button>
+          </span>
+        </div>
         <!-- Giấu khi máy không rung được (web trên iPhone): công tắc không làm gì là công tắc nói dối -->
         <button
-          v-if="coRung" class="item rung" :class="{ tat: !rung }" role="menuitemcheckbox" type="button"
+          v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
           :aria-checked="!!rung" :aria-label="rung ? 'Rung: đang bật — bấm để tắt' : 'Rung: đang tắt — bấm để bật'"
           @click="$emit('toggle-rung')"
         >
-          <SmartphoneNfc v-if="rung" :size="20" /><Smartphone v-else :size="20" />
-          <span>{{ rung ? 'Rung: bật' : 'Rung: tắt' }}</span>
+          <SmartphoneNfc :size="20" /><span>Rung</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
+        </button>
+
+        <hr class="ke" />
+        <button class="item" role="menuitem" aria-label="Luật chơi" type="button" @click="dong(); $emit('rules')">
+          <HelpCircle :size="20" /><span>Luật chơi</span>
         </button>
       </div>
     </div>
@@ -237,10 +249,6 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   font-size: var(--text-md); color: inherit;
 }
 .star-ico { width: 14px; height: 14px; flex-shrink: 0; }
-/* Mức âm lượng phải nhìn ra ngay, không chỉ dựa vào hình cái loa */
-.snd.lv-off { color: var(--muted); }
-.snd.lv-low { color: var(--accent); }
-.snd.lv-high { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
 /* Điểm vừa tăng: viên nảy một nhịp */
 .total.pop { animation: total-pop .3s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes total-pop { 45% { transform: scale(1.12); } }
@@ -297,7 +305,26 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   background: none; color: var(--fg); font: inherit; font-weight: 700; text-align: left;
   cursor: pointer; white-space: nowrap;
 }
-.item.rung.tat { color: var(--muted); }
+.menu { min-width: 236px; }
+.item.tk { min-height: 52px; }
+.tk-chu { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.tk-chu small { font-weight: 600; font-size: 12px; color: var(--muted); }
+.nhom { margin: 6px 12px 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ke { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
+.item > span:not(.nac):not(.tk-chu) { flex: 1; }
+/* Công tắc: đổi màu TỨC THÌ (luật thiết kế: trạng thái chọn không transition màu) */
+.sw { position: relative; flex: 0 0 auto; width: 38px; height: 22px; border-radius: 999px; background: var(--line); }
+.sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+.sw.bat { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.sw.bat::after { left: 19px; }
+.item.am { cursor: default; }
+.nac { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: 0 0 auto; }
+.nac button {
+  position: relative; min-height: 30px; min-width: 38px; padding: 0 8px; border: 0; background: transparent;
+  color: var(--muted); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.nac button::after { content: ''; position: absolute; inset: -7px 0; }
+.nac button[aria-checked='true'] { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 @media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
 .item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
