@@ -74,6 +74,10 @@ for (const lang of LANGS) {
   await cho(300); await ghi('trang chủ');
   await js(`document.querySelector('header .menu-btn').click()`); await cho(300); await ghi('menu');
   await js(`document.querySelector('header .menu-btn').click()`); await cho(200);
+  // Màn danh hiệu: đo cả hai ngăn Chưa có · Đã có
+  await js(`document.querySelector('header .dh').click()`); await cho(400); await ghi('danh hiệu');
+  await js(`document.querySelectorAll('.tab')[1]?.click()`); await cho(300); await ghi('danh hiệu · đã có');
+  await js(`document.querySelector('.overlay .head .btn').click()`); await cho(300);
   await js(`document.querySelectorAll('.option.big')[2].click()`); await cho(400); await ghi('bước mức máy');
   await js(`document.querySelector('.wizard-head .back')?.click()`); await cho(300);
   await js(`document.querySelectorAll('.option.big')[1].click()`); await cho(400); await ghi('bước số người');
