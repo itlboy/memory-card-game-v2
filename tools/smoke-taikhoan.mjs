@@ -1,5 +1,5 @@
 /**
- * SMOKE TẦNG TÀI KHOẢN — chạy với server Node CÓ MySQL + GOOGLE_CLIENT_ID.
+ * SMOKE TẦNG TÀI KHOẢN — chạy với server Node CÓ MySQL + GOOGLE_CLIENT_ID (và/hoặc APPLE_BUNDLE_ID).
  *
  *   MM_SERVER=http://127.0.0.1:8080 MYSQL_URL=mysql://root:x@127.0.0.1:3307/latthe \
  *     node tools/smoke-taikhoan.mjs
@@ -95,6 +95,18 @@ try {
 
   r = await goi('/api/me/khong-co', { token });
   ok(r.status === 404, 'đường lạ dưới /api/me → 404');
+
+  r = await goi('/api/auth/apple', { method: 'POST', body: { idToken: 'a.b.c' } });
+  ok(r.status === 401 || r.status === 404, 'token Apple rác → 401 (hoặc 404 nếu server không bật Apple)');
+
+  // XOÁ TÀI KHOẢN (App Store 5.1.1(v)): hàng users + kỷ lục + danh hiệu đi theo CASCADE
+  r = await goi('/api/me', { method: 'DELETE', token });
+  ok(r.status === 200 && r.data.ok === true, 'xoá tài khoản → 200');
+  r = await goi('/api/me', { token });
+  ok(r.status === 401, 'sau khi xoá: phiên cũ → 401');
+  const [conBest] = await db.query('SELECT COUNT(*) AS n FROM user_best WHERE user_id = ?', [uid]);
+  const [conAch] = await db.query('SELECT COUNT(*) AS n FROM user_achievements WHERE user_id = ?', [uid]);
+  ok(Number(conBest[0].n) === 0 && Number(conAch[0].n) === 0, 'sau khi xoá: không còn kỷ lục/danh hiệu mồ côi');
 } finally {
   await db.execute('DELETE FROM users WHERE google_sub = ?', [sub]);
   await db.end();

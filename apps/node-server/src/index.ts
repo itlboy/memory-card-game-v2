@@ -63,7 +63,7 @@ function makeCode(): string {
 
 const CORS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 };
 
@@ -266,7 +266,7 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 
   /*
    * Tài khoản (đăng nhập Google, điểm, danh hiệu) — CHỈ Ở BẢN NODE, và chỉ khi
-   * có MySQL + GOOGLE_CLIENT_ID. Không có thì `taiKhoan` là null và các đường
+   * có MySQL + GOOGLE_CLIENT_ID/APPLE_*. Không có thì `taiKhoan` là null và các đường
    * `/api/auth/*`, `/api/me*`, `/api/bxh` rơi xuống 404 của fallback tĩnh —
    * client dò `/api/auth/config` lúc mở app để biết mà giấu nút đăng nhập.
    */
@@ -368,8 +368,8 @@ taiKhoan = await moTaiKhoan(kho?.pool ?? null, process.env).catch((e) => {
   return null;
 });
 console.log(taiKhoan
-  ? '  tài khoản: đăng nhập Google đang bật'
-  : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID)');
+  ? `  tài khoản: BẬT (${[process.env.GOOGLE_CLIENT_ID && 'Google', (process.env.APPLE_BUNDLE_ID || process.env.APPLE_SERVICES_ID) && 'Apple'].filter(Boolean).join(' + ')})`
+  : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID và/hoặc APPLE_BUNDLE_ID)');
 await khoiPhuc();
 
 server.listen(PORT, () => {
