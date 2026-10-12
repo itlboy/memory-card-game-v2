@@ -25,6 +25,12 @@ const giam = () => (typeof matchMedia === 'function' && matchMedia('(prefers-red
 const sau = (ms: number, f: () => void) => hen.push(setTimeout(f, giam() ? Math.min(ms, 80) : ms));
 
 const dh = computed(() => (dang.value ? byId(dang.value.id) : undefined));
+/** Toạ độ viên 🏅 — lớp phủ chừa một vòng sáng ở đó (đích huy hiệu bay vào). */
+const vongSang = ref<Record<string, string>>({});
+function doVongSang(): void {
+  const r = document.querySelector('header .dh')?.getBoundingClientRect();
+  vongSang.value = r ? { '--x': `${r.left + r.width / 2}px`, '--y': `${r.top + r.height / 2}px` } : {};
+}
 const bac = computed<BacDanhHieu>(() => dh.value?.bac ?? 'dong');
 const mau = computed(() => MAU_BAC[bac.value]);
 
@@ -36,6 +42,7 @@ function tiep(): void {
   vuaMo.value = con;
   dang.value = dau!;
   dangKhoe.value = 1;
+  doVongSang();
   di.value = false;
   sfx.moKhoa(bac.value);
   rung.ghep(RUNG[bac.value]);
@@ -88,7 +95,7 @@ onBeforeUnmount(() => { hen.forEach(clearTimeout); hat?.dung(); dangKhoe.value =
     <div class="mk-fx" aria-hidden="true">
       <canvas ref="cv" class="fx-hat" />
       <template v-if="dang && dh">
-        <div class="mk-toi" :class="{ di }" />
+        <div class="mk-toi" :class="{ di }" :style="vongSang" />
         <div ref="huy" :key="dang.key" class="mk-huy" :style="{ '--tia': mau.tia }">
           <div class="mk-tia" :class="{ di }" />
           <svg viewBox="0 0 136 136">

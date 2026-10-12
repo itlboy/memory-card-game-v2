@@ -239,7 +239,22 @@
 
 /* ===================== HUY HIỆU DANH HIỆU (MoKhoaFx) ===================== */
 .mk-fx { position: fixed; inset: 0; z-index: 19; pointer-events: none; }
-.mk-toi { position: absolute; inset: 0; background: rgba(6, 8, 20, .5); animation: fx-hien .3s both; }
+/*
+ * PHỦ TỐI 82% + mờ nền, CHỪA một vòng sáng quanh viên 🏅 (--x/--y do MoKhoaFx đặt).
+ * Bản cũ chỉ 50%: thanh trên và bảng kết quả nền sáng phía sau vẫn sáng rõ,
+ * tranh chỗ với huy hiệu (chủ dự án báo 12.10.2026). Vòng sáng dẫn mắt tới đúng
+ * chỗ huy hiệu sắp bay vào thay vì phủ tối mất đích.
+ */
+.mk-toi {
+  position: absolute; inset: 0;
+  background: rgba(4, 6, 16, .82);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  /* KHOÉT lỗ bằng mặt nạ (không phải gradient nền): lỗ phải trong suốt cả với lớp
+     làm mờ, không thì viên 🏅 nằm trong vòng sáng mà vẫn nhoè (ảnh chụp) */
+  -webkit-mask: radial-gradient(circle at var(--x, 50%) var(--y, 0%), transparent 0 34px, #000 50px);
+  mask: radial-gradient(circle at var(--x, 50%) var(--y, 0%), transparent 0 34px, #000 50px);
+  animation: fx-hien .3s both;
+}
 .mk-toi.di { opacity: 0; transition: opacity .25s; }
 .mk-huy { position: absolute; left: 50%; top: 40%; width: 136px; height: 136px; margin: -68px 0 0 -68px; }
 .mk-tia {
