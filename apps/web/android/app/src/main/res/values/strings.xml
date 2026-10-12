@@ -4,6 +4,6 @@
          tiếng Việt thấy "Lật Thẻ" (values-vi), mọi ngôn ngữ khác thấy "Flip Match". -->
     <string name="app_name">Flip Match</string>
     <string name="title_activity_main">Flip Match</string>
-    <string name="package_name">com.hello314.thebai</string>
-    <string name="custom_url_scheme">com.hello314.thebai</string>
+    <string name="package_name">com.hello314.flipmatch</string>
+    <string name="custom_url_scheme">com.hello314.flipmatch</string>
 </resources>

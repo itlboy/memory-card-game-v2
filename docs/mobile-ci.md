@@ -58,7 +58,7 @@ profile nào phải giữ. Key cần quyền **Admin**: quyền thấp hơn thì
 chứng chỉ phân phối và archive báo "No signing certificate".
 
 Trước lần đẩy TestFlight đầu tiên phải có app trên App Store Connect:
-- developer.apple.com → Identifiers → đăng ký App ID `com.hello314.thebai`;
+- developer.apple.com → Identifiers → đăng ký App ID `com.hello314.flipmatch`;
 - App Store Connect → Apps → **+** → New App, chọn đúng bundle ID đó.
 
 `ITSAppUsesNonExemptEncryption = false` đã có trong Info.plist nên TestFlight

@@ -532,7 +532,9 @@
   ```
   Soi thẳng trong pod khi cần: `node bin/secrets.mjs run k8s -- kubectl -n thebai exec deploy/thebai-server -- grep -l ... /app/web/assets/*`
 - **APP ANDROID + iOS BUILD Ở GITHUB ACTIONS, KHÔNG Ở MÁY** (`.github/workflows/mobile.yml`,
-  secret và bẫy ở `docs/mobile-ci.md`). Thiếu secret thì bước đó tự bỏ qua chứ không
+  secret và bẫy ở `docs/mobile-ci.md`). Mã định danh app là
+  `com.hello314.flipmatch` ở CẢ HAI nền (và `APPLE_BUNDLE_ID` của server) — lên store
+  rồi là KHÔNG đổi được, đổi là thành một app khác. Thiếu secret thì bước đó tự bỏ qua chứ không
   đỏ — điền secret là lên mức, không sửa workflow. Phát hành = tag `app-v*`. App gói
   web vào trong nên `location.origin` là `capacitor://localhost` (iOS) hoặc
   `https://localhost` (Android): nhận ra app bằng `laApp` ở `lib/native.ts` (đọc
