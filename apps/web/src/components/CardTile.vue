@@ -253,22 +253,24 @@ function onEnter(): void {
  * che mất lá. Nên phản hồi phải nằm ở khoảnh khắc ĐẶT XUỐNG — và ở ván online,
  * đó đúng là quãng chờ server trả lời.
  *
- * Hai lớp cùng lúc: lá lún 6% (90ms) và một quầng sáng ở ĐÚNG chỗ vừa chạm.
- * Quầng sáng nói được điều cú lún không nói: máy nhận đúng lá, đúng điểm.
+ * Lá PHÓNG TO 1,06 và khẽ rung một nhịp theo trục lật (12.10.2026). Không đổi
+ * màu mặt lưng — xem chú thích ở `.card.nhan` trong CSS.
  */
 const nhan = ref(false);
-/** Toạ độ điểm chạm trong lá, dạng phần trăm — CSS đọc để đặt quầng sáng. */
-const diemCham = ref<{ x: string; y: string }>({ x: '50%', y: '50%' });
+/**
+ * CHỐT CHỐNG KẸT trạng thái nhấn. Trước đây kẹt là lá thành ô trắng; nay kẹt chỉ
+ * còn là lá to hơn một chút, nhưng vẫn không được để nó nằm đó: nhả khi mất quyền
+ * giữ con trỏ, khi lá đổi trạng thái, và sau 1,5 giây dù thế nào.
+ */
+let hetNhan: ReturnType<typeof setTimeout> | undefined;
+function nhaNhan(): void { nhan.value = false; clearTimeout(hetNhan); }
 
 function onDown(e: PointerEvent): void {
   if (props.disabled || props.matched || props.faceUp || props.peeking) return;
   const el = e.currentTarget as HTMLElement;
-  const r = el.getBoundingClientRect();
-  diemCham.value = {
-    x: `${(((e.clientX - r.left) / r.width) * 100).toFixed(1)}%`,
-    y: `${(((e.clientY - r.top) / r.height) * 100).toFixed(1)}%`
-  };
   nhan.value = true;
+  clearTimeout(hetNhan);
+  hetNhan = setTimeout(nhaNhan, 1500);
   latBangConTro = false;
   // Giữ mọi sự kiện con trỏ về đúng lá này: kéo ngón ra ngoài rồi nhấc lên mà
   // không có capture thì `pointerup` bắn ở phần tử khác và lá dính trạng thái nhấn.
@@ -290,7 +292,7 @@ function onDown(e: PointerEvent): void {
 let latBangConTro = false;
 
 function onUp(e: PointerEvent): void {
-  nhan.value = false;
+  nhaNhan();
   if (e.type === 'pointercancel') return;
   if (props.disabled || props.matched) return;
   const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -375,6 +377,10 @@ function onLeave(): void {
 
 // Lá vừa được lật (hoặc vừa bị khoá) thì thu về ngay, đừng đợi chuột rời: con
 // trỏ vẫn đang nằm trên nó mà lá thì không còn ở trạng thái được phóng to.
+// Lá đổi trạng thái giữa lúc đang nhấn (ngửa, ghép, bị khoá…) thì nhả ngay
+watch(() => [props.faceUp, props.matched, props.disabled, props.peeking], nhaNhan);
+onUnmounted(() => clearTimeout(hetNhan));
+
 watch(
   () => [props.faceUp, props.matched, props.disabled, props.peeking, props.pending],
   () => { if (hoverWob.value && !hoverDuoc()) hoverWob.value = false; }
@@ -400,8 +406,6 @@ const label = computed(() => {
       'loe-doi': loeDoi, 'giu-dau': giuDau }"
     :style="{
       '--deal': `${dealStagger}ms`,
-      '--cx': diemCham.x,
-      '--cy': diemCham.y,
       '--wob': card.index % 2 ? 1 : -1,
       ...(swapFrom ? {
         '--sx': `${swapFrom.dx}px`,
@@ -420,6 +424,7 @@ const label = computed(() => {
     @pointerdown="onDown"
     @pointerup="onUp"
     @pointercancel="onUp"
+    @lostpointercapture="nhaNhan"
     @click="onClick"
   >
     <span class="inner">
@@ -559,15 +564,25 @@ const label = computed(() => {
  * Đặt TRƯỚC `.wob-hover` trong file để hover (chuột) thắng khi cả hai cùng có —
  * chuột thì đã phóng to sẵn, lún thêm là giật.
  */
-.card.nhan { transform: perspective(700px) scale(0.94); transition-duration: 0.09s; }
-
-/* Quầng sáng ở ĐÚNG chỗ vừa chạm — nói được điều cú lún không nói: máy nhận
-   đúng lá, đúng điểm. Nằm trên `.back` nên chỉ hiện ở lá còn úp. */
-.card.nhan .back::before {
-  background:
-    radial-gradient(26% 20% at var(--cx, 50%) var(--cy, 50%), rgba(255, 255, 255, .55), transparent 72%),
-    rgba(255, 255, 255, .92);
+.card.nhan {
+  transform: perspective(700px) scale(1.06); transition-duration: 0.09s; z-index: 4;
+  animation: nhan-rung .22s ease-out;
 }
+/*
+ * KHÔNG ĐỔI MÀU MẶT LƯNG KHI NHẤN (chủ dự án 12.10.2026). Bản cũ thay hẳn lớp
+ * hoạ tiết `.back::before` bằng nền trắng đục 92% + quầng sáng ở điểm chạm —
+ * trạng thái nhấn mà KẸT (mất `pointerup`) là lá đứng yên thành Ô TRẮNG, đúng
+ * dạng "lá trắng" người chơi báo. Nay chỉ phóng to 1,06 + rung một nhịp theo
+ * trục LẬT (`rotate: y`, luật "lắc cùng trục với cú lật"), dùng thuộc tính
+ * `rotate` RIÊNG để không đè `transform` của lá.
+ */
+@keyframes nhan-rung {
+  0% { rotate: y 0deg; }
+  35% { rotate: y 6deg; }
+  70% { rotate: y -4deg; }
+  100% { rotate: y 0deg; }
+}
+@media (prefers-reduced-motion: reduce) { .card.nhan { animation: none; } }
 
 /*
  * LOÉ VIỀN MỘT NHỊP khi lá đổi mặt — và cũng khi lá do NGƯỜI KHÁC mở.

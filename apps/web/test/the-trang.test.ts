@@ -209,3 +209,18 @@ describe('đủ hai lá thì khoá cả bàn', () => {
     expect(khoi).toMatch(/\|\| daDuHaiLa\.value/);
   });
 });
+
+describe('nhấn giữ lá bài KHÔNG được làm mặt lưng đổi màu (12.10.2026)', () => {
+  const src = readFileSync(resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+  const css = src.slice(src.indexOf('<style'));
+  it('không có luật nào đè lớp hoạ tiết mặt lưng lúc nhấn', () => {
+    // Bản cũ: `.card.nhan .back::before { background: ... rgba(255,255,255,.92) }` — kẹt nhấn là ô trắng
+    expect(css).not.toMatch(/\.nhan[^{]*\.back/);
+  });
+  it('trạng thái nhấn có đủ ba chốt chống kẹt', () => {
+    expect(src).toMatch(/@lostpointercapture="nhaNhan"/);
+    expect(src).toMatch(/setTimeout\(nhaNhan, 1500\)/);
+    expect(src).toMatch(/watch\(\(\) => \[props\.faceUp, props\.matched, props\.disabled, props\.peeking\], nhaNhan\)/);
+  });
+});
+

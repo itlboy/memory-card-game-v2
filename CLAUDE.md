@@ -74,11 +74,13 @@
   selector trạng thái (`:not(.up)` đúng với cả lá chưa từng lật) — để JS gắn
   class đúng lúc lá ĐỔI mặt. Đây là lỗi đã xảy ra thật, thấy rõ khi F5 giữa ván.
 - **CHẠM VÀO LÁ BÀI — ba lớp, ba lý do khác nhau** (`CardTile.vue`):
-  · **Ngón tay đặt xuống** (`.card.nhan`): lún 0,94 trong 90ms + quầng sáng ở
-  ĐÚNG điểm chạm (`--cx/--cy`). Đây là phản hồi DUY NHẤT người chơi điện thoại
-  có trước khi biết kết quả — cảm ứng không có hover, và ván online còn phải chờ
-  server. Phải có `setPointerCapture`: kéo ngón ra ngoài rồi nhấc thì `pointerup`
-  bắn ở phần tử khác và lá dính trạng thái nhấn.
+  · **Ngón tay đặt xuống** (`.card.nhan`): PHÓNG TO 1,06 + rung một nhịp theo
+  trục lật (`rotate: y`), KHÔNG ĐỔI MÀU MẶT LƯNG (chủ dự án 12.10.2026). Bản cũ
+  lún 0,94 + thay lớp hoạ tiết bằng nền TRẮNG đục 92% — trạng thái nhấn kẹt là lá
+  đứng yên thành Ô TRẮNG, đúng dạng "lá trắng" người chơi báo. Đây là phản hồi
+  DUY NHẤT người chơi điện thoại có trước khi biết kết quả. Phải có
+  `setPointerCapture`, và ba chốt chống kẹt: `lostpointercapture`, lá đổi trạng
+  thái, tự nhả sau 1,5 giây (`nhaNhan`).
   · **Hover** (`.card.wob-hover`): phóng to 1,05 — vào 0,28s, ra 1s. Dùng
   `transition` chứ KHÔNG `animation`: animation không cắt giữa nhịp cho êm được,
   nên bản cũ phải chạy hết 1,4s và rời chuột rồi lá vẫn to thêm hơn một giây
