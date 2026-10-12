@@ -152,6 +152,22 @@ watch(taiKhoanMe, (m) => {
 });
 
 /* ---------- danh hiệu ---------- */
+/**
+ * MÀN ĐANG RỜI GIỮ ĐÚNG KHUNG CŨ. Lúc rời, màn bị tách khỏi bố cục (position:
+ * absolute) để hai màn chồng nhau một nhịp. Bản cũ neo `inset: 0` theo <main>,
+ * mà <main> có đệm 12px — nên trong 0,18 giây mờ dần, khung PHÌNH ra 406→430px
+ * ngang và cao thêm 24px (chủ dự án thấy "giao diện nhảy nhẹ, container to ra"
+ * khi bấm chip lối tắt; đo từng khung hình bằng Chrome xác nhận, đường "Bắt đầu"
+ * cũng dính). Ghim theo vị trí + kích thước ĐANG CÓ thì không phụ thuộc đệm.
+ */
+function ghimKhungRoi(el: Element): void {
+  const e = el as HTMLElement;
+  Object.assign(e.style, {
+    top: `${e.offsetTop}px`, left: `${e.offsetLeft}px`,
+    width: `${e.offsetWidth}px`, height: `${e.offsetHeight}px`
+  });
+}
+
 const showDanhHieu = ref(false);
 useBackCloser(30, () => showDanhHieu.value, () => { showDanhHieu.value = false; });
 const daCoSet = computed(() => new Set(daCo.value));
@@ -666,7 +682,7 @@ const hasNext = computed(() => {
        màn một nhịp rồi cho màn cũ tách khỏi luồng (.screen-leave-active) là đủ
        mượt mà không có trạng thái bế tắc nào. -->
   <main>
-    <Transition name="screen">
+    <Transition name="screen" @before-leave="ghimKhungRoi">
     <MenuScreen
       v-if="screen === 'menu'"
       :key="menuKey"
