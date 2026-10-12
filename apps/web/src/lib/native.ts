@@ -11,11 +11,18 @@
  * worker và in link mời `https://localhost/?room=…`. Cầu nối native của
  * Capacitor gắn `window.Capacitor` TRƯỚC khi script trang chạy, ở cả hai nền.
  */
-interface CapBridge { isNativePlatform?: () => boolean }
+interface CapBridge { isNativePlatform?: () => boolean; getPlatform?: () => string }
 export const laApp = typeof location !== 'undefined' && (
   (globalThis as { Capacitor?: CapBridge }).Capacitor?.isNativePlatform?.() === true
   || !/^https?:$/.test(location.protocol)
 );
+
+/** Nền đang chạy: 'ios' | 'android' (app gói) hoặc 'web'. */
+export const nenApp: 'ios' | 'android' | 'web' = (() => {
+  if (!laApp) return 'web';
+  const p = (globalThis as { Capacitor?: CapBridge }).Capacitor?.getPlatform?.();
+  return p === 'android' ? 'android' : 'ios';
+})();
 
 /** Địa chỉ công khai của game (dùng cho link chia sẻ). Trong trình duyệt là chính origin. */
 export const SITE_URL: string = laApp

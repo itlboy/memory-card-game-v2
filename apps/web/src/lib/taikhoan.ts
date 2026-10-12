@@ -1,9 +1,16 @@
 import { ref, shallowRef } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
+import { laApp, nenApp } from './native';
 
 /**
- * TÀI KHOẢN phía client — đăng nhập Google, hồ sơ, gửi kết quả ván.
+ * TÀI KHOẢN phía client — đăng nhập Google hoặc Apple, hồ sơ, gửi kết quả ván.
+ *
+ * Nút nào hiện tuỳ NỀN: Google Identity Services là thư viện WEB, Google chặn nó
+ * trong WebView của app gói (Capacitor) — nên trong app KHÔNG vẽ nút Google (bấm
+ * là lỗi, đúng thứ App Review loại theo luật 2.1). Apple: app iOS dùng hộp thoại
+ * native (plugin `@capgo/capacitor-social-login`), web dùng Apple JS — chỉ khi
+ * server khai Services ID. Android chưa có Apple (phải qua trang chuyển hướng).
  *
  * Nguyên tắc: KHÔNG ĐĂNG NHẬP VẪN CHƠI Y NHƯ CŨ. Mọi thành tích vẫn ghi vào
  * localStorage như trước; tài khoản chỉ là lớp PHỦ THÊM: có đăng nhập thì mỗi
@@ -51,6 +58,10 @@ const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined)
 /** Server này có tài khoản không (dò lúc mở app). */
 export const san = ref(false);
 export const googleClientId = ref('');
+/** Nền này vẽ được nút nào — server bật VÀ nền chạy được. */
+export const coGoogle = ref(false);
+export const coApple = ref(false);
+let appleWebId = '';
 /** Hồ sơ đang đăng nhập; null = ẩn danh. */
 export const me = shallowRef<HoSo | null>(null);
 export const dangTai = ref(false);
@@ -90,10 +101,13 @@ export async function khoiDong(): Promise<void> {
   try {
     const res = await fetch(`${SERVER}/api/auth/config`);
     if (!res.ok) { san.value = false; return; }
-    const cfg = await res.json() as { googleClientId?: string };
-    if (!cfg.googleClientId) { san.value = false; return; }
-    googleClientId.value = cfg.googleClientId;
-    san.value = true;
+    const cfg = await res.json() as { googleClientId?: string; apple?: { app?: boolean; webClientId?: string } };
+    googleClientId.value = cfg.googleClientId ?? '';
+    appleWebId = cfg.apple?.webClientId ?? '';
+    coGoogle.value = !!cfg.googleClientId && !laApp;
+    coApple.value = nenApp === 'ios' ? !!cfg.apple?.app : nenApp === 'web' && !!appleWebId;
+    san.value = coGoogle.value || coApple.value;
+    if (!san.value) return;
   } catch { san.value = false; return; }
   if (docToken()) {
     try { me.value = (await goi<{ me: HoSo }>('/api/me')).me; } catch { /* đã xử lý 401 ở goi() */ }
@@ -126,10 +140,14 @@ export async function lamMoi(): Promise<void> {
  * Trả về hồ sơ sau khi hợp nhất.
  */
 export async function dangNhap(credential: string): Promise<HoSo> {
+  return hoanTat('/api/auth/google', { credential });
+}
+
+async function hoanTat(path: string, than: Record<string, unknown>): Promise<HoSo> {
   dangTai.value = true;
   try {
-    const r = await goi<{ token: string; me: HoSo }>('/api/auth/google', {
-      method: 'POST', body: JSON.stringify({ credential })
+    const r = await goi<{ token: string; me: HoSo }>(path, {
+      method: 'POST', body: JSON.stringify(than)
     });
     ghiToken(r.token);
     me.value = r.me;
@@ -169,6 +187,41 @@ function keoVeMay(h: HoSo): void {
 export function dangXuat(): void {
   ghiToken(null);
   me.value = null;
+}
+
+/**
+ * Đăng nhập bằng Apple. Plugin nạp TRỄ (lần bấm đầu) — gói của nó kéo theo mã
+ * cho cả chục nhà cung cấp, không có lý do bắt mọi người tải lúc mở trang.
+ * Người chơi tự đóng hộp thoại thì ném `huy` để màn tài khoản im lặng.
+ */
+export async function dangNhapApple(): Promise<HoSo> {
+  const { SocialLogin } = await import('@capgo/capacitor-social-login');
+  await SocialLogin.initialize({
+    apple: nenApp === 'web'
+      ? { clientId: appleWebId, redirectUrl: location.origin, useProperTokenExchange: true }
+      : { useProperTokenExchange: true }
+  });
+  let kq;
+  try {
+    kq = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } });
+  } catch (e) {
+    const m = String((e as Error)?.message ?? e);
+    throw new Error(/cancel|1001|closed|popup_closed/i.test(m) ? 'huy' : m);
+  }
+  const r = kq.result as { idToken?: string | null; authorizationCode?: string; profile?: { givenName?: string | null; familyName?: string | null } };
+  if (!r.idToken) throw new Error('401');
+  // Apple chỉ đưa tên ở LẦN ĐẦU, và không nằm trong token
+  const name = [r.profile?.givenName, r.profile?.familyName].filter(Boolean).join(' ');
+  return hoanTat('/api/auth/apple', { idToken: r.idToken, code: r.authorizationCode, name: name || undefined });
+}
+
+/**
+ * XOÁ TÀI KHOẢN trên server (App Store và Google Play bắt buộc). Bản lưu trên
+ * máy này giữ nguyên — nó có từ trước khi đăng nhập và là của máy.
+ */
+export async function xoaTaiKhoan(): Promise<void> {
+  await goi<{ ok: boolean }>('/api/me', { method: 'DELETE' });
+  dangXuat();
 }
 
 /**
@@ -231,4 +284,4 @@ export async function veNutGoogle(el: HTMLElement, xong: (h: HoSo) => void, loi:
 }
 
 /** Gom một mối để App/OnlineGame gọi và để test giả lập. */
-export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangXuat, ghiVan, dongBo, bangXepHang, veNutGoogle };
+export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangNhapApple, dangXuat, xoaTaiKhoan, ghiVan, dongBo, bangXepHang, veNutGoogle };

@@ -480,6 +480,20 @@
   origin = `https://thebai.hello314.com`), đặt vào Secret `thebai-google`. ĐÃ BẬT
   08.10.2026 (project `lat-the-nkien`, tài khoản Google cá nhân). Đổi env trong
   `thebai.yaml` là phải `kubectl apply` tay — Keel chỉ thay ảnh.
+  **APPLE + XOÁ TÀI KHOẢN (12.10.2026, để lên App Store):** luật 4.8 bắt có Sign
+  in with Apple khi có Google, 5.1.1(v) bắt xoá tài khoản NGAY TRONG app
+  (`DELETE /api/me`, kỷ lục/danh hiệu đi theo CASCADE, bản lưu trên máy giữ
+  nguyên). Server tự kiểm chữ ký RS256 bằng JWKS của Apple (`xacMinhApple`), bật
+  bằng `APPLE_BUNDLE_ID` (app iOS) và/hoặc `APPLE_SERVICES_ID` (web); có thêm
+  `APPLE_TEAM_ID`+`APPLE_KEY_ID`+`APPLE_PRIVATE_KEY` (.p8) thì lúc xoá còn THU HỒI
+  token ở Apple như luật đòi. `users.google_sub` nay NULL được, thêm `apple_sub`
+  — nâng bảng cũ lúc khởi động qua `information_schema`. NÚT THEO NỀN
+  (`coGoogle`/`coApple`): Google Identity Services là thư viện WEB, Google chặn
+  nó trong WebView nên app gói KHÔNG vẽ nút Google (bấm là lỗi = App Review loại);
+  Apple trong app iOS là hộp thoại native (`@capgo/capacitor-social-login`, nạp
+  trễ), trên web là Apple JS. Android chưa có cả hai — muốn có phải làm Google
+  native (OAuth client Android ở Google Cloud). Tên Apple chỉ tới ở LẦN ĐẦU, từ
+  client; lần sau không được ghi đè bằng rỗng.
 - **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
   WebSocket dính vào một pod, engine chạy trong RAM pod đó, alarm cũng ở đó, và
   broadcast không đi qua database — hai pod là hai bản sao cùng một phòng ghi đè

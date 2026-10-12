@@ -19,6 +19,16 @@ const config: CapacitorConfig = {
   },
   android: {
     backgroundColor: '#edeffa'
+  },
+  plugins: {
+    /*
+     * Chỉ Apple (Sign in with Apple, App Store luật 4.8). Google trong app phải
+     * đi đường native (cần OAuth client iOS/Android riêng ở Google Cloud) — chưa
+     * làm, nên tắt cho khỏi gói SDK Google/Facebook vào app. Xem lib/taikhoan.ts.
+     */
+    SocialLogin: {
+      providers: { apple: true, google: false, facebook: false, twitter: false }
+    }
   }
 };
 
