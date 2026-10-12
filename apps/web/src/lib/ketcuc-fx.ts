@@ -124,12 +124,24 @@ export class BoHat {
     this.c2 = cv.getContext('2d');
     this.coKhung();
   }
+  /*
+   * KÍCH THƯỚC LẤY TỪ CHÍNH CANVAS, KHÔNG PHẢI CỬA SỔ — lớp hiệu ứng nằm trong
+   * cột game (#app), trên máy tính cột hẹp hơn cửa sổ nhiều. Bản cũ dùng
+   * innerWidth nên pháo giấy/xu rơi cả ngoài cột (chủ dự án báo 12.10.2026).
+   */
+  w = 0; h = 0;
   coKhung(): void {
     const k = Math.min(2, globalThis.devicePixelRatio || 1);
-    this.cv.width = innerWidth * k; this.cv.height = innerHeight * k;
+    this.w = this.cv.clientWidth || innerWidth; this.h = this.cv.clientHeight || innerHeight;
+    this.cv.width = this.w * k; this.cv.height = this.h * k;
     this.c2?.setTransform(k, 0, 0, k, 0, 0);
   }
   get so(): number { return this.hat.length; }
+  /** Đổi toạ độ màn hình (getBoundingClientRect) sang toạ độ trong canvas. */
+  diem(x: number, y: number): [number, number] {
+    const r = this.cv.getBoundingClientRect();
+    return [x - r.left, y - r.top];
+  }
   private them(h: Hat): void {
     if (this.hat.length >= TRAN_HAT) return;
     this.hat.push(h);
@@ -151,7 +163,7 @@ export class BoHat {
   }
   mua(so: number, mau: readonly string[]): void {
     for (let i = 0; i < so; i++) {
-      this.them({ loai: 'giay', x: Math.random() * innerWidth, y: -10, vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 2,
+      this.them({ loai: 'giay', x: Math.random() * this.w, y: -10, vx: (Math.random() - 0.5) * 2, vy: 1 + Math.random() * 2,
         trong: 0.05, can: 0.995, q: Math.random() * 6, vq: 0.1, r: 4, mau: mau[i % mau.length]!, song: 220 });
     }
   }
@@ -165,7 +177,7 @@ export class BoHat {
   /** Đồng xu vàng rơi xoay (vương miện). */
   xu(so: number): void {
     for (let i = 0; i < so; i++) {
-      this.them({ loai: 'xu', x: Math.random() * innerWidth, y: -16 - Math.random() * 60, vx: (Math.random() - 0.5) * 1.5, vy: 2 + Math.random() * 3,
+      this.them({ loai: 'xu', x: Math.random() * this.w, y: -16 - Math.random() * 60, vx: (Math.random() - 0.5) * 1.5, vy: 2 + Math.random() * 3,
         trong: 0.18, can: 0.995, q: Math.random() * 6, vq: 0.15 + Math.random() * 0.15, r: 7 + Math.random() * 4, mau: '#ffd76a', song: 200 });
     }
   }
@@ -187,7 +199,7 @@ export class BoHat {
     const c = this.c2;
     this.raf = 0;
     if (!c) { this.hat = []; return; }
-    const w = innerWidth, h = innerHeight;
+    const w = this.w, h = this.h;
     c.clearRect(0, 0, w, h);
     this.hat = this.hat.filter((p) => p.song > 0 && p.y < h + 40);
     for (const p of this.hat) {
@@ -215,7 +227,7 @@ export class BoHat {
   };
   dung(): void {
     cancelAnimationFrame(this.raf); this.raf = 0; this.hat = [];
-    this.c2?.clearRect(0, 0, innerWidth, innerHeight);
+    this.c2?.clearRect(0, 0, this.w, this.h);
   }
 }
 
@@ -248,7 +260,7 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
     if (!el || typeof (el as HTMLElement).animate !== 'function') return;
     anim.push((el as HTMLElement).animate(kf, s.giamChuyenDong ? { ...o, duration: 1 } : o));
   };
-  const W = innerWidth, H = innerHeight;
+  const W = s.hat.w, H = s.hat.h;
   const giam = s.giamChuyenDong;
 
   const rungMan = () => { if (!giam) gan(s.man(), [
@@ -314,7 +326,7 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
           s.rung(2);
           document.querySelectorAll<HTMLElement>('.ketcuc-fx .fx-ky').forEach((k, i) => sau(i * 70, () => {
             const r = k.getBoundingClientRect();
-            if (r.width) s.hat.tro(r.left, r.top, r.width, r.height, giam ? 6 : 34);
+            if (r.width) s.hat.tro(...s.hat.diem(r.left, r.top), r.width, r.height, giam ? 6 : 34);
           }));
         });
         break;
@@ -332,7 +344,7 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
         const r = el.getBoundingClientRect();
         gan(el, [{ translate: '0 0', rotate: '0deg' }, { translate: '0 -10px', rotate: `${i % 2 ? 6 : -6}deg`, offset: 0.15 },
           { translate: `0 ${H}px`, rotate: `${i % 2 ? 40 : -40}deg` }], { duration: 900, easing: 'cubic-bezier(.55,0,.9,.4)', fill: 'forwards' });
-        if (!giam) s.hat.bui(r.left + r.width / 2, r.bottom, 10);
+        if (!giam) s.hat.bui(...s.hat.diem(r.left + r.width / 2, r.bottom), 10);
       }));
       // CÚ ĐẬP: chữ chạm đất → rung màn mạnh + rung máy (vết nứt, sóng là CSS)
       sau(1450, () => {
@@ -344,7 +356,10 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
       // ĐÁM MÂY ĐỔ MƯA: mưa rơi từ chỗ đám mây đang đứng, tới ~3,7s là tạnh
       for (let t = 1900; t < 3700; t += 70) sau(t, () => {
         const may = document.querySelector('.fx-may-mua')?.getBoundingClientRect();
-        if (may && may.width) s.hat.giot(may.left + may.width * 0.15, may.right - may.width * 0.15, may.bottom - 6, giam ? 1 : 3);
+        if (may && may.width) {
+          const [x0, y] = s.hat.diem(may.left + may.width * 0.15, may.bottom - 6);
+          s.hat.giot(x0, x0 + may.width * 0.7, y, giam ? 1 : 3);
+        }
       });
       break;
     }
