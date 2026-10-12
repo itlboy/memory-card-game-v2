@@ -363,7 +363,10 @@ export function goiY(co: ReadonlySet<string>, tk: ThongKe, themeKhoa: ReadonlySe
   const ung = ACHIEVEMENTS.filter((a) => !co.has(a.id) && !a.biMat && a.chinhPhuc
     && !(a.chinhPhuc.theme && themeKhoa.has(a.chinhPhuc.theme))
     // Online rời khỏi bàn đang chơi — không đưa vào lời mời "chơi tiếp"
-    && !a.chinhPhuc.online);
+    && !a.chinhPhuc.online
+    // Chuỗi ngày không chinh phục được NGAY — chơi thêm ván hôm nay không nhích
+    // tiến độ, mà "3 ngày liền" từng chiếm chỗ gợi ý vì đã đạt 2/3 (bị báo).
+    && a.nhom !== 'chuyen-can');
   const gan = ung
     .filter((a) => a.tienDo)
     .map((a) => { const [c, n] = a.tienDo!(tk); return { a, r: c / n }; })

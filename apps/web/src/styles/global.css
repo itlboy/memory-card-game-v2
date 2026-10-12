@@ -99,6 +99,9 @@ body {
      thoại tự đặt max-width riêng thì nó hẹp hơn cột (luật chơi từng 460px trong
      cột 600px, nhìn ra thành một cột chữ hẹp giữa màn hình). */
   --col-w: 100%;
+  /* Mốc cho lớp hiệu ứng kết ván/khoe danh hiệu (absolute, inset 0) — để chúng
+     nằm gọn trong cột game chứ không trải ra cả cửa sổ máy tính. */
+  position: relative;
 }
 
 /* Desktop: KHÔNG kéo giãn layout ngang. App là một cột hẹp cố định canh giữa —

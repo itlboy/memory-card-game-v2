@@ -8,7 +8,9 @@
  */
 
 .ketcuc-fx {
-  position: fixed;
+  /* ABSOLUTE trong #app (position: relative), không fixed: trên máy tính cột
+     game hẹp hơn cửa sổ, fixed là băng rôn/tia vàng tràn ra cả trình duyệt. */
+  position: absolute;
   inset: 0;
   /*
    * DƯỚI HỘP THOẠI (`ResultDialog` ở z-index 10), KHÔNG PHẢI TRÊN — bản cũ đặt
@@ -134,7 +136,7 @@
 @keyframes fx-nhun { 50% { translate: 0 -14px; rotate: -6deg; } }
 .fx-bong {
   position: absolute; left: 50%; bottom: calc(18% + 130px); transform: translateX(-10%);
-  max-width: calc(100vw - 32px);
+  max-width: calc(100% - 32px);
   padding: 8px 14px; border-radius: 16px 16px 16px 4px;
   background: #fff; color: #1b1d33; font-weight: 800; font-size: 15px; white-space: nowrap;
   animation: fx-hien .3s 1.1s both;
@@ -238,7 +240,7 @@
 }
 
 /* ===================== HUY HIỆU DANH HIỆU (MoKhoaFx) ===================== */
-.mk-fx { position: fixed; inset: 0; z-index: 19; pointer-events: none; }
+.mk-fx { position: absolute; inset: 0; z-index: 19; pointer-events: none; }
 /*
  * PHỦ TỐI 82% + mờ nền, CHỪA một vòng sáng quanh viên 🏅 (--x/--y do MoKhoaFx đặt).
  * Bản cũ chỉ 50%: thanh trên và bảng kết quả nền sáng phía sau vẫn sáng rõ,

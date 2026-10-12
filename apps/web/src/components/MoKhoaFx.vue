@@ -28,8 +28,10 @@ const dh = computed(() => (dang.value ? byId(dang.value.id) : undefined));
 /** Toạ độ viên 🏅 — lớp phủ chừa một vòng sáng ở đó (đích huy hiệu bay vào). */
 const vongSang = ref<Record<string, string>>({});
 function doVongSang(): void {
+  // Toạ độ tính theo #app — lớp phủ nằm trong cột game chứ không phủ cả cửa sổ
   const r = document.querySelector('header .dh')?.getBoundingClientRect();
-  vongSang.value = r ? { '--x': `${r.left + r.width / 2}px`, '--y': `${r.top + r.height / 2}px` } : {};
+  const g = document.getElementById('app')?.getBoundingClientRect() ?? { left: 0, top: 0 };
+  vongSang.value = r ? { '--x': `${r.left - g.left + r.width / 2}px`, '--y': `${r.top - g.top + r.height / 2}px` } : {};
 }
 const bac = computed<BacDanhHieu>(() => dh.value?.bac ?? 'dong');
 const mau = computed(() => MAU_BAC[bac.value]);
@@ -55,7 +57,7 @@ function tiep(): void {
   });
   sau(500, () => {
     const r = huy.value?.getBoundingClientRect();
-    if (r && hat) hat.long(r.left + r.width / 2, r.top + r.height / 2, bac.value === 'dong' ? 26 : bac.value === 'bac' ? 38 : 60, [mau.value.a, mau.value.b, '#ffffff'], bac.value === 'bi-mat' ? 8 : 6.5);
+    if (r && hat) hat.long(...hat.diem(r.left + r.width / 2, r.top + r.height / 2), bac.value === 'dong' ? 26 : bac.value === 'bac' ? 38 : 60, [mau.value.a, mau.value.b, '#ffffff'], bac.value === 'bi-mat' ? 8 : 6.5);
   });
   // Hàng còn dài thì giữ ngắn hơn: năm danh hiệu × 2,6 giây là quá lâu
   const giu = vuaMo.value.length > 1 ? 1150 : 1650;
@@ -72,7 +74,7 @@ function bayVao(): void {
     if (vien) {
       vien.classList.remove('nay'); void (vien as HTMLElement).offsetWidth; vien.classList.add('nay');
       const r = vien.getBoundingClientRect();
-      hat?.long(r.left + r.width / 2, r.top + r.height / 2, 14, ['#ffd76a', '#ffffff'], 3);
+      if (hat) hat.long(...hat.diem(r.left + r.width / 2, r.top + r.height / 2), 14, ['#ffd76a', '#ffffff'], 3);
     }
     dang.value = null;
     sau(300, tiep);
@@ -91,7 +93,6 @@ onBeforeUnmount(() => { hen.forEach(clearTimeout); hat?.dung(); dangKhoe.value =
 </script>
 
 <template>
-  <Teleport to="body">
     <div class="mk-fx" aria-hidden="true">
       <canvas ref="cv" class="fx-hat" />
       <template v-if="dang && dh">
@@ -123,5 +124,4 @@ onBeforeUnmount(() => { hen.forEach(clearTimeout); hat?.dung(); dangKhoe.value =
         </div>
       </template>
     </div>
-  </Teleport>
 </template>

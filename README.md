@@ -447,6 +447,12 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 ### CSS
 
+- **Hiệu ứng kết ván tràn ra cả cửa sổ máy tính.** `.ketcuc-fx`/`.mk-fx` từng
+  `position: fixed` + canvas đo `innerWidth`, nên trên máy tính băng "KỶ LỤC
+  MỚI!", tia vàng vương miện, pháo giấy trải khắp trình duyệt ngoài cột game.
+  Nay `absolute` trong `#app` (position: relative), canvas đo chính nó, toạ độ
+  màn hình đổi qua `BoHat.diem()`. **Cách phát hiện:** `pnpm do:fx` (cửa sổ
+  1280×900, chạy cả 9 cảnh, kiểm khung + điểm ngoài cột).
 - **Rule trùng ở cuối file vẫn đang ghi đè.** Sửa cỡ chữ trong HudBar không có
   tác dụng vì cuối file còn `.stat span`/`.stat b` khai báo lại; sửa cỡ chữ
   wizard cũng vậy. **Cách phát hiện:** ĐO `getComputedStyle`, đừng tin là đã

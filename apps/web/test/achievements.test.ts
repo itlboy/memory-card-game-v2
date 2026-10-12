@@ -208,6 +208,14 @@ describe('sổ 103 danh hiệu (11.10.2026)', () => {
     const tatCaTheme = new Set(ACHIEVEMENTS.filter((a) => a.nhom !== 'theme').map((a) => a.id));
     expect(goiY(tatCaTheme, tk(), new Set(['animals']))?.id).not.toBe('theme-animals');
   });
+
+  it('gợi ý KHÔNG đưa chuỗi ngày — chơi thêm ván hôm nay không nhích được (từng gợi "3 ngày liền" ở 2/3)', () => {
+    const co = new Set(['first-win']);
+    expect(goiY(co, tk({ chuoiNgay: 2 }))?.nhom).not.toBe('chuyen-can');
+    // Kể cả khi mọi thứ khác đã đạt hết
+    const conLai = new Set(ACHIEVEMENTS.filter((a) => a.nhom !== 'chuyen-can').map((a) => a.id));
+    expect(goiY(conLai, tk({ chuoiNgay: 6 }))).toBeNull();
+  });
 });
 
 describe('bộ đếm và chuỗi ngày', () => {

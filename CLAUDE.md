@@ -657,6 +657,14 @@
   trình duyệt dựng lại trang trước khi chốt chiều cao thanh công cụ (dvh ra số
   cũ) VÀ khôi phục luôn vị trí cuộn, mà `html, body { overflow: hidden }` khoá
   mất đường kéo về. Đừng lấy `visualViewport.height`: nó co khi bàn phím mở.
+- **LỚP HIỆU ỨNG NẰM TRONG CỘT GAME, KHÔNG PHẢI CẢ CỬA SỔ.** `.ketcuc-fx` và
+  `.mk-fx` là `absolute; inset: 0` trong `#app` (`position: relative`), KHÔNG
+  `fixed` — trên máy tính cột hẹp giữa cửa sổ, fixed là băng rôn/tia vàng/pháo
+  giấy tràn khắp trình duyệt (chủ dự án báo, có ảnh). Canvas hạt đo CHÍNH NÓ
+  (`BoHat.w/h`), đừng dùng `innerWidth`; toạ độ từ `getBoundingClientRect` phải
+  qua `BoHat.diem()`. MoKhoaFx không Teleport ra body nữa. Đo: `pnpm do:fx`.
+- Gợi ý "Chinh phục" (`goiY`) KHÔNG đưa danh hiệu chuỗi ngày — chơi thêm ván
+  hôm nay không nhích được, mà nó từng chiếm chỗ vì đạt 2/3 ("3 ngày liền").
 - **Lớp hiệu ứng kết ván ở `z-index: 9`, DƯỚI hộp kết quả (10).** `DefeatFx` cũ
   để 40 nên lớp xám và vết rạn phủ luôn lên bảng tỉ số (đã bị báo lỗi, có ảnh).
   Đặt dưới còn làm `backdrop-filter` chỉ lọc bàn thẻ và HUD, đúng thứ cần lọc.
