@@ -9,10 +9,14 @@
     "preview": "vite preview --port 3001",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
+    "build:app": "VITE_SERVER_URL=https://thebai.hello314.com vite build && cap sync",
     "build:ios": "VITE_SERVER_URL=https://thebai.hello314.com vite build && cap sync ios",
-    "ios": "pnpm build:ios && cap open ios"
+    "build:android": "VITE_SERVER_URL=https://thebai.hello314.com vite build && cap sync android",
+    "ios": "pnpm build:ios && cap open ios",
+    "android": "pnpm build:android && cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
     "@capacitor/core": "^8.5.2",
     "@capacitor/haptics": "^8",
     "@capacitor/ios": "^8.5.2",

@@ -517,6 +517,14 @@
   curl -s "https://thebai.hello314.com$CSS" | grep -c 'flex: 0 0 40px'   # 1 = đã lên
   ```
   Soi thẳng trong pod khi cần: `node bin/secrets.mjs run k8s -- kubectl -n thebai exec deploy/thebai-server -- grep -l ... /app/web/assets/*`
+- **APP ANDROID + iOS BUILD Ở GITHUB ACTIONS, KHÔNG Ở MÁY** (`.github/workflows/mobile.yml`,
+  secret và bẫy ở `docs/mobile-ci.md`). Thiếu secret thì bước đó tự bỏ qua chứ không
+  đỏ — điền secret là lên mức, không sửa workflow. Phát hành = tag `app-v*`. App gói
+  web vào trong nên `location.origin` là `capacitor://localhost` (iOS) hoặc
+  `https://localhost` (Android): nhận ra app bằng `laApp` ở `lib/native.ts` (đọc
+  `window.Capacitor`), ĐỪNG chỉ xét giao thức — Android là `https:` y trình duyệt.
+  Bản trong app có thể CŨ HƠN SERVER HÀNG THÁNG (không phải vài phút như PWA), nên
+  luật "đổi dạng trên dây thì client khai" càng phải giữ.
 - **Deploy: `pnpm release`** — web và phòng online nằm trong MỘT Worker
   (`apps/server/wrangler.jsonc` có khối `assets`), nên chỉ một lệnh, không còn
   chuyện web mới chạy với server cũ. `pnpm deploy:server` chỉ deploy worker mà

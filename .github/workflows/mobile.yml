@@ -1,0 +1,206 @@
+# Đóng gói app Android + iOS (Capacitor) — KHÔNG cần build ở máy local.
+#
+# Ba mức, tự lên mức theo secret đã có (thiếu secret thì bước đó tự bỏ qua,
+# workflow vẫn xanh — điền secret xong là chạy, không phải sửa file này):
+#   1. Không secret nào   → APK debug (cài thử thẳng lên máy Android) + build
+#                           iOS cho simulator (chứng minh project iOS còn biên dịch).
+#   2. Có khoá ký         → AAB/APK release đã ký (Android); IPA đã ký (iOS).
+#   3. Chế độ PHÁT HÀNH   → đẩy AAB lên Google Play, IPA lên TestFlight.
+#      PHÁT HÀNH = đẩy tag `app-v*` hoặc chạy tay với ô "Đẩy lên store".
+#
+# Danh sách secret và cách lấy: docs/mobile-ci.md.
+name: App mobile (Android + iOS)
+
+on:
+  push:
+    # develop cũng chạy: mỗi lần đẩy là có APK mới để cài thử trước khi lên main
+    branches: [main, develop]
+    tags: ['app-v*']
+    paths:
+      - 'apps/web/**'
+      - 'packages/engine/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mobile.yml'
+  workflow_dispatch:
+    inputs:
+      phat_hanh:
+        description: 'Đẩy lên store (Google Play + TestFlight)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHAT_HANH: ${{ startsWith(github.ref, 'refs/tags/app-v') || inputs.phat_hanh == true }}
+  # Số bản dựng = số lần chạy workflow này: luôn tăng, mà cả Play lẫn App Store
+  # đều từ chối bản trùng số. Đổi tên/tạo lại workflow là run_number về 1 —
+  # khi đó đặt biến repo VERSION_CODE_OFFSET lớn hơn số đã dùng.
+  SO_BAN: ${{ github.run_number }}
+  BU_SO_BAN: ${{ vars.VERSION_CODE_OFFSET || '0' }}
+
+jobs:
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    env:
+      CO_KHOA: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+      CO_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      # KHÔNG khai `version`: pnpm lấy từ `packageManager` trong package.json (xem docker.yml)
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Dựng web rồi chép vào project Android
+        working-directory: apps/web
+        run: pnpm build:android
+      # Capacitor 8 cần JDK 21
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - name: Số phiên bản
+        id: ver
+        run: |
+          echo "name=$(node -p "require('./apps/web/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "code=$(( SO_BAN + BU_SO_BAN ))" >> "$GITHUB_OUTPUT"
+
+      - name: APK debug (cài thử)
+        working-directory: apps/web/android
+        run: ./gradlew --no-daemon assembleDebug -PversionCode=${{ steps.ver.outputs.code }} -PversionName=${{ steps.ver.outputs.name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-debug.apk
+          path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: AAB + APK release đã ký
+        if: env.CO_KHOA == 'true'
+        working-directory: apps/web/android
+        env:
+          KHOA_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/upload.keystore"
+          echo "$KHOA_B64" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+          ./gradlew --no-daemon bundleRelease assembleRelease -PversionCode=${{ steps.ver.outputs.code }} -PversionName=${{ steps.ver.outputs.name }}
+          rm -f "$ANDROID_KEYSTORE_PATH"
+      - if: env.CO_KHOA == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-release
+          path: |
+            apps/web/android/app/build/outputs/bundle/release/app-release.aab
+            apps/web/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 90
+
+      # App MỚI thì Play bắt tải AAB đầu tiên bằng tay trên web (bước này sẽ lỗi
+      # "Package not found" cho tới lúc đó). Chưa phát hành lần nào thì Play chỉ
+      # nhận status `draft` — đổi biến repo PLAY_RELEASE_STATUS=completed sau.
+      - name: Đẩy lên Google Play
+        if: env.PHAT_HANH == 'true' && env.CO_KHOA == 'true' && env.CO_PLAY == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.hello314.thebai
+          releaseFiles: apps/web/android/app/build/outputs/bundle/release/app-release.aab
+          track: ${{ vars.PLAY_TRACK || 'internal' }}
+          status: ${{ vars.PLAY_RELEASE_STATUS || 'draft' }}
+
+  ios:
+    name: iOS
+    # Capacitor 8 cần Xcode 26
+    runs-on: macos-26
+    env:
+      CO_APPLE: ${{ secrets.APPLE_TEAM_ID != '' && secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' && secrets.ASC_KEY_P8_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Dựng web rồi chép vào project iOS
+        working-directory: apps/web
+        run: pnpm build:ios
+      - name: Số phiên bản
+        id: ver
+        run: |
+          echo "name=$(node -p "require('./apps/web/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "code=$(( SO_BAN + BU_SO_BAN ))" >> "$GITHUB_OUTPUT"
+
+      - name: Build cho simulator (chưa có tài khoản Apple)
+        if: env.CO_APPLE != 'true'
+        working-directory: apps/web/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
+            -quiet build
+
+      # Ký TỰ ĐỘNG bằng App Store Connect API key: Xcode tự xin chứng chỉ phân
+      # phối + provisioning profile trên đám mây, không có file .p12 nào phải giữ.
+      # Key phải ở quyền Admin (hoặc App Manager có quyền "Cloud Managed
+      # Distribution Certificate"), không thì archive lỗi "No signing certificate".
+      - name: Archive đã ký
+        if: env.CO_APPLE == 'true'
+        working-directory: apps/web/ios/App
+        env:
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey.p8"
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
+            MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS" \
+            -quiet archive
+
+      # destination=upload: xuất xong Xcode đẩy thẳng lên App Store Connect
+      # (TestFlight), không cần altool/fastlane. Không phát hành thì chỉ xuất IPA.
+      - name: Xuất IPA / đẩy lên TestFlight
+        if: env.CO_APPLE == 'true'
+        working-directory: apps/web/ios/App
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          DEST=export; [ "$PHAT_HANH" = "true" ] && DEST=upload
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>$DEST</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportPath "$RUNNER_TEMP/ipa" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS"
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
+      - if: env.CO_APPLE == 'true' && env.PHAT_HANH != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-ios
+          path: ${{ runner.temp }}/ipa/*.ipa
+          retention-days: 30

@@ -1,9 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * Đóng gói web thành ứng dụng iOS (Capacitor). Web ở `dist` được nhúng thẳng
+ * Đóng gói web thành ứng dụng iOS + Android (Capacitor). Web ở `dist` được nhúng thẳng
  * vào app, còn phòng online đi tới server công khai qua `VITE_SERVER_URL`
- * (xem script `build:ios`). Trong app, origin là `capacitor://localhost` nên
+ * (xem script `build:app`; CI ở `.github/workflows/mobile.yml`). Trong app, origin là `capacitor://localhost` nên
  * mọi chỗ dựa vào `location.origin` phải đi qua `lib/native.ts`.
  */
 const config: CapacitorConfig = {
@@ -16,6 +16,9 @@ const config: CapacitorConfig = {
     backgroundColor: '#edeffa',
     // Không cho kéo giật trang — màn chơi vốn KHÔNG SCROLL
     scrollEnabled: false
+  },
+  android: {
+    backgroundColor: '#edeffa'
   }
 };
 
