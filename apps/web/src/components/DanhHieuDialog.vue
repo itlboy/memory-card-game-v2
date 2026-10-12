@@ -15,11 +15,12 @@ const emit = defineEmits<{ close: []; 'chinh-phuc': [Achievement] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 onMounted(() => closeBtn.value?.focus());
 
-const loc = ref<'chua' | 'tat-ca'>('chua');
+// Hai ngăn KHÔNG chồng nhau: chưa có · đã có (bản cũ "Tất cả" lặp lại cả ngăn chưa có)
+const loc = ref<'chua' | 'co'>('chua');
 const so = computed(() => ACHIEVEMENTS.filter((a) => props.daCo.has(a.id)).length);
 const nhom = computed(() => NHOM.map((n) => {
   const tatCa = ACHIEVEMENTS.filter((a) => a.nhom === n.id);
-  const ds = loc.value === 'chua' ? tatCa.filter((a) => !props.daCo.has(a.id)) : tatCa;
+  const ds = tatCa.filter((a) => props.daCo.has(a.id) === (loc.value === 'co'));
   return { ...n, ds, co: tatCa.filter((a) => props.daCo.has(a.id)).length, tong: tatCa.length };
 }).filter((n) => n.ds.length));
 </script>
@@ -38,14 +39,16 @@ const nhom = computed(() => NHOM.map((n) => {
         <button class="tab" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
           {{ t('dhd.chuaCo', { n: ACHIEVEMENTS.length - so }) }}
         </button>
-        <button class="tab" role="tab" type="button" :aria-selected="loc === 'tat-ca'" @click="loc = 'tat-ca'">{{ t('dhd.tatCa') }}</button>
+        <button class="tab" role="tab" type="button" :aria-selected="loc === 'co'" @click="loc = 'co'">
+          {{ t('dhd.daCo', { n: so }) }}
+        </button>
       </div>
       <div class="body">
         <section v-for="n in nhom" :key="n.id">
           <h3>{{ n.ten }} <small>{{ n.co }}/{{ n.tong }}</small></h3>
           <DanhHieu :ds="n.ds" :da-co="daCo" :tk="tk" :theme-khoa="themeKhoa" @chinh-phuc="emit('chinh-phuc', $event)" />
         </section>
-        <p v-if="!nhom.length" class="xong">{{ t('dhd.coHet') }}</p>
+        <p v-if="!nhom.length" class="xong">{{ loc === 'co' ? t('dhd.chuaCoGi') : t('dhd.coHet') }}</p>
       </div>
     </div>
   </div>
