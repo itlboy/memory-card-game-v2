@@ -263,6 +263,27 @@ for (const [ten, w, h] of MAY) {
   ok(/800/.test(chu) && /font-display|Baloo/.test(chu), `${ten}: theme Chữ & số dùng nét 800 phông hiển thị (${chu})`);
 }
 
+/* ---------- chuyển màn: màn đang rời KHÔNG được phình khung (chủ dự án báo "nhảy nhẹ") ---------- */
+{
+  const [ten, w, h] = MAY[2];
+  await goi('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: true });
+  await goi('Page.navigate', { url: URL_APP + '?w=options&cb=' + Date.now() });
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.btn-primary')`)); i++) await cho(250);
+  await cho(400);
+  const kq = await js(`new Promise((res) => {
+    const p = document.querySelector('main > .panel'); const r0 = p.getBoundingClientRect();
+    const lech = [];
+    const t0 = performance.now();
+    const f = () => {
+      if (p.isConnected) { const r = p.getBoundingClientRect(); const d = Math.max(Math.abs(r.top - r0.top), Math.abs(r.width - r0.width), Math.abs(r.height - r0.height)); if (d > 1) lech.push(Math.round(d)); }
+      if (performance.now() - t0 < 400) requestAnimationFrame(f); else res({ khung: Math.round(r0.width) + 'x' + Math.round(r0.height), lech: lech.length ? Math.max(...lech) : 0 });
+    };
+    requestAnimationFrame(f);
+    document.querySelector('.btn-primary').click();
+  })`);
+  ok(kq.lech === 0, `${ten}: màn đang rời giữ nguyên khung ${kq.khung} lúc mờ dần (lệch tối đa ${kq.lech}px)`);
+}
+
 ws.close(); chrome.kill();
 console.log(loi ? `\n${loi} lỗi` : '\nmenu thanh trên: sạch');
 process.exit(loi ? 1 : 0);

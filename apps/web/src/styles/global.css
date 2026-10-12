@@ -267,9 +267,11 @@ button {
 .screen-enter-from { opacity: 0; transform: translateY(10px) scale(.99); }
 /* Màn đang rời TÁCH KHỎI LUỒNG để hai màn chồng nhau một nhịp mà không đẩy bố
    cục (đây là cái giá của việc bỏ mode="out-in" — xem chú thích trong App.vue).
-   `main` phải position: relative để inset: 0 tính theo nó. */
+   `main` phải position: relative để toạ độ ghim tính theo nó. */
 .screen-leave-active {
-  position: absolute; inset: 0; pointer-events: none;
+  /* Vị trí + kích thước do App.vue `ghimKhungRoi` ghim theo khung ĐANG CÓ — đừng
+     đặt lại inset: 0 (bỏ qua đệm của <main>, khung phình ra lúc mờ dần). */
+  position: absolute; pointer-events: none; margin: 0;
   transition: opacity .18s ease;
 }
 .screen-leave-to { opacity: 0; }

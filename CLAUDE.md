@@ -208,6 +208,10 @@
   Bảng kết quả có khối `@media (max-height: 640px)` ở CUỐI file: trên SE bảng
   từng cao 633px/553px, nút "Về menu" lòi khỏi màn hình (đã thế từ trước khi có
   danh hiệu, tiêu đề bị cắt). `pnpm do:menu` chơi thật một ván 2×2 và canh.
+- **MÀN ĐANG RỜI GIỮ ĐÚNG KHUNG CŨ** (`ghimKhungRoi` ở App.vue, `@before-leave`).
+  Bản cũ neo `.screen-leave-active { inset: 0 }` theo <main> có đệm 12px nên lúc
+  mờ dần khung PHÌNH 406→430px (chủ dự án: "nhảy nhẹ, container to ra" khi bấm
+  chip lối tắt). Đừng đặt lại inset: 0. `pnpm do:menu` đo từng khung hình.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 
