@@ -73,11 +73,11 @@ PLAY YOUR WAY
 MAKE THE BOARD YOURS
 • 12 board sizes, from a 4-card warm-up to a brutal 88-card challenge
 • 5 optional rules, each with 4 levels: timer, lives, peek, shuffle and special cards
-• 24 card themes: animals, food, flags, numbers and more
+• 36 card themes: animals, food, flags, numbers and more
 • 3 looks to switch anytime: Candy, Wood or Neon
 
 KEEP COMING BACK
-• 103 achievements to unlock
+• 115 achievements to unlock
 • Records for every board size
 • Optional Sign in with Apple or Google to sync progress across devices and climb the leaderboard
 
@@ -133,11 +133,11 @@ CHƠI THEO CÁCH CỦA BẠN
 BÀN CHƠI CỦA RIÊNG BẠN
 • 12 cỡ bàn, từ 4 thẻ khởi động tới 88 thẻ siêu khó
 • 5 luật tuỳ chọn, mỗi luật 4 mức: đồng hồ, số mạng, xem trước, xáo thẻ, thẻ đặc biệt
-• 24 bộ hình: con vật, đồ ăn, cờ các nước, chữ số và nhiều nữa
+• 36 bộ hình: con vật, đồ ăn, cờ các nước, chữ số và nhiều nữa
 • 3 giao diện đổi tuỳ thích: Kẹo, Gỗ hoặc Neon
 
 MUỐN CHƠI MÃI
-• 103 danh hiệu để chinh phục
+• 115 danh hiệu để chinh phục
 • Kỷ lục riêng cho từng cỡ bàn
 • Đăng nhập Apple hoặc Google (tuỳ chọn) để đồng bộ giữa các máy và lên bảng xếp hạng
 
@@ -193,11 +193,11 @@ JUEGA A TU MANERA
 UN TABLERO A TU MEDIDA
 • 12 tamaños de tablero, desde un calentamiento de 4 cartas hasta un desafío brutal de 88
 • 5 reglas opcionales con 4 niveles cada una: tiempo, vidas, vistazo, barajar y cartas especiales
-• 24 temas de cartas: animales, comida, banderas, números y mucho más
+• 36 temas de cartas: animales, comida, banderas, números y mucho más
 • 3 estilos para cambiar cuando quieras: Dulce, Madera o Neón
 
 SIEMPRE HAY UN MOTIVO PARA VOLVER
-• 103 logros por desbloquear
+• 115 logros por desbloquear
 • Récords para cada tamaño de tablero
 • Inicia sesión con Apple o Google (opcional) para sincronizar tu progreso entre dispositivos y subir en la clasificación
 
@@ -253,11 +253,11 @@ JOGUE DO SEU JEITO
 UM TABULEIRO DO SEU JEITO
 • 12 tamanhos de tabuleiro, de um aquecimento com 4 cartas a um desafio brutal com 88
 • 5 regras opcionais, cada uma com 4 níveis: tempo, vidas, espiadinha, embaralhar e cartas especiais
-• 24 temas de cartas: animais, comidas, bandeiras, números e muito mais
+• 36 temas de cartas: animais, comidas, bandeiras, números e muito mais
 • 3 visuais para trocar quando quiser: Doce, Madeira ou Néon
 
 SEMPRE TEM MOTIVO PARA VOLTAR
-• 103 conquistas para desbloquear
+• 115 conquistas para desbloquear
 • Recordes para cada tamanho de tabuleiro
 • Entre com Apple ou Google (opcional) para sincronizar o progresso entre aparelhos e subir no ranking
 
@@ -313,11 +313,11 @@ JOUEZ COMME VOUS VOULEZ
 UN PLATEAU À VOTRE IMAGE
 • 12 tailles de plateau, de l'échauffement à 4 cartes au défi redoutable de 88 cartes
 • 5 règles au choix, chacune sur 4 niveaux : chrono, vies, aperçu, mélange et cartes spéciales
-• 24 thèmes de cartes : animaux, nourriture, drapeaux, chiffres et bien plus
+• 36 thèmes de cartes : animaux, nourriture, drapeaux, chiffres et bien plus
 • 3 styles à changer quand vous voulez : Bonbon, Bois ou Néon
 
 TOUJOURS UNE RAISON DE REVENIR
-• 103 succès à débloquer
+• 115 succès à débloquer
 • Des records pour chaque taille de plateau
 • Connexion avec Apple ou Google (facultative) pour synchroniser votre progression entre appareils et grimper au classement
 
@@ -373,11 +373,11 @@ SPIEL, WIE DU WILLST
 DEIN SPIELFELD, DEINE REGELN
 • 12 Spielfeldgrößen, vom Aufwärmen mit 4 Karten bis zur knallharten Herausforderung mit 88
 • 5 optionale Regeln mit je 4 Stufen: Zeit, Leben, Vorschau, Mischen und Spezialkarten
-• 24 Kartenthemen: Tiere, Essen, Flaggen, Zahlen und vieles mehr
+• 36 Kartenthemen: Tiere, Essen, Flaggen, Zahlen und vieles mehr
 • 3 Looks zum jederzeit Wechseln: Bonbon, Holz oder Neon
 
 IMMER WIEDER GERN
-• 103 Erfolge zum Freischalten
+• 115 Erfolge zum Freischalten
 • Rekorde für jede Spielfeldgröße
 • Optional mit Apple oder Google anmelden, um den Fortschritt geräteübergreifend zu synchronisieren und in der Bestenliste aufzusteigen
 
@@ -433,11 +433,11 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 自分好みの盤面に
 • 4枚のウォームアップから88枚の超難関まで、12種類の盤面サイズ
 • 5つのオプションルール（各4段階）：制限時間・ライフ・先読み・シャッフル・特殊カード
-• 24種類のカードテーマ：動物、食べ物、国旗、数字など
+• 36種類のカードテーマ：動物、食べ物、国旗、数字など
 • いつでも切り替えられる3つの見た目：キャンディ・木目・ネオン
 
 何度でも遊びたくなる
-• 解除できる称号は103個
+• 解除できる称号は115個
 • 盤面サイズごとの自己記録
 • Apple または Google でサインイン（任意）すれば、機種をまたいで進行を同期してランキングにも参加
 
@@ -493,11 +493,11 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 나만의 게임판
 • 4장짜리 워밍업부터 88장짜리 극악 난이도까지 12가지 판 크기
 • 각각 4단계인 5가지 선택 규칙: 시간 제한, 목숨, 미리 보기, 섞기, 특수 카드
-• 동물, 음식, 국기, 숫자 등 24가지 카드 테마
+• 동물, 음식, 국기, 숫자 등 36가지 카드 테마
 • 언제든 바꿀 수 있는 3가지 스킨: 캔디, 나무, 네온
 
 자꾸 생각나는 게임
-• 잠금 해제할 수 있는 칭호 103개
+• 잠금 해제할 수 있는 칭호 115개
 • 판 크기별 개인 기록
 • Apple 또는 Google 로그인(선택)으로 기기 간 진행 상황 동기화 및 랭킹 도전
 
@@ -553,11 +553,11 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 打造你的专属牌桌
 • 12 种牌桌尺寸，从 4 张热身到 88 张极限挑战
 • 5 种可选规则，每种 4 个等级：限时、生命、预览、洗牌、特殊卡
-• 24 套卡牌主题：动物、美食、国旗、数字等等
+• 36 套卡牌主题：动物、美食、国旗、数字等等
 • 3 种外观随时切换：糖果、木纹或霓虹
 
 越玩越上瘾
-• 103 个成就等你解锁
+• 115 个成就等你解锁
 • 每种牌桌尺寸都有独立纪录
 • 可选使用 Apple 或 Google 登录，跨设备同步进度并冲击排行榜
 
@@ -613,11 +613,11 @@ Flip Match — классическая игра на память с карто
 ПОЛЕ ПОД ТЕБЯ
 • 12 размеров поля: от разминки на 4 карточки до суровых 88
 • 5 дополнительных правил, у каждого 4 уровня: время, жизни, подсказка, перемешивание и особые карточки
-• 24 темы карточек: животные, еда, флаги, цифры и многое другое
+• 36 темы карточек: животные, еда, флаги, цифры и многое другое
 • 3 оформления, которые можно сменить в любой момент: Конфета, Дерево или Неон
 
 ХОЧЕТСЯ ВОЗВРАЩАТЬСЯ
-• 103 достижения
+• 115 достижения
 • Рекорды для каждого размера поля
 • Вход через Apple или Google (по желанию), чтобы синхронизировать прогресс между устройствами и подниматься в рейтинге
 
@@ -673,11 +673,11 @@ MAIN SESUKAMU
 PAPAN SESUAI SELERAMU
 • 12 ukuran papan, dari pemanasan 4 kartu sampai tantangan berat 88 kartu
 • 5 aturan opsional, masing-masing 4 level: waktu, nyawa, intip, kocok, dan kartu spesial
-• 24 tema kartu: hewan, makanan, bendera, angka, dan banyak lagi
+• 36 tema kartu: hewan, makanan, bendera, angka, dan banyak lagi
 • 3 tampilan yang bisa diganti kapan saja: Permen, Kayu, atau Neon
 
 BIKIN BALIK LAGI
-• 103 gelar untuk dibuka
+• 115 gelar untuk dibuka
 • Rekor untuk setiap ukuran papan
 • Masuk dengan Apple atau Google (opsional) untuk sinkronkan progres antar perangkat dan naik di papan peringkat
 
@@ -733,11 +733,11 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 กระดานในแบบของคุณ
 • กระดาน 12 ขนาด ตั้งแต่วอร์มอัป 4 ใบไปจนถึงสุดโหด 88 ใบ
 • กติกาเสริม 5 แบบ แบบละ 4 ระดับ: จับเวลา ชีวิต แอบดู สับไพ่ และการ์ดพิเศษ
-• ธีมการ์ด 24 แบบ: สัตว์ อาหาร ธงชาติ ตัวเลข และอีกมากมาย
+• ธีมการ์ด 36 แบบ: สัตว์ อาหาร ธงชาติ ตัวเลข และอีกมากมาย
 • 3 หน้าตาให้สลับได้ทุกเมื่อ: ลูกกวาด ไม้ หรือนีออน
 
 เล่นแล้วอยากกลับมาอีก
-• ตำแหน่งให้ปลดล็อก 103 รายการ
+• ตำแหน่งให้ปลดล็อก 115 รายการ
 • สถิติแยกสำหรับกระดานทุกขนาด
 • ลงชื่อเข้าใช้ด้วย Apple หรือ Google (ไม่บังคับ) เพื่อซิงค์ความคืบหน้าข้ามอุปกรณ์และไต่อันดับ
 

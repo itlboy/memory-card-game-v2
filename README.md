@@ -2,7 +2,7 @@
 
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS (Capacitor). Chơi một
 mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số; có tài
-khoản Google, 103 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+khoản Google, 115 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
 
 - Bản chính: https://flipmatch.cozypi.com (tên cũ https://thebai.hello314.com vẫn chạy) (server Node trên cụm k8s cá nhân
   `kien-server-main`, có MySQL + đăng nhập Google)
@@ -150,7 +150,7 @@ server.js            Web server tĩnh cho bản build production
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
 | Lưu trữ | Kỷ lục, sao, tuỳ chọn, bộ đếm danh hiệu — localStorage (3.7). Đăng nhập thì đồng bộ lên tài khoản (xem dưới) |
 | Tài khoản | Đăng nhập Google (chỉ server Node, cần `MYSQL_URL` + `GOOGLE_CLIENT_ID`). Điểm, kỷ lục, danh hiệu đi theo người sang máy khác; mở app / quay lại tab / xong ván là đồng bộ, hợp theo MAX. Bảng xếp hạng top 20. Không đăng nhập vẫn chơi như cũ |
-| Danh hiệu | 103 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/103 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
+| Danh hiệu | 115 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/115 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
 | Hiệu ứng kết ván | Năm cảnh cố định: thắng · kỷ lục · thua · thua máy (máy trêu) · hoà (`lib/ketcuc-fx.ts`), có chạm vào bàn thẻ (gợn sóng / lá rơi). Mở danh hiệu: huy hiệu theo bậc bay vào viên 🏅 (`MoKhoaFx.vue`). Mockup đã duyệt: https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 |
 | Rung | Theo số nhịp, tăng theo chuỗi ghép đúng (`lib/rung.ts`). Android web + app iOS (Haptics); web trên iPhone không rung được nên công tắc tự ẩn |
 | Thông báo trong ván | Thông báo (thẻ đặc biệt, chuyển lượt, emoji đối thủ) nổi ở **dải trên mép bàn** (`.notice-bar`), cao 0px và ĐÈ lên HUD — không hiện giữa bàn (che chỗ đang bấm) và không chiếm chỗ (bàn thẻ co giãn mỗi lần thông báo hiện/tan) |

@@ -296,6 +296,18 @@ const ko: TuDien = {
   'theme.drinks': '음료',
   'theme.games': '게임',
   'theme.garden': '정원',
+  'theme.tet': "설날",
+  'theme.sweets': "디저트",
+  'theme.veggies': "채소",
+  'theme.landmarks': "명소",
+  'theme.birds': "새",
+  'theme.school': "학교",
+  'theme.hands': "손동작",
+  'theme.hearts': "하트",
+  'theme.clocks': "시계",
+  'theme.safari': "사파리",
+  'theme.summer': "여름",
+  'theme.asianfood': "아시아 음식",
 
   /* ---------- computer names ---------- */
   'bot.easy': '아장아장 병아리',

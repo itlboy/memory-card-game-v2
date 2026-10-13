@@ -296,6 +296,18 @@ const ja: TuDien = {
   'theme.drinks': '飲み物',
   'theme.games': 'ゲーム',
   'theme.garden': '庭',
+  'theme.tet': "旧正月",
+  'theme.sweets': "スイーツ",
+  'theme.veggies': "野菜",
+  'theme.landmarks': "名所",
+  'theme.birds': "鳥",
+  'theme.school': "学校",
+  'theme.hands': "ハンドサイン",
+  'theme.hearts': "ハート",
+  'theme.clocks': "時計",
+  'theme.safari': "サファリ",
+  'theme.summer': "夏",
+  'theme.asianfood': "アジア料理",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'よちよちヒヨコ',
