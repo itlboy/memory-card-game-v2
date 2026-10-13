@@ -262,6 +262,11 @@
   báo sạch giả, còn ::after nới vùng chạm thì báo tràn giả; đã kiểm ngược). Tên app
   không vừa thanh trên thì chỉ giữ biểu tượng (`anTen` ở TopBar, đo thật). Chưa có
   tiếng Ả Rập (phải-sang-trái, phải lật bố cục).
+  BẢN DỊCH (13.10.2026, chủ dự án đòi "chuyên nghiệp"): bảng thuật ngữ + văn phong ở
+  `docs/i18n-style.md` — bàn = "board" (KHÔNG "table"), "Vs Computer", danh hiệu =
+  Achievements, tên máy không đuôi "bot"; English viết Title Case cho nút/tiêu đề,
+  ngôn ngữ khác theo lệ của chính nó. Thêm chữ mới là theo bảng đó, rồi `pnpm do:ngon-ngu`
+  (một chữ dài hơn ở menu — "Карамель" — đủ làm cả menu tiếng Nga lòi khỏi màn).
   TÊN APP: "Lật Thẻ" (vi) / "Flip Match" (en) — chủ dự án chốt 12.10.2026 vì tên có
   dấu khó với người nước ngoài. Khoá `tb.thuongHieu` + `chung.tieuDeTrang` (tiêu đề
   tab, đặt trong `lib/i18n.ts`); app iOS đọc tên từ `ios/App/App/{en,vi}.lproj/

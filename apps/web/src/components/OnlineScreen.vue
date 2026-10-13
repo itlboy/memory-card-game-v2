@@ -1015,8 +1015,9 @@ function openCfgWizard(): void {
             @click="moSuaTen(p.name)"
           ><Pencil :size="14" /></button>
         </template>
-        <small v-if="p.id === o.room.value?.hostId">{{ t('on.chuPhong') }}</small>
-        <small v-if="p.id === o.myId.value && !suaTen">{{ t('on.ban') }}</small>
+        <!-- Không ghi chữ "chủ phòng"/"(bạn)": vương miện đã nói ai là chủ, bút
+             sửa tên đã nói dòng nào là mình — hai chữ đó chỉ làm tên bị bóp
+             xuống hai dòng (chủ dự án 13.10.2026). -->
         <!-- Ping hiện từ PHÒNG CHỜ, không đợi vào ván: biết mạng mình thế nào
              trước khi bắt đầu thì còn kịp xử lý. -->
         <span
@@ -1509,6 +1510,7 @@ input:focus { outline: none; border-color: var(--accent); }
   border-style: dashed; color: var(--muted); font-size: var(--text-sm); justify-content: center;
 }
 .lobby-list .avatar { font-size: 20px; }
+.lobby-list li > b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lobby-list small { color: var(--muted); font-size: var(--text-xs); }
 .offline { margin-left: auto; font-size: var(--text-xs); color: var(--warn); }
 .ready-tag {
