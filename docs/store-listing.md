@@ -70,6 +70,7 @@ MAKE THE BOARD YOURS
 • 12 board sizes, from a 4-card warm-up to a brutal 88-card challenge
 • 5 optional rules, each with 4 levels: timer, lives, peek, shuffle and special cards
 • 24 card themes: animals, food, flags, numbers and more
+• 3 looks to switch anytime: Candy, Wood or Neon
 
 KEEP COMING BACK
 • 103 achievements to unlock
@@ -78,6 +79,7 @@ KEEP COMING BACK
 
 MADE TO FEEL GOOD
 • Smooth card flips with haptic feedback
+• Pause anytime — the clock stops and the board hides until you're back
 • Satisfying win effects and sounds
 • Works offline — no connection needed for solo, bot or same-device games
 • 12 languages
@@ -128,6 +130,7 @@ BÀN CHƠI CỦA RIÊNG BẠN
 • 12 cỡ bàn, từ 4 thẻ khởi động tới 88 thẻ siêu khó
 • 5 luật tuỳ chọn, mỗi luật 4 mức: đồng hồ, số mạng, xem trước, xáo thẻ, thẻ đặc biệt
 • 24 bộ hình: con vật, đồ ăn, cờ các nước, chữ số và nhiều nữa
+• 3 giao diện đổi tuỳ thích: Kẹo, Gỗ hoặc Neon
 
 MUỐN CHƠI MÃI
 • 103 danh hiệu để chinh phục
@@ -136,6 +139,7 @@ MUỐN CHƠI MÃI
 
 CHƠI LÀ SƯỚNG
 • Lật thẻ mượt, có rung phản hồi
+• Tạm dừng bất cứ lúc nào — đồng hồ đứng, bàn được che cho tới khi bạn quay lại
 • Hiệu ứng và âm thanh thắng ván đã tai đã mắt
 • Chơi không cần mạng — một mình, đấu máy, chung máy đều chạy offline
 • 12 ngôn ngữ
