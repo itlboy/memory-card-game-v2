@@ -56,14 +56,8 @@ export default defineConfig({
         // Trang tĩnh (privacy/support) là file riêng — store của Apple/Google mở
         // thẳng URL đó, không được rơi về index.html của game
         navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/(privacy|support)(\.html)?$/],
-        runtimeCaching: [
-          {
-            // Font Google: dùng bản đã tải, âm thầm cập nhật nền
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts', expiration: { maxEntries: 20 } }
-          }
-        ]
+        // Font đóng gói sẵn (styles/fonts.ts, file .woff2 cùng gốc) nên đã nằm trong
+        // globPatterns ở trên — không còn cache font Google ở runtime.
       }
     })
   ],

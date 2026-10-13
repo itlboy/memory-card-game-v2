@@ -39,17 +39,28 @@ defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; '
 const h1El = ref<HTMLElement | null>(null);
 const tenEl = ref<HTMLElement | null>(null);
 const anTen = ref(false);
+/** Hệ số cỡ chữ của tên (1 = cỡ gốc). Thiếu chỗ thì THU NHỎ trước, chỉ ẩn khi nhỏ
+ *  tới TEN_NHO_NHAT vẫn không vừa — máy Android 360px với điểm "15k" từng mất hẳn
+ *  tên trong khi chỉ thiếu vài px (chủ dự án báo 14.10.2026). */
+const tenCo = ref(1);
+const TEN_NHO_NHAT = 0.72;
 function doTen(): void {
   const h = h1El.value, ten = tenEl.value;
   if (!h || !ten) return;
   // Bề rộng CẦN = logo + khoảng cách + chữ (đo cả khi đang ẩn: scrollWidth của span vẫn đúng)
   const logo = h.querySelector('.logo')?.getBoundingClientRect().width ?? 30;
-  anTen.value = logo + 8 + ten.scrollWidth > h.clientWidth + 0.5;
+  const goc = ten.scrollWidth / tenCo.value;          // bề rộng ở cỡ gốc
+  const co = (h.clientWidth - logo - 8) / goc;
+  tenCo.value = Math.min(1, Math.max(TEN_NHO_NHAT, Math.floor(co * 100) / 100));
+  anTen.value = co < TEN_NHO_NHAT;
 }
 let ro: ResizeObserver | undefined;
 onMounted(() => {
   if (typeof ResizeObserver === 'function' && h1El.value) { ro = new ResizeObserver(doTen); ro.observe(h1El.value); }
   doTen();
+  // Font chữ (woff2 đóng gói sẵn) vẫn tới SAU lần đo đầu: đo bằng font dự phòng rộng hơn là
+  // tên bị ẩn oan, mà bề rộng h1 không đổi nên ResizeObserver không gọi lại.
+  document.fonts?.ready.then(doTen).catch(() => { /* không có Font Loading API */ });
 });
 onUnmounted(() => ro?.disconnect());
 watch(ngonNgu, () => nextTick(doTen));
@@ -102,7 +113,7 @@ watch(() => props.totalScore, (to, from) => {
 
 <template>
   <header class="topbar">
-    <h1 ref="h1El" :class="{ 'an-ten': anTen }">
+    <h1 ref="h1El" :class="{ 'an-ten': anTen }" :style="{ '--ten-co': tenCo }">
       <button class="brand" type="button" :aria-label="t('tb.veTrangChu')" @click="$emit('home')">
         <!-- Hai lá bài chồng nghiêng — emoji 🃏 mỗi máy vẽ một kiểu, không dùng
              được làm dấu hiệu thương hiệu. Khung CỐ ĐỊNH 30×30 để không giãn
@@ -279,6 +290,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .an-ten .name { position: absolute; visibility: hidden; pointer-events: none; }
 .name {
   flex-shrink: 0;
+  font-size: calc(1em * var(--ten-co, 1));   /* thu cả chữ đều tay — không cắt chữ nào */
   background: linear-gradient(100deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;
@@ -328,6 +340,14 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 @media (max-width: 359px) {
   .topbar { gap: 6px; padding: var(--sp-2); }
   .total { padding: 4px 8px; }
+}
+/* Máy Android phổ biến 360–400px: hai viên điểm gọn lại một nấc để TÊN game còn
+   chỗ (đo: 360px với "15k" + "16/103" thì tên thu tới 72% vẫn không vừa). */
+@media (max-width: 400px) {
+  .topbar { gap: 6px; }
+  .total { padding-inline: 7px 8px; gap: 3px; }
+  .dh { padding-inline: 5px 7px; gap: 2px; }
+  .total b, .dh b { font-size: calc(var(--text-md) * .88); }
 }
 .menu-wrap { position: relative; flex-shrink: 0; }
 /* Cùng dáng viên điểm nhưng tím: nhìn là biết hai viên, hai thứ khác nhau */
