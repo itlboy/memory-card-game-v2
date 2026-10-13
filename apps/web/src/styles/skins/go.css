@@ -184,3 +184,8 @@
 }
 :root[data-skin='go'] #app { background: var(--canh); }
 :root[data-skin='go'] .tam-dung { background: var(--canh), var(--nen-man); }
+
+/* Logo thanh trên: lá đỏ son + lá giấy, theo icon app */
+:root[data-skin='go'] .logo i { box-shadow: 0 2px 0 var(--mep), 0 3px 6px rgba(10, 5, 2, .4); }
+:root[data-skin='go'] .logo .card-l { background: #b23a2e; }
+:root[data-skin='go'] .logo .card-r { background: #f3e9d2 radial-gradient(circle at 50% 52%, #b23a2e 26%, transparent 29%); }
