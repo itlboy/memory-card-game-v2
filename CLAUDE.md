@@ -272,6 +272,32 @@
   MenuScreen), lỗi server (dịch theo MÃ lỗi ở client), thẻ og. Chuyển xong file nào
   thì thêm vào `DA_CHUYEN`.
 
+## SKIN — LỚP ÁO TÁCH KHỎI BỐ CỤC (13.10.2026)
+
+- Ba skin: **Kẹo** (mặc định, mockup B chủ dự án duyệt
+  https://claude.ai/artifact/6NDRazvmMWRh5ErbZZmnLo) · **Gỗ** · **Neon** (giao diện cũ).
+  Người chơi đổi ở menu → Giao diện; nhớ ở localStorage `mm.skin`; `?skin=go` thử nhanh.
+  `lib/skin.ts` + `styles/skins/<id>.css` + tên `tb.skin.<id>` ở 12 từ điển;
+  `test/skin.test.ts` canh đủ và canh MỌI selector trong file skin bắt đầu bằng
+  `:root[data-skin='<id>']` (lọt ra là đổi giao diện của mọi skin).
+- Component KHÔNG viết màu/gradient tay: đọc token. Hai lớp tô chung `--nhan-nen/chu`
+  (nút, viên nhấn) và `--chon-nen/chu` (ô đang chọn, người đang đi) — 25 chỗ viết tay
+  gradient tím từng làm skin Kẹo lòi tím khắp nơi. Hình nền: `--nen-man` (body, neo
+  cửa sổ) và `--canh` (vẽ theo khung #app — neo theo cửa sổ thì trên máy tính giữa
+  cột trống trơn). Màn tạm dừng dùng `--canh, --nen-man`.
+- Skin Kẹo/Gỗ KHOÁ màu mặt sau lá theo skin; hoạ tiết vẫn theo ván, cả bàn vẫn chung một mặt.
+- Gờ dày của Kẹo (4–5px) cần `overflow-clip-margin: 8px` ở lưới wizard, không thì ô hàng cuối cụt gờ.
+- `cqw` trên CHÍNH `.card` tính theo cả bàn (container cha), không theo lá — gờ từng ra 15,6px.
+- Nền tối chỉ hiện ở menu khi skin là Neon.
+- Lá đã ghép GIỮ RÕ NÉT (viền xanh trong) — phủ mờ/opacity đã bị chê hai lần.
+- Trang chủ (bước `players`): quạt lá có trần 420px + cụm canh giữa dọc (máy tính
+  cột cao). Icon bay lơ lửng (`IconBay.vue`) CHỈ ở màn menu, không có trong ván.
+- HUD gọn: nút thoát · viên số có icon (chỉ hiện thứ đang có nghĩa) · nút ⏸ · vạch
+  tiến độ cặp. TẠM DỪNG (`tamDungVan`/`chayTiepVan` ở engine, chỉ ván offline): dời
+  MỌI mốc tuyệt đối khi chạy tiếp, không nhận nước đi, lưu trong snapshot; tự dừng
+  khi rời trang (`visibilitychange`). Màn dừng phủ KÍN #app bằng nền đặc — lớp kính mờ
+  để lộ bàn nhoè đã bị chê "thiếu chuyên nghiệp".
+
 ## Hướng thiết kế đã chốt: C · Arcade neon
 
 - **Màn định danh** (mỗi ô một thứ khác nhau — cách chơi, chế độ, entry

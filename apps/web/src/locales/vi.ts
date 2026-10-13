@@ -40,6 +40,10 @@ const vi = {
   'tb.rungBat': 'Rung: đang bật — bấm để tắt',
   'tb.rungTat': 'Rung: đang tắt — bấm để bật',
   'tb.ngonNgu': 'Ngôn ngữ',
+  'tb.giaoDien': 'Giao diện',
+  'tb.skin.keo': 'Kẹo',
+  'tb.skin.go': 'Gỗ',
+  'tb.skin.neon': 'Neon',
   'tb.luatChoi': 'Luật chơi',
 
   /** Tên app. Bản English là "Flip Match" (chủ dự án: tên có dấu khó với người nước ngoài).
@@ -130,6 +134,9 @@ const vi = {
   'hud.luot': 'Lượt',
   'hud.cap2': 'Cặp',
   'hud.mangConLai': 'Mạng còn lại',
+  'hud.tamDung': 'Tạm dừng',
+  'hud.thoiGian': 'Thời gian',
+  'hud.choiTiep': 'Chơi tiếp',
   'game.ghiNho': 'Ghi nhớ vị trí!',
   'game.matMang': 'Mất 1 mạng —',
   'game.conMang': 'còn {n}',

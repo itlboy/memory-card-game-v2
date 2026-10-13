@@ -7,6 +7,10 @@ import './styles/global.css';
 import './styles/card-backs.css';
 import './styles/theme-grid.css';
 import './styles/ketcuc-fx.css';
+import './styles/skins/keo.css';
+import './styles/skins/go.css';
+import './styles/skins/neon.css';
+import { ganSkin } from './lib/skin';
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
@@ -22,4 +26,6 @@ if (!laApp) void registerSW({ immediate: true });
 // Không có dòng này thì `sfx` chỉ là biến trong module, console không thấy.
 (window as unknown as { sfx: typeof sfx }).sfx = sfx;
 
+// Skin gắn TRƯỚC khi mount: không loé giao diện mặc định một khung hình
+ganSkin();
 createApp(App).mount('#app');

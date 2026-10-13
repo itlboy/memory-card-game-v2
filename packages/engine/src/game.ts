@@ -90,6 +90,15 @@ export class MemoryGame {
    * chuyển lượt như thường — người mất mạng thật vẫn còn hạn giữ chỗ 5 phút.
    */
   turnPausedMs = 0;
+  /**
+   * TẠM DỪNG CẢ VÁN do người chơi bấm (nút ⏸, chỉ ván offline): lúc bắt đầu
+   * dừng, 0 = đang chạy. KHÁC hẳn `turnPausedAt` (đồng hồ LƯỢT đứng vì rớt
+   * mạng, có trần 5 phút): ở đây MỌI đồng hồ đứng — thời gian ván, hé thẻ, úp
+   * lại, đồng hồ lượt — không trần, và không nhận nước đi nào. Chạy tiếp thì
+   * dời mọi mốc tuyệt đối đúng bằng khoảng đã dừng, nên `elapsed()` (và điểm
+   * thưởng thời gian tính từ nó) không bị tính phần ngồi chờ.
+   */
+  vanDungLuc = 0;
   /** Thời gian được cộng thêm nhờ ghép đúng (Đua thời gian). Tách khỏi
    *  `startedAt` để `elapsed()` vẫn là thời gian thực đã chơi. */
   private extraTimeMs = 0;
@@ -153,6 +162,7 @@ export class MemoryGame {
    */
   elapsed(now: number): number {
     if (this.startedAt === null) return 0;
+    if (this.vanDungLuc) now = this.vanDungLuc;
     return ((this.endedAt ?? this.mocLuot(now)) - this.startedAt) / 1000;
   }
 
@@ -164,6 +174,7 @@ export class MemoryGame {
   /** Giây còn lại của lượt hiện tại; null nếu không dùng đồng hồ lượt. */
   turnTimeLeft(now: number): number | null {
     if (!this.turnDeadline || this.finished) return null;
+    if (this.vanDungLuc) now = this.vanDungLuc;
     // Đang tạm dừng: đóng băng ở con số lúc dừng, đừng để nó tiếp tục tụt.
     return Math.max(0, (this.turnDeadline - this.mocLuot(now)) / 1000);
   }
@@ -177,6 +188,27 @@ export class MemoryGame {
   /** Đồng hồ lượt có đang đứng không — để tầng phòng biết khi nào cần báo. */
   turnDangDung(): boolean {
     return this.turnPausedAt !== 0;
+  }
+
+  /** Ván đang tạm dừng (người chơi bấm ⏸). */
+  get dangTamDung(): boolean { return this.vanDungLuc !== 0; }
+
+  /** Tạm dừng cả ván. Gọi lại khi đang dừng là vô hại (giữ mốc đầu). */
+  tamDungVan(now: number): void {
+    if (this.vanDungLuc || this.finished || this.status === 'idle') return;
+    this.vanDungLuc = now;
+  }
+
+  /** Chạy tiếp: dời MỌI mốc tuyệt đối đúng bằng khoảng đã dừng. */
+  chayTiepVan(now: number): void {
+    if (!this.vanDungLuc) return;
+    const d = Math.max(0, now - this.vanDungLuc);
+    this.vanDungLuc = 0;
+    if (this.startedAt !== null) this.startedAt += d;
+    if (this.revealUntil > 0) this.revealUntil += d;
+    if (this.pendingUntil > 0) this.pendingUntil += d;
+    if (this.turnDeadline > 0) this.turnDeadline += d;
+    if (this.turnPausedAt > 0) this.turnPausedAt += d;
   }
 
   tamDungLuot(now: number): void {
@@ -268,7 +300,7 @@ export class MemoryGame {
    */
   tick(now: number): GameEvent[] {
     const out: GameEvent[] = [];
-    if (this.finished) return out;
+    if (this.finished || this.vanDungLuc) return out;
 
     if (this.revealUntil > 0 && now >= this.revealUntil) {
       this.revealUntil = 0;
@@ -306,6 +338,7 @@ export class MemoryGame {
    * Đây là hàm duy nhất client được phép gọi ở chế độ online — server phán quyết kết quả.
    */
   flip(index: number, now: number): GameEvent[] {
+    if (this.vanDungLuc) return [];
     if (this.status === 'idle') this.start(now);
     if (this.status !== 'playing' || this.locked) return [];
     // NaN/số thực/chuỗi vượt qua được cả hai phép so sánh biên — phải chặn tường minh
@@ -657,6 +690,7 @@ export class MemoryGame {
       turnDeadline: this.turnDeadline,
       turnPausedAt: this.turnPausedAt,
       turnPausedMs: this.turnPausedMs,
+      vanDungLuc: this.vanDungLuc,
       extraTimeMs: this.extraTimeMs,
       seen: [...this.seen],        // thiếu cái này thì sau F5 hoặc hibernation
       rngState: this.rng.state,    // engine "quên" thẻ nào đã lộ và phán xử sai
@@ -690,6 +724,7 @@ export class MemoryGame {
       turnDeadline: s.turnDeadline ?? 0,
       turnPausedAt: s.turnPausedAt ?? 0,
       turnPausedMs: s.turnPausedMs ?? 0,
+      vanDungLuc: s.vanDungLuc ?? 0,
       extraTimeMs: (s.extraTimeMs as number | undefined) ?? 0,
       seen: new Set((s.seen as number[] | undefined) ?? []),
       rng: Rng.fromState(s.rngState as number),

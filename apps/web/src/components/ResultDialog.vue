@@ -477,7 +477,7 @@ h2 { margin: 0 0 4px; }
 .goi-y small { display: block; color: var(--muted); }
 .goi-y .di {
   position: relative; flex: 0 0 auto; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 0;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  background: var(--nhan-nen); color: var(--nhan-chu);
   font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .goi-y .di::after { content: ''; position: absolute; inset: -6px -4px; }

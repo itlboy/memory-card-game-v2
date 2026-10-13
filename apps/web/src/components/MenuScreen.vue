@@ -16,7 +16,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, Check, ChevronLeft, Globe, Lock, Map, User, Users } from 'lucide-vue-next';
+import { Bot, Check, ChevronLeft, Globe, Lock, Map, Play, User, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
@@ -339,58 +339,59 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 </script>
 
 <template>
-  <section class="panel">
-    <header class="wizard-head">
+  <section class="panel" :class="{ 'trang-chu': step === 'players' }">
+    <header v-if="step !== 'players'" class="wizard-head">
       <button v-if="stepIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
       <h2>{{ tieuDe }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(s, i) in path" :key="s" :class="{ on: i <= stepIndex }" />
       </span>
     </header>
-
-    <!--
-      DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm. Nằm NGOÀI lưới ô
-      chế độ (lưới chia đều 1fr, đặt vào đó là chip cao bằng ô); ô chế độ tự
-      nén lại cho vừa nên không phá luật KHÔNG SCROLL.
-    -->
-    <div v-if="step === 'players' && (goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1)" class="loi-tat">
-      <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })">🔥 {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
-      <button v-if="(manChienDich ?? 0) > 1" class="lt-chip" type="button" @click="tiepChienDich">
-        <Map :size="15" aria-hidden="true" /><span class="ten">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
-      </button>
-      <button v-if="goiY" class="lt-chip goi-y" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
-        <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
-      </button>
-    </div>
+    <h2 v-else class="sr-only">{{ tieuDe }}</h2>
 
     <Transition name="step" mode="out-in">
-      <!-- BƯỚC 1: một mình hay nhiều người -->
-      <div v-if="step === 'players'" key="players" class="step-body options loose">
-        <!--
-          Chiến dịch lên thẳng đây, thành một LỐI ĐI RIÊNG chứ không phải một
-          "chế độ" ngang hàng với các tuỳ chọn: nó là chuỗi 50 màn mở khoá dần,
-          luật cố định sẵn từng màn, nên không có bảng tuỳ chọn.
-        -->
-        <button class="option big neon g-violet" type="button" @click="pickCampaign()">
-          <Map class="opt-icon" :size="40" />
+      <!--
+        TRANG CHỦ (13.10.2026, mockup B chủ dự án duyệt): quạt lá bài · Chiến
+        dịch là ô to riêng · ba ô vuông Chơi nhanh / Đấu máy / Online · dải lối
+        tắt dưới đáy. Bỏ dòng mô tả dưới mỗi ô — bốn ô dài chữ là thứ làm trang
+        chủ cũ đọc như một biểu mẫu. Quạt lá tự co (flex: 1, min-height: 0) và
+        ẩn hẳn khi máy quá thấp, nên KHÔNG SCROLL vẫn giữ.
+      -->
+      <div v-if="step === 'players'" key="players" class="step-body home">
+        <div class="quat" aria-hidden="true">
+          <span class="la-quat trai"><i /></span>
+          <span class="la-quat phai"><i /></span>
+          <span class="la-quat giua">🐼</span>
+        </div>
+
+        <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
+          <Map class="opt-icon" :size="34" aria-hidden="true" />
           <strong>{{ t('menu.chienDich') }}</strong>
-          <small>{{ t('menu.chienDichMo', { n: CAMPAIGN_LEVELS }) }}</small>
+          <span v-if="(manChienDich ?? 0) > 0" class="man">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
         </button>
-        <button class="option big neon g-blue" type="button" @click="pickPlayers()">
-          <Users class="opt-icon" :size="40" />
-          <strong>{{ t('menu.choiNhanh') }}</strong>
-          <small>{{ t('menu.choiNhanhMo') }}</small>
-        </button>
-        <button class="option big neon g-amber" type="button" @click="pickBotMode()">
-          <Bot class="opt-icon" :size="40" />
-          <strong>{{ t('menu.dauMay') }}</strong>
-          <small>{{ t('menu.dauMayMo') }}</small>
-        </button>
-        <button class="option big neon g-cyan" type="button" @click="sfx.select(); emit('online')">
-          <Globe class="opt-icon" :size="40" />
-          <strong>{{ t('menu.online') }}</strong>
-          <small>{{ t('menu.onlineMo') }}</small>
-        </button>
+
+        <div class="ba-o">
+          <button class="o-vuong neon g-blue" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
+            <Users class="opt-icon" :size="30" aria-hidden="true" /><strong>{{ t('menu.choiNhanh') }}</strong>
+          </button>
+          <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
+            <Bot class="opt-icon" :size="30" aria-hidden="true" /><strong>{{ t('menu.dauMay') }}</strong>
+          </button>
+          <button class="o-vuong neon g-cyan" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
+            <Globe class="opt-icon" :size="30" aria-hidden="true" /><strong>{{ t('menu.online') }}</strong>
+          </button>
+        </div>
+
+        <!-- DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm -->
+        <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1" class="loi-tat">
+          <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })">🔥 {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
+          <button v-if="(manChienDich ?? 0) > 1" class="lt-chip" type="button" @click="tiepChienDich">
+            <Play :size="14" aria-hidden="true" /><span class="ten">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
+          </button>
+          <button v-if="goiY" class="lt-chip goi-y" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
+            <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- BƯỚC (đấu máy): mức của máy -->
@@ -560,7 +561,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-md);
-  color: #fff; background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  color: var(--chon-chu); background: var(--chon-nen);
 }
 .name-row input {
   flex: 1; min-width: 0;
@@ -613,7 +614,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .loi-tat button.lt-chip { cursor: pointer; }
 .loi-tat button.lt-chip::after { content: ''; position: absolute; inset: -5px -2px; }
 .loi-tat .lt-chip.lua { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; border-color: transparent; }
-.loi-tat .lt-chip.goi-y { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+.loi-tat .lt-chip.goi-y { background: var(--nhan-nen); color: var(--nhan-chu); border-color: transparent; }
 .loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .hinh-nguoi {
@@ -713,12 +714,61 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
    người chơi nhìn vào chỉ thấy MỘT HÀNG KHÔNG CÓ NÚT NÀO ĐƯỢC CHỌN — không đọc
    ra được là mình đang tắt hay chưa chọn gì. */
 .seg-btn[aria-pressed="true"] {
-  background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
-  border-color: transparent; color: #fff;
+  background: var(--chon-nen);
+  border-color: transparent; color: var(--chon-chu);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 4px 14px var(--card-back-glow);
 }
 @media (hover: hover) {
   .seg-btn:not([aria-pressed="true"]):hover { border-color: var(--line-strong); color: var(--fg); }
 }
 
+
+/* ---------- TRANG CHỦ (bước players) ---------- */
+/* Panel thành trong suốt: trang chủ nằm thẳng trên nền của skin (trời, mặt gỗ…) */
+section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
+.step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+.home .loi-tat { margin: 0; }
+/* Quạt CO theo chỗ (điện thoại) nhưng có TRẦN 420px: cột máy tính cao 1.200px mà
+   quạt ăn hết phần dư thì cụm nút bị đẩy dính đáy (chủ dự án báo). Có trần thì
+   phần dư chia đều trên/dưới nhờ justify-content: center — cả cụm nằm giữa. */
+.quat { flex: 1 1 auto; max-height: 420px; min-height: 0; position: relative; container-type: size; }
+.la-quat {
+  position: absolute; left: 50%; top: 50%;
+  /* Nở theo chỗ trống (cqh của .quat), trần 320px: trên máy tính cột cao 1.200px
+     mà quạt chỉ 170px thì lọt thỏm giữa một khoảng trống (chủ dự án báo). */
+  height: min(86cqh, 53cqw, 320px); aspect-ratio: 3 / 4;   /* 53cqw: quạt rộng ≈2,5 lá, phải lọt bề ngang */
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  background: var(--card-back); box-shadow: var(--elev-2);
+  border: var(--quat-vien, 0);
+}
+.la-quat i { width: 34%; aspect-ratio: 1; background: var(--quat-hoa, rgba(255, 255, 255, .9)); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.la-quat.trai { transform: translate(-112%, -46%) rotate(-14deg); }
+.la-quat.phai { transform: translate(12%, -48%) rotate(12deg); }
+.la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); background: var(--card-face-up); font-size: min(120px, 30cqh); z-index: 1; }
+/* LẮC NHẸ (chủ dự án 13.10.2026): thuộc tính `rotate` RIÊNG nên cộng dồn lên góc
+   nghiêng trong `transform`, không đè nó. Ba nhịp lệch nhau để không lắc đồng loạt
+   như máy. Chỉ rotate — không will-change, không lớp GPU sống mãi. */
+.la-quat { animation: lac-quat 3.2s ease-in-out infinite alternate; }
+.la-quat.trai { animation-duration: 3.8s; animation-delay: -1.2s; }
+.la-quat.phai { animation-duration: 3.5s; animation-delay: -2.4s; }
+@keyframes lac-quat { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
+@media (prefers-reduced-motion: reduce) { .la-quat { animation: none; } }
+/* Máy thấp (SE + thanh địa chỉ): quạt còn dưới ~70px thì nhìn như lỗi — ẩn hẳn */
+@container (max-height: 70px) { .la-quat { display: none; } }
+
+.o-chien-dich, .o-vuong {
+  border: 2px solid transparent; border-radius: 20px; color: #fff; cursor: pointer;
+  font: inherit; transition: transform .15s ease, box-shadow .15s ease;
+}
+.o-chien-dich { flex: none; display: flex; align-items: center; gap: 12px; min-height: clamp(84px, 11vh, 120px); padding: 0 18px; text-align: left; }
+.o-chien-dich strong { flex: 1; font-family: var(--font-display); font-size: 28px; line-height: 1.1; }
+.o-chien-dich .man {
+  flex: none; padding: 6px 12px; border-radius: 14px; font-weight: 800; font-size: 14px;
+  background: #fff; color: var(--fg); border: var(--quat-vien, 0);
+}
+.ba-o { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: clamp(88px, 15vh, 150px); }
+.o-vuong { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px 4px; min-width: 0; }
+.o-vuong strong { font-family: var(--font-display); font-size: 15px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+.o-chien-dich:active, .o-vuong:active { transform: translateY(3px); }
+@media (hover: hover) { .o-chien-dich:hover, .o-vuong:hover { transform: translateY(-2px); } }
 </style>

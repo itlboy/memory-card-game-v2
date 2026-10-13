@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { HelpCircle, Languages, Menu, Moon, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Languages, Menu, Moon, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { SKINS, datSkin, skin } from '@/lib/skin';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -160,7 +161,19 @@ watch(() => props.totalScore, (to, from) => {
         </button>
 
         <p class="nhom" role="presentation">{{ t('tb.caiDat') }}</p>
+        <!-- Giao diện: đổi TỨC THÌ, menu ở lại (lib/skin.ts). Nền tối chỉ có nghĩa
+             với skin neon — hai skin kia mang bảng màu riêng, công tắc sẽ không làm gì -->
+        <div class="item am" role="group" :aria-label="t('tb.giaoDien')">
+          <Palette :size="20" /><span>{{ t('tb.giaoDien') }}</span>
+          <span class="nac">
+            <button
+              v-for="s in SKINS" :key="s" type="button" role="menuitemradio"
+              :aria-checked="skin === s" @click="datSkin(s)"
+            >{{ td(`tb.skin.${s}`) }}</button>
+          </span>
+        </div>
         <button
+          v-if="skin === 'neon'"
           class="item cong-tac" role="menuitemcheckbox" type="button" :aria-checked="dark"
           :aria-label="dark ? t('tb.sangNenSang') : t('tb.sangNenToi')"
           @click="$emit('toggle-dark')"
@@ -246,7 +259,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .logo .card-l {
   left: 0; transform: rotate(-14deg);
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  background: var(--chon-nen);
 }
 .logo .card-r {
   right: 0; transform: rotate(12deg);
@@ -313,7 +326,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   position: relative; flex-shrink: 0; white-space: nowrap;
   display: inline-flex; align-items: center; gap: 4px;
   min-height: 0; min-width: 0; padding: 4px 9px 4px 6px; border: 0; border-radius: var(--r-full);
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  background: var(--nhan-nen); color: var(--nhan-chu);
   font: inherit; cursor: pointer;
 }
 .dh span { font-size: 14px; line-height: 1; }
@@ -346,7 +359,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 /* Công tắc: đổi màu TỨC THÌ (luật thiết kế: trạng thái chọn không transition màu) */
 .sw { position: relative; flex: 0 0 auto; width: 38px; height: 22px; border-radius: 999px; background: var(--line); }
 .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
-.sw.bat { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.sw.bat { background: var(--nhan-nen); }
 .sw.bat::after { left: 19px; }
 .item.am { cursor: default; }
 .chon-nn {
@@ -362,7 +375,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   color: var(--muted); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .nac button::after { content: ''; position: absolute; inset: -7px 0; }
-.nac button[aria-checked='true'] { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+.nac button[aria-checked='true'] { background: var(--nhan-nen); color: var(--nhan-chu); }
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 @media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
 .item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }

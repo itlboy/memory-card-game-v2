@@ -1,0 +1,73 @@
+/*
+ * SKIN "NEON" — giao diện arcade neon gốc (màu ở tokens.css), file này chỉ
+ * thêm NỀN. Bản cũ nền là màu phẳng + ba quầng sáng rất nhạt; khi trang chủ
+ * bỏ tấm panel trắng (13.10.2026) thì nền đó lộ ra trống trơn — chủ dự án:
+ * "neon hơi đơn điệu vì hình nền không có".
+ *
+ * Nền gồm: quầng sáng tím/hồng/cyan đậm hơn + lưới neon ở nửa dưới (sàn
+ * arcade) + lấm tấm sao. Tất cả là gradient — không ảnh, không tốn mạng. Đi
+ * theo token nên tự đổi giữa nền sáng và nền tối.
+ */
+:root[data-skin='neon'] {
+  --neon-luoi: rgba(106, 92, 255, .2);
+  --neon-sao: rgba(106, 92, 255, .35);
+}
+:root[data-skin='neon'][data-theme='dark'] {
+  --neon-luoi: rgba(196, 76, 240, .34);
+  --neon-sao: rgba(255, 255, 255, .5);
+}
+
+:root[data-skin='neon'] {
+  /* Hình nền của skin — dùng chung cho body và màn tạm dừng (phủ kín #app) */
+  --nen-man:
+    /* lấm tấm sao */
+    radial-gradient(1.6px 1.6px at 12% 18%, var(--neon-sao) 98%, transparent),
+    radial-gradient(1.4px 1.4px at 78% 9%, var(--neon-sao) 98%, transparent),
+    radial-gradient(1.8px 1.8px at 64% 31%, var(--neon-sao) 98%, transparent),
+    radial-gradient(1.3px 1.3px at 30% 42%, var(--neon-sao) 98%, transparent),
+    radial-gradient(1.6px 1.6px at 90% 47%, var(--neon-sao) 98%, transparent),
+    radial-gradient(1.2px 1.2px at 6% 58%, var(--neon-sao) 98%, transparent),
+    /* quầng sáng — đậm hơn bản gốc để nền có chiều sâu */
+    radial-gradient(40rem 30rem at 85% -5%, color-mix(in srgb, var(--bg-glow-1) 100%, rgba(124, 92, 255, .18)), transparent 62%),
+    radial-gradient(34rem 28rem at -10% 40%, rgba(56, 189, 248, .2), transparent 60%),
+    radial-gradient(38rem 26rem at 70% 70%, rgba(196, 76, 240, .18), transparent 62%),
+    var(--bg);
+}
+:root[data-skin='neon'] body { background: var(--nen-man); background-attachment: fixed; }
+
+/* Sàn lưới neon: lớp cố định nửa dưới màn, mờ dần lên trên. PHẲNG, không
+   nghiêng 3D: bản perspective + rotateX bị dồn gần hết ra sau mặt phẳng, đo trên
+   Chrome chỉ còn vài px ở đáy (và 3D trên lớp phủ cả màn là thứ GPU iOS hay thả). */
+:root[data-skin='neon'] body::before {
+  content: ''; position: fixed; inset: 45% 0 0 0;
+  pointer-events: none; z-index: 0;
+  background:
+    repeating-linear-gradient(90deg, var(--neon-luoi) 0 1.5px, transparent 1.5px 44px),
+    repeating-linear-gradient(0deg, var(--neon-luoi) 0 1.5px, transparent 1.5px 44px);
+  background-position: center bottom;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0, 0, 0, .55) 45%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, rgba(0, 0, 0, .55) 45%, transparent 100%);
+}
+/* #app phải nằm TRÊN lớp sàn */
+:root[data-skin='neon'] #app { z-index: 1; }
+
+
+/* ---------- CẢNH CỦA CỘT GAME (13.10.2026) ----------
+   Hình nền ở body neo theo CỬA SỔ, nên trên máy tính trang trí nằm hai bên còn
+   giữa cột trống trơn (chủ dự án báo, cả ba skin). `--canh` vẽ theo khung #app
+   — điện thoại cột là cả màn, máy tính cột là khung giữa — và màn tạm dừng
+   (phủ kín #app) dùng lại đúng cảnh này. */
+:root[data-skin='neon'] {
+  --canh:
+    radial-gradient(75% 38% at 92% 4%, rgba(124, 92, 255, .28), transparent 70%),
+    radial-gradient(65% 36% at 0% 42%, rgba(56, 189, 248, .24), transparent 70%),
+    radial-gradient(75% 38% at 85% 82%, rgba(196, 76, 240, .24), transparent 70%),
+    radial-gradient(circle 1.8px at 20% 12%, var(--neon-sao) 95%, transparent),
+    radial-gradient(circle 1.5px at 66% 22%, var(--neon-sao) 95%, transparent),
+    radial-gradient(circle 2px at 40% 38%, var(--neon-sao) 95%, transparent),
+    radial-gradient(circle 1.5px at 88% 50%, var(--neon-sao) 95%, transparent),
+    radial-gradient(circle 1.8px at 12% 64%, var(--neon-sao) 95%, transparent),
+    radial-gradient(circle 1.5px at 58% 70%, var(--neon-sao) 95%, transparent);
+}
+:root[data-skin='neon'] #app { background: var(--canh); }
+:root[data-skin='neon'] .tam-dung { background: var(--canh), var(--nen-man); }

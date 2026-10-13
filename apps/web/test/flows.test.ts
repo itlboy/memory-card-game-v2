@@ -467,7 +467,8 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     expect(wrapper.findAll('.card.done')).toHaveLength(2);   // cặp đã ghép còn nguyên
     expect(wrapper.text()).toContain('1/8');
     expect(wrapper.text()).toContain('100');   // không còn phạt −10 khi lật sai                  // 100 - 10 điểm phạt
-    expect(wrapper.text()).toContain('Lượt2');
+    // HUD gọn chỉ in số lượt khi có giới hạn lượt — kiểm thẳng engine đã khôi phục
+    expect(session(wrapper).game.value!.moves).toBe(2);
   });
 
   it('reload sau khi thắng không dựng lại ván — về menu sạch sẽ', async () => {
@@ -489,7 +490,9 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     wrapper.unmount();
     await mountApp();
     expect(wrapper.findAll('.card')).toHaveLength(4);   // cấp 1 = 2×2
-    expect(wrapper.text()).toContain('Cấp1');
+    // HUD gọn (13.10.2026) không in số cấp nữa — kiểm thẳng bản lưu của ván
+    window.dispatchEvent(new Event('beforeunload'));
+    expect(sessionStorage.getItem('mm.resume') ?? '').toContain('"levelId":1');
   });
 });
 
@@ -906,7 +909,7 @@ describe('đấu với máy', () => {
 
   it('ô đấu máy nằm ngay sau Chiến dịch và Chơi nhanh ở bước đầu', async () => {
     await mountApp();
-    const tiles = wrapper.findAll('.step-body .option');
+    const tiles = wrapper.findAll('.step-body.home :is(.o-chien-dich, .o-vuong)');
     expect(tiles[0]!.text()).toContain('Chiến dịch');
     expect(tiles[1]!.text()).toContain('Chơi nhanh');
     expect(tiles[2]!.text()).toContain('Đấu với máy');

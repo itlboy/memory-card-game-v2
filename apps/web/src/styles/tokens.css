@@ -75,6 +75,15 @@
   --elev-3: 0 4px 12px rgba(30, 27, 75, .14), 0 24px 56px rgba(30, 27, 75, .2);
   --inner-light: inset 0 1px 0 rgba(255, 255, 255, .65);
 
+  /* Hai lớp tô DÙNG CHUNG cho mọi skin (lib/skin.ts): `nhan` = nút/viên nhấn
+     (tab đang mở, nút Chinh phục, công tắc bật…), `chon` = ô đang chọn / người
+     đang đi. Component đọc token này, KHÔNG viết gradient tay — 25 chỗ viết tay
+     từng làm skin Kẹo vẫn lòi gradient tím (chủ dự án báo, 13.10.2026). */
+  --nhan-nen: linear-gradient(135deg, var(--accent), var(--accent-2));
+  --nhan-chu: #fff;
+  --chon-nen: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  --chon-chu: #fff;
+
   --radius: var(--r-lg);
   --shadow: var(--elev-2);
   --shadow-soft: var(--elev-1);

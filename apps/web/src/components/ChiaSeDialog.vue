@@ -123,8 +123,8 @@ h2 { flex: 1; margin: 0; font-size: var(--text-lg); }
 .nut { display: flex; gap: 8px; width: 100%; }
 .nut .btn { flex: 1; gap: 6px; font-size: var(--text-sm); font-weight: 700; }
 .nut .chinh {
-  border: 0; color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: 0; color: var(--nhan-chu);
+  background: var(--nhan-nen);
   box-shadow: 0 6px 16px var(--card-back-glow);
 }
 </style>
