@@ -28,6 +28,9 @@ V=$(node -p "require('./apps/web/package.json').version")
 git tag -a "app-v$V" origin/main -m "App $V" && git push origin "app-v$V"
 ```
 
+Cùng phiên bản mà chỉ cần bản dựng mới (sửa lỗi trước khi nộp duyệt): khỏi tag, chạy
+tay trên main — `gh workflow run mobile.yml --ref main -f phat_hanh=true`.
+
 Tag đã tồn tại (đẩy lại cùng phiên bản sau khi sửa CI) thì phải xoá cả hai đầu
 trước — đây là thao tác ghi đè, NÓI với người dùng:
 `git tag -d app-v$V && git push origin :refs/tags/app-v$V`.
