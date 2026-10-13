@@ -250,3 +250,8 @@
    cũ). Gờ của skin này dày 4–5px nên ô hàng CUỐI bị cụt gờ — chủ dự án báo trên
    iPhone (bước số người). Chừa 8px: đủ gờ + nhích hover. */
 :root[data-skin='keo'] :is(.step-body.options, .options.fill) { overflow-clip-margin: 8px; }
+
+/* Logo thanh trên = icon app (phương án B): lá úp xanh than + lá ngửa kem, viền mực */
+:root[data-skin='keo'] .logo i { border: 2px solid var(--ink); box-shadow: 0 2px 0 var(--ink); box-sizing: border-box; }
+:root[data-skin='keo'] .logo .card-l { background: #2b4c9b; }
+:root[data-skin='keo'] .logo .card-r { background: #fffbea radial-gradient(circle at 50% 52%, #ff4d6d 28%, transparent 31%); }
