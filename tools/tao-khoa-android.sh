@@ -35,7 +35,7 @@ trap 'rm -rf "$TMP"' EXIT
 export KHOA_PASS="$(openssl rand -hex 24)"
 openssl req -x509 -newkey rsa:4096 -nodes -sha256 -days 10950 \
   -keyout "$TMP/key.pem" -out "$TMP/cert.pem" \
-  -subj "/CN=314 Labs/O=314 Labs/C=VN" 2>/dev/null
+  -subj "/CN=Cozy Pi/O=Cozy Pi/C=VN" 2>/dev/null
 openssl pkcs12 -export -inkey "$TMP/key.pem" -in "$TMP/cert.pem" \
   -name "$ALIAS" -out "$KS" -passout env:KHOA_PASS
 chmod 600 "$KS"
