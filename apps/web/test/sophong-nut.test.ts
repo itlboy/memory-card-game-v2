@@ -37,8 +37,8 @@ describe('nút công khai / riêng tư', () => {
   it('bày CẢ HAI lựa chọn, không phải một công tắc có nhãn tự đổi', () => {
     expect(src, 'phải có nhóm radio hai ô').toContain('role="radiogroup"');
     expect(src.match(/role="radio"/g)?.length, 'đúng hai ô').toBe(2);
-    expect(src).toContain('Công khai');
-    expect(src).toContain('Riêng tư');
+    expect(src).toContain("t('on.congKhai')");
+    expect(src).toContain("t('on.riengTu')");
     // Nhãn không còn là biểu thức ba ngôi đổi giữa hai tên phòng
     expect(src, 'nhãn nút không được tự đổi theo trạng thái')
       .not.toMatch(/\?\s*'Phòng công khai'\s*:\s*'Phòng riêng tư'/);

@@ -12,6 +12,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { Check, Copy, Link2, X } from 'lucide-vue-next';
 import QRCode from 'qrcode';
+import { t } from '@/lib/i18n';
 
 const props = defineProps<{ code: string; link: string; inviteText: string }>();
 const emit = defineEmits<{ close: [] }>();
@@ -49,32 +50,32 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
 </script>
 
 <template>
-  <div class="overlay" role="dialog" aria-modal="true" aria-label="Chia sẻ phòng" @click.self="emit('close')">
+  <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('cs.aria')" @click.self="emit('close')">
     <div class="hop">
       <header>
-        <h2>Mời bạn vào phòng</h2>
-        <button ref="nutDong" class="dong" type="button" aria-label="Đóng" @click="emit('close')">
+        <h2>{{ t('cs.tieuDe') }}</h2>
+        <button ref="nutDong" class="dong" type="button" :aria-label="t('cs.dong')" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>
 
       <!-- QR quét được là vào thẳng phòng: bạn bè khỏi gõ mã, khỏi gõ link -->
       <div class="qr">
-        <canvas v-show="!loiQR" ref="canvas" aria-label="Mã QR dẫn vào phòng"></canvas>
-        <p v-if="loiQR" class="loi">Không vẽ được mã QR — dùng mã hoặc link bên dưới.</p>
+        <canvas v-show="!loiQR" ref="canvas" :aria-label="t('cs.qrAria')"></canvas>
+        <p v-if="loiQR" class="loi">{{ t('cs.loiQR') }}</p>
       </div>
 
       <p class="ma-lon">{{ code }}</p>
-      <p class="giai-thich">Quét mã, hoặc đọc 6 số này cho bạn bè</p>
+      <p class="giai-thich">{{ t('cs.giaiThich') }}</p>
 
       <div class="nut">
         <button class="btn" type="button" @click="copy(code, 'ma')">
           <Check v-if="daCopyMa" :size="17" /><Copy v-else :size="17" />
-          {{ daCopyMa ? 'Đã copy mã' : 'Copy mã' }}
+          {{ daCopyMa ? t('cs.daCopyMa') : t('cs.copyMa') }}
         </button>
         <button class="btn chinh" type="button" :title="inviteText" @click="copy(inviteText, 'link')">
           <Check v-if="daCopyLink" :size="17" /><Link2 v-else :size="17" />
-          {{ daCopyLink ? 'Đã copy link' : 'Copy link' }}
+          {{ daCopyLink ? t('cs.daCopyLink') : t('cs.copyLink') }}
         </button>
       </div>
     </div>

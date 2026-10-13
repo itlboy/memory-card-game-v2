@@ -4,6 +4,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { Lock, TriangleAlert } from 'lucide-vue-next';
 import type { LevelProgress } from '@/lib/storage';
 import { starText } from '@/lib/format';
+import { t, td } from '@/lib/i18n';
 
 const props = defineProps<{
   progress: Record<string, LevelProgress>;
@@ -41,9 +42,11 @@ const chapters = computed(() => CHAPTERS.map((c) => {
     active: nextLevel.value != null && nextLevel.value >= c.from && nextLevel.value <= c.to,
     /* Khoá cả chặng: chưa mở tới cấp đầu tiên của nó. */
     locked: c.from > props.unlocked,
+    /* Tên chặng của engine là tiếng Việt — đi dịch qua khoá theo id chặng. */
+    name: td(`cd.chang.${c.id}`),
     cards: list[0]!.pairs === list.at(-1)!.pairs
-      ? `${list[0]!.pairs * 2} thẻ`
-      : `${list[0]!.pairs * 2} – ${list.at(-1)!.pairs * 2} thẻ`,
+      ? t('cd.theN', { n: list[0]!.pairs * 2 })
+      : t('cd.theKhoang', { a: list[0]!.pairs * 2, b: list.at(-1)!.pairs * 2 }),
     /* Nhiều cấp trong chặng dùng chung một cỡ bàn, khác nhau ở thời gian. Nói
        ra, không thì người chơi thấy hai cấp cùng cỡ bàn và tưởng game lặp. */
     byTime: new Set(list.map((l) => l.pairs)).size < list.length,
@@ -69,9 +72,9 @@ watch(nextLevel, scrollToActive);
   <div class="wrap">
     <p class="summary">
       <template v-if="showStars">
-        Đã đạt <b>{{ totalStars }}</b> / {{ levels.length * 3 }} sao
+        {{ t('cd.daDat') }}<b>{{ totalStars }}</b>{{ t('cd.daDatSau', { tong: levels.length * 3 }) }}
       </template>
-      <template v-else>Đã qua <b>{{ doneCount }}</b> / {{ levels.length }} cấp</template>
+      <template v-else>{{ t('cd.daQua') }}<b>{{ doneCount }}</b>{{ t('cd.daQuaSau', { tong: levels.length }) }}</template>
     </p>
 
     <!-- Ngoại lệ DUY NHẤT của luật không scroll: 50 cấp không thể nén vừa một
@@ -83,7 +86,7 @@ watch(nextLevel, scrollToActive);
         class="chapter" :class="{ active: c.active, locked: c.locked, done: c.done === c.list.length }"
       >
         <header>
-          <h3>Chặng {{ c.id }} · {{ c.name }}</h3>
+          <h3>{{ t('cd.chang', { n: c.id, ten: c.name }) }}</h3>
           <Lock v-if="c.locked" class="ch-lock" :size="15" />
           <b v-else class="tally">{{ c.done }}/{{ c.list.length }}</b>
         </header>
@@ -99,9 +102,9 @@ watch(nextLevel, scrollToActive);
                 nosym: l.id <= unlocked && needsMore(l)
               }"
               :disabled="l.id > unlocked || needsMore(l)"
-              :aria-label="`Cấp ${l.id}, ${l.pairs * 2} thẻ${
-                l.id > unlocked ? ', chưa mở khoá' : needsMore(l) ? ', cần chọn thêm theme' : ''
-              }`"
+              :aria-label="t('cd.oAria', { id: l.id, n: l.pairs * 2 }) + (
+                l.id > unlocked ? t('cd.oAriaKhoa') : needsMore(l) ? t('cd.oAriaThieu') : ''
+              )"
               type="button"
               @click="emit('play', l.id)"
             >
@@ -110,7 +113,7 @@ watch(nextLevel, scrollToActive);
                    Trước đây nó nằm trong nhánh v-else của phần sao, nên cấp ĐÃ QUA
                    hiện sao thay cho số thẻ — mất đúng thứ người chơi cần. Sao và
                    ổ khoá chuyển thành dấu ở GÓC nên không giành chỗ của nó. -->
-              <small>{{ l.pairs * 2 }} thẻ</small>
+              <small>{{ t('cd.theN', { n: l.pairs * 2 }) }}</small>
               <span v-if="cleared(l.id)" class="stars" aria-hidden="true">
                 {{ showStars ? starText(starsOf(l.id)) : '✓' }}
               </span>
@@ -120,9 +123,9 @@ watch(nextLevel, scrollToActive);
         </ol>
 
         <footer>
-          <span>{{ c.cards }}<template v-if="c.byTime"> · giờ siết dần</template></span>
+          <span>{{ c.cards }}<template v-if="c.byTime">{{ t('cd.gioSiet') }}</template></span>
           <span v-if="c.blocked" class="need-theme">
-            <TriangleAlert :size="13" /> {{ c.blocked }} cấp cần thêm theme
+            <TriangleAlert :size="13" /> {{ t('cd.canTheme', { n: c.blocked }) }}
           </span>
         </footer>
       </section>

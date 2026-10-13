@@ -28,7 +28,7 @@ describe('khoảng trắng quanh mã phòng', () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
     const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue'), 'utf8');
-    const dong = src.split('\n').find((l) => l.includes('Đang vào lại phòng'))!;
+    const dong = src.split('\n').find((l) => l.includes("t('on.dangVaoLai')"))!;
     expect(dong, 'thiếu khoảng trắng trước mã phòng').toContain('&nbsp;{{ codeInput }}');
   });
 });

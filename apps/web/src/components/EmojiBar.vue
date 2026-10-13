@@ -9,6 +9,7 @@
  * <body>, mount hai lần là hiện hai cái.
  */
 import { QUICK_EMOJIS } from '@mm/engine';
+import { t } from '@/lib/i18n';
 
 const props = defineProps<{
   /** Composable useOnlineRoom — nhận cả cụm để không phải xâu 4 prop. */
@@ -26,7 +27,7 @@ const props = defineProps<{
   <div
     v-if="!props.o.spectator.value" class="emoji-bar"
     :class="{ spent: !props.o.emojiReady.value }"
-    :aria-label="props.o.emojiReady.value ? 'Gửi emoji' : 'Gửi emoji — đợi chút, bạn vừa gửi liên tục'"
+    :aria-label="props.o.emojiReady.value ? t('eb.guiEmoji') : t('eb.doiChut')"
   >
     <button
       v-for="e in QUICK_EMOJIS" :key="e" class="emoji" type="button"

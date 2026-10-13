@@ -13,8 +13,8 @@ const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue
 
 describe('đổi tên trong phòng chờ', () => {
   it('có nút Lưu và nút Huỷ', () => {
-    expect(src).toMatch(/aria-label="Lưu tên"/);
-    expect(src).toMatch(/aria-label="Huỷ đổi tên"/);
+    expect(src).toMatch(/:aria-label="t\('on\.luuTen'\)"/);
+    expect(src).toMatch(/:aria-label="t\('on\.huyDoiTen'\)"/);
   });
 
   it('không lưu khi tên rỗng', () => {

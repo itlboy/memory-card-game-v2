@@ -10,6 +10,20 @@ import {
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiUrl } from '@/lib/appUrl';
+import { t, td, ngonNgu } from '@/lib/i18n';
+import { tenTheme } from '@/lib/achievements';
+/** Bí danh của `t` cho chỗ đã đặt tên biến cục bộ là `t`. */
+const tr = t;
+
+/**
+ * Gợi ý số thật của tuỳ chọn do ENGINE sinh bằng tiếng Việt — cùng mẫu với
+ * `dichGoiYTuyChon` ở MenuScreen (chưa tách ra lib chung).
+ */
+function dichGoiYTuyChon(s: string | null): string | null {
+  if (!s || ngonNgu.value === 'vi') return s;
+  // i18n-bo-qua: mẫu tiếng Việt của engine là thứ ĐI DỊCH, không phải chữ hiển thị
+  return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
+}
 import ConfirmDialog from './ConfirmDialog.vue';
 /*
  * Nạp KHI CẦN, không nằm trong gói chính: hộp này kéo theo thư viện vẽ QR
@@ -37,12 +51,9 @@ const o = useOnlineRoom();
 const name = ref(store.playerNames()[0] ?? '');
 /** Tên gợi ý trong ô nhập. Đặt tên vui thì bạn bè trong phòng dễ nhớ nhau hơn
  *  là "Người 1", "Người 2" — nên gợi ý bằng biệt danh thay vì một tên khô. */
-const NAME_HINTS = [
-  'Cáo Nhanh Tay', 'Mèo Trí Nhớ', 'Sóc Lật Thẻ', 'Gấu Bình Tĩnh',
-  'Cú Đêm', 'Hổ Con', 'Cá Heo Vui', 'Thỏ Tinh Mắt',
-  'Rồng Nhỏ', 'Ong Chăm Chỉ', 'Panda Ngủ Muộn', 'Sói Đơn Độc'
-];
-const namePlaceholder = `VD: ${NAME_HINTS[Math.floor(Math.random() * NAME_HINTS.length)]!}`;
+const SO_BIET_DANH = 12;   // khoá on.bietDanh.0 … on.bietDanh.11
+const bietDanhChon = Math.floor(Math.random() * SO_BIET_DANH);
+const namePlaceholder = computed(() => t('on.viDu', { ten: td(`on.bietDanh.${bietDanhChon}`) }));
 const codeInput = ref(props.joinCode ?? '');
 const copied = ref(false);
 const copiedCode = ref(false);
@@ -206,11 +217,9 @@ function luuTen(): void {
 function hoiMoiRa(id: string, ten: string, dangKetNoi: boolean): void {
   sfx.select();
   confirm.value = {
-    title: `Mời ${ten} ra khỏi phòng?`,
-    body: dangKetNoi
-      ? 'Họ bị đưa ra ngoài ngay và không tự vào lại được — vẫn vào lại được nếu bạn cho họ mã phòng.'
-      : `${ten} đang rớt mạng. Mời ra thì phòng khỏi phải chờ họ nối lại.`,
-    label: 'Mời ra',
+    title: t('on.moiRa.tieuDe', { ten }),
+    body: dangKetNoi ? t('on.moiRa.conNoi') : t('on.moiRa.rotMang', { ten }),
+    label: t('on.moiRa.nut'),
     action: () => o.moiRa(id)
   };
 }
@@ -263,20 +272,18 @@ function exit(): void {
 function hoiRoiPhong(sau: () => void): void {
   if (o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
     confirm.value = {
-      title: 'Huỷ phòng?',
-      body: 'Phòng sẽ đóng và mọi người bị đưa ra ngoài.',
-      label: 'Huỷ phòng',
+      title: t('on.huyPhong.tieuDe'),
+      body: t('on.huyPhong.than'),
+      label: t('on.huyPhong.nut'),
       action: () => { o.cancelRoom(); sau(); }
     };
     return;
   }
   const motMinh = (o.room.value?.players.length ?? 0) <= 1;
   confirm.value = {
-    title: 'Rời phòng?',
-    body: motMinh
-      ? 'Mã phòng còn sống thêm 10 phút — bạn hoặc bạn bè vẫn vào lại được bằng mã đó.'
-      : 'Bạn rời khỏi phòng này; những người còn lại vẫn chơi tiếp được.',
-    label: 'Rời phòng',
+    title: t('on.roiPhong.tieuDe'),
+    body: motMinh ? t('on.roiPhong.motMinh') : t('on.roiPhong.conNguoi'),
+    label: t('on.roiPhong.nut'),
     action: () => { o.surrender(); sau(); }
   };
 }
@@ -299,9 +306,9 @@ function quit(): void {
   const phase = o.phase.value;
   if (phase === 'playing' && !o.spectator.value) {
     confirm.value = {
-      title: 'Đầu hàng?',
-      body: 'Bạn sẽ bị xử thua ván này và rời khỏi phòng.',
-      label: 'Đầu hàng & rời phòng',
+      title: t('on.dauHang.tieuDe'),
+      body: t('on.dauHang.than'),
+      label: t('on.dauHang.nut'),
       action: () => { o.surrender(); exit(); }
     };
     return;
@@ -330,7 +337,7 @@ defineExpose({ requestHome: quit, isBusy });
 const tenPhong = computed(() => {
   const r = o.room.value;
   const chu = r?.players.find((p) => p.id === r.hostId) ?? r?.players[0];
-  return chu ? chu.name : 'Phòng chờ';
+  return chu ? chu.name : t('on.phongCho');
 });
 
 const inviteLink = computed(() =>
@@ -353,7 +360,7 @@ async function copyCode(): Promise<void> {
  * chứ một cái link trần thì người nhận không biết là gì.
  */
 const inviteText = computed(() =>
-  `Vào chơi Lật Thẻ với mình — mã phòng ${o.room.value?.code ?? ''}\n${inviteLink.value}`);
+  `${t('on.loiMoi', { code: o.room.value?.code ?? '' })}\n${inviteLink.value}`);
 
 /** Copy lời mời. KHÔNG dùng `navigator.share` nữa: bảng chia sẻ của hệ điều
  *  hành đòi thêm 2–3 chạm mới tới được app muốn gửi, mà thứ người chơi cần chỉ
@@ -413,7 +420,7 @@ function batDauVan(): void {
      * đã bị báo (lúc đó server vừa được thay ảnh nên tin `start` rơi mất). Chỉ
      * nói khi CHƯA có lỗi nào từ server: lời của server luôn cụ thể hơn.
      */
-    if (!o.error.value) o.error.value = 'Chưa mở được ván — mạng vừa chập. Bấm lại nhé.';
+    if (!o.error.value) o.error.value = t('on.moVanLoi');
   }, HAN_MO_VAN);
   o.start();
 }
@@ -425,18 +432,19 @@ onBeforeUnmount(() => clearTimeout(moVanTimer));
 
 const startLabel = computed(() => {
   const r = o.room.value;
-  if (!r || r.players.length < 2) return 'Cần ít nhất 2 người…';
-  if (!canStart.value) return `Chờ sẵn sàng (${readyCount.value.ok}/${readyCount.value.need})…`;
-  return 'Bắt đầu';
+  if (!r || r.players.length < 2) return t('on.canHaiNguoi');
+  if (!canStart.value) return t('on.choSanSang', { ok: readyCount.value.ok, need: readyCount.value.need });
+  return t('on.batDau');
 });
 
 /** Năm hàng tuỳ chọn — giống hệt wizard chơi đơn, để hai chỗ đọc ra là một. */
-const OPTION_ROWS: readonly { key: OptionKey; icon: IconName; name: string }[] = [
-  { key: 'time',    icon: 'time',    name: 'Thời gian' },
-  { key: 'lives',   icon: 'lives',   name: 'Số mạng' },
-  { key: 'peek',    icon: 'peek',    name: 'Xem trước' },
-  { key: 'shuffle', icon: 'shuffle', name: 'Xáo thẻ' },
-  { key: 'special', icon: 'special', name: 'Thẻ đặc biệt' }
+/*  Tên hàng đọc từ từ điển (`opt.<key>`), cùng khoá với MenuScreen. */
+const OPTION_ROWS: readonly { key: OptionKey; icon: IconName }[] = [
+  { key: 'time',    icon: 'time' },
+  { key: 'lives',   icon: 'lives' },
+  { key: 'peek',    icon: 'peek' },
+  { key: 'shuffle', icon: 'shuffle' },
+  { key: 'special', icon: 'special' }
 ];
 
 function setWizOption(key: OptionKey, muc: OptLevel): void {
@@ -453,7 +461,7 @@ void loadThemes().then((list) => {
   // nên khó đoán hơn, và chủ phòng không phải đi chọn từng cái.
   if (!cfg.value.themeIds.length) cfg.value = { ...cfg.value, themeIds: list.map((t) => t.id) };
 });
-const themeName = (id: string): string => allThemes.value.find((t) => t.id === id)?.name ?? id;
+const themeName = (id: string): string => tenTheme(id, allThemes.value.find((x) => x.id === id)?.name ?? id);
 /**
  * Luật của phòng KHÔNG còn là một cái tên, nên phòng chờ nói ra bằng chip — và
  * chỉ hiện thứ ĐANG BẬT. Bàn không tuỳ chọn gì thì dòng này rỗng, đúng như nó
@@ -465,7 +473,7 @@ const OPTION_ICONS: Record<OptionKey, IconName> = {
 function optionChips(c?: RoomConfig): { key: OptionKey; icon: IconName; text: string }[] {
   if (!c) return [];
   return OPTION_KEYS
-    .map((k) => ({ key: k, icon: OPTION_ICONS[k], text: optionSummary(k, c.options[k], c.level) ?? '' }))
+    .map((k) => ({ key: k, icon: OPTION_ICONS[k], text: dichGoiYTuyChon(optionSummary(k, c.options[k], c.level)) ?? '' }))
     .filter((x) => x.text !== '');
 }
 /** Liệt kê hết 12 tên theme thì dòng cấu hình dài mấy dòng và vỡ bố cục. */
@@ -479,10 +487,10 @@ function themeSummary(ids: string[]): string {
    * "16 thẻ · — chờ chủ phòng bắt đầu…", cụt lủn giữa hai dấu câu.
    */
   if (!ids.length) {
-    return allThemes.value.length ? `tất cả ${allThemes.value.length} theme` : 'tất cả theme';
+    return allThemes.value.length ? t('on.tatCaTheme', { n: allThemes.value.length }) : t('on.tatCaThemeTron');
   }
-  if (ids.length >= allThemes.value.length && allThemes.value.length) return `tất cả ${ids.length} theme`;
-  if (ids.length > 3) return `${ids.length} theme`;
+  if (ids.length >= allThemes.value.length && allThemes.value.length) return t('on.tatCaTheme', { n: ids.length });
+  if (ids.length > 3) return t('on.soTheme', { n: ids.length });
   return ids.map(themeName).join(', ');
 }
 
@@ -554,7 +562,7 @@ onUnmounted(() => { dung(); document.removeEventListener('visibilitychange', the
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 const editingInLobby = computed(() => o.phase.value === 'lobby');
 const WIZ_STEPS = ['level', 'theme', 'options'] as const;
-const WIZ_TITLES = { level: 'Chọn số thẻ', theme: 'Chọn theme thẻ', options: 'Bàn chơi' } as const;
+const WIZ_TITLES = computed(() => ({ level: t('menu.chonSoThe'), theme: t('menu.buoc.theme'), options: t('menu.buoc.options') }));
 
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
@@ -672,7 +680,7 @@ function openCfgWizard(): void {
   <!-- WIZARD CHỌN BÀN CHƠI: dùng khi tạo phòng và khi chỉnh trong lobby -->
   <section v-if="wizard" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Quay lại" type="button" @click="wizBack"><ChevronLeft :size="22" /></button>
+      <button class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="wizBack"><ChevronLeft :size="22" /></button>
       <h2>{{ WIZ_TITLES[wizard!] }}</h2>
       <span class="dots" aria-hidden="true">
         <i v-for="(st, i) in WIZ_STEPS" :key="st" :class="{ on: i <= WIZ_STEPS.indexOf(wizard) }" />
@@ -688,8 +696,8 @@ function openCfgWizard(): void {
     </div>
 
     <div v-else-if="wizard === 'theme'" class="step-body">
-      <p class="hint-multi">Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.</p>
-      <div class="options theme-grid" role="group" aria-label="Theme thẻ">
+      <p class="hint-multi">{{ t('on.nhieuTheme') }}</p>
+      <div class="options theme-grid" role="group" :aria-label="tr('on.themeAria')">
         <button
           v-for="t in allThemes" :key="t.id" class="option theme-opt" role="checkbox"
           :aria-checked="cfg.themeIds.includes(t.id)"
@@ -697,7 +705,7 @@ function openCfgWizard(): void {
           @click="wizToggleTheme(t.id)"
         >
           <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
-          <strong class="tname">{{ t.name }}</strong>
+          <strong class="tname">{{ tenTheme(t.id, t.name) }}</strong>
           <!-- Badge góc, không chiếm chỗ trong luồng (xem MenuScreen) -->
           <span v-if="cfg.themeIds.includes(t.id)" class="tick" aria-hidden="true">
             <Check :size="12" />
@@ -705,9 +713,9 @@ function openCfgWizard(): void {
         </button>
       </div>
 
-      <p v-if="themeWarn" class="warn" role="alert">Phải giữ ít nhất một theme.</p>
+      <p v-if="themeWarn" class="warn" role="alert">{{ t('menu.itNhatMotTheme') }}</p>
       <p v-if="wizTooSmall" class="warn" role="alert">
-        Chưa đủ biểu tượng cho bàn {{ levelSpec(cfg.level).pairs * 2 }} thẻ. Hãy chọn thêm theme.
+        {{ t('on.thieuBieuTuong', { n: levelSpec(cfg.level).pairs * 2 }) }}
       </p>
 
       <button
@@ -715,7 +723,7 @@ function openCfgWizard(): void {
         :disabled="wizTooSmall"
         @click="wizard = 'options'"
       >
-        Tiếp
+        {{ t('menu.tiep') }}
       </button>
     </div>
 
@@ -725,16 +733,16 @@ function openCfgWizard(): void {
       <div v-for="row in OPTION_ROWS" :key="row.key" class="opt-row">
         <div class="opt-head">
           <OptionIcon :name="row.icon" :size="24" />
-          <span class="opt-name">{{ row.name }}</span>
-          <span class="opt-hint">{{ optionSummary(row.key, cfg.options[row.key], cfg.level) ?? 'tắt' }}</span>
+          <span class="opt-name">{{ td(`opt.${row.key}`) }}</span>
+          <span class="opt-hint">{{ dichGoiYTuyChon(optionSummary(row.key, cfg.options[row.key], cfg.level)) ?? t('menu.tat') }}</span>
         </div>
-        <div class="seg" role="group" :aria-label="row.name">
+        <div class="seg" role="group" :aria-label="td(`opt.${row.key}`)">
           <button
             v-for="(nhan, muc) in OPTION_LABELS[row.key]" :key="nhan"
             class="seg-btn" type="button"
             :aria-pressed="cfg.options[row.key] === muc"
             @click="setWizOption(row.key, muc as OptLevel)"
-          >{{ nhan }}</button>
+          >{{ td(`opt.${row.key}.${muc}`) }}</button>
         </div>
       </div>
 
@@ -743,7 +751,7 @@ function openCfgWizard(): void {
         :disabled="o.phase.value === 'connecting'"
         @click="wizFinish"
       >
-        {{ editingInLobby ? 'Lưu bàn chơi' : o.phase.value === 'connecting' ? 'Đang tạo phòng…' : 'Tạo phòng' }}
+        {{ editingInLobby ? t('on.luuBan') : o.phase.value === 'connecting' ? t('on.dangTao') : t('on.taoPhong') }}
       </button>
     </div>
 
@@ -753,8 +761,8 @@ function openCfgWizard(): void {
   <!-- VÀO ONLINE: bước 1 chọn việc, bước 2 điền form -->
   <section v-else-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Quay lại" type="button" @click="backEntry"><ChevronLeft :size="22" /></button>
-      <h2>{{ entryStep === 'choose' ? 'Chơi online' : entryStep === 'create' ? 'Tạo phòng mới' : 'Vào phòng' }}</h2>
+      <button class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="backEntry"><ChevronLeft :size="22" /></button>
+      <h2>{{ entryStep === 'choose' ? t('menu.online') : entryStep === 'create' ? t('on.taoPhongMoi') : t('on.vaoPhong') }}</h2>
     </div>
 
     <!--
@@ -767,11 +775,11 @@ function openCfgWizard(): void {
     -->
     <template v-if="entryStep === 'choose'">
       <button class="btn-primary tao-phong" type="button" @click="batDauTao()">
-        <Plus :size="22" /> Tạo phòng mới
+        <Plus :size="22" /> {{ t('on.taoPhongMoi') }}
       </button>
 
       <div class="list-head">
-        <h3>Phòng đang chờ</h3>
+        <h3>{{ t('on.phongDangCho') }}</h3>
         <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
         <!-- Nhịp tự làm mới: một vòng tròn NHỎ vơi dần, không số, không viền.
              Đây là thứ liếc qua chứ không phải thứ để bấm — cái đáng bấm ở màn
@@ -779,7 +787,7 @@ function openCfgWizard(): void {
              được, nhưng nó không xin ai chú ý. -->
         <button
           class="nhip" type="button"
-          :aria-label="o.dangTaiPhong.value ? 'Đang làm mới danh sách' : `Tự làm mới sau ${demNguoc} giây — bấm để làm mới ngay`"
+          :aria-label="o.dangTaiPhong.value ? t('on.dangLamMoi') : t('on.tuLamMoi', { n: demNguoc })"
           :disabled="o.dangTaiPhong.value" @click="lamMoiNgay()"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true" :class="{ quay: o.dangTaiPhong.value }">
@@ -817,15 +825,15 @@ function openCfgWizard(): void {
             <span class="body">
               <span class="rname">{{ r.chuPhong }}</span>
               <span class="meta">
-                <template v-if="dangVaoPhong === r.code">Đang vào phòng…</template>
+                <template v-if="dangVaoPhong === r.code">{{ t('on.dangVaoPhong') }}</template>
                 <template v-else>
-                  <i><LayoutGrid :size="14" /> {{ r.the }} thẻ</i>
+                  <i><LayoutGrid :size="14" /> {{ t('on.soThe', { n: r.the }) }}</i>
                   <i><Users :size="14" /> {{ r.nguoi }}/{{ r.toiDa }}</i>
                 </template>
               </span>
             </span>
             <span v-if="dangVaoPhong !== r.code" class="slots" :class="{ tight: r.toiDa - r.nguoi <= 1 }">
-              <b>{{ r.toiDa - r.nguoi }}</b><small>CHỖ</small>
+              <b>{{ r.toiDa - r.nguoi }}</b><small>{{ t('on.cho') }}</small>
             </span>
             <RefreshCw v-if="dangVaoPhong === r.code" :size="18" class="go quay" />
             <ChevronRight v-else :size="18" class="go" />
@@ -838,29 +846,29 @@ function openCfgWizard(): void {
       <div v-else class="empty">
         <span class="art"><Globe :size="36" :stroke-width="1.9" /></span>
         <template v-if="o.loiTaiPhong.value">
-          <h4>Không xem được danh sách</h4>
-          <p>Mạng đang trục trặc. Bạn vẫn tạo phòng mới hoặc vào bằng mã được.</p>
-          <button class="btn" type="button" @click="o.taiPhongCongKhai()">Thử lại</button>
+          <h4>{{ t('on.loiDs.tieuDe') }}</h4>
+          <p>{{ t('on.loiDs.than') }}</p>
+          <button class="btn" type="button" @click="o.taiPhongCongKhai()">{{ t('on.thuLai') }}</button>
         </template>
         <template v-else>
-          <h4>Chưa có phòng nào đang chờ</h4>
-          <p>Bạn tạo phòng đầu tiên đi — phòng của bạn sẽ hiện ở đây cho người khác vào chơi.</p>
+          <h4>{{ t('on.trong.tieuDe') }}</h4>
+          <p>{{ t('on.trong.than') }}</p>
         </template>
       </div>
 
       <button class="link-row" type="button" @click="entryStep = 'join'">
-        <Hash :size="18" /> Có mã phòng? Nhập mã 6 số
+        <Hash :size="18" /> {{ t('on.nhapMa') }}
       </button>
     </template>
 
     <!-- BƯỚC 2a: tạo phòng — chỉ cần tên -->
     <template v-else-if="entryStep === 'create'">
       <label class="field">
-        <span>Tên của bạn</span>
+        <span>{{ t('on.tenBan') }}</span>
         <input v-model="name" maxlength="16" :placeholder="namePlaceholder" @keydown.enter="create">
       </label>
       <button class="btn-primary" :disabled="!name.trim()" type="button" @click="create">
-        Tiếp tục
+        {{ t('menu.tiepTuc') }}
       </button>
     </template>
 
@@ -874,19 +882,19 @@ function openCfgWizard(): void {
              Vue chạy `whitespace: 'condense'`, nó cắt khoảng trắng đầu/cuối trong
              con của một thẻ — nên " {{ code }}" viết trong <b> ra thành dính liền
              "phòngABC123". Khoảng trắng không ngắt là ký tự thật, không bị cắt. -->
-        <p class="vl-t">Đang vào lại phòng<b v-if="codeInput">&nbsp;{{ codeInput }}</b>…</p>
-        <p class="vl-s">Giữ nguyên tên và chỗ ngồi của bạn.</p>
+        <p class="vl-t">{{ t('on.dangVaoLai') }}<b v-if="codeInput">&nbsp;{{ codeInput }}</b>…</p>
+        <p class="vl-s">{{ t('on.giuCho') }}</p>
       </div>
       <template v-else>
       <p v-if="invited" class="invite">
-        🎉 Bạn được mời vào phòng <b class="invite-code">{{ codeInput }}</b>
+        {{ t('on.duocMoi') }} <b class="invite-code">{{ codeInput }}</b>
       </p>
       <label class="field">
-        <span>Tên của bạn</span>
+        <span>{{ t('on.tenBan') }}</span>
         <input v-model="name" maxlength="16" :placeholder="namePlaceholder" @keydown.enter="join">
       </label>
       <label v-if="!invited" class="field">
-        <span>Mã phòng</span>
+        <span>{{ t('on.maPhong') }}</span>
         <input
           v-model="codeInput" class="code-input" maxlength="6" placeholder="••••••"
           type="tel" inputmode="numeric" pattern="[0-9]*"
@@ -900,7 +908,7 @@ function openCfgWizard(): void {
         :disabled="!name.trim() || !codeValid || o.phase.value === 'connecting'"
         type="button" @click="join"
       >
-        {{ o.phase.value === 'connecting' ? 'Đang vào phòng…' : 'Vào phòng chơi' }}
+        {{ o.phase.value === 'connecting' ? t('on.dangVaoPhong') : t('on.vaoPhongChoi') }}
       </button>
       </template>
     </template>
@@ -909,14 +917,14 @@ function openCfgWizard(): void {
     <!-- Mất kết nối mà phòng vẫn còn (token còn trong localStorage): cho bấm
          thử lại tại chỗ, đừng bắt người ta gõ lại mã phòng. -->
     <button v-if="o.phase.value === 'error' && o.coThuLai.value" class="btn primary" type="button" @click="o.retry()">
-      Thử lại
+      {{ t('on.thuLai') }}
     </button>
   </section>
 
   <!-- LOBBY -->
   <section v-else-if="o.phase.value === 'lobby'" class="panel">
     <div class="head">
-      <button class="btn back" aria-label="Rời phòng" type="button" @click="backLobby"><ChevronLeft :size="22" /></button>
+      <button class="btn back" :aria-label="t('on.roiPhong.nut')" type="button" @click="backLobby"><ChevronLeft :size="22" /></button>
       <!-- Tên phòng LÀ tên chủ phòng — đúng cái người khác thấy trong danh sách
            công khai. Không có ô gõ tên phòng: một cái tên nữa để nghĩ ra là một
            bước nữa trước khi được chơi. -->
@@ -938,16 +946,16 @@ function openCfgWizard(): void {
       <button
         class="pill ck" :class="{ priv: !o.room.value?.congKhai, doc: !o.isHost.value }"
         type="button" :disabled="!o.isHost.value" :aria-expanded="moChonCK"
-        :aria-label="o.room.value?.congKhai ? 'Phòng công khai — chạm để đổi' : 'Phòng riêng tư — chạm để đổi'"
+        :aria-label="o.room.value?.congKhai ? t('on.ckAria') : t('on.rtAria')"
         @click="moChonCK = !moChonCK; moMoi = false"
       >
         <Globe v-if="o.room.value?.congKhai" :size="15" /><Lock v-else :size="15" />
-        {{ o.room.value?.congKhai ? 'Công khai' : 'Riêng tư' }}
+        {{ o.room.value?.congKhai ? t('on.congKhai') : t('on.riengTu') }}
       </button>
       <button
         class="pill moi" type="button" :aria-haspopup="true"
         @click="moMoi = true; moChonCK = false"
-      ><Link2 :size="15" /> Mời bạn</button>
+      ><Link2 :size="15" /> {{ t('on.moiBan') }}</button>
     </div>
 
     <!--
@@ -956,14 +964,14 @@ function openCfgWizard(): void {
       phòng mình đang ngồi có hiện cho người lạ không.
     -->
     <div v-if="moChonCK" class="sophong">
-      <div class="sp-seg" role="radiogroup" aria-label="Ai vào được phòng này">
+      <div class="sp-seg" role="radiogroup" :aria-label="t('on.aiVao')">
         <button
           class="sp-opt" :class="{ sel: o.room.value?.congKhai }" type="button"
           role="radio" :aria-checked="o.room.value?.congKhai ? 'true' : 'false'"
           @click="o.datCongKhai(true); moChonCK = false"
         >
           <Globe :size="19" />
-          <span>Công khai</span>
+          <span>{{ t('on.congKhai') }}</span>
         </button>
         <button
           class="sp-opt priv" :class="{ sel: !o.room.value?.congKhai }" type="button"
@@ -971,7 +979,7 @@ function openCfgWizard(): void {
           @click="o.datCongKhai(false); moChonCK = false"
         >
           <Lock :size="19" />
-          <span>Riêng tư</span>
+          <span>{{ t('on.riengTu') }}</span>
         </button>
       </div>
     </div>
@@ -984,7 +992,7 @@ function openCfgWizard(): void {
         <template v-if="p.id === o.myId.value && suaTen">
           <input
             ref="oTen" v-model="tenMoi" class="sua-ten" maxlength="16"
-            aria-label="Tên của bạn"
+            :aria-label="t('on.tenBan')"
             @keydown.enter="luuTen()" @keydown.esc="huySuaTen()"
           >
           <!-- NÚT LƯU rõ ràng. Trước đây chỉ có Enter và blur — Enter thì trên
@@ -992,34 +1000,34 @@ function openCfgWizard(): void {
                ai biết là bấm ra ngoài sẽ lưu. Không có gì trên màn hình nói
                rằng đã xong hay chưa. -->
           <button
-            class="nut-luu" type="button" aria-label="Lưu tên"
+            class="nut-luu" type="button" :aria-label="t('on.luuTen')"
             :disabled="!tenMoi.trim()" @click="luuTen()"
           ><Check :size="16" /></button>
           <button
-            class="nut-huy" type="button" aria-label="Huỷ đổi tên" @click="huySuaTen()"
+            class="nut-huy" type="button" :aria-label="t('on.huyDoiTen')" @click="huySuaTen()"
           ><X :size="16" /></button>
         </template>
         <template v-else>
           <b>{{ p.name }}</b>
           <button
             v-if="p.id === o.myId.value" class="nut-sua" type="button"
-            aria-label="Đổi tên" title="Đổi tên"
+            :aria-label="t('on.doiTen')" :title="t('on.doiTen')"
             @click="moSuaTen(p.name)"
           ><Pencil :size="14" /></button>
         </template>
-        <small v-if="p.id === o.room.value?.hostId">chủ phòng</small>
-        <small v-if="p.id === o.myId.value && !suaTen">(bạn)</small>
+        <small v-if="p.id === o.room.value?.hostId">{{ t('on.chuPhong') }}</small>
+        <small v-if="p.id === o.myId.value && !suaTen">{{ t('on.ban') }}</small>
         <!-- Ping hiện từ PHÒNG CHỜ, không đợi vào ván: biết mạng mình thế nào
              trước khi bắt đầu thì còn kịp xử lý. -->
         <span
           v-if="p.id === o.myId.value && p.connected"
           class="ping" :class="o.netQuality.value"
-          :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
+          :title="o.ping.value === null ? t('on.doTreDangDo') : t('on.doTre', { ms: o.ping.value })"
         >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
-        <span v-if="!p.connected" class="offline">rớt mạng…</span>
+        <span v-if="!p.connected" class="offline">{{ t('on.rotMang') }}</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
           <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
-          <template v-else>{{ p.ready ? '✓ sẵn sàng' : 'chưa sẵn sàng' }}</template>
+          <template v-else>{{ p.ready ? t('on.sanSang') : t('on.chuaSanSang') }}</template>
         </span>
         <!-- Mời ra: chỉ CHỦ PHÒNG thấy, và không bao giờ hiện ở dòng của chính
              mình — muốn đi thì có nút rời phòng, đi đường đó mới chuyển quyền
@@ -1028,7 +1036,7 @@ function openCfgWizard(): void {
              bấm vẫn hỏi xác nhận trước khi mời ra. -->
         <button
           v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra" type="button"
-          :aria-label="`Mời ${p.name} ra khỏi phòng`" :title="`Mời ${p.name} ra khỏi phòng`"
+          :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
           @click="hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="16" :stroke-width="2.6" /></button>
       </li>
@@ -1037,7 +1045,7 @@ function openCfgWizard(): void {
       <!-- Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng: đã từng ghi 4 ở đây và
            lệch với server khi đổi trần. -->
       <li v-if="(o.room.value?.players.length ?? 0) < ROOM_LIMITS.maxPlayers" class="empty">
-        Còn {{ ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0) }} chỗ trống
+        {{ t('on.conCho', { n: ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0) }) }}
       </li>
     </ul>
 
@@ -1045,10 +1053,10 @@ function openCfgWizard(): void {
       <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
       <div class="cfg-summary">
         <span>
-          <b>{{ cardCount }} thẻ</b>
+          <b>{{ t('on.soThe', { n: cardCount }) }}</b>
           · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         </span>
-        <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> Chỉnh</button>
+        <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> {{ t('on.chinh') }}</button>
       </div>
       <!-- Chỉ hiện tuỳ chọn ĐANG BẬT: bàn trơn thì dòng này rỗng, và không có
            gì để đọc là đúng — không có luật lạ nào. -->
@@ -1062,7 +1070,7 @@ function openCfgWizard(): void {
         :class="{ dangMo: dangMoVan }"
         :disabled="!canStart || dangMoVan"
         @click="batDauVan()"
-      ><span v-if="dangMoVan" class="quay" aria-hidden="true" />{{ dangMoVan ? 'Đang mở ván…' : startLabel }}</button>
+      ><span v-if="dangMoVan" class="quay" aria-hidden="true" />{{ dangMoVan ? t('on.dangMoVan') : startLabel }}</button>
     </template>
     <template v-else>
       <!-- Bàn chơi ĐỌC TRƯỚC KHI BẤM: đây là thứ người ta cần biết để quyết
@@ -1074,14 +1082,14 @@ function openCfgWizard(): void {
         </span>
       </div>
       <p class="hint">
-        {{ cardCount }} thẻ · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
-        — chờ chủ phòng bắt đầu…
+        {{ t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
+        — {{ t('on.choChuPhong') }}
       </p>
       <button
         class="btn-primary" :class="{ 'is-ready': meReady }" type="button"
         @click="o.setReady(!meReady)"
       >
-        {{ meReady ? '✅ Đã sẵn sàng — bấm để huỷ' : 'Sẵn sàng!' }}
+        {{ meReady ? t('on.daSanSang') : t('on.sanSangNut') }}
       </button>
     </template>
     <!-- Chat ngay ở phòng chờ: lúc ngồi đợi nhau mới là lúc cần nói chuyện
