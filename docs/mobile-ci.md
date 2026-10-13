@@ -46,19 +46,30 @@ Hai bẫy:
 
 ### iOS — ký + đẩy TestFlight
 
-| Secret | Lấy ở đâu |
-|---|---|
-| `APPLE_TEAM_ID` | developer.apple.com → Account → Membership details → *Team ID* (10 ký tự) |
-| `ASC_KEY_ID` | App Store Connect → Users and Access → **Integrations** → App Store Connect API → *Team Keys* → tạo key, quyền **Admin** |
-| `ASC_ISSUER_ID` | cùng trang đó, dòng *Issuer ID* phía trên bảng key |
-| `ASC_KEY_P8_BASE64` | file `AuthKey_XXXX.p8` tải về (CHỈ tải được một lần): `base64 -i AuthKey_XXXX.p8 \| gh secret set ASC_KEY_P8_BASE64` |
+Hai bộ, khác việc:
 
-Ký tự động trên đám mây (cloud-managed signing) — không có .p12 / provisioning
-profile nào phải giữ. Key cần quyền **Admin**: quyền thấp hơn thì không xin được
-chứng chỉ phân phối và archive báo "No signing certificate".
+| Secret | Dùng để | Lấy ở đâu |
+|---|---|---|
+| `APPLE_TEAM_ID` | ký | developer.apple.com → Account → Membership details → *Team ID* |
+| `IOS_DIST_P12_BASE64` | ký | `node tools/tao-ky-ios.mjs <AuthKey_XXXX.p8> <Issuer ID> --gh` tự tạo và nạp cả ba |
+| `IOS_DIST_P12_PASSWORD` | ký | 〃 |
+| `IOS_PROFILE_BASE64` | ký | 〃 |
+| `ASC_KEY_ID` | đẩy TestFlight (+ script trên) | App Store Connect → Users and Access → **Integrations** → App Store Connect API → *Team Keys*, quyền **Admin** |
+| `ASC_ISSUER_ID` | 〃 | dòng *Issuer ID* phía trên bảng key |
+| `ASC_KEY_P8_BASE64` | 〃 | file `AuthKey_XXXX.p8` (CHỈ tải được một lần): `base64 -i AuthKey_XXXX.p8 \| gh secret set ASC_KEY_P8_BASE64` |
+
+**Chứng chỉ phân phối + profile hết hạn sau 1 NĂM** — chạy lại `tools/tao-ky-ios.mjs`
+(xoá `ios-distribution.p12` cũ trước, script không ghi đè). Khoá riêng của chứng chỉ
+sinh trên máy chạy script, không qua Apple.
+
+Vì sao ký thủ công chứ không để Xcode ký tự động trên CI: đã thử ba cách và cả ba
+hỏng — lý do ghi ngay trong `mobile.yml` (ký tự động đòi iPhone đăng ký; ký lúc
+xuất thì mất entitlements; ký tạm rồi ký lại thì Apple từ chối "Invalid Signature").
 
 Trước lần đẩy TestFlight đầu tiên phải có app trên App Store Connect:
-- developer.apple.com → Identifiers → đăng ký App ID `com.hello314.flipmatch`;
+- developer.apple.com → Identifiers → App ID `com.hello314.flipmatch`, bật
+  **Sign In with Apple** (app có nút Đăng nhập Apple; thiếu là profile không mang
+  entitlement và CI đỏ ở bước soát);
 - App Store Connect → Apps → **+** → New App, chọn đúng bundle ID đó.
 
 `ITSAppUsesNonExemptEncryption = false` đã có trong Info.plist nên TestFlight
