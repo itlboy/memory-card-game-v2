@@ -42,7 +42,9 @@ const TAM_TRANG = {
   menu: { bpm: 104, bpmMax: 104, loc: 5200, rai: 0.032, bass: 0.07, giai: 0.042 },
   van: { bpm: 84, bpmMax: 124, loc: 2200, rai: 0.022, bass: 0.055, giai: 0.026 },
 } as const;
-const AM_LUONG = 0.55;
+// Nhạc nền nằm DƯỚI tiếng lật/ghép thẻ. 0,55 lấn tiếng hiệu ứng — chủ dự án
+// hạ 40% (13.10.2026). Chỉnh nhạc nền ở đây, đừng đụng âm lượng chung của sfx.
+const AM_LUONG = 0.33;
 
 const hz = (midi: number): number => 440 * 2 ** ((midi - 69) / 12);
 
