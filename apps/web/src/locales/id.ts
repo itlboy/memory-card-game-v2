@@ -520,7 +520,7 @@ const id: TuDien = {
   'lc.diem1b': '100 poin', 'lc.diem1c': ' untuk setiap pasangan yang cocok.',
   'lc.diem2': 'Pasangan beruntun memberi pengali: ', 'lc.diem2b': 'x1,2 · x1,5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'Salah tebak ', 'lc.diem3b': 'tidak mengurangi poin', 'lc.diem3c': ' — tapi rantai pengalimu terputus.',
-  'lc.diem4': 'Poin dari setiap permainan dijumlahkan ke ', 'lc.diem4b': 'total skormu', 'lc.diem4c': ' — kumpulkan cukup banyak untuk membuka tema baru.',
+  'lc.diem4': 'Poin dari setiap permainan dijumlahkan ke ', 'lc.diem4b': 'total skormu', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Opsi permainan',
   'lc.opt.time': 'Hitung mundur untuk seluruh permainan. Tiap pasangan cocok menambah 2 detik, dan selesai lebih awal memberi poin bonus. Matikan kalau mau main santai.',
   'lc.opt.lives': 'Nyawa hanya berkurang kalau kartu PERTAMA yang kamu balik punya kembaran yang sudah pernah terlihat — kamu tahu letak pasangannya, tapi tetap meleset. Kalau kartu pertama masih baru, kamu sedang menjelajah, jadi salahnya tidak dihitung. Nyawa menipis? Cocokkan dua pasangan beruntun untuk mendapat 1 nyawa lagi. Makin besar papan, makin banyak nyawanya.',

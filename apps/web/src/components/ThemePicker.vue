@@ -15,6 +15,7 @@ import { Check, Crown, Sparkles, X } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
 import { choiDuoc, daMuaPremium } from '@/lib/premium';
+import { anhEmoji } from '@/lib/emoji';
 import { useBackCloser } from '@/composables/useBackGuard';
 import type { CardTheme } from '@/lib/themes';
 
@@ -84,7 +85,12 @@ function cham(x: CardTheme): void {
       <p class="tp-nhan"><Crown :size="14" aria-hidden="true" /> {{ t('tp.premium') }}</p>
       <h2>{{ tenTheme(xemTruoc.id, xemTruoc.name) }}</h2>
       <div class="tp-bo" aria-hidden="true">
-        <span v-for="s in xemTruoc.symbols" :key="s">{{ s }}</span>
+        <!-- Cùng cách vẽ với mặt bài (`lib/emoji.ts`): máy không phải Apple vẽ SVG
+             Twemoji — emoji bitmap của Android phóng to là mờ -->
+        <span v-for="s in xemTruoc.symbols" :key="s">
+          <img v-if="anhEmoji(s)" class="tp-anh" :src="anhEmoji(s)!" alt="" draggable="false">
+          <template v-else>{{ s }}</template>
+        </span>
       </div>
       <p class="tp-mo-ta">{{ t('tp.trongGoi', { n: premium.length }) }}</p>
       <button class="btn-primary" type="button" @click="baoSapCo = true">{{ t('tp.moKhoa') }}</button>
@@ -131,6 +137,7 @@ function cham(x: CardTheme): void {
   padding: 10px; border-radius: var(--r-md); background: var(--panel-soft);
   font-size: 28px; line-height: 1.2; text-align: center;
 }
+.tp-anh { width: 1em; height: 1em; display: block; margin: 0 auto; }
 .tp-mo-ta { margin: 0; color: var(--muted); font-size: var(--text-sm); }
 .tp-sap-co { margin: 0; text-align: center; font-weight: 700; }
 </style>

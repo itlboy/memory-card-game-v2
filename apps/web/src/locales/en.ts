@@ -519,7 +519,7 @@ const en: TuDien = {
   'lc.diem1b': '100 points', 'lc.diem1c': ' for each matching pair.',
   'lc.diem2': 'Matches in a row earn a multiplier: ', 'lc.diem2b': 'x1.2 · x1.5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'A miss ', 'lc.diem3b': 'costs no points', 'lc.diem3c': ' — but it breaks your current multiplier streak.',
-  'lc.diem4': 'Points from every game add up to your ', 'lc.diem4b': 'lifetime total', 'lc.diem4c': ' — reach enough to unlock more themes.',
+  'lc.diem4': 'Points from every game add up to your ', 'lc.diem4b': 'lifetime total', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Game Options',
   'lc.opt.time': 'A countdown clock for the whole game. Each match adds 2 seconds, and finishing early earns bonus points. Turn it off to play at your own pace.',
   'lc.opt.lives': 'You only lose a life when the FIRST card you flip has a twin you\'ve already seen — you knew where its match was and still missed. If the first card is new, you\'re just exploring, so the miss doesn\'t count. Running low? Make two matches in a row to win back 1 life. Bigger boards give you more lives.',

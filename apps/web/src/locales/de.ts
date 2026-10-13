@@ -520,7 +520,7 @@ const de: TuDien = {
   'lc.diem1b': '100 Punkte', 'lc.diem1c': ' für jedes gefundene Paar.',
   'lc.diem2': 'Paare in Folge bringen einen Multiplikator: ', 'lc.diem2b': 'x1,2 · x1,5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'Ein Fehlgriff ', 'lc.diem3b': 'kostet keine Punkte', 'lc.diem3c': ' — beendet aber deine Multiplikator-Serie.',
-  'lc.diem4': 'Die Punkte jedes Spiels zählen zu deiner ', 'lc.diem4b': 'Gesamtpunktzahl', 'lc.diem4c': ' — mit genug Punkten schaltest du neue Themen frei.',
+  'lc.diem4': 'Die Punkte jedes Spiels zählen zu deiner ', 'lc.diem4b': 'Gesamtpunktzahl', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Spieloptionen',
   'lc.opt.time': 'Ein Countdown für das ganze Spiel. Jedes Paar bringt 2 Sekunden extra, und wer früher fertig ist, bekommt Bonuspunkte. Ausgeschaltet spielst du in deinem eigenen Tempo.',
   'lc.opt.lives': 'Du verlierst nur dann ein Leben, wenn das Gegenstück deiner ERSTEN aufgedeckten Karte schon einmal zu sehen war — du wusstest also, wo es liegt, und hast trotzdem danebengegriffen. Ist die erste Karte neu, erkundest du nur, und der Fehlgriff zählt nicht. Fast keine Leben mehr? Finde zwei Paare in Folge und hol dir 1 Leben zurück. Größere Spielfelder geben mehr Leben.',

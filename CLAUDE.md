@@ -748,8 +748,18 @@
   mặt bài; Windows không có emoji cờ. iPhone/iPad/Mac GIỮ emoji Apple. Chỉ đổi cách
   VẼ — ký hiệu trên dây vẫn là chuỗi emoji nên Android chơi chung với iPhone như cũ.
   **Thêm/sửa theme là phải `node tools/tai-twemoji.mjs`** (test `emoji-vector` đỏ nếu
-  thiếu file); chỉ dùng emoji Unicode ≤14 để máy cũ không ra ô trống. Số theme phải
-  chia hết cho 3 VÀ 4 (lưới theme 3 hoặc 4 cột). Ghi công CC-BY ở `lc.ghiCong`.
+  thiếu file); chỉ dùng emoji Unicode ≤14 để máy cũ không ra ô trống. Số theme
+  MỖI TAB (miễn phí / premium) phải chia hết cho 3 VÀ 4 (lưới theme 3 hoặc 4 cột).
+  Ghi công CC-BY ở `lc.ghiCong`.
+- **THEME PREMIUM (14.10.2026): MỘT gói mở hết, theme KHÔNG còn mở bằng điểm.**
+  Cờ `premium` trong themes.json (+ `THEME_PREMIUM` ở server, test canh khớp); hiện
+  24 miễn phí + 24 premium. Hỏi quyền CHỈ qua `choiDuoc()` ở `lib/premium.ts` — đợt
+  này CHƯA BÁN THẬT (nút mua báo "sắp có", `mm.premium='1'` để thử giao diện đã mua);
+  làm IAP thì chỉ thay chỗ đặt `daMuaPremium`. Bước theme là `ThemePicker.vue` dùng
+  chung cho MenuScreen + OnlineScreen: hai tab, ô premium chưa mua KHÔNG mờ/disabled
+  mà chạm là mở hộp xem trước đủ bộ hình (vẽ qua `anhEmoji` như mặt bài). Online:
+  chỉ chủ phòng cần sở hữu, người vào phòng chơi được; phòng tạo nhanh (`themeIds`
+  rỗng) chỉ trộn theme miễn phí. Bản lưu chọn theme premium chưa mua bị lọc lúc nạp.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).

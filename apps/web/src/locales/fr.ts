@@ -523,7 +523,7 @@ const fr: TuDien = {
   'lc.diem1b': '100 points', 'lc.diem1c': ' par paire trouvée.',
   'lc.diem2': 'Les paires trouvées d’affilée donnent un multiplicateur : ', 'lc.diem2b': 'x1,2 · x1,5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'Une erreur ', 'lc.diem3b': 'ne coûte aucun point', 'lc.diem3c': ' — mais elle casse ta série, et donc ton multiplicateur.',
-  'lc.diem4': 'Les points de chaque partie s’ajoutent à ton ', 'lc.diem4b': 'score cumulé', 'lc.diem4c': ' — accumules-en assez pour débloquer de nouveaux thèmes.',
+  'lc.diem4': 'Les points de chaque partie s’ajoutent à ton ', 'lc.diem4b': 'score cumulé', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Options de jeu',
   'lc.opt.time': 'Un compte à rebours pour toute la partie. Chaque paire ajoute 2 secondes, et finir en avance rapporte des points bonus. Désactive-le pour jouer à ton rythme.',
   'lc.opt.lives': 'Tu ne perds une vie que si la PREMIÈRE carte retournée a une jumelle que tu as déjà vue — tu savais où était sa paire et tu l’as ratée. Si la première carte est nouvelle, tu explores : l’erreur ne compte pas. Bientôt à court de vies ? Trouve deux paires d’affilée pour en récupérer une. Plus le plateau est grand, plus tu as de vies.',

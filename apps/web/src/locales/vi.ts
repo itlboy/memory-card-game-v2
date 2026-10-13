@@ -530,7 +530,7 @@ const vi = {
   'lc.diem1b': '100 điểm', 'lc.diem1c': ' mỗi cặp đúng.',
   'lc.diem2': 'Ghép đúng liên tiếp được nhân thêm: ', 'lc.diem2b': 'x1,2 · x1,5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'Lật sai ', 'lc.diem3b': 'không bị trừ điểm', 'lc.diem3c': ' — nhưng mất chuỗi nhân điểm đang có.',
-  'lc.diem4': 'Điểm mọi ván cộng vào ', 'lc.diem4b': 'tổng tích luỹ', 'lc.diem4c': ' — đủ điểm thì mở thêm theme.',
+  'lc.diem4': 'Điểm mọi ván cộng vào ', 'lc.diem4b': 'tổng tích luỹ', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Tuỳ chọn bàn chơi',
   'lc.opt.time': 'Đồng hồ đếm ngược cho cả ván. Ghép đúng được cộng 2 giây, xong sớm thì thưởng thêm điểm. Tắt thì chơi thong thả bao lâu cũng được.',
   'lc.opt.lives': 'Chỉ mất mạng khi thẻ LẬT ĐẦU đã có lá trùng lộ ra từ trước — tức bạn biết lá kia nằm đâu mà vẫn bấm sai. Lá lật đầu còn mới thì bạn đang dò bài, bốc trúng lá nào cũng không bị trừ. Sắp hết mạng mà ghép đúng hai lần liền thì hồi 1 mạng. Bàn càng lớn càng cho nhiều mạng.',

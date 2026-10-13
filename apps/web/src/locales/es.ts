@@ -519,7 +519,7 @@ const es: TuDien = {
   'lc.diem1b': '100 puntos', 'lc.diem1c': ' por cada par acertado.',
   'lc.diem2': 'Los aciertos seguidos dan un multiplicador: ', 'lc.diem2b': 'x1,2 · x1,5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'Un fallo ', 'lc.diem3b': 'no resta puntos', 'lc.diem3c': ', pero rompe tu racha de multiplicador.',
-  'lc.diem4': 'Los puntos de cada partida se suman a tu ', 'lc.diem4b': 'total acumulado', 'lc.diem4c': ': consigue suficientes para desbloquear más temas.',
+  'lc.diem4': 'Los puntos de cada partida se suman a tu ', 'lc.diem4b': 'total acumulado', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Opciones de juego',
   'lc.opt.time': 'Un temporizador para toda la partida. Cada acierto suma 2 segundos y terminar antes da puntos extra. Desactívalo para jugar a tu ritmo.',
   'lc.opt.lives': 'Solo pierdes una vida si la PRIMERA carta que volteas tiene una pareja que ya habías visto: sabías dónde estaba y aun así fallaste. Si la primera carta es nueva, solo estás explorando y el fallo no cuenta. ¿Te quedan pocas vidas? Acierta dos veces seguidas para recuperar 1. Cuanto más grande el tablero, más vidas.',

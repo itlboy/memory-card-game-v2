@@ -519,7 +519,7 @@ const pt: TuDien = {
   'lc.diem1b': '100 pontos', 'lc.diem1c': ' por par encontrado.',
   'lc.diem2': 'Acertos seguidos ativam um multiplicador: ', 'lc.diem2b': 'x1,2 · x1,5 · x2', 'lc.diem2c': '.',
   'lc.diem3': 'Um erro ', 'lc.diem3b': 'não tira pontos', 'lc.diem3c': ' — mas zera sua sequência do multiplicador.',
-  'lc.diem4': 'Os pontos de cada partida se somam ao seu ', 'lc.diem4b': 'total acumulado', 'lc.diem4c': ' — acumule pontos para desbloquear mais temas.',
+  'lc.diem4': 'Os pontos de cada partida se somam ao seu ', 'lc.diem4b': 'total acumulado', 'lc.diem4c': '.',
   'lc.h.tuyChon': 'Opções de jogo',
   'lc.opt.time': 'Uma contagem regressiva para a partida inteira. Cada acerto soma 2 segundos, e terminar antes rende pontos extras. Desative para jogar no seu ritmo.',
   'lc.opt.lives': 'Você só perde uma vida quando a PRIMEIRA carta que vira tem um par que você já viu — ou seja, você sabia onde estava e mesmo assim errou. Se a primeira carta é nova, você está só explorando e o erro não conta. Vidas acabando? Acerte dois pares seguidos para recuperar 1 vida. Tabuleiros maiores dão mais vidas.',
