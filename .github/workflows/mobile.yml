@@ -48,10 +48,10 @@ jobs:
       CO_KHOA: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
       CO_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # KHÔNG khai `version`: pnpm lấy từ `packageManager` trong package.json (xem docker.yml)
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -60,7 +60,7 @@ jobs:
         working-directory: apps/web
         run: pnpm build:android
       # Capacitor 8 cần JDK 21
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -74,7 +74,7 @@ jobs:
       - name: APK debug (cài thử)
         working-directory: apps/web/android
         run: ./gradlew --no-daemon assembleDebug -PversionCode=${{ steps.ver.outputs.code }} -PversionName=${{ steps.ver.outputs.name }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-debug.apk
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -94,7 +94,7 @@ jobs:
           ./gradlew --no-daemon bundleRelease assembleRelease -PversionCode=${{ steps.ver.outputs.code }} -PversionName=${{ steps.ver.outputs.name }}
           rm -f "$ANDROID_KEYSTORE_PATH"
       - if: env.CO_KHOA == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-release
           path: |
@@ -122,9 +122,9 @@ jobs:
     env:
       CO_APPLE: ${{ secrets.APPLE_TEAM_ID != '' && secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' && secrets.ASC_KEY_P8_BASE64 != '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -214,7 +214,7 @@ jobs:
             cd "$RUNNER_TEMP" && unzip -oq ipa/*.ipa -d soat && codesign -d --entitlements - soat/Payload/App.app
           fi
       - if: env.CO_APPLE == 'true' && env.PHAT_HANH != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-ios
           path: ${{ runner.temp }}/ipa/*.ipa
