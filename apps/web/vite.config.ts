@@ -52,6 +52,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,json,png,svg,woff2}'],
+        // 665 SVG mặt bài chỉ máy không-Apple dùng (lib/emoji.ts): không nhét vào
+        // precache (iPhone tải ~1MB vô ích), nạp dần lúc chơi và giữ trong cache.
+        globIgnores: ['**/emoji/**'],
+        runtimeCaching: [{
+          urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/emoji/'),
+          handler: 'CacheFirst',
+          options: { cacheName: 'emoji', expiration: { maxEntries: 800 } }
+        }],
         // Ván online phải luôn đi thẳng ra server — không bao giờ trả từ cache
         // Trang tĩnh (privacy/support) là file riêng — store của Apple/Google mở
         // thẳng URL đó, không được rơi về index.html của game

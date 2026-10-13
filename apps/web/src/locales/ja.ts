@@ -528,7 +528,7 @@ const ja: TuDien = {
   'lc.xemThang': '勝利・{ten}',
   'lc.xemThua': '敗北・{ten}',
   'lc.xemThuaMay': 'コンピューターに負け',
-  'lc.ghiCong': 'ドラゴンの顔のイラスト：Twemoji (Twitter, Inc.)・CC-BY 4.0、色を変更',
+  'lc.ghiCong': "カードの絵柄（Apple以外の端末）とドラゴンの顔：Twemoji（Twitter, Inc.）· CC-BY 4.0。ドラゴンは色を変更",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': '獲得した星 ',

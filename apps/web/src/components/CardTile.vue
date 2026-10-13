@@ -5,6 +5,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealDelay } from '@/lib/timing';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
+import { anhEmoji } from '@/lib/emoji';
 
 const props = defineProps<{
   card: Card;
@@ -42,6 +43,8 @@ const props = defineProps<{
   cardCount?: number;
 }>();
 
+/** Máy không phải Apple vẽ emoji bằng SVG (nét ở mọi cỡ) — xem lib/emoji.ts. */
+const anh = computed(() => anhEmoji(props.card.symbol));
 /** Ký hiệu là CHỮ/SỐ (theme Chữ & số) chứ không phải emoji → nét đậm, xem `.front.chu`. */
 const laChu = computed(() => /^[\x21-\x7E]{1,3}$/.test(props.card.symbol ?? ''));
 
@@ -430,7 +433,8 @@ const label = computed(() => {
     <span class="inner">
       <span class="face back" :class="lopMatSau" aria-hidden="true"></span>
       <span class="face front" :class="{ chu: laChu }" aria-hidden="true">
-        {{ card.symbol }}
+        <img v-if="anh" class="emoji" :src="anh" alt="" draggable="false" decoding="async">
+        <template v-else>{{ card.symbol }}</template>
         <span v-if="card.power && !card.powerUsed" class="badge">
           <OptionIcon v-if="POWER_ICON[card.power]" :name="POWER_ICON[card.power]!" :size="14" />
           <template v-else>💥</template>
@@ -782,6 +786,8 @@ const label = computed(() => {
  * Khai một cỡ duy nhất thì không có lúc nào để nhỏ đi.
  */
 .front { font-size: max(22px, 72cqw); }
+/* SVG Twemoji cùng cỡ với emoji chữ (1em ≈ ô glyph emoji); không chặn chạm của lá */
+.front .emoji { width: .92em; height: .92em; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 /*
  * THEME CHỮ & SỐ: ký hiệu là CHỮ chứ không phải emoji, nên nó ăn phông thân bài
  * ở nét thường và trông mảnh lọt thỏm giữa lá (chủ dự án báo 11.10.2026). Dùng
