@@ -915,6 +915,18 @@ describe('đấu với máy', () => {
     expect(tiles[2]!.text()).toContain('Đấu với máy');
   });
 
+  it('vào Đấu máy ngay sau Chiến dịch vẫn có nút quay lại', async () => {
+    // Bản cũ chỉ đổi mode khỏi 'campaign' lúc CHỌN MỨC máy, nên ở bước chọn mức
+    // đường đi vẫn là của Chiến dịch (không có 'bot') và nút quay lại biến mất.
+    await mountApp();
+    await pickMode('Chiến dịch');
+    await click('Quay lại');
+    await click('Đấu với máy');
+    expect(wrapper.find('.wizard-head .back').exists(), 'bước chọn máy thiếu nút quay lại').toBe(true);
+    await click('Quay lại');
+    expect(wrapper.find('.step-body.home').exists()).toBe(true);
+  });
+
   it('ván đấu máy có đúng hai người: người chơi và máy', async () => {
     await mountApp();
     await startVsBot(BOT_SPECS.hard.name);
