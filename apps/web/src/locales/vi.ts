@@ -443,8 +443,6 @@ const vi = {
   'on.luuTen': 'Lưu tên',
   'on.huyDoiTen': 'Huỷ đổi tên',
   'on.doiTen': 'Đổi tên',
-  'on.chuPhong': 'chủ phòng',
-  'on.ban': '(bạn)',
   'on.doTreDangDo': 'Độ trễ mạng của bạn — đang đo',
   'on.doTre': 'Độ trễ mạng của bạn: {ms}ms',
   'on.rotMang': 'rớt mạng…',

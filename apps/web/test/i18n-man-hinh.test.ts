@@ -180,7 +180,7 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
  */
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
   es: ['Solo', 'Normal', 'pts', '999.999k pts'],
-  pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze'],
+  pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon'],
   fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause'],
   de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause'],
   en: ['Neon'],   // tên skin (13.10.2026): tiếng Việt cũng gọi là Neon
