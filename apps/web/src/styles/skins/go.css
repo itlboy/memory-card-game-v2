@@ -1,0 +1,186 @@
+/*
+ * SKIN "GỖ" — bàn gỗ óc chó, giấy dó, đỏ son (hướng A của mockup
+ * https://claude.ai/artifact/6NDRazvmMWRh5ErbZZmnLo). Ấm, tĩnh, chất Việt.
+ *
+ * Điểm nhấn DUY NHẤT là chất giấy: khối nào bấm được cũng là một tờ giấy dó
+ * có mép dày (`0 2px 0 #cdbe9c`) và bóng đổ xuống mặt gỗ. Màu nhấn đỏ son chỉ
+ * dùng cho hành động chính và con dấu — rải khắp nơi là mất giá trị.
+ *
+ * Cùng luật selector với keo.css: mọi khối dưới `:root[data-skin='go']`.
+ */
+:root[data-skin='go'] {
+  --ink: #2a1c12;
+  --font-display: 'Paytone One', 'Baloo 2', system-ui, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Nunito', system-ui, -apple-system, sans-serif;
+
+  --bg: #3a2618;
+  --bg-glow-1: transparent; --bg-glow-2: transparent; --bg-glow-3: transparent;
+  --panel: #f3e9d2; --panel-solid: #f3e9d2; --panel-soft: #eadcbc;
+  --fg: #2a1c12;
+  --muted: #6b5643;            /* 5,6:1 trên #eadcbc */
+  --accent: #b23a2e;           /* đỏ son */
+  --accent-2: #c9952b;         /* vàng lá */
+  --accent-soft: rgba(178, 58, 46, .12);
+  --ok: #2f6b57; --warn: #8a5a00; --gold: #a87a12; --bad: #b23a2e;
+  --ok-solid: #2f6b57; --warn-solid: #8a5a00; --gold-solid: #8a6114; --bad-solid: #b23a2e;
+  --line: rgba(42, 28, 18, .2);
+  --line-strong: rgba(42, 28, 18, .42);
+
+  --nhan-nen: var(--accent); --nhan-chu: #f3e9d2;
+  --chon-nen: var(--accent); --chon-chu: #f3e9d2;
+  --quat-vien: 6px solid #f3e9d2;
+  --quat-hoa: rgba(243, 233, 210, .9);
+  --card-back: #b23a2e;
+  --card-back-glow: rgba(10, 5, 2, .45);
+  --card-face: #f3e9d2;
+  --card-face-up: #fbf5e6;
+  --card-face-up-line: #c9952b;
+
+  --mep: #cdbe9c;
+  --elev-1: 0 2px 0 var(--mep), 0 6px 12px rgba(10, 5, 2, .4);
+  --elev-2: 0 2px 0 var(--mep), 0 10px 22px rgba(10, 5, 2, .45);
+  --elev-3: 0 3px 0 var(--mep), 0 24px 48px rgba(10, 5, 2, .6);
+  --inner-light: inset 0 0 0 0 transparent;
+}
+
+/* ---------- nền: thớ gỗ ---------- */
+:root[data-skin='go'] {
+  /* Hình nền của skin — dùng chung cho body và màn tạm dừng (phủ kín #app) */
+  --nen-man:
+    repeating-linear-gradient(91deg, rgba(255, 240, 220, .035) 0 2px, transparent 2px 11px),
+    repeating-linear-gradient(89deg, rgba(0, 0, 0, .12) 0 1px, transparent 1px 27px),
+    radial-gradient(120% 70% at 50% 0%, rgba(255, 200, 140, .12), transparent 60%),
+    var(--bg);
+}
+:root[data-skin='go'] body { background: var(--nen-man); background-attachment: fixed; }
+:root[data-skin='go'] h1, :root[data-skin='go'] h2, :root[data-skin='go'] h3 { font-weight: 400; letter-spacing: .01em; }
+
+/* ---------- tờ giấy ---------- */
+:root[data-skin='go'] .panel {
+  background: var(--panel);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border: 0; border-radius: 18px;
+  box-shadow: var(--elev-2);
+}
+
+/* ---------- thanh trên: nằm thẳng trên mặt gỗ ---------- */
+:root[data-skin='go'] .topbar {
+  background: transparent; border-bottom: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+:root[data-skin='go'] .topbar .name {
+  background: none; color: #f3e9d2; -webkit-text-fill-color: #f3e9d2; font-weight: 400;
+}
+:root[data-skin='go'] .topbar .total { color: var(--ink); background: #f3e9d2; box-shadow: var(--elev-1); }
+:root[data-skin='go'] .topbar .dh { background: var(--accent); color: #f3e9d2; box-shadow: var(--elev-1); }
+:root[data-skin='go'] .menu { border: 0; border-radius: 16px; box-shadow: var(--elev-3); }
+:root[data-skin='go'] .sw.bat,
+:root[data-skin='go'] .nac button[aria-checked='true'] { background: var(--accent); color: #f3e9d2; }
+
+/* ---------- nút ---------- */
+:root[data-skin='go'] .btn {
+  border: 0; border-radius: 14px;
+  background: var(--panel); color: var(--ink); font-weight: 700;
+  box-shadow: var(--elev-1);
+}
+:root[data-skin='go'] .btn:active { transform: translateY(2px); box-shadow: 0 0 0 var(--mep), 0 3px 6px rgba(10, 5, 2, .4); }
+:root[data-skin='go'] .btn-primary {
+  border: 0; border-radius: 14px;
+  background: var(--accent); color: #f3e9d2; font-weight: 400;
+  box-shadow: 0 3px 0 #7a2119, 0 10px 20px rgba(10, 5, 2, .4);
+}
+:root[data-skin='go'] .btn-primary:active { transform: translateY(3px); box-shadow: 0 0 0 #7a2119, 0 4px 8px rgba(10, 5, 2, .4); }
+
+/* ---------- ô lựa chọn ---------- */
+:root[data-skin='go'] .option {
+  border: 0; border-radius: 16px;
+  background: var(--panel); box-shadow: var(--elev-1);
+}
+:root[data-skin='go'] .option[aria-checked='true']:not(.neon),
+:root[data-skin='go'] .option[aria-pressed='true']:not(.neon) {
+  background: var(--accent); color: #f3e9d2;
+  box-shadow: 0 3px 0 #7a2119, 0 6px 12px rgba(10, 5, 2, .4);
+}
+:root[data-skin='go'] .option[aria-checked='true'] small,
+:root[data-skin='go'] .option[aria-pressed='true'] small { color: rgba(243, 233, 210, .85); }
+:root[data-skin='go'] .opt-icon { color: var(--accent); }
+@media (hover: hover) {
+  :root[data-skin='go'] .option:hover { border-color: transparent; box-shadow: var(--elev-2); }
+  :root[data-skin='go'] .option.neon:hover { box-shadow: var(--elev-2) !important; }
+}
+
+/* Ô định danh: KHÔNG còn khối màu — tờ giấy, icon đỏ son. Màu riêng từng ô
+   là thứ làm giao diện cũ ồn; ở đây nhận diện bằng icon và chữ. */
+:root[data-skin='go'] .neon { color: var(--ink) !important; }
+:root[data-skin='go'] .neon strong { text-shadow: none; font-family: var(--font-display); font-weight: 400; }
+:root[data-skin='go'] .neon small { color: var(--muted) !important; text-shadow: none; }
+:root[data-skin='go'] .neon .opt-icon,
+:root[data-skin='go'] .neon .count-num { color: var(--accent) !important; }
+:root[data-skin='go'] :is(.g-violet, .g-blue, .g-amber, .g-cyan, .g-pink, .g-red, .g-teal, .g-lime, .g-orange) {
+  background: var(--panel) !important; box-shadow: var(--elev-1) !important;
+}
+
+:root[data-skin='go'] .lt-chip { border: 1.5px solid rgba(42, 28, 18, .25) !important; background: var(--panel); color: var(--ink); }
+:root[data-skin='go'] .lt-chip.lua { background: #c9952b !important; color: var(--ink) !important; }
+:root[data-skin='go'] .lt-chip.goi-y { background: var(--accent) !important; color: #f3e9d2 !important; }
+:root[data-skin='go'] .dots i.on { background: var(--accent); }
+
+/* ---------- dải người chơi ---------- */
+:root[data-skin='go'] .player { border: 0; background: rgba(243, 233, 210, .14); color: #f3e9d2; }
+:root[data-skin='go'] .player:not(.active) .name { color: #e2d4b5; }
+:root[data-skin='go'] .player.active,
+:root[data-skin='go'] .turn-chip {
+  background: var(--panel); color: var(--ink);
+  box-shadow: var(--elev-1), inset 0 0 0 3px #c9952b;
+}
+:root[data-skin='go'] .player.active .pts { color: var(--ink); background: #eadcbc; box-shadow: none; }
+:root[data-skin='go'] .player.active .turn-clock,
+:root[data-skin='go'] .player.active .lives { color: var(--ink); }
+
+/* ---------- lá bài: tờ giấy dày, mặt sau in lùi vào trong lề giấy ---------- */
+:root[data-skin='go'] .card { box-shadow: 0 2px 0 var(--mep), 0 6px 10px rgba(10, 5, 2, .45); border-radius: 10px; }
+:root[data-skin='go'] .card.done { box-shadow: none; }
+:root[data-skin='go'] .card .face { border-radius: 10px; }
+:root[data-skin='go'] .card .face.back[class*="bk-mau-"] {
+  background-color: #b23a2e;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(243, 233, 210, .14) 0 1.5px, transparent 1.5px 9px),
+    repeating-linear-gradient(-45deg, rgba(243, 233, 210, .14) 0 1.5px, transparent 1.5px 9px);
+}
+:root[data-skin='go'] .card .back { box-shadow: inset 0 0 0 max(3px, 6cqw) #f3e9d2; }
+:root[data-skin='go'] .card .back::before { inset: max(3px, 6cqw); border-radius: 5px; }
+:root[data-skin='go'] .card .front { background: var(--card-face-up); border: max(2px, 3.5cqw) solid #c9952b; }
+:root[data-skin='go'] .card.done .front {
+  background: var(--card-face-up); border: max(2px, 3.5cqw) solid #2f6b57; box-shadow: none;
+}
+
+/* ---------- bảng kết quả ---------- */
+:root[data-skin='go'] .overlay .panel { background: var(--panel); }
+:root[data-skin='go'] .score-big { background: #eadcbc; }
+:root[data-skin='go'] .total-row { border: 1.5px dashed #d8c8a6; }
+:root[data-skin='go'] .achievements li { background: #c9952b; color: var(--ink); }
+:root[data-skin='go'] .goi-y { background: #eadcbc; }
+
+/* HUD: viên giấy trên mặt gỗ */
+:root[data-skin='go'] { --vien-nut: 0; --vien-vien: 0; }
+:root[data-skin='go'] .tam-dung .hop-dung h2 { color: var(--ink); }
+
+
+/* ---------- CẢNH CỦA CỘT GAME (13.10.2026) ----------
+   Hình nền ở body neo theo CỬA SỔ, nên trên máy tính trang trí nằm hai bên còn
+   giữa cột trống trơn (chủ dự án báo, cả ba skin). `--canh` vẽ theo khung #app
+   — điện thoại cột là cả màn, máy tính cột là khung giữa — và màn tạm dừng
+   (phủ kín #app) dùng lại đúng cảnh này. */
+:root[data-skin='go'] {
+  --canh:
+    /* đèn bàn hắt từ trên */
+    radial-gradient(75% 42% at 50% 0%, rgba(255, 210, 150, .2), transparent 70%),
+    /* vết vòng cốc trên mặt gỗ */
+    radial-gradient(circle at 15% 70%, transparent 31px, rgba(20, 10, 4, .2) 32px 35px, transparent 36px),
+    radial-gradient(circle at 88% 26%, transparent 22px, rgba(20, 10, 4, .16) 23px 25px, transparent 26px),
+    radial-gradient(circle at 62% 88%, transparent 18px, rgba(20, 10, 4, .14) 19px 21px, transparent 22px),
+    /* viền tối quanh mép */
+    radial-gradient(130% 90% at 50% 45%, transparent 55%, rgba(10, 5, 2, .5) 100%);
+}
+:root[data-skin='go'] #app { background: var(--canh); }
+:root[data-skin='go'] .tam-dung { background: var(--canh), var(--nen-man); }

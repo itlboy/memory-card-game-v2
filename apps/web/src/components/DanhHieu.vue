@@ -71,7 +71,7 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
   position: relative; display: block; height: 14px; margin-top: 4px; border-radius: 999px; overflow: hidden;
   background: color-mix(in srgb, var(--fg) 10%, transparent);
 }
-.tien-do i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.tien-do i { position: absolute; inset: 0 auto 0 0; background: var(--nhan-nen); }
 .tien-do em {
   position: relative; display: block; text-align: center; font-style: normal;
   font-size: 10px; line-height: 14px; font-weight: 800; color: var(--fg);
@@ -80,8 +80,8 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
 /* Nút nhỏ hơn 44px về hình nhưng vùng chạm đủ: li cao ≥44 và ::after nới ra */
 .di {
   position: relative; flex: 0 0 auto; min-height: 34px; padding: 0 12px; border-radius: 999px;
-  border: 0; background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff; font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap;
+  border: 0; background: var(--nhan-nen);
+  color: var(--nhan-chu); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap;
 }
 .di::after { content: ''; position: absolute; inset: -6px -4px; }
 </style>

@@ -275,10 +275,35 @@ export function useGameSession() {
     }));
   }
 
+  /**
+   * TẠM DỪNG (nút ⏸, chỉ ván offline). Engine đóng băng mọi đồng hồ và không
+   * nhận nước đi; ở đây chỉ phải dừng thêm thứ engine không biết: BOT (hẹn giờ
+   * riêng) và tiếng tích tắc. Vòng rAF vẫn chạy để màn hình cập nhật.
+   */
+  const paused = ref(false);
+  function pause(): void {
+    const g = game.value;
+    if (!g || g.finished || countdownUntil || g.status === 'idle') return;
+    g.tamDungVan(clockNow());
+    stopBot();
+    paused.value = g.dangTamDung;
+    bump();
+  }
+  function resume(): void {
+    const g = game.value;
+    if (!g) return;
+    g.chayTiepVan(clockNow());
+    paused.value = false;
+    now.value = clockNow();
+    bump();
+    if (!raf && !g.finished) raf = requestAnimationFrame(loop);
+  }
+
   function loop(): void {
     const g = game.value;
     if (g && !g.finished) {
       now.value = clockNow();
+      if (g.dangTamDung) { raf = requestAnimationFrame(loop); return; }
       // Đang đếm ngược: chưa cho engine chạy, tick mỗi giây
       if (countdownUntil) {
         const left = (countdownUntil - now.value) / 1000;
@@ -322,6 +347,7 @@ export function useGameSession() {
     stop();
     const g = new MemoryGame(config);
     game.value = g;
+    paused.value = false;
     summary.value = null;
     wrongPair.value = [];
     lastPower.value = null;
@@ -394,6 +420,7 @@ export function useGameSession() {
     countdownUntil = 0;
     countdownLeft.value = null;
     game.value = g;
+    paused.value = g.dangTamDung;   // F5 giữa lúc dừng: vẫn dừng
     summary.value = g.summary();
     wrongPair.value = [];
     lastPower.value = null;
@@ -499,7 +526,7 @@ export function useGameSession() {
   });
 
   return {
-    game, start, flip, stop, adopt, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc,
+    game, start, flip, stop, adopt, paused, pause, resume, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc,
     cards, players, current, faceUp, matchedSet, wrongPair, vuaMo, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle

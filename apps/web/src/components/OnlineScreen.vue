@@ -1199,7 +1199,7 @@ function openCfgWizard(): void {
 .room .av {
   display: flex; align-items: center; justify-content: center;
   width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; font-size: 22px;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  background: var(--chon-nen);
   box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
 .room .body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
@@ -1260,8 +1260,8 @@ function openCfgWizard(): void {
 }
 .empty .art {
   display: flex; align-items: center; justify-content: center;
-  width: 74px; height: 74px; border-radius: 22px; color: #fff;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  width: 74px; height: 74px; border-radius: 22px; color: var(--chon-chu);
+  background: var(--chon-nen);
   box-shadow: 0 10px 26px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
 .empty h4 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); }
@@ -1430,8 +1430,8 @@ input:focus { outline: none; border-color: var(--accent); }
 .bung { display: flex; gap: 8px; margin: 0 0 8px; }
 .bung-btn { flex: 1; gap: 6px; font-size: var(--text-sm); font-weight: 700; }
 .bung-btn.primary {
-  border: 0; color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border: 0; color: var(--nhan-chu);
+  background: var(--nhan-nen);
   box-shadow: 0 6px 16px var(--card-back-glow);
 }
 
@@ -1568,8 +1568,8 @@ input:focus { outline: none; border-color: var(--accent); }
    người chơi nhìn vào chỉ thấy MỘT HÀNG KHÔNG CÓ NÚT NÀO ĐƯỢC CHỌN — không đọc
    ra được là mình đang tắt hay chưa chọn gì. */
 .seg-btn[aria-pressed="true"] {
-  background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
-  border-color: transparent; color: #fff;
+  background: var(--chon-nen);
+  border-color: transparent; color: var(--chon-chu);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 4px 14px var(--card-back-glow);
 }
 @media (hover: hover) {

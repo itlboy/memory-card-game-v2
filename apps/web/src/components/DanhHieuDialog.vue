@@ -77,7 +77,7 @@ const nhom = computed(() => NHOM.map((n) => {
   flex: 1; min-height: 40px; border-radius: 10px; border: 1px solid var(--line);
   background: transparent; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer;
 }
-.tab[aria-selected='true'] { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+.tab[aria-selected='true'] { background: var(--nhan-nen); color: var(--nhan-chu); border-color: transparent; }
 .body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 h3 { margin: 12px 0 6px; font-size: var(--text-sm); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 section:first-child h3 { margin-top: 0; }

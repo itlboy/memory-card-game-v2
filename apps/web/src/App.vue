@@ -28,6 +28,7 @@ const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
 const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
 watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
 import TopBar from './components/TopBar.vue';
+import IconBay from './components/IconBay.vue';
 import { useGameSession } from './composables/useGameSession';
 import {
   ACHIEVEMENTS, byId, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
@@ -660,6 +661,8 @@ const hasNext = computed(() => {
 </script>
 
 <template>
+  <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
+  <IconBay v-if="screen !== 'game'" />
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
     :rung="rungBat" :co-rung="rung.coTheRung()"

@@ -219,8 +219,8 @@ watch(nextLevel, scrollToActive);
 }
 /* Cấp cần chơi tiếp: ô duy nhất mang gradient thương hiệu, hơi lớn hơn */
 .node.next {
-  border-color: transparent; color: #fff;
-  background: linear-gradient(150deg, var(--brand-500), #8b5cf6);
+  border-color: transparent; color: var(--chon-chu);
+  background: var(--chon-nen);
   /* Bóng trung tính + vòng mảnh, không glow màu — glow lan vào khe giữa các ô
      làm chúng dính vào nhau */
   box-shadow: 0 0 0 3px var(--accent-soft), var(--elev-1);

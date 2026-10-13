@@ -207,8 +207,8 @@ watch(() => props.players.length, () => { moBang.value = false; });
  */
 .player.active {
   flex-grow: 1.75; transform: scale(1.035); z-index: 2;
-  border-color: transparent; color: #fff;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  border-color: transparent; color: var(--chon-chu);
+  background: var(--chon-nen);
   box-shadow: 0 6px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
   animation: breathe 1.8s ease-in-out infinite;
 }
@@ -321,8 +321,8 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .turn-chip {
   position: relative; flex-shrink: 0;
   display: flex; align-items: center; gap: 7px; padding: 5px 9px;
-  border-radius: 12px; color: #fff;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  border-radius: 12px; color: var(--chon-chu);
+  background: var(--chon-nen);
   box-shadow: 0 4px 16px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
 }
 .turn-chip .tb { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }

@@ -192,8 +192,8 @@ button {
   min-height: 50px; width: 100%;
   margin-top: var(--sp-5);
   border: 0; border-radius: var(--r-md);
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  background: var(--nhan-nen);
+  color: var(--nhan-chu);
   font-family: var(--font-display);
   font-size: var(--text-lg); font-weight: 700;
   letter-spacing: .02em;

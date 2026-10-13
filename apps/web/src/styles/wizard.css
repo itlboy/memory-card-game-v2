@@ -57,9 +57,9 @@
    tính, không glow màu — glow lan vào khe giữa các ô làm chúng dính vào nhau. */
 .option[aria-checked='true']:not(.neon), .option[aria-pressed='true']:not(.neon) {
   border-color: transparent;
-  background: linear-gradient(150deg, #6a5cff, #8b5cf6);
+  background: var(--chon-nen);
   box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
-  color: #fff;
+  color: var(--chon-chu);
 }
 .option[aria-checked='true'] small, .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .85); }
 .option[disabled] { opacity: .45; }

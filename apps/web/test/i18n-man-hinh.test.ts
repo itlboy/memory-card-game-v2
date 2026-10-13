@@ -89,7 +89,7 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   const chup = (ten: string) => { man[ten] = gomChu(w!.element.parentElement ?? w!.element); };
   chup('trang chủ');
   await bam('header .menu-btn'); chup('menu thanh trên'); await bam('header .menu-btn');
-  await bam('.option.big', 1); chup('bước số người');
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 1); chup('bước số người');
   await bam('.counts .option', 0); chup('bước số thẻ');
   await bam('.size-grid button', 1); chup('bước theme');
   await bam('.btn-primary'); chup('bước luật bàn');
@@ -99,7 +99,7 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   history.replaceState(null, '', location.pathname); sessionStorage.clear();
   // Nhánh đấu máy: bước chọn mức máy + màn chơi có tên máy và "Bạn"
   w = mount(App); await flush(8);
-  await bam('.option.big', 2); chup('bước mức máy');
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 2); chup('bước mức máy');
   await bam('.options .option.wide', 2); await bam('.size-grid button', 1);
   await bam('.btn-primary'); await bam('.btn-primary'); await flush(8); chup('màn chơi đấu máy');
   w.unmount(); w = null;
@@ -107,11 +107,11 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   // Màn online lọt lưới hai đợt đầu và chỉ lộ ra khi chụp ảnh App Store bản English.
   history.replaceState(null, '', location.pathname); sessionStorage.clear();
   w = mount(App); await flush(8);
-  await bam('.option.big', 3); await flush(8); chup('chơi online');
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 3); await flush(8); chup('chơi online');
   w.unmount(); w = null;
   history.replaceState(null, '', location.pathname); sessionStorage.clear();
   w = mount(App, { attachTo: document.body }); await flush(8);
-  await bam('.option.big', 0); await flush(8); chup('bản đồ chiến dịch');
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 0); await flush(8); chup('bản đồ chiến dịch');
   w.unmount(); w = null;
   history.replaceState(null, '', location.pathname); sessionStorage.clear();
   w = mount(App, { attachTo: document.body }); await flush(8);
@@ -181,9 +181,10 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
   es: ['Solo', 'Normal', 'pts', '999.999k pts'],
   pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze'],
-  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double'],
-  de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold'],
-  id: ['Solo', 'Normal', 'Level 3', 'Bom']   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause'],
+  de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause'],
+  en: ['Neon'],   // tên skin (13.10.2026): tiếng Việt cũng gọi là Neon
+  id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon']   // "Bom" trùng cả tiếng Việt lẫn Indonesia
 };
 
 /** Mọi ngôn ngữ trừ tiếng Việt (bản gốc). */

@@ -1,0 +1,252 @@
+/*
+ * SKIN "KẸO" (mặc định từ 13.10.2026) — casual dày, kiểu game mobile phổ thông.
+ * Mockup chủ dự án duyệt: https://claude.ai/artifact/6NDRazvmMWRh5ErbZZmnLo (hướng B).
+ *
+ * Ba thứ làm nên chất này, đừng bỏ thứ nào:
+ *  1. VIỀN MỰC: mọi khối bấm được có viền 3px màu --ink;
+ *  2. GỜ DÀY: bóng đặc lệch xuống (`0 5px 0 --ink`), bấm thì lún xuống đúng
+ *     bằng gờ — đó là cảm giác "nút thật" mà gradient + glow cũ không có;
+ *  3. CHỮ VIỀN: tiêu đề trắng viền mực (Grandstander), đọc được trên mọi màu.
+ *
+ * Mọi selector bắt đầu bằng `:root[data-skin='keo']` (độ đặc 0,2,0 + phần
+ * sau) để thắng style scoped của component (`.x[data-v]` = 0,2,0) mà không
+ * phải sửa component. Đổi bố cục KHÔNG làm ở đây — skin chỉ là lớp áo.
+ */
+:root[data-skin='keo'] {
+  --ink: #1d2a5a;
+  --font-display: 'Grandstander', 'Baloo 2', system-ui, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Nunito', system-ui, -apple-system, sans-serif;
+
+  --bg: #5cc2f2;
+  --bg-glow-1: transparent; --bg-glow-2: transparent; --bg-glow-3: transparent;
+  --panel: #fff; --panel-solid: #fff; --panel-soft: #eaf6ff;
+  --fg: #1d2a5a;
+  --muted: #45558a;            /* 5,9:1 trên #eaf6ff */
+  --accent: #2563eb;           /* chữ/viền nhấn — 5,2:1 trên trắng */
+  --accent-2: #ff4d6d;
+  --accent-soft: rgba(37, 99, 235, .13);
+  --ok: #157f3b; --warn: #a75c00; --gold: #c98a00; --bad: #d61f3c;
+  --ok-solid: #1a8f43; --warn-solid: #a75c00; --gold-solid: #946c00; --bad-solid: #d61f3c;
+  --line: rgba(29, 42, 90, .24);
+  --line-strong: rgba(29, 42, 90, .5);
+
+  /* Nhấn = hồng kẹo chữ mực (5,2:1); chọn = vàng chữ mực */
+  --nhan-nen: #ff4d6d; --nhan-chu: var(--ink);
+  --chon-nen: #ffcb2e; --chon-chu: var(--ink);
+  --quat-vien: 3px solid var(--ink);
+  --quat-hoa: #ffcb2e;
+  --card-back: #2b4c9b;
+  --card-back-glow: rgba(29, 42, 90, .3);
+  --card-face: #fff;
+  --card-face-up: #fffbea;
+  --card-face-up-line: var(--ink);
+
+  /* Gờ đặc thay bóng mờ */
+  --elev-1: 0 3px 0 var(--ink);
+  --elev-2: 0 5px 0 var(--ink);
+  --elev-3: 0 6px 0 var(--ink), 0 18px 40px rgba(29, 42, 90, .3);
+  --inner-light: inset 0 0 0 0 transparent;
+  --chu-vien: 2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 2px 0 var(--ink), 0 -2px 0 var(--ink),
+    1.5px 1.5px 0 var(--ink), -1.5px 1.5px 0 var(--ink), 1.5px -1.5px 0 var(--ink), -1.5px -1.5px 0 var(--ink),
+    0 3px 0 var(--ink);
+}
+
+/* ---------- nền: trời xanh, hai cụm mây, đồi dưới đáy ---------- */
+:root[data-skin='keo'] {
+  /* Hình nền của skin — dùng chung cho body và màn tạm dừng (phủ kín #app) */
+  --nen-man:
+    radial-gradient(64px 26px at 14% 13%, #fff 97%, transparent),
+    radial-gradient(44px 22px at 24% 11%, #fff 97%, transparent),
+    radial-gradient(56px 24px at 86% 44%, #fff 97%, transparent),
+    radial-gradient(38px 18px at 78% 42.5%, #fff 97%, transparent),
+    radial-gradient(160% 34% at 50% 112%, #3e9be0 60%, transparent 61%),
+    var(--bg);
+}
+:root[data-skin='keo'] body { background: var(--nen-man); background-attachment: fixed; }
+:root[data-skin='keo'] h1, :root[data-skin='keo'] h2, :root[data-skin='keo'] h3 { font-weight: 900; letter-spacing: 0; }
+
+/* ---------- khối nền: trắng, viền mực, gờ ---------- */
+:root[data-skin='keo'] .panel {
+  background: #fff;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border: 3px solid var(--ink); border-radius: 24px;
+  box-shadow: 0 6px 0 var(--ink);
+}
+
+/* ---------- thanh trên: trong suốt trên nền trời ---------- */
+:root[data-skin='keo'] .topbar {
+  background: transparent; border-bottom: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+:root[data-skin='keo'] .topbar .name {
+  background: none; color: #fff; -webkit-text-fill-color: #fff;
+  font-weight: 900; text-shadow: var(--chu-vien);
+}
+:root[data-skin='keo'] .topbar .total {
+  color: var(--ink); background: #ffcb2e;
+  border: 2.5px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+}
+:root[data-skin='keo'] .topbar .dh {
+  background: #ff4d6d; color: #fff;
+  border: 2.5px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+}
+:root[data-skin='keo'] .menu {
+  border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 6px 0 var(--ink);
+}
+:root[data-skin='keo'] .sw.bat,
+:root[data-skin='keo'] .nac button[aria-checked='true'] { background: #6ccb3a; color: var(--ink); }
+:root[data-skin='keo'] .nac { border: 2px solid var(--ink); }
+
+/* ---------- nút ---------- */
+:root[data-skin='keo'] .btn {
+  border: 3px solid var(--ink); border-radius: 16px;
+  background: #fff; color: var(--ink); font-weight: 800;
+  box-shadow: 0 4px 0 var(--ink);
+}
+:root[data-skin='keo'] .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+:root[data-skin='keo'] .btn-primary {
+  border: 3px solid var(--ink); border-radius: 18px;
+  background: #6ccb3a; color: #fff; font-weight: 900;
+  text-shadow: var(--chu-vien);
+  box-shadow: 0 5px 0 var(--ink);
+}
+:root[data-skin='keo'] .btn-primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+@media (hover: hover) {
+  :root[data-skin='keo'] .btn:hover { border-color: var(--ink); }
+  :root[data-skin='keo'] .btn-primary:hover { filter: brightness(1.05); }
+}
+
+/* ---------- ô lựa chọn ở wizard ---------- */
+:root[data-skin='keo'] .option {
+  border: 3px solid var(--ink); border-radius: 18px;
+  background: #fff; box-shadow: 0 4px 0 var(--ink);
+}
+:root[data-skin='keo'] .option:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+:root[data-skin='keo'] .option[aria-checked='true']:not(.neon),
+:root[data-skin='keo'] .option[aria-pressed='true']:not(.neon) {
+  border-color: var(--ink); background: #ffcb2e; color: var(--ink);
+  box-shadow: 0 4px 0 var(--ink);
+}
+:root[data-skin='keo'] .option[aria-checked='true'] small,
+:root[data-skin='keo'] .option[aria-pressed='true'] small { color: var(--ink); }
+:root[data-skin='keo'] .opt-icon { color: var(--ink); }
+@media (hover: hover) {
+  :root[data-skin='keo'] .option:hover { border-color: var(--ink); box-shadow: 0 6px 0 var(--ink); }
+  :root[data-skin='keo'] .option.neon:hover { border-color: var(--ink) !important; box-shadow: 0 7px 0 var(--ink) !important; }
+}
+
+/* Ô định danh (chế độ, số người, mức máy): khối màu kẹo phẳng, chữ trắng viền mực */
+:root[data-skin='keo'] .neon { border-color: var(--ink) !important; color: var(--ink) !important; }
+:root[data-skin='keo'] .neon strong { color: #fff; text-shadow: var(--chu-vien); }
+:root[data-skin='keo'] .neon small { color: var(--ink) !important; text-shadow: none; font-weight: 600; }
+:root[data-skin='keo'] .neon .opt-icon,
+:root[data-skin='keo'] .neon .count-num { color: var(--ink) !important; }
+:root[data-skin='keo'] .g-violet { background: #6ccb3a !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-blue   { background: #ffcb2e !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-amber  { background: #ff8fa8 !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-cyan   { background: #7fd3ff !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-pink   { background: #c99bff !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-red    { background: #ff6b6b !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-teal   { background: #4fd1c5 !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-lime   { background: #a3e05a !important; box-shadow: 0 5px 0 var(--ink) !important; }
+:root[data-skin='keo'] .g-orange { background: #ffa94d !important; box-shadow: 0 5px 0 var(--ink) !important; }
+
+/* Dải lối tắt + chấm bước */
+:root[data-skin='keo'] .lt-chip { border: 2.5px solid var(--ink) !important; background: #fff; color: var(--ink); box-shadow: 0 3px 0 var(--ink); }
+:root[data-skin='keo'] .lt-chip.lua { background: #ffcb2e !important; color: var(--ink) !important; }
+:root[data-skin='keo'] .lt-chip.goi-y { background: #ff4d6d !important; color: #fff !important; }
+:root[data-skin='keo'] .dots i { background: rgba(29, 42, 90, .2); }
+:root[data-skin='keo'] .dots i.on { background: var(--ink); }
+
+/* ---------- dải người chơi ---------- */
+:root[data-skin='keo'] .player { border: 2.5px solid rgba(29, 42, 90, .35); background: rgba(255, 255, 255, .75); }
+:root[data-skin='keo'] .player.active,
+:root[data-skin='keo'] .turn-chip {
+  background: #ffcb2e; color: var(--ink);
+  border: 2.5px solid var(--ink); box-shadow: 0 4px 0 var(--ink);
+}
+:root[data-skin='keo'] .player.active .name { color: var(--ink); }
+:root[data-skin='keo'] .player.active .pts { color: var(--ink); border: 2px solid var(--ink); box-shadow: none; }
+:root[data-skin='keo'] .player.active .turn-clock,
+:root[data-skin='keo'] .player.active .lives { color: var(--ink); }
+
+/* ---------- lá bài: viền mực + gờ, mặt sau giữ hoạ tiết × bảng màu của ván ---------- */
+/* `cqw` trên CHÍNH .card tính theo container cha (cả bàn), không theo lá — gờ
+   từng ra 15,6px. Gờ dùng px cố định; viền mặt lá (con của .card) mới dùng cqw. */
+:root[data-skin='keo'] .card { box-shadow: 0 3px 0 var(--ink); border-radius: 13px; }
+:root[data-skin='keo'] .card .face { border: max(1.5px, 3.5cqw) solid var(--ink); border-radius: 13px; }
+/* MẶT SAU THEO SKIN: nền khoá về xanh than của skin (bảng màu theo seed làm lá
+   tím/xanh lá lạc tông giữa trời xanh — chủ dự án báo); HOẠ TIẾT vẫn đổi theo
+   ván. Cả bàn vẫn chung một mặt sau, luật chống đánh dấu bài giữ nguyên. */
+:root[data-skin='keo'] .card .face.back[class*="bk-mau-"] { background: #2b4c9b; }
+:root[data-skin='keo'] .card .back {
+  box-shadow: none;
+  outline: max(1.5px, 2.5cqw) dotted rgba(255, 255, 255, .5); outline-offset: min(-4px, -7cqw);
+}
+:root[data-skin='keo'] .card .front { background: var(--card-face-up); }
+/* Lá đã ghép: GIỮ RÕ NÉT, chỉ thêm viền xanh lá bên trong. Bản trước phủ một
+   lớp trắng mờ cho lá "lùi" lại — chủ dự án thấy mờ khó nhìn, đã bỏ (13.10.2026). */
+:root[data-skin='keo'] .card.done { box-shadow: none; }
+:root[data-skin='keo'] .card.done .front {
+  border-color: var(--ink); background: #fff;
+  box-shadow: inset 0 0 0 max(2px, 4cqw) #6ccb3a;
+}
+
+/* ---------- bảng kết quả ---------- */
+:root[data-skin='keo'] .overlay .panel { background: #fff; }
+:root[data-skin='keo'] .score-big { background: #fff4c7; border: 2.5px solid var(--ink); }
+:root[data-skin='keo'] .total-row { border: 2.5px dashed rgba(29, 42, 90, .4); }
+:root[data-skin='keo'] .achievements li { background: #ffcb2e; color: var(--ink); border: 2px solid var(--ink); }
+:root[data-skin='keo'] .goi-y { background: #f1e8ff; border: 2px dashed #8e5be8; }
+
+/* Trang chủ: ô Chiến dịch + ba ô vuông dày như nút */
+:root[data-skin='keo'] :is(.o-chien-dich, .o-vuong) { border-width: 3px; }
+:root[data-skin='keo'] .o-chien-dich strong { font-size: 30px; }
+
+/* HUD: viên số + nút tròn viền mực */
+:root[data-skin='keo'] { --vien-nut: 3px solid var(--ink); --vien-vien: 2.5px solid var(--ink); }
+:root[data-skin='keo'] .hud .vien { box-shadow: 0 3px 0 var(--ink); }
+:root[data-skin='keo'] .hud .vien svg { color: var(--ink); }
+
+
+/* ---------- CẢNH CỦA CỘT GAME (13.10.2026) ----------
+   Hình nền ở body neo theo CỬA SỔ, nên trên máy tính trang trí nằm hai bên còn
+   giữa cột trống trơn (chủ dự án báo, cả ba skin). `--canh` vẽ theo khung #app
+   — điện thoại cột là cả màn, máy tính cột là khung giữa — và màn tạm dừng
+   (phủ kín #app) dùng lại đúng cảnh này. */
+:root[data-skin='keo'] {
+  --canh:
+    /* mặt trời + quầng */
+    radial-gradient(circle 30px at 87% 12%, #ffd84d 95%, transparent),
+    radial-gradient(circle 64px at 87% 12%, rgba(255, 228, 120, .45) 55%, transparent),
+    /* mây — rải cả GIỮA cột, không chỉ hai mép */
+    radial-gradient(58px 21px at 16% 17%, #fff 97%, transparent),
+    radial-gradient(38px 17px at 25% 15%, #fff 97%, transparent),
+    radial-gradient(50px 19px at 62% 31%, #fff 97%, transparent),
+    radial-gradient(32px 15px at 70% 29.5%, #fff 97%, transparent),
+    radial-gradient(66px 23px at 22% 47%, #fff 97%, transparent),
+    radial-gradient(42px 18px at 32% 45.5%, #fff 97%, transparent),
+    radial-gradient(54px 20px at 84% 60%, #fff 97%, transparent),
+    radial-gradient(36px 15px at 76% 59%, #fff 97%, transparent),
+    radial-gradient(46px 17px at 48% 76%, rgba(255, 255, 255, .85) 97%, transparent),
+    /* lấp lánh */
+    radial-gradient(circle 2.5px at 44% 9%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 8% 34%, #fff 95%, transparent),
+    radial-gradient(circle 2.5px at 94% 42%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 55% 52%, #fff 95%, transparent),
+    /* hai lớp đồi */
+    radial-gradient(90% 16% at 18% 104%, #4fb0ea 60%, transparent 61%),
+    radial-gradient(120% 20% at 82% 108%, #3e9be0 60%, transparent 61%);
+}
+:root[data-skin='keo'] #app { background: var(--canh); }
+:root[data-skin='keo'] .tam-dung { background: var(--canh), var(--nen-man); }
+/* Body: điện thoại chỉ là trời (cảnh nằm trong cột); máy tính thêm mây hai bên */
+:root[data-skin='keo'] body { background: var(--bg); }
+@media (min-width: 700px) {
+  :root[data-skin='keo'] body { background: var(--nen-man); background-attachment: fixed; }
+}
+
+/* Lưới lựa chọn của wizard cắt phần tràn (`overflow: clip`, chừa 4px cho hover
+   cũ). Gờ của skin này dày 4–5px nên ô hàng CUỐI bị cụt gờ — chủ dự án báo trên
+   iPhone (bước số người). Chừa 8px: đủ gờ + nhích hover. */
+:root[data-skin='keo'] :is(.step-body.options, .options.fill) { overflow-clip-margin: 8px; }

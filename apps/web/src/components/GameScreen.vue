@@ -2,7 +2,9 @@
 import { tenNguoi } from '@/lib/ten';
 import { t, td } from '@/lib/i18n';
 import type { MemoryGame } from '@mm/engine';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { Pause, Play } from 'lucide-vue-next';
+import { clock, num } from '@/lib/format';
 import { useBoardFit } from '@/composables/useBoardFit';
 import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
@@ -25,6 +27,11 @@ const board = ref<InstanceType<typeof BoardGrid> | null>(null);
 onMounted(() => board.value?.focusFirst());
 
 const s = props.session;
+/* Rời app (chuyển tab, khoá máy, nghe điện thoại) thì TỰ tạm dừng: quay lại
+   không thấy đã thua vì hết giờ lúc mình không nhìn. */
+const anTrang = (): void => { if (document.hidden) s.pause(); };
+onMounted(() => document.addEventListener('visibilitychange', anTrang));
+onUnmounted(() => document.removeEventListener('visibilitychange', anTrang));
 /* Chữ và icon TÁCH RIÊNG: icon là <OptionIcon> (cùng bộ với Luật chơi và màn
  * tuỳ chọn), không phải emoji nhét trong chuỗi. */
 const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
@@ -140,7 +147,9 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       :level-id="levelId"
       :multiplayer="game.isMultiplayer"
       :score-bump="scoreBump"
+      pausable
       @quit="emit('quit')"
+      @pause="s.pause()"
     />
 
     <PlayerStrip
@@ -239,11 +248,68 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       </div>
 
     </div>
+
+    <!-- TẠM DỪNG: che KÍN bàn (mờ + phủ) — dừng mà vẫn nhìn được bàn thì là
+         thời gian nhớ miễn phí. Nút chính là Chơi tiếp, lối thoát đi đúng
+         đường quit cũ (App hỏi xác nhận). -->
+    <!-- Teleport vào #app (không phải body): phủ KÍN cột game kể cả thanh trên,
+         nhưng không tràn cả cửa sổ máy tính — cùng luật với lớp hiệu ứng kết ván. -->
+    <Teleport to="#app">
+    <div v-if="s.paused.value" class="tam-dung" role="dialog" aria-modal="true" :aria-label="t('hud.tamDung')">
+      <div class="panel hop-dung">
+        <h2 class="ruy-bang"><Pause :size="22" aria-hidden="true" />{{ t('hud.tamDung') }}</h2>
+        <dl class="so-lieu">
+          <div><dt>{{ t('hud.thoiGian') }}</dt><dd>{{ clock(s.timeLeft.value ?? s.elapsed.value) }}</dd></div>
+          <div v-if="!game.isMultiplayer"><dt>{{ t('hud.diem') }}</dt><dd>{{ num(soloScore) }}</dd></div>
+          <div><dt>{{ t('hud.cap2') }}</dt><dd>{{ s.matchedCount.value }}/{{ s.totalPairs.value }}</dd></div>
+        </dl>
+        <span class="vach" aria-hidden="true"><i :style="{ transform: `scaleX(${s.totalPairs.value ? s.matchedCount.value / s.totalPairs.value : 0})` }" /></span>
+        <button class="btn-primary" type="button" @click="s.resume()"><Play :size="22" aria-hidden="true" /> {{ t('hud.choiTiep') }}</button>
+        <button class="btn thoat" type="button" @click="emit('quit')">{{ t('hud.thoat') }}</button>
+      </div>
+    </div>
+    </Teleport>
   </section>
 </template>
 
 <style scoped>
-.game { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+.game { display: flex; flex-direction: column; gap: 10px; height: 100%; position: relative; }
+/* NỀN ĐẶC, không mờ kính: bản blur để lộ hình lá nhoè và mép khối — nhìn như
+   lỗi (chủ dự án báo), và chỉ phủ vùng bàn nên trên điện thoại còn hở. Nay phủ
+   kín #app bằng chính màu nền của skin. Không scoped vì nằm ngoài component
+   (Teleport) — xem khối :global bên dưới. */
+:global(.tam-dung) {
+  position: absolute; inset: 0; z-index: 18;   /* trên thanh trên (15), dưới hộp thoại (20) */
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  padding: 24px; background: var(--tam-dung-nen, var(--bg));
+  animation: dung-vao .18s ease-out;
+}
+@keyframes dung-vao { from { opacity: 0; } }
+.hop-dung {
+  position: relative; width: 100%; max-width: 380px;
+  display: flex; flex-direction: column; gap: 14px; text-align: center;
+  padding: 40px 20px 20px;
+}
+/* Ruy băng vắt ngang đỉnh hộp — cùng ngôn ngữ với bảng thắng của mockup */
+.ruy-bang {
+  position: absolute; top: 0; left: 50%; transform: translate(-50%, -55%);
+  margin: 0; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 8px 22px; border-radius: 16px; font-size: 26px;
+  background: var(--nhan-nen); color: var(--nhan-chu);
+  border: var(--vien-nut, 0); box-shadow: var(--elev-2);
+}
+.so-lieu { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; }
+.so-lieu div {
+  display: flex; flex-direction: column-reverse; align-items: center; gap: 2px;
+  padding: 12px 4px; border-radius: 14px; background: var(--panel-soft);
+  border: var(--vien-vien, 0);
+}
+.so-lieu dt { color: var(--muted); font-size: 12px; font-weight: 700; }
+.so-lieu dd { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.vach { height: 8px; border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--fg) 12%, transparent); }
+.vach i { display: block; height: 100%; background: var(--ok); transform-origin: left; }
+.hop-dung .btn-primary { margin-top: 4px; min-height: 58px; font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.hop-dung .thoat { min-height: 48px; }
 .board-wrap {
   position: relative; flex: 1; min-height: 0;
   display: flex; align-items: center; justify-content: center;

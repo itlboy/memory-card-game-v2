@@ -1,4 +1,5 @@
 import { CAMPAIGN_LEVELS } from '@mm/engine';
+import { datSkin } from '../src/lib/skin';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
@@ -42,7 +43,7 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => wrapper?.unmount());
+afterEach(() => { wrapper?.unmount(); datSkin('keo'); });
 
 /** Bấm nút/lựa chọn theo chữ hiển thị. */
 const click = async (text: string): Promise<void> => {
@@ -113,7 +114,8 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Chiến dịch');
     // "Chơi nhiều người" đã gộp vào "Chơi nhanh" (11.10.2026): số người hỏi ở bước sau
     expect(wrapper.text()).not.toContain('Chơi nhiều người');
-    expect(wrapper.text()).toContain('Một mình hoặc 2–4 người');
+    // Mô tả rời khỏi ô (trang chủ mới 13.10.2026), còn ở title để di chuột/đọc màn hình
+    expect(wrapper.find('.o-vuong[title*="Một mình hoặc 2–4 người"]').exists()).toBe(true);
     // Chưa hiện cấp/theme ở bước đầu — tránh rối
     expect(wrapper.text()).not.toContain('Chọn số thẻ');
     expect(wrapper.text()).not.toContain('Theme thẻ');
@@ -224,6 +226,8 @@ describe('App', () => {
   });
 
   it('lưu và đọc lại tuỳ chọn nền tối', async () => {
+    // Nền tối chỉ có nghĩa với skin Neon (hai skin kia mang bảng màu riêng)
+    datSkin('neon');
     wrapper = mount(App);
     await flush();
     expect(document.documentElement.dataset.theme).toBe('light');

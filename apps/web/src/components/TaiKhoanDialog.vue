@@ -256,7 +256,7 @@ const diemMay = store.totalScore();
 .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px; }
 .avatar.chu {
   display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; font-weight: 800;
+  background: var(--nhan-nen); color: var(--nhan-chu); font-weight: 800;
 }
 .ten-khoi { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -268,7 +268,7 @@ const diemMay = store.totalScore();
   background: transparent; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer;
 }
 .tab[aria-selected='true'] {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent;
+  background: var(--nhan-nen); color: var(--nhan-chu); border-color: transparent;
 }
 
 .so { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0; }
