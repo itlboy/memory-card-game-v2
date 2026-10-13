@@ -62,6 +62,17 @@ const URLS = {
 const NGON_NGU = [
   { locale: 'en-US', noiDung: phan('English (U.S.)'), anh: 'en' },
   { locale: 'vi', noiDung: phan('Tiếng Việt'), anh: 'vi' },
+  // 10 ngôn ngữ còn lại của app (13.10.2026) — thư mục ảnh trùng mã ngôn ngữ trong app
+  { locale: 'es-ES', noiDung: phan('Español'), anh: 'es' },
+  { locale: 'pt-BR', noiDung: phan('Português (Brasil)'), anh: 'pt' },
+  { locale: 'fr-FR', noiDung: phan('Français'), anh: 'fr' },
+  { locale: 'de-DE', noiDung: phan('Deutsch'), anh: 'de' },
+  { locale: 'ja', noiDung: phan('日本語'), anh: 'ja' },
+  { locale: 'ko', noiDung: phan('한국어'), anh: 'ko' },
+  { locale: 'zh-Hans', noiDung: phan('简体中文'), anh: 'zh' },
+  { locale: 'ru', noiDung: phan('Русский'), anh: 'ru' },
+  { locale: 'id', noiDung: phan('Bahasa Indonesia'), anh: 'id' },
+  { locale: 'th', noiDung: phan('ไทย'), anh: 'th' },
 ];
 
 // ── App + appInfo đang soạn + phiên bản đang soạn ──
