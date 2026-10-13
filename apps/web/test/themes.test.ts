@@ -70,13 +70,16 @@ describe('file themes.json thực trong repo', () => {
   });
 
   // Lưới theme phải TRÒN HÀNG trong cột 3 ô: 12 → 3×4, 15 → 3×5. Thêm theme thì
-  // số theme phải chia hết cho 3, không thì hàng cuối còn ô lẻ lệch sang trái.
-  it('số theme chia hết cho 3 để lưới tròn hàng, và có đủ theme mở sẵn', async () => {
+  // số theme phải chia hết cho 3 VÀ 4 (lưới 3 hoặc 4 cột), không thì hàng cuối còn ô lẻ.
+  it('số theme chia hết cho 3 và 4 để lưới tròn hàng, và có đủ theme mở sẵn', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
     const { themes } = JSON.parse(raw) as { themes: { unlockAt: number }[] };
+    // Lưới theme auto-fill: 3 cột ở máy hẹp, 4 cột ở máy rộng (Pro Max) — phải tròn
+    // CẢ HAI. 33 theme qua được phép chia 3 mà hàng cuối máy rộng lẻ một ô (đã chụp thấy).
     expect(themes.length % 3, `${themes.length} theme không tròn hàng 3 cột`).toBe(0);
+    expect(themes.length % 4, `${themes.length} theme không tròn hàng 4 cột`).toBe(0);
     expect(themes.filter((t) => t.unlockAt === 0).length, 'theme mở sẵn')
       .toBeGreaterThanOrEqual(6);
     expect(themes.filter((t) => t.unlockAt > 0).length, 'theme khoá bằng điểm')

@@ -315,6 +315,18 @@ const ru: TuDien = {
   'theme.drinks': 'Напитки',
   'theme.games': 'Игры',
   'theme.garden': 'Сад',
+  'theme.tet': "Лунный Новый год",
+  'theme.sweets': "Сладости",
+  'theme.veggies': "Овощи",
+  'theme.landmarks': "Памятники",
+  'theme.birds': "Птицы",
+  'theme.school': "Школа",
+  'theme.hands': "Жесты",
+  'theme.hearts': "Сердца",
+  'theme.clocks': "Часы",
+  'theme.safari': "Сафари",
+  'theme.summer': "Лето",
+  'theme.asianfood': "Азиатская кухня",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'Цыплёнок-растяпа',

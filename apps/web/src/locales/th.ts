@@ -297,6 +297,18 @@ const th: TuDien = {
   'theme.drinks': 'เครื่องดื่ม',
   'theme.games': 'เกม',
   'theme.garden': 'สวน',
+  'theme.tet': "ตรุษจีน",
+  'theme.sweets': "ขนมหวาน",
+  'theme.veggies': "ผัก",
+  'theme.landmarks': "สถานที่สำคัญ",
+  'theme.birds': "นก",
+  'theme.school': "โรงเรียน",
+  'theme.hands': "ท่ามือ",
+  'theme.hearts': "หัวใจ",
+  'theme.clocks': "นาฬิกา",
+  'theme.safari': "ซาฟารี",
+  'theme.summer': "ฤดูร้อน",
+  'theme.asianfood': "อาหารเอเชีย",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'ลูกเจี๊ยบเตาะแตะ',

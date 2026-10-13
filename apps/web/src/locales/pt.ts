@@ -297,6 +297,18 @@ const pt: TuDien = {
   'theme.drinks': 'Bebidas',
   'theme.games': 'Jogos',
   'theme.garden': 'Jardim',
+  'theme.tet': "Ano Novo Lunar",
+  'theme.sweets': "Doces",
+  'theme.veggies': "Legumes",
+  'theme.landmarks': "Monumentos",
+  'theme.birds': "Aves",
+  'theme.school': "Escola",
+  'theme.hands': "Gestos",
+  'theme.hearts': "Corações",
+  'theme.clocks': "Relógios",
+  'theme.safari': "Safári",
+  'theme.summer': "Verão",
+  'theme.asianfood': "Comida asiática",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'Pintinho Trapalhão',

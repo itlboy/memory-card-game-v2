@@ -299,6 +299,18 @@ const id: TuDien = {
   'theme.drinks': 'Minuman',
   'theme.games': 'Permainan',
   'theme.garden': 'Kebun',
+  'theme.tet': "Tahun Baru Imlek",
+  'theme.sweets': "Manisan",
+  'theme.veggies': "Sayuran",
+  'theme.landmarks': "Landmark",
+  'theme.birds': "Burung",
+  'theme.school': "Sekolah",
+  'theme.hands': "Isyarat Tangan",
+  'theme.hearts': "Hati",
+  'theme.clocks': "Jam",
+  'theme.safari': "Safari",
+  'theme.summer': "Musim Panas",
+  'theme.asianfood': "Makanan Asia",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'Ayam Cupu',

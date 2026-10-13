@@ -302,6 +302,18 @@ const fr: TuDien = {
   'theme.drinks': 'Boissons',
   'theme.games': 'Jeux',
   'theme.garden': 'Jardin',
+  'theme.tet': "Nouvel An lunaire",
+  'theme.sweets': "Douceurs",
+  'theme.veggies': "Légumes",
+  'theme.landmarks': "Monuments",
+  'theme.birds': "Oiseaux",
+  'theme.school': "École",
+  'theme.hands': "Gestes",
+  'theme.hearts': "Cœurs",
+  'theme.clocks': "Horloges",
+  'theme.safari': "Safari",
+  'theme.summer': "Été",
+  'theme.asianfood': "Cuisine asiatique",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'Poussin Pataud',

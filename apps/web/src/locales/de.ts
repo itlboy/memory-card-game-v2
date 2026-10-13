@@ -299,6 +299,18 @@ const de: TuDien = {
   'theme.drinks': 'Getränke',
   'theme.games': 'Spiele',
   'theme.garden': 'Garten',
+  'theme.tet': "Mondneujahr",
+  'theme.sweets': "Süßes",
+  'theme.veggies': "Gemüse",
+  'theme.landmarks': "Wahrzeichen",
+  'theme.birds': "Vögel",
+  'theme.school': "Schule",
+  'theme.hands': "Handzeichen",
+  'theme.hearts': "Herzen",
+  'theme.clocks': "Uhren",
+  'theme.safari': "Safari",
+  'theme.summer': "Sommer",
+  'theme.asianfood': "Asiatisches Essen",
 
   /* ---------- computer names ---------- */
   'bot.easy': 'Wackelküken',

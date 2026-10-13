@@ -303,6 +303,18 @@ const vi = {
   'theme.drinks': 'Đồ uống',
   'theme.games': 'Trò chơi',
   'theme.garden': 'Vườn nhà',
+  'theme.tet': "Tết Việt",
+  'theme.sweets': "Bánh kẹo",
+  'theme.veggies': "Rau củ",
+  'theme.landmarks': "Địa danh",
+  'theme.birds': "Chim chóc",
+  'theme.school': "Học đường",
+  'theme.hands': "Cử chỉ tay",
+  'theme.hearts': "Trái tim",
+  'theme.clocks': "Đồng hồ",
+  'theme.safari': "Thú hoang",
+  'theme.summer': "Mùa hè",
+  'theme.asianfood': "Ẩm thực Á Đông",
 
   /* ---------- tên máy + 'Bạn' trong ván đấu máy ---------- */
   'bot.easy': 'Bot gà mờ',

@@ -296,6 +296,18 @@ const zh: TuDien = {
   'theme.drinks': '饮品',
   'theme.games': '游戏',
   'theme.garden': '花园',
+  'theme.tet': "春节",
+  'theme.sweets': "甜点",
+  'theme.veggies': "蔬菜",
+  'theme.landmarks': "名胜",
+  'theme.birds': "鸟类",
+  'theme.school': "学校",
+  'theme.hands': "手势",
+  'theme.hearts': "爱心",
+  'theme.clocks': "时钟",
+  'theme.safari': "野生动物",
+  'theme.summer': "夏日",
+  'theme.asianfood': "亚洲美食",
 
   /* ---------- computer names ---------- */
   'bot.easy': '菜鸟小鸡',
