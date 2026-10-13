@@ -548,7 +548,7 @@ const es: TuDien = {
   'lc.xemThang': 'Victoria · {ten}',
   'lc.xemThua': 'Derrota · {ten}',
   'lc.xemThuaMay': 'Derrota contra la máquina',
-  'lc.ghiCong': 'Ilustración del dragón: Twemoji (Twitter, Inc.) · CC-BY 4.0, recoloreada',
+  'lc.ghiCong': "Ilustraciones de cartas (dispositivos no Apple) y cara del dragón: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragón recoloreado",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': 'Ganaste ',

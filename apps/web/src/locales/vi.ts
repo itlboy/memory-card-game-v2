@@ -559,7 +559,7 @@ const vi = {
   'lc.xemThang': 'Thắng · {ten}',
   'lc.xemThua': 'Thua · {ten}',
   'lc.xemThuaMay': 'Thua máy',
-  'lc.ghiCong': 'Hình mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0, đã đổi màu',
+  'lc.ghiCong': "Hình mặt bài (máy không phải Apple) và mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0; mặt rồng đã đổi màu",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */
   'cd.daDat': 'Đã đạt ',

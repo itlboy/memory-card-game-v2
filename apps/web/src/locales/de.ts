@@ -549,7 +549,7 @@ const de: TuDien = {
   'lc.xemThang': 'Sieg · {ten}',
   'lc.xemThua': 'Niederlage · {ten}',
   'lc.xemThuaMay': 'Gegen den Computer verloren',
-  'lc.ghiCong': 'Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0, umgefärbt',
+  'lc.ghiCong': "Kartengrafiken (Nicht-Apple-Geräte) und Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0; Drache umgefärbt",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': 'Erreicht: ',

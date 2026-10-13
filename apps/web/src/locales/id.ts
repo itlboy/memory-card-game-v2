@@ -549,7 +549,7 @@ const id: TuDien = {
   'lc.xemThang': 'Menang · {ten}',
   'lc.xemThua': 'Kalah · {ten}',
   'lc.xemThuaMay': 'Kalah dari komputer',
-  'lc.ghiCong': 'Gambar wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0, diwarnai ulang',
+  'lc.ghiCong': "Gambar kartu (perangkat non-Apple) dan wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0; naga diwarnai ulang",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': 'Terkumpul ',
