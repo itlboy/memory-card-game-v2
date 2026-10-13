@@ -158,6 +158,10 @@ function pickBotMode(): void {
   sfx.select();
   emit('update:playerCount', 1);
   emit('update:botLevel', props.botLevel ?? 'normal');
+  // Thoát Chiến dịch NGAY TẠI ĐÂY, không đợi tới lúc chọn mức: còn để mode
+  // 'campaign' thì `path` là đường của Chiến dịch, không có bước 'bot', nên
+  // stepIndex = -1 và nút quay lại biến mất (người chơi báo 13.10.2026).
+  if (props.mode === 'campaign') emit('update:mode', 'classic');
   step.value = 'bot';
 }
 
