@@ -1,4 +1,4 @@
-package com.hello314.flipmatch;
+package com.cozypi.flipmatch;
 
 import com.getcapacitor.BridgeActivity;
 

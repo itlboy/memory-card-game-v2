@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.hello314.flipmatch"
+    namespace = "com.cozypi.flipmatch"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.hello314.flipmatch"
+        applicationId "com.cozypi.flipmatch"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // CI truyền -PversionCode (số lần chạy workflow, luôn tăng — Play từ chối

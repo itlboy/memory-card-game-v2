@@ -19,6 +19,9 @@ on:
         default: true
       may_chu:
         description: Bản web để chụp
+        # thebai2 (Cloudflare) chứ không flipmatch.cozypi.com: Worker lên bản mới NGAY
+        # lúc `pnpm release`, còn pod k8s chờ Keel vài phút — chụp sớm là chụp bản cũ.
+        # Tên miền ở đây không hiện trong ảnh và không lên store.
         default: https://thebai2.hello314.com
 
 permissions:

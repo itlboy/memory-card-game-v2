@@ -6,7 +6,7 @@
 // được nên giữ kịch bản này lại để soi thẳng production:
 //
 //   node tools/smoke-freeze.mjs                                   # wrangler dev
-//   MM_SERVER=https://thebai.hello314.com node tools/smoke-freeze.mjs
+//   MM_SERVER=https://flipmatch.cozypi.com node tools/smoke-freeze.mjs
 //
 // Dấu hiệu HỎNG: sau dòng events(flip+miss) mà quá ~1,5 giây không thấy
 // events(turn) thì chuỗi alarm phía server đã đứt.
