@@ -2,6 +2,7 @@
 #
 # Đường đi của một request:
 #   thebai-server.hello314.com
+#   flipmatch.hello314.com (tên chính từ 13.10.2026)
 #     → Cloudflare (wildcard *.hello314.com trỏ tunnel kien-server-main-vm)
 #     → route mặc định của tunnel → ingress-nginx
 #     → service thebai-server:80 → pod cổng 8080
@@ -140,12 +141,26 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    # Hai tên miền, MỘT pod. `thebai.hello314.com` là TÊN CHÍNH người chơi vào
-    # (từ 29.08.2026 — trước đó tên này trỏ vào Cloudflare Worker, nay đã đổi
-    # chỗ: Worker giữ `thebai2.hello314.com`, còn tên chính về cụm này). Client lấy địa chỉ server bằng `location.origin`
+    # Ba tên miền, MỘT pod. `flipmatch.hello314.com` là TÊN CHÍNH từ 13.10.2026
+    # (link chia sẻ, og:url, server của app iOS/Android build từ đó về sau).
+    # `thebai.hello314.com` — tên chính cũ (29.08 → 13.10.2026) — vẫn phục vụ
+    # NGUYÊN VẸN, KHÔNG chuyển hướng: localStorage (điểm, kỷ lục) gắn theo
+    # origin nên redirect là người chơi cũ thấy mất sạch; và app đã phát hành
+    # trước 13.10 gọi server qua tên đó. Worker giữ `thebai2.hello314.com`.
+    # Client lấy địa chỉ server bằng `location.origin`
     # (xem apps/web/src/composables/useOnlineRoom.ts), nên mở bằng tên nào thì
     # phòng online chạy trên chính tên đó — không CORS, không cần build riêng
     # cho từng tên miền, và cả hai cùng đi theo bản mới mà Keel thay.
+    - host: flipmatch.hello314.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-server
+                port:
+                  number: 80
     - host: thebai-server.hello314.com
       http:
         paths:

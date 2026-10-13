@@ -4,7 +4,7 @@ Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS (Capa
 mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số; có tài
 khoản Google, 103 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
 
-- Bản chính: https://thebai.hello314.com (server Node trên cụm k8s cá nhân
+- Bản chính: https://flipmatch.hello314.com (tên cũ https://thebai.hello314.com vẫn chạy) (server Node trên cụm k8s cá nhân
   `kien-server-main`, có MySQL + đăng nhập Google)
 - Bản dự phòng: https://thebai2.hello314.com (Cloudflare Worker, chơi ẩn danh)
 
@@ -336,7 +336,7 @@ pnpm release        # build web + deploy CẢ web và server trong một Worker
 Test phòng đông người mà không phải mở 10 tab và tự bấm cho từng người:
 
 ```bash
-node tools/gia-nguoi.mjs "https://thebai.hello314.com/?room=525473" --so 5
+node tools/gia-nguoi.mjs "https://flipmatch.hello314.com/?room=525473" --so 5
 node tools/gia-nguoi.mjs 525473 --so 3          # chỉ mã 6 số thì lấy MM_SERVER (mặc định :8787)
 ```
 
