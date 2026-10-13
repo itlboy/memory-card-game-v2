@@ -332,6 +332,10 @@ const title = computed(() => {
 .overlay {
   position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
   padding: 20px; background: rgba(6, 9, 18, .3);   /* nền nhạt để thấy pháo hoa phía sau */
+  /* Lớp phủ fixed nằm NGOÀI đệm vùng an toàn của #app: tự cộng env() (iPhone: tai thỏ,
+     Dynamic Island, dải home) — không thì nút ✕ chui dưới đồng hồ/pin, khó bấm. */
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
 .panel {
   width: 100%; max-width: 400px; position: relative;
@@ -518,7 +522,7 @@ h2 { margin: 0 0 4px; }
  * tools/do-menu-tren.mjs canh mọi nút nằm trong màn hình ở ba cỡ máy.
  */
 @media (max-height: 640px) {
-  .overlay { padding: 10px; }
+  .overlay { padding: calc(10px + env(safe-area-inset-top, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
   .panel { padding: 14px 16px; }
   h2 { font-size: var(--text-lg); }
   .reason { margin-bottom: 6px; font-size: 13px; }

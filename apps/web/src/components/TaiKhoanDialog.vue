@@ -217,9 +217,13 @@ const diemMay = store.totalScore();
   display: flex; align-items: center; justify-content: center; padding: 12px;
   background: rgba(12, 14, 28, .45);
   backdrop-filter: blur(4px);
+  /* Lớp phủ fixed nằm NGOÀI đệm vùng an toàn của #app: tự cộng env() (iPhone: tai thỏ,
+     Dynamic Island, dải home) — không thì nút ✕ chui dưới đồng hồ/pin, khó bấm. */
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 .panel {
-  width: 100%; max-width: var(--col-w); max-height: calc(100dvh - 24px);
+  width: 100%; max-width: var(--col-w); max-height: 100%;   /* = cao lớp phủ trừ đệm (đã gồm vùng an toàn) */
   display: flex; flex-direction: column; min-height: 0;
   padding: 16px; border-radius: 16px;
   background: var(--panel-solid); border: 1px solid var(--line);

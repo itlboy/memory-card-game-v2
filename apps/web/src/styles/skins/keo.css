@@ -111,6 +111,24 @@
   box-shadow: 0 5px 0 var(--ink);
 }
 :root[data-skin='keo'] .btn-primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+/* ---------- màn Danh hiệu: tab, nút Chinh phục, dòng danh hiệu ----------
+   Cùng nét với .btn (viền mực + bóng lệch + lún khi ấn). Bản phẳng cũ — khối
+   màu không viền — lạc giữa giao diện Kẹo (chủ dự án chê "đơn điệu"). */
+:root[data-skin='keo'] .tabs .tab {
+  border: 3px solid var(--ink); border-radius: 14px; background: #fff; color: var(--ink);
+  font-weight: 800; box-shadow: 0 4px 0 var(--ink);
+}
+:root[data-skin='keo'] .tabs .tab[aria-selected='true'] { background: #ff4d6d; color: #fff; text-shadow: var(--chu-vien); }
+:root[data-skin='keo'] .tabs .tab:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+:root[data-skin='keo'] .danh-hieu li { background: #fff; border: 2.5px solid #d9e2f2; border-radius: 14px; }
+:root[data-skin='keo'] .danh-hieu li.co { background: #fffaea; border-color: var(--ink); box-shadow: 0 3px 0 var(--ink); }
+:root[data-skin='keo'] .danh-hieu .di {
+  border: 2.5px solid var(--ink); border-radius: 999px; background: #ff4d6d; color: #fff;
+  font-weight: 900; text-shadow: var(--chu-vien); box-shadow: 0 3px 0 var(--ink);
+}
+:root[data-skin='keo'] .danh-hieu .di:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+:root[data-skin='keo'] .danh-hieu .tien-do { border: 2px solid #c9d3ea; background: #eef3fb; }
+:root[data-skin='keo'] .danh-hieu .tien-do i { background: #6ccb3a; }
 @media (hover: hover) {
   :root[data-skin='keo'] .btn:hover { border-color: var(--ink); }
   :root[data-skin='keo'] .btn-primary:hover { filter: brightness(1.05); }

@@ -87,6 +87,10 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
   position: fixed; inset: 0; z-index: 20;
   display: flex; align-items: center; justify-content: center; padding: 20px;
   background: rgba(6, 9, 18, .62);
+  /* Lớp phủ fixed nằm NGOÀI đệm vùng an toàn của #app: tự cộng env() (iPhone: tai thỏ,
+     Dynamic Island, dải home) — không thì nút ✕ chui dưới đồng hồ/pin, khó bấm. */
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
 .hop {
   width: 100%; max-width: 320px; padding: 14px 16px 16px;
