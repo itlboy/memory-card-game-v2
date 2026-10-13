@@ -148,12 +148,13 @@ jobs:
             MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
             -quiet build
 
-      # Archive ký AD-HOC (`-`), để bước xuất ký lại bằng chứng chỉ PHÂN PHỐI.
-      #  - Ký tự động thì Xcode ký kiểu Development trước, mà profile Development
-      #    đòi team có ít nhất một iPhone đăng ký ("Your team has no devices").
-      #  - KHÔNG ký hẳn (CODE_SIGNING_ALLOWED=NO) thì app không mang entitlements,
-      #    bước xuất ký lại cũng ra thiếu — đã đo: mất `applesignin`, nút Đăng
-      #    nhập Apple chết. Ký ad-hoc nhúng entitlements mà không cần profile.
+      # Archive KHÔNG ký rồi tự nhúng entitlements bằng `codesign -s -`; bước xuất
+      # ký lại bằng chứng chỉ PHÂN PHỐI và giữ entitlements đó. Ba cách đã hỏng:
+      #  - ký tự động: Xcode ký kiểu Development trước, mà profile Development
+      #    đòi team có ít nhất một iPhone đăng ký ("Your team has no devices");
+      #  - không ký gì: app không mang entitlements nên bản xuất ra thiếu — đã đo:
+      #    mất `applesignin`, nút Đăng nhập Apple chết;
+      #  - CODE_SIGN_IDENTITY=- : "Ad Hoc code signing is not allowed with SDK iOS 26".
       # Ký TỰ ĐỘNG bằng App Store Connect API key: Xcode tự xin chứng chỉ phân
       # phối + provisioning profile trên đám mây, không có file .p12 nào phải giữ.
       # Key phải ở quyền Admin (hoặc App Manager có quyền "Cloud Managed
@@ -171,9 +172,15 @@ jobs:
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- PROVISIONING_PROFILE_SPECIFIER= \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGNING_ALLOWED=NO \
             MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
             -quiet archive
+          # Nhúng entitlements bằng chữ ký ad-hoc của `codesign` (dòng lệnh thì
+          # được, chỉ build setting mới bị Xcode 26 cấm). Framework ký trước, app sau.
+          APP="$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app"
+          find "$APP" -depth \( -name '*.framework' -o -name '*.dylib' -o -name '*.appex' \) \
+            -exec codesign --force --sign - {} \;
+          codesign --force --sign - --entitlements App/App.entitlements "$APP"
 
       # destination=upload: xuất xong Xcode đẩy thẳng lên App Store Connect
       # (TestFlight), không cần altool/fastlane. Không phát hành thì chỉ xuất IPA.
