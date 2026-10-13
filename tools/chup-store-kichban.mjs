@@ -3,12 +3,25 @@
  * trang chủ như người chơi thật. Ván offline mang sẵn ký hiệu trong DOM nên
  * kịch bản biết lá nào đi với lá nào — chỉ để dựng cảnh, không phải luật chơi.
  */
-/** Chữ trên nút theo ngôn ngữ (lấy từ locales/*.ts) — thêm ngôn ngữ là thêm một dòng. */
-const NHAN = {
-  en: { nhanh: 'Quick play', motMinh: 'Solo', the: 'cards', tiep: 'Next', batDau: 'Start', online: 'Play online' },
-  vi: { nhanh: 'Chơi nhanh', motMinh: 'Một mình', the: 'thẻ', tiep: 'Tiếp', batDau: 'Bắt đầu', online: 'Chơi online' },
-};
-let L = NHAN.en;
+import { readFileSync } from 'node:fs';
+
+/** Chữ trên nút theo ngôn ngữ — ĐỌC THẲNG từ locales/<mã>.ts nên đủ cả 12 ngôn
+ *  ngữ và không lệch khi đổi bản dịch (bản cũ chép tay, chỉ có en/vi). */
+function nhanTheo(lang) {
+  const s = readFileSync(new URL(`../apps/web/src/locales/${lang}.ts`, import.meta.url), 'utf8');
+  const g = (k) => {   // không dùng RegExp: khoá có dấu chấm, giá trị có \' — cắt chuỗi cho chắc
+    const dau = `'${k}': '`, i = s.indexOf(dau);
+    if (i < 0) throw new Error(`${lang}.ts thiếu ${k}`);
+    let j = i + dau.length, v = '';
+    while (s[j] !== "'") { if (s[j] === '\\') j++; v += s[j++]; }
+    return v;
+  };
+  return {
+    nhanh: g('menu.choiNhanh'), motMinh: g('menu.soNguoi.1'), the: g('menu.the'), tiep: g('menu.tiep'),
+    batDau: g('menu.batDau').split(' —')[0].trim(), online: g('menu.online'),
+  };
+}
+let L = nhanTheo('en');
 
 async function veTrangChu({ js, cho }) {
   await js(`location.href = location.origin + '/?lang=' + localStorage.getItem('mm.lang'); true`);
@@ -35,7 +48,7 @@ const chonLuat = (js, hang, muc) =>
 
 export async function chay(ctx) {
   const { js, bam, cho, chup } = ctx;
-  L = NHAN[await js(`localStorage.getItem('mm.lang')`)] ?? NHAN.en;
+  L = nhanTheo(await js(`localStorage.getItem('mm.lang')`) ?? 'en');
 
   // 1. Đang chơi: 2/3 số cặp đã ghép, một lá vừa mở — có đồng hồ cho HUD đủ chữ
   await vaoVan(ctx, 30, async () => { await chonLuat(js, 0, 2); await cho(300); });
@@ -47,7 +60,12 @@ export async function chay(ctx) {
   // 2. Thắng ván
   await bamThe(js, cap[10][1]); await cho(900);
   for (const [a, b] of cap.slice(11)) { await bamThe(js, a); await cho(450); await bamThe(js, b); await cho(900); }
-  await cho(3500);
+  // Ván đầu mở cả loạt danh hiệu: chụp màn khoe (ảnh đẹp riêng), rồi chờ hết chuỗi
+  // khoe mới chụp bảng thắng — chụp sớm là huy chương/khoe che đúng con số điểm
+  await cho(7000);
+  await chup('08-achievement');
+  for (let i = 0; i < 40 && await js(`!!document.querySelector('.mk-fx, .mo-khoa-toast')`); i++) await cho(1000);
+  await cho(1500);
   await chup('02-win');
 
   // 3. Trang chủ
