@@ -92,7 +92,7 @@ if (!version) throw new Error('Không có phiên bản iOS nào đang soạn (Pr
 // Phiên bản hiển thị khớp package.json, bản quyền
 const pkgVer = JSON.parse(readFileSync(new URL('../apps/web/package.json', import.meta.url), 'utf8')).version;
 await api('PATCH', `/v1/appStoreVersions/${version.id}`, {
-  data: { type: 'appStoreVersions', id: version.id, attributes: { versionString: pkgVer, copyright: `${new Date().getFullYear()} 314 Labs` } },
+  data: { type: 'appStoreVersions', id: version.id, attributes: { versionString: pkgVer, copyright: `${new Date().getFullYear()} Cozy Pi` } },
 });
 console.log(`✓ Phiên bản ${pkgVer}`);
 

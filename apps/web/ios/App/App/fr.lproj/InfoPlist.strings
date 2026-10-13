@@ -1,0 +1,3 @@
+/* Tên app theo ngôn ngữ máy — xem lib/i18n.ts ở web (từ điển tb.thuongHieu).
+   Thư mục này còn là thứ App Store đếm để ghi mục "Languages" của app. */
+"CFBundleDisplayName" = "Flip Match";

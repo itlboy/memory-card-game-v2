@@ -7,8 +7,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<!-- 12 ngôn ngữ app hỗ trợ (khớp NGON_NGU ở web lib/i18n.ts): iOS hiện mục chọn ngôn ngữ
-	     riêng cho app trong Cài đặt. Tên app đọc từ vi.lproj ("Lật Thẻ"); mọi ngôn ngữ
-	     khác lùi về en.lproj ("Flip Match") nên không cần lproj riêng -->
+	     riêng cho app trong Cài đặt. MỖI ngôn ngữ vẫn PHẢI có <mã>.lproj: mục "Languages"
+	     trên App Store đếm thư mục lproj trong bản build, không đọc mảng này (chỉ có en+vi
+	     thì store ghi "English and 1 more"). Tên app: vi.lproj "Lật Thẻ", còn lại "Flip Match" -->
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>

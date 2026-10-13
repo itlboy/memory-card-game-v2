@@ -27,7 +27,7 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 | Privacy Policy URL | https://flipmatch.cozypi.com/privacy.html |
 | Category (Apple) | Games → Primary **Puzzle**, Secondary **Board** |
 | Category (Google) | Game → **Puzzle** |
-| Copyright | 2026 314 Labs |
+| Copyright | 2026 Cozy Pi |
 | Price | Free, no in-app purchases, no ads |
 
 ## English (U.S.)
