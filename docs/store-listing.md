@@ -13,6 +13,10 @@ sửa nội dung thì chạy `python3 tools/dem-ky-tu-store.py` để soát lạ
 iPhone 6.9" (1320×2868 — cỡ App Store bắt buộc; Google Play nhận luôn). Server
 phải chạy bản build mới (`pnpm node:dev`) vì cảnh phòng online cần API thật.
 Kịch bản ở `tools/chup-store-kichban.mjs`; thêm ngôn ngữ = thêm một dòng `NHAN`.
+**Google Play cần bộ riêng**: `KHUNG=android node tools/chup-store.mjs …` ra 1080×1920
+— Play từ chối ảnh dài hơn 2:1, mà khung iPhone 6.9" là 2,17:1. Play còn bắt buộc
+ảnh bìa (feature graphic) 1024×500 — dựng từ `tools/og/og.html` đổi chữ sang tiếng
+Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 
 ## Chung
 

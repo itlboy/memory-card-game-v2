@@ -15,7 +15,10 @@ const WebSocket = require('ws');
 
 const [URL_APP = 'http://127.0.0.1:8080', OUT = 'store-shots', LANG = 'en', ...BUOC] = process.argv.slice(2);
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const W = 440, H = 956, PORT = 9334;
+// KHUNG=android: 360×640 × 3 = 1080×1920 (9:16). Google Play từ chối ảnh dài hơn
+// 2:1, mà khung iPhone 6.9" là 2,17:1 — nên Android cần bộ riêng.
+const KHUNG = process.env.KHUNG === 'android' ? { W: 360, H: 640 } : { W: 440, H: 956 };
+const { W, H } = KHUNG, PORT = 9334;
 mkdirSync(OUT, { recursive: true });
 const PROFILE = `/tmp/mm-shot-${process.pid}`;
 rmSync(PROFILE, { recursive: true, force: true });
