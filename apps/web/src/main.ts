@@ -4,6 +4,7 @@ import App from './App.vue';
 import { sfx } from './lib/audio';
 import { nhac } from './lib/nhac';
 import { laApp } from './lib/native';
+import './styles/fonts';   // font đóng gói sẵn — xem styles/fonts.ts
 import './styles/global.css';
 import './styles/card-backs.css';
 import './styles/theme-grid.css';

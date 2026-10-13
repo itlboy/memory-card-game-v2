@@ -18,6 +18,10 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         WebSettings s = getBridge().getWebView().getSettings();
+        // Cỡ chữ WebView CỐ ĐỊNH 100%: Android áp "Cỡ chữ" của hệ thống vào trang
+        // (iOS thì không), chữ phình ra là vỡ bố cục KHÔNG SCROLL và mất tên game
+        // trên thanh trên. Game tự lo cỡ chữ theo màn hình.
+        s.setTextZoom(100);
         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
             // Android 13+ (targetSdk ≥ 33)
             WebSettingsCompat.setAlgorithmicDarkeningAllowed(s, false);
