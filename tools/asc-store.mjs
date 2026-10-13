@@ -58,9 +58,9 @@ function phan(tieuDe) {
   return f;
 }
 const URLS = {
-  support: 'https://flipmatch.hello314.com/support.html',
-  marketing: 'https://flipmatch.hello314.com',
-  privacy: 'https://flipmatch.hello314.com/privacy.html',
+  support: 'https://flipmatch.cozypi.com/support.html',
+  marketing: 'https://cozypi.com',
+  privacy: 'https://flipmatch.cozypi.com/privacy.html',
 };
 const NGON_NGU = [
   { locale: 'en-US', noiDung: phan('English (U.S.)'), anh: 'en' },

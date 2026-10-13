@@ -22,9 +22,9 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 
 | Trường | Giá trị |
 |---|---|
-| Support URL | https://flipmatch.hello314.com/support.html |
-| Marketing URL | https://flipmatch.hello314.com |
-| Privacy Policy URL | https://flipmatch.hello314.com/privacy.html |
+| Support URL | https://flipmatch.cozypi.com/support.html |
+| Marketing URL | https://cozypi.com (trang studio, `apps/studio`) |
+| Privacy Policy URL | https://flipmatch.cozypi.com/privacy.html |
 | Category (Apple) | Games → Primary **Puzzle**, Secondary **Board** |
 | Category (Google) | Game → **Puzzle** |
 | Copyright | 2026 314 Labs |
@@ -767,7 +767,7 @@ Nguyen
 
 **Email** (100)
 ```
-support@hello314.com
+support@cozypi.com
 ```
 
 **Notes** (4000)
@@ -785,7 +785,7 @@ WHAT TO TRY
 
 ONLINE MULTIPLAYER
 - "Play online" > "Create new room" creates a room with a 6-digit code.
-- To join from a second device, open "Play online" and enter the code, or open https://flipmatch.hello314.com in Safari on any device. A second player is needed to start a match.
+- To join from a second device, open "Play online" and enter the code, or open https://flipmatch.cozypi.com in Safari on any device. A second player is needed to start a match.
 
 SIGN IN (OPTIONAL)
 - Menu > "Sign in" offers Sign in with Apple. Signing in only syncs scores and achievements across devices.
@@ -794,7 +794,7 @@ SIGN IN (OPTIONAL)
 OTHER
 - No in-app purchases, no ads, no third-party tracking.
 - Haptics are used for match/miss feedback on supported devices.
-- Privacy policy: https://flipmatch.hello314.com/privacy.html
+- Privacy policy: https://flipmatch.cozypi.com/privacy.html
 ```
 
 ## Phân loại độ tuổi (Apple) / Content rating (Google)
