@@ -32,3 +32,15 @@ if (!laApp) void registerSW({ immediate: true });
 // Skin gắn TRƯỚC khi mount: không loé giao diện mặc định một khung hình
 ganSkin();
 createApp(App).mount('#app');
+
+// MÀN CHỜ (app): giữ tới khi game vẽ xong khung đầu rồi mờ dần — cả iOS lẫn Android.
+// Không có bước này thì iOS bỏ màn chờ ngay lúc WebView mở, trước khi game kịp vẽ,
+// nên người chơi gần như không thấy nó (Android thì thấy) — chủ dự án báo 14.10.2026.
+// Hai rAF = sau khi trình duyệt THẬT SỰ vẽ. capacitor.config có chốt 3 giây phòng JS lỗi.
+if (laApp) {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    void import('@capacitor/splash-screen')
+      .then(({ SplashScreen }) => SplashScreen.hide({ fadeOutDuration: 300 }))
+      .catch(() => { /* không có plugin (web) — bỏ qua */ });
+  }));
+}

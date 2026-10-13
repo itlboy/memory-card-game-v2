@@ -30,6 +30,16 @@ const config: CapacitorConfig = {
      */
     SocialLogin: {
       providers: { apple: true, google: false, facebook: false, twitter: false }
+    },
+    // Màn chờ giữ tới khi main.ts gọi SplashScreen.hide() (game đã vẽ khung đầu).
+    // Tự tắt sau 3 giây là CHỐT AN TOÀN: JS lỗi thì không kẹt mãi ở màn chờ.
+    SplashScreen: {
+      launchAutoHide: true,
+      launchShowDuration: 3000,
+      launchFadeOutDuration: 300,
+      backgroundColor: '#5bc0f0',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false
     }
   }
 };
