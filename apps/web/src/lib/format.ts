@@ -1,4 +1,4 @@
-import { bcp, ngonNgu } from './i18n';
+import { bcp, ngonNgu, t } from './i18n';
 export const clock = (seconds: number): string => {
   const s = Math.max(0, Math.floor(seconds));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -37,18 +37,21 @@ export const numShort = (n: number): string => {
  * cũng chẳng ai cần đọc.
  */
 export function buildAgeText(ms: number): string {
-  if (!Number.isFinite(ms) || ms < 0) return 'vừa xong';
+  if (!Number.isFinite(ms) || ms < 0) return t('chung.vuaXong');
   const giay = Math.floor(ms / 1000);
+  // Đơn vị do Intl dịch + chia số nhiều theo ngôn ngữ ("285 ngày" / "285 days" /
+  // "285 дней") — tiếng Việt ra đúng từng chữ như bản viết tay cũ.
   const phan = [
-    { n: Math.floor(giay / 86400), ten: 'ngày' },
-    { n: Math.floor((giay % 86400) / 3600), ten: 'giờ' },
-    { n: Math.floor((giay % 3600) / 60), ten: 'phút' },
-    { n: giay % 60, ten: 'giây' }
+    { n: Math.floor(giay / 86400), don: 'day' },
+    { n: Math.floor((giay % 86400) / 3600), don: 'hour' },
+    { n: Math.floor((giay % 3600) / 60), don: 'minute' },
+    { n: giay % 60, don: 'second' }
   ];
   // Hai đơn vị KHÁC 0 đầu tiên, bỏ qua đơn vị 0 nằm giữa: "3 ngày 0 giờ 12 phút"
   // đọc thành "3 ngày 12 phút", không phải "3 ngày" — giữ được thông tin mà vẫn
   // không bao giờ in ra một số 0.
   const co = phan.filter((p) => p.n > 0).slice(0, 2);
-  if (!co.length) return 'vừa xong';
-  return `${co.map((p) => `${p.n} ${p.ten}`).join(' ')} trước`;
+  if (!co.length) return t('chung.vuaXong');
+  const dv = (p: { n: number; don: string }) => new Intl.NumberFormat(bcp(), { style: 'unit', unit: p.don, unitDisplay: 'long' }).format(p.n);
+  return t('chung.truoc', { t: co.map(dv).join(' ') });
 }

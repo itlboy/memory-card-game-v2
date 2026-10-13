@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
 import { taiKhoan } from '@/lib/taikhoan';
+import { t } from '@/lib/i18n';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
@@ -295,30 +296,30 @@ watch(() => o.view.value?.summary, (s) => {
           <b>{{ p.name }}</b>
           <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
                kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
-          <span v-if="p.forfeited" class="netbad" title="Đã rời phòng">🚪 đã rời</span>
-          <span v-else-if="!p.connected" class="netbad" title="Mất kết nối">
-            📴<span class="chu"> mất mạng</span>
+          <span v-if="p.forfeited" class="netbad" :title="t('og.daRoiPhong')">{{ t('og.daRoi') }}</span>
+          <span v-else-if="!p.connected" class="netbad" :title="t('og.matKetNoi')">
+            📴<span class="chu"> {{ t('og.offline') }}</span>
           </span>
           <!-- Ping của MÌNH, gắn cạnh tên mình cho khỏi phải đoán là của ai. Luôn
                hiện: người chơi muốn biết mạng mình thế nào, không chỉ lúc có sự cố. -->
           <span
             v-else-if="p.id === o.myId.value"
             class="ping" :class="o.netQuality.value"
-            :title="`Độ trễ mạng của bạn${o.ping.value === null ? ' — đang đo' : `: ${o.ping.value}ms`}`"
+            :title="o.ping.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.ping.value })"
           >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
           <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
                tràn cả chip người chơi. -->
           <!-- MẠNG HIỆN BẰNG SỐ, không phải chuỗi trái tim: chuỗi phình theo số
                mạng (bàn 42 thẻ có tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi
                chip. Một icon + một số thì rộng bao nhiêu mạng cũng như nhau. -->
-          <small v-if="p.lives !== null" class="lives" :title="`${p.lives} mạng`">
+          <small v-if="p.lives !== null" class="lives" :title="t('ps.mang', { n: p.lives })">
             <template v-if="p.lives <= 0">💔</template>
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
           <span
             v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
             class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
-            role="timer" :aria-label="`Còn ${Math.ceil(o.turnTimeLeft.value)} giây`"
+            role="timer" :aria-label="t('ps.conGiay', { n: Math.ceil(o.turnTimeLeft.value) })"
           >{{ Math.ceil(o.turnTimeLeft.value) }}s</span>
           <!-- ĐỒNG HỒ LƯỢT CÒN LÀ MỘT THANH RÚT DẦN ở mép dưới chip. Nó nằm
                `absolute` nên tốn 0px bề rộng — đúng thứ đang thiếu — và cái
@@ -335,7 +336,7 @@ watch(() => o.view.value?.summary, (s) => {
               :key="o.timeBonusFor.value.key" class="plus10"
             >+5s</span>
           </Transition>
-          <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="`Đã thắng ${o.seriesWins.value[p.name]} ván`">
+          <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: o.seriesWins.value[p.name] ?? 0 })">
             🏅{{ o.seriesWins.value[p.name] }}
           </span>
           <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }">{{ p.score }}</span>
@@ -353,8 +354,8 @@ watch(() => o.view.value?.summary, (s) => {
               <template v-if="o.turnTimeLeft.value !== null">
                 <Timer :size="11" /><span :class="{ urgent: o.turnTimeLeft.value <= 10 }">{{ Math.ceil(o.turnTimeLeft.value) }}s</span> ·
               </template>
-              <template v-if="dangDi.id === o.myId.value">lượt bạn</template>
-              <template v-else>đang đi</template>
+              <template v-if="dangDi.id === o.myId.value">{{ t('og.luotBan') }}</template>
+              <template v-else>{{ t('ps.dangDi') }}</template>
             </span>
           </span>
           <Transition name="plus">
@@ -371,19 +372,19 @@ watch(() => o.view.value?.summary, (s) => {
             v-for="(p, k) in khac" :key="p.id"
             class="mini" :class="{ next: k === 0, off: !p.connected || p.forfeited }"
             :data-chip-for="p.id"
-            :title="`${p.name} — ${p.score} điểm`"
+            :title="t('ps.diemCua', { ten: p.name, n: p.score })"
           >
             <span class="avatar">{{ p.avatar }}</span>
             <!-- Mất mạng / đã rời: một chấm đỏ thay cho chữ. Ở cỡ này không có
                  chỗ cho "📴 mất mạng", mà bỏ hẳn thì bên kia biến mất không lý do. -->
-            <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? 'Đã rời phòng' : 'Mất kết nối'"></span>
+            <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? t('og.daRoiPhong') : t('og.matKetNoi')"></span>
             <span class="mpts">{{ p.score }}</span>
-            <span class="sr-only">{{ p.name }}: {{ p.score }} điểm</span>
+            <span class="sr-only">{{ t('ps.diemCuaSr', { ten: p.name, n: p.score }) }}</span>
           </li>
           <li class="more">
             <button
               type="button" class="more-btn"
-              :aria-expanded="moBang" aria-label="Bảng người chơi"
+              :aria-expanded="moBang" :aria-label="t('ps.bang')"
               @click="moBang = !moBang"
             ><List :size="15" /></button>
           </li>
@@ -393,7 +394,7 @@ watch(() => o.view.value?.summary, (s) => {
       <!-- Bảng đầy đủ: nổi ĐÈ lên bàn, không chen vào dòng — chen vào là mỗi lần
            mở lại bóp bàn thẻ rồi bung ra, thẻ nhảy chỗ giữa ván. Sắp theo ĐIỂM. -->
       <Transition name="sheet">
-        <ul v-if="moBang && gonStrip" class="sheet panel" aria-label="Bảng người chơi">
+        <ul v-if="moBang && gonStrip" class="sheet panel" :aria-label="t('ps.bang')">
           <li
             v-for="(p, i) in [...(o.view.value?.players ?? [])].sort((a, b) => b.score - a.score)" :key="p.id"
             :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
@@ -401,8 +402,8 @@ watch(() => o.view.value?.summary, (s) => {
             <span class="rank">{{ i + 1 }}</span>
             <span class="avatar">{{ p.avatar }}</span>
             <b class="nm">{{ p.name }}</b>
-            <span v-if="p.forfeited" class="netbad">🚪 đã rời</span>
-            <span v-else-if="!p.connected" class="netbad">📴 mất mạng</span>
+            <span v-if="p.forfeited" class="netbad">{{ t('og.daRoi') }}</span>
+            <span v-else-if="!p.connected" class="netbad">📴 {{ t('og.offline') }}</span>
             <small v-if="p.lives !== null" class="lives">
               <template v-if="p.lives <= 0">💔</template>
               <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
@@ -415,9 +416,9 @@ watch(() => o.view.value?.summary, (s) => {
     </div>
 
     <p v-if="o.spectator.value" class="spectate" role="status">
-      👁️ Phòng đã bắt đầu — bạn đang xem trận đấu
+      {{ t('og.dangXem') }}
     </p>
-    <p v-if="o.reconnecting.value" class="reconnect" role="status">📡 Mất kết nối — đang vào lại…</p>
+    <p v-if="o.reconnecting.value" class="reconnect" role="status">{{ t('og.dangVaoLai') }}</p>
     <!-- Nước bấm không tới được server: phải NÓI RA. Im lặng thì người chơi cứ
          bấm vào chỗ không ai nghe cho tới khi hết lượt. -->
     <p v-else-if="o.netTrouble.value" class="reconnect" role="status">⚠️ {{ o.netTrouble.value }}</p>
@@ -425,7 +426,7 @@ watch(() => o.view.value?.summary, (s) => {
          thì người còn lại ngồi nhìn bàn chết mà tưởng game hỏng — đúng thứ đã bị
          phản ánh. -->
     <p v-else-if="doiThuMatMang" class="reconnect" role="status">
-      ⏳ <b>{{ doiThuMatMang.name }}</b> mất kết nối — chờ tối đa {{ choBaoLau }} giây
+      ⏳ <b>{{ doiThuMatMang.name }}</b> {{ t('og.doiThuMatKetNoi', { n: choBaoLau }) }}
     </p>
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
@@ -441,7 +442,7 @@ watch(() => o.view.value?.summary, (s) => {
       -->
       <Transition name="banner">
         <p v-if="o.revealingAll.value" class="toast peek" role="status">
-          <OptionIcon name="peek" :size="20" /> Ghi nhớ vị trí!
+          <OptionIcon name="peek" :size="20" /> {{ t('game.ghiNho') }}
           <b v-if="o.peekLeft.value !== null" class="peek-clock">{{ Math.ceil(o.peekLeft.value) }}s</b>
         </p>
       </Transition>
@@ -450,21 +451,21 @@ watch(() => o.view.value?.summary, (s) => {
         <div v-if="o.lifeLost.value" :key="`hp-${o.lifeLost.value.key}`" class="turn-banner hurt" role="status" aria-live="polite">
           <span class="who">
             <OptionIcon name="lives" :size="19" />
-            <b>{{ o.lifeLost.value.cuaToi ? 'Bạn' : o.lifeLost.value.name }}</b>
-            {{ o.lifeLost.value.left > 0 ? `mất 1 mạng — còn ${o.lifeLost.value.left}` : 'hết mạng!' }}
+            <b>{{ o.lifeLost.value.cuaToi ? t('chung.ban') : o.lifeLost.value.name }}</b>
+            {{ o.lifeLost.value.left > 0 ? t('og.matMotMang', { n: o.lifeLost.value.left }) : t('og.hetMang') }}
           </span>
         </div>
         <div v-else-if="o.lifeGain.value" :key="`life-${o.lifeGain.value.key}`" class="turn-banner life" role="status" aria-live="polite">
-          <span class="who"><OptionIcon name="lives" :size="19" /> <b>{{ o.lifeGain.value.name }}</b> hồi 1 mạng</span>
-          <small>Ghép đúng hai lần liền khi đang nguy</small>
+          <span class="who"><OptionIcon name="lives" :size="19" /> <b>{{ o.lifeGain.value.name }}</b> {{ t('og.hoiMang') }}</span>
+          <small>{{ t('og.hoiMangLyDo') }}</small>
         </div>
         <div v-else-if="o.turnBanner.value" :key="o.turnBanner.value.key" class="turn-banner" role="status" aria-live="polite">
           <small v-if="o.turnBanner.value.frozen" class="ico-line">
-            <OptionIcon name="freeze" :size="15" /> {{ o.turnBanner.value.frozen }} bị đóng băng, mất lượt
+            <OptionIcon name="freeze" :size="15" /> {{ t('game.dongBang', { ten: o.turnBanner.value.frozen }) }}
           </small>
           <span class="who">
             <span class="avatar">{{ o.turnBanner.value.avatar || '🎮' }}</span>
-            Đến lượt <b>{{ o.turnBanner.value.name }}</b>
+            {{ t('game.denLuot') }} <b>{{ o.turnBanner.value.name }}</b>
           </span>
         </div>
       </Transition>
@@ -486,14 +487,14 @@ watch(() => o.view.value?.summary, (s) => {
       <!-- Đếm ngược trước ván + báo người đi đầu -->
       <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
-        <span class="first">🎲 <b>{{ o.countdown.value?.firstName }}</b> đi trước!</span>
+        <span class="first">🎲 <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
       </div>
 
     </div>
 
     <!-- Mất mạng hẳn thì nói to, vì lúc đó bấm gì cũng không ăn -->
     <p v-if="o.netQuality.value === 'lost'" class="mynet lost" role="status">
-      📴 Mạng của bạn đang có vấn đề…
+      {{ t('og.mangCoVanDe') }}
     </p>
 
     <!-- Emoji chat (ON-08) — xem EmojiBar.vue -->

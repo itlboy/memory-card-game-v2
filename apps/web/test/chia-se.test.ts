@@ -14,7 +14,7 @@ const man = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue
 
 describe('hộp chia sẻ phòng', () => {
   it('có đủ ba lối đóng: nút X, Esc, bấm nền', () => {
-    expect(hop, 'thiếu nút đóng').toMatch(/aria-label="Đóng"/);
+    expect(hop, 'thiếu nút đóng').toMatch(/:aria-label="t\('cs\.dong'\)"/);
     expect(hop, 'Esc phải đóng').toMatch(/key === 'Escape'/);
     expect(hop, 'bấm ra ngoài phải đóng').toContain('@click.self="emit(\'close\')"');
   });
@@ -42,6 +42,6 @@ describe('hộp chia sẻ phòng', () => {
   it('phòng dùng tất cả theme thì nói "tất cả", không để trống', () => {
     // themeIds RỖNG nghĩa là server dùng mọi theme (phòng tạo nhanh). Thiếu
     // nhánh này thì dòng tóm tắt cụt lủn: "16 thẻ · — chờ chủ phòng bắt đầu…"
-    expect(man).toMatch(/if \(!ids\.length\)[\s\S]{0,140}tất cả/);
+    expect(man).toMatch(/if \(!ids\.length\)[\s\S]{0,140}on\.tatCaTheme/);
   });
 });

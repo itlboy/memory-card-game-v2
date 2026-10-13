@@ -7,7 +7,7 @@ import ResultDialog from '@/components/ResultDialog.vue';
 import DanhHieuDialog from '@/components/DanhHieuDialog.vue';
 import KetCucFx from '@/components/KetCucFx.vue';
 import { byId } from '@/lib/achievements';
-import { NGON_NGU, ngonNgu, type NgonNgu } from '@/lib/i18n';
+import { NGON_NGU, ngonNgu, t, type NgonNgu } from '@/lib/i18n';
 
 /**
  * LỚP KIỂM THỨ TƯ — TRÊN MÀN HÌNH THẬT, KHÔNG PHẢI TRÊN MÃ NGUỒN.
@@ -103,6 +103,24 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   await bam('.options .option.wide', 2); await bam('.size-grid button', 1);
   await bam('.btn-primary'); await bam('.btn-primary'); await flush(8); chup('màn chơi đấu máy');
   w.unmount(); w = null;
+  // ĐỢT 3 (13.10.2026): màn Chơi online (sổ phòng), bản đồ Chiến dịch, hộp Luật chơi.
+  // Màn online lọt lưới hai đợt đầu và chỉ lộ ra khi chụp ảnh App Store bản English.
+  history.replaceState(null, '', location.pathname); sessionStorage.clear();
+  w = mount(App); await flush(8);
+  await bam('.option.big', 3); await flush(8); chup('chơi online');
+  w.unmount(); w = null;
+  history.replaceState(null, '', location.pathname); sessionStorage.clear();
+  w = mount(App, { attachTo: document.body }); await flush(8);
+  await bam('.option.big', 0); await flush(8); chup('bản đồ chiến dịch');
+  w.unmount(); w = null;
+  history.replaceState(null, '', location.pathname); sessionStorage.clear();
+  w = mount(App, { attachTo: document.body }); await flush(8);
+  await bam('header .menu-btn');
+  const luat = w.findAll('header .menu .item').find((e) => e.attributes('aria-label') === t('tb.luatChoi'));
+  if (!luat) throw new Error('không thấy mục Luật chơi trong menu');
+  await luat.trigger('click'); await flush(8);
+  man['hộp luật chơi'] = gomChu(document.body);
+  w.unmount(); w = null;
   return man;
 }
 
@@ -146,8 +164,9 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
     const anh = new Set(enMan?.[ten] ?? []);
     for (const c of ds) {
       if (GIONG_NHAU.has(c) || NGON_NGU.some((l) => l.ten === c)) continue;
+      if (/^· build /.test(c)) continue;   // mốc bản dựng (số + chữ 'build'), cố ý giống nhau
       if (DAU_VIET_RIENG.test(c) && lang !== 'vi') loi.push(`[${lang}·${ten}] còn chữ tiếng Việt: "${c}"`);
-      else if (goc.has(c)) loi.push(`[${lang}·${ten}] chưa dịch (giống hệt bản tiếng Việt): "${c}"`);
+      else if (goc.has(c) && !DONG_NGUYEN[lang as NgonNgu]?.includes(c)) loi.push(`[${lang}·${ten}] chưa dịch (giống hệt bản tiếng Việt): "${c}"`);
       else if (anh.has(c) && /[a-z]{3,}/i.test(c) && !DONG_NGUYEN[lang as NgonNgu]?.includes(c)) loi.push(`[${lang}·${ten}] còn để nguyên English: "${c}"`);
     }
   }
@@ -162,22 +181,22 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
   es: ['Solo', 'Normal', 'pts', '999.999k pts'],
   pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze'],
-  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', 'Secret', 'Bronze'],
+  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double'],
   de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold'],
-  id: ['Solo', 'Normal', 'Level 3']
+  id: ['Solo', 'Normal', 'Level 3', 'Bom']   // "Bom" trùng cả tiếng Việt lẫn Indonesia
 };
 
 /** Mọi ngôn ngữ trừ tiếng Việt (bản gốc). */
 const KHAC = NGON_NGU.map((l) => l.id).filter((l) => l !== 'vi') as NgonNgu[];
 
 describe('mọi ngôn ngữ không còn chữ chưa dịch trên các màn đã dịch', () => {
-  it('trang chủ, menu, wizard, màn chơi (một mình + đấu máy)', async () => {
+  it('trang chủ, menu, wizard, màn chơi (một mình + đấu máy), chơi online, chiến dịch, luật chơi', async () => {
     const viMan = await duyetApp('vi');
     const enMan = await duyetApp('en');
     const loi: string[] = [];
     for (const l of KHAC) {
       const x = l === 'en' ? enMan : await duyetApp(l);
-      expect(Object.keys(x).length).toBeGreaterThanOrEqual(9);
+      expect(Object.keys(x).length).toBeGreaterThanOrEqual(12);
       loi.push(...soSanh(l, viMan, l === 'en' ? null : enMan, x));
       expect(document.title, `${l}: tiêu đề tab`).not.toMatch(DAU_VIET_RIENG);
     }

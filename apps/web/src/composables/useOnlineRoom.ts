@@ -9,6 +9,7 @@ import { sfx } from '@/lib/audio';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
+import { t } from '@/lib/i18n';
 
 /**
  * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
@@ -475,7 +476,7 @@ export function useOnlineRoom() {
         stuckSince = 0;
         // Xin lại trạng thái trên socket đang mở TRƯỚC. Chỉ khi cả cái đó cũng
         // không đi được mới mở lại kết nối — thang rẻ trước, đắt sau.
-        if (!send({ t: 'resync' })) reconnectNow('Bàn không phản hồi — đang đồng bộ lại…');
+        if (!send({ t: 'resync' })) reconnectNow(t('or.banKhongPhanHoi'));
       }
     } else stuckSince = 0;
 
@@ -647,7 +648,7 @@ export function useOnlineRoom() {
       // Hết đường rẻ: thả ô ra (ô treo ở 90 độ trông như MẤT thẻ) rồi nối lại.
       const serverConNoi = viewCount > viewsLucBam;
       unpend(index);
-      if (!serverConNoi) reconnectNow('Mạng chậm — đang đồng bộ lại…');
+      if (!serverConNoi) reconnectNow(t('or.mangCham'));
     }, FLIP_ACK_MS));
   }
 
@@ -669,7 +670,7 @@ export function useOnlineRoom() {
       connect(data.code, name);
     } catch {
       phase.value = 'error';
-      error.value = 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.';
+      error.value = t('or.khongKetNoiMayChu');
     }
   }
 
@@ -687,7 +688,7 @@ export function useOnlineRoom() {
       const { exists } = (await res.json()) as { exists: boolean };
       if (!exists) {
         phase.value = 'idle';
-        error.value = `Không có phòng nào mang mã ${c}. Kiểm lại mã giúp mình nhé.`;
+        error.value = t('or.khongCoPhong', { ma: c });
         return;
       }
     } catch {
@@ -730,9 +731,9 @@ export function useOnlineRoom() {
     params.set('bv', '2');
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
     doNhip.noiLai++;
-    doNhip.socket = 'đang nối';
+    doNhip.socket = 'đang nối'; // i18n-bo-qua — bảng đo nội bộ (DoNhip), không phải chữ cho người chơi
 
-    ws.onopen = () => { doNhip.socket = 'mở'; startHeartbeat(); };
+    ws.onopen = () => { doNhip.socket = 'mở'; startHeartbeat(); }; // i18n-bo-qua — bảng đo nội bộ
     ws.onmessage = (e) => {
       // Đếm cho bảng đo (`?debug=1`). Ghi ở đây vì bật bảng lúc đã trong phòng
       // thì cái bọc `window.WebSocket` không thấy socket này nữa.
@@ -747,7 +748,7 @@ export function useOnlineRoom() {
       }
     };
     ws.onclose = (e) => {
-      doNhip.socket = `đứt(${e.code})`;
+      doNhip.socket = `đứt(${e.code})`; // i18n-bo-qua — DoNhip.vue so `startsWith('đứt')`
       doNhip.maDong = e.code;
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
       // 4003: bị chủ phòng mời ra — KHÔNG nối lại, không thì quay vào ngay
@@ -769,7 +770,7 @@ export function useOnlineRoom() {
       pending.value = new Set();
       seqCuaO.clear();
       phase.value = 'error';
-      error.value ||= 'Mất kết nối với phòng.';
+      error.value ||= t('or.matKetNoiPhong');
     };
     ws.onerror = () => { /* onclose sẽ lo */ };
   }
@@ -844,7 +845,7 @@ export function useOnlineRoom() {
         countdown.value = {
           endsAt: Date.now() + msg.endsInMs,
           firstId: msg.firstId,
-          firstName: msg.firstId === myId.value ? 'Bạn' : msg.firstName
+          firstName: msg.firstId === myId.value ? t('chung.ban') : msg.firstName
         };
         phase.value = 'playing';
         // "Sắp bắt đầu": nốt đầu của câu đếm ngược, không dùng ding-dong chuyển
@@ -895,7 +896,7 @@ export function useOnlineRoom() {
         const sender = room.value?.players.find((p) => p.id === msg.from);
         emojiBlast.value = {
           emoji: msg.emoji,
-          name: msg.from === myId.value ? 'Bạn' : (sender?.name ?? ''),
+          name: msg.from === myId.value ? t('chung.ban') : (sender?.name ?? ''),
           from: msg.from,
           key: (emojiBlast.value?.key ?? 0) + 1
         };
@@ -1100,7 +1101,7 @@ export function useOnlineRoom() {
       const coDongBang = find(frozenId) !== undefined;
       if (p && (BAO_DEN_LUOT || coDongBang)) {
         turnBanner.value = {
-          name: p.id === myId.value ? 'bạn' : p.name,
+          name: p.id === myId.value ? t('or.banThuong') : p.name,
           avatar: p.avatar ?? '',
           frozen: find(frozenId)?.name ?? null,
           key: (turnBanner.value?.key ?? 0) + 1
@@ -1367,7 +1368,7 @@ export function useOnlineRoom() {
       if (!send({ t: 'flip', index, seq })) {
         // Socket không mở. KHÔNG bỏ nước đi nữa: giữ nguyên ô đang chờ, nối lại
         // rồi `guiLaiChoGui()` gửi lại đúng nước ấy với đúng `seq` ấy.
-        reconnectNow('Mất kết nối — đang vào lại…');
+        reconnectNow(t('or.dangVaoLai'));
         return;
       }
       netTrouble.value = '';

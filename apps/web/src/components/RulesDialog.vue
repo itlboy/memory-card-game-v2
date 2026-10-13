@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { CAMPAIGN_LEVELS } from '@mm/engine';
+// Số giây trong luật đọc thẳng từ engine — viết tay là lệch (đã lệch: 15 trong khi luật là 25)
+import { CAMPAIGN_LEVELS, TURN_BONUS_MS, TURN_LIMIT_SEC } from '@mm/engine';
 import { X } from 'lucide-vue-next';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
+import { t } from '@/lib/i18n';
 import OptionIcon from './OptionIcon.vue';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
@@ -12,13 +14,13 @@ const emit = defineEmits<{ close: []; 'update:debug': [boolean]; 'xem-fx': [XemF
 
 /** Khu "Xem thử hiệu ứng" (chỉ trong chế độ debug): duyệt từng cảnh mà không phải chơi tới kết ván. */
 export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean; matMay?: string }
-const XEM_THU: { ten: string; fx: XemFx }[] = [
-  ...BIEN_THE.thang.map((b) => ({ ten: `Thắng · ${TEN_BIEN_THE[b]}`, fx: { loai: 'thang' as const, bienThe: b } })),
-  { ten: 'Kỷ lục mới', fx: { loai: 'thang', bienThe: 'phao-giay', kyLuc: true } },
-  ...BIEN_THE.thua.map((b) => ({ ten: `Thua · ${TEN_BIEN_THE[b]}`, fx: { loai: 'thua' as const, bienThe: b } })),
-  { ten: 'Thua máy', fx: { loai: 'thua', matMay: '🐯' } },
-  { ten: 'Hoà', fx: { loai: 'hoa' } }
-];
+const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
+  ...BIEN_THE.thang.map((b) => ({ ten: t('lc.xemThang', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thang' as const, bienThe: b } })),
+  { ten: t('fx.canh.ky-luc'), fx: { loai: 'thang', bienThe: 'phao-giay', kyLuc: true } },
+  ...BIEN_THE.thua.map((b) => ({ ten: t('lc.xemThua', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thua' as const, bienThe: b } })),
+  { ten: t('lc.xemThuaMay'), fx: { loai: 'thua', matMay: '🐯' } },
+  { ten: t('fx.canh.hoa'), fx: { loai: 'hoa' } }
+]);
 
 /* ---------- phiên bản & tuổi bản build ---------- */
 
@@ -47,49 +49,46 @@ onMounted(() => closeBtn.value?.focus());
  * CHUNG một bộ với màn đó, để đọc luật xong nhận ra ngay hàng nào là hàng nào
  * (quy tắc ở CLAUDE.md: đổi thể thức chơi thì phải cập nhật hướng dẫn).
  */
-const OPTIONS: readonly { icon: IconName; name: string; text: string }[] = [
-  { icon: 'time', name: 'Thời gian', text: 'Đồng hồ đếm ngược cho cả ván. Ghép đúng được cộng 2 giây, xong sớm thì thưởng thêm điểm. Tắt thì chơi thong thả bao lâu cũng được.' },
-  { icon: 'lives', name: 'Số mạng', text: 'Chỉ mất mạng khi thẻ LẬT ĐẦU đã có lá trùng lộ ra từ trước — tức bạn biết lá kia nằm đâu mà vẫn bấm sai. Lá lật đầu còn mới thì bạn đang dò bài, bốc trúng lá nào cũng không bị trừ. Sắp hết mạng mà ghép đúng hai lần liền thì hồi 1 mạng. Bàn càng lớn càng cho nhiều mạng.' },
-  { icon: 'peek', name: 'Xem trước', text: 'Đầu ván cả bàn hé mở cho bạn nhìn, có đồng hồ đếm ngược. Bàn càng nhiều thẻ càng được nhìn lâu.' },
-  { icon: 'shuffle', name: 'Xáo thẻ', text: 'Thỉnh thoảng hai thẻ chưa ghép đổi chỗ cho nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
-  { icon: 'special', name: 'Thẻ đặc biệt', text: 'Rải thêm thẻ có phép vào bàn (xem ngay bên dưới).' }
-];
+const OPTIONS = computed((): readonly { icon: IconName; name: string; text: string }[] => [
+  { icon: 'time', name: t('opt.time'), text: t('lc.opt.time') },
+  { icon: 'lives', name: t('opt.lives'), text: t('lc.opt.lives') },
+  { icon: 'peek', name: t('opt.peek'), text: t('lc.opt.peek') },
+  { icon: 'shuffle', name: t('opt.shuffle'), text: t('lc.opt.shuffle') },
+  { icon: 'special', name: t('opt.special'), text: t('lc.opt.special') }
+]);
 
-const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
-  { icon: 'swap', name: 'Tráo đổi', text: 'Hai thẻ chưa ghép được đổi chỗ cho nhau — có hiệu ứng chỉ rõ hai thẻ nào, nhớ lại cho kịp.' },
-  { icon: 'bomb', name: 'Bom', text: 'Hai cặp đã mở bị úp trở lại. Điểm giữ nguyên, nhưng phải tìm lại chúng.' },
-  { icon: 'x2', name: 'Nhân đôi', text: 'Cặp tiếp theo được nhân đôi điểm.' },
-  { icon: 'freeze', name: 'Đóng băng', text: 'Đối thủ mất một lượt (chỉ khi chơi nhiều người).' }
-];
+const POWERS = computed((): readonly { icon: IconName; name: string; text: string }[] => [
+  { icon: 'swap', name: t('lc.phep.swap'), text: t('lc.phep.swapMo') },
+  { icon: 'bomb', name: t('lc.phep.bomb'), text: t('lc.phep.bombMo') },
+  { icon: 'x2', name: t('lc.phep.x2'), text: t('lc.phep.x2Mo') },
+  { icon: 'freeze', name: t('lc.phep.freeze'), text: t('lc.phep.freezeMo') }
+]);
 </script>
 
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="rulesTitle" @keydown.esc="emit('close')">
     <div class="panel rules">
       <header class="rules-head">
-        <h2 id="rulesTitle">Luật chơi</h2>
-        <button ref="closeBtn" class="btn" aria-label="Đóng" type="button" @click="emit('close')">
+        <h2 id="rulesTitle">{{ t('lc.tieuDe') }}</h2>
+        <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>
 
       <!-- Chỉ khối này cuộn, để tiêu đề và nút đóng luôn nhìn thấy -->
       <div class="rules-body">
-        <h3>Cách chơi</h3>
-        <p class="lead">
-          Mỗi lượt bạn lật hai thẻ. Giống nhau thì cặp đó mở luôn và bạn được lật tiếp;
-          khác nhau thì hai thẻ úp lại. Mở hết các cặp là xong ván.
-        </p>
+        <h3>{{ t('lc.h.cachChoi') }}</h3>
+        <p class="lead">{{ t('lc.cachChoi') }}</p>
 
-        <h3>Điểm</h3>
+        <h3>{{ t('lc.h.diem') }}</h3>
         <ul class="plain">
-          <li><b>100 điểm</b> mỗi cặp đúng.</li>
-          <li>Ghép đúng liên tiếp được nhân thêm: <b>x1,2 · x1,5 · x2</b>.</li>
-          <li>Lật sai <b>không bị trừ điểm</b> — nhưng mất chuỗi nhân điểm đang có.</li>
-          <li>Điểm mọi ván cộng vào <b>tổng tích luỹ</b> — đủ điểm thì mở thêm theme.</li>
+          <li><b>{{ t('lc.diem1b') }}</b>{{ t('lc.diem1c') }}</li>
+          <li>{{ t('lc.diem2') }}<b>{{ t('lc.diem2b') }}</b>{{ t('lc.diem2c') }}</li>
+          <li>{{ t('lc.diem3') }}<b>{{ t('lc.diem3b') }}</b>{{ t('lc.diem3c') }}</li>
+          <li>{{ t('lc.diem4') }}<b>{{ t('lc.diem4b') }}</b>{{ t('lc.diem4c') }}</li>
         </ul>
 
-        <h3>Tuỳ chọn bàn chơi</h3>
+        <h3>{{ t('lc.h.tuyChon') }}</h3>
         <ul class="items">
           <li v-for="o in OPTIONS" :key="o.name">
             <OptionIcon :name="o.icon" :size="22" />
@@ -97,7 +96,7 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
           </li>
         </ul>
 
-        <h3>Thẻ đặc biệt</h3>
+        <h3>{{ t('lc.h.theDacBiet') }}</h3>
         <ul class="items">
           <li v-for="p in POWERS" :key="p.name">
             <OptionIcon :name="p.icon" :size="22" />
@@ -105,33 +104,29 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
           </li>
         </ul>
 
-        <h3>Chiến dịch</h3>
+        <h3>{{ t('lc.h.chienDich') }}</h3>
         <ul class="items">
           <li>
             <OptionIcon name="campaign" :size="22" />
-            <span>
-              <b>{{ CAMPAIGN_LEVELS }} màn</b> từ dễ đến khó, luật cố định sẵn từng màn nên
-              không có bảng tuỳ chọn. Qua màn mới mở màn sau, xếp 1–3 sao theo điểm.
-            </span>
+            <span><b>{{ t('lc.chienDichB', { n: CAMPAIGN_LEVELS }) }}</b>{{ t('lc.chienDich') }}</span>
           </li>
         </ul>
 
-        <h3>Chơi nhiều người</h3>
+        <h3>{{ t('lc.h.nhieuNguoi') }}</h3>
         <ul class="plain">
-          <li>Thay lượt nhau trên cùng máy (tới <b>4 người</b>), hoặc mở phòng online (tới <b>10 người</b>).</li>
+          <li>{{ t('lc.nn1') }}<b>{{ t('lc.nn1b') }}</b>{{ t('lc.nn1c') }}<b>{{ t('lc.nn1d') }}</b>{{ t('lc.nn1e') }}</li>
           <li>
-            Phòng online mặc định <b>công khai</b>: ai vào mục Chơi online cũng thấy và
-            vào chơi được. Chủ phòng tắt công tắc thì phòng thành <b>riêng tư</b> —
-            không hiện trong danh sách, chỉ ai có <b>mã 6 số</b> mới vào được.
+            {{ t('lc.nn2') }}<b>{{ t('lc.nn2b') }}</b>{{ t('lc.nn2c') }}<b>{{ t('lc.nn2d') }}</b>{{
+              t('lc.nn2e') }}<b>{{ t('lc.nn2f') }}</b>{{ t('lc.nn2g') }}
           </li>
-          <li>Lật sai thì chuyển lượt. Ghép đúng được lật tiếp.</li>
-          <li>Mỗi lượt có <b>15 giây</b>; ghép đúng được thêm 5 giây (tối đa 15).</li>
-          <li>Hết ván ai nhiều điểm hơn thì thắng; bằng điểm là <b>hoà</b>.</li>
-          <li>Chơi nhiều ván thì có <b>tỷ số cả loạt</b> — số ván mỗi người đã thắng.</li>
+          <li>{{ t('lc.nn3') }}</li>
+          <li>{{ t('lc.nn4') }}<b>{{ t('lc.nn4b', { s: TURN_LIMIT_SEC }) }}</b>{{ t('lc.nn4c', { s: TURN_LIMIT_SEC, b: TURN_BONUS_MS / 1000 }) }}</li>
+          <li>{{ t('lc.nn5') }}<b>{{ t('lc.nn5b') }}</b>{{ t('lc.nn5c') }}</li>
+          <li>{{ t('lc.nn6') }}<b>{{ t('lc.nn6b') }}</b>{{ t('lc.nn6c') }}</li>
         </ul>
       </div>
 
-      <button class="btn btn-primary" type="button" @click="emit('close')">Đã hiểu</button>
+      <button class="btn btn-primary" type="button" @click="emit('close')">{{ t('lc.daHieu') }}</button>
 
       <!-- Phiên bản + ngày build. Để ở đây vì đây là chỗ người chơi tìm khi cần
            trả lời "máy tôi đang chạy bản nào" — không cần một màn hình riêng. -->
@@ -147,17 +142,17 @@ const POWERS: readonly { icon: IconName; name: string; text: string }[] = [
         class="nut-do" type="button"
         :aria-pressed="props.debug ? 'true' : 'false'"
         @click="emit('update:debug', !props.debug)"
-      >{{ props.debug ? '● Chế độ debug đang bật — bấm để tắt' : 'Bật chế độ debug' }}</button>
+      >{{ props.debug ? t('lc.debugBat') : t('lc.debugTat') }}</button>
       <!--
         GHI CÔNG CC-BY 4.0 — giấy phép BẮT BUỘC ghi công nên không xoá hẳn được.
         Chủ dự án yêu cầu bỏ khỏi màn thường (11.10.2026: "đừng hiển thị nhiều
         gây rối"), nên chỉ hiện trong chế độ debug, và có thêm `/credits.txt`.
       -->
       <div v-if="props.debug" class="xem-fx">
-        <p class="build">Xem thử hiệu ứng kết ván</p>
+        <p class="build">{{ t('lc.xemThu') }}</p>
         <button v-for="x in XEM_THU" :key="x.ten" class="nut-do" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
       </div>
-      <p v-if="props.debug" class="build">Hình mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0, đã đổi màu</p>
+      <p v-if="props.debug" class="build">{{ t('lc.ghiCong') }}</p>
     </div>
   </div>
 </template>

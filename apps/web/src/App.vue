@@ -434,7 +434,7 @@ function playerList(): PlayerInit[] | undefined {
       // online (và của nhiều người cùng máy). Lôi tên sót lại từ đó sang đây thì
       // người chơi thấy một cái tên mình chưa từng đặt cho ván này, mà nhánh
       // đấu máy lại không có bước nhập tên để sửa (MenuScreen bỏ bước 'names').
-      { id: 'p1', name: 'Bạn' },
+      { id: 'p1', name: 'Bạn' }, // i18n-bo-qua — dữ liệu ván; tenNguoi() dịch lúc vẽ (so đúng chữ này)
       { id: 'bot', name: spec.name, avatar: spec.avatar }
     ];
   }
@@ -442,7 +442,7 @@ function playerList(): PlayerInit[] | undefined {
   const saved = store.playerNames();
   const list = Array.from({ length: playerCount.value }, (_, i) => ({
     id: `p${i + 1}`,
-    name: saved[i] ?? `Người ${i + 1}`
+    name: saved[i] ?? t('menu.nguoiN', { n: i + 1 })
   }));
   // Nhóm khác (đổi tên hoặc đổi số người) thì bắt đầu loạt mới từ 0
   const key = list.map((p) => p.name).join('|');
