@@ -267,7 +267,10 @@
 /* Lưới lựa chọn của wizard cắt phần tràn (`overflow: clip`, chừa 4px cho hover
    cũ). Gờ của skin này dày 4–5px nên ô hàng CUỐI bị cụt gờ — chủ dự án báo trên
    iPhone (bước số người). Chừa 8px: đủ gờ + nhích hover. */
-:root[data-skin='keo'] :is(.step-body.options, .options.fill) { overflow-clip-margin: 8px; }
+:root[data-skin='keo'] :is(.step-body.options, .options.fill) { overflow-clip-margin: 8px; padding-block: 4px 9px; }
+/* ↑ overflow-clip-margin chỉ có tác dụng ở Chrome/Firefox — Safari bỏ qua, nên ô cuối
+   VẪN cụt gờ trên iPhone (báo lại 14.10.2026, bước mức máy). Đệm đáy 9px mới là
+   thứ chữa: gờ 5px + nhích hover 1px + dư. */
 
 /* Logo thanh trên = icon app (phương án B): lá úp xanh than + lá ngửa kem, viền mực */
 :root[data-skin='keo'] .logo i { border: 2px solid var(--ink); box-shadow: 0 2px 0 var(--ink); box-sizing: border-box; }
