@@ -28,9 +28,12 @@ on:
         type: boolean
         default: false
 
+# Build PHÁT HÀNH (chạy tay, ô "Đẩy lên store") có nhóm riêng và KHÔNG bị huỷ ngang:
+# nhóm chung + cancel-in-progress từng để mỗi commit đẩy lên main giết luôn bản
+# đang đẩy TestFlight (mất hai bản liền 14.10.2026). Build thường thì vẫn huỷ bản cũ.
 concurrency:
-  group: mobile-${{ github.ref }}
-  cancel-in-progress: true
+  group: mobile-${{ github.ref }}-${{ inputs.phat_hanh && 'phat-hanh' || 'thuong' }}
+  cancel-in-progress: ${{ !inputs.phat_hanh }}
 
 env:
   PHAT_HANH: ${{ startsWith(github.ref, 'refs/tags/app-v') || inputs.phat_hanh == true }}
