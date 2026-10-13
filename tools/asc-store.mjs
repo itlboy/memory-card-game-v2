@@ -109,8 +109,7 @@ await api('PATCH', `/v1/appInfos/${appInfo.id}`, {
 });
 console.log('✓ Danh mục Games / Puzzle, Board');
 
-const infoLocs = (await api('GET', `/v1/appInfos/${appInfo.id}/appInfoLocalizations`)).data;
-const verLocs = (await api('GET', `/v1/appStoreVersions/${version.id}/appStoreVersionLocalizations`)).data;
+const infoLocs = (await api('GET', `/v1/appInfos/${appInfo.id}/appInfoLocalizations?limit=50`)).data;
 
 for (const { locale, noiDung: n, anh } of NGON_NGU) {
   // Tên + phụ đề + privacy URL (cấp app)
@@ -121,6 +120,10 @@ for (const { locale, noiDung: n, anh } of NGON_NGU) {
 
   // Mô tả + từ khoá + promo + URL (cấp phiên bản)
   const verAttr = { description: n.Description, keywords: n.Keywords, promotionalText: n['Promotional text'], supportUrl: URLS.support, marketingUrl: URLS.marketing };
+  // Đọc lại NGAY ĐÂY, không đọc một lần từ đầu: tạo bản cấp app (appInfoLocalization)
+  // cho một ngôn ngữ mới là Apple tự sinh luôn bản cấp phiên bản — danh sách đọc từ
+  // trước thành cũ, POST trùng ra 409 "locale vi already exists" (đã dính trên CI).
+  const verLocs = (await api('GET', `/v1/appStoreVersions/${version.id}/appStoreVersionLocalizations?limit=50`)).data;
   let vl = verLocs.find((l) => l.attributes.locale === locale);
   if (vl) await api('PATCH', `/v1/appStoreVersionLocalizations/${vl.id}`, { data: { type: 'appStoreVersionLocalizations', id: vl.id, attributes: verAttr } });
   else vl = (await api('POST', '/v1/appStoreVersionLocalizations', { data: { type: 'appStoreVersionLocalizations', attributes: { locale, ...verAttr }, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } } })).data;
