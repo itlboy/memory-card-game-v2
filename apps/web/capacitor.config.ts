@@ -7,6 +7,8 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * mọi chỗ dựa vào `location.origin` phải đi qua `lib/native.ts`.
  */
 const config: CapacitorConfig = {
+  // Mã iOS (đã đăng ký với Apple). Android KHÔNG lấy từ đây mà từ
+  // android/app/build.gradle — `com.cozypi.flipmatch` (xem CLAUDE.md).
   appId: 'com.hello314.flipmatch',
   appName: 'Lật Thẻ',
   webDir: 'dist',

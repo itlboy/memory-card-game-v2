@@ -568,9 +568,11 @@
   (bảng `users`, thứ gửi lên server) là phải sửa `privacy.html` + bảng App Privacy
   ở `docs/store-listing.md`. Ra bản app: skill `phat-hanh-app`.
 - **APP ANDROID + iOS BUILD Ở GITHUB ACTIONS, KHÔNG Ở MÁY** (`.github/workflows/mobile.yml`,
-  secret và bẫy ở `docs/mobile-ci.md`). Mã định danh app là
-  `com.hello314.flipmatch` ở CẢ HAI nền (và `APPLE_BUNDLE_ID` của server) — lên store
-  rồi là KHÔNG đổi được, đổi là thành một app khác. Thiếu secret thì bước đó tự bỏ qua chứ không
+  secret và bẫy ở `docs/mobile-ci.md`). Mã định danh app KHÁC
+  NHAU giữa hai nền: iOS `com.hello314.flipmatch` (đã đăng ký với Apple trước khi có
+  tên studio — cũng là `APPLE_BUNDLE_ID` của server), Android `com.cozypi.flipmatch`
+  (đổi 13.10.2026 lúc chưa tạo app trên Play, vì nó HIỆN trong link Google Play).
+  Lên store rồi là KHÔNG đổi được, đổi là thành một app khác. Thiếu secret thì bước đó tự bỏ qua chứ không
   đỏ — điền secret là lên mức, không sửa workflow. Phát hành = tag `app-v*`. App gói
   web vào trong nên `location.origin` là `capacitor://localhost` (iOS) hoặc
   `https://localhost` (Android): nhận ra app bằng `laApp` ở `lib/native.ts` (đọc
