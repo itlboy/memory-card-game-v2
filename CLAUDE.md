@@ -743,6 +743,13 @@
   không phải `auto` + `min-height`): `.option` có `container-type: size`, mà
   container query chỉ giải được khi chiều cao xác định — để auto thì truy vấn
   nhận 0 và hàng emoji mẫu bị ẩn ở mọi cỡ ô.
+- **MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG SVG TWEMOJI** (`lib/emoji.ts`, `public/emoji/<mã>.svg`,
+  phương án B chủ dự án chốt 14.10.2026): emoji Android là bitmap ~136px → mờ trên
+  mặt bài; Windows không có emoji cờ. iPhone/iPad/Mac GIỮ emoji Apple. Chỉ đổi cách
+  VẼ — ký hiệu trên dây vẫn là chuỗi emoji nên Android chơi chung với iPhone như cũ.
+  **Thêm/sửa theme là phải `node tools/tai-twemoji.mjs`** (test `emoji-vector` đỏ nếu
+  thiếu file); chỉ dùng emoji Unicode ≤14 để máy cũ không ra ô trống. Số theme phải
+  chia hết cho 3 VÀ 4 (lưới theme 3 hoặc 4 cột). Ghi công CC-BY ở `lc.ghiCong`.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).

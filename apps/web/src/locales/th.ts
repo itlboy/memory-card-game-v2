@@ -529,7 +529,7 @@ const th: TuDien = {
   'lc.xemThang': 'ชนะ · {ten}',
   'lc.xemThua': 'แพ้ · {ten}',
   'lc.xemThuaMay': 'แพ้คอม',
-  'lc.ghiCong': 'ภาพหน้ามังกรเทพ: Twemoji (Twitter, Inc.) · CC-BY 4.0 ปรับสีแล้ว',
+  'lc.ghiCong': "ภาพบนการ์ด (อุปกรณ์ที่ไม่ใช่ Apple) และหน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 มังกรเปลี่ยนสี",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': 'ได้ ',
