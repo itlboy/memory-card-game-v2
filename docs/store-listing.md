@@ -746,6 +746,53 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • ไม่มีโฆษณา ไม่มีการติดตาม ไม่มีการซื้อในแอป
 ```
 
+## App Review
+
+Điền vào mục **App Review Information** của phiên bản (`tools/asc-store.mjs`). Số điện
+thoại KHÔNG nằm ở đây (repo công khai) — lấy từ secret `ASC_REVIEW_PHONE`.
+
+**First name** (100)
+```
+Kien
+```
+
+**Last name** (100)
+```
+Nguyen
+```
+
+**Email** (100)
+```
+support@hello314.com
+```
+
+**Notes** (4000)
+```
+Thank you for reviewing Flip Match.
+
+NO ACCOUNT NEEDED
+Every feature can be tested without signing in. No demo account is required.
+
+WHAT TO TRY
+- Home screen > "Quick play" > "Solo" > pick a board size > "Next" > "Start". Flip two cards to find matching pairs.
+- "Play the computer" plays against a built-in opponent, fully offline.
+- During a game, the Pause button (top right) stops the clock and hides the board.
+- Menu (top right) > "Style" switches between three visual skins: Candy, Wood and Neon.
+
+ONLINE MULTIPLAYER
+- "Play online" > "Create new room" creates a room with a 6-digit code.
+- To join from a second device, open "Play online" and enter the code, or open https://flipmatch.hello314.com in Safari on any device. A second player is needed to start a match.
+
+SIGN IN (OPTIONAL)
+- Menu > "Sign in" offers Sign in with Apple. Signing in only syncs scores and achievements across devices.
+- Account deletion is available in the app: Menu > Account > "Delete account". It permanently deletes the account and its server data.
+
+OTHER
+- No in-app purchases, no ads, no third-party tracking.
+- Haptics are used for match/miss feedback on supported devices.
+- Privacy policy: https://flipmatch.hello314.com/privacy.html
+```
+
 ## Phân loại độ tuổi (Apple) / Content rating (Google)
 
 Trả lời "None" cho mọi mục bạo lực, tình dục, cờ bạc, thuốc… Hai mục cần chú ý:
