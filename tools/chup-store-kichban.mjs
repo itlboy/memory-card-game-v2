@@ -47,7 +47,12 @@ export async function chay(ctx) {
   // 2. Thắng ván
   await bamThe(js, cap[10][1]); await cho(900);
   for (const [a, b] of cap.slice(11)) { await bamThe(js, a); await cho(450); await bamThe(js, b); await cho(900); }
-  await cho(3500);
+  // Ván đầu mở cả loạt danh hiệu: chụp màn khoe (ảnh đẹp riêng), rồi chờ hết chuỗi
+  // khoe mới chụp bảng thắng — chụp sớm là huy chương/khoe che đúng con số điểm
+  await cho(7000);
+  await chup('08-achievement');
+  for (let i = 0; i < 40 && await js(`!!document.querySelector('.mk-fx, .mo-khoa-toast')`); i++) await cho(1000);
+  await cho(1500);
   await chup('02-win');
 
   // 3. Trang chủ
