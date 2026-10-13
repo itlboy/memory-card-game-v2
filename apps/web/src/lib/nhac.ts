@@ -8,7 +8,7 @@ import { sfx } from './audio';
  * (3) cùng chất âm với tiếng lật thẻ.
  *
  * Bản nhạc: vòng 8 ô nhịp C–G–Am–F, bass + rải hợp âm kiểu marimba + giai điệu
- * ngũ cung. Hai "tâm trạng": `menu` vui (104 bpm, đủ giai điệu) và `van` lúc
+ * ngũ cung. Hai "tâm trạng": `menu` (72 bpm, đủ giai điệu) và `van` lúc
  * chơi — chậm, thưa, lọc tối hơn: game trí nhớ cần tập trung, nhạc chỉ là nền.
  *
  * Đi qua `sfx.duongRa()` (master chung) nên theo đúng mức âm lượng và tắt âm
@@ -39,9 +39,11 @@ const GIAI_DIEU: number[][] = [
 const RAI = [0, 1, 2, 3, 2, 1, 0, 1];   // thứ tự rải hợp âm; 3 = nốt gốc lên quãng tám
 
 const TAM_TRANG = {
-  menu: { bpm: 104, bpmMax: 104, loc: 5200, rai: 0.032, bass: 0.07, giai: 0.042 },
-  van: { bpm: 84, bpmMax: 124, loc: 2200, rai: 0.022, bass: 0.055, giai: 0.026 },
+  menu: { bpm: 72, bpmMax: 72, loc: 5200, rai: 0.032, bass: 0.07, giai: 0.042 },
+  van: { bpm: 72, bpmMax: 100, loc: 2200, rai: 0.022, bass: 0.055, giai: 0.026 },
 } as const;
+// Nhạc menu CÙNG nhịp với lúc bắt đầu ván (chủ dự án 13.10.2026: "chậm hơn") —
+// vào ván không giật tempo, chỉ dồn dần khi thẻ vơi đi. Giữ menu.bpm = van.bpm.
 // Nhạc nền nằm DƯỚI tiếng lật/ghép thẻ. 0,55 lấn tiếng hiệu ứng — chủ dự án
 // hạ 40% (13.10.2026). Chỉnh nhạc nền ở đây, đừng đụng âm lượng chung của sfx.
 const AM_LUONG = 0.33;
