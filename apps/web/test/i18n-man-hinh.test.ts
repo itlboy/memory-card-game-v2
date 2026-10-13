@@ -143,7 +143,7 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
       { id: 'p1', name: 'Bạn', score: 100, pairs: 1, bestStreak: 1 }] }, // i18n-bo-qua: dữ liệu ván giữ chữ gốc
     isRecord: false, showStars: false, multiplayer: true, freshAchievements: [], totalBefore: 0, totalAfter: 0, hasNext: false
   });
-  await dung('màn danh hiệu', DanhHieuDialog, { daCo: new Set(['first-win', 'giay-cuoi']), tk: { wins: 3, botWins: 0, onlineWins: 0, totalScore: 600, chuoiNgay: 2, campaignMax: 3, stars3: 1 }, themeKhoa: { flags: 5000 } });
+  await dung('màn danh hiệu', DanhHieuDialog, { daCo: new Set(['first-win', 'giay-cuoi']), tk: { wins: 3, botWins: 0, onlineWins: 0, totalScore: 600, chuoiNgay: 2, campaignMax: 3, stars3: 1 }, themeKhoa: new Set(['flags']) });
   for (const [ten, p] of [
     ['cảnh thắng', { loai: 'thang', bienThe: 'phao-giay' }], ['cảnh kỷ lục', { loai: 'thang', kyLuc: true, bienThe: 'vuong-mien' }],
     ['cảnh thua vỡ', { loai: 'thua', bienThe: 'dap-vo' }], ['cảnh thua tro', { loai: 'thua', bienThe: 'tan-tro' }],
@@ -179,12 +179,12 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
  * English dài bị bỏ quên vẫn đỏ. Đã rà tay từng mục (12.10.2026).
  */
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
-  es: ['Solo', 'Normal', 'pts', '999.999k pts'],
-  pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon'],
-  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause'],
-  de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause'],
-  en: ['Neon'],   // tên skin (13.10.2026): tiếng Việt cũng gọi là Neon
-  id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon']   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  es: ['Solo', 'Normal', 'pts', '999.999k pts', 'Premium'],
+  pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium'],
+  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium'],
+  de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium'],
+  en: ['Neon', 'Premium'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
+  id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon', 'Premium']   // "Bom" trùng cả tiếng Việt lẫn Indonesia
 };
 
 /** Mọi ngôn ngữ trừ tiếng Việt (bản gốc). */

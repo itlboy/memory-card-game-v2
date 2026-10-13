@@ -13,7 +13,7 @@ const tk = { wins: 3, botWins: 0, onlineWins: 0, totalScore: 600, chuoiNgay: 2, 
 describe('màn danh hiệu: hai ngăn chưa có / đã có', () => {
   it('ngăn Đã có chỉ hiện đúng danh hiệu đã có; hai ngăn cộng lại đủ cả bộ', async () => {
     const daCo = new Set(['first-win', 'giay-cuoi']);
-    const w = mount(DanhHieuDialog, { props: { daCo, tk, themeKhoa: {} }, attachTo: document.body });
+    const w = mount(DanhHieuDialog, { props: { daCo, tk, themeKhoa: new Set<string>() }, attachTo: document.body });
     const tabs = w.findAll('.tab');
     expect(tabs).toHaveLength(2);
     expect(tabs[1]!.text()).toContain('Đã có (2)');
@@ -31,7 +31,7 @@ describe('màn danh hiệu: hai ngăn chưa có / đã có', () => {
   });
 
   it('chưa có danh hiệu nào thì ngăn Đã có báo trống, không báo "có hết"', async () => {
-    const w = mount(DanhHieuDialog, { props: { daCo: new Set<string>(), tk, themeKhoa: {} }, attachTo: document.body });
+    const w = mount(DanhHieuDialog, { props: { daCo: new Set<string>(), tk, themeKhoa: new Set<string>() }, attachTo: document.body });
     await w.findAll('.tab')[1]!.trigger('click'); await nextTick();
     expect(w.findAll('section')).toHaveLength(0);
     expect(w.find('.xong').text()).toContain('Chưa có danh hiệu nào');

@@ -47,6 +47,7 @@ import { nhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
+import { choiDuoc } from './lib/premium';
 
 const prefs = store.prefs();
 const dark = ref(prefs.dark);
@@ -194,9 +195,8 @@ useBackCloser(30, () => showDanhHieu.value, () => { showDanhHieu.value = false; 
 const daCoSet = computed(() => new Set(daCo.value));
 /** Số liệu tích luỹ — đọc lại mỗi khi tiến độ đổi (progressRev). */
 const thongKe = computed(() => { void progressRev.value; return thongKeHienTai(taiKhoanMe.value?.wins ?? 0); });
-/** theme id → điểm cần để mở, chỉ những theme ĐANG KHOÁ. */
-const themeKhoa = computed(() => Object.fromEntries(
-  themes.value.filter((t) => t.unlockAt > totalScore.value).map((t) => [t.id, t.unlockAt])));
+/** Theme ĐANG KHOÁ (premium chưa mua) — danh hiệu của chúng không gợi ý "chinh phục". */
+const themeKhoa = computed(() => new Set(themes.value.filter((t) => !choiDuoc(t)).map((t) => t.id)));
 const goiYVan = ref<Achievement | null>(null);
 
 /* ---------- xem thử hiệu ứng (chế độ debug) ---------- */
@@ -211,7 +211,7 @@ function xemThuFx(fx: XemFx): void {
 
 /* ---------- dải lối tắt trên trang chủ ---------- */
 const goiYTrangChu = computed(() => {
-  const a = chonGoiY(daCoSet.value, thongKe.value, new Set(Object.keys(themeKhoa.value)));
+  const a = chonGoiY(daCoSet.value, thongKe.value, themeKhoa.value);
   return a ? { id: a.id, name: a.name } : null;
 });
 /** Chuỗi ngày ĐANG GIỮ (không phải dài nhất): chơi hôm nay hoặc hôm qua mới còn. */
@@ -330,13 +330,15 @@ watch(
 
 void loadThemes().then((list) => {
   themes.value = list;
-  const valid = themeIds.value.filter((id) => list.some((t) => t.id === id));
+  // Bỏ cả theme premium chưa mua: bản lưu có thể chọn chúng từ hồi còn mở bằng
+  // điểm (trước 14.10.2026), hoặc từ lúc gói premium còn hiệu lực.
+  const valid = themeIds.value.filter((id) => list.some((t) => t.id === id && choiDuoc(t)));
   // Chưa từng chọn (hoặc bản lưu trỏ tới theme không còn tồn tại): lấy TẤT CẢ
   // theme đang mở khoá — bàn thẻ đa dạng ngay ván đầu, và người chơi thấy luôn
   // là chọn được nhiều. Đã chọn rồi thì tôn trọng lựa chọn của họ.
   themeIds.value = valid.length
     ? valid
-    : list.filter((t) => t.unlockAt <= totalScore.value).map((t) => t.id);
+    : list.filter(choiDuoc).map((t) => t.id);
 });
 
 onMounted(() => {
@@ -447,7 +449,7 @@ watch([dark, soundLevel, mode, level, themeIds, playerCount, options], () => {
 /** Biểu tượng của MỌI theme đang mở khoá — trần trên của số cặp chơi được, để
  *  bản đồ cấp biết cấp nào không bộ theme nào gánh nổi. */
 const maxSymbols = computed(() => new Set(
-  themes.value.filter((t) => t.unlockAt <= totalScore.value).flatMap((t) => t.symbols)
+  themes.value.filter(choiDuoc).flatMap((t) => t.symbols)
 ).size);
 
 /** Trộn biểu tượng của mọi theme đã chọn, loại trùng. */
@@ -668,7 +670,7 @@ watch(session.summary, (s) => {
   // Gợi ý tính SAU khi đã cộng ván này (điểm, bộ đếm, danh hiệu vừa mở)
   goiYVan.value = game.isMultiplayer && !botLevel.value
     ? null
-    : chonGoiY(new Set(daCo.value), thongKeHienTai(taiKhoanMe.value?.wins ?? 0), new Set(Object.keys(themeKhoa.value)));
+    : chonGoiY(new Set(daCo.value), thongKeHienTai(taiKhoanMe.value?.wins ?? 0), themeKhoa.value);
   try { sessionStorage.removeItem(RESUME_KEY); } catch { /* bỏ qua */ }
 });
 

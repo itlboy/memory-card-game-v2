@@ -1,8 +1,12 @@
 export interface CardTheme {
   id: string;
   name: string;
-  /** Điểm tích lũy cần có để mở khoá (mục 3.6). 0 = mở sẵn. */
+  /** Mốc điểm mở khoá cũ (mục 3.6) — NAY LUÔN 0: từ 14.10.2026 theme không mở
+   *  bằng điểm nữa, chỉ còn miễn phí hoặc premium. Giữ trường để bản app cũ (đóng
+   *  gói themes.json riêng nhưng đọc file mới qua mạng) không vỡ kiểu. */
   unlockAt: number;
+  /** Theme trả phí — chỉ chơi được khi đã mua gói premium (`lib/premium.ts`). */
+  premium?: boolean;
   symbols: string[];
 }
 
@@ -13,7 +17,7 @@ const FALLBACK: CardTheme[] = [{
 }];
 
 /**
- * Xếp theme MỞ SẴN lên trước, rồi theo mốc điểm tăng dần.
+ * Xếp theme MIỄN PHÍ lên trước, premium sau (trước 14.10.2026: theo mốc điểm).
  *
  * Sắp ở đây chứ không dựa vào thứ tự trong file: theme thêm sau luôn nằm cuối
  * file, nên ba theme mở sẵn thêm gần đây hiện ra SAU nhóm còn khoá — người chơi
@@ -23,7 +27,7 @@ const FALLBACK: CardTheme[] = [{
  * `sort` của JS là ỔN ĐỊNH, nên các theme cùng mốc giữ nguyên thứ tự trong file.
  */
 const theoMocMo = (list: CardTheme[]): CardTheme[] =>
-  [...list].sort((a, b) => a.unlockAt - b.unlockAt);
+  [...list].sort((a, b) => Number(!!a.premium) - Number(!!b.premium));
 
 /** Nội dung thẻ nằm ở data/themes.json — thêm theme mới không cần sửa code. */
 export async function loadThemes(): Promise<CardTheme[]> {

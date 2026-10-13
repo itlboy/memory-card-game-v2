@@ -43,6 +43,8 @@ import { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { store } from '@/lib/storage';
 import { sfx } from '@/lib/audio';
 import { loadThemes, type CardTheme } from '@/lib/themes';
+import { choiDuoc } from '@/lib/premium';
+import ThemePicker from './ThemePicker.vue';
 
 const props = defineProps<{ joinCode?: string }>();
 const emit = defineEmits<{ back: [] }>();
@@ -457,9 +459,10 @@ function setWizOption(key: OptionKey, muc: OptLevel): void {
 const allThemes = ref<CardTheme[]>([]);
 void loadThemes().then((list) => {
   allThemes.value = list;
-  // Phòng online mặc định bật TẤT CẢ theme: bàn thẻ trộn nhiều bộ biểu tượng
-  // nên khó đoán hơn, và chủ phòng không phải đi chọn từng cái.
-  if (!cfg.value.themeIds.length) cfg.value = { ...cfg.value, themeIds: list.map((t) => t.id) };
+  // Phòng online mặc định bật TẤT CẢ theme CHƠI ĐƯỢC (premium chỉ khi đã mua):
+  // bàn thẻ trộn nhiều bộ biểu tượng nên khó đoán hơn, và chủ phòng không phải
+  // đi chọn từng cái.
+  if (!cfg.value.themeIds.length) cfg.value = { ...cfg.value, themeIds: list.filter(choiDuoc).map((t) => t.id) };
 });
 const themeName = (id: string): string => tenTheme(id, allThemes.value.find((x) => x.id === id)?.name ?? id);
 /**
@@ -697,21 +700,7 @@ function openCfgWizard(): void {
 
     <div v-else-if="wizard === 'theme'" class="step-body">
       <p class="hint-multi">{{ t('on.nhieuTheme') }}</p>
-      <div class="options theme-grid" role="group" :aria-label="tr('on.themeAria')">
-        <button
-          v-for="t in allThemes" :key="t.id" class="option theme-opt" role="checkbox"
-          :aria-checked="cfg.themeIds.includes(t.id)"
-          type="button"
-          @click="wizToggleTheme(t.id)"
-        >
-          <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
-          <strong class="tname">{{ tenTheme(t.id, t.name) }}</strong>
-          <!-- Badge góc, không chiếm chỗ trong luồng (xem MenuScreen) -->
-          <span v-if="cfg.themeIds.includes(t.id)" class="tick" aria-hidden="true">
-            <Check :size="12" />
-          </span>
-        </button>
-      </div>
+      <ThemePicker :themes="allThemes" :selected="cfg.themeIds" :nhan="tr('on.themeAria')" @toggle="wizToggleTheme" />
 
       <p v-if="themeWarn" class="warn" role="alert">{{ t('menu.itNhatMotTheme') }}</p>
       <p v-if="wizTooSmall" class="warn" role="alert">

@@ -75,7 +75,8 @@ export interface Achievement {
 export const THEME_DH: readonly string[] = [
   'animals', 'food', 'fruits', 'nature', 'smileys', 'sports', 'flags', 'ocean', 'space', 'tech', 'vehicles', 'letters',
   'music', 'festive', 'myth', 'flowers', 'weather', 'jobs', 'objects', 'clothes', 'buildings', 'drinks', 'games', 'garden',
-  'tet', 'sweets', 'veggies', 'landmarks', 'birds', 'school', 'hands', 'hearts', 'clocks', 'safari', 'summer', 'asianfood'
+  'tet', 'sweets', 'veggies', 'landmarks', 'birds', 'school', 'hands', 'hearts', 'clocks', 'safari', 'summer', 'asianfood',
+  'halloween', 'cats', 'treasure', 'winter', 'farm', 'travel', 'circus', 'breakfast', 'tools', 'zodiac', 'camping', 'kitchen'
 ];
 /** Tên theme theo ngôn ngữ đang chọn. */
 /** Tên theme theo ngôn ngữ đang chọn; theme chưa có trong từ điển thì lùi về tên gốc

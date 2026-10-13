@@ -23,10 +23,12 @@ const css = doc('src/styles/theme-grid.css').replace(/\/\*[\s\S]*?\*\//g, '');
 const man = [['MenuScreen', menu], ['OnlineScreen', online]] as const;
 
 describe('lưới theme dùng chung một bản CSS', () => {
-  it('cả hai màn đều gắn class `theme-grid`', () => {
+  it('cả hai màn đều dùng ThemePicker (lưới `theme-grid` chung + tab premium)', () => {
     for (const [ten, src] of man) {
-      expect(src, `${ten} không dùng lưới chung`).toMatch(/class="options theme-grid"/);
+      expect(src, `${ten} không dùng ThemePicker`).toMatch(/<ThemePicker\b/);
+      expect(src, `${ten} tự vẽ lưới theme riêng`).not.toMatch(/class="options theme-grid"/);
     }
+    expect(doc('src/components/ThemePicker.vue')).toMatch(/class="options theme-grid"/);
   });
 
   it('không màn nào giữ luật riêng của lưới theme', () => {
