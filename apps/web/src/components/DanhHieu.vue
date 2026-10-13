@@ -2,7 +2,8 @@
 import { t, td } from '@/lib/i18n';
 import type { Achievement, ThongKe } from '@/lib/achievements';
 import { num } from '@/lib/format';
-import { MAU_BAC } from '@/lib/ketcuc-fx';
+import { iconCua } from '@/lib/achievements';
+import HuyHieu from './HuyHieu.vue';
 
 /**
  * Danh sách danh hiệu của MỘT nhóm. Đã có thì sáng; chưa có thì mờ, kèm thanh
@@ -23,12 +24,11 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
 <template>
   <ul class="danh-hieu">
     <li v-for="a in ds" :key="a.id" :class="{ co: daCo.has(a.id) }">
-      <!-- Huy hiệu tròn mang MÀU BẬC, cùng bảng màu với cảnh mở khoá (MoKhoaFx) -->
-      <span
-        class="huy" :class="{ khoa: !daCo.has(a.id) }" :title="td(`fx.bac.${a.bac ?? 'dong'}`)"
-        :style="{ background: `linear-gradient(135deg, ${MAU_BAC[a.bac ?? 'dong'].a}, ${MAU_BAC[a.bac ?? 'dong'].b})` }"
-        aria-hidden="true"
-      >{{ daCo.has(a.id) ? '★' : a.biMat ? '?' : '' }}</span>
+      <!-- Huy hiệu = lá bài: chưa có thì ÚP, có rồi thì NGỬA (HuyHieu.vue, cùng
+           hình với cảnh mở khoá MoKhoaFx) -->
+      <span class="huy" :title="td(`fx.bac.${a.bac ?? 'dong'}`)">
+        <HuyHieu nho :bac="a.bac" :icon="iconCua(a)" :mat="daCo.has(a.id) ? 'truoc' : 'sau'" />
+      </span>
       <span class="chu">
         <b>{{ a.biMat && !daCo.has(a.id) ? t('dh.biMat') : a.name }}</b><br>
         <small>{{ a.biMat && !daCo.has(a.id) ? t('dh.biMatGoiY') : a.hint }}</small>
@@ -56,15 +56,9 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
   display: flex; gap: 10px; align-items: center; min-height: 44px; padding: 6px 8px 6px 10px; border-radius: 10px;
   background: color-mix(in srgb, var(--fg) 5%, transparent); font-size: var(--text-sm);
 }
-.danh-hieu li:not(.co) .huy, .danh-hieu li:not(.co) .chu > b, .danh-hieu li:not(.co) .chu > small { opacity: .62; }
+.danh-hieu li:not(.co) .chu > b, .danh-hieu li:not(.co) .chu > small { opacity: .72; }
 .danh-hieu li.co { background: color-mix(in srgb, var(--warn) 14%, transparent); }
-.huy {
-  flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 15px; font-weight: 800; color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, .45); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .45);
-}
-/* Chưa có: vẫn thấy màu bậc (biết đây là danh hiệu vàng hay đồng) nhưng mờ hẳn */
-.huy.khoa { filter: grayscale(.55) brightness(.75); opacity: .55; }
+.huy { flex: 0 0 auto; width: 46px; height: 50px; }
 .chu { flex: 1; min-width: 0; }
 .chu small { color: var(--muted); }
 .tien-do {

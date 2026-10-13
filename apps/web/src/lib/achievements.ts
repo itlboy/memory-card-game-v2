@@ -376,3 +376,38 @@ export function goiY(co: ReadonlySet<string>, tk: ThongKe, themeKhoa: ReadonlySe
   const thuTu = NHOM.map((n) => n.id);
   return [...ung].sort((x, y) => thuTu.indexOf(x.nhom) - thuTu.indexOf(y.nhom))[0] ?? null;
 }
+
+/**
+ * ICON TRÊN HUY HIỆU (lá bài danh hiệu, mockup B+ đã duyệt 13.10.2026). Một chỗ,
+ * suy từ id như `bacCua()`, để thêm danh hiệu không phải nhớ khai icon.
+ * `so` = icon là CON SỐ (cỡ bàn) — vẽ bằng chữ đậm thay cho emoji; `goc` = dấu
+ * nhỏ ở góc để phân biệt hai danh hiệu cùng số (Bàn 12 thẻ vs Hoàn hảo 12 thẻ).
+ */
+export interface IconHuyHieu { chu: string; so?: boolean; goc?: string }
+const ICON_THEME: Record<string, string> = {
+  animals: '🐶', food: '🍔', fruits: '🍎', nature: '🌿', smileys: '😀', sports: '⚽', flags: '🇻🇳', ocean: '🐳',
+  space: '🚀', tech: '💻', vehicles: '🚗', letters: '🔤', music: '🎸', festive: '🎉', myth: '🦖', flowers: '🌺',
+  weather: '⛅', jobs: '👷', objects: '🔑', clothes: '👕', buildings: '🏠', drinks: '☕', games: '🎮', garden: '🐝'
+};
+const ICON_ID: Record<string, string> = {
+  'first-win': '🥇', flawless: '💎', lightspeed: '⚡',
+  survivor: '❤️', 'blind-seer': '👁️', 'time-rush': '⏱️', 'shuffle-master': '🔀', 'special-win': '🃏',
+  'iron-man': '🛡️', 'hell-mode': '😈',
+  'bot-normal': '🐥', 'bot-hard': '🐆', 'bot-insane': '🐯', 'bot-divine': '🐉', 'divine-56': '🐉', 'divine-88': '🐉',
+  'bot-wins-10': '🤖', 'campaign-50': '👑', 'three-star': '🌟', 'online-win': '🌐', 'online-big': '👥',
+  'giay-cuoi': '⏳', 'cu-dem': '🦉', 'binh-minh': '🌅', 'kien-tri': '🐢', 'ngang-tai': '🤝'
+};
+export function iconCua(a: Achievement): IconHuyHieu {
+  const so = a.id.match(/^(board|perfect)-(\d+)$/);
+  if (so) return { chu: so[2]!, so: true, goc: so[1] === 'perfect' ? '💎' : undefined };
+  if (ICON_ID[a.id]) return { chu: ICON_ID[a.id]!, goc: a.id === 'divine-56' ? '56' : a.id === 'divine-88' ? '88' : undefined };
+  if (a.id.startsWith('theme-')) return { chu: ICON_THEME[a.id.slice(6)] ?? '🎨' };
+  if (a.id.startsWith('combo')) return { chu: '🔥' };
+  if (a.id.startsWith('wins-')) return { chu: '🏆' };
+  if (a.id.startsWith('score-')) return { chu: '⭐' };
+  if (a.id.startsWith('campaign-')) return { chu: '🗺️' };
+  if (a.id.startsWith('stars3-')) return { chu: '🌟' };
+  if (a.id.startsWith('online-')) return { chu: '🌐' };
+  if (a.id.startsWith('days-')) return { chu: '📅' };
+  return { chu: '🏅' };
+}

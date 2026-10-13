@@ -69,6 +69,7 @@ await cho(2000);
 
 export const ctx = { goi, js, chup, bam, bamDung, cho, chuTrenMan };
 if (BUOC[0] === 'do') { console.log(JSON.stringify(await chuTrenMan(), null, 1)); await chup('do'); process.exit(0); }
-const kichBan = await import(new URL('./chup-store-kichban.mjs', import.meta.url));
+// KICHBAN=<đường dẫn> để chạy kịch bản khác (vd. chụp hiệu ứng theo mốc thời gian)
+const kichBan = await import(process.env.KICHBAN ? new URL(`file://${process.env.KICHBAN}`) : new URL('./chup-store-kichban.mjs', import.meta.url));
 await kichBan.chay(ctx);
 process.exit(0);

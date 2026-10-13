@@ -167,6 +167,8 @@ const th: TuDien = {
   'kq.choiLaiCap': 'เล่นด่านนี้ใหม่',
   'kq.hoa': 'เสมอ! 🤝',
   'kq.thang': '{ten} ชนะ! 🏆',
+  'kq.banThang': 'คุณชนะ! 🏆',
+  'kq.banThua': 'คุณแพ้ 😢',
   'kq.chuaXong': 'รอบนี้ยังไม่ได้ 😢',
   'kq.kyLuc': 'สถิติใหม่! 🏆',
   'kq.hoanThanh': 'สำเร็จ! 🎉',

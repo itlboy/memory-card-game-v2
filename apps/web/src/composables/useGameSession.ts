@@ -524,9 +524,13 @@ export function useGameSession() {
     if (s && isDraw(s.ranking)) return 'hoa';
     return thang.value ? 'thang' : 'thua';
   });
+  /** Kết cục của "mình" — CHỈ khi đấu máy (nhận qua BẢNG XẾP HẠNG, không qua cờ
+   *  `botLevel`: cờ tắt được giữa ván). Nhiều người chung máy không có "mình". */
+  const minhKetCuc = computed<LoaiKetCuc | undefined>(() =>
+    summary.value?.ranking.some((p) => p.id === BOT_ID) ? loaiKetCuc.value : undefined);
 
   return {
-    game, start, flip, stop, adopt, paused, pause, resume, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc,
+    game, start, flip, stop, adopt, paused, pause, resume, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc, minhKetCuc,
     cards, players, current, faceUp, matchedSet, wrongPair, vuaMo, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle

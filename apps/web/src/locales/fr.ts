@@ -168,6 +168,8 @@ const fr: TuDien = {
   'kq.choiLaiCap': 'Rejouer ce niveau',
   'kq.hoa': 'Égalité ! 🤝',
   'kq.thang': '{ten} gagne ! 🏆',
+  'kq.banThang': 'Vous avez gagné ! 🏆',
+  'kq.banThua': 'Vous avez perdu 😢',
   'kq.chuaXong': 'Pas cette fois 😢',
   'kq.kyLuc': 'Nouveau record ! 🏆',
   'kq.hoanThanh': 'Terminé ! 🎉',

@@ -167,6 +167,8 @@ const ja: TuDien = {
   'kq.choiLaiCap': 'このレベルを再挑戦',
   'kq.hoa': '引き分け！ 🤝',
   'kq.thang': '{ten}の勝ち！ 🏆',
+  'kq.banThang': 'あなたの勝ち！🏆',
+  'kq.banThua': 'あなたの負け 😢',
   'kq.chuaXong': '今回はざんねん 😢',
   'kq.kyLuc': '新記録！ 🏆',
   'kq.hoanThanh': 'クリア！ 🎉',

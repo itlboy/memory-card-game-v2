@@ -843,6 +843,7 @@ const hasNext = computed(() => {
     :is-record="isRecord"
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
+    :minh-ket-cuc="session.minhKetCuc.value"
     :fresh-achievements="freshAchievements"
     :goi-y="goiYVan"
     @chinh-phuc="chinhPhuc"

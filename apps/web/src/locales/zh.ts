@@ -167,6 +167,8 @@ const zh: TuDien = {
   'kq.choiLaiCap': '重玩本关',
   'kq.hoa': '平局！🤝',
   'kq.thang': '{ten} 获胜！🏆',
+  'kq.banThang': '你赢了！🏆',
+  'kq.banThua': '你输了 😢',
   'kq.chuaXong': '这次没成功 😢',
   'kq.kyLuc': '新纪录！🏆',
   'kq.hoanThanh': '完成！🎉',
