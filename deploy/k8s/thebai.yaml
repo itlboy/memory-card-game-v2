@@ -2,7 +2,7 @@
 #
 # Đường đi của một request:
 #   thebai-server.hello314.com
-#   flipmatch.hello314.com (tên chính từ 13.10.2026)
+#   flipmatch.cozypi.com (TÊN CHÍNH), flipmatch.hello314.com, thebai.hello314.com
 #     → Cloudflare (wildcard *.hello314.com trỏ tunnel kien-server-main-vm)
 #     → route mặc định của tunnel → ingress-nginx
 #     → service thebai-server:80 → pod cổng 8080
@@ -141,7 +141,10 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    # Ba tên miền, MỘT pod. `flipmatch.hello314.com` là TÊN CHÍNH từ 13.10.2026
+    # Bốn tên miền, MỘT pod. `flipmatch.cozypi.com` là TÊN CHÍNH từ 13.10.2026
+    # (studio Cozy Pi — wildcard *.cozypi.com đã trỏ tunnel, app sau chỉ cần
+    # thêm host ở đây). `flipmatch.hello314.com` là tên chính vài giờ trước đó
+    # và là server của bản app build 17–32: giữ nguyên.
     # (link chia sẻ, og:url, server của app iOS/Android build từ đó về sau).
     # `thebai.hello314.com` — tên chính cũ (29.08 → 13.10.2026) — vẫn phục vụ
     # NGUYÊN VẸN, KHÔNG chuyển hướng: localStorage (điểm, kỷ lục) gắn theo
@@ -151,6 +154,16 @@ spec:
     # (xem apps/web/src/composables/useOnlineRoom.ts), nên mở bằng tên nào thì
     # phòng online chạy trên chính tên đó — không CORS, không cần build riêng
     # cho từng tên miền, và cả hai cùng đi theo bản mới mà Keel thay.
+    - host: flipmatch.cozypi.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-server
+                port:
+                  number: 80
     - host: flipmatch.hello314.com
       http:
         paths:

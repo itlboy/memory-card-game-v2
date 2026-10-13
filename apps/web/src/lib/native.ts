@@ -26,5 +26,5 @@ export const nenApp: 'ios' | 'android' | 'web' = (() => {
 
 /** Địa chỉ công khai của game (dùng cho link chia sẻ). Trong trình duyệt là chính origin. */
 export const SITE_URL: string = laApp
-  ? ((import.meta.env.VITE_SITE_URL as string | undefined) ?? 'https://flipmatch.hello314.com').replace(/\/$/, '')
+  ? ((import.meta.env.VITE_SITE_URL as string | undefined) ?? 'https://flipmatch.cozypi.com').replace(/\/$/, '')
   : (typeof location === 'undefined' ? '' : location.origin);

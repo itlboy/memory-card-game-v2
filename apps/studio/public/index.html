@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cozy Pi</title>
+<meta name="description" content="Cozy Pi makes small, cozy games and apps. Home of Flip Match, the memory card game.">
+<meta property="og:title" content="Cozy Pi">
+<meta property="og:description" content="Small, cozy games and apps.">
+<meta property="og:url" content="https://cozypi.com/">
+<link rel="icon" href="flipmatch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #5bc0f0; --sky-deep: #3d9be0; --navy: #1d2a5a; --ink: #24305e; --cream: #fffaea;
+    --yellow: #ffcb2e; --pink: #ff4d6d; --green: #6cd03f; --muted: #5a6690;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink); background: var(--sky);
+    font: 17px/1.6 Nunito, system-ui, sans-serif;
+    background-image:
+      radial-gradient(circle at 86% 9%, #ffe27a 0 46px, rgba(255, 246, 200, .55) 47px, rgba(255, 246, 200, 0) 96px),
+      linear-gradient(180deg, var(--sky) 0%, #74cdf4 70%, var(--sky-deep) 100%);
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 16px 64px; }
+  header { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 52px; height: 52px; border-radius: 16px; background: var(--yellow);
+    border: 3px solid var(--navy); box-shadow: 0 4px 0 var(--navy);
+    display: grid; place-items: center; font: 800 26px "Baloo 2", sans-serif; color: var(--navy);
+  }
+  .brand { font: 800 34px/1 "Baloo 2", sans-serif; color: #fff; text-shadow: 0 3px 0 var(--navy), 2px 0 0 var(--navy), -2px 0 0 var(--navy), 0 -2px 0 var(--navy), 2px 2px 0 var(--navy), -2px 2px 0 var(--navy), 2px -2px 0 var(--navy), -2px -2px 0 var(--navy); letter-spacing: .5px; }
+  .hero { margin: 56px 0 36px; color: #fff; }
+  .hero h1 { margin: 0; font: 800 clamp(34px, 6.4vw, 58px)/1.05 "Baloo 2", sans-serif;
+    text-shadow: 0 5px 0 var(--navy), 2px 0 0 var(--navy), -2px 0 0 var(--navy), 0 -2px 0 var(--navy), 2px 2px 0 var(--navy), -2px 2px 0 var(--navy), 2px -2px 0 var(--navy), -2px -2px 0 var(--navy); }
+  .hero p { margin: 18px 0 0; max-width: 560px; font-size: 19px; font-weight: 700; color: var(--navy); }
+  .card {
+    background: var(--cream); border: 3px solid var(--navy); border-radius: 26px;
+    box-shadow: 0 7px 0 var(--navy); padding: 24px; display: grid; gap: 20px;
+    grid-template-columns: 112px 1fr; align-items: center;
+  }
+  .card img { width: 112px; height: 112px; border-radius: 26px; border: 3px solid var(--navy); }
+  .card h2 { margin: 0; font: 800 28px/1.1 "Baloo 2", sans-serif; color: var(--navy); }
+  .card .tag { margin: 4px 0 0; color: var(--muted); font-weight: 600; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; grid-column: 1 / -1; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 18px;
+    border-radius: 999px; border: 3px solid var(--navy); box-shadow: 0 4px 0 var(--navy);
+    font-weight: 800; color: var(--navy); text-decoration: none; background: #fff;
+  }
+  .btn.go { background: var(--green); color: #fff; text-shadow: 0 1px 0 var(--navy); }
+  .btn.soon { opacity: .55; box-shadow: none; cursor: default; }
+  @media (hover: hover) { .btn:not(.soon):hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--navy); } }
+  .more { margin-top: 26px; color: var(--navy); font-weight: 700; opacity: .8; }
+  footer { margin-top: 64px; display: flex; flex-wrap: wrap; gap: 8px 22px; color: var(--navy); font-weight: 700; }
+  footer a { color: var(--navy); }
+  @media (max-width: 560px) {
+    .card { grid-template-columns: 76px 1fr; padding: 18px; gap: 14px; }
+    .card img { width: 76px; height: 76px; border-radius: 18px; }
+    .card h2 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">π</div>
+    <div class="brand">Cozy Pi</div>
+  </header>
+
+  <section class="hero">
+    <h1>Small, cozy games<br>for every day.</h1>
+    <p>We make simple, friendly games and apps — quick to pick up, fun to share, no ads, no tracking.</p>
+  </section>
+
+  <article class="card">
+    <img src="flipmatch-icon.png" alt="Flip Match app icon" width="112" height="112">
+    <div>
+      <h2>Flip Match</h2>
+      <p class="tag">The memory card game — play solo, against the computer, or online with friends.</p>
+    </div>
+    <div class="btns">
+      <a class="btn go" href="https://flipmatch.cozypi.com">▶ Play in your browser</a>
+      <span class="btn soon" aria-disabled="true">App Store — coming soon</span>
+      <span class="btn soon" aria-disabled="true">▶ Google Play — coming soon</span>
+    </div>
+  </article>
+
+  <p class="more">More cozy things are on the way.</p>
+
+  <footer>
+    <span>© 2026 Cozy Pi</span>
+    <a href="mailto:support@cozypi.com">support@cozypi.com</a>
+    <a href="https://flipmatch.cozypi.com/privacy.html">Flip Match privacy</a>
+    <a href="https://flipmatch.cozypi.com/support.html">Flip Match support</a>
+  </footer>
+</div>
+</body>
+</html>
