@@ -12,6 +12,7 @@ import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog, { type XemFx } from './components/RulesDialog.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
+import { laApp } from '@/lib/native';
 import { t } from '@/lib/i18n';
 import IconDefs from './components/IconDefs.vue';
 /*
@@ -356,6 +357,15 @@ onMounted(() => {
     }
   }
   armUnlock();
+  // TRONG APP thì khỏi chờ chạm: Capacitor tắt luật "phải có cử chỉ mới phát"
+  // của WebView ở cả hai nền (iOS mediaTypesRequiringUserActionForPlayback = [],
+  // Android setMediaPlaybackRequiresUserGesture(false)), nên mở app là có nhạc
+  // ngay — người chơi báo "phải chạm mới có nhạc" là cảm giác trang web, không
+  // phải app. Trình duyệt vẫn giữ luật cũ: ở đó chạm trước là bắt buộc thật.
+  if (laApp) {
+    sfx.unlock();
+    nhac.daCham = true;
+  }
 
   /*
    * MỌI NÚT ĐỀU CÓ TIẾNG — gắn ở MỘT chỗ, không rải vào từng handler.
