@@ -26,6 +26,10 @@
      trên lúc hover — nhìn như nút vỡ mất một cạnh. */
   overflow: clip;
   overflow-clip-margin: 4px;
+  /* ĐỆM THẬT cho gờ/bóng của ô hàng trên và hàng cuối: Safari (iOS) KHÔNG hỗ trợ
+     overflow-clip-margin nên trên iPhone mép cắt vẫn là mép lưới — gờ ô cuối cụt.
+     `clip` cắt ở mép NGOÀI phần đệm, nên đệm là cách chạy trên mọi trình duyệt. */
+  padding-block: 4px;
 }
 .step-body.options > .option,
 .options.fill > .option { height: 100%; max-height: 210px; }
