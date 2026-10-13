@@ -13,7 +13,7 @@ describe('tuỳ chọn', () => {
       // Bảng đo nhịp phải TẮT với người chơi mới — nó là công cụ soi lỗi
       debug: false,
       // Rung BẬT sẵn: máy không rung được thì công tắc tự ẩn, không ai bị làm phiền
-      rung: true
+      rung: true, nhac: true
     });
   });
 

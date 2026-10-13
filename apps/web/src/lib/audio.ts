@@ -141,6 +141,18 @@ class Sfx {
   }
 
   /** Bỏ hẳn AudioContext hiện tại để lần phát sau dựng cái mới. */
+  /**
+   * Đường ra cho NHẠC NỀN (lib/nhac.ts): context + nút master, để nhạc đi chung
+   * chuỗi compressor/limiter và theo đúng mức âm lượng. KHÔNG đụng `mocPhat` —
+   * mốc đó để `clickMacDinh` biết nút vừa bấm đã tự kêu chưa; nhạc mà nhích nó
+   * là mọi nút bấm trong lúc có nhạc đều câm.
+   */
+  duongRa(): { ctx: AudioContext; dich: AudioNode } | null {
+    if (!this.enabled) return null;
+    const ctx = this.ac();
+    return ctx && this.master ? { ctx, dich: this.master } : null;
+  }
+
   private dispose(): void {
     const ctx = this.ctx;
     this.ctx = null;
