@@ -477,7 +477,7 @@
   server thật (cần `MYSQL_URL`, tự tạo và dọn user) — đã bắt được một lần
   `dist/server.mjs` gói trước khi sửa: ĐỔI server Node là phải `node build.mjs`
   lại trước khi smoke. Client ID tạo ở Google Cloud Console (OAuth client Web,
-  origin = `https://thebai.hello314.com`), đặt vào Secret `thebai-google`. ĐÃ BẬT
+  origin = `https://flipmatch.hello314.com` + `https://thebai.hello314.com`), đặt vào Secret `thebai-google`. ĐÃ BẬT
   08.10.2026 (project `lat-the-nkien`, tài khoản Google cá nhân). Đổi env trong
   `thebai.yaml` là phải `kubectl apply` tay — Keel chỉ thay ảnh.
   **APPLE + XOÁ TÀI KHOẢN (12.10.2026, để lên App Store):** luật 4.8 bắt có Sign
@@ -502,7 +502,7 @@
   theo mã phòng (mọi kết nối của một mã luôn về đúng một pod), không phải thêm
   kho dữ liệu.
 - **Cụm k8s cá nhân `kien-server-main`** (`deploy/k8s/`; ĐỪNG gọi "Hà Nội" — nhầm với
-  `k8s-hanoi` của SenPrints): server Node là bản CHÍNH, chạy trên MicroK8s tại `thebai.hello314.com` (tên chính người chơi vào) và `thebai-server.hello314.com`,
+  `k8s-hanoi` của SenPrints): server Node là bản CHÍNH, chạy trên MicroK8s tại `flipmatch.hello314.com` (TÊN CHÍNH từ 13.10.2026), `thebai.hello314.com` (tên chính cũ — vẫn phục vụ nguyên vẹn, KHÔNG redirect: localStorage theo origin, và app phát hành trước 13.10 gọi server qua nó) và `thebai-server.hello314.com`,
   namespace `thebai`. Cloudflare Worker lùi về `thebai2.hello314.com` làm dự phòng
   (đổi chỗ ngày 29.08.2026 — tên miền của Worker là *Custom Domain* ở tầng account,
   không nằm trong `wrangler.jsonc`; chi tiết ở sổ tay `my-secrets`). Push vào `main` → Action đẩy
@@ -527,10 +527,17 @@
   chờ deploy, restart k8s tay, nghi oan Keel, trong khi bản mới đã chạy từ đầu.
   Cách đúng là tìm một mẩu NỘI DUNG chỉ có ở bản mới:
   ```bash
-  CSS=$(curl -s "https://thebai.hello314.com/?cb=$RANDOM" | grep -o '/assets/index-[^"]*\.css' | head -1)
-  curl -s "https://thebai.hello314.com$CSS" | grep -c 'flex: 0 0 40px'   # 1 = đã lên
+  CSS=$(curl -s "https://flipmatch.hello314.com/?cb=$RANDOM" | grep -o '/assets/index-[^"]*\.css' | head -1)
+  curl -s "https://flipmatch.hello314.com$CSS" | grep -c 'flex: 0 0 40px'   # 1 = đã lên
   ```
   Soi thẳng trong pod khi cần: `node bin/secrets.mjs run k8s -- kubectl -n thebai exec deploy/thebai-server -- grep -l ... /app/web/assets/*`
+- **TÊN CHÍNH LÀ `flipmatch.hello314.com` (13.10.2026), `thebai.hello314.com` GIỮ NGUYÊN,
+  KHÔNG REDIRECT**: localStorage (điểm, kỷ lục của người chưa đăng nhập) gắn theo
+  origin — chuyển hướng là họ thấy mất sạch; và app phát hành trước 13.10 gọi server
+  qua `thebai`. Trang store cần: `/privacy.html`, `/support.html` (file tĩnh ở
+  `public/`, nằm trong `navigateFallbackDenylist` của SW). Đổi dữ liệu thu thập
+  (bảng `users`, thứ gửi lên server) là phải sửa `privacy.html` + bảng App Privacy
+  ở `docs/store-listing.md`. Ra bản app: skill `phat-hanh-app`.
 - **APP ANDROID + iOS BUILD Ở GITHUB ACTIONS, KHÔNG Ở MÁY** (`.github/workflows/mobile.yml`,
   secret và bẫy ở `docs/mobile-ci.md`). Mã định danh app là
   `com.hello314.flipmatch` ở CẢ HAI nền (và `APPLE_BUNDLE_ID` của server) — lên store

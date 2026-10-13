@@ -53,7 +53,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,json,png,svg,woff2}'],
         // Ván online phải luôn đi thẳng ra server — không bao giờ trả từ cache
-        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//],
+        // Trang tĩnh (privacy/support) là file riêng — store của Apple/Google mở
+        // thẳng URL đó, không được rơi về index.html của game
+        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/(privacy|support)(\.html)?$/],
         runtimeCaching: [
           {
             // Font Google: dùng bản đã tải, âm thầm cập nhật nền
