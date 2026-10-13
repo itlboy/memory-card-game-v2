@@ -43,15 +43,16 @@ const chup = async (ten) => {
   writeFileSync(`${OUT}/${ten}.png`, Buffer.from(d.result.data, 'base64'));
   console.log(`✓ ${OUT}/${ten}.png`);
 };
-/** Bấm phần tử có chữ chứa `chu` (nút, ô chọn) — giống ngón tay: pointerdown/up + click. */
+/** Bấm phần tử có chữ chứa `chu` (nút, ô chọn), KHÔNG phân biệt hoa thường — nhãn
+ *  English từng đổi "Quick play" → "Quick Play" và kịch bản gãy. */
 const bam = (chu, sel = 'button, [role=button], .option, a') => js(`(() => {
-  const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.includes(${JSON.stringify(chu)}));
+  const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.toLowerCase().includes(${JSON.stringify(chu.toLowerCase())}));
   if (!el) throw new Error('không thấy: ' + ${JSON.stringify(chu)});
   el.click(); return true;
 })()`);
 /** Bấm phần tử có chữ ĐÚNG BẰNG `chu` (bỏ khoảng trắng) — "4cards" không được trúng "24cards". */
 const bamDung = (chu, sel = 'button, [role=button], .option') => js(`(() => {
-  const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.replace(/\\s+/g, '') === ${JSON.stringify(chu)});
+  const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.replace(/\\s+/g, '').toLowerCase() === ${JSON.stringify(chu.toLowerCase())});
   if (!el) throw new Error('không thấy (đúng): ' + ${JSON.stringify(chu)});
   el.click(); return true;
 })()`);

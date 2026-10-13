@@ -182,6 +182,10 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
   display: flex; align-items: center; justify-content: center; padding: 12px;
   background: rgba(12, 14, 28, .45);
   backdrop-filter: blur(4px);
+  /* Lớp phủ fixed nằm NGOÀI đệm vùng an toàn của #app: tự cộng env() (iPhone: tai thỏ,
+     Dynamic Island, dải home) — không thì nút ✕ chui dưới đồng hồ/pin, khó bấm. */
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 /* Panel cao tối đa theo viewport; RIÊNG phần nội dung được cuộn — luật dài hơn
    một màn hình là chuyện bình thường, còn tiêu đề và nút đóng phải luôn thấy. */
@@ -190,7 +194,7 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
      con số riêng: 460px cố định nằm trong cột 600px trên máy tính đọc ra thành
      một cột chữ hẹp lọt giữa màn hình, mà luật chơi là trang chữ dài — nó cần
      mọi pixel bề rộng đang có. */
-  width: 100%; max-width: var(--col-w); max-height: calc(100dvh - 24px);
+  width: 100%; max-width: var(--col-w); max-height: 100%;   /* = cao lớp phủ trừ đệm (đã gồm vùng an toàn) */
   display: flex; flex-direction: column; min-height: 0;
 }
 .rules-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
