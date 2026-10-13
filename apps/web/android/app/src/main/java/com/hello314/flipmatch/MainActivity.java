@@ -1,4 +1,4 @@
-package com.hello314.thebai;
+package com.hello314.flipmatch;
 
 import com.getcapacitor.BridgeActivity;
 

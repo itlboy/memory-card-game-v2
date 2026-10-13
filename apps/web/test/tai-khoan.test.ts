@@ -187,11 +187,11 @@ describe('server Node: tầng tài khoản', () => {
       return `${hb}.${sign('RSA-SHA256', Buffer.from(hb), khoa).toString('base64url')}`;
     };
     const jwks = vi.fn(async () => Response.json({ keys: [jwk] })) as unknown as typeof fetch;
-    const tot = { iss: 'https://appleid.apple.com', aud: 'com.hello314.thebai', sub: '001.abc', exp: 2000, email: 'x@privaterelay.appleid.com' };
-    const aud = ['com.hello314.thebai', 'com.hello314.thebai.web'];
+    const tot = { iss: 'https://appleid.apple.com', aud: 'com.hello314.flipmatch', sub: '001.abc', exp: 2000, email: 'x@privaterelay.appleid.com' };
+    const aud = ['com.hello314.flipmatch', 'com.hello314.flipmatch.web'];
     _quenKhoaApple();
-    expect(await xacMinhApple(ky(tot), aud, 1_000_000, jwks)).toEqual({ sub: '001.abc', email: tot.email, aud: 'com.hello314.thebai' });
-    expect(await xacMinhApple(ky({ ...tot, aud: 'com.hello314.thebai.web' }), aud, 1_000_000, jwks)).toMatchObject({ aud: 'com.hello314.thebai.web' });
+    expect(await xacMinhApple(ky(tot), aud, 1_000_000, jwks)).toEqual({ sub: '001.abc', email: tot.email, aud: 'com.hello314.flipmatch' });
+    expect(await xacMinhApple(ky({ ...tot, aud: 'com.hello314.flipmatch.web' }), aud, 1_000_000, jwks)).toMatchObject({ aud: 'com.hello314.flipmatch.web' });
     expect(await xacMinhApple(ky({ ...tot, aud: 'app.khac' }), aud, 1_000_000, jwks), 'aud lạ').toBeNull();
     expect(await xacMinhApple(ky({ ...tot, iss: 'https://evil' }), aud, 1_000_000, jwks), 'iss lạ').toBeNull();
     expect(await xacMinhApple(ky(tot), aud, 3_000_000, jwks), 'hết hạn').toBeNull();
@@ -211,10 +211,10 @@ describe('server Node: tầng tài khoản', () => {
     const pem = privateKey.export({ format: 'pem', type: 'pkcs8' }).toString();
     // .p8 dán vào biến môi trường hay bị biến xuống dòng thành "\n"
     for (const khoa of [pem, pem.replace(/\n/g, '\\n')]) {
-      const jwt = taoClientSecretApple({ teamId: 'TEAM', keyId: 'KID', privateKey: khoa }, 'com.hello314.thebai', 1_000_000);
+      const jwt = taoClientSecretApple({ teamId: 'TEAM', keyId: 'KID', privateKey: khoa }, 'com.hello314.flipmatch', 1_000_000);
       const [h, b, c] = jwt.split('.') as [string, string, string];
       expect(JSON.parse(Buffer.from(h, 'base64url').toString())).toEqual({ alg: 'ES256', kid: 'KID' });
-      expect(JSON.parse(Buffer.from(b, 'base64url').toString())).toMatchObject({ iss: 'TEAM', sub: 'com.hello314.thebai', aud: 'https://appleid.apple.com' });
+      expect(JSON.parse(Buffer.from(b, 'base64url').toString())).toMatchObject({ iss: 'TEAM', sub: 'com.hello314.flipmatch', aud: 'https://appleid.apple.com' });
       expect(verify('sha256', Buffer.from(`${h}.${b}`), { key: publicKey, dsaEncoding: 'ieee-p1363' }, Buffer.from(c, 'base64url'))).toBe(true);
     }
   });

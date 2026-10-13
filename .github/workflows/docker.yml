@@ -30,17 +30,17 @@ jobs:
     name: Test trước khi đóng ảnh
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # KHÔNG khai `version` ở đây: repo đã ghi `packageManager: pnpm@10.0.0`
       # trong package.json, khai cả hai chỗ thì action dừng với
       # "Multiple versions of pnpm specified". Để một nguồn duy nhất, và nâng
       # pnpm thì chỉ sửa package.json.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       # Node 22, KHÔNG phải 20, vì hai lý do:
       #  - bộ smoke dùng `WebSocket` TOÀN CỤC, mà Node 20 chưa có nó (phải bật
       #    cờ --experimental-websocket); chạy trên 20 là "WebSocket is not defined";
       #  - Node 20 đã hết hạn hỗ trợ từ 4/2026.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -88,22 +88,22 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Nhãn ảnh
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
             type=raw,value=latest
             type=sha,format=short
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/node-server/Dockerfile

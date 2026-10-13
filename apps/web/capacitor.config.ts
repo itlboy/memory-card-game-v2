@@ -7,7 +7,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * mọi chỗ dựa vào `location.origin` phải đi qua `lib/native.ts`.
  */
 const config: CapacitorConfig = {
-  appId: 'com.hello314.thebai',
+  appId: 'com.hello314.flipmatch',
   appName: 'Lật Thẻ',
   webDir: 'dist',
   ios: {

@@ -48,10 +48,10 @@ jobs:
       CO_KHOA: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
       CO_PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # KHÔNG khai `version`: pnpm lấy từ `packageManager` trong package.json (xem docker.yml)
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -60,7 +60,7 @@ jobs:
         working-directory: apps/web
         run: pnpm build:android
       # Capacitor 8 cần JDK 21
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
@@ -74,7 +74,7 @@ jobs:
       - name: APK debug (cài thử)
         working-directory: apps/web/android
         run: ./gradlew --no-daemon assembleDebug -PversionCode=${{ steps.ver.outputs.code }} -PversionName=${{ steps.ver.outputs.name }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-debug.apk
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
@@ -94,7 +94,7 @@ jobs:
           ./gradlew --no-daemon bundleRelease assembleRelease -PversionCode=${{ steps.ver.outputs.code }} -PversionName=${{ steps.ver.outputs.name }}
           rm -f "$ANDROID_KEYSTORE_PATH"
       - if: env.CO_KHOA == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-release
           path: |
@@ -110,7 +110,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.hello314.thebai
+          packageName: com.hello314.flipmatch
           releaseFiles: apps/web/android/app/build/outputs/bundle/release/app-release.aab
           track: ${{ vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'draft' }}
@@ -120,11 +120,14 @@ jobs:
     # Capacitor 8 cần Xcode 26
     runs-on: macos-26
     env:
-      CO_APPLE: ${{ secrets.APPLE_TEAM_ID != '' && secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' && secrets.ASC_KEY_P8_BASE64 != '' }}
+      # Ký cần CHỨNG CHỈ + PROFILE (tools/tao-ky-ios.mjs tạo, mỗi năm một lần);
+      # đẩy TestFlight cần thêm API key. Thiếu bộ ký thì chỉ build simulator.
+      CO_KY: ${{ secrets.APPLE_TEAM_ID != '' && secrets.IOS_DIST_P12_BASE64 != '' && secrets.IOS_DIST_P12_PASSWORD != '' && secrets.IOS_PROFILE_BASE64 != '' }}
+      CO_API: ${{ secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' && secrets.ASC_KEY_P8_BASE64 != '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -138,8 +141,8 @@ jobs:
           echo "name=$(node -p "require('./apps/web/package.json').version")" >> "$GITHUB_OUTPUT"
           echo "code=$(( SO_BAN + BU_SO_BAN ))" >> "$GITHUB_OUTPUT"
 
-      - name: Build cho simulator (chưa có tài khoản Apple)
-        if: env.CO_APPLE != 'true'
+      - name: Build cho simulator (chưa có bộ ký)
+        if: env.CO_KY != 'true'
         working-directory: apps/web/ios/App
         run: |
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
@@ -148,40 +151,85 @@ jobs:
             MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
             -quiet build
 
-      # Ký TỰ ĐỘNG bằng App Store Connect API key: Xcode tự xin chứng chỉ phân
-      # phối + provisioning profile trên đám mây, không có file .p12 nào phải giữ.
-      # Key phải ở quyền Admin (hoặc App Manager có quyền "Cloud Managed
-      # Distribution Certificate"), không thì archive lỗi "No signing certificate".
+      # KÝ THỦ CÔNG bằng chứng chỉ phân phối có sẵn — cách duy nhất Apple nhận
+      # mà không cần iPhone đăng ký. Ba cách đã hỏng, đừng quay lại:
+      #  - ký tự động (-allowProvisioningUpdates): Xcode ký kiểu Development
+      #    trước, profile Development đòi team có thiết bị ("no devices");
+      #  - archive không ký rồi để bước xuất ký: bản ra MẤT entitlements
+      #    (`applesignin` — nút Đăng nhập Apple chết);
+      #  - archive không ký + `codesign -s -` nhúng entitlements: xuất ra trông
+      #    đúng nhưng Apple TỪ CHỐI lúc nhận bản ("Invalid Signature").
+      - name: Nạp chứng chỉ + profile vào keychain tạm
+        if: env.CO_KY == 'true'
+        env:
+          P12_B64: ${{ secrets.IOS_DIST_P12_BASE64 }}
+          P12_PASS: ${{ secrets.IOS_DIST_P12_PASSWORD }}
+          PROFILE_B64: ${{ secrets.IOS_PROFILE_BASE64 }}
+        run: |
+          KC="$RUNNER_TEMP/ky.keychain-db"
+          KC_PASS="$(openssl rand -hex 16)"
+          security create-keychain -p "$KC_PASS" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KC_PASS" "$KC"
+          echo "$P12_B64" | base64 -d > "$RUNNER_TEMP/ky.p12"
+          security import "$RUNNER_TEMP/ky.p12" -P "$P12_PASS" -A -t cert -f pkcs12 -k "$KC"
+          rm -f "$RUNNER_TEMP/ky.p12"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KC_PASS" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+
+          echo "$PROFILE_B64" | base64 -d > "$RUNNER_TEMP/app.mobileprovision"
+          security cms -D -i "$RUNNER_TEMP/app.mobileprovision" > "$RUNNER_TEMP/profile.plist"
+          UUID=$(plutil -extract UUID raw "$RUNNER_TEMP/profile.plist")
+          echo "PROFILE_NAME=$(plutil -extract Name raw "$RUNNER_TEMP/profile.plist")" >> "$GITHUB_ENV"
+          # Xcode 16+ đọc chỗ thứ hai, bản cũ đọc chỗ thứ nhất
+          for d in "$HOME/Library/MobileDevice/Provisioning Profiles" "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"; do
+            mkdir -p "$d" && cp "$RUNNER_TEMP/app.mobileprovision" "$d/$UUID.mobileprovision"
+          done
+
+      # Chỉ target App ký thủ công. Đặt CODE_SIGN_STYLE/PROVISIONING_PROFILE trên
+      # dòng lệnh là áp cho CẢ các gói SPM (Capacitor…) — chúng không nhận
+      # profile và build đỏ. Nên sửa file project ngay trên máy CI (không commit).
       - name: Archive đã ký
-        if: env.CO_APPLE == 'true'
+        if: env.CO_KY == 'true'
         working-directory: apps/web/ios/App
         env:
-          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
-          KID: ${{ secrets.ASC_KEY_ID }}
-          ISS: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey.p8"
+          python3 - <<'EOF'
+          import os
+          p = 'App.xcodeproj/project.pbxproj'
+          s = open(p).read()
+          cu = 'CODE_SIGN_STYLE = Automatic;'
+          assert s.count(cu) == 2, s.count(cu)   # đúng hai cấu hình Debug/Release của target App
+          s = s.replace(cu, 'CODE_SIGN_STYLE = Manual; DEVELOPMENT_TEAM = %s; CODE_SIGN_IDENTITY = "Apple Distribution"; PROVISIONING_PROFILE_SPECIFIER = "%s";'
+                        % (os.environ['TEAM'], os.environ['PROFILE_NAME']))
+          open(p, 'w').write(s)
+          EOF
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic \
             MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS" \
             -quiet archive
 
       # destination=upload: xuất xong Xcode đẩy thẳng lên App Store Connect
-      # (TestFlight), không cần altool/fastlane. Không phát hành thì chỉ xuất IPA.
+      # (TestFlight) bằng API key, không cần altool/fastlane.
       - name: Xuất IPA / đẩy lên TestFlight
-        if: env.CO_APPLE == 'true'
+        if: env.CO_KY == 'true'
         working-directory: apps/web/ios/App
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
           KID: ${{ secrets.ASC_KEY_ID }}
           ISS: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          DEST=export; [ "$PHAT_HANH" = "true" ] && DEST=upload
+          DEST=export
+          AUTH=()
+          if [ "$PHAT_HANH" = "true" ]; then
+            [ "$CO_API" = "true" ] || { echo "::error::Phát hành cần ASC_KEY_ID / ASC_ISSUER_ID / ASC_KEY_P8_BASE64"; exit 1; }
+            DEST=upload
+            echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey.p8"
+            AUTH=(-authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS")
+          fi
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -189,18 +237,28 @@ jobs:
             <key>method</key><string>app-store-connect</string>
             <key>destination</key><string>$DEST</string>
             <key>teamID</key><string>$TEAM</string>
-            <key>signingStyle</key><string>automatic</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key><dict>
+              <key>com.hello314.flipmatch</key><string>$PROFILE_NAME</string>
+            </dict>
             <key>manageAppVersionAndBuildNumber</key><false/>
           </dict></plist>
           EOF
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            -exportPath "$RUNNER_TEMP/ipa" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" -authenticationKeyID "$KID" -authenticationKeyIssuerID "$ISS"
+            -exportPath "$RUNNER_TEMP/ipa" -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" "${AUTH[@]}"
           rm -f "$RUNNER_TEMP/AuthKey.p8"
-      - if: env.CO_APPLE == 'true' && env.PHAT_HANH != 'true'
-        uses: actions/upload-artifact@v4
+          # Soát quyền đã ký vào app (Đăng nhập Apple phải còn — thiếu là nút đăng nhập chết)
+          APP="$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app"
+          codesign -d --entitlements - "$APP" | grep -q applesignin \
+            || { echo "::error::App ký ra thiếu entitlement com.apple.developer.applesignin"; exit 1; }
+          codesign -dvv "$APP" 2>&1 | grep -E "^Authority=Apple Distribution"
+      - if: env.CO_KY == 'true' && env.PHAT_HANH != 'true'
+        uses: actions/upload-artifact@v7
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-ios
           path: ${{ runner.temp }}/ipa/*.ipa
           retention-days: 30
+      - name: Dọn keychain tạm
+        if: always() && env.CO_KY == 'true'
+        run: security delete-keychain "$RUNNER_TEMP/ky.keychain-db" || true

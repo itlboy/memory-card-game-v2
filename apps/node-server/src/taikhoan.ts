@@ -272,7 +272,7 @@ export interface TaiKhoan {
 
 export interface EnvTaiKhoan {
   GOOGLE_CLIENT_ID?: string;
-  /** Bundle id của app iOS (`com.hello314.thebai`) — bật đăng nhập Apple trong app. */
+  /** Bundle id của app iOS (`com.hello314.flipmatch`) — bật đăng nhập Apple trong app. */
   APPLE_BUNDLE_ID?: string;
   /** Services ID — bật đăng nhập Apple trên WEB (cần đăng ký tên miền ở Apple). */
   APPLE_SERVICES_ID?: string;
