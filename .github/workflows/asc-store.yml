@@ -1,0 +1,58 @@
+# ĐIỀN TRANG APP STORE từ CI — không cần file .p8 trên máy ai cả.
+#
+# Dùng chính bộ secret ASC_* mà mobile.yml dùng để đẩy TestFlight. Chạy tay:
+#   gh workflow run asc-store.yml --ref main            (chụp lại ảnh 12 ngôn ngữ)
+#   gh workflow run asc-store.yml --ref main -f chup_anh=false   (chỉ cập nhật chữ)
+# Nội dung lấy từ docs/store-listing.md (một nguồn duy nhất). Ảnh chụp từ bản web
+# Cloudflare đang chạy, nên deploy web trước rồi mới chạy cái này.
+#
+# macOS chứ không ubuntu: ảnh store phải có emoji APPLE (bộ hình của thẻ là emoji),
+# ubuntu chỉ có Noto — ảnh sẽ lệch với thứ người dùng iPhone thấy.
+name: App Store page
+
+on:
+  workflow_dispatch:
+    inputs:
+      chup_anh:
+        description: Chụp lại ảnh store cho 12 ngôn ngữ
+        type: boolean
+        default: true
+      may_chu:
+        description: Bản web để chụp
+        default: https://thebai2.hello314.com
+
+permissions:
+  contents: read
+
+jobs:
+  dien:
+    runs-on: macos-26
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Chụp ảnh store (12 ngôn ngữ)
+        if: inputs.chup_anh
+        run: |
+          for L in en vi es pt fr de ja ko zh ru id th; do
+            node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L" "$L"
+          done
+      - uses: actions/upload-artifact@v7
+        if: inputs.chup_anh
+        with:
+          name: anh-store
+          path: anh/
+      - name: Điền App Store Connect
+        env:
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_REVIEW_PHONE: ${{ secrets.ASC_REVIEW_PHONE }}
+        run: |
+          echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey_$KID.p8"
+          node tools/asc-store.mjs "$RUNNER_TEMP/AuthKey_$KID.p8" "$ISS" anh

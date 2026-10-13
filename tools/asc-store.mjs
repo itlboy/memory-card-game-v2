@@ -8,6 +8,9 @@
  *   node tools/asc-store.mjs <AuthKey_XXXXXXXXXX.p8> <Issuer ID> [thư mục ảnh]
  *     thư mục ảnh mặc định ~/Downloads/flipmatch-screenshots (con: en/, vi/)
  *
+ * Điền cả App Review Information (ghi chú ở mục "## App Review", số điện thoại
+ * từ biến ASC_REVIEW_PHONE). Chạy trên CI: workflow `asc-store.yml`.
+ *
  * KHÔNG làm được qua API (phải bấm trên web): App Privacy, phân loại độ tuổi,
  * giá (Free), trader status EU, và nút Submit for Review — script in nhắc cuối.
  */
@@ -142,6 +145,19 @@ for (const { locale, noiDung: n, anh } of NGON_NGU) {
     await api('PATCH', `/v1/appScreenshots/${shot.id}`, { data: { type: 'appScreenshots', id: shot.id, attributes: { uploaded: true, sourceFileChecksum: createHash('md5').update(buf).digest('hex') } } });
   }
   console.log(`✓ ${locale}: ${files.length} ảnh`);
+}
+
+// App Review Information: liên hệ + ghi chú cho người duyệt. Số điện thoại lấy từ
+// biến môi trường (repo công khai, không ghi vào store-listing.md).
+{
+  const rv = phan('App Review');
+  const attr = { contactFirstName: rv['First name'], contactLastName: rv['Last name'], contactEmail: rv.Email, demoAccountRequired: false, notes: rv.Notes };
+  if (process.env.ASC_REVIEW_PHONE) attr.contactPhone = process.env.ASC_REVIEW_PHONE;
+  // Chưa có thì API có thể trả data: null HOẶC 404 — coi cả hai là chưa có
+  const cur = (await api('GET', `/v1/appStoreVersions/${version.id}/appStoreReviewDetail`).catch(() => null))?.data;
+  if (cur) await api('PATCH', `/v1/appStoreReviewDetails/${cur.id}`, { data: { type: 'appStoreReviewDetails', id: cur.id, attributes: attr } });
+  else await api('POST', '/v1/appStoreReviewDetails', { data: { type: 'appStoreReviewDetails', attributes: attr, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } } });
+  console.log(`✓ App Review Information${attr.contactPhone ? '' : ' (THIẾU số điện thoại — đặt secret ASC_REVIEW_PHONE, Apple bắt buộc)'}`);
 }
 
 // Gắn bản build mới nhất (đã xử lý xong) của đúng phiên bản này
