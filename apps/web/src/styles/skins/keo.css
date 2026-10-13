@@ -168,6 +168,13 @@
 :root[data-skin='keo'] .g-teal   { background: #4fd1c5 !important; box-shadow: 0 5px 0 var(--ink) !important; }
 :root[data-skin='keo'] .g-lime   { background: #a3e05a !important; box-shadow: 0 5px 0 var(--ink) !important; }
 :root[data-skin='keo'] .g-orange { background: #ffa94d !important; box-shadow: 0 5px 0 var(--ink) !important; }
+/* Mặt máy ngồi trên ĐĨA TRẮNG viền mực: ô màu kẹo phẳng mà mặt cùng tông là chìm
+   mất — 🐥 "gà cứng" vàng trên ô vàng (g-blue của Kẹo là #ffcb2e), người chơi báo
+   13.10.2026. Đĩa thì mặt nào trên ô màu nào cũng nổi, đổi màu ô sau này khỏi lo. */
+:root[data-skin='keo'] .bot-face {
+  display: inline-grid; place-items: center; aspect-ratio: 1; width: 1.45em;
+  background: #fff; border: 2.5px solid var(--ink); border-radius: 50%; box-shadow: 0 3px 0 var(--ink);
+}
 
 /* Dải lối tắt + chấm bước */
 :root[data-skin='keo'] .lt-chip { border: 2.5px solid var(--ink) !important; background: #fff; color: var(--ink); box-shadow: 0 3px 0 var(--ink); }
