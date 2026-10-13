@@ -16,7 +16,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, Check, ChevronLeft, Globe, Lock, Map, Play, User, Users } from 'lucide-vue-next';
+import { Bot, ChevronLeft, Globe, Map, Play, User, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
@@ -28,6 +28,7 @@ import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
 import LevelMap from './LevelMap.vue';
 import SizeGrid from './SizeGrid.vue';
+import ThemePicker from './ThemePicker.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 
@@ -297,7 +298,6 @@ const tenBan = computed(() =>
 const tieuDe = computed(() =>
   step.value === 'level' && props.mode !== 'campaign' ? t('menu.chonSoThe') : td(`menu.buoc.${step.value}`));
 
-const unlocked = (t: CardTheme): boolean => t.unlockAt <= props.totalScore;
 const best = computed(() => store.best(props.mode, props.level));
 /** Số cặp mà cấp đang chọn cần — bước theme dùng để cảnh báo thiếu biểu tượng. */
 const pairsNeeded = computed(() => levelSpec(props.level).pairs);
@@ -471,30 +471,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       <!-- BƯỚC: theme (chọn được nhiều) -->
       <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
         <p class="hint-multi">{{ t('menu.nhieuTheme') }}</p>
-        <div class="options theme-grid" role="group" :aria-label="t('menu.themeThe')">
-          <button
-            v-for="t in themes" :key="t.id" class="option theme-opt" role="checkbox"
-            :aria-checked="themeIds.includes(t.id)"
-            :aria-disabled="!unlocked(t)"
-            :aria-label="unlocked(t) ? tenTheme(t.id, t.name) : tr('menu.themeKhoaAria', { ten: tenTheme(t.id, t.name), k: t.unlockAt / 1000 })"
-            :disabled="!unlocked(t)"
-            type="button"
-            @click="unlocked(t) && toggleTheme(t.id)"
-          >
-            <span class="theme-sample" aria-hidden="true">{{ t.symbols.slice(0, 3).join(' ') }}</span>
-            <strong class="tname">{{ tenTheme(t.id, t.name) }}</strong>
-            <!-- Badge khoá ở góc đã nói trạng thái; ở đây chỉ cần mốc điểm -->
-            <small v-if="!unlocked(t)">{{ tr('menu.themeKhoa', { k: t.unlockAt / 1000 }) }}</small>
-            <!-- Dấu chọn / khoá nằm TUYỆT ĐỐI ở góc: nằm trong luồng thì nó chiếm
-                 một dòng và đẩy tên theme tràn ra khỏi ô -->
-            <span v-if="themeIds.includes(t.id)" class="tick" aria-hidden="true">
-              <Check :size="12" />
-            </span>
-            <span v-else-if="!unlocked(t)" class="tick locked" aria-hidden="true">
-              <Lock :size="11" />
-            </span>
-          </button>
-        </div>
+        <ThemePicker :themes="themes" :selected="themeIds" :nhan="t('menu.themeThe')" @toggle="toggleTheme" />
 
         <p v-if="themeWarn" class="warn" role="alert">{{ t('menu.itNhatMotTheme') }}</p>
         <p v-if="themeTooSmall" class="warn" role="alert">

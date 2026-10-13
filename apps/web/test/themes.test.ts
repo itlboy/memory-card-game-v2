@@ -69,51 +69,49 @@ describe('file themes.json thực trong repo', () => {
     expect(themes.some((t) => t.unlockAt === 0)).toBe(true);
   });
 
-  // Lưới theme phải TRÒN HÀNG trong cột 3 ô: 12 → 3×4, 15 → 3×5. Thêm theme thì
-  // số theme phải chia hết cho 3 VÀ 4 (lưới 3 hoặc 4 cột), không thì hàng cuối còn ô lẻ.
-  it('số theme chia hết cho 3 và 4 để lưới tròn hàng, và có đủ theme mở sẵn', async () => {
+  // Lưới theme phải TRÒN HÀNG ở cả 3 lẫn 4 cột (auto-fill: máy hẹp 3, Pro Max 4).
+  // Từ 14.10.2026 lưới chia HAI TAB (Miễn phí · Premium) nên MỖI TAB phải tròn:
+  // 33 theme qua được phép chia 3 mà hàng cuối máy rộng lẻ một ô (đã chụp thấy).
+  it('mỗi tab (miễn phí / premium) chia hết cho 3 và 4 để lưới tròn hàng', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
-    const { themes } = JSON.parse(raw) as { themes: { unlockAt: number }[] };
-    // Lưới theme auto-fill: 3 cột ở máy hẹp, 4 cột ở máy rộng (Pro Max) — phải tròn
-    // CẢ HAI. 33 theme qua được phép chia 3 mà hàng cuối máy rộng lẻ một ô (đã chụp thấy).
-    expect(themes.length % 3, `${themes.length} theme không tròn hàng 3 cột`).toBe(0);
-    expect(themes.length % 4, `${themes.length} theme không tròn hàng 4 cột`).toBe(0);
-    expect(themes.filter((t) => t.unlockAt === 0).length, 'theme mở sẵn')
-      .toBeGreaterThanOrEqual(6);
-    expect(themes.filter((t) => t.unlockAt > 0).length, 'theme khoá bằng điểm')
-      .toBeGreaterThanOrEqual(6);
+    const { themes } = JSON.parse(raw) as { themes: { premium?: boolean; unlockAt: number }[] };
+    for (const [ten, ds] of [['miễn phí', themes.filter((t) => !t.premium)], ['premium', themes.filter((t) => t.premium)]] as const) {
+      expect(ds.length % 3, `tab ${ten}: ${ds.length} theme không tròn hàng 3 cột`).toBe(0);
+      expect(ds.length % 4, `tab ${ten}: ${ds.length} theme không tròn hàng 4 cột`).toBe(0);
+      expect(ds.length, `tab ${ten}`).toBeGreaterThanOrEqual(12);
+    }
+    // Không còn mở bằng điểm: chỉ miễn phí hoặc premium
+    expect(themes.filter((t) => t.unlockAt !== 0)).toEqual([]);
   });
 
-  /*
-   * Trộn theme thì biểu tượng trùng bị GỘP (Set), nên pool nhỏ hơn tổng cộng.
-   * Trùng là có chủ đích — cá heo vừa là động vật vừa là sinh vật biển — nên
-   * không cấm; thứ phải đúng là POOL CUỐI CÙNG đủ cho bàn lớn nhất.
-   */
-  it('theme MỞ SẴN xếp trước theme còn khoá, dù nằm cuối file', async () => {
+  it('theme MIỄN PHÍ xếp trước theme premium, dù nằm cuối file', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
     vi.stubGlobal('fetch', vi.fn(async () => new Response(raw, { status: 200 })));
     const list = await loadThemes();
-    const mocs = list.map((t) => t.unlockAt);
-    expect(mocs, 'mốc mở khoá phải không giảm').toEqual([...mocs].sort((a, b) => a - b));
-    // Và đúng cái bẫy đã xảy ra: theme mở sẵn thêm sau cùng vẫn phải lên trước
-    const cuoiFile = (JSON.parse(raw) as { themes: { id: string; unlockAt: number }[] }).themes.at(-1)!;
-    if (cuoiFile.unlockAt === 0) {
-      const viTri = list.findIndex((t) => t.id === cuoiFile.id);
-      const viTriKhoaDau = list.findIndex((t) => t.unlockAt > 0);
-      expect(viTri, `${cuoiFile.id} mở sẵn nhưng đứng sau nhóm khoá`).toBeLessThan(viTriKhoaDau);
-    }
+    const co = list.map((t) => Number(!!t.premium));
+    expect(co, 'premium phải đứng sau mọi theme miễn phí').toEqual([...co].sort((a, b) => a - b));
+  });
+
+  it('bản sao server khớp themes.json, kể cả danh sách premium', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
+    const { themes } = JSON.parse(raw) as { themes: { id: string; premium?: boolean; symbols: string[] }[] };
+    const { THEME_SYMBOLS, THEME_PREMIUM } = await import('../../server/src/themes');
+    for (const t of themes) expect(THEME_SYMBOLS[t.id], `server thiếu/lệch ${t.id}`).toEqual(t.symbols);
+    expect([...THEME_PREMIUM].sort()).toEqual(themes.filter((t) => t.premium).map((t) => t.id).sort());
   });
 
   it('theme mở sẵn gộp lại đủ biểu tượng cho bàn lớn nhất', async () => {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
     const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
-    const { themes } = JSON.parse(raw) as { themes: { unlockAt: number; symbols: string[] }[] };
-    const pool = new Set(themes.filter((t) => t.unlockAt === 0).flatMap((t) => t.symbols));
+    const { themes } = JSON.parse(raw) as { themes: { premium?: boolean; symbols: string[] }[] };
+    const pool = new Set(themes.filter((t) => !t.premium).flatMap((t) => t.symbols));
     expect(pool.size, 'pool của theme mở sẵn').toBeGreaterThanOrEqual(CAMPAIGN_MAX_PAIRS);
   });
 });

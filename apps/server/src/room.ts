@@ -7,7 +7,7 @@ import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
-import { THEME_SYMBOLS } from './themes.js';
+import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { TURN_PAUSE_CAP_MS, pairsForLevel } from '@mm/engine';
 import { soPhongTuBinding, type SoPhong } from './sophong.js';
 
@@ -1139,9 +1139,11 @@ export class RoomDO extends DurableObject<Env> {
     const symbols = [...new Set(
       room.config.themeIds.flatMap((id) => THEME_SYMBOLS[id] ?? [])
     )];
-    // themeIds rỗng (phòng tạo nhanh, chưa qua wizard) → dùng TẤT CẢ theme
-    // server có, thay vì tụt về một bộ duy nhất
-    if (!symbols.length) symbols.push(...new Set(Object.values(THEME_SYMBOLS).flat()));
+    // themeIds rỗng (phòng tạo nhanh, chưa qua wizard) → dùng mọi theme MIỄN PHÍ
+    // server có, thay vì tụt về một bộ duy nhất (premium thì chủ phòng phải tự chọn)
+    if (!symbols.length) {
+      symbols.push(...new Set(Object.entries(THEME_SYMBOLS).filter(([id]) => !THEME_PREMIUM.has(id)).flatMap(([, s]) => s)));
+    }
     // Seed sinh tại server — client không bao giờ biết trước bàn thẻ (NF-04)
     const seed = seedFrom(crypto.getRandomValues(new Uint32Array(1))[0]!);
     // Lọc lại lần nữa ngay trước khi dựng ván: bản lưu trong storage có thể là

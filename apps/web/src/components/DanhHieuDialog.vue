@@ -10,7 +10,7 @@ import DanhHieu from './DanhHieu.vue';
  * tiêu đề + nút đóng đứng yên, ruột cuộn, nên không phá luật KHÔNG SCROLL.
  * Lọc "Chưa có" đặt sẵn: thứ người chơi cần thấy là việc còn phải làm.
  */
-const props = defineProps<{ daCo: ReadonlySet<string>; tk: ThongKe; themeKhoa: Record<string, number> }>();
+const props = defineProps<{ daCo: ReadonlySet<string>; tk: ThongKe; themeKhoa: ReadonlySet<string> }>();
 const emit = defineEmits<{ close: []; 'chinh-phuc': [Achievement] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 onMounted(() => closeBtn.value?.focus());

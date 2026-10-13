@@ -12,7 +12,7 @@ const THEMES = {
     // cặp). Bản thật có sáu theme mở sẵn; một theme 24 biểu tượng thì không bộ
     // đơn lẻ nào dựng nổi bàn trần, và đó là ý đồ — phải trộn theme.
     { id: 'food', name: 'Đồ ăn', unlockAt: 0, symbols: Array.from({ length: 30 }, (_, i) => `F${i}`) },
-    { id: 'locked', name: 'Bị khoá', unlockAt: 999999, symbols: Array.from({ length: 24 }, (_, i) => `B${i}`) }
+    { id: 'locked', name: 'Bị khoá', unlockAt: 0, premium: true, symbols: Array.from({ length: 24 }, (_, i) => `B${i}`) }
   ]
 };
 
@@ -146,13 +146,42 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
   });
 
-  it('theme chưa mở khoá thì bị vô hiệu hoá', async () => {
+  it('theme premium nằm ở tab riêng; chưa mua thì chạm là XEM TRƯỚC, không chọn được', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
     await click('16 thẻ');
-    const locked = wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
-    expect(locked.attributes('aria-disabled')).toBe('true');
+    // Tab mặc định là Miễn phí: không có ô premium nào
+    expect(wrapper.findAll('.theme-opt').some((c) => c.text().includes('Bị khoá'))).toBe(false);
+    await click('Premium');
+    const o = wrapper.findAll('.theme-opt').find((c) => c.text().includes('Bị khoá'))!;
+    expect(o.attributes('role'), 'ô premium chưa mua không phải checkbox').toBeUndefined();
+    await o.trigger('click'); await flush();
+    const hop = wrapper.find('.tp-phu');
+    expect(hop.exists(), 'chạm ô premium phải mở hộp xem trước').toBe(true);
+    expect(hop.findAll('.tp-bo span')).toHaveLength(24);   // đủ bộ hình
+    expect((wrapper.vm as unknown as { themeIds: string[] }).themeIds ?? []).not.toContain('locked');
+    await hop.find('.btn-primary').trigger('click'); await flush();
+    expect(wrapper.find('.tp-sap-co').exists(), 'chưa bán thật: nút mua báo sắp có').toBe(true);
+  });
+
+  it('đã mua premium thì theme premium chọn được như theme thường', async () => {
+    localStorage.setItem('mm.premium', '1');
+    const { daMuaPremium } = await import('@/lib/premium');
+    daMuaPremium.value = true;
+    try {
+      wrapper = mount(App);
+      await flush();
+      await click('Chơi nhanh'); await click('1 người chơi');
+      await click('16 thẻ');
+      await click('Premium');
+      const o = () => wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
+      // Đã mua thì "mặc định bật mọi theme chơi được" gồm cả premium
+      expect(o().attributes('aria-checked')).toBe('true');
+      await o().trigger('click'); await flush();
+      expect(o().attributes('aria-checked')).toBe('false');
+      expect(wrapper.find('.tp-phu').exists()).toBe(false);
+    } finally { daMuaPremium.value = false; }
   });
 
   it('bắt đầu ván Cổ điển 4×4 thì render đúng 16 thẻ, tất cả úp mặt', async () => {

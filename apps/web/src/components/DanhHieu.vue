@@ -16,7 +16,7 @@ defineProps<{
   daCo: ReadonlySet<string>;
   tk: ThongKe;
   /** theme id → số điểm cần để mở, chỉ chứa theme ĐANG KHOÁ. */
-  themeKhoa: Record<string, number>;
+  themeKhoa: ReadonlySet<string>;
 }>();
 const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
 </script>
@@ -38,8 +38,8 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
         </span>
       </span>
       <template v-if="!daCo.has(a.id) && a.chinhPhuc">
-        <small v-if="a.chinhPhuc.theme && themeKhoa[a.chinhPhuc.theme]" class="khoa">
-          {{ t('dhd.moO', { n: num(themeKhoa[a.chinhPhuc.theme]!) }) }}
+        <small v-if="a.chinhPhuc.theme && themeKhoa.has(a.chinhPhuc.theme)" class="khoa">
+          {{ t('dhd.premium') }}
         </small>
         <button
           v-else class="di" type="button"
