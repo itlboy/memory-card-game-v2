@@ -174,6 +174,8 @@ const vi = {
   'kq.choiLaiCap': 'Chơi lại cấp này',
   'kq.hoa': 'Hoà rồi! 🤝',
   'kq.thang': '{ten} thắng! 🏆',
+  'kq.banThang': 'Bạn thắng! 🏆',
+  'kq.banThua': 'Bạn thua rồi 😢',
   'kq.chuaXong': 'Chưa xong 😢',
   'kq.kyLuc': 'Kỷ lục mới! 🏆',
   'kq.hoanThanh': 'Hoàn thành! 🎉',

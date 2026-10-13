@@ -506,7 +506,7 @@ watch(() => o.view.value?.summary, (s) => {
     <ResultDialog
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
-      :is-record="false" :show-stars="false" :multiplayer="true"
+      :is-record="false" :show-stars="false" :multiplayer="true" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
       :fresh-achievements="[]" :has-next="false" :multiplayer-online="true"
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"

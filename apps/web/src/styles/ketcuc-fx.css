@@ -258,23 +258,55 @@
   animation: fx-hien .3s both;
 }
 .mk-toi.di { opacity: 0; transition: opacity .25s; }
-.mk-huy { position: absolute; left: 50%; top: 40%; width: 136px; height: 136px; margin: -68px 0 0 -68px; }
+.mk-huy { position: absolute; left: 50%; top: 40%; width: 136px; height: 146px; margin: -73px 0 0 -68px; }
 .mk-tia {
-  position: absolute; inset: -70px; border-radius: 50%;
+  position: absolute; inset: -80px; border-radius: 50%; opacity: 0;
   background: repeating-conic-gradient(from 0deg, var(--tia) 0 8deg, transparent 8deg 20deg);
   -webkit-mask: radial-gradient(circle, #000 30%, transparent 68%); mask: radial-gradient(circle, #000 30%, transparent 68%);
-  animation: mk-xoay 2.4s linear both;
+  animation: mk-tia 7s linear .88s both;
 }
-@keyframes mk-xoay { to { transform: rotate(.4turn); } }
-.mk-huy svg { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, .5)); }
-.mk-chu { position: absolute; left: 0; right: 0; top: calc(40% + 84px); text-align: center; padding-inline: 16px; animation: mk-chu-vao .35s .45s both; }
+@keyframes mk-tia { 0% { opacity: 0; transform: rotate(0); } 6% { opacity: 1; } 100% { opacity: 1; transform: rotate(.33turn); } }
+/* B+ · LẬT MỞ CÓ NHỊP — mốc thời gian khớp LAT_MS (860ms) trong MoKhoaFx.vue.
+   Loé + sóng dùng `forwards`, KHÔNG `both`: khung đầu của chúng là SÁNG, `both`
+   bày nó ra suốt lúc chờ → đốm trắng giữa lá úp trước khi lật (đã chụp thấy). */
+.mk-halo, .mk-song, .mk-flash { position: absolute; left: 50%; top: 50%; border-radius: 50%; opacity: 0; pointer-events: none; }
+.mk-halo { width: 220px; height: 220px; margin: -110px; background: radial-gradient(circle, var(--glow) 0%, transparent 66%); animation: mk-halo 2.6s .25s both; }
+@keyframes mk-halo { 0% { opacity: 0; transform: scale(.5); } 18% { opacity: .55; transform: scale(.9); } 26% { opacity: .9; } 34% { opacity: 1; transform: scale(1.45); } 100% { opacity: .8; transform: scale(1.25); } }
+.mk-song { width: 136px; height: 136px; margin: -68px; border: 5px solid #fff; animation: mk-song .75s .88s ease-out forwards; }
+@keyframes mk-song { from { opacity: .9; transform: scale(.7); } to { opacity: 0; transform: scale(2.2); } }
+.mk-flash { width: 150px; height: 150px; margin: -75px; background: #fff; z-index: 2; animation: mk-flash .5s .86s ease-out forwards; }
+@keyframes mk-flash { 0% { opacity: .95; transform: scale(.3); } 100% { opacity: 0; transform: scale(2.3); } }
+.mk-halo.di, .mk-tia.di, .mk-lap.di { opacity: 0 !important; transition: opacity .2s; }
+.mk-la { position: absolute; inset: 0; filter: drop-shadow(0 10px 24px rgba(0, 0, 0, .5));
+  animation: mk-vao .3s cubic-bezier(.3, 1.3, .5, 1) both, mk-rung .5s .3s both, mk-bong 1.4s 1.6s ease-in-out 2; }
+@keyframes mk-vao { from { transform: translateY(46px) scale(.55); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes mk-rung { 0%, 100% { transform: none; } 18% { transform: rotate(-3deg); } 36% { transform: rotate(4deg) scale(1.02); } 54% { transform: rotate(-6deg) scale(1.05); } 72% { transform: rotate(8deg) scale(1.09); } 88% { transform: rotate(-4deg) scale(1.12); } }
+@keyframes mk-bong { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.mk-mat { position: absolute; inset: 0; }
+.mk-mat.sau { animation: mk-sau .14s .8s ease-in both; }
+.mk-mat.truoc { transform: scaleX(0); animation: mk-truoc .45s .94s cubic-bezier(.3, 1.7, .5, 1) both; }
+@keyframes mk-sau { to { transform: scaleX(0); } }
+@keyframes mk-truoc { from { transform: scaleX(0) scale(1.08); } to { transform: scaleX(1); } }
+.mk-quet { position: absolute; left: 15%; right: 15%; top: 4%; bottom: 11%; border-radius: 14px; overflow: hidden; pointer-events: none; }
+.mk-quet::after { content: ''; position: absolute; top: -30%; bottom: -30%; width: 40%; left: -70%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .9), transparent); transform: skewX(-20deg);
+  animation: mk-quet .65s 1.35s ease-in-out both; }
+@keyframes mk-quet { to { left: 130%; } }
+.mk-lap { position: absolute; color: #fff; font-size: 18px; opacity: 0; text-shadow: 0 0 8px var(--glow); animation: mk-lap 1.8s var(--tre) ease-in-out 2; }
+@keyframes mk-lap { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0); } 50% { opacity: 1; transform: scale(1.1) rotate(45deg); } }
+/* Giảm chuyển động: hiện thẳng mặt huy hiệu, không rung/lật/loé */
+@media (prefers-reduced-motion: reduce) {
+  .mk-la, .mk-mat, .mk-quet::after, .mk-halo, .mk-song, .mk-flash, .mk-lap { animation: none !important; }
+  .mk-mat.sau { display: none; } .mk-mat.truoc { transform: none; }
+  .mk-tia { animation: none; opacity: 1; }
+}
+.mk-chu { position: absolute; left: 0; right: 0; top: calc(40% + 92px); text-align: center; padding-inline: 16px; animation: mk-chu-vao .35s 1.25s both; }
 .mk-chu.di { opacity: 0; transition: opacity .25s; }
 @keyframes mk-chu-vao { from { opacity: 0; transform: translateY(14px); } }
 .mk-chu small { display: block; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #ffd76a; }
 .mk-chu b { display: block; font-family: var(--font-display); font-size: 28px; line-height: 1.15; color: #fff; text-shadow: 0 4px 18px rgba(0, 0, 0, .6); }
 .mk-chu em { display: block; font-style: normal; font-size: 13px; color: #c9cde6; }
 .mk-bac { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #0c0e1d; }
-@media (prefers-reduced-motion: reduce) { .mk-tia { animation: none; } }
 
 /* Viên 🏅 nảy khi huy hiệu bay vào */
 .dh.nay { animation: dh-nay .5s cubic-bezier(.3, 1.8, .5, 1); }

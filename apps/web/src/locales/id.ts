@@ -167,6 +167,8 @@ const id: TuDien = {
   'kq.choiLaiCap': 'Ulangi level ini',
   'kq.hoa': 'Seri! 🤝',
   'kq.thang': '{ten} menang! 🏆',
+  'kq.banThang': 'Kamu menang! 🏆',
+  'kq.banThua': 'Kamu kalah 😢',
   'kq.chuaXong': 'Belum kali ini 😢',
   'kq.kyLuc': 'Rekor baru! 🏆',
   'kq.hoanThanh': 'Selesai! 🎉',

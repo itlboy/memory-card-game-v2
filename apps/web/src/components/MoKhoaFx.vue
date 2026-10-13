@@ -1,20 +1,31 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { byId, dangKhoe, vuaMo } from '@/lib/achievements';
+import { byId, dangKhoe, iconCua, vuaMo } from '@/lib/achievements';
+import HuyHieu from './HuyHieu.vue';
 import { sfx } from '@/lib/audio';
 import { BoHat, MAU_BAC, type BacDanhHieu } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
 import { t, td } from '@/lib/i18n';
 
 /**
- * CẢNH MỞ KHOÁ DANH HIỆU (mockup đã duyệt 11.10.2026): màn tối một nấc, huy
- * hiệu xoay 3D bật ra với vầng tia theo BẬC, tên + nhãn bậc, rồi huy hiệu bay
- * VÀO viên 🏅 trên thanh trên — viên nảy và số nhích lên đúng lúc chạm.
+ * CẢNH MỞ KHOÁ DANH HIỆU — "lật mở có nhịp" (mockup B+ đã duyệt 13.10.2026,
+ * https://claude.ai/artifact/JeMCujSeYa2cgqX2tHFDAQ). Huy hiệu là MỘT LÁ BÀI:
+ *  1. hồi hộp  — lá úp rơi vào, rung mạnh dần, quầng sáng màu bậc dâng lên;
+ *  2. bùng nổ  — LẬT đúng một lần: loé trắng, tia toả, sóng tròn, hạt bung;
+ *  3. khoe     — mặt huy hiệu nảy ra, vệt bóng quét qua, tên hiện;
+ *  4. bay VÀO viên 🏅 trên thanh trên — viên nảy, số nhích lên lúc chạm.
+ * Bản cũ xoay đĩa phẳng 720° quanh trục đứng: hình không dày nên dẹt thành một
+ * đường rồi phình lại, nhìn như đồng xu giấy (chủ dự án chê). Lật = co ngang
+ * (scaleX), không dựa vào 3D: preserve-3d bị làm phẳng là lộ lưng bài.
  *
  * Từng cái một, bậc cao trước (xếp ở `moKhoa`). Không chặn chạm và ở z 19:
  * trên bảng kết quả (10) để khoe được khi bảng đang mở, dưới hộp thoại (20).
  */
 const RUNG: Record<BacDanhHieu, number> = { dong: 2, bac: 4, vang: 6, 'bi-mat': 6 };
+/** Lúc LẬT (khớp delay của .mk-mat.sau/.truoc ở ketcuc-fx.css). */
+const LAT_MS = 860;
+/** Đốm lấp lánh quanh lá sau khi khoe — toạ độ so với tâm lá. */
+const LAP = [[-96, -64], [90, -52], [-108, 34], [102, 44], [-40, -106], [56, 96]] as const;
 const dang = ref<{ id: string; key: number } | null>(null);
 const di = ref(false);
 const huy = ref<HTMLElement | null>(null);
@@ -46,21 +57,17 @@ function tiep(): void {
   dangKhoe.value = 1;
   doVongSang();
   di.value = false;
-  sfx.moKhoa(bac.value);
-  rung.ghep(RUNG[bac.value]);
-  sau(30, () => {
-    if (!hat && cv.value) hat = new BoHat(cv.value);
-    const el = huy.value;
-    if (el && typeof el.animate === 'function') el.animate(
-      [{ transform: 'scale(0) rotateY(0deg)', opacity: 0 }, { transform: 'scale(1.18) rotateY(540deg)', opacity: 1, offset: 0.7 }, { transform: 'scale(1) rotateY(720deg)', opacity: 1 }],
-      { duration: giam() ? 1 : 900, easing: 'cubic-bezier(.2,.9,.3,1)', fill: 'both' });
-  });
-  sau(500, () => {
+  sau(30, () => { if (!hat && cv.value) hat = new BoHat(cv.value); });
+  // Tiếng + rung + hạt ĐÚNG NHỊP LẬT (CSS: lá lưng co lại ở .8s, mặt nở ở .94s)
+  sau(LAT_MS, () => {
+    sfx.moKhoa(bac.value);
+    rung.ghep(RUNG[bac.value]);
     const r = huy.value?.getBoundingClientRect();
     if (r && hat) hat.long(...hat.diem(r.left + r.width / 2, r.top + r.height / 2), bac.value === 'dong' ? 26 : bac.value === 'bac' ? 38 : 60, [mau.value.a, mau.value.b, '#ffffff'], bac.value === 'bi-mat' ? 8 : 6.5);
   });
-  // Hàng còn dài thì giữ ngắn hơn: năm danh hiệu × 2,6 giây là quá lâu
-  const giu = vuaMo.value.length > 1 ? 1150 : 1650;
+  // Hàng còn dài thì giữ ngắn hơn: năm danh hiệu × 3 giây là quá lâu. Mốc phải
+  // sau lúc khoe xong (~1,6s), không thì lá bay đi khi người chơi chưa kịp đọc.
+  const giu = vuaMo.value.length > 1 ? 2000 : 2600;
   sau(giu, bayVao);
 }
 
@@ -97,24 +104,20 @@ onBeforeUnmount(() => { hen.forEach(clearTimeout); hat?.dung(); dangKhoe.value =
       <canvas ref="cv" class="fx-hat" />
       <template v-if="dang && dh">
         <div class="mk-toi" :class="{ di }" :style="vongSang" />
-        <div ref="huy" :key="dang.key" class="mk-huy" :style="{ '--tia': mau.tia }">
+        <div ref="huy" :key="dang.key" class="mk-huy" :style="{ '--tia': mau.tia, '--glow': mau.a }">
+          <div class="mk-halo" :class="{ di }" />
           <div class="mk-tia" :class="{ di }" />
-          <svg viewBox="0 0 136 136">
-            <defs>
-              <linearGradient :id="`mk-g-${dang.key}`" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" :stop-color="mau.a" /><stop offset="1" :stop-color="mau.b" />
-              </linearGradient>
-              <linearGradient :id="`mk-l-${dang.key}`" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#fff" stop-opacity=".75" /><stop offset=".5" stop-color="#fff" stop-opacity="0" />
-              </linearGradient>
-            </defs>
-            <path d="M40 4h22l10 34H50zM96 4H74l-10 34h22z" fill="#ff5fa8" />
-            <path d="M50 4h12l10 34H60zM86 4H74l-10 34h12z" fill="#8b7dff" />
-            <circle cx="68" cy="84" r="46" :fill="`url(#mk-g-${dang.key})`" stroke="#fff" stroke-opacity=".5" stroke-width="3" />
-            <circle cx="68" cy="84" r="34" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="3" />
-            <path d="M68 58l7.6 15.4 17 2.5-12.3 12 2.9 16.9L68 96.8l-15.2 8 2.9-16.9-12.3-12 17-2.5z" fill="#fff" fill-opacity=".92" />
-            <ellipse cx="56" cy="64" rx="26" ry="14" :fill="`url(#mk-l-${dang.key})`" transform="rotate(-25 56 64)" />
-          </svg>
+          <div class="mk-song" />
+          <div class="mk-flash" />
+          <div class="mk-la">
+            <div class="mk-mat sau"><HuyHieu mat="sau" /></div>
+            <div class="mk-mat truoc"><HuyHieu :bac="bac" :icon="iconCua(dh)" /></div>
+            <div class="mk-quet" />
+          </div>
+          <span
+            v-for="([x, y], k) in LAP" :key="k" class="mk-lap" :class="{ di }"
+            :style="{ left: `calc(50% + ${x}px)`, top: `calc(50% + ${y}px)`, '--tre': `${1.5 + k * 0.27}s` }"
+          >✦</span>
         </div>
         <div class="mk-chu" :class="{ di }" role="status">
           <small>{{ t('fx.moKhoa') }}</small>

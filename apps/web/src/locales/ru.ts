@@ -167,6 +167,8 @@ const ru: TuDien = {
   'kq.choiLaiCap': 'Переиграть уровень',
   'kq.hoa': 'Ничья! 🤝',
   'kq.thang': '{ten} побеждает! 🏆',
+  'kq.banThang': 'Вы победили! 🏆',
+  'kq.banThua': 'Вы проиграли 😢',
   'kq.chuaXong': 'В этот раз не вышло 😢',
   'kq.kyLuc': 'Новый рекорд! 🏆',
   'kq.hoanThanh': 'Готово! 🎉',

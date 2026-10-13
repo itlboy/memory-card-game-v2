@@ -7,6 +7,7 @@ import { computed, onMounted, ref } from 'vue';
 import { byId, type Achievement } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
 import { clock, num } from '@/lib/format';
+import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 const props = defineProps<{
   summary: Summary;
@@ -40,6 +41,15 @@ const props = defineProps<{
    * dòng thông báo cũ đã bỏ chỉ có TÊN nên không phân biệt được ai với ai.
    */
   rematchState?: Record<string, 'in' | 'out'>;
+  /**
+   * Kết cục của CHÍNH người cầm máy — chỉ truyền khi có một "mình" rõ ràng (đấu
+   * máy, online). Có nó thì tiêu đề nói "Bạn thắng/thua", không nói tên người
+   * thắng: người chơi muốn biết MÌNH ra sao (chủ dự án báo 13.10.2026, ảnh "Bot
+   * gà cứng thắng! 🏆" kèm ba sao khi chính họ thua). Nhiều người chung một máy
+   * thì KHÔNG truyền — ai cũng là người thật, nêu tên người thắng mới đúng.
+   * `summary.status === 'won'` chỉ nói BÀN ĐÃ SẠCH, không nói ai thắng (CLAUDE.md).
+   */
+  minhKetCuc?: LoaiKetCuc;
 }>();
 
 const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; 'chinh-phuc': [Achievement] }>();
@@ -51,7 +61,7 @@ const shownScore = ref(0);
 
 onMounted(() => {
   primary.value?.focus();
-  if (props.showStars && props.summary.status === 'won') {
+  if (hienSao.value) {
     // Sao hiện lần lượt, mỗi ngôi kèm một nốt cao dần
     for (let i = 1; i <= props.summary.stars; i++) {
       setTimeout(() => { shownStars.value = i; sfx.star(i); }, 350 * i);
@@ -105,6 +115,8 @@ function countScoreUp(): void {
 
 
 const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
+/** Sao chỉ cho ván MÌNH không thua — thua máy mà hiện ba sao là nói ngược. */
+const hienSao = computed(() => props.showStars && props.summary.status === 'won' && props.minhKetCuc !== 'thua');
 
 /**
  * Có chỗ cho nút "Cấp tiếp theo" hay không, và có bấm được hay không — hai
@@ -113,6 +125,8 @@ const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
  * ván. Ván online không có thang cấp nên cũng không hiện.
  */
 const showNext = computed(() => props.levelId !== undefined && !props.multiplayerOnline);
+// KHÔNG chặn theo `minhKetCuc`: đấu máy mở sẵn mọi cấp, thua vẫn đi tiếp được
+// (test flows "THUA bot thì KHÔNG mở cấp" canh cả nửa này).
 const canNext = computed(() => props.hasNext && props.summary.status === 'won');
 /** Ván thuộc thang cấp thì nói rõ "cấp này", không thì chỉ "Chơi lại". */
 const replayLabel = computed(() => (props.levelId === undefined ? t('kq.choiLai') : t('kq.choiLaiCap')));
@@ -148,7 +162,8 @@ const title = computed(() => {
   // "Chưa xong" thì cả phòng không biết ai thắng.
   // Bằng điểm thì phải nói HOÀ: lấy người đầu danh sách rồi tuyên bố thắng là
   // sai, thứ tự đó chỉ do sort quyết định.
-  if (draw.value) return t('kq.hoa');
+  if (draw.value || props.minhKetCuc === 'hoa') return t('kq.hoa');
+  if (props.minhKetCuc) return props.minhKetCuc === 'thang' ? t('kq.banThang') : t('kq.banThua');
   if (props.multiplayer) return t('kq.thang', { ten: tenNguoi(props.summary.ranking[0]) });
   if (props.summary.status !== 'won') return t('kq.chuaXong');
   return props.isRecord ? t('kq.kyLuc') : t('kq.hoanThanh');
@@ -165,7 +180,7 @@ const title = computed(() => {
            thực sự quan tâm, chứ không phải điểm của riêng ván vừa xong -->
       <p v-if="series" class="series">🏅 {{ series }}</p>
 
-      <p v-if="showStars && summary.status === 'won'" class="stars" :aria-label="t('kq.saoAria', { n: summary.stars })">
+      <p v-if="hienSao" class="stars" :aria-label="t('kq.saoAria', { n: summary.stars })">
         <span
           v-for="i in 3" :key="i"
           class="star"

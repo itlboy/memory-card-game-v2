@@ -169,6 +169,8 @@ const en: TuDien = {
   'kq.choiLaiCap': 'Replay this level',
   'kq.hoa': "It's a draw! 🤝",
   'kq.thang': '{ten} wins! 🏆',
+  'kq.banThang': 'You win! 🏆',
+  'kq.banThua': 'You lost 😢',
   'kq.chuaXong': 'Not this time 😢',
   'kq.kyLuc': 'New record! 🏆',
   'kq.hoanThanh': 'Complete! 🎉',
