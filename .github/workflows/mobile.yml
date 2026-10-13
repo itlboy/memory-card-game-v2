@@ -148,9 +148,12 @@ jobs:
             MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
             -quiet build
 
-      # Archive KHÔNG ký, để bước xuất ký thẳng bằng chứng chỉ PHÂN PHỐI. Archive có
-      # ký thì Xcode ký kiểu Development trước, mà profile Development đòi team có
-      # ít nhất một iPhone đăng ký ("Your team has no devices") — CI không có máy.
+      # Archive ký AD-HOC (`-`), để bước xuất ký lại bằng chứng chỉ PHÂN PHỐI.
+      #  - Ký tự động thì Xcode ký kiểu Development trước, mà profile Development
+      #    đòi team có ít nhất một iPhone đăng ký ("Your team has no devices").
+      #  - KHÔNG ký hẳn (CODE_SIGNING_ALLOWED=NO) thì app không mang entitlements,
+      #    bước xuất ký lại cũng ra thiếu — đã đo: mất `applesignin`, nút Đăng
+      #    nhập Apple chết. Ký ad-hoc nhúng entitlements mà không cần profile.
       # Ký TỰ ĐỘNG bằng App Store Connect API key: Xcode tự xin chứng chỉ phân
       # phối + provisioning profile trên đám mây, không có file .p12 nào phải giữ.
       # Key phải ở quyền Admin (hoặc App Manager có quyền "Cloud Managed
@@ -168,7 +171,7 @@ jobs:
           xcodebuild -project App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Automatic CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="$TEAM" CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- PROVISIONING_PROFILE_SPECIFIER= \
             MARKETING_VERSION=${{ steps.ver.outputs.name }} CURRENT_PROJECT_VERSION=${{ steps.ver.outputs.code }} \
             -quiet archive
 
