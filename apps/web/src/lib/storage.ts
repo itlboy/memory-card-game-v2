@@ -38,6 +38,8 @@ export interface Prefs {
   debug: boolean;
   /** Rung khi ghép thẻ (lib/rung.ts). Mặc định bật. */
   rung: boolean;
+  /** Nhạc nền (lib/nhac.ts). Mặc định bật — tắt âm thanh là tắt luôn nhạc. */
+  nhac: boolean;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -94,7 +96,7 @@ const DEFAULT_PREFS: Prefs = {
   // chọn được nhiều.
   dark: false, sound: true, soundLevel: 'high',
   mode: 'classic', level: 1, themes: [], playerCount: 1,
-  options: DEFAULT_OPTIONS, debug: false, rung: true
+  options: DEFAULT_OPTIONS, debug: false, rung: true, nhac: true
 };
 
 function read(): Save {

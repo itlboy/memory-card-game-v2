@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HelpCircle, Languages, Menu, Moon, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, Languages, Menu, Moon, Music, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { SKINS, datSkin, skin } from '@/lib/skin';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -14,12 +14,14 @@ const props = defineProps<{
   account?: boolean; avatar?: string | null; signedIn?: boolean;
   /** Rung đang bật; `coRung`: máy có đường rung không (iPhone web thì không). */
   rung?: boolean; coRung?: boolean;
+  /** Nhạc nền đang bật. */
+  nhac?: boolean;
   /** Tên tài khoản Google đang đăng nhập — hiện ở khối tài khoản của menu. */
   tenTk?: string | null;
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
   danhHieu?: { co: number; tong: number };
 }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-rung': []; 'toggle-nhac': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
 /*
  * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
@@ -190,6 +192,13 @@ watch(() => props.totalScore, (to, from) => {
             >{{ td(`tb.amNgan.${l}`) }}</button>
           </span>
         </div>
+        <button
+          class="item cong-tac" role="menuitemcheckbox" type="button"
+          :aria-checked="!!nhac" :aria-label="nhac ? t('tb.nhacBat') : t('tb.nhacTat')"
+          @click="$emit('toggle-nhac')"
+        >
+          <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span><i class="sw" :class="{ bat: nhac }" aria-hidden="true" />
+        </button>
         <!-- Giấu khi máy không rung được (web trên iPhone): công tắc không làm gì là công tắc nói dối -->
         <button
           v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"

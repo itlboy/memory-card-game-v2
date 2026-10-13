@@ -42,6 +42,7 @@ import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
+import { nhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
@@ -52,6 +53,8 @@ const soundLevel = ref<SoundLevel>(prefs.soundLevel);
 /** Rung khi ghép thẻ — công tắc riêng cạnh âm thanh trong menu (lib/rung.ts). */
 const rungBat = ref(prefs.rung !== false);
 watch(rungBat, (v) => { rung.bat = v; store.savePrefs({ rung: v }); }, { immediate: true });
+/** Nhạc nền (lib/nhac.ts): menu vui, trong ván chậm và thưa. Tắt âm thanh là tắt luôn. */
+const nhacBat = ref(prefs.nhac !== false);
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
  *  tính) là quá to; 2,6 nghe rõ mà không giật mình, "nhỏ" thì đủ để biết mình
  *  vừa bấm gì trong phòng yên tĩnh. */
@@ -96,6 +99,11 @@ const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
 const screen = ref<'menu' | 'game' | 'online'>('menu');
+watch([nhacBat, soundLevel, screen], () => {
+  store.savePrefs({ nhac: nhacBat.value });
+  if (nhacBat.value && soundLevel.value !== 'off') nhac.chay(screen.value === 'game' ? 'van' : 'menu');
+  else nhac.dung();
+}, { immediate: true });
 /**
  * Mã phòng từ link mời (?room=ABC123).
  *
@@ -121,6 +129,17 @@ const showResult = ref(false);
 let resultTimer: ReturnType<typeof setTimeout> | undefined;
 
 const session = useGameSession();
+/* Nhạc dồn dần về cuối ván: tiến độ cặp đã ghép, hoặc gấp nhất khi đồng hồ còn
+   ≤ 15 giây. Làm tròn để watch không chạy mỗi khung hình theo đồng hồ. */
+const doGapNhac = computed(() => {
+  const g = session.game.value;
+  if (!g || screen.value !== 'game') return 0;
+  const left = session.timeLeft.value;
+  if (left !== null && left <= 15) return 1;
+  const tong = session.totalPairs.value;
+  return tong ? Math.round((session.matchedCount.value / tong) * 20) / 20 : 0;
+});
+watch(doGapNhac, (v) => { nhac.gap = v; }, { immediate: true });
 /* Khoá chiều cao thật + kéo document về 0 mỗi lần trang hiện lại — không có nó
    thì mở lại Chrome trên iPhone là header nằm ngoài màn hình. */
 useViewportLock();
@@ -327,6 +346,7 @@ onMounted(() => {
   const GESTURES = ['pointerdown', 'keydown', 'touchstart'] as const;
   const unlock = (): void => {
     sfx.unlock();
+    nhac.daCham = true;
     armUnlock();   // tự gắn lại cho lần sau
   };
   function armUnlock(): void {
@@ -665,10 +685,11 @@ const hasNext = computed(() => {
   <IconBay v-if="screen !== 'game'" />
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
-    :rung="rungBat" :co-rung="rung.coTheRung()"
+    :rung="rungBat" :co-rung="rung.coTheRung()" :nhac="nhacBat"
     :danh-hieu="{ co: Math.max(0, daCo.length - vuaMo.length - dangKhoe), tong: ACHIEVEMENTS.length }"
     @danh-hieu="showDanhHieu = true"
     @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
+    @toggle-nhac="nhacBat = !nhacBat"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
     @account="showAccount = true"

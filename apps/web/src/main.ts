@@ -2,6 +2,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { createApp } from 'vue';
 import App from './App.vue';
 import { sfx } from './lib/audio';
+import { nhac } from './lib/nhac';
 import { laApp } from './lib/native';
 import './styles/global.css';
 import './styles/card-backs.css';
@@ -25,6 +26,8 @@ if (!laApp) void registerSW({ immediate: true });
 // Mở sẵn cho console: `sfx.volume = 2.5` để thử âm lượng (giá trị được nhớ lại).
 // Không có dòng này thì `sfx` chỉ là biến trong module, console không thấy.
 (window as unknown as { sfx: typeof sfx }).sfx = sfx;
+// Tương tự cho nhạc nền: `nhac.dung()` / `nhac.chay('van')` để nghe thử hai tâm trạng
+(window as unknown as { nhac: typeof nhac }).nhac = nhac;
 
 // Skin gắn TRƯỚC khi mount: không loé giao diện mặc định một khung hình
 ganSkin();
