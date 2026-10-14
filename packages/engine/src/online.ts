@@ -85,6 +85,18 @@ export const ROOM_LIMITS = {
 export const QUICK_EMOJIS = ['😂', '🐔', '🐌', '🐢', '💩', '😭', '😡', '🔥', '🎉'] as const;
 export type QuickEmoji = (typeof QUICK_EMOJIS)[number];
 
+/**
+ * CÂU NÓI NHANH (14.10.2026) — chat trong ván chỉ bằng câu CÓ SẴN, không gõ tự do:
+ * chữ tự do thì App Store (luật 1.2) và Google Play bắt có lọc từ xấu, báo cáo,
+ * chặn người chơi. Trên dây chỉ đi MÃ câu; mỗi máy tự dịch theo ngôn ngữ của mình,
+ * nên người Việt chơi với người Nhật vẫn hiểu nhau. Danh sách ĐÓNG như emoji
+ * (server bỏ mã lạ) và chung hạn mức chống spam với emoji.
+ */
+export const QUICK_SAYS = [
+  'chao', 'hay', 'wow', 'tiec', 'den', 'anMay', 'gg', 'camOn', 'dongY', 'vanNua', 'ban', 'tamBiet'
+] as const;
+export type QuickSay = (typeof QUICK_SAYS)[number];
+
 /* ---------- view công khai ---------- */
 
 export interface PublicCard {
@@ -388,6 +400,7 @@ export type ClientMsg =
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
   | { t: 'cancel' }                                 // chủ phòng huỷ phòng
   | { t: 'emoji'; emoji: string }
+  | { t: 'say'; id: string }                       // câu nói nhanh (QUICK_SAYS)
   /**
    * Đổi tên. AI CŨNG đổi được, và đổi được cả trong ván.
    *
@@ -494,6 +507,7 @@ export type ServerMsg =
   | { t: 'countdown'; endsInMs: number; firstId: string; firstName: string }
   | { t: 'events'; events: PublicEvent[]; view: GameView | WireView }
   | { t: 'emoji'; from: string; emoji: QuickEmoji }
+  | { t: 'say'; from: string; id: QuickSay }
   | { t: 'closed'; message: string }
   | { t: 'error'; code: string; message: string }
   | { t: 'pong' };

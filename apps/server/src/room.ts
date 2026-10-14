@@ -1,10 +1,10 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
+  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
   backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom, xoayNguoiDau
 } from '@mm/engine';
 import type {
-  ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
@@ -842,6 +842,15 @@ export class RoomDO extends DurableObject<Env> {
         if (!(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;   // ON-08: danh sách đóng
         if (!this.allowEmoji(player.id)) return;   // vượt hạn mức thì nuốt êm
         this.broadcast({ t: 'emoji', from: player.id, emoji: msg.emoji as QuickEmoji });
+        return;
+      }
+
+      case 'say': {
+        // Câu nói nhanh: danh sách đóng + CHUNG hạn mức với emoji (một người không
+        // spam được bằng cách xen kẽ hai kênh)
+        if (!(QUICK_SAYS as readonly string[]).includes(msg.id)) return;
+        if (!this.allowEmoji(player.id)) return;
+        this.broadcast({ t: 'say', from: player.id, id: msg.id as QuickSay });
         return;
       }
     }

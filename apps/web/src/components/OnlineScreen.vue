@@ -36,6 +36,7 @@ import SizeGrid from './SizeGrid.vue';
 import OnlineGame from './OnlineGame.vue';
 import EmojiBar from './EmojiBar.vue';
 import EmojiBlast from './EmojiBlast.vue';
+import LoiNoi from './LoiNoi.vue';
 import type { OptLevel, OptionKey, RoomConfig } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
@@ -489,8 +490,11 @@ function themeSummary(ids: string[]): string {
    * Thiếu nhánh này thì hàm trả chuỗi RỖNG và dòng tóm tắt hiện ra
    * "16 thẻ · — chờ chủ phòng bắt đầu…", cụt lủn giữa hai dấu câu.
    */
+  // Rỗng = server trộn mọi theme MIỄN PHÍ (premium phải tự chọn) — đếm đúng số đó,
+  // không phải cả 48 (ảnh phòng chờ 14.10.2026 ghi "tất cả 48 theme" sai)
+  const mienPhi = allThemes.value.filter((x) => !x.premium).length;
   if (!ids.length) {
-    return allThemes.value.length ? t('on.tatCaTheme', { n: allThemes.value.length }) : t('on.tatCaThemeTron');
+    return mienPhi ? t('on.tatCaTheme', { n: mienPhi }) : t('on.tatCaThemeTron');
   }
   if (ids.length >= allThemes.value.length && allThemes.value.length) return t('on.tatCaTheme', { n: ids.length });
   if (ids.length > 3) return t('on.soTheme', { n: ids.length });
@@ -1075,6 +1079,7 @@ function openCfgWizard(): void {
   <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
        được mount một bản: trong ván đã có bản của OnlineGame. -->
   <EmojiBlast v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
+  <LoiNoi v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
 
   <!-- Hộp chia sẻ: mã QR + mã 6 số + hai nút copy. Có nút đóng, bấm nền hay
        Esc cũng đóng, và nút Back của trình duyệt đóng nó trước tiên. -->

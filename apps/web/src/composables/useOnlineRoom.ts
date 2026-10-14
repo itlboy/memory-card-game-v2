@@ -1,7 +1,7 @@
 import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
-  ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef, nextTick } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
@@ -425,6 +425,11 @@ export function useOnlineRoom() {
   // lên TỪ ĐÚNG CHỖ ĐÓ, thay vì luôn nổi giữa mép trên màn hình.
   const emojiBlast = ref<{ emoji: QuickEmoji; name: string; from: string; key: number } | null>(null);
   let blastTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Câu nói nhanh đang hiện — MỖI NGƯỜI MỘT bong bóng (câu mới của cùng người
+   *  thay câu cũ), nhiều người nói cùng lúc thì hiện cùng lúc. Xem LoiNoi.vue. */
+  const loiNoi = ref<{ from: string; id: QuickSay; name: string; key: number }[]>([]);
+  const loiNoiHen = new Map<string, ReturnType<typeof setTimeout>>();
+  let loiNoiKey = 0;
   const timeBonusFor = ref<{ playerId: string; key: number } | null>(null);
   /** Hạn chót lượt (ms cục bộ) — server gửi số giây còn lại, client đếm tiếp cho mượt. */
   const turnDeadline = ref(0);
@@ -908,6 +913,20 @@ export function useOnlineRoom() {
         break;
       }
 
+      case 'say': {
+        const sender = room.value?.players.find((p) => p.id === msg.from);
+        const name = msg.from === myId.value ? t('chung.ban') : (sender?.name ?? '');
+        loiNoi.value = [...loiNoi.value.filter((x) => x.from !== msg.from), { from: msg.from, id: msg.id, name, key: ++loiNoiKey }];
+        clearTimeout(loiNoiHen.get(msg.from));
+        // 3,2 giây: đủ đọc một câu ngắn, không đủ lâu để che bàn thẻ
+        loiNoiHen.set(msg.from, setTimeout(() => {
+          loiNoi.value = loiNoi.value.filter((x) => x.from !== msg.from);
+          loiNoiHen.delete(msg.from);
+        }, 3200));
+        sfx.select();
+        break;
+      }
+
       case 'error':
         error.value = msg.message;
         break;
@@ -1299,10 +1318,20 @@ export function useOnlineRoom() {
     refreshEmojiQuota();
   }
 
+  /** Câu nói nhanh — CHUNG hạn mức với emoji (server cũng tính chung). */
+  function sendSay(id: QuickSay): void {
+    refreshEmojiQuota();
+    if (!emojiReady.value) return;
+    emojiSentAt.push(Date.now());
+    send({ t: 'say', id });
+    refreshEmojiQuota();
+  }
+  onScopeDispose(() => { for (const h of loiNoiHen.values()) clearTimeout(h); });
+
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
-    wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBlast, turnTimeLeft, timeBonusFor, elapsed,
+    wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBlast, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
     /** Cửa DUY NHẤT lấy symbol để vẽ. Đừng đọc `predeal` từ ngoài — đọc trực
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */

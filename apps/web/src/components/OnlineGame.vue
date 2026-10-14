@@ -16,6 +16,7 @@ import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
 import OptionIcon from './OptionIcon.vue';
 import EmojiBlast from './EmojiBlast.vue';
+import LoiNoi from './LoiNoi.vue';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 
 /**
@@ -432,6 +433,7 @@ watch(() => o.view.value?.summary, (s) => {
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
     <div class="notice-bar">
       <EmojiBlast :o="o" />
+      <LoiNoi :o="o" />
 
       <!--
         HÉ MỞ CẢ BÀN (Chớp nhoáng đầu ván, hoặc thẻ Mắt thần): phải NÓI RA và
