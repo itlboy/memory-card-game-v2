@@ -116,6 +116,13 @@ describe('cập nhật nóng', () => {
     expect(cfg).toMatch(/CapacitorUpdater:\s*\{[^}]*statsUrl:\s*''/);
   });
 
+  it('service worker KHÔNG chặn /ota/ (không thì link zip ra trang game) và Node trả đúng kiểu zip', () => {
+    const vite = readFileSync(resolve(process.cwd(), 'vite.config.ts'), 'utf8');
+    expect(vite).toMatch(/navigateFallbackDenylist:[^\n]*\\\/ota\\\//);
+    const node = readFileSync(resolve(process.cwd(), '../node-server/src/index.ts'), 'utf8');
+    expect(node).toMatch(/'\.zip':\s*'application\/zip'/);
+  });
+
   it('bản build web luôn đóng gói OTA (cả Docker lẫn pnpm release đi qua lệnh này)', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8')) as { scripts: Record<string, string> };
     expect(pkg.scripts.build).toContain('dong-goi-ota.mjs');
