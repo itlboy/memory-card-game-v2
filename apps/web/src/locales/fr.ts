@@ -343,6 +343,7 @@ const fr: TuDien = {
   'bot.insane': 'Tigre Féroce',
   'bot.divine': 'Dragon Divin',
   'chung.ban': 'Toi',
+  'chung.backThoat': "Appuyez encore sur Retour pour quitter",
   'dhd.danhHieu': 'Succès',
   'dhd.dong': 'Fermer',
   'dhd.chuaCo': 'À débloquer ({n})',

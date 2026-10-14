@@ -339,6 +339,7 @@ const en: TuDien = {
   'bot.insane': 'Fierce Tiger',
   'bot.divine': 'Divine Dragon',
   'chung.ban': 'You',
+  'chung.backThoat': "Press Back again to exit",
   'dhd.danhHieu': 'Achievements',
   'dhd.dong': 'Close',
   'dhd.chuaCo': 'Not yet ({n})',

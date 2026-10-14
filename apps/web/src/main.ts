@@ -4,6 +4,7 @@ import App from './App.vue';
 import { sfx } from './lib/audio';
 import { nhac } from './lib/nhac';
 import { laApp } from './lib/native';
+import { ganNutBackAndroid } from './lib/nut-back';
 import './styles/fonts';   // font đóng gói sẵn — xem styles/fonts.ts
 import './styles/global.css';
 import './styles/card-backs.css';
@@ -38,6 +39,8 @@ createApp(App).mount('#app');
 // Không có bước này thì iOS bỏ màn chờ ngay lúc WebView mở, trước khi game kịp vẽ,
 // nên người chơi gần như không thấy nó (Android thì thấy) — chủ dự án báo 14.10.2026.
 // Hai rAF = sau khi trình duyệt THẬT SỰ vẽ. capacitor.config có chốt 3 giây phòng JS lỗi.
+ganNutBackAndroid();
+
 if (laApp) {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     void import('@capacitor/splash-screen')

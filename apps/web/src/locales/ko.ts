@@ -337,6 +337,7 @@ const ko: TuDien = {
   'bot.insane': '맹호',
   'bot.divine': '신룡',
   'chung.ban': '나',
+  'chung.backThoat': "한 번 더 누르면 종료돼요",
   'dhd.danhHieu': '업적',
   'dhd.dong': '닫기',
   'dhd.chuaCo': '미달성 ({n})',
