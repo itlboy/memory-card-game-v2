@@ -1,0 +1,28 @@
+# SOI TRANG APP STORE (chỉ đọc) — in bảng đã có / còn thiếu trước khi nộp duyệt.
+# Chạy tay: gh workflow run asc-kiem.yml --ref main  → đọc log bước "Soi".
+# Dùng chung secret ASC_* với mobile.yml; KHÔNG ghi gì lên App Store Connect.
+name: App Store check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  soi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Soi
+        env:
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey_$KID.p8"
+          node tools/asc-kiem.mjs "$RUNNER_TEMP/AuthKey_$KID.p8" "$ISS"
