@@ -72,9 +72,10 @@ describe('lưới theme: co giãn khi thêm theme', () => {
       .toBeGreaterThan(nguong);
   });
 
-  it('còn chỗ thì ô GIÃN, hết chỗ thì CUỘN — không nén ô xuống dưới sàn', () => {
-    // `minmax(sàn, 1fr)`: giãn khi thừa chỗ, dừng ở sàn khi thiếu rồi cuộn.
-    expect(css).toMatch(/grid-auto-rows:\s*minmax\(var\(--o-cao\),\s*1fr\)/);
+  it('ô CỐ ĐỊNH cỡ ở mọi tab, hết chỗ thì CUỘN — không giãn, không nén', () => {
+    // Giãn `1fr` làm tab Premium (12 theme) ra ô cao gấp ba tab Miễn phí.
+    expect(css).toMatch(/grid-auto-rows:\s*var\(--o-cao\);/);
+    expect(css).toMatch(/align-content:\s*start/);
     expect(css).toMatch(/overflow-y:\s*auto/);
     expect(css, 'nén xuống 0 là luật của các bước khác, không phải của theme')
       .not.toMatch(/grid-auto-rows:\s*minmax\(0,\s*1fr\)/);

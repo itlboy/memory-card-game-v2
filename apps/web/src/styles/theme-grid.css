@@ -39,18 +39,16 @@
    */
   --o-cao: clamp(66px, calc(var(--app-h, 100dvh) * 0.105), 96px);
   /*
-   * `minmax(--o-cao, 1fr)`, KHÔNG phải `var(--o-cao)` cố định.
+   * HÀNG CAO ĐÚNG `--o-cao`, KHÔNG giãn `1fr` (14.10.2026, chủ dự án gửi ảnh).
    *
-   * Cố định thì máy cao còn một khoảng trống to phía dưới mà ô vẫn bé — đúng
-   * điều đã bị phản ánh. Với `1fr`: còn chỗ thì hàng giãn ra lấp hết, hết chỗ
-   * thì hàng dừng ở `--o-cao` và danh sách cuộn (`1fr` không co xuống dưới min).
-   *
-   * Vẫn giải được container query: `.option` cần chiều cao XÁC ĐỊNH, mà chiều
-   * cao do LƯỚI quyết định là xác định — chỉ `height: auto` (co theo nội dung)
-   * mới làm truy vấn nhận 0. Các bước khác của wizard cũng dùng `1fr` như vậy.
+   * Từ khi lưới chia hai tab, tab Premium chỉ 12 theme: với `minmax(--o-cao, 1fr)`
+   * ba hàng giãn ra lấp cả khung, ô cao ~270px trong khi tab Miễn phí (36 theme,
+   * luôn tràn) đứng ở cỡ chuẩn — hai tab nhìn như hai giao diện. Ô cố định thì hai
+   * tab đồng nhất; tab ít theme để trống phía dưới là đúng nghĩa "ít hơn".
+   * Cỡ cố định vẫn là số XÁC ĐỊNH nên container query của `.option` vẫn giải được.
    */
-  grid-auto-rows: minmax(var(--o-cao), 1fr);
-  align-content: stretch;
+  grid-auto-rows: var(--o-cao);
+  align-content: start;
   /* 12px, không phải 10: hai ô theme cạnh nhau đều là khối gradient đậm nên mép
      chúng dính vào nhau đọc ra thành một khối — người chơi đã phản ánh. */
   gap: 12px 10px;
