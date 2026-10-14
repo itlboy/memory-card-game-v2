@@ -62,6 +62,9 @@ await goi('Network.enable');
 await goi('Network.setBypassServiceWorker', { bypass: true });
 await goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 3, mobile: true });
 await goi('Emulation.setTouchEmulationEnabled', { enabled: true });
+// Khung Android: giả UA Android để app vẽ mặt bài bằng Twemoji như máy Android thật
+// (lib/emoji.ts chọn theo thiết bị) — chạy trên Mac mà không giả là ra emoji Apple.
+if (process.env.KHUNG === 'android') await goi('Emulation.setUserAgentOverride', { userAgent: 'Mozilla/5.0 (Linux; Android 13; Mi 10S) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36' });
 await goi('Page.navigate', { url: `${URL_APP}/?lang=${LANG}` });
 await cho(1500);
 await js(`localStorage.clear(); sessionStorage.clear(); localStorage.setItem('mm.lang', ${JSON.stringify(LANG)}); true`);
