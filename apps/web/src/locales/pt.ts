@@ -338,6 +338,7 @@ const pt: TuDien = {
   'bot.divine': 'Dragão Divino',
   'chung.ban': 'Você',
   'chung.backThoat': "Toque em Voltar de novo para sair",
+  'chung.dangCapNhat': "Atualizando para a versão mais recente…",
   'dhd.danhHieu': 'Conquistas',
   'dhd.dong': 'Fechar',
   'dhd.chuaCo': 'Bloqueadas ({n})',

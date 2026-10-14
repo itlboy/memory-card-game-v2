@@ -1,4 +1,5 @@
 import { laApp, SITE_URL } from './native';
+import { t } from './i18n';
 
 /**
  * CẬP NHẬT NÓNG (OTA) — app gói nhận bản web mới KHÔNG cần qua duyệt store
@@ -13,12 +14,34 @@ import { laApp, SITE_URL } from './native';
  *     Đi đường HTTP NATIVE (CapacitorHttp) vì origin app là capacitor://localhost —
  *     fetch thường thì vướng CORS.
  *  3. Khác gói đang chạy (`__OTA_ID__`) và app đủ mới (`minNative`) → tải zip ngầm,
- *     kiểm sha256, đặt làm gói KẾ TIẾP với điều kiện `kill`: chỉ áp khi app được MỞ
- *     LẠI TỪ ĐẦU, không áp lúc chuyển nền — không cắt ngang ván đang chơi.
+ *     kiểm sha256, rồi:
+ *       · tải xong trong `AP_NGAY_MS` đầu VÀ người chơi còn ở TRANG CHỦ (URL không
+ *         mang ?playing/?room/?online/?w) → báo "đang cập nhật" và áp NGAY (`set` tải
+ *         lại app) — chủ dự án muốn mở app là có bản mới (14.10.2026);
+ *       · không thì đặt làm gói KẾ TIẾP với điều kiện `kill`: áp khi app được MỞ LẠI
+ *         TỪ ĐẦU, không áp lúc chuyển nền — không bao giờ cắt ngang ván đang chơi.
  * Gói đã từng hỏng (status 'error') thì không tải lại — khỏi vòng lặp tải/hỏng.
  * Đổi phần NATIVE (plugin, Swift/Java) vẫn phải qua store + nâng `minNative` (ota.json).
  */
 interface Manifest { id: string; url: string; sha256: string; minNative: string }
+
+/** Mở app được bao lâu thì thôi không áp ngay nữa (người chơi đã bắt đầu dùng app). */
+const AP_NGAY_MS = 8000;
+const LUC_MO = typeof performance !== 'undefined' ? performance.now() : 0;
+
+/** Còn ở trang chủ, chưa vào wizard / ván / online — tải lại lúc này không mất gì. */
+export function oTrangChu(search = typeof location === 'undefined' ? '' : location.search): boolean {
+  const q = new URLSearchParams(search);
+  return !['playing', 'room', 'online', 'w'].some((k) => q.has(k));
+}
+
+function baoCapNhat(): void {
+  const el = document.createElement('div');
+  el.className = 'bao-thoat';   // cùng kiểu toast với "Nhấn Back lần nữa để thoát"
+  el.setAttribute('role', 'status');
+  el.textContent = t('chung.dangCapNhat');
+  (document.getElementById('app') ?? document.body).appendChild(el);
+}
 
 export function soSanhBan(a: string, b: string): number {
   const x = a.split('.').map(Number), y = b.split('.').map(Number);
@@ -44,6 +67,12 @@ export async function kiemOta(): Promise<void> {
     if (bundles.some((b) => b.version === m.id && b.status === 'error')) return;
     const co = bundles.find((b) => b.version === m.id && b.status === 'success');
     const goi = co ?? await CapacitorUpdater.download({ url: new URL(m.url, SITE_URL).href, version: m.id, checksum: m.sha256 });
+    if (performance.now() - LUC_MO < AP_NGAY_MS && oTrangChu()) {
+      baoCapNhat();
+      await new Promise((r) => setTimeout(r, 700));   // kịp đọc dòng báo
+      await CapacitorUpdater.set({ id: goi.id });      // tải lại app sang gói mới
+      return;
+    }
     await CapacitorUpdater.next({ id: goi.id });
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
   } catch { /* mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có */ }
