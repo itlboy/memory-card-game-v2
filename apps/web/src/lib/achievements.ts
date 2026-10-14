@@ -1,6 +1,6 @@
 import { BOARD_SIZES } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { store } from './storage';
 import { td } from './i18n';
 import type { BacDanhHieu } from './ketcuc-fx';
@@ -180,6 +180,14 @@ export const ACHIEVEMENTS: Achievement[] = [
   dh({ id: 'kien-tri', nhom: 'bi-mat', biMat: true }),
   dh({ id: 'ngang-tai', nhom: 'bi-mat', biMat: true })
 ];
+
+/**
+ * Danh hiệu ĐANG ẨN — của theme premium khi chưa bật bán (`banPremium`). App đặt
+ * sau khi nạp theme. Mọi chỗ ĐẾM/BÀY danh hiệu đọc `dsHien`, không đọc thẳng
+ * ACHIEVEMENTS: không thì "x/127" đếm cả thứ người chơi không bao giờ thấy.
+ */
+export const dhAn = ref<ReadonlySet<string>>(new Set());
+export const dsHien = computed(() => ACHIEVEMENTS.filter((a) => !dhAn.value.has(a.id)));
 
 /**
  * BẬC HUY HIỆU theo độ khó: Đồng · Bạc · Vàng · Bí mật. Một chỗ quyết định,

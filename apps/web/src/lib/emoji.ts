@@ -25,14 +25,12 @@ function laThietBiApple(): boolean {
 export const MAC_DINH_VECTOR = !laThietBiApple();
 
 /**
- * Đang vẽ bằng SVG hay emoji của máy. Người chơi đổi được ở menu thanh trên
- * (công tắc "Hình lá bài nét"), đổi TỨC THÌ trên bàn đang chơi và được lưu lại —
- * chủ dự án muốn thử qua lại trên cùng một máy và giữ đường lui nếu cần.
+ * Đang vẽ bằng SVG hay emoji của máy. Công tắc "Hình lá bài nét" ở menu ĐÃ BỎ
+ * (chủ dự án 14.10.2026): máy Apple luôn emoji Apple, máy khác luôn Twemoji. Bản
+ * lưu `kieuEmoji` cũ bị BỎ QUA — không còn công tắc thì người từng tắt sẽ kẹt mãi.
+ * `datDungVector` giữ lại cho test/harness.
  */
-export const dungVector = ref<boolean>((() => {
-  try { const k = store.prefs().kieuEmoji; if (k) return k === 'vector'; } catch { /* không có localStorage */ }
-  return MAC_DINH_VECTOR;
-})());
+export const dungVector = ref<boolean>(MAC_DINH_VECTOR);
 export function datDungVector(v: boolean): void {
   dungVector.value = v;
   try { store.savePrefs({ kieuEmoji: v ? 'vector' : 'may' }); } catch { /* bỏ qua */ }

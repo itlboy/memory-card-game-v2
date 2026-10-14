@@ -1,5 +1,5 @@
-import { ref, watch } from 'vue';
-import { daMuaPremium } from './premium';
+import { computed, ref, watch } from 'vue';
+import { daMuaPremium, hienPremium } from './premium';
 
 /*
  * SKIN = LỚP ÁO CỦA CẢ APP, tách khỏi bố cục và luật chơi.
@@ -25,10 +25,12 @@ export const MAU_THANH: Record<Skin, string> = { keo: '#5cc2f2', go: '#3a2618', 
 
 /**
  * Skin PREMIUM — nằm trong cùng gói với theme premium (lib/premium.ts). Chủ dự án
- * chốt 14.10.2026: Gỗ chuyển sang premium, thêm Đêm Sao (sao) và Kẹo Bông (bong).
+ * chốt 14.10.2026: thêm Đêm Sao (sao) và Kẹo Bông (bong); Gỗ ở lại miễn phí.
  * Chưa mua thì menu vẫn bày ra (kèm khoá) để người chơi biết có, nhưng không chọn được.
  */
-export const SKIN_PREMIUM: ReadonlySet<Skin> = new Set<Skin>(['go', 'sao', 'bong']);
+export const SKIN_PREMIUM: ReadonlySet<Skin> = new Set<Skin>(['sao', 'bong']);
+/** Skin bày trong menu: chưa bán Premium (`banPremium`) thì skin premium ẩn hẳn. */
+export const skinsHien = computed(() => SKINS.filter((s) => !SKIN_PREMIUM.has(s) || hienPremium.value));
 export const skinChoiDuoc = (s: Skin): boolean => !SKIN_PREMIUM.has(s) || daMuaPremium.value;
 
 const KHOA = 'mm.skin';

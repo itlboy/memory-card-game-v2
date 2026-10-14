@@ -820,3 +820,11 @@
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).
+- **BẢN ĐẦU LÊN STORE ẨN HẲN ĐỒ PREMIUM** (chủ dự án 14.10.2026): công tắc `banPremium`
+  ở `lib/premium.ts` (`false`). Tắt thì: không có tab Premium trong ThemePicker, menu chỉ
+  bày skin miễn phí (Kẹo · Neon · Gỗ — Gỗ đã về miễn phí; Đêm Sao + Kẹo Bông là premium),
+  danh hiệu của theme premium ẩn và KHÔNG được đếm (mọi chỗ đếm đọc `dsHien`, không đọc
+  `ACHIEVEMENTS`). Lý do: đồ khoá mà không mua được là App Review hay loại (luật 2.1).
+  Có IAP thì bật `true`; đồ premium chưa mua đeo VƯƠNG MIỆN (không dùng ổ khoá).
+  `mm.premium='1'` vẫn thấy hết để thử. Công tắc Twemoji trong menu đã BỎ: máy Apple
+  luôn emoji Apple, máy khác luôn Twemoji, bản lưu `kieuEmoji` cũ bị bỏ qua.
