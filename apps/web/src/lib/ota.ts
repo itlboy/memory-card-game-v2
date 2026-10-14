@@ -35,16 +35,23 @@ export function oTrangChu(search = typeof location === 'undefined' ? '' : locati
   return !['playing', 'room', 'online', 'w'].some((k) => q.has(k));
 }
 
-/** Thẻ giữa màn "Đã có bản mới…" — cú tải lại không lời giải thích dễ bị đọc thành
- *  app giật (chủ dự án thử OTA lần đầu 14.10.2026: "nháy một cái quá nhanh"). */
-const GIU_BAO_MS = 1500;
-function baoCapNhat(): void {
+/** Thẻ giữa màn "Có bản mới · khởi động lại sau ③" — MỘT dòng, đếm 3·2·1 rồi mới
+ *  tải lại. Cú tải lại không lời giải thích bị đọc thành app giật ("nháy một cái
+ *  quá nhanh"), còn thẻ không đếm thì đọc thành app treo/lỗi (chủ dự án 14.10.2026). */
+const DEM_GIAY = 3;
+async function baoCapNhat(): Promise<void> {
   const el = document.createElement('div');
   el.className = 'bao-cap-nhat';
   el.setAttribute('role', 'status');
-  el.innerHTML = '<span class="bcn-the"><span class="bcn-sao" aria-hidden="true">✨</span><span class="bcn-chu"></span></span>';
+  el.innerHTML = '<span class="bcn-the"><span class="bcn-sao" aria-hidden="true">✨</span><span class="bcn-chu"></span><b class="bcn-so"></b></span>';
   el.querySelector('.bcn-chu')!.textContent = t('chung.dangCapNhat');
+  const so = el.querySelector<HTMLElement>('.bcn-so')!;
   (document.getElementById('app') ?? document.body).appendChild(el);
+  for (let n = DEM_GIAY; n >= 1; n--) {
+    so.textContent = String(n);
+    so.classList.remove('nay'); void so.offsetWidth; so.classList.add('nay');   // nảy lại mỗi nhịp
+    await new Promise((r) => setTimeout(r, 1000));
+  }
 }
 
 export function soSanhBan(a: string, b: string): number {
@@ -72,8 +79,7 @@ export async function kiemOta(): Promise<void> {
     const co = bundles.find((b) => b.version === m.id && b.status === 'success');
     const goi = co ?? await CapacitorUpdater.download({ url: new URL(m.url, SITE_URL).href, version: m.id, checksum: m.sha256 });
     if (performance.now() - LUC_MO < AP_NGAY_MS && oTrangChu()) {
-      baoCapNhat();
-      await new Promise((r) => setTimeout(r, GIU_BAO_MS));   // kịp đọc thẻ báo
+      await baoCapNhat();                              // đếm 3·2·1 rồi mới tải lại
       await CapacitorUpdater.set({ id: goi.id });      // tải lại app sang gói mới
       return;
     }

@@ -344,7 +344,7 @@ const zh: TuDien = {
   'bot.divine': '神龙',
   'chung.ban': '你',
   'chung.backThoat': "再按一次返回键退出",
-  'chung.dangCapNhat': "有新版本 — 正在更新…",
+  'chung.dangCapNhat': "新版本 · 重启倒计时",
   'dhd.danhHieu': '成就',
   'dhd.dong': '关闭',
   'dhd.chuaCo': '未获得（{n}）',

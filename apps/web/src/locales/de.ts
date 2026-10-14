@@ -347,7 +347,7 @@ const de: TuDien = {
   'bot.divine': 'Götterdrache',
   'chung.ban': 'Du',
   'chung.backThoat': "Nochmal Zurück drücken zum Beenden",
-  'chung.dangCapNhat': "Neue Version verfügbar — wird aktualisiert…",
+  'chung.dangCapNhat': "Neue Version · Neustart in",
   'dhd.danhHieu': 'Erfolge',
   'dhd.dong': 'Schließen',
   'dhd.chuaCo': 'Noch offen ({n})',
