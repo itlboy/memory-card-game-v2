@@ -61,6 +61,5 @@ export const THEME_SYMBOLS: Record<string, string[]> = {
  * premium vào bàn của người chưa mua.
  */
 export const THEME_PREMIUM: ReadonlySet<string> = new Set([
-  'flags', 'ocean', 'space', 'tech', 'vehicles', 'letters', 'hands', 'hearts', 'clocks', 'landmarks', 'myth', 'music',
-  'halloween', 'cats', 'treasure', 'winter', 'farm', 'travel', 'circus', 'breakfast', 'tools', 'zodiac', 'camping', 'kitchen'
+  'ocean', 'space', 'myth', 'games', 'landmarks', 'school', 'asianfood', 'halloween', 'farm', 'circus', 'zodiac', 'camping'
 ]);
