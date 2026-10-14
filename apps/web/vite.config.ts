@@ -66,7 +66,9 @@ export default defineConfig({
         // Ván online phải luôn đi thẳng ra server — không bao giờ trả từ cache
         // Trang tĩnh (privacy/support) là file riêng — store của Apple/Google mở
         // thẳng URL đó, không được rơi về index.html của game
-        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/(privacy|support)(\.html)?$/],
+        // /ota/: gói cập nhật nóng của app — mở link zip trên trình duyệt từng vào game thì SW
+        // trả index.html thay cho file (14.10.2026)
+        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/ota\//, /^\/(privacy|support)(\.html)?$/],
         // Font đóng gói sẵn (styles/fonts.ts, file .woff2 cùng gốc) nên đã nằm trong
         // globPatterns ở trên — không còn cache font Google ở runtime.
       }
