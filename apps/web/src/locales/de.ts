@@ -561,6 +561,7 @@ const de: TuDien = {
   'lc.debugTat': 'Debug-Modus einschalten',
   'lc.xemThu': 'Spielende-Effekte ansehen',
   'lc.premiumThu': 'Premium zum Testen freischalten (dieses Gerät)',
+  'lc.doNhip': 'Bildrate anzeigen (FPS)',
   'lc.xemThang': 'Sieg · {ten}',
   'lc.xemThua': 'Niederlage · {ten}',
   'lc.ghiCong': "Kartengrafiken (Nicht-Apple-Geräte) und Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0; Drache umgefärbt",

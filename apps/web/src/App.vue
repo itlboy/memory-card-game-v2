@@ -28,6 +28,9 @@ const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
  */
 const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
 watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
+/** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
+const doNhip = ref(!!store.prefs().doNhip);
+watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
 import IconBay from './components/IconBay.vue';
 import { useGameSession } from './composables/useGameSession';
@@ -700,6 +703,7 @@ const hasNext = computed(() => {
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <IconBay v-if="screen !== 'game'" />
   <TopBar
+    :debug="debug"
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
@@ -797,7 +801,7 @@ const hasNext = computed(() => {
   <!-- Kho hình + gradient cho <OptionIcon>. Mount ĐÚNG MỘT LẦN: id gradient là
        toàn cục, nhiều bản sao thì mọi icon lấy chung một màu. -->
   <IconDefs />
-  <DoNhip v-if="debug" />
+  <DoNhip v-if="debug && doNhip" />
 
   <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" />
   <DanhHieuDialog
@@ -812,9 +816,10 @@ const hasNext = computed(() => {
   />
 
   <RulesDialog
-    v-if="showRules" :debug="debug"
+    v-if="showRules" :debug="debug" :do-nhip="doNhip"
     @close="showRules = false"
     @update:debug="debug = $event"
+    @update:do-nhip="doNhip = $event"
     @xem-fx="xemThuFx"
   />
 

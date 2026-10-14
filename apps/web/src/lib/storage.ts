@@ -35,10 +35,13 @@ export interface Prefs {
   /** Tuỳ chọn bàn chơi (năm công tắc 0..3) — nhớ giữa các ván để người chơi
    *  không phải đặt lại luật mỗi lần vào. */
   options: BoardOptions;
-  /** Bảng đo nhịp (fps, trễ gói tin → khung hình) hiện ở góc màn hình.
-   *  Lưu lại vì lỗi cần soi thường chỉ hiện trên MỘT máy cụ thể: bật một lần
-   *  rồi chơi qua nhiều ván, khỏi phải nhớ thêm `?debug=1` vào mọi đường vào. */
+  /** Chế độ debug (đèn nháy cạnh logo + công cụ trong Luật chơi). Lưu lại vì
+   *  lỗi cần soi thường chỉ hiện trên MỘT máy cụ thể: bật một lần rồi chơi qua
+   *  nhiều ván, khỏi phải nhớ thêm `?debug=1` vào mọi đường vào. */
   debug: boolean;
+  /** Bảng đo nhịp (fps, trễ gói tin) ở góc màn — công tắc RIÊNG trong chế độ debug,
+   *  mặc định TẮT (chủ dự án 14.10.2026: bật kèm debug thì "trông xấu quá"). */
+  doNhip?: boolean;
   /** Rung khi ghép thẻ (lib/rung.ts). Mặc định bật. */
   rung: boolean;
   /** Nhạc nền (lib/nhac.ts). Mặc định bật — tắt âm thanh là tắt luôn nhạc. */

@@ -571,6 +571,7 @@ const vi = {
   'lc.debugTat': 'Bật chế độ debug',
   'lc.xemThu': 'Xem thử hiệu ứng kết ván',
   'lc.premiumThu': 'Mở Premium để thử (chỉ máy này)',
+  'lc.doNhip': 'Hiện số đo khung hình (fps)',
   'lc.xemThang': 'Thắng · {ten}',
   'lc.xemThua': 'Thua · {ten}',
   'lc.ghiCong': "Hình mặt bài (máy không phải Apple) và mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0; mặt rồng đã đổi màu",
