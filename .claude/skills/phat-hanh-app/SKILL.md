@@ -20,6 +20,9 @@ là chọn đúng commit, gắn tag, và SOÁT bằng log chứ không tin dấu
    theo `run_number`, không phải đụng.
 4. Đổi luật chơi / thêm tính năng lớn → sửa luôn `docs/store-listing.md`
    (`python3 tools/dem-ky-tu-store.py` soát số ký tự).
+5. Trang store (mô tả, ảnh chụp) KHÔNG đi theo bản app: chỉ chạy `play-store.yml` /
+   `asc-store.yml` khi giao diện đổi nhiều hoặc mô tả đổi — xem mục "Trang giới thiệu
+   trên store" ở `docs/mobile-ci.md`. Bản sửa lỗi thường thì bỏ qua bước này.
 
 ## 2. Gắn tag
 
