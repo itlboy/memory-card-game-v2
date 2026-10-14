@@ -78,7 +78,7 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
         v-if="!multiplayer && starMisses" :key="`sao-${soSao}-${sao4}`" class="vien sao" :class="{ rot: !sao4 }"
         :aria-label="sao4 ? t('hud.sao4') : conLai === null ? t('hud.sao1', { n: soSao }) : t('hud.sao', { n: soSao, m: conLai })"
       >
-        <span class="sao-hang" aria-hidden="true"><i v-for="i in 3" :key="i" :class="{ tat: i > soSao }">★</i><i class="sao4" :class="{ tat: !sao4 }">★</i></span>
+        <span class="sao-hang" aria-hidden="true"><i v-for="i in 3" :key="i" :class="{ tat: i > soSao }">★</i><i class="sao4" :class="sao4 ? 'song' : 'tat'">★</i></span>
         <b v-if="conLai !== null" aria-hidden="true">{{ conLai }}</b>
       </span>
       <span v-if="!multiplayer && movesLeft !== null" class="vien" :aria-label="t('hud.luot')">

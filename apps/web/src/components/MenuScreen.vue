@@ -524,7 +524,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <p v-if="mode === 'campaign'" class="moc-sao">
           <template v-for="(m, i) in mocSao" :key="m.sao">
             <span v-if="i" class="ngan"> · </span>
-            <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(m.sao, 3)) }}</span><span v-if="m.sao === 4" class="sao4">★</span> {{ m.txt }}</span>
+            <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(m.sao, 3)) }}</span><span v-if="m.sao === 4" class="sao4 song">★</span> {{ m.txt }}</span>
           </template>
         </p>
         <p class="best">

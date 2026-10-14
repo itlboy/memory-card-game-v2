@@ -197,8 +197,10 @@ const title = computed(() => {
           class="star"
           :class="{ lit: i <= shownStars, dim: i > summary.stars }"
         >★</span><span
-          v-if="summary.hoanHao" class="star sao4 thu4" :class="{ hien: shownStars >= 4 }"
-        >★</span>
+          v-if="summary.hoanHao" class="thu4" :class="{ hien: shownStars >= 4 }"
+        ><i class="tia" aria-hidden="true" /><span class="star sao4 song">★</span><i
+          v-for="d in 5" :key="d" :class="`dom d${d}`" aria-hidden="true"
+        >✦</i></span>
       </p>
       <!-- Mốc 3★ nói thẳng ra: 3★ cố ý khó (chủ dự án 14.10.2026), người chơi phải
            biết thiếu bao nhiêu mới có cái để phấn đấu -->
@@ -206,7 +208,7 @@ const title = computed(() => {
         <template v-if="summary.hoanHao">{{ t('kq.hoanHao') }}</template>
         <template v-else>
           {{ t('kq.quenN', { n: summary.ranking[0]?.quen ?? 0 }) }} ·
-          <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(saoKe.sao, 3)) }}</span><span v-if="saoKe.sao === 4" class="sao4">★</span> {{ saoKe.txt }}</span>
+          <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(saoKe.sao, 3)) }}</span><span v-if="saoKe.sao === 4" class="sao4 song">★</span> {{ saoKe.txt }}</span>
         </template>
       </p>
 
@@ -376,11 +378,37 @@ h2 { margin: 0 0 4px; }
 .sai-sao .nhom { white-space: nowrap; }
 .sai-sao .vang { color: var(--gold); }
 /* Ngôi thứ 4: nở to hơn, xoay một vòng nhẹ, rồi lấp lánh mãi */
-.star.thu4 { opacity: 0; transform: scale(.4); }
-.star.thu4.hien { opacity: 1; transform: none; animation: sao4-in .7s cubic-bezier(.3, 1.8, .5, 1), sao4-lap 2.4s ease-in-out .7s infinite; }
-@keyframes sao4-in { 0% { transform: scale(.4) rotate(-90deg); } 60% { transform: scale(1.5) rotate(10deg); } 100% { transform: none; } }
-@keyframes sao4-lap { 50% { filter: drop-shadow(0 0 9px rgba(162, 89, 255, .95)); } }
-@media (prefers-reduced-motion: reduce) { .star.thu4.hien { animation: none; } }
+/*
+ * NGÔI THỨ 4 TOẢ SÁNG (chủ dự án 14.10.2026: "thật nổi bật… lấp lánh"): to hơn
+ * ba ngôi kia, tia sáng xoay sau lưng, vệt sáng lướt mặt (.song ở global.css)
+ * và năm đốm ✦ nhấp nháy lệch nhịp quanh nó.
+ */
+/* To hơn bằng `scale` (thuộc tính riêng, không đụng `transform` của animation vào)
+   chứ KHÔNG bằng font-size: font-size làm hàng sao cao lên, mà bảng trên iPhone
+   SE chỉ còn dư 2px (đo 14.10.2026). scale chỉ phóng phần vẽ, không chiếm chỗ. */
+.thu4 { position: relative; display: inline-block; isolation: isolate; line-height: 1;
+  scale: 1.6; margin: 0 .2em 0 .35em; opacity: 0; transform: scale(.3); }
+.thu4.hien { opacity: 1; transform: none; animation: sao4-in .8s cubic-bezier(.3, 1.8, .5, 1); }
+.thu4 .star.sao4 { color: transparent; }
+.thu4 .tia {
+  position: absolute; inset: -62%; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: repeating-conic-gradient(rgba(255, 214, 120, .55) 0deg 9deg, transparent 9deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%);
+  animation: tia-xoay 7s linear infinite;
+}
+.thu4 .dom {
+  position: absolute; font-style: normal; font-size: .38em; color: #fff; pointer-events: none;
+  text-shadow: 0 0 4px #ff8ad8, 0 0 8px #a259ff; opacity: 0; animation: dom-lap 1.6s ease-in-out infinite;
+}
+.thu4 .d1 { top: -18%; left: -22%; animation-delay: .1s; }
+.thu4 .d2 { top: -30%; right: -18%; animation-delay: .6s; font-size: .3em; }
+.thu4 .d3 { bottom: -10%; right: -30%; animation-delay: 1.1s; }
+.thu4 .d4 { bottom: -22%; left: -10%; animation-delay: .85s; font-size: .28em; }
+.thu4 .d5 { top: 30%; left: -42%; animation-delay: 1.35s; font-size: .25em; }
+@keyframes sao4-in { 0% { transform: scale(.3) rotate(-120deg); } 60% { transform: scale(1.6) rotate(12deg); } 100% { transform: none; } }
+@keyframes tia-xoay { to { transform: rotate(360deg); } }
+@keyframes dom-lap { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(90deg); } }
+@media (prefers-reduced-motion: reduce) { .thu4.hien, .thu4 .tia, .thu4 .dom { animation: none; } .thu4 .dom { opacity: .8; } }
 .star { color: var(--line); display: inline-block; transition: color .2s; }
 .star.lit {
   color: var(--gold);
