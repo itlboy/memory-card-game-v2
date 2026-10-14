@@ -274,7 +274,7 @@ button {
   border-color: transparent !important;
   color: #fff !important;
 }
-.neon small { color: rgba(255, 255, 255, .85) !important; }
+.neon small { color: #fff !important; }   /* .85 từng tụt dưới 3:1 (pnpm do:tuong-phan) */
 /* Bóng chữ tối, mảnh: giữ được gradient tươi mà chữ trắng vẫn tách khỏi nền.
    Đây là cách bù cho việc KHÔNG hạ sáng gradient — dòng mô tả chữ nhỏ là chỗ
    khó đọc nhất trên nền màu. */
@@ -288,14 +288,14 @@ button {
    đậm, đúng loại chữ trên các ô này. Chữ nhỏ mô tả được bù bằng text-shadow
    (xem .neon strong/small). */
 .g-violet { background: linear-gradient(150deg, #6a5cff, #8b5cf6) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-.g-pink   { background: linear-gradient(150deg, #c44cf0, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-pink   { background: linear-gradient(150deg, #c44cf0, #ff5099) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-cyan   { background: linear-gradient(150deg, #109edb, #1aa793) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-.g-blue   { background: linear-gradient(150deg, #4c7dff, #5fb0ff) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-.g-amber  { background: linear-gradient(150deg, #f59e0b, #ff7b45) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-.g-red    { background: linear-gradient(150deg, #ef4458, #ff5fa2) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-blue   { background: linear-gradient(150deg, #4c7dff, #2794ff) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-amber  { background: linear-gradient(150deg, #cc8308, #ff5e1c) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-red    { background: linear-gradient(150deg, #ef4458, #ff5099) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 .g-teal   { background: linear-gradient(150deg, #12a696, #1aa793) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-.g-lime   { background: linear-gradient(150deg, #4d9b1f, #7cb518) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
-.g-orange { background: linear-gradient(150deg, #e2620c, #f59e0b) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-lime   { background: linear-gradient(150deg, #4d9b1f, #6a9a12) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
+.g-orange { background: linear-gradient(150deg, #e2620c, #cc8308) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 
 /* Chuyển màn mượt */
 /* Màn MỚI chờ màn cũ mờ gần hết (.1s) rồi mới hiện: hai màn vẫn chồng nhau trong

@@ -227,6 +227,8 @@
 /* Trang chủ: ô Chiến dịch + ba ô vuông dày như nút */
 :root[data-skin='keo'] :is(.o-chien-dich, .o-vuong) { border-width: 3px; }
 :root[data-skin='keo'] .o-chien-dich strong { font-size: 30px; }
+/* Viên "Màn N": Kẹo giữ viên trắng chữ mực (mockup B), skin khác dùng cặp màu nhấn */
+:root[data-skin='keo'] .o-chien-dich .man { background: #fff; color: var(--fg); }
 
 /* HUD: viên số + nút tròn viền mực */
 :root[data-skin='keo'] { --vien-nut: 3px solid var(--ink); --vien-vien: 2.5px solid var(--ink); }

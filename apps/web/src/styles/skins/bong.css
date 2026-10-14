@@ -25,7 +25,7 @@
   --line: rgba(176, 74, 138, .22);
   --line-strong: rgba(176, 74, 138, .45);
 
-  --keo: linear-gradient(90deg, #e86aa8, #9b78e6);
+  --keo: linear-gradient(90deg, #e766a5, #9b78e6);
   --mep: #f0a8cf;
   --nhan-nen: var(--keo); --nhan-chu: #fff;
   --chon-nen: var(--keo); --chon-chu: #fff;

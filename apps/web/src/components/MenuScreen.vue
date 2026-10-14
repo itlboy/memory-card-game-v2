@@ -735,7 +735,11 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .o-chien-dich strong { flex: 1; font-family: var(--font-display); font-size: 28px; line-height: 1.1; }
 .o-chien-dich .man {
   flex: none; padding: 6px 12px; border-radius: 14px; font-weight: 800; font-size: 14px;
-  background: #fff; color: var(--fg); border: var(--quat-vien, 0);
+  /* Cặp màu NHẤN của skin (nền + chữ đã chọn để luôn tương phản). Bản cũ nền trắng
+     + chữ `--fg`: skin tối (Neon, Đêm Sao) có --fg sáng → chữ trắng trên nền trắng;
+     Kẹo Bông ô trắng → viên trắng mất hình (chủ dự án báo, có ảnh). Kẹo giữ viên
+     trắng như mockup đã duyệt (keo.css). */
+  background: var(--nhan-nen); color: var(--nhan-chu); border: var(--quat-vien, 0);
 }
 .ba-o { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: clamp(88px, 15vh, 150px); }
 .o-vuong { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px 4px; min-width: 0; }
