@@ -113,12 +113,24 @@
 /* Ô định danh: không khối màu — nền chàm, icon vàng (như go.css) */
 :root[data-skin='sao'] .neon { color: var(--ink) !important; }
 :root[data-skin='sao'] .neon strong { text-shadow: none; font-family: var(--font-display); }
-:root[data-skin='sao'] .neon small { color: var(--muted) !important; text-shadow: none; }
+:root[data-skin='sao'] .neon small { color: var(--fg) !important; text-shadow: none; opacity: .92; }   /* --muted chìm trên ô đá quý (2,1:1) */
 :root[data-skin='sao'] .neon .opt-icon,
 :root[data-skin='sao'] .neon .count-num { color: var(--accent) !important; }
 :root[data-skin='sao'] :is(.g-violet, .g-blue, .g-amber, .g-cyan, .g-pink, .g-red, .g-teal, .g-lime, .g-orange) {
-  background: var(--panel) !important; box-shadow: var(--elev-1) !important;
+  box-shadow: 0 0 0 1.5px #c9a74e, inset 0 1px 0 rgba(244, 210, 122, .35), 0 8px 18px rgba(0, 0, 0, .45) !important;
 }
+/* Ô định danh MỖI Ô MỘT TÔNG ĐÁ QUÝ (chủ dự án duyệt mockup 14.10.2026,
+   https://claude.ai/artifact/XSjQnttXrvnJLiZ2km2KD6): bản cũ tô mọi ô bằng --panel,
+   trùng nền nên trang chủ "như không có nút". Chữ kem ≥ 3,3:1 ở mọi điểm màu. */
+:root[data-skin='sao'] .g-violet { background: linear-gradient(150deg, #3a2a8f, #6b3fb8) !important; }
+:root[data-skin='sao'] .g-blue   { background: linear-gradient(150deg, #1d4aa3, #2f6dd1) !important; }
+:root[data-skin='sao'] .g-amber  { background: linear-gradient(150deg, #7a4a10, #a0661a) !important; }
+:root[data-skin='sao'] .g-cyan   { background: linear-gradient(150deg, #0e6a64, #16897c) !important; }
+:root[data-skin='sao'] .g-pink   { background: linear-gradient(150deg, #7f2458, #a8336f) !important; }
+:root[data-skin='sao'] .g-red    { background: linear-gradient(150deg, #8a2232, #b0304a) !important; }
+:root[data-skin='sao'] .g-teal   { background: linear-gradient(150deg, #0e6a64, #16897c) !important; }
+:root[data-skin='sao'] .g-lime   { background: linear-gradient(150deg, #365f1a, #4a7f22) !important; }
+:root[data-skin='sao'] .g-orange { background: linear-gradient(150deg, #86370f, #a84a16) !important; }
 
 :root[data-skin='sao'] .lt-chip { border: 1.5px solid var(--line) !important; background: var(--panel); color: var(--ink); }
 :root[data-skin='sao'] .lt-chip.lua { background: #c9a74e !important; color: #1a1c45 !important; }

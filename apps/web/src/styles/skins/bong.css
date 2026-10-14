@@ -25,7 +25,7 @@
   --line: rgba(176, 74, 138, .22);
   --line-strong: rgba(176, 74, 138, .45);
 
-  --keo: linear-gradient(90deg, #e766a5, #9b78e6);
+  --keo: linear-gradient(90deg, #cf4f92, #8f6cdc);   /* ≥ 3,9:1 với chữ trắng (pnpm do:tuong-phan) */
   --mep: #f0a8cf;
   --nhan-nen: var(--keo); --nhan-chu: #fff;
   --chon-nen: var(--keo); --chon-chu: #fff;
@@ -98,7 +98,7 @@
   box-shadow: 0 0 0 2px #fff, 0 4px 0 #c46aa6;
 }
 :root[data-skin='bong'] .option[aria-checked='true'] small,
-:root[data-skin='bong'] .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .9); }
+:root[data-skin='bong'] .option[aria-pressed='true'] small { color: #fff; font-weight: 700; }
 :root[data-skin='bong'] .opt-icon { color: var(--accent); }
 @media (hover: hover) {
   :root[data-skin='bong'] .option:hover { border-color: transparent; box-shadow: var(--elev-2); }
@@ -112,8 +112,20 @@
 :root[data-skin='bong'] .neon .opt-icon,
 :root[data-skin='bong'] .neon .count-num { color: var(--accent) !important; }
 :root[data-skin='bong'] :is(.g-violet, .g-blue, .g-amber, .g-cyan, .g-pink, .g-red, .g-teal, .g-lime, .g-orange) {
-  background: #fff !important; box-shadow: var(--elev-1) !important;
+  box-shadow: 0 0 0 2.5px #fff, 0 5px 0 var(--mep), 0 8px 16px rgba(176, 74, 138, .18) !important;
 }
+/* Ô định danh MỖI Ô MỘT MÀU KẸO PASTEL (chủ dự án duyệt mockup 14.10.2026,
+   https://claude.ai/artifact/XSjQnttXrvnJLiZ2km2KD6): bản cũ ô trắng trên panel trắng,
+   "đơn điệu, như không có nút". Chữ mận ≥ 8:1 ở mọi điểm màu. */
+:root[data-skin='bong'] .g-violet { background: linear-gradient(150deg, #ffc2df, #ffd9ec) !important; }
+:root[data-skin='bong'] .g-blue   { background: linear-gradient(150deg, #d6c6ff, #e6dcff) !important; }
+:root[data-skin='bong'] .g-amber  { background: linear-gradient(150deg, #ffd2ad, #ffe3c9) !important; }
+:root[data-skin='bong'] .g-cyan   { background: linear-gradient(150deg, #bfeee0, #d6f6ec) !important; }
+:root[data-skin='bong'] .g-pink   { background: linear-gradient(150deg, #ffc2df, #ffd9ec) !important; }
+:root[data-skin='bong'] .g-red    { background: linear-gradient(150deg, #ffc6cf, #ffdbe1) !important; }
+:root[data-skin='bong'] .g-teal   { background: linear-gradient(150deg, #bfe9f2, #d6f2f8) !important; }
+:root[data-skin='bong'] .g-lime   { background: linear-gradient(150deg, #dcf2bc, #e9f8d3) !important; }
+:root[data-skin='bong'] .g-orange { background: linear-gradient(150deg, #ffd9a8, #ffe7c6) !important; }
 
 :root[data-skin='bong'] .lt-chip { border: 2px solid #f6b8d8 !important; background: #fff; color: var(--ink); }
 :root[data-skin='bong'] .lt-chip.lua { background: #ffd1e8 !important; color: var(--ink) !important; }
