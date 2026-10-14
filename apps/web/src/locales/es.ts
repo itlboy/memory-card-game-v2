@@ -559,6 +559,7 @@ const es: TuDien = {
   'lc.debugBat': '● Modo depuración activado — toca para desactivar',
   'lc.debugTat': 'Activar modo depuración',
   'lc.xemThu': 'Ver efectos de fin de partida',
+  'lc.premiumThu': 'Desbloquear Premium para pruebas (este dispositivo)',
   'lc.xemThang': 'Victoria · {ten}',
   'lc.xemThua': 'Derrota · {ten}',
   'lc.ghiCong': "Ilustraciones de cartas (dispositivos no Apple) y cara del dragón: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragón recoloreado",

@@ -576,6 +576,7 @@ const ru: TuDien = {
   'lc.debugBat': '● Режим отладки включён — нажми, чтобы выключить',
   'lc.debugTat': 'Включить режим отладки',
   'lc.xemThu': 'Эффекты конца партии',
+  'lc.premiumThu': 'Открыть Premium для теста (это устройство)',
   'lc.xemThang': 'Победа · {ten}',
   'lc.xemThua': 'Поражение · {ten}',
   'lc.ghiCong': "Рисунки карт (не-Apple устройства) и морда дракона: Twemoji (Twitter, Inc.) · CC-BY 4.0; дракон перекрашен",

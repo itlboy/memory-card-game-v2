@@ -19,6 +19,12 @@ function doc(): boolean {
 }
 export const daMuaPremium = ref(doc());
 
+/** Bật/tắt "đã mua" để THỬ — nút ở chế độ debug (Luật chơi). Chỉ máy này, không mua thật. */
+export function datPremiumThu(v: boolean): void {
+  daMuaPremium.value = v;
+  try { if (v) localStorage.setItem(KHOA, '1'); else localStorage.removeItem(KHOA); } catch { /* chế độ riêng tư */ }
+}
+
 /**
  * CÔNG TẮC BÁN — `false` ở bản đầu lên store (chủ dự án chốt 14.10.2026): chưa có
  * In-App Purchase thì KHÔNG bày đồ Premium ra (tab theme, skin, danh hiệu của theme
