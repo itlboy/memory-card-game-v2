@@ -312,7 +312,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .logo .card-r {
   right: 0; transform: rotate(12deg);
-  background: linear-gradient(150deg, #c44cf0, #ff5fa2);
+  background: linear-gradient(150deg, #c44cf0, #ff5099);
 }
 /* Tên game KHÔNG được co: nó là dấu hiệu thương hiệu, cắt mất một chữ còn tệ
    hơn là huy hiệu điểm phải gọn lại (xem numShort). */

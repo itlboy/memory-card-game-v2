@@ -286,6 +286,15 @@
   `lib/skin.ts` + `styles/skins/<id>.css` + tên `tb.skin.<id>` ở 12 từ điển;
   `test/skin.test.ts` canh đủ và canh MỌI selector trong file skin bắt đầu bằng
   `:root[data-skin='<id>']` (lọt ra là đổi giao diện của mọi skin).
+- **TƯƠNG PHẢN CHỮ/NỀN LÀ LUẬT, CÓ MÁY ĐO** (14.10.2026, viên "Màn 2" chữ trắng trên
+  nền trắng ở Neon + Đêm Sao, viên trắng mất hình trên ô trắng ở Kẹo Bông). Nền và chữ
+  đi theo CẶP token (`--nhan-nen/chu`, `--chon-nen/chu`) — ĐỪNG ghép màu CỨNG với token
+  (`background: #fff; color: var(--fg)`): token lật theo skin tối, màu cứng thì không.
+  Ô gradient chữ trắng (`.g-*`) mọi điểm màu ≥ 3:1. Hai lớp canh: `test/tuong-phan.test.ts`
+  (tĩnh: cặp token mọi skin, `.g-*`, chặn ghép cứng+token — đã kiểm ngược) và
+  `pnpm do:tuong-phan [url]` (Chrome thật, 5 skin × sáng/tối, đo MỌI chữ đang hiện với
+  nền trộn thật; < 2:1 là LỖI, dưới chuẩn WCAG là cảnh báo). Thêm skin / màu / màn mới là
+  chạy cả hai. Máy đo không thấy nền ẢNH (scene) và chữ gradient — đếm "bỏ qua" riêng.
 - Component KHÔNG viết màu/gradient tay: đọc token. Hai lớp tô chung `--nhan-nen/chu`
   (nút, viên nhấn) và `--chon-nen/chu` (ô đang chọn, người đang đi) — 25 chỗ viết tay
   gradient tím từng làm skin Kẹo lòi tím khắp nơi. Hình nền: `--nen-man` (body, neo
