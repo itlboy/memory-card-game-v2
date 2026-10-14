@@ -17,8 +17,10 @@ const [URL_APP = 'http://127.0.0.1:8080', OUT = 'store-shots', LANG = 'en', ...B
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 // KHUNG=android: 360×640 × 3 = 1080×1920 (9:16). Google Play từ chối ảnh dài hơn
 // 2:1, mà khung iPhone 6.9" là 2,17:1 — nên Android cần bộ riêng.
-const KHUNG = process.env.KHUNG === 'android' ? { W: 360, H: 640 } : { W: 440, H: 956 };
-const { W, H } = KHUNG, PORT = 9334;
+// KHUNG=ipad: 1032×1376 × 2 = 2064×2752 — iPad 13" (APP_IPAD_PRO_3GEN_129), bắt buộc
+// vì app khai hỗ trợ iPad (TARGETED_DEVICE_FAMILY 1,2).
+const KHUNG = { android: { W: 360, H: 640, S: 3 }, ipad: { W: 1032, H: 1376, S: 2 } }[process.env.KHUNG] ?? { W: 440, H: 956, S: 3 };
+const { W, H, S } = KHUNG, PORT = 9334;
 mkdirSync(OUT, { recursive: true });
 const PROFILE = `/tmp/mm-shot-${process.pid}`;
 rmSync(PROFILE, { recursive: true, force: true });
@@ -60,7 +62,7 @@ const chuTrenMan = () => js(`[...document.querySelectorAll('button, .option')].f
 
 await goi('Network.enable');
 await goi('Network.setBypassServiceWorker', { bypass: true });
-await goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 3, mobile: true });
+await goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: S, mobile: true });
 await goi('Emulation.setTouchEmulationEnabled', { enabled: true });
 // Khung Android: giả UA Android để app vẽ mặt bài bằng Twemoji như máy Android thật
 // (lib/emoji.ts chọn theo thiết bị) — chạy trên Mac mà không giả là ra emoji Apple.
@@ -69,7 +71,8 @@ await goi('Page.navigate', { url: `${URL_APP}/?lang=${LANG}` });
 await cho(1500);
 await js(`localStorage.clear(); sessionStorage.clear(); localStorage.setItem('mm.lang', ${JSON.stringify(LANG)}); true`);
 await goi('Page.reload', { ignoreCache: true });
-await cho(2000);
+// Khung iPad tải lâu hơn (đo: 2 giây còn trắng trơn, 4 giây đủ)
+await cho(process.env.KHUNG === 'ipad' ? 5000 : 2000);
 
 export const ctx = { goi, js, chup, bam, bamDung, cho, chuTrenMan };
 if (BUOC[0] === 'do') { console.log(JSON.stringify(await chuTrenMan(), null, 1)); await chup('do'); process.exit(0); }
