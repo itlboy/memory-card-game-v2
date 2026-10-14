@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { HelpCircle, Languages, Menu, Moon, Music, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, ImageIcon, Languages, Menu, Moon, Music, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { datDungVector, dungVector } from '@/lib/emoji';
 import { SKINS, datSkin, skin } from '@/lib/skin';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -217,6 +218,14 @@ watch(() => props.totalScore, (to, from) => {
           @click="$emit('toggle-rung')"
         >
           <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
+        </button>
+        <!-- Hình mặt bài: Twemoji (nét ở mọi cỡ) hay emoji của máy — lib/emoji.ts -->
+        <button
+          class="item cong-tac" role="menuitemcheckbox" type="button"
+          :aria-checked="dungVector" :aria-label="dungVector ? t('tb.hinhNetBat') : t('tb.hinhNetTat')"
+          @click="datDungVector(!dungVector)"
+        >
+          <ImageIcon :size="20" /><span>{{ t('tb.hinhNet') }}</span><i class="sw" :class="{ bat: dungVector }" aria-hidden="true" />
         </button>
 
         <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
