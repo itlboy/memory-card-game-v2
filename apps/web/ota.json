@@ -1,0 +1,4 @@
+{
+  "//": "OTA: gói web cần bản APP (native) tối thiểu này. NÂNG khi thêm/đổi plugin native hay code Swift/Java — app cũ hơn sẽ KHÔNG nhận gói mới (nó thiếu plugin gói đó gọi). Xem tools/dong-goi-ota.mjs.",
+  "minNative": "1.3.0"
+}

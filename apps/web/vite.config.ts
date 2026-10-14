@@ -24,7 +24,10 @@ export default defineConfig({
     // Mốc ISO để tính "bao lâu trước". Phải có CẢ HAI: ngày giờ đã định dạng thì
     // không lệch theo máy người chơi, còn tuổi bản build thì bắt buộc phải so với
     // đồng hồ của họ.
-    __BUILD_ISO__: JSON.stringify(new Date().toISOString())
+    __BUILD_ISO__: JSON.stringify(new Date().toISOString()),
+    // Mã gói web cho OTA (lib/ota.ts so với manifest trên server). tools/dong-goi-ota.mjs
+    // truyền OTA_ID để mã nhúng trong gói KHỚP mã ghi trong manifest.
+    __OTA_ID__: JSON.stringify(process.env.OTA_ID ?? `${process.env.npm_package_version ?? '0'}-${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}`)
   },
   plugins: [
     vue(),

@@ -580,6 +580,7 @@ const ru: TuDien = {
   'lc.xemThang': 'Победа · {ten}',
   'lc.xemThua': 'Поражение · {ten}',
   'lc.ghiCong': "Рисунки карт (не-Apple устройства) и морда дракона: Twemoji (Twitter, Inc.) · CC-BY 4.0; дракон перекрашен",
+  'lc.banApp': "Приложение (магазин): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': 'Звёзд: ',

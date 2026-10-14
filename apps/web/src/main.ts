@@ -42,6 +42,8 @@ createApp(App).mount('#app');
 // nên người chơi gần như không thấy nó (Android thì thấy) — chủ dự án báo 14.10.2026.
 // Hai rAF = sau khi trình duyệt THẬT SỰ vẽ. capacitor.config có chốt 3 giây phòng JS lỗi.
 ganNutBackAndroid();
+// Cập nhật nóng: báo gói chạy được NGAY (không thì plugin quay về gói trước), rồi kiểm bản mới
+void import('./lib/ota').then((m) => m.kiemOta());
 
 if (laApp) {
   requestAnimationFrame(() => requestAnimationFrame(() => {
