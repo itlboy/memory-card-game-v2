@@ -129,13 +129,19 @@ for (const { locale, noiDung: n, anh } of NGON_NGU) {
   else vl = (await api('POST', '/v1/appStoreVersionLocalizations', { data: { type: 'appStoreVersionLocalizations', attributes: { locale, ...verAttr }, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } } })).data;
   console.log(`✓ ${locale}: ${n.Name} — chữ`);
 
-  // Ảnh: bộ iPhone 6.7"/6.9" (1320×2868 thuộc APP_IPHONE_67)
-  const dir = join(thuMucAnh, anh);
+  // Ảnh: bộ iPhone 6.7"/6.9" (1320×2868 thuộc APP_IPHONE_67) ở <lang>/, bộ iPad 13"
+  // (2064×2752, APP_IPAD_PRO_3GEN_129) ở <lang>-ipad/ — bắt buộc vì app khai hỗ trợ
+  // iPad. Thư mục nào không có thì giữ nguyên bộ đang có trên ASC.
+  await dayAnh(locale, vl, join(thuMucAnh, anh), 'APP_IPHONE_67');
+  await dayAnh(locale, vl, join(thuMucAnh, `${anh}-ipad`), 'APP_IPAD_PRO_3GEN_129');
+}
+
+async function dayAnh(locale, vl, dir, loai) {
   const files = existsSync(dir) ? readdirSync(dir).filter((f) => /^\d.*\.png$/.test(f)).sort() : [];
-  if (!files.length) { console.log(`  (bỏ qua ảnh: không có ${dir}/0*.png)`); continue; }
+  if (!files.length) { console.log(`  (bỏ qua ${loai}: không có ${dir}/0*.png)`); return; }
   const sets = (await api('GET', `/v1/appStoreVersionLocalizations/${vl.id}/appScreenshotSets`)).data;
-  let set = sets.find((s) => s.attributes.screenshotDisplayType === 'APP_IPHONE_67');
-  if (!set) set = (await api('POST', '/v1/appScreenshotSets', { data: { type: 'appScreenshotSets', attributes: { screenshotDisplayType: 'APP_IPHONE_67' }, relationships: { appStoreVersionLocalization: { data: { type: 'appStoreVersionLocalizations', id: vl.id } } } } })).data;
+  let set = sets.find((s) => s.attributes.screenshotDisplayType === loai);
+  if (!set) set = (await api('POST', '/v1/appScreenshotSets', { data: { type: 'appScreenshotSets', attributes: { screenshotDisplayType: loai }, relationships: { appStoreVersionLocalization: { data: { type: 'appStoreVersionLocalizations', id: vl.id } } } } })).data;
   for (const cu of (await api('GET', `/v1/appScreenshotSets/${set.id}/appScreenshots`)).data) await api('DELETE', `/v1/appScreenshots/${cu.id}`);
   for (const f of files.slice(0, 10)) {
     const buf = readFileSync(join(dir, f));
@@ -147,7 +153,7 @@ for (const { locale, noiDung: n, anh } of NGON_NGU) {
     }
     await api('PATCH', `/v1/appScreenshots/${shot.id}`, { data: { type: 'appScreenshots', id: shot.id, attributes: { uploaded: true, sourceFileChecksum: createHash('md5').update(buf).digest('hex') } } });
   }
-  console.log(`✓ ${locale}: ${files.length} ảnh`);
+  console.log(`✓ ${locale}: ${files.length} ảnh ${loai}`);
 }
 
 // App Review Information: liên hệ + ghi chú cho người duyệt. Số điện thoại lấy từ

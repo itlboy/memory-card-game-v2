@@ -2,7 +2,8 @@
 #
 # Dùng chính bộ secret ASC_* mà mobile.yml dùng để đẩy TestFlight. Chạy tay:
 #   gh workflow run asc-store.yml --ref main            (chụp lại ảnh 12 ngôn ngữ)
-#   gh workflow run asc-store.yml --ref main -f chup_anh=false   (chỉ cập nhật chữ)
+#   gh workflow run asc-store.yml --ref main -f chup_anh=false -f chup_ipad=false   (chỉ cập nhật chữ)
+#   gh workflow run asc-store.yml --ref main -f chup_anh=false   (chỉ chụp lại bộ iPad)
 # Nội dung lấy từ docs/store-listing.md (một nguồn duy nhất). Ảnh chụp từ bản web
 # Cloudflare đang chạy, nên deploy web trước rồi mới chạy cái này.
 #
@@ -15,6 +16,10 @@ on:
     inputs:
       chup_anh:
         description: Chụp lại ảnh store cho 12 ngôn ngữ
+        type: boolean
+        default: true
+      chup_ipad:
+        description: Chụp ảnh iPad 13" (2064×2752) cho 12 ngôn ngữ
         type: boolean
         default: true
       may_chu:
@@ -45,8 +50,14 @@ jobs:
           for L in en vi es pt fr de ja ko zh ru id th; do
             node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L" "$L"
           done
+      - name: Chụp ảnh iPad 13" (12 ngôn ngữ)
+        if: inputs.chup_ipad
+        run: |
+          for L in en vi es pt fr de ja ko zh ru id th; do
+            KHUNG=ipad node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L-ipad" "$L"
+          done
       - uses: actions/upload-artifact@v7
-        if: inputs.chup_anh
+        if: inputs.chup_anh || inputs.chup_ipad
         with:
           name: anh-store
           path: anh/

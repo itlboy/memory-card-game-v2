@@ -827,6 +827,14 @@
   mà chạm là mở hộp xem trước đủ bộ hình (vẽ qua `anhEmoji` như mặt bài). Online:
   chỉ chủ phòng cần sở hữu, người vào phòng chơi được; phòng tạo nhanh (`themeIds`
   rỗng) chỉ trộn theme miễn phí. Bản lưu chọn theme premium chưa mua bị lọc lúc nạp.
+- **APP LÀ 4+ / MỌI LỨA TUỔI (chủ dự án 14.10.2026: "để các em bé có thể dùng").**
+  Bộ hình KHÔNG có emoji vũ khí/chất nổ (🔪🗡️⚔️🏹🪓🧨🪤 đã thay) — App Store tính 4+
+  chỉ khi câu "Guns or Other Weapons" = None (có vũ khí "Infrequent" là lên 9+). Đã khai:
+  Messaging and Chat = Yes (12 câu nói nhanh), Contests = Infrequent. Thêm emoji vũ khí,
+  rượu, thuốc lá… là phải làm lại Age Rating (Apple) + IARC (Google). Bộ Premium halloween/
+  myth còn đầu lâu/zombie: bật `banPremium` là xét lại câu Horror/Fear ở cả hai store.
+  App khai hỗ trợ iPad nên App Store bắt ảnh iPad 13": `KHUNG=ipad` ở chup-store
+  (2064×2752), thư mục `<lang>-ipad/`, workflow asc-store `chup_ipad`.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).
