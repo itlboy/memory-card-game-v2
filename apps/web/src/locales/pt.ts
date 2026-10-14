@@ -256,7 +256,7 @@ const pt: TuDien = {
   'dh.binh-minh.ten': 'Madrugador', 'dh.binh-minh.goiY': 'Vença uma partida entre 5h e 7h',
   'dh.kien-tri.ten': 'Nunca desista', 'dh.kien-tri.goiY': 'Vença uma partida depois de errar 20 vezes ou mais',
   'dh.ngang-tai.ten': 'Páreo duro', 'dh.ngang-tai.goiY': 'Empate uma partida',
-  'dh.campaign-50.ten': 'Campanha completa', 'dh.campaign-50.goiY': 'Conclua o nível 50 da Campanha',
+  'dh.campaign-50.ten': 'Campanha completa', 'dh.campaign-50.goiY': 'Conclua o nível {n} da Campanha',
   'dh.board.ten': 'Tabuleiro de {n}', 'dh.board.goiY': 'Vença uma partida no tabuleiro de {n} cartas',
   'dh.perfect.ten': '{n} perfeito', 'dh.perfect.goiY': 'Vença no tabuleiro de {n} cartas sem errar nenhuma vez',
   'dh.wins.ten': '{n} vitórias', 'dh.wins.goiY': 'Vença {n} partidas no total',

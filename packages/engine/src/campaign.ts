@@ -47,9 +47,12 @@ export interface Level {
  *    cỡ đó bị loại dù thoả ba điều kiện trên. Các cỡ còn lại dùng 99,6% diện
  *    tích, tệ nhất 96%. Đổi lại: số thẻ nhảy 6→12 và 24→30 chứ không tăng đều.
  *
- * `levels` là số cấp mỗi cỡ bàn giữ. Cỡ nhỏ giữ ít cấp để mở đầu đi nhanh, cỡ
- * lớn giữ nhiều cấp để phần cuối có chiều sâu. Trong cùng một cỡ bàn, cấp sau
- * vẫn khó hơn cấp trước vì thời gian siết dần (xem timeLimit).
+ * `levels` là số KHOÁ CẤP mỗi cỡ bàn giữ trong thang khoá cũ (1..LEVEL_KEYS).
+ * Thang đó ĐÓNG BĂNG: số cấp ở đây là khoá kỷ lục (`mode:L<cấp>`), là số phòng
+ * online gửi lên server, và app bản cũ trong store vẫn gửi đúng những số này.
+ * Đổi phân bổ ở đây là kỷ lục người chơi trỏ sang cỡ bàn khác, và app cũ chọn
+ * "36 thẻ" mà server dựng bàn 30 thẻ. Chiến dịch KHÔNG đi theo thang này nữa —
+ * xem CAMPAIGN_REPEAT bên dưới.
  */
 const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
   { cols: 2, rows: 2, levels: 1 },    //  4 thẻ
@@ -66,7 +69,7 @@ const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
   { cols: 8, rows: 11, levels: 1 }    // 88 thẻ — trần mới
 ];
 
-/** Bàn của từng cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */
+/** Bàn của từng khoá cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */
 const LADDER: readonly { cols: number; rows: number; pairs: number }[] =
   BOARDS.flatMap((b) =>
     Array.from({ length: b.levels }, () => ({
@@ -74,7 +77,20 @@ const LADDER: readonly { cols: number; rows: number; pairs: number }[] =
     }))
   );
 
-export const CAMPAIGN_LEVELS = LADDER.length;
+/** Số khoá cấp cỡ bàn (1..50) — biên kiểm `level` ở server, prefs, kỷ lục. */
+export const LEVEL_KEYS = LADDER.length;
+
+/**
+ * CHIẾN DỊCH: MỖI CỠ BÀN ĐÚNG CAMPAIGN_REPEAT MÀN (chủ dự án 14.10.2026).
+ * Thang cũ chia lệch 1·1·3·4·5·6·7·9·9·3·1·1 — chín màn liền một bàn 36 thẻ
+ * rồi phần cuối nhảy 56→72→88 trong năm màn. Nay 12 cỡ × 5 = 60 màn; trong năm
+ * lần lặp của một cỡ, giờ siết theo SECS_PER_PAIR (giây mỗi cặp). Năm màn một
+ * cỡ cũng là đúng một hàng của lưới 5 cột trên bản đồ.
+ */
+export const CAMPAIGN_REPEAT = 5;
+const SECS_PER_PAIR: readonly number[] = [9, 8, 7, 6, 5];
+
+export const CAMPAIGN_LEVELS = BOARDS.length * CAMPAIGN_REPEAT;
 
 /**
  * MƯỜI HAI CỠ BÀN — thứ mà các chế độ NGOÀI Chiến dịch thật sự chọn.
@@ -82,7 +98,7 @@ export const CAMPAIGN_LEVELS = LADDER.length;
  * Số cỡ phải TRÒN HÀNG trong lưới chọn (xem CLAUDE.md): 12 = 3×4 / 4×3. Thêm
  * hay bớt một cỡ là lưới lòi ô lẻ ở hàng cuối — phải đổi theo cặp.
  *
- * Thang 50 cấp là chuyện riêng của Chiến dịch: nhiều cấp dùng chung một cỡ bàn
+ * Thang màn là chuyện riêng của Chiến dịch: nhiều màn dùng chung một cỡ bàn
  * và chỉ khác nhau ở đồng hồ. Đem thang đó cho chế độ thường thì người chơi
  * phải đọc "Cấp 37" để đoán ra "36 thẻ" — trong khi thứ họ muốn chọn chỉ là số
  * thẻ, còn độ khó đã nằm ở năm tuỳ chọn bàn chơi.
@@ -97,7 +113,7 @@ export const BOARD_SIZES: readonly { cols: number; rows: number; pairs: number; 
     level: BOARDS.slice(0, i).reduce((n, x) => n + x.levels, 0) + 1
   }));
 
-/** Cỡ bàn của một cấp bất kỳ, quy về mục tương ứng trong BOARD_SIZES. */
+/** Cỡ bàn của một KHOÁ cấp (thang 1..LEVEL_KEYS, không phải màn Chiến dịch), quy về mục tương ứng trong BOARD_SIZES. */
 export const sizeForLevel = (id: number): (typeof BOARD_SIZES)[number] => {
   const { pairs } = boardForLevel(id);
   return BOARD_SIZES.find((s) => s.pairs === pairs)!;
@@ -126,22 +142,50 @@ export function perfectScore(pairs: number): number {
 }
 
 /**
- * Bốn chặng của thang cấp. Chia chặng để bản đồ 50 cấp không còn là một lưới
- * 50 ô giống nhau: mỗi chặng là một thẻ có tên, có tiến độ riêng, cuộn ngắn
- * hẳn và người chơi thấy mình đang đi qua từng chương.
- *
- * Cỡ chặng đều là bội của 5 để lưới 5 cột luôn TRÒN HÀNG (không ô lẻ ở hàng
- * cuối). Ranh chặng 2 đặt đúng ở cấp 25 — chỗ bàn cán trần 50 thẻ, từ đó độ
- * khó chuyển sang siết thời gian.
+ * Bốn chặng của Chiến dịch, mỗi chặng ĐÚNG ba cỡ bàn (15 màn). Một cỡ = năm màn
+ * = một hàng của lưới 5 cột, nên lưới luôn TRÒN HÀNG và mỗi hàng đọc ra
+ * "cùng bàn, giờ ngắn dần từ trái sang phải".
  */
 export interface Chapter { id: number; name: string; from: number; to: number }
-export const CHAPTERS: readonly Chapter[] = [
-  { id: 1, name: 'Nhập môn',   from: 1,  to: 10 },
-  { id: 2, name: 'Tăng tốc',   from: 11, to: 25 },
-  { id: 3, name: 'Thử thách',  from: 26, to: 35 },
-  { id: 4, name: 'Bậc thầy',   from: 36, to: 50 }
-];
+const MAN_MOI_CHANG = 3 * CAMPAIGN_REPEAT;
+export const CHAPTERS: readonly Chapter[] = ['Nhập môn', 'Tăng tốc', 'Thử thách', 'Bậc thầy']
+  .map((name, i) => ({ id: i + 1, name, from: i * MAN_MOI_CHANG + 1, to: (i + 1) * MAN_MOI_CHANG }));
 
+/** Mốc sao và tỉ lệ thẻ đặc biệt theo vị trí trên một thang `tong` bậc. */
+function sao(id: number, tong: number, pairs: number): Pick<Level, 'specialRate' | 'starThresholds'> {
+  // Nửa sau thang siết sao: cùng một bàn nhưng đòi chơi sạch hơn mới đủ sao
+  const hard = id > tong / 2;
+  const perfect = perfectScore(pairs);
+  // Thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%. Trước đây
+  // chặn tới cấp 3 mới bật, mà bàn nhỏ lại làm tròn xuống 0 nên thực tế phải
+  // tới cấp 25 người chơi mới gặp thẻ tráo — coi như không có tính năng đó.
+  // Cấp 1 là bàn tập 2 thẻ nên buildDeck tự bỏ qua (cần ít nhất 3 cặp).
+  const specialRate = Math.min(0.3, 0.06 + (id - 1) * 0.005);
+  return {
+    specialRate,
+    starThresholds: hard
+      ? [Math.round(perfect * 0.62), Math.round(perfect * 0.85)]
+      : [Math.round(perfect * 0.55), Math.round(perfect * 0.8)]
+  };
+}
+
+/**
+ * Màn Chiến dịch. Cỡ bàn = (id−1) / CAMPAIGN_REPEAT; lần lặp thứ k trong cỡ đó
+ * được SECS_PER_PAIR[k] giây mỗi cặp (9 → 5). Bàn 4 thẻ: 18·16·14·12·10 giây;
+ * bàn 88 thẻ: 396·352·308·264·220 giây.
+ */
+export function campaignSpec(id: number): Level {
+  if (!Number.isInteger(id) || id < 1 || id > CAMPAIGN_LEVELS) {
+    throw new Error(`Màn ${id} không tồn tại`);
+  }
+  const b = BOARDS[Math.floor((id - 1) / CAMPAIGN_REPEAT)]!;
+  const pairs = (b.cols * b.rows) / 2;
+  const timeLimit = pairs * SECS_PER_PAIR[(id - 1) % CAMPAIGN_REPEAT]!;
+  return { id, cols: b.cols, rows: b.rows, pairs, timeLimit, ...sao(id, CAMPAIGN_LEVELS, pairs) };
+}
+
+/** Spec theo KHOÁ cấp (thang cũ 1..LEVEL_KEYS) — chế độ thường và online chỉ
+ *  đọc cỡ bàn ở đây; Chiến dịch dùng campaignSpec. */
 export function levelSpec(id: number): Level {
   const { cols, rows, pairs } = boardForLevel(id);
 
@@ -151,25 +195,12 @@ export function levelSpec(id: number): Level {
   // cấp sau không khó hơn cấp trước nữa. Đây là thứ DUY NHẤT phân biệt các cấp
   // dùng chung một cỡ bàn (xem BOARDS).
   const timeLimit = Math.max(pairs * 3, pairs * 9 - (id - 1) * 2);
-
-  // Nửa sau chiến dịch siết sao: cùng một bàn nhưng đòi chơi sạch hơn mới đủ sao
-  const hard = id > CAMPAIGN_LEVELS / 2;
-  const perfect = perfectScore(pairs);
-  // Thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%. Trước đây
-  // chặn tới cấp 3 mới bật, mà bàn nhỏ lại làm tròn xuống 0 nên thực tế phải
-  // tới cấp 25 người chơi mới gặp thẻ tráo — coi như không có tính năng đó.
-  // Cấp 1 là bàn tập 2 thẻ nên buildDeck tự bỏ qua (cần ít nhất 3 cặp).
-  const specialRate = Math.min(0.3, 0.06 + (id - 1) * 0.005);
-  return {
-    id, cols, rows, pairs, timeLimit, specialRate,
-    starThresholds: hard
-      ? [Math.round(perfect * 0.62), Math.round(perfect * 0.85)]
-      : [Math.round(perfect * 0.55), Math.round(perfect * 0.8)]
-  };
+  return { id, cols, rows, pairs, timeLimit, ...sao(id, LEVEL_KEYS, pairs) };
 }
 
+/** Mọi màn Chiến dịch. */
 export const allLevels = (): Level[] =>
-  Array.from({ length: CAMPAIGN_LEVELS }, (_, i) => levelSpec(i + 1));
+  Array.from({ length: CAMPAIGN_LEVELS }, (_, i) => campaignSpec(i + 1));
 
 /** Dựng cấu hình ván từ một màn Campaign. */
 export function levelConfig(level: Level, symbols: readonly string[], seed: number): GameConfig {

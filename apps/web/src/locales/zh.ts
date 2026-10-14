@@ -255,7 +255,7 @@ const zh: TuDien = {
   'dh.binh-minh.ten': '早起的鸟儿', 'dh.binh-minh.goiY': '在早上 5 点到 7 点之间赢下一局',
   'dh.kien-tri.ten': '永不放弃', 'dh.kien-tri.goiY': '翻错 20 次以上仍赢下一局',
   'dh.ngang-tai.ten': '势均力敌', 'dh.ngang-tai.goiY': '打出一次平局',
-  'dh.campaign-50.ten': '全部通关', 'dh.campaign-50.goiY': '通过闯关第 50 关',
+  'dh.campaign-50.ten': '全部通关', 'dh.campaign-50.goiY': '通过闯关第 {n} 关',
   'dh.board.ten': '{n} 张牌桌', 'dh.board.goiY': '在 {n} 张牌局中赢下一局',
   'dh.perfect.ten': '{n} 张零失误', 'dh.perfect.goiY': '零失误赢下 {n} 张牌局',
   'dh.wins.ten': '{n} 胜', 'dh.wins.goiY': '累计赢下 {n} 局',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS } from '@mm/engine';
+import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, defineAsyncComponent, onMounted, ref, watch, watchEffect } from 'vue';
@@ -88,7 +88,7 @@ const mode = ref<Mode>(prefs.mode);
 /** Tuỳ chọn bàn chơi — chỉ dùng cho "chơi nhanh"; Chiến dịch có luật riêng
  *  từng màn nên KHÔNG đi qua đây. */
 const options = ref<BoardOptions>(prefs.options);
-const level = ref(Math.min(CAMPAIGN_LEVELS, Math.max(1, prefs.level)));
+const level = ref(Math.min(LEVEL_KEYS, Math.max(1, prefs.level)));
 const themeIds = ref<string[]>(prefs.themes);
 const playerCount = ref(prefs.playerCount);
 /** Đấu với máy: mức của máy, null là không đấu máy. KHÔNG lưu vào prefs — mở
@@ -535,7 +535,9 @@ function startLevel(id: number): void {
       : configFromOptions({ options: options.value, level: id, symbols: symbols.value, seed: newSeed(), players: playerList() });
     xoayLuotDau(cfg);
     levelId.value = id;
-    level.value = id;
+    // Màn Chiến dịch (1..60) và khoá cỡ bàn (1..50) là hai thang khác nhau —
+    // ghi màn vào `level` là bước chọn số thẻ đọc ra cỡ bàn sai hoặc ném lỗi.
+    if (mode.value !== 'campaign') level.value = id;
     session.setBot(botLevel.value);
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
@@ -557,8 +559,11 @@ function xoayLuotDau(cfg: GameConfig): void {
   nguoiDauTruoc = cfg.players[0]!.id;
 }
 
+/** Cấp cuối của thang đang chơi: màn Chiến dịch hay khoá cỡ bàn. */
+const tranCap = (): number => (mode.value === 'campaign' ? CAMPAIGN_LEVELS : LEVEL_KEYS);
+
 function nextLevel(): void {
-  if (levelId.value && levelId.value < CAMPAIGN_LEVELS) startLevel(levelId.value + 1);
+  if (levelId.value && levelId.value < tranCap()) startLevel(levelId.value + 1);
   else backToMenu();
 }
 
@@ -693,9 +698,10 @@ watch(session.summary, (s) => {
 const hasNext = computed(() => {
   void progressRev.value;                   // đếm để computed chạy lại sau mỗi ván
   const id = levelId.value;
-  if (!id || id >= CAMPAIGN_LEVELS) return false;
+  if (!id || id >= tranCap()) return false;
   const soloLadder = playerCount.value < 2 && !botLevel.value;
-  return soloLadder ? store.unlockedLevel() > id : true;
+  if (!soloLadder) return true;
+  return (mode.value === 'campaign' ? store.unlockedLevel() : store.unlockedKey()) > id;
 });
 </script>
 

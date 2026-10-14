@@ -257,7 +257,7 @@ const en: TuDien = {
   'dh.binh-minh.ten': 'Early Bird', 'dh.binh-minh.goiY': 'Win a game between 5 and 7 a.m.',
   'dh.kien-tri.ten': 'Never Give Up', 'dh.kien-tri.goiY': 'Win a game after 20 or more wrong flips',
   'dh.ngang-tai.ten': 'Evenly Matched', 'dh.ngang-tai.goiY': 'Draw a game',
-  'dh.campaign-50.ten': 'Campaign Complete', 'dh.campaign-50.goiY': 'Clear level 50 of the Campaign',
+  'dh.campaign-50.ten': 'Campaign Complete', 'dh.campaign-50.goiY': 'Clear level {n} of the Campaign',
   'dh.board.ten': '{n}-Card Board', 'dh.board.goiY': 'Win a game on the {n}-card board',
   'dh.perfect.ten': 'Perfect {n}', 'dh.perfect.goiY': 'Win on the {n}-card board without a single wrong flip',
   'dh.wins.ten': '{n} Wins', 'dh.wins.goiY': 'Win {n} games in total',

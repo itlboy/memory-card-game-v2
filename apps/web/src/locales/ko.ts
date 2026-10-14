@@ -255,7 +255,7 @@ const ko: TuDien = {
   'dh.binh-minh.ten': '아침형 인간', 'dh.binh-minh.goiY': '새벽 5시부터 7시 사이에 이기기',
   'dh.kien-tri.ten': '포기를 모르는 자', 'dh.kien-tri.goiY': '20번 이상 틀리고도 이기기',
   'dh.ngang-tai.ten': '막상막하', 'dh.ngang-tai.goiY': '무승부 기록하기',
-  'dh.campaign-50.ten': '캠페인 정복', 'dh.campaign-50.goiY': '캠페인 레벨 50 클리어하기',
+  'dh.campaign-50.ten': '캠페인 정복', 'dh.campaign-50.goiY': '캠페인 레벨 {n} 클리어하기',
   'dh.board.ten': '{n}장 보드', 'dh.board.goiY': '{n}장 보드에서 이기기',
   'dh.perfect.ten': '퍼펙트 {n}', 'dh.perfect.goiY': '{n}장 보드를 한 번도 틀리지 않고 이기기',
   'dh.wins.ten': '{n}승', 'dh.wins.goiY': '누적 {n}승 달성하기',

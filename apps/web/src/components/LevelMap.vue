@@ -77,7 +77,7 @@ watch(nextLevel, scrollToActive);
       <template v-else>{{ t('cd.daQua') }}<b>{{ doneCount }}</b>{{ t('cd.daQuaSau', { tong: levels.length }) }}</template>
     </p>
 
-    <!-- Ngoại lệ DUY NHẤT của luật không scroll: 50 cấp không thể nén vừa một
+    <!-- Ngoại lệ DUY NHẤT của luật không scroll: 60 màn không thể nén vừa một
          màn hình mà ô vẫn đủ 44px để bấm. Cuộn nằm TRONG khung này, cả trang
          vẫn khoá 100dvh. -->
     <div ref="list" class="chapters">

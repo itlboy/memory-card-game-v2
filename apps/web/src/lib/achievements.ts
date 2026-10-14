@@ -1,4 +1,4 @@
-import { BOARD_SIZES } from '@mm/engine';
+import { BOARD_SIZES, CAMPAIGN_LEVELS } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
 import { computed, ref } from 'vue';
 import { store } from './storage';
@@ -148,8 +148,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   })),
 
   // --- chiến dịch ---
-  ...[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((n) => dh({
-    id: `campaign-${n}`, k: n === 50 ? 'campaign-50' : 'campaign', p: () => ({ n }), nhom: 'chien-dich',
+  // Mốc 5 màn một, mốc cuối là HẾT chiến dịch. Khoá chữ 'campaign-50' giữ tên cũ
+  // (từ thời chiến dịch 50 màn); số màn đi qua {n}.
+  ...Array.from({ length: CAMPAIGN_LEVELS / 5 }, (_, i) => (i + 1) * 5).map((n) => dh({
+    id: `campaign-${n}`, k: n === CAMPAIGN_LEVELS ? 'campaign-50' : 'campaign', p: () => ({ n }), nhom: 'chien-dich',
     chinhPhuc: { campaign: true }, tienDo: (t) => [t.campaignMax, n]
   })),
   dh({ id: 'three-star', nhom: 'chien-dich', chinhPhuc: { campaign: true } }),
@@ -194,11 +196,11 @@ export const dsHien = computed(() => ACHIEVEMENTS.filter((a) => !dhAn.value.has(
  * suy từ id, để thêm danh hiệu mới không phải nhớ khai bậc.
  */
 const VANG = new Set(['board-72', 'board-88', 'combo-12', 'hell-mode', 'bot-divine', 'divine-56', 'divine-88',
-  'wins-500', 'score-10m', 'campaign-50', 'stars3-50', 'online-50', 'days-30',
+  'wins-500', 'score-10m', `campaign-${CAMPAIGN_LEVELS}`, 'stars3-50', 'online-50', 'days-30',
   'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88']);
 const BAC = new Set(['board-36', 'board-42', 'board-56', 'combo-8', 'combo-10', 'iron-man', 'time-rush', 'shuffle-master',
   'bot-hard', 'bot-insane', 'bot-wins-10', 'wins-50', 'wins-100', 'score-100k', 'score-1m',
-  'campaign-25', 'campaign-30', 'campaign-35', 'campaign-40', 'campaign-45', 'stars3-10', 'stars3-25',
+  'campaign-25', 'campaign-30', 'campaign-35', 'campaign-40', 'campaign-45', 'campaign-50', 'campaign-55', 'stars3-10', 'stars3-25',
   'online-10', 'online-big', 'days-7', 'perfect-20', 'perfect-24', 'perfect-30', 'perfect-36', 'lightspeed']);
 export function bacCua(a: Achievement): BacDanhHieu {
   if (a.biMat) return 'bi-mat';
@@ -405,7 +407,7 @@ const ICON_ID: Record<string, string> = {
   survivor: '❤️', 'blind-seer': '👁️', 'time-rush': '⏱️', 'shuffle-master': '🔀', 'special-win': '🃏',
   'iron-man': '🛡️', 'hell-mode': '😈',
   'bot-normal': '🐥', 'bot-hard': '🐆', 'bot-insane': '🐯', 'bot-divine': '🐉', 'divine-56': '🐉', 'divine-88': '🐉',
-  'bot-wins-10': '🤖', 'campaign-50': '👑', 'three-star': '🌟', 'online-win': '🌐', 'online-big': '👥',
+  'bot-wins-10': '🤖', [`campaign-${CAMPAIGN_LEVELS}`]: '👑', 'three-star': '🌟', 'online-win': '🌐', 'online-big': '👥',
   'giay-cuoi': '⏳', 'cu-dem': '🦉', 'binh-minh': '🌅', 'kien-tri': '🐢', 'ngang-tai': '🤝'
 };
 export function iconCua(a: Achievement): IconHuyHieu {

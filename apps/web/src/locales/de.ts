@@ -258,7 +258,7 @@ const de: TuDien = {
   'dh.binh-minh.ten': 'Frühaufsteher', 'dh.binh-minh.goiY': 'Gewinne ein Spiel zwischen 5 und 7 Uhr morgens',
   'dh.kien-tri.ten': 'Nie aufgeben', 'dh.kien-tri.goiY': 'Gewinne trotz 20 oder mehr Fehlgriffen',
   'dh.ngang-tai.ten': 'Ebenbürtig', 'dh.ngang-tai.goiY': 'Spiele unentschieden',
-  'dh.campaign-50.ten': 'Kampagne gemeistert', 'dh.campaign-50.goiY': 'Schaffe Level 50 der Kampagne',
+  'dh.campaign-50.ten': 'Kampagne gemeistert', 'dh.campaign-50.goiY': 'Schaffe Level {n} der Kampagne',
   'dh.board.ten': '{n}-Karten-Feld', 'dh.board.goiY': 'Gewinne ein Spiel mit {n} Karten',
   'dh.perfect.ten': 'Perfekt mit {n}', 'dh.perfect.goiY': 'Gewinne mit {n} Karten ohne einen einzigen Fehlgriff',
   'dh.wins.ten': '{n} Siege', 'dh.wins.goiY': 'Gewinne insgesamt {n} Spiele',

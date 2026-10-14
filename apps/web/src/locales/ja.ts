@@ -255,7 +255,7 @@ const ja: TuDien = {
   'dh.binh-minh.ten': '早起き', 'dh.binh-minh.goiY': '朝5時〜7時にゲームに勝つ',
   'dh.kien-tri.ten': '七転び八起き', 'dh.kien-tri.goiY': '20回以上ミスしたゲームで勝つ',
   'dh.ngang-tai.ten': '互角', 'dh.ngang-tai.goiY': '引き分けにする',
-  'dh.campaign-50.ten': 'キャンペーン制覇', 'dh.campaign-50.goiY': 'キャンペーンのステージ50をクリアする',
+  'dh.campaign-50.ten': 'キャンペーン制覇', 'dh.campaign-50.goiY': 'キャンペーンのステージ{n}をクリアする',
   'dh.board.ten': '{n}枚マスター', 'dh.board.goiY': '{n}枚の盤面で勝つ',
   'dh.perfect.ten': 'パーフェクト{n}', 'dh.perfect.goiY': '{n}枚の盤面で1回もミスせずに勝つ',
   'dh.wins.ten': '{n}勝', 'dh.wins.goiY': '通算{n}勝する',
