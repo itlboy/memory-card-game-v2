@@ -154,3 +154,12 @@
  * thấy trên máy thật.
  */
 section.panel { will-change: opacity; }
+
+/*
+ * BƯỚC ĐANG RỜI CHỈ CÓ ĐÚNG MỘT CHUYỂN ĐỘNG: chính nó mờ dần (iOS, 14.10.2026).
+ * Ô vừa chạm còn đang chạy hiệu ứng nhấn/nảy (`:active` lún 3px, transition .15s)
+ * đúng lúc bước bắt đầu mờ — chuyển động con đó làm WebKit tách ô ra lớp riêng, và
+ * trên iPhone ô BIẾN MẤT một nhịp rồi mới sang bước mới (chủ dự án báo). Tắt mọi
+ * chuyển động bên trong lúc rời: ô đứng yên, cả khối mờ cùng nhau.
+ */
+.step-leave-active * { transition: none !important; animation: none !important; }
