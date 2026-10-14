@@ -106,6 +106,8 @@ const zh: TuDien = {
   'tp.trongGoi': "包含在高级包中：一次购买，解锁 {n} 个主题。",
   'tp.moKhoa': "解锁高级版",
   'tp.sapCo': "即将推出 — 感谢关注！",
+  'tp.chonHet': "全选（{n}）",
+  'tp.boChon': "取消全选",
   'menu.itNhatMotTheme': '至少保留一个主题。',
   'menu.batDauCap': '开始第 {n} 关',
   'menu.tiep': '下一步',

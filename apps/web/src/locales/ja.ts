@@ -106,6 +106,8 @@ const ja: TuDien = {
   'tp.trongGoi': "プレミアムパックに収録：一度の購入で{n}テーマ。",
   'tp.moKhoa': "プレミアムを解放",
   'tp.sapCo': "近日公開 — ご関心ありがとうございます！",
+  'tp.chonHet': "すべて選択（{n}）",
+  'tp.boChon': "選択解除",
   'menu.itNhatMotTheme': 'テーマは1つ以上必要です。',
   'menu.batDauCap': 'ステージ{n}をスタート',
   'menu.tiep': '次へ',

@@ -109,6 +109,8 @@ const de: TuDien = {
   'tp.trongGoi': "Teil des Premium-Pakets: einmal kaufen, {n} Themen freischalten.",
   'tp.moKhoa': "Premium freischalten",
   'tp.sapCo': "Bald verfügbar — danke für dein Interesse!",
+  'tp.chonHet': "Alle wählen ({n})",
+  'tp.boChon': "Abwählen",
   'menu.itNhatMotTheme': 'Mindestens ein Thema muss bleiben.',
   'menu.batDauCap': 'Level {n} starten',
   'menu.tiep': 'Weiter',

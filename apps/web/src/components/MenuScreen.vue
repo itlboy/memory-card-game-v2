@@ -488,7 +488,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
       <!-- BƯỚC: theme (chọn được nhiều) -->
       <div v-else-if="step === 'theme'" key="theme" class="step-body theme-step">
         <p class="hint-multi">{{ t('menu.nhieuTheme') }}</p>
-        <ThemePicker :themes="themes" :selected="themeIds" :nhan="t('menu.themeThe')" @toggle="toggleTheme" />
+        <ThemePicker :themes="themes" :selected="themeIds" :nhan="t('menu.themeThe')" @toggle="toggleTheme" @dat="(ids) => emit('update:themeIds', ids)" />
 
         <p v-if="themeWarn" class="warn" role="alert">{{ t('menu.itNhatMotTheme') }}</p>
         <p v-if="themeTooSmall" class="warn" role="alert">

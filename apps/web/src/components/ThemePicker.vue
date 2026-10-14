@@ -20,7 +20,7 @@ import { useBackCloser } from '@/composables/useBackGuard';
 import type { CardTheme } from '@/lib/themes';
 
 const props = defineProps<{ themes: CardTheme[]; selected: string[]; nhan: string }>();
-const emit = defineEmits<{ toggle: [string] }>();
+const emit = defineEmits<{ toggle: [string]; dat: [string[]] }>();
 
 const tab = ref<'free' | 'premium'>('free');
 const mienPhi = computed(() => props.themes.filter((x) => !x.premium));
@@ -31,6 +31,22 @@ const xemTruoc = ref<CardTheme | null>(null);
 const baoSapCo = ref(false);
 useBackCloser(25, () => xemTruoc.value !== null, dong);
 function dong(): void { xemTruoc.value = null; baoSapCo.value = false; }
+
+/*
+ * CHỌN TẤT CẢ / BỎ CHỌN (14.10.2026) — chỉ tác động TAB ĐANG XEM và chỉ theme chơi
+ * được (premium chưa mua thì tab đó không có nút). Luật "còn ít nhất một theme"
+ * vẫn giữ: bỏ chọn mà không còn gì thì để lại theme đầu của tab.
+ */
+const choiDuocTab = computed(() => dangHien.value.filter(choiDuoc).map((x) => x.id));
+const daChonHet = computed(() => choiDuocTab.value.length > 0 && choiDuocTab.value.every((id) => props.selected.includes(id)));
+function chonHet(): void {
+  if (daChonHet.value) {
+    const con = props.selected.filter((id) => !choiDuocTab.value.includes(id));
+    emit('dat', con.length ? con : [choiDuocTab.value[0]!]);
+  } else {
+    emit('dat', [...new Set([...props.selected, ...choiDuocTab.value])]);
+  }
+}
 
 function cham(x: CardTheme): void {
   if (choiDuoc(x)) emit('toggle', x.id);
@@ -53,6 +69,12 @@ function cham(x: CardTheme): void {
   <p v-if="tab === 'premium' && !daMuaPremium" class="prem-loi">
     <Sparkles :size="15" aria-hidden="true" /> {{ t('tp.loiMoi', { n: premium.length }) }}
   </p>
+
+  <div v-if="choiDuocTab.length" class="tp-hang">
+    <button class="tp-het" type="button" @click="chonHet">
+      {{ daChonHet ? t('tp.boChon') : t('tp.chonHet', { n: choiDuocTab.length }) }}
+    </button>
+  </div>
 
   <div class="options theme-grid" role="group" :aria-label="nhan">
     <button
@@ -111,6 +133,14 @@ function cham(x: CardTheme): void {
 /* Tab đang mở dùng lớp tô "đang chọn" của skin — không viết màu tay (luật SKIN) */
 .ttab[aria-selected='true'] { background: var(--chon-nen); color: var(--chon-chu); border-color: transparent; }
 .ttab .dem { opacity: .7; font-weight: 700; }
+.tp-hang { display: flex; justify-content: flex-end; margin: -2px 0 8px; flex-shrink: 0; }
+/* Nút chữ nhỏ: HÌNH nhỏ, VÙNG CHẠM 44px bằng ::after (luật "Vùng chạm ≠ hình của nút") */
+.tp-het {
+  position: relative; min-width: 0; min-height: 0; padding: 2px 4px;
+  border: 0; background: none; color: var(--accent); font: inherit;
+  font-size: var(--text-sm); font-weight: 800; cursor: pointer;
+}
+.tp-het::after { content: ''; position: absolute; inset: -12px -8px; }
 .prem-loi {
   display: flex; align-items: center; gap: 6px; margin: 0 0 10px; flex-shrink: 0;
   color: var(--muted); font-size: var(--text-sm);

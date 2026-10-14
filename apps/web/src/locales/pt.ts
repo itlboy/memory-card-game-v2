@@ -107,6 +107,8 @@ const pt: TuDien = {
   'tp.trongGoi': "Faz parte do pacote Premium: pague uma vez e libere {n} temas.",
   'tp.moKhoa': "Liberar Premium",
   'tp.sapCo': "Em breve — obrigado pelo interesse!",
+  'tp.chonHet': "Selecionar tudo ({n})",
+  'tp.boChon': "Limpar",
   'menu.itNhatMotTheme': 'Mantenha pelo menos um tema.',
   'menu.batDauCap': 'Começar nível {n}',
   'menu.tiep': 'Próximo',

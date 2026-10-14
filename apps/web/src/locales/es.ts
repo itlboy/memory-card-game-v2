@@ -107,6 +107,8 @@ const es: TuDien = {
   'tp.trongGoi': "Incluido en el paquete Premium: un solo pago, {n} temas.",
   'tp.moKhoa': "Desbloquear Premium",
   'tp.sapCo': "Muy pronto — ¡gracias por tu interés!",
+  'tp.chonHet': "Seleccionar todo ({n})",
+  'tp.boChon': "Quitar",
   'menu.itNhatMotTheme': 'Debe quedar al menos un tema.',
   'menu.batDauCap': 'Jugar nivel {n}',
   'menu.tiep': 'Siguiente',
