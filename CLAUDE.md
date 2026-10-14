@@ -444,6 +444,13 @@
   xuống MySQL: server khởi động lại thì ván kế bốc lại, chấp nhận được.
   `tools/smoke-choilai.mjs` chơi thật 3 ván 2×2 bằng `predeal` (đã kiểm ngược:
   luật cũ là đỏ).
+- **NÓI NHANH (`t:'say'`, 14.10.2026): chat CHỈ bằng 12 câu có sẵn** (`QUICK_SAYS` ở
+  engine, emoji ở `lib/noi-nhanh.ts`, chữ ở `say.<mã>` 12 từ điển). KHÔNG làm ô gõ tự
+  do: App Store 1.2 / Google Play bắt lọc từ xấu + báo cáo + chặn người chơi. Trên dây
+  chỉ đi MÃ câu, mỗi máy tự dịch. Server bỏ mã lạ và tính CHUNG hạn mức với emoji.
+  Nút 💬 là con ĐẦU của thanh emoji (luật ẩn bớt không chạm tới); bong bóng ở
+  `LoiNoi.vue` (teleport, neo `data-chip-for` như EmojiBlast). Smoke:
+  `tools/smoke-noi-nhanh.mjs`.
 - **Hết ván online phải còn đường VỀ PHÒNG CHỜ** (`t:'tolobby'`, một người bấm
   là đủ). `t:'again'` đòi mọi người còn kết nối cùng bấm nên khi đối phương đã
   đi thì không bao giờ đủ phiếu — thiếu `tolobby` thì người ở lại chỉ còn lối về
