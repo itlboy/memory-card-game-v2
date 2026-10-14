@@ -23,6 +23,34 @@ workflow (+ biến `VERSION_CODE_OFFSET`). Soát log iOS bằng `Upload succeede
 App Store chỉ đòi phiên bản MỚI sau khi phiên bản đang soạn đã được phát hành; trước
 đó cứ thêm build vào cùng phiên bản rồi chọn build mới nhất khi nộp.
 
+## Trang giới thiệu trên store (tách khỏi bản app)
+
+Ba workflow, ba việc khác nhau — đừng nhầm "ra bản app" với "sửa trang store":
+
+| Workflow | Làm gì | Khi nào chạy |
+|---|---|---|
+| `mobile.yml` | Build app, đẩy TestFlight / Google Play | MỖI lần ra bản app (tag `app-v*` hoặc chạy tay `phat_hanh=true`) |
+| `play-store.yml` | Trang Google Play: tên, mô tả 12 ngôn ngữ, ảnh chụp, ảnh bìa, icon | CHẠY TAY, chỉ khi trang cần đổi |
+| `asc-store.yml` | Trang App Store: như trên + gắn build | CHẠY TAY, chỉ khi trang cần đổi |
+
+Hai workflow trang store chỉ có `workflow_dispatch` — không chạy theo commit, và cũng
+KHÔNG phải chạy mỗi bản app. Chạy lại khi: giao diện đổi nhiều tới mức ảnh chụp cũ
+không còn giống app · sửa mô tả ở `docs/store-listing.md` (nguồn CHUNG cho cả hai
+store) · thêm ngôn ngữ. Bản sửa lỗi thường chỉ cần `mobile.yml`.
+
+```bash
+gh workflow run play-store.yml --ref main                    # chụp lại + điền
+gh workflow run play-store.yml --ref main -f chup_anh=false  # chỉ cập nhật chữ
+```
+
+Ảnh chụp lấy từ bản web (mặc định `thebai2`, lên bản mới ngay lúc `pnpm release`),
+nên giao hàng web TRƯỚC rồi mới chụp. Ảnh Play chụp trên Ubuntu khung Android
+1080×1920 (mặt bài Twemoji như máy Android); ảnh App Store chụp trên macOS (emoji
+Apple). Kịch bản bấm nút theo CHỮ của từng ngôn ngữ (`tools/chup-store-kichban.mjs`
+đọc từ điển) — đổi chữ nút trong `locales/*` là chạy thử một ngôn ngữ ở máy trước:
+`KHUNG=android node tools/chup-store.mjs https://thebai2.hello314.com <thư mục> zh`.
+Service account Play cần quyền "Quản lý trang thông tin cửa hàng" trên Play Console.
+
 ## Secrets (Settings → Secrets and variables → Actions)
 
 Không dán giá trị vào chat hay commit. Bản gốc cất ở sổ `my-secrets`.
