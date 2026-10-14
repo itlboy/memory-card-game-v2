@@ -356,6 +356,7 @@ const ru: TuDien = {
   'bot.insane': 'Свирепый тигр',
   'bot.divine': 'Божественный дракон',
   'chung.ban': 'Ты',
+  'chung.backThoat': "Нажмите «Назад» ещё раз, чтобы выйти",
   'dhd.danhHieu': 'Достижения',
   'dhd.dong': 'Закрыть',
   'dhd.chuaCo': 'Не получены ({n})',

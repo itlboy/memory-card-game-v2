@@ -344,6 +344,7 @@ const vi = {
   'bot.insane': 'Bot mãnh hổ',
   'bot.divine': 'Bot rồng thần',
   'chung.ban': 'Bạn',
+  'chung.backThoat': "Nhấn Back lần nữa để thoát",
   'dhd.danhHieu': 'Danh hiệu',
   'dhd.dong': 'Đóng',
   'dhd.chuaCo': 'Chưa có ({n})',

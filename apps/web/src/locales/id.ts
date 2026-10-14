@@ -340,6 +340,7 @@ const id: TuDien = {
   'bot.insane': 'Harimau Ganas',
   'bot.divine': 'Naga Dewa',
   'chung.ban': 'Kamu',
+  'chung.backThoat': "Tekan Kembali sekali lagi untuk keluar",
   'dhd.danhHieu': 'Pencapaian',
   'dhd.dong': 'Tutup',
   'dhd.chuaCo': 'Belum didapat ({n})',

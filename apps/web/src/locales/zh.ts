@@ -337,6 +337,7 @@ const zh: TuDien = {
   'bot.insane': '猛虎',
   'bot.divine': '神龙',
   'chung.ban': '你',
+  'chung.backThoat': "再按一次返回键退出",
   'dhd.danhHieu': '成就',
   'dhd.dong': '关闭',
   'dhd.chuaCo': '未获得（{n}）',

@@ -308,3 +308,16 @@ button {
   position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
   margin: 0; white-space: nowrap; max-width: 100%;
 }
+
+/* "Nhấn Back lần nữa để thoát" (Android, lib/nut-back.ts): nằm trong #app (cột
+   game), sát đáy, chừa vùng an toàn — kiểu toast của Android */
+.bao-thoat {
+  position: absolute; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); z-index: 70;
+  transform: translateX(-50%); max-width: calc(100% - 32px);
+  padding: 10px 18px; border-radius: 999px;
+  background: rgba(20, 24, 44, .92); color: #fff;
+  font-size: var(--text-sm); font-weight: 700; text-align: center;
+  pointer-events: none; animation: bao-thoat-hien .18s ease;
+}
+@keyframes bao-thoat-hien { from { opacity: 0; translate: 0 8px; } }
+

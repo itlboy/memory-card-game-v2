@@ -338,6 +338,7 @@ const th: TuDien = {
   'bot.insane': 'พยัคฆ์ร้าย',
   'bot.divine': 'มังกรเทพ',
   'chung.ban': 'คุณ',
+  'chung.backThoat': "กดย้อนกลับอีกครั้งเพื่อออก",
   'dhd.danhHieu': 'ความสำเร็จ',
   'dhd.dong': 'ปิด',
   'dhd.chuaCo': 'ยังไม่ได้ ({n})',

@@ -340,6 +340,7 @@ const de: TuDien = {
   'bot.insane': 'Wilder Tiger',
   'bot.divine': 'Götterdrache',
   'chung.ban': 'Du',
+  'chung.backThoat': "Nochmal Zurück drücken zum Beenden",
   'dhd.danhHieu': 'Erfolge',
   'dhd.dong': 'Schließen',
   'dhd.chuaCo': 'Noch offen ({n})',

@@ -338,6 +338,7 @@ const pt: TuDien = {
   'bot.insane': 'Tigre Feroz',
   'bot.divine': 'Dragão Divino',
   'chung.ban': 'Você',
+  'chung.backThoat': "Toque em Voltar de novo para sair",
   'dhd.danhHieu': 'Conquistas',
   'dhd.dong': 'Fechar',
   'dhd.chuaCo': 'Bloqueadas ({n})',
