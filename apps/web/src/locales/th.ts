@@ -336,7 +336,7 @@ const th: TuDien = {
   'bot.divine': 'มังกรเทพ',
   'chung.ban': 'คุณ',
   'chung.backThoat': "กดย้อนกลับอีกครั้งเพื่อออก",
-  'chung.dangCapNhat': "กำลังอัปเดตเป็นเวอร์ชันล่าสุด…",
+  'chung.dangCapNhat': "มีเวอร์ชันใหม่ — กำลังอัปเดต…",
   'dhd.danhHieu': 'ความสำเร็จ',
   'dhd.dong': 'ปิด',
   'dhd.chuaCo': 'ยังไม่ได้ ({n})',
