@@ -211,8 +211,6 @@ const ko: TuDien = {
   'fx.thuaRoi': '패배',
   'fx.kyLucMoi': '신기록!',
   'fx.hoa': '무승부!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ 탭해서 다시 하기',
   'fx.conCap': '{n}쌍만 더 맞추면 됐는데! 다시 할까요?',
   'fx.suytNua': '아깝다! 다시 할까요?',
   'fx.moKhoa': '업적 달성!',

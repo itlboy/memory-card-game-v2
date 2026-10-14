@@ -212,8 +212,6 @@ const pt: TuDien = {
   'fx.thuaRoi': 'VOCÊ PERDEU',
   'fx.kyLucMoi': 'NOVO RECORDE!',
   'fx.hoa': 'EMPATE!',
-  'fx.gameOver': 'FIM DE|JOGO',
-  'fx.bamChoiLai': '▶ TOQUE PARA TENTAR DE NOVO',
   'fx.conCap': (p) => `${Number(p.n) === 1 ? 'Faltou só 1 par' : `Faltaram só ${p.n} pares`}. Tentar de novo?`,
   'fx.suytNua': 'Foi por pouco. Tentar de novo?',
   'fx.moKhoa': 'Conquista desbloqueada',

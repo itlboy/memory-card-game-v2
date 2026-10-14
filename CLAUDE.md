@@ -25,9 +25,9 @@
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
 - **CẢNH KẾT VÁN: MỘT CẢNH CỐ ĐỊNH CHO MỖI TÌNH HUỐNG** (bộ mới 11.10.2026, chủ
   dự án duyệt mockup https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 và chốt
-  THAY bộ cũ). Thắng và thua mỗi loại có ≥3 BIẾN THỂ bốc THEO SEED ván
+  THAY bộ cũ). Thắng có ≥3, thua có ≥2 BIẾN THỂ bốc THEO SEED ván
   (`BIEN_THE`, `bocBienThe`): thắng = pháo giấy · pháo hoa đêm · vương miện;
-  thua = đập vỡ màn · tan thành tro · game over. Kỷ lục = biến thể thắng + băng
+  thua = đập vỡ màn · tan thành tro (game over kiểu TV đen BỎ 14.10.2026: lệch hẳn nét Kẹo, đen sì che bàn + chip). Pháo hoa đêm còn nền tối nhưng DỊU về 50% đúng lúc bảng kết quả hiện (`fx-diu`, mốc `--hien-bang`). Kỷ lục = biến thể thắng + băng
   vàng. Thêm biến thể: id ở `BIEN_THE` + nhánh `chayCanh` + template + CSS + tiếng
   `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
   KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên

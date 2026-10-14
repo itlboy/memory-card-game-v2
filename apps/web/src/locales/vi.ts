@@ -218,8 +218,6 @@ const vi = {
   'fx.thuaRoi': 'THUA RỒI',
   'fx.kyLucMoi': 'KỶ LỤC MỚI!',
   'fx.hoa': 'HOÀ!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ BẤM CHƠI LẠI',
   'fx.conCap': 'Chỉ còn {n} cặp nữa thôi. Làm lại nhé?',
   'fx.suytNua': 'Suýt nữa thôi. Làm lại nhé?',
   'fx.moKhoa': 'Mở khoá danh hiệu',

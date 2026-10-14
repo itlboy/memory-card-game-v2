@@ -67,6 +67,6 @@ describe('kết ván: thắng và thua phải khác nhau, và bảng hiện sớ
     // phát ở chỗ gọi (phát ở đó là chồng hai tiếng thua lên nhau)
     expect(online).not.toMatch(/sfx\.lose\(\)/);
     const fx = doc('components/KetCucFx.vue');
-    for (const t of ['sfx.lose()', 'sfx.tanTro()', 'sfx.gameOver()']) expect(fx).toContain(t);
+    for (const t of ['sfx.lose()', 'sfx.tanTro()']) expect(fx).toContain(t);
   });
 });

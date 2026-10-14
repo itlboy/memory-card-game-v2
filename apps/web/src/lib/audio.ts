@@ -529,14 +529,6 @@ class Sfx {
     for (let i = 0; i < 10; i++) this.noise(0.02, { freq: 5000 + Math.random() * 2000, gain: 0.015, delay: 1.4 + Math.random() * 1 });
   }
 
-  /** THUA · GAME OVER: TV tắt "bzzt" (0,15s) rồi nhạc 8-bit đi xuống lúc chữ hiện (1,2s). */
-  gameOver(): void {
-    this.voice(900, { dur: 0.55, type: 'sine', gain: 0.05, delay: 0.15, slideTo: 50 });
-    this.noise(0.18, { freq: 3000, gain: 0.04, delay: 0.15 });
-    [784, 659, 523, 392, 330, 262].forEach((f, i) => this.voice(f, { dur: 0.13, type: 'square', gain: 0.035, delay: 1.2 + i * 0.13 }));
-    this.voice(98, { dur: 0.6, type: 'square', gain: 0.03, delay: 2.0, slideTo: 82 });
-  }
-
   /** THẮNG · PHÁO HOA ĐÊM: sáu quả nổ khớp sáu chùm sáng trên trời (0,3s + 0,3s/quả). */
   phaoHoaDem(): void {
     for (let i = 0; i < 6; i++) this.firework(0.3 + i * 0.3, 0.75);
