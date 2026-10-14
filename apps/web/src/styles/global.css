@@ -387,3 +387,16 @@ button {
   filter: drop-shadow(0 0 3px rgba(162, 89, 255, .6));
 }
 .sao4.tat { background: none; color: color-mix(in srgb, var(--fg) 22%, transparent); filter: none; }
+/* `.song`: vệt sáng lướt qua mặt sao + quầng thở — chỉ gắn ở chỗ ÍT ngôi (HUD,
+   dòng mốc, bảng kết quả). Bản đồ 60 ô giữ tĩnh: hàng chục animation vô hạn
+   cùng lúc là máy vẽ lại suốt. */
+.sao4.song {
+  background-image: linear-gradient(115deg, #ff4f9a 0%, #a259ff 35%, #fff 48%, #a259ff 58%, #22c4ff 100%);
+  background-size: 260% 100%;
+  animation: sao4-anh 2.6s linear infinite, sao4-tho 1.8s ease-in-out infinite;
+}
+@keyframes sao4-anh { from { background-position: 100% 0; } to { background-position: -160% 0; } }
+@keyframes sao4-tho {
+  50% { filter: drop-shadow(0 0 6px rgba(255, 120, 220, .9)) drop-shadow(0 0 2px #fff); }
+}
+@media (prefers-reduced-motion: reduce) { .sao4.song { animation: none; } }
