@@ -258,7 +258,7 @@ const id: TuDien = {
   'dh.binh-minh.ten': 'Si bangun pagi', 'dh.binh-minh.goiY': 'Menang antara jam 5 dan 7 pagi',
   'dh.kien-tri.ten': 'Pantang menyerah', 'dh.kien-tri.goiY': 'Menang setelah salah tebak 20 kali atau lebih',
   'dh.ngang-tai.ten': 'Sama kuat', 'dh.ngang-tai.goiY': 'Raih hasil seri',
-  'dh.campaign-50.ten': 'Kampanye tamat', 'dh.campaign-50.goiY': 'Tuntaskan level 50 Kampanye',
+  'dh.campaign-50.ten': 'Kampanye tamat', 'dh.campaign-50.goiY': 'Tuntaskan level {n} Kampanye',
   'dh.board.ten': 'Papan {n} kartu', 'dh.board.goiY': 'Menang di papan {n} kartu',
   'dh.perfect.ten': 'Sempurna {n}', 'dh.perfect.goiY': 'Menang di papan {n} kartu tanpa sekali pun salah tebak',
   'dh.wins.ten': '{n} kemenangan', 'dh.wins.goiY': 'Menang total {n} kali',

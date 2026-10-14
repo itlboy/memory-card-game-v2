@@ -1,4 +1,4 @@
-import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, sanitizeOptions } from '@mm/engine';
+import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, sanitizeOptions } from '@mm/engine';
 import type { BoardOptions, Mode } from '@mm/engine';
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
@@ -27,7 +27,8 @@ export interface Prefs {
   sound: boolean;
   soundLevel: SoundLevel;
   mode: Mode;
-  /** Màn đang chọn (1..CAMPAIGN_LEVELS) — mọi chế độ đều chọn màn. */
+  /** Khoá cỡ bàn đang chọn (1..LEVEL_KEYS) ở chế độ thường. Màn Chiến dịch
+   *  KHÔNG ghi vào đây — hai thang khác nhau. */
   level: number;
   /** Các theme đang chọn — bàn thẻ trộn biểu tượng của tất cả. */
   themes: string[];
@@ -87,13 +88,20 @@ export function ngayMay(d = new Date()): string {
 
 const KEY = 'mm.v2';
 
+/** Số cấp đã qua (≥1 sao) trong `levels` (khoá `mode:cấp`), lọc theo chế độ. */
+function daQua(s: { levels?: Record<string, { stars: number }> }, lay: (mode: string) => boolean): number[] {
+  return Object.entries(s.levels ?? {})
+    .filter(([k, v]) => v.stars > 0 && lay(k.split(':')[0]!))
+    .map(([k]) => Number(k.split(':')[1]));
+}
+
 /** Cỡ bàn cũ ('4x4') → số màn có đúng số cặp đó. Bản cũ chỉ lưu cỡ bàn. */
 function levelFromOldGrid(grid: string | undefined): number {
   const m = /^(\d+)x(\d+)$/.exec(grid ?? '');
   if (!m) return 1;
   const pairs = Math.floor((Number(m[1]) * Number(m[2])) / 2);
   // Cấp n có đúng n cặp
-  return Math.min(CAMPAIGN_LEVELS, Math.max(1, pairs));
+  return Math.min(LEVEL_KEYS, Math.max(1, pairs));
 }
 
 const DEFAULT_PREFS: Prefs = {
@@ -204,20 +212,24 @@ export const store = {
   },
 
   /**
-   * Cấp cao nhất được phép chơi: qua cấp n thì mở cấp n+1. Mở khoá dùng CHUNG
-   * cho mọi chế độ — tách riêng thì đổi sang Sinh tồn là lại phải bò từ bàn 2
-   * thẻ, dù người chơi đã qua cấp 20 ở Cổ điển. Sao và kỷ lục thì vẫn riêng
-   * từng chế độ (xem progress()).
+   * Màn Chiến dịch cao nhất được phép chơi: qua màn n thì mở màn n+1. CHỈ đọc
+   * tiến độ Chiến dịch — chế độ thường dùng thang khoá cỡ bàn (1..LEVEL_KEYS),
+   * số cấp hai bên không còn cùng nghĩa (Chiến dịch 12 cỡ × 5 màn, 14.10.2026).
    */
   unlockedLevel(): number {
     const s = read();
     const ids = [
+      // bản lưu cũ: `campaign` không mang chế độ trong khoá
       ...Object.entries(s.campaign ?? {}).filter(([, v]) => v.stars > 0).map(([k]) => Number(k)),
-      ...Object.entries(s.levels ?? {})
-        .filter(([, v]) => v.stars > 0)
-        .map(([k]) => Number(k.split(':')[1]))
+      ...daQua(s, (mode) => mode === 'campaign')
     ].filter((n) => Number.isFinite(n));
     return ids.length ? Math.min(CAMPAIGN_LEVELS, Math.max(...ids) + 1) : 1;
+  },
+
+  /** Khoá cỡ bàn cao nhất đã mở ở chế độ thường — chỉ để biết có "cấp sau". */
+  unlockedKey(): number {
+    const ids = daQua(read(), (mode) => mode !== 'campaign').filter((n) => Number.isFinite(n));
+    return ids.length ? Math.min(LEVEL_KEYS, Math.max(...ids) + 1) : 1;
   },
 
   totalScore(): number { return read().totalScore ?? 0; },

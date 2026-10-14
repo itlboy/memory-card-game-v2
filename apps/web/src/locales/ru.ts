@@ -270,7 +270,7 @@ const ru: TuDien = {
   'dh.binh-minh.ten': 'Ранняя пташка', 'dh.binh-minh.goiY': 'Выиграй партию с 5 до 7 утра',
   'dh.kien-tri.ten': 'Никогда не сдавайся', 'dh.kien-tri.goiY': 'Выиграй партию, ошибившись 20 раз или больше',
   'dh.ngang-tai.ten': 'Равные силы', 'dh.ngang-tai.goiY': 'Сыграй вничью',
-  'dh.campaign-50.ten': 'Кампания пройдена', 'dh.campaign-50.goiY': 'Пройди 50-й уровень Кампании',
+  'dh.campaign-50.ten': 'Кампания пройдена', 'dh.campaign-50.goiY': 'Пройди {n}-й уровень Кампании',
   'dh.board.ten': 'Поле из {n} карт', 'dh.board.goiY': 'Выиграй на поле из {n} карт',
   'dh.perfect.ten': (p) => `Идеально: ${p.n} ${pl(p.n, 'карта', 'карты', 'карт')}`,
   'dh.perfect.goiY': 'Выиграй на поле из {n} карт без единой ошибки',

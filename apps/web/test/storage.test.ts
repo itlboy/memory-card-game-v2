@@ -121,11 +121,13 @@ describe('tiến trình các cấp', () => {
     expect(store.unlockedLevel()).toBe(6);
   });
 
-  it('sao tính RIÊNG từng chế độ, nhưng mở khoá dùng CHUNG', () => {
+  it('sao tính RIÊNG từng chế độ; Chiến dịch và khoá cỡ bàn mở khoá RIÊNG', () => {
     store.saveLevel('classic', 4, 1, 500);
     expect(store.progress('classic')['4']).toBeDefined();
     expect(store.progress('survival')['4']).toBeUndefined();  // sao riêng
-    expect(store.unlockedLevel()).toBe(5);                    // mở khoá chung
+    expect(store.unlockedKey()).toBe(5);                      // khoá cỡ bàn chung mọi chế độ thường
+    // Chiến dịch là thang màn khác (12 cỡ × 5) — qua khoá 4 ở chế độ thường không mở màn 5
+    expect(store.unlockedLevel()).toBe(1);
   });
 
   it('saveLevel KHÔNG cộng điểm — saveResult mới cộng, gọi cả hai không tính hai lần', () => {

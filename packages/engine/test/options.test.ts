@@ -3,7 +3,7 @@ import {
   DEFAULT_OPTIONS, OPTION_KEYS, configFromOptions, livesFor, optionSummary,
   peekSecondsFor, sanitizeOptions, shuffleCountFor, specialCardsFor
 } from '../src/options.js';
-import { levelSpec, CAMPAIGN_LEVELS } from '../src/campaign.js';
+import { levelSpec, LEVEL_KEYS } from '../src/campaign.js';
 import { MemoryGame } from '../src/game.js';
 import { SYMBOLS, matchPair, pairSlots } from './helpers.js';
 import { publicView } from '../src/online.js';
@@ -24,7 +24,7 @@ function missEv(g: MemoryGame, x: number, y: number, now: number): GameEvent[] {
 
 /** Mọi cỡ bàn có thật trong thang cấp. */
 const CO_BAN = [...new Set(
-  Array.from({ length: CAMPAIGN_LEVELS }, (_, i) => levelSpec(i + 1).pairs * 2)
+  Array.from({ length: LEVEL_KEYS }, (_, i) => levelSpec(i + 1).pairs * 2)
 )];
 
 const build = (over = {}, level = 6) => configFromOptions({
@@ -43,7 +43,7 @@ describe('mọi con số đều nguyên và làm tròn LÊN', () => {
   });
 
   it('đồng hồ ván tròn lên bội số 5 giây — 1:05 chứ không 1:02', () => {
-    for (let lv = 1; lv <= CAMPAIGN_LEVELS; lv++) {
+    for (let lv = 1; lv <= LEVEL_KEYS; lv++) {
       for (const time of [1, 2, 3] as const) {
         const t = configFromOptions({
           options: { ...DEFAULT_OPTIONS, time }, level: lv, symbols: SYMBOLS, seed: 1

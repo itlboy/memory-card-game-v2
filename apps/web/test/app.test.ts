@@ -387,7 +387,7 @@ describe('màn online (điều hướng, không cần server)', () => {
 });
 
 describe('bản đồ cấp của Chiến dịch', () => {
-  it('đủ 50 cấp chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 88 thẻ', async () => {
+  it('đủ 60 màn chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 88 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');
@@ -400,7 +400,7 @@ describe('bản đồ cấp của Chiến dịch', () => {
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
     expect(wrapper.text()).toContain('Chặng 4 · Bậc thầy');
     // Chặng ghi khoảng số thẻ, và nói rõ trong chặng còn siết giờ
-    expect(wrapper.text()).toContain('4 – 20 thẻ');
+    expect(wrapper.text()).toContain('4 – 12 thẻ');
     expect(wrapper.text()).toContain('giờ siết dần');
   });
 

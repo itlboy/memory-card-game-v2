@@ -1,4 +1,4 @@
-import { levelSpec } from './campaign.js';
+import { campaignSpec, levelSpec } from './campaign.js';
 import type { GameConfig, Mode } from './types.js';
 
 /**
@@ -41,7 +41,8 @@ export interface PresetInput {
  * dịch mới có màn tiếp theo để chơi tiếp.
  */
 export function presetConfig({ mode, level, symbols, seed, players }: PresetInput): GameConfig {
-  const spec = levelSpec(level);
+  // Chiến dịch có thang màn riêng (campaignSpec); chế độ khác đọc khoá cỡ bàn
+  const spec = mode === 'campaign' ? campaignSpec(level) : levelSpec(level);
 
   const base: GameConfig = {
     mode, cols: spec.cols, rows: spec.rows, pairs: spec.pairs, symbols, seed, players

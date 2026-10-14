@@ -200,7 +200,7 @@
   TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (đấu máy lọc `BOT_ID`, online lọc `myId` /
   `myTurn`). Gắn đúng hai chỗ phát `sfx.match`/`sfx.miss`, có `test/rung.test.ts`.
   Thêm plugin Capacitor là phải `cap sync ios` (đã có trong `build:ios`).
-- **DANH HIỆU: 127 MỤC (14.10.2026), MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
+- **DANH HIỆU: 129 MỤC (14.10.2026), MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
   Mở khoá CHỈ qua `moKhoa()` (cập nhật viên 🏅 + hàng đợi khoe `MoKhoaToast`),
   đừng gọi thẳng `store.unlockAchievements`. Danh hiệu đếm đọc `ThongKe`
   (`store.boDem` + điểm + tiến độ Chiến dịch; `wins` lấy MAX với tài khoản) và
@@ -327,6 +327,13 @@
   tự bật thứ mình muốn và lựa chọn đó được LƯU (`prefs.options`), nên mặc định
   chỉ áp cho người chơi mới. Test nào cần một luật cụ thể phải khai rõ cả năm
   hàng, đừng dựa vào mặc định — nó đã đổi hai lần.
+- **CHIẾN DỊCH = 12 CỠ × 5 MÀN = 60 MÀN, THANG RIÊNG** (chủ dự án 14.10.2026, thay
+  thang 50 cấp chia lệch 1·1·3·…·9·9·3·1·1). Trong năm màn một cỡ, giờ 9·8·7·6·5
+  giây mỗi cặp; mỗi chặng đúng ba cỡ (một cỡ = một hàng lưới 5 cột). `campaignSpec`
+  cho màn Chiến dịch; `levelSpec`/`boardForLevel` là thang KHOÁ CỠ BÀN 1..`LEVEL_KEYS`
+  (50) ĐÓNG BĂNG — khoá kỷ lục `mode:L<cấp>`, `level` online, app cũ trong store đều
+  dùng số đó. Đừng ghi màn Chiến dịch vào `prefs.level`; `store.unlockedLevel()` chỉ
+  đọc Chiến dịch, `unlockedKey()` cho chế độ thường.
 - **KHÔNG CÒN "CHẾ ĐỘ".** Bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine,
   nay là năm tuỳ chọn bàn chơi (`packages/engine/src/options.ts`): thời gian ·
   số mạng · xem trước · xáo thẻ · thẻ đặc biệt, mỗi cái 4 mức 0..3. Chiến dịch

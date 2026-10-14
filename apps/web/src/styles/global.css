@@ -27,7 +27,7 @@ html, body, #app { margin: 0; min-height: 100%; }
  * trên, dưới là một viewport trắng).
  *
  * LƯU Ý: đây là chốt chặn cứng, KHÔNG phải là đã tìm ra thủ phạm. Chỗ nào cần
- * cuộn thật (bản đồ 50 cấp) vẫn cuộn trong `main`, không đụng tới cái này.
+ * cuộn thật (bản đồ Chiến dịch) vẫn cuộn trong `main`, không đụng tới cái này.
  */
 html, body { height: 100%; overflow: hidden; }
 html {

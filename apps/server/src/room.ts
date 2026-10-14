@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
+  LEVEL_KEYS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
   backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom, xoayNguoiDau
 } from '@mm/engine';
 import type {
@@ -547,7 +547,7 @@ export class RoomDO extends DurableObject<Env> {
         const c = msg.config;
         // Số màn từ client: phải là số nguyên trong khoảng, không thì presetConfig
         // ném lỗi ngay lúc bắt đầu ván và cả phòng bị treo (ON-09)
-        if (Number.isInteger(c.level) && c.level! >= 1 && c.level! <= CAMPAIGN_LEVELS) {
+        if (Number.isInteger(c.level) && c.level! >= 1 && c.level! <= LEVEL_KEYS) {
           this.room.config.level = c.level!;
         }
         // Mọi chế độ trừ Chiến dịch — chiến dịch là chuỗi cấp của riêng một

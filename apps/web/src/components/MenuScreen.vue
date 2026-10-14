@@ -76,7 +76,7 @@ const emit = defineEmits<{
  * tồn, chớp nhoáng) hoá ra chỉ là bốn tổ hợp cờ của cùng một engine, nên chúng
  * thành năm công tắc ở bước `options`, bật cái nào cũng được.
  *
- * Chiến dịch KHÔNG theo đường đó: 50 màn nối nhau, mở khoá dần, có mốc sao —
+ * Chiến dịch KHÔNG theo đường đó: 60 màn nối nhau, mở khoá dần, có mốc sao —
  * đó là một hành trình có luật riêng từng màn, không phải bàn chơi tự chọn.
  * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
  */
@@ -471,7 +471,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
            một việc lại có hai kiểu chọn và chỉ Chiến dịch mới chơi tiếp được
            cấp sau. -->
       <div v-else-if="step === 'level'" key="level" class="step-body">
-        <!-- Chiến dịch: bản đồ 50 màn, vì ở đó cấp THẬT SỰ là độ khó (sao, mở
+        <!-- Chiến dịch: bản đồ 60 màn, vì ở đó cấp THẬT SỰ là độ khó (sao, mở
              khoá, thời gian siết dần). Chế độ khác: cấp chỉ còn là cỡ bàn nên
              hỏi thẳng số thẻ, độ khó để bước tuỳ chọn lo. -->
         <LevelMap

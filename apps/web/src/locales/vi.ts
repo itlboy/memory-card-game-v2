@@ -262,7 +262,7 @@ const vi = {
   'dh.binh-minh.ten': 'Đón bình minh', 'dh.binh-minh.goiY': 'Thắng một ván trong khoảng 5–6 giờ sáng',
   'dh.kien-tri.ten': 'Kiên trì', 'dh.kien-tri.goiY': 'Thắng một ván dù đã lật sai từ 20 lần',
   'dh.ngang-tai.ten': 'Kỳ phùng địch thủ', 'dh.ngang-tai.goiY': 'Hoà một ván',
-  'dh.campaign-50.ten': 'Hết chiến dịch', 'dh.campaign-50.goiY': 'Qua màn 50 của Chiến dịch',
+  'dh.campaign-50.ten': 'Hết chiến dịch', 'dh.campaign-50.goiY': 'Qua màn {n} của Chiến dịch',
   'dh.board.ten': 'Bàn {n} thẻ', 'dh.board.goiY': 'Thắng một ván bàn {n} thẻ',
   'dh.perfect.ten': 'Hoàn hảo {n} thẻ', 'dh.perfect.goiY': 'Thắng bàn {n} thẻ mà không lật sai lần nào',
   'dh.wins.ten': '{n} chiến thắng', 'dh.wins.goiY': 'Thắng tổng cộng {n} ván',

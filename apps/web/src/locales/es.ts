@@ -256,7 +256,7 @@ const es: TuDien = {
   'dh.binh-minh.ten': 'Madrugador', 'dh.binh-minh.goiY': 'Gana una partida entre las 5 y las 7 a. m.',
   'dh.kien-tri.ten': 'Nunca te rindas', 'dh.kien-tri.goiY': 'Gana una partida después de fallar 20 veces o más',
   'dh.ngang-tai.ten': 'Mano a mano', 'dh.ngang-tai.goiY': 'Empata una partida',
-  'dh.campaign-50.ten': 'Campaña completa', 'dh.campaign-50.goiY': 'Supera el nivel 50 de la Campaña',
+  'dh.campaign-50.ten': 'Campaña completa', 'dh.campaign-50.goiY': 'Supera el nivel {n} de la Campaña',
   'dh.board.ten': 'Tablero de {n}', 'dh.board.goiY': 'Gana una partida en el tablero de {n} cartas',
   'dh.perfect.ten': '{n} perfecto', 'dh.perfect.goiY': 'Gana en el tablero de {n} cartas sin fallar ni una vez',
   'dh.wins.ten': '{n} victorias', 'dh.wins.goiY': 'Gana {n} partidas en total',

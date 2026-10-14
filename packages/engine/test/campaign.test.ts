@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { CAMPAIGN_LEVELS, allLevels, levelConfig, levelSpec, perfectScore } from '../src/campaign.js';
+import {
+  BOARD_SIZES, CAMPAIGN_LEVELS, CAMPAIGN_REPEAT, CHAPTERS, LEVEL_KEYS, allLevels, campaignSpec, levelConfig,
+  levelSpec, perfectScore
+} from '../src/campaign.js';
 import { MemoryGame } from '../src/game.js';
 import { SYMBOLS, clearBoard } from './helpers.js';
 
@@ -41,6 +44,41 @@ describe('Campaign (SP-03)', () => {
     }
   });
 
+  it('mỗi cỡ bàn đúng CAMPAIGN_REPEAT màn liền nhau, cỡ nào cũng có', () => {
+    expect(CAMPAIGN_LEVELS).toBe(BOARD_SIZES.length * CAMPAIGN_REPEAT);
+    for (const b of BOARD_SIZES) {
+      const ids = levels.filter((l) => l.pairs === b.pairs).map((l) => l.id);
+      expect(ids, `${b.pairs * 2} thẻ`).toHaveLength(CAMPAIGN_REPEAT);
+      expect(ids.at(-1)! - ids[0]!, `${b.pairs * 2} thẻ liền nhau`).toBe(CAMPAIGN_REPEAT - 1);
+    }
+  });
+
+  it('giờ là số nguyên giây, màn đầu mỗi cỡ 9 giây/cặp, màn cuối 5 giây/cặp', () => {
+    for (const l of levels) {
+      expect(Number.isInteger(l.timeLimit), `màn ${l.id}`).toBe(true);
+      const k = (l.id - 1) % CAMPAIGN_REPEAT;
+      if (k === 0) expect(l.timeLimit).toBe(l.pairs * 9);
+      if (k === CAMPAIGN_REPEAT - 1) expect(l.timeLimit).toBe(l.pairs * 5);
+    }
+  });
+
+  it('chặng tròn hàng 5 cột, nối liền, phủ đủ mọi màn', () => {
+    expect(CHAPTERS[0]!.from).toBe(1);
+    expect(CHAPTERS.at(-1)!.to).toBe(CAMPAIGN_LEVELS);
+    for (let i = 0; i < CHAPTERS.length; i++) {
+      const c = CHAPTERS[i]!;
+      expect((c.to - c.from + 1) % 5).toBe(0);
+      if (i > 0) expect(c.from).toBe(CHAPTERS[i - 1]!.to + 1);
+    }
+  });
+
+  it('thang khoá cỡ bàn ĐÓNG BĂNG: kỷ lục, online và app cũ vẫn đọc đúng cỡ', () => {
+    expect(LEVEL_KEYS).toBe(50);
+    expect(BOARD_SIZES.map((b) => b.level)).toEqual([1, 2, 3, 6, 10, 15, 21, 28, 37, 46, 49, 50]);
+    expect(levelSpec(28).pairs).toBe(18);
+    expect(() => levelSpec(51)).toThrow();
+  });
+
   it('thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%', () => {
     // Có từ cấp 1 (chứ không chặn tới cấp 3): chặn thì cộng với việc bàn nhỏ làm
     // tròn xuống 0, người chơi phải tới cấp 25 mới gặp thẻ tráo lần đầu.
@@ -72,7 +110,7 @@ describe('Campaign (SP-03)', () => {
   });
 
   it('chơi hoàn hảo màn 1 được 3 sao', () => {
-    const l = levelSpec(1);
+    const l = campaignSpec(1);
     const g = new MemoryGame(levelConfig(l, SYMBOLS, 777));
     g.start(0);
     clearBoard(g, 1000);
@@ -82,8 +120,8 @@ describe('Campaign (SP-03)', () => {
   });
 
   it('màn không tồn tại thì báo lỗi', () => {
-    expect(() => levelSpec(0)).toThrow();
-    expect(() => levelSpec(CAMPAIGN_LEVELS + 1)).toThrow();
+    expect(() => campaignSpec(0)).toThrow();
+    expect(() => campaignSpec(CAMPAIGN_LEVELS + 1)).toThrow();
   });
 });
 

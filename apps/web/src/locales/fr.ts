@@ -261,7 +261,7 @@ const fr: TuDien = {
   'dh.binh-minh.ten': 'Lève-tôt', 'dh.binh-minh.goiY': 'Gagne une partie entre 5 h et 7 h',
   'dh.kien-tri.ten': 'Ne lâche rien', 'dh.kien-tri.goiY': 'Gagne une partie après au moins 20 erreurs',
   'dh.ngang-tai.ten': 'Ex æquo', 'dh.ngang-tai.goiY': 'Termine une partie sur une égalité',
-  'dh.campaign-50.ten': 'Campagne terminée', 'dh.campaign-50.goiY': 'Termine le niveau 50 de la Campagne',
+  'dh.campaign-50.ten': 'Campagne terminée', 'dh.campaign-50.goiY': 'Termine le niveau {n} de la Campagne',
   'dh.board.ten': 'Plateau de {n}', 'dh.board.goiY': 'Gagne une partie sur le plateau de {n} cartes',
   'dh.perfect.ten': 'Parfait sur {n}', 'dh.perfect.goiY': 'Gagne sur le plateau de {n} cartes sans aucune erreur',
   'dh.wins.ten': '{n} victoires', 'dh.wins.goiY': 'Gagne {n} parties au total',

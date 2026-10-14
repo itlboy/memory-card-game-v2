@@ -256,7 +256,7 @@ const th: TuDien = {
   'dh.binh-minh.ten': 'นกตื่นเช้า', 'dh.binh-minh.goiY': 'ชนะสักเกมช่วง 5 ถึง 7 โมงเช้า',
   'dh.kien-tri.ten': 'ไม่ยอมแพ้', 'dh.kien-tri.goiY': 'ชนะหลังเปิดผิด 20 ครั้งขึ้นไป',
   'dh.ngang-tai.ten': 'สูสีคู่คี่', 'dh.ngang-tai.goiY': 'เสมอสักเกม',
-  'dh.campaign-50.ten': 'จบแคมเปญ', 'dh.campaign-50.goiY': 'ผ่านด่าน 50 ของแคมเปญ',
+  'dh.campaign-50.ten': 'จบแคมเปญ', 'dh.campaign-50.goiY': 'ผ่านด่าน {n} ของแคมเปญ',
   'dh.board.ten': 'กระดาน {n} ใบ', 'dh.board.goiY': 'ชนะบนกระดาน {n} ใบ',
   'dh.perfect.ten': 'เพอร์เฟกต์ {n} ใบ', 'dh.perfect.goiY': 'ชนะกระดาน {n} ใบโดยไม่เปิดผิดเลย',
   'dh.wins.ten': 'ชนะ {n} เกม', 'dh.wins.goiY': 'ชนะรวม {n} เกม',

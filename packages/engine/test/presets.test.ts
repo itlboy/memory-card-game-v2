@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { peekMsFor, presetConfig } from '../src/presets.js';
-import { CAMPAIGN_LEVELS, levelSpec } from '../src/campaign.js';
+import { CAMPAIGN_LEVELS, LEVEL_KEYS, campaignSpec, levelSpec } from '../src/campaign.js';
 import { SYMBOLS } from './helpers.js';
 
 /** Màn 7 = 8 cặp = bàn 4×4 — cỡ bàn quen thuộc trong các test cũ. */
@@ -37,12 +37,18 @@ describe('cấu hình mặc định theo chế độ (SRS 3.1)', () => {
     expect(c.timeLimit).toBe(levelSpec(L).timeLimit);
   });
 
-  it('MỌI chế độ cùng một màn thì cùng một bàn — chọn bàn đã đồng nhất', () => {
+  it('MỌI chế độ thường cùng một khoá cấp thì cùng một bàn — chọn bàn đã đồng nhất', () => {
     const spec = levelSpec(20);
-    for (const mode of ['classic', 'time', 'survival', 'peek', 'campaign'] as const) {
+    for (const mode of ['classic', 'time', 'survival', 'peek'] as const) {
       const c = make(mode, 20);
       expect([c.cols, c.rows, c.pairs], mode).toEqual([spec.cols, spec.rows, spec.pairs]);
     }
+  });
+
+  it('Chiến dịch đọc thang màn riêng (campaignSpec), không phải khoá cỡ bàn', () => {
+    const spec = campaignSpec(CAMPAIGN_LEVELS);
+    const c = make('campaign', CAMPAIGN_LEVELS);
+    expect([c.cols, c.rows, c.pairs, c.timeLimit]).toEqual([spec.cols, spec.rows, spec.pairs, spec.timeLimit]);
   });
 
   it('Campaign có mốc sao, các chế độ khác thì không', () => {
@@ -52,7 +58,8 @@ describe('cấu hình mặc định theo chế độ (SRS 3.1)', () => {
 
   it('màn ngoài khoảng thì báo lỗi rõ ràng', () => {
     expect(() => make('classic', 0)).toThrow(/không tồn tại/);
-    expect(() => make('classic', CAMPAIGN_LEVELS + 1)).toThrow(/không tồn tại/);
+    expect(() => make('classic', LEVEL_KEYS + 1)).toThrow(/không tồn tại/);
+    expect(() => make('campaign', CAMPAIGN_LEVELS + 1)).toThrow(/không tồn tại/);
   });
 
   it('truyền danh sách người chơi thì giữ nguyên', () => {
