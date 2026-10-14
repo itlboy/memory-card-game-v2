@@ -560,6 +560,7 @@ const id: TuDien = {
   'lc.debugBat': '● Mode debug aktif — ketuk untuk mematikan',
   'lc.debugTat': 'Aktifkan mode debug',
   'lc.xemThu': 'Pratinjau efek akhir permainan',
+  'lc.premiumThu': 'Buka Premium untuk uji coba (perangkat ini)',
   'lc.xemThang': 'Menang · {ten}',
   'lc.xemThua': 'Kalah · {ten}',
   'lc.ghiCong': "Gambar kartu (perangkat non-Apple) dan wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0; naga diwarnai ulang",

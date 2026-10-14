@@ -563,6 +563,7 @@ const fr: TuDien = {
   'lc.debugBat': '● Mode debug activé — touche pour le désactiver',
   'lc.debugTat': 'Activer le mode debug',
   'lc.xemThu': 'Aperçu des effets de fin de partie',
+  'lc.premiumThu': 'Débloquer Premium pour tester (cet appareil)',
   'lc.xemThang': 'Victoire · {ten}',
   'lc.xemThua': 'Défaite · {ten}',
   'lc.ghiCong': "Illustrations des cartes (appareils non Apple) et visage du dragon : Twemoji (Twitter, Inc.) · CC-BY 4.0 ; dragon recoloré",

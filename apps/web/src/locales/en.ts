@@ -559,6 +559,7 @@ const en: TuDien = {
   'lc.debugBat': '● Debug mode is on — tap to turn off',
   'lc.debugTat': 'Turn on debug mode',
   'lc.xemThu': 'Preview End-of-Game Effects',
+  'lc.premiumThu': 'Unlock Premium for Testing (This Device)',
   'lc.xemThang': 'Win · {ten}',
   'lc.xemThua': 'Loss · {ten}',
   'lc.ghiCong': "Card artwork (non-Apple devices) and dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragon recolored",

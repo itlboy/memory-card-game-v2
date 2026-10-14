@@ -557,6 +557,7 @@ const zh: TuDien = {
   'lc.debugBat': '● 调试模式已开启（点按关闭）',
   'lc.debugTat': '开启调试模式',
   'lc.xemThu': '预览结局特效',
+  'lc.premiumThu': '解锁高级版用于测试（仅本机）',
   'lc.xemThang': '胜利 · {ten}',
   'lc.xemThua': '失败 · {ten}',
   'lc.ghiCong': "卡面图案（非 Apple 设备）与神龙头像：Twemoji（Twitter, Inc.）· CC-BY 4.0；神龙已改色",

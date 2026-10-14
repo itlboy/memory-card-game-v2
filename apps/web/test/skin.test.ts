@@ -50,3 +50,16 @@ describe('chưa bật bán Premium (bản đầu lên store)', () => {
     banPremium.value = false;
   });
 });
+
+describe('nút "Mở Premium để thử" ở chế độ debug', () => {
+  it('bật thì menu bày đủ 5 skin và nhớ qua lần mở sau; tắt thì về 3', async () => {
+    const { datPremiumThu } = await import('../src/lib/premium');
+    const { skinsHien } = await import('../src/lib/skin');
+    datPremiumThu(true);
+    expect(skinsHien.value).toHaveLength(5);
+    expect(localStorage.getItem('mm.premium')).toBe('1');
+    datPremiumThu(false);
+    expect(skinsHien.value).toEqual(['keo', 'neon', 'go']);
+    expect(localStorage.getItem('mm.premium')).toBeNull();
+  });
+});

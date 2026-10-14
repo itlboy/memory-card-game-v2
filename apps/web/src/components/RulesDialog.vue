@@ -6,6 +6,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { banNative } from '@/lib/ota';
+import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import OptionIcon from './OptionIcon.vue';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
@@ -170,6 +171,13 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
         Chủ dự án yêu cầu bỏ khỏi màn thường (11.10.2026: "đừng hiển thị nhiều
         gây rối"), nên chỉ hiện trong chế độ debug, và có thêm `/credits.txt`.
       -->
+      <!-- Thử giao diện ĐÃ MUA Premium (theme/skin/danh hiệu premium) khi chưa có IAP.
+           Chỉ đổi cờ `mm.premium` của máy này (lib/premium.ts). -->
+      <button
+        v-if="props.debug" class="nut-do" type="button"
+        :aria-pressed="daMuaPremium ? 'true' : 'false'"
+        @click="datPremiumThu(!daMuaPremium)"
+      >{{ daMuaPremium ? '●' : '○' }} {{ t('lc.premiumThu') }}</button>
       <div v-if="props.debug" class="xem-fx">
         <p class="build">{{ t('lc.xemThu') }}</p>
         <button v-for="x in XEM_THU" :key="x.ten" class="nut-do" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
