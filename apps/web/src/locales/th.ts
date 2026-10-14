@@ -436,8 +436,6 @@ const th: TuDien = {
   'on.taoPhongMoi': 'สร้างห้องใหม่',
   'on.vaoPhong': 'เข้าห้อง',
   'on.phongDangCho': 'ห้องที่เปิดอยู่',
-  'on.dangLamMoi': 'กำลังรีเฟรชรายการ',
-  'on.tuLamMoi': 'รีเฟรชเองใน {n} วินาที — แตะเพื่อรีเฟรชเลย',
   'on.dangVaoPhong': 'กำลังเข้าห้อง…',
   'on.soThe': '{n} ใบ',
   'on.cho': 'ว่าง',

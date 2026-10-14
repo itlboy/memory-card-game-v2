@@ -435,8 +435,6 @@ const ko: TuDien = {
   'on.taoPhongMoi': '새 방 만들기',
   'on.vaoPhong': '방 참가',
   'on.phongDangCho': '참가 가능한 방',
-  'on.dangLamMoi': '목록 새로 고치는 중',
-  'on.tuLamMoi': '{n}초 후 자동 새로 고침 — 탭하면 바로 새로 고침',
   'on.dangVaoPhong': '방에 들어가는 중…',
   'on.soThe': '{n}장',
   'on.cho': '자리',

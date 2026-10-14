@@ -444,8 +444,6 @@ const vi = {
   'on.taoPhongMoi': 'Tạo phòng mới',
   'on.vaoPhong': 'Vào phòng',
   'on.phongDangCho': 'Phòng đang chờ',
-  'on.dangLamMoi': 'Đang làm mới danh sách',
-  'on.tuLamMoi': 'Tự làm mới sau {n} giây — bấm để làm mới ngay',
   'on.dangVaoPhong': 'Đang vào phòng…',
   'on.soThe': '{n} thẻ',
   /** Nhãn nhỏ dưới số chỗ còn trống của một phòng trong danh sách. */

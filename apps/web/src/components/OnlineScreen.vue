@@ -503,6 +503,9 @@ const wizard = ref<null | 'level' | 'theme' | 'options'>(null);
 
 /* ---------- TỰ LÀM MỚI DANH SÁCH PHÒNG ----------
  *
+ * IM LẶNG từ 14.10.2026: không còn vòng tròn đếm ngược hay nút làm mới tay —
+ * chủ dự án bỏ. Danh sách vẫn tự tải lại mỗi CHU_KY_S giây.
+ *
  * Danh sách phòng cũ đứng im cho tới khi người chơi tự bấm nút xoay: bạn tạo
  * phòng ở máy bên cạnh mà người kia ngồi nhìn màn hình trống, không biết là
  * phải bấm gì.
@@ -522,13 +525,6 @@ const demNguoc = ref(CHU_KY_S);
 let nhip: ReturnType<typeof setInterval> | undefined;
 
 function datLaiDem(): void { demNguoc.value = CHU_KY_S; }
-
-/** Bấm tay: làm mới ngay và đếm lại từ đầu — không thì vừa bấm xong một giây
- *  sau nó tự làm mới lần nữa. */
-function lamMoiNgay(): void {
-  datLaiDem();
-  void o.taiPhongCongKhai();
-}
 
 function chay(): void {
   if (nhip) return;
@@ -770,24 +766,6 @@ function openCfgWizard(): void {
       <div class="list-head">
         <h3>{{ t('on.phongDangCho') }}</h3>
         <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
-        <!-- Nhịp tự làm mới: một vòng tròn NHỎ vơi dần, không số, không viền.
-             Đây là thứ liếc qua chứ không phải thứ để bấm — cái đáng bấm ở màn
-             này là "Tạo phòng mới" và các dòng phòng. Bấm vào vẫn làm mới ngay
-             được, nhưng nó không xin ai chú ý. -->
-        <button
-          class="nhip" type="button"
-          :aria-label="o.dangTaiPhong.value ? t('on.dangLamMoi') : t('on.tuLamMoi', { n: demNguoc })"
-          :disabled="o.dangTaiPhong.value" @click="lamMoiNgay()"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" :class="{ quay: o.dangTaiPhong.value }">
-            <circle class="ray" cx="12" cy="12" r="9" />
-            <circle
-              class="chay" cx="12" cy="12" r="9"
-              :stroke-dasharray="56.55"
-              :stroke-dashoffset="o.dangTaiPhong.value ? 42 : 56.55 * (1 - demNguoc / 10)"
-            />
-          </svg>
-        </button>
       </div>
 
       <!-- Đang tải LẦN ĐẦU: khung xám thay vì chữ "đang tải" — người chơi thấy
@@ -1145,32 +1123,8 @@ function openCfgWizard(): void {
 .vao-lai .vl-t { margin: 0; font-family: var(--font-display); font-size: var(--text-md); color: var(--fg); }
 .vao-lai .vl-s { margin: 0; font-size: var(--text-xs); }
 
-/*
- * Nhịp tự làm mới — CHỈ LÀ MỘT BIỂU TƯỢNG, không phải nút.
- *
- * Bản trước là một nút có viền, có nền, có con số đếm ngược to bằng chữ thường:
- * nó hút mắt ngang với "Tạo phòng mới" trong khi chẳng có việc gì đáng làm ở
- * đó. Nay bỏ hết trang trí, còn một vòng tròn mảnh vơi dần — biết là danh sách
- * đang tự cập nhật là đủ, không cần biết còn mấy giây.
- */
-.nhip {
-  position: relative; flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 20px; height: 20px; min-width: 0; min-height: 0; padding: 0;
-  border: 0; background: none; color: var(--muted); opacity: .75;
-}
-/* Vùng chạm vẫn 44px dù hình chỉ 20px (NF-07) — nới bằng ::after, không phình
-   cái biểu tượng lên. */
-.nhip::after { content: ''; position: absolute; inset: -12px; }
-.nhip svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.nhip .ray { fill: none; stroke: currentColor; stroke-width: 1.6; opacity: .3; }
-.nhip .chay {
-  fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round;
-  /* Vơi từng giây một nhịp; không transition để khỏi lệch với nhịp đếm. */
-  transition: none;
-}
-.nhip svg.quay { animation: quay 1s linear infinite; }
-.nhip:disabled { cursor: default; }
+/* Nhịp tự làm mới KHÔNG CÒN HIỆN gì trên màn (chủ dự án bỏ vòng tròn đếm ngược
+   14.10.2026): danh sách vẫn tự cập nhật mỗi CHU_KY_S giây, phòng mới tự hiện ra. */
 
 /* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): nó chiếm chỗ còn lại và tự
    cuộn BÊN TRONG khi có nhiều phòng. */

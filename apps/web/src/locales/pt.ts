@@ -437,8 +437,6 @@ const pt: TuDien = {
   'on.taoPhongMoi': 'Criar nova sala',
   'on.vaoPhong': 'Entrar na sala',
   'on.phongDangCho': 'Salas abertas',
-  'on.dangLamMoi': 'Atualizando lista',
-  'on.tuLamMoi': (p) => `Atualiza sozinho em ${p.n} ${Number(p.n) === 1 ? 'segundo' : 'segundos'} — toque para atualizar agora`,
   'on.dangVaoPhong': 'Entrando na sala…',
   'on.soThe': (p) => `${p.n} ${Number(p.n) === 1 ? 'carta' : 'cartas'}`,
   'on.cho': 'ABERTA',
