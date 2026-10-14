@@ -438,8 +438,6 @@ const de: TuDien = {
   'on.taoPhongMoi': 'Neuen Raum erstellen',
   'on.vaoPhong': 'Beitreten',
   'on.phongDangCho': 'Offene Räume',
-  'on.dangLamMoi': 'Liste wird aktualisiert',
-  'on.tuLamMoi': (p) => `Aktualisierung in ${p.n} ${Number(p.n) === 1 ? 'Sekunde' : 'Sekunden'} — tippen für sofort`,
   'on.dangVaoPhong': 'Trete Raum bei…',
   'on.soThe': (p) => `${p.n} ${Number(p.n) === 1 ? 'Karte' : 'Karten'}`,
   'on.cho': 'FREI',

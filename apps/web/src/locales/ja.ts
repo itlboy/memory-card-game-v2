@@ -435,8 +435,6 @@ const ja: TuDien = {
   'on.taoPhongMoi': 'ルームを新規作成',
   'on.vaoPhong': 'ルームに参加',
   'on.phongDangCho': '募集中のルーム',
-  'on.dangLamMoi': '一覧を更新中',
-  'on.tuLamMoi': '{n}秒後に自動更新 — タップで今すぐ更新',
   'on.dangVaoPhong': 'ルームに参加しています…',
   'on.soThe': '{n}枚',
   'on.cho': '空き',

@@ -441,8 +441,6 @@ const fr: TuDien = {
   'on.taoPhongMoi': 'Nouveau salon',
   'on.vaoPhong': 'Rejoindre',
   'on.phongDangCho': 'Salons ouverts',
-  'on.dangLamMoi': 'Actualisation de la liste',
-  'on.tuLamMoi': (p) => `Actualisation dans ${p.n} ${Number(p.n) <= 1 ? 'seconde' : 'secondes'} — touche pour actualiser`,
   'on.dangVaoPhong': 'Connexion au salon…',
   'on.soThe': (p) => `${p.n} ${Number(p.n) <= 1 ? 'carte' : 'cartes'}`,
   'on.cho': 'PLACES',

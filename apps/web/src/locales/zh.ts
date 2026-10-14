@@ -435,8 +435,6 @@ const zh: TuDien = {
   'on.taoPhongMoi': '创建新房间',
   'on.vaoPhong': '加入房间',
   'on.phongDangCho': '可加入的房间',
-  'on.dangLamMoi': '正在刷新列表',
-  'on.tuLamMoi': '{n} 秒后自动刷新，点按立即刷新',
   'on.dangVaoPhong': '正在加入房间…',
   'on.soThe': '{n} 张牌',
   'on.cho': '空位',

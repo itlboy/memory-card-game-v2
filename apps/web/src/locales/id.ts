@@ -438,8 +438,6 @@ const id: TuDien = {
   'on.taoPhongMoi': 'Buat room baru',
   'on.vaoPhong': 'Masuk room',
   'on.phongDangCho': 'Room terbuka',
-  'on.dangLamMoi': 'Memuat ulang daftar',
-  'on.tuLamMoi': 'Dimuat ulang otomatis dalam {n} detik — ketuk untuk memuat ulang sekarang',
   'on.dangVaoPhong': 'Masuk ke room…',
   'on.soThe': '{n} kartu',
   'on.cho': 'BUKA',

@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
- * DANH SÁCH PHÒNG TỰ LÀM MỚI mỗi 10 giây, có đếm ngược.
+ * DANH SÁCH PHÒNG TỰ LÀM MỚI mỗi 10 giây, IM LẶNG (không hiện vòng đếm ngược —
+ * chủ dự án bỏ 14.10.2026).
  *
  * Mỗi nhịp là một lần đánh thức Durable Object sổ phòng cho MỌI người đang mở
  * màn này, nên hai chốt dưới đây là thứ giữ cái giá đó khỏi bị nhân lên. Bỏ
@@ -15,7 +16,7 @@ const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue
 describe('tự làm mới danh sách phòng', () => {
   it('có nhịp đếm và chu kỳ 10 giây', () => {
     expect(src).toMatch(/const CHU_KY_S = 10;/);
-    expect(src, 'phải có đếm ngược hiện ra cho người chơi').toContain('demNguoc');
+    expect(src, 'phải có nhịp đếm').toContain('demNguoc');
   });
 
   it('DỪNG khi tab xuống nền, và làm mới NGAY khi quay lại', () => {
@@ -35,21 +36,9 @@ describe('tự làm mới danh sách phòng', () => {
     expect(src).toMatch(/onUnmounted\(\(\) => \{[\s\S]{0,200}removeEventListener\('visibilitychange'/);
   });
 
-  it('nhịp làm mới là BIỂU TƯỢNG, không phải nút', () => {
-    // Chỗ này chẳng có việc gì đáng làm, nên nó không được hút mắt ngang với
-    // "Tạo phòng mới". Không viền, không nền, không con số đếm ngược.
-    expect(src, 'không còn con số đếm ngược hiển thị').not.toContain('class="so"');
-    const khoi = src.slice(src.indexOf('.nhip {'), src.indexOf('.nhip:disabled'));
-    expect(khoi).toMatch(/border:\s*0/);
-    expect(khoi).toMatch(/background:\s*none/);
-    // Vùng chạm vẫn phải 44px dù hình chỉ 20px (NF-07)
-    expect(khoi).toMatch(/width:\s*20px/);
-    expect(src).toMatch(/\.nhip::after[^}]*inset:\s*-12px/);
-  });
-
-  it('bấm tay thì đếm lại từ đầu', () => {
-    // Không thì vừa bấm xong một giây sau nó tự làm mới lần nữa
-    expect(src).toMatch(/function lamMoiNgay\(\)[\s\S]{0,120}datLaiDem\(\)/);
-    expect(src).toContain('@click="lamMoiNgay()"');
+  it('không còn vòng tròn đếm ngược / nút làm mới trên màn', () => {
+    const tpl = src.slice(src.indexOf('<template>'), src.indexOf('<style'));
+    expect(tpl).not.toContain('class="nhip"');
+    expect(tpl).not.toContain('demNguoc');
   });
 });

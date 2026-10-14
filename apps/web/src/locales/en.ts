@@ -437,8 +437,6 @@ const en: TuDien = {
   'on.taoPhongMoi': 'Create New Room',
   'on.vaoPhong': 'Join Room',
   'on.phongDangCho': 'Open Rooms',
-  'on.dangLamMoi': 'Refreshing list',
-  'on.tuLamMoi': (p) => `Auto-refresh in ${p.n} ${Number(p.n) === 1 ? 'second' : 'seconds'} — tap to refresh now`,
   'on.dangVaoPhong': 'Joining room…',
   'on.soThe': (p) => `${p.n} ${Number(p.n) === 1 ? 'card' : 'cards'}`,
   'on.cho': 'OPEN',
