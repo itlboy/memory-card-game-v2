@@ -53,11 +53,17 @@ describe('lưới theme: co giãn khi thêm theme', () => {
   it('SỐ CỘT tự tính theo bề rộng, không cứng 3 cột', () => {
     // `repeat(3, 1fr)` cứng nghĩa là thêm theme thì ô nào cũng bé lại; auto-fill
     // thì máy rộng xếp thêm cột.
-    expect(css).toMatch(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\((\d+)px,\s*1fr\)\)/);
-    const min = Number(/minmax\((\d+)px, 1fr\)/.exec(css)![1]);
+    expect(css).toMatch(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(max\((\d+)px,\s*calc\(\(100% - 30px\) \/ 4\)\),\s*1fr\)\)/);
+    const min = Number(/minmax\(max\((\d+)px,/.exec(css)![1]);
     // Không hẹp quá (tên theme hai chữ vỡ dòng) và không rộng quá (SE còn 3 cột).
     expect(min).toBeGreaterThanOrEqual(76);
     expect(min).toBeLessThanOrEqual(110);
+  });
+
+  it('TRẦN 4 CỘT: 24 theme mỗi tab chia đều, không lẻ hàng ở cột desktop/iPad', () => {
+    // Cột tối thiểu = 1/4 bề rộng trừ 3 khe — khe ngang phải đúng 10px như `gap`
+    expect(css).toMatch(/gap:\s*12px 10px/);
+    expect(css).toContain('calc((100% - 30px) / 4)');
   });
 
   it('CHIỀU CAO ô co theo màn nhưng vẫn XÁC ĐỊNH (container query cần thế)', () => {

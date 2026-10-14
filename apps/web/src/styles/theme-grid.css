@@ -23,8 +23,13 @@
    * cột app: 375px → 3 cột · 430px → 4 cột · cột desktop 440px → 4 cột.
    * `minmax(84px, 1fr)` là mức đã đo: dưới 84px thì tên theme hai chữ
    * ("Nhạc cụ", "Huyền thoại") bắt đầu vỡ dòng xấu.
+   *
+   * TRẦN 4 CỘT (14.10.2026): mỗi tab có 24 theme (chia hết cho 3 và 4), mà cột
+   * desktop 600px / iPad tự xếp ra 5 cột → hàng cuối lẻ 4 ô (chủ dự án báo, có ảnh).
+   * Cột tối thiểu = max(84px, 1/4 bề rộng trừ 3 khe 10px) nên auto-fill không bao giờ
+   * nhét được cột thứ năm; máy hẹp vẫn tự về 3 cột như cũ.
    */
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(max(84px, calc((100% - 30px) / 4)), 1fr));
   /*
    * CHIỀU CAO Ô CO THEO MÀN, nhưng vẫn là số XÁC ĐỊNH.
    *
