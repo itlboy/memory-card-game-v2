@@ -65,19 +65,33 @@ const BO: Record<NgonNgu, TuDien> = { vi, en, es, pt, fr, de, ja, ko, zh, ru, id
 /** Mọi từ điển (trừ bản gốc) — cho test đối chiếu. */
 export const TU_DIEN = BO;
 const KHOA_LUU = 'mm.lang';
+/** Ngôn ngữ MÁY (của app) lúc mở lần trước — để biết người dùng có vừa đổi trong Cài đặt máy không. */
+const KHOA_MAY = 'mm.langMay';
 
 function docBanDau(): NgonNgu {
   try {
     const q = new URLSearchParams(location.search).get('lang');
     if (LA_NGON_NGU(q)) { localStorage.setItem(KHOA_LUU, q); return q; }
     const luu = localStorage.getItem(KHOA_LUU);
-    if (LA_NGON_NGU(luu)) return luu;
     /*
-     * TRONG APP (Capacitor) thì ĐOÁN THEO MÁY: ngôn ngữ của khung web iOS chính
-     * là ngôn ngữ máy — kể cả khi người dùng chọn ngôn ngữ riêng cho app trong
-     * Cài đặt iOS — nên đó là lựa chọn thật. Trên web thì không (xem đầu file).
+     * TRONG APP (Capacitor): ngôn ngữ của khung web CHÍNH LÀ ngôn ngữ riêng của app
+     * mà người dùng đặt trong Cài đặt máy (iOS: Cài đặt → Flip Match; Android 13+:
+     * Cài đặt → Ứng dụng → Ngôn ngữ). HAI CHIỀU ĐỒNG BỘ (14.10.2026):
+     *  · máy → game: ngôn ngữ máy KHÁC lần mở trước (`mm.langMay`) nghĩa là người
+     *    dùng vừa đổi trong Cài đặt → theo máy, bỏ lựa chọn cũ trong game;
+     *  · game → máy: chọn trong game thì ghi xuống máy (`ghiXuongMay`, lib/ngon-ngu-app.ts).
+     * Trên web thì không đoán (xem đầu file).
      */
-    if (laApp && typeof navigator !== 'undefined') return theoMay(navigator.languages ?? [navigator.language]);
+    if (laApp && typeof navigator !== 'undefined') {
+      const may = theoMay(navigator.languages ?? [navigator.language]);
+      if (localStorage.getItem(KHOA_MAY) !== may) {
+        localStorage.setItem(KHOA_MAY, may);
+        localStorage.setItem(KHOA_LUU, may);
+        return may;
+      }
+      return LA_NGON_NGU(luu) ? luu : may;
+    }
+    if (LA_NGON_NGU(luu)) return luu;
   } catch { /* chế độ riêng tư / môi trường không có location */ }
   return 'vi';
 }
@@ -94,8 +108,13 @@ export function theoMay(ds: readonly string[]): NgonNgu {
 
 export const ngonNgu = ref<NgonNgu>(docBanDau());
 
-watch(ngonNgu, (l) => {
+watch(ngonNgu, (l, cu) => {
   try { localStorage.setItem(KHOA_LUU, l); } catch { /* bỏ qua */ }
+  // Người chơi đổi trong game (không phải lần đặt đầu): ghi xuống Cài đặt máy cho khớp
+  if (cu !== undefined && laApp) {
+    try { localStorage.setItem(KHOA_MAY, l); } catch { /* bỏ qua */ }
+    void import('./ngon-ngu-app').then((m) => m.ghiXuongMay(l)).catch(() => { /* không có plugin */ });
+  }
   if (typeof document !== 'undefined') {
     document.documentElement.lang = l;
     // Tiêu đề tab theo ngôn ngữ (index.html chỉ có bản tiếng Việt cho máy đọc thẻ og)

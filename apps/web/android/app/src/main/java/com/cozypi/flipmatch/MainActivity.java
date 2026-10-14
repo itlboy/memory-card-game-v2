@@ -16,6 +16,8 @@ public class MainActivity extends BridgeActivity {
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Plugin tự viết phải đăng ký TRƯỚC super.onCreate (lúc đó bridge mới dựng)
+        registerPlugin(NgonNguAppPlugin.class);
         super.onCreate(savedInstanceState);
         WebSettings s = getBridge().getWebView().getSettings();
         // Cỡ chữ WebView CỐ ĐỊNH 100%: Android áp "Cỡ chữ" của hệ thống vào trang
