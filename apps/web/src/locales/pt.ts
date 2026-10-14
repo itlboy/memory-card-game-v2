@@ -563,6 +563,7 @@ const pt: TuDien = {
   'lc.xemThang': 'Vitória · {ten}',
   'lc.xemThua': 'Derrota · {ten}',
   'lc.ghiCong': "Arte das cartas (aparelhos não Apple) e rosto do dragão: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragão recolorido",
+  'lc.banApp': "App (loja): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': 'Você ganhou ',

@@ -563,6 +563,7 @@ const en: TuDien = {
   'lc.xemThang': 'Win · {ten}',
   'lc.xemThua': 'Loss · {ten}',
   'lc.ghiCong': "Card artwork (non-Apple devices) and dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragon recolored",
+  'lc.banApp': "App (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */
   'cd.daDat': 'Earned ',

@@ -561,6 +561,7 @@ const ko: TuDien = {
   'lc.xemThang': '승리 · {ten}',
   'lc.xemThua': '패배 · {ten}',
   'lc.ghiCong': "카드 그림(Apple 외 기기)과 용 얼굴: Twemoji (Twitter, Inc.) · CC-BY 4.0, 용은 색상 변경",
+  'lc.banApp': "앱(스토어): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': '획득한 별 ',

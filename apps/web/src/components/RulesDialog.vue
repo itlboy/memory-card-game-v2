@@ -5,6 +5,7 @@ import { X } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import { t } from '@/lib/i18n';
+import { banNative } from '@/lib/ota';
 import OptionIcon from './OptionIcon.vue';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
@@ -37,6 +38,8 @@ onMounted(() => {
   }, 1000);
 });
 onUnmounted(() => clearInterval(tick));
+const native = ref<string | null>(null);
+void banNative().then((v) => { native.value = v; });
 
 /*
  * CỬA BÍ MẬT VÀO CHẾ ĐỘ DEBUG (chủ dự án 14.10.2026: nút bật nằm sẵn trên màn là
@@ -149,6 +152,9 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
       <p class="build" @click="chamPhienBan">
         <b>v{{ version }}</b> · build {{ builtAt }}
         <span class="ago">({{ ago }})</span>
+        <!-- Trong app: bản NATIVE cài từ store. Gói web phía trên có thể mới hơn nhờ cập
+             nhật nóng (lib/ota.ts) — hai dòng khác nhau là bình thường. -->
+        <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
       </p>
 
       <!-- DƯỚI CÙNG, sau cả số bản dựng: đây là công cụ soi lỗi, không phải một

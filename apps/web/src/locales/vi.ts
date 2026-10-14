@@ -574,6 +574,7 @@ const vi = {
   'lc.xemThang': 'Thắng · {ten}',
   'lc.xemThua': 'Thua · {ten}',
   'lc.ghiCong': "Hình mặt bài (máy không phải Apple) và mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0; mặt rồng đã đổi màu",
+  'lc.banApp': "Bản app (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */
   'cd.daDat': 'Đã đạt ',

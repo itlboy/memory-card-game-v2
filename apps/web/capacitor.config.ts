@@ -33,6 +33,18 @@ const config: CapacitorConfig = {
     },
     // Màn chờ giữ tới khi main.ts gọi SplashScreen.hide() (game đã vẽ khung đầu).
     // Tự tắt sau 3 giây là CHỐT AN TOÀN: JS lỗi thì không kẹt mãi ở màn chờ.
+    /*
+     * CẬP NHẬT NÓNG (lib/ota.ts): chế độ THỦ CÔNG (autoUpdate tắt — tự đọc
+     * /ota/manifest.json của server mình), KHÔNG gửi thống kê về Capgo (mặc định nó
+     * gửi crash + lỗi JS + tín hiệu WebView — phải khai App Privacy nếu bật).
+     * resetWhenUpdate: cài bản store mới hơn thì bỏ gói OTA cũ, chạy gói đi kèm app.
+     */
+    CapacitorUpdater: {
+      autoUpdate: false,
+      statsUrl: '',
+      resetWhenUpdate: true,
+      appReadyTimeout: 10000
+    },
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 3000,

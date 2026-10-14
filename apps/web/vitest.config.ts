@@ -14,7 +14,8 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify('1.1.0'),
     __BUILD_AT__: JSON.stringify('01/01/2026 00:00'),
-    __BUILD_ISO__: JSON.stringify('2026-01-01T00:00:00.000Z')
+    __BUILD_ISO__: JSON.stringify('2026-01-01T00:00:00.000Z'),
+    __OTA_ID__: JSON.stringify('test-ota')
   },
   test: {
     globals: true, environment: 'happy-dom', include: ['test/**/*.test.ts'],

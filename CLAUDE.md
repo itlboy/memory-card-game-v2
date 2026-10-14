@@ -443,6 +443,16 @@
 - **Nút Back Android cần `@capacitor/app`** (`lib/nut-back.ts`): thiếu plugin là Back
   thoát thẳng app kể cả giữa wizard. Ngôn ngữ app đồng bộ hai chiều với Cài đặt máy
   (`lib/ngon-ngu-app.ts`, plugin `NgonNguApp`, khoá `mm.langMay`, Android `localeConfig`).
+- **CẬP NHẬT NÓNG (OTA, từ bản app 1.3.0)**: sửa phần WEB xong + deploy là app tự
+  nhận ở lần MỞ LẠI kế tiếp, KHÔNG qua duyệt store (`@capgo/capacitor-updater` chế độ
+  thủ công, `lib/ota.ts`). `pnpm --filter @mm/web build` tự chạy `tools/dong-goi-ota.mjs`
+  → `dist/ota/manifest.json` + zip (bản dựng kiểu APP, VITE_SERVER_URL công khai), nên
+  Docker và `pnpm release` đều mang theo. **Đổi phần NATIVE** (plugin, Swift/Java,
+  Info.plist, quyền) thì vẫn phải ra bản store VÀ nâng `minNative` trong
+  `apps/web/ota.json` = phiên bản app mới — quên nâng là app cũ tải gói gọi plugin nó
+  không có. `statsUrl: ''` là BẮT BUỘC (mặc định plugin gửi crash/lỗi JS về Capgo →
+  phải khai App Privacy). Gói hỏng (không `notifyAppReady` trong 10 giây) tự quay về gói
+  trước. Luật chơi hiện cả gói web (v + giờ build) lẫn bản app store (`lc.banApp`).
 - **Mockup cho chủ dự án**: ưu tiên ẢNH CHỤP THẬT (chế độ debug → "Xem thử hiệu ứng",
   hoặc sửa DOM ngay trên trang thật để ra bản đề xuất) ghép vào một artifact, thay vì
   vẽ lại bằng tay. Họ duyệt mockup trước khi làm tính năng giao diện mới.

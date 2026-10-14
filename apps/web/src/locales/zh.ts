@@ -561,6 +561,7 @@ const zh: TuDien = {
   'lc.xemThang': '胜利 · {ten}',
   'lc.xemThua': '失败 · {ten}',
   'lc.ghiCong': "卡面图案（非 Apple 设备）与神龙头像：Twemoji（Twitter, Inc.）· CC-BY 4.0；神龙已改色",
+  'lc.banApp': "应用（商店）：{ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */
   'cd.daDat': '已获得 ',
