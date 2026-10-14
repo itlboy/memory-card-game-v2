@@ -2,8 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { MemoryGame, isDraw } from '@mm/engine';
-import { BOT_SPECS } from '@mm/engine';
-import { BIEN_THE, CAU_TREU, HIEN_BANG_MS, TEN_BIEN_THE, TEN_CANH, bocBienThe, chonCanh } from '@/lib/ketcuc-fx';
+import { BIEN_THE, HIEN_BANG_MS, TEN_BIEN_THE, TEN_CANH, bocBienThe, chonCanh } from '@/lib/ketcuc-fx';
 import type { Summary } from '@mm/engine';
 
 /**
@@ -110,8 +109,9 @@ describe('sổ cảnh kết ván (bộ mới 11.10.2026)', () => {
     expect(chonCanh('thang')).toBe('thang');
     expect(chonCanh('thang', { kyLuc: true })).toBe('ky-luc');
     expect(chonCanh('thua')).toBe('thua');
-    expect(chonCanh('thua', { matMay: '🐯' })).toBe('thua-may');
-    expect(chonCanh('hoa', { matMay: '🐯', kyLuc: true })).toBe('hoa');
+    expect(chonCanh('hoa', { kyLuc: true })).toBe('hoa');
+    // Thua MÁY dùng chung cảnh thua (14.10.2026) — không còn cảnh "máy trêu"
+    expect(Object.keys(TEN_CANH)).not.toContain('thua-may');
   });
 
   it('mọi cảnh có tên và mốc hiện bảng kết quả trong khoảng 2–3 giây', () => {
@@ -125,10 +125,6 @@ describe('sổ cảnh kết ván (bộ mới 11.10.2026)', () => {
     const lop = [...vue.matchAll(/class="([^"]+)"/g)].flatMap((m) => m[1]!.split(/\s+/)).filter((c) => c.startsWith('fx-'));
     expect(lop.length).toBeGreaterThan(5);
     for (const c of lop) expect(css, c).toContain(`.${c}`);
-  });
-
-  it('mọi mức máy có câu trêu riêng', () => {
-    for (const spec of Object.values(BOT_SPECS)) expect(CAU_TREU[spec.avatar], spec.name).toBeTruthy();
   });
 
   it('lớp hiệu ứng nằm DƯỚI hộp kết quả', () => {
@@ -161,7 +157,6 @@ describe('biến thể thắng / thua', () => {
       for (const b of ds) expect(ra, `${canh}: ${b} không bao giờ ra`).toContain(b);
     }
     expect(bocBienThe('hoa', 1)).toBeNull();
-    expect(bocBienThe('thua-may', 1)).toBeNull();
   });
   it('mỗi biến thể có nhánh template, nhánh chuyển động và tiếng', () => {
     const vue = readFileSync(resolve(process.cwd(), 'src/components/KetCucFx.vue'), 'utf8');

@@ -26,11 +26,12 @@ import { t, type KhoaDich } from './i18n';
 /** Kết cục dưới góc nhìn CỦA NGƯỜI ĐANG NGỒI TRƯỚC MÁY — không phải của bàn. */
 export type LoaiKetCuc = 'thang' | 'thua' | 'hoa';
 
-/** Năm cảnh. Thua tách hai: thua đồng hồ/bàn khác thua MÁY (có kẻ trêu mình). */
-export type CanhKetCuc = 'thang' | 'ky-luc' | 'thua' | 'thua-may' | 'hoa';
+/** Bốn cảnh. Thua MÁY dùng chung cảnh thua với thua người (chủ dự án 14.10.2026: đấu
+ *  máy hiện như đấu người — bỏ cảnh "máy trêu" và câu trêu riêng từng mức máy). */
+export type CanhKetCuc = 'thang' | 'ky-luc' | 'thua' | 'hoa';
 
 export const TEN_CANH: Record<CanhKetCuc, string> = {
-  thang: 'Chiến thắng', 'ky-luc': 'Kỷ lục mới', thua: 'Thua rồi', 'thua-may': 'Máy thắng', hoa: 'Hoà'
+  thang: 'Chiến thắng', 'ky-luc': 'Kỷ lục mới', thua: 'Thua rồi', hoa: 'Hoà'
 };
 
 /**
@@ -62,10 +63,10 @@ export function bocBienThe(canh: CanhKetCuc, seed: number): BienThe | null {
   return ds ? ds[bam(seed) % ds.length]! : null;
 }
 
-export function chonCanh(loai: LoaiKetCuc, o: { kyLuc?: boolean; matMay?: string | null } = {}): CanhKetCuc {
+export function chonCanh(loai: LoaiKetCuc, o: { kyLuc?: boolean } = {}): CanhKetCuc {
   if (loai === 'hoa') return 'hoa';
   if (loai === 'thang') return o.kyLuc ? 'ky-luc' : 'thang';
-  return o.matMay ? 'thua-may' : 'thua';
+  return 'thua';
 }
 
 /**
@@ -75,7 +76,7 @@ export function chonCanh(loai: LoaiKetCuc, o: { kyLuc?: boolean; matMay?: string
 export const HIEN_BANG_MS: Record<CanhKetCuc, number> = {
   // Thua 2,9s: cảnh thua nay có cú đập vỡ màn (1,45s) và đám mây đổ mưa (1,6s→)
   // Cảnh có nhiều biến thể thì mốc là của biến thể DÀI nhất (game over 2,9s)
-  thang: 2300, 'ky-luc': 2600, thua: 2900, 'thua-may': 2400, hoa: 2000
+  thang: 2300, 'ky-luc': 2600, thua: 2900, hoa: 2000
 };
 
 /** Vết nứt toả từ điểm chữ chạm đất — toạ độ quanh tâm (0,0) của khối chữ. */
@@ -89,17 +90,9 @@ export const VET_NUT: readonly string[] = [
   'M-34 -8 L-38 -24', 'M38 4 L42 22', 'M-40 2 L-48 -6'
 ];
 
-/** Câu trêu của từng mức máy, theo MẶT máy (avatar là thứ có sẵn trong ranking) → khoá dịch. */
-export const CAU_TREU: Record<string, KhoaDich> = {
-  '🐣': 'fx.treu.ga-mo',
-  '🐥': 'fx.treu.ga-cung',
-  ':bao-den:': 'fx.treu.bao-den',
-  '🐯': 'fx.treu.man-ho',
-  ':rong-vang:': 'fx.treu.rong'
-};
-export const cauTreu = (mat: string | null | undefined): string => t((mat && CAU_TREU[mat]) || 'fx.treu.khac');
 
-/** Dòng an ủi khi thua: nói đúng còn thiếu bao nhiêu — lý do để bấm Chơi lại. */
+/** Dòng an ủi khi thua MỘT MÌNH (hết giờ/mạng): nói đúng còn thiếu bao nhiêu — lý do
+ *  để bấm Chơi lại. Thua người/máy thì KHÔNG hiện: bàn đã sạch, câu đó vô nghĩa. */
 export function dongAnUi(capConLai: number): string {
   return capConLai > 0 ? t('fx.conCap', { n: capConLai }) : t('fx.suytNua');
 }
@@ -363,9 +356,6 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
       });
       break;
     }
-    case 'thua-may':
-      xam(0.6); s.rung(1);
-      break;
     case 'hoa':
       sau(550, () => s.rung(2));
       sau(1200, () => s.hat.mua(giam ? 12 : 40, ['#8b7dff', '#ff5fa8']));

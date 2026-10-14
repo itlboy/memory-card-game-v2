@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { sfx } from '@/lib/audio';
-import { BoHat, bocBienThe, chayCanh, chonCanh, cauTreu, dongAnUi, VET_NUT } from '@/lib/ketcuc-fx';
+import { BoHat, bocBienThe, chayCanh, chonCanh, dongAnUi, VET_NUT } from '@/lib/ketcuc-fx';
 import type { BienThe } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
 import { t, td } from '@/lib/i18n';
-import MatBot from './MatBot.vue';
 
 /**
  * HIỆU ỨNG KẾT VÁN — component DUY NHẤT cho mọi kết cục (xem `lib/ketcuc-fx.ts`).
@@ -21,15 +20,16 @@ const props = defineProps<{
   seed?: number;
   /** Ván vừa phá kỷ lục → cảnh kỷ lục (biến thể thắng + băng vàng + pháo hoa). */
   kyLuc?: boolean;
-  /** Mặt máy vừa THẮNG mình (đấu máy) → cảnh máy trêu. */
-  matMay?: string | null;
+  /** Ván MỘT MÌNH → thua thì kèm dòng an ủi "còn N cặp". Đấu máy / online / nhiều
+   *  người thì không (chủ dự án 14.10.2026: đấu máy hiện y như đấu người). */
+  motMinh?: boolean;
   /** Ép một biến thể (khu "Xem thử hiệu ứng" trong chế độ debug). */
   bienThe?: BienThe | null;
   /** Xem thử: không có chỗ gọi nào phát tiếng gốc (thắng/hoà/máy cười) nên tự phát. */
   xemThu?: boolean;
 }>();
 
-const canh = computed(() => chonCanh(props.loai, { kyLuc: props.kyLuc, matMay: props.matMay }));
+const canh = computed(() => chonCanh(props.loai, { kyLuc: props.kyLuc }));
 const bt = computed<BienThe | null>(() => props.bienThe ?? bocBienThe(canh.value, props.seed ?? 7));
 const cv = ref<HTMLCanvasElement | null>(null);
 /** Số cặp còn úp lúc thua — đếm từ DOM bàn thẻ, đúng cho cả offline lẫn online. */
@@ -55,7 +55,6 @@ onMounted(() => {
   if (props.xemThu) {
     if (canh.value === 'thang' || canh.value === 'ky-luc') sfx.victory();
     else if (canh.value === 'hoa') sfx.win();
-    else if (canh.value === 'thua-may') sfx.defeat();
   }
   if (bt.value) TIENG_BIEN_THE[bt.value]();
   if (canh.value === 'ky-luc') sfx.kyLuc();
@@ -96,7 +95,7 @@ onBeforeUnmount(() => don?.());
       <div class="fx-quet" />
       <div class="fx-khoi-thua fx-go">
         <div class="fx-game-over fx-tieu-de"><template v-for="(dong, i) in t('fx.gameOver').split('|')" :key="i"><br v-if="i">{{ dong }}</template></div>
-        <p class="fx-an-ui fx-an-ui-go">{{ dongAnUi(capConLai) }}</p>
+        <p v-if="motMinh" class="fx-an-ui fx-an-ui-go">{{ dongAnUi(capConLai) }}</p>
         <p class="fx-nhan-nut">{{ t('fx.bamChoiLai') }}</p>
       </div>
     </template>
@@ -107,7 +106,7 @@ onBeforeUnmount(() => don?.());
         <div class="fx-chu fx-thua fx-tieu-de fx-tro-chu" :aria-label="t('fx.thuaRoi')">
           <span v-for="(c, i) in [...t('fx.thuaRoi')]" :key="i" class="fx-ky" :style="{ animationDelay: `${0.35 + i * 0.04}s, ${1.35 + i * 0.07}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
         </div>
-        <p class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
+        <p v-if="motMinh" class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
       </div>
     </template>
 
@@ -125,16 +124,12 @@ onBeforeUnmount(() => don?.());
         <div class="fx-chu fx-thua fx-tieu-de" :aria-label="t('fx.thuaRoi')">
           <span v-for="(c, i) in [...t('fx.thuaRoi')]" :key="i" class="fx-ky" :style="{ animationDelay: `${0.85 + i * 0.05}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
         </div>
-        <p class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
+        <p v-if="motMinh" class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
         <!-- Đám mây xui xẻo trôi tới đổ mưa lên chữ (mưa vẽ trên canvas) -->
         <span class="fx-may-mua" aria-hidden="true">🌧️</span>
       </div>
     </template>
 
-    <template v-else-if="canh === 'thua-may'">
-      <div class="fx-may"><MatBot :mat="matMay ?? ''" /></div>
-      <div class="fx-bong">{{ cauTreu(matMay) }}</div>
-    </template>
 
     <template v-else>
       <div class="fx-nua fx-trai" />

@@ -212,12 +212,6 @@ const en: TuDien = {
   'fx.bamChoiLai': '▶ TAP TO RETRY',
   'fx.conCap': (p) => `Only ${p.n} more ${Number(p.n) === 1 ? 'pair' : 'pairs'} to go. Try again?`,
   'fx.suytNua': 'So close. Try again?',
-  'fx.treu.ga-mo': 'Wait… did I actually win?',
-  'fx.treu.ga-cung': 'Lucky me, hehe!',
-  'fx.treu.bao-den': 'Fast as a panther!',
-  'fx.treu.man-ho': 'Grrr… better luck next time!',
-  'fx.treu.rong': 'Undefeated, as always!',
-  'fx.treu.khac': 'Hehe, next time!',
   'fx.moKhoa': 'Achievement Unlocked',
   'fx.bac.dong': 'Bronze',
   'fx.bac.bac': 'Silver',
@@ -563,7 +557,6 @@ const en: TuDien = {
   'lc.xemThu': 'Preview End-of-Game Effects',
   'lc.xemThang': 'Win · {ten}',
   'lc.xemThua': 'Loss · {ten}',
-  'lc.xemThuaMay': 'Lost to the computer',
   'lc.ghiCong': "Card artwork (non-Apple devices) and dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragon recolored",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

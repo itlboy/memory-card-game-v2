@@ -172,10 +172,8 @@ export function useGameSession() {
           // với nhánh online, chứ không phải hai kiểu ăn mừng cho cùng kết cục.
           if (isDraw(e.summary.ranking)) sfx.win();
           else if (nguoiChoiThang(e.summary)) sfx.victory();
-          // Thua BOT dùng `defeat()` như thua online: có kẻ thắng ngay trước
-          // mắt mình, khác hẳn ván một mình hết giờ (`lose()`).
-          else if (botLevel.value) sfx.defeat();
-          // Thua thường: KHÔNG phát ở đây — ba biến thể thua nghe khác hẳn nhau, KetCucFx
+          // Thua (cả thua MÁY, 14.10.2026 — đấu máy hiện y như đấu người, không còn tiếng
+          // máy cười): KHÔNG phát ở đây — ba biến thể thua nghe khác hẳn nhau, KetCucFx
           // phát đúng tiếng của biến thể (TIENG_BIEN_THE).
           break;
       }

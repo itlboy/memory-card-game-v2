@@ -210,12 +210,6 @@ const zh: TuDien = {
   'fx.bamChoiLai': '▶ 点击重来',
   'fx.conCap': '只差 {n} 对了，再试一次？',
   'fx.suytNua': '就差一点，再试一次？',
-  'fx.treu.ga-mo': '咦……我真的赢了？',
-  'fx.treu.ga-cung': '运气好而已，嘿嘿！',
-  'fx.treu.bao-den': '快如黑豹！',
-  'fx.treu.man-ho': '嗷呜……下次再来吧！',
-  'fx.treu.rong': '依旧不败！',
-  'fx.treu.khac': '嘿嘿，下次吧！',
   'fx.moKhoa': '成就解锁',
   'fx.bac.dong': '铜牌',
   'fx.bac.bac': '银牌',
@@ -561,7 +555,6 @@ const zh: TuDien = {
   'lc.xemThu': '预览结局特效',
   'lc.xemThang': '胜利 · {ten}',
   'lc.xemThua': '失败 · {ten}',
-  'lc.xemThuaMay': '输给电脑',
   'lc.ghiCong': "卡面图案（非 Apple 设备）与神龙头像：Twemoji（Twitter, Inc.）· CC-BY 4.0；神龙已改色",
 
   /* ---------- campaign map (LevelMap) ---------- */

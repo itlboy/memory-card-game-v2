@@ -32,8 +32,9 @@
   `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
   KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên
   lớp nền tối (z 2) và dưới chữ (z 3) — từng nằm dưới, pháo hoa gần như vô hình.
-  Duyệt biến thể trên máy thật: chế độ debug → Luật chơi → "Xem thử hiệu ứng" (bật debug: chạm 7 lần vào dòng phiên bản cuối trang Luật chơi, hoặc `?debug=1` — nút bật KHÔNG nằm sẵn trên màn, chủ dự án 14.10.2026). Năm cảnh:
-  thắng · kỷ lục · thua · thua máy (máy trêu, câu theo mặt máy) · hoà, chọn ở
+  Duyệt biến thể trên máy thật: chế độ debug → Luật chơi → "Xem thử hiệu ứng" (bật debug: chạm 7 lần vào dòng phiên bản cuối trang Luật chơi, hoặc `?debug=1` — nút bật KHÔNG nằm sẵn trên màn, chủ dự án 14.10.2026). Bốn cảnh:
+  thắng · kỷ lục · thua · hoà (cảnh "máy trêu" đã BỎ 14.10.2026 — đấu máy hiện y như
+  đấu người; dòng an ủi "còn N cặp" CHỈ ở ván một mình, prop `motMinh`), chọn ở
   `chonCanh()`. `lib/ketcuc-fx.ts` lo chọn cảnh, mốc `HIEN_BANG_MS` (App và
   OnlineGame đọc, đừng chép tay số) và chuyển động JS; chữ lớn là CSS có delay ở
   `styles/ketcuc-fx.css`; `KetCucFx.vue` là component DUY NHẤT. Cảnh CHẠM BÀN
@@ -41,8 +42,8 @@
   `transform` — lá đang dùng transform để lật, ghi đè là lộ mặt. Dọn cảnh phải
   `cancel()` mọi animation, không thì Chơi lại ra bàn thiếu lá. Lá rơi so le tối
   đa 600ms tổng (90ms/lá thì bàn 88 thẻ mất 8 giây — harness bắt). Tiếng vẫn ở
-  chỗ gọi (`victory/lose/defeat/win`), mốc khớp cảnh; online thua dùng `lose`,
-  `defeat` là tiếng MÁY CƯỜI. Huy hiệu danh hiệu: `MoKhoaFx` (z 19) bay vào viên
+  chỗ gọi (`victory/win`), mốc khớp cảnh; tiếng THUA (cả thua máy, thua online) do
+  KetCucFx phát theo biến thể — `defeat` (máy cười) không còn ai gọi. Huy hiệu danh hiệu: `MoKhoaFx` (z 19) bay vào viên
   🏅, viên chỉ nhích khi chạm (`dangKhoe`), khoe sau khi bảng kết quả hiện
   (`moKhoa(ids, { treMs })`), bậc cao trước.
 - **MẶT SAU LÁ BÀI NẰM Ở SỔ RIÊNG.** Thêm/sửa/xoá chỉ đụng hai file:

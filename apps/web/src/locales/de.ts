@@ -213,12 +213,6 @@ const de: TuDien = {
   'fx.bamChoiLai': '▶ TIPPEN FÜR NEUSTART',
   'fx.conCap': (p) => `Nur noch ${p.n} ${Number(p.n) === 1 ? 'Paar' : 'Paare'}. Nochmal?`,
   'fx.suytNua': 'Ganz knapp. Nochmal?',
-  'fx.treu.ga-mo': 'Äh… hab ich etwa gewonnen?',
-  'fx.treu.ga-cung': 'Glück gehabt, hihi!',
-  'fx.treu.bao-den': 'Flink wie ein Panther!',
-  'fx.treu.man-ho': 'Grrr… vielleicht nächstes Mal!',
-  'fx.treu.rong': 'Unbesiegt, wie immer!',
-  'fx.treu.khac': 'Hehe, nächstes Mal!',
   'fx.moKhoa': 'Erfolg freigeschaltet',
   'fx.bac.dong': 'Bronze',
   'fx.bac.bac': 'Silber',
@@ -564,7 +558,6 @@ const de: TuDien = {
   'lc.xemThu': 'Spielende-Effekte ansehen',
   'lc.xemThang': 'Sieg · {ten}',
   'lc.xemThua': 'Niederlage · {ten}',
-  'lc.xemThuaMay': 'Gegen den Computer verloren',
   'lc.ghiCong': "Kartengrafiken (Nicht-Apple-Geräte) und Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0; Drache umgefärbt",
 
   /* ---------- campaign map (LevelMap) ---------- */

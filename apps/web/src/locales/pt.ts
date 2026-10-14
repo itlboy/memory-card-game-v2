@@ -211,12 +211,6 @@ const pt: TuDien = {
   'fx.bamChoiLai': '▶ TOQUE PARA TENTAR DE NOVO',
   'fx.conCap': (p) => `${Number(p.n) === 1 ? 'Faltou só 1 par' : `Faltaram só ${p.n} pares`}. Tentar de novo?`,
   'fx.suytNua': 'Foi por pouco. Tentar de novo?',
-  'fx.treu.ga-mo': 'Peraí… eu ganhei mesmo?',
-  'fx.treu.ga-cung': 'Foi só sorte, hehe!',
-  'fx.treu.bao-den': 'Rápido como uma pantera!',
-  'fx.treu.man-ho': 'Grrr… mais sorte na próxima!',
-  'fx.treu.rong': 'Invicto, como sempre!',
-  'fx.treu.khac': 'Hehe, fica pra próxima!',
   'fx.moKhoa': 'Conquista desbloqueada',
   'fx.bac.dong': 'Bronze',
   'fx.bac.bac': 'Prata',
@@ -563,7 +557,6 @@ const pt: TuDien = {
   'lc.xemThu': 'Ver efeitos de fim de partida',
   'lc.xemThang': 'Vitória · {ten}',
   'lc.xemThua': 'Derrota · {ten}',
-  'lc.xemThuaMay': 'Perdeu para o computador',
   'lc.ghiCong': "Arte das cartas (aparelhos não Apple) e rosto do dragão: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragão recolorido",
 
   /* ---------- campaign map (LevelMap) ---------- */

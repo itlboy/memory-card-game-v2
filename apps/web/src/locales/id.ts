@@ -213,12 +213,6 @@ const id: TuDien = {
   'fx.bamChoiLai': '▶ KETUK UNTUK COBA LAGI',
   'fx.conCap': 'Tinggal {n} pasang lagi. Coba lagi?',
   'fx.suytNua': 'Dikit lagi! Coba lagi?',
-  'fx.treu.ga-mo': 'Eh… aku beneran menang?',
-  'fx.treu.ga-cung': 'Hoki doang, hehe!',
-  'fx.treu.bao-den': 'Gesit kayak macan kumbang!',
-  'fx.treu.man-ho': 'Grrr… coba lagi lain kali!',
-  'fx.treu.rong': 'Tak terkalahkan, seperti biasa!',
-  'fx.treu.khac': 'Hehe, lain kali ya!',
   'fx.moKhoa': 'Pencapaian terbuka',
   'fx.bac.dong': 'Perunggu',
   'fx.bac.bac': 'Perak',
@@ -564,7 +558,6 @@ const id: TuDien = {
   'lc.xemThu': 'Pratinjau efek akhir permainan',
   'lc.xemThang': 'Menang · {ten}',
   'lc.xemThua': 'Kalah · {ten}',
-  'lc.xemThuaMay': 'Kalah dari komputer',
   'lc.ghiCong': "Gambar kartu (perangkat non-Apple) dan wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0; naga diwarnai ulang",
 
   /* ---------- campaign map (LevelMap) ---------- */

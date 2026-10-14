@@ -210,12 +210,6 @@ const ja: TuDien = {
   'fx.bamChoiLai': '▶ タップでリトライ',
   'fx.conCap': 'あと{n}ペアだったのに！もう一回？',
   'fx.suytNua': 'おしい！もう一回？',
-  'fx.treu.ga-mo': 'あれれ…ボク、勝っちゃった？',
-  'fx.treu.ga-cung': 'ラッキー！えへへ！',
-  'fx.treu.bao-den': 'ヒョウのすばやさを見たか！',
-  'fx.treu.man-ho': 'ガオー…出直してきな！',
-  'fx.treu.rong': '我が無敗の記録、またひとつ。',
-  'fx.treu.khac': 'へへっ、また今度ね！',
   'fx.moKhoa': '実績解除',
   'fx.bac.dong': 'ブロンズ',
   'fx.bac.bac': 'シルバー',
@@ -561,7 +555,6 @@ const ja: TuDien = {
   'lc.xemThu': '終了演出をプレビュー',
   'lc.xemThang': '勝利・{ten}',
   'lc.xemThua': '敗北・{ten}',
-  'lc.xemThuaMay': 'コンピューターに負け',
   'lc.ghiCong': "カードの絵柄（Apple以外の端末）とドラゴンの顔：Twemoji（Twitter, Inc.）· CC-BY 4.0。ドラゴンは色を変更",
 
   /* ---------- campaign map (LevelMap) ---------- */
