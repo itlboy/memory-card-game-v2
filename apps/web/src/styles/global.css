@@ -138,6 +138,38 @@ body {
   }
 }
 
+/* MÁY TÍNH BẢNG (iPad, tablet Android): KHÔNG thu về cột như máy tính — cột 600px
+   giữa iPad 13" là hai dải trống to, dễ bị App Review chê "giao diện iPhone đặt lên
+   iPad" (chủ dự án duyệt mockup 14.10.2026, https://claude.ai/artifact/EJ13pwkGD115NwLWYxiUod).
+   Nhận ra bằng cảm ứng (hover: none + pointer: coarse) chứ không bằng bề rộng: máy
+   tính màn to vẫn giữ cột. Bàn thẻ tự lấp chỗ (đo bằng ResizeObserver) nên chỉ cần
+   gỡ cột; phần chữ/nút thì PHÓNG THEO BẬC (`--ui-zoom`) như game thường làm — iPad
+   cầm xa mắt hơn điện thoại ~1,3 lần, mini thì cầm gần như điện thoại. */
+@media (min-width: 700px) and (hover: none) and (pointer: coarse) {
+  :root { --ui-zoom: 1.1; }
+  body { display: block; padding: 0; height: auto; }
+  #app {
+    width: 100%; height: 100dvh; height: var(--app-h, 100dvh); min-height: 0;
+    border: 0; border-radius: 0; box-shadow: none;
+    /* Hộp thoại đo theo cột. Bản thân hộp thoại cũng được phóng (dưới), nên 600px ở
+       đây là toạ độ ĐÃ phóng = 660–780px thật — nhân bậc phóng ở đây là phóng hai lần. */
+    --col-w: 600px;
+  }
+  /* Phóng thanh trên, menu/wizard, phòng chờ online và HUD. Bàn thẻ KHÔNG phóng —
+     nó đã kín màn hình; phóng nó là tự bóp chỗ của chính nó. */
+  .topbar, main > section.panel, .online > .panel, .hud,
+  .game > .wrap, .strip-wrap, .eb-goc,      /* dải người chơi (offline/online), thanh emoji */
+  .overlay > .panel, .overlay > .hop { zoom: var(--ui-zoom); }
+  /* Khung menu: 600px ở toạ độ đã phóng = 660–780px thật */
+  /* width: 100% bắt buộc: .online là flex DỌC, margin-inline: auto ở đó làm panel co
+     về bề rộng nội dung (đo được 340px giữa iPad mini ngang) */
+  main > section.panel, .online > .panel { width: 100%; max-width: 600px; margin-inline: auto; }
+}
+/* Bậc theo CẠNH NGẮN (min-width + min-height) để xoay máy không đổi cỡ chữ:
+   mini 744 → 1,1 · 11" 820–834 → 1,2 · 13" 1024–1032 → 1,3 */
+@media (min-width: 810px) and (min-height: 810px) and (hover: none) and (pointer: coarse) { :root { --ui-zoom: 1.2; } }
+@media (min-width: 1000px) and (min-height: 1000px) and (hover: none) and (pointer: coarse) { :root { --ui-zoom: 1.3; } }
+
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: .01em; }
 button {
   font: inherit; color: inherit; cursor: pointer;

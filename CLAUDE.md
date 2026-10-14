@@ -833,11 +833,16 @@
   Messaging and Chat = Yes (12 câu nói nhanh), Contests = Infrequent. Thêm emoji vũ khí,
   rượu, thuốc lá… là phải làm lại Age Rating (Apple) + IARC (Google). Bộ Premium halloween/
   myth còn đầu lâu/zombie: bật `banPremium` là xét lại câu Horror/Fear ở cả hai store.
-- **APP iOS CHỈ CHO iPHONE** (`TARGETED_DEVICE_FAMILY = 1`, chủ dự án 14.10.2026): trên
-  iPad app là một cột giữa màn hình nhiều khoảng trống, sợ bị loại vì "giao diện iPhone
-  trên iPad". Bỏ được vì app CHƯA phát hành bản có iPad — phát hành rồi thì Apple cấm
-  bỏ. Muốn trở lại iPad: đặt `1,2`, làm bố cục iPad trọn màn, chụp ảnh `KHUNG=ipad`
-  (2064×2752, thư mục `<lang>-ipad/`, workflow asc-store `-f chup_ipad=true`).
+- **iPAD TRỌN MÀN HÌNH** (global.css, chủ dự án duyệt mockup 14.10.2026
+  https://claude.ai/artifact/EJ13pwkGD115NwLWYxiUod): máy cảm ứng ≥700px (`hover: none`
+  + `pointer: coarse`) KHÔNG thu về cột như máy tính — cột 600px giữa iPad 13" là thứ App
+  Review chê. Bàn thẻ tự lấp màn; thanh trên, menu/wizard (khung 600px đã phóng), phòng
+  chờ, HUD, dải người chơi, thanh emoji, hộp thoại PHÓNG `zoom: var(--ui-zoom)` theo bậc
+  CẠNH NGẮN: mini 1,1 · 11" 1,2 · 13" 1,3 (game phóng UI theo màn, app thường thì không;
+  iPad cầm xa mắt ~1,3 lần). ĐỪNG phóng bàn thẻ. `.online` là flex DỌC nên panel phải có
+  `width: 100%` (margin auto làm nó co còn 340px). Đã đo 6 khổ dọc+ngang: không cuộn,
+  không nút lòi. Ảnh store iPad: `KHUNG=ipad` (2064×2752, `<lang>-ipad/`, asc-store
+  `-f chup_ipad=true`). Chụp khổ iPad phải chờ 5 giây (2 giây còn trắng trơn).
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).
