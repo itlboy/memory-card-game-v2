@@ -58,7 +58,8 @@ onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
   position: absolute; left: 50%; top: 50%;
   /* Nở theo chỗ trống (cqh của .quat), trần 320px: trên máy tính cột cao 1.200px
      mà quạt chỉ 170px thì lọt thỏm giữa một khoảng trống (chủ dự án báo). */
-  height: min(86cqh, 53cqw, 320px); aspect-ratio: 3 / 4;   /* 53cqw: quạt rộng ≈2,5 lá, phải lọt bề ngang */
+  --la-h: min(86cqh, 53cqw, 320px);
+  height: var(--la-h); aspect-ratio: 3 / 4;   /* 53cqw: quạt rộng ≈2,5 lá, phải lọt bề ngang */
   border-radius: 16px; display: flex; align-items: center; justify-content: center;
   background: var(--card-back); box-shadow: var(--elev-2);
   border: var(--quat-vien, 0);
@@ -66,7 +67,11 @@ onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
 .la-quat i { width: 34%; aspect-ratio: 1; background: var(--quat-hoa, rgba(255, 255, 255, .9)); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 .la-quat.trai { transform: translate(-112%, -46%) rotate(-14deg); }
 .la-quat.phai { transform: translate(12%, -48%) rotate(12deg); }
-.la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); background: var(--card-face-up); font-size: min(120px, 30cqh); z-index: 1; }
+.la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); background: var(--card-face-up); z-index: 1;
+  /* Cỡ hình theo CHÍNH LÁ (--la-h), không theo khung quạt: bản cũ `30cqh` tính theo
+     chiều cao quạt nên máy hẹp (Mi 10S) lá co theo bề ngang còn hình thì không —
+     hình phủ kín lá (chủ dự án báo). 0,36·cao ≈ 55% bề ngang lá, chừa lề như lá trong ván. */
+  font-size: calc(var(--la-h) * .36); }
 .hinh { display: flex; transition: opacity .45s ease-in-out; }
 .hinh.an { opacity: 0; }
 .la-quat .anh { width: 1.15em; height: 1.15em; }

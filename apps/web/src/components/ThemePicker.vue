@@ -14,7 +14,7 @@ import { computed, ref } from 'vue';
 import { Check, Crown, Sparkles, X } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
-import { choiDuoc, daMuaPremium } from '@/lib/premium';
+import { choiDuoc, daMuaPremium, hienPremium } from '@/lib/premium';
 import { anhEmoji } from '@/lib/emoji';
 import { useBackCloser } from '@/composables/useBackGuard';
 import type { CardTheme } from '@/lib/themes';
@@ -25,7 +25,9 @@ const emit = defineEmits<{ toggle: [string]; dat: [string[]] }>();
 const tab = ref<'free' | 'premium'>('free');
 const mienPhi = computed(() => props.themes.filter((x) => !x.premium));
 const premium = computed(() => props.themes.filter((x) => x.premium));
-const dangHien = computed(() => (tab.value === 'free' ? mienPhi.value : premium.value));
+/** Chưa bật bán Premium (`banPremium`) thì không có tab, chỉ bày theme miễn phí. */
+const coTabPremium = computed(() => hienPremium.value && premium.value.length > 0);
+const dangHien = computed(() => (tab.value === 'free' || !coTabPremium.value ? mienPhi.value : premium.value));
 
 const xemTruoc = ref<CardTheme | null>(null);
 const baoSapCo = ref(false);
@@ -55,7 +57,7 @@ function cham(x: CardTheme): void {
 </script>
 
 <template>
-  <div class="theme-tabs" role="tablist">
+  <div v-if="coTabPremium" class="theme-tabs" role="tablist">
     <button
       class="ttab" role="tab" type="button" :aria-selected="tab === 'free'"
       @click="tab = 'free'"
@@ -66,7 +68,7 @@ function cham(x: CardTheme): void {
     ><Crown :size="15" aria-hidden="true" /> {{ t('tp.premium') }} <span class="dem">{{ premium.length }}</span></button>
   </div>
 
-  <p v-if="tab === 'premium' && !daMuaPremium" class="prem-loi">
+  <p v-if="coTabPremium && tab === 'premium' && !daMuaPremium" class="prem-loi">
     <Sparkles :size="15" aria-hidden="true" /> {{ t('tp.loiMoi', { n: premium.length }) }}
   </p>
 

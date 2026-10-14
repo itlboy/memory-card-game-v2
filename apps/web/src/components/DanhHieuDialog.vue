@@ -2,7 +2,7 @@
 import { t } from '@/lib/i18n';
 import { X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
-import { ACHIEVEMENTS, NHOM, type Achievement, type ThongKe } from '@/lib/achievements';
+import { dsHien, NHOM, type Achievement, type ThongKe } from '@/lib/achievements';
 import DanhHieu from './DanhHieu.vue';
 
 /**
@@ -17,9 +17,9 @@ onMounted(() => closeBtn.value?.focus());
 
 // Hai ngăn KHÔNG chồng nhau: chưa có · đã có (bản cũ "Tất cả" lặp lại cả ngăn chưa có)
 const loc = ref<'chua' | 'co'>('chua');
-const so = computed(() => ACHIEVEMENTS.filter((a) => props.daCo.has(a.id)).length);
+const so = computed(() => dsHien.value.filter((a) => props.daCo.has(a.id)).length);
 const nhom = computed(() => NHOM.map((n) => {
-  const tatCa = ACHIEVEMENTS.filter((a) => a.nhom === n.id);
+  const tatCa = dsHien.value.filter((a) => a.nhom === n.id);
   const ds = tatCa.filter((a) => props.daCo.has(a.id) === (loc.value === 'co'));
   return { ...n, ds, co: tatCa.filter((a) => props.daCo.has(a.id)).length, tong: tatCa.length };
 }).filter((n) => n.ds.length));
@@ -29,15 +29,15 @@ const nhom = computed(() => NHOM.map((n) => {
   <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('dhd.danhHieu')" @keydown.esc="emit('close')">
     <div class="panel">
       <header class="head">
-        <h2>{{ t('dhd.danhHieu') }} <small>{{ so }}/{{ ACHIEVEMENTS.length }}</small></h2>
+        <h2>{{ t('dhd.danhHieu') }} <small>{{ so }}/{{ dsHien.length }}</small></h2>
         <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>
-      <div class="thanh"><i :style="{ width: `${(so / ACHIEVEMENTS.length) * 100}%` }" /></div>
+      <div class="thanh"><i :style="{ width: `${(so / dsHien.length) * 100}%` }" /></div>
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
-          {{ t('dhd.chuaCo', { n: ACHIEVEMENTS.length - so }) }}
+          {{ t('dhd.chuaCo', { n: dsHien.length - so }) }}
         </button>
         <button class="tab" role="tab" type="button" :aria-selected="loc === 'co'" @click="loc = 'co'">
           {{ t('dhd.daCo', { n: so }) }}

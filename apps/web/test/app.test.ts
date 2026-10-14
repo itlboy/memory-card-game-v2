@@ -1,5 +1,6 @@
 import { CAMPAIGN_LEVELS } from '@mm/engine';
 import { datSkin } from '../src/lib/skin';
+import { banPremium } from '../src/lib/premium';
 import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
@@ -43,7 +44,7 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => { wrapper?.unmount(); datSkin('keo'); });
+afterEach(() => { wrapper?.unmount(); datSkin('keo'); banPremium.value = false; });
 
 /** Bấm nút/lựa chọn theo chữ hiển thị. */
 const click = async (text: string): Promise<void> => {
@@ -147,6 +148,7 @@ describe('App', () => {
   });
 
   it('theme premium nằm ở tab riêng; chưa mua thì chạm là XEM TRƯỚC, không chọn được', async () => {
+    banPremium.value = true;   // luồng ĐÃ MỞ BÁN (bản đầu tắt — lib/premium.ts)
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
@@ -276,6 +278,7 @@ describe('App', () => {
 
 describe('multi-theme', () => {
   it('nút Chọn tất cả / Bỏ chọn của tab — bỏ chọn vẫn chừa lại một theme', async () => {
+    banPremium.value = true;   // luồng ĐÃ MỞ BÁN (bản đầu tắt — lib/premium.ts)
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');

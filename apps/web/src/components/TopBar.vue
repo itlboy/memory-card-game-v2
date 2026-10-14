@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { HelpCircle, ImageIcon, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX, Lock } from 'lucide-vue-next';
-import { datDungVector, dungVector } from '@/lib/emoji';
-import { SKINS, datSkin, skin, skinChoiDuoc, type Skin } from '@/lib/skin';
+import { Crown, HelpCircle, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { datSkin, skin, skinChoiDuoc, skinsHien, type Skin } from '@/lib/skin';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -188,18 +187,19 @@ watch(() => props.totalScore, (to, from) => {
         <div class="item am" role="presentation">
           <Palette :size="20" /><span>{{ t('tb.giaoDien') }}</span>
         </div>
-        <!-- 5 skin không vừa một hàng nút liền: lưới ô có MẪU MÀU, skin Premium mang
-             khoá — chạm vào thì báo "sắp ra mắt" chứ không đổi (lib/skin.ts) -->
-        <div class="skins" role="group" :aria-label="t('tb.giaoDien')">
+        <!-- Lưới ô có MẪU MÀU, MỘT hàng (tròn hàng: số cột = số skin đang bày). Skin
+             Premium chỉ bày khi đã bật bán, chưa mua thì đeo VƯƠNG MIỆN như theme
+             premium — chạm vào báo "sắp ra mắt" chứ không đổi (lib/skin.ts) -->
+        <div class="skins" role="group" :aria-label="t('tb.giaoDien')" :style="{ '--so-skin': skinsHien.length }">
           <button
-            v-for="s in SKINS" :key="s" type="button" role="menuitemradio"
+            v-for="s in skinsHien" :key="s" type="button" role="menuitemradio"
             class="skin-o" :class="[`mau-${s}`, { khoa: !skinChoiDuoc(s) }]"
             :aria-checked="skin === s"
             :aria-label="skinChoiDuoc(s) ? td(`tb.skin.${s}`) : `${td(`tb.skin.${s}`)} — ${t('tb.skinPlus')}`"
             @click="chonSkin(s)"
           >
             <i class="mau" aria-hidden="true" /><span>{{ td(`tb.skin.${s}`) }}</span>
-            <Lock v-if="!skinChoiDuoc(s)" class="o-khoa" :size="12" aria-hidden="true" />
+            <Crown v-if="!skinChoiDuoc(s)" class="o-khoa" :size="12" aria-hidden="true" />
           </button>
         </div>
         <p v-if="baoPlus" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
@@ -230,14 +230,6 @@ watch(() => props.totalScore, (to, from) => {
         </button>
         <!-- Rung LUÔN BẬT (chủ dự án bỏ công tắc 14.10.2026). iPhone vẫn theo cài
              đặt rung của hệ thống (UIFeedbackGenerator), Android theo cài đặt rung chạm. -->
-        <!-- Hình mặt bài: Twemoji (nét ở mọi cỡ) hay emoji của máy — lib/emoji.ts -->
-        <button
-          class="item cong-tac" role="menuitemcheckbox" type="button"
-          :aria-checked="dungVector" :aria-label="dungVector ? t('tb.hinhNetBat') : t('tb.hinhNetTat')"
-          @click="datDungVector(!dungVector)"
-        >
-          <ImageIcon :size="20" /><span>{{ t('tb.hinhNet') }}</span><i class="sw" :class="{ bat: dungVector }" aria-hidden="true" />
-        </button>
 
         <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
         <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
@@ -418,8 +410,8 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
   background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
 }
-/* Một hàng đủ 5 ô — lưới phải tròn hàng (CLAUDE.md), 3 cột thì lẻ một chỗ */
-.skins { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 2px 8px 8px; }
+/* Một hàng — lưới phải tròn hàng (CLAUDE.md) */
+.skins { display: grid; grid-template-columns: repeat(var(--so-skin, 3), minmax(0, 1fr)); gap: 5px; padding: 2px 8px 8px; }
 .skin-o {
   position: relative; display: grid; justify-items: center; gap: 3px; min-height: 56px; padding: 6px 2px;
   border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--fg);
@@ -433,7 +425,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .mau-go .mau { background: linear-gradient(135deg, #3a2618 50%, #c9952b 50%); }
 .mau-sao .mau { background: radial-gradient(circle at 70% 35%, #f4d27a 0 3px, transparent 4px), linear-gradient(135deg, #0d0f2b, #2c2f6e); }
 .mau-bong .mau { background: linear-gradient(135deg, #ffb6d9, #c7b6ff 60%, #bfe8ff); }
-.o-khoa { position: absolute; top: 3px; right: 3px; color: var(--muted); }
+.o-khoa { position: absolute; top: 3px; right: 3px; color: var(--gold); }
 .bao-plus { margin: -2px 10px 8px; font-size: 12px; font-weight: 800; color: var(--accent); text-align: center; }
 .nac { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: 0 0 auto; }
 .nac button {

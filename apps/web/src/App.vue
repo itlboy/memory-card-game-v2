@@ -32,7 +32,7 @@ import TopBar from './components/TopBar.vue';
 import IconBay from './components/IconBay.vue';
 import { useGameSession } from './composables/useGameSession';
 import {
-  ACHIEVEMENTS, byId, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
+  ACHIEVEMENTS, dhAn, dsHien, byId, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
   type Achievement
 } from './lib/achievements';
 import DanhHieuDialog from './components/DanhHieuDialog.vue';
@@ -47,7 +47,7 @@ import { nhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { choiDuoc } from './lib/premium';
+import { choiDuoc, hienPremium } from './lib/premium';
 
 const prefs = store.prefs();
 const dark = ref(prefs.dark);
@@ -198,6 +198,12 @@ const daCoSet = computed(() => new Set(daCo.value));
 const thongKe = computed(() => { void progressRev.value; return thongKeHienTai(taiKhoanMe.value?.wins ?? 0); });
 /** Theme ĐANG KHOÁ (premium chưa mua) — danh hiệu của chúng không gợi ý "chinh phục". */
 const themeKhoa = computed(() => new Set(themes.value.filter((t) => !choiDuoc(t)).map((t) => t.id)));
+// Chưa bật bán Premium: danh hiệu của theme premium ẨN HẲN (lib/premium.ts banPremium)
+watchEffect(() => {
+  const prem = new Set(themes.value.filter((t) => t.premium).map((t) => t.id));
+  dhAn.value = hienPremium.value ? new Set()
+    : new Set(ACHIEVEMENTS.filter((a) => a.chinhPhuc?.theme && prem.has(a.chinhPhuc.theme)).map((a) => a.id));
+});
 const goiYVan = ref<Achievement | null>(null);
 
 /* ---------- xem thử hiệu ứng (chế độ debug) ---------- */
@@ -695,7 +701,7 @@ const hasNext = computed(() => {
   <IconBay v-if="screen !== 'game'" />
   <TopBar
     :dark="dark" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat"
-    :danh-hieu="{ co: Math.max(0, daCo.length - vuaMo.length - dangKhoe), tong: ACHIEVEMENTS.length }"
+    :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
     @toggle-nhac="nhacBat = !nhacBat"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"

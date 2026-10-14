@@ -37,3 +37,16 @@ describe('skin', () => {
     }
   });
 });
+
+describe('chưa bật bán Premium (bản đầu lên store)', () => {
+  it('menu chỉ bày skin miễn phí — Kẹo, Neon, Gỗ; bật bán thì hiện đủ', async () => {
+    const { banPremium, daMuaPremium } = await import('../src/lib/premium');
+    const { skinsHien, SKIN_PREMIUM } = await import('../src/lib/skin');
+    daMuaPremium.value = false; banPremium.value = false;
+    expect(skinsHien.value).toEqual(['keo', 'neon', 'go']);
+    expect(skinsHien.value.length % 3).toBe(0);            // một hàng tròn
+    banPremium.value = true;
+    expect(skinsHien.value.filter((s) => SKIN_PREMIUM.has(s))).toEqual(['sao', 'bong']);
+    banPremium.value = false;
+  });
+});

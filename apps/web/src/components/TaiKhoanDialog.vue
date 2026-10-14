@@ -3,7 +3,7 @@ import { t } from '@/lib/i18n';
 import { sizeForLevel } from '@mm/engine';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
-import { ACHIEVEMENTS, daCo as daCoRef } from '@/lib/achievements';
+import { dsHien, daCo as daCoRef } from '@/lib/achievements';
 import { num, numShort } from '@/lib/format';
 import { store } from '@/lib/storage';
 import { bangXepHang, coApple, coGoogle, dangNhapApple, dangTai, dangXuat, me, veNutGoogle, xoaTaiKhoan, type DongBxh } from '@/lib/taikhoan';
@@ -85,7 +85,7 @@ const kyLuc = computed(() => {
 
 /** Danh hiệu đã có: của tài khoản nếu đăng nhập, không thì của máy này. */
 /** Đếm theo sổ của MÁY: đăng nhập là đã kéo danh hiệu tài khoản về máy (dongBo). */
-const soDaCo = computed(() => daCoRef.value.length);
+const soDaCo = computed(() => dsHien.value.filter((a) => daCoRef.value.includes(a.id)).length);
 const diemMay = store.totalScore();
 </script>
 
@@ -122,7 +122,7 @@ const diemMay = store.totalScore();
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
           <button class="btn-link" type="button" @click="moBxh">{{ t('tk.xemBxh') }}</button>
 <button class="nut-dh" type="button" @click="emit('danh-hieu')">
-            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
+            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
           <ol v-if="tab === 'bxh' && bxh" class="bxh">
             <li v-for="(d, i) in bxh" :key="d.id">
@@ -165,7 +165,7 @@ const diemMay = store.totalScore();
             </dl>
 
             <button class="nut-dh" type="button" @click="emit('danh-hieu')">
-            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ ACHIEVEMENTS.length }}</span> <i aria-hidden="true">›</i>
+            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
 
             <h3>{{ t('tk.kyLuc') }}</h3>

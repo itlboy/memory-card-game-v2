@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import type { CardTheme } from './themes';
 
 /**
@@ -18,6 +18,15 @@ function doc(): boolean {
   try { return localStorage.getItem(KHOA) === '1'; } catch { return false; }
 }
 export const daMuaPremium = ref(doc());
+
+/**
+ * CÔNG TẮC BÁN — `false` ở bản đầu lên store (chủ dự án chốt 14.10.2026): chưa có
+ * In-App Purchase thì KHÔNG bày đồ Premium ra (tab theme, skin, danh hiệu của theme
+ * premium) — đồ khoá mà không mua được là App Review hay loại (luật 2.1). Có IAP
+ * thì bật `true`, mọi thứ hiện lại kèm vương miện. `mm.premium='1'` vẫn thấy để thử.
+ */
+export const banPremium = ref(false);   // ref (không const) để test bật được luồng đã mở bán
+export const hienPremium = computed(() => banPremium.value || daMuaPremium.value);
 
 /** Theme này người chơi có được CHỌN không. */
 export const choiDuoc = (t: Pick<CardTheme, 'premium'>): boolean => !t.premium || daMuaPremium.value;
