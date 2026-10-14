@@ -44,13 +44,16 @@ const anTen = ref(false);
  *  tên trong khi chỉ thiếu vài px (chủ dự án báo 14.10.2026). */
 const tenCo = ref(1);
 const TEN_NHO_NHAT = 0.72;
+/** Chỗ cho đèn debug sau tên: gap 8px của .brand − 3px lề âm + chấm 10px (khớp `.den-debug`). */
+const DEN_RONG = 15;
 function doTen(): void {
   const h = h1El.value, ten = tenEl.value;
   if (!h || !ten) return;
   // Bề rộng CẦN = logo + khoảng cách + chữ (đo cả khi đang ẩn: scrollWidth của span vẫn đúng)
   const logo = h.querySelector('.logo')?.getBoundingClientRect().width ?? 30;
   const goc = ten.scrollWidth / tenCo.value;          // bề rộng ở cỡ gốc
-  const co = (h.clientWidth - logo - 8) / goc;
+  const den = props.debug ? DEN_RONG : 0;               // chấm debug đứng sau tên
+  const co = (h.clientWidth - logo - 8 - den) / goc;
   tenCo.value = Math.min(1, Math.max(TEN_NHO_NHAT, Math.floor(co * 100) / 100));
   anTen.value = co < TEN_NHO_NHAT;
 }
@@ -97,6 +100,8 @@ const bump = ref(0);
 let raf = 0;
 let gainTimer: ReturnType<typeof setTimeout> | undefined;
 
+// Bật/tắt debug đổi chỗ cần cho tên (đèn sau tên) mà bề rộng h1 không đổi → đo lại tay
+watch(() => props.debug, () => nextTick(doTen));
 watch(() => props.totalScore, (to, from) => {
   const delta = to - from;
   if (delta > 0) {
@@ -130,8 +135,7 @@ watch(() => props.totalScore, (to, from) => {
              kín header khi nằm trong flex. -->
         <span class="logo" aria-hidden="true">
           <i class="card-l" /><i class="card-r" />
-          <b v-if="debug" class="den-debug" />
-        </span><span ref="tenEl" class="name">{{ t('tb.thuongHieu') }}</span>
+        </span><span ref="tenEl" class="name">{{ t('tb.thuongHieu') }}</span><b v-if="debug" class="den-debug" />
       </button>
     </h1>
 
@@ -292,16 +296,16 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   width: 17px; height: 23px; border-radius: 5px;
   box-shadow: 0 2px 6px rgba(30, 27, 75, .25);
 }
-/* Đèn chế độ debug: chấm nhỏ ở GÓC logo (tuyệt đối — không đổi bề rộng mà
-   phép đo ẩn tên dựa vào), nháy vàng ↔ đỏ */
+/* Đèn chế độ debug: chấm nhỏ NGAY SAU tên (chủ dự án 14.10.2026), nháy vàng ↔
+   xanh mỗi 1 giây. Phép đo ẩn tên (doTen) trừ sẵn DEN_RONG cho nó; tên bị ẩn thì
+   chấm đứng cạnh logo, vẫn thấy. */
 .den-debug {
-  position: absolute; top: -3px; right: -5px; z-index: 1;
-  width: 10px; height: 10px; border-radius: 50%;
-  border: 1.5px solid #fff; background: #ffcc00;
-  animation: den-debug 1s steps(1, end) infinite;
+  flex: 0 0 auto; width: 10px; height: 10px; margin-left: -3px; border-radius: 50%;
+  border: 1.5px solid #fff; background: #ffcc00; box-sizing: border-box;
+  animation: den-debug 2s steps(1, end) infinite;
 }
-@keyframes den-debug { 50% { background: #ff3b30; } }
-@media (prefers-reduced-motion: reduce) { .den-debug { animation: none; background: #ff3b30; } }
+@keyframes den-debug { 50% { background: #34c759; } }
+@media (prefers-reduced-motion: reduce) { .den-debug { animation: none; } }
 .logo .card-l {
   left: 0; transform: rotate(-14deg);
   background: var(--chon-nen);
