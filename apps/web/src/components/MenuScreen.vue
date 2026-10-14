@@ -119,8 +119,28 @@ const path = computed<Step[]>(() => {
     : ['players', 'count', 'level', 'theme', 'options'];
 });
 const stepIndex = computed(() => path.value.indexOf(step.value));
+/**
+ * BƯỚC ĐANG HIỆN TRÊN PHẦN ĐẦU (tiêu đề, chấm tiến độ, nút quay lại, nền panel).
+ *
+ * Trễ hơn `step` đúng một nhịp: chỉ đổi khi thân bước cũ đã RỜI HẲN
+ * (`@after-leave` của Transition out-in), tức đổi cùng lúc thân bước mới bắt đầu
+ * hiện. Bản cũ đọc thẳng `step` nên phần đầu nhảy sang bước mới NGAY khi bấm,
+ * trong lúc lưới bước cũ còn đang mờ dần bên dưới — tiêu đề mới đè lên nội dung
+ * cũ, rồi nội dung mới mới tới. Trên iPhone nhịp mờ khối lớn chậm hơn nên lộ rõ
+ * (chủ dự án báo 14.10.2026, "vỡ vỡ"; Android không thấy). Đo bằng WebKit,
+ * đóng băng animation ở giữa nhịp rời.
+ */
+const buocHien = ref<Step>(step.value);
+const hienIndex = computed(() => path.value.indexOf(buocHien.value));
+let dangRoi = false;
+function batDauRoi(): void { dangRoi = true; }
+function xongRoi(): void { dangRoi = false; buocHien.value = step.value; }
+// Không có nhịp rời nào bắt đầu sau lần vẽ lại (Transition bị thay bằng bản giả
+// trong test, hay bước đổi mà khoá không đổi) thì đổi ngay — không treo tiêu đề cũ.
+watch(step, () => { if (!dangRoi) buocHien.value = step.value; }, { flush: 'post' });
 // Bước từ URL không khớp nhánh trong prefs (vd ?w=count nhưng đang chơi đơn) → về bước 1
 if (step.value !== 'players' && !path.value.includes(step.value)) step.value = 'players';
+buocHien.value = step.value;
 
 
 /**
@@ -296,7 +316,7 @@ const tenBan = computed(() =>
   props.mode === 'campaign' ? t('menu.banCap', { n: props.level }) : t('menu.banThe', { n: pairsNeeded.value * 2 }));
 
 const tieuDe = computed(() =>
-  step.value === 'level' && props.mode !== 'campaign' ? t('menu.chonSoThe') : td(`menu.buoc.${step.value}`));
+  buocHien.value === 'level' && props.mode !== 'campaign' ? t('menu.chonSoThe') : td(`menu.buoc.${buocHien.value}`));
 
 const best = computed(() => store.best(props.mode, props.level));
 /** Số cặp mà cấp đang chọn cần — bước theme dùng để cảnh báo thiếu biểu tượng. */
@@ -343,17 +363,17 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 </script>
 
 <template>
-  <section class="panel" :class="{ 'trang-chu': step === 'players' }">
-    <header v-if="step !== 'players'" class="wizard-head">
-      <button v-if="stepIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
+  <section class="panel" :class="{ 'trang-chu': buocHien === 'players' }">
+    <header v-if="buocHien !== 'players'" class="wizard-head">
+      <button v-if="hienIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
       <h2>{{ tieuDe }}</h2>
       <span class="dots" aria-hidden="true">
-        <i v-for="(s, i) in path" :key="s" :class="{ on: i <= stepIndex }" />
+        <i v-for="(s, i) in path" :key="s" :class="{ on: i <= hienIndex }" />
       </span>
     </header>
     <h2 v-else class="sr-only">{{ tieuDe }}</h2>
 
-    <Transition name="step" mode="out-in">
+    <Transition name="step" mode="out-in" @before-leave="batDauRoi" @after-leave="xongRoi">
       <!--
         TRANG CHỦ (13.10.2026, mockup B chủ dự án duyệt): quạt lá bài · Chiến
         dịch là ô to riêng · ba ô vuông Chơi nhanh / Đấu máy / Online · dải lối
