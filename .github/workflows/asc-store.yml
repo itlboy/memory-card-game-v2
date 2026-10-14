@@ -18,9 +18,9 @@ on:
         type: boolean
         default: true
       chup_ipad:
-        description: Chụp ảnh iPad 13" (2064×2752) — chỉ khi app bật lại iPad
+        description: Chụp ảnh iPad 13" (2064×2752) cho 12 ngôn ngữ
         type: boolean
-        default: false
+        default: true
       may_chu:
         description: Bản web để chụp
         # thebai2 (Cloudflare) chứ không flipmatch.cozypi.com: Worker lên bản mới NGAY
