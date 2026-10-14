@@ -18,7 +18,8 @@ function nhanTheo(lang) {
   };
   return {
     nhanh: g('menu.choiNhanh'), motMinh: g('menu.soNguoi.1'), the: g('menu.the'), tiep: g('menu.tiep'),
-    batDau: g('menu.batDau').split(' —')[0].trim(), online: g('menu.online'),
+    // zh viết '开始 · {ban}', không phải '—': cắt ở {ban} rồi bỏ dấu nối
+    batDau: g('menu.batDau').split('{ban}')[0].replace(/[\s—·:：-]+$/u, ''), online: g('menu.online'),
   };
 }
 let L = nhanTheo('en');
