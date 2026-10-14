@@ -53,8 +53,9 @@ const prefs = store.prefs();
 const dark = ref(prefs.dark);
 const soundLevel = ref<SoundLevel>(prefs.soundLevel);
 /** Rung khi ghép thẻ — công tắc riêng cạnh âm thanh trong menu (lib/rung.ts). */
-const rungBat = ref(prefs.rung !== false);
-watch(rungBat, (v) => { rung.bat = v; store.savePrefs({ rung: v }); }, { immediate: true });
+// Rung LUÔN BẬT — không còn công tắc (chủ dự án chốt 14.10.2026). Bản lưu cũ
+// `prefs.rung = false` bị bỏ qua có chủ đích.
+rung.bat = true;
 /** Nhạc nền (lib/nhac.ts): menu vui, trong ván chậm và thưa. Tắt âm thanh là tắt luôn. */
 const nhacBat = ref(prefs.nhac !== false);
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
@@ -693,11 +694,9 @@ const hasNext = computed(() => {
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <IconBay v-if="screen !== 'game'" />
   <TopBar
-    :dark="dark" :sound-level="soundLevel" :total-score="totalScore"
-    :rung="rungBat" :co-rung="rung.coTheRung()" :nhac="nhacBat"
+    :dark="dark" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat"
     :danh-hieu="{ co: Math.max(0, daCo.length - vuaMo.length - dangKhoe), tong: ACHIEVEMENTS.length }"
     @danh-hieu="showDanhHieu = true"
-    @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     @toggle-nhac="nhacBat = !nhacBat"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
