@@ -1,0 +1,165 @@
+/*
+ * SKIN "KẸO BÔNG" (Premium) — pastel hồng · oải hương · xanh mây, mọi thứ bo
+ * tròn mềm (mockup https://claude.ai/artifact/5Vf2BmcQEKe6ZAPkFxGqGG).
+ *
+ * Điểm nhấn là VIỀN HỒNG DÀY + MÉP ĐẨY (bóng cứng 0 4px phía dưới) như viên kẹo.
+ * Nền sáng nên chữ là tím mận đậm, KHÔNG dùng hồng nhạt cho chữ (thiếu tương
+ * phản). Chữ hiển thị Quicksand (tròn, đủ dấu tiếng Việt — Fredoka thiếu dấu).
+ * Cùng luật selector với go.css: mọi khối dưới `:root[data-skin='bong']`.
+ */
+:root[data-skin='bong'] {
+  --ink: #4a2347;
+  --font-display: 'Quicksand', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+
+  --bg: #ffe3f1;
+  --bg-glow-1: transparent; --bg-glow-2: transparent; --bg-glow-3: transparent;
+  --panel: #ffffff; --panel-solid: #ffffff; --panel-soft: #fdf0f7;
+  --fg: #4a2347;
+  --muted: #7d5a7a;            /* ≥4,5:1 trên #fdf0f7 */
+  --accent: #b04a8a;           /* mận hồng */
+  --accent-2: #8a5bb0;
+  --accent-soft: rgba(176, 74, 138, .12);
+  --ok: #2f7d5f; --warn: #8a5a00; --gold: #e0a000; --bad: #c0365a;
+  --ok-solid: #2f7d5f; --warn-solid: #8a5a00; --gold-solid: #8a6114; --bad-solid: #c0365a;
+  --line: rgba(176, 74, 138, .22);
+  --line-strong: rgba(176, 74, 138, .45);
+
+  --keo: linear-gradient(90deg, #e86aa8, #9b78e6);
+  --mep: #f0a8cf;
+  --nhan-nen: var(--keo); --nhan-chu: #fff;
+  --chon-nen: var(--keo); --chon-chu: #fff;
+  --quat-vien: 5px solid #fff;
+  --quat-hoa: rgba(255, 255, 255, .95);
+  --card-back: #ffb6d9;
+  --card-back-glow: rgba(176, 74, 138, .25);
+  --card-face: #fff;
+  --card-face-up: #fff9fc;
+  --card-face-up-line: #f6b8d8;
+
+  --elev-1: 0 0 0 2px #f6b8d8, 0 4px 0 var(--mep);
+  --elev-2: 0 0 0 2px #f6b8d8, 0 5px 0 var(--mep), 0 12px 22px rgba(176, 74, 138, .15);
+  --elev-3: 0 0 0 2px #f6b8d8, 0 6px 0 var(--mep), 0 24px 44px rgba(176, 74, 138, .25);
+  --inner-light: inset 0 0 0 0 transparent;
+
+  --nen-man:
+    radial-gradient(40% 30% at 15% 20%, rgba(255, 255, 255, .6), transparent 70%),
+    radial-gradient(35% 25% at 85% 75%, rgba(255, 255, 255, .5), transparent 70%),
+    linear-gradient(180deg, #ffe3f1, #e7defd 60%, #d9f2ff);
+  --canh:
+    radial-gradient(circle at 12% 14%, rgba(255, 255, 255, .7) 0 14px, transparent 15px),
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, .7) 0 18px, transparent 19px),
+    radial-gradient(circle at 86% 30%, rgba(255, 255, 255, .55) 0 12px, transparent 13px),
+    radial-gradient(circle at 91% 28%, rgba(255, 255, 255, .55) 0 16px, transparent 17px),
+    radial-gradient(circle at 70% 88%, rgba(255, 209, 232, .6) 0 6px, transparent 7px),
+    radial-gradient(circle at 28% 80%, rgba(217, 204, 255, .6) 0 5px, transparent 6px);
+}
+:root[data-skin='bong'] body { background: var(--nen-man); background-attachment: fixed; }
+:root[data-skin='bong'] #app { background: var(--canh); }
+:root[data-skin='bong'] .tam-dung { background: var(--canh), var(--nen-man); }
+:root[data-skin='bong'] h1, :root[data-skin='bong'] h2, :root[data-skin='bong'] h3 { font-weight: 700; }
+
+/* ---------- khối ---------- */
+:root[data-skin='bong'] .panel {
+  background: var(--panel);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  border: 0; border-radius: 22px; box-shadow: var(--elev-2);
+}
+:root[data-skin='bong'] .topbar {
+  background: transparent; border-bottom: 0;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+:root[data-skin='bong'] .topbar .name { background: none; color: #b04a8a; -webkit-text-fill-color: #b04a8a; font-weight: 700; }
+:root[data-skin='bong'] .topbar .total { color: #b04a8a; background: #fff; box-shadow: var(--elev-1); }
+:root[data-skin='bong'] .topbar .dh { background: var(--keo); color: #fff; box-shadow: var(--elev-1); }
+:root[data-skin='bong'] .menu { border: 0; border-radius: 20px; background: #fff; box-shadow: var(--elev-3); }
+:root[data-skin='bong'] .sw.bat,
+:root[data-skin='bong'] .nac button[aria-checked='true'] { background: var(--keo); color: #fff; }
+
+/* ---------- nút: viên kẹo có mép ---------- */
+:root[data-skin='bong'] .btn {
+  border: 0; border-radius: 18px;
+  background: #fff; color: var(--ink); font-weight: 800;
+  box-shadow: var(--elev-1);
+}
+:root[data-skin='bong'] .btn:active { transform: translateY(3px); box-shadow: 0 0 0 2px #f6b8d8, 0 1px 0 var(--mep); }
+:root[data-skin='bong'] .btn-primary {
+  border: 0; border-radius: 18px;
+  background: var(--keo); color: #fff; font-weight: 800;
+  box-shadow: 0 5px 0 #c46aa6, 0 12px 22px rgba(176, 74, 138, .25);
+}
+:root[data-skin='bong'] .btn-primary:active { transform: translateY(4px); box-shadow: 0 1px 0 #c46aa6; }
+
+/* ---------- ô lựa chọn ---------- */
+:root[data-skin='bong'] .option { border: 0; border-radius: 20px; background: #fff; box-shadow: var(--elev-1); }
+:root[data-skin='bong'] .option[aria-checked='true']:not(.neon),
+:root[data-skin='bong'] .option[aria-pressed='true']:not(.neon) {
+  background: var(--keo); color: #fff;
+  box-shadow: 0 0 0 2px #fff, 0 4px 0 #c46aa6;
+}
+:root[data-skin='bong'] .option[aria-checked='true'] small,
+:root[data-skin='bong'] .option[aria-pressed='true'] small { color: rgba(255, 255, 255, .9); }
+:root[data-skin='bong'] .opt-icon { color: var(--accent); }
+@media (hover: hover) {
+  :root[data-skin='bong'] .option:hover { border-color: transparent; box-shadow: var(--elev-2); }
+  :root[data-skin='bong'] .option.neon:hover { box-shadow: var(--elev-2) !important; }
+}
+
+/* Ô định danh: không khối màu đậm — kẹo trắng, icon mận */
+:root[data-skin='bong'] .neon { color: var(--ink) !important; }
+:root[data-skin='bong'] .neon strong { text-shadow: none; font-family: var(--font-display); font-weight: 700; }
+:root[data-skin='bong'] .neon small { color: var(--muted) !important; text-shadow: none; }
+:root[data-skin='bong'] .neon .opt-icon,
+:root[data-skin='bong'] .neon .count-num { color: var(--accent) !important; }
+:root[data-skin='bong'] :is(.g-violet, .g-blue, .g-amber, .g-cyan, .g-pink, .g-red, .g-teal, .g-lime, .g-orange) {
+  background: #fff !important; box-shadow: var(--elev-1) !important;
+}
+
+:root[data-skin='bong'] .lt-chip { border: 2px solid #f6b8d8 !important; background: #fff; color: var(--ink); }
+:root[data-skin='bong'] .lt-chip.lua { background: #ffd1e8 !important; color: var(--ink) !important; }
+:root[data-skin='bong'] .lt-chip.goi-y { background: var(--keo) !important; color: #fff !important; }
+:root[data-skin='bong'] .dots i.on { background: var(--accent); }
+
+/* ---------- dải người chơi ---------- */
+:root[data-skin='bong'] .player { border: 0; background: rgba(255, 255, 255, .7); color: var(--ink); }
+:root[data-skin='bong'] .player:not(.active) .name { color: var(--muted); }
+:root[data-skin='bong'] .player.active,
+:root[data-skin='bong'] .turn-chip {
+  background: #fff; color: var(--ink);
+  box-shadow: 0 0 0 2.5px #e86aa8, 0 4px 0 var(--mep);
+}
+:root[data-skin='bong'] .player.active .pts { color: #fff; background: var(--keo); box-shadow: none; }
+:root[data-skin='bong'] .player.active .turn-clock,
+:root[data-skin='bong'] .player.active .lives { color: var(--ink); }
+
+/* ---------- lá bài: lưng chấm bi hồng–tím, mặt trắng viền hồng ---------- */
+:root[data-skin='bong'] .card { box-shadow: 0 4px 0 var(--mep); border-radius: 12px; }
+:root[data-skin='bong'] .card.done { box-shadow: none; }
+:root[data-skin='bong'] .card .face { border-radius: 12px; }
+:root[data-skin='bong'] .card .face.back[class*="bk-mau-"] {
+  background-color: #ffb6d9;
+  background-image:
+    radial-gradient(circle at 28% 28%, #ffd1e8 0 14%, transparent 15%),
+    radial-gradient(circle at 72% 68%, #d9ccff 0 13%, transparent 14%),
+    radial-gradient(circle at 75% 22%, rgba(255, 255, 255, .55) 0 6%, transparent 7%),
+    radial-gradient(circle at 24% 78%, rgba(255, 255, 255, .55) 0 6%, transparent 7%),
+    linear-gradient(160deg, #ffb6d9, #c7b6ff);
+}
+:root[data-skin='bong'] .card .back { box-shadow: inset 0 0 0 max(2px, 5cqw) #fff; }
+:root[data-skin='bong'] .card .back::before { inset: max(3px, 6cqw); border-radius: 8px; }
+:root[data-skin='bong'] .card .front { background: var(--card-face-up); border: max(2px, 4cqw) solid #f6b8d8; }
+:root[data-skin='bong'] .card.done .front { background: #f3fff9; border: max(2px, 4cqw) solid #8fd9b6; box-shadow: none; }
+
+/* ---------- bảng kết quả ---------- */
+:root[data-skin='bong'] .overlay .panel { background: #fff; }
+:root[data-skin='bong'] .score-big { background: var(--panel-soft); }
+:root[data-skin='bong'] .total-row { border: 2px dashed #f6b8d8; }
+:root[data-skin='bong'] .achievements li { background: #ffd1e8; color: var(--ink); }
+:root[data-skin='bong'] .goi-y { background: var(--panel-soft); }
+:root[data-skin='bong'] { --vien-nut: 0; --vien-vien: 0; }
+:root[data-skin='bong'] .tam-dung .hop-dung h2 { color: var(--ink); }
+
+/* Logo: lá hồng chấm bi + lá trắng viền hồng */
+:root[data-skin='bong'] .logo i { box-shadow: 0 0 0 1.5px #f6b8d8, 0 2px 0 var(--mep); }
+:root[data-skin='bong'] .logo .card-l { background: linear-gradient(160deg, #ffb6d9, #c7b6ff); }
+:root[data-skin='bong'] .logo .card-r { background: #fff radial-gradient(circle at 50% 52%, #e86aa8 24%, transparent 27%); }

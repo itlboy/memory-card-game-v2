@@ -50,6 +50,9 @@ const vi = {
   'tb.skin.keo': 'Kẹo',
   'tb.skin.go': 'Gỗ',
   'tb.skin.neon': 'Neon',
+  'tb.skin.sao': "Đêm Sao",
+  'tb.skin.bong': "Kẹo Bông",
+  'tb.skinPlus': "Gói Premium — sắp ra mắt",
   'tb.luatChoi': 'Luật chơi',
 
   /** Tên app. Bản English là "Flip Match" (chủ dự án: tên có dấu khó với người nước ngoài).

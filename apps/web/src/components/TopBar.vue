@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { HelpCircle, ImageIcon, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, ImageIcon, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX, Lock } from 'lucide-vue-next';
 import { datDungVector, dungVector } from '@/lib/emoji';
-import { SKINS, datSkin, skin } from '@/lib/skin';
+import { SKINS, datSkin, skin, skinChoiDuoc, type Skin } from '@/lib/skin';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -64,6 +64,16 @@ onMounted(() => {
 onUnmounted(() => ro?.disconnect());
 watch(ngonNgu, () => nextTick(doTen));
 
+/** Chạm skin Premium chưa mua: báo "sắp ra mắt" một lúc thay vì đổi. */
+const baoPlus = ref(false);
+let henBao: ReturnType<typeof setTimeout> | undefined;
+function chonSkin(s: Skin): void {
+  if (!skinChoiDuoc(s)) {
+    baoPlus.value = true; clearTimeout(henBao); henBao = setTimeout(() => { baoPlus.value = false; }, 2500);
+    return;
+  }
+  datSkin(s);
+}
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
@@ -175,15 +185,24 @@ watch(() => props.totalScore, (to, from) => {
         <p class="nhom" role="presentation">{{ t('tb.caiDat') }}</p>
         <!-- Giao diện: đổi TỨC THÌ, menu ở lại (lib/skin.ts). Nền tối chỉ có nghĩa
              với skin neon — hai skin kia mang bảng màu riêng, công tắc sẽ không làm gì -->
-        <div class="item am" role="group" :aria-label="t('tb.giaoDien')">
+        <div class="item am" role="presentation">
           <Palette :size="20" /><span>{{ t('tb.giaoDien') }}</span>
-          <span class="nac">
-            <button
-              v-for="s in SKINS" :key="s" type="button" role="menuitemradio"
-              :aria-checked="skin === s" @click="datSkin(s)"
-            >{{ td(`tb.skin.${s}`) }}</button>
-          </span>
         </div>
+        <!-- 5 skin không vừa một hàng nút liền: lưới ô có MẪU MÀU, skin Premium mang
+             khoá — chạm vào thì báo "sắp ra mắt" chứ không đổi (lib/skin.ts) -->
+        <div class="skins" role="group" :aria-label="t('tb.giaoDien')">
+          <button
+            v-for="s in SKINS" :key="s" type="button" role="menuitemradio"
+            class="skin-o" :class="[`mau-${s}`, { khoa: !skinChoiDuoc(s) }]"
+            :aria-checked="skin === s"
+            :aria-label="skinChoiDuoc(s) ? td(`tb.skin.${s}`) : `${td(`tb.skin.${s}`)} — ${t('tb.skinPlus')}`"
+            @click="chonSkin(s)"
+          >
+            <i class="mau" aria-hidden="true" /><span>{{ td(`tb.skin.${s}`) }}</span>
+            <Lock v-if="!skinChoiDuoc(s)" class="o-khoa" :size="12" aria-hidden="true" />
+          </button>
+        </div>
+        <p v-if="baoPlus" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
         <button
           v-if="skin === 'neon'"
           class="item cong-tac" role="menuitemcheckbox" type="button" :aria-checked="dark"
@@ -399,6 +418,23 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
   background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
 }
+/* Một hàng đủ 5 ô — lưới phải tròn hàng (CLAUDE.md), 3 cột thì lẻ một chỗ */
+.skins { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 2px 8px 8px; }
+.skin-o {
+  position: relative; display: grid; justify-items: center; gap: 3px; min-height: 56px; padding: 6px 2px;
+  border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--fg);
+  font: inherit; font-size: 10.5px; font-weight: 800; line-height: 1.1; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; cursor: pointer; text-align: center;
+}
+.skin-o[aria-checked='true'] { border: 2px solid var(--accent); padding: 5px 1px; }
+.skin-o.khoa span { opacity: .75; }
+.mau { display: block; width: 28px; height: 18px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .25); }
+.mau-keo .mau { background: linear-gradient(135deg, #5cc2f2 50%, #ffcb2e 50%); }
+.mau-neon .mau { background: linear-gradient(135deg, #6a5cff, #c44cf0); }
+.mau-go .mau { background: linear-gradient(135deg, #3a2618 50%, #c9952b 50%); }
+.mau-sao .mau { background: radial-gradient(circle at 70% 35%, #f4d27a 0 3px, transparent 4px), linear-gradient(135deg, #0d0f2b, #2c2f6e); }
+.mau-bong .mau { background: linear-gradient(135deg, #ffb6d9, #c7b6ff 60%, #bfe8ff); }
+.o-khoa { position: absolute; top: 3px; right: 3px; color: var(--muted); }
+.bao-plus { margin: -2px 10px 8px; font-size: 12px; font-weight: 800; color: var(--accent); text-align: center; }
 .nac { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: 0 0 auto; }
 .nac button {
   position: relative; min-height: 30px; min-width: 38px; padding: 0 8px; border: 0; background: transparent;

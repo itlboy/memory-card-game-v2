@@ -45,6 +45,9 @@ const ja: TuDien = {
   'tb.skin.keo': 'キャンディ',
   'tb.skin.go': '木目',
   'tb.skin.neon': 'ネオン',
+  'tb.skin.sao': "星降る夜",
+  'tb.skin.bong': "わたあめ",
+  'tb.skinPlus': "プレミアム — 近日公開",
   'tb.luatChoi': '遊び方',
 
   'tb.thuongHieu': 'Flip Match',

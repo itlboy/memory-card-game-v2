@@ -13,6 +13,8 @@ import './styles/ketcuc-fx.css';
 import './styles/skins/keo.css';
 import './styles/skins/go.css';
 import './styles/skins/neon.css';
+import './styles/skins/sao.css';
+import './styles/skins/bong.css';
 import { ganSkin } from './lib/skin';
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event

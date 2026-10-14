@@ -51,6 +51,9 @@ const fr: TuDien = {
   'tb.skin.keo': 'Bonbon',
   'tb.skin.go': 'Bois',
   'tb.skin.neon': 'Néon',
+  'tb.skin.sao': "Nuit étoilée",
+  'tb.skin.bong': "Barbe à papa",
+  'tb.skinPlus': "Premium — bientôt",
   'tb.luatChoi': 'Comment jouer',
 
   'tb.thuongHieu': 'Flip Match',
