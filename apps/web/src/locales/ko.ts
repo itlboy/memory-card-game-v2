@@ -210,12 +210,6 @@ const ko: TuDien = {
   'fx.bamChoiLai': '▶ 탭해서 다시 하기',
   'fx.conCap': '{n}쌍만 더 맞추면 됐는데! 다시 할까요?',
   'fx.suytNua': '아깝다! 다시 할까요?',
-  'fx.treu.ga-mo': '어… 내가 진짜 이긴 거야?',
-  'fx.treu.ga-cung': '운이 좋았네, 히히!',
-  'fx.treu.bao-den': '표범처럼 빠르지!',
-  'fx.treu.man-ho': '크르릉… 다음에 다시 와!',
-  'fx.treu.rong': '나는 무적이다!',
-  'fx.treu.khac': '헤헤, 다음에 또 봐!',
   'fx.moKhoa': '업적 달성!',
   'fx.bac.dong': '브론즈',
   'fx.bac.bac': '실버',
@@ -561,7 +555,6 @@ const ko: TuDien = {
   'lc.xemThu': '게임 종료 연출 미리 보기',
   'lc.xemThang': '승리 · {ten}',
   'lc.xemThua': '패배 · {ten}',
-  'lc.xemThuaMay': '컴퓨터에게 패배',
   'lc.ghiCong': "카드 그림(Apple 외 기기)과 용 얼굴: Twemoji (Twitter, Inc.) · CC-BY 4.0, 용은 색상 변경",
 
   /* ---------- campaign map (LevelMap) ---------- */

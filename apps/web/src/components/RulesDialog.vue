@@ -13,12 +13,11 @@ const props = defineProps<{ debug: boolean }>();
 const emit = defineEmits<{ close: []; 'update:debug': [boolean]; 'xem-fx': [XemFx] }>();
 
 /** Khu "Xem thử hiệu ứng" (chỉ trong chế độ debug): duyệt từng cảnh mà không phải chơi tới kết ván. */
-export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean; matMay?: string }
+export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean }
 const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
   ...BIEN_THE.thang.map((b) => ({ ten: t('lc.xemThang', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thang' as const, bienThe: b } })),
   { ten: t('fx.canh.ky-luc'), fx: { loai: 'thang', bienThe: 'phao-giay', kyLuc: true } },
   ...BIEN_THE.thua.map((b) => ({ ten: t('lc.xemThua', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thua' as const, bienThe: b } })),
-  { ten: t('lc.xemThuaMay'), fx: { loai: 'thua', matMay: '🐯' } },
   { ten: t('fx.canh.hoa'), fx: { loai: 'hoa' } }
 ]);
 

@@ -211,12 +211,6 @@ const th: TuDien = {
   'fx.bamChoiLai': '▶ แตะเพื่อเล่นอีกครั้ง',
   'fx.conCap': 'อีกแค่ {n} คู่เอง ลองใหม่ไหม?',
   'fx.suytNua': 'เกือบได้แล้ว ลองใหม่ไหม?',
-  'fx.treu.ga-mo': 'เอ๊ะ… ฉันชนะจริงเหรอ?',
-  'fx.treu.ga-cung': 'ฟลุกน่ะ ฮิฮิ!',
-  'fx.treu.bao-den': 'ไวปานเสือดำ!',
-  'fx.treu.man-ho': 'แฮ่… คราวหน้าเอาใหม่นะ!',
-  'fx.treu.rong': 'ไร้พ่ายเช่นเคย!',
-  'fx.treu.khac': 'ฮิฮิ ไว้คราวหน้านะ!',
   'fx.moKhoa': 'ปลดล็อกความสำเร็จ!',
   'fx.bac.dong': 'ทองแดง',
   'fx.bac.bac': 'เงิน',
@@ -562,7 +556,6 @@ const th: TuDien = {
   'lc.xemThu': 'ดูตัวอย่างเอฟเฟกต์จบเกม',
   'lc.xemThang': 'ชนะ · {ten}',
   'lc.xemThua': 'แพ้ · {ten}',
-  'lc.xemThuaMay': 'แพ้คอม',
   'lc.ghiCong': "ภาพบนการ์ด (อุปกรณ์ที่ไม่ใช่ Apple) และหน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 มังกรเปลี่ยนสี",
 
   /* ---------- campaign map (LevelMap) ---------- */

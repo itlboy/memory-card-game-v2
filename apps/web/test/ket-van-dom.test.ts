@@ -82,13 +82,28 @@ describe('kết ván online trên DOM thật', () => {
     expect(bang()).toBe(true);
   });
 
-  it('THUA: cảnh thua (chữ THUA RỒI + dòng an ủi), KHÔNG có chữ thắng', async () => {
+  it('THUA: cảnh thua (chữ THUA RỒI), KHÔNG có chữ thắng và KHÔNG có dòng an ủi', async () => {
     const w = await vaoVanRoiKetThuc('p2');
     expect(w.find('.ketcuc-fx[data-canh="thua"]').exists(), 'thua phải có cảnh riêng').toBe(true);
     expect(w.find('.ketcuc-fx .fx-thua').exists()).toBe(true);
-    expect(w.find('.ketcuc-fx .fx-an-ui').text()).toMatch(/Làm lại nhé/);
+    // Thua NGƯỜI: bàn đã sạch, "còn N cặp / suýt nữa" là vô nghĩa — chỉ ván một mình mới có
+    expect(w.find('.ketcuc-fx .fx-an-ui').exists(), 'thua người mà vẫn hiện dòng an ủi').toBe(false);
     expect(w.find('.ketcuc-fx .fx-thang').exists(), 'thua mà hiện CHIẾN THẮNG').toBe(false);
     vi.advanceTimersByTime(HIEN_BANG_MS.thua + 100); await nextTick(); await nextTick();
     expect(w.findComponent({ name: 'ResultDialog' }).exists()).toBe(true);
+  });
+});
+
+describe('dòng an ủi chỉ ở ván một mình', () => {
+  it('motMinh → có "còn N cặp / suýt nữa"; đấu máy/người → không', async () => {
+    const { default: KetCucFx } = await import('@/components/KetCucFx.vue');
+    for (const bienThe of ['dap-vo', 'tan-tro', 'game-over'] as const) {
+      const mot = mount(KetCucFx, { props: { loai: 'thua', bienThe, motMinh: true } });
+      expect(mot.find('.fx-an-ui').exists(), `${bienThe}: một mình phải có dòng an ủi`).toBe(true);
+      mot.unmount();
+      const dau = mount(KetCucFx, { props: { loai: 'thua', bienThe } });
+      expect(dau.find('.fx-an-ui').exists(), `${bienThe}: đấu máy/người không được có dòng an ủi`).toBe(false);
+      dau.unmount();
+    }
   });
 });

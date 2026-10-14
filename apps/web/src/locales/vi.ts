@@ -217,12 +217,6 @@ const vi = {
   'fx.bamChoiLai': '▶ BẤM CHƠI LẠI',
   'fx.conCap': 'Chỉ còn {n} cặp nữa thôi. Làm lại nhé?',
   'fx.suytNua': 'Suýt nữa thôi. Làm lại nhé?',
-  'fx.treu.ga-mo': 'Ơ… mình thắng thật à?',
-  'fx.treu.ga-cung': 'Hên thôi mà, hì!',
-  'fx.treu.bao-den': 'Nhanh như báo!',
-  'fx.treu.man-ho': 'Gừ… lần sau nhé!',
-  'fx.treu.rong': 'Ta là bất bại!',
-  'fx.treu.khac': 'Hehe, lần sau nhé!',
   'fx.moKhoa': 'Mở khoá danh hiệu',
   'fx.bac.dong': 'Đồng',
   'fx.bac.bac': 'Bạc',
@@ -574,7 +568,6 @@ const vi = {
   'lc.xemThu': 'Xem thử hiệu ứng kết ván',
   'lc.xemThang': 'Thắng · {ten}',
   'lc.xemThua': 'Thua · {ten}',
-  'lc.xemThuaMay': 'Thua máy',
   'lc.ghiCong': "Hình mặt bài (máy không phải Apple) và mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0; mặt rồng đã đổi màu",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

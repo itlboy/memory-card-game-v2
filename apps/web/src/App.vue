@@ -224,15 +224,12 @@ const chuoiNgayNay = computed(() => {
 /** Màn chiến dịch đang mở — chỉ hiện khi đã chơi chiến dịch. */
 const manChienDich = computed(() => (thongKe.value.campaignMax > 0 ? store.unlockedLevel() : 0));
 /**
- * Mặt máy vừa THẮNG mình — cảnh "máy trêu". Đọc từ BẢNG XẾP HẠNG, không từ cờ
- * botLevel (cờ tắt được giữa ván, cùng lý do chỗ xét thắng/thua đọc bảng).
+ * Ván MỘT MÌNH (không máy, không người khác) — chỉ khi đó cảnh thua mới kèm dòng an
+ * ủi "còn N cặp". Đọc BẢNG XẾP HẠNG, không cờ botLevel (cờ tắt được giữa ván).
  */
-const matMay = computed(() => {
-  const r = session.summary.value?.ranking[0];
-  return session.loaiKetCuc.value === 'thua' && r?.id === 'bot' ? (r.avatar ?? null) : null;
-});
+const motMinh = computed(() => (session.summary.value?.ranking.length ?? 0) <= 1);
 /** Cảnh kết ván của ván vừa xong — quyết định lúc nào bảng kết quả hiện. */
-const canhVan = () => chonCanh(session.loaiKetCuc.value, { kyLuc: isRecord.value, matMay: matMay.value });
+const canhVan = () => chonCanh(session.loaiKetCuc.value, { kyLuc: isRecord.value });
 
 /**
  * "CHINH PHỤC" một danh hiệu từ màn Tài khoản: dựng đúng bàn cần cho nó rồi
@@ -806,7 +803,7 @@ const hasNext = computed(() => {
   <!-- Xem thử hiệu ứng (chế độ debug): dựng cảnh 4,5 giây rồi tự gỡ -->
   <KetCucFx
     v-if="xemFx" :key="xemFx.key" xem-thu
-    :loai="xemFx.loai" :bien-the="xemFx.bienThe ?? null" :ky-luc="xemFx.kyLuc" :mat-may="xemFx.matMay ?? null"
+    :loai="xemFx.loai" :bien-the="xemFx.bienThe ?? null" :ky-luc="xemFx.kyLuc" mot-minh
   />
 
   <RulesDialog
@@ -836,7 +833,7 @@ const hasNext = computed(() => {
     :loai="session.loaiKetCuc.value"
     :seed="session.game.value?.config.seed"
     :ky-luc="isRecord"
-    :mat-may="matMay"
+    :mot-minh="motMinh"
   />
 
   <ResultDialog

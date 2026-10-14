@@ -216,12 +216,6 @@ const fr: TuDien = {
   'fx.bamChoiLai': '▶ TOUCHE POUR REJOUER',
   'fx.conCap': (p) => `Plus que ${p.n} ${Number(p.n) <= 1 ? 'paire' : 'paires'}. On réessaie ?`,
   'fx.suytNua': 'Presque ! On réessaie ?',
-  'fx.treu.ga-mo': 'Attends… j’ai vraiment gagné ?',
-  'fx.treu.ga-cung': 'Coup de chance, hihi !',
-  'fx.treu.bao-den': 'Rapide comme une panthère !',
-  'fx.treu.man-ho': 'Grrr… tu feras mieux la prochaine fois !',
-  'fx.treu.rong': 'Invaincu, comme toujours !',
-  'fx.treu.khac': 'Héhé, la prochaine fois !',
   'fx.moKhoa': 'Succès débloqué',
   'fx.bac.dong': 'Bronze',
   'fx.bac.bac': 'Argent',
@@ -567,7 +561,6 @@ const fr: TuDien = {
   'lc.xemThu': 'Aperçu des effets de fin de partie',
   'lc.xemThang': 'Victoire · {ten}',
   'lc.xemThua': 'Défaite · {ten}',
-  'lc.xemThuaMay': 'Défaite contre l’ordi',
   'lc.ghiCong': "Illustrations des cartes (appareils non Apple) et visage du dragon : Twemoji (Twitter, Inc.) · CC-BY 4.0 ; dragon recoloré",
 
   /* ---------- campaign map (LevelMap) ---------- */
