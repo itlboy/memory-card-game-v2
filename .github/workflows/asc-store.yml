@@ -2,8 +2,7 @@
 #
 # Dùng chính bộ secret ASC_* mà mobile.yml dùng để đẩy TestFlight. Chạy tay:
 #   gh workflow run asc-store.yml --ref main            (chụp lại ảnh 12 ngôn ngữ)
-#   gh workflow run asc-store.yml --ref main -f chup_anh=false -f chup_ipad=false   (chỉ cập nhật chữ)
-#   gh workflow run asc-store.yml --ref main -f chup_anh=false   (chỉ chụp lại bộ iPad)
+#   gh workflow run asc-store.yml --ref main -f chup_anh=false   (chỉ cập nhật chữ)
 # Nội dung lấy từ docs/store-listing.md (một nguồn duy nhất). Ảnh chụp từ bản web
 # Cloudflare đang chạy, nên deploy web trước rồi mới chạy cái này.
 #
@@ -19,9 +18,9 @@ on:
         type: boolean
         default: true
       chup_ipad:
-        description: Chụp ảnh iPad 13" (2064×2752) cho 12 ngôn ngữ
+        description: Chụp ảnh iPad 13" (2064×2752) — chỉ khi app bật lại iPad
         type: boolean
-        default: true
+        default: false
       may_chu:
         description: Bản web để chụp
         # thebai2 (Cloudflare) chứ không flipmatch.cozypi.com: Worker lên bản mới NGAY

@@ -833,8 +833,11 @@
   Messaging and Chat = Yes (12 câu nói nhanh), Contests = Infrequent. Thêm emoji vũ khí,
   rượu, thuốc lá… là phải làm lại Age Rating (Apple) + IARC (Google). Bộ Premium halloween/
   myth còn đầu lâu/zombie: bật `banPremium` là xét lại câu Horror/Fear ở cả hai store.
-  App khai hỗ trợ iPad nên App Store bắt ảnh iPad 13": `KHUNG=ipad` ở chup-store
-  (2064×2752), thư mục `<lang>-ipad/`, workflow asc-store `chup_ipad`.
+- **APP iOS CHỈ CHO iPHONE** (`TARGETED_DEVICE_FAMILY = 1`, chủ dự án 14.10.2026): trên
+  iPad app là một cột giữa màn hình nhiều khoảng trống, sợ bị loại vì "giao diện iPhone
+  trên iPad". Bỏ được vì app CHƯA phát hành bản có iPad — phát hành rồi thì Apple cấm
+  bỏ. Muốn trở lại iPad: đặt `1,2`, làm bố cục iPad trọn màn, chụp ảnh `KHUNG=ipad`
+  (2064×2752, thư mục `<lang>-ipad/`, workflow asc-store `-f chup_ipad=true`).
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).
