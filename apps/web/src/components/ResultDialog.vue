@@ -11,6 +11,8 @@ import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 const props = defineProps<{
   summary: Summary;
+  /** Số lần sai tối đa cho 2★/3★ (Chiến dịch) — có thì hiện mốc 3★ dưới hàng sao. */
+  starMisses?: readonly [number, number];
   isRecord: boolean;
   showStars: boolean;
   multiplayer: boolean;
@@ -55,6 +57,14 @@ const props = defineProps<{
 const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; 'chinh-phuc': [Achievement] }>();
 const primary = ref<HTMLButtonElement | null>(null);
 const shownStars = ref(0);
+/** Mốc của ngôi sao KẾ TIẾP — nói cho người chơi biết lần sau cần gì. */
+const saoKe = computed(() => {
+  const [max2, max3] = props.starMisses ?? [0, 0];
+  const sao = Math.min(props.summary.stars + 1, 4);
+  if (sao === 2) return { sao, txt: t('kq.canDuoi', { n: max2 + 1 }) };
+  if (sao === 3 && max3 > 0) return { sao, txt: t('kq.canDuoi', { n: max3 + 1 }) };
+  return { sao: sao === 3 ? 3 : 4, txt: t('kq.canKhong') };
+});
 /** Điểm chạy dần từ 0 lên tổng — con số nhảy sẵn thì không ai cảm nhận được
  *  là mình vừa ghi được bao nhiêu. */
 const shownScore = ref(0);
@@ -63,7 +73,8 @@ onMounted(() => {
   primary.value?.focus();
   if (hienSao.value) {
     // Sao hiện lần lượt, mỗi ngôi kèm một nốt cao dần
-    for (let i = 1; i <= props.summary.stars; i++) {
+    const n = props.summary.stars + (props.summary.hoanHao ? 1 : 0);
+    for (let i = 1; i <= n; i++) {
       setTimeout(() => { shownStars.value = i; sfx.star(i); }, 350 * i);
     }
   }
@@ -185,7 +196,18 @@ const title = computed(() => {
           v-for="i in 3" :key="i"
           class="star"
           :class="{ lit: i <= shownStars, dim: i > summary.stars }"
+        >★</span><span
+          v-if="summary.hoanHao" class="star sao4 thu4" :class="{ hien: shownStars >= 4 }"
         >★</span>
+      </p>
+      <!-- Mốc 3★ nói thẳng ra: 3★ cố ý khó (chủ dự án 14.10.2026), người chơi phải
+           biết thiếu bao nhiêu mới có cái để phấn đấu -->
+      <p v-if="hienSao && starMisses" class="sai-sao">
+        <template v-if="summary.hoanHao">{{ t('kq.hoanHao') }}</template>
+        <template v-else>
+          {{ t('kq.quenN', { n: summary.ranking[0]?.quen ?? 0 }) }} ·
+          <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(saoKe.sao, 3)) }}</span><span v-if="saoKe.sao === 4" class="sao4">★</span> {{ saoKe.txt }}</span>
+        </template>
       </p>
 
       <ol v-if="multiplayer" class="ranking">
@@ -349,6 +371,16 @@ const title = computed(() => {
 h2 { margin: 0 0 4px; }
 .reason { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
 .stars { margin: 0 0 12px; font-size: 32px; letter-spacing: 6px; }
+.stars:has(+ .sai-sao) { margin-bottom: 2px; }
+.sai-sao { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.sai-sao .nhom { white-space: nowrap; }
+.sai-sao .vang { color: var(--gold); }
+/* Ngôi thứ 4: nở to hơn, xoay một vòng nhẹ, rồi lấp lánh mãi */
+.star.thu4 { opacity: 0; transform: scale(.4); }
+.star.thu4.hien { opacity: 1; transform: none; animation: sao4-in .7s cubic-bezier(.3, 1.8, .5, 1), sao4-lap 2.4s ease-in-out .7s infinite; }
+@keyframes sao4-in { 0% { transform: scale(.4) rotate(-90deg); } 60% { transform: scale(1.5) rotate(10deg); } 100% { transform: none; } }
+@keyframes sao4-lap { 50% { filter: drop-shadow(0 0 9px rgba(162, 89, 255, .95)); } }
+@media (prefers-reduced-motion: reduce) { .star.thu4.hien { animation: none; } }
 .star { color: var(--line); display: inline-block; transition: color .2s; }
 .star.lit {
   color: var(--gold);
@@ -520,13 +552,18 @@ h2 { margin: 0 0 4px; }
  * mất. Gọn MỌI phần thay vì bỏ một phần: sao, khối điểm, bảng số liệu xếp hai
  * cột, gợi ý chỉ giữ tên. Khối này PHẢI đứng cuối file để thắng các rule trên.
  * tools/do-menu-tren.mjs canh mọi nút nằm trong màn hình ở ba cỡ máy.
+ * Ngưỡng 700 chứ không 640: bảng Chiến dịch (nút hai dòng + gợi ý) trên iPhone 14
+ * (664px) đo được đáy 682px — nút "Đổi bàn" lòi khỏi màn (14.10.2026).
  */
-@media (max-height: 640px) {
+@media (max-height: 700px) {
   .overlay { padding: calc(10px + env(safe-area-inset-top, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
   .panel { padding: 14px 16px; }
   h2 { font-size: var(--text-lg); }
   .reason { margin-bottom: 6px; font-size: 13px; }
   .stars { margin-bottom: 4px; font-size: 24px; letter-spacing: 4px; }
+  .stars:has(+ .sai-sao) { margin-bottom: 0; }
+  .stars { line-height: 1.1; }
+  .sai-sao { margin-bottom: 4px; font-size: 12px; }
   .score-big { margin: 2px 0 6px; padding: 6px 12px; }
   .score-big b { font-size: var(--text-xl); }
   .total-row { margin-bottom: 6px; padding: 5px 12px; }

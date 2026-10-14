@@ -9,7 +9,7 @@ export { buildDeck } from './deck.js';
 export { xoayNguoiDau } from './xoay.js';
 export {
   BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
-  comboMultiplier, isDraw, pairScore, rankPlayers, starsFor, timeBonus
+  comboMultiplier, isDraw, pairScore, rankPlayers, starsByMisses, starsFor, timeBonus
 } from './scoring.js';
 export {
   BOARD_SIZES, CAMPAIGN_LEVELS, CAMPAIGN_REPEAT, LEVEL_KEYS, campaignSpec, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,

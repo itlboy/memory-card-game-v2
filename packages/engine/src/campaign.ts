@@ -12,7 +12,8 @@ export interface Level {
   timeLimit: number;
   /** Tỉ lệ cặp đặc biệt (0 nếu màn chưa bật). */
   specialRate: number;
-  starThresholds: [number, number];
+  /** Số lần lật sai tối đa cho 2★ và 3★ — xem `saiToiDa`. */
+  starMisses: [number, number];
 }
 
 /**
@@ -54,19 +55,23 @@ export interface Level {
  * "36 thẻ" mà server dựng bàn 30 thẻ. Chiến dịch KHÔNG đi theo thang này nữa —
  * xem CAMPAIGN_REPEAT bên dưới.
  */
-const BOARDS: readonly { cols: number; rows: number; levels: number }[] = [
-  { cols: 2, rows: 2, levels: 1 },    //  4 thẻ
-  { cols: 2, rows: 3, levels: 1 },    //  6 thẻ
-  { cols: 3, rows: 4, levels: 3 },    // 12 thẻ
-  { cols: 4, rows: 4, levels: 4 },    // 16 thẻ
-  { cols: 4, rows: 5, levels: 5 },    // 20 thẻ
-  { cols: 4, rows: 6, levels: 6 },    // 24 thẻ
-  { cols: 5, rows: 6, levels: 7 },    // 30 thẻ
-  { cols: 6, rows: 6, levels: 9 },    // 36 thẻ
-  { cols: 6, rows: 7, levels: 9 },    // 42 thẻ
-  { cols: 7, rows: 8, levels: 3 },    // 56 thẻ
-  { cols: 8, rows: 9, levels: 1 },    // 72 thẻ
-  { cols: 8, rows: 11, levels: 1 }    // 88 thẻ — trần mới
+// `sao`: số lần QUÊN tối đa để đạt [2★, 3★] ở Chiến dịch — xem saiToiDa.
+// `gio`: số giây một người chơi khá cần để dọn bàn (đo) — gốc giờ Chiến dịch.
+const BOARDS: readonly {
+  cols: number; rows: number; levels: number; sao: readonly [number, number]; gio: number;
+}[] = [
+  { cols: 2, rows: 2, levels: 1, sao: [1, 0], gio: 7 },    //  4 thẻ
+  { cols: 2, rows: 3, levels: 1, sao: [1, 0], gio: 13 },    //  6 thẻ
+  { cols: 3, rows: 4, levels: 3, sao: [1, 0], gio: 26 },    // 12 thẻ
+  { cols: 4, rows: 4, levels: 4, sao: [2, 0], gio: 36 },    // 16 thẻ
+  { cols: 4, rows: 5, levels: 5, sao: [3, 1], gio: 51 },    // 20 thẻ
+  { cols: 4, rows: 6, levels: 6, sao: [5, 1], gio: 63 },    // 24 thẻ
+  { cols: 5, rows: 6, levels: 7, sao: [8, 2], gio: 91 },    // 30 thẻ
+  { cols: 6, rows: 6, levels: 9, sao: [11, 3], gio: 125 },    // 36 thẻ
+  { cols: 6, rows: 7, levels: 9, sao: [15, 5], gio: 150 },    // 42 thẻ
+  { cols: 7, rows: 8, levels: 3, sao: [20, 7], gio: 210 },    // 56 thẻ
+  { cols: 8, rows: 9, levels: 1, sao: [24, 9], gio: 255 },    // 72 thẻ
+  { cols: 8, rows: 11, levels: 1, sao: [28, 10], gio: 290 }    // 88 thẻ — trần mới
 ];
 
 /** Bàn của từng khoá cấp, trải phẳng từ BOARDS. Cấp 1 nằm ở chỉ số 0. */
@@ -84,11 +89,18 @@ export const LEVEL_KEYS = LADDER.length;
  * CHIẾN DỊCH: MỖI CỠ BÀN ĐÚNG CAMPAIGN_REPEAT MÀN (chủ dự án 14.10.2026).
  * Thang cũ chia lệch 1·1·3·4·5·6·7·9·9·3·1·1 — chín màn liền một bàn 36 thẻ
  * rồi phần cuối nhảy 56→72→88 trong năm màn. Nay 12 cỡ × 5 = 60 màn; trong năm
- * lần lặp của một cỡ, giờ siết theo SECS_PER_PAIR (giây mỗi cặp). Năm màn một
- * cỡ cũng là đúng một hàng của lưới 5 cột trên bản đồ.
+ * lần lặp của một cỡ, giờ siết theo HE_GIO. Năm màn một cỡ cũng là đúng một
+ * hàng của lưới 5 cột trên bản đồ.
+ *
+ * GIỜ = `gio` (thời gian THẬT cần, đo) × HE_GIO, KHÔNG theo số cặp × hằng số.
+ * Thời gian cần tăng nhanh hơn số cặp (bàn to lật mò nhiều hơn), nên bản
+ * 9→5 giây/cặp thừa giờ ở bàn nhỏ (4 thẻ được 18 giây, cần 7 — chủ dự án báo)
+ * và gắt ở bàn to (người khá thua gần hết bàn 56–88 thẻ). `gio` đo bằng mô
+ * phỏng người chơi khá (duel-helper, 0,9 giây mỗi lá, FLIP_BACK_MS thật); bàn
+ * ≥36 thẻ mô hình khá bị mòn trí nhớ nên lấy gần trung vị người giỏi.
  */
 export const CAMPAIGN_REPEAT = 5;
-const SECS_PER_PAIR: readonly number[] = [9, 8, 7, 6, 5];
+const HE_GIO: readonly number[] = [1.8, 1.6, 1.4, 1.25, 1.1];
 
 export const CAMPAIGN_LEVELS = BOARDS.length * CAMPAIGN_REPEAT;
 
@@ -151,28 +163,38 @@ const MAN_MOI_CHANG = 3 * CAMPAIGN_REPEAT;
 export const CHAPTERS: readonly Chapter[] = ['Nhập môn', 'Tăng tốc', 'Thử thách', 'Bậc thầy']
   .map((name, i) => ({ id: i + 1, name, from: i * MAN_MOI_CHANG + 1, to: (i + 1) * MAN_MOI_CHANG }));
 
-/** Mốc sao và tỉ lệ thẻ đặc biệt theo vị trí trên một thang `tong` bậc. */
-function sao(id: number, tong: number, pairs: number): Pick<Level, 'specialRate' | 'starThresholds'> {
-  // Nửa sau thang siết sao: cùng một bàn nhưng đòi chơi sạch hơn mới đủ sao
-  const hard = id > tong / 2;
-  const perfect = perfectScore(pairs);
+/**
+ * SAO THEO SỐ LẦN QUÊN, KHÔNG THEO % ĐIỂM HOÀN HẢO, KHÔNG THEO THỜI GIAN (chủ dự
+ * án 14.10.2026: "3 sao luôn khó, không bất khả thi"; thời gian chỉ quyết thắng
+ * thua). "Quên" = lật sai khi lá cùng cặp với lá lật đầu ĐÃ từng lộ (`quen` ở
+ * engine, cùng điều kiện mất mạng). Lật hai lá chưa từng mở là đang dò — đếm
+ * nó thì bị trừ sao vì một ô chưa ai thấy (chủ dự án bắt được).
+ *
+ * Mốc `sao` trong BOARDS là BẢNG ĐO bằng mô phỏng người chơi (mô hình
+ * duel-helper, nghĩ 0,9 giây mỗi lá, đồng hồ + lá đặc biệt thật): 3★ ≈ p30 của
+ * người nhớ RẤT tốt, 2★ ≈ trung vị của người khá. Bàn ≤16 thẻ người nhớ tốt
+ * thường không quên lần nào nên 3★ = 0 — trùng 💎 Hoàn hảo, chấp nhận: bàn nhỏ
+ * vốn dễ. Đổi luật lá đặc biệt / FLIP_BACK_MS / đồng hồ là phải đo lại.
+ */
+export function saiToiDa(pairs: number): [number, number] {
+  const b = BOARDS.find((x) => x.cols * x.rows === pairs * 2);
+  if (!b) throw new Error(`Không có cỡ bàn ${pairs} cặp`);
+  return [b.sao[0], b.sao[1]];
+}
+
+/** Mốc sao và tỉ lệ thẻ đặc biệt theo vị trí trên thang. */
+function sao(id: number, pairs: number): Pick<Level, 'specialRate' | 'starMisses'> {
   // Thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%. Trước đây
   // chặn tới cấp 3 mới bật, mà bàn nhỏ lại làm tròn xuống 0 nên thực tế phải
   // tới cấp 25 người chơi mới gặp thẻ tráo — coi như không có tính năng đó.
   // Cấp 1 là bàn tập 2 thẻ nên buildDeck tự bỏ qua (cần ít nhất 3 cặp).
   const specialRate = Math.min(0.3, 0.06 + (id - 1) * 0.005);
-  return {
-    specialRate,
-    starThresholds: hard
-      ? [Math.round(perfect * 0.62), Math.round(perfect * 0.85)]
-      : [Math.round(perfect * 0.55), Math.round(perfect * 0.8)]
-  };
+  return { specialRate, starMisses: saiToiDa(pairs) };
 }
 
 /**
  * Màn Chiến dịch. Cỡ bàn = (id−1) / CAMPAIGN_REPEAT; lần lặp thứ k trong cỡ đó
- * được SECS_PER_PAIR[k] giây mỗi cặp (9 → 5). Bàn 4 thẻ: 18·16·14·12·10 giây;
- * bàn 88 thẻ: 396·352·308·264·220 giây.
+ * được ⌈gio × HE_GIO[k]⌉ giây. Bàn 4 thẻ: 13·12·10·9·8; bàn 88 thẻ: 522…319.
  */
 export function campaignSpec(id: number): Level {
   if (!Number.isInteger(id) || id < 1 || id > CAMPAIGN_LEVELS) {
@@ -180,8 +202,8 @@ export function campaignSpec(id: number): Level {
   }
   const b = BOARDS[Math.floor((id - 1) / CAMPAIGN_REPEAT)]!;
   const pairs = (b.cols * b.rows) / 2;
-  const timeLimit = pairs * SECS_PER_PAIR[(id - 1) % CAMPAIGN_REPEAT]!;
-  return { id, cols: b.cols, rows: b.rows, pairs, timeLimit, ...sao(id, CAMPAIGN_LEVELS, pairs) };
+  const timeLimit = Math.ceil(b.gio * HE_GIO[(id - 1) % CAMPAIGN_REPEAT]!);
+  return { id, cols: b.cols, rows: b.rows, pairs, timeLimit, ...sao(id, pairs) };
 }
 
 /** Spec theo KHOÁ cấp (thang cũ 1..LEVEL_KEYS) — chế độ thường và online chỉ
@@ -195,7 +217,7 @@ export function levelSpec(id: number): Level {
   // cấp sau không khó hơn cấp trước nữa. Đây là thứ DUY NHẤT phân biệt các cấp
   // dùng chung một cỡ bàn (xem BOARDS).
   const timeLimit = Math.max(pairs * 3, pairs * 9 - (id - 1) * 2);
-  return { id, cols, rows, pairs, timeLimit, ...sao(id, LEVEL_KEYS, pairs) };
+  return { id, cols, rows, pairs, timeLimit, ...sao(id, pairs) };
 }
 
 /** Mọi màn Chiến dịch. */
@@ -213,6 +235,6 @@ export function levelConfig(level: Level, symbols: readonly string[], seed: numb
     seed,
     timeLimit: level.timeLimit,
     specialRate: level.specialRate,
-    starThresholds: level.starThresholds
+    starMisses: level.starMisses
   };
 }

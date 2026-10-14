@@ -3,6 +3,7 @@ import {
   BOARD_SIZES, CAMPAIGN_LEVELS, CAMPAIGN_REPEAT, CHAPTERS, LEVEL_KEYS, allLevels, campaignSpec, levelConfig,
   levelSpec, perfectScore
 } from '../src/campaign.js';
+import { starsByMisses } from '../src/scoring.js';
 import { MemoryGame } from '../src/game.js';
 import { SYMBOLS, clearBoard } from './helpers.js';
 
@@ -53,13 +54,16 @@ describe('Campaign (SP-03)', () => {
     }
   });
 
-  it('giờ là số nguyên giây, màn đầu mỗi cỡ 9 giây/cặp, màn cuối 5 giây/cặp', () => {
-    for (const l of levels) {
-      expect(Number.isInteger(l.timeLimit), `màn ${l.id}`).toBe(true);
-      const k = (l.id - 1) % CAMPAIGN_REPEAT;
-      if (k === 0) expect(l.timeLimit).toBe(l.pairs * 9);
-      if (k === CAMPAIGN_REPEAT - 1) expect(l.timeLimit).toBe(l.pairs * 5);
+  it('giờ là số nguyên giây, siết dần trong 5 màn một cỡ, bàn to luôn nhiều giờ hơn bàn nhỏ', () => {
+    for (const l of levels) expect(Number.isInteger(l.timeLimit), `màn ${l.id}`).toBe(true);
+    // màn đầu mỗi cỡ nhiều giờ hơn màn đầu cỡ trước, màn cuối cũng vậy
+    for (let b = 1; b < BOARD_SIZES.length; b++) {
+      for (const k of [0, CAMPAIGN_REPEAT - 1]) {
+        expect(levels[b * CAMPAIGN_REPEAT + k]!.timeLimit).toBeGreaterThan(levels[(b - 1) * CAMPAIGN_REPEAT + k]!.timeLimit);
+      }
     }
+    // bàn 4 thẻ không còn thừa giờ (cần ~7 giây)
+    expect(levels[0]!.timeLimit).toBeLessThanOrEqual(15);
   });
 
   it('chặng tròn hàng 5 cột, nối liền, phủ đủ mọi màn', () => {
@@ -93,20 +97,24 @@ describe('Campaign (SP-03)', () => {
     expect(levels.at(-1)!.specialRate).toBeCloseTo(0.3, 5);
   });
 
-  it('nửa sau chiến dịch siết mốc sao chặt hơn nửa đầu', () => {
-    const early = levels.find((l) => l.id === 5)!;
-    const late = levels.find((l) => l.id === CAMPAIGN_LEVELS)!;
-    const ratio = (l: typeof early): number => l.starThresholds[1] / perfectScore(Math.floor((l.cols * l.rows) / 2));
-    expect(ratio(late)).toBeGreaterThan(ratio(early));
+  it('sao theo số lần lật sai: 3★ chặt hơn 2★, mốc tăng theo cỡ bàn', () => {
+    for (const l of levels) {
+      const [max2, max3] = l.starMisses;
+      expect(max3, `màn ${l.id}`).toBeGreaterThanOrEqual(0);
+      expect(max2, `màn ${l.id}`).toBeGreaterThan(max3);
+      // 3★ không bao giờ cho phép sai nhiều hơn số cặp × 1,2 — luôn là mốc khó
+      expect(max3, `màn ${l.id}`).toBeLessThanOrEqual(l.pairs * 1.2);
+    }
+    for (let i = 1; i < levels.length; i++) {
+      expect(levels[i]!.starMisses[1]).toBeGreaterThanOrEqual(levels[i - 1]!.starMisses[1]);
+    }
   });
 
-  it('mốc sao nằm dưới điểm hoàn hảo nên 3 sao là đạt được', () => {
-    for (const l of levels) {
-      const perfect = perfectScore(Math.floor((l.cols * l.rows) / 2));
-      const [two, three] = l.starThresholds;
-      expect(two).toBeLessThan(three);
-      expect(three).toBeLessThan(perfect);
-    }
+  it('một lần sai quá mốc là rớt sao', () => {
+    const [max2, max3] = campaignSpec(36).starMisses;
+    expect(starsByMisses(max3, [max2, max3])).toBe(3);
+    expect(starsByMisses(max3 + 1, [max2, max3])).toBe(2);
+    expect(starsByMisses(max2 + 1, [max2, max3])).toBe(1);
   });
 
   it('chơi hoàn hảo màn 1 được 3 sao', () => {

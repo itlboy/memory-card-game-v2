@@ -50,7 +50,8 @@ export interface Prefs {
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
-export interface LevelProgress { stars: number; score: number }
+/** `hh`: ngôi sao thứ 4 — đã từng thắng màn này mà không quên lần nào. */
+export interface LevelProgress { stars: number; score: number; hh?: boolean }
 
 interface Save {
   prefs?: Partial<Prefs> & { theme?: string };   // `theme` là khoá cũ (1 theme)
@@ -197,15 +198,16 @@ export const store = {
   /** Lưu tiến độ một cấp; chỉ ghi khi tốt hơn lần trước. KHÔNG cộng điểm vào
    *  tổng — việc đó là của saveResult(), gọi cả hai thì điểm bị tính hai lần.
    *  Chế độ không xếp sao thì truyền stars = 1 để đánh dấu "đã qua". */
-  saveLevel(mode: Mode, id: number, stars: number, score: number): void {
+  saveLevel(mode: Mode, id: number, stars: number, score: number, hh = false): void {
     const s = read();
     s.levels ??= {};
     const key = `${mode}:${id}`;
     const prev = s.levels[key] ?? (mode === 'campaign' ? s.campaign?.[String(id)] : undefined);
-    if (!prev || stars > prev.stars || score > prev.score) {
+    if (!prev || stars > prev.stars || score > prev.score || (hh && !prev.hh)) {
       s.levels[key] = {
         stars: Math.max(stars, prev?.stars ?? 0),
-        score: Math.max(score, prev?.score ?? 0)
+        score: Math.max(score, prev?.score ?? 0),
+        ...(hh || prev?.hh ? { hh: true } : {})
       };
     }
     write(s);

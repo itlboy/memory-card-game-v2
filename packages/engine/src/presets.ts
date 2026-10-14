@@ -59,7 +59,7 @@ export function presetConfig({ mode, level, symbols, seed, players }: PresetInpu
       ...base,
       timeLimit: spec.timeLimit,
       specialRate: spec.specialRate,
-      starThresholds: spec.starThresholds
+      starMisses: spec.starMisses
     };
   }
 }

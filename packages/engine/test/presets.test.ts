@@ -52,8 +52,8 @@ describe('cấu hình mặc định theo chế độ (SRS 3.1)', () => {
   });
 
   it('Campaign có mốc sao, các chế độ khác thì không', () => {
-    expect(make('campaign').starThresholds).toHaveLength(2);
-    expect(make('classic').starThresholds).toBeUndefined();
+    expect(make('campaign').starMisses).toHaveLength(2);
+    expect(make('classic').starMisses).toBeUndefined();
   });
 
   it('màn ngoài khoảng thì báo lỗi rõ ràng', () => {

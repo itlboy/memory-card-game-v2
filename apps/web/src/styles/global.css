@@ -374,3 +374,16 @@ button {
 @keyframes bcn-xoay { 50% { transform: rotate(18deg) scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .bcn-the, .bcn-sao { animation: none; } }
 
+
+/*
+ * NGÔI SAO THỨ 4 — "Hoàn hảo" ở Chiến dịch: thắng mà không quên lần nào (chủ dự
+ * án 14.10.2026: "ngôi sao số 4, hiển thị đặc biệt chút"). Ba ngôi thường màu
+ * vàng; ngôi này ánh cầu vồng hồng→tím→xanh + quầng sáng, dùng CHUNG ở bản đồ,
+ * dòng mốc, HUD và bảng kết quả để nhìn đâu cũng nhận ra cùng một thứ.
+ */
+.sao4 {
+  background: linear-gradient(135deg, #ff4f9a 0%, #a259ff 50%, #22c4ff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 3px rgba(162, 89, 255, .6));
+}
+.sao4.tat { background: none; color: color-mix(in srgb, var(--fg) 22%, transparent); filter: none; }

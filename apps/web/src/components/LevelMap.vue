@@ -20,6 +20,9 @@ const emit = defineEmits<{ play: [id: number] }>();
 
 const levels = allLevels();
 const starsOf = (id: number): number => props.progress[String(id)]?.stars ?? 0;
+/** Ngôi sao thứ 4: đã thắng màn này mà không quên lần nào. */
+const hhOf = (id: number): boolean => !!props.progress[String(id)]?.hh;
+const hhCount = computed(() => levels.filter((l) => hhOf(l.id)).length);
 const cleared = (id: number): boolean => starsOf(id) > 0;
 const needsMore = (l: Level): boolean => l.pairs > props.symbolCount;
 
@@ -72,7 +75,7 @@ watch(nextLevel, scrollToActive);
   <div class="wrap">
     <p class="summary">
       <template v-if="showStars">
-        {{ t('cd.daDat') }}<b>{{ totalStars }}</b>{{ t('cd.daDatSau', { tong: levels.length * 3 }) }}
+        {{ t('cd.daDat') }}<b>{{ totalStars }}</b>{{ t('cd.daDatSau', { tong: levels.length * 3 }) }}<template v-if="hhCount"> · <span class="sao4">★</span> <b>{{ hhCount }}</b></template>
       </template>
       <template v-else>{{ t('cd.daQua') }}<b>{{ doneCount }}</b>{{ t('cd.daQuaSau', { tong: levels.length }) }}</template>
     </p>
@@ -115,7 +118,7 @@ watch(nextLevel, scrollToActive);
                    ổ khoá chuyển thành dấu ở GÓC nên không giành chỗ của nó. -->
               <small>{{ t('cd.theN', { n: l.pairs * 2 }) }}</small>
               <span v-if="cleared(l.id)" class="stars" aria-hidden="true">
-                {{ showStars ? starText(starsOf(l.id)) : '✓' }}
+                {{ showStars ? starText(starsOf(l.id)) : '✓' }}<span v-if="showStars && hhOf(l.id)" class="sao4">★</span>
               </span>
               <Lock v-if="l.id > unlocked" class="node-lock" :size="10" aria-hidden="true" />
             </button>
@@ -225,7 +228,9 @@ watch(nextLevel, scrollToActive);
      làm chúng dính vào nhau */
   box-shadow: 0 0 0 3px var(--accent-soft), var(--elev-1);
 }
-.node.next small { color: rgba(255, 255, 255, .88); font-weight: 700; }
+/* Chữ nhỏ theo CÙNG token chữ của nền chọn: trắng cứng trên nền vàng Kẹo khó đọc
+   (chủ dự án 14.10.2026) — skin nào cũng đúng tương phản */
+.node.next small { color: var(--chon-chu); opacity: .85; font-weight: 700; }
 /* Khoá: mờ đi nhưng vẫn đọc được số cấp và số thẻ, kèm ổ khoá nhỏ ở góc */
 .node.locked { background: transparent; color: var(--muted); opacity: .72; }
 .node { position: relative; }

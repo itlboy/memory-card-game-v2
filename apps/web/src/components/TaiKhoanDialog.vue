@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
-import { sizeForLevel } from '@mm/engine';
+import { LEVEL_KEYS, sizeForLevel } from '@mm/engine';
 import { LogOut, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { dsHien, daCo as daCoRef } from '@/lib/achievements';
@@ -76,7 +76,8 @@ const kyLuc = computed(() => {
     .map(([k, r]) => {
       const mm = /^([a-z]+):L(\d+)$/.exec(k);
       const cap = mm ? Number(mm[2]) : 0;
-      const sz = cap ? sizeForLevel(cap) : null;
+      // Khoá Chiến dịch là số MÀN (1..60), không phải khoá cỡ bàn — đừng tra cỡ
+      const sz = cap && mm?.[1] !== 'campaign' && cap <= LEVEL_KEYS ? sizeForLevel(cap) : null;
       const ten = mm?.[1] === 'campaign' ? t('tk.kyLucChienDich', { n: cap }) : sz ? t('tk.kyLucBan', { n: sz.cols * sz.rows }) : k;
       return { k, ten, cap, ...r };
     })

@@ -45,6 +45,13 @@ export function starsFor(score: number, thresholds?: readonly [number, number]):
   return 1;
 }
 
+/** Sao theo SỐ LẦN LẬT SAI (Chiến dịch): sai ≤ max3 → 3★, ≤ max2 → 2★, còn lại 1★. */
+export function starsByMisses(misses: number, [max2, max3]: readonly [number, number]): 1 | 2 | 3 {
+  if (misses <= max3) return 3;
+  if (misses <= max2) return 2;
+  return 1;
+}
+
 /**
  * Xếp hạng người chơi: người bỏ cuộc LUÔN đứng cuối (đầu hàng thì không thể
  * thắng dù đang dẫn điểm); còn lại điểm cao trước, hoà thì so chuỗi đúng

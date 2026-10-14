@@ -2,7 +2,7 @@ import { buildDeck } from './deck.js';
 import { Rng } from './rng.js';
 import {
   FLIP_BACK_MS, MATCH_TIME_BONUS_MS, TURN_BONUS_MS,
-  comboMultiplier, pairScore, rankPlayers, starsFor, timeBonus
+  comboMultiplier, pairScore, rankPlayers, starsByMisses, starsFor, timeBonus
 } from './scoring.js';
 import type {
   Card, GameConfig, GameEvent, GameStatus, Player, PlayerInit, Power, Summary
@@ -35,7 +35,7 @@ const AVATARS: readonly string[] = ['🦊', '🐼', '🐯', '🐸', '🐵', '�
 function makePlayer(init: PlayerInit, lives: number | null): Player {
   return {
     ...init,
-    score: 0, pairs: 0, streak: 0, bestStreak: 0, misses: 0,
+    score: 0, pairs: 0, streak: 0, bestStreak: 0, misses: 0, quen: 0,
     lives: lives ?? Infinity, frozenTurns: 0, doubleNext: false
   };
 }
@@ -423,6 +423,7 @@ export class MemoryGame {
     // ở đây, đúng ca người chơi phản ánh: mở thẻ cờ mới toanh rồi bốc trúng
     // thẻ bánh đã lộ, và bị trừ mạng dù không có cách nào chọn khác.
     const avoidable = this.hasKnownTwin(a);
+    if (avoidable) player.quen = (player.quen ?? 0) + 1;
     if (this.config.lives != null && avoidable) {
       player.lives--;
       out.push({ type: 'life-lost', playerId: player.id, livesLeft: player.lives });
@@ -641,7 +642,10 @@ export class MemoryGame {
       score: leader.score,
       moves: this.moves,
       bestStreak: leader.bestStreak,
-      stars: status === 'won' ? starsFor(leader.score, this.config.starThresholds) : 0,
+      stars: status !== 'won' ? 0
+        : this.config.starMisses ? starsByMisses(leader.quen ?? 0, this.config.starMisses)
+        : starsFor(leader.score, this.config.starThresholds),
+      hoanHao: status === 'won' && !!this.config.starMisses && (leader.quen ?? 0) === 0,
       ranking
     };
     return [{ type: 'end', summary: this.summaryCache }];

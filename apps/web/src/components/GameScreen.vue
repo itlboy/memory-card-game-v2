@@ -147,6 +147,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       :level-id="levelId"
       :multiplayer="game.isMultiplayer"
       :score-bump="scoreBump"
+      :star-misses="game.config.starMisses"
+      :misses="s.players.value[0]?.quen ?? 0"
       pausable
       @quit="emit('quit')"
       @pause="s.pause()"
