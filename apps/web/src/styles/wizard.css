@@ -140,3 +140,17 @@
   transition: background .2s, transform .2s;
 }
 .dots i.on { background: var(--accent); transform: scale(1.15); }
+
+/*
+ * PANEL WIZARD LÀ MỘT LỚP GHÉP DUY NHẤT (iOS, 14.10.2026 — video TestFlight của chủ
+ * dự án). Icon bay (IconBay) chạy animation liên tục sau panel; WebKit tách RIÊNG
+ * từng ô nằm chồng lên vùng đó (và ô vừa chạm, đang chạy hiệu ứng nhấn) thành lớp
+ * ghép con. Lúc bước cũ mờ đi rồi bị gỡ, iOS không mờ/không gỡ kịp các lớp con ấy:
+ * hàng "4 / 6" + ô "16" đứng nguyên rõ nét rồi NẰM ĐÈ lên bước mới ~0,27 giây —
+ * chính là cái "vỡ vỡ". Gom cả panel vào một lớp thì ô vẽ chung vào lớp của panel.
+ * `opacity` chứ KHÔNG `transform`: transform biến panel thành khối chứa cho con
+ * `position: fixed` (hộp xem trước theme, ThemePicker) — hộp bị nhốt trong panel.
+ * Chrome/WebKit headless trên Mac không dựng lớp GPU nên KHÔNG tái hiện được — chỉ
+ * thấy trên máy thật.
+ */
+section.panel { will-change: opacity; }
