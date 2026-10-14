@@ -282,6 +282,8 @@ button {
   transition: opacity .12s ease;
 }
 .screen-leave-to { opacity: 0; }
+/* Màn đang rời chỉ mờ dần, mọi chuyển động con đứng yên — lý do ở cuối wizard.css */
+.screen-leave-active * { transition: none !important; animation: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
