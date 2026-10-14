@@ -341,7 +341,7 @@ const fr: TuDien = {
   'bot.divine': 'Dragon Divin',
   'chung.ban': 'Toi',
   'chung.backThoat': "Appuyez encore sur Retour pour quitter",
-  'chung.dangCapNhat': "Mise à jour vers la dernière version…",
+  'chung.dangCapNhat': "Nouvelle version disponible — mise à jour…",
   'dhd.danhHieu': 'Succès',
   'dhd.dong': 'Fermer',
   'dhd.chuaCo': 'À débloquer ({n})',

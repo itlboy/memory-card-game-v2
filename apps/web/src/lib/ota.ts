@@ -35,11 +35,15 @@ export function oTrangChu(search = typeof location === 'undefined' ? '' : locati
   return !['playing', 'room', 'online', 'w'].some((k) => q.has(k));
 }
 
+/** Thẻ giữa màn "Đã có bản mới…" — cú tải lại không lời giải thích dễ bị đọc thành
+ *  app giật (chủ dự án thử OTA lần đầu 14.10.2026: "nháy một cái quá nhanh"). */
+const GIU_BAO_MS = 1500;
 function baoCapNhat(): void {
   const el = document.createElement('div');
-  el.className = 'bao-thoat';   // cùng kiểu toast với "Nhấn Back lần nữa để thoát"
+  el.className = 'bao-cap-nhat';
   el.setAttribute('role', 'status');
-  el.textContent = t('chung.dangCapNhat');
+  el.innerHTML = '<span class="bcn-the"><span class="bcn-sao" aria-hidden="true">✨</span><span class="bcn-chu"></span></span>';
+  el.querySelector('.bcn-chu')!.textContent = t('chung.dangCapNhat');
   (document.getElementById('app') ?? document.body).appendChild(el);
 }
 
@@ -69,7 +73,7 @@ export async function kiemOta(): Promise<void> {
     const goi = co ?? await CapacitorUpdater.download({ url: new URL(m.url, SITE_URL).href, version: m.id, checksum: m.sha256 });
     if (performance.now() - LUC_MO < AP_NGAY_MS && oTrangChu()) {
       baoCapNhat();
-      await new Promise((r) => setTimeout(r, 700));   // kịp đọc dòng báo
+      await new Promise((r) => setTimeout(r, GIU_BAO_MS));   // kịp đọc thẻ báo
       await CapacitorUpdater.set({ id: goi.id });      // tải lại app sang gói mới
       return;
     }

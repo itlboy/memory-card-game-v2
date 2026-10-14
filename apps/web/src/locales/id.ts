@@ -338,7 +338,7 @@ const id: TuDien = {
   'bot.divine': 'Naga Dewa',
   'chung.ban': 'Kamu',
   'chung.backThoat': "Tekan Kembali sekali lagi untuk keluar",
-  'chung.dangCapNhat': "Memperbarui ke versi terbaru…",
+  'chung.dangCapNhat': "Versi baru tersedia — memperbarui…",
   'dhd.danhHieu': 'Pencapaian',
   'dhd.dong': 'Tutup',
   'dhd.chuaCo': 'Belum didapat ({n})',

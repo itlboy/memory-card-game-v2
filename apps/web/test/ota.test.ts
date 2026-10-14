@@ -31,7 +31,7 @@ describe('cập nhật nóng', () => {
     await kiemOta();
     expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
     expect(goi.next).not.toHaveBeenCalled();
-    expect(document.querySelector('.bao-thoat')?.textContent).toBeTruthy();
+    expect(document.querySelector('.bao-cap-nhat')?.textContent).toBeTruthy();
   });
 
   it('đang trong ván / wizard: KHÔNG áp ngay, hẹn lần mở sau', async () => {

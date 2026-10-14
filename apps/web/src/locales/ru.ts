@@ -354,7 +354,7 @@ const ru: TuDien = {
   'bot.divine': 'Божественный дракон',
   'chung.ban': 'Ты',
   'chung.backThoat': "Нажмите «Назад» ещё раз, чтобы выйти",
-  'chung.dangCapNhat': "Обновляем до последней версии…",
+  'chung.dangCapNhat': "Доступна новая версия — обновляем…",
   'dhd.danhHieu': 'Достижения',
   'dhd.dong': 'Закрыть',
   'dhd.chuaCo': 'Не получены ({n})',

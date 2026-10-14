@@ -335,7 +335,7 @@ const ja: TuDien = {
   'bot.divine': '神龍',
   'chung.ban': 'あなた',
   'chung.backThoat': "もう一度「戻る」で終了",
-  'chung.dangCapNhat': "最新版に更新しています…",
+  'chung.dangCapNhat': "新しいバージョンがあります — 更新中…",
   'dhd.danhHieu': '実績',
   'dhd.dong': '閉じる',
   'dhd.chuaCo': '未獲得（{n}）',
