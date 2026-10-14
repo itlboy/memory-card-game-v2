@@ -266,7 +266,11 @@ button {
 .g-orange { background: linear-gradient(150deg, #e2620c, #f59e0b) !important; box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32) !important; }
 
 /* Chuyển màn mượt */
-.screen-enter-active { transition: opacity .22s ease, transform .22s ease; }
+/* Màn MỚI chờ màn cũ mờ gần hết (.1s) rồi mới hiện: hai màn vẫn chồng nhau trong
+   DOM (không out-in — xem App.vue) nhưng không còn đè nhau TRÊN MẮT. Bản cũ hiện
+   màn mới ngay lúc màn cũ còn rõ, trên iPhone đọc ra thành "thành phần mới đè lên
+   thành phần cũ, vỡ vỡ" (chủ dự án báo 14.10.2026). */
+.screen-enter-active { transition: opacity .2s ease .1s, transform .2s ease .1s; }
 .screen-enter-from { opacity: 0; transform: translateY(10px) scale(.99); }
 /* Màn đang rời TÁCH KHỎI LUỒNG để hai màn chồng nhau một nhịp mà không đẩy bố
    cục (đây là cái giá của việc bỏ mode="out-in" — xem chú thích trong App.vue).
@@ -275,7 +279,7 @@ button {
   /* Vị trí + kích thước do App.vue `ghimKhungRoi` ghim theo khung ĐANG CÓ — đừng
      đặt lại inset: 0 (bỏ qua đệm của <main>, khung phình ra lúc mờ dần). */
   position: absolute; pointer-events: none; margin: 0;
-  transition: opacity .18s ease;
+  transition: opacity .12s ease;
 }
 .screen-leave-to { opacity: 0; }
 
@@ -284,6 +288,7 @@ button {
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
+    transition-delay: 0s !important;
   }
 }
 
