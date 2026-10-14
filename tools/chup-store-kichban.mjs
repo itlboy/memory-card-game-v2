@@ -37,7 +37,7 @@ async function vaoVan({ bam, bamDung, cho }, soThe, chonLuat) {
 }
 const bamThe = (js, i) => js(`document.querySelectorAll('button.card')[${i}].click(); true`);
 async function cacCap(js) {
-  const sym = await js(`[...document.querySelectorAll('button.card')].map(e => e.querySelector('.front')?.textContent.trim())`);
+  const sym = await js(`[...document.querySelectorAll('button.card')].map(e => { const f = e.querySelector('.front'); return f?.textContent.trim() || f?.querySelector('img')?.getAttribute('src') || ''; })`);
   const nhom = new Map();
   sym.forEach((s, i) => nhom.set(s, [...(nhom.get(s) ?? []), i]));
   return [...nhom.values()].filter((g) => g.length === 2);

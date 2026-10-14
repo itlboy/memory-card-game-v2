@@ -1,0 +1,64 @@
+# ĐIỀN TRANG GOOGLE PLAY từ CI — anh em của asc-store.yml.
+#
+# Dùng secret PLAY_SERVICE_ACCOUNT_JSON (service account có quyền "Quản lý trang
+# thông tin cửa hàng" trên Play Console). Chạy tay:
+#   gh workflow run play-store.yml --ref main                  (chụp lại ảnh 12 ngôn ngữ)
+#   gh workflow run play-store.yml --ref main -f chup_anh=false (chỉ cập nhật chữ)
+# Nội dung lấy từ docs/store-listing.md — CÙNG nguồn với App Store.
+#
+# Ubuntu chứ không macOS (khác asc-store): ảnh Play phải giống thứ người dùng
+# ANDROID thấy — mặt bài Twemoji (chup-store giả máy Android, KHUNG=android
+# 1080×1920 vì Play từ chối ảnh dài hơn 2:1) và emoji giao diện kiểu Noto.
+name: Google Play page
+
+on:
+  workflow_dispatch:
+    inputs:
+      chup_anh:
+        description: Chụp lại ảnh store cho 12 ngôn ngữ
+        type: boolean
+        default: true
+      may_chu:
+        description: Bản web để chụp
+        # thebai2 lên bản mới ngay lúc `pnpm release` (xem asc-store.yml)
+        default: https://thebai2.hello314.com
+
+permissions:
+  contents: read
+
+jobs:
+  dien:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Font cho chữ Nhật/Hàn/Trung/Thái + emoji giao diện
+        if: inputs.chup_anh
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-color-emoji fonts-thai-tlwg >/dev/null
+      - name: Chụp ảnh Play (12 ngôn ngữ, khung Android)
+        if: inputs.chup_anh
+        env:
+          KHUNG: android
+          CHROME: /usr/bin/google-chrome
+        run: |
+          for L in en vi es pt fr de ja ko zh ru id th; do
+            node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L" "$L"
+          done
+      - uses: actions/upload-artifact@v7
+        if: inputs.chup_anh
+        with:
+          name: anh-play
+          path: anh/
+      - name: Điền Google Play
+        env:
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          node tools/play-store.mjs "$RUNNER_TEMP/sa.json" anh
+          rm -f "$RUNNER_TEMP/sa.json"
