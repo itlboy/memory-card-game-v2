@@ -29,6 +29,7 @@ import { clock } from '@/lib/format';
 import LevelMap from './LevelMap.vue';
 import SizeGrid from './SizeGrid.vue';
 import ThemePicker from './ThemePicker.vue';
+import QuatLa from './QuatLa.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 
@@ -382,11 +383,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         ẩn hẳn khi máy quá thấp, nên KHÔNG SCROLL vẫn giữ.
       -->
       <div v-if="step === 'players'" key="players" class="step-body home">
-        <div class="quat" aria-hidden="true">
-          <span class="la-quat trai"><i /></span>
-          <span class="la-quat phai"><i /></span>
-          <span class="la-quat giua">🐼</span>
-        </div>
+        <QuatLa :themes="themes" />
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
           <Map class="opt-icon" :size="34" aria-hidden="true" />
@@ -729,33 +726,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
 .step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
 .home .loi-tat { margin: 0; }
-/* Quạt CO theo chỗ (điện thoại) nhưng có TRẦN 420px: cột máy tính cao 1.200px mà
-   quạt ăn hết phần dư thì cụm nút bị đẩy dính đáy (chủ dự án báo). Có trần thì
-   phần dư chia đều trên/dưới nhờ justify-content: center — cả cụm nằm giữa. */
-.quat { flex: 1 1 auto; max-height: 420px; min-height: 0; position: relative; container-type: size; }
-.la-quat {
-  position: absolute; left: 50%; top: 50%;
-  /* Nở theo chỗ trống (cqh của .quat), trần 320px: trên máy tính cột cao 1.200px
-     mà quạt chỉ 170px thì lọt thỏm giữa một khoảng trống (chủ dự án báo). */
-  height: min(86cqh, 53cqw, 320px); aspect-ratio: 3 / 4;   /* 53cqw: quạt rộng ≈2,5 lá, phải lọt bề ngang */
-  border-radius: 16px; display: flex; align-items: center; justify-content: center;
-  background: var(--card-back); box-shadow: var(--elev-2);
-  border: var(--quat-vien, 0);
-}
-.la-quat i { width: 34%; aspect-ratio: 1; background: var(--quat-hoa, rgba(255, 255, 255, .9)); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-.la-quat.trai { transform: translate(-112%, -46%) rotate(-14deg); }
-.la-quat.phai { transform: translate(12%, -48%) rotate(12deg); }
-.la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); background: var(--card-face-up); font-size: min(120px, 30cqh); z-index: 1; }
-/* LẮC NHẸ (chủ dự án 13.10.2026): thuộc tính `rotate` RIÊNG nên cộng dồn lên góc
-   nghiêng trong `transform`, không đè nó. Ba nhịp lệch nhau để không lắc đồng loạt
-   như máy. Chỉ rotate — không will-change, không lớp GPU sống mãi. */
-.la-quat { animation: lac-quat 3.2s ease-in-out infinite alternate; }
-.la-quat.trai { animation-duration: 3.8s; animation-delay: -1.2s; }
-.la-quat.phai { animation-duration: 3.5s; animation-delay: -2.4s; }
-@keyframes lac-quat { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
-@media (prefers-reduced-motion: reduce) { .la-quat { animation: none; } }
-/* Máy thấp (SE + thanh địa chỉ): quạt còn dưới ~70px thì nhìn như lỗi — ẩn hẳn */
-@container (max-height: 70px) { .la-quat { display: none; } }
 
 .o-chien-dich, .o-vuong {
   border: 2px solid transparent; border-radius: 20px; color: #fff; cursor: pointer;
