@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HelpCircle, ImageIcon, Languages, Menu, Moon, Music, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
+import { HelpCircle, ImageIcon, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { datDungVector, dungVector } from '@/lib/emoji';
 import { SKINS, datSkin, skin } from '@/lib/skin';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
@@ -13,8 +13,6 @@ import type { SoundLevel } from '@/lib/storage';
 const props = defineProps<{
   dark: boolean; soundLevel: SoundLevel; totalScore: number;
   account?: boolean; avatar?: string | null; signedIn?: boolean;
-  /** Rung đang bật; `coRung`: máy có đường rung không (iPhone web thì không). */
-  rung?: boolean; coRung?: boolean;
   /** Nhạc nền đang bật. */
   nhac?: boolean;
   /** Tên tài khoản Google đang đăng nhập — hiện ở khối tài khoản của menu. */
@@ -22,7 +20,7 @@ const props = defineProps<{
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
   danhHieu?: { co: number; tong: number };
 }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-rung': []; 'toggle-nhac': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
+defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-nhac': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
 /*
  * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
@@ -211,14 +209,8 @@ watch(() => props.totalScore, (to, from) => {
         >
           <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span><i class="sw" :class="{ bat: nhac }" aria-hidden="true" />
         </button>
-        <!-- Giấu khi máy không rung được (web trên iPhone): công tắc không làm gì là công tắc nói dối -->
-        <button
-          v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
-          :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
-          @click="$emit('toggle-rung')"
-        >
-          <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
-        </button>
+        <!-- Rung LUÔN BẬT (chủ dự án bỏ công tắc 14.10.2026). iPhone vẫn theo cài
+             đặt rung của hệ thống (UIFeedbackGenerator), Android theo cài đặt rung chạm. -->
         <!-- Hình mặt bài: Twemoji (nét ở mọi cỡ) hay emoji của máy — lib/emoji.ts -->
         <button
           class="item cong-tac" role="menuitemcheckbox" type="button"
