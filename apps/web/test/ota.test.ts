@@ -7,7 +7,7 @@ import { resolve } from 'node:path';
  * Canh: báo sẵn sàng NGAY (không thì plugin quay về gói cũ), bỏ qua khi đã đúng gói /
  * app quá cũ / gói từng hỏng, và chỉ áp ở lần MỞ LẠI app (`kill`).
  */
-const goi = { notifyAppReady: vi.fn(async () => ({})), list: vi.fn(), download: vi.fn(), next: vi.fn(async () => ({})), setMultiDelay: vi.fn(async () => {}) };
+const goi = { notifyAppReady: vi.fn(async () => ({})), list: vi.fn(), download: vi.fn(), next: vi.fn(async () => ({})), setMultiDelay: vi.fn(async () => {}), set: vi.fn(async () => {}) };
 let manifest: Record<string, string> | null = null;
 let banApp = '1.3.0';
 vi.mock('@/lib/native', () => ({ laApp: true, nenApp: 'ios', SITE_URL: 'https://flipmatch.cozypi.com' }));
@@ -24,14 +24,42 @@ beforeEach(() => {
 const MOI = { id: 'moi', url: '/ota/moi.zip', sha256: 'abc', minNative: '1.3.0' };
 
 describe('cập nhật nóng', () => {
-  it('có gói mới: báo sẵn sàng, tải đúng url + checksum, hẹn áp khi MỞ LẠI app', async () => {
+  it('mở app ở TRANG CHỦ, tải kịp: báo "đang cập nhật" rồi áp NGAY', async () => {
     manifest = MOI;
+    history.replaceState(null, '', '/');
+    const { kiemOta } = await import('@/lib/ota');
+    await kiemOta();
+    expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+    expect(goi.next).not.toHaveBeenCalled();
+    expect(document.querySelector('.bao-thoat')?.textContent).toBeTruthy();
+  });
+
+  it('đang trong ván / wizard: KHÔNG áp ngay, hẹn lần mở sau', async () => {
+    manifest = MOI;
+    history.replaceState(null, '', '/?playing=1');
+    const { kiemOta } = await import('@/lib/ota');
+    await kiemOta();
+    expect(goi.set).not.toHaveBeenCalled();
+    expect(goi.setMultiDelay).toHaveBeenCalledWith({ delayConditions: [{ kind: 'kill' }] });
+    history.replaceState(null, '', '/');
+  });
+
+  it('nhận ra trang chủ qua URL', async () => {
+    const { oTrangChu } = await import('@/lib/ota');
+    expect(oTrangChu('')).toBe(true);
+    for (const q of ['?playing=1', '?room=123456', '?online=1', '?w=theme']) expect(oTrangChu(q), q).toBe(false);
+  });
+
+  it('có gói mới (không ở trang chủ): báo sẵn sàng, tải đúng url + checksum, hẹn áp khi MỞ LẠI app', async () => {
+    manifest = MOI;
+    history.replaceState(null, '', '/?w=theme');
     const { kiemOta } = await import('@/lib/ota');
     await kiemOta();
     expect(goi.notifyAppReady).toHaveBeenCalled();
     expect(goi.download).toHaveBeenCalledWith({ url: 'https://flipmatch.cozypi.com/ota/moi.zip', version: 'moi', checksum: 'abc' });
     expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
     expect(goi.setMultiDelay).toHaveBeenCalledWith({ delayConditions: [{ kind: 'kill' }] });
+    history.replaceState(null, '', '/');
   });
 
   it('đang chạy đúng gói trên server: không tải', async () => {
@@ -64,7 +92,7 @@ describe('cập nhật nóng', () => {
     const { kiemOta } = await import('@/lib/ota');
     await kiemOta();
     expect(goi.download).not.toHaveBeenCalled();
-    expect(goi.next).toHaveBeenCalledWith({ id: 'cu' });
+    expect(goi.set).toHaveBeenCalledWith({ id: 'cu' });
   });
 
   it('server chưa có /ota (404): vẫn báo sẵn sàng, không lỗi', async () => {
