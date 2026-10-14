@@ -15,7 +15,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   // i18n-bo-qua: mẫu tiếng Việt của engine là thứ ĐI DỊCH, không phải chữ hiển thị
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
-import { BOT_SPECS, CAMPAIGN_LEVELS, OPTION_KEYS, OPTION_LABELS, levelSpec, optionSummary } from '@mm/engine';
+import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
 import { Bot, ChevronLeft, Globe, Map, Play, User, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
@@ -321,7 +321,23 @@ const tieuDe = computed(() =>
 
 const best = computed(() => store.best(props.mode, props.level));
 /** Số cặp mà cấp đang chọn cần — bước theme dùng để cảnh báo thiếu biểu tượng. */
-const pairsNeeded = computed(() => levelSpec(props.level).pairs);
+/** Spec của cấp đang chọn. Chiến dịch (màn 1..60) và chế độ thường (khoá cỡ
+ *  bàn 1..50) là hai thang — `level` có thể còn giữ số màn Chiến dịch khi người
+ *  chơi đổi sang chơi nhanh, nên nhánh thường kẹp về LEVEL_KEYS. */
+const spec = computed(() => (props.mode === 'campaign'
+  ? campaignSpec(Math.min(props.level, CAMPAIGN_LEVELS))
+  : levelSpec(Math.min(props.level, LEVEL_KEYS))));
+const pairsNeeded = computed(() => spec.value.pairs);
+/** Mốc sao nói bằng "<": ★★★★ không quên · ★★★ quên < N · ★★ quên < M. Bàn nhỏ
+ *  mà 3★ cũng đòi không quên thì gộp vào ★★★★, khỏi nói một điều hai lần. */
+const mocSao = computed(() => {
+  const [max2, max3] = spec.value.starMisses;
+  return [
+    { sao: 4, txt: t('menu.khongQuen') },
+    ...(max3 > 0 ? [{ sao: 3, txt: t('menu.quenDuoi', { n: max3 + 1 }) }] : []),
+    { sao: 2, txt: t('menu.quenDuoi', { n: max2 + 1 }) }
+  ];
+});
 /** Bộ theme đang chọn có đủ biểu tượng cho cấp đã chọn chưa? */
 const themeTooSmall = computed(() => {
   const pool = new Set(
@@ -503,6 +519,14 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
           {{ mode === 'campaign' ? t('menu.batDauCap', { n: level }) : t('menu.tiep') }}
         </button>
 
+        <!-- Mốc sao nói TRƯỚC khi chơi (chủ dự án 14.10.2026): 3★ cố ý khó, người
+             chơi phải biết đích trước khi vào ván -->
+        <p v-if="mode === 'campaign'" class="moc-sao">
+          <template v-for="(m, i) in mocSao" :key="m.sao">
+            <span v-if="i" class="ngan"> · </span>
+            <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(m.sao, 3)) }}</span><span v-if="m.sao === 4" class="sao4">★</span> {{ m.txt }}</span>
+          </template>
+        </p>
         <p class="best">
           <template v-if="best">
             {{ t('menu.kyLuc', { ban: tenBan }) }}<b>{{ best.score }}</b>{{ t('menu.kyLucSau', { luot: best.moves, gio: clock(best.seconds) }) }}
@@ -670,7 +694,12 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .chip.compact { flex: 0 1 auto; min-width: 96px; }
 .warn { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 13px;
   background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.moc-sao { margin: 12px 0 0; text-align: center; font-weight: 700; font-size: 14px; color: var(--fg); }
 .best { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
+.moc-sao + .best { margin-top: 4px; }
+.moc-sao .nhom { white-space: nowrap; }
+.moc-sao .vang { color: var(--gold); }
+.moc-sao .ngan { color: var(--muted); }
 /* ── BẢNG TUỲ CHỌN BÀN CHƠI ───────────────────────────────────────────────
    Năm hàng phải vừa iPhone SE mà KHÔNG cuộn. Đo trên Chrome: hàng 73px, năm
    hàng + nút còn dư 44px. Hàng thứ sáu cần 80px nên sẽ tràn — muốn thêm tuỳ

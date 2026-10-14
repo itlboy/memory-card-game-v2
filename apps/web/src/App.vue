@@ -602,7 +602,7 @@ watch(session.summary, (s) => {
     const id = levelId.value ?? level.value;
     // Cấp và kỷ lục ghi RIÊNG: saveLevel mở cấp sau (chế độ không xếp sao thì
     // 1 sao = đã qua), saveResult giữ kỷ lục và cộng điểm vào tổng.
-    if (s.status === 'won') store.saveLevel(game.config.mode, id, Math.max(1, s.stars), s.score);
+    if (s.status === 'won') store.saveLevel(game.config.mode, id, Math.max(1, s.stars), s.score, !!s.hoanHao);
     isRecord.value = s.status === 'won'
       && store.saveResult(game.config.mode, id, {
         score: s.score, moves: s.moves, seconds: s.seconds
@@ -856,6 +856,7 @@ const hasNext = computed(() => {
     v-if="session.summary.value && showResult"
     :summary="session.summary.value"
     :is-record="isRecord"
+    :star-misses="session.game.value?.config.starMisses"
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
     :minh-ket-cuc="session.minhKetCuc.value"

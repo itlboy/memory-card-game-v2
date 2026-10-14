@@ -36,8 +36,9 @@ import { laApp } from './native';
  * dạng số (`Intl`) và thuộc tính `lang` của trang.
  * Chưa có tiếng Ả Rập: viết phải-sang-trái, phải lật cả bố cục — việc riêng.
  */
+// Thứ tự = thứ tự trong menu chọn: English đầu, Tiếng Việt cuối (chủ dự án 14.10.2026).
+// MẶC ĐỊNH vẫn là tiếng Việt — đó do `ngonNgu` quyết, không do thứ tự này.
 export const NGON_NGU = [
-  { id: 'vi', ten: 'Tiếng Việt', bcp: 'vi-VN' },
   { id: 'en', ten: 'English', bcp: 'en-US' },
   { id: 'es', ten: 'Español', bcp: 'es-ES' },
   { id: 'pt', ten: 'Português (Brasil)', bcp: 'pt-BR' },
@@ -48,7 +49,8 @@ export const NGON_NGU = [
   { id: 'zh', ten: '简体中文', bcp: 'zh-CN' },
   { id: 'ru', ten: 'Русский', bcp: 'ru-RU' },
   { id: 'id', ten: 'Bahasa Indonesia', bcp: 'id-ID' },
-  { id: 'th', ten: 'ไทย', bcp: 'th-TH' }
+  { id: 'th', ten: 'ไทย', bcp: 'th-TH' },
+  { id: 'vi', ten: 'Tiếng Việt', bcp: 'vi-VN' }
 ] as const;
 export type NgonNgu = (typeof NGON_NGU)[number]['id'];
 const LA_NGON_NGU = (x: unknown): x is NgonNgu => NGON_NGU.some((l) => l.id === x);

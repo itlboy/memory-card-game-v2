@@ -337,8 +337,15 @@
   chỉ áp cho người chơi mới. Test nào cần một luật cụ thể phải khai rõ cả năm
   hàng, đừng dựa vào mặc định — nó đã đổi hai lần.
 - **CHIẾN DỊCH = 12 CỠ × 5 MÀN = 60 MÀN, THANG RIÊNG** (chủ dự án 14.10.2026, thay
-  thang 50 cấp chia lệch 1·1·3·…·9·9·3·1·1). Trong năm màn một cỡ, giờ 9·8·7·6·5
-  giây mỗi cặp; mỗi chặng đúng ba cỡ (một cỡ = một hàng lưới 5 cột). `campaignSpec`
+  thang 50 cấp chia lệch 1·1·3·…·9·9·3·1·1). Giờ = `gio` (thời gian THẬT cần, đo
+  bằng mô phỏng, cột trong BOARDS) × 1,8·1,6·1,4·1,25·1,1 — KHÔNG theo số cặp × hằng
+  số (bàn nhỏ thừa giờ, bàn to gắt). Mỗi chặng đúng ba cỡ (một cỡ = một hàng lưới 5 cột).
+  SAO = số lần QUÊN (`quen`: lật sai khi lá cùng cặp đã lộ, cùng điều kiện mất mạng),
+  KHÔNG đếm mọi lần sai (lật hai lá chưa mở là dò) và KHÔNG theo thời gian. Mốc [2★,3★]
+  là bảng đo `sao` trong BOARDS. Ngôi sao THỨ 4 (`summary.hoanHao`, `hh` trong tiến
+  độ) = thắng không quên lần nào, vẽ bằng lớp `.sao4` (cầu vồng) ở global.css. Mốc
+  hiện TRƯỚC ván (dòng ở bước theme), TRONG ván (viên sao HUD) và SAU ván, viết bằng
+  dấu "<" (chủ dự án chê "≤" và câu lủng củng). `campaignSpec`
   cho màn Chiến dịch; `levelSpec`/`boardForLevel` là thang KHOÁ CỠ BÀN 1..`LEVEL_KEYS`
   (50) ĐÓNG BĂNG — khoá kỷ lục `mode:L<cấp>`, `level` online, app cũ trong store đều
   dùng số đó. Đừng ghi màn Chiến dịch vào `prefs.level`; `store.unlockedLevel()` chỉ

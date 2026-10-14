@@ -24,12 +24,29 @@ const props = defineProps<{
   scoreBump?: number;
   /** Có nút tạm dừng không — chỉ ván offline (online: đồng hồ ở server, người khác đang chờ). */
   pausable?: boolean;
+  /** Chiến dịch: số lần sai tối đa cho 2★/3★ và số lần đã sai — viên sao sống. */
+  starMisses?: readonly [number, number];
+  misses?: number;
 }>();
 
 defineEmits<{ quit: []; pause: [] }>();
 
 const timeText = computed(() => clock(props.timeLeft ?? props.elapsed));
 const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
+/** Sao đang giữ được nếu ván kết thúc ngay bây giờ, và còn được sai bao nhiêu
+ *  lần trước khi rớt sao kế tiếp (1★ thì không còn gì để giữ). */
+const soSao = computed(() => {
+  const m = props.misses ?? 0, [max2, max3] = props.starMisses ?? [0, 0];
+  return m <= max3 ? 3 : m <= max2 ? 2 : 1;
+});
+/** Còn được quên bao nhiêu lần trước khi rớt sao kế tiếp. Chưa quên lần nào
+ *  thì ngôi thứ 4 còn sáng và lần quên đầu tiên là mất nó — không cần con số. */
+const conLai = computed(() => {
+  const m = props.misses ?? 0, [max2, max3] = props.starMisses ?? [0, 0];
+  if (m === 0) return null;
+  return soSao.value === 3 ? max3 - m : soSao.value === 2 ? max2 - m : null;
+});
+const sao4 = computed(() => (props.misses ?? 0) === 0);
 const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPairs : 0));
 </script>
 
@@ -53,6 +70,16 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
       </span>
       <span v-if="!multiplayer" class="vien" data-score-target :aria-label="t('hud.diem')">
         <Star :size="16" aria-hidden="true" /><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
+      </span>
+      <!-- SAO SỐNG (Chiến dịch, 14.10.2026): sai quá mốc là một sao tắt ngay trước
+           mắt — người chơi hiểu luật sao mà không phải đọc chữ nào. Số nhỏ là số
+           lần còn được sai trước khi rớt sao kế tiếp. key đổi → nhịp rớt sao. -->
+      <span
+        v-if="!multiplayer && starMisses" :key="`sao-${soSao}-${sao4}`" class="vien sao" :class="{ rot: !sao4 }"
+        :aria-label="sao4 ? t('hud.sao4') : conLai === null ? t('hud.sao1', { n: soSao }) : t('hud.sao', { n: soSao, m: conLai })"
+      >
+        <span class="sao-hang" aria-hidden="true"><i v-for="i in 3" :key="i" :class="{ tat: i > soSao }">★</i><i class="sao4" :class="{ tat: !sao4 }">★</i></span>
+        <b v-if="conLai !== null" aria-hidden="true">{{ conLai }}</b>
       </span>
       <span v-if="!multiplayer && movesLeft !== null" class="vien" :aria-label="t('hud.luot')">
         <Layers :size="16" aria-hidden="true" /><b>{{ moves }}<i>/{{ moves + movesLeft }}</i></b>
@@ -115,6 +142,12 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
   60% { transform: scale(1.05) translateX(3px); }
   100% { transform: none; }
 }
+/* Viên sao sống: ngôi tắt xám; vừa rớt sao thì cả viên giật một nhịp */
+.sao-hang { display: inline-flex; gap: 1px; font-size: 14px; line-height: 1; letter-spacing: 0; }
+.sao-hang i { font-style: normal; color: var(--gold); }
+.sao-hang i.tat { color: color-mix(in srgb, var(--fg) 22%, transparent); }
+.vien.sao b { font-size: 14px; color: var(--muted); }
+.vien.sao.rot { animation: hp-hurt .55s ease-out; }
 /* Vạch tiến độ: nằm trong khe 10px giữa HUD và bàn (gap của .game) */
 .tien-do {
   position: absolute; left: 52px; right: 52px; bottom: -8px; height: 4px; border-radius: 2px;
@@ -126,5 +159,5 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
   .vien { padding: 0 8px; gap: 4px; }
   .vien b { font-size: 15px; }
 }
-@media (prefers-reduced-motion: reduce) { .vien.hurt, .vien.combo { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .vien.hurt, .vien.combo, .vien.sao.rot { animation: none; } }
 </style>

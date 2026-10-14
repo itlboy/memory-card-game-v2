@@ -31,6 +31,10 @@ export interface Player extends PlayerInit {
   /** Chuỗi dài nhất — dùng phá thế hoà (MP-04). */
   bestStreak: number;
   misses: number;
+  /** Lật sai mà LẼ RA tránh được: lá cùng cặp với lá lật đầu đã từng lộ ra
+   *  (cùng điều kiện mất mạng). Sao Chiến dịch đếm cái này, không đếm `misses` —
+   *  lật hai lá chưa từng mở mà không khớp là đang dò, không phải lỗi. */
+  quen?: number;
   lives: number;
   /** Số lượt bị khoá bởi thẻ đóng băng. */
   frozenTurns: number;
@@ -77,8 +81,12 @@ export interface GameConfig {
   turnLimit?: number | null;
   /** Xáo thứ tự người chơi khi vào ván (mặc định bật) — ai đi trước là ngẫu nhiên. */
   shufflePlayers?: boolean;
-  /** Mốc điểm đạt 2 và 3 sao (Campaign). */
+  /** Mốc điểm đạt 2 và 3 sao — cách CŨ, chỉ còn để ván dở trong bản lưu cũ
+   *  khôi phục được. Màn Chiến dịch mới dùng `starMisses`. */
   starThresholds?: readonly [number, number];
+  /** Số lần lật sai TỐI ĐA để đạt 2 và 3 sao (Chiến dịch). Có thì ưu tiên hơn
+   *  `starThresholds`. */
+  starMisses?: readonly [number, number];
 }
 
 export type GameStatus = 'idle' | 'peeking' | 'playing' | 'won' | 'lost';
@@ -92,6 +100,8 @@ export interface Summary {
   timeBonus: number;
   bestStreak: number;
   stars: 0 | 1 | 2 | 3;
+  /** Ngôi sao thứ 4 (Chiến dịch): thắng mà không QUÊN lần nào (`quen` = 0). */
+  hoanHao?: boolean;
   /** Xếp hạng người chơi (multiplayer), đã sắp giảm dần. */
   ranking: Player[];
 }
