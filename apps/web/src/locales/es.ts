@@ -345,7 +345,7 @@ const es: TuDien = {
   'bot.divine': 'Dragón Divino',
   'chung.ban': 'Tú',
   'chung.backThoat': "Pulsa Atrás otra vez para salir",
-  'chung.dangCapNhat': "Nueva versión disponible — actualizando…",
+  'chung.dangCapNhat': "Nueva versión · reinicio en",
   'dhd.danhHieu': 'Logros',
   'dhd.dong': 'Cerrar',
   'dhd.chuaCo': 'Pendientes ({n})',

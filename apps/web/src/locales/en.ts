@@ -346,7 +346,7 @@ const en: TuDien = {
   'bot.divine': 'Divine Dragon',
   'chung.ban': 'You',
   'chung.backThoat': "Press Back again to exit",
-  'chung.dangCapNhat': "New version available — updating…",
+  'chung.dangCapNhat': "New version · restarting in",
   'dhd.danhHieu': 'Achievements',
   'dhd.dong': 'Close',
   'dhd.chuaCo': 'Not yet ({n})',
