@@ -38,6 +38,23 @@ onMounted(() => {
   }, 1000);
 });
 onUnmounted(() => clearInterval(tick));
+
+/*
+ * CỬA BÍ MẬT VÀO CHẾ ĐỘ DEBUG (chủ dự án 14.10.2026: nút bật nằm sẵn trên màn là
+ * "lộ quá"). Chạm 7 LẦN LIÊN TIẾP vào dòng phiên bản — kiểu "Tuỳ chọn nhà phát
+ * triển" của Android; ngắt quá 1,5 giây giữa hai chạm là đếm lại. Đang bật thì nút
+ * hiện ra để TẮT. `?debug=1` vẫn mở được như cũ.
+ */
+const SO_CHAM_MO = 7;
+let soCham = 0;
+let hetCham: ReturnType<typeof setTimeout> | undefined;
+function chamPhienBan(): void {
+  clearTimeout(hetCham);
+  soCham += 1;
+  if (soCham >= SO_CHAM_MO) { soCham = 0; if (!props.debug) emit('update:debug', true); return; }
+  hetCham = setTimeout(() => { soCham = 0; }, 1500);
+}
+onUnmounted(() => clearTimeout(hetCham));
 const closeBtn = ref<HTMLButtonElement | null>(null);
 onMounted(() => closeBtn.value?.focus());
 
@@ -130,16 +147,16 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
 
       <!-- Phiên bản + ngày build. Để ở đây vì đây là chỗ người chơi tìm khi cần
            trả lời "máy tôi đang chạy bản nào" — không cần một màn hình riêng. -->
-      <p class="build">
+      <p class="build" @click="chamPhienBan">
         <b>v{{ version }}</b> · build {{ builtAt }}
         <span class="ago">({{ ago }})</span>
       </p>
 
       <!-- DƯỚI CÙNG, sau cả số bản dựng: đây là công cụ soi lỗi, không phải một
-           tính năng chơi. Đặt cạnh số bản dựng vì hai thứ luôn được hỏi cùng
-           nhau ("máy bạn chạy bản nào, số đo ra sao"). -->
+           tính năng chơi. CHỈ HIỆN khi debug đang bật (để tắt) — bật thì chạm 7 lần
+           vào dòng phiên bản phía trên (`chamPhienBan`). -->
       <button
-        class="nut-do" type="button"
+        v-if="props.debug" class="nut-do" type="button"
         :aria-pressed="props.debug ? 'true' : 'false'"
         @click="emit('update:debug', !props.debug)"
       >{{ props.debug ? t('lc.debugBat') : t('lc.debugTat') }}</button>

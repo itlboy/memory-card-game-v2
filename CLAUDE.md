@@ -32,7 +32,7 @@
   `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
   KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên
   lớp nền tối (z 2) và dưới chữ (z 3) — từng nằm dưới, pháo hoa gần như vô hình.
-  Duyệt biến thể trên máy thật: chế độ debug → Luật chơi → "Xem thử hiệu ứng". Năm cảnh:
+  Duyệt biến thể trên máy thật: chế độ debug → Luật chơi → "Xem thử hiệu ứng" (bật debug: chạm 7 lần vào dòng phiên bản cuối trang Luật chơi, hoặc `?debug=1` — nút bật KHÔNG nằm sẵn trên màn, chủ dự án 14.10.2026). Năm cảnh:
   thắng · kỷ lục · thua · thua máy (máy trêu, câu theo mặt máy) · hoà, chọn ở
   `chonCanh()`. `lib/ketcuc-fx.ts` lo chọn cảnh, mốc `HIEN_BANG_MS` (App và
   OnlineGame đọc, đừng chép tay số) và chuyển động JS; chữ lớn là CSS có delay ở
