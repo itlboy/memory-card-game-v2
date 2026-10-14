@@ -120,6 +120,8 @@ const ru: TuDien = {
   'tp.trongGoi': "Входит в Премиум-пакет: одна покупка — {n} тем.",
   'tp.moKhoa': "Открыть Премиум",
   'tp.sapCo': "Скоро — спасибо за интерес!",
+  'tp.chonHet': "Выбрать все ({n})",
+  'tp.boChon': "Снять выбор",
   'menu.itNhatMotTheme': 'Оставь хотя бы одну тему.',
   'menu.batDauCap': 'Начать уровень {n}',
   'menu.tiep': 'Далее',

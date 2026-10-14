@@ -112,6 +112,8 @@ const fr: TuDien = {
   'tp.trongGoi': "Inclus dans le pack Premium : un seul achat, {n} thèmes.",
   'tp.moKhoa': "Débloquer Premium",
   'tp.sapCo': "Bientôt disponible — merci de votre intérêt !",
+  'tp.chonHet': "Tout sélectionner ({n})",
+  'tp.boChon': "Effacer",
   'menu.itNhatMotTheme': 'Garde au moins un thème.',
   'menu.batDauCap': 'Jouer le niveau {n}',
   'menu.tiep': 'Suivant',

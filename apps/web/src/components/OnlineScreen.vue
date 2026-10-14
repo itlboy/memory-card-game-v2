@@ -700,7 +700,7 @@ function openCfgWizard(): void {
 
     <div v-else-if="wizard === 'theme'" class="step-body">
       <p class="hint-multi">{{ t('on.nhieuTheme') }}</p>
-      <ThemePicker :themes="allThemes" :selected="cfg.themeIds" :nhan="tr('on.themeAria')" @toggle="wizToggleTheme" />
+      <ThemePicker :themes="allThemes" :selected="cfg.themeIds" :nhan="tr('on.themeAria')" @toggle="wizToggleTheme" @dat="(ids) => { cfg = { ...cfg, themeIds: ids }; }" />
 
       <p v-if="themeWarn" class="warn" role="alert">{{ t('menu.itNhatMotTheme') }}</p>
       <p v-if="wizTooSmall" class="warn" role="alert">

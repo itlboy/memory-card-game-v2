@@ -106,6 +106,8 @@ const ko: TuDien = {
   'tp.trongGoi': "프리미엄 팩 포함: 한 번 구매로 {n}개 테마.",
   'tp.moKhoa': "프리미엄 잠금 해제",
   'tp.sapCo': "곧 출시 — 관심 가져 주셔서 감사합니다!",
+  'tp.chonHet': "모두 선택 ({n})",
+  'tp.boChon': "선택 해제",
   'menu.itNhatMotTheme': '테마를 하나 이상 남겨 두세요.',
   'menu.batDauCap': '레벨 {n} 시작',
   'menu.tiep': '다음',

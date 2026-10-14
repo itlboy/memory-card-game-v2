@@ -109,6 +109,8 @@ const id: TuDien = {
   'tp.trongGoi': "Termasuk dalam paket Premium: sekali beli, {n} tema.",
   'tp.moKhoa': "Buka Premium",
   'tp.sapCo': "Segera hadir — terima kasih atas minatmu!",
+  'tp.chonHet': "Pilih semua ({n})",
+  'tp.boChon': "Hapus pilihan",
   'menu.itNhatMotTheme': 'Sisakan minimal satu tema.',
   'menu.batDauCap': 'Mulai level {n}',
   'menu.tiep': 'Berikutnya',

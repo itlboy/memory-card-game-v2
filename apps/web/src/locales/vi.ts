@@ -113,6 +113,8 @@ const vi = {
   'tp.trongGoi': "Nằm trong gói Premium: mua một lần, mở cả {n} theme.",
   'tp.moKhoa': "Mở khoá gói Premium",
   'tp.sapCo': "Sắp ra mắt — cảm ơn bạn đã quan tâm!",
+  'tp.chonHet': "Chọn tất cả ({n})",
+  'tp.boChon': "Bỏ chọn",
   'menu.itNhatMotTheme': 'Phải giữ ít nhất một theme.',
   'menu.batDauCap': 'Bắt đầu cấp {n}',
   'menu.tiep': 'Tiếp',

@@ -275,6 +275,25 @@ describe('App', () => {
 });
 
 describe('multi-theme', () => {
+  it('nút Chọn tất cả / Bỏ chọn của tab — bỏ chọn vẫn chừa lại một theme', async () => {
+    wrapper = mount(App);
+    await flush();
+    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('16 thẻ');
+    const chon = () => wrapper.findAll('.theme-opt[role="checkbox"]').filter((c) => c.attributes('aria-checked') === 'true').length;
+    const nut = () => wrapper.find('.tp-het');
+    // Mặc định đã bật hết theme miễn phí → nút là "Bỏ chọn"
+    expect(nut().text()).toContain('Bỏ chọn');
+    await nut().trigger('click'); await flush();
+    expect(chon(), 'bỏ chọn hết thì bàn không có hình — phải chừa lại một').toBe(1);
+    expect(nut().text()).toContain('Chọn tất cả (2)');
+    await nut().trigger('click'); await flush();
+    expect(chon()).toBe(2);
+    // Tab premium chưa mua: không có nút chọn tất cả
+    await click('Premium');
+    expect(nut().exists()).toBe(false);
+  });
+
   it('chọn thêm theme thứ hai — cả hai cùng được đánh dấu', async () => {
     wrapper = mount(App);
     await flush();

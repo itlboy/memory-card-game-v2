@@ -108,6 +108,8 @@ const en: TuDien = {
   'tp.trongGoi': "Part of the Premium pack: buy once, unlock all {n} themes.",
   'tp.moKhoa': "Unlock Premium",
   'tp.sapCo': "Coming soon — thanks for your interest!",
+  'tp.chonHet': "Select all ({n})",
+  'tp.boChon': "Clear",
   'menu.itNhatMotTheme': 'Keep at least one theme.',
   'menu.batDauCap': 'Start Level {n}',
   'menu.tiep': 'Next',
