@@ -559,6 +559,7 @@ const th: TuDien = {
   'lc.debugTat': 'เปิดโหมดดีบัก',
   'lc.xemThu': 'ดูตัวอย่างเอฟเฟกต์จบเกม',
   'lc.premiumThu': 'ปลดล็อกพรีเมียมเพื่อทดสอบ (เครื่องนี้)',
+  'lc.doNhip': 'แสดงสถิติเฟรม (FPS)',
   'lc.xemThang': 'ชนะ · {ten}',
   'lc.xemThua': 'แพ้ · {ten}',
   'lc.ghiCong': "ภาพบนการ์ด (อุปกรณ์ที่ไม่ใช่ Apple) และหน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 มังกรเปลี่ยนสี",

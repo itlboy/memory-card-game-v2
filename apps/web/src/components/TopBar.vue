@@ -18,6 +18,8 @@ const props = defineProps<{
   tenTk?: string | null;
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
   danhHieu?: { co: number; tong: number };
+  /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
+  debug?: boolean;
 }>();
 defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-nhac': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
@@ -128,6 +130,7 @@ watch(() => props.totalScore, (to, from) => {
              kín header khi nằm trong flex. -->
         <span class="logo" aria-hidden="true">
           <i class="card-l" /><i class="card-r" />
+          <b v-if="debug" class="den-debug" />
         </span><span ref="tenEl" class="name">{{ t('tb.thuongHieu') }}</span>
       </button>
     </h1>
@@ -289,6 +292,16 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   width: 17px; height: 23px; border-radius: 5px;
   box-shadow: 0 2px 6px rgba(30, 27, 75, .25);
 }
+/* Đèn chế độ debug: chấm nhỏ ở GÓC logo (tuyệt đối — không đổi bề rộng mà
+   phép đo ẩn tên dựa vào), nháy vàng ↔ đỏ */
+.den-debug {
+  position: absolute; top: -3px; right: -5px; z-index: 1;
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1.5px solid #fff; background: #ffcc00;
+  animation: den-debug 1s steps(1, end) infinite;
+}
+@keyframes den-debug { 50% { background: #ff3b30; } }
+@media (prefers-reduced-motion: reduce) { .den-debug { animation: none; background: #ff3b30; } }
 .logo .card-l {
   left: 0; transform: rotate(-14deg);
   background: var(--chon-nen);

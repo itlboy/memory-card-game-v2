@@ -558,6 +558,7 @@ const ko: TuDien = {
   'lc.debugTat': '디버그 모드 켜기',
   'lc.xemThu': '게임 종료 연출 미리 보기',
   'lc.premiumThu': '테스트용 프리미엄 잠금 해제 (이 기기)',
+  'lc.doNhip': '프레임 측정 표시 (FPS)',
   'lc.xemThang': '승리 · {ten}',
   'lc.xemThua': '패배 · {ten}',
   'lc.ghiCong': "카드 그림(Apple 외 기기)과 용 얼굴: Twemoji (Twitter, Inc.) · CC-BY 4.0, 용은 색상 변경",

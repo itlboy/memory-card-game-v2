@@ -11,8 +11,8 @@ import OptionIcon from './OptionIcon.vue';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
 
-const props = defineProps<{ debug: boolean }>();
-const emit = defineEmits<{ close: []; 'update:debug': [boolean]; 'xem-fx': [XemFx] }>();
+const props = defineProps<{ debug: boolean; doNhip?: boolean }>();
+const emit = defineEmits<{ close: []; 'update:debug': [boolean]; 'update:doNhip': [boolean]; 'xem-fx': [XemFx] }>();
 
 /** Khu "Xem thử hiệu ứng" (chỉ trong chế độ debug): duyệt từng cảnh mà không phải chơi tới kết ván. */
 export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean }
@@ -47,6 +47,11 @@ void banNative().then((v) => { native.value = v; });
  * "lộ quá"). Chạm 7 LẦN LIÊN TIẾP vào dòng phiên bản — kiểu "Tuỳ chọn nhà phát
  * triển" của Android; ngắt quá 1,5 giây giữa hai chạm là đếm lại. Đang bật thì nút
  * hiện ra để TẮT. `?debug=1` vẫn mở được như cũ.
+ *
+ * Đếm bằng `pointerup`, KHÔNG `click`: Safari/WebView iOS không phát `click` trên
+ * phần tử không bấm được (<p> không cursor:pointer) — trên iPhone 7 chạm không
+ * đếm được lần nào (chủ dự án báo). `touch-action: manipulation` để chạm nhanh
+ * không bị hiểu thành chạm-đúp phóng to.
  */
 const SO_CHAM_MO = 7;
 let soCham = 0;
@@ -150,7 +155,7 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
 
       <!-- Phiên bản + ngày build. Để ở đây vì đây là chỗ người chơi tìm khi cần
            trả lời "máy tôi đang chạy bản nào" — không cần một màn hình riêng. -->
-      <p class="build" @click="chamPhienBan">
+      <p class="build" @pointerup="chamPhienBan">
         <b>v{{ version }}</b> · build {{ builtAt }}
         <span class="ago">({{ ago }})</span>
         <!-- Trong app: bản NATIVE cài từ store. Gói web phía trên có thể mới hơn nhờ cập
@@ -178,6 +183,11 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
         :aria-pressed="daMuaPremium ? 'true' : 'false'"
         @click="datPremiumThu(!daMuaPremium)"
       >{{ daMuaPremium ? '●' : '○' }} {{ t('lc.premiumThu') }}</button>
+      <button
+        v-if="props.debug" class="nut-do" type="button"
+        :aria-pressed="props.doNhip ? 'true' : 'false'"
+        @click="emit('update:doNhip', !props.doNhip)"
+      >{{ props.doNhip ? '●' : '○' }} {{ t('lc.doNhip') }}</button>
       <div v-if="props.debug" class="xem-fx">
         <p class="build">{{ t('lc.xemThu') }}</p>
         <button v-for="x in XEM_THU" :key="x.ten" class="nut-do" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
@@ -201,7 +211,7 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
 .nut-do[aria-pressed='true'] { border-style: solid; border-color: var(--bad); color: var(--bad); }
 /* Chân trang phiên bản: mờ, nhỏ, không giành sự chú ý với nội dung luật chơi */
 .build {
-  margin: 12px 0 0; text-align: center;
+  margin: 12px 0 0; text-align: center; touch-action: manipulation; -webkit-user-select: none; user-select: none;
   font-size: 12px; color: var(--muted); line-height: 1.5;
 }
 .build b { color: var(--fg); font-variant-numeric: tabular-nums; }
