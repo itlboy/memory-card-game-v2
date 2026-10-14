@@ -200,7 +200,7 @@
   TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (đấu máy lọc `BOT_ID`, online lọc `myId` /
   `myTurn`). Gắn đúng hai chỗ phát `sfx.match`/`sfx.miss`, có `test/rung.test.ts`.
   Thêm plugin Capacitor là phải `cap sync ios` (đã có trong `build:ios`).
-- **DANH HIỆU: 103 MỤC, MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
+- **DANH HIỆU: 127 MỤC (14.10.2026), MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
   Mở khoá CHỈ qua `moKhoa()` (cập nhật viên 🏅 + hàng đợi khoe `MoKhoaToast`),
   đừng gọi thẳng `store.unlockAchievements`. Danh hiệu đếm đọc `ThongKe`
   (`store.boDem` + điểm + tiến độ Chiến dịch; `wins` lấy MAX với tài khoản) và
@@ -398,6 +398,54 @@
   "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo (đo trên Pro Max, bàn
   3 người). Khoá chiều cao thì nội dung chip ra sao cũng không chạm tới bàn.
   `test/chip-cao-co-dinh.test.ts` canh.
+
+## LÀM VIỆC NHANH — đọc trước (rút từ 14.10.2026)
+
+- **Chủ dự án thử trên APP (TestFlight / Play internal), không phải Safari.** Deploy web
+  KHÔNG tới tay họ: sửa giao diện họ báo từ điện thoại xong là phải ra bản app
+  (skill `phat-hanh-app`). Báo "xong" thì nói rõ web có rồi, app có từ build số mấy.
+- **Ra bản app = một lệnh**: `gh workflow run mobile.yml --ref main -f phat_hanh=true`
+  (cùng phiên bản, chỉ thêm build). Build phát hành có nhóm concurrency riêng nên đẩy
+  `main` không huỷ nó nữa. Soát log iOS: `Upload succeeded` + dòng `Z Authority=Apple
+  Distribution` (grep trần dính cả dòng lệnh trong script). Android tự lên Play
+  internal ở trạng thái `completed` (biến repo `PLAY_RELEASE_STATUS`).
+- **Có phiên Claude KHÁC làm chung thư mục repo** (thường thấy file `tools/`, `docs/`
+  chưa commit không phải của mình). Commit đúng file của mình (`git add <đường dẫn>`,
+  KHÔNG `-A`); release Cloudflare từ **worktree sạch** ở `origin/main`
+  (`git worktree add <scratchpad>/wt origin/main` → merge `origin/develop` → push →
+  `pnpm install --frozen-lockfile` → `pnpm release`) — `pnpm release` dựng từ thư mục
+  đang đứng, đứng ở thư mục chung là đẩy luôn code dở của người kia lên.
+- **Cổng 8080 / 8787 / 8091 thường đã có server CŨ chạy** (của phiên khác) → smoke đỏ
+  oan. Server của mình chạy cổng lạ: `PORT=18438 node dist/server.mjs`,
+  `npx wrangler dev --port 8797`; kiểm `lsof -iTCP:<cổng> -sTCP:LISTEN` trước.
+- **Máy hay quá tải (load 30–60) → test dài hết giờ** (`flows` "Đua thời gian" sát
+  ngưỡng 15s, `the-trang` 30s). Đừng nới timeout; chạy lại riêng file đó, và lấy CI
+  GitHub (workflow docker.yml chạy `pnpm test` trên máy sạch) làm trọng tài. ĐỪNG nối
+  `pnpm test ... ; echo` rồi `&& git commit` — echo nuốt mã lỗi, test đỏ vẫn commit.
+- **Lỗi hình chỉ có trên iPhone** (tách lớp GPU): Chrome/WebKit headless trên Mac KHÔNG
+  tái hiện được. Xin chủ dự án quay màn hình → `swift tools/video/tach-khung.swift` +
+  `ghep-bang.swift` → soi từng khung. Đóng băng animation để soi thứ tự hiện:
+  `document.getAnimations()` → `pause()` + `currentTime` (bỏ animation vô hạn của
+  IconBay trước khi `finish()`). WebKit cho Playwright cài ở scratchpad
+  (`npm i playwright && npx playwright install webkit`), không thêm vào repo.
+- **Luật ghép lớp iOS đã chốt**: `section.panel { will-change: opacity }` (panel wizard
+  là MỘT lớp — ô chồng vùng icon bay bị tách lớp riêng và nán lại đè bước mới);
+  bước/màn đang rời tắt mọi chuyển động con (`.step-leave-active *`,
+  `.screen-leave-active *`); phần đầu wizard đổi theo `buocHien` (sau `@after-leave`),
+  không theo `step`. ĐỪNG dùng `will-change: transform` cho panel: nó nhốt
+  `position: fixed` (hộp xem trước theme) vào trong panel.
+- **Plugin native tự viết**: Android đăng ký `registerPlugin(X.class)` TRƯỚC
+  `super.onCreate` trong MainActivity; iOS đặt class trong `SceneDelegate.swift`
+  (`GameViewController.capacitorDidLoad` → `registerPluginInstance`) để khỏi sửa tay
+  `project.pbxproj`. Thêm plugin npm Capacitor là phải `npx cap sync` và commit 3 file
+  `capacitor.build.gradle`, `capacitor.settings.gradle`, `CapApp-SPM/Package.swift`.
+  Không build native được ở máy này — đẩy `develop` để CI biên dịch thử TRƯỚC khi phát hành.
+- **Nút Back Android cần `@capacitor/app`** (`lib/nut-back.ts`): thiếu plugin là Back
+  thoát thẳng app kể cả giữa wizard. Ngôn ngữ app đồng bộ hai chiều với Cài đặt máy
+  (`lib/ngon-ngu-app.ts`, plugin `NgonNguApp`, khoá `mm.langMay`, Android `localeConfig`).
+- **Mockup cho chủ dự án**: ưu tiên ẢNH CHỤP THẬT (chế độ debug → "Xem thử hiệu ứng",
+  hoặc sửa DOM ngay trên trang thật để ra bản đề xuất) ghép vào một artifact, thay vì
+  vẽ lại bằng tay. Họ duyệt mockup trước khi làm tính năng giao diện mới.
 
 ## Quy trình
 

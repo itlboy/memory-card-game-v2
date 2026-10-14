@@ -1,8 +1,12 @@
 # Lật Thẻ — Game Thẻ Bài Trí Nhớ
 
-Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS (Capacitor). Chơi một
-mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số; có tài
-khoản Google, 115 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
+Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
+(có nói nhanh bằng 12 câu có sẵn); 48 theme (36 miễn phí + 12 premium), 12 ngôn ngữ,
+tài khoản Google/Apple, 127 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+
+**Người/Claude mới vào làm: đọc mục "LÀM VIỆC NHANH" trong `CLAUDE.md` trước** —
+cách ra bản app, deploy khi có phiên khác làm chung thư mục, soi lỗi chỉ có trên iPhone.
 
 - Bản chính: https://flipmatch.cozypi.com (tên cũ https://thebai.hello314.com vẫn chạy) (server Node trên cụm k8s cá nhân
   `kien-server-main`, có MySQL + đăng nhập Google)
@@ -17,7 +21,7 @@ luật thiết kế/kiến trúc bắt buộc.
 pnpm install
 
 pnpm dev        # phát triển — Vite + HMR, http://localhost:3001
-pnpm test       # ~500 test (engine + UI) — đọc cả dòng `Test Files`
+pnpm test       # ~840 test (engine 257 + web ~580) — đọc cả dòng `Test Files`
 pnpm typecheck  # tsc + vue-tsc
 pnpm build      # ra apps/web/dist
 pnpm serve      # web server Node thuần phục vụ bản build, http://127.0.0.1:3001
@@ -43,9 +47,9 @@ dưới — lỗi rất khó tái hiện vì phụ thuộc nội dung đang hi�
 (1,0) — khoá ở 3:4 thì bàn cao bị chặn chiều cao trước, bề rộng thừa thành hai
 dải trống (đo trên iPhone SE: bàn 2×4 hở 160px).
 
-**Thanh emoji luôn MỘT hàng**: đúng 8 emoji, nút `flex: 1 1 auto` với sàn 34px
-và trần 44px. Thêm cái thứ 9 là nút co xuống dưới ngưỡng bấm được, hoặc gãy
-thành hai hàng — vừa xấu vừa ăn chỗ của bàn thẻ.
+**Thanh emoji luôn MỘT hàng**: nút 💬 (nói nhanh) đứng đầu + 9 emoji, mỗi nút CỐ ĐỊNH
+40px; máy hẹp thì ẩn bớt emoji từ CUỐI (mốc `@container` suy từ cỡ nút, có test) chứ
+không bóp nhỏ nút. Chi tiết ở CLAUDE.md ("ĐỔI CỠ NÚT EMOJI").
 
 **Điểm tích luỹ hiện gọn** (`numShort`: 90.000 → "90k"). Số đầy đủ làm huy hiệu
 phình ra và cắt mất chữ trong tên game.
@@ -147,11 +151,13 @@ server.js            Web server tĩnh cho bản build production
 | Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Bot siêu đẳng rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
-| Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (6 mở sẵn, 6 mở bằng điểm tích lũy — 3.6). Mặc định bật hết theme đang mở khoá |
+| Nội dung | 48 theme nạp từ `apps/web/public/data/themes.json`: **36 miễn phí + 12 premium** (cờ `premium`, một gói mở hết — chưa bán thật, nút mua báo "sắp có"). Bước chọn theme là `ThemePicker.vue` (tab Miễn phí / Premium, xem trước bộ hình, Chọn tất cả / Bỏ chọn), dùng chung chơi đơn + online. Không còn mở theme bằng điểm |
 | Lưu trữ | Kỷ lục, sao, tuỳ chọn, bộ đếm danh hiệu — localStorage (3.7). Đăng nhập thì đồng bộ lên tài khoản (xem dưới) |
 | Tài khoản | Đăng nhập Google (chỉ server Node, cần `MYSQL_URL` + `GOOGLE_CLIENT_ID`). Điểm, kỷ lục, danh hiệu đi theo người sang máy khác; mở app / quay lại tab / xong ván là đồng bộ, hợp theo MAX. Bảng xếp hạng top 20. Không đăng nhập vẫn chơi như cũ |
-| Danh hiệu | 115 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/115 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
-| Hiệu ứng kết ván | Năm cảnh cố định: thắng · kỷ lục · thua · thua máy (máy trêu) · hoà (`lib/ketcuc-fx.ts`), có chạm vào bàn thẻ (gợn sóng / lá rơi). Mở danh hiệu: huy hiệu theo bậc bay vào viên 🏅 (`MoKhoaFx.vue`). Mockup đã duyệt: https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 |
+| Danh hiệu | 127 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/115 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
+| Hiệu ứng kết ván | Bốn cảnh: thắng · kỷ lục · thua · hoà (`lib/ketcuc-fx.ts`), mỗi cảnh thắng/thua có 3 biến thể bốc theo seed. Đấu máy hiện y như đấu người (đã bỏ cảnh "máy trêu"); dòng an ủi "còn N cặp" chỉ ở ván một mình. Mở danh hiệu: huy hiệu bay vào viên 🏅 (`MoKhoaFx.vue`) |
+| Nói nhanh (online) | 12 câu có sẵn (`QUICK_SAYS`), bong bóng dưới chip người nói, tự dịch theo máy người xem; KHÔNG có chat gõ tự do (App Store 1.2) |
+| App mobile | iOS (TestFlight) + Android (Play internal) build ở GitHub Actions. Back Android lùi từng bước (trang chủ Back hai lần mới thoát); ngôn ngữ đồng bộ hai chiều với Cài đặt máy |
 | Rung | Theo số nhịp, tăng theo chuỗi ghép đúng (`lib/rung.ts`). Android web + app iOS (Haptics); web trên iPhone không rung được nên công tắc tự ẩn |
 | Thông báo trong ván | Thông báo (thẻ đặc biệt, chuyển lượt, emoji đối thủ) nổi ở **dải trên mép bàn** (`.notice-bar`), cao 0px và ĐÈ lên HUD — không hiện giữa bàn (che chỗ đang bấm) và không chiếm chỗ (bàn thẻ co giãn mỗi lần thông báo hiện/tan) |
 | Phi chức năng | Responsive 320px+, dark mode, ba mức âm lượng, điều hướng bàn phím, chạm ≥44px, PWA chạy offline |
@@ -672,11 +678,20 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
-**12.10.2026 (12 ngôn ngữ)**
-- Tiếng Việt, English, Español, Português (Brasil), Français, Deutsch, 日本語, 한국어,
-  简体中文, Русский, Bahasa Indonesia, ไทย — chọn trong menu Cài đặt; app iOS tự chọn
-  theo ngôn ngữ máy. Số định dạng theo ngôn ngữ. `pnpm do:ngon-ngu` đo chữ tràn.
-- Bước số người: bốn thanh ngang.
+**14.10.2026**
+- Theme premium: 36 miễn phí + 12 premium, tab Miễn phí / Premium, xem trước bộ hình,
+  nút Chọn tất cả / Bỏ chọn. Trang xem toàn bộ theme:
+  https://claude.ai/artifact/WqcRAQvDbEhb2JSBLFhget
+- Online: nói nhanh bằng 12 câu có sẵn (bong bóng dưới chip); bỏ vòng đếm ngược làm
+  mới danh sách phòng; phòng tạo nhanh đếm đúng số theme miễn phí.
+- Kết ván đấu máy như đấu người: bỏ cảnh máy trêu; dòng an ủi chỉ ở ván một mình.
+- iOS: chuyển bước wizard không còn vỡ (phần đầu đổi cùng thân bước, panel một lớp
+  ghép, bước đang rời đứng yên) — soi bằng video TestFlight.
+- Android: nút Back lùi từng bước (`@capacitor/app`); ngôn ngữ đồng bộ Cài đặt máy
+  (iOS `AppleLanguages`, Android 13+ `localeConfig`); 12 thư mục `lproj` cho App Store.
+- Ẩn nút bật debug (chạm 7 lần vào dòng phiên bản ở cuối Luật chơi). Skin Kẹo: mặt máy
+  trên đĩa trắng. Copyright App Store → Cozy Pi. CI tự đẩy Google Play (service
+  account `play-ci@lat-the-nkien`).
 
 **12.10.2026 (12 ngôn ngữ)**
 - Tiếng Việt, English, Español, Português (Brasil), Français, Deutsch, 日本語, 한국어,

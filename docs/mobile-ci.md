@@ -10,9 +10,18 @@ nào thì bước cần nó tự bỏ qua, workflow vẫn xanh — điền đủ
 
 Tải file: tab **Actions** → lần chạy → mục **Artifacts** ở cuối trang.
 
-Phát hành: `git tag app-v1.1.0 && git push origin app-v1.1.0`. Số phiên bản hiển
-thị lấy từ `apps/web/package.json` (`version`); số bản dựng = `run_number` của
-workflow (+ biến `VERSION_CODE_OFFSET`).
+Phát hành:
+- **Cùng phiên bản, chỉ thêm build** (hay dùng nhất — sửa lỗi trước khi nộp duyệt):
+  `gh workflow run mobile.yml --ref main -f phat_hanh=true`. Build phát hành có nhóm
+  concurrency riêng nên lần đẩy `main` sau đó KHÔNG huỷ nó.
+- **Phiên bản mới**: nâng `version` trong `apps/web/package.json` (qua develop → main),
+  rồi `git tag app-v<phiên bản> origin/main && git push origin app-v<phiên bản>`.
+
+Số phiên bản hiển thị lấy từ `apps/web/package.json`; số bản dựng = `run_number` của
+workflow (+ biến `VERSION_CODE_OFFSET`). Soát log iOS bằng `Upload succeeded` và dòng
+`Authority=Apple Distribution` (grep `"Z Authority="` — grep trần dính dòng lệnh).
+App Store chỉ đòi phiên bản MỚI sau khi phiên bản đang soạn đã được phát hành; trước
+đó cứ thêm build vào cùng phiên bản rồi chọn build mới nhất khi nộp.
 
 ## Secrets (Settings → Secrets and variables → Actions)
 
@@ -33,7 +42,7 @@ key thì xin Google đổi được, nhưng phải chờ duyệt — cất kỹ.
 
 | Secret | Lấy ở đâu |
 |---|---|
-| `PLAY_SERVICE_ACCOUNT_JSON` | Google Cloud Console (project cá nhân) → IAM → Service Accounts → tạo, tab Keys → *Add key* → JSON. Rồi Play Console → **Users and permissions** → *Invite new user* bằng email của service account, quyền *Release to testing tracks* (+ *Release to production* khi cần) cho app Lật Thẻ. Dán NGUYÊN nội dung file JSON. |
+| `PLAY_SERVICE_ACCOUNT_JSON` | **ĐÃ CÓ (14.10.2026)**: service account `play-ci@lat-the-nkien.iam.gserviceaccount.com` (project `lat-the-nkien`, tài khoản Google cá nhân), đã mời vào Play Console. Làm lại từ đầu: Google Cloud Console (project cá nhân) → IAM → Service Accounts → tạo, tab Keys → *Add key* → JSON. Rồi Play Console → **Users and permissions** → *Invite new user* bằng email của service account, quyền *Release to testing tracks* (+ *Release to production* khi cần) cho app Lật Thẻ. Dán NGUYÊN nội dung file JSON. |
 
 Hai bẫy:
 1. **App mới phải tải AAB đầu tiên BẰNG TAY** (Play Console → Testing → Internal
@@ -41,7 +50,12 @@ Hai bẫy:
    "Package not found".
 2. App chưa phát hành lần nào thì Play chỉ nhận release ở trạng thái `draft`
    (mặc định của workflow). Sau lần phát hành đầu, đặt **biến** repo
-   `PLAY_RELEASE_STATUS=completed` để bản mới tự lên luôn. `PLAY_TRACK` mặc định
+   `PLAY_RELEASE_STATUS=completed` để bản mới tự lên luôn — **đã đặt 14.10.2026**.
+   Soi trạng thái track không cần file khoá: `gcloud --account=<gmail cá nhân> auth
+   print-access-token --impersonate-service-account=play-ci@lat-the-nkien.iam.gserviceaccount.com
+   --scopes=https://www.googleapis.com/auth/androidpublisher` rồi gọi
+   `androidpublisher/v3/applications/com.cozypi.flipmatch/edits` (tạo edit → đọc
+   `tracks` → xoá edit). `PLAY_TRACK` mặc định
    `internal` (đổi sang `alpha` = closed testing, `production`).
 
 ### iOS — ký + đẩy TestFlight
@@ -74,3 +88,20 @@ Trước lần đẩy TestFlight đầu tiên phải có app trên App Store Con
 
 `ITSAppUsesNonExemptEncryption = false` đã có trong Info.plist nên TestFlight
 không hỏi khai báo mã hoá mỗi bản.
+
+## Plugin native (Capacitor)
+
+Đang dùng: `@capacitor/app` (nút Back Android), `@capacitor/haptics` (rung),
+`@capacitor/splash-screen`, `@capgo/capacitor-social-login` (Apple), và plugin TỰ VIẾT
+`NgonNguApp` (ghi ngôn ngữ game xuống Cài đặt máy).
+
+- **Thêm plugin npm** → `npx cap sync` → commit `android/app/capacitor.build.gradle`,
+  `android/capacitor.settings.gradle`, `ios/App/CapApp-SPM/Package.swift`.
+- **Plugin tự viết**: Android là class `@CapacitorPlugin` trong
+  `android/app/src/main/java/com/cozypi/flipmatch/`, đăng ký `registerPlugin(...)`
+  TRƯỚC `super.onCreate` ở `MainActivity`. iOS đặt class ngay trong
+  `ios/App/App/SceneDelegate.swift` và đăng ký ở `GameViewController.capacitorDidLoad`
+  — thêm file `.swift` mới là phải sửa tay `project.pbxproj`, nên đừng.
+- Máy local KHÔNG build native được: đẩy `develop` để CI biên dịch thử cả hai nền
+  (build thường, không lên store) TRƯỚC khi chạy phát hành.
+

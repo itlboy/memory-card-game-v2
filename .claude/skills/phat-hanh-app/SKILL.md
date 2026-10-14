@@ -28,8 +28,12 @@ V=$(node -p "require('./apps/web/package.json').version")
 git tag -a "app-v$V" origin/main -m "App $V" && git push origin "app-v$V"
 ```
 
-Cùng phiên bản mà chỉ cần bản dựng mới (sửa lỗi trước khi nộp duyệt): khỏi tag, chạy
-tay trên main — `gh workflow run mobile.yml --ref main -f phat_hanh=true`.
+Cùng phiên bản mà chỉ cần bản dựng mới (sửa lỗi trước khi nộp duyệt — TRƯỜNG HỢP HAY
+GẶP NHẤT): khỏi tag, chạy tay trên main — `gh workflow run mobile.yml --ref main -f
+phat_hanh=true`. Build phát hành có nhóm concurrency riêng, đẩy `main` không huỷ nó.
+
+Chủ dự án thử trên TestFlight / Play internal chứ không trên Safari: sửa giao diện họ
+báo từ điện thoại xong là ra bản app luôn, báo lại SỐ BUILD (= run_number).
 
 Tag đã tồn tại (đẩy lại cùng phiên bản sau khi sửa CI) thì phải xoá cả hai đầu
 trước — đây là thao tác ghi đè, NÓI với người dùng:
@@ -41,7 +45,7 @@ trước — đây là thao tác ghi đè, NÓI với người dùng:
 id=$(gh run list --workflow mobile.yml --limit 1 --json databaseId -q '.[0].databaseId')
 gh run watch $id --interval 30 >/dev/null; gh run view $id --json jobs -q '.jobs[]|"\(.name): \(.conclusion)"'
 J=$(gh run view $id --json jobs -q '.jobs[]|select(.name=="iOS").databaseId')
-gh run view --job $J --log | grep -E "Upload succeeded|Authority=Apple Distribution|error"
+gh run view --job $J --log | grep -E "Upload succeeded|Z Authority=Apple Distribution|error:"
 ```
 
 Đạt khi log iOS có ĐỦ: `Upload succeeded` và `Authority=Apple Distribution`. Bước
