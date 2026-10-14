@@ -285,7 +285,7 @@ const fr: TuDien = {
 
   /* ---------- theme names ---------- */
   'theme.animals': 'Animaux',
-  'theme.food': 'Cuisine',
+  'theme.food': 'Plats',
   'theme.fruits': 'Fruits',
   'theme.nature': 'Nature',
   'theme.smileys': 'Smileys',
