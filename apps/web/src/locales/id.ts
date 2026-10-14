@@ -214,8 +214,6 @@ const id: TuDien = {
   'fx.thuaRoi': 'KAMU KALAH',
   'fx.kyLucMoi': 'REKOR BARU!',
   'fx.hoa': 'SERI!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ KETUK UNTUK COBA LAGI',
   'fx.conCap': 'Tinggal {n} pasang lagi. Coba lagi?',
   'fx.suytNua': 'Dikit lagi! Coba lagi?',
   'fx.moKhoa': 'Pencapaian terbuka',

@@ -147,7 +147,7 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
   for (const [ten, p] of [
     ['cảnh thắng', { loai: 'thang', bienThe: 'phao-giay' }], ['cảnh kỷ lục', { loai: 'thang', kyLuc: true, bienThe: 'vuong-mien' }],
     ['cảnh thua vỡ', { loai: 'thua', bienThe: 'dap-vo' }], ['cảnh thua tro', { loai: 'thua', bienThe: 'tan-tro' }],
-    ['cảnh game over', { loai: 'thua', bienThe: 'game-over' }], ['cảnh thua một mình', { loai: 'thua', bienThe: 'dap-vo', motMinh: true }], ['cảnh hoà', { loai: 'hoa' }]
+    ['cảnh thua một mình', { loai: 'thua', bienThe: 'dap-vo', motMinh: true }], ['cảnh hoà', { loai: 'hoa' }]
   ] as const) await dung(ten, KetCucFx, p as unknown as Record<string, unknown>);
   return man;
 }

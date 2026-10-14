@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { sfx } from '@/lib/audio';
-import { BoHat, bocBienThe, chayCanh, chonCanh, dongAnUi, VET_NUT } from '@/lib/ketcuc-fx';
+import { BoHat, HIEN_BANG_MS, bocBienThe, chayCanh, chonCanh, dongAnUi, VET_NUT } from '@/lib/ketcuc-fx';
 import type { BienThe } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
@@ -46,8 +46,7 @@ const TIENG_BIEN_THE: Record<BienThe, () => void> = {
   'phao-hoa-dem': () => sfx.phaoHoaDem(),
   'vuong-mien': () => sfx.vuongMien(),
   'dap-vo': () => sfx.lose(),
-  'tan-tro': () => sfx.tanTro(),
-  'game-over': () => sfx.gameOver()
+  'tan-tro': () => sfx.tanTro()
 };
 
 onMounted(() => {
@@ -73,7 +72,7 @@ onBeforeUnmount(() => don?.());
 </script>
 
 <template>
-  <div class="ketcuc-fx" :data-loai="loai" :data-canh="canh" :data-bien-the="bt ?? undefined" :aria-label="td(`fx.canh.${canh}`)" aria-hidden="true">
+  <div class="ketcuc-fx" :style="{ '--hien-bang': `${HIEN_BANG_MS[canh]}ms` }" :data-loai="loai" :data-canh="canh" :data-bien-the="bt ?? undefined" :aria-label="td(`fx.canh.${canh}`)" aria-hidden="true">
     <canvas ref="cv" class="fx-hat" />
 
     <!-- ===== THẮNG (3 biến thể) ===== -->
@@ -89,16 +88,6 @@ onBeforeUnmount(() => don?.());
     </template>
 
     <!-- ===== THUA (3 biến thể) ===== -->
-    <template v-else-if="canh === 'thua' && bt === 'game-over'">
-      <div class="fx-crt-man" />
-      <div class="fx-crt-vach" />
-      <div class="fx-quet" />
-      <div class="fx-khoi-thua fx-go">
-        <div class="fx-game-over fx-tieu-de"><template v-for="(dong, i) in t('fx.gameOver').split('|')" :key="i"><br v-if="i">{{ dong }}</template></div>
-        <p v-if="motMinh" class="fx-an-ui fx-an-ui-go">{{ dongAnUi(capConLai) }}</p>
-        <p class="fx-nhan-nut">{{ t('fx.bamChoiLai') }}</p>
-      </div>
-    </template>
 
     <template v-else-if="canh === 'thua' && bt === 'tan-tro'">
       <div class="fx-toi" />

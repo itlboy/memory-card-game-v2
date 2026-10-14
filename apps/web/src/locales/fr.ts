@@ -217,8 +217,6 @@ const fr: TuDien = {
   'fx.thuaRoi': 'PERDU',
   'fx.kyLucMoi': 'RECORD BATTU !',
   'fx.hoa': 'ÉGALITÉ !',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ TOUCHE POUR REJOUER',
   'fx.conCap': (p) => `Plus que ${p.n} ${Number(p.n) <= 1 ? 'paire' : 'paires'}. On réessaie ?`,
   'fx.suytNua': 'Presque ! On réessaie ?',
   'fx.moKhoa': 'Succès débloqué',

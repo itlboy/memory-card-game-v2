@@ -211,8 +211,6 @@ const ja: TuDien = {
   'fx.thuaRoi': 'まけ…',
   'fx.kyLucMoi': '新記録！',
   'fx.hoa': '引き分け！',
-  'fx.gameOver': 'ゲーム|オーバー',
-  'fx.bamChoiLai': '▶ タップでリトライ',
   'fx.conCap': 'あと{n}ペアだったのに！もう一回？',
   'fx.suytNua': 'おしい！もう一回？',
   'fx.moKhoa': '実績解除',

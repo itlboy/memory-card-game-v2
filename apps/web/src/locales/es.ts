@@ -212,8 +212,6 @@ const es: TuDien = {
   'fx.thuaRoi': 'PERDISTE',
   'fx.kyLucMoi': '¡NUEVO RÉCORD!',
   'fx.hoa': '¡EMPATE!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ TOCA PARA REINTENTAR',
   'fx.conCap': (p) => `Solo ${Number(p.n) === 1 ? 'faltaba 1 par' : `faltaban ${p.n} pares`}. ¿Otra vez?`,
   'fx.suytNua': 'Casi. ¿Otra vez?',
   'fx.moKhoa': '¡Logro desbloqueado!',

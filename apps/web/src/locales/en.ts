@@ -213,8 +213,6 @@ const en: TuDien = {
   'fx.thuaRoi': 'YOU LOSE',
   'fx.kyLucMoi': 'NEW RECORD!',
   'fx.hoa': 'DRAW!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ TAP TO RETRY',
   'fx.conCap': (p) => `Only ${p.n} more ${Number(p.n) === 1 ? 'pair' : 'pairs'} to go. Try again?`,
   'fx.suytNua': 'So close. Try again?',
   'fx.moKhoa': 'Achievement Unlocked',

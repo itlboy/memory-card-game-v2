@@ -524,7 +524,9 @@ const wizard = ref<null | 'level' | 'theme' | 'options'>(null);
  * Quay lại tab thì làm mới NGAY: đó đúng là lúc người ta muốn thấy danh sách
  * mới nhất, và cũng bù cho quãng vừa nằm im.
  */
-const CHU_KY_S = 10;
+// 5 giây (14.10.2026, trước là 10): server CHÍNH nay là Node — sổ phòng là một Map
+// trong RAM, hỏi dày không tốn gì; Cloudflare (mỗi nhịp đánh thức SoPhongDO) chỉ còn dự phòng.
+const CHU_KY_S = 5;
 const demNguoc = ref(CHU_KY_S);
 let nhip: ReturnType<typeof setInterval> | undefined;
 

@@ -211,8 +211,6 @@ const zh: TuDien = {
   'fx.thuaRoi': '你输了',
   'fx.kyLucMoi': '新纪录！',
   'fx.hoa': '平局！',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ 点击重来',
   'fx.conCap': '只差 {n} 对了，再试一次？',
   'fx.suytNua': '就差一点，再试一次？',
   'fx.moKhoa': '成就解锁',

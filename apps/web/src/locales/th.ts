@@ -212,8 +212,6 @@ const th: TuDien = {
   'fx.thuaRoi': 'แพ้แล้ว',
   'fx.kyLucMoi': 'สถิติใหม่!',
   'fx.hoa': 'เสมอ!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ แตะเพื่อเล่นอีกครั้ง',
   'fx.conCap': 'อีกแค่ {n} คู่เอง ลองใหม่ไหม?',
   'fx.suytNua': 'เกือบได้แล้ว ลองใหม่ไหม?',
   'fx.moKhoa': 'ปลดล็อกความสำเร็จ!',

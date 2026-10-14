@@ -214,8 +214,6 @@ const de: TuDien = {
   'fx.thuaRoi': 'VERLOREN',
   'fx.kyLucMoi': 'NEUER REKORD!',
   'fx.hoa': 'REMIS!',
-  'fx.gameOver': 'GAME|OVER',
-  'fx.bamChoiLai': '▶ TIPPEN FÜR NEUSTART',
   'fx.conCap': (p) => `Nur noch ${p.n} ${Number(p.n) === 1 ? 'Paar' : 'Paare'}. Nochmal?`,
   'fx.suytNua': 'Ganz knapp. Nochmal?',
   'fx.moKhoa': 'Erfolg freigeschaltet',

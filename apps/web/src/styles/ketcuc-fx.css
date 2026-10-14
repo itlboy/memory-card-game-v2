@@ -145,7 +145,17 @@
 
 /* ===================== BIẾN THỂ THẮNG ===================== */
 /* Pháo hoa đêm: trời tối hẳn để pháo hoa nổi, chữ neon chớp như bảng hiệu bật đèn */
-.fx-toi.fx-dem { background: radial-gradient(ellipse at 50% 30%, rgba(16, 20, 64, .88), rgba(3, 4, 18, .96)); }
+.fx-toi.fx-dem {
+  background: radial-gradient(ellipse at 50% 30%, rgba(16, 20, 64, .88), rgba(3, 4, 18, .96));
+  animation: fx-hien .35s .3s both, fx-diu .6s var(--hien-bang, 2300ms) forwards;
+}
+/*
+ * NỀN TỐI DỊU XUỐNG ĐÚNG LÚC BẢNG KẾT QUẢ HIỆN (14.10.2026). "Pháo hoa đêm" và "game
+ * over" cố ý tối gần đen để cảnh nổi — nhưng nằm nguyên sau bảng thì che kín bàn và
+ * chip người chơi: online mất dấu đối thủ (avatar, emoji, bong bóng câu nói neo theo
+ * chip). Mốc = HIEN_BANG_MS của cảnh, KetCucFx truyền qua `--hien-bang` (không chép số).
+ */
+@keyframes fx-diu { to { opacity: .5; } }
 .fx-thang.fx-neon {
   background: none; -webkit-background-clip: border-box; background-clip: border-box;
   color: #fff; -webkit-text-fill-color: #fff; filter: none;
@@ -182,41 +192,8 @@
 @keyframes fx-tro-hien { from { opacity: 0; transform: scale(1.4); filter: blur(6px); } }
 @keyframes fx-tro-bay { to { opacity: 0; transform: translate(60px, -18px) rotate(14deg); filter: blur(8px); } }
 
-/* Game over: TV cũ tắt — loé trắng, co thành vạch, co thành chấm, tối hẳn; rồi chữ 8-bit chớp */
-.fx-crt-man { position: absolute; inset: 0; background: #05060c; animation: fx-hien .25s .55s both; }
-.fx-crt-vach {
-  position: absolute; inset: 0; background: #f4f6ff; transform-origin: center; opacity: 0;
-  animation: fx-crt-tat .9s .15s cubic-bezier(.5, 0, .3, 1) both;
-}
-@keyframes fx-crt-tat {
-  0% { opacity: 0; transform: scale(1, 1); }
-  10% { opacity: .9; }
-  45% { opacity: 1; transform: scale(1, .006); }
-  75% { opacity: 1; transform: scale(0, .006); }
-  100% { opacity: 0; transform: scale(0, .006); }
-}
-.fx-quet {
-  position: absolute; inset: 0; pointer-events: none;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .045) 0 1px, transparent 1px 3px);
-  animation: fx-hien .3s 1.1s both;
-}
-.fx-go { top: 30%; }
-.fx-game-over {
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 900;
-  font-size: clamp(46px, 15vw, 66px); line-height: 1.05; letter-spacing: .12em;
-  color: #ff4d5e; text-shadow: 4px 4px 0 #6b0010, 0 0 22px rgba(255, 77, 94, .75);
-  animation: fx-hien .01s 1.2s both, fx-chop .5s 1.25s steps(2, jump-none) 3;
-}
-@keyframes fx-chop { 50% { opacity: 0; } }
-.fx-an-ui-go { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; color: #ffd76a; animation-delay: 1.9s; }
-.fx-nhan-nut {
-  margin: 10px 0 0; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-weight: 800;
-  font-size: 14px; letter-spacing: .14em; color: #eef0fc;
-  animation: fx-hien .01s 2.1s both, fx-chop .6s 2.2s steps(2, jump-none) 2;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .fx-tia-vang, .fx-vuong-mien, .fx-crt-vach, .fx-game-over, .fx-nhan-nut, .fx-tro-chu .fx-ky { animation-name: fx-hien !important; animation-duration: .2s !important; }
+  .fx-tia-vang, .fx-vuong-mien, .fx-tro-chu .fx-ky { animation-name: fx-hien !important; animation-duration: .2s !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .fx-thang, .fx-ky, .fx-hoa, .fx-bang, .fx-nua, .fx-may-mua, .fx-song { animation-name: fx-hien !important; animation-duration: .2s !important; }

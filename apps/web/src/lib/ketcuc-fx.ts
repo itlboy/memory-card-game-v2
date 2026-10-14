@@ -44,12 +44,13 @@ export const TEN_CANH: Record<CanhKetCuc, string> = {
  */
 export const BIEN_THE = {
   thang: ['phao-giay', 'phao-hoa-dem', 'vuong-mien'],
-  thua: ['dap-vo', 'tan-tro', 'game-over']
+  // 'game-over' (màn TV đen + chữ 8-bit) BỎ 14.10.2026: lệch hẳn nét Kẹo, đen sì che bàn
+  thua: ['dap-vo', 'tan-tro']
 } as const;
 export type BienThe = (typeof BIEN_THE)[keyof typeof BIEN_THE][number];
 export const TEN_BIEN_THE: Record<BienThe, string> = {
   'phao-giay': 'Pháo giấy', 'phao-hoa-dem': 'Pháo hoa đêm', 'vuong-mien': 'Vương miện',
-  'dap-vo': 'Đập vỡ màn', 'tan-tro': 'Tan thành tro', 'game-over': 'Game over'
+  'dap-vo': 'Đập vỡ màn', 'tan-tro': 'Tan thành tro'
 };
 
 /** Băm seed thành số 32-bit — bốc biến thể tất định theo ván. */
@@ -322,12 +323,6 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
             if (r.width) s.hat.tro(...s.hat.diem(r.left, r.top), r.width, r.height, giam ? 6 : 34);
           }));
         });
-        break;
-      }
-      if (bienThe === 'game-over') {
-        // Màn tắt kiểu TV cũ (CSS); lúc tắt thì rung một cú, lúc chữ hiện thì rung nhẹ
-        sau(250, () => s.rung(2));
-        sau(1250, () => s.rung(1));
         break;
       }
       // Đập vỡ màn (mặc định)

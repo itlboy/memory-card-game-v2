@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 /**
- * DANH SÁCH PHÒNG TỰ LÀM MỚI mỗi 10 giây, IM LẶNG (không hiện vòng đếm ngược —
+ * DANH SÁCH PHÒNG TỰ LÀM MỚI mỗi 5 giây, IM LẶNG (không hiện vòng đếm ngược —
  * chủ dự án bỏ 14.10.2026).
  *
  * Mỗi nhịp là một lần đánh thức Durable Object sổ phòng cho MỌI người đang mở
@@ -14,8 +14,8 @@ import { resolve } from 'node:path';
 const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue'), 'utf8');
 
 describe('tự làm mới danh sách phòng', () => {
-  it('có nhịp đếm và chu kỳ 10 giây', () => {
-    expect(src).toMatch(/const CHU_KY_S = 10;/);
+  it('có nhịp đếm và chu kỳ 5 giây', () => {
+    expect(src).toMatch(/const CHU_KY_S = 5;/);
     expect(src, 'phải có nhịp đếm').toContain('demNguoc');
   });
 
