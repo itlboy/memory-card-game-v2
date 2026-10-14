@@ -4,16 +4,16 @@ import { anhEmoji } from '@/lib/emoji';
 import type { CardTheme } from '@/lib/themes';
 
 /*
- * QUẠT LÁ TRANG CHỦ (14.10.2026). Lá GIỮA luôn ngửa, chỉ ICON đổi mỗi ~3 giây
- * (mờ + thu nhỏ rồi hiện hình mới) — bản lật lá ngẫu nhiên giữa ba vị trí bị chủ
+ * QUẠT LÁ TRANG CHỦ (14.10.2026). Lá GIỮA luôn ngửa, chỉ ICON đổi mỗi 5 giây
+ * (chỉ mờ dần rồi hiện hình mới — bản thu nhỏ 0,6 bị chê mạnh tay) — bản lật lá ngẫu nhiên giữa ba vị trí bị chủ
  * dự án chê "rối mắt". Hình bốc ngẫu nhiên từ theme MIỄN PHÍ — trang chủ không
  * khoe theme phải mua.
  */
 const props = defineProps<{ themes: CardTheme[] }>();
 
 const DU_PHONG = ['🐼', '🦊', '🐸', '🍓', '🍩', '🐙', '🦄', '🍉', '🐳', '🌸', '🍀', '🐝'];
-const NHIP_MS = 3000;
-const AN_MS = 250;   // khớp `transition: .25s` của .hinh bên dưới
+const NHIP_MS = 5000;
+const AN_MS = 450;   // khớp `transition: opacity .45s` của .hinh bên dưới
 
 const kho = computed(() => {
   const s = props.themes.filter((t) => !t.premium).flatMap((t) => t.symbols);
@@ -67,8 +67,8 @@ onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
 .la-quat.trai { transform: translate(-112%, -46%) rotate(-14deg); }
 .la-quat.phai { transform: translate(12%, -48%) rotate(12deg); }
 .la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); background: var(--card-face-up); font-size: min(120px, 30cqh); z-index: 1; }
-.hinh { display: flex; transition: opacity .25s ease, scale .25s ease; }
-.hinh.an { opacity: 0; scale: .6; }
+.hinh { display: flex; transition: opacity .45s ease-in-out; }
+.hinh.an { opacity: 0; }
 .la-quat .anh { width: 1.15em; height: 1.15em; }
 /* LẮC NHẸ (chủ dự án 13.10.2026): thuộc tính `rotate` RIÊNG nên cộng dồn lên góc
    nghiêng trong `transform`, không đè nó. Ba nhịp lệch nhau để không lắc đồng loạt
