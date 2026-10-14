@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { anhEmoji, tenFileEmoji } from '@/lib/emoji';
+import { anhEmoji, datDungVector, dungVector, tenFileEmoji } from '@/lib/emoji';
+import { store } from '@/lib/storage';
 
 /**
  * MẶT BÀI VẼ BẰNG SVG TRÊN MÁY KHÔNG PHẢI APPLE (phương án B, 14.10.2026).
@@ -34,5 +35,15 @@ describe('hình vector cho mặt bài', () => {
     expect(anhEmoji('7', true)).toBeNull();
     expect(anhEmoji('', true)).toBeNull();
     expect(anhEmoji(undefined, true)).toBeNull();
+  });
+
+  it('công tắc ở menu đổi TỨC THÌ và được lưu lại', () => {
+    datDungVector(true);
+    expect(anhEmoji('🐼')).toBe('/emoji/1f43c.svg');
+    expect(store.prefs().kieuEmoji).toBe('vector');
+    datDungVector(false);
+    expect(dungVector.value).toBe(false);
+    expect(anhEmoji('🐼')).toBeNull();
+    expect(store.prefs().kieuEmoji).toBe('may');
   });
 });

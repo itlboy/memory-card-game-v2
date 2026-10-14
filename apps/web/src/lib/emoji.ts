@@ -1,4 +1,6 @@
+import { ref } from 'vue';
 import { nenApp } from './native';
+import { store } from './storage';
 
 /**
  * MẶT BÀI VẼ EMOJI BẰNG GÌ (phương án B, chủ dự án chốt 14.10.2026).
@@ -19,7 +21,22 @@ function laThietBiApple(): boolean {
   return /iPhone|iPad|iPod|Macintosh|Mac OS X/.test(ua);
 }
 
-export const DUNG_VECTOR = !laThietBiApple();
+/** Mặc định theo máy — đổi phương án A/B/... là sửa ĐÚNG dòng này. */
+export const MAC_DINH_VECTOR = !laThietBiApple();
+
+/**
+ * Đang vẽ bằng SVG hay emoji của máy. Người chơi đổi được ở menu thanh trên
+ * (công tắc "Hình lá bài nét"), đổi TỨC THÌ trên bàn đang chơi và được lưu lại —
+ * chủ dự án muốn thử qua lại trên cùng một máy và giữ đường lui nếu cần.
+ */
+export const dungVector = ref<boolean>((() => {
+  try { const k = store.prefs().kieuEmoji; if (k) return k === 'vector'; } catch { /* không có localStorage */ }
+  return MAC_DINH_VECTOR;
+})());
+export function datDungVector(v: boolean): void {
+  dungVector.value = v;
+  try { store.savePrefs({ kieuEmoji: v ? 'vector' : 'may' }); } catch { /* bỏ qua */ }
+}
 
 const LA_EMOJI = /\p{Extended_Pictographic}|\p{Regional_Indicator}/u;
 
@@ -29,7 +46,7 @@ export function tenFileEmoji(e: string): string {
 }
 
 /** Đường dẫn SVG cho ký hiệu, hoặc null = vẽ bằng chữ (máy Apple, chữ/số, ô úp rỗng). */
-export function anhEmoji(kyHieu: string | undefined, dungVector = DUNG_VECTOR): string | null {
-  if (!dungVector || !kyHieu || !LA_EMOJI.test(kyHieu)) return null;
+export function anhEmoji(kyHieu: string | undefined, vector = dungVector.value): string | null {
+  if (!vector || !kyHieu || !LA_EMOJI.test(kyHieu)) return null;
   return `/emoji/${tenFileEmoji(kyHieu)}.svg`;
 }
