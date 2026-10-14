@@ -68,8 +68,12 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
       <span class="vien" :class="{ urgent }" :aria-label="t('hud.thoiGian')">
         <component :is="timeLeft === null ? Timer : Hourglass" :size="16" aria-hidden="true" /><b>{{ timeText }}</b>
       </span>
-      <span v-if="!multiplayer" class="vien" data-score-target :aria-label="t('hud.diem')">
+      <span v-if="!multiplayer" class="vien diem" data-score-target :aria-label="t('hud.diem')">
         <Star :size="16" aria-hidden="true" /><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
+        <!-- COMBO là huy hiệu ở góc viên điểm, KHÔNG phải một viên trong hàng: viên
+             riêng bật/tắt mỗi chuỗi làm cả hàng xô lệch và ép các viên kia tràn chữ
+             trên iPhone (chủ dự án báo 14.10.2026, đo được ở cả ba cỡ máy). -->
+        <span v-if="combo > 1" :key="combo" class="combo" :class="{ max: combo >= 2 }" aria-label="Combo">x{{ combo }}</span>
       </span>
       <!-- SAO SỐNG (Chiến dịch, 14.10.2026): sai quá mốc là một sao tắt ngay trước
            mắt — người chơi hiểu luật sao mà không phải đọc chữ nào. Số nhỏ là số
@@ -90,9 +94,6 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
       >
         <OptionIcon name="lives" :size="16" /><b>{{ lives > 0 ? lives : '—' }}</b>
       </span>
-      <span v-if="!multiplayer && combo > 1" :key="combo" class="vien combo" :class="{ max: combo >= 2 }" aria-label="Combo">
-        <b>x{{ combo }}</b>
-      </span>
     </div>
     <button v-if="pausable" class="tron" :aria-label="t('hud.tamDung')" type="button" @click="$emit('pause')"><Pause :size="18" /></button>
     <span v-else class="tron-cho" aria-hidden="true" />
@@ -105,7 +106,10 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
 
 <style scoped>
 .hud { position: relative; display: flex; align-items: center; gap: 8px; min-height: 44px; }
-.vien-hang { flex: 1; min-width: 0; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.vien-hang {
+  flex: 1; min-width: 0; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: nowrap;
+  container-type: inline-size;
+}
 /* Nút tròn 44px (NF-07) — hình và vùng chạm trùng nhau, không cần ::after */
 .tron {
   flex: none; width: 44px; height: 44px; border-radius: 50%; padding: 0;
@@ -116,7 +120,9 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
 .tron:active { transform: translateY(2px); }
 .tron-cho { flex: none; width: 44px; }
 .vien {
-  display: inline-flex; align-items: center; gap: 5px; min-width: 0;
+  /* flex: none — viên KHÔNG BAO GIỜ co nhỏ hơn chữ (min-width: 0 cũ cho nó co,
+     chữ lòi ra ngoài viên). Hết chỗ thì khối @container dưới gọn cả hàng. */
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
   height: 34px; padding: 0 11px; border-radius: 999px; white-space: nowrap;
   background: var(--panel-solid); color: var(--fg);
   border: var(--vien-vien, 1px solid var(--line)); box-shadow: var(--elev-1);
@@ -126,8 +132,14 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
 .vien svg { flex: none; color: var(--accent); }
 .vien.urgent b, .vien.urgent svg { color: var(--bad); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-.vien.combo { background: var(--chon-nen); color: var(--chon-chu); animation: bump .3s cubic-bezier(.3, 1.6, .5, 1); }
-.vien.combo.max { background: var(--nhan-nen); color: var(--nhan-chu); }
+.vien.diem { position: relative; }
+.combo {
+  position: absolute; top: -9px; right: -9px; z-index: 1;
+  padding: 1px 6px; border-radius: 999px; font: 800 11px/1.3 var(--font-display);
+  background: var(--chon-nen); color: var(--chon-chu); box-shadow: var(--elev-1);
+  animation: bump .3s cubic-bezier(.3, 1.6, .5, 1);
+}
+.combo.max { background: var(--nhan-nen); color: var(--nhan-chu); }
 @keyframes bump { 40% { transform: scale(1.25); } }
 /* Điểm vừa được cộng bay tới: con số nảy và thắp vàng */
 .vien b.bump { display: inline-block; animation: score-bump .4s cubic-bezier(.3, 1.6, .5, 1); }
@@ -146,6 +158,9 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
 .sao-hang { display: inline-flex; gap: 1px; font-size: 14px; line-height: 1; letter-spacing: 0; }
 .sao-hang i { font-style: normal; color: var(--gold); }
 .sao-hang i.tat { color: color-mix(in srgb, var(--fg) 22%, transparent); }
+/* Ngôi thứ 4: trả màu chữ về trong suốt để dải cầu vồng (.sao4 ở global.css)
+   hiện ra — rule vàng ngay trên đè mất nó (đo bằng ảnh 14.10.2026) */
+.sao-hang i.sao4:not(.tat) { color: transparent; }
 .vien.sao b { font-size: 14px; color: var(--muted); }
 .vien.sao.rot { animation: hp-hurt .55s ease-out; }
 /* Vạch tiến độ: nằm trong khe 10px giữa HUD và bàn (gap của .game) */
@@ -154,10 +169,18 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
   background: color-mix(in srgb, var(--fg) 14%, transparent); overflow: hidden;
 }
 .tien-do i { display: block; height: 100%; background: var(--ok); transform-origin: left; transition: transform .4s ease; }
-/* Máy hẹp (SE): viên co lại trước khi phải ẩn */
-@media (max-width: 380px) {
+/* Hàng hẹp: GỌN ĐỀU cả hàng (đệm, icon, chữ) theo bề rộng THẬT của hàng, không
+   theo cỡ màn — ca xấu nhất "8:42 · 12.345 · ★★★★ 12" cần ~250px ở cỡ thường. */
+@container (max-width: 320px) {
   .vien { padding: 0 8px; gap: 4px; }
   .vien b { font-size: 15px; }
+  .vien svg { width: 14px; height: 14px; }
+  .sao-hang { font-size: 12px; }
+  .vien.sao b { font-size: 13px; }
 }
-@media (prefers-reduced-motion: reduce) { .vien.hurt, .vien.combo, .vien.sao.rot { animation: none; } }
+@container (max-width: 270px) {
+  .vien { padding: 0 6px; gap: 3px; }
+  .vien b { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .vien.hurt, .combo, .vien.sao.rot { animation: none; } }
 </style>
