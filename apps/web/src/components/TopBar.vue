@@ -242,9 +242,10 @@ watch(() => props.totalScore, (to, from) => {
         </div>
         <!-- Nhạc nền: Tắt · từng bài (lib/nhac.ts), cùng dạng nút chia đoạn với Âm thanh.
              Nhãn bài là biểu tượng — khỏi dịch, khỏi tràn menu; tên đầy đủ ở aria-label.
-             HAI TẦNG (chữ trên, dải nút chia đều dưới): một hàng 6 nút (có Premium) làm menu
-             phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). Thêm bài = nút hẹp lại. -->
-        <div class="item am nhac" role="group" :aria-label="t('tb.nhacNen')">
+             MỘT HÀNG như Âm thanh khi ≤ 3 bài (chủ dự án 15.10.2026); nhiều hơn (bày cả bài
+             Premium) thì HAI TẦNG — chữ trên, dải nút chia đều dưới: một hàng 6 nút làm menu
+             phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). -->
+        <div class="item am nhac" :class="{ 'hai-tang': baiHien.length > 3 }" role="group" :aria-label="t('tb.nhacNen')">
           <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
           <span class="nac ds-nhac">
             <button
@@ -478,9 +479,12 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .nac button::after { content: ''; position: absolute; inset: -7px 0; }
 .nac button[aria-checked='true'] { background: var(--nhan-nen); color: var(--nhan-chu); }
 .nac button.bai { font-size: 15px; }
-.item.nhac { flex-wrap: wrap; row-gap: 6px; padding-block: 8px; }
-.nac.ds-nhac { flex: 1 0 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-.ds-nhac button { min-width: 0; padding: 0 4px; }
+.item.nhac.hai-tang { flex-wrap: wrap; row-gap: 6px; padding-block: 8px; }
+.item.nhac.hai-tang .nac.ds-nhac { flex: 1 0 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.item.nhac.hai-tang .ds-nhac button { min-width: 0; padding: 0 4px; }
+/* Một hàng: nút bài (biểu tượng) hẹp hơn nút chữ để cả dải vừa bằng dải Âm thanh */
+.item.nhac:not(.hai-tang) .ds-nhac button.bai { min-width: 34px; padding: 0 6px; }
+.item.nhac:not(.hai-tang) > span:not(.nac) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 @media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
 .item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
