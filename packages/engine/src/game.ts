@@ -563,6 +563,12 @@ export class MemoryGame {
       case 'bomb': {
         // Úp lại 2 cặp đã mở, chọn tất định theo seed
         const open = [...this.matched];
+        // Chưa cặp nào mở thì không có gì để úp: ĐỂ DÀNH thẻ (huy hiệu còn trên
+        // mặt thẻ) thay vì tiêu nó vào khoảng không — chủ dự án 16.10.2026.
+        if (!open.length) {
+          card.powerUsed = false;
+          return [];
+        }
         const victims = this.rng.sample(open, Math.min(2, open.length));
         for (const pairId of victims) this.matched.delete(pairId);
         affected = this.cards.filter((c) => victims.includes(c.pairId)).map((c) => c.index);
@@ -571,11 +577,15 @@ export class MemoryGame {
       }
       case 'swap': {
         /*
-         * ƯU TIÊN thẻ ĐÃ TỪNG LỘ RA — tráo thứ người chơi đang nhớ mới là cái
-         * làm nên thẻ này. Nhưng KHÔNG được đứng im khi chưa lộ thẻ nào: bốc
-         * trúng lá tráo ngay nước đầu (rất dễ xảy ra sau màn xem trước, lúc bàn
-         * vừa úp lại) thì người chơi bấm mà chẳng thấy gì xảy ra, và họ kết luận
-         * là nút hỏng. Không có thẻ nào đã lộ thì tráo cả thẻ chưa mở.
+         * TRÁO THỨ NGƯỜI CHƠI ĐANG NHỚ — đó là toàn bộ ý nghĩa của thẻ này. Tráo
+         * hai thẻ chưa ai thấy thì không phá ký ức nào, chủ dự án 16.10.2026:
+         * "thật vô nghĩa" (bản trước cố ý tráo cả thẻ chưa mở để "bấm phải thấy
+         * có gì xảy ra"). Nay:
+         *   - từ hai thẻ đã lộ trở lên: tráo giữa chúng;
+         *   - đúng MỘT thẻ đã lộ: tráo nó với một thẻ còn úp — ký ức về thẻ đó
+         *     vẫn bị phá;
+         *   - chưa lộ thẻ nào: ĐỂ DÀNH (huy hiệu còn trên mặt thẻ, lần lật sau
+         *     mới kích hoạt), như khi cuối ván không còn gì để tráo.
          *
          * Cả hai nhánh đều tránh thẻ đang mở dở (thấy nội dung nhảy chỗ trước
          * mắt là vô lý) và thẻ đã ghép xong.
@@ -586,14 +596,17 @@ export class MemoryGame {
             && !this.selection.includes(c.index))
           .map((c) => c.index);
         const daLo = conTrenBan.filter((i) => this.seen.has(i));
-        const swappable = daLo.length >= 2 ? daLo : conTrenBan;
-        if (swappable.length < 2) {
-          // Cả bàn không còn nổi hai thẻ để tráo (cuối ván): ĐỂ DÀNH thẻ này cho
-          // lần sau thay vì tiêu nó vào một cú tráo không có gì để tráo.
+        const chuaLo = conTrenBan.filter((i) => !this.seen.has(i));
+        let cap: [number, number] | null = null;
+        if (daLo.length >= 2) cap = this.rng.sample(daLo, 2) as [number, number];
+        else if (daLo.length === 1 && chuaLo.length) cap = [daLo[0]!, this.rng.sample(chuaLo, 1)[0]!];
+        if (!cap) {
+          // Chưa lộ thẻ nào, hoặc cuối ván không còn nổi hai thẻ: ĐỂ DÀNH thẻ
+          // này cho lần sau thay vì tiêu nó vào một cú tráo vô nghĩa.
           card.powerUsed = false;
           return [];
         }
-        const [a, b] = this.rng.sample(swappable, 2) as [number, number];
+        const [a, b] = cap;
         this.swapCards(a, b);
         affected = [a, b];
         break;

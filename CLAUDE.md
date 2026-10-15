@@ -317,7 +317,8 @@
   trên ô (không đĩa trắng): chống chìm bằng THỨ TỰ MÀU ô ở `BOT_CHOICES`.
 - Gờ dày của Kẹo (4–5px) cần `overflow-clip-margin: 8px` ở lưới wizard, không thì ô hàng cuối cụt gờ.
 - `cqw` trên CHÍNH `.card` tính theo cả bàn (container cha), không theo lá — gờ từng ra 15,6px.
-- Nền tối chỉ hiện ở menu khi skin là Neon.
+- Nền chỉ hiện ở menu khi skin là Neon: **Tự động (theo hệ điều hành, MẶC ĐỊNH) · Sáng · Tối**
+  (`prefs.nen`, 16.10.2026; bản lưu cũ `dark: true` → Tối). `dark` ở App là computed.
 - Lá đã ghép GIỮ RÕ NÉT (viền xanh trong) — phủ mờ/opacity đã bị chê hai lần.
 - Trang chủ (bước `players`): quạt lá có trần 420px + cụm canh giữa dọc (máy tính
   cột cao). Icon bay lơ lửng (`IconBay.vue`) CHỈ ở màn menu, không có trong ván.
@@ -364,6 +365,11 @@
   (50) ĐÓNG BĂNG — khoá kỷ lục `mode:L<cấp>`, `level` online, app cũ trong store đều
   dùng số đó. Đừng ghi màn Chiến dịch vào `prefs.level`; `store.unlockedLevel()` chỉ
   đọc Chiến dịch, `unlockedKey()` cho chế độ thường.
+- **THẺ ĐẶC BIỆT KHÔNG ĐƯỢC KÍCH HOẠT VÔ NGHĨA** (16.10.2026): Bom/Úp mà chưa cặp nào mở,
+  Tráo đổi mà chưa thẻ nào từng lộ → ĐỂ DÀNH (`powerUsed = false`, huy hiệu còn trên mặt thẻ,
+  lần lật sau mới chạy). Tráo: ≥2 thẻ đã lộ thì tráo giữa chúng, đúng 1 thì tráo nó với một
+  thẻ úp. Bản trước cố ý tráo cả thẻ chưa mở — đã bỏ, đừng dựng lại.
+- Chuyển bước wizard chỉ MỜ DẦN, không trượt ngang (chủ dự án chê "kéo ngang như chuyển trang").
 - **KHÔNG CÒN "CHẾ ĐỘ".** Bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine,
   nay là năm tuỳ chọn bàn chơi (`packages/engine/src/options.ts`): thời gian ·
   số mạng · xem trước · xáo thẻ · thẻ đặc biệt, mỗi cái 4 mức 0..3. Chiến dịch

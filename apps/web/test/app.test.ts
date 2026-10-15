@@ -256,7 +256,7 @@ describe('App', () => {
     expect(wrapper.text()).toContain('Đang chơi');
   });
 
-  it('lưu và đọc lại tuỳ chọn nền tối', async () => {
+  it('lưu và đọc lại tuỳ chọn nền (Neon: Tự động · Sáng · Tối)', async () => {
     // Nền tối chỉ có nghĩa với skin Neon (hai skin kia mang bảng màu riêng)
     datSkin('neon');
     wrapper = mount(App);
@@ -267,12 +267,16 @@ describe('App', () => {
     // Các nút này nay nằm trong menu thả xuống của thanh trên — mở menu trước
     await wrapper.find('header [aria-label="Menu"]').trigger('click');
     await flush();
-    const darkBtn = wrapper.findAll('header .item')
-      .find((b) => (b.attributes('aria-label') ?? '').includes('nền tối'));
-    await darkBtn!.trigger('click');
+    const nut = (nhan: string) => wrapper.findAll('header .nac button')
+      .find((b) => (b.attributes('aria-label') ?? '') === `Nền: ${nhan}`)!;
+    expect(nut('Tự động').attributes('aria-checked'), 'mặc định theo hệ điều hành').toBe('true');
+    await nut('Tối').trigger('click');
     await flush();
     expect(document.documentElement.dataset.theme).toBe('dark');
-    expect(localStorage.getItem('mm.v2')).toContain('"dark":true');
+    expect(localStorage.getItem('mm.v2')).toContain('"nen":"toi"');
+    await nut('Sáng').trigger('click');
+    await flush();
+    expect(document.documentElement.dataset.theme).toBe('light');
   });
 });
 

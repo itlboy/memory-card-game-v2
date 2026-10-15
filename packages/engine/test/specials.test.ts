@@ -37,6 +37,20 @@ describe('thẻ đặc biệt (SRS 3.4)', () => {
     expect(g.matched.size).toBe(0);
   });
 
+  it('thẻ bom khi CHƯA cặp nào mở thì để dành, không tiêu', () => {
+    const { g, slot } = withPower('bomb', 5);
+    const evs = g.flip(slot, 0);
+    expect(evs.find((e) => e.type === 'power')).toBeUndefined();
+    expect(g.cards[slot]!.powerUsed).toBe(false);
+    // Có cặp mở rồi, lần lật sau mới nổ
+    g.flip(pairSlots(g)[7]![0], 0);
+    g.tick(FLIP_BACK_MS + 1);
+    matchPair(g, 0, 2000);
+    const sau = g.flip(slot, 3000);
+    expect(sau.find((e) => e.type === 'power')).toMatchObject({ power: 'bomb' });
+    expect(g.matched.size).toBe(0);
+  });
+
   it('thẻ x2 nhân đôi điểm của cặp tiếp theo, chỉ một lần', () => {
     const { g, slot } = withPower('x2', 3);
     matchPair(g, 0);                                  // +100
