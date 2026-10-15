@@ -572,9 +572,11 @@ const it: TuDien = {
   'lc.xemThu': 'Anteprima effetti di fine partita',
   'lc.premiumThu': 'Sblocca Premium per i test (questo dispositivo)',
   'lc.doNhip': 'Mostra statistiche frame (FPS)',
+  'lc.boEmoji': 'Set di emoji: {ten}',
+  'lc.boEmojiMay': 'Emoji di sistema',
   'lc.xemThang': 'Vittoria · {ten}',
   'lc.xemThua': 'Sconfitta · {ten}',
-  'lc.ghiCong': "Disegni delle carte (dispositivi non Apple) e muso del drago: Twemoji (Twitter, Inc.) · CC-BY 4.0; drago ricolorato",
+  'lc.ghiCong': "Disegni delle carte (dispositivi non Apple): Noto Emoji 3D (Google) · OFL 1.1, Twemoji per le immagini mancanti. Muso del drago: Twemoji (Twitter, Inc.) · CC-BY 4.0, ricolorato",
   'lc.banApp': "Versione app (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

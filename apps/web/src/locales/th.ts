@@ -569,9 +569,11 @@ const th: TuDien = {
   'lc.xemThu': 'ดูตัวอย่างเอฟเฟกต์จบเกม',
   'lc.premiumThu': 'ปลดล็อกพรีเมียมเพื่อทดสอบ (เครื่องนี้)',
   'lc.doNhip': 'แสดงสถิติเฟรม (FPS)',
+  'lc.boEmoji': 'ชุดอีโมจิ: {ten}',
+  'lc.boEmojiMay': 'อีโมจิของเครื่อง',
   'lc.xemThang': 'ชนะ · {ten}',
   'lc.xemThua': 'แพ้ · {ten}',
-  'lc.ghiCong': "ภาพบนการ์ด (อุปกรณ์ที่ไม่ใช่ Apple) และหน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 มังกรเปลี่ยนสี",
+  'lc.ghiCong': "ภาพบนการ์ด (อุปกรณ์ที่ไม่ใช่ Apple): Noto Emoji 3D (Google) · OFL 1.1 ภาพที่ขาดใช้ Twemoji หน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 เปลี่ยนสี",
   'lc.banApp': "แอป (สโตร์): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

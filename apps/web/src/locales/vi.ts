@@ -581,9 +581,11 @@ const vi = {
   'lc.xemThu': 'Xem thử hiệu ứng kết ván',
   'lc.premiumThu': 'Mở Premium để thử (chỉ máy này)',
   'lc.doNhip': 'Hiện số đo khung hình (fps)',
+  'lc.boEmoji': 'Bộ hình emoji: {ten}',
+  'lc.boEmojiMay': 'Emoji của máy',
   'lc.xemThang': 'Thắng · {ten}',
   'lc.xemThua': 'Thua · {ten}',
-  'lc.ghiCong': "Hình mặt bài (máy không phải Apple) và mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0; mặt rồng đã đổi màu",
+  'lc.ghiCong': "Hình mặt bài (máy không phải Apple): Noto Emoji 3D (Google) · OFL 1.1, hình thiếu dùng Twemoji. Mặt rồng thần: Twemoji (Twitter, Inc.) · CC-BY 4.0, đã đổi màu",
   'lc.banApp': "Bản app (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

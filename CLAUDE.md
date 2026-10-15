@@ -854,7 +854,13 @@
   không phải `auto` + `min-height`): `.option` có `container-type: size`, mà
   container query chỉ giải được khi chiều cao xác định — để auto thì truy vấn
   nhận 0 và hàng emoji mẫu bị ẩn ở mọi cỡ ô.
-- **MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG SVG TWEMOJI** (`lib/emoji.ts`, `public/emoji/<mã>.svg`,
+- **MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG NOTO 3D** (15.10.2026, chủ dự án so 5 bộ — artifact
+  https://claude.ai/artifact/M5iMtdV57gUizNRgK7ppj1 — chọn bộ 3D mới của Google): WebP 512px ở
+  `public/emoji/3d/`, tải bằng `node tools/tai-noto3d.mjs` (cần `cwebp`). GIỮ 512: quạt lá trang
+  chủ / bàn 4 thẻ cần ~390px, 256 là mờ. Hình Noto 3D chưa có ghi ở `thieu.json` và lùi về
+  Twemoji. Chế độ debug → Luật chơi → "Bộ hình emoji" xoay Máy · Twemoji · Noto · Noto 3D
+  (`mm.boEmoji`, chỉ máy đó). Thêm theme = chạy CẢ HAI script tải. Mục dưới là lịch sử:
+- **(14.10.2026) MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG SVG TWEMOJI** (`lib/emoji.ts`, `public/emoji/<mã>.svg`,
   phương án B chủ dự án chốt 14.10.2026): emoji Android là bitmap ~136px → mờ trên
   mặt bài; Windows không có emoji cờ. iPhone/iPad/Mac GIỮ emoji Apple. Chỉ đổi cách
   VẼ — ký hiệu trên dây vẫn là chuỗi emoji nên Android chơi chung với iPhone như cũ.
@@ -897,4 +903,4 @@
   `ACHIEVEMENTS`). Lý do: đồ khoá mà không mua được là App Review hay loại (luật 2.1).
   Có IAP thì bật `true`; đồ premium chưa mua đeo VƯƠNG MIỆN (không dùng ổ khoá).
   Thử giao diện đã mua: chế độ debug → Luật chơi → nút "Mở Premium để thử" (`datPremiumThu`, chỉ đổi `mm.premium` của máy đó — trong app không có console nên đây là lối duy nhất). Công tắc Twemoji trong menu đã BỎ: máy Apple
-  luôn emoji Apple, máy khác luôn Twemoji, bản lưu `kieuEmoji` cũ bị bỏ qua.
+  luôn emoji Apple, máy khác luôn NOTO 3D (15.10.2026, xem mục MẶT BÀI), bản lưu `kieuEmoji` cũ bị bỏ qua.

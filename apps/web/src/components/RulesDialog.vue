@@ -7,6 +7,7 @@ import { buildAgeText } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { banNative } from '@/lib/ota';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
+import { boEmojiHien, doiBoEmojiThu } from '@/lib/emoji';
 import OptionIcon from './OptionIcon.vue';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
@@ -25,6 +26,7 @@ const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
 
 /* ---------- phiên bản & tuổi bản build ---------- */
 
+const tenBoEmoji = computed(() => ({ may: t('lc.boEmojiMay'), twemoji: 'Twemoji', noto: 'Noto', noto3d: 'Noto 3D' })[boEmojiHien()]);
 const version = __APP_VERSION__;
 /** Ngày giờ build, ĐÃ định dạng theo giờ Việt Nam lúc build (xem vite.config). */
 const builtAt = __BUILD_AT__;
@@ -188,6 +190,11 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
         :aria-pressed="props.doNhip ? 'true' : 'false'"
         @click="emit('update:doNhip', !props.doNhip)"
       >{{ props.doNhip ? '●' : '○' }} {{ t('lc.doNhip') }}</button>
+      <!-- So bộ hình mặt bài trên máy thật (lib/emoji.ts, chỉ máy này). -->
+      <button
+        v-if="props.debug" class="nut-do" type="button"
+        @click="doiBoEmojiThu()"
+      >{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</button>
       <div v-if="props.debug" class="xem-fx">
         <p class="build">{{ t('lc.xemThu') }}</p>
         <button v-for="x in XEM_THU" :key="x.ten" class="nut-do" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>

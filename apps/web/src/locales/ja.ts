@@ -568,9 +568,11 @@ const ja: TuDien = {
   'lc.xemThu': '終了演出をプレビュー',
   'lc.premiumThu': 'テスト用にプレミアムを解除（この端末）',
   'lc.doNhip': 'フレーム計測を表示（FPS）',
+  'lc.boEmoji': '絵文字セット: {ten}',
+  'lc.boEmojiMay': '端末の絵文字',
   'lc.xemThang': '勝利・{ten}',
   'lc.xemThua': '敗北・{ten}',
-  'lc.ghiCong': "カードの絵柄（Apple以外の端末）とドラゴンの顔：Twemoji（Twitter, Inc.）· CC-BY 4.0。ドラゴンは色を変更",
+  'lc.ghiCong': "カードの絵柄（Apple以外の端末）：Noto Emoji 3D（Google）· OFL 1.1、不足分は Twemoji。ドラゴンの顔：Twemoji（Twitter, Inc.）· CC-BY 4.0、色を変更",
   'lc.banApp': "アプリ（ストア）：{ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

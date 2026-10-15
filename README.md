@@ -765,7 +765,7 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
 - Nút mời người chơi ra khỏi phòng thành dấu X.
 - Sửa: chữ CHIẾN THẮNG mất dấu ("CHIỄN"); bảng kết quả lòi nút trên iPhone SE; dòng
   Tổng điểm dính sát bảng xếp hạng.
-- Luật chơi: "Bật chế độ debug"; ghi công Twemoji chỉ trong chế độ debug và `/credits.txt`.
+- Luật chơi: "Bật chế độ debug"; ghi công Noto 3D + Twemoji chỉ trong chế độ debug và `/credits.txt`.
 
 **10.10.2026**
 - Rung khi ghép thẻ theo số nhịp; công tắc trong menu.

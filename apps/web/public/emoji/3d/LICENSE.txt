@@ -1,0 +1,2 @@
+Emoji graphics: Noto Emoji 3D by Google (https://github.com/googlefonts/noto-emoji),
+licensed under the SIL Open Font License 1.1: https://openfontlicense.org

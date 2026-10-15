@@ -571,9 +571,11 @@ const id: TuDien = {
   'lc.xemThu': 'Pratinjau efek akhir permainan',
   'lc.premiumThu': 'Buka Premium untuk uji coba (perangkat ini)',
   'lc.doNhip': 'Tampilkan statistik frame (FPS)',
+  'lc.boEmoji': 'Set emoji: {ten}',
+  'lc.boEmojiMay': 'Emoji sistem',
   'lc.xemThang': 'Menang · {ten}',
   'lc.xemThua': 'Kalah · {ten}',
-  'lc.ghiCong': "Gambar kartu (perangkat non-Apple) dan wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0; naga diwarnai ulang",
+  'lc.ghiCong': "Gambar kartu (perangkat non-Apple): Noto Emoji 3D (Google) · OFL 1.1, gambar yang kurang memakai Twemoji. Wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0, diwarnai ulang",
   'lc.banApp': "Aplikasi (toko): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */
