@@ -38,3 +38,7 @@
 # Ảnh và dữ liệu theme không có hash: cache ngắn rồi hỏi lại.
 /data/*
   Cache-Control: public, max-age=300, must-revalidate
+
+# CSS/JS/ảnh/bản dịch của các trang công khai (about, support…): không có hash.
+/site/*
+  Cache-Control: public, max-age=300, must-revalidate

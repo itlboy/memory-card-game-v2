@@ -57,7 +57,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,json,png,svg,woff2}'],
         // 665 SVG mặt bài chỉ máy không-Apple dùng (lib/emoji.ts): không nhét vào
         // precache (iPhone tải ~1MB vô ích), nạp dần lúc chơi và giữ trong cache.
-        globIgnores: ['**/emoji/**'],
+        // Trang công khai + /site/ không thuộc game: không precache (thêm ~250KB vô ích).
+        globIgnores: ['**/emoji/**', '**/site/**', '{about,support,privacy,changes}.html'],
         runtimeCaching: [{
           urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/emoji/'),
           handler: 'CacheFirst',
@@ -68,7 +69,9 @@ export default defineConfig({
         // thẳng URL đó, không được rơi về index.html của game
         // /ota/: gói cập nhật nóng của app — mở link zip trên trình duyệt từng vào game thì SW
         // trả index.html thay cho file (14.10.2026)
-        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/ota\//, /^\/(privacy|support)(\.html)?$/],
+        // Trang công khai (about/support/privacy/changes) + tài nguyên của chúng ở /site/:
+        // service worker KHÔNG được trả index.html của game thay cho chúng.
+        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/ota\//, /^\/site\//, /^\/(privacy|support|about|changes)(\.html)?$/],
         // Font đóng gói sẵn (styles/fonts.ts, file .woff2 cùng gốc) nên đã nằm trong
         // globPatterns ở trên — không còn cache font Google ở runtime.
       }

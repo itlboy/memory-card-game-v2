@@ -166,6 +166,7 @@ const MIME: Record<string, string> = {
   '.zip': 'application/zip',   // gói cập nhật nóng /ota/*.zip
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.webp': 'image/webp',   // ảnh trang công khai (site/img)
   '.jpg': 'image/jpeg',
   '.webmanifest': 'application/manifest+json',
   '.ico': 'image/x-icon',
@@ -207,7 +208,7 @@ function cacheControl(file: string): string {
   // offline — đúng thứ PWA dựng lên để có.
   if (/(index\.html|sw\.js|manifest\.webmanifest)$/.test(file)) return 'no-cache';
   // Ảnh và dữ liệu theme: cache ngắn rồi hỏi lại.
-  if (/[/\\]data[/\\]/.test(file)) return 'public, max-age=300, must-revalidate';
+  if (/[/\\](data|site)[/\\]/.test(file)) return 'public, max-age=300, must-revalidate';
   return 'no-cache';
 }
 
