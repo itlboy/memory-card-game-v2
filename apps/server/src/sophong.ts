@@ -34,12 +34,14 @@ export interface SoPhong {
  * là một lối thoát nào đó quên gọi `xoa` — thiếu hạn thì cái mã chết đó nằm mãi
  * trong danh sách và ai bấm vào cũng nhận "Phòng không tồn tại".
  *
- * 15 phút: phòng còn sống tự khai lại mỗi lần có người vào/ra hay đổi cấu hình,
- * và alarm dọn phòng rỗng của RoomDO chạy trong vòng 10 phút (EMPTY_LOBBY_MS),
+ * 25 phút: phòng còn sống tự khai lại mỗi 5 phút và mỗi lần có người vào/ra,
+ * và alarm dọn phòng rỗng của RoomDO chạy trong vòng 15 phút (EMPTY_LOBBY_MS) —
+ * hạn này PHẢI dài hơn, không thì phòng vắng (chủ phòng đang ở app khác gửi
+ * link) rơi khỏi danh sách trước khi phòng thật sự đóng,
  * nên một phòng thật gần như không bao giờ chạm hạn này. Đây là lưới an toàn,
  * không phải nhịp làm mới.
  */
-export const HAN_BAN_GHI_MS = 900_000;
+export const HAN_BAN_GHI_MS = 1_500_000;
 
 /** Bỏ bản ghi quá hạn và sắp phòng mới lên trước — dùng chung cho cả hai bản cài. */
 export function locVaSap(rows: Iterable<PublicRoom>, now: number): PublicRoom[] {

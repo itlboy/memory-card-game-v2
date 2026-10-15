@@ -9,7 +9,7 @@ import { sfx } from '@/lib/audio';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
-import { t } from '@/lib/i18n';
+import { t, td } from '@/lib/i18n';
 
 /**
  * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
@@ -38,7 +38,12 @@ const WS_SERVER = SERVER.replace(/^http/, 'ws');
 
 type Phase = 'idle' | 'connecting' | 'lobby' | 'playing' | 'ended' | 'error';
 
-interface StoredSession { code: string; token: string; name: string; luc?: number }
+interface StoredSession {
+  code: string; token: string; name: string; luc?: number;
+  /** Ảnh chụp phòng chờ lần cuối — để mở lại app là VẼ NGAY phòng chờ, không
+   *  qua màn "đang vào lại" (xem `resumeStored`). Chỉ dữ liệu công khai. */
+  phong?: RoomInfo; id?: string;
+}
 const SESSION_KEY = 'mm.online';
 
 /**
@@ -60,7 +65,7 @@ const SESSION_KEY = 'mm.online';
  * localStorage sống mãi, nên không có hạn thì hôm sau bấm "Chơi online" là bị
  * kéo thẳng vào cái phòng đã chết từ đời nào. 30 phút: rộng hơn nhiều so với
  * mọi mốc phía server (giữ chỗ 5 phút trong ván, 30 giây ở phòng chờ, phòng
- * rỗng sống 10 phút) nên không bao giờ cắt ngang một lần quay lại thật, mà vẫn
+ * rỗng sống 15 phút) nên không bao giờ cắt ngang một lần quay lại thật, mà vẫn
  * đủ ngắn để không ai bị lôi vào phòng của hôm qua.
  */
 const HAN_PHIEN_MS = 30 * 60 * 1000;
@@ -78,6 +83,16 @@ function docPhien(): StoredSession | null {
     }
     return s;
   } catch { return null; }
+}
+
+/**
+ * Mã phòng của phiên online còn hạn, nếu có. App.vue dùng lúc KHỞI ĐỘNG: app bị
+ * iOS/Android tắt hẳn khi nằm nền thì mở lại là mất `?room=` trên URL (WebView
+ * nạp lại từ gốc), và bản cũ đưa chủ phòng về trang chủ — phòng vẫn sống ở
+ * server nhưng người chơi thấy nó "biến mất".
+ */
+export function maPhongDangDo(): string | null {
+  return docPhien()?.code ?? null;
 }
 
 /**
@@ -561,6 +576,33 @@ export function useOnlineRoom() {
    * `reconnectNow` mở chồng mấy cái socket một lúc.
    */
   let dangNoiLai = false;
+  /** `error` hiện tại là lời từ chối TẠM của server (tự xoá khi phòng đổi). */
+  let loiTam = false;
+
+  /**
+   * Dịch lời từ chối của server theo MÃ — `message` là tiếng Việt viết ở server,
+   * in thẳng ra là người chơi tiếng Anh đọc "Chưa sẵn sàng: …". Mã lạ (server mới
+   * hơn client) thì đành dùng `message`.
+   */
+  function loiServer(ma: string, message: string): string {
+    switch (ma) {
+      case 'not-host': return t('or.loi.notHost');
+      case 'not-lobby': return t('or.loi.notLobby');
+      case 'not-enough': return t('or.loi.notEnough');
+      case 'not-ready': {
+        const r = room.value;
+        const ten = r?.players.filter((p) => p.id !== r.hostId && !p.ready && p.connected)
+          .map((p) => p.name).join(', ');
+        return ten ? t('or.loi.notReady', { ten }) : message;
+      }
+      default: return message;
+    }
+  }
+  /** Lúc nhận tin gần nhất từ server — để dò socket "đông cứng" khi mở app lại. */
+  let tinCuoiLuc = 0;
+  /** Lúc app chuyển xuống nền (0 = đang hiện). */
+  let anTu = 0;
+  let doThucTimer: ReturnType<typeof setTimeout> | undefined;
   /** Mốc rớt đầu tiên, để biết đã im lặng đủ BANNER_AFTER_MS chưa. */
   let rotTu = 0;
   let bannerNoiLai: ReturnType<typeof setTimeout> | undefined;
@@ -663,6 +705,49 @@ export function useOnlineRoom() {
     }, FLIP_ACK_MS));
   }
 
+  /** Màn đúng với trạng thái phòng — dùng khi quay về phòng mà không qua 'connecting'. */
+  function phaseTheoPhong(r: RoomInfo): Phase {
+    return r.status === 'lobby' ? 'lobby' : r.status === 'ended' ? 'ended' : 'playing';
+  }
+
+  /**
+   * PHÒNG CÒN KHÔNG? Hỏi khi đang nối lại mà socket cứ đứt.
+   *
+   * Server trả 404 cho phòng đã dẹp, nhưng WebSocket không cho client đọc mã
+   * HTTP — với client, phòng đã đóng trông y hệt mạng chập. Bản cũ vì thế quay
+   * vòng nối lại suốt 5 phút (ROOM_LIMITS.reconnectMs) trước một phòng không
+   * còn, rồi mới hiện "Mất kết nối" kèm nút Thử lại vô ích. Hỏi thẳng API thì
+   * biết ngay. Thưa (mỗi 3 giây một lần) vì vòng nối lại chạy mỗi 500ms.
+   */
+  let kiemPhongLuc = 0;
+  function kiemPhongCon(): void {
+    if (!code || Date.now() - kiemPhongLuc < 3000) return;
+    kiemPhongLuc = Date.now();
+    const ma = code;
+    void fetch(`${SERVER}/api/rooms/${ma}`)
+      .then((r) => (r.ok ? r.json() as Promise<{ exists: boolean }> : null))
+      .then((d) => { if (d && d.exists === false && code === ma) phongDaDong(ma); })
+      .catch(() => { /* mất mạng thật: cứ để vòng nối lại lo */ });
+  }
+
+  /** Phòng không còn: về màn danh sách phòng kèm một dòng báo — như tin 'closed'. */
+  function phongDaDong(ma: string): void {
+    if (ws?.readyState === WebSocket.OPEN) return;   // vừa nối được thì thôi
+    clearStored();
+    leaveSocket();
+    tatNoiLai();
+    reconnectDeadline = 0;
+    clearAck();
+    pending.value = new Set();
+    seqCuaO.clear();
+    room.value = null;
+    view.value = null;
+    coThuLai.value = false;
+    netTrouble.value = '';
+    phase.value = 'idle';
+    error.value = t('or.phongDaDong', { ma });
+  }
+
   function reconnectNow(why: string): void {
     if (!code || !token || dangNoiLai) return;
     netTrouble.value = why;
@@ -714,7 +799,16 @@ export function useOnlineRoom() {
     code = roomCode;
     myName = name;
     coThuLai.value = Boolean(useToken);
-    phase.value = phase.value === 'playing' ? 'playing' : 'connecting';
+    /*
+     * NỐI LẠI LÀ VIỆC NGẦM — người chơi không được thấy (chủ dự án 15.10.2026).
+     * Đang ở phòng chờ / màn kết quả mà đổi sang 'connecting' là màn hình nháy
+     * về form nhập mã rồi mới quay lại phòng: đúng cảm giác "app tải lại" mỗi
+     * lần mở app lên. Nay giữ nguyên màn đang có; từ màn lỗi mà còn ảnh phòng
+     * thì về luôn màn phòng, tin `welcome`/`room`/`state` tới sẽ tự cập nhật.
+     */
+    if (phase.value === 'idle' || phase.value === 'error') {
+      phase.value = room.value ? phaseTheoPhong(room.value) : 'connecting';
+    }
     error.value = '';
 
     const params = new URLSearchParams({ name });
@@ -746,6 +840,7 @@ export function useOnlineRoom() {
 
     ws.onopen = () => { doNhip.socket = 'mở'; startHeartbeat(); }; // i18n-bo-qua — bảng đo nội bộ
     ws.onmessage = (e) => {
+      tinCuoiLuc = Date.now();
       // Đếm cho bảng đo (`?debug=1`). Ghi ở đây vì bật bảng lúc đã trong phòng
       // thì cái bọc `window.WebSocket` không thấy socket này nữa.
       doNhip.goi++;
@@ -766,10 +861,18 @@ export function useOnlineRoom() {
       if (intentionalClose || (e.code >= 4000 && e.code <= 4003)) return;
       // Tự vào lại trong hạn giữ chỗ của server (ON-07). Kể cả ở màn kết quả:
       // phòng vẫn sống, mất socket ở đó mà bỏ luôn thì "Về phòng chờ" hết cửa.
-      if (token && phase.value !== 'idle') {
-        if (!reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
-        if (Date.now() < reconnectDeadline) {
-          batNoiLai();
+      if ((token || spectator.value) && phase.value !== 'idle') {
+        /*
+         * App đang nằm NỀN: cứ thử lại (máy tính đổi tab vẫn giữ được chỗ) nhưng
+         * KHÔNG đếm hạn bỏ cuộc và không hẹn dòng báo — người chơi đâu có nhìn.
+         * Đếm ở nền là quay lại app sau vài phút thấy ngay màn "Mất kết nối"
+         * cho một phòng vẫn đang chờ mình; `onWake` mở một đợt mới, sạch.
+         */
+        const oNen = document.visibilityState === 'hidden';
+        if (!oNen && !reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
+        if (oNen || Date.now() < reconnectDeadline) {
+          if (oNen) dangNoiLai = true; else batNoiLai();
+          kiemPhongCon();
           reconnectTimer = setTimeout(() => connect(code, myName, token), RECONNECT_EVERY_MS);
           return;
         }
@@ -791,6 +894,8 @@ export function useOnlineRoom() {
       case 'welcome':
         myId.value = msg.playerId;
         token = msg.token;
+        // Khán giả không có token nhưng VẪN nối lại được (vào lại không token =
+        // lại làm khán giả, hoặc thành người chơi nếu phòng chờ có chỗ).
         coThuLai.value = true;
         spectator.value = !!msg.spectator;
         tatNoiLai();
@@ -801,8 +906,9 @@ export function useOnlineRoom() {
         if (typeof msg.flipSeq === 'number' && msg.flipSeq >= flipSeq) flipSeq = msg.flipSeq + 1;
         guiLaiChoGui();
         if (msg.spectator) {
-          // Khán giả: phòng đã bắt đầu / đầy — chỉ xem, không lưu phiên
-          phase.value = msg.room.status === 'ended' ? 'ended' : 'playing';
+          // Khán giả: phòng đã bắt đầu / đầy — chỉ xem, không lưu phiên.
+          // Phòng chờ đầy thì ở màn PHÒNG CHỜ (bản cũ đưa vào màn chơi không bàn).
+          phase.value = phaseTheoPhong(msg.room);
           break;
         }
         phase.value = msg.room.status === 'lobby' ? 'lobby' : phase.value;
@@ -818,14 +924,34 @@ export function useOnlineRoom() {
         // Ai đó bấm sẵn sàng hay huỷ: phát tiếng cho CẢ PHÒNG nghe. Trước đây
         // bấm xong im lặng nên không ai biết đối phương đã sẵn sàng hay chưa.
         announceReady(msg.room);
+        // Lời từ chối ("Chưa sẵn sàng: …") chỉ đúng tới lần phòng đổi kế tiếp —
+        // để lại là nó nằm dưới phòng chờ cả khi người kia đã sẵn sàng.
+        if (loiTam) { loiTam = false; error.value = ''; }
         /* Vào phòng XONG thì phải có tiếng báo: bấm "Vào phòng chơi" rồi màn
            hình đổi lặng lẽ, người chơi không biết mình đã vào hay còn đang chờ.
            Chỉ kêu LẦN ĐẦU của mỗi phiên — `room` về liên tục mỗi khi ai đó bấm
            sẵn sàng hay đổi cấu hình, kêu mỗi lần là thành ồn. */
         if (!daVaoPhong) { daVaoPhong = true; sfx.go(); }
         room.value = msg.room;
+        /*
+         * KHÁN GIẢ GẶP PHÒNG CHỜ CÒN CHỖ (ván xong, mọi người về phòng chờ; hoặc
+         * có người rời phòng đầy): vào lại KHÔNG token là server cho làm người
+         * chơi. Thiếu bước này khán giả ngồi phòng chờ với nút Sẵn sàng mà server
+         * bỏ qua mọi tin của họ — bấm hoài không có gì xảy ra.
+         */
+        if (spectator.value && msg.room.status === 'lobby'
+          && msg.room.players.length < ROOM_LIMITS.maxPlayers && myName) {
+          connect(code, myName);
+          phase.value = 'lobby';
+          break;
+        }
         if (msg.room.status === 'lobby') {
           phase.value = 'lobby';
+          // "Về phòng chờ" sau ván: kết ván đã xoá phiên và lau ?room= — ghi lại,
+          // không thì app bị tắt / F5 lúc này là mất chỗ (và chủ phòng mất phòng).
+          if (!spectator.value && token && !location.search.includes('room=')) {
+            ghiUrl(`${location.pathname}?room=${code}`);
+          }
           view.value = null;          // "Chơi lại" đưa cả phòng về lobby — bỏ view ván cũ
           countdown.value = null;
         }
@@ -834,6 +960,7 @@ export function useOnlineRoom() {
           phase.value = 'playing';
         }
         if (msg.room.status === 'ended') endSession();
+        else if (!spectator.value && token) luuPhien();   // ảnh phòng + hạn phiên luôn mới
         break;
 
       case 'state': {
@@ -900,7 +1027,7 @@ export function useOnlineRoom() {
         view.value = null;
         coThuLai.value = false;
         phase.value = 'idle';
-        error.value = msg.message;
+        error.value = msg.code ? td(`or.dong.${msg.code}`) : msg.message;
         break;
 
       case 'emoji': {
@@ -934,7 +1061,8 @@ export function useOnlineRoom() {
       }
 
       case 'error':
-        error.value = msg.message;
+        error.value = loiServer(msg.code, msg.message);
+        loiTam = true;
         break;
 
       case 'pong':
@@ -1138,8 +1266,10 @@ export function useOnlineRoom() {
   /** Ghi phiên (token) để đóng tab / F5 vẫn vào lại đúng chỗ. */
   function luuPhien(): void {
     try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(
-        { code, token, name: myName, luc: Date.now() } satisfies StoredSession));
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        code, token, name: myName, luc: Date.now(),
+        ...(room.value && myId.value ? { phong: room.value, id: myId.value } : {})
+      } satisfies StoredSession));
     } catch { /* chế độ riêng tư chặn ghi */ }
   }
 
@@ -1180,6 +1310,20 @@ export function useOnlineRoom() {
     if (!s) return false;
     if (matchCode && s.code !== matchCode) return false;
     token = s.token;
+    /*
+     * VẼ NGAY PHÒNG CHỜ từ ảnh lần cuối, rồi nối lại NGẦM. Không có bước này thì
+     * mở lại app (bị hệ điều hành tắt khi nằm nền) là thấy màn "Đang vào lại
+     * phòng…" — đúng thứ chủ dự án không muốn người chơi thấy. Chỉ phòng chờ:
+     * giữa ván thì cần cả bàn thẻ, chưa có `state` thì chưa vẽ được.
+     * Ảnh sai (phòng đã đổi) thì tin `welcome` vài trăm ms sau ghi đè; phòng đã
+     * đóng thì `kiemPhongCon` đưa về danh sách kèm dòng báo.
+     */
+    if (s.phong?.status === 'lobby' && s.id && s.phong.code === s.code) {
+      room.value = s.phong;
+      myId.value = s.id;
+      phase.value = 'lobby';
+      daVaoPhong = true;            // đã ở trong phòng từ trước, đừng kêu "vào phòng"
+    }
     connect(s.code, s.name, s.token);
     return true;
   }
@@ -1218,7 +1362,7 @@ export function useOnlineRoom() {
    * bấm xong lại rơi thẳng về 'error'.
    */
   function retry(): void {
-    if (!code || !token) return;
+    if (!code || (!token && !spectator.value)) return;
     reconnectDeadline = 0;
     batNoiLai();
     error.value = '';
@@ -1245,34 +1389,53 @@ export function useOnlineRoom() {
    * app nằm nền.
    */
   function onWake(): void {
-    if (document.visibilityState !== 'visible') return;
-    /*
-     * ĐÃ BỎ CUỘC RỒI VẪN THỬ LẠI. Khoá màn hình lâu thì socket chết, hạn thử
-     * lại chạy hết trong lúc máy ngủ và phase về 'error' — lúc đó `pingTimer`
-     * cũng đã tắt nên chốt bên dưới bỏ qua, người chơi mở máy lên chỉ thấy
-     * "Mất kết nối" đứng im dù phòng vẫn còn sống. Mở màn hình LÀ tín hiệu rõ
-     * nhất để thử lại một lần nữa.
-     */
-    if (phase.value === 'error' && code && token) { retry(); return; }
-    if (!pingTimer) return;                  // không ở trong phòng thì chẳng có gì để đánh thức
-    /*
-     * Socket đã CHẾT trong lúc ở nền thì nối lại LUÔN, đừng đập nhịp vào một
-     * đường đã đứt rồi chờ ba nhịp trượt (12 giây) mới kết luận. Trên iOS
-     * `readyState` còn báo OPEN cho một kết nối đã treo, nên `send()` không ném
-     * lỗi mà tin cũng không tới — đó là lý do vẫn phải có nhịp tim, chứ chỗ này
-     * chỉ bắt được ca socket đóng hẳn.
-     */
-    if (ws?.readyState !== WebSocket.OPEN && code && token) {
-      batNoiLai();
-      connect(code, myName, token);
+    if (document.visibilityState !== 'visible') {
+      // Sắp nằm nền: làm mới hạn phiên + ảnh phòng — app có thể bị tắt hẳn ngay sau
+      if (code && token && !spectator.value && phase.value !== 'idle' && phase.value !== 'ended') luuPhien();
+      anTu = Date.now();
       return;
     }
+    const anBao = anTu ? Date.now() - anTu : 0;
+    anTu = 0;
+    if (!code || (!token && !spectator.value) || phase.value === 'idle') return;
+    /*
+     * MỞ APP LÊN = MỘT ĐỢT NỐI LẠI MỚI, SẠCH. Hạn bỏ cuộc, dòng báo, màn lỗi của
+     * đợt cũ (chạy — hoặc đứng — trong lúc máy ngủ) đều bỏ: bản cũ để hẹn giờ
+     * dòng báo đã quá hạn nổ ngay lúc mở app, nên người chơi vừa mở máy đã thấy
+     * "Mất kết nối" nháy lên rồi tắt; nằm nền đủ lâu thì thấy hẳn màn lỗi.
+     */
+    if (ws?.readyState !== WebSocket.OPEN || phase.value === 'error') {
+      reconnectDeadline = 0;
+      tatNoiLai();
+      batNoiLai();
+      connect(code, myName, token);
+      kiemPhongCon();
+      return;
+    }
+    /*
+     * Socket báo OPEN — nhưng iOS báo OPEN cả cho kết nối đã chết trong lúc app
+     * nằm nền, và nhịp tim cần tới 12 giây mới kết luận. Nằm nền quá vài giây
+     * thì DÒ NGAY: xin lại trạng thái, 1,5 giây không có tin nào về là mở socket
+     * mới (vài trăm ms, người chơi không thấy gì). Socket còn sống thì `resync`
+     * cũng chính là thứ kéo về những gì đã đổi trong lúc vắng.
+     */
     startHeartbeat();                        // khởi động lại = đập một nhịp ngay
+    if (anBao > 3000) {
+      const truoc = tinCuoiLuc;
+      send({ t: 'resync' });
+      clearTimeout(doThucTimer);
+      doThucTimer = setTimeout(() => {
+        if (tinCuoiLuc !== truoc || !code || !token || phase.value === 'idle') return;
+        batNoiLai();
+        connect(code, myName, token);
+      }, 1500);
+    }
   }
   document.addEventListener('visibilitychange', onWake);
   window.addEventListener('pageshow', onWake);
 
   onScopeDispose(() => {
+    clearTimeout(doThucTimer);
     document.removeEventListener('visibilitychange', onWake);
     window.removeEventListener('pageshow', onWake);
     leaveSocket();

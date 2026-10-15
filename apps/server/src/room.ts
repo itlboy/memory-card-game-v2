@@ -195,12 +195,13 @@ const UNUSED_ROOM_MS = 600_000;
  * đã chết trước khi bạn kịp bấm, và người nhận thấy "Phòng không tồn tại" —
  * chính người tạo phòng cũng không vào lại được phòng của mình.
  *
- * 10 phút, không phải 5: gần như ai cũng chơi trên ĐIỆN THOẠI, mà ở đó "gửi
+ * 15 phút (chủ dự án nới từ 10 ngày 15.10.2026), không phải 5: gần như ai cũng
+ * chơi trên ĐIỆN THOẠI, mà ở đó "gửi
  * link" là rời app sang Zalo/Messenger, gõ vài câu, chờ bạn tải trang. iOS còn
  * treo hẳn kết nối của tab nền nên người tạo phòng thường bị tính là đã đi.
  * Giữ một phòng rỗng chỉ tốn một mẩu storage và MỘT alarm, nên thà rộng tay.
  */
-const EMPTY_LOBBY_MS = 600_000;
+const EMPTY_LOBBY_MS = 900_000;
 
 /**
  * Ở LOBBY, rớt kết nối thì còn giữ CHỖ VÀ QUYỀN CHỦ PHÒNG bấy nhiêu ms.
@@ -270,10 +271,14 @@ export class RoomDO extends DurableObject<Env> {
    */
   private chuKySo(): string {
     const r = this.room;
-    if (!r || !r.congKhai || r.status !== 'lobby') return '';
+    // Phòng ĐẦY cũng rời sổ: bấm vào chỉ được làm khán giả ở phòng chờ.
+    if (!r || !r.congKhai || r.status !== 'lobby' || r.players.length >= ROOM_LIMITS.maxPlayers) return '';
     const chu = r.players.find((p) => p.id === r.hostId) ?? r.players[0];
     if (!chu) return '';
-    return [r.code, chu.name, chu.avatar ?? '', r.players.length, r.config.level].join('|');
+    // Nhịp 5 phút: phòng chờ không ai vào/ra vẫn phải khai lại định kỳ, không
+    // thì bản ghi quá HAN_BAN_GHI_MS và phòng đang sống rơi khỏi danh sách.
+    const nhip = Math.floor(Date.now() / 300_000);
+    return [r.code, chu.name, chu.avatar ?? '', r.players.length, r.config.level, nhip].join('|');
   }
 
   /** Chữ ký lần khai gần nhất; `null` = chưa từng đồng bộ trong lần thức này. */
@@ -413,6 +418,9 @@ export class RoomDO extends DurableObject<Env> {
 
     // Vào lại bằng token (ON-07) hay người chơi mới?
     let player = token ? this.room.players.find((p) => p.token === token) : undefined;
+    // Phòng chờ đang VẮNG mà có người tới: hạn giữ chỗ của những người vắng mới
+    // bắt đầu đếm từ lúc này — xem `datLaiHanGiuCho`.
+    if (this.room.status === 'lobby' && this.room.emptyAt) this.datLaiHanGiuCho(player?.id);
     if (!player) {
       if (!name) return new Response('Thiếu tên', { status: 400 });
       // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác
@@ -517,6 +525,17 @@ export class RoomDO extends DurableObject<Env> {
     // Mọi tin nhắn đều là bằng chứng "còn sống" — ghi mốc trước khi xử lý.
     player.lastSeen = Date.now();
     if (player.disconnectedAt !== null) player.disconnectedAt = null;
+    /*
+     * Socket "đông cứng" của iOS (app nằm nền, TCP không đóng) sống lại: phòng
+     * hết vắng. Thiếu dòng này thì hẹn xoá phòng rỗng vẫn chạy trong khi chủ
+     * phòng đang ngồi đó, và tới hạn là phòng bị dẹp ngay trước mặt họ.
+     */
+    if (this.room.emptyAt && this.room.status === 'lobby') {
+      this.datLaiHanGiuCho(player.id);
+      delete this.room.emptyAt;
+      await this.save();
+      await this.scheduleNext();
+    }
     // Họ lên tiếng thì đồng hồ chạy lại NGAY, không đợi alarm: đây là lối duy
     // nhất gỡ tạm dừng, vì `scheduleNext` cố ý không hẹn alarm khi đang dừng.
     if (this.nhipDongHoLuot()) this.broadcast({ t: 'state', view: this.view() });
@@ -731,6 +750,10 @@ export class RoomDO extends DurableObject<Env> {
         }
         this.removePlayer(player.id);   // ván sau không còn chờ người đã đi
         for (const sock of this.ctx.getWebSockets(player.id)) sock.close(4001, 'left');
+        if (this.room.status === 'countdown' && this.room.players.length) {
+          await this.demNguocThieuNguoi();
+          return;
+        }
         if (!this.room.players.length) {
           // Ở lobby thì giữ mã phòng thêm EMPTY_LOBBY_MS cho cái link đã gửi;
           // ván đã chạy rồi thì không còn gì để quay lại, xoá luôn.
@@ -755,7 +778,7 @@ export class RoomDO extends DurableObject<Env> {
       case 'cancel': {
         // Huỷ phòng: chỉ chủ phòng; mọi người bị đưa ra ngoài
         if (player.id !== this.room.hostId) return;
-        this.broadcast({ t: 'closed', message: 'Chủ phòng đã huỷ phòng.' });
+        this.broadcast({ t: 'closed', code: 'cancelled', message: 'Chủ phòng đã huỷ phòng.' });
         for (const sock of this.ctx.getWebSockets()) sock.close(4002, 'room-cancelled');
         await this.depPhong('cancelled');
         await this.ctx.storage.deleteAlarm();
@@ -765,7 +788,9 @@ export class RoomDO extends DurableObject<Env> {
       }
 
       case 'alive':
-        // Chỉ ghi mốc; mốc đã được cập nhật ở đầu hàm cho MỌI tin nhắn.
+        // Chỉ ghi mốc; mốc đã được cập nhật ở đầu hàm cho MỌI tin nhắn. Kèm khai
+        // lại sổ phòng khi tới nhịp (rẻ: chữ ký chưa đổi thì không làm gì).
+        await this.dongBoSo();
         return;
 
       /*
@@ -822,7 +847,7 @@ export class RoomDO extends DurableObject<Env> {
         if (!nan) return;
 
         for (const sock of this.ctx.getWebSockets(ai)) {
-          this.send(sock, { t: 'closed', message: 'Chủ phòng đã mời bạn ra khỏi phòng.' });
+          this.send(sock, { t: 'closed', code: 'kicked', message: 'Chủ phòng đã mời bạn ra khỏi phòng.' });
           sock.close(4003, 'kicked');
         }
         if (this.room.status === 'playing' && this.game) {
@@ -831,6 +856,7 @@ export class RoomDO extends DurableObject<Env> {
           await this.afterEvents(events, false);
         } else {
           this.removePlayer(ai);
+          if (this.room.status === 'countdown') { await this.demNguocThieuNguoi(); return; }
         }
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
@@ -935,6 +961,22 @@ export class RoomDO extends DurableObject<Env> {
       this.room = null;
       this.game = null;
       return;
+    }
+
+    /*
+     * PHÒNG CHỜ VẮNG HẲN: KHÔNG GỠ AI, chỉ hẹn giờ dọn — xem `datLaiHanGiuCho`.
+     */
+    if (this.room.status === 'lobby' && !this.conNguoiSong(now)) {
+      if (!this.room.emptyAt) {
+        this.room.emptyAt = now;
+        await this.save();
+      }
+      await this.scheduleNext();
+      return;
+    }
+    if (this.room.status === 'lobby' && this.room.emptyAt) {
+      delete this.room.emptyAt;    // có người đang ngồi chờ: phòng không còn vắng
+      await this.save();
     }
 
     /*
@@ -1096,7 +1138,10 @@ export class RoomDO extends DurableObject<Env> {
     // Ngoài ván cũng phải có alarm: đây là thứ duy nhất phát hiện được người
     // "mất mạng im lặng" ở lobby. Trước đây chỗ này rơi vào nhánh deleteAlarm()
     // nên phòng chết không ai dọn.
-    if (this.room?.status === 'lobby' || this.room?.status === 'ended') {
+    // Phòng chờ vắng hẳn thì không gỡ ai (xem `datLaiHanGiuCho`), nên mốc gỡ người
+    // không được hẹn: chúng nằm trong QUÁ KHỨ, hẹn vào là alarm nổ quay vòng.
+    const vang = this.room?.status === 'lobby' && !this.conNguoiSong(now);
+    if ((this.room?.status === 'lobby' && !vang) || this.room?.status === 'ended') {
       for (const p of this.room.players) {
         if (p.lastSeen) marks.push(p.lastSeen + IDLE_SILENT_MS + 500);
         // Hết hạn giữ chỗ ở lobby: thiếu mốc này thì người rớt nằm lại phòng tới
@@ -1105,8 +1150,10 @@ export class RoomDO extends DurableObject<Env> {
           marks.push(p.disconnectedAt + LOBBY_HOLD_MS + 500);
         }
       }
-      // Phòng rỗng: không có mốc này thì nó không bao giờ bị dọn
-      if (this.room.emptyAt) marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
+    }
+    // Phòng rỗng: không có mốc này thì nó không bao giờ bị dọn
+    if (this.room?.status === 'lobby' && this.room.emptyAt) {
+      marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
     }
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));
     else await this.ctx.storage.deleteAlarm();
@@ -1140,6 +1187,23 @@ export class RoomDO extends DurableObject<Env> {
       firstId: first.id, firstName: first.name
     });
     await this.ctx.storage.setAlarm(this.room.countdownEnd);
+  }
+
+  /**
+   * Có người rời / bị mời ra TRONG LÚC ĐẾM NGƯỢC. Ván đã dựng sẵn với người đó,
+   * mà `forfeit` chỉ chạy khi status 'playing' — bản cũ để lại một người "ma"
+   * trong ván: tới lượt họ thì đồng hồ dừng (không thấy họ trong phòng) tới 5
+   * phút, mỗi lượt một lần; bàn 2 người thì không bao giờ kết thúc. Dựng lại ván
+   * với những người còn lại (đếm lại từ đầu), không đủ người thì về phòng chờ.
+   */
+  private async demNguocThieuNguoi(): Promise<void> {
+    if (!this.room) return;
+    if (this.room.players.length >= ROOM_LIMITS.minPlayers) {
+      await this.batDauDemNguoc();
+      return;
+    }
+    delete this.room.countdownEnd;
+    await this.veLobby(this.room.players);
   }
 
   private prepareGame(): void {
@@ -1233,6 +1297,42 @@ export class RoomDO extends DurableObject<Env> {
     const dangDung = new Set(this.room!.players.map((p) => p.avatar));
     return AVATARS.find((a) => !dangDung.has(a))
       ?? AVATARS[this.room!.players.length % AVATARS.length]!;
+  }
+
+  /**
+   * Có ai THẬT SỰ đang ở trong phòng không: còn socket VÀ còn lên tiếng trong
+   * IDLE_SILENT_MS. Socket còn mà im quá lâu là socket "đông cứng" của iOS (app
+   * nằm nền, TCP không đóng) — không tính là có người.
+   */
+  private conNguoiSong(now: number): boolean {
+    return !!this.room?.players.some((p) =>
+      this.connected(p.id) && (!p.lastSeen || now - p.lastSeen <= IDLE_SILENT_MS));
+  }
+
+  /**
+   * BẢN GIỮ CHỖ Ở PHÒNG CHỜ (sửa 15.10.2026, chủ dự án báo "tạo bàn, thoát app
+   * ra thì đôi khi bàn bị mất").
+   *
+   * LOBBY_HOLD_MS (30 giây) tồn tại để người bỏ đi thật không làm KẸT những
+   * người đang chờ. Phòng không còn ai chờ thì chẳng có ai bị kẹt — vậy mà bản
+   * cũ vẫn gỡ chủ phòng sau 30 giây: danh sách phòng trống trơn nên phòng BIẾN
+   * khỏi sổ công khai (chữ ký rỗng), và chủ phòng quay lại thì token không còn
+   * khớp ai, thành người lạ trong chính phòng mình. Đúng luồng "tạo phòng →
+   * thoát app gửi link qua Zalo → quay lại" mà phòng được thiết kế để chịu.
+   *
+   * Nay: phòng chờ VẮNG HẲN (`!conNguoiSong`) thì giữ nguyên mọi người và quyền
+   * chủ phòng, chỉ chạy đồng hồ EMPTY_LOBBY_MS (15 phút) để dọn. Có người tới
+   * thì hạn giữ chỗ của người vắng đếm TỪ LÚC ĐÓ (`datLaiHanGiuCho`), không phải
+   * từ lúc họ rời đi — không thì khách vừa vào là chủ phòng bị gỡ tức thì.
+   */
+  private datLaiHanGiuCho(tru?: string): void {
+    if (!this.room) return;
+    const now = Date.now();
+    for (const p of this.room.players) {
+      if (p.id === tru) continue;
+      if (p.disconnectedAt !== null) p.disconnectedAt = now;
+      if (p.lastSeen) p.lastSeen = now;
+    }
   }
 
   private connected(id: string): boolean {
