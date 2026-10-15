@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What's new in Flip Match</title>
+<meta name="description" content="Release notes for Flip Match: app versions and updates.">
+<meta name="theme-color" content="#5bc0f0">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/site.css">
+</head>
+<body data-page="changes">
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="about.html"><img src="icon-192.png" alt="" width="40" height="40"><b data-t="brand">Flip Match</b></a>
+    <nav class="nav" aria-label="Site">
+      <a href="about.html" data-t="nav.about">About</a>
+      <a href="changes.html" aria-current="page" data-t="nav.changes">What's new</a>
+      <a href="support.html" data-t="nav.support">Support</a>
+      <a href="privacy.html" data-t="nav.privacy">Privacy</a>
+    </nav>
+    <label class="lang"><span class="sr" data-t="nav.lang">Language</span><select></select></label>
+  </div>
+</header>
+
+<!--
+  NHẬT KÝ PHIÊN BẢN — viết cho NGƯỜI CHƠI đọc, không phải log commit. Mỗi đợt:
+  một khối .rel, nhãn "App x.y.z" (bản store) hoặc "Update" (gói web/OTA, tới
+  app tự động). Thêm khối mới lên ĐẦU, kèm khoá dịch ở 11 file site/i18n/*.json.
+-->
+<main class="page">
+  <div class="wrap">
+    <h1 data-t="ch.h1">What's new</h1>
+    <p class="meta" data-t="ch.meta">Updates marked “Update” reach the app automatically — no store update needed.</p>
+
+    <div class="rel">
+      <div class="card">
+        <header><h2 data-t="r4.h">A fresh campaign</h2><span class="tag web" data-t="tag.update">Update</span><time datetime="2026-10-15" data-t="r4.d">October 15, 2026</time></header>
+        <ul data-th="r4.l">
+          <li>The campaign now has 60 levels: every board size comes back five times, each with a tighter clock.</li>
+          <li>Stars now count memory slips — flipping a wrong card when you had already seen its match. Exploring is free.</li>
+          <li>A perfect game with no slips earns a shining rainbow fourth star.</li>
+          <li>Star goals are shown before, during and after every level.</li>
+          <li>Cleaner in-game bar on small iPhones, and a friendlier update notice with a 3-2-1 countdown.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rel">
+      <div class="card">
+        <header><h2 data-t="r3.h">Version 1.3.0</h2><span class="tag app" data-t="tag.app">App</span><time datetime="2026-10-14" data-t="r3.d">October 14, 2026</time></header>
+        <ul data-th="r3.l">
+          <li>Instant updates: new features arrive without waiting for a store update.</li>
+          <li>Quick phrases in online games — 12 friendly preset messages.</li>
+          <li>Full-screen layout on iPad.</li>
+          <li>The Android back button now steps back through menus.</li>
+          <li>The app starts in your phone's language.</li>
+          <li>Sharp card art on Android and Windows.</li>
+          <li>Card themes reviewed so the game suits all ages.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rel">
+      <div class="card">
+        <header><h2 data-t="r2.h">Version 1.2.0</h2><span class="tag app" data-t="tag.app">App</span><time datetime="2026-10-13" data-t="r2.d">October 13, 2026</time></header>
+        <ul data-th="r2.l">
+          <li>A brand-new look with three styles: Candy, Wood and Neon.</li>
+          <li>Flip Match now speaks 12 languages.</li>
+          <li>Sign in with Apple, and delete your account right inside the app.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rel">
+      <div class="card">
+        <header><h2 data-t="r1.h">Version 1.1.0</h2><span class="tag app" data-t="tag.app">App</span><time datetime="2026-10-13" data-t="r1.d">October 13, 2026</time></header>
+        <ul data-th="r1.l">
+          <li>The first Flip Match apps for iPhone and Android.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <b data-t="brand">Flip Match</b>
+      <p>© <span data-nam>2026</span> Cozy Pi · <!--email_off--><a href="mailto:support@cozypi.com">support@cozypi.com</a><!--/email_off--></p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="/" data-t="nav.play">Play</a>
+      <a href="changes.html" data-t="nav.changes">What's new</a>
+      <a href="support.html" data-t="nav.support">Support</a>
+      <a href="privacy.html" data-t="nav.privacy">Privacy</a>
+      <a href="https://cozypi.com">Cozy Pi</a>
+    </nav>
+  </div>
+</footer>
+<script src="site/site.js"></script>
+</body>
+</html>

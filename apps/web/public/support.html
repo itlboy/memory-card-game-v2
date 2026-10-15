@@ -2,61 +2,73 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Flip Match Support</title>
-<meta name="description" content="Help and contact for Flip Match (Lật Thẻ), a memory card game by Cozy Pi.">
+<meta name="description" content="Help and contact for Flip Match, the memory card game by Cozy Pi.">
+<meta name="theme-color" content="#5bc0f0">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
-<style>
-  :root { --bg: #f6f7fb; --card: #fff; --fg: #1d2033; --muted: #5d6278; --line: #e3e5ef; --accent: #6d4cff; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #12131c; --card: #1b1d2a; --fg: #eceefa; --muted: #a3a7bd; --line: #2c2f42; --accent: #a08bff; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
-  h1 { font-size: 28px; line-height: 1.25; margin: 0 0 4px; }
-  h2 { font-size: 18px; margin: 24px 0 6px; }
-  .muted { color: var(--muted); font-size: 14px; }
-  a { color: var(--accent); }
-  nav { display: flex; gap: 12px; margin-bottom: 20px; font-size: 14px; }
-  .mail { display: inline-block; margin-top: 8px; padding: 10px 16px; border-radius: 12px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; }
-</style>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/site.css">
 </head>
-<body>
-<main>
-  <nav><a href="#en">English</a> · <a href="#vi">Tiếng Việt</a> · <a href="/privacy.html">Privacy</a> · <a href="/">Play</a></nav>
+<body data-page="support">
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="about.html"><img src="icon-192.png" alt="" width="40" height="40"><b data-t="brand">Flip Match</b></a>
+    <nav class="nav" aria-label="Site">
+      <a href="about.html" data-t="nav.about">About</a>
+      <a href="changes.html" data-t="nav.changes">What's new</a>
+      <a href="support.html" aria-current="page" data-t="nav.support">Support</a>
+      <a href="privacy.html" data-t="nav.privacy">Privacy</a>
+    </nav>
+    <label class="lang"><span class="sr" data-t="nav.lang">Language</span><select></select></label>
+  </div>
+</header>
 
-  <section class="card" id="en">
-    <h1>Flip Match Support</h1>
-    <p class="muted">Flip Match (Lật Thẻ) · by Cozy Pi</p>
-    <p>Found a bug, have an idea, or need help with your account? Email us. Please include your device model and what you were doing.</p>
-    <a class="mail" href="mailto:support@cozypi.com?subject=Flip%20Match%20support">support@cozypi.com</a>
+<main class="page">
+  <div class="wrap">
+    <h1 data-t="sup.h1">How can we help?</h1>
+    <p class="meta" data-t="sup.meta">Flip Match · by Cozy Pi</p>
 
-    <h2>How do I play with friends online?</h2>
-    <p>Tap <em>Play online</em>, create a room, then share the 6-digit code or the invite link. Friends enter the code or open the link to join. Public rooms also appear in the lobby list.</p>
-    <h2>I lost connection during an online game.</h2>
-    <p>Just reopen the app — your seat is kept for 5 minutes and you rejoin the same game automatically.</p>
-    <h2>Will I lose my progress if I reinstall?</h2>
-    <p>Without an account, progress lives only on your device and is removed with the app. Sign in with Apple or Google to sync it across devices.</p>
-    <h2>How do I delete my account?</h2>
-    <p>In the app: <em>Account → Delete account</em>. It permanently removes your account and its data from our server. See the <a href="/privacy.html">Privacy Policy</a>.</p>
-  </section>
+    <div class="card contact">
+      <div class="txt">
+        <h2 data-t="sup.contactH">Contact us</h2>
+        <p data-t="sup.contactP">Found a bug, have an idea, or need help with your account? Write to us — please include your device model and what you were doing.</p>
+      </div>
+      <!--email_off--><a class="btn store mail" href="mailto:support@cozypi.com?subject=Flip%20Match%20support">✉️ support@cozypi.com</a><!--/email_off-->
+    </div>
 
-  <section class="card" id="vi" lang="vi">
-    <h1>Hỗ trợ Lật Thẻ</h1>
-    <p>Gặp lỗi, có ý tưởng hay cần giúp về tài khoản? Gửi email cho chúng tôi, kèm tên máy và việc bạn đang làm lúc gặp lỗi.</p>
-    <a class="mail" href="mailto:support@cozypi.com?subject=H%E1%BB%97%20tr%E1%BB%A3%20L%E1%BA%ADt%20Th%E1%BA%BB">support@cozypi.com</a>
-
-    <h2>Chơi online với bạn bè thế nào?</h2>
-    <p>Bấm <em>Chơi online</em>, tạo phòng, rồi gửi mã hoặc link mời. Bạn bè nhập mã hoặc mở link là vào. Phòng công khai còn hiện trong danh sách phòng chờ.</p>
-    <h2>Đang chơi online thì rớt mạng?</h2>
-    <p>Mở lại app là được — chỗ của bạn được giữ 5 phút và tự vào lại đúng ván đang chơi.</p>
-    <h2>Cài lại app có mất tiến độ không?</h2>
-    <p>Không đăng nhập thì tiến độ chỉ nằm trên máy và mất theo app. Đăng nhập Apple hoặc Google để đồng bộ giữa các máy.</p>
-    <h2>Xoá tài khoản ở đâu?</h2>
-    <p>Trong app: <em>Tài khoản → Xoá tài khoản</em>. Xoá vĩnh viễn tài khoản và dữ liệu trên server. Xem <a href="/privacy.html">Chính sách quyền riêng tư</a>.</p>
-  </section>
+    <div class="card">
+      <h2 style="font-size:26px;margin:0 0 6px" data-t="sup.faqH">Frequently asked questions</h2>
+      <details><summary data-t="q1">Is Flip Match free?</summary><p data-t="a1">Yes. Every mode is free to play, with no ads and no in-app purchases.</p></details>
+      <details><summary data-t="q2">How do I play with friends online?</summary><p data-t="a2">Tap “Play Online”, create a room, then share the 6-digit code or the invite link. Friends enter the code or open the link to join — up to 10 players. Public rooms also appear in the lobby list.</p></details>
+      <details><summary data-t="q3">I lost connection during an online game.</summary><p data-t="a3">Just reopen the app — your seat is kept for 5 minutes and you rejoin the same game automatically. While your connection is down, your turn timer pauses for a while so you don't lose your turn.</p></details>
+      <details><summary data-t="q4">How do campaign stars work?</summary><p data-t="a4">Stars count memory slips: flipping the wrong card when you had already seen its match. Exploring cards you have never seen is free. Fewer slips mean more stars, and a game with no slips at all earns a rainbow fourth star. Time does not change your stars — but if the clock runs out, the level is lost.</p></details>
+      <details><summary data-t="q5">How do I change the language?</summary><p data-t="a5">Open the menu (☰) in the top-right corner and pick one of the 12 languages. On iPhone and Android the app starts in your phone's language.</p></details>
+      <details><summary data-t="q6">Will I lose my progress if I reinstall?</summary><p data-t="a6">Without an account, progress lives only on your device and is removed with the app. Sign in with Apple or Google to keep it in sync across devices.</p></details>
+      <details><summary data-t="q7">How do I delete my account?</summary><p data-th="a7">In the app, open <em>Account → Delete account</em>. This permanently removes your account and its data from our server. See the <a href="privacy.html">Privacy Policy</a> for details.</p></details>
+      <details><summary data-t="q8">Which devices are supported?</summary><p data-t="a8">iPhone and iPad, Android phones and tablets, and any modern web browser on a computer or phone.</p></details>
+    </div>
+  </div>
 </main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div>
+      <b data-t="brand">Flip Match</b>
+      <p>© <span data-nam>2026</span> Cozy Pi · <!--email_off--><a href="mailto:support@cozypi.com">support@cozypi.com</a><!--/email_off--></p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="/" data-t="nav.play">Play</a>
+      <a href="changes.html" data-t="nav.changes">What's new</a>
+      <a href="support.html" data-t="nav.support">Support</a>
+      <a href="privacy.html" data-t="nav.privacy">Privacy</a>
+      <a href="https://cozypi.com">Cozy Pi</a>
+    </nav>
+  </div>
+</footer>
+<script src="site/site.js"></script>
 </body>
 </html>
