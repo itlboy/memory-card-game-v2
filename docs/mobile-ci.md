@@ -84,7 +84,10 @@ Hai bẫy:
    --scopes=https://www.googleapis.com/auth/androidpublisher` rồi gọi
    `androidpublisher/v3/applications/com.cozypi.flipmatch/edits` (tạo edit → đọc
    `tracks` → xoá edit). `PLAY_TRACK` mặc định
-   `internal` (đổi sang `alpha` = closed testing, `production`).
+   `internal` (đổi sang `alpha` = closed testing, `production`). Sau đó bước "Đưa sang kênh
+   khép kín" đặt CÙNG build làm bản của kênh `alpha` (`tools/play-track.mjs`; biến repo
+   `PLAY_KENH_THEM` đổi kênh đích, `none` để tắt). Đưa tay một build cũ:
+   `gh workflow run play-track.yml --ref main -f version_code=<số> -f kenh=alpha`.
 
 ### iOS — ký + đẩy TestFlight
 

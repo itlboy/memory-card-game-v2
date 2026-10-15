@@ -5,8 +5,9 @@
  *   node tools/play-track.mjs <service-account.json> <versionCode> <kênh> → đặt build đó làm bản phát hành của kênh
  *
  * CI: .github/workflows/play-track.yml (secret PLAY_SERVICE_ACCOUNT_JSON).
- * mobile.yml chỉ đẩy lên kênh `internal`; app đang ở "Thử nghiệm khép kín" (kênh `alpha`
- * hoặc kênh tự đặt tên) nên mỗi build mới cho người thử khép kín phải đưa sang bằng công cụ này.
+ * mobile.yml (phat_hanh) tải lên kênh `internal` rồi TỰ gọi công cụ này đưa sang `alpha` (thử nghiệm
+ * khép kín) — biến repo PLAY_KENH_THEM đổi kênh đích, `none` để tắt. Chạy tay khi cần đưa
+ * một build cũ sang kênh khác.
  * Build phải ĐÃ được tải lên Play (đã có ở kênh nào đó) — công cụ không tải AAB.
  */
 import { readFileSync } from 'node:fs';
