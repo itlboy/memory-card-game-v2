@@ -299,6 +299,13 @@ Thêm một mục vào `apps/web/public/data/themes.json`:
 
 Cần tối thiểu 18 biểu tượng cho lưới 6×6. `unlockAt` là điểm tích lũy cần có; `0` = mở sẵn.
 
+Thêm/sửa emoji là phải tải hình mặt bài cho nó (test `emoji-vector` đỏ nếu thiếu):
+
+```bash
+node tools/tai-noto3d.mjs   # Noto 3D, ba cỡ WebP (cần cwebp: brew install webp)
+node tools/tai-twemoji.mjs  # Twemoji SVG — dự phòng cho hình Noto 3D chưa có
+```
+
 ## Chơi online (v2.0)
 
 Backend: **Cloudflare Durable Objects** (`apps/server`) — mỗi phòng là một DO chạy
@@ -695,6 +702,12 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
 **15.10.2026**
+- Mặt bài vẽ bằng **Noto 3D** (bộ emoji 3D mới của Google, OFL 1.1) trên MỌI máy — iPhone,
+  Android, web — thay emoji của máy (Apple) và Twemoji (Android/Windows). WebP ba cỡ
+  128 · 256 · 512 đóng gói sẵn; bàn thẻ đo một lá rồi chọn cỡ nhỏ nhất đủ nét (bàn 88 thẻ
+  dùng 128, quạt lá trang chủ dùng 512) để giữ RAM thấp. Gói cập nhật nóng ~26MB. Chế độ
+  debug → Luật chơi → "Bộ hình emoji" để so Máy · Twemoji · Noto · Noto 3D trên máy thật.
+  Ảnh cả hai store chụp lại theo bộ mới.
 - Chiến dịch 60 màn: 12 cỡ bàn × 5 lần, giờ siết dần (đo bằng mô phỏng, bàn nhỏ bớt giờ).
   Sao tính theo số lần QUÊN (lật sai khi lá cùng cặp đã lộ), không theo giờ; sao thứ 4
   cầu vồng lấp lánh khi không quên lần nào; mốc sao hiện trước, trong và sau ván.

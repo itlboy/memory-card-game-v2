@@ -573,7 +573,7 @@ const th: TuDien = {
   'lc.boEmojiMay': 'อีโมจิของเครื่อง',
   'lc.xemThang': 'ชนะ · {ten}',
   'lc.xemThua': 'แพ้ · {ten}',
-  'lc.ghiCong': "ภาพบนการ์ด (อุปกรณ์ที่ไม่ใช่ Apple): Noto Emoji 3D (Google) · OFL 1.1 ภาพที่ขาดใช้ Twemoji หน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 เปลี่ยนสี",
+  'lc.ghiCong': "ภาพบนการ์ด: Noto Emoji 3D (Google) · OFL 1.1 ภาพที่ขาดใช้ Twemoji หน้ามังกร: Twemoji (Twitter, Inc.) · CC-BY 4.0 เปลี่ยนสี",
   'lc.banApp': "แอป (สโตร์): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

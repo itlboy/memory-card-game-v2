@@ -575,7 +575,7 @@ const tr: TuDien = {
   'lc.boEmojiMay': 'Sistem emojisi',
   'lc.xemThang': 'Galibiyet · {ten}',
   'lc.xemThua': 'Yenilgi · {ten}',
-  'lc.ghiCong': "Kart görselleri (Apple dışı cihazlar): Noto Emoji 3D (Google) · OFL 1.1, eksik görseller için Twemoji. Ejderha yüzü: Twemoji (Twitter, Inc.) · CC-BY 4.0, rengi değiştirildi",
+  'lc.ghiCong': "Kart görselleri: Noto Emoji 3D (Google) · OFL 1.1, eksik görseller için Twemoji. Ejderha yüzü: Twemoji (Twitter, Inc.) · CC-BY 4.0, rengi değiştirildi",
   'lc.banApp': "Uygulama (mağaza): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

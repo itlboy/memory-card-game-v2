@@ -575,7 +575,7 @@ const de: TuDien = {
   'lc.boEmojiMay': 'System-Emoji',
   'lc.xemThang': 'Sieg · {ten}',
   'lc.xemThua': 'Niederlage · {ten}',
-  'lc.ghiCong': "Kartengrafiken (Nicht-Apple-Geräte): Noto Emoji 3D (Google) · OFL 1.1, fehlende Bilder von Twemoji. Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0, umgefärbt",
+  'lc.ghiCong': "Kartengrafiken: Noto Emoji 3D (Google) · OFL 1.1, fehlende Bilder von Twemoji. Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0, umgefärbt",
   'lc.banApp': "App (Store): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

@@ -575,7 +575,7 @@ const zhTW: TuDien = {
   'lc.boEmojiMay': '系統表情',
   'lc.xemThang': '勝利 · {ten}',
   'lc.xemThua': '落敗 · {ten}',
-  'lc.ghiCong': "牌面圖案（非 Apple 裝置）：Noto Emoji 3D（Google）· OFL 1.1，缺少的圖案用 Twemoji。神龍頭像：Twemoji（Twitter, Inc.）· CC-BY 4.0，已重新上色",
+  'lc.ghiCong': "牌面圖案：Noto Emoji 3D（Google）· OFL 1.1，缺少的圖案用 Twemoji。神龍頭像：Twemoji（Twitter, Inc.）· CC-BY 4.0，已重新上色",
   'lc.banApp': "App（商店版）：{ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

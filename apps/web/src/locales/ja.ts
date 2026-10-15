@@ -572,7 +572,7 @@ const ja: TuDien = {
   'lc.boEmojiMay': '端末の絵文字',
   'lc.xemThang': '勝利・{ten}',
   'lc.xemThua': '敗北・{ten}',
-  'lc.ghiCong': "カードの絵柄（Apple以外の端末）：Noto Emoji 3D（Google）· OFL 1.1、不足分は Twemoji。ドラゴンの顔：Twemoji（Twitter, Inc.）· CC-BY 4.0、色を変更",
+  'lc.ghiCong': "カードの絵柄：Noto Emoji 3D（Google）· OFL 1.1、不足分は Twemoji。ドラゴンの顔：Twemoji（Twitter, Inc.）· CC-BY 4.0、色を変更",
   'lc.banApp': "アプリ（ストア）：{ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

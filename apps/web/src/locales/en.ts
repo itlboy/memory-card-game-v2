@@ -574,7 +574,7 @@ const en: TuDien = {
   'lc.boEmojiMay': 'System Emoji',
   'lc.xemThang': 'Win · {ten}',
   'lc.xemThua': 'Loss · {ten}',
-  'lc.ghiCong': "Card artwork (non-Apple devices): Noto Emoji 3D (Google) · OFL 1.1, with Twemoji for missing images. Dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0, recolored",
+  'lc.ghiCong': "Card artwork: Noto Emoji 3D (Google) · OFL 1.1, with Twemoji for missing images. Dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0, recolored",
   'lc.banApp': "App (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

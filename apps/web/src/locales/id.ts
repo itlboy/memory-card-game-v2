@@ -575,7 +575,7 @@ const id: TuDien = {
   'lc.boEmojiMay': 'Emoji sistem',
   'lc.xemThang': 'Menang · {ten}',
   'lc.xemThua': 'Kalah · {ten}',
-  'lc.ghiCong': "Gambar kartu (perangkat non-Apple): Noto Emoji 3D (Google) · OFL 1.1, gambar yang kurang memakai Twemoji. Wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0, diwarnai ulang",
+  'lc.ghiCong': "Gambar kartu: Noto Emoji 3D (Google) · OFL 1.1, gambar yang kurang memakai Twemoji. Wajah naga: Twemoji (Twitter, Inc.) · CC-BY 4.0, diwarnai ulang",
   'lc.banApp': "Aplikasi (toko): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */
