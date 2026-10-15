@@ -88,7 +88,7 @@ MADE TO FEEL GOOD
 • Satisfying win effects and sounds
 • Works offline — no connection needed for solo, bot or same-device games
 • 15 languages
-• No ads. No tracking. No in-app purchases.
+• No ads. No in-app purchases.
 ```
 
 ## Tiếng Việt
@@ -148,7 +148,7 @@ CHƠI LÀ SƯỚNG
 • Hiệu ứng và âm thanh thắng ván đã tai đã mắt
 • Chơi không cần mạng — một mình, đấu máy, chung máy đều chạy offline
 • 15 ngôn ngữ
-• Không quảng cáo. Không theo dõi. Không mua trong app.
+• Không quảng cáo. Không mua trong app.
 ```
 
 ## Español
@@ -208,7 +208,7 @@ HECHO PARA DISFRUTAR
 • Efectos y sonidos de victoria muy satisfactorios
 • Funciona sin conexión: no necesitas internet para jugar solo, contra el bot o en el mismo dispositivo
 • 15 idiomas
-• Sin anuncios. Sin rastreo. Sin compras dentro de la app.
+• Sin anuncios. Sin compras dentro de la app.
 ```
 
 ## Português (Brasil)
@@ -268,7 +268,7 @@ FEITO PARA SER GOSTOSO DE JOGAR
 • Efeitos e sons de vitória caprichados
 • Funciona offline — sem internet para jogar sozinho, contra o bot ou no mesmo aparelho
 • 15 idiomas
-• Sem anúncios. Sem rastreamento. Sem compras no app.
+• Sem anúncios. Sem compras no app.
 ```
 
 ## Français
@@ -328,7 +328,7 @@ UN VRAI PLAISIR À JOUER
 • Des effets et des sons de victoire jubilatoires
 • Fonctionne hors ligne — pas besoin de connexion en solo, contre le bot ou sur le même appareil
 • 15 langues
-• Sans pub. Sans pistage. Sans achats intégrés.
+• Sans pub. Sans achats intégrés.
 ```
 
 ## Deutsch
@@ -388,7 +388,7 @@ EINFACH SCHÖN ZU SPIELEN
 • Befriedigende Sieg-Effekte und Sounds
 • Funktioniert offline – allein, gegen den Bot oder am selben Gerät ganz ohne Internet
 • 15 Sprachen
-• Keine Werbung. Kein Tracking. Keine In-App-Käufe.
+• Keine Werbung. Keine In-App-Käufe.
 ```
 
 ## 日本語
@@ -448,7 +448,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • 爽快な勝利演出とサウンド
 • オフラインOK ― ひとり、CPU対戦、1台でのプレイは通信不要
 • 15言語に対応
-• 広告なし。トラッキングなし。アプリ内課金なし。
+• 広告なし。アプリ内課金なし。
 ```
 
 ## 한국어
@@ -508,7 +508,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 짜릿한 승리 효과와 사운드
 • 오프라인 지원 — 혼자, 봇 대결, 한 기기 플레이는 인터넷 없이도 OK
 • 15개 언어 지원
-• 광고 없음. 추적 없음. 인앱 결제 없음.
+• 광고 없음. 인앱 결제 없음.
 ```
 
 ## 简体中文
@@ -568,7 +568,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 爽快的胜利特效和音效
 • 支持离线 — 单人、人机对战和同屏多人都无需联网
 • 支持 15 种语言
-• 无广告。无追踪。无内购。
+• 无广告。无内购。
 ```
 
 ## Русский
@@ -628,7 +628,7 @@ Flip Match — классическая игра на память с карто
 • Эффектные победные анимации и звуки
 • Работает без интернета — в одиночку, против бота и на одном устройстве
 • 15 языков
-• Без рекламы. Без отслеживания. Без встроенных покупок.
+• Без рекламы. Без встроенных покупок.
 ```
 
 ## Bahasa Indonesia
@@ -688,7 +688,7 @@ ASYIK DIMAINKAN
 • Efek dan suara kemenangan yang memuaskan
 • Bisa offline — main sendiri, lawan bot, atau satu perangkat tanpa internet
 • 15 bahasa
-• Tanpa iklan. Tanpa pelacakan. Tanpa pembelian dalam aplikasi.
+• Tanpa iklan. Tanpa pembelian dalam aplikasi.
 ```
 
 ## ไทย
@@ -748,7 +748,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • เอฟเฟกต์และเสียงฉลองชัยชนะสุดสะใจ
 • เล่นออฟไลน์ได้ — เล่นคนเดียว ท้าบอท หรือเล่นในเครื่องเดียวกันโดยไม่ต้องใช้เน็ต
 • รองรับ 15 ภาษา
-• ไม่มีโฆษณา ไม่มีการติดตาม ไม่มีการซื้อในแอป
+• ไม่มีโฆษณา ไม่มีการซื้อในแอป
 ```
 
 ## Italiano
@@ -808,7 +808,7 @@ FATTO PER FARTI STARE BENE
 • Effetti e suoni di vittoria appaganti
 • Funziona offline: niente connessione per le partite da solo, contro il bot o sullo stesso dispositivo
 • 15 lingue
-• Niente pubblicità. Nessun tracciamento. Nessun acquisto in-app.
+• Niente pubblicità. Nessun acquisto in-app.
 ```
 
 ## Türkçe
@@ -868,7 +868,7 @@ HEP GERİ DÖN
 • Tatmin edici zafer efektleri ve sesleri
 • Çevrim dışı çalışır — tek başına, bota karşı ya da aynı cihazdaki oyunlar için internet gerekmez
 • 15 dil
-• Reklam yok. Takip yok. Uygulama içi satın alma yok.
+• Reklam yok. Uygulama içi satın alma yok.
 ```
 
 ## 繁體中文
@@ -928,7 +928,7 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 • 爽快的勝利特效和音效
 • 支援離線 — 單人、對戰電腦和同一支手機輪流玩都不需要連網
 • 支援 15 種語言
-• 沒有廣告。不追蹤。沒有 App 內購買。
+• 沒有廣告。沒有 App 內購買。
 ```
 
 ## App Review
@@ -973,7 +973,7 @@ SIGN IN (OPTIONAL)
 - Account deletion is available in the app: Menu > Account > "Delete account". It permanently deletes the account and its server data.
 
 OTHER
-- No in-app purchases, no ads, no third-party tracking.
+- No in-app purchases, no ads. Google Analytics measures aggregate usage only (advertising features off, no cross-app tracking).
 - Haptics are used for match/miss feedback on supported devices.
 - Privacy policy: https://flipmatch.cozypi.com/privacy.html
 ```
@@ -998,7 +998,14 @@ Khớp với `apps/web/public/privacy.html`:
 | User ID (mã Apple/Google) | đăng nhập | Có | App functionality |
 | Gameplay content (điểm, kỷ lục, danh hiệu) | đăng nhập | Có | App functionality |
 | Other user content (tên hiển thị online) | chơi online | Không | App functionality |
-| Device ID (mã ngẫu nhiên do app tạo) | chơi online | Không | Analytics (đếm người chơi) |
+| Device ID (mã ngẫu nhiên do app tạo) | chơi online + Google Analytics | Không | Analytics |
+| Product interaction (màn đã xem, ván bắt đầu/kết thúc, chế độ) | luôn (Google Analytics) | Không | Analytics |
+| Coarse location (vùng, suy từ IP bởi Google Analytics) | luôn | Không | Analytics |
+| Other diagnostic data (phiên bản app, loại máy) | luôn (Google Analytics) | Không | Analytics |
 
-- Không dùng để **theo dõi (tracking)** → không cần App Tracking Transparency.
+- Có **Google Analytics 4** từ 15.10.2026 (`lib/phan-tich.ts`): tắt Google Signals + quảng cáo,
+  không ghép với dữ liệu app/web khác để quảng cáo → theo định nghĩa của Apple vẫn KHÔNG là
+  "tracking" → không cần App Tracking Transparency. Bật quảng cáo/Google Signals là phải xét lại.
+- **CẦN KHAI LẠI** ở lần nộp kế tiếp: App Privacy (App Store Connect) và Data safety (Play)
+  thêm 3 hàng Analytics ở trên — chỉ làm được trên giao diện.
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).

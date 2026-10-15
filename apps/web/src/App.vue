@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
+import { batPhanTich, suKien } from '@/lib/phan-tich';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, defineAsyncComponent, onMounted, ref, watch, watchEffect } from 'vue';
@@ -167,7 +168,7 @@ const showAccount = ref(false);
 useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; });
 // Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
 // trong đó — đây là lớp phủ, không được chặn trang chủ.
-onMounted(() => { void taiKhoan.khoiDong(); });
+onMounted(() => { void taiKhoan.khoiDong(); batPhanTich(); });
 // Hồ sơ đổi (đồng bộ từ máy khác về) → số trên thanh và theme mở theo điểm đổi
 // theo; danh hiệu đếm (tổng điểm, số ván thắng của tài khoản) mở lặng lẽ.
 watch(taiKhoanMe, (m) => {
@@ -541,6 +542,7 @@ function startLevel(id: number): void {
       ? presetConfig({ mode: 'campaign', level: id, symbols: symbols.value, seed: newSeed(), players: playerList() })
       : configFromOptions({ options: options.value, level: id, symbols: symbols.value, seed: newSeed(), players: playerList() });
     xoayLuotDau(cfg);
+    suKien('van_bat_dau', { che_do: kieuVan(), so_the: (cfg.pairs ?? 0) * 2, man: mode.value === 'campaign' ? id : undefined });
     levelId.value = id;
     // Màn Chiến dịch (1..60) và khoá cỡ bàn (1..50) là hai thang khác nhau —
     // ghi màn vào `level` là bước chọn số thẻ đọc ra cỡ bàn sai hoặc ném lỗi.
@@ -568,6 +570,13 @@ function xoayLuotDau(cfg: GameConfig): void {
 
 /** Cấp cuối của thang đang chơi: màn Chiến dịch hay khoá cỡ bàn. */
 const tranCap = (): number => (mode.value === 'campaign' ? CAMPAIGN_LEVELS : LEVEL_KEYS);
+
+/** Loại ván cho phân tích: chiến dịch · đấu máy (mức) · nhiều người · chơi nhanh một mình. */
+function kieuVan(): string {
+  if (mode.value === 'campaign') return 'chien_dich';
+  if (botLevel.value) return `dau_may_${botLevel.value}`;
+  return playerCount.value > 1 ? 'nhieu_nguoi' : 'choi_nhanh';
+}
 
 function nextLevel(): void {
   if (levelId.value && levelId.value < tranCap()) startLevel(levelId.value + 1);
@@ -605,6 +614,11 @@ watch(session.summary, (s) => {
   // thật, mà hiệu ứng vẫn chạy tiếp phía sau bảng nên rút xuống không mất gì.
 
   const player = game.players[0]!;
+  suKien('van_ket_thuc', {
+    che_do: kieuVan(), ket_qua: session.loaiKetCuc.value, so_the: game.cards.length,
+    man: game.config.mode === 'campaign' ? (levelId.value ?? undefined) : undefined,
+    sao: s.stars, hoan_hao: !!s.hoanHao, giay: s.seconds
+  });
   if (!game.isMultiplayer) {
     const id = levelId.value ?? level.value;
     // Cấp và kỷ lục ghi RIÊNG: saveLevel mở cấp sau (chế độ không xếp sao thì

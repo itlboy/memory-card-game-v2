@@ -32,7 +32,8 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 | **15 ngôn ngữ** | `NGON_NGU` — `apps/web/src/lib/i18n.ts` | xem **docs/ngon-ngu.md** (14 chỗ) · trang `about.b5`, `a5`, `about.desc` · store · README | `i18n*.test.ts`, `site-i18n.test.ts`, `pnpm do:ngon-ngu` |
 | **3 skin miễn phí** (Kẹo · Neon · Gỗ) | `lib/skin.ts`, `banPremium` | trang r2 (lịch sử) · `tb.skin.*` 15 từ điển | `skin.test.ts` |
 | **12 câu nói nhanh**, không chat tự do | `QUICK_SAYS` (engine) | trang `f3.p`, privacy `pv.s2b` · site-i18n · store · privacy (Messaging = Yes) | `smoke-noi-nhanh.mjs` |
-| **Miễn phí, không quảng cáo, không theo dõi, 4+** | quyết định chủ dự án (CLAUDE.md "APP LÀ 4+") | trang `about.b1–b4`, `q1/a1`, privacy · site-i18n · store (Price, Age rating, App Privacy) | — |
+| **Miễn phí, không quảng cáo, 4+** | quyết định chủ dự án (CLAUDE.md "APP LÀ 4+") | trang `about.b1`, `about.b4`, `q1/a1` · site-i18n · store (Price, Age rating) | — |
+| **Có Google Analytics 4** (từ 15.10.2026; KHÔNG còn hứa "không theo dõi") — tắt Google Signals + quảng cáo, châu Âu không cookie, không hộp hỏi đồng ý | `GA_ID` ở `apps/web/src/lib/phan-tich.ts` (game web + app), `site.js` (trang công khai), `cozypi-site/src/index.html` — cùng mã `G-MZ4MDWZRH3` (tài khoản GA "Cozy Pi") | privacy `pv.intro` + `pv.s4` (mục Google Analytics) · trang `about.b2` "Privacy first" · studio `p2.*`, `hero.lead`, `meta.desc` · store (mô tả bỏ "No tracking"; App Privacy / Data safety phải khai Usage Data) | sự kiện game: `van_bat_dau`, `van_ket_thuc` |
 
 ## Sự thật về sản phẩm, địa chỉ, tài khoản
 
