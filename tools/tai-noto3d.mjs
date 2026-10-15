@@ -8,8 +8,8 @@
  * Vì sao: chủ dự án chốt 15.10.2026 — máy KHÔNG phải Apple vẽ mặt bài bằng Noto 3D
  * (khối nổi, gần emoji Apple nhất). Gốc là PNG 512px ~250 KB; nén WebP GIỮ 512px
  * còn ~18 KB. ĐỪNG thu về 256: lá to nhất (quạt lá trang chủ, bàn 4 thẻ) vẽ hình
- * ~130px CSS × DPR 2,75–3 ≈ 360–390px — 256 là mờ. Emoji Noto 3D chưa có thì ghi vào
- * `thieu.json` và lib/emoji.ts lùi về Twemoji cho riêng hình đó.
+ * ~130px CSS × DPR 2,75–3 ≈ 360–390px — 256 là mờ. Emoji Noto 3D chưa có là LỖI (thoát mã 1):
+ * không còn bộ dự phòng (Twemoji đã gỡ 15.10.2026) — chọn emoji khác cho theme.
  * Cần `cwebp` (brew install webp).
  *
  * Tên file = mã điểm (hex, nối "-") BỎ fe0f — đúng phép tính của lib/emoji.ts.
@@ -54,14 +54,9 @@ async function tai([ma, e]) {
     return;
   }
   thieu.push(ma);
-  console.error(`✗ Noto 3D chưa có: ${e} (${ma}) — dùng Twemoji`);
+  console.error(`✗ Noto 3D chưa có: ${e} (${ma}) — chọn emoji khác`);
 }
 for (let i = 0; i < viec.length; i += 12) await Promise.all(viec.slice(i, i + 12).map(tai));
-
-// Giữ danh sách thiếu cũ (file đã có thì không tải lại nên không biết lại được)
-const cu = existsSync(join(RA, 'thieu.json')) ? JSON.parse(readFileSync(join(RA, 'thieu.json'), 'utf8')) : [];
-const dsThieu = [...new Set([...cu, ...thieu])].filter((ma) => can.has(ma) && !existsSync(join(RA, `${ma}.webp`))).sort();
-writeFileSync(join(RA, 'thieu.json'), JSON.stringify(dsThieu) + '\n');
 
 let xoa = 0;
 for (const thu of [RA, ...CO_NHO.map((co) => join(RA, String(co)))])
@@ -69,4 +64,5 @@ for (const thu of [RA, ...CO_NHO.map((co) => join(RA, String(co)))])
 writeFileSync(join(RA, 'LICENSE.txt'),
   'Emoji graphics: Noto Emoji 3D by Google (https://github.com/googlefonts/noto-emoji),\n' +
   'licensed under the SIL Open Font License 1.1: https://openfontlicense.org\n');
-console.log(`${can.size} emoji · tải mới ${moi} · thiếu ${dsThieu.length} · xoá ${xoa}`);
+console.log(`${can.size} emoji · tải mới ${moi} · thiếu ${thieu.length} · xoá ${xoa}`);
+process.exit(thieu.length ? 1 : 0);

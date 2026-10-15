@@ -2,7 +2,7 @@
 
 ## BẢN ĐỒ TÀI LIỆU — đổi một thứ, biết phải đổi theo ở đâu (15.10.2026)
 
-- **`docs/ban-do.md`** — mọi "sự thật" công khai (60 màn, 15 ngôn ngữ, 36 bộ hình, hơn 100
+- **`docs/ban-do.md`** — mọi "sự thật" công khai (60 màn, 15 ngôn ngữ, 48 bộ hình, hơn 100
   danh hiệu, email, tên miền, ID store…) kèm NGUỒN GỐC trong code và MỌI CHỖ nhắc lại
   (trang công khai, bản dịch, trang store, README, CLAUDE.md). Đổi sự thật = đi hết hàng
   đó; thêm chỗ nhắc lại mới = thêm vào bảng trong cùng commit.
@@ -212,7 +212,7 @@
   TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (đấu máy lọc `BOT_ID`, online lọc `myId` /
   `myTurn`). Gắn đúng hai chỗ phát `sfx.match`/`sfx.miss`, có `test/rung.test.ts`.
   Thêm plugin Capacitor là phải `cap sync ios` (đã có trong `build:ios`).
-- **DANH HIỆU: 129 MỤC (14.10.2026), MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
+- **DANH HIỆU: 153 MỤC (15.10.2026), MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
   Mở khoá CHỈ qua `moKhoa()` (cập nhật viên 🏅 + hàng đợi khoe `MoKhoaToast`),
   đừng gọi thẳng `store.unlockAchievements`. Danh hiệu đếm đọc `ThongKe`
   (`store.boDem` + điểm + tiến độ Chiến dịch; `wins` lấy MAX với tài khoản) và
@@ -867,20 +867,22 @@
   `public/emoji/3d/`, tải bằng `node tools/tai-noto3d.mjs` (cần `cwebp`). GIỮ 512: quạt lá trang
   chủ / bàn 4 thẻ cần ~390px, 256 là mờ. BA CỠ 128 · 256 · 512 (`3d/128/`, `3d/256/`, `3d/`): BoardGrid
   đo MỘT lá → `chonCoAnh` (cỡ CSS × DPR) — ảnh giải nén ăn RAM theo điểm ảnh, bàn 88 thẻ toàn 512 là
-  ~44MB (đúng thứ làm iOS thả lớp GPU). Hình Noto 3D chưa có ghi ở `thieu.json` và lùi về
-  Twemoji. Chế độ debug → Luật chơi → "Bộ hình emoji" xoay Máy · Twemoji · Noto · Noto 3D
-  (`mm.boEmoji`, chỉ máy đó). Thêm theme = chạy CẢ HAI script tải. Mục dưới là lịch sử:
+  ~44MB (đúng thứ làm iOS thả lớp GPU). KHÔNG CÒN BỘ DỰ PHÒNG: Twemoji + Noto 2D đã gỡ
+  (chủ dự án 15.10.2026: "chỉ còn mặc định của máy hoặc Noto 3D") — emoji Noto 3D chưa có là
+  `tai-noto3d` thoát lỗi + test `emoji-vector` đỏ → chọn emoji khác. Chế độ debug → Luật chơi →
+  "Bộ hình emoji" đổi Máy ⇄ Noto 3D (`mm.boEmoji`, chỉ máy đó; TẮT debug là về mặc định —
+  `boEmojiVeMacDinh`). Thêm/sửa theme = `node tools/tai-noto3d.mjs`; chỉ emoji Unicode ≤14;
+  số theme MỖI TAB chia hết cho 12. Mục dưới là lịch sử:
 - **(14.10.2026) MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG SVG TWEMOJI** (`lib/emoji.ts`, `public/emoji/<mã>.svg`,
   phương án B chủ dự án chốt 14.10.2026): emoji Android là bitmap ~136px → mờ trên
   mặt bài; Windows không có emoji cờ. iPhone/iPad/Mac GIỮ emoji Apple. Chỉ đổi cách
   VẼ — ký hiệu trên dây vẫn là chuỗi emoji nên Android chơi chung với iPhone như cũ.
-  **Thêm/sửa theme là phải `node tools/tai-twemoji.mjs`** (test `emoji-vector` đỏ nếu
-  thiếu file); chỉ dùng emoji Unicode ≤14 để máy cũ không ra ô trống. Số theme
+  (Đã thay bằng Noto 3D và GỠ hẳn 15.10.2026 — chỉ mặt rồng thần còn là Twemoji.) Số theme
   MỖI TAB (miễn phí / premium) phải chia hết cho 3 VÀ 4 (lưới theme 3 hoặc 4 cột).
-  Ghi công CC-BY ở `lc.ghiCong`.
+  Ghi công ở `lc.ghiCong`.
 - **THEME PREMIUM (14.10.2026): MỘT gói mở hết, theme KHÔNG còn mở bằng điểm.**
   Cờ `premium` trong themes.json (+ `THEME_PREMIUM` ở server, test canh khớp); hiện
-  24 miễn phí + 24 premium. Hỏi quyền CHỈ qua `choiDuoc()` ở `lib/premium.ts` — đợt
+  48 miễn phí + 24 premium (thêm 12 + 12 ngày 15.10.2026). Hỏi quyền CHỈ qua `choiDuoc()` ở `lib/premium.ts` — đợt
   này CHƯA BÁN THẬT (nút mua báo "sắp có", `mm.premium='1'` để thử giao diện đã mua);
   làm IAP thì chỉ thay chỗ đặt `daMuaPremium`. Bước theme là `ThemePicker.vue` dùng
   chung cho MenuScreen + OnlineScreen: hai tab, ô premium chưa mua KHÔNG mờ/disabled

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { boEmojiVeMacDinh } from '@/lib/emoji';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { batPhanTich, suKien } from '@/lib/phan-tich';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
@@ -28,7 +29,7 @@ const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
  * mấy ván sau vẫn còn số đo — lỗi cần soi thường không xuất hiện ở ván đầu.
  */
 const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
-watch(debug, (v) => store.savePrefs({ debug: v }), { immediate: true });
+watch(debug, (v) => { store.savePrefs({ debug: v }); if (!v) boEmojiVeMacDinh(); }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
 const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));

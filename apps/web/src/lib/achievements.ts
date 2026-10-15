@@ -71,12 +71,14 @@ export interface Achievement {
   bac?: BacDanhHieu;
 }
 
-/** 36 theme — PHẢI khớp themes.json (test canh). Tên theme ở từ điển (`theme.<id>`). */
+/** Mọi theme — PHẢI khớp themes.json (test canh). Tên theme ở từ điển (`theme.<id>`). */
 export const THEME_DH: readonly string[] = [
   'animals', 'food', 'fruits', 'nature', 'smileys', 'sports', 'flags', 'ocean', 'space', 'tech', 'vehicles', 'letters',
   'music', 'festive', 'myth', 'flowers', 'weather', 'jobs', 'objects', 'clothes', 'buildings', 'drinks', 'games', 'garden',
   'tet', 'sweets', 'veggies', 'landmarks', 'birds', 'school', 'hands', 'hearts', 'clocks', 'safari', 'summer', 'asianfood',
-  'halloween', 'cats', 'treasure', 'winter', 'farm', 'travel', 'circus', 'breakfast', 'tools', 'zodiac', 'camping', 'kitchen'
+  'halloween', 'cats', 'treasure', 'winter', 'farm', 'travel', 'circus', 'breakfast', 'tools', 'zodiac', 'camping', 'kitchen',
+  'flagsasia', 'flagseurope', 'flagsamericas', 'flagsafrica', 'insects', 'office', 'home', 'shapes', 'pets', 'people', 'hobbies', 'scenery',
+  'expressions', 'jungle', 'teaparty', 'athletes', 'market', 'signs', 'lab', 'fairytale', 'body', 'autumn', 'flagstricky', 'flagsislands'
 ];
 /** Tên theme theo ngôn ngữ đang chọn. */
 /** Tên theme theo ngôn ngữ đang chọn; theme chưa có trong từ điển thì lùi về tên gốc
