@@ -20,7 +20,7 @@ function optionsFromOldMode(mode: Mode | undefined): Partial<BoardOptions> {
 
 export interface Prefs {
   dark: boolean;
-  /** Hình mặt bài: 'vector' = Twemoji SVG, 'may' = emoji của máy. Chưa chọn thì
+  /** Hình mặt bài: 'vector' = ảnh Noto 3D, 'may' = emoji của máy. Chưa chọn thì
    *  theo máy (lib/emoji.ts): không-Apple → vector, Apple → emoji của máy. */
   kieuEmoji?: 'vector' | 'may';
   /** Giữ lại để đọc bản lưu cũ; mức thật nằm ở `soundLevel`. */

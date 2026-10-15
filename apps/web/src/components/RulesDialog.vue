@@ -26,7 +26,7 @@ const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
 
 /* ---------- phiên bản & tuổi bản build ---------- */
 
-const tenBoEmoji = computed(() => ({ may: t('lc.boEmojiMay'), twemoji: 'Twemoji', noto: 'Noto', noto3d: 'Noto 3D' })[boEmojiHien()]);
+const tenBoEmoji = computed(() => ({ may: t('lc.boEmojiMay'), noto3d: 'Noto 3D' })[boEmojiHien()]);
 const version = __APP_VERSION__;
 /** Ngày giờ build, ĐÃ định dạng theo giờ Việt Nam lúc build (xem vite.config). */
 const builtAt = __BUILD_AT__;

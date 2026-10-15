@@ -27,8 +27,8 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 | **5 đối thủ máy** (Gà mờ → Rồng thần) | `BOT_SPECS` — `packages/engine/src/bot.ts` | trang `about.lead`, `f2.h/p`, `about.desc` · site-i18n · store · tên: `bot.*` 15 từ điển | `duel.test.ts` |
 | **Online tối đa 10 người**, mã phòng 6 số | `ROOM_LIMITS` — engine `online.ts` | trang `f3.p`, `a2` · site-i18n · store | smoke `tools/smoke-*.mjs` |
 | **Chung máy tối đa 4 người** | wizard bước `count` (CLAUDE.md) | trang `f4.h/p` · site-i18n · store | `app.test.ts` |
-| **36 bộ hình miễn phí** (48 tổng, 12 premium ẩn) | `apps/web/public/data/themes.json` (+ bản sao `apps/server/src/themes.ts`), `banPremium` | trang `f5.h/p`, `about.desc` · site-i18n · store · README | `themes.test.ts`, `emoji-vector` |
-| **Hơn 100 danh hiệu** (đang hiện 117, tổng 129) | `ACHIEVEMENTS` / `dsHien` — `apps/web/src/lib/achievements.ts` | trang `f6.p` · site-i18n · store ("100+") · README · CLAUDE.md (con số chính xác) | `achievements.test.ts` |
+| **48 bộ hình miễn phí** (72 tổng, 24 premium ẩn) | `apps/web/public/data/themes.json` (+ bản sao `apps/server/src/themes.ts`), `banPremium` | trang `f5.h/p`, `about.desc` · site-i18n · store · README | `themes.test.ts`, `emoji-vector` |
+| **Hơn 100 danh hiệu** (đang hiện 129, tổng 153) | `ACHIEVEMENTS` / `dsHien` — `apps/web/src/lib/achievements.ts` | trang `f6.p` · site-i18n · store ("100+") · README · CLAUDE.md (con số chính xác) | `achievements.test.ts` |
 | **15 ngôn ngữ** | `NGON_NGU` — `apps/web/src/lib/i18n.ts` | xem **docs/ngon-ngu.md** (14 chỗ) · trang `about.b5`, `a5`, `about.desc` · store · README | `i18n*.test.ts`, `site-i18n.test.ts`, `pnpm do:ngon-ngu` |
 | **3 skin miễn phí** (Kẹo · Neon · Gỗ) + 2 premium (Đêm Sao · Kẹo Bông, dùng font Kẹo) | `lib/skin.ts`, `styles/skins/*.css`, `banPremium` | trang r2 (lịch sử) · `tb.skin.*` 15 từ điển · CLAUDE.md mục SKIN | `skin.test.ts`, `tuong-phan.test.ts`, `pnpm do:tuong-phan`, `pnpm do:safari` |
 | **12 câu nói nhanh**, không chat tự do | `QUICK_SAYS` (engine) | trang `f3.p`, privacy `pv.s2b` · site-i18n · store · privacy (Messaging = Yes) | `smoke-noi-nhanh.mjs` |

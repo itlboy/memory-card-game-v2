@@ -788,7 +788,7 @@ const label = computed(() => {
  * Khai một cỡ duy nhất thì không có lúc nào để nhỏ đi.
  */
 .front { font-size: max(22px, 72cqw); }
-/* SVG Twemoji cùng cỡ với emoji chữ (1em ≈ ô glyph emoji); không chặn chạm của lá */
+/* Ảnh Noto 3D cùng cỡ với emoji chữ (1em ≈ ô glyph emoji); không chặn chạm của lá */
 .front .emoji { width: .92em; height: .92em; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 /*
  * THEME CHỮ & SỐ: ký hiệu là CHỮ chứ không phải emoji, nên nó ăn phông thân bài

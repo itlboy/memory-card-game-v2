@@ -10,4 +10,3 @@ Hình mặt bài: Noto Emoji 3D của Google
   Giấy phép SIL Open Font License 1.1: https://openfontlicense.org
   Nguồn: https://github.com/googlefonts/noto-emoji
   Đã chỉnh sửa: nén sang WebP.
-  Hình Noto 3D chưa có thì dùng Twemoji (CC-BY 4.0, như trên).

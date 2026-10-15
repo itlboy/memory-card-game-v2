@@ -1,6 +1,5 @@
 import { ref } from 'vue';
 import { store } from './storage';
-import THIEU_3D from '../../public/emoji/3d/thieu.json';
 
 /**
  * MẶT BÀI VẼ EMOJI BẰNG GÌ: NOTO 3D TRÊN MỌI MÁY (chủ dự án 15.10.2026).
@@ -10,8 +9,9 @@ import THIEU_3D from '../../public/emoji/3d/thieu.json';
  * (public/emoji/3d/<mã>.webp, `node tools/tai-noto3d.mjs`) — chủ dự án so 5 bộ và
  * chọn nó. Từ cùng ngày áp cho CẢ iPhone/iPad/Mac: một diện mạo trên mọi máy (online
  * hai bên thấy cùng một lá), app iOS vốn đã mang sẵn bộ ảnh. Đổi là phải chụp lại ảnh
- * CẢ HAI store (asc-store + play-store). Hình Noto 3D chưa có (`thieu.json`) lùi về
- * SVG Twemoji (public/emoji, `node tools/tai-twemoji.mjs`).
+ * CẢ HAI store (asc-store + play-store). KHÔNG còn bộ dự phòng: Twemoji và Noto 2D
+ * đã gỡ (chủ dự án 15.10.2026) — emoji Noto 3D chưa có thì test `emoji-vector` đỏ,
+ * chọn emoji khác cho theme.
  *
  * Chỉ đổi CÁCH VẼ: ký hiệu trên dây/engine vẫn là chuỗi emoji, nên Android chơi
  * online với iPhone y như cũ (so cặp theo mã, không theo hình).
@@ -34,17 +34,16 @@ export function datDungVector(v: boolean): void {
 
 const LA_EMOJI = /\p{Extended_Pictographic}|\p{Regional_Indicator}/u;
 
-/** Tên file = mã điểm hex nối "-", BỎ fe0f (khớp tools/tai-twemoji.mjs + tai-noto3d.mjs). */
+/** Tên file = mã điểm hex nối "-", BỎ fe0f (khớp tools/tai-noto3d.mjs). */
 export function tenFileEmoji(e: string): string {
   return [...e].map((c) => c.codePointAt(0)!.toString(16)).filter((c) => c !== 'fe0f').join('-');
 }
 
 /**
  * BỘ HÌNH ĐỂ SO TRÊN MÁY THẬT — CHỈ trong chế độ debug (Luật chơi), chủ dự án
- * 15.10.2026. `null` = theo mặc định (`dungVector`). Noto 2D tải thẳng từ GitHub
- * googlefonts/noto-emoji (SVG Apache 2.0) — KHÔNG đóng gói, cần mạng.
+ * 15.10.2026. `null` = theo mặc định (`dungVector`). Chỉ hai bộ: emoji của máy và Noto 3D.
  */
-export const BO_EMOJI = ['may', 'twemoji', 'noto', 'noto3d'] as const;
+export const BO_EMOJI = ['may', 'noto3d'] as const;
 export type BoEmoji = (typeof BO_EMOJI)[number];
 const KHOA_BO = 'mm.boEmoji';
 function docBo(): BoEmoji | null {
@@ -58,6 +57,12 @@ export const boEmojiThu = ref<BoEmoji | null>(docBo());
 export function boEmojiHien(): BoEmoji {
   return boEmojiThu.value ?? (dungVector.value ? 'noto3d' : 'may');
 }
+/** Về bộ mặc định — gọi khi TẮT chế độ debug (App.vue): lựa chọn thử không được
+ *  sống sót ra ngoài debug, không thì người tắt debug kẹt ở một bộ lạ mà không thấy nút đổi. */
+export function boEmojiVeMacDinh(): void {
+  boEmojiThu.value = null;
+  try { localStorage.removeItem(KHOA_BO); } catch { /* bỏ qua */ }
+}
 /** Xoay vòng sang bộ kế tiếp và nhớ ở máy này. */
 export function doiBoEmojiThu(): void {
   const i = BO_EMOJI.indexOf(boEmojiHien());
@@ -66,9 +71,6 @@ export function doiBoEmojiThu(): void {
   try { localStorage.setItem(KHOA_BO, moi); } catch { /* bỏ qua */ }
 }
 
-const NOTO = 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main';
-const laCo = (e: string) => /\p{Regional_Indicator}/u.test(e);
-const CHUA_CO_3D = new Set<string>(THIEU_3D);
 
 /**
  * NOTO 3D CÓ BA CỠ đóng gói sẵn: 128 · 256 (thư mục con) và 512 (gốc). Lá nhỏ
@@ -88,12 +90,5 @@ export function anhEmoji(kyHieu: string | undefined, vector?: boolean, co = 512)
   const bo: BoEmoji = vector === undefined ? boEmojiHien() : vector ? 'noto3d' : 'may';
   if (bo === 'may' || !kyHieu || !LA_EMOJI.test(kyHieu)) return null;
   const ma = tenFileEmoji(kyHieu);
-  if (bo === 'noto3d') {
-    if (CHUA_CO_3D.has(ma)) return `/emoji/${ma}.svg`;
-    return co >= 512 ? `/emoji/3d/${ma}.webp` : `/emoji/3d/${co}/${ma}.webp`;
-  }
-  if (bo === 'twemoji') return `/emoji/${ma}.svg`;
-  const noto = `emoji_u${ma.replaceAll('-', '_')}`;
-  // Cờ của Noto 2D nằm riêng (bộ cờ bay phấp phới)
-  return laCo(kyHieu) ? `${NOTO}/third_party/region-flags/waved-svg/${noto}.svg` : `${NOTO}/2D/svg/${noto}.svg`;
+  return co >= 512 ? `/emoji/3d/${ma}.webp` : `/emoji/3d/${co}/${ma}.webp`;
 }
