@@ -338,6 +338,10 @@ node tools/smoke-choilai.mjs   # chơi thật 3 ván: Chơi lại vào ván luô
 pnpm smoke:taikhoan            # SQL tài khoản qua server Node thật (cần MYSQL_URL)
 pnpm do:menu                   # Chrome thật, 3 cỡ iPhone: menu, màn Danh hiệu, 1 ván thắng
                                # + 1 ván thua hết giờ (cần localhost:8080 chạy dist mới)
+pnpm do:tuong-phan [url]       # Chrome thật, 5 skin × sáng/tối: tương phản mọi chữ đang hiện
+pnpm do:safari [url]           # WebKit (engine Safari/iPhone), 3 cỡ iPhone × 5 skin × 9 màn:
+                               # viền/bóng bị cắt, nút lòi khỏi màn, trang cuộn — ảnh ở /tmp/mm-safari
+                               # (lần đầu: pnpm exec playwright install webkit)
 pnpm release        # build web + deploy CẢ web và server trong một Worker
 ```
 
@@ -463,6 +467,14 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
   Nay `absolute` trong `#app` (position: relative), canvas đo chính nó, toạ độ
   màn hình đổi qua `BoHat.diem()`. **Cách phát hiện:** `pnpm do:fx` (cửa sổ
   1280×900, chạy cả 9 cảnh, kiểm khung + điểm ngoài cột).
+- **Cạnh nút bị cắt trên iPhone, Chrome đo vẫn xanh.** Lưới wizard `overflow: clip`
+  + `overflow-clip-margin: 4px` — Safari KHÔNG hỗ trợ thuộc tính sau, nên viền/bóng vẽ
+  ngoài mép ô (Đêm Sao, Kẹo Bông, Gỗ) bị cắt phẳng hai cạnh bên chỉ trên iPhone. Nay
+  lưới chừa đệm thật (ngang + dọc, margin âm bù). **Cách phát hiện:** `pnpm do:safari`.
+- **Nút "Bắt đầu" lòi khỏi màn trên iPhone SE** (bước Bàn chơi): năm hàng tuỳ chọn + nút
+  cần 455px, chỉ có 363px, mà nút nằm chung khung `overflow: hidden` với hàng. Nay nút ở
+  ngoài khung hàng, hàng cuộn trong khung nếu thiếu chỗ, màn thấp thu gọn.
+  **Cách phát hiện:** `pnpm do:safari` (lỗi có ở mọi trình duyệt, chưa ai đo màn này).
 - **Rule trùng ở cuối file vẫn đang ghi đè.** Sửa cỡ chữ trong HudBar không có
   tác dụng vì cuối file còn `.stat span`/`.stat b` khai báo lại; sửa cỡ chữ
   wizard cũng vậy. **Cách phát hiện:** ĐO `getComputedStyle`, đừng tin là đã
@@ -681,6 +693,22 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 ## Nhật ký thay đổi
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
+
+**15.10.2026**
+- Chiến dịch 60 màn: 12 cỡ bàn × 5 lần, giờ siết dần (đo bằng mô phỏng, bàn nhỏ bớt giờ).
+  Sao tính theo số lần QUÊN (lật sai khi lá cùng cặp đã lộ), không theo giờ; sao thứ 4
+  cầu vồng lấp lánh khi không quên lần nào; mốc sao hiện trước, trong và sau ván.
+- 15 ngôn ngữ (thêm Ý, Thổ Nhĩ Kỳ, Trung phồn thể) cho web + app; tiếng Anh đứng đầu danh sách.
+- Trang công khai about / changes / support / privacy dựng sẵn theo 15 ngôn ngữ (SEO,
+  sitemap, Google Search Console qua API); studio `cozypi.com` sang repo riêng.
+- Google Analytics 4 cho game (web + app qua cập nhật nóng) và trang công khai, không hộp
+  hỏi cookie (châu Âu chạy không cookie).
+- Cập nhật nóng: thông báo một dòng + đếm 3-2-1; gói zip tên riêng từng bản, cache Cloudflare.
+- HUD iPhone hết tràn chữ (viên sao sống + combo gắn vào viên điểm).
+- Skin: Đêm Sao + Kẹo Bông dùng font Kẹo; Kẹo Bông ô màu đậm, viền + mép cùng tông; mặt
+  máy không còn đĩa trắng (đổi thứ tự màu ô để mặt không chìm).
+- `pnpm do:safari` (WebKit): bắt và sửa cạnh nút bị cắt trên iPhone, nút "Bắt đầu" lòi
+  khỏi màn ở bước Bàn chơi trên iPhone SE.
 
 **14.10.2026**
 - Theme premium: 36 miễn phí + 12 premium, tab Miễn phí / Premium, xem trước bộ hình,
