@@ -14,6 +14,7 @@
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 
 const WEB = new URL('../apps/web/', import.meta.url).pathname;
 const DIST = join(WEB, 'dist');
@@ -100,13 +101,23 @@ ${LANGS.filter((x) => x.id !== lang).map((x) => `<meta property="og:locale:alter
   return s;
 }
 
+/*
+ * Mã phiên bản theo NỘI DUNG cho site.css / site.js (`?v=<8 ký tự>`): Cloudflare của tên
+ * miền ép trình duyệt giữ file tĩnh 4 TIẾNG (Browser Cache TTL), đè mức 5 phút server
+ * đặt — sửa CSS xong người xem vẫn thấy bản cũ (chủ dự án báo 15.10.2026). File đổi
+ * thì đường dẫn đổi, trình duyệt buộc tải lại.
+ */
+const phienBan = (f) => createHash('sha256').update(readFileSync(join(DIST, 'site', f))).digest('hex').slice(0, 8);
+const V = { css: phienBan('site.css'), js: phienBan('site.js') };
+const ganPhienBan = (h) => h.replace(/(site\/site\.css)"/g, `$1?v=${V.css}"`).replace(/(site\/site\.js)"/g, `$1?v=${V.js}"`);
+
 const sitemap = [];
 for (const trang of TRANG) {
   const mau = readFileSync(join(DIST, `${trang}.html`), 'utf8');
   if (mau.includes('rel="canonical"')) throw new Error(`${trang}.html đã có canonical — chạy hai lần trên cùng dist?`);
   for (const { id: lang } of LANGS) {
     const t = dich(lang);
-    let html = t ? apDung(mau, t) : mau;
+    let html = ganPhienBan(t ? apDung(mau, t) : mau);
     const moTa = (t && t[`${trang}.desc`]) || mau.match(/<meta name="description" content="([^"]*)"/)[1];
     html = html
       .replace('<html lang="en">', `<html lang="${LANGS.find((x) => x.id === lang).bcp}">`)
