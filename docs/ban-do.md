@@ -56,10 +56,10 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 |---|---|---|
 | Ảnh store iPhone 6.9" | `node tools/chup-store.mjs <server> <thư mục> <mã>` | App Store, Google Play (bộ `KHUNG=android` riêng) |
 | Ảnh store iPad 13" | `KHUNG=ipad node tools/chup-store.mjs …` (chờ 5 giây) | App Store (`<mã>-ipad/`) |
-| Ảnh trang công khai | lấy từ bộ store tiếng Anh → `magick -resize 540x -quality 74` → `public/site/img/*.webp` (iPad: `ipad-*.webp`, 900 px) | `about.html` (khung máy + thanh trạng thái `site/img/iphone-status-den.svg` (nền sáng) / `-trang.svg` (nền tối), `ipad-status.svg` — tai thỏ luôn ĐEN) |
+| Ảnh trang công khai | lấy từ bộ store tiếng Anh → HAI cỡ mỗi ảnh, `magick -resize 240x` và `464x` `-quality 72` → `public/site/img/<tên>-240.webp` / `-464.webp` (iPad: `ipad-*-300.webp` / `-600.webp`), gắn `srcset` + `sizes` — ảnh chỉ hiện rộng ≤232px (iPad ≤300px), cỡ lớn hơn là tải thừa | `about.html` (khung máy + thanh trạng thái `site/img/iphone-status-den.svg` (nền sáng) / `-trang.svg` (nền tối), `ipad-status.svg` — tai thỏ luôn ĐEN) |
 
 Đổi giao diện lớn → chụp lại cả ba bộ. Màn có lớp phủ tối (màn thắng) cần màu dải
-trạng thái riêng trong `site.css` (`img[src$="02-win.webp"]`).
+trạng thái riêng trong `site.css` (`img[src*="02-win"]`).
 
 ## Công cụ đo giao diện (chạy sau mỗi lần sửa UI)
 
