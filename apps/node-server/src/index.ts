@@ -232,7 +232,8 @@ async function traFileTinh(url: URL, res: ServerResponse): Promise<void> {
   try {
     const buf = await readFile(file);
     res.writeHead(200, {
-      'Content-Type': MIME[extname(file)] ?? 'application/octet-stream',
+      // apple-app-site-association không có đuôi nhưng là JSON (link mời mở app)
+      'Content-Type': MIME[extname(file)] ?? (file.endsWith('apple-app-site-association') ? MIME['.json'] : 'application/octet-stream'),
       'Cache-Control': cacheControl(file),
     });
     res.end(buf);

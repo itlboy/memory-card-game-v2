@@ -1,0 +1,15 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cozypi.flipmatch",
+      "sha256_cert_fingerprints": [
+        "52:95:62:4D:F2:48:80:28:0E:38:3A:DD:F3:3B:7A:FD:50:E0:47:44:2D:7B:D4:23:00:31:40:46:35:41:5C:8F",
+        "CE:B7:16:A1:85:EB:15:E2:F6:A2:B8:8E:96:2D:0B:C5:C6:C6:36:D3:7E:F2:60:3A:19:C5:A2:6C:80:BA:28:68",
+        "58:96:BE:5B:F0:C4:C0:95:F4:96:2A:1F:85:A8:26:53:5E:F1:8A:7A:7D:B9:25:7B:C0:FA:54:16:34:C5:9C:0D",
+        "34:CB:0F:3D:79:27:E7:85:46:9A:FC:EC:FC:05:5B:66:8B:04:F0:F0:81:9C:1F:97:F4:F7:F5:38:F0:8A:1D:13"
+      ]
+    }
+  }
+]

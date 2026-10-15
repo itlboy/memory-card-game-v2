@@ -1,0 +1,38 @@
+# CẤP LẠI PROFILE iOS sau khi bật capability mới cho App ID (tools/ios-profile.mjs).
+# Chạy tay:
+#   gh workflow run ios-profile.yml --ref develop -f caps=ASSOCIATED_DOMAINS
+# Rồi nạp profile mới vào secret (artifact sống 1 ngày):
+#   gh run download <id> -n ios-profile -D <thư mục>
+#   base64 -i <thư mục>/flipmatch-appstore.mobileprovision | gh secret set IOS_PROFILE_BASE64
+name: iOS profile
+
+on:
+  workflow_dispatch:
+    inputs:
+      caps:
+        description: Capability cần bật, cách nhau bằng dấu cách (vd ASSOCIATED_DOMAINS)
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  cap-lai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: 22 }
+      - name: Bật capability + cấp lại profile
+        env:
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          CAPS: ${{ inputs.caps }}
+        run: node tools/ios-profile.mjs out $CAPS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ios-profile
+          path: out/
+          retention-days: 1

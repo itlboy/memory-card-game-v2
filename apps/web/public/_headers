@@ -42,3 +42,7 @@
 # CSS/JS/ảnh/bản dịch của các trang công khai (about, support…): không có hash.
 /site/*
   Cache-Control: public, max-age=300, must-revalidate
+
+# Link mời mở thẳng app (lib/link-moi.ts): file không đuôi nhưng Apple đọc nó là JSON.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
