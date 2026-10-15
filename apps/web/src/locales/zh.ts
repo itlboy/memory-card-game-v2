@@ -568,9 +568,11 @@ const zh: TuDien = {
   'lc.xemThu': '预览结局特效',
   'lc.premiumThu': '解锁高级版用于测试（仅本机）',
   'lc.doNhip': '显示帧率数据（FPS）',
+  'lc.boEmoji': '表情符号集：{ten}',
+  'lc.boEmojiMay': '系统表情',
   'lc.xemThang': '胜利 · {ten}',
   'lc.xemThua': '失败 · {ten}',
-  'lc.ghiCong': "卡面图案（非 Apple 设备）与神龙头像：Twemoji（Twitter, Inc.）· CC-BY 4.0；神龙已改色",
+  'lc.ghiCong': "卡面图案（非 Apple 设备）：Noto Emoji 3D（Google）· OFL 1.1，缺少的图案用 Twemoji。神龙头像：Twemoji（Twitter, Inc.）· CC-BY 4.0，已改色",
   'lc.banApp': "应用（商店）：{ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

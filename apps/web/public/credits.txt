@@ -5,3 +5,9 @@ Hình mặt "Bot rồng thần": dựa trên emoji 🐉 của Twemoji
   Giấy phép CC-BY 4.0: https://creativecommons.org/licenses/by/4.0/
   Nguồn: https://github.com/twitter/twemoji
   Đã chỉnh sửa: đổi sang tông vàng.
+
+Hình mặt bài trên máy không phải Apple: Noto Emoji 3D của Google
+  Giấy phép SIL Open Font License 1.1: https://openfontlicense.org
+  Nguồn: https://github.com/googlefonts/noto-emoji
+  Đã chỉnh sửa: nén sang WebP.
+  Hình Noto 3D chưa có thì dùng Twemoji (CC-BY 4.0, như trên).

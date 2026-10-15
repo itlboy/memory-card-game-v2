@@ -62,7 +62,7 @@ export default defineConfig({
         runtimeCaching: [{
           urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/emoji/'),
           handler: 'CacheFirst',
-          options: { cacheName: 'emoji', expiration: { maxEntries: 800 } }
+          options: { cacheName: 'emoji', expiration: { maxEntries: 1600 } }
         }],
         // Ván online phải luôn đi thẳng ra server — không bao giờ trả từ cache
         // Trang tĩnh (privacy/support) là file riêng — store của Apple/Google mở

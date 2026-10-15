@@ -571,9 +571,11 @@ const tr: TuDien = {
   'lc.xemThu': 'Oyun sonu efektlerini önizle',
   'lc.premiumThu': "Test için Premium'u aç (bu cihaz)",
   'lc.doNhip': 'Kare istatistiklerini göster (FPS)',
+  'lc.boEmoji': 'Emoji seti: {ten}',
+  'lc.boEmojiMay': 'Sistem emojisi',
   'lc.xemThang': 'Galibiyet · {ten}',
   'lc.xemThua': 'Yenilgi · {ten}',
-  'lc.ghiCong': "Kart görselleri (Apple dışı cihazlar) ve ejderha yüzü: Twemoji (Twitter, Inc.) · CC-BY 4.0; ejderhanın rengi değiştirildi",
+  'lc.ghiCong': "Kart görselleri (Apple dışı cihazlar): Noto Emoji 3D (Google) · OFL 1.1, eksik görseller için Twemoji. Ejderha yüzü: Twemoji (Twitter, Inc.) · CC-BY 4.0, rengi değiştirildi",
   'lc.banApp': "Uygulama (mağaza): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

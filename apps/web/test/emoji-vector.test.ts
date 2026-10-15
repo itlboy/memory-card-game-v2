@@ -22,6 +22,13 @@ describe('hình vector cho mặt bài', () => {
     expect(thieu, 'chạy `node tools/tai-twemoji.mjs`').toEqual([]);
   });
 
+  it('mọi emoji của mọi theme đều có ảnh Noto 3D (hoặc nằm trong thieu.json)', () => {
+    const chuaCo = new Set<string>(JSON.parse(readFileSync(resolve(web, 'public/emoji/3d/thieu.json'), 'utf8')));
+    const thieu = themes.flatMap((t) => t.symbols.filter((s) => LA_EMOJI.test(s))
+      .filter((s) => !chuaCo.has(tenFileEmoji(s)) && !existsSync(resolve(web, 'public/emoji/3d', `${tenFileEmoji(s)}.webp`))).map((s) => `${t.id}: ${s}`));
+    expect(thieu, 'chạy `node tools/tai-noto3d.mjs`').toEqual([]);
+  });
+
   it('tên file bỏ fe0f, giữ nguyên chuỗi ghép ZWJ', () => {
     expect(tenFileEmoji('❤️')).toBe('2764');
     expect(tenFileEmoji('🧑‍⚕️')).toBe('1f9d1-200d-2695');
@@ -30,7 +37,7 @@ describe('hình vector cho mặt bài', () => {
 
   it('máy Apple giữ emoji chữ; chữ/số và ô úp rỗng không thành ảnh', () => {
     expect(anhEmoji('🐼', false)).toBeNull();
-    expect(anhEmoji('🐼', true)).toBe('/emoji/1f43c.svg');
+    expect(anhEmoji('🐼', true)).toBe('/emoji/3d/1f43c.webp');
     expect(anhEmoji('A', true)).toBeNull();
     expect(anhEmoji('7', true)).toBeNull();
     expect(anhEmoji('', true)).toBeNull();
@@ -39,7 +46,7 @@ describe('hình vector cho mặt bài', () => {
 
   it('công tắc ở menu đổi TỨC THÌ và được lưu lại', () => {
     datDungVector(true);
-    expect(anhEmoji('🐼')).toBe('/emoji/1f43c.svg');
+    expect(anhEmoji('🐼')).toBe('/emoji/3d/1f43c.webp');
     expect(store.prefs().kieuEmoji).toBe('vector');
     datDungVector(false);
     expect(dungVector.value).toBe(false);

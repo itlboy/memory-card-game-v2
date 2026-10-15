@@ -587,9 +587,11 @@ const ru: TuDien = {
   'lc.xemThu': 'Эффекты конца партии',
   'lc.premiumThu': 'Открыть Premium для теста (это устройство)',
   'lc.doNhip': 'Показывать частоту кадров (FPS)',
+  'lc.boEmoji': 'Набор эмодзи: {ten}',
+  'lc.boEmojiMay': 'Эмодзи системы',
   'lc.xemThang': 'Победа · {ten}',
   'lc.xemThua': 'Поражение · {ten}',
-  'lc.ghiCong': "Рисунки карт (не-Apple устройства) и морда дракона: Twemoji (Twitter, Inc.) · CC-BY 4.0; дракон перекрашен",
+  'lc.ghiCong': "Рисунки карт (не-Apple устройства): Noto Emoji 3D (Google) · OFL 1.1, недостающие — Twemoji. Морда дракона: Twemoji (Twitter, Inc.) · CC-BY 4.0, перекрашена",
   'lc.banApp': "Приложение (магазин): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

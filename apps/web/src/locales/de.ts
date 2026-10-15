@@ -571,9 +571,11 @@ const de: TuDien = {
   'lc.xemThu': 'Spielende-Effekte ansehen',
   'lc.premiumThu': 'Premium zum Testen freischalten (dieses Gerät)',
   'lc.doNhip': 'Bildrate anzeigen (FPS)',
+  'lc.boEmoji': 'Emoji-Satz: {ten}',
+  'lc.boEmojiMay': 'System-Emoji',
   'lc.xemThang': 'Sieg · {ten}',
   'lc.xemThua': 'Niederlage · {ten}',
-  'lc.ghiCong': "Kartengrafiken (Nicht-Apple-Geräte) und Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0; Drache umgefärbt",
+  'lc.ghiCong': "Kartengrafiken (Nicht-Apple-Geräte): Noto Emoji 3D (Google) · OFL 1.1, fehlende Bilder von Twemoji. Drachengesicht: Twemoji (Twitter, Inc.) · CC-BY 4.0, umgefärbt",
   'lc.banApp': "App (Store): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

@@ -570,9 +570,11 @@ const en: TuDien = {
   'lc.xemThu': 'Preview End-of-Game Effects',
   'lc.premiumThu': 'Unlock Premium for Testing (This Device)',
   'lc.doNhip': 'Show Frame Stats (FPS)',
+  'lc.boEmoji': 'Emoji Set: {ten}',
+  'lc.boEmojiMay': 'System Emoji',
   'lc.xemThang': 'Win · {ten}',
   'lc.xemThua': 'Loss · {ten}',
-  'lc.ghiCong': "Card artwork (non-Apple devices) and dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0; dragon recolored",
+  'lc.ghiCong': "Card artwork (non-Apple devices): Noto Emoji 3D (Google) · OFL 1.1, with Twemoji for missing images. Dragon face: Twemoji (Twitter, Inc.) · CC-BY 4.0, recolored",
   'lc.banApp': "App (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */
