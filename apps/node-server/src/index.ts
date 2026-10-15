@@ -167,6 +167,8 @@ const MIME: Record<string, string> = {
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.webp': 'image/webp',   // ảnh trang công khai (site/img)
+  '.xml': 'application/xml; charset=utf-8',   // sitemap.xml (SEO)
+  '.txt': 'text/plain; charset=utf-8',   // robots.txt
   '.jpg': 'image/jpeg',
   '.webmanifest': 'application/manifest+json',
   '.ico': 'image/x-icon',
