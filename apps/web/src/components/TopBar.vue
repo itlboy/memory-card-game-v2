@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Crown, HelpCircle, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
 import { datSkin, skin, skinChoiDuoc, skinsHien, type Skin } from '@/lib/skin';
+import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -14,6 +15,8 @@ const props = defineProps<{
   account?: boolean; avatar?: string | null; signedIn?: boolean;
   /** Nhạc nền đang bật. */
   nhac?: boolean;
+  /** Bài nhạc nền đang chọn (lib/nhac.ts). */
+  baiNhac?: BaiNhac;
   /** Tên tài khoản Google đang đăng nhập — hiện ở khối tài khoản của menu. */
   tenTk?: string | null;
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
@@ -21,7 +24,7 @@ const props = defineProps<{
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
 }>();
-defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'toggle-nhac': []; home: []; rules: []; account: []; 'danh-hieu': [] }>();
+const emit = defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
 /*
  * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
@@ -77,6 +80,15 @@ function chonSkin(s: Skin): void {
     return;
   }
   datSkin(s);
+}
+/** Bài nhạc premium chưa mua: cùng cách với skin — báo, không đổi. */
+const baoPlusNhac = ref(false);
+function chonNhac(b: 'off' | BaiNhac): void {
+  if (b !== 'off' && !baiChoiDuoc(b)) {
+    baoPlusNhac.value = true; clearTimeout(henBao); henBao = setTimeout(() => { baoPlusNhac.value = false; }, 2500);
+    return;
+  }
+  emit('set-nhac', b);
 }
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
@@ -228,13 +240,27 @@ watch(() => props.totalScore, (to, from) => {
             >{{ td(`tb.amNgan.${l}`) }}</button>
           </span>
         </div>
-        <button
-          class="item cong-tac" role="menuitemcheckbox" type="button"
-          :aria-checked="!!nhac" :aria-label="nhac ? t('tb.nhacBat') : t('tb.nhacTat')"
-          @click="$emit('toggle-nhac')"
-        >
-          <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span><i class="sw" :class="{ bat: nhac }" aria-hidden="true" />
-        </button>
+        <!-- Nhạc nền: Tắt · từng bài (lib/nhac.ts), cùng dạng nút chia đoạn với Âm thanh.
+             Nhãn bài là biểu tượng — khỏi dịch, khỏi tràn menu; tên đầy đủ ở aria-label.
+             HAI TẦNG (chữ trên, dải nút chia đều dưới): một hàng 6 nút (có Premium) làm menu
+             phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). Thêm bài = nút hẹp lại. -->
+        <div class="item am nhac" role="group" :aria-label="t('tb.nhacNen')">
+          <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
+          <span class="nac ds-nhac">
+            <button
+              type="button" role="menuitemradio" :aria-checked="!nhac"
+              :aria-label="td('tb.nhacBai.off')" @click="chonNhac('off')"
+            >{{ td('tb.amNgan.off') }}</button>
+            <button
+              v-for="b in baiHien" :key="b" type="button" role="menuitemradio" class="bai"
+              :class="{ khoa: !baiChoiDuoc(b) }"
+              :aria-checked="!!nhac && baiNhac === b"
+              :aria-label="baiChoiDuoc(b) ? td(`tb.nhacBai.${b}`) : `${td(`tb.nhacBai.${b}`)} — ${t('tb.skinPlus')}`"
+              @click="chonNhac(b)"
+            >{{ ICON_BAI[b] }}<Crown v-if="!baiChoiDuoc(b)" class="o-khoa" :size="10" aria-hidden="true" /></button>
+          </span>
+        </div>
+        <p v-if="baoPlusNhac" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
         <!-- Rung LUÔN BẬT (chủ dự án bỏ công tắc 14.10.2026). iPhone vẫn theo cài
              đặt rung của hệ thống (UIFeedbackGenerator), Android theo cài đặt rung chạm. -->
 
@@ -451,6 +477,10 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .nac button::after { content: ''; position: absolute; inset: -7px 0; }
 .nac button[aria-checked='true'] { background: var(--nhan-nen); color: var(--nhan-chu); }
+.nac button.bai { font-size: 15px; }
+.item.nhac { flex-wrap: wrap; row-gap: 6px; padding-block: 8px; }
+.nac.ds-nhac { flex: 1 0 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.ds-nhac button { min-width: 0; padding: 0 4px; }
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 @media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
 .item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }

@@ -47,6 +47,8 @@ export interface Prefs {
   rung: boolean;
   /** Nhạc nền (lib/nhac.ts). Mặc định bật — tắt âm thanh là tắt luôn nhạc. */
   nhac: boolean;
+  /** Bài nhạc nền đang chọn (lib/nhac.ts `BAI_NHAC`). Thiếu = bài mặc định. */
+  baiNhac?: string;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }

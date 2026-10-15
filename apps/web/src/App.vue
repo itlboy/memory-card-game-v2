@@ -48,7 +48,7 @@ import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
-import { nhac } from './lib/nhac';
+import { nhac, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
@@ -63,6 +63,14 @@ const soundLevel = ref<SoundLevel>(prefs.soundLevel);
 rung.bat = true;
 /** Nhạc nền (lib/nhac.ts): menu vui, trong ván chậm và thưa. Tắt âm thanh là tắt luôn. */
 const nhacBat = ref(prefs.nhac !== false);
+/** Bài đang chọn. Bài premium mà gói chưa mua/hết hạn thì phát bài mặc định (`baiThat`)
+ *  — vẫn giữ lựa chọn, mua lại là về đúng bài cũ. */
+const baiNhac = ref<BaiNhac>(laBaiNhac(prefs.baiNhac) ? prefs.baiNhac : 'keo');
+const baiThat = computed<BaiNhac>(() => (baiChoiDuoc(baiNhac.value) ? baiNhac.value : 'keo'));
+function datNhac(v: 'off' | BaiNhac): void {
+  if (v === 'off') { nhacBat.value = false; return; }
+  nhacBat.value = true; baiNhac.value = v;
+}
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
  *  tính) là quá to; 2,6 nghe rõ mà không giật mình, "nhỏ" thì đủ để biết mình
  *  vừa bấm gì trong phòng yên tĩnh. */
@@ -107,9 +115,9 @@ const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
 const screen = ref<'menu' | 'game' | 'online'>('menu');
-watch([nhacBat, soundLevel, screen], () => {
-  store.savePrefs({ nhac: nhacBat.value });
-  if (nhacBat.value && soundLevel.value !== 'off') nhac.chay(screen.value === 'game' ? 'van' : 'menu');
+watch([nhacBat, baiNhac, baiThat, soundLevel, screen], () => {
+  store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value });
+  if (nhacBat.value && soundLevel.value !== 'off') nhac.chay(screen.value === 'game' ? 'van' : 'menu', baiThat.value);
   else nhac.dung();
 }, { immediate: true });
 /**
@@ -732,10 +740,10 @@ const hasNext = computed(() => {
   <IconBay v-if="screen !== 'game'" />
   <TopBar
     :debug="debug"
-    :dark="dark" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat"
+    :dark="dark" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
-    @toggle-nhac="nhacBat = !nhacBat"
+    @set-nhac="datNhac"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @toggle-dark="dark = !dark"
     @account="showAccount = true"
