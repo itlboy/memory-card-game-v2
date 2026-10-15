@@ -43,6 +43,16 @@ console.log(`App: ${app.attributes.name} · ${app.attributes.primaryLocale} · i
 // ── Phiên bản + build ──
 const vers = (await get(`/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=5`)).data ?? [];
 for (const v of vers) console.log(`  phiên bản ${v.attributes.versionString}: ${v.attributes.appStoreState} · copyright "${v.attributes.copyright ?? ''}" · phát hành: ${v.attributes.releaseType}`);
+// Liên hệ + link CÔNG KHAI của phiên bản mới nhất (kể cả đang chờ duyệt) — in giá
+// trị thật để đối chiếu với trang hỗ trợ / privacy (chủ dự án 15.10.2026).
+if (vers[0]) {
+  const rv0 = (await get(`/v1/appStoreVersions/${vers[0].id}/appStoreReviewDetail`)).data?.attributes ?? {};
+  console.log(`  liên hệ App Review (${vers[0].attributes.versionString}): ${rv0.contactEmail ?? '—'} · ${rv0.contactFirstName ?? ''} ${rv0.contactLastName ?? ''}`);
+  const l0 = (await get(`/v1/appStoreVersions/${vers[0].id}/appStoreVersionLocalizations?limit=50`)).data ?? [];
+  for (const x of l0.filter((x) => ['en-US', 'vi'].includes(x.attributes.locale))) {
+    console.log(`  ${x.attributes.locale}: support ${x.attributes.supportUrl ?? '—'} · marketing ${x.attributes.marketingUrl ?? '—'}`);
+  }
+}
 const v = vers.find((x) => ['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY'].includes(x.attributes.appStoreState));
 ok(!!v, 'có phiên bản đang soạn (Prepare for Submission)');
 if (v) {
