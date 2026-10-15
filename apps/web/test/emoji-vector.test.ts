@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { anhEmoji, datDungVector, dungVector, tenFileEmoji } from '@/lib/emoji';
+import { anhEmoji, chonCoAnh, datDungVector, dungVector, tenFileEmoji } from '@/lib/emoji';
 import { store } from '@/lib/storage';
 
 /**
@@ -25,8 +25,17 @@ describe('hình vector cho mặt bài', () => {
   it('mọi emoji của mọi theme đều có ảnh Noto 3D (hoặc nằm trong thieu.json)', () => {
     const chuaCo = new Set<string>(JSON.parse(readFileSync(resolve(web, 'public/emoji/3d/thieu.json'), 'utf8')));
     const thieu = themes.flatMap((t) => t.symbols.filter((s) => LA_EMOJI.test(s))
-      .filter((s) => !chuaCo.has(tenFileEmoji(s)) && !existsSync(resolve(web, 'public/emoji/3d', `${tenFileEmoji(s)}.webp`))).map((s) => `${t.id}: ${s}`));
+      .filter((s) => !chuaCo.has(tenFileEmoji(s)) && !['', '128/', '256/'].every((d) => existsSync(resolve(web, 'public/emoji/3d', `${d}${tenFileEmoji(s)}.webp`)))).map((s) => `${t.id}: ${s}`));
     expect(thieu, 'chạy `node tools/tai-noto3d.mjs`').toEqual([]);
+  });
+
+  it('lá nhỏ lấy ảnh nhỏ: chọn cỡ nhỏ nhất đủ nét', () => {
+    expect(chonCoAnh(30, 3)).toBe(128);   // bàn 88 thẻ
+    expect(chonCoAnh(70, 2.75)).toBe(256);
+    expect(chonCoAnh(140, 3)).toBe(512); // quạt lá / bàn 4 thẻ
+    expect(chonCoAnh(400, 3)).toBe(512);
+    expect(anhEmoji('🐼', true, 128)).toBe('/emoji/3d/128/1f43c.webp');
+    expect(anhEmoji('🐼', true, 512)).toBe('/emoji/3d/1f43c.webp');
   });
 
   it('tên file bỏ fe0f, giữ nguyên chuỗi ghép ZWJ', () => {

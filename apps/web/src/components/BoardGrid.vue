@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
 import type { Card } from '@mm/engine';
-import { ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { chonCoAnh } from '@/lib/emoji';
 import CardTile from './CardTile.vue';
 
 const props = defineProps<{
@@ -25,6 +26,30 @@ const props = defineProps<{
 
 const emit = defineEmits<{ flip: [index: number] }>();
 const grid = ref<HTMLElement | null>(null);
+
+/**
+ * CỠ ẢNH MẶT BÀI CHO CẢ BÀN (lib/emoji.ts `chonCoAnh`): đo MỘT lá thật, không
+ * đo từng lá (88 phép đo mỗi lần đổi cỡ). Hình = `.front` max(22px, 72cqw) ×
+ * `.emoji` .92em. Trước khi đo được thì đoán theo số thẻ để khỏi tải ảnh 512
+ * cho bàn 88 thẻ rồi mới đổi. Xoay máy / đổi khung → ResizeObserver đo lại.
+ */
+const doan = (n: number) => (n >= 42 ? 128 : n >= 16 ? 256 : 512);
+const coAnh = ref(doan(props.cards.length));
+function doCoAnh(): void {
+  const la = grid.value?.querySelector<HTMLElement>('.card');
+  if (!la || !la.offsetWidth) return;
+  coAnh.value = chonCoAnh(Math.max(22, la.offsetWidth * 0.72) * 0.92);
+}
+let ro: ResizeObserver | null = null;
+onMounted(() => {
+  doCoAnh();
+  if (typeof ResizeObserver !== 'undefined' && grid.value) {
+    ro = new ResizeObserver(doCoAnh);
+    ro.observe(grid.value);
+  }
+});
+onUnmounted(() => ro?.disconnect());
+watch(() => props.cards.length, (n) => { coAnh.value = doan(n); doCoAnh(); }, { flush: 'post' });
 
 /**
  * Hiệu ứng tráo thẻ. Engine đã đổi chỗ xong rồi, nên ở đây làm ngược: đặt thẻ
@@ -93,6 +118,7 @@ defineExpose({
       :row="Math.floor(card.index / cols)"
       :rows="Math.ceil(cards.length / cols)"
       :card-count="cards.length"
+      :co-anh="coAnh"
       :face-up="faceUp.has(card.index)"
       :matched="matched.has(card.index)"
       :wrong="wrongPair.includes(card.index)"

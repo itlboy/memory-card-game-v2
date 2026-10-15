@@ -41,10 +41,12 @@ const props = defineProps<{
   back: string;
   /** Cả bàn có bao nhiêu thẻ. Dùng để CẮT hiệu ứng trên bàn lớn — xem `banLon`. */
   cardCount?: number;
+  /** Cỡ ảnh Noto 3D BoardGrid đo cho cả bàn (`chonCoAnh`) — lá nhỏ ảnh nhỏ. */
+  coAnh?: number;
 }>();
 
 /** Máy không phải Apple vẽ emoji bằng SVG (nét ở mọi cỡ) — xem lib/emoji.ts. */
-const anh = computed(() => anhEmoji(props.card.symbol));
+const anh = computed(() => anhEmoji(props.card.symbol, undefined, props.coAnh));
 /** Ký hiệu là CHỮ/SỐ (theme Chữ & số) chứ không phải emoji → nét đậm, xem `.front.chu`. */
 const laChu = computed(() => /^[\x21-\x7E]{1,3}$/.test(props.card.symbol ?? ''));
 
