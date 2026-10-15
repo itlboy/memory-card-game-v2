@@ -872,15 +872,10 @@ function openCfgWizard(): void {
     <template v-else>
       <!-- F5 giữa phòng: nói đúng việc đang xảy ra, đừng mời người ta vào chính
            cái phòng họ đang ngồi. -->
-      <div v-if="dangVaoLai" class="vao-lai" role="status">
-        <RefreshCw :size="26" class="quay" />
-        <!-- `&nbsp;` chứ KHÔNG phải dấu cách thường: trình biên dịch template của
-             Vue chạy `whitespace: 'condense'`, nó cắt khoảng trắng đầu/cuối trong
-             con của một thẻ — nên " {{ code }}" viết trong <b> ra thành dính liền
-             "phòngABC123". Khoảng trắng không ngắt là ký tự thật, không bị cắt. -->
-        <p class="vl-t">{{ t('on.dangVaoLai') }}<b v-if="codeInput">&nbsp;{{ codeInput }}</b>…</p>
-        <p class="vl-s">{{ t('on.giuCho') }}</p>
-      </div>
+      <!-- Đang vào lại phòng cũ mà chưa có ảnh phòng để vẽ (phiên của bản cũ):
+           để TRỐNG, không spinner, không chữ — vài trăm ms là phòng hiện ra. Chủ
+           dự án 15.10.2026: nối lại là việc ngầm, không hiện "đang tải". -->
+      <div v-if="dangVaoLai" class="vao-lai" aria-busy="true" />
       <template v-else>
       <p v-if="invited" class="invite">
         {{ t('on.duocMoi') }} <b class="invite-code">{{ codeInput }}</b>
@@ -1152,8 +1147,6 @@ function openCfgWizard(): void {
   align-items: center; justify-content: center; gap: 10px;
   color: var(--muted); text-align: center;
 }
-.vao-lai .vl-t { margin: 0; font-family: var(--font-display); font-size: var(--text-md); color: var(--fg); }
-.vao-lai .vl-s { margin: 0; font-size: var(--text-xs); }
 
 /* Nhịp tự làm mới KHÔNG CÒN HIỆN gì trên màn (chủ dự án bỏ vòng tròn đếm ngược
    14.10.2026): danh sách vẫn tự cập nhật mỗi CHU_KY_S giây, phòng mới tự hiện ra. */

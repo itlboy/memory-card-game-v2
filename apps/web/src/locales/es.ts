@@ -487,8 +487,6 @@ const es: TuDien = {
   'on.trong.than': 'Sé el primero en crear una: aparecerá aquí para que otros se unan.',
   'on.nhapMa': '¿Tienes un código de sala? Escríbelo aquí',
   'on.tenBan': 'Tu nombre',
-  'on.dangVaoLai': 'Volviendo a la sala',
-  'on.giuCho': 'Conservamos tu nombre y tu puesto.',
   'on.duocMoi': '🎉 Te invitaron a la sala',
   'on.maPhong': 'Código de sala',
   'on.vaoPhongChoi': 'Unirse a la partida',

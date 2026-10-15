@@ -487,8 +487,6 @@ const pt: TuDien = {
   'on.trong.than': 'Seja o primeiro a criar uma — ela vai aparecer aqui para outros jogadores entrarem.',
   'on.nhapMa': 'Tem um código de sala? Digite aqui',
   'on.tenBan': 'Seu nome',
-  'on.dangVaoLai': 'Voltando à sala',
-  'on.giuCho': 'Mantendo seu nome e seu lugar.',
   'on.duocMoi': '🎉 Você foi convidado para a sala',
   'on.maPhong': 'Código da sala',
   'on.vaoPhongChoi': 'Entrar na partida',

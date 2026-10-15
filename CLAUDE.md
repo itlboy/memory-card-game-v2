@@ -551,7 +551,10 @@
   'connecting' → màn nhập mã nháy lên); mở app = một đợt nối lại mới (bỏ hạn/banner cũ
   của lúc nằm nền), socket OPEN mà nằm nền >3s thì `resync` + 1,5s không tin là nối lại.
   · app bị hệ điều hành tắt (mất `?room=`): App.vue vào thẳng phòng nhờ `maPhongDangDo()`,
-  phòng chờ VẼ NGAY từ ảnh lưu trong phiên (`phong`/`id`). Phòng đã chết → `kiemPhongCon`
+  phòng chờ / bàn giữa ván VẼ NGAY từ ảnh lưu trong phiên (`phong`/`id`/`ban`). KHÔNG CÓ màn
+  chờ, spinner hay chữ "đang vào lại" nào — thiếu ảnh thì để trống vài trăm ms (`.vao-lai`
+  rỗng, có test). Danh sách phòng tự làm mới NGẦM mỗi 5 giây; khung xám chỉ ở lần tải đầu
+  tiên trong đời app (`dsDaTai`), hụt lẻ một lần không lật sang báo lỗi. Phòng đã chết → `kiemPhongCon`
   (GET /api/rooms/:code) đưa về danh sách kèm "Phòng … đã đóng", không quay vòng 5 phút.
   Online tạm giới hạn 4 NGƯỜI (`ROOM_LIMITS.maxPlayers`, chủ dự án 15.10.2026); phòng đầy
   rời danh sách; khán giả gặp phòng chờ còn chỗ thì tự vào làm người chơi.

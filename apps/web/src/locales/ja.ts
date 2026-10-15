@@ -485,8 +485,6 @@ const ja: TuDien = {
   'on.trong.than': '最初のルームを作ろう！ここに表示され、ほかの人が参加できます。',
   'on.nhapMa': 'ルームコードをお持ちの方はこちら',
   'on.tenBan': 'あなたの名前',
-  'on.dangVaoLai': 'ルームに再接続中',
-  'on.giuCho': '名前と席はそのまま残ります。',
   'on.duocMoi': '🎉 ルームに招待されました',
   'on.maPhong': 'ルームコード',
   'on.vaoPhongChoi': 'ゲームに参加',

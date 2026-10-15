@@ -24,11 +24,11 @@ describe('khoảng trắng quanh mã phòng', () => {
     expect(dung('<p>phòng<b>&nbsp;{{ code }}</b></p>')).toBe('phòng ABC123');
   });
 
-  it('màn "đang vào lại phòng" thật sự có khoảng trắng', async () => {
+  it('vào lại phòng KHÔNG hiện màn chờ (spinner/chữ) — chủ dự án 15.10.2026', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
     const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue'), 'utf8');
-    const dong = src.split('\n').find((l) => l.includes("t('on.dangVaoLai')"))!;
-    expect(dong, 'thiếu khoảng trắng trước mã phòng').toContain('&nbsp;{{ codeInput }}');
+    const dong = src.split('\n').find((l) => l.includes('class="vao-lai"'))!;
+    expect(dong, 'khối vào lại phải TRỐNG').toMatch(/\/>\s*$/);
   });
 });

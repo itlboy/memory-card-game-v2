@@ -485,8 +485,6 @@ const ko: TuDien = {
   'on.trong.than': '먼저 방을 만들어 보세요 — 여기에 표시되어 다른 사람들이 들어올 수 있어요.',
   'on.nhapMa': '방 코드가 있나요? 여기에 입력하세요',
   'on.tenBan': '내 이름',
-  'on.dangVaoLai': '방에 다시 들어가는 중',
-  'on.giuCho': '이름과 자리는 그대로 유지돼요.',
   'on.duocMoi': '🎉 방에 초대받았어요',
   'on.maPhong': '방 코드',
   'on.vaoPhongChoi': '게임 참가',

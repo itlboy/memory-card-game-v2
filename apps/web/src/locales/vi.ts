@@ -496,8 +496,6 @@ const vi = {
   'on.nhapMa': 'Có mã phòng? Nhập mã 6 số',
   'on.tenBan': 'Tên của bạn',
   /** Mã phòng in đậm nối ngay sau, rồi tới dấu "…". */
-  'on.dangVaoLai': 'Đang vào lại phòng',
-  'on.giuCho': 'Giữ nguyên tên và chỗ ngồi của bạn.',
   /** Mã phòng in đậm nối ngay sau. */
   'on.duocMoi': '🎉 Bạn được mời vào phòng',
   'on.maPhong': 'Mã phòng',

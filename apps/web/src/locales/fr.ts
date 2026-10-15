@@ -491,8 +491,6 @@ const fr: TuDien = {
   'on.trong.than': 'Crée le premier — il apparaîtra ici pour que d’autres le rejoignent.',
   'on.nhapMa': 'Un code de salon ? Saisis-le ici',
   'on.tenBan': 'Ton pseudo',
-  'on.dangVaoLai': 'Retour dans le salon',
-  'on.giuCho': 'Ton pseudo et ta place sont conservés.',
   'on.duocMoi': '🎉 Tu es invité dans le salon',
   'on.maPhong': 'Code du salon',
   'on.vaoPhongChoi': 'Rejoindre la partie',
