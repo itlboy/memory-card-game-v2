@@ -84,6 +84,25 @@ export function chonCoAnh(cssPx: number, dpr = typeof window === 'undefined' ? 2
   return CO_ANH_3D.find((c) => c >= can) ?? 512;
 }
 
+/**
+ * TẢI TRƯỚC ảnh mặt bài của cả bàn lúc chia (chủ dự án 15.10.2026: trên web lần đầu
+ * lật lá ra Ô TRẮNG vì ảnh mới bắt đầu tải). Giữ tham chiếu Image để trình duyệt không
+ * vứt bản đã giải mã; mỗi URL tải một lần cho cả phiên.
+ */
+const daTai = new Map<string, HTMLImageElement>();
+export function taiTruocAnh(kyHieu: Iterable<string | undefined>, co: number): void {
+  if (typeof Image === 'undefined') return;
+  for (const k of kyHieu) {
+    const url = anhEmoji(k, undefined, co);
+    if (!url || daTai.has(url)) continue;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = url;
+    img.decode?.().catch(() => undefined);
+    daTai.set(url, img);
+  }
+}
+
 /** Đường dẫn ảnh cho ký hiệu, hoặc null = vẽ bằng chữ (máy Apple, chữ/số, ô úp rỗng).
  *  `co` = cỡ ảnh Noto 3D cần (`chonCoAnh`); bỏ trống là 512. */
 export function anhEmoji(kyHieu: string | undefined, vector?: boolean, co = 512): string | null {

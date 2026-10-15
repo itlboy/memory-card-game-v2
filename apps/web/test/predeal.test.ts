@@ -79,8 +79,11 @@ describe('bàn-biết-trước: client chỉ nhả symbol cho ô được phép 
     const doc = [...src.matchAll(/predeal\.value/g)].length;
     const trongCua = [...src.matchAll(/predeal\.value\.get\(index\)/g)].length;
     const ganKhiNhan = [...src.matchAll(/predeal\.value = new Map/g)].length;
+    // Cửa thứ hai: chỉ TẬP hình đã sắp xếp (tải trước ảnh) — không vị trí.
+    const tapHinh = [...src.matchAll(/\[\.\.\.new Set\(predeal\.value\.values\(\)\)\]\.sort\(\)/g)].length;
+    expect(tapHinh, 'cửa tập hình phải bỏ vị trí (Set + sort)').toBeLessThanOrEqual(1);
     expect(doc, 'có chỗ đọc predeal.value ngoài symbolNeuDuocPhep')
-      .toBe(trongCua + ganKhiNhan);
+      .toBe(trongCua + ganKhiNhan + tapHinh);
   });
 
   it('KHÔNG xuất `predeal` ra ngoài composable', () => {

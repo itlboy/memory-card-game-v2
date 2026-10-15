@@ -384,6 +384,12 @@ export function useOnlineRoom() {
     return predeal.value.get(index) ?? '';
   }
   /**
+   * CỬA THỨ HAI, chỉ để TẢI TRƯỚC ảnh mặt bài: TẬP hình của bàn, đã bỏ trùng và SẮP
+   * XẾP — không còn vị trí nên không lộ được lá nào nằm đâu (mọi hình rồi cũng hiện ra
+   * khi chơi). Không trả Map/index dưới bất kỳ dạng nào. test/predeal.test.ts canh.
+   */
+  const hinhCuaBan = computed<string[]>(() => [...new Set(predeal.value.values())].sort());
+  /**
    * Chờ server xác nhận nước bấm bao lâu thì coi như tin đã rơi. Vòng đi-về đo
    * được 69ms lúc bình thường và 376ms lúc tệ, nên 1,5 giây là dư an toàn mà
    * vẫn kịp cứu lượt 15 giây.
@@ -1327,7 +1333,7 @@ export function useOnlineRoom() {
   onScopeDispose(() => { for (const h of loiNoiHen.values()) clearTimeout(h); });
 
   return {
-    phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator,
+    phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
     wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBlast, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
