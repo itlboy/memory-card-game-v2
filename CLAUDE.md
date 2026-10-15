@@ -484,6 +484,13 @@
   `project.pbxproj`. Thêm plugin npm Capacitor là phải `npx cap sync` và commit 3 file
   `capacitor.build.gradle`, `capacitor.settings.gradle`, `CapApp-SPM/Package.swift`.
   Không build native được ở máy này — đẩy `develop` để CI biên dịch thử TRƯỚC khi phát hành.
+- **LINK MỜI MỞ THẲNG APP** (15.10.2026, `lib/link-moi.ts`): Universal Links iOS + App Links
+  Android cho 3 host (cozypi + 2 hello314), chỉ đường `/` có `?room=`. Xác minh ở
+  `public/.well-known/` (AASA: Team ID + bundle iOS; assetlinks: package Android + SHA-256 khoá
+  ký Play — đổi/thêm khoá ký là thêm dấu vân tay). Link tới app qua `getLaunchUrl`/`appUrlOpen`
+  rồi NẠP LẠI ở `?room=CODE` (một lối vào phòng như web). Thêm capability iOS là chạy
+  `gh workflow run ios-profile.yml -f caps=…` rồi nạp lại `IOS_PROFILE_BASE64` (profile cũ
+  thành INVALID). Zalo/Messenger mở link bằng trình duyệt riêng — không vào app được.
 - **Nút Back Android cần `@capacitor/app`** (`lib/nut-back.ts`): thiếu plugin là Back
   thoát thẳng app kể cả giữa wizard. Ngôn ngữ app đồng bộ hai chiều với Cài đặt máy
   (`lib/ngon-ngu-app.ts`, plugin `NgonNguApp`, khoá `mm.langMay`, Android `localeConfig`).
