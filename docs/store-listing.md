@@ -23,7 +23,7 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 | Trường | Giá trị |
 |---|---|
 | Support URL | https://flipmatch.cozypi.com/support.html |
-| Marketing URL | https://cozypi.com (trang studio, `apps/studio`) |
+| Marketing URL | https://cozypi.com (trang studio — repo riêng `itlboy/cozypi-site`) · trang giới thiệu app: https://flipmatch.cozypi.com/about.html |
 | Privacy Policy URL | https://flipmatch.cozypi.com/privacy.html |
 | Category (Apple) | Games → Primary **Puzzle**, Secondary **Board** |
 | Category (Google) | Game → **Puzzle** |

@@ -17,7 +17,6 @@
     "release": "pnpm build && pnpm --filter @mm/server run deploy && node tools/check-share-tags.mjs",
     "check:share": "node tools/check-share-tags.mjs",
     "deploy:server": "pnpm --filter @mm/server run deploy",
-    "deploy:studio": "pnpm --filter @mm/server exec wrangler deploy --config ../studio/wrangler.jsonc",
     "dev:web": "pnpm --filter @mm/web dev",
     "smoke:chat": "node tools/smoke-chat-limit.mjs",
     "smoke:leave": "node tools/smoke-leave-cancel.mjs",
