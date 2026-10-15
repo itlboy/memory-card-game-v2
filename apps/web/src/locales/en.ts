@@ -487,8 +487,6 @@ const en: TuDien = {
   'on.trong.than': 'Be the first to create one — it will appear here for others to join.',
   'on.nhapMa': 'Have a room code? Enter it here',
   'on.tenBan': 'Your name',
-  'on.dangVaoLai': 'Rejoining room',
-  'on.giuCho': 'Keeping your name and seat.',
   'on.duocMoi': "🎉 You're invited to room",
   'on.maPhong': 'Room code',
   'on.vaoPhongChoi': 'Join Game',

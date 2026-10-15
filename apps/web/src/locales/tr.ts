@@ -488,8 +488,6 @@ const tr: TuDien = {
   'on.trong.than': 'İlk odayı sen kur — başkaları katılabilsin diye burada görünür.',
   'on.nhapMa': 'Oda kodun mu var? Buraya gir',
   'on.tenBan': 'Adın',
-  'on.dangVaoLai': 'Odaya yeniden giriliyor',
-  'on.giuCho': 'Adın ve yerin korunuyor.',
   'on.duocMoi': "🎉 Odaya davetlisin:",
   'on.maPhong': 'Oda kodu',
   'on.vaoPhongChoi': 'Oyuna katıl',

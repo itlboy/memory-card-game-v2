@@ -488,8 +488,6 @@ const de: TuDien = {
   'on.trong.than': 'Erstell den ersten — er erscheint hier, damit andere beitreten können.',
   'on.nhapMa': 'Raumcode? Hier eingeben',
   'on.tenBan': 'Dein Name',
-  'on.dangVaoLai': 'Zurück in Raum',
-  'on.giuCho': 'Dein Name und Platz bleiben erhalten.',
   'on.duocMoi': '🎉 Du bist eingeladen in Raum',
   'on.maPhong': 'Raumcode',
   'on.vaoPhongChoi': 'Mitspielen',

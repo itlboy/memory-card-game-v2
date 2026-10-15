@@ -43,6 +43,8 @@ interface StoredSession {
   /** Ảnh chụp phòng chờ lần cuối — để mở lại app là VẼ NGAY phòng chờ, không
    *  qua màn "đang vào lại" (xem `resumeStored`). Chỉ dữ liệu công khai. */
   phong?: RoomInfo; id?: string;
+  /** Bàn chơi lần cuối (view công khai, thẻ úp vẫn rỗng — NF-04) khi đang giữa ván. */
+  ban?: GameView;
 }
 const SESSION_KEY = 'mm.online';
 
@@ -84,6 +86,12 @@ function docPhien(): StoredSession | null {
     return s;
   } catch { return null; }
 }
+
+/** Danh sách phòng tải được lần gần nhất — sống qua các lần vào/ra màn online. */
+let dsDaTai: PublicRoom[] | null = null;
+/** Số lần tải danh sách hụt LIỀN NHAU; hụt lẻ một lần thì im lặng. */
+let loiDsLienTiep = 0;
+const LOI_DS_SAU = 3;
 
 /**
  * Mã phòng của phiên online còn hạn, nếu có. App.vue dùng lúc KHỞI ĐỘNG: app bị
@@ -138,8 +146,8 @@ export function useOnlineRoom() {
 
   /* ---------- danh sách phòng công khai (ON-10) ---------- */
 
-  const phongCongKhai = ref<PublicRoom[]>([]);
-  /** Đang tải danh sách lần ĐẦU (chưa có gì để hiện) — màn dùng để vẽ skeleton. */
+  const phongCongKhai = ref<PublicRoom[]>(dsDaTai ?? []);
+  /** Đang tải danh sách LẦN ĐẦU TRONG ĐỜI APP — màn dùng để vẽ skeleton. */
   const dangTaiPhong = ref(false);
   /** Lần làm mới gần nhất thất bại? Danh sách trống vì lỗi ≠ trống vì không có
    *  phòng nào, và hai cái đó phải nói khác nhau. */
@@ -152,15 +160,28 @@ export function useOnlineRoom() {
    * người chơi còn tạo phòng và nhập mã được như trước khi có tính năng này.
    */
   async function taiPhongCongKhai(): Promise<void> {
-    if (!phongCongKhai.value.length) dangTaiPhong.value = true;
+    /*
+     * LÀM MỚI LÀ VIỆC NGẦM (chủ dự án 15.10.2026: "tự động refresh ngầm, không
+     * cần hiện"). Bản cũ bật skeleton mỗi khi danh sách TRỐNG — tức cứ 5 giây
+     * (CHU_KY_S) cả khung xám nháy lên một lần ở màn không có phòng nào. Nay
+     * skeleton chỉ ở lần tải ĐẦU TIÊN trong đời app (`dsDaTai` sống qua các lần
+     * vào/ra màn online), và một lần tải hụt lẻ không lật "chưa có phòng" thành
+     * "lỗi" — phải hụt liền LOI_DS_SAU lần, hoặc chưa từng tải được.
+     */
+    if (dsDaTai === null) dangTaiPhong.value = true;
     try {
       const res = await fetch(`${SERVER}/api/rooms/public`);
       if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { rooms?: PublicRoom[] };
-      phongCongKhai.value = data.rooms ?? [];
+      const moi = data.rooms ?? [];
+      // Không đổi gì thì GIỮ NGUYÊN mảng cũ: khỏi vẽ lại danh sách mỗi 5 giây.
+      if (JSON.stringify(moi) !== JSON.stringify(phongCongKhai.value)) phongCongKhai.value = moi;
+      dsDaTai = moi;
+      loiDsLienTiep = 0;
       loiTaiPhong.value = false;
     } catch {
-      loiTaiPhong.value = true;
+      loiDsLienTiep++;
+      if (dsDaTai === null || loiDsLienTiep >= LOI_DS_SAU) loiTaiPhong.value = true;
     } finally {
       dangTaiPhong.value = false;
     }
@@ -1268,7 +1289,9 @@ export function useOnlineRoom() {
     try {
       localStorage.setItem(SESSION_KEY, JSON.stringify({
         code, token, name: myName, luc: Date.now(),
-        ...(room.value && myId.value ? { phong: room.value, id: myId.value } : {})
+        ...(room.value && myId.value ? { phong: room.value, id: myId.value } : {}),
+        // Bàn chỉ lưu khi giữa ván — đúng thứ cần để mở lại app là VẼ NGAY bàn.
+        ...(room.value && room.value.status !== 'lobby' && view.value ? { ban: view.value } : {})
       } satisfies StoredSession));
     } catch { /* chế độ riêng tư chặn ghi */ }
   }
@@ -1313,16 +1336,23 @@ export function useOnlineRoom() {
     /*
      * VẼ NGAY PHÒNG CHỜ từ ảnh lần cuối, rồi nối lại NGẦM. Không có bước này thì
      * mở lại app (bị hệ điều hành tắt khi nằm nền) là thấy màn "Đang vào lại
-     * phòng…" — đúng thứ chủ dự án không muốn người chơi thấy. Chỉ phòng chờ:
-     * giữa ván thì cần cả bàn thẻ, chưa có `state` thì chưa vẽ được.
+     * phòng…" — đúng thứ chủ dự án không muốn người chơi thấy. Giữa ván thì vẽ
+     * từ bàn đã lưu (`ban`, ghi lúc app xuống nền); `state` tới là thay.
      * Ảnh sai (phòng đã đổi) thì tin `welcome` vài trăm ms sau ghi đè; phòng đã
      * đóng thì `kiemPhongCon` đưa về danh sách kèm dòng báo.
      */
-    if (s.phong?.status === 'lobby' && s.id && s.phong.code === s.code) {
-      room.value = s.phong;
-      myId.value = s.id;
+    const dungPhong = !!s.phong && !!s.id && s.phong.code === s.code;
+    if (dungPhong && s.phong!.status === 'lobby') {
+      room.value = s.phong!;
+      myId.value = s.id!;
       phase.value = 'lobby';
       daVaoPhong = true;            // đã ở trong phòng từ trước, đừng kêu "vào phòng"
+    } else if (dungPhong && s.ban && s.phong!.status !== 'ended') {
+      room.value = s.phong!;
+      myId.value = s.id!;
+      view.value = s.ban;
+      phase.value = 'playing';
+      daVaoPhong = true;
     }
     connect(s.code, s.name, s.token);
     return true;

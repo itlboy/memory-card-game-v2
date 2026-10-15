@@ -488,8 +488,6 @@ const id: TuDien = {
   'on.trong.than': 'Jadilah yang pertama membuat room — room-mu akan muncul di sini supaya orang lain bisa masuk.',
   'on.nhapMa': 'Punya kode room? Masukkan di sini',
   'on.tenBan': 'Namamu',
-  'on.dangVaoLai': 'Masuk lagi ke room',
-  'on.giuCho': 'Nama dan kursimu tetap disimpan.',
   'on.duocMoi': '🎉 Kamu diundang ke room',
   'on.maPhong': 'Kode room',
   'on.vaoPhongChoi': 'Ikut main',

@@ -489,8 +489,6 @@ const it: TuDien = {
   'on.trong.than': 'Creane una per primo — apparirà qui e gli altri potranno entrare.',
   'on.nhapMa': 'Hai un codice? Inseriscilo qui',
   'on.tenBan': 'Il tuo nome',
-  'on.dangVaoLai': 'Rientro nella stanza',
-  'on.giuCho': 'Teniamo il tuo nome e il tuo posto.',
   'on.duocMoi': "🎉 Sei invitato nella stanza",
   'on.maPhong': 'Codice stanza',
   'on.vaoPhongChoi': 'Entra e gioca',

@@ -488,8 +488,6 @@ const zhTW: TuDien = {
   'on.trong.than': '搶先建立一個吧！房間會顯示在這裡，讓其他人加入。',
   'on.nhapMa': '有房號嗎？在這裡輸入',
   'on.tenBan': '你的名稱',
-  'on.dangVaoLai': '正在重新加入房間',
-  'on.giuCho': '正在保留你的名稱和座位。',
   'on.duocMoi': '🎉 你受邀加入房間',
   'on.maPhong': '房號',
   'on.vaoPhongChoi': '加入遊戲',

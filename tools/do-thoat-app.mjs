@@ -38,11 +38,20 @@ try {
     Object.defineProperty(document, 'hidden', { get: () => window.__an });
     // Nhật ký: mỗi lần DOM đổi, phòng chờ còn trên màn không, và đang hiện gì
     window.__nk = [];
-    const ghi = () => {
-      const s = document.querySelector('.lobby-chat') ? 'phong-cho'
-        : document.querySelector('.vao-lai') ? 'dang-vao-lai'
+    window.__loai = () => {
+      const vl = document.querySelector('.vao-lai');
+      return document.querySelector('.room.sk') ? 'KHUNG-XAM'
+        : vl && (vl.textContent.trim() || vl.children.length) ? 'MAN-CHO-VAO-LAI'
+        : document.querySelector('.reconnect') ? 'BANG-MAT-KET-NOI'
+        : document.querySelector('.lobby-chat') ? 'phong-cho'
+        : document.querySelector('.board-wrap .card') ? 'ban-choi'
+        : vl ? 'trong'
+        : document.querySelector('.rooms, .empty') ? 'danh-sach'
         : document.querySelector('.online') ? 'man-online-khac'
         : document.querySelector('#app')?.children.length ? 'man-khac' : 'trong';
+    };
+    const ghi = () => {
+      const s = window.__loai();
       if (window.__nk.at(-1)?.s !== s) window.__nk.push({ s, t: Math.round(performance.now()) });
     };
     new MutationObserver(ghi).observe(document, { subtree: true, childList: true, attributes: true });
@@ -50,12 +59,7 @@ try {
     // thái trung gian chưa bao giờ lên màn).
     window.__khung = [];
     const mau = () => {
-      const s = document.querySelector('.lobby-chat') ? 'phong-cho'
-        : document.querySelector('.vao-lai') ? 'dang-vao-lai'
-        : document.querySelector('.online') ? 'man-online-khac'
-        : document.querySelector('#app')?.children.length
-          ? 'man-khac:' + [...document.querySelector('#app').querySelectorAll(':scope > *, main > *')].map((e) => e.className).join('|').slice(0, 120)
-          : 'trong';
+      const s = window.__loai();
       if (window.__khung.at(-1)?.s !== s) window.__khung.push({ s, t: Math.round(performance.now()) });
       requestAnimationFrame(mau);
     };
@@ -97,6 +101,64 @@ try {
   ket(nk2.some((x) => x.s === 'phong-cho'), 'mở lại từ gốc: vào thẳng phòng chờ');
   ket(!truoc.length, `mở lại từ gốc: ${truoc.length ? 'thấy ' + truoc.map((x) => x.s).join(', ') + ' trước' : 'không thấy màn trung gian nào'}`);
   ket(await p2.evaluate((c) => location.search.includes(`room=${c}`), code), 'URL mang lại ?room=');
+
+  // ---- Ca 3: phiên lưu từ BẢN CŨ (chưa có ảnh phòng) — không spinner, không chữ ----
+  await p2.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('mm.online'));
+    delete s.phong; delete s.id; delete s.ban;
+    localStorage.setItem('mm.online', JSON.stringify(s));
+  });
+  await p2.close();
+  const p3 = await ctx.newPage();
+  await p3.goto(`${URL_GOC}/`);
+  await p3.waitForSelector('.lobby-chat', { timeout: 15000 }).catch(() => {});
+  await sleep(1500);
+  const k3 = await p3.evaluate(() => window.__khung);
+  const xau3 = k3.filter((x) => /[A-Z]/.test(x.s));
+  ket(!xau3.length && k3.some((x) => x.s === 'phong-cho'),
+    `phiên bản cũ mở lại: ${xau3.length ? 'THẤY ' + xau3.map((x) => x.s).join(', ') : 'không màn chờ, vào phòng'}`);
+
+  // ---- Ca 4: mở lại app GIỮA VÁN — bàn hiện ngay, không màn chờ ----
+  const khach = new WebSocket(`${URL_GOC.replace('http', 'ws')}/ws/${code}?name=Mai&pv=1&bv=2`);
+  await new Promise((r) => { khach.onopen = r; });
+  const giuSong = setInterval(() => khach.send(JSON.stringify({ t: 'alive' })), 3000);
+  khach.send(JSON.stringify({ t: 'ready', ready: true }));
+  await sleep(1200);
+  await p3.locator('.btn-primary').last().click();
+  await p3.waitForSelector('.board-wrap .card', { timeout: 15000 });
+  await sleep(6000);   // qua đếm ngược, ván chạy thật
+  await p3.evaluate(() => { window.__an = true; document.dispatchEvent(new Event('visibilitychange')); });
+  await p3.close();
+  const p4 = await ctx.newPage();
+  await p4.goto(`${URL_GOC}/`);
+  await p4.waitForSelector('.board-wrap .card', { timeout: 15000 }).catch(() => {});
+  await sleep(1500);
+  const k4 = await p4.evaluate(() => window.__khung);
+  const xau4 = k4.filter((x) => x.s !== 'ban-choi' && x.s !== 'trong');
+  ket(k4.some((x) => x.s === 'ban-choi') && !xau4.length,
+    `mở lại giữa ván: ${xau4.length ? 'THẤY ' + xau4.map((x) => x.s).join(', ') : 'bàn hiện thẳng, không màn chờ'}`);
+  clearInterval(giuSong);
+  khach.close();
+  await p4.close();
+
+  // ---- Ca 5: danh sách phòng TRỐNG tự làm mới — không nháy khung xám ----
+  const ctx5 = await trinh.newContext({ viewport: { width: 390, height: 664 }, serviceWorkers: 'block' });
+  await ctx5.addInitScript(() => {
+    window.__xam = 0; let co = false;
+    const mau = () => {
+      const nay = !!document.querySelector('.room.sk');
+      if (nay && !co) window.__xam++;
+      co = nay; requestAnimationFrame(mau);
+    };
+    requestAnimationFrame(mau);
+  });
+  const p5 = await ctx5.newPage();
+  await p5.route('**/api/rooms/public', (r) => r.fulfill({ json: { rooms: [] } }));
+  await p5.goto(`${URL_GOC}/?online=1`);
+  await sleep(12500);   // hơn hai nhịp làm mới 5 giây
+  const xam = await p5.evaluate(() => window.__xam);
+  ket(xam <= 1, `danh sách trống 12 giây: khung xám hiện ${xam} lần (chỉ được lần tải đầu)`);
+  await ctx5.close();
 } finally {
   await dong();
 }

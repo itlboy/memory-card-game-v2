@@ -485,8 +485,6 @@ const zh: TuDien = {
   'on.trong.than': '来创建第一个吧！房间会显示在这里，供其他人加入。',
   'on.nhapMa': '有房间号？在此输入',
   'on.tenBan': '你的名字',
-  'on.dangVaoLai': '正在重新加入房间',
-  'on.giuCho': '正在保留你的名字和座位。',
   'on.duocMoi': '🎉 你受邀加入房间',
   'on.maPhong': '房间号',
   'on.vaoPhongChoi': '加入游戏',
