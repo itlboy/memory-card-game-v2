@@ -1,0 +1,4 @@
+# Cloudflare Workers Assets: KHÔNG đẩy gói cập nhật nóng của app lên Worker dự phòng.
+# Giới hạn 25 MiB/file mà zip OTA đã ~32MB (Noto 3D ba cỡ, 15.10.2026). App tải OTA từ
+# SITE_URL = flipmatch.cozypi.com (server Node trên k8s, không giới hạn) — lib/native.ts.
+ota/
