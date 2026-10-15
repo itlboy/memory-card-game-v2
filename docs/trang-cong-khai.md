@@ -70,13 +70,24 @@ Là văn bản pháp lý: chủ dự án duyệt trước. Đổi xong phải đ
 `docs/store-listing.md`. Đổi dữ liệu thu thập (bảng `users`, thứ gửi lên server) là phải
 sửa trang này.
 
-## Google Search Console
+## Google Search Console (ĐÃ BẬT 15.10.2026, làm hoàn toàn bằng API)
 
-Một **thuộc tính miền** `cozypi.com` (xác minh bằng bản ghi DNS TXT) phủ mọi tên miền con:
-`flipmatch.cozypi.com` và các app sau này. Chủ dự án thêm thuộc tính bằng tài khoản Google
-của mình → Google đưa chuỗi `google-site-verification=…` → thêm bản ghi TXT ở Cloudflare
-(qua API, xem sổ `my-secrets`) → bấm Xác minh → **Sitemaps**: nộp
-`https://flipmatch.cozypi.com/sitemap.xml`. Mỗi app mới: chỉ cần nộp sitemap của nó.
+Thuộc tính **miền** `sc-domain:cozypi.com` — phủ mọi tên miền con (`flipmatch.cozypi.com`,
+`cozypi.com` và app sau này). Đã nộp `https://flipmatch.cozypi.com/sitemap.xml` (61 địa
+chỉ) và `https://cozypi.com/sitemap.xml` (15). Chủ sở hữu: tài khoản dịch vụ
+`play-ci@lat-the-nkien…` (project CÁ NHÂN `lat-the-nkien`) + Gmail cá nhân của chủ dự án
+(secret `SEARCH_CONSOLE_OWNER`) — xem được trên giao diện Search Console như thường.
+
+```bash
+gh workflow run search-console.yml -f buoc=trang-thai   # thuộc tính + sitemap đã đọc bao nhiêu, lỗi
+gh workflow run search-console.yml -f buoc=xac-minh     # nộp lại sitemap (sau khi thêm vào SITEMAPS)
+```
+
+Công cụ: `tools/search-console.mjs` (Site Verification API + Search Console API, khoá ở
+secret `PLAY_SERVICE_ACCOUNT_JSON`). Bản ghi TXT `google-site-verification=…` nằm ở DNS
+`cozypi.com` (Cloudflare) — **đừng xoá**, mất là mất quyền sở hữu. Thêm app mới: thêm
+sitemap của nó vào `SITEMAPS` trong công cụ rồi chạy `xac-minh`. Repo công khai: nhật ký
+Actions ai cũng xem được — không in khoá/email.
 
 Kiểm SEO sau mỗi lần đổi trang: `curl` một bản dịch, xem `<html lang>`, `<title>`,
 `canonical`, đủ 16 dòng `hreflang`, chữ thân trang đúng ngôn ngữ.
