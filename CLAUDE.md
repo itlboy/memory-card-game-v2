@@ -484,6 +484,13 @@
   `project.pbxproj`. Thêm plugin npm Capacitor là phải `npx cap sync` và commit 3 file
   `capacitor.build.gradle`, `capacitor.settings.gradle`, `CapApp-SPM/Package.swift`.
   Không build native được ở máy này — đẩy `develop` để CI biên dịch thử TRƯỚC khi phát hành.
+- **NHẠC NỀN: 5 BÀI, MỖI BÀI MỘT NHỊP ĐIỆU** (15.10.2026, `lib/nhac.ts`): 🎹 Vui · 🌙 Đêm ·
+  🐋 Biển sâu miễn phí; 🌿 Vườn · 🎐 Hộp nhạc premium (ẩn theo `banPremium` như skin). Bài
+  là DỮ LIỆU (`BAI`) chạy chung một máy; khác nhau ở nhịp điệu + kết cấu (swing, quạt chả,
+  3/4, pad) chứ không chỉ ở tiếng — cùng khuôn là bị chê "na ná". Menu và LÚC VÀO VÁN nghe
+  Y HỆT nhau (liền mạch), trong ván chỉ nhịp dồn 62→86 theo `gap`. Âm lượng 0,15. Mã `keo`
+  giữ dù tên hiện là "Vui" (bản lưu đọc mã). Dòng chọn trong menu là HAI TẦNG — một hàng
+  làm menu lòi khỏi SE. Nghe thử: https://claude.ai/artifact/249CoQUxBMFFA3eeYLpVJp
 - **LINK MỜI MỞ THẲNG APP** (15.10.2026, `lib/link-moi.ts`): Universal Links iOS + App Links
   Android cho 3 host (cozypi + 2 hello314), chỉ đường `/` có `?room=`. Xác minh ở
   `public/.well-known/` (AASA: Team ID + bundle iOS; assetlinks: package Android + SHA-256 khoá
