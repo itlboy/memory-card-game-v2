@@ -128,7 +128,12 @@ for (const trang of TRANG) {
     if (lang !== 'en') {
       html = html
         .replace(/(href|src)="(site\/|icon-192\.png)/g, '$1="../$2')
+        // srcset có NHIỀU đường dẫn trong một thuộc tính — thiếu dòng này là trang
+        // /<mã>/ tìm ảnh ở /<mã>/site/img/… và ra ảnh vỡ (chủ dự án báo 15.10.2026)
+        .replace(/srcset="([^"]*)"/g, (_, v) => `srcset="${v.replace(/(^|,\s*)site\//g, '$1../site/')}"`)
         .replace(/href="\/"/g, `href="/?lang=${lang}"`);
+      // Chốt: trang ở thư mục con mà còn đường dẫn `site/` tương đối là ảnh/CSS vỡ
+      if (/(?:src|href)="site\/|srcset="(?:[^"]*,\s*)?site\//.test(html)) throw new Error(`${lang}/${trang}.html còn đường dẫn site/ chưa thêm ../`);
       mkdirSync(join(DIST, lang), { recursive: true });
       writeFileSync(join(DIST, lang, `${trang}.html`), html);
     } else {
