@@ -105,12 +105,12 @@ h3 { font-size: 21px; margin: 0 0 6px; }
 /* Ảnh chụp game bắt đầu ngay từ thanh trên — đặt sát mép khung là trông chật
    (chủ dự án 15.10.2026). Chừa một dải "thanh trạng thái" cùng màu trời của
    game + viên camera như iPhone thật. */
-.phone img { width: 100%; aspect-ratio: 440 / 956; object-fit: cover; padding-top: 9.1%; background: #5cc2f1; box-sizing: content-box; }
+.phone img { width: 100%; aspect-ratio: 440 / 956; object-fit: cover; padding-top: 13.6%; background: #5cc2f1; box-sizing: content-box; }
 .phone::before, .gallery figure::before {
-  content: ""; position: absolute; top: 0; left: 0; right: 0; aspect-ratio: 440 / 40; z-index: 1;
-  background: url("status-bar.svg") center / 100% 100% no-repeat;
+  content: ""; position: absolute; top: 0; left: 0; right: 0; aspect-ratio: 440 / 60; z-index: 1;
+  background: url("img/iphone-status.svg") center / 100% 100% no-repeat;
 }
-.phone::before { background-image: url("img/status-bar.svg"); }
+.phone::before { background-image: url("img/iphone-status.svg"); }
 /* Màn chiến thắng có lớp phủ tối: dải trạng thái theo đúng màu mép ảnh, chữ sáng như iOS */
 img[src$="02-win.webp"] { background-color: #295067 !important; }
 .phone:has(img[src$="02-win.webp"])::before, .gallery figure:has(img[src$="02-win.webp"])::before { filter: invert(1) brightness(1.6); }
@@ -136,8 +136,8 @@ img[src$="02-win.webp"] { background-color: #295067 !important; }
 /* ---------- Dải ảnh ---------- */
 .gallery { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 30px; }
 .gallery figure { margin: 0; position: relative; }
-.gallery figure::before { background-image: url("img/status-bar.svg"); top: 4px; left: 4px; right: 4px; border-radius: 16px 16px 0 0; }
-.gallery img { border-radius: 20px; border: 4px solid var(--navy); box-shadow: 0 6px 0 var(--navy); aspect-ratio: 440 / 956; object-fit: cover; width: 100%; padding-top: 9.1%; background: #5cc2f1; box-sizing: content-box; }
+.gallery figure::before { background-image: url("img/iphone-status.svg"); top: 4px; left: 4px; right: 4px; border-radius: 16px 16px 0 0; }
+.gallery img { border-radius: 20px; border: 4px solid var(--navy); box-shadow: 0 6px 0 var(--navy); aspect-ratio: 440 / 956; object-fit: cover; width: 100%; padding-top: 13.6%; background: #5cc2f1; box-sizing: content-box; }
 .gallery figcaption { margin-top: 10px; font-weight: 800; color: var(--navy); font-size: 14.5px; text-align: center; }
 @media (max-width: 900px) {
   .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 14px; margin-inline: -20px; padding-inline: 20px; }
