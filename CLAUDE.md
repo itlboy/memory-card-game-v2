@@ -706,6 +706,12 @@
   curl -s "https://flipmatch.cozypi.com$CSS" | grep -c 'flex: 0 0 40px'   # 1 = đã lên
   ```
   Soi thẳng trong pod khi cần: `node bin/secrets.mjs run k8s -- kubectl -n thebai exec deploy/thebai-server -- grep -l ... /app/web/assets/*`
+- **ẢNH TRÊN TRANG WEB KHÔNG TO HƠN KHUNG HIỂN THỊ** (chủ dự án 15.10.2026: ảnh 540/900px trong
+  khung ~230/300px, "to oạch, làm nặng"). Mỗi ảnh HAI cỡ: 1x ≈ bề rộng khung, 2x = gấp đôi
+  (Retina) — gắn `srcset` + `sizes`, xoá file gốc to. ĐO bề rộng thật của `<img>` trước khi
+  chọn cỡ, đừng lấy cỡ ảnh nguồn. `test/anh-trang.test.ts` canh trần (điện thoại 464, iPad
+  600), srcset bắt buộc, và đường dẫn trong HTML/JSON-LD phải trỏ tới file có thật. Áp dụng
+  cả `cozypi.com` (repo `cozypi-site`, cùng luật, chưa có test). Cách làm: docs/ban-do.md.
 - **STUDIO "COZY PI", TÊN CHÍNH LÀ `flipmatch.cozypi.com` (13.10.2026)** — `cozypi.com` dùng
   chung cho mọi app của studio (wildcard `*.cozypi.com` → tunnel; app mới chỉ thêm host
   vào ingress), email `support@cozypi.com`. `flipmatch.hello314.com` và
