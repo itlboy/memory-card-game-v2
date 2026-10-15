@@ -481,6 +481,7 @@ watch(() => o.view.value?.summary, (s) => {
         :vua-mo="o.vuaMo.value"
         :revealing-all="o.revealingAll.value" :locked="locked"
         :back="o.backStyle.value"
+        :hinh-cua-ban="o.hinhCuaBan.value"
         @flip="o.flip"
       />
       <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">

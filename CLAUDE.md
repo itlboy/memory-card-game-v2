@@ -872,7 +872,10 @@
   `tai-noto3d` thoát lỗi + test `emoji-vector` đỏ → chọn emoji khác. Chế độ debug → Luật chơi →
   "Bộ hình emoji" đổi Máy ⇄ Noto 3D (`mm.boEmoji`, chỉ máy đó; TẮT debug là về mặc định —
   `boEmojiVeMacDinh`). Thêm/sửa theme = `node tools/tai-noto3d.mjs`; chỉ emoji Unicode ≤14;
-  số theme MỖI TAB chia hết cho 12. Mục dưới là lịch sử:
+  số theme MỖI TAB chia hết cho 12. TẢI TRƯỚC lúc chia bài (`taiTruocAnh` trong BoardGrid,
+  web lần đầu lật từng ra ô trắng): offline lấy symbol của thẻ, online lấy `hinhCuaBan` —
+  CỬA THỨ HAI của predeal, chỉ TẬP hình Set+sort, KHÔNG vị trí (test/predeal canh). Cỡ ĐOÁN
+  trước khi đo = bề ngang ÷ số cột (đoán sai là mỗi hình tải hai lần — đã đo). Mục dưới là lịch sử:
 - **(14.10.2026) MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG SVG TWEMOJI** (`lib/emoji.ts`, `public/emoji/<mã>.svg`,
   phương án B chủ dự án chốt 14.10.2026): emoji Android là bitmap ~136px → mờ trên
   mặt bài; Windows không có emoji cờ. iPhone/iPad/Mac GIỮ emoji Apple. Chỉ đổi cách

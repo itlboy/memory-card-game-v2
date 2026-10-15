@@ -2,7 +2,7 @@
 import { t } from '@/lib/i18n';
 import type { Card } from '@mm/engine';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import { chonCoAnh } from '@/lib/emoji';
+import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
 import CardTile from './CardTile.vue';
 
 const props = defineProps<{
@@ -22,6 +22,9 @@ const props = defineProps<{
   /** Lá VỪA ĐƯỢC MỞ bởi bất kỳ ai, kèm số đếm để lặp lại hiệu ứng. Trên bàn
    *  56–88 thẻ, không có tín hiệu này thì đối thủ mở lá nào cũng không ai thấy. */
   vuaMo?: { index: number; key: number; cuaToi?: boolean } | null;
+  /** Hình của cả bàn để TẢI TRƯỚC (online: thẻ úp không mang symbol nên bàn tự
+   *  không biết). Chỉ là TẬP hình đã sắp xếp — không kèm vị trí. */
+  hinhCuaBan?: readonly string[];
 }>();
 
 const emit = defineEmits<{ flip: [index: number] }>();
@@ -30,11 +33,16 @@ const grid = ref<HTMLElement | null>(null);
 /**
  * CỠ ẢNH MẶT BÀI CHO CẢ BÀN (lib/emoji.ts `chonCoAnh`): đo MỘT lá thật, không
  * đo từng lá (88 phép đo mỗi lần đổi cỡ). Hình = `.front` max(22px, 72cqw) ×
- * `.emoji` .92em. Trước khi đo được thì đoán theo số thẻ để khỏi tải ảnh 512
- * cho bàn 88 thẻ rồi mới đổi. Xoay máy / đổi khung → ResizeObserver đo lại.
+ * `.emoji` .92em. Trước khi đo được thì ĐOÁN theo bề ngang cột game ÷ số cột (bàn
+ * bị chặn bởi chiều cao thì lá nhỏ hơn → đoán dư một bậc, không bao giờ thiếu nét).
+ * Đoán sai là mỗi hình tải HAI lần (đã đo: bàn 12 thẻ tải 6 ảnh 512 rồi 6 ảnh 256).
+ * Xoay máy / đổi khung → ResizeObserver đo lại.
  */
-const doan = (n: number) => (n >= 42 ? 128 : n >= 16 ? 256 : 512);
-const coAnh = ref(doan(props.cards.length));
+const doan = (): number => {
+  const rong = typeof window === 'undefined' ? 400 : Math.min(window.innerWidth, 600);
+  return chonCoAnh(Math.max(22, (rong / Math.max(1, props.cols)) * 0.72) * 0.92);
+};
+const coAnh = ref(doan());
 function doCoAnh(): void {
   const la = grid.value?.querySelector<HTMLElement>('.card');
   if (!la || !la.offsetWidth) return;
@@ -49,7 +57,15 @@ onMounted(() => {
   }
 });
 onUnmounted(() => ro?.disconnect());
-watch(() => props.cards.length, (n) => { coAnh.value = doan(n); doCoAnh(); }, { flush: 'post' });
+watch(() => props.cards.length, () => { coAnh.value = doan(); doCoAnh(); }, { flush: 'post' });
+/* Tải trước ảnh mọi hình của bàn ở đúng cỡ sẽ vẽ — lá lật lên là có hình ngay, không
+   ra ô trắng chờ mạng. Offline: thẻ mang sẵn symbol; online: lấy `hinhCuaBan`. Cỡ đổi
+   (xoay máy) thì tải cỡ mới — URL đã tải bỏ qua nên không tốn lại. */
+watch(
+  () => [coAnh.value, props.cards.length, props.hinhCuaBan] as const,
+  () => taiTruocAnh([...props.cards.map((c) => c.symbol), ...(props.hinhCuaBan ?? [])], coAnh.value),
+  { immediate: true }
+);
 
 /**
  * Hiệu ứng tráo thẻ. Engine đã đổi chỗ xong rồi, nên ở đây làm ngược: đặt thẻ
