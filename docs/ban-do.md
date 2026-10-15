@@ -30,7 +30,7 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 | **36 bộ hình miễn phí** (48 tổng, 12 premium ẩn) | `apps/web/public/data/themes.json` (+ bản sao `apps/server/src/themes.ts`), `banPremium` | trang `f5.h/p`, `about.desc` · site-i18n · store · README | `themes.test.ts`, `emoji-vector` |
 | **Hơn 100 danh hiệu** (đang hiện 117, tổng 129) | `ACHIEVEMENTS` / `dsHien` — `apps/web/src/lib/achievements.ts` | trang `f6.p` · site-i18n · store ("100+") · README · CLAUDE.md (con số chính xác) | `achievements.test.ts` |
 | **15 ngôn ngữ** | `NGON_NGU` — `apps/web/src/lib/i18n.ts` | xem **docs/ngon-ngu.md** (14 chỗ) · trang `about.b5`, `a5`, `about.desc` · store · README | `i18n*.test.ts`, `site-i18n.test.ts`, `pnpm do:ngon-ngu` |
-| **3 skin miễn phí** (Kẹo · Neon · Gỗ) | `lib/skin.ts`, `banPremium` | trang r2 (lịch sử) · `tb.skin.*` 15 từ điển | `skin.test.ts` |
+| **3 skin miễn phí** (Kẹo · Neon · Gỗ) + 2 premium (Đêm Sao · Kẹo Bông, dùng font Kẹo) | `lib/skin.ts`, `styles/skins/*.css`, `banPremium` | trang r2 (lịch sử) · `tb.skin.*` 15 từ điển · CLAUDE.md mục SKIN | `skin.test.ts`, `tuong-phan.test.ts`, `pnpm do:tuong-phan`, `pnpm do:safari` |
 | **12 câu nói nhanh**, không chat tự do | `QUICK_SAYS` (engine) | trang `f3.p`, privacy `pv.s2b` · site-i18n · store · privacy (Messaging = Yes) | `smoke-noi-nhanh.mjs` |
 | **Miễn phí, không quảng cáo, 4+** | quyết định chủ dự án (CLAUDE.md "APP LÀ 4+") | trang `about.b1`, `about.b4`, `q1/a1` · site-i18n · store (Price, Age rating) | — |
 | **Có Google Analytics 4** (từ 15.10.2026; KHÔNG còn hứa "không theo dõi") — tắt Google Signals + quảng cáo, châu Âu không cookie, không hộp hỏi đồng ý | `GA_ID` ở `apps/web/src/lib/phan-tich.ts` (game web + app), `site.js` (trang công khai), `cozypi-site/src/index.html` — cùng mã `G-MZ4MDWZRH3` (tài khoản GA "Cozy Pi") | privacy `pv.intro` + `pv.s4` (mục Google Analytics) · trang `about.b2` "Privacy first" · studio `p2.*`, `hero.lead`, `meta.desc` · store (mô tả bỏ "No tracking"; App Privacy / Data safety phải khai Usage Data) | sự kiện game: `van_bat_dau`, `van_ket_thuc` |
@@ -60,6 +60,19 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 
 Đổi giao diện lớn → chụp lại cả ba bộ. Màn có lớp phủ tối (màn thắng) cần màu dải
 trạng thái riêng trong `site.css` (`img[src$="02-win.webp"]`).
+
+## Công cụ đo giao diện (chạy sau mỗi lần sửa UI)
+
+| Lệnh | Engine | Bắt được gì |
+|---|---|---|
+| `pnpm do:safari [url]` | WebKit (Safari/iPhone) | viền/bóng bị khung cắt, nút lòi khỏi màn, trang cuộn — 3 cỡ iPhone × 5 skin × 9 màn |
+| `pnpm do:tuong-phan [url]` | Chrome | chữ khó đọc (tương phản) — 5 skin × sáng/tối |
+| `pnpm do:ngon-ngu` | Chrome | chữ tràn nút ở 15 ngôn ngữ trên iPhone SE |
+| `pnpm do:menu` | Chrome | menu thả xuống bị đè, bảng kết quả, khung màn đang rời |
+| `pnpm do:fx` | Chrome | cảnh kết ván tràn khỏi cột game trên máy tính |
+
+Chrome hỗ trợ thứ Safari không có (`overflow-clip-margin`…) — chỉ đo Chrome là bỏ sót lỗi
+iPhone. Lỗi lớp GPU (ô trắng khi thiếu bộ nhớ) thì không công cụ nào tái hiện: xem máy thật.
 
 ## Tài liệu chuyên đề
 

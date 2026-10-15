@@ -1,0 +1,40 @@
+# ĐƯA MỘT BUILD ANDROID SANG KÊNH THỬ KHÁC (vd. nội bộ → khép kín) — tools/play-track.mjs.
+#
+#   gh workflow run play-track.yml --ref main                              (chỉ liệt kê kênh + build)
+#   gh workflow run play-track.yml --ref main -f version_code=192 -f kenh=alpha
+#
+# mobile.yml chỉ đẩy lên kênh `internal`; người thử khép kín cần build ở kênh khép kín.
+name: Google Play track
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: versionCode cần đưa sang (để trống = chỉ liệt kê)
+        default: ''
+      kenh:
+        description: Tên kênh đích (alpha = thử nghiệm khép kín mặc định)
+        default: alpha
+
+permissions:
+  contents: read
+
+jobs:
+  dua:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Kênh Google Play
+        env:
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          VC: ${{ inputs.version_code }}
+          KENH: ${{ inputs.kenh }}
+        run: |
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          if [ -n "$VC" ]; then node tools/play-track.mjs "$RUNNER_TEMP/sa.json" "$VC" "$KENH"
+          else node tools/play-track.mjs "$RUNNER_TEMP/sa.json"; fi
+          rm -f "$RUNNER_TEMP/sa.json"

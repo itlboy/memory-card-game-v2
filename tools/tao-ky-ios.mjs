@@ -66,7 +66,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'ky-ios-'));
 try {
   // 1. Khoá + CSR (khoá không rời máy)
   openssl('req', '-new', '-newkey', 'rsa:2048', '-nodes', '-keyout', join(tmp, 'key.pem'),
-    '-out', join(tmp, 'csr.pem'), '-subj', '/CN=314 Labs CI/O=314 Labs/C=VN');
+    '-out', join(tmp, 'csr.pem'), '-subj', '/CN=Cozy Pi CI/O=Cozy Pi/C=VN');
 
   // 2. Chứng chỉ Apple Distribution
   const cert = await api('POST', '/v1/certificates', {
@@ -107,7 +107,7 @@ try {
   // AES mặc định của OpenSSL 3 ("MAC verification failed" lúc `security import`).
   const mk = randomBytes(18).toString('base64url');
   execFileSync('openssl', ['pkcs12', '-export', '-inkey', join(tmp, 'key.pem'), '-in', join(tmp, 'cert.pem'),
-    '-name', '314 Labs Apple Distribution', '-out', P12, '-passout', 'env:MK',
+    '-name', 'Cozy Pi Apple Distribution', '-out', P12, '-passout', 'env:MK',
     '-keypbe', 'PBE-SHA1-3DES', '-certpbe', 'PBE-SHA1-3DES', '-macalg', 'sha1'],
   { env: { ...process.env, MK: mk }, stdio: ['ignore', 'pipe', 'pipe'] });
   writeFileSync(MATKHAU, mk + '\n', { mode: 0o600 });
