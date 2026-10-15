@@ -469,14 +469,14 @@ function playerList(): PlayerInit[] | undefined {
   // bộ điều khiển trong useGameSession chờ tới lượt
   if (botLevel.value) {
     const spec = BOT_SPECS[botLevel.value];
-    return [
+    return batDauLoat([
       // Đấu máy LUÔN là "Bạn", không lấy tên đã lưu: tên là chuyện của phòng
       // online (và của nhiều người cùng máy). Lôi tên sót lại từ đó sang đây thì
       // người chơi thấy một cái tên mình chưa từng đặt cho ván này, mà nhánh
       // đấu máy lại không có bước nhập tên để sửa (MenuScreen bỏ bước 'names').
       { id: 'p1', name: 'Bạn' }, // i18n-bo-qua — dữ liệu ván; tenNguoi() dịch lúc vẽ (so đúng chữ này)
       { id: 'bot', name: spec.name, avatar: spec.avatar }
-    ];
+    ]);
   }
   if (playerCount.value < 2) return undefined;
   const saved = store.playerNames();
@@ -484,8 +484,15 @@ function playerList(): PlayerInit[] | undefined {
     id: `p${i + 1}`,
     name: saved[i] ?? t('menu.nguoiN', { n: i + 1 })
   }));
-  // Nhóm khác (đổi tên hoặc đổi số người) thì bắt đầu loạt mới từ 0
-  const key = list.map((p) => p.name).join('|');
+  return batDauLoat(list);
+}
+
+/** Nhóm khác (đổi tên, đổi số người, hay đổi MỨC MÁY) thì bắt đầu loạt mới từ 0.
+ *  Nhánh đấu máy từng return sớm trước chỗ này, nên đổi từ Gà mờ sang Rồng thần
+ *  vẫn mang theo số ván thắng của mức cũ. Khoá có id để "Bạn" vs máy không trùng
+ *  với một nhóm người tình cờ cùng tên. */
+function batDauLoat(list: PlayerInit[]): PlayerInit[] {
+  const key = list.map((p) => `${p.id}:${p.name}`).join('|');
   if (key !== seriesKey.value) {
     seriesKey.value = key;
     seriesWins.value = {};
