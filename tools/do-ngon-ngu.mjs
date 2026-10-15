@@ -23,6 +23,8 @@ const [W, H] = [375, 553];
 const PORT = 9343, PROFILE = `/tmp/mm-cdp-nn-${process.pid}`;
 rmSync(PROFILE, { recursive: true, force: true });
 const chrome = spawn(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
+process.on('exit', () => { chrome.kill(); try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* */ } });
+for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => process.exit(130)); // tín hiệu không chạy 'exit' — thiếu dòng này là Chrome mồ côi
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let targets; for (let i = 0; i < 40; i++) { try { targets = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json(); break; } catch { await cho(250); } }
 const ws = new WebSocket(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);

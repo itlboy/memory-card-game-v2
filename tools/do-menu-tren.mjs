@@ -26,9 +26,10 @@ const PROFILE = `/tmp/mm-cdp-${process.pid}`;
 // Profile MỚI mỗi lần và bỏ qua service worker: PWA precache index.html, dùng
 // lại profile là đo bản build CŨ mà không hay (đã dính: đo xanh/đỏ ngược nhau).
 rmSync(PROFILE, { recursive: true, force: true });
-process.on('exit', () => { try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* Chrome còn ghi, lần sau xoá */ } });
 const chrome = spawn(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-first-run',
   '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
+process.on('exit', () => { chrome.kill(); try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* Chrome còn ghi, lần sau xoá */ } });
+for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => process.exit(130)); // tín hiệu không chạy 'exit' — thiếu dòng này là Chrome mồ côi
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let targets;
 for (let i = 0; i < 40; i++) {
