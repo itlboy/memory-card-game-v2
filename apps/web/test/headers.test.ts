@@ -76,6 +76,14 @@ describe('server Node đặt cùng luật cache với _headers', () => {
     expect(m![1]).toBe(cacheControl('/sw.js'));
   });
 
+  it('gói OTA cache vĩnh viễn, manifest luôn hỏi lại — giống _headers', () => {
+    const m = /ota\[[^\]]*\]\[\^[^']*\.test\(file\)\) return '([^']+)'/.exec(nodeSrc);
+    expect(m, 'không thấy luật cache cho /ota/*.zip').toBeTruthy();
+    expect(m![1]).toBe(cacheControl('/ota/*.zip'));
+    expect(cacheControl('/ota/*.zip')).toContain('immutable');
+    expect(cacheControl('/ota/manifest.json')).toBe('no-cache');
+  });
+
   it('asset có hash cache dài và immutable, giống _headers', () => {
     const m = /assets\[\/\\\\\]\/\.test\(file\)\) return '([^']+)'/.exec(nodeSrc)
       ?? /return '(public, max-age=\d+, immutable)'/.exec(nodeSrc);
