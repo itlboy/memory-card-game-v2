@@ -168,12 +168,14 @@ const COUNTS = [
  *  "retain 0,72" — trọng số là chuyện của engine.
  *  Ô xếp MỘT CỘT nên thêm mức là mọi ô thấp xuống, KHÔNG làm trang dài ra
  *  (luật KHÔNG SCROLL) — nhưng mỗi ô vẫn phải trên ngưỡng chạm 44px. */
+// Màu ô chọn để MẶT MÁY không trùng tông ô (Kẹo: 🐥 vàng → ô hồng, báo đen → ô vàng,
+// 🐯 cam → ô xanh lá, rồng vàng → ô đỏ) — mặt nằm thẳng trên ô, không có đĩa trắng.
 const BOT_CHOICES = [
   { id: 'easy' as BotLevel,   g: 'g-teal' },
-  { id: 'normal' as BotLevel, g: 'g-blue' },
-  { id: 'hard' as BotLevel,   g: 'g-amber' },
-  { id: 'insane' as BotLevel, g: 'g-red' },
-  { id: 'divine' as BotLevel, g: 'g-violet' }
+  { id: 'normal' as BotLevel, g: 'g-amber' },
+  { id: 'hard' as BotLevel,   g: 'g-blue' },
+  { id: 'insane' as BotLevel, g: 'g-violet' },
+  { id: 'divine' as BotLevel, g: 'g-red' }
 ];
 
 function pickBotMode(): void {
@@ -541,6 +543,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         ĐÚNG (khác các bước bấm-là-đi như số người hay mức bot).
       -->
       <div v-else key="options" class="step-body opt-list">
+        <div class="opt-rows">
         <div v-for="row in OPTION_ROWS" :key="row.key" class="opt-row">
           <div class="opt-head">
             <OptionIcon :name="row.icon" :size="24" />
@@ -555,6 +558,7 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
               @click="setOption(row.key, muc as OptLevel)"
             >{{ td(`opt.${row.key}.${muc}`) }}</button>
           </div>
+        </div>
         </div>
 
         <button class="btn-primary" type="button" @click="emit('start-level', level)">
@@ -701,13 +705,26 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .moc-sao .vang { color: var(--gold); }
 .moc-sao .ngan { color: var(--muted); }
 /* ── BẢNG TUỲ CHỌN BÀN CHƠI ───────────────────────────────────────────────
-   Năm hàng phải vừa iPhone SE mà KHÔNG cuộn. Đo trên Chrome: hàng 73px, năm
-   hàng + nút còn dư 44px. Hàng thứ sáu cần 80px nên sẽ tràn — muốn thêm tuỳ
-   chọn thì phải gộp hàng, đừng để trang dài ra. */
+   Nút "Bắt đầu" nằm NGOÀI khung hàng và luôn ở đáy; các hàng ở `.opt-rows`, thiếu
+   chỗ thì cuộn TRONG khung (như lưới theme) — nút chính không bao giờ bị đẩy ra.
+   Bản cũ để nút chung khung `overflow: hidden` với hàng: trên iPhone SE (vùng web
+   375×553) năm hàng 74px + nút cần 455px mà chỉ có 363px → nút "Bắt đầu" và hàng
+   cuối LÒI khỏi màn, ở mọi trình duyệt (bắt bằng `pnpm do:safari`, 15.10.2026).
+   Màn thấp thì thu gọn (khối `max-height: 620px` dưới) để SE vẫn vừa đủ 5 hàng
+   KHÔNG cuộn; thêm hàng thứ sáu là phải đo lại bằng `pnpm do:safari`. */
 .opt-list {
   display: flex; flex-direction: column; gap: 7px;
-  min-height: 0; overflow: hidden;
+  min-height: 0;
 }
+.opt-rows {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 7px;
+  scrollbar-width: none;
+  /* chỗ cho bóng nút đang chọn ở hàng cuối — khung cuộn cắt mọi thứ tràn ra */
+  padding-bottom: 10px; margin-bottom: -10px;
+}
+.opt-rows::-webkit-scrollbar { display: none; }
+.opt-list > .btn-primary { flex: none; }
 .opt-row {
   flex: 0 0 auto;
   border: 1px solid var(--line); border-radius: var(--r-md);
@@ -775,4 +792,18 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .o-vuong strong { font-family: var(--font-display); font-size: 15px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
 .o-chien-dich:active, .o-vuong:active { transform: translateY(3px); }
 @media (hover: hover) { .o-chien-dich:hover, .o-vuong:hover { transform: translateY(-2px); } }
+/* Bảng tuỳ chọn trên màn THẤP (iPhone SE) — ĐỨNG CUỐI file để thắng luật gốc cùng độ đặc hiệu */
+@media (max-height: 620px) {
+  .opt-list, .opt-rows { gap: 5px; }
+  .opt-row { padding: 3px 9px 4px; }
+  .opt-head { margin-bottom: 2px; }
+  .opt-head .opt-ico { width: 20px; height: 20px; }
+  .opt-name { font-size: var(--text-sm); }
+  .seg-btn { height: 26px; min-height: 26px; }   /* vùng chạm vẫn 42px nhờ ::after */
+}
+/* …và chừa thêm chỗ cho cả wizard trên màn thấp (đệm panel 20 → 14, đầu bước 16 → 10) */
+@media (max-height: 620px) {
+  section.panel:not(.trang-chu) { padding: 14px; }
+  .wizard-head { margin-bottom: 10px; }
+}
 </style>
