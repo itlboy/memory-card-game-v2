@@ -277,6 +277,18 @@
   MenuScreen), lỗi server (dịch theo MÃ lỗi ở client), thẻ og. Chuyển xong file nào
   thì thêm vào `DA_CHUYEN`.
 
+## GOOGLE ANALYTICS 4 (15.10.2026, chủ dự án chốt: GA4, KHÔNG hộp hỏi cookie)
+
+- Một mã `G-MZ4MDWZRH3` (tài khoản GA "Cozy Pi" → thuộc tính "Flip Match") cho game web,
+  app (qua phần web — tới app bằng cập nhật nóng), 4 trang công khai và `cozypi.com`.
+- Cửa DUY NHẤT trong game: `lib/phan-tich.ts` (`batPhanTich`, `suKien`). Cố định: tắt Google
+  Signals + cá nhân hoá quảng cáo; múi giờ châu Âu → `analytics_storage: denied` (không
+  cookie, thay cho hộp hỏi đồng ý); trong app dùng `store.clientId()` làm client_id.
+  KHÔNG chạy khi test / dev / localhost / `navigator.webdriver` (công cụ đo, chụp ảnh store).
+- KHÔNG gửi dữ liệu cá nhân (tên, email, mã tài khoản). Thêm sự kiện mới = sửa luôn mục
+  Google Analytics trong trang quyền riêng tư nếu nó đo thứ chưa kể ở đó.
+- Không còn được viết "không theo dõi / no tracking" ở bất cứ đâu (trang, store, studio).
+
 ## SKIN — LỚP ÁO TÁCH KHỎI BỐ CỤC (13.10.2026)
 
 - Ba skin: **Kẹo** (mặc định, mockup B chủ dự án duyệt

@@ -58,6 +58,26 @@
     if (muon !== 'en') { location.replace(diaChi(muon) + location.hash); return; }
   }
 
+  /*
+   * Google Analytics 4 (cùng mã với game: tài khoản "Cozy Pi"). Tắt Google Signals +
+   * cá nhân hoá quảng cáo; người ở châu Âu (đoán theo múi giờ) chạy KHÔNG cookie — không
+   * cần hộp hỏi đồng ý (chủ dự án 15.10.2026). Không chạy ở localhost / trình duyệt tự động.
+   */
+  (() => {
+    const GA = 'G-MZ4MDWZRH3';
+    if (navigator.webdriver || /^(localhost|127\.|\[::1\])/.test(location.hostname)) return;
+    let eu = false;
+    try { eu = /^Europe\//.test(Intl.DateTimeFormat().resolvedOptions().timeZone); } catch { /* bỏ qua */ }
+    window.dataLayer = window.dataLayer || [];
+    // eslint-disable-next-line prefer-rest-params
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: eu ? 'denied' : 'granted' });
+    gtag('js', new Date());
+    gtag('config', GA, { allow_google_signals: false, allow_ad_personalization_signals: false });
+    const s = document.createElement('script'); s.async = true; s.src = `https://www.googletagmanager.com/gtag/js?id=${GA}`;
+    document.head.appendChild(s);
+  })();
+
   document.querySelectorAll('[data-nam]').forEach((el) => { el.textContent = String(new Date().getFullYear()); });
 
   document.querySelectorAll('[data-store]').forEach((a) => {
