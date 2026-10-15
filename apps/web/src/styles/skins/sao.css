@@ -3,14 +3,14 @@
  * (mockup https://claude.ai/artifact/5Vf2BmcQEKe6ZAPkFxGqGG).
  *
  * Điểm nhấn là VÀNG KIM trên nền tối: viền mảnh 1,5px quanh mọi khối bấm được,
- * hành động chính là thỏi vàng. Chữ hiển thị Playfair Display (có chân, đủ dấu
- * tiếng Việt — Cinzel của mockup thiếu dấu nên đã thay).
+ * hành động chính là thỏi vàng. Chữ dùng CHUNG font với Kẹo (Grandstander + Be Vietnam Pro) — Playfair
+ * Display bị chê xấu 15.10.2026.
  * Cùng luật selector với go.css: mọi khối dưới `:root[data-skin='sao']`.
  */
 :root[data-skin='sao'] {
   --ink: #f4e3b5;
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-display: 'Grandstander', 'Baloo 2', system-ui, sans-serif;   /* chung với Kẹo (chủ dự án 15.10.2026) */
+  --font-body: 'Be Vietnam Pro', 'Nunito', system-ui, -apple-system, sans-serif;
 
   --bg: #0d0f2b;
   --bg-glow-1: transparent; --bg-glow-2: transparent; --bg-glow-3: transparent;
@@ -61,7 +61,7 @@
 :root[data-skin='sao'] body { background: var(--nen-man); background-attachment: fixed; }
 :root[data-skin='sao'] #app { background: var(--canh); }
 :root[data-skin='sao'] .tam-dung { background: var(--canh), var(--nen-man); }
-:root[data-skin='sao'] h1, :root[data-skin='sao'] h2, :root[data-skin='sao'] h3 { letter-spacing: .02em; }
+:root[data-skin='sao'] h1, :root[data-skin='sao'] h2, :root[data-skin='sao'] h3 { font-weight: 900; letter-spacing: 0; }
 
 /* ---------- khối ---------- */
 :root[data-skin='sao'] .panel {
@@ -112,7 +112,7 @@
 
 /* Ô định danh: không khối màu — nền chàm, icon vàng (như go.css) */
 :root[data-skin='sao'] .neon { color: var(--ink) !important; }
-:root[data-skin='sao'] .neon strong { text-shadow: none; font-family: var(--font-display); }
+:root[data-skin='sao'] .neon strong { text-shadow: none; font-family: var(--font-display); font-weight: 900; }
 :root[data-skin='sao'] .neon small { color: var(--fg) !important; text-shadow: none; opacity: .92; }   /* --muted chìm trên ô đá quý (2,1:1) */
 :root[data-skin='sao'] .neon .opt-icon,
 :root[data-skin='sao'] .neon .count-num { color: var(--accent) !important; }

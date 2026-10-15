@@ -14,7 +14,7 @@
  * ngang. Bố cục dùng vmin để mọi cỡ Android cũng ra cùng một hình.
  * Đổi thiết kế: sửa HTML dưới đây rồi chạy lại, xong `cap sync` (đã có trong build:ios).
  */
-import { spawn } from 'node:child_process';
+import { moChrome } from './lib-chrome.mjs';
 import { createRequire } from 'node:module';
 import { rmSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -62,8 +62,7 @@ body{position:relative;overflow:hidden;background:
 </style><body><div class="la trai">${SAO}</div><div class="la phai">${SAO}</div><div class="la giua">${TIM}</div></body>`;
 
 const PORT = 9400 + (process.pid % 300), PROFILE = `/tmp/mm-splash-${process.pid}`;
-const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [`--remote-debugging-port=${PORT}`, '--headless=new', '--hide-scrollbars', '--no-first-run', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
-process.on('exit', () => { chrome.kill(); try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* Chrome còn giữ file */ } });
+const chrome = moChrome('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [`--remote-debugging-port=${PORT}`, '--headless=new', '--hide-scrollbars', '--no-first-run', `--user-data-dir=${PROFILE}`, 'about:blank'], PROFILE);
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let t; for (let i = 0; i < 40; i++) { try { t = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json(); break; } catch { await cho(250); } }
 const ws = new WebSocket(t.find((x) => x.type === 'page').webSocketDebuggerUrl);

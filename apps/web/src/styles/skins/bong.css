@@ -4,13 +4,14 @@
  *
  * Điểm nhấn là VIỀN HỒNG DÀY + MÉP ĐẨY (bóng cứng 0 4px phía dưới) như viên kẹo.
  * Nền sáng nên chữ là tím mận đậm, KHÔNG dùng hồng nhạt cho chữ (thiếu tương
- * phản). Chữ hiển thị Quicksand (tròn, đủ dấu tiếng Việt — Fredoka thiếu dấu).
+ * phản). Chữ dùng CHUNG font với Kẹo (Grandstander + Be Vietnam Pro) —
+ * Quicksand bị chê xấu 15.10.2026.
  * Cùng luật selector với go.css: mọi khối dưới `:root[data-skin='bong']`.
  */
 :root[data-skin='bong'] {
   --ink: #4a2347;
-  --font-display: 'Quicksand', 'Nunito', system-ui, sans-serif;
-  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-display: 'Grandstander', 'Baloo 2', system-ui, sans-serif;   /* chung với Kẹo (chủ dự án 15.10.2026) */
+  --font-body: 'Be Vietnam Pro', 'Nunito', system-ui, -apple-system, sans-serif;
 
   --bg: #ffe3f1;
   --bg-glow-1: transparent; --bg-glow-2: transparent; --bg-glow-3: transparent;
@@ -57,7 +58,7 @@
 :root[data-skin='bong'] body { background: var(--nen-man); background-attachment: fixed; }
 :root[data-skin='bong'] #app { background: var(--canh); }
 :root[data-skin='bong'] .tam-dung { background: var(--canh), var(--nen-man); }
-:root[data-skin='bong'] h1, :root[data-skin='bong'] h2, :root[data-skin='bong'] h3 { font-weight: 700; }
+:root[data-skin='bong'] h1, :root[data-skin='bong'] h2, :root[data-skin='bong'] h3 { font-weight: 900; }
 
 /* ---------- khối ---------- */
 :root[data-skin='bong'] .panel {
@@ -107,25 +108,27 @@
 
 /* Ô định danh: không khối màu đậm — kẹo trắng, icon mận */
 :root[data-skin='bong'] .neon { color: var(--ink) !important; }
-:root[data-skin='bong'] .neon strong { text-shadow: none; font-family: var(--font-display); font-weight: 700; }
-:root[data-skin='bong'] .neon small { color: var(--muted) !important; text-shadow: none; }
+:root[data-skin='bong'] .neon strong { text-shadow: none; font-family: var(--font-display); font-weight: 900; }
+:root[data-skin='bong'] .neon small { color: var(--ink) !important; text-shadow: none; font-weight: 600; }
 :root[data-skin='bong'] .neon .opt-icon,
-:root[data-skin='bong'] .neon .count-num { color: var(--accent) !important; }
+:root[data-skin='bong'] .neon .count-num { color: var(--ink) !important; }
+/* Ô định danh MỖI Ô MỘT MÀU KẸO (mockup 14.10.2026, https://claude.ai/artifact/XSjQnttXrvnJLiZ2km2KD6).
+   15.10.2026 chủ dự án: pastel cũ (#ffd9ec…) + viền TRẮNG lẫn vào nền hồng, "màu các nút
+   không rõ ràng" → màu đậm hơn một bậc, VIỀN + MÉP ĐÁY cùng tông đậm (--o-mep) để mỗi ô
+   tách khỏi nền. Chữ mận (--ink) ≥ 4,5:1 ở mọi điểm màu — chữ phụ cũng dùng --ink. */
 :root[data-skin='bong'] :is(.g-violet, .g-blue, .g-amber, .g-cyan, .g-pink, .g-red, .g-teal, .g-lime, .g-orange) {
-  box-shadow: 0 0 0 2.5px #fff, 0 5px 0 var(--mep), 0 8px 16px rgba(176, 74, 138, .18) !important;
+  background: linear-gradient(150deg, var(--o-1), var(--o-2)) !important;
+  box-shadow: 0 0 0 2.5px var(--o-mep), 0 5px 0 var(--o-mep), 0 9px 16px rgba(176, 74, 138, .2) !important;
 }
-/* Ô định danh MỖI Ô MỘT MÀU KẸO PASTEL (chủ dự án duyệt mockup 14.10.2026,
-   https://claude.ai/artifact/XSjQnttXrvnJLiZ2km2KD6): bản cũ ô trắng trên panel trắng,
-   "đơn điệu, như không có nút". Chữ mận ≥ 8:1 ở mọi điểm màu. */
-:root[data-skin='bong'] .g-violet { background: linear-gradient(150deg, #ffc2df, #ffd9ec) !important; }
-:root[data-skin='bong'] .g-blue   { background: linear-gradient(150deg, #d6c6ff, #e6dcff) !important; }
-:root[data-skin='bong'] .g-amber  { background: linear-gradient(150deg, #ffd2ad, #ffe3c9) !important; }
-:root[data-skin='bong'] .g-cyan   { background: linear-gradient(150deg, #bfeee0, #d6f6ec) !important; }
-:root[data-skin='bong'] .g-pink   { background: linear-gradient(150deg, #ffc2df, #ffd9ec) !important; }
-:root[data-skin='bong'] .g-red    { background: linear-gradient(150deg, #ffc6cf, #ffdbe1) !important; }
-:root[data-skin='bong'] .g-teal   { background: linear-gradient(150deg, #bfe9f2, #d6f2f8) !important; }
-:root[data-skin='bong'] .g-lime   { background: linear-gradient(150deg, #dcf2bc, #e9f8d3) !important; }
-:root[data-skin='bong'] .g-orange { background: linear-gradient(150deg, #ffd9a8, #ffe7c6) !important; }
+:root[data-skin='bong'] .g-violet { --o-1: #ff9fce; --o-2: #ffc2e0; --o-mep: #d9589a; }
+:root[data-skin='bong'] .g-pink   { --o-1: #ff9fce; --o-2: #ffc2e0; --o-mep: #d9589a; }
+:root[data-skin='bong'] .g-blue   { --o-1: #bea8ff; --o-2: #d6c9ff; --o-mep: #8466e0; }
+:root[data-skin='bong'] .g-amber  { --o-1: #ffbf86; --o-2: #ffd6b0; --o-mep: #dc8638; }
+:root[data-skin='bong'] .g-cyan   { --o-1: #93e4cb; --o-2: #bdf1e0; --o-mep: #3aa883; }
+:root[data-skin='bong'] .g-red    { --o-1: #ffa3b3; --o-2: #ffc4ce; --o-mep: #dc566e; }
+:root[data-skin='bong'] .g-teal   { --o-1: #96dcef; --o-2: #bfebf6; --o-mep: #3c9ab9; }
+:root[data-skin='bong'] .g-lime   { --o-1: #c6eb92; --o-2: #ddf4bb; --o-mep: #76b336; }
+:root[data-skin='bong'] .g-orange { --o-1: #ffc47e; --o-2: #ffdaaa; --o-mep: #dc8d36; }
 
 :root[data-skin='bong'] .lt-chip { border: 2px solid #f6b8d8 !important; background: #fff; color: var(--ink); }
 :root[data-skin='bong'] .lt-chip.lua { background: #ffd1e8 !important; color: var(--ink) !important; }

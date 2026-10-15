@@ -305,13 +305,16 @@
   (tĩnh: cặp token mọi skin, `.g-*`, chặn ghép cứng+token — đã kiểm ngược) và
   `pnpm do:tuong-phan [url]` (Chrome thật, 5 skin × sáng/tối, đo MỌI chữ đang hiện với
   nền trộn thật; < 2:1 là LỖI, dưới chuẩn WCAG là cảnh báo). Thêm skin / màu / màn mới là
-  chạy cả hai. Máy đo không thấy nền ẢNH (scene) và chữ gradient — đếm "bỏ qua" riêng.
+  chạy cả hai, cộng `pnpm do:safari` (bóng/viền bị cắt trên iPhone). Máy đo không thấy nền ẢNH (scene) và chữ gradient — đếm "bỏ qua" riêng.
 - Component KHÔNG viết màu/gradient tay: đọc token. Hai lớp tô chung `--nhan-nen/chu`
   (nút, viên nhấn) và `--chon-nen/chu` (ô đang chọn, người đang đi) — 25 chỗ viết tay
   gradient tím từng làm skin Kẹo lòi tím khắp nơi. Hình nền: `--nen-man` (body, neo
   cửa sổ) và `--canh` (vẽ theo khung #app — neo theo cửa sổ thì trên máy tính giữa
   cột trống trơn). Màn tạm dừng dùng `--canh, --nen-man`.
 - Skin Kẹo/Gỗ KHOÁ màu mặt sau lá theo skin; hoạ tiết vẫn theo ván, cả bàn vẫn chung một mặt.
+- Font: Đêm Sao + Kẹo Bông dùng CHUNG font Kẹo (Grandstander 900 + Be Vietnam Pro) — Playfair/
+  Quicksand bị chê xấu, đã gỡ khỏi `fonts.ts` (15.10.2026). Mặt máy ở bước mức máy nằm thẳng
+  trên ô (không đĩa trắng): chống chìm bằng THỨ TỰ MÀU ô ở `BOT_CHOICES`.
 - Gờ dày của Kẹo (4–5px) cần `overflow-clip-margin: 8px` ở lưới wizard, không thì ô hàng cuối cụt gờ.
 - `cqw` trên CHÍNH `.card` tính theo cả bàn (container cha), không theo lá — gờ từng ra 15,6px.
 - Nền tối chỉ hiện ở menu khi skin là Neon.
@@ -456,12 +459,19 @@
   ngưỡng 15s, `the-trang` 30s). Đừng nới timeout; chạy lại riêng file đó, và lấy CI
   GitHub (workflow docker.yml chạy `pnpm test` trên máy sạch) làm trọng tài. ĐỪNG nối
   `pnpm test ... ; echo` rồi `&& git commit` — echo nuốt mã lỗi, test đỏ vẫn commit.
+- **SỬA GIAO DIỆN XONG LÀ CHẠY `pnpm do:safari`** (15.10.2026): WebKit của Playwright (engine
+  Safari/iPhone), 3 khổ vùng web × 5 skin × 9 màn, dò viền/bóng bị khung cắt, nút lòi khỏi màn,
+  trang cuộn; ảnh ở `/tmp/mm-safari`. Mọi công cụ khác chạy Chrome — mà Chrome có thứ Safari
+  KHÔNG có (`overflow-clip-margin`), nên lỗi "cạnh nút bị cắt" ở Đêm Sao/Kẹo Bông/Gỗ đo Chrome
+  xanh, iPhone hỏng. Lần đầu: `pnpm exec playwright install webkit`. Nó cũng bắt được nút
+  "Bắt đầu" LÒI khỏi màn ở bước Bàn chơi trên iPhone SE (lỗi ở MỌI trình duyệt, chưa ai đo).
+  Lưới cắt (`overflow: clip/hidden`) chứa ô có bóng/viền vẽ NGOÀI mép thì phải chừa ĐỆM thật
+  (cả ngang lẫn dọc, margin âm bù lại) — đừng trông vào `overflow-clip-margin`.
 - **Lỗi hình chỉ có trên iPhone** (tách lớp GPU): Chrome/WebKit headless trên Mac KHÔNG
   tái hiện được. Xin chủ dự án quay màn hình → `swift tools/video/tach-khung.swift` +
   `ghep-bang.swift` → soi từng khung. Đóng băng animation để soi thứ tự hiện:
   `document.getAnimations()` → `pause()` + `currentTime` (bỏ animation vô hạn của
-  IconBay trước khi `finish()`). WebKit cho Playwright cài ở scratchpad
-  (`npm i playwright && npx playwright install webkit`), không thêm vào repo.
+  IconBay trước khi `finish()`). Playwright đã là devDependency ở gốc repo (cho `do:safari`).
 - **Luật ghép lớp iOS đã chốt**: `section.panel { will-change: opacity }` (panel wizard
   là MỘT lớp — ô chồng vùng icon bay bị tách lớp riêng và nán lại đè bước mới);
   bước/màn đang rời tắt mọi chuyển động con (`.step-leave-active *`,

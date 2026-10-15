@@ -15,7 +15,8 @@
  *    ở giữa (launcher cắt hình tròn/vuông/giọt nước tuỳ máy).
  *  · Favicon SVG: dùng chính bản vẽ này, nét đủ dày để còn đọc được ở 16px.
  */
-import { spawn, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
+import { moChrome } from './lib-chrome.mjs';
 import { createRequire } from 'node:module';
 import { rmSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -73,8 +74,7 @@ writeFileSync(join(andRes, 'values/ic_launcher_background.xml'),
 
 /* ---------- chụp bằng Chrome ---------- */
 const PORT = 9500 + (process.pid % 300), PROFILE = `/tmp/mm-icon-${process.pid}`;
-const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [`--remote-debugging-port=${PORT}`, '--headless=new', '--hide-scrollbars', '--no-first-run', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
-process.on('exit', () => { chrome.kill(); try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* */ } });
+const chrome = moChrome('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [`--remote-debugging-port=${PORT}`, '--headless=new', '--hide-scrollbars', '--no-first-run', `--user-data-dir=${PROFILE}`, 'about:blank'], PROFILE);
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let t; for (let i = 0; i < 40; i++) { try { t = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json(); break; } catch { await cho(250); } }
 const ws = new WebSocket(t.find((x) => x.type === 'page').webSocketDebuggerUrl);

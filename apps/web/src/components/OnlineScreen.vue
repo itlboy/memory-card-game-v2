@@ -721,6 +721,7 @@ function openCfgWizard(): void {
     <!-- BƯỚC CUỐI: tuỳ chọn bàn chơi, giống hệt wizard chơi đơn. Cả phòng chơi
          chung một bàn nên đây là luật của tất cả mọi người. -->
     <div v-else class="step-body opt-list">
+      <div class="opt-rows">
       <div v-for="row in OPTION_ROWS" :key="row.key" class="opt-row">
         <div class="opt-head">
           <OptionIcon :name="row.icon" :size="24" />
@@ -735,6 +736,7 @@ function openCfgWizard(): void {
             @click="setWizOption(row.key, muc as OptLevel)"
           >{{ td(`opt.${row.key}.${muc}`) }}</button>
         </div>
+      </div>
       </div>
 
       <button
@@ -1492,7 +1494,17 @@ input:focus { outline: none; border-color: var(--accent); }
 
 /* ---- trong ván ---- */
 /* ── Bảng tuỳ chọn: giống hệt wizard chơi đơn (MenuScreen), cùng số đo ── */
-.opt-list { display: flex; flex-direction: column; gap: 7px; min-height: 0; overflow: hidden; }
+/* Nút ở NGOÀI khung hàng, hàng cuộn trong `.opt-rows` khi thiếu chỗ; màn thấp thu gọn —
+   lý do và số đo ở MenuScreen (khối "BẢNG TUỲ CHỌN BÀN CHƠI"). */
+.opt-list { display: flex; flex-direction: column; gap: 7px; min-height: 0; }
+.opt-rows {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 7px; scrollbar-width: none;
+  /* chỗ cho bóng nút đang chọn ở hàng cuối — khung cuộn cắt mọi thứ tràn ra */
+  padding-bottom: 10px; margin-bottom: -10px;
+}
+.opt-rows::-webkit-scrollbar { display: none; }
+.opt-list > .btn-primary { flex: none; }
 .opt-row {
   flex: 0 0 auto; border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--panel-soft); padding: 6px 9px 7px;
@@ -1561,5 +1573,14 @@ input:focus { outline: none; border-color: var(--accent); }
 @keyframes quay-tron { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
   .btn-primary .quay { animation-duration: 2.4s; }
+}
+/* Bảng tuỳ chọn trên màn THẤP (iPhone SE) — ĐỨNG CUỐI file để thắng luật gốc cùng độ đặc hiệu */
+@media (max-height: 620px) {
+  .opt-list, .opt-rows { gap: 5px; }
+  .opt-row { padding: 3px 9px 4px; }
+  .opt-head { margin-bottom: 2px; }
+  .opt-head .opt-ico { width: 20px; height: 20px; }
+  .opt-name { font-size: var(--text-sm); }
+  .seg-btn { height: 26px; min-height: 26px; }   /* vùng chạm vẫn 42px nhờ ::after */
 }
 </style>

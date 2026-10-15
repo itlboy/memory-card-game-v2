@@ -29,7 +29,13 @@
   /* ĐỆM THẬT cho gờ/bóng của ô hàng trên và hàng cuối: Safari (iOS) KHÔNG hỗ trợ
      overflow-clip-margin nên trên iPhone mép cắt vẫn là mép lưới — gờ ô cuối cụt.
      `clip` cắt ở mép NGOÀI phần đệm, nên đệm là cách chạy trên mọi trình duyệt. */
-  padding-block: 4px;
+  padding-block: 10px 18px;   /* đủ bóng lớn nhất: quầng ô chọn Đêm Sao ~10px trên, bóng đáy ~17px */
+  /* …và ĐỆM NGANG cho cùng lý do: ô rộng bằng đúng lưới, nên vòng viền/bóng vẽ NGOÀI mép
+     ô (box-shadow spread của Đêm Sao + Kẹo Bông, bóng mờ của Gỗ) bị cắt phẳng hai cạnh bên
+     trên iPhone — chủ dự án báo 15.10.2026, có ảnh. Kẹo không dính vì viền là `border`
+     thật, nằm trong ô. Margin âm bù lại để ô KHÔNG hẹp đi (panel có đệm 20px). */
+  padding-inline: 10px;
+  margin-inline: -10px;
 }
 .step-body.options > .option,
 .options.fill > .option { height: 100%; max-height: 210px; }

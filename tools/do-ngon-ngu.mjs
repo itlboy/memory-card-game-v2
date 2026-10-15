@@ -10,7 +10,7 @@
  *  - trang cuộn ngang;
  *  - nút chính nằm ngoài màn hình.
  */
-import { spawn } from 'node:child_process';
+import { moChrome } from './lib-chrome.mjs';
 import { rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 const require = createRequire(new URL('../apps/node-server/package.json', import.meta.url));
@@ -21,8 +21,7 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 const LANGS = (process.env.LANGS ?? 'vi,en,es,pt,fr,de,it,tr,ja,ko,zh,zh-TW,ru,id,th').split(',');
 const [W, H] = [375, 553];
 const PORT = 9343, PROFILE = `/tmp/mm-cdp-nn-${process.pid}`;
-rmSync(PROFILE, { recursive: true, force: true });
-const chrome = spawn(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
+const chrome = moChrome(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], PROFILE);
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let targets; for (let i = 0; i < 40; i++) { try { targets = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json(); break; } catch { await cho(250); } }
 const ws = new WebSocket(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);
