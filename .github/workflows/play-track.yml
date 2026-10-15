@@ -3,7 +3,7 @@
 #   gh workflow run play-track.yml --ref main                              (chỉ liệt kê kênh + build)
 #   gh workflow run play-track.yml --ref main -f version_code=192 -f kenh=alpha
 #
-# mobile.yml chỉ đẩy lên kênh `internal`; người thử khép kín cần build ở kênh khép kín.
+# mobile.yml (phat_hanh) đã tự đưa build mới sang `alpha`; workflow này để chạy tay (build cũ, kênh khác).
 name: Google Play track
 
 on:

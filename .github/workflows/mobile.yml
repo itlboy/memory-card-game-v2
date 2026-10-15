@@ -117,6 +117,17 @@ jobs:
           releaseFiles: apps/web/android/app/build/outputs/bundle/release/app-release.aab
           track: ${{ vars.PLAY_TRACK || 'internal' }}
           status: ${{ vars.PLAY_RELEASE_STATUS || 'draft' }}
+      # Cùng build đó sang luôn kênh THỬ NGHIỆM KHÉP KÍN (chủ dự án 15.10.2026) — người thử
+      # khép kín (12 người × 14 ngày để xin lên production) nhận bản mới cùng lúc với kênh
+      # nội bộ. Tắt bằng biến repo PLAY_KENH_THEM=none; đổi kênh đích bằng biến đó.
+      - name: Đưa sang kênh khép kín
+        if: env.PHAT_HANH == 'true' && env.CO_KHOA == 'true' && env.CO_PLAY == 'true' && vars.PLAY_KENH_THEM != 'none'
+        env:
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          node tools/play-track.mjs "$RUNNER_TEMP/sa.json" "${{ steps.ver.outputs.code }}" "${{ vars.PLAY_KENH_THEM || 'alpha' }}"
+          rm -f "$RUNNER_TEMP/sa.json"
 
   ios:
     name: iOS
