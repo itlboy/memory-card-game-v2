@@ -103,6 +103,8 @@ Hai bộ, khác việc:
 | `ASC_ISSUER_ID` | 〃 | dòng *Issuer ID* phía trên bảng key |
 | `ASC_KEY_P8_BASE64` | 〃 | file `AuthKey_XXXX.p8` (CHỈ tải được một lần): `base64 -i AuthKey_XXXX.p8 \| gh secret set ASC_KEY_P8_BASE64` |
 
+**Bật capability mới cho App ID** (vd Associated Domains): `gh workflow run ios-profile.yml --ref main -f caps=ASSOCIATED_DOMAINS` — bật qua API + cấp lại profile giữ chứng chỉ cũ; tải artifact rồi `base64 -i … | gh secret set IOS_PROFILE_BASE64`.
+
 **Chứng chỉ phân phối + profile hết hạn sau 1 NĂM** — chạy lại `tools/tao-ky-ios.mjs`
 (xoá `ios-distribution.p12` cũ trước, script không ghi đè). Khoá riêng của chứng chỉ
 sinh trên máy chạy script, không qua Apple.

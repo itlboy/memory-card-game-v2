@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["PADA2LAMBT.com.hello314.flipmatch"],
+        "components": [
+          { "/": "/", "?": { "room": "??????" }, "comment": "Link mời phòng online — lib/link-moi.ts" }
+        ]
+      }
+    ]
+  }
+}
