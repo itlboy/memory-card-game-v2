@@ -538,6 +538,23 @@
   lúc là mất chỗ, rồi vào lại được cấp chỗ MỚI — một người hoá hai. Nới không
   treo ván: hết lượt thì engine tự `turn-timeout`. Client tự nối lại có backoff,
   `onWake` thử lại cả khi đã báo lỗi, và màn lỗi có nút "Thử lại" (`o.retry()`).
+- **THOÁT APP ≠ RỜI PHÒNG** (15.10.2026, chủ dự án báo "tạo bàn, thoát app ra thì bàn
+  bị mất" + "phòng nháy khi vào lại"). Bốn luật, có `pnpm smoke:thoat-app` (cả hai server,
+  trong CI) và `pnpm do:thoat-app` (WebKit, ghi từng khung hình) canh — đã kiểm ngược:
+  · phòng chờ VẮNG HẲN (không ai còn sống, `conNguoiSong`) thì KHÔNG gỡ ai: chủ phòng giữ
+  danh tính + quyền, phòng ở lại danh sách, dọn sau `EMPTY_LOBBY_MS` 15 PHÚT. Hạn giữ chỗ
+  30 giây (`LOBBY_HOLD_MS`, để người bỏ đi không làm KẸT người đang chờ) chỉ đếm từ lúc
+  có người tới (`datLaiHanGiuCho`). `HAN_BAN_GHI_MS` của sổ phải DÀI hơn (25 phút) và
+  phòng sống tự khai lại mỗi 5 phút (nhịp trong `chuKySo`).
+  · chủ phòng BẤM THOÁT ở phòng chờ = ĐÓNG PHÒNG (`cancel`), kể cả khi một mình.
+  · NỐI LẠI LÀ VIỆC NGẦM: `connect()` không đổi phase khi đang ở phòng (bản cũ về
+  'connecting' → màn nhập mã nháy lên); mở app = một đợt nối lại mới (bỏ hạn/banner cũ
+  của lúc nằm nền), socket OPEN mà nằm nền >3s thì `resync` + 1,5s không tin là nối lại.
+  · app bị hệ điều hành tắt (mất `?room=`): App.vue vào thẳng phòng nhờ `maPhongDangDo()`,
+  phòng chờ VẼ NGAY từ ảnh lưu trong phiên (`phong`/`id`). Phòng đã chết → `kiemPhongCon`
+  (GET /api/rooms/:code) đưa về danh sách kèm "Phòng … đã đóng", không quay vòng 5 phút.
+  Online tạm giới hạn 4 NGƯỜI (`ROOM_LIMITS.maxPlayers`, chủ dự án 15.10.2026); phòng đầy
+  rời danh sách; khán giả gặp phòng chờ còn chỗ thì tự vào làm người chơi.
 - **SỔ PHÒNG CÔNG KHAI (ON-10)**: màn "Chơi online" mở ra là thấy danh sách
   phòng đang chờ (`GET /api/rooms/public`). Phòng mặc định CÔNG KHAI; chủ phòng
   tắt công tắc thì phòng ẩn khỏi danh sách nhưng vẫn vào được bằng mã 6 số —

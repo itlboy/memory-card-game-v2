@@ -20,6 +20,8 @@
     "dev:web": "pnpm --filter @mm/web dev",
     "smoke:chat": "node tools/smoke-chat-limit.mjs",
     "smoke:leave": "node tools/smoke-leave-cancel.mjs",
+    "smoke:thoat-app": "node tools/smoke-thoat-app.mjs",
+    "do:thoat-app": "node tools/do-thoat-app.mjs",
     "smoke:timer": "node tools/smoke-timer-spectator.mjs",
     "smoke:audit": "node tools/smoke-audit.mjs",
     "smoke:peek": "node tools/smoke-peek.mjs",

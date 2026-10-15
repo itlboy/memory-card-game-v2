@@ -68,7 +68,7 @@ PLAY YOUR WAY
 • Solo — beat your own best time and move count
 • Versus bot — five levels, from Wobbly Chick to Divine Dragon
 • Same device — pass the phone around, up to 4 players
-• Online rooms — create a room, share the 6-digit code or link, up to 10 players
+• Online rooms — create a room, share the 6-digit code or link, up to 4 players
 • Campaign — a 60-level journey where every stage has its own twist
 
 MAKE THE BOARD YOURS
@@ -128,7 +128,7 @@ CHƠI THEO CÁCH CỦA BẠN
 • Một mình — phá kỷ lục thời gian và số lượt của chính mình
 • Đấu máy — năm mức, từ Gà Mờ tới Rồng Thần
 • Chung một máy — chuyền điện thoại, tối đa 4 người
-• Phòng online — tạo phòng, gửi mã 6 số hoặc link, tối đa 10 người
+• Phòng online — tạo phòng, gửi mã 6 số hoặc link, tối đa 4 người
 • Chiến dịch — hành trình 60 màn, màn nào cũng có luật riêng
 
 BÀN CHƠI CỦA RIÊNG BẠN
@@ -188,7 +188,7 @@ JUEGA A TU MANERA
 • Solo: supera tu mejor tiempo y tu récord de movimientos
 • Contra el bot: cinco niveles, del Pollito Torpe al Dragón Divino
 • Mismo dispositivo: pasa el móvil, hasta 4 jugadores
-• Salas online: crea una sala, comparte el código de 6 dígitos o el enlace, hasta 10 jugadores
+• Salas online: crea una sala, comparte el código de 6 dígitos o el enlace, hasta 4 jugadores
 • Campaña: un viaje de 60 niveles, cada uno con su propio giro
 
 UN TABLERO A TU MEDIDA
@@ -248,7 +248,7 @@ JOGUE DO SEU JEITO
 • Sozinho — bata seu próprio recorde de tempo e de jogadas
 • Contra o bot — cinco níveis, do Pintinho Tonto ao Dragão Divino
 • Mesmo aparelho — passe o celular, até 4 jogadores
-• Salas online — crie uma sala, compartilhe o código de 6 dígitos ou o link, até 10 jogadores
+• Salas online — crie uma sala, compartilhe o código de 6 dígitos ou o link, até 4 jogadores
 • Campanha — uma jornada de 60 fases, cada uma com uma regra diferente
 
 UM TABULEIRO DO SEU JEITO
@@ -308,7 +308,7 @@ JOUEZ COMME VOUS VOULEZ
 • Solo — battez votre meilleur temps et votre record de coups
 • Contre le bot — cinq niveaux, du Poussin Pataud au Dragon Divin
 • Sur le même appareil — passez-vous le téléphone, jusqu'à 4 joueurs
-• Salons en ligne — créez un salon, partagez le code à 6 chiffres ou le lien, jusqu'à 10 joueurs
+• Salons en ligne — créez un salon, partagez le code à 6 chiffres ou le lien, jusqu'à 4 joueurs
 • Campagne — un parcours de 60 niveaux, chacune avec sa propre surprise
 
 UN PLATEAU À VOTRE IMAGE
@@ -368,7 +368,7 @@ SPIEL, WIE DU WILLST
 • Allein – schlag deine eigene Bestzeit und deinen Zugrekord
 • Gegen den Bot – fünf Stufen, vom Wackelküken bis zum Götterdrachen
 • Am selben Gerät – reich das Handy weiter, bis zu 4 Spieler
-• Online-Räume – Raum erstellen, 6-stelligen Code oder Link teilen, bis zu 10 Spieler
+• Online-Räume – Raum erstellen, 6-stelligen Code oder Link teilen, bis zu 4 Spieler
 • Kampagne – eine Reise über 60 Level, jede mit eigenem Kniff
 
 DEIN SPIELFELD, DEINE REGELN
@@ -428,7 +428,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • ひとりで ― 自己ベストのタイムと手数に挑戦
 • CPU対戦 ― よちよちヒヨコから神龍まで5段階
 • 1台でみんなで ― スマホを回して最大4人
-• オンラインルーム ― ルームを作って6桁のコードやリンクを送るだけ、最大10人
+• オンラインルーム ― ルームを作って6桁のコードやリンクを送るだけ、最大4人
 • キャンペーン ― ステージごとに違うルールが待つ全60ステージの冒険
 
 自分好みの盤面に
@@ -488,7 +488,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 혼자서 — 내 최고 기록(시간, 횟수)에 도전
 • 봇 대결 — 아장아장 병아리부터 신룡까지 5단계
 • 한 기기로 함께 — 폰을 돌려 가며 최대 4명
-• 온라인 방 — 방을 만들고 6자리 코드나 링크만 보내면 끝, 최대 10명
+• 온라인 방 — 방을 만들고 6자리 코드나 링크만 보내면 끝, 최대 4명
 • 캠페인 — 스테이지마다 새로운 규칙이 기다리는 60스테이지 여정
 
 나만의 게임판
@@ -548,7 +548,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 单人 — 挑战自己的最佳用时和最少步数
 • 人机对战 — 五个难度，从菜鸟小鸡到神龙
 • 同屏多人 — 一台手机轮流玩，最多 4 人
-• 在线房间 — 创建房间，分享 6 位房间号或链接，最多 10 人
+• 在线房间 — 创建房间，分享 6 位房间号或链接，最多 4 人
 • 战役 — 60 关的冒险旅程，每一关都有独特玩法
 
 打造你的专属牌桌
@@ -608,7 +608,7 @@ Flip Match — классическая игра на память с карто
 • Один — побей свой лучший результат по времени и ходам
 • Против бота — пять уровней, от Цыплёнка до Дракона
 • На одном устройстве — передавай телефон по кругу, до 4 игроков
-• Онлайн-комнаты — создай комнату, поделись 6-значным кодом или ссылкой, до 10 игроков
+• Онлайн-комнаты — создай комнату, поделись 6-значным кодом или ссылкой, до 4 игроков
 • Кампания — путешествие из 60 уровней, и в каждом своя особенность
 
 ПОЛЕ ПОД ТЕБЯ
@@ -668,7 +668,7 @@ MAIN SESUKAMU
 • Sendiri — kalahkan rekor waktu dan jumlah langkahmu sendiri
 • Lawan bot — lima level, dari Anak Ayam sampai Naga Dewa
 • Satu perangkat — gantian pegang HP, sampai 4 pemain
-• Room online — buat room, bagikan kode 6 digit atau link, sampai 10 pemain
+• Room online — buat room, bagikan kode 6 digit atau link, sampai 4 pemain
 • Kampanye — petualangan 60 level, tiap tahap punya aturan unik
 
 PAPAN SESUAI SELERAMU
@@ -728,7 +728,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • คนเดียว — ทำลายสถิติเวลาและจำนวนตาของตัวเอง
 • ท้าบอท — ห้าระดับ ตั้งแต่ลูกเจี๊ยบไปจนถึงมังกรเทพ
 • เครื่องเดียวกัน — ส่งโทรศัพท์ต่อกัน สูงสุด 4 คน
-• ห้องออนไลน์ — สร้างห้อง แชร์รหัส 6 หลักหรือลิงก์ สูงสุด 10 คน
+• ห้องออนไลน์ — สร้างห้อง แชร์รหัส 6 หลักหรือลิงก์ สูงสุด 4 คน
 • แคมเปญ — การผจญภัย 60 ด่าน แต่ละด่านมีกติกาเฉพาะ
 
 กระดานในแบบของคุณ
@@ -788,7 +788,7 @@ GIOCA COME VUOI
 • Da solo: batti il tuo miglior tempo e il tuo record di mosse
 • Contro il bot: cinque livelli, dal Pulcino Goffo al Drago Divino
 • Stesso dispositivo: passa il telefono, fino a 4 giocatori
-• Stanze online: crea una stanza, condividi il codice di 6 cifre o il link, fino a 10 giocatori
+• Stanze online: crea una stanza, condividi il codice di 6 cifre o il link, fino a 4 giocatori
 • Campagna: un viaggio di 60 livelli, ognuna con la sua sorpresa
 
 UN TABELLONE TUTTO TUO
@@ -848,7 +848,7 @@ Flip Match, klasik hafıza kartı oyununun tek başına ya da arkadaşlarla hız
 • Tek başına — kendi en iyi süreni ve hamle sayını geç
 • Bota karşı — Sakar Civciv'den İlahi Ejderha'ya beş seviye
 • Aynı cihazda — telefonu elden ele dolaştır, en fazla 4 oyuncu
-• Çevrim içi odalar — oda kur, 6 haneli kodu ya da bağlantıyı paylaş, en fazla 10 oyuncu
+• Çevrim içi odalar — oda kur, 6 haneli kodu ya da bağlantıyı paylaş, en fazla 4 oyuncu
 • Kampanya — her aşamanın kendine özgü bir sürprizi olduğu 60 seviyelik bir yolculuk
 
 TAHTAN, KURALLARIN
@@ -908,7 +908,7 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 • 單人 — 挑戰自己的最佳時間和最少步數
 • 對戰電腦 — 五種難度，從菜鳥小雞到神龍
 • 同一支手機 — 輪流傳手機，最多 4 人
-• 線上房間 — 建立房間，分享 6 位數房號或連結，最多 10 人
+• 線上房間 — 建立房間，分享 6 位數房號或連結，最多 4 人
 • 闖關模式 — 60 關的冒險旅程，每一關都有獨特玩法
 
 打造專屬牌桌

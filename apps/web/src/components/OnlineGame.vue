@@ -514,7 +514,7 @@ watch(() => o.view.value?.summary, (s) => {
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
       :rematch-sent="o.iWantAgain.value"
-      :rematch-blocked="!enoughToRematch"
+      :rematch-blocked="!enoughToRematch || o.spectator.value"
       :rematch-state="rematchState"
       @replay="o.again()"
       @next="o.again()"

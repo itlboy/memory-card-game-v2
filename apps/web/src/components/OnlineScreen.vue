@@ -69,7 +69,9 @@ const copiedCode = ref(false);
  */
 const loiMoiHong = ref(false);
 watch(() => o.error.value, (e) => {
-  if (!e || !props.joinCode) return;
+  // Chỉ khi cú vào phòng HỎNG — lời từ chối lúc đã ở trong phòng (bấm Bắt đầu
+  // khi chưa đủ người…) không có nghĩa là lời mời hết dùng được.
+  if (!e || !props.joinCode || (o.phase.value !== 'idle' && o.phase.value !== 'error')) return;
   loiMoiHong.value = true;
   // Lau ?room= khỏi URL: giữ lại thì F5 lại lao vào đúng cái phòng chết đó.
   if (location.search.includes('room=')) ghiUrl(location.pathname);
@@ -273,7 +275,24 @@ function exit(): void {
  * vừa đi qua để vào đây.
  */
 function hoiRoiPhong(sau: () => void): void {
-  if (o.isHost.value && (o.room.value?.players.length ?? 0) > 1) {
+  /*
+   * CHỦ PHÒNG CHỦ ĐỘNG THOÁT = ĐÓNG PHÒNG (chủ dự án 15.10.2026), kể cả khi đang
+   * một mình. Bản cũ để phòng một mình sống thêm 10 phút — nhưng người bấm thoát
+   * đã nói rõ là thôi, còn phòng thì nằm lại trong danh sách công khai như một
+   * phòng chết. Thoát APP (về màn hình chính, khoá máy) là chuyện khác: không
+   * qua đây, phòng được giữ EMPTY_LOBBY_MS ở server.
+   */
+  const motMinh = (o.room.value?.players.length ?? 0) <= 1;
+  if (o.isHost.value && motMinh) {
+    confirm.value = {
+      title: t('on.roiPhong.tieuDe'),
+      body: t('on.roiPhong.motMinh'),
+      label: t('on.roiPhong.nut'),
+      action: () => { o.cancelRoom(); sau(); }
+    };
+    return;
+  }
+  if (o.isHost.value) {
     confirm.value = {
       title: t('on.huyPhong.tieuDe'),
       body: t('on.huyPhong.than'),
@@ -282,10 +301,9 @@ function hoiRoiPhong(sau: () => void): void {
     };
     return;
   }
-  const motMinh = (o.room.value?.players.length ?? 0) <= 1;
   confirm.value = {
     title: t('on.roiPhong.tieuDe'),
-    body: motMinh ? t('on.roiPhong.motMinh') : t('on.roiPhong.conNguoi'),
+    body: t('on.roiPhong.conNguoi'),
     label: t('on.roiPhong.nut'),
     action: () => { o.surrender(); sau(); }
   };
@@ -389,12 +407,15 @@ const meReady = computed(() => !!o.me.value?.ready);
 const readyCount = computed(() => {
   const r = o.room.value;
   if (!r) return { ok: 0, need: 0 };
-  const others = r.players.filter((p) => p.id !== r.hostId);
+  // Chỉ người ĐANG KẾT NỐI — khớp server (người đang trong hạn giữ chỗ không
+  // bấm được Sẵn sàng; chờ họ là nút Bắt đầu khoá tới 30 giây vô cớ).
+  const others = r.players.filter((p) => p.id !== r.hostId && p.connected);
   return { ok: others.filter((p) => p.ready).length, need: others.length };
 });
 const canStart = computed(() => {
   const r = o.room.value;
-  return !!r && r.players.length >= 2 && readyCount.value.ok === readyCount.value.need;
+  return !!r && r.players.filter((p) => p.connected).length >= 2
+    && readyCount.value.ok === readyCount.value.need;
 });
 /**
  * Đã bấm "Bắt đầu" và đang chờ server mở ván.
@@ -1061,7 +1082,9 @@ function openCfgWizard(): void {
         {{ t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — {{ t('on.choChuPhong') }}
       </p>
+      <p v-if="o.spectator.value" class="hint" role="status">{{ t('on.phongDay') }}</p>
       <button
+        v-else
         class="btn-primary" :class="{ 'is-ready': meReady }" type="button"
         @click="o.setReady(!meReady)"
       >

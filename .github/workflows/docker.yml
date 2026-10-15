@@ -72,7 +72,7 @@ jobs:
           # tham số trả về 0 kể cả khi một tiến trình con chết, là cách chắc nhất
           # để smoke đỏ mà ảnh vẫn được đẩy đi.
           pids=""
-          for s in online options peek leave-cancel; do
+          for s in online options peek leave-cancel thoat-app; do
             LOBBY_HOLD_MS=2000 node "tools/smoke-$s.mjs" & pids="$pids $!"
           done
           rc=0

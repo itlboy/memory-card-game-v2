@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { maPhongDangDo } from '@/composables/useOnlineRoom';
 import { boEmojiVeMacDinh } from '@/lib/emoji';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { batPhanTich, suKien } from '@/lib/phan-tich';
@@ -433,6 +434,16 @@ onMounted(() => {
     /* bước wizard — MenuScreen tự khôi phục từ ?w= */
   } else if (location.search) {
     setUrl(null);
+  } else if (maPhongDangDo()) {
+    /*
+     * MỞ LẠI APP MÀ CÒN PHÒNG ONLINE DỞ: vào thẳng phòng. App nằm nền hay bị
+     * iOS/Android tắt hẳn, mở lại là WebView nạp từ gốc — mất `?room=` — nên bản
+     * cũ đưa người chơi về trang chủ và phòng (vẫn đang chờ ở server) trông như
+     * đã mất. Phiên chỉ còn khi chưa chủ động rời phòng (rời = xoá phiên) và
+     * chưa quá HAN_PHIEN_MS.
+     */
+    joinCode.value = maPhongDangDo()!;
+    screen.value = 'online';
   }
 
   // Chốt snapshot lần cuối + hỏi confirm nếu đang dở việc (F5/đóng tab nhầm)

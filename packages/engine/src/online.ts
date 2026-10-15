@@ -38,7 +38,7 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
 };
 
 export const ROOM_LIMITS = {
-  maxPlayers: 10,
+  maxPlayers: 4,   // tạm hạ từ 10 (chủ dự án 15.10.2026) — đổi lại thì đổi cả docs/ban-do.md
   minPlayers: 2,
   /**
    * Rớt mạng quá hạn này thì bị xử thua (ON-07).
@@ -508,6 +508,7 @@ export type ServerMsg =
   | { t: 'events'; events: PublicEvent[]; view: GameView | WireView }
   | { t: 'emoji'; from: string; emoji: QuickEmoji }
   | { t: 'say'; from: string; id: QuickSay }
-  | { t: 'closed'; message: string }
+  /** `code` để client DỊCH (message là tiếng Việt, chỉ để dự phòng cho client cũ). */
+  | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' }
   | { t: 'error'; code: string; message: string }
   | { t: 'pong' };

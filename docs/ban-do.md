@@ -25,7 +25,7 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 | **Sao = số lần quên**, mốc theo cỡ bàn, **sao thứ 4** = không quên | `sao` trong `BOARDS`, `starsByMisses`, `summary.hoanHao` | trang `f1.p`, `q4/a4`, r4 · site-i18n · store · RulesDialog (`lc.chienDich` cả 15 từ điển) · CLAUDE.md | `quen.test.ts` |
 | **Giờ Chiến dịch** = `gio` × 1,8…1,1 | `gio`, `HE_GIO` (campaign.ts) | CLAUDE.md | `campaign.test.ts` |
 | **5 đối thủ máy** (Gà mờ → Rồng thần) | `BOT_SPECS` — `packages/engine/src/bot.ts` | trang `about.lead`, `f2.h/p`, `about.desc` · site-i18n · store · tên: `bot.*` 15 từ điển | `duel.test.ts` |
-| **Online tối đa 10 người**, mã phòng 6 số | `ROOM_LIMITS` — engine `online.ts` | trang `f3.p`, `a2` · site-i18n · store | smoke `tools/smoke-*.mjs` |
+| **Online tối đa 4 người** (tạm, hạ từ 10 ngày 15.10.2026), mã phòng 6 số | `ROOM_LIMITS` — engine `online.ts` | trang `f3.p`, `a2` · site-i18n · store | smoke `tools/smoke-*.mjs` |
 | **Chung máy tối đa 4 người** | wizard bước `count` (CLAUDE.md) | trang `f4.h/p` · site-i18n · store | `app.test.ts` |
 | **48 bộ hình miễn phí** (72 tổng, 24 premium ẩn) | `apps/web/public/data/themes.json` (+ bản sao `apps/server/src/themes.ts`), `banPremium` | trang `f5.h/p`, `about.desc` · site-i18n · store · README | `themes.test.ts`, `emoji-vector` |
 | **Hơn 100 danh hiệu** (đang hiện 129, tổng 153) | `ACHIEVEMENTS` / `dsHien` — `apps/web/src/lib/achievements.ts` | trang `f6.p` · site-i18n · store ("100+") · README · CLAUDE.md (con số chính xác) | `achievements.test.ts` |
