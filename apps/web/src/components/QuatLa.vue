@@ -5,7 +5,7 @@ import type { CardTheme } from '@/lib/themes';
 
 /*
  * QUẠT LÁ TRANG CHỦ (14.10.2026). Lá GIỮA luôn ngửa, chỉ ICON đổi mỗi 5 giây
- * (chỉ mờ dần rồi hiện hình mới — bản thu nhỏ 0,6 bị chê mạnh tay) — bản lật lá ngẫu nhiên giữa ba vị trí bị chủ
+ * (hình cũ mờ dần rồi hình mới rõ dần — bản thu nhỏ 0,6 bị chê mạnh tay) — bản lật lá ngẫu nhiên giữa ba vị trí bị chủ
  * dự án chê "rối mắt". Hình bốc ngẫu nhiên từ theme MIỄN PHÍ — trang chủ không
  * khoe theme phải mua.
  */
@@ -13,7 +13,6 @@ const props = defineProps<{ themes: CardTheme[] }>();
 
 const DU_PHONG = ['🐼', '🦊', '🐸', '🍓', '🍩', '🐙', '🦄', '🍉', '🐳', '🌸', '🍀', '🐝'];
 const NHIP_MS = 5000;
-const AN_MS = 450;   // khớp `transition: opacity .45s` của .hinh bên dưới
 
 const kho = computed(() => {
   const s = props.themes.filter((t) => !t.premium).flatMap((t) => t.symbols);
@@ -22,18 +21,27 @@ const kho = computed(() => {
 const boc = <T,>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)]!;
 
 const kyHieu = ref(boc(kho.value));
-const an = ref(false);
 
+/* Hình cũ mờ dần, GẦN HẾT thì hình mới mới rõ dần (chủ dự án 15.10.2026). Bản cũ
+   đổi chữ/ảnh NGAY TRÊN một phần tử lúc nó vừa mờ: ảnh SVG chưa tải xong thì hình
+   cũ còn nằm đó lúc hiện lại, và WebKit giữ khung hình cũ của lớp đang chuyển —
+   mắt thấy hình mới ĐÈ lên hình cũ. Nay mỗi hình là một phần tử riêng (`:key`),
+   hai lớp chồng cùng một ô lưới, và ảnh được tải + giải mã XONG rồi mới đổi. */
 let hen: ReturnType<typeof setInterval> | undefined;
-let henDoi: ReturnType<typeof setTimeout> | undefined;
-function doiHinh(): void {
+let conSong = true;
+async function doiHinh(): Promise<void> {
   if (document.hidden) return;
   const hinh = boc(kho.value.filter((e) => e !== kyHieu.value));
-  an.value = true;
-  henDoi = setTimeout(() => { kyHieu.value = hinh; an.value = false; }, AN_MS);
+  const url = anhEmoji(hinh);
+  if (url) {
+    const img = new Image();
+    img.src = url;
+    await img.decode().catch(() => undefined);
+  }
+  if (conSong) kyHieu.value = hinh;
 }
-onMounted(() => { hen = setInterval(doiHinh, NHIP_MS); });
-onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
+onMounted(() => { hen = setInterval(() => { void doiHinh(); }, NHIP_MS); });
+onUnmounted(() => { conSong = false; clearInterval(hen); });
 </script>
 
 <template>
@@ -41,9 +49,13 @@ onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
     <span class="la-quat trai"><i /></span>
     <span class="la-quat phai"><i /></span>
     <span class="la-quat giua">
-      <span class="hinh" :class="{ an }">
-        <img v-if="anhEmoji(kyHieu)" class="anh" :src="anhEmoji(kyHieu)!" alt="" draggable="false">
-        <template v-else>{{ kyHieu }}</template>
+      <span class="khung-hinh">
+        <Transition name="hinh">
+          <span :key="kyHieu" class="hinh">
+            <img v-if="anhEmoji(kyHieu)" class="anh" :src="anhEmoji(kyHieu)!" alt="" draggable="false">
+            <template v-else>{{ kyHieu }}</template>
+          </span>
+        </Transition>
       </span>
     </span>
   </div>
@@ -72,8 +84,14 @@ onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
      chiều cao quạt nên máy hẹp (Mi 10S) lá co theo bề ngang còn hình thì không —
      hình phủ kín lá (chủ dự án báo). 0,36·cao ≈ 55% bề ngang lá, chừa lề như lá trong ván. */
   font-size: calc(var(--la-h) * .36); }
-.hinh { display: flex; transition: opacity .45s ease-in-out; }
-.hinh.an { opacity: 0; }
+/* Hai hình (đang đi + đang tới) chồng đúng một ô lưới, không absolute: lá giữ
+   nguyên cỡ và hình vẫn canh giữa. Cũ tắt 0,6s; mới chờ 0,5s (cũ đã gần hết) rồi
+   rõ dần 0,6s. */
+.khung-hinh { display: grid; place-items: center; }
+.hinh { display: flex; grid-area: 1 / 1; }
+.hinh-leave-active { transition: opacity .6s ease-in; }
+.hinh-enter-active { transition: opacity .6s ease-out .5s; }
+.hinh-enter-from, .hinh-leave-to { opacity: 0; }
 .la-quat .anh { width: 1.15em; height: 1.15em; }
 /* LẮC NHẸ (chủ dự án 13.10.2026): thuộc tính `rotate` RIÊNG nên cộng dồn lên góc
    nghiêng trong `transform`, không đè nó. Ba nhịp lệch nhau để không lắc đồng loạt
@@ -82,7 +100,7 @@ onUnmounted(() => { clearInterval(hen); clearTimeout(henDoi); });
 .la-quat.trai { animation-duration: 3.8s; animation-delay: -1.2s; }
 .la-quat.phai { animation-duration: 3.5s; animation-delay: -2.4s; }
 @keyframes lac-quat { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
-@media (prefers-reduced-motion: reduce) { .la-quat { animation: none; } .hinh { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .la-quat { animation: none; } .hinh-enter-active, .hinh-leave-active { transition: none; } }
 /* Máy thấp (SE + thanh địa chỉ): quạt còn dưới ~70px thì nhìn như lỗi — ẩn hẳn */
 @container (max-height: 70px) { .la-quat { display: none; } }
 </style>
