@@ -45,6 +45,9 @@ store công khai; đang tắt thì nút hiện "Sắp ra mắt").
   ảnh có thuộc tính `width/height` để không nhảy trang — CSS phải có `height: auto`.
 - Service worker của game KHÔNG precache và KHÔNG chặn các trang này
   (`globIgnores`, `navigateFallbackDenylist` trong `apps/web/vite.config.ts`).
+- **CSS/JS mang mã phiên bản theo nội dung** (`site.css?v=<8 ký tự>`, gắn lúc build): Cloudflare
+  của `cozypi.com` ép trình duyệt giữ file tĩnh 4 TIẾNG (Browser Cache TTL), nên sửa CSS mà
+  không đổi đường dẫn là người xem thấy HTML mới + CSS cũ. Ảnh mới thì đặt TÊN mới.
 - Cache: HTML `no-cache`; `/site/*` 5 phút — luật ở CẢ `apps/node-server/src/index.ts`
   (`cacheControl`) lẫn `apps/web/public/_headers` (`headers.test.ts` canh hai bên khớp).
 - Không trang nào được cuộn ngang ở iPhone SE/14/Pro Max, mọi ngôn ngữ — đo bằng giả lập
