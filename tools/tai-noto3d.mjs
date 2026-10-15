@@ -34,7 +34,11 @@ mkdirSync(RA, { recursive: true });
 const tam = join(tmpdir(), `noto3d-${process.pid}.png`);
 const thieu = [];
 let moi = 0;
-const viec = [...can].filter(([ma]) => !existsSync(join(RA, `${ma}.webp`)));
+// Ba cỡ: 512 gốc + hai cỡ nhỏ cho lá nhỏ (lib/emoji.ts `CO_ANH_3D` — đổi là đổi cả hai)
+const CO_NHO = [128, 256];
+for (const co of CO_NHO) mkdirSync(join(RA, String(co)), { recursive: true });
+const du = (ma) => [join(RA, `${ma}.webp`), ...CO_NHO.map((co) => join(RA, String(co), `${ma}.webp`))].every(existsSync);
+const viec = [...can].filter(([ma]) => !du(ma));
 async function tai([ma, e]) {
   // Noto bỏ fe0f trong tên file; vài chuỗi vẫn giữ — thử cả hai
   const raw = [...e].map((c) => c.codePointAt(0).toString(16)).join('_');
@@ -44,6 +48,7 @@ async function tai([ma, e]) {
     const f = `${tam}-${ma}`;
     writeFileSync(f, Buffer.from(await r.arrayBuffer()));
     execFileSync('cwebp', ['-quiet', '-q', '82', '-alpha_q', '90', f, '-o', join(RA, `${ma}.webp`)]);
+    for (const co of CO_NHO) execFileSync('cwebp', ['-quiet', '-q', '82', '-alpha_q', '90', '-resize', String(co), '0', f, '-o', join(RA, String(co), `${ma}.webp`)]);
     unlinkSync(f);
     moi++;
     return;
@@ -59,7 +64,8 @@ const dsThieu = [...new Set([...cu, ...thieu])].filter((ma) => can.has(ma) && !e
 writeFileSync(join(RA, 'thieu.json'), JSON.stringify(dsThieu) + '\n');
 
 let xoa = 0;
-for (const f of readdirSync(RA).filter((f) => f.endsWith('.webp'))) if (!can.has(f.slice(0, -5))) { unlinkSync(join(RA, f)); xoa++; }
+for (const thu of [RA, ...CO_NHO.map((co) => join(RA, String(co)))])
+  for (const f of readdirSync(thu).filter((f) => f.endsWith('.webp'))) if (!can.has(f.slice(0, -5))) { unlinkSync(join(thu, f)); xoa++; }
 writeFileSync(join(RA, 'LICENSE.txt'),
   'Emoji graphics: Noto Emoji 3D by Google (https://github.com/googlefonts/noto-emoji),\n' +
   'licensed under the SIL Open Font License 1.1: https://openfontlicense.org\n');

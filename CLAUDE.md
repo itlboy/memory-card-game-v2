@@ -857,7 +857,9 @@
 - **MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG NOTO 3D** (15.10.2026, chủ dự án so 5 bộ — artifact
   https://claude.ai/artifact/M5iMtdV57gUizNRgK7ppj1 — chọn bộ 3D mới của Google): WebP 512px ở
   `public/emoji/3d/`, tải bằng `node tools/tai-noto3d.mjs` (cần `cwebp`). GIỮ 512: quạt lá trang
-  chủ / bàn 4 thẻ cần ~390px, 256 là mờ. Hình Noto 3D chưa có ghi ở `thieu.json` và lùi về
+  chủ / bàn 4 thẻ cần ~390px, 256 là mờ. BA CỠ 128 · 256 · 512 (`3d/128/`, `3d/256/`, `3d/`): BoardGrid
+  đo MỘT lá → `chonCoAnh` (cỡ CSS × DPR) — ảnh giải nén ăn RAM theo điểm ảnh, bàn 88 thẻ toàn 512 là
+  ~44MB (đúng thứ làm iOS thả lớp GPU). Hình Noto 3D chưa có ghi ở `thieu.json` và lùi về
   Twemoji. Chế độ debug → Luật chơi → "Bộ hình emoji" xoay Máy · Twemoji · Noto · Noto 3D
   (`mm.boEmoji`, chỉ máy đó). Thêm theme = chạy CẢ HAI script tải. Mục dưới là lịch sử:
 - **(14.10.2026) MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG SVG TWEMOJI** (`lib/emoji.ts`, `public/emoji/<mã>.svg`,

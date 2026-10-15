@@ -77,12 +77,28 @@ const NOTO = 'https://raw.githubusercontent.com/googlefonts/noto-emoji/main';
 const laCo = (e: string) => /\p{Regional_Indicator}/u.test(e);
 const CHUA_CO_3D = new Set<string>(THIEU_3D);
 
-/** Đường dẫn ảnh cho ký hiệu, hoặc null = vẽ bằng chữ (máy Apple, chữ/số, ô úp rỗng). */
-export function anhEmoji(kyHieu: string | undefined, vector?: boolean): string | null {
+/**
+ * NOTO 3D CÓ BA CỠ đóng gói sẵn: 128 · 256 (thư mục con) và 512 (gốc). Lá nhỏ
+ * dùng ảnh nhỏ — ảnh giải nén chiếm RAM theo số điểm ảnh (512² ≈ 1MB), bàn 88
+ * thẻ toàn ảnh 512 là ~44MB, mà iOS thả lớp GPU khi thiếu bộ nhớ (lỗi "ô trắng").
+ */
+export const CO_ANH_3D = [128, 256, 512] as const;
+/** Cỡ nhỏ nhất đủ nét cho hình rộng `cssPx` trên màn này (chừa 10% non tay). */
+export function chonCoAnh(cssPx: number, dpr = typeof window === 'undefined' ? 2 : window.devicePixelRatio || 1): number {
+  const can = cssPx * dpr * 0.9;
+  return CO_ANH_3D.find((c) => c >= can) ?? 512;
+}
+
+/** Đường dẫn ảnh cho ký hiệu, hoặc null = vẽ bằng chữ (máy Apple, chữ/số, ô úp rỗng).
+ *  `co` = cỡ ảnh Noto 3D cần (`chonCoAnh`); bỏ trống là 512. */
+export function anhEmoji(kyHieu: string | undefined, vector?: boolean, co = 512): string | null {
   const bo: BoEmoji = vector === undefined ? boEmojiHien() : vector ? 'noto3d' : 'may';
   if (bo === 'may' || !kyHieu || !LA_EMOJI.test(kyHieu)) return null;
   const ma = tenFileEmoji(kyHieu);
-  if (bo === 'noto3d') return CHUA_CO_3D.has(ma) ? `/emoji/${ma}.svg` : `/emoji/3d/${ma}.webp`;
+  if (bo === 'noto3d') {
+    if (CHUA_CO_3D.has(ma)) return `/emoji/${ma}.svg`;
+    return co >= 512 ? `/emoji/3d/${ma}.webp` : `/emoji/3d/${co}/${ma}.webp`;
+  }
   if (bo === 'twemoji') return `/emoji/${ma}.svg`;
   const noto = `emoji_u${ma.replaceAll('-', '_')}`;
   // Cờ của Noto 2D nằm riêng (bộ cờ bay phấp phới)

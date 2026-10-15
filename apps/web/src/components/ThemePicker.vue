@@ -109,10 +109,10 @@ function cham(x: CardTheme): void {
       <p class="tp-nhan"><Crown :size="14" aria-hidden="true" /> {{ t('tp.premium') }}</p>
       <h2>{{ tenTheme(xemTruoc.id, xemTruoc.name) }}</h2>
       <div class="tp-bo" aria-hidden="true">
-        <!-- Cùng cách vẽ với mặt bài (`lib/emoji.ts`): máy không phải Apple vẽ SVG
-             Twemoji — emoji bitmap của Android phóng to là mờ -->
+        <!-- Cùng cách vẽ với mặt bài (`lib/emoji.ts`): máy không phải Apple vẽ ảnh
+             Noto 3D — emoji bitmap của Android phóng to là mờ. Hình 28px → cỡ 128 -->
         <span v-for="s in xemTruoc.symbols" :key="s">
-          <img v-if="anhEmoji(s)" class="tp-anh" :src="anhEmoji(s)!" alt="" draggable="false">
+          <img v-if="anhEmoji(s)" class="tp-anh" :src="anhEmoji(s, undefined, 128)!" alt="" draggable="false">
           <template v-else>{{ s }}</template>
         </span>
       </div>
