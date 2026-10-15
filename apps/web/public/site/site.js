@@ -1,19 +1,21 @@
 /*
- * Ngôn ngữ + nút store cho các trang công khai (about/support/privacy/changes).
+ * Menu ngôn ngữ + nút store cho các trang công khai (about/changes/support/privacy).
  *
- * Tiếng Anh viết SẴN trong HTML (máy tìm kiếm, trình duyệt tắt JS vẫn đọc được);
- * ngôn ngữ khác nạp từ site/i18n/<mã>.json rồi thay chữ theo thuộc tính:
- *   data-t="khoá"        → textContent
- *   data-th="khoá"       → innerHTML (chỉ chữ của CHÍNH ta trong i18n/*.json)
- *   data-t-alt / -aria   → thuộc tính alt / aria-label
- * Chọn ngôn ngữ: ?lang= → lựa chọn đã lưu của APP (localStorage `mm.lang`, cùng
- * tên miền nên trang và game nói cùng một thứ tiếng) → ngôn ngữ trình duyệt → en.
- * Đổi trong menu là ghi `mm.lang` — game mở ra cũng theo ngôn ngữ đó.
+ * CHỮ ĐÃ DỰNG SẴN theo từng ngôn ngữ lúc build (tools/dung-trang-cong-khai.mjs):
+ * tiếng Anh ở /<trang>.html, ngôn ngữ khác ở /<mã>/<trang>.html — để Google đọc được
+ * mọi bản (SEO, chủ dự án 15.10.2026). File này KHÔNG còn đổi chữ lúc chạy.
+ *
+ * Tự chuyển ngôn ngữ CHỈ ở bản tiếng Anh, và chỉ khi người xem đã chọn ngôn ngữ khác
+ * (localStorage `mm.lang`, dùng chung với game cùng tên miền) hoặc trình duyệt nói
+ * tiếng khác. Không chuyển khi link có ?lang=en, và không chuyển khỏi một bản dịch
+ * người ta mở thẳng (vd. từ kết quả Google). Máy của Google dùng tiếng Anh nên không
+ * bao giờ bị chuyển hướng.
  */
 (() => {
   const LANGS = [
     ['en', 'English'], ['es', 'Español'], ['pt', 'Português (Brasil)'], ['fr', 'Français'],
-    ['de', 'Deutsch'], ['ja', '日本語'], ['ko', '한국어'], ['zh', '简体中文'], ['ru', 'Русский'],
+    ['de', 'Deutsch'], ['it', 'Italiano'], ['tr', 'Türkçe'], ['ja', '日本語'], ['ko', '한국어'],
+    ['zh', '简体中文'], ['zh-TW', '繁體中文'], ['ru', 'Русский'],
     ['id', 'Bahasa Indonesia'], ['th', 'ไทย'], ['vi', 'Tiếng Việt']
   ];
   const IDS = LANGS.map((l) => l[0]);
@@ -29,63 +31,48 @@
   };
 
   const doc = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
-  function chon() {
-    const q = new URLSearchParams(location.search).get('lang');
-    if (q && IDS.includes(q)) return q;
-    const luu = doc('mm.lang');
-    if (luu && IDS.includes(luu)) return luu;
+  const ghi = (k, v) => { try { localStorage.setItem(k, v); } catch { /* chế độ riêng tư */ } };
+
+  // Trang đang ở ngôn ngữ nào: /vi/about.html → vi; /about.html (hay /about) → en
+  const m = location.pathname.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)\/([a-z]+)(?:\.html)?$/);
+  const langTrang = m && IDS.includes(m[1]) ? m[1] : 'en';
+  const trang = (m ? m[2] : location.pathname.replace(/^\//, '').replace(/\.html$/, '')) || 'about';
+  const diaChi = (l) => (l === 'en' ? `/${trang}.html` : `/${l}/${trang}.html`);
+
+  function trinhDuyet() {
     for (const l of navigator.languages || [navigator.language || 'en']) {
-      const ma = String(l).toLowerCase().split('-')[0];
+      const tag = String(l).toLowerCase();
+      // Trung PHỒN THỂ: Đài Loan / Hồng Kông / Macao / "Hant" — trước khi cắt về "zh"
+      if (/^zh-(hant|tw|hk|mo)\b/.test(tag)) return 'zh-TW';
+      const ma = tag.split('-')[0];
       if (IDS.includes(ma)) return ma;
     }
     return 'en';
   }
-  const lang = chon();
-  const base = new URL('./', document.currentScript.src);
 
-  function apDung(t) {
-    const get = (k) => (k in t ? t[k] : null);
-    document.querySelectorAll('[data-t]').forEach((el) => { const v = get(el.dataset.t); if (v != null) el.textContent = v; });
-    document.querySelectorAll('[data-th]').forEach((el) => { const v = get(el.dataset.th); if (v != null) el.innerHTML = v; });
-    document.querySelectorAll('[data-t-alt]').forEach((el) => { const v = get(el.dataset.tAlt); if (v != null) el.alt = v; });
-    document.querySelectorAll('[data-t-aria]').forEach((el) => { const v = get(el.dataset.tAria); if (v != null) el.setAttribute('aria-label', v); });
-    const d = get(document.body.dataset.page + '.desc');
-    if (d) document.querySelector('meta[name="description"]')?.setAttribute('content', d);
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q && IDS.includes(q)) ghi('mm.lang', q);
+  if (langTrang === 'en' && q !== 'en') {
+    const luu = doc('mm.lang');
+    const muon = luu && IDS.includes(luu) ? luu : trinhDuyet();
+    if (muon !== 'en') { location.replace(diaChi(muon) + location.hash); return; }
   }
 
-  function nutStore() {
-    document.querySelectorAll('[data-store]').forEach((a) => {
-      const s = STORE[a.dataset.store];
-      if (!s) return;
-      if (s.on) { a.href = s.url; a.removeAttribute('aria-disabled'); a.querySelector('[data-soon]')?.remove(); }
-      else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); }
-    });
-  }
-
-  function menu() {
-    const sel = document.querySelector('.lang select');
-    if (!sel) return;
-    sel.innerHTML = LANGS.map(([id, ten]) => `<option value="${id}"${id === lang ? ' selected' : ''}>${ten}</option>`).join('');
-    sel.addEventListener('change', () => {
-      try { localStorage.setItem('mm.lang', sel.value); } catch { /* chế độ riêng tư: vẫn đổi qua ?lang */ }
-      const u = new URL(location.href);
-      u.searchParams.delete('lang');
-      if (doc('mm.lang') !== sel.value) u.searchParams.set('lang', sel.value);
-      location.href = u.toString();
-    });
-  }
-
-  document.documentElement.lang = lang;
   document.querySelectorAll('[data-nam]').forEach((el) => { el.textContent = String(new Date().getFullYear()); });
-  nutStore();
-  menu();
-  if (lang !== 'en') {
-    // Giấu trang tới khi chữ đã dịch (không thì nháy tiếng Anh một nhịp); quá
-    // 1,5 giây (mạng chậm, file lỗi) thì hiện tiếng Anh còn hơn trang trắng.
-    const hien = () => document.documentElement.classList.remove('dang-dich');
-    document.documentElement.classList.add('dang-dich');
-    setTimeout(hien, 1500);
-    fetch(new URL(`i18n/${lang}.json`, base)).then((r) => (r.ok ? r.json() : null))
-      .then((t) => { if (t) apDung(t); }).catch(() => {}).finally(hien);
+
+  document.querySelectorAll('[data-store]').forEach((a) => {
+    const s = STORE[a.dataset.store];
+    if (!s) return;
+    if (s.on) { a.href = s.url; a.removeAttribute('aria-disabled'); a.querySelector('[data-soon]')?.remove(); }
+    else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); }
+  });
+
+  const sel = document.querySelector('.lang select');
+  if (sel) {
+    sel.innerHTML = LANGS.map(([id, ten]) => `<option value="${id}"${id === langTrang ? ' selected' : ''}>${ten}</option>`).join('');
+    sel.addEventListener('change', () => {
+      ghi('mm.lang', sel.value);
+      location.href = diaChi(sel.value) + (sel.value === 'en' ? '?lang=en' : '') + location.hash;
+    });
   }
 })();

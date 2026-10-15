@@ -43,6 +43,9 @@
 		A7E1F0D72FF0000100A1B2C3 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A7E1F0D82FF0000100A1B2C3 /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A7E1F0D92FF0000100A1B2C3 /* th */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = th; path = th.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A7E1F0DA2FF0000100A1B2C3 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A7E1F0DB2FF0000100A1B2C3 /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		A7E1F0DC2FF0000100A1B2C3 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = zh-Hant.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +150,9 @@
 				ru,
 				id,
 				th,
+				it,
+				tr,
+				"zh-Hant",
 				Base,
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
@@ -223,6 +229,9 @@
 				A7E1F0D72FF0000100A1B2C3 /* ru */,
 				A7E1F0D82FF0000100A1B2C3 /* id */,
 				A7E1F0D92FF0000100A1B2C3 /* th */,
+				A7E1F0DA2FF0000100A1B2C3 /* it */,
+				A7E1F0DB2FF0000100A1B2C3 /* tr */,
+				A7E1F0DC2FF0000100A1B2C3 /* zh-Hant */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";

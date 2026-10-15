@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 18.5" fill="#1d2a5a">
+  <!-- Thanh trạng thái iPad: giờ + ngày bên trái, Wi-Fi + pin bên phải, không có viên camera -->
+  <text x="14" y="12.6" font-family="-apple-system, 'SF Pro Text', system-ui, sans-serif" font-size="8" font-weight="700">9:41</text>
+  <text x="34" y="12.6" font-family="-apple-system, 'SF Pro Text', system-ui, sans-serif" font-size="8" font-weight="600">Tue Oct 14</text>
+  <g transform="translate(386 5.2)" fill="none" stroke="#1d2a5a" stroke-width="1.3" stroke-linecap="round">
+    <path d="M.6 2.8a6.4 6.4 0 0 1 8.6 0"/><path d="M2.2 4.7a4 4 0 0 1 5.4 0"/><circle cx="4.9" cy="6.9" r=".8" fill="#1d2a5a" stroke="none"/>
+  </g>
+  <g transform="translate(400 5)">
+    <rect x=".5" y=".5" width="13" height="6.8" rx="2" fill="none" stroke="#1d2a5a" stroke-opacity=".45" stroke-width=".9"/>
+    <rect x="1.7" y="1.7" width="10.6" height="4.4" rx="1"/>
+    <path d="M14.4 2.6v2.6c.5-.2.8-.7.8-1.3s-.3-1.1-.8-1.3z" fill-opacity=".45"/>
+  </g>
+</svg>
