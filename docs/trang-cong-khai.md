@@ -41,7 +41,7 @@ store công khai; đang tắt thì nút hiện "Sắp ra mắt").
   email thành "[email protected]" với ai không chạy JavaScript (người duyệt store đã thấy vậy).
 - **Link giữa các trang để TƯƠNG ĐỐI** (`changes.html`, `site/…`); bản ngôn ngữ ở thư mục
   con được công cụ đổi thành `../site/…`. Nút "Chơi" (`href="/"`) thành `/?lang=<mã>`.
-- Ảnh: `.webp`, khung máy + thanh trạng thái vẽ bằng CSS/SVG (`site/img/iphone-status.svg`, `status-bar-ipad.svg` — tỷ lệ máy thật: vùng an toàn trên iPhone 59/430 ≈ 13,6% bề ngang);
+- Ảnh: `.webp`, khung máy + thanh trạng thái vẽ bằng CSS/SVG (`site/img/iphone-status-den.svg` (nền sáng) / `-trang.svg` (nền tối), `ipad-status.svg` — tai thỏ luôn ĐEN — tỷ lệ máy thật: vùng an toàn trên iPhone 59/430 ≈ 13,6% bề ngang);
   ảnh có thuộc tính `width/height` để không nhảy trang — CSS phải có `height: auto`.
 - Service worker của game KHÔNG precache và KHÔNG chặn các trang này
   (`globIgnores`, `navigateFallbackDenylist` trong `apps/web/vite.config.ts`).
