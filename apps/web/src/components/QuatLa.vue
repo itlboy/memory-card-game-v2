@@ -50,7 +50,7 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
     <span class="la-quat phai"><i /></span>
     <span class="la-quat giua">
       <span class="khung-hinh">
-        <Transition name="hinh">
+        <Transition name="hinh" mode="out-in">
           <span :key="kyHieu" class="hinh">
             <img v-if="anhEmoji(kyHieu)" class="anh" :src="anhEmoji(kyHieu)!" alt="" draggable="false">
             <template v-else>{{ kyHieu }}</template>
@@ -84,13 +84,15 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
      chiều cao quạt nên máy hẹp (Mi 10S) lá co theo bề ngang còn hình thì không —
      hình phủ kín lá (chủ dự án báo). 0,36·cao ≈ 55% bề ngang lá, chừa lề như lá trong ván. */
   font-size: calc(var(--la-h) * .36); }
-/* Hai hình (đang đi + đang tới) chồng đúng một ô lưới, không absolute: lá giữ
-   nguyên cỡ và hình vẫn canh giữa. Cũ tắt 0,6s; mới chờ 0,5s (cũ đã gần hết) rồi
-   rõ dần 0,6s. */
+/* `mode="out-in"`: hình cũ BIẾN HẲN rồi hình mới mới vào — KHÔNG lúc nào có hai hình
+   trên lá. Bản chồng hai lớp (mới chờ 0,5s rồi rõ dần) vẫn bị chủ dự án báo "đè lên
+   nhau" trên iOS từ khi mặt bài là ẢNH Noto 3D (15.10.2026): WebKit có lúc không làm
+   mờ ảnh của lớp đang rời. Không còn hai phần tử cùng lúc thì không có gì để đè.
+   Hai hình vẫn chung một ô lưới để lá giữ nguyên cỡ. */
 .khung-hinh { display: grid; place-items: center; }
 .hinh { display: flex; grid-area: 1 / 1; }
 .hinh-leave-active { transition: opacity .6s ease-in; }
-.hinh-enter-active { transition: opacity .6s ease-out .5s; }
+.hinh-enter-active { transition: opacity .6s ease-out; }
 .hinh-enter-from, .hinh-leave-to { opacity: 0; }
 .la-quat .anh { width: 1.15em; height: 1.15em; }
 /* LẮC NHẸ (chủ dự án 13.10.2026): thuộc tính `rotate` RIÊNG nên cộng dồn lên góc
