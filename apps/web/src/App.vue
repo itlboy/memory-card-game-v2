@@ -56,7 +56,16 @@ import { loadThemes, type CardTheme } from './lib/themes';
 import { choiDuoc, hienPremium } from './lib/premium';
 
 const prefs = store.prefs();
-const dark = ref(prefs.dark);
+/*
+ * NỀN SÁNG/TỐI của skin Neon (skin khác mang bảng màu riêng): mặc định THEO HỆ
+ * ĐIỀU HÀNH (chủ dự án 16.10.2026), đổi được thành Sáng/Tối cố định. Bản lưu cũ
+ * chỉ có `dark`: ai đã bật nền tối thì giữ Tối, còn lại (mặc định cũ) về Tự động.
+ */
+const nen = ref<'tu' | 'sang' | 'toi'>(prefs.nen ?? (prefs.dark ? 'toi' : 'tu'));
+const mqToi = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+const heToi = ref(!!mqToi?.matches);
+mqToi?.addEventListener?.('change', (e) => { heToi.value = e.matches; });
+const dark = computed(() => nen.value === 'toi' || (nen.value === 'tu' && heToi.value));
 const soundLevel = ref<SoundLevel>(prefs.soundLevel);
 /** Rung khi ghép thẻ — công tắc riêng cạnh âm thanh trong menu (lib/rung.ts). */
 // Rung LUÔN BẬT — không còn công tắc (chủ dự án chốt 14.10.2026). Bản lưu cũ
@@ -466,9 +475,9 @@ watch(screen, (sc) => {
 /* ---------- tuỳ chọn hiển thị ---------- */
 watchEffect(() => { document.documentElement.dataset.theme = dark.value ? 'dark' : 'light'; });
 watchEffect(applySound);
-watch([dark, soundLevel, mode, level, themeIds, playerCount, options], () => {
+watch([nen, dark, soundLevel, mode, level, themeIds, playerCount, options], () => {
   store.savePrefs({
-    dark: dark.value, sound: soundLevel.value !== 'off', soundLevel: soundLevel.value, mode: mode.value,
+    dark: dark.value, nen: nen.value, sound: soundLevel.value !== 'off', soundLevel: soundLevel.value, mode: mode.value,
     level: level.value, themes: themeIds.value, playerCount: playerCount.value,
     options: options.value
   });
@@ -751,12 +760,12 @@ const hasNext = computed(() => {
   <IconBay v-if="screen !== 'game'" />
   <TopBar
     :debug="debug"
-    :dark="dark" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
+    :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
     @set-nhac="datNhac"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
-    @toggle-dark="dark = !dark"
+    @set-nen="nen = $event"
     @account="showAccount = true"
     @set-sound="(l: SoundLevel) => { soundLevel = l; applySound(); }"
     :ten-tk="taiKhoanMe?.name"

@@ -690,8 +690,10 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .option.wide { padding: 13px 16px; }
 .option.wide .icon { font-size: 26px; }
 
-.step-enter-active { transition: opacity .18s ease, transform .18s ease; }
-.step-enter-from { opacity: 0; transform: translateX(14px); }
+/* Chỉ MỜ DẦN, không trượt ngang — chủ dự án 16.10.2026 chê kiểu "kéo ngang
+   như chuyển trang" khó chịu khi đổi bước/chức năng. */
+.step-enter-active { transition: opacity .18s ease; }
+.step-enter-from { opacity: 0; }
 .step-leave-active { transition: opacity .12s ease; }
 .step-leave-to { opacity: 0; }
 

@@ -19,7 +19,10 @@ function optionsFromOldMode(mode: Mode | undefined): Partial<BoardOptions> {
 }
 
 export interface Prefs {
+  /** Nền thật đang dùng — giữ để đọc bản lưu cũ; lựa chọn của người chơi nằm ở `nen`. */
   dark: boolean;
+  /** Nền của skin Neon: 'tu' = theo hệ điều hành (mặc định), 'sang', 'toi'. */
+  nen?: 'tu' | 'sang' | 'toi';
   /** Hình mặt bài: 'vector' = ảnh Noto 3D, 'may' = emoji của máy. Chưa chọn thì
    *  theo máy (lib/emoji.ts): không-Apple → vector, Apple → emoji của máy. */
   kieuEmoji?: 'vector' | 'may';

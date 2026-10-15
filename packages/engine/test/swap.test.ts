@@ -53,19 +53,29 @@ describe('thẻ tráo đổi (swap)', () => {
   });
 
   /*
-   * Lỗi đã bị phản ánh thật: bốc trúng lá tráo ngay nước ĐẦU (rất dễ xảy ra
-   * ngay sau màn xem trước, lúc bàn vừa úp lại) thì trước đây thẻ đứng im —
-   * người chơi bấm mà chẳng thấy gì và kết luận là nút hỏng. Giờ chưa lộ thẻ
-   * nào thì tráo cả thẻ chưa mở, miễn là CÓ chuyện xảy ra.
+   * Chủ dự án 16.10.2026: tráo hai thẻ chưa ai thấy là "vô nghĩa" — không phá
+   * ký ức nào. Chưa lộ thẻ nào thì ĐỂ DÀNH thẻ (huy hiệu còn trên mặt thẻ).
    */
-  it('chưa thẻ nào lộ ra thì vẫn tráo — bấm phải thấy có gì đó xảy ra', () => {
+  it('chưa thẻ nào lộ ra thì KHÔNG tráo — để dành thẻ cho lần sau', () => {
     const g = gameWithSwapAt(0);
     const before = snapshotOf(g.cards);
     const events = g.flip(0, 100);
-    const ev = events.find((e) => e.type === 'power');
-    expect(ev, 'phải phát ra sự kiện power').toBeDefined();
-    expect(snapshotOf(g.cards), 'bàn phải thật sự đổi').not.toEqual(before);
-    expect(g.cards[0]!.powerUsed, 'thẻ đã tiêu').toBe(true);
+    expect(events.find((e) => e.type === 'power'), 'không được phát sự kiện power').toBeUndefined();
+    expect(snapshotOf(g.cards), 'bàn không đổi').toEqual(before);
+    expect(g.cards[0]!.powerUsed, 'chưa tiêu, còn dùng được lần sau').toBe(false);
+  });
+
+  it('đúng MỘT thẻ đã lộ: tráo nó với một thẻ còn úp', () => {
+    const g = gameWithSwapAt(15);
+    const seen = (g as unknown as { seen: Set<number> }).seen;
+    // Lộ đúng một thẻ: lật một thẻ rồi để nó úp lại (ghép sai với thẻ khác thì
+    // lộ HAI) — ghi thẳng vào `seen` cho tất định.
+    seen.add(3);
+    const ev = g.flip(15, 100).find((e) => e.type === 'power') as { affected: number[] } | undefined;
+    expect(ev, 'phải tráo').toBeDefined();
+    expect(ev!.affected).toContain(3);
+    const khac = ev!.affected.find((i) => i !== 3)!;
+    expect(khac).not.toBe(15);
   });
 
   it('nhưng ƯU TIÊN thẻ đã lộ: có đủ hai thẻ đã lộ thì chỉ tráo trong số đó', () => {

@@ -11,7 +11,7 @@ import type { SoundLevel } from '@/lib/storage';
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
  *  `avatar`: ảnh Google của người đang đăng nhập, null là chưa đăng nhập. */
 const props = defineProps<{
-  dark: boolean; soundLevel: SoundLevel; totalScore: number;
+  nen: 'tu' | 'sang' | 'toi'; soundLevel: SoundLevel; totalScore: number;
   account?: boolean; avatar?: string | null; signedIn?: boolean;
   /** Nhạc nền đang bật. */
   nhac?: boolean;
@@ -24,7 +24,7 @@ const props = defineProps<{
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
 }>();
-const emit = defineEmits<{ 'toggle-dark': []; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; home: []; rules: []; account: []; 'danh-hieu': [] }>();
+const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; home: []; rules: []; account: []; 'danh-hieu': [] }>();
 
 /*
  * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
@@ -222,14 +222,17 @@ watch(() => props.totalScore, (to, from) => {
           </button>
         </div>
         <p v-if="baoPlus" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
-        <button
-          v-if="skin === 'neon'"
-          class="item cong-tac" role="menuitemcheckbox" type="button" :aria-checked="dark"
-          :aria-label="dark ? t('tb.sangNenSang') : t('tb.sangNenToi')"
-          @click="$emit('toggle-dark')"
-        >
-          <Moon :size="20" /><span>{{ t('tb.nenToi') }}</span><i class="sw" :class="{ bat: dark }" aria-hidden="true" />
-        </button>
+        <!-- Nền của Neon: Tự động (theo hệ điều hành, mặc định) · Sáng · Tối -->
+        <div v-if="skin === 'neon'" class="item am" role="group" :aria-label="t('tb.nen')">
+          <Moon :size="20" /><span>{{ t('tb.nen') }}</span>
+          <span class="nac">
+            <button
+              v-for="n in (['tu', 'sang', 'toi'] as const)" :key="n" type="button" role="menuitemradio"
+              :aria-checked="nen === n" :aria-label="`${t('tb.nen')}: ${td(`tb.nenNgan.${n}`)}`"
+              @click="$emit('set-nen', n)"
+            >{{ td(`tb.nenNgan.${n}`) }}</button>
+          </span>
+        </div>
         <div class="item am" role="group" :aria-label="t('tb.amThanh')">
           <component :is="soundIcon" :size="20" /><span>{{ t('tb.amThanh') }}</span>
           <span class="nac">
