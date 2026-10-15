@@ -76,6 +76,10 @@ const NGON_NGU = [
   { locale: 'ru', noiDung: phan('Русский'), anh: 'ru' },
   { locale: 'id', noiDung: phan('Bahasa Indonesia'), anh: 'id' },
   { locale: 'th', noiDung: phan('ไทย'), anh: 'th' },
+  // Thêm 15.10.2026 — mã App Store: it, tr, zh-Hant (Trung phồn thể)
+  { locale: 'it', noiDung: phan('Italiano'), anh: 'it' },
+  { locale: 'tr', noiDung: phan('Türkçe'), anh: 'tr' },
+  { locale: 'zh-Hant', noiDung: phan('繁體中文'), anh: 'zh-TW' },
 ];
 
 // ── App + appInfo đang soạn + phiên bản đang soạn ──

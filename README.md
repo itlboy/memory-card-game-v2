@@ -2,8 +2,12 @@
 
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
 Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
-(có nói nhanh bằng 12 câu có sẵn); 48 theme (36 miễn phí + 12 premium), 12 ngôn ngữ,
-tài khoản Google/Apple, 127 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+(có nói nhanh bằng 12 câu có sẵn); 48 theme (36 miễn phí + 12 premium), 15 ngôn ngữ,
+tài khoản Google/Apple, 129 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+Trang công khai (giới thiệu, có gì mới, hỗ trợ, quyền riêng tư) 15 ngôn ngữ, dựng sẵn cho SEO.
+
+**Bản đồ tài liệu: [`docs/ban-do.md`](docs/ban-do.md)** — mọi con số/địa chỉ công khai, nguồn
+gốc trong code và mọi chỗ nhắc lại; đổi một thứ thì theo bản đồ đổi cho đồng nhất.
 
 **Người/Claude mới vào làm: đọc mục "LÀM VIỆC NHANH" trong `CLAUDE.md` trước** —
 cách ra bản app, deploy khi có phiên khác làm chung thư mục, soi lỗi chỉ có trên iPhone.

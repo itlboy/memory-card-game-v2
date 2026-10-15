@@ -11,6 +11,9 @@ import zh from '@/locales/zh';
 import ru from '@/locales/ru';
 import id from '@/locales/id';
 import th from '@/locales/th';
+import it from '@/locales/it';
+import tr from '@/locales/tr';
+import zhTW from '@/locales/zh-TW';
 import { laApp } from './native';
 
 /**
@@ -30,8 +33,9 @@ import { laApp } from './native';
  * tiếng Anh: "1 pair" / "2 pairs").
  */
 /**
- * 12 NGÔN NGỮ (12.10.2026, chủ dự án: "ít nhất 10 ngôn ngữ phổ biến trên App
- * Store và CH Play"). Tên ghi bằng CHÍNH ngôn ngữ đó — người không đọc được
+ * 15 NGÔN NGỮ — 12 từ 12.10.2026 (chủ dự án: "ít nhất 10 ngôn ngữ phổ biến trên App
+ * Store và CH Play"), thêm Ý, Thổ Nhĩ Kỳ, Trung phồn thể 15.10.2026. THÊM/BỚT MỘT
+ * NGÔN NGỮ: làm theo danh sách mọi chỗ phải đổi ở docs/ngon-ngu.md. Tên ghi bằng CHÍNH ngôn ngữ đó — người không đọc được
  * tiếng Việt vẫn tìm ra tiếng của mình trong danh sách. `bcp` dùng cho định
  * dạng số (`Intl`) và thuộc tính `lang` của trang.
  * Chưa có tiếng Ả Rập: viết phải-sang-trái, phải lật cả bố cục — việc riêng.
@@ -44,9 +48,12 @@ export const NGON_NGU = [
   { id: 'pt', ten: 'Português (Brasil)', bcp: 'pt-BR' },
   { id: 'fr', ten: 'Français', bcp: 'fr-FR' },
   { id: 'de', ten: 'Deutsch', bcp: 'de-DE' },
+  { id: 'it', ten: 'Italiano', bcp: 'it-IT' },
+  { id: 'tr', ten: 'Türkçe', bcp: 'tr-TR' },
   { id: 'ja', ten: '日本語', bcp: 'ja-JP' },
   { id: 'ko', ten: '한국어', bcp: 'ko-KR' },
   { id: 'zh', ten: '简体中文', bcp: 'zh-CN' },
+  { id: 'zh-TW', ten: '繁體中文', bcp: 'zh-TW' },
   { id: 'ru', ten: 'Русский', bcp: 'ru-RU' },
   { id: 'id', ten: 'Bahasa Indonesia', bcp: 'id-ID' },
   { id: 'th', ten: 'ไทย', bcp: 'th-TH' },
@@ -63,7 +70,7 @@ export type KhoaDich = keyof typeof vi;
 /** Kiểu của MỌI từ điển: đủ đúng các khoá của bản tiếng Việt. */
 export type TuDien = { [K in KhoaDich]: GiaTri };
 
-const BO: Record<NgonNgu, TuDien> = { vi, en, es, pt, fr, de, ja, ko, zh, ru, id, th };
+const BO: Record<NgonNgu, TuDien> = { vi, en, es, pt, fr, de, it, tr, ja, ko, zh, 'zh-TW': zhTW, ru, id, th };
 /** Mọi từ điển (trừ bản gốc) — cho test đối chiếu. */
 export const TU_DIEN = BO;
 const KHOA_LUU = 'mm.lang';
@@ -101,6 +108,8 @@ function docBanDau(): NgonNgu {
 /** Ngôn ngữ đầu tiên của máy mà app có; không có cái nào thì English. */
 export function theoMay(ds: readonly string[]): NgonNgu {
   for (const tag of ds) {
+    // Trung PHỒN THỂ (Đài Loan, Hồng Kông, Macao, "Hant") — xét trước khi cắt về "zh"
+    if (/^zh[-_](hant|tw|hk|mo)\b/i.test(tag)) return 'zh-TW';
     const goc = tag.toLowerCase().split(/[-_]/)[0];
     const ma = goc === 'in' ? 'id' : goc;   // Android cũ báo tiếng Indonesia là "in"
     if (LA_NGON_NGU(ma)) return ma;

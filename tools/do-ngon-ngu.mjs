@@ -18,7 +18,7 @@ const WebSocket = require('ws');
 
 const URL_APP = process.argv[2] ?? 'http://127.0.0.1:8080/';
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const LANGS = (process.env.LANGS ?? 'vi,en,es,pt,fr,de,ja,ko,zh,ru,id,th').split(',');
+const LANGS = (process.env.LANGS ?? 'vi,en,es,pt,fr,de,it,tr,ja,ko,zh,zh-TW,ru,id,th').split(',');
 const [W, H] = [375, 553];
 const PORT = 9343, PROFILE = `/tmp/mm-cdp-nn-${process.pid}`;
 rmSync(PROFILE, { recursive: true, force: true });
@@ -39,6 +39,8 @@ const DO = `(() => {
   const ra = [];
   for (const e of document.querySelectorAll('button, .option, .lt-chip, .seg-btn, .tab, h2, h3, strong, small, .pill, .total, .dh, .item span, label')) {
     if (!e.offsetParent || !e.textContent.trim()) continue;
+    // Chữ chỉ cho trình đọc màn hình (.sr-only, khung 1px) — "tràn" là cố ý, không phải lỗi
+    if (e.closest('.sr-only')) continue;
     const cs = getComputedStyle(e);
     if (cs.textOverflow === 'ellipsis') continue;
     /*

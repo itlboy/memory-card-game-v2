@@ -1,5 +1,17 @@
 # Lật Thẻ (Memory Match) — ghi chú cho Claude
 
+## BẢN ĐỒ TÀI LIỆU — đổi một thứ, biết phải đổi theo ở đâu (15.10.2026)
+
+- **`docs/ban-do.md`** — mọi "sự thật" công khai (60 màn, 15 ngôn ngữ, 36 bộ hình, hơn 100
+  danh hiệu, email, tên miền, ID store…) kèm NGUỒN GỐC trong code và MỌI CHỖ nhắc lại
+  (trang công khai, bản dịch, trang store, README, CLAUDE.md). Đổi sự thật = đi hết hàng
+  đó; thêm chỗ nhắc lại mới = thêm vào bảng trong cùng commit.
+- **`docs/ngon-ngu.md`** — thêm/bớt/đổi ngôn ngữ: 14 chỗ + bảng mã từng hệ.
+- **`docs/trang-cong-khai.md`** — 4 trang công khai (about/changes/support/privacy), dựng
+  theo ngôn ngữ cho SEO, Google Search Console, thêm mục "Có gì mới".
+- `docs/i18n-style.md` (thuật ngữ dịch) · `docs/store-listing.md` (chữ store 15 ngôn ngữ) ·
+  `docs/mobile-ci.md` (ra bản app). Trang studio `cozypi.com` ở repo riêng `itlboy/cozypi-site`.
+
 ## Ràng buộc thiết kế BẮT BUỘC
 
 - **KHÔNG SCROLL trên mobile**: mọi màn hình (wizard chọn chế độ/lưới/theme,
@@ -237,32 +249,19 @@
   `lib/ten.ts` (`tenNguoi`, `tenBot`), dữ liệu ván giữ chữ gốc. Danh hiệu là getter
   (`dh()` trong achievements.ts) nên đổi ngôn ngữ là tên đổi theo. App iOS ĐOÁN
   ngôn ngữ theo máy (khác web) vì đó là lựa chọn thật của người dùng.
-  12 NGÔN NGỮ (12.10.2026): vi en es pt fr de ja ko zh ru id th — danh sách
-  `NGON_NGU` ở lib/i18n.ts, từ điển `locales/<mã>.ts` (mỗi file kiểu `TuDien`),
-  chọn bằng <select> trong menu. Thêm khoá = thêm vào CẢ 12 file (typecheck +
-  test đối chiếu đỏ nếu thiếu). Số định dạng theo ngôn ngữ (`num`/`numShort` đọc
-  `bcp()`; "tr" chỉ ở tiếng Việt, ngôn ngữ khác "M"). Lớp kiểm trên màn hình chạy
-  cho MỌI ngôn ngữ và so cả với bản English (bắt chỗ quên dịch); từ đồng nguyên
-  hợp lệ ("Solo", "Normal", "Bronze"…) khai TỪNG từ theo ngôn ngữ ở `DONG_NGUYEN`.
-  Ngôn ngữ khác chỉ dò ký tự RIÊNG tiếng Việt (ă ơ ư đ ạ ả…) — dò cả bộ dấu là bắt
-  nhầm "Memória". `pnpm do:ngon-ngu` đo chữ tràn nút trên iPhone SE cho cả 12 ngôn
-  ngữ, đo KHUNG CHỮ ĐANG HIỆN (không dùng scrollWidth: bỏ qua overflow:visible thì
-  báo sạch giả, còn ::after nới vùng chạm thì báo tràn giả; đã kiểm ngược). Tên app
-  không vừa thanh trên thì chỉ giữ biểu tượng (`anTen` ở TopBar, đo thật). Chưa có
-  tiếng Ả Rập (phải-sang-trái, phải lật bố cục).
-  12 NGÔN NGỮ (12.10.2026): vi en es pt fr de ja ko zh ru id th — danh sách
-  `NGON_NGU` ở lib/i18n.ts, từ điển `locales/<mã>.ts` (mỗi file kiểu `TuDien`),
-  chọn bằng <select> trong menu. Thêm khoá = thêm vào CẢ 12 file (typecheck +
-  test đối chiếu đỏ nếu thiếu). Số định dạng theo ngôn ngữ (`num`/`numShort` đọc
-  `bcp()`; "tr" chỉ ở tiếng Việt, ngôn ngữ khác "M"). Lớp kiểm trên màn hình chạy
-  cho MỌI ngôn ngữ và so cả với bản English (bắt chỗ quên dịch); từ đồng nguyên
-  hợp lệ ("Solo", "Normal", "Bronze"…) khai TỪNG từ theo ngôn ngữ ở `DONG_NGUYEN`.
-  Ngôn ngữ khác chỉ dò ký tự RIÊNG tiếng Việt (ă ơ ư đ ạ ả…) — dò cả bộ dấu là bắt
-  nhầm "Memória". `pnpm do:ngon-ngu` đo chữ tràn nút trên iPhone SE cho cả 12 ngôn
-  ngữ, đo KHUNG CHỮ ĐANG HIỆN (không dùng scrollWidth: bỏ qua overflow:visible thì
-  báo sạch giả, còn ::after nới vùng chạm thì báo tràn giả; đã kiểm ngược). Tên app
-  không vừa thanh trên thì chỉ giữ biểu tượng (`anTen` ở TopBar, đo thật). Chưa có
-  tiếng Ả Rập (phải-sang-trái, phải lật bố cục).
+  15 NGÔN NGỮ (12 từ 12.10.2026, thêm it · tr · zh-TW 15.10.2026) — danh sách `NGON_NGU`
+  ở lib/i18n.ts là NGUỒN DUY NHẤT; mã ngôn ngữ khác nhau giữa app / iOS / Android / App
+  Store / Play / store-listing, và thêm một ngôn ngữ là đổi ĐỦ 14 CHỖ — làm theo
+  **`docs/ngon-ngu.md`**, đừng làm theo trí nhớ. Số định dạng theo ngôn ngữ (`num`/
+  `numShort` đọc `bcp()`; "tr" chỉ ở tiếng Việt, ngôn ngữ khác "M"). Lớp kiểm trên màn
+  hình chạy cho MỌI ngôn ngữ và so cả với bản English; từ đồng nguyên hợp lệ khai TỪNG
+  từ theo ngôn ngữ ở `DONG_NGUYEN`. Ngôn ngữ khác chỉ dò ký tự RIÊNG tiếng Việt (dò cả
+  bộ dấu là bắt nhầm "Memória"). `pnpm do:ngon-ngu` đo chữ tràn nút trên iPhone SE cho
+  cả 15 ngôn ngữ, đo KHUNG CHỮ ĐANG HIỆN (không scrollWidth) và bỏ qua `.sr-only`
+  (tiêu đề chỉ cho trình đọc màn hình, khung 1px — từng báo "tràn" giả ở mọi màn).
+  Tên app không vừa thanh trên thì chỉ giữ biểu tượng (`anTen` ở TopBar, đo thật).
+  Trung phồn thể (zh-TW) nhận từ thẻ máy zh-Hant/TW/HK/MO, xét TRƯỚC khi cắt về "zh".
+  Chưa có tiếng Ả Rập (phải-sang-trái, phải lật bố cục).
   BẢN DỊCH (13.10.2026, chủ dự án đòi "chuyên nghiệp"): bảng thuật ngữ + văn phong ở
   `docs/i18n-style.md` — bàn = "board" (KHÔNG "table"), "Vs Computer", danh hiệu =
   Achievements, tên máy không đuôi "bot"; English viết Title Case cho nút/tiêu đề,

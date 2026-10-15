@@ -184,7 +184,9 @@ const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
   fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium'],
   de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium'],
   en: ['Neon', 'Premium'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
-  id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon', 'Premium']   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon', 'Premium'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  it: ['Menu', 'Account', 'Neon', 'Premium', 'offline'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
+  tr: ['Neon', 'Premium']
 };
 
 /** Mọi ngôn ngữ trừ tiếng Việt (bản gốc). */

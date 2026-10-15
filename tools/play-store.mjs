@@ -66,6 +66,7 @@ const NGON_NGU = [
   ['pt-BR', 'Português (Brasil)', 'pt'], ['fr-FR', 'Français', 'fr'], ['de-DE', 'Deutsch', 'de'],
   ['ja-JP', '日本語', 'ja'], ['ko-KR', '한국어', 'ko'], ['zh-CN', '简体中文', 'zh'],
   ['ru-RU', 'Русский', 'ru'], ['id', 'Bahasa Indonesia', 'id'], ['th', 'ไทย', 'th'],
+  ['it-IT', 'Italiano', 'it'], ['tr-TR', 'Türkçe', 'tr'], ['zh-TW', '繁體中文', 'zh-TW'],
 ];
 
 const edit = await api('POST', '/edits', {});

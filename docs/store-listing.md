@@ -1,7 +1,8 @@
 # Store listing — Flip Match (Lật Thẻ)
 
-Bản chép-dán cho App Store Connect và Google Play Console. Ngôn ngữ chính
-English (U.S.), thêm bản Vietnamese. Số ký tự đã đếm (giới hạn ghi trong ngoặc);
+Bản chép-dán cho App Store Connect và Google Play Console — 15 ngôn ngữ, ngôn ngữ chính
+English (U.S.). `tools/asc-store.mjs` và `tools/play-store.mjs` đọc thẳng file này. Con số
+trong mô tả (60 màn, 15 ngôn ngữ, 36 bộ hình…) theo [`ban-do.md`](ban-do.md). Số ký tự đã đếm (giới hạn ghi trong ngoặc);
 sửa nội dung thì chạy `python3 tools/dem-ky-tu-store.py` để soát lại.
 
 Đổi luật chơi hay thêm tính năng thì sửa cả file này — cùng lý do với
@@ -23,7 +24,7 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 | Trường | Giá trị |
 |---|---|
 | Support URL | https://flipmatch.cozypi.com/support.html |
-| Marketing URL | https://cozypi.com (trang studio — repo riêng `itlboy/cozypi-site`) · trang giới thiệu app: https://flipmatch.cozypi.com/about.html |
+| Marketing URL | https://flipmatch.cozypi.com/about.html (trang công khai của app; trang studio cozypi.com là repo riêng `itlboy/cozypi-site`) |
 | Privacy Policy URL | https://flipmatch.cozypi.com/privacy.html |
 | Category (Apple) | Games → Primary **Puzzle**, Secondary **Board** |
 | Category (Google) | Game → **Puzzle** |
@@ -68,7 +69,7 @@ PLAY YOUR WAY
 • Versus bot — five levels, from Wobbly Chick to Divine Dragon
 • Same device — pass the phone around, up to 4 players
 • Online rooms — create a room, share the 6-digit code or link, up to 10 players
-• Campaign — a 50-stage journey where every stage has its own twist
+• Campaign — a 60-level journey where every stage has its own twist
 
 MAKE THE BOARD YOURS
 • 12 board sizes, from a 4-card warm-up to a brutal 88-card challenge
@@ -77,7 +78,7 @@ MAKE THE BOARD YOURS
 • 3 looks to switch anytime: Candy, Wood or Neon
 
 KEEP COMING BACK
-• 115 achievements to unlock
+• 100+ achievements to unlock
 • Records for every board size
 • Optional Sign in with Apple or Google to sync progress across devices and climb the leaderboard
 
@@ -86,7 +87,7 @@ MADE TO FEEL GOOD
 • Pause anytime — the clock stops and the board hides until you're back
 • Satisfying win effects and sounds
 • Works offline — no connection needed for solo, bot or same-device games
-• 12 languages
+• 15 languages
 • No ads. No tracking. No in-app purchases.
 ```
 
@@ -128,7 +129,7 @@ CHƠI THEO CÁCH CỦA BẠN
 • Đấu máy — năm mức, từ Gà Mờ tới Rồng Thần
 • Chung một máy — chuyền điện thoại, tối đa 4 người
 • Phòng online — tạo phòng, gửi mã 6 số hoặc link, tối đa 10 người
-• Chiến dịch — hành trình 50 màn, màn nào cũng có luật riêng
+• Chiến dịch — hành trình 60 màn, màn nào cũng có luật riêng
 
 BÀN CHƠI CỦA RIÊNG BẠN
 • 12 cỡ bàn, từ 4 thẻ khởi động tới 88 thẻ siêu khó
@@ -137,7 +138,7 @@ BÀN CHƠI CỦA RIÊNG BẠN
 • 3 giao diện đổi tuỳ thích: Kẹo, Gỗ hoặc Neon
 
 MUỐN CHƠI MÃI
-• 115 danh hiệu để chinh phục
+• Hơn 100 danh hiệu để chinh phục
 • Kỷ lục riêng cho từng cỡ bàn
 • Đăng nhập Apple hoặc Google (tuỳ chọn) để đồng bộ giữa các máy và lên bảng xếp hạng
 
@@ -146,7 +147,7 @@ CHƠI LÀ SƯỚNG
 • Tạm dừng bất cứ lúc nào — đồng hồ đứng, bàn được che cho tới khi bạn quay lại
 • Hiệu ứng và âm thanh thắng ván đã tai đã mắt
 • Chơi không cần mạng — một mình, đấu máy, chung máy đều chạy offline
-• 12 ngôn ngữ
+• 15 ngôn ngữ
 • Không quảng cáo. Không theo dõi. Không mua trong app.
 ```
 
@@ -188,7 +189,7 @@ JUEGA A TU MANERA
 • Contra el bot: cinco niveles, del Pollito Torpe al Dragón Divino
 • Mismo dispositivo: pasa el móvil, hasta 4 jugadores
 • Salas online: crea una sala, comparte el código de 6 dígitos o el enlace, hasta 10 jugadores
-• Campaña: un viaje de 50 niveles, cada uno con su propio giro
+• Campaña: un viaje de 60 niveles, cada uno con su propio giro
 
 UN TABLERO A TU MEDIDA
 • 12 tamaños de tablero, desde un calentamiento de 4 cartas hasta un desafío brutal de 88
@@ -197,7 +198,7 @@ UN TABLERO A TU MEDIDA
 • 3 estilos para cambiar cuando quieras: Dulce, Madera o Neón
 
 SIEMPRE HAY UN MOTIVO PARA VOLVER
-• 115 logros por desbloquear
+• Más de 100 logros por desbloquear
 • Récords para cada tamaño de tablero
 • Inicia sesión con Apple o Google (opcional) para sincronizar tu progreso entre dispositivos y subir en la clasificación
 
@@ -206,7 +207,7 @@ HECHO PARA DISFRUTAR
 • Pausa cuando quieras: el reloj se detiene y el tablero se oculta hasta que vuelvas
 • Efectos y sonidos de victoria muy satisfactorios
 • Funciona sin conexión: no necesitas internet para jugar solo, contra el bot o en el mismo dispositivo
-• 12 idiomas
+• 15 idiomas
 • Sin anuncios. Sin rastreo. Sin compras dentro de la app.
 ```
 
@@ -248,7 +249,7 @@ JOGUE DO SEU JEITO
 • Contra o bot — cinco níveis, do Pintinho Tonto ao Dragão Divino
 • Mesmo aparelho — passe o celular, até 4 jogadores
 • Salas online — crie uma sala, compartilhe o código de 6 dígitos ou o link, até 10 jogadores
-• Campanha — uma jornada de 50 fases, cada uma com uma regra diferente
+• Campanha — uma jornada de 60 fases, cada uma com uma regra diferente
 
 UM TABULEIRO DO SEU JEITO
 • 12 tamanhos de tabuleiro, de um aquecimento com 4 cartas a um desafio brutal com 88
@@ -257,7 +258,7 @@ UM TABULEIRO DO SEU JEITO
 • 3 visuais para trocar quando quiser: Doce, Madeira ou Néon
 
 SEMPRE TEM MOTIVO PARA VOLTAR
-• 115 conquistas para desbloquear
+• Mais de 100 conquistas para desbloquear
 • Recordes para cada tamanho de tabuleiro
 • Entre com Apple ou Google (opcional) para sincronizar o progresso entre aparelhos e subir no ranking
 
@@ -266,7 +267,7 @@ FEITO PARA SER GOSTOSO DE JOGAR
 • Pause quando quiser — o relógio para e o tabuleiro fica escondido até você voltar
 • Efeitos e sons de vitória caprichados
 • Funciona offline — sem internet para jogar sozinho, contra o bot ou no mesmo aparelho
-• 12 idiomas
+• 15 idiomas
 • Sem anúncios. Sem rastreamento. Sem compras no app.
 ```
 
@@ -308,7 +309,7 @@ JOUEZ COMME VOUS VOULEZ
 • Contre le bot — cinq niveaux, du Poussin Pataud au Dragon Divin
 • Sur le même appareil — passez-vous le téléphone, jusqu'à 4 joueurs
 • Salons en ligne — créez un salon, partagez le code à 6 chiffres ou le lien, jusqu'à 10 joueurs
-• Campagne — un parcours de 50 étapes, chacune avec sa propre surprise
+• Campagne — un parcours de 60 niveaux, chacune avec sa propre surprise
 
 UN PLATEAU À VOTRE IMAGE
 • 12 tailles de plateau, de l'échauffement à 4 cartes au défi redoutable de 88 cartes
@@ -317,7 +318,7 @@ UN PLATEAU À VOTRE IMAGE
 • 3 styles à changer quand vous voulez : Bonbon, Bois ou Néon
 
 TOUJOURS UNE RAISON DE REVENIR
-• 115 succès à débloquer
+• Plus de 100 succès à débloquer
 • Des records pour chaque taille de plateau
 • Connexion avec Apple ou Google (facultative) pour synchroniser votre progression entre appareils et grimper au classement
 
@@ -326,7 +327,7 @@ UN VRAI PLAISIR À JOUER
 • Pause à tout moment — le chrono s'arrête et le plateau se cache jusqu'à votre retour
 • Des effets et des sons de victoire jubilatoires
 • Fonctionne hors ligne — pas besoin de connexion en solo, contre le bot ou sur le même appareil
-• 12 langues
+• 15 langues
 • Sans pub. Sans pistage. Sans achats intégrés.
 ```
 
@@ -368,7 +369,7 @@ SPIEL, WIE DU WILLST
 • Gegen den Bot – fünf Stufen, vom Wackelküken bis zum Götterdrachen
 • Am selben Gerät – reich das Handy weiter, bis zu 4 Spieler
 • Online-Räume – Raum erstellen, 6-stelligen Code oder Link teilen, bis zu 10 Spieler
-• Kampagne – eine Reise über 50 Stufen, jede mit eigenem Kniff
+• Kampagne – eine Reise über 60 Level, jede mit eigenem Kniff
 
 DEIN SPIELFELD, DEINE REGELN
 • 12 Spielfeldgrößen, vom Aufwärmen mit 4 Karten bis zur knallharten Herausforderung mit 88
@@ -377,7 +378,7 @@ DEIN SPIELFELD, DEINE REGELN
 • 3 Looks zum jederzeit Wechseln: Bonbon, Holz oder Neon
 
 IMMER WIEDER GERN
-• 115 Erfolge zum Freischalten
+• Über 100 Erfolge zum Freischalten
 • Rekorde für jede Spielfeldgröße
 • Optional mit Apple oder Google anmelden, um den Fortschritt geräteübergreifend zu synchronisieren und in der Bestenliste aufzusteigen
 
@@ -386,7 +387,7 @@ EINFACH SCHÖN ZU SPIELEN
 • Jederzeit pausieren – die Uhr stoppt und das Spielfeld bleibt verdeckt, bis du zurück bist
 • Befriedigende Sieg-Effekte und Sounds
 • Funktioniert offline – allein, gegen den Bot oder am selben Gerät ganz ohne Internet
-• 12 Sprachen
+• 15 Sprachen
 • Keine Werbung. Kein Tracking. Keine In-App-Käufe.
 ```
 
@@ -428,7 +429,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • CPU対戦 ― よちよちヒヨコから神龍まで5段階
 • 1台でみんなで ― スマホを回して最大4人
 • オンラインルーム ― ルームを作って6桁のコードやリンクを送るだけ、最大10人
-• キャンペーン ― ステージごとに違うルールが待つ全50ステージの冒険
+• キャンペーン ― ステージごとに違うルールが待つ全60ステージの冒険
 
 自分好みの盤面に
 • 4枚のウォームアップから88枚の超難関まで、12種類の盤面サイズ
@@ -437,7 +438,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • いつでも切り替えられる3つの見た目：キャンディ・木目・ネオン
 
 何度でも遊びたくなる
-• 解除できる称号は115個
+• 100以上の実績を解除しよう
 • 盤面サイズごとの自己記録
 • Apple または Google でサインイン（任意）すれば、機種をまたいで進行を同期してランキングにも参加
 
@@ -446,7 +447,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • いつでも一時停止 ― 時計が止まり、戻るまで盤面は隠れたまま
 • 爽快な勝利演出とサウンド
 • オフラインOK ― ひとり、CPU対戦、1台でのプレイは通信不要
-• 12言語に対応
+• 15言語に対応
 • 広告なし。トラッキングなし。アプリ内課金なし。
 ```
 
@@ -488,7 +489,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 봇 대결 — 아장아장 병아리부터 신룡까지 5단계
 • 한 기기로 함께 — 폰을 돌려 가며 최대 4명
 • 온라인 방 — 방을 만들고 6자리 코드나 링크만 보내면 끝, 최대 10명
-• 캠페인 — 스테이지마다 새로운 규칙이 기다리는 50스테이지 여정
+• 캠페인 — 스테이지마다 새로운 규칙이 기다리는 60스테이지 여정
 
 나만의 게임판
 • 4장짜리 워밍업부터 88장짜리 극악 난이도까지 12가지 판 크기
@@ -497,7 +498,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 언제든 바꿀 수 있는 3가지 스킨: 캔디, 나무, 네온
 
 자꾸 생각나는 게임
-• 잠금 해제할 수 있는 칭호 115개
+• 잠금 해제할 수 있는 100개 이상의 업적
 • 판 크기별 개인 기록
 • Apple 또는 Google 로그인(선택)으로 기기 간 진행 상황 동기화 및 랭킹 도전
 
@@ -506,7 +507,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 언제든 일시정지 — 시계가 멈추고 돌아올 때까지 판이 가려져요
 • 짜릿한 승리 효과와 사운드
 • 오프라인 지원 — 혼자, 봇 대결, 한 기기 플레이는 인터넷 없이도 OK
-• 12개 언어 지원
+• 15개 언어 지원
 • 광고 없음. 추적 없음. 인앱 결제 없음.
 ```
 
@@ -548,7 +549,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 人机对战 — 五个难度，从菜鸟小鸡到神龙
 • 同屏多人 — 一台手机轮流玩，最多 4 人
 • 在线房间 — 创建房间，分享 6 位房间号或链接，最多 10 人
-• 战役 — 50 关的冒险旅程，每一关都有独特玩法
+• 战役 — 60 关的冒险旅程，每一关都有独特玩法
 
 打造你的专属牌桌
 • 12 种牌桌尺寸，从 4 张热身到 88 张极限挑战
@@ -557,7 +558,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 3 种外观随时切换：糖果、木纹或霓虹
 
 越玩越上瘾
-• 115 个成就等你解锁
+• 100 多个成就等你解锁
 • 每种牌桌尺寸都有独立纪录
 • 可选使用 Apple 或 Google 登录，跨设备同步进度并冲击排行榜
 
@@ -566,7 +567,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 随时暂停 — 时钟停止，牌桌隐藏，等你回来再继续
 • 爽快的胜利特效和音效
 • 支持离线 — 单人、人机对战和同屏多人都无需联网
-• 支持 12 种语言
+• 支持 15 种语言
 • 无广告。无追踪。无内购。
 ```
 
@@ -608,7 +609,7 @@ Flip Match — классическая игра на память с карто
 • Против бота — пять уровней, от Цыплёнка до Дракона
 • На одном устройстве — передавай телефон по кругу, до 4 игроков
 • Онлайн-комнаты — создай комнату, поделись 6-значным кодом или ссылкой, до 10 игроков
-• Кампания — путешествие из 50 этапов, и в каждом своя особенность
+• Кампания — путешествие из 60 уровней, и в каждом своя особенность
 
 ПОЛЕ ПОД ТЕБЯ
 • 12 размеров поля: от разминки на 4 карточки до суровых 88
@@ -617,7 +618,7 @@ Flip Match — классическая игра на память с карто
 • 3 оформления, которые можно сменить в любой момент: Конфета, Дерево или Неон
 
 ХОЧЕТСЯ ВОЗВРАЩАТЬСЯ
-• 115 достижения
+• Более 100 достижений
 • Рекорды для каждого размера поля
 • Вход через Apple или Google (по желанию), чтобы синхронизировать прогресс между устройствами и подниматься в рейтинге
 
@@ -626,7 +627,7 @@ Flip Match — классическая игра на память с карто
 • Пауза в любой момент — часы останавливаются, а поле скрыто, пока ты не вернёшься
 • Эффектные победные анимации и звуки
 • Работает без интернета — в одиночку, против бота и на одном устройстве
-• 12 языков
+• 15 языков
 • Без рекламы. Без отслеживания. Без встроенных покупок.
 ```
 
@@ -668,7 +669,7 @@ MAIN SESUKAMU
 • Lawan bot — lima level, dari Anak Ayam sampai Naga Dewa
 • Satu perangkat — gantian pegang HP, sampai 4 pemain
 • Room online — buat room, bagikan kode 6 digit atau link, sampai 10 pemain
-• Kampanye — petualangan 50 tahap, tiap tahap punya aturan unik
+• Kampanye — petualangan 60 level, tiap tahap punya aturan unik
 
 PAPAN SESUAI SELERAMU
 • 12 ukuran papan, dari pemanasan 4 kartu sampai tantangan berat 88 kartu
@@ -677,7 +678,7 @@ PAPAN SESUAI SELERAMU
 • 3 tampilan yang bisa diganti kapan saja: Permen, Kayu, atau Neon
 
 BIKIN BALIK LAGI
-• 115 gelar untuk dibuka
+• Lebih dari 100 pencapaian untuk dibuka
 • Rekor untuk setiap ukuran papan
 • Masuk dengan Apple atau Google (opsional) untuk sinkronkan progres antar perangkat dan naik di papan peringkat
 
@@ -686,7 +687,7 @@ ASYIK DIMAINKAN
 • Jeda kapan saja — waktu berhenti dan papan tertutup sampai kamu kembali
 • Efek dan suara kemenangan yang memuaskan
 • Bisa offline — main sendiri, lawan bot, atau satu perangkat tanpa internet
-• 12 bahasa
+• 15 bahasa
 • Tanpa iklan. Tanpa pelacakan. Tanpa pembelian dalam aplikasi.
 ```
 
@@ -728,7 +729,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • ท้าบอท — ห้าระดับ ตั้งแต่ลูกเจี๊ยบไปจนถึงมังกรเทพ
 • เครื่องเดียวกัน — ส่งโทรศัพท์ต่อกัน สูงสุด 4 คน
 • ห้องออนไลน์ — สร้างห้อง แชร์รหัส 6 หลักหรือลิงก์ สูงสุด 10 คน
-• แคมเปญ — การผจญภัย 50 ด่าน แต่ละด่านมีกติกาเฉพาะ
+• แคมเปญ — การผจญภัย 60 ด่าน แต่ละด่านมีกติกาเฉพาะ
 
 กระดานในแบบของคุณ
 • กระดาน 12 ขนาด ตั้งแต่วอร์มอัป 4 ใบไปจนถึงสุดโหด 88 ใบ
@@ -737,7 +738,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • 3 หน้าตาให้สลับได้ทุกเมื่อ: ลูกกวาด ไม้ หรือนีออน
 
 เล่นแล้วอยากกลับมาอีก
-• ตำแหน่งให้ปลดล็อก 115 รายการ
+• ความสำเร็จให้ปลดล็อกกว่า 100 รายการ
 • สถิติแยกสำหรับกระดานทุกขนาด
 • ลงชื่อเข้าใช้ด้วย Apple หรือ Google (ไม่บังคับ) เพื่อซิงค์ความคืบหน้าข้ามอุปกรณ์และไต่อันดับ
 
@@ -746,8 +747,188 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • หยุดพักได้ทุกเมื่อ — นาฬิกาหยุด และกระดานถูกซ่อนจนกว่าคุณจะกลับมา
 • เอฟเฟกต์และเสียงฉลองชัยชนะสุดสะใจ
 • เล่นออฟไลน์ได้ — เล่นคนเดียว ท้าบอท หรือเล่นในเครื่องเดียวกันโดยไม่ต้องใช้เน็ต
-• รองรับ 12 ภาษา
+• รองรับ 15 ภาษา
 • ไม่มีโฆษณา ไม่มีการติดตาม ไม่มีการซื้อในแอป
+```
+
+## Italiano
+
+**Name** (30) — App Store
+```
+Flip Match: Gioco di memoria
+```
+
+**Subtitle** (30) — App Store
+```
+Trova le coppie con gli amici
+```
+
+**Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
+```
+Gira le carte, trova le coppie, allena la memoria. Gioca da solo, sfida un bot a 5 livelli, passa il telefono o apri una stanza online e invita con un codice di 6 cifre.
+```
+
+**Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
+```
+coppie,carte,concentrazione,cervello,allenamento,puzzle,bambini,famiglia,multigiocatore,online
+```
+
+**Short description** (80) — Google Play
+```
+Gira le carte e trova le coppie. Da solo, contro il bot o online con gli amici.
+```
+
+**Description** (4000) — cả hai store
+```
+Flip Match è il classico gioco di memoria con le carte, rinnovato per partite veloci da solo o con gli amici.
+
+Gira due carte. Stesso disegno? È una coppia! Diverse? Ricorda dov'erano e riprova. Svuota il tabellone con meno mosse possibile.
+
+GIOCA COME VUOI
+• Da solo: batti il tuo miglior tempo e il tuo record di mosse
+• Contro il bot: cinque livelli, dal Pulcino Goffo al Drago Divino
+• Stesso dispositivo: passa il telefono, fino a 4 giocatori
+• Stanze online: crea una stanza, condividi il codice di 6 cifre o il link, fino a 10 giocatori
+• Campagna: un viaggio di 60 livelli, ognuna con la sua sorpresa
+
+UN TABELLONE TUTTO TUO
+• 12 dimensioni del tabellone, da un riscaldamento con 4 carte a una sfida tremenda con 88
+• 5 regole facoltative, ognuna con 4 livelli: tempo, vite, anteprima, mescolamento e carte speciali
+• 36 temi di carte: animali, cibo, bandiere, numeri e tanto altro
+• 3 stili da cambiare quando vuoi: Caramella, Legno o Neon
+
+SEMPRE UN MOTIVO PER TORNARE
+• Oltre 100 obiettivi da sbloccare
+• Record per ogni dimensione del tabellone
+• Accesso facoltativo con Apple o Google per sincronizzare i progressi tra i dispositivi e scalare la classifica
+
+FATTO PER FARTI STARE BENE
+• Carte che si girano in modo fluido, con feedback aptico
+• Pausa quando vuoi: il cronometro si ferma e il tabellone si nasconde finché non torni
+• Effetti e suoni di vittoria appaganti
+• Funziona offline: niente connessione per le partite da solo, contro il bot o sullo stesso dispositivo
+• 15 lingue
+• Niente pubblicità. Nessun tracciamento. Nessun acquisto in-app.
+```
+
+## Türkçe
+
+**Name** (30) — App Store
+```
+Flip Match: Hafıza Kartları
+```
+
+**Subtitle** (30) — App Store
+```
+Arkadaşlarınla hafıza oyunu
+```
+
+**Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
+```
+Kartları çevir, çiftleri bul, hafızanı çalıştır. Tek başına oyna, 5 seviyeli bota meydan oku, telefonu elden ele dolaştır ya da 6 haneli kodla arkadaşlarını davet et.
+```
+
+**Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
+```
+eşleştirme,çift,beyin,zeka,bulmaca,dikkat,çocuk,aile,çok oyunculu,çevrimiçi,çevrimdışı,oyun
+```
+
+**Short description** (80) — Google Play
+```
+Kartları çevir, çiftleri bul. Tek başına, bota karşı ya da arkadaşlarınla oyna.
+```
+
+**Description** (4000) — cả hai store
+```
+Flip Match, klasik hafıza kartı oyununun tek başına ya da arkadaşlarla hızlı eğlence için yeniden tasarlanmış hâli.
+
+İki kart çevir. Aynı resim mi? Eşleşme! Farklı mı? Yerlerini aklında tut ve yeniden dene. Tahtayı olabildiğince az hamlede temizle.
+
+İSTEDİĞİN GİBİ OYNA
+• Tek başına — kendi en iyi süreni ve hamle sayını geç
+• Bota karşı — Sakar Civciv'den İlahi Ejderha'ya beş seviye
+• Aynı cihazda — telefonu elden ele dolaştır, en fazla 4 oyuncu
+• Çevrim içi odalar — oda kur, 6 haneli kodu ya da bağlantıyı paylaş, en fazla 10 oyuncu
+• Kampanya — her aşamanın kendine özgü bir sürprizi olduğu 60 seviyelik bir yolculuk
+
+TAHTAN, KURALLARIN
+• 4 kartlık ısınmadan 88 kartlık zorlu bir meydan okumaya kadar 12 tahta boyutu
+• Her biri 4 seviyeli 5 isteğe bağlı kural: süre, can, ön izleme, karıştırma ve özel kartlar
+• 36 kart teması: hayvanlar, yemekler, bayraklar, sayılar ve daha fazlası
+• İstediğin an değiştirebileceğin 3 görünüm: Şeker, Ahşap ya da Neon
+
+HEP GERİ DÖN
+• Açılacak 100'den fazla başarım
+• Her tahta boyutu için rekorlar
+• İlerlemeni cihazlar arasında eşitlemek ve liderlik tablosunda yükselmek için isteğe bağlı Apple ya da Google ile giriş
+
+İÇİNİ ISITAN BİR OYUN
+• Dokunsal geri bildirimli akıcı kart çevirme
+• İstediğin an duraklat — sen dönene kadar saat durur, tahta gizlenir
+• Tatmin edici zafer efektleri ve sesleri
+• Çevrim dışı çalışır — tek başına, bota karşı ya da aynı cihazdaki oyunlar için internet gerekmez
+• 15 dil
+• Reklam yok. Takip yok. Uygulama içi satın alma yok.
+```
+
+## 繁體中文
+
+**Name** (30) — App Store
+```
+Flip Match：記憶翻牌配對
+```
+
+**Subtitle** (30) — App Store
+```
+和好友或電腦一起玩的記憶遊戲
+```
+
+**Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
+```
+翻開卡牌、找出相同的一對，訓練記憶力！可以單人挑戰、對戰 5 種難度的電腦、一支手機輪流玩，或開個線上房間，用 6 位數房號邀請好友。
+```
+
+**Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
+```
+找相同,專注力,連連看,腦力,訓練,益智,卡牌,兒童,親子,家庭,多人,連線,單機,休閒,桌遊
+```
+
+**Short description** (80) — Google Play
+```
+翻牌找相同，訓練記憶力。單人、對戰電腦，或和好友線上一起玩。
+```
+
+**Description** (4000) — cả hai store
+```
+Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋友一起玩都輕鬆上手。
+
+翻開兩張牌。圖案相同？配對成功！不一樣？記住它們的位置，再試一次。用最少的步數清空整個牌桌。
+
+想怎麼玩就怎麼玩
+• 單人 — 挑戰自己的最佳時間和最少步數
+• 對戰電腦 — 五種難度，從菜鳥小雞到神龍
+• 同一支手機 — 輪流傳手機，最多 4 人
+• 線上房間 — 建立房間，分享 6 位數房號或連結，最多 10 人
+• 闖關模式 — 60 關的冒險旅程，每一關都有獨特玩法
+
+打造專屬牌桌
+• 12 種牌桌大小，從 4 張暖身到 88 張極限挑戰
+• 5 種選用規則，各有 4 個等級：計時、生命、預覽、洗牌和特殊牌
+• 36 套卡牌主題：動物、美食、國旗、數字等等
+• 3 種外觀隨時切換：糖果、木紋或霓虹
+
+越玩越想玩
+• 100 多項成就等你解鎖
+• 每種牌桌大小都有獨立紀錄
+• 可選擇使用 Apple 或 Google 登入，跨裝置同步進度並挑戰排行榜
+
+玩起來就是舒服
+• 流暢的翻牌動畫，搭配觸覺回饋
+• 隨時暫停 — 時鐘停止、牌桌隱藏，等你回來再繼續
+• 爽快的勝利特效和音效
+• 支援離線 — 單人、對戰電腦和同一支手機輪流玩都不需要連網
+• 支援 15 種語言
+• 沒有廣告。不追蹤。沒有 App 內購買。
 ```
 
 ## App Review

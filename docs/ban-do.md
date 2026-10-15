@@ -1,0 +1,70 @@
+# Bản đồ — nguồn sự thật và mọi chỗ nhắc lại
+
+Điểm vào chung của tài liệu Flip Match (Lật Thẻ). Mục đích: **đổi một thứ ở một chỗ,
+biết ngay phải đổi theo ở đâu** — code, app, trang công khai, trang store, tài liệu.
+
+Luật dùng file này:
+
+1. Mỗi "sự thật" (con số, tên, địa chỉ) có **một nguồn gốc** — thường là hằng số trong
+   code. Chỗ khác chỉ được *nhắc lại*.
+2. Đổi sự thật → sửa nguồn gốc → đi hết cột "Nhắc lại ở" → chạy kiểm tra ở cột cuối.
+3. Thêm một chỗ mới nhắc lại sự thật → **thêm nó vào bảng này** trong cùng commit.
+4. Chỗ nào đọc thẳng hằng số (`{n}` trong từ điển, `CAMPAIGN_LEVELS`…) thì tự đúng,
+   không cần sửa tay — bảng ghi "(tự)".
+
+Viết tắt: `site-i18n` = `apps/web/site-i18n/<mã>.json` (14 file bản dịch trang công khai);
+`trang` = `apps/web/public/{about,changes,support,privacy}.html` (bản tiếng Anh, cũng là
+khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 mục ngôn ngữ).
+
+## Sự thật về game
+
+| Sự thật | Nguồn gốc | Nhắc lại ở | Kiểm tra |
+|---|---|---|---|
+| **60 màn Chiến dịch**, 12 cỡ bàn × 5 lần | `CAMPAIGN_REPEAT`, `BOARDS` — `packages/engine/src/campaign.ts` | trang `about.lead`, `f1.p`, `about.desc`, `changes` (r4) · site-i18n cùng khoá · store (mô tả) · app: `menu.chienDichMo`, `lc.chienDichB` (tự) · CLAUDE.md mục Chiến dịch | `campaign.test.ts` |
+| **12 cỡ bàn, 4 → 88 thẻ** | `BOARDS` (campaign.ts) | trang `f1.p`, `g5` · site-i18n · store | `campaign.test.ts`, `board-fit.test.ts` |
+| **Sao = số lần quên**, mốc theo cỡ bàn, **sao thứ 4** = không quên | `sao` trong `BOARDS`, `starsByMisses`, `summary.hoanHao` | trang `f1.p`, `q4/a4`, r4 · site-i18n · store · RulesDialog (`lc.chienDich` cả 15 từ điển) · CLAUDE.md | `quen.test.ts` |
+| **Giờ Chiến dịch** = `gio` × 1,8…1,1 | `gio`, `HE_GIO` (campaign.ts) | CLAUDE.md | `campaign.test.ts` |
+| **5 đối thủ máy** (Gà mờ → Rồng thần) | `BOT_SPECS` — `packages/engine/src/bot.ts` | trang `about.lead`, `f2.h/p`, `about.desc` · site-i18n · store · tên: `bot.*` 15 từ điển | `duel.test.ts` |
+| **Online tối đa 10 người**, mã phòng 6 số | `ROOM_LIMITS` — engine `online.ts` | trang `f3.p`, `a2` · site-i18n · store | smoke `tools/smoke-*.mjs` |
+| **Chung máy tối đa 4 người** | wizard bước `count` (CLAUDE.md) | trang `f4.h/p` · site-i18n · store | `app.test.ts` |
+| **36 bộ hình miễn phí** (48 tổng, 12 premium ẩn) | `apps/web/public/data/themes.json` (+ bản sao `apps/server/src/themes.ts`), `banPremium` | trang `f5.h/p`, `about.desc` · site-i18n · store · README | `themes.test.ts`, `emoji-vector` |
+| **Hơn 100 danh hiệu** (đang hiện 117, tổng 129) | `ACHIEVEMENTS` / `dsHien` — `apps/web/src/lib/achievements.ts` | trang `f6.p` · site-i18n · store ("100+") · README · CLAUDE.md (con số chính xác) | `achievements.test.ts` |
+| **15 ngôn ngữ** | `NGON_NGU` — `apps/web/src/lib/i18n.ts` | xem **docs/ngon-ngu.md** (14 chỗ) · trang `about.b5`, `a5`, `about.desc` · store · README | `i18n*.test.ts`, `site-i18n.test.ts`, `pnpm do:ngon-ngu` |
+| **3 skin miễn phí** (Kẹo · Neon · Gỗ) | `lib/skin.ts`, `banPremium` | trang r2 (lịch sử) · `tb.skin.*` 15 từ điển | `skin.test.ts` |
+| **12 câu nói nhanh**, không chat tự do | `QUICK_SAYS` (engine) | trang `f3.p`, privacy `pv.s2b` · site-i18n · store · privacy (Messaging = Yes) | `smoke-noi-nhanh.mjs` |
+| **Miễn phí, không quảng cáo, không theo dõi, 4+** | quyết định chủ dự án (CLAUDE.md "APP LÀ 4+") | trang `about.b1–b4`, `q1/a1`, privacy · site-i18n · store (Price, Age rating, App Privacy) | — |
+
+## Sự thật về sản phẩm, địa chỉ, tài khoản
+
+| Sự thật | Nguồn gốc | Nhắc lại ở |
+|---|---|---|
+| **Tên app**: Flip Match (en) / Lật Thẻ (vi) | `tb.thuongHieu` + `chung.tieuDeTrang` (từ điển) | iOS `ios/App/App/*.lproj/InfoPlist.strings` · trang (`brand` chỉ ở vi) · store (Name) · `index.html` og (tĩnh, tiếng Việt) |
+| **Email hỗ trợ** `support@cozypi.com` | Cloudflare Email Routing (catch-all → Gmail) | trang (bọc `<!--email_off-->`) · privacy · store (App Review contact) · repo `itlboy/cozypi-site` |
+| **Tên miền chơi** `flipmatch.cozypi.com` (+ `flipmatch.hello314.com`, `thebai.hello314.com`, dự phòng `thebai2.hello314.com`) | `deploy/k8s/thebai.yaml`, Cloudflare | `tools/dung-trang-cong-khai.mjs` (`SITE`) · `apps/web/src/lib/native.ts` (`SITE_URL`, app gọi server) · store URLs · CLAUDE.md |
+| **Trang công khai** `/about.html` `/changes.html` `/support.html` `/privacy.html` (+ `/<mã>/…`) | `apps/web/public/*.html` | store (Marketing/Support/Privacy URL) · thẻ Flip Match ở `cozypi.com` · xem **docs/trang-cong-khai.md** |
+| **App Store ID 6822105774**, bundle iOS `com.hello314.flipmatch` | App Store Connect | `site.js` `STORE.ios` · `tools/asc-*.mjs` · server `APPLE_BUNDLE_ID` |
+| **Google Play** `com.cozypi.flipmatch` | Play Console | `site.js` `STORE.android` · `tools/play-store.mjs` · `android/app/build.gradle` |
+| **Đã lên store công khai?** (bật nút store trên trang) | thực tế store | `site.js` → `STORE.*.on` (đang `false`) |
+| **Phiên bản app** (1.3.0) | `apps/web/package.json` `version` | trang `changes.html` (r3) + site-i18n · `ota.json` `minNative` khi đổi native |
+| **Studio Cozy Pi** (`cozypi.com`) | repo riêng **`itlboy/cozypi-site`** | trang (chân trang) · store (Copyright "2026 Cozy Pi") |
+
+## Ảnh chụp màn hình
+
+| Ảnh | Cách tạo | Dùng ở |
+|---|---|---|
+| Ảnh store iPhone 6.9" | `node tools/chup-store.mjs <server> <thư mục> <mã>` | App Store, Google Play (bộ `KHUNG=android` riêng) |
+| Ảnh store iPad 13" | `KHUNG=ipad node tools/chup-store.mjs …` (chờ 5 giây) | App Store (`<mã>-ipad/`) |
+| Ảnh trang công khai | lấy từ bộ store tiếng Anh → `magick -resize 540x -quality 74` → `public/site/img/*.webp` (iPad: `ipad-*.webp`, 900 px) | `about.html` (khung máy + thanh trạng thái `site/img/status-bar*.svg`) |
+
+Đổi giao diện lớn → chụp lại cả ba bộ. Màn có lớp phủ tối (màn thắng) cần màu dải
+trạng thái riêng trong `site.css` (`img[src$="02-win.webp"]`).
+
+## Tài liệu chuyên đề
+
+- **`CLAUDE.md`** — luật thiết kế/kiến trúc bắt buộc, quy trình deploy. Đọc mục "LÀM VIỆC NHANH" trước.
+- **`docs/ngon-ngu.md`** — thêm/bớt/đổi một ngôn ngữ: đủ 14 chỗ phải đổi + kiểm tra.
+- **`docs/trang-cong-khai.md`** — 4 trang công khai, dựng theo ngôn ngữ, SEO, Google Search Console, nhật ký phiên bản.
+- **`docs/i18n-style.md`** — bảng thuật ngữ + văn phong dịch.
+- **`docs/store-listing.md`** — chữ trang App Store / Google Play 15 ngôn ngữ (công cụ `tools/asc-store.mjs`, `tools/play-store.mjs` đọc thẳng file này).
+- **`docs/mobile-ci.md`** — build + ký + phát hành app iOS/Android qua GitHub Actions.
+- **`README.md`** — giới thiệu nhanh + nhật ký thay đổi kỹ thuật.

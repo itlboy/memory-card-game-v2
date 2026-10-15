@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 12 ngôn ngữ của game (khớp NGON_NGU ở web lib/i18n.ts và 12 thư mục lproj của iOS).
+<!-- 15 ngôn ngữ của game (khớp NGON_NGU ở web lib/i18n.ts và 15 thư mục lproj của iOS).
      Android 13+ đọc file này để hiện mục "Ngôn ngữ" riêng cho app trong Cài đặt máy. -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="vi" />
@@ -14,4 +14,7 @@
     <locale android:name="ru" />
     <locale android:name="id" />
     <locale android:name="th" />
+    <locale android:name="it" />
+    <locale android:name="tr" />
+    <locale android:name="zh-Hant" />
 </locale-config>

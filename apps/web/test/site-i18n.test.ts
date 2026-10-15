@@ -1,11 +1,12 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { NGON_NGU } from '@/lib/i18n';
 
 /**
  * TRANG CÔNG KHAI (about/support/privacy/changes) — 12 ngôn ngữ như app (chủ dự
  * án 15.10.2026). Tiếng Anh viết sẵn trong HTML, ngôn ngữ khác ở
- * public/site/i18n/<mã>.json. Canh hai lỗi im lặng:
+ * apps/web/site-i18n/<mã>.json (tools/dung-trang-cong-khai.mjs dựng sẵn từng bản lúc build). Canh:
  *  1. thêm chữ mới (data-t) mà quên dịch → trang lẫn tiếng Anh;
  *  2. bản dịch làm hỏng thẻ HTML / link / email trong chữ có định dạng (data-th).
  */
@@ -25,16 +26,17 @@ for (const p of TRANG) goc.set(`${p}.desc`, '');
 goc.delete('brand');
 const THE = (s: string): string[] => [...s.matchAll(/<\/?[a-z][^>]*>|<!--[^>]*-->/gi)].map((m) => m[0]);
 
-const files = readdirSync(resolve(PUB, 'site/i18n')).filter((f) => f.endsWith('.json'));
+const I18N = resolve(process.cwd(), 'site-i18n');
+const files = readdirSync(I18N).filter((f) => f.endsWith('.json'));
 
 describe('trang công khai: đủ bản dịch', () => {
-  it('đủ 11 ngôn ngữ ngoài tiếng Anh (khớp danh sách của app)', () => {
-    expect(files.map((f) => f.replace('.json', '')).sort()).toEqual(
-      ['de', 'es', 'fr', 'id', 'ja', 'ko', 'pt', 'ru', 'th', 'vi', 'zh']);
+  it('đủ mọi ngôn ngữ của app ngoài tiếng Anh (khớp NGON_NGU)', () => {
+    const app = NGON_NGU.map((l) => l.id).filter((l) => l !== 'en').sort();
+    expect(files.map((f) => f.replace('.json', '')).sort()).toEqual(app);
   });
 
   for (const f of files) {
-    const t = JSON.parse(readFileSync(resolve(PUB, 'site/i18n', f), 'utf8')) as Record<string, string>;
+    const t = JSON.parse(readFileSync(resolve(I18N, f), 'utf8')) as Record<string, string>;
     it(`${f}: có mọi khoá của trang, không rỗng`, () => {
       const thieu = [...goc.keys()].filter((k) => !t[k]?.trim());
       expect(thieu, 'khoá chưa dịch').toEqual([]);
