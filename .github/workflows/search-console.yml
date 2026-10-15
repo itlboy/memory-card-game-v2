@@ -1,0 +1,23 @@
+# Google Search Console qua API (tools/search-console.mjs) — chạy tay:
+#   gh workflow run search-console.yml -f buoc=token|xac-minh|trang-thai
+# Dùng tài khoản dịch vụ của project cá nhân lat-the-nkien (PLAY_SERVICE_ACCOUNT_JSON);
+# OWNER_EMAIL (Gmail cá nhân) là secret để không lộ trong nhật ký repo công khai.
+name: Search Console
+on:
+  workflow_dispatch:
+    inputs:
+      buoc:
+        description: 'token | xac-minh | trang-thai'
+        required: true
+        default: trang-thai
+jobs:
+  chay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node tools/search-console.mjs "${{ inputs.buoc }}"
+        env:
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          OWNER_EMAIL: ${{ secrets.SEARCH_CONSOLE_OWNER }}
