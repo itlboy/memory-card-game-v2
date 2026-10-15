@@ -12,7 +12,7 @@
  *  3. điểm bên NGOÀI cột (trái/phải) không trúng phần tử nào của hiệu ứng.
  * Chụp ảnh từng cảnh vào thư mục tạm để nhìn lại.
  */
-import { spawn } from 'node:child_process';
+import { moChrome } from './lib-chrome.mjs';
 import { createRequire } from 'node:module';
 import { rmSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -25,11 +25,8 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 const PORT = 9334;
 const PROFILE = `/tmp/mm-cdp-fx-${process.pid}`;
 const ANH = mkdtempSync(join(tmpdir(), 'mm-fx-'));
-rmSync(PROFILE, { recursive: true, force: true });
-const chrome = spawn(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-first-run',
-  '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
-process.on('exit', () => { chrome.kill(); try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* lần sau xoá */ } });
-for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => process.exit(130)); // tín hiệu không chạy 'exit' — thiếu dòng này là Chrome mồ côi
+const chrome = moChrome(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--disable-gpu', '--no-first-run',
+  '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], PROFILE);
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let targets;
 for (let i = 0; i < 40; i++) {

@@ -7,7 +7,7 @@
  * Server phải chạy bản build mới (vd. `pnpm node:dev` → :8080) vì ảnh phòng
  * online cần API thật. Profile sạch + bỏ service worker, cùng lý do do-menu-tren.
  */
-import { spawn } from 'node:child_process';
+import { moChrome } from './lib-chrome.mjs';
 import { createRequire } from 'node:module';
 import { rmSync, writeFileSync, mkdirSync } from 'node:fs';
 const require = createRequire(new URL('../apps/node-server/package.json', import.meta.url));
@@ -23,11 +23,8 @@ const KHUNG = { android: { W: 360, H: 640, S: 3 }, ipad: { W: 1032, H: 1376, S: 
 const { W, H, S } = KHUNG, PORT = 9334;
 mkdirSync(OUT, { recursive: true });
 const PROFILE = `/tmp/mm-shot-${process.pid}`;
-rmSync(PROFILE, { recursive: true, force: true });
-const chrome = spawn(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--no-first-run', '--hide-scrollbars',
-  '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], { stdio: 'ignore' });
-process.on('exit', () => { chrome.kill(); try { rmSync(PROFILE, { recursive: true, force: true }); } catch { /* */ } });
-for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(s, () => process.exit(130)); // tín hiệu không chạy 'exit' — thiếu dòng này là Chrome mồ côi
+const chrome = moChrome(CHROME, [`--remote-debugging-port=${PORT}`, '--headless=new', '--no-first-run', '--hide-scrollbars',
+  '--no-sandbox', `--user-data-dir=${PROFILE}`, 'about:blank'], PROFILE);
 export const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 let targets;
 for (let i = 0; i < 40; i++) { try { targets = await (await fetch(`http://127.0.0.1:${PORT}/json`)).json(); break; } catch { await cho(250); } }
