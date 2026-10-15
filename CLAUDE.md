@@ -712,6 +712,14 @@
   chọn cỡ, đừng lấy cỡ ảnh nguồn. `test/anh-trang.test.ts` canh trần (điện thoại 464, iPad
   600), srcset bắt buộc, và đường dẫn trong HTML/JSON-LD phải trỏ tới file có thật. Áp dụng
   cả `cozypi.com` (repo `cozypi-site`, cùng luật, chưa có test). Cách làm: docs/ban-do.md.
+- **`flipmatch.cozypi.com` CHIA ĐÔI THEO ĐƯỜNG DẪN (Workers Routes, 15.10.2026)**: `/*` → Worker
+  `memory-card-game-v2` (web, trang công khai, ảnh — từ biên CF, KHÔNG chết lúc Keel thay pod);
+  `/api/*` `/ws/*` `/ota/*` `/health` → route KHÔNG Worker → tunnel → server Node k8s (phòng online,
+  tài khoản, gói OTA ~32MB > giới hạn 25MiB của Worker). Route ở zone `cozypi.com`
+  (`/zones/:id/workers/routes`), DNS wildcard vẫn trỏ tunnel — gỡ route `/*` là về như cũ. Hệ quả:
+  web của `flipmatch` lên bản mới bằng `pnpm release` (KHÔNG phải Keel); Keel chỉ còn lo API.
+  Thêm đường dẫn động mới ở server Node là phải thêm route không-Worker. File không đuôi cần
+  kiểu riêng thì khai `_headers` (vd. apple-app-site-association). Các tên miền khác vẫn đi k8s.
 - **STUDIO "COZY PI", TÊN CHÍNH LÀ `flipmatch.cozypi.com` (13.10.2026)** — `cozypi.com` dùng
   chung cho mọi app của studio (wildcard `*.cozypi.com` → tunnel; app mới chỉ thêm host
   vào ingress), email `support@cozypi.com`. `flipmatch.hello314.com` và
