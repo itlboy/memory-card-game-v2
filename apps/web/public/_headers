@@ -46,3 +46,9 @@
 # Link mời mở thẳng app (lib/link-moi.ts): file không đuôi nhưng Apple đọc nó là JSON.
 /.well-known/apple-app-site-association
   Content-Type: application/json
+
+# Link mời mở app (Universal Links iOS): file KHÔNG có đuôi nhưng Apple đòi JSON.
+# Server Node tự gắn kiểu này (apps/node-server); Worker thì phải khai ở đây — từ
+# 15.10.2026 flipmatch.cozypi.com lấy file tĩnh từ Worker (Workers Routes).
+/.well-known/apple-app-site-association
+  Content-Type: application/json
