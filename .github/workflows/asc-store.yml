@@ -6,8 +6,8 @@
 # Nội dung lấy từ docs/store-listing.md (một nguồn duy nhất). Ảnh chụp từ bản web
 # Cloudflare đang chạy, nên deploy web trước rồi mới chạy cái này.
 #
-# macOS chứ không ubuntu: ảnh store phải có emoji APPLE (bộ hình của thẻ là emoji),
-# ubuntu chỉ có Noto — ảnh sẽ lệch với thứ người dùng iPhone thấy.
+# macOS chứ không ubuntu: emoji GIAO DIỆN (ngoài mặt bài) là emoji Apple như trên
+# iPhone. Mặt bài là ảnh Noto 3D trên mọi máy từ 15.10.2026 (lib/emoji.ts).
 name: App Store page
 
 on:

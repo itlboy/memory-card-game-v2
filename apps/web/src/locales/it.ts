@@ -576,7 +576,7 @@ const it: TuDien = {
   'lc.boEmojiMay': 'Emoji di sistema',
   'lc.xemThang': 'Vittoria · {ten}',
   'lc.xemThua': 'Sconfitta · {ten}',
-  'lc.ghiCong': "Disegni delle carte (dispositivi non Apple): Noto Emoji 3D (Google) · OFL 1.1, Twemoji per le immagini mancanti. Muso del drago: Twemoji (Twitter, Inc.) · CC-BY 4.0, ricolorato",
+  'lc.ghiCong': "Disegni delle carte: Noto Emoji 3D (Google) · OFL 1.1, Twemoji per le immagini mancanti. Muso del drago: Twemoji (Twitter, Inc.) · CC-BY 4.0, ricolorato",
   'lc.banApp': "Versione app (store): {ban}",
 
   /* ---------- bản đồ chiến dịch (LevelMap) ---------- */

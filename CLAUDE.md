@@ -854,7 +854,8 @@
   không phải `auto` + `min-height`): `.option` có `container-type: size`, mà
   container query chỉ giải được khi chiều cao xác định — để auto thì truy vấn
   nhận 0 và hàng emoji mẫu bị ẩn ở mọi cỡ ô.
-- **MẶT BÀI MÁY KHÔNG-APPLE VẼ BẰNG NOTO 3D** (15.10.2026, chủ dự án so 5 bộ — artifact
+- **MẶT BÀI VẼ BẰNG NOTO 3D TRÊN MỌI MÁY, KỂ CẢ APPLE** (15.10.2026; ban đầu chỉ máy không-Apple,
+  cùng ngày chủ dự án cho Apple theo — ảnh CẢ HAI store đã chụp lại; chủ dự án so 5 bộ — artifact
   https://claude.ai/artifact/M5iMtdV57gUizNRgK7ppj1 — chọn bộ 3D mới của Google): WebP 512px ở
   `public/emoji/3d/`, tải bằng `node tools/tai-noto3d.mjs` (cần `cwebp`). GIỮ 512: quạt lá trang
   chủ / bàn 4 thẻ cần ~390px, 256 là mờ. BA CỠ 128 · 256 · 512 (`3d/128/`, `3d/256/`, `3d/`): BoardGrid
@@ -905,4 +906,4 @@
   `ACHIEVEMENTS`). Lý do: đồ khoá mà không mua được là App Review hay loại (luật 2.1).
   Có IAP thì bật `true`; đồ premium chưa mua đeo VƯƠNG MIỆN (không dùng ổ khoá).
   Thử giao diện đã mua: chế độ debug → Luật chơi → nút "Mở Premium để thử" (`datPremiumThu`, chỉ đổi `mm.premium` của máy đó — trong app không có console nên đây là lối duy nhất). Công tắc Twemoji trong menu đã BỎ: máy Apple
-  luôn emoji Apple, máy khác luôn NOTO 3D (15.10.2026, xem mục MẶT BÀI), bản lưu `kieuEmoji` cũ bị bỏ qua.
+  nay MỌI máy vẽ NOTO 3D (15.10.2026, xem mục MẶT BÀI), bản lưu `kieuEmoji` cũ bị bỏ qua.

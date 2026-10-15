@@ -44,7 +44,7 @@ describe('hình vector cho mặt bài', () => {
     expect(tenFileEmoji('🇻🇳')).toBe('1f1fb-1f1f3');
   });
 
-  it('máy Apple giữ emoji chữ; chữ/số và ô úp rỗng không thành ảnh', () => {
+  it('tắt vẽ ảnh thì giữ emoji chữ; chữ/số và ô úp rỗng không thành ảnh', () => {
     expect(anhEmoji('🐼', false)).toBeNull();
     expect(anhEmoji('🐼', true)).toBe('/emoji/3d/1f43c.webp');
     expect(anhEmoji('A', true)).toBeNull();

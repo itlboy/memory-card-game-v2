@@ -572,7 +572,7 @@ const ko: TuDien = {
   'lc.boEmojiMay': '기기 이모지',
   'lc.xemThang': '승리 · {ten}',
   'lc.xemThua': '패배 · {ten}',
-  'lc.ghiCong': "카드 그림(Apple 외 기기): Noto Emoji 3D (Google) · OFL 1.1, 없는 그림은 Twemoji. 용 얼굴: Twemoji (Twitter, Inc.) · CC-BY 4.0, 색상 변경",
+  'lc.ghiCong': "카드 그림: Noto Emoji 3D (Google) · OFL 1.1, 없는 그림은 Twemoji. 용 얼굴: Twemoji (Twitter, Inc.) · CC-BY 4.0, 색상 변경",
   'lc.banApp': "앱(스토어): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

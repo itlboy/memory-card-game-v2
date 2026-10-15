@@ -591,7 +591,7 @@ const ru: TuDien = {
   'lc.boEmojiMay': 'Эмодзи системы',
   'lc.xemThang': 'Победа · {ten}',
   'lc.xemThua': 'Поражение · {ten}',
-  'lc.ghiCong': "Рисунки карт (не-Apple устройства): Noto Emoji 3D (Google) · OFL 1.1, недостающие — Twemoji. Морда дракона: Twemoji (Twitter, Inc.) · CC-BY 4.0, перекрашена",
+  'lc.ghiCong': "Рисунки карт: Noto Emoji 3D (Google) · OFL 1.1, недостающие — Twemoji. Морда дракона: Twemoji (Twitter, Inc.) · CC-BY 4.0, перекрашена",
   'lc.banApp': "Приложение (магазин): {ban}",
 
   /* ---------- campaign map (LevelMap) ---------- */

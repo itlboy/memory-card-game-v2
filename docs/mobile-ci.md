@@ -45,8 +45,8 @@ gh workflow run play-store.yml --ref main -f chup_anh=false  # chỉ cập nhậ
 
 Ảnh chụp lấy từ bản web (mặc định `thebai2`, lên bản mới ngay lúc `pnpm release`),
 nên giao hàng web TRƯỚC rồi mới chụp. Ảnh Play chụp trên Ubuntu khung Android
-1080×1920 (mặt bài Noto 3D như máy Android); ảnh App Store chụp trên macOS (emoji
-Apple). Kịch bản bấm nút theo CHỮ của từng ngôn ngữ (`tools/chup-store-kichban.mjs`
+1080×1920; ảnh App Store chụp trên macOS (emoji giao diện kiểu Apple). Mặt bài là
+Noto 3D ở CẢ HAI (15.10.2026) — đổi bộ hình mặt bài là chạy lại cả hai workflow. Kịch bản bấm nút theo CHỮ của từng ngôn ngữ (`tools/chup-store-kichban.mjs`
 đọc từ điển) — đổi chữ nút trong `locales/*` là chạy thử một ngôn ngữ ở máy trước:
 `KHUNG=android node tools/chup-store.mjs https://thebai2.hello314.com <thư mục> zh`.
 Service account Play cần quyền "Quản lý trang thông tin cửa hàng" trên Play Console.

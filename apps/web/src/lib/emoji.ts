@@ -1,35 +1,28 @@
 import { ref } from 'vue';
-import { nenApp } from './native';
 import { store } from './storage';
 import THIEU_3D from '../../public/emoji/3d/thieu.json';
 
 /**
- * MẶT BÀI VẼ EMOJI BẰNG GÌ (phương án B 14.10.2026, đổi sang Noto 3D 15.10.2026).
+ * MẶT BÀI VẼ EMOJI BẰNG GÌ: NOTO 3D TRÊN MỌI MÁY (chủ dự án 15.10.2026).
  *
- * Emoji của máy KHÔNG phải Apple là ảnh bitmap nhỏ (Android: Noto ~136px) → phóng
- * lên mặt bài là mờ; Windows còn không có emoji cờ. Các máy đó vẽ bằng NOTO 3D
- * của Google đóng gói sẵn (public/emoji/3d/<mã>.webp, `node tools/tai-noto3d.mjs`)
- * — chủ dự án so 5 bộ và chọn nó vì gần emoji Apple nhất. Hình Noto 3D chưa có
- * (`thieu.json`) lùi về SVG Twemoji (public/emoji, `node tools/tai-twemoji.mjs`).
- * iPhone/iPad/Mac GIỮ emoji Apple — vốn nét và đẹp nhất, và ảnh App Store chụp bằng nó.
+ * Emoji của Android là ảnh bitmap nhỏ (Noto ~136px) → phóng lên mặt bài là mờ;
+ * Windows không có emoji cờ. Nên mặt bài vẽ bằng NOTO 3D của Google đóng gói sẵn
+ * (public/emoji/3d/<mã>.webp, `node tools/tai-noto3d.mjs`) — chủ dự án so 5 bộ và
+ * chọn nó. Từ cùng ngày áp cho CẢ iPhone/iPad/Mac: một diện mạo trên mọi máy (online
+ * hai bên thấy cùng một lá), app iOS vốn đã mang sẵn bộ ảnh. Đổi là phải chụp lại ảnh
+ * CẢ HAI store (asc-store + play-store). Hình Noto 3D chưa có (`thieu.json`) lùi về
+ * SVG Twemoji (public/emoji, `node tools/tai-twemoji.mjs`).
  *
  * Chỉ đổi CÁCH VẼ: ký hiệu trên dây/engine vẫn là chuỗi emoji, nên Android chơi
  * online với iPhone y như cũ (so cặp theo mã, không theo hình).
  */
-function laThietBiApple(): boolean {
-  if (nenApp === 'ios') return true;
-  if (nenApp === 'android') return false;
-  const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
-  // iPadOS báo "Macintosh"; Mac nào cũng có font Apple Color Emoji
-  return /iPhone|iPad|iPod|Macintosh|Mac OS X/.test(ua);
-}
-
-/** Mặc định theo máy — đổi phương án A/B/... là sửa ĐÚNG dòng này. */
-export const MAC_DINH_VECTOR = !laThietBiApple();
+/** Mặc định — đổi phương án là sửa ĐÚNG dòng này. Từng là `!laThietBiApple()`
+ *  (máy Apple giữ emoji Apple) tới 15.10.2026. */
+export const MAC_DINH_VECTOR = true;
 
 /**
  * Đang vẽ bằng ảnh hay emoji của máy. Công tắc "Hình lá bài nét" ở menu ĐÃ BỎ
- * (chủ dự án 14.10.2026): máy Apple luôn emoji Apple, máy khác luôn Noto 3D. Bản
+ * (chủ dự án 14.10.2026): mọi máy vẽ Noto 3D (debug vẫn đổi được). Bản
  * lưu `kieuEmoji` cũ bị BỎ QUA — không còn công tắc thì người từng tắt sẽ kẹt mãi.
  * `datDungVector` giữ lại cho test/harness.
  */

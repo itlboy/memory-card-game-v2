@@ -7,7 +7,7 @@
 # Nội dung lấy từ docs/store-listing.md — CÙNG nguồn với App Store.
 #
 # Ubuntu chứ không macOS (khác asc-store): ảnh Play phải giống thứ người dùng
-# ANDROID thấy — mặt bài Twemoji (chup-store giả máy Android, KHUNG=android
+# ANDROID thấy — mặt bài Noto 3D (chup-store giả máy Android, KHUNG=android
 # 1080×1920 vì Play từ chối ảnh dài hơn 2:1) và emoji giao diện kiểu Noto.
 name: Google Play page
 
