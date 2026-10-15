@@ -87,7 +87,18 @@ spec:
             # nút đăng nhập và mọi thứ chạy như cũ. Client ID KHÔNG phải bí mật
             # (nó nằm trong trang web); tạo ở Google Cloud Console → Credentials
             # → OAuth client (Web), Authorized JavaScript origins = tên miền game.
-            # Khoá ký phiên suy từ MYSQL_URL nếu không đặt AUTH_SECRET.
+            # Khoá ký phiên đăng nhập (HMAC). Secret RIÊNG, không suy từ mật khẩu
+            # MySQL nữa (soát bảo mật 15.10.2026): lộ mật khẩu DB không còn là giả
+            # được phiên của mọi người, và đổi mật khẩu DB không đăng xuất ai.
+            # Tạo: kubectl -n thebai create secret generic thebai-auth
+            #        --from-literal=AUTH_SECRET="$(openssl rand -hex 32)"
+            # Đổi giá trị = mọi người phải đăng nhập lại.
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: thebai-auth
+                  key: AUTH_SECRET
+                  optional: true
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 secretKeyRef:

@@ -126,7 +126,7 @@ const diemMay = store.totalScore();
             🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
           <ol v-if="tab === 'bxh' && bxh" class="bxh">
-            <li v-for="(d, i) in bxh" :key="d.id">
+            <li v-for="(d, i) in bxh" :key="i">
               <span class="hang">{{ i + 1 }}</span>
               <img v-if="d.avatar" :src="d.avatar" alt="" referrerpolicy="no-referrer">
               <span class="ten">{{ d.name }}</span>
@@ -194,7 +194,7 @@ const diemMay = store.totalScore();
 
           <template v-else>
             <ol v-if="bxh" class="bxh">
-              <li v-for="(d, i) in bxh" :key="d.id" :class="{ toi: d.id === me.id }">
+              <li v-for="(d, i) in bxh" :key="i" :class="{ toi: d.toi }">
                 <span class="hang">{{ i + 1 }}</span>
                 <img v-if="d.avatar" :src="d.avatar" alt="" referrerpolicy="no-referrer">
                 <span class="ten">{{ d.name }}</span>

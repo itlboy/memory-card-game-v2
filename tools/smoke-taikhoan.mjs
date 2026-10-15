@@ -89,8 +89,11 @@ try {
   r = await goi('/api/me/dongbo', { method: 'POST', token, body: { totalScore: 100, best: {}, achievements: [] } });
   ok(r.data.me.totalScore === 5000, 'đồng bộ lần hai với số thấp hơn: KHÔNG hạ, KHÔNG cộng dồn');
 
+  r = await goi('/api/bxh', { token });
+  ok(r.status === 200 && r.data.top.some((d) => d.toi && d.totalScore === 5000), 'bảng xếp hạng có người này (toi)');
+  ok(r.data.top.every((d) => d.id === undefined && d.avatar === null), 'bảng xếp hạng KHÔNG lộ id / ảnh');
   r = await goi('/api/bxh');
-  ok(r.status === 200 && r.data.top.some((d) => d.id === uid && d.totalScore === 5000), 'bảng xếp hạng có người này');
+  ok(!r.data.top.some((d) => d.toi), 'không đăng nhập thì không dòng nào là "toi"');
   ok(!JSON.stringify(r.data).includes('smoke@x.vn'), 'bảng xếp hạng KHÔNG lộ email');
 
   r = await goi('/api/me/khong-co', { token });

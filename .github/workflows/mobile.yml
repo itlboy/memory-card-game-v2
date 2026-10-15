@@ -81,7 +81,7 @@ jobs:
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-debug.apk
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          retention-days: 7   # repo PUBLIC: ai có tài khoản GitHub cũng tải được bản build
 
       - name: AAB + APK release đã ký
         if: env.CO_KHOA == 'true'
@@ -103,7 +103,7 @@ jobs:
           path: |
             apps/web/android/app/build/outputs/bundle/release/app-release.aab
             apps/web/android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 90
+          retention-days: 7   # repo PUBLIC: ai có tài khoản GitHub cũng tải được bản build
 
       # App MỚI thì Play bắt tải AAB đầu tiên bằng tay trên web (bước này sẽ lỗi
       # "Package not found" cho tới lúc đó). Chưa phát hành lần nào thì Play chỉ
@@ -272,7 +272,7 @@ jobs:
         with:
           name: lat-the-${{ steps.ver.outputs.name }}-${{ steps.ver.outputs.code }}-ios
           path: ${{ runner.temp }}/ipa/*.ipa
-          retention-days: 30
+          retention-days: 7   # repo PUBLIC: ai có tài khoản GitHub cũng tải được bản build
       - name: Dọn keychain tạm
         if: always() && env.CO_KY == 'true'
         run: security delete-keychain "$RUNNER_TEMP/ky.keychain-db" || true
