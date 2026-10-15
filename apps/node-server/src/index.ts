@@ -197,6 +197,11 @@ function cacheControl(file: string): string {
   // Asset có hash trong tên: nội dung đổi thì TÊN đổi, không bao giờ trả nhầm
   // bản cũ → cache một năm.
   if (/[/\\]assets[/\\]/.test(file)) return 'public, max-age=31536000, immutable';
+  // Gói cập nhật nóng: tên = <bản app>-<giờ dựng>.zip, nội dung một tên KHÔNG BAO
+  // GIỜ đổi → cache vĩnh viễn, Cloudflare giữ hộ. Bản cũ trả no-cache: CF báo
+  // EXPIRED mỗi lần và kéo nguyên 3 MB từ pod cho từng máy cập nhật (đo
+  // 15.10.2026). manifest.json thì KHÔNG: nó là thứ báo "có gói mới".
+  if (/[/\\]ota[/\\][^/\\]+\.zip$/.test(file)) return 'public, max-age=31536000, immutable';
   // Không có hash trong tên → luôn hỏi lại. no-cache chứ KHÔNG no-store:
   // no-store cấm lưu hẳn, service worker mất khả năng precache và app mất chạy
   // offline — đúng thứ PWA dựng lên để có.
