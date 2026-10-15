@@ -38,7 +38,8 @@ export interface HoSo {
 }
 
 export interface DongBxh {
-  id: number; name: string; avatar: string | null; totalScore: number; wins: number; matches: number;
+  /** Tên TẮT (server cắt) — bảng công khai không mang tên thật, ảnh, id. */
+  name: string; avatar: string | null; toi?: boolean; totalScore: number; wins: number; matches: number;
 }
 
 export interface VanBao {

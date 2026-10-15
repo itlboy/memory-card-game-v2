@@ -453,14 +453,21 @@ export async function moTaiKhoan(
         return true;
       }
 
+      /*
+       * BẢNG XẾP HẠNG CÔNG KHAI (không cần đăng nhập) nên CHỈ trả tên tắt
+       * (`tenTat`), KHÔNG ảnh Google, KHÔNG id nội bộ — app là 4+, trẻ em đăng
+       * nhập bằng tài khoản thật thì tên thật + ảnh không được lộ cho người lạ
+       * (soát bảo mật 15.10.2026). Người đang xem nhận ra dòng mình qua `toi`.
+       */
       if (p === '/api/bxh' && req.method === 'GET') {
+        const toi = uidTu(req, now);
         const [rows] = await pool!.query(
-          `SELECT id, name, avatar_url, total_score, wins, matches FROM users
+          `SELECT id, name, total_score, wins, matches FROM users
            WHERE matches > 0 ORDER BY total_score DESC, wins DESC LIMIT 20`
         );
         json(res, {
           top: (rows as Record<string, unknown>[]).map((r) => ({
-            id: Number(r.id), name: String(r.name), avatar: (r.avatar_url as string | null) ?? null,
+            name: tenTat(String(r.name ?? '')), avatar: null, toi: toi !== null && Number(r.id) === toi,
             totalScore: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches)
           }))
         });
@@ -532,4 +539,12 @@ export async function moTaiKhoan(
       return true;
     }
   };
+}
+
+/** Tên tắt cho bảng xếp hạng công khai: "Nguyễn Trung Kiên" → "Nguyễn K.", một chữ giữ nguyên. */
+export function tenTat(ten: string): string {
+  const chu = ten.trim().split(/\s+/).filter(Boolean);
+  if (!chu.length) return '?';
+  if (chu.length === 1) return chu[0]!.slice(0, 16);
+  return `${chu[0]!.slice(0, 16)} ${[...chu[chu.length - 1]!][0]!.toUpperCase()}.`;
 }
