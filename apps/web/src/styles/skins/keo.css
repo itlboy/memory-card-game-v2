@@ -196,14 +196,11 @@
    từng ra 15,6px. Gờ dùng px cố định; viền mặt lá (con của .card) mới dùng cqw. */
 :root[data-skin='keo'] .card { box-shadow: 0 3px 0 var(--ink); border-radius: 13px; }
 :root[data-skin='keo'] .card .face { border: max(1.5px, 3.5cqw) solid var(--ink); border-radius: 13px; }
-/* MẶT SAU THEO SKIN: nền khoá về xanh than của skin (bảng màu theo seed làm lá
-   tím/xanh lá lạc tông giữa trời xanh — chủ dự án báo); HOẠ TIẾT vẫn đổi theo
-   ván. Cả bàn vẫn chung một mặt sau, luật chống đánh dấu bài giữ nguyên. */
+/* Nền khoá về xanh than của skin (bảng màu theo seed làm lá tím/xanh lá lạc tông
+   giữa trời xanh — chủ dự án báo); HOẠ TIẾT vẫn đổi theo ván. */
+/* MẶT SAU THEO SKIN = CHỈ MÀU NỀN (chủ dự án 16.10.2026: "thêm vào sẽ rối, skin chỉ đổi
+   màu là đủ"). Không viền, khung, chấm hay sao riêng — hoạ tiết và viền là của chung. */
 :root[data-skin='keo'] .card .face.back[class*="bk-mau-"] { background: #2b4c9b; }
-:root[data-skin='keo'] .card .back {
-  box-shadow: none;
-  outline: max(1.5px, 2.5cqw) dotted rgba(255, 255, 255, .5); outline-offset: min(-4px, -7cqw);
-}
 :root[data-skin='keo'] .card .front { background: var(--card-face-up); }
 /* Lá đã ghép: GIỮ RÕ NÉT, chỉ thêm viền xanh lá bên trong. Bản trước phủ một
    lớp trắng mờ cho lá "lùi" lại — chủ dự án thấy mờ khó nhìn, đã bỏ (13.10.2026). */
