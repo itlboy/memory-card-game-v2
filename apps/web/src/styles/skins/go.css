@@ -141,12 +141,9 @@
 :root[data-skin='go'] .card { box-shadow: 0 2px 0 var(--mep), 0 6px 10px rgba(10, 5, 2, .45); border-radius: 10px; }
 :root[data-skin='go'] .card.done { box-shadow: none; }
 :root[data-skin='go'] .card .face { border-radius: 10px; }
-:root[data-skin='go'] .card .face.back[class*="bk-mau-"] {
-  background-color: #b23a2e;
-  background-image:
-    repeating-linear-gradient(45deg, rgba(243, 233, 210, .14) 0 1.5px, transparent 1.5px 9px),
-    repeating-linear-gradient(-45deg, rgba(243, 233, 210, .14) 0 1.5px, transparent 1.5px 9px);
-}
+/* Nền đỏ TRƠN: lưới gạch chéo phủ trên hoạ tiết đã bỏ (chủ dự án 16.10.2026).
+   Dùng `background` gộp để xoá luôn gradient gốc của bảng màu. */
+:root[data-skin='go'] .card .face.back[class*="bk-mau-"] { background: #b23a2e; }
 :root[data-skin='go'] .card .back { box-shadow: inset 0 0 0 max(3px, 6cqw) #f3e9d2; }
 :root[data-skin='go'] .card .back::before { inset: max(3px, 6cqw); border-radius: 5px; }
 :root[data-skin='go'] .card .front { background: var(--card-face-up); border: max(2px, 3.5cqw) solid #c9952b; }
