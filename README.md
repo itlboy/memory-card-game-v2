@@ -707,8 +707,9 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
 - Mặt bài vẽ bằng **Noto 3D** (bộ emoji 3D mới của Google, OFL 1.1) trên MỌI máy — iPhone,
   Android, web — thay emoji của máy (Apple) và Twemoji (Android/Windows; đã gỡ hẳn). WebP ba cỡ
   128 · 256 · 512 đóng gói sẵn; bàn thẻ đo một lá rồi chọn cỡ nhỏ nhất đủ nét (bàn 88 thẻ
-  dùng 128, quạt lá trang chủ dùng 512) để giữ RAM thấp. Gói cập nhật nóng ~26MB. Chế độ
-  debug → Luật chơi → "Bộ hình emoji" để đổi Máy ⇄ Noto 3D (tắt debug là về mặc định).
+  dùng 128, quạt lá trang chủ dùng 512) để giữ RAM thấp. Gói zip cập nhật nóng thành ~33MB
+  (16.10 chuyển sang tải chênh lệch, xem dưới). Trang Debug → "Bộ hình emoji" để đổi Máy ⇄
+  Noto 3D (tắt debug là về mặc định).
 - 24 theme mới (12 miễn phí + 12 premium): cờ châu Á/Âu/Mỹ/Phi, côn trùng, văn phòng,
   trong nhà, hình & màu, thú cưng, mọi người, sở thích, phong cảnh · premium: biểu cảm,
   rừng xanh, tiệc trà, vận động viên, đi chợ, biển báo, phòng thí nghiệm, cổ tích, cơ thể,
@@ -728,6 +729,32 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
   máy không còn đĩa trắng (đổi thứ tự màu ô để mặt không chìm).
 - `pnpm do:safari` (WebKit): bắt và sửa cạnh nút bị cắt trên iPhone, nút "Bắt đầu" lòi
   khỏi màn ở bước Bàn chơi trên iPhone SE.
+- Online bền vững: thoát app không mất phòng, nối lại ngầm không nháy, vào lại phòng không
+  qua màn chờ; online tối đa 4 người.
+- Link mời phòng mở thẳng app: Universal Links (iOS) + App Links (Android).
+- Nhạc nền 5 bài khác nhịp (3 miễn phí + 2 premium), nhỏ và chậm hơn, chọn bài trong menu.
+- `flipmatch.cozypi.com` chia theo đường dẫn: file tĩnh do Cloudflare Worker phục vụ, API +
+  phòng online về server Node trên k8s — trang không còn 503 lúc deploy.
+- Bảng xếp hạng công khai chỉ hiện tên tắt (bỏ ảnh, id); trang công khai ảnh hai cỡ + srcset.
+- Google Play: build Android mới tự lên cả kênh thử nghiệm khép kín (`play-track.yml` để đưa
+  tay một build sang kênh khác). Tên nhà phát triển đổi 314 Labs → Cozy Pi.
+
+**16.10.2026**
+- Cập nhật nóng NHẸ: tải chênh lệch theo danh sách file + sha256 (`/ota/<id>.files.json`,
+  `/ota/f/<sha256><đuôi>`) — chỉ tải file đổi, đo thật 15/3426 file = 1,1MB thay vì zip 33MB;
+  tải dở thì lần sau tải tiếp; lỗi gì cũng quay về zip.
+- Trang Debug riêng: chạm 7 lần vào chữ "Cài đặt" trong menu để bật, nút "🐞 Debug" cạnh đó
+  mở trang. Trong trang: phiên bản + giờ build + mã gói cập nhật nóng, trạng thái cập nhật
+  (kiểm / tải x% / chờ mở lại / lỗi gì) + nút Kiểm tra, Áp dụng ngay; Premium thử, đo khung
+  hình, ping số, bộ emoji, xem thử hiệu ứng kết ván; Về mặc định.
+- Online: mạng chỉ còn chấm xanh/vàng/đỏ cạnh tên mình (số ms bật trong Debug).
+- Đổi màn tức thì (bỏ hiệu ứng trượt/mờ); thoát ván về đúng bước trước khi vào ván (logo vẫn
+  về trang chủ); nút ↻ chơi lại trên HUD cho ván một mình / đấu máy, luôn hỏi xác nhận.
+- Chia bài cả bàn hiện cùng lúc (bỏ lệch theo hàng). Đếm ngược vào ván: bỏ lớp phủ, số trắng
+  viền mực đọc rõ trên mọi lưng lá, avatar người đi đầu thay 🎲.
+- Chọn theme hiện "Đã chọn n/tổng". Mặt lưng gọn lại (7 hoạ tiết × 4 màu; skin chỉ đổi màu nền).
+- Trang chủ iOS: tách lớp chuyển động khỏi đổi ảnh/đổi icon (quạt lá + icon bay) cho mượt.
+- App build 266 (TestFlight + Play nội bộ/khép kín) mang sẵn emoji + cập nhật chênh lệch.
 
 **14.10.2026**
 - Theme premium: 36 miễn phí + 12 premium, tab Miễn phí / Premium, xem trước bộ hình,

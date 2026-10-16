@@ -47,6 +47,8 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 | **Google Play** `com.cozypi.flipmatch` | Play Console | `site.js` `STORE.android` · `tools/play-store.mjs` · `android/app/build.gradle` |
 | **Đã lên store công khai?** (bật nút store trên trang) | thực tế store | `site.js` → `STORE.*.on` (đang `false`) |
 | **Phiên bản app** (1.3.0) | `apps/web/package.json` `version` | trang `changes.html` (r3) + site-i18n · `ota.json` `minNative` khi đổi native |
+| **Cập nhật nóng (OTA)** — zip + tải chênh lệch (`/ota/manifest.json`, `<id>.files.json`, `f/<sha256><đuôi>`) | `tools/dong-goi-ota.mjs` (build) · `apps/web/src/lib/ota.ts` (app) | cache: `apps/node-server/src/index.ts` + `public/_headers` · Cloudflare bỏ `ota/` (`public/.assetsignore`) · CLAUDE.md mục CẬP NHẬT NÓNG · trạng thái ở trang Debug |
+| **Chế độ debug** — bật: 7 chạm chữ "Cài đặt" (menu) / dòng phiên bản (Luật chơi) / `?debug=1` | `components/DebugDialog.vue` + `DebugMenu.vue`, nút ở `TopBar.vue` | CLAUDE.md (mọi chỗ "trang Debug") · test `debug-an.test.ts` |
 | **Google Search Console** `sc-domain:cozypi.com` | TXT ở DNS `cozypi.com` + `tools/search-console.mjs` | `docs/trang-cong-khai.md` · sitemap của từng trang (`SITEMAPS`) |
 | **Studio Cozy Pi** (`cozypi.com`) | repo riêng **`itlboy/cozypi-site`** | trang (chân trang) · store (Copyright "2026 Cozy Pi") |
 
