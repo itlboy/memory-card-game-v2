@@ -39,7 +39,8 @@
     "do:fx": "node tools/do-fx-khung.mjs",
     "do:ngon-ngu": "node tools/do-ngon-ngu.mjs",
     "do:tuong-phan": "node tools/do-tuong-phan.mjs",
-    "do:safari": "node tools/do-safari.mjs"
+    "do:safari": "node tools/do-safari.mjs",
+    "smoke:ota": "node tools/smoke-ota.mjs"
   },
   "packageManager": "pnpm@10.0.0",
   "devDependencies": {

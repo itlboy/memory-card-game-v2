@@ -27,8 +27,11 @@ import { t } from './i18n';
 interface Manifest { id: string; url: string; sha256: string; minNative: string; files?: string }
 /** `/ota/<id>.files.json`: [đường dẫn trong gói, sha256] — tools/dong-goi-ota.mjs. */
 type DanhSachFile = [string, string][];
-/** File ở `/ota/f/<sha256><đuôi>` — giữ đuôi để server trả đúng MIME và Cloudflare nén khi truyền. */
-const duoi = (ten: string): string => ten.match(/\.[a-z0-9]+$/i)?.[0] ?? '';
+/** Đuôi của file ở `/ota/f/<sha256><đuôi>` — PHẢI KHỚP `duoiOta` ở tools/dong-goi-ota.mjs:
+ *  chỉ giữ đuôi loại Cloudflare nén mà không sửa nội dung; HTML/ảnh/font để trống (Cloudflare
+ *  sửa HTML trên đường đi → lệch sha256 → hỏng cả lượt tải chênh lệch). */
+const DUOI_GIU = /\.(js|mjs|css|json|svg|webmanifest|txt|xml|map)$/i;
+export const duoiOta = (ten: string): string => ten.match(DUOI_GIU)?.[0].toLowerCase() ?? '';
 
 /**
  * TRẠNG THÁI CẬP NHẬT NÓNG — hiện trong khối debug của menu (chủ dự án 16.10.2026: mở app
@@ -114,7 +117,7 @@ export async function kiemOta(): Promise<void> {
             if (rf.status === 200 && Array.isArray(ds) && ds.length) {
               goi = await CapacitorUpdater.download({
                 url: new URL(m.url, SITE_URL).href, version: m.id,
-                manifest: ds.map(([ten, h]) => ({ file_name: ten, file_hash: h, download_url: new URL(`/ota/f/${h}${duoi(ten)}`, SITE_URL).href }))
+                manifest: ds.map(([ten, h]) => ({ file_name: ten, file_hash: h, download_url: new URL(`/ota/f/${h}${duoiOta(ten)}`, SITE_URL).href }))
               });
             }
           } catch { goi = undefined; }
