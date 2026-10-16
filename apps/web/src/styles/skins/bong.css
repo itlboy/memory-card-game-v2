@@ -147,21 +147,13 @@
 :root[data-skin='bong'] .player.active .turn-clock,
 :root[data-skin='bong'] .player.active .lives { color: var(--ink); }
 
-/* ---------- lá bài: lưng chấm bi hồng–tím, mặt trắng viền hồng ---------- */
+/* ---------- lá bài: lưng hồng–tím, mặt trắng viền hồng ---------- */
 :root[data-skin='bong'] .card { box-shadow: 0 4px 0 var(--mep); border-radius: 12px; }
 :root[data-skin='bong'] .card.done { box-shadow: none; }
 :root[data-skin='bong'] .card .face { border-radius: 12px; }
-:root[data-skin='bong'] .card .face.back[class*="bk-mau-"] {
-  background-color: #ffb6d9;
-  background-image:
-    radial-gradient(circle at 28% 28%, #ffd1e8 0 14%, transparent 15%),
-    radial-gradient(circle at 72% 68%, #d9ccff 0 13%, transparent 14%),
-    radial-gradient(circle at 75% 22%, rgba(255, 255, 255, .55) 0 6%, transparent 7%),
-    radial-gradient(circle at 24% 78%, rgba(255, 255, 255, .55) 0 6%, transparent 7%),
-    linear-gradient(160deg, #ffb6d9, #c7b6ff);
-}
-:root[data-skin='bong'] .card .back { box-shadow: inset 0 0 0 max(2px, 5cqw) #fff; }
-:root[data-skin='bong'] .card .back::before { inset: max(3px, 6cqw); border-radius: 8px; }
+/* MẶT SAU THEO SKIN = CHỈ MÀU NỀN (chủ dự án 16.10.2026: "thêm vào sẽ rối, skin chỉ đổi
+   màu là đủ"). Không viền, khung, chấm hay sao riêng — hoạ tiết và viền là của chung. */
+:root[data-skin='bong'] .card .face.back[class*="bk-mau-"] { background: linear-gradient(160deg, #ffb6d9, #c7b6ff); }
 :root[data-skin='bong'] .card .front { background: var(--card-face-up); border: max(2px, 4cqw) solid #f6b8d8; }
 :root[data-skin='bong'] .card.done .front { background: #f3fff9; border: max(2px, 4cqw) solid #8fd9b6; box-shadow: none; }
 

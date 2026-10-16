@@ -309,7 +309,9 @@
   gradient tím từng làm skin Kẹo lòi tím khắp nơi. Hình nền: `--nen-man` (body, neo
   cửa sổ) và `--canh` (vẽ theo khung #app — neo theo cửa sổ thì trên máy tính giữa
   cột trống trơn). Màn tạm dừng dùng `--canh, --nen-man`.
-- Skin Kẹo/Gỗ KHOÁ màu mặt sau lá theo skin; hoạ tiết vẫn theo ván, cả bàn vẫn chung một mặt.
+- Skin (trừ Neon) KHOÁ màu mặt sau lá theo skin; hoạ tiết vẫn theo ván, cả bàn vẫn chung một mặt.
+  Skin CHỈ ĐỔI MÀU NỀN mặt sau — không viền, khung, chấm, sao hay gạch riêng (chủ dự án 16.10.2026:
+  "thêm vào sẽ rối"). Mặt sau đang bốc: 7 hoạ tiết × 4 màu; tắt bằng `HOA_TIET_TAT`/`BANG_MAU_TAT`.
 - Font: Đêm Sao + Kẹo Bông dùng CHUNG font Kẹo (Grandstander 900 + Be Vietnam Pro) — Playfair/
   Quicksand bị chê xấu, đã gỡ khỏi `fonts.ts` (15.10.2026). Mặt máy ở bước mức máy nằm thẳng
   trên ô (không đĩa trắng): chống chìm bằng THỨ TỰ MÀU ô ở `BOT_CHOICES`.
