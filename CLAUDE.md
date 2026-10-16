@@ -470,6 +470,12 @@
   ngưỡng 15s, `the-trang` 30s). Đừng nới timeout; chạy lại riêng file đó, và lấy CI
   GitHub (workflow docker.yml chạy `pnpm test` trên máy sạch) làm trọng tài. ĐỪNG nối
   `pnpm test ... ; echo` rồi `&& git commit` — echo nuốt mã lỗi, test đỏ vẫn commit.
+- **MỞ TRÌNH DUYỆT CHO CÔNG CỤ ĐO = QUA `tools/lib-playwright.mjs` (`moTrinhDuyet`)** (16.10.2026,
+  chủ dự án thấy "Chrome vẫn bật" sau các lần đo). Kể cả script tạm: KHÔNG gọi thẳng
+  `webkit.launch()` / `chromium.launch({ channel: 'chrome' })`. Cửa này dùng trình duyệt CHẠY ẨN
+  của Playwright (không phải Chrome thật của máy — không icon Dock, không lẫn tab đang dùng), tắt
+  khi lỗi / Ctrl+C và cả `kill -9` (tiến trình canh tách rời), và dọn mồ côi lần trước. Công cụ
+  CDP thì qua `lib-chrome.mjs`. Server dev/thử chạy bằng `run_in_background`, KHÔNG `( … & )`.
 - **SỬA GIAO DIỆN XONG LÀ CHẠY `pnpm do:safari`** (15.10.2026): WebKit của Playwright (engine
   Safari/iPhone), 3 khổ vùng web × 5 skin × 9 màn, dò viền/bóng bị khung cắt, nút lòi khỏi màn,
   trang cuộn; ảnh ở `/tmp/mm-safari`. Mọi công cụ khác chạy Chrome — mà Chrome có thứ Safari

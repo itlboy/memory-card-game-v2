@@ -12,17 +12,15 @@
  *   node tools/do-thoat-app.mjs http://127.0.0.1:18438
  * Lần đầu: `pnpm exec playwright install webkit`.
  */
-import { webkit } from 'playwright';
+import { moTrinhDuyet } from './lib-playwright.mjs';
 
 const URL_GOC = process.argv[2] ?? 'http://127.0.0.1:18438';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let loi = 0;
 const ket = (ok, msg) => { console.log(ok ? '✓' : '✗', msg); if (!ok) loi++; };
 
-const trinh = await webkit.launch();
+const trinh = await moTrinhDuyet('webkit');   // lib-playwright: không bao giờ để lại trình duyệt mồ côi
 const dong = async () => { try { await trinh.close(); } catch { /* đã đóng */ } };
-process.on('SIGINT', async () => { await dong(); process.exit(130); });
-process.on('SIGTERM', async () => { await dong(); process.exit(143); });
 
 try {
   const ctx = await trinh.newContext({ viewport: { width: 390, height: 664 }, serviceWorkers: 'block' });
