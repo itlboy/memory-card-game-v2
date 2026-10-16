@@ -54,15 +54,22 @@ const sha256 = createHash('sha256').update(zip).digest('hex');
 const ra = join(web, 'dist', 'ota');
 mkdirSync(join(ra, 'f'), { recursive: true });
 writeFileSync(join(ra, `${id}.zip`), zip);
+/*
+ * Đuôi file ở `/ota/f/<sha256><đuôi>` — PHẢI KHỚP `duoiOta` trong apps/web/src/lib/ota.ts.
+ * Chỉ giữ đuôi cho loại Cloudflare NÉN mà KHÔNG SỬA nội dung (js/css/json/svg…: JS 808KB →
+ * ~200KB khi truyền). HTML thì KHÔNG: Cloudflare sửa HTML trên đường đi (làm rối email…) →
+ * lệch sha256 → plugin bỏ cả lượt tải chênh lệch (smoke:ota bắt được 16.10.2026 ở about.html).
+ * Loại khác (ảnh, font) để trống đuôi: octet-stream, trả nguyên văn.
+ */
+const DUOI_GIU = /\.(js|mjs|css|json|svg|webmanifest|txt|xml|map)$/i;
+const duoiOta = (duong) => duong.match(DUOI_GIU)?.[0].toLowerCase() ?? '';
 // Danh sách file cho tải chênh lệch: [đường dẫn trong gói, sha256 nội dung]
 const ds = [];
 for (const [ten, du] of Object.entries(files)) {
   const h = createHash('sha256').update(du).digest('hex');
   const duong = ten.split('\\').join('/');
   ds.push([duong, h]);
-  // GIỮ ĐUÔI file (`<sha256>.js`): đúng MIME → Cloudflare tự nén brotli/gzip khi truyền
-  // (JS 808KB → ~200KB); không đuôi là octet-stream, truyền nguyên cục.
-  writeFileSync(join(ra, 'f', h + (duong.match(/\.[a-z0-9]+$/i)?.[0] ?? '')), du);
+  writeFileSync(join(ra, 'f', h + duoiOta(duong)), du);
 }
 writeFileSync(join(ra, `${id}.files.json`), JSON.stringify(ds));
 writeFileSync(join(ra, 'manifest.json'), JSON.stringify({ id, url: `/ota/${id}.zip`, sha256, files: `/ota/${id}.files.json`, minNative, builtAt: new Date().toISOString() }, null, 2));

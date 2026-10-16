@@ -75,8 +75,8 @@ describe('cập nhật nóng', () => {
     expect(goi.download).toHaveBeenCalledWith({
       url: 'https://flipmatch.cozypi.com/ota/moi.zip', version: 'moi',
       manifest: [
-        { file_name: 'index.html', file_hash: 'a'.repeat(64), download_url: `https://flipmatch.cozypi.com/ota/f/${'a'.repeat(64)}.html` },
-        { file_name: 'emoji/3d/1f600.webp', file_hash: 'b'.repeat(64), download_url: `https://flipmatch.cozypi.com/ota/f/${'b'.repeat(64)}.webp` }
+        { file_name: 'index.html', file_hash: 'a'.repeat(64), download_url: `https://flipmatch.cozypi.com/ota/f/${'a'.repeat(64)}` },
+        { file_name: 'emoji/3d/1f600.webp', file_hash: 'b'.repeat(64), download_url: `https://flipmatch.cozypi.com/ota/f/${'b'.repeat(64)}` }
       ]
     });
     expect(trangThaiOta.value.buoc).toBe('choMoLai');
@@ -171,5 +171,51 @@ describe('cập nhật nóng', () => {
   it('bản build web luôn đóng gói OTA (cả Docker lẫn pnpm release đi qua lệnh này)', () => {
     const pkg = JSON.parse(readFileSync(resolve(process.cwd(), 'package.json'), 'utf8')) as { scripts: Record<string, string> };
     expect(pkg.scripts.build).toContain('dong-goi-ota.mjs');
+  });
+
+  /*
+   * CHỐT SỐNG CÒN (16.10.2026, chủ dự án: OTA hỏng thì chỉ còn cách chờ bản store). Một bản
+   * OTA mà app vẫn mở được nhưng đường cập nhật hỏng = máy KẸT VĨNH VIỄN ở bản đó. Xem mục
+   * "ĐỪNG LÀM HỎNG CẬP NHẬT NÓNG" ở CLAUDE.md.
+   */
+  it('báo "gói chạy được" TRƯỚC mọi lời gọi mạng — mạng chết/manifest lỗi vẫn không quay lui oan', async () => {
+    manifest = MOI;
+    const core = await import('@capacitor/core');
+    const { kiemOta } = await import('@/lib/ota');
+    await kiemOta();
+    const thuTuSanSang = goi.notifyAppReady.mock.invocationCallOrder[0]!;
+    const thuTuMang = (core.CapacitorHttp.get as unknown as { mock: { invocationCallOrder: number[] } }).mock.invocationCallOrder.at(-1)!;
+    expect(thuTuSanSang).toBeLessThan(thuTuMang);
+  });
+
+  it('main.ts LUÔN gọi kiemOta lúc khởi động (không điều kiện, không chờ màn nào)', () => {
+    const main = readFileSync(resolve(process.cwd(), 'src/main.ts'), 'utf8');
+    expect(main).toMatch(/^void import\('\.\/lib\/ota'\)\.then\(\(m\) => m\.kiemOta\(\)\);$/m);
+  });
+
+  it('manifest GIỮ các trường bản app cũ đang đọc: id, url, sha256, minNative (chỉ được THÊM trường)', () => {
+    const goiOta = readFileSync(resolve(process.cwd(), '../../tools/dong-goi-ota.mjs'), 'utf8');
+    const dong = goiOta.split('\n').find((l) => l.includes("'manifest.json'"))!;
+    for (const k of ['id', 'url: `/ota/${id}.zip`', 'sha256', 'minNative']) expect(dong, k).toContain(k);
+  });
+
+  it('plugin tự quay về gói trước khi gói mới không báo sẵn sàng trong 10 giây', () => {
+    const cfg = readFileSync(resolve(process.cwd(), 'capacitor.config.ts'), 'utf8');
+    expect(cfg).toMatch(/CapacitorUpdater:\s*\{[^}]*appReadyTimeout:\s*10000/);
+    expect(cfg).toMatch(/CapacitorUpdater:\s*\{[^}]*resetWhenUpdate:\s*true/);
+  });
+
+  it('luật đuôi file tải chênh lệch: build và app KHỚP nhau; HTML không đuôi (Cloudflare sửa HTML)', async () => {
+    const { duoiOta } = await import('@/lib/ota');
+    expect(duoiOta('assets/index-x.js')).toBe('.js');
+    expect(duoiOta('assets/a.CSS')).toBe('.css');
+    expect(duoiOta('about.html')).toBe('');
+    expect(duoiOta('index.html')).toBe('');
+    expect(duoiOta('emoji/3d/1f600.webp')).toBe('');
+    const goiOta = readFileSync(resolve(process.cwd(), '../../tools/dong-goi-ota.mjs'), 'utf8');
+    const app = readFileSync(resolve(process.cwd(), 'src/lib/ota.ts'), 'utf8');
+    const luat = (src: string) => /const DUOI_GIU = (\/[^\n]+\/i);/.exec(src)?.[1];
+    expect(luat(goiOta), 'tools/dong-goi-ota.mjs').toBeTruthy();
+    expect(luat(goiOta)).toBe(luat(app));
   });
 });

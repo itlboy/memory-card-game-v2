@@ -514,6 +514,23 @@
 - **Nút Back Android cần `@capacitor/app`** (`lib/nut-back.ts`): thiếu plugin là Back
   thoát thẳng app kể cả giữa wizard. Ngôn ngữ app đồng bộ hai chiều với Cài đặt máy
   (`lib/ngon-ngu-app.ts`, plugin `NgonNguApp`, khoá `mm.langMay`, Android `localeConfig`).
+- **ĐỪNG LÀM HỎNG CẬP NHẬT NÓNG** (chủ dự án 16.10.2026: hỏng là chỉ còn chờ bản store). Ca
+  nguy hiểm nhất KHÔNG phải gói làm app sập (plugin tự quay về gói trước sau 10 giây) mà là
+  gói app VẪN MỞ ĐƯỢC nhưng đường cập nhật hỏng → máy KẸT ở bản đó vĩnh viễn. Luật:
+  · `main.ts` LUÔN gọi `kiemOta()`; trong đó `notifyAppReady()` đứng TRƯỚC mọi lời gọi mạng;
+    không chặn khởi động; mọi lỗi nuốt trong `catch` (nhưng ghi vào `trangThaiOta`).
+  · Manifest chỉ được THÊM trường: `id`, `url` (zip), `sha256`, `minNative` là thứ bản app
+    cũ ngoài kia đọc — đổi tên/bỏ là chúng không bao giờ cập nhật nữa. Zip PHẢI còn.
+  · Luật đuôi `/ota/f/<sha256><đuôi>` (`DUOI_GIU`) PHẢI khớp giữa `tools/dong-goi-ota.mjs` và
+    `lib/ota.ts`. HTML KHÔNG mang đuôi: Cloudflare sửa HTML trên đường đi (email…) → lệch
+    sha256 → cả lượt tải chênh lệch hỏng, lùi về zip 33MB (đã xảy ra, smoke bắt).
+  · Đổi native (plugin, Swift/Java, quyền) → bản store + NÂNG `minNative` (apps/web/ota.json).
+  · `/ota/*` phải tới server có gói (Node k8s; Worker Cloudflare cố ý BỎ `ota/` vì >25MiB) và
+    KHÔNG bị SPA fallback / service worker nuốt; `SITE_URL` (lib/native.ts) trỏ đúng server đó.
+  · Sửa `lib/ota.ts`, `dong-goi-ota.mjs`, `capacitor.config` (khối CapacitorUpdater) hay tầng
+    phục vụ `/ota/` thì: `test/ota.test.ts` xanh → deploy → `pnpm smoke:ota` xanh → thử trên
+    MÁY THẬT HAI BƯỚC: máy nhận bản A (bản có thay đổi), RỒI deploy thêm bản B và xem máy đi
+    A → B — vì chính mã của A là thứ sẽ tải B. Trang Debug hiện trạng thái + nút Kiểm tra.
 - **CẬP NHẬT NÓNG (OTA, từ bản app 1.3.0)**: sửa phần WEB xong + deploy là app tự
   nhận ở lần MỞ LẠI kế tiếp, KHÔNG qua duyệt store (`@capgo/capacitor-updater` chế độ
   thủ công, `lib/ota.ts`). `pnpm --filter @mm/web build` tự chạy `tools/dong-goi-ota.mjs`
