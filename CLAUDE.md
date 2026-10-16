@@ -985,6 +985,16 @@
   Messaging and Chat = Yes (12 câu nói nhanh), Contests = Infrequent. Thêm emoji vũ khí,
   rượu, thuốc lá… là phải làm lại Age Rating (Apple) + IARC (Google). Bộ Premium halloween/
   myth còn đầu lâu/zombie: bật `banPremium` là xét lại câu Horror/Fear ở cả hai store.
+  **RÀ SOÁT 16.10.2026 (chủ dự án: "app 4+ phải cẩn thận, tránh mọi thứ nhạy cảm, mọi tranh
+  chấp chính trị đều bỏ"):** đã bỏ ♋ (trông như "69" → 🦀), 🏩 love hotel (theme MIỄN PHÍ Toà nhà
+  → 🏟️), 🍆 khỏi Trái cây (→ 🍊; chỉ còn ở Rau củ), 🇵🇷 Puerto Rico (không phải quốc gia → 🇧🇧).
+  `test/noi-dung-4plus.test.ts` CHẶN: emoji cấm (vũ khí/chất nổ, rượu bia, thuốc lá, kim tiêm, cờ
+  bạc, 🔞, 🖕, 💋, 🏩, ♋), 🍆 ngoài Rau củ, CỜ chỉ thành viên LHQ và KHÔNG Đài Loan/Kosovo/
+  Palestine/Israel/Tây Sahara/Hồng Kông/Ma Cao/Triều Tiên (cờ VN Cộng hoà không có trong Unicode —
+  không bao giờ thêm bằng ảnh tự vẽ), và nhóm chỉ-premium (💀☠️⚰️🪦🧟🧛👹👺💊🃏). Test đỏ thì ĐỔI
+  emoji, đừng nới danh sách khi chưa hỏi chủ dự án. CHỮ cũng theo luật này: câu nói nhanh, tên
+  máy, lời trêu thắng/thua — không chửi, không mỉa người chơi, không ám chỉ người lớn, không chính
+  trị/tôn giáo; ảnh tự làm (mặt máy SVG, ảnh store) cũng vậy.
 - **iPAD TRỌN MÀN HÌNH** (global.css, chủ dự án duyệt mockup 14.10.2026
   https://claude.ai/artifact/EJ13pwkGD115NwLWYxiUod): máy cảm ứng ≥700px (`hover: none`
   + `pointer: coarse`) KHÔNG thu về cột như máy tính — cột 600px giữa iPad 13" là thứ App
