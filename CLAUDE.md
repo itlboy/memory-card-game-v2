@@ -918,16 +918,13 @@
   thẳng tên luật trong toàn bộ mã nguồn, đừng đi theo trí nhớ. Icon trong hướng
   dẫn dùng CÙNG bộ với icon của luật đó trong màn chơi, để đọc xong nhận ra ngay.
 - **LƯỚI THEME LÀ MỘT BẢN CSS DÙNG CHUNG** (`styles/theme-grid.css`), hai màn
-  (MenuScreen và OnlineScreen) chỉ gắn class `.theme-grid`. Trước đây mỗi màn
-  một bản và chúng lệch nhau hai lần: ngưỡng ẩn emoji (phòng online mất emoji
-  trên iPhone), rồi cơ chế ô-cao-tối-thiểu (24 theme bên online bóp ô còn ~30px,
-  dính sát nhau). Số cột `repeat(auto-fill, minmax(84px, 1fr))` nên thêm theme
-  là máy rộng xếp thêm cột; hàng CỐ ĐỊNH `--o-cao` = `clamp(66px, --app-h*0.105, 96px)`
-  + `align-content: start`, hết chỗ thì cuộn. Từng là `minmax(--o-cao, 1fr)` (giãn
-  lấp chỗ) nhưng từ khi chia tab Miễn phí/Premium, tab 12 theme giãn ô cao ~270px
-  còn tab 36 theme ở cỡ chuẩn — hai tab không đồng nhất (chủ dự án báo 14.10.2026). Chiều cao do
-  LƯỚI quyết định vẫn là xác định nên `container-type: size` giải được; chỉ
-  `height: auto` mới làm truy vấn nhận 0.
+  (MenuScreen và OnlineScreen) dùng `ThemePicker.vue`. **Ô NHỎ, NHÌN ICON LÀ HIỂU** (chủ dự án
+  17.10.2026 chọn sau ảnh so sánh: "chữ không quá quan trọng, họ sẽ nhìn icon"): 6 CỘT (trần 6 —
+  36 · 24 · 12 theme mỗi tab chia hết cho 6), ô ~50×40px (`--o-cao` = clamp(38px, --app-h*0.06,
+  56px)), mỗi ô 4 icon 2×2 vẽ bằng ẢNH Noto 3D cỡ 128 như mặt bài, KHÔNG tên (tên ở aria-label +
+  title), dấu ✓ thò ra góc ô (`overflow: visible`). Đánh đổi ĐÃ CHẤP NHẬN: ô dưới ngưỡng chạm
+  44px. iPhone 14 thấy 36 theme một lần (trước 9). Hàng CỐ ĐỊNH + `align-content: start`, hết chỗ
+  thì cuộn TRONG khung (nút Tiếp đứng yên). `test/theme-grid.test.ts` canh.
 - **`#app` LẤY CHIỀU CAO TỪ `--app-h` (JS đo), `100dvh` chỉ là dự phòng.**
   `useViewportLock.ts` đo `innerHeight` và kéo document về 0 ở mọi lối trang hiện
   lại, kèm `history.scrollRestoration = 'manual'`. Không có nó thì mở lại Chrome
@@ -946,14 +943,10 @@
 - **Lớp hiệu ứng kết ván ở `z-index: 9`, DƯỚI hộp kết quả (10).** `DefeatFx` cũ
   để 40 nên lớp xám và vết rạn phủ luôn lên bảng tỉ số (đã bị báo lỗi, có ảnh).
   Đặt dưới còn làm `backdrop-filter` chỉ lọc bàn thẻ và HUD, đúng thứ cần lọc.
-- **Lưới chọn theme CUỘN TRONG KHUNG, không nén ô nhỏ dần** — khác luật chung
-  của wizard (`grid-auto-rows: minmax(0,1fr)`, thêm ô thì ô bé lại). Theme còn
-  thêm mãi, mà đo trên iPhone SE với 15 theme thì ô đã chỉ còn 34,7px, dưới
-  ngưỡng chạm. Nay ô cố định 68px và danh sách tự cuộn — nút "Tiếp" vẫn đứng
-  yên nên KHÔNG phá luật KHÔNG SCROLL. Chiều cao phải XÁC ĐỊNH (`height: 68px`,
-  không phải `auto` + `min-height`): `.option` có `container-type: size`, mà
-  container query chỉ giải được khi chiều cao xác định — để auto thì truy vấn
-  nhận 0 và hàng emoji mẫu bị ẩn ở mọi cỡ ô.
+- **Lưới chọn theme CUỘN TRONG KHUNG, không nén ô nhỏ dần** — khác luật chung của wizard
+  (`grid-auto-rows: minmax(0,1fr)`). Cỡ ô xem mục "LƯỚI THEME" ở trên (17.10.2026). Chiều cao ô
+  phải XÁC ĐỊNH (clamp, không `auto`): `.option` có `container-type: size`, cỡ icon tính theo
+  `cqw/cqh` của chính ô.
 - **MẶT BÀI VẼ BẰNG NOTO 3D TRÊN MỌI MÁY, KỂ CẢ APPLE** (15.10.2026; ban đầu chỉ máy không-Apple,
   cùng ngày chủ dự án cho Apple theo — ảnh CẢ HAI store đã chụp lại; chủ dự án so 5 bộ — artifact
   https://claude.ai/artifact/M5iMtdV57gUizNRgK7ppj1 — chọn bộ 3D mới của Google): WebP 512px ở

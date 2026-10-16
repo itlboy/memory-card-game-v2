@@ -29,7 +29,13 @@
    * Cột tối thiểu = max(84px, 1/4 bề rộng trừ 3 khe 10px) nên auto-fill không bao giờ
    * nhét được cột thứ năm; máy hẹp vẫn tự về 3 cột như cũ.
    */
-  grid-template-columns: repeat(auto-fill, minmax(max(84px, calc((100% - 30px) / 4)), 1fr));
+  /*
+   * Ô NHỎ, NHÌN ICON LÀ HIỂU (chủ dự án 17.10.2026: theme đã 48+, "mỗi ô giảm 1/2 mỗi chiều…
+   * chữ không quá quan trọng, họ sẽ nhìn icon"). 6 CỘT (trần 6: 36 · 24 · 12 theme mỗi tab đều
+   * chia hết cho 6 — không lẻ hàng), ô ~50×40px, mỗi ô 4 icon 2×2 vẽ bằng ẢNH như mặt bài,
+   * KHÔNG tên (tên ở aria-label + title). Đánh đổi đã chấp nhận: ô dưới ngưỡng chạm 44px.
+   */
+  grid-template-columns: repeat(auto-fill, minmax(max(42px, calc((100% - 25px) / 6)), 1fr));
   /*
    * CHIỀU CAO Ô CO THEO MÀN, nhưng vẫn là số XÁC ĐỊNH.
    *
@@ -42,7 +48,7 @@
    * Sàn 66px cho content box 46px, trên ngưỡng 45px của @container dưới đây nên
    * emoji mẫu không bị ẩn oan. `--app-h` do `useViewportLock.ts` đặt.
    */
-  --o-cao: clamp(66px, calc(var(--app-h, 100dvh) * 0.105), 96px);
+  --o-cao: clamp(38px, calc(var(--app-h, 100dvh) * 0.06), 56px);
   /*
    * HÀNG CAO ĐÚNG `--o-cao`, KHÔNG giãn `1fr` (14.10.2026, chủ dự án gửi ảnh).
    *
@@ -56,7 +62,7 @@
   align-content: start;
   /* 12px, không phải 10: hai ô theme cạnh nhau đều là khối gradient đậm nên mép
      chúng dính vào nhau đọc ra thành một khối — người chơi đã phản ánh. */
-  gap: 12px 10px;
+  gap: 6px 5px;
   /* Co được trong khung: thiếu `min-height: 0` thì phần tử grid nằm trong flex
      column KHÔNG chịu nhỏ hơn nội dung, và `overflow-y` không bao giờ chạy —
      lưới đẩy nút chính ra khỏi màn hình đúng như luật KHÔNG SCROLL cấm. */
@@ -65,8 +71,8 @@
   overflow-y: auto;
   overflow-x: clip;
   scrollbar-width: thin;
-  /* Chừa 4px cho ô nhô lên khi hover, cùng lý do với wizard.css */
-  padding: 4px 2px;
+  /* Chừa chỗ cho ô nhô lên khi hover VÀ dấu ✓ thò ra góc ô (top/right -4px) */
+  padding: 5px 5px 4px;
 }
 
 /* Chiều cao đặt trên chính Ô: để ở `grid-auto-rows` một mình là chưa đủ, vì
@@ -79,29 +85,28 @@
   max-height: none;
   /* Đủ specificity để thắng `.option { padding: 16px 12px }` — padding 12px hai
      bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
-  padding: 8px 5px;
-  gap: 4px;
+  padding: 3px;
+  gap: 0;
   position: relative;
+  /* Dấu ✓ thò ra góc ô (xem .tick dưới) — `.option` mặc định cắt phần tràn */
+  overflow: visible;
 }
+/* Tên theme: KHÔNG hiện trong ô (17.10.2026) — vẫn đọc được bằng trình đọc màn hình */
+.options.theme-grid .theme-opt .tname {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+/* 4 icon 2×2 lấp ô. Cỡ theo CONTENT BOX của ô (`.option` có container-type: size) */
+.options.theme-grid .theme-sample {
+  display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr);
+  place-items: center; gap: 1px; width: 100%; height: 100%; opacity: 1; letter-spacing: 0;
+  font-size: min(36cqw, 40cqh); line-height: 1;
+}
+.options.theme-grid .tm-anh { width: min(44cqw, 46cqh); height: min(44cqw, 46cqh); display: block; }
+.options.theme-grid .tm-chu { font-weight: 800; }
+/* Dấu chọn / vương miện thu nhỏ và ĐẨY RA GÓC ô — để trong ô là đè mất icon góc trên phải */
+.options.theme-grid .tick { top: -4px; right: -4px; width: 13px; height: 13px; z-index: 1; }
+.options.theme-grid .tick svg { width: 9px; height: 9px; }
 
 .options.theme-grid .theme-opt small {
   font-size: clamp(10px, min(12cqw, 15cqh), 14px);
-}
-
-/*
- * Ô quá thấp thì bỏ hàng emoji mẫu và dòng mốc điểm, giữ tên theme — thà mất
- * phần trang trí chứ không để chữ bị cắt. Badge khoá ở góc vẫn cho biết ô nào
- * chưa mở, và aria-label giữ đủ thông tin cho trình đọc màn hình.
- *
- * NGƯỠNG ĐO TRÊN CONTENT BOX, KHÔNG PHẢI CHIỀU CAO Ô. `.option` có
- * `container-type: size` nên truy vấn nhận chiều cao PHẦN NỘI DUNG: ô 68px trừ
- * padding 8+8 và viền 2+2 chỉ còn 48px — ngưỡng "52px" hoá ra ẩn emoji ngay ở ô
- * 72px, đúng lỗi mất icon trên iPhone 15 Pro Max (Safari còn ~720px cao).
- * Ngưỡng 45px = ô ~65px, đúng chỗ chữ bắt đầu bị cắt (đo scrollHeight >
- * clientHeight): 430×720 ô 68px HIỆN không cắt · 430×700 ô 64px ẩn · 430×568
- * ô 38px ẩn.
- */
-@container (max-height: 45px) {
-  .theme-sample { display: none; }
-  .theme-opt small { display: none; }
 }
