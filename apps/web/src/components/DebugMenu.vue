@@ -9,7 +9,9 @@
  * đo khung hình, ping số, bộ emoji thử) nhưng GIỮ debug bật; "Tắt debug" thì App tự đưa
  * các công tắc về mặc định (App.vue, watch debug).
  */
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { buildAgeText } from '@/lib/format';
+import { banNative } from '@/lib/ota';
 import { t } from '@/lib/i18n';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { datPingSo, pingSo } from '@/lib/ping-so';
@@ -28,6 +30,18 @@ const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
   ...BIEN_THE.thua.map((b) => ({ ten: t('lc.xemThua', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thua' as const, bienThe: b } })),
   { ten: t('fx.canh.hoa'), fx: { loai: 'hoa' } }
 ]);
+/* Phiên bản ngay đầu khối (16.10.2026: xem nhanh khi cần, khỏi mở Luật chơi). Gói web
+   (`__OTA_ID__`) có thể mới hơn bản app store nhờ cập nhật nóng — hai dòng khác nhau là thường. */
+const version = __APP_VERSION__;
+const builtAt = __BUILD_AT__;
+const otaId = __OTA_ID__;
+const ago = ref(buildAgeText(Date.now() - Date.parse(__BUILD_ISO__)));
+let tick: ReturnType<typeof setInterval> | undefined;
+onMounted(() => { tick = setInterval(() => { ago.value = buildAgeText(Date.now() - Date.parse(__BUILD_ISO__)); }, 1000); });
+onUnmounted(() => clearInterval(tick));
+const native = ref<string | null>(null);
+void banNative().then((v) => { native.value = v; });
+
 const tenBoEmoji = computed(() => ({ may: t('lc.boEmojiMay'), noto3d: 'Noto 3D' })[boEmojiHien()]);
 
 function veMacDinh(): void {
@@ -44,6 +58,11 @@ function veMacDinh(): void {
       <span>{{ t('tb.debug') }}</span>
       <button class="dbg-nho" type="button" @click="veMacDinh">{{ t('tb.debugMacDinh') }}</button>
       <button class="dbg-nho tat" type="button" @click="emit('tat')">{{ t('tb.debugTat') }}</button>
+    </p>
+    <p class="dbg-ban">
+      <b>v{{ version }}</b> · build {{ builtAt }} <span>({{ ago }})</span><br>
+      <span class="ota">{{ otaId }}</span>
+      <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
     </p>
     <button class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="daMuaPremium" @click="datPremiumThu(!daMuaPremium)">
       <i :class="{ bat: daMuaPremium }" aria-hidden="true" />{{ t('lc.premiumThu') }}
@@ -69,6 +88,9 @@ function veMacDinh(): void {
 .dbg { display: grid; gap: 2px; margin-top: 4px; padding: 6px; border: 1px dashed var(--bad); border-radius: 10px; }
 .dbg-dau { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--bad); }
 .dbg-dau > span { flex: 1; }
+.dbg-ban { margin: 0 4px 4px; font-size: 11.5px; line-height: 1.45; color: var(--muted); white-space: normal; user-select: text; -webkit-user-select: text; }
+.dbg-ban b { color: var(--fg); font-variant-numeric: tabular-nums; }
+.dbg-ban .ota { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; word-break: break-all; }
 .dbg-nhom { margin: 6px 4px 2px; font-size: 11px; font-weight: 800; color: var(--muted); }
 .dbg-cong {
   position: relative; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px;
