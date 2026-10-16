@@ -15,6 +15,9 @@
  *
  * KHÔNG bắt được: lỗi lớp GPU chỉ có trên iPhone thật (ô trắng khi thiếu bộ nhớ) — vẫn
  * phải xem máy thật / video (CLAUDE.md "Lỗi hình chỉ có trên iPhone").
+ * ẢNH BÀN CHƠI LỘ MẶT BÀI LÀ GIẢ: WebKit headless trên Mac BỎ QUA `backface-visibility`
+ * (thử trang tối giản: mặt đã xoay 180° vẫn hiện, 16.10.2026) — iPhone thật thì đúng.
+ * Đừng "sửa" lộ bài dựa trên ảnh của công cụ này; kiểm úp/ngửa bằng class (`.card.up`).
  *
  * Lần đầu: `pnpm exec playwright install webkit` (~100 MB, ở ~/Library/Caches/ms-playwright).
  * Cần web đang chạy (`pnpm dev` → :3001, hoặc dist). Lọc nhanh: SKINS=sao,go MAY=se.

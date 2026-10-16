@@ -246,7 +246,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
         <span v-if="isPeek" class="first"><OptionIcon name="peek" :size="18" /> {{ t('game.sapMoBan') }} <b>{{ t('game.chuanBiNho') }}</b></span>
-        <span v-else class="first">🎲 <b>{{ t('game.diTruoc', { ten: tenNguoi(s.current.value) }) }}</b></span>
+        <span v-else class="first"><span class="mat-dau"><MatBot :mat="s.current.value?.avatar || '🎮'" /></span> <b>{{ t('game.diTruoc', { ten: tenNguoi(s.current.value) }) }}</b></span>
       </div>
 
     </div>
@@ -360,9 +360,13 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
 .countdown {
   position: fixed; inset: 0; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter: blur(3px); pointer-events: none;
+  /* Phủ ĐẶC hơn (55% → 82%, chủ dự án 16.10.2026): con số và người đi đầu phải nổi
+     hẳn lên, bàn chỉ còn là nền mờ phía sau. */
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none;
 }
+/* Avatar người đi đầu thay 🎲 (16.10.2026) — nhìn là biết ai, không phải đọc tên */
+.countdown .mat-dau { display: inline-grid; place-items: center; font-size: 1.5em; line-height: 1; width: 1.4em; height: 1.4em; }
 .countdown .num {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(80px, 30vw, 150px); line-height: 1; color: var(--accent);
