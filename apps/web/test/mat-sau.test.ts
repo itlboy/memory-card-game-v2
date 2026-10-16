@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  BANG_MAU_BACK, CARD_BACKS, CARD_BACKS_CU, HOA_TIET_BACK, backForSeed, backVeCu
+  BANG_MAU_BACK, BANG_MAU_DUNG, BANG_MAU_TAT, CARD_BACKS, CARD_BACKS_CU, CARD_BACKS_DUNG, HOA_TIET_BACK, HOA_TIET_DUNG,
+  HOA_TIET_TAT, backForSeed, backVeCu
 } from '@mm/engine';
 
 /**
@@ -168,6 +169,19 @@ describe('hoạ tiết PHẢI VẼ ĐƯỢC THẬT', () => {
 });
 
 describe('bốc mặt sau theo seed', () => {
+  it('hoạ tiết tắt vẫn còn trong danh sách (vẽ được) nhưng không được bốc cho ván mới', () => {
+    for (const tat of HOA_TIET_TAT) {
+      expect(HOA_TIET_BACK).toContain(tat);
+      expect(CARD_BACKS_DUNG.some((id) => id.startsWith(`${tat}.`))).toBe(false);
+    }
+    for (const tat of BANG_MAU_TAT) {
+      expect(BANG_MAU_BACK).toContain(tat);
+      expect(CARD_BACKS_DUNG.some((id) => id.endsWith(`.${tat}`))).toBe(false);
+    }
+    expect(CARD_BACKS_DUNG.length).toBe(HOA_TIET_DUNG.length * BANG_MAU_DUNG.length);
+    for (const id of CARD_BACKS_DUNG) expect(CARD_BACKS).toContain(id);
+  });
+
   it('chỉ trả id trong danh sách, và tất định', () => {
     for (let seed = 0; seed < 500; seed++) {
       expect(CARD_BACKS).toContain(backForSeed(seed));
@@ -182,8 +196,10 @@ describe('bốc mặt sau theo seed', () => {
       const [a, b] = backForSeed(seed).split('.');
       ht.add(a!); mau.add(b!);
     }
-    expect(ht.size, 'có hoạ tiết không bao giờ xuất hiện').toBe(HOA_TIET_BACK.length);
-    expect(mau.size, 'có bảng màu không bao giờ xuất hiện').toBe(BANG_MAU_BACK.length);
+    expect(ht.size, 'có hoạ tiết đang bật không bao giờ xuất hiện').toBe(HOA_TIET_DUNG.length);
+    for (const tat of HOA_TIET_TAT) expect(ht.has(tat), `hoạ tiết đã tắt "${tat}" vẫn bốc ra`).toBe(false);
+    expect(mau.size, 'có bảng màu đang bật không bao giờ xuất hiện').toBe(BANG_MAU_DUNG.length);
+    for (const tat of BANG_MAU_TAT) expect(mau.has(tat), `màu đã tắt "${tat}" vẫn bốc ra`).toBe(false);
   });
 
   it('hai chiều KHÔNG dính nhau', () => {
@@ -196,7 +212,7 @@ describe('bốc mặt sau theo seed', () => {
     }
     for (const [ht, maus] of theoHt) {
       expect(maus.size, `hoạ tiết ${ht} chỉ đi với ${maus.size} bảng màu`)
-        .toBe(BANG_MAU_BACK.length);
+        .toBe(BANG_MAU_DUNG.length);
     }
   });
 });

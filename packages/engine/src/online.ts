@@ -168,6 +168,23 @@ export const CARD_BACKS = HOA_TIET_BACK.flatMap(
 export type CardBack = (typeof CARD_BACKS)[number];
 
 /**
+ * HOẠ TIẾT ĐANG TẮT — vẫn nằm trong `CARD_BACKS` và vẫn có khối CSS (ván cũ, bản
+ * lưu hay server chưa cập nhật gửi tới thì vẫn vẽ được), chỉ KHÔNG còn được bốc
+ * cho ván mới. Bật lại = xoá tên khỏi đây. Chủ dự án tuyển lại 16.10.2026: tắt Khung cổ, Xoáy ốc, Sóng
+ * và ba màu Cam, Vàng, Lục.
+ */
+export const HOA_TIET_TAT: readonly HoaTietBack[] = ['khung', 'xoay', 'song'];
+export const HOA_TIET_DUNG = HOA_TIET_BACK.filter((ht) => !HOA_TIET_TAT.includes(ht));
+/** Bảng màu đang tắt — cùng luật với `HOA_TIET_TAT` (chỉ đổi màu ở skin Neon;
+ *  các skin khác khoá màu theo skin). */
+export const BANG_MAU_TAT: readonly BangMauBack[] = ['cam', 'vang', 'luc'];
+export const BANG_MAU_DUNG = BANG_MAU_BACK.filter((m) => !BANG_MAU_TAT.includes(m));
+/** Mặt sau được bốc cho ván mới (offline lẫn online). */
+export const CARD_BACKS_DUNG = HOA_TIET_DUNG.flatMap(
+  (ht) => BANG_MAU_DUNG.map((mau) => `${ht}.${mau}` as CardBack)
+);
+
+/**
  * SÁU TÊN CŨ — chỉ để nói chuyện với CLIENT CŨ.
  *
  * Web là PWA: service worker giữ bản JS cũ trong cache, nên ngay sau MỖI lần
@@ -215,8 +232,8 @@ export function backVeCu(back: string): CardBackCu {
  */
 export function backForSeed(seed: number): CardBack {
   const bam = (muoi: number): number => Math.imul((seed >>> 0) + muoi, 2654435761) >>> 0;
-  const ht = HOA_TIET_BACK[bam(0) % HOA_TIET_BACK.length]!;
-  const mau = BANG_MAU_BACK[bam(0x9e3779b9) % BANG_MAU_BACK.length]!;
+  const ht = HOA_TIET_DUNG[bam(0) % HOA_TIET_DUNG.length]!;
+  const mau = BANG_MAU_DUNG[bam(0x9e3779b9) % BANG_MAU_DUNG.length]!;
   return `${ht}.${mau}` as CardBack;
 }
 
