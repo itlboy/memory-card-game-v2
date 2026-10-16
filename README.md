@@ -755,6 +755,13 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
 - Chọn theme hiện "Đã chọn n/tổng". Mặt lưng gọn lại (7 hoạ tiết × 4 màu; skin chỉ đổi màu nền).
 - Trang chủ iOS: tách lớp chuyển động khỏi đổi ảnh/đổi icon (quạt lá + icon bay) cho mượt.
 - App build 266 (TestFlight + Play nội bộ/khép kín) mang sẵn emoji + cập nhật chênh lệch.
+- `/ota/*` + `/health` của `flipmatch.cozypi.com` chuyển sang Cloudflare Worker (chỉ `/api/*`
+  `/ws/*` còn đi k8s) — hết 503 khi deploy; zip dự phòng bỏ ảnh 512 (~14MB < 25MiB); app tự thử
+  lại khi cập nhật lỗi. `pnpm smoke:ota` + luật "ĐỪNG LÀM HỎNG CẬP NHẬT NÓNG".
+- Rà soát app 4+: ♋ → 🦀, bỏ 🏩 love hotel, 🍆 khỏi Trái cây, cờ 🇵🇷; test chặn emoji cấm, cờ
+  ngoài LHQ / tranh chấp chính trị. Trang Debug riêng (7 chạm "Cài đặt" hoặc "Giao diện").
+- Vào ván: nhạc nền nhỏ dần rồi tắt hẳn (tập trung); về menu thì bật lại.
+- Công cụ đo mở trình duyệt qua `tools/lib-playwright.mjs` (chạy ẩn, không sót tiến trình).
 
 **14.10.2026**
 - Theme premium: 36 miễn phí + 12 premium, tab Miễn phí / Premium, xem trước bộ hình,

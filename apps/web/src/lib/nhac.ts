@@ -21,10 +21,10 @@ import { daMuaPremium, hienPremium } from './premium';
  * tiếng — bốn bài cùng khuôn "rải đều mỗi móc" bị chê na ná nhau.
  * Mỗi bài là một bộ DỮ LIỆU (`BAI`) chạy chung một bộ máy: thêm bài = thêm một mục.
  *
- * Hai "tâm trạng" `menu` và `van` nghe Y HỆT nhau lúc vừa vào ván (chủ dự án
- * 15.10.2026: "nhạc nền bên ngoài và khi bắt đầu ván phải giống nhau" — bản cũ
- * vào ván là thưa + tối hẳn đi). Khác biệt DUY NHẤT: trong ván nhịp dồn dần
- * theo `gap` khi thẻ vơi đi. Đừng thêm lại chuyện thưa/tối/nhỏ cho `van`.
+ * TRONG VÁN KHÔNG CÒN NHẠC (chủ dự án 16.10.2026: "vào game cho nhạc nền nhỏ dần và tắt
+ * hẳn để tăng sự tập trung"): App gọi `nhoDanRoiTat()` khi vào ván (offline + online), về
+ * menu thì `chay('menu')`. Tâm trạng `van` (nhịp dồn theo `gap`) giữ lại trong máy nhưng
+ * hiện không ai gọi — đừng bật lại nhạc trong ván khi chưa hỏi chủ dự án.
  *
  * Đi qua `sfx.duongRa()` (master chung) nên theo đúng mức âm lượng và tắt âm
  * thanh là tắt luôn nhạc. Lập lịch kiểu "nhìn trước" (lookahead): mỗi 50ms đặt
@@ -249,8 +249,34 @@ class NhacNen {
   /** Đã có cử chỉ người dùng chưa — trước đó đừng đụng tới AudioContext (iOS chặn). */
   daCham = false;
 
+  /** Đang nhỏ dần để tắt (vào ván) — `chay` gọi trong lúc này thì huỷ, to trở lại. */
+  private henLang: ReturnType<typeof setTimeout> | undefined;
+
+  /**
+   * VÀO VÁN: NHỎ DẦN trong `giay` rồi TẮT HẲN (chủ dự án 16.10.2026: "vào game cho nhạc nền
+   * nhỏ dần và tắt hẳn để tăng sự tập trung"). Về menu thì App gọi `chay('menu')` → bật lại,
+   * to dần như lúc mở app. Gọi lại nhiều lần là vô hại.
+   */
+  nhoDanRoiTat(giay = 3): void {
+    const { bus, ctx } = this;
+    if (!this.hen || !bus || !ctx) { if (!this.henLang) this.dung(); return; }
+    if (this.henLang) return;
+    try {
+      bus.gain.cancelScheduledValues(ctx.currentTime);
+      bus.gain.setValueAtTime(bus.gain.value, ctx.currentTime);
+      bus.gain.linearRampToValueAtTime(0, ctx.currentTime + giay);
+    } catch { /* context đã đóng */ }
+    this.henLang = setTimeout(() => { this.henLang = undefined; this.dung(); }, giay * 1000 + 100);
+  }
+
   /** Bật/đổi tâm trạng (và bài). Gọi lại nhiều lần là vô hại. */
   chay(tam: TamTrang, bai: BaiNhac = this.baiCho): void {
+    if (this.henLang) {
+      // Đang nhỏ dần để tắt mà lại được gọi chạy (vd. vừa vào ván đã thoát): to trở lại
+      clearTimeout(this.henLang); this.henLang = undefined;
+      const { bus, ctx } = this;
+      try { if (bus && ctx) { bus.gain.cancelScheduledValues(ctx.currentTime); bus.gain.setTargetAtTime(AM_LUONG, ctx.currentTime, 0.6); } } catch { /* */ }
+    }
     this.tamCho = tam;
     if (bai !== this.baiCho) {
       this.baiCho = bai;
@@ -266,6 +292,7 @@ class NhacNen {
 
   /** Tắt (mờ dần 0,4 giây). */
   dung(): void {
+    clearTimeout(this.henLang); this.henLang = undefined;
     if (this.hen) clearInterval(this.hen);
     this.hen = undefined;
     const { bus, ctx } = this;
