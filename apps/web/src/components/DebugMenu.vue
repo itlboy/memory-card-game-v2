@@ -64,7 +64,7 @@ function veMacDinh(): void {
 <template>
   <div class="dbg" role="group" :aria-label="t('tb.debug')">
     <p class="dbg-dau">
-      <span>{{ t('tb.debug') }}</span>
+      <span />
       <button class="dbg-nho" type="button" @click="veMacDinh">{{ t('tb.debugMacDinh') }}</button>
       <button class="dbg-nho tat" type="button" @click="emit('tat')">{{ t('tb.debugTat') }}</button>
     </p>
@@ -99,10 +99,10 @@ function veMacDinh(): void {
 
 <style scoped>
 /* Cố tình NHẠT, nhỏ, viền đứt: công cụ soi lỗi, không phải tính năng chơi */
-.dbg { display: grid; gap: 2px; margin-top: 4px; padding: 6px; border: 1px dashed var(--bad); border-radius: 10px; }
+.dbg { display: grid; gap: 4px; }   /* nằm trong trang riêng (DebugDialog) — không cần khung viền */
 .dbg-dau { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--bad); }
 .dbg-dau > span { flex: 1; }
-.dbg-ban { margin: 0 4px 4px; font-size: 11.5px; line-height: 1.45; color: var(--muted); white-space: normal; user-select: text; -webkit-user-select: text; }
+.dbg-ban { margin: 0 4px 4px; font-size: 12.5px; line-height: 1.45; color: var(--muted); white-space: normal; user-select: text; -webkit-user-select: text; }
 .dbg-ban b { color: var(--fg); font-variant-numeric: tabular-nums; }
 .dbg-ban .ota { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; word-break: break-all; }
 .dbg-ota { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0 4px 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: normal; }
@@ -112,8 +112,8 @@ function veMacDinh(): void {
 .dbg-ota.moiNhat { color: var(--ok); }
 .dbg-nhom { margin: 6px 4px 2px; font-size: 11px; font-weight: 800; color: var(--muted); }
 .dbg-cong {
-  position: relative; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px;
-  border: 0; border-radius: 8px; background: none; color: var(--fg); font: inherit; font-size: 12.5px; font-weight: 700;
+  position: relative; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 6px;
+  border: 0; border-radius: 8px; background: none; color: var(--fg); font: inherit; font-size: 14px; font-weight: 700;
   text-align: left; white-space: normal; cursor: pointer;
 }
 .dbg-cong::after { content: ''; position: absolute; inset: -4px 0; }
@@ -122,7 +122,7 @@ function veMacDinh(): void {
 .dbg-cong i.xoay { border: 0; display: grid; place-items: center; color: var(--muted); font-weight: 900; }
 .dbg-nho {
   position: relative; min-height: 28px; padding: 2px 8px; border: 1px dashed var(--line-strong); border-radius: 8px;
-  background: none; color: var(--muted); font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  background: none; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
   text-transform: none; letter-spacing: 0;
 }
 .dbg-nho.tat { border-color: var(--bad); color: var(--bad); }
