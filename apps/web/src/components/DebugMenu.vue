@@ -11,7 +11,7 @@
  */
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
-import { banNative } from '@/lib/ota';
+import { apOtaNgay, banNative, kiemOta, trangThaiOta } from '@/lib/ota';
 import { t } from '@/lib/i18n';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { datPingSo, pingSo } from '@/lib/ping-so';
@@ -42,6 +42,15 @@ onUnmounted(() => clearInterval(tick));
 const native = ref<string | null>(null);
 void banNative().then((v) => { native.value = v; });
 
+/** Dòng trạng thái cập nhật nóng (lib/ota.ts): kiểm / tải x% / chờ mở lại / lỗi gì. */
+const chuOta = computed(() => {
+  const o = trangThaiOta.value;
+  return o.buoc === 'tai' ? t('ota.tai', { pct: o.pct ?? 0 })
+    : o.buoc === 'loi' ? t('ota.loi', { loi: o.loi ?? '?' })
+    : o.buoc === 'cuQua' ? t('ota.cuQua', { ban: o.ban ?? '?' })
+    : t(`ota.${o.buoc}` as 'ota.kiem');
+});
+
 const tenBoEmoji = computed(() => ({ may: t('lc.boEmojiMay'), noto3d: 'Noto 3D' })[boEmojiHien()]);
 
 function veMacDinh(): void {
@@ -63,6 +72,11 @@ function veMacDinh(): void {
       <b>v{{ version }}</b> · build {{ builtAt }} <span>({{ ago }})</span><br>
       <span class="ota">{{ otaId }}</span>
       <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
+    </p>
+    <p class="dbg-ota" :class="trangThaiOta.buoc" role="status">
+      <span>{{ t('ota.tieuDe') }}: {{ chuOta }}<template v-if="trangThaiOta.id && trangThaiOta.buoc !== 'moiNhat'"><br><span class="ota">{{ trangThaiOta.id }}</span></template></span>
+      <button v-if="trangThaiOta.buoc !== 'web' && trangThaiOta.buoc !== 'kiem' && trangThaiOta.buoc !== 'tai'" class="dbg-nho" type="button" @click="kiemOta()">{{ t('ota.kiemLai') }}</button>
+      <button v-if="trangThaiOta.buoc === 'choMoLai'" class="dbg-nho tat" type="button" @click="apOtaNgay()">{{ t('ota.apNgay') }}</button>
     </p>
     <button class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="daMuaPremium" @click="datPremiumThu(!daMuaPremium)">
       <i :class="{ bat: daMuaPremium }" aria-hidden="true" />{{ t('lc.premiumThu') }}
@@ -91,6 +105,11 @@ function veMacDinh(): void {
 .dbg-ban { margin: 0 4px 4px; font-size: 11.5px; line-height: 1.45; color: var(--muted); white-space: normal; user-select: text; -webkit-user-select: text; }
 .dbg-ban b { color: var(--fg); font-variant-numeric: tabular-nums; }
 .dbg-ban .ota { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; word-break: break-all; }
+.dbg-ota { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0 4px 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: normal; }
+.dbg-ota > span { flex: 1 1 100%; }
+.dbg-ota.tai, .dbg-ota.choMoLai { color: var(--accent); }
+.dbg-ota.loi, .dbg-ota.cuQua { color: var(--bad); }
+.dbg-ota.moiNhat { color: var(--ok); }
 .dbg-nhom { margin: 6px 4px 2px; font-size: 11px; font-weight: 800; color: var(--muted); }
 .dbg-cong {
   position: relative; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px;

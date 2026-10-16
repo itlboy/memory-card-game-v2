@@ -32,6 +32,10 @@
 # cache vĩnh viễn. manifest.json là thứ báo "có gói mới" nên luôn hỏi lại.
 /ota/*.zip
   Cache-Control: public, max-age=31536000, immutable
+/ota/f/*
+  Cache-Control: public, max-age=31536000, immutable
+/ota/*.files.json
+  Cache-Control: public, max-age=31536000, immutable
 /ota/manifest.json
   Cache-Control: no-cache
 

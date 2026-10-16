@@ -524,6 +524,13 @@
   không có. `statsUrl: ''` là BẮT BUỘC (mặc định plugin gửi crash/lỗi JS về Capgo →
   phải khai App Privacy). Gói hỏng (không `notifyAppReady` trong 10 giây) tự quay về gói
   trước. Luật chơi hiện cả gói web (v + giờ build) lẫn bản app store (`lc.banApp`).
+  **TẢI CHÊNH LỆCH (16.10.2026, gói zip đã 33MB vì emoji Noto 3D):** build xuất thêm
+  `/ota/<id>.files.json` ([đường dẫn, sha256]) + từng file ở `/ota/f/<sha256><đuôi>` (giữ
+  đuôi để đúng MIME → Cloudflare nén). App đưa danh sách cho plugin: file trùng mã băm lấy từ
+  bản cài sẵn / kho đệm, chỉ tải file khác — đo thật: 15/3426 file = 1,1MB thay vì 33MB, và
+  tải dở thì lần sau tải tiếp (zip thì lại từ đầu). Lỗi gì cũng xoá dấu 'error' rồi quay về
+  zip — zip PHẢI giữ (client cũ chỉ biết zip). Trạng thái cập nhật (kiểm / tải x% / chờ mở lại
+  / lỗi gì) + nút "Kiểm tra", "Áp dụng ngay" ở khối debug của menu (`trangThaiOta`).
 - **Mockup cho chủ dự án**: ưu tiên ẢNH CHỤP THẬT (chế độ debug → "Xem thử hiệu ứng",
   hoặc sửa DOM ngay trên trang thật để ra bản đề xuất) ghép vào một artifact, thay vì
   vẽ lại bằng tay. Họ duyệt mockup trước khi làm tính năng giao diện mới.

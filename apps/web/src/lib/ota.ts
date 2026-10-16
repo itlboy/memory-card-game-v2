@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { laApp, SITE_URL } from './native';
 import { t } from './i18n';
 
@@ -23,7 +24,22 @@ import { t } from './i18n';
  * Gói đã từng hỏng (status 'error') thì không tải lại — khỏi vòng lặp tải/hỏng.
  * Đổi phần NATIVE (plugin, Swift/Java) vẫn phải qua store + nâng `minNative` (ota.json).
  */
-interface Manifest { id: string; url: string; sha256: string; minNative: string }
+interface Manifest { id: string; url: string; sha256: string; minNative: string; files?: string }
+/** `/ota/<id>.files.json`: [đường dẫn trong gói, sha256] — tools/dong-goi-ota.mjs. */
+type DanhSachFile = [string, string][];
+/** File ở `/ota/f/<sha256><đuôi>` — giữ đuôi để server trả đúng MIME và Cloudflare nén khi truyền. */
+const duoi = (ten: string): string => ten.match(/\.[a-z0-9]+$/i)?.[0] ?? '';
+
+/**
+ * TRẠNG THÁI CẬP NHẬT NÓNG — hiện trong khối debug của menu (chủ dự án 16.10.2026: mở app
+ * mà không thấy cập nhật, không biết đang tải, đã tải hay hỏng). Trước đó mọi lỗi bị nuốt
+ * im lặng trong `catch`.
+ */
+export type BuocOta = 'web' | 'kiem' | 'moiNhat' | 'cuQua' | 'tai' | 'choMoLai' | 'loi';
+export const trangThaiOta = ref<{ buoc: BuocOta; id?: string; pct?: number; loi?: string; ban?: string }>(
+  { buoc: laApp ? 'kiem' : 'web' });
+/** Gói đã tải xong, chờ áp (để nút "Áp dụng ngay" trong debug dùng). */
+let goiCho: string | null = null;
 
 /** Mở app được bao lâu thì thôi không áp ngay nữa (người chơi đã bắt đầu dùng app). */
 const AP_NGAY_MS = 8000;
@@ -63,21 +79,57 @@ export function soSanhBan(a: string, b: string): number {
   return 0;
 }
 
+let dangKiem = false;
 export async function kiemOta(): Promise<void> {
-  if (!laApp) return;
+  if (!laApp || dangKiem) return;
+  dangKiem = true;
+  const dat = (v: typeof trangThaiOta.value): void => { trangThaiOta.value = v; };
+  dat({ buoc: 'kiem' });
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
     void CapacitorUpdater.notifyAppReady();
     const { CapacitorHttp } = await import('@capacitor/core');
     const r = await CapacitorHttp.get({ url: `${SITE_URL}/ota/manifest.json?t=${Date.now()}`, headers: { 'Cache-Control': 'no-cache' } });
     const m = (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) as Manifest | null;
-    if (r.status !== 200 || !m?.id || m.id === __OTA_ID__) return;
+    if (r.status !== 200 || !m?.id) { dat({ buoc: 'loi', loi: `manifest HTTP ${r.status}` }); return; }
+    if (m.id === __OTA_ID__) { dat({ buoc: 'moiNhat', id: m.id }); return; }
     const { App } = await import('@capacitor/app');
-    if (soSanhBan((await App.getInfo()).version, m.minNative) < 0) return;
+    if (soSanhBan((await App.getInfo()).version, m.minNative) < 0) { dat({ buoc: 'cuQua', id: m.id, ban: m.minNative }); return; }
     const { bundles } = await CapacitorUpdater.list();
-    if (bundles.some((b) => b.version === m.id && b.status === 'error')) return;
+    if (bundles.some((b) => b.version === m.id && b.status === 'error')) { dat({ buoc: 'loi', id: m.id, loi: 'bundle error' }); return; }
     const co = bundles.find((b) => b.version === m.id && b.status === 'success');
-    const goi = co ?? await CapacitorUpdater.download({ url: new URL(m.url, SITE_URL).href, version: m.id, checksum: m.sha256 });
+    let goi = co;
+    if (!goi) {
+      dat({ buoc: 'tai', id: m.id, pct: 0 });
+      const nghe = await CapacitorUpdater.addListener('download', (e) => {
+        if (trangThaiOta.value.buoc === 'tai') dat({ buoc: 'tai', id: m.id, pct: Math.round(e.percent) });
+      });
+      try {
+        // TẢI CHÊNH LỆCH trước (16.10.2026): plugin lấy file trùng sha256 từ bản app cài sẵn
+        // hoặc kho đệm, CHỈ tải file khác qua `/ota/f/<sha256><đuôi>`. Lỗi gì cũng quay về zip.
+        if (m.files) {
+          try {
+            const rf = await CapacitorHttp.get({ url: new URL(m.files, SITE_URL).href });
+            const ds = (typeof rf.data === 'string' ? JSON.parse(rf.data) : rf.data) as DanhSachFile;
+            if (rf.status === 200 && Array.isArray(ds) && ds.length) {
+              goi = await CapacitorUpdater.download({
+                url: new URL(m.url, SITE_URL).href, version: m.id,
+                manifest: ds.map(([ten, h]) => ({ file_name: ten, file_hash: h, download_url: new URL(`/ota/f/${h}${duoi(ten)}`, SITE_URL).href }))
+              });
+            }
+          } catch { goi = undefined; }
+          // Tải chênh lệch hỏng thì plugin đánh dấu bản đó 'error' — xoá dấu đó trước khi thử
+          // zip, không thì lần mở sau bản này bị coi là hỏng và không bao giờ cập nhật.
+          if (!goi) {
+            const { bundles: ds2 } = await CapacitorUpdater.list();
+            const hong = ds2.find((b) => b.version === m.id && b.status === 'error');
+            if (hong) await CapacitorUpdater.delete({ id: hong.id }).catch(() => undefined);
+          }
+        }
+        goi ??= await CapacitorUpdater.download({ url: new URL(m.url, SITE_URL).href, version: m.id, checksum: m.sha256 });
+      } finally { void nghe.remove(); }
+    }
+    goiCho = goi.id;
     if (performance.now() - LUC_MO < AP_NGAY_MS && oTrangChu()) {
       await baoCapNhat();                              // đếm 3·2·1 rồi mới tải lại
       await CapacitorUpdater.set({ id: goi.id });      // tải lại app sang gói mới
@@ -85,7 +137,18 @@ export async function kiemOta(): Promise<void> {
     }
     await CapacitorUpdater.next({ id: goi.id });
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
-  } catch { /* mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có */ }
+    dat({ buoc: 'choMoLai', id: m.id });
+  } catch (e) {
+    // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do
+    dat({ buoc: 'loi', id: trangThaiOta.value.id, loi: String((e as Error)?.message ?? e).slice(0, 80) });
+  } finally { dangKiem = false; }
+}
+
+/** Nút "Áp dụng ngay" (debug): gói đã tải xong thì tải lại app sang nó ngay. */
+export async function apOtaNgay(): Promise<void> {
+  if (!laApp || !goiCho) return;
+  const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+  await CapacitorUpdater.set({ id: goiCho });
 }
 
 /** "app 1.3.0 · 130" — bản NATIVE cài từ store (khác gói web có thể đã cập nhật nóng). */
