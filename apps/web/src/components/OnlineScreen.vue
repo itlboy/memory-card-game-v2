@@ -347,7 +347,9 @@ function isBusy(): boolean {
   return (o.phase.value === 'lobby' || o.phase.value === 'playing') && !o.spectator.value;
 }
 
-defineExpose({ requestHome: quit, isBusy });
+/** Đang trong ván online (App tắt nhạc nền khi vào ván). */
+const dangChoi = computed(() => o.phase.value === 'playing');
+defineExpose({ requestHome: quit, isBusy, dangChoi });
 
 /**
  * Tên phòng = TÊN CHỦ PHÒNG, trần trụi. Thêm "Phòng của" vào chỉ tốn chỗ mà

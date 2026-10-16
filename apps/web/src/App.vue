@@ -128,10 +128,14 @@ const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
 const screen = ref<'menu' | 'game' | 'online'>('menu');
-watch([nhacBat, baiNhac, baiThat, soundLevel, screen], () => {
+const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
+/** Đang trong VÁN (offline hoặc online đang chơi) — nhạc nền nhỏ dần rồi tắt (16.10.2026). */
+const trongVan = computed(() => screen.value === 'game' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
+watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan], () => {
   store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value });
-  if (nhacBat.value && soundLevel.value !== 'off') nhac.chay(screen.value === 'game' ? 'van' : 'menu', baiThat.value);
-  else nhac.dung();
+  if (!nhacBat.value || soundLevel.value === 'off') nhac.dung();
+  else if (trongVan.value) nhac.nhoDanRoiTat();
+  else nhac.chay('menu', baiThat.value);
 }, { immediate: true });
 /**
  * Mã phòng từ link mời (?room=ABC123).
@@ -172,7 +176,6 @@ watch(doGapNhac, (v) => { nhac.gap = v; }, { immediate: true });
 /* Khoá chiều cao thật + kéo document về 0 mỗi lần trang hiện lại — không có nó
    thì mở lại Chrome trên iPhone là header nằm ngoài màn hình. */
 useViewportLock();
-const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 const confirmQuit = ref(false);
 const showRules = ref(false);
 /** Trang debug riêng (DebugDialog) — mở từ nút "🐞 Debug" cạnh chữ Cài đặt trong menu. */

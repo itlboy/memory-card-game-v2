@@ -7,6 +7,7 @@ import { nextTick } from 'vue';
 import App from '@/App.vue';
 import { TURN_LIMIT_SEC, BOARD_SIZES, BOT_SPECS, ROOM_LIMITS, FLIP_BACK_MS, levelSpec } from '@mm/engine';
 import { sfx } from '@/lib/audio';
+import { nhac } from '@/lib/nhac';
 
 /** Truy cập engine bên trong App để chơi tất định. */
 type Session = {
@@ -254,6 +255,22 @@ describe('luồng trọn ván', () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
     expect(wrapper.text()).toContain('Chọn số thẻ');
     expect(location.search).toContain('w=level');
+  });
+
+  it('vào ván: nhạc nền NHỎ DẦN rồi tắt hẳn (tập trung); thoát ra menu: nhạc chạy lại', async () => {
+    const lang = vi.spyOn(nhac, 'nhoDanRoiTat');
+    const chay = vi.spyOn(nhac, 'chay');
+    await mountApp();
+    await pickMode('Cổ điển');
+    chay.mockClear();
+    await start();
+    expect(lang).toHaveBeenCalled();
+    expect(chay).not.toHaveBeenCalled();
+    await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
+    await flush();
+    await click('Thoát ván');
+    expect(chay).toHaveBeenCalledWith('menu', expect.anything());
+    lang.mockRestore(); chay.mockRestore();
   });
 
   it('nút ↻ chơi lại (một mình): LUÔN hỏi trước, đồng ý thì ván mới từ đầu', async () => {
