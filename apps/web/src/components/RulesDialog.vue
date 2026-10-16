@@ -6,27 +6,14 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import { banNative } from '@/lib/ota';
-import { daMuaPremium, datPremiumThu } from '@/lib/premium';
-import { boEmojiHien, doiBoEmojiThu } from '@/lib/emoji';
 import OptionIcon from './OptionIcon.vue';
-import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { IconName } from './OptionIcon.vue';
 
-const props = defineProps<{ debug: boolean; doNhip?: boolean }>();
-const emit = defineEmits<{ close: []; 'update:debug': [boolean]; 'update:doNhip': [boolean]; 'xem-fx': [XemFx] }>();
-
-/** Khu "Xem thử hiệu ứng" (chỉ trong chế độ debug): duyệt từng cảnh mà không phải chơi tới kết ván. */
-export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean }
-const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
-  ...BIEN_THE.thang.map((b) => ({ ten: t('lc.xemThang', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thang' as const, bienThe: b } })),
-  { ten: t('fx.canh.ky-luc'), fx: { loai: 'thang', bienThe: 'phao-giay', kyLuc: true } },
-  ...BIEN_THE.thua.map((b) => ({ ten: t('lc.xemThua', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thua' as const, bienThe: b } })),
-  { ten: t('fx.canh.hoa'), fx: { loai: 'hoa' } }
-]);
+const props = defineProps<{ debug: boolean }>();
+const emit = defineEmits<{ close: []; 'update:debug': [boolean] }>();
 
 /* ---------- phiên bản & tuổi bản build ---------- */
 
-const tenBoEmoji = computed(() => ({ may: t('lc.boEmojiMay'), noto3d: 'Noto 3D' })[boEmojiHien()]);
 const version = __APP_VERSION__;
 /** Ngày giờ build, ĐÃ định dạng theo giờ Việt Nam lúc build (xem vite.config). */
 const builtAt = __BUILD_AT__;
@@ -178,27 +165,9 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
         Chủ dự án yêu cầu bỏ khỏi màn thường (11.10.2026: "đừng hiển thị nhiều
         gây rối"), nên chỉ hiện trong chế độ debug, và có thêm `/credits.txt`.
       -->
-      <!-- Thử giao diện ĐÃ MUA Premium (theme/skin/danh hiệu premium) khi chưa có IAP.
-           Chỉ đổi cờ `mm.premium` của máy này (lib/premium.ts). -->
-      <button
-        v-if="props.debug" class="nut-do" type="button"
-        :aria-pressed="daMuaPremium ? 'true' : 'false'"
-        @click="datPremiumThu(!daMuaPremium)"
-      >{{ daMuaPremium ? '●' : '○' }} {{ t('lc.premiumThu') }}</button>
-      <button
-        v-if="props.debug" class="nut-do" type="button"
-        :aria-pressed="props.doNhip ? 'true' : 'false'"
-        @click="emit('update:doNhip', !props.doNhip)"
-      >{{ props.doNhip ? '●' : '○' }} {{ t('lc.doNhip') }}</button>
-      <!-- So bộ hình mặt bài trên máy thật (lib/emoji.ts, chỉ máy này). -->
-      <button
-        v-if="props.debug" class="nut-do" type="button"
-        @click="doiBoEmojiThu()"
-      >{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</button>
-      <div v-if="props.debug" class="xem-fx">
-        <p class="build">{{ t('lc.xemThu') }}</p>
-        <button v-for="x in XEM_THU" :key="x.ten" class="nut-do" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
-      </div>
+      <!-- Công cụ debug (Premium thử, đo khung hình, ping, bộ emoji, xem thử hiệu ứng) đã
+           chuyển vào MENU CÀI ĐẶT (DebugMenu.vue, 16.10.2026) — ở đây chỉ còn cửa bật/tắt
+           và ghi công bắt buộc. -->
       <p v-if="props.debug" class="build">{{ t('lc.ghiCong') }}</p>
     </div>
   </div>
@@ -213,8 +182,6 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
   border: 1px dashed var(--line-strong); background: transparent;
   color: var(--muted); font: inherit; font-size: var(--text-xs); font-weight: 700;
 }
-.xem-fx { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6px; }
-.xem-fx .build { grid-column: 1 / -1; }
 .nut-do[aria-pressed='true'] { border-style: solid; border-color: var(--bad); color: var(--bad); }
 /* Chân trang phiên bản: mờ, nhỏ, không giành sự chú ý với nội dung luật chơi */
 .build {

@@ -8,6 +8,7 @@ import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import { pingSo } from '@/lib/ping-so';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
 import KetCucFx from './KetCucFx.vue';
@@ -307,13 +308,16 @@ watch(() => o.view.value?.summary, (s) => {
           <span v-else-if="!p.connected" class="netbad" :title="t('og.matKetNoi')">
             📴<span class="chu"> {{ t('og.offline') }}</span>
           </span>
-          <!-- Ping của MÌNH, gắn cạnh tên mình cho khỏi phải đoán là của ai. Luôn
-               hiện: người chơi muốn biết mạng mình thế nào, không chỉ lúc có sự cố. -->
+          <!-- Mạng của MÌNH, gắn cạnh tên mình. Mặc định CHỈ CHẤM MÀU xanh · vàng · đỏ
+               (chủ dự án 16.10.2026: số ms làm rối); số ms bật lại được trong chế độ
+               debug (lib/ping-so.ts). Số vẫn ở title / aria-label. -->
           <span
             v-else-if="p.id === o.myId.value"
-            class="ping" :class="o.netQuality.value"
+            class="ping" :class="[o.netQuality.value, { cham: !pingSo }]"
+            role="img"
             :title="o.ping.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.ping.value })"
-          >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
+            :aria-label="o.ping.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.ping.value })"
+          >{{ !pingSo ? '' : o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
           <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
                tràn cả chip người chơi. -->
           <!-- MẠNG HIỆN BẰNG SỐ, không phải chuỗi trái tim: chuỗi phình theo số
@@ -727,7 +731,7 @@ watch(() => o.view.value?.summary, (s) => {
  * Ngưỡng là CONTENT-BOX (chip trừ padding 18 và viền 4), không phải bề rộng
  * chip: chip 200px khớp `max-width: 176px`. Đã đo hụt một lần vì tưởng ngược lại.
  */
-@container (max-width: 176px) { .pchip .ping { display: none; } }
+@container (max-width: 176px) { .pchip .ping:not(.cham) { display: none; } }   /* chấm 9px thì luôn vừa */
 @container (max-width: 176px) { .pchip .turn-clock { display: none; } }  /* thanh dưới vẫn nói đủ */
 @container (max-width: 128px) {
   .pchip .lives { display: none; }
@@ -765,6 +769,13 @@ watch(() => o.view.value?.summary, (s) => {
 .ping.ok  { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
 .ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
+/* Chấm màu (mặc định): xanh = tốt (cả 'ok' < 250ms), vàng = chậm, đỏ = mất. */
+.ping.cham { width: 9px; height: 9px; padding: 0; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 25%, transparent); }
+.ping.cham.bad { background: var(--warn); box-shadow: 0 0 0 2px color-mix(in srgb, var(--warn) 25%, transparent); }
+.ping.cham.lost { background: var(--bad); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bad) 25%, transparent); }
+.pchip.active .ping.cham { background: var(--ok); }
+.pchip.active .ping.cham.bad { background: var(--warn); }
+.pchip.active .ping.cham.lost { background: var(--bad); }
 .pchip .avatar { font-size: 18px; }
 /*
  * TÊN KHÔNG BAO GIỜ ĐƯỢC BIẾN MẤT HẲN.

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
 import RulesDialog from '@/components/RulesDialog.vue';
+import TopBar from '@/components/TopBar.vue';
+import DebugMenu from '@/components/DebugMenu.vue';
+import { datPingSo, pingSo } from '@/lib/ping-so';
 
 /**
  * NÚT DEBUG KHÔNG NẰM SẴN TRÊN MÀN (14.10.2026: "lộ quá"). Bật bằng 7 chạm liên
@@ -27,17 +30,53 @@ describe('cửa bí mật vào chế độ debug', () => {
     expect(w.emitted('update:debug')).toBeUndefined();
   });
 
-  it('bảng đo fps là công tắc riêng, không bật kèm debug', async () => {
-    const w = mount(RulesDialog, { props: { debug: true, doNhip: false } });
-    const nut = w.findAll('.nut-do').find((b) => b.text().includes('FPS') || b.text().includes('fps'))!;
-    expect(nut.attributes('aria-pressed')).toBe('false');
-    await nut.trigger('click');
-    expect(w.emitted('update:doNhip')).toEqual([[true]]);
-  });
-
   it('đang bật thì có nút để tắt', async () => {
     const w = mount(RulesDialog, { props: { debug: true } });
     await w.find('.nut-do').trigger('click');
     expect(w.emitted('update:debug')).toEqual([[false]]);
+  });
+});
+
+/** 16.10.2026: bật bằng 7 chạm vào chữ "Cài đặt" trong menu; công cụ debug nằm ngay trong menu. */
+describe('chế độ debug trong menu Cài đặt', () => {
+  const props = { nen: 'tu' as const, soundLevel: 'high' as const, totalScore: 0 };
+  async function moMenu(debug: boolean) {
+    const w = mount(TopBar, { props: { ...props, debug }, attachTo: document.body });
+    await w.find('.menu-btn').trigger('click');
+    return w;
+  }
+
+  it('chạm 7 lần vào "Cài đặt" thì bật — 6 lần thì chưa; click không tính', async () => {
+    const w = await moMenu(false);
+    const nhom = w.find('.menu p.nhom');
+    for (let i = 0; i < 7; i++) await nhom.trigger('click');
+    for (let i = 0; i < 6; i++) await nhom.trigger('pointerup');
+    expect(w.emitted('update:debug')).toBeUndefined();
+    await nhom.trigger('pointerup');
+    expect(w.emitted('update:debug')).toEqual([[true]]);
+    w.unmount();
+  });
+
+  it('debug tắt thì menu không có khối debug; bật thì có', async () => {
+    const tat = await moMenu(false);
+    expect(tat.find('.dbg').exists()).toBe(false);
+    tat.unmount();
+    const bat = await moMenu(true);
+    expect(bat.find('.dbg').exists()).toBe(true);
+    bat.unmount();
+  });
+
+  it('bảng đo fps là công tắc riêng; "Về mặc định" tắt hết công tắc thử, "Tắt" tắt debug', async () => {
+    datPingSo(true);
+    const w = mount(DebugMenu, { props: { doNhip: false } });
+    const fps = w.findAll('.dbg-cong').find((b) => /fps/i.test(b.text()))!;
+    expect(fps.attributes('aria-checked')).toBe('false');
+    await fps.trigger('click');
+    expect(w.emitted('update:doNhip')).toEqual([[true]]);
+    await w.findAll('.dbg-dau button')[0]!.trigger('click');
+    expect(pingSo.value).toBe(false);
+    expect(w.emitted('update:doNhip')!.at(-1)).toEqual([false]);
+    await w.findAll('.dbg-dau button')[1]!.trigger('click');
+    expect(w.emitted('tat')).toHaveLength(1);
   });
 });
