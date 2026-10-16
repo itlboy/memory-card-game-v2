@@ -15,6 +15,8 @@ export { RoomDO, SoPhongDO };
  */
 export interface Env extends RoomEnv {
   SO_PHONG_DO: DurableObjectNamespace<SoPhongDO>;
+  /** File tĩnh của web (Workers Static Assets) — dùng cho /ota/* (xem dưới). */
+  ASSETS: Fetcher;
 }
 
 /** Mã phòng toàn số — dễ đọc cho nhau qua điện thoại, gõ bằng bàn phím số. */
@@ -78,6 +80,21 @@ export default {
     }
 
     if (url.pathname === '/health') return Response.json({ ok: true }, { headers: CORS });
+
+    /*
+     * GÓI CẬP NHẬT NÓNG (16.10.2026): /ota/* do Worker phục vụ từ chính bản build này
+     * (manifest, danh sách file, /ota/f/<sha256>, zip < 24MiB) — không còn phụ thuộc pod
+     * Node (503 lúc Keel thay pod). Thiếu file → 404 THẬT: SPA fallback trả index.html 200
+     * thì app đọc nhầm trang web thành manifest/file gói (CLAUDE.md "ĐỪNG LÀM HỎNG CẬP NHẬT NÓNG").
+     */
+    if (url.pathname.startsWith('/ota/')) {
+      const r = await env.ASSETS.fetch(request);
+      const loai = r.headers.get('content-type') ?? '';
+      if (r.status === 404 || (loai.includes('text/html') && !url.pathname.endsWith('.html'))) {
+        return new Response('Not found', { status: 404, headers: CORS });
+      }
+      return r;
+    }
 
     return new Response('Not found', { status: 404, headers: CORS });
   }

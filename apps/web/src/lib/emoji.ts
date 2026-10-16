@@ -109,5 +109,20 @@ export function anhEmoji(kyHieu: string | undefined, vector?: boolean, co = 512)
   const bo: BoEmoji = vector === undefined ? boEmojiHien() : vector ? 'noto3d' : 'may';
   if (bo === 'may' || !kyHieu || !LA_EMOJI.test(kyHieu)) return null;
   const ma = tenFileEmoji(kyHieu);
+  if (co >= 512 && !co512.value) co = 256;
   return co >= 512 ? `/emoji/3d/${ma}.webp` : `/emoji/3d/${co}/${ma}.webp`;
+}
+
+/**
+ * GÓI THIẾU ẢNH 512? Gói cập nhật nóng cài bằng ZIP cố ý bỏ ảnh 512 (zip phải dưới 25MiB
+ * để Cloudflare Worker phục vụ — tools/dong-goi-ota.mjs). App gọi `kiemCo512()` lúc khởi
+ * động: không có thì mọi chỗ xin 512 nhận 256 (hơi kém nét ở lá to, không vỡ hình). Web và
+ * gói cài bằng tải chênh lệch luôn đủ 512.
+ */
+export const co512 = ref(true);
+export async function kiemCo512(): Promise<void> {
+  try {
+    const r = await fetch(`/emoji/3d/${tenFileEmoji('😀')}.webp`, { cache: 'no-store' });
+    if (!r.ok) co512.value = false;
+  } catch { co512.value = false; }
 }

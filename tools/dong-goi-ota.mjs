@@ -49,7 +49,20 @@ const files = {};
 })(SRC);
 if (!files['index.html']) { console.error('✗ gói OTA thiếu index.html'); process.exit(1); }
 
-const zip = zipSync(files, { level: 6 });
+/*
+ * ZIP (đường DỰ PHÒNG + bản app cũ chỉ biết zip) BỎ ẢNH EMOJI 512 (16.10.2026): cả gói ~33MB
+ * vượt giới hạn 25MiB MỖI FILE của Cloudflare Worker (gói miễn phí, không dùng R2). Bỏ 512
+ * (~20MB) còn ~18MB. App cài bằng zip tự nhận ra thiếu 512 và dùng 256 (lib/emoji.ts
+ * `kiemCo512`). Đường CHÍNH (tải chênh lệch) vẫn đủ cả 3 cỡ.
+ */
+const LA_512 = /^emoji\/3d\/[^/]+\.webp$/;
+const choZip = Object.fromEntries(Object.entries(files).filter(([ten]) => !LA_512.test(ten.split('\\').join('/'))));
+const zip = zipSync(choZip, { level: 6 });
+const TRAN_ZIP = 24 * 1024 * 1024;   // chừa 1MiB dưới trần 25MiB của Worker
+if (zip.length > TRAN_ZIP) {
+  console.error(`✗ zip OTA ${(zip.length / 1048576).toFixed(1)}MiB > 24MiB — Cloudflare Worker không phục vụ được (giới hạn 25MiB/file). Bớt thứ gì đó khỏi zip.`);
+  process.exit(1);
+}
 const sha256 = createHash('sha256').update(zip).digest('hex');
 const ra = join(web, 'dist', 'ota');
 mkdirSync(join(ra, 'f'), { recursive: true });
@@ -74,4 +87,4 @@ for (const [ten, du] of Object.entries(files)) {
 writeFileSync(join(ra, `${id}.files.json`), JSON.stringify(ds));
 writeFileSync(join(ra, 'manifest.json'), JSON.stringify({ id, url: `/ota/${id}.zip`, sha256, files: `/ota/${id}.files.json`, minNative, builtAt: new Date().toISOString() }, null, 2));
 rmSync(SRC, { recursive: true, force: true });
-console.log(`✓ OTA ${id} · ${(zip.length / 1e6).toFixed(1)} MB · ${Object.keys(files).length} file · cần app ≥ ${minNative}`);
+console.log(`✓ OTA ${id} · zip ${(zip.length / 1e6).toFixed(1)} MB (${Object.keys(choZip).length} file, bỏ ảnh 512) · chênh lệch ${Object.keys(files).length} file · cần app ≥ ${minNative}`);

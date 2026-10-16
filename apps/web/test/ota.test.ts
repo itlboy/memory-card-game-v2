@@ -218,4 +218,16 @@ describe('cập nhật nóng', () => {
     expect(luat(goiOta), 'tools/dong-goi-ota.mjs').toBeTruthy();
     expect(luat(goiOta)).toBe(luat(app));
   });
+
+  it('zip bỏ ảnh emoji 512 + chốt < 24MiB (Worker giới hạn 25MiB/file); app thiếu 512 thì dùng 256', async () => {
+    const goiOta = readFileSync(resolve(process.cwd(), '../../tools/dong-goi-ota.mjs'), 'utf8');
+    expect(goiOta).toMatch(/const LA_512 = \/\^emoji\\\/3d\\\/\[\^\/\]\+\\\.webp\$\/;/);
+    expect(goiOta).toMatch(/TRAN_ZIP = 24 \* 1024 \* 1024/);
+    const { anhEmoji, co512 } = await import('@/lib/emoji');
+    const coBo = anhEmoji('😀', true, 512);
+    co512.value = false;
+    expect(anhEmoji('😀', true, 512)).toBe(coBo!.replace('/emoji/3d/', '/emoji/3d/256/'));
+    expect(anhEmoji('😀', true, 128)).toContain('/emoji/3d/128/');
+    co512.value = true;
+  });
 });
