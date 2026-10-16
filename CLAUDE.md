@@ -229,7 +229,7 @@
   `veBuocTruoc` ở App.vue); bấm LOGO vẫn về trang chủ, lau sạch URL. Vào từ lối tắt trang
   chủ thì "bước trước" chính là trang chủ.
 - **NÚT ↻ CHƠI LẠI TRÊN HUD** chỉ ở ván một mình / đấu máy (ván nhiều người chung máy thì
-  không); đã lật lá thì hỏi xác nhận; dùng chung `replay()` với bảng kết quả.
+  không); ván chưa xong thì LUÔN hỏi xác nhận (kể cả chưa lật lá nào); dùng chung `replay()`.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 

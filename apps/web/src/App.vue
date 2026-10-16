@@ -633,13 +633,13 @@ function replay(): void {
   startLevel(levelId.value ?? level.value);
 }
 
-/** Nút ↻ trên HUD (ván một mình / đấu máy): đã lật lá nào thì hỏi trước — lỡ tay là
- *  mất cả ván; chưa lật gì thì chơi lại luôn. Dùng chung `replay()` với bảng kết quả. */
+/** Nút ↻ trên HUD (ván một mình / đấu máy): LUÔN hỏi trước khi ván chưa xong (chủ dự án
+ *  16.10.2026 — lỡ tay là mất ván). Dùng chung `replay()` với bảng kết quả. */
 const confirmChoiLai = ref(false);
 useBackCloser(30, () => confirmChoiLai.value, () => { confirmChoiLai.value = false; });
 function choiLaiVan(): void {
   const g = session.game.value;
-  if (g && !g.finished && session.moves.value > 0) { confirmChoiLai.value = true; return; }
+  if (g && !g.finished) { confirmChoiLai.value = true; return; }
   replay();
 }
 
