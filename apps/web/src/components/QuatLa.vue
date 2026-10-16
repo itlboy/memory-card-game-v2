@@ -46,9 +46,9 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
 
 <template>
   <div class="quat" aria-hidden="true">
-    <span class="la-quat trai"><i /></span>
-    <span class="la-quat phai"><i /></span>
-    <span class="la-quat giua">
+    <span class="la-quat trai"><span class="lac"><i /></span></span>
+    <span class="la-quat phai"><span class="lac"><i /></span></span>
+    <span class="la-quat giua"><span class="lac">
       <span class="khung-hinh">
         <Transition name="hinh" mode="out-in">
           <span :key="kyHieu" class="hinh">
@@ -57,7 +57,7 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
           </span>
         </Transition>
       </span>
-    </span>
+    </span></span>
   </div>
 </template>
 
@@ -72,14 +72,24 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
      mà quạt chỉ 170px thì lọt thỏm giữa một khoảng trống (chủ dự án báo). */
   --la-h: min(86cqh, 53cqw, 320px);
   height: var(--la-h); aspect-ratio: 3 / 4;   /* 53cqw: quạt rộng ≈2,5 lá, phải lọt bề ngang */
+}
+/* HAI LỚP, MỖI LỚP MỘT VIỆC (16.10.2026, chủ dự án: "trên iOS hiệu ứng 3 thẻ hơi giật",
+   Android thì không). `.la-quat` chỉ ĐỨNG (vị trí + góc nghiêng, không động); `.lac` là
+   thứ DUY NHẤT chuyển động, bằng `transform` thuần trong keyframes. Bản cũ cho chính
+   `.la-quat` chạy `rotate` chồng lên `transform` tĩnh, còn ảnh lá giữa đổi (mờ dần) ngay
+   trong phần tử đang lắc — WebKit gộp mọi thuộc tính biến hình của một phần tử vào MỘT
+   animation trên GPU, có thay đổi kèm là đồng bộ lại / rút về luồng chính → khựng. */
+.lac {
+  position: absolute; inset: 0;
   border-radius: 16px; display: flex; align-items: center; justify-content: center;
   background: var(--card-back); box-shadow: var(--elev-2);
   border: var(--quat-vien, 0);
 }
-.la-quat i { width: 34%; aspect-ratio: 1; background: var(--quat-hoa, rgba(255, 255, 255, .9)); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.lac i { width: 34%; aspect-ratio: 1; background: var(--quat-hoa, rgba(255, 255, 255, .9)); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 .la-quat.trai { transform: translate(-112%, -46%) rotate(-14deg); }
 .la-quat.phai { transform: translate(12%, -48%) rotate(12deg); }
-.la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); background: var(--card-face-up); z-index: 1;
+.la-quat.giua .lac { background: var(--card-face-up); }
+.la-quat.giua { transform: translate(-50%, -52%) rotate(-3deg); z-index: 1;
   /* Cỡ hình theo CHÍNH LÁ (--la-h), không theo khung quạt: bản cũ `30cqh` tính theo
      chiều cao quạt nên máy hẹp (Mi 10S) lá co theo bề ngang còn hình thì không —
      hình phủ kín lá (chủ dự án báo). 0,36·cao ≈ 55% bề ngang lá, chừa lề như lá trong ván. */
@@ -95,14 +105,14 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
 .hinh-enter-active { transition: opacity .6s ease-out; }
 .hinh-enter-from, .hinh-leave-to { opacity: 0; }
 .la-quat .anh { width: 1.15em; height: 1.15em; }
-/* LẮC NHẸ (chủ dự án 13.10.2026): thuộc tính `rotate` RIÊNG nên cộng dồn lên góc
-   nghiêng trong `transform`, không đè nó. Ba nhịp lệch nhau để không lắc đồng loạt
-   như máy. Chỉ rotate — không will-change, không lớp GPU sống mãi. */
-.la-quat { animation: lac-quat 3.2s ease-in-out infinite alternate; }
-.la-quat.trai { animation-duration: 3.8s; animation-delay: -1.2s; }
-.la-quat.phai { animation-duration: 3.5s; animation-delay: -2.4s; }
-@keyframes lac-quat { from { rotate: -2.5deg; } to { rotate: 2.5deg; } }
-@media (prefers-reduced-motion: reduce) { .la-quat { animation: none; } .hinh-enter-active, .hinh-leave-active { transition: none; } }
+/* LẮC NHẸ (chủ dự án 13.10.2026) trên lớp `.lac` (góc nghiêng nằm ở `.la-quat` cha nên
+   không bị đè). Ba nhịp lệch nhau để không lắc đồng loạt như máy. `transform` thuần:
+   loại animation WebKit chạy trọn trên GPU. Ba lớp nhỏ, chỉ ở trang chủ. */
+.lac { animation: lac-quat 3.2s ease-in-out infinite alternate; }
+.la-quat.trai .lac { animation-duration: 3.8s; animation-delay: -1.2s; }
+.la-quat.phai .lac { animation-duration: 3.5s; animation-delay: -2.4s; }
+@keyframes lac-quat { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+@media (prefers-reduced-motion: reduce) { .lac { animation: none; } .hinh-enter-active, .hinh-leave-active { transition: none; } }
 /* Máy thấp (SE + thanh địa chỉ): quạt còn dưới ~70px thì nhìn như lỗi — ẩn hẳn */
 @container (max-height: 70px) { .la-quat { display: none; } }
 </style>

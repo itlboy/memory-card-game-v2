@@ -48,26 +48,32 @@ onUnmounted(() => clearInterval(hen));
 <template>
   <div class="icon-bay" aria-hidden="true">
     <span
-      v-for="(c, i) in CHO" :key="i" class="ib" :class="{ tat: tat[i] }"
+      v-for="(c, i) in CHO" :key="i" class="ib"
       :style="{ left: `${c.x}%`, top: `${c.y}%`, fontSize: `${c.co}px`, animationDuration: `${c.nhip}s`, animationDelay: `${-i * 1.7}s` }"
-    >{{ hinh[i] }}</span>
+    ><span class="ib-hinh" :class="{ tat: tat[i] }">{{ hinh[i] }}</span></span>
   </div>
 </template>
 
 <style scoped>
 /* Nằm trong #app (absolute), dưới mọi nội dung: <main>/thanh trên đứng sau trong DOM */
 .icon-bay { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+/* HAI LỚP (16.10.2026, iOS "giật"): `.ib` chỉ TRÔI (transform thuần trong keyframes);
+   `.ib-hinh` lo mờ + thu nhỏ khi đổi hình. Bản cũ để transition `scale` ngay trên phần
+   tử đang chạy `translate/rotate` — WebKit gộp chúng thành một animation biến hình, cứ
+   đổi hình là đồng bộ lại cả chuyển động trôi. */
 .ib {
   position: absolute; line-height: 1;
-  opacity: var(--ib-mo, .6);
-  transition: opacity .7s ease, scale .7s ease;
   animation: troi ease-in-out infinite alternate;
 }
-.ib.tat { opacity: 0; scale: .4; }
+.ib-hinh {
+  display: block; opacity: var(--ib-mo, .6);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.ib-hinh.tat { opacity: 0; transform: scale(.4); }
 @keyframes troi {
-  0%   { translate: 0 0; rotate: -8deg; }
-  50%  { translate: 10px -14px; rotate: 6deg; }
-  100% { translate: -6px 8px; rotate: -3deg; }
+  0%   { transform: translate(0, 0) rotate(-8deg); }
+  50%  { transform: translate(10px, -14px) rotate(6deg); }
+  100% { transform: translate(-6px, 8px) rotate(-3deg); }
 }
 @media (prefers-reduced-motion: reduce) { .ib { animation: none; } }
 </style>
