@@ -256,7 +256,31 @@ describe('luồng trọn ván', () => {
     expect(location.search).toContain('w=level');
   });
 
-  it('thoát giữa ván: hỏi xác nhận, đồng ý thì về menu', async () => {
+  it('nút ↻ chơi lại (một mình): đã lật thì hỏi trước, đồng ý thì ván mới từ đầu', async () => {
+    await mountApp();
+    await pickMode('Cổ điển');
+    await start();
+    const nut = () => wrapper.find('[aria-label="Chơi lại"]');
+    expect(nut().exists()).toBe(true);
+    const cu = session(wrapper).game.value;
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await wrapper.findAll('.card')[1]!.trigger('click');
+    await flush();
+    await nut().trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Chơi lại từ đầu?');
+    await click('Ở lại');
+    expect(session(wrapper).game.value).toBe(cu);              // vẫn ván cũ
+    await nut().trigger('click');
+    await flush();
+    await wrapper.findAll('[role="alertdialog"] button').find((b) => b.text() === 'Chơi lại')!.trigger('click');
+    await flush();
+    expect(session(wrapper).game.value).not.toBe(cu);          // ván mới
+    expect(session(wrapper).moves.value).toBe(0);
+    expect(wrapper.findAll('.card')).toHaveLength(16);
+  });
+
+  it('thoát giữa ván: hỏi xác nhận, đồng ý thì về ĐÚNG bước trước khi vào ván (16.10.2026)', async () => {
     await mountApp();
     await pickMode('Cổ điển');
     await start();
@@ -272,7 +296,9 @@ describe('luồng trọn ván', () => {
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
     await click('Thoát ván');
-    expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
+    // Về bước "Bàn chơi" (nơi vừa bấm Bắt đầu), không về tận trang chủ
+    expect(wrapper.text()).toContain('Bắt đầu — bàn 16 thẻ');
+    expect(location.search).toBe('?w=options');
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
   });
 
@@ -428,7 +454,7 @@ describe('bàn nhỏ và bàn đầy', () => {
 });
 
 describe('F5 giữa ván (state trên URL + snapshot)', () => {
-  it('vào ván thì URL có ?playing=1, về menu thì sạch', async () => {
+  it('vào ván thì URL có ?playing=1; thoát ván → ?w=<bước trước>; bấm LOGO → URL sạch', async () => {
     await mountApp();
     await pickMode('Cổ điển');
     await start();
@@ -436,6 +462,13 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
     await click('Thoát ván');   // qua popup xác nhận
+    expect(location.search).toBe('?w=options');
+    // Logo vẫn là "về trang chủ" (luật cũ: lau sạch URL), kể cả từ giữa ván
+    await click('Bắt đầu');
+    await wrapper.findAll('.card')[0]!.trigger('click');
+    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await flush();
+    await click('Thoát ván');
     expect(location.search).toBe('');
   });
 

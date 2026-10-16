@@ -156,6 +156,7 @@ const ja: TuDien = {
   'hud.cap2': 'ペア',
   'hud.mangConLai': '残りライフ',
   'hud.tamDung': 'ポーズ',
+  'hud.choiLai': "やり直す",
   'hud.thoiGian': '時間',
   'hud.sao': '星 {n} · あと {m} 回忘れてもOK',
   'hud.sao1': '星 {n}',
@@ -171,6 +172,9 @@ const ja: TuDien = {
   'thoat.tieuDe': 'ゲームをやめますか？',
   'thoat.than': 'このゲームの進行状況は保存されません。',
   'thoat.nut': 'やめる',
+  'choiLai.tieuDe': "最初からやり直しますか？",
+  'choiLai.than': "このゲームは破棄され、新しいボードが配られます。",
+  'choiLai.nut': "やり直す",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'プレイヤー',

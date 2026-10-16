@@ -159,6 +159,7 @@ const de: TuDien = {
   'hud.cap2': 'Paare',
   'hud.mangConLai': 'Verbleibende Leben',
   'hud.tamDung': 'Pause',
+  'hud.choiLai': "Neu starten",
   'hud.thoiGian': 'Zeit',
   'hud.sao': '{n} Sterne · noch {m}× vergessen erlaubt',
   'hud.sao1': '{n} Stern',
@@ -174,6 +175,9 @@ const de: TuDien = {
   'thoat.tieuDe': 'Spiel verlassen?',
   'thoat.than': 'Dein Fortschritt in diesem Spiel wird nicht gespeichert.',
   'thoat.nut': 'Verlassen',
+  'choiLai.tieuDe': "Spiel neu starten?",
+  'choiLai.than': "Dieses Spiel wird verworfen und ein neues Brett ausgeteilt.",
+  'choiLai.nut': "Neu starten",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Spieler',

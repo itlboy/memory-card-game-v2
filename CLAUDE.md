@@ -221,10 +221,15 @@
   Bảng kết quả có khối `@media (max-height: 640px)` ở CUỐI file: trên SE bảng
   từng cao 633px/553px, nút "Về menu" lòi khỏi màn hình (đã thế từ trước khi có
   danh hiệu, tiêu đề bị cắt). `pnpm do:menu` chơi thật một ván 2×2 và canh.
-- **MÀN ĐANG RỜI GIỮ ĐÚNG KHUNG CŨ** (`ghimKhungRoi` ở App.vue, `@before-leave`).
-  Bản cũ neo `.screen-leave-active { inset: 0 }` theo <main> có đệm 12px nên lúc
-  mờ dần khung PHÌNH 406→430px (chủ dự án: "nhảy nhẹ, container to ra" khi bấm
-  chip lối tắt). Đừng đặt lại inset: 0. `pnpm do:menu` đo từng khung hình.
+- **ĐỔI MÀN TỨC THÌ, KHÔNG HIỆU ỨNG** (chủ dự án 16.10.2026: thoát ván mà còn thấy trang
+  trượt/mờ là "không được nhanh"). Bản cũ mờ + trượt 10px ~0,3 giây, hai màn chồng nhau một
+  nhịp (cần cả `ghimKhungRoi` để khung không phình) — đã gỡ hết, đừng dựng lại.
+- **THOÁT VÁN = VỀ BƯỚC TRƯỚC KHI VÀO VÁN** (16.10.2026): nút thoát trong ván + nút Back về
+  đúng bước wizard đang đứng lúc bấm Bắt đầu (`?w=` nhớ ở sessionStorage `mm.buocTruoc`,
+  `veBuocTruoc` ở App.vue); bấm LOGO vẫn về trang chủ, lau sạch URL. Vào từ lối tắt trang
+  chủ thì "bước trước" chính là trang chủ.
+- **NÚT ↻ CHƠI LẠI TRÊN HUD** chỉ ở ván một mình / đấu máy (ván nhiều người chung máy thì
+  không); đã lật lá thì hỏi xác nhận; dùng chung `replay()` với bảng kết quả.
 - Thông báo trong ván nổi ở `.notice-bar` (cao 0px, đè HUD), không hiện giữa bàn
   và không chiếm chỗ của bàn thẻ.
 

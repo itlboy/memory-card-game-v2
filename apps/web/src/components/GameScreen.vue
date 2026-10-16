@@ -12,7 +12,7 @@ import PlayerStrip from './PlayerStrip.vue';
 import MatBot from './MatBot.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
-import type { useGameSession } from '@/composables/useGameSession';
+import { BOT_ID, type useGameSession } from '@/composables/useGameSession';
 
 const props = defineProps<{
   session: ReturnType<typeof useGameSession>;
@@ -22,7 +22,9 @@ const props = defineProps<{
   seriesWins?: Record<string, number>;
 }>();
 
-const emit = defineEmits<{ quit: [] }>();
+const emit = defineEmits<{ quit: []; 'choi-lai': [] }>();
+/** Nút chơi lại: ván một mình hoặc đấu máy (nhận ra bằng BOT_ID trong danh sách người chơi). */
+const choiLaiDuoc = computed(() => !props.game.isMultiplayer || props.game.players.some((p) => p.id === BOT_ID));
 const board = ref<InstanceType<typeof BoardGrid> | null>(null);
 onMounted(() => board.value?.focusFirst());
 
@@ -150,6 +152,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       :star-misses="game.config.starMisses"
       :misses="s.players.value[0]?.quen ?? 0"
       pausable
+      :choi-lai="choiLaiDuoc"
+      @choi-lai="emit('choi-lai')"
       @quit="emit('quit')"
       @pause="s.pause()"
     />
