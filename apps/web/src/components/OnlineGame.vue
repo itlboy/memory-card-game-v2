@@ -968,9 +968,16 @@ watch(() => o.view.value?.summary, (s) => {
   /* Trắng + viền mực dày + bóng: đọc được trên lưng lá xanh than / đỏ / tím / hồng và cả
      mặt lá sáng (chế độ xem trước). Màu CỐ ĐỊNH, không theo token skin — nền dưới nó là
      lưng lá (đổi theo ván), không phải nền trang. */
-  /* 16.10.2026: bỏ quầng bóng tối + viền dày (chủ dự án: "vòng đen bao quanh số hơi xấu") —
-     chỉ còn viền mảnh, đủ tách số khỏi lưng lá màu nhạt (Kẹo Bông). */
-  color: #fff; -webkit-text-stroke: .04em #17193a; paint-order: stroke fill;
+  /* Số trắng + VIỀN MẢNH vẽ bằng text-shadow 8 hướng (16.10.2026). KHÔNG dùng
+     -webkit-text-stroke + paint-order: Safari không hỗ trợ paint-order cho chữ HTML nên viền
+     vẽ ĐÈ lên chữ, cộng quầng bóng mờ thành "vòng đen" trên iOS (Android thì không — chủ dự án
+     báo). text-shadow ra giống hệt nhau trên WebKit và Chrome. */
+  --vs: .016em; --vm: #17193a;
+  color: #fff;
+  text-shadow:
+    var(--vs) 0 var(--vm), calc(-1 * var(--vs)) 0 var(--vm), 0 var(--vs) var(--vm), 0 calc(-1 * var(--vs)) var(--vm),
+    var(--vs) var(--vs) var(--vm), calc(-1 * var(--vs)) var(--vs) var(--vm),
+    var(--vs) calc(-1 * var(--vs)) var(--vm), calc(-1 * var(--vs)) calc(-1 * var(--vs)) var(--vm);
   animation: cd-pop .9s cubic-bezier(.2, 1.4, .4, 1);
 }
 @keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
