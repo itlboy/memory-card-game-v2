@@ -256,13 +256,19 @@ describe('luồng trọn ván', () => {
     expect(location.search).toContain('w=level');
   });
 
-  it('nút ↻ chơi lại (một mình): đã lật thì hỏi trước, đồng ý thì ván mới từ đầu', async () => {
+  it('nút ↻ chơi lại (một mình): LUÔN hỏi trước, đồng ý thì ván mới từ đầu', async () => {
     await mountApp();
     await pickMode('Cổ điển');
     await start();
     const nut = () => wrapper.find('[aria-label="Chơi lại"]');
     expect(nut().exists()).toBe(true);
     const cu = session(wrapper).game.value;
+    // Chưa lật lá nào vẫn phải hỏi
+    await nut().trigger('click');
+    await flush();
+    expect(wrapper.text()).toContain('Chơi lại từ đầu?');
+    await click('Ở lại');
+    expect(session(wrapper).game.value).toBe(cu);
     await wrapper.findAll('.card')[0]!.trigger('click');
     await wrapper.findAll('.card')[1]!.trigger('click');
     await flush();
