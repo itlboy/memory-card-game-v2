@@ -118,6 +118,7 @@ const en: TuDien = {
   'tp.sapCo': "Coming soon — thanks for your interest!",
   'tp.chonHet': "Select all ({n})",
   'tp.boChon': "Clear",
+  'tp.daChon': "Selected {n}/{tong}",
   'menu.itNhatMotTheme': 'Keep at least one theme.',
   'menu.batDauCap': 'Start Level {n}',
   'menu.khongQuen': 'no slips',

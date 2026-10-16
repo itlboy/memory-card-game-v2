@@ -116,6 +116,7 @@ const ko: TuDien = {
   'tp.sapCo': "곧 출시 — 관심 가져 주셔서 감사합니다!",
   'tp.chonHet': "모두 선택 ({n})",
   'tp.boChon': "선택 해제",
+  'tp.daChon': "선택 {n}/{tong}",
   'menu.itNhatMotTheme': '테마를 하나 이상 남겨 두세요.',
   'menu.batDauCap': '레벨 {n} 시작',
   'menu.khongQuen': '깜빡 없음',

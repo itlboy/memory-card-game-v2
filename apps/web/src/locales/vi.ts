@@ -123,6 +123,7 @@ const vi = {
   'tp.sapCo': "Sắp ra mắt — cảm ơn bạn đã quan tâm!",
   'tp.chonHet': "Chọn tất cả ({n})",
   'tp.boChon': "Bỏ chọn",
+  'tp.daChon': "Đã chọn {n}/{tong}",
   'menu.itNhatMotTheme': 'Phải giữ ít nhất một theme.',
   'menu.batDauCap': 'Bắt đầu cấp {n}',
   'menu.khongQuen': 'không quên',

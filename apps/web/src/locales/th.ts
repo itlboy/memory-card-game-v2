@@ -117,6 +117,7 @@ const th: TuDien = {
   'tp.sapCo': "เร็ว ๆ นี้ — ขอบคุณที่สนใจ!",
   'tp.chonHet': "เลือกทั้งหมด ({n})",
   'tp.boChon': "ยกเลิกเลือก",
+  'tp.daChon': "เลือกแล้ว {n}/{tong}",
   'menu.itNhatMotTheme': 'ต้องเลือกไว้อย่างน้อยหนึ่งธีม',
   'menu.batDauCap': 'เริ่มด่าน {n}',
   'menu.khongQuen': 'ไม่ลืมเลย',

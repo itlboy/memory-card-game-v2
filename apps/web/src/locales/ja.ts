@@ -116,6 +116,7 @@ const ja: TuDien = {
   'tp.sapCo': "近日公開 — ご関心ありがとうございます！",
   'tp.chonHet': "すべて選択（{n}）",
   'tp.boChon': "選択解除",
+  'tp.daChon': "選択中 {n}/{tong}",
   'menu.itNhatMotTheme': 'テーマは1つ以上必要です。',
   'menu.batDauCap': 'ステージ{n}をスタート',
   'menu.khongQuen': '忘れなし',

@@ -122,6 +122,7 @@ const fr: TuDien = {
   'tp.sapCo': "Bientôt disponible — merci de votre intérêt !",
   'tp.chonHet': "Tout sélectionner ({n})",
   'tp.boChon': "Effacer",
+  'tp.daChon': "Sélectionnés {n}/{tong}",
   'menu.itNhatMotTheme': 'Garde au moins un thème.',
   'menu.batDauCap': 'Jouer le niveau {n}',
   'menu.khongQuen': 'aucun oubli',
