@@ -1,4 +1,4 @@
-import { CARD_BACKS, MemoryGame, ROOM_LIMITS, isDraw } from '@mm/engine';
+import { CARD_BACKS_DUNG, MemoryGame, ROOM_LIMITS, isDraw } from '@mm/engine';
 import type { Card, GameConfig, GameEvent, Player, Summary } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { botPick, botRng, botThinkMs, createBotMemory, observe, publicView } from '@mm/engine';
@@ -45,7 +45,7 @@ export function useGameSession() {
   let lastCdSec = -1;
   const countdownLeft = ref<number | null>(null);
   /** Mặt sau của ván này — bốc ngẫu nhiên mỗi ván cho đa dạng. */
-  const BACKS = CARD_BACKS;
+  const BACKS = CARD_BACKS_DUNG;
   const backStyle = ref<string>('stars');
   const pickBack = (): void => { backStyle.value = BACKS[Math.floor(Math.random() * BACKS.length)]!; };
   /** Hiệu ứng "+10s" trên chip người vừa ghép đúng. */
