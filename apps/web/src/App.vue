@@ -14,6 +14,7 @@ import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog from './components/RulesDialog.vue';
+import DebugDialog from './components/DebugDialog.vue';
 import type { XemFx } from './components/DebugMenu.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
@@ -174,6 +175,9 @@ useViewportLock();
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 const confirmQuit = ref(false);
 const showRules = ref(false);
+/** Trang debug riêng (DebugDialog) — mở từ nút "🐞 Debug" cạnh chữ Cài đặt trong menu. */
+const showDebug = ref(false);
+useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
@@ -786,8 +790,8 @@ const hasNext = computed(() => {
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <IconBay v-if="screen !== 'game'" />
   <TopBar
-    :debug="debug" :do-nhip="doNhip"
-    @update:debug="debug = $event" @update:do-nhip="doNhip = $event" @xem-fx="xemThuFx"
+    :debug="debug"
+    @update:debug="debug = $event" @mo-debug="showDebug = true"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
@@ -894,6 +898,14 @@ const hasNext = computed(() => {
   <KetCucFx
     v-if="xemFx" :key="xemFx.key" xem-thu
     :loai="xemFx.loai" :bien-the="xemFx.bienThe ?? null" :ky-luc="xemFx.kyLuc" mot-minh
+  />
+
+  <DebugDialog
+    v-if="showDebug && debug" :do-nhip="doNhip"
+    @close="showDebug = false"
+    @update:do-nhip="doNhip = $event"
+    @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
+    @tat="debug = false; showDebug = false"
   />
 
   <RulesDialog

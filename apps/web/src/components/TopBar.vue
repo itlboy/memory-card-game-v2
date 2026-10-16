@@ -7,7 +7,6 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import type { SoundLevel } from '@/lib/storage';
-import DebugMenu, { type XemFx } from './DebugMenu.vue';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
  *  `avatar`: ảnh Google của người đang đăng nhập, null là chưa đăng nhập. */
@@ -24,11 +23,9 @@ const props = defineProps<{
   danhHieu?: { co: number; tong: number };
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
-  /** Bảng đo khung hình đang bật (công tắc trong khối debug của menu). */
-  doNhip?: boolean;
 }>();
 const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; home: []; rules: []; account: []; 'danh-hieu': [];
-  'update:debug': [boolean]; 'update:doNhip': [boolean]; 'xem-fx': [XemFx] }>();
+  'update:debug': [boolean]; 'mo-debug': [] }>();
 
 /*
  * CỬA VÀO CHẾ ĐỘ DEBUG: chạm 7 LẦN LIÊN TIẾP vào chữ "Cài đặt" trong menu (chủ dự án
@@ -44,7 +41,6 @@ function chamCaiDat(): void {
   if (soChamDebug >= SO_CHAM_DEBUG) { soChamDebug = 0; if (!props.debug) emit('update:debug', true); return; }
   hetChamDebug = setTimeout(() => { soChamDebug = 0; }, 1500);
 }
-function xemFx(fx: XemFx): void { dong(); emit('xem-fx', fx); }
 
 /*
  * MỘT NÚT MENU thay cho bốn nút rời. Bốn nút × 44px + khoảng cách là 208px —
@@ -220,7 +216,11 @@ watch(() => props.totalScore, (to, from) => {
             <small>{{ signedIn ? t('tb.hoSoXepHang') : t('tb.giuDiem') }}</small></span>
         </button>
 
-        <p class="nhom" role="presentation" @pointerup="chamCaiDat">{{ t('tb.caiDat') }}</p>
+        <div class="nhom-hang">
+          <p class="nhom" role="presentation" @pointerup="chamCaiDat">{{ t('tb.caiDat') }}</p>
+          <!-- Debug đang bật: nút vào TRANG debug riêng (DebugDialog) — menu không chứa công cụ debug -->
+          <button v-if="debug" class="nut-debug" role="menuitem" type="button" @click="dong(); emit('mo-debug')">🐞 Debug</button>
+        </div>
         <!-- Giao diện: đổi TỨC THÌ, menu ở lại (lib/skin.ts). Nền tối chỉ có nghĩa
              với skin neon — hai skin kia mang bảng màu riêng, công tắc sẽ không làm gì -->
         <div class="item am" role="presentation">
@@ -297,11 +297,6 @@ watch(() => props.totalScore, (to, from) => {
             <option v-for="l in NGON_NGU" :key="l.id" :value="l.id" :lang="l.id">{{ l.ten }}</option>
           </select>
         </div>
-
-        <DebugMenu
-          v-if="debug" :do-nhip="!!doNhip"
-          @update:do-nhip="emit('update:doNhip', $event)" @xem-fx="xemFx" @tat="emit('update:debug', false)"
-        />
 
         <hr class="ke" />
         <button class="item" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
@@ -466,6 +461,15 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 /* Khối debug làm menu dài ra: cuộn TRONG menu, không bao giờ lòi khỏi màn */
 .menu { max-height: calc(var(--app-h, 100dvh) - 90px); overflow-y: auto; overscroll-behavior: contain; }
 .nhom { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.nhom-hang { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nhom-hang .nhom { flex: 1; }
+/* Nút vào trang debug: viên nhỏ viền đứt màu đỏ — công cụ soi lỗi, không phải tính năng */
+.nut-debug {
+  position: relative; margin: 4px 8px 0 0; padding: 2px 8px; min-height: 0; min-width: 0;
+  border: 1px dashed var(--bad); border-radius: 999px; background: none; color: var(--bad);
+  font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.nut-debug::after { content: ''; position: absolute; inset: -10px -6px; }
 .item.tk { min-height: 52px; }
 .tk-chu { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .tk-chu small { font-weight: 600; font-size: 12px; color: var(--muted); }

@@ -57,12 +57,14 @@ describe('chế độ debug trong menu Cài đặt', () => {
     w.unmount();
   });
 
-  it('debug tắt thì menu không có khối debug; bật thì có', async () => {
+  it('menu KHÔNG chứa công cụ debug; debug bật thì chỉ có nút "🐞 Debug" mở trang riêng', async () => {
     const tat = await moMenu(false);
-    expect(tat.find('.dbg').exists()).toBe(false);
+    expect(tat.find('.nut-debug').exists()).toBe(false);
     tat.unmount();
     const bat = await moMenu(true);
-    expect(bat.find('.dbg').exists()).toBe(true);
+    expect(bat.find('.dbg').exists()).toBe(false);
+    await bat.find('.nut-debug').trigger('click');
+    expect(bat.emitted('mo-debug')).toHaveLength(1);
     bat.unmount();
   });
 
