@@ -120,6 +120,7 @@ const it: TuDien = {
   'tp.sapCo': "In arrivo — grazie per l'interesse!",
   'tp.chonHet': "Seleziona tutti ({n})",
   'tp.boChon': "Azzera",
+  'tp.daChon': "Selezionati {n}/{tong}",
   'menu.itNhatMotTheme': 'Tieni almeno un tema.',
   'menu.batDauCap': 'Gioca il livello {n}',
   'menu.khongQuen': 'zero sviste',

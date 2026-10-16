@@ -119,6 +119,7 @@ const de: TuDien = {
   'tp.sapCo': "Bald verfügbar — danke für dein Interesse!",
   'tp.chonHet': "Alle wählen ({n})",
   'tp.boChon': "Abwählen",
+  'tp.daChon': "Ausgewählt {n}/{tong}",
   'menu.itNhatMotTheme': 'Mindestens ein Thema muss bleiben.',
   'menu.batDauCap': 'Level {n} starten',
   'menu.khongQuen': 'nichts vergessen',

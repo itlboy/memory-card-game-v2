@@ -119,6 +119,7 @@ const id: TuDien = {
   'tp.sapCo': "Segera hadir — terima kasih atas minatmu!",
   'tp.chonHet': "Pilih semua ({n})",
   'tp.boChon': "Hapus pilihan",
+  'tp.daChon': "Dipilih {n}/{tong}",
   'menu.itNhatMotTheme': 'Sisakan minimal satu tema.',
   'menu.batDauCap': 'Mulai level {n}',
   'menu.khongQuen': 'tanpa lupa',
