@@ -956,15 +956,20 @@ watch(() => o.view.value?.summary, (s) => {
 .countdown {
   position: fixed; inset: 0; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  /* Đặc hơn (82%) — cùng số với GameScreen, xem lý do ở đó */
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none;
+  /* KHÔNG LỚP PHỦ (chủ dự án 16.10.2026): lớp phủ mờ từng "nháy" chưa kín màn rồi mới
+     kín (cảm giác lỗi). Con số tự đứng được trên MỌI màu lưng lá nhờ chữ trắng viền
+     mực đậm + bóng tối (`.num` dưới) — đừng trả lại nền/blur cho khối này. */
+  pointer-events: none;
 }
 .countdown .mat-dau { display: inline-grid; place-items: center; font-size: 1.5em; line-height: 1; }
 .countdown .num {
   font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(80px, 30vw, 150px); line-height: 1; color: var(--accent);
-  text-shadow: 0 10px 40px var(--card-back-glow);
+  font-size: clamp(80px, 30vw, 150px); line-height: 1;
+  /* Trắng + viền mực dày + bóng: đọc được trên lưng lá xanh than / đỏ / tím / hồng và cả
+     mặt lá sáng (chế độ xem trước). Màu CỐ ĐỊNH, không theo token skin — nền dưới nó là
+     lưng lá (đổi theo ván), không phải nền trang. */
+  color: #fff; -webkit-text-stroke: .075em #17193a; paint-order: stroke fill;
+  text-shadow: 0 .05em 0 #17193a, 0 .1em .25em rgba(0, 0, 0, .45);
   animation: cd-pop .9s cubic-bezier(.2, 1.4, .4, 1);
 }
 @keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
