@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { maPhongDangDo } from '@/composables/useOnlineRoom';
 import { boEmojiVeMacDinh } from '@/lib/emoji';
+import { datPingSo } from '@/lib/ping-so';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { batPhanTich, suKien } from '@/lib/phan-tich';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
@@ -12,7 +13,8 @@ import GameScreen from './components/GameScreen.vue';
 import MenuScreen from './components/MenuScreen.vue';
 import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
-import RulesDialog, { type XemFx } from './components/RulesDialog.vue';
+import RulesDialog from './components/RulesDialog.vue';
+import type { XemFx } from './components/DebugMenu.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import { laApp } from '@/lib/native';
@@ -30,7 +32,7 @@ const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
  * mấy ván sau vẫn còn số đo — lỗi cần soi thường không xuất hiện ở ván đầu.
  */
 const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
-watch(debug, (v) => { store.savePrefs({ debug: v }); if (!v) boEmojiVeMacDinh(); }, { immediate: true });
+watch(debug, (v) => { store.savePrefs({ debug: v }); if (!v) { boEmojiVeMacDinh(); datPingSo(false); } }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
 const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
@@ -759,7 +761,8 @@ const hasNext = computed(() => {
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <IconBay v-if="screen !== 'game'" />
   <TopBar
-    :debug="debug"
+    :debug="debug" :do-nhip="doNhip"
+    @update:debug="debug = $event" @update:do-nhip="doNhip = $event" @xem-fx="xemThuFx"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
@@ -872,11 +875,9 @@ const hasNext = computed(() => {
   />
 
   <RulesDialog
-    v-if="showRules" :debug="debug" :do-nhip="doNhip"
+    v-if="showRules" :debug="debug"
     @close="showRules = false"
     @update:debug="debug = $event"
-    @update:do-nhip="doNhip = $event"
-    @xem-fx="xemThuFx"
   />
 
   <ConfirmDialog

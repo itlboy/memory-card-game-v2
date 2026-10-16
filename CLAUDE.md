@@ -44,7 +44,7 @@
   `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
   KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên
   lớp nền tối (z 2) và dưới chữ (z 3) — từng nằm dưới, pháo hoa gần như vô hình.
-  Duyệt biến thể trên máy thật: chế độ debug → Luật chơi → "Xem thử hiệu ứng" (bật debug: chạm 7 lần vào dòng phiên bản cuối trang Luật chơi, hoặc `?debug=1` — nút bật KHÔNG nằm sẵn trên màn, chủ dự án 14.10.2026). Bốn cảnh:
+  Duyệt biến thể trên máy thật: menu Cài đặt → khối debug → "Xem thử hiệu ứng" (bật debug: chạm 7 lần vào chữ "Cài đặt" trong menu, hoặc 7 lần vào dòng phiên bản cuối Luật chơi, hoặc `?debug=1` — nút bật KHÔNG nằm sẵn trên màn; công cụ debug nằm NGAY TRONG menu Cài đặt, `DebugMenu.vue`, có nút "Về mặc định", 16.10.2026). Bốn cảnh:
   thắng · kỷ lục · thua · hoà (cảnh "máy trêu" đã BỎ 14.10.2026 — đấu máy hiện y như
   đấu người; dòng an ủi "còn N cặp" CHỈ ở ván một mình, prop `motMinh`), chọn ở
   `chonCanh()`. `lib/ketcuc-fx.ts` lo chọn cảnh, mốc `HIEN_BANG_MS` (App và
@@ -918,7 +918,7 @@
   đo MỘT lá → `chonCoAnh` (cỡ CSS × DPR) — ảnh giải nén ăn RAM theo điểm ảnh, bàn 88 thẻ toàn 512 là
   ~44MB (đúng thứ làm iOS thả lớp GPU). KHÔNG CÒN BỘ DỰ PHÒNG: Twemoji + Noto 2D đã gỡ
   (chủ dự án 15.10.2026: "chỉ còn mặc định của máy hoặc Noto 3D") — emoji Noto 3D chưa có là
-  `tai-noto3d` thoát lỗi + test `emoji-vector` đỏ → chọn emoji khác. Chế độ debug → Luật chơi →
+  `tai-noto3d` thoát lỗi + test `emoji-vector` đỏ → chọn emoji khác. Menu Cài đặt → khối debug →
   "Bộ hình emoji" đổi Máy ⇄ Noto 3D (`mm.boEmoji`, chỉ máy đó; TẮT debug là về mặc định —
   `boEmojiVeMacDinh`). Thêm/sửa theme = `node tools/tai-noto3d.mjs`; chỉ emoji Unicode ≤14;
   số theme MỖI TAB chia hết cho 12. TẢI TRƯỚC lúc chia bài (`taiTruocAnh` trong BoardGrid,
@@ -966,5 +966,5 @@
   danh hiệu của theme premium ẩn và KHÔNG được đếm (mọi chỗ đếm đọc `dsHien`, không đọc
   `ACHIEVEMENTS`). Lý do: đồ khoá mà không mua được là App Review hay loại (luật 2.1).
   Có IAP thì bật `true`; đồ premium chưa mua đeo VƯƠNG MIỆN (không dùng ổ khoá).
-  Thử giao diện đã mua: chế độ debug → Luật chơi → nút "Mở Premium để thử" (`datPremiumThu`, chỉ đổi `mm.premium` của máy đó — trong app không có console nên đây là lối duy nhất). Công tắc Twemoji trong menu đã BỎ: máy Apple
+  Thử giao diện đã mua: menu Cài đặt → khối debug → "Mở Premium để thử" (`datPremiumThu`, chỉ đổi `mm.premium` của máy đó — trong app không có console nên đây là lối duy nhất). Công tắc Twemoji trong menu đã BỎ: máy Apple
   nay MỌI máy vẽ NOTO 3D (15.10.2026, xem mục MẶT BÀI), bản lưu `kieuEmoji` cũ bị bỏ qua.
