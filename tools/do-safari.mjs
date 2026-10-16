@@ -23,7 +23,8 @@
  * Cần web đang chạy (`pnpm dev` → :3001, hoặc dist). Lọc nhanh: SKINS=sao,go MAY=se.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { webkit, devices } from 'playwright';
+import { devices } from 'playwright';
+import { moTrinhDuyet } from './lib-playwright.mjs';
 
 const URL_APP = (process.argv[2] ?? 'http://localhost:3001').replace(/\/$/, '');
 const OUT = process.env.OUT ?? '/tmp/mm-safari';
@@ -106,9 +107,9 @@ const DO = () => {
   return [...new Set(loi)];
 };
 
-const browser = await webkit.launch();
+// lib-playwright: tắt cả khi lỗi / Ctrl+C / kill -9 (tiến trình canh), dọn mồ côi lần trước
+const browser = await moTrinhDuyet('webkit');
 const tatHet = async () => { try { await browser.close(); } catch { /* đã đóng */ } };
-for (const s of ['SIGINT', 'SIGTERM']) process.on(s, async () => { await tatHet(); process.exit(130); });
 
 const ketQua = [];
 let tongLoi = 0;
