@@ -90,10 +90,17 @@ function cham(x: CardTheme): void {
       :role="choiDuoc(x) ? 'checkbox' : undefined"
       :aria-checked="choiDuoc(x) ? selected.includes(x.id) : undefined"
       :aria-label="choiDuoc(x) ? tenTheme(x.id, x.name) : t('tp.khoaAria', { ten: tenTheme(x.id, x.name) })"
+      :title="tenTheme(x.id, x.name)"
       type="button"
       @click="cham(x)"
     >
-      <span class="theme-sample" aria-hidden="true">{{ x.symbols.slice(0, 3).join(' ') }}</span>
+      <!-- 4 icon 2×2, vẽ như mặt bài (ảnh Noto 3D) — nhìn icon là hiểu theme (17.10.2026) -->
+      <span class="theme-sample" aria-hidden="true">
+        <template v-for="s in x.symbols.slice(0, 4)" :key="s">
+          <img v-if="anhEmoji(s)" class="tm-anh" :src="anhEmoji(s, undefined, 128)!" alt="" draggable="false" loading="lazy">
+          <span v-else class="tm-chu">{{ s }}</span>
+        </template>
+      </span>
       <strong class="tname">{{ tenTheme(x.id, x.name) }}</strong>
       <!-- Dấu chọn / vương miện nằm TUYỆT ĐỐI ở góc (xem theme-grid.css) -->
       <span v-if="choiDuoc(x) && selected.includes(x.id)" class="tick" aria-hidden="true">

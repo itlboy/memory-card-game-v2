@@ -49,56 +49,38 @@ describe('lưới theme dùng chung một bản CSS', () => {
   });
 });
 
-describe('lưới theme: co giãn khi thêm theme', () => {
-  it('SỐ CỘT tự tính theo bề rộng, không cứng 3 cột', () => {
-    // `repeat(3, 1fr)` cứng nghĩa là thêm theme thì ô nào cũng bé lại; auto-fill
-    // thì máy rộng xếp thêm cột.
-    expect(css).toMatch(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(max\((\d+)px,\s*calc\(\(100% - 30px\) \/ 4\)\),\s*1fr\)\)/);
-    const min = Number(/minmax\(max\((\d+)px,/.exec(css)![1]);
-    // Không hẹp quá (tên theme hai chữ vỡ dòng) và không rộng quá (SE còn 3 cột).
-    expect(min).toBeGreaterThanOrEqual(76);
-    expect(min).toBeLessThanOrEqual(110);
-  });
-
-  it('TRẦN 4 CỘT: 24 theme mỗi tab chia đều, không lẻ hàng ở cột desktop/iPad', () => {
-    // Cột tối thiểu = 1/4 bề rộng trừ 3 khe — khe ngang phải đúng 10px như `gap`
-    expect(css).toMatch(/gap:\s*12px 10px/);
-    expect(css).toContain('calc((100% - 30px) / 4)');
+/*
+ * Ô NHỎ — NHÌN ICON LÀ HIỂU (chủ dự án 17.10.2026 chọn phương án B sau khi xem ảnh so sánh:
+ * ô ½ mỗi chiều, 6 cột, không tên; "chữ không quá quan trọng, họ sẽ nhìn icon"). Đánh đổi đã
+ * chấp nhận: ô dưới ngưỡng chạm 44px. Đừng "sửa lại" về ô to / có tên khi chưa hỏi.
+ */
+describe('lưới theme: ô nhỏ, icon là chính', () => {
+  it('6 CỘT (36 · 24 · 12 theme mỗi tab chia hết cho 6 — không lẻ hàng), tự tính theo bề rộng', () => {
+    expect(css).toMatch(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(max\(42px,\s*calc\(\(100% - 25px\) \/ 6\)\),\s*1fr\)\)/);
+    expect(css, 'khe ngang 5px khớp 5 khe trong (100% - 25px)').toMatch(/gap:\s*6px 5px/);
   });
 
   it('CHIỀU CAO ô co theo màn nhưng vẫn XÁC ĐỊNH (container query cần thế)', () => {
     const m = /--o-cao:\s*clamp\((\d+)px,\s*calc\(var\(--app-h[^)]*\)[^)]*\),\s*(\d+)px\)/.exec(css);
     expect(m, 'ô theme phải co theo chiều cao app, kẹp trong clamp').not.toBeNull();
     const [san, tran] = [Number(m![1]), Number(m![2])];
-    // Sàn phải ≥ ngưỡng chạm 44px, và đủ để content box vượt ngưỡng ẩn emoji.
-    expect(san, 'ô thấp hơn ngưỡng chạm là bấm không trúng').toBeGreaterThanOrEqual(60);
+    expect(san).toBeGreaterThanOrEqual(34);
     expect(tran).toBeGreaterThan(san);
-    const nguong = Number(/@container \(max-height:\s*(\d+)px\)/.exec(css)![1]);
-    expect(san - 20, 'content box ở cỡ ô nhỏ nhất phải trên ngưỡng ẩn emoji')
-      .toBeGreaterThan(nguong);
   });
 
   it('ô CỐ ĐỊNH cỡ ở mọi tab, hết chỗ thì CUỘN — không giãn, không nén', () => {
-    // Giãn `1fr` làm tab Premium (12 theme) ra ô cao gấp ba tab Miễn phí.
     expect(css).toMatch(/grid-auto-rows:\s*var\(--o-cao\);/);
     expect(css).toMatch(/align-content:\s*start/);
     expect(css).toMatch(/overflow-y:\s*auto/);
-    expect(css, 'nén xuống 0 là luật của các bước khác, không phải của theme')
-      .not.toMatch(/grid-auto-rows:\s*minmax\(0,\s*1fr\)/);
+    expect(css).not.toMatch(/grid-auto-rows:\s*minmax\(0,\s*1fr\)/);
   });
 
-  it('ngưỡng ẩn emoji vẫn ở mức đã đo (45px trên content box)', () => {
-    const n = Number(/@container \(max-height:\s*(\d+)px\)/.exec(css)![1]);
-    expect(n).toBeLessThanOrEqual(48);
-    expect(n).toBeGreaterThanOrEqual(40);
-    // Chú thích thì soi bản CÓ chú thích — đây chính là chỗ hiểu sai gây lỗi cũ.
-    expect(doc('src/styles/theme-grid.css'),
-      'thiếu ghi chú thì lần sau lại hiểu ngưỡng là chiều cao Ô').toMatch(/CONTENT BOX/i);
-  });
-
-  it('có KHOẢNG CÁCH giữa các ô — ô theme là khối gradient đậm, dính nhau đọc thành một khối', () => {
-    const m = /gap:\s*(\d+)px(?:\s+(\d+)px)?/.exec(css);
-    expect(m).not.toBeNull();
-    expect(Number(m![1]), 'khoảng cách dọc quá nhỏ').toBeGreaterThanOrEqual(10);
+  it('icon KHÔNG BAO GIỜ bị ẩn (chúng là nội dung chính); tên theme ẩn khỏi mắt nhưng còn cho trình đọc màn hình', () => {
+    expect(css).not.toMatch(/\.theme-sample\s*\{\s*display:\s*none/);
+    expect(css).toMatch(/\.theme-opt \.tname\s*\{[^}]*clip:/);
+    const tp = doc('src/components/ThemePicker.vue');
+    expect(tp, '4 icon 2×2').toContain('x.symbols.slice(0, 4)');
+    expect(tp, 'icon vẽ như mặt bài (ảnh Noto 3D cỡ 128)').toMatch(/class="tm-anh" :src="anhEmoji\(s, undefined, 128\)!"/);
+    expect(tp, 'tên vẫn có ở aria-label + title').toMatch(/:title="tenTheme\(x\.id, x\.name\)"/);
   });
 });
