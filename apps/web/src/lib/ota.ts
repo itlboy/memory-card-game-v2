@@ -82,10 +82,39 @@ export function soSanhBan(a: string, b: string): number {
   return 0;
 }
 
+/*
+ * TỰ THỬ LẠI (16.10.2026): lỗi tạm (mạng chập, Cloudflare chưa phát tán xong bản vừa release
+ * ~1 phút) thì thử lại sau `THU_LAI_MS`, tối đa `THU_LAI_TOI_DA` lần mỗi lần mở app; và mỗi
+ * khi app QUAY LẠI từ nền mà lần kiểm trước đã lỗi hoặc quá `KIEM_LAI_SAU_MS` thì kiểm lại —
+ * người chơi không phải biết hay bấm gì. Gói từng hỏng ('bundle error') thì KHÔNG thử lại.
+ */
+const THU_LAI_MS = 60_000;
+const THU_LAI_TOI_DA = 3;
+const KIEM_LAI_SAU_MS = 30 * 60_000;
+let soLanThuLai = 0;
+let henThuLai: ReturnType<typeof setTimeout> | undefined;
+let lucKiem = 0;
+let daGanQuayLai = false;
+function ganKiemKhiQuayLai(): void {
+  if (daGanQuayLai || typeof document === 'undefined') return;
+  daGanQuayLai = true;
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const o = trangThaiOta.value;
+    if (o.buoc === 'loi' || (o.buoc === 'moiNhat' && Date.now() - lucKiem > KIEM_LAI_SAU_MS)) {
+      soLanThuLai = 0;
+      void kiemOta();
+    }
+  });
+}
+
 let dangKiem = false;
 export async function kiemOta(): Promise<void> {
   if (!laApp || dangKiem) return;
   dangKiem = true;
+  lucKiem = Date.now();
+  clearTimeout(henThuLai);
+  ganKiemKhiQuayLai();
   const dat = (v: typeof trangThaiOta.value): void => { trangThaiOta.value = v; };
   dat({ buoc: 'kiem' });
   try {
@@ -144,7 +173,14 @@ export async function kiemOta(): Promise<void> {
   } catch (e) {
     // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do
     dat({ buoc: 'loi', id: trangThaiOta.value.id, loi: String((e as Error)?.message ?? e).slice(0, 80) });
-  } finally { dangKiem = false; }
+  } finally {
+    dangKiem = false;
+    const o = trangThaiOta.value;
+    if (o.buoc === 'loi' && o.loi !== 'bundle error' && soLanThuLai < THU_LAI_TOI_DA) {
+      soLanThuLai++;
+      henThuLai = setTimeout(() => { void kiemOta(); }, THU_LAI_MS);
+    } else if (o.buoc !== 'loi') soLanThuLai = 0;
+  }
 }
 
 /** Nút "Áp dụng ngay" (debug): gói đã tải xong thì tải lại app sang nó ngay. */

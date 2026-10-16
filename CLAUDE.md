@@ -519,6 +519,7 @@
   gói app VẪN MỞ ĐƯỢC nhưng đường cập nhật hỏng → máy KẸT ở bản đó vĩnh viễn. Luật:
   · `main.ts` LUÔN gọi `kiemOta()`; trong đó `notifyAppReady()` đứng TRƯỚC mọi lời gọi mạng;
     không chặn khởi động; mọi lỗi nuốt trong `catch` (nhưng ghi vào `trangThaiOta`).
+    Lỗi tạm thì tự thử lại sau 1 phút (tối đa 3 lần) + kiểm lại khi app quay lại từ nền.
   · Manifest chỉ được THÊM trường: `id`, `url` (zip), `sha256`, `minNative` là thứ bản app
     cũ ngoài kia đọc — đổi tên/bỏ là chúng không bao giờ cập nhật nữa. Zip PHẢI còn.
   · Luật đuôi `/ota/f/<sha256><đuôi>` (`DUOI_GIU`) PHẢI khớp giữa `tools/dong-goi-ota.mjs` và
