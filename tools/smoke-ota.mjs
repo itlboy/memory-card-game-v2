@@ -57,5 +57,13 @@ else {
   ket(hdSai === 0, 'file theo mã băm cache immutable');
 }
 
+// ĐỊNH TUYẾN (16.10.2026): trên flipmatch.cozypi.com CHỈ /api/* và /ws/* đi k8s (server Node).
+// Lỡ xoá route đó thì request rơi LẶNG LẼ vào server dự phòng của Worker (Durable Object): phòng
+// tách hai nơi, tài khoản biến mất. /api/auth/config chỉ server Node có (Worker trả 404).
+if (/flipmatch\.cozypi\.com$/.test(new URL(GOC).hostname)) {
+  const { r } = await lay('/api/auth/config');
+  ket(r.status === 200, `/api/ về server Node k8s (auth/config HTTP ${r.status}; 404 = đang rơi vào Worker)`);
+}
+
 console.log(loi ? `\n✗ ${loi} lỗi — app KHÔNG cập nhật được từ ${GOC}` : `\n✓ cập nhật nóng ở ${GOC} chạy được`);
 process.exit(loi ? 1 : 0);
