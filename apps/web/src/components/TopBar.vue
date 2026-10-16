@@ -28,8 +28,9 @@ const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []
   'update:debug': [boolean]; 'mo-debug': [] }>();
 
 /*
- * CỬA VÀO CHẾ ĐỘ DEBUG: chạm 7 LẦN LIÊN TIẾP vào chữ "Cài đặt" trong menu (chủ dự án
- * 16.10.2026 — dễ hơn đường cũ qua Luật chơi, vẫn giữ). Ngắt quá 1,5 giây là đếm lại.
+ * CỬA VÀO CHẾ ĐỘ DEBUG: chạm 7 LẦN LIÊN TIẾP vào chữ "Cài đặt" HOẶC dòng "Giao diện" trong
+ * menu (chủ dự án 16.10.2026 — chữ "Cài đặt" nhỏ, hay chạm trượt; đường cũ qua Luật chơi
+ * vẫn giữ). Ngắt quá 1,5 giây là đếm lại; chạm lẫn hai chỗ vẫn cộng chung.
  * `pointerup` chứ không `click`: Safari iOS không phát click trên <p> không bấm được.
  */
 const SO_CHAM_DEBUG = 7;
@@ -224,7 +225,8 @@ watch(() => props.totalScore, (to, from) => {
         <!-- Giao diện: đổi TỨC THÌ, menu ở lại (lib/skin.ts). Nền tối chỉ có nghĩa
              với skin neon — hai skin kia mang bảng màu riêng, công tắc sẽ không làm gì -->
         <div class="item am" role="presentation">
-          <Palette :size="20" /><span>{{ t('tb.giaoDien') }}</span>
+          <!-- Cũng là cửa bật debug (7 chạm) — chữ "Cài đặt" nhỏ quá, hay chạm trượt (16.10.2026) -->
+          <Palette :size="20" /><span class="cham-debug" @pointerup="chamCaiDat">{{ t('tb.giaoDien') }}</span>
         </div>
         <!-- Lưới ô có MẪU MÀU, MỘT hàng (tròn hàng: số cột = số skin đang bày). Skin
              Premium chỉ bày khi đã bật bán, chưa mua thì đeo VƯƠNG MIỆN như theme
@@ -460,7 +462,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .menu { min-width: 236px; }
 /* Khối debug làm menu dài ra: cuộn TRONG menu, không bao giờ lòi khỏi màn */
 .menu { max-height: calc(var(--app-h, 100dvh) - 90px); overflow-y: auto; overscroll-behavior: contain; }
-.nhom { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.nhom, .cham-debug { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 .nhom-hang { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .nhom-hang .nhom { flex: 1; }
 /* Nút vào trang debug: viên nhỏ viền đứt màu đỏ — công cụ soi lỗi, không phải tính năng */

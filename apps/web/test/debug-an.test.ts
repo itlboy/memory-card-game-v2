@@ -57,6 +57,16 @@ describe('chế độ debug trong menu Cài đặt', () => {
     w.unmount();
   });
 
+  it('chạm 7 lần vào dòng "Giao diện" cũng bật debug (chữ Cài đặt nhỏ, hay trượt)', async () => {
+    const w = await moMenu(false);
+    const gd = w.find('.menu .cham-debug');
+    for (let i = 0; i < 6; i++) await gd.trigger('pointerup');
+    expect(w.emitted('update:debug')).toBeUndefined();
+    await gd.trigger('pointerup');
+    expect(w.emitted('update:debug')).toEqual([[true]]);
+    w.unmount();
+  });
+
   it('menu KHÔNG chứa công cụ debug; debug bật thì chỉ có nút "🐞 Debug" mở trang riêng', async () => {
     const tat = await moMenu(false);
     expect(tat.find('.nut-debug').exists()).toBe(false);
