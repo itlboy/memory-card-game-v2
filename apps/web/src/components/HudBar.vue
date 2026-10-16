@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
-import { ChevronLeft, Hourglass, Layers, Pause, Star, Timer } from 'lucide-vue-next';
+import { ChevronLeft, Hourglass, Layers, Pause, RotateCcw, Star, Timer } from 'lucide-vue-next';
 import OptionIcon from './OptionIcon.vue';
 import { computed } from 'vue';
 import { clock, num } from '@/lib/format';
@@ -27,9 +27,12 @@ const props = defineProps<{
   /** Chiến dịch: số lần sai tối đa cho 2★/3★ và số lần đã sai — viên sao sống. */
   starMisses?: readonly [number, number];
   misses?: number;
+  /** Có nút CHƠI LẠI không — ván một mình / đấu máy (chủ dự án 16.10.2026); ván nhiều
+   *  người chung máy thì không (bỏ ván của cả bàn chỉ vì một người bấm là không công bằng). */
+  choiLai?: boolean;
 }>();
 
-defineEmits<{ quit: []; pause: [] }>();
+defineEmits<{ quit: []; pause: []; 'choi-lai': [] }>();
 
 const timeText = computed(() => clock(props.timeLeft ?? props.elapsed));
 const urgent = computed(() => props.timeLeft !== null && props.timeLeft <= 10);
@@ -95,6 +98,7 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
         <OptionIcon name="lives" :size="16" /><b>{{ lives > 0 ? lives : '—' }}</b>
       </span>
     </div>
+    <button v-if="choiLai" class="tron" :aria-label="t('hud.choiLai')" type="button" @click="$emit('choi-lai')"><RotateCcw :size="18" /></button>
     <button v-if="pausable" class="tron" :aria-label="t('hud.tamDung')" type="button" @click="$emit('pause')"><Pause :size="18" /></button>
     <span v-else class="tron-cho" aria-hidden="true" />
     <span

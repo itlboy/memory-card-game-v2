@@ -158,6 +158,7 @@ const en: TuDien = {
   'hud.cap2': 'Pairs',
   'hud.mangConLai': 'Lives left',
   'hud.tamDung': 'Pause',
+  'hud.choiLai': "Restart",
   'hud.thoiGian': 'Time',
   'hud.sao': '{n} stars · {m} more slips allowed',
   'hud.sao1': '{n} star',
@@ -173,6 +174,9 @@ const en: TuDien = {
   'thoat.tieuDe': 'Quit Game?',
   'thoat.than': 'Your progress in this game won\'t be saved.',
   'thoat.nut': 'Quit',
+  'choiLai.tieuDe': "Restart This Game?",
+  'choiLai.than': "This game will be discarded and a new board dealt.",
+  'choiLai.nut': "Restart",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Players',

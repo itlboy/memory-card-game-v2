@@ -156,6 +156,7 @@ const ko: TuDien = {
   'hud.cap2': '짝',
   'hud.mangConLai': '남은 목숨',
   'hud.tamDung': '일시정지',
+  'hud.choiLai': "다시 하기",
   'hud.thoiGian': '시간',
   'hud.sao': '별 {n}개 · {m}번 더 깜빡해도 돼요',
   'hud.sao1': '별 {n}개',
@@ -171,6 +172,9 @@ const ko: TuDien = {
   'thoat.tieuDe': '게임을 나갈까요?',
   'thoat.than': '이번 게임의 진행 상황은 저장되지 않아요.',
   'thoat.nut': '나가기',
+  'choiLai.tieuDe': "처음부터 다시 할까요?",
+  'choiLai.than': "이 게임은 취소되고 새 보드가 배치됩니다.",
+  'choiLai.nut': "다시 하기",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': '플레이어',

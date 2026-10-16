@@ -200,22 +200,6 @@ watch(taiKhoanMe, (m) => {
 });
 
 /* ---------- danh hiệu ---------- */
-/**
- * MÀN ĐANG RỜI GIỮ ĐÚNG KHUNG CŨ. Lúc rời, màn bị tách khỏi bố cục (position:
- * absolute) để hai màn chồng nhau một nhịp. Bản cũ neo `inset: 0` theo <main>,
- * mà <main> có đệm 12px — nên trong 0,18 giây mờ dần, khung PHÌNH ra 406→430px
- * ngang và cao thêm 24px (chủ dự án thấy "giao diện nhảy nhẹ, container to ra"
- * khi bấm chip lối tắt; đo từng khung hình bằng Chrome xác nhận, đường "Bắt đầu"
- * cũng dính). Ghim theo vị trí + kích thước ĐANG CÓ thì không phụ thuộc đệm.
- */
-function ghimKhungRoi(el: Element): void {
-  const e = el as HTMLElement;
-  Object.assign(e.style, {
-    top: `${e.offsetTop}px`, left: `${e.offsetLeft}px`,
-    width: `${e.offsetWidth}px`, height: `${e.offsetHeight}px`
-  });
-}
-
 const showDanhHieu = ref(false);
 useBackCloser(30, () => showDanhHieu.value, () => { showDanhHieu.value = false; });
 const daCoSet = computed(() => new Set(daCo.value));
@@ -296,7 +280,7 @@ useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; })
  * hỏi SAU khi đã lùi; `goHome()` tự lo chuyện đó, và hộp hỏi mà nó mở ra sẽ
  * thành chốt mới cho cú Back kế tiếp.
  */
-useBackCloser(20, () => screen.value !== 'menu', goHome);
+useBackCloser(20, () => screen.value !== 'menu', () => { if (screen.value === 'game') thoatVan(); else goHome(); });
 
 /** Bấm logo: về trang chủ — đang dở việc thì hỏi trước. */
 function goHome(): void {
@@ -305,7 +289,7 @@ function goHome(): void {
     return;
   }
   if (screen.value === 'game' && session.game.value && !session.game.value.finished) {
-    confirmQuit.value = true;         // ván offline đang chơi
+    thoatVeBuoc.value = false; confirmQuit.value = true;   // ván offline đang chơi (logo → trang chủ)
     return;
   }
   menuKey.value++;
@@ -550,7 +534,38 @@ watch(
   }
 );
 
+/*
+ * THOÁT VÁN = VỀ BƯỚC TRƯỚC KHI VÀO VÁN (chủ dự án 16.10.2026), không về tận trang chủ.
+ * Vào ván thì URL thành `?playing=1` và mất `?w=<bước wizard>`, nên nhớ bước đó lại lúc
+ * vào (sessionStorage: F5 giữa ván vẫn còn). Nút thoát trong ván + nút Back đi lối này;
+ * bấm LOGO vẫn về trang chủ (luật cũ: logo lau sạch URL). Vào từ lối tắt trang chủ thì
+ * không có bước nào → về trang chủ, cũng chính là "trang trước".
+ */
+const BUOC_TRUOC_KEY = 'mm.buocTruoc';
+const docBuocTruoc = (): string | null => { try { return sessionStorage.getItem(BUOC_TRUOC_KEY); } catch { return null; } };
+function nhoBuocTruoc(): void {
+  const w = new URLSearchParams(location.search).get('w');
+  try { if (w) sessionStorage.setItem(BUOC_TRUOC_KEY, w); else sessionStorage.removeItem(BUOC_TRUOC_KEY); } catch { /* bỏ qua */ }
+}
+/** Về menu, đứng ở bước wizard trước khi vào ván (cách làm như `doiBan`). */
+function veBuocTruoc(): void {
+  const w = docBuocTruoc();
+  backToMenu();
+  if (w) ghiQuery(`w=${w}`);
+  menuKey.value++;
+}
+/** Nút thoát trong ván / nút Back: ván đang dở thì hỏi trước. */
+const thoatVeBuoc = ref(false);
+function thoatVan(): void {
+  if (session.game.value && !session.game.value.finished) {
+    thoatVeBuoc.value = true; confirmQuit.value = true;
+    return;
+  }
+  veBuocTruoc();
+}
+
 function launch(config: GameConfig): void {
+  nhoBuocTruoc();
   isRecord.value = false;
   freshAchievements.value = [];
   session.start(config);
@@ -616,6 +631,16 @@ function nextLevel(): void {
 
 function replay(): void {
   startLevel(levelId.value ?? level.value);
+}
+
+/** Nút ↻ trên HUD (ván một mình / đấu máy): đã lật lá nào thì hỏi trước — lỡ tay là
+ *  mất cả ván; chưa lật gì thì chơi lại luôn. Dùng chung `replay()` với bảng kết quả. */
+const confirmChoiLai = ref(false);
+useBackCloser(30, () => confirmChoiLai.value, () => { confirmChoiLai.value = false; });
+function choiLaiVan(): void {
+  const g = session.game.value;
+  if (g && !g.finished && session.moves.value > 0) { confirmChoiLai.value = true; return; }
+  replay();
 }
 
 /** "Đổi bàn" ở bảng kết quả: về menu nhưng đứng sẵn ở bước chọn cỡ bàn (hoặc
@@ -777,13 +802,10 @@ const hasNext = computed(() => {
     @home="goHome"
   />
 
-  <!-- Transition KHÔNG dùng mode="out-in": đo được là pha vào không bao giờ chạy
-       sau khi màn online rời đi, để lại vùng chính TRẮNG XOÁ và chỉ F5 mới thoát
-       được (screen đã là 'menu' mà Vue vẫn render một comment rỗng). Chồng hai
-       màn một nhịp rồi cho màn cũ tách khỏi luồng (.screen-leave-active) là đủ
-       mượt mà không có trạng thái bế tắc nào. -->
+  <!-- ĐỔI MÀN TỨC THÌ, KHÔNG HIỆU ỨNG (chủ dự án 16.10.2026: thoát ván mà còn thấy
+       trang trượt/mờ là "không được nhanh"). Bản cũ mờ + trượt 10px ~0,3 giây, hai màn
+       chồng nhau một nhịp — đừng dựng lại. -->
   <main>
-    <Transition name="screen" @before-leave="ghimKhungRoi">
     <MenuScreen
       v-if="screen === 'menu'"
       :key="menuKey"
@@ -822,7 +844,8 @@ const hasNext = computed(() => {
       :game="session.game.value"
       :level-id="levelId ?? undefined"
       :series-wins="seriesWins"
-      @quit="goHome"
+      @quit="thoatVan"
+      @choi-lai="choiLaiVan"
     />
 
     <!-- Nhánh CUỐI bắt buộc phải có. Trước đây chuỗi kết thúc ở điều kiện
@@ -854,7 +877,6 @@ const hasNext = computed(() => {
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
-    </Transition>
   </main>
 
   <!-- Kho hình + gradient cho <OptionIcon>. Mount ĐÚNG MỘT LẦN: id gradient là
@@ -881,11 +903,20 @@ const hasNext = computed(() => {
   />
 
   <ConfirmDialog
+    v-if="confirmChoiLai"
+    :title="t('choiLai.tieuDe')"
+    :body="t('choiLai.than')"
+    :confirm-label="t('choiLai.nut')"
+    @confirm="confirmChoiLai = false; replay()"
+    @cancel="confirmChoiLai = false"
+  />
+
+  <ConfirmDialog
     v-if="confirmQuit"
     :title="t('thoat.tieuDe')"
     :body="t('thoat.than')"
     :confirm-label="t('thoat.nut')"
-    @confirm="confirmQuit = false; menuKey++; backToMenu()"
+    @confirm="confirmQuit = false; if (thoatVeBuoc) veBuocTruoc(); else { menuKey++; backToMenu(); }"
     @cancel="confirmQuit = false"
   />
 

@@ -157,6 +157,7 @@ const th: TuDien = {
   'hud.cap2': 'คู่',
   'hud.mangConLai': 'ชีวิตที่เหลือ',
   'hud.tamDung': 'หยุดชั่วคราว',
+  'hud.choiLai': "เริ่มใหม่",
   'hud.thoiGian': 'เวลา',
   'hud.sao': '{n} ดาว · ลืมได้อีก {m} ครั้ง',
   'hud.sao1': '{n} ดาว',
@@ -172,6 +173,9 @@ const th: TuDien = {
   'thoat.tieuDe': 'ออกจากเกม?',
   'thoat.than': 'ความคืบหน้าในเกมนี้จะไม่ถูกบันทึก',
   'thoat.nut': 'ออก',
+  'choiLai.tieuDe': "เริ่มเกมใหม่ไหม?",
+  'choiLai.than': "เกมนี้จะถูกยกเลิก และแจกกระดานใหม่",
+  'choiLai.nut': "เริ่มใหม่",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'ผู้เล่น',

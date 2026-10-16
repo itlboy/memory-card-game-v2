@@ -156,6 +156,7 @@ const zh: TuDien = {
   'hud.cap2': '配对',
   'hud.mangConLai': '剩余生命',
   'hud.tamDung': '暂停',
+  'hud.choiLai': "重新开始",
   'hud.thoiGian': '时间',
   'hud.sao': '{n} 星 · 还可遗忘 {m} 次',
   'hud.sao1': '{n} 星',
@@ -171,6 +172,9 @@ const zh: TuDien = {
   'thoat.tieuDe': '退出本局？',
   'thoat.than': '本局进度不会保存。',
   'thoat.nut': '退出',
+  'choiLai.tieuDe': "重新开始这局吗？",
+  'choiLai.than': "本局将作废，并重新发一副新牌。",
+  'choiLai.nut': "重新开始",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': '玩家',

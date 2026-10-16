@@ -159,6 +159,7 @@ const id: TuDien = {
   'hud.cap2': 'Pasang',
   'hud.mangConLai': 'Sisa nyawa',
   'hud.tamDung': 'Jeda',
+  'hud.choiLai': "Ulangi",
   'hud.thoiGian': 'Waktu',
   'hud.sao': '{n} bintang · boleh lupa {m} kali lagi',
   'hud.sao1': '{n} bintang',
@@ -174,6 +175,9 @@ const id: TuDien = {
   'thoat.tieuDe': 'Keluar dari permainan?',
   'thoat.than': 'Progres permainan ini tidak akan disimpan.',
   'thoat.nut': 'Keluar',
+  'choiLai.tieuDe': "Mulai ulang permainan?",
+  'choiLai.than': "Permainan ini akan dibatalkan dan papan baru dibagikan.",
+  'choiLai.nut': "Ulangi",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Pemain',

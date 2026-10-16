@@ -160,6 +160,7 @@ const it: TuDien = {
   'hud.cap2': 'Coppie',
   'hud.mangConLai': 'Vite rimaste',
   'hud.tamDung': 'Pausa',
+  'hud.choiLai': "Ricomincia",
   'hud.thoiGian': 'Tempo',
   'hud.sao': '{n} stelle · ancora {m} sviste concesse',
   'hud.sao1': '{n} stella',
@@ -175,6 +176,9 @@ const it: TuDien = {
   'thoat.tieuDe': 'Uscire dalla partita?',
   'thoat.than': 'I progressi di questa partita non verranno salvati.',
   'thoat.nut': 'Esci',
+  'choiLai.tieuDe': "Ricominciare la partita?",
+  'choiLai.than': "Questa partita verrà annullata e verrà distribuito un nuovo tabellone.",
+  'choiLai.nut': "Ricomincia",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Giocatori',

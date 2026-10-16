@@ -162,6 +162,7 @@ const fr: TuDien = {
   'hud.cap2': 'Paires',
   'hud.mangConLai': 'Vies restantes',
   'hud.tamDung': 'Pause',
+  'hud.choiLai': "Recommencer",
   'hud.thoiGian': 'Temps',
   'hud.sao': '{n} étoiles · encore {m} oublis permis',
   'hud.sao1': '{n} étoile',
@@ -177,6 +178,9 @@ const fr: TuDien = {
   'thoat.tieuDe': 'Quitter la partie ?',
   'thoat.than': 'Ta progression dans cette partie ne sera pas enregistrée.',
   'thoat.nut': 'Quitter',
+  'choiLai.tieuDe': "Recommencer la partie ?",
+  'choiLai.than': "Cette partie sera abandonnée et un nouveau plateau distribué.",
+  'choiLai.nut': "Recommencer",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Joueurs',

@@ -163,6 +163,7 @@ const vi = {
   'hud.cap2': 'Cặp',
   'hud.mangConLai': 'Mạng còn lại',
   'hud.tamDung': 'Tạm dừng',
+  'hud.choiLai': "Chơi lại",
   'hud.thoiGian': 'Thời gian',
   'hud.sao': '{n} sao · được quên thêm {m} lần',
   'hud.sao1': '{n} sao',
@@ -178,6 +179,9 @@ const vi = {
   'thoat.tieuDe': 'Thoát ván đang chơi?',
   'thoat.than': 'Ván này sẽ không được lưu kết quả.',
   'thoat.nut': 'Thoát ván',
+  'choiLai.tieuDe': "Chơi lại từ đầu?",
+  'choiLai.than': "Ván này sẽ bỏ, bàn mới được chia lại.",
+  'choiLai.nut': "Chơi lại",
 
   /* ---------- dải người chơi ---------- */
   'ps.nguoiChoi': 'Người chơi',

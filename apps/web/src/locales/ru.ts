@@ -170,6 +170,7 @@ const ru: TuDien = {
   'hud.cap2': 'Пары',
   'hud.mangConLai': 'Осталось жизней',
   'hud.tamDung': 'Пауза',
+  'hud.choiLai': "Заново",
   'hud.thoiGian': 'Время',
   'hud.sao': 'Звёзд: {n} · можно забыть ещё {m}',
   'hud.sao1': 'Звёзд: {n}',
@@ -185,6 +186,9 @@ const ru: TuDien = {
   'thoat.tieuDe': 'Выйти из игры?',
   'thoat.than': 'Прогресс этой партии не сохранится.',
   'thoat.nut': 'Выйти',
+  'choiLai.tieuDe': "Начать заново?",
+  'choiLai.than': "Эта партия будет сброшена, и поле раздадут заново.",
+  'choiLai.nut': "Заново",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Игроки',

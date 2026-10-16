@@ -157,6 +157,7 @@ const es: TuDien = {
   'hud.cap2': 'Pares',
   'hud.mangConLai': 'Vidas restantes',
   'hud.tamDung': 'Pausa',
+  'hud.choiLai': "Reiniciar",
   'hud.thoiGian': 'Tiempo',
   'hud.sao': '{n} estrellas · puedes olvidar {m} más',
   'hud.sao1': '{n} estrella',
@@ -172,6 +173,9 @@ const es: TuDien = {
   'thoat.tieuDe': '¿Salir de la partida?',
   'thoat.than': 'El progreso de esta partida no se guardará.',
   'thoat.nut': 'Salir',
+  'choiLai.tieuDe': "¿Reiniciar la partida?",
+  'choiLai.than': "Se descartará esta partida y se repartirá un tablero nuevo.",
+  'choiLai.nut': "Reiniciar",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Jugadores',

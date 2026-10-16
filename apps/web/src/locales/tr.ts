@@ -159,6 +159,7 @@ const tr: TuDien = {
   'hud.cap2': 'Çift',
   'hud.mangConLai': 'Kalan can',
   'hud.tamDung': 'Duraklat',
+  'hud.choiLai': "Yeniden başlat",
   'hud.thoiGian': 'Süre',
   'hud.sao': '{n} yıldız · {m} unutma hakkın kaldı',
   'hud.sao1': '{n} yıldız',
@@ -174,6 +175,9 @@ const tr: TuDien = {
   'thoat.tieuDe': 'Oyundan çıkılsın mı?',
   'thoat.than': 'Bu oyundaki ilerlemen kaydedilmeyecek.',
   'thoat.nut': 'Çık',
+  'choiLai.tieuDe': "Oyun yeniden başlasın mı?",
+  'choiLai.than': "Bu oyun silinecek ve yeni bir tahta dağıtılacak.",
+  'choiLai.nut': "Yeniden başlat",
 
   /* ---------- player strip ---------- */
   'ps.nguoiChoi': 'Oyuncular',

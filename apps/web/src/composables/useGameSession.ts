@@ -7,6 +7,9 @@ import { sfx } from '@/lib/audio';
 import { rung } from '@/lib/rung';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
+/** Mã người chơi của máy trong ván đấu máy — nhận ra ván đấu máy bằng mã này trong danh sách người chơi. */
+export const BOT_ID = 'bot';
+
 /**
  * Cầu nối engine ↔ Vue.
  *
@@ -221,7 +224,6 @@ export function useGameSession() {
   let botMem: BotMemory = createBotMemory();
   let botRandom = botRng(1);
   let botTimer: ReturnType<typeof setTimeout> | undefined;
-  const BOT_ID = 'bot';
 
   /** Bot đang nghĩ — UI khoá bàn để người chơi không lật hộ nó. */
   const botThinking = ref(false);
