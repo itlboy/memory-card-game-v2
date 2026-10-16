@@ -1,57 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import {
-  DEAL_ANIM_MS, DEAL_ROW_GAP_MS, DEAL_SETTLE_MS, DEAL_TOTAL_CAP_MS,
-  dealDelay, dealRowGap, dealSpan
-} from '@/lib/timing';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import * as timing from '@/lib/timing';
+import { DEAL_ANIM_MS, DEAL_SETTLE_MS } from '@/lib/timing';
 
 /**
- * NHỊP CHIA BÀI ĐI THEO HÀNG, KHÔNG THEO TỪNG THẺ.
- *
- * Bản trước so le 28ms một THẺ, nên bàn 88 thẻ có 88 animation lệch nhau chạy
- * cùng lúc — nhìn ra thành giật và không đọc được thứ tự nào. Nay cả một hàng
- * bay vào cùng lúc, hàng trên trước hàng dưới.
+ * CẢ BÀN HIỆN CÙNG LÚC (chủ dự án 16.10.2026). Lịch sử: so le 28ms mỗi THẺ (giật) →
+ * lệch 100ms mỗi HÀNG (gợn sóng, "không mượt") → nay mọi lá chung một nhịp, không trễ.
  */
-describe('nhịp chia bài theo hàng', () => {
-  it('hàng trên vào TRƯỚC hàng dưới', () => {
-    const rows = 4;
-    const moc = [0, 1, 2, 3].map((r) => dealDelay(r, rows));
-    expect(moc).toEqual([...moc].sort((a, b) => a - b));
-    expect(new Set(moc).size, 'hai hàng cùng mốc thì mất thứ tự').toBe(rows);
-  });
+const doc = (p: string): string => readFileSync(resolve(process.cwd(), p), 'utf8');
 
-  it('mọi cỡ bàn THẬT đều giữ đúng nhịp đã đặt', () => {
-    // 12 cỡ bàn của game có nhiều nhất 11 hàng (88 thẻ, 8 cột). Ở nhịp 100ms thì
-    // bàn to nhất cũng chỉ mất 1,0 giây nên không cỡ nào bị dồn.
-    for (const rows of [2, 4, 6, 7, 9, 11]) {
-      expect(dealRowGap(rows), `${rows} hàng`).toBe(DEAL_ROW_GAP_MS);
-    }
-    expect(dealSpan(11), 'bàn 88 thẻ').toBe(10 * DEAL_ROW_GAP_MS);
-  });
-
-  it('trần tổng vẫn chặn được khi nhịp bị nâng lên', () => {
-    /*
-     * Trần là CHỐT CHẶN, không phải mức thường dùng: ở 100ms nó không bao giờ
-     * chạm. Nhưng nhịp là thứ hay được chỉnh — lúc thử 500ms thì bàn 88 thẻ mất
-     * 5 giây, mà ván online thì 5 giây đó nằm TRƯỚC nước đi đầu tiên.
-     */
-    for (const rows of [2, 4, 11, 20, 40, 80]) {
-      expect(dealSpan(rows), `${rows} hàng`).toBeLessThanOrEqual(DEAL_TOTAL_CAP_MS);
-    }
-    // Nhiều hàng hơn mọi bàn thật: trần phải bắt đầu dồn nhịp lại.
-    expect(dealRowGap(40)).toBeLessThan(DEAL_ROW_GAP_MS);
-  });
-
-  it('dealSpan đúng bằng lúc HÀNG CUỐI bắt đầu bay vào', () => {
-    for (const rows of [1, 4, 11]) {
-      expect(dealSpan(rows)).toBe(dealDelay(rows - 1, rows));
-    }
-  });
-
-  it('bàn một hàng không âm và không chia cho 0', () => {
-    expect(dealSpan(1)).toBe(0);
-    expect(dealDelay(0, 1)).toBe(0);
-    expect(dealRowGap(0)).toBeGreaterThan(0);
-    expect(dealDelay(-3, 4), 'hàng âm (dữ liệu hỏng) không được ra số âm').toBe(0);
+describe('nhịp chia bài: cả bàn cùng lúc', () => {
+  it('không còn độ trễ theo hàng / theo thẻ', () => {
+    expect(Object.keys(timing)).not.toContain('dealDelay');
+    expect(Object.keys(timing)).not.toContain('DEAL_ROW_GAP_MS');
+    const tile = doc('src/components/CardTile.vue');
+    expect(tile, 'animation deal không được có delay riêng từng lá').not.toMatch(/animation-delay:\s*var\(--deal/);
+    expect(tile).not.toContain("'--deal'");
+    expect(doc('src/components/BoardGrid.vue'), 'BoardGrid không còn truyền hàng cho CardTile').not.toMatch(/:rows?="/);
   });
 
   it('CSS và JS dùng CÙNG một độ dài animation', () => {
@@ -60,16 +26,14 @@ describe('nhịp chia bài theo hàng', () => {
      * `settled`, tức mở lại hover). Lệch với CSS là hover bị khoá oan — bản cũ
      * khai 2,4s nên nó khoá hơn hai giây sau khi lá đã yên.
      */
-    const src = require('node:fs').readFileSync(
-      require('node:path').resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+    const src = doc('src/components/CardTile.vue');
     const giay = Number(/animation: deal ([\d.]+)s/.exec(src)![1]);
     expect(giay * 1000).toBe(DEAL_ANIM_MS);
     expect(DEAL_SETTLE_MS, 'mốc "đã đáp" phải nằm trong animation').toBeLessThan(DEAL_ANIM_MS);
   });
 
   it('gợn sóng: lá LÚN rồi NỞ, không bay từ xa vào', () => {
-    const src = require('node:fs').readFileSync(
-      require('node:path').resolve(process.cwd(), 'src/components/CardTile.vue'), 'utf8');
+    const src = doc('src/components/CardTile.vue');
     const kf = /@keyframes deal \{([\s\S]*?)\n\}/.exec(src)![1];
     // Khung đầu phải là cỡ LÚN (dưới 1), và phải nhỏ vừa phải — 0,72 như bản cũ
     // là "bay từ xa vào", không phải lún.
@@ -85,10 +49,4 @@ describe('nhịp chia bài theo hàng', () => {
     expect(Math.max(...dinh), 'thiếu đoạn nở quá thì nhìn như hình bị cắt').toBeGreaterThan(1);
   });
 
-  it('BoardGrid tính hàng từ số cột, không đoán', () => {
-    const src = require('node:fs').readFileSync(
-      require('node:path').resolve(process.cwd(), 'src/components/BoardGrid.vue'), 'utf8');
-    expect(src).toMatch(/:row="Math\.floor\(card\.index \/ cols\)"/);
-    expect(src).toMatch(/:rows="Math\.ceil\(cards\.length \/ cols\)"/);
-  });
 });

@@ -2,7 +2,7 @@
 import { t } from '@/lib/i18n';
 import type { Card } from '@mm/engine';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { DEAL_ANIM_MS, DEAL_SETTLE_MS, dealDelay } from '@/lib/timing';
+import { DEAL_ANIM_MS, DEAL_SETTLE_MS } from '@/lib/timing';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { anhEmoji } from '@/lib/emoji';
@@ -15,12 +15,6 @@ const props = defineProps<{
   /** Đang được thẻ mắt thần / Peek hé mở, không phải do người chơi lật. */
   peeking: boolean;
   disabled: boolean;
-  /** Hàng thứ mấy trên bàn (0 = trên cùng) — quyết định thứ tự chia bài: cả
-   *  một hàng bay vào cùng lúc, hàng trên trước hàng dưới. */
-  row?: number;
-  /** Bàn có bao nhiêu hàng, để dồn nhịp lại khi bàn nhiều hàng (xem
-   *  `DEAL_TOTAL_CAP_MS`): 11 hàng × 500ms là 5 giây ngồi chờ mỗi ván. */
-  rows?: number;
   /** Chỗ CŨ của lá bài này so với chỗ mới, khi vừa bị thẻ tráo đổi hoán chỗ.
    *  Animation chạy từ đó về 0 nên mắt thấy nó bay sang chỗ mới. */
   swapFrom?: { dx: number; dy: number; sign: number };
@@ -109,7 +103,6 @@ const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: '
 
 /** Nhịp lấy từ lib/timing để TIẾNG chia bài dứt đúng lúc thẻ cuối bay vào. */
 /* Trễ theo HÀNG: cả hàng bay vào cùng lúc, hàng trên trước hàng dưới. */
-const dealStagger = computed(() => dealDelay(props.row ?? 0, props.rows ?? 1));
 
 /**
  * Hướng lật vừa xảy ra, để chạy đúng một lần nhịp lắc — `null` là không lắc.
@@ -215,8 +208,8 @@ const settled = ref(false);
 let dealTimer: ReturnType<typeof setTimeout> | undefined;
 let settleTimer: ReturnType<typeof setTimeout> | undefined;
 onMounted(() => {
-  dealTimer = setTimeout(() => { dealt.value = true; }, dealStagger.value + DEAL_SETTLE_MS);
-  settleTimer = setTimeout(() => { settled.value = true; }, dealStagger.value + DEAL_ANIM_MS);
+  dealTimer = setTimeout(() => { dealt.value = true; }, DEAL_SETTLE_MS);
+  settleTimer = setTimeout(() => { settled.value = true; }, DEAL_ANIM_MS);
 });
 onUnmounted(() => {
   clearTimeout(dealTimer); clearTimeout(settleTimer);
@@ -410,7 +403,6 @@ const label = computed(() => {
       'wob-hover': hoverWob, nhan, loe, settled, 'ban-lon': banLon,
       'loe-doi': loeDoi, 'giu-dau': giuDau }"
     :style="{
-      '--deal': `${dealStagger}ms`,
       '--wob': card.index % 2 ? 1 : -1,
       ...(swapFrom ? {
         '--sx': `${swapFrom.dx}px`,
@@ -481,22 +473,21 @@ const label = computed(() => {
   /* 520ms, khớp `DEAL_ANIM_MS` — đổi một chỗ thì phải đổi chỗ kia, vì JS dùng
      con số đó để biết lúc nào lá đã nằm yên (`settled`). */
   animation: deal 0.52s linear backwards;
-  animation-delay: var(--deal, 0ms);
   /* Container query: nội dung thẻ to theo kích thước THẺ, không theo viewport —
      bàn 2×2 thẻ to thì biểu tượng cũng to tương ứng */
   container-type: inline-size;
 }
 @keyframes deal {
   /*
-   * LÚN RỒI NỞ RA — cả bàn đọc thành MỘT GỢN SÓNG chạy từ trên xuống.
+   * LÚN RỒI NỞ RA — cả bàn cùng lúc.
    *
    * Bản trước là "bay vào": lá xuất phát ở scale 0,72 lệch dưới 16px và xoay
    * -22°, rồi lắc tắt dần suốt 2,4 giây. Ba chuyển động cùng lúc trên hàng chục
    * lá là thứ đọc ra thành GIẬT, và không có hướng nào để mắt đi theo.
    *
    * Nay chỉ còn MỘT chuyển động, một chiều: lá hiện ra ở cỡ lún (0,92 — như vừa
-   * bị ấn xuống mặt bàn) rồi nở về đúng cỡ. Mỗi hàng lệch nhau 100ms
-   * (`DEAL_ROW_GAP_MS`), nên cái nở đó truyền xuống như gợn sóng.
+   * bị ấn xuống mặt bàn) rồi nở về đúng cỡ. CẢ BÀN CÙNG MỘT NHỊP (16.10.2026) —
+   * bản lệch 100ms mỗi hàng (gợn sóng) bị chê không mượt.
    *
    * Nở QUÁ một chút (1,015) rồi mới về 1: không có bước đó thì cái nở dừng đột
    * ngột, đọc ra như hình bị cắt chứ không phải một vật nảy lên.
