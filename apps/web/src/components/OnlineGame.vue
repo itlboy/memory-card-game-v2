@@ -29,6 +29,12 @@ import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
 const emit = defineEmits<{ quit: [] }>();
 const o = props.o;
+/** Avatar người đi đầu (đếm ngược trước ván) — thay 🎲; online không có máy nên in chữ trơn. */
+const matDiTruoc = computed(() => {
+  const id = o.countdown.value?.firstId;
+  const ps = o.view.value?.players ?? o.room.value?.players ?? [];
+  return ps.find((p) => p.id === id)?.avatar ?? '🎮';
+});
 
 /** Còn đủ người để chơi lại không. Trước đây đối phương thoát rồi mà nút "chơi
  *  lại" vẫn bấm được — bấm xong ngồi chờ một người đã đi hẳn. */
@@ -490,7 +496,7 @@ watch(() => o.view.value?.summary, (s) => {
       <!-- Đếm ngược trước ván + báo người đi đầu -->
       <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
-        <span class="first">🎲 <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
+        <span class="first"><span class="mat-dau">{{ matDiTruoc }}</span> <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
       </div>
 
     </div>
@@ -939,9 +945,11 @@ watch(() => o.view.value?.summary, (s) => {
 .countdown {
   position: fixed; inset: 0; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  backdrop-filter: blur(3px); pointer-events: none;
+  /* Đặc hơn (82%) — cùng số với GameScreen, xem lý do ở đó */
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); pointer-events: none;
 }
+.countdown .mat-dau { display: inline-grid; place-items: center; font-size: 1.5em; line-height: 1; }
 .countdown .num {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(80px, 30vw, 150px); line-height: 1; color: var(--accent);
@@ -950,6 +958,7 @@ watch(() => o.view.value?.summary, (s) => {
 }
 @keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
 .countdown .first {
+  display: flex; align-items: center; gap: 7px; white-space: nowrap;
   font-size: clamp(16px, 4.5vw, 22px); padding: 6px 18px; border-radius: var(--r-full);
   background: var(--panel); border: 2px solid var(--accent); box-shadow: var(--shadow);
 }

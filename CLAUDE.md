@@ -469,6 +469,8 @@
   KHÔNG có (`overflow-clip-margin`), nên lỗi "cạnh nút bị cắt" ở Đêm Sao/Kẹo Bông/Gỗ đo Chrome
   xanh, iPhone hỏng. Lần đầu: `pnpm exec playwright install webkit`. Nó cũng bắt được nút
   "Bắt đầu" LÒI khỏi màn ở bước Bàn chơi trên iPhone SE (lỗi ở MỌI trình duyệt, chưa ai đo).
+  ẢNH BÀN CHƠI CỦA NÓ LỘ HẾT MẶT BÀI LÀ GIẢ: WebKit headless trên Mac bỏ qua
+  `backface-visibility` (đã thử trang tối giản) — không phải lỗi lộ bài trên iPhone.
   Lưới cắt (`overflow: clip/hidden`) chứa ô có bóng/viền vẽ NGOÀI mép thì phải chừa ĐỆM thật
   (cả ngang lẫn dọc, margin âm bù lại) — đừng trông vào `overflow-clip-margin`.
 - **Lỗi hình chỉ có trên iPhone** (tách lớp GPU): Chrome/WebKit headless trên Mac KHÔNG
