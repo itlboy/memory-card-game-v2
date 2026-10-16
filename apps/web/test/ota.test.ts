@@ -7,12 +7,14 @@ import { resolve } from 'node:path';
  * Canh: báo sẵn sàng NGAY (không thì plugin quay về gói cũ), bỏ qua khi đã đúng gói /
  * app quá cũ / gói từng hỏng, và chỉ áp ở lần MỞ LẠI app (`kill`).
  */
-const goi = { notifyAppReady: vi.fn(async () => ({})), list: vi.fn(), download: vi.fn(), next: vi.fn(async () => ({})), setMultiDelay: vi.fn(async () => {}), set: vi.fn(async () => {}) };
+const goi = { notifyAppReady: vi.fn(async () => ({})), list: vi.fn(), download: vi.fn(), next: vi.fn(async () => ({})), setMultiDelay: vi.fn(async () => {}), set: vi.fn(async () => {}), delete: vi.fn(async () => {}), addListener: vi.fn(async () => ({ remove: async () => {} })) };
 let manifest: Record<string, string> | null = null;
 let banApp = '1.3.0';
 vi.mock('@/lib/native', () => ({ laApp: true, nenApp: 'ios', SITE_URL: 'https://flipmatch.cozypi.com' }));
 vi.mock('@capgo/capacitor-updater', () => ({ CapacitorUpdater: goi }));
-vi.mock('@capacitor/core', () => ({ CapacitorHttp: { get: vi.fn(async () => ({ status: manifest ? 200 : 404, data: manifest })) } }));
+let dsFile: [string, string][] | null = null;
+vi.mock('@capacitor/core', () => ({ CapacitorHttp: { get: vi.fn(async ({ url }: { url: string }) =>
+  url.includes('.files.json') ? { status: dsFile ? 200 : 404, data: dsFile } : { status: manifest ? 200 : 404, data: manifest }) } }));
 vi.mock('@capacitor/app', () => ({ App: { getInfo: async () => ({ version: banApp, build: '130' }) } }));
 
 beforeEach(() => {
@@ -20,6 +22,7 @@ beforeEach(() => {
   goi.list.mockResolvedValue({ bundles: [] });
   goi.download.mockResolvedValue({ id: 'b1', version: 'moi', status: 'success' });
   banApp = '1.3.0';
+  dsFile = null;
 });
 const MOI = { id: 'moi', url: '/ota/moi.zip', sha256: 'abc', minNative: '1.3.0' };
 
@@ -60,6 +63,48 @@ describe('cập nhật nóng', () => {
     expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
     expect(goi.setMultiDelay).toHaveBeenCalledWith({ delayConditions: [{ kind: 'kill' }] });
     history.replaceState(null, '', '/');
+  });
+
+  it('TẢI CHÊNH LỆCH: có danh sách file thì đưa plugin từng file + sha256 + url theo mã băm', async () => {
+    manifest = { ...MOI, files: '/ota/moi.files.json' };
+    dsFile = [['index.html', 'a'.repeat(64)], ['emoji/3d/1f600.webp', 'b'.repeat(64)]];
+    history.replaceState(null, '', '/?w=theme');
+    const { kiemOta, trangThaiOta } = await import('@/lib/ota');
+    await kiemOta();
+    expect(goi.download).toHaveBeenCalledTimes(1);
+    expect(goi.download).toHaveBeenCalledWith({
+      url: 'https://flipmatch.cozypi.com/ota/moi.zip', version: 'moi',
+      manifest: [
+        { file_name: 'index.html', file_hash: 'a'.repeat(64), download_url: `https://flipmatch.cozypi.com/ota/f/${'a'.repeat(64)}.html` },
+        { file_name: 'emoji/3d/1f600.webp', file_hash: 'b'.repeat(64), download_url: `https://flipmatch.cozypi.com/ota/f/${'b'.repeat(64)}.webp` }
+      ]
+    });
+    expect(trangThaiOta.value.buoc).toBe('choMoLai');
+    history.replaceState(null, '', '/');
+  });
+
+  it('tải chênh lệch LỖI: xoá dấu hỏng của bản đó rồi quay về zip (không bao giờ mất đường cập nhật)', async () => {
+    manifest = { ...MOI, files: '/ota/moi.files.json' };
+    dsFile = [['index.html', 'a'.repeat(64)]];
+    goi.download.mockRejectedValueOnce(new Error('file 404'));
+    goi.list.mockResolvedValueOnce({ bundles: [] }).mockResolvedValueOnce({ bundles: [{ id: 'hong', version: 'moi', status: 'error' }] });
+    history.replaceState(null, '', '/?w=theme');
+    const { kiemOta } = await import('@/lib/ota');
+    await kiemOta();
+    expect(goi.delete).toHaveBeenCalledWith({ id: 'hong' });
+    expect(goi.download).toHaveBeenLastCalledWith({ url: 'https://flipmatch.cozypi.com/ota/moi.zip', version: 'moi', checksum: 'abc' });
+    expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
+    history.replaceState(null, '', '/');
+  });
+
+  it('trạng thái cho khối debug: mới nhất / lỗi kèm lý do', async () => {
+    const { kiemOta, trangThaiOta } = await import('@/lib/ota');
+    manifest = { ...MOI, id: __OTA_ID__ };
+    await kiemOta();
+    expect(trangThaiOta.value.buoc).toBe('moiNhat');
+    manifest = null;
+    await kiemOta();
+    expect(trangThaiOta.value).toMatchObject({ buoc: 'loi', loi: 'manifest HTTP 404' });
   });
 
   it('đang chạy đúng gói trên server: không tải', async () => {

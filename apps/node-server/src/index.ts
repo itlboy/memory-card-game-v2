@@ -205,6 +205,8 @@ function cacheControl(file: string): string {
   // EXPIRED mỗi lần và kéo nguyên 3 MB từ pod cho từng máy cập nhật (đo
   // 15.10.2026). manifest.json thì KHÔNG: nó là thứ báo "có gói mới".
   if (/[/\\]ota[/\\][^/\\]+\.zip$/.test(file)) return 'public, max-age=31536000, immutable';
+  // tải chênh lệch: file theo sha256 + danh sách file của từng bản — không bao giờ đổi nội dung
+  if (/[/\\]ota[/\\](f[/\\][0-9a-f]{64}(\.[a-z0-9]+)?|[^/\\]+\.files\.json)$/.test(file)) return 'public, max-age=31536000, immutable';
   // Không có hash trong tên → luôn hỏi lại. no-cache chứ KHÔNG no-store:
   // no-store cấm lưu hẳn, service worker mất khả năng precache và app mất chạy
   // offline — đúng thứ PWA dựng lên để có.
