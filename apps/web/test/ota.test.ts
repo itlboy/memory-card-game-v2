@@ -230,4 +230,22 @@ describe('cập nhật nóng', () => {
     expect(anhEmoji('😀', true, 128)).toContain('/emoji/3d/128/');
     co512.value = true;
   });
+
+  it('lỗi tạm thì TỰ THỬ LẠI sau 1 phút, tối đa 3 lần (không bắt người chơi bấm gì)', async () => {
+    vi.useFakeTimers();
+    try {
+      const core = await import('@capacitor/core');
+      const get = core.CapacitorHttp.get as unknown as { mock: { calls: unknown[] } };
+      const { kiemOta, trangThaiOta } = await import('@/lib/ota');
+      manifest = null;
+      const truoc = get.mock.calls.length;
+      await kiemOta();
+      expect(trangThaiOta.value.buoc).toBe('loi');
+      for (let i = 0; i < 5; i++) await vi.advanceTimersByTimeAsync(60_000);
+      expect(get.mock.calls.length - truoc).toBe(1 + 3);       // lần đầu + 3 lần thử lại, rồi thôi
+      manifest = { ...MOI, id: __OTA_ID__ };
+      await kiemOta();
+      expect(trangThaiOta.value.buoc).toBe('moiNhat');
+    } finally { vi.useRealTimers(); }
+  });
 });
