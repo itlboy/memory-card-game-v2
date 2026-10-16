@@ -131,8 +131,6 @@ defineExpose({
       :key="card.index"
       :card="card"
       :back="back ?? 'stars'"
-      :row="Math.floor(card.index / cols)"
-      :rows="Math.ceil(cards.length / cols)"
       :card-count="cards.length"
       :co-anh="coAnh"
       :face-up="faceUp.has(card.index)"

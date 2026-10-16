@@ -103,16 +103,14 @@
   phương mở lá nào (đã bị phản ánh); vòng sáng chạy ra ngoài mép nên bắt được
   mắt ở tầm nhìn ngoại vi. Tín hiệu đi từ event `flip` → `vuaMo` (ở cả
   `useGameSession` và `useOnlineRoom`) → BoardGrid → CardTile.
-- **CHIA THẺ THEO HÀNG, LÚN RỒI NỞ** (`lib/timing.ts` + keyframes `deal`):
-  mỗi hàng lệch nhau `DEAL_ROW_GAP_MS` 100ms, hàng trên trước; mỗi lá hiện ở cỡ
-  0,92 rồi nở về 1 (nở quá 1,015 rồi mới về, không thì cái nở dừng đột ngột).
-  Cả bàn đọc thành MỘT gợn sóng. Bản cũ so le 28ms mỗi THẺ và mỗi lá bay vào từ
-  scale 0,72 + lệch 16px + xoay 22° rồi lắc tắt dần 2,4 giây — ba chuyển động
-  cùng lúc trên hàng chục lá, đó chính là cái "giật".
+- **CHIA THẺ: CẢ BÀN HIỆN CÙNG LÚC, LÚN RỒI NỞ** (`lib/timing.ts` + keyframes `deal`,
+  chủ dự án 16.10.2026): mọi lá chạy CHUNG một nhịp, không trễ theo hàng hay theo thẻ — lá
+  hiện ở cỡ 0,92 rồi nở về 1 (nở quá 1,015 rồi mới về, không thì cái nở dừng đột ngột).
+  Lịch sử để đừng dựng lại: so le 28ms mỗi THẺ + bay từ xa + lắc 2,4 giây ("giật") → lệch
+  100ms mỗi HÀNG thành gợn sóng (vẫn "không mượt") → cùng lúc.
   `DEAL_ANIM_MS` (520ms) PHẢI khớp `animation: deal 0.52s` trong CSS: JS dùng con
   số đó để biết lá đã nằm yên (`settled`, tức mở lại hover) — bản cũ khai 2,4s
-  nên nó khoá hover hơn hai giây sau khi lá đã yên. `DEAL_TOTAL_CAP_MS` 3 giây là
-  chốt chặn cho lúc thử nhịp cao (500ms × 11 hàng = 5 giây chờ trước nước đi đầu).
+  nên nó khoá hover hơn hai giây sau khi lá đã yên.
 - **Lắc thẻ phải cùng trục với cú lật** (`rotateY`, không `rotateZ`), biên độ
   giảm dần; một lá chỉ một animation chạy cùng lúc (cái sau đè cái trước).
 - Cỡ chữ wizard dùng chung `.option strong` / `.option small` ở wizard.css.
