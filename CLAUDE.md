@@ -525,8 +525,12 @@
     `lib/ota.ts`. HTML KHÔNG mang đuôi: Cloudflare sửa HTML trên đường đi (email…) → lệch
     sha256 → cả lượt tải chênh lệch hỏng, lùi về zip 33MB (đã xảy ra, smoke bắt).
   · Đổi native (plugin, Swift/Java, quyền) → bản store + NÂNG `minNative` (apps/web/ota.json).
-  · `/ota/*` phải tới server có gói (Node k8s; Worker Cloudflare cố ý BỎ `ota/` vì >25MiB) và
-    KHÔNG bị SPA fallback / service worker nuốt; `SITE_URL` (lib/native.ts) trỏ đúng server đó.
+  · `/ota/*` do CLOUDFLARE WORKER phục vụ (16.10.2026 — trước ở pod Node, 503 mỗi lần Keel thay
+    pod, máy chủ dự án dính thật): manifest, danh sách file, `f/<sha256>` và ZIP đều từ CÙNG
+    một bản `pnpm release`. Worker giới hạn 25MiB/FILE (gói miễn phí, không R2) → zip BỎ ảnh
+    emoji 512 (~14MB, build đỏ nếu > 24MiB); app cài bằng zip tự dùng 256 (`kiemCo512`). Đường
+    tải chênh lệch vẫn đủ 512. `/ota/*` nằm trong `run_worker_first`, thiếu file → 404 thật
+    (SPA fallback trả index.html là app đọc nhầm). `SITE_URL` (lib/native.ts) trỏ đúng tên miền.
   · Sửa `lib/ota.ts`, `dong-goi-ota.mjs`, `capacitor.config` (khối CapacitorUpdater) hay tầng
     phục vụ `/ota/` thì: `test/ota.test.ts` xanh → deploy → `pnpm smoke:ota` xanh → thử trên
     MÁY THẬT HAI BƯỚC: máy nhận bản A (bản có thay đổi), RỒI deploy thêm bản B và xem máy đi

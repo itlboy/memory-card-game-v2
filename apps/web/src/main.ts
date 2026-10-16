@@ -47,6 +47,8 @@ ganNutBackAndroid();
 ganLinkMoi();
 // Cập nhật nóng: báo gói chạy được NGAY (không thì plugin quay về gói trước), rồi kiểm bản mới
 void import('./lib/ota').then((m) => m.kiemOta());
+// Gói cài bằng zip OTA thiếu ảnh emoji 512 (zip phải < 25MiB) → dùng 256 (lib/emoji.ts)
+if (laApp) void import('./lib/emoji').then((m) => m.kiemCo512());
 
 if (laApp) {
   requestAnimationFrame(() => requestAnimationFrame(() => {
