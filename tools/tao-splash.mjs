@@ -48,8 +48,6 @@ const TIM = '<svg viewBox="0 0 24 24"><defs><radialGradient id="t" cx=".4" cy=".
 const html = (toi) => `<!doctype html><meta charset="utf-8"><style>
 html,body{margin:0;height:100%}
 body{position:relative;overflow:hidden;background:${toi ? `
-  radial-gradient(circle 3.2vmin at 63.5% 25.5%,#1d2860 95%,transparent),
-  radial-gradient(circle 3.8vmin at 66% 27%,#fff3c4 95%,transparent),
   radial-gradient(circle 10vmin at 66% 27%,rgba(255,238,170,.2) 55%,transparent),
   radial-gradient(circle .35vmin at 24% 20%,#fff 95%,transparent),
   radial-gradient(circle .3vmin at 44% 14%,#fff 95%,transparent),
@@ -64,6 +62,7 @@ body{position:relative;overflow:hidden;background:${toi ? `
   radial-gradient(circle 4vmin at 66% 27%,#ffe066 92%,#ffc93a 96%,transparent),
   radial-gradient(circle 9vmin at 66% 27%,rgba(255,232,130,.5) 50%,transparent),
   linear-gradient(#45b3ef,#7fd3fb 70%,#b5e8ff)`}}
+.trang{position:absolute;left:66%;top:27%;width:7.6vmin;height:7.6vmin;translate:-50% -50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='t' cx='.38' cy='.32' r='.75'%3E%3Cstop offset='0' stop-color='%23fffbe6'/%3E%3Cstop offset='.7' stop-color='%23fbe8a6'/%3E%3Cstop offset='1' stop-color='%23efd07a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url%28%23t%29'/%3E%3Ccircle cx='34' cy='38' r='9' fill='%23e6c76a' opacity='.45'/%3E%3Ccircle cx='62' cy='62' r='12' fill='%23e6c76a' opacity='.4'/%3E%3Ccircle cx='66' cy='30' r='5.5' fill='%23e6c76a' opacity='.4'/%3E%3Ccircle cx='36' cy='68' r='5' fill='%23e6c76a' opacity='.35'/%3E%3C/svg%3E") center/contain no-repeat}
 .doi{position:absolute;inset:0;background:${toi ? `
   radial-gradient(100vmax 26vh at 20% 106%,#1b2760 60%,#141d4d 61.5%,transparent 62%),
   radial-gradient(120vmax 34vh at 82% 108%,#2a3678 60%,#222d68 61.5%,transparent 62%)` : `
@@ -81,7 +80,7 @@ body{position:relative;overflow:hidden;background:${toi ? `
   : `border-color:#6d8fdc;background:radial-gradient(110% 80% at 50% 35%,#fffdf2,#fff1c9 90%);
   box-shadow:inset 0 0 0 .3vmin rgba(232,178,40,.7),0 0 0 .15vmin rgba(20,30,70,.14),0 .35vmin 0 #5577c4,0 .7vmin 0 #4563ad,0 2.6vmin 4vmin rgba(10,20,60,.32)}`}
 .giua svg{width:56%}
-</style><body><div class="doi"></div><div class="la trai">${SAO}</div><div class="la phai">${SAO}</div><div class="la giua">${TIM}</div></body>`;
+</style><body>${toi ? '<div class="trang"></div>' : ''}<div class="doi"></div><div class="la trai">${SAO}</div><div class="la phai">${SAO}</div><div class="la giua">${TIM}</div></body>`;
 
 /* Đích bản TỐI: Android chèn `night` đúng thứ tự qualifier (sau port/land, trước mật độ);
    iOS thêm hậu tố `-toi` + khai Dark Appearance trong Contents.json. */
