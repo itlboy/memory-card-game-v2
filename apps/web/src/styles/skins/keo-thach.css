@@ -62,6 +62,8 @@
   .btn-primary, .btn.danger, .th-chon-do:is([aria-selected='true'], [aria-checked='true'], [aria-pressed='true'])) { text-shadow: var(--th-chu); }
 /* bo góc của các lớp dùng chung (component đặt góc riêng nhỏ hơn) */
 :root[data-skin='keo'] :where(.btn) { border-radius: 16px !important; }
+/* Nút trắng (.btn) cùng font Kẹo với nút màu — trước rơi về font chữ thường, "Thoát về menu" lệch hẳn "Chơi tiếp" (chủ dự án báo 18.10.2026) */
+:root[data-skin='keo'] :where(.btn) { font-family: var(--font-display); font-weight: 700; }
 :root[data-skin='keo'] :where(.option) { border-radius: 18px !important; }
 :root[data-skin='keo'] :where(.tabs .tab) { border-radius: 14px !important; }
 :root[data-skin='keo'] :where(.thach, .btn, .btn-primary, .option, .seg-btn, .neon[class*='g-'], .hud .vien, .topbar .total, .topbar [aria-haspopup='menu']):not(:disabled):active { transform: translateY(3px); }
