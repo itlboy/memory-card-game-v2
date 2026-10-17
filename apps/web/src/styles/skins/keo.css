@@ -83,7 +83,8 @@
   font-weight: 900; text-shadow: var(--chu-vien);
 }
 :root[data-skin='keo'] .topbar .total {
-  color: var(--ink); background: #ffcb2e;
+  /* Nền TRẮNG như các viên HUD: nền vàng cũ nuốt mất đồng xu vàng (chủ dự án 17.10.2026). */
+  color: var(--ink); background: var(--panel-solid);
   border: 2.5px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
 }
 :root[data-skin='keo'] .topbar .dh {
