@@ -176,16 +176,17 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
 /**
  * TỪ ĐỒNG NGUYÊN hợp lệ: cụm giống hệt English vì ngôn ngữ đó VIẾT Y NHƯ VẬY, không
  * phải quên dịch. Khai TỪNG từ cho TỪNG ngôn ngữ (không nới cả phép kiểm), để một câu
- * English dài bị bỏ quên vẫn đỏ. Đã rà tay từng mục (12.10.2026).
+ * English dài bị bỏ quên vẫn đỏ. Đã rà tay từng mục (12.10.2026). "Auto" (nút Giao diện Tự động,
+ * 17.10.2026): es/pt/fr/de/it viết y vậy.
  */
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
-  es: ['Solo', 'Normal', 'pts', '999.999k pts', 'Premium'],
-  pt: ['Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium'],
-  fr: ['Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium'],
-  de: ['Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium'],
+  es: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Premium'],
+  pt: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium'],
+  fr: ['Auto', 'Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium'],
+  de: ['Auto', 'Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium'],
   en: ['Neon', 'Premium'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
   id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon', 'Premium'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
-  it: ['Menu', 'Account', 'Neon', 'Premium', 'offline'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
+  it: ['Auto', 'Menu', 'Account', 'Neon', 'Premium', 'offline'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
   tr: ['Neon', 'Premium']
 };
 

@@ -314,16 +314,31 @@
   gradient tím từng làm skin Kẹo lòi tím khắp nơi. Hình nền: `--nen-man` (body, neo
   cửa sổ) và `--canh` (vẽ theo khung #app — neo theo cửa sổ thì trên máy tính giữa
   cột trống trơn). Màn tạm dừng dùng `--canh, --nen-man`.
-- Skin (trừ Neon) KHOÁ màu mặt sau lá theo skin; hoạ tiết vẫn theo ván, cả bàn vẫn chung một mặt.
-  Skin CHỈ ĐỔI MÀU NỀN mặt sau — không viền, khung, chấm, sao hay gạch riêng (chủ dự án 16.10.2026:
-  "thêm vào sẽ rối"). Mặt sau đang bốc: 7 hoạ tiết × 4 màu; tắt bằng `HOA_TIET_TAT`/`BANG_MAU_TAT`.
+- **KẸO: MỘT MẶT LƯNG DUY NHẤT** (chủ dự án 17.10.2026, thay luật 16.10 "skin chỉ đổi màu nền"):
+  lá bài thật — viền giấy trắng mảnh, đường chỉ vàng, lưới quả trám mờ, ngôi sao vàng giữa lá, mép
+  dày 2 tầng + bóng đổ; GIỐNG HỆT quạt lá trang chủ (trừ vệt láng chéo: lặp cả bàn là "đau mắt").
+  Hoạ tiết bốc theo ván (`::before` ở card-backs.css) bị TẮT cho Kẹo (`display: none`), không xoá —
+  skin khác vẫn bốc 7 hoạ tiết × 4 màu (`HOA_TIET_TAT`/`BANG_MAU_TAT`). Mockup đã cân nhắc:
+  https://claude.ai/artifact/EJiSPDoVwZeTS6K91sxtpv
 - Font: Đêm Sao + Kẹo Bông dùng CHUNG font Kẹo (Grandstander 900 + Be Vietnam Pro) — Playfair/
   Quicksand bị chê xấu, đã gỡ khỏi `fonts.ts` (15.10.2026). Mặt máy ở bước mức máy nằm thẳng
   trên ô (không đĩa trắng): chống chìm bằng THỨ TỰ MÀU ô ở `BOT_CHOICES`.
 - Gờ dày của Kẹo (4–5px) cần `overflow-clip-margin: 8px` ở lưới wizard, không thì ô hàng cuối cụt gờ.
 - `cqw` trên CHÍNH `.card` tính theo cả bàn (container cha), không theo lá — gờ từng ra 15,6px.
-- Nền chỉ hiện ở menu khi skin là Neon: **Tự động (theo hệ điều hành, MẶC ĐỊNH) · Sáng · Tối**
-  (`prefs.nen`, 16.10.2026; bản lưu cũ `dark: true` → Tối). `dark` ở App là computed.
+- **NGƯỜI CHƠI CHỈ CÓ KẸO, SÁNG/TỐI** (chủ dự án 17.10.2026): menu dòng "Giao diện" = **Tự động
+  (theo hệ điều hành, MẶC ĐỊNH) · Sáng · Tối** (`prefs.nen`; hiện cho Kẹo + Neon — `coNenToi`). Kẹo tối
+  ở CUỐI `keo.css` (`[data-theme='dark']`: trời đêm, khay navy `--khay`, khối màu kẹo giữ nguyên).
+  Skin khác (Neon, Gỗ, Đêm Sao, Kẹo Bông) KHÔNG XOÁ — chỉ chọn ở trang Debug; debug tắt là về Kẹo
+  (`skinVeMacDinh`), trừ lượt mở có `?skin=` (công cụ đo). `dark` ở App là computed.
+- **NGÔN NGỮ "THẠCH" CỦA KẸO** (17.10.2026, chủ dự án chọn mẫu B https://claude.ai/artifact/HqgEzKY4xZerA4VLvfBruX
+  rồi đòi "một ngôn ngữ thiết kế chung"): KHÔNG viền mực đen nữa. Ba vai, khối cuối `keo.css`: (1) THẠCH MÀU
+  (bấm để làm) — gradient + mép & đế dày CÙNG MÀU, bộ biến `--c1..c4` + `--cc` màu chữ; MÀU SÁNG (vàng,
+  chanh) CHỮ ĐẬM, không chữ trắng ("đau mắt"); (2) THẠCH TRẮNG (nút phụ) `--t1..t3`; (3) KHAY (chứa) `--k-*`.
+  Thêm thứ mới = xếp vào một vai, đừng tô riêng. Bóng VỪA PHẢI (chủ dự án đã bảo giảm), vệt bóng bầu dục CHỈ
+  ở ô định danh to, không ở nút thấp (đè chữ). Quạt lá trang chủ là LÁ BÀI THẬT (mỏng, viền giấy trắng
+  mảnh, khung chỉ vàng, bóng mềm) — đế dày kiểu nút làm lá "không thật". Icon ô trang chủ: Noto 3D 🗺️🚀🌍
+  (danh sách trong `tools/tai-noto3d.mjs`, thiếu là công cụ XOÁ file) + robot TỰ VẼ `public/img/robot.svg`.
+- **CÔNG TẮC RUNG TRỞ LẠI** (17.10.2026, bỏ 14.10.2026): `prefs.rung`, ẩn khi máy không rung được.
 - Lá đã ghép GIỮ RÕ NÉT (viền xanh trong) — phủ mờ/opacity đã bị chê hai lần.
 - Trang chủ (bước `players`): quạt lá có trần 420px + cụm canh giữa dọc (máy tính
   cột cao). Icon bay lơ lửng (`IconBay.vue`) CHỈ ở màn menu, không có trong ván.

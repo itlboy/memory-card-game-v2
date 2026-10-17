@@ -15,6 +15,10 @@ import { daMuaPremium, hienPremium } from './premium';
  *
  * Nhớ ở localStorage `mm.skin` (như `mm.lang`), đặt TRƯỚC khi app mount để
  * không loé giao diện cũ một khung hình. `?skin=go` để thử nhanh.
+ *
+ * CHỈ KẸO CHO NGƯỜI CHƠI (chủ dự án 17.10.2026): menu chỉ còn Sáng/Tối của Kẹo; các skin
+ * khác GIỮ NGUYÊN (có thể dùng lại) nhưng chỉ chọn được ở trang Debug. Tắt debug — hoặc
+ * mở app khi debug tắt — là về Kẹo (`skinVeMacDinh`, App.vue), trừ khi URL có `?skin=`.
  */
 export const SKINS = ['keo', 'neon', 'go', 'sao', 'bong'] as const;
 export type Skin = (typeof SKINS)[number];
@@ -49,10 +53,20 @@ function docSkin(): Skin {
 
 export const skin = ref<Skin>(docSkin());
 
-export function datSkin(s: Skin): void {
-  if (!skinChoiDuoc(s)) return;
+/** `thu`: chọn từ trang Debug — bỏ qua khoá Premium như `?skin=`. */
+export function datSkin(s: Skin, thu = false): void {
+  if (!thu && !skinChoiDuoc(s)) return;
   skin.value = s;
   try { localStorage.setItem(KHOA, s); } catch { /* chế độ riêng tư */ }
+}
+
+/** Skin có công tắc Sáng/Tối (`data-theme`): Kẹo và Neon. Các skin còn lại mang bảng màu cố định. */
+export const coNenToi = (s: Skin): boolean => s === 'keo' || s === 'neon';
+
+/** Về Kẹo — gọi khi debug tắt (skin khác chỉ dành cho debug). */
+export function skinVeMacDinh(): void {
+  skin.value = SKIN_MAC_DINH;
+  try { localStorage.removeItem(KHOA); } catch { /* chế độ riêng tư */ }
 }
 
 function apDung(s: Skin): void {

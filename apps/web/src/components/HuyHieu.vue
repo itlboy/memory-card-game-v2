@@ -20,19 +20,34 @@ const mau = computed(() => MAU_BAC[props.bac ?? 'dong']);
 
 <template>
   <svg class="hh" viewBox="0 0 136 146" aria-hidden="true">
-    <rect class="bong" x="22" y="12" width="92" height="124" rx="16" />
+    <!-- LÁ ÚP = ĐÚNG mặt lưng lá bài trong ván (17.10.2026, chủ dự án chốt MỘT mặt lưng): viền giấy
+         trắng, nền xanh + lưới quả trám, đường chỉ vàng, sao vàng có bóng, mép dày 2 tầng -->
     <template v-if="mat === 'sau'">
-      <rect class="lung vien" x="20" y="6" width="96" height="124" rx="16" />
-      <rect x="30" y="16" width="76" height="104" rx="10" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2.5" stroke-dasharray="2 5" stroke-linecap="round" />
-      <path class="vien-mong" d="M68 50l7 14 15 2-11 11 3 15-14-7-14 7 3-15-11-11 15-2z" fill="#ffcb2e" />
+      <defs>
+        <radialGradient id="hh-lung" cx=".5" cy=".42" r=".7"><stop offset="0" stop-color="#4f7ade" /><stop offset="1" stop-color="#2a48a0" /></radialGradient>
+        <pattern id="hh-tram" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <path d="M0 0H14M0 0V14" stroke="#fff" stroke-opacity=".14" stroke-width="2" />
+        </pattern>
+        <radialGradient id="hh-sao" cx=".5" cy=".25" r=".8"><stop offset="0" stop-color="#fff2a8" /><stop offset=".6" stop-color="#ffc21a" /></radialGradient>
+      </defs>
+      <rect x="21" y="14" width="94" height="124" rx="16" fill="rgba(10,20,60,.22)" />
+      <rect x="20" y="10" width="96" height="124" rx="16" fill="#b9c3da" />
+      <rect x="20" y="6" width="96" height="124" rx="16" fill="#fdfdfb" stroke="rgba(20,30,70,.18)" stroke-width="1.5" />
+      <rect x="26" y="12" width="84" height="112" rx="11" fill="url(#hh-lung)" />
+      <rect x="26" y="12" width="84" height="112" rx="11" fill="url(#hh-tram)" />
+      <rect x="31" y="17" width="74" height="102" rx="7" fill="none" stroke="#ffd45a" stroke-opacity=".8" stroke-width="2" />
+      <path d="M68 48l7.5 15 16.5 2.4-12 11.7 2.8 16.4L68 85.8l-14.8 7.7 2.8-16.4-12-11.7 16.5-2.4z" fill="#b07800" transform="translate(0 3)" />
+      <path d="M68 48l7.5 15 16.5 2.4-12 11.7 2.8 16.4L68 85.8l-14.8 7.7 2.8-16.4-12-11.7 16.5-2.4z" fill="url(#hh-sao)" />
     </template>
     <template v-else-if="nho">
+      <rect class="bong" x="22" y="12" width="92" height="124" rx="16" />
       <rect class="vien" x="20" y="6" width="96" height="124" rx="16" :fill="mau.a" />
       <rect class="vien-vua" x="30" y="16" width="76" height="104" rx="10" fill="#fffaea" />
       <text v-if="icon?.so" class="so-nho" x="68" y="88" text-anchor="middle" :font-size="icon.chu.length > 1 ? 44 : 54">{{ icon.chu }}</text>
       <text v-else x="68" y="88" font-size="52" text-anchor="middle">{{ icon?.chu ?? '★' }}</text>
     </template>
     <template v-else>
+      <rect class="bong" x="22" y="12" width="92" height="124" rx="16" />
       <rect class="vien" x="20" y="6" width="96" height="124" rx="16" :fill="mau.a" />
       <rect class="vien-vua" x="30" y="16" width="76" height="104" rx="10" fill="#fffaea" />
       <circle class="vien-vua" cx="68" cy="62" r="27" :fill="mau.a" />
@@ -52,7 +67,6 @@ const mau = computed(() => MAU_BAC[props.bac ?? 'dong']);
 <style scoped>
 .hh { display: block; width: 100%; height: 100%; overflow: visible; }
 .bong { fill: var(--ink, #1d2a5a); }
-.lung { fill: #2b4c9b; }
 .vien { stroke: var(--ink, #1d2a5a); stroke-width: 4; }
 .vien-vua { stroke: var(--ink, #1d2a5a); stroke-width: 3; stroke-linejoin: round; }
 .vien-mong { stroke: var(--ink, #1d2a5a); stroke-width: 3; stroke-linejoin: round; }

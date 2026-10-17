@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Robot dễ thương cho ô "Đấu với máy" (skin Kẹo, 17.10.2026) — tự vẽ, không giấy phép ngoài -->
+  <defs>
+    <linearGradient id="dau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9f6ff"/><stop offset="1" stop-color="#9fd3f5"/></linearGradient>
+    <linearGradient id="mh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d3a78"/><stop offset="1" stop-color="#1a2352"/></linearGradient>
+    <radialGradient id="tim" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffb3c4"/><stop offset="1" stop-color="#f23a5e"/></radialGradient>
+  </defs>
+  <!-- ăng-ten trái tim -->
+  <path d="M64 30 V16" stroke="#5f86b8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M64 19 C58 13 49 11 49 4.5 C49 0 56 -1.5 64 5 C72 -1.5 79 0 79 4.5 C79 11 70 13 64 19Z" fill="url(#tim)" transform="translate(0 2)"/>
+  <!-- tai -->
+  <rect x="8" y="58" width="16" height="30" rx="7" fill="#ffcb2e" stroke="#c98500" stroke-width="3"/>
+  <rect x="104" y="58" width="16" height="30" rx="7" fill="#ffcb2e" stroke="#c98500" stroke-width="3"/>
+  <!-- đầu -->
+  <rect x="18" y="28" width="92" height="88" rx="34" fill="url(#dau)" stroke="#3d6fa3" stroke-width="4"/>
+  <ellipse cx="50" cy="40" rx="22" ry="7" fill="#fff" opacity=".8"/>
+  <!-- màn hình mặt -->
+  <rect x="30" y="50" width="68" height="52" rx="22" fill="url(#mh)"/>
+  <!-- mắt to long lanh -->
+  <ellipse cx="50" cy="73" rx="9" ry="11" fill="#7ff0ff"/>
+  <ellipse cx="78" cy="73" rx="9" ry="11" fill="#7ff0ff"/>
+  <circle cx="53" cy="68" r="3.6" fill="#fff"/><circle cx="81" cy="68" r="3.6" fill="#fff"/>
+  <circle cx="47" cy="78" r="1.6" fill="#fff" opacity=".8"/><circle cx="75" cy="78" r="1.6" fill="#fff" opacity=".8"/>
+  <!-- miệng cười -->
+  <path d="M57 89 Q64 95 71 89" stroke="#7ff0ff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- má hồng -->
+  <ellipse cx="38" cy="90" rx="6" ry="3.6" fill="#ff8fa8" opacity=".85"/>
+  <ellipse cx="90" cy="90" rx="6" ry="3.6" fill="#ff8fa8" opacity=".85"/>
+</svg>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Crown, HelpCircle, Languages, Menu, Moon, Music, Palette, UserRound, Volume1, Volume2, VolumeX } from 'lucide-vue-next';
-import { datSkin, skin, skinChoiDuoc, skinsHien, type Skin } from '@/lib/skin';
+import { ChevronRight, Crown, HelpCircle, Languages, Menu, Music, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -16,6 +16,8 @@ const props = defineProps<{
   account?: boolean; avatar?: string | null; signedIn?: boolean;
   /** Nhạc nền đang bật. */
   nhac?: boolean;
+  /** Rung đang bật; `coRung`: máy có đường rung không (web trên iPhone thì không). */
+  rung?: boolean; coRung?: boolean;
   /** Bài nhạc nền đang chọn (lib/nhac.ts). */
   baiNhac?: BaiNhac;
   /** Tên tài khoản Google đang đăng nhập — hiện ở khối tài khoản của menu. */
@@ -25,7 +27,7 @@ const props = defineProps<{
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
 }>();
-const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; home: []; rules: []; account: []; 'danh-hieu': [];
+const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [];
   'update:debug': [boolean]; 'mo-debug': [] }>();
 
 /*
@@ -89,17 +91,8 @@ onMounted(() => {
 onUnmounted(() => ro?.disconnect());
 watch(ngonNgu, () => nextTick(doTen));
 
-/** Chạm skin Premium chưa mua: báo "sắp ra mắt" một lúc thay vì đổi. */
-const baoPlus = ref(false);
 let henBao: ReturnType<typeof setTimeout> | undefined;
-function chonSkin(s: Skin): void {
-  if (!skinChoiDuoc(s)) {
-    baoPlus.value = true; clearTimeout(henBao); henBao = setTimeout(() => { baoPlus.value = false; }, 2500);
-    return;
-  }
-  datSkin(s);
-}
-/** Bài nhạc premium chưa mua: cùng cách với skin — báo, không đổi. */
+/** Bài nhạc premium chưa mua: báo "sắp ra mắt" một lúc thay vì đổi. */
 const baoPlusNhac = ref(false);
 function chonNhac(b: 'off' | BaiNhac): void {
   if (b !== 'off' && !baiChoiDuoc(b)) {
@@ -111,12 +104,40 @@ function chonNhac(b: 'off' | BaiNhac): void {
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
+/** Menu đang hiện bảng chọn ngôn ngữ thay cho danh sách cài đặt; đóng menu là về danh sách. */
+const chonNN = ref(false);
+watch(open, (v) => { if (!v) chonNN.value = false; });
+const tenNN = computed(() => NGON_NGU.find((l) => l.id === ngonNgu.value)?.ten ?? '');
+/* Hộp mọc NGAY DƯỚI nút Ngôn ngữ, mép phải thẳng nút (chủ dự án: "đúng vị trí bấm, không xa quá");
+   không đủ chỗ phía dưới thì đẩy lên cho lọt cột game. Toạ độ tính theo #app (nơi teleport tới). */
+const nnHop = ref<HTMLElement | null>(null);
+const viTriNN = ref<Record<string, string>>({});
+function moNN(e: MouseEvent): void {
+  const app = document.getElementById('app');
+  const nut = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  if (!app) { chonNN.value = true; return; }
+  const a = app.getBoundingClientRect();
+  const rong = Math.min(340, a.width - 16);
+  const phai = Math.min(Math.max(8, a.right - nut.right), a.width - rong - 8);
+  viTriNN.value = { top: `${nut.bottom - a.top + 6}px`, right: `${phai}px`, width: `${rong}px` };
+  chonNN.value = true;
+  void nextTick(() => {
+    const h = nnHop.value?.offsetHeight ?? 0;
+    const top = nut.bottom - a.top + 6;
+    const tran = a.height - h - 8;
+    if (top > tran) viTriNN.value = { ...viTriNN.value, top: `${Math.max(8, tran)}px` };
+  });
+}
+const nnEl = ref<HTMLElement | null>(null);
 function ngoai(e: PointerEvent): void {
+  // Bấm trong hộp chọn ngôn ngữ (nằm ngoài menu vì teleport) KHÔNG phải bấm ra ngoài menu
+  if (nnEl.value?.contains(e.target as Node)) return;
   if (open.value && menuEl.value && !menuEl.value.contains(e.target as Node)) dong();
 }
 onMounted(() => document.addEventListener('pointerdown', ngoai, true));
 onUnmounted(() => document.removeEventListener('pointerdown', ngoai, true));
 // Nút Back của máy đóng menu trước mọi thứ khác (cùng mức với hộp thoại)
+useBackCloser(31, () => chonNN.value, () => { chonNN.value = false; });
 useBackCloser(30, () => open.value, dong);
 
 const soundIcon = computed(() =>
@@ -217,32 +238,12 @@ watch(() => props.totalScore, (to, from) => {
           <!-- Debug đang bật: nút vào TRANG debug riêng (DebugDialog) — menu không chứa công cụ debug -->
           <button v-if="debug" class="nut-debug" role="menuitem" type="button" @click="dong(); emit('mo-debug')">🐞 Debug</button>
         </div>
-        <!-- Giao diện: đổi TỨC THÌ, menu ở lại (lib/skin.ts). Nền tối chỉ có nghĩa
-             với skin neon — hai skin kia mang bảng màu riêng, công tắc sẽ không làm gì -->
-        <div class="item am" role="presentation">
+        <!-- Giao diện = Sáng/Tối của Kẹo (chủ dự án 17.10.2026: chỉ còn Kẹo cho người chơi; skin
+             khác chọn ở trang Debug). Skin không có nền tối (Gỗ…) thì chỉ còn dòng chữ. -->
+        <div class="item am" role="group" :aria-label="t('tb.giaoDien')">
           <!-- Cũng là cửa bật debug (7 chạm) — chữ "Cài đặt" nhỏ quá, hay chạm trượt (16.10.2026) -->
           <Palette :size="20" /><span class="cham-debug" @pointerup="chamCaiDat">{{ t('tb.giaoDien') }}</span>
-        </div>
-        <!-- Lưới ô có MẪU MÀU, MỘT hàng (tròn hàng: số cột = số skin đang bày). Skin
-             Premium chỉ bày khi đã bật bán, chưa mua thì đeo VƯƠNG MIỆN như theme
-             premium — chạm vào báo "sắp ra mắt" chứ không đổi (lib/skin.ts) -->
-        <div class="skins" role="group" :aria-label="t('tb.giaoDien')" :style="{ '--so-skin': skinsHien.length }">
-          <button
-            v-for="s in skinsHien" :key="s" type="button" role="menuitemradio"
-            class="skin-o" :class="[`mau-${s}`, { khoa: !skinChoiDuoc(s) }]"
-            :aria-checked="skin === s"
-            :aria-label="skinChoiDuoc(s) ? td(`tb.skin.${s}`) : `${td(`tb.skin.${s}`)} — ${t('tb.skinPlus')}`"
-            @click="chonSkin(s)"
-          >
-            <i class="mau" aria-hidden="true" /><span>{{ td(`tb.skin.${s}`) }}</span>
-            <Crown v-if="!skinChoiDuoc(s)" class="o-khoa" :size="12" aria-hidden="true" />
-          </button>
-        </div>
-        <p v-if="baoPlus" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
-        <!-- Nền của Neon: Tự động (theo hệ điều hành, mặc định) · Sáng · Tối -->
-        <div v-if="skin === 'neon'" class="item am" role="group" :aria-label="t('tb.nen')">
-          <Moon :size="20" /><span>{{ t('tb.nen') }}</span>
-          <span class="nac">
+          <span v-if="coNenToi(skin)" class="nac">
             <button
               v-for="n in (['tu', 'sang', 'toi'] as const)" :key="n" type="button" role="menuitemradio"
               :aria-checked="nen === n" :aria-label="`${t('tb.nen')}: ${td(`tb.nenNgan.${n}`)}`"
@@ -282,17 +283,22 @@ watch(() => props.totalScore, (to, from) => {
           </span>
         </div>
         <p v-if="baoPlusNhac" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
-        <!-- Rung LUÔN BẬT (chủ dự án bỏ công tắc 14.10.2026). iPhone vẫn theo cài
-             đặt rung của hệ thống (UIFeedbackGenerator), Android theo cài đặt rung chạm. -->
+        <!-- Rung: công tắc trở lại 17.10.2026. Giấu khi máy không rung được (web trên
+             iPhone): công tắc không làm gì là công tắc nói dối. -->
+        <button
+          v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
+          :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
+          @click="$emit('toggle-rung')"
+        >
+          <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
+        </button>
 
         <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
         <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
           <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
-          <!-- 12 ngôn ngữ không vừa nút chia đoạn: dùng <select> gốc — trên điện thoại nó
-               mở bánh xe chọn của hệ điều hành, quen tay và không tràn menu -->
-          <select v-model="ngonNgu" class="chon-nn" :aria-label="t('tb.ngonNgu')" data-nosfx>
-            <option v-for="l in NGON_NGU" :key="l.id" :value="l.id" :lang="l.id">{{ l.ten }}</option>
-          </select>
+          <button class="chon-nn" type="button" :aria-label="`${t('tb.ngonNgu')}: ${tenNN}`" @click="moNN($event)">
+            <span :lang="ngonNgu">{{ tenNN }}</span><ChevronRight :size="16" aria-hidden="true" />
+          </button>
         </div>
 
         <hr class="ke" />
@@ -302,6 +308,30 @@ watch(() => props.totalScore, (to, from) => {
       </div>
     </div>
   </header>
+  <!-- BẢNG CHỌN NGÔN NGỮ (17.10.2026, chủ dự án: <select> gốc mở danh sách hệ điều hành "dài quá";
+       bản đổi ruột menu thì "ẩn menu dưới không hợp lý" + ô hẹp vỡ chữ). Hộp RIÊNG nổi giữa cột,
+       menu vẫn mở phía sau. Lưới 3×5 = đúng 15 ngôn ngữ, tròn hàng, không cuộn. Tên viết bằng CHÍNH
+       ngôn ngữ đó; KHÔNG cờ (cờ Đài Loan cho zh-TW bị luật 4+ cấm). Teleport vào #app: header có
+       backdrop-filter nên `fixed` bên trong bị nhốt theo header. role=dialog + aria-modal để cập
+       nhật nóng không tải lại giữa lúc đang chọn (lib/ota.ts). -->
+  <Teleport to="#app">
+    <div v-if="chonNN" ref="nnEl" class="nn-phu" role="dialog" aria-modal="true" :aria-label="t('tb.ngonNgu')"
+      @click.self="chonNN = false" @keydown.esc.stop="chonNN = false">
+      <div ref="nnHop" class="nn-hop" :style="viTriNN">
+        <div class="nn-dau">
+          <Languages :size="22" /><span>{{ t('tb.ngonNgu') }}</span>
+          <button class="nn-dong" type="button" :aria-label="t('dhd.dong')" @click="chonNN = false"><X :size="20" /></button>
+        </div>
+        <div class="bang-nn">
+          <button
+            v-for="l in NGON_NGU" :key="l.id" type="button" role="radio" class="o-nn"
+            :aria-checked="ngonNgu === l.id" :lang="l.id"
+            @click="ngonNgu = l.id; chonNN = false"
+          >{{ l.ten }}</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -481,27 +511,31 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .sw.bat::after { left: 19px; }
 .item.am { cursor: default; }
 .chon-nn {
-  flex: 0 1 auto; min-width: 0; max-width: 140px; min-height: 34px; padding: 0 26px 0 10px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--panel-solid); color: var(--fg); font: inherit; font-size: 13px; font-weight: 800;
-  appearance: none; -webkit-appearance: none; cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%; background-size: 5px 5px; background-repeat: no-repeat;
+  display: inline-flex; align-items: center; gap: 4px; max-width: 150px; min-height: 36px; padding: 0 8px 0 12px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel-soft); color: var(--fg);
+  font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
 }
-/* Một hàng — lưới phải tròn hàng (CLAUDE.md) */
-.skins { display: grid; grid-template-columns: repeat(var(--so-skin, 3), minmax(0, 1fr)); gap: 5px; padding: 2px 8px 8px; }
-.skin-o {
-  position: relative; display: grid; justify-items: center; gap: 3px; min-height: 56px; padding: 6px 2px;
-  border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--fg);
-  font: inherit; font-size: 10.5px; font-weight: 800; line-height: 1.1; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; cursor: pointer; text-align: center;
+.chon-nn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nn-phu { position: absolute; inset: 0; z-index: 20; background: rgba(6, 9, 18, .3); }
+.nn-hop {
+  position: absolute; padding: 14px 14px 16px; border-radius: 22px;
+  background: var(--panel-solid); color: var(--fg); box-shadow: var(--elev-3);
 }
-.skin-o[aria-checked='true'] { border: 2px solid var(--accent); padding: 5px 1px; }
-.skin-o.khoa span { opacity: .75; }
-.mau { display: block; width: 28px; height: 18px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .25); }
-.mau-keo .mau { background: linear-gradient(135deg, #5cc2f2 50%, #ffcb2e 50%); }
-.mau-neon .mau { background: linear-gradient(135deg, #6a5cff, #c44cf0); }
-.mau-go .mau { background: linear-gradient(135deg, #3a2618 50%, #c9952b 50%); }
-.mau-sao .mau { background: radial-gradient(circle at 70% 35%, #f4d27a 0 3px, transparent 4px), linear-gradient(135deg, #0d0f2b, #2c2f6e); }
-.mau-bong .mau { background: linear-gradient(135deg, #ffb6d9, #c7b6ff 60%, #bfe8ff); }
+.nn-dau { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 18px; font-weight: 800; }
+.nn-dau > span { flex: 1; }
+.nn-dong {
+  position: relative; display: grid; place-items: center; width: 38px; height: 38px; padding: 0;
+  border: 1px solid var(--line); border-radius: 50%; background: var(--panel-soft); color: var(--fg); cursor: pointer;
+}
+.nn-dong::after { content: ''; position: absolute; inset: -4px; }
+.bang-nn { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.o-nn {
+  min-height: 46px; padding: 3px 4px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--panel-soft); color: var(--fg); font: inherit; font-size: 14px; font-weight: 800;
+  /* chỉ xuống dòng ở KHOẢNG TRẮNG — bẻ giữa từ ra "Françai-s" (đã chụp thấy) */
+  line-height: 1.15; text-align: center; overflow-wrap: normal; word-break: keep-all; hyphens: none; cursor: pointer;
+}
+.o-nn[aria-checked='true'] { background: var(--chon-nen); color: var(--chon-chu); border-color: transparent; }
 .o-khoa { position: absolute; top: 3px; right: 3px; color: var(--gold); }
 .bao-plus { margin: -2px 10px 8px; font-size: 12px; font-weight: 800; color: var(--accent); text-align: center; }
 .nac { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex: 0 0 auto; }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { maPhongDangDo } from '@/composables/useOnlineRoom';
 import { boEmojiVeMacDinh } from '@/lib/emoji';
+import { skinVeMacDinh } from '@/lib/skin';
 import { datPingSo } from '@/lib/ping-so';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { batPhanTich, suKien } from '@/lib/phan-tich';
@@ -33,7 +34,12 @@ const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
  * mấy ván sau vẫn còn số đo — lỗi cần soi thường không xuất hiện ở ván đầu.
  */
 const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
-watch(debug, (v) => { store.savePrefs({ debug: v }); if (!v) { boEmojiVeMacDinh(); datPingSo(false); } }, { immediate: true });
+// Skin khác Kẹo chỉ dành cho debug: debug tắt là về Kẹo, trừ lượt mở có `?skin=` (công cụ đo, chụp store)
+const coSkinUrl = new URLSearchParams(location.search).has('skin');
+watch(debug, (v) => {
+  store.savePrefs({ debug: v });
+  if (!v) { boEmojiVeMacDinh(); datPingSo(false); if (!coSkinUrl) skinVeMacDinh(); }
+}, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
 const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
@@ -71,9 +77,10 @@ mqToi?.addEventListener?.('change', (e) => { heToi.value = e.matches; });
 const dark = computed(() => nen.value === 'toi' || (nen.value === 'tu' && heToi.value));
 const soundLevel = ref<SoundLevel>(prefs.soundLevel);
 /** Rung khi ghép thẻ — công tắc riêng cạnh âm thanh trong menu (lib/rung.ts). */
-// Rung LUÔN BẬT — không còn công tắc (chủ dự án chốt 14.10.2026). Bản lưu cũ
-// `prefs.rung = false` bị bỏ qua có chủ đích.
-rung.bat = true;
+// Công tắc rung TRỞ LẠI (chủ dự án 17.10.2026, trước đó bỏ 14.10.2026). Bản lưu cũ
+// `prefs.rung = false` từ thời đó cũng là lựa chọn thật của người chơi nên vẫn đọc.
+const rungBat = ref(prefs.rung !== false);
+watch(rungBat, (v) => { rung.bat = v; store.savePrefs({ rung: v }); }, { immediate: true });
 /** Nhạc nền (lib/nhac.ts): menu vui, trong ván chậm và thưa. Tắt âm thanh là tắt luôn. */
 const nhacBat = ref(prefs.nhac !== false);
 /** Bài đang chọn. Bài premium mà gói chưa mua/hết hạn thì phát bài mặc định (`baiThat`)
@@ -801,6 +808,8 @@ const hasNext = computed(() => {
     @set-nhac="datNhac"
     :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @set-nen="nen = $event"
+    :rung="rungBat" :co-rung="rung.coTheRung()"
+    @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     @account="showAccount = true"
     @set-sound="(l: SoundLevel) => { soundLevel = l; applySound(); }"
     :ten-tk="taiKhoanMe?.name"
