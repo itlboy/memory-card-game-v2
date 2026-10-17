@@ -263,11 +263,11 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
     <Teleport to="#app">
     <div v-if="s.paused.value" class="tam-dung" role="dialog" aria-modal="true" :aria-label="t('hud.tamDung')">
       <div class="panel hop-dung">
-        <h2 class="ruy-bang"><Pause :size="22" aria-hidden="true" />{{ t('hud.tamDung') }}</h2>
+        <h2 class="ruy-bang thach th-do"><Pause :size="22" aria-hidden="true" />{{ t('hud.tamDung') }}</h2>
         <dl class="so-lieu">
-          <div><dt>{{ t('hud.thoiGian') }}</dt><dd>{{ clock(s.timeLeft.value ?? s.elapsed.value) }}</dd></div>
-          <div v-if="!game.isMultiplayer"><dt>{{ t('hud.diem') }}</dt><dd>{{ num(soloScore) }}</dd></div>
-          <div><dt>{{ t('hud.cap2') }}</dt><dd>{{ s.matchedCount.value }}/{{ s.totalPairs.value }}</dd></div>
+          <div class="khay-nho khay-noi"><dt>{{ t('hud.thoiGian') }}</dt><dd>{{ clock(s.timeLeft.value ?? s.elapsed.value) }}</dd></div>
+          <div class="khay-nho khay-noi" v-if="!game.isMultiplayer"><dt>{{ t('hud.diem') }}</dt><dd>{{ num(soloScore) }}</dd></div>
+          <div class="khay-nho khay-noi"><dt>{{ t('hud.cap2') }}</dt><dd>{{ s.matchedCount.value }}/{{ s.totalPairs.value }}</dd></div>
         </dl>
         <span class="vach" aria-hidden="true"><i :style="{ transform: `scaleX(${s.totalPairs.value ? s.matchedCount.value / s.totalPairs.value : 0})` }" /></span>
         <button class="btn-primary" type="button" @click="s.resume()"><Play :size="22" aria-hidden="true" /> {{ t('hud.choiTiep') }}</button>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { anhEmoji } from '@/lib/emoji';
+import { taiTruocTheme } from '@/lib/anh-theme';
 import { tenBot } from '@/lib/ten';
 import { tenTheme } from '@/lib/achievements';
 import { t, td, ngonNgu } from '@/lib/i18n';
@@ -384,6 +385,10 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 /* Icon 3D (Noto, cùng bộ với mặt bài) cho bốn ô trang chủ — skin Kẹo hiện chúng thay icon
    nét (keo.css); skin khác vẫn icon nét (`.ico3d` ẩn mặc định). Chủ dự án 17.10.2026: "nút
    phẳng, đơn điệu". */
+/* Tải trước hình ô theme lúc rảnh (lib/anh-theme.ts) — tới bước chọn theme là hiện tức thì.
+   themes nạp bất đồng bộ nên chờ có dữ liệu. */
+watch(() => props.themes.length, (n) => { if (n) taiTruocTheme(props.themes); }, { immediate: true });
+
 const ICO3D = {
   chienDich: anhEmoji('🗺️', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
@@ -416,7 +421,7 @@ const ICO3D = {
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
           <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
           <strong>{{ t('menu.chienDich') }}</strong>
-          <span v-if="(manChienDich ?? 0) > 0" class="man">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
+          <span v-if="(manChienDich ?? 0) > 0" class="man thach">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
         </button>
 
         <div class="ba-o">
@@ -433,11 +438,11 @@ const ICO3D = {
 
         <!-- DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm -->
         <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1" class="loi-tat">
-          <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })">🔥 {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
-          <button v-if="(manChienDich ?? 0) > 1" class="lt-chip" type="button" @click="tiepChienDich">
+          <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua thach th-vang" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })">🔥 {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
+          <button v-if="(manChienDich ?? 0) > 1" class="lt-chip thach" type="button" @click="tiepChienDich">
             <Play :size="14" aria-hidden="true" /><span class="ten">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
           </button>
-          <button v-if="goiY" class="lt-chip goi-y" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
+          <button v-if="goiY" class="lt-chip goi-y thach th-do" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
             <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
           </button>
         </div>

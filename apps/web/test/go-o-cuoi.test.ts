@@ -11,12 +11,15 @@ import { describe, expect, it } from 'vitest';
  * 14.10.2026). Chữa đúng là ĐỆM ĐÁY thật; test này bắt đệm đáy của skin Kẹo
  * ≥ bóng lớn nhất mà skin đó vẽ cho `.option` (kể cả lúc hover).
  */
-const keo = readFileSync(resolve(__dirname, '../src/styles/skins/keo.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const doc = (f: string) => readFileSync(resolve(__dirname, `../src/styles/skins/${f}`), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const keo = doc('keo.css');
+// Từ 17.10.2026 độ dày đế của mọi nút nằm ở keo-thach.css, khai bằng biến `--th-d`
+const thach = doc('keo-thach.css');
 
 describe('gờ ô cuối của wizard (skin Kẹo)', () => {
-  it('đệm đáy lưới ≥ bóng đổ lớn nhất của .option', () => {
-    const bong = [...keo.matchAll(/\.option[^{]*\{[^}]*box-shadow:\s*0 (\d+)px 0/g)].map((m) => Number(m[1]));
-    expect(bong.length, 'không đọc được bóng của .option').toBeGreaterThan(0);
+  it('đệm đáy lưới ≥ đế dày nhất của nút (--th-d)', () => {
+    const bong = [...thach.matchAll(/--th-d:\s*([\d.]+)px/g)].map((m) => Number(m[1]));
+    expect(bong.length, 'không đọc được --th-d ở keo-thach.css').toBeGreaterThan(0);
     const dem = keo.match(/:is\(\.step-body\.options, \.options\.fill\)\s*\{[^}]*padding-block:\s*\d+px\s+(\d+)px/);
     expect(dem, 'thiếu padding-block cho lưới lựa chọn').toBeTruthy();
     expect(Number(dem![1])).toBeGreaterThanOrEqual(Math.max(...bong));

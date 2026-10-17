@@ -51,13 +51,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
     :aria-label="props.o.emojiReady.value ? t('eb.guiEmoji') : t('eb.doiChut')"
   >
     <button
-      class="emoji say" type="button" :class="{ mo: moNoi }"
+      class="emoji say thach th-vang th-nho" type="button" :class="{ mo: moNoi }"
       :aria-label="t('eb.noiNhanh')" :aria-expanded="moNoi"
       :disabled="!props.o.emojiReady.value"
       @click="moNoi = !moNoi"
     >💬</button>
     <button
-      v-for="e in QUICK_EMOJIS" :key="e" class="emoji" type="button"
+      v-for="e in QUICK_EMOJIS" :key="e" class="emoji thach th-nho" type="button"
       :disabled="!props.o.emojiReady.value"
       @click="props.o.sendEmoji(e)"
     >{{ e }}</button>
@@ -66,10 +66,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
       🧊 {{ props.o.emojiCooldown.value }}s
     </span>
   </div>
-  <div v-if="moNoi" class="bang-noi" role="menu" :aria-label="t('eb.noiNhanh')">
+  <div v-if="moNoi" class="bang-noi khay" role="menu" :aria-label="t('eb.noiNhanh')">
     <p class="bn-dau">{{ t('eb.noiNhanh') }} <span>{{ t('eb.chamGui') }}</span></p>
     <button
-      v-for="id in QUICK_SAYS" :key="id" class="cau" type="button" role="menuitem"
+      v-for="id in QUICK_SAYS" :key="id" class="cau thach" type="button" role="menuitem"
       :disabled="!props.o.emojiReady.value" @click="guiCau(id)"
     ><span class="e" aria-hidden="true">{{ EMOJI_NOI[id] }}</span>{{ td(`say.${id}`) }}</button>
   </div>

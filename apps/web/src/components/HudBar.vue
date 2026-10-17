@@ -67,7 +67,7 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
 -->
 <template>
   <div class="hud">
-    <button class="tron quit" :aria-label="t('hud.thoat')" type="button" @click="$emit('quit')"><ChevronLeft :size="22" /></button>
+    <button class="tron quit thach" :aria-label="t('hud.thoat')" type="button" @click="$emit('quit')"><ChevronLeft :size="22" /></button>
     <div class="vien-hang">
       <span class="vien" :class="{ urgent }" :aria-label="t('hud.thoiGian')">
         <component :is="timeLeft === null ? Timer : Hourglass" :size="16" aria-hidden="true" /><b>{{ timeText }}</b>
@@ -100,8 +100,8 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
         <OptionIcon name="lives" :size="16" /><b>{{ lives > 0 ? lives : '—' }}</b>
       </span>
     </div>
-    <button v-if="choiLai" class="tron" :aria-label="t('hud.choiLai')" type="button" @click="$emit('choi-lai')"><RotateCcw :size="18" /></button>
-    <button v-if="pausable" class="tron" :aria-label="t('hud.tamDung')" type="button" @click="$emit('pause')"><Pause :size="18" /></button>
+    <button v-if="choiLai" class="tron thach" :aria-label="t('hud.choiLai')" type="button" @click="$emit('choi-lai')"><RotateCcw :size="18" /></button>
+    <button v-if="pausable" class="tron thach" :aria-label="t('hud.tamDung')" type="button" @click="$emit('pause')"><Pause :size="18" /></button>
     <span v-else class="tron-cho" aria-hidden="true" />
     <span
       class="tien-do" role="progressbar" :aria-label="t('hud.cap2')"

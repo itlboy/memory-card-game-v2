@@ -97,7 +97,7 @@ watch(nextLevel, scrollToActive);
         <ol class="nodes">
           <li v-for="l in c.list" :key="l.id">
             <button
-              class="node"
+              class="node thach"
               :class="{
                 locked: l.id > unlocked,
                 cleared: cleared(l.id),

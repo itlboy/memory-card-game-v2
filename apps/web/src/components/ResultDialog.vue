@@ -241,7 +241,7 @@ const title = computed(() => {
       </p>
 
       <!-- Tổng tích luỹ: đích của điểm ván, sáng lên đúng lúc nhận -->
-      <p v-if="totalGain" class="total-row" :class="{ landed: totalPhase === 'landed' }">
+      <p v-if="totalGain" class="total-row khay-nho khay-noi" :class="{ landed: totalPhase === 'landed' }">
         <span>{{ t('kq.tongDiem') }}</span>
         <b>{{ num(shownTotal) }}</b>
       </p>
@@ -266,7 +266,7 @@ const title = computed(() => {
       <!-- Lời mời đi tiếp, ngay lúc người chơi còn hứng: một cú bấm là vào ván -->
       <div v-if="goiY" class="goi-y">
         <span class="txt">🎯 <b>{{ goiY.name }}</b><small>{{ goiY.hint }}</small></span>
-        <button class="di" type="button" :aria-label="t('kq.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY)">{{ t('kq.chinhPhuc') }}</button>
+        <button class="di thach th-xanh th-nho" type="button" :aria-label="t('kq.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY)">{{ t('kq.chinhPhuc') }}</button>
       </div>
 
       <!--

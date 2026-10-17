@@ -23,7 +23,7 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
 
 <template>
   <ul class="danh-hieu">
-    <li v-for="a in ds" :key="a.id" :class="{ co: daCo.has(a.id) }">
+    <li v-for="a in ds" :key="a.id" class="khay-nho" :class="{ co: daCo.has(a.id) }">
       <!-- Huy hiệu = lá bài: chưa có thì ÚP, có rồi thì NGỬA (HuyHieu.vue, cùng
            hình với cảnh mở khoá MoKhoaFx) -->
       <span class="huy" :title="td(`fx.bac.${a.bac ?? 'dong'}`)">
@@ -42,7 +42,7 @@ const emit = defineEmits<{ 'chinh-phuc': [Achievement] }>();
           {{ t('dhd.premium') }}
         </small>
         <button
-          v-else class="di" type="button"
+          v-else class="di thach th-xanh th-nho" type="button"
           :aria-label="t('kq.chinhPhucAria', { ten: a.name })" @click="emit('chinh-phuc', a)"
         >{{ t('kq.chinhPhuc') }}</button>
       </template>

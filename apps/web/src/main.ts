@@ -12,6 +12,8 @@ import './styles/card-backs.css';
 import './styles/theme-grid.css';
 import './styles/ketcuc-fx.css';
 import './styles/skins/keo.css';
+import './styles/skins/keo-thach.css';
+import './styles/skins/keo-la.css';
 import './styles/skins/go.css';
 import './styles/skins/neon.css';
 import './styles/skins/sao.css';

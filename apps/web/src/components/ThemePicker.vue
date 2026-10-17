@@ -10,12 +10,13 @@
  * Một component chứ không chép markup sang hai màn: lưới theme từng có hai bản
  * và chúng lệch nhau hai lần (xem `styles/theme-grid.css`).
  */
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Check, Crown, Sparkles, X } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
 import { choiDuoc, daMuaPremium, hienPremium } from '@/lib/premium';
 import { anhEmoji } from '@/lib/emoji';
+import { daSan, taiAnh, urlTheme } from '@/lib/anh-theme';
 import { useBackCloser } from '@/composables/useBackGuard';
 import type { CardTheme } from '@/lib/themes';
 
@@ -28,6 +29,21 @@ const premium = computed(() => props.themes.filter((x) => x.premium));
 /** Chưa bật bán Premium (`banPremium`) thì không có tab, chỉ bày theme miễn phí. */
 const coTabPremium = computed(() => hienPremium.value && premium.value.length > 0);
 const dangHien = computed(() => (tab.value === 'free' || !coTabPremium.value ? mienPhi.value : premium.value));
+
+/*
+ * HÌNH HIỆN CÙNG LÚC (chủ dự án 17.10.2026: "hình load tuần tự gợn sóng, nhìn như chậm"). Mỗi <img>
+ * tự giải mã rồi tự hiện nên 144 hình nhú ra lần lượt. Nay hiện một lượt khi cả tab đã giải mã —
+ * hình được TẢI TRƯỚC từ trang chủ (lib/anh-theme.ts) nên thường hiện tức thì.
+ */
+const anhSan = ref(false);
+watch(dangHien, (ds) => {
+  const urls = urlTheme(ds);
+  if (urls.every((u) => daSan.has(u))) { anhSan.value = true; return; }   // đã tải trước từ trang chủ
+  anhSan.value = false;
+  const xong = (): void => { anhSan.value = true; };
+  const het = setTimeout(xong, 600);   // mạng chậm: không giữ màn trống quá 0,6 giây
+  void Promise.all(urls.map(taiAnh)).then(() => { clearTimeout(het); xong(); });
+}, { immediate: true });
 
 const xemTruoc = ref<CardTheme | null>(null);
 const baoSapCo = ref(false);
@@ -63,11 +79,11 @@ function cham(x: CardTheme): void {
 <template>
   <div v-if="coTabPremium" class="theme-tabs" role="tablist">
     <button
-      class="ttab" role="tab" type="button" :aria-selected="tab === 'free'"
+      class="ttab thach th-chon" role="tab" type="button" :aria-selected="tab === 'free'"
       @click="tab = 'free'"
     >{{ t('tp.mienPhi') }} <span class="dem">{{ mienPhi.length }}</span></button>
     <button
-      class="ttab prem" role="tab" type="button" :aria-selected="tab === 'premium'"
+      class="ttab prem thach th-chon" role="tab" type="button" :aria-selected="tab === 'premium'"
       @click="tab = 'premium'"
     ><Crown :size="15" aria-hidden="true" /> {{ t('tp.premium') }} <span class="dem">{{ premium.length }}</span></button>
   </div>
@@ -78,12 +94,12 @@ function cham(x: CardTheme): void {
 
   <div class="tp-hang">
     <span class="tp-dem" aria-live="polite">{{ t('tp.daChon', { n: soDaChon, tong: tongChoiDuoc.length }) }}</span>
-    <button v-if="choiDuocTab.length" class="tp-het" type="button" @click="chonHet">
+    <button data-phang v-if="choiDuocTab.length" class="tp-het" type="button" @click="chonHet">
       {{ daChonHet ? t('tp.boChon') : t('tp.chonHet', { n: choiDuocTab.length }) }}
     </button>
   </div>
 
-  <div class="options theme-grid" role="group" :aria-label="nhan">
+  <div class="options theme-grid" :class="{ 'cho-anh': !anhSan }" role="group" :aria-label="nhan">
     <button
       v-for="x in dangHien" :key="x.id" class="option theme-opt"
       :class="{ 'prem-khoa': !choiDuoc(x) }"
@@ -97,7 +113,7 @@ function cham(x: CardTheme): void {
       <!-- 4 icon 2×2, vẽ như mặt bài (ảnh Noto 3D) — nhìn icon là hiểu theme (17.10.2026) -->
       <span class="theme-sample" aria-hidden="true">
         <template v-for="s in x.symbols.slice(0, 4)" :key="s">
-          <img v-if="anhEmoji(s)" class="tm-anh" :src="anhEmoji(s, undefined, 128)!" alt="" draggable="false" loading="lazy">
+          <img v-if="anhEmoji(s)" class="tm-anh" :src="anhEmoji(s, undefined, 128)!" alt="" draggable="false">
           <span v-else class="tm-chu">{{ s }}</span>
         </template>
       </span>
@@ -185,4 +201,5 @@ function cham(x: CardTheme): void {
 .tp-anh { width: 1em; height: 1em; display: block; margin: 0 auto; }
 .tp-mo-ta { margin: 0; color: var(--muted); font-size: var(--text-sm); }
 .tp-sap-co { margin: 0; text-align: center; font-weight: 700; }
+.cho-anh .tm-anh { visibility: hidden; }
 </style>
