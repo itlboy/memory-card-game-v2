@@ -87,7 +87,7 @@ ${LANGS.filter((x) => x.id !== lang).map((x) => `<meta property="og:locale:alter
       description: moTa,
       url: `${SITE}${duong(lang, 'about')}`,
       image: `${SITE}/og.jpg`,
-      screenshot: ['03-home', '01-gameplay', '02-win', '05-themes'].map((f) => `${SITE}/site/img/${f}-464.webp`),
+      screenshot: ['03-home', '01-gameplay', '02-win', '05-themes'].map((f) => `${SITE}/site/img/${f}-k3d-464.webp`),
       applicationCategory: 'GameApplication',
       applicationSubCategory: 'Puzzle',
       operatingSystem: 'iOS, Android, Web',

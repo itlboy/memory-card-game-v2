@@ -37,9 +37,15 @@
   chính giữa; mặt sau lá bài cả bàn PHẢI giống hệt nhau (khác = đánh dấu bài).
 - **CẢNH KẾT VÁN: MỘT CẢNH CỐ ĐỊNH CHO MỖI TÌNH HUỐNG** (bộ mới 11.10.2026, chủ
   dự án duyệt mockup https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 và chốt
-  THAY bộ cũ). Thắng có ≥3, thua có ≥2 BIẾN THỂ bốc THEO SEED ván
+  THAY bộ cũ). Thắng có ≥3 BIẾN THỂ bốc THEO SEED ván
   (`BIEN_THE`, `bocBienThe`): thắng = pháo giấy · pháo hoa đêm · vương miện;
-  thua = đập vỡ màn · tan thành tro (game over kiểu TV đen BỎ 14.10.2026: lệch hẳn nét Kẹo, đen sì che bàn + chip). Pháo hoa đêm còn nền tối nhưng DỊU về 50% đúng lúc bảng kết quả hiện (`fx-diu`, mốc `--hien-bang`). Kỷ lục = biến thể thắng + băng
+  thua CHỈ CÒN MÈO KHÓC (đập vỡ màn + tan thành tro BỎ 18.10.2026; game over TV đen bỏ 14.10.2026).
+  **MÈO (18.10.2026, mockup duyệt https://claude.ai/artifact/GB9pZQcPh43548oRPi83up):** mọi cảnh
+  có mèo Noto 3D ĐỨNG TRÊN chữ, cả cụm `.fx-cum` canh GIỮA màn (chủ dự án: "chữ phải hiện giữa màn
+  hình") — thắng 😹 cười rung, thua 😿 khóc nấc + giọt nước mắt, hoà HAI 😺 cụng đầu (nền phủ tối
+  như thắng/thua, chữ một màu — bỏ hai nửa tím/hồng + 🤝). Một nhịp chung: mèo nảy 0,15s, chữ ĐẬP
+  0,35s (thua/hoà không còn rơi từng ký tự — "hơi chậm"), mèo cử động từ 0,8s; tiếng mèo
+  `sfx.meoCuoi/meoKhoc/meoHoa` khớp mốc đó. Vương miện cắm lên đầu mèo. Pháo hoa đêm còn nền tối nhưng DỊU về 50% đúng lúc bảng kết quả hiện (`fx-diu`, mốc `--hien-bang`). Kỷ lục = biến thể thắng + băng
   vàng. Thêm biến thể: id ở `BIEN_THE` + nhánh `chayCanh` + template + CSS + tiếng
   `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
   KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên

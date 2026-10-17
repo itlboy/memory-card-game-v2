@@ -3,7 +3,8 @@
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
 Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
 (có nói nhanh bằng 12 câu có sẵn); 72 theme (48 miễn phí + 24 premium), 15 ngôn ngữ,
-tài khoản Google/Apple, 153 danh hiệu, hiệu ứng thắng/thua có hình + tiếng + rung.
+tài khoản Google/Apple, 153 danh hiệu, hiệu ứng thắng/thua/hoà có mèo + tiếng + rung.
+Giao diện Kẹo 3D nổi khối, chế độ sáng / tối (tự theo máy).
 Trang công khai (giới thiệu, có gì mới, hỗ trợ, quyền riêng tư) 15 ngôn ngữ, dựng sẵn cho SEO.
 
 **Bản đồ tài liệu: [`docs/ban-do.md`](docs/ban-do.md)** — mọi con số/địa chỉ công khai, nguồn
@@ -159,7 +160,7 @@ server.js            Web server tĩnh cho bản build production
 | Lưu trữ | Kỷ lục, sao, tuỳ chọn, bộ đếm danh hiệu — localStorage (3.7). Đăng nhập thì đồng bộ lên tài khoản (xem dưới) |
 | Tài khoản | Đăng nhập Google (chỉ server Node, cần `MYSQL_URL` + `GOOGLE_CLIENT_ID`). Điểm, kỷ lục, danh hiệu đi theo người sang máy khác; mở app / quay lại tab / xong ván là đồng bộ, hợp theo MAX. Bảng xếp hạng top 20. Không đăng nhập vẫn chơi như cũ |
 | Danh hiệu | 127 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/115 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
-| Hiệu ứng kết ván | Bốn cảnh: thắng · kỷ lục · thua · hoà (`lib/ketcuc-fx.ts`), mỗi cảnh thắng/thua có 3 biến thể bốc theo seed. Đấu máy hiện y như đấu người (đã bỏ cảnh "máy trêu"); dòng an ủi "còn N cặp" chỉ ở ván một mình. Mở danh hiệu: huy hiệu bay vào viên 🏅 (`MoKhoaFx.vue`) |
+| Hiệu ứng kết ván | Bốn cảnh: thắng · kỷ lục · thua · hoà (`lib/ketcuc-fx.ts`), mỗi cảnh có MÈO trên chữ giữa màn (😹 thắng · 😿 thua · hai 😺 hoà); thắng có 3 biến thể bốc theo seed (pháo giấy · pháo hoa đêm · vương miện). Đấu máy hiện y như đấu người (đã bỏ cảnh "máy trêu"); dòng an ủi "còn N cặp" chỉ ở ván một mình. Mở danh hiệu: huy hiệu bay vào viên 🏅 (`MoKhoaFx.vue`) |
 | Nói nhanh (online) | 12 câu có sẵn (`QUICK_SAYS`), bong bóng dưới chip người nói, tự dịch theo máy người xem; KHÔNG có chat gõ tự do (App Store 1.2) |
 | App mobile | iOS (TestFlight) + Android (Play internal) build ở GitHub Actions. Back Android lùi từng bước (trang chủ Back hai lần mới thoát); ngôn ngữ đồng bộ hai chiều với Cài đặt máy |
 | Rung | Theo số nhịp, tăng theo chuỗi ghép đúng (`lib/rung.ts`). Android web + app iOS (Haptics); web trên iPhone không rung được nên công tắc tự ẩn |
@@ -702,6 +703,22 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 ## Nhật ký thay đổi
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
+
+**17–18.10.2026 — BẢN LỚN: giao diện Kẹo 3D nổi khối, sáng/tối**
+- Giao diện mới **Kẹo "Thạch"**: nút 3D nổi khối (đế dày, gradient, vệt sáng), icon 3D (Noto 3D
+  ⭐🚀🌍 + robot tự vẽ), lá bài như thật (viền giấy, chỉ vàng, ngôi sao giữa lá). Một ngôn ngữ
+  thiết kế chung ba vai: thạch màu · thạch trắng · khay (`styles/skins/keo-thach.css`).
+- Người chơi chỉ còn Kẹo, chọn **Tự động (theo máy) · Sáng · Tối** trong menu; Kẹo tối là trời
+  đêm có trăng. Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở trang Debug.
+- Cảnh kết ván **mèo**: thắng 😹 cười, thua 😿 khóc (thay đập vỡ màn + tan thành tro), hoà hai 😺
+  cụng đầu; mèo trên chữ, cả cụm giữa màn, có tiếng mèo.
+- Điểm vẽ bằng **đồng xu** 3D; ngôi sao chỉ còn chấm màn Chiến dịch (HUD bỏ con số, sao sắp
+  mất nhấp nháy). Chip người chơi không vỡ với điểm hàng nghìn (`numGon`, `pnpm do:chip`).
+- Chọn theme: 6 cột ô nhỏ 4 icon, không tên — iPhone 14 thấy 36 theme một lần.
+- Cập nhật nóng áp lúc người chơi rảnh ở trang chủ (đếm 3·2·1), mỗi lần mở app tối đa một lần.
+- Ô trống danh sách phòng online: quả địa cầu Noto 3D trên ô thạch.
+- TestFlight công khai: `gh workflow run asc-testflight.yml` (nhóm Public Testers + link mời).
+- Trang công khai: ảnh chụp lại theo giao diện mới (tên ảnh `*-k3d-*`), mục "Có gì mới" 15 ngôn ngữ.
 
 **15.10.2026**
 - Mặt bài vẽ bằng **Noto 3D** (bộ emoji 3D mới của Google, OFL 1.1) trên MỌI máy — iPhone,

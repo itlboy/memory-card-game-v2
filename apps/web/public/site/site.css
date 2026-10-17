@@ -112,7 +112,7 @@ h3 { font-size: 21px; margin: 0 0 6px; }
 }
 .phone::before { background-image: url("img/iphone-status-den.svg"); }
 /* Màn chiến thắng có lớp phủ tối: dải trạng thái theo đúng màu mép ảnh, chữ sáng như iOS */
-img[src*="02-win"] { background-color: #295067 !important; }
+img[src*="02-win"] { background-color: #204c70 !important; }
 /* Nền tối: chữ/biểu tượng TRẮNG, tai thỏ vẫn ĐEN (đảo màu cả dải từng làm tai thỏ trắng) */
 .phone:has(img[src*="02-win"])::before, .gallery figure:has(img[src*="02-win"])::before { background-image: url("img/iphone-status-trang.svg"); }
 .phones .phone:nth-child(1) { transform: rotate(-7deg) translateY(22px); margin-right: -9%; z-index: 1; }
