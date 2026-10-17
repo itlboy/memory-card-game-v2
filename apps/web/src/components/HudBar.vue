@@ -79,14 +79,15 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
         <span v-if="combo > 1" :key="combo" class="combo" :class="{ max: combo >= 2 }" aria-label="Combo">x{{ combo }}</span>
       </span>
       <!-- SAO SỐNG (Chiến dịch, 14.10.2026): sai quá mốc là một sao tắt ngay trước
-           mắt — người chơi hiểu luật sao mà không phải đọc chữ nào. Số nhỏ là số
-           lần còn được sai trước khi rớt sao kế tiếp. key đổi → nhịp rớt sao. -->
+           mắt — người chơi hiểu luật sao mà không phải đọc chữ nào. key đổi → nhịp rớt sao.
+           KHÔNG CON SỐ (17.10.2026): số "còn được quên N lần" bị đọc nhầm thành mạng (người
+           thử báo, chủ dự án: "em bé cũng phải hiểu"). Thay bằng: ngôi sao SẮP MẤT (quên
+           thêm 1 lần là tắt) NHẤP NHÁY. Số vẫn có trong aria-label cho trình đọc màn hình. -->
       <span
         v-if="!multiplayer && starMisses" :key="`sao-${soSao}-${sao4}`" class="vien sao" :class="{ rot: !sao4 }"
         :aria-label="sao4 ? t('hud.sao4') : conLai === null ? t('hud.sao1', { n: soSao }) : t('hud.sao', { n: soSao, m: conLai })"
       >
-        <span class="sao-hang" aria-hidden="true"><i v-for="i in 3" :key="i" :class="{ tat: i > soSao }">★</i><i class="sao4" :class="sao4 ? 'song' : 'tat'">★</i></span>
-        <b v-if="conLai !== null" aria-hidden="true">{{ conLai }}</b>
+        <span class="sao-hang" aria-hidden="true"><i v-for="i in 3" :key="i" :class="{ tat: i > soSao, 'sap-mat': i === soSao && conLai === 0 }">★</i><i class="sao4" :class="sao4 ? 'song' : 'tat'">★</i></span>
       </span>
       <span v-if="!multiplayer && movesLeft !== null" class="vien" :aria-label="t('hud.luot')">
         <Layers :size="16" aria-hidden="true" /><b>{{ moves }}<i>/{{ moves + movesLeft }}</i></b>
@@ -165,7 +166,9 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
 /* Ngôi thứ 4: trả màu chữ về trong suốt để dải cầu vồng (.sao4 ở global.css)
    hiện ra — rule vàng ngay trên đè mất nó (đo bằng ảnh 14.10.2026) */
 .sao-hang i.sao4:not(.tat) { color: transparent; }
-.vien.sao b { font-size: 14px; color: var(--muted); }
+/* Ngôi sao SẮP MẤT: nhịp mờ–rõ + co nhẹ, đủ để mắt bắt mà không giật */
+.sao-hang i.sap-mat { display: inline-block; animation: sao-sap-mat 1s ease-in-out infinite; }
+@keyframes sao-sap-mat { 50% { opacity: .25; transform: scale(.8); } }
 .vien.sao.rot { animation: hp-hurt .55s ease-out; }
 /* Vạch tiến độ: nằm trong khe 10px giữa HUD và bàn (gap của .game) */
 .tien-do {
@@ -180,11 +183,10 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
   .vien b { font-size: 15px; }
   .vien svg { width: 14px; height: 14px; }
   .sao-hang { font-size: 12px; }
-  .vien.sao b { font-size: 13px; }
 }
 @container (max-width: 270px) {
   .vien { padding: 0 6px; gap: 3px; }
   .vien b { font-size: 14px; }
 }
-@media (prefers-reduced-motion: reduce) { .vien.hurt, .combo, .vien.sao.rot { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .vien.hurt, .combo, .vien.sao.rot { animation: none; } .sao-hang i.sap-mat { animation: none; opacity: .5; } }
 </style>

@@ -364,7 +364,7 @@
   KHÔNG đếm mọi lần sai (lật hai lá chưa mở là dò) và KHÔNG theo thời gian. Mốc [2★,3★]
   là bảng đo `sao` trong BOARDS. Ngôi sao THỨ 4 (`summary.hoanHao`, `hh` trong tiến
   độ) = thắng không quên lần nào, vẽ bằng lớp `.sao4` (cầu vồng) ở global.css. Mốc
-  hiện TRƯỚC ván (dòng ở bước theme), TRONG ván (viên sao HUD) và SAU ván, viết bằng
+  hiện TRƯỚC ván (dòng ở bước theme), TRONG ván (viên sao HUD — KHÔNG con số từ 17.10.2026: ngôi sắp mất NHẤP NHÁY; số bị đọc nhầm thành mạng, nguyên tắc "em bé nhìn cũng hiểu") và SAU ván, viết bằng
   dấu "<" (chủ dự án chê "≤" và câu lủng củng). `campaignSpec`
   cho màn Chiến dịch; `levelSpec`/`boardForLevel` là thang KHOÁ CỠ BÀN 1..`LEVEL_KEYS`
   (50) ĐÓNG BĂNG — khoá kỷ lục `mode:L<cấp>`, `level` online, app cũ trong store đều
