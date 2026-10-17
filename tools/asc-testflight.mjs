@@ -71,8 +71,8 @@ const phienBan = build.included?.find((x) => x.type === 'preReleaseVersions')?.a
 console.log(`✓ build ${phienBan} (${b.attributes.version})`);
 
 const bl = (await api('GET', `/v1/builds/${b.id}/betaBuildLocalizations`)).data.find((l) => l.attributes.locale === 'en-US');
-if (bl) await api('PATCH', `/v1/betaBuildLocalizations/${bl.id}`, { data: { type: 'betaBuildLocalizations', id: bl.id, attributes: { whatToTest: CAN_THU } } });
-else await api('POST', '/v1/betaBuildLocalizations', { data: { type: 'betaBuildLocalizations', attributes: { locale: 'en-US', whatToTest: CAN_THU }, relationships: { build: { data: { type: 'builds', id: b.id } } } } });
+if (bl) await api('PATCH', `/v1/betaBuildLocalizations/${bl.id}`, { data: { type: 'betaBuildLocalizations', id: bl.id, attributes: { whatsNew: CAN_THU } } });
+else await api('POST', '/v1/betaBuildLocalizations', { data: { type: 'betaBuildLocalizations', attributes: { locale: 'en-US', whatsNew: CAN_THU }, relationships: { build: { data: { type: 'builds', id: b.id } } } } });
 console.log('✓ What to Test');
 
 // 4. Nhóm bên ngoài + gắn build.
