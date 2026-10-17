@@ -666,16 +666,15 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .hinh-nguoi {
-  /* MỘT hàng trong 96px: càng nhiều mặt càng nhỏ và chồng nhau (chủ dự án: mặt 3/4 người phải nhỏ
-     hơn) — 46 · 2×36 · 3×30 · 4×26px, chồng 8/6/5px → rộng nhất 89px. */
-  flex: 0 0 auto; width: 96px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: center;
+  /* Mặt thú CÓ KHOẢNG CÁCH, xếp theo hình (chủ dự án 18.10.2026): 1 · 2 cạnh nhau · 3 tam giác
+     (1 trên, 2 dưới) · 4 = 2 trên 2 dưới. Hai hàng cao 2×30 + 4 = 64px, vừa ô thấp nhất (SE). */
+  flex: 0 0 auto; width: 96px; display: grid; justify-content: center; align-content: center; gap: 4px 6px;
 }
-.hinh-nguoi img { width: var(--mat); height: var(--mat); flex: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
-.hinh-nguoi img + img { margin-left: calc(var(--chong) * -1); }
+.hinh-nguoi img { width: var(--mat); height: var(--mat); filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
 .hinh-nguoi.n1 { --mat: 46px; }
-.hinh-nguoi.n2 { --mat: 36px; --chong: 8px; }
-.hinh-nguoi.n3 { --mat: 30px; --chong: 6px; }
-.hinh-nguoi.n4 { --mat: 26px; --chong: 5px; }
+.hinh-nguoi.n2 { --mat: 36px; grid-template-columns: repeat(2, var(--mat)); }
+.hinh-nguoi:is(.n3, .n4) { --mat: 30px; grid-template-columns: repeat(2, var(--mat)); }
+.hinh-nguoi.n3 img:first-child { grid-column: 1 / -1; justify-self: center; }
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 
 

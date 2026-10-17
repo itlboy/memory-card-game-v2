@@ -3,9 +3,9 @@
   <defs>
     <linearGradient id="dau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9f6ff"/><stop offset="1" stop-color="#9fd3f5"/></linearGradient>
     <linearGradient id="mh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d3a78"/><stop offset="1" stop-color="#1a2352"/></linearGradient>
-    <radialGradient id="tim" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffb3c4"/><stop offset="1" stop-color="#f23a5e"/></radialGradient>
+    <radialGradient id="tim" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#ffb300"/></radialGradient>
   </defs>
-  <!-- ăng-ten trái tim -->
+  <!-- ăng-ten trái tim VÀNG (cùng màu tai) — tim hồng trùng màu ô hồng "Đấu với máy" (chủ dự án chọn 18.10.2026) -->
   <path d="M64 30 V16" stroke="#5f86b8" stroke-width="5" stroke-linecap="round"/>
   <path d="M64 19 C58 13 49 11 49 4.5 C49 0 56 -1.5 64 5 C72 -1.5 79 0 79 4.5 C79 11 70 13 64 19Z" fill="url(#tim)" transform="translate(0 2)"/>
   <!-- tai -->
