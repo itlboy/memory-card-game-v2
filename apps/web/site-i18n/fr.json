@@ -112,5 +112,7 @@
  "ipad.p": "Sur iPad, le plateau occupe tout l’écran et les menus s’agrandissent : chaque carte reste grande et facile à toucher.",
  "r6.h": "Un tout nouveau look",
  "r6.d": "18 octobre 2026",
- "r6.l": "<li>Un tout nouveau look : des boutons 3D en relief et des cartes plus vraies que nature, agréables à toucher.</li>\n          <li>Mode clair et mode sombre : il suit votre téléphone, ou choisissez-le dans les Réglages.</li>\n          <li>Un chat s'invite à la fin de chaque partie : il rit quand vous gagnez, pleure quand vous perdez, et deux chats se cognent la tête en cas d'égalité.</li>\n          <li>Les points sont désormais des pièces brillantes ; les étoiles notent seulement les niveaux de la campagne.</li>"
+ "r6.l": "<li>Un tout nouveau look : des boutons 3D en relief et des cartes plus vraies que nature, agréables à toucher.</li>\n          <li>Mode clair et mode sombre : il suit votre téléphone, ou choisissez-le dans les Réglages.</li>\n          <li>Un chat s'invite à la fin de chaque partie : il rit quand vous gagnez, pleure quand vous perdez, et deux chats se cognent la tête en cas d'égalité.</li>\n          <li>Les points sont désormais des pièces brillantes ; les étoiles notent seulement les niveaux de la campagne.</li>",
+ "g6": "Mode sombre",
+ "g7": "Une partie en mode sombre"
 }

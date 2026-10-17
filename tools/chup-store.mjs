@@ -3,6 +3,7 @@
  * buộc: 440×956 điểm × 3 = 1320×2868 px. Google Play nhận luôn bộ này.
  *
  *   node tools/chup-store.mjs <url server> <thư mục ra> [lang=en] [buoc...]
+ *   NEN=toi node tools/chup-store.mjs …   → bộ ảnh giao diện TỐI
  *
  * Server phải chạy bản build mới (vd. `pnpm node:dev` → :8080) vì ảnh phòng
  * online cần API thật. Profile sạch + bỏ service worker, cùng lý do do-menu-tren.
@@ -62,6 +63,8 @@ await goi('Network.enable');
 await goi('Network.setBypassServiceWorker', { bypass: true });
 await goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: S, mobile: true });
 await goi('Emulation.setTouchEmulationEnabled', { enabled: true });
+// NEN=toi: máy để giao diện TỐI — game mặc định "Tự động" theo máy nên ra Kẹo tối (ảnh trang công khai, 18.10.2026)
+if (process.env.NEN === 'toi') await goi('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'dark' }] });
 // Khung Android: giả UA Android như máy thật. Mặt bài nay là Noto 3D trên MỌI máy
 // (lib/emoji.ts), UA còn quyết định những thứ khác theo nền (nút, emoji giao diện).
 if (process.env.KHUNG === 'android') await goi('Emulation.setUserAgentOverride', { userAgent: 'Mozilla/5.0 (Linux; Android 13; Mi 10S) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36' });

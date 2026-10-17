@@ -115,6 +115,9 @@ h3 { font-size: 21px; margin: 0 0 6px; }
 img[src*="02-win"] { background-color: #204c70 !important; }
 /* Nền tối: chữ/biểu tượng TRẮNG, tai thỏ vẫn ĐEN (đảo màu cả dải từng làm tai thỏ trắng) */
 .phone:has(img[src*="02-win"])::before, .gallery figure:has(img[src*="02-win"])::before { background-image: url("img/iphone-status-trang.svg"); }
+/* Ảnh giao diện TỐI (`-toi-`): dải trạng thái navy đúng mép ảnh, chữ trắng */
+img[src*="-toi-"] { background-color: #080c26 !important; }
+.phone:has(img[src*="-toi-"])::before, .gallery figure:has(img[src*="-toi-"])::before { background-image: url("img/iphone-status-trang.svg"); }
 .phones .phone:nth-child(1) { transform: rotate(-7deg) translateY(22px); margin-right: -9%; z-index: 1; }
 .phones .phone:nth-child(2) { z-index: 2; width: 42%; }
 .phones .phone:nth-child(3) { transform: rotate(7deg) translateY(22px); margin-left: -9%; z-index: 1; }
