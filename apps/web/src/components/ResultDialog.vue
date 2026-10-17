@@ -7,6 +7,7 @@ import { computed, onMounted, ref } from 'vue';
 import { byId, type Achievement } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
 import { clock, num } from '@/lib/format';
+import DongXu from './DongXu.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 const props = defineProps<{
@@ -232,17 +233,7 @@ const title = computed(() => {
 
       <!-- Điểm là phần thưởng của cả ván: cho nó cỡ chữ xứng đáng và đếm dần lên -->
       <p v-if="!multiplayer" class="score-big" :aria-label="t('kq.diemAria', { n: summary.score })">
-        <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
-          <defs>
-            <linearGradient id="mmStarBig" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#ffd76a" /><stop offset="1" stop-color="#f59e0b" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M12 2.6l2.83 6.05 6.62.72-4.95 4.45 1.4 6.5L12 16.9l-5.9 3.42 1.4-6.5L2.55 9.37l6.62-.72z"
-            fill="url(#mmStarBig)"
-          />
-        </svg>
+        <DongXu :size="26" />
         <b>{{ num(shownScore) }}</b>
         <small>{{ t('chung.diem') }}</small>
         <!-- Điểm ván bay xuống nhập vào tổng tích luỹ -->
@@ -440,8 +431,7 @@ h2 { margin: 0 0 4px; }
     color-mix(in srgb, var(--accent) 12%, transparent));
   animation: score-in .45s cubic-bezier(.3, 1.5, .5, 1);
 }
-.score-big .star-ico {
-  width: 26px; height: 26px;
+.score-big .dong-xu {
   filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--gold) 55%, transparent));
 }
 .score-big b {

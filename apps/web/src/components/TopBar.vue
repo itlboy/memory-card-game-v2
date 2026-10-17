@@ -6,6 +6,7 @@ import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
+import DongXu from './DongXu.vue';
 import type { SoundLevel } from '@/lib/storage';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
@@ -169,14 +170,8 @@ watch(() => props.totalScore, (to, from) => {
     </h1>
 
     <span class="total" :class="{ pop: bump }" :key="bump" :title="t('tb.tongDiem', { n: num(totalScore) })">
-      <!-- Sao vẽ bằng SVG, fill currentColor: emoji ⭐ mỗi máy một kiểu và bị
-           tính là chữ nên ngắt dòng ở máy hẹp -->
-      <svg class="star-ico" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M12 2.6l2.83 6.05 6.62.72-4.95 4.45 1.4 6.5L12 16.9l-5.9 3.42 1.4-6.5L2.55 9.37l6.62-.72z"
-          fill="currentColor"
-        />
-      </svg>
+      <!-- Đồng xu = ĐIỂM, cùng hình với HUD (sao chỉ là đánh giá Chiến dịch) -->
+      <DongXu :size="16" />
       <b>{{ numShort(shown) }}</b>
       <Transition name="gain">
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
@@ -394,7 +389,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   font-variant-numeric: tabular-nums;
   font-size: var(--text-md); color: inherit;
 }
-.star-ico { width: 14px; height: 14px; flex-shrink: 0; }
+.total .dong-xu { flex-shrink: 0; }
 /* Điểm vừa tăng: viên nảy một nhịp */
 .total.pop { animation: total-pop .3s cubic-bezier(.3, 1.6, .5, 1); }
 @keyframes total-pop { 45% { transform: scale(1.12); } }

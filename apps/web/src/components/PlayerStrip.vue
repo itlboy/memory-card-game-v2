@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { tenNguoi } from '@/lib/ten';
+import { num, numGon } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import type { Player } from '@mm/engine';
 import { TURN_LIMIT_SEC } from '@mm/engine';
@@ -64,7 +65,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
 <template>
   <div class="wrap">
     <!-- TỚI 4 NGƯỜI: dạng cũ, mỗi người một chip có tên -->
-    <ul v-if="!gon" class="strip" :aria-label="t('ps.nguoiChoi')">
+    <ul v-if="!gon" class="strip" :class="{ dong: players.length >= 3 }" :aria-label="t('ps.nguoiChoi')">
       <li
         v-for="(p, i) in players"
         :key="p.id"
@@ -94,7 +95,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: seriesWins?.[p.name] ?? 0 })">
           🏅{{ seriesWins?.[p.name] }}
         </span>
-        <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }" :data-pts-for="p.id">{{ p.score }}</span>
+        <span class="pts" :class="{ dai: p.score >= 1000 }" :data-pts-for="p.id" :title="num(p.score)">{{ numGon(p.score) }}</span>
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
              tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
         <small v-if="Number.isFinite(p.lives)" class="lives" :title="t('ps.mang', { n: p.lives })">
@@ -123,7 +124,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <Transition name="plus">
           <span v-if="bonusFor && bonusFor.playerId === nguoiDangDi.id" :key="bonusFor.key" class="plus10">+10s</span>
         </Transition>
-        <span class="pts" :data-pts-for="nguoiDangDi.id">{{ nguoiDangDi.score }}</span>
+        <span class="pts" :data-pts-for="nguoiDangDi.id" :title="num(nguoiDangDi.score)">{{ numGon(nguoiDangDi.score) }}</span>
         <span class="sr-only">{{ t('ps.dangChoi') }}</span>
       </div>
 
@@ -206,7 +207,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
  * và chính chỗ đó là thứ chứa được điểm 4–5 chữ số.
  */
 .player.active {
-  flex-grow: 1.75; transform: scale(1.035); z-index: 2;
+  flex-grow: 2; transform: scale(1.035); z-index: 2;
   border-color: transparent; color: var(--chon-chu);
   background: var(--chon-nen);
   box-shadow: 0 6px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
@@ -232,10 +233,10 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .player.frozen, .mini.frozen, .turn-chip.frozen { opacity: .6; }
 .avatar { font-size: 18px; }
 .name {
-  flex: 1 1 auto; font-size: 13px; min-width: 0;
+  flex: 1 1 auto; font-size: 12px; min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.player.active .name { font-size: 13.5px; }
+.player.active .name { font-size: 12px; }
 /* Số ván đã thắng trong loạt — biết ai đang dẫn mà không phải mở bảng kết quả */
 .wins {
   flex-shrink: 0; font-size: 11px; font-weight: 800;
@@ -257,8 +258,19 @@ watch(() => props.players.length, () => { moBang.value = false; });
 /* Điểm càng cao càng KHÔNG được nhỏ đi — xem chú thích ở OnlineGame.vue. Chỗ
    để hạ lấy từ những thứ khác trong chip, không từ chính con số. */
 .pts.dai { font-size: 15px; }        /* ≥ 1.000 */
-.pts.ratdai { font-size: 13.5px; }   /* ≥ 10.000 */
 .player:not(.active) .name { color: var(--muted); font-weight: 600; }
+/*
+ * BÀN ĐÔNG (≥3 NGƯỜI): CHIP CHỜ CHỈ CÒN AVATAR + ĐIỂM, NHƯỜNG CHỖ CHO TÊN NGƯỜI ĐANG ĐI
+ * (chủ dự án duyệt mockup 17.10.2026). Avatar đã là danh tính, tên đầy đủ ở bảng ☰.
+ * Đo "Nguyễn Minh Anh": Pro Max 3 người hiện đủ, 4 người "Nguyễn Mi…"; SE 4 người "Ng…".
+ * Bề ngang ĐẶT TAY (70px = avatar 16 + "9,9k" 14px + đệm, `pnpm do:chip` đo), không `auto`: chip có `container-type: inline-size` nên bề
+ * rộng theo nội dung tính ra 0 — đã thử, chip chờ co thành sợi chỉ.
+ * Lớp `dong` gắn bằng Vue, KHÔNG `:has()` (iOS < 15.4 không có).
+ */
+.strip.dong .player:not(.active) { flex: 0 1 70px; padding-inline: 6px; gap: 3px; justify-content: space-between; }
+.strip.dong .player:not(.active) .name { display: none; }
+.strip.dong .player:not(.active) .pts { font-size: 14px; }
+.strip.dong .player:not(.active) .avatar { font-size: 16px; }
 .player.active .pts {
   /*
    * ĐẢO MÀU: mực tím đậm trên nền TRẮNG ĐẶC.
@@ -268,11 +280,10 @@ watch(() => props.players.length, () => { moBang.value = false; });
    * đặc còn làm điểm thành vật SÁNG NHẤT cả dải, đúng vai nó phải đóng.
    */
   font-size: 19px; color: #3b1e8f;
-  padding: 1px 8px; border-radius: var(--r-full);
+  padding: 1px 6px; border-radius: var(--r-full);
   background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
 }
 .player.active .pts.dai { font-size: 18px; }
-.player.active .pts.ratdai { font-size: 16px; }
 .turn-clock {
   flex: none; display: inline-flex; align-items: center; gap: 2px;
   font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
@@ -403,6 +414,5 @@ watch(() => props.players.length, () => { moBang.value = false; });
 @container (max-width: 128px) {
   .player.active .pts { font-size: 17px; padding: 1px 5px; }
   .player.active .pts.dai { font-size: 16px; }
-  .player.active .pts.ratdai { font-size: 14.5px; }
 }
 </style>

@@ -446,6 +446,17 @@
   "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo (đo trên Pro Max, bàn
   3 người). Khoá chiều cao thì nội dung chip ra sao cũng không chạm tới bàn.
   `test/chip-cao-co-dinh.test.ts` canh.
+- **CHIP KHÔNG VỠ — BA LỚP** (17.10.2026, chủ dự án: điểm hàng nghìn làm chip online vỡ, "có cơ chế
+  nào chống vỡ không"): (1) điểm trên chip in bằng `numGon` — TỐI ĐA 4 ký tự (980 · 1,2k · 12k),
+  làm tròn XUỐNG, số đầy đủ ở `title` + bảng ☰ + bảng kết quả; (2) điểm không co, tên co trước; chip
+  người đang đi `flex-grow: 2`, tên 12px; bàn ≥3 người (lớp `dong`, gắn bằng Vue — KHÔNG `:has()`)
+  chip chờ chỉ còn avatar + điểm, bề ngang ĐẶT TAY 70px (không `auto`: `container-type` làm nó co về
+  0); chấm mạng là huy hiệu ở góc avatar, không chiếm hàng; (3) `pnpm do:chip` (WebKit, phòng thật 2/3/4
+  người × 3 khổ iPhone, tên 16 ký tự, điểm "9,9k"/"99k") — đỏ khi điểm bị cắt / chip lòi / tên người
+  đang đi < 12px. Thêm gì vào chip là chạy nó. `test/diem-trong-chip.test.ts` canh phần tĩnh.
+- **ĐIỂM = ĐỒNG XU, SAO = ĐÁNH GIÁ** (17.10.2026): `DongXu.vue` (xu vàng trơn + vệt sáng, mẫu B chủ dự
+  án chọn) ở HUD, thanh trên, bảng kết quả. Ngôi sao chỉ còn cho sao Chiến dịch — hai thứ cùng hình sao
+  là người chơi đọc lẫn (người thử báo).
 
 ## LÀM VIỆC NHANH — đọc trước (rút từ 14.10.2026)
 

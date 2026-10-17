@@ -40,6 +40,7 @@
     "do:ngon-ngu": "node tools/do-ngon-ngu.mjs",
     "do:tuong-phan": "node tools/do-tuong-phan.mjs",
     "do:safari": "node tools/do-safari.mjs",
+    "do:chip": "node tools/do-chip.mjs",
     "smoke:ota": "node tools/smoke-ota.mjs"
   },
   "packageManager": "pnpm@10.0.0",

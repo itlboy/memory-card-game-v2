@@ -9,6 +9,7 @@ import type { Card } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { pingSo } from '@/lib/ping-so';
+import { num, numGon } from '@/lib/format';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
 import KetCucFx from './KetCucFx.vue';
@@ -220,6 +221,7 @@ let resultTimer: ReturnType<typeof setTimeout> | undefined;
  * 20px chiều cao của bàn — mà bàn nay tới 88 thẻ.
  */
 const gonStrip = computed(() => (o.view.value?.players.length ?? 0) > 4);
+const soNguoi = computed(() => o.view.value?.players.length ?? 0);
 
 const dangDi = computed(() => {
   const ps = o.view.value?.players ?? [];
@@ -294,7 +296,7 @@ watch(() => o.view.value?.summary, (s) => {
 
     <div class="strip-wrap">
       <!-- TỚI 4 NGƯỜI: dạng cũ, mỗi người một chip có tên -->
-      <div v-if="!gonStrip" class="strip">
+      <div v-if="!gonStrip" class="strip" :class="{ dong: soNguoi >= 3 }">
         <div
           v-for="p in o.view.value?.players" :key="p.id"
           class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
@@ -350,7 +352,7 @@ watch(() => o.view.value?.summary, (s) => {
           <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: o.seriesWins.value[p.name] ?? 0 })">
             🏅{{ o.seriesWins.value[p.name] }}
           </span>
-          <span class="pts" :class="{ dai: p.score >= 1000, ratdai: p.score >= 10000 }">{{ p.score }}</span>
+          <span class="pts" :class="{ dai: p.score >= 1000 }" :title="num(p.score)">{{ numGon(p.score) }}</span>
         </div>
       </div>
 
@@ -375,7 +377,7 @@ watch(() => o.view.value?.summary, (s) => {
               :key="o.timeBonusFor.value.key" class="plus10"
             >+5s</span>
           </Transition>
-          <span class="pts">{{ dangDi.score }}</span>
+          <span class="pts" :title="num(dangDi.score)">{{ numGon(dangDi.score) }}</span>
         </div>
 
         <ul class="rest">
@@ -690,7 +692,7 @@ watch(() => o.view.value?.summary, (s) => {
  * dải KHÔNG cao thêm một pixel nào và bàn thẻ không mất chỗ.
  */
 .pchip.active {
-  flex-grow: 1.75; transform: scale(1.035); z-index: 2;
+  flex-grow: 2; transform: scale(1.035); z-index: 2;
   border-color: transparent; color: var(--chon-chu);
   background: var(--chon-nen);
   box-shadow: 0 6px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
@@ -700,7 +702,7 @@ watch(() => o.view.value?.summary, (s) => {
   50% { box-shadow: 0 8px 30px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3); }
 }
 @media (prefers-reduced-motion: reduce) { .pchip.active { animation: none; } }
-.pchip.active b { font-size: 13.5px; }
+.pchip.active b { font-size: 12px; }
 /* Chip đang đi: điểm nằm trong một viên thuốc sáng — viên thuốc chỉ dành cho
    chip này, chip chờ không đủ chỗ cho 16px đệm của nó. */
 .pchip.active .pts {
@@ -712,11 +714,10 @@ watch(() => o.view.value?.summary, (s) => {
    * đặc còn làm điểm thành vật SÁNG NHẤT cả dải, đúng vai nó phải đóng.
    */
   font-size: 19px; color: #3b1e8f;
-  padding: 1px 8px; border-radius: var(--r-full);
+  padding: 1px 6px; border-radius: var(--r-full);
   background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
 }
 .pchip.active .pts.dai { font-size: 18px; }
-.pchip.active .pts.ratdai { font-size: 16px; }
 .pchip.active .ping { background: rgba(255, 255, 255, .18); color: #fff; }
 .pchip.active .lives { color: #fff; }
 /* Người đang chờ lùi lại một bước — tương phản làm chip đang đi nổi hơn hẳn
@@ -738,7 +739,6 @@ watch(() => o.view.value?.summary, (s) => {
   /* Chip đang đi ở bàn 3–4 người: viên thuốc thu lại, nhưng con số vẫn to nhất chip. */
   .pchip.active .pts { font-size: 17px; padding: 1px 5px; }
   .pchip.active .pts.dai { font-size: 16px; }
-  .pchip.active .pts.ratdai { font-size: 14.5px; }
 }
 /* Chip CHỜ hẹp quá (bàn 4 người: nội dung còn 61px) thì bỏ TÊN, giữ avatar và
    ĐIỂM. Avatar đã là danh tính và tên đầy đủ còn đọc được ở bảng ☰ — điểm thì
@@ -777,6 +777,9 @@ watch(() => o.view.value?.summary, (s) => {
 .pchip.active .ping.cham.bad { background: var(--warn); }
 .pchip.active .ping.cham.lost { background: var(--bad); }
 .pchip .avatar { font-size: 18px; }
+/* Chấm mạng của MÌNH là huy hiệu ở góc avatar: nằm trong hàng là nó ăn 15px bề ngang
+   (chip SE 4 người chỉ có ~60px), đủ đẩy điểm ra ngoài. Ping dạng SỐ (debug) vẫn ở hàng. */
+.pchip .ping.cham { position: absolute; left: 24px; top: 6px; width: 8px; height: 8px; }
 /*
  * TÊN KHÔNG BAO GIỜ ĐƯỢC BIẾN MẤT HẲN.
  *
@@ -786,7 +789,7 @@ watch(() => o.view.value?.summary, (s) => {
  * đủ cho vài ký tự đầu, phần thừa vẫn cắt bằng ellipsis như cũ.
  */
 .pchip b {
-  flex: 1 1 auto; font-size: 13px; min-width: 2.2em;
+  flex: 1 1 auto; font-size: 12px; min-width: 2.2em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .pchip .lives {
@@ -828,9 +831,20 @@ watch(() => o.view.value?.summary, (s) => {
  * từ những thứ khác trong chip (ping, số giây) chứ không từ chính con số.
  */
 .pchip .pts.dai { font-size: 15px; }        /* ≥ 1.000 */
-.pchip .pts.ratdai { font-size: 13.5px; }   /* ≥ 10.000 */
 /* Tên lùi xuống một bậc để con SỐ là thứ mắt bắt trước. */
 .pchip:not(.active) b { color: var(--muted); font-weight: 600; }
+/*
+ * BÀN ĐÔNG (≥3 NGƯỜI): CHIP CHỜ CHỈ CÒN AVATAR + ĐIỂM, NHƯỜNG CHỖ CHO TÊN NGƯỜI ĐANG ĐI
+ * (chủ dự án duyệt mockup 17.10.2026). Avatar đã là danh tính, tên đầy đủ ở bảng ☰.
+ * Đo "Nguyễn Minh Anh": Pro Max 3 người hiện đủ, 4 người "Nguyễn Mi…"; SE 4 người "Ng…".
+ * Bề ngang ĐẶT TAY (70px = avatar 16 + "9,9k" 14px + đệm, `pnpm do:chip` đo), không `auto`: chip có `container-type: inline-size` nên bề
+ * rộng theo nội dung tính ra 0 — đã thử, chip chờ co thành sợi chỉ.
+ * Lớp `dong` gắn bằng Vue, KHÔNG `:has()` (iOS < 15.4 không có).
+ */
+.strip.dong .pchip:not(.active) { flex: 0 1 70px; padding-inline: 6px; gap: 3px; justify-content: space-between; }
+.strip.dong .pchip:not(.active) b { display: none; }
+.strip.dong .pchip:not(.active) .pts { font-size: 14px; }
+.strip.dong .pchip:not(.active) .avatar { font-size: 16px; }
 .turn-clock {
   flex: none;
   font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
