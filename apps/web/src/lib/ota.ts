@@ -65,7 +65,18 @@ async function baoCapNhat(): Promise<void> {
   el.innerHTML = '<span class="bcn-the"><span class="bcn-sao" aria-hidden="true">✨</span><span class="bcn-chu"></span><b class="bcn-so"></b></span>';
   el.querySelector('.bcn-chu')!.textContent = t('chung.dangCapNhat');
   const so = el.querySelector<HTMLElement>('.bcn-so')!;
-  (document.getElementById('app') ?? document.body).appendChild(el);
+  const app = document.getElementById('app') ?? document.body;
+  /* ĐẶT GIỮA mép dưới quạt lá và mép trên ô Chiến dịch (chủ dự án 17.10.2026: trên iPhone 15 Pro Max
+     thẻ đè lên lá giữa). Đếm chỉ chạy ở trang chủ nên hai mốc này có; thiếu thì về giữa màn như cũ. */
+  // mép dưới LÁ THẬT thấp nhất (khung .quat cao hơn lá nhiều — đo nó là thẻ rơi xuống đè ô Chiến dịch)
+  const day = Math.max(...[...document.querySelectorAll('.la-quat .lac')].map((e) => e.getBoundingClientRect().bottom));
+  const nut = document.querySelector('.o-chien-dich')?.getBoundingClientRect();
+  if (Number.isFinite(day) && nut) {
+    const goc = app.getBoundingClientRect();
+    el.classList.add('co-moc');
+    el.style.setProperty('--bcn-y', `${Math.round((day + nut.top) / 2 - goc.top)}px`);
+  }
+  app.appendChild(el);
   for (let n = DEM_GIAY; n >= 1; n--) {
     so.textContent = String(n);
     so.classList.remove('nay'); void so.offsetWidth; so.classList.add('nay');   // nảy lại mỗi nhịp

@@ -1,23 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { anhEmoji } from '@/lib/emoji';
+import { HINH_TRANG_CHU } from '@/lib/hinh-trang-chu';
 import type { CardTheme } from '@/lib/themes';
 
 /*
  * QUẠT LÁ TRANG CHỦ (14.10.2026). Lá GIỮA luôn ngửa, chỉ ICON đổi mỗi 5 giây
  * (hình cũ mờ dần rồi hình mới rõ dần — bản thu nhỏ 0,6 bị chê mạnh tay) — bản lật lá ngẫu nhiên giữa ba vị trí bị chủ
- * dự án chê "rối mắt". Hình bốc ngẫu nhiên từ theme MIỄN PHÍ — trang chủ không
- * khoe theme phải mua.
+ * dự án chê "rối mắt". Hình bốc từ danh sách TUYỂN CHỌN `HINH_TRANG_CHU` (17.10.2026).
  */
-const props = defineProps<{ themes: CardTheme[] }>();
+defineProps<{ themes: CardTheme[] }>();
 
-const DU_PHONG = ['🐼', '🦊', '🐸', '🍓', '🍩', '🐙', '🦄', '🍉', '🐳', '🌸', '🍀', '🐝'];
 const NHIP_MS = 5000;
 
-const kho = computed(() => {
-  const s = props.themes.filter((t) => !t.premium).flatMap((t) => t.symbols);
-  return s.length ? s : DU_PHONG;
-});
+const kho = computed((): readonly string[] => HINH_TRANG_CHU);
 const boc = <T,>(a: readonly T[]): T => a[Math.floor(Math.random() * a.length)]!;
 
 const kyHieu = ref(boc(kho.value));
