@@ -28,6 +28,23 @@ export const numShort = (n: number): string => {
 };
 
 /**
+ * Điểm trên CHIP người chơi — TỐI ĐA 4 KÝ TỰ: 980 · 1,2k · 12k · 1,2tr/M.
+ *
+ * Chip bàn 4 người chỉ còn ~60px nội dung; điểm in trơn "12400" là bị cắt còn
+ * "124" (đo trên iPhone SE, chủ dự án báo "giao diện hơi vỡ" khi điểm lên nghìn).
+ * Làm tròn XUỐNG để không bao giờ hiện nhiều hơn điểm thật. Số đầy đủ ở title +
+ * bảng ☰ + bảng kết quả. Khác `numShort` (thanh trên, chỗ rộng hơn): đó giữ 4 chữ số.
+ */
+export const numGon = (n: number): string => {
+  const v = Math.floor(Math.max(0, n));
+  const thapPhan = (x: number) => x.toLocaleString(bcp(), { maximumFractionDigits: 1 });
+  if (v < 1000) return String(v);
+  if (v < 10_000) return `${thapPhan(Math.floor(v / 100) / 10)}k`;
+  if (v < 1_000_000) return `${Math.floor(v / 1000)}k`;
+  return `${thapPhan(Math.floor(v / 100_000) / 10)}${ngonNgu.value === 'vi' ? 'tr' : 'M'}`;
+};
+
+/**
  * Tuổi bản build thành chữ: "238 ngày 15 giờ trước", "3 phút 12 giây trước".
  *
  * Chỉ giữ HAI đơn vị lớn nhất khác 0. Bản cũ liệt kê cả bốn và chỉ cắt các đơn

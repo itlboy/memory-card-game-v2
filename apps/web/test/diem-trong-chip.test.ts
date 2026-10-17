@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { numGon } from '@/lib/format';
+import { ngonNgu } from '@/lib/i18n';
 
 /**
  * ĐIỂM PHẢI NẰM TRONG CHIP NGƯỜI CHƠI.
@@ -55,7 +57,7 @@ describe('điểm nằm trong chip người chơi', () => {
 
       it('chip của người đang đi nở rộng — vừa gây chú ý, vừa là chỗ chứa điểm', () => {
         const mo = src.indexOf(ten === 'OnlineGame.vue' ? '.pchip.active {' : '.player.active {');
-        expect(src.slice(mo, mo + 420)).toMatch(/flex-grow:\s*1\.75/);
+        expect(src.slice(mo, mo + 420)).toMatch(/flex-grow:\s*2;/);
       });
 
       it('điểm càng cao càng KHÔNG nhỏ đi — chỗ để hạ lấy từ thứ khác trong chip', () => {
@@ -70,7 +72,18 @@ describe('điểm nằm trong chip người chơi', () => {
         const goc = ten === 'OnlineGame.vue' ? '.pchip .pts {' : '\n.pts {';
         expect(co(goc)).toBeGreaterThanOrEqual(16);
         expect(co(ten === 'OnlineGame.vue' ? '.pchip .pts.dai {' : '\n.pts.dai {')).toBeGreaterThanOrEqual(15);
-        expect(co(ten === 'OnlineGame.vue' ? '.pchip .pts.ratdai {' : '\n.pts.ratdai {')).toBeGreaterThanOrEqual(13.5);
+      });
+
+      it('điểm in bằng numGon (≤4 ký tự), số đầy đủ ở title', () => {
+        // Điểm trơn "12400" trên chip bàn 4 người bị cắt còn "124" (đo trên SE).
+        expect(src).toMatch(/class="pts"[^>]*:title="num\([^"]+\)"[^>]*>\{\{ numGon\(/);
+        expect(src, 'điểm trơn trên chip').not.toMatch(/class="pts"[^>]*:class="\{ dai[^>]*>\{\{ p\.score \}\}/);
+      });
+
+      it('bàn đông: chip chờ chỉ còn avatar + điểm, bề ngang ĐẶT TAY (không auto)', () => {
+        expect(src).toMatch(/dong: [^}]*>= 3 \}/);
+        expect(src).toMatch(/\.strip\.dong \.(?:pchip|player):not\(\.active\) \{ flex: 0 1 \d+px;/);
+        expect(src, ':has() không có trên iOS < 15.4').not.toMatch(/\.strip:has\(/);
       });
 
       it('thứ tự hy sinh khi chip hẹp dần được khai bằng @container', () => {
@@ -175,5 +188,24 @@ describe('thanh emoji', () => {
     const cao = Number(/min-height:\s*(\d+)px/.exec(src)![1]);
     const noi = Number(/\.emoji::after[^}]*inset:\s*-(\d+)px/.exec(src)![1]);
     expect(cao + noi * 2, 'nút + vùng nới phải đủ 44px (NF-07)').toBeGreaterThanOrEqual(44);
+  });
+});
+
+/** Số gọn trên chip: TỐI ĐA 4 ký tự, làm tròn XUỐNG (không hiện nhiều hơn điểm thật). */
+describe('numGon', () => {
+  it('tiếng Việt', () => {
+    ngonNgu.value = 'vi';
+    expect([0, 45, 980, 999, 1000, 1250, 9999, 12400, 99999, 999999].map(numGon))
+      .toEqual(['0', '45', '980', '999', '1k', '1,2k', '9,9k', '12k', '99k', '999k']);
+    expect(numGon(1_250_000)).toBe('1,2tr');
+  });
+  it('mọi điểm dưới một triệu đều ≤ 4 ký tự (trần lý thuyết 5 chữ số)', () => {
+    for (let n = 0; n < 1_000_000; n += 37) expect(numGon(n).length, String(n)).toBeLessThanOrEqual(4);
+  });
+  it('English dùng dấu chấm thập phân', () => {
+    ngonNgu.value = 'en';
+    expect(numGon(1250)).toBe('1.2k');
+    expect(numGon(1_250_000)).toBe('1.2M');
+    ngonNgu.value = 'vi';
   });
 });
