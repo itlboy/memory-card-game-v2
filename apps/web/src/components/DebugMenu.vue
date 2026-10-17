@@ -12,7 +12,8 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import { apOtaNgay, banNative, kiemOta, trangThaiOta } from '@/lib/ota';
-import { t } from '@/lib/i18n';
+import { t, td } from '@/lib/i18n';
+import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { datPingSo, pingSo } from '@/lib/ping-so';
 import { boEmojiHien, boEmojiVeMacDinh, doiBoEmojiThu } from '@/lib/emoji';
@@ -57,6 +58,7 @@ function veMacDinh(): void {
   datPremiumThu(false);
   datPingSo(false);
   boEmojiVeMacDinh();
+  skinVeMacDinh();
   emit('update:doNhip', false);
 }
 </script>
@@ -90,6 +92,11 @@ function veMacDinh(): void {
     <button class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
       <i class="xoay" aria-hidden="true">↻</i>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}
     </button>
+    <!-- Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở đây — người chơi chỉ có Kẹo (lib/skin.ts) -->
+    <p class="dbg-nhom">{{ t('tb.giaoDien') }}</p>
+    <div class="dbg-fx">
+      <button v-for="s in SKINS" :key="s" class="dbg-nho" :class="{ chon: skin === s }" type="button" :aria-pressed="skin === s" @click="datSkin(s, true)">{{ td(`tb.skin.${s}`) }}</button>
+    </div>
     <p class="dbg-nhom">{{ t('lc.xemThu') }}</p>
     <div class="dbg-fx">
       <button v-for="x in XEM_THU" :key="x.ten" class="dbg-nho" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
@@ -129,4 +136,5 @@ function veMacDinh(): void {
 .dbg-fx { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .dbg-fx .dbg-nho { white-space: normal; text-align: left; }
 @media (hover: hover) { .dbg-cong:hover, .dbg-nho:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); } }
+.dbg-nho.chon { border-style: solid; border-color: var(--bad); color: var(--bad); }
 </style>

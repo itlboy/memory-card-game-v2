@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { anhEmoji } from '@/lib/emoji';
 import { tenBot } from '@/lib/ten';
 import { tenTheme } from '@/lib/achievements';
 import { t, td, ngonNgu } from '@/lib/i18n';
@@ -379,6 +380,15 @@ function toggleTheme(id: string): void {
 }
 const themeWarn = ref(false);
 let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
+
+/* Icon 3D (Noto, cùng bộ với mặt bài) cho bốn ô trang chủ — skin Kẹo hiện chúng thay icon
+   nét (keo.css); skin khác vẫn icon nét (`.ico3d` ẩn mặc định). Chủ dự án 17.10.2026: "nút
+   phẳng, đơn điệu". */
+const ICO3D = {
+  chienDich: anhEmoji('🗺️', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
+  // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
+  dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? ''
+};
 </script>
 
 <template>
@@ -404,20 +414,20 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
         <QuatLa :themes="themes" />
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
-          <Map class="opt-icon" :size="34" aria-hidden="true" />
+          <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
           <strong>{{ t('menu.chienDich') }}</strong>
           <span v-if="(manChienDich ?? 0) > 0" class="man">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
         </button>
 
         <div class="ba-o">
           <button class="o-vuong neon g-blue" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
-            <Users class="opt-icon" :size="30" aria-hidden="true" /><strong>{{ t('menu.choiNhanh') }}</strong>
+            <Users class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.choiNhanh" alt="" aria-hidden="true"><strong>{{ t('menu.choiNhanh') }}</strong>
           </button>
           <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
-            <Bot class="opt-icon" :size="30" aria-hidden="true" /><strong>{{ t('menu.dauMay') }}</strong>
+            <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong>{{ t('menu.dauMay') }}</strong>
           </button>
           <button class="o-vuong neon g-cyan" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
-            <Globe class="opt-icon" :size="30" aria-hidden="true" /><strong>{{ t('menu.online') }}</strong>
+            <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong>{{ t('menu.online') }}</strong>
           </button>
         </div>
 
@@ -774,6 +784,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
 .step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
 .home .loi-tat { margin: 0; }
+.ico3d { display: none; }
 
 .o-chien-dich, .o-vuong {
   border: 2px solid transparent; border-radius: 20px; color: #fff; cursor: pointer;

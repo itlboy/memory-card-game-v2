@@ -279,3 +279,729 @@
 :root[data-skin='keo'] .logo i { border: 2px solid var(--ink); box-shadow: 0 2px 0 var(--ink); box-sizing: border-box; }
 :root[data-skin='keo'] .logo .card-l { background: #2b4c9b; }
 :root[data-skin='keo'] .logo .card-r { background: #fffbea radial-gradient(circle at 50% 52%, #ff4d6d 28%, transparent 31%); }
+
+/* =====================================================================
+ * KẸO TỐI (17.10.2026) — chủ dự án: chỉ còn Kẹo cho người chơi, có Sáng/Tối
+ * (công tắc ở menu, `data-theme='dark'` do App.vue đặt). Cùng ngôn ngữ với bản
+ * sáng: viền mực + gờ đặc + khối màu kẹo GIỮ NGUYÊN màu (chữ mực đọc tốt trên
+ * chúng ở cả hai nền). Chỉ đổi: trời → đêm (trăng, sao), khối trắng → khay navy.
+ * Mặt TRƯỚC lá giữ kem sáng — emoji 3D cần nền sáng để rõ.
+ * ===================================================================== */
+:root[data-skin='keo'][data-theme='dark'] {
+  --ink: #070b22;
+  --bg: #1a2456;
+  --panel: #27366f; --panel-solid: #27366f; --panel-soft: #1f2c5e;
+  --khay: #2c3c7a;             /* khối bấm được nền "trắng" của bản sáng */
+  --fg: #f2f5ff;
+  --muted: #b9c4ec;            /* 7,4:1 trên #27366f */
+  --accent: #8fb4ff;
+  --accent-soft: rgba(143, 180, 255, .18);
+  --ok: #7ee08f; --warn: #ffc069; --gold: #ffd84d; --bad: #ff8a9b;
+  --line: rgba(185, 196, 236, .28);
+  --line-strong: rgba(185, 196, 236, .55);
+  --card-back: #3a5ec0;
+  --nen-man:
+    radial-gradient(circle 1.5px at 12% 18%, #fff 95%, transparent),
+    radial-gradient(circle 1px at 30% 8%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 70% 22%, #fff 95%, transparent),
+    radial-gradient(circle 1px at 88% 40%, #fff 95%, transparent),
+    radial-gradient(160% 34% at 50% 112%, #121a44 60%, transparent 61%),
+    linear-gradient(#141c48, #24306a);
+  --canh:
+    /* trăng khuyết + quầng */
+    radial-gradient(circle 24px at 83% 10%, #24306a 95%, transparent),
+    radial-gradient(circle 28px at 87% 12%, #fff3c4 95%, transparent),
+    radial-gradient(circle 70px at 87% 12%, rgba(255, 238, 170, .18) 55%, transparent),
+    /* sao */
+    radial-gradient(circle 2px at 10% 8%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 34% 14%, #fff 95%, transparent),
+    radial-gradient(circle 2.5px at 58% 6%, #ffe9a6 95%, transparent),
+    radial-gradient(circle 1.5px at 66% 24%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 6% 38%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 44% 33%, #fff 95%, transparent),
+    radial-gradient(circle 2.5px at 93% 46%, #ffe9a6 95%, transparent),
+    radial-gradient(circle 1.5px at 24% 58%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 72% 66%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 52% 82%, #fff 95%, transparent),
+    /* mây đêm mờ */
+    radial-gradient(58px 19px at 18% 22%, rgba(140, 160, 230, .22) 97%, transparent),
+    radial-gradient(52px 18px at 74% 36%, rgba(140, 160, 230, .18) 97%, transparent),
+    radial-gradient(60px 20px at 30% 70%, rgba(140, 160, 230, .16) 97%, transparent),
+    /* hai lớp đồi */
+    radial-gradient(90% 16% at 18% 104%, #1d2a63 60%, transparent 61%),
+    radial-gradient(120% 20% at 82% 108%, #121a44 60%, transparent 61%),
+    linear-gradient(#141c48, #24306a);
+}
+
+/* Khối nền + khay bấm được: trắng → navy, chữ sáng */
+:root[data-skin='keo'][data-theme='dark'] :is(.panel:not(.trang-chu), .overlay .panel, .menu) { background: var(--panel); color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] :is(.btn, .tabs .tab, .option, .lt-chip) { background: var(--khay); color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] .opt-icon { color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] :is(.option[aria-checked='true'], .option[aria-pressed='true']):not(.neon) { background: #ffcb2e; color: var(--ink); }
+:root[data-skin='keo'][data-theme='dark'] :is(.option[aria-checked='true'], .option[aria-pressed='true']) .opt-icon { color: var(--ink); }
+:root[data-skin='keo'][data-theme='dark'] .topbar .total { background: var(--khay); color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] .o-chien-dich .man { background: var(--khay); color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] .player { border-color: rgba(185, 196, 236, .35); background: rgba(39, 54, 111, .85); color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] .danh-hieu li { background: var(--khay); border-color: #3b4c8c; }
+:root[data-skin='keo'][data-theme='dark'] .danh-hieu li.co { background: #3a3f6e; border-color: var(--ink); }
+:root[data-skin='keo'][data-theme='dark'] .danh-hieu .tien-do { border-color: #3b4c8c; background: #1f2c5e; }
+:root[data-skin='keo'][data-theme='dark'] .score-big { background: #3a3f6e; color: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] .total-row { border-color: rgba(185, 196, 236, .4); }
+:root[data-skin='keo'][data-theme='dark'] .goi-y { background: #33306e; border-color: #a98bff; }
+:root[data-skin='keo'][data-theme='dark'] .dots i { background: rgba(242, 245, 255, .25); }
+:root[data-skin='keo'][data-theme='dark'] .dots i.on { background: var(--fg); }
+:root[data-skin='keo'][data-theme='dark'] .hud .vien svg { color: var(--fg); }
+
+/* Icon 3D thay icon nét ở trang chủ */
+:root[data-skin='keo'] :is(.o-chien-dich, .o-vuong) .opt-icon { display: none; }
+:root[data-skin='keo'] :is(.o-chien-dich, .o-vuong) .ico3d {
+  display: block; flex: none; width: clamp(40px, 7vh, 58px); height: auto;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .25));
+}
+/* Chiến dịch CĂN GIỮA (chủ dự án: "bị lệch sang trái"); viên "Màn N" thành nhãn dán góc */
+:root[data-skin='keo'] .o-chien-dich { position: relative; justify-content: center; text-align: center; }
+:root[data-skin='keo'] .o-chien-dich strong { flex: none; }
+:root[data-skin='keo'] .o-chien-dich .ico3d { width: clamp(46px, 8vh, 64px); }
+:root[data-skin='keo'] .o-chien-dich .man {
+  position: absolute; top: -12px; right: 14px; padding: 3px 10px; font-size: 13px;
+  border: 0; box-shadow: 0 3px 0 #c5d4ee, 0 4px 8px rgba(0, 0, 0, .2); rotate: 4deg;
+}
+
+/* ---------- nền trời nhiều lớp: tia nắng, mây có bóng, đồi xanh hai tầng ---------- */
+:root[data-skin='keo'] {
+  --bg: #5ec4f4;
+  --canh-deco:
+    /* mặt trời + quầng */
+    radial-gradient(circle 30px at 87% 11%, #ffe066 92%, #ffc93a 96%, transparent),
+    radial-gradient(circle 70px at 87% 11%, rgba(255, 232, 130, .5) 50%, transparent),
+    /* mây: thân trắng + bụng xanh nhạt lệch xuống */
+    radial-gradient(58px 21px at 16% 17%, #fff 97%, transparent),
+    radial-gradient(38px 17px at 29% 14%, #fff 97%, transparent),
+    radial-gradient(70px 20px at 21% 18.4%, #cfeeff 97%, transparent),
+    radial-gradient(50px 19px at 62% 31%, #fff 97%, transparent),
+    radial-gradient(32px 15px at 74% 28.5%, #fff 97%, transparent),
+    radial-gradient(62px 18px at 67% 32.4%, #cfeeff 97%, transparent),
+    radial-gradient(66px 23px at 22% 47%, #fff 97%, transparent),
+    radial-gradient(42px 18px at 36% 44.5%, #fff 97%, transparent),
+    radial-gradient(78px 21px at 27% 48.5%, #cfeeff 97%, transparent),
+    radial-gradient(54px 20px at 84% 60%, #fff 97%, transparent),
+    radial-gradient(36px 15px at 72% 58%, #fff 97%, transparent),
+    radial-gradient(66px 18px at 82% 61.4%, #cfeeff 97%, transparent),
+    /* lấp lánh */
+    radial-gradient(circle 2.5px at 44% 9%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 8% 34%, #fff 95%, transparent),
+    radial-gradient(circle 2.5px at 94% 42%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 55% 52%, #fff 95%, transparent),
+    /* tia nắng NGẮN quanh mặt trời, nhạt dần (chủ dự án: "tia sáng nhỏ hơn" — tia cũ chạy hết màn,
+       đè lên cỏ). Ảnh 200px, tâm đặt đúng chỗ mặt trời (87% 11%): % của background-position tính
+       theo (khung − ảnh) nên bù +74px / −78px. */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='.25' stop-color='%23fff' stop-opacity='.55'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath fill='url%28%23g%29' d='M100 100L199.6 91.3L199.6 108.7ZM100 100L195.4 130.1L188.7 146.2ZM100 100L176.6 164.3L164.3 176.6ZM100 100L146.2 188.7L130.1 195.4ZM100 100L108.7 199.6L91.3 199.6ZM100 100L69.9 195.4L53.8 188.7ZM100 100L35.7 176.6L23.4 164.3ZM100 100L11.3 146.2L4.6 130.1ZM100 100L0.4 108.7L0.4 91.3ZM100 100L4.6 69.9L11.3 53.8ZM100 100L23.4 35.7L35.7 23.4ZM100 100L53.8 11.3L69.9 4.6ZM100 100L91.3 0.4L108.7 0.4ZM100 100L130.1 4.6L146.2 11.3ZM100 100L164.3 23.4L176.6 35.7ZM100 100L188.7 53.8L195.4 69.9Z'/%3E%3C/svg%3E") calc(87% + 74px) calc(11% - 78px) / 200px 200px no-repeat;
+  /* đồi: trước xanh lá đậm, sau xanh lá nhạt */
+  --canh-doi:
+    radial-gradient(100% 30% at 20% 106%, #5cc23f 60%, #4aa832 61.5%, transparent 62%),
+    radial-gradient(120% 40% at 82% 108%, #8fdc5f 60%, #79c94c 61.5%, transparent 62%);
+  /* trời: sáng dần xuống chân trời */
+  --canh-troi: linear-gradient(#45b3ef, #7fd3fb 70%, #b5e8ff);
+  --canh: var(--canh-deco), var(--canh-doi), var(--canh-troi);
+}
+
+/* Kẹo tối: cùng cấu trúc — trăng, sao, đồi tím than, quầng cực quang */
+:root[data-skin='keo'][data-theme='dark'] {
+  --canh-deco:
+    radial-gradient(circle 24px at 83% 10%, #22306a 95%, transparent),
+    radial-gradient(circle 28px at 87% 12%, #fff3c4 95%, transparent),
+    radial-gradient(circle 80px at 87% 12%, rgba(255, 238, 170, .2) 55%, transparent),
+    radial-gradient(circle 2px at 10% 8%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 34% 14%, #fff 95%, transparent),
+    radial-gradient(circle 2.5px at 58% 6%, #ffe9a6 95%, transparent),
+    radial-gradient(circle 1.5px at 66% 24%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 6% 38%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 44% 33%, #fff 95%, transparent),
+    radial-gradient(circle 2.5px at 93% 46%, #ffe9a6 95%, transparent),
+    radial-gradient(circle 1.5px at 24% 58%, #fff 95%, transparent),
+    radial-gradient(circle 2px at 72% 66%, #fff 95%, transparent),
+    radial-gradient(circle 1.5px at 52% 82%, #fff 95%, transparent),
+    /* cực quang */
+    radial-gradient(70% 18% at 30% 26%, rgba(110, 230, 200, .14), transparent 70%),
+    radial-gradient(60% 16% at 70% 40%, rgba(170, 130, 255, .14), transparent 70%);
+  --canh-doi:
+    radial-gradient(100% 30% at 20% 106%, #1b2760 60%, #141d4d 61.5%, transparent 62%),
+    radial-gradient(120% 40% at 82% 108%, #2a3678 60%, #222d68 61.5%, transparent 62%);
+  --canh-troi: linear-gradient(#0f1640, #1f2b66 75%, #2c3a7c);
+  --canh: var(--canh-deco), var(--canh-doi), var(--canh-troi);
+}
+
+/* ---------- QUẠT LÁ TRANG CHỦ — LÁ BÀI THẬT (17.10.2026) ----------
+   Chủ dự án: "đơn điệu" → (bản thạch đế dày) "không thật". Lá bài là vật MỎNG, không phải nút:
+   viền giấy trắng quanh mép, mặt lưng là khung hoạ tiết lùi vào trong (lưới quả trám + đường chỉ
+   kép), mép dày chỉ 2px, bóng đổ MỀM (không đế đặc), một vệt láng chéo như giấy bồi nhựa.
+   Chỉ là trang trí — mặt sau lá TRONG VÁN vẫn theo luật "skin chỉ đổi màu nền". */
+:root[data-skin='keo'] .la-quat .lac {
+  isolation: isolate; border-radius: 6.5cqh;
+  border: max(3px, 1.7cqh) solid #fdfdfb;
+  background:
+    linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, .16) 30% 44%, transparent 44%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .13) 0 1.5px, transparent 1.5px 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .13) 0 1.5px, transparent 1.5px 12px),
+    radial-gradient(90% 70% at 50% 50%, #4d78dc, #2a48a0);
+  box-shadow:
+    inset 0 0 0 2.5px #2a48a0, inset 0 0 0 3.5px rgba(255, 215, 90, .8),   /* đường chỉ kép trong khung */
+    0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #d6dcea,                      /* mép giấy */
+    0 12px 22px rgba(10, 20, 60, .28), 0 3px 6px rgba(10, 20, 60, .18);
+}
+:root[data-skin='keo'] .la-quat .lac::before { content: none; }
+:root[data-skin='keo'] .la-quat .lac i {
+  background: radial-gradient(90% 90% at 50% 20%, #fff2a8, #ffc21a 60%);
+  filter: drop-shadow(0 2px 0 #b07800);
+}
+:root[data-skin='keo'] .la-quat.giua .lac {
+  border: 0;
+  background:
+    linear-gradient(118deg, transparent 26%, rgba(255, 255, 255, .55) 26% 38%, transparent 38%),
+    radial-gradient(110% 80% at 50% 35%, #ffffff, var(--card-face-up) 85%);
+  box-shadow:
+    inset 0 0 0 1px rgba(20, 30, 70, .1),
+    0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #d6dcea,
+    0 16px 28px rgba(10, 20, 60, .32), 0 4px 8px rgba(10, 20, 60, .18);
+}
+
+/* Chữ ô trang chủ to hơn (chủ dự án: "Chơi nhanh hơi khó nhìn") */
+:root[data-skin='keo'] .o-vuong strong { font-size: clamp(14px, 4cqi, 16.5px); white-space: nowrap; }
+:root[data-skin='keo'] .o-chien-dich strong { font-size: 32px; }
+
+/* ---------- KẸO TỐI: lá bài DỊU xuống (chủ dự án: "giao diện tối thẻ vẫn sáng") ----------
+   Mặt ngửa navy nhạt thay kem — emoji 3D vẫn nổi trên nền này; lá đã ghép giữ viền xanh lá. */
+:root[data-skin='keo'][data-theme='dark'] { --card-face-up: #34467f; }
+:root[data-skin='keo'][data-theme='dark'] .card.done .front { background: #2c3c74; }
+:root[data-skin='keo'][data-theme='dark'] .la-quat .lac { border-color: #d9deeb; }
+:root[data-skin='keo'][data-theme='dark'] .la-quat.giua .lac {
+  background:
+    linear-gradient(118deg, transparent 26%, rgba(255, 255, 255, .1) 26% 38%, transparent 38%),
+    radial-gradient(110% 80% at 50% 35%, #4b5e9f, #34467f 85%);
+  box-shadow: inset 0 0 0 max(3px, 1.7cqh) #d9deeb, 0 0 0 1px rgba(0, 0, 0, .3), 0 2px 0 #9aa6c6, 0 16px 28px rgba(0, 0, 0, .45);
+}
+
+/* #####################################################################
+ * NGÔN NGỮ "THẠCH" — MỘT bộ luật cho MỌI thứ của Kẹo (chủ dự án 17.10.2026, chọn mẫu B
+ * https://claude.ai/artifact/HqgEzKY4xZerA4VLvfBruX, rồi: "cần một ngôn ngữ thiết kế chung").
+ * Không còn viền mực đen. Ba vai, thêm thứ mới thì XẾP NÓ VÀO MỘT VAI, đừng tô riêng:
+ *
+ *  1. THẠCH MÀU — thứ bấm để LÀM (nút chính, ô chế độ/số người/mức máy, Chinh phục, tab đang
+ *     chọn, lối tắt màu, ô đang chọn). Gradient trong + mép & đế dày CÙNG MÀU + đáy tối bên
+ *     trong; ô to có thêm vệt bóng bầu dục (::before). Mỗi màu là bộ 5 biến:
+ *     --c1 sáng · --c2 thân · --c3 mép/đế · --c4 viền chữ · --cc màu chữ.
+ *     MÀU SÁNG (vàng) DÙNG CHỮ ĐẬM (--cc nâu), không chữ trắng — chủ dự án: "nền vàng chữ
+ *     trắng đau mắt". Màu còn lại chữ trắng viền --c4.
+ *  2. THẠCH TRẮNG — nút phụ (Back, X, tab chưa chọn, viên số, nút menu, ô cấu hình chưa chọn,
+ *     nút HUD). Cùng hình khối, tông trắng-xanh (tối: navy).
+ *  3. KHAY — thứ để CHỨA (panel, hộp thoại, menu, dòng danh hiệu, hàng tuỳ chọn, chip người).
+ *     Mép mềm một màu, không gờ dày; panel nổi bằng bóng đổ mềm.
+ * ##################################################################### */
+
+/* ---- bảng màu (đặt ở :root cho mặc định; lớp màu ghi đè) ---- */
+:root[data-skin='keo'] {
+  --c1: #a3ec72; --c2: #46ad22; --c3: #33861a; --c4: #23600f; --cc: #fff;
+  --t1: #fff; --t2: #e4efff; --t3: #aebfdf; --tc: #1d2a5a;          /* thạch trắng */
+  --k-nen: #fff; --k-vien: #d6e1f3; --k-mem: #f2f7ff;                /* khay */
+}
+:root[data-skin='keo'][data-theme='dark'] {
+  --t1: #43569f; --t2: #2e3e7e; --t3: #19245a; --tc: #f2f5ff;
+  --k-nen: #27366f; --k-vien: #19245a; --k-mem: #2f3f7c;
+}
+/* XANH LÁ */
+:root[data-skin='keo'] :is(.g-violet, .btn-primary, .sw.bat) { --c1: #a3ec72; --c2: #46ad22; --c3: #33861a; --c4: #23600f; --cc: #fff; }
+/* VÀNG — chữ nâu đậm */
+:root[data-skin='keo'] .g-blue,
+:root[data-skin='keo'] .lt-chip.lua,
+:root[data-skin='keo'] .option[aria-checked='true']:not(.neon),
+:root[data-skin='keo'] .option[aria-pressed='true']:not(.neon),
+:root[data-skin='keo'] .seg-btn[aria-pressed='true'],
+:root[data-skin='keo'] .nac button[aria-checked='true'],
+:root[data-skin='keo'] .player.active,
+:root[data-skin='keo'] .turn-chip { --c1: #ffe98a; --c2: #ffc21a; --c3: #d99400; --c4: #ffe98a; --cc: #5a3500; }
+/* HỒNG */
+:root[data-skin='keo'] .g-amber { --c1: #ffb3c6; --c2: #f7577f; --c3: #cf3560; --c4: #9c1c42; --cc: #fff; }
+/* ĐỎ KẸO (Chinh phục, lối tắt gợi ý, huy hiệu, tab đang chọn) */
+:root[data-skin='keo'] .g-red,
+:root[data-skin='keo'] .lt-chip.goi-y,
+:root[data-skin='keo'] .topbar .dh,
+:root[data-skin='keo'] .danh-hieu .di,
+:root[data-skin='keo'] .btn.danger,
+:root[data-skin='keo'] .tabs .tab[aria-selected='true'] { --c1: #ff9cb2; --c2: #ee3a5e; --c3: #c21f42; --c4: #8a1230; --cc: #fff; }
+/* XANH TRỜI */
+:root[data-skin='keo'] .g-cyan { --c1: #9fe3ff; --c2: #2aa3ea; --c3: #1680c4; --c4: #0d5c91; --cc: #fff; }
+/* TÍM */
+:root[data-skin='keo'] .g-pink { --c1: #d9b8ff; --c2: #8f55ec; --c3: #6c38c6; --c4: #4b2194; --cc: #fff; }
+/* NGỌC */
+:root[data-skin='keo'] .g-teal { --c1: #86eedf; --c2: #1aa697; --c3: #108073; --c4: #075a50; --cc: #fff; }
+/* CHANH — chữ đậm */
+:root[data-skin='keo'] .g-lime { --c1: #ddf89b; --c2: #9ad33a; --c3: #73a51c; --c4: #ddf89b; --cc: #2c4a06; }
+/* CAM */
+:root[data-skin='keo'] .g-orange { --c1: #ffc78a; --c2: #f7800e; --c3: #c95f00; --c4: #8a3f00; --cc: #fff; }
+
+/* ---- vai 1: THẠCH MÀU ---- */
+:root[data-skin='keo'] .neon[class*='g-'],
+:root[data-skin='keo'] .btn-primary,
+:root[data-skin='keo'] .btn.danger,
+:root[data-skin='keo'] .lt-chip.lua,
+:root[data-skin='keo'] .lt-chip.goi-y,
+:root[data-skin='keo'] .topbar .dh,
+:root[data-skin='keo'] .danh-hieu .di,
+:root[data-skin='keo'] .tabs .tab[aria-selected='true'],
+:root[data-skin='keo'] .option[aria-checked='true']:not(.neon),
+:root[data-skin='keo'] .option[aria-pressed='true']:not(.neon),
+:root[data-skin='keo'] .seg-btn[aria-pressed='true'],
+:root[data-skin='keo'] .player.active,
+:root[data-skin='keo'] .turn-chip {
+  border: 2.5px solid var(--c3) !important;
+  background: linear-gradient(var(--c1) -40%, var(--c2) 70%) !important;
+  color: var(--cc) !important;
+  box-shadow: inset 0 -5px 8px rgba(0, 0, 0, .1), inset 0 3px 4px rgba(255, 255, 255, .3),
+    0 4px 0 var(--c3), 0 8px 14px rgba(10, 20, 60, .2) !important;
+}
+:root[data-skin='keo'] .nac button[aria-checked='true'] { background: radial-gradient(120% 90% at 50% 0%, var(--c1), var(--c2) 62%); color: var(--cc); }
+:root[data-skin='keo'] .sw.bat { background: var(--c2); }
+/* ô TO: đế dày hơn + vệt bóng bầu dục */
+:root[data-skin='keo'] .neon[class*='g-'],
+:root[data-skin='keo'] .btn-primary {
+  position: relative; isolation: isolate; border-radius: 22px;
+  box-shadow: inset 0 -6px 10px rgba(0, 0, 0, .1), inset 0 3px 5px rgba(255, 255, 255, .3),
+    0 6px 0 var(--c3), 0 10px 16px rgba(10, 20, 60, .22) !important;
+}
+:root[data-skin='keo'] .neon[class*='g-']::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  left: 14%; right: 14%; top: 4px; height: 16%; border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, .38), rgba(255, 255, 255, 0));
+}
+:root[data-skin='keo'] .neon[class*='g-']:active,
+:root[data-skin='keo'] .btn-primary:active {
+  box-shadow: inset 0 -4px 10px rgba(0, 0, 0, .13), 0 2px 0 var(--c3) !important;
+}
+/* chữ: màu theo --cc; chữ trắng viền --c4 (viền nét để máy đo tính), chữ đậm thì vệt sáng dưới */
+/* Viền chữ viết THẲNG trong từng rule: biến tuỳ biến chứa var(--c4) đặt ở :root bị tính sẵn
+   bằng màu gốc (xanh lá) — mọi ô ra viền xanh lá. */
+:root[data-skin='keo'] .neon[class*='g-'] strong,
+:root[data-skin='keo'] .btn-primary,
+:root[data-skin='keo'] .btn.danger,
+:root[data-skin='keo'] .lt-chip.goi-y,
+:root[data-skin='keo'] .topbar .dh,
+:root[data-skin='keo'] .danh-hieu .di,
+:root[data-skin='keo'] .tabs .tab[aria-selected='true'] { color: var(--cc) !important; text-shadow: 1.5px 0 0 var(--c4), -1.5px 0 0 var(--c4), 0 1.5px 0 var(--c4), 0 -1.5px 0 var(--c4), 1.1px 1.1px 0 var(--c4), -1.1px 1.1px 0 var(--c4), 1.1px -1.1px 0 var(--c4), -1.1px -1.1px 0 var(--c4), 0 2.5px 0 var(--c4); }
+:root[data-skin='keo'] .neon[class*='g-'] small {
+  color: var(--cc) !important; font-weight: 700;
+  text-shadow: 1px 0 0 var(--c4), -1px 0 0 var(--c4), 0 1px 0 var(--c4), 0 -1px 0 var(--c4), 0 1.5px 0 var(--c4);
+}
+:root[data-skin='keo'] .neon[class*='g-'] :is(.opt-icon, .count-num, .hinh-nguoi) { color: var(--cc) !important; }
+:root[data-skin='keo'] :is(.option[aria-checked='true'], .option[aria-pressed='true']) :is(small, .opt-icon) { color: var(--cc) !important; }
+
+/* ---- vai 2: THẠCH TRẮNG ---- */
+:root[data-skin='keo'] .btn:not(.btn-primary):not(.danger),
+:root[data-skin='keo'] .lt-chip:not(.lua):not(.goi-y),
+:root[data-skin='keo'] .tabs .tab:not([aria-selected='true']),
+:root[data-skin='keo'] .topbar .total,
+:root[data-skin='keo'] .topbar [aria-haspopup='menu'],
+:root[data-skin='keo'] .option:not(.neon):not([aria-checked='true']):not([aria-pressed='true']),
+:root[data-skin='keo'] .seg-btn:not([aria-pressed='true']),
+:root[data-skin='keo'] .hud .vien {
+  border: 2px solid var(--t3) !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important;
+  color: var(--tc);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), inset 0 -4px 6px rgba(29, 42, 90, .08),
+    0 5px 0 var(--t3), 0 8px 12px rgba(10, 20, 60, .22) !important;
+}
+:root[data-skin='keo'] .seg-btn:not([aria-pressed='true']) { box-shadow: inset 0 -3px 5px rgba(29, 42, 90, .06), 0 2px 0 var(--t3) !important; }
+:root[data-skin='keo'] :is(.btn, .lt-chip, .tabs .tab, .option):active { transform: translateY(3px); }
+:root[data-skin='keo'] { --vien-nut: 2px solid var(--t3); --vien-vien: 2px solid var(--t3); --elev-1: 0 3px 0 var(--t3); --elev-2: 0 4px 0 var(--t3); }
+:root[data-skin='keo'] .hud .vien svg { color: var(--tc); }
+:root[data-skin='keo'] .nac { border: 2px solid var(--t3); }
+
+/* ---- vai 3: KHAY ---- */
+:root[data-skin='keo'] .panel:not(.trang-chu),
+:root[data-skin='keo'] .menu {
+  background: var(--k-nen) !important; color: var(--fg);
+  border: 2.5px solid var(--k-vien) !important; border-radius: 26px;
+  box-shadow: 0 6px 0 var(--k-vien), 0 18px 40px rgba(10, 20, 60, .28) !important;
+}
+:root[data-skin='keo'] .danh-hieu li,
+:root[data-skin='keo'] .opt-row,
+:root[data-skin='keo'] .player:not(.active),
+:root[data-skin='keo'] .score-big,
+:root[data-skin='keo'] .total-row {
+  background: var(--k-mem) !important; border: 2px solid var(--k-vien) !important; border-radius: 16px;
+  box-shadow: inset 0 -3px 0 rgba(29, 42, 90, .05);
+}
+:root[data-skin='keo'] .danh-hieu li.co { background: #fff7d9 !important; border-color: #f0cf6a !important; }
+:root[data-skin='keo'][data-theme='dark'] .danh-hieu li.co { background: #3c3f6c !important; border-color: #8a7330 !important; }
+:root[data-skin='keo'] .achievements li { background: radial-gradient(120% 90% at 50% 0%, #ffe98a, #ffc21a 62%); color: #5a3500; border: 2px solid #d99400; }
+
+/* ---- lá bài trong ván: cùng ngôn ngữ (mép + đế cùng màu, không mực) ---- */
+:root[data-skin='keo'] .card { box-shadow: 0 3px 0 #1c357c; }
+:root[data-skin='keo'] .card .face.back { border-color: #1c357c; }
+:root[data-skin='keo'] .card .front { border-color: #e3b23c; }
+:root[data-skin='keo'][data-theme='dark'] .card .front { border-color: #c9962a; }
+:root[data-skin='keo'] .card.done .front { border-color: #46ad22; }
+:root[data-skin='keo'] .card.up { box-shadow: 0 3px 0 #c99520; }
+:root[data-skin='keo'] .logo i { border-color: #1c357c; box-shadow: 0 2px 0 #1c357c; }
+
+/* ---- viên "Màn N" dán góc ô Chiến dịch: nhãn thạch trắng ---- */
+:root[data-skin='keo'] .o-chien-dich .man {
+  border: 2px solid var(--t3) !important; color: var(--tc) !important; text-shadow: none !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 4px 0 var(--t3), 0 6px 10px rgba(0, 0, 0, .25);
+}
+
+/* Ô theme đã chọn: khay vàng NHẠT + mép vàng, không thạch đặc — lưới 36–72 ô mà ô nào cũng vàng
+   đặc là "rực" (chủ dự án 17.10.2026). Dấu ✓ góc ô đã nói "đang chọn". */
+:root[data-skin='keo'] .theme-grid .option[aria-checked='true'],
+:root[data-skin='keo'] .theme-grid .option[aria-pressed='true'] {
+  background: #fff6d6 !important; border-color: #f0b400 !important;
+  box-shadow: 0 3px 0 #f0b400 !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .theme-grid .option[aria-checked='true'],
+:root[data-skin='keo'][data-theme='dark'] .theme-grid .option[aria-pressed='true'] { background: #4a4a6e !important; }
+
+/* Màu sáng (vàng, chanh) chữ ĐẬM: bỏ viền, chỉ một vệt sáng dưới chân chữ — viền vàng nhạt quanh
+   chữ nâu trông bẩn. */
+:root[data-skin='keo'] :is(.g-blue, .g-lime) strong,
+:root[data-skin='keo'] :is(.g-blue, .g-lime) small,
+:root[data-skin='keo'] .lt-chip.lua { text-shadow: 0 1.5px 0 rgba(255, 255, 255, .55) !important; }
+/* Thạch trắng ở nền tối: vệt sáng mép trên DỊU (trắng 90% trên navy là một đường kẻ chói) */
+:root[data-skin='keo'][data-theme='dark'] .btn:not(.btn-primary):not(.danger),
+:root[data-skin='keo'][data-theme='dark'] .lt-chip:not(.lua):not(.goi-y),
+:root[data-skin='keo'][data-theme='dark'] .tabs .tab:not([aria-selected='true']),
+:root[data-skin='keo'][data-theme='dark'] .topbar .total,
+:root[data-skin='keo'][data-theme='dark'] .topbar [aria-haspopup='menu'],
+:root[data-skin='keo'][data-theme='dark'] .option:not(.neon):not([aria-checked='true']):not([aria-pressed='true']),
+:root[data-skin='keo'][data-theme='dark'] .hud .vien,
+:root[data-skin='keo'][data-theme='dark'] .o-chien-dich .man {
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .18), inset 0 -4px 6px rgba(0, 0, 0, .15),
+    0 5px 0 var(--t3), 0 8px 12px rgba(0, 0, 0, .35) !important;
+}
+
+/* ---------- LÁ BÀI TRONG VÁN = CÙNG KIỂU "LÁ BÀI THẬT" VỚI QUẠT LÁ (17.10.2026) ----------
+   Chủ dự án: "thẻ bài trong bàn chơi có vẻ hơi khác". Viền giấy trắng mảnh + đường chỉ vàng trong
+   khung + mép 2px + bóng mềm. Hoạ tiết (::before ở card-backs.css) và bảng màu ván KHÔNG đổi; cả bàn
+   vẫn chung một mặt sau. Bàn ≥56 thẻ (`ban-lon`) bỏ bóng nhoè — 88 lớp bóng nhoè tốn mỗi nhịp vẽ. */
+:root[data-skin='keo'] .card .face.back {
+  border: max(1.5px, 2cqw) solid #fdfdfb;
+  box-shadow: inset 0 0 0 max(1px, 1cqw) rgba(255, 215, 90, .75);
+}
+:root[data-skin='keo'] .card .face.back[class*="bk-mau-"] { background: radial-gradient(90% 70% at 50% 45%, #4d78dc, #2a48a0); }
+:root[data-skin='keo'] .card .front { border: max(1.5px, 1.5cqw) solid #ece4c8; }
+:root[data-skin='keo'] .card {
+  box-shadow: 0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #d6dcea, 0 5px 10px rgba(10, 20, 60, .22);
+}
+:root[data-skin='keo'] .card.up { box-shadow: 0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #e3d9b8, 0 5px 10px rgba(10, 20, 60, .22); }
+:root[data-skin='keo'] .ban-lon .card,
+:root[data-skin='keo'] .ban-lon .card.up { box-shadow: 0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #d6dcea; }
+:root[data-skin='keo'] .card.done { box-shadow: 0 0 0 1px rgba(20, 30, 70, .1); }
+:root[data-skin='keo'] .card.done .front { border-color: #46ad22; }
+:root[data-skin='keo'][data-theme='dark'] .card .face.back { border-color: #d9deeb; }
+:root[data-skin='keo'][data-theme='dark'] .card .front { border-color: #d9deeb; }
+:root[data-skin='keo'][data-theme='dark'] .card,
+:root[data-skin='keo'][data-theme='dark'] .card.up { box-shadow: 0 0 0 1px rgba(0, 0, 0, .3), 0 2px 0 #9aa6c6, 0 5px 10px rgba(0, 0, 0, .35); }
+
+/* NỀN LIỀN MẠCH TRÊN MÁY TÍNH (chủ dự án 17.10.2026: "vệt tối bên dưới trong và ngoài không liền
+   mạch"). Trời + đồi (+ tia nắng) vẽ MỘT LẦN cho cả cửa sổ ở body; cột game chỉ vẽ TRANG TRÍ (mặt
+   trời/trăng, mây, sao) để giữa cột không trống (lý do --canh vẽ theo #app, 13.10.2026). */
+@media (min-width: 700px) {
+  :root[data-skin='keo'] body { background: var(--canh-doi), var(--canh-troi); background-attachment: fixed; }
+  :root[data-skin='keo'] #app { background: var(--canh-deco); }
+}
+
+/* Lá trong ván NỔI + BÓNG hơn (chủ dự án 17.10.2026: "các lá bài có độ nổi và bóng hơn").
+   KHÔNG vệt láng chéo trên lá trong ván: một lá thì đẹp, cả bàn 24–88 lá thành mảng sọc chéo,
+   chủ dự án "đau mắt". Vệt chéo chỉ ở quạt lá trang chủ (3 lá).
+   Mép dày 4px hai tầng như chồng giấy + bóng đổ sâu; mặt lưng thêm vệt láng chéo + vệt sáng mép
+   trên (lớp nền của .face.back — hoạ tiết ở ::before vẫn nằm trên). Bàn ≥56 thẻ giữ mép, bỏ bóng nhoè. */
+:root[data-skin='keo'] .card .face.back[class*="bk-mau-"] {
+  background:
+    linear-gradient(rgba(255, 255, 255, .12), transparent 35%),
+    radial-gradient(90% 70% at 50% 40%, #4f7ade, #2c4aa2);
+  box-shadow: inset 0 0 0 max(1px, 1cqw) rgba(255, 215, 90, .8), inset 0 -6px 10px rgba(0, 0, 0, .18);
+}
+:root[data-skin='keo'] .card .front {
+  background: radial-gradient(110% 80% at 50% 35%, #ffffff, var(--card-face-up) 85%);
+}
+:root[data-skin='keo'] .card,
+:root[data-skin='keo'] .card.up {
+  box-shadow: 0 0 0 1px rgba(20, 30, 70, .16), 0 2px 0 #e6eaf3, 0 4px 0 #b9c3da,
+    0 9px 14px rgba(10, 20, 60, .3), 0 3px 5px rgba(10, 20, 60, .2);
+}
+:root[data-skin='keo'] .ban-lon .card,
+:root[data-skin='keo'] .ban-lon .card.up { box-shadow: 0 0 0 1px rgba(20, 30, 70, .16), 0 2px 0 #e6eaf3, 0 3px 0 #b9c3da; }
+:root[data-skin='keo'][data-theme='dark'] .card .front {
+  background: radial-gradient(110% 80% at 50% 35%, #4b5e9f, #34467f 85%);
+}
+:root[data-skin='keo'][data-theme='dark'] .card,
+:root[data-skin='keo'][data-theme='dark'] .card.up {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35), 0 2px 0 #c3cbe0, 0 4px 0 #7f8bb0,
+    0 10px 16px rgba(0, 0, 0, .45), 0 3px 5px rgba(0, 0, 0, .3);
+}
+:root[data-skin='keo'][data-theme='dark'] .ban-lon .card,
+:root[data-skin='keo'][data-theme='dark'] .ban-lon .card.up { box-shadow: 0 0 0 1px rgba(0, 0, 0, .35), 0 2px 0 #c3cbe0, 0 3px 0 #7f8bb0; }
+:root[data-skin='keo'] .card.done { box-shadow: 0 0 0 1px rgba(20, 30, 70, .12), 0 2px 0 #b9c3da; }
+
+/* MẶT SAU TRONG VÁN = MẶT SAU QUẠT LÁ TRANG CHỦ (chủ dự án 17.10.2026: "làm nó như lá bài trang chủ").
+   Lưới quả trám mờ + ngôi sao vàng giữa lá (ảnh SVG trong nền) thay hoạ tiết bốc theo ván (::before
+   ở card-backs.css bị tắt cho Kẹo — cả bàn vẫn chung một mặt). KHÔNG vệt láng chéo (đau mắt khi lặp). */
+:root[data-skin='keo'] .card .face.back::before { display: none; }
+:root[data-skin='keo'] .card .face.back[class*="bk-mau-"],
+:root[data-skin='keo'] .card .face.back {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g' cx='.5' cy='.25' r='.8'%3E%3Cstop offset='0' stop-color='%23fff2a8'/%3E%3Cstop offset='.6' stop-color='%23ffc21a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M50 4 61 37h35L68 58l11 34-29-21-29 21 11-34L4 37h35z' fill='%23b07800' transform='translate%280 4%29'/%3E%3Cpath d='M50 4 61 37h35L68 58l11 34-29-21-29 21 11-34L4 37h35z' fill='url%28%23g%29'/%3E%3C/svg%3E") center / 34% auto no-repeat,
+    linear-gradient(rgba(255, 255, 255, .12), transparent 35%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .11) 0 1.5px, transparent 1.5px 12px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .11) 0 1.5px, transparent 1.5px 12px),
+    radial-gradient(90% 70% at 50% 45%, #4d78dc, #2a48a0);
+}
+
+/* ---------- MENU CÀI ĐẶT: nút chia đoạn + công tắc + ô chọn ngôn ngữ cũng NỔI (17.10.2026) ----------
+   Rãnh = khay lõm (bóng TRONG); nút đang chọn = thạch vàng NHÔ khỏi rãnh (đế + bóng); nút chưa
+   chọn nằm phẳng trong rãnh. Công tắc rung: rãnh lõm + núm trắng nổi. */
+:root[data-skin='keo'] .nac {
+  border: 2px solid var(--t3) !important; background: var(--k-mem); padding: 2px; gap: 2px; overflow: visible;
+  box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
+}
+:root[data-skin='keo'] .nac button { border-radius: 999px; }
+:root[data-skin='keo'] .nac button[aria-checked='true'] {
+  border: 2px solid var(--c3); color: var(--cc);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .55), 0 3px 0 var(--c3), 0 4px 6px rgba(10, 20, 60, .2);
+  translate: 0 -1px;
+}
+:root[data-skin='keo'] .sw {
+  background: var(--k-mem); border: 2px solid var(--t3); box-shadow: inset 0 2px 4px rgba(29, 42, 90, .18);
+  width: 42px; height: 24px; box-sizing: border-box;
+}
+:root[data-skin='keo'] .sw.bat {
+  background: linear-gradient(var(--c1) -40%, var(--c2) 70%); border-color: var(--c3);
+  box-shadow: inset 0 -3px 4px rgba(0, 0, 0, .12), inset 0 2px 3px rgba(255, 255, 255, .4);
+}
+:root[data-skin='keo'] .sw::after {
+  top: 1px; left: 1px; width: 18px; height: 18px;
+  background: linear-gradient(#fff, #e4efff); box-shadow: 0 2px 0 #aebfdf, 0 3px 5px rgba(10, 20, 60, .25);
+}
+:root[data-skin='keo'] .sw.bat::after { left: 19px; }
+:root[data-skin='keo'] .chon-nn {
+  border: 2px solid var(--t3) !important; background-color: var(--t1);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 3px 0 var(--t3), 0 5px 8px rgba(10, 20, 60, .15);
+}
+:root[data-skin='keo'][data-theme='dark'] .chon-nn { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .15), 0 3px 0 var(--t3); color: var(--tc); }
+/* Bảng chọn ngôn ngữ trong menu: ô chưa chọn = thạch trắng, ô đang chọn = thạch vàng */
+:root[data-skin='keo'] .o-nn,
+:root[data-skin='keo'] .nn-dong,
+:root[data-skin='keo'] .chon-nn {
+  border: 2px solid var(--t3) !important; background: linear-gradient(var(--t1) 20%, var(--t2)) !important; color: var(--tc);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 3px 0 var(--t3), 0 5px 8px rgba(10, 20, 60, .15) !important;
+}
+:root[data-skin='keo'] .o-nn[aria-checked='true'] {
+  --c1: #ffe98a; --c2: #ffc21a; --c3: #d99400; --cc: #5a3500;
+  border-color: var(--c3) !important; background: linear-gradient(var(--c1) -40%, var(--c2) 70%) !important; color: var(--cc);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 3px 0 var(--c3), 0 5px 8px rgba(10, 20, 60, .2) !important;
+}
+:root[data-skin='keo'] :is(.o-nn, .nn-dong, .chon-nn):active { transform: translateY(2px); }
+:root[data-skin='keo'][data-theme='dark'] .o-nn:not([aria-checked='true']),
+:root[data-skin='keo'][data-theme='dark'] .nn-dong,
+:root[data-skin='keo'][data-theme='dark'] .chon-nn { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .15), 0 3px 0 var(--t3) !important; }
+
+:root[data-skin='keo'] .nn-hop {
+  background: var(--k-nen); border: 2.5px solid var(--k-vien); border-radius: 26px;
+  box-shadow: 0 6px 0 var(--k-vien), 0 18px 40px rgba(10, 20, 60, .35);
+}
+
+/* LÁ NGỬA: CÙNG CẤU TRÚC Ở HAI NỀN (chủ dự án 17.10.2026: "giao diện sáng không thấy viền ở mặt nội
+   dung, không đồng nhất với tối"). Viền giấy trắng → đường chỉ vàng mảnh → mặt (sáng: kem đậm hơn
+   giấy một nấc để khung hiện ra; tối: navy). Áp cho quạt lá trang chủ và lá ngửa trong ván. */
+:root[data-skin='keo'] .la-quat.giua .lac {
+  border: max(3px, 1.7cqh) solid #fdfdfb;
+  background: radial-gradient(110% 80% at 50% 35%, #fffdf2, #fff1c9 90%);
+  box-shadow:
+    inset 0 0 0 max(1.5px, .6cqh) rgba(232, 178, 40, .7),
+    0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #d6dcea,
+    0 16px 28px rgba(10, 20, 60, .32), 0 4px 8px rgba(10, 20, 60, .18);
+}
+:root[data-skin='keo'][data-theme='dark'] .la-quat.giua .lac {
+  border: max(3px, 1.7cqh) solid #d9deeb;
+  background: radial-gradient(110% 80% at 50% 35%, #4b5e9f, #34467f 85%);
+  box-shadow:
+    inset 0 0 0 max(1.5px, .6cqh) rgba(255, 210, 80, .6),
+    0 0 0 1px rgba(0, 0, 0, .3), 0 2px 0 #9aa6c6, 0 16px 28px rgba(0, 0, 0, .45);
+}
+:root[data-skin='keo'] .card .front {
+  border: max(1.5px, 2cqw) solid #fdfdfb;
+  background: radial-gradient(110% 80% at 50% 35%, #fffdf2, #fff1c9 90%);
+  box-shadow: inset 0 0 0 max(1px, 1cqw) rgba(232, 178, 40, .7);
+}
+:root[data-skin='keo'][data-theme='dark'] .card .front {
+  border-color: #d9deeb;
+  background: radial-gradient(110% 80% at 50% 35%, #4b5e9f, #34467f 85%);
+  box-shadow: inset 0 0 0 max(1px, 1cqw) rgba(255, 210, 80, .6);
+}
+/* Lá đã ghép: viền trong xanh lá thay chỉ vàng (giữ rõ nét, CLAUDE.md) */
+:root[data-skin='keo'] .card.done .front { border-color: #fdfdfb; box-shadow: inset 0 0 0 max(2px, 4cqw) #6ccb3a; }
+:root[data-skin='keo'][data-theme='dark'] .card.done .front { border-color: #d9deeb; }
+
+
+/* KẸO SÁNG: LÁ NGỬA VIỀN TỐI, NỘI DUNG SÁNG (chủ dự án 17.10.2026). Viền navy cùng màu mặt lưng thay
+   viền giấy trắng (trắng trên kem thì khung biến mất), mặt kem + chỉ vàng giữ nguyên. Kẹo tối KHÔNG
+   đổi (chủ dự án: "chế độ tối giữ nguyên"). Áp cho lá ngửa trong ván + lá giữa quạt trang chủ. */
+/* Viền xanh VỪA (#6d8fdc — bớt tối, chủ dự án) + mép dưới CÙNG TÔNG xanh thay vệt giấy trắng
+   (vệt trắng dưới viền xanh "không đúng"). */
+:root[data-skin='keo']:not([data-theme='dark']) .card .front { border-color: #6d8fdc; }
+:root[data-skin='keo']:not([data-theme='dark']) .card.done .front { border-color: #6d8fdc; }
+:root[data-skin='keo']:not([data-theme='dark']) .card.up {
+  box-shadow: 0 0 0 1px rgba(20, 30, 70, .16), 0 2px 0 #5577c4, 0 4px 0 #4563ad,
+    0 9px 14px rgba(10, 20, 60, .3), 0 3px 5px rgba(10, 20, 60, .2);
+}
+:root[data-skin='keo']:not([data-theme='dark']) .ban-lon .card.up { box-shadow: 0 0 0 1px rgba(20, 30, 70, .16), 0 2px 0 #5577c4, 0 3px 0 #4563ad; }
+:root[data-skin='keo']:not([data-theme='dark']) .la-quat.giua .lac {
+  border-color: #6d8fdc;
+  box-shadow: inset 0 0 0 max(1.5px, .6cqh) rgba(232, 178, 40, .7),
+    0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #5577c4, 0 4px 0 #4563ad,
+    0 16px 28px rgba(10, 20, 60, .32), 0 4px 8px rgba(10, 20, 60, .18);
+}
+
+/* Menu Cài đặt: nút chia đoạn đang chọn = thạch XANH LÁ (cùng màu công tắc rung), đế MỎNG hơn
+   (chủ dự án 17.10.2026: "nên để màu xanh, giảm bớt độ dày"). */
+:root[data-skin='keo'] .nac button[aria-checked='true'] {
+  --c1: #a3ec72; --c2: #46ad22; --c3: #33861a; --cc: #fff;
+  background: linear-gradient(var(--c1) -40%, var(--c2) 70%); color: #fff;
+  border: 1.5px solid var(--c3);
+  text-shadow: 0 1px 0 #23600f;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 1.5px 0 var(--c3), 0 2px 4px rgba(10, 20, 60, .18);
+  translate: 0 -.5px;
+}
+
+/* Nút "Chinh phục" (màn Danh hiệu): XANH LÁ, đế mỏng — cùng kiểu nút đang chọn ở menu Cài đặt
+   (chủ dự án 17.10.2026). */
+:root[data-skin='keo'] .danh-hieu .di {
+  --c1: #a3ec72; --c2: #46ad22; --c3: #33861a; --c4: #23600f; --cc: #fff;
+  border: 1.5px solid var(--c3) !important;
+  background: linear-gradient(var(--c1) -40%, var(--c2) 70%) !important;
+  color: #fff !important; text-shadow: 0 1px 0 #23600f !important;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 1.5px 0 var(--c3), 0 2px 4px rgba(10, 20, 60, .18) !important;
+}
+:root[data-skin='keo'] .danh-hieu .di:active { transform: translateY(1px); box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 .5px 0 var(--c3) !important; }
+
+/* Nút tròn HUD (thoát · chơi lại · tạm dừng): vai THẠCH TRẮNG như mọi nút phụ (sót, 17.10.2026). */
+:root[data-skin='keo'] .hud .tron {
+  border: 2px solid var(--t3) !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important; color: var(--tc);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), inset 0 -4px 6px rgba(29, 42, 90, .08),
+    0 4px 0 var(--t3), 0 6px 10px rgba(10, 20, 60, .22) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .hud .tron {
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .18), inset 0 -4px 6px rgba(0, 0, 0, .15),
+    0 4px 0 var(--t3), 0 6px 10px rgba(0, 0, 0, .35) !important;
+}
+:root[data-skin='keo'] .hud .tron:active { transform: translateY(3px); }
+
+/* Phòng chờ online (sót, 17.10.2026): viên "Mời bạn" + nút emoji = thạch trắng; viên Công khai /
+   Riêng tư = thạch màu (ngọc / tím). Đế mỏng vì viên thấp. */
+:root[data-skin='keo'] .pill.moi,
+:root[data-skin='keo'] .emoji-bar .emoji {
+  border: 2px solid var(--t3) !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important; color: var(--tc) !important;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .9), 0 2.5px 0 var(--t3), 0 3px 6px rgba(10, 20, 60, .18) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .pill.moi,
+:root[data-skin='keo'][data-theme='dark'] .emoji-bar .emoji {
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .18), 0 3px 0 var(--t3), 0 4px 7px rgba(0, 0, 0, .3) !important;
+}
+:root[data-skin='keo'] .pill.ck { --c1: #86eedf; --c2: #1aa697; --c3: #108073; }
+:root[data-skin='keo'] .pill.ck.priv { --c1: #d9b8ff; --c2: #8f55ec; --c3: #6c38c6; }
+:root[data-skin='keo'] .pill.ck {
+  border: 1.5px solid var(--c3) !important; color: #fff !important;
+  background: linear-gradient(var(--c1) -40%, var(--c2) 70%) !important; text-shadow: 0 1px 0 var(--c3);
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 var(--c3), 0 3px 6px rgba(10, 20, 60, .2) !important;
+}
+:root[data-skin='keo'] :is(.pill, .emoji-bar .emoji):active { transform: translateY(2px); }
+
+/* ---------- RÀ SOÁT NÚT PHẲNG (17.10.2026, máy đo quét mọi màn) ---------- */
+/* Chiến dịch: ô cấp NỔI. Đã qua = thạch xanh lá nhạt; đang chơi = thạch vàng; khoá = khay nhạt có đế mỏng. */
+:root[data-skin='keo'] .node {
+  border: 2px solid var(--t3) !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 4px 0 var(--t3), 0 6px 9px rgba(10, 20, 60, .16) !important;
+  overflow: visible;
+}
+:root[data-skin='keo'] .node.cleared {
+  border-color: #8fcf6b !important;
+  background: linear-gradient(#f2fde8 20%, #ddf5cc) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 4px 0 #8fcf6b, 0 6px 9px rgba(10, 20, 60, .16) !important;
+}
+:root[data-skin='keo'] .node.next {
+  border-color: #d99400 !important; color: #5a3500 !important;
+  background: linear-gradient(#ffe98a -40%, #ffc21a 70%) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 5px 0 #d99400, 0 8px 12px rgba(10, 20, 60, .22) !important;
+}
+:root[data-skin='keo'] .node.locked {
+  opacity: .6;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 2px 0 var(--t3) !important;
+}
+:root[data-skin='keo'] .node:not(.locked):active { transform: translateY(3px); }
+:root[data-skin='keo'][data-theme='dark'] .node.cleared {
+  border-color: #3f8a2a !important; background: linear-gradient(#35585a 20%, #2d4a4f) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .12), 0 4px 0 #2a5a1e, 0 6px 9px rgba(0, 0, 0, .3) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .node:not(.cleared):not(.next) {
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .15), 0 3px 0 var(--t3) !important;
+}
+/* Nút "Chinh phục" ở MỌI chỗ (bảng kết quả, màn Danh hiệu): xanh lá đế mỏng */
+:root[data-skin='keo'] .goi-y .di,
+:root[data-skin='keo'] .di {
+  --c1: #a3ec72; --c2: #46ad22; --c3: #33861a;
+  border: 1.5px solid var(--c3) !important;
+  background: linear-gradient(var(--c1) -40%, var(--c2) 70%) !important;
+  color: #fff !important; text-shadow: 0 1px 0 #23600f !important;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 var(--c3), 0 3px 5px rgba(10, 20, 60, .18) !important;
+}
+/* Danh sách phòng online: mỗi phòng là thạch trắng bấm được */
+:root[data-skin='keo'] .room {
+  border: 2px solid var(--t3) !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), 0 4px 0 var(--t3), 0 6px 9px rgba(10, 20, 60, .16) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .room { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .15), 0 4px 0 var(--t3), 0 6px 9px rgba(0, 0, 0, .3) !important; }
+:root[data-skin='keo'] .room:not(:disabled):active { transform: translateY(3px); }
+
+/* Chat (17.10.2026): nút 💬 = thạch vàng (mở: thạch xanh lá); câu nói nhanh = thạch trắng; bảng = khay */
+:root[data-skin='keo'] .emoji-bar .emoji.say {
+  border-color: #d99400 !important; background: linear-gradient(#ffe98a -40%, #ffc21a 70%) !important;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .5), 0 2.5px 0 #d99400, 0 3px 6px rgba(10, 20, 60, .2) !important;
+}
+:root[data-skin='keo'] .emoji-bar .emoji.say.mo {
+  border-color: #33861a !important; background: linear-gradient(#a3ec72 -40%, #46ad22 70%) !important;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2.5px 0 #33861a !important;
+}
+:root[data-skin='keo'] .bang-noi {
+  background: var(--k-nen); border: 2.5px solid var(--k-vien); border-radius: 22px;
+  box-shadow: 0 5px 0 var(--k-vien), 0 16px 32px rgba(10, 20, 60, .3);
+}
+:root[data-skin='keo'] .cau {
+  border: 2px solid var(--t3) !important;
+  background: linear-gradient(var(--t1) 20%, var(--t2)) !important; color: var(--tc);
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .9), 0 3px 0 var(--t3), 0 4px 7px rgba(10, 20, 60, .14);
+}
+:root[data-skin='keo'][data-theme='dark'] .cau { box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .15), 0 3px 0 var(--t3); }
+:root[data-skin='keo'] .cau:not(:disabled):active { transform: translateY(2px); }
+
+/* Màn TẠM DỪNG (17.10.2026): ô số liệu = KHAY (để xem, không bấm) như dòng danh hiệu; ruy băng = thạch đỏ */
+:root[data-skin='keo'] .so-lieu div {
+  background: var(--k-mem) !important; border: 2px solid var(--k-vien) !important; border-radius: 16px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 3px 0 var(--k-vien) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .so-lieu div { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .1), 0 3px 0 var(--k-vien) !important; }
+:root[data-skin='keo'] .so-lieu dd { color: var(--fg); }
+:root[data-skin='keo'] .ruy-bang {
+  border: 2px solid #c21f42 !important; color: #fff !important;
+  background: linear-gradient(#ff9cb2 -40%, #ee3a5e 70%) !important;
+  text-shadow: 0 1.5px 0 #8a1230;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), 0 4px 0 #c21f42, 0 6px 10px rgba(10, 20, 60, .25) !important;
+}
+/* Ô theme đã chọn: chữ (theme chữ cái A B C D) theo NỀN Ô, không kế thừa chữ nâu của thạch vàng —
+   ở Kẹo tối ô là tím tối nên nâu chìm hẳn (chủ dự án 17.10.2026: "mờ quá"). */
+:root[data-skin='keo'] .theme-grid .option[aria-checked='true'],
+:root[data-skin='keo'] .theme-grid .option[aria-pressed='true'] { color: var(--ink) !important; }
+:root[data-skin='keo'][data-theme='dark'] .theme-grid .option[aria-checked='true'],
+:root[data-skin='keo'][data-theme='dark'] .theme-grid .option[aria-pressed='true'] { color: #fff !important; }
