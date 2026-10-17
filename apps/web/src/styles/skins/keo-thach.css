@@ -33,7 +33,7 @@
 }
 :root[data-skin='keo'][data-theme='dark'] {
   --t1: #43569f; --t2: #2e3e7e; --t3: #19245a; --tc: #f2f5ff;
-  --k-nen: #27366f; --k-vien: #19245a; --k-mem: #2f3f7c;
+  --k-nen: #212e62; --k-vien: #141d4d; --k-mem: #2a3870;   /* dịu một bậc 18.10.2026 */
   --tt-trong: inset 0 2px 0 rgba(255, 255, 255, .18), inset 0 -4px 6px rgba(0, 0, 0, .15);
   --tt-bong: rgba(0, 0, 0, .35);
 }
@@ -200,13 +200,13 @@
   background: linear-gradient(#fff, #e4efff); box-shadow: 0 2px 0 #aebfdf, 0 3px 5px rgba(10, 20, 60, .25);
 }
 :root[data-skin='keo'] .sw.bat::after { left: 19px; }
-/* (c) Ô theme đã chọn: khay vàng NHẠT, không thạch đặc — lưới 36–72 ô vàng đặc là "rực" */
+/* (c) Ô theme đã chọn: CHỈ ĐỔI VIỀN — nền giữ như ô chưa chọn (chủ dự án 18.10.2026: nền vàng nhạt /
+   xám tím làm 4 icon khó nhìn). Bản trước: khay vàng nhạt #fff6d6, tối #4a4a6e. Viền + đế vàng 3px. */
 :root[data-skin='keo'] .theme-grid .option:is([aria-checked='true'], [aria-pressed='true']) {
-  background: #fff6d6 !important; border-color: #f0b400 !important; color: var(--ink) !important;
+  --b1: var(--t1); --b2: var(--t2); --g1: 20%; --g2: 100%;
+  background: linear-gradient(var(--b1) var(--g1), var(--b2) var(--g2)) !important;
+  border: 3px solid #f0b400 !important; color: var(--tc) !important;
   box-shadow: 0 3px 0 #f0b400 !important;
-}
-:root[data-skin='keo'][data-theme='dark'] .theme-grid .option:is([aria-checked='true'], [aria-pressed='true']) {
-  background: #4a4a6e !important; color: #fff !important;
 }
 /* (d) Ô cấp Chiến dịch: đã qua = thạch xanh lá NHẠT; đang chơi = vàng; khoá = nhạt, đế mỏng */
 :root[data-skin='keo'] .node { overflow: visible; }
@@ -262,6 +262,17 @@
 /* chữ trên chip vàng = NÂU ĐẬM như mọi thạch vàng (chủ dự án: tên "chữ đen bị tối quá" — --ink ở Kẹo tối là gần đen) */
 :root[data-skin='keo'] .player.active :is(.name, .turn-clock, .lives) { color: #5a3500; }
 :root[data-skin='keo'] .player.active .pts { color: #5a3500; border: 2px solid #d99400; box-shadow: none; }
+/* Chip online (.pchip) cùng luật với chip offline (18.10.2026): số giây "24s" từng là chữ TRẮNG trên
+   vàng, điểm trong viên trắng là --accent — ở Kẹo tối thành xanh nhạt trên trắng, gần như mất. */
+:root[data-skin='keo'] .pchip.active :is(b, .turn-clock, .lives) { color: #5a3500; }
+:root[data-skin='keo'] .pchip.active .pts { color: #5a3500; border: 2px solid #d99400; box-shadow: none; }
+:root[data-skin='keo'] :is(.pchip, .player).active .turn-clock.urgent { color: #c41a35; }
+/* Thanh thời gian lượt: trắng trên vàng là không thấy → XANH, còn ≤10 giây thì ĐỎ (chủ dự án 18.10.2026) */
+:root[data-skin='keo'] :is(.pchip, .player).active .turn-bar { height: 4px; background: #2f9a1d; }
+:root[data-skin='keo'] :is(.pchip, .player).active .turn-bar.urgent { background: #e0263f; }
+/* Thanh emoji/chat online: khung `overflow: hidden` cắt mất gờ dưới 5px của nút thạch (đo: nút 32px,
+   khung chừa 27px) → chừa đệm dưới cho gờ. */
+:root[data-skin='keo'] .emoji-bar { padding-bottom: 6px; }
 
 /* (l) Hộp chọn ngôn ngữ nổi trên menu: bóng đậm hơn khay thường */
 :root[data-skin='keo'] .nn-hop.khay { box-shadow: 0 6px 0 var(--k-vien), 0 18px 40px rgba(10, 20, 60, .35) !important; }
@@ -277,3 +288,8 @@
   border: 2px solid #d99400; background: linear-gradient(#ffe98a -40%, #ffc21a 70%); color: #5a3500;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), 0 3px 0 #d99400;
 }
+
+/* KẸO TỐI DỊU (chủ dự án duyệt 18.10.2026, mockup https://claude.ai/artifact/LDgBMRfEUQqRxpzAh5xuVN):
+   thạch màu giữ màu kẹo nhưng hạ sáng 14% — trên trời đêm, khối vàng/hồng/xanh đặc là thứ chói nhất. */
+:root[data-skin='keo'][data-theme='dark'] :is(.thach, .neon, .btn-primary, .option, .lt-chip) { filter: brightness(.86) saturate(.9); }
+

@@ -57,15 +57,18 @@ const chapters = computed(() => CHAPTERS.map((c) => {
   };
 }));
 
-/* Cuộn tới chặng đang chơi. Mở ra mà thấy chặng 1 thì người đã qua 20 cấp phải
-   tự cuộn đi tìm mỗi lần vào. */
+/* Cuộn cho MÀN ĐANG CHƠI nằm GIỮA khung (chủ dự án 18.10.2026). Bản cũ cuộn tới đầu chặng bằng
+   `offsetTop` — số đó tính theo tổ tiên định vị gần nhất chứ không theo khung cuộn, nên lệch
+   và màn đang chơi bị đẩy sát mép trên, nửa hàng bị che. Đo bằng toạ độ thật của cả hai. */
 const list = ref<HTMLElement | null>(null);
 async function scrollToActive(): Promise<void> {
   await nextTick();
-  const el = list.value?.querySelector<HTMLElement>('.chapter.active');
-  if (!el || !list.value) return;
+  const khung = list.value;
+  const el = khung?.querySelector<HTMLElement>('.node.next') ?? khung?.querySelector<HTMLElement>('.chapter.active');
+  if (!el || !khung) return;
   // scrollIntoView cuộn cả trang trên một số trình duyệt; tính tay để CHỈ khung này cuộn
-  list.value.scrollTop = Math.max(0, el.offsetTop - 8);
+  const k = khung.getBoundingClientRect(), r = el.getBoundingClientRect();
+  khung.scrollTop += (r.top + r.height / 2) - (k.top + k.height / 2);
 }
 onMounted(scrollToActive);
 watch(nextLevel, scrollToActive);

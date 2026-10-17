@@ -51,9 +51,10 @@
 :root[data-skin='keo'][data-theme='dark'] {
   --ink: #070b22;
   --bg: #1a2456;
-  --panel: #27366f; --panel-solid: #27366f; --panel-soft: #1f2c5e;
+  /* DỊU HƠN một bậc (chủ dự án 18.10.2026: "vẫn hơi chói"): trời, đồi, khay, mặt lá ngửa, nút thạch */
+  --panel: #1c2756; --panel-solid: #1c2756; --panel-soft: #172150;
   --fg: #f2f5ff;
-  --muted: #b9c4ec;            /* 7,4:1 trên #27366f */
+  --muted: #b9c4ec;            /* 8,6:1 trên #1c2756 */
   --accent: #8fb4ff;
   --accent-soft: rgba(143, 180, 255, .18);
   --ok: #7ee08f; --warn: #ffc069; --gold: #ffd84d; --bad: #ff8a9b;
@@ -117,8 +118,8 @@
     radial-gradient(circle 1px at 30% 8%, #fff 95%, transparent),
     radial-gradient(circle 1.5px at 70% 22%, #fff 95%, transparent),
     radial-gradient(circle 1px at 88% 40%, #fff 95%, transparent),
-    radial-gradient(160% 34% at 50% 112%, #121a44 60%, transparent 61%),
-    linear-gradient(#141c48, #24306a);
+    radial-gradient(160% 34% at 50% 112%, #0b1135 60%, transparent 61%),
+    linear-gradient(#080c26, #18235a);
 }
 /* ---------- nền trời nhiều lớp: tia nắng, mây có bóng, đồi xanh hai tầng ---------- */
 :root[data-skin='keo'] {
@@ -168,9 +169,9 @@
     radial-gradient(70% 18% at 30% 26%, rgba(110, 230, 200, .14), transparent 70%),
     radial-gradient(60% 16% at 70% 40%, rgba(170, 130, 255, .14), transparent 70%);
   --canh-doi:
-    radial-gradient(100% 30% at 20% 106%, #1b2760 60%, #141d4d 61.5%, transparent 62%),
-    radial-gradient(120% 40% at 82% 108%, #2a3678 60%, #222d68 61.5%, transparent 62%);
-  --canh-troi: linear-gradient(#0f1640, #1f2b66 75%, #2c3a7c);
+    radial-gradient(100% 30% at 20% 106%, #0f1640 60%, #0b1135 61.5%, transparent 62%),
+    radial-gradient(120% 40% at 82% 108%, #18215a 60%, #131b4c 61.5%, transparent 62%);
+  --canh-troi: linear-gradient(#080c26, #111a44 75%, #18235a);
   --canh: var(--canh-deco), var(--canh-doi), var(--canh-troi);
 }
 

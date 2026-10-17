@@ -292,6 +292,14 @@
   Google Analytics trong trang quyền riêng tư nếu nó đo thứ chưa kể ở đó.
 - Không còn được viết "không theo dõi / no tracking" ở bất cứ đâu (trang, store, studio).
 
+## PHONG CÁCH CHỐT: 3D NỔI KHỐI (chủ dự án 18.10.2026: "chúng ta sẽ làm theo phong cách này")
+
+- Mọi màn/thành phần mới làm theo đúng chất trang chủ Kẹo hiện tại: nút THẠCH nổi khối (đế dày, gradient
+  sáng trên/đậm dưới, vệt sáng), icon 3D — ảnh Noto 3D (⭐🚀🌍, mặt thú 🐼🦊🐯🐸) hoặc SVG tự vẽ cùng chất
+  (robot `public/img/robot.svg`). KHÔNG icon nét mảnh (lucide) trên ô thạch; gặp chỗ còn sót thì đề xuất thay.
+- Icon trên ô phải KHÁC màu ô (bản đồ xanh trên ô xanh, tim hồng trên ô hồng đều bị chê) và đơn giản một khối.
+- Vẫn mockup bằng ảnh chụp trang thật trước khi làm.
+
 ## SKIN — LỚP ÁO TÁCH KHỎI BỐ CỤC (13.10.2026)
 
 - Ba skin: **Kẹo** (mặc định, mockup B chủ dự án duyệt

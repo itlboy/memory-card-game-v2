@@ -18,7 +18,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, Globe, Map, Play, User, Users } from 'lucide-vue-next';
+import { Bot, ChevronLeft, Globe, Map, Play, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
@@ -159,6 +159,10 @@ buocHien.value = step.value;
  * Bỏ dòng mô tả: chín ô mô tả dài thì mỗi ô còn ~60px cao, chữ bị cắt. Ở đây
  * con SỐ chính là nội dung.
  */
+/* Mặt thú thay hình người nét mảnh (chủ dự án duyệt 18.10.2026): đúng loại mặt làm avatar trong ván,
+   trẻ nhìn là hiểu "mỗi bạn một con". Ảnh Noto 3D 128 có sẵn vì nằm trong theme Động vật. */
+const MAT_THU = ['🐼', '🦊', '🐯', '🐸'].map((s) => anhEmoji(s, true, 128) ?? '');
+
 const COUNTS = [
   { n: 1, g: 'g-blue' },
   { n: 2, g: 'g-pink' },
@@ -390,7 +394,9 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
 watch(() => props.themes.length, (n) => { if (n) taiTruocTheme(props.themes); }, { immediate: true });
 
 const ICO3D = {
-  chienDich: anhEmoji('🗺️', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
+  // ⭐ thay 🗺️ (chủ dự án 18.10.2026): bản đồ xanh lá + xanh dương chìm vào ô xanh, lại rối chi tiết;
+  // ngôi sao một khối, vàng nổi trên xanh, và khớp sao đánh giá — sao giờ chỉ dành cho Chiến dịch.
+  chienDich: anhEmoji('⭐', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
   dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? ''
 };
@@ -425,13 +431,14 @@ const ICO3D = {
         </button>
 
         <div class="ba-o">
-          <button class="o-vuong neon g-blue" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
+          <!-- Chơi nhanh xanh trời, Online vàng (chủ dự án đổi chỗ 18.10.2026; ở Kẹo g-cyan = trời, g-blue = vàng) -->
+          <button class="o-vuong neon g-cyan" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
             <Users class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.choiNhanh" alt="" aria-hidden="true"><strong>{{ t('menu.choiNhanh') }}</strong>
           </button>
           <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
             <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong>{{ t('menu.dauMay') }}</strong>
           </button>
-          <button class="o-vuong neon g-cyan" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
+          <button class="o-vuong neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong>{{ t('menu.online') }}</strong>
           </button>
         </div>
@@ -472,7 +479,7 @@ const ICO3D = {
           :aria-label="t('menu.soNguoiAria', { n: c.n })"
           @click="pickCount(c.n)"
         >
-          <span class="hinh-nguoi" aria-hidden="true"><User v-for="i in c.n" :key="i" :size="22" /></span>
+          <span class="hinh-nguoi" :class="`n${c.n}`" aria-hidden="true"><img v-for="m in MAT_THU.slice(0, c.n)" :key="m" :src="m" alt=""></span>
           <span class="text">
             <strong>{{ c.n === 1 ? t('menu.soNguoi.1') : t('menu.soNguoi.n', { n: c.n }) }}</strong>
             <small>{{ td(`menu.soNguoiMo.${c.n}`) }}</small>
@@ -659,9 +666,16 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .hinh-nguoi {
-  /* Đủ chỗ cho 4 hình trên MỘT hàng (4×22 + 3×2 = 94px): gãy thành 3 + 1 là xấu (ảnh chụp) */
-  flex: 0 0 auto; width: 96px; display: flex; flex-wrap: nowrap; gap: 2px; justify-content: center;
+  /* MỘT hàng trong 96px: càng nhiều mặt càng nhỏ và chồng nhau (chủ dự án: mặt 3/4 người phải nhỏ
+     hơn) — 46 · 2×36 · 3×30 · 4×26px, chồng 8/6/5px → rộng nhất 89px. */
+  flex: 0 0 auto; width: 96px; display: flex; flex-wrap: nowrap; align-items: center; justify-content: center;
 }
+.hinh-nguoi img { width: var(--mat); height: var(--mat); flex: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
+.hinh-nguoi img + img { margin-left: calc(var(--chong) * -1); }
+.hinh-nguoi.n1 { --mat: 46px; }
+.hinh-nguoi.n2 { --mat: 36px; --chong: 8px; }
+.hinh-nguoi.n3 { --mat: 30px; --chong: 6px; }
+.hinh-nguoi.n4 { --mat: 26px; --chong: 5px; }
 .bot-face { font-size: clamp(28px, min(12cqw, 20cqh), 48px); line-height: 1; flex-shrink: 0; }
 
 
