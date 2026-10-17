@@ -23,6 +23,7 @@ beforeEach(() => {
   goi.download.mockResolvedValue({ id: 'b1', version: 'moi', status: 'success' });
   banApp = '1.3.0';
   dsFile = null;
+  void import('@/lib/ota').then((m) => m.huyApKhiRanh(true));
 });
 const MOI = { id: 'moi', url: '/ota/moi.zip', sha256: 'abc', minNative: '1.3.0' };
 
@@ -229,6 +230,42 @@ describe('cập nhật nóng', () => {
     expect(anhEmoji('😀', true, 512)).toBe(coBo!.replace('/emoji/3d/', '/emoji/3d/256/'));
     expect(anhEmoji('😀', true, 128)).toContain('/emoji/3d/128/');
     co512.value = true;
+  });
+
+  it('chờ mở lại: VỀ TRANG CHỦ và rảnh thì áp luôn (đếm 3·2·1); trong ván / hộp thoại / vừa chạm thì chờ', async () => {
+    vi.useFakeTimers();
+    try {
+      const ota = await import('@/lib/ota');
+      ota.huyApKhiRanh(true);
+      manifest = MOI;
+      history.replaceState(null, '', '/?playing=1');
+      await ota.kiemOta();
+      expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(goi.set, 'đang trong ván').not.toHaveBeenCalled();
+      history.replaceState(null, '', '/');
+      document.body.insertAdjacentHTML('beforeend', '<div id="hop-thu" role="dialog" aria-modal="true"></div>');
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(goi.set, 'hộp thoại đang mở').not.toHaveBeenCalled();
+      document.getElementById('hop-thu')!.remove();
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(document.querySelector('.bao-cap-nhat'), 'báo trước khi tải lại').toBeTruthy();
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+      expect(goi.set).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(goi.set, 'mỗi lần mở app áp tối đa MỘT lần').toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); document.querySelectorAll('.bao-cap-nhat').forEach((e) => e.remove()); }
+  });
+
+  it('rảnh = trang chủ + đang hiện + không hộp thoại + không chạm 2 giây', async () => {
+    const { dangRanh } = await import('@/lib/ota');
+    const ok = { search: '', hien: true, coHop: false, tuLucCham: 5000 };
+    expect(dangRanh(ok)).toBe(true);
+    expect(dangRanh({ ...ok, search: '?room=123456' })).toBe(false);
+    expect(dangRanh({ ...ok, hien: false })).toBe(false);
+    expect(dangRanh({ ...ok, coHop: true })).toBe(false);
+    expect(dangRanh({ ...ok, tuLucCham: 500 })).toBe(false);
   });
 
   it('lỗi tạm thì TỰ THỬ LẠI sau 1 phút, tối đa 3 lần (không bắt người chơi bấm gì)', async () => {

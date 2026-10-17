@@ -73,6 +73,59 @@ async function baoCapNhat(): Promise<void> {
   }
 }
 
+/*
+ * ÁP KHI RẢNH Ở TRANG CHỦ (17.10.2026, chủ dự án: "ở trang chủ họ cũng không làm gì cả").
+ * Gói đã tải xong mà quá mốc áp ngay (`AP_NGAY_MS`) thì trước đây phải TẮT HẲN app rồi mở lại.
+ * Nay canh mỗi `NHIP_RANH_MS`: đang ở trang chủ + app đang hiện + không hộp thoại/menu nào mở
+ * + không chạm gì trong `RANH_MS` → đếm 3·2·1 rồi áp. Bắt cả hai lúc: VỀ trang chủ sau ván /
+ * phòng online, và QUAY LẠI từ nền khi đang đứng ở trang chủ. Mỗi lần mở app áp tối đa MỘT lần
+ * (không bao giờ vòng tải lại). Lối "tắt hẳn rồi mở lại" (`next` + `kill`) vẫn giữ làm dự phòng.
+ */
+const RANH_MS = 2000;
+const NHIP_RANH_MS = 1000;
+let lucCham = 0;
+let daApKhiRanh = false;
+let henRanh: ReturnType<typeof setInterval> | undefined;
+let daGanCham = false;
+export function dangRanh(o: { search: string; hien: boolean; coHop: boolean; tuLucCham: number }): boolean {
+  return oTrangChu(o.search) && o.hien && !o.coHop && o.tuLucCham >= RANH_MS;
+}
+function canhApKhiRanh(id: string): void {
+  if (henRanh || daApKhiRanh || typeof document === 'undefined') return;
+  if (!daGanCham) {
+    daGanCham = true;
+    document.addEventListener('pointerdown', () => { lucCham = performance.now(); }, { capture: true, passive: true });
+  }
+  const ranh = (): boolean => dangRanh({
+    search: location.search, hien: document.visibilityState === 'visible',
+    coHop: !!document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]'),
+    tuLucCham: performance.now() - lucCham
+  });
+  henRanh = setInterval(() => {
+    if (goiCho !== id) { huyApKhiRanh(); return; }
+    if (!ranh()) return;
+    huyApKhiRanh();
+    daApKhiRanh = true;
+    void (async () => {
+      try {
+        await baoCapNhat();
+        if (!oTrangChu()) {                       // chạm đi chỗ khác giữa lúc đếm: thôi, để lần mở sau
+          document.querySelector('.bao-cap-nhat')?.remove();
+          return;
+        }
+        const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+        await CapacitorUpdater.set({ id });
+      } catch { document.querySelector('.bao-cap-nhat')?.remove(); /* vẫn còn lối mở lại app */ }
+    })();
+  }, NHIP_RANH_MS);
+}
+/** Thôi canh (và để test dọn trạng thái giữa các ca). */
+export function huyApKhiRanh(datLai = false): void {
+  clearInterval(henRanh);
+  henRanh = undefined;
+  if (datLai) daApKhiRanh = false;
+}
+
 export function soSanhBan(a: string, b: string): number {
   const x = a.split('.').map(Number), y = b.split('.').map(Number);
   for (let i = 0; i < Math.max(x.length, y.length); i++) {
@@ -170,6 +223,7 @@ export async function kiemOta(): Promise<void> {
     await CapacitorUpdater.next({ id: goi.id });
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
     dat({ buoc: 'choMoLai', id: m.id });
+    canhApKhiRanh(goi.id);
   } catch (e) {
     // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do
     dat({ buoc: 'loi', id: trangThaiOta.value.id, loi: String((e as Error)?.message ?? e).slice(0, 80) });
