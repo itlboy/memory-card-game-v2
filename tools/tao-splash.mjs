@@ -60,7 +60,7 @@ body{position:relative;overflow:hidden;background:
   radial-gradient(100vmax 26vh at 20% 106%,#5cc23f 60%,#4aa832 61.5%,transparent 62%),
   radial-gradient(120vmax 34vh at 82% 108%,#8fdc5f 60%,#79c94c 61.5%,transparent 62%)}
 .la{position:absolute;left:50%;top:50%;width:16vmin;height:21.3vmin;box-sizing:border-box;border:.6vmin solid #fdfdfb;border-radius:1.8vmin;display:flex;align-items:center;justify-content:center;
-  background:repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 .25vmin,transparent .25vmin 1.8vmin),repeating-linear-gradient(-45deg,rgba(255,255,255,.12) 0 .25vmin,transparent .25vmin 1.8vmin),radial-gradient(90% 70% at 50% 45%,#4d78dc,#2a48a0);
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 .25vmin,transparent .25vmin 1.8vmin),repeating-linear-gradient(-45deg,rgba(255,255,255,.12) 0 .25vmin,transparent .25vmin 1.8vmin),radial-gradient(90% 70% at 50% 45%,#2f4fa6,#1a3172);
   box-shadow:inset 0 0 0 .5vmin #2a48a0,inset 0 0 0 .75vmin rgba(255,215,90,.85),0 0 0 .15vmin rgba(20,30,70,.15),0 .35vmin 0 #d6dcea,0 2.2vmin 3.6vmin rgba(10,20,60,.3)}
 .la svg{width:40%}
 .trai{transform:translate(-112%,-46%) rotate(-14deg)}
@@ -68,7 +68,7 @@ body{position:relative;overflow:hidden;background:
 .giua{transform:translate(-50%,-52%) rotate(-3deg);border-color:#6d8fdc;background:radial-gradient(110% 80% at 50% 35%,#fffdf2,#fff1c9 90%);z-index:1;
   box-shadow:inset 0 0 0 .3vmin rgba(232,178,40,.7),0 0 0 .15vmin rgba(20,30,70,.14),0 .35vmin 0 #5577c4,0 .7vmin 0 #4563ad,0 2.6vmin 4vmin rgba(10,20,60,.32)}
 .giua svg{width:56%}
-</style><body><div class="nang"></div><div class="doi"></div><div class="la trai">${SAO}</div><div class="la phai">${SAO}</div><div class="la giua">${TIM}</div></body>`;
+</style><body><div class="doi"></div><div class="la trai">${SAO}</div><div class="la phai">${SAO}</div><div class="la giua">${TIM}</div></body>`;
 
 const PORT = 9400 + (process.pid % 300), PROFILE = `/tmp/mm-splash-${process.pid}`;
 const chrome = moChrome('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [`--remote-debugging-port=${PORT}`, '--headless=new', '--hide-scrollbars', '--no-first-run', `--user-data-dir=${PROFILE}`, 'about:blank'], PROFILE);

@@ -814,7 +814,7 @@ function openCfgWizard(): void {
                Báo ở chính chỗ ngón tay vừa chạm thì không phải đi tìm xem
                chuyện gì đang xảy ra. Các dòng khác mờ đi để khỏi bấm nhầm. -->
           <button
-            class="room" type="button"
+            class="room thach" type="button"
             :class="{ vao: dangVaoPhong === r.code, mo: dangVaoPhong && dangVaoPhong !== r.code }"
             :disabled="!!dangVaoPhong"
             @click="vaoPhongCongKhai(r.code)"
@@ -854,7 +854,7 @@ function openCfgWizard(): void {
         </template>
       </div>
 
-      <button class="link-row" type="button" @click="entryStep = 'join'">
+      <button data-phang class="link-row" type="button" @click="entryStep = 'join'">
         <Hash :size="18" /> {{ t('on.nhapMa') }}
       </button>
     </template>
@@ -937,7 +937,7 @@ function openCfgWizard(): void {
            lại rơi vào chỗ mơ hồ của công tắc cũ — không biết chữ đang hiện là
            trạng thái hiện tại hay thứ sẽ thành sau khi bấm. -->
       <button
-        class="pill ck" :class="{ priv: !o.room.value?.congKhai, doc: !o.isHost.value }"
+        class="pill ck thach th-nho" :class="{ priv: !o.room.value?.congKhai, doc: !o.isHost.value, 'th-ngoc': o.room.value?.congKhai, 'th-tim': !o.room.value?.congKhai }"
         type="button" :disabled="!o.isHost.value" :aria-expanded="moChonCK"
         :aria-label="o.room.value?.congKhai ? t('on.ckAria') : t('on.rtAria')"
         @click="moChonCK = !moChonCK; moMoi = false"
@@ -946,7 +946,7 @@ function openCfgWizard(): void {
         {{ o.room.value?.congKhai ? t('on.congKhai') : t('on.riengTu') }}
       </button>
       <button
-        class="pill moi" type="button" :aria-haspopup="true"
+        class="pill moi thach th-nho" type="button" :aria-haspopup="true"
         @click="moMoi = true; moChonCK = false"
       ><Link2 :size="15" /> {{ t('on.moiBan') }}</button>
     </div>

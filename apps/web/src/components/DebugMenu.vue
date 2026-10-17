@@ -67,8 +67,8 @@ function veMacDinh(): void {
   <div class="dbg" role="group" :aria-label="t('tb.debug')">
     <p class="dbg-dau">
       <span />
-      <button class="dbg-nho" type="button" @click="veMacDinh">{{ t('tb.debugMacDinh') }}</button>
-      <button class="dbg-nho tat" type="button" @click="emit('tat')">{{ t('tb.debugTat') }}</button>
+      <button data-phang class="dbg-nho" type="button" @click="veMacDinh">{{ t('tb.debugMacDinh') }}</button>
+      <button data-phang class="dbg-nho tat" type="button" @click="emit('tat')">{{ t('tb.debugTat') }}</button>
     </p>
     <p class="dbg-ban">
       <b>v{{ version }}</b> · build {{ builtAt }} <span>({{ ago }})</span><br>
@@ -77,29 +77,29 @@ function veMacDinh(): void {
     </p>
     <p class="dbg-ota" :class="trangThaiOta.buoc" role="status">
       <span>{{ t('ota.tieuDe') }}: {{ chuOta }}<template v-if="trangThaiOta.id && trangThaiOta.buoc !== 'moiNhat'"><br><span class="ota">{{ trangThaiOta.id }}</span></template></span>
-      <button v-if="trangThaiOta.buoc !== 'web' && trangThaiOta.buoc !== 'kiem' && trangThaiOta.buoc !== 'tai'" class="dbg-nho" type="button" @click="kiemOta()">{{ t('ota.kiemLai') }}</button>
-      <button v-if="trangThaiOta.buoc === 'choMoLai'" class="dbg-nho tat" type="button" @click="apOtaNgay()">{{ t('ota.apNgay') }}</button>
+      <button data-phang v-if="trangThaiOta.buoc !== 'web' && trangThaiOta.buoc !== 'kiem' && trangThaiOta.buoc !== 'tai'" class="dbg-nho" type="button" @click="kiemOta()">{{ t('ota.kiemLai') }}</button>
+      <button data-phang v-if="trangThaiOta.buoc === 'choMoLai'" class="dbg-nho tat" type="button" @click="apOtaNgay()">{{ t('ota.apNgay') }}</button>
     </p>
-    <button class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="daMuaPremium" @click="datPremiumThu(!daMuaPremium)">
+    <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="daMuaPremium" @click="datPremiumThu(!daMuaPremium)">
       <i :class="{ bat: daMuaPremium }" aria-hidden="true" />{{ t('lc.premiumThu') }}
     </button>
-    <button class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="props.doNhip" @click="emit('update:doNhip', !props.doNhip)">
+    <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="props.doNhip" @click="emit('update:doNhip', !props.doNhip)">
       <i :class="{ bat: props.doNhip }" aria-hidden="true" />{{ t('lc.doNhip') }}
     </button>
-    <button class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="pingSo" @click="datPingSo(!pingSo)">
+    <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="pingSo" @click="datPingSo(!pingSo)">
       <i :class="{ bat: pingSo }" aria-hidden="true" />{{ t('lc.pingSo') }}
     </button>
-    <button class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
+    <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
       <i class="xoay" aria-hidden="true">↻</i>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}
     </button>
     <!-- Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở đây — người chơi chỉ có Kẹo (lib/skin.ts) -->
     <p class="dbg-nhom">{{ t('tb.giaoDien') }}</p>
     <div class="dbg-fx">
-      <button v-for="s in SKINS" :key="s" class="dbg-nho" :class="{ chon: skin === s }" type="button" :aria-pressed="skin === s" @click="datSkin(s, true)">{{ td(`tb.skin.${s}`) }}</button>
+      <button data-phang v-for="s in SKINS" :key="s" class="dbg-nho" :class="{ chon: skin === s }" type="button" :aria-pressed="skin === s" @click="datSkin(s, true)">{{ td(`tb.skin.${s}`) }}</button>
     </div>
     <p class="dbg-nhom">{{ t('lc.xemThu') }}</p>
     <div class="dbg-fx">
-      <button v-for="x in XEM_THU" :key="x.ten" class="dbg-nho" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
+      <button data-phang v-for="x in XEM_THU" :key="x.ten" class="dbg-nho" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
     </div>
   </div>
 </template>

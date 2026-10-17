@@ -1,0 +1,269 @@
+/*
+ * NGÔN NGỮ "THẠCH" CỦA KẸO — MỘT CHỖ cho mọi nút và khung (17.10.2026).
+ * Mockup chủ dự án chọn: https://claude.ai/artifact/HqgEzKY4xZerA4VLvfBruX (mẫu B), rồi:
+ * "cần một ngôn ngữ thiết kế chung", "các nút dùng chung component để tái sử dụng".
+ *
+ * CÁCH DÙNG — gắn LỚP trong component, KHÔNG viết màu/bóng riêng:
+ *   class="thach"                 thạch TRẮNG (nút phụ: Back, X, viên số, ô chưa chọn…)
+ *   class="thach th-xanh"         thạch MÀU — th-xanh · th-vang · th-do · th-hong · th-troi ·
+ *                                 th-tim · th-ngoc · th-chanh · th-cam
+ *   + th-to | th-nho              cỡ: to (ô chính, đế 6px, vệt bóng) · mặc định (đế 4px) · nhỏ (đế 2,5px)
+ *   + th-chon                     ĐANG CHỌN (aria-checked/pressed/selected = true) → thạch vàng;
+ *                                 th-chon-xanh / th-chon-do đổi màu khi chọn
+ *   class="khay" [khay-nho]       thứ để CHỨA (panel, hộp thoại, dòng danh hiệu, ô số liệu)
+ *   data-phang                    nút CỐ Ý phẳng (link chữ, dòng menu, lá bài) — test canh đủ
+ *
+ * Mọi nút KHÔNG có một trong các lớp/thuộc tính trên là test/nut-co-vai.test.ts đỏ.
+ *
+ * BÍ DANH: vài lớp DÙNG CHUNG có từ trước (.btn, .btn-primary, .option, .seg-btn, ô `.neon.g-*`,
+ * .panel…) được xếp vào vai NGAY Ở FILE NÀY (khối "bí danh") thay vì sửa mọi chỗ dùng —
+ * skin khác (Neon, Gỗ…) vẫn đọc các lớp đó theo cách riêng.
+ *
+ * Mọi selector bắt đầu bằng `:root[data-skin='keo']` (test/skin.test.ts). Vai dùng `:where()`
+ * nên ĐỘ ĐẶC THẤP — ngoại lệ ở cuối file thắng được mà không cần leo thang độ đặc.
+ */
+
+/* ===================== 1. BẢNG MÀU ===================== */
+:root[data-skin='keo'] {
+  --t1: #fff; --t2: #e4efff; --t3: #aebfdf; --tc: #1d2a5a;          /* thạch trắng */
+  --k-nen: #fff; --k-vien: #d6e1f3; --k-mem: #f2f7ff;                /* khay */
+  /* bóng của thạch TRẮNG — khai ở :root để Kẹo tối đổi mà không đè lên thạch màu */
+  --tt-trong: inset 0 2px 0 rgba(255, 255, 255, .9), inset 0 -4px 6px rgba(29, 42, 90, .08);
+  --tt-bong: rgba(10, 20, 60, .2);
+}
+:root[data-skin='keo'][data-theme='dark'] {
+  --t1: #43569f; --t2: #2e3e7e; --t3: #19245a; --tc: #f2f5ff;
+  --k-nen: #27366f; --k-vien: #19245a; --k-mem: #2f3f7c;
+  --tt-trong: inset 0 2px 0 rgba(255, 255, 255, .18), inset 0 -4px 6px rgba(0, 0, 0, .15);
+  --tt-bong: rgba(0, 0, 0, .35);
+}
+
+/* ===================== 2. VAI THẠCH — khung chung ===================== */
+/* Mặc định = thạch TRẮNG, đế 5px. Biến: --b1 sáng · --b2 thân · --b3 mép/đế · --b4 viền chữ ·
+   --bc màu chữ · --th-d độ dày đế · --th-v viền · --g1/--g2 điểm dừng gradient ·
+   --th-trong bóng TRONG (vệt sáng + đáy tối) · --th-ngoai bóng đổ mềm. */
+:root[data-skin='keo'] :where(.thach, .btn, .btn-primary, .option, .seg-btn, .neon[class*='g-'], .hud .vien, .topbar .total, .topbar [aria-haspopup='menu']) {
+  --b1: var(--t1); --b2: var(--t2); --b3: var(--t3); --b4: transparent; --bc: var(--tc);
+  --th-d: 5px; --th-v: 2px; --g1: 20%; --g2: 100%;
+  --th-trong: var(--tt-trong); --th-ngoai: 0 calc(var(--th-d) + 3px) calc(var(--th-d) * 2 + 2px) var(--tt-bong);
+  --th-chu: none;
+}
+/* Luật VẼ dùng :is (độ đặc cao) để thắng các luật `!important` cũ của global.css / component
+   (`.neon.g-*`…); BIẾN ở trên dùng :where nên lớp màu/cỡ/trạng thái ghi đè được. */
+:root[data-skin='keo'] :is(.thach, .btn, .btn-primary, .option, .seg-btn, .neon[class*='g-'], .hud .vien, .topbar .total, .topbar [aria-haspopup='menu']) {
+  border: var(--th-v) solid var(--b3) !important;
+  background: linear-gradient(var(--b1) var(--g1), var(--b2) var(--g2)) !important;
+  color: var(--bc) !important;
+  box-shadow: var(--th-trong), 0 var(--th-d) 0 var(--b3), var(--th-ngoai) !important;
+}
+/* VIỀN CHỮ chỉ cho NÚT CHỮ thạch màu (text-shadow di truyền xuống con — đặt chung là icon, chữ nhỏ
+   cũng bị viền). Ô định danh `.neon` viền riêng <strong>/<small> ở mục 5. */
+:root[data-skin='keo'] :is(.thach:is(.th-xanh, .th-vang, .th-do, .th-hong, .th-troi, .th-tim, .th-ngoc, .th-chanh, .th-cam),
+  .btn-primary, .btn.danger, .th-chon-do:is([aria-selected='true'], [aria-checked='true'], [aria-pressed='true'])) { text-shadow: var(--th-chu); }
+/* bo góc của các lớp dùng chung (component đặt góc riêng nhỏ hơn) */
+:root[data-skin='keo'] :where(.btn) { border-radius: 16px !important; }
+:root[data-skin='keo'] :where(.option) { border-radius: 18px !important; }
+:root[data-skin='keo'] :where(.tabs .tab) { border-radius: 14px !important; }
+:root[data-skin='keo'] :where(.thach, .btn, .btn-primary, .option, .seg-btn, .neon[class*='g-'], .hud .vien, .topbar .total, .topbar [aria-haspopup='menu']):not(:disabled):active { transform: translateY(3px); }
+
+/* ---- cỡ (thạch trắng) ---- */
+:root[data-skin='keo'] :where(.tron, .node, .room, .man) { --th-d: 4px; }
+:root[data-skin='keo'] :where(.o-nn, .chon-nn, .nn-dong, .cau) { --th-d: 3px; }
+:root[data-skin='keo'] :where(.th-nho) { --th-d: 2.5px; }
+/* nút chia đoạn CHƯA chọn (bước Bàn chơi): mỏng, không vệt sáng, không bóng đổ */
+:root[data-skin='keo'] :where(.seg-btn) {
+  --th-d: 2px; --th-trong: inset 0 -3px 5px rgba(29, 42, 90, .06); --th-ngoai: 0 0 0 transparent;
+}
+
+/* ===================== 3. MÀU (thạch màu) ===================== */
+/* Chữ trắng VIỀN cùng màu (--b4). --th-chu khai NGAY trên phần tử nên var(--b4) lấy màu của chính
+   ô — khai ở :root là mọi ô ra viền xanh lá (đã dính). Cỡ VỪA: đế 4px. */
+:root[data-skin='keo'] :where(.th-xanh, .th-vang, .th-do, .th-hong, .th-troi, .th-tim, .th-ngoc, .th-chanh, .th-cam, .btn-primary, .btn.danger, .neon[class*='g-']) {
+  --g1: -40%; --g2: 70%; --th-v: 2.5px; --th-d: 4px;
+  --th-trong: inset 0 -5px 8px rgba(0, 0, 0, .1), inset 0 3px 4px rgba(255, 255, 255, .3);
+  --th-ngoai: 0 8px 14px rgba(10, 20, 60, .2);
+  --th-chu: 1.5px 0 0 var(--b4), -1.5px 0 0 var(--b4), 0 1.5px 0 var(--b4), 0 -1.5px 0 var(--b4),
+    1.1px 1.1px 0 var(--b4), -1.1px 1.1px 0 var(--b4), 1.1px -1.1px 0 var(--b4), -1.1px -1.1px 0 var(--b4), 0 2.5px 0 var(--b4);
+}
+/* cỡ TO: ô định danh, nút chính */
+:root[data-skin='keo'] :where(.th-to, .btn-primary, .neon[class*='g-']) {
+  --th-d: 6px; border-radius: 22px !important;
+  --th-trong: inset 0 -6px 10px rgba(0, 0, 0, .1), inset 0 3px 5px rgba(255, 255, 255, .3);
+  --th-ngoai: 0 10px 16px rgba(10, 20, 60, .22);
+}
+:root[data-skin='keo'] :where(.th-to, .btn-primary, .neon[class*='g-']):not(:disabled):active {
+  --th-d: 2px; --th-trong: inset 0 -4px 10px rgba(0, 0, 0, .13); --th-ngoai: 0 0 0 transparent;
+}
+/* cỡ NHỎ: viên, nút Chinh phục, nút 💬 */
+:root[data-skin='keo'] :where(.th-nho):where(.th-xanh, .th-vang, .th-do, .th-hong, .th-troi, .th-tim, .th-ngoc, .th-chanh, .th-cam, .btn-primary, .btn.danger, .neon[class*='g-']) {
+  --th-v: 1.5px; --th-d: 2px; --th-chu: 0 1px 0 var(--b4);
+  --th-trong: inset 0 1.5px 0 rgba(255, 255, 255, .45); --th-ngoai: 0 3px 5px rgba(10, 20, 60, .18);
+}
+/* bảng màu — một chỗ; g-* là bí danh màu của ô định danh (MenuScreen, mức máy, số người) */
+:root[data-skin='keo'] :where(.th-xanh, .btn-primary, .g-violet) { --b1: #a3ec72; --b2: #46ad22; --b3: #33861a; --b4: #23600f; --bc: #fff; }
+:root[data-skin='keo'] :where(.th-vang, .g-blue)  { --b1: #ffe98a; --b2: #ffc21a; --b3: #d99400; --b4: #ffe98a; --bc: #5a3500; }
+:root[data-skin='keo'] :where(.th-do, .btn.danger, .g-red) { --b1: #ff9cb2; --b2: #ee3a5e; --b3: #c21f42; --b4: #8a1230; --bc: #fff; }
+:root[data-skin='keo'] :where(.th-hong, .g-amber) { --b1: #ffb3c6; --b2: #f7577f; --b3: #cf3560; --b4: #9c1c42; --bc: #fff; }
+:root[data-skin='keo'] :where(.th-troi, .g-cyan)  { --b1: #9fe3ff; --b2: #2aa3ea; --b3: #1680c4; --b4: #0d5c91; --bc: #fff; }
+:root[data-skin='keo'] :where(.th-tim, .g-pink)   { --b1: #d9b8ff; --b2: #8f55ec; --b3: #6c38c6; --b4: #4b2194; --bc: #fff; }
+:root[data-skin='keo'] :where(.th-ngoc, .g-teal)  { --b1: #86eedf; --b2: #1aa697; --b3: #108073; --b4: #075a50; --bc: #fff; }
+:root[data-skin='keo'] :where(.th-chanh, .g-lime) { --b1: #ddf89b; --b2: #9ad33a; --b3: #73a51c; --b4: #ddf89b; --bc: #2c4a06; }
+:root[data-skin='keo'] :where(.th-cam, .g-orange) { --b1: #ffc78a; --b2: #f7800e; --b3: #c95f00; --b4: #8a3f00; --bc: #fff; }
+/* MÀU SÁNG (vàng, chanh) chữ ĐẬM: không viền, một vệt sáng dưới chân chữ (chủ dự án: "nền vàng chữ
+   trắng đau mắt"; viền vàng nhạt quanh chữ nâu trông bẩn) */
+:root[data-skin='keo'] :where(.th-vang, .th-chanh, .g-blue, .g-lime) { --th-chu: 0 1.5px 0 rgba(255, 255, 255, .55); }
+
+/* ===================== 4. ĐANG CHỌN ===================== */
+/* Mặc định: thạch VÀNG cỡ vừa. th-chon-xanh / th-chon-do đổi màu. */
+:root[data-skin='keo'] :where(.th-chon, .option:not(.neon), .seg-btn):is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true']) {
+  --b1: #ffe98a; --b2: #ffc21a; --b3: #d99400; --b4: #ffe98a; --bc: #5a3500;
+  --g1: -40%; --g2: 70%; --th-v: 2.5px; --th-d: 4px;
+  --th-trong: inset 0 -5px 8px rgba(0, 0, 0, .1), inset 0 3px 4px rgba(255, 255, 255, .3);
+  --th-ngoai: 0 8px 14px rgba(10, 20, 60, .2);
+  --th-chu: 0 1.5px 0 rgba(255, 255, 255, .55);
+}
+:root[data-skin='keo'] :where(.th-chon-xanh):is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true']) {
+  --b1: #a3ec72; --b2: #46ad22; --b3: #33861a; --b4: #23600f; --bc: #fff; --th-chu: 0 1px 0 #23600f;
+}
+:root[data-skin='keo'] :where(.th-chon-do):is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true']) {
+  --b1: #ff9cb2; --b2: #ee3a5e; --b3: #c21f42; --b4: #8a1230; --bc: #fff;
+  --th-chu: 1.5px 0 0 var(--b4), -1.5px 0 0 var(--b4), 0 1.5px 0 var(--b4), 0 -1.5px 0 var(--b4),
+    1.1px 1.1px 0 var(--b4), -1.1px 1.1px 0 var(--b4), 1.1px -1.1px 0 var(--b4), -1.1px -1.1px 0 var(--b4), 0 2.5px 0 var(--b4);
+}
+/* ô nhỏ đang chọn (bảng ngôn ngữ): đế 3px */
+:root[data-skin='keo'] :where(.o-nn):is([aria-checked='true'], [aria-pressed='true'], [aria-selected='true']) {
+  --th-d: 3px; --th-v: 2px; --th-trong: inset 0 2px 0 rgba(255, 255, 255, .5); --th-ngoai: 0 5px 8px rgba(10, 20, 60, .2);
+}
+/* chữ nhỏ + icon trong ô đang chọn theo màu chữ của ô */
+:root[data-skin='keo'] :where(.option):is([aria-checked='true'], [aria-pressed='true']) :is(small, .opt-icon) { color: var(--bc) !important; }
+
+/* ===================== 5. Ô ĐỊNH DANH TO (trang chủ, số người, mức máy) ===================== */
+/* `.neon.g-*` là bí danh của "thạch màu cỡ to" — thêm vệt bóng bầu dục + chữ con theo màu ô */
+:root[data-skin='keo'] :where(.neon[class*='g-']) {
+  --th-d: 6px; position: relative; isolation: isolate; border-radius: 22px;
+}
+:root[data-skin='keo'] :where(.neon[class*='g-'], .th-to)::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  left: 14%; right: 14%; top: 4px; height: 16%; border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, .38), rgba(255, 255, 255, 0));
+}
+:root[data-skin='keo'] :where(.btn-primary)::before { content: none; }
+:root[data-skin='keo'] :where(.neon[class*='g-']) strong { color: var(--bc) !important; text-shadow: var(--th-chu); }
+:root[data-skin='keo'] :where(.neon[class*='g-']) small {
+  color: var(--bc) !important; font-weight: 700; text-shadow: var(--th-chu);
+}
+:root[data-skin='keo'] :where(.neon[class*='g-']):not(.g-blue):not(.g-lime) small {
+  text-shadow: 1px 0 0 var(--b4), -1px 0 0 var(--b4), 0 1px 0 var(--b4), 0 -1px 0 var(--b4), 0 1.5px 0 var(--b4);
+}
+:root[data-skin='keo'] :where(.neon[class*='g-']) :is(.opt-icon, .count-num, .hinh-nguoi) { color: var(--bc) !important; }
+
+/* ===================== 6. VAI KHAY ===================== */
+:root[data-skin='keo'] :where(.khay, .panel:not(.trang-chu), .menu) {
+  background: var(--k-nen) !important; color: var(--fg);
+  border: 2.5px solid var(--k-vien) !important; border-radius: 26px;
+  box-shadow: 0 6px 0 var(--k-vien), 0 18px 40px rgba(10, 20, 60, .28) !important;
+}
+/* khay NHỎ — dòng trong danh sách, hàng tuỳ chọn (phẳng); `khay-noi` thêm đế 3px (ô số liệu, Tổng điểm) */
+:root[data-skin='keo'] :where(.khay-nho, .opt-row) {
+  background: var(--k-mem) !important; border: 2px solid var(--k-vien) !important; border-radius: 16px !important;
+  box-shadow: inset 0 -3px 0 rgba(29, 42, 90, .05) !important;
+}
+:root[data-skin='keo'] :where(.khay-nho.khay-noi) { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 3px 0 var(--k-vien) !important; }
+:root[data-skin='keo'][data-theme='dark'] :where(.khay-nho.khay-noi) { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .1), 0 3px 0 var(--k-vien) !important; }
+
+/* ===================== 7. NGOẠI LỆ CÓ TÊN ===================== */
+/* (a) Rãnh chia đoạn ở menu Cài đặt (Giao diện · Âm thanh · Nhạc): rãnh LÕM, nút chưa chọn PHẲNG
+   trong rãnh, nút đang chọn là thạch xanh nhỏ nhô lên. */
+:root[data-skin='keo'] .nac {
+  border: 2px solid var(--t3) !important; background: var(--k-mem); padding: 2px; gap: 2px; overflow: visible;
+  box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
+}
+:root[data-skin='keo'] .nac button { border-radius: 999px; }
+:root[data-skin='keo'] .nac button[aria-checked='true'] {
+  border: 1.5px solid #33861a; color: #fff;
+  background: linear-gradient(#a3ec72 -40%, #46ad22 70%);
+  text-shadow: 0 1px 0 #23600f;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 1.5px 0 #33861a, 0 2px 4px rgba(10, 20, 60, .18);
+  translate: 0 -.5px;
+}
+/* (b) Công tắc (rung): rãnh lõm + núm trắng nổi */
+:root[data-skin='keo'] .sw {
+  background: var(--k-mem); border: 2px solid var(--t3); box-shadow: inset 0 2px 4px rgba(29, 42, 90, .18);
+  width: 42px; height: 24px; box-sizing: border-box;
+}
+:root[data-skin='keo'] .sw.bat {
+  background: linear-gradient(#a3ec72 -40%, #46ad22 70%); border-color: #33861a;
+  box-shadow: inset 0 -3px 4px rgba(0, 0, 0, .12), inset 0 2px 3px rgba(255, 255, 255, .4);
+}
+:root[data-skin='keo'] .sw::after {
+  top: 1px; left: 1px; width: 18px; height: 18px;
+  background: linear-gradient(#fff, #e4efff); box-shadow: 0 2px 0 #aebfdf, 0 3px 5px rgba(10, 20, 60, .25);
+}
+:root[data-skin='keo'] .sw.bat::after { left: 19px; }
+/* (c) Ô theme đã chọn: khay vàng NHẠT, không thạch đặc — lưới 36–72 ô vàng đặc là "rực" */
+:root[data-skin='keo'] .theme-grid .option:is([aria-checked='true'], [aria-pressed='true']) {
+  background: #fff6d6 !important; border-color: #f0b400 !important; color: var(--ink) !important;
+  box-shadow: 0 3px 0 #f0b400 !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .theme-grid .option:is([aria-checked='true'], [aria-pressed='true']) {
+  background: #4a4a6e !important; color: #fff !important;
+}
+/* (d) Ô cấp Chiến dịch: đã qua = thạch xanh lá NHẠT; đang chơi = vàng; khoá = nhạt, đế mỏng */
+:root[data-skin='keo'] .node { overflow: visible; }
+:root[data-skin='keo'] .node.cleared { --b1: #f2fde8; --b2: #ddf5cc; --b3: #8fcf6b; }
+:root[data-skin='keo'][data-theme='dark'] .node.cleared { --b1: #35585a; --b2: #2d4a4f; --b3: #2a5a1e; --th-trong: inset 0 2px 0 rgba(255, 255, 255, .12); }
+:root[data-skin='keo'][data-theme='dark'] .node.cleared.thach { border-color: #3f8a2a !important; }
+:root[data-skin='keo'] .node.next { --b1: #ffe98a; --b2: #ffc21a; --b3: #d99400; --bc: #5a3500; --g1: -40%; --g2: 70%; --th-d: 5px; }
+:root[data-skin='keo'] .node.locked { opacity: .6; --th-d: 2px; --bc: var(--muted); --th-ngoai: 0 0 0 transparent; }
+:root[data-skin='keo'] .node.next { --th-trong: inset 0 2px 0 rgba(255, 255, 255, .5); --th-ngoai: 0 8px 12px rgba(10, 20, 60, .22); }
+:root[data-skin='keo'] .hud .vien svg { color: var(--tc); }
+/* (e) Nhãn "Màn N" dán góc ô Chiến dịch — nghiêng như nhãn dán */
+:root[data-skin='keo'] .o-chien-dich .man {
+  position: absolute; top: -12px; right: 14px; padding: 3px 10px; font-size: 13px; rotate: 4deg;
+  text-shadow: none !important;
+}
+/* (f) Nút 💬 nói nhanh: vàng; đang mở bảng: xanh lá */
+:root[data-skin='keo'] .emoji.say.mo { --b1: #a3ec72; --b2: #46ad22; --b3: #33861a; --bc: #fff; }
+/* (g) Ô xu cuối ván = BẢNG VÀNG (phần thưởng ấm và nổi, không phải khay xám) */
+:root[data-skin='keo'] .score-big {
+  background: linear-gradient(#fffbe6 10%, #ffe9a3) !important;
+  border: 2px solid #f0c040 !important; border-radius: 18px; color: #5a3500 !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .85), 0 3px 0 #dba22a, 0 6px 10px rgba(150, 100, 0, .18) !important;
+}
+:root[data-skin='keo'] .score-big * { color: #5a3500; }
+:root[data-skin='keo'][data-theme='dark'] .score-big {
+  background: linear-gradient(#4d4a7a 10%, #3f3c6a) !important; border-color: #c9962a !important; color: #ffe08a !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .12), 0 3px 0 #9a7220, 0 6px 10px rgba(0, 0, 0, .3) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .score-big * { color: #ffe08a; }
+/* (h) Dòng danh hiệu đã có: khay vàng nhạt */
+:root[data-skin='keo'] .danh-hieu li.co { background: #fff7d9 !important; border-color: #f0cf6a !important; }
+:root[data-skin='keo'][data-theme='dark'] .danh-hieu li.co { background: #3c3f6c !important; border-color: #8a7330 !important; }
+:root[data-skin='keo'] .danh-hieu .tien-do { border: 2px solid #c9d3ea; background: #eef3fb; }
+:root[data-skin='keo'][data-theme='dark'] .danh-hieu .tien-do { border-color: #3b4c8c; background: #1f2c5e; }
+:root[data-skin='keo'] .danh-hieu .tien-do i { background: #6ccb3a; }
+/* (i) Viên danh hiệu vừa mở ở bảng kết quả */
+:root[data-skin='keo'] .achievements li { background: radial-gradient(120% 90% at 50% 0%, #ffe98a, #ffc21a 62%); color: #5a3500; border: 2px solid #d99400; }
+/* (j) Gợi ý "Chinh phục" ở bảng kết quả: khung tím đứt */
+:root[data-skin='keo'] .goi-y { background: #f1e8ff; border: 2px dashed #8e5be8; }
+:root[data-skin='keo'][data-theme='dark'] .goi-y { background: #33306e; border-color: #a98bff; }
+/* (k) Chip người chơi chờ = khay nhỏ trong mờ; người đang đi = thạch vàng (bí danh) */
+:root[data-skin='keo'] .player:not(.active) {
+  background: var(--k-mem) !important; border: 2px solid var(--k-vien) !important; border-radius: 16px;
+  box-shadow: inset 0 -3px 0 rgba(29, 42, 90, .05) !important;
+}
+:root[data-skin='keo'][data-theme='dark'] .player:not(.active) { background: rgba(39, 54, 111, .85) !important; border-color: rgba(185, 196, 236, .35) !important; }
+:root[data-skin='keo'] :where(.player.active, .turn-chip) {
+  --b1: #ffe98a; --b2: #ffc21a; --b3: #d99400; --bc: #5a3500;
+  border: 2.5px solid var(--b3) !important; color: var(--bc) !important;
+  background: linear-gradient(var(--b1) -40%, var(--b2) 70%) !important;
+  box-shadow: inset 0 -5px 8px rgba(0, 0, 0, .1), inset 0 3px 4px rgba(255, 255, 255, .3), 0 4px 0 var(--b3) !important;
+}
+/* chữ trên chip vàng = NÂU ĐẬM như mọi thạch vàng (chủ dự án: tên "chữ đen bị tối quá" — --ink ở Kẹo tối là gần đen) */
+:root[data-skin='keo'] .player.active :is(.name, .turn-clock, .lives) { color: #5a3500; }
+:root[data-skin='keo'] .player.active .pts { color: #5a3500; border: 2px solid #d99400; box-shadow: none; }
+
+/* (l) Hộp chọn ngôn ngữ nổi trên menu: bóng đậm hơn khay thường */
+:root[data-skin='keo'] .nn-hop.khay { box-shadow: 0 6px 0 var(--k-vien), 0 18px 40px rgba(10, 20, 60, .35) !important; }
+/* (m) Ruy băng "Tạm dừng": viền chữ mảnh, vệt sáng đậm */
+:root[data-skin='keo'] .ruy-bang.thach { --th-v: 2px; --th-trong: inset 0 2px 0 rgba(255, 255, 255, .45); --th-ngoai: 0 6px 10px rgba(10, 20, 60, .25); text-shadow: 0 1.5px 0 #8a1230; }

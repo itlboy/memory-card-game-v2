@@ -180,7 +180,7 @@ watch(() => props.totalScore, (to, from) => {
 <template>
   <header class="topbar">
     <h1 ref="h1El" :class="{ 'an-ten': anTen }" :style="{ '--ten-co': tenCo }">
-      <button class="brand" type="button" :aria-label="t('tb.veTrangChu')" @click="$emit('home')">
+      <button data-phang class="brand" type="button" :aria-label="t('tb.veTrangChu')" @click="$emit('home')">
         <!-- Hai lá bài chồng nghiêng — emoji 🃏 mỗi máy vẽ một kiểu, không dùng
              được làm dấu hiệu thương hiệu. Khung CỐ ĐỊNH 30×30 để không giãn
              kín header khi nằm trong flex. -->
@@ -190,7 +190,7 @@ watch(() => props.totalScore, (to, from) => {
       </button>
     </h1>
 
-    <span class="total" :class="{ pop: bump }" :key="bump" :title="t('tb.tongDiem', { n: num(totalScore) })">
+    <span class="total thach" :class="{ pop: bump }" :key="bump" :title="t('tb.tongDiem', { n: num(totalScore) })">
       <!-- Đồng xu = ĐIỂM, cùng hình với HUD (sao chỉ là đánh giá Chiến dịch) -->
       <DongXu :size="16" />
       <b>{{ numShort(shown) }}</b>
@@ -201,7 +201,7 @@ watch(() => props.totalScore, (to, from) => {
     <!-- Viên danh hiệu RIÊNG, không ghép vào viên điểm: hai thước đo khác nhau,
          ghép chung thì "536k · 10/103" đọc thành một con số khó hiểu. -->
     <button
-      v-if="danhHieu" class="dh" type="button"
+      v-if="danhHieu" class="dh thach th-do" type="button"
       :aria-label="t('tb.danhHieuAria', { co: danhHieu.co, tong: danhHieu.tong })"
       @click="$emit('danh-hieu')"
     >
@@ -222,7 +222,7 @@ watch(() => props.totalScore, (to, from) => {
         thay vì phải bấm xoay vòng để đoán. Bấm công tắc thì menu ở lại.
       -->
       <div v-if="open" class="menu" role="menu" @keydown.esc="dong">
-        <button
+        <button data-phang
           v-if="account" class="item tk" role="menuitem" type="button"
           :aria-label="signedIn ? t('tb.tkCuaBan') : t('tb.dangNhap')"
           @click="dong(); $emit('account')"
@@ -236,7 +236,7 @@ watch(() => props.totalScore, (to, from) => {
         <div class="nhom-hang">
           <p class="nhom" role="presentation" @pointerup="chamCaiDat">{{ t('tb.caiDat') }}</p>
           <!-- Debug đang bật: nút vào TRANG debug riêng (DebugDialog) — menu không chứa công cụ debug -->
-          <button v-if="debug" class="nut-debug" role="menuitem" type="button" @click="dong(); emit('mo-debug')">🐞 Debug</button>
+          <button data-phang v-if="debug" class="nut-debug" role="menuitem" type="button" @click="dong(); emit('mo-debug')">🐞 Debug</button>
         </div>
         <!-- Giao diện = Sáng/Tối của Kẹo (chủ dự án 17.10.2026: chỉ còn Kẹo cho người chơi; skin
              khác chọn ở trang Debug). Skin không có nền tối (Gỗ…) thì chỉ còn dòng chữ. -->
@@ -244,7 +244,7 @@ watch(() => props.totalScore, (to, from) => {
           <!-- Cũng là cửa bật debug (7 chạm) — chữ "Cài đặt" nhỏ quá, hay chạm trượt (16.10.2026) -->
           <Palette :size="20" /><span class="cham-debug" @pointerup="chamCaiDat">{{ t('tb.giaoDien') }}</span>
           <span v-if="coNenToi(skin)" class="nac">
-            <button
+            <button data-phang
               v-for="n in (['tu', 'sang', 'toi'] as const)" :key="n" type="button" role="menuitemradio"
               :aria-checked="nen === n" :aria-label="`${t('tb.nen')}: ${td(`tb.nenNgan.${n}`)}`"
               @click="$emit('set-nen', n)"
@@ -254,7 +254,7 @@ watch(() => props.totalScore, (to, from) => {
         <div class="item am" role="group" :aria-label="t('tb.amThanh')">
           <component :is="soundIcon" :size="20" /><span>{{ t('tb.amThanh') }}</span>
           <span class="nac">
-            <button
+            <button data-phang
               v-for="l in (['off', 'low', 'high'] as const)" :key="l" type="button" role="menuitemradio"
               :aria-checked="soundLevel === l" :aria-label="td(`tb.am.${l}`)"
               @click="$emit('set-sound', l)"
@@ -269,11 +269,11 @@ watch(() => props.totalScore, (to, from) => {
         <div class="item am nhac" :class="{ 'hai-tang': baiHien.length > 3 }" role="group" :aria-label="t('tb.nhacNen')">
           <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
           <span class="nac ds-nhac">
-            <button
+            <button data-phang
               type="button" role="menuitemradio" :aria-checked="!nhac"
               :aria-label="td('tb.nhacBai.off')" @click="chonNhac('off')"
             >{{ td('tb.amNgan.off') }}</button>
-            <button
+            <button data-phang
               v-for="b in baiHien" :key="b" type="button" role="menuitemradio" class="bai"
               :class="{ khoa: !baiChoiDuoc(b) }"
               :aria-checked="!!nhac && baiNhac === b"
@@ -285,7 +285,7 @@ watch(() => props.totalScore, (to, from) => {
         <p v-if="baoPlusNhac" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
         <!-- Rung: công tắc trở lại 17.10.2026. Giấu khi máy không rung được (web trên
              iPhone): công tắc không làm gì là công tắc nói dối. -->
-        <button
+        <button data-phang
           v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
           :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
           @click="$emit('toggle-rung')"
@@ -296,13 +296,13 @@ watch(() => props.totalScore, (to, from) => {
         <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
         <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
           <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
-          <button class="chon-nn" type="button" :aria-label="`${t('tb.ngonNgu')}: ${tenNN}`" @click="moNN($event)">
+          <button class="chon-nn thach" type="button" :aria-label="`${t('tb.ngonNgu')}: ${tenNN}`" @click="moNN($event)">
             <span :lang="ngonNgu">{{ tenNN }}</span><ChevronRight :size="16" aria-hidden="true" />
           </button>
         </div>
 
         <hr class="ke" />
-        <button class="item" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
+        <button data-phang class="item" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
           <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>
         </button>
       </div>
@@ -317,14 +317,14 @@ watch(() => props.totalScore, (to, from) => {
   <Teleport to="#app">
     <div v-if="chonNN" ref="nnEl" class="nn-phu" role="dialog" aria-modal="true" :aria-label="t('tb.ngonNgu')"
       @click.self="chonNN = false" @keydown.esc.stop="chonNN = false">
-      <div ref="nnHop" class="nn-hop" :style="viTriNN">
+      <div ref="nnHop" class="nn-hop khay" :style="viTriNN">
         <div class="nn-dau">
           <Languages :size="22" /><span>{{ t('tb.ngonNgu') }}</span>
-          <button class="nn-dong" type="button" :aria-label="t('dhd.dong')" @click="chonNN = false"><X :size="20" /></button>
+          <button class="nn-dong thach" type="button" :aria-label="t('dhd.dong')" @click="chonNN = false"><X :size="20" /></button>
         </div>
         <div class="bang-nn">
           <button
-            v-for="l in NGON_NGU" :key="l.id" type="button" role="radio" class="o-nn"
+            v-for="l in NGON_NGU" :key="l.id" type="button" role="radio" class="o-nn thach th-chon"
             :aria-checked="ngonNgu === l.id" :lang="l.id"
             @click="ngonNgu = l.id; chonNN = false"
           >{{ l.ten }}</button>

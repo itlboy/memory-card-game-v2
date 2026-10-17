@@ -36,10 +36,10 @@ const nhom = computed(() => NHOM.map((n) => {
       </header>
       <div class="thanh"><i :style="{ width: `${(so / dsHien.length) * 100}%` }" /></div>
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
+        <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
           {{ t('dhd.chuaCo', { n: dsHien.length - so }) }}
         </button>
-        <button class="tab" role="tab" type="button" :aria-selected="loc === 'co'" @click="loc = 'co'">
+        <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="loc === 'co'" @click="loc = 'co'">
           {{ t('dhd.daCo', { n: so }) }}
         </button>
       </div>

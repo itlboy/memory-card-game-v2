@@ -152,8 +152,8 @@ const diemMay = store.totalScore();
           </div>
 
           <div class="tabs" role="tablist">
-            <button class="tab" role="tab" type="button" :aria-selected="tab === 'hoso'" @click="tab = 'hoso'">{{ t('tk.hoSo') }}</button>
-            <button class="tab" role="tab" type="button" :aria-selected="tab === 'bxh'" @click="moBxh">{{ t('tk.xepHang') }}</button>
+            <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="tab === 'hoso'" @click="tab = 'hoso'">{{ t('tk.hoSo') }}</button>
+            <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="tab === 'bxh'" @click="moBxh">{{ t('tk.xepHang') }}</button>
           </div>
 
           <template v-if="tab === 'hoso'">

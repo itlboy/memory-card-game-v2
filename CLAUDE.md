@@ -334,7 +334,12 @@
   rồi đòi "một ngôn ngữ thiết kế chung"): KHÔNG viền mực đen nữa. Ba vai, khối cuối `keo.css`: (1) THẠCH MÀU
   (bấm để làm) — gradient + mép & đế dày CÙNG MÀU, bộ biến `--c1..c4` + `--cc` màu chữ; MÀU SÁNG (vàng,
   chanh) CHỮ ĐẬM, không chữ trắng ("đau mắt"); (2) THẠCH TRẮNG (nút phụ) `--t1..t3`; (3) KHAY (chứa) `--k-*`.
-  Thêm thứ mới = xếp vào một vai, đừng tô riêng. Bóng VỪA PHẢI (chủ dự án đã bảo giảm), vệt bóng bầu dục CHỈ
+  Thêm thứ mới = xếp vào một vai, đừng tô riêng. **CODE (17.10.2026):** `keo.css` = token + nền + trang
+  chủ; `keo-thach.css` = MỌI nút/khung (gắn lớp trong component: `thach` [+ `th-xanh|vang|do|hong|troi|tim|
+  ngoc|chanh|cam`] [+ `th-to|th-nho`] [+ `th-chon`, `th-chon-xanh|do`] · `khay` · `khay-nho` [`khay-noi`];
+  `.btn/.btn-primary/.option/.seg-btn/.neon.g-*` là bí danh sẵn); `keo-la.css` = lá bài. Biến ở `:where()`
+  (đè được), luật vẽ ở `:is()` (thắng `!important` cũ). `test/nut-co-vai.test.ts`: mọi `<button>` phải có
+  vai, `data-phang` (cố ý phẳng) hoặc nằm trong danh sách nợ `CHUA_XEP` — nút mới quên vai là đỏ. Bóng VỪA PHẢI (chủ dự án đã bảo giảm), vệt bóng bầu dục CHỈ
   ở ô định danh to, không ở nút thấp (đè chữ). Quạt lá trang chủ là LÁ BÀI THẬT (mỏng, viền giấy trắng
   mảnh, khung chỉ vàng, bóng mềm) — đế dày kiểu nút làm lá "không thật". Icon ô trang chủ: Noto 3D 🗺️🚀🌍
   (danh sách trong `tools/tai-noto3d.mjs`, thiếu là công cụ XOÁ file) + robot TỰ VẼ `public/img/robot.svg`.
