@@ -48,7 +48,6 @@ const TIM = '<svg viewBox="0 0 24 24"><defs><radialGradient id="t" cx=".4" cy=".
 const html = (toi) => `<!doctype html><meta charset="utf-8"><style>
 html,body{margin:0;height:100%}
 body{position:relative;overflow:hidden;background:${toi ? `
-  radial-gradient(circle 10vmin at 66% 27%,rgba(255,238,170,.2) 55%,transparent),
   radial-gradient(circle .35vmin at 24% 20%,#fff 95%,transparent),
   radial-gradient(circle .3vmin at 44% 14%,#fff 95%,transparent),
   radial-gradient(circle .4vmin at 80% 38%,#ffe9a6 95%,transparent),
@@ -62,7 +61,7 @@ body{position:relative;overflow:hidden;background:${toi ? `
   radial-gradient(circle 4vmin at 66% 27%,#ffe066 92%,#ffc93a 96%,transparent),
   radial-gradient(circle 9vmin at 66% 27%,rgba(255,232,130,.5) 50%,transparent),
   linear-gradient(#45b3ef,#7fd3fb 70%,#b5e8ff)`}}
-.trang{position:absolute;left:66%;top:27%;width:7.6vmin;height:7.6vmin;translate:-50% -50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='t' cx='.38' cy='.32' r='.75'%3E%3Cstop offset='0' stop-color='%23fffbe6'/%3E%3Cstop offset='.7' stop-color='%23fbe8a6'/%3E%3Cstop offset='1' stop-color='%23efd07a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url%28%23t%29'/%3E%3Ccircle cx='34' cy='38' r='9' fill='%23e6c76a' opacity='.45'/%3E%3Ccircle cx='62' cy='62' r='12' fill='%23e6c76a' opacity='.4'/%3E%3Ccircle cx='66' cy='30' r='5.5' fill='%23e6c76a' opacity='.4'/%3E%3Ccircle cx='36' cy='68' r='5' fill='%23e6c76a' opacity='.35'/%3E%3C/svg%3E") center/contain no-repeat}
+.trang{position:absolute;left:66%;top:27%;width:10.6vmin;height:10.6vmin;translate:-50% -50%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-20 -20 140 140'%3E%3Cdefs%3E%3CradialGradient id='t' cx='.38' cy='.32' r='.8'%3E%3Cstop offset='0' stop-color='%23fffbe6'/%3E%3Cstop offset='.7' stop-color='%23fbe8a6'/%3E%3Cstop offset='1' stop-color='%23efd07a'/%3E%3C/radialGradient%3E%3Cfilter id='q' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='7'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M16.37 81.39 A46 46 0 1 0 60.37 5.18 A44 44 0 0 1 16.37 81.39Z' fill='%23ffeeaa' opacity='.55' filter='url%28%23q%29'/%3E%3Cpath d='M16.37 81.39 A46 46 0 1 0 60.37 5.18 A44 44 0 0 1 16.37 81.39Z' fill='url%28%23t%29'/%3E%3C/svg%3E") center/contain no-repeat}
 .doi{position:absolute;inset:0;background:${toi ? `
   radial-gradient(100vmax 26vh at 20% 106%,#1b2760 60%,#141d4d 61.5%,transparent 62%),
   radial-gradient(120vmax 34vh at 82% 108%,#2a3678 60%,#222d68 61.5%,transparent 62%)` : `
