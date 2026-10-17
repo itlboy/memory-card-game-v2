@@ -143,9 +143,9 @@ describe('sổ cảnh kết ván (bộ mới 11.10.2026)', () => {
 });
 
 describe('biến thể thắng / thua', () => {
-  it('thắng ≥3, thua ≥2 biến thể, đều có tên', () => {
-    // Thắng ≥3; thua ≥2 (game over bỏ 14.10.2026 — lệch nét Kẹo, đen sì)
-    for (const [ds, toiThieu] of [[BIEN_THE.thang, 3], [BIEN_THE.thua, 2]] as const) {
+  it('thắng ≥3, thua ≥1 biến thể, đều có tên', () => {
+    // Thắng ≥3; thua chỉ còn MÈO KHÓC (18.10.2026, chủ dự án duyệt thay hẳn đập vỡ + tan tro)
+    for (const [ds, toiThieu] of [[BIEN_THE.thang, 3], [BIEN_THE.thua, 1]] as const) {
       expect(ds.length).toBeGreaterThanOrEqual(toiThieu);
       for (const b of ds) expect(TEN_BIEN_THE[b]).toBeTruthy();
     }
@@ -164,7 +164,7 @@ describe('biến thể thắng / thua', () => {
     const so = readFileSync(resolve(process.cwd(), 'src/lib/ketcuc-fx.ts'), 'utf8');
     for (const b of [...BIEN_THE.thang, ...BIEN_THE.thua]) {
       expect(vue, `${b}: thiếu tiếng`).toMatch(new RegExp(`'${b}': \\(\\) =>`));
-      if (b !== 'phao-giay' && b !== 'dap-vo') {   // hai biến thể mặc định là nhánh else
+      if (b !== 'phao-giay') {   // pháo giấy là nhánh else của cảnh thắng
         expect(vue, `${b}: thiếu template`).toContain(`'${b}'`);
         expect(so, `${b}: thiếu chuyển động`).toContain(`bienThe === '${b}'`);
       }

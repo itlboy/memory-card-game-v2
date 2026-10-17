@@ -97,7 +97,7 @@ describe('kết ván online trên DOM thật', () => {
 describe('dòng an ủi chỉ ở ván một mình', () => {
   it('motMinh → có "còn N cặp / suýt nữa"; đấu máy/người → không', async () => {
     const { default: KetCucFx } = await import('@/components/KetCucFx.vue');
-    for (const bienThe of ['dap-vo', 'tan-tro'] as const) {
+    for (const bienThe of ['meo-khoc'] as const) {
       const mot = mount(KetCucFx, { props: { loai: 'thua', bienThe, motMinh: true } });
       expect(mot.find('.fx-an-ui').exists(), `${bienThe}: một mình phải có dòng an ủi`).toBe(true);
       mot.unmount();

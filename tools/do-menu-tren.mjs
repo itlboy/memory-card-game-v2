@@ -200,8 +200,7 @@ for (const [ten, w, h] of MAY) {
       anUi: document.querySelector('.ketcuc-fx .fx-an-ui')?.textContent };
   })()`);
   ok(t.chu && t.chu.t >= 0 && t.chu.b <= h && t.chu.l >= -1 && t.chu.r <= w + 1, `${ten}: tiêu đề cảnh thua (${bienThe}) nằm trong màn hình`);
-  if (bienThe === 'dap-vo') ok(t.tong > 0 && t.roi === t.tong, `${ten}: ${t.roi}/${t.tong} lá chưa ghép đã rơi khỏi màn`);
-  ok(t.lo === 0, `${ten}: lá rơi vẫn ÚP, không lộ mặt (${t.lo} lá ngửa)`);
+  ok(t.lo === 0, `${ten}: lá chưa ghép vẫn ÚP, không lộ mặt (${t.lo} lá ngửa)`);
   ok(/cặp nữa thôi|Suýt nữa/.test(t.anUi ?? ''), `${ten}: dòng an ủi: "${t.anUi}"`);
   await cho(1200);
   ok(await js(`!!document.querySelector('[aria-labelledby="resTitle"]')`), `${ten}: bảng kết quả hiện sau cảnh thua`);

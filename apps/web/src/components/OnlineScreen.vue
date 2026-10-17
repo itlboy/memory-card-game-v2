@@ -43,6 +43,9 @@ import type { IconName } from './OptionIcon.vue';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { store } from '@/lib/storage';
 import { sfx } from '@/lib/audio';
+import { anhEmoji } from '@/lib/emoji';
+/** Quả địa cầu Noto 3D ở ô trống danh sách phòng (phong cách 3D nổi khối, 18.10.2026). */
+const anhDiaCau = anhEmoji('🌍', true, 128);
 import { loadThemes, type CardTheme } from '@/lib/themes';
 import { choiDuoc } from '@/lib/premium';
 import ThemePicker from './ThemePicker.vue';
@@ -842,7 +845,7 @@ function openCfgWizard(): void {
       <!-- Trống vì LỖI ≠ trống vì không có phòng nào: nói khác nhau, vì cách xử
            lý của người chơi cũng khác (bấm thử lại / tự tạo phòng). -->
       <div v-else class="empty">
-        <span class="art"><Globe :size="36" :stroke-width="1.9" /></span>
+        <span class="art th-vang"><img v-if="anhDiaCau" :src="anhDiaCau" alt="" /><Globe v-else :size="36" :stroke-width="1.9" /></span>
         <template v-if="o.loiTaiPhong.value">
           <h4>{{ t('on.loiDs.tieuDe') }}</h4>
           <p>{{ t('on.loiDs.than') }}</p>
@@ -1233,8 +1236,13 @@ function openCfgWizard(): void {
   display: flex; align-items: center; justify-content: center;
   width: 74px; height: 74px; border-radius: 22px; color: var(--chon-chu);
   background: var(--chon-nen);
-  box-shadow: 0 10px 26px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .32);
+  /* Ô THẠCH NỔI KHỐI: đế dày tối hơn ở đáy + vệt sáng trên + bóng đổ (phong cách 3D, 18.10.2026) */
+  /* --b3 = màu đế của thạch vàng (keo-thach.css, có nhờ lớp th-vang); skin khác không có thì đế tối trung tính */
+  box-shadow: 0 6px 0 var(--b3, rgba(0, 0, 0, .2)), 0 14px 26px var(--card-back-glow),
+    inset 0 3px 0 rgba(255, 255, 255, .55), inset 0 -5px 0 rgba(0, 0, 0, .1);
+  margin-bottom: 6px;
 }
+.empty .art img { width: 52px; height: 52px; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .25)); }
 .empty h4 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); }
 .empty p { margin: 0; max-width: 250px; color: var(--muted); font-size: var(--text-sm); line-height: 1.45; }
 

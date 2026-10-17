@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { sfx } from '@/lib/audio';
-import { BoHat, HIEN_BANG_MS, bocBienThe, chayCanh, chonCanh, dongAnUi, VET_NUT } from '@/lib/ketcuc-fx';
+import { BoHat, HIEN_BANG_MS, bocBienThe, chayCanh, chonCanh, dongAnUi } from '@/lib/ketcuc-fx';
+import { anhEmoji } from '@/lib/emoji';
 import type { BienThe } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
@@ -30,6 +31,13 @@ const props = defineProps<{
 }>();
 
 const canh = computed(() => chonCanh(props.loai, { kyLuc: props.kyLuc }));
+/**
+ * MÈO CỦA CẢNH (18.10.2026, mockup https://claude.ai/artifact/GB9pZQcPh43548oRPi83up):
+ * thắng 😹 cười, thua 😿 khóc, hoà hai 😺 cụng đầu — luôn ĐỨNG TRÊN chữ, cả cụm canh
+ * GIỮA màn. Ảnh Noto 3D (cùng bộ với mặt bài) bất kể máy đang vẽ mặt bài bằng gì.
+ */
+const MEO = { cuoi: '😹', khoc: '😿', hoa: '😺' } as const;
+const anhMeo = (k: keyof typeof MEO) => anhEmoji(MEO[k], true, 256);
 const bt = computed<BienThe | null>(() => props.bienThe ?? bocBienThe(canh.value, props.seed ?? 7));
 const cv = ref<HTMLCanvasElement | null>(null);
 /** Số cặp còn úp lúc thua — đếm từ DOM bàn thẻ, đúng cho cả offline lẫn online. */
@@ -38,15 +46,14 @@ let don: (() => void) | undefined;
 
 /**
  * TIẾNG RIÊNG CỦA TỪNG BIẾN THỂ. Tiếng gốc của kết cục (fanfare thắng, hoà, máy
- * cười) vẫn phát ở chỗ gọi; riêng THUA phát toàn bộ ở đây vì ba biến thể thua
+ * cười) vẫn phát ở chỗ gọi; riêng THUA phát toàn bộ ở đây (kèn buồn + mèo khóc)
  * nghe khác hẳn nhau (kèn buồn + vỡ kính / gió cuốn tro / nhạc 8-bit).
  */
 const TIENG_BIEN_THE: Record<BienThe, () => void> = {
   'phao-giay': () => {},
   'phao-hoa-dem': () => sfx.phaoHoaDem(),
   'vuong-mien': () => sfx.vuongMien(),
-  'dap-vo': () => sfx.lose(),
-  'tan-tro': () => sfx.tanTro()
+  'meo-khoc': () => sfx.meoKhoc()
 };
 
 onMounted(() => {
@@ -56,6 +63,8 @@ onMounted(() => {
     else if (canh.value === 'hoa') sfx.win();
   }
   if (bt.value) TIENG_BIEN_THE[bt.value]();
+  if (canh.value === 'thang' || canh.value === 'ky-luc') sfx.meoCuoi();
+  else if (canh.value === 'hoa') sfx.meoHoa();
   if (canh.value === 'ky-luc') sfx.kyLuc();
   if (!cv.value) return;
   const giam = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,57 +84,45 @@ onBeforeUnmount(() => don?.());
   <div class="ketcuc-fx" :style="{ '--hien-bang': `${HIEN_BANG_MS[canh]}ms` }" :data-loai="loai" :data-canh="canh" :data-bien-the="bt ?? undefined" :aria-label="td(`fx.canh.${canh}`)" aria-hidden="true">
     <canvas ref="cv" class="fx-hat" />
 
-    <!-- ===== THẮNG (3 biến thể) ===== -->
+    <!-- ===== THẮNG (3 biến thể) — mèo cười trên chữ, cả cụm giữa màn ===== -->
     <template v-if="canh === 'thang' || canh === 'ky-luc'">
       <div class="fx-toi" :class="{ 'fx-dem': bt === 'phao-hoa-dem' }" />
       <div v-if="bt === 'vuong-mien'" class="fx-tia-vang" />
-      <div
-        class="fx-chu fx-thang fx-tieu-de"
-        :class="{ 'fx-neon': bt === 'phao-hoa-dem', 'fx-vang-khoi': bt === 'vuong-mien' }"
-      ><template v-for="(dong, i) in t('fx.chienThang').split('|')" :key="i"><br v-if="i">{{ dong }}</template></div>
-      <span v-if="bt === 'vuong-mien'" class="fx-vuong-mien" aria-hidden="true">👑</span>
+      <div class="fx-cum">
+        <span class="fx-meo fx-meo-cuoi">
+          <img v-if="anhMeo('cuoi')" :src="anhMeo('cuoi')!" alt="" /><template v-else>{{ MEO.cuoi }}</template>
+          <span v-if="bt === 'vuong-mien'" class="fx-vuong-mien" aria-hidden="true">👑</span>
+        </span>
+        <div
+          class="fx-chu fx-thang fx-tieu-de"
+          :class="{ 'fx-neon': bt === 'phao-hoa-dem', 'fx-vang-khoi': bt === 'vuong-mien' }"
+        ><template v-for="(dong, i) in t('fx.chienThang').split('|')" :key="i"><br v-if="i">{{ dong }}</template></div>
+      </div>
       <div v-if="canh === 'ky-luc'" class="fx-bang">{{ t('fx.kyLucMoi') }}</div>
     </template>
 
-    <!-- ===== THUA (3 biến thể) ===== -->
-
-    <template v-else-if="canh === 'thua' && bt === 'tan-tro'">
-      <div class="fx-toi" />
-      <div class="fx-khoi-thua">
-        <div class="fx-chu fx-thua fx-tieu-de fx-tro-chu" :aria-label="t('fx.thuaRoi')">
-          <span v-for="(c, i) in [...t('fx.thuaRoi')]" :key="i" class="fx-ky" :style="{ animationDelay: `${0.35 + i * 0.04}s, ${1.35 + i * 0.07}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
-        </div>
-        <p v-if="motMinh" class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
-      </div>
-    </template>
-
+    <!-- ===== THUA — mèo khóc trên chữ, chữ đập xuống như thắng ===== -->
     <template v-else-if="canh === 'thua'">
       <div class="fx-toi" />
-      <!-- Viền đỏ sẫm nhói vào đúng lúc đồng hồ về 0 -->
-      <div class="fx-vien" />
-      <div class="fx-khoi-thua">
-        <!-- Vết nứt + sóng chấn động: hiện lúc chữ chạm đất (~1,45s) -->
-        <svg class="fx-nut" viewBox="-100 -60 200 120" aria-hidden="true">
-          <path v-for="(d, i) in VET_NUT" :key="i" :d="d" :style="{ animationDelay: `${1.45 + i * 0.02}s` }" />
-        </svg>
-        <i class="fx-song" />
-        <!-- Rơi TỪNG CHỮ, mỗi chữ nảy riêng -->
-        <div class="fx-chu fx-thua fx-tieu-de" :aria-label="t('fx.thuaRoi')">
-          <span v-for="(c, i) in [...t('fx.thuaRoi')]" :key="i" class="fx-ky" :style="{ animationDelay: `${0.85 + i * 0.05}s` }">{{ c === ' ' ? '\u00a0' : c }}</span>
-        </div>
+      <div class="fx-cum">
+        <span class="fx-meo fx-meo-khoc">
+          <img v-if="anhMeo('khoc')" :src="anhMeo('khoc')!" alt="" /><template v-else>{{ MEO.khoc }}</template>
+          <i class="fx-giot fx-giot-a" /><i class="fx-giot fx-giot-b" />
+        </span>
+        <div class="fx-chu fx-thua fx-tieu-de">{{ t('fx.thuaRoi') }}</div>
         <p v-if="motMinh" class="fx-an-ui">{{ dongAnUi(capConLai) }}</p>
-        <!-- Đám mây xui xẻo trôi tới đổ mưa lên chữ (mưa vẽ trên canvas) -->
-        <span class="fx-may-mua" aria-hidden="true">🌧️</span>
       </div>
     </template>
 
-
+    <!-- ===== HOÀ — hai mèo cụng đầu trên chữ ===== -->
     <template v-else>
-      <div class="fx-nua fx-trai" />
-      <div class="fx-nua fx-phai" />
-      <div class="fx-khoi-hoa">
-        <div class="fx-chu fx-hoa">{{ t('fx.hoa') }}</div>
-        <p class="fx-bat-tay">🤝</p>
+      <div class="fx-toi" />
+      <div class="fx-cum">
+        <span class="fx-doi">
+          <span class="fx-meo fx-meo-t"><img v-if="anhMeo('hoa')" :src="anhMeo('hoa')!" alt="" /><template v-else>{{ MEO.hoa }}</template></span>
+          <span class="fx-meo fx-meo-p"><img v-if="anhMeo('hoa')" :src="anhMeo('hoa')!" alt="" /><template v-else>{{ MEO.hoa }}</template></span>
+        </span>
+        <div class="fx-chu fx-hoa fx-tieu-de">{{ t('fx.hoa') }}</div>
       </div>
     </template>
   </div>

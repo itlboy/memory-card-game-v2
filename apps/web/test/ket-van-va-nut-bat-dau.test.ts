@@ -63,10 +63,10 @@ describe('kết ván: thắng và thua phải khác nhau, và bảng hiện sớ
   it('tiếng thắng và tiếng thua là hai hàm khác nhau', () => {
     const online = doc('composables/useOnlineRoom.ts');
     expect(online).toMatch(/sfx\.victory\(\)/);
-    // Thua: ba biến thể nghe khác hẳn nhau nên KetCucFx phát theo biến thể, KHÔNG
+    // Thua: KetCucFx phát theo biến thể (kèn buồn + mèo khóc), KHÔNG
     // phát ở chỗ gọi (phát ở đó là chồng hai tiếng thua lên nhau)
     expect(online).not.toMatch(/sfx\.lose\(\)/);
     const fx = doc('components/KetCucFx.vue');
-    for (const t of ['sfx.lose()', 'sfx.tanTro()']) expect(fx).toContain(t);
+    for (const t of ['sfx.meoKhoc()', 'sfx.meoCuoi()', 'sfx.meoHoa()']) expect(fx).toContain(t);
   });
 });

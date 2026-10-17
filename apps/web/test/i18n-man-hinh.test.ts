@@ -146,8 +146,8 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
   await dung('màn danh hiệu', DanhHieuDialog, { daCo: new Set(['first-win', 'giay-cuoi']), tk: { wins: 3, botWins: 0, onlineWins: 0, totalScore: 600, chuoiNgay: 2, campaignMax: 3, stars3: 1 }, themeKhoa: new Set(['flags']) });
   for (const [ten, p] of [
     ['cảnh thắng', { loai: 'thang', bienThe: 'phao-giay' }], ['cảnh kỷ lục', { loai: 'thang', kyLuc: true, bienThe: 'vuong-mien' }],
-    ['cảnh thua vỡ', { loai: 'thua', bienThe: 'dap-vo' }], ['cảnh thua tro', { loai: 'thua', bienThe: 'tan-tro' }],
-    ['cảnh thua một mình', { loai: 'thua', bienThe: 'dap-vo', motMinh: true }], ['cảnh hoà', { loai: 'hoa' }]
+    ['cảnh thua', { loai: 'thua', bienThe: 'meo-khoc' }],
+    ['cảnh thua một mình', { loai: 'thua', bienThe: 'meo-khoc', motMinh: true }], ['cảnh hoà', { loai: 'hoa' }]
   ] as const) await dung(ten, KetCucFx, p as unknown as Record<string, unknown>);
   return man;
 }
