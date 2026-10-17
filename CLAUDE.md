@@ -454,9 +454,10 @@
   0); chấm mạng là huy hiệu ở góc avatar, không chiếm hàng; (3) `pnpm do:chip` (WebKit, phòng thật 2/3/4
   người × 3 khổ iPhone, tên 16 ký tự, điểm "9,9k"/"99k") — đỏ khi điểm bị cắt / chip lòi / tên người
   đang đi < 12px. Thêm gì vào chip là chạy nó. `test/diem-trong-chip.test.ts` canh phần tĩnh.
-- **ĐIỂM = ĐỒNG XU, SAO = ĐÁNH GIÁ** (17.10.2026): `DongXu.vue` (xu vàng trơn + vệt sáng, mẫu B chủ dự
-  án chọn) ở HUD, thanh trên, bảng kết quả. Ngôi sao chỉ còn cho sao Chiến dịch — hai thứ cùng hình sao
-  là người chơi đọc lẫn (người thử báo).
+- **ĐIỂM = ĐỒNG XU, SAO = ĐÁNH GIÁ** (17.10.2026): `DongXu.vue` (xu dày 3D, mẫu D chủ dự án chọn — mẫu B
+  trơn bị thay cùng ngày) ở HUD, thanh trên, bảng kết quả. Ngôi sao chỉ còn cho sao Chiến dịch — hai thứ cùng hình sao
+  là người chơi đọc lẫn (người thử báo). Viên tổng điểm ở thanh trên nền TRẮNG (panel) — nền vàng
+  nuốt mất xu vàng.
 
 ## LÀM VIỆC NHANH — đọc trước (rút từ 14.10.2026)
 

@@ -374,15 +374,16 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   white-space: nowrap;
 }
 /* Huy hiệu điểm không bao giờ bị flex nén hay ngắt dòng */
-/* Viên điểm vàng: đủ tương phản để đọc trên cả nền sáng và nền tối */
+/* Viên điểm nền PANEL (trắng ở skin sáng): nền vàng cũ nuốt mất đồng xu vàng —
+   chủ dự án chọn trắng 17.10.2026. Cặp token panel/fg nên skin tối tự lật. */
 .total {
   position: relative;
   flex-shrink: 0; white-space: nowrap;
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 10px 4px 8px; border-radius: var(--r-full);
-  color: #4a2f00;
-  background: linear-gradient(135deg, #ffd76a, #f0a500);
-  box-shadow: 0 4px 12px rgba(240, 165, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .5);
+  color: var(--fg);
+  background: var(--panel-solid);
+  box-shadow: var(--elev-1);
 }
 .total b {
   font-family: var(--font-display); font-weight: 800;
