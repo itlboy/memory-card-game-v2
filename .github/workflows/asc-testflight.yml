@@ -1,0 +1,29 @@
+# TESTFLIGHT CÔNG KHAI — nhóm "Public Testers" + link mời, gắn build mới nhất, nộp Beta App Review.
+# Chạy tay: gh workflow run asc-testflight.yml --ref main  → đọc log bước "TestFlight".
+# Lần đầu là nộp duyệt; Apple duyệt xong chạy lại để bật link công khai.
+name: TestFlight public
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  testflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: TestFlight
+        env:
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          KID: ${{ secrets.ASC_KEY_ID }}
+          ISS: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_REVIEW_PHONE: ${{ secrets.ASC_REVIEW_PHONE }}
+        run: |
+          echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey_$KID.p8"
+          node tools/asc-testflight.mjs "$RUNNER_TEMP/AuthKey_$KID.p8" "$ISS"
