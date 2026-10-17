@@ -538,6 +538,11 @@
   · `main.ts` LUÔN gọi `kiemOta()`; trong đó `notifyAppReady()` đứng TRƯỚC mọi lời gọi mạng;
     không chặn khởi động; mọi lỗi nuốt trong `catch` (nhưng ghi vào `trangThaiOta`).
     Lỗi tạm thì tự thử lại sau 1 phút (tối đa 3 lần) + kiểm lại khi app quay lại từ nền.
+    ÁP KHI RẢNH Ở TRANG CHỦ (17.10.2026): gói tải xong quá 8 giây đầu thì canh mỗi giây — trang
+    chủ + app đang hiện + không hộp thoại/menu (`[role=dialog][aria-modal]`, `[role=menu]`) + không
+    chạm 2 giây → đếm 3·2·1 rồi áp; bắt cả lúc VỀ trang chủ lẫn lúc QUAY LẠI từ nền. Mỗi lần mở app
+    áp tối đa MỘT lần; `next` + `kill` (tắt hẳn rồi mở) vẫn là dự phòng. Thêm hộp thoại mới mà
+    không có `role="dialog" aria-modal="true"` là nó có thể bị cắt ngang bởi cú tải lại.
   · Manifest chỉ được THÊM trường: `id`, `url` (zip), `sha256`, `minNative` là thứ bản app
     cũ ngoài kia đọc — đổi tên/bỏ là chúng không bao giờ cập nhật nữa. Zip PHẢI còn.
   · Luật đuôi `/ota/f/<sha256><đuôi>` (`DUOI_GIU`) PHẢI khớp giữa `tools/dong-goi-ota.mjs` và
