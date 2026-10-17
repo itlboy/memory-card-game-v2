@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
-import { ChevronLeft, Hourglass, Layers, Pause, RotateCcw, Star, Timer } from 'lucide-vue-next';
+import { ChevronLeft, Hourglass, Layers, Pause, RotateCcw, Timer } from 'lucide-vue-next';
+import DongXu from './DongXu.vue';
 import OptionIcon from './OptionIcon.vue';
 import { computed } from 'vue';
 import { clock, num } from '@/lib/format';
@@ -72,7 +73,7 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
         <component :is="timeLeft === null ? Timer : Hourglass" :size="16" aria-hidden="true" /><b>{{ timeText }}</b>
       </span>
       <span v-if="!multiplayer" class="vien diem" data-score-target :aria-label="t('hud.diem')">
-        <Star :size="16" aria-hidden="true" /><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
+        <DongXu :size="18" /><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
         <!-- COMBO là huy hiệu ở góc viên điểm, KHÔNG phải một viên trong hàng: viên
              riêng bật/tắt mỗi chuỗi làm cả hàng xô lệch và ép các viên kia tràn chữ
              trên iPhone (chủ dự án báo 14.10.2026, đo được ở cả ba cỡ máy). -->
