@@ -358,6 +358,10 @@ button {
 }
 .bcn-so.nay { animation: bcn-nay .35s cubic-bezier(.3, 1.8, .5, 1); }
 .bcn-sao { font-size: 1.4em; animation: bcn-xoay 1.5s ease-in-out infinite; }
+/* Có mốc (trang chủ): thẻ nằm giữa quạt lá và ô Chiến dịch — `translate` riêng, không đụng
+   `transform` mà animation nảy đang dùng */
+.bao-cap-nhat.co-moc { display: block; }
+.bao-cap-nhat.co-moc .bcn-the { position: absolute; left: 50%; top: var(--bcn-y); translate: -50% -50%; max-width: calc(100% - 32px); }
 @keyframes bcn-hien { from { opacity: 0; } }
 @keyframes bcn-nay { from { opacity: 0; transform: scale(.85); } }
 @keyframes bcn-xoay { 50% { transform: rotate(18deg) scale(1.15); } }

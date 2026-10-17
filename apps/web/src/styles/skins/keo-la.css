@@ -7,8 +7,8 @@
  *  · KHÔNG vệt láng chéo trên lá trong ván: lặp cả bàn là sọc chéo, "đau mắt". Chỉ quạt lá (3 lá) có.
  *  · MÉP ĐẶC (blur 0, rẻ) nằm trên TỪNG MẶT để quay theo lá khi lật ("border đứng yên trông giả");
  *    bóng NHOÈ ở .card như luật CardTile (nhoè trên mặt quay = vẽ lại mỗi khung). Bàn ≥56 thẻ bỏ nhoè.
- *  · Lá ngửa: mặt kem + chỉ vàng; viền xanh vừa ở Sáng, viền sáng + mặt navy ở Tối (chủ dự án chốt
- *    "chế độ tối giữ nguyên").
+ *  · Lá ngửa: mặt kem + chỉ vàng; viền xanh vừa ở Sáng. Ở Tối: KEM DỊU (ngả xám, đỡ chói giữa nền đêm)
+ *    + viền xanh khói — mặt navy cũ "na ná mặt lưng" (chủ dự án chọn mẫu D, 17.10.2026).
  */
 :root[data-skin='keo'] {
   --la-lung: radial-gradient(90% 70% at 50% 40%, #2f4fa6, #1a3172);
@@ -16,7 +16,7 @@
   --mep-truoc: 0 1.5px 0 #5577c4, 0 2.5px 0 #4563ad;
 }
 :root[data-skin='keo'][data-theme='dark'] {
-  --card-face-up: #34467f;
+  --card-face-up: #e6dcbd;   /* KEM DỊU (chủ dự án chọn mẫu D https://claude.ai/artifact/3RQgriUHnuwJ757g1kc2uZ) */
   --mep-sau: 0 1.5px 0 #c3cbe0, 0 2.5px 0 #7f8bb0;
   --mep-truoc: 0 1.5px 0 #c3cbe0, 0 2.5px 0 #7f8bb0;
 }
@@ -41,8 +41,8 @@
   box-shadow: inset 0 0 0 max(1px, 1cqw) rgba(232, 178, 40, .7), 0 0 0 1px rgba(20, 30, 70, .16), var(--mep-truoc) !important;
 }
 :root[data-skin='keo'][data-theme='dark'] .card .front {
-  border-color: #d9deeb;
-  background: radial-gradient(110% 80% at 50% 35%, #4b5e9f, #34467f 85%);
+  border-color: #9aa6d6;
+  background: radial-gradient(110% 80% at 50% 35%, #f6efd9, #e6dcbd 85%);
   box-shadow: inset 0 0 0 max(1px, 1cqw) rgba(255, 210, 80, .6), 0 0 0 1px rgba(0, 0, 0, .35), var(--mep-truoc) !important;
 }
 /* lá đã ghép: GIỮ RÕ NÉT, viền trong xanh lá thay chỉ vàng (CLAUDE.md) */
@@ -72,8 +72,10 @@
 }
 :root[data-skin='keo'][data-theme='dark'] .la-quat .lac { border-color: #d9deeb; }
 :root[data-skin='keo'][data-theme='dark'] .la-quat.giua .lac {
-  border-color: #d9deeb;
-  background: radial-gradient(110% 80% at 50% 35%, #4b5e9f, #34467f 85%);
+  border-color: #9aa6d6;
+  background: radial-gradient(110% 80% at 50% 35%, #f6efd9, #e6dcbd 85%);
   box-shadow: inset 0 0 0 max(1.5px, .6cqh) rgba(255, 210, 80, .6),
     0 0 0 1px rgba(0, 0, 0, .3), 0 2px 0 #9aa6c6, 0 16px 28px rgba(0, 0, 0, .45);
 }
+/* Theme chữ/số trên mặt KEM ở Kẹo tối: chữ mực (var(--fg) của Tối là chữ sáng — trắng trên kem là mất) */
+:root[data-skin='keo'][data-theme='dark'] .card .front.chu { color: #1d2a5a; }
