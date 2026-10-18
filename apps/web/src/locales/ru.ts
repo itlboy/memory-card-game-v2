@@ -109,6 +109,7 @@ const ru: TuDien = {
   'menu.buoc.theme': 'Выбери темы карт',
   'menu.buoc.options': 'Параметры игры',
   'menu.chonSoThe': 'Выбери размер поля',
+  'menu.doiNen': 'Светлая / тёмная тема',
   'menu.chuoiNgayTitle': (p) => `Играешь ${p.n} ${pl(p.n, 'день', 'дня', 'дней')} подряд`,
   'menu.chuoiNgay': (p) => `${p.n} ${pl(p.n, 'день', 'дня', 'дней')}`,
   'menu.man': 'Уровень {n}',

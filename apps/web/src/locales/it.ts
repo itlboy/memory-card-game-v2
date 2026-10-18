@@ -99,6 +99,7 @@ const it: TuDien = {
   'menu.buoc.theme': 'Scegli i temi delle carte',
   'menu.buoc.options': 'Opzioni di gioco',
   'menu.chonSoThe': 'Scegli il tabellone',
+  'menu.doiNen': 'Cambia modalità chiara / scura',
   'menu.chuoiNgayTitle': 'Hai giocato {n} giorni di fila',
   'menu.chuoiNgay': '{n} giorni',
   'menu.man': 'Livello {n}',

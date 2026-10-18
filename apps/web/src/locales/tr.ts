@@ -98,6 +98,7 @@ const tr: TuDien = {
   'menu.buoc.theme': 'Kart temalarını seç',
   'menu.buoc.options': 'Oyun seçenekleri',
   'menu.chonSoThe': 'Tahta boyutunu seç',
+  'menu.doiNen': 'Açık / koyu mod değiştir',
   'menu.chuoiNgayTitle': '{n} gündür aralıksız oynuyorsun',
   'menu.chuoiNgay': '{n} gün',
   'menu.man': 'Seviye {n}',

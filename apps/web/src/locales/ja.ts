@@ -95,6 +95,7 @@ const ja: TuDien = {
   'menu.buoc.theme': 'カードのテーマを選択',
   'menu.buoc.options': 'ルール設定',
   'menu.chonSoThe': 'カードの枚数を選択',
+  'menu.doiNen': 'ライト / ダーク切り替え',
   'menu.chuoiNgayTitle': '{n}日連続プレイ中',
   'menu.chuoiNgay': '{n}日',
   'menu.man': 'ステージ{n}',

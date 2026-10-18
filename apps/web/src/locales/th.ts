@@ -96,6 +96,7 @@ const th: TuDien = {
   'menu.buoc.theme': 'เลือกธีมไพ่',
   'menu.buoc.options': 'ตัวเลือกเกม',
   'menu.chonSoThe': 'เลือกขนาดกระดาน',
+  'menu.doiNen': 'สลับโหมดสว่าง / มืด',
   'menu.chuoiNgayTitle': 'เล่นติดต่อกัน {n} วัน',
   'menu.chuoiNgay': '{n} วัน',
   'menu.man': 'ด่าน {n}',

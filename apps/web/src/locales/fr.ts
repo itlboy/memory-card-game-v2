@@ -101,6 +101,7 @@ const fr: TuDien = {
   'menu.buoc.theme': 'Choisis les thèmes',
   'menu.buoc.options': 'Options de jeu',
   'menu.chonSoThe': 'Choisis ton plateau',
+  'menu.doiNen': 'Basculer mode clair / sombre',
   'menu.chuoiNgayTitle': '{n} jours de jeu d’affilée',
   'menu.chuoiNgay': '{n} jours',
   'menu.man': 'Niveau {n}',

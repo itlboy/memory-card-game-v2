@@ -97,6 +97,7 @@ const en: TuDien = {
   'menu.buoc.theme': 'Choose Card Themes',
   'menu.buoc.options': 'Game Options',
   'menu.chonSoThe': 'Choose Board Size',
+  'menu.doiNen': 'Switch light / dark mode',
   'menu.chuoiNgayTitle': 'Played {n} days in a row',
   'menu.chuoiNgay': '{n} days',
   'menu.man': 'Level {n}',

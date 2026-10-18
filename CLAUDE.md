@@ -362,6 +362,10 @@
   ở ô định danh to, không ở nút thấp (đè chữ). Quạt lá trang chủ là LÁ BÀI THẬT (mỏng, viền giấy trắng
   mảnh, khung chỉ vàng, bóng mềm) — đế dày kiểu nút làm lá "không thật". Icon ô trang chủ: Noto 3D 🗺️🚀🌍
   (danh sách trong `tools/tai-noto3d.mjs`, thiếu là công cụ XOÁ file) + robot TỰ VẼ `public/img/robot.svg`.
+- **TÍNH NĂNG ẨN: CHẠM MẶT TRỜI / MẶT TRĂNG = ĐỔI SÁNG ↔ TỐI** (chủ dự án 18.10.2026): nút VÔ HÌNH
+  `.nut-troi` (MenuScreen, Teleport ra #app) trùng tâm `87%` / `--tam-troi` của nền Kẹo; CHỈ ở trang chủ
+  (bước khác panel phủ lên, nút sẽ cướp chạm). Đổi chỗ mặt trời trong keo.css là đổi theo ở đây.
+  `--tam-troi` có cộng `env(safe-area-inset-top)` — trong app khung trải lên dải trạng thái.
 - **CÔNG TẮC RUNG TRỞ LẠI** (17.10.2026, bỏ 14.10.2026): `prefs.rung`, ẩn khi máy không rung được.
 - Lá đã ghép GIỮ RÕ NÉT (viền xanh trong) — phủ mờ/opacity đã bị chê hai lần.
 - Trang chủ (bước `players`): quạt lá có trần 420px + cụm canh giữa dọc (máy tính

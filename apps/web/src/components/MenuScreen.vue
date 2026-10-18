@@ -25,6 +25,9 @@ import MatBot from './MatBot.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import { sfx } from '@/lib/audio';
+import { skin } from '@/lib/skin';
+/** #app có thật mới gắn nút mặt trời (test dựng component trần, không có #app → Teleport hỏng). */
+const coKhungApp = typeof document !== 'undefined' && !!document.getElementById('app');
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
@@ -70,6 +73,8 @@ const emit = defineEmits<{
   'update:options': [BoardOptions];
   online: [];
   'chinh-phuc': [string];
+  /** Chạm mặt trời/trăng ở trang chủ — tính năng ẨN đổi sáng ↔ tối (18.10.2026). */
+  'doi-nen': [];
 }>();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
@@ -404,6 +409,18 @@ const ICO3D = {
 </script>
 
 <template>
+  <!--
+    TÍNH NĂNG ẨN (chủ dự án 18.10.2026): chạm MẶT TRỜI / MẶT TRĂNG trên nền Kẹo là đổi sáng ↔ tối.
+    Mặt trời/trăng chỉ là ảnh nền (`--canh` của #app) nên đặt một nút VÔ HÌNH trùng tâm — cùng mốc
+    `87%` / `--tam-troi` với keo.css (tự đúng cả trong app có vùng an toàn). Chỉ ở TRANG CHỦ: bước
+    khác panel phủ lên chỗ đó, nút nằm trên sẽ cướp cú chạm. Teleport ra #app để toạ độ khớp nền.
+  -->
+  <Teleport to="#app" :disabled="!coKhungApp">
+    <button
+      v-if="coKhungApp && buocHien === 'players' && skin === 'keo'" data-phang class="nut-troi" type="button"
+      :aria-label="t('menu.doiNen')" :title="t('menu.doiNen')" @click="emit('doi-nen')"
+    />
+  </Teleport>
   <section class="panel" :class="{ 'trang-chu': buocHien === 'players' }">
     <header v-if="buocHien !== 'players'" class="wizard-head">
       <button v-if="hienIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
@@ -593,6 +610,14 @@ const ICO3D = {
 </template>
 
 <style scoped>
+/* Nút vô hình trùng mặt trời/trăng (tính năng ẩn đổi sáng/tối) — dưới thanh trên (z 15) */
+.nut-troi {
+  position: absolute; z-index: 14; left: calc(87% - 32px); top: calc(var(--tam-troi) - 32px);
+  width: 64px; height: 64px; padding: 0; border: 0; border-radius: 50%; background: none;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.nut-troi:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+
 /* KHÔNG SCROLL: panel chiếm trọn viewport (khung một bước nằm ở wizard.css) */
 section.panel { display: flex; flex-direction: column; min-height: 0; }
 .hint-multi { margin: 0 0 10px; color: var(--muted); font-size: var(--text-sm); }

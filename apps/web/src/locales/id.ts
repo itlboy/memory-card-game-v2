@@ -98,6 +98,7 @@ const id: TuDien = {
   'menu.buoc.theme': 'Pilih tema kartu',
   'menu.buoc.options': 'Opsi permainan',
   'menu.chonSoThe': 'Pilih ukuran papan',
+  'menu.doiNen': 'Ganti mode terang / gelap',
   'menu.chuoiNgayTitle': 'Main {n} hari berturut-turut',
   'menu.chuoiNgay': '{n} hari',
   'menu.man': 'Level {n}',

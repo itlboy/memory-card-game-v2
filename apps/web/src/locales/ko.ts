@@ -95,6 +95,7 @@ const ko: TuDien = {
   'menu.buoc.theme': '카드 테마 선택',
   'menu.buoc.options': '게임 옵션',
   'menu.chonSoThe': '보드 크기 선택',
+  'menu.doiNen': '라이트 / 다크 모드 전환',
   'menu.chuoiNgayTitle': '{n}일 연속 플레이',
   'menu.chuoiNgay': '{n}일',
   'menu.man': '레벨 {n}',

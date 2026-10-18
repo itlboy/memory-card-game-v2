@@ -96,6 +96,7 @@ const es: TuDien = {
   'menu.buoc.theme': 'Elige los temas de las cartas',
   'menu.buoc.options': 'Opciones de juego',
   'menu.chonSoThe': 'Elige el tamaño del tablero',
+  'menu.doiNen': 'Cambiar modo claro / oscuro',
   'menu.chuoiNgayTitle': 'Jugaste {n} días seguidos',
   'menu.chuoiNgay': '{n} días',
   'menu.man': 'Nivel {n}',

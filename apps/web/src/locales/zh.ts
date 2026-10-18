@@ -95,6 +95,7 @@ const zh: TuDien = {
   'menu.buoc.theme': '选择卡牌主题',
   'menu.buoc.options': '游戏选项',
   'menu.chonSoThe': '选择牌数',
+  'menu.doiNen': '切换浅色 / 深色',
   'menu.chuoiNgayTitle': '已连续游玩 {n} 天',
   'menu.chuoiNgay': '{n} 天',
   'menu.man': '第 {n} 关',

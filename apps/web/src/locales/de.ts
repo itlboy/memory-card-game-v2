@@ -98,6 +98,7 @@ const de: TuDien = {
   'menu.buoc.theme': 'Kartenthemen wählen',
   'menu.buoc.options': 'Spieloptionen',
   'menu.chonSoThe': 'Feldgröße wählen',
+  'menu.doiNen': 'Hell / Dunkel wechseln',
   'menu.chuoiNgayTitle': '{n} Tage in Folge gespielt',
   'menu.chuoiNgay': '{n} Tage',
   'menu.man': 'Level {n}',

@@ -102,6 +102,7 @@ const vi = {
   'menu.buoc.theme': 'Chọn theme thẻ',
   'menu.buoc.options': 'Bàn chơi',
   'menu.chonSoThe': 'Chọn số thẻ',
+  'menu.doiNen': 'Đổi giao diện sáng / tối',
   'menu.chuoiNgayTitle': 'Chơi {n} ngày liền',
   'menu.chuoiNgay': '{n} ngày',
   'menu.man': 'Màn {n}',

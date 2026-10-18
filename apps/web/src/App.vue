@@ -829,6 +829,7 @@ const hasNext = computed(() => {
        chồng nhau một nhịp — đừng dựng lại. -->
   <main>
     <MenuScreen
+      @doi-nen="nen = dark ? 'sang' : 'toi'"
       v-if="screen === 'menu'"
       :key="menuKey"
       :themes="themes"
@@ -876,6 +877,7 @@ const hasNext = computed(() => {
          đường nào thoát ngoài tải lại. Watcher bên dưới tự đưa về menu; khối này
          là lưới an toàn cho một frame giữa hai trạng thái. -->
     <MenuScreen
+      @doi-nen="nen = dark ? 'sang' : 'toi'"
       v-else
       :key="`fallback-${menuKey}`"
       :themes="themes"
