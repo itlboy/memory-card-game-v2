@@ -42,7 +42,7 @@
   thua CHỈ CÒN SƯ TỬ KHÓC (đập vỡ màn + tan thành tro BỎ 18.10.2026; game over TV đen bỏ 14.10.2026).
   **THÚ (18.10.2026, mockup duyệt https://claude.ai/artifact/GB9pZQcPh43548oRPi83up):** mọi cảnh
   có một con thú ĐỨNG TRÊN chữ, cả cụm `.fx-cum` canh GIỮA màn (chủ dự án: "chữ phải hiện giữa màn
-  hình") — thắng GẤU TRÚC mắt mở nhìn thẳng, hé miệng cười, rung người + NỐT NHẠC ♪♫ bay ra (KHÔNG
+  hình") — thắng GẤU TRÚC mắt mở nhìn thẳng, cười TO miệng chữ D kiểu mèo 😸 (không răng nanh), rung người + NỐT NHẠC ♪♫ bay ra (KHÔNG
   chữ "ha": mỗi nước viết tiếng cười một kiểu — jaja, 哈哈, 555); thua SƯ TỬ khóc to "oa oa" (mắt
   nhắm "> <", nước mắt phun); hoà HAI CHÚ CHUỘT cụng đầu. Thú là SVG TỰ VẼ `public/img/{gau-truc-cuoi,
   su-tu-khoc,chuot}.svg` (Noto 3D chỉ có mặt trung tính) — gấu trúc từng bị chê "ác" (quầng mắt xếch,

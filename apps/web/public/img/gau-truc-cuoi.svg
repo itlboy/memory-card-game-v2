@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <!-- Gấu trúc CƯỜI (cảnh thắng) — tự vẽ 18.10.2026: quầng mắt nghiêng nhẹ, mắt mở nhìn thẳng, miệng hé cười -->
+  <!-- Gấu trúc CƯỜI (cảnh thắng) — tự vẽ 18.10.2026: quầng mắt nghiêng nhẹ, mắt mở nhìn thẳng, miệng cười to kiểu mèo -->
   <defs>
     <radialGradient id="gt-dau" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f3f5fa"/><stop offset=".85" stop-color="#d4d9e6"/><stop offset="1" stop-color="#aab2c5"/></radialGradient>
     <radialGradient id="gt-den" cx=".35" cy=".28" r=".9"><stop offset="0" stop-color="#5d6476"/><stop offset=".6" stop-color="#262a35"/><stop offset="1" stop-color="#101219"/></radialGradient>
@@ -28,8 +28,9 @@
   <!-- mũi bóng -->
   <path d="M57 79 Q64 74 71 79 Q69 85 64 86 Q59 85 57 79Z" fill="url(#gt-den)"/>
   <ellipse cx="62" cy="78.5" rx="3" ry="1.3" fill="#fff" opacity=".7"/>
-  <!-- cười HÉ MIỆNG một chút (18.10.2026: há to trông "ác", khép hẳn thì thiếu vui) -->
-  <path d="M64 86 V89" stroke="#262a35" stroke-width="2.4" stroke-linecap="round"/>
-  <path d="M59.5 89.5 Q64 88.6 68.5 89.5 Q67.8 94.2 64 94.2 Q60.2 94.2 59.5 89.5Z" fill="url(#gt-mieng)" stroke="#262a35" stroke-width="2.2" stroke-linejoin="round"/>
-  <path d="M61.3 92.8 Q64 91.4 66.7 92.8 Q65.6 93.9 64 93.9 Q62.4 93.9 61.3 92.8Z" fill="#ff9db0"/>
+  <!-- cười TO kiểu mèo 😸 (chủ dự án 18.10.2026): miệng chữ D rộng, trong đỏ sẫm dịu, lưỡi hồng; KHÔNG răng nanh -->
+  <path d="M64 85.5 V88" stroke="#262a35" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M50 88 Q64 91 78 88 Q77 106 64 106 Q51 106 50 88Z" fill="url(#gt-mieng)" stroke="#262a35" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M55 101 Q64 94.5 73 101 Q69.5 105.5 64 105.5 Q58.5 105.5 55 101Z" fill="#ff9db0"/>
+  <path d="M53 89.6 Q64 92.2 75 89.6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".8"/>
 </svg>

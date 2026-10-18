@@ -32,7 +32,7 @@ const props = defineProps<{
 const canh = computed(() => chonCanh(props.loai, { kyLuc: props.kyLuc }));
 /**
  * THÚ CỦA CẢNH (18.10.2026, mockup duyệt https://claude.ai/artifact/GB9pZQcPh43548oRPi83up):
- * thắng GẤU TRÚC cười (nốt nhạc ♪♫ bay ra — không chữ "ha", mỗi nước viết tiếng cười một
+ * thắng GẤU TRÚC cười to kiểu mèo 😸, mắt mở (nốt nhạc ♪♫ bay ra — không chữ "ha", mỗi nước viết tiếng cười một
  * kiểu), thua SƯ TỬ khóc to "oa oa", hoà HAI CHÚ CHUỘT cụng đầu — luôn ĐỨNG TRÊN chữ, cả cụm
  * canh GIỮA màn. SVG TỰ VẼ (`public/img/`, cùng chất với robot trang chủ): bộ Noto 3D chỉ có
  * mặt trung tính cho ba con này, không vẽ được cười/khóc.
