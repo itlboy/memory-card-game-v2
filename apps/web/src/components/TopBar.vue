@@ -486,6 +486,9 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   cursor: pointer; white-space: nowrap;
 }
 .menu { min-width: 236px; }
+/* Nhãn dài (tiếng Nga "Оформление · Светлый · Тёмный") làm menu nở quá mép trái màn SE (lố 5px, do:ngon-ngu
+   18.10.2026): trần bề ngang = màn trừ lề hai bên. */
+.menu { max-width: calc(100vw - 24px); }
 /* Khối debug làm menu dài ra: cuộn TRONG menu, không bao giờ lòi khỏi màn */
 .menu { max-height: calc(var(--app-h, 100dvh) - 90px); overflow-y: auto; overscroll-behavior: contain; }
 .nhom, .cham-debug { touch-action: manipulation; user-select: none; -webkit-user-select: none; }
@@ -544,6 +547,12 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   color: var(--muted); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .nac button::after { content: ''; position: absolute; inset: -7px 0; }
+/* Máy hẹp (Android 360px) + nhãn dài (tiếng Nga): nút chọn co đệm, không để khung menu cắt mất nút cuối */
+@media (max-width: 380px) {
+  .item.am { gap: 8px; }
+  .nac { flex: 0 1 auto; min-width: 0; }
+  .nac button { padding: 0 5px; min-width: 30px; white-space: nowrap; }
+}
 .nac button[aria-checked='true'] { background: var(--nhan-nen); color: var(--nhan-chu); }
 .nac button.bai { font-size: 15px; }
 .item.nhac.hai-tang { flex-wrap: wrap; row-gap: 6px; padding-block: 8px; }

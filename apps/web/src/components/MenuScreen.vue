@@ -399,6 +399,9 @@ let themeWarnTimer: ReturnType<typeof setTimeout> | undefined;
    themes nạp bất đồng bộ nên chờ có dữ liệu. */
 watch(() => props.themes.length, (n) => { if (n) taiTruocTheme(props.themes); }, { immediate: true });
 
+/** Nhãn có TỪ dài (≥10 ký tự, vd. tiếng Nga "компьютера") — ô hẹp thì chữ nhỏ lại thay vì bẻ giữa từ. */
+const tuDai = (s: string): boolean => s.split(/[\s-]+/).some((w) => [...w].length >= 10);
+
 const ICO3D = {
   // ⭐ thay 🗺️ (chủ dự án 18.10.2026): bản đồ xanh lá + xanh dương chìm vào ô xanh, lại rối chi tiết;
   // ngôi sao một khối, vàng nổi trên xanh, và khớp sao đánh giá — sao giờ chỉ dành cho Chiến dịch.
@@ -452,13 +455,13 @@ const ICO3D = {
         <div class="ba-o">
           <!-- Chơi nhanh xanh trời, Online vàng (chủ dự án đổi chỗ 18.10.2026; ở Kẹo g-cyan = trời, g-blue = vàng) -->
           <button class="o-vuong neon g-cyan" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
-            <Users class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.choiNhanh" alt="" aria-hidden="true"><strong>{{ t('menu.choiNhanh') }}</strong>
+            <Users class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.choiNhanh" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.choiNhanh')) }">{{ t('menu.choiNhanh') }}</strong>
           </button>
           <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
-            <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong>{{ t('menu.dauMay') }}</strong>
+            <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.dauMay')) }">{{ t('menu.dauMay') }}</strong>
           </button>
           <button class="o-vuong neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
-            <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong>{{ t('menu.online') }}</strong>
+            <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
           </button>
         </div>
 
