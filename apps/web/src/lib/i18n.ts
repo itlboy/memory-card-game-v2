@@ -1,19 +1,5 @@
 import { ref, watch } from 'vue';
 import vi from '@/locales/vi';
-import en from '@/locales/en';
-import es from '@/locales/es';
-import pt from '@/locales/pt';
-import fr from '@/locales/fr';
-import de from '@/locales/de';
-import ja from '@/locales/ja';
-import ko from '@/locales/ko';
-import zh from '@/locales/zh';
-import ru from '@/locales/ru';
-import id from '@/locales/id';
-import th from '@/locales/th';
-import it from '@/locales/it';
-import tr from '@/locales/tr';
-import zhTW from '@/locales/zh-TW';
 import { laApp } from './native';
 import { ghiUrl } from './appUrl';
 
@@ -71,9 +57,28 @@ export type KhoaDich = keyof typeof vi;
 /** Kiểu của MỌI từ điển: đủ đúng các khoá của bản tiếng Việt. */
 export type TuDien = { [K in KhoaDich]: GiaTri };
 
-const BO: Record<NgonNgu, TuDien> = { vi, en, es, pt, fr, de, it, tr, ja, ko, zh, 'zh-TW': zhTW, ru, id, th };
-/** Mọi từ điển (trừ bản gốc) — cho test đối chiếu. */
-export const TU_DIEN = BO;
+/*
+ * TỪ ĐIỂN TẢI THEO NHU CẦU (18.10.2026, tốc độ trang): 15 từ điển ~530KB nguồn = phần lớn gói JS
+ * chính (Lighthouse: chữ đầu tiên hiện sau 5 giây trên 4G). Tiếng Việt (bản GỐC, cũng là dự phòng
+ * khi thiếu khoá) luôn có sẵn; ngôn ngữ khác là một chunk riêng, `main.ts` chờ nạp xong ngôn ngữ đầu
+ * rồi mới mount (không loé tiếng Việt). Đổi ngôn ngữ giữa chừng: chữ theo bản mới ngay khi chunk về
+ * (`phienBan` báo Vue vẽ lại). Trong app/PWA chunk nằm sẵn trên máy nên vẫn chạy không mạng.
+ * Test nạp đủ cả bộ trước (test/setup-tu-dien.ts) — `ngonNgu.value = 'en'` có chữ ngay.
+ */
+const NAP = import.meta.glob<{ default: TuDien }>(['../locales/*.ts', '!../locales/vi.ts']);
+const BO: Partial<Record<NgonNgu, TuDien>> = { vi };
+const phienBan = ref(0);
+/** Mọi từ điển ĐÃ NẠP — cho test đối chiếu (setup nạp đủ). */
+export const TU_DIEN = BO as Record<NgonNgu, TuDien>;
+/** Đưa sẵn một từ điển vào (test). */
+export function ganTuDien(l: NgonNgu, tu: TuDien): void { BO[l] = tu; phienBan.value++; }
+/** Nạp từ điển của một ngôn ngữ (chunk riêng). Lỗi mạng → vẫn chạy bằng tiếng Việt. */
+export async function napTuDien(l: NgonNgu): Promise<void> {
+  if (BO[l]) return;
+  const nap = NAP[`../locales/${l}.ts`];
+  if (!nap) return;
+  try { ganTuDien(l, (await nap()).default); } catch { /* mất mạng giữa chừng: chữ tiếng Việt */ }
+}
 const KHOA_LUU = 'mm.lang';
 /** Ngôn ngữ MÁY (của app) lúc mở lần trước — để biết người dùng có vừa đổi trong Cài đặt máy không. */
 const KHOA_MAY = 'mm.langMay';
@@ -150,13 +155,15 @@ watch(ngonNgu, (l, cu) => {
     document.documentElement.lang = l;
     // Tiêu đề tab theo ngôn ngữ. Lần đầu ở ĐÚNG trang chơi của ngôn ngữ thì GIỮ tiêu đề trong HTML:
     // đó là tiêu đề SEO dựng sẵn (game.title), và Google đọc tiêu đề SAU khi JS chạy.
-    if (doiTieuDe || cu !== undefined || laApp) document.title = t('chung.tieuDeTrang');
+    if (doiTieuDe || cu !== undefined || laApp) void napTuDien(l).then(() => { if (ngonNgu.value === l) document.title = t('chung.tieuDeTrang'); });
   }
+  void napTuDien(l);
 }, { immediate: true });
 
 /** Tra một khoá ở ngôn ngữ đang chọn, điền `{tham_so}`. Thiếu bản dịch thì về tiếng Việt. */
 export function t(khoa: KhoaDich, p: ThamSo = {}): string {
-  const v = BO[ngonNgu.value][khoa] ?? vi[khoa];
+  void phienBan.value;   // phụ thuộc: từ điển nạp xong thì Vue vẽ lại
+  const v = BO[ngonNgu.value]?.[khoa] ?? vi[khoa];
   if (typeof v === 'function') return v(p);
   return v.replace(/\{(\w+)\}/g, (_, k: string) => String(p[k] ?? ''));
 }

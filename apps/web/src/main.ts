@@ -19,6 +19,7 @@ import './styles/skins/neon.css';
 import './styles/skins/sao.css';
 import './styles/skins/bong.css';
 import { ganSkin } from './lib/skin';
+import { napTuDien, ngonNgu } from './lib/i18n';
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
@@ -38,7 +39,8 @@ if (!laApp) void registerSW({ immediate: true });
 
 // Skin gắn TRƯỚC khi mount: không loé giao diện mặc định một khung hình
 ganSkin();
-createApp(App).mount('#app');
+// Chờ từ điển của ngôn ngữ đầu (chunk riêng, lib/i18n.ts) — mount trước là loé tiếng Việt một nhịp
+void napTuDien(ngonNgu.value).finally(() => createApp(App).mount('#app'));
 
 // MÀN CHỜ (app): giữ tới khi game vẽ xong khung đầu rồi mờ dần — cả iOS lẫn Android.
 // Không có bước này thì iOS bỏ màn chờ ngay lúc WebView mở, trước khi game kịp vẽ,

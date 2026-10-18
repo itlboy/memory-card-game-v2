@@ -41,7 +41,7 @@ Làm theo thứ tự; mỗi bước có thứ canh nó.
 | # | Chỗ | Làm gì | Canh bởi |
 |---|---|---|---|
 | 1 | `apps/web/src/locales/<mã>.ts` | Dịch đủ khoá của `en.ts` (kiểu `TuDien`), giữ nguyên `{n}`/`{ten}`…, giá trị hàm giữ là hàm. Theo `docs/i18n-style.md`. | typecheck (thiếu khoá = đỏ), `i18n.test.ts` |
-| 2 | `apps/web/src/lib/i18n.ts` | `import`, thêm vào `NGON_NGU` (`id`, `ten` bằng chính ngôn ngữ đó, `bcp`) và `BO`. Mã đặc biệt (như zh-TW) thì thêm vào `theoMay`. | typecheck |
+| 2 | `apps/web/src/lib/i18n.ts` | thêm vào `NGON_NGU` (`id`, `ten` bằng chính ngôn ngữ đó, `bcp`). Từ điển tự được nạp theo nhu cầu từ `locales/<id>.ts` (`import.meta.glob`, 18.10.2026) — KHÔNG import tay. Thêm `game.title`/`game.desc` ở `site-i18n/<id>.json` (trang chơi `/<id>/`, docs/seo.md). Mã đặc biệt (như zh-TW) thì thêm vào `theoMay`. | typecheck |
 | 3 | `apps/web/src/lib/ngon-ngu-app.ts` | `MA_IOS[<mã>]` = tên thư mục lproj (cũng là thẻ Android). | typecheck (Record đủ khoá) |
 | 4 | `apps/web/ios/App/App/<lproj>.lproj/InfoPlist.strings` | Tên app trên màn hình chính (`CFBundleDisplayName`). | build iOS (CI) |
 | 5 | `apps/web/ios/App/App.xcodeproj/project.pbxproj` | 3 chỗ: `PBXFileReference`, nhóm `InfoPlist.strings`, `knownRegions`. Dùng ID mới chưa có trong file. | build iOS (CI) |

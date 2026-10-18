@@ -19,6 +19,7 @@ export default defineConfig({
   },
   test: {
     globals: true, environment: 'happy-dom', include: ['test/**/*.test.ts'],
+    setupFiles: ['test/setup-tu-dien.ts'],
     /*
      * 30 giây, không phải 5 giây mặc định. Nhiều test đẩy đồng hồ ảo qua vài
      * giây ván đấu, mà mỗi 16ms ảo là một khung `requestAnimationFrame` chạy cả
