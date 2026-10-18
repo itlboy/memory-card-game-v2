@@ -98,7 +98,9 @@ jobs:
         env:
           MYSQL_URL: mysql://root:smoke@127.0.0.1:3306/thebai
         run: |
-          bat() { (cd apps/node-server && PORT=8091 WEB_DIR=../../apps/web/dist node dist/server.mjs > /tmp/srv2.log 2>&1 & echo $! > /tmp/srv2.pid); }
+          # `$!` phải là PID của CHÍNH node: `cd … && node … &` đưa cả chuỗi vào một shell con nền,
+          # `$!` thành PID shell đó và `kill` không tắt được server (lần chạy đầu đỏ đúng vì vậy)
+          bat() { cd apps/node-server; PORT=8091 WEB_DIR=../../apps/web/dist node dist/server.mjs >> /tmp/srv2.log 2>&1 & echo $! > /tmp/srv2.pid; cd ../..; }
           bat
           for i in $(seq 1 30); do curl -sf -m 1 http://127.0.0.1:8091/health >/dev/null && break || sleep 1; done
           export -f bat
