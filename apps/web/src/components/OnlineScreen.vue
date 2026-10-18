@@ -149,7 +149,9 @@ onMounted(() => {
     if (name.value.trim()) join();                // link mời + đã nhớ tên: vào luôn
     return;
   }
-  if (!o.resumeStored()) void o.taiPhongCongKhai();
+  // Báo bù lời rời phòng chưa tới server TRƯỚC khi tải danh sách — không thì phòng ma của chính
+  // mình còn nằm đó (lỗi chủ dự án báo 18.10.2026)
+  if (!o.resumeStored()) void o.guiRoiCho().then(() => o.taiPhongCongKhai());
 });
 
 /*
@@ -263,7 +265,7 @@ function xacNhan(): void {
 }
 
 function exit(): void {
-  o.leave();
+  o.thoatPhong();   // còn phiên ở phòng sống → báo rời (hoặc ghi để báo bù), không xoá phiên trơn
   ghiUrl(location.pathname);
   emit('back');
 }

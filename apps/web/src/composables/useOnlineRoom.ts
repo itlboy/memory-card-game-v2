@@ -47,6 +47,17 @@ interface StoredSession {
   ban?: GameView;
 }
 const SESSION_KEY = 'mm.online';
+/**
+ * RỜI PHÒNG CHƯA BÁO ĐƯỢC (18.10.2026, chủ dự án báo: thoát ra, vào lại vẫn thấy phòng mình,
+ * vào thì "người kia rớt mạng" — chính là mình). Thoát lúc socket đã chết (màn lỗi sau khi mất
+ * mạng lâu, đang nối) thì lời `cancel`/`leave` RƠI MẤT (`send` bỏ tin) mà phiên lại bị xoá →
+ * server giữ "mình cũ" như người rớt mạng, mình vào lại thành người mới. Nay ghi ý định + token
+ * vào đây; lần sau mở màn online `guiRoiCho()` nối bằng token đó, gửi lời rời, rồi ngắt.
+ */
+const ROI_CHO_KEY = 'mm.roiPhongCho';
+/** Quá hạn thì bỏ: phòng chờ vắng hẳn tự dọn sau 15 phút (EMPTY_LOBBY_MS) ở server. */
+const HAN_ROI_CHO_MS = 20 * 60 * 1000;
+interface RoiCho { code: string; token: string; name: string; loai: 'cancel' | 'leave'; luc: number }
 
 /**
  * PHIÊN NẰM Ở localStorage, KHÔNG PHẢI sessionStorage.
@@ -1400,6 +1411,72 @@ export function useOnlineRoom() {
     connect(code, myName, token);
   }
 
+  /**
+   * Rời phòng CÓ BÁO server và CHỜ XÁC NHẬN. Không tin `send()`: mất mạng mà socket vẫn báo
+   * OPEN (đo được — cắt mạng thì socket không đóng) là tin đi vào chỗ trống. Server xác nhận
+   * bằng cách đóng socket mã 4001 (đã rời) / 4002 (đã đóng phòng). Gửi xong TÁCH socket khỏi
+   * composable (không tự nối lại, không đụng state) rồi chờ tối đa 1,5 giây; không có mã đó →
+   * ghi ROI_CHO_KEY để `guiRoiCho` báo bù. Giao diện chuyển màn NGAY, không đợi.
+   */
+  function roiCoBao(loai: 'cancel' | 'leave'): void {
+    const s = ws, maPhong = code, tk = token, ten = myName;
+    const ghi = (): void => {
+      if (!maPhong || !tk) return;
+      try {
+        localStorage.setItem(ROI_CHO_KEY, JSON.stringify({ code: maPhong, token: tk, name: ten, loai, luc: Date.now() } satisfies RoiCho));
+      } catch { /* chế độ riêng tư */ }
+    };
+    if (s && s.readyState === WebSocket.OPEN && maPhong && tk) {
+      ws = null;                           // leave() bên dưới không đóng nó — ta còn chờ xác nhận
+      let xacNhan = false;
+      s.onmessage = null;
+      const henCho = setTimeout(() => { if (!xacNhan) { ghi(); try { s.close(); } catch { /* */ } } }, 1500);
+      s.onclose = (e) => {
+        clearTimeout(henCho);
+        if (e.code === 4001 || e.code === 4002) xacNhan = true;
+        else if (!xacNhan) ghi();
+      };
+      try { s.send(JSON.stringify({ t: loai })); } catch { ghi(); }
+    } else ghi();
+    leave();
+  }
+
+  /**
+   * Thoát KHÔNG qua hộp hỏi (màn lỗi / đang nối / ván đã xong): còn phiên ở một phòng đang sống
+   * thì báo `leave` (gỡ đúng mình, không đóng phòng của người khác) — trước đây chỉ `leave()` trơn,
+   * xoá phiên mà server không hề biết.
+   */
+  function thoatPhong(): void {
+    if (token && code && phase.value !== 'ended') roiCoBao('leave');
+    else leave();
+  }
+
+  /** Báo bù lời rời phòng chưa tới server (xem ROI_CHO_KEY). Xong (hoặc hết hạn) thì xoá. */
+  async function guiRoiCho(): Promise<void> {
+    let r: RoiCho | null = null;
+    try { r = JSON.parse(localStorage.getItem(ROI_CHO_KEY) ?? 'null') as RoiCho | null; } catch { r = null; }
+    if (!r?.code || !r.token) return;
+    const xoa = (): void => { try { localStorage.removeItem(ROI_CHO_KEY); } catch { /* bỏ qua */ } };
+    if (Date.now() - r.luc > HAN_ROI_CHO_MS) { xoa(); return; }
+    await new Promise<void>((xong) => {
+      const p = new URLSearchParams({ name: r!.name, token: r!.token, cid: store.clientId(), pv: '1', bv: '2' });
+      let s: WebSocket;
+      try { s = new WebSocket(`${WS_SERVER}/ws/${r!.code}?${p}`); } catch { xong(); return; }
+      const het = setTimeout(() => { try { s.close(); } catch { /* */ } xong(); }, 4000);
+      s.onmessage = (e) => {
+        let m: { t?: string } | null = null;
+        try { m = JSON.parse(String(e.data)); } catch { /* bỏ qua */ }
+        if (m?.t === 'welcome') {
+          s.send(JSON.stringify({ t: r!.loai }));
+          xoa();
+          setTimeout(() => { try { s.close(); } catch { /* */ } clearTimeout(het); xong(); }, 300);
+        } else if (m?.t === 'closed' || m?.t === 'error') { xoa(); }
+      };
+      s.onerror = () => { clearTimeout(het); xong(); };
+      s.onclose = () => { clearTimeout(het); xong(); };
+    });
+  }
+
   function leave(): void {
     leaveSocket();
     clearStored();
@@ -1539,12 +1616,12 @@ export function useOnlineRoom() {
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */
     symbolNeuDuocPhep,
     countdown, countdownLeft, backStyle,
-    createRoom, join, leave, retry, resumeStored, coPhienLuu,
+    createRoom, join, leave, thoatPhong, guiRoiCho, retry, resumeStored, coPhienLuu,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
-    surrender: () => { send({ t: 'leave' }); leave(); },
+    surrender: () => roiCoBao('leave'),
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */
-    cancelRoom: () => { send({ t: 'cancel' }); leave(); },
+    cancelRoom: () => roiCoBao('cancel'),
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     /** Chủ phòng mời một người ra khỏi phòng. */
     moiRa: (playerId: string) => { sfx.miss(); send({ t: 'kick', playerId }); },
