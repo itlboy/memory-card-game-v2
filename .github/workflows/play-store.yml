@@ -2,7 +2,7 @@
 #
 # Dùng secret PLAY_SERVICE_ACCOUNT_JSON (service account có quyền "Quản lý trang
 # thông tin cửa hàng" trên Play Console). Chạy tay:
-#   gh workflow run play-store.yml --ref main                  (chụp lại ảnh 12 ngôn ngữ)
+#   gh workflow run play-store.yml --ref main                  (chụp lại ảnh 15 ngôn ngữ)
 #   gh workflow run play-store.yml --ref main -f chup_anh=false (chỉ cập nhật chữ)
 # Nội dung lấy từ docs/store-listing.md — CÙNG nguồn với App Store.
 #
@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
     inputs:
       chup_anh:
-        description: Chụp lại ảnh store cho 12 ngôn ngữ
+        description: Chụp lại ảnh store cho 15 ngôn ngữ
         type: boolean
         default: true
       may_chu:
@@ -41,13 +41,13 @@ jobs:
       - name: Font cho chữ Nhật/Hàn/Trung/Thái + emoji giao diện
         if: inputs.chup_anh
         run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk fonts-noto-color-emoji fonts-thai-tlwg >/dev/null
-      - name: Chụp ảnh Play (12 ngôn ngữ, khung Android)
+      - name: Chụp ảnh Play (15 ngôn ngữ, khung Android)
         if: inputs.chup_anh
         env:
           KHUNG: android
           CHROME: /usr/bin/google-chrome
         run: |
-          for L in en vi es pt fr de ja ko zh ru id th; do
+          for L in en vi es pt fr de ja ko zh ru id th it tr zh-TW; do
             node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L" "$L"
           done
       - uses: actions/upload-artifact@v7

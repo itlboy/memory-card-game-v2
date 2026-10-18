@@ -1,7 +1,7 @@
 # ĐIỀN TRANG APP STORE từ CI — không cần file .p8 trên máy ai cả.
 #
 # Dùng chính bộ secret ASC_* mà mobile.yml dùng để đẩy TestFlight. Chạy tay:
-#   gh workflow run asc-store.yml --ref main            (chụp lại ảnh 12 ngôn ngữ)
+#   gh workflow run asc-store.yml --ref main            (chụp lại ảnh 15 ngôn ngữ)
 #   gh workflow run asc-store.yml --ref main -f chup_anh=false   (chỉ cập nhật chữ)
 # Nội dung lấy từ docs/store-listing.md (một nguồn duy nhất). Ảnh chụp từ bản web
 # Cloudflare đang chạy, nên deploy web trước rồi mới chạy cái này.
@@ -14,11 +14,11 @@ on:
   workflow_dispatch:
     inputs:
       chup_anh:
-        description: Chụp lại ảnh store cho 12 ngôn ngữ
+        description: Chụp lại ảnh store cho 15 ngôn ngữ
         type: boolean
         default: true
       chup_ipad:
-        description: Chụp ảnh iPad 13" (2064×2752) cho 12 ngôn ngữ
+        description: Chụp ảnh iPad 13" (2064×2752) cho 15 ngôn ngữ
         type: boolean
         default: true
       may_chu:
@@ -43,16 +43,16 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Chụp ảnh store (12 ngôn ngữ)
+      - name: Chụp ảnh store (15 ngôn ngữ)
         if: inputs.chup_anh
         run: |
-          for L in en vi es pt fr de ja ko zh ru id th; do
+          for L in en vi es pt fr de ja ko zh ru id th it tr zh-TW; do
             node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L" "$L"
           done
-      - name: Chụp ảnh iPad 13" (12 ngôn ngữ)
+      - name: Chụp ảnh iPad 13" (15 ngôn ngữ)
         if: inputs.chup_ipad
         run: |
-          for L in en vi es pt fr de ja ko zh ru id th; do
+          for L in en vi es pt fr de ja ko zh ru id th it tr zh-TW; do
             KHUNG=ipad node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L-ipad" "$L"
           done
       - uses: actions/upload-artifact@v7
