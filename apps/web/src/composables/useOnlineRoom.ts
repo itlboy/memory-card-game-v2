@@ -1063,7 +1063,8 @@ export function useOnlineRoom() {
         // Bằng đúng thời lượng animation blast-float trong OnlineGame.vue: dài
         // hơn thì emoji đã tan mà DOM còn treo, ngắn hơn thì bị cắt giữa nhịp.
         blastTimer = setTimeout(() => { emojiBlast.value = null; }, 1150);
-        sfx.select();
+        // Của MÌNH thì đã kêu lúc bấm (sendEmoji) — kêu lại lúc server dội về là HAI tiếng (lỗi 18.10.2026)
+        if (msg.from !== myId.value) sfx.select();
         break;
       }
 
@@ -1077,7 +1078,7 @@ export function useOnlineRoom() {
           loiNoi.value = loiNoi.value.filter((x) => x.from !== msg.from);
           loiNoiHen.delete(msg.from);
         }, 3200));
-        sfx.select();
+        if (msg.from !== myId.value) sfx.select();   // câu của mình đã kêu lúc bấm (sendSay)
         break;
       }
 
@@ -1513,6 +1514,8 @@ export function useOnlineRoom() {
     emojiSentAt.push(Date.now());
     send({ t: 'emoji', emoji });
     refreshEmojiQuota();
+    // Kêu NGAY lúc bấm (tiếng bấm mặc định tự im); server dội về thì không kêu lại
+    sfx.select();
   }
 
   /** Câu nói nhanh — CHUNG hạn mức với emoji (server cũng tính chung). */
@@ -1522,6 +1525,8 @@ export function useOnlineRoom() {
     emojiSentAt.push(Date.now());
     send({ t: 'say', id });
     refreshEmojiQuota();
+    // Kêu NGAY lúc bấm (tiếng bấm mặc định tự im); server dội về thì không kêu lại
+    sfx.select();
   }
   onScopeDispose(() => { for (const h of loiNoiHen.values()) clearTimeout(h); });
 

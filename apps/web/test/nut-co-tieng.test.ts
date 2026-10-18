@@ -111,6 +111,18 @@ describe('mọi nút đều có tiếng', () => {
     expect(oscs.length).toBe(0);
   });
 
+  it('gửi câu nói nhanh / emoji: kêu MỘT lần lúc bấm, server dội về câu của MÌNH thì im (lỗi 18.10.2026)', () => {
+    const src = readFileSync(resolve(process.cwd(), 'src/composables/useOnlineRoom.ts'), 'utf8');
+    for (const loai of ['emoji', 'say']) {
+      const khoi = src.slice(src.indexOf(`case '${loai}': {`), src.indexOf('break;', src.indexOf(`case '${loai}': {`)));
+      expect(khoi, `nhận '${loai}': tiếng phải bỏ qua tin của chính mình`).toMatch(/if \(msg\.from !== myId\.value\) sfx\.select\(\)/);
+    }
+    for (const ham of ['sendEmoji', 'sendSay']) {
+      const khoi = src.slice(src.indexOf(`function ${ham}(`), src.indexOf('\n  }', src.indexOf(`function ${ham}(`)));
+      expect(khoi, `${ham} phải kêu ngay lúc bấm`).toContain('sfx.select()');
+    }
+  });
+
   it('App.vue bắt ở PHA CAPTURE của document, không gắn tay từng nút', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8');
     expect(src, 'thiếu bộ bắt chung thì mỗi nút mới lại là một nút im lặng')

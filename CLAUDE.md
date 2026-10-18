@@ -334,7 +334,8 @@
   cửa sổ) và `--canh` (vẽ theo khung #app — neo theo cửa sổ thì trên máy tính giữa
   cột trống trơn). Màn tạm dừng dùng `--canh, --nen-man`.
 - **KẸO: MỘT MẶT LƯNG DUY NHẤT** (chủ dự án 17.10.2026, thay luật 16.10 "skin chỉ đổi màu nền"):
-  lá bài thật — viền giấy trắng mảnh, đường chỉ vàng, lưới quả trám mờ, ngôi sao vàng giữa lá, mép
+  lá bài thật — viền giấy trắng mảnh, nền xanh sâu, ngôi sao vàng giữa lá (KHÔNG chỉ vàng, KHÔNG lưới sọc — bỏ 18.10.2026;
+  CÙNG một mặt lưng ở lá trong ván, quạt lá trang chủ VÀ huy hiệu danh hiệu `HuyHieu.vue`), mép
   dày 2 tầng + bóng đổ; GIỐNG HỆT quạt lá trang chủ (trừ vệt láng chéo: lặp cả bàn là "đau mắt").
   Hoạ tiết bốc theo ván (`::before` ở card-backs.css) bị TẮT cho Kẹo (`display: none`), không xoá —
   skin khác vẫn bốc 7 hoạ tiết × 4 màu (`HOA_TIET_TAT`/`BANG_MAU_TAT`). Mockup đã cân nhắc:
