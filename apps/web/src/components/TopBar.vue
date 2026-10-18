@@ -180,7 +180,7 @@ watch(() => props.totalScore, (to, from) => {
 <template>
   <header class="topbar">
     <h1 ref="h1El" :class="{ 'an-ten': anTen }" :style="{ '--ten-co': tenCo }">
-      <button data-phang class="brand" type="button" :aria-label="t('tb.veTrangChu')" @click="$emit('home')">
+      <button data-phang class="brand" type="button" :aria-label="`${t('tb.thuongHieu')} — ${t('tb.veTrangChu')}`" @click="$emit('home')">
         <!-- Hai lá bài chồng nghiêng — emoji 🃏 mỗi máy vẽ một kiểu, không dùng
              được làm dấu hiệu thương hiệu. Khung CỐ ĐỊNH 30×30 để không giãn
              kín header khi nằm trong flex. -->
@@ -202,7 +202,7 @@ watch(() => props.totalScore, (to, from) => {
          ghép chung thì "536k · 10/103" đọc thành một con số khó hiểu. -->
     <button
       v-if="danhHieu" class="dh thach th-do" type="button"
-      :aria-label="t('tb.danhHieuAria', { co: danhHieu.co, tong: danhHieu.tong })"
+      :aria-label="`${danhHieu.co}/${danhHieu.tong} — ${t('tb.danhHieuAria', { co: danhHieu.co, tong: danhHieu.tong })}`"
       @click="$emit('danh-hieu')"
     >
       <span aria-hidden="true">🏅</span><b>{{ danhHieu.co }}/{{ danhHieu.tong }}</b>

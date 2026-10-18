@@ -328,7 +328,7 @@ describe('luồng trọn ván', () => {
   it('bấm logo giữa ván cũng hỏi xác nhận; ở menu thì không hỏi', async () => {
     await mountApp();
     await click('Chơi nhanh'); await click('1 người chơi');
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false);   // menu: về thẳng
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
@@ -336,7 +336,7 @@ describe('luồng trọn ván', () => {
     await pickMode('Cổ điển');
     await start();
     await wrapper.findAll('.card')[0]!.trigger('click');
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Thoát ván đang chơi?');
     await click('Thoát ván');
@@ -489,7 +489,7 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     // Logo vẫn là "về trang chủ" (luật cũ: lau sạch URL), kể cả từ giữa ván
     await click('Bắt đầu');
     await wrapper.findAll('.card')[0]!.trigger('click');
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     await click('Thoát ván');
     expect(location.search).toBe('');
@@ -654,7 +654,7 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
   it('logo về trang chủ thì URL sạch và về bước 1 — mất trạng thái là chủ đích', async () => {
     await mountApp();
     await click('Chơi nhanh'); await click('1 người chơi');
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
     expect(location.search).toBe('');
@@ -933,7 +933,7 @@ describe('vào online rồi về trang chủ', () => {
     expect(wrapper.text()).toContain('Chơi online');
 
     // Bấm logo về trang chủ
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     await vi.advanceTimersByTimeAsync(400);
     await flush();
@@ -1162,7 +1162,7 @@ describe('mở khoá cấp sau', () => {
 
     // Và thang cấp của CHƠI MỘT MÌNH cũng được mở theo (thắng bot là bằng chứng
     // đã chơi được cấp này)
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
     // Thang cấp của chơi đơn không còn khoá gì (chọn thẳng số thẻ), nên thứ
@@ -1377,7 +1377,7 @@ describe('không ô nào bị dính viền "đang chọn"', () => {
     await click('Chơi nhanh'); await click('1 người chơi');
     await flush();
     // Về trang chủ rồi vào lại bước đầu
-    await wrapper.find('[aria-label="Về trang chủ"]').trigger('click');
+    await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     for (const tile of wrapper.findAll('.step-body .option')) {
       expect(tile.attributes('aria-pressed'), `ô "${tile.text().slice(0, 14)}" không được mang aria-pressed`)

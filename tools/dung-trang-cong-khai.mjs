@@ -12,7 +12,7 @@
  * Bản dịch: apps/web/site-i18n/<mã>.json (ngoài public — không phát lên mạng).
  * Danh sách ngôn ngữ đọc thẳng từ NGON_NGU ở apps/web/src/lib/i18n.ts — một nguồn.
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 
@@ -182,6 +182,11 @@ for (const { id: lang, bcp } of LANGS) {
     publisher: { '@type': 'Organization', name: 'Cozy Pi', url: 'https://cozypi.com' }
   }, { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Flip Match', alternateName: 'Lật Thẻ', url: `${SITE}/`, inLanguage: bcp }];
   const og = `<meta property="og:locale" content="${ogLocale(bcp)}">`;
+  // Từ điển ngôn ngữ là chunk riêng (lib/i18n.ts napTuDien) — báo trước để tải SONG SONG với gói chính,
+  // không nối đuôi sau khi JS chạy (Lighthouse: chặng chờ nối tiếp). Tiếng Việt nằm sẵn trong gói chính.
+  const chunk = lang === 'vi' ? null : readdirSync(join(DIST, 'assets')).find((f) => new RegExp(`^${lang}-[\\w-]{8}\\.js$`).test(f));
+  if (lang !== 'vi' && !chunk) throw new Error(`${lang}: không thấy chunk từ điển trong dist/assets`);
+  const napTruoc = chunk ? `<link rel="modulepreload" crossorigin href="/assets/${chunk}">\n` : '';
   let html = mauChoi
     .replace(/<html lang="[^"]*">/, `<html lang="${bcp}">`)
     .replace(/<title>[^<]*<\/title>/, `<title>${esc(tieu)}</title>`)
@@ -192,7 +197,7 @@ for (const { id: lang, bcp } of LANGS) {
     .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escAttr(moTa)}">`)
     .replace(/<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escAttr(tieu)}">`)
     .replace(/<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escAttr(moTa)}">`)
-    .replace('</head>', `<link rel="canonical" href="${url}">\n${altChoi}\n<link rel="alternate" hreflang="x-default" href="${SITE}/en/">\n<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>\n</head>`);
+    .replace('</head>', `${napTruoc}<link rel="canonical" href="${url}">\n${altChoi}\n<link rel="alternate" hreflang="x-default" href="${SITE}/en/">\n<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>\n</head>`);
   // Chốt: mọi thẻ phải được thay — Vite đổi định dạng một thẻ là trang ra nửa tiếng Việt mà không ai hay
   for (const c of [tieu, url]) if (!html.includes(escAttr(c))) throw new Error(`${lang}: trang chơi không thay được "${c}"`);
   if (lang === 'vi') writeFileSync(join(DIST, 'index.html'), html);
