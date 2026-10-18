@@ -29,7 +29,10 @@ if (LANGS.length < 12 || !LANGS.some((l) => l.id === 'en')) throw new Error('Kh�
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const escAttr = (s) => esc(s).replace(/"/g, '&quot;');
-const duong = (lang, trang) => (lang === 'en' ? `/${trang}.html` : `/${lang}/${trang}.html`);
+// Địa chỉ CHUẨN không đuôi .html: Cloudflare (html_handling) chuyển hướng 307 `/about.html` → `/about`,
+// canonical/hreflang/sitemap trỏ vào địa chỉ bị chuyển hướng là Google chấm lỗi + mất ~0,85s (18.10.2026).
+// File vẫn ghi `<trang>.html`; link `.html` cũ (store, bài đã chia sẻ) vẫn vào được.
+const duong = (lang, trang) => (lang === 'en' ? `/${trang}` : `/${lang}/${trang}`);
 const ogLocale = (bcp) => bcp.replace('-', '_');
 
 function dich(lang) {

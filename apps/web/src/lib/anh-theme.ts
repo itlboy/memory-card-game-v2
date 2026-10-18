@@ -27,9 +27,16 @@ export function taiAnh(u: string): Promise<void> {
   return p;
 }
 
-/** Tải trước mọi hình ô theme lúc trình duyệt rảnh (không tranh băng thông với thứ đang cần). */
+/**
+ * Tải trước mọi hình ô theme — bắt đầu từ LẦN CHẠM ĐẦU TIÊN (18.10.2026, SEO/tốc độ): ~270 hình
+ * ≈ 1 MB. Tải ngay lúc mở trang thì Googlebot và máy đo tốc độ (Lighthouse) cũng phải tải, trang
+ * bị chấm nặng; người chơi thì từ trang chủ tới bước theme còn qua ít nhất một lần chạm, đủ thời gian.
+ */
+let daHen = false;
 export function taiTruocTheme(ds: CardTheme[]): void {
+  if (daHen || typeof document === 'undefined') return;
+  daHen = true;
   const chay = (): void => { for (const u of urlTheme(ds)) void taiAnh(u); };
-  const ric = (globalThis as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void }).requestIdleCallback;
-  if (ric) ric(chay, { timeout: 2000 }); else setTimeout(chay, 600);
+  document.addEventListener('pointerdown', chay, { once: true, capture: true, passive: true });
+  document.addEventListener('keydown', chay, { once: true, capture: true, passive: true });
 }
