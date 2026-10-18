@@ -98,8 +98,11 @@
 :root[data-skin='keo'] .o-chien-dich strong { font-size: 32px; }
 
 /* Tâm dọc mặt trời/trăng: ngay dưới thanh trên. CỐ ĐỊNH theo px có trần — theo % thì máy cao
-   (Pro Max) rơi sau nút ☰, máy thấp (SE) quạt lá đè lên. */
-:root[data-skin='keo'] { --tam-troi: clamp(84px, 14.5vh, 118px); }
+   (Pro Max) rơi sau nút ☰, máy thấp (SE) quạt lá đè lên.
+   + VÙNG AN TOÀN TRÊN (18.10.2026, chủ dự án báo trên app iPhone 15 Pro Max — ảnh chụp): cảnh vẽ
+   theo khung #app, mà trong APP khung trải lên tận dải trạng thái nên thanh trên bị đẩy xuống
+   ~59px còn mặt trời thì không → chui sau nút ☰. Trên web inset = 0, không đổi gì. */
+:root[data-skin='keo'] { --tam-troi: calc(clamp(84px, 14.5vh, 118px) + env(safe-area-inset-top, 0px)); }
 /* ---------- NỀN: trời, mây, mặt trời/trăng, đồi ----------
    `--nen-man` (body, neo cửa sổ) + `--canh` (vẽ theo khung #app — trên máy tính giữa cột không
    trống). Màn tạm dừng phủ kín #app dùng `--canh, --nen-man`. */
