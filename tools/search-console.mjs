@@ -89,6 +89,17 @@ if (buoc === 'token') {
     const so = (s.contents ?? []).map((c) => `${c.submitted} gửi`).join(', ');
     console.log(`• ${s.path} — lần đọc cuối ${s.lastDownloaded ?? 'chưa'} · lỗi ${s.errors ?? 0} · cảnh báo ${s.warnings ?? 0}${so ? ' · ' + so : ''}`);
   }
+} else if (buoc === 'luot-tim') {
+  // Lượt hiện + lượt bấm từ Google Search, 28 ngày (số liệu trễ ~2 ngày), theo trang / từ khoá / nước.
+  const den = new Date(); const tu = new Date(Date.now() - 28 * 864e5);
+  const ngay = (d) => d.toISOString().slice(0, 10);
+  for (const dim of [['page'], ['query'], ['country'], ['date']]) {
+    const r = await api('POST', `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SITE)}/searchAnalytics/query`,
+      { startDate: ngay(tu), endDate: ngay(den), dimensions: dim, rowLimit: 25 });
+    console.log(`\n== theo ${dim[0]} (${ngay(tu)} → ${ngay(den)}) ==`);
+    if (!r.rows?.length) console.log('  (chưa có dữ liệu)');
+    for (const x of r.rows ?? []) console.log(`  ${String(x.clicks).padStart(4)} bấm · ${String(x.impressions).padStart(5)} hiện · hạng ${x.position.toFixed(1)} · ${x.keys[0]}`);
+  }
 } else {
-  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai'); process.exit(2);
+  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim'); process.exit(2);
 }

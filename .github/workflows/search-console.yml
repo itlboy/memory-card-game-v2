@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       buoc:
-        description: 'token | xac-minh | trang-thai'
+        description: 'token | xac-minh | trang-thai | luot-tim'
         required: true
         default: trang-thai
 jobs:
