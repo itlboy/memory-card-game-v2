@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
-import { makeGame, pairSlots } from './helpers.js';
+import { SYMBOLS, makeGame, pairSlots } from './helpers.js';
 
 /**
  * TẠM DỪNG CẢ VÁN (nút ⏸, ván offline). Ba điều phải đúng: lúc dừng mọi đồng
@@ -58,5 +58,28 @@ describe('tạm dừng cả ván', () => {
     const r = MemoryGame.restore(g.snapshot());
     expect(r.dangTamDung).toBe(true);
     expect(r.elapsed(99_000)).toBe(5);
+  });
+});
+
+/**
+ * DEPLOY KHÔNG MẤT LƯỢT (18.10.2026): server Node dừng ván lúc nhận SIGTERM, lưu snapshot xuống
+ * MySQL, pod mới dựng lại từ snapshot rồi chạy tiếp (room.ts dungDeKhoiDongLai / chayTiepSauKhoiDong).
+ * Server tắt bao lâu thì đồng hồ LƯỢT và đồng hồ VÁN không được trừ bấy nhiêu.
+ */
+describe('deploy giữa ván online: tắt server không làm mất lượt', () => {
+  it('giờ lượt còn nguyên sau khi tắt 10 giây và dựng lại từ snapshot', () => {
+    const g = new MemoryGame({
+      mode: 'classic', cols: 4, rows: 4, symbols: SYMBOLS, seed: 42, turnLimit: 25, shufflePlayers: false,
+      players: [{ id: 'a', name: 'An' }, { id: 'b', name: 'Bình' }]
+    });
+    g.start(0);
+    expect(g.turnTimeLeft(10_000)).toBe(15);
+    g.tamDungVan(10_000);                                   // SIGTERM lúc 10s
+    const r = MemoryGame.restore(g.snapshot());             // qua MySQL (game_state)
+    expect(r.dangTamDung).toBe(true);
+    expect(r.vanDungTu, 'pod mới phải biết đã dừng từ lúc nào').toBe(10_000);
+    r.chayTiepVan(20_000);                                  // pod mới lên sau 10s
+    expect(r.turnTimeLeft(20_000), 'người đang tới lượt mất 10 giây vì deploy').toBe(15);
+    expect(r.tick(34_000), 'chưa hết lượt mà đã bị chuyển').toEqual([]);
   });
 });

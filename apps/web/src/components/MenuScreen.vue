@@ -414,10 +414,11 @@ const ICO3D = {
     Mặt trời/trăng chỉ là ảnh nền (`--canh` của #app) nên đặt một nút VÔ HÌNH trùng tâm — cùng mốc
     `87%` / `--tam-troi` với keo.css (tự đúng cả trong app có vùng an toàn). Chỉ ở TRANG CHỦ: bước
     khác panel phủ lên chỗ đó, nút nằm trên sẽ cướp cú chạm. Teleport ra #app để toạ độ khớp nền.
+    `data-nosfx`: chạm KHÔNG kêu, chỉ đổi giao diện (chủ dự án 18.10.2026).
   -->
   <Teleport to="#app" :disabled="!coKhungApp">
     <button
-      v-if="coKhungApp && buocHien === 'players' && skin === 'keo'" data-phang class="nut-troi" type="button"
+      v-if="coKhungApp && buocHien === 'players' && skin === 'keo'" data-phang data-nosfx class="nut-troi" type="button"
       :aria-label="t('menu.doiNen')" :title="t('menu.doiNen')" @click="emit('doi-nen')"
     />
   </Teleport>

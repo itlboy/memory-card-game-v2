@@ -257,6 +257,31 @@ export class RoomDO extends DurableObject<Env> {
     if (snap) this.game = MemoryGame.restore(snap);
   }
 
+  /**
+   * DEPLOY KHÔNG MẤT LƯỢT (18.10.2026) — CHỈ server Node gọi (index.ts lúc SIGTERM / lúc dựng lại).
+   * Thay pod là server tắt vài giây; đồng hồ ván vẫn chạy thì người đang tới lượt mất lượt vì
+   * deploy. Lúc tắt: DỪNG cả ván (engine `tamDungVan` — mốc nằm trong snapshot nên sống qua MySQL)
+   * rồi lưu. Lúc dựng lại: chạy tiếp, dời MỌI mốc của engine + hạn giữ chỗ người rớt mạng đúng
+   * bằng khoảng server tắt. Ván online không dùng tạm dừng vào việc gì khác (⏸ chỉ ở ván offline).
+   * Bản Cloudflare KHÔNG gọi hai hàm này.
+   */
+  async dungDeKhoiDongLai(now = Date.now()): Promise<void> {
+    await this.load();
+    if (!this.room || !this.game || this.room.status !== 'playing' || this.game.finished) return;
+    this.game.tamDungVan(now);
+    await this.save();
+  }
+
+  async chayTiepSauKhoiDong(now = Date.now()): Promise<void> {
+    await this.load();
+    if (!this.room || !this.game?.dangTamDung) return;
+    const d = Math.max(0, now - this.game.vanDungTu);
+    this.game.chayTiepVan(now);
+    for (const p of this.room.players) if (p.disconnectedAt !== null) p.disconnectedAt += d;
+    await this.save();
+    await this.scheduleNext();
+  }
+
   private async save(): Promise<void> {
     if (this.room) await this.ctx.storage.put('room', this.room);
     if (this.game) await this.ctx.storage.put('game', this.game.snapshot());

@@ -1020,9 +1020,9 @@ function openCfgWizard(): void {
              trước khi bắt đầu thì còn kịp xử lý. -->
         <span
           v-if="p.id === o.myId.value && p.connected"
-          class="ping" :class="o.netQuality.value"
-          :title="o.ping.value === null ? t('on.doTreDangDo') : t('on.doTre', { ms: o.ping.value })"
-        >{{ o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
+          class="ping" :class="o.netHien.value"
+          :title="o.pingHien.value === null ? t('on.doTreDangDo') : t('on.doTre', { ms: o.pingHien.value })"
+        >{{ o.pingHien.value === null ? '···' : `${o.pingHien.value}ms` }}</span>
         <span v-if="!p.connected" class="offline">{{ t('on.rotMang') }}</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
           <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />

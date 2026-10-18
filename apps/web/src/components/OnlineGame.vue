@@ -315,11 +315,11 @@ watch(() => o.view.value?.summary, (s) => {
                debug (lib/ping-so.ts). Số vẫn ở title / aria-label. -->
           <span
             v-else-if="p.id === o.myId.value"
-            class="ping" :class="[o.netQuality.value, { cham: !pingSo }]"
+            class="ping" :class="[o.netHien.value, { cham: !pingSo }]"
             role="img"
-            :title="o.ping.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.ping.value })"
-            :aria-label="o.ping.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.ping.value })"
-          >{{ !pingSo ? '' : o.ping.value === null ? '···' : `${o.ping.value}ms` }}</span>
+            :title="o.pingHien.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.pingHien.value })"
+            :aria-label="o.pingHien.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.pingHien.value })"
+          >{{ !pingSo ? '' : o.pingHien.value === null ? '···' : `${o.pingHien.value}ms` }}</span>
           <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
                tràn cả chip người chơi. -->
           <!-- MẠNG HIỆN BẰNG SỐ, không phải chuỗi trái tim: chuỗi phình theo số
@@ -508,7 +508,7 @@ watch(() => o.view.value?.summary, (s) => {
     </div>
 
     <!-- Mất mạng hẳn thì nói to, vì lúc đó bấm gì cũng không ăn -->
-    <p v-if="o.netQuality.value === 'lost'" class="mynet lost" role="status">
+    <p v-if="o.netHien.value === 'lost'" class="mynet lost" role="status">
       {{ t('og.mangCoVanDe') }}
     </p>
 

@@ -192,6 +192,8 @@ export class MemoryGame {
 
   /** Ván đang tạm dừng (người chơi bấm ⏸). */
   get dangTamDung(): boolean { return this.vanDungLuc !== 0; }
+  /** Mốc bắt đầu tạm dừng (0 = không dừng) — server Node dùng để biết đã tắt bao lâu khi deploy. */
+  get vanDungTu(): number { return this.vanDungLuc; }
 
   /** Tạm dừng cả ván. Gọi lại khi đang dừng là vô hại (giữ mốc đầu). */
   tamDungVan(now: number): void {

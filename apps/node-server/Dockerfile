@@ -31,13 +31,30 @@ RUN pnpm --filter @mm/web build && pnpm --filter @mm/node-server build
 # Nó là JS thuần (không có phần biên dịch) nên cài ở tầng build rồi COPY sang.
 RUN mkdir /deps && cd /deps && npm i --omit=dev ws@8 mysql2@3 --silent
 
+# ẢNH NHỎ KHI ĐỔI — thay pod nhanh (18.10.2026). Đo trên k8s: mỗi lần thay pod phải TẢI LẠI
+# 143MB trong ~13 giây, SAU khi pod cũ đã tắt (`Recreate`) — 13 giây phòng online đứt, mà
+# `main` được đẩy cả chục lần một ngày. Gốc: cả `apps/web/dist` (92MB) là MỘT lớp, đổi một dòng
+# JS là lớp đổi. Nay:
+#  · BỎ `ota/` (53MB): cập nhật nóng do Cloudflare Worker phục vụ — app luôn gọi
+#    flipmatch.cozypi.com (lib/native.ts SITE_URL), không còn ai lấy /ota ở pod này.
+#  · XẾP LỚP theo nhịp đổi: thư viện → emoji (35MB, gần như không đổi) → web nhỏ → server.
+#  · CỐ ĐỊNH MỐC GIỜ mọi file: lớp tar ghi cả mtime, build lại là mtime mới → lớp "khác" dù
+#    nội dung y hệt. Ghim mtime thì lớp không đổi TRÙNG mã băm giữa các lần build → máy chủ
+#    đã có sẵn, chỉ tải lớp web nhỏ + server (vài MB, ~1 giây).
+RUN mkdir -p /lop/deps /lop/emoji /lop/web \
+ && cp -a /deps/node_modules/. /lop/deps/ \
+ && cp -a apps/web/dist/emoji/. /lop/emoji/ \
+ && cd apps/web/dist && tar --exclude=./emoji --exclude=./ota -cf - . | tar -xf - -C /lop/web \
+ && find /lop /app/apps/node-server/dist -exec touch -d '2026-01-01 00:00:00' {} +
+
 FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080 WEB_DIR=/app/web
 # `ws` để external nên phải có thật trong ảnh chạy — lấy từ tầng build
-COPY --from=build /deps/node_modules ./node_modules
+COPY --from=build /lop/deps ./node_modules
+COPY --from=build /lop/emoji ./web/emoji
+COPY --from=build /lop/web ./web
 COPY --from=build /app/apps/node-server/dist ./dist
-COPY --from=build /app/apps/web/dist ./web
 EXPOSE 8080
 # Ai cũng quên: không có HEALTHCHECK thì container treo mà orchestrator không biết
 HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||8080)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"

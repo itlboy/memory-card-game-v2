@@ -338,6 +338,8 @@ async function khoiPhuc(): Promise<void> {
     if (alarmLuc !== null) {
       void box.ctx.storage.setAlarm(Math.max(alarmLuc, Date.now()));
     }
+    // Ván bị dừng lúc pod cũ tắt (deploy) → chạy tiếp, dời mốc đúng bằng khoảng đã tắt
+    await layPhong(code).room.chayTiepSauKhoiDong(Date.now()).catch((e) => console.error('[kho] chạy tiếp ván lỗi:', code, e));
   }
   console.log(`[kho] dựng lại ${daLuu.size} phòng từ lần chạy trước`);
 }
@@ -365,7 +367,16 @@ for (const tin of ['SIGTERM', 'SIGINT'] as const) {
     void (async () => {
       try {
         await Promise.race([
-          kho?.dongKho() ?? Promise.resolve(),
+          (async () => {
+            // 1) DỪNG đồng hồ mọi ván đang chơi rồi lưu — pod mới dời mốc, không ai mất lượt vì deploy
+            const luc = Date.now();
+            await Promise.all([...phongs.values()].map((p) => p.room.dungDeKhoiDongLai(luc).catch(() => undefined)));
+            // 2) Báo NGAY mọi máy (1012 = server khởi động lại): client nối lại mỗi 0,5 giây thay
+            //    vì phát hiện chậm qua nhịp tim (mạng di động hay giữ socket "chết mà vẫn mở")
+            for (const c of wss.clients) { try { c.close(1012, 'restart'); } catch { /* đã đóng */ } }
+            // 3) Đẩy nốt phần đang chờ ghi xuống MySQL
+            await (kho?.dongKho() ?? Promise.resolve());
+          })(),
           new Promise((r) => setTimeout(r, HAN_TAT_MS))
         ]);
       } catch { /* đang tắt, kệ */ }

@@ -3,7 +3,7 @@ import { ghiUrl } from '@/lib/appUrl';
 import type {
   ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
-import { computed, onScopeDispose, ref, shallowRef, nextTick } from 'vue';
+import { computed, onScopeDispose, ref, shallowRef, nextTick, watch } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 import { rung } from '@/lib/rung';
@@ -1383,6 +1383,29 @@ export function useOnlineRoom() {
     return 'bad';
   });
 
+  /*
+   * HIỂN THỊ ỔN ĐỊNH (18.10.2026, chủ dự án: "thời gian ping ms cứ nháy liên tục"). Số đo thô đổi
+   * theo từng nhịp và về `null` mỗi lần socket mở lại, nên số ms nhảy `···` ↔ số và chấm đổi màu
+   * liên tục. Màn hình đọc HAI giá trị đã làm êm: số giữ giá trị cuối thêm 4 giây khi đang nối lại;
+   * chấm/dòng "mất mạng" chỉ đổi khi trạng thái mới GIỮ được 1,5 giây (2,5 giây với 'lost').
+   * Cơ chế nối lại vẫn đọc số đo thô — chỉ phần nhìn được làm êm.
+   */
+  const pingHien = ref<number | null>(null);
+  let henPing: ReturnType<typeof setTimeout> | undefined;
+  watch(ping, (p) => {
+    clearTimeout(henPing);
+    if (p !== null) { pingHien.value = p; return; }
+    henPing = setTimeout(() => { if (ping.value === null) pingHien.value = null; }, 4000);
+  }, { immediate: true });
+  const netHien = ref<'good' | 'ok' | 'bad' | 'lost'>(netQuality.value);
+  let henNet: ReturnType<typeof setTimeout> | undefined;
+  watch(netQuality, (q) => {
+    clearTimeout(henNet);
+    if (q === netHien.value) return;
+    henNet = setTimeout(() => { netHien.value = netQuality.value; }, q === 'lost' ? 2500 : 1500);
+  });
+  onScopeDispose(() => { clearTimeout(henPing); clearTimeout(henNet); });
+
   function leaveSocket(): void {
     clearTimeout(reconnectTimer);
     // GIỮ `pending` qua lần vào lại — trước đây xoá sạch ở đây, nên chớp mạng
@@ -1635,7 +1658,7 @@ export function useOnlineRoom() {
     },
     start: () => send({ t: 'start' }),
     ping,
-    netQuality, netTrouble,
+    netQuality, netTrouble, pingHien, netHien,
     again: () => {
       // Phản hồi ngay tại chỗ, y như bấm thẻ: chờ server xác nhận mới đổi gì
       // thì người bấm tưởng nút bị hỏng

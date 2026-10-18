@@ -782,6 +782,18 @@
   trễ), trên web là Apple JS. Android chưa có cả hai — muốn có phải làm Google
   native (OAuth client Android ở Google Cloud). Tên Apple chỉ tới ở LẦN ĐẦU, từ
   client; lần sau không được ghi đè bằng rỗng.
+- **DEPLOY SERVER KHÔNG LÀM HỎNG ONLINE** (18.10.2026, chủ dự án: "kể cả việc deploy không bị downtime —
+  tần suất deploy nhiều như của chúng ta"). Đo được: mỗi lần thay pod đứt ~16–18 giây (tải lại ảnh 143MB
+  SAU khi pod cũ tắt), người đang tới lượt mất lượt. Nay:
+  · ẢNH: bỏ `ota/` (Worker phục vụ), xếp lớp theo nhịp đổi, GHIM mtime (`touch` trong Dockerfile) để lớp
+    không đổi trùng mã băm → thay pod chỉ tải vài MB. Đừng COPY cả `apps/web/dist` một lớp.
+  · TẮT: SIGTERM → `dungDeKhoiDongLai` (DỪNG đồng hồ mọi ván, mốc nằm trong snapshot) → đóng mọi socket
+    mã 1012 → đẩy MySQL. DỰNG LẠI: `chayTiepSauKhoiDong` dời mọi mốc + hạn giữ chỗ đúng bằng khoảng
+    tắt. Chỉ Node gọi; bản Cloudflare không. `pnpm smoke:deploy`-kiểu: `tools/smoke-deploy.mjs` (CI có
+    MySQL, tắt 5 giây giữa ván — đỏ nếu lượt bị trừ / mất danh tính / không nhận 1012).
+  · ẢNH CHỈ DỰNG khi code server đổi — xem đường lọc `paths` ở `docker.yml`.
+  · Client hiện ping/chấm mạng qua `pingHien`/`netHien` (giữ ổn định), không đọc số thô — số thô về
+    `null` mỗi lần nối lại nên ping "nháy liên tục" (chủ dự án báo).
 - **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
   WebSocket dính vào một pod, engine chạy trong RAM pod đó, alarm cũng ở đó, và
   broadcast không đi qua database — hai pod là hai bản sao cùng một phòng ghi đè

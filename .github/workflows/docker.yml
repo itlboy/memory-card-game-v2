@@ -29,6 +29,17 @@ jobs:
   kiem-tra:
     name: Test trước khi đóng ảnh
     runs-on: ubuntu-latest
+    # MySQL cho smoke "deploy giữa ván" (phòng phải sống qua khởi động lại, đồng hồ lượt không bị trừ)
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: smoke
+          MYSQL_DATABASE: thebai
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psmoke"
+          --health-interval=5s --health-timeout=3s --health-retries=30
     steps:
       - uses: actions/checkout@v7
       # KHÔNG khai `version` ở đây: repo đã ghi `packageManager: pnpm@10.0.0`
@@ -78,6 +89,24 @@ jobs:
           rc=0
           for p in $pids; do wait "$p" || rc=1; done
           kill "$(cat /tmp/srv.pid)"
+          exit $rc
+
+      # DEPLOY KHÔNG MẤT LƯỢT (18.10.2026): server CÓ MySQL, đang giữa ván thì tắt bằng SIGTERM
+      # (như Keel thay pod), chờ 5 giây, bật lại. Đỏ nếu: không nhận mã 1012, vào lại thành
+      # người mới, hay đồng hồ lượt bị trừ phần server tắt. Xem tools/smoke-deploy.mjs.
+      - name: Smoke deploy giữa ván (MySQL + khởi động lại)
+        env:
+          MYSQL_URL: mysql://root:smoke@127.0.0.1:3306/thebai
+        run: |
+          bat() { (cd apps/node-server && PORT=8091 WEB_DIR=../../apps/web/dist node dist/server.mjs > /tmp/srv2.log 2>&1 & echo $! > /tmp/srv2.pid); }
+          bat
+          for i in $(seq 1 30); do curl -sf -m 1 http://127.0.0.1:8091/health >/dev/null && break || sleep 1; done
+          export -f bat
+          rc=0
+          MM_SERVER=http://127.0.0.1:8091 node tools/smoke-deploy.mjs \
+            --restart 'kill -TERM "$(cat /tmp/srv2.pid)"; sleep 5; bat' || rc=1
+          kill "$(cat /tmp/srv2.pid)" 2>/dev/null || true
+          [ $rc -eq 0 ] || cat /tmp/srv2.log
           exit $rc
 
   dong-anh:
