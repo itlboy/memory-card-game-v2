@@ -809,7 +809,7 @@
   theo mã phòng (mọi kết nối của một mã luôn về đúng một pod), không phải thêm
   kho dữ liệu.
 - **Cụm k8s cá nhân `kien-server-main`** (`deploy/k8s/`; ĐỪNG gọi "Hà Nội" — nhầm với
-  `k8s-hanoi` của SenPrints): server Node là bản CHÍNH, chạy trên MicroK8s tại `flipmatch.cozypi.com` (TÊN CHÍNH), `flipmatch.hello314.com` (server của bản app build ≤32), `thebai.hello314.com` (tên chính cũ — vẫn phục vụ nguyên vẹn, KHÔNG redirect: localStorage theo origin, và app phát hành trước 13.10 gọi server qua nó) và `thebai-server.hello314.com`,
+  `k8s-hanoi` của SenPrints): server Node là bản CHÍNH, chạy trên MicroK8s tại `flipmatch.cozypi.com` (TÊN CHÍNH), `flipmatch.hello314.com` (server của bản app build ≤32), `thebai.hello314.com` (tên chính cũ — vẫn phục vụ nguyên vẹn, KHÔNG redirect: localStorage theo origin, và app phát hành trước 13.10 gọi server qua nó) (`thebai-server.hello314.com` đã GỠ 18.10.2026; server game chính nay là `flipmatch-api.cozypi.com`),
   namespace `thebai`. Cloudflare Worker lùi về `thebai2.hello314.com` làm dự phòng
   (đổi chỗ ngày 29.08.2026 — tên miền của Worker là *Custom Domain* ở tầng account,
   không nằm trong `wrangler.jsonc`; chi tiết ở sổ tay `my-secrets`). Push vào `main` → Action đẩy
@@ -856,7 +856,7 @@
   biến mất, không lỗi nào hiện. `pnpm smoke:ota` canh (`/api/auth/config` phải 200 = Node).
   Thêm đường dẫn động mới ở server Node là phải thêm route không-Worker. File không đuôi cần kiểu
   riêng thì khai `_headers` (vd. apple-app-site-association). Từ 18.10.2026 `flipmatch.hello314.com` + `thebai.hello314.com`
-  cũng chia y như vậy (route ở zone `hello314.com`); chỉ `thebai-server.hello314.com` (host chỉ-API cũ) còn đi thẳng k8s.
+  cũng chia y như vậy (route ở zone `hello314.com`); `flipmatch-api.cozypi.com` không có route, đi thẳng tunnel → k8s.
 - **STUDIO "COZY PI", TÊN CHÍNH LÀ `flipmatch.cozypi.com` (13.10.2026)** — `cozypi.com` dùng
   chung cho mọi app của studio (wildcard `*.cozypi.com` → tunnel; app mới chỉ thêm host
   vào ingress), email `support@cozypi.com`. `flipmatch.hello314.com` và

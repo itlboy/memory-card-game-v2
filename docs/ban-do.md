@@ -98,7 +98,7 @@ Mẫu cho MỌI game của studio: **`<game>.cozypi.com` = web** (Cloudflare Wor
 | `flipmatch.cozypi.com/api` `/ws` | server cũ trên tên web | route không-Worker → k8s | app/gói OTA trước 18.10 | gỡ khi không còn app cũ (theo dõi log) |
 | `flipmatch.hello314.com` | web cũ (localStorage người chơi cũ) | Worker; `/api` `/ws` → k8s | người chơi cũ, app build ≤32 | giữ, KHÔNG redirect |
 | `thebai.hello314.com` | web cũ hơn nữa | Worker; `/api` `/ws` → k8s | người chơi cũ, app trước 13.10 | giữ, KHÔNG redirect |
-| `thebai-server.hello314.com` | host chỉ-API rất cũ | k8s thẳng | (gần như không ai) | ứng viên gỡ |
+| ~~`thebai-server.hello314.com`~~ | host chỉ-API rất cũ | — | 0 lượt/24h | **ĐÃ GỠ 18.10.2026** (Ingress bỏ host → 404) |
 | `thebai2.hello314.com` | dự phòng TOÀN BỘ (web + Durable Object) | Worker, server riêng của nó | chuyển tay khi k8s chết | giữ |
 | `cozypi.com` | trang studio | repo `itlboy/cozypi-site` | — | giữ |
 

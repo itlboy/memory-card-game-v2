@@ -14,7 +14,7 @@ on:
     # vài giây. Web + OTA của MỌI tên miền (flipmatch.cozypi.com, flipmatch.hello314.com,
     # thebai.hello314.com) nay do Cloudflare Worker phục vụ — chỉ /api/* /ws/* về pod này — nên sửa
     # giao diện KHÔNG được làm khởi động lại server. `apps/web` cố ý KHÔNG có trong danh sách: web
-    # trong ảnh chỉ còn phục vụ thebai-server.hello314.com (host chỉ-API cũ), cũ đi cũng không sao.
+    # trong ảnh không còn tên miền nào cần (tên -api trả 404 cho đường không phải API), cũ đi cũng không sao.
     paths:
       - 'apps/node-server/**'
       - 'apps/server/src/**'

@@ -1,8 +1,8 @@
 # Lật Thẻ — server dự phòng chạy trên cụm MicroK8s ở nhà.
 #
 # Đường đi của một request:
-#   thebai-server.hello314.com
-#   flipmatch.cozypi.com (TÊN CHÍNH), flipmatch.hello314.com, thebai.hello314.com
+#   flipmatch-api.cozypi.com (SERVER GAME), /api /ws của flipmatch.cozypi.com, flipmatch.hello314.com, thebai.hello314.com
+#   (thebai-server.hello314.com GỠ 18.10.2026 — 0 lượt/24h)
 #     → Cloudflare (wildcard *.hello314.com trỏ tunnel kien-server-main-vm)
 #     → route mặc định của tunnel → ingress-nginx
 #     → service thebai-server:80 → pod cổng 8080
@@ -176,16 +176,6 @@ spec:
                 port:
                   number: 80
     - host: flipmatch.hello314.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: thebai-server
-                port:
-                  number: 80
-    - host: thebai-server.hello314.com
       http:
         paths:
           - path: /
