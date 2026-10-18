@@ -181,7 +181,8 @@ const BOT_CHOICES = [
   { id: 'normal' as BotLevel, g: 'g-amber' },
   { id: 'hard' as BotLevel,   g: 'g-blue' },
   { id: 'insane' as BotLevel, g: 'g-violet' },
-  { id: 'divine' as BotLevel, g: 'g-red' }
+  // Rồng thần TÍM (g-pink = thạch tím ở Kẹo): g-red ra đỏ, gần như trùng hồng của Gà cứng (g-amber) — chủ dự án báo 18.10.2026
+  { id: 'divine' as BotLevel, g: 'g-pink' }
 ];
 
 function pickBotMode(): void {
