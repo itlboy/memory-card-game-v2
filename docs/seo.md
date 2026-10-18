@@ -39,3 +39,13 @@ kết quả tìm web. Chưa có công cụ đo lượng tìm — sau vài tuần
 - Keywords App Store: phẩy không cách, KHÔNG lặp từ đã có ở Name/Subtitle (Apple ghép ba trường).
 - Đổi Name/Subtitle/Keywords bên Apple cần một phiên bản ở trạng thái sửa được; Promotional text
   và cả trang Play thì sửa lúc nào cũng được.
+
+## Tốc độ (Lighthouse mobile, 4G giả lập — Google xếp hạng theo đó)
+
+Đo 18.10.2026, trang chơi `/en/`: **63 → 91 điểm**, chữ đầu tiên 5,0 → 2,6 giây, 1,8MB → 0,66MB.
+Đo lại: `CHROME_PATH=<chromium của Playwright> npx lighthouse@12.8.2 <url> --form-factor=mobile`
+(API PageSpeed ẩn danh hay hết hạn mức). Bốn thứ đã làm, đừng làm ngược lại:
+- Từ điển 14 ngôn ngữ là chunk riêng (`napTuDien`), trang `/<mã>/` có `modulepreload` đúng chunk.
+- Hình ô theme (~270 ảnh) tải trước từ LẦN CHẠM ĐẦU, không lúc mở trang (`taiTruocTheme`).
+- `preconnect` tới `flipmatch-api.cozypi.com`.
+- Trang công khai: địa chỉ chuẩn KHÔNG `.html` (Cloudflare 307 `.html` → không đuôi); font Google không chặn.
