@@ -229,6 +229,9 @@ async function traFileTinh(url: URL, res: ServerResponse): Promise<void> {
     const st = await stat(file);
     if (st.isDirectory()) file = join(file, 'index.html');
   } catch {
+    // /ota/* KHÔNG có trong ảnh (18.10.2026 — Worker phục vụ cập nhật nóng): thiếu file phải là
+    // 404 THẬT, không SPA fallback — app đọc index.html thành manifest là hỏng (luật CLAUDE.md)
+    if (url.pathname.startsWith('/ota/')) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }); res.end('not found'); return; }
     file = join(WEB_DIR, 'index.html');
   }
   try {
