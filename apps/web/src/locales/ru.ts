@@ -39,6 +39,8 @@ const ru: TuDien = {
   'tb.debugMacDinh': "Сбросить",
   'tb.debugTat': "Выключить",
   'ota.tieuDe': "Живое обновление",
+  'ota.nguonApp': "Последнее обновление: версия приложения (магазин)",
+  'ota.nguonOta': "Последнее обновление: живое, загружено {luc}",
   'ota.kiem': "проверка…",
   'ota.moiNhat': "актуальная версия",
   'ota.tai': "загрузка {pct}%",

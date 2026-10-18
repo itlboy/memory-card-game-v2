@@ -25,6 +25,8 @@ const zh: TuDien = {
   'tb.debugMacDinh': "恢复默认",
   'tb.debugTat': "关闭",
   'ota.tieuDe': "热更新",
+  'ota.nguonApp': "最近更新：应用版本（商店）",
+  'ota.nguonOta': "最近更新：热更新，下载于 {luc}",
   'ota.kiem': "检查中…",
   'ota.moiNhat': "已是最新",
   'ota.tai': "下载中 {pct}%",

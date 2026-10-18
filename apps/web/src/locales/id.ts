@@ -28,6 +28,8 @@ const id: TuDien = {
   'tb.debugMacDinh': "Atur ulang",
   'tb.debugTat': "Matikan",
   'ota.tieuDe': "Pembaruan langsung",
+  'ota.nguonApp': "Pembaruan terakhir: versi aplikasi (store)",
+  'ota.nguonOta': "Pembaruan terakhir: pembaruan langsung, diunduh {luc}",
   'ota.kiem': "memeriksa…",
   'ota.moiNhat': "sudah terbaru",
   'ota.tai': "mengunduh {pct}%",

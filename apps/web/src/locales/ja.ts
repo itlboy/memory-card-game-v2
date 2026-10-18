@@ -25,6 +25,8 @@ const ja: TuDien = {
   'tb.debugMacDinh': "初期化",
   'tb.debugTat': "オフ",
   'ota.tieuDe': "ライブ更新",
+  'ota.nguonApp': "最終更新：アプリ版（ストア）",
+  'ota.nguonOta': "最終更新：ライブ更新（{luc} ダウンロード）",
   'ota.kiem': "確認中…",
   'ota.moiNhat': "最新です",
   'ota.tai': "ダウンロード中 {pct}%",

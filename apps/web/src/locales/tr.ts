@@ -28,6 +28,8 @@ const tr: TuDien = {
   'tb.debugMacDinh': "Sıfırla",
   'tb.debugTat': "Kapat",
   'ota.tieuDe': "Canlı güncelleme",
+  'ota.nguonApp': "Son güncelleme: uygulama sürümü (mağaza)",
+  'ota.nguonOta': "Son güncelleme: canlı güncelleme, indirildi {luc}",
   'ota.kiem': "denetleniyor…",
   'ota.moiNhat': "güncel",
   'ota.tai': "indiriliyor %{pct}",

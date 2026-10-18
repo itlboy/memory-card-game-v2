@@ -11,8 +11,8 @@
  */
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
-import { apOtaNgay, banNative, kiemOta, trangThaiOta } from '@/lib/ota';
-import { t, td } from '@/lib/i18n';
+import { apOtaNgay, banNative, kiemOta, nguonGoi, trangThaiOta } from '@/lib/ota';
+import { bcp, t, td } from '@/lib/i18n';
 import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { datPingSo, pingSo } from '@/lib/ping-so';
@@ -42,6 +42,15 @@ onMounted(() => { tick = setInterval(() => { ago.value = buildAgeText(Date.now()
 onUnmounted(() => clearInterval(tick));
 const native = ref<string | null>(null);
 void banNative().then((v) => { native.value = v; });
+/** Lần cập nhật gần nhất là bản APP (store) hay CẬP NHẬT NÓNG (kèm lúc tải). */
+const nguon = ref<string | null>(null);
+void nguonGoi().then((n) => {
+  if (!n) return;
+  if (n.loai === 'app') { nguon.value = t('ota.nguonApp'); return; }
+  const d = n.luc ? new Date(n.luc) : null;
+  const luc = d && !Number.isNaN(d.getTime()) ? d.toLocaleString(bcp(), { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '?';
+  nguon.value = t('ota.nguonOta', { luc });
+});
 
 /** Dòng trạng thái cập nhật nóng (lib/ota.ts): kiểm / tải x% / chờ mở lại / lỗi gì. */
 const chuOta = computed(() => {
@@ -74,6 +83,7 @@ function veMacDinh(): void {
       <b>v{{ version }}</b> · build {{ builtAt }} <span>({{ ago }})</span><br>
       <span class="ota">{{ otaId }}</span>
       <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
+      <template v-if="nguon"><br><b class="nguon">{{ nguon }}</b></template>
     </p>
     <p class="dbg-ota" :class="trangThaiOta.buoc" role="status">
       <span>{{ t('ota.tieuDe') }}: {{ chuOta }}<template v-if="trangThaiOta.id && trangThaiOta.buoc !== 'moiNhat'"><br><span class="ota">{{ trangThaiOta.id }}</span></template></span>
@@ -117,13 +127,15 @@ function veMacDinh(): void {
 .dbg-ota.tai, .dbg-ota.choMoLai { color: var(--accent); }
 .dbg-ota.loi, .dbg-ota.cuQua { color: var(--bad); }
 .dbg-ota.moiNhat { color: var(--ok); }
+.nguon { color: var(--fg); font-weight: 800; }
 .dbg-nhom { margin: 6px 4px 2px; font-size: 11px; font-weight: 800; color: var(--muted); }
 .dbg-cong {
-  position: relative; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 6px;
+  /* HÌNH thấp 32px cho các dòng sát nhau (chủ dự án 18.10.2026), VÙNG CHẠM vẫn 44px nhờ ::after */
+  position: relative; display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 6px;
   border: 0; border-radius: 8px; background: none; color: var(--fg); font: inherit; font-size: 14px; font-weight: 700;
   text-align: left; white-space: normal; cursor: pointer;
 }
-.dbg-cong::after { content: ''; position: absolute; inset: -4px 0; }
+.dbg-cong::after { content: ''; position: absolute; inset: -6px 0; }
 .dbg-cong i { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); font-style: normal; }
 .dbg-cong i.bat { border-color: var(--bad); background: var(--bad); }
 .dbg-cong i.xoay { border: 0; display: grid; place-items: center; color: var(--muted); font-weight: 900; }

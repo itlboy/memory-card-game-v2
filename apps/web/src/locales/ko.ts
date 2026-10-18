@@ -25,6 +25,8 @@ const ko: TuDien = {
   'tb.debugMacDinh': "초기화",
   'tb.debugTat': "끄기",
   'ota.tieuDe': "실시간 업데이트",
+  'ota.nguonApp': "마지막 업데이트: 앱 버전 (스토어)",
+  'ota.nguonOta': "마지막 업데이트: 실시간 업데이트, {luc} 다운로드",
   'ota.kiem': "확인 중…",
   'ota.moiNhat': "최신 버전",
   'ota.tai': "다운로드 중 {pct}%",

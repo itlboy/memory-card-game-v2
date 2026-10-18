@@ -31,6 +31,8 @@ const fr: TuDien = {
   'tb.debugMacDinh': "Réinitialiser",
   'tb.debugTat': "Désactiver",
   'ota.tieuDe': "Mise à jour à chaud",
+  'ota.nguonApp': "Dernière mise à jour : version de l'app (store)",
+  'ota.nguonOta': "Dernière mise à jour : à chaud, téléchargée {luc}",
   'ota.kiem': "vérification…",
   'ota.moiNhat': "à jour",
   'ota.tai': "téléchargement {pct} %",

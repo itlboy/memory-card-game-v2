@@ -26,6 +26,8 @@ const th: TuDien = {
   'tb.debugMacDinh': "รีเซ็ต",
   'tb.debugTat': "ปิด",
   'ota.tieuDe': "อัปเดตสด",
+  'ota.nguonApp': "อัปเดตล่าสุด: เวอร์ชันแอป (สโตร์)",
+  'ota.nguonOta': "อัปเดตล่าสุด: อัปเดตสด ดาวน์โหลด {luc}",
   'ota.kiem': "กำลังตรวจ…",
   'ota.moiNhat': "เป็นเวอร์ชันล่าสุด",
   'ota.tai': "กำลังดาวน์โหลด {pct}%",

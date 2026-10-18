@@ -26,6 +26,8 @@ const es: TuDien = {
   'tb.debugMacDinh': "Restablecer",
   'tb.debugTat': "Desactivar",
   'ota.tieuDe': "Actualización en vivo",
+  'ota.nguonApp': "Última actualización: versión de la app (tienda)",
+  'ota.nguonOta': "Última actualización: en vivo, descargada {luc}",
   'ota.kiem': "comprobando…",
   'ota.moiNhat': "al día",
   'ota.tai': "descargando {pct}%",

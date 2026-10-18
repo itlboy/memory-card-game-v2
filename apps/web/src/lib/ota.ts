@@ -172,6 +172,20 @@ function ganKiemKhiQuayLai(): void {
   });
 }
 
+/**
+ * GÓI WEB ĐANG CHẠY ĐẾN TỪ ĐÂU (trang Debug, 18.10.2026 — chủ dự án: "ghi thêm lần cập nhật mới
+ * nhất là OTA hay app"): gói gốc nằm sẵn trong bản app cài từ store (`builtin`), hay gói cập nhật
+ * nóng đã tải (kèm lúc tải). Chỉ đọc cục bộ, không gọi mạng; lỗi gì cũng trả null.
+ */
+export async function nguonGoi(): Promise<{ loai: 'app' | 'ota'; luc?: string } | null> {
+  if (!laApp) return null;
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+    const c = await CapacitorUpdater.current();
+    return c.bundle.id === 'builtin' ? { loai: 'app' } : { loai: 'ota', luc: c.bundle.downloaded };
+  } catch { return null; }
+}
+
 let dangKiem = false;
 export async function kiemOta(): Promise<void> {
   if (!laApp || dangKiem) return;

@@ -30,6 +30,8 @@ const vi = {
   'tb.debugMacDinh': "Về mặc định",
   'tb.debugTat': "Tắt",
   'ota.tieuDe': "Cập nhật nóng",
+  'ota.nguonApp': "Lần cập nhật gần nhất: bản app (store)",
+  'ota.nguonOta': "Lần cập nhật gần nhất: cập nhật nóng, tải {luc}",
   'ota.kiem': "đang kiểm tra…",
   'ota.moiNhat': "đang là bản mới nhất",
   'ota.tai': "đang tải {pct}%",

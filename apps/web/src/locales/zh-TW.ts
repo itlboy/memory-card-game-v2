@@ -28,6 +28,8 @@ const zhTW: TuDien = {
   'tb.debugMacDinh': "恢復預設",
   'tb.debugTat': "關閉",
   'ota.tieuDe': "熱更新",
+  'ota.nguonApp': "最近更新：應用程式版本（商店）",
+  'ota.nguonOta': "最近更新：熱更新，下載於 {luc}",
   'ota.kiem': "檢查中…",
   'ota.moiNhat': "已是最新",
   'ota.tai': "下載中 {pct}%",

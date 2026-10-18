@@ -26,6 +26,8 @@ const pt: TuDien = {
   'tb.debugMacDinh': "Redefinir",
   'tb.debugTat': "Desativar",
   'ota.tieuDe': "Atualização ao vivo",
+  'ota.nguonApp': "Última atualização: versão do app (loja)",
+  'ota.nguonOta': "Última atualização: ao vivo, baixada {luc}",
   'ota.kiem': "verificando…",
   'ota.moiNhat': "atualizado",
   'ota.tai': "baixando {pct}%",

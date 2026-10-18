@@ -28,6 +28,8 @@ const de: TuDien = {
   'tb.debugMacDinh': "Zurücksetzen",
   'tb.debugTat': "Ausschalten",
   'ota.tieuDe': "Live-Update",
+  'ota.nguonApp': "Letztes Update: App-Version (Store)",
+  'ota.nguonOta': "Letztes Update: Live-Update, geladen {luc}",
   'ota.kiem': "wird geprüft…",
   'ota.moiNhat': "aktuell",
   'ota.tai': "lädt {pct} %",
