@@ -592,7 +592,10 @@
     ÁP KHI RẢNH Ở TRANG CHỦ (17.10.2026): gói tải xong quá 8 giây đầu thì canh mỗi giây — trang
     chủ + app đang hiện + không hộp thoại/menu (`[role=dialog][aria-modal]`, `[role=menu]`) + không
     chạm 2 giây → đếm 3·2·1 rồi áp; bắt cả lúc VỀ trang chủ lẫn lúc QUAY LẠI từ nền. Mỗi lần mở app
-    áp tối đa MỘT lần; `next` + `kill` (tắt hẳn rồi mở) vẫn là dự phòng. Thêm hộp thoại mới mà
+    áp tối đa MỘT lần; `next` + `kill` (tắt hẳn rồi mở) vẫn là dự phòng.
+    "TRANG CHỦ" = URL sạch **VÀ** panel trang chủ đang hiện (`manTrangChu`: `section.panel.trang-chu` của
+    MenuScreen) — KHÔNG chỉ URL: hết ván online `endSession` lau `?room=` khi bảng kết quả còn trên màn,
+    app từng tự khởi động lại ngay sau ván (chủ dự án báo 18.10.2026). Đổi lớp đó ở MenuScreen là test ota đỏ. Thêm hộp thoại mới mà
     không có `role="dialog" aria-modal="true"` là nó có thể bị cắt ngang bởi cú tải lại.
   · MÃ GÓI THEO COMMIT (`<version>-<sha10>`, 18.10.2026): MỘT hàm `tools/ma-goi-ota.mjs` cho cả
     `vite.config.ts` (`__OTA_ID__` app nhúng) lẫn `dong-goi-ota.mjs` (manifest) → app CI build và

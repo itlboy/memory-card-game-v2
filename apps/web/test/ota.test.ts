@@ -24,6 +24,8 @@ beforeEach(() => {
   banApp = '1.3.0';
   dsFile = null;
   void import('@/lib/ota').then((m) => m.huyApKhiRanh(true));
+  // Trang chủ THẬT đang hiện (lib/ota.ts manTrangChu) — ca nào cần "không ở trang chủ" thì tự gỡ
+  if (!document.getElementById('man-chu')) document.body.insertAdjacentHTML('beforeend', '<section id="man-chu" class="panel trang-chu"></section>');
 });
 const MOI = { id: 'moi', url: '/ota/moi.zip', sha256: 'abc', minNative: '1.3.0' };
 
@@ -257,7 +259,14 @@ describe('cập nhật nóng', () => {
       expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
       await vi.advanceTimersByTimeAsync(5000);
       expect(goi.set, 'đang trong ván').not.toHaveBeenCalled();
+      // Hết ván ONLINE: URL sạch nhưng màn kết quả còn hiện (không có panel trang chủ) — KHÔNG áp
+      document.getElementById('man-chu')!.remove();
+      document.querySelectorAll('.bao-cap-nhat').forEach((e) => e.remove());   // sót từ ca trước
       history.replaceState(null, '', '/');
+      await vi.advanceTimersByTimeAsync(6000);
+      expect(goi.set, 'màn kết quả online, URL đã sạch').not.toHaveBeenCalled();
+      expect(document.querySelector('.bao-cap-nhat'), 'không đếm 3·2·1 ở màn kết quả').toBeNull();
+      document.body.insertAdjacentHTML('beforeend', '<section id="man-chu" class="panel trang-chu"></section>');
       document.body.insertAdjacentHTML('beforeend', '<div id="hop-thu" role="dialog" aria-modal="true"></div>');
       await vi.advanceTimersByTimeAsync(5000);
       expect(goi.set, 'hộp thoại đang mở').not.toHaveBeenCalled();
@@ -274,12 +283,27 @@ describe('cập nhật nóng', () => {
 
   it('rảnh = trang chủ + đang hiện + không hộp thoại + không chạm 2 giây', async () => {
     const { dangRanh } = await import('@/lib/ota');
-    const ok = { search: '', hien: true, coHop: false, tuLucCham: 5000 };
+    const ok = { search: '', manChu: true, hien: true, coHop: false, tuLucCham: 5000 };
     expect(dangRanh(ok)).toBe(true);
+    // Hết ván online: URL đã sạch (endSession lau ?room=) nhưng màn kết quả vẫn hiện — KHÔNG áp
+    expect(dangRanh({ ...ok, manChu: false })).toBe(false);
     expect(dangRanh({ ...ok, search: '?room=123456' })).toBe(false);
     expect(dangRanh({ ...ok, hien: false })).toBe(false);
     expect(dangRanh({ ...ok, coHop: true })).toBe(false);
     expect(dangRanh({ ...ok, tuLucCham: 500 })).toBe(false);
+  });
+
+  it('trang chủ nhận bằng MÀN HÌNH: panel trang chủ của MenuScreen phải có, và manTrangChu đọc đúng nó', async () => {
+    const { manTrangChu } = await import('@/lib/ota');
+    document.getElementById('man-chu')?.remove();
+    expect(manTrangChu()).toBe(false);
+    const el = document.createElement('section'); el.className = 'panel trang-chu'; document.body.append(el);
+    expect(manTrangChu()).toBe(true);
+    el.remove();
+    // Canh tên lớp: đổi tên ở MenuScreen mà quên ở đây là OTA không bao giờ áp khi rảnh nữa
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    expect(readFileSync(join(__dirname, '..', 'src/components/MenuScreen.vue'), 'utf8')).toContain(`<section class="panel" :class="{ 'trang-chu': buocHien === 'players' }">`);
   });
 
   it('lỗi tạm thì TỰ THỬ LẠI sau 1 phút, tối đa 3 lần (không bắt người chơi bấm gì)', async () => {

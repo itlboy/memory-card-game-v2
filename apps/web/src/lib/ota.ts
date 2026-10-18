@@ -54,6 +54,15 @@ export function oTrangChu(search = typeof location === 'undefined' ? '' : locati
   return !['playing', 'room', 'online', 'w'].some((k) => q.has(k));
 }
 
+/**
+ * TRANG CHỦ THẬT ĐANG HIỆN — nhìn MÀN HÌNH, không chỉ địa chỉ (18.10.2026, chủ dự án: "tôi đang chơi
+ * xong cũng cập nhật"). Hết ván ONLINE, `endSession` lau `?room=` khỏi URL ngay lúc bảng kết quả
+ * còn trên màn → URL trông như trang chủ → 2 giây không chạm là app tự khởi động lại giữa màn kết
+ * quả. Nay phải có CẢ URL sạch LẪN panel trang chủ của MenuScreen (`section.panel.trang-chu`).
+ */
+export const manTrangChu = (): boolean => typeof document !== 'undefined' && !!document.querySelector('section.panel.trang-chu');
+const dangOTrangChu = (): boolean => oTrangChu() && manTrangChu();
+
 /** Thẻ giữa màn "Có bản mới · khởi động lại sau ③" — MỘT dòng, đếm 3·2·1 rồi mới
  *  tải lại. Cú tải lại không lời giải thích bị đọc thành app giật ("nháy một cái
  *  quá nhanh"), còn thẻ không đếm thì đọc thành app treo/lỗi (chủ dự án 14.10.2026). */
@@ -98,8 +107,8 @@ let lucCham = 0;
 let daApKhiRanh = false;
 let henRanh: ReturnType<typeof setInterval> | undefined;
 let daGanCham = false;
-export function dangRanh(o: { search: string; hien: boolean; coHop: boolean; tuLucCham: number }): boolean {
-  return oTrangChu(o.search) && o.hien && !o.coHop && o.tuLucCham >= RANH_MS;
+export function dangRanh(o: { search: string; manChu: boolean; hien: boolean; coHop: boolean; tuLucCham: number }): boolean {
+  return oTrangChu(o.search) && o.manChu && o.hien && !o.coHop && o.tuLucCham >= RANH_MS;
 }
 function canhApKhiRanh(id: string): void {
   if (henRanh || daApKhiRanh || typeof document === 'undefined') return;
@@ -108,7 +117,7 @@ function canhApKhiRanh(id: string): void {
     document.addEventListener('pointerdown', () => { lucCham = performance.now(); }, { capture: true, passive: true });
   }
   const ranh = (): boolean => dangRanh({
-    search: location.search, hien: document.visibilityState === 'visible',
+    search: location.search, manChu: manTrangChu(), hien: document.visibilityState === 'visible',
     coHop: !!document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]'),
     tuLucCham: performance.now() - lucCham
   });
@@ -120,7 +129,7 @@ function canhApKhiRanh(id: string): void {
     void (async () => {
       try {
         await baoCapNhat();
-        if (!oTrangChu()) {                       // chạm đi chỗ khác giữa lúc đếm: thôi, để lần mở sau
+        if (!dangOTrangChu()) {                   // chạm đi chỗ khác giữa lúc đếm: thôi, để lần mở sau
           document.querySelector('.bao-cap-nhat')?.remove();
           return;
         }
@@ -240,7 +249,7 @@ export async function kiemOta(): Promise<void> {
       } finally { void nghe.remove(); }
     }
     goiCho = goi.id;
-    if (performance.now() - LUC_MO < AP_NGAY_MS && oTrangChu()) {
+    if (performance.now() - LUC_MO < AP_NGAY_MS && dangOTrangChu()) {
       await baoCapNhat();                              // đếm 3·2·1 rồi mới tải lại
       await CapacitorUpdater.set({ id: goi.id });      // tải lại app sang gói mới
       return;
