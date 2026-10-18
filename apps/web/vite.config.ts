@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { maGoiOta } from '../../tools/ma-goi-ota.mjs';
 
 /**
  * Phiên bản và NGÀY BUILD nhúng lúc build, hiện ở cuối bảng Luật chơi.
@@ -25,9 +26,10 @@ export default defineConfig({
     // không lệch theo máy người chơi, còn tuổi bản build thì bắt buộc phải so với
     // đồng hồ của họ.
     __BUILD_ISO__: JSON.stringify(new Date().toISOString()),
-    // Mã gói web cho OTA (lib/ota.ts so với manifest trên server). tools/dong-goi-ota.mjs
-    // truyền OTA_ID để mã nhúng trong gói KHỚP mã ghi trong manifest.
-    __OTA_ID__: JSON.stringify(process.env.OTA_ID ?? `${process.env.npm_package_version ?? '0'}-${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}`)
+    // Mã gói web cho OTA (lib/ota.ts so với manifest trên server) — theo COMMIT, cùng một hàm
+    // với tools/dong-goi-ota.mjs (tools/ma-goi-ota.mjs): app CI build và server cùng commit là
+    // cùng mã, app mới cài không tải lại gói y hệt.
+    __OTA_ID__: JSON.stringify(maGoiOta())
   },
   plugins: [
     vue(),

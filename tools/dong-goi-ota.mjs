@@ -16,20 +16,20 @@
  * không đổi giữa hai bản thì cùng địa chỉ). Plugin lấy file trùng mã băm từ bản app cài
  * sẵn hoặc kho đệm của nó, CHỈ tải file khác → mỗi lần cập nhật chỉ vài file JS/CSS.
  * Zip GIỮ LẠI: client cũ chỉ biết zip, và client mới quay về zip khi tải chênh lệch lỗi.
- *   OTA_ID=<chuỗi> để ép mã gói (mặc định <version>-<giờ build UTC>).
+ *   Mã gói: tools/ma-goi-ota.mjs (theo commit; chung với vite.config) — OTA_ID=<chuỗi> để ép.
  */
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
+import { maGoiOta } from './ma-goi-ota.mjs';
 // fflate cài ở apps/web (devDependency) — nạp từ đó, không từ gốc repo
 const { zipSync } = createRequire(new URL('../apps/web/package.json', import.meta.url))('fflate');
 
 const web = new URL('../apps/web/', import.meta.url).pathname;
-const pkg = JSON.parse(readFileSync(join(web, 'package.json'), 'utf8'));
 const { minNative } = JSON.parse(readFileSync(join(web, 'ota.json'), 'utf8'));
-const id = process.env.OTA_ID ?? `${pkg.version}-${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}`;
+const id = maGoiOta();
 const SRC = join(web, 'dist-ota');
 
 rmSync(SRC, { recursive: true, force: true });

@@ -194,6 +194,20 @@ describe('cập nhật nóng', () => {
     expect(main).toMatch(/^void import\('\.\/lib\/ota'\)\.then\(\(m\) => m\.kiemOta\(\)\);$/m);
   });
 
+  it('MÃ GÓI theo COMMIT, một hàm chung cho vite.config (app) và dong-goi-ota (manifest) — 18.10.2026', { timeout: 20000 }, async () => {
+    // Trước: mã = giờ build → app CI và server KHÔNG BAO GIỜ trùng mã → app mới cài tự tải lại gói y hệt.
+    const vite = readFileSync(resolve(process.cwd(), 'vite.config.ts'), 'utf8');
+    const goiOta = readFileSync(resolve(process.cwd(), '../../tools/dong-goi-ota.mjs'), 'utf8');
+    expect(vite, 'app phải nhúng mã từ hàm chung').toMatch(/__OTA_ID__:\s*JSON\.stringify\(maGoiOta\(\)\)/);
+    expect(goiOta, 'manifest phải lấy mã từ hàm chung').toMatch(/const id = maGoiOta\(\);/);
+    // Chạy bằng Node thật (như lúc build) — trong jsdom import.meta.url không phải file://
+    const { execFileSync } = await import('node:child_process');
+    const chay = (otaId?: string) => execFileSync(process.execPath, ['--input-type=module', '-e',
+      `import { maGoiOta } from '${resolve(process.cwd(), '../../tools/ma-goi-ota.mjs')}'; process.stdout.write(maGoiOta(${otaId ? `{ OTA_ID: '${otaId}' }` : '{}'}))`], { encoding: 'utf8' });
+    expect(chay('ep-tay')).toBe('ep-tay');
+    expect(chay(), 'version-sha10[-giờ nếu nguồn chưa commit]').toMatch(/^\d+\.\d+\.\d+-[0-9a-f]{10}(-\d{8}T\d{6})?$/);
+  });
+
   it('manifest GIỮ các trường bản app cũ đang đọc: id, url, sha256, minNative (chỉ được THÊM trường)', () => {
     const goiOta = readFileSync(resolve(process.cwd(), '../../tools/dong-goi-ota.mjs'), 'utf8');
     const dong = goiOta.split('\n').find((l) => l.includes("'manifest.json'"))!;
