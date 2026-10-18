@@ -9,6 +9,8 @@
 - **`docs/ngon-ngu.md`** — thêm/bớt/đổi ngôn ngữ: 14 chỗ + bảng mã từng hệ.
 - **`docs/trang-cong-khai.md`** — 4 trang công khai (about/changes/support/privacy), dựng
   theo ngôn ngữ cho SEO, Google Search Console, thêm mục "Có gì mới".
+- **`docs/seo.md`** — SEO web + store (18.10.2026): trang chơi theo ngôn ngữ `/<mã>/`, từ khoá từng
+  thị trường, luật nhãn hiệu "Memory". Đổi tiêu đề/từ khoá là đổi theo bảng đó.
 - `docs/i18n-style.md` (thuật ngữ dịch) · `docs/store-listing.md` (chữ store 15 ngôn ngữ) ·
   `docs/mobile-ci.md` (ra bản app). Trang studio `cozypi.com` ở repo riêng `itlboy/cozypi-site`.
 

@@ -15,6 +15,7 @@ import it from '@/locales/it';
 import tr from '@/locales/tr';
 import zhTW from '@/locales/zh-TW';
 import { laApp } from './native';
+import { ghiUrl } from './appUrl';
 
 /**
  * ĐA NGÔN NGỮ — bộ dịch nhỏ tự viết (bắt đầu 12.10.2026).
@@ -77,10 +78,22 @@ const KHOA_LUU = 'mm.lang';
 /** Ngôn ngữ MÁY (của app) lúc mở lần trước — để biết người dùng có vừa đổi trong Cài đặt máy không. */
 const KHOA_MAY = 'mm.langMay';
 
+/*
+ * MỖI NGÔN NGỮ MỘT ĐỊA CHỈ CHƠI (SEO, 18.10.2026): `/` = tiếng Việt (mặc định), `/<mã>/` = ngôn ngữ
+ * khác (`dist/<mã>/index.html` dựng sẵn tiêu đề/mô tả/hreflang — tools/dung-trang-cong-khai.mjs).
+ * Google tìm "memory game online" phải ra `/en/` bằng tiếng Anh, không ra trang tiếng Việt.
+ * Chỉ trên web: app gói luôn ở `/`.
+ */
+export const duongChoi = (l: NgonNgu): string => (l === 'vi' ? '/' : `/${l}/`);
+const MAU_DUONG_CHOI = /^\/(?:([a-z]{2}(?:-[A-Z]{2})?)\/)?$/;
+
 function docBanDau(): NgonNgu {
   try {
     const q = new URLSearchParams(location.search).get('lang');
     if (LA_NGON_NGU(q)) { localStorage.setItem(KHOA_LUU, q); return q; }
+    // Địa chỉ /<mã>/ thắng lựa chọn đã lưu: đó là trang người ta vừa bấm vào từ Google / link
+    const p = laApp ? null : location.pathname.match(MAU_DUONG_CHOI)?.[1];
+    if (LA_NGON_NGU(p)) { localStorage.setItem(KHOA_LUU, p); return p; }
     const luu = localStorage.getItem(KHOA_LUU);
     /*
      * TRONG APP (Capacitor): ngôn ngữ của khung web CHÍNH LÀ ngôn ngữ riêng của app
@@ -126,10 +139,18 @@ watch(ngonNgu, (l, cu) => {
     try { localStorage.setItem(KHOA_MAY, l); } catch { /* bỏ qua */ }
     void import('./ngon-ngu-app').then((m) => m.ghiXuongMay(l)).catch(() => { /* không có plugin */ });
   }
+  let doiTieuDe = false;
+  // Địa chỉ đi theo ngôn ngữ (chỉ khi đang ở trang chơi gốc `/` hoặc `/<mã>/`, không đụng trang khác)
+  if (!laApp && typeof location !== 'undefined' && MAU_DUONG_CHOI.test(location.pathname)) {
+    const q = new URLSearchParams(location.search); q.delete('lang');
+    const qs = q.toString(), dich = duongChoi(l) + (qs ? `?${qs}` : '');
+    if (dich !== location.pathname + location.search) { ghiUrl(dich); doiTieuDe = true; }
+  }
   if (typeof document !== 'undefined') {
     document.documentElement.lang = l;
-    // Tiêu đề tab theo ngôn ngữ (index.html chỉ có bản tiếng Việt cho máy đọc thẻ og)
-    document.title = t('chung.tieuDeTrang');
+    // Tiêu đề tab theo ngôn ngữ. Lần đầu ở ĐÚNG trang chơi của ngôn ngữ thì GIỮ tiêu đề trong HTML:
+    // đó là tiêu đề SEO dựng sẵn (game.title), và Google đọc tiêu đề SAU khi JS chạy.
+    if (doiTieuDe || cu !== undefined || laApp) document.title = t('chung.tieuDeTrang');
   }
 }, { immediate: true });
 

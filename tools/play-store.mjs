@@ -80,7 +80,7 @@ async function tai(lang, loai, file) {
 
 for (const [lang, tieuDe, anh] of NGON_NGU) {
   const n = phan(tieuDe);
-  await api('PUT', `${E}/listings/${lang}`, { language: lang, title: n.Name, shortDescription: n['Short description'], fullDescription: n.Description });
+  await api('PUT', `${E}/listings/${lang}`, { language: lang, title: n['Play title'] ?? n.Name, shortDescription: n['Short description'], fullDescription: n.Description });
   let soAnh = 0;
   const dir = thuMucAnh ? join(thuMucAnh, anh) : '';
   if (dir && existsSync(dir)) {
@@ -91,7 +91,7 @@ for (const [lang, tieuDe, anh] of NGON_NGU) {
       soAnh = files.length;
     }
   }
-  console.log(`✓ ${lang}: ${n.Name} — chữ${soAnh ? ` + ${soAnh} ảnh` : ''}`);
+  console.log(`✓ ${lang}: ${n['Play title'] ?? n.Name} — chữ${soAnh ? ` + ${soAnh} ảnh` : ''}`);
 }
 
 // Ảnh bìa + icon: đặt cho ngôn ngữ mặc định, ngôn ngữ khác dùng chung

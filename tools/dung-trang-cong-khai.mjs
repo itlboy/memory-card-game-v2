@@ -131,13 +131,14 @@ for (const trang of TRANG) {
         // srcset có NHIỀU đường dẫn trong một thuộc tính — thiếu dòng này là trang
         // /<mã>/ tìm ảnh ở /<mã>/site/img/… và ra ảnh vỡ (chủ dự án báo 15.10.2026)
         .replace(/srcset="([^"]*)"/g, (_, v) => `srcset="${v.replace(/(^|,\s*)site\//g, '$1../site/')}"`)
-        .replace(/href="\/"/g, `href="/?lang=${lang}"`);
+        .replace(/href="\/"/g, `href="${lang === 'vi' ? '/' : `/${lang}/`}"`);
       // Chốt: trang ở thư mục con mà còn đường dẫn `site/` tương đối là ảnh/CSS vỡ
       if (/(?:src|href)="site\/|srcset="(?:[^"]*,\s*)?site\//.test(html)) throw new Error(`${lang}/${trang}.html còn đường dẫn site/ chưa thêm ../`);
       mkdirSync(join(DIST, lang), { recursive: true });
       writeFileSync(join(DIST, lang, `${trang}.html`), html);
     } else {
-      writeFileSync(join(DIST, `${trang}.html`), html);
+      // Nút "Chơi" của bản English về trang chơi tiếng Anh (`/` là tiếng Việt)
+      writeFileSync(join(DIST, `${trang}.html`), html.replace(/href="\/"/g, 'href="/en/"'));
     }
     // Chữ chưa dịch còn sót (khoá có trong trang mà thiếu trong json) → build đỏ, không lên mạng
     if (t) for (const m of mau.matchAll(/data-(?:t|th)="([^"]+)"/g)) if (!(m[1] in t) && m[1] !== 'brand') throw new Error(`${lang}: thiếu khoá "${m[1]}"`);
@@ -147,9 +148,59 @@ for (const trang of TRANG) {
     sitemap.push(`  <url>\n    <loc>${SITE}${duong(lang, trang)}</loc>\n${alt}\n    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}${duong('en', trang)}"/>\n  </url>`);
   }
 }
+/*
+ * TRANG CHƠI THEO NGÔN NGỮ (SEO, 18.10.2026): `/` = tiếng Việt (mặc định của game), `/<mã>/` = ngôn
+ * ngữ khác — CÙNG index.html của Vite (cùng app, cùng /assets), chỉ khác phần <head>: lang, tiêu đề,
+ * mô tả, og, canonical, hreflang, dữ liệu có cấu trúc. App đọc ngôn ngữ từ đường dẫn (lib/i18n.ts
+ * `duongChoi`). Chữ ở khoá `game.title` / `game.desc` của site-i18n (English: GAME_EN dưới đây).
+ * Tiêu đề/mô tả là chỗ nhét TỪ KHOÁ người ta thật sự gõ — xem docs/seo.md.
+ */
+const GAME_EN = {
+  'game.title': 'Flip Match – Free Memory Game Online with Friends',
+  'game.desc': 'Play the classic memory card game free in your browser or app: flip cards, match pairs, play solo, vs computer or online with friends. No ads, kid-safe.'
+};
+const duongChoi = (lang) => (lang === 'vi' ? '/' : `/${lang}/`);
+const mauChoi = readFileSync(join(DIST, 'index.html'), 'utf8');
+if (mauChoi.includes('rel="canonical"')) throw new Error('index.html đã có canonical — chạy hai lần trên cùng dist?');
+const altChoi = LANGS.map((x) => `<link rel="alternate" hreflang="${x.bcp}" href="${SITE}${duongChoi(x.id)}">`).join('\n');
+for (const { id: lang, bcp } of LANGS) {
+  const t = lang === 'en' ? GAME_EN : dich(lang);
+  for (const k of ['game.title', 'game.desc']) if (!t[k]) throw new Error(`${lang}: thiếu khoá "${k}" (trang chơi)`);
+  const tieu = t['game.title'], moTa = t['game.desc'], url = `${SITE}${duongChoi(lang)}`;
+  const ld = [{
+    '@context': 'https://schema.org', '@type': 'VideoGame',
+    name: lang === 'vi' ? 'Lật Thẻ' : 'Flip Match', alternateName: lang === 'vi' ? 'Flip Match' : 'Lật Thẻ',
+    description: moTa, url, image: `${SITE}/og.jpg`, inLanguage: bcp,
+    genre: ['Puzzle', 'Memory', 'Card game'], playMode: ['SinglePlayer', 'MultiPlayer'],
+    numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 4 },
+    gamePlatform: ['Web browser', 'iOS', 'Android'], applicationCategory: 'GameApplication',
+    operatingSystem: 'Any (web browser), iOS, Android', isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, contentRating: 'Everyone',
+    publisher: { '@type': 'Organization', name: 'Cozy Pi', url: 'https://cozypi.com' }
+  }, { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Flip Match', alternateName: 'Lật Thẻ', url: `${SITE}/`, inLanguage: bcp }];
+  const og = `<meta property="og:locale" content="${ogLocale(bcp)}">`;
+  let html = mauChoi
+    .replace(/<html lang="[^"]*">/, `<html lang="${bcp}">`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(tieu)}</title>`)
+    .replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${escAttr(moTa)}">`)
+    .replace(/<meta property="og:locale" content="[^"]*">/, og)
+    .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/, `<meta property="og:title" content="${escAttr(tieu)}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/, `<meta property="og:description" content="${escAttr(moTa)}">`)
+    .replace(/<meta name="twitter:title" content="[^"]*">/, `<meta name="twitter:title" content="${escAttr(tieu)}">`)
+    .replace(/<meta name="twitter:description" content="[^"]*">/, `<meta name="twitter:description" content="${escAttr(moTa)}">`)
+    .replace('</head>', `<link rel="canonical" href="${url}">\n${altChoi}\n<link rel="alternate" hreflang="x-default" href="${SITE}/en/">\n<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>\n</head>`);
+  // Chốt: mọi thẻ phải được thay — Vite đổi định dạng một thẻ là trang ra nửa tiếng Việt mà không ai hay
+  for (const c of [tieu, url]) if (!html.includes(escAttr(c))) throw new Error(`${lang}: trang chơi không thay được "${c}"`);
+  if (lang === 'vi') writeFileSync(join(DIST, 'index.html'), html);
+  else { mkdirSync(join(DIST, lang), { recursive: true }); writeFileSync(join(DIST, lang, 'index.html'), html); }
+}
+const altChoiSm = LANGS.map((x) => `    <xhtml:link rel="alternate" hreflang="${x.bcp}" href="${SITE}${duongChoi(x.id)}"/>`).join('\n');
+const sitemapChoi = LANGS.map((x) => `  <url>\n    <loc>${SITE}${duongChoi(x.id)}</loc>\n${altChoiSm}\n    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/en/"/>\n  </url>`);
+
 writeFileSync(join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url><loc>${SITE}/</loc></url>
+${sitemapChoi.join('\n')}
 ${sitemap.join('\n')}
 </urlset>
 `);
@@ -161,4 +212,4 @@ Disallow: /ota/
 
 Sitemap: ${SITE}/sitemap.xml
 `);
-console.log(`✓ Trang công khai: ${TRANG.length} trang × ${LANGS.length} ngôn ngữ, sitemap ${sitemap.length + 1} địa chỉ`);
+console.log(`✓ Trang công khai: ${TRANG.length} trang × ${LANGS.length} ngôn ngữ + ${LANGS.length} trang chơi, sitemap ${sitemap.length + sitemapChoi.length} địa chỉ`);

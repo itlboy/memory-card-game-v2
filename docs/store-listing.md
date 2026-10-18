@@ -35,12 +35,12 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 
 **Name** (30) — App Store
 ```
-Flip Match: Memory Cards
+Flip Match: Memory Card Game
 ```
 
 **Subtitle** (30) — App Store
 ```
-Memory game with friends & bot
+Find Pairs Online with Friends
 ```
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
@@ -50,12 +50,12 @@ Flip cards, match pairs, train your memory. Play solo, take on a 5-level bot, pa
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
 ```
-concentration,pairs,match,brain,training,puzzle,card,game,kids,family,multiplayer,online,offline
+concentration,matching,brain,training,puzzle,kids,family,multiplayer,offline,tiles,picture,remember
 ```
 
 **Short description** (80) — Google Play
 ```
-Flip cards, match pairs, train your memory. Solo, vs bot or online with friends.
+Classic memory game: flip cards, find pairs. Solo, vs bot or online with friends
 ```
 
 **Description** (4000) — cả hai store
@@ -75,7 +75,7 @@ MAKE THE BOARD YOURS
 • 12 board sizes, from a 4-card warm-up to a brutal 88-card challenge
 • 5 optional rules, each with 4 levels: timer, lives, peek, shuffle and special cards
 • 48 card themes: animals, food, flags, numbers and more
-• 3 looks to switch anytime: Candy, Wood or Neon
+• Glossy 3D candy look with light and dark mode
 
 KEEP COMING BACK
 • 100+ achievements to unlock
@@ -95,12 +95,12 @@ MADE TO FEEL GOOD
 
 **Name** (30)
 ```
-Lật Thẻ: Trò Chơi Trí Nhớ
+Lật Thẻ: Game Lật Hình Trí Nhớ
 ```
 
 **Subtitle** (30)
 ```
-Lật thẻ ghép cặp cùng bạn bè
+Ghép cặp với bạn bè, đấu máy
 ```
 
 **Promotional text** (170)
@@ -110,12 +110,12 @@ Lật thẻ, ghép cặp, rèn trí nhớ. Chơi một mình, đấu máy 5 mứ
 
 **Keywords** (100)
 ```
-lật thẻ,ghép cặp,trí nhớ,trò chơi,giải đố,thẻ bài,trẻ em,gia đình,nhiều người,online,offline
+giống nhau,tìm,đôi,trò chơi,rèn,não,giải đố,thẻ bài,trẻ em,gia đình,nhiều người,online,offline
 ```
 
 **Short description** (80) — Google Play
 ```
-Lật thẻ ghép cặp rèn trí nhớ. Chơi một mình, đấu máy, hoặc online cùng bạn bè.
+Lật hình tìm cặp giống nhau, rèn trí nhớ. Chơi một mình, đấu máy, online với bạn
 ```
 
 **Description** (4000)
@@ -135,7 +135,7 @@ BÀN CHƠI CỦA RIÊNG BẠN
 • 12 cỡ bàn, từ 4 thẻ khởi động tới 88 thẻ siêu khó
 • 5 luật tuỳ chọn, mỗi luật 4 mức: đồng hồ, số mạng, xem trước, xáo thẻ, thẻ đặc biệt
 • 48 bộ hình: con vật, đồ ăn, cờ các nước, chữ số và nhiều nữa
-• 3 giao diện đổi tuỳ thích: Kẹo, Gỗ hoặc Neon
+• Giao diện kẹo 3D bóng bẩy, có chế độ sáng và tối
 
 MUỐN CHƠI MÃI
 • Hơn 100 danh hiệu để chinh phục
@@ -160,7 +160,12 @@ Flip Match: Juego de Memoria
 
 **Subtitle** (30)
 ```
-Encuentra parejas con amigos
+Memorama de parejas con amigos
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match: Memorama Parejas
 ```
 
 **Promotional text** (170)
@@ -170,12 +175,12 @@ Voltea cartas, encuentra parejas y entrena tu memoria. Juega solo, reta a un bot
 
 **Keywords** (100)
 ```
-parejas,cartas,concentración,mente,cerebro,puzzle,niños,familia,multijugador,online,sin conexión
+memotest,cartas,concentración,cerebro,puzzle,niños,familia,multijugador,online,offline,memorizar
 ```
 
 **Short description** (80) — Google Play
 ```
-Voltea cartas y encuentra parejas. Solo, contra el bot u online con tus amigos.
+Memorama clásico: voltea cartas y encuentra parejas. Solo, vs bot u online
 ```
 
 **Description** (4000)
@@ -195,7 +200,7 @@ UN TABLERO A TU MEDIDA
 • 12 tamaños de tablero, desde un calentamiento de 4 cartas hasta un desafío brutal de 88
 • 5 reglas opcionales con 4 niveles cada una: tiempo, vidas, vistazo, barajar y cartas especiales
 • 48 temas de cartas: animales, comida, banderas, números y mucho más
-• 3 estilos para cambiar cuando quieras: Dulce, Madera o Neón
+• Estilo dulce en 3D con modo claro y oscuro
 
 SIEMPRE HAY UN MOTIVO PARA VOLVER
 • Más de 100 logros por desbloquear
@@ -220,7 +225,7 @@ Flip Match: Jogo da Memória
 
 **Subtitle** (30)
 ```
-Ache os pares com os amigos
+Encontre os pares com amigos
 ```
 
 **Promotional text** (170)
@@ -230,12 +235,12 @@ Vire cartas, ache os pares e treine a memória. Jogue sozinho, enfrente um bot d
 
 **Keywords** (100)
 ```
-pares,cartas,concentração,cérebro,treino,quebra-cabeça,crianças,família,multiplayer,online,offline
+cartas,concentração,cérebro,treino,quebra-cabeça,crianças,família,multiplayer,online,offline
 ```
 
 **Short description** (80) — Google Play
 ```
-Vire cartas, ache os pares e treine a memória. Sozinho, contra o bot ou online.
+Jogo da memória clássico: vire cartas e ache os pares. Sozinho, vs bot ou online
 ```
 
 **Description** (4000)
@@ -255,7 +260,7 @@ UM TABULEIRO DO SEU JEITO
 • 12 tamanhos de tabuleiro, de um aquecimento com 4 cartas a um desafio brutal com 88
 • 5 regras opcionais, cada uma com 4 níveis: tempo, vidas, espiadinha, embaralhar e cartas especiais
 • 48 temas de cartas: animais, comidas, bandeiras, números e muito mais
-• 3 visuais para trocar quando quiser: Doce, Madeira ou Néon
+• Visual doce em 3D com modo claro e escuro
 
 SEMPRE TEM MOTIVO PARA VOLTAR
 • Mais de 100 conquistas para desbloquear
@@ -290,12 +295,12 @@ Retournez les cartes, trouvez les paires, musclez votre mémoire. En solo, contr
 
 **Keywords** (100)
 ```
-paires,cartes,concentration,cerveau,entraînement,puzzle,enfants,famille,multijoueur,hors ligne
+cartes,concentration,cerveau,entraînement,puzzle,enfants,famille,multijoueur,hors,ligne,réflexion
 ```
 
 **Short description** (80) — Google Play
 ```
-Retournez les cartes, trouvez les paires. En solo, contre le bot ou en ligne.
+Jeu de mémoire : retournez les cartes, trouvez les paires. Solo, bot ou en ligne
 ```
 
 **Description** (4000)
@@ -315,7 +320,7 @@ UN PLATEAU À VOTRE IMAGE
 • 12 tailles de plateau, de l'échauffement à 4 cartes au défi redoutable de 88 cartes
 • 5 règles au choix, chacune sur 4 niveaux : chrono, vies, aperçu, mélange et cartes spéciales
 • 48 thèmes de cartes : animaux, nourriture, drapeaux, chiffres et bien plus
-• 3 styles à changer quand vous voulez : Bonbon, Bois ou Néon
+• Style bonbon en 3D avec mode clair et sombre
 
 TOUJOURS UNE RAISON DE REVENIR
 • Plus de 100 succès à débloquer
@@ -335,12 +340,17 @@ UN VRAI PLAISIR À JOUER
 
 **Name** (30)
 ```
-Flip Match: Gedächtnisspiel
+Flip Match: Paare finden
 ```
 
 **Subtitle** (30)
 ```
-Paare finden mit Freunden
+Gedächtnisspiel mit Freunden
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match: Memo Paare finden
 ```
 
 **Promotional text** (170)
@@ -350,12 +360,12 @@ Karten umdrehen, Paare finden, Gedächtnis trainieren. Allein, gegen einen Bot m
 
 **Keywords** (100)
 ```
-paare,karten,konzentration,gehirnjogging,merkspiel,denkspiel,kinder,familie,mehrspieler,online
+memo,kartenspiel,konzentration,gehirnjogging,merkspiel,online,kinder,familie,mehrspieler,offline
 ```
 
 **Short description** (80) — Google Play
 ```
-Karten umdrehen, Paare finden. Allein, gegen den Bot oder online mit Freunden.
+Karten umdrehen, Paare finden: Gedächtnisspiel allein, gegen Bot oder online.
 ```
 
 **Description** (4000)
@@ -375,7 +385,7 @@ DEIN SPIELFELD, DEINE REGELN
 • 12 Spielfeldgrößen, vom Aufwärmen mit 4 Karten bis zur knallharten Herausforderung mit 88
 • 5 optionale Regeln mit je 4 Stufen: Zeit, Leben, Vorschau, Mischen und Spezialkarten
 • 48 Kartenthemen: Tiere, Essen, Flaggen, Zahlen und vieles mehr
-• 3 Looks zum jederzeit Wechseln: Bonbon, Holz oder Neon
+• Glänzender 3D-Bonbon-Look mit hellem und dunklem Modus
 
 IMMER WIEDER GERN
 • Über 100 Erfolge zum Freischalten
@@ -400,7 +410,12 @@ Flip Match: 神経衰弱カードゲーム
 
 **Subtitle** (30)
 ```
-友達やCPUと遊べる記憶力ゲーム
+友達とオンライン対戦・脳トレ
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match: 神経衰弱 脳トレ
 ```
 
 **Promotional text** (170)
@@ -410,12 +425,12 @@ Flip Match: 神経衰弱カードゲーム
 
 **Keywords** (100)
 ```
-記憶力,脳トレ,ペア,絵合わせ,トランプ,パズル,子供,家族,マルチプレイ,オンライン,オフライン,暇つぶし
+記憶力,ペア,絵合わせ,トランプ,子供,知育,家族,二人,2人,マルチプレイ,CPU,オフライン,暇つぶし,パズル,集中力,カード合わせ,広告なし,ボードゲーム,幼児,記憶,頭の体操,カードめくり
 ```
 
 **Short description** (80) — Google Play
 ```
-カードをめくってペアをそろえる記憶力ゲーム。ひとりでも、CPU対戦でも、友達とオンラインでも。
+カードをめくってペアをそろえる神経衰弱。ひとりでも、CPU対戦でも、友達とオンラインでも。
 ```
 
 **Description** (4000)
@@ -435,7 +450,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • 4枚のウォームアップから88枚の超難関まで、12種類の盤面サイズ
 • 5つのオプションルール（各4段階）：制限時間・ライフ・先読み・シャッフル・特殊カード
 • 48種類のカードテーマ：動物、食べ物、国旗、数字など
-• いつでも切り替えられる3つの見た目：キャンディ・木目・ネオン
+• つやつや3Dのキャンディデザイン、ライト／ダークモード対応
 
 何度でも遊びたくなる
 • 100以上の実績を解除しよう
@@ -455,12 +470,17 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 
 **Name** (30)
 ```
-Flip Match: 카드 짝맞추기 게임
+Flip Match: 같은 그림 찾기
 ```
 
 **Subtitle** (30)
 ```
-친구, 봇과 함께하는 기억력 게임
+카드 짝맞추기 · 친구와 온라인
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match: 같은그림찾기 짝맞추기
 ```
 
 **Promotional text** (170)
@@ -470,12 +490,12 @@ Flip Match: 카드 짝맞추기 게임
 
 **Keywords** (100)
 ```
-기억력,두뇌,훈련,같은그림찾기,퍼즐,보드게임,어린이,가족,멀티플레이,온라인,오프라인,집중력
+기억력,두뇌,훈련,메모리,퍼즐,보드게임,어린이,유아,가족,멀티,2인,대결,오프라인,집중력,뒤집기,카드게임,두뇌게임,노인,아이,초등,혼자,파티,그림맞추기,광고없음,짝꿍
 ```
 
 **Short description** (80) — Google Play
 ```
-카드를 뒤집어 짝을 맞추는 기억력 게임. 혼자, 봇과 대결, 친구와 온라인으로.
+카드를 뒤집어 같은 그림을 찾는 기억력 게임. 혼자, 봇과 대결, 친구와 온라인으로.
 ```
 
 **Description** (4000)
@@ -495,7 +515,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 4장짜리 워밍업부터 88장짜리 극악 난이도까지 12가지 판 크기
 • 각각 4단계인 5가지 선택 규칙: 시간 제한, 목숨, 미리 보기, 섞기, 특수 카드
 • 동물, 음식, 국기, 숫자 등 48가지 카드 테마
-• 언제든 바꿀 수 있는 3가지 스킨: 캔디, 나무, 네온
+• 반짝이는 3D 캔디 디자인, 라이트·다크 모드 지원
 
 자꾸 생각나는 게임
 • 잠금 해제할 수 있는 100개 이상의 업적
@@ -515,12 +535,17 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 
 **Name** (30)
 ```
-Flip Match: 记忆翻牌配对
+Flip Match: 记忆翻牌找相同
 ```
 
 **Subtitle** (30)
 ```
-和好友或电脑一起玩的记忆游戏
+和好友联机对战的配对游戏
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match: 记忆翻牌配对
 ```
 
 **Promotional text** (170)
@@ -530,12 +555,12 @@ Flip Match: 记忆翻牌配对
 
 **Keywords** (100)
 ```
-找对子,专注力,连连看,找相同,脑力,训练,益智,卡牌,儿童,亲子,家庭,多人,联机,单机,休闲
+记忆力,训练,脑力,专注力,找对子,翻翻乐,益智,卡牌,儿童,亲子,家庭,多人,双人,单机,休闲,无广告,幼儿,宝宝,老人,图案,记忆大师,桌游,好友,离线,头脑,小游戏,在线
 ```
 
 **Short description** (80) — Google Play
 ```
-翻牌找对子，锻炼记忆力。单人、对战电脑，或和好友在线一起玩。
+翻牌找相同，锻炼记忆力。单人、对战电脑，或和好友在线一起玩。
 ```
 
 **Description** (4000)
@@ -555,7 +580,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 12 种牌桌尺寸，从 4 张热身到 88 张极限挑战
 • 5 种可选规则，每种 4 个等级：限时、生命、预览、洗牌、特殊卡
 • 48 套卡牌主题：动物、美食、国旗、数字等等
-• 3 种外观随时切换：糖果、木纹或霓虹
+• 亮泽的 3D 糖果风格，支持浅色和深色模式
 
 越玩越上瘾
 • 100 多个成就等你解锁
@@ -575,12 +600,12 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 
 **Name** (30)
 ```
-Flip Match: Игра на память
+Flip Match: Мемори, найди пару
 ```
 
 **Subtitle** (30)
 ```
-Найди пары вместе с друзьями
+Игра на память с друзьями
 ```
 
 **Promotional text** (170)
@@ -590,12 +615,12 @@ Flip Match: Игра на память
 
 **Keywords** (100)
 ```
-пары,карточки,мемори,внимание,мозг,тренировка,головоломка,дети,семья,мультиплеер,онлайн,офлайн
+карточки,картинки,пары,тренировка,мозга,внимание,логика,головоломка,дети,семья,онлайн,офлайн,бот
 ```
 
 **Short description** (80) — Google Play
 ```
-Переворачивай карточки и находи пары. Один, против бота или онлайн с друзьями.
+Игра на память: найди пару карточек. Один, против бота или онлайн с друзьями.
 ```
 
 **Description** (4000)
@@ -615,7 +640,7 @@ Flip Match — классическая игра на память с карто
 • 12 размеров поля: от разминки на 4 карточки до суровых 88
 • 5 дополнительных правил, у каждого 4 уровня: время, жизни, подсказка, перемешивание и особые карточки
 • 48 тем карточек: животные, еда, флаги, цифры и многое другое
-• 3 оформления, которые можно сменить в любой момент: Конфета, Дерево или Неон
+• Яркое 3D-оформление в стиле конфет со светлой и тёмной темой
 
 ХОЧЕТСЯ ВОЗВРАЩАТЬСЯ
 • Более 100 достижений
@@ -635,12 +660,12 @@ Flip Match — классическая игра на память с карто
 
 **Name** (30)
 ```
-Flip Match: Game Ingatan
+Flip Match: Game Memori Kartu
 ```
 
 **Subtitle** (30)
 ```
-Cocokkan kartu bareng teman
+Cocokkan gambar & asah otak
 ```
 
 **Promotional text** (170)
@@ -650,12 +675,12 @@ Balik kartu, cari pasangannya, latih ingatanmu. Main sendiri, lawan bot 5 level,
 
 **Keywords** (100)
 ```
-memori,kartu,pasangan,cocokkan,otak,asah,puzzle,anak,keluarga,multiplayer,online,offline
+ingatan,pasangan,kembar,anak,keluarga,teman,mabar,online,offline,multiplayer,puzzle,konsentrasi
 ```
 
 **Short description** (80) — Google Play
 ```
-Balik kartu, cari pasangan, latih ingatan. Main sendiri, lawan bot, atau online.
+Balik kartu, cocokkan gambar, asah otak. Main sendiri, lawan bot, atau online.
 ```
 
 **Description** (4000)
@@ -675,7 +700,7 @@ PAPAN SESUAI SELERAMU
 • 12 ukuran papan, dari pemanasan 4 kartu sampai tantangan berat 88 kartu
 • 5 aturan opsional, masing-masing 4 level: waktu, nyawa, intip, kocok, dan kartu spesial
 • 48 tema kartu: hewan, makanan, bendera, angka, dan banyak lagi
-• 3 tampilan yang bisa diganti kapan saja: Permen, Kayu, atau Neon
+• Tampilan permen 3D yang mengilap, dengan mode terang dan gelap
 
 BIKIN BALIK LAGI
 • Lebih dari 100 pencapaian untuk dibuka
@@ -695,12 +720,17 @@ ASYIK DIMAINKAN
 
 **Name** (30)
 ```
-Flip Match: เกมจับคู่ความจำ
+Flip Match: เกมจับคู่ภาพ
 ```
 
 **Subtitle** (30)
 ```
-เปิดไพ่จับคู่กับเพื่อนและบอท
+เกมความจำ เปิดไพ่ ฝึกสมอง
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match เกมจับคู่ภาพความจำ
 ```
 
 **Promotional text** (170)
@@ -710,12 +740,12 @@ Flip Match: เกมจับคู่ความจำ
 
 **Keywords** (100)
 ```
-เปิดไพ่,ฝึกสมอง,จำภาพ,ปริศนา,การ์ด,เด็ก,ครอบครัว,หลายคน,ออนไลน์,ออฟไลน์
+จับคู่,การ์ด,ไพ่,ความจำ,จำภาพ,สมาธิ,ปริศนา,เด็ก,ครอบครัว,เพื่อน,หลายคน,ออนไลน์,ออฟไลน์,ไม่มีโฆษณา
 ```
 
 **Short description** (80) — Google Play
 ```
-เปิดไพ่จับคู่ ฝึกความจำ เล่นคนเดียว ท้าบอท หรือออนไลน์กับเพื่อน
+เกมเปิดไพ่จับคู่ภาพ ฝึกความจำ เล่นคนเดียว ท้าบอท หรือออนไลน์กับเพื่อน
 ```
 
 **Description** (4000)
@@ -735,7 +765,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • กระดาน 12 ขนาด ตั้งแต่วอร์มอัป 4 ใบไปจนถึงสุดโหด 88 ใบ
 • กติกาเสริม 5 แบบ แบบละ 4 ระดับ: จับเวลา ชีวิต แอบดู สับไพ่ และการ์ดพิเศษ
 • ธีมการ์ด 48 แบบ: สัตว์ อาหาร ธงชาติ ตัวเลข และอีกมากมาย
-• 3 หน้าตาให้สลับได้ทุกเมื่อ: ลูกกวาด ไม้ หรือนีออน
+• ดีไซน์ลูกกวาด 3D สดใส พร้อมโหมดสว่างและมืด
 
 เล่นแล้วอยากกลับมาอีก
 • ความสำเร็จให้ปลดล็อกกว่า 100 รายการ
@@ -760,7 +790,12 @@ Flip Match: Gioco di memoria
 
 **Subtitle** (30) — App Store
 ```
-Trova le coppie con gli amici
+Trova le coppie, anche online
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match: Memoria e Coppie
 ```
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
@@ -770,7 +805,7 @@ Gira le carte, trova le coppie, allena la memoria. Gioca da solo, sfida un bot a
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
 ```
-coppie,carte,concentrazione,cervello,allenamento,puzzle,bambini,famiglia,multigiocatore,online
+carte,abbina,immagini,concentrazione,cervello,allenamento,bambini,famiglia,amici,offline,bot
 ```
 
 **Short description** (80) — Google Play
@@ -795,7 +830,7 @@ UN TABELLONE TUTTO TUO
 • 12 dimensioni del tabellone, da un riscaldamento con 4 carte a una sfida tremenda con 88
 • 5 regole facoltative, ognuna con 4 livelli: tempo, vite, anteprima, mescolamento e carte speciali
 • 48 temi di carte: animali, cibo, bandiere, numeri e tanto altro
-• 3 stili da cambiare quando vuoi: Caramella, Legno o Neon
+• Stile caramella in 3D con modalità chiara e scura
 
 SEMPRE UN MOTIVO PER TORNARE
 • Oltre 100 obiettivi da sbloccare
@@ -815,12 +850,12 @@ FATTO PER FARTI STARE BENE
 
 **Name** (30) — App Store
 ```
-Flip Match: Hafıza Kartları
+Flip Match: Hafıza Oyunu
 ```
 
 **Subtitle** (30) — App Store
 ```
-Arkadaşlarınla hafıza oyunu
+Kartları eşleştir, eşini bul
 ```
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
@@ -830,12 +865,12 @@ Kartları çevir, çiftleri bul, hafızanı çalıştır. Tek başına oyna, 5 s
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
 ```
-eşleştirme,çift,beyin,zeka,bulmaca,dikkat,çocuk,aile,çok oyunculu,çevrimiçi,çevrimdışı,oyun
+kart,çift,zeka,beyin,dikkat,bulmaca,resim,çocuk,aile,arkadaş,iki,kişilik,online,çevrimdışı,reklamsız
 ```
 
 **Short description** (80) — Google Play
 ```
-Kartları çevir, çiftleri bul. Tek başına, bota karşı ya da arkadaşlarınla oyna.
+Kartları çevir, eşini bul, hafızanı geliştir. Tek, bota karşı ya da online oyna.
 ```
 
 **Description** (4000) — cả hai store
@@ -855,7 +890,7 @@ TAHTAN, KURALLARIN
 • 4 kartlık ısınmadan 88 kartlık zorlu bir meydan okumaya kadar 12 tahta boyutu
 • Her biri 4 seviyeli 5 isteğe bağlı kural: süre, can, ön izleme, karıştırma ve özel kartlar
 • 48 kart teması: hayvanlar, yemekler, bayraklar, sayılar ve daha fazlası
-• İstediğin an değiştirebileceğin 3 görünüm: Şeker, Ahşap ya da Neon
+• Parlak 3D şeker görünümü, açık ve koyu mod
 
 HEP GERİ DÖN
 • Açılacak 100'den fazla başarım
@@ -875,12 +910,17 @@ HEP GERİ DÖN
 
 **Name** (30) — App Store
 ```
-Flip Match：記憶翻牌配對
+Flip Match：記憶翻牌找相同
 ```
 
 **Subtitle** (30) — App Store
 ```
-和好友或電腦一起玩的記憶遊戲
+和好友線上對戰的配對遊戲
+```
+
+**Play title** (30) — Google Play (khác Name: phủ thêm từ khoá Play)
+```
+Flip Match：記憶翻牌配對
 ```
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
@@ -890,7 +930,7 @@ Flip Match：記憶翻牌配對
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
 ```
-找相同,專注力,連連看,腦力,訓練,益智,卡牌,兒童,親子,家庭,多人,連線,單機,休閒,桌遊
+記憶力,訓練,腦力,專注力,翻翻樂,益智,卡牌,兒童,親子,家庭,多人,雙人,單機,休閒,桌遊,無廣告,幼兒,寶寶,長輩,圖案,記憶大師,好友,離線,頭腦,小遊戲,找對子,神經衰弱
 ```
 
 **Short description** (80) — Google Play
@@ -915,7 +955,7 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 • 12 種牌桌大小，從 4 張暖身到 88 張極限挑戰
 • 5 種選用規則，各有 4 個等級：計時、生命、預覽、洗牌和特殊牌
 • 48 套卡牌主題：動物、美食、國旗、數字等等
-• 3 種外觀隨時切換：糖果、木紋或霓虹
+• 亮澤的 3D 糖果風格，支援淺色與深色模式
 
 越玩越想玩
 • 100 多項成就等你解鎖
@@ -962,7 +1002,7 @@ WHAT TO TRY
 - Home screen > "Quick play" > "Solo" > pick a board size > "Next" > "Start". Flip two cards to find matching pairs.
 - "Play the computer" plays against a built-in opponent, fully offline.
 - During a game, the Pause button (top right) stops the clock and hides the board.
-- Menu (top right) > "Style" switches between three visual skins: Candy, Wood and Neon.
+- Menu (top right) > "Appearance" switches between Auto, Light and Dark mode.
 
 ONLINE MULTIPLAYER
 - "Play online" > "Create new room" creates a room with a 6-digit code.

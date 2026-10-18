@@ -42,6 +42,7 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 | **Tên app**: Flip Match (en) / Lật Thẻ (vi) | `tb.thuongHieu` + `chung.tieuDeTrang` (từ điển) | iOS `ios/App/App/*.lproj/InfoPlist.strings` · trang (`brand` chỉ ở vi) · store (Name) · `index.html` og (tĩnh, tiếng Việt) |
 | **Email hỗ trợ** `support@cozypi.com` | Cloudflare Email Routing (catch-all → Gmail) | trang (bọc `<!--email_off-->`) · privacy · store (App Review contact) · repo `itlboy/cozypi-site` |
 | **Tên miền** — xem bảng **TÊN MIỀN** ngay dưới | `deploy/k8s/thebai.yaml`, Cloudflare Workers Routes | `tools/dung-trang-cong-khai.mjs` (`SITE`) · `apps/web/src/lib/native.ts` (`SITE_URL`, `SERVER_URL`) · `apps/web/package.json` (`build:*`) · `tools/dong-goi-ota.mjs` · store URLs · CLAUDE.md |
+| **Trang chơi theo ngôn ngữ** `/` (vi) · `/<mã>/` (14 thứ tiếng) | `tools/dung-trang-cong-khai.mjs` + `game.*` ở `site-i18n` | `lib/i18n.ts` (`duongChoi`) · sitemap · **docs/seo.md** |
 | **Trang công khai** `/about.html` `/changes.html` `/support.html` `/privacy.html` (+ `/<mã>/…`) | `apps/web/public/*.html` | store (Marketing/Support/Privacy URL) · thẻ Flip Match ở `cozypi.com` · xem **docs/trang-cong-khai.md** |
 | **App Store ID 6822105774**, bundle iOS `com.hello314.flipmatch` | App Store Connect | `site.js` `STORE.ios` · `tools/asc-*.mjs` · server `APPLE_BUNDLE_ID` |
 | **Google Play** `com.cozypi.flipmatch` | Play Console | `site.js` `STORE.android` · `tools/play-store.mjs` · `android/app/build.gradle` |
