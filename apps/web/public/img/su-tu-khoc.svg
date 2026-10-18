@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Sư tử KHÓC TO (cảnh thua) — tự vẽ 18.10.2026: bờm nhọn hai lớp, mắt nhắm tịt, nước mắt phun, miệng há "oa oa" -->
+  <defs>
+    <radialGradient id="st-bom" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#b8601f"/><stop offset=".7" stop-color="#8a3f12"/><stop offset="1" stop-color="#5e2808"/></radialGradient>
+    <radialGradient id="st-mat" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="#ffe9a6"/><stop offset=".5" stop-color="#ffc54a"/><stop offset=".85" stop-color="#ec9a1e"/><stop offset="1" stop-color="#c47410"/></radialGradient>
+    <radialGradient id="st-mom" cx=".5" cy=".25" r=".85"><stop offset="0" stop-color="#fff6de"/><stop offset=".7" stop-color="#f6dca4"/><stop offset="1" stop-color="#dcb56e"/></radialGradient>
+    <linearGradient id="st-bong" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="st-bom2" cx=".45" cy=".35" r=".6"><stop offset="0" stop-color="#e08a3a"/><stop offset="1" stop-color="#a24d16"/></radialGradient>
+    <linearGradient id="st-nuoc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9f1ff"/><stop offset="1" stop-color="#3f9cf0"/></linearGradient>
+  </defs>
+  <!-- bờm: 14 chùm nhọn quanh đầu -->
+  <path fill="url(#st-bom)" d="M64 2 L74 18 L90 6 L92 25 L111 19 L104 37 L124 40 L110 54 L127 66 L110 76 L122 92 L103 94 L106 113 L89 105 L82 124 L70 110 L64 127 L58 110 L46 124 L39 105 L22 113 L25 94 L6 92 L18 76 L1 66 L18 54 L4 40 L24 37 L17 19 L36 25 L38 6 L54 18 Z"/>
+  <!-- lớp bờm trong sáng hơn, xoay lệch nửa chùm: bờm có độ dày -->
+  <path fill="url(#st-bom2)" transform="translate(64 66) rotate(13) scale(.8) translate(-64 -66)" d="M64 2 L74 18 L90 6 L92 25 L111 19 L104 37 L124 40 L110 54 L127 66 L110 76 L122 92 L103 94 L106 113 L89 105 L82 124 L70 110 L64 127 L58 110 L46 124 L39 105 L22 113 L25 94 L6 92 L18 76 L1 66 L18 54 L4 40 L24 37 L17 19 L36 25 L38 6 L54 18 Z"/>
+  <!-- tai -->
+  <circle cx="33" cy="38" r="12" fill="url(#st-mat)"/><circle cx="33" cy="39" r="6" fill="#b55f1b"/>
+  <circle cx="95" cy="38" r="12" fill="url(#st-mat)"/><circle cx="95" cy="39" r="6" fill="#b55f1b"/>
+  <!-- mặt to, cằm vuông -->
+  <path d="M64 30 C88 30 100 46 100 68 C100 92 86 108 64 108 C42 108 28 92 28 68 C28 46 40 30 64 30Z" fill="url(#st-mat)"/>
+  <ellipse cx="56" cy="40" rx="22" ry="8" fill="url(#st-bong)"/>
+  <!-- KHÓC TO "OA OA" (chủ dự án 18.10.2026): mày chau mạnh, mắt nhắm tịt, nước mắt phun hai dòng, miệng há to -->
+  <path d="M35 52 Q44 50 55 44" fill="none" stroke="#5e2808" stroke-width="6" stroke-linecap="round"/>
+  <path d="M93 52 Q84 50 73 44" fill="none" stroke="#5e2808" stroke-width="6" stroke-linecap="round"/>
+  <!-- mắt nhắm tịt "> <" (vòm thì đọc ra thành cười) -->
+  <path d="M39 56 L53 62 L39 67" fill="none" stroke="#2a160a" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M89 56 L75 62 L89 67" fill="none" stroke="#2a160a" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- nước mắt PHUN: hai dòng to từ khoé ngoài chảy loe ra -->
+  <path d="M38 62 C30 66 24 76 22 92 C21 100 30 101 31 93 C32 80 36 71 42 65Z" fill="url(#st-nuoc)"/>
+  <path d="M90 62 C98 66 104 76 106 92 C107 100 98 101 97 93 C96 80 92 71 86 65Z" fill="url(#st-nuoc)"/>
+  <ellipse cx="27" cy="88" rx="1.6" ry="4" fill="#fff" opacity=".85"/><ellipse cx="101" cy="88" rx="1.6" ry="4" fill="#fff" opacity=".85"/>
+  <!-- mõm lớn -->
+  <ellipse cx="64" cy="88" rx="23" ry="18" fill="url(#st-mom)"/>
+  <!-- mũi to bóng -->
+  <path d="M54 72 Q64 66 74 72 Q70 81 64 82 Q58 81 54 72Z" fill="#5a2a12"/>
+  <ellipse cx="61" cy="72" rx="4" ry="1.6" fill="#fff" opacity=".55"/>
+  <!-- miệng há to khóc: chữ O méo, rộng đáy, thấy lưỡi -->
+  <path d="M51 89 Q64 82 77 89 Q80 104 64 106 Q48 104 51 89Z" fill="#6b1a1a" stroke="#4a1608" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M55 101 Q64 94 73 101 Q70 105.5 64 105.5 Q58 105.5 55 101Z" fill="#ff8a8a"/>
+  <path d="M55 89 Q64 85 73 89" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+</svg>

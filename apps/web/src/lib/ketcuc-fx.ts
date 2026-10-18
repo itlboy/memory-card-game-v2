@@ -45,14 +45,14 @@ export const TEN_CANH: Record<CanhKetCuc, string> = {
 export const BIEN_THE = {
   thang: ['phao-giay', 'phao-hoa-dem', 'vuong-mien'],
   // 'game-over' (màn TV đen + chữ 8-bit) BỎ 14.10.2026: lệch hẳn nét Kẹo, đen sì che bàn.
-  // 'dap-vo' + 'tan-tro' BỎ 18.10.2026: chủ dự án duyệt cảnh MÈO KHÓC thay hẳn (mockup
+  // 'dap-vo' + 'tan-tro' BỎ 18.10.2026: chủ dự án duyệt cảnh thua có thú khóc (nay SƯ TỬ) thay hẳn (mockup
   // https://claude.ai/artifact/GB9pZQcPh43548oRPi83up) — chữ rơi từng ký tự "hơi chậm".
-  thua: ['meo-khoc']
+  thua: ['su-tu-khoc']
 } as const;
 export type BienThe = (typeof BIEN_THE)[keyof typeof BIEN_THE][number];
 export const TEN_BIEN_THE: Record<BienThe, string> = {
   'phao-giay': 'Pháo giấy', 'phao-hoa-dem': 'Pháo hoa đêm', 'vuong-mien': 'Vương miện',
-  'meo-khoc': 'Mèo khóc'
+  'su-tu-khoc': 'Sư tử khóc'
 };
 
 /** Băm seed thành số 32-bit — bốc biến thể tất định theo ván. */
@@ -77,7 +77,7 @@ export function chonCanh(loai: LoaiKetCuc, o: { kyLuc?: boolean } = {}): CanhKet
  * đó bảng nằm đè, hiệu ứng còn lại (hạt rơi nốt) chạy phía sau nó.
  */
 export const HIEN_BANG_MS: Record<CanhKetCuc, number> = {
-  // Ba cảnh MÈO (18.10.2026) cùng một nhịp: mèo nảy 0,15s, chữ đập 0,35s, mèo cử động
+  // Ba cảnh THÚ (18.10.2026) cùng một nhịp: thú nảy 0,15s, chữ đập 0,35s, thú cử động
   // từ 0,8s — thua/hoà không còn chữ rơi từng ký tự nên ngang mốc thắng.
   thang: 2300, 'ky-luc': 2600, thua: 2300, hoa: 2300
 };
@@ -283,11 +283,11 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
           }));
         sau(450, () => { rungMan(); s.rung(6); });
       } else if (bienThe === 'vuong-mien') {
-        // Vương miện (CSS) cắm xuống đầu mèo ở ~1,0s: rung + bùng sao; rồi mưa đồng xu
+        // Vương miện (CSS) cắm xuống đầu gấu trúc ở ~1,0s: rung + bùng sao; rồi mưa đồng xu
         sau(1000, () => {
           rungMan(); s.rung(6);
-          // Bùng sao ở chỗ vương miện cắm (đầu mèo — cụm giữa màn, đo thật chứ không đoán)
-          const m = document.querySelector('.ketcuc-fx .fx-meo')?.getBoundingClientRect();
+          // Bùng sao ở chỗ vương miện cắm (đầu gấu trúc — cụm giữa màn, đo thật chứ không đoán)
+          const m = document.querySelector('.ketcuc-fx .fx-thu')?.getBoundingClientRect();
           const [x, y] = m && m.width ? s.hat.diem(m.left + m.width / 2, m.top) : [W / 2, H * 0.36];
           s.hat.long(x, y, giam ? 15 : 50, ['#ffd76a', '#ffffff', '#f0a500'], 7);
         });
@@ -308,13 +308,13 @@ export function chayCanh(canh: CanhKetCuc, s: SanKhau, bienThe: BienThe | null =
       break;
     }
     case 'thua':
-      // Mèo khóc (CSS): bàn xám đi, máy rung nhẹ đúng lúc chữ đập, mỗi cú nấc một chạm nhẹ
+      // Sư tử khóc (CSS + SVG): bàn xám đi, máy rung nhẹ đúng lúc chữ đập, mỗi cú nấc một chạm nhẹ
       xam(0.85); s.rung(1);
       sau(350, () => s.rung(2));
-      if (bienThe === 'meo-khoc') for (let t = 900; t < 2400; t += 500) sau(t, () => s.rung(1));
+      if (bienThe === 'su-tu-khoc') for (let t = 900; t < 2400; t += 500) sau(t, () => s.rung(1));
       break;
     case 'hoa':
-      // Hai mèo cụng đầu ba lần (CSS, 0,9s + 0,5s/lần): mỗi lần cụng một chạm
+      // Hai chú chuột cụng đầu ba lần (CSS, 0,9s + 0,5s/lần): mỗi lần cụng một chạm
       sau(350, () => s.rung(2));
       for (let t = 1150; t < 2500; t += 500) sau(t, () => s.rung(1));
       break;

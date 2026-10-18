@@ -505,18 +505,21 @@ class Sfx {
     [784, 988, 1175, 1568].forEach((f) => this.voice(f, { dur: 1, type: 'triangle', gain: 0.035, delay: delay + 0.1 }));
   }
 
-  /** THUA · MÈO KHÓC (18.10.2026): kèn buồn kiểu hài + tiếng "meo~" trượt xuống lúc mèo
-   *  hiện (0,25s), bốn cú nấc khớp `fx-meo-nac` (0,8s + 0,5s/nhịp), giọt nước mắt "tách".
+  /** THUA · SƯ TỬ KHÓC TO (18.10.2026): kèn buồn kiểu hài + hai tiếng "oa… oa…" dài (lên rồi
+   *  trĩu xuống, rung giọng) xen tiếng nấc, giọt nước mắt "tách" theo nhịp `fx-thu-nac` (0,8s + 0,5s).
    *  Thua phải nghe VUI để còn muốn bấm Chơi lại. */
-  meoKhoc(): void {
+  suTuKhoc(): void {
     this.trombone();
-    this.voice(780, { dur: 0.7, type: 'triangle', gain: 0.05, delay: 0.25, slideTo: 420 });
-    for (let k = 0; k < 4; k++) this.voice(560 - k * 20, { dur: 0.13, type: 'triangle', gain: 0.04, delay: 0.85 + k * 0.5, slideTo: 430 - k * 20 });
-    [0.95, 1.45, 1.95, 2.45].forEach((t) => this.voice(1500, { dur: 0.08, type: 'sine', gain: 0.028, delay: t, slideTo: 700 }));
+    ([[0.25, 1], [1.4, 0.9]] as const).forEach(([t, k]) => {
+      this.voice(520 * k + 40, { dur: 0.32, type: 'sawtooth', gain: 0.03, delay: t, slideTo: 760 * k });
+      this.voice(760 * k, { dur: 0.6, type: 'sawtooth', gain: 0.032, delay: t + 0.3, slideTo: 430 * k });
+    });
+    [1.15, 2.3].forEach((t) => this.voice(620, { dur: 0.09, type: 'triangle', gain: 0.038, delay: t, slideTo: 480 }));
+    [0.95, 1.45, 1.95, 2.45].forEach((t) => this.voice(1500, { dur: 0.08, type: 'sine', gain: 0.026, delay: t, slideTo: 700 }));
   }
 
-  /** THẮNG: mèo cười "hí hí" — bốn cặp tiếng ríu khớp bốn nhịp `fx-meo-cuoi` (0,8s + 0,42s). */
-  meoCuoi(): void {
+  /** THẮNG: gấu trúc cười "hí hí" — bốn cặp tiếng ríu khớp bốn nhịp `fx-thu-cuoi` + nốt nhạc bay (0,8s + 0,42s). */
+  gauCuoi(): void {
     for (let k = 0; k < 4; k++) {
       const t = 0.85 + k * 0.42;
       this.voice(820 + k * 30, { dur: 0.11, type: 'triangle', gain: 0.045, delay: t, slideTo: 1250 + k * 30 });
@@ -524,8 +527,8 @@ class Sfx {
     }
   }
 
-  /** HOÀ: hai mèo "meo" một trầm một bổng + tiếng "cộp" mỗi lần cụng đầu (0,9s + 0,5s). */
-  meoHoa(): void {
+  /** HOÀ: hai chú chuột "chít" một trầm một bổng + tiếng "cộp" mỗi lần cụng đầu (0,9s + 0,5s). */
+  chuotHoa(): void {
     for (let k = 0; k < 3; k++) {
       const t = 0.9 + k * 0.5;
       this.voice(600, { dur: 0.18, type: 'triangle', gain: 0.04, delay: t, slideTo: 900 });

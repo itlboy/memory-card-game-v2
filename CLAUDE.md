@@ -39,13 +39,16 @@
   dự án duyệt mockup https://claude.ai/artifact/YQ6amnuWjzsHQeisNB1iC4 và chốt
   THAY bộ cũ). Thắng có ≥3 BIẾN THỂ bốc THEO SEED ván
   (`BIEN_THE`, `bocBienThe`): thắng = pháo giấy · pháo hoa đêm · vương miện;
-  thua CHỈ CÒN MÈO KHÓC (đập vỡ màn + tan thành tro BỎ 18.10.2026; game over TV đen bỏ 14.10.2026).
-  **MÈO (18.10.2026, mockup duyệt https://claude.ai/artifact/GB9pZQcPh43548oRPi83up):** mọi cảnh
-  có mèo Noto 3D ĐỨNG TRÊN chữ, cả cụm `.fx-cum` canh GIỮA màn (chủ dự án: "chữ phải hiện giữa màn
-  hình") — thắng 😹 cười rung, thua 😿 khóc nấc + giọt nước mắt, hoà HAI 😺 cụng đầu (nền phủ tối
-  như thắng/thua, chữ một màu — bỏ hai nửa tím/hồng + 🤝). Một nhịp chung: mèo nảy 0,15s, chữ ĐẬP
-  0,35s (thua/hoà không còn rơi từng ký tự — "hơi chậm"), mèo cử động từ 0,8s; tiếng mèo
-  `sfx.meoCuoi/meoKhoc/meoHoa` khớp mốc đó. Vương miện cắm lên đầu mèo. Pháo hoa đêm còn nền tối nhưng DỊU về 50% đúng lúc bảng kết quả hiện (`fx-diu`, mốc `--hien-bang`). Kỷ lục = biến thể thắng + băng
+  thua CHỈ CÒN SƯ TỬ KHÓC (đập vỡ màn + tan thành tro BỎ 18.10.2026; game over TV đen bỏ 14.10.2026).
+  **THÚ (18.10.2026, mockup duyệt https://claude.ai/artifact/GB9pZQcPh43548oRPi83up):** mọi cảnh
+  có một con thú ĐỨNG TRÊN chữ, cả cụm `.fx-cum` canh GIỮA màn (chủ dự án: "chữ phải hiện giữa màn
+  hình") — thắng GẤU TRÚC mắt mở nhìn thẳng, hé miệng cười, rung người + NỐT NHẠC ♪♫ bay ra (KHÔNG
+  chữ "ha": mỗi nước viết tiếng cười một kiểu — jaja, 哈哈, 555); thua SƯ TỬ khóc to "oa oa" (mắt
+  nhắm "> <", nước mắt phun); hoà HAI CHÚ CHUỘT cụng đầu. Thú là SVG TỰ VẼ `public/img/{gau-truc-cuoi,
+  su-tu-khoc,chuot}.svg` (Noto 3D chỉ có mặt trung tính) — gấu trúc từng bị chê "ác" (quầng mắt xếch,
+  miệng há đỏ), sư tử "nữ tính" (bờm cánh hoa): giữ mắt hiền, bờm nhọn hai lớp, chất 3D bóng.
+  Nền phủ tối + chữ một màu ở cả ba cảnh. Một nhịp chung: thú nảy 0,15s, chữ ĐẬP 0,35s, thú cử
+  động từ 0,8s; tiếng `sfx.gauCuoi/suTuKhoc/chuotHoa` khớp mốc đó. Vương miện cắm lên đầu gấu trúc. Pháo hoa đêm còn nền tối nhưng DỊU về 50% đúng lúc bảng kết quả hiện (`fx-diu`, mốc `--hien-bang`). Kỷ lục = biến thể thắng + băng
   vàng. Thêm biến thể: id ở `BIEN_THE` + nhánh `chayCanh` + template + CSS + tiếng
   `TIENG_BIEN_THE` (test canh đủ). TIẾNG THUA phát Ở KetCucFx theo biến thể,
   KHÔNG ở chỗ gọi (phát cả hai là chồng hai tiếng thua). Canvas hạt PHẢI nằm trên

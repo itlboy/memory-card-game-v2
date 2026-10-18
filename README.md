@@ -3,7 +3,7 @@
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
 Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
 (có nói nhanh bằng 12 câu có sẵn); 72 theme (48 miễn phí + 24 premium), 15 ngôn ngữ,
-tài khoản Google/Apple, 153 danh hiệu, hiệu ứng thắng/thua/hoà có mèo + tiếng + rung.
+tài khoản Google/Apple, 153 danh hiệu, hiệu ứng thắng/thua/hoà có thú tự vẽ (gấu trúc · sư tử · chuột) + tiếng + rung.
 Giao diện Kẹo 3D nổi khối, chế độ sáng / tối (tự theo máy).
 Trang công khai (giới thiệu, có gì mới, hỗ trợ, quyền riêng tư) 15 ngôn ngữ, dựng sẵn cho SEO.
 
@@ -160,7 +160,7 @@ server.js            Web server tĩnh cho bản build production
 | Lưu trữ | Kỷ lục, sao, tuỳ chọn, bộ đếm danh hiệu — localStorage (3.7). Đăng nhập thì đồng bộ lên tài khoản (xem dưới) |
 | Tài khoản | Đăng nhập Google (chỉ server Node, cần `MYSQL_URL` + `GOOGLE_CLIENT_ID`). Điểm, kỷ lục, danh hiệu đi theo người sang máy khác; mở app / quay lại tab / xong ván là đồng bộ, hợp theo MAX. Bảng xếp hạng top 20. Không đăng nhập vẫn chơi như cũ |
 | Danh hiệu | 127 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/115 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
-| Hiệu ứng kết ván | Bốn cảnh: thắng · kỷ lục · thua · hoà (`lib/ketcuc-fx.ts`), mỗi cảnh có MÈO trên chữ giữa màn (😹 thắng · 😿 thua · hai 😺 hoà); thắng có 3 biến thể bốc theo seed (pháo giấy · pháo hoa đêm · vương miện). Đấu máy hiện y như đấu người (đã bỏ cảnh "máy trêu"); dòng an ủi "còn N cặp" chỉ ở ván một mình. Mở danh hiệu: huy hiệu bay vào viên 🏅 (`MoKhoaFx.vue`) |
+| Hiệu ứng kết ván | Bốn cảnh: thắng · kỷ lục · thua · hoà (`lib/ketcuc-fx.ts`), mỗi cảnh có THÚ TỰ VẼ (SVG) trên chữ giữa màn (gấu trúc cười + nốt nhạc · sư tử khóc to · hai chú chuột cụng đầu); thắng có 3 biến thể bốc theo seed (pháo giấy · pháo hoa đêm · vương miện). Đấu máy hiện y như đấu người (đã bỏ cảnh "máy trêu"); dòng an ủi "còn N cặp" chỉ ở ván một mình. Mở danh hiệu: huy hiệu bay vào viên 🏅 (`MoKhoaFx.vue`) |
 | Nói nhanh (online) | 12 câu có sẵn (`QUICK_SAYS`), bong bóng dưới chip người nói, tự dịch theo máy người xem; KHÔNG có chat gõ tự do (App Store 1.2) |
 | App mobile | iOS (TestFlight) + Android (Play internal) build ở GitHub Actions. Back Android lùi từng bước (trang chủ Back hai lần mới thoát); ngôn ngữ đồng bộ hai chiều với Cài đặt máy |
 | Rung | Theo số nhịp, tăng theo chuỗi ghép đúng (`lib/rung.ts`). Android web + app iOS (Haptics); web trên iPhone không rung được nên công tắc tự ẩn |
@@ -710,8 +710,9 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
   thiết kế chung ba vai: thạch màu · thạch trắng · khay (`styles/skins/keo-thach.css`).
 - Người chơi chỉ còn Kẹo, chọn **Tự động (theo máy) · Sáng · Tối** trong menu; Kẹo tối là trời
   đêm có trăng. Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở trang Debug.
-- Cảnh kết ván **mèo**: thắng 😹 cười, thua 😿 khóc (thay đập vỡ màn + tan thành tro), hoà hai 😺
-  cụng đầu; mèo trên chữ, cả cụm giữa màn, có tiếng mèo.
+- Cảnh kết ván có **thú tự vẽ** (SVG 3D bóng): thắng gấu trúc cười + nốt nhạc ♪♫, thua sư tử khóc to
+  "oa oa" (thay đập vỡ màn + tan thành tro), hoà hai chú chuột cụng đầu; thú trên chữ, cả cụm giữa màn.
+- Sửa tiếng bấm kêu hai lần khi giữ tay lâu (mọi nút); nút trắng dùng font Kẹo như nút màu.
 - Điểm vẽ bằng **đồng xu** 3D; ngôi sao chỉ còn chấm màn Chiến dịch (HUD bỏ con số, sao sắp
   mất nhấp nháy). Chip người chơi không vỡ với điểm hàng nghìn (`numGon`, `pnpm do:chip`).
 - Chọn theme: 6 cột ô nhỏ 4 icon, không tên — iPhone 14 thấy 36 theme một lần.

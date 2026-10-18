@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Gấu trúc CƯỜI (cảnh thắng) — tự vẽ 18.10.2026: quầng mắt nghiêng nhẹ, mắt mở nhìn thẳng, miệng hé cười -->
+  <defs>
+    <radialGradient id="gt-dau" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f3f5fa"/><stop offset=".85" stop-color="#d4d9e6"/><stop offset="1" stop-color="#aab2c5"/></radialGradient>
+    <radialGradient id="gt-den" cx=".35" cy=".28" r=".9"><stop offset="0" stop-color="#5d6476"/><stop offset=".6" stop-color="#262a35"/><stop offset="1" stop-color="#101219"/></radialGradient>
+    <linearGradient id="gt-bong" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="gt-mieng" cx=".5" cy=".3" r=".8"><stop offset="0" stop-color="#e2556d"/><stop offset="1" stop-color="#9e2440"/></radialGradient>
+  </defs>
+  <!-- tai -->
+  <circle cx="27" cy="31" r="17" fill="url(#gt-den)"/><ellipse cx="22" cy="25" rx="6" ry="4" fill="#fff" opacity=".25"/>
+  <circle cx="101" cy="31" r="17" fill="url(#gt-den)"/><ellipse cx="96" cy="25" rx="6" ry="4" fill="#fff" opacity=".25"/>
+  <!-- đầu -->
+  <ellipse cx="64" cy="70" rx="52" ry="47" fill="url(#gt-dau)"/>
+  <ellipse cx="54" cy="36" rx="26" ry="11" fill="url(#gt-bong)"/>
+  <!-- quầng mắt gần đứng, nghiêng nhẹ (rủ nhiều thì trông như cúi mặt) -->
+  <ellipse cx="43" cy="64" rx="12" ry="14.5" fill="url(#gt-den)" transform="rotate(28 43 64)"/>
+  <ellipse cx="85" cy="64" rx="12" ry="14.5" fill="url(#gt-den)" transform="rotate(-28 85 64)"/>
+  <!-- mắt MỞ nhìn thẳng: tròng trắng mảnh + con ngươi giữa + hai đốm sáng -->
+  <circle cx="44" cy="63" r="7" fill="#fff"/><circle cx="44" cy="63.5" r="5.2" fill="#14161d"/>
+  <circle cx="42" cy="61.3" r="2" fill="#fff"/><circle cx="46.2" cy="65.6" r=".9" fill="#fff" opacity=".85"/>
+  <circle cx="84" cy="63" r="7" fill="#fff"/><circle cx="84" cy="63.5" r="5.2" fill="#14161d"/>
+  <circle cx="82" cy="61.3" r="2" fill="#fff"/><circle cx="86.2" cy="65.6" r=".9" fill="#fff" opacity=".85"/>
+  <!-- má hồng -->
+  <ellipse cx="29" cy="88" rx="9" ry="6" fill="#ff8fab" opacity=".6"/>
+  <ellipse cx="99" cy="88" rx="9" ry="6" fill="#ff8fab" opacity=".6"/>
+  <!-- mõm trắng nổi -->
+  <ellipse cx="64" cy="88" rx="20" ry="15" fill="#fff"/>
+  <!-- mũi bóng -->
+  <path d="M57 79 Q64 74 71 79 Q69 85 64 86 Q59 85 57 79Z" fill="url(#gt-den)"/>
+  <ellipse cx="62" cy="78.5" rx="3" ry="1.3" fill="#fff" opacity=".7"/>
+  <!-- cười HÉ MIỆNG một chút (18.10.2026: há to trông "ác", khép hẳn thì thiếu vui) -->
+  <path d="M64 86 V89" stroke="#262a35" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M59.5 89.5 Q64 88.6 68.5 89.5 Q67.8 94.2 64 94.2 Q60.2 94.2 59.5 89.5Z" fill="url(#gt-mieng)" stroke="#262a35" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M61.3 92.8 Q64 91.4 66.7 92.8 Q65.6 93.9 64 93.9 Q62.4 93.9 61.3 92.8Z" fill="#ff9db0"/>
+</svg>
