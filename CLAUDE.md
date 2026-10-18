@@ -791,7 +791,9 @@
     mã 1012 → đẩy MySQL. DỰNG LẠI: `chayTiepSauKhoiDong` dời mọi mốc + hạn giữ chỗ đúng bằng khoảng
     tắt. Chỉ Node gọi; bản Cloudflare không. `pnpm smoke:deploy`-kiểu: `tools/smoke-deploy.mjs` (CI có
     MySQL, tắt 5 giây giữa ván — đỏ nếu lượt bị trừ / mất danh tính / không nhận 1012).
-  · ẢNH CHỈ DỰNG khi code server đổi — xem đường lọc `paths` ở `docker.yml`.
+  · ẢNH CHỈ DỰNG khi code server đổi (`paths` ở `docker.yml` KHÔNG có `apps/web`) — web của MỌI tên miền
+    chơi do Worker phục vụ: route `flipmatch.hello314.com/*` + `thebai.hello314.com/*` → Worker, `/api/*` `/ws/*`
+    route rỗng về k8s (thêm 18.10.2026, y như cozypi). Sửa giao diện = `pnpm release`, KHÔNG khởi động lại server.
   · Client hiện ping/chấm mạng qua `pingHien`/`netHien` (giữ ổn định), không đọc số thô — số thô về
     `null` mỗi lần nối lại nên ping "nháy liên tục" (chủ dự án báo).
 - **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
@@ -848,7 +850,8 @@
   xoá route `/api/*` hay `/ws/*` là request rơi LẶNG LẼ vào đó — phòng tách hai nơi, tài khoản
   biến mất, không lỗi nào hiện. `pnpm smoke:ota` canh (`/api/auth/config` phải 200 = Node).
   Thêm đường dẫn động mới ở server Node là phải thêm route không-Worker. File không đuôi cần kiểu
-  riêng thì khai `_headers` (vd. apple-app-site-association). Các tên miền khác vẫn đi k8s.
+  riêng thì khai `_headers` (vd. apple-app-site-association). Từ 18.10.2026 `flipmatch.hello314.com` + `thebai.hello314.com`
+  cũng chia y như vậy (route ở zone `hello314.com`); chỉ `thebai-server.hello314.com` (host chỉ-API cũ) còn đi thẳng k8s.
 - **STUDIO "COZY PI", TÊN CHÍNH LÀ `flipmatch.cozypi.com` (13.10.2026)** — `cozypi.com` dùng
   chung cho mọi app của studio (wildcard `*.cozypi.com` → tunnel; app mới chỉ thêm host
   vào ingress), email `support@cozypi.com`. `flipmatch.hello314.com` và

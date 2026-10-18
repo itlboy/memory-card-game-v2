@@ -10,12 +10,14 @@ name: Ảnh Docker (server dự phòng)
 on:
   push:
     branches: [main]
-    # Chỉ chạy khi thứ ẢNH THẬT SỰ CHỨA có đổi. Không lọc thì mỗi lần sửa README
-    # là một lần build 5 phút vô ích.
+    # CHỈ DỰNG ẢNH KHI CODE SERVER ĐỔI (18.10.2026). Mỗi ảnh mới = Keel thay pod = phòng online đứt
+    # vài giây. Web + OTA của MỌI tên miền (flipmatch.cozypi.com, flipmatch.hello314.com,
+    # thebai.hello314.com) nay do Cloudflare Worker phục vụ — chỉ /api/* /ws/* về pod này — nên sửa
+    # giao diện KHÔNG được làm khởi động lại server. `apps/web` cố ý KHÔNG có trong danh sách: web
+    # trong ảnh chỉ còn phục vụ thebai-server.hello314.com (host chỉ-API cũ), cũ đi cũng không sao.
     paths:
       - 'apps/node-server/**'
       - 'apps/server/src/**'
-      - 'apps/web/**'
       - 'packages/engine/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
