@@ -147,7 +147,9 @@ watch(nextLevel, scrollToActive);
   display: flex; flex-direction: column; gap: 12px;
   overflow-y: auto; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;   /* cuộn hết bản đồ thì KHÔNG kéo theo cả trang */
-  padding: 2px;
+  /* Đệm NGANG thật cho viền/bóng của chặng đang chơi (Neon/Gỗ/Đêm Sao vẽ ra ngoài mép 4–5px, khung
+     cuộn cắt phẳng hai bên trên iPhone — do:safari 18.10.2026); margin âm bù để thẻ không hẹp đi. */
+  padding: 2px 8px; margin-inline: -6px;
 }
 
 /* ---------- thẻ một chặng ---------- */
