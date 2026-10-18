@@ -10,6 +10,7 @@ import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
 import { t, td } from '@/lib/i18n';
+import { SERVER_URL } from '@/lib/native';
 
 /**
  * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
@@ -32,8 +33,7 @@ import { t, td } from '@/lib/i18n';
  */
 const BAO_DEN_LUOT = false;
 
-const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined)
-  ?? (import.meta.env.DEV ? 'http://localhost:8787' : location.origin);
+const SERVER = SERVER_URL;
 const WS_SERVER = SERVER.replace(/^http/, 'ws');
 
 type Phase = 'idle' | 'connecting' | 'lobby' | 'playing' | 'ended' | 'error';

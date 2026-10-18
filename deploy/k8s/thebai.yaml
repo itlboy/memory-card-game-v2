@@ -205,3 +205,16 @@ spec:
                 name: thebai-server
                 port:
                   number: 80
+    # SERVER RIÊNG CỦA GAME (18.10.2026, chủ dự án: "nên làm server riêng từng game"): web/app gọi
+    # API + WebSocket qua tên này; tên game (flipmatch.cozypi.com) chỉ còn là web (Worker). Game sau
+    # theo mẫu `<game>-api.cozypi.com`. Thêm bằng `kubectl patch` để khỏi áp lại cả Deployment.
+    - host: flipmatch-api.cozypi.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: thebai-server
+                port:
+                  number: 80

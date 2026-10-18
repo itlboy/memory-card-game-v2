@@ -35,7 +35,7 @@ const SRC = join(web, 'dist-ota');
 rmSync(SRC, { recursive: true, force: true });
 const r = spawnSync('npx', ['vite', 'build', '--outDir', 'dist-ota', '--emptyOutDir', '--logLevel', 'warn'], {
   cwd: web, stdio: 'inherit',
-  env: { ...process.env, OTA_ID: id, VITE_SERVER_URL: process.env.VITE_SERVER_URL ?? 'https://flipmatch.cozypi.com' }
+  env: { ...process.env, OTA_ID: id, VITE_SERVER_URL: process.env.VITE_SERVER_URL ?? 'https://flipmatch-api.cozypi.com' }
 });
 if (r.status) process.exit(r.status ?? 1);
 

@@ -9,9 +9,9 @@
     "preview": "vite preview --port 3001",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
-    "build:app": "VITE_SERVER_URL=https://flipmatch.cozypi.com vite build && cap sync",
-    "build:ios": "VITE_SERVER_URL=https://flipmatch.cozypi.com vite build && cap sync ios",
-    "build:android": "VITE_SERVER_URL=https://flipmatch.cozypi.com vite build && cap sync android",
+    "build:app": "VITE_SERVER_URL=https://flipmatch-api.cozypi.com vite build && cap sync",
+    "build:ios": "VITE_SERVER_URL=https://flipmatch-api.cozypi.com vite build && cap sync ios",
+    "build:android": "VITE_SERVER_URL=https://flipmatch-api.cozypi.com vite build && cap sync android",
     "ios": "pnpm build:ios && cap open ios",
     "android": "pnpm build:android && cap open android"
   },

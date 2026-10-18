@@ -1,7 +1,7 @@
 import { ref, shallowRef } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
-import { laApp, nenApp } from './native';
+import { laApp, nenApp, SERVER_URL } from './native';
 
 /**
  * TÀI KHOẢN phía client — đăng nhập Google hoặc Apple, hồ sơ, gửi kết quả ván.
@@ -53,8 +53,7 @@ export interface VanBao {
 
 export const AUTH_KEY = 'mm.auth';
 
-const SERVER = (import.meta.env.VITE_SERVER_URL as string | undefined)
-  ?? (import.meta.env.DEV ? 'http://localhost:8787' : (typeof location === 'undefined' ? '' : location.origin));
+const SERVER = SERVER_URL;
 
 /** Server này có tài khoản không (dò lúc mở app). */
 export const san = ref(false);

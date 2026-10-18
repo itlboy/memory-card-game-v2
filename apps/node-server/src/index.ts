@@ -295,6 +295,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     return;
   }
 
+  // Tên miền server riêng (`<game>-api.*`) CHỈ là API: không phát web — web ở Worker tên game.
+  if (/-api\./.test(url.hostname)) { json(res, { error: 'Không có đường này' }, 404); return; }
   void traFileTinh(url, res);
 });
 

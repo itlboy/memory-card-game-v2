@@ -41,7 +41,7 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 |---|---|---|
 | **Tên app**: Flip Match (en) / Lật Thẻ (vi) | `tb.thuongHieu` + `chung.tieuDeTrang` (từ điển) | iOS `ios/App/App/*.lproj/InfoPlist.strings` · trang (`brand` chỉ ở vi) · store (Name) · `index.html` og (tĩnh, tiếng Việt) |
 | **Email hỗ trợ** `support@cozypi.com` | Cloudflare Email Routing (catch-all → Gmail) | trang (bọc `<!--email_off-->`) · privacy · store (App Review contact) · repo `itlboy/cozypi-site` |
-| **Tên miền chơi** `flipmatch.cozypi.com` (+ `flipmatch.hello314.com`, `thebai.hello314.com`, dự phòng `thebai2.hello314.com`) | `deploy/k8s/thebai.yaml`, Cloudflare | `tools/dung-trang-cong-khai.mjs` (`SITE`) · `apps/web/src/lib/native.ts` (`SITE_URL`, app gọi server) · store URLs · CLAUDE.md |
+| **Tên miền** — xem bảng **TÊN MIỀN** ngay dưới | `deploy/k8s/thebai.yaml`, Cloudflare Workers Routes | `tools/dung-trang-cong-khai.mjs` (`SITE`) · `apps/web/src/lib/native.ts` (`SITE_URL`, `SERVER_URL`) · `apps/web/package.json` (`build:*`) · `tools/dong-goi-ota.mjs` · store URLs · CLAUDE.md |
 | **Trang công khai** `/about.html` `/changes.html` `/support.html` `/privacy.html` (+ `/<mã>/…`) | `apps/web/public/*.html` | store (Marketing/Support/Privacy URL) · thẻ Flip Match ở `cozypi.com` · xem **docs/trang-cong-khai.md** |
 | **App Store ID 6822105774**, bundle iOS `com.hello314.flipmatch` | App Store Connect | `site.js` `STORE.ios` · `tools/asc-*.mjs` · server `APPLE_BUNDLE_ID` |
 | **Google Play** `com.cozypi.flipmatch` | Play Console | `site.js` `STORE.android` · `tools/play-store.mjs` · `android/app/build.gradle` |
@@ -85,3 +85,21 @@ iPhone. Lỗi lớp GPU (ô trắng khi thiếu bộ nhớ) thì không công c�
 - **`docs/store-listing.md`** — chữ trang App Store / Google Play 15 ngôn ngữ (công cụ `tools/asc-store.mjs`, `tools/play-store.mjs` đọc thẳng file này).
 - **`docs/mobile-ci.md`** — build + ký + phát hành app iOS/Android qua GitHub Actions.
 - **`README.md`** — giới thiệu nhanh + nhật ký thay đổi kỹ thuật.
+
+
+## TÊN MIỀN (tổng hợp 18.10.2026)
+
+Mẫu cho MỌI game của studio: **`<game>.cozypi.com` = web** (Cloudflare Worker) · **`<game>-api.cozypi.com` = server game riêng** (k8s). DNS wildcard `*.cozypi.com` đã trỏ tunnel → k8s; thêm game mới chỉ cần thêm host vào Ingress.
+
+| Tên miền | Vai | Ai phục vụ | Ai còn dùng | Số phận |
+|---|---|---|---|---|
+| `flipmatch.cozypi.com` | **WEB chính** + trang công khai + `/ota/*` | Worker `memory-card-game-v2` (route `/*`) | trình duyệt, link mời, app tải OTA (`SITE_URL`) | giữ mãi |
+| `flipmatch-api.cozypi.com` | **SERVER GAME chính** (`/api`, `/ws`, `/health`; đường khác 404) | k8s `thebai-server` | web 3 tên dưới + app build mới + gói OTA từ 18.10 (`SERVER_URL`) | giữ mãi |
+| `flipmatch.cozypi.com/api` `/ws` | server cũ trên tên web | route không-Worker → k8s | app/gói OTA trước 18.10 | gỡ khi không còn app cũ (theo dõi log) |
+| `flipmatch.hello314.com` | web cũ (localStorage người chơi cũ) | Worker; `/api` `/ws` → k8s | người chơi cũ, app build ≤32 | giữ, KHÔNG redirect |
+| `thebai.hello314.com` | web cũ hơn nữa | Worker; `/api` `/ws` → k8s | người chơi cũ, app trước 13.10 | giữ, KHÔNG redirect |
+| `thebai-server.hello314.com` | host chỉ-API rất cũ | k8s thẳng | (gần như không ai) | ứng viên gỡ |
+| `thebai2.hello314.com` | dự phòng TOÀN BỘ (web + Durable Object) | Worker, server riêng của nó | chuyển tay khi k8s chết | giữ |
+| `cozypi.com` | trang studio | repo `itlboy/cozypi-site` | — | giữ |
+
+Không redirect tên cũ: localStorage (điểm, kỷ lục người chưa đăng nhập) gắn theo origin. Web chạy trên một trong ba tên web k8s thì gọi `flipmatch-api`; chạy nơi khác (thebai2, localhost) thì gọi chính origin.

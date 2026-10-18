@@ -12,6 +12,11 @@
 - `docs/i18n-style.md` (thuật ngữ dịch) · `docs/store-listing.md` (chữ store 15 ngôn ngữ) ·
   `docs/mobile-ci.md` (ra bản app). Trang studio `cozypi.com` ở repo riêng `itlboy/cozypi-site`.
 
+- **TÊN MIỀN: bảng TÊN MIỀN ở cuối `docs/ban-do.md`** (18.10.2026). Mẫu: `<game>.cozypi.com` = web
+  (Worker), `<game>-api.cozypi.com` = server game riêng (k8s, chỉ API — đường khác 404). Client
+  chọn server ở MỘT chỗ: `SERVER_URL` (`lib/native.ts`). Deploy web (`pnpm release`) KHÔNG khởi động
+  lại server API; pod chỉ thay khi code server đổi.
+
 ## Ràng buộc thiết kế BẮT BUỘC
 
 - **KHÔNG SCROLL trên mobile**: mọi màn hình (wizard chọn chế độ/lưới/theme,
