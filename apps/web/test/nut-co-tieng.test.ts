@@ -82,6 +82,18 @@ describe('mọi nút đều có tiếng', () => {
     expect(oscs[1]!, 'nốt sau phải cao hơn nốt trước').toBeGreaterThan(oscs[0]!);
   });
 
+  it('GIỮ TAY LÂU rồi mới nhả: nút có tiếng riêng lúc click vẫn chỉ MỘT tiếng (lỗi 18.10.2026)', async () => {
+    const { sfx, oscs } = await nap();
+    sfx.ghiMocCham();                          // pointerdown
+    await vi.advanceTimersByTimeAsync(300);    // giữ tay 300ms
+    expect(oscs.length, 'chưa nhả tay mà đã kêu').toBe(0);
+    sfx.ready();                               // click: handler phát tiếng riêng
+    sfx.clickMacDinh();                        // bộ bắt click ở capture (thứ tự không quan trọng)
+    const sauTiengRieng = oscs.length;
+    await vi.advanceTimersByTimeAsync(200);
+    expect(oscs.length, 'tiếng mặc định kêu chồng lên tiếng riêng').toBe(sauTiengRieng);
+  });
+
   it('nút CÓ tiếng riêng thì KHÔNG kêu hai lần', async () => {
     const { sfx, oscs } = await nap();
     sfx.clickMacDinh();
@@ -102,7 +114,8 @@ describe('mọi nút đều có tiếng', () => {
   it('App.vue bắt ở PHA CAPTURE của document, không gắn tay từng nút', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8');
     expect(src, 'thiếu bộ bắt chung thì mỗi nút mới lại là một nút im lặng')
-      .toMatch(/addEventListener\('pointerdown',\s*chamNut,\s*\{\s*capture:\s*true/);
+      .toMatch(/addEventListener\('click',\s*chamNut,\s*\{\s*capture:\s*true/);
+    expect(src, 'chạm xuống phải ghi mốc (tiếng riêng phát lúc chạm vẫn được tính)').toMatch(/addEventListener\('pointerdown'[^\n]*ghiMocCham/);
     expect(src, 'phải phủ cả bàn phím (Enter/Space trên nút)').toContain("e.key === 'Enter'");
     // Nút bị vô hiệu hoá không được kêu — kêu là hứa hẹn một hành động không xảy ra.
     expect(src).toContain('el.disabled');

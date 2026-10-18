@@ -408,18 +408,24 @@ onMounted(() => {
    * `data-nosfx` để một nút chủ đích không kêu (nút gạt âm lượng ở mức TẮT).
    */
   const KHONG_KEU = '[data-nosfx]';
-  const chamNut = (e: Event): void => {
+  const nutKeuDuoc = (e: Event): boolean => {
     const el = (e.target as Element | null)?.closest?.('button, [role="button"], a[href]');
-    if (!el || el.closest(KHONG_KEU)) return;
-    if (el instanceof HTMLButtonElement && el.disabled) return;
-    if (el.getAttribute('aria-disabled') === 'true') return;
-    sfx.clickMacDinh();
+    if (!el || el.closest(KHONG_KEU)) return false;
+    if (el instanceof HTMLButtonElement && el.disabled) return false;
+    return el.getAttribute('aria-disabled') !== 'true';
   };
-  document.addEventListener('pointerdown', chamNut, { capture: true, passive: true });
-  // Bàn phím: pointerdown không nổ, mà Enter/Space trên nút vẫn là "bấm nút".
+  /*
+   * HAI NHỊP (18.10.2026, sửa lỗi "bấm Chơi nhanh kêu hai tiếng"): chạm xuống chỉ GHI MỐC,
+   * còn quyết kêu hay không thì đợi `click` — lúc đó handler của nút đã chạy và tiếng riêng
+   * (nếu có) đã phát. Quyết ngay từ pointerdown thì giữ tay lâu là tiếng mặc định kêu trước.
+   */
+  document.addEventListener('pointerdown', (e) => { if (nutKeuDuoc(e)) sfx.ghiMocCham(); }, { capture: true, passive: true });
+  // Bàn phím: Enter/Space trên nút cũng ra `click`; ghi mốc lúc phím xuống cho cùng một luật.
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') chamNut(e);
+    if ((e.key === 'Enter' || e.key === ' ') && nutKeuDuoc(e)) sfx.ghiMocCham();
   }, { capture: true, passive: true });
+  const chamNut = (e: Event): void => { if (nutKeuDuoc(e)) sfx.clickMacDinh(); };
+  document.addEventListener('click', chamNut, { capture: true, passive: true });
 
   // Quay lại app: thử chạy lại ngay (có khi được), đồng thời vũ trang cử chỉ để
   // lần chạm kế tiếp chắc chắn mở khoá được.

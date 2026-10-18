@@ -122,9 +122,11 @@
 - Cỡ chữ wizard dùng chung `.option strong` / `.option small` ở wizard.css.
   KHÔNG ghi đè cỡ chữ theo dáng ô — đã gây chuyện bước 1 chữ 18px trong khi các
   bước sau 22,7px.
-- **MỌI NÚT ĐỀU CÓ TIẾNG, gắn ở MỘT chỗ.** `App.vue` bắt `pointerdown` ở PHA
-  CAPTURE của document rồi gọi `sfx.clickMacDinh()`; nút nào có tiếng riêng thì
-  hàm đó tự im (chờ `CHO_MS` 90ms, thấy `mocPhat` đã nhích là bỏ). Đừng đi gắn
+- **MỌI NÚT ĐỀU CÓ TIẾNG, gắn ở MỘT chỗ.** `App.vue` bắt ở PHA CAPTURE của document,
+  HAI NHỊP: `pointerdown` chỉ GHI MỐC (`sfx.ghiMocCham()`), `click` mới gọi
+  `sfx.clickMacDinh()` — chờ `CHO_MS` 40ms, thấy `mocPhat` đã nhích kể từ lúc chạm là bỏ
+  (nút đã tự kêu). ĐỪNG quyết từ `pointerdown`: giữ tay quá khoảng chờ là tiếng mặc định
+  kêu TRƯỚC rồi tiếng riêng kêu lúc nhả tay → HAI tiếng (lỗi thật 18.10.2026, "Chơi nhanh"). Đừng đi gắn
   `sfx` vào từng handler: app đã hơn 60 nút và mỗi nút thêm sau sẽ lại là một
   nút im lặng — đúng lỗi "bấm thoát bàn không kêu gì" người chơi đã báo. Muốn
   một nút chủ đích không kêu thì đặt `data-nosfx`. Có

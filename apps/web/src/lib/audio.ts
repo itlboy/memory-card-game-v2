@@ -30,13 +30,15 @@ const DEFAULT_VOLUME = 2.6;
 const MAX_VOLUME = 8;
 const VOLUME_KEY = 'mm.volume';
 /**
- * Khoảng chờ trước khi phát tiếng bấm mặc định (ms).
+ * Khoảng chờ trước khi phát tiếng bấm mặc định (ms), tính TỪ LÚC `click`.
  *
- * 90ms: đủ cho handler `click` của Vue chạy xong và xếp lịch tiếng riêng của
- * nút (pointerdown → click trên iOS quãng 30-60ms), mà vẫn dưới ngưỡng ~120ms
- * tai nghe ra là "trễ". Ngắn hơn là nút có tiếng riêng kêu hai lần.
+ * Bản cũ đếm 90ms từ `pointerdown` — giữ tay quá 90ms (thường gặp trên điện thoại,
+ * nhất là nút thạch lún xuống khi nhấn) là tiếng mặc định kêu TRƯỚC, rồi lúc nhả tay
+ * handler `click` phát tiếng riêng của nút → hai tiếng (chủ dự án báo 18.10.2026, nút
+ * "Chơi nhanh"). Nay quyết sau `click`: handler đồng bộ đã chạy xong, 40ms chỉ để đón
+ * tiếng riêng phát trễ (sau một `await` ngắn).
  */
-const CHO_MS = 90;
+const CHO_MS = 40;
 
 function initialVolume(): number {
   try {
@@ -331,9 +333,16 @@ class Sfx {
    * đó và `mocPhat` nhích lên, ta im. Không đảo lại thành "phát trước rồi huỷ":
    * WebAudio đã xếp lịch thì không rút lại được.
    */
+  /** Mốc tiếng lúc NGÓN TAY CHẠM XUỐNG (pointerdown/keydown) — `clickMacDinh` so với mốc
+   *  này nên tiếng riêng phát lúc chạm (vd. lá bài) cũng được tính là "nút đã tự kêu". */
+  private mocCham: number | null = null;
+  ghiMocCham(): void { this.mocCham = this.mocPhat; }
+
+  /** Gọi ở `click` (sau khi nút đã xử lý cú bấm): nút chưa tự kêu thì kêu "tách". */
   clickMacDinh(): void {
     if (!this.enabled) return;
-    const truoc = this.mocPhat;
+    const truoc = this.mocCham ?? this.mocPhat;
+    this.mocCham = null;
     setTimeout(() => { if (this.mocPhat === truoc) this.click(); }, CHO_MS);
   }
 
