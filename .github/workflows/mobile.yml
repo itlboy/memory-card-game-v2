@@ -70,9 +70,13 @@ jobs:
           cache: gradle
       - name: Số phiên bản
         id: ver
+        # ANDROID: tên phiên bản = <version>.<số build> (vd. 1.3.0.362) — chủ dự án 19.10.2026: "mỗi bản cập
+        # nhật trên CH Play một phiên bản khác nhau". Chỉ Android: iOS (MARKETING_VERSION) Apple chỉ nhận
+        # tối đa 3 số, TestFlight vốn phân biệt bằng build. `soSanhBan` (lib/ota.ts, minNative) đọc được 4 số.
         run: |
-          echo "name=$(node -p "require('./apps/web/package.json').version")" >> "$GITHUB_OUTPUT"
-          echo "code=$(( SO_BAN + BU_SO_BAN ))" >> "$GITHUB_OUTPUT"
+          code=$(( SO_BAN + BU_SO_BAN ))
+          echo "name=$(node -p "require('./apps/web/package.json').version").$code" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
 
       - name: APK debug (cài thử)
         working-directory: apps/web/android

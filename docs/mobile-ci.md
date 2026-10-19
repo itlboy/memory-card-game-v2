@@ -138,3 +138,13 @@ không hỏi khai báo mã hoá mỗi bản.
 - Máy local KHÔNG build native được: đẩy `develop` để CI biên dịch thử cả hai nền
   (build thường, không lên store) TRƯỚC khi chạy phát hành.
 
+
+
+## Số phiên bản (19.10.2026)
+
+- **Android**: tên phiên bản = `<version>.<số build>` (vd. `1.3.0.362`) — mỗi bản lên CH Play hiện một số
+  khác nhau (chủ dự án yêu cầu). Mã phiên bản (versionCode) vẫn là số build.
+- **iOS**: giữ `<version>` (3 số). Apple từ chối 4 số; đổi số mỗi build thì mỗi lần là một "phiên bản"
+  mới trong App Store Connect (bản đang chờ duyệt không nhận build đó, nộp duyệt phải tạo lại). TestFlight
+  đã phân biệt bằng số build.
+- `soSanhBan` (lib/ota.ts, so `minNative`) đọc được cả 4 số: `1.3.0.362` ≥ `1.3.0`.
