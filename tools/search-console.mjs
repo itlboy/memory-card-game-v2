@@ -19,7 +19,11 @@ import { createSign } from 'node:crypto';
 
 const MIEN = 'cozypi.com';
 const SITE = `sc-domain:${MIEN}`;
-const SITEMAPS = ['https://flipmatch.cozypi.com/sitemap.xml', 'https://cozypi.com/sitemap.xml'];
+const SITEMAPS = [
+  'https://flipmatch.cozypi.com/sitemap.xml',
+  'https://cozypi.com/sitemap.xml',
+  'https://safe.cozypi.com/sitemap.xml' // Cozy Safe (repo cozy-pi/cozysafe, website/build.py)
+];
 const SA = JSON.parse(process.env.SA_JSON ?? '{}');
 if (!SA.client_email) { console.error('Thiếu SA_JSON (khoá tài khoản dịch vụ)'); process.exit(2); }
 
