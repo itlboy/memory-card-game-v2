@@ -24,6 +24,8 @@ const props = defineProps<{
   tenTk?: string | null;
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
   danhHieu?: { co: number; tong: number };
+  /** Đang trong ván (offline hay online): lá bài trên viên danh hiệu đứng yên. */
+  dungYen?: boolean;
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
 }>();
@@ -205,7 +207,9 @@ watch(() => props.totalScore, (to, from) => {
       :aria-label="`${danhHieu.co}/${danhHieu.tong} — ${t('tb.danhHieuAria', { co: danhHieu.co, tong: danhHieu.tong })}`"
       @click="$emit('danh-hieu')"
     >
-      <span aria-hidden="true">🏅</span><b>{{ danhHieu.co }}/{{ danhHieu.tong }}</b>
+      <!-- Lá bài nhỏ thay huy chương 🏅 (chủ dự án duyệt 19.10.2026, kiểu "vệt sáng quét"): đúng mặt lưng
+           của game + sao 3D. Chỉ động ngoài ván (`dungYen`) — trong ván đừng kéo mắt khỏi bàn thẻ. -->
+      <span class="the-mini" :class="{ dong: !dungYen }" aria-hidden="true"><i /></span><b>{{ danhHieu.co }}/{{ danhHieu.tong }}</b>
     </button>
     <div ref="menuEl" class="menu-wrap">
       <button
@@ -465,7 +469,23 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   background: var(--nhan-nen); color: var(--nhan-chu);
   font: inherit; cursor: pointer;
 }
-.dh span { font-size: 14px; line-height: 1; }
+/* Lá bài nhỏ trên viên danh hiệu: mặt lưng xanh viền giấy trắng + sao 3D, nghiêng nhẹ. */
+.the-mini {
+  position: relative; flex: none; width: 15px; height: 20px; margin-block: -2px; border-radius: 3.5px;
+  background: linear-gradient(#3d63c9, #1a3172); border: 1.5px solid #fdfdfb; box-shadow: 0 1.5px 0 rgba(0, 0, 0, .28);
+  transform: rotate(-10deg); overflow: hidden;
+}
+.the-mini i { position: absolute; inset: 3px 1px; background: var(--sao-3d, url('/img/sao-3d.svg')) center / contain no-repeat; }
+/* Vệt sáng chéo quét qua mỗi 3,5 giây + lá nhún một nhịp — bắt mắt mà không nhấp nháy liên tục */
+.the-mini.dong { animation: the-nhun 3.5s ease-in-out infinite; }
+.the-mini.dong::after {
+  content: ''; position: absolute; inset: -30% -60%;
+  background: linear-gradient(110deg, transparent 42%, rgba(255, 255, 255, .9) 50%, transparent 58%);
+  transform: translateX(-70%); animation: the-quet 3.5s ease-in-out infinite;
+}
+@keyframes the-quet { 0%, 62% { transform: translateX(-70%); } 100% { transform: translateX(70%); } }
+@keyframes the-nhun { 0%, 60%, 100% { transform: rotate(-10deg); } 75% { transform: rotate(-4deg) scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .the-mini.dong, .the-mini.dong::after { animation: none; } }
 .dh b { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; font-size: var(--text-md); }
 /* Viên cao ~30px; vùng chạm phải đủ 44px (NF-07) */
 .dh::after { content: ''; position: absolute; inset: -7px -3px; }
