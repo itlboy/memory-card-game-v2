@@ -248,8 +248,19 @@ async function traFileTinh(url: URL, res: ServerResponse): Promise<void> {
   }
 }
 
+/**
+ * Đọc URL của request — KHÔNG ĐƯỢC NÉM. `new URL()` ném với Host / đường dẫn dị dạng, và ném trong
+ * handler của http.Server là SẬP CẢ TIẾN TRÌNH: mọi phòng online đứt (bắt được 19.10.2026 khi công cụ
+ * đo gửi request lạ vào server thử). Hỏng thì trả null → 400 / huỷ socket.
+ */
+function docUrl(req: IncomingMessage): URL | null {
+  try { return new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`); } catch { /* Host lạ */ }
+  try { return new URL(req.url ?? '/', 'http://localhost'); } catch { return null; }
+}
+
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-  const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+  const url = docUrl(req);
+  if (!url) { res.writeHead(400); res.end(); return; }
 
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
 
@@ -301,7 +312,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 });
 
 server.on('upgrade', (req, socket, head) => {
-  const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+  const url = docUrl(req);
+  if (!url) { socket.destroy(); return; }
   const m = url.pathname.match(/^\/ws\/([0-9]{6})$/);
   if (!m) { socket.destroy(); return; }
   const code = m[1]!;

@@ -370,6 +370,16 @@
   ở ô định danh to, không ở nút thấp (đè chữ). Quạt lá trang chủ là LÁ BÀI THẬT (mỏng, viền giấy trắng
   mảnh, khung chỉ vàng, bóng mềm) — đế dày kiểu nút làm lá "không thật". Icon ô trang chủ: Noto 3D 🗺️🚀🌍
   (danh sách trong `tools/tai-noto3d.mjs`, thiếu là công cụ XOÁ file) + robot TỰ VẼ `public/img/robot.svg`.
+- **SAO 3D MẬP — MỘT HÌNH** (chủ dự án duyệt 19.10.2026, mockup https://claude.ai/artifact/QGjbKTYhVnNaK2NZFMVvMR):
+  `public/img/sao-3d.svg` là bản gốc; `keo-la.css` giữ bản chép data URL (`--sao-3d`) cho mặt lưng trong ván +
+  quạt lá (data URL để khung đầu đã có hình, kể cả không mạng); HuyHieu.vue + lá bài nhỏ ở TopBar dùng file/biến
+  đó. Đổi sao = đổi CẢ file lẫn data URL. Viên danh hiệu trên thanh trên: lá bài nhỏ (không 🏅), vệt sáng quét
+  mỗi 3,5s, ĐỨNG YÊN trong ván (`dungYen` = `screen !== 'menu'`).
+- **MÀN DANH HIỆU = ALBUM THẺ** (mockup A duyệt 19.10.2026 https://claude.ai/artifact/2SBFXNhJQgs9EAk9cyjtMd):
+  khối tổng vàng (số lớn + đếm bậc vàng/bạc/đồng bằng đồng xu màu `MAU_BAC`) · ngăn "Đã có" ĐỨNG TRƯỚC và mở sẵn
+  (chưa có gì thì mở "Chưa có") · lưới 3 cột: đã có = thẻ ngửa nền kẹo vàng (KHÔNG `khay-nho` — Kẹo tối đè thành
+  navy), vệt sáng lệch nhịp; chưa có = thẻ úp + gợi ý + tiến độ + nút (nút xuống 2 dòng được: "Nächstes Ziel").
+  Đếm bậc dùng lớp `o-bac`, KHÔNG `.chip` (toàn cục).
 - **TÍNH NĂNG ẨN: CHẠM MẶT TRỜI / MẶT TRĂNG = ĐỔI SÁNG ↔ TỐI** (chủ dự án 18.10.2026): nút VÔ HÌNH
   `.nut-troi` (MenuScreen, Teleport ra #app) trùng tâm `87%` / `--tam-troi` của nền Kẹo; CHỈ ở trang chủ
   (bước khác panel phủ lên, nút sẽ cướp chạm). Đổi chỗ mặt trời trong keo.css là đổi theo ở đây.
@@ -806,6 +816,8 @@
     route rỗng về k8s (thêm 18.10.2026, y như cozypi). Sửa giao diện = `pnpm release`, KHÔNG khởi động lại server.
   · Client hiện ping/chấm mạng qua `pingHien`/`netHien` (giữ ổn định), không đọc số thô — số thô về
     `null` mỗi lần nối lại nên ping "nháy liên tục" (chủ dự án báo).
+- **SERVER NODE KHÔNG ĐƯỢC NÉM KHI ĐỌC URL** (19.10.2026): `new URL()` ném với Host/đường dẫn dị dạng (vd. `//?x`),
+  ném trong handler http là SẬP CẢ TIẾN TRÌNH (mọi phòng đứt). Đọc qua `docUrl(req)` (null → 400 / huỷ socket).
 - **MYSQL KHÔNG CHO CHẠY NHIỀU POD.** Nó chỉ giải quyết "sống sót qua deploy".
   WebSocket dính vào một pod, engine chạy trong RAM pod đó, alarm cũng ở đó, và
   broadcast không đi qua database — hai pod là hai bản sao cùng một phòng ghi đè
