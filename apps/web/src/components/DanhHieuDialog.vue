@@ -8,7 +8,8 @@ import DanhHieu from './DanhHieu.vue';
 /**
  * MÀN DANH HIỆU — mở từ viên 🏅 trên thanh trên. Khung giống RulesDialog:
  * tiêu đề + nút đóng đứng yên, ruột cuộn, nên không phá luật KHÔNG SCROLL.
- * Lọc "Chưa có" đặt sẵn: thứ người chơi cần thấy là việc còn phải làm.
+ * Ngăn "Đã có" đứng TRƯỚC và mở sẵn (chủ dự án 19.10.2026: "ưu tiên hiện những huy hiệu đã có
+ * trước" — thay luật cũ mở sẵn "Chưa có"). Chưa có danh hiệu nào thì mở "Chưa có", khỏi màn trống.
  */
 const props = defineProps<{ daCo: ReadonlySet<string>; tk: ThongKe; themeKhoa: ReadonlySet<string> }>();
 const emit = defineEmits<{ close: []; 'chinh-phuc': [Achievement] }>();
@@ -16,8 +17,8 @@ const closeBtn = ref<HTMLButtonElement | null>(null);
 onMounted(() => closeBtn.value?.focus());
 
 // Hai ngăn KHÔNG chồng nhau: chưa có · đã có (bản cũ "Tất cả" lặp lại cả ngăn chưa có)
-const loc = ref<'chua' | 'co'>('chua');
 const so = computed(() => dsHien.value.filter((a) => props.daCo.has(a.id)).length);
+const loc = ref<'chua' | 'co'>(so.value > 0 ? 'co' : 'chua');
 const nhom = computed(() => NHOM.map((n) => {
   const tatCa = dsHien.value.filter((a) => a.nhom === n.id);
   const ds = tatCa.filter((a) => props.daCo.has(a.id) === (loc.value === 'co'));
@@ -36,11 +37,11 @@ const nhom = computed(() => NHOM.map((n) => {
       </header>
       <div class="thanh"><i :style="{ width: `${(so / dsHien.length) * 100}%` }" /></div>
       <div class="tabs" role="tablist">
-        <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
-          {{ t('dhd.chuaCo', { n: dsHien.length - so }) }}
-        </button>
         <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="loc === 'co'" @click="loc = 'co'">
           {{ t('dhd.daCo', { n: so }) }}
+        </button>
+        <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">
+          {{ t('dhd.chuaCo', { n: dsHien.length - so }) }}
         </button>
       </div>
       <div class="body">
