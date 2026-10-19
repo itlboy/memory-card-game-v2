@@ -5,7 +5,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DEAL_ANIM_MS, DEAL_SETTLE_MS } from '@/lib/timing';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
-import { anhEmoji } from '@/lib/emoji';
+import { anhDaSan, anhEmoji } from '@/lib/emoji';
 
 const props = defineProps<{
   card: Card;
@@ -41,6 +41,15 @@ const props = defineProps<{
 
 /** Máy không phải Apple vẽ emoji bằng SVG (nét ở mọi cỡ) — xem lib/emoji.ts. */
 const anh = computed(() => anhEmoji(props.card.symbol, undefined, props.coAnh));
+/*
+ * ẢNH CHƯA VỀ THÌ HIỆN TẠM EMOJI CỦA MÁY, KHÔNG BAO GIỜ Ô TRẮNG (19.10.2026, chủ dự án: "người chơi online
+ * trên web vẫn bị trắng khi bấm vào thẻ bài chưa tải"). Tải trước (`taiTruocAnh`) đã lo phần lớn, nhưng mạng
+ * chập chờn / Safari giải mã chậm vẫn lọt — không tái hiện được trên máy đo (Chrome + WebKit, 4G giả lập,
+ * bàn 24 và 88 thẻ đều tải sẵn), nên chặn ở chỗ VẼ: ký hiệu emoji của máy hiện ngay, ảnh 3D tải xong
+ * (`@load`) thì thay vào; ảnh lỗi thì giữ emoji máy. Ảnh đã nằm trong bộ tải trước thì vẽ thẳng, không loé.
+ */
+const anhXong = ref(false);
+watch(anh, (u) => { anhXong.value = anhDaSan(u); }, { immediate: true });
 /** Ký hiệu là CHỮ/SỐ (theme Chữ & số) chứ không phải emoji → nét đậm, xem `.front.chu`. */
 const laChu = computed(() => /^[\x21-\x7E]{1,3}$/.test(props.card.symbol ?? ''));
 
@@ -427,7 +436,10 @@ const label = computed(() => {
     <span class="inner">
       <span class="face back" :class="lopMatSau" aria-hidden="true"></span>
       <span class="face front" :class="{ chu: laChu }" aria-hidden="true">
-        <img v-if="anh" class="emoji" :src="anh" alt="" draggable="false" decoding="async">
+        <template v-if="anh">
+          <span v-if="!anhXong" class="emoji-tam">{{ card.symbol }}</span>
+          <img class="emoji" :class="{ cho: !anhXong }" :src="anh" alt="" draggable="false" decoding="async" @load="anhXong = true">
+        </template>
         <template v-else>{{ card.symbol }}</template>
         <span v-if="card.power && !card.powerUsed" class="badge">
           <OptionIcon v-if="POWER_ICON[card.power]" :name="POWER_ICON[card.power]!" :size="14" />
@@ -781,6 +793,9 @@ const label = computed(() => {
 .front { font-size: max(22px, 72cqw); }
 /* Ảnh Noto 3D cùng cỡ với emoji chữ (1em ≈ ô glyph emoji); không chặn chạm của lá */
 .front .emoji { width: .92em; height: .92em; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+/* Ảnh 3D đang tải: nằm ẩn (vẫn tải) — chỗ của nó do emoji máy giữ tạm (`.emoji-tam`, cùng cỡ chữ mặt lá) */
+.front .emoji.cho { position: absolute; opacity: 0; }
+.front .emoji-tam { line-height: 1; font-size: .8em; }
 /*
  * THEME CHỮ & SỐ: ký hiệu là CHỮ chứ không phải emoji, nên nó ăn phông thân bài
  * ở nét thường và trông mảnh lọt thỏm giữa lá (chủ dự án báo 11.10.2026). Dùng

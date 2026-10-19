@@ -103,6 +103,12 @@ export function taiTruocAnh(kyHieu: Iterable<string | undefined>, co: number): v
   }
 }
 
+/** Ảnh này đã tải + giải mã xong trong bộ tải trước chưa (CardTile: chưa xong thì hiện tạm emoji máy). */
+export function anhDaSan(url: string | null): boolean {
+  const i = url ? daTai.get(url) : undefined;
+  return !!i && i.complete && i.naturalWidth > 0;
+}
+
 /** Đường dẫn ảnh cho ký hiệu, hoặc null = vẽ bằng chữ (máy Apple, chữ/số, ô úp rỗng).
  *  `co` = cỡ ảnh Noto 3D cần (`chonCoAnh`); bỏ trống là 512. */
 export function anhEmoji(kyHieu: string | undefined, vector?: boolean, co = 512): string | null {
