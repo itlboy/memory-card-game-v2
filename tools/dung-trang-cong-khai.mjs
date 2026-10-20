@@ -218,6 +218,7 @@ Disallow: /api/
 Disallow: /ws/
 Disallow: /ota/
 
+# Bot AI (ChatGPT/Claude/Perplexity/Gemini) ĐƯỢC đọc — AI search trích dẫn trang (SEO 20.10.2026). Tóm tắt: /llms.txt
 Sitemap: ${SITE}/sitemap.xml
 `);
 console.log(`✓ Trang công khai: ${TRANG.length} trang × ${LANGS.length} ngôn ngữ + ${LANGS.length} trang chơi, sitemap ${sitemap.length + sitemapChoi.length} địa chỉ`);

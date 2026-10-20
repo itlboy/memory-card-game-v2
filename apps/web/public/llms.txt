@@ -1,0 +1,31 @@
+# Flip Match (Lật Thẻ)
+
+> Flip Match is a free memory card matching game (also called concentration, pairs or "memory"): flip two cards, find matching pairs. Play instantly in any web browser with no download or sign-up, or install the iOS and Android app. Play solo, against the computer, with up to 4 people on one device, or online with friends in a private room joined by a 6-digit code or link. No ads, no in-app purchases, suitable for all ages (4+). Made by the Cozy Pi studio.
+
+## Key facts
+
+- Price: free. No ads. No in-app purchases.
+- Platforms: web browser (desktop and mobile), iOS app, Android app.
+- Play online in the browser: https://flipmatch.cozypi.com/en/
+- Modes: solo; vs computer (5 difficulty levels); local multiplayer on one device (up to 4 players); online rooms with friends (up to 4 players, 6-digit room code or invite link, no account needed); a 60-level campaign.
+- Boards: 12 sizes, from 4 cards to 88 cards.
+- Optional rules (each with 4 levels): timer, lives, peek, shuffle, special cards.
+- 48 card themes: animals, food, flags, numbers and more, drawn as 3D emoji.
+- More than 100 achievements; personal records for every board size.
+- 15 languages: English, Vietnamese, Spanish, Portuguese (Brazil), French, German, Italian, Turkish, Japanese, Korean, Simplified Chinese, Traditional Chinese, Russian, Indonesian, Thai.
+- Light and dark mode. Works offline for solo, vs-computer and same-device games.
+- Online chat is limited to 12 preset quick phrases (no free text), safe for kids.
+- Age rating: 4+ / Everyone.
+- Optional sign-in with Apple or Google only to sync progress and join the leaderboard.
+
+## Pages
+
+- [About Flip Match](https://flipmatch.cozypi.com/about): features and screenshots (available in 15 languages, e.g. /vi/about, /ja/about)
+- [What's new](https://flipmatch.cozypi.com/changes): release notes
+- [Support](https://flipmatch.cozypi.com/support): help and contact (support@cozypi.com)
+- [Privacy policy](https://flipmatch.cozypi.com/privacy)
+- [Play in English](https://flipmatch.cozypi.com/en/) · [Chơi bằng tiếng Việt](https://flipmatch.cozypi.com/) · other languages at /es/ /pt/ /fr/ /de/ /it/ /tr/ /ja/ /ko/ /zh/ /zh-TW/ /ru/ /id/ /th/
+
+## Studio
+
+- [Cozy Pi](https://cozypi.com): independent studio making calm, ad-free apps and games.

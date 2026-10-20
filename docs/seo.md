@@ -49,3 +49,12 @@ kết quả tìm web. Chưa có công cụ đo lượng tìm — sau vài tuần
 - Hình ô theme (~270 ảnh) tải trước từ LẦN CHẠM ĐẦU, không lúc mở trang (`taiTruocTheme`).
 - `preconnect` tới `flipmatch-api.cozypi.com`.
 - Trang công khai: địa chỉ chuẩn KHÔNG `.html` (Cloudflare 307 `.html` → không đuôi); font Google không chặn.
+
+## Ngoài Google (20.10.2026)
+
+- **AI search**: Cloudflare KHÔNG chặn bot AI (`ai_bots_protection: disabled` ở zone cozypi.com — đừng bật, bật là
+  vô hình với ChatGPT/Perplexity/Claude). `public/llms.txt` = tóm tắt sự thật để AI trích dẫn đúng.
+- **Bing / IndexNow**: `pnpm release` tự gửi cả sitemap qua IndexNow (`tools/indexnow.mjs`). Bing nuôi cả ChatGPT
+  search, DuckDuckGo, Yahoo. Crawler Hints của Cloudflare không bật được qua API ở gói miễn phí.
+- Còn cần tài khoản (chủ dự án): Bing Webmaster Tools (nhập từ Search Console), Cốc Cốc, Yandex, Naver; cổng game
+  web (CrazyGames, Poki, itch.io, GameDistribution); cộng đồng (Reddit, Product Hunt, nhóm phụ huynh/giáo viên).
