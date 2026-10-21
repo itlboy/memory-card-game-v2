@@ -375,6 +375,11 @@
   quạt lá (data URL để khung đầu đã có hình, kể cả không mạng); HuyHieu.vue + lá bài nhỏ ở TopBar dùng file/biến
   đó. Đổi sao = đổi CẢ file lẫn data URL. Viên danh hiệu trên thanh trên: lá bài nhỏ (không 🏅), vệt sáng quét
   mỗi 3,5s, ĐỨNG YÊN trong ván (`dungYen` = `screen !== 'menu'`).
+  **SAO ĐÁNH GIÁ CHIẾN DỊCH CŨNG LÀ SAO 3D** (mockup duyệt 21.10.2026 https://claude.ai/artifact/CxyanoNppd8YkUau73Xj7u):
+  KHÔNG còn ký tự ★/☆ — mọi chỗ vẽ sao (HUD, bảng kết quả, dòng mốc, bản đồ, dự phòng HuyHieu) qua `Sao3D.vue`
+  (`loai`: sang · tat · sao4; `song` = vệt sáng lướt, chỉ ở chỗ ít ngôi, KHÔNG ở bản đồ 60 ô). Ba file cùng khuôn:
+  `sao-3d.svg` · `sao-3d-tat.svg` (xám xanh) · `sao-3d-4.svg` (cầu vồng, thay lớp `.sao4` cũ). ⭐🌟 Noto 3D (icon ô,
+  danh hiệu) và ⭐ trong bộ hình mặt bài thì GIỮ.
 - **MÀN DANH HIỆU = ALBUM THẺ** (mockup A duyệt 19.10.2026 https://claude.ai/artifact/2SBFXNhJQgs9EAk9cyjtMd):
   khối tổng vàng (số lớn + đếm bậc vàng/bạc/đồng bằng đồng xu màu `MAU_BAC`) · ngăn "Đã có" ĐỨNG TRƯỚC và mở sẵn
   (chưa có gì thì mở "Chưa có") · lưới 3 cột: đã có = thẻ ngửa nền kẹo vàng (KHÔNG `khay-nho` — Kẹo tối đè thành

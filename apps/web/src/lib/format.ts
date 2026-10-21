@@ -4,8 +4,6 @@ export const clock = (seconds: number): string => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
 
-export const starText = (n: number): string => '★'.repeat(n) + '☆'.repeat(3 - n);
-
 /** Điểm có dấu phân nhóm: "12.480" dễ đọc hơn "12480" khi điểm lên vạn.
  *  Dùng dấu chấm theo quy ước tiếng Việt. */
 /** Số theo ngôn ngữ đang chọn: "1.370" (vi, de…), "1,370" (en, ja…), "1 370" (fr, ru). */

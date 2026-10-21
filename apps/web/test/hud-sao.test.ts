@@ -18,13 +18,13 @@ describe('viên sao Chiến dịch: nhìn là hiểu, không con số', () => {
   it('quên thêm 1 lần là rớt sao → ngôi đó nhấp nháy; còn chỗ thì không', () => {
     // mốc [max2=3, max3=1]: quên 1 → 3 sao, hết chỗ → ngôi 3 nháy
     let w = sao(1, [3, 1]);
-    expect(w.findAll('.sao-hang i').map((i) => i.classes('sap-mat'))).toEqual([false, false, true, false]);
+    expect(w.findAll('.sao-hang .sao3d').map((i) => i.classes('sap-mat'))).toEqual([false, false, true, false]);
     // quên 2 → 2 sao, còn được quên 1 lần nữa → chưa nháy
     w = sao(2, [3, 1]);
     expect(w.find('.sap-mat').exists()).toBe(false);
     // quên 3 → 2 sao, hết chỗ → ngôi 2 nháy
     w = sao(3, [3, 1]);
-    expect(w.findAll('.sao-hang i').map((i) => i.classes('sap-mat'))).toEqual([false, true, false, false]);
+    expect(w.findAll('.sao-hang .sao3d').map((i) => i.classes('sap-mat'))).toEqual([false, true, false, false]);
   });
 
   it('còn 1 sao (không thể mất thêm) và chưa quên lần nào: không ngôi nào nháy', () => {
