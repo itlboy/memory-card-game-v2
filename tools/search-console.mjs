@@ -104,6 +104,19 @@ if (buoc === 'token') {
     if (!r.rows?.length) console.log('  (chưa có dữ liệu)');
     for (const x of r.rows ?? []) console.log(`  ${String(x.clicks).padStart(4)} bấm · ${String(x.impressions).padStart(5)} hiện · hạng ${x.position.toFixed(1)} · ${x.keys[0]}`);
   }
+} else if (buoc === 'chi-muc') {
+  // Google đã lập chỉ mục trang nào (URL Inspection API): trang chơi theo ngôn ngữ + trang giới thiệu.
+  const HOST = 'https://flipmatch.cozypi.com';
+  const ds = ['/', '/en/', '/es/', '/pt/', '/fr/', '/de/', '/ja/', '/ko/', '/zh/', '/ru/', '/id/', '/th/', '/it/', '/tr/', '/zh-TW/',
+    '/about', '/vi/about', '/es/about', '/ja/about'].map((p) => HOST + p);
+  ds.push('https://cozypi.com/');
+  for (const u of ds) {
+    try {
+      const r = await api('POST', 'https://searchconsole.googleapis.com/v1/urlInspection/index:inspect', { inspectionUrl: u, siteUrl: SITE });
+      const x = r.inspectionResult?.indexStatusResult ?? {};
+      console.log(`  ${(x.verdict ?? '?').padEnd(8)} ${String(x.coverageState ?? '').slice(0, 42).padEnd(42)} lần bò: ${x.lastCrawlTime?.slice(0, 10) ?? '—'} · ${u}`);
+    } catch (e) { console.log(`  LỖI ${u}: ${e.message.slice(0, 120)}`); }
+  }
 } else {
-  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim'); process.exit(2);
+  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc'); process.exit(2);
 }
