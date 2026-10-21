@@ -60,8 +60,13 @@ kết quả tìm web. Chưa có công cụ đo lượng tìm — sau vài tuần
   `flipmatch.cozypi.com`, xác minh bằng CNAME ở DNS cozypi.com (`f0d914b4….cozypi.com` và
   `a5fe6d6d….flipmatch.cozypi.com` → `verify.bing.com`) — ĐỪNG XOÁ hai bản ghi này, mất là Bing hết quyền.
   Sitemap đã nộp. Nhập từ Search Console bị lỗi phía Bing nên làm tay.
-- **itch.io** https://itlboy.itch.io/flip-match (21.10.2026): trang HTML nhúng iframe `flipmatch.cozypi.com/en/?ref=itch`
+- **itch.io** https://cozypi.itch.io/flip-match (username đổi itlboy → cozypi, địa chỉ cũ tự chuyển) (21.10.2026): trang HTML nhúng iframe `flipmatch.cozypi.com/en/?ref=itch`
   (gói 1 file index.html — game luôn là bản mới nhất, online chạy được), khai báo AI = Yes. PUBLIC từ 21.10.2026, tác giả hiển thị "Cozy Pi".
+- **Newgrounds** https://www.newgrounds.com/portal/view/1057849 (tài khoản `cozypi`, 21.10.2026): cùng gói nhúng
+  như itch, khung 420×780, xếp hạng E. Tài khoản cũ `itlboy` bỏ không dùng.
+- **AlternativeTo** (tài khoản Google của chủ dự án, 21.10.2026): đã gửi Flip Match (nền tảng Online, 14 ngôn ngữ,
+  tác giả Cozy Pi) + 9 game ghép thẻ tương tự. Hàng chờ miễn phí rất dài; duyệt nhanh $12 / $35 — chủ dự án quyết.
+- GameJolt: tiện ích Chrome của Claude chưa được phép vào gamejolt.com — làm tay hoặc cấp quyền tên miền.
 - **Poki**: đã gửi hồ sơ 21.10.2026 (họ bắt SDK + quảng cáo nếu nhận — quyết sau).
 - Còn cần tài khoản (chủ dự án): Cốc Cốc, Yandex, Naver; cổng game
   web (CrazyGames, Poki, itch.io, GameDistribution); cộng đồng (Reddit, Product Hunt, nhóm phụ huynh/giáo viên).
