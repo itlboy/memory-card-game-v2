@@ -10,7 +10,7 @@
 - Modes: solo; vs computer (5 difficulty levels); local multiplayer on one device (up to 4 players); online rooms with friends (up to 4 players, 6-digit room code or invite link, no account needed); a 60-level campaign.
 - Boards: 12 sizes, from 4 cards to 88 cards.
 - Optional rules (each with 4 levels): timer, lives, peek, shuffle, special cards.
-- 48 card themes: animals, food, flags, numbers and more, drawn as 3D emoji.
+- 72 card themes: animals, food, flags, numbers and more, drawn as 3D emoji.
 - More than 100 achievements; personal records for every board size.
 - 15 languages: English, Vietnamese, Spanish, Portuguese (Brazil), French, German, Italian, Turkish, Japanese, Korean, Simplified Chinese, Traditional Chinese, Russian, Indonesian, Thai.
 - Light and dark mode. Works offline for solo, vs-computer and same-device games.

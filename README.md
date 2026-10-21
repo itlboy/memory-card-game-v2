@@ -2,7 +2,7 @@
 
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
 Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
-(có nói nhanh bằng 12 câu có sẵn); 72 theme (48 miễn phí + 24 premium), 15 ngôn ngữ,
+(có nói nhanh bằng 12 câu có sẵn); 72 theme (tất cả miễn phí), 15 ngôn ngữ,
 tài khoản Google/Apple, 153 danh hiệu, hiệu ứng thắng/thua/hoà có thú tự vẽ (gấu trúc · sư tử · chuột) + tiếng + rung.
 Giao diện Kẹo 3D nổi khối, chế độ sáng / tối (tự theo máy).
 Trang công khai (giới thiệu, có gì mới, hỗ trợ, quyền riêng tư) 15 ngôn ngữ, dựng sẵn cho SEO.

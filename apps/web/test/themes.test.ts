@@ -80,7 +80,8 @@ describe('file themes.json thực trong repo', () => {
     for (const [ten, ds] of [['miễn phí', themes.filter((t) => !t.premium)], ['premium', themes.filter((t) => t.premium)]] as const) {
       expect(ds.length % 3, `tab ${ten}: ${ds.length} theme không tròn hàng 3 cột`).toBe(0);
       expect(ds.length % 4, `tab ${ten}: ${ds.length} theme không tròn hàng 4 cột`).toBe(0);
-      expect(ds.length, `tab ${ten}`).toBeGreaterThanOrEqual(12);
+      // Tab rỗng được (21.10.2026 mọi theme về miễn phí; Premium làm sau)
+      if (ten === 'miễn phí') expect(ds.length, `tab ${ten}`).toBeGreaterThanOrEqual(12);
     }
     // Không còn mở bằng điểm: chỉ miễn phí hoặc premium
     expect(themes.filter((t) => t.unlockAt !== 0)).toEqual([]);
