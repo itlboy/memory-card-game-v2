@@ -61,7 +61,7 @@ kết quả tìm web. Chưa có công cụ đo lượng tìm — sau vài tuần
   `a5fe6d6d….flipmatch.cozypi.com` → `verify.bing.com`) — ĐỪNG XOÁ hai bản ghi này, mất là Bing hết quyền.
   Sitemap đã nộp. Nhập từ Search Console bị lỗi phía Bing nên làm tay.
 - **itch.io** https://itlboy.itch.io/flip-match (21.10.2026): trang HTML nhúng iframe `flipmatch.cozypi.com/en/?ref=itch`
-  (gói 1 file index.html — game luôn là bản mới nhất, online chạy được), khai báo AI = Yes. Đang Draft.
+  (gói 1 file index.html — game luôn là bản mới nhất, online chạy được), khai báo AI = Yes. PUBLIC từ 21.10.2026, tác giả hiển thị "Cozy Pi".
 - **Poki**: đã gửi hồ sơ 21.10.2026 (họ bắt SDK + quảng cáo nếu nhận — quyết sau).
 - Còn cần tài khoản (chủ dự án): Cốc Cốc, Yandex, Naver; cổng game
   web (CrazyGames, Poki, itch.io, GameDistribution); cộng đồng (Reddit, Product Hunt, nhóm phụ huynh/giáo viên).
