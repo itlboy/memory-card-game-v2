@@ -1077,8 +1077,10 @@
   MỖI TAB (miễn phí / premium) phải chia hết cho 3 VÀ 4 (lưới theme 3 hoặc 4 cột).
   Ghi công ở `lc.ghiCong`.
 - **THEME PREMIUM (14.10.2026): MỘT gói mở hết, theme KHÔNG còn mở bằng điểm.**
-  Cờ `premium` trong themes.json (+ `THEME_PREMIUM` ở server, test canh khớp); hiện
-  48 miễn phí + 24 premium (thêm 12 + 12 ngày 15.10.2026). Hỏi quyền CHỈ qua `choiDuoc()` ở `lib/premium.ts` — đợt
+  Cờ `premium` trong themes.json (+ `THEME_PREMIUM` ở server, test canh khớp). **TỪ 21.10.2026
+  CẢ 72 THEME MIỄN PHÍ** (chủ dự án: "chế độ premium tính sau") — không theme nào mang cờ,
+  `THEME_PREMIUM` rỗng; máy móc premium (cờ, tab, `choiDuoc`, skin/nhạc premium) GIỮ để làm sau.
+  Hình kinh dị/thuốc/bài lá ở myth/halloween/games/lab đã thay để giữ 4+. Hỏi quyền CHỈ qua `choiDuoc()` ở `lib/premium.ts` — đợt
   này CHƯA BÁN THẬT (nút mua báo "sắp có", `mm.premium='1'` để thử giao diện đã mua);
   làm IAP thì chỉ thay chỗ đặt `daMuaPremium`. Bước theme là `ThemePicker.vue` dùng
   chung cho MenuScreen + OnlineScreen: hai tab, ô premium chưa mua KHÔNG mờ/disabled

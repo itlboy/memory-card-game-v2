@@ -6,8 +6,9 @@
  *   2. CỜ: chỉ quốc gia THÀNH VIÊN LIÊN HỢP QUỐC, và không thuộc nhóm tranh chấp/xung đột
  *      chính trị (Đài Loan, Kosovo, Palestine, Israel, Tây Sahara, Hồng Kông, Ma Cao, Triều
  *      Tiên). Cờ Việt Nam Cộng hoà không có trong Unicode — đừng bao giờ thêm bằng ảnh tự vẽ.
- *   3. CHỈ Ở THEME PREMIUM (đang ẩn, `banPremium`): kinh dị/chết chóc, thuốc, bài lá. Bật bán
- *      Premium là PHẢI khai lại Age Rating (Apple) + IARC (Google) — CLAUDE.md "APP LÀ 4+".
+ *   3. CHỈ Ở THEME PREMIUM: kinh dị/chết chóc, thuốc, bài lá. Từ 21.10.2026 MỌI theme miễn
+ *      phí (đã thay các hình này ở myth/halloween/games/lab) nên lớp này chặn ở mọi theme. Đưa
+ *      lại vào theme premium là PHẢI khai lại Age Rating (Apple) + IARC (Google).
  * Thêm emoji mới vào theme mà đỏ ở đây: đổi emoji, đừng nới danh sách nếu chưa hỏi chủ dự án.
  */
 import { describe, expect, it } from 'vitest';

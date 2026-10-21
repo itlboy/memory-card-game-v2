@@ -2,7 +2,7 @@
 
 Bản chép-dán cho App Store Connect và Google Play Console — 15 ngôn ngữ, ngôn ngữ chính
 English (U.S.). `tools/asc-store.mjs` và `tools/play-store.mjs` đọc thẳng file này. Con số
-trong mô tả (60 màn, 15 ngôn ngữ, 48 bộ hình…) theo [`ban-do.md`](ban-do.md). Số ký tự đã đếm (giới hạn ghi trong ngoặc);
+trong mô tả (60 màn, 15 ngôn ngữ, 72 bộ hình…) theo [`ban-do.md`](ban-do.md). Số ký tự đã đếm (giới hạn ghi trong ngoặc);
 sửa nội dung thì chạy `python3 tools/dem-ky-tu-store.py` để soát lại.
 
 Đổi luật chơi hay thêm tính năng thì sửa cả file này — cùng lý do với
@@ -74,7 +74,7 @@ PLAY YOUR WAY
 MAKE THE BOARD YOURS
 • 12 board sizes, from a 4-card warm-up to a brutal 88-card challenge
 • 5 optional rules, each with 4 levels: timer, lives, peek, shuffle and special cards
-• 48 card themes: animals, food, flags, numbers and more
+• 72 card themes: animals, food, flags, numbers and more
 • Glossy 3D candy look with light and dark mode
 
 KEEP COMING BACK
@@ -134,7 +134,7 @@ CHƠI THEO CÁCH CỦA BẠN
 BÀN CHƠI CỦA RIÊNG BẠN
 • 12 cỡ bàn, từ 4 thẻ khởi động tới 88 thẻ siêu khó
 • 5 luật tuỳ chọn, mỗi luật 4 mức: đồng hồ, số mạng, xem trước, xáo thẻ, thẻ đặc biệt
-• 48 bộ hình: con vật, đồ ăn, cờ các nước, chữ số và nhiều nữa
+• 72 bộ hình: con vật, đồ ăn, cờ các nước, chữ số và nhiều nữa
 • Giao diện kẹo 3D bóng bẩy, có chế độ sáng và tối
 
 MUỐN CHƠI MÃI
@@ -199,7 +199,7 @@ JUEGA A TU MANERA
 UN TABLERO A TU MEDIDA
 • 12 tamaños de tablero, desde un calentamiento de 4 cartas hasta un desafío brutal de 88
 • 5 reglas opcionales con 4 niveles cada una: tiempo, vidas, vistazo, barajar y cartas especiales
-• 48 temas de cartas: animales, comida, banderas, números y mucho más
+• 72 temas de cartas: animales, comida, banderas, números y mucho más
 • Estilo dulce en 3D con modo claro y oscuro
 
 SIEMPRE HAY UN MOTIVO PARA VOLVER
@@ -259,7 +259,7 @@ JOGUE DO SEU JEITO
 UM TABULEIRO DO SEU JEITO
 • 12 tamanhos de tabuleiro, de um aquecimento com 4 cartas a um desafio brutal com 88
 • 5 regras opcionais, cada uma com 4 níveis: tempo, vidas, espiadinha, embaralhar e cartas especiais
-• 48 temas de cartas: animais, comidas, bandeiras, números e muito mais
+• 72 temas de cartas: animais, comidas, bandeiras, números e muito mais
 • Visual doce em 3D com modo claro e escuro
 
 SEMPRE TEM MOTIVO PARA VOLTAR
@@ -319,7 +319,7 @@ JOUEZ COMME VOUS VOULEZ
 UN PLATEAU À VOTRE IMAGE
 • 12 tailles de plateau, de l'échauffement à 4 cartes au défi redoutable de 88 cartes
 • 5 règles au choix, chacune sur 4 niveaux : chrono, vies, aperçu, mélange et cartes spéciales
-• 48 thèmes de cartes : animaux, nourriture, drapeaux, chiffres et bien plus
+• 72 thèmes de cartes : animaux, nourriture, drapeaux, chiffres et bien plus
 • Style bonbon en 3D avec mode clair et sombre
 
 TOUJOURS UNE RAISON DE REVENIR
@@ -384,7 +384,7 @@ SPIEL, WIE DU WILLST
 DEIN SPIELFELD, DEINE REGELN
 • 12 Spielfeldgrößen, vom Aufwärmen mit 4 Karten bis zur knallharten Herausforderung mit 88
 • 5 optionale Regeln mit je 4 Stufen: Zeit, Leben, Vorschau, Mischen und Spezialkarten
-• 48 Kartenthemen: Tiere, Essen, Flaggen, Zahlen und vieles mehr
+• 72 Kartenthemen: Tiere, Essen, Flaggen, Zahlen und vieles mehr
 • Glänzender 3D-Bonbon-Look mit hellem und dunklem Modus
 
 IMMER WIEDER GERN
@@ -449,7 +449,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 自分好みの盤面に
 • 4枚のウォームアップから88枚の超難関まで、12種類の盤面サイズ
 • 5つのオプションルール（各4段階）：制限時間・ライフ・先読み・シャッフル・特殊カード
-• 48種類のカードテーマ：動物、食べ物、国旗、数字など
+• 72種類のカードテーマ：動物、食べ物、国旗、数字など
 • つやつや3Dのキャンディデザイン、ライト／ダークモード対応
 
 何度でも遊びたくなる
@@ -514,7 +514,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 나만의 게임판
 • 4장짜리 워밍업부터 88장짜리 극악 난이도까지 12가지 판 크기
 • 각각 4단계인 5가지 선택 규칙: 시간 제한, 목숨, 미리 보기, 섞기, 특수 카드
-• 동물, 음식, 국기, 숫자 등 48가지 카드 테마
+• 동물, 음식, 국기, 숫자 등 72가지 카드 테마
 • 반짝이는 3D 캔디 디자인, 라이트·다크 모드 지원
 
 자꾸 생각나는 게임
@@ -579,7 +579,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 打造你的专属牌桌
 • 12 种牌桌尺寸，从 4 张热身到 88 张极限挑战
 • 5 种可选规则，每种 4 个等级：限时、生命、预览、洗牌、特殊卡
-• 48 套卡牌主题：动物、美食、国旗、数字等等
+• 72 套卡牌主题：动物、美食、国旗、数字等等
 • 亮泽的 3D 糖果风格，支持浅色和深色模式
 
 越玩越上瘾
@@ -639,7 +639,7 @@ Flip Match — классическая игра на память с карто
 ПОЛЕ ПОД ТЕБЯ
 • 12 размеров поля: от разминки на 4 карточки до суровых 88
 • 5 дополнительных правил, у каждого 4 уровня: время, жизни, подсказка, перемешивание и особые карточки
-• 48 тем карточек: животные, еда, флаги, цифры и многое другое
+• 72 тем карточек: животные, еда, флаги, цифры и многое другое
 • Яркое 3D-оформление в стиле конфет со светлой и тёмной темой
 
 ХОЧЕТСЯ ВОЗВРАЩАТЬСЯ
@@ -699,7 +699,7 @@ MAIN SESUKAMU
 PAPAN SESUAI SELERAMU
 • 12 ukuran papan, dari pemanasan 4 kartu sampai tantangan berat 88 kartu
 • 5 aturan opsional, masing-masing 4 level: waktu, nyawa, intip, kocok, dan kartu spesial
-• 48 tema kartu: hewan, makanan, bendera, angka, dan banyak lagi
+• 72 tema kartu: hewan, makanan, bendera, angka, dan banyak lagi
 • Tampilan permen 3D yang mengilap, dengan mode terang dan gelap
 
 BIKIN BALIK LAGI
@@ -764,7 +764,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 กระดานในแบบของคุณ
 • กระดาน 12 ขนาด ตั้งแต่วอร์มอัป 4 ใบไปจนถึงสุดโหด 88 ใบ
 • กติกาเสริม 5 แบบ แบบละ 4 ระดับ: จับเวลา ชีวิต แอบดู สับไพ่ และการ์ดพิเศษ
-• ธีมการ์ด 48 แบบ: สัตว์ อาหาร ธงชาติ ตัวเลข และอีกมากมาย
+• ธีมการ์ด 72 แบบ: สัตว์ อาหาร ธงชาติ ตัวเลข และอีกมากมาย
 • ดีไซน์ลูกกวาด 3D สดใส พร้อมโหมดสว่างและมืด
 
 เล่นแล้วอยากกลับมาอีก
@@ -829,7 +829,7 @@ GIOCA COME VUOI
 UN TABELLONE TUTTO TUO
 • 12 dimensioni del tabellone, da un riscaldamento con 4 carte a una sfida tremenda con 88
 • 5 regole facoltative, ognuna con 4 livelli: tempo, vite, anteprima, mescolamento e carte speciali
-• 48 temi di carte: animali, cibo, bandiere, numeri e tanto altro
+• 72 temi di carte: animali, cibo, bandiere, numeri e tanto altro
 • Stile caramella in 3D con modalità chiara e scura
 
 SEMPRE UN MOTIVO PER TORNARE
@@ -889,7 +889,7 @@ Flip Match, klasik hafıza kartı oyununun tek başına ya da arkadaşlarla hız
 TAHTAN, KURALLARIN
 • 4 kartlık ısınmadan 88 kartlık zorlu bir meydan okumaya kadar 12 tahta boyutu
 • Her biri 4 seviyeli 5 isteğe bağlı kural: süre, can, ön izleme, karıştırma ve özel kartlar
-• 48 kart teması: hayvanlar, yemekler, bayraklar, sayılar ve daha fazlası
+• 72 kart teması: hayvanlar, yemekler, bayraklar, sayılar ve daha fazlası
 • Parlak 3D şeker görünümü, açık ve koyu mod
 
 HEP GERİ DÖN
@@ -954,7 +954,7 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 打造專屬牌桌
 • 12 種牌桌大小，從 4 張暖身到 88 張極限挑戰
 • 5 種選用規則，各有 4 個等級：計時、生命、預覽、洗牌和特殊牌
-• 48 套卡牌主題：動物、美食、國旗、數字等等
+• 72 套卡牌主題：動物、美食、國旗、數字等等
 • 亮澤的 3D 糖果風格，支援淺色與深色模式
 
 越玩越想玩

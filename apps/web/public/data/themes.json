@@ -221,7 +221,6 @@
       "id": "ocean",
       "name": "Đại dương",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🐳",
         "🐋",
@@ -278,8 +277,7 @@
         "🌞",
         "🎆",
         "🌡️"
-      ],
-      "premium": true
+      ]
     },
     {
       "id": "tech",
@@ -440,21 +438,20 @@
       "id": "myth",
       "name": "Huyền thoại",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🦕",
         "🦖",
         "🐉",
-        "☠️",
+        "🐲",
         "🧚",
         "🧙",
         "🧝",
-        "🧛",
-        "🧟",
+        "🧜",
+        "🏺",
         "🧞",
         "🧌",
-        "👹",
-        "👺",
+        "⚡",
+        "🌈",
         "🗿",
         "🔮",
         "🪄",
@@ -693,7 +690,7 @@
         "🎮",
         "🕹️",
         "🎲",
-        "🃏",
+        "🏓",
         "🀄",
         "🎯",
         "🎱",
@@ -714,8 +711,7 @@
         "🛹",
         "🛼",
         "🥌"
-      ],
-      "premium": true
+      ]
     },
     {
       "id": "garden",
@@ -845,7 +841,6 @@
       "id": "landmarks",
       "name": "Địa danh",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🗽",
         "🗼",
@@ -930,8 +925,7 @@
         "🏫",
         "🌍",
         "🔭"
-      ],
-      "premium": true
+      ]
     },
     {
       "id": "hands",
@@ -1117,24 +1111,22 @@
         "🍠",
         "🍧",
         "🥘"
-      ],
-      "premium": true
+      ]
     },
     {
       "id": "halloween",
       "name": "Đêm Halloween",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🎃",
         "👻",
         "🦇",
         "🕷️",
         "🕸️",
-        "💀",
-        "☠️",
-        "🧛",
-        "🧟",
+        "🍫",
+        "🍪",
+        "🌙",
+        "🧁",
         "🧙",
         "🧹",
         "🔮",
@@ -1143,10 +1135,10 @@
         "🐈‍⬛",
         "🍬",
         "🍭",
-        "⚰️",
-        "🪦",
-        "👹",
-        "👺",
+        "🍂",
+        "🏚️",
+        "🎭",
+        "🍎",
         "🧌",
         "🦉",
         "🐺"
@@ -1249,7 +1241,6 @@
       "id": "farm",
       "name": "Nông trại",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🐄",
         "🐖",
@@ -1312,7 +1303,6 @@
       "id": "circus",
       "name": "Rạp xiếc",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🎪",
         "🤹",
@@ -1431,14 +1421,12 @@
         "♑",
         "♒",
         "♓"
-      ],
-      "premium": true
+      ]
     },
     {
       "id": "camping",
       "name": "Cắm trại",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "⛺",
         "🏕️",
@@ -1873,7 +1861,6 @@
       "id": "expressions",
       "name": "Biểu cảm",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "😃",
         "😄",
@@ -1905,7 +1892,6 @@
       "id": "jungle",
       "name": "Rừng xanh",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🦜",
         "🐒",
@@ -1937,7 +1923,6 @@
       "id": "teaparty",
       "name": "Tiệc trà",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🫖",
         "☕",
@@ -1969,7 +1954,6 @@
       "id": "athletes",
       "name": "Vận động viên",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🏄",
         "🚣",
@@ -2001,7 +1985,6 @@
       "id": "market",
       "name": "Đi chợ",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🛒",
         "🛍️",
@@ -2033,7 +2016,6 @@
       "id": "signs",
       "name": "Biển báo",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🚸",
         "⛔",
@@ -2065,7 +2047,6 @@
       "id": "lab",
       "name": "Phòng thí nghiệm",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🔬",
         "🔭",
@@ -2075,7 +2056,7 @@
         "⚗️",
         "🧲",
         "🌡️",
-        "💊",
+        "🔎",
         "🩺",
         "🩹",
         "🦠",
@@ -2097,7 +2078,6 @@
       "id": "fairytale",
       "name": "Cổ tích",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🏰",
         "🏯",
@@ -2129,7 +2109,6 @@
       "id": "body",
       "name": "Cơ thể",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "👀",
         "👁️",
@@ -2161,7 +2140,6 @@
       "id": "autumn",
       "name": "Mùa thu",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🍂",
         "🍁",
@@ -2193,7 +2171,6 @@
       "id": "flagstricky",
       "name": "Cờ dễ nhầm",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🇮🇩",
         "🇲🇨",
@@ -2225,7 +2202,6 @@
       "id": "flagsislands",
       "name": "Cờ đảo quốc",
       "unlockAt": 0,
-      "premium": true,
       "symbols": [
         "🇳🇿",
         "🇫🇯",
