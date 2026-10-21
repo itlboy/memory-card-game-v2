@@ -350,7 +350,7 @@ describe('luồng trọn ván', () => {
     expect(wrapper.findAll('.card')).toHaveLength(4);
     await winGame();
     expect(wrapper.text()).toContain('Cấp tiếp theo');
-    expect(wrapper.text()).toMatch(/★/);
+    expect(wrapper.findAll('.stars .sao3d.sang').length).toBeGreaterThan(0);
     await wrapper.find('[role="dialog"] .btn-primary').trigger('click');   // sang cấp 3
     await flush();
     expect(wrapper.findAll('.card').length).toBeGreaterThan(0);

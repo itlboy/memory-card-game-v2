@@ -3,7 +3,7 @@ import { CHAPTERS, allLevels, type Level } from '@mm/engine';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { Lock, TriangleAlert } from 'lucide-vue-next';
 import type { LevelProgress } from '@/lib/storage';
-import { starText } from '@/lib/format';
+import Sao3D from './Sao3D.vue';
 import { t, td } from '@/lib/i18n';
 
 const props = defineProps<{
@@ -78,7 +78,7 @@ watch(nextLevel, scrollToActive);
   <div class="wrap">
     <p class="summary">
       <template v-if="showStars">
-        {{ t('cd.daDat') }}<b>{{ totalStars }}</b>{{ t('cd.daDatSau', { tong: levels.length * 3 }) }}<template v-if="hhCount"> · <span class="sao4">★</span> <b>{{ hhCount }}</b></template>
+        {{ t('cd.daDat') }}<b>{{ totalStars }}</b>{{ t('cd.daDatSau', { tong: levels.length * 3 }) }}<template v-if="hhCount"> · <Sao3D loai="sao4" /> <b>{{ hhCount }}</b></template>
       </template>
       <template v-else>{{ t('cd.daQua') }}<b>{{ doneCount }}</b>{{ t('cd.daQuaSau', { tong: levels.length }) }}</template>
     </p>
@@ -121,7 +121,10 @@ watch(nextLevel, scrollToActive);
                    ổ khoá chuyển thành dấu ở GÓC nên không giành chỗ của nó. -->
               <small>{{ t('cd.theN', { n: l.pairs * 2 }) }}</small>
               <span v-if="cleared(l.id)" class="stars" aria-hidden="true">
-                {{ showStars ? starText(starsOf(l.id)) : '✓' }}<span v-if="showStars && hhOf(l.id)" class="sao4">★</span>
+                <template v-if="showStars">
+                  <Sao3D v-for="k in 3" :key="k" :loai="k <= starsOf(l.id) ? 'sang' : 'tat'" /><Sao3D v-if="hhOf(l.id)" loai="sao4" />
+                </template>
+                <template v-else>✓</template>
               </span>
               <Lock v-if="l.id > unlocked" class="node-lock" :size="10" aria-hidden="true" />
             </button>

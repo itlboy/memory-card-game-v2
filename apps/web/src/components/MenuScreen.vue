@@ -22,6 +22,7 @@ import { Bot, ChevronLeft, Globe, Map, Play, Users } from 'lucide-vue-next';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
+import Sao3D from './Sao3D.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import { sfx } from '@/lib/audio';
@@ -570,7 +571,7 @@ const ICO3D = {
         <p v-if="mode === 'campaign'" class="moc-sao">
           <template v-for="(m, i) in mocSao" :key="m.sao">
             <span v-if="i" class="ngan"> · </span>
-            <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(m.sao, 3)) }}</span><span v-if="m.sao === 4" class="sao4 song">★</span> {{ m.txt }}</span>
+            <span class="nhom"><Sao3D v-for="k in Math.min(m.sao, 3)" :key="k" /><Sao3D v-if="m.sao === 4" loai="sao4" song /> {{ m.txt }}</span>
           </template>
         </p>
         <p class="best">
@@ -762,7 +763,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .best { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
 .moc-sao + .best { margin-top: 4px; }
 .moc-sao .nhom { white-space: nowrap; }
-.moc-sao .vang { color: var(--gold); }
 .moc-sao .ngan { color: var(--muted); }
 /* ── BẢNG TUỲ CHỌN BÀN CHƠI ───────────────────────────────────────────────
    Nút "Bắt đầu" nằm NGOÀI khung hàng và luôn ở đáy; các hàng ở `.opt-rows`, thiếu

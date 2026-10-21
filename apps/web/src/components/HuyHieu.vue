@@ -39,7 +39,8 @@ const mau = computed(() => MAU_BAC[props.bac ?? 'dong']);
       <rect class="vien" x="20" y="6" width="96" height="124" rx="16" :fill="mau.a" />
       <rect class="vien-vua" x="30" y="16" width="76" height="104" rx="10" fill="#fffaea" />
       <text v-if="icon?.so" class="so-nho" x="68" y="88" text-anchor="middle" :font-size="icon.chu.length > 1 ? 44 : 54">{{ icon.chu }}</text>
-      <text v-else x="68" y="88" font-size="52" text-anchor="middle">{{ icon?.chu ?? '★' }}</text>
+      <image v-else-if="!icon" href="/img/sao-3d.svg" x="40" y="40" width="56" height="56" />
+      <text v-else x="68" y="88" font-size="52" text-anchor="middle">{{ icon.chu }}</text>
     </template>
     <template v-else>
       <rect class="bong" x="22" y="12" width="92" height="124" rx="16" />
@@ -50,7 +51,8 @@ const mau = computed(() => MAU_BAC[props.bac ?? 'dong']);
         v-if="icon?.so" class="so" x="68" y="73" text-anchor="middle"
         :font-size="icon.chu.length > 1 ? 26 : 30"
       >{{ icon.chu }}</text>
-      <text v-else x="68" y="74" font-size="30" text-anchor="middle">{{ icon?.chu ?? '★' }}</text>
+      <image v-else-if="!icon" href="/img/sao-3d.svg" x="50" y="44" width="36" height="36" />
+      <text v-else x="68" y="74" font-size="30" text-anchor="middle">{{ icon.chu }}</text>
       <text v-if="icon?.goc" x="99" y="36" font-size="15" text-anchor="middle" class="goc">{{ icon.goc }}</text>
       <path class="vien-vua" d="M40 98h56l-6 9 6 9H40l6-9z" :fill="mau.b" />
       <path d="M56 103l3 3 6-6" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />

@@ -8,6 +8,7 @@ import { byId, type Achievement } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
 import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
+import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 const props = defineProps<{
@@ -193,13 +194,13 @@ const title = computed(() => {
       <p v-if="series" class="series">🏅 {{ series }}</p>
 
       <p v-if="hienSao" class="stars" :aria-label="t('kq.saoAria', { n: summary.stars })">
-        <span
+        <Sao3D
           v-for="i in 3" :key="i"
-          class="star"
-          :class="{ lit: i <= shownStars, dim: i > summary.stars }"
-        >★</span><span
+          class="star" :loai="i <= shownStars ? 'sang' : 'tat'"
+          :class="{ lit: i <= shownStars }"
+        /><span
           v-if="summary.hoanHao" class="thu4" :class="{ hien: shownStars >= 4 }"
-        ><i class="tia" aria-hidden="true" /><span class="star sao4 song">★</span><i
+        ><i class="tia" aria-hidden="true" /><Sao3D class="star" loai="sao4" song /><i
           v-for="d in 5" :key="d" :class="`dom d${d}`" aria-hidden="true"
         >✦</i></span>
       </p>
@@ -209,7 +210,7 @@ const title = computed(() => {
         <template v-if="summary.hoanHao">{{ t('kq.hoanHao') }}</template>
         <template v-else>
           {{ t('kq.quenN', { n: summary.ranking[0]?.quen ?? 0 }) }} ·
-          <span class="nhom"><span class="vang">{{ '★'.repeat(Math.min(saoKe.sao, 3)) }}</span><span v-if="saoKe.sao === 4" class="sao4 song">★</span> {{ saoKe.txt }}</span>
+          <span class="nhom"><Sao3D v-for="k in Math.min(saoKe.sao, 3)" :key="k" /><Sao3D v-if="saoKe.sao === 4" loai="sao4" song /> {{ saoKe.txt }}</span>
         </template>
       </p>
 
@@ -363,11 +364,11 @@ const title = computed(() => {
 @keyframes dialog-in { from { transform: translateY(18px) scale(.94); opacity: 0; } }
 h2 { margin: 0 0 4px; }
 .reason { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
-.stars { margin: 0 0 12px; font-size: 32px; letter-spacing: 6px; }
+.stars { margin: 0 0 12px; font-size: 32px; line-height: 1.15; }
+.stars .star { margin: 0 3px; }
 .stars:has(+ .sai-sao) { margin-bottom: 2px; }
 .sai-sao { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
 .sai-sao .nhom { white-space: nowrap; }
-.sai-sao .vang { color: var(--gold); }
 /* Ngôi thứ 4: nở to hơn, xoay một vòng nhẹ, rồi lấp lánh mãi */
 /*
  * NGÔI THỨ 4 TOẢ SÁNG (chủ dự án 14.10.2026: "thật nổi bật… lấp lánh"): to hơn
@@ -380,7 +381,6 @@ h2 { margin: 0 0 4px; }
 .thu4 { position: relative; display: inline-block; isolation: isolate; line-height: 1;
   scale: 1.6; margin: 0 .2em 0 .35em; opacity: 0; transform: scale(.3); }
 .thu4.hien { opacity: 1; transform: none; animation: sao4-in .8s cubic-bezier(.3, 1.8, .5, 1); }
-.thu4 .star.sao4 { color: transparent; }
 .thu4 .tia {
   position: absolute; inset: -62%; z-index: -1; border-radius: 50%; pointer-events: none;
   background: repeating-conic-gradient(rgba(255, 214, 120, .55) 0deg 9deg, transparent 9deg 30deg);
@@ -400,13 +400,10 @@ h2 { margin: 0 0 4px; }
 @keyframes tia-xoay { to { transform: rotate(360deg); } }
 @keyframes dom-lap { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(90deg); } }
 @media (prefers-reduced-motion: reduce) { .thu4.hien, .thu4 .tia, .thu4 .dom { animation: none; } .thu4 .dom { opacity: .8; } }
-.star { color: var(--line); display: inline-block; transition: color .2s; }
 .star.lit {
-  color: var(--gold);
-  text-shadow: 0 0 14px color-mix(in srgb, var(--gold) 70%, transparent);
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--gold) 60%, transparent));
   animation: star-in .45s cubic-bezier(.3, 1.8, .5, 1);
 }
-.star.dim { color: var(--line); }
 @keyframes star-in {
   0% { transform: scale(.2) rotate(-30deg); opacity: 0; }
   60% { transform: scale(1.35) rotate(8deg); }
@@ -578,7 +575,7 @@ h2 { margin: 0 0 4px; }
   .panel { padding: 14px 16px; }
   h2 { font-size: var(--text-lg); }
   .reason { margin-bottom: 6px; font-size: 13px; }
-  .stars { margin-bottom: 4px; font-size: 24px; letter-spacing: 4px; }
+  .stars { margin-bottom: 4px; font-size: 24px; }
   .stars:has(+ .sai-sao) { margin-bottom: 0; }
   .stars { line-height: 1.1; }
   .sai-sao { margin-bottom: 4px; font-size: 12px; }
