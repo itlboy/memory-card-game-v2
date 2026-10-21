@@ -56,5 +56,12 @@ kết quả tìm web. Chưa có công cụ đo lượng tìm — sau vài tuần
   vô hình với ChatGPT/Perplexity/Claude). `public/llms.txt` = tóm tắt sự thật để AI trích dẫn đúng.
 - **Bing / IndexNow**: `pnpm release` tự gửi cả sitemap qua IndexNow (`tools/indexnow.mjs`). Bing nuôi cả ChatGPT
   search, DuckDuckGo, Yahoo. Crawler Hints của Cloudflare không bật được qua API ở gói miễn phí.
-- Còn cần tài khoản (chủ dự án): Bing Webmaster Tools (nhập từ Search Console), Cốc Cốc, Yandex, Naver; cổng game
+- **Bing Webmaster Tools** (21.10.2026, tài khoản Microsoft của chủ dự án): hai trang `cozypi.com` và
+  `flipmatch.cozypi.com`, xác minh bằng CNAME ở DNS cozypi.com (`f0d914b4….cozypi.com` và
+  `a5fe6d6d….flipmatch.cozypi.com` → `verify.bing.com`) — ĐỪNG XOÁ hai bản ghi này, mất là Bing hết quyền.
+  Sitemap đã nộp. Nhập từ Search Console bị lỗi phía Bing nên làm tay.
+- **itch.io** https://itlboy.itch.io/flip-match (21.10.2026): trang HTML nhúng iframe `flipmatch.cozypi.com/en/?ref=itch`
+  (gói 1 file index.html — game luôn là bản mới nhất, online chạy được), khai báo AI = Yes. Đang Draft.
+- **Poki**: đã gửi hồ sơ 21.10.2026 (họ bắt SDK + quảng cáo nếu nhận — quyết sau).
+- Còn cần tài khoản (chủ dự án): Cốc Cốc, Yandex, Naver; cổng game
   web (CrazyGames, Poki, itch.io, GameDistribution); cộng đồng (Reddit, Product Hunt, nhóm phụ huynh/giáo viên).
