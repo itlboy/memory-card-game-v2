@@ -650,6 +650,33 @@ const th: TuDien = {
   'cd.oAriaThieu': ', เลือกธีมเพิ่ม',
   'cd.gioSiet': ' · เวลาบีบเข้ามาเรื่อย ๆ',
   'cd.canTheme': '{n} ด่านต้องเลือกธีมเพิ่ม',
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "ติดตั้งแบบแอป",
+  "cai.an": "ซ่อน",
+  "cai.menu": "เพิ่มลงหน้าจอโฮม",
+  "cai.tieuDe": "เพิ่มลงหน้าจอโฮม",
+  "cai.daHieu": "เข้าใจแล้ว",
+  "cai.daChep": "คัดลอกแล้ว",
+  "cai.lead": "เพิ่มลงหน้าจอโฮม: แตะครั้งเดียวก็เปิด เต็มจอเหมือนแอป ฟรี ไม่ต้องใช้สโตร์",
+  "cai.trongAppH": "⚠️ เปิดหน้านี้ในเบราว์เซอร์ก่อน",
+  "cai.trongAppP": "ตอนนี้คุณอยู่ในเบราว์เซอร์ของแอปอื่น (LINE, Facebook, Messenger…) ซึ่งเพิ่มลงหน้าจอโฮมไม่ได้ แตะ ⋯ หรือ ⋮ ที่มุมแล้วเลือก “เปิดในเบราว์เซอร์” หรือคัดลอกลิงก์ไปวางใน Safari (iPhone) หรือ Chrome (Android)",
+  "cai.chep": "คัดลอกลิงก์",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "แตะ <span class=\"nut\">⋯</span> แล้วแตะ <span class=\"nut xanh\" data-ic=\"share\">แชร์</span>",
+  "cai.i2p": "ปุ่ม ⋯ อยู่มุมขวาล่าง iPhone รุ่นเก่าให้แตะปุ่มแชร์ที่แถบล่างได้เลย ใน Chrome ปุ่มแชร์อยู่มุมขวาบน",
+  "cai.i3": "เลื่อนลงแล้วแตะ <span class=\"nut\" data-ic=\"them\">เพิ่มไปยังหน้าจอโฮม</span>",
+  "cai.i3p": "ไม่เห็น? แตะ “ดูเพิ่มเติม” หรือ “แก้ไขการทำงาน” ท้ายรายการ",
+  "cai.i4": "แตะ <span class=\"xanh-chu\">เพิ่ม</span>",
+  "cai.i4p": "ไอคอน Flip Match จะขึ้นบนหน้าจอโฮม เปิดจากตรงนั้นเพื่อเล่นเต็มจอ",
+  "cai.caiNgay": "ติดตั้งเลย",
+  "cai.a2": "แตะ <span class=\"nut\">⋮</span> ที่มุมขวาบน",
+  "cai.a2p": "ใน Samsung Internet เมนู ≡ อยู่มุมขวาล่าง",
+  "cai.a3": "แตะ <span class=\"nut\" data-ic=\"tai\">เพิ่มลงในหน้าจอหลัก</span>",
+  "cai.a3p": "บางเครื่องจะเขียนว่า “ติดตั้งแอป”",
+  "cai.a4": "แตะ <span class=\"xanh-chu\">ติดตั้ง</span>",
+  "cai.a4p": "ไอคอน Flip Match จะขึ้นบนหน้าจอโฮม เปิดจากตรงนั้นเพื่อเล่นเต็มจอ",
 };
 
 export default th;

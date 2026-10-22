@@ -595,6 +595,13 @@
   rồi NẠP LẠI ở `?room=CODE` (một lối vào phòng như web). Thêm capability iOS là chạy
   `gh workflow run ios-profile.yml -f caps=…` rồi nạp lại `IOS_PROFILE_BASE64` (profile cũ
   thành INVALID). Zalo/Messenger mở link bằng trình duyệt riêng — không vào app được.
+- **CÀI LÊN MÀN HÌNH CHÍNH (22.10.2026, app chưa lên App Store)**: `lib/cai-app.ts` + `CaiAppDialog` (hộp) +
+  `CaiAppBuoc` (lật 3 bước, dùng chung với mục cuối Luật chơi) + `MinhHoaCai` (hình VẼ LẠI Safari/Chrome, chỗ cần
+  bấm khoanh sáng + ngón tay; chữ duy nhất trong hình lấy từ bản dịch bước — chủ dự án chọn vẽ thay ảnh chụp).
+  Làm TRONG GAME, không trang riêng: iPhone lưu đúng trang đang mở → biểu tượng mở thẳng game. Lối vào: viên mời trang
+  chủ (✕ ẩn hẳn, `mm.anCai`), menu ☰, Luật chơi, link `/?cai=1`. Tự nhận iOS/Android/trình duyệt nhúng (Zalo…
+  → nhắc mở Safari/Chrome + chép link); Chrome Android có nút "Cài ngay" (`beforeinstallprompt`). Không hiện trong
+  app (`laApp`) hay khi đã mở từ biểu tượng. Safari/Chrome đổi giao diện là vẽ lại `MinhHoaCai`.
 - **Nút Back Android cần `@capacitor/app`** (`lib/nut-back.ts`): thiếu plugin là Back
   thoát thẳng app kể cả giữa wizard. Ngôn ngữ app đồng bộ hai chiều với Cài đặt máy
   (`lib/ngon-ngu-app.ts`, plugin `NgonNguApp`, khoá `mm.langMay`, Android `localeConfig`).

@@ -652,6 +652,33 @@ const tr: TuDien = {
   'cd.oAriaThieu': ', daha fazla tema seç',
   'cd.gioSiet': ' · süre giderek kısalır',
   'cd.canTheme': (p) => `${p.n} seviye için daha fazla tema gerekli`,
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Uygulama gibi kur",
+  "cai.an": "Gizle",
+  "cai.menu": "Ana ekrana ekle",
+  "cai.tieuDe": "Ana ekrana ekle",
+  "cai.daHieu": "Anladım",
+  "cai.daChep": "Kopyalandı",
+  "cai.lead": "Ana ekranına ekle: tek dokunuşla açılır, uygulama gibi tam ekran, ücretsiz. Mağaza gerekmez.",
+  "cai.trongAppH": "⚠️ Önce bu sayfayı tarayıcında aç",
+  "cai.trongAppP": "Başka bir uygulamanın tarayıcısındasın (WhatsApp, Facebook, Messenger…) ve buradan ana ekrana eklenemez. Köşedeki ⋯ veya ⋮ simgesine dokunup “Tarayıcıda aç”ı seç ya da bağlantıyı kopyalayıp Safari’ye (iPhone) veya Chrome’a (Android) yapıştır.",
+  "cai.chep": "Bağlantıyı kopyala",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "<span class=\"nut\">⋯</span> simgesine, sonra <span class=\"nut xanh\" data-ic=\"share\">Paylaş</span>’a dokun",
+  "cai.i2p": "⋯ düğmesi sağ alttadır. Eski iPhone’larda alttaki çubukta doğrudan Paylaş’a dokun. Chrome’da Paylaş sağ üsttedir.",
+  "cai.i3": "Aşağı kaydır ve <span class=\"nut\" data-ic=\"them\">Ana Ekrana Ekle</span>’ye dokun",
+  "cai.i3p": "Göremiyor musun? Listenin sonundaki “Daha Fazla” veya “Eylemleri Düzenle”ye dokun.",
+  "cai.i4": "<span class=\"xanh-chu\">Ekle</span>’ye dokun",
+  "cai.i4p": "Flip Match simgesi ana ekranında belirir. Tam ekran oynamak için oradan aç.",
+  "cai.caiNgay": "Şimdi kur",
+  "cai.a2": "Sağ üstteki <span class=\"nut\">⋮</span> simgesine dokun",
+  "cai.a2p": "Samsung Internet’te ≡ menüsü sağ alttadır.",
+  "cai.a3": "<span class=\"nut\" data-ic=\"tai\">Ana ekrana ekle</span>’ye dokun",
+  "cai.a3p": "Bazı telefonlarda “Uygulamayı yükle” yazar.",
+  "cai.a4": "<span class=\"xanh-chu\">Yükle</span>’ye dokun",
+  "cai.a4p": "Flip Match simgesi ana ekranında belirir. Tam ekran oynamak için oradan aç.",
 };
 
 export default tr;

@@ -651,6 +651,33 @@ const es: TuDien = {
   'cd.oAriaThieu': ', elige más temas',
   'cd.gioSiet': ' · el tiempo se acorta',
   'cd.canTheme': (p) => (Number(p.n) === 1 ? `${p.n} nivel necesita más temas` : `${p.n} niveles necesitan más temas`),
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Instalar como app",
+  "cai.an": "Ocultar",
+  "cai.menu": "Añadir a la pantalla de inicio",
+  "cai.tieuDe": "Añadir a la pantalla de inicio",
+  "cai.daHieu": "Entendido",
+  "cai.daChep": "Copiado",
+  "cai.lead": "Añádelo a tu pantalla de inicio: se abre con un toque, a pantalla completa como una app, gratis. Sin tienda de apps.",
+  "cai.trongAppH": "⚠️ Primero abre esta página en tu navegador",
+  "cai.trongAppP": "Estás dentro del navegador de otra app (WhatsApp, Facebook, Messenger…), que no puede añadir a la pantalla de inicio. Toca ⋯ o ⋮ en la esquina y elige “Abrir en el navegador”, o copia el enlace y pégalo en Safari (iPhone) o Chrome (Android).",
+  "cai.chep": "Copiar enlace",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Toca <span class=\"nut\">⋯</span> y luego <span class=\"nut xanh\" data-ic=\"share\">Compartir</span>",
+  "cai.i2p": "El botón ⋯ está abajo a la derecha. En iPhone más antiguos, toca directamente Compartir en la barra inferior. En Chrome, Compartir está arriba a la derecha.",
+  "cai.i3": "Desliza hacia abajo y toca <span class=\"nut\" data-ic=\"them\">Añadir a pantalla de inicio</span>",
+  "cai.i3p": "¿No lo ves? Toca “Ver más” o “Editar acciones” al final de la lista.",
+  "cai.i4": "Toca <span class=\"xanh-chu\">Añadir</span>",
+  "cai.i4p": "El icono de Flip Match aparece en tu pantalla de inicio. Ábrelo desde ahí para jugar a pantalla completa.",
+  "cai.caiNgay": "Instalar ahora",
+  "cai.a2": "Toca <span class=\"nut\">⋮</span> arriba a la derecha",
+  "cai.a2p": "En Samsung Internet, el menú ≡ está abajo a la derecha.",
+  "cai.a3": "Toca <span class=\"nut\" data-ic=\"tai\">Añadir a pantalla de inicio</span>",
+  "cai.a3p": "En algunos móviles se llama “Instalar aplicación”.",
+  "cai.a4": "Toca <span class=\"xanh-chu\">Instalar</span>",
+  "cai.a4p": "El icono de Flip Match aparece en tu pantalla de inicio. Ábrelo desde ahí para jugar a pantalla completa.",
 };
 
 export default es;

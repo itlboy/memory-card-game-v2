@@ -1,5 +1,7 @@
 <script setup lang="ts">
 // Số giây trong luật đọc thẳng từ engine — viết tay là lệch (đã lệch: 15 trong khi luật là 25)
+import CaiAppBuoc from './CaiAppBuoc.vue';
+import { coHuongDanCai } from '@/lib/cai-app';
 import { CAMPAIGN_LEVELS, TURN_BONUS_MS, TURN_LIMIT_SEC } from '@mm/engine';
 import { X } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
@@ -138,6 +140,13 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
           <li>{{ t('lc.nn5') }}<b>{{ t('lc.nn5b') }}</b>{{ t('lc.nn5c') }}</li>
           <li>{{ t('lc.nn6') }}<b>{{ t('lc.nn6b') }}</b>{{ t('lc.nn6c') }}</li>
         </ul>
+
+        <!-- Cài lên màn hình chính (lib/cai-app.ts) — ẩn khi đang là app (store hoặc đã cài) -->
+        <template v-if="coHuongDanCai">
+          <h3 id="cai">{{ t('cai.tieuDe') }}</h3>
+          <p class="lead">{{ t('cai.lead') }}</p>
+          <CaiAppBuoc />
+        </template>
       </div>
 
       <button class="btn btn-primary" type="button" @click="emit('close')">{{ t('lc.daHieu') }}</button>
@@ -214,9 +223,9 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
 .rules-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .rules-head h2 { flex: 1; margin: 0; font-size: var(--text-xl); }
 .rules-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* Tiêu đề mục: chữ display cỡ lớn (chủ dự án 22.10.2026: bản chữ hoa nhỏ màu nhạt khó thấy) */
 .rules-body h3 {
-  margin: 14px 0 6px; font-size: var(--text-sm);
-  text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+  margin: 18px 0 6px; font-family: var(--font-display); font-size: 19px; line-height: 1.2; color: var(--fg);
 }
 .rules-body h3:first-child { margin-top: 0; }
 .lead { margin: 0; font-size: var(--text-md); line-height: 1.5; }

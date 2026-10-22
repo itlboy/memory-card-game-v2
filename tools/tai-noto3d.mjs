@@ -31,7 +31,7 @@ const can = new Map();
 for (const t of themes) for (const s of t.symbols) if (laEmoji(s)) can.set(ten(s), s);
 // Icon GIAO DIỆN (ô trang chủ skin Kẹo — MenuScreen `ICO3D`), không thuộc theme nào. Thiếu dòng
 // này là bước dọn file thừa xoá mất chúng.
-for (const s of ['⭐', '🚀', '🌍']) can.set(ten(s), s);
+for (const s of ['⭐', '🚀', '🌍', '📱', '👆', '👇']) can.set(ten(s), s);   // + hộp cài lên màn hình chính (CaiAppDialog)
 
 mkdirSync(RA, { recursive: true });
 const tam = join(tmpdir(), `noto3d-${process.pid}.png`);
