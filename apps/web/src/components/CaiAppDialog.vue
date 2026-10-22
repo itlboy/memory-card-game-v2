@@ -8,7 +8,7 @@
  * khi đang trong trình duyệt nhúng (Zalo…): ở đó nút ấy không có lối cài.
  * Các bước nằm ở `CaiAppBuoc` (dùng chung với mục trong Luật chơi).
  */
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { X } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
 import { heMay, tabCai, trongAppKhac } from '@/lib/cai-app';
@@ -17,6 +17,8 @@ import CaiAppBuoc from './CaiAppBuoc.vue';
 const emit = defineEmits<{ close: [] }>();
 
 const chiTay = !trongAppKhac && heMay !== 'khac';
+/** Có bàn tay chỉ nút trình duyệt → hộp dạt xuống (Safari) / lên (Chrome) chừa chỗ; không thì ở GIỮA (máy tính). */
+const coTay = computed(() => chiTay && tabCai.value === heMay);
 const daChep = ref(false);
 const nutDong = ref<HTMLButtonElement | null>(null);
 
@@ -34,7 +36,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
 </script>
 
 <template>
-  <div class="cai-phu" :class="tabCai" role="dialog" aria-modal="true" :aria-label="t('cai.tieuDe')" @click.self="emit('close')">
+  <div class="cai-phu" :class="{ [tabCai]: coTay }" role="dialog" aria-modal="true" :aria-label="t('cai.tieuDe')" @click.self="emit('close')">
     <div class="cai-hop khay">
       <header>
         <img class="ico" src="/emoji/3d/128/1f4f1.webp" alt="" aria-hidden="true" />
@@ -56,7 +58,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
 
       <button class="thach th-xanh xong" type="button" @click="emit('close')">{{ t('cai.daHieu') }}</button>
     </div>
-    <img v-if="chiTay && tabCai === heMay" class="tay" :src="heMay === 'ios' ? '/emoji/3d/128/1f447.webp' : '/emoji/3d/128/1f446.webp'" alt="" aria-hidden="true" />
+    <img v-if="coTay" class="tay" :src="heMay === 'ios' ? '/emoji/3d/128/1f447.webp' : '/emoji/3d/128/1f446.webp'" alt="" aria-hidden="true" />
   </div>
 </template>
 
