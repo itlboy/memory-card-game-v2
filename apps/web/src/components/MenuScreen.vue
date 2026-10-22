@@ -18,7 +18,8 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, Globe, Map, Play, Users } from 'lucide-vue-next';
+import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
+import { anLoiMoi, moCai, nenMoiCai, tatLoiMoi } from '@/lib/cai-app';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
@@ -445,6 +446,13 @@ const ICO3D = {
         ẩn hẳn khi máy quá thấp, nên KHÔNG SCROLL vẫn giữ.
       -->
       <div v-if="step === 'players'" key="players" class="step-body home">
+        <!-- Mời cài lên màn hình chính (lib/cai-app.ts): chỉ điện thoại mở bằng trình duyệt; ✕ là ẩn hẳn -->
+        <div v-if="nenMoiCai && !anLoiMoi" class="moi-cai">
+          <button class="thach th-nho moi-cai-nut" type="button" @click="moCai()">
+            <img src="/emoji/3d/128/1f4f1.webp" alt="" aria-hidden="true" />{{ t('cai.moi') }}
+          </button>
+          <button class="thach th-nho moi-cai-an" type="button" :aria-label="t('cai.an')" @click="tatLoiMoi()"><X :size="16" /></button>
+        </div>
         <QuatLa :themes="themes" />
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
@@ -834,6 +842,12 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .home .loi-tat { margin: 0; }
 .ico3d { display: none; }
 
+.moi-cai { flex: none; display: flex; justify-content: center; align-items: center; gap: 6px; }
+.moi-cai-nut { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; border-radius: 999px; padding: 4px 14px 4px 8px; font-weight: 800; font-size: 14.5px; }
+.moi-cai-nut img { width: 26px; height: 26px; }
+/* Hình 32px, vùng chạm 44px (NF-07) */
+.moi-cai-an { position: relative; width: 32px; height: 32px; min-width: 0; min-height: 0; padding: 0; border-radius: 50%; }
+.moi-cai-an::after { content: ''; position: absolute; inset: -6px; }
 .o-chien-dich, .o-vuong {
   border: 2px solid transparent; border-radius: 20px; color: #fff; cursor: pointer;
   font: inherit; transition: transform .15s ease, box-shadow .15s ease;

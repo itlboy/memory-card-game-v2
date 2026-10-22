@@ -651,6 +651,33 @@ const pt: TuDien = {
   'cd.oAriaThieu': ', escolha mais temas',
   'cd.gioSiet': ' · o tempo fica mais apertado',
   'cd.canTheme': (p) => (Number(p.n) === 1 ? `${p.n} nível precisa de mais temas` : `${p.n} níveis precisam de mais temas`),
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Instalar como app",
+  "cai.an": "Ocultar",
+  "cai.menu": "Adicionar à tela inicial",
+  "cai.tieuDe": "Adicionar à tela inicial",
+  "cai.daHieu": "Entendi",
+  "cai.daChep": "Copiado",
+  "cai.lead": "Adicione à tela inicial: abre com um toque, em tela cheia como um app, grátis. Sem loja de apps.",
+  "cai.trongAppH": "⚠️ Abra esta página no navegador primeiro",
+  "cai.trongAppP": "Você está no navegador de outro app (WhatsApp, Facebook, Messenger…), que não consegue adicionar à tela inicial. Toque em ⋯ ou ⋮ no canto e escolha “Abrir no navegador”, ou copie o link e cole no Safari (iPhone) ou Chrome (Android).",
+  "cai.chep": "Copiar link",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Toque em <span class=\"nut\">⋯</span> e depois em <span class=\"nut xanh\" data-ic=\"share\">Compartilhar</span>",
+  "cai.i2p": "O botão ⋯ fica no canto inferior direito. Em iPhones mais antigos, toque direto em Compartilhar na barra de baixo. No Chrome, Compartilhar fica no canto superior direito.",
+  "cai.i3": "Role para baixo e toque em <span class=\"nut\" data-ic=\"them\">Adicionar à Tela de Início</span>",
+  "cai.i3p": "Não aparece? Toque em “Ver Mais” ou “Editar Ações” no fim da lista.",
+  "cai.i4": "Toque em <span class=\"xanh-chu\">Adicionar</span>",
+  "cai.i4p": "O ícone do Flip Match aparece na tela inicial. Abra por ali para jogar em tela cheia.",
+  "cai.caiNgay": "Instalar agora",
+  "cai.a2": "Toque em <span class=\"nut\">⋮</span> no canto superior direito",
+  "cai.a2p": "No Samsung Internet, o menu ≡ fica no canto inferior direito.",
+  "cai.a3": "Toque em <span class=\"nut\" data-ic=\"tai\">Adicionar à tela inicial</span>",
+  "cai.a3p": "Em alguns celulares aparece como “Instalar app”.",
+  "cai.a4": "Toque em <span class=\"xanh-chu\">Instalar</span>",
+  "cai.a4p": "O ícone do Flip Match aparece na tela inicial. Abra por ali para jogar em tela cheia.",
 };
 
 export default pt;

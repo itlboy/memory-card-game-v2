@@ -649,6 +649,33 @@ const zh: TuDien = {
   'cd.oAriaThieu': '，请多选几个主题',
   'cd.gioSiet': ' · 时间收紧',
   'cd.canTheme': '{n} 关需要更多主题',
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "像应用一样安装",
+  "cai.an": "隐藏",
+  "cai.menu": "添加到主屏幕",
+  "cai.tieuDe": "添加到主屏幕",
+  "cai.daHieu": "知道了",
+  "cai.daChep": "已复制",
+  "cai.lead": "添加到主屏幕：一点就开，像应用一样全屏，免费，无需应用商店。",
+  "cai.trongAppH": "⚠️ 请先用浏览器打开此页",
+  "cai.trongAppP": "你正在其他应用（微信、Facebook、Messenger 等）的内置浏览器里，无法添加到主屏幕。点角落的 ⋯ 或 ⋮ 选择“在浏览器中打开”，或复制链接粘贴到 Safari（iPhone）或 Chrome（Android）。",
+  "cai.chep": "复制链接",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "点 <span class=\"nut\">⋯</span>，再点 <span class=\"nut xanh\" data-ic=\"share\">分享</span>",
+  "cai.i2p": "⋯ 按钮在右下角。较旧的 iPhone 直接点底栏的分享按钮。在 Chrome 中，分享在右上角。",
+  "cai.i3": "向下滑动，点 <span class=\"nut\" data-ic=\"them\">添加到主屏幕</span>",
+  "cai.i3p": "找不到？点列表底部的“查看更多”或“编辑操作”。",
+  "cai.i4": "点 <span class=\"xanh-chu\">添加</span>",
+  "cai.i4p": "Flip Match 图标会出现在主屏幕上。从那里打开即可全屏游玩。",
+  "cai.caiNgay": "立即安装",
+  "cai.a2": "点右上角的 <span class=\"nut\">⋮</span>",
+  "cai.a2p": "在三星浏览器中，≡ 菜单在右下角。",
+  "cai.a3": "点 <span class=\"nut\" data-ic=\"tai\">添加到主屏幕</span>",
+  "cai.a3p": "有些手机显示为“安装应用”。",
+  "cai.a4": "点 <span class=\"xanh-chu\">安装</span>",
+  "cai.a4p": "Flip Match 图标会出现在主屏幕上。从那里打开即可全屏游玩。",
 };
 
 export default zh;

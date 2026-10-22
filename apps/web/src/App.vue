@@ -16,6 +16,8 @@ import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog from './components/RulesDialog.vue';
 import DebugDialog from './components/DebugDialog.vue';
+import CaiAppDialog from './components/CaiAppDialog.vue';
+import { hienCai, moCai } from './lib/cai-app';
 import type { XemFx } from './components/DebugMenu.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
@@ -198,6 +200,8 @@ const menuKey = ref(0);
  */
 // Hộp thoại đóng TRƯỚC mọi thứ bên dưới nó
 useBackCloser(30, () => showRules.value, () => { showRules.value = false; });
+const dongCai = (): void => { hienCai.value = false; };
+useBackCloser(30, () => hienCai.value, dongCai);
 /** Màn tài khoản (đăng nhập Google, điểm, danh hiệu). */
 const showAccount = ref(false);
 useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; });
@@ -447,6 +451,10 @@ onMounted(() => {
     screen.value = 'online';           // F5 ở màn vào online
   } else if (q.get('w')) {
     /* bước wizard — MenuScreen tự khôi phục từ ?w= */
+  } else if (q.get('cai') === '1') {
+    // Link chia sẻ hướng dẫn cài lên màn hình chính (lib/cai-app.ts): mở hộp rồi lau URL
+    moCai();
+    setUrl(null);
   } else if (location.search) {
     setUrl(null);
   } else if (maPhongDangDo()) {
@@ -928,6 +936,8 @@ const hasNext = computed(() => {
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @tat="debug = false; showDebug = false"
   />
+
+  <CaiAppDialog v-if="hienCai" @close="dongCai" />
 
   <RulesDialog
     v-if="showRules" :debug="debug"

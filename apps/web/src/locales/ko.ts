@@ -649,6 +649,33 @@ const ko: TuDien = {
   'cd.oAriaThieu': ', 테마를 더 골라야 해요',
   'cd.gioSiet': ' · 제한 시간이 점점 줄어요',
   'cd.canTheme': '레벨 {n}개에 테마가 더 필요해요',
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "앱처럼 설치하기",
+  "cai.an": "숨기기",
+  "cai.menu": "홈 화면에 추가",
+  "cai.tieuDe": "홈 화면에 추가",
+  "cai.daHieu": "알겠어요",
+  "cai.daChep": "복사됨",
+  "cai.lead": "홈 화면에 추가하면 한 번 탭으로 앱처럼 전체 화면에서 즐길 수 있어요. 무료, 스토어 필요 없음.",
+  "cai.trongAppH": "⚠️ 먼저 브라우저에서 이 페이지를 여세요",
+  "cai.trongAppP": "지금은 다른 앱(카카오톡, Facebook, Messenger 등) 안의 브라우저라 홈 화면에 추가할 수 없어요. 모서리의 ⋯ 또는 ⋮을 눌러 ‘브라우저로 열기’를 고르거나, 링크를 복사해 Safari(iPhone)나 Chrome(Android)에 붙여 넣으세요.",
+  "cai.chep": "링크 복사",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "<span class=\"nut\">⋯</span> 누른 뒤 <span class=\"nut xanh\" data-ic=\"share\">공유</span>",
+  "cai.i2p": "⋯ 버튼은 오른쪽 아래에 있어요. 예전 iPhone은 아래 막대의 공유 버튼을 바로 누르세요. Chrome에서는 공유가 오른쪽 위에 있어요.",
+  "cai.i3": "아래로 내려 <span class=\"nut\" data-ic=\"them\">홈 화면에 추가</span>",
+  "cai.i3p": "안 보이면 목록 맨 아래의 ‘더 보기’나 ‘동작 편집’을 누르세요.",
+  "cai.i4": "<span class=\"xanh-chu\">추가</span> 누르기",
+  "cai.i4p": "홈 화면에 Flip Match 아이콘이 생겨요. 거기서 열면 전체 화면으로 즐길 수 있어요.",
+  "cai.caiNgay": "지금 설치",
+  "cai.a2": "오른쪽 위 <span class=\"nut\">⋮</span> 누르기",
+  "cai.a2p": "삼성 인터넷에서는 ≡ 메뉴가 오른쪽 아래에 있어요.",
+  "cai.a3": "<span class=\"nut\" data-ic=\"tai\">홈 화면에 추가</span> 누르기",
+  "cai.a3p": "일부 휴대폰에서는 ‘앱 설치’라고 나와요.",
+  "cai.a4": "<span class=\"xanh-chu\">설치</span> 누르기",
+  "cai.a4p": "홈 화면에 Flip Match 아이콘이 생겨요. 거기서 열면 전체 화면으로 즐길 수 있어요.",
 };
 
 export default ko;

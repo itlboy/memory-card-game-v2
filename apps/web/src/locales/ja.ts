@@ -649,6 +649,33 @@ const ja: TuDien = {
   'cd.oAriaThieu': '、テーマを増やしてください',
   'cd.gioSiet': '・制限時間がだんだん短く',
   'cd.canTheme': '{n}ステージでテーマが不足',
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "アプリのように使う",
+  "cai.an": "閉じる",
+  "cai.menu": "ホーム画面に追加",
+  "cai.tieuDe": "ホーム画面に追加",
+  "cai.daHieu": "わかった",
+  "cai.daChep": "コピーしました",
+  "cai.lead": "ホーム画面に追加すると、ワンタップでアプリのように全画面で遊べます。無料、ストア不要。",
+  "cai.trongAppH": "⚠️ まずブラウザでこのページを開いてください",
+  "cai.trongAppP": "いまは別のアプリ（LINE、Facebook、Messenger など）の中のブラウザで、ホーム画面に追加できません。隅の ⋯ か ⋮ から「ブラウザで開く」を選ぶか、リンクをコピーして Safari（iPhone）か Chrome（Android）に貼り付けてください。",
+  "cai.chep": "リンクをコピー",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "<span class=\"nut\">⋯</span> をタップして <span class=\"nut xanh\" data-ic=\"share\">共有</span>",
+  "cai.i2p": "⋯ は右下にあります。古い iPhone では下のバーの共有ボタンを直接タップ。Chrome では共有は右上です。",
+  "cai.i3": "下にスクロールして <span class=\"nut\" data-ic=\"them\">ホーム画面に追加</span>",
+  "cai.i3p": "見つからないときは、一覧の下の「さらに表示」か「アクションを編集」をタップ。",
+  "cai.i4": "<span class=\"xanh-chu\">追加</span> をタップ",
+  "cai.i4p": "ホーム画面に Flip Match のアイコンが出ます。そこから開くと全画面で遊べます。",
+  "cai.caiNgay": "今すぐインストール",
+  "cai.a2": "右上の <span class=\"nut\">⋮</span> をタップ",
+  "cai.a2p": "Samsung Internet ではメニュー ≡ は右下です。",
+  "cai.a3": "<span class=\"nut\" data-ic=\"tai\">ホーム画面に追加</span> をタップ",
+  "cai.a3p": "機種によっては「アプリをインストール」と表示されます。",
+  "cai.a4": "<span class=\"xanh-chu\">インストール</span> をタップ",
+  "cai.a4p": "ホーム画面に Flip Match のアイコンが出ます。そこから開くと全画面で遊べます。",
 };
 
 export default ja;

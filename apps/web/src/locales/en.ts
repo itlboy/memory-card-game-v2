@@ -651,6 +651,33 @@ const en: TuDien = {
   'cd.oAriaThieu': ', select more themes',
   'cd.gioSiet': ' · time gets tighter',
   'cd.canTheme': (p) => `${p.n} ${Number(p.n) === 1 ? 'level needs' : 'levels need'} more themes`,
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Install as an App",
+  "cai.an": "Hide",
+  "cai.menu": "Add to Home Screen",
+  "cai.tieuDe": "Add to Home Screen",
+  "cai.daHieu": "Got It",
+  "cai.daChep": "Copied",
+  "cai.lead": "Add it to your home screen: one tap to open, full screen like an app, free. No store needed.",
+  "cai.trongAppH": "⚠️ Open this page in your browser first",
+  "cai.trongAppP": "You are inside another app's browser (Zalo, Facebook, Messenger…), which can't add to the home screen. Tap ⋯ or ⋮ in the corner and choose “Open in browser”, or copy the link and paste it into Safari (iPhone) or Chrome (Android).",
+  "cai.chep": "Copy link",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Tap <span class=\"nut\">⋯</span> then <span class=\"nut xanh\" data-ic=\"share\">Share</span>",
+  "cai.i2p": "The ⋯ button is at the bottom right. On older iPhones, tap the Share button in the bottom bar right away. In Chrome, Share is at the top right.",
+  "cai.i3": "Scroll down and tap <span class=\"nut\" data-ic=\"them\">Add to Home Screen</span>",
+  "cai.i3p": "Can't see it? Tap “View More” or “Edit Actions” at the bottom of the list.",
+  "cai.i4": "Tap <span class=\"xanh-chu\">Add</span>",
+  "cai.i4p": "The Flip Match icon appears on your home screen. Open it from there to play full screen.",
+  "cai.caiNgay": "Install now",
+  "cai.a2": "Tap <span class=\"nut\">⋮</span> at the top right",
+  "cai.a2p": "In Samsung Internet, the ≡ menu is at the bottom right.",
+  "cai.a3": "Tap <span class=\"nut\" data-ic=\"tai\">Add to Home screen</span>",
+  "cai.a3p": "Some phones call it “Install app”.",
+  "cai.a4": "Tap <span class=\"xanh-chu\">Install</span>",
+  "cai.a4p": "The Flip Match icon appears on your home screen. Open it from there to play full screen.",
 };
 
 export default en;

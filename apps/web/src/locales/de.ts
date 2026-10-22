@@ -652,6 +652,33 @@ const de: TuDien = {
   'cd.oAriaThieu': ', mehr Themen wählen',
   'cd.gioSiet': ' · Zeit wird knapper',
   'cd.canTheme': (p) => `${p.n} ${Number(p.n) === 1 ? 'Level braucht' : 'Level brauchen'} mehr Themen`,
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Als App installieren",
+  "cai.an": "Ausblenden",
+  "cai.menu": "Zum Home-Bildschirm",
+  "cai.tieuDe": "Zum Home-Bildschirm hinzufügen",
+  "cai.daHieu": "Verstanden",
+  "cai.daChep": "Kopiert",
+  "cai.lead": "Leg es auf deinen Home-Bildschirm: mit einem Tipp offen, im Vollbild wie eine App, kostenlos. Kein Store nötig.",
+  "cai.trongAppH": "⚠️ Öffne diese Seite zuerst im Browser",
+  "cai.trongAppP": "Du bist im Browser einer anderen App (WhatsApp, Facebook, Messenger …), der nichts zum Home-Bildschirm hinzufügen kann. Tippe oben auf ⋯ oder ⋮ und wähle „Im Browser öffnen“, oder kopiere den Link und füge ihn in Safari (iPhone) oder Chrome (Android) ein.",
+  "cai.chep": "Link kopieren",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Tippe auf <span class=\"nut\">⋯</span> und dann auf <span class=\"nut xanh\" data-ic=\"share\">Teilen</span>",
+  "cai.i2p": "Die Taste ⋯ ist unten rechts. Auf älteren iPhones tippst du direkt auf Teilen in der unteren Leiste. In Chrome ist Teilen oben rechts.",
+  "cai.i3": "Scrolle nach unten und tippe auf <span class=\"nut\" data-ic=\"them\">Zum Home-Bildschirm</span>",
+  "cai.i3p": "Nicht zu sehen? Tippe ganz unten auf „Mehr anzeigen“ oder „Aktionen bearbeiten“.",
+  "cai.i4": "Tippe auf <span class=\"xanh-chu\">Hinzufügen</span>",
+  "cai.i4p": "Das Flip-Match-Symbol erscheint auf deinem Home-Bildschirm. Öffne es dort, um im Vollbild zu spielen.",
+  "cai.caiNgay": "Jetzt installieren",
+  "cai.a2": "Tippe oben rechts auf <span class=\"nut\">⋮</span>",
+  "cai.a2p": "In Samsung Internet ist das Menü ≡ unten rechts.",
+  "cai.a3": "Tippe auf <span class=\"nut\" data-ic=\"tai\">Zum Startbildschirm hinzufügen</span>",
+  "cai.a3p": "Auf manchen Handys heißt es „App installieren“.",
+  "cai.a4": "Tippe auf <span class=\"xanh-chu\">Installieren</span>",
+  "cai.a4p": "Das Flip-Match-Symbol erscheint auf deinem Home-Bildschirm. Öffne es dort, um im Vollbild zu spielen.",
 };
 
 export default de;

@@ -652,6 +652,33 @@ const id: TuDien = {
   'cd.oAriaThieu': ', perlu tema tambahan',
   'cd.gioSiet': ' · waktu makin ketat',
   'cd.canTheme': '{n} level butuh tema tambahan',
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Pasang seperti aplikasi",
+  "cai.an": "Sembunyikan",
+  "cai.menu": "Tambah ke layar utama",
+  "cai.tieuDe": "Tambah ke layar utama",
+  "cai.daHieu": "Mengerti",
+  "cai.daChep": "Disalin",
+  "cai.lead": "Tambahkan ke layar utama: sekali ketuk langsung terbuka, layar penuh seperti aplikasi, gratis. Tanpa toko aplikasi.",
+  "cai.trongAppH": "⚠️ Buka halaman ini di browser dulu",
+  "cai.trongAppP": "Kamu sedang di browser bawaan aplikasi lain (WhatsApp, Facebook, Messenger…), yang tidak bisa menambah ke layar utama. Ketuk ⋯ atau ⋮ di pojok lalu pilih “Buka di browser”, atau salin tautan dan tempel di Safari (iPhone) atau Chrome (Android).",
+  "cai.chep": "Salin tautan",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Ketuk <span class=\"nut\">⋯</span> lalu <span class=\"nut xanh\" data-ic=\"share\">Bagikan</span>",
+  "cai.i2p": "Tombol ⋯ ada di kanan bawah. Di iPhone lama, langsung ketuk Bagikan di bilah bawah. Di Chrome, Bagikan ada di kanan atas.",
+  "cai.i3": "Gulir ke bawah dan ketuk <span class=\"nut\" data-ic=\"them\">Tambah ke Layar Utama</span>",
+  "cai.i3p": "Tidak ada? Ketuk “Lihat Lainnya” atau “Edit Tindakan” di akhir daftar.",
+  "cai.i4": "Ketuk <span class=\"xanh-chu\">Tambah</span>",
+  "cai.i4p": "Ikon Flip Match muncul di layar utama. Buka dari sana untuk main layar penuh.",
+  "cai.caiNgay": "Pasang sekarang",
+  "cai.a2": "Ketuk <span class=\"nut\">⋮</span> di kanan atas",
+  "cai.a2p": "Di Samsung Internet, menu ≡ ada di kanan bawah.",
+  "cai.a3": "Ketuk <span class=\"nut\" data-ic=\"tai\">Tambahkan ke layar utama</span>",
+  "cai.a3p": "Di beberapa ponsel namanya “Instal aplikasi”.",
+  "cai.a4": "Ketuk <span class=\"xanh-chu\">Instal</span>",
+  "cai.a4p": "Ikon Flip Match muncul di layar utama. Buka dari sana untuk main layar penuh.",
 };
 
 export default id;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ChevronRight, Crown, HelpCircle, Languages, Menu, Music, Palette, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { ChevronRight, Crown, HelpCircle, Languages, Menu, Music, Palette, Smartphone, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { moCai, nenMoiCai } from '@/lib/cai-app';
 import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
@@ -306,6 +307,10 @@ watch(() => props.totalScore, (to, from) => {
         </div>
 
         <hr class="ke" />
+        <!-- Cài lên màn hình chính (lib/cai-app.ts): chỉ điện thoại mở bằng trình duyệt, chưa cài -->
+        <button v-if="nenMoiCai" data-phang class="item" role="menuitem" type="button" @click="dong(); moCai()">
+          <Smartphone :size="20" /><span>{{ t('cai.menu') }}</span>
+        </button>
         <button data-phang class="item" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
           <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>
         </button>

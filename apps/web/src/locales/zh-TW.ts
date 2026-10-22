@@ -652,6 +652,33 @@ const zhTW: TuDien = {
   'cd.oAriaThieu': '，請多選幾個主題',
   'cd.gioSiet': ' · 時間更緊',
   'cd.canTheme': (p) => `${p.n} 關需要更多主題`,
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "像 App 一樣安裝",
+  "cai.an": "隱藏",
+  "cai.menu": "加入主畫面",
+  "cai.tieuDe": "加入主畫面",
+  "cai.daHieu": "知道了",
+  "cai.daChep": "已複製",
+  "cai.lead": "加入主畫面：一點就開，像 App 一樣全螢幕，免費，不需要商店。",
+  "cai.trongAppH": "⚠️ 請先用瀏覽器開啟此頁",
+  "cai.trongAppP": "你正在其他 App（LINE、Facebook、Messenger 等）的內建瀏覽器裡，無法加入主畫面。點角落的 ⋯ 或 ⋮ 選擇「用瀏覽器開啟」，或複製連結貼到 Safari（iPhone）或 Chrome（Android）。",
+  "cai.chep": "複製連結",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "點 <span class=\"nut\">⋯</span>，再點 <span class=\"nut xanh\" data-ic=\"share\">分享</span>",
+  "cai.i2p": "⋯ 按鈕在右下角。較舊的 iPhone 直接點底列的分享按鈕。在 Chrome 中，分享在右上角。",
+  "cai.i3": "往下滑，點 <span class=\"nut\" data-ic=\"them\">加入主畫面</span>",
+  "cai.i3p": "找不到？點列表底部的「顯示更多」或「編輯動作」。",
+  "cai.i4": "點 <span class=\"xanh-chu\">加入</span>",
+  "cai.i4p": "Flip Match 圖示會出現在主畫面上。從那裡開啟即可全螢幕遊玩。",
+  "cai.caiNgay": "立即安裝",
+  "cai.a2": "點右上角的 <span class=\"nut\">⋮</span>",
+  "cai.a2p": "在三星網際網路中，≡ 選單在右下角。",
+  "cai.a3": "點 <span class=\"nut\" data-ic=\"tai\">加到主畫面</span>",
+  "cai.a3p": "有些手機顯示為「安裝應用程式」。",
+  "cai.a4": "點 <span class=\"xanh-chu\">安裝</span>",
+  "cai.a4p": "Flip Match 圖示會出現在主畫面上。從那裡開啟即可全螢幕遊玩。",
 };
 
 export default zhTW;

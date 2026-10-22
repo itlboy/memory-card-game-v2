@@ -655,6 +655,33 @@ const fr: TuDien = {
   'cd.oAriaThieu': ', ajoute des thèmes',
   'cd.gioSiet': ' · temps de plus en plus serré',
   'cd.canTheme': (p) => `${p.n} ${Number(p.n) <= 1 ? 'niveau demande' : 'niveaux demandent'} plus de thèmes`,
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Installer comme une app",
+  "cai.an": "Masquer",
+  "cai.menu": "Ajouter à l’écran d’accueil",
+  "cai.tieuDe": "Ajouter à l’écran d’accueil",
+  "cai.daHieu": "Compris",
+  "cai.daChep": "Copié",
+  "cai.lead": "Ajoute-le à ton écran d’accueil : il s’ouvre d’un geste, en plein écran comme une app, gratuitement. Pas besoin de store.",
+  "cai.trongAppH": "⚠️ Ouvre d’abord cette page dans ton navigateur",
+  "cai.trongAppP": "Tu es dans le navigateur d’une autre app (WhatsApp, Facebook, Messenger…), qui ne peut pas ajouter à l’écran d’accueil. Touche ⋯ ou ⋮ dans le coin et choisis « Ouvrir dans le navigateur », ou copie le lien et colle-le dans Safari (iPhone) ou Chrome (Android).",
+  "cai.chep": "Copier le lien",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Touche <span class=\"nut\">⋯</span> puis <span class=\"nut xanh\" data-ic=\"share\">Partager</span>",
+  "cai.i2p": "Le bouton ⋯ est en bas à droite. Sur les iPhone plus anciens, touche directement Partager dans la barre du bas. Dans Chrome, Partager est en haut à droite.",
+  "cai.i3": "Fais défiler et touche <span class=\"nut\" data-ic=\"them\">Sur l’écran d’accueil</span>",
+  "cai.i3p": "Tu ne le vois pas ? Touche « Afficher plus » ou « Modifier les actions » en bas de la liste.",
+  "cai.i4": "Touche <span class=\"xanh-chu\">Ajouter</span>",
+  "cai.i4p": "L’icône Flip Match apparaît sur ton écran d’accueil. Ouvre-la depuis là pour jouer en plein écran.",
+  "cai.caiNgay": "Installer maintenant",
+  "cai.a2": "Touche <span class=\"nut\">⋮</span> en haut à droite",
+  "cai.a2p": "Dans Samsung Internet, le menu ≡ est en bas à droite.",
+  "cai.a3": "Touche <span class=\"nut\" data-ic=\"tai\">Ajouter à l’écran d’accueil</span>",
+  "cai.a3p": "Sur certains téléphones, c’est « Installer l’application ».",
+  "cai.a4": "Touche <span class=\"xanh-chu\">Installer</span>",
+  "cai.a4p": "L’icône Flip Match apparaît sur ton écran d’accueil. Ouvre-la depuis là pour jouer en plein écran.",
 };
 
 export default fr;

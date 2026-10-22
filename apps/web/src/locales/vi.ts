@@ -662,6 +662,33 @@ const vi = {
   'cd.oAriaThieu': ', cần chọn thêm theme',
   'cd.gioSiet': ' · giờ siết dần',
   'cd.canTheme': '{n} cấp cần thêm theme',
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Cài Lật Thẻ như app",
+  "cai.an": "Ẩn lời mời",
+  "cai.menu": "Cài lên màn hình chính",
+  "cai.tieuDe": "Cài lên màn hình chính",
+  "cai.daHieu": "Đã hiểu",
+  "cai.daChep": "Đã chép",
+  "cai.lead": "Thêm vào màn hình chính: chạm một cái là mở, toàn màn hình như app, miễn phí. Không cần kho ứng dụng.",
+  "cai.trongAppH": "⚠️ Mở trang này bằng trình duyệt trước đã",
+  "cai.trongAppP": "Bạn đang xem trong trình duyệt của app khác (Zalo, Facebook, Messenger…), ở đây không thêm vào màn hình chính được. Bấm ⋯ hoặc ⋮ ở góc, chọn “Mở bằng trình duyệt”, hoặc chép link rồi dán vào Safari (iPhone) hay Chrome (Android).",
+  "cai.chep": "Chép link",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Bấm <span class=\"nut\">⋯</span> rồi <span class=\"nut xanh\" data-ic=\"share\">Chia sẻ</span>",
+  "cai.i2p": "Nút ⋯ ở góc dưới bên phải. iPhone đời cũ: bấm thẳng nút Chia sẻ ở thanh dưới. Trên Chrome, nút Chia sẻ ở góc trên bên phải.",
+  "cai.i3": "Kéo xuống, bấm <span class=\"nut\" data-ic=\"them\">Thêm vào MH chính</span>",
+  "cai.i3p": "Không thấy? Bấm “Xem thêm” hoặc “Sửa tác vụ” ở cuối danh sách.",
+  "cai.i4": "Bấm <span class=\"xanh-chu\">Thêm</span>",
+  "cai.i4p": "Biểu tượng Lật Thẻ hiện trên màn hình chính. Mở từ đó là chơi toàn màn hình.",
+  "cai.caiNgay": "Cài ngay",
+  "cai.a2": "Bấm <span class=\"nut\">⋮</span> ở góc trên bên phải",
+  "cai.a2p": "Trên Samsung Internet, menu ≡ ở góc dưới bên phải.",
+  "cai.a3": "Bấm <span class=\"nut\" data-ic=\"tai\">Thêm vào màn hình chính</span>",
+  "cai.a3p": "Một số máy ghi là “Cài đặt ứng dụng”.",
+  "cai.a4": "Bấm <span class=\"xanh-chu\">Cài đặt</span>",
+  "cai.a4p": "Biểu tượng Lật Thẻ hiện trên màn hình chính. Mở từ đó là chơi toàn màn hình.",
 };
 
 export default vi;

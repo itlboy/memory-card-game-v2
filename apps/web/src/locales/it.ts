@@ -653,6 +653,33 @@ const it: TuDien = {
   'cd.oAriaThieu': ', scegli altri temi',
   'cd.gioSiet': ' · tempo sempre più stretto',
   'cd.canTheme': (p) => (Number(p.n) === 1 ? '1 livello richiede altri temi' : `${p.n} livelli richiedono altri temi`),
+
+  /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
+  "cai.moi": "Installa come app",
+  "cai.an": "Nascondi",
+  "cai.menu": "Aggiungi alla schermata Home",
+  "cai.tieuDe": "Aggiungi alla schermata Home",
+  "cai.daHieu": "Ho capito",
+  "cai.daChep": "Copiato",
+  "cai.lead": "Aggiungilo alla schermata Home: si apre con un tocco, a schermo intero come un’app, gratis. Niente store.",
+  "cai.trongAppH": "⚠️ Prima apri questa pagina nel browser",
+  "cai.trongAppP": "Sei nel browser di un’altra app (WhatsApp, Facebook, Messenger…), che non può aggiungere alla schermata Home. Tocca ⋯ o ⋮ nell’angolo e scegli “Apri nel browser”, oppure copia il link e incollalo in Safari (iPhone) o Chrome (Android).",
+  "cai.chep": "Copia link",
+  "cai.tabIos": "iPhone / iPad",
+  "cai.tabAndroid": "Android",
+  "cai.i2": "Tocca <span class=\"nut\">⋯</span> e poi <span class=\"nut xanh\" data-ic=\"share\">Condividi</span>",
+  "cai.i2p": "Il tasto ⋯ è in basso a destra. Sugli iPhone più vecchi tocca subito Condividi nella barra in basso. In Chrome, Condividi è in alto a destra.",
+  "cai.i3": "Scorri giù e tocca <span class=\"nut\" data-ic=\"them\">Aggiungi alla schermata Home</span>",
+  "cai.i3p": "Non lo vedi? Tocca “Mostra altro” o “Modifica azioni” in fondo all’elenco.",
+  "cai.i4": "Tocca <span class=\"xanh-chu\">Aggiungi</span>",
+  "cai.i4p": "L’icona di Flip Match compare nella schermata Home. Aprila da lì per giocare a schermo intero.",
+  "cai.caiNgay": "Installa ora",
+  "cai.a2": "Tocca <span class=\"nut\">⋮</span> in alto a destra",
+  "cai.a2p": "In Samsung Internet il menu ≡ è in basso a destra.",
+  "cai.a3": "Tocca <span class=\"nut\" data-ic=\"tai\">Aggiungi a schermata Home</span>",
+  "cai.a3p": "Su alcuni telefoni si chiama “Installa app”.",
+  "cai.a4": "Tocca <span class=\"xanh-chu\">Installa</span>",
+  "cai.a4p": "L’icona di Flip Match compare nella schermata Home. Aprila da lì per giocare a schermo intero.",
 };
 
 export default it;
