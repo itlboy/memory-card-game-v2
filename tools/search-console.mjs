@@ -33,7 +33,7 @@ async function layToken() {
   const than = b64({
     iss: SA.client_email, aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600,
     scope: ['https://www.googleapis.com/auth/siteverification', 'https://www.googleapis.com/auth/webmasters',
-      'https://www.googleapis.com/auth/cloud-platform'].join(' ')
+      'https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/analytics.readonly'].join(' ')
   });
   const dau = b64({ alg: 'RS256', typ: 'JWT' });
   const ky = createSign('RSA-SHA256').update(`${dau}.${than}`).sign(SA.private_key).toString('base64url');
@@ -117,6 +117,37 @@ if (buoc === 'token') {
       console.log(`  ${(x.verdict ?? '?').padEnd(8)} ${String(x.coverageState ?? '').slice(0, 42).padEnd(42)} lần bò: ${x.lastCrawlTime?.slice(0, 10) ?? '—'} · ${u}`);
     } catch (e) { console.log(`  LỖI ${u}: ${e.message.slice(0, 120)}`); }
   }
+} else if (buoc === 'ga') {
+  // GA4 (thuộc tính "Flip Match"): người dùng NGOÀI Việt Nam, 14 ngày — thời gian tương tác, nguồn, số ván.
+  // Tài khoản dịch vụ phải được thêm làm Viewer ở GA (Admin → Property access management).
+  for (const s of ['analyticsdata.googleapis.com', 'analyticsadmin.googleapis.com']) {
+    try { await api('POST', `https://serviceusage.googleapis.com/v1/projects/${SA.project_id}/services/${s}:enable`, {}); }
+    catch (e) { console.log(`• Không tự bật được ${s} (${e.status})`); }
+  }
+  const tk = await api('GET', 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries');
+  const ts = (tk.accountSummaries ?? []).flatMap((a) => a.propertySummaries ?? []);
+  if (!ts.length) { console.log(`Tài khoản dịch vụ ${SA.client_email} chưa thấy thuộc tính GA nào — thêm nó làm Viewer trong GA.`); process.exit(1); }
+  const khongVN = { notExpression: { filter: { fieldName: 'country', stringFilter: { value: 'Vietnam' } } } };
+  const bao = (prop, dims, mets, loc) => api('POST', `https://analyticsdata.googleapis.com/v1beta/${prop}:runReport`, {
+    dateRanges: [{ startDate: '14daysAgo', endDate: 'today' }], dimensions: dims.map((name) => ({ name })),
+    metrics: mets.map((name) => ({ name })), dimensionFilter: loc ?? khongVN, limit: 50,
+    orderBys: [{ metric: { metricName: mets[0] }, desc: true }]
+  });
+  const in_ = (tieuDe, r, dims, mets) => {
+    console.log(`\n== ${tieuDe} ==\n  ${[...dims, ...mets].join(' | ')}`);
+    if (!r.rows?.length) console.log('  (chưa có dữ liệu)');
+    for (const x of r.rows ?? []) console.log('  ' + [...x.dimensionValues.map((v) => v.value), ...x.metricValues.map((v) => (+v.value % 1 ? (+v.value).toFixed(1) : v.value))].join(' | '));
+  };
+  for (const t of ts) {
+    console.log(`\n##### ${t.displayName} (${t.property}) — ngoài Việt Nam, 14 ngày #####`);
+    let d = ['country', 'hostName'], m = ['activeUsers', 'sessions', 'userEngagementDuration', 'averageSessionDuration'];
+    in_('theo nước (thời gian tính bằng giây)', await bao(t.property, d, m), d, m);
+    d = ['sessionSource', 'country']; m = ['sessions', 'userEngagementDuration'];
+    in_('theo nguồn', await bao(t.property, d, m), d, m);
+    d = ['country', 'eventName']; m = ['eventCount'];
+    in_('số ván bắt đầu / kết thúc', await bao(t.property, d, m, { andGroup: { expressions: [khongVN,
+      { filter: { fieldName: 'eventName', inListFilter: { values: ['van_bat_dau', 'van_ket_thuc'] } } }] } }), d, m);
+  }
 } else {
-  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc'); process.exit(2);
+  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc | ga'); process.exit(2);
 }
