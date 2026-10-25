@@ -6,7 +6,9 @@
 #                           iOS cho simulator (chứng minh project iOS còn biên dịch).
 #   2. Có khoá ký         → AAB/APK release đã ký (Android); IPA đã ký (iOS).
 #   3. Chế độ PHÁT HÀNH   → đẩy AAB lên Google Play, IPA lên TestFlight.
-#      PHÁT HÀNH = đẩy tag `app-v*` hoặc chạy tay với ô "Đẩy lên store".
+#      PHÁT HÀNH = đẩy lên `main`, đẩy tag `app-v*` hoặc chạy tay với ô "Đẩy lên store".
+#      `main` tự phát hành (chủ dự án 25.10.2026): bản store luôn khớp gói OTA, không ai
+#      phải nhớ chạy tay — đã có lần quên, máy cài bản store xong vẫn phải tải OTA.
 #
 # Danh sách secret và cách lấy: docs/mobile-ci.md.
 name: App mobile (Android + iOS)
@@ -28,15 +30,15 @@ on:
         type: boolean
         default: false
 
-# Build PHÁT HÀNH (chạy tay, ô "Đẩy lên store") có nhóm riêng và KHÔNG bị huỷ ngang:
+# Build PHÁT HÀNH (main, tag, ô "Đẩy lên store") có nhóm riêng và KHÔNG bị huỷ ngang:
 # nhóm chung + cancel-in-progress từng để mỗi commit đẩy lên main giết luôn bản
 # đang đẩy TestFlight (mất hai bản liền 14.10.2026). Build thường thì vẫn huỷ bản cũ.
 concurrency:
-  group: mobile-${{ github.ref }}-${{ inputs.phat_hanh && 'phat-hanh' || 'thuong' }}
-  cancel-in-progress: ${{ !inputs.phat_hanh }}
+  group: mobile-${{ github.ref }}-${{ (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/app-v') || inputs.phat_hanh) && 'phat-hanh' || 'thuong' }}
+  cancel-in-progress: ${{ !(github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/app-v') || inputs.phat_hanh) }}
 
 env:
-  PHAT_HANH: ${{ startsWith(github.ref, 'refs/tags/app-v') || inputs.phat_hanh == true }}
+  PHAT_HANH: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/app-v') || inputs.phat_hanh == true }}
   # Số bản dựng = số lần chạy workflow này: luôn tăng, mà cả Play lẫn App Store
   # đều từ chối bản trùng số. Đổi tên/tạo lại workflow là run_number về 1 —
   # khi đó đặt biến repo VERSION_CODE_OFFSET lớn hơn số đã dùng.
