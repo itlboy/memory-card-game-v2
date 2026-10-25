@@ -16,7 +16,7 @@
  * không đổi giữa hai bản thì cùng địa chỉ). Plugin lấy file trùng mã băm từ bản app cài
  * sẵn hoặc kho đệm của nó, CHỈ tải file khác → mỗi lần cập nhật chỉ vài file JS/CSS.
  * Zip GIỮ LẠI: client cũ chỉ biết zip, và client mới quay về zip khi tải chênh lệch lỗi.
- *   Mã gói: tools/ma-goi-ota.mjs (theo commit; chung với vite.config) — OTA_ID=<chuỗi> để ép.
+ *   Mã gói: tools/ma-goi-ota.mjs (theo nội dung nguồn web; chung với vite.config) — OTA_ID=<chuỗi> để ép.
  */
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';

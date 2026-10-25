@@ -20,8 +20,11 @@ on:
     tags: ['app-v*']
     paths:
       - 'apps/web/**'
-      - 'packages/engine/**'
+      # PHẢI phủ đủ NGUON_GOI (tools/ma-goi-ota.mjs): mã gói OTA đổi mà không ra bản app là
+      # app vừa cài từ store lại cập nhật nóng
+      - 'packages/**'
       - 'pnpm-lock.yaml'
+      - 'tools/ma-goi-ota.mjs'
       - '.github/workflows/mobile.yml'
   workflow_dispatch:
     inputs:
