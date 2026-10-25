@@ -4,7 +4,7 @@ import App from './App.vue';
 import { sfx } from './lib/audio';
 import { nhac } from './lib/nhac';
 import { laApp } from './lib/native';
-import { ganNutBackAndroid } from './lib/nut-back';
+import { ganNutBackAndroid, ganVuotLuiIos } from './lib/nut-back';
 import { ganLinkMoi } from './lib/link-moi';
 import './styles/fonts';   // font đóng gói sẵn — xem styles/fonts.ts
 import './styles/global.css';
@@ -47,6 +47,7 @@ void napTuDien(ngonNgu.value).finally(() => createApp(App).mount('#app'));
 // nên người chơi gần như không thấy nó (Android thì thấy) — chủ dự án báo 14.10.2026.
 // Hai rAF = sau khi trình duyệt THẬT SỰ vẽ. capacitor.config có chốt 3 giây phòng JS lỗi.
 ganNutBackAndroid();
+ganVuotLuiIos();
 // Link mời https://…/?room=CODE mở thẳng app → vào phòng (lib/link-moi.ts)
 ganLinkMoi();
 // Cập nhật nóng: báo gói chạy được NGAY (không thì plugin quay về gói trước), rồi kiểm bản mới

@@ -337,6 +337,19 @@ button {
 }
 @keyframes bao-thoat-hien { from { opacity: 0; translate: 0 8px; } }
 
+/* Mũi tên vuốt mép trái để lùi (app iOS, lib/nut-back.ts): thò ra theo ngón tay
+   (--k 0..1), qua ngưỡng thì phồng lên = thả tay là lùi */
+.vuot-lui {
+  position: fixed; left: 0; z-index: 80;
+  width: 44px; height: 44px; margin-top: -22px; border-radius: 50%;
+  display: grid; place-items: center; padding-bottom: 3px; box-sizing: border-box;
+  background: rgba(20, 24, 44, .92); color: #fff;
+  font-size: 30px; font-weight: 900; line-height: 1;
+  translate: calc(-44px + var(--k, 0) * 56px) 0; opacity: calc(.35 + var(--k, 0) * .65);
+  pointer-events: none; transition: scale .12s ease;
+}
+.vuot-lui.du { scale: 1.15; }
+
 /* "Đã có bản mới — đang cập nhật…" (lib/ota.ts): thẻ giữa cột game, phủ nhẹ phía sau,
    giữ 1,5 giây rồi app tải lại sang gói mới. Đọc token skin, không viết màu tay. */
 .bao-cap-nhat {
