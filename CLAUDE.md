@@ -530,7 +530,9 @@
 - **Chủ dự án thử trên APP (TestFlight / Play internal), không phải Safari.** Deploy web
   KHÔNG tới tay họ: sửa giao diện họ báo từ điện thoại xong là phải ra bản app
   (skill `phat-hanh-app`). Báo "xong" thì nói rõ web có rồi, app có từ build số mấy.
-- **Ra bản app = một lệnh**: `gh workflow run mobile.yml --ref main -f phat_hanh=true`
+- **ĐẨY LÊN `main` LÀ TỰ RA BẢN APP** (25.10.2026): `mobile.yml` tự đẩy TestFlight + Play internal
+  mỗi lần `main` đổi phần web/engine, nên bản store luôn khớp gói OTA. Chạy tay khi cần:
+  `gh workflow run mobile.yml --ref main -f phat_hanh=true`
   (cùng phiên bản, chỉ thêm build). Build phát hành có nhóm concurrency riêng nên đẩy
   `main` không huỷ nó nữa. Soát log iOS: `Upload succeeded` + dòng `Z Authority=Apple
   Distribution` (grep trần dính cả dòng lệnh trong script). Android tự lên Play
