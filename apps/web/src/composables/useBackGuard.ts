@@ -99,6 +99,11 @@ export function useBackCloser(uuTien: number, co: () => boolean, dong: () => voi
   });
 }
 
+/** Có chốt trong lịch sử, tức `history.back()` sẽ đóng một thứ chứ không rời app. */
+export function coTheLui(): boolean {
+  return daBat;
+}
+
 /** Chỉ dùng cho test: quên hết chốt giữa hai lần dựng app. */
 export function _resetBackGuard(): void {
   chots.length = 0;

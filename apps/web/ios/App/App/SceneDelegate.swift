@@ -28,10 +28,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 class GameViewController: CAPBridgeViewController {
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(NgonNguAppPlugin())
-        // Vuốt từ mép trái để lùi (chủ dự án 25.10.2026: "trên iOS không gạt để back được").
-        // WKWebView mặc định TẮT cử chỉ này. Bật lên thì cú vuốt đi `history.back()` vào
-        // đúng "một chốt lịch sử" của web (composables/useBackGuard.ts) — y như Safari.
-        webView?.allowsBackForwardNavigationGestures = true
+        // KHÔNG bật `allowsBackForwardNavigationGestures`: cử chỉ đó trượt vào ẢNH CHỤP CŨ của
+        // mục lịch sử trước, rồi gỡ ảnh trước khi web kịp vẽ lại → trang cũ nháy lên (chủ dự án
+        // báo 25.10.2026, build 384). Vuốt mép trái để lùi làm bằng web: lib/nut-back.ts.
     }
 }
 
