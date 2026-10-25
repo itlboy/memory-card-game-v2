@@ -11,7 +11,8 @@ import { t } from './i18n';
  *
  * Nay: còn lịch sử để lùi (`canGoBack` = có chốt) → `history.back()`, useBackGuard
  * đóng đúng MỘT thứ như trên web. Không còn gì (trang chủ) → hỏi một nhịp: Back
- * lần nữa trong 2 giây mới thoát, cho khỏi lỡ tay. iOS không có nút Back hệ thống.
+ * lần nữa trong 2 giây mới thoát, cho khỏi lỡ tay. iOS không có nút Back hệ thống;
+ * cử chỉ vuốt lùi bật ở native (`allowsBackForwardNavigationGestures`, SceneDelegate.swift).
  */
 const CUA_SO_MS = 2000;
 
