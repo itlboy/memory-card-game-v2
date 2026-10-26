@@ -53,6 +53,11 @@ const conLai = computed(() => {
 });
 const sao4 = computed(() => (props.misses ?? 0) === 0);
 const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPairs : 0));
+/** HÀNG CHẬT: Chiến dịch có sao CỘNG mạng / giới hạn lượt (màn "mạng", 27.10.2026) — bốn viên
+ *  + ↻ + ⏸ không vừa iPhone (đo: viên mạng bị nút ↻ đè trên SE lẫn iPhone 14). Bỏ viên ĐIỂM:
+ *  ở Chiến dịch đích là sao, điểm vẫn có ở bảng kết quả và tổng xu thanh trên. v-if chứ không
+ *  ẩn bằng CSS — điểm bay (GameScreen) không tìm thấy đích thì đứng tại chỗ, không bay về góc 0,0. */
+const hangChat = computed(() => !!props.starMisses && (props.lives !== null || props.movesLeft !== null));
 </script>
 
 <!--
@@ -73,7 +78,7 @@ const tienDo = computed(() => (props.totalPairs ? props.matched / props.totalPai
       <span class="vien" :class="{ urgent }" :aria-label="t('hud.thoiGian')">
         <component :is="timeLeft === null ? Timer : Hourglass" :size="16" aria-hidden="true" /><b>{{ timeText }}</b>
       </span>
-      <span v-if="!multiplayer" class="vien diem" data-score-target :aria-label="t('hud.diem')">
+      <span v-if="!multiplayer && !hangChat" class="vien diem" data-score-target :aria-label="t('hud.diem')">
         <DongXu :size="18" /><b :key="scoreBump" :class="{ bump: scoreBump }">{{ num(score) }}</b>
         <!-- COMBO là huy hiệu ở góc viên điểm, KHÔNG phải một viên trong hàng: viên
              riêng bật/tắt mỗi chuỗi làm cả hàng xô lệch và ép các viên kia tràn chữ

@@ -733,7 +733,7 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
   rừng xanh, tiệc trà, vận động viên, đi chợ, biển báo, phòng thí nghiệm, cổ tích, cơ thể,
   mùa thu, cờ dễ nhầm, cờ đảo quốc. Tổng 72 theme (48 + 24), 153 danh hiệu.
   Ảnh cả hai store chụp lại theo bộ mới.
-- Chiến dịch 60 màn: 12 cỡ bàn × 5 lần, giờ siết dần (đo bằng mô phỏng, bàn nhỏ bớt giờ).
+- Chiến dịch 60 màn: 12 cỡ bàn × 5 màn, mỗi màn một luật — trơn · xáo thẻ · số mạng · thẻ đặc biệt · trùm 👑 (giờ, mạng, mốc sao đo bằng mô phỏng: `DO_CD=1` + `packages/engine/test/do-chien-dich.test.ts`).
   Sao tính theo số lần QUÊN (lật sai khi lá cùng cặp đã lộ), không theo giờ; sao thứ 4
   cầu vồng lấp lánh khi không quên lần nào; mốc sao hiện trước, trong và sau ván.
 - 15 ngôn ngữ (thêm Ý, Thổ Nhĩ Kỳ, Trung phồn thể) cho web + app; tiếng Anh đứng đầu danh sách.

@@ -403,9 +403,14 @@ describe('bản đồ cấp của Chiến dịch', () => {
     expect(wrapper.findAll('.chapter')).toHaveLength(4);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
     expect(wrapper.text()).toContain('Chặng 4 · Bậc thầy');
-    // Chặng ghi khoảng số thẻ, và nói rõ trong chặng còn siết giờ
+    // Chặng ghi khoảng số thẻ, và nói rõ mỗi màn trong chặng có luật riêng
     expect(wrapper.text()).toContain('4 – 12 thẻ');
-    expect(wrapper.text()).toContain('giờ siết dần');
+    expect(wrapper.text()).toContain('mỗi màn một luật mới');
+    // Mỗi màn một luật (27.10.2026): 12 vương miện màn trùm + chú giải luật
+    expect(wrapper.findAll('.node.trum')).toHaveLength(12);
+    expect(wrapper.find('.chu-giai').text()).toContain('Trùm');
+    expect(nodes[1]!.find('.luat').exists()).toBe(true);   // màn 2 = xáo thẻ
+    expect(nodes[0]!.find('.luat').exists()).toBe(false);  // màn 1 = trơn
   });
 
   it('bật đủ theme thì KHÔNG cấp nào bị chặn — trần 88 thẻ đòi 44 biểu tượng', async () => {

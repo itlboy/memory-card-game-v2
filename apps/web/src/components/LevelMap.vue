@@ -4,7 +4,15 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { Lock, TriangleAlert } from 'lucide-vue-next';
 import type { LevelProgress } from '@/lib/storage';
 import Sao3D from './Sao3D.vue';
+import OptionIcon from './OptionIcon.vue';
 import { t, td } from '@/lib/i18n';
+import { anhEmoji } from '@/lib/emoji';
+import { ICON_LUAT, tenLuat, tenLuatMan } from '@/lib/luat-man';
+
+/** Vương miện màn trùm: ảnh Noto 3D như mặt bài (cùng chất 3D), dự phòng là ký tự. */
+const VUONG_MIEN = anhEmoji('👑', true, 128);
+/** Chú giải: bốn luật đơn theo thứ tự xuất hiện trong hàng 5 màn (nhanh chỉ ở bàn 4 thẻ). */
+const CHU_GIAI = (['xao', 'mang', 'dacBiet', 'nhanh'] as const).map((l) => ({ l, icon: ICON_LUAT[l], ten: tenLuat(l) }));
 
 const props = defineProps<{
   progress: Record<string, LevelProgress>;
@@ -50,9 +58,9 @@ const chapters = computed(() => CHAPTERS.map((c) => {
     cards: list[0]!.pairs === list.at(-1)!.pairs
       ? t('cd.theN', { n: list[0]!.pairs * 2 })
       : t('cd.theKhoang', { a: list[0]!.pairs * 2, b: list.at(-1)!.pairs * 2 }),
-    /* Nhiều cấp trong chặng dùng chung một cỡ bàn, khác nhau ở thời gian. Nói
-       ra, không thì người chơi thấy hai cấp cùng cỡ bàn và tưởng game lặp. */
-    byTime: new Set(list.map((l) => l.pairs)).size < list.length,
+    /* Nhiều màn dùng chung một cỡ bàn, khác nhau ở LUẬT (27.10.2026). Nói ra, không
+       thì người chơi thấy năm màn cùng cỡ bàn và tưởng game lặp — đúng lời chê đã nhận. */
+    nhieuLuat: new Set(list.map((l) => l.luat)).size > 1,
     blocked: list.filter((l) => l.id <= props.unlocked && needsMore(l)).length
   };
 }));
@@ -82,6 +90,12 @@ watch(nextLevel, scrollToActive);
       </template>
       <template v-else>{{ t('cd.daQua') }}<b>{{ doneCount }}</b>{{ t('cd.daQuaSau', { tong: levels.length }) }}</template>
     </p>
+    <!-- Chú giải nhãn luật ở góc ô: không có nó thì icon nhỏ trên ô là câu đố -->
+    <p v-if="showStars" class="chu-giai">
+      <span><i class="o-tron" aria-hidden="true" />{{ t('cd.tron') }}</span>
+      <span v-for="c in CHU_GIAI" :key="c.l"><OptionIcon :name="c.icon" :size="15" />{{ c.ten }}</span>
+      <span><img v-if="VUONG_MIEN" class="vm" :src="VUONG_MIEN" alt="" /><template v-else>👑</template>{{ t('cd.trum') }}</span>
+    </p>
 
     <!-- Ngoại lệ DUY NHẤT của luật không scroll: 60 màn không thể nén vừa một
          màn hình mà ô vẫn đủ 44px để bấm. Cuộn nằm TRONG khung này, cả trang
@@ -104,11 +118,12 @@ watch(nextLevel, scrollToActive);
               :class="{
                 locked: l.id > unlocked,
                 cleared: cleared(l.id),
+                trum: l.luat === 'trum',
                 next: l.id === nextLevel && !needsMore(l),
                 nosym: l.id <= unlocked && needsMore(l)
               }"
               :disabled="l.id > unlocked || needsMore(l)"
-              :aria-label="t('cd.oAria', { id: l.id, n: l.pairs * 2 }) + (
+              :aria-label="t('cd.oAria', { id: l.id, n: l.pairs * 2 }) + t('cd.oAriaLuat', { ten: tenLuatMan(l) }) + (
                 l.id > unlocked ? t('cd.oAriaKhoa') : needsMore(l) ? t('cd.oAriaThieu') : ''
               )"
               type="button"
@@ -127,12 +142,20 @@ watch(nextLevel, scrollToActive);
                 <template v-else>✓</template>
               </span>
               <Lock v-if="l.id > unlocked" class="node-lock" :size="10" aria-hidden="true" />
+              <!-- Nhãn luật: dán ở GÓC DƯỚI PHẢI, thò ra ngoài mép — không chiếm dòng của số
+                   màn / số thẻ. Màn trùm: vương miện nghiêng ở góc trên trái. -->
+              <span v-if="l.luat === 'trum'" class="luat vm" aria-hidden="true">
+                <img v-if="VUONG_MIEN" :src="VUONG_MIEN" alt="" /><template v-else>👑</template>
+              </span>
+              <span v-else-if="l.cacLuat.length" class="luat" aria-hidden="true">
+                <OptionIcon :name="ICON_LUAT[l.cacLuat[0]!]" :size="16" />
+              </span>
             </button>
           </li>
         </ol>
 
         <footer>
-          <span>{{ c.cards }}<template v-if="c.byTime">{{ t('cd.gioSiet') }}</template></span>
+          <span>{{ c.cards }}<template v-if="c.nhieuLuat">{{ t('cd.moiLuat') }}</template></span>
           <span v-if="c.blocked" class="need-theme">
             <TriangleAlert :size="13" /> {{ t('cd.canTheme', { n: c.blocked }) }}
           </span>
@@ -145,6 +168,13 @@ watch(nextLevel, scrollToActive);
 <style scoped>
 .wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .summary { margin: 0 0 8px; color: var(--muted); font-size: var(--text-sm); }
+.chu-giai {
+  margin: -2px 0 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+  font-size: var(--text-xs); font-weight: 600; color: var(--muted);
+}
+.chu-giai span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.chu-giai .o-tron { width: 12px; height: 12px; border-radius: 4px; border: 2px solid var(--line); }
+.chu-giai .vm { width: 16px; height: 16px; }
 .chapters {
   flex: 1; min-height: 0;
   display: flex; flex-direction: column; gap: 12px;
@@ -202,7 +232,8 @@ watch(nextLevel, scrollToActive);
 .node {
   width: 100%; aspect-ratio: 1; min-height: 44px;
   display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 1px; padding: 2px; overflow: hidden;
+  /* visible: nhãn luật thò ra ngoài góc ô (chữ trong ô đã tự co theo cqw, không tràn) */
+  justify-content: center; gap: 1px; padding: 2px; overflow: visible;
   border: 2px solid var(--line); border-radius: var(--r-md);
   background: var(--panel-solid); color: var(--fg);
   container-type: inline-size;   /* số cấp co theo cỡ ô, như các ô lựa chọn khác */
@@ -243,6 +274,16 @@ watch(nextLevel, scrollToActive);
 .node.locked { background: transparent; color: var(--muted); opacity: .72; }
 .node { position: relative; }
 .node-lock { position: absolute; top: 2px; right: 2px; color: var(--muted); }
+/* Nhãn luật: 16px, lệch ra ngoài 6px — phần nằm trong ô chỉ ~10px ở góc, không chạm
+   chữ "N thẻ" canh giữa. Viền trắng tách icon khỏi nền ô cùng tông. */
+.luat {
+  position: absolute; right: -6px; bottom: -6px; z-index: 1; line-height: 0;
+  filter: drop-shadow(0 1px 1px rgba(10, 20, 60, .25));
+}
+.luat :deep(.opt-ico) { border-radius: 5px; outline: 2px solid #fff; }
+.luat.vm { right: auto; bottom: auto; left: -6px; top: -6px; rotate: -18deg; font-size: 16px; line-height: 1; }
+.luat.vm img { width: 20px; height: 20px; }
+.node.locked .luat { opacity: .75; }
 /* Đã mở nhưng không bộ theme nào đủ biểu tượng cho bàn này */
 .node.nosym {
   border-color: color-mix(in srgb, var(--warn) 60%, var(--line));

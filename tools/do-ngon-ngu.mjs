@@ -42,6 +42,8 @@ const DO = `(() => {
     if (e.closest('.sr-only')) continue;
     const cs = getComputedStyle(e);
     if (cs.textOverflow === 'ellipsis') continue;
+    // Ẩn kiểu sr-only nhưng không mang lớp đó (tên theme trong ô: clip 1px, 17.10.2026)
+    { const k = e.getBoundingClientRect(); if (k.width <= 1 && k.height <= 1) continue; }
     /*
      * Đo HÌNH CHỮ (khung bao của phần chữ) so với khung phần tử. KHÔNG dùng
      * scrollWidth: (1) bỏ qua overflow:visible là bỏ sót đúng ca chữ lòi khỏi nút
@@ -54,6 +56,8 @@ const DO = `(() => {
     const tw = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
     for (let n = tw.nextNode(); n; n = tw.nextNode()) {
       if (!n.textContent.trim() || getComputedStyle(n.parentElement).visibility === 'hidden') continue;
+      // Chữ trong phần tử ẩn kiểu sr-only không mang lớp đó (tên theme trong ô: clip 1px, 17.10.2026)
+      { const k = n.parentElement.getBoundingClientRect(); if (k.width <= 1 && k.height <= 1) continue; }
       const rg = document.createRange(); rg.selectNodeContents(n);
       const b = rg.getBoundingClientRect();
       if (b.width) chu = { left: Math.min(chu.left, b.left), right: Math.max(chu.right, b.right), width: 1 };
@@ -65,13 +69,16 @@ const DO = `(() => {
   return [...new Set(ra)];
 })()`;
 
+// Mở trang một lần trước: localStorage ở about:blank không có origin, ghi tiến độ là mất
+await goi('Page.navigate', { url: URL_APP }); await cho(1500);
 let tong = 0;
 for (const lang of LANGS) {
   const loi = [];
   const ghi = async (man) => { for (const l of await js(DO)) loi.push(`${man}: ${l}`); };
-  await js('localStorage.clear(); sessionStorage.clear(); true');
+  // Mở sẵn Chiến dịch tới màn 10 để đo bản đồ có chú giải luật + khung "Luật màn này"
+  await js(`localStorage.clear(); sessionStorage.clear(); localStorage.setItem('mm.v2', JSON.stringify({ campaign: Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, { stars: 2 }])) })); true`);
   await goi('Page.navigate', { url: `${URL_APP}?lang=${lang}&cb=${Date.now()}` });
-  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.option.big')`)); i++) await cho(250);
+  for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.o-chien-dich')`)); i++) await cho(250);
   await cho(300); await ghi('trang chủ');
   await js(`document.querySelector('header .menu-btn').click()`); await cho(300); await ghi('menu');
   await js(`document.querySelector('header .menu-btn').click()`); await cho(200);
@@ -79,9 +86,21 @@ for (const lang of LANGS) {
   await js(`document.querySelector('header .dh').click()`); await cho(400); await ghi('danh hiệu');
   await js(`document.querySelectorAll('.tab')[1]?.click()`); await cho(300); await ghi('danh hiệu · đã có');
   await js(`document.querySelector('.overlay .head .btn').click()`); await cho(300);
-  await js(`document.querySelectorAll('.option.big')[2].click()`); await cho(400); await ghi('bước mức máy');
+  // Chiến dịch: bản đồ (chú giải luật) · màn mạng (8) · màn trùm (10) — mỗi màn một luật, 27.10.2026
+  await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[0].click()`);
+  for (let i = 0; i < 20 && !(await js(`document.querySelectorAll('.node').length > 0`)); i++) await cho(200);
+  await cho(300); await ghi('bản đồ Chiến dịch');
+  if (!(await js(`document.querySelectorAll('.node .luat').length >= 48`))) loi.push('bản đồ Chiến dịch: thiếu nhãn luật');
+  for (const man of [8, 10]) {
+    await js(`document.querySelectorAll('.node')[${man - 1}].click()`);
+    for (let i = 0; i < 20 && !(await js(`!!document.querySelector('.luat-man')`)); i++) await cho(200); await ghi(`bắt đầu màn ${man}`);
+    if (!(await js(`!!document.querySelector('.luat-man')`))) loi.push(`bắt đầu màn ${man}: không thấy khung luật màn`);
+    await js(`document.querySelector('.wizard-head .back')?.click()`); await cho(400);
+  }
+  await js(`document.querySelector('.wizard-head .back')?.click()`); await cho(400);
+  await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[2].click()`); await cho(400); await ghi('bước mức máy');
   await js(`document.querySelector('.wizard-head .back')?.click()`); await cho(300);
-  await js(`document.querySelectorAll('.option.big')[1].click()`); await cho(400); await ghi('bước số người');
+  await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[1].click()`); await cho(400); await ghi('bước số người');
   await js(`document.querySelectorAll('.counts .option')[0].click()`); await cho(400); await ghi('bước số thẻ');
   await js(`document.querySelectorAll('.size-grid button')[0].click()`); await cho(400); await ghi('bước theme');
   await js(`document.querySelector('.btn-primary').click()`); await cho(400); await ghi('bước luật bàn');
