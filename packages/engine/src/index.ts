@@ -21,7 +21,7 @@ export {
   livesFor, optionSummary, peekSecondsFor, sanitizeOptions, shuffleCountFor, specialCardsFor
 } from './options.js';
 export type { BoardOptions, OptLevel, OptionKey } from './options.js';
-export type { Chapter, Level } from './campaign.js';
+export type { Chapter, Level, LuatDon, LuatMan } from './campaign.js';
 export type { PresetInput } from './presets.js';
 export type {
   Card, GameConfig, GameEvent, GameStatus, Mode, Player, PlayerInit, Power, Summary

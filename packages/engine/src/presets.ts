@@ -54,12 +54,15 @@ export function presetConfig({ mode, level, symbols, seed, players }: PresetInpu
     case 'time':     return { ...base, timeLimit: spec.timeLimit };
     case 'survival': return { ...base, lives: 5, specialRate: 0.12 };
     case 'peek':     return { ...base, peekMs: peekMsFor(spec.pairs * 2), timeLimit: spec.timeLimit };
-    // Chiến dịch: thêm thẻ đặc biệt tăng dần và mốc sao để xếp 1–3 sao
+    // Chiến dịch: luật của từng màn (campaignSpec) và mốc sao để xếp 1–3 sao
     case 'campaign': return {
       ...base,
       timeLimit: spec.timeLimit,
       specialRate: spec.specialRate,
-      starMisses: spec.starMisses
+      starMisses: spec.starMisses,
+      // Luật riêng từng màn (mỗi màn một luật, 27.10.2026)
+      lives: spec.lives,
+      shuffleCount: spec.shuffleCount
     };
   }
 }

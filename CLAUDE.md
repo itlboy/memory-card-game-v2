@@ -424,8 +424,17 @@
   hàng, đừng dựa vào mặc định — nó đã đổi hai lần.
 - **CHIẾN DỊCH = 12 CỠ × 5 MÀN = 60 MÀN, THANG RIÊNG** (chủ dự án 14.10.2026, thay
   thang 50 cấp chia lệch 1·1·3·…·9·9·3·1·1). Giờ = `gio` (thời gian THẬT cần, đo
-  bằng mô phỏng, cột trong BOARDS) × 1,8·1,6·1,4·1,25·1,1 — KHÔNG theo số cặp × hằng
+  bằng mô phỏng, cột trong BOARDS) × hệ số THEO LUẬT — KHÔNG theo số cặp × hằng
   số (bàn nhỏ thừa giờ, bàn to gắt). Mỗi chặng đúng ba cỡ (một cỡ = một hàng lưới 5 cột).
+  **MỖI MÀN MỘT LUẬT** (chủ dự án duyệt 27.10.2026, mockup https://claude.ai/artifact/WySGv332zWWUHfiPVYUFWA —
+  người chơi chê 5 màn một cỡ "lặp lại 4 lần không thấy đổi mới"): trơn · xáo thẻ (mức Nhiều) · số
+  mạng · thẻ đặc biệt · TRÙM 👑 (xáo + đặc biệt), giờ ×1,8·1,6·1,45·1,35·1,2. Bàn 4 thẻ (2 cặp) không gắn
+  được thẻ đặc biệt → màn 4 là "nhanh" (×1,3), trùm = xáo + mạng. Thẻ đặc biệt CHỈ ở màn đặc biệt/trùm
+  (trước đây mọi màn đều có). Luật nằm ở `campaignSpec` (`luat`, `cacLuat`, `lives`, `shuffleCount`);
+  icon + chữ ở `lib/luat-man.ts` (CÙNG icon năm tuỳ chọn bàn chơi). Bản đồ: nhãn luật góc dưới phải ô,
+  vương miện góc trên trái màn trùm, chú giải dưới tổng sao; bước theme: khung "Luật màn này" trên nút
+  Bắt đầu. Đo lại giờ/mạng/mốc sao: `DO_CD=1 … vitest run test/do-chien-dich.test.ts`. HUD Chiến dịch có
+  sao + mạng thì BỎ viên điểm (`hangChat`) — bốn viên + ↻ + ⏸ không vừa iPhone (đo: viên mạng bị ↻ đè).
   SAO = số lần QUÊN (`quen`: lật sai khi lá cùng cặp đã lộ, cùng điều kiện mất mạng),
   KHÔNG đếm mọi lần sai (lật hai lá chưa mở là dò) và KHÔNG theo thời gian. Mốc [2★,3★]
   là bảng đo `sao` trong BOARDS. Ngôi sao THỨ 4 (`summary.hoanHao`, `hh` trong tiến

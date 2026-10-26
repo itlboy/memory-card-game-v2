@@ -39,6 +39,7 @@ import ThemePicker from './ThemePicker.vue';
 import QuatLa from './QuatLa.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
+import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
   themes: CardTheme[];
@@ -344,6 +345,12 @@ const spec = computed(() => (props.mode === 'campaign'
   ? campaignSpec(Math.min(props.level, CAMPAIGN_LEVELS))
   : levelSpec(Math.min(props.level, LEVEL_KEYS))));
 const pairsNeeded = computed(() => spec.value.pairs);
+/** Luật của màn Chiến dịch đang chọn — nói TRƯỚC khi vào ván, như mốc sao (27.10.2026). */
+const luatMan = computed(() => (props.mode === 'campaign' && spec.value.luat !== 'tron'
+  ? { ten: tenLuatMan(spec.value), moTa: moTaLuat(spec.value), trum: spec.value.luat === 'trum',
+      icon: ICON_LUAT[spec.value.cacLuat[0]!] }
+  : null));
+const VUONG_MIEN = anhEmoji('👑', true, 128);
 /** Mốc sao nói bằng "<": ★★★★ không quên · ★★★ quên < N · ★★ quên < M. Bàn nhỏ
  *  mà 3★ cũng đòi không quên thì gộp vào ★★★★, khỏi nói một điều hai lần. */
 const mocSao = computed(() => {
@@ -543,7 +550,7 @@ const ICO3D = {
            cấp sau. -->
       <div v-else-if="step === 'level'" key="level" class="step-body">
         <!-- Chiến dịch: bản đồ 60 màn, vì ở đó cấp THẬT SỰ là độ khó (sao, mở
-             khoá, thời gian siết dần). Chế độ khác: cấp chỉ còn là cỡ bàn nên
+             khoá, mỗi màn một luật). Chế độ khác: cấp chỉ còn là cỡ bàn nên
              hỏi thẳng số thẻ, độ khó để bước tuỳ chọn lo. -->
         <LevelMap
           v-if="mode === 'campaign'"
@@ -565,6 +572,15 @@ const ICO3D = {
         <p v-if="themeTooSmall" class="warn" role="alert">
           {{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}
         </p>
+
+        <!-- Luật màn này (Chiến dịch): ngay trên nút Bắt đầu — người chơi phải biết bàn
+             sẽ xáo / có mạng / có thẻ đặc biệt TRƯỚC khi bấm, không phải giữa ván -->
+        <div v-if="luatMan" class="luat-man" :class="{ trum: luatMan.trum }">
+          <img v-if="luatMan.trum && VUONG_MIEN" class="vm" :src="VUONG_MIEN" alt="" />
+          <span v-else-if="luatMan.trum" class="vm" aria-hidden="true">👑</span>
+          <OptionIcon v-else :name="luatMan.icon" :size="34" />
+          <span><b>{{ t('cd.luatTieuDe', { ten: luatMan.ten }) }}</b>{{ luatMan.moTa }}</span>
+        </div>
 
         <!-- Chiến dịch vào thẳng màn; chơi nhanh còn một bước đặt luật bàn -->
         <button
@@ -767,6 +783,16 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .chip.compact { flex: 0 1 auto; min-width: 96px; }
 .warn { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 13px;
   background: color-mix(in srgb, var(--bad) 14%, transparent); }
+.luat-man {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 10px; padding: 9px 12px;
+  border-radius: var(--r-md); border: 2px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, var(--panel-solid)); color: var(--fg);
+  font-size: var(--text-sm); line-height: 1.35; text-align: left;
+}
+.luat-man.trum { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); background: color-mix(in srgb, var(--gold) 12%, var(--panel-solid)); }
+.luat-man b { display: block; font-family: var(--font-display); font-weight: 800; }
+.luat-man .vm { width: 34px; height: 34px; flex: none; font-size: 28px; line-height: 34px; text-align: center; }
+.luat-man :deep(.opt-ico) { flex: none; }
 .moc-sao { margin: 12px 0 0; text-align: center; font-weight: 700; font-size: 14px; color: var(--fg); }
 .best { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
 .moc-sao + .best { margin-top: 4px; }

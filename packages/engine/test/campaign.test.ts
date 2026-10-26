@@ -54,7 +54,7 @@ describe('Campaign (SP-03)', () => {
     }
   });
 
-  it('giờ là số nguyên giây, siết dần trong 5 màn một cỡ, bàn to luôn nhiều giờ hơn bàn nhỏ', () => {
+  it('giờ là số nguyên giây, giảm dần qua 5 luật của một cỡ, bàn to luôn nhiều giờ hơn bàn nhỏ', () => {
     for (const l of levels) expect(Number.isInteger(l.timeLimit), `màn ${l.id}`).toBe(true);
     // màn đầu mỗi cỡ nhiều giờ hơn màn đầu cỡ trước, màn cuối cũng vậy
     for (let b = 1; b < BOARD_SIZES.length; b++) {
@@ -83,18 +83,33 @@ describe('Campaign (SP-03)', () => {
     expect(() => levelSpec(51)).toThrow();
   });
 
-  it('thẻ đặc biệt có từ CẤP 1, thưa ở cấp dễ rồi dày dần tới trần 30%', () => {
-    // Có từ cấp 1 (chứ không chặn tới cấp 3): chặn thì cộng với việc bàn nhỏ làm
-    // tròn xuống 0, người chơi phải tới cấp 25 mới gặp thẻ tráo lần đầu.
-    expect(levels[0]!.specialRate).toBeGreaterThan(0);
+  it('mỗi cỡ bàn: trơn · xáo · mạng · đặc biệt · trùm (bàn 4 thẻ: "nhanh" thay đặc biệt)', () => {
+    for (let b = 0; b < BOARD_SIZES.length; b++) {
+      const hang = levels.slice(b * CAMPAIGN_REPEAT, (b + 1) * CAMPAIGN_REPEAT);
+      const dacBiet = hang[0]!.pairs >= 3 ? 'dacBiet' : 'nhanh';
+      expect(hang.map((l) => l.luat), `${hang[0]!.pairs * 2} thẻ`).toEqual(['tron', 'xao', 'mang', dacBiet, 'trum']);
+      expect(hang[4]!.cacLuat, 'trùm có hai luật').toHaveLength(2);
+    }
+  });
+
+  it('luật nào thì bật đúng cơ chế đó, không hơn', () => {
     for (const l of levels) {
-      expect(l.specialRate, `cấp ${l.id}`).toBeLessThanOrEqual(0.3 + 1e-9);
+      expect(l.lives !== null, `màn ${l.id} mạng`).toBe(l.cacLuat.includes('mang'));
+      expect(l.shuffleCount > 0, `màn ${l.id} xáo`).toBe(l.cacLuat.includes('xao'));
+      expect(l.specialRate > 0, `màn ${l.id} đặc biệt`).toBe(l.cacLuat.includes('dacBiet'));
+      if (l.lives !== null) expect(l.lives).toBeGreaterThanOrEqual(2);
+      expect(l.specialRate).toBeLessThanOrEqual(0.3 + 1e-9);
     }
-    // Đơn điệu tăng: cấp khó không bao giờ ít thẻ đặc biệt hơn cấp dễ
-    for (let i = 1; i < levels.length; i++) {
-      expect(levels[i]!.specialRate).toBeGreaterThanOrEqual(levels[i - 1]!.specialRate);
-    }
-    expect(levels.at(-1)!.specialRate).toBeCloseTo(0.3, 5);
+    // bàn 2 cặp không gắn được thẻ đặc biệt (buildDeck cần ≥3 cặp) — đừng hứa với người chơi
+    expect(levels.filter((l) => l.pairs < 3).every((l) => !l.cacLuat.includes('dacBiet'))).toBe(true);
+  });
+
+  it('levelConfig mang luật của màn xuống engine', () => {
+    const mang = levels.find((l) => l.luat === 'mang' && l.pairs >= 6)!;
+    const xao = levels.find((l) => l.luat === 'xao' && l.pairs >= 6)!;
+    expect(levelConfig(mang, SYMBOLS, 1).lives).toBe(mang.lives);
+    expect(levelConfig(xao, SYMBOLS, 1).shuffleCount).toBe(xao.shuffleCount);
+    expect(levelConfig(levels[0]!, SYMBOLS, 1).lives).toBeNull();
   });
 
   it('sao theo số lần lật sai: 3★ chặt hơn 2★, mốc tăng theo cỡ bàn', () => {
@@ -105,8 +120,9 @@ describe('Campaign (SP-03)', () => {
       // 3★ không bao giờ cho phép sai nhiều hơn số cặp × 1,2 — luôn là mốc khó
       expect(max3, `màn ${l.id}`).toBeLessThanOrEqual(l.pairs * 1.2);
     }
-    for (let i = 1; i < levels.length; i++) {
-      expect(levels[i]!.starMisses[1]).toBeGreaterThanOrEqual(levels[i - 1]!.starMisses[1]);
+    // Cùng luật thì bàn to không bao giờ chặt hơn bàn nhỏ (thẻ đặc biệt / trùm được nới mốc nên chỉ so cùng luật)
+    for (let i = CAMPAIGN_REPEAT; i < levels.length; i++) {
+      expect(levels[i]!.starMisses[1], `màn ${i + 1}`).toBeGreaterThanOrEqual(levels[i - CAMPAIGN_REPEAT]!.starMisses[1]);
     }
   });
 
@@ -117,7 +133,12 @@ describe('Campaign (SP-03)', () => {
     expect(starsByMisses(max2 + 1, [max2, max3])).toBe(1);
   });
 
-  it('chơi hoàn hảo màn 1 được 3 sao', () => {
+  it('chơi hoàn hảo màn 1 và một màn có mạng đều được 3 sao', () => {
+    const lm = levels.find((l) => l.luat === 'mang' && l.pairs >= 6)!;
+    const gm = new MemoryGame(levelConfig(lm, SYMBOLS, 778));
+    gm.start(0);
+    clearBoard(gm, 1000);
+    expect(gm.summary()!.stars).toBe(3);
     const l = campaignSpec(1);
     const g = new MemoryGame(levelConfig(l, SYMBOLS, 777));
     g.start(0);
