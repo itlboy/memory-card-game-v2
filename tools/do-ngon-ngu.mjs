@@ -100,7 +100,8 @@ for (const lang of LANGS) {
   await js(`document.querySelector('.wizard-head .back')?.click()`); await cho(400);
   await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[2].click()`); await cho(400); await ghi('bước mức máy');
   await js(`document.querySelector('.wizard-head .back')?.click()`); await cho(300);
-  await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[1].click()`); await cho(400); await ghi('bước số người');
+  await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[1].click()`); await cho(400); await ghi('bước thể loại');
+  await js(`document.querySelectorAll('.kieu .option')[0].click()`); await cho(400); await ghi('bước số người');
   await js(`document.querySelectorAll('.counts .option')[0].click()`); await cho(400); await ghi('bước số thẻ');
   await js(`document.querySelectorAll('.size-grid button')[0].click()`); await cho(400); await ghi('bước theme');
   await js(`document.querySelector('.btn-primary').click()`); await cho(400); await ghi('bước luật bàn');

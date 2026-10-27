@@ -91,6 +91,9 @@ const id: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Kembali',
   'menu.buoc.players': 'Mau main dengan cara apa?',
+  'menu.buoc.kieu': "Mau main jenis apa?",
+  'menu.kieu.thuong': "Klasik",
+  'menu.kieu.thuongMo': "Balik kartu dan cari pasangan, papan dan aturan pilihanmu",
   'menu.buoc.bot': 'Pilih lawanmu',
   'menu.buoc.count': 'Berapa pemain?',
   'menu.buoc.names': 'Nama pemain',
@@ -702,7 +705,7 @@ const id: TuDien = {
   'mt.cap': "Level {n}",
   'mt.nhanhHon': "Lebih cepat!",
   'mt.ketQua': "Level {n} · {cap} pasang",
-  'mt.goiY': "Cocokkan lagi dalam 3 detik untuk melipatgandakan poin",
+  'mt.goiY': "Cocokkan berturut-turut tanpa salah untuk melipatgandakan poin",
   'mt.laUp': "Kartu tertutup",
   'mt.moi': "Baru",
   'mt.moTa': "Cocokkan kartu secepat mungkin!",

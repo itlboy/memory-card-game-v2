@@ -90,6 +90,9 @@ const en: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Back',
   'menu.buoc.players': 'How do you want to play?',
+  'menu.buoc.kieu': "Pick a Game Type",
+  'menu.kieu.thuong': "Classic",
+  'menu.kieu.thuongMo': "Flip cards to find pairs, your board and rules",
   'menu.buoc.bot': 'Choose your opponent',
   'menu.buoc.count': 'How many players?',
   'menu.buoc.names': 'Player Names',
@@ -701,7 +704,7 @@ const en: TuDien = {
   'mt.cap': "Level {n}",
   'mt.nhanhHon': "Faster!",
   'mt.ketQua': "Level {n} · {cap} pairs",
-  'mt.goiY': "Match again within 3 seconds to multiply your points",
+  'mt.goiY': "Match in a row without a miss to multiply your points",
   'mt.laUp': "Face-down card",
   'mt.moi': "New",
   'mt.moTa': "Match the cards as fast as you can!",

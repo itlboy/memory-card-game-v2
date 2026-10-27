@@ -91,6 +91,9 @@ const tr: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Geri',
   'menu.buoc.players': 'Nasıl oynamak istersin?',
+  'menu.buoc.kieu': "Hangi oyun türü?",
+  'menu.kieu.thuong': "Klasik",
+  'menu.kieu.thuongMo': "Kartları çevir, eşleri bul; tahtayı ve kuralları sen seç",
   'menu.buoc.bot': 'Rakibini seç',
   'menu.buoc.count': 'Kaç oyuncu?',
   'menu.buoc.names': 'Oyuncu adları',
@@ -702,7 +705,7 @@ const tr: TuDien = {
   'mt.cap': "Seviye {n}",
   'mt.nhanhHon': "Daha hızlı!",
   'mt.ketQua': "Seviye {n} · {cap} çift",
-  'mt.goiY': "Puanını katlamak için 3 saniye içinde yine eşleştir",
+  'mt.goiY': "Puanını katlamak için hata yapmadan art arda eşleştir",
   'mt.laUp': "Kapalı kart",
   'mt.moi': "Yeni",
   'mt.moTa': "Eşleri olabildiğince hızlı bul!",

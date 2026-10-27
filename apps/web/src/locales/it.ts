@@ -92,6 +92,9 @@ const it: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Indietro',
   'menu.buoc.players': 'Come vuoi giocare?',
+  'menu.buoc.kieu': "Che tipo di partita?",
+  'menu.kieu.thuong': "Classica",
+  'menu.kieu.thuongMo': "Gira le carte e trova le coppie, con tabellone e regole a scelta",
   'menu.buoc.bot': 'Scegli l\'avversario',
   'menu.buoc.count': 'Quanti giocatori?',
   'menu.buoc.names': 'Nomi dei giocatori',
@@ -703,7 +706,7 @@ const it: TuDien = {
   'mt.cap': "Livello {n}",
   'mt.nhanhHon': "Più veloce!",
   'mt.ketQua': "Livello {n} · {cap} coppie",
-  'mt.goiY': "Indovina di nuovo entro 3 secondi per moltiplicare i punti",
+  'mt.goiY': "Indovina coppie di fila senza errori per moltiplicare i punti",
   'mt.laUp': "Carta coperta",
   'mt.moi': "Nuovo",
   'mt.moTa': "Trova le coppie il più in fretta possibile!",

@@ -91,6 +91,9 @@ const de: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Zurück',
   'menu.buoc.players': 'Wie willst du spielen?',
+  'menu.buoc.kieu': "Welche Spielart?",
+  'menu.kieu.thuong': "Klassisch",
+  'menu.kieu.thuongMo': "Karten aufdecken und Paare finden, mit eigenem Brett und Regeln",
   'menu.buoc.bot': 'Wähle deinen Gegner',
   'menu.buoc.count': 'Wie viele Spieler?',
   'menu.buoc.names': 'Spielernamen',
@@ -702,7 +705,7 @@ const de: TuDien = {
   'mt.cap': "Stufe {n}",
   'mt.nhanhHon': "Schneller!",
   'mt.ketQua': "Stufe {n} · {cap} Paare",
-  'mt.goiY': "Triff innerhalb von 3 Sekunden erneut, um Punkte zu vervielfachen",
+  'mt.goiY': "Triff Paare ohne Fehlgriff hintereinander, um Punkte zu vervielfachen",
   'mt.laUp': "Verdeckte Karte",
   'mt.moi': "Neu",
   'mt.moTa': "Finde die Paare so schnell du kannst!",

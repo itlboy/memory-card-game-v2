@@ -91,7 +91,8 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   const chup = (ten: string) => { man[ten] = gomChu(w!.element.parentElement ?? w!.element); };
   chup('trang chủ');
   await bam('header .menu-btn'); chup('menu thanh trên'); await bam('header .menu-btn');
-  await bam('.home :is(.o-chien-dich, .o-vuong)', 1); chup('bước số người');
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 1); chup('bước thể loại');
+  await bam('.kieu .option', 0); chup('bước số người');
   await bam('.counts .option', 0); chup('bước số thẻ');
   await bam('.size-grid button', 1); chup('bước theme');
   await bam('.btn-primary'); chup('bước luật bàn');
@@ -151,7 +152,7 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
     ['cảnh thua', { loai: 'thua', bienThe: 'su-tu-khoc' }],
     ['cảnh thua một mình', { loai: 'thua', bienThe: 'su-tu-khoc', motMinh: true }], ['cảnh hoà', { loai: 'hoa' }]
   ] as const) await dung(ten, KetCucFx, p as unknown as Record<string, unknown>);
-  await dung('mưa thẻ mở đầu', MuaThe, { themes: [], themeIds: [] });
+  await dung('mưa thẻ mở đầu', MuaThe, { themes: [] });
   return man;
 }
 

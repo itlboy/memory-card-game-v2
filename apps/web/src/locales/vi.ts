@@ -95,6 +95,9 @@ const vi = {
   /* ---------- trang chủ + wizard ---------- */
   'menu.quayLai': 'Quay lại',
   'menu.buoc.players': 'Bạn muốn chơi thế nào?',
+  'menu.buoc.kieu': "Bạn muốn chơi kiểu gì?",
+  'menu.kieu.thuong': "Thường",
+  'menu.kieu.thuongMo': "Lật thẻ tìm cặp, tự chọn bàn và luật",
   'menu.buoc.bot': 'Máy chơi giỏi cỡ nào?',
   'menu.buoc.count': 'Mấy người chơi?',
   'menu.buoc.names': 'Tên từng người',
@@ -712,7 +715,7 @@ const vi = {
   'mt.cap': "Cấp {n}",
   'mt.nhanhHon': "Nhanh hơn!",
   'mt.ketQua': "Cấp {n} · {cap} cặp",
-  'mt.goiY': "Ăn liền tay trong 3 giây để nhân điểm",
+  'mt.goiY': "Ăn liên tiếp không chạm lệch để nhân điểm",
   'mt.laUp': "Thẻ úp",
   'mt.moi': "Mới",
   'mt.moTa': "Mở thẻ trùng nhanh nhất có thể!",

@@ -89,6 +89,9 @@ const th: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'กลับ',
   'menu.buoc.players': 'อยากเล่นแบบไหน?',
+  'menu.buoc.kieu': "เล่นแบบไหนดี?",
+  'menu.kieu.thuong': "แบบปกติ",
+  'menu.kieu.thuongMo': "เปิดการ์ดหาคู่ เลือกกระดานและกติกาเอง",
   'menu.buoc.bot': 'เลือกคู่แข่ง',
   'menu.buoc.count': 'เล่นกี่คน?',
   'menu.buoc.names': 'ชื่อผู้เล่น',
@@ -700,7 +703,7 @@ const th: TuDien = {
   'mt.cap': "ระดับ {n}",
   'mt.nhanhHon': "เร็วขึ้น!",
   'mt.ketQua': "ระดับ {n} · {cap} คู่",
-  'mt.goiY': "จับคู่ต่อภายใน 3 วินาทีเพื่อคูณคะแนน",
+  'mt.goiY': "จับคู่ติดกันโดยไม่พลาดเพื่อคูณคะแนน",
   'mt.laUp': "การ์ดคว่ำ",
   'mt.moi': "ใหม่",
   'mt.moTa': "จับคู่การ์ดให้เร็วที่สุด!",
