@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CACH_CAP, COT, HANG, mocCap, VanMuaThe, nhipRoi, tocDo } from '../src/lib/mua-the';
+import { COT, COT_CHON, HANG, mocCap, VanMuaThe, nhipRoi, tocDo } from '../src/lib/mua-the';
 
 /** Ngẫu nhiên có hạt giống — test không được đỏ thất thường. */
 function hat(seed: number): () => number {
@@ -10,21 +10,20 @@ const HINH = ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯'];
 function chay(v: VanMuaThe, giay: number): void { for (let i = 0; i < giay * 60 && !v.ketThuc; i++) v.buoc(1 / 60); }
 
 describe('Mưa Thẻ', () => {
-  it('lá cặp tới sau 3–8 lá khác: không liền nhau, không chờ mãi', () => {
-    const v = new VanMuaThe(HINH, hat(1));
-    chay(v, 60);
-    const ds = [...v.la].sort((a, b) => a.id - b.id).map((l) => l.sym);
-    const mo = new Map<string, number>();
-    let cap = 0;
-    ds.forEach((s, i) => {
-      if (mo.has(s)) {
+  it('bàn N cột: lá cặp rơi trong N lá kế tiếp, không liền nhau', () => {
+    for (const soCot of COT_CHON) for (let seed = 1; seed <= 10; seed++) {
+      const v = new VanMuaThe(HINH.concat(['🐵', '🐷', '🐸', '🐧']), hat(seed), soCot, 12);
+      chay(v, 90);
+      const ds = [...v.la].sort((a, b) => a.id - b.id).map((l) => l.sym);
+      const mo = new Map<string, number>();
+      ds.forEach((s, i) => {
+        if (!mo.has(s)) { mo.set(s, i); return; }
         const cach = i - mo.get(s)!;
-        expect(cach, `${s} ở ${mo.get(s)} và ${i}`).toBeGreaterThanOrEqual(CACH_CAP[0] + 1);
-        expect(cach).toBeLessThanOrEqual(CACH_CAP[1] + 1 + 4);   // vài lá cặp khác tới cùng lúc thì xếp hàng
-        mo.delete(s); cap++;
-      } else mo.set(s, i);
-    });
-    expect(cap).toBeGreaterThan(5);
+        expect(cach, `${soCot} cột, seed ${seed}: ${s} ở ${mo.get(s)} và ${i}`).toBeLessThanOrEqual(soCot);
+        expect(cach).toBeGreaterThanOrEqual(2);
+        mo.delete(s);
+      });
+    }
   });
 
   it('không ai chạm thì mọi cột đầy rồi mới thua', () => {

@@ -46,8 +46,8 @@ export function hangChoGieng(w: number, h: number, soCot: number): number {
  *  ≥ 100·n điểm, nên mỗi cấp cần ~10 cặp (bớt đi nếu ăn combo). */
 export const mocCap = (cap: number): number => 500 * cap * (cap - 1);
 export const COMBO_GIAY = 3;
-/** Lá cặp tới sau [ít nhất, nhiều nhất] lá khác — xem `hinhKe`. */
-export const CACH_CAP: [number, number] = [3, 8];
+/** Giữa hai lá cùng cặp có ÍT NHẤT bấy nhiêu lá khác (không rơi liền nhau). Trần là `soCot` — xem `hinhKe`. */
+export const CHEN_IT_NHAT = 1;
 /** Lá rơi mới chỉ vào cột mà lá rơi trước đó đã đi quá đoạn này (ô), không thì hai lá chồng hình. */
 const KHOANG_TRONG = 1.2;
 /** Gia tốc lá tụt xuống lấp chỗ (ô/giây²) — nhanh, dứt khoát. */
@@ -92,7 +92,8 @@ export class VanMuaThe {
   ketThuc = false;
   private henRoi = 0.3;
   private lanAnCuoi = -99;
-  private choCap: { sym: string; toi: number }[] = [];
+  /** Chỗ đã GIỮ cho lá cặp: số thứ tự lá rơi → hình. */
+  private giuCho = new Map<number, string>();
   private soLaDaTha = 0;
   private idSo = 0;
 
@@ -106,22 +107,31 @@ export class VanMuaThe {
   get chon(): La[] { return this.la.filter((l) => l.chon); }
 
   /**
-   * Hình của lá kế tiếp. Lá CẶP tới sau `CACH_CAP` lá (ngẫu nhiên 3–8): đủ xa để phải nhớ, đủ gần để
-   * không ai chờ mãi. Bản đầu xáo đợt 4 lá = 2 cặp nên hai lá giống nhau hay rơi liền nhau (chủ dự
-   * án 27.10.2026: "các thẻ trùng khá liền nhau"). Hình mới ưu tiên hình CHƯA có trên bàn.
+   * Hình của lá kế tiếp. BÀN N CỘT → LÁ CẶP RƠI TRONG N LÁ KẾ TIẾP (chủ dự án 27.10.2026; trước là 3–8 lá
+   * cho mọi bàn, và lá cặp đến hạn cùng lúc phải xếp hàng nên có khi trễ hơn). Cách giữ lời: lá mới mở
+   * cặp thì GIỮ CHỖ ngay cho lá kia ở một số thứ tự còn trống trong (n, n+N]. Luôn còn chỗ: mỗi chỗ đã
+   * giữ trong cửa sổ đó sinh từ một lá trong N−1 lá trước — tối đa N−1 chỗ trên N. Ưu tiên chỗ cách
+   * ≥ `CHEN_IT_NHAT` lá (không liền nhau); hết chỗ như thế mới lấy chỗ gần.
+   * Hình mới ưu tiên hình CHƯA có trên bàn, và không mở cặp thứ hai của hình còn đang chờ lá kia.
    */
   private hinhKe(): string {
     const n = this.soLaDaTha++;
-    const toi = this.choCap.findIndex((c) => c.toi <= n);
-    if (toi >= 0) return this.choCap.splice(toi, 1)[0]!.sym;
-    const tren = new Set([...this.la.filter((l) => !l.an).map((l) => l.sym), ...this.choCap.map((c) => c.sym)]);
+    const den = this.giuCho.get(n);
+    if (den !== undefined) { this.giuCho.delete(n); return den; }
+    const cho = new Set(this.giuCho.values());
+    const tren = new Set([...this.la.filter((l) => !l.an).map((l) => l.sym), ...cho]);
     const moi = this.hinh.filter((s) => !tren.has(s));
-    const choSan = new Set(this.choCap.map((c) => c.sym));
-    const khongCho = this.hinh.filter((s) => !choSan.has(s));   // đừng mở cặp thứ hai khi cặp đầu còn chờ lá kia
+    const khongCho = this.hinh.filter((s) => !cho.has(s));
     const kho = moi.length ? moi : khongCho.length ? khongCho : this.hinh;
     const sym = kho[Math.floor(this.rand() * kho.length)]!;
-    const [it, nhieu] = CACH_CAP;
-    this.choCap.push({ sym, toi: n + 1 + it + Math.floor(this.rand() * (nhieu - it + 1)) });
+    const trong = (tu: number): number[] => {
+      const ds: number[] = [];
+      for (let k = n + 1 + tu; k <= n + this.soCot; k++) if (!this.giuCho.has(k)) ds.push(k);
+      return ds;
+    };
+    const xa = trong(CHEN_IT_NHAT);
+    const ds = xa.length ? xa : trong(0);
+    this.giuCho.set(ds[Math.floor(this.rand() * ds.length)]!, sym);
     return sym;
   }
 
