@@ -687,6 +687,27 @@ const ko: TuDien = {
   "cai.a3p": "일부 휴대폰에서는 ‘앱 설치’라고 나와요.",
   "cai.a4": "<span class=\"xanh-chu\">설치</span> 누르기",
   "cai.a4p": "홈 화면에 Flip Match 아이콘이 생겨요. 거기서 열면 전체 화면으로 즐길 수 있어요.",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "카드 비",
+  'mt.thuNghiem': "실험",
+  'mt.choi': "플레이",
+  'mt.diem': "점수",
+  'mt.kyLuc': "최고 기록",
+  'mt.kyLucMoi': "최고 기록 경신!",
+  'mt.thua': "줄이 꽉 찼어요!",
+  'mt.cap': "레벨 {n}",
+  'mt.nhanhHon': "더 빠르게!",
+  'mt.ketQua': "레벨 {n} · {cap}쌍",
+  'mt.goiY': "3초 안에 또 맞추면 점수가 배로 늘어요",
+  'mt.laUp': "뒤집힌 카드",
+  'mt.moi': "NEW",
+  'mt.moTa': "최대한 빨리 짝을 맞춰요!",
+  'mt.soCot': "줄 수",
+  'mt.cot': "{n}줄",
+  'mt.doiCot': "줄 수 바꾸기",
+  'dbg.phienBan': "버전",
+  'dbg.congTac': "테스트 스위치",
 };
 
 export default ko;

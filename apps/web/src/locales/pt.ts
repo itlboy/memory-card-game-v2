@@ -689,6 +689,27 @@ const pt: TuDien = {
   "cai.a3p": "Em alguns celulares aparece como “Instalar app”.",
   "cai.a4": "Toque em <span class=\"xanh-chu\">Instalar</span>",
   "cai.a4p": "O ícone do Flip Match aparece na tela inicial. Abra por ali para jogar em tela cheia.",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "Chuva de Cartas",
+  'mt.thuNghiem': "Experimental",
+  'mt.choi': "Jogar",
+  'mt.diem': "Pontos",
+  'mt.kyLuc': "Recorde",
+  'mt.kyLucMoi': "Novo recorde!",
+  'mt.thua': "Coluna cheia!",
+  'mt.cap': "Nível {n}",
+  'mt.nhanhHon': "Mais rápido!",
+  'mt.ketQua': "Nível {n} · {cap} pares",
+  'mt.goiY': "Acerte de novo em 3 segundos para multiplicar os pontos",
+  'mt.laUp': "Carta virada para baixo",
+  'mt.moi': "Novo",
+  'mt.moTa': "Encontre os pares o mais rápido que puder!",
+  'mt.soCot': "Colunas",
+  'mt.cot': "{n} colunas",
+  'mt.doiCot': "Mudar colunas",
+  'dbg.phienBan': "Versão",
+  'dbg.congTac': "Opções de teste",
 };
 
 export default pt;

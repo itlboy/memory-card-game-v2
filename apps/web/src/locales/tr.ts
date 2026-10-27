@@ -690,6 +690,27 @@ const tr: TuDien = {
   "cai.a3p": "Bazı telefonlarda “Uygulamayı yükle” yazar.",
   "cai.a4": "<span class=\"xanh-chu\">Yükle</span>’ye dokun",
   "cai.a4p": "Flip Match simgesi ana ekranında belirir. Tam ekran oynamak için oradan aç.",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "Kart Yağmuru",
+  'mt.thuNghiem': "Deneysel",
+  'mt.choi': "Oyna",
+  'mt.diem': "Puan",
+  'mt.kyLuc': "Rekor",
+  'mt.kyLucMoi': "Yeni rekor!",
+  'mt.thua': "Sütun doldu!",
+  'mt.cap': "Seviye {n}",
+  'mt.nhanhHon': "Daha hızlı!",
+  'mt.ketQua': "Seviye {n} · {cap} çift",
+  'mt.goiY': "Puanını katlamak için 3 saniye içinde yine eşleştir",
+  'mt.laUp': "Kapalı kart",
+  'mt.moi': "Yeni",
+  'mt.moTa': "Eşleri olabildiğince hızlı bul!",
+  'mt.soCot': "Sütun",
+  'mt.cot': "{n} sütun",
+  'mt.doiCot': "Sütunu değiştir",
+  'dbg.phienBan': "Sürüm",
+  'dbg.congTac': "Test anahtarları",
 };
 
 export default tr;

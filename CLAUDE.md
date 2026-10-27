@@ -33,8 +33,9 @@
   xếp dọc như bước mức máy (lưới 2×2 bị chê "hơi trống" 12.10.2026) — chơi
   chung một máy TỐI ĐA 4 người (chủ dự án chốt: 10 người "không chơi nổi");
   online vẫn tới 10. Dải lối tắt dùng lớp `lt-chip`, KHÔNG `.chip` (toàn cục, xếp cột).
-  Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu còn 4 ô
-  (Chiến dịch · Chơi nhanh · Đấu máy · Online) + dải lối tắt (`.loi-tat`, NGOÀI
+  Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu là ô to Chiến dịch +
+  HÀNG 4 Ô VUÔNG (Chơi nhanh · Đấu máy · Online · Mưa Thẻ — ô thứ tư thêm 27.10.2026, KHÔNG thêm
+  hàng: chủ dự án "trang chủ nhiều nút quá rồi") + dải lối tắt (`.loi-tat`, NGOÀI
   lưới ô vì lưới chia đều 1fr), số người hỏi ở bước `count`.
 - Hiệu ứng `:hover` phải bọc trong `@media (hover: hover)` — thiết bị cảm
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
@@ -297,6 +298,19 @@
   Luật chơi, tên theme, nhãn engine (`optionSummary` đang dịch tạm theo mẫu ở
   MenuScreen), lỗi server (dịch theo MÃ lỗi ở client), thẻ og. Chuyển xong file nào
   thì thêm vào `DA_CHUYEN`.
+
+## MƯA THẺ — CHẾ ĐỘ THẺ RƠI (27.10.2026, chủ dự án chơi thử từng nhịp rồi chốt)
+
+- Luật THUẦN ở `lib/mua-the.ts` (`VanMuaThe`, test `test/mua-the.test.ts`), màn `MuaThe.vue`, URL `?mua=1`.
+  KHÔNG đi qua engine/`MemoryGame` — vòng lặp rAF riêng, vị trí lá ghi thẳng `transform` (Vue chỉ vẽ lại khi
+  chữ ký ngửa/chọn đổi). Không online, không bot.
+- Đã chốt (đừng đảo lại khi chưa hỏi): rơi thì NGỬA, chạm đáy mới ÚP (thử úp sau vài giây — "khó phết");
+  lá cặp rơi sau 3–8 lá khác (`CACH_CAP`); chia vào cột THẤP; cột đầy thì ĐÓNG, đầy HẾT mới thua; chạm sai
+  KHÔNG khoá (lộ 0,6s, lá thứ ba chạm ngay — chỉ chế độ này); LÊN CẤP THEO ĐIỂM (`mocCap`), không theo giờ;
+  điểm = `pairScore` của bàn thường × cấp; lá VUÔNG, số hàng tự tính theo chiều cao (`hangChoGieng`);
+  số cột 4→8 (mặc định 6; 7–8 dưới 44px là cố ý, như bàn 72/88); KHÔNG vạch cột, KHÔNG tô đỏ cột;
+  luật trên màn chỉ MỘT câu ("không cần giải thích rườm rà"). Điểm cộng vào tổng xu; kỷ lục riêng theo số cột.
+- Lá đang nổ phải bỏ `box-shadow` của khung (skin Kẹo đặt !important) — không thì còn sót cái viền.
 
 ## GOOGLE ANALYTICS 4 (15.10.2026, chủ dự án chốt: GA4, KHÔNG hộp hỏi cookie)
 

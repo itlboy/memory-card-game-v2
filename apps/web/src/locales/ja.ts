@@ -687,6 +687,27 @@ const ja: TuDien = {
   "cai.a3p": "機種によっては「アプリをインストール」と表示されます。",
   "cai.a4": "<span class=\"xanh-chu\">インストール</span> をタップ",
   "cai.a4p": "ホーム画面に Flip Match のアイコンが出ます。そこから開くと全画面で遊べます。",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "カードの雨",
+  'mt.thuNghiem': "おためし",
+  'mt.choi': "あそぶ",
+  'mt.diem': "スコア",
+  'mt.kyLuc': "ベスト",
+  'mt.kyLucMoi': "ベスト更新！",
+  'mt.thua': "列がいっぱい！",
+  'mt.cap': "レベル {n}",
+  'mt.nhanhHon': "スピードアップ！",
+  'mt.ketQua': "レベル {n} · {cap} ペア",
+  'mt.goiY': "3秒以内に続けてそろえると点数アップ",
+  'mt.laUp': "裏向きのカード",
+  'mt.moi': "NEW",
+  'mt.moTa': "できるだけ速くペアをそろえよう！",
+  'mt.soCot': "列の数",
+  'mt.cot': "{n} 列",
+  'mt.doiCot': "列の数を変える",
+  'dbg.phienBan': "バージョン",
+  'dbg.congTac': "テスト用スイッチ",
 };
 
 export default ja;

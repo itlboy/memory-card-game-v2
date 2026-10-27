@@ -690,6 +690,27 @@ const zhTW: TuDien = {
   "cai.a3p": "有些手機顯示為「安裝應用程式」。",
   "cai.a4": "點 <span class=\"xanh-chu\">安裝</span>",
   "cai.a4p": "Flip Match 圖示會出現在主畫面上。從那裡開啟即可全螢幕遊玩。",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "卡牌雨",
+  'mt.thuNghiem': "試驗",
+  'mt.choi': "開始",
+  'mt.diem': "得分",
+  'mt.kyLuc': "最高分",
+  'mt.kyLucMoi': "新紀錄！",
+  'mt.thua': "這一欄滿了！",
+  'mt.cap': "第 {n} 級",
+  'mt.nhanhHon': "更快了！",
+  'mt.ketQua': "第 {n} 級 · {cap} 對",
+  'mt.goiY': "3 秒內連續配對可加倍得分",
+  'mt.laUp': "背面朝上的卡牌",
+  'mt.moi': "新",
+  'mt.moTa': "盡快配對相同的卡牌！",
+  'mt.soCot': "欄數",
+  'mt.cot': "{n} 欄",
+  'mt.doiCot': "更改欄數",
+  'dbg.phienBan': "版本",
+  'dbg.congTac': "測試開關",
 };
 
 export default zhTW;

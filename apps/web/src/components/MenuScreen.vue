@@ -18,7 +18,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
+import { Bot, ChevronLeft, CloudRain, Globe, Map, Play, Users, X } from 'lucide-vue-next';
 import { anLoiMoi, moCai, nenMoiCai, tatLoiMoi } from '@/lib/cai-app';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
@@ -73,6 +73,7 @@ const emit = defineEmits<{
   'update:playerCount': [number];
   'update:botLevel': [BotLevel | null];
   'start-level': [number];
+  'mua-the': [];
   'update:options': [BoardOptions];
   online: [];
   'chinh-phuc': [string];
@@ -416,7 +417,7 @@ const ICO3D = {
   // ngôi sao một khối, vàng nổi trên xanh, và khớp sao đánh giá — sao giờ chỉ dành cho Chiến dịch.
   chienDich: anhEmoji('⭐', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
-  dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? ''
+  dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? ''
 };
 </script>
 
@@ -478,6 +479,12 @@ const ICO3D = {
           </button>
           <button class="o-vuong neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
+          </button>
+          <!-- MƯA THẺ (27.10.2026): ô vuông THỨ TƯ cùng hàng — chủ dự án: trang chủ "nhiều nút quá rồi",
+               nên không thêm hàng; lưới vẫn tròn hàng (1 ô to + 4 ô vuông) -->
+          <button class="o-vuong o-mua neon g-pink" type="button" :title="t('mt.moTa')" @click="sfx.select(); emit('mua-the')">
+            <CloudRain class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.muaThe" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('mt.ten')) }">{{ t('mt.ten') }}</strong>
+            <span class="moi thach th-vang th-nho">{{ t('mt.moi') }}</span>
           </button>
         </div>
 
@@ -888,9 +895,11 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
      trắng như mockup đã duyệt (keo.css). */
   background: var(--nhan-nen); color: var(--nhan-chu); border: var(--quat-vien, 0);
 }
-.ba-o { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: clamp(88px, 15vh, 150px); }
+.ba-o { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; height: clamp(88px, 15vh, 150px); }
 .o-vuong { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px 4px; min-width: 0; }
 .o-vuong strong { font-family: var(--font-display); font-size: 15px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+.o-mua { position: relative; }
+.o-mua .moi { position: absolute; top: -10px; right: -4px; padding: 2px 8px; min-height: 0; border-radius: 999px; font-size: 11.5px; font-weight: 900; rotate: 6deg; }
 .o-chien-dich:active, .o-vuong:active { transform: translateY(3px); }
 @media (hover: hover) { .o-chien-dich:hover, .o-vuong:hover { transform: translateY(-2px); } }
 /* Bảng tuỳ chọn trên màn THẤP (iPhone SE) — ĐỨNG CUỐI file để thắng luật gốc cùng độ đặc hiệu */
