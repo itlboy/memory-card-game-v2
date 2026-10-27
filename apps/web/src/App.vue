@@ -309,7 +309,12 @@ useBackCloser(20, () => screen.value !== 'menu', () => {
 
 /** Bấm logo: về trang chủ — đang dở việc thì hỏi trước. */
 function goHome(): void {
-  if (screen.value === 'mua-the') { screen.value = 'menu'; return; }
+  if (screen.value === 'mua-the') {
+    // Ván Mưa Thẻ dở: dừng rồi HỎI như ván thường (bản đầu thoát thẳng — chủ dự án báo 27.10.2026).
+    // Huỷ thì ở lại màn tạm dừng của Mưa Thẻ.
+    if (muaTheRef.value?.dangDo()) { muaTheRef.value.tamDung(); thoatVeBuoc.value = false; confirmQuit.value = true; return; }
+    screen.value = 'menu'; return;
+  }
   if (screen.value === 'online') {
     onlineRef.value?.requestHome();   // OnlineScreen tự hỏi đầu hàng / huỷ phòng
     return;
@@ -482,7 +487,8 @@ onMounted(() => {
   // Chốt snapshot lần cuối + hỏi confirm nếu đang dở việc (F5/đóng tab nhầm)
   window.addEventListener('beforeunload', (e) => {
     persistGame();
-    const inGame = screen.value === 'game' && !!session.game.value && !session.game.value.finished;
+    const inGame = (screen.value === 'game' && !!session.game.value && !session.game.value.finished)
+      || (screen.value === 'mua-the' && !!muaTheRef.value?.dangDo());
     const inOnline = screen.value === 'online' && (onlineRef.value?.isBusy() ?? false);
     if (inGame || inOnline) {
       e.preventDefault();
@@ -832,7 +838,8 @@ const hasNext = computed(() => {
 
 <template>
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
-  <IconBay v-if="screen !== 'game'" />
+  <!-- …kể cả Mưa Thẻ: icon bay giữa các lá đang rơi trông như một lá nữa -->
+  <IconBay v-if="screen !== 'game' && screen !== 'mua-the'" />
   <TopBar
     :debug="debug"
     @update:debug="debug = $event" @mo-debug="showDebug = true"

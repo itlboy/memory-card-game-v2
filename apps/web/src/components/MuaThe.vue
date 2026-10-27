@@ -214,7 +214,12 @@ onUnmounted(() => {
 });
 
 /** Back của máy / nút thoát: đang chơi thì dừng trước, đứng ở lớp phủ thì ra hẳn. */
-defineExpose({ veLai: () => { if (buoc.value === 'choi') tamDung(); else emit('thoat'); } });
+defineExpose({
+  veLai: () => { if (buoc.value === 'choi') tamDung(); else emit('thoat'); },
+  /** Ván đang dở (đang chơi hoặc tạm dừng) — bấm logo / đóng tab phải HỎI trước. */
+  dangDo: (): boolean => buoc.value === 'choi' || buoc.value === 'dung',
+  tamDung
+});
 </script>
 
 <template>
@@ -233,7 +238,6 @@ defineExpose({ veLai: () => { if (buoc.value === 'choi') tamDung(); else emit('t
 
     <div ref="gieng" class="gieng" :class="{ dang: buoc === 'choi' }" :style="{ '--o-w': `${oW}px`, '--o-h': `${oH}px`, '--la-w': `${laW}px` }">
       <span class="mua-nen" aria-hidden="true" />
-      <span class="san" aria-hidden="true" />
       <div v-for="l in dsLa" :key="l.id" :ref="(el) => ganEl(l.id, el)" class="o" :class="{ roi: l.roi }">
         <button
           class="card" type="button" data-nosfx
@@ -343,11 +347,9 @@ defineExpose({ veLai: () => { if (buoc.value === 'choi') tamDung(); else emit('t
   background: linear-gradient(#ffe98a, #ffc21a 60%, #e9a400); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .6);
 }
 .gieng {
+  /* KHÔNG khung/nền: lá rơi thẳng trên nền skin như bàn thường (khung trắng mờ bị hỏi "sao chế độ này có lớp
+     phủ màn mà bình thường không có", 27.10.2026). Bo góc giữ cho lớp kết quả + mưa không vuông góc. */
   position: relative; flex: 1; min-height: 0; overflow: hidden; border-radius: 22px;
-  /* giếng trời: trong suốt nhẹ trên nền Kẹo, lõm vào (bóng trong) — không khung trắng đặc */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--panel, #fff) 35%, transparent), color-mix(in srgb, var(--panel, #fff) 65%, transparent));
-  border: 2px solid color-mix(in srgb, var(--panel, #fff) 80%, transparent);
-  box-shadow: inset 0 4px 14px rgba(20, 30, 70, .14);
 }
 /* mưa nhẹ ở nền — một lớp vẽ sẵn, chỉ TRƯỢT bằng transform (lớp ghép, không vẽ lại mỗi khung) */
 .mua-nen {
@@ -361,12 +363,6 @@ defineExpose({ veLai: () => { if (buoc.value === 'choi') tamDung(); else emit('t
 }
 .gieng.dang .mua-nen { animation: mua-nen 2.4s linear infinite; }
 @keyframes mua-nen { to { transform: translateY(50%); } }
-/* mép đáy: một gờ thạch mỏng, lá như rơi xuống nền */
-.san {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 6px; z-index: 1; pointer-events: none;
-  background: linear-gradient(color-mix(in srgb, var(--panel, #fff) 90%, transparent), color-mix(in srgb, var(--panel, #fff) 60%, transparent));
-  box-shadow: 0 -2px 6px rgba(20, 30, 70, .12);
-}
 /* lá đang rơi nổi hơn: bóng là lớp RIÊNG dưới lá — `filter` trên lá làm phẳng cú lật 3D (nguy cơ lộ mặt bài) */
 .o.roi::before {
   content: ''; position: absolute; left: 10%; right: 10%; bottom: -4px; height: 10px; border-radius: 50%;
