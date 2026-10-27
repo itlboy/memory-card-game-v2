@@ -128,6 +128,10 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
           </li>
         </ul>
 
+        <!-- Mưa Thẻ (27.10.2026): chế độ thẻ rơi — luật ở lib/mua-the.ts -->
+        <h3>🌧️ {{ t('mt.ten') }}</h3>
+        <p class="lead">{{ t('mt.moTa') }}</p>
+
         <h3>{{ t('lc.h.nhieuNguoi') }}</h3>
         <ul class="plain">
           <li>{{ t('lc.nn1') }}<b>{{ t('lc.nn1b') }}</b>{{ t('lc.nn1c') }}<b>{{ t('lc.nn1d') }}</b>{{ t('lc.nn1e') }}</li>

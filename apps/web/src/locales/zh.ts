@@ -687,6 +687,27 @@ const zh: TuDien = {
   "cai.a3p": "有些手机显示为“安装应用”。",
   "cai.a4": "点 <span class=\"xanh-chu\">安装</span>",
   "cai.a4p": "Flip Match 图标会出现在主屏幕上。从那里打开即可全屏游玩。",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "卡牌雨",
+  'mt.thuNghiem': "试验",
+  'mt.choi': "开始",
+  'mt.diem': "得分",
+  'mt.kyLuc': "最高分",
+  'mt.kyLucMoi': "新纪录！",
+  'mt.thua': "这一列满了！",
+  'mt.cap': "第 {n} 级",
+  'mt.nhanhHon': "更快了！",
+  'mt.ketQua': "第 {n} 级 · {cap} 对",
+  'mt.goiY': "3 秒内连续配对可翻倍得分",
+  'mt.laUp': "背面朝上的卡牌",
+  'mt.moi': "新",
+  'mt.moTa': "尽快配对相同的卡牌！",
+  'mt.soCot': "列数",
+  'mt.cot': "{n} 列",
+  'mt.doiCot': "更改列数",
+  'dbg.phienBan': "版本",
+  'dbg.congTac': "测试开关",
 };
 
 export default zh;

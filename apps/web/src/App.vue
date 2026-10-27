@@ -16,6 +16,7 @@ import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog from './components/RulesDialog.vue';
 import DebugDialog from './components/DebugDialog.vue';
+import MuaThe from './components/MuaThe.vue';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
 import type { XemFx } from './components/DebugMenu.vue';
@@ -136,10 +137,12 @@ const progressRev = ref(0);
 const totalScore = ref(store.totalScore());
 
 const themes = ref<CardTheme[]>([]);
-const screen = ref<'menu' | 'game' | 'online'>('menu');
+/** 'mua-the' = chế độ thẻ rơi (components/MuaThe.vue) — ô ngang ở trang chủ + trang Debug; `?mua=1` trên URL. */
+const screen = ref<'menu' | 'game' | 'online' | 'mua-the'>('menu');
+const muaTheRef = ref<InstanceType<typeof MuaThe> | null>(null);
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 /** Đang trong VÁN (offline hoặc online đang chơi) — nhạc nền nhỏ dần rồi tắt (16.10.2026). */
-const trongVan = computed(() => screen.value === 'game' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
+const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua-the' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
 watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan], () => {
   store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value });
   if (!nhacBat.value || soundLevel.value === 'off') nhac.dung();
@@ -298,10 +301,15 @@ useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; })
  * hỏi SAU khi đã lùi; `goHome()` tự lo chuyện đó, và hộp hỏi mà nó mở ra sẽ
  * thành chốt mới cho cú Back kế tiếp.
  */
-useBackCloser(20, () => screen.value !== 'menu', () => { if (screen.value === 'game') thoatVan(); else goHome(); });
+useBackCloser(20, () => screen.value !== 'menu', () => {
+  if (screen.value === 'game') thoatVan();
+  else if (screen.value === 'mua-the') muaTheRef.value?.veLai();
+  else goHome();
+});
 
 /** Bấm logo: về trang chủ — đang dở việc thì hỏi trước. */
 function goHome(): void {
+  if (screen.value === 'mua-the') { screen.value = 'menu'; return; }
   if (screen.value === 'online') {
     onlineRef.value?.requestHome();   // OnlineScreen tự hỏi đầu hàng / huỷ phòng
     return;
@@ -449,6 +457,8 @@ onMounted(() => {
     if (!restoreGame()) setUrl(null);
   } else if (q.get('online') === '1') {
     screen.value = 'online';           // F5 ở màn vào online
+  } else if (q.get('mua') === '1') {
+    screen.value = 'mua-the';          // F5 ở Mưa Thẻ: về màn mở đầu (ván dở không giữ — ván chỉ vài phút)
   } else if (q.get('w')) {
     /* bước wizard — MenuScreen tự khôi phục từ ?w= */
   } else if (q.get('cai') === '1') {
@@ -482,9 +492,19 @@ onMounted(() => {
 });
 
 // Màn online (chưa vào phòng) cũng đánh dấu lên URL để F5 quay lại đúng chỗ
-watch(screen, (sc) => {
+watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
+  if (sc === 'mua-the') setUrl('mua=1');
+  else if (cu === 'mua-the' && sc === 'menu') setUrl(null);
 });
+
+/** Hết ván Mưa Thẻ: điểm vào TỔNG XU như mọi ván một mình (không ghi kỷ lục theo cỡ bàn — Mưa Thẻ có
+ *  kỷ lục riêng theo số cột trong MuaThe.vue) + một sự kiện GA4. */
+function xongMuaThe(kq: { diem: number; cap: number; soCap: number; soCot: number; giay: number }): void {
+  store.addScore(kq.diem);
+  totalScore.value = store.totalScore();
+  suKien('mua_the_ket_thuc', { diem: kq.diem, cap: kq.cap, so_cap: kq.soCap, so_cot: kq.soCot, giay: Math.round(kq.giay) });
+}
 
 /* ---------- tuỳ chọn hiển thị ---------- */
 watchEffect(() => { document.documentElement.dataset.theme = dark.value ? 'dark' : 'light'; });
@@ -859,6 +879,7 @@ const hasNext = computed(() => {
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
+      @mua-the="screen = 'mua-the'"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -868,6 +889,15 @@ const hasNext = computed(() => {
       ref="onlineRef"
       :join-code="joinCode"
       @back="screen = 'menu'; joinCode = ''"
+    />
+
+    <MuaThe
+      v-else-if="screen === 'mua-the'"
+      ref="muaTheRef"
+      :themes="themes" :theme-ids="themeIds"
+      @thoat="screen = 'menu'"
+      @bat-dau="(soCot: number) => suKien('mua_the_bat_dau', { so_cot: soCot })"
+      @ket-thuc="xongMuaThe"
     />
 
     <GameScreen
@@ -907,6 +937,7 @@ const hasNext = computed(() => {
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
+      @mua-the="screen = 'mua-the'"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -934,6 +965,7 @@ const hasNext = computed(() => {
     @close="showDebug = false"
     @update:do-nhip="doNhip = $event"
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
+    @mua-the="showDebug = false; screen = 'mua-the'"
     @tat="debug = false; showDebug = false"
   />
 

@@ -700,6 +700,27 @@ const vi = {
   "cai.a3p": "Một số máy ghi là “Cài đặt ứng dụng”.",
   "cai.a4": "Bấm <span class=\"xanh-chu\">Cài đặt</span>",
   "cai.a4p": "Biểu tượng Lật Thẻ hiện trên màn hình chính. Mở từ đó là chơi toàn màn hình.",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "Mưa Thẻ",
+  'mt.thuNghiem': "Thử nghiệm",
+  'mt.choi': "Chơi",
+  'mt.diem': "Điểm",
+  'mt.kyLuc': "Kỷ lục",
+  'mt.kyLucMoi': "Kỷ lục mới!",
+  'mt.thua': "Đầy cột rồi!",
+  'mt.cap': "Cấp {n}",
+  'mt.nhanhHon': "Nhanh hơn!",
+  'mt.ketQua': "Cấp {n} · {cap} cặp",
+  'mt.goiY': "Ăn liền tay trong 3 giây để nhân điểm",
+  'mt.laUp': "Thẻ úp",
+  'mt.moi': "Mới",
+  'mt.moTa': "Mở thẻ trùng nhanh nhất có thể!",
+  'mt.soCot': "Số cột",
+  'mt.cot': "{n} cột",
+  'mt.doiCot': "Đổi số cột",
+  'dbg.phienBan': "Phiên bản",
+  'dbg.congTac': "Công tắc thử",
 };
 
 export default vi;

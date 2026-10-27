@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import type { Summary } from '@mm/engine';
 import App from '@/App.vue';
+import MuaThe from '@/components/MuaThe.vue';
 import ResultDialog from '@/components/ResultDialog.vue';
 import DanhHieuDialog from '@/components/DanhHieuDialog.vue';
 import KetCucFx from '@/components/KetCucFx.vue';
@@ -150,6 +151,7 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
     ['cảnh thua', { loai: 'thua', bienThe: 'su-tu-khoc' }],
     ['cảnh thua một mình', { loai: 'thua', bienThe: 'su-tu-khoc', motMinh: true }], ['cảnh hoà', { loai: 'hoa' }]
   ] as const) await dung(ten, KetCucFx, p as unknown as Record<string, unknown>);
+  await dung('mưa thẻ mở đầu', MuaThe, { themes: [], themeIds: [] });
   return man;
 }
 
@@ -186,7 +188,7 @@ const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
   fr: ['Auto', 'Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium'],
   de: ['Auto', 'Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium'],
   en: ['Neon', 'Premium'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
-  id: ['Solo', 'Normal', 'Level 3', 'Bom', 'Neon', 'Premium'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  id: ['Solo', 'Normal', 'Level 2', 'Level 3', 'Bom', 'Neon', 'Premium'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
   it: ['Auto', 'Menu', 'Account', 'Neon', 'Premium', 'offline'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
   tr: ['Neon', 'Premium']
 };

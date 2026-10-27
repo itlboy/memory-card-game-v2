@@ -690,6 +690,27 @@ const id: TuDien = {
   "cai.a3p": "Di beberapa ponsel namanya “Instal aplikasi”.",
   "cai.a4": "Ketuk <span class=\"xanh-chu\">Instal</span>",
   "cai.a4p": "Ikon Flip Match muncul di layar utama. Buka dari sana untuk main layar penuh.",
+
+  /* ---------- Mưa Thẻ (chế độ thẻ rơi, thử nghiệm) ---------- */
+  'mt.ten': "Hujan Kartu",
+  'mt.thuNghiem': "Uji coba",
+  'mt.choi': "Main",
+  'mt.diem': "Skor",
+  'mt.kyLuc': "Rekor",
+  'mt.kyLucMoi': "Rekor baru!",
+  'mt.thua': "Kolom penuh!",
+  'mt.cap': "Level {n}",
+  'mt.nhanhHon': "Lebih cepat!",
+  'mt.ketQua': "Level {n} · {cap} pasang",
+  'mt.goiY': "Cocokkan lagi dalam 3 detik untuk melipatgandakan poin",
+  'mt.laUp': "Kartu tertutup",
+  'mt.moi': "Baru",
+  'mt.moTa': "Cocokkan kartu secepat mungkin!",
+  'mt.soCot': "Kolom",
+  'mt.cot': "{n} kolom",
+  'mt.doiCot': "Ganti kolom",
+  'dbg.phienBan': "Versi",
+  'dbg.congTac': "Sakelar uji",
 };
 
 export default id;

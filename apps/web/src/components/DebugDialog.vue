@@ -11,7 +11,7 @@ import { t } from '@/lib/i18n';
 import DebugMenu, { type XemFx } from './DebugMenu.vue';
 
 defineProps<{ doNhip: boolean }>();
-const emit = defineEmits<{ close: []; 'update:doNhip': [boolean]; 'xem-fx': [XemFx]; tat: [] }>();
+const emit = defineEmits<{ close: []; 'update:doNhip': [boolean]; 'xem-fx': [XemFx]; tat: []; 'mua-the': [] }>();
 const nutDong = ref<HTMLButtonElement | null>(null);
 onMounted(() => nutDong.value?.focus());
 </script>
@@ -28,7 +28,7 @@ onMounted(() => nutDong.value?.focus());
       <div class="dbg-body">
         <DebugMenu
           :do-nhip="doNhip"
-          @update:do-nhip="emit('update:doNhip', $event)" @xem-fx="emit('xem-fx', $event)" @tat="emit('tat')"
+          @update:do-nhip="emit('update:doNhip', $event)" @xem-fx="emit('xem-fx', $event)" @tat="emit('tat')" @mua-the="emit('mua-the')"
         />
       </div>
     </div>

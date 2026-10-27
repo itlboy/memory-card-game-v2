@@ -23,7 +23,7 @@ import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ket
 export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean }
 
 const props = defineProps<{ doNhip: boolean }>();
-const emit = defineEmits<{ 'update:doNhip': [boolean]; 'xem-fx': [XemFx]; tat: [] }>();
+const emit = defineEmits<{ 'update:doNhip': [boolean]; 'xem-fx': [XemFx]; tat: []; 'mua-the': [] }>();
 
 const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
   ...BIEN_THE.thang.map((b) => ({ ten: t('lc.xemThang', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thang' as const, bienThe: b } })),
@@ -74,79 +74,112 @@ function veMacDinh(): void {
 
 <template>
   <div class="dbg" role="group" :aria-label="t('tb.debug')">
-    <p class="dbg-dau">
-      <span />
-      <button data-phang class="dbg-nho" type="button" @click="veMacDinh">{{ t('tb.debugMacDinh') }}</button>
-      <button data-phang class="dbg-nho tat" type="button" @click="emit('tat')">{{ t('tb.debugTat') }}</button>
-    </p>
-    <p class="dbg-ban">
-      <b>v{{ version }}</b> · build {{ builtAt }} <span>({{ ago }})</span><br>
-      <span class="ota">{{ otaId }}</span>
-      <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
-      <template v-if="nguon"><br><b class="nguon">{{ nguon }}</b></template>
-    </p>
-    <p class="dbg-ota" :class="trangThaiOta.buoc" role="status">
-      <span>{{ t('ota.tieuDe') }}: {{ chuOta }}<template v-if="trangThaiOta.id && trangThaiOta.buoc !== 'moiNhat'"><br><span class="ota">{{ trangThaiOta.id }}</span></template></span>
-      <button data-phang v-if="trangThaiOta.buoc !== 'web' && trangThaiOta.buoc !== 'kiem' && trangThaiOta.buoc !== 'tai'" class="dbg-nho" type="button" @click="kiemOta()">{{ t('ota.kiemLai') }}</button>
-      <button data-phang v-if="trangThaiOta.buoc === 'choMoLai'" class="dbg-nho tat" type="button" @click="apOtaNgay()">{{ t('ota.apNgay') }}</button>
-    </p>
-    <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="daMuaPremium" @click="datPremiumThu(!daMuaPremium)">
-      <i :class="{ bat: daMuaPremium }" aria-hidden="true" />{{ t('lc.premiumThu') }}
+    <!-- Thử nghiệm đứng ĐẦU: thứ chủ dự án mở trang này để chơi -->
+    <button class="thach th-troi dbg-thu" type="button" @click="emit('mua-the')">
+      <span class="dbg-thu-ic" aria-hidden="true">🌧️</span>
+      <span class="dbg-thu-chu"><small>{{ t('mt.thuNghiem') }}</small><b>{{ t('mt.ten') }}</b><span>{{ t('mt.moTa') }}</span></span>
+      <span class="dbg-thu-mui" aria-hidden="true">›</span>
     </button>
-    <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="props.doNhip" @click="emit('update:doNhip', !props.doNhip)">
-      <i :class="{ bat: props.doNhip }" aria-hidden="true" />{{ t('lc.doNhip') }}
-    </button>
-    <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="pingSo" @click="datPingSo(!pingSo)">
-      <i :class="{ bat: pingSo }" aria-hidden="true" />{{ t('lc.pingSo') }}
-    </button>
-    <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
-      <i class="xoay" aria-hidden="true">↻</i>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}
-    </button>
+
+    <section class="khay-nho dbg-khoi">
+      <h3>{{ t('dbg.phienBan') }}</h3>
+      <p class="dbg-ban">
+        <b>v{{ version }}</b> · {{ builtAt }} <span>({{ ago }})</span>
+        <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
+        <template v-if="nguon"><br><b class="nguon">{{ nguon }}</b></template>
+        <br><span class="ota">{{ otaId }}</span>
+      </p>
+      <div class="dbg-ota" :class="trangThaiOta.buoc" role="status">
+        <i aria-hidden="true" />
+        <span>{{ t('ota.tieuDe') }}: {{ chuOta }}<template v-if="trangThaiOta.id && trangThaiOta.buoc !== 'moiNhat'"><br><span class="ota">{{ trangThaiOta.id }}</span></template></span>
+      </div>
+      <div v-if="trangThaiOta.buoc !== 'web' && trangThaiOta.buoc !== 'kiem' && trangThaiOta.buoc !== 'tai'" class="dbg-hang-nut">
+        <button class="thach th-nho" type="button" @click="kiemOta()">{{ t('ota.kiemLai') }}</button>
+        <button v-if="trangThaiOta.buoc === 'choMoLai'" class="thach th-nho th-xanh" type="button" @click="apOtaNgay()">{{ t('ota.apNgay') }}</button>
+      </div>
+    </section>
+
+    <section class="khay-nho dbg-khoi">
+      <h3>{{ t('dbg.congTac') }}</h3>
+      <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="daMuaPremium" @click="datPremiumThu(!daMuaPremium)">
+        <span>{{ t('lc.premiumThu') }}</span><i class="sw" :class="{ bat: daMuaPremium }" aria-hidden="true" />
+      </button>
+      <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="props.doNhip" @click="emit('update:doNhip', !props.doNhip)">
+        <span>{{ t('lc.doNhip') }}</span><i class="sw" :class="{ bat: props.doNhip }" aria-hidden="true" />
+      </button>
+      <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="pingSo" @click="datPingSo(!pingSo)">
+        <span>{{ t('lc.pingSo') }}</span><i class="sw" :class="{ bat: pingSo }" aria-hidden="true" />
+      </button>
+      <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
+        <span>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</span><i class="doi" aria-hidden="true">↻</i>
+      </button>
+    </section>
+
     <!-- Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở đây — người chơi chỉ có Kẹo (lib/skin.ts) -->
-    <p class="dbg-nhom">{{ t('tb.giaoDien') }}</p>
-    <div class="dbg-fx">
-      <button data-phang v-for="s in SKINS" :key="s" class="dbg-nho" :class="{ chon: skin === s }" type="button" :aria-pressed="skin === s" @click="datSkin(s, true)">{{ td(`tb.skin.${s}`) }}</button>
-    </div>
-    <p class="dbg-nhom">{{ t('lc.xemThu') }}</p>
-    <div class="dbg-fx">
-      <button data-phang v-for="x in XEM_THU" :key="x.ten" class="dbg-nho" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
+    <section class="khay-nho dbg-khoi">
+      <h3>{{ t('tb.giaoDien') }}</h3>
+      <div class="dbg-luoi ba">
+        <button v-for="s in SKINS" :key="s" class="thach th-nho th-chon" type="button" :aria-pressed="skin === s" @click="datSkin(s, true)">{{ td(`tb.skin.${s}`) }}</button>
+      </div>
+    </section>
+
+    <section class="khay-nho dbg-khoi">
+      <h3>{{ t('lc.xemThu') }}</h3>
+      <div class="dbg-luoi">
+        <button v-for="x in XEM_THU" :key="x.ten" class="thach th-nho" type="button" @click="emit('xem-fx', x.fx)">{{ x.ten }}</button>
+      </div>
+    </section>
+
+    <div class="dbg-dau">
+      <button class="thach" type="button" @click="veMacDinh">{{ t('tb.debugMacDinh') }}</button>
+      <button class="thach th-do" type="button" @click="emit('tat')">{{ t('tb.debugTat') }}</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Cố tình NHẠT, nhỏ, viền đứt: công cụ soi lỗi, không phải tính năng chơi */
-.dbg { display: grid; gap: 4px; }   /* nằm trong trang riêng (DebugDialog) — không cần khung viền */
-.dbg-dau { display: flex; align-items: center; gap: 6px; margin: 0 0 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--bad); }
-.dbg-dau > span { flex: 1; }
-.dbg-ban { margin: 0 4px 4px; font-size: 12.5px; line-height: 1.45; color: var(--muted); white-space: normal; user-select: text; -webkit-user-select: text; }
+/* Trang công cụ nhưng vẫn theo ngôn ngữ THẠCH của Kẹo (chủ dự án 27.10.2026: bản viền đứt "xấu xí qua loa"):
+   mỗi nhóm là một khay nhỏ, công tắc là `.sw` như menu Cài đặt, nút là thạch nhỏ. */
+.dbg { display: flex; flex-direction: column; gap: 12px; padding: 2px 2px 6px; }
+.dbg-khoi { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 18px; background: var(--panel-soft); border: 1px solid var(--line); }
+.dbg-khoi h3 { margin: 0 0 2px; font-size: 12px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+.dbg-thu { display: flex; align-items: center; gap: 12px; min-height: 76px; padding: 10px 14px; text-align: left; border-radius: 20px; }
+.dbg-thu-ic { flex: none; width: 52px; height: 52px; display: grid; place-items: center; font-size: 34px; border-radius: 16px; background: rgba(255, 255, 255, .28); }
+.dbg-thu-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.2; }
+.dbg-thu-chu small { font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+.dbg-thu-chu b { font-family: var(--font-display); font-size: 22px; }
+.dbg-thu-chu span { font-size: 13px; font-weight: 600; opacity: .92; white-space: normal; }
+.dbg-thu-mui { flex: none; font-size: 30px; font-weight: 900; opacity: .8; }
+
+.dbg-ban { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); user-select: text; -webkit-user-select: text; }
 .dbg-ban b { color: var(--fg); font-variant-numeric: tabular-nums; }
-.dbg-ban .ota { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; word-break: break-all; }
-.dbg-ota { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 0 4px 4px; font-size: 11.5px; font-weight: 700; color: var(--muted); white-space: normal; }
-.dbg-ota > span { flex: 1 1 100%; }
-.dbg-ota.tai, .dbg-ota.choMoLai { color: var(--accent); }
-.dbg-ota.loi, .dbg-ota.cuQua { color: var(--bad); }
-.dbg-ota.moiNhat { color: var(--ok); }
+.dbg-ban > b:first-child { font-size: 18px; }
+.ota { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; word-break: break-all; }
 .nguon { color: var(--fg); font-weight: 800; }
-.dbg-nhom { margin: 6px 4px 2px; font-size: 11px; font-weight: 800; color: var(--muted); }
+.dbg-ota { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--muted) 10%, transparent); font-size: 12.5px; font-weight: 700; color: var(--fg); }
+.dbg-ota > i { flex: none; width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; background: var(--muted); }
+.dbg-ota.tai > i, .dbg-ota.choMoLai > i { background: var(--accent); }
+.dbg-ota.loi > i, .dbg-ota.cuQua > i { background: var(--bad); }
+.dbg-ota.moiNhat > i { background: var(--ok); }
+.dbg-hang-nut { display: flex; gap: 8px; flex-wrap: wrap; }
+
 .dbg-cong {
-  /* HÌNH thấp 32px cho các dòng sát nhau (chủ dự án 18.10.2026), VÙNG CHẠM vẫn 44px nhờ ::after */
-  position: relative; display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 6px;
-  border: 0; border-radius: 8px; background: none; color: var(--fg); font: inherit; font-size: 14px; font-weight: 700;
-  text-align: left; white-space: normal; cursor: pointer;
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px;
+  padding: 0 2px; border: 0; border-top: 1px solid var(--line); background: none; color: var(--fg);
+  font: inherit; font-size: 14.5px; font-weight: 700; text-align: left; white-space: normal; cursor: pointer;
 }
-.dbg-cong::after { content: ''; position: absolute; inset: -6px 0; }
-.dbg-cong i { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--muted); font-style: normal; }
-.dbg-cong i.bat { border-color: var(--bad); background: var(--bad); }
-.dbg-cong i.xoay { border: 0; display: grid; place-items: center; color: var(--muted); font-weight: 900; }
-.dbg-nho {
-  position: relative; min-height: 28px; padding: 2px 8px; border: 1px dashed var(--line-strong); border-radius: 8px;
-  background: none; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
-  text-transform: none; letter-spacing: 0;
-}
-.dbg-nho.tat { border-color: var(--bad); color: var(--bad); }
-.dbg-fx { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.dbg-fx .dbg-nho { white-space: normal; text-align: left; }
-@media (hover: hover) { .dbg-cong:hover, .dbg-nho:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); } }
-.dbg-nho.chon { border-style: solid; border-color: var(--bad); color: var(--bad); }
+.dbg-khoi h3 + .dbg-cong { border-top: 0; }
+.sw { position: relative; flex: 0 0 auto; width: 38px; height: 22px; border-radius: 999px; background: var(--line); }
+.sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
+.sw.bat { background: var(--nhan-nen); }
+.sw.bat::after { left: 19px; }
+.doi { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); font-style: normal; font-weight: 900; }
+
+.dbg .thach { border-radius: 14px; }
+.dbg-luoi { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dbg-luoi.ba { grid-template-columns: repeat(3, 1fr); }
+.dbg-luoi .thach { min-height: 40px; padding: 6px 8px; font-size: 13px; white-space: normal; line-height: 1.2; }
+.dbg-dau { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.dbg-dau .thach { min-height: 46px; }
 </style>
