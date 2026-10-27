@@ -305,7 +305,7 @@
   KHÔNG đi qua engine/`MemoryGame` — vòng lặp rAF riêng, vị trí lá ghi thẳng `transform` (Vue chỉ vẽ lại khi
   chữ ký ngửa/chọn đổi). Không online, không bot.
 - Đã chốt (đừng đảo lại khi chưa hỏi): rơi thì NGỬA, chạm đáy mới ÚP (thử úp sau vài giây — "khó phết");
-  lá cặp rơi sau 3–8 lá khác (`CACH_CAP`); chia vào cột THẤP; cột đầy thì ĐÓNG, đầy HẾT mới thua; chạm sai
+  bàn N cột → lá cặp rơi TRONG N lá kế tiếp, không liền nhau (giữ chỗ trước, `hinhKe`); chia vào cột THẤP; cột đầy thì ĐÓNG, đầy HẾT mới thua; chạm sai
   KHÔNG khoá (lộ 0,6s, lá thứ ba chạm ngay — chỉ chế độ này); LÊN CẤP THEO ĐIỂM (`mocCap`), không theo giờ;
   điểm = `pairScore` của bàn thường × cấp; lá VUÔNG, số hàng tự tính theo chiều cao (`hangChoGieng`);
   số cột 4→8 (mặc định 6; 7–8 dưới 44px là cố ý, như bàn 72/88); KHÔNG vạch cột, KHÔNG tô đỏ cột;
