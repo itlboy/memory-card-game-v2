@@ -94,17 +94,13 @@
 :root[data-skin='keo'] .o-chien-dich strong { flex: none; }
 :root[data-skin='keo'] .o-chien-dich .ico3d { width: clamp(46px, 8vh, 64px); }
 :root[data-skin='keo'] :is(.o-chien-dich, .o-vuong) { border-width: 3px; }
-:root[data-skin='keo'] .o-mua .moi { text-shadow: none !important; }
+:root[data-skin='keo'] .moi-dan { text-shadow: none !important; }
 /* Chữ dài (tiếng Ý "Contro il computer", máy 360px) được XUỐNG HAI DÒNG chia đều thay vì tràn ra
    ngoài ô — soát ảnh store 18.10.2026. Chữ ngắn vẫn một dòng như cũ. Chỉ xuống dòng GIỮA CÁC TỪ: gạch nối
    tự động bẻ cả từ không cần bẻ ("Parti-ta rapida"), bẻ bừa thì ra "компьютер / а". */
 :root[data-skin='keo'] .o-vuong strong { font-size: clamp(13px, 4cqi, 16.5px); white-space: normal; text-wrap: balance; line-height: 1.05; text-align: center; hyphens: manual; max-width: 100%; }
 :root[data-skin='keo'] .o-vuong strong { overflow-wrap: normal; }
 @media (max-width: 400px) { :root[data-skin='keo'] .o-vuong strong.tu-dai { font-size: 12.5px; } }
-/* HÀNG 4 Ô (Mưa Thẻ là ô thứ tư, 27.10.2026): ô ~78px trên SE — chữ nhỏ hơn một bậc, từ dài nhỏ thêm */
-:root[data-skin='keo'] .ba-o .o-vuong { padding-inline: 2px; }
-:root[data-skin='keo'] .ba-o .o-vuong strong { font-size: clamp(11.5px, 3.3cqi, 15px); }
-:root[data-skin='keo'] .ba-o .o-vuong strong.tu-dai { font-size: clamp(10px, 2.7cqi, 13px); }
 :root[data-skin='keo'] .o-chien-dich strong { font-size: 32px; }
 
 /* Tâm dọc mặt trời/trăng: ngay dưới thanh trên. CỐ ĐỊNH theo px có trần — theo % thì máy cao

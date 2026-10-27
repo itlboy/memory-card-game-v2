@@ -7,12 +7,13 @@
  *  · chạm 2 thẻ cùng hình (rơi hay nằm đều được) là ăn, thẻ phía trên tụt xuống lấp chỗ;
  *  · cột chạm đỉnh thì ĐÓNG, lá chia tiếp vào cột còn chỗ; ĐẦY HẾT mọi cột mới thua (chủ dự án
  *    27.10.2026 — bản đầu một cột đầy là thua). Trong một ván bàn CỐ ĐỊNH, cái khó đến từ TỐC ĐỘ;
- *  · chạm sai KHÔNG khoá: hai lá sai lộ hình `LO_SAI` giây cho kịp nhìn, lá thứ ba chạm được ngay
- *    (chủ dự án: "chế độ này nhanh" — riêng Mưa Thẻ, bàn thường vẫn chờ);
+ *  · SO VỚI LÁ VỪA CHẠM (chủ dự án 27.10.2026: "1→2 không trùng → 3 trùng 2 vẫn ok"): mỗi lá chạm so
+ *    với lá chạm ngay trước; không trùng thì lá TRƯỚC lộ `LO_SAI` giây rồi úp, lá MỚI giữ làm mốc. Không
+ *    khoá, không cặp lượt — riêng Mưa Thẻ, bàn thường vẫn hai lá một lượt và chờ;
  *  · LÊN CẤP THEO ĐIỂM (`mocCap`, chủ dự án 27.10.2026 — bản đầu theo thời gian): rơi nhanh hơn, dày
  *    hơn; điểm mỗi cặp = `pairScore` của chế độ thường (100 × hệ số combo 1 · 1,2 · 1,5 · 2) × CẤP;
- *    combo = ăn liền tay trong `COMBO_GIAY` giây, chạm sai là mất chuỗi; mốc tăng theo cấp nên mỗi cấp ~10 cặp
- *    (ăn liền tay trong `COMBO_GIAY` giây là combo tăng).
+ *    combo = số lần ăn LIÊN TIẾP, không giới hạn giờ (chủ dự án: "cứ trùng nhau liên tiếp là được"); chạm
+ *    lệch là đứt chuỗi như bàn thường; mốc tăng theo cấp nên mỗi cấp ~10 cặp.
  *
  * File này là luật THUẦN: không DOM, không đồng hồ thật, ngẫu nhiên qua `rand` truyền vào — để test
  * được. Toạ độ tính theo Ô (1 = cao một hàng), `y` là mép trên của lá, 0 = đỉnh giếng.
@@ -45,7 +46,6 @@ export function hangChoGieng(w: number, h: number, soCot: number): number {
 /** Điểm cần để LÊN cấp `cap` (cấp 1 = 0): 1.000 · 3.000 · 6.000 · 10.000 … — mỗi cặp ở cấp n được
  *  ≥ 100·n điểm, nên mỗi cấp cần ~10 cặp (bớt đi nếu ăn combo). */
 export const mocCap = (cap: number): number => 500 * cap * (cap - 1);
-export const COMBO_GIAY = 3;
 /** Lá rơi mới chỉ vào cột mà lá rơi trước đó đã đi quá đoạn này (ô), không thì hai lá chồng hình. */
 const KHOANG_TRONG = 1.2;
 /** Gia tốc lá tụt xuống lấp chỗ (ô/giây²) — nhanh, dứt khoát. */
@@ -89,7 +89,6 @@ export class VanMuaThe {
   vuaCong = 0;
   ketThuc = false;
   private henRoi = 0.3;
-  private lanAnCuoi = -99;
   /** Chỗ đã GIỮ cho lá cặp: số thứ tự lá rơi → hình. */
   private giuCho = new Map<number, string>();
   private soLaDaTha = 0;
@@ -183,17 +182,17 @@ export class VanMuaThe {
     const l = this.la.find((x) => x.id === id);
     if (!l || l.an) return null;
     if (l.chon) { l.chon = false; return 'bo'; }
+    const truoc = this.chon[0];   // tối đa MỘT lá đang làm mốc
     l.chon = true;
-    const ds = this.chon;
-    if (ds.length < 2) return 'chon';
-    const [a, b] = ds as [La, La];
+    if (!truoc) return 'chon';
+    const [a, b] = [truoc, l];
     if (a.sym !== b.sym) {
-      for (const x of [a, b]) { x.chon = false; x.loDen = this.t + LO_SAI; }
-      this.chuoi = 0;   // như chế độ thường: sai là đứt chuỗi
+      // lá trước lộ một nhịp rồi úp; lá mới GIỮ làm mốc; chạm lệch là đứt chuỗi
+      a.chon = false; a.loDen = this.t + LO_SAI;
+      this.chuoi = 0;
       return 'sai';
     }
-    this.chuoi = this.t - this.lanAnCuoi < COMBO_GIAY ? this.chuoi + 1 : 1;
-    this.lanAnCuoi = this.t;
+    this.chuoi++;
     this.vuaCong = pairScore(this.chuoi, false) * this.cap;
     this.diem += this.vuaCong;
     this.soCap++;

@@ -89,6 +89,9 @@ const es: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Atrás',
   'menu.buoc.players': '¿Cómo quieres jugar?',
+  'menu.buoc.kieu': "¿Qué tipo de partida?",
+  'menu.kieu.thuong': "Clásico",
+  'menu.kieu.thuongMo': "Voltea cartas y busca parejas, con tu tablero y reglas",
   'menu.buoc.bot': 'Elige a tu rival',
   'menu.buoc.count': '¿Cuántos jugadores?',
   'menu.buoc.names': 'Nombres de los jugadores',
@@ -701,7 +704,7 @@ const es: TuDien = {
   'mt.cap': "Nivel {n}",
   'mt.nhanhHon': "¡Más rápido!",
   'mt.ketQua': "Nivel {n} · {cap} parejas",
-  'mt.goiY': "Acierta de nuevo en 3 segundos para multiplicar los puntos",
+  'mt.goiY': "Empareja seguido sin fallar para multiplicar los puntos",
   'mt.laUp': "Carta boca abajo",
   'mt.moi': "Nuevo",
   'mt.moTa': "¡Encuentra las parejas lo más rápido que puedas!",

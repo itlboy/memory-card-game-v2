@@ -18,7 +18,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, CloudRain, Globe, Map, Play, Users, X } from 'lucide-vue-next';
+import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
 import { anLoiMoi, moCai, nenMoiCai, tatLoiMoi } from '@/lib/cai-app';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
@@ -91,8 +91,8 @@ const emit = defineEmits<{
  * đó là một hành trình có luật riêng từng màn, không phải bàn chơi tự chọn.
  * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
  */
-type Step = 'players' | 'bot' | 'count' | 'names' | 'level' | 'theme' | 'options';
-const STEPS: readonly Step[] = ['players', 'bot', 'count', 'names', 'level', 'theme', 'options'];
+type Step = 'players' | 'kieu' | 'bot' | 'count' | 'names' | 'level' | 'theme' | 'options';
+const STEPS: readonly Step[] = ['players', 'kieu', 'bot', 'count', 'names', 'level', 'theme', 'options'];
 
 /** Bước hiện tại nằm trên URL (?w=level) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
@@ -125,10 +125,10 @@ const path = computed<Step[]>(() => {
   // Chiến dịch: luật do từng màn quyết định, không có bước tuỳ chọn
   if (props.mode === 'campaign') return ['players', 'level', 'theme'];
   if (props.botLevel) return ['players', 'bot', 'level', 'theme', 'options'];
-  // "Chơi nhanh" gộp cả một mình lẫn nhiều người: luôn hỏi số người trước
+  // "Chơi nhanh" gộp cả một mình lẫn nhiều người: hỏi THỂ LOẠI (Thường / Mưa Thẻ — 27.10.2026) rồi số người
   return isMulti.value
-    ? ['players', 'count', 'names', 'level', 'theme', 'options']
-    : ['players', 'count', 'level', 'theme', 'options'];
+    ? ['players', 'kieu', 'count', 'names', 'level', 'theme', 'options']
+    : ['players', 'kieu', 'count', 'level', 'theme', 'options'];
 });
 const stepIndex = computed(() => path.value.indexOf(step.value));
 /**
@@ -228,6 +228,13 @@ function pickPlayers(): void {
   // Chơi nhanh luôn dùng khoá lưu 'classic' — kỷ lục và tiến độ giữ nguyên chỗ
   // cũ, còn luật ván thì do bảng tuỳ chọn quyết định.
   emit('update:mode', 'classic');
+  step.value = 'kieu';
+}
+
+/** Bước THỂ LOẠI của Chơi nhanh: Thường đi tiếp wizard; Mưa Thẻ là màn riêng (App). */
+function pickKieu(k: 'thuong' | 'mua'): void {
+  sfx.select();
+  if (k === 'mua') { emit('mua-the'); return; }
   step.value = 'count';
 }
 
@@ -417,7 +424,8 @@ const ICO3D = {
   // ngôi sao một khối, vàng nổi trên xanh, và khớp sao đánh giá — sao giờ chỉ dành cho Chiến dịch.
   chienDich: anhEmoji('⭐', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
-  dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? ''
+  dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? '',
+  thuong: anhEmoji('🧠', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? ''
 };
 </script>
 
@@ -471,20 +479,16 @@ const ICO3D = {
 
         <div class="ba-o">
           <!-- Chơi nhanh xanh trời, Online vàng (chủ dự án đổi chỗ 18.10.2026; ở Kẹo g-cyan = trời, g-blue = vàng) -->
-          <button class="o-vuong neon g-cyan" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
+          <!-- nhãn "Mới": trong Chơi nhanh có thể loại mới (Mưa Thẻ, 27.10.2026) -->
+          <button class="o-vuong o-moi neon g-cyan" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
             <Users class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.choiNhanh" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.choiNhanh')) }">{{ t('menu.choiNhanh') }}</strong>
+            <span class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
           </button>
           <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
             <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.dauMay')) }">{{ t('menu.dauMay') }}</strong>
           </button>
           <button class="o-vuong neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
-          </button>
-          <!-- MƯA THẺ (27.10.2026): ô vuông THỨ TƯ cùng hàng — chủ dự án: trang chủ "nhiều nút quá rồi",
-               nên không thêm hàng; lưới vẫn tròn hàng (1 ô to + 4 ô vuông) -->
-          <button class="o-vuong o-mua neon g-pink" type="button" :title="t('mt.moTa')" @click="sfx.select(); emit('mua-the')">
-            <CloudRain class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.muaThe" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('mt.ten')) }">{{ t('mt.ten') }}</strong>
-            <span class="moi thach th-vang th-nho">{{ t('mt.moi') }}</span>
           </button>
         </div>
 
@@ -529,6 +533,19 @@ const ICO3D = {
             <strong>{{ c.n === 1 ? t('menu.soNguoi.1') : t('menu.soNguoi.n', { n: c.n }) }}</strong>
             <small>{{ td(`menu.soNguoiMo.${c.n}`) }}</small>
           </span>
+        </button>
+      </div>
+
+      <!-- BƯỚC THỂ LOẠI (Chơi nhanh, 27.10.2026): Thường / Mưa Thẻ — bấm là đi luôn, không viền "đang chọn" -->
+      <div v-else-if="step === 'kieu'" key="kieu" class="step-body options loose kieu">
+        <button class="option wide neon g-cyan" type="button" @click="pickKieu('thuong')">
+          <img class="kieu-ic" :src="ICO3D.thuong" alt="" aria-hidden="true">
+          <span class="text"><strong>{{ t('menu.kieu.thuong') }}</strong><small>{{ t('menu.kieu.thuongMo') }}</small></span>
+        </button>
+        <button class="option wide neon g-pink o-moi" type="button" @click="pickKieu('mua')">
+          <img class="kieu-ic" :src="ICO3D.muaThe" alt="" aria-hidden="true">
+          <span class="text"><strong>{{ t('mt.ten') }}</strong><small>{{ t('mt.moTa') }}</small></span>
+          <span class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
         </button>
       </div>
 
@@ -895,11 +912,12 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
      trắng như mockup đã duyệt (keo.css). */
   background: var(--nhan-nen); color: var(--nhan-chu); border: var(--quat-vien, 0);
 }
-.ba-o { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; height: clamp(88px, 15vh, 150px); }
+.ba-o { flex: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; height: clamp(88px, 15vh, 150px); }
 .o-vuong { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px 4px; min-width: 0; }
 .o-vuong strong { font-family: var(--font-display); font-size: 15px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
-.o-mua { position: relative; }
-.o-mua .moi { position: absolute; top: -10px; right: -4px; padding: 2px 8px; min-height: 0; border-radius: 999px; font-size: 11.5px; font-weight: 900; rotate: 6deg; }
+.o-moi { position: relative; overflow: visible; }
+.kieu-ic { flex: none; width: clamp(44px, 9vh, 64px); height: auto; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .25)); }
+.moi-dan { position: absolute; top: -10px; right: -4px; z-index: 1; padding: 2px 8px; min-height: 0; border-radius: 999px; font-size: 11.5px; font-weight: 900; rotate: 6deg; }
 .o-chien-dich:active, .o-vuong:active { transform: translateY(3px); }
 @media (hover: hover) { .o-chien-dich:hover, .o-vuong:hover { transform: translateY(-2px); } }
 /* Bảng tuỳ chọn trên màn THẤP (iPhone SE) — ĐỨNG CUỐI file để thắng luật gốc cùng độ đặc hiệu */

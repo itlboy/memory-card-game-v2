@@ -94,6 +94,9 @@ const fr: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': 'Retour',
   'menu.buoc.players': 'Comment veux-tu jouer ?',
+  'menu.buoc.kieu': "Quel type de partie ?",
+  'menu.kieu.thuong': "Classique",
+  'menu.kieu.thuongMo': "Retourne les cartes pour trouver les paires, plateau et règles au choix",
   'menu.buoc.bot': 'Choisis ton adversaire',
   'menu.buoc.count': 'Combien de joueurs ?',
   'menu.buoc.names': 'Noms des joueurs',
@@ -705,7 +708,7 @@ const fr: TuDien = {
   'mt.cap': "Niveau {n}",
   'mt.nhanhHon': "Plus vite !",
   'mt.ketQua': "Niveau {n} · {cap} paires",
-  'mt.goiY': "Enchaîne en moins de 3 secondes pour multiplier tes points",
+  'mt.goiY': "Enchaîne les paires sans erreur pour multiplier tes points",
   'mt.laUp': "Carte face cachée",
   'mt.moi': "Nouveau",
   'mt.moTa': "Trouve les paires le plus vite possible !",

@@ -91,6 +91,9 @@ const zhTW: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': '返回',
   'menu.buoc.players': '你想怎麼玩？',
+  'menu.buoc.kieu': "選擇玩法",
+  'menu.kieu.thuong': "經典",
+  'menu.kieu.thuongMo': "翻牌找對子，自選牌桌和規則",
   'menu.buoc.bot': '選擇對手',
   'menu.buoc.count': '幾個人玩？',
   'menu.buoc.names': '玩家名稱',
@@ -702,7 +705,7 @@ const zhTW: TuDien = {
   'mt.cap': "第 {n} 級",
   'mt.nhanhHon': "更快了！",
   'mt.ketQua': "第 {n} 級 · {cap} 對",
-  'mt.goiY': "3 秒內連續配對可加倍得分",
+  'mt.goiY': "連續配對不出錯可加倍得分",
   'mt.laUp': "背面朝上的卡牌",
   'mt.moi': "新",
   'mt.moTa': "盡快配對相同的卡牌！",

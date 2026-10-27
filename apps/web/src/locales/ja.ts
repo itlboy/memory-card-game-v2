@@ -88,6 +88,9 @@ const ja: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': '戻る',
   'menu.buoc.players': 'どうやって遊ぶ？',
+  'menu.buoc.kieu': "どのあそび方にする？",
+  'menu.kieu.thuong': "ふつう",
+  'menu.kieu.thuongMo': "カードをめくってペアを探そう。盤とルールは自由に",
   'menu.buoc.bot': '対戦相手を選ぼう',
   'menu.buoc.count': '何人で遊ぶ？',
   'menu.buoc.names': 'プレイヤー名',
@@ -699,7 +702,7 @@ const ja: TuDien = {
   'mt.cap': "レベル {n}",
   'mt.nhanhHon': "スピードアップ！",
   'mt.ketQua': "レベル {n} · {cap} ペア",
-  'mt.goiY': "3秒以内に続けてそろえると点数アップ",
+  'mt.goiY': "ミスせず続けてそろえると点数アップ",
   'mt.laUp': "裏向きのカード",
   'mt.moi': "NEW",
   'mt.moTa': "できるだけ速くペアをそろえよう！",

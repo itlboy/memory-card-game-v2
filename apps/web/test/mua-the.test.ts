@@ -58,17 +58,20 @@ describe('Mưa Thẻ', () => {
     for (const c of v.cot) c.forEach((l, k) => expect(l.y).toBeCloseTo(v.oY(k)));
   });
 
-  it('chạm sai KHÔNG khoá: hai lá lộ hình một nhịp, lá thứ ba chạm được ngay', () => {
+  it('so với lá vừa chạm: 1→2 không trùng thì 2 làm mốc, 3 trùng 2 là ăn', () => {
     const v = new VanMuaThe(HINH, hat(5));
     chay(v, 20);
     const nam = v.la.filter((l) => !l.roi);
-    const a = nam[0]!, b = nam.find((x) => x.sym !== a.sym)!;
+    const b = nam.find((x) => nam.some((y) => y !== x && y.sym === x.sym))!;
+    const c = nam.find((x) => x !== b && x.sym === b.sym)!;
+    const a = nam.find((x) => x.sym !== b.sym)!;
     v.cham(a.id);
     expect(v.cham(b.id)).toBe('sai');
-    expect(v.ngua(a) && v.sai(a)).toBe(true);
-    expect(v.cham(nam.find((x) => x !== a && x !== b)!.id)).toBe('chon');
+    expect(v.sai(a) && v.ngua(a)).toBe(true);   // lá trước lộ một nhịp
+    expect(b.chon).toBe(true);                   // lá mới giữ làm mốc
+    expect(v.cham(c.id)).toBe('an');
     chay(v, 1);
-    expect(v.ngua(a) || v.ngua(b)).toBe(false);
+    expect(v.ngua(a)).toBe(false);
   });
 
   it('lên cấp theo ĐIỂM, không theo thời gian; cấp cao rơi nhanh hơn, dày hơn', () => {
@@ -104,5 +107,24 @@ describe('Mưa Thẻ số hàng', () => {
     for (const [i, [, h]] of may.entries()) expect(h / hang[i]! - DEM_DOC).toBeGreaterThanOrEqual(44);
     expect(hang[0]).toBeGreaterThanOrEqual(7);
     expect(hang[2]).toBeGreaterThan(hang[0]!);
+  });
+});
+
+describe('Mưa Thẻ combo', () => {
+  it('ăn liên tiếp thì chuỗi tăng, không giới hạn giờ; chạm lệch thì đứt', () => {
+    const v = new VanMuaThe(HINH.concat(['🐵', '🐷', '🐸', '🐧']), hat(9), 6, 12);
+    chay(v, 40);
+    const cap = (): [number, number] | null => {
+      const ds = v.la.filter((l) => !l.an);
+      for (const a of ds) { const b = ds.find((x) => x !== a && x.sym === a.sym); if (b) return [a.id, b.id]; }
+      return null;
+    };
+    let c = cap()!; v.cham(c[0]); v.cham(c[1]); expect(v.chuoi).toBe(1);
+    chay(v, 10);   // chờ lâu vẫn giữ chuỗi
+    c = cap()!; v.cham(c[0]); v.cham(c[1]); expect(v.chuoi).toBe(2);
+    const ds = v.la.filter((l) => !l.an);
+    const a = ds[0]!, b = ds.find((x) => x.sym !== a.sym)!;
+    v.cham(a.id); expect(v.cham(b.id)).toBe('sai');
+    expect(v.chuoi).toBe(0);
   });
 });

@@ -228,6 +228,7 @@ for (const [ten, w, h] of MAY) {
   ok(tc.day <= h && !tc.cuon && tc.thap >= 44, `${ten}: 4 ô chế độ vừa màn, không cuộn, ô thấp nhất ${tc.thap.toFixed(0)}px`);
   // Lưới số người
   await js(`[...document.querySelectorAll('.option.big')].find((b) => /Chơi nhanh/.test(b.textContent)).click()`); await cho(500);
+  await js(`document.querySelector('.kieu .option')?.click()`); await cho(500);   // bước Thể loại → Thường
   const sn = await js(`(() => { const o = [...document.querySelectorAll('.counts .option')].map((e) => e.getBoundingClientRect());
     return { so: o.length, thap: Math.min(...o.map((r) => r.height)), hep: Math.min(...o.map((r) => r.width)), day: Math.max(...o.map((r) => r.bottom)), hang: new Set(o.map((r) => Math.round(r.top))).size }; })()`);
   ok(sn.so === 4 && sn.hang === 4, `${ten}: bước số người là 4 thanh ngang xếp dọc (thấy ${sn.so} ô, ${sn.hang} hàng)`);

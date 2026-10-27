@@ -501,7 +501,8 @@ onMounted(() => {
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
-  else if (cu === 'mua-the' && sc === 'menu') setUrl(null);
+  // logo về trang chủ: lau ?mua=1. Thoát bằng nút trong màn thì `veBuocTruoc` đã ghi ?w=kieu — giữ nguyên
+  else if (cu === 'mua-the' && sc === 'menu' && location.search.includes('mua=1')) setUrl(null);
 });
 
 /** Hết ván Mưa Thẻ: điểm vào TỔNG XU như mọi ván một mình (không ghi kỷ lục theo cỡ bàn — Mưa Thẻ có
@@ -886,7 +887,7 @@ const hasNext = computed(() => {
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
-      @mua-the="screen = 'mua-the'"
+      @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -901,8 +902,8 @@ const hasNext = computed(() => {
     <MuaThe
       v-else-if="screen === 'mua-the'"
       ref="muaTheRef"
-      :themes="themes" :theme-ids="themeIds"
-      @thoat="screen = 'menu'"
+      :themes="themes"
+      @thoat="veBuocTruoc"
       @bat-dau="(soCot: number) => suKien('mua_the_bat_dau', { so_cot: soCot })"
       @ket-thuc="xongMuaThe"
     />
@@ -944,7 +945,7 @@ const hasNext = computed(() => {
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
-      @mua-the="screen = 'mua-the'"
+      @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -972,7 +973,7 @@ const hasNext = computed(() => {
     @close="showDebug = false"
     @update:do-nhip="doNhip = $event"
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
-    @mua-the="showDebug = false; screen = 'mua-the'"
+    @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
     @tat="debug = false; showDebug = false"
   />
 

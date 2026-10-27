@@ -120,7 +120,7 @@ let luatDangCho: Record<string, string> | null = null;
 async function pickMode(name: string): Promise<void> {
   if (name === 'Chiến dịch') { luatDangCho = null; await click('Chiến dịch'); return; }
   luatDangCho = LUAT_CUA_CHE_DO[name] ?? {};
-  await click('Chơi nhanh'); await click('1 người chơi');
+  await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
 }
 
 /** Qua nốt bước theme rồi bảng tuỳ chọn. Chiến dịch không có bảng tuỳ chọn nên
@@ -327,7 +327,7 @@ describe('luồng trọn ván', () => {
 
   it('bấm logo giữa ván cũng hỏi xác nhận; ở menu thì không hỏi', async () => {
     await mountApp();
-    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
     await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.find('[role="alertdialog"]').exists()).toBe(false);   // menu: về thẳng
@@ -555,7 +555,7 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
 describe('đồng hồ lượt (multiplayer cùng máy)', () => {
   async function startTwoPlayer(): Promise<void> {
     await mountApp();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp');
     await click('2 người chơi');
     await click('Tiếp tục');        // bước điền tên — để trống, dùng "Người 1/2"
     await start();
@@ -610,7 +610,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
 describe('đếm ngược 5 giây trước ván multiplayer', () => {
   it('hiện đếm ngược + tên người đi đầu, chưa lật được thẻ, hết 5s thì chơi', async () => {
     await mountApp();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp');
     await click('2 người chơi');
     await click('Tiếp tục');        // bước điền tên
     await start();
@@ -641,7 +641,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
 describe('F5 giữ bước wizard (?w= trên URL)', () => {
   it('đi tới bước cấp độ, F5 vẫn đứng ở bước cấp độ', async () => {
     await mountApp();
-    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
     expect(location.search).toBe('?w=level');
     expect(location.search).toBe('?w=level');
     wrapper.unmount();
@@ -653,7 +653,7 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
 
   it('logo về trang chủ thì URL sạch và về bước 1 — mất trạng thái là chủ đích', async () => {
     await mountApp();
-    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
     await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
     expect(wrapper.text()).toContain('Bạn muốn chơi thế nào?');
@@ -1164,7 +1164,7 @@ describe('mở khoá cấp sau', () => {
     // đã chơi được cấp này)
     await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
     await flush();
-    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
     // Thang cấp của chơi đơn không còn khoá gì (chọn thẳng số thẻ), nên thứ
     // phải đúng chỉ là TIẾN ĐỘ đã được ghi — kiểm ở dòng `classic:1` phía trên.
     expect(wrapper.findAll('.size-grid .option').length).toBe(BOARD_SIZES.length);
@@ -1374,7 +1374,7 @@ describe('không ô nào bị dính viền "đang chọn"', () => {
   it('bước bấm-là-đi: lựa chọn lần trước KHÔNG làm ô sáng viền lúc vừa vào', async () => {
     // Đi một vòng để lựa chọn được nhớ vào prefs
     await mountApp();
-    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
     await flush();
     // Về trang chủ rồi vào lại bước đầu
     await wrapper.find('[aria-label$="Về trang chủ"]').trigger('click');
@@ -1465,7 +1465,7 @@ describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
   it('nhiều người cùng máy: cũng là lưới số thẻ', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
-    await click('Chơi nhanh');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp');
     await click('2 người chơi');
     await click('Tiếp tục');
     expect(oMo(), 'mọi cỡ bàn phải mở').toBeGreaterThanOrEqual(oTatCa() - 1);
@@ -1546,7 +1546,7 @@ describe('phiên bản ở cuối bảng Luật chơi', () => {
 describe('bảng tuỳ chọn: hàng nào cũng có đúng một nút đang chọn', () => {
   it('kể cả khi mức đang chọn là mức tắt (nút đầu hàng)', async () => {
     await mountApp();
-    await click('Chơi nhanh'); await click('1 người chơi');
+    await click('Chơi nhanh'); await click('Lật thẻ tìm cặp'); await click('1 người chơi');
     await chonBan(1);
     await click('Tiếp');
     // Đưa MỌI hàng về mức tắt — đây là cảnh dễ trông thành "không chọn gì nhất"

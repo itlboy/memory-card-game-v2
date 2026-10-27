@@ -88,6 +88,9 @@ const zh: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': '返回',
   'menu.buoc.players': '你想怎么玩？',
+  'menu.buoc.kieu': "选择玩法",
+  'menu.kieu.thuong': "经典",
+  'menu.kieu.thuongMo': "翻牌找对子，自选牌桌和规则",
   'menu.buoc.bot': '选择对手',
   'menu.buoc.count': '几个人玩？',
   'menu.buoc.names': '玩家名字',
@@ -699,7 +702,7 @@ const zh: TuDien = {
   'mt.cap': "第 {n} 级",
   'mt.nhanhHon': "更快了！",
   'mt.ketQua': "第 {n} 级 · {cap} 对",
-  'mt.goiY': "3 秒内连续配对可翻倍得分",
+  'mt.goiY': "连续配对不出错可翻倍得分",
   'mt.laUp': "背面朝上的卡牌",
   'mt.moi': "新",
   'mt.moTa': "尽快配对相同的卡牌！",

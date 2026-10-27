@@ -17,16 +17,18 @@ import { rung } from '@/lib/rung';
 import { bcp, t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import DongXu from './DongXu.vue';
-import { X } from 'lucide-vue-next';
+import TamDung from './TamDung.vue';
+import { Pause, X } from 'lucide-vue-next';
 
-const props = defineProps<{ themes: CardTheme[]; themeIds: string[] }>();
+const props = defineProps<{ themes: CardTheme[] }>();
 const emit = defineEmits<{
   thoat: [];
   'bat-dau': [soCot: number];
   'ket-thuc': [kq: { diem: number; cap: number; soCap: number; soCot: number; giay: number }];
 }>();
 
-const SO_HINH = 12;
+/** Số hình mỗi ván = cột × 4 (16 → 32): bàn to chứa 50–80 lá, 12 hình là lặp liên tục (chủ dự án: "không đa dạng"). */
+const HINH_MOI_COT = 4;
 /** Kỷ lục RIÊNG từng số cột — 4 cột và 6 cột là hai bàn khác hẳn nhau. */
 const khoaKyLuc = (n: number): string => `mm.muaThe.kyLuc.${n}`;
 const KHOA_COT = 'mm.muaThe.cot';
@@ -75,15 +77,15 @@ function chonCot(n: number): void {
   try { localStorage.setItem(KHOA_COT, String(n)); } catch { /* chế độ riêng tư: chỉ không nhớ */ }
 }
 
-/** Hình của ván: các theme người chơi đang chọn (chơi được), thiếu thì cả kho miễn phí. */
+/** Hình của ván: trộn từ MỌI theme chơi được — không theo lựa chọn theme của Chơi nhanh (chọn 1–2 theme là
+ *  ván nào cũng y một bộ). Mỗi ván bốc lại. */
 function bocHinh(): string[] {
-  const chon = props.themes.filter((th) => props.themeIds.includes(th.id) && choiDuoc(th));
-  const nguon = [...new Set((chon.length ? chon : props.themes.filter(choiDuoc)).flatMap((th) => th.symbols))];
+  const nguon = [...new Set(props.themes.filter(choiDuoc).flatMap((th) => th.symbols))];
   for (let i = nguon.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [nguon[i], nguon[j]] = [nguon[j]!, nguon[i]!];
   }
-  return nguon.length >= 2 ? nguon.slice(0, SO_HINH) : ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨'];
+  return nguon.length >= 2 ? nguon.slice(0, soCot.value * HINH_MOI_COT) : ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨'];
 }
 
 /* ---------- kích thước giếng ---------- */
@@ -230,15 +232,14 @@ defineExpose({
       <div v-if="van && van.chuoi > 1 && buoc === 'choi'" :key="van.soCap" class="vien combo">×{{ comboMultiplier(van.chuoi).toLocaleString(bcp()) }}</div>
       <span class="gian" />
       <div class="vien nhat" :title="t('mt.kyLuc')"><span aria-hidden="true">🏆</span><b>{{ num(kyLuc) }}</b></div>
-      <button class="thach th-nho nut-dung" type="button" :aria-label="t('hud.tamDung')" :disabled="buoc !== 'choi'" @click="tamDung">⏸</button>
+      <button class="tron thach nut-dung" type="button" :aria-label="t('hud.tamDung')" :disabled="buoc !== 'choi'" @click="tamDung"><Pause :size="18" /></button>
     </div>
     <div class="vach-cap" role="progressbar" :aria-label="t('mt.cap', { n: (van?.cap ?? 1) + 1 })" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(tienDoCap * 100)">
       <i :style="{ width: `${tienDoCap * 100}%` }" />
     </div>
 
-    <div ref="gieng" class="gieng" :class="{ dang: buoc === 'choi' }" :style="{ '--o-w': `${oW}px`, '--o-h': `${oH}px`, '--la-w': `${laW}px` }">
-      <span class="mua-nen" aria-hidden="true" />
-      <div v-for="l in dsLa" :key="l.id" :ref="(el) => ganEl(l.id, el)" class="o" :class="{ roi: l.roi }">
+    <div ref="gieng" class="gieng" :style="{ '--o-w': `${oW}px`, '--o-h': `${oH}px`, '--la-w': `${laW}px` }">
+      <div v-for="l in dsLa" :key="l.id" :ref="(el) => ganEl(l.id, el)" class="o" :class="{ roi: l.roi, chon: l.chon }">
         <button
           class="card" type="button" data-nosfx
           :class="{ lat: van?.ngua(l), chon: l.chon, an: l.an, sai: !!van?.sai(l) }"
@@ -269,10 +270,10 @@ defineExpose({
           <p class="so-to"><DongXu :size="40" />{{ num(van?.diem ?? 0) }}</p>
           <p class="phu-chu">{{ t('mt.ketQua', { n: van?.cap ?? 1, cap: van?.soCap ?? 0 }) }}</p>
           <p class="phu-chu">🏆 {{ t('mt.kyLuc') }}: <b>{{ num(kyLuc) }}</b></p>
-          <button class="thach th-xanh th-to" type="button" @click="batDau">{{ t('hud.choiLai') }}</button>
+          <button class="btn btn-primary nut-to" type="button" @click="batDau">{{ t('hud.choiLai') }}</button>
           <div class="hang-nut">
-            <button class="thach" type="button" @click="van = null; buoc = 'dau'">{{ t('mt.doiCot') }}</button>
-            <button class="thach" type="button" @click="emit('thoat')">{{ t('hud.thoat') }}</button>
+            <button class="btn" type="button" @click="van = null; buoc = 'dau'">{{ t('mt.doiCot') }}</button>
+            <button class="btn" type="button" @click="emit('thoat')">{{ t('hud.thoat') }}</button>
           </div>
           <p class="mt-goi-y">{{ t('mt.goiY') }}</p>
         </div>
@@ -286,7 +287,7 @@ defineExpose({
          dựng ở dưới (ẩn bằng visibility) để đo được giếng trước khi chia lá. -->
     <div v-if="buoc === 'dau'" class="mt-mo" role="dialog" aria-modal="true" aria-labelledby="mtDau">
       <div class="hop khay mo">
-        <button class="thach th-nho nut-x" type="button" :aria-label="t('hud.thoat')" @click="emit('thoat')"><X :size="18" /></button>
+        <button class="btn nut-x" type="button" :aria-label="t('hud.thoat')" @click="emit('thoat')"><X :size="18" /></button>
         <div class="mua" aria-hidden="true">
           <span v-for="(e, i) in LA_MINH_HOA" :key="e" class="mua-la" :style="{ '--i': i }">
             <img v-if="anhNho(e)" :src="anhNho(e)!" alt=""><template v-else>{{ e }}</template>
@@ -307,22 +308,30 @@ defineExpose({
             </button>
           </span>
         </div>
-        <button class="thach th-xanh th-to" type="button" @click="batDau">{{ t('mt.choi') }}</button>
+        <button class="btn btn-primary nut-to" type="button" @click="batDau">{{ t('mt.choi') }}</button>
       </div>
     </div>
-    <!-- TẠM DỪNG: phủ KÍN bằng nền đặc (luật chung: kính mờ để lộ bàn bị chê thiếu chuyên nghiệp) -->
-    <div v-else-if="buoc === 'dung'" class="mt-phu dac" role="dialog" aria-modal="true" aria-labelledby="mtDung">
-      <div class="hop khay">
-          <h2 id="mtDung">{{ t('hud.tamDung') }}</h2>
-          <button class="thach th-xanh th-to" type="button" @click="buoc = 'choi'">{{ t('hud.choiTiep') }}</button>
-          <button class="thach" type="button" @click="emit('thoat')">{{ t('hud.thoat') }}</button>
-      </div>
-    </div>
+    <!-- TẠM DỪNG: CÙNG màn với ván thường (TamDung.vue) — bản tự dựng lệch chữ, bị chê -->
+    <TamDung
+      v-if="buoc === 'dung'"
+      :so-lieu="[
+        { nhan: t('mt.diem'), gt: num(van?.diem ?? 0) },
+        { nhan: t('hud.cap'), gt: String(van?.cap ?? 1) },
+        { nhan: t('hud.cap2'), gt: String(van?.soCap ?? 0) }
+      ]"
+      :tien-do="tienDoCap"
+      @tiep="buoc = 'choi'" @thoat="emit('thoat')"
+    />
   </section>
 </template>
 
 <style scoped>
-.mua-the { position: relative; height: 100%; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.mua-the {
+  position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 0; box-sizing: border-box;
+  /* MƯỢN 12px đệm của <main> (trái, phải, đáy) rồi cắt ở đây: viền sáng / bóng lá sát mép có chỗ hiện, mà mảnh
+     nổ bay ra ngoài không làm trang cuộn ngang (clip-path của .gieng chỉ cắt phần NHÌN, không cắt bố cục). */
+  width: calc(100% + 24px) !important; height: calc(100% + 12px); margin: 0 -12px -12px; padding: 0 12px 12px; overflow: hidden;
+}
 .mt-hud { display: flex; align-items: center; gap: 6px; flex: none; }
 /* Viên số: thạch trắng (điểm, kỷ lục), thạch vàng (cấp), thạch hồng (combo) — cùng chất nút Kẹo */
 .vien {
@@ -336,7 +345,8 @@ defineExpose({
 .vien.combo { background: linear-gradient(#ff9cb2, #ee3a5e); color: #fff; box-shadow: 0 3px 0 #c21f42, 0 6px 10px rgba(20, 30, 70, .15); animation: nay .3s; }
 @keyframes nay { 40% { transform: scale(1.25); } }
 .gian { flex: 1; }
-.nut-dung { min-width: 44px; }
+/* cùng hình nút ⏸ của HUD ván thường (`.tron` ở HudBar: tròn 44px) */
+.nut-dung { flex: none; width: 44px; height: 44px; min-width: 0; min-height: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; }
 
 .vach-cap {
   flex: none; height: 10px; margin: -4px 4px 0; border-radius: 999px; overflow: hidden;
@@ -349,20 +359,11 @@ defineExpose({
 .gieng {
   /* KHÔNG khung/nền: lá rơi thẳng trên nền skin như bàn thường (khung trắng mờ bị hỏi "sao chế độ này có lớp
      phủ màn mà bình thường không có", 27.10.2026). Bo góc giữ cho lớp kết quả + mưa không vuông góc. */
-  position: relative; flex: 1; min-height: 0; overflow: hidden; border-radius: 22px;
+  position: relative; flex: 1; min-height: 0; border-radius: 22px;
+  /* CHỈ CẮT MÉP TRÊN (lá mới trượt vào từ đó). `overflow: hidden` cắt luôn vòng sáng lá đang chọn và bóng
+     lá sát mép trái/phải/đáy — chủ dự án báo "lá gần bên ngoài bị mất viền". Ba mép kia cho tràn 24px. */
+  clip-path: inset(0 -24px -24px -24px);
 }
-/* mưa nhẹ ở nền — một lớp vẽ sẵn, chỉ TRƯỢT bằng transform (lớp ghép, không vẽ lại mỗi khung) */
-.mua-nen {
-  position: absolute; left: 0; right: 0; top: -100%; height: 200%; pointer-events: none; opacity: .5;
-  /* giọt mưa = elip DỌC nhỏ trong từng ô lặp (linear-gradient vẽ ra sọc NGANG cả bề rộng — đã bị chê) */
-  background-image:
-    radial-gradient(1.2px 8px at 50% 50%, color-mix(in srgb, #4cc9f0 70%, transparent) 95%, transparent),
-    radial-gradient(1px 6px at 50% 50%, color-mix(in srgb, #9fc0ff 70%, transparent) 95%, transparent);
-  background-size: 41px 83px, 59px 127px; background-position: 0 0, 23px 47px;
-  -webkit-mask: linear-gradient(#000, transparent 85%); mask: linear-gradient(#000, transparent 85%);
-}
-.gieng.dang .mua-nen { animation: mua-nen 2.4s linear infinite; }
-@keyframes mua-nen { to { transform: translateY(50%); } }
 /* lá đang rơi nổi hơn: bóng là lớp RIÊNG dưới lá — `filter` trên lá làm phẳng cú lật 3D (nguy cơ lộ mặt bài) */
 .o.roi::before {
   content: ''; position: absolute; left: 10%; right: 10%; bottom: -4px; height: 10px; border-radius: 50%;
@@ -370,6 +371,7 @@ defineExpose({
 }
 
 .o { position: absolute; left: 0; top: 0; width: var(--la-w); height: var(--o-h); padding: 2px 4px; box-sizing: border-box; z-index: 2; }
+.o.chon { z-index: 4; }   /* lá làm mốc phóng to + vòng sáng: nằm TRÊN lá bên cạnh */
 .card {
   position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none;
   perspective: 600px; container-type: size; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent;
@@ -380,8 +382,21 @@ defineExpose({
 .face.front { transform: rotateY(180deg); }
 .emoji { width: 62%; height: 62%; object-fit: contain; pointer-events: none; }
 .emoji.chu { width: auto; height: auto; font-size: min(48cqw, 58cqh); line-height: 1; }
-.card.chon { box-shadow: 0 0 0 4px #ffc21a, 0 0 16px 4px rgba(255, 194, 26, .7) !important; border-radius: 13px; }
-.card.sai { box-shadow: 0 0 0 4px var(--bad, #ff4d6d) !important; }
+/* BÁM VÀO LÁ (27.10.2026, chủ dự án: chạm lá đang rơi — vốn đã ngửa — "không thấy hiệu ứng gì, hơi cứng").
+   Bản trước có viền vàng nhưng skin Kẹo đặt box-shadow !important CÙNG độ đặc hiệu trên .card nên đè mất:
+   `.o` để thắng. Nảy to rồi giữ 1,08 (thuộc tính `scale` riêng — `transform` của .o là vị trí, của .inner là lật)
+   + vòng sáng nhịp toả ra suốt lúc lá làm mốc. */
+.o .card.chon {
+  z-index: 3; scale: 1.08; border-radius: 13px; animation: bam .38s cubic-bezier(.3, 1.6, .5, 1);
+  box-shadow: 0 0 0 4px #ffc21a, 0 0 18px 6px rgba(255, 194, 26, .75) !important;
+}
+.o .card.chon::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 15px; pointer-events: none;
+  border: 3px solid #ffe66b; animation: toa 1s ease-out infinite;
+}
+@keyframes bam { 0% { scale: 1; } 45% { scale: 1.2; } 100% { scale: 1.08; } }
+@keyframes toa { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
+.o .card.sai { box-shadow: 0 0 0 4px var(--bad, #ff4d6d) !important; }
 .card.sai .inner { animation: lac .45s; }
 @keyframes lac {
   20% { transform: rotateY(180deg) translateX(-6px); } 40% { transform: rotateY(180deg) translateX(6px); }
@@ -426,13 +441,14 @@ defineExpose({
 }
 
 .diem-bay {
-  position: absolute; z-index: 5; translate: -50% 0; pointer-events: none; color: #fff; font-size: 24px; font-weight: 900;
+  position: absolute; z-index: 5; translate: -50% 0; pointer-events: none; color: #fff; font-family: var(--font-display); font-size: 24px; font-weight: 800;
   -webkit-text-stroke: 2px #c22a63; paint-order: stroke; animation: bay .8s forwards;
 }
 @keyframes bay { to { transform: translateY(-50px); opacity: 0; } }
 .ban-cap {
   position: absolute; left: 50%; top: 38%; z-index: 6; translate: -50% -50%; pointer-events: none;
   display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 22px; border-radius: 20px;
+  font-family: var(--font-display);
   background: var(--nhan-nen, #ffc21a); color: var(--nhan-chu, #1d2a5a); box-shadow: 0 5px 0 rgba(20, 30, 70, .25);
   animation: hien-cap 1.6s forwards;
 }
@@ -444,17 +460,17 @@ defineExpose({
 .mua-the.dau > :not(.mt-mo) { visibility: hidden; }
 .mt-mo { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; }
 .mt-phu { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 10px; }
-.mt-phu.dac { inset: -12px; padding: 22px; background: var(--canh, var(--nen-man, var(--bg))); background-size: cover; }
 .mt-phu.ket { border-radius: inherit; background: color-mix(in srgb, #0d1838 35%, transparent); }
-.mua-the .thach { border-radius: 16px; }
-.mua-the .th-nho { border-radius: 12px; }
+/* FONT (27.10.2026, chủ dự án: "rà soát font, đừng để mắc lỗi nữa"): nút HÀNH ĐỘNG dùng `btn`/`btn-primary`
+   như ván thường (Kẹo cho font tiêu đề) — `thach` trần KHÔNG đặt font nên rơi về chữ thường. Số và nhãn to
+   đặt `--font-display`. test/mua-the-font.test.ts canh. */
 .hop {
   width: 100%; max-width: 380px; max-height: 100%; overflow: hidden; box-sizing: border-box;
   display: flex; flex-direction: column; gap: clamp(6px, 1.6vh, 12px); padding: 18px 18px 16px; text-align: center;
 }
 .hop h2 { margin: 0; font-size: 30px; line-height: 1.1; text-wrap: balance; }
-.hop .thach { min-height: 48px; font-size: 17px; }
-.hop .th-to { min-height: 56px; font-size: 22px; }
+.hop .btn { min-height: 48px; }
+.hop .nut-to { min-height: 58px; font-size: 22px; }
 .hang-nut { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .mt-ten { font-family: var(--font-display); font-size: clamp(34px, 6vh, 46px) !important; color: #2f4fa6; letter-spacing: .01em; }
 :root[data-theme='dark'] .mt-ten { color: #9fc0ff; }
@@ -476,13 +492,13 @@ defineExpose({
 .nut-x { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; min-width: 0; min-height: 0 !important; padding: 0; display: grid; place-items: center; border-radius: 50% !important; }
 .nut-x::after { content: ''; position: absolute; inset: -4px; }
 .kl-vien {
-  align-self: center; margin: -6px 0 0; padding: 3px 14px; border-radius: 999px; font-weight: 800; font-size: 15px;
+  align-self: center; margin: -6px 0 0; padding: 3px 14px; border-radius: 999px; font-family: var(--font-display); font-weight: 800; font-size: 16px;
   background: color-mix(in srgb, #ffc21a 22%, transparent); color: var(--fg);
 }
-.mt-luat { margin: 0; font-weight: 800; font-size: 17px; line-height: 1.3; text-wrap: balance; }
+.mt-luat { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.3; text-wrap: balance; }
 /* chọn số cột: nhãn trên, rãnh rộng hết khung, ba nút chia đều */
 .chon-cot { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
-.chon-cot .nhan { font-weight: 800; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.chon-cot .nhan { font-family: var(--font-display); font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .ranh {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 3px; border-radius: 999px;
   background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line));
@@ -496,15 +512,15 @@ defineExpose({
   border-color: #33861a; color: #fff; background: linear-gradient(#a3ec72 -40%, #46ad22 70%); text-shadow: 0 1px 0 #23600f;
   box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 #33861a, 0 3px 5px rgba(10, 20, 60, .18);
 }
-.nut-cot b { font-size: 18px; font-weight: 900; }
-.so-to { margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 56px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-.phu-chu { margin: 0; font-weight: 700; color: var(--muted); }
+.nut-cot b { font-family: var(--font-display); font-size: 19px; font-weight: 800; }
+.so-to { margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font-display); font-size: 56px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.phu-chu { margin: 0; font-family: var(--font-display); font-weight: 700; color: var(--muted); }
 .phu-chu b { color: var(--fg); }
 .mt-goi-y { margin: 0; font-size: 12px; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
     .no .manh, .no .song { display: none; }
   .mua-la { animation: none; }
-  .gieng.dang .mua-nen { animation: none; }
+  .o .card.chon, .o .card.chon::after { animation: none; }
 }
 </style>

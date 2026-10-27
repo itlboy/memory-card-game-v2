@@ -88,6 +88,9 @@ const ko: TuDien = {
   /* ---------- home + wizard ---------- */
   'menu.quayLai': '뒤로',
   'menu.buoc.players': '어떻게 플레이할까요?',
+  'menu.buoc.kieu': "어떤 방식으로 할까요?",
+  'menu.kieu.thuong': "일반",
+  'menu.kieu.thuongMo': "카드를 뒤집어 짝 찾기, 판과 규칙은 직접 선택",
   'menu.buoc.bot': '상대를 골라 주세요',
   'menu.buoc.count': '몇 명이 플레이하나요?',
   'menu.buoc.names': '플레이어 이름',
@@ -699,7 +702,7 @@ const ko: TuDien = {
   'mt.cap': "레벨 {n}",
   'mt.nhanhHon': "더 빠르게!",
   'mt.ketQua': "레벨 {n} · {cap}쌍",
-  'mt.goiY': "3초 안에 또 맞추면 점수가 배로 늘어요",
+  'mt.goiY': "틀리지 않고 연속으로 맞추면 점수가 배로 늘어요",
   'mt.laUp': "뒤집힌 카드",
   'mt.moi': "NEW",
   'mt.moTa': "최대한 빨리 짝을 맞춰요!",
