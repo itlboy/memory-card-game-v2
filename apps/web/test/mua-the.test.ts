@@ -10,7 +10,7 @@ const HINH = ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🦁', '🐯'];
 function chay(v: VanMuaThe, giay: number): void { for (let i = 0; i < giay * 60 && !v.ketThuc; i++) v.buoc(1 / 60); }
 
 describe('Mưa Thẻ', () => {
-  it('bàn N cột: lá cặp rơi trong N lá kế tiếp, không liền nhau', () => {
+  it('bàn N cột: lá cặp rơi trong N lá kế tiếp', () => {
     for (const soCot of COT_CHON) for (let seed = 1; seed <= 10; seed++) {
       const v = new VanMuaThe(HINH.concat(['🐵', '🐷', '🐸', '🐧']), hat(seed), soCot, 12);
       chay(v, 90);
@@ -20,7 +20,6 @@ describe('Mưa Thẻ', () => {
         if (!mo.has(s)) { mo.set(s, i); return; }
         const cach = i - mo.get(s)!;
         expect(cach, `${soCot} cột, seed ${seed}: ${s} ở ${mo.get(s)} và ${i}`).toBeLessThanOrEqual(soCot);
-        expect(cach).toBeGreaterThanOrEqual(2);
         mo.delete(s);
       });
     }

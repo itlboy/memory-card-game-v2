@@ -46,8 +46,6 @@ export function hangChoGieng(w: number, h: number, soCot: number): number {
  *  ≥ 100·n điểm, nên mỗi cấp cần ~10 cặp (bớt đi nếu ăn combo). */
 export const mocCap = (cap: number): number => 500 * cap * (cap - 1);
 export const COMBO_GIAY = 3;
-/** Giữa hai lá cùng cặp có ÍT NHẤT bấy nhiêu lá khác (không rơi liền nhau). Trần là `soCot` — xem `hinhKe`. */
-export const CHEN_IT_NHAT = 1;
 /** Lá rơi mới chỉ vào cột mà lá rơi trước đó đã đi quá đoạn này (ô), không thì hai lá chồng hình. */
 const KHOANG_TRONG = 1.2;
 /** Gia tốc lá tụt xuống lấp chỗ (ô/giây²) — nhanh, dứt khoát. */
@@ -110,8 +108,8 @@ export class VanMuaThe {
    * Hình của lá kế tiếp. BÀN N CỘT → LÁ CẶP RƠI TRONG N LÁ KẾ TIẾP (chủ dự án 27.10.2026; trước là 3–8 lá
    * cho mọi bàn, và lá cặp đến hạn cùng lúc phải xếp hàng nên có khi trễ hơn). Cách giữ lời: lá mới mở
    * cặp thì GIỮ CHỖ ngay cho lá kia ở một số thứ tự còn trống trong (n, n+N]. Luôn còn chỗ: mỗi chỗ đã
-   * giữ trong cửa sổ đó sinh từ một lá trong N−1 lá trước — tối đa N−1 chỗ trên N. Ưu tiên chỗ cách
-   * ≥ `CHEN_IT_NHAT` lá (không liền nhau); hết chỗ như thế mới lấy chỗ gần.
+   * giữ trong cửa sổ đó sinh từ một lá trong N−1 lá trước — tối đa N−1 chỗ trên N. KHÔNG có mốc dưới:
+   * chỗ nào trong cửa sổ cũng được, kể cả ngay lá kế (chủ dự án: "chỉ cần max bằng số cột").
    * Hình mới ưu tiên hình CHƯA có trên bàn, và không mở cặp thứ hai của hình còn đang chờ lá kia.
    */
   private hinhKe(): string {
@@ -124,13 +122,8 @@ export class VanMuaThe {
     const khongCho = this.hinh.filter((s) => !cho.has(s));
     const kho = moi.length ? moi : khongCho.length ? khongCho : this.hinh;
     const sym = kho[Math.floor(this.rand() * kho.length)]!;
-    const trong = (tu: number): number[] => {
-      const ds: number[] = [];
-      for (let k = n + 1 + tu; k <= n + this.soCot; k++) if (!this.giuCho.has(k)) ds.push(k);
-      return ds;
-    };
-    const xa = trong(CHEN_IT_NHAT);
-    const ds = xa.length ? xa : trong(0);
+    const ds: number[] = [];
+    for (let k = n + 1; k <= n + this.soCot; k++) if (!this.giuCho.has(k)) ds.push(k);
     this.giuCho.set(ds[Math.floor(this.rand() * ds.length)]!, sym);
     return sym;
   }
