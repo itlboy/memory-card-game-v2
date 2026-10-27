@@ -11,8 +11,8 @@ import { ICON_LUAT, tenLuat, tenLuatMan } from '@/lib/luat-man';
 
 /** Vương miện màn trùm: ảnh Noto 3D như mặt bài (cùng chất 3D), dự phòng là ký tự. */
 const VUONG_MIEN = anhEmoji('👑', true, 128);
-/** Chú giải: bốn luật đơn theo thứ tự xuất hiện trong hàng 5 màn (nhanh chỉ ở bàn 4 thẻ). */
-const CHU_GIAI = (['xao', 'mang', 'dacBiet', 'nhanh'] as const).map((l) => ({ l, icon: ICON_LUAT[l], ten: tenLuat(l) }));
+/** Chú giải: mọi luật đơn (thứ tự gần đúng lúc gặp lần đầu trên bản đồ). */
+const CHU_GIAI = (['xemTruoc', 'xao', 'mang', 'dacBiet', 'nhanh'] as const).map((l) => ({ l, icon: ICON_LUAT[l], ten: tenLuat(l) }));
 
 const props = defineProps<{
   progress: Record<string, LevelProgress>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOARD_SIZES, CAMPAIGN_LEVELS, CAMPAIGN_REPEAT, CHAPTERS, LEVEL_KEYS, allLevels, campaignSpec, levelConfig,
+  BOARD_SIZES, CAMPAIGN_LEVELS, CHAPTERS, LEVEL_KEYS, LUAT_THEO_CO, allLevels, campaignSpec, levelConfig,
   levelSpec, perfectScore
 } from '../src/campaign.js';
 import { starsByMisses } from '../src/scoring.js';
@@ -28,42 +28,47 @@ describe('Campaign (SP-03)', () => {
     }
   });
 
-  it('cấp sau luôn khó hơn cấp trước: bàn to hơn, hoặc cùng bàn mà ít giờ hơn', () => {
-    for (let i = 1; i < levels.length; i++) {
-      const prev = levels[i - 1]!, cur = levels[i]!;
-      const harder = cur.pairs > prev.pairs || cur.timeLimit < prev.timeLimit;
-      expect(harder, `cấp ${cur.id} không khó hơn cấp ${prev.id}`).toBe(true);
+
+
+
+
+  it('số màn theo ĐỘ SÂU: bàn nhỏ ít màn, bàn to nhiều màn, cỡ nào cũng có, tổng 60', () => {
+    expect(CAMPAIGN_LEVELS).toBe(60);
+    expect(LUAT_THEO_CO).toHaveLength(BOARD_SIZES.length);
+    const soMan = BOARD_SIZES.map((b) => levels.filter((l) => l.pairs === b.pairs).length);
+    expect(soMan[0], 'bàn 4 thẻ chỉ một màn — không quên nổi lần nào, lặp là vô nghĩa').toBe(1);
+    for (let i = 1; i < soMan.length; i++) expect(soMan[i]!).toBeGreaterThanOrEqual(soMan[i - 1]!);
+    for (const n of soMan) expect(n).toBeGreaterThan(0);
+  });
+
+  it('mỗi cỡ bàn mở đầu bằng màn trơn; màn trùm có từ hai luật; không hai màn liền nhau trùng luật', () => {
+    for (const ds of LUAT_THEO_CO) {
+      expect(ds[0]).toEqual([]);
+      for (let i = 1; i < ds.length; i++) expect(ds[i]!.join('+')).not.toBe(ds[i - 1]!.join('+'));
+    }
+    for (const l of levels) expect(l.luat === 'trum').toBe(l.cacLuat.length >= 2);
+  });
+
+  it('tim CHỈ ở bàn 16–42 thẻ, và ít: không quá 12 tim (nhiều tim = luật trang trí)', () => {
+    for (const l of levels.filter((x) => x.lives !== null)) {
+      expect(l.pairs * 2, `màn ${l.id}`).toBeGreaterThanOrEqual(16);
+      expect(l.pairs * 2, `màn ${l.id}`).toBeLessThanOrEqual(42);
+      expect(l.lives!, `màn ${l.id}`).toBeLessThanOrEqual(12);
+      expect(l.lives!).toBeGreaterThanOrEqual(2);
     }
   });
 
-  it('nhiều cấp liền nhau dùng chung một cỡ bàn, và cấp sau ít giờ hơn', () => {
-    const same = levels.filter((l, i) => i > 0 && l.pairs === levels[i - 1]!.pairs);
-    expect(same.length).toBeGreaterThan(0);        // có thật, không phải giả định
-    for (const l of same) {
-      const prev = levels[l.id - 2]!;
-      expect(l.timeLimit, `cấp ${l.id}`).toBeLessThan(prev.timeLimit);
-    }
-  });
-
-  it('mỗi cỡ bàn đúng CAMPAIGN_REPEAT màn liền nhau, cỡ nào cũng có', () => {
-    expect(CAMPAIGN_LEVELS).toBe(BOARD_SIZES.length * CAMPAIGN_REPEAT);
+  it('cùng cỡ bàn: màn trơn nhiều giờ nhất; giờ là số nguyên giây', () => {
     for (const b of BOARD_SIZES) {
-      const ids = levels.filter((l) => l.pairs === b.pairs).map((l) => l.id);
-      expect(ids, `${b.pairs * 2} thẻ`).toHaveLength(CAMPAIGN_REPEAT);
-      expect(ids.at(-1)! - ids[0]!, `${b.pairs * 2} thẻ liền nhau`).toBe(CAMPAIGN_REPEAT - 1);
+      const ds = levels.filter((l) => l.pairs === b.pairs);
+      for (const l of ds) expect(Number.isInteger(l.timeLimit)).toBe(true);
+      for (const l of ds.slice(1)) expect(l.timeLimit, `màn ${l.id}`).toBeLessThan(ds[0]!.timeLimit);
     }
   });
 
-  it('giờ là số nguyên giây, giảm dần qua 5 luật của một cỡ, bàn to luôn nhiều giờ hơn bàn nhỏ', () => {
-    for (const l of levels) expect(Number.isInteger(l.timeLimit), `màn ${l.id}`).toBe(true);
-    // màn đầu mỗi cỡ nhiều giờ hơn màn đầu cỡ trước, màn cuối cũng vậy
-    for (let b = 1; b < BOARD_SIZES.length; b++) {
-      for (const k of [0, CAMPAIGN_REPEAT - 1]) {
-        expect(levels[b * CAMPAIGN_REPEAT + k]!.timeLimit).toBeGreaterThan(levels[(b - 1) * CAMPAIGN_REPEAT + k]!.timeLimit);
-      }
-    }
-    // bàn 4 thẻ không còn thừa giờ (cần ~7 giây)
-    expect(levels[0]!.timeLimit).toBeLessThanOrEqual(15);
+  it('bàn to luôn nhiều giờ hơn bàn nhỏ (so màn trơn)', () => {
+    const tron = levels.filter((l) => l.luat === 'tron');
+    for (let i = 1; i < tron.length; i++) expect(tron[i]!.timeLimit).toBeGreaterThan(tron[i - 1]!.timeLimit);
   });
 
   it('chặng tròn hàng 5 cột, nối liền, phủ đủ mọi màn', () => {
@@ -83,19 +88,12 @@ describe('Campaign (SP-03)', () => {
     expect(() => levelSpec(51)).toThrow();
   });
 
-  it('mỗi cỡ bàn: trơn · xáo · mạng · đặc biệt · trùm (bàn 4 thẻ: "nhanh" thay đặc biệt)', () => {
-    for (let b = 0; b < BOARD_SIZES.length; b++) {
-      const hang = levels.slice(b * CAMPAIGN_REPEAT, (b + 1) * CAMPAIGN_REPEAT);
-      const dacBiet = hang[0]!.pairs >= 3 ? 'dacBiet' : 'nhanh';
-      expect(hang.map((l) => l.luat), `${hang[0]!.pairs * 2} thẻ`).toEqual(['tron', 'xao', 'mang', dacBiet, 'trum']);
-      expect(hang[4]!.cacLuat, 'trùm có hai luật').toHaveLength(2);
-    }
-  });
 
   it('luật nào thì bật đúng cơ chế đó, không hơn', () => {
     for (const l of levels) {
       expect(l.lives !== null, `màn ${l.id} mạng`).toBe(l.cacLuat.includes('mang'));
       expect(l.shuffleCount > 0, `màn ${l.id} xáo`).toBe(l.cacLuat.includes('xao'));
+      expect(l.peekMs > 0, `màn ${l.id} xem trước`).toBe(l.cacLuat.includes('xemTruoc'));
       expect(l.specialRate > 0, `màn ${l.id} đặc biệt`).toBe(l.cacLuat.includes('dacBiet'));
       if (l.lives !== null) expect(l.lives).toBeGreaterThanOrEqual(2);
       expect(l.specialRate).toBeLessThanOrEqual(0.3 + 1e-9);
@@ -120,10 +118,9 @@ describe('Campaign (SP-03)', () => {
       // 3★ không bao giờ cho phép sai nhiều hơn số cặp × 1,2 — luôn là mốc khó
       expect(max3, `màn ${l.id}`).toBeLessThanOrEqual(l.pairs * 1.2);
     }
-    // Cùng luật thì bàn to không bao giờ chặt hơn bàn nhỏ (thẻ đặc biệt / trùm được nới mốc nên chỉ so cùng luật)
-    for (let i = CAMPAIGN_REPEAT; i < levels.length; i++) {
-      expect(levels[i]!.starMisses[1], `màn ${i + 1}`).toBeGreaterThanOrEqual(levels[i - CAMPAIGN_REPEAT]!.starMisses[1]);
-    }
+    // Màn trơn: bàn to không bao giờ chặt hơn bàn nhỏ
+    const tron = levels.filter((l) => l.luat === 'tron');
+    for (let i = 1; i < tron.length; i++) expect(tron[i]!.starMisses[0]).toBeGreaterThanOrEqual(tron[i - 1]!.starMisses[0]);
   });
 
   it('một lần sai quá mốc là rớt sao', () => {

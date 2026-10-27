@@ -2,15 +2,14 @@ import { pairScore } from './scoring.js';
 import type { GameConfig } from './types.js';
 
 /**
- * LUẬT CỦA MỘT MÀN CHIẾN DỊCH (chủ dự án duyệt 27.10.2026, mockup
- * https://claude.ai/artifact/WySGv332zWWUHfiPVYUFWA). Người chơi chê năm màn một
- * cỡ bàn "lặp lại 4 lần không thấy đổi mới" — năm màn chỉ khác đồng hồ. Nay mỗi
- * màn trong năm màn mang một luật riêng: trơn · xáo · mạng · thẻ đặc biệt · trùm.
- * `nhanh` chỉ thay `dacBiet` ở bàn 4 thẻ (2 cặp — buildDeck không gắn được thẻ đặc
- * biệt dưới 3 cặp, có biểu tượng mà không có thẻ là nói dối người chơi).
+ * LUẬT CỦA MỘT MÀN CHIẾN DỊCH (27.10.2026). Bản đầu (5 màn mỗi cỡ, mỗi màn một luật) bị
+ * chủ dự án chê "viển vông": bàn 4 thẻ lặp 5 lần, tim nhiều tới mức không ai thua (đo:
+ * người khá thắng 98–100% mọi màn). Nay số màn THEO ĐỘ SÂU của cỡ bàn (`MAN_THEO_CO`) và
+ * mọi con số của từng màn là BẢNG ĐO (`DO_MAN`), không công thức.
+ * `xemTruoc` = hé cả bàn vài giây đầu ván rồi giờ gắt hơn; `nhanh` = chỉ đồng hồ gắt.
  */
-export type LuatMan = 'tron' | 'xao' | 'mang' | 'dacBiet' | 'nhanh' | 'trum';
-/** Luật đơn (thành phần của màn trùm). */
+export type LuatMan = 'tron' | 'xemTruoc' | 'xao' | 'mang' | 'dacBiet' | 'nhanh' | 'trum';
+/** Luật đơn — thành phần của một màn (màn trùm có từ hai luật đơn). */
 export type LuatDon = Exclude<LuatMan, 'tron' | 'trum'>;
 
 export interface Level {
@@ -34,6 +33,8 @@ export interface Level {
   lives: number | null;
   /** Số lần xáo thẻ trong ván (0 = tắt). */
   shuffleCount: number;
+  /** Hé cả bàn đầu ván, ms (0 = tắt). */
+  peekMs: number;
 }
 
 /**
@@ -73,7 +74,7 @@ export interface Level {
  * online gửi lên server, và app bản cũ trong store vẫn gửi đúng những số này.
  * Đổi phân bổ ở đây là kỷ lục người chơi trỏ sang cỡ bàn khác, và app cũ chọn
  * "36 thẻ" mà server dựng bàn 30 thẻ. Chiến dịch KHÔNG đi theo thang này nữa —
- * xem CAMPAIGN_REPEAT bên dưới.
+ * xem LUAT_THEO_CO bên dưới.
  */
 // `sao`: số lần QUÊN tối đa để đạt [2★, 3★] ở Chiến dịch — xem saiToiDa.
 // `gio`: số giây một người chơi khá cần để dọn bàn (đo) — gốc giờ Chiến dịch.
@@ -106,30 +107,48 @@ const LADDER: readonly { cols: number; rows: number; pairs: number }[] =
 export const LEVEL_KEYS = LADDER.length;
 
 /**
- * CHIẾN DỊCH: MỖI CỠ BÀN ĐÚNG CAMPAIGN_REPEAT MÀN (chủ dự án 14.10.2026).
+ * CHIẾN DỊCH (14.10.2026: 12 cỡ × 5; 27.10.2026: số màn theo độ sâu — LUAT_THEO_CO).
  * Thang cũ chia lệch 1·1·3·4·5·6·7·9·9·3·1·1 — chín màn liền một bàn 36 thẻ
- * rồi phần cuối nhảy 56→72→88 trong năm màn. Nay 12 cỡ × 5 = 60 màn; trong năm
- * màn của một cỡ, mỗi màn một luật (LUAT_THEO_VI_TRI). Năm màn một cỡ cũng là đúng một
- * hàng của lưới 5 cột trên bản đồ.
+ * rồi phần cuối nhảy 56→72→88 trong năm màn. Nay mọi cỡ đều có mặt, bàn nhỏ ít màn,
+ * bàn to nhiều màn, mỗi màn một luật.
  *
- * GIỜ = `gio` (thời gian THẬT cần, đo) × HE_GIO, KHÔNG theo số cặp × hằng số.
+ * `gio` (thời gian THẬT cần, đo) là mốc để chỉnh mô hình mô phỏng sinh DO_MAN.
  * Thời gian cần tăng nhanh hơn số cặp (bàn to lật mò nhiều hơn), nên bản
  * 9→5 giây/cặp thừa giờ ở bàn nhỏ (4 thẻ được 18 giây, cần 7 — chủ dự án báo)
  * và gắt ở bàn to (người khá thua gần hết bàn 56–88 thẻ). `gio` đo bằng mô
  * phỏng người chơi khá (duel-helper, 0,9 giây mỗi lá, FLIP_BACK_MS thật); bàn
  * ≥36 thẻ mô hình khá bị mòn trí nhớ nên lấy gần trung vị người giỏi.
  */
-export const CAMPAIGN_REPEAT = 5;
 /**
- * Hệ số giờ theo LUẬT của màn (27.10.2026: mỗi màn một luật). Giữ dáng đường siết
- * cũ 1,8→1,1 để màn cuối mỗi cỡ vẫn là đỉnh, nhưng chừa phần giờ luật ăn mất — đo
- * (test/do-chien-dich.test.ts, DO_CD=1): thẻ đặc biệt tốn thêm 5–13% giờ, xáo thẻ
- * 0–4%, trùm (xáo + đặc biệt) ~8%. Nên trùm 1,2 chứ không 1,1 như màn 5 cũ.
+ * LUẬT TỪNG MÀN THEO CỠ BÀN (chỉ số = BOARDS). [] = bàn trơn; một luật = màn luật đó;
+ * từ hai luật = màn TRÙM 👑. Số màn theo ĐỘ SÂU của cỡ (chủ dự án chọn 27.10.2026):
+ *   · 4 · 6 thẻ: người chơi KHÔNG quên nổi lần nào (đo) — tim/xáo/thẻ đặc biệt vô nghĩa,
+ *     nên 1 và 2 màn, chỉ trơn + đua giờ;
+ *   · tim CHỈ ở 16–42 thẻ: dưới đó không ai quên đủ để mất tim, trên đó người khá quên
+ *     30–50 lần — số tim hàng chục, thành trang trí;
+ *   · bàn to thay tim bằng XEM TRƯỚC và NHANH.
+ * Tổng PHẢI là 60 (bốn chặng × 15) — sự thật công khai "60 màn".
  */
-const HE_GIO: Record<LuatMan, number> = { tron: 1.8, xao: 1.6, mang: 1.45, dacBiet: 1.35, nhanh: 1.3, trum: 1.2 };
-const LUAT_THEO_VI_TRI: readonly LuatMan[] = ['tron', 'xao', 'mang', 'dacBiet', 'trum'];
+export const LUAT_THEO_CO: readonly (readonly (readonly LuatDon[])[])[] = [
+  /*  4 */ [[]],
+  /*  6 */ [[], ['nhanh']],
+  /* 12 */ [[], ['xao'], ['dacBiet'], ['xao', 'dacBiet']],
+  /* 16 */ [[], ['xao'], ['mang'], ['dacBiet'], ['xao', 'mang']],
+  /* 20 */ [[], ['xao'], ['mang'], ['dacBiet'], ['dacBiet', 'mang']],
+  /* 24 */ [[], ['xemTruoc'], ['xao'], ['mang'], ['dacBiet'], ['xao', 'dacBiet']],
+  /* 30 */ [[], ['xemTruoc'], ['xao'], ['mang'], ['dacBiet'], ['xao', 'mang']],
+  /* 36 */ [[], ['xemTruoc'], ['xao'], ['mang'], ['dacBiet'], ['dacBiet', 'mang']],
+  /* 42 */ [[], ['xemTruoc'], ['xao'], ['mang'], ['dacBiet'], ['xao', 'dacBiet']],
+  /* 56 */ [[], ['xemTruoc'], ['xao'], ['dacBiet'], ['nhanh'], ['xao', 'dacBiet']],
+  /* 72 */ [[], ['xemTruoc'], ['xao'], ['dacBiet'], ['nhanh'], ['xemTruoc', 'xao']],
+  /* 88 */ [[], ['xemTruoc'], ['xao'], ['dacBiet'], ['nhanh'], ['xao', 'dacBiet'], ['xao', 'dacBiet', 'nhanh']]
+];
 
-export const CAMPAIGN_LEVELS = BOARDS.length * CAMPAIGN_REPEAT;
+/** Màn phẳng: cỡ bàn (chỉ số BOARDS) + các luật đơn — thứ tự đúng số màn 1..60. */
+export const MAN_PHANG: readonly { bang: number; cacLuat: readonly LuatDon[] }[] =
+  LUAT_THEO_CO.flatMap((ds, bang) => ds.map((cacLuat) => ({ bang, cacLuat })));
+
+export const CAMPAIGN_LEVELS = MAN_PHANG.length;
 
 /**
  * MƯỜI HAI CỠ BÀN — thứ mà các chế độ NGOÀI Chiến dịch thật sự chọn.
@@ -181,12 +200,11 @@ export function perfectScore(pairs: number): number {
 }
 
 /**
- * Bốn chặng của Chiến dịch, mỗi chặng ĐÚNG ba cỡ bàn (15 màn). Một cỡ = năm màn
- * = một hàng của lưới 5 cột, nên lưới luôn TRÒN HÀNG và mỗi hàng đọc ra
- * "cùng bàn, mỗi màn một luật: trơn · xáo · mạng · đặc biệt · trùm".
+ * Bốn chặng của Chiến dịch, mỗi chặng 15 màn — lưới 5 cột luôn TRÒN HÀNG. Một cỡ bàn có
+ * thể vắt qua hai chặng (số màn mỗi cỡ theo độ sâu, không còn trùng một hàng).
  */
 export interface Chapter { id: number; name: string; from: number; to: number }
-const MAN_MOI_CHANG = 3 * CAMPAIGN_REPEAT;
+const MAN_MOI_CHANG = 15;
 export const CHAPTERS: readonly Chapter[] = ['Nhập môn', 'Tăng tốc', 'Thử thách', 'Bậc thầy']
   .map((name, i) => ({ id: i + 1, name, from: i * MAN_MOI_CHANG + 1, to: (i + 1) * MAN_MOI_CHANG }));
 
@@ -219,45 +237,105 @@ function sao(id: number, pairs: number): Pick<Level, 'specialRate' | 'starMisses
   return { specialRate, starMisses: saiToiDa(pairs) };
 }
 
-/** Tỉ lệ cặp đặc biệt của màn Chiến dịch có luật thẻ đặc biệt: dày dần theo cỡ bàn. */
-const tiLeDacBiet = (bang: number): number => Math.min(0.3, 0.12 + bang * 0.016);
-
-/** Số mạng màn có luật mạng: ~p80 số lần quên của người khá (mốc 2★ × 1,3), sàn 2. */
-const soMang = (sao2: number): number => Math.max(2, Math.ceil(sao2 * 1.3) + 1);
+/** Tỉ lệ cặp đặc biệt của màn có luật thẻ đặc biệt: dày dần theo cỡ bàn. */
+export const tiLeDacBiet = (bang: number): number => Math.min(0.3, 0.12 + bang * 0.016);
+/** Số lần xáo: mức "Nhiều" (thẻ/5) — mức vừa đo không đổi gì (lá bị xáo phần lớn chưa ai mở). */
+export const soLanXao = (pairs: number): number => Math.max(1, Math.ceil((pairs * 2) / 5));
+/** Giây hé bàn của màn Xem trước: 2 giây nhìn cả bàn + 1 giây mỗi 4 thẻ. */
+export const giayXemTruoc = (pairs: number): number => Math.ceil(2 + (pairs * 2) / 4);
 
 /**
- * Màn Chiến dịch. Cỡ bàn = (id−1) / CAMPAIGN_REPEAT; vị trí trong năm màn quyết
- * định LUẬT (LUAT_THEO_VI_TRI), luật quyết định giờ (HE_GIO × `gio` đo của bàn).
- *
- * Mốc sao: bảng `sao` là bảng của bàn trơn. Thẻ đặc biệt làm người khá quên thêm
- * ~1 lần ở bàn vừa, trùm 1–2 (đo) nên hai luật đó nới mốc tương ứng — "3 sao luôn
- * khó, không bất khả thi". Xáo thẻ ảnh hưởng không đáng kể (đo) nên giữ mốc.
+ * BẢNG ĐO TỪNG MÀN — [giờ (giây), số tim | null, max quên 2★, max quên 3★].
+ * SINH BẰNG `DO_CD=1 … vitest run test/do-chien-dich.test.ts -t "sinh bảng"` (mô phỏng
+ * người chơi đã chỉnh sát bảng `gio`/`sao` đo người thật: nghĩ 1,25 giây/lá), KHÔNG sửa tay.
+ * Đích (người khá): trơn ~99% qua · một luật ~90% · trùm ~70% · nhanh ~75%. Tim = số lần
+ * quên p85 (+1: hết tim mới thua). Sao: 2★ = trung vị quên người khá, 3★ = p25 người giỏi.
+ * Đổi luật / bảng LUAT_THEO_CO / engine (FLIP_BACK_MS, thẻ đặc biệt) là SINH LẠI.
+ */
+const DO_MAN: readonly (readonly [number, number | null, number, number])[] = [
+  [16, null, 1, 0],   //  1 · 4 thẻ · trơn
+  [24, null, 1, 0],   //  2 · 6 thẻ · trơn
+  [15, null, 1, 0],   //  3 · 6 thẻ · nhanh
+  [50, null, 1, 0],   //  4 · 12 thẻ · trơn
+  [30, null, 1, 0],   //  5 · 12 thẻ · xao
+  [35, null, 1, 0],   //  6 · 12 thẻ · dacBiet
+  [26, null, 1, 0],   //  7 · 12 thẻ · xao+dacBiet
+  [70, null, 1, 0],   //  8 · 16 thẻ · trơn
+  [45, null, 1, 0],   //  9 · 16 thẻ · xao
+  [40, 3, 1, 0],   // 10 · 16 thẻ · mang
+  [45, null, 1, 0],   // 11 · 16 thẻ · dacBiet
+  [35, 4, 1, 0],   // 12 · 16 thẻ · xao+mang
+  [85, null, 2, 0],   // 13 · 20 thẻ · trơn
+  [55, null, 2, 0],   // 14 · 20 thẻ · xao
+  [50, 4, 2, 0],   // 15 · 20 thẻ · mang
+  [55, null, 2, 0],   // 16 · 20 thẻ · dacBiet
+  [45, 4, 2, 0],   // 17 · 20 thẻ · dacBiet+mang
+  [100, null, 2, 0],   // 18 · 24 thẻ · trơn
+  [35, null, 1, 0],   // 19 · 24 thẻ · xemTruoc
+  [65, null, 3, 0],   // 20 · 24 thẻ · xao
+  [60, 5, 2, 0],   // 21 · 24 thẻ · mang
+  [65, null, 3, 0],   // 22 · 24 thẻ · dacBiet
+  [55, null, 3, 1],   // 23 · 24 thẻ · xao+dacBiet
+  [130, null, 4, 0],   // 24 · 30 thẻ · trơn
+  [55, null, 2, 0],   // 25 · 30 thẻ · xemTruoc
+  [85, null, 4, 1],   // 26 · 30 thẻ · xao
+  [80, 7, 4, 0],   // 27 · 30 thẻ · mang
+  [85, null, 4, 1],   // 28 · 30 thẻ · dacBiet
+  [65, 7, 4, 1],   // 29 · 30 thẻ · xao+mang
+  [160, null, 5, 1],   // 30 · 36 thẻ · trơn
+  [65, null, 3, 0],   // 31 · 36 thẻ · xemTruoc
+  [105, null, 6, 1],   // 32 · 36 thẻ · xao
+  [100, 9, 6, 1],   // 33 · 36 thẻ · mang
+  [110, null, 6, 1],   // 34 · 36 thẻ · dacBiet
+  [90, 9, 6, 1],   // 35 · 36 thẻ · dacBiet+mang
+  [190, null, 7, 1],   // 36 · 42 thẻ · trơn
+  [85, null, 5, 1],   // 37 · 42 thẻ · xemTruoc
+  [120, null, 8, 2],   // 38 · 42 thẻ · xao
+  [115, 11, 7, 1],   // 39 · 42 thẻ · mang
+  [130, null, 8, 2],   // 40 · 42 thẻ · dacBiet
+  [110, null, 9, 2],   // 41 · 42 thẻ · xao+dacBiet
+  [270, null, 12, 3],   // 42 · 56 thẻ · trơn
+  [130, null, 10, 2],   // 43 · 56 thẻ · xemTruoc
+  [170, null, 13, 4],   // 44 · 56 thẻ · xao
+  [190, null, 14, 4],   // 45 · 56 thẻ · dacBiet
+  [135, null, 12, 3],   // 46 · 56 thẻ · nhanh
+  [155, null, 14, 4],   // 47 · 56 thẻ · xao+dacBiet
+  [375, null, 20, 5],   // 48 · 72 thẻ · trơn
+  [185, null, 18, 4],   // 49 · 72 thẻ · xemTruoc
+  [245, null, 20, 6],   // 50 · 72 thẻ · xao
+  [260, null, 22, 6],   // 51 · 72 thẻ · dacBiet
+  [185, null, 20, 5],   // 52 · 72 thẻ · nhanh
+  [175, null, 18, 4],   // 53 · 72 thẻ · xemTruoc+xao
+  [500, null, 31, 7],   // 54 · 88 thẻ · trơn
+  [250, null, 28, 6],   // 55 · 88 thẻ · xemTruoc
+  [320, null, 31, 8],   // 56 · 88 thẻ · xao
+  [335, null, 32, 8],   // 57 · 88 thẻ · dacBiet
+  [250, null, 31, 7],   // 58 · 88 thẻ · nhanh
+  [270, null, 33, 9],   // 59 · 88 thẻ · xao+dacBiet
+  [260, null, 31, 9],   // 60 · 88 thẻ · xao+dacBiet+nhanh
+];
+
+/**
+ * Màn Chiến dịch: cỡ bàn + luật từ MAN_PHANG, con số từ DO_MAN. Bàn 4 thẻ (2 cặp) không
+ * bao giờ có luật thẻ đặc biệt — buildDeck cần ≥3 cặp (bảng LUAT_THEO_CO đã tránh; test canh).
  */
 export function campaignSpec(id: number): Level {
   if (!Number.isInteger(id) || id < 1 || id > CAMPAIGN_LEVELS) {
     throw new Error(`Màn ${id} không tồn tại`);
   }
-  const bang = Math.floor((id - 1) / CAMPAIGN_REPEAT);
+  const { bang, cacLuat } = MAN_PHANG[id - 1]!;
   const b = BOARDS[bang]!;
   const pairs = (b.cols * b.rows) / 2;
-  const coDacBiet = pairs >= 3;
-  const luat: LuatMan = LUAT_THEO_VI_TRI[(id - 1) % CAMPAIGN_REPEAT] === 'dacBiet' && !coDacBiet
-    ? 'nhanh' : LUAT_THEO_VI_TRI[(id - 1) % CAMPAIGN_REPEAT]!;
-  const cacLuat: readonly LuatDon[] = luat === 'tron' ? []
-    : luat === 'trum' ? (coDacBiet ? ['xao', 'dacBiet'] : ['xao', 'mang'])
-    : [luat];
-  const [s2, s3] = b.sao;
-  const nangSao = cacLuat.includes('dacBiet') ? (luat === 'trum' ? [0.15, 0.3] : [0.1, 0.15]) : [0, 0];
-  const starMisses: [number, number] = [s2 + Math.ceil(s2 * nangSao[0]!), s3 + Math.ceil(s3 * nangSao[1]!)];
+  const [timeLimit, lives, s2, s3] = DO_MAN[id - 1] ?? [Math.ceil(b.gio * 1.8), null, b.sao[0], b.sao[1]];
+  const luat: LuatMan = cacLuat.length === 0 ? 'tron' : cacLuat.length === 1 ? cacLuat[0]! : 'trum';
   return {
-    id, cols: b.cols, rows: b.rows, pairs,
-    timeLimit: Math.ceil(b.gio * HE_GIO[luat]),
+    id, cols: b.cols, rows: b.rows, pairs, timeLimit,
     specialRate: cacLuat.includes('dacBiet') ? tiLeDacBiet(bang) : 0,
-    starMisses,
+    starMisses: [s2, s3],
     luat, cacLuat,
-    lives: cacLuat.includes('mang') ? soMang(s2) : null,
-    // Mức "Nhiều" (thẻ/5): mức vừa đo không làm khác gì (lá bị xáo phần lớn là lá chưa ai mở)
-    shuffleCount: cacLuat.includes('xao') ? Math.max(1, Math.ceil((pairs * 2) / 5)) : 0
+    lives: cacLuat.includes('mang') ? lives : null,
+    shuffleCount: cacLuat.includes('xao') ? soLanXao(pairs) : 0,
+    peekMs: cacLuat.includes('xemTruoc') ? giayXemTruoc(pairs) * 1000 : 0
   };
 }
 
@@ -272,7 +350,7 @@ export function levelSpec(id: number): Level {
   // cấp sau không khó hơn cấp trước nữa. Đây là thứ DUY NHẤT phân biệt các cấp
   // dùng chung một cỡ bàn (xem BOARDS).
   const timeLimit = Math.max(pairs * 3, pairs * 9 - (id - 1) * 2);
-  return { id, cols, rows, pairs, timeLimit, ...sao(id, pairs), luat: 'tron', cacLuat: [], lives: null, shuffleCount: 0 };
+  return { id, cols, rows, pairs, timeLimit, ...sao(id, pairs), luat: 'tron', cacLuat: [], lives: null, shuffleCount: 0, peekMs: 0 };
 }
 
 /** Mọi màn Chiến dịch. */
@@ -292,6 +370,7 @@ export function levelConfig(level: Level, symbols: readonly string[], seed: numb
     specialRate: level.specialRate,
     starMisses: level.starMisses,
     lives: level.lives,
-    shuffleCount: level.shuffleCount
+    shuffleCount: level.shuffleCount,
+    peekMs: level.peekMs
   };
 }

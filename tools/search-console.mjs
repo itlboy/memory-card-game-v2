@@ -148,6 +148,24 @@ if (buoc === 'token') {
     in_('số ván bắt đầu / kết thúc', await bao(t.property, d, m, { andGroup: { expressions: [khongVN,
       { filter: { fieldName: 'eventName', inListFilter: { values: ['van_bat_dau', 'van_ket_thuc'] } } }] } }), d, m);
   }
+} else if (buoc === 'ga-chien-dich') {
+  // Ván Chiến dịch THẬT theo màn (mọi nước, 90 ngày): kết quả, sao, giây — cần custom dimension
+  // man / ket_qua / sao ở GA (Admin → Custom definitions); thiếu thì API báo lỗi tên trường.
+  const tk = await api('GET', 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries');
+  const ts = (tk.accountSummaries ?? []).flatMap((a) => a.propertySummaries ?? []).filter((t) => /flip/i.test(t.displayName));
+  for (const t of ts) {
+    const md = await api('GET', `https://analyticsdata.googleapis.com/v1beta/${t.property}/metadata`);
+    const tuy = (md.dimensions ?? []).filter((d) => d.apiName.startsWith('customEvent:')).map((d) => d.apiName);
+    console.log(`${t.displayName}: custom dimension có sẵn: ${tuy.join(', ') || '(chưa có)'}`);
+    const can = ['customEvent:man', 'customEvent:ket_qua', 'customEvent:sao'].filter((d) => tuy.includes(d));
+    if (!can.includes('customEvent:man')) continue;
+    const r = await api('POST', `https://analyticsdata.googleapis.com/v1beta/${t.property}:runReport`, {
+      dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }], dimensions: can.map((name) => ({ name })),
+      metrics: [{ name: 'eventCount' }], limit: 500,
+      dimensionFilter: { filter: { fieldName: 'eventName', stringFilter: { value: 'van_ket_thuc' } } }
+    });
+    for (const x of r.rows ?? []) console.log('  ' + [...x.dimensionValues.map((v) => v.value), x.metricValues[0].value].join(' | '));
+  }
 } else {
-  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc | ga'); process.exit(2);
+  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc | ga | ga-chien-dich'); process.exit(2);
 }
