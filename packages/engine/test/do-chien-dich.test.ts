@@ -12,19 +12,20 @@
  */
 import { describe, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
-import { BOARD_SIZES, allLevels, levelConfig } from '../src/campaign.js';
+import { BOARD_SIZES, MAN_PHANG, allLevels, giayXemTruoc, levelConfig, soLanXao, tiLeDacBiet } from '../src/campaign.js';
 import { Rng } from '../src/rng.js';
+import { MATCH_TIME_BONUS_MS } from '../src/scoring.js';
 import type { GameConfig, GameEvent } from '../src/types.js';
 
 const SYMBOLS = Array.from({ length: 60 }, (_, i) => `s${i}`);
-const NGHI_MS = 900;
+const NGHI_MS = Number(process.env.NGHI_MS ?? 900);
 
 interface MoHinh { ten: string; keep: number; retain: number }
 const GIOI: MoHinh = { ten: 'giỏi', keep: 0.97, retain: 0.99 };
-const KHA: MoHinh = { ten: 'khá', keep: 0.85, retain: 0.96 };
+const KHA: MoHinh = { ten: 'khá', keep: Number(process.env.KHA_KEEP ?? 0.85), retain: Number(process.env.KHA_RETAIN ?? 0.96) };
 
 /** Một ván: trả về giây đã chơi và số lần quên. */
-export function choi(cfg: Omit<GameConfig, 'symbols' | 'seed' | 'mode'>, seed: number, m: MoHinh): { giay: number; quen: number; thang: boolean } {
+export function choi(cfg: Omit<GameConfig, 'symbols' | 'seed' | 'mode'>, seed: number, m: MoHinh, nghiMs = NGHI_MS): { giay: number; quen: number; thang: boolean } {
   const g = new MemoryGame({ mode: 'campaign', symbols: SYMBOLS, seed, ...cfg });
   const rng = new Rng(seed ^ 0x51ed);
   let t = 0;
@@ -50,10 +51,20 @@ export function choi(cfg: Omit<GameConfig, 'symbols' | 'seed' | 'mode'>, seed: n
     }
   };
   let guard = 0;
+  let daXem = false;
   while (!g.finished && guard++ < 20000) {
-    t += NGHI_MS;
+    t += nghiMs;
     xuLy(g.tick(t));
     if (g.finished) break;
+    // Xem trước: một cái nhìn nhanh cả bàn chỉ đọng lại vài lá — trí nhớ ngắn hạn ~7±2 thứ,
+    // nên TRẦN 8 lá (người giỏi) dù bàn to cỡ nào; người khá ít hơn theo `keep`.
+    if (g.status === 'peeking') {
+      if (!daXem) {
+        const la = rng.sample(g.cards.filter((c) => !c.blank).map((c) => c.index), Math.round(8 * m.keep));
+        for (const i of la) nho.set(i, { sym: g.cards[i]!.symbol, at: 0 });
+      }
+      daXem = true; continue;
+    }
     if (g.locked) continue;
     for (const c of g.cards) if (g.isMatched(c.index)) nho.delete(c.index);
     const up = g.cards.filter((c) => g.isFaceUp(c.index) && !g.isMatched(c.index));
@@ -92,6 +103,52 @@ function cauHinh(luat: Luat, b: (typeof BOARD_SIZES)[number], xao: number, rate:
 }
 
 describe.skipIf(!process.env.DO_CD)('đo Chiến dịch mỗi màn một luật', () => {
+  /** Mô hình ĐÃ CHỈNH theo bảng gio/sao đo người thật (27.10.2026): nghĩ 1,25 giây/lá. */
+  const NGHI_TT = 1250;
+  const KHA_TT: MoHinh = { ten: 'khá', keep: 0.8, retain: 0.95 };
+  const GIOI_TT: MoHinh = { ten: 'giỏi', keep: 0.95, retain: 0.985 };
+  const tron5 = (x: number) => (x > 30 ? Math.ceil(x / 5) * 5 : Math.ceil(x));
+
+  it('sinh bảng DO_MAN', () => {
+    const dong: string[] = [];
+    MAN_PHANG.forEach(({ bang, cacLuat }, i) => {
+      const b = BOARD_SIZES[bang]!;
+      const cfg: Omit<GameConfig, 'symbols' | 'seed' | 'mode'> = { cols: b.cols, rows: b.rows, pairs: b.pairs };
+      if (cacLuat.includes('xao')) cfg.shuffleCount = soLanXao(b.pairs);
+      if (cacLuat.includes('dacBiet')) cfg.specialRate = tiLeDacBiet(bang);
+      if (cacLuat.includes('xemTruoc')) cfg.peekMs = giayXemTruoc(b.pairs) * 1000;
+      const kha = Array.from({ length: 400 }, (_, k) => choi(cfg, 20000 + i * 1000 + k, KHA_TT, NGHI_TT));
+      const gioi = Array.from({ length: 400 }, (_, k) => choi(cfg, 60000 + i * 1000 + k, GIOI_TT, NGHI_TT));
+      const g = kha.map((r) => r.giay), q = kha.map((r) => r.quen), qg = gioi.map((r) => r.quen);
+      const trum = cacLuat.length >= 2, nhanh = cacLuat.includes('nhanh');
+      // Đồng hồ cộng MATCH_TIME_BONUS_MS mỗi cặp ghép — mô phỏng KHÔNG đồng hồ nên không có
+      // phần cộng đó; giờ đặt = thời gian cần − phần cộng, không thì giờ thật dư cả phút.
+      // Bàn tí hon (≤3 cặp): giờ hết trước khi kịp ghép mà nhận phần cộng — không trừ (đo: 48% qua)
+      // Màn trơn cũng không trừ: đó là màn "thở" của mỗi cỡ, phải rộng giờ nhất (test canh)
+      const thuong = b.pairs <= 3 || cacLuat.length === 0 ? 0 : (MATCH_TIME_BONUS_MS / 1000) * b.pairs;
+      const gio = tron5(Math.max(b.pairs * 2, -thuong + (cacLuat.length === 0 ? pv(g, 0.99) * 1.25
+        // Bàn tí hon (≤3 cặp) phương sai lớn: p75 chỉ 9 giây, nửa người chơi trượt màn 3 — p95
+        : nhanh ? pv(g, b.pairs <= 3 ? 0.95 : trum ? 0.65 : 0.75)
+        // Trùm có tim đã khó vì tim; trùm không tim thì đồng hồ phải gắt hơn mới ra trùm
+        : trum ? pv(g, cacLuat.includes('mang') ? 0.85 : 0.75)
+        : cacLuat[0] === 'xemTruoc' ? pv(g, 0.9) : pv(g, 0.95) * 1.1)));
+      const tim = cacLuat.includes('mang') ? Math.max(2, pv(q, trum ? 0.8 : 0.85) + 1) : null;
+      const s3 = pv(qg, 0.25), s2 = Math.max(s3 + 1, pv(q, 0.5));
+      dong.push(`  [${gio}, ${tim}, ${s2}, ${s3}],   // ${String(i + 1).padStart(2)} · ${b.pairs * 2} thẻ · ${cacLuat.join('+') || 'trơn'}`);
+    });
+    console.log('BẢNG\n' + dong.join('\n') + '\nHẾT');
+  }, 1_200_000);
+
+  it('kiểm bảng: tỉ lệ qua màn với đồng hồ + tim thật', () => {
+    for (const l of allLevels()) {
+      const { mode: _m, symbols: _s, seed: _d, ...cfg } = levelConfig(l, SYMBOLS, 1);
+      const kha = Array.from({ length: 300 }, (_, k) => choi(cfg, 90000 + l.id * 1000 + k, KHA_TT, NGHI_TT));
+      const gioi = Array.from({ length: 300 }, (_, k) => choi(cfg, 95000 + l.id * 1000 + k, GIOI_TT, NGHI_TT));
+      const tl = (rs: { thang: boolean }[]) => Math.round(100 * rs.filter((r) => r.thang).length / rs.length);
+      console.log(`KIỂM ${l.id}\t${l.pairs * 2} thẻ\t${l.luat}${l.cacLuat.length > 1 ? '(' + l.cacLuat.join('+') + ')' : ''}\t${l.timeLimit}s\ttim ${l.lives ?? '-'}\tsao ${l.starMisses}\tqua: khá ${tl(kha)}% giỏi ${tl(gioi)}%`);
+    }
+  }, 1_200_000);
+
   it('bảng 60 màn + tỉ lệ thắng (người khá / giỏi, đồng hồ + mạng thật)', () => {
     for (const l of allLevels()) {
       const { mode: _m, symbols: _s, seed: _d, ...cfg } = levelConfig(l, SYMBOLS, 1);

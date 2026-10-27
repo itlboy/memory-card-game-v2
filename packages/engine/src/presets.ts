@@ -62,7 +62,8 @@ export function presetConfig({ mode, level, symbols, seed, players }: PresetInpu
       starMisses: spec.starMisses,
       // Luật riêng từng màn (mỗi màn một luật, 27.10.2026)
       lives: spec.lives,
-      shuffleCount: spec.shuffleCount
+      shuffleCount: spec.shuffleCount,
+      peekMs: spec.peekMs
     };
   }
 }

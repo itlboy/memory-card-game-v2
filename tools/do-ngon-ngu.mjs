@@ -75,8 +75,8 @@ let tong = 0;
 for (const lang of LANGS) {
   const loi = [];
   const ghi = async (man) => { for (const l of await js(DO)) loi.push(`${man}: ${l}`); };
-  // Mở sẵn Chiến dịch tới màn 10 để đo bản đồ có chú giải luật + khung "Luật màn này"
-  await js(`localStorage.clear(); sessionStorage.clear(); localStorage.setItem('mm.v2', JSON.stringify({ campaign: Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, { stars: 2 }])) })); true`);
+  // Mở sẵn Chiến dịch tới màn 12 để đo bản đồ có chú giải luật + khung "Luật màn này"
+  await js(`localStorage.clear(); sessionStorage.clear(); localStorage.setItem('mm.v2', JSON.stringify({ campaign: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [i + 1, { stars: 2 }])) })); true`);
   await goi('Page.navigate', { url: `${URL_APP}?lang=${lang}&cb=${Date.now()}` });
   for (let i = 0; i < 40 && !(await js(`!!document.querySelector('.o-chien-dich')`)); i++) await cho(250);
   await cho(300); await ghi('trang chủ');
@@ -86,12 +86,12 @@ for (const lang of LANGS) {
   await js(`document.querySelector('header .dh').click()`); await cho(400); await ghi('danh hiệu');
   await js(`document.querySelectorAll('.tab')[1]?.click()`); await cho(300); await ghi('danh hiệu · đã có');
   await js(`document.querySelector('.overlay .head .btn').click()`); await cho(300);
-  // Chiến dịch: bản đồ (chú giải luật) · màn mạng (8) · màn trùm (10) — mỗi màn một luật, 27.10.2026
+  // Chiến dịch: bản đồ (chú giải luật) · màn tim (10) · màn trùm (12) — mỗi màn một luật, 27.10.2026
   await js(`document.querySelectorAll('.o-chien-dich, .o-vuong')[0].click()`);
   for (let i = 0; i < 20 && !(await js(`document.querySelectorAll('.node').length > 0`)); i++) await cho(200);
   await cho(300); await ghi('bản đồ Chiến dịch');
   if (!(await js(`document.querySelectorAll('.node .luat').length >= 48`))) loi.push('bản đồ Chiến dịch: thiếu nhãn luật');
-  for (const man of [8, 10]) {
+  for (const man of [10, 12]) {
     await js(`document.querySelectorAll('.node')[${man - 1}].click()`);
     for (let i = 0; i < 20 && !(await js(`!!document.querySelector('.luat-man')`)); i++) await cho(200); await ghi(`bắt đầu màn ${man}`);
     if (!(await js(`!!document.querySelector('.luat-man')`))) loi.push(`bắt đầu màn ${man}: không thấy khung luật màn`);

@@ -221,7 +221,7 @@ export const store = {
   /**
    * Màn Chiến dịch cao nhất được phép chơi: qua màn n thì mở màn n+1. CHỈ đọc
    * tiến độ Chiến dịch — chế độ thường dùng thang khoá cỡ bàn (1..LEVEL_KEYS),
-   * số cấp hai bên không còn cùng nghĩa (Chiến dịch 12 cỡ × 5 màn, 14.10.2026).
+   * số cấp hai bên không còn cùng nghĩa (Chiến dịch 60 màn theo LUAT_THEO_CO, 27.10.2026).
    */
   unlockedLevel(): number {
     const s = read();

@@ -12,7 +12,7 @@ export {
   comboMultiplier, isDraw, pairScore, rankPlayers, starsByMisses, starsFor, timeBonus
 } from './scoring.js';
 export {
-  BOARD_SIZES, CAMPAIGN_LEVELS, CAMPAIGN_REPEAT, LEVEL_KEYS, campaignSpec, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,
+  BOARD_SIZES, CAMPAIGN_LEVELS, LEVEL_KEYS, LUAT_THEO_CO, campaignSpec, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,
   levelConfig, levelSpec, pairsForLevel, perfectScore, sizeForLevel
 } from './campaign.js';
 export { TURN_LIMIT_SEC, peekMsFor, presetConfig } from './presets.js';

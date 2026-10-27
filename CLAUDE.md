@@ -422,19 +422,21 @@
   tự bật thứ mình muốn và lựa chọn đó được LƯU (`prefs.options`), nên mặc định
   chỉ áp cho người chơi mới. Test nào cần một luật cụ thể phải khai rõ cả năm
   hàng, đừng dựa vào mặc định — nó đã đổi hai lần.
-- **CHIẾN DỊCH = 12 CỠ × 5 MÀN = 60 MÀN, THANG RIÊNG** (chủ dự án 14.10.2026, thay
-  thang 50 cấp chia lệch 1·1·3·…·9·9·3·1·1). Giờ = `gio` (thời gian THẬT cần, đo
-  bằng mô phỏng, cột trong BOARDS) × hệ số THEO LUẬT — KHÔNG theo số cặp × hằng
-  số (bàn nhỏ thừa giờ, bàn to gắt). Mỗi chặng đúng ba cỡ (một cỡ = một hàng lưới 5 cột).
-  **MỖI MÀN MỘT LUẬT** (chủ dự án duyệt 27.10.2026, mockup https://claude.ai/artifact/WySGv332zWWUHfiPVYUFWA —
-  người chơi chê 5 màn một cỡ "lặp lại 4 lần không thấy đổi mới"): trơn · xáo thẻ (mức Nhiều) · số
-  mạng · thẻ đặc biệt · TRÙM 👑 (xáo + đặc biệt), giờ ×1,8·1,6·1,45·1,35·1,2. Bàn 4 thẻ (2 cặp) không gắn
-  được thẻ đặc biệt → màn 4 là "nhanh" (×1,3), trùm = xáo + mạng. Thẻ đặc biệt CHỈ ở màn đặc biệt/trùm
-  (trước đây mọi màn đều có). Luật nằm ở `campaignSpec` (`luat`, `cacLuat`, `lives`, `shuffleCount`);
-  icon + chữ ở `lib/luat-man.ts` (CÙNG icon năm tuỳ chọn bàn chơi). Bản đồ: nhãn luật góc dưới phải ô,
-  vương miện góc trên trái màn trùm, chú giải dưới tổng sao; bước theme: khung "Luật màn này" trên nút
-  Bắt đầu. Đo lại giờ/mạng/mốc sao: `DO_CD=1 … vitest run test/do-chien-dich.test.ts`. HUD Chiến dịch có
-  sao + mạng thì BỎ viên điểm (`hangChat`) — bốn viên + ↻ + ⏸ không vừa iPhone (đo: viên mạng bị ↻ đè).
+- **CHIẾN DỊCH = 60 MÀN, SỐ MÀN THEO ĐỘ SÂU CỠ BÀN, MỖI MÀN MỘT LUẬT** (14.10.2026 12 cỡ × 5; 27.10.2026
+  chủ dự án chê bản "5 màn mỗi cỡ, mỗi màn một luật" là VIỂN VÔNG — bàn 4 thẻ lặp 5 lần, tim nhiều tới mức
+  không ai thua; đo lại: người khá thắng 98–100% MỌI màn). Nay `LUAT_THEO_CO` (campaign.ts): 4 thẻ 1 màn ·
+  6 thẻ 2 · 12 thẻ 4 · 16, 20 thẻ 5 · 24→72 thẻ 6 · 88 thẻ 7; mỗi cỡ mở đầu bằng màn TRƠN, rồi các luật
+  xem trước · xáo thẻ · tim · thẻ đặc biệt · nhanh, kết bằng TRÙM 👑 (≥2 luật). Tim CHỈ ở 16–42 thẻ (≤12
+  tim, test canh): bàn nhỏ không ai quên đủ để mất tim, bàn to người khá quên 30–50 lần. Bàn 4–6 thẻ
+  KHÔNG có tim/xáo/thẻ đặc biệt (không quên nổi lần nào). Thẻ đặc biệt CHỈ ở màn có luật đó. MỌI CON SỐ
+  (giờ, tim, mốc sao) là BẢNG ĐO `DO_MAN`, SINH bằng `DO_CD=1 pnpm --filter @mm/engine exec vitest run
+  test/do-chien-dich.test.ts -t "sinh bảng"` rồi dán vào — KHÔNG sửa tay; `-t "kiểm bảng"` in tỉ lệ qua
+  màn với đồng hồ + tim thật. Mô hình đã chỉnh theo bảng `gio`/`sao` đo người thật (nghĩ 1,25 giây/lá);
+  xem trước chỉ đọng ~8 lá (trí nhớ ngắn hạn); giờ đặt đã trừ +2 giây/cặp (MATCH_TIME_BONUS_MS) trừ bàn
+  ≤3 cặp và màn trơn. Đích người khá: trơn ~100% · một luật 85–100% · nhanh/trùm 70–90%. Chặng = 15 màn,
+  một cỡ có thể vắt qua hai chặng (hàng lưới không còn = cỡ bàn). Icon + chữ luật ở `lib/luat-man.ts`
+  (CÙNG icon năm tuỳ chọn); bản đồ: nhãn góc dưới phải, vương miện màn trùm, chú giải; bước theme: khung
+  "Luật màn này". HUD Chiến dịch có sao + tim thì BỎ viên điểm (`hangChat`) — không vừa iPhone.
   SAO = số lần QUÊN (`quen`: lật sai khi lá cùng cặp đã lộ, cùng điều kiện mất mạng),
   KHÔNG đếm mọi lần sai (lật hai lá chưa mở là dò) và KHÔNG theo thời gian. Mốc [2★,3★]
   là bảng đo `sao` trong BOARDS. Ngôi sao THỨ 4 (`summary.hoanHao`, `hh` trong tiến

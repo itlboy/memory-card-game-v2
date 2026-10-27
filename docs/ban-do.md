@@ -20,11 +20,11 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 
 | Sự thật | Nguồn gốc | Nhắc lại ở | Kiểm tra |
 |---|---|---|---|
-| **60 màn Chiến dịch**, 12 cỡ bàn × 5 lần | `CAMPAIGN_REPEAT`, `BOARDS` — `packages/engine/src/campaign.ts` | trang `about.lead`, `f1.p`, `about.desc`, `changes` (r4) · site-i18n cùng khoá · store (mô tả) · app: `menu.chienDichMo`, `lc.chienDichB` (tự) · CLAUDE.md mục Chiến dịch | `campaign.test.ts` |
+| **60 màn Chiến dịch**, 12 cỡ bàn, số màn theo độ sâu (1·2·4·5·5·6·6·6·6·6·6·7) | `LUAT_THEO_CO`, `BOARDS` — `packages/engine/src/campaign.ts` | trang `about.lead`, `f1.p`, `about.desc`, `changes` (r4) · site-i18n cùng khoá · store (mô tả) · app: `menu.chienDichMo`, `lc.chienDichB` (tự) · CLAUDE.md mục Chiến dịch | `campaign.test.ts` |
 | **12 cỡ bàn, 4 → 88 thẻ** | `BOARDS` (campaign.ts) | trang `f1.p`, `g5` · site-i18n · store | `campaign.test.ts`, `board-fit.test.ts` |
 | **Sao = số lần quên**, mốc theo cỡ bàn, **sao thứ 4** = không quên | `sao` trong `BOARDS`, `starsByMisses`, `summary.hoanHao` | trang `f1.p`, `q4/a4`, r4 · site-i18n · store · RulesDialog (`lc.chienDich` cả 15 từ điển) · CLAUDE.md | `quen.test.ts` |
-| **Giờ Chiến dịch** = `gio` × hệ số theo luật (1,8 trơn → 1,2 trùm) | `gio`, `HE_GIO` (campaign.ts) | CLAUDE.md | `campaign.test.ts` |
-| **Mỗi màn một luật** (trơn · xáo · mạng · thẻ đặc biệt · trùm 👑; bàn 4 thẻ: "nhanh" thay đặc biệt) | `LUAT_THEO_VI_TRI`, `campaignSpec` (campaign.ts) | app: `lc.chienDich` (Luật chơi, 15 từ điển), `cd.luat.*`/`cd.tron`/`cd.trum` (bản đồ + bước Bắt đầu), `lib/luat-man.ts` · README · CLAUDE.md mục Chiến dịch | `campaign.test.ts`, `app.test.ts`, `do-ngon-ngu` (bản đồ + màn 8/10) |
+| **Giờ / tim / mốc sao Chiến dịch** = bảng đo `DO_MAN` (sinh bằng mô phỏng, không sửa tay) | `DO_MAN` (campaign.ts) ← `test/do-chien-dich.test.ts` | CLAUDE.md | `campaign.test.ts` |
+| **Mỗi màn một luật** (trơn · xem trước · xáo · tim · thẻ đặc biệt · nhanh · trùm 👑) | `LUAT_THEO_CO`, `campaignSpec` (campaign.ts) | app: `lc.chienDich` (Luật chơi, 15 từ điển), `cd.luat.*`/`cd.tron`/`cd.trum` (bản đồ + bước Bắt đầu), `lib/luat-man.ts` · README · CLAUDE.md mục Chiến dịch | `campaign.test.ts`, `app.test.ts`, `do-ngon-ngu` (bản đồ + màn 10/12) |
 | **5 đối thủ máy** (Gà mờ → Rồng thần) | `BOT_SPECS` — `packages/engine/src/bot.ts` | trang `about.lead`, `f2.h/p`, `about.desc` · site-i18n · store · tên: `bot.*` 15 từ điển | `duel.test.ts` |
 | **Online tối đa 4 người** (tạm, hạ từ 10 ngày 15.10.2026), mã phòng 6 số | `ROOM_LIMITS` — engine `online.ts` | trang `f3.p`, `a2` · site-i18n · store | smoke `tools/smoke-*.mjs` |
 | **Chung máy tối đa 4 người** | wizard bước `count` (CLAUDE.md) | trang `f4.h/p` · site-i18n · store | `app.test.ts` |
