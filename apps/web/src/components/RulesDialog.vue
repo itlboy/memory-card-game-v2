@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Số giây trong luật đọc thẳng từ engine — viết tay là lệch (đã lệch: 15 trong khi luật là 25)
+import { MUA_THE_MO } from '@/lib/mua-the';
 import CaiAppBuoc from './CaiAppBuoc.vue';
 import { coHuongDanCai } from '@/lib/cai-app';
 import { CAMPAIGN_LEVELS, TURN_BONUS_MS, TURN_LIMIT_SEC } from '@mm/engine';
@@ -129,8 +130,10 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
         </ul>
 
         <!-- Mưa Thẻ (27.10.2026): chế độ thẻ rơi — luật ở lib/mua-the.ts -->
-        <h3>🌧️ {{ t('mt.ten') }}</h3>
-        <p class="lead">{{ t('mt.moTa') }}</p>
+        <template v-if="MUA_THE_MO">
+          <h3>🌧️ {{ t('mt.ten') }}</h3>
+          <p class="lead">{{ t('mt.moTa') }}</p>
+        </template>
 
         <h3>{{ t('lc.h.nhieuNguoi') }}</h3>
         <ul class="plain">

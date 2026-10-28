@@ -300,6 +300,9 @@
 
 ## MƯA THẺ — CHẾ ĐỘ THẺ RƠI (27.10.2026, chủ dự án chơi thử từng nhịp rồi chốt)
 
+- **ĐANG ẨN (28.10.2026, chủ dự án: "cần nghiên cứu thêm")**: công tắc `MUA_THE_MO = false` ở `lib/mua-the.ts` —
+  không bước Thể loại, không nhãn "Mới", không mục Luật chơi, `?mua=1` chỉ mở khi debug. Lối vào duy nhất: trang Debug.
+  Bật lại = `true`.
 - LỐI VÀO: Chơi nhanh → bước THỂ LOẠI (`kieu`: Thường / Mưa Thẻ) — chủ dự án chốt sau khi thử ô thứ tư ở
   trang chủ ("nhiều nút quá"). Ô Chơi nhanh + ô Mưa Thẻ đeo nhãn "Mới". Thoát Mưa Thẻ = về bước Thể loại.
 - Luật THUẦN ở `lib/mua-the.ts` (`VanMuaThe`, test `test/mua-the.test.ts`), màn `MuaThe.vue`, URL `?mua=1`.

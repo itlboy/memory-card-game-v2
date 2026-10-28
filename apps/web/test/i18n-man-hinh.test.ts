@@ -91,8 +91,7 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   const chup = (ten: string) => { man[ten] = gomChu(w!.element.parentElement ?? w!.element); };
   chup('trang chủ');
   await bam('header .menu-btn'); chup('menu thanh trên'); await bam('header .menu-btn');
-  await bam('.home :is(.o-chien-dich, .o-vuong)', 1); chup('bước thể loại');
-  await bam('.kieu .option', 0); chup('bước số người');
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 1); chup('bước số người');
   await bam('.counts .option', 0); chup('bước số thẻ');
   await bam('.size-grid button', 1); chup('bước theme');
   await bam('.btn-primary'); chup('bước luật bàn');

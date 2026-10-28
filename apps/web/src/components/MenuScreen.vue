@@ -39,6 +39,7 @@ import ThemePicker from './ThemePicker.vue';
 import QuatLa from './QuatLa.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
+import { MUA_THE_MO } from '@/lib/mua-the';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
@@ -126,9 +127,10 @@ const path = computed<Step[]>(() => {
   if (props.mode === 'campaign') return ['players', 'level', 'theme'];
   if (props.botLevel) return ['players', 'bot', 'level', 'theme', 'options'];
   // "Chơi nhanh" gộp cả một mình lẫn nhiều người: hỏi THỂ LOẠI (Thường / Mưa Thẻ — 27.10.2026) rồi số người
+  const kieu: Step[] = MUA_THE_MO ? ['kieu'] : [];   // bước Thể loại chỉ khi Mưa Thẻ mở (lib/mua-the.ts)
   return isMulti.value
-    ? ['players', 'kieu', 'count', 'names', 'level', 'theme', 'options']
-    : ['players', 'kieu', 'count', 'level', 'theme', 'options'];
+    ? ['players', ...kieu, 'count', 'names', 'level', 'theme', 'options']
+    : ['players', ...kieu, 'count', 'level', 'theme', 'options'];
 });
 const stepIndex = computed(() => path.value.indexOf(step.value));
 /**
@@ -145,8 +147,26 @@ const stepIndex = computed(() => path.value.indexOf(step.value));
 const buocHien = ref<Step>(step.value);
 const hienIndex = computed(() => path.value.indexOf(buocHien.value));
 let dangRoi = false;
-function batDauRoi(): void { dangRoi = true; }
-function xongRoi(): void { dangRoi = false; buocHien.value = step.value; }
+/**
+ * KHUNG MỜ CÙNG NỘI DUNG khi đi VỀ / RA KHỎI trang chủ (28.10.2026, chủ dự án: "back ra trang chủ bị nháy").
+ * Trang chủ không có khung trắng, các bước thì có — bản trước chỉ mờ THÂN bước, còn khung trắng thì
+ * biến mất / bật ra ĐỘT NGỘT đúng khung hình đổi bước (đo từng khung bằng WebKit). Nay cả khung mờ đi
+ * theo nhịp rời (.12s) rồi hiện lại theo nhịp vào (.18s). Giữa hai bước thường thì khung đứng yên như cũ.
+ */
+const khungMo = ref<'' | 'roi' | 'vao'>('');
+let henKhung: ReturnType<typeof setTimeout> | undefined;
+function batDauRoi(): void {
+  dangRoi = true;
+  if ((buocHien.value === 'players') !== (step.value === 'players')) khungMo.value = 'roi';
+}
+function xongRoi(): void {
+  dangRoi = false; buocHien.value = step.value;
+  if (khungMo.value === 'roi') {
+    khungMo.value = 'vao';
+    clearTimeout(henKhung);
+    henKhung = setTimeout(() => { khungMo.value = ''; }, 200);
+  }
+}
 // Không có nhịp rời nào bắt đầu sau lần vẽ lại (Transition bị thay bằng bản giả
 // trong test, hay bước đổi mà khoá không đổi) thì đổi ngay — không treo tiêu đề cũ.
 watch(step, () => { if (!dangRoi) buocHien.value = step.value; }, { flush: 'post' });
@@ -228,7 +248,7 @@ function pickPlayers(): void {
   // Chơi nhanh luôn dùng khoá lưu 'classic' — kỷ lục và tiến độ giữ nguyên chỗ
   // cũ, còn luật ván thì do bảng tuỳ chọn quyết định.
   emit('update:mode', 'classic');
-  step.value = 'kieu';
+  step.value = MUA_THE_MO ? 'kieu' : 'count';
 }
 
 /** Bước THỂ LOẠI của Chơi nhanh: Thường đi tiếp wizard; Mưa Thẻ là màn riêng (App). */
@@ -443,7 +463,7 @@ const ICO3D = {
       :aria-label="t('menu.doiNen')" :title="t('menu.doiNen')" @click="emit('doi-nen')"
     />
   </Teleport>
-  <section class="panel" :class="{ 'trang-chu': buocHien === 'players' }">
+  <section class="panel" :class="{ 'trang-chu': buocHien === 'players', 'khung-roi': khungMo === 'roi', 'khung-vao': khungMo === 'vao' }">
     <header v-if="buocHien !== 'players'" class="wizard-head">
       <button v-if="hienIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
       <h2>{{ tieuDe }}</h2>
@@ -482,7 +502,7 @@ const ICO3D = {
           <!-- nhãn "Mới": trong Chơi nhanh có thể loại mới (Mưa Thẻ, 27.10.2026) -->
           <button class="o-vuong o-moi neon g-cyan" type="button" :title="t('menu.choiNhanhMo')" @click="pickPlayers()">
             <Users class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.choiNhanh" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.choiNhanh')) }">{{ t('menu.choiNhanh') }}</strong>
-            <span class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
+            <span v-if="MUA_THE_MO" class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
           </button>
           <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
             <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.dauMay')) }">{{ t('menu.dauMay') }}</strong>
@@ -803,6 +823,10 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .step-enter-from { opacity: 0; }
 .step-leave-active { transition: opacity .12s ease; }
 .step-leave-to { opacity: 0; }
+/* cả khung mờ theo khi đi về / ra khỏi trang chủ — xem `khungMo` */
+section.panel.khung-roi { opacity: 0; transition: opacity .12s ease; }
+section.panel.khung-vao { animation: khung-vao .18s ease; }
+@keyframes khung-vao { from { opacity: 0; } }
 
 .chip.compact { flex: 0 1 auto; min-width: 96px; }
 .warn { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 13px;

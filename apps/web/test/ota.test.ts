@@ -312,7 +312,7 @@ describe('cập nhật nóng', () => {
     // Canh tên lớp: đổi tên ở MenuScreen mà quên ở đây là OTA không bao giờ áp khi rảnh nữa
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    expect(readFileSync(join(__dirname, '..', 'src/components/MenuScreen.vue'), 'utf8')).toContain(`<section class="panel" :class="{ 'trang-chu': buocHien === 'players' }">`);
+    expect(readFileSync(join(__dirname, '..', 'src/components/MenuScreen.vue'), 'utf8')).toMatch(/<section class="panel" :class="\{ 'trang-chu': buocHien === 'players'[,\s}]/);
   });
 
   it('lỗi tạm thì TỰ THỬ LẠI sau 1 phút, tối đa 3 lần (không bắt người chơi bấm gì)', async () => {
