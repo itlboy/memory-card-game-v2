@@ -46,17 +46,25 @@ const chup = async (ten) => {
 };
 /** Bấm phần tử có chữ chứa `chu` (nút, ô chọn), KHÔNG phân biệt hoa thường — nhãn
  *  English từng đổi "Quick play" → "Quick Play" và kịch bản gãy. */
-const bam = (chu, sel = 'button, [role=button], .option, a') => js(`(() => {
+const bam1 = (chu, sel = 'button, [role=button], .option, a') => js(`(() => {
   const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.toLowerCase().includes(${JSON.stringify(chu.toLowerCase())}));
-  if (!el) throw new Error('không thấy: ' + ${JSON.stringify(chu)});
+  if (!el) throw new Error('không thấy: ' + ${JSON.stringify(chu)} + ' — trên màn: ' + JSON.stringify([...document.querySelectorAll('button, .option')].filter((e) => e.offsetParent).map((e) => e.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30))));
   el.click(); return true;
 })()`);
 /** Bấm phần tử có chữ ĐÚNG BẰNG `chu` (bỏ khoảng trắng) — "4cards" không được trúng "24cards". */
-const bamDung = (chu, sel = 'button, [role=button], .option') => js(`(() => {
+const bamDung1 = (chu, sel = 'button, [role=button], .option') => js(`(() => {
   const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.replace(/\\s+/g, '').toLowerCase() === ${JSON.stringify(chu.toLowerCase())});
-  if (!el) throw new Error('không thấy (đúng): ' + ${JSON.stringify(chu)});
+  if (!el) throw new Error('không thấy (đúng): ' + ${JSON.stringify(chu)} + ' — trên màn: ' + JSON.stringify([...document.querySelectorAll('button, .option')].filter((e) => e.offsetParent).map((e) => e.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30))));
   el.click(); return true;
 })()`);
+/** Máy CI chậm: nút của bước sau có thể chưa hiện — thử lại tới 10 giây rồi mới báo lỗi. */
+async function thuLai(f) {
+  for (let i = 0; ; i++) {
+    try { return await f(); } catch (e) { if (i >= 20) throw e; await cho(500); }
+  }
+}
+const bam = (chu, sel) => thuLai(() => bam1(chu, sel));
+const bamDung = (chu, sel) => thuLai(() => bamDung1(chu, sel));
 const chuTrenMan = () => js(`[...document.querySelectorAll('button, .option')].filter((e) => e.offsetParent).map((e) => e.textContent.trim().replace(/\\s+/g, ' ').slice(0, 50))`);
 
 await goi('Network.enable');
