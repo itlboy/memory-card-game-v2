@@ -603,7 +603,12 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 
 ## Русский
 
-**Name** (30)
+**Name** (30) — App Store. KHÔNG "Мемори" (= Memory, nhãn hiệu Ravensburger — Apple 5.2.1, 28.10.2026)
+```
+Flip Match: Найди пару
+```
+
+**Play title** (30) — Google Play (giữ từ khoá)
 ```
 Flip Match: Мемори, найди пару
 ```
