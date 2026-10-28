@@ -261,7 +261,7 @@ const en: TuDien = {
 
   /* ---------- achievements ---------- */
   'dh.first-win.ten': 'First Win', 'dh.first-win.goiY': 'Win your first game',
-  'dh.flawless.ten': 'Perfect Memory', 'dh.flawless.goiY': 'Win a game without a single wrong flip',
+  'dh.flawless.ten': 'Perfect', 'dh.flawless.goiY': 'Win a game without a single wrong flip',
   'dh.lightspeed.ten': 'Speed of Light', 'dh.lightspeed.goiY': 'Finish a 4×4 grid in under 30 seconds',
   'dh.combo-master.ten': 'Combo Master', 'dh.combo-master.goiY': 'Make a streak of 6 correct pairs',
   'dh.combo-8.ten': 'Combo on Fire', 'dh.combo-8.goiY': 'Make a streak of 8 correct pairs',
