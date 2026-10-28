@@ -35,6 +35,9 @@ kết quả tìm web. Chưa có công cụ đo lượng tìm — sau vài tuần
 
 - **"Memory" là nhãn hiệu Ravensburger** (DE, FR, IT…): KHÔNG đưa vào Name/Subtitle/Keywords/tiêu đề
   web các nước đó — dùng "Memo", "mémoire", "memoria". Tiếng Anh "memory game" là từ mô tả, dùng được.
+  NGOẠI LỆ ĐÃ BỊ PHẠT: App Store từ chối 1.3.0 (27.10.2026, Guideline 5.2.1) vì Name tiếng Anh có
+  "Memory" — Apple soi Name/Subtitle/icon/ảnh MỌI ngôn ngữ (app bán ở Đức). App Store: KHÔNG "Memory"
+  ở Name/Subtitle/ảnh, kể cả tiếng Anh; "memory" chỉ còn ở Keywords en-US. Play giữ (Play title riêng).
 - Không tên app đối thủ, không hứa điều không có (sức khoẻ, chữa sa sút trí tuệ…). App 4+.
 - Keywords App Store: phẩy không cách, KHÔNG lặp từ đã có ở Name/Subtitle (Apple ghép ba trường).
 - Đổi Name/Subtitle/Keywords bên Apple cần một phiên bản ở trạng thái sửa được; Promotional text
