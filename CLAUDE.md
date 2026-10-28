@@ -474,6 +474,9 @@
   lần lật sau mới chạy). Tráo: ≥2 thẻ đã lộ thì tráo giữa chúng, đúng 1 thì tráo nó với một
   thẻ úp. Bản trước cố ý tráo cả thẻ chưa mở — đã bỏ, đừng dựng lại.
 - Chuyển bước wizard chỉ MỜ DẦN, không trượt ngang (chủ dự án chê "kéo ngang như chuyển trang").
+  LÙI BẰNG BACK / VUỐT thì KHÔNG mờ (`dangLuiBack` ở useBackGuard → hiệu ứng `tuc-thi`): Safari iPhone vuốt lùi
+  hiện ảnh chụp trang trước rồi mới trả trang thật, có hiệu ứng là nháy ảnh chụp → màn cũ → màn đích (28.10.2026).
+  Đi về/ra trang chủ thì CẢ KHUNG mờ theo (`khungMo`), không chỉ thân bước — khung trắng bật/tắt đột ngột là nháy.
 - **KHÔNG CÒN "CHẾ ĐỘ".** Bốn chế độ cũ là bốn tổ hợp cờ của cùng một engine,
   nay là năm tuỳ chọn bàn chơi (`packages/engine/src/options.ts`): thời gian ·
   số mạng · xem trước · xáo thẻ · thẻ đặc biệt, mỗi cái 4 mức 0..3. Chiến dịch
