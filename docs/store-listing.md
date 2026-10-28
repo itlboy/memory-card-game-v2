@@ -33,7 +33,12 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 
 ## English (U.S.)
 
-**Name** (30) — App Store
+**Name** (30) — App Store. KHÔNG chữ "Memory": Apple từ chối 1.3.0 (27.10.2026, Guideline 5.2.1 — nhãn hiệu Ravensburger)
+```
+Flip Match: Matching Card Game
+```
+
+**Play title** (30) — Google Play (Play không bị phản đối, giữ từ khoá "memory")
 ```
 Flip Match: Memory Card Game
 ```
@@ -50,7 +55,7 @@ Flip cards, match pairs, train your memory. Play solo, take on a 5-level bot, pa
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
 ```
-concentration,matching,brain,training,puzzle,kids,family,multiplayer,offline,tiles,picture,remember
+concentration,memory,brain,training,puzzle,kids,family,multiplayer,offline,tiles,picture,remember
 ```
 
 **Short description** (80) — Google Play
