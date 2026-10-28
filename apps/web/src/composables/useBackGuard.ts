@@ -1,4 +1,4 @@
-import { nextTick, onScopeDispose, watchEffect } from 'vue';
+import { nextTick, onScopeDispose, ref, watchEffect } from 'vue';
 import { ghiUrl, urlApp } from '@/lib/appUrl';
 
 /**
@@ -56,8 +56,20 @@ function batChot(): void {
   history.pushState({ mmBack: 1 }, '', location.href);
 }
 
+/**
+ * ĐANG LÙI BẰNG BACK / VUỐT (28.10.2026). Safari iPhone vuốt lùi thì hiện ẢNH CHỤP trang trước, thả tay mới
+ * trả trang thật — mà trang thật lúc đó còn ở màn cũ, rồi app mới mờ dần sang màn đích: ảnh chụp → màn cũ →
+ * màn đích = "nháy" (chủ dự án báo). Màn nào có hiệu ứng chuyển thì TẮT nó khi cờ này bật, để khung hình
+ * thật đầu tiên đã là màn đích, khớp ảnh chụp. Web không tắt được cử chỉ vuốt của Safari.
+ */
+export const dangLuiBack = ref(false);
+let henLui: ReturnType<typeof setTimeout> | undefined;
+
 function onPop(): void {
   daBat = false;               // chốt vừa bị tiêu
+  dangLuiBack.value = true;
+  clearTimeout(henLui);
+  henLui = setTimeout(() => { dangLuiBack.value = false; }, 400);
   const c = canDong();
   if (!c) return;              // không còn gì: để trình duyệt rời trang
   c.dong();
