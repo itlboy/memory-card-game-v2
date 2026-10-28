@@ -24,7 +24,7 @@ import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engi
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
 import Sao3D from './Sao3D.vue';
-import { useBackCloser } from '@/composables/useBackGuard';
+import { dangLuiBack, useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
 import { sfx } from '@/lib/audio';
 import { skin } from '@/lib/skin';
@@ -157,6 +157,7 @@ const khungMo = ref<'' | 'roi' | 'vao'>('');
 let henKhung: ReturnType<typeof setTimeout> | undefined;
 function batDauRoi(): void {
   dangRoi = true;
+  if (dangLuiBack.value) return;   // lùi bằng Back/vuốt: đổi ngay, không mờ khung
   if ((buocHien.value === 'players') !== (step.value === 'players')) khungMo.value = 'roi';
 }
 function xongRoi(): void {
@@ -473,7 +474,8 @@ const ICO3D = {
     </header>
     <h2 v-else class="sr-only">{{ tieuDe }}</h2>
 
-    <Transition name="step" mode="out-in" @before-leave="batDauRoi" @after-leave="xongRoi">
+    <!-- Lùi bằng Back/vuốt: KHÔNG hiệu ứng (`dangLuiBack` ở useBackGuard — Safari vuốt lùi nháy ảnh chụp) -->
+    <Transition :name="dangLuiBack ? 'tuc-thi' : 'step'" mode="out-in" @before-leave="batDauRoi" @after-leave="xongRoi">
       <!--
         TRANG CHỦ (13.10.2026, mockup B chủ dự án duyệt): quạt lá bài · Chiến
         dịch là ô to riêng · ba ô vuông Chơi nhanh / Đấu máy / Online · dải lối
@@ -823,6 +825,9 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .step-enter-from { opacity: 0; }
 .step-leave-active { transition: opacity .12s ease; }
 .step-leave-to { opacity: 0; }
+/* lùi bằng Back/vuốt: KHÔNG chuyển động — `:css="false"` bật/tắt giữa chừng làm Vue vỡ khi vá DOM (đo được),
+   nên đổi TÊN hiệu ứng sang một tên không có transition: Vue đo ra 0 giây và đổi ngay */
+.tuc-thi-enter-active, .tuc-thi-leave-active { transition: none; }
 /* cả khung mờ theo khi đi về / ra khỏi trang chủ — xem `khungMo` */
 section.panel.khung-roi { opacity: 0; transition: opacity .12s ease; }
 section.panel.khung-vao { animation: khung-vao .18s ease; }
