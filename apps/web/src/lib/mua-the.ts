@@ -20,6 +20,13 @@
  */
 import { comboMultiplier, pairScore } from '@mm/engine';
 
+/**
+ * CÔNG TẮC MỞ CHO NGƯỜI CHƠI. `false` (chủ dự án 28.10.2026: "tạm ẩn, cần nghiên cứu thêm"): không có
+ * bước Thể loại trong Chơi nhanh, không nhãn "Mới", không mục trong Luật chơi, `?mua=1` không mở —
+ * chỉ còn lối vào ở trang Debug. Bật lại = `true`, không phải sửa chỗ nào khác.
+ */
+export const MUA_THE_MO = false;
+
 export { comboMultiplier };
 
 /** Số cột người chơi chọn được: 4 → 8 (8 = số cột lớn nhất của bàn thường, 88 thẻ 8×11). Mặc định 6

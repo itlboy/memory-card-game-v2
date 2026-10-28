@@ -16,12 +16,13 @@ import OnlineScreen from './components/OnlineScreen.vue';
 import ResultDialog from './components/ResultDialog.vue';
 import RulesDialog from './components/RulesDialog.vue';
 import DebugDialog from './components/DebugDialog.vue';
+import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
 import type { XemFx } from './components/DebugMenu.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
-import { ghiQuery } from '@/lib/appUrl';
+import { ghiQuery, urlApp } from '@/lib/appUrl';
 import { laApp } from '@/lib/native';
 import { t } from '@/lib/i18n';
 import IconDefs from './components/IconDefs.vue';
@@ -462,7 +463,7 @@ onMounted(() => {
     if (!restoreGame()) setUrl(null);
   } else if (q.get('online') === '1') {
     screen.value = 'online';           // F5 ở màn vào online
-  } else if (q.get('mua') === '1') {
+  } else if (q.get('mua') === '1' && (MUA_THE_MO || debug.value)) {
     screen.value = 'mua-the';          // F5 ở Mưa Thẻ: về màn mở đầu (ván dở không giữ — ván chỉ vài phút)
   } else if (q.get('w')) {
     /* bước wizard — MenuScreen tự khôi phục từ ?w= */
@@ -502,7 +503,9 @@ watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
   // logo về trang chủ: lau ?mua=1. Thoát bằng nút trong màn thì `veBuocTruoc` đã ghi ?w=kieu — giữ nguyên
-  else if (cu === 'mua-the' && sc === 'menu' && location.search.includes('mua=1')) setUrl(null);
+  // đọc `urlApp()` (URL app MUỐN), không `location`: Back của trình duyệt đã kéo location lùi về mục cũ, rồi
+  // useBackGuard ghi lại urlApp() — đọc location là bỏ sót và ?mua=1 sống lại (đo được 28.10.2026)
+  else if (cu === 'mua-the' && sc === 'menu' && urlApp().includes('mua=1')) setUrl(null);
 });
 
 /** Hết ván Mưa Thẻ: điểm vào TỔNG XU như mọi ván một mình (không ghi kỷ lục theo cỡ bàn — Mưa Thẻ có
