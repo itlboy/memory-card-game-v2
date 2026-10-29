@@ -148,6 +148,33 @@ if (buoc === 'token') {
     in_('số ván bắt đầu / kết thúc', await bao(t.property, d, m, { andGroup: { expressions: [khongVN,
       { filter: { fieldName: 'eventName', inListFilter: { values: ['van_bat_dau', 'van_ket_thuc'] } } }] } }), d, m);
   }
+} else if (buoc === 'ga-tong') {
+  // GA4 MỌI nước (kể cả Việt Nam), 28 ngày: tổng quan, nước, nguồn, thiết bị, người mới/quay lại, sự kiện.
+  const tk = await api('GET', 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries');
+  const ts = (tk.accountSummaries ?? []).flatMap((a) => a.propertySummaries ?? []);
+  const bao = (prop, dims, mets) => api('POST', `https://analyticsdata.googleapis.com/v1beta/${prop}:runReport`, {
+    dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }], dimensions: dims.map((name) => ({ name })),
+    metrics: mets.map((name) => ({ name })), limit: 30,
+    ...(dims.length ? { orderBys: [{ metric: { metricName: mets[0] }, desc: true }] } : {})
+  });
+  const in_ = (tieuDe, r, dims, mets) => {
+    console.log(`\n== ${tieuDe} ==\n  ${[...dims, ...mets].join(' | ')}`);
+    if (!r.rows?.length) console.log('  (chưa có dữ liệu)');
+    for (const x of r.rows ?? []) console.log('  ' + [...(x.dimensionValues ?? []).map((v) => v.value), ...x.metricValues.map((v) => (+v.value % 1 ? (+v.value).toFixed(1) : v.value))].join(' | '));
+  };
+  const u = ['activeUsers', 'sessions', 'engagedSessions', 'averageSessionDuration'];
+  const bang = [['tổng', [], [...u, 'newUsers', 'screenPageViews']], ['theo nước', ['country'], u],
+    ['theo nguồn / kênh', ['sessionSource', 'sessionMedium'], u], ['theo nhóm kênh', ['sessionDefaultChannelGroup'], u],
+    ['theo tên miền', ['hostName'], u], ['theo thiết bị', ['deviceCategory', 'operatingSystem'], u],
+    ['theo ngôn ngữ', ['language'], u], ['mới / quay lại', ['newVsReturning'], u],
+    ['trang đích', ['landingPage'], ['sessions', 'engagedSessions']], ['theo ngày', ['date'], ['activeUsers', 'sessions']],
+    ['sự kiện', ['eventName'], ['eventCount', 'totalUsers']]];
+  for (const t of ts) {
+    console.log(`\n##### ${t.displayName} (${t.property}) — mọi nước, 28 ngày #####`);
+    for (const [tieuDe, d, m] of bang) {
+      try { in_(tieuDe, await bao(t.property, d, m), d, m); } catch (e) { console.log(`\n== ${tieuDe} == LỖI ${e.message.slice(0, 150)}`); }
+    }
+  }
 } else if (buoc === 'ga-chien-dich') {
   // Ván Chiến dịch THẬT theo màn (mọi nước, 90 ngày): kết quả, sao, giây — cần custom dimension
   // man / ket_qua / sao ở GA (Admin → Custom definitions); thiếu thì API báo lỗi tên trường.
@@ -167,5 +194,5 @@ if (buoc === 'token') {
     for (const x of r.rows ?? []) console.log('  ' + [...x.dimensionValues.map((v) => v.value), x.metricValues[0].value].join(' | '));
   }
 } else {
-  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc | ga | ga-chien-dich'); process.exit(2);
+  console.error('Cách dùng: node tools/search-console.mjs token | xac-minh | trang-thai | luot-tim | chi-muc | ga | ga-tong | ga-chien-dich'); process.exit(2);
 }
