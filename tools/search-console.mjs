@@ -149,11 +149,12 @@ if (buoc === 'token') {
       { filter: { fieldName: 'eventName', inListFilter: { values: ['van_bat_dau', 'van_ket_thuc'] } } }] } }), d, m);
   }
 } else if (buoc === 'ga-tong') {
-  // GA4 MỌI nước (kể cả Việt Nam), 28 ngày: tổng quan, nước, nguồn, thiết bị, người mới/quay lại, sự kiện.
+  const TU = process.env.GA_TU || '28daysAgo';
+  // GA4 MỌI nước (kể cả Việt Nam), từ GA_TU (mặc định 28daysAgo; 'today' = hôm nay) tới hôm nay: tổng quan, nước, nguồn, thiết bị, người mới/quay lại, sự kiện.
   const tk = await api('GET', 'https://analyticsadmin.googleapis.com/v1beta/accountSummaries');
   const ts = (tk.accountSummaries ?? []).flatMap((a) => a.propertySummaries ?? []);
   const bao = (prop, dims, mets) => api('POST', `https://analyticsdata.googleapis.com/v1beta/${prop}:runReport`, {
-    dateRanges: [{ startDate: '28daysAgo', endDate: 'today' }], dimensions: dims.map((name) => ({ name })),
+    dateRanges: [{ startDate: TU, endDate: 'today' }], dimensions: dims.map((name) => ({ name })),
     metrics: mets.map((name) => ({ name })), limit: 30,
     ...(dims.length ? { orderBys: [{ metric: { metricName: mets[0] }, desc: true }] } : {})
   });
@@ -170,7 +171,7 @@ if (buoc === 'token') {
     ['trang đích', ['landingPage'], ['sessions', 'engagedSessions']], ['theo ngày', ['date'], ['activeUsers', 'sessions']],
     ['sự kiện', ['eventName'], ['eventCount', 'totalUsers']]];
   for (const t of ts) {
-    console.log(`\n##### ${t.displayName} (${t.property}) — mọi nước, 28 ngày #####`);
+    console.log(`\n##### ${t.displayName} (${t.property}) — mọi nước, ${TU} → today #####`);
     for (const [tieuDe, d, m] of bang) {
       try { in_(tieuDe, await bao(t.property, d, m), d, m); } catch (e) { console.log(`\n== ${tieuDe} == LỖI ${e.message.slice(0, 150)}`); }
     }

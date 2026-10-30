@@ -10,6 +10,10 @@ on:
         description: 'token | xac-minh | trang-thai | luot-tim | chi-muc | ga | ga-tong | ga-chien-dich'
         required: true
         default: trang-thai
+      tu:
+        description: 'ga-tong: ngày bắt đầu (today | 7daysAgo | 2026-10-01…)'
+        required: false
+        default: 28daysAgo
 jobs:
   chay:
     runs-on: ubuntu-latest
@@ -21,3 +25,4 @@ jobs:
         env:
           SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           OWNER_EMAIL: ${{ secrets.SEARCH_CONSOLE_OWNER }}
+          GA_TU: ${{ inputs.tu }}
