@@ -172,6 +172,14 @@ if (buoc === 'token') {
     ['sự kiện', ['eventName'], ['eventCount', 'totalUsers']]];
   for (const t of ts) {
     console.log(`\n##### ${t.displayName} (${t.property}) — mọi nước, ${TU} → today #####`);
+    // Thời gian thực (30 phút gần nhất) — báo cáo thường trễ vài giờ, số này thì không.
+    for (const d of [['country'], ['deviceCategory'], ['unifiedScreenName']]) {
+      try {
+        const r = await api('POST', `https://analyticsdata.googleapis.com/v1beta/${t.property}:runRealtimeReport`,
+          { dimensions: d.map((name) => ({ name })), metrics: [{ name: 'activeUsers' }], limit: 20 });
+        in_(`thời gian thực 30 phút — ${d[0]}`, r, d, ['activeUsers']);
+      } catch (e) { console.log(`\n== thời gian thực ${d[0]} == LỖI ${e.message.slice(0, 150)}`); }
+    }
     for (const [tieuDe, d, m] of bang) {
       try { in_(tieuDe, await bao(t.property, d, m), d, m); } catch (e) { console.log(`\n== ${tieuDe} == LỖI ${e.message.slice(0, 150)}`); }
     }
