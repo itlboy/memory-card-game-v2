@@ -38,9 +38,9 @@ Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 Flip Match: Matching Card Game
 ```
 
-**Play title** (30) — Google Play (Play không bị phản đối, giữ từ khoá "memory")
+**Play title** (30) — Google Play. Cũng KHÔNG "Memory" (đổi lúc lên production 02.11.2026, cho khớp App Store)
 ```
-Flip Match: Memory Card Game
+Flip Match: Matching Card Game
 ```
 
 **Subtitle** (30) — App Store
@@ -608,9 +608,9 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 Flip Match: Найди пару
 ```
 
-**Play title** (30) — Google Play (giữ từ khoá)
+**Play title** (30) — Google Play. KHÔNG "Мемори" (02.11.2026, khớp App Store)
 ```
-Flip Match: Мемори, найди пару
+Flip Match: Найди пару
 ```
 
 **Subtitle** (30)
