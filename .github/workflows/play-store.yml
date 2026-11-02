@@ -45,6 +45,8 @@ jobs:
         if: inputs.chup_anh
         env:
           KHUNG: android
+          # Bộ v2: màn thật + chữ quảng cáo (tools/anh-store-chu.mjs); ra 9 ảnh, Play lấy 8 đầu
+          KICHBAN: ${{ github.workspace }}/tools/chup-store-v2.mjs
           CHROME: /usr/bin/google-chrome
         run: |
           for L in en vi es pt fr de ja ko zh ru id th it tr zh-TW; do
