@@ -1,6 +1,7 @@
 import { nenApp } from './native';
 import { t } from './i18n';
 import { coTheLui } from '@/composables/useBackGuard';
+import { rung } from './rung';
 
 /**
  * NÚT BACK CỦA ANDROID trong app gói (chủ dự án báo 14.10.2026: "bấm Back ở wizard
@@ -51,8 +52,17 @@ function baoThoat(): void {
  * Tự làm thì không có ảnh chụp: kéo đủ xa rồi thả là `history.back()`, đi đúng chốt
  * của useBackGuard như nút Back Android. Không còn gì để lùi (trang chủ) thì không bắt.
  */
-const MEP_PX = 24;
+/*
+ * Cảm giác theo cử chỉ Back của Android (chủ dự án 03.11.2026: "iPhone kém Android, không có
+ * rung"): bản đầu chỉ có mũi tên ‹, trang đứng yên, không rung — như không có gì xảy ra.
+ * Nay cả `#app` co lại + lệch theo ngón (`.vuot-lui-trang`, --k 0..1), qua ngưỡng thì rung
+ * một chạm nhẹ, vuốt nhanh (flick) chưa tới ngưỡng cũng tính. Thả tay: màn đích đổi NGAY
+ * (luật đổi màn tức thì), chỉ độ co trả về 1 trong 0,15 giây.
+ */
+const MEP_PX = 30;
 const NGUONG_PX = 64;
+const FLICK_PX = 28;
+const FLICK_PX_MS = 0.5;
 
 export function ganVuotLuiIos(): void {
   if (nenApp !== 'ios') return;
@@ -60,20 +70,36 @@ export function ganVuotLuiIos(): void {
   let x0 = 0;
   let y0 = 0;
   let dx = 0;
+  let du = false;
+  let tTruoc = 0;
+  let xTruoc = 0;
+  let tocDo = 0;
   let mui: HTMLElement | null = null;
-  const thoi = () => { dang = false; mui?.remove(); mui = null; };
+  const trang = () => document.getElementById('app');
+  const thoi = () => {
+    dang = false; du = false; mui?.remove(); mui = null;
+    const el = trang();
+    if (el?.classList.contains('vuot-lui-trang')) {
+      el.classList.add('vuot-lui-tha');
+      el.style.setProperty('--k', '0');
+      setTimeout(() => el.classList.remove('vuot-lui-trang', 'vuot-lui-tha'), 150);
+    }
+  };
   const tuyChon = { passive: true, capture: true } as const;
 
   document.addEventListener('touchstart', (e) => {
     const ch = e.touches[0];
     if (e.touches.length !== 1 || !ch || ch.clientX > MEP_PX || !coTheLui()) return;
-    dang = true; x0 = ch.clientX; y0 = ch.clientY; dx = 0;
+    dang = true; x0 = ch.clientX; y0 = ch.clientY; dx = 0; du = false;
+    xTruoc = x0; tTruoc = e.timeStamp; tocDo = 0;
   }, tuyChon);
 
   document.addEventListener('touchmove', (e) => {
     const ch = e.touches[0];
     if (!dang || !ch) return;
     dx = ch.clientX - x0;
+    const dt = e.timeStamp - tTruoc;
+    if (dt > 0) { tocDo = (ch.clientX - xTruoc) / dt; xTruoc = ch.clientX; tTruoc = e.timeStamp; }
     const dy = Math.abs(ch.clientY - y0);
     if (dy > 40 && dy > dx) { thoi(); return; } // vuốt dọc, không phải lùi
     if (dx <= 8) return;
@@ -83,14 +109,25 @@ export function ganVuotLuiIos(): void {
       mui.setAttribute('aria-hidden', 'true');
       mui.textContent = '‹';
       document.body.appendChild(mui);
+      trang()?.classList.remove('vuot-lui-tha');
+      trang()?.classList.add('vuot-lui-trang');
     }
+    const k = String(Math.min(dx / NGUONG_PX, 1));
     mui.style.top = `${ch.clientY}px`;
-    mui.style.setProperty('--k', String(Math.min(dx / NGUONG_PX, 1)));
-    mui.classList.toggle('du', dx >= NGUONG_PX);
+    mui.style.setProperty('--k', k);
+    trang()?.style.setProperty('--k', k);
+    const duMoi = dx >= NGUONG_PX;
+    if (duMoi && !du) rung.moc();
+    du = duMoi;
+    mui.classList.toggle('du', du);
   }, tuyChon);
 
   document.addEventListener('touchend', () => {
-    if (dang && dx >= NGUONG_PX && coTheLui()) history.back();
+    const flick = dx >= FLICK_PX && tocDo >= FLICK_PX_MS;
+    if (dang && (dx >= NGUONG_PX || flick) && coTheLui()) {
+      if (!du) rung.moc();
+      history.back();
+    }
     thoi();
   }, tuyChon);
   document.addEventListener('touchcancel', thoi, tuyChon);

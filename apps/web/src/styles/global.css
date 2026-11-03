@@ -349,6 +349,15 @@ button {
   pointer-events: none; transition: scale .12s ease;
 }
 .vuot-lui.du { scale: 1.15; }
+/* Cả trang co lại + lệch theo ngón khi vuốt lùi (như predictive back Android). Dùng
+   `scale`/`translate` riêng, không `transform`; chỉ gắn lúc đang kéo nên không ảnh hưởng
+   position: fixed bên trong lúc thường. */
+#app.vuot-lui-trang {
+  scale: calc(1 - var(--k, 0) * .08); translate: calc(var(--k, 0) * 14px) 0;
+  border-radius: calc(var(--k, 0) * 28px); overflow: hidden; transform-origin: 100% 50%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, calc(var(--k, 0) * .35));
+}
+#app.vuot-lui-tha { transition: scale .15s ease, translate .15s ease, border-radius .15s ease, box-shadow .15s ease; }
 
 /* "Đã có bản mới — đang cập nhật…" (lib/ota.ts): thẻ giữa cột game, phủ nhẹ phía sau,
    giữ 1,5 giây rồi app tải lại sang gói mới. Đọc token skin, không viết màu tay. */

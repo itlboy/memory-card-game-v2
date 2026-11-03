@@ -7,18 +7,23 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 let coChot = true;
 vi.mock('@/lib/native', () => ({ nenApp: 'ios', laApp: true }));
 vi.mock('@/composables/useBackGuard', () => ({ coTheLui: () => coChot }));
+const moc = vi.fn();
+vi.mock('@/lib/rung', () => ({ rung: { moc: () => moc() } }));
 
-function cham(loai: string, x: number, y = 300): void {
+function cham(loai: string, x: number, y = 300, ts?: number): void {
   const e = new Event(loai, { bubbles: true });
+  if (ts !== undefined) Object.defineProperty(e, 'timeStamp', { value: ts });
   const ds = loai === 'touchend' ? [] : [{ clientX: x, clientY: y }];
   Object.defineProperty(e, 'touches', { value: ds });
   document.dispatchEvent(e);
 }
 
+/** Kéo chậm (10px mỗi 50ms) — không thành vuốt nhanh. */
+let dongHo = 0;
 function vuot(tu: number, den: number): void {
-  cham('touchstart', tu);
-  for (let x = tu; x <= den; x += 10) cham('touchmove', x);
-  cham('touchmove', den);
+  cham('touchstart', tu, 300, dongHo += 50);
+  for (let x = tu; x <= den; x += 10) cham('touchmove', x, 300, dongHo += 50);
+  cham('touchmove', den, 300, dongHo += 50);
   cham('touchend', den);
 }
 
@@ -68,5 +73,41 @@ describe('vuốt mép trái để lùi (iOS)', () => {
     expect(document.querySelector('.vuot-lui')).toBeNull();
     back.mockRestore();
     coChot = true;
+  });
+
+  it('qua ngưỡng thì rung đúng một nhịp, trang co theo ngón rồi trả lại', () => {
+    const back = vi.spyOn(history, 'back').mockImplementation(() => {});
+    const app = document.createElement('div');
+    app.id = 'app';
+    document.body.appendChild(app);
+    moc.mockClear();
+    cham('touchstart', 5);
+    cham('touchmove', 40);
+    expect(app.classList.contains('vuot-lui-trang')).toBe(true);
+    expect(moc).not.toHaveBeenCalled();
+    cham('touchmove', 100);
+    cham('touchmove', 120);
+    expect(moc).toHaveBeenCalledTimes(1);
+    cham('touchend', 120);
+    expect(moc).toHaveBeenCalledTimes(1);
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(app.style.getPropertyValue('--k')).toBe('0');
+    app.remove();
+    back.mockRestore();
+  });
+
+  it('vuốt nhanh chưa tới ngưỡng vẫn lùi (flick), kéo chậm thì không', () => {
+    const back = vi.spyOn(history, 'back').mockImplementation(() => {});
+    cham('touchstart', 5, 300, 1000);
+    cham('touchmove', 20, 300, 1010);
+    cham('touchmove', 45, 300, 1030);
+    cham('touchend', 45);
+    expect(back).toHaveBeenCalledTimes(1);
+    cham('touchstart', 5, 300, 2000);
+    cham('touchmove', 20, 300, 2200);
+    cham('touchmove', 45, 300, 2600);
+    cham('touchend', 45);
+    expect(back).toHaveBeenCalledTimes(1);
+    back.mockRestore();
   });
 });

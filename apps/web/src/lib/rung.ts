@@ -83,6 +83,8 @@ class Rung {
 
   ghep(streak: number): void { this.phat(nhipGhep(streak)); }
   sai(): void { this.phat(NHIP_SAI); }
+  /** Một chạm nhẹ khi vuốt lùi qua ngưỡng (lib/nut-back.ts) — như cử chỉ Back của Android. */
+  moc(): void { this.phat(NHIP_SAI); }
 
   /** Có đường rung nào trên máy này không — để giấu công tắc khi vô ích. */
   coTheRung(): boolean {
