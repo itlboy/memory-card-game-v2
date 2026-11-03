@@ -3,12 +3,15 @@
  * https://claude.ai/artifact/5F1wQPr3pkLuy8zDkKma9c). Mỗi cảnh: [dòng to, dòng phụ].
  * Con số phải khớp docs/ban-do.md (60 màn, 72 bộ hình, 100+ danh hiệu, online 4 người,
  * 4–88 thẻ). KHÔNG chữ "Memory" hay phiên âm của nó ở bất kỳ ngôn ngữ nào (Apple 5.2.1).
+ * `haiNguoi` (cảnh ván 2 người, thêm 03.11.2026) đi kèm `ten`: tên hai người gõ vào ván chụp.
  * Thứ tự cảnh: xem CANH trong tools/chup-store-kichban.mjs.
  */
 export const CHU = {
   en: {
     choi: ['Flip cards, find pairs', 'Look, remember, match'],
     thang: ['Every win is a party!', 'The panda celebrates with you'],
+    haiNguoi: ['Fun for the whole family', 'Up to 4 players on one phone'],
+    ten: ['Dad', 'Mia'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 levels', 'A new twist every level, plus boss stages'],
     boHinh: ['72 3D picture sets', 'All free'],
     may: ['Play vs computer', '5 levels, from chick to dragon'],
@@ -20,6 +23,8 @@ export const CHU = {
   vi: {
     choi: ['Lật thẻ, tìm cặp', 'Nhìn kỹ, nhớ nhanh, ghép đôi'],
     thang: ['Thắng là có tiệc!', 'Gấu trúc cười vang ăn mừng cùng bạn'],
+    haiNguoi: ['Thi tài cả nhà', 'Tới 4 người thay lượt trên một máy'],
+    ten: ['Bố', 'Na'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 màn chơi', 'Mỗi màn một luật mới, có cả màn trùm'],
     boHinh: ['72 bộ hình 3D', 'Tất cả miễn phí'],
     may: ['Đấu với máy', '5 mức, từ gà mờ tới rồng thần'],
@@ -31,6 +36,8 @@ export const CHU = {
   es: {
     choi: ['Voltea cartas, encuentra parejas', 'Mira, recuerda y empareja'],
     thang: ['¡Cada victoria es una fiesta!', 'El panda lo celebra contigo'],
+    haiNguoi: ['Diversión en familia', 'Hasta 4 jugadores en un teléfono'],
+    ten: ['Papá', 'Lía'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 niveles', 'Una regla nueva en cada nivel, con jefes finales'],
     boHinh: ['72 juegos de imágenes 3D', 'Todos gratis'],
     may: ['Contra la máquina', '5 niveles, del pollito al dragón'],
@@ -42,6 +49,8 @@ export const CHU = {
   pt: {
     choi: ['Vire cartas, ache os pares', 'Olhe, lembre e combine'],
     thang: ['Cada vitória é uma festa!', 'O panda comemora com você'],
+    haiNguoi: ['Diversão em família', 'Até 4 jogadores em um celular'],
+    ten: ['Pai', 'Bia'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 fases', 'Uma regra nova a cada fase, com chefões'],
     boHinh: ['72 conjuntos de imagens 3D', 'Todos grátis'],
     may: ['Contra o computador', '5 níveis, do pintinho ao dragão'],
@@ -53,6 +62,8 @@ export const CHU = {
   fr: {
     choi: ['Retourne, trouve les paires', 'Observe, retiens, associe'],
     thang: ['Chaque victoire, c’est la fête !', 'Le panda fait la fête avec toi'],
+    haiNguoi: ['Défie toute la famille', 'Jusqu’à 4 joueurs sur un téléphone'],
+    ten: ['Papa', 'Léa'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 niveaux', 'Une règle nouvelle à chaque niveau, et des boss'],
     boHinh: ['72 jeux d’images 3D', 'Tous gratuits'],
     may: ['Contre l’ordi', '5 niveaux, du poussin au dragon'],
@@ -64,6 +75,8 @@ export const CHU = {
   de: {
     choi: ['Karten umdrehen, Paare finden', 'Hinsehen, merken, zuordnen'],
     thang: ['Jeder Sieg ist eine Party!', 'Der Panda feiert mit dir'],
+    haiNguoi: ['Spaß für die ganze Familie', 'Bis zu 4 Spieler an einem Handy'],
+    ten: ['Papa', 'Mia'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 Level', 'Jedes Level eine neue Regel, dazu Bosslevel'],
     boHinh: ['72 3D-Bildersets', 'Alle kostenlos'],
     may: ['Gegen den Computer', '5 Stufen, vom Küken bis zum Drachen'],
@@ -75,6 +88,8 @@ export const CHU = {
   ja: {
     choi: ['めくって、ペアを探そう', 'よく見て、覚えて、そろえよう'],
     thang: ['勝ったらパーティー！', 'パンダも一緒に大よろこび'],
+    haiNguoi: ['家族みんなで対戦', '1台で最大4人まで交代プレイ'],
+    ten: ['パパ', 'ユイ'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60ステージ', 'ステージごとに新ルール、ボス戦も'],
     boHinh: ['3D絵柄 72種類', 'すべて無料'],
     may: ['コンピューター対戦', 'ひよこからドラゴンまで5段階'],
@@ -86,6 +101,8 @@ export const CHU = {
   ko: {
     choi: ['카드를 뒤집어 짝을 찾아요', '보고, 기억하고, 맞춰요'],
     thang: ['이기면 파티!', '판다가 함께 축하해요'],
+    haiNguoi: ['온 가족이 함께 대결', '한 폰으로 최대 4명이 번갈아'],
+    ten: ['아빠', '지우'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60개 스테이지', '스테이지마다 새로운 규칙, 보스전까지'],
     boHinh: ['3D 그림 세트 72종', '모두 무료'],
     may: ['컴퓨터 대전', '병아리부터 드래곤까지 5단계'],
@@ -97,6 +114,8 @@ export const CHU = {
   zh: {
     choi: ['翻开卡牌，找出一对', '看清楚，记住，配成对'],
     thang: ['赢了就开派对！', '熊猫和你一起庆祝'],
+    haiNguoi: ['全家一起比拼', '一部手机最多 4 人轮流玩'],
+    ten: ['爸爸', '小美'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 个关卡', '每关一条新规则，还有首领关'],
     boHinh: ['72 套 3D 图案', '全部免费'],
     may: ['人机对战', '从小鸡到神龙，5 个难度'],
@@ -108,6 +127,8 @@ export const CHU = {
   ru: {
     choi: ['Переворачивай и ищи пары', 'Смотри, запоминай, совмещай'],
     thang: ['Каждая победа — праздник!', 'Панда радуется вместе с тобой'],
+    haiNguoi: ['Играйте всей семьёй', 'До 4 игроков на одном телефоне'],
+    ten: ['Папа', 'Ия'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 уровней', 'Новое правило на каждом уровне и боссы'],
     boHinh: ['72 набора 3D-картинок', 'Все бесплатно'],
     may: ['Против компьютера', '5 уровней: от цыплёнка до дракона'],
@@ -119,6 +140,8 @@ export const CHU = {
   id: {
     choi: ['Balik kartu, cari pasangan', 'Lihat, ingat, cocokkan'],
     thang: ['Setiap menang itu pesta!', 'Si panda ikut merayakan'],
+    haiNguoi: ['Seru bareng keluarga', 'Hingga 4 pemain di satu ponsel'],
+    ten: ['Ayah', 'Nia'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 level', 'Aturan baru di tiap level, ada level bos'],
     boHinh: ['72 set gambar 3D', 'Semuanya gratis'],
     may: ['Lawan komputer', '5 tingkat, dari anak ayam sampai naga'],
@@ -130,6 +153,8 @@ export const CHU = {
   th: {
     choi: ['พลิกการ์ด หาคู่ให้เจอ', 'ดูให้ดี จำให้ได้ จับคู่ให้ถูก'],
     thang: ['ชนะทีไร ปาร์ตี้ทุกที!', 'แพนด้าฉลองไปกับคุณ'],
+    haiNguoi: ['แข่งกันทั้งครอบครัว', 'เล่นสลับกันได้ถึง 4 คนในเครื่องเดียว'],
+    ten: ['พ่อ', 'น้ำ'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 ด่าน', 'ทุกด่านมีกติกาใหม่ มีด่านบอสด้วย'],
     boHinh: ['ภาพ 3D 72 ชุด', 'ฟรีทั้งหมด'],
     may: ['เล่นกับคอม', '5 ระดับ ตั้งแต่ลูกเจี๊ยบถึงมังกร'],
@@ -141,6 +166,8 @@ export const CHU = {
   it: {
     choi: ['Gira le carte, trova le coppie', 'Guarda, ricorda, abbina'],
     thang: ['Ogni vittoria è una festa!', 'Il panda festeggia con te'],
+    haiNguoi: ['Sfida tutta la famiglia', 'Fino a 4 giocatori su un telefono'],
+    ten: ['Papà', 'Mia'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 livelli', 'Una regola nuova a ogni livello, con i boss'],
     boHinh: ['72 set di immagini 3D', 'Tutti gratis'],
     may: ['Contro il computer', '5 livelli, dal pulcino al drago'],
@@ -152,6 +179,8 @@ export const CHU = {
   tr: {
     choi: ['Kartları çevir, eşini bul', 'Bak, aklında tut, eşleştir'],
     thang: ['Her zafer bir parti!', 'Panda seninle kutluyor'],
+    haiNguoi: ['Tüm aile yarışsın', 'Tek telefonda 4 kişiye kadar'],
+    ten: ['Baba', 'Ece'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 bölüm', 'Her bölümde yeni kural, patron bölümleri de var'],
     boHinh: ['72 adet 3D resim seti', 'Hepsi ücretsiz'],
     may: ['Bilgisayara karşı', 'Civcivden ejderhaya 5 seviye'],
@@ -163,6 +192,8 @@ export const CHU = {
   'zh-TW': {
     choi: ['翻開卡牌，找出一對', '看清楚，記住，配成對'],
     thang: ['贏了就開派對！', '熊貓和你一起慶祝'],
+    haiNguoi: ['全家一起比拼', '一支手機最多 4 人輪流玩'],
+    ten: ['爸爸', '小美'],   // tên hai người trong ván chụp — NGẮN, ô tên cắt chữ dài
     chienDich: ['60 個關卡', '每關一條新規則，還有魔王關'],
     boHinh: ['72 套 3D 圖案', '全部免費'],
     may: ['對戰電腦', '從小雞到神龍，5 種難度'],
