@@ -640,6 +640,10 @@
   chủ (✕ ẩn hẳn, `mm.anCai`), menu ☰, Luật chơi, link `/?cai=1`. Tự nhận iOS/Android/trình duyệt nhúng (Zalo…
   → nhắc mở Safari/Chrome + chép link); Chrome Android có nút "Cài ngay" (`beforeinstallprompt`). Không hiện trong
   app (`laApp`) hay khi đã mở từ biểu tượng. Safari/Chrome đổi giao diện là vẽ lại `MinhHoaCai`.
+- **VUỐT LÙI iOS PHẢI ĐÃ TAY NHƯ ANDROID** (03.11.2026, chủ dự án: "iPhone kém Android, không rung"):
+  `ganVuotLuiIos` (lib/nut-back.ts) co cả `#app` theo ngón (`.vuot-lui-trang`, scale/translate riêng),
+  qua ngưỡng 64px rung một chạm `rung.moc()`, vuốt nhanh ≥28px cũng lùi, mép bắt 30px. Thả tay: màn
+  đích đổi ngay, chỉ độ co trả về 0,15s. Đừng quay lại kiểu chỉ có mũi tên, trang đứng yên.
 - **Nút Back Android cần `@capacitor/app`** (`lib/nut-back.ts`): thiếu plugin là Back
   thoát thẳng app kể cả giữa wizard. Ngôn ngữ app đồng bộ hai chiều với Cài đặt máy
   (`lib/ngon-ngu-app.ts`, plugin `NgonNguApp`, khoá `mm.langMay`, Android `localeConfig`).
