@@ -10,6 +10,7 @@
  "cta.webSmall": "Gratuit · sans installation",
  "cta.web": "Jouer dans le navigateur",
  "cta.soon": "Bientôt disponible",
+ "cta.get": "Téléchargement gratuit",
  "cta.ios": "App Store",
  "cta.android": "Google Play",
  "about.b1": "Sans pub",
@@ -118,6 +119,9 @@
  "r6.l": "<li>Un tout nouveau look : des boutons 3D en relief et des cartes plus vraies que nature, agréables à toucher.</li>\n          <li>Mode clair et mode sombre : il suit votre téléphone, ou choisissez-le dans les Réglages.</li>\n          <li>Un petit animal s'invite à la fin de chaque partie : un panda sourit quand vous gagnez, un lion pleure à chaudes larmes quand vous perdez, et deux souris se cognent la tête en cas d'égalité.</li>\n          <li>Les points sont désormais des pièces brillantes ; les étoiles notent seulement les niveaux de la campagne.</li>",
  "g6": "Mode sombre",
  "g7": "Une partie en mode sombre",
+ "g8": "Deux joueurs, un téléphone",
+ "g9": "Contre l’ordi",
+ "g10": "Campagne de 60 niveaux",
  "game.title": "Flip Match – Jeu de Mémoire Gratuit en Ligne",
  "game.desc": "Jeu de mémoire gratuit dans le navigateur ou l'appli : retournez les cartes, trouvez les paires, en solo, contre l'ordi ou en ligne entre amis. Sans pub."
 }

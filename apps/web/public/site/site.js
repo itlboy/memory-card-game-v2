@@ -83,7 +83,7 @@
   document.querySelectorAll('[data-store]').forEach((a) => {
     const s = STORE[a.dataset.store];
     if (!s) return;
-    if (s.on) { a.href = s.url; a.removeAttribute('aria-disabled'); a.querySelector('[data-soon]')?.remove(); }
+    if (s.on) { a.href = s.url; a.removeAttribute('aria-disabled'); a.querySelector('[data-soon]')?.remove(); a.querySelector('[data-get]')?.removeAttribute('hidden'); }
     else { a.removeAttribute('href'); a.setAttribute('aria-disabled', 'true'); }
   });
 

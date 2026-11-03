@@ -10,6 +10,7 @@
  "cta.webSmall": "Grátis · sem instalar",
  "cta.web": "Jogue no navegador",
  "cta.soon": "Em breve",
+ "cta.get": "Baixe grátis",
  "cta.ios": "App Store",
  "cta.android": "Google Play",
  "about.b1": "Sem anúncios",
@@ -118,6 +119,9 @@
  "r6.l": "<li>Um visual todo novo: botões 3D em relevo e cartas com cara de reais, gostosas de tocar.</li>\n          <li>Modo claro e escuro — segue o seu celular, ou escolha um nos Ajustes.</li>\n          <li>Um amigo bichinho aparece no fim de cada partida: um panda sorri quando você ganha, um leão chora alto quando você perde e, no empate, dois ratinhos batem as cabeças.</li>\n          <li>Os pontos agora são moedas brilhantes; as estrelas só avaliam as fases da campanha.</li>",
  "g6": "Modo escuro",
  "g7": "Jogando no modo escuro",
+ "g8": "Dois jogadores, um celular",
+ "g9": "Contra o computador",
+ "g10": "Campanha de 60 fases",
  "game.title": "Flip Match – Jogo da Memória Online Grátis",
  "game.desc": "Jogo da memória grátis no navegador ou app: vire as cartas, ache os pares e jogue sozinho, contra o computador ou online com amigos. Sem anúncios."
 }
