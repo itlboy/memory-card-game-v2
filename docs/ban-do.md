@@ -20,7 +20,7 @@ khuôn dựng các ngôn ngữ khác); `store` = `docs/store-listing.md` (15 m�
 
 | Sự thật | Nguồn gốc | Nhắc lại ở | Kiểm tra |
 |---|---|---|---|
-| **60 màn Chiến dịch**, 12 cỡ bàn, số màn theo độ sâu (1·2·4·5·5·6·6·6·6·6·6·7) | `LUAT_THEO_CO`, `BOARDS` — `packages/engine/src/campaign.ts` | trang `about.lead`, `f1.p`, `about.desc`, `changes` (r4) · site-i18n cùng khoá · store (mô tả) · app: `menu.chienDichMo`, `lc.chienDichB` (tự) · CLAUDE.md mục Chiến dịch | `campaign.test.ts` |
+| **60 màn Chiến dịch**, 12 cỡ bàn, số màn theo độ sâu (1·2·4·5·5·6·6·6·6·6·6·7) | `LUAT_THEO_CO`, `BOARDS` — `packages/engine/src/campaign.ts` | trang `about.lead`, `f1.p`, `about.desc`, `g10` (chú thích ảnh), `changes` (r4) · site-i18n cùng khoá · store (mô tả) · app: `menu.chienDichMo`, `lc.chienDichB` (tự) · CLAUDE.md mục Chiến dịch | `campaign.test.ts` |
 | **12 cỡ bàn, 4 → 88 thẻ** | `BOARDS` (campaign.ts) | trang `f1.p`, `g5` · site-i18n · store | `campaign.test.ts`, `board-fit.test.ts` |
 | **Sao = số lần quên**, mốc theo cỡ bàn, **sao thứ 4** = không quên | `sao` trong `BOARDS`, `starsByMisses`, `summary.hoanHao` | trang `f1.p`, `q4/a4`, r4 · site-i18n · store · RulesDialog (`lc.chienDich` cả 15 từ điển) · CLAUDE.md | `quen.test.ts` |
 | **Giờ / tim / mốc sao Chiến dịch** = bảng đo `DO_MAN` (sinh bằng mô phỏng, không sửa tay) | `DO_MAN` (campaign.ts) ← `test/do-chien-dich.test.ts` | CLAUDE.md | `campaign.test.ts` |

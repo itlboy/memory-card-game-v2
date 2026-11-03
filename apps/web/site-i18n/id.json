@@ -10,6 +10,7 @@
  "cta.webSmall": "Gratis · tanpa instal",
  "cta.web": "Main di browser",
  "cta.soon": "Segera hadir",
+ "cta.get": "Unduh gratis",
  "cta.ios": "App Store",
  "cta.android": "Google Play",
  "about.b1": "Tanpa iklan",
@@ -118,6 +119,9 @@
  "r6.l": "<li>Tampilan serba baru: tombol 3D yang timbul dan kartu yang terlihat nyata, seru untuk diketuk.</li>\n          <li>Mode terang dan gelap — mengikuti ponselmu, atau pilih sendiri di Pengaturan.</li>\n          <li>Teman hewan muncul di akhir setiap permainan: panda tersenyum saat kamu menang, singa menangis keras saat kamu kalah, dan dua tikus beradu kepala saat seri.</li>\n          <li>Poin kini berupa koin berkilau; bintang hanya untuk menilai level kampanye.</li>",
  "g6": "Mode gelap",
  "g7": "Bermain dalam mode gelap",
+ "g8": "Dua pemain, satu ponsel",
+ "g9": "Lawan komputer",
+ "g10": "Kampanye 60 level",
  "game.title": "Game Memori Online: Cocokkan Gambar Kartu | Flip Match",
  "game.desc": "Game memori gratis tanpa install & tanpa iklan: balik kartu, cari pasangan gambar, asah otak. Main sendiri, lawan bot, atau online bareng teman."
 }

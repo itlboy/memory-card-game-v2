@@ -10,6 +10,7 @@
  "cta.webSmall": "Gratis · senza installare",
  "cta.web": "Gioca nel browser",
  "cta.soon": "In arrivo",
+ "cta.get": "Scarica gratis",
  "cta.ios": "App Store",
  "cta.android": "Google Play",
  "about.b1": "Niente pubblicità",
@@ -118,6 +119,9 @@
  "r6.l": "<li>Un look tutto nuovo: pulsanti 3D in rilievo e carte realistiche, divertenti da toccare.</li>\n          <li>Modalità chiara e scura: segue il tuo telefono, oppure scegline una nelle Impostazioni.</li>\n          <li>Alla fine di ogni partita arriva un amico animale: un panda sorride quando vinci, un leone piange a dirotto quando perdi e, in caso di pareggio, due topolini si danno una testata.</li>\n          <li>I punti ora sono monete luccicanti; le stelle valutano solo i livelli della campagna.</li>",
  "g6": "Modalità scura",
  "g7": "Giocare in modalità scura",
+ "g8": "Due giocatori, un telefono",
+ "g9": "Contro il computer",
+ "g10": "Campagna di 60 livelli",
  "game.title": "Gioco di memoria online gratis: trova le coppie | Flip Match",
  "game.desc": "Gioco di memoria gratis, senza download né pubblicità: gira le carte e trova le coppie. Da solo, contro il bot o online con gli amici."
 }

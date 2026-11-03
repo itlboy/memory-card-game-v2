@@ -72,10 +72,16 @@ a { color: var(--violet); text-underline-offset: 3px; }
 }
 .btn small { display: block; font: 700 11px/1.2 var(--body); opacity: .75; letter-spacing: .3px; text-transform: uppercase; }
 .btn svg { flex: none; width: 24px; height: 24px; }
+.btn small[hidden] { display: none; }
+/* Hero: "Chơi ngay" một hàng, hai nút store chia đôi hàng dưới — cùng cỡ, cùng có dòng chữ nhỏ
+   (trước xếp flex-wrap: ba nút ba cỡ, Google Play rớt dòng một mình — chủ dự án chê 03.11.2026) */
+.hero .btns { display: grid; grid-template-columns: 1fr 1fr; width: min(100%, 460px); }
+.hero .btns .btn.play { grid-column: 1 / -1; }
+.hero .btns .btn.store { justify-content: flex-start; padding-inline: 18px; }
 .btn.play { background: var(--green); color: #fff; text-shadow: 0 2px 0 var(--green-deep); }
-.btn.store { background: var(--navy); color: #fff; box-shadow: 0 5px 0 #0d1533; }
+.btn.store { background: #fff; color: var(--navy); }   /* nền trắng: logo Google Play nhiều màu nổi (nền navy bị chê tối, 03.11.2026) */
 .btn[aria-disabled="true"] { background: #fff; color: var(--muted); border-style: dashed; border-color: color-mix(in srgb, var(--navy) 45%, transparent); box-shadow: none; cursor: default; }
-@media (hover: hover) { .btn:not([aria-disabled="true"]):hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--navy); } .btn.store:hover { box-shadow: 0 7px 0 #0d1533; } }
+@media (hover: hover) { .btn:not([aria-disabled="true"]):hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--navy); } }
 .btn:not([aria-disabled="true"]):active { transform: translateY(3px); box-shadow: 0 2px 0 var(--navy); }
 
 /* ---------- Khối chung ---------- */
@@ -124,7 +130,8 @@ img[src*="-toi-"] { background-color: #080c26 !important; }
 @media (max-width: 900px) {
   .hero .wrap { grid-template-columns: 1fr; text-align: center; }
   .hero .lead { margin-inline: auto; }
-  .hero .btns, .badges { justify-content: center; }
+  .hero .btns { margin-inline: auto; }
+  .badges { justify-content: center; }
   .phones { margin: 8px auto 0; width: min(100%, 520px); }
   .phone { border-width: 5px; border-radius: 24px; }
 }

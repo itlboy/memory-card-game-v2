@@ -10,6 +10,7 @@
  "cta.webSmall": "Ücretsiz · kurulum yok",
  "cta.web": "Tarayıcında oyna",
  "cta.soon": "Çok yakında",
+ "cta.get": "Ücretsiz indir",
  "cta.ios": "App Store",
  "cta.android": "Google Play",
  "about.b1": "Reklam yok",
@@ -118,6 +119,9 @@
  "r6.l": "<li>Yepyeni bir görünüm: dokunması keyifli, kabarık 3D düğmeler ve gerçek gibi görünen kartlar.</li>\n          <li>Açık ve koyu mod — telefonunuzu izler ya da Ayarlar'dan siz seçersiniz.</li>\n          <li>Her oyunun sonunda bir hayvan dost çıkıyor: kazanınca panda gülümsüyor, kaybedince aslan hüngür hüngür ağlıyor, berabere kalınca iki fare kafa tokuşturuyor.</li>\n          <li>Puanlar artık parlak altınlar; yıldızlar yalnızca kampanya seviyelerini puanlıyor.</li>",
  "g6": "Koyu mod",
  "g7": "Koyu modda oyun",
+ "g8": "İki oyuncu, tek telefon",
+ "g9": "Bilgisayara karşı",
+ "g10": "60 bölümlük macera",
  "game.title": "Hafıza Oyunu Oyna: Kart Eşleştirme, Eşini Bul | Flip Match",
  "game.desc": "Ücretsiz hafıza oyunu, indirmeden ve reklamsız: kartları çevir, eşini bul. Tek başına, bota karşı ya da arkadaşlarınla online oyna."
 }
