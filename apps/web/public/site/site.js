@@ -22,12 +22,12 @@
 
   /*
    * NÚT STORE: bật khi app ĐÃ lên store công khai. Chưa lên thì nút hiện "Sắp có"
-   * (link chết làm trang trông như lừa). App Store: 1.3.0 đang chờ duyệt;
-   * Google Play: mới ở kênh thử nội bộ (15.10.2026) — lên rồi thì đổi `on`.
+   * (link chết làm trang trông như lừa). App Store: chưa lên — lên rồi thì đổi `on`.
+   * Google Play: CÔNG KHAI (production) từ 03.11.2026.
    */
   const STORE = {
     ios: { on: false, url: 'https://apps.apple.com/app/id6822105774' },
-    android: { on: false, url: 'https://play.google.com/store/apps/details?id=com.cozypi.flipmatch' }
+    android: { on: true, url: 'https://play.google.com/store/apps/details?id=com.cozypi.flipmatch' }
   };
 
   const doc = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
