@@ -19,6 +19,12 @@ Kịch bản ở `tools/chup-store-kichban.mjs`; thêm ngôn ngữ = thêm một
 ảnh bìa (feature graphic) 1024×500 — dựng từ `tools/og/og.html` đổi chữ sang tiếng
 Anh — và icon 512×512 (`apps/web/public/icon-512.png`).
 
+**Ảnh Play hiện dùng bộ v2** (`KICHBAN=tools/chup-store-v2.mjs`, CI `play-store.yml`): màn thật trong
+khung máy + chữ quảng cáo (`tools/anh-store-chu.mjs`). 10 cảnh, Play lấy 8 đầu: chơi · thắng ·
+**2 người cùng máy** · chiến dịch · bộ hình · đấu máy · online · danh hiệu (rồi sáng/tối · cỡ bàn chỉ
+App Store). Máy phải hiện TRỌN, không cắt đáy (03.11.2026). Tên người trong cảnh 2 người phải NGẮN
+(ô tên người chưa tới lượt cắt chữ: "Маша" ra "Ма…").
+
 ## Chung
 
 | Trường | Giá trị |
