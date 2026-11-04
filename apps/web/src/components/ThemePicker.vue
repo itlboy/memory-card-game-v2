@@ -110,9 +110,9 @@ function cham(x: CardTheme): void {
       type="button"
       @click="cham(x)"
     >
-      <!-- 4 icon 2×2, vẽ như mặt bài (ảnh Noto 3D) — nhìn icon là hiểu theme (17.10.2026) -->
+      <!-- Tới 12 icon xem trước, vẽ như mặt bài (ảnh Noto 3D) — ô to hiện nhiều, ô nhỏ hiện ít (theme-grid.css) -->
       <span class="theme-sample" aria-hidden="true">
-        <template v-for="s in x.symbols.slice(0, 4)" :key="s">
+        <template v-for="s in x.symbols.slice(0, 12)" :key="s">
           <img v-if="anhEmoji(s)" class="tm-anh" :src="anhEmoji(s, undefined, 128)!" alt="" draggable="false">
           <span v-else class="tm-chu">{{ s }}</span>
         </template>

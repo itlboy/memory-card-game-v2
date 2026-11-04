@@ -1077,13 +1077,14 @@
   thẳng tên luật trong toàn bộ mã nguồn, đừng đi theo trí nhớ. Icon trong hướng
   dẫn dùng CÙNG bộ với icon của luật đó trong màn chơi, để đọc xong nhận ra ngay.
 - **LƯỚI THEME LÀ MỘT BẢN CSS DÙNG CHUNG** (`styles/theme-grid.css`), hai màn
-  (MenuScreen và OnlineScreen) dùng `ThemePicker.vue`. **Ô NHỎ, NHÌN ICON LÀ HIỂU** (chủ dự án
-  17.10.2026 chọn sau ảnh so sánh: "chữ không quá quan trọng, họ sẽ nhìn icon"): 6 CỘT (trần 6 —
-  36 · 24 · 12 theme mỗi tab chia hết cho 6), ô ~50×40px (`--o-cao` = clamp(38px, --app-h*0.06,
-  56px)), mỗi ô 4 icon 2×2 vẽ bằng ẢNH Noto 3D cỡ 128 như mặt bài, KHÔNG tên (tên ở aria-label +
-  title), dấu ✓ thò ra góc ô (`overflow: visible`). Đánh đổi ĐÃ CHẤP NHẬN: ô dưới ngưỡng chạm
-  44px. iPhone 14 thấy 36 theme một lần (trước 9). Hàng CỐ ĐỊNH + `align-content: start`, hết chỗ
-  thì cuộn TRONG khung (nút Tiếp đứng yên). `test/theme-grid.test.ts` canh.
+  (MenuScreen và OnlineScreen) dùng `ThemePicker.vue`. **12 THEME, Ô TO CÓ TÊN** (chủ dự án
+  04.11.2026, sau khi gộp 72 theme còn 12 — trước đó 17.10.2026 là ô tí hon 6 cột không tên):
+  3 cột điện thoại, trần 4 cột máy rộng (12 chia hết cho 3 và 4); hàng `minmax(--o-cao, 1fr)` lấp
+  kín khung, sàn `--o-cao` 62px (thấp hơn là tên hai dòng đè icon — SE tiếng Nga), màn thấp thì
+  CUỘN TRONG khung (iPhone SE), nút Tiếp đứng yên. **Số icon xem trước TỰ THEO CỠ Ô** (chủ dự án:
+  "màn nhỏ thì hiện ít hơn, làm thông minh"): render sẵn 12, container query chọn 4×1 (điện
+  thoại) · 3×2/4×2 · 3×3/4×3 · 3×4 (iPad dọc), ảnh lấp ô lưới `minmax(0,1fr)` (đừng tính px tay —
+  đã ra icon 7px). Đã đo SE · iPhone 14 · cột 543 · iPad. `test/theme-grid.test.ts` canh.
 - **`#app` LẤY CHIỀU CAO TỪ `--app-h` (JS đo), `100dvh` chỉ là dự phòng.**
   `useViewportLock.ts` đo `innerHeight` và kéo document về 0 ở mọi lối trang hiện
   lại, kèm `history.scrollRestoration = 'manual'`. Không có nó thì mở lại Chrome
@@ -1102,8 +1103,8 @@
 - **Lớp hiệu ứng kết ván ở `z-index: 9`, DƯỚI hộp kết quả (10).** `DefeatFx` cũ
   để 40 nên lớp xám và vết rạn phủ luôn lên bảng tỉ số (đã bị báo lỗi, có ảnh).
   Đặt dưới còn làm `backdrop-filter` chỉ lọc bàn thẻ và HUD, đúng thứ cần lọc.
-- **Lưới chọn theme CUỘN TRONG KHUNG, không nén ô nhỏ dần** — khác luật chung của wizard
-  (`grid-auto-rows: minmax(0,1fr)`). Cỡ ô xem mục "LƯỚI THEME" ở trên (17.10.2026). Chiều cao ô
+- **Lưới chọn theme CUỘN TRONG KHUNG, không nén ô dưới sàn** — khác luật chung của wizard
+  (`grid-auto-rows: minmax(0,1fr)`). Cỡ ô xem mục "LƯỚI THEME" ở trên (04.11.2026). Chiều cao ô
   phải XÁC ĐỊNH (clamp, không `auto`): `.option` có `container-type: size`, cỡ icon tính theo
   `cqw/cqh` của chính ô.
 - **MẶT BÀI VẼ BẰNG NOTO 3D TRÊN MỌI MÁY, KỂ CẢ APPLE** (15.10.2026; ban đầu chỉ máy không-Apple,
@@ -1117,7 +1118,7 @@
   `tai-noto3d` thoát lỗi + test `emoji-vector` đỏ → chọn emoji khác. Menu → nút "🐞 Debug" → trang Debug →
   "Bộ hình emoji" đổi Máy ⇄ Noto 3D (`mm.boEmoji`, chỉ máy đó; TẮT debug là về mặc định —
   `boEmojiVeMacDinh`). Thêm/sửa theme = `node tools/tai-noto3d.mjs`; chỉ emoji Unicode ≤14;
-  số theme MỖI TAB chia hết cho 12. TẢI TRƯỚC lúc chia bài (`taiTruocAnh` trong BoardGrid,
+  số theme MỖI TAB chia hết cho 3 và 4 (hiện 12). TẢI TRƯỚC lúc chia bài (`taiTruocAnh` trong BoardGrid,
   web lần đầu lật từng ra ô trắng): offline lấy symbol của thẻ, online lấy `hinhCuaBan` —
   CỬA THỨ HAI của predeal, chỉ TẬP hình Set+sort, KHÔNG vị trí (test/predeal canh). Cỡ ĐOÁN
   trước khi đo = bề ngang ÷ số cột (đoán sai là mỗi hình tải hai lần — đã đo). Mục dưới là lịch sử:
@@ -1130,7 +1131,7 @@
   Ghi công ở `lc.ghiCong`.
 - **THEME PREMIUM (14.10.2026): MỘT gói mở hết, theme KHÔNG còn mở bằng điểm.**
   Cờ `premium` trong themes.json (+ `THEME_PREMIUM` ở server, test canh khớp). **TỪ 21.10.2026
-  CẢ 72 THEME MIỄN PHÍ** (chủ dự án: "chế độ premium tính sau") — không theme nào mang cờ,
+  MỌI THEME MIỄN PHÍ** (chủ dự án: "chế độ premium tính sau") — không theme nào mang cờ,
   `THEME_PREMIUM` rỗng; máy móc premium (cờ, tab, `choiDuoc`, skin/nhạc premium) GIỮ để làm sau.
   Hình kinh dị/thuốc/bài lá ở myth/halloween/games/lab đã thay để giữ 4+. Hỏi quyền CHỈ qua `choiDuoc()` ở `lib/premium.ts` — đợt
   này CHƯA BÁN THẬT (nút mua báo "sắp có", `mm.premium='1'` để thử giao diện đã mua);
@@ -1165,6 +1166,14 @@
   `width: 100%` (margin auto làm nó co còn 340px). Đã đo 6 khổ dọc+ngang: không cuộn,
   không nút lòi. Ảnh store iPad: `KHUNG=ipad` (2064×2752, `<lang>-ipad/`, asc-store
   `-f chup_ipad=true`). Chụp khổ iPad phải chờ 5 giây (2 giây còn trắng trơn).
+- **72 THEME GỘP CÒN 12 (04.11.2026, chủ dự án: "72 theme cho người dùng chọn là quá nhiều")**:
+  mỗi theme mới là hợp các bộ cũ + icon bổ sung (62–250 icon/theme, ~1.360 tổng); bàn bốc ngẫu
+  nhiên đủ cặp. `packages/engine/src/theme-gop.ts` (`THEME_GOP`, `themeMoi`, `doiThemeIds`,
+  `doiDanhHieu`) đổi id CŨ → mới ở mọi cửa: prefs đã lưu (`storage.prefs`), danh hiệu
+  `theme-<cũ>` (`storage.achievements`/`unlockAchievements`, `moKhoa` cho đồng bộ tài khoản —
+  chủ dự án chọn GIỮ thành tích), cấu hình phòng app cũ gửi lên + phòng đã lưu (`room.ts`
+  setConfig/prepareGame/roomInfo). ĐỪNG xoá dòng nào trong bảng: app chưa cập nhật gửi id cũ
+  hàng tháng sau. Chữ quảng cáo KHÔNG ghi số theme/icon ("rất nhiều theme, icon 3D đẹp").
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).

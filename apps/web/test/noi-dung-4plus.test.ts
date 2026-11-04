@@ -42,7 +42,7 @@ const maCo = (s: string): string | null => {
 };
 
 describe('bộ hình hợp app 4+', () => {
-  it('có đủ dữ liệu để kiểm (ít nhất 40 theme)', () => { expect(THEMES.length).toBeGreaterThan(40); });
+  it('có đủ dữ liệu để kiểm (đủ 12 theme)', () => { expect(THEMES.length).toBeGreaterThanOrEqual(12); });
 
   it('không emoji CẤM nào (trừ ngoại lệ có ngữ cảnh)', () => {
     const loi: string[] = [];

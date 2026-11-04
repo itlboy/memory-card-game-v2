@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   LEVEL_KEYS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
-  backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, seedFrom, xoayNguoiDau
+  backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, doiThemeIds, seedFrom, themeMoi, xoayNguoiDau
 } from '@mm/engine';
 import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
@@ -605,8 +605,9 @@ export class RoomDO extends DurableObject<Env> {
          */
         if (c.options) this.room.config.options = sanitizeOptions(c.options);
         if (Array.isArray(c.themeIds)) {
-          const valid = [...new Set(c.themeIds)]
-            .filter((id): id is string => typeof id === 'string' && Object.hasOwn(THEME_SYMBOLS, id));
+          // App bản cũ còn gửi id của 72 theme trước 04.11.2026 → đổi sang nhóm mới rồi mới lọc
+          const valid = [...new Set(c.themeIds.filter((id): id is string => typeof id === 'string').map(themeMoi))]
+            .filter((id) => Object.hasOwn(THEME_SYMBOLS, id));
           if (valid.length) this.room.config.themeIds = valid;
         }
         await this.save();
@@ -1235,7 +1236,8 @@ export class RoomDO extends DurableObject<Env> {
     const room = this.room!;
     // Trộn biểu tượng của mọi theme đã chọn (loại trùng)
     const symbols = [...new Set(
-      room.config.themeIds.flatMap((id) => THEME_SYMBOLS[id] ?? [])
+      // themeMoi: phòng lưu từ trước 04.11.2026 còn giữ id theme cũ
+      room.config.themeIds.flatMap((id) => THEME_SYMBOLS[themeMoi(id)] ?? [])
     )];
     // themeIds rỗng (phòng tạo nhanh, chưa qua wizard) → dùng mọi theme MIỄN PHÍ
     // server có, thay vì tụt về một bộ duy nhất (premium thì chủ phòng phải tự chọn)
@@ -1370,7 +1372,8 @@ export class RoomDO extends DurableObject<Env> {
     return {
       code: room.code,
       hostId: room.hostId,
-      config: room.config,
+      // Phòng lưu trước 04.11.2026 có thể còn id theme cũ: client mới chỉ biết 12 id mới
+      config: { ...room.config, themeIds: doiThemeIds(room.config.themeIds) },
       status: room.status,
       againVotes: [...this.againVotes],
       // Phòng cũ lưu trước ON-10 không có trường này — coi như công khai, đúng

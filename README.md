@@ -2,8 +2,8 @@
 
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
 Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
-(có nói nhanh bằng 12 câu có sẵn); 72 theme (tất cả miễn phí), 15 ngôn ngữ,
-tài khoản Google/Apple, 153 danh hiệu, hiệu ứng thắng/thua/hoà có thú tự vẽ (gấu trúc · sư tử · chuột) + tiếng + rung.
+(có nói nhanh bằng 12 câu có sẵn); 12 theme lớn (~1.360 icon, tất cả miễn phí), 15 ngôn ngữ,
+tài khoản Google/Apple, 93 danh hiệu, hiệu ứng thắng/thua/hoà có thú tự vẽ (gấu trúc · sư tử · chuột) + tiếng + rung.
 Giao diện Kẹo 3D nổi khối, chế độ sáng / tối (tự theo máy).
 Trang công khai (giới thiệu, có gì mới, hỗ trợ, quyền riêng tư) 15 ngôn ngữ, dựng sẵn cho SEO.
 
@@ -156,7 +156,7 @@ server.js            Web server tĩnh cho bản build production
 | Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Bot siêu đẳng rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
-| Nội dung | 72 theme nạp từ `apps/web/public/data/themes.json`: **48 miễn phí + 24 premium** (cờ `premium`, một gói mở hết — chưa bán thật, nút mua báo "sắp có"). Bước chọn theme là `ThemePicker.vue` (tab Miễn phí / Premium, xem trước bộ hình, Chọn tất cả / Bỏ chọn), dùng chung chơi đơn + online. Không còn mở theme bằng điểm |
+| Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (gộp từ 72 ngày 04.11.2026, bảng đổi id cũ `packages/engine/src/theme-gop.ts`), tất cả miễn phí (máy móc premium giữ để làm sau). Bước chọn theme là `ThemePicker.vue` (tab Miễn phí / Premium, xem trước bộ hình, Chọn tất cả / Bỏ chọn), dùng chung chơi đơn + online. Không còn mở theme bằng điểm |
 | Lưu trữ | Kỷ lục, sao, tuỳ chọn, bộ đếm danh hiệu — localStorage (3.7). Đăng nhập thì đồng bộ lên tài khoản (xem dưới) |
 | Tài khoản | Đăng nhập Google (chỉ server Node, cần `MYSQL_URL` + `GOOGLE_CLIENT_ID`). Điểm, kỷ lục, danh hiệu đi theo người sang máy khác; mở app / quay lại tab / xong ván là đồng bộ, hợp theo MAX. Bảng xếp hạng top 20. Không đăng nhập vẫn chơi như cũ |
 | Danh hiệu | 127 mục, 12 nhóm, bậc Đồng/Bạc/Vàng/Bí mật (`lib/achievements.ts`). Viên 🏅 n/115 trên thanh trên mở màn Danh hiệu; mỗi danh hiệu chưa có có nút **Chinh phục** dựng ngay bàn đúng điều kiện; danh hiệu đếm có thanh tiến độ; bảng kết quả gợi ý danh hiệu kế tiếp |
@@ -307,7 +307,7 @@ node tools/tai-noto3d.mjs   # Noto 3D, ba cỡ WebP (cần cwebp: brew install w
 ```
 
 Không còn bộ dự phòng: emoji Noto 3D chưa có thì chọn emoji khác. Chỉ dùng emoji
-Unicode ≤14, không vũ khí/rượu/thuốc lá (hạng tuổi 4+); số theme mỗi tab chia hết cho 12.
+Unicode ≤14, không vũ khí/rượu/thuốc lá (hạng tuổi 4+); số theme mỗi tab chia hết cho 3 và 4 (hiện 12).
 
 ## Chơi online (v2.0)
 
@@ -731,7 +731,7 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
 - 24 theme mới (12 miễn phí + 12 premium): cờ châu Á/Âu/Mỹ/Phi, côn trùng, văn phòng,
   trong nhà, hình & màu, thú cưng, mọi người, sở thích, phong cảnh · premium: biểu cảm,
   rừng xanh, tiệc trà, vận động viên, đi chợ, biển báo, phòng thí nghiệm, cổ tích, cơ thể,
-  mùa thu, cờ dễ nhầm, cờ đảo quốc. Tổng 72 theme (48 + 24), 153 danh hiệu.
+  mùa thu, cờ dễ nhầm, cờ đảo quốc. Tổng 72 theme (48 + 24), 153 danh hiệu. (04.11.2026: gộp còn 12 theme, 93 danh hiệu.)
   Ảnh cả hai store chụp lại theo bộ mới.
 - Chiến dịch 60 màn: bàn nhỏ ít màn, bàn to nhiều màn (`LUAT_THEO_CO`), mỗi màn một luật — trơn · xem trước · xáo thẻ · tim · thẻ đặc biệt · nhanh · trùm 👑. Giờ, tim, mốc sao là bảng đo `DO_MAN` sinh bằng mô phỏng (`DO_CD=1` + `packages/engine/test/do-chien-dich.test.ts -t "sinh bảng"`).
   Sao tính theo số lần QUÊN (lật sai khi lá cùng cặp đã lộ), không theo giờ; sao thứ 4

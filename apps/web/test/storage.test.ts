@@ -37,7 +37,19 @@ describe('tuỳ chọn', () => {
 
   it('migration từ bản cũ chỉ lưu một theme', () => {
     localStorage.setItem('mm.v2', JSON.stringify({ prefs: { theme: 'fruits' } }));
-    expect(store.prefs().themes).toEqual(['fruits']);
+    // fruits đã gộp vào food (72 → 12 theme, 04.11.2026)
+    expect(store.prefs().themes).toEqual(['food']);
+  });
+
+  it('id của 72 theme cũ đổi sang nhóm mới, bỏ trùng, giữ thứ tự', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ prefs: { themes: ['cats', 'fruits', 'animals', 'space', 'veggies'] } }));
+    expect(store.prefs().themes).toEqual(['animals', 'food', 'ocean']);
+  });
+
+  it('danh hiệu theme cũ đọc ra thành danh hiệu của nhóm mới', () => {
+    localStorage.setItem('mm.v2', JSON.stringify({ achievements: ['first-win', 'theme-cats', 'theme-safari', 'theme-space'] }));
+    expect(store.achievements()).toEqual(['first-win', 'theme-animals', 'theme-ocean']);
+    expect(store.unlockAchievements(['theme-pets', 'theme-food'])).toEqual(['theme-food']);
   });
 
   it('mảng theme rỗng được giữ nguyên — App hiểu là "chưa chọn" và bật tất cả', () => {
@@ -47,7 +59,7 @@ describe('tuỳ chọn', () => {
 
   it('bản lưu cũ chỉ có một theme (khoá `theme`) vẫn được chuyển sang mảng', () => {
     localStorage.setItem('mm.v2', JSON.stringify({ prefs: { theme: 'fruits' } }));
-    expect(store.prefs().themes).toEqual(['fruits']);
+    expect(store.prefs().themes).toEqual(['food']);
   });
 
   it('localStorage bị chặn (chế độ riêng tư) thì vẫn chạy', () => {

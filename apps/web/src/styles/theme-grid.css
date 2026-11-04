@@ -30,39 +30,28 @@
    * nhét được cột thứ năm; máy hẹp vẫn tự về 3 cột như cũ.
    */
   /*
-   * Ô NHỎ, NHÌN ICON LÀ HIỂU (chủ dự án 17.10.2026: theme đã 48+, "mỗi ô giảm 1/2 mỗi chiều…
-   * chữ không quá quan trọng, họ sẽ nhìn icon"). 6 CỘT (trần 6: 36 · 24 · 12 theme mỗi tab đều
-   * chia hết cho 6 — không lẻ hàng), ô ~50×40px, mỗi ô 4 icon 2×2 vẽ bằng ẢNH như mặt bài,
-   * KHÔNG tên (tên ở aria-label + title). Đánh đổi đã chấp nhận: ô dưới ngưỡng chạm 44px.
+   * 12 THEME → Ô TO 3×4 CÓ TÊN (04.11.2026, chủ dự án chọn sau khi 72 theme gộp còn 12).
+   * Trước đó (17.10.2026, 72 theme) là ô tí hon 6 cột không tên — với 12 theme lưới đó chỉ
+   * kín 2 hàng, khung trống gần nửa. 3 cột ở điện thoại; máy rộng (iPad, cột desktop) tự lên
+   * 4 cột — 12 chia hết cho cả 3 và 4 nên không lẻ hàng. Điện thoại khung lưới chỉ ~290px
+   * (iPhone 14) nên ô thấp ~70px: khi đó 4 icon xếp MỘT HÀNG (container query dưới) thay vì
+   * 2×2, không thì icon còn ~18px. Cột tối thiểu = 1/4 bề rộng trừ 3 khe
+   * nên auto-fill không bao giờ nhét được cột thứ năm.
    */
-  grid-template-columns: repeat(auto-fill, minmax(max(42px, calc((100% - 25px) / 6)), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(max(92px, calc((100% - 30px) / 4)), 1fr));
   /*
-   * CHIỀU CAO Ô CO THEO MÀN, nhưng vẫn là số XÁC ĐỊNH.
-   *
-   * `.option` có `container-type: size`, mà container query chỉ giải được khi
-   * chiều cao xác định — để `auto` là truy vấn nhận 0 và hàng emoji mẫu bị ẩn ở
-   * MỌI cỡ ô. `clamp()` vẫn là số xác định nên vừa co được vừa giữ được truy vấn.
-   *
-   * 10,5% chiều cao app: SE (vùng web 553) → 58 → chặn ở sàn 66 · iPhone 14
-   * (664) → 69,7 · Pro Max (745) → 78 · desktop cột 900 → 94,5 → chặn ở trần 96.
-   * Sàn 66px cho content box 46px, trên ngưỡng 45px của @container dưới đây nên
-   * emoji mẫu không bị ẩn oan. `--app-h` do `useViewportLock.ts` đặt.
+   * CHIỀU CAO Ô: sàn `--o-cao` (co theo màn, số XÁC ĐỊNH vì `.option` có container-type: size
+   * — để `auto` là container query nhận 0), hàng GIÃN `1fr` để 4 hàng lấp kín khung. Màn quá
+   * thấp thì hàng giữ sàn và lưới cuộn TRONG khung (nút Tiếp đứng yên — luật KHÔNG SCROLL).
+   * Sàn 62px = một hàng icon ~22px + tên HAI dòng + đệm: thấp hơn là tên đè lên icon (đã chụp
+   * ở iPhone SE tiếng Nga). SE cuộn nhẹ trong khung; iPhone 14 trở lên vừa khít 4 hàng.
    */
-  --o-cao: clamp(38px, calc(var(--app-h, 100dvh) * 0.06), 56px);
-  /*
-   * HÀNG CAO ĐÚNG `--o-cao`, KHÔNG giãn `1fr` (14.10.2026, chủ dự án gửi ảnh).
-   *
-   * Từ khi lưới chia hai tab, tab Premium chỉ 12 theme: với `minmax(--o-cao, 1fr)`
-   * ba hàng giãn ra lấp cả khung, ô cao ~270px trong khi tab Miễn phí (36 theme,
-   * luôn tràn) đứng ở cỡ chuẩn — hai tab nhìn như hai giao diện. Ô cố định thì hai
-   * tab đồng nhất; tab ít theme để trống phía dưới là đúng nghĩa "ít hơn".
-   * Cỡ cố định vẫn là số XÁC ĐỊNH nên container query của `.option` vẫn giải được.
-   */
-  grid-auto-rows: var(--o-cao);
-  align-content: start;
+  --o-cao: clamp(62px, calc(var(--app-h, 100dvh) * 0.08), 120px);
+  grid-auto-rows: minmax(var(--o-cao), 1fr);
+  align-content: stretch;
   /* 12px, không phải 10: hai ô theme cạnh nhau đều là khối gradient đậm nên mép
      chúng dính vào nhau đọc ra thành một khối — người chơi đã phản ánh. */
-  gap: 6px 5px;
+  gap: 10px;
   /* Co được trong khung: thiếu `min-height: 0` thì phần tử grid nằm trong flex
      column KHÔNG chịu nhỏ hơn nội dung, và `overflow-y` không bao giờ chạy —
      lưới đẩy nút chính ra khỏi màn hình đúng như luật KHÔNG SCROLL cấm. */
@@ -72,7 +61,7 @@
   overflow-x: clip;
   scrollbar-width: thin;
   /* Chừa chỗ cho ô nhô lên khi hover VÀ dấu ✓ thò ra góc ô (top/right -4px) */
-  padding: 5px 5px 4px;
+  padding: 5px 5px 9px;
 }
 
 /* Chiều cao đặt trên chính Ô: để ở `grid-auto-rows` một mình là chưa đủ, vì
@@ -83,30 +72,64 @@
   height: 100%;
   min-height: var(--o-cao);
   max-height: none;
-  /* Đủ specificity để thắng `.option { padding: 16px 12px }` — padding 12px hai
-     bên ăn hết 1/4 bề rộng ô nên chữ co theo container bị bóp. */
-  padding: 3px;
-  gap: 0;
   position: relative;
   /* Dấu ✓ thò ra góc ô (xem .tick dưới) — `.option` mặc định cắt phần tràn */
   overflow: visible;
 }
-/* Tên theme: KHÔNG hiện trong ô (17.10.2026) — vẫn đọc được bằng trình đọc màn hình */
+/* Tên theme DƯỚI 4 icon (04.11.2026 — ô to). Hai dòng là trần: tên dài như "Lễ hội & cổ tích",
+   "Festivals & Fairy Tales" xuống dòng chứ không bị cắt. */
+.options.theme-grid > .option.theme-opt { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px 6px; }  /* specificity đủ thắng `.option { padding: 16px 12px }` */
 .options.theme-grid .theme-opt .tname {
-  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  flex: none; max-width: 100%; text-align: center; line-height: 1.1; font-size: clamp(11px, 4.4cqw, 14px);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; hyphens: auto;
 }
-/* 4 icon 2×2 lấp ô. Cỡ theo CONTENT BOX của ô (`.option` có container-type: size) */
+/*
+ * SỐ ICON XEM TRƯỚC TỰ THEO CỠ Ô (chủ dự án 04.11.2026: "xem trước hơi ít… màn nhỏ thì hiện ít
+ * hơn, làm thông minh"). Ô render sẵn 12 icon; container query (`.option` có container-type:
+ * size, tính trên CONTENT BOX của ô — gồm cả dòng tên) chọn lưới cột × hàng sao cho mỗi icon
+ * còn ≥ ~22px, phần dư `display: none`. Bậc: 4×1 (điện thoại) → 3×2 / 4×2 → 3×3 / 4×3 (iPad,
+ * cột desktop) → 3×4 (iPad dọc, ô cao mà hẹp). Đổi ngưỡng thì chụp lại SE · iPhone 14 · cột 543px · iPad.
+ */
 .options.theme-grid .theme-sample {
-  display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr);
-  place-items: center; gap: 1px; width: 100%; height: 100%; opacity: 1; letter-spacing: 0;
-  font-size: min(36cqw, 40cqh); line-height: 1;
+  --cot: 4; --hang: 1;
+  /* minmax(0, 1fr): ô lưới chia đều phần còn lại sau dòng tên, ảnh co theo ô — không tự tính px */
+  display: grid; grid-template-columns: repeat(var(--cot), minmax(0, 1fr)); grid-template-rows: repeat(var(--hang), minmax(0, 1fr));
+  place-items: center; gap: 2px; width: 100%; flex: 1; min-height: 0; opacity: 1; letter-spacing: 0;
+  font-size: min(calc(80cqw / var(--cot)), 22px); line-height: 1;
 }
-.options.theme-grid .tm-anh { width: min(44cqw, 46cqh); height: min(44cqw, 46cqh); display: block; }
+.options.theme-grid .theme-sample > :nth-child(n + 5) { display: none; }
+/* Ảnh lấp ô lưới của nó (giữ tỉ lệ), trần 48px để ô iPad không ra hình to quá cỡ mặt bài */
+.options.theme-grid .tm-anh { width: 100%; height: 100%; max-width: 48px; max-height: 48px; min-height: 0; object-fit: contain; display: block; }
+@container (min-height: 90px) {
+  .options.theme-grid .theme-sample { --cot: 3; --hang: 2; }
+  .options.theme-grid .theme-sample > :nth-child(n + 5) { display: revert; }
+  .options.theme-grid .theme-sample > :nth-child(n + 7) { display: none; }
+}
+@container (min-height: 90px) and (min-width: 110px) {
+  .options.theme-grid .theme-sample { --cot: 4; }
+  .options.theme-grid .theme-sample > :nth-child(n + 7) { display: revert; }
+  .options.theme-grid .theme-sample > :nth-child(n + 9) { display: none; }
+}
+@container (min-height: 130px) {
+  .options.theme-grid .theme-sample { --cot: 3; --hang: 3; }
+  .options.theme-grid .theme-sample > :nth-child(n + 5) { display: revert; }
+  .options.theme-grid .theme-sample > :nth-child(n + 10) { display: none; }
+}
+@container (min-height: 130px) and (min-width: 130px) {
+  .options.theme-grid .theme-sample { --cot: 4; }
+  .options.theme-grid .theme-sample > :nth-child(n + 10) { display: revert; }
+}
+}
 .options.theme-grid .tm-chu { font-weight: 800; }
 /* Dấu chọn / vương miện thu nhỏ và ĐẨY RA GÓC ô — để trong ô là đè mất icon góc trên phải */
-.options.theme-grid .tick { top: -4px; right: -4px; width: 13px; height: 13px; z-index: 1; }
-.options.theme-grid .tick svg { width: 9px; height: 9px; }
+.options.theme-grid .tick { top: -5px; right: -5px; width: 20px; height: 20px; z-index: 1; }
+.options.theme-grid .tick svg { width: 13px; height: 13px; }
 
 .options.theme-grid .theme-opt small {
   font-size: clamp(10px, min(12cqw, 15cqh), 14px);
+}
+/* Ô cao mà hẹp (iPad dọc: ~123×259) — thêm hàng thứ tư thay vì cột */
+@container (min-height: 200px) {
+  .options.theme-grid .theme-sample { --hang: 4; }
+  .options.theme-grid .theme-sample > :nth-child(n + 10) { display: revert; }
 }
