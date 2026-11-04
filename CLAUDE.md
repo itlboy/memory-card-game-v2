@@ -1173,7 +1173,8 @@
   `theme-<cũ>` (`storage.achievements`/`unlockAchievements`, `moKhoa` cho đồng bộ tài khoản —
   chủ dự án chọn GIỮ thành tích), cấu hình phòng app cũ gửi lên + phòng đã lưu (`room.ts`
   setConfig/prepareGame/roomInfo). ĐỪNG xoá dòng nào trong bảng: app chưa cập nhật gửi id cũ
-  hàng tháng sau. Chữ quảng cáo KHÔNG ghi số theme/icon ("rất nhiều theme, icon 3D đẹp").
+  hàng tháng sau. Ảnh store cảnh bộ hình ghi "12 theme · 1.300+ icon"; mô tả store + trang giới
+  thiệu nói "rất nhiều theme, icon 3D đẹp". Dòng "Đã chọn n/12 · N hình" ở ThemePicker đếm hình KHÔNG trùng.
 - Theme nằm ở `apps/web/public/data/themes.json` + bản sao server
   `apps/server/src/themes.ts` — sửa một nơi phải sửa nơi kia. Mỗi theme ≥18
   biểu tượng unique (test kiểm file thật).

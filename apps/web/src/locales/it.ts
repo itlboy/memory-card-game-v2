@@ -140,6 +140,7 @@ const it: TuDien = {
   'tp.chonHet': "Seleziona tutti ({n})",
   'tp.boChon': "Azzera",
   'tp.daChon': "Selezionati {n}/{tong}",
+  'tp.soHinh': "{n} immagini",
   'menu.itNhatMotTheme': 'Tieni almeno un tema.',
   'menu.batDauCap': 'Gioca il livello {n}',
   'menu.khongQuen': 'zero sviste',

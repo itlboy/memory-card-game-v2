@@ -139,6 +139,7 @@ const zhTW: TuDien = {
   'tp.chonHet': "全選（{n}）",
   'tp.boChon': "清除",
   'tp.daChon': "已選 {n}/{tong}",
+  'tp.soHinh': "{n} 個圖案",
   'menu.itNhatMotTheme': '至少要保留一個主題。',
   'menu.batDauCap': '開始第 {n} 關',
   'menu.khongQuen': '零忘牌',

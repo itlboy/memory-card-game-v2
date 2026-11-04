@@ -143,6 +143,7 @@ const vi = {
   'tp.chonHet': "Chọn tất cả ({n})",
   'tp.boChon': "Bỏ chọn",
   'tp.daChon': "Đã chọn {n}/{tong}",
+  'tp.soHinh': "{n} hình",
   'menu.itNhatMotTheme': 'Phải giữ ít nhất một theme.',
   'menu.batDauCap': 'Bắt đầu cấp {n}',
   'menu.khongQuen': 'không quên',

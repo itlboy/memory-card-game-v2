@@ -138,6 +138,7 @@ const en: TuDien = {
   'tp.chonHet': "Select all ({n})",
   'tp.boChon': "Clear",
   'tp.daChon': "Selected {n}/{tong}",
+  'tp.soHinh': "{n} pictures",
   'menu.itNhatMotTheme': 'Keep at least one theme.',
   'menu.batDauCap': 'Start Level {n}',
   'menu.khongQuen': 'no slips',

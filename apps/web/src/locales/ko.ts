@@ -136,6 +136,7 @@ const ko: TuDien = {
   'tp.chonHet': "모두 선택 ({n})",
   'tp.boChon': "선택 해제",
   'tp.daChon': "선택 {n}/{tong}",
+  'tp.soHinh': "그림 {n}개",
   'menu.itNhatMotTheme': '테마를 하나 이상 남겨 두세요.',
   'menu.batDauCap': '레벨 {n} 시작',
   'menu.khongQuen': '깜빡 없음',

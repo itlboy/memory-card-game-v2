@@ -139,6 +139,7 @@ const tr: TuDien = {
   'tp.chonHet': "Tümünü seç ({n})",
   'tp.boChon': "Temizle",
   'tp.daChon': "Seçilen {n}/{tong}",
+  'tp.soHinh': "{n} resim",
   'menu.itNhatMotTheme': 'En az bir tema seçili kalmalı.',
   'menu.batDauCap': 'Başla: seviye {n}',
   'menu.khongQuen': 'unutmasız',

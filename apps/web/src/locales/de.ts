@@ -139,6 +139,7 @@ const de: TuDien = {
   'tp.chonHet': "Alle wählen ({n})",
   'tp.boChon': "Abwählen",
   'tp.daChon': "Ausgewählt {n}/{tong}",
+  'tp.soHinh': "{n} Bilder",
   'menu.itNhatMotTheme': 'Mindestens ein Thema muss bleiben.',
   'menu.batDauCap': 'Level {n} starten',
   'menu.khongQuen': 'nichts vergessen',
