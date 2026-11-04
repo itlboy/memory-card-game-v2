@@ -12,7 +12,7 @@
  */
 import { computed, ref, watch } from 'vue';
 import { Check, Crown, Sparkles, X } from 'lucide-vue-next';
-import { t } from '@/lib/i18n';
+import { bcp, t } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
 import { choiDuoc, daMuaPremium, hienPremium } from '@/lib/premium';
 import { anhEmoji } from '@/lib/emoji';
@@ -60,6 +60,9 @@ const choiDuocTab = computed(() => dangHien.value.filter(choiDuoc).map((x) => x.
  *  tính trên MỌI theme chơi được của cả hai tab, vì bộ chọn áp cho cả ván. */
 const tongChoiDuoc = computed(() => props.themes.filter(choiDuoc).map((x) => x.id));
 const soDaChon = computed(() => tongChoiDuoc.value.filter((id) => props.selected.includes(id)).length);
+/** Tổng số HÌNH KHÁC NHAU của các theme đang chọn (chủ dự án 04.11.2026: "khi chọn theme nói
+ *  thêm là bao nhiêu icon") — đếm không trùng vì bàn trộn chung một kho. */
+const soHinh = computed(() => new Set(props.themes.filter((x) => choiDuoc(x) && props.selected.includes(x.id)).flatMap((x) => x.symbols)).size);
 const daChonHet = computed(() => choiDuocTab.value.length > 0 && choiDuocTab.value.every((id) => props.selected.includes(id)));
 function chonHet(): void {
   if (daChonHet.value) {
@@ -93,7 +96,7 @@ function cham(x: CardTheme): void {
   </p>
 
   <div class="tp-hang">
-    <span class="tp-dem" aria-live="polite">{{ t('tp.daChon', { n: soDaChon, tong: tongChoiDuoc.length }) }}</span>
+    <span class="tp-dem" aria-live="polite"><span class="so-hinh">{{ t('tp.daChon', { n: soDaChon, tong: tongChoiDuoc.length }) }}</span><span v-if="soHinh" class="so-hinh"> · {{ t('tp.soHinh', { n: soHinh.toLocaleString(bcp()) }) }}</span></span>
     <button data-phang v-if="choiDuocTab.length" class="tp-het" type="button" @click="chonHet">
       {{ daChonHet ? t('tp.boChon') : t('tp.chonHet', { n: choiDuocTab.length }) }}
     </button>
@@ -164,12 +167,14 @@ function cham(x: CardTheme): void {
 .ttab[aria-selected='true'] { background: var(--chon-nen); color: var(--chon-chu); border-color: transparent; }
 .ttab .dem { opacity: .7; font-weight: 700; }
 .tp-hang { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: -2px 0 8px; flex-shrink: 0; }
-.tp-dem { min-width: 0; color: var(--muted); font-size: var(--text-sm); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Đếm được xuống dòng ("· N hình" thêm 04.11.2026 — tiếng Nga trên SE dài), nút Chọn tất cả thì KHÔNG */
+.tp-dem { min-width: 0; color: var(--muted); font-size: var(--text-sm); font-weight: 800; font-variant-numeric: tabular-nums; }
+.tp-dem .so-hinh { white-space: nowrap; }
 /* Nút chữ nhỏ: HÌNH nhỏ, VÙNG CHẠM 44px bằng ::after (luật "Vùng chạm ≠ hình của nút") */
 .tp-het {
   position: relative; min-width: 0; min-height: 0; padding: 2px 4px;
   border: 0; background: none; color: var(--accent); font: inherit;
-  font-size: var(--text-sm); font-weight: 800; cursor: pointer;
+  font-size: var(--text-sm); font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0;
 }
 .tp-het::after { content: ''; position: absolute; inset: -12px -8px; }
 .prem-loi {

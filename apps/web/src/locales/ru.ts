@@ -150,6 +150,7 @@ const ru: TuDien = {
   'tp.chonHet': "Выбрать все ({n})",
   'tp.boChon': "Снять выбор",
   'tp.daChon': "Выбрано {n}/{tong}",
+  'tp.soHinh': "картинок: {n}",
   'menu.itNhatMotTheme': 'Оставь хотя бы одну тему.',
   'menu.batDauCap': 'Начать уровень {n}',
   'menu.khongQuen': 'без забываний',

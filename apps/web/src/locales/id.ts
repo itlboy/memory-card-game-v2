@@ -139,6 +139,7 @@ const id: TuDien = {
   'tp.chonHet': "Pilih semua ({n})",
   'tp.boChon': "Hapus pilihan",
   'tp.daChon': "Dipilih {n}/{tong}",
+  'tp.soHinh': "{n} gambar",
   'menu.itNhatMotTheme': 'Sisakan minimal satu tema.',
   'menu.batDauCap': 'Mulai level {n}',
   'menu.khongQuen': 'tanpa lupa',

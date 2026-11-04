@@ -137,6 +137,7 @@ const es: TuDien = {
   'tp.chonHet': "Seleccionar todo ({n})",
   'tp.boChon': "Quitar",
   'tp.daChon': "Seleccionados {n}/{tong}",
+  'tp.soHinh': "{n} dibujos",
   'menu.itNhatMotTheme': 'Debe quedar al menos un tema.',
   'menu.batDauCap': 'Jugar nivel {n}',
   'menu.khongQuen': 'sin olvidos',

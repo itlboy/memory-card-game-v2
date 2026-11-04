@@ -142,6 +142,7 @@ const fr: TuDien = {
   'tp.chonHet': "Tout sélectionner ({n})",
   'tp.boChon': "Effacer",
   'tp.daChon': "Sélectionnés {n}/{tong}",
+  'tp.soHinh': "{n} images",
   'menu.itNhatMotTheme': 'Garde au moins un thème.',
   'menu.batDauCap': 'Jouer le niveau {n}',
   'menu.khongQuen': 'aucun oubli',

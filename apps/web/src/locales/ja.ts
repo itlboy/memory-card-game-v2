@@ -136,6 +136,7 @@ const ja: TuDien = {
   'tp.chonHet': "すべて選択（{n}）",
   'tp.boChon': "選択解除",
   'tp.daChon': "選択中 {n}/{tong}",
+  'tp.soHinh': "絵柄{n}個",
   'menu.itNhatMotTheme': 'テーマは1つ以上必要です。',
   'menu.batDauCap': 'ステージ{n}をスタート',
   'menu.khongQuen': '忘れなし',

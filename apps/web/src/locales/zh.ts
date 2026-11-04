@@ -136,6 +136,7 @@ const zh: TuDien = {
   'tp.chonHet': "全选（{n}）",
   'tp.boChon': "取消全选",
   'tp.daChon': "已选 {n}/{tong}",
+  'tp.soHinh': "{n} 个图案",
   'menu.itNhatMotTheme': '至少保留一个主题。',
   'menu.batDauCap': '开始第 {n} 关',
   'menu.khongQuen': '零遗忘',
