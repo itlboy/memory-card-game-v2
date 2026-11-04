@@ -149,7 +149,8 @@ describe('sổ 103 danh hiệu (11.10.2026)', () => {
   const tk = (o = {}) => ({ wins: 0, botWins: 0, onlineWins: 0, totalScore: 0, chuoiNgay: 0, campaignMax: 0, stars3: 0, ...o });
 
   it('đủ khoảng một trăm danh hiệu, mỗi nhóm khai trong NHOM', () => {
-    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(100);
+    // 93 từ 04.11.2026: danh hiệu theme còn 12 (theo 12 theme gộp), trước là 72
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(90);
     const nhom = new Set(NHOM.map((n) => n.id));
     for (const a of ACHIEVEMENTS) expect(nhom, a.id).toContain(a.nhom);
   });

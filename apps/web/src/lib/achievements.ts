@@ -1,4 +1,4 @@
-import { BOARD_SIZES, CAMPAIGN_LEVELS } from '@mm/engine';
+import { BOARD_SIZES, CAMPAIGN_LEVELS, doiDanhHieu } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
 import { computed, ref } from 'vue';
 import { store } from './storage';
@@ -73,12 +73,7 @@ export interface Achievement {
 
 /** Mọi theme — PHẢI khớp themes.json (test canh). Tên theme ở từ điển (`theme.<id>`). */
 export const THEME_DH: readonly string[] = [
-  'animals', 'food', 'fruits', 'nature', 'smileys', 'sports', 'flags', 'ocean', 'space', 'tech', 'vehicles', 'letters',
-  'music', 'festive', 'myth', 'flowers', 'weather', 'jobs', 'objects', 'clothes', 'buildings', 'drinks', 'games', 'garden',
-  'tet', 'sweets', 'veggies', 'landmarks', 'birds', 'school', 'hands', 'hearts', 'clocks', 'safari', 'summer', 'asianfood',
-  'halloween', 'cats', 'treasure', 'winter', 'farm', 'travel', 'circus', 'breakfast', 'tools', 'zodiac', 'camping', 'kitchen',
-  'flagsasia', 'flagseurope', 'flagsamericas', 'flagsafrica', 'insects', 'office', 'home', 'shapes', 'pets', 'people', 'hobbies', 'scenery',
-  'expressions', 'jungle', 'teaparty', 'athletes', 'market', 'signs', 'lab', 'fairytale', 'body', 'autumn', 'flagstricky', 'flagsislands'
+  'animals', 'ocean', 'nature', 'seasons', 'food', 'letters', 'smileys', 'games', 'objects', 'travel', 'festive', 'flags'
 ];
 /** Tên theme theo ngôn ngữ đang chọn. */
 /** Tên theme theo ngôn ngữ đang chọn; theme chưa có trong từ điển thì lùi về tên gốc
@@ -335,7 +330,8 @@ export const dangKhoe = ref(0);
  * `im`: đồng bộ từ tài khoản thì không khoe — người chơi không vừa làm gì.
  */
 export function moKhoa(ids: string[], { im = false, treMs = 0 } = {}): string[] {
-  const moi = store.unlockAchievements(ids.filter((id) => ID_SO.has(id)));
+  // Tài khoản trên server có thể còn danh hiệu theme cũ (trước 04.11.2026): đổi trước rồi mới lọc
+  const moi = store.unlockAchievements(ids.map(doiDanhHieu).filter((id) => ID_SO.has(id)));
   daCo.value = docDaCo();
   if (!im) {
     const luc = (typeof performance === 'undefined' ? 0 : performance.now()) + treMs;
@@ -399,10 +395,8 @@ export function goiY(co: ReadonlySet<string>, tk: ThongKe, themeKhoa: ReadonlySe
  */
 export interface IconHuyHieu { chu: string; so?: boolean; goc?: string }
 const ICON_THEME: Record<string, string> = {
-  animals: '🐶', food: '🍔', fruits: '🍎', nature: '🌿', smileys: '😀', sports: '⚽', flags: '🇻🇳', ocean: '🐳',
-  space: '🚀', tech: '💻', vehicles: '🚗', letters: '🔤', music: '🎸', festive: '🎉', myth: '🦖', flowers: '🌺',
-  weather: '⛅', jobs: '👷', objects: '🔑', clothes: '👕', buildings: '🏠', drinks: '☕', games: '🎮', garden: '🐝',
-  tet: '🧧', sweets: '🍩', veggies: '🥕', landmarks: '🗽', birds: '🦜', school: '📚', hands: '👍', hearts: '💖', clocks: '🕒', safari: '🦁', summer: '🏖️', asianfood: '🍜'
+  animals: '🐶', ocean: '🐳', nature: '🌸', seasons: '⛄', food: '🍔', letters: '🔤',
+  smileys: '😀', games: '⚽', objects: '💡', travel: '🚗', festive: '🎉', flags: '🇻🇳'
 };
 const ICON_ID: Record<string, string> = {
   'first-win': '🥇', flawless: '💎', lightspeed: '⚡',

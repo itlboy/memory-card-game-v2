@@ -1,4 +1,4 @@
-import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, sanitizeOptions } from '@mm/engine';
+import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, doiDanhHieu, doiThemeIds, sanitizeOptions } from '@mm/engine';
 import type { BoardOptions, Mode } from '@mm/engine';
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
@@ -134,6 +134,8 @@ export const store = {
     const merged = { ...DEFAULT_PREFS, ...saved };
     // Migration từ bản cũ chỉ lưu một theme
     if (!saved.themes?.length && saved.theme) merged.themes = [saved.theme];
+    // 72 theme gộp thành 12 (04.11.2026): id cũ đã lưu đổi sang nhóm chứa nó
+    merged.themes = doiThemeIds(merged.themes);
     // KHÔNG ép về ['animals'] khi rỗng: rỗng là tín hiệu "chưa từng chọn", để
     // App điền tất cả theme đang mở khoá.
     // Bản cũ chỉ có bật/tắt: người đang tắt tiếng thì giữ tắt, còn lại về "to"
@@ -250,7 +252,8 @@ export const store = {
     write(s);
   },
 
-  achievements(): string[] { return read().achievements ?? []; },
+  /** Danh hiệu theme cũ (`theme-cats`…) đọc ra thành danh hiệu của nhóm mới (`theme-animals`). */
+  achievements(): string[] { return [...new Set((read().achievements ?? []).map(doiDanhHieu))]; },
 
   boDem(): BoDem { return { ...BO_DEM_RONG, ...(read().boDem ?? {}) }; },
 
@@ -281,8 +284,8 @@ export const store = {
   /** Trả về danh sách thành tích vừa mở khoá lần này. */
   unlockAchievements(ids: string[]): string[] {
     const s = read();
-    const have = new Set(s.achievements ?? []);
-    const fresh = ids.filter((id) => !have.has(id));
+    const have = new Set((s.achievements ?? []).map(doiDanhHieu));
+    const fresh = [...new Set(ids.map(doiDanhHieu))].filter((id) => !have.has(id));
     if (fresh.length) {
       s.achievements = [...have, ...fresh];
       write(s);

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { CAMPAIGN_MAX_PAIRS } from '@mm/engine';
+import { CAMPAIGN_MAX_PAIRS, THEME_GOP, doiThemeIds } from '@mm/engine';
 import { loadThemes } from '@/lib/themes';
 
 const ok = (body: unknown) => async () =>
@@ -114,5 +114,22 @@ describe('file themes.json thực trong repo', () => {
     const { themes } = JSON.parse(raw) as { themes: { premium?: boolean; symbols: string[] }[] };
     const pool = new Set(themes.filter((t) => !t.premium).flatMap((t) => t.symbols));
     expect(pool.size, 'pool của theme mở sẵn').toBeGreaterThanOrEqual(CAMPAIGN_MAX_PAIRS);
+  });
+
+  // 72 → 12 theme (04.11.2026): id cũ còn nằm trong máy người chơi, phòng đã lưu và app
+  // chưa cập nhật — bảng gộp phải trỏ tới theme ĐANG CÓ, và không được đè lên id đang dùng.
+  it('bảng gộp theme cũ trỏ đúng theme đang có', async () => {
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const raw = await fs.readFile(path.resolve(process.cwd(), 'public/data/themes.json'), 'utf8');
+    const ids = new Set((JSON.parse(raw) as { themes: { id: string }[] }).themes.map((t) => t.id));
+    expect(ids.size).toBe(12);
+    for (const [cu, moi] of Object.entries(THEME_GOP)) {
+      expect(ids.has(moi), `${cu} → ${moi} không tồn tại`).toBe(true);
+      expect(ids.has(cu), `${cu} đang là theme thật, không được gộp`).toBe(false);
+    }
+    // 61 id gộp + 11 id giữ nguyên = 72 theme cũ (`seasons` là id mới hoàn toàn)
+    expect(Object.keys(THEME_GOP).length + ids.size - 1).toBe(72);
+    expect(doiThemeIds(['flagstricky', 'flags', 'shapes', 'kitchen'])).toEqual(['flags', 'letters', 'food']);
   });
 });

@@ -12,7 +12,7 @@ describe('tên bộ hình không trùng', () => {
       const ten = Object.entries(tu)
         .filter(([k, v]) => k.startsWith('theme.') && typeof v === 'string')
         .map(([k, v]) => [k, (v as string).trim().toLocaleLowerCase()] as const);
-      expect(ten.length).toBeGreaterThanOrEqual(48);   // chốt chống xanh rỗng
+      expect(ten.length).toBeGreaterThanOrEqual(12);   // chốt chống xanh rỗng (72 → 12 theme, 04.11.2026)
       const gap = new Map<string, string[]>();
       for (const [k, v] of ten) gap.set(v, [...(gap.get(v) ?? []), k]);
       expect([...gap.values()].filter((ks) => ks.length > 1)).toEqual([]);

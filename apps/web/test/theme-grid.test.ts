@@ -50,37 +50,36 @@ describe('lưới theme dùng chung một bản CSS', () => {
 });
 
 /*
- * Ô NHỎ — NHÌN ICON LÀ HIỂU (chủ dự án 17.10.2026 chọn phương án B sau khi xem ảnh so sánh:
- * ô ½ mỗi chiều, 6 cột, không tên; "chữ không quá quan trọng, họ sẽ nhìn icon"). Đánh đổi đã
- * chấp nhận: ô dưới ngưỡng chạm 44px. Đừng "sửa lại" về ô to / có tên khi chưa hỏi.
+ * 12 THEME → Ô TO 3×4 CÓ TÊN (chủ dự án 04.11.2026, sau khi gộp 72 theme còn 12). Trước đó
+ * (17.10.2026) là ô tí hon 6 cột không tên cho 72 theme — với 12 theme lưới đó chỉ kín 2 hàng.
+ * Đừng quay lại ô nhỏ / bỏ tên khi chưa hỏi.
  */
-describe('lưới theme: ô nhỏ, icon là chính', () => {
-  it('6 CỘT (36 · 24 · 12 theme mỗi tab chia hết cho 6 — không lẻ hàng), tự tính theo bề rộng', () => {
-    expect(css).toMatch(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(max\(42px,\s*calc\(\(100% - 25px\) \/ 6\)\),\s*1fr\)\)/);
-    expect(css, 'khe ngang 5px khớp 5 khe trong (100% - 25px)').toMatch(/gap:\s*6px 5px/);
+describe('lưới theme: ô to có tên, 12 theme lấp kín khung', () => {
+  it('3 cột ở điện thoại, trần 4 cột ở máy rộng (12 chia hết cho 3 và 4 — không lẻ hàng)', () => {
+    expect(css).toMatch(/grid-template-columns:\s*repeat\(auto-fill,\s*minmax\(max\(92px,\s*calc\(\(100% - 30px\) \/ 4\)\),\s*1fr\)\)/);
+    expect(css, 'khe 10px khớp 3 khe trong (100% - 30px)').toMatch(/gap:\s*10px/);
   });
 
-  it('CHIỀU CAO ô co theo màn nhưng vẫn XÁC ĐỊNH (container query cần thế)', () => {
+  it('CHIỀU CAO ô có sàn XÁC ĐỊNH (container query cần thế), sàn đủ cho icon + tên hai dòng', () => {
     const m = /--o-cao:\s*clamp\((\d+)px,\s*calc\(var\(--app-h[^)]*\)[^)]*\),\s*(\d+)px\)/.exec(css);
     expect(m, 'ô theme phải co theo chiều cao app, kẹp trong clamp').not.toBeNull();
     const [san, tran] = [Number(m![1]), Number(m![2])];
-    expect(san).toBeGreaterThanOrEqual(34);
+    expect(san, 'dưới 62px là tên hai dòng đè lên icon (iPhone SE, tiếng Nga)').toBeGreaterThanOrEqual(62);
     expect(tran).toBeGreaterThan(san);
   });
 
-  it('ô CỐ ĐỊNH cỡ ở mọi tab, hết chỗ thì CUỘN — không giãn, không nén', () => {
-    expect(css).toMatch(/grid-auto-rows:\s*var\(--o-cao\);/);
-    expect(css).toMatch(/align-content:\s*start/);
+  it('hàng GIÃN lấp khung, màn thấp thì giữ sàn và CUỘN trong khung — không nén dưới sàn', () => {
+    expect(css).toMatch(/grid-auto-rows:\s*minmax\(var\(--o-cao\),\s*1fr\);/);
     expect(css).toMatch(/overflow-y:\s*auto/);
     expect(css).not.toMatch(/grid-auto-rows:\s*minmax\(0,\s*1fr\)/);
   });
 
-  it('icon KHÔNG BAO GIỜ bị ẩn (chúng là nội dung chính); tên theme ẩn khỏi mắt nhưng còn cho trình đọc màn hình', () => {
+  it('icon KHÔNG BAO GIỜ bị ẩn; tên theme HIỆN trong ô', () => {
     expect(css).not.toMatch(/\.theme-sample\s*\{\s*display:\s*none/);
-    expect(css).toMatch(/\.theme-opt \.tname\s*\{[^}]*clip:/);
+    expect(css, 'tên không còn bị ẩn khỏi mắt').not.toMatch(/\.theme-opt \.tname\s*\{[^}]*clip:/);
     const tp = doc('src/components/ThemePicker.vue');
-    expect(tp, '4 icon 2×2').toContain('x.symbols.slice(0, 4)');
+    expect(tp, 'render sẵn 12 icon, CSS chọn số hiện theo cỡ ô').toContain('x.symbols.slice(0, 12)');
     expect(tp, 'icon vẽ như mặt bài (ảnh Noto 3D cỡ 128)').toMatch(/class="tm-anh" :src="anhEmoji\(s, undefined, 128\)!"/);
-    expect(tp, 'tên vẫn có ở aria-label + title').toMatch(/:title="tenTheme\(x\.id, x\.name\)"/);
+    expect(tp, 'tên có trong ô').toMatch(/<strong class="tname">/);
   });
 });
