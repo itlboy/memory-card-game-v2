@@ -44,6 +44,12 @@ describe('lưới theme dùng chung một bản CSS', () => {
     }
   });
 
+  it('ngoặc nhọn cân (04.11.2026 sót một `}` khi thay khối @container — build chỉ cảnh báo)', () => {
+    let sau = 0;
+    for (const c of css) { if (c === '{') sau++; else if (c === '}') { sau--; expect(sau, 'thừa }').toBeGreaterThanOrEqual(0); } }
+    expect(sau, 'thiếu }').toBe(0);
+  });
+
   it('main.ts nạp file CSS chung', () => {
     expect(doc('src/main.ts')).toContain("styles/theme-grid.css");
   });
