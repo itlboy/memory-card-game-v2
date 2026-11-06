@@ -1,0 +1,40 @@
+# THỐNG KÊ GOOGLE PLAY (chỉ đọc) — tools/play-thongke.mjs. Kết quả ở log + Summary của run.
+#
+#   gh workflow run play-thongke.yml --ref main                 (28 ngày)
+#   gh workflow run play-thongke.yml --ref main -f so_ngay=90
+#
+# Dùng chung secret PLAY_SERVICE_ACCOUNT_JSON; service account cần thêm quyền
+# "Xem thông tin ứng dụng và tải báo cáo hàng loạt xuống" trên Play Console.
+name: Google Play stats
+
+on:
+  workflow_dispatch:
+    inputs:
+      so_ngay:
+        description: Số ngày gần nhất
+        default: '28'
+      bucket:
+        description: Bucket báo cáo (để trống = pubsite_prod_<mã tài khoản>)
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  doc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Thống kê
+        env:
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          SO_NGAY: ${{ inputs.so_ngay }}
+          BUCKET: ${{ inputs.bucket }}
+        run: |
+          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          node tools/play-thongke.mjs "$RUNNER_TEMP/sa.json" "$SO_NGAY" $BUCKET
+          rm -f "$RUNNER_TEMP/sa.json"

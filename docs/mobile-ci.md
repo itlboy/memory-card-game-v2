@@ -32,6 +32,7 @@ Ba workflow, ba việc khác nhau — đừng nhầm "ra bản app" với "sửa
 | `mobile.yml` | Build app, đẩy TestFlight / Google Play | MỖI lần ra bản app (tag `app-v*` hoặc chạy tay `phat_hanh=true`) |
 | `play-store.yml` | Trang Google Play: tên, mô tả 12 ngôn ngữ, ảnh chụp, ảnh bìa, icon | CHẠY TAY, chỉ khi trang cần đổi |
 | `asc-store.yml` | Trang App Store: như trên + gắn build | CHẠY TAY, chỉ khi trang cần đổi |
+| `play-thongke.yml` | CHỈ ĐỌC: lượt cài/gỡ, theo nước, người xem trang store (báo cáo hàng loạt trên Cloud Storage, trễ 1–2 ngày) | Chạy tay khi muốn xem số liệu |
 
 Hai workflow trang store chỉ có `workflow_dispatch` — không chạy theo commit, và cũng
 KHÔNG phải chạy mỗi bản app. Chạy lại khi: giao diện đổi nhiều tới mức ảnh chụp cũ
