@@ -100,6 +100,11 @@ MADE TO FEEL GOOD
 • Works offline — no connection needed for solo, bot or same-device games
 • 15 languages
 • No ads. No in-app purchases.
+
+GREAT FOR
+• Brain training — a quick daily workout for memory and concentration
+• Kids, parents and grandparents — easy to learn, fun at any age
+• Family game night — a matching pairs game everyone can play together
 ```
 
 ## Tiếng Việt
@@ -160,6 +165,11 @@ CHƠI LÀ SƯỚNG
 • Chơi không cần mạng — một mình, đấu máy, chung máy đều chạy offline
 • 15 ngôn ngữ
 • Không quảng cáo. Không mua trong app.
+
+PHÙ HỢP CHO
+• Rèn trí nhớ và khả năng tập trung — vài phút luyện não mỗi ngày
+• Trẻ em, bố mẹ và ông bà — dễ chơi, vui ở mọi lứa tuổi
+• Cả nhà quây quần — trò lật hình tìm cặp ai cũng chơi được
 ```
 
 ## Español
@@ -225,6 +235,11 @@ HECHO PARA DISFRUTAR
 • Funciona sin conexión: no necesitas internet para jugar solo, contra el bot o en el mismo dispositivo
 • 15 idiomas
 • Sin anuncios. Sin compras dentro de la app.
+
+IDEAL PARA
+• Entrenar la mente — un ejercicio diario de memoria y concentración
+• Niños, padres y abuelos — fácil de aprender, divertido a cualquier edad
+• Noches de juego en familia — un memorama de parejas para todos
 ```
 
 ## Português (Brasil)
@@ -285,6 +300,11 @@ FEITO PARA SER GOSTOSO DE JOGAR
 • Funciona offline — sem internet para jogar sozinho, contra o bot ou no mesmo aparelho
 • 15 idiomas
 • Sem anúncios. Sem compras no app.
+
+PERFEITO PARA
+• Treinar o cérebro — um exercício diário de memória e concentração
+• Crianças, pais e avós — fácil de aprender, divertido em qualquer idade
+• Noite de jogos em família — um jogo da memória de pares para todos
 ```
 
 ## Français
@@ -345,6 +365,11 @@ UN VRAI PLAISIR À JOUER
 • Fonctionne hors ligne — pas besoin de connexion en solo, contre le bot ou sur le même appareil
 • 15 langues
 • Sans pub. Sans achats intégrés.
+
+IDÉAL POUR
+• Entraîner son cerveau — un exercice quotidien de mémoire et de concentration
+• Enfants, parents et grands-parents — facile à apprendre, amusant à tout âge
+• Les soirées jeux en famille — un jeu de paires que tout le monde peut jouer
 ```
 
 ## Deutsch
@@ -410,6 +435,11 @@ EINFACH SCHÖN ZU SPIELEN
 • Funktioniert offline – allein, gegen den Bot oder am selben Gerät ganz ohne Internet
 • 15 Sprachen
 • Keine Werbung. Keine In-App-Käufe.
+
+PERFEKT FÜR
+• Gehirntraining — tägliche Übung für Gedächtnis und Konzentration
+• Kinder, Eltern und Großeltern — leicht zu lernen, Spaß in jedem Alter
+• Familienspieleabende — ein Paare-Suchspiel für alle
 ```
 
 ## 日本語
@@ -475,6 +505,11 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • オフラインOK ― ひとり、CPU対戦、1台でのプレイは通信不要
 • 15言語に対応
 • 広告なし。アプリ内課金なし。
+
+こんな方におすすめ
+• 脳トレ — 記憶力と集中力を毎日きたえる
+• 子どもから大人、シニアまで — ルールが簡単で誰でも楽しめる
+• 家族や友だちと — みんなで遊べる神経衰弱・ペア探しゲーム
 ```
 
 ## 한국어
@@ -540,6 +575,11 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 오프라인 지원 — 혼자, 봇 대결, 한 기기 플레이는 인터넷 없이도 OK
 • 15개 언어 지원
 • 광고 없음. 인앱 결제 없음.
+
+이런 분께 추천해요
+• 두뇌 훈련 — 매일 기억력과 집중력 키우기
+• 아이부터 부모님, 할머니 할아버지까지 — 배우기 쉽고 누구나 즐거운
+• 가족 게임 시간 — 다 함께 즐기는 같은 그림 찾기 짝 맞추기 게임
 ```
 
 ## 简体中文
@@ -605,6 +645,11 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 支持离线 — 单人、人机对战和同屏多人都无需联网
 • 支持 15 种语言
 • 无广告。无内购。
+
+适合人群
+• 大脑训练 —— 每天锻炼记忆力和专注力
+• 孩子、父母和老人 —— 上手简单，老少皆宜
+• 家庭游戏时间 —— 全家一起玩的翻牌配对游戏
 ```
 
 ## Русский
@@ -670,6 +715,11 @@ Flip Match — классическая игра на память с карто
 • Работает без интернета — в одиночку, против бота и на одном устройстве
 • 15 языков
 • Без рекламы. Без встроенных покупок.
+
+ОТЛИЧНО ПОДХОДИТ ДЛЯ
+• Тренировки мозга — ежедневная разминка для памяти и внимания
+• Детей, родителей, бабушек и дедушек — легко научиться, весело в любом возрасте
+• Семейных вечеров — игра «найди пару», в которую играют все вместе
 ```
 
 ## Bahasa Indonesia
@@ -730,6 +780,11 @@ ASYIK DIMAINKAN
 • Bisa offline — main sendiri, lawan bot, atau satu perangkat tanpa internet
 • 15 bahasa
 • Tanpa iklan. Tanpa pembelian dalam aplikasi.
+
+COCOK UNTUK
+• Latihan otak — olahraga harian untuk daya ingat dan konsentrasi
+• Anak-anak, orang tua, kakek dan nenek — mudah dipelajari, seru untuk semua usia
+• Main bareng keluarga — game cari pasangan gambar yang bisa dimainkan semua orang
 ```
 
 ## ไทย
@@ -795,6 +850,11 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • เล่นออฟไลน์ได้ — เล่นคนเดียว ท้าบอท หรือเล่นในเครื่องเดียวกันโดยไม่ต้องใช้เน็ต
 • รองรับ 15 ภาษา
 • ไม่มีโฆษณา ไม่มีการซื้อในแอป
+
+เหมาะสำหรับ
+• ฝึกสมอง — บริหารความจำและสมาธิทุกวัน
+• เด็ก พ่อแม่ และผู้สูงอายุ — เล่นง่าย สนุกได้ทุกวัย
+• เวลาครอบครัว — เกมเปิดไพ่จับคู่ภาพที่เล่นด้วยกันได้ทั้งบ้าน
 ```
 
 ## Italiano
@@ -860,6 +920,11 @@ FATTO PER FARTI STARE BENE
 • Funziona offline: niente connessione per le partite da solo, contro il bot o sullo stesso dispositivo
 • 15 lingue
 • Niente pubblicità. Nessun acquisto in-app.
+
+PERFETTO PER
+• Allenare la mente — un esercizio quotidiano per memoria e concentrazione
+• Bambini, genitori e nonni — facile da imparare, divertente a ogni età
+• Serate di giochi in famiglia — un gioco delle coppie per tutti
 ```
 
 ## Türkçe
@@ -920,6 +985,11 @@ HEP GERİ DÖN
 • Çevrim dışı çalışır — tek başına, bota karşı ya da aynı cihazdaki oyunlar için internet gerekmez
 • 15 dil
 • Reklam yok. Uygulama içi satın alma yok.
+
+KİMLER İÇİN
+• Beyin egzersizi — hafıza ve odaklanma için günlük antrenman
+• Çocuklar, ebeveynler, büyükanne ve büyükbabalar — öğrenmesi kolay, her yaşta eğlenceli
+• Aile oyun geceleri — herkesin birlikte oynayabileceği bir eşleştirme oyunu
 ```
 
 ## 繁體中文
@@ -985,6 +1055,11 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 • 支援離線 — 單人、對戰電腦和同一支手機輪流玩都不需要連網
 • 支援 15 種語言
 • 沒有廣告。沒有 App 內購買。
+
+適合誰玩
+• 大腦訓練 —— 每天鍛鍊記憶力與專注力
+• 孩子、父母和長輩 —— 規則簡單，老少咸宜
+• 家庭遊戲時光 —— 全家一起玩的翻牌配對遊戲
 ```
 
 ## App Review
