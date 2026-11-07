@@ -3,7 +3,7 @@
 // (17.10.2026, chủ dự án: "có cơ chế nào chống vỡ giao diện không, vì tương lai có thể bị").
 //   1. số gọn ≤4 ký tự (`numGon`, unit test) · 2. điểm không co, tên co trước (test tĩnh)
 //   3. công cụ này: phòng online THẬT 2 / 3 / 4 người, tên dài nhất (16 ký tự), điểm rộng nhất
-//      có thể ("9,9k", "99k"), ba khổ iPhone. Đỏ khi: điểm bị cắt, chip lòi khỏi màn, hay tên
+//      có thể ("9,9k", "99k") + 🏅12 tỷ số loạt, ba khổ iPhone. Đỏ khi: điểm bị cắt, chip lòi khỏi màn, hay tên
 //      người đang đi còn chưa tới một chữ.
 //
 //   pnpm dev   (web :3001 + wrangler :8787)  rồi  pnpm do:chip
@@ -44,6 +44,13 @@ for (const [w, h, may] of KHO) for (const so of [2, 3, 4]) {
   for (const diem of DIEM) {
     // Điểm thật không đẩy lên 99k được trong vài giây — đặt chữ RỘNG NHẤT numGon có thể ra.
     await p.evaluate((d) => document.querySelectorAll('.pchip .pts').forEach((e) => { e.textContent = d; e.classList.add('dai'); }), diem);
+    // 🏅 TỶ SỐ LOẠT ở MỌI chip (07.11.2026): lỗi "điểm chip phải bị cắt" ở bàn 2 người trên
+    // iPhone 15 Pro Max chỉ hiện khi có 🏅 — các lần đo trước không có nó nên không thấy.
+    await p.evaluate(() => document.querySelectorAll('.pchip').forEach((c) => {
+      const pts = c.querySelector('.pts'); let wn = c.querySelector('.wins');
+      if (!wn) { wn = document.createElement('span'); for (const a of pts.attributes) if (a.name.startsWith('data-v')) wn.setAttribute(a.name, ''); wn.className = 'wins'; pts.before(wn); }
+      wn.innerHTML = '<span class="huy">🏅</span>12'; for (const a of pts.attributes) if (a.name.startsWith('data-v')) wn.firstChild.setAttribute(a.name, ''); c.classList.add('co-loat');
+    }));
     await p.waitForTimeout(300);
     const kq = await p.evaluate((w) => {
       const chip = [...document.querySelectorAll('.pchip')];

@@ -299,7 +299,7 @@ watch(() => o.view.value?.summary, (s) => {
       <div v-if="!gonStrip" class="strip" :class="{ dong: soNguoi >= 3 }">
         <div
           v-for="p in o.view.value?.players" :key="p.id"
-          class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
+          class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited, 'co-loat': (o.seriesWins.value[p.name] ?? 0) > 0 }"
           :data-chip-for="p.id"
         >
           <span class="avatar">{{ p.avatar }}</span>
@@ -350,7 +350,7 @@ watch(() => o.view.value?.summary, (s) => {
             >+5s</span>
           </Transition>
           <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: o.seriesWins.value[p.name] ?? 0 })">
-            🏅{{ o.seriesWins.value[p.name] }}
+            <span class="huy">🏅</span>{{ o.seriesWins.value[p.name] }}
           </span>
           <span class="pts" :class="{ dai: p.score >= 1000 }" :title="num(p.score)">{{ numGon(p.score) }}</span>
         </div>
@@ -747,6 +747,37 @@ watch(() => o.view.value?.summary, (s) => {
   .pchip:not(.active) b { display: none; }
   .pchip:not(.active) { justify-content: space-between; }
 }
+/*
+ * CHIP CHỜ CÓ 🏅 TỶ SỐ LOẠT: BỎ TÊN, GIỮ AVATAR + 🏅 + ĐIỂM (07.11.2026).
+ * Lỗi người chơi báo NHIỀU LẦN trên iPhone 15 Pro Max: bàn 2 người, người BÊN PHẢI đang
+ * chờ lượt, đã thắng vài ván (🏅) và điểm cao → điểm bị cắt mất. Chip chờ 2 người chỉ
+ * còn 1/3 dải (Pro Max 136px, SE 119px) mà phải chứa avatar + tên (sàn 2.2em) + 🏅 + điểm:
+ * WebKit đo điểm khuất 3–10px ở Pro Max, tới 28px ở SE. Các lần sửa trước đều đo KHÔNG có
+ * 🏅 nên không thấy. Ba chốt:
+ *   · chip chờ có 🏅 mà hẹp (≤150px nội dung) thì bỏ tên — avatar đã là danh tính, giống
+ *     bàn ≥3 người (`.dong`, chủ dự án duyệt 17.10);
+ *   · tên ở chip chờ co được về 0 (lưới an toàn: có gì mới chen vào thì tên đi trước điểm);
+ *   · 🏅 ở chip chờ gọn hơn (ít đệm).
+ * `pnpm do:chip` nay đo cả ca này (🏅12 + "9,9k" ở chip phải).
+ */
+@container (max-width: 150px) {
+  .pchip.co-loat:not(.active) b { display: none; }
+  .pchip.co-loat:not(.active) { justify-content: space-between; }
+}
+.pchip:not(.active) b { min-width: 0; }
+/*
+ * BÀN ≥3 NGƯỜI: 🏅 THÀNH HUY HIỆU SỐ Ở GÓC AVATAR (absolute, tốn 0px bề ngang).
+ * Chip chờ ở đây chỉ rộng 70px = avatar + điểm; viên 🏅 chen vào là đẩy điểm ra khỏi chip
+ * (`pnpm do:chip` đo: SE 4 người cả bốn chip mất điểm). Giống chấm mạng: góc avatar.
+ */
+.strip.dong .pchip .wins {
+  position: absolute; z-index: 1; left: 2px; top: 2px;
+  min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
+  background: var(--gold); color: #3a2a00; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+.strip.dong .pchip .wins .huy { display: none; }
+
+.pchip:not(.active) .wins { padding: 1px 3px; font-size: 10.5px; }
 .netbad {
   flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
   padding: 1px 5px; border-radius: var(--r-full);
