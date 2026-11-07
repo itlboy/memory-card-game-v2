@@ -22,11 +22,11 @@
 
   /*
    * NÚT STORE: bật khi app ĐÃ lên store công khai. Chưa lên thì nút hiện "Sắp có"
-   * (link chết làm trang trông như lừa). App Store: chưa lên — lên rồi thì đổi `on`.
+   * (link chết làm trang trông như lừa). App Store: CÔNG KHAI từ 07.11.2026 (1.3.0).
    * Google Play: CÔNG KHAI (production) từ 03.11.2026.
    */
   const STORE = {
-    ios: { on: false, url: 'https://apps.apple.com/app/id6822105774' },
+    ios: { on: true, url: 'https://apps.apple.com/app/id6822105774' },
     android: { on: true, url: 'https://play.google.com/store/apps/details?id=com.cozypi.flipmatch' }
   };
 
