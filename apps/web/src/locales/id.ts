@@ -523,6 +523,8 @@ const id: TuDien = {
   'eb.doiChut': 'Pelan-pelan — kamu kirim emoji terlalu cepat',
   'eb.noiNhanh': "Obrolan cepat",
   'eb.chamGui': "ketuk untuk kirim",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Sering', 'eb.nhom.camXuc': 'Wajah', 'eb.nhom.tay': 'Tangan', 'eb.nhom.vui': 'Seru', 'eb.nhom.treu': 'Ejek',
   'say.chao': "Halo!",
   'say.hay': "Keren!",
   'say.wow': "Wah!",

@@ -521,6 +521,8 @@ const th: TuDien = {
   'eb.doiChut': 'ใจเย็น ๆ — ส่งอีโมจิเร็วเกินไปแล้ว',
   'eb.noiNhanh': "แชทด่วน",
   'eb.chamGui': "แตะเพื่อส่ง",
+  'eb.chonEmoji': 'อีโมจิ',
+  'eb.nhom.hayDung': 'ใช้บ่อย', 'eb.nhom.camXuc': 'อารมณ์', 'eb.nhom.tay': 'มือ', 'eb.nhom.vui': 'สนุก', 'eb.nhom.treu': 'แซว',
   'say.chao': "สวัสดี!",
   'say.hay': "เยี่ยม!",
   'say.wow': "ว้าว!",

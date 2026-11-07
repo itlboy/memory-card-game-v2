@@ -523,6 +523,8 @@ const zhTW: TuDien = {
   'eb.doiChut': '慢一點，表情符號傳太快了',
   'eb.noiNhanh': "快速聊天",
   'eb.chamGui': "點一下傳送",
+  'eb.chonEmoji': '表情',
+  'eb.nhom.hayDung': '常用', 'eb.nhom.camXuc': '表情臉', 'eb.nhom.tay': '手勢', 'eb.nhom.vui': '歡樂', 'eb.nhom.treu': '調侃',
   'say.chao': "嗨！",
   'say.hay': "漂亮！",
   'say.wow': "哇！",

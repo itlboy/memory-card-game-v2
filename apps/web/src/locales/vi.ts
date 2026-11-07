@@ -533,6 +533,8 @@ const vi = {
   'eb.doiChut': 'Gửi emoji — đợi chút, bạn vừa gửi liên tục',
   'eb.noiNhanh': "Nói nhanh",
   'eb.chamGui': "chạm để gửi",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Hay dùng', 'eb.nhom.camXuc': 'Cảm xúc', 'eb.nhom.tay': 'Tay', 'eb.nhom.vui': 'Vui', 'eb.nhom.treu': 'Trêu',
   'say.chao': "Xin chào!",
   'say.hay': "Hay quá!",
   'say.wow': "Wow!",

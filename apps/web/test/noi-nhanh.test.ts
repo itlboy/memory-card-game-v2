@@ -31,6 +31,7 @@ describe('nói nhanh', () => {
   it('nút 💬 là con ĐẦU của thanh — luật ẩn bớt emoji không bao giờ ẩn nó', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
     const bar = src.slice(src.indexOf('class="emoji-bar"'));
-    expect(bar.indexOf('emoji say')).toBeLessThan(bar.indexOf('v-for="e in QUICK_EMOJIS"'));
+    expect(bar.indexOf('emoji say')).toBeLessThan(bar.indexOf('v-for="e in hangNgoai"'));
+    expect(bar.indexOf('emoji chon')).toBeLessThan(bar.indexOf('v-for="e in hangNgoai"'));
   });
 });

@@ -523,6 +523,8 @@ const tr: TuDien = {
   'eb.doiChut': "Yavaş ol — çok hızlı emoji gönderiyorsun",
   'eb.noiNhanh': "Hızlı sohbet",
   'eb.chamGui': "göndermek için dokun",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Sık kullanılan', 'eb.nhom.camXuc': 'Yüzler', 'eb.nhom.tay': 'Eller', 'eb.nhom.vui': 'Eğlence', 'eb.nhom.treu': 'Takılma',
   'say.chao': "Merhaba!",
   'say.hay': "Harika!",
   'say.wow': "Vay be!",

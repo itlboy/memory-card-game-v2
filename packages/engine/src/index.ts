@@ -29,10 +29,10 @@ export type {
 } from './types.js';
 export {
   BANG_MAU_BACK, BANG_MAU_DUNG, BANG_MAU_TAT, CARD_BACKS, CARD_BACKS_CU, CARD_BACKS_DUNG, HOA_TIET_DUNG, HOA_TIET_TAT, DEFAULT_ROOM_CONFIG, HOA_TIET_BACK,
-  QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, backVeCu,
+  QUICK_EMOJIS, EMOJI_NHOM, EMOJI_PHO_BIEN, QUICK_SAYS, ROOM_LIMITS, backVeCu,
   backForSeed, packView, predealSymbols, publicEvents, publicPlayer, publicView, unpackView
 } from './online.js';
 export type {
   CardBack, ClientMsg, GameView, PredealMsg, PublicCard, PublicEvent, PublicPlayer,
-  PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView
+  PublicRoom, QuickEmoji, EmojiNhom, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView
 } from './online.js';

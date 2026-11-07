@@ -522,6 +522,8 @@ const en: TuDien = {
   'eb.doiChut': "Slow down — you're sending emojis too fast",
   'eb.noiNhanh': "Quick chat",
   'eb.chamGui': "tap to send",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Frequent', 'eb.nhom.camXuc': 'Faces', 'eb.nhom.tay': 'Hands', 'eb.nhom.vui': 'Fun', 'eb.nhom.treu': 'Tease',
   'say.chao': "Hello!",
   'say.hay': "Nice one!",
   'say.wow': "Wow!",

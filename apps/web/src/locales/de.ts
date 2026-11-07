@@ -523,6 +523,8 @@ const de: TuDien = {
   'eb.doiChut': 'Langsam — du sendest Emojis zu schnell',
   'eb.noiNhanh': "Schnellchat",
   'eb.chamGui': "tippen zum Senden",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Häufig', 'eb.nhom.camXuc': 'Gesichter', 'eb.nhom.tay': 'Hände', 'eb.nhom.vui': 'Spaß', 'eb.nhom.treu': 'Necken',
   'say.chao': "Hallo!",
   'say.hay': "Stark!",
   'say.wow': "Wahnsinn!",
