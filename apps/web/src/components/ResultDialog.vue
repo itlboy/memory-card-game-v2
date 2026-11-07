@@ -10,6 +10,7 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
+import { Settings2 } from 'lucide-vue-next';
 
 const props = defineProps<{
   summary: Summary;
@@ -32,6 +33,8 @@ const props = defineProps<{
   levelId?: number;
   /** Ván online: không có thang cấp nên không có "cấp tiếp theo". */
   multiplayerOnline?: boolean;
+  /** Phòng online: mình là chủ phòng → bấm được "Chỉnh bàn" (người khác thấy nút mờ). */
+  laChuPhong?: boolean;
   /** Ván online: mình đã bấm chơi lại chưa. Nút đổi thành trạng thái chờ —
    *  trước đây bấm xong nút y nguyên nên người chơi tưởng nút không ăn. */
   rematchSent?: boolean;
@@ -56,7 +59,7 @@ const props = defineProps<{
   minhKetCuc?: LoaiKetCuc;
 }>();
 
-const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; 'chinh-phuc': [Achievement] }>();
+const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; chinh: []; 'chinh-phuc': [Achievement] }>();
 const primary = ref<HTMLButtonElement | null>(null);
 const shownStars = ref(0);
 /** Mốc của ngôi sao KẾ TIẾP — nói cho người chơi biết lần sau cần gì. */
@@ -304,15 +307,27 @@ const title = computed(() => {
         giữa chừng thì nó không bao giờ đủ phiếu — trước đây người ở lại chỉ còn
         đường về menu, và thế là mất phòng, phải tạo mã mới mời lại từ đầu.
       -->
-      <button v-if="multiplayerOnline" class="btn to-lobby" type="button" @click="emit('lobby')">
-        {{ t('kq.vePhongCho') }}
-      </button>
+      <!--
+        HẾT VÁN ONLINE (07.11.2026, chủ dự án duyệt mockup https://claude.ai/artifact/6Yh26Beir4CtZj6ddSbRW9):
+        "Về phòng chờ" + "Chỉnh bàn" chung một hàng; "Chỉnh bàn" mở đúng ba bước của nút
+        "Chỉnh" ở phòng chờ (cùng icon). Chỉ chủ phòng bấm được — server cũng chặn.
+      -->
+      <div v-if="multiplayerOnline" class="row hang-phu">
+        <button class="btn to-lobby" type="button" @click="emit('lobby')">
+          {{ t('kq.vePhongCho') }}
+        </button>
+        <button
+          class="btn chinh-ban" type="button" :disabled="!laChuPhong"
+          :title="laChuPhong ? '' : t('kq.chiChuPhongChinh')"
+          @click="laChuPhong && emit('chinh')"
+        ><Settings2 :size="17" /> {{ t('kq.chinhBan') }}</button>
+      </div>
       <!--
         Ván offline: "Đổi bàn" về thẳng bước chọn cỡ bàn — người vừa chơi xong
         thường muốn đổi cỡ, ít khi muốn về tận màn đầu (chủ dự án duyệt
         11.10.2026). Online giữ "Về menu": ở đó không có bước chọn bàn.
       -->
-      <button v-if="multiplayerOnline" class="btn link" type="button" @click="emit('menu')">{{ t('kq.veMenu') }}</button>
+      <button v-if="multiplayerOnline" class="btn link thoat" type="button" @click="emit('menu')">{{ t('kq.thoatPhong') }}</button>
       <button v-else class="btn link" type="button" @click="emit('doi-ban')">{{ t('kq.doiBan') }}</button>
       <!--
         Chỉ còn MỘT dòng ở đây: "đang chờ ai" và "ai muốn chơi lại" đã chuyển
@@ -559,6 +574,14 @@ h2 { margin: 0 0 4px; }
    thiếu bề rộng riêng là nó co vào vừa chữ và nằm lệch trái, trong khi "Chơi
    lại" và "Về menu" trên dưới nó đều kéo hết bề ngang. */
 .to-lobby { display: block; width: 100%; margin-top: 8px; }
+/* Hàng phụ online: hai nút chia đôi, sát hàng "Chơi lại" như nút Về phòng chờ cũ */
+.row.hang-phu { margin-top: 8px; }
+.row.hang-phu .btn { margin: 0; }
+.chinh-ban { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.chinh-ban:disabled { opacity: .45; cursor: not-allowed; }
+/* Thoát phòng: lối RA, chữ đỏ để không bấm nhầm thay cho "Về phòng chờ" — vẫn hỏi lại */
+/* Skin Kẹo tô chữ nút bằng `--bc` (!important) — đặt biến, không đặt `color` trần */
+.link.thoat { --bc: var(--bad); color: var(--bad); font-weight: 800; }
 .link { width: 100%; margin-top: 8px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }
 
 /*

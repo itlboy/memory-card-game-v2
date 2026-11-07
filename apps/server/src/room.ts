@@ -586,8 +586,9 @@ export class RoomDO extends DurableObject<Env> {
         return;
 
       case 'config': {
-        // ON-03: chỉ chủ phòng chỉnh cấu hình, và chỉ khi còn ở lobby
-        if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
+        // ON-03: chỉ chủ phòng chỉnh cấu hình — ở lobby, hoặc ở màn kết quả (07.11.2026,
+        // nút "Chỉnh bàn" sau ván: chủ dự án duyệt mockup). Đang đếm ngược / đang chơi thì không.
+        if (player.id !== this.room.hostId || (this.room.status !== 'lobby' && this.room.status !== 'ended')) return;
         const c = msg.config;
         // Số màn từ client: phải là số nguyên trong khoảng, không thì presetConfig
         // ném lỗi ngay lúc bắt đầu ván và cả phòng bị treo (ON-09)
@@ -610,6 +611,9 @@ export class RoomDO extends DurableObject<Env> {
             .filter((id) => Object.hasOwn(THEME_SYMBOLS, id));
           if (valid.length) this.room.config.themeIds = valid;
         }
+        // Đổi luật sau ván thì mọi lượt "Chơi lại" trước đó KHÔNG còn tính: không ai bị kéo
+        // vào ván luật mới khi chưa kịp thấy thông báo đổi bàn.
+        if (this.room.status === 'ended') this.againVotes.clear();
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
         return;
