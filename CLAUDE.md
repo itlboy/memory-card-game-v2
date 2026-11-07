@@ -636,10 +636,16 @@
 - **CÀI LÊN MÀN HÌNH CHÍNH (22.10.2026, app chưa lên App Store)**: `lib/cai-app.ts` + `CaiAppDialog` (hộp) +
   `CaiAppBuoc` (lật 3 bước, dùng chung với mục cuối Luật chơi) + `MinhHoaCai` (hình VẼ LẠI Safari/Chrome, chỗ cần
   bấm khoanh sáng + ngón tay; chữ duy nhất trong hình lấy từ bản dịch bước — chủ dự án chọn vẽ thay ảnh chụp).
-  Làm TRONG GAME, không trang riêng: iPhone lưu đúng trang đang mở → biểu tượng mở thẳng game. Lối vào: viên mời trang
-  chủ (✕ ẩn hẳn, `mm.anCai`), menu ☰, Luật chơi, link `/?cai=1`. Tự nhận iOS/Android/trình duyệt nhúng (Zalo…
+  Làm TRONG GAME, không trang riêng: iPhone lưu đúng trang đang mở → biểu tượng mở thẳng game. Lối vào: menu ☰,
+  Luật chơi, link `/?cai=1` (viên mời trang chủ ĐÃ BỎ 07.11.2026 — thay bằng gợi ý cài app store, mục dưới). Tự nhận iOS/Android/trình duyệt nhúng (Zalo…
   → nhắc mở Safari/Chrome + chép link); Chrome Android có nút "Cài ngay" (`beforeinstallprompt`). Không hiện trong
   app (`laApp`) hay khi đã mở từ biểu tượng. Safari/Chrome đổi giao diện là vẽ lại `MinhHoaCai`.
+- **GỢI Ý CÀI APP STORE (07.11.2026, mockup A duyệt https://claude.ai/artifact/F8E7g9e1TnHuqhJGWfTriF)**: app có trên
+  Google Play + App Store nên trang chủ web điện thoại có thẻ trắng viền navy dưới dải lối tắt (`lib/goi-y-app.ts`,
+  MenuScreen `.goi-y-app`): Android → Play, iPhone không phải Safari → App Store, ✕ ẩn 30 ngày (`mm.anGoiYApp`),
+  GA `goi_y_app_cai`/`goi_y_app_an`. **Safari iOS KHÔNG hiện thẻ** — Safari tự vẽ Smart App Banner từ meta
+  `apple-itunes-app` (index.html + trang công khai); hiện thêm là hai thanh mời. Màu thẻ CỨNG (một mặt riêng, đọc được
+  mọi skin). Chữ ngắn có chủ đích: ở 360px, tiêu đề dài / dòng phụ dài bị cắt (ru, de, id… đã đo) — sửa chữ thì đo lại.
 - **VUỐT LÙI iOS PHẢI ĐÃ TAY NHƯ ANDROID** (03.11.2026, chủ dự án: "iPhone kém Android, không rung"):
   `ganVuotLuiIos` (lib/nut-back.ts) co cả `#app` theo ngón (`.vuot-lui-trang`, scale/translate riêng),
   qua ngưỡng 64px rung một chạm `rung.moc()`, vuốt nhanh ≥28px cũng lùi, mép bắt 30px. Thả tay: màn

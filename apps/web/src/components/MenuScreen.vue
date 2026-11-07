@@ -19,7 +19,8 @@ function dichGoiYTuyChon(s: string | null): string | null {
 }
 import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
 import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
-import { anLoiMoi, moCai, nenMoiCai, tatLoiMoi } from '@/lib/cai-app';
+import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
+import { suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
@@ -484,13 +485,6 @@ const ICO3D = {
         ẩn hẳn khi máy quá thấp, nên KHÔNG SCROLL vẫn giữ.
       -->
       <div v-if="step === 'players'" key="players" class="step-body home">
-        <!-- Mời cài lên màn hình chính (lib/cai-app.ts): chỉ điện thoại mở bằng trình duyệt; ✕ là ẩn hẳn -->
-        <div v-if="nenMoiCai && !anLoiMoi" class="moi-cai">
-          <button class="thach th-nho moi-cai-nut" type="button" @click="moCai()">
-            <img src="/emoji/3d/128/1f4f1.webp" alt="" aria-hidden="true" />{{ t('cai.moi') }}
-          </button>
-          <button class="thach th-nho moi-cai-an" type="button" :aria-label="t('cai.an')" @click="tatLoiMoi()"><X :size="16" /></button>
-        </div>
         <QuatLa :themes="themes" />
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
@@ -523,6 +517,18 @@ const ICO3D = {
           <button v-if="goiY" class="lt-chip goi-y thach th-do" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
             <span aria-hidden="true">🎯</span><span class="ten">{{ goiY.name }}</span>
           </button>
+        </div>
+
+        <!-- GỢI Ý CÀI APP STORE (lib/goi-y-app.ts, mockup A duyệt 07.11.2026): web điện thoại, không phải
+             Safari iOS (Safari có Smart App Banner riêng). Thay viên "Cài như app" cũ. -->
+        <div v-if="storeGoiY && !anGoiYApp" class="goi-y-app">
+          <img src="/icon-192.png" alt="" aria-hidden="true" width="44" height="44">
+          <div class="gya-chu">
+            <strong>{{ t('app.coApp') }}</strong>
+            <span>{{ t('app.phu', { store: storeGoiY.ten }) }}</span>
+          </div>
+          <a class="gya-cai" :href="storeGoiY.url" target="_blank" rel="noopener" @click="suKien('goi_y_app_cai', { store: storeGoiY.ten })">{{ t('app.cai') }}</a>
+          <button class="gya-an" type="button" data-phang :aria-label="t('cai.an')" @click="suKien('goi_y_app_an'); tatGoiYApp()"><X :size="18" /></button>
         </div>
       </div>
 
@@ -921,12 +927,23 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .home .loi-tat { margin: 0; }
 .ico3d { display: none; }
 
-.moi-cai { flex: none; display: flex; justify-content: center; align-items: center; gap: 6px; }
-.moi-cai-nut { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; border-radius: 999px; padding: 4px 14px 4px 8px; font-weight: 800; font-size: 14.5px; }
-.moi-cai-nut img { width: 26px; height: 26px; }
+/* Thẻ gợi ý cài app (mockup A): mặt trắng viền navy như nút store trang giới thiệu — màu CỨNG cả
+   thẻ (không trộn token), vì thẻ là một mặt riêng, đọc được trên mọi skin sáng/tối. */
+.goi-y-app {
+  flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 6px 8px 10px;
+  background: #fff; color: #1f2a5c; border: 3px solid #1f2a5c; border-radius: 18px; box-shadow: 0 4px 0 #1f2a5c;
+}
+.goi-y-app img { flex: none; width: 44px; height: 44px; border-radius: 11px; }
+.gya-chu { flex: 1; min-width: 0; display: grid; line-height: 1.25; }
+.gya-chu strong { font-weight: 800; font-size: 15px; color: #1f2a5c; overflow-wrap: anywhere; }
+.gya-chu span { font-weight: 600; font-size: 12.5px; color: #4a557f; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gya-cai {
+  flex: none; padding: 9px 14px; border-radius: 14px; background: #278210; color: #fff;
+  font-weight: 800; font-size: 15px; text-decoration: none; box-shadow: 0 3px 0 #175008;
+}
 /* Hình 32px, vùng chạm 44px (NF-07) */
-.moi-cai-an { position: relative; width: 32px; height: 32px; min-width: 0; min-height: 0; padding: 0; border-radius: 50%; }
-.moi-cai-an::after { content: ''; position: absolute; inset: -6px; }
+.gya-an { position: relative; flex: none; width: 32px; height: 32px; min-width: 0; min-height: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: #4a557f; display: grid; place-items: center; cursor: pointer; }
+.gya-an::after { content: ''; position: absolute; inset: -6px; }
 .o-chien-dich, .o-vuong {
   border: 2px solid transparent; border-radius: 20px; color: #fff; cursor: pointer;
   font: inherit; transition: transform .15s ease, box-shadow .15s ease;

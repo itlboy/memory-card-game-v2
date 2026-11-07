@@ -607,6 +607,9 @@ const zh: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "像应用一样安装",
+  "app.coApp": "App 上线啦！",
+  "app.phu": "{store} · 可离线玩",
+  "app.cai": "安装",
   "cai.an": "隐藏",
   "cai.menu": "添加到主屏幕",
   "cai.tieuDe": "添加到主屏幕",

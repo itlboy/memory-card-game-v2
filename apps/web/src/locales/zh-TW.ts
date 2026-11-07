@@ -610,6 +610,9 @@ const zhTW: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "像 App 一樣安裝",
+  "app.coApp": "App 上線囉！",
+  "app.phu": "{store} · 可離線玩",
+  "app.cai": "安裝",
   "cai.an": "隱藏",
   "cai.menu": "加入主畫面",
   "cai.tieuDe": "加入主畫面",
