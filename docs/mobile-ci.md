@@ -143,6 +143,7 @@ không hỏi khai báo mã hoá mỗi bản.
 
 ## Số phiên bản (19.10.2026)
 
+- **Đang ở 1.4.x (07.11.2026)**: 1.3.0 đã công khai cả hai store, Apple không nhận thêm build 1.3.0.
 - **Android**: tên phiên bản = `<version>.<số build>` (vd. `1.3.0.362`) — mỗi bản lên CH Play hiện một số
   khác nhau (chủ dự án yêu cầu). Mã phiên bản (versionCode) vẫn là số build.
 - **iOS**: giữ `<version>` (3 số). Apple từ chối 4 số; đổi số mỗi build thì mỗi lần là một "phiên bản"

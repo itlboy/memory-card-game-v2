@@ -573,6 +573,12 @@
   `main` không huỷ nó nữa. Soát log iOS: `Upload succeeded` + dòng `Z Authority=Apple
   Distribution` (grep trần dính cả dòng lệnh trong script). Android tự lên Play
   internal ở trạng thái `completed` (biến repo `PLAY_RELEASE_STATUS`).
+- **PHIÊN BẢN 1.4 (từ 07.11.2026)**: 1.3.0 đã công khai trên CẢ HAI store (Play 03.11, App
+  Store 07.11) nên Apple đóng "train" 1.3.0 — build 1.3.0 mới bị từ chối. Chủ dự án chốt:
+  mọi bản app từ nay là **1.4.x** (`apps/web/package.json` = `1.4.0`; Android hiện `1.4.0.<build>`).
+  `minNative` trong `apps/web/ota.json` GIỮ `1.3.0` chừng nào chưa đổi phần native — app 1.3.0
+  đang ngoài store vẫn nhận gói OTA. Lên bản kế (1.5…) cũng theo luật này: phiên bản đang
+  công khai thì phiên bản mới phải cao hơn.
 - **Có phiên Claude KHÁC làm chung thư mục repo** (thường thấy file `tools/`, `docs/`
   chưa commit không phải của mình). Commit đúng file của mình (`git add <đường dẫn>`,
   KHÔNG `-A`); release Cloudflare từ **worktree sạch** ở `origin/main`
