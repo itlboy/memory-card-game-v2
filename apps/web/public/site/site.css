@@ -78,7 +78,9 @@ a { color: var(--violet); text-underline-offset: 3px; }
 .hero .btns { display: grid; grid-template-columns: 1fr 1fr; width: min(100%, 460px); }
 .hero .btns .btn.play { grid-column: 1 / -1; }
 .hero .btns .btn.store { justify-content: flex-start; padding-inline: 18px; }
-.btn.play { background: var(--green); color: #fff; text-shadow: 0 2px 0 var(--green-deep); }
+/* Nền xanh đậm: chữ trắng trên --green chỉ 2,2:1, chủ dự án chê khó đọc (07.11.2026) → #278210 = 4,9:1 */
+.btn.play { background: #278210; color: #fff; text-shadow: 0 2px 0 #175008; }
+.btn.play small { opacity: 1; }
 .btn.store { background: #fff; color: var(--navy); }   /* nền trắng: logo Google Play nhiều màu nổi (nền navy bị chê tối, 03.11.2026) */
 .btn[aria-disabled="true"] { background: #fff; color: var(--muted); border-style: dashed; border-color: color-mix(in srgb, var(--navy) 45%, transparent); box-shadow: none; cursor: default; }
 @media (hover: hover) { .btn:not([aria-disabled="true"]):hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--navy); } }
