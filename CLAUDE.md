@@ -573,12 +573,12 @@
   `main` không huỷ nó nữa. Soát log iOS: `Upload succeeded` + dòng `Z Authority=Apple
   Distribution` (grep trần dính cả dòng lệnh trong script). Android tự lên Play
   internal ở trạng thái `completed` (biến repo `PLAY_RELEASE_STATUS`).
-- **PHIÊN BẢN 1.4 (từ 07.11.2026)**: 1.3.0 đã công khai trên CẢ HAI store (Play 03.11, App
-  Store 07.11) nên Apple đóng "train" 1.3.0 — build 1.3.0 mới bị từ chối. Chủ dự án chốt:
-  mọi bản app từ nay là **1.4.x** (`apps/web/package.json` = `1.4.0`; Android hiện `1.4.0.<build>`).
-  `minNative` trong `apps/web/ota.json` GIỮ `1.3.0` chừng nào chưa đổi phần native — app 1.3.0
-  đang ngoài store vẫn nhận gói OTA. Lên bản kế (1.5…) cũng theo luật này: phiên bản đang
-  công khai thì phiên bản mới phải cao hơn.
+- **MỖI BẢN MỘT SỐ MỚI (07.11.2026)**: 1.3.0 đã công khai cả hai store, giờ là 1.4.x và chủ
+  dự án muốn số tăng theo từng bản: 1.4.1 → 1.4.2…, KHÔNG giữ mãi một số như 1.3.0. Giao hàng có
+  đổi app (web/engine) thì chạy `pnpm ban:tang` TRƯỚC khi commit (bước 2 bên dưới). Android và
+  iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
+  Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
+  (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
 - **Có phiên Claude KHÁC làm chung thư mục repo** (thường thấy file `tools/`, `docs/`
   chưa commit không phải của mình). Commit đúng file của mình (`git add <đường dẫn>`,
   KHÔNG `-A`); release Cloudflare từ **worktree sạch** ở `origin/main`
@@ -906,7 +906,7 @@
   Một "lần giao hàng" đầy đủ gồm ĐỦ BỐN BƯỚC, thiếu bước nào là người chơi vẫn
   thấy bản cũ ở một trong hai tên miền:
   1. `pnpm typecheck` + `pnpm test` + `pnpm build` xanh;
-  2. commit trên `develop` → merge `--no-ff` sang `main` → `git push origin main develop`
+  2. đổi app (web/engine) thì `pnpm ban:tang` (1.4.1 → 1.4.2); commit trên `develop` → merge `--no-ff` sang `main` → `git push origin main develop`
      (đẩy `main` là Action tự đóng ảnh, Keel thay pod Node ở Hà Nội sau vài phút);
   3. `pnpm release` NGAY SAU ĐÓ cho bản Cloudflare dự phòng — Action KHÔNG đụng
      tới Cloudflare, nên bỏ bước này là `thebai2` đứng lại ở bản cũ vô thời hạn;

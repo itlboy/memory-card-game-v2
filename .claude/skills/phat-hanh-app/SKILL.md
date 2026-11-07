@@ -14,9 +14,10 @@ là chọn đúng commit, gắn tag, và SOÁT bằng log chứ không tin dấu
    web đang dùng). Đang có thay đổi chỉ ở `develop` thì hỏi người dùng có giao hàng
    web trước không (quy trình bốn bước trong CLAUDE.md), đừng tự tag lên develop.
 2. `pnpm typecheck && pnpm test` xanh (đọc cả dòng `Test Files`).
-3. Số phiên bản hiển thị = `version` trong `apps/web/package.json`. Bản mới cho
-   người dùng thấy khác thì nâng nó (patch cho sửa lỗi, minor cho tính năng) và
-   commit qua develop → main như mọi thay đổi. Số bản dựng (build number) tự tăng
+3. Số phiên bản hiển thị = `version` trong `apps/web/package.json`, Android và iOS
+   như nhau. Mỗi bản một số mới (07.11.2026): `pnpm ban:tang` nâng số cuối
+   (1.4.1 → 1.4.2) ở mỗi lần giao hàng có đổi app; nâng số giữa thì sửa tay. Commit
+   qua develop → main như mọi thay đổi. Số bản dựng (build number) tự tăng
    theo `run_number`, không phải đụng.
 4. Đổi luật chơi / thêm tính năng lớn → sửa luôn `docs/store-listing.md`
    (`python3 tools/dem-ky-tu-store.py` soát số ký tự).

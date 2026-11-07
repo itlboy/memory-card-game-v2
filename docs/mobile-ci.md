@@ -143,7 +143,7 @@ không hỏi khai báo mã hoá mỗi bản.
 
 ## Số phiên bản (19.10.2026)
 
-- **Đang ở 1.4.x (07.11.2026)**: 1.3.0 đã công khai cả hai store, Apple không nhận thêm build 1.3.0.
+- **Mỗi bản một số mới (07.11.2026)**: `pnpm ban:tang` nâng số cuối (1.4.1 → 1.4.2) mỗi lần giao hàng có đổi app. Android và iOS cùng hiện số đó. Hai mục dưới là cách CŨ, giữ để hiểu số trên các bản đã phát hành.
 - **Android**: tên phiên bản = `<version>.<số build>` (vd. `1.3.0.362`) — mỗi bản lên CH Play hiện một số
   khác nhau (chủ dự án yêu cầu). Mã phiên bản (versionCode) vẫn là số build.
 - **iOS**: giữ `<version>` (3 số). Apple từ chối 4 số; đổi số mỗi build thì mỗi lần là một "phiên bản"
