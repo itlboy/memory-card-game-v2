@@ -579,6 +579,14 @@
   iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
   Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
   (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
+- **HẾT VÁN ONLINE (07.11.2026, mockup duyệt: https://claude.ai/artifact/6Yh26Beir4CtZj6ddSbRW9)**:
+  Chơi lại · [Về phòng chờ | Chỉnh bàn] · Thoát phòng (đỏ, LUÔN hỏi lại). "Chỉnh bàn" (chỉ chủ
+  phòng) mở wizard ba bước của phòng chờ dưới dạng LỚP PHỦ `.wiz-phu` — OnlineGame KHÔNG được gỡ
+  ra (gỡ là đóng wizard xong hiệu ứng kết ván diễn lại). Server nhận `config` ở `lobby` VÀ `ended`;
+  đổi lúc `ended` thì xoá mọi phiếu "Chơi lại". Người khác thấy MỘT DÒNG nhỏ trên đầu màn
+  ("X đổi bàn: …", tự ẩn 6 giây, `doiBan` trong OnlineScreen) — chủ dự án chê ô thông báo chèn vào
+  bảng kết quả. Chữ nút trong skin Kẹo do biến `--bc` quyết định (!important): muốn đổi màu chữ
+  nút thì đặt `--bc`, đặt `color` trần là không ăn.
 - **BẢNG EMOJI (07.11.2026, mockup duyệt: https://claude.ai/artifact/Coo5jHgcY1UxR7ZL8tKoKW)**:
   thanh emoji = 💬 · ☺ (mở bảng ~50 emoji chia nhóm) · 7 emoji HAY DÙNG của chính máy đó
   (`lib/emoji-hay-dung.ts`, localStorage `mm.emojiDung`; máy mới = `EMOJI_PHO_BIEN`). Danh sách

@@ -29,7 +29,7 @@ import type { useOnlineRoom } from '@/composables/useOnlineRoom';
  * CSS — sửa một màn phải lo va chạm với ba màn kia, và đã va chạm thật vài lần.
  */
 const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
-const emit = defineEmits<{ quit: [] }>();
+const emit = defineEmits<{ quit: []; chinh: [] }>();
 const o = props.o;
 /** Avatar người đi đầu (đếm ngược trước ván) — thay 🎲; online không có máy nên in chữ trơn. */
 const matDiTruoc = computed(() => {
@@ -521,7 +521,7 @@ watch(() => o.view.value?.summary, (s) => {
     <ResultDialog
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
-      :is-record="false" :show-stars="false" :multiplayer="true" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
+      :is-record="false" :show-stars="false" :multiplayer="true" :la-chu-phong="o.isHost.value && !o.spectator.value" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
       :fresh-achievements="[]" :has-next="false" :multiplayer-online="true"
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
@@ -531,6 +531,7 @@ watch(() => o.view.value?.summary, (s) => {
       @replay="o.again()"
       @next="o.again()"
       @lobby="o.veLobby()"
+      @chinh="emit('chinh')"
       @menu="emit('quit')"
     >
       <template #chat><EmojiBar :o="o" /></template>

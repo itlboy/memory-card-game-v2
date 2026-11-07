@@ -123,6 +123,17 @@ while (!v.summary && guard++ < 16) {
 if (!v.summary) fail('ván không kết thúc');
 console.log('✓ ván kết thúc:', v.summary.ranking.map((p) => `${p.name}=${p.score}`).join(' '), '— người thắng:', v.summary.ranking[0].name);
 
+// CHỈNH BÀN SAU VÁN (07.11.2026): chủ phòng đổi được luật ở màn kết quả, khách thì không,
+// và mọi phiếu "Chơi lại" trước đó bị xoá (không ai bị kéo vào ván luật mới khi chưa đọc).
+binh.send({ t: 'again' });
+await binh.wait((m) => m.t === 'room' && (m.room.againVotes ?? []).includes(binh.id), 'Bình bấm Chơi lại');
+binh.send({ t: 'config', config: { level: 3 } });
+an.send({ t: 'config', config: { level: 2, options: BAN_TRON } });
+const sauVan = await binh.wait((m) => m.t === 'room' && m.room.config.level !== 1, 'chủ phòng chỉnh bàn sau ván');
+if (sauVan.room.config.level === 3) fail('khách đổi được bàn sau ván!');
+if ((sauVan.room.againVotes ?? []).length) fail('đổi bàn sau ván mà phiếu Chơi lại còn nguyên');
+console.log('✓ chủ phòng chỉnh bàn sau ván, khách thì không; phiếu Chơi lại bị xoá');
+
 // Emoji chat
 an.send({ t: 'emoji', emoji: '🔥' });
 const em = await binh.wait((m) => m.t === 'emoji', 'emoji');

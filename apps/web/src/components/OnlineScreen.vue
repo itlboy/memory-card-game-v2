@@ -343,8 +343,50 @@ function quit(): void {
   // chưa ai vào, lỡ chạm là mất phòng cùng cái mã vừa gửi cho bạn bè. Đích ở
   // đây là TRANG CHỦ vì đó đúng là việc của nút logo.
   if (phase === 'lobby') { hoiRoiPhong(exit); return; }
+  /*
+   * HẾT VÁN → "Thoát phòng" CŨNG HỎI (07.11.2026, chủ dự án duyệt mockup): một chạm
+   * nhầm là mất phòng lẫn tỷ số cả loạt. "Về phòng chờ" thì không hỏi — vẫn ở trong phòng.
+   */
+  if (phase === 'ended' && !o.spectator.value) {
+    const khac = (o.room.value?.players ?? []).filter((p) => p.id !== o.myId.value);
+    confirm.value = {
+      title: t('on.thoat.tieuDe'),
+      body: khac.length === 1 ? t('on.thoat.than1', { ten: khac[0]!.name }) : t('on.thoat.than'),
+      label: t('on.thoat.nut'),
+      action: exit
+    };
+    return;
+  }
   exit();
 }
+
+/*
+ * THÔNG BÁO ĐỔI BÀN (07.11.2026): chủ phòng chỉnh bàn (ở phòng chờ hay sau ván) thì
+ * người khác thấy MỘT DÒNG NHỎ nổi trên đầu màn, tự ẩn — chủ dự án chê ô thông báo
+ * chèn vào bảng kết quả "trông xấu quá". Chỉ ghi giá trị MỚI của những gì đổi.
+ */
+const doiBan = ref<{ ten: string; ds: string; key: number } | null>(null);
+let hen: ReturnType<typeof setTimeout> | undefined;
+function khacBiet(a: RoomConfig, b: RoomConfig): string[] {
+  const ra: string[] = [];
+  if (a.level !== b.level) ra.push(t('on.soThe', { n: levelSpec(b.level).pairs * 2 }));
+  if ([...a.themeIds].sort().join() !== [...b.themeIds].sort().join()) ra.push(themeSummary(b.themeIds));
+  for (const k of OPTION_KEYS) {
+    if (a.options[k] === b.options[k]) continue;
+    ra.push(dichGoiYTuyChon(optionSummary(k, b.options[k], b.level)) ?? `${t(`opt.${k}`)}: ${t('menu.tat')}`);
+  }
+  return ra;
+}
+watch(() => [o.room.value?.code, o.room.value?.config] as const, ([code, c], [codeCu, cu]) => {
+  if (!c || !cu || code !== codeCu || o.isHost.value) return;
+  const ds = khacBiet(cu, c);
+  if (!ds.length) return;
+  const ten = o.room.value?.players.find((p) => p.id === o.room.value?.hostId)?.name ?? '';
+  doiBan.value = { ten, ds: ds.join(' · '), key: Date.now() };
+  clearTimeout(hen);
+  hen = setTimeout(() => { doiBan.value = null; }, 6000);
+});
+onBeforeUnmount(() => clearTimeout(hen));
 
 /** Đang dở việc (wizard tạo phòng / trong phòng / trong ván) — App hỏi confirm trước khi rời trang. */
 function isBusy(): boolean {
@@ -593,7 +635,8 @@ watch(dangXemDanhSach, (co) => { if (co) chay(); else dung(); }, { immediate: tr
 onMounted(() => { document.addEventListener('visibilitychange', theoDoiHienThi); });
 onUnmounted(() => { dung(); document.removeEventListener('visibilitychange', theoDoiHienThi); });
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
-const editingInLobby = computed(() => o.phase.value === 'lobby');
+// Chỉnh bàn của phòng đang có: ở lobby, hoặc từ nút "Chỉnh bàn" ở màn kết quả (07.11.2026)
+const editingInLobby = computed(() => o.phase.value === 'lobby' || o.phase.value === 'ended');
 const WIZ_STEPS = ['level', 'theme', 'options'] as const;
 const WIZ_TITLES = computed(() => ({ level: t('menu.chonSoThe'), theme: t('menu.buoc.theme'), options: t('menu.buoc.options') }));
 
@@ -691,6 +734,11 @@ function wizFinish(): void {
   void o.createRoom(name.value.trim(), { ...cfg.value });
 }
 
+// Đang "Chỉnh bàn" sau ván mà phòng đi tiếp nơi khác (ai đó vào ván, phòng đóng…) thì
+// đóng wizard — về lobby thì giữ, vì ở đó nó vẫn đúng là bảng chỉnh bàn.
+watch(o.phase, (ph, cu) => {
+  if (cu === 'ended' && wizard.value && ph !== 'lobby' && ph !== 'ended' && !creatingRoom.value) wizard.value = null;
+});
 // Tạo phòng xong (vào lobby) thì đóng wizard
 watch(o.phase, (ph) => {
   if (creatingRoom.value && ph !== 'connecting' && ph !== 'idle') {
@@ -711,7 +759,7 @@ function openCfgWizard(): void {
        nhiều root sẽ làm Transition render trắng trang -->
   <div class="online">
   <!-- WIZARD CHỌN BÀN CHƠI: dùng khi tạo phòng và khi chỉnh trong lobby -->
-  <section v-if="wizard" class="panel">
+  <section v-if="wizard" class="panel" :class="{ 'wiz-phu': o.phase.value === 'ended' }">
     <div class="head">
       <button class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="wizBack"><ChevronLeft :size="22" /></button>
       <h2>{{ WIZ_TITLES[wizard!] }}</h2>
@@ -780,7 +828,7 @@ function openCfgWizard(): void {
   </section>
 
   <!-- VÀO ONLINE: bước 1 chọn việc, bước 2 điền form -->
-  <section v-else-if="o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting'" class="panel">
+  <section v-if="!wizard && (o.phase.value === 'idle' || o.phase.value === 'error' || o.phase.value === 'connecting')" class="panel">
     <div class="head">
       <button class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="backEntry"><ChevronLeft :size="22" /></button>
       <h2>{{ entryStep === 'choose' ? t('menu.online') : entryStep === 'create' ? t('on.taoPhongMoi') : t('on.vaoPhong') }}</h2>
@@ -920,7 +968,7 @@ function openCfgWizard(): void {
   </section>
 
   <!-- LOBBY -->
-  <section v-else-if="o.phase.value === 'lobby'" class="panel">
+  <section v-else-if="!wizard && o.phase.value === 'lobby'" class="panel">
     <div class="head">
       <button class="btn back" :aria-label="t('on.roiPhong.nut')" type="button" @click="backLobby"><ChevronLeft :size="22" /></button>
       <!-- Tên phòng LÀ tên chủ phòng — đúng cái người khác thấy trong danh sách
@@ -1103,7 +1151,7 @@ function openCfgWizard(): void {
   </section>
 
   <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
-  <OnlineGame v-else :o="o" @quit="quit" />
+  <OnlineGame v-else-if="!wizard || o.phase.value === 'ended'" :o="o" @quit="quit" @chinh="openCfgWizard" />
 
   <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
        được mount một bản: trong ván đã có bản của OnlineGame. -->
@@ -1118,6 +1166,12 @@ function openCfgWizard(): void {
     @close="moMoi = false"
   />
 
+  <Transition name="doi-ban">
+    <p v-if="doiBan" :key="doiBan.key" class="doi-ban-toast" role="status">
+      <Settings2 :size="18" aria-hidden="true" /><span>{{ t('on.doiBan', { ten: doiBan.ten, ds: doiBan.ds }) }}</span>
+    </p>
+  </Transition>
+
   <ConfirmDialog
     v-if="confirm"
     :title="confirm.title" :body="confirm.body" :confirm-label="confirm.label"
@@ -1128,7 +1182,26 @@ function openCfgWizard(): void {
 </template>
 
 <style scoped>
-.online { display: flex; flex-direction: column; height: 100%; }
+.online { display: flex; flex-direction: column; height: 100%; position: relative; }
+/* "Chỉnh bàn" từ màn kết quả: wizard là LỚP PHỦ, ván + bảng kết quả vẫn sống bên dưới
+   (gỡ OnlineGame ra là đóng xong bàn lại diễn lại hiệu ứng kết ván từ đầu). Trên
+   bảng kết quả (z 10), dưới hộp xác nhận (z 20). */
+.panel.wiz-phu { position: absolute; inset: 0; z-index: 15; margin: 0; }
+/* Một dòng nhỏ nổi trên đầu màn — xem chú thích "THÔNG BÁO ĐỔI BÀN" trong script.
+   pointer-events: none: nó không được che nút nào trong 6 giây nó hiện. */
+.doi-ban-toast {
+  position: fixed; z-index: 25; left: 50%; top: calc(62px + env(safe-area-inset-top, 0px));
+  transform: translateX(-50%); max-width: calc(100% - 32px); width: max-content;
+  display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 14px;
+  border-radius: var(--r-full); pointer-events: none;
+  background: color-mix(in srgb, var(--panel-solid) 94%, transparent);
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .25); backdrop-filter: blur(6px);
+  font-family: var(--font-display); font-weight: 700; font-size: 14.5px; line-height: 1.25; color: var(--fg);
+}
+.doi-ban-toast svg { flex: none; color: var(--accent); }
+.doi-ban-enter-active, .doi-ban-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.doi-ban-enter-from, .doi-ban-leave-to { opacity: 0; transform: translate(-50%, -8px); }
 /* ---------- DANH SÁCH PHÒNG CÔNG KHAI (ON-10) ---------- */
 
 /* `.btn-primary` toàn cục KHÔNG phải flex — chữ nằm theo dòng bình thường.
