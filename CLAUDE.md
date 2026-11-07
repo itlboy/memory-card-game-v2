@@ -579,6 +579,12 @@
   iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
   Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
   (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
+- **🏅 TỶ SỐ LOẠT TỪNG LÀM MẤT ĐIỂM TRONG CHIP (sửa tận gốc 07.11.2026)** — lỗi người chơi báo
+  nhiều lần: bàn 2 người, người BÊN PHẢI chờ lượt có 🏅 + điểm cao → điểm bị cắt (Pro Max khuất
+  3–10px, SE 28px); bàn ≥3 người thì 🏅 xoá hẳn điểm. Mọi lần đo trước KHÔNG có 🏅 nên luôn
+  "xanh". Nay: bàn ≥3 người 🏅 là huy hiệu số ở góc avatar (absolute, 0px bề ngang); bàn 2
+  người chip chờ có 🏅 mà hẹp thì bỏ tên (lớp `co-loat`). `pnpm do:chip` (WebKit) đo LUÔN
+  có 🏅12. Thêm huy hiệu mới vào chip = thêm nó vào `do:chip` trước, rồi mới tin là xanh.
 - **Có phiên Claude KHÁC làm chung thư mục repo** (thường thấy file `tools/`, `docs/`
   chưa commit không phải của mình). Commit đúng file của mình (`git add <đường dẫn>`,
   KHÔNG `-A`); release Cloudflare từ **worktree sạch** ở `origin/main`

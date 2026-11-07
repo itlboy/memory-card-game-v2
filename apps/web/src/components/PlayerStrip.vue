@@ -70,7 +70,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         v-for="(p, i) in players"
         :key="p.id"
         class="player panel"
-        :class="{ active: p.id === currentId, frozen: p.frozenTurns > 0 }"
+        :class="{ active: p.id === currentId, frozen: p.frozenTurns > 0, 'co-loat': (seriesWins?.[p.name] ?? 0) > 0 }"
         :aria-current="p.id === currentId ? 'true' : undefined"
       >
         <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
@@ -93,7 +93,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
         </Transition>
         <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: seriesWins?.[p.name] ?? 0 })">
-          🏅{{ seriesWins?.[p.name] }}
+          <span class="huy">🏅</span>{{ seriesWins?.[p.name] }}
         </span>
         <span class="pts" :class="{ dai: p.score >= 1000 }" :data-pts-for="p.id" :title="num(p.score)">{{ numGon(p.score) }}</span>
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
@@ -244,6 +244,25 @@ watch(() => props.players.length, () => { moBang.value = false; });
   background: color-mix(in srgb, var(--gold) 30%, transparent);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+/* CHIP CHỜ CÓ 🏅: bỏ tên, giữ avatar + 🏅 + điểm — xem chú thích đầy đủ ở OnlineGame.vue
+   (lỗi điểm bị cắt ở chip phải, bàn 2 người, iPhone 15 Pro Max, 07.11.2026). */
+@container (max-width: 150px) {
+  .player.co-loat:not(.active) .name { display: none; }
+  .player.co-loat:not(.active) { justify-content: space-between; }
+}
+.player:not(.active) .wins { padding: 1px 3px; font-size: 10.5px; }
+/*
+ * BÀN ≥3 NGƯỜI: 🏅 THÀNH HUY HIỆU SỐ Ở GÓC AVATAR (absolute, tốn 0px bề ngang).
+ * Chip chờ ở đây chỉ rộng 70px = avatar + điểm; viên 🏅 chen vào là đẩy điểm ra khỏi chip
+ * (`pnpm do:chip` đo: SE 4 người cả bốn chip mất điểm). Giống chấm mạng: góc avatar.
+ */
+.strip.dong .player .wins {
+  position: absolute; z-index: 1; left: 2px; top: 2px;
+  min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
+  background: var(--gold); color: #3a2a00; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+.strip.dong .player .wins .huy { display: none; }
+
 /*
  * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI — xem chú thích đầy đủ ở OnlineGame.vue.
  * Tóm tắt: `.pts` có `margin-left: auto` nên nó đứng cuối hàng, mà mọi thứ

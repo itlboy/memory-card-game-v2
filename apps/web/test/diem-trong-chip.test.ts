@@ -50,6 +50,16 @@ describe('điểm nằm trong chip người chơi', () => {
         expect(src.slice(mo, mo + 220)).toMatch(/position:\s*absolute/);
       });
 
+      it('🏅 tỷ số loạt không được ăn chỗ của điểm (lỗi chip phải mất điểm, 07.11.2026)', () => {
+        const sel = ten === 'OnlineGame.vue' ? '.pchip' : '.player';
+        // Bàn ≥3 người: 🏅 là huy hiệu absolute ở góc avatar, tốn 0px bề ngang.
+        const mo = src.indexOf(`.strip.dong ${sel} .wins {`);
+        expect(mo, 'thiếu luật 🏅 cho bàn đông').toBeGreaterThan(0);
+        expect(src.slice(mo, mo + 120)).toMatch(/position:\s*absolute/);
+        // Bàn 2 người: chip chờ có 🏅 mà hẹp thì bỏ tên.
+        expect(src).toContain(`${sel}.co-loat:not(.active)`);
+      });
+
       it('mạng hiện bằng SỐ, không phải chuỗi trái tim (chuỗi phình theo số mạng)', () => {
         expect(src, "'❤️'.repeat() quay lại là chip lại tràn ở bàn nhiều mạng")
           .not.toMatch(/'❤️'\.repeat/);
