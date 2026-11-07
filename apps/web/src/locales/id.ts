@@ -610,6 +610,9 @@ const id: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "Pasang seperti aplikasi",
+  "app.coApp": "Kini ada app!",
+  "app.phu": "{store} · main offline",
+  "app.cai": "Pasang",
   "cai.an": "Sembunyikan",
   "cai.menu": "Tambah ke layar utama",
   "cai.tieuDe": "Tambah ke layar utama",

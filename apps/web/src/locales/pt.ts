@@ -609,6 +609,9 @@ const pt: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "Instalar como app",
+  "app.coApp": "Agora tem app!",
+  "app.phu": "{store} · joga offline",
+  "app.cai": "Instalar",
   "cai.an": "Ocultar",
   "cai.menu": "Adicionar à tela inicial",
   "cai.tieuDe": "Adicionar à tela inicial",

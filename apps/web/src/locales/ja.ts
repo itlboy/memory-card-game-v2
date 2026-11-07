@@ -607,6 +607,9 @@ const ja: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "アプリのように使う",
+  "app.coApp": "アプリ登場！",
+  "app.phu": "{store}・オフライン対応",
+  "app.cai": "入手",
   "cai.an": "閉じる",
   "cai.menu": "ホーム画面に追加",
   "cai.tieuDe": "ホーム画面に追加",

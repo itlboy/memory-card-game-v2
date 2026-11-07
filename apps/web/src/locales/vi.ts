@@ -620,6 +620,9 @@ const vi = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "Cài Lật Thẻ như app",
+  "app.coApp": "Lật Thẻ có app rồi!",
+  "app.phu": "{store} · mượt hơn, chơi offline",
+  "app.cai": "Cài",
   "cai.an": "Ẩn lời mời",
   "cai.menu": "Cài lên màn hình chính",
   "cai.tieuDe": "Cài lên màn hình chính",

@@ -608,6 +608,9 @@ const th: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "ติดตั้งแบบแอป",
+  "app.coApp": "มีแอปแล้ว!",
+  "app.phu": "{store} · เล่นออฟไลน์ได้",
+  "app.cai": "ติดตั้ง",
   "cai.an": "ซ่อน",
   "cai.menu": "เพิ่มลงหน้าจอโฮม",
   "cai.tieuDe": "เพิ่มลงหน้าจอโฮม",

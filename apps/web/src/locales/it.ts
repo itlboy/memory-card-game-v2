@@ -611,6 +611,9 @@ const it: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "Installa come app",
+  "app.coApp": "Ora c'è l'app!",
+  "app.phu": "{store} · anche offline",
+  "app.cai": "Installa",
   "cai.an": "Nascondi",
   "cai.menu": "Aggiungi alla schermata Home",
   "cai.tieuDe": "Aggiungi alla schermata Home",

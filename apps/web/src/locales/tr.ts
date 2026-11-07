@@ -610,6 +610,9 @@ const tr: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "Uygulama gibi kur",
+  "app.coApp": "Uygulama çıktı!",
+  "app.phu": "{store} · çevrimdışı",
+  "app.cai": "Yükle",
   "cai.an": "Gizle",
   "cai.menu": "Ana ekrana ekle",
   "cai.tieuDe": "Ana ekrana ekle",

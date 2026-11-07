@@ -607,6 +607,9 @@ const ko: TuDien = {
 
   /* ---------- cài lên màn hình chính (lib/cai-app.ts) ---------- */
   "cai.moi": "앱처럼 설치하기",
+  "app.coApp": "앱이 나왔어요!",
+  "app.phu": "{store} · 오프라인 플레이",
+  "app.cai": "설치",
   "cai.an": "숨기기",
   "cai.menu": "홈 화면에 추가",
   "cai.tieuDe": "홈 화면에 추가",
