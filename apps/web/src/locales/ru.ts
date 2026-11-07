@@ -539,6 +539,8 @@ const ru: TuDien = {
   'eb.doiChut': 'Помедленнее — ты слишком часто отправляешь эмодзи',
   'eb.noiNhanh': "Быстрый чат",
   'eb.chamGui': "нажми, чтобы отправить",
+  'eb.chonEmoji': 'Эмодзи',
+  'eb.nhom.hayDung': 'Частые', 'eb.nhom.camXuc': 'Лица', 'eb.nhom.tay': 'Руки', 'eb.nhom.vui': 'Веселье', 'eb.nhom.treu': 'Подколки',
   'say.chao': "Привет!",
   'say.hay': "Отлично!",
   'say.wow': "Ого!",

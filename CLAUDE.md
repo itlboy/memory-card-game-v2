@@ -579,6 +579,11 @@
   iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
   Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
   (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
+- **BẢNG EMOJI (07.11.2026, mockup duyệt: https://claude.ai/artifact/Coo5jHgcY1UxR7ZL8tKoKW)**:
+  thanh emoji = 💬 · ☺ (mở bảng ~50 emoji chia nhóm) · 7 emoji HAY DÙNG của chính máy đó
+  (`lib/emoji-hay-dung.ts`, localStorage `mm.emojiDung`; máy mới = `EMOJI_PHO_BIEN`). Danh sách
+  vẫn ĐÓNG (`EMOJI_NHOM` trong engine, server bỏ emoji ngoài danh sách) — không gõ tự do vì luật
+  chat của store. Bỏ một emoji khỏi danh sách: app cũ còn gửi được nó, server lặng lẽ bỏ.
 - **🏅 TỶ SỐ LOẠT TỪNG LÀM MẤT ĐIỂM TRONG CHIP (sửa tận gốc 07.11.2026)** — lỗi người chơi báo
   nhiều lần: bàn 2 người, người BÊN PHẢI chờ lượt có 🏅 + điểm cao → điểm bị cắt (Pro Max khuất
   3–10px, SE 28px); bàn ≥3 người thì 🏅 xoá hẳn điểm. Mọi lần đo trước KHÔNG có 🏅 nên luôn

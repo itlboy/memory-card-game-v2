@@ -522,6 +522,8 @@ const pt: TuDien = {
   'eb.doiChut': 'Calma! Você está enviando emojis rápido demais',
   'eb.noiNhanh': "Chat rápido",
   'eb.chamGui': "toque para enviar",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Frequentes', 'eb.nhom.camXuc': 'Rostos', 'eb.nhom.tay': 'Mãos', 'eb.nhom.vui': 'Diversão', 'eb.nhom.treu': 'Zoeira',
   'say.chao': "Olá!",
   'say.hay': "Mandou bem!",
   'say.wow': "Uau!",

@@ -526,6 +526,8 @@ const fr: TuDien = {
   'eb.doiChut': 'Doucement — tu envoies des emojis trop vite',
   'eb.noiNhanh': "Chat rapide",
   'eb.chamGui': "touchez pour envoyer",
+  'eb.chonEmoji': 'Emoji',
+  'eb.nhom.hayDung': 'Fréquents', 'eb.nhom.camXuc': 'Visages', 'eb.nhom.tay': 'Mains', 'eb.nhom.vui': 'Fun', 'eb.nhom.treu': 'Taquin',
   'say.chao': "Salut !",
   'say.hay': "Bien joué !",
   'say.wow': "Waouh !",

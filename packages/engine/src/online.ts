@@ -70,20 +70,31 @@ export const ROOM_LIMITS = {
 } as const;
 
 /**
- * Emoji chat nhanh — danh sách đóng để tránh nội dung xấu (ON-08).
- * Nghiêng về trêu đùa vui: 🐔 gà (chê đánh dở), 🐌 chậm như sên, 💩 dở,
- * 🐢 rùa (chúc may mắn — khác hẳn 🐌, đừng gộp hai cái làm một).
- * Bỏ 👍 / 😮 / 🤔 vì chỉ là phản ứng suông, không tạo được không khí đùa nhau.
+ * EMOJI CHAT — DANH SÁCH ĐÓNG (ON-08), server chỉ nhận emoji có ở đây.
  *
- * THỨ TỰ Ở ĐÂY LÀ THỨ TỰ ƯU TIÊN. Thanh emoji giữ nguyên cỡ nút (31px) và ẩn
- * bớt từ CUỐI khi máy hẹp, thay vì bóp nhỏ mọi nút — máy rộng thừa chỗ thì
- * chẳng có lý do gì bắt nó chịu theo máy hẹp nhất. Đo được: iPhone SE hiện 8
- * cái, iPhone 15 Pro Max hiện đủ 9. Nên cái hay dùng phải đặt TRƯỚC; thêm emoji
- * mới cứ thêm, nhưng biết là máy nhỏ sẽ không thấy nó.
- * Mốc nằm ở EmojiBar.vue (container query, mỗi nút 31px + gap 4px).
+ * 07.11.2026 (chủ dự án duyệt mockup): bộ cũ 9 emoji thiên về trêu (🐔 🐌 🐢 💩)
+ * "không phổ biến lắm" → mở thành ~50 emoji chia nhóm, chọn trong bảng ☺ của thanh
+ * emoji. Vẫn là danh sách CÓ SẴN, không gõ tự do (luật chat của App Store / Play).
+ * 🐢 rùa = chúc may mắn, khác 🐌 chậm — đừng gộp.
+ *
+ * Thêm emoji: thêm vào một nhóm. Bỏ emoji: client cũ (bản app chưa cập nhật nóng)
+ * vẫn có thể gửi nó, server sẽ lặng lẽ bỏ — không hỏng gì.
  */
-export const QUICK_EMOJIS = ['😂', '🐔', '🐌', '🐢', '💩', '😭', '😡', '🔥', '🎉'] as const;
-export type QuickEmoji = (typeof QUICK_EMOJIS)[number];
+export const EMOJI_NHOM = {
+  camXuc: ['😂', '🤣', '😊', '😍', '🥰', '😘', '😎', '🤩', '😮', '😱', '🤔', '😅', '😢', '😭', '😡', '🤯', '🥳', '😴', '🙄', '😏', '🤭'],
+  tay: ['👍', '👎', '👏', '🙏', '💪', '👋', '✌️', '🤞'],
+  vui: ['❤️', '💔', '🔥', '🎉', '⭐', '💯', '✨', '🏆'],
+  treu: ['🐔', '🐌', '🐢', '💩', '🤡', '👀', '🙈', '😈']
+} as const;
+export type EmojiNhom = keyof typeof EMOJI_NHOM;
+export const QUICK_EMOJIS = [...new Set(Object.values(EMOJI_NHOM).flat())] as readonly string[];
+export type QuickEmoji = (typeof EMOJI_NHOM)[EmojiNhom][number];
+/**
+ * HÀNG NGOÀI MẶC ĐỊNH (máy chưa bấm emoji nào): phản ứng phổ biến nhất. Dùng
+ * nhiều thì hàng tự xếp theo emoji người đó hay bấm (web: lib/emoji-hay-dung.ts).
+ * THỨ TỰ = ƯU TIÊN: máy hẹp ẩn bớt từ CUỐI.
+ */
+export const EMOJI_PHO_BIEN: readonly QuickEmoji[] = ['😂', '❤️', '👍', '😍', '😭', '😮', '😡', '🔥', '🎉'];
 
 /**
  * CÂU NÓI NHANH (14.10.2026) — chat trong ván chỉ bằng câu CÓ SẴN, không gõ tự do:

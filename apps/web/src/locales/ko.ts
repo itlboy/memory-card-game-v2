@@ -520,6 +520,8 @@ const ko: TuDien = {
   'eb.doiChut': '잠깐! 이모지를 너무 빨리 보내고 있어요',
   'eb.noiNhanh': "빠른 채팅",
   'eb.chamGui': "눌러서 보내기",
+  'eb.chonEmoji': '이모지',
+  'eb.nhom.hayDung': '자주 사용', 'eb.nhom.camXuc': '표정', 'eb.nhom.tay': '손', 'eb.nhom.vui': '재미', 'eb.nhom.treu': '놀리기',
   'say.chao': "안녕!",
   'say.hay': "잘했어!",
   'say.wow': "와!",

@@ -520,6 +520,8 @@ const ja: TuDien = {
   'eb.doiChut': '少し待ってね — 絵文字の送りすぎです',
   'eb.noiNhanh': "クイックチャット",
   'eb.chamGui': "タップで送信",
+  'eb.chonEmoji': '絵文字',
+  'eb.nhom.hayDung': 'よく使う', 'eb.nhom.camXuc': '表情', 'eb.nhom.tay': '手', 'eb.nhom.vui': '楽しい', 'eb.nhom.treu': 'からかい',
   'say.chao': "こんにちは！",
   'say.hay': "ナイス！",
   'say.wow': "すごい！",
