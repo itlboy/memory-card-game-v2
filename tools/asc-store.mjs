@@ -88,8 +88,6 @@ const app = (await api('GET', `/v1/apps?filter[bundleId]=${BUNDLE_ID}`)).data.fi
 if (!app) throw new Error(`Chưa có app ${BUNDLE_ID} trên App Store Connect`);
 console.log(`App: ${app.attributes.name} (${app.id})`);
 const SUA_DUOC = ['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'WAITING_FOR_REVIEW', 'INVALID_BINARY'];
-const appInfo = (await api('GET', `/v1/apps/${app.id}/appInfos`)).data
-  .find((i) => SUA_DUOC.includes(i.attributes.appStoreState ?? i.attributes.state)) ?? (await api('GET', `/v1/apps/${app.id}/appInfos`)).data[0];
 // Phiên bản hiển thị khớp package.json, bản quyền
 const pkgVer = JSON.parse(readFileSync(new URL('../apps/web/package.json', import.meta.url), 'utf8')).version;
 let version = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=5`)).data
@@ -102,6 +100,10 @@ if (!version) {
   })).data;
   console.log(`✓ Tạo phiên bản mới ${pkgVer}`);
 }
+// Đọc appInfo SAU khi tạo phiên bản: phiên bản mới kéo theo một appInfo đang soạn; đọc trước thì
+// lấy nhầm appInfo của bản ĐANG BÁN → PATCH danh mục ra 409 INVALID_STATE (dính 09.11.2026).
+const dsInfo = (await api('GET', `/v1/apps/${app.id}/appInfos`)).data;
+const appInfo = dsInfo.find((i) => SUA_DUOC.includes(i.attributes.appStoreState ?? i.attributes.state)) ?? dsInfo[0];
 await api('PATCH', `/v1/appStoreVersions/${version.id}`, {
   data: { type: 'appStoreVersions', id: version.id, attributes: { versionString: pkgVer, copyright: `${new Date().getFullYear()} Cozy Pi` } },
 });
