@@ -220,7 +220,11 @@ if (process.env.NOP_DUYET === '1') {
     await api('POST', '/v1/reviewSubmissionItems', {
       data: { type: 'reviewSubmissionItems', relationships: { reviewSubmission: { data: { type: 'reviewSubmissions', id: sub.id } }, appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } }
     });
-  } catch (e) { if (!/409|already/i.test(String(e))) throw e; }
+  } catch (e) {
+    // Đã có trong lượt nộp thì bỏ qua; lỗi khác (thiếu thông tin…) PHẢI in ra — trước đây nuốt mất
+    // nên chỉ thấy "does not have any items" ở bước sau (09.11.2026).
+    if (!/already|ENTITY_ERROR\.RELATIONSHIP\.UNIQUE|duplicate/i.test(String(e))) throw e;
+  }
   await api('PATCH', `/v1/reviewSubmissions/${sub.id}`, { data: { type: 'reviewSubmissions', id: sub.id, attributes: { submitted: true } } });
   console.log(`✓ ĐÃ NỘP APPLE DUYỆT phiên bản ${pkgVer} (build ${builds[0].attributes.version})`);
 }
