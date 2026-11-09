@@ -55,7 +55,7 @@ body{position:relative;background:${doi ? `linear-gradient(105deg,${c.mau[0]} 0 
 .cap{position:absolute;inset:6vw 7vw auto;text-align:center;color:${c.dam ? '#2a1a00' : '#fff'};font:900 9.6vw/1.05 Grandstander,'Noto Sans CJK SC','Noto Sans Thai',sans-serif;text-wrap:balance;text-shadow:0 .6vw 0 ${c.dam ? 'rgb(255 255 255/.35)' : 'rgb(0 0 0/.18)'}}
 .cap{word-break:auto-phrase}/* tiếng Nhật ngắt theo cụm, không giữa từ */:lang(ko) .cap{word-break:keep-all}
 .cap small{display:block;font:700 4.6vw/1.25 'Be Vietnam Pro','Noto Sans CJK SC','Noto Sans Thai',sans-serif;margin-top:2.4vw;text-shadow:none}
-.mot{display:flex;flex-direction:column}.mot .cap{position:static;margin:6vw 7vw 0}
+.mot{display:flex;flex-direction:column}/* VÙNG CHỮ CAO CỐ ĐỊNH (chủ dự án 09.11.2026: "ảnh cái thấp cái cao vì text lúc nhiều lúc ít"): đủ 2 dòng to + 2 dòng phụ, chữ căn giữa trong đó → máy CÙNG CỠ, CÙNG CHỖ ở mọi ảnh, mọi ngôn ngữ. Chữ dài quá thì script dưới thu nhỏ chữ, KHÔNG nới vùng. */.mot .cap{position:static;margin:6vw 7vw 0;height:36vw;flex:none;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
 .ke{flex:1;min-height:0;display:flex;justify-content:center;align-items:center;padding:5vw 0 6vw}
 .may{background:#0e1424;box-shadow:0 2vw 6vw rgb(0 0 0/.3)}
 .ke .may{height:100%;box-sizing:border-box;border-radius:6vw;padding:2.4vw}
@@ -65,7 +65,7 @@ body{position:relative;background:${doi ? `linear-gradient(105deg,${c.mau[0]} 0 
 .may-0 img,.may-1 img{border-radius:3.4vw}
 .may-0{left:32%;transform:translateX(-50%) rotate(-6deg)}
 .may-1{left:68%;top:33%;transform:translateX(-50%) rotate(6deg)}
-</style></head><body${doi ? '' : ' class="mot"'}><div class="cap">${esc(to)}<small>${esc(phu)}</small></div>${than}</body></html>`;
+</style></head><body${doi ? '' : ' class="mot"'}><div class="cap">${esc(to)}<small>${esc(phu)}</small></div>${than}<script>{const c=document.querySelector('.mot .cap');if(c){let f=9.6,g=4.6;while(c.scrollHeight>c.clientHeight+1&&f>6){f-=.3;g-=.12;c.style.fontSize=f+'vw';c.querySelector('small').style.fontSize=g+'vw';}}}</script></body></html>`;
 }
 
 export async function chay({ goi, js, bam, bamDung, cho, chup }) {
