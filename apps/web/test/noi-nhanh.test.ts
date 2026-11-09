@@ -28,10 +28,12 @@ describe('nói nhanh', () => {
     }
   });
 
-  it('nút 💬 là con ĐẦU của thanh — luật ẩn bớt emoji không bao giờ ẩn nó', () => {
+  // Nút 💬 đã bỏ khỏi thanh (09.11.2026). Câu nói vẫn phải dịch đủ: app bản cũ còn gửi,
+  // LoiNoi.vue vẫn vẽ bong bóng câu.
+  it('nút ☺ là con ĐẦU của thanh — luật ẩn bớt emoji không bao giờ ẩn nó', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
     const bar = src.slice(src.indexOf('class="emoji-bar"'));
-    expect(bar.indexOf('emoji say')).toBeLessThan(bar.indexOf('v-for="e in hangNgoai"'));
+    expect(bar).not.toContain('emoji say');
     expect(bar.indexOf('emoji chon')).toBeLessThan(bar.indexOf('v-for="e in hangNgoai"'));
   });
 });

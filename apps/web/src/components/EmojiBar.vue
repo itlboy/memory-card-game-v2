@@ -8,12 +8,11 @@
  * Riêng vụ "emoji người kia gửi" (blast) nằm ở EmojiBlast.vue: nó teleport ra
  * <body>, mount hai lần là hiện hai cái.
  */
-import { EMOJI_NHOM, QUICK_SAYS, type EmojiNhom, type QuickSay } from '@mm/engine';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { Smile } from 'lucide-vue-next';
+import { EMOJI_NHOM, type EmojiNhom } from '@mm/engine';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { Plus } from 'lucide-vue-next';
 import { ghiDung, hayDung } from '@/lib/emoji-hay-dung';
-import { t, td } from '@/lib/i18n';
-import { EMOJI_NOI } from '@/lib/noi-nhanh';
+import { t } from '@/lib/i18n';
 import { useBackCloser } from '@/composables/useBackGuard';
 
 const props = defineProps<{
@@ -23,30 +22,28 @@ const props = defineProps<{
     emojiReady: { value: boolean };
     emojiCooldown: { value: number };
     sendEmoji: (e: string) => void;
-    sendSay: (id: QuickSay) => void;
   };
 }>();
 
 /*
- * NÓI NHANH (14.10.2026, mockup chủ dự án duyệt): nút 💬 ĐỨNG ĐẦU thanh (con thứ
- * nhất — luật ẩn bớt ở dưới chỉ đụng con thứ 6 trở đi nên nó luôn còn) mở bảng
- * 12 câu có sẵn nổi lên trên thanh. Chọn là gửi và đóng; chạm ra ngoài / Back
- * cũng đóng. Câu hiện thành bong bóng dưới chip người nói (LoiNoi.vue).
+ * NÓI NHANH (💬, 12 câu có sẵn) ĐÃ BỎ khỏi thanh (09.11.2026, chủ dự án: "ít ai dùng").
+ * Server vẫn nhận/phát `say` và LoiNoi.vue vẫn vẽ bong bóng câu — app bản cũ chưa cập nhật
+ * nóng còn gửi được, đừng gỡ hai chỗ đó.
  */
 /*
- * BẢNG EMOJI (07.11.2026, mockup chủ dự án duyệt): nút ☺ đứng thứ HAI (sau 💬, nên
- * cũng không bao giờ bị ẩn bớt) mở bảng ~50 emoji chia nhóm. Hàng ngoài là emoji
+ * BẢNG EMOJI (07.11.2026, mockup chủ dự án duyệt): nút ＋ ĐỨNG ĐẦU thanh (☺ cũ đứng cạnh 😂
+ * trông như "hai mặt cười" — đổi 09.11.2026) (luật ẩn bớt
+ * chỉ đụng từ con thứ 6 trở đi nên nó luôn còn) mở bảng ~50 emoji chia nhóm. Hàng ngoài là emoji
  * MÌNH hay bấm nhất (lib/emoji-hay-dung.ts), máy mới thì là bộ phổ biến. Một lúc
- * chỉ mở một bảng — cùng luật đóng với bảng 💬.
+ * chạm ra ngoài / Back là đóng.
  */
-const mo = ref<null | 'noi' | 'emoji'>(null);
+const mo = ref<null | 'emoji'>(null);
 const goc = ref<HTMLElement | null>(null);
 useBackCloser(25, () => mo.value !== null, () => { mo.value = null; });
-const batTat = (b: 'noi' | 'emoji'): void => { mo.value = mo.value === b ? null : b; };
-function guiCau(id: QuickSay): void { props.o.sendSay(id); mo.value = null; }
+const batTat = (b: 'emoji'): void => { mo.value = mo.value === b ? null : b; };
 function guiEmoji(e: string): void { ghiDung(e); props.o.sendEmoji(e); mo.value = null; }
-/** 7 cái: cùng 💬 và ☺ là 9 nút, vừa khít Pro Max; máy hẹp ẩn bớt từ cuối. */
-const hangNgoai = computed(() => hayDung(7));
+/** 8 cái: cùng ＋ là 9 nút, vừa khít Pro Max; máy hẹp ẩn bớt từ cuối. Thứ tự chốt theo phiên. */
+const hangNgoai = hayDung(8);
 const NHOM: readonly EmojiNhom[] = ['camXuc', 'tay', 'vui', 'treu'];
 function chamNgoai(e: PointerEvent): void {
   if (mo.value && goc.value && !goc.value.contains(e.target as Node)) mo.value = null;
@@ -64,17 +61,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
     :aria-label="props.o.emojiReady.value ? t('eb.guiEmoji') : t('eb.doiChut')"
   >
     <button
-      class="emoji say thach th-vang th-nho" type="button" :class="{ mo: mo === 'noi' }"
-      :aria-label="t('eb.noiNhanh')" :aria-expanded="mo === 'noi'"
-      :disabled="!props.o.emojiReady.value"
-      @click="batTat('noi')"
-    >💬</button>
-    <button
       class="emoji chon thach th-nho" type="button" :class="{ mo: mo === 'emoji' }"
       :aria-label="t('eb.chonEmoji')" :aria-expanded="mo === 'emoji'"
       :disabled="!props.o.emojiReady.value"
       @click="batTat('emoji')"
-    ><Smile :size="20" :stroke-width="2.2" /></button>
+    ><Plus :size="20" :stroke-width="2.6" /></button>
     <button
       v-for="e in hangNgoai" :key="e" class="emoji thach th-nho" type="button"
       :disabled="!props.o.emojiReady.value"
@@ -97,13 +88,6 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
         >{{ e }}</button>
       </div>
     </template>
-  </div>
-  <div v-if="mo === 'noi'" class="bang-noi khay" role="menu" :aria-label="t('eb.noiNhanh')">
-    <p class="bn-dau">{{ t('eb.noiNhanh') }} <span>{{ t('eb.chamGui') }}</span></p>
-    <button
-      v-for="id in QUICK_SAYS" :key="id" class="cau thach" type="button" role="menuitem"
-      :disabled="!props.o.emojiReady.value" @click="guiCau(id)"
-    ><span class="e" aria-hidden="true">{{ EMOJI_NOI[id] }}</span>{{ td(`say.${id}`) }}</button>
   </div>
   </div>
 </template>
@@ -141,10 +125,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 /* Gốc chứa thanh + bảng nói nhanh: bảng neo theo gốc chứ không theo thanh (thanh
    có `overflow: hidden` để ẩn bớt nút, bảng nằm trong đó là bị cắt mất). */
 .eb-goc { position: relative; }
-/* Nút 💬: cùng cỡ nút emoji (nằm trong phép tính mốc ẩn bớt), tô nhấn để nổi */
-.emoji.say { background: var(--chon-nen); color: var(--chon-chu); border-color: transparent; }
-.emoji.say.mo, .emoji.chon.mo { background: var(--fg); color: var(--panel-solid); }
-/* Nút ☺: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */
+.emoji.chon.mo { background: var(--fg); color: var(--panel-solid); }
+/* Nút ＋: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */
 .emoji.chon { display: inline-flex; align-items: center; justify-content: center; color: var(--fg); }
 /* Bảng emoji: cùng khung với bảng nói nhanh, cuộn trong khung khi máy thấp */
 .bang-emoji {
@@ -162,26 +144,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
 /* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh), emoji to hơn */
 .be-luoi .emoji { flex: none; width: 100%; min-height: 38px; font-size: 22px; }
-.bang-noi {
-  position: absolute; left: 6px; right: 6px; bottom: calc(100% + 8px); z-index: 30;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px;
-  background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
-  box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
-}
 .bn-dau {
   grid-column: 1 / -1; margin: 0 2px 2px; display: flex; justify-content: space-between; gap: 8px;
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm); color: var(--fg);
 }
 .bn-dau span { font-family: var(--font-body); font-weight: 600; color: var(--muted); }
-.cau {
-  /* 44px: ngưỡng chạm (NF-07) */
-  min-height: 44px; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 4px 10px;
-  border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel-soft); color: var(--fg);
-  font: inherit; font-size: var(--text-sm); font-weight: 700; text-align: left; line-height: 1.2; cursor: pointer;
-}
-.cau .e { font-size: 17px; flex-shrink: 0; }
-.cau:disabled { opacity: .45; cursor: not-allowed; }
-@media (hover: hover) { .cau:not(:disabled):hover { border-color: var(--accent); } }
 /* Hết hạn mức: mờ đi để thấy rõ là đang chờ */
 .emoji-bar.spent .emoji { opacity: .35; }
 .cooldown {

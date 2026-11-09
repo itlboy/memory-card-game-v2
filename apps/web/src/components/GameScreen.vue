@@ -322,9 +322,12 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
 .countdown {
   position: fixed; inset: 0; z-index: 7;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  /* KHÔNG LỚP PHỦ (chủ dự án 16.10.2026): lớp phủ mờ từng "nháy" chưa kín màn rồi mới
-     kín (cảm giác lỗi). Con số tự đứng được trên MỌI màu lưng lá nhờ chữ trắng viền
-     mực đậm + bóng tối (`.num` dưới) — đừng trả lại nền/blur cho khối này. */
+  /* LỚP PHỦ TỐI (chủ dự án duyệt mockup 09.11.2026, https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp):
+     cho số đếm + ô "đi trước" nổi lên. Lần trước (16.10.2026) lớp phủ bị gỡ vì "nháy chưa kín
+     màn rồi mới kín" — nên NỀN NẰM NGAY TRÊN khối này (fixed, inset 0: kín màn từ khung đầu),
+     chỉ mờ dần độ trong suốt, KHÔNG backdrop-filter, KHÔNG phần tử phủ riêng lớn dần. */
+  background: rgba(10, 14, 40, .55);
+  animation: cd-phu .2s ease-out;
   pointer-events: none;
 }
 /* Avatar người đi đầu thay 🎲 (16.10.2026) — nhìn là biết ai, không phải đọc tên */
@@ -353,9 +356,15 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
 .countdown .first {
   display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: nowrap;
   font-size: clamp(16px, 4.5vw, 22px); padding: 6px 18px; border-radius: var(--r-full);
-  background: var(--panel); border: 2px solid var(--accent); box-shadow: var(--shadow);
+  /* XANH LÁ (09.11.2026): ô trắng cũ trùng mặt lá sáng, vàng thì trùng sao lưng bài — xanh khác cả hai */
+  background: linear-gradient(#a3ec72, #46ad22); border: 2px solid #33861a; color: #fff;
+  box-shadow: 0 4px 0 #23600f, 0 10px 28px rgba(0, 0, 0, .35);
 }
-.countdown .first b { color: var(--accent); }
+.countdown .first b {
+  color: #fff;
+  text-shadow: 1.5px 0 0 #23600f, -1.5px 0 0 #23600f, 0 1.5px 0 #23600f, 0 -1.5px 0 #23600f;
+}
+@keyframes cd-phu { from { background-color: rgba(10, 14, 40, 0); } }
 
 /* Nằm trong .notice-bar nên phải gọn MỘT DÒNG: xếp dọc là dải phải cao gấp
    đôi, mà chỗ đó lấy từ bàn thẻ. */

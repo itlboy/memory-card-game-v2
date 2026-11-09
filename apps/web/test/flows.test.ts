@@ -1409,14 +1409,12 @@ describe('emoji lúc chat to gấp đôi nút bấm', () => {
       return Number(m![1]);
     };
     // Neo vào ĐẦU DÒNG: '.emoji {' còn khớp cả trong '.emoji-bar.spent .emoji {'
-    expect(px('.emoji-blast .big')).toBeGreaterThanOrEqual(px('\n.emoji {') * 2);
-    // Xếp DỌC (biểu tượng trên, tên dưới) và trôi lên mờ dần
-    const at = css.indexOf('.emoji-blast {');
-    const rule = css.slice(at, css.indexOf('}', at));
-    expect(rule).toContain('flex-direction: column');
-    expect(rule).toContain('blast-float');
-    // Dấu nhỏ trên chip người chơi đã bỏ — tên nằm ngay dưới emoji rồi
-    expect(css, 'không còn bong bóng trên chip').not.toContain('class="bubble"');
+    // Bong bóng emoji (09.11.2026): emoji trong bong bóng to gấp đôi nút gửi
+    expect(px('\n.e {')).toBeGreaterThanOrEqual(px('\n.emoji {') * 2);
+    // MỖI NGƯỜI MỘT BONG BÓNG — key theo người gửi, không phải một emoji chung cho cả phòng
+    expect(css).toContain(':key="b.from"');
+    // Không neo được thì vẫn có TÊN người gửi
+    expect(css).toContain('class="ai"');
   });
 });
 

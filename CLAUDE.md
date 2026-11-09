@@ -579,6 +579,17 @@
   iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
   Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
   (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
+- **GÓP Ý GIAO DIỆN 09.11.2026 (mockup duyệt: https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp)**:
+  · Bước chọn dạng thanh (`.options.loose`) cách nhau `clamp(10px, 2.2vh, 16px)`.
+  · Đếm ngược vào bàn: lớp phủ tối CHÍNH LÀ nền của `.countdown` (fixed inset 0 → kín màn từ khung
+    đầu), không backdrop-filter — lần gỡ 16.10 là vì phủ "nháy chưa kín màn". Ô "đi trước" xanh lá.
+  · Thanh emoji: bỏ 💬 (server + LoiNoi vẫn giữ cho app cũ), nút ＋ đứng đầu (☺ cạnh 😂 trông như
+    "hai mặt cười"), thứ tự hàng CHỐT THEO PHIÊN (`thuTuPhien`) — không nhảy khi đang bấm.
+  · Emoji gửi đi = BONG BÓNG mỗi người một cái (`EmojiBlast.vue`, `emojiBong`): trong ván nằm TRÊN
+    chip (không đè bàn), bảng kết quả `[data-kq-for]` / phòng chờ sau tên, hết chỗ thì lên trên tên.
+    Gửi tiếp khi bong bóng còn → emoji BAY LÊN từ bong bóng (không đếm ×n — chủ dự án chọn).
+  · Bảng kết quả online: dòng người đã bấm Chơi lại viền xanh nhấp (`li.muon`); khoảng cách rộng
+    hơn chỉ khi màn ≥701px. KHÔNG ghi "X đang chờ bạn" dưới nút Chơi lại (chủ dự án bỏ).
 - **HẾT VÁN ONLINE (07.11.2026, mockup duyệt: https://claude.ai/artifact/6Yh26Beir4CtZj6ddSbRW9)**:
   Chơi lại · [Về phòng chờ | Chỉnh bàn] · Thoát phòng (đỏ, LUÔN hỏi lại). "Chỉnh bàn" (chỉ chủ
   phòng) mở wizard ba bước của phòng chờ dưới dạng LỚP PHỦ `.wiz-phu` — OnlineGame KHÔNG được gỡ

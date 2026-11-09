@@ -184,7 +184,7 @@ describe('emoji chat nổi trên header', () => {
     // `main` có overflow: auto (bản đồ cấp cần cuộn) nên thứ gì nhô lên trên mép
     // main đều bị CẮT — nhìn ra thành "emoji nằm dưới header". Không phải z-index.
     expect(src, 'phải teleport ra body').toContain('<Teleport to="body">');
-    const at = src.indexOf('.emoji-blast {');
+    const at = src.indexOf('\n.bong {');
     const rule = src.slice(at, src.indexOf('}', at));
     expect(rule).toContain('position: fixed');
     expect(rule).toMatch(/z-index:\s*\d+/);

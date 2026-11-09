@@ -58,6 +58,6 @@ describe('vùng an toàn iOS', () => {
   it('thứ teleport ra <body> phải TỰ cộng, vì nó ở ngoài #app', () => {
     const blast = readFileSync(resolve(process.cwd(), 'src/components/EmojiBlast.vue'), 'utf8');
     expect(blast, 'teleport ra body nên không hưởng đệm của #app')
-      .toMatch(/top:\s*calc\([^)]*env\(safe-area-inset-top/);
+      .toMatch(/top:\s*`?calc\([^)]*env\(safe-area-inset-top/);
   });
 });

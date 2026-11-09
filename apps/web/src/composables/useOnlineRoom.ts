@@ -476,8 +476,16 @@ export function useOnlineRoom() {
   /** Emoji mới nhất phóng to giữa bàn cho ấn tượng. */
   // `from` = id người gửi: EmojiBlast dùng nó để tìm chip của người đó và bay
   // lên TỪ ĐÚNG CHỖ ĐÓ, thay vì luôn nổi giữa mép trên màn hình.
-  const emojiBlast = ref<{ emoji: QuickEmoji; name: string; from: string; key: number } | null>(null);
-  let blastTimer: ReturnType<typeof setTimeout> | undefined;
+  /*
+   * BONG BÓNG EMOJI (09.11.2026, mockup duyệt https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp):
+   * MỖI NGƯỜI MỘT BONG BÓNG, hiện cùng lúc được (bản cũ một emoji chung → người sau đè người
+   * trước). Gửi tiếp khi bong bóng còn đó thì emoji mới BAY LÊN từ bong bóng (chủ dự án thích
+   * hiệu ứng bay cũ — không đếm ×2, ×3). Đứng BONG_MS kể từ lần gửi cuối; vẽ ở EmojiBlast.vue.
+   */
+  const BONG_MS = 2600;
+  const emojiBong = ref<{ from: string; name: string; emoji: QuickEmoji; key: number }[]>([]);
+  const bongHen = new Map<string, ReturnType<typeof setTimeout>>();
+  let bongKey = 0;
   /** Câu nói nhanh đang hiện — MỖI NGƯỜI MỘT bong bóng (câu mới của cùng người
    *  thay câu cũ), nhiều người nói cùng lúc thì hiện cùng lúc. Xem LoiNoi.vue. */
   const loiNoi = ref<{ from: string; id: QuickSay; name: string; key: number }[]>([]);
@@ -1064,16 +1072,18 @@ export function useOnlineRoom() {
 
       case 'emoji': {
         const sender = room.value?.players.find((p) => p.id === msg.from);
-        emojiBlast.value = {
-          emoji: msg.emoji,
-          name: msg.from === myId.value ? t('chung.ban') : (sender?.name ?? ''),
+        const moi = {
           from: msg.from,
-          key: (emojiBlast.value?.key ?? 0) + 1
+          name: msg.from === myId.value ? t('chung.ban') : (sender?.name ?? ''),
+          emoji: msg.emoji,
+          key: ++bongKey
         };
-        clearTimeout(blastTimer);
-        // Bằng đúng thời lượng animation blast-float trong OnlineGame.vue: dài
-        // hơn thì emoji đã tan mà DOM còn treo, ngắn hơn thì bị cắt giữa nhịp.
-        blastTimer = setTimeout(() => { emojiBlast.value = null; }, 1150);
+        emojiBong.value = [...emojiBong.value.filter((b) => b.from !== msg.from), moi];
+        clearTimeout(bongHen.get(msg.from));
+        bongHen.set(msg.from, setTimeout(() => {
+          emojiBong.value = emojiBong.value.filter((b) => b.from !== msg.from);
+          bongHen.delete(msg.from);
+        }, BONG_MS));
         // Của MÌNH thì đã kêu lúc bấm (sendEmoji) — kêu lại lúc server dội về là HAI tiếng (lỗi 18.10.2026)
         if (msg.from !== myId.value) sfx.select();
         break;
@@ -1633,7 +1643,7 @@ export function useOnlineRoom() {
   return {
     phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
-    wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBlast, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
+    wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBong, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,
     /** Cửa DUY NHẤT lấy symbol để vẽ. Đừng đọc `predeal` từ ngoài — đọc trực
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */
