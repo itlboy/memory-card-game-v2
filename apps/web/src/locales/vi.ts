@@ -389,6 +389,7 @@ const vi = {
   'tk.thangTren': '{thang}/{van} thắng',
   'tk.dangTai': 'Đang tải…',
   'tk.apple': 'Đăng nhập bằng Apple',
+  'tk.google': 'Đăng nhập bằng Google',
   'tk.loiApple': 'Apple không xác nhận được đăng nhập. Thử lại nhé.',
   'tk.xoaTk': 'Xoá tài khoản',
   'tk.xoaHoi': 'Xoá vĩnh viễn tài khoản cùng điểm, kỷ lục và danh hiệu trên server? Dữ liệu trên máy này vẫn giữ nguyên.',

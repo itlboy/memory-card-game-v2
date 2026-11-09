@@ -938,12 +938,20 @@ export class RoomDO extends DurableObject<Env> {
       player.disconnectedAt = Date.now();   // ON-07: có ROOM_LIMITS.reconnectMs để vào lại
       this.nhipDongHoLuot();
     }
-    // Ván đã kết thúc và không còn socket nào: dọn phòng để mã dùng lại được
-    if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
-      await this.depPhong('ended');
-      await this.ctx.storage.deleteAlarm();
-      this.room = null;
-      this.game = null;
+    /*
+     * HẾT VÁN MÀ CẢ PHÒNG RA NGOÀI APP: GIỮ PHÒNG, không xoá (09.11.2026, chủ dự án: "thoát ra
+     * app chat mà vào thấy phòng đã mất — hơi hụt hẫng"). Trước đây ván xong + 0 socket là dọn
+     * phòng ngay — mà vừa xong ván thì cả hai hay cùng sang Zalo/Messenger nhắn nhau, iOS/Android
+     * cắt socket khi app vào nền → mất phòng, phải tạo mã mới mời lại.
+     * Nay: đưa phòng về PHÒNG CHỜ với đủ người (đang rớt), đánh dấu `emptyAt` — y luật phòng chờ
+     * vắng: giữ mã EMPTY_LOBBY_MS (15 phút) cho người quay lại, alarm dọn nếu hết hạn vẫn vắng.
+     */
+    // Đếm TRỪ socket đang đóng: trong webSocketClose nó vẫn nằm trong getWebSockets()
+    if (this.room.status === 'ended' && !this.ctx.getWebSockets().some((s) => s !== ws)) {
+      await this.veLobby(this.room.players);
+      this.room.emptyAt = Date.now();
+      await this.save();
+      await this.scheduleNext();
       return;
     }
     await this.save();
@@ -1026,6 +1034,17 @@ export class RoomDO extends DurableObject<Env> {
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
       }
+    }
+
+    // Hết ván mà không còn ai kết nối (cả phòng sang app khác): về phòng chờ VẮNG, giữ mã
+    // EMPTY_LOBBY_MS — KHÔNG để nhánh "im lặng quá IDLE_SILENT_MS" dưới đây xoá phòng
+    // (xem chú thích ở webSocketClose, 09.11.2026).
+    if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
+      await this.veLobby(this.room.players);
+      this.room.emptyAt = now;
+      await this.save();
+      await this.scheduleNext();
+      return;
     }
 
     if (this.room.status === 'lobby' || this.room.status === 'ended') {

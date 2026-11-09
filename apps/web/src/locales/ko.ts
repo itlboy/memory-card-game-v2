@@ -382,6 +382,7 @@ const ko: TuDien = {
   'tk.thangTren': '{van}게임 중 {thang}승',
   'tk.dangTai': '불러오는 중…',
   'tk.apple': 'Apple로 로그인',
+  'tk.google': 'Google로 로그인',
   'tk.loiApple': 'Apple에서 로그인을 확인하지 못했어요. 다시 시도해 주세요.',
   'tk.xoaTk': '계정 삭제',
   'tk.xoaHoi': '계정과 서버에 저장된 점수·기록·업적을 영구 삭제할까요? 이 기기에 저장된 데이터는 그대로 남아요.',

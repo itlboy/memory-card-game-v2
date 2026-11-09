@@ -131,6 +131,9 @@ export function docPhien(secret: string, token: string | undefined, now: number)
 
 /* ---------- xác minh ID token Google ---------- */
 
+/** Client OAuth iOS của Lật Thẻ (dự án Google Cloud `lat-the-nkien`, tạo 09.11.2026). */
+export const GOOGLE_IOS_MAC_DINH = '43109043290-lfla0jfjm3kllm8t67uk2u60aqou08l5.apps.googleusercontent.com';
+
 export interface NguoiGoogle { sub: string; email: string | null; name: string; picture: string | null }
 
 /**
@@ -139,14 +142,14 @@ export interface NguoiGoogle { sub: string; email: string | null; name: string; 
  * hiếm (phiên 30 ngày), không nằm trên đường đi của ván chơi.
  */
 export async function xacMinhGoogle(
-  credential: string, clientId: string, now: number,
+  credential: string, audiences: string[], now: number,
   layFetch: typeof fetch = fetch
 ): Promise<NguoiGoogle | null> {
   if (!/^[A-Za-z0-9_.-]{20,4096}$/.test(credential)) return null;
   const res = await layFetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
   if (!res.ok) return null;
   const t = await res.json() as Record<string, string | undefined>;
-  if (t.aud !== clientId || !t.sub) return null;
+  if (!t.aud || !audiences.includes(t.aud) || !t.sub) return null;
   if (Number(t.exp ?? 0) * 1000 <= now) return null;
   const name = (t.name ?? t.email?.split('@')[0] ?? 'Người chơi').slice(0, 64);
   return { sub: t.sub, email: t.email ?? null, name, picture: t.picture ?? null };
@@ -272,6 +275,12 @@ export interface TaiKhoan {
 
 export interface EnvTaiKhoan {
   GOOGLE_CLIENT_ID?: string;
+  /**
+   * Client OAuth của APP iOS (đăng nhập Google native, bản app từ 1.5.0). Token Google ký trên
+   * iPhone mang `aud` = client iOS, không phải client web. Android dùng client web nên không cần.
+   * Mặc định là client của dự án `lat-the-nkien` (công khai, không phải bí mật).
+   */
+  GOOGLE_IOS_CLIENT_ID?: string;
   /** Bundle id của app iOS (`com.hello314.flipmatch`) — bật đăng nhập Apple trong app. */
   APPLE_BUNDLE_ID?: string;
   /** Services ID — bật đăng nhập Apple trên WEB (cần đăng ký tên miền ở Apple). */
@@ -294,6 +303,9 @@ export async function moTaiKhoan(
   pool: Pool | null, env: EnvTaiKhoan, layFetch: typeof fetch = fetch
 ): Promise<TaiKhoan | null> {
   const clientId = env.GOOGLE_CLIENT_ID ?? '';
+  const googleAud = clientId
+    ? [clientId, env.GOOGLE_IOS_CLIENT_ID ?? GOOGLE_IOS_MAC_DINH].filter(Boolean)
+    : [];
   const appleAud = [env.APPLE_BUNDLE_ID, env.APPLE_SERVICES_ID].filter((x): x is string => !!x);
   if (!pool || (!clientId && !appleAud.length)) return null;
   const khoaRest: KhoaApple | null = env.APPLE_TEAM_ID && env.APPLE_KEY_ID && env.APPLE_PRIVATE_KEY
@@ -436,7 +448,7 @@ export async function moTaiKhoan(
         const than = await docThan(req) as { credential?: unknown } | null;
         const cred = typeof than?.credential === 'string' ? than.credential : '';
         let ng: NguoiGoogle | null = null;
-        try { ng = await xacMinhGoogle(cred, clientId, now); } catch (e) {
+        try { ng = await xacMinhGoogle(cred, googleAud, now); } catch (e) {
           console.error('[taikhoan] hỏi Google lỗi:', (e as Error).message);
         }
         if (!ng) { json(res, { error: 'Google không xác nhận được đăng nhập này' }, 401); return true; }

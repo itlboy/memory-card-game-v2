@@ -61,6 +61,24 @@ export const googleClientId = ref('');
 /** Nền này vẽ được nút nào — server bật VÀ nền chạy được. */
 export const coGoogle = ref(false);
 export const coApple = ref(false);
+/**
+ * Đăng nhập Google NATIVE trong app (09.11.2026). Chỉ bản app ≥ 1.5.0 mới mang SDK Google
+ * (capacitor.config `providers.google`); bản cũ nhận gói web này qua cập nhật nóng nhưng
+ * gọi plugin Google là lỗi — nên dò số phiên bản native trước khi vẽ nút.
+ */
+export const coGoogleApp = ref(false);
+const BAN_CO_GOOGLE = '1.5.0';
+/** Client OAuth iOS (công khai) — khớp URL scheme trong ios/App/App/Info.plist. */
+const GOOGLE_IOS_CLIENT_ID = '43109043290-lfla0jfjm3kllm8t67uk2u60aqou08l5.apps.googleusercontent.com';
+/** So "1.5.0" với "1.4.5.362": từng số, thiếu coi là 0. */
+function banToiThieu(ban: string, can: string): boolean {
+  const a = ban.split('.').map(Number), b = can.split('.').map(Number);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const d = (a[i] || 0) - (b[i] || 0);
+    if (d) return d > 0;
+  }
+  return true;
+}
 let appleWebId = '';
 /** Hồ sơ đang đăng nhập; null = ẩn danh. */
 export const me = shallowRef<HoSo | null>(null);
@@ -106,7 +124,13 @@ export async function khoiDong(): Promise<void> {
     appleWebId = cfg.apple?.webClientId ?? '';
     coGoogle.value = !!cfg.googleClientId && !laApp;
     coApple.value = nenApp === 'ios' ? !!cfg.apple?.app : nenApp === 'web' && !!appleWebId;
-    san.value = coGoogle.value || coApple.value;
+    if (laApp && cfg.googleClientId) {
+      try {
+        const { App } = await import('@capacitor/app');
+        coGoogleApp.value = banToiThieu((await App.getInfo()).version, BAN_CO_GOOGLE);
+      } catch { coGoogleApp.value = false; }
+    }
+    san.value = coGoogle.value || coGoogleApp.value || coApple.value;
     if (!san.value) return;
   } catch { san.value = false; return; }
   if (docToken()) {
@@ -213,6 +237,33 @@ export async function dangNhapApple(): Promise<HoSo> {
   // Apple chỉ đưa tên ở LẦN ĐẦU, và không nằm trong token
   const name = [r.profile?.givenName, r.profile?.familyName].filter(Boolean).join(' ');
   return hoanTat('/api/auth/apple', { idToken: r.idToken, code: r.authorizationCode, name: name || undefined });
+}
+
+/**
+ * Đăng nhập Google trong APP (native, ≥ 1.5.0). Android: hộp chọn tài khoản của máy (Credential
+ * Manager) với client WEB; iOS: GoogleSignIn với client iOS. Server nhận cả hai `aud`
+ * (node-server/taikhoan.ts). Người chơi tự đóng hộp chọn thì ném `huy`.
+ */
+export async function dangNhapGoogleApp(): Promise<HoSo> {
+  const { SocialLogin } = await import('@capgo/capacitor-social-login');
+  await SocialLogin.initialize({
+    google: {
+      webClientId: googleClientId.value,
+      iOSClientId: GOOGLE_IOS_CLIENT_ID,
+      iOSServerClientId: googleClientId.value,
+      mode: 'online'
+    }
+  });
+  let kq;
+  try {
+    kq = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+  } catch (e) {
+    const m = String((e as Error)?.message ?? e);
+    throw new Error(/cancel|canceled|cancelled|-5|12501|closed/i.test(m) ? 'huy' : m);
+  }
+  const r = kq.result as { idToken?: string | null };
+  if (!r.idToken) throw new Error('401');
+  return hoanTat('/api/auth/google', { credential: r.idToken });
 }
 
 /**

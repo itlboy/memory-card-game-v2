@@ -579,6 +579,19 @@
   iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
   Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
   (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
+- **ĐĂNG NHẬP GOOGLE TRONG APP (bản native 1.5.0, 09.11.2026)**: Google Cloud dự án `lat-the-nkien`
+  có 3 client OAuth: web (GOOGLE_CLIENT_ID), iOS `…-lfla0jfjm3kllm8t67uk2u60aqou08l5` (URL scheme đảo
+  ngược ở `ios/App/App/Info.plist`), Android (gói `com.cozypi.flipmatch` + SHA-1 khoá ký PLAY — đổi khoá
+  ký là phải thêm SHA-1 mới). Server nhận `aud` = web HOẶC iOS (`GOOGLE_IOS_CLIENT_ID`, mặc định trong
+  code). Nút Google native chỉ vẽ khi bản app ≥ 1.5.0 (`coGoogleApp`) — bản cũ nhận OTA nhưng KHÔNG có
+  SDK Google. BẪY ĐÃ GẶP: màn đồng ý OAuth từng ở "Testing" + 0 người thử → đăng nhập Google trên WEB
+  bị chặn với mọi người, không ai báo; đã Publish (In production) 09.11.2026. KHÔNG tải logo lên trang
+  Branding — có logo là Google bắt xét duyệt app.
+- **HẾT VÁN MÀ CẢ PHÒNG RA NGOÀI APP → PHÒNG CÒN (09.11.2026)**: trước đây ván xong + 0 socket là xoá
+  phòng ngay, và ra ngoài >5 phút thì nhánh "im lặng" xoá nốt — hai người cùng sang app chat là mất
+  phòng. Nay cả hai đường đưa phòng về PHÒNG CHỜ VẮNG (`emptyAt`, giữ mã 15 phút). Trong
+  `webSocketClose`, socket đang đóng VẪN nằm trong `getWebSockets()` — đếm phải trừ nó ra.
+  `smoke-online` canh ca này.
 - **GÓP Ý GIAO DIỆN 09.11.2026 (mockup duyệt: https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp)**:
   · Bước chọn dạng thanh (`.options.loose`) cách nhau `clamp(10px, 2.2vh, 16px)`.
   · Đếm ngược vào bàn: lớp phủ tối CHÍNH LÀ nền của `.countdown` (fixed inset 0 → kín màn từ khung

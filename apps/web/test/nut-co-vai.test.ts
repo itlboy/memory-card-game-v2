@@ -19,7 +19,7 @@ const CHUA_XEP: Record<string, string[]> = {
   'ChiaSeDialog.vue': ['dong'],
   'OnlineScreen.vue': ['sp-opt', 'nut-luu', 'nut-huy', 'nut-sua', 'nut-moi-ra'],
   'RulesDialog.vue': ['nut-do'],
-  'TaiKhoanDialog.vue': ['nut-apple', 'nut-dh']
+  'TaiKhoanDialog.vue': ['nut-apple', 'nut-google-app', 'nut-dh']
 };
 
 const DIR = resolve('src/components');

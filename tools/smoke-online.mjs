@@ -43,7 +43,7 @@ an.id = w1.playerId; an.token = w1.token;
 if (w1.room.hostId !== an.id) fail('An phải là chủ phòng');
 
 const w2 = await binh.connect(code);
-binh.id = w2.playerId;
+binh.id = w2.playerId; binh.token = w2.token;
 const roomUpd = await an.wait((m) => m.t === 'room' && m.room.players.length === 2, 'Bình vào phòng');
 console.log('✓ 2 người trong phòng:', roomUpd.room.players.map((p) => p.name).join(', '));
 
@@ -149,6 +149,15 @@ await new Promise((r) => setTimeout(r, 500));
 const w3 = await an.connect(code, an.token);
 if (w3.playerId !== an.id) fail('reconnect ra id khác!');
 console.log('✓ vào lại bằng token giữ nguyên danh tính (ON-07)');
+
+// HẾT VÁN, CẢ PHÒNG RA NGOÀI APP (09.11.2026): phòng phải CÒN — trước đây ván xong + 0 socket
+// là xoá phòng ngay (hai người cùng sang app chat là mất phòng).
+an.ws.close(); binh.ws.close();
+await new Promise((r) => setTimeout(r, 1500));
+const veLai = await an.connect(code, an.token);
+if (veLai.playerId !== an.id) fail('hết ván ra ngoài app rồi vào lại: mất phòng / ra người khác!');
+if (veLai.room?.status !== 'lobby') fail(`vào lại sau ván phải ở phòng chờ, đang là ${veLai.room?.status}`);
+console.log('✓ hết ván cả phòng ra ngoài app: phòng còn, vào lại đúng phòng chờ');
 
 console.log('\nSMOKE TEST PASSED');
 process.exit(0);

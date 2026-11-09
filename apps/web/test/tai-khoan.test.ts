@@ -165,10 +165,12 @@ describe('server Node: tầng tài khoản', () => {
     const cred = 'a'.repeat(40);
     const gia = (t: Record<string, string>) => (async () => Response.json(t)) as unknown as typeof fetch;
     const tot = { aud: 'cid', sub: '9', exp: '2000', name: 'An', email: 'an@x.vn', picture: 'p' };
-    expect(await xacMinhGoogle(cred, 'cid', 1_000_000, gia(tot))).toMatchObject({ sub: '9', name: 'An' });
-    expect(await xacMinhGoogle(cred, 'cid-khac', 1_000_000, gia(tot))).toBeNull();
-    expect(await xacMinhGoogle(cred, 'cid', 3_000_000, gia(tot))).toBeNull();
-    expect(await xacMinhGoogle('ngan', 'cid', 1_000_000, gia(tot))).toBeNull();
+    expect(await xacMinhGoogle(cred, ['cid'], 1_000_000, gia(tot))).toMatchObject({ sub: '9', name: 'An' });
+    expect(await xacMinhGoogle(cred, ['cid-khac'], 1_000_000, gia(tot))).toBeNull();
+    // App iOS (1.5.0): token mang aud = client iOS — nhận khi nó nằm trong danh sách
+    expect(await xacMinhGoogle(cred, ['web-khac', 'cid'], 1_000_000, gia(tot))).toMatchObject({ sub: '9' });
+    expect(await xacMinhGoogle(cred, ['cid'], 3_000_000, gia(tot))).toBeNull();
+    expect(await xacMinhGoogle('ngan', ['cid'], 1_000_000, gia(tot))).toBeNull();
   });
 
   /*

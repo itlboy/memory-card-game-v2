@@ -386,6 +386,7 @@ const it: TuDien = {
   'tk.thangTren': '{thang}/{van} vittorie',
   'tk.dangTai': 'Caricamento…',
   'tk.apple': 'Accedi con Apple',
+  'tk.google': 'Accedi con Google',
   'tk.loiApple': 'Apple non ha potuto confermare l\'accesso. Riprova.',
   'tk.xoaTk': 'Elimina account',
   'tk.xoaHoi': 'Eliminare per sempre il tuo account, insieme a punti, record e obiettivi sul nostro server? I dati salvati su questo dispositivo resteranno.',

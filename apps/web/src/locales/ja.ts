@@ -382,6 +382,7 @@ const ja: TuDien = {
   'tk.thangTren': '{van}戦{thang}勝',
   'tk.dangTai': '読み込み中…',
   'tk.apple': 'Appleでサインイン',
+  'tk.google': 'Google でログイン',
   'tk.loiApple': 'Appleでのサインインを確認できませんでした。もう一度お試しください。',
   'tk.xoaTk': 'アカウントを削除',
   'tk.xoaHoi': 'サーバー上のアカウントと、そのポイント・記録・実績を完全に削除しますか？この端末に保存されたデータは残ります。',

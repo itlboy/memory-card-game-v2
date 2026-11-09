@@ -388,6 +388,7 @@ const fr: TuDien = {
   'tk.thangTren': '{thang}/{van} victoires',
   'tk.dangTai': 'Chargement…',
   'tk.apple': 'Se connecter avec Apple',
+  'tk.google': 'Se connecter avec Google',
   'tk.loiApple': 'Apple n’a pas pu confirmer cette connexion. Réessaie.',
   'tk.xoaTk': 'Supprimer le compte',
   'tk.xoaHoi': 'Supprimer définitivement ton compte, ainsi que ses points, records et succès sur notre serveur ? Les données enregistrées sur cet appareil seront conservées.',
