@@ -364,6 +364,7 @@ const es: TuDien = {
   'tk.loiIchSo2': ' de este dispositivo cuando cambies de dispositivo, y aparecer en la clasificación.',
   'tk.loiIchChung': 'Inicia sesión para llevar tus puntos, récords y logros a cualquier dispositivo, y aparecer en la clasificación.',
   'tk.vanChoi': 'Puedes seguir jugando sin iniciar sesión.',
+  'tk.loiIchNgan': 'Inicia sesión para conservar tu progreso al cambiar de móvil.',
   'tk.dangDangNhap': 'Iniciando sesión…',
   'tk.xemBxh': 'Ver clasificación',
   'tk.chuaAi': 'Todavía no hay nadie en la clasificación.',

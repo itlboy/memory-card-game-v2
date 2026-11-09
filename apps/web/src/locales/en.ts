@@ -365,6 +365,7 @@ const en: TuDien = {
   'tk.loiIchSo2': ' from this device when you switch devices, and appear on the leaderboard.',
   'tk.loiIchChung': 'Sign in to take your score, records and achievements to any device, and appear on the leaderboard.',
   'tk.vanChoi': 'You can still play without signing in.',
+  'tk.loiIchNgan': 'Sign in to keep your progress when you switch phones.',
   'tk.dangDangNhap': 'Signing in…',
   'tk.xemBxh': 'View Leaderboard',
   'tk.chuaAi': 'No one on the leaderboard yet.',

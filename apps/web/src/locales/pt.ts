@@ -364,6 +364,7 @@ const pt: TuDien = {
   'tk.loiIchSo2': ' deste aparelho quando trocar de aparelho, e aparecer no ranking.',
   'tk.loiIchChung': 'Entre para levar seus pontos, recordes e conquistas para qualquer aparelho, e aparecer no ranking.',
   'tk.vanChoi': 'Você pode continuar jogando sem entrar.',
+  'tk.loiIchNgan': 'Entre para manter seu progresso ao trocar de celular.',
   'tk.dangDangNhap': 'Entrando…',
   'tk.xemBxh': 'Ver ranking',
   'tk.chuaAi': 'Ninguém no ranking ainda.',

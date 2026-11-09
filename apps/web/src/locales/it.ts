@@ -367,6 +367,7 @@ const it: TuDien = {
   'tk.loiIchSo2': ' di questo dispositivo quando lo cambi, e per comparire in classifica.',
   'tk.loiIchChung': 'Accedi per portare punteggio, record e obiettivi su ogni dispositivo e comparire in classifica.',
   'tk.vanChoi': 'Puoi giocare anche senza accedere.',
+  'tk.loiIchNgan': 'Accedi per conservare i progressi quando cambi telefono.',
   'tk.dangDangNhap': 'Accesso in corso…',
   'tk.xemBxh': 'Vedi classifica',
   'tk.chuaAi': 'Ancora nessuno in classifica.',
