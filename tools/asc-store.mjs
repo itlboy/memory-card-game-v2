@@ -216,11 +216,23 @@ if (process.env.NOP_DUYET === '1') {
   const sub = cu ?? (await api('POST', '/v1/reviewSubmissions', {
     data: { type: 'reviewSubmissions', attributes: { platform: 'IOS' }, relationships: { app: { data: { type: 'apps', id: app.id } } } }
   })).data;
-  try {
-    await api('POST', '/v1/reviewSubmissionItems', {
-      data: { type: 'reviewSubmissionItems', relationships: { reviewSubmission: { data: { type: 'reviewSubmissions', id: sub.id } }, appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } }
-    });
-  } catch (e) {
+  // Ảnh VỪA tải lên Apple còn xử lý (ASSET_IN_POST_PROCESSING) thì chưa nộp được — chờ tới 15 phút.
+  for (let lan = 0; ; lan++) {
+    try {
+      await api('POST', '/v1/reviewSubmissionItems', {
+        data: { type: 'reviewSubmissionItems', relationships: { reviewSubmission: { data: { type: 'reviewSubmissions', id: sub.id } }, appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } }
+      });
+      break;
+    } catch (e) {
+      if (/ASSET_IN_POST_PROCESSING/.test(String(e)) && lan < 30) {
+        console.log(`  (Apple còn xử lý ảnh — chờ 30s, lần ${lan + 1})`);
+        await new Promise((ok) => setTimeout(ok, 30000));
+        continue;
+      }
+      throw e;
+    }
+  }
+  try { /* giữ khối catch cũ cho lỗi 'đã có' */ } catch (e) {
     // Đã có trong lượt nộp thì bỏ qua; lỗi khác (thiếu thông tin…) PHẢI in ra — trước đây nuốt mất
     // nên chỉ thấy "does not have any items" ở bước sau (09.11.2026).
     if (!/already|ENTITY_ERROR\.RELATIONSHIP\.UNIQUE|duplicate/i.test(String(e))) throw e;
