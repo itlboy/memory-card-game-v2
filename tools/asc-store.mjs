@@ -14,6 +14,7 @@
  * KHÔNG làm được qua API (phải bấm trên web): App Privacy, phân loại độ tuổi,
  * giá (Free), trader status EU, và nút Submit for Review — script in nhắc cuối.
  */
+import { MOI } from './asc-moi.mjs';
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { homedir } from 'node:os';
@@ -89,12 +90,18 @@ console.log(`App: ${app.attributes.name} (${app.id})`);
 const SUA_DUOC = ['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'WAITING_FOR_REVIEW', 'INVALID_BINARY'];
 const appInfo = (await api('GET', `/v1/apps/${app.id}/appInfos`)).data
   .find((i) => SUA_DUOC.includes(i.attributes.appStoreState ?? i.attributes.state)) ?? (await api('GET', `/v1/apps/${app.id}/appInfos`)).data[0];
-const version = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=5`)).data
-  .find((v) => SUA_DUOC.includes(v.attributes.appStoreState ?? v.attributes.appVersionState));
-if (!version) throw new Error('Không có phiên bản iOS nào đang soạn (Prepare for Submission)');
-
 // Phiên bản hiển thị khớp package.json, bản quyền
 const pkgVer = JSON.parse(readFileSync(new URL('../apps/web/package.json', import.meta.url), 'utf8')).version;
+let version = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=5`)).data
+  .find((v) => SUA_DUOC.includes(v.attributes.appStoreState ?? v.attributes.appVersionState));
+// Chưa có phiên bản đang soạn (bản trước đã công khai) → TẠO phiên bản mới = số trong package.json
+// (09.11.2026: trước đây phải bấm tay "+ Version" trên App Store Connect).
+if (!version) {
+  version = (await api('POST', '/v1/appStoreVersions', {
+    data: { type: 'appStoreVersions', attributes: { platform: 'IOS', versionString: pkgVer }, relationships: { app: { data: { type: 'apps', id: app.id } } } }
+  })).data;
+  console.log(`✓ Tạo phiên bản mới ${pkgVer}`);
+}
 await api('PATCH', `/v1/appStoreVersions/${version.id}`, {
   data: { type: 'appStoreVersions', id: version.id, attributes: { versionString: pkgVer, copyright: `${new Date().getFullYear()} Cozy Pi` } },
 });
@@ -124,6 +131,8 @@ for (const { locale, noiDung: n, anh } of NGON_NGU) {
 
   // Mô tả + từ khoá + promo + URL (cấp phiên bản)
   const verAttr = { description: n.Description, keywords: n.Keywords, promotionalText: n['Promotional text'], supportUrl: URLS.support, marketingUrl: URLS.marketing };
+  // "Có gì mới" — Apple bắt buộc với bản cập nhật, CẤM gửi ở bản đầu tiên (đã có bản công khai ⇒ cập nhật)
+  if (MOI[anh]) verAttr.whatsNew = MOI[anh];
   // Đọc lại NGAY ĐÂY, không đọc một lần từ đầu: tạo bản cấp app (appInfoLocalization)
   // cho một ngôn ngữ mới là Apple tự sinh luôn bản cấp phiên bản — danh sách đọc từ
   // trước thành cũ, POST trùng ra 409 "locale vi already exists" (đã dính trên CI).
@@ -187,3 +196,22 @@ Còn phải bấm trên web (API không làm được):
   • Pricing and Availability → Free
   • Business → trader status (EU)
   • Submit for Review`);
+
+/*
+ * NỘP APPLE DUYỆT (09.11.2026) — chỉ khi NOP_DUYET=1 (workflow: -f nop_duyet=true). Chỉ chạy khi đã
+ * gắn được build; dùng API reviewSubmissions (gom phiên bản vào một lượt nộp rồi bấm gửi).
+ */
+if (process.env.NOP_DUYET === '1') {
+  if (!builds[0]) throw new Error(`Chưa có build ${pkgVer} xử lý xong — chưa nộp được`);
+  const cu = (await api('GET', `/v1/reviewSubmissions?filter[app]=${app.id}&filter[platform]=IOS&filter[state]=READY_FOR_REVIEW,UNRESOLVED_ISSUES`)).data?.[0];
+  const sub = cu ?? (await api('POST', '/v1/reviewSubmissions', {
+    data: { type: 'reviewSubmissions', attributes: { platform: 'IOS' }, relationships: { app: { data: { type: 'apps', id: app.id } } } }
+  })).data;
+  try {
+    await api('POST', '/v1/reviewSubmissionItems', {
+      data: { type: 'reviewSubmissionItems', relationships: { reviewSubmission: { data: { type: 'reviewSubmissions', id: sub.id } }, appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } }
+    });
+  } catch (e) { if (!/409|already/i.test(String(e))) throw e; }
+  await api('PATCH', `/v1/reviewSubmissions/${sub.id}`, { data: { type: 'reviewSubmissions', id: sub.id, attributes: { submitted: true } } });
+  console.log(`✓ ĐÃ NỘP APPLE DUYỆT phiên bản ${pkgVer} (build ${builds[0].attributes.version})`);
+}
