@@ -366,6 +366,7 @@ const id: TuDien = {
   'tk.loiIchSo2': ' dari perangkat ini saat kamu ganti perangkat, sekaligus tampil di papan peringkat.',
   'tk.loiIchChung': 'Masuk agar skor, rekor, dan pencapaianmu ikut ke perangkat mana pun, sekaligus tampil di papan peringkat.',
   'tk.vanChoi': 'Kamu tetap bisa main tanpa masuk.',
+  'tk.loiIchNgan': 'Masuk agar skormu tetap ada saat ganti HP.',
   'tk.dangDangNhap': 'Sedang masuk…',
   'tk.xemBxh': 'Lihat papan peringkat',
   'tk.chuaAi': 'Papan peringkat masih kosong.',

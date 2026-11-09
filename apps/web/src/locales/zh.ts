@@ -363,6 +363,7 @@ const zh: TuDien = {
   'tk.loiIchSo2': '，还能登上排行榜。',
   'tk.loiIchChung': '登录后，分数、纪录和成就在任何设备上都能保留，还能登上排行榜。',
   'tk.vanChoi': '不登录也可以继续玩。',
+  'tk.loiIchNgan': '登录后换手机也能保留进度。',
   'tk.dangDangNhap': '正在登录…',
   'tk.xemBxh': '查看排行榜',
   'tk.chuaAi': '排行榜上还没有人。',

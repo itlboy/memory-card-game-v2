@@ -363,6 +363,7 @@ const ko: TuDien = {
   'tk.loiIchSo2': '을 기기를 바꿔도 지킬 수 있고, 랭킹에도 이름이 올라가요.',
   'tk.loiIchChung': '로그인하면 점수, 기록, 업적을 어느 기기에서든 이어서 쓰고 랭킹에도 이름이 올라가요.',
   'tk.vanChoi': '로그인하지 않아도 플레이할 수 있어요.',
+  'tk.loiIchNgan': '로그인하면 기기를 바꿔도 기록이 유지돼요.',
   'tk.dangDangNhap': '로그인 중…',
   'tk.xemBxh': '랭킹 보기',
   'tk.chuaAi': '아직 랭킹에 아무도 없어요.',

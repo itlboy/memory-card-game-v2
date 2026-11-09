@@ -366,6 +366,7 @@ const zhTW: TuDien = {
   'tk.loiIchSo2': '，還能登上排行榜。',
   'tk.loiIchChung': '登入後，分數、紀錄和成就在任何裝置上都能保留，還能登上排行榜。',
   'tk.vanChoi': '不登入也可以繼續玩。',
+  'tk.loiIchNgan': '登入後換手機也能保留進度。',
   'tk.dangDangNhap': '登入中…',
   'tk.xemBxh': '查看排行榜',
   'tk.chuaAi': '排行榜上還沒有人。',

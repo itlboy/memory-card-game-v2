@@ -111,28 +111,24 @@ const diemMay = store.totalScore();
       <div class="body">
         <!-- Chưa đăng nhập -->
         <div v-if="!me" class="chua">
-          <!-- Nói bằng SỐ THẬT của máy này: "giữ 12 danh hiệu, 536k điểm" kéo người
-               ta bấm hơn hẳn một câu chung chung về đồng bộ. -->
-          <p class="lead">
-            <template v-if="soDaCo || diemMay">
-              {{ t('tk.loiIchSo1') }}<b>{{ t('tk.loiIchDanhHieu', { n: soDaCo }) }}</b>{{ t('tk.loiIchVa') }}<b>{{ t('tk.loiIchDiem', { n: numShort(diemMay) }) }}</b>{{ t('tk.loiIchSo2') }}
-            </template>
-            <template v-else>
-              {{ t('tk.loiIchChung') }}
-            </template>
-            {{ t('tk.vanChoi') }}
-          </p>
+          <!-- MỘT DÒNG (chủ dự án 09.11.2026: đoạn giải thích 3 dòng "đau mắt quá") -->
+          <p class="lead">{{ t('tk.loiIchNgan') }}</p>
           <div v-if="coGoogle" ref="nutGoogle" class="nut-google" data-nosfx />
-          <!-- App ≥ 1.5.0: nút Google NATIVE (nút GIS của web bị Google chặn trong WebView).
-               Kiểu nút theo hướng dẫn thương hiệu Google: nền trắng, viền xám, chữ G 4 màu. -->
-          <button v-if="coGoogleApp" class="nut-google-app" type="button" :disabled="dangTai" @click="googleApp">
-            <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
-            {{ t('tk.google') }}
-          </button>
-          <button v-if="coApple" class="nut-apple" type="button" :disabled="dangTai" @click="apple">
-            <svg viewBox="0 0 814 1000" width="16" height="20" aria-hidden="true"><path fill="currentColor" d="M788 341c-6 4-108 62-108 190 0 149 131 201 135 203-1 3-21 72-69 142-43 62-88 124-156 124s-86-40-165-40c-77 0-104 41-166 41s-106-57-156-127C45 792 0 667 0 548c0-191 124-292 247-292 65 0 119 43 160 43 39 0 100-45 174-45 28 0 129 3 207 87zM556 160c31-37 53-88 53-139 0-7-1-14-2-20-50 2-110 33-146 75-28 32-55 83-55 135 0 8 1 16 2 18 3 1 9 1 14 1 45 0 102-30 134-70z"/></svg>
-            {{ t('tk.apple') }}
-          </button>
+          <!-- HAI NÚT NGANG NHAU, cùng cỡ (mockup duyệt 09.11.2026, https://claude.ai/artifact/TdQgni59VuVT5CLHuGfKsE):
+               chữ chỉ còn tên hãng — câu "Đăng nhập…" đã nằm ở dòng trên. Apple bắt nút Apple không
+               nhỏ hơn nút đăng nhập khác: chia đôi bằng nhau là đạt. -->
+          <div v-if="coGoogleApp || coApple" class="hang-nut">
+            <!-- App ≥ 1.5.0: nút Google NATIVE (nút GIS của web bị Google chặn trong WebView).
+                 Kiểu nút theo hướng dẫn thương hiệu Google: nền trắng, viền xám, chữ G 4 màu. -->
+            <button v-if="coGoogleApp" class="nut-google-app" type="button" :aria-label="t('tk.google')" :disabled="dangTai" @click="googleApp">
+              <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
+              Google
+            </button>
+            <button v-if="coApple" class="nut-apple" type="button" :aria-label="t('tk.apple')" :disabled="dangTai" @click="apple">
+              <svg viewBox="0 0 814 1000" width="16" height="20" aria-hidden="true"><path fill="currentColor" d="M788 341c-6 4-108 62-108 190 0 149 131 201 135 203-1 3-21 72-69 142-43 62-88 124-156 124s-86-40-165-40c-77 0-104 41-166 41s-106-57-156-127C45 792 0 667 0 548c0-191 124-292 247-292 65 0 119 43 160 43 39 0 100-45 174-45 28 0 129 3 207 87zM556 160c31-37 53-88 53-139 0-7-1-14-2-20-50 2-110 33-146 75-28 32-55 83-55 135 0 8 1 16 2 18 3 1 9 1 14 1 45 0 102-30 134-70z"/></svg>
+              Apple
+            </button>
+          </div>
           <p v-if="dangTai" class="muted">{{ t('tk.dangDangNhap') }}</p>
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
           <button class="btn-link" type="button" @click="moBxh">{{ t('tk.xemBxh') }}</button>
@@ -261,6 +257,8 @@ const diemMay = store.totalScore();
   font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
 }
 .nut-apple:disabled { opacity: .6; }
+.hang-nut { display: flex; gap: 10px; width: 100%; max-width: 320px; margin-top: 2px; }
+.hang-nut > button { flex: 1 1 0; min-width: 0; width: auto; margin-top: 0; }
 .nut-google-app {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   width: 280px; max-width: 100%; min-height: 44px; padding: 0 16px;

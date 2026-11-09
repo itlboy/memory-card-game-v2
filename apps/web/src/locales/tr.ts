@@ -366,6 +366,7 @@ const tr: TuDien = {
   'tk.loiIchSo2': ' cihaz değiştirdiğinde de seninle gelsin, liderlik tablosunda da yer al.',
   'tk.loiIchChung': 'Giriş yap; puanların, rekorların ve başarımların her cihazda seninle olsun, liderlik tablosunda yer al.',
   'tk.vanChoi': 'Giriş yapmadan da oynayabilirsin.',
+  'tk.loiIchNgan': 'Telefon değiştirince ilerlemeni korumak için giriş yap.',
   'tk.dangDangNhap': 'Giriş yapılıyor…',
   'tk.xemBxh': 'Liderlik tablosu',
   'tk.chuaAi': 'Liderlik tablosunda henüz kimse yok.',

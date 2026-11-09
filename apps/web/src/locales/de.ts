@@ -366,6 +366,7 @@ const de: TuDien = {
   'tk.loiIchSo2': ' von diesem Gerät mitzunehmen und in der Rangliste zu erscheinen.',
   'tk.loiIchChung': 'Melde dich an, um Punkte, Rekorde und Erfolge auf jedes Gerät mitzunehmen und in der Rangliste zu erscheinen.',
   'tk.vanChoi': 'Du kannst auch ohne Anmeldung spielen.',
+  'tk.loiIchNgan': 'Melde dich an, um deinen Fortschritt beim Gerätewechsel zu behalten.',
   'tk.dangDangNhap': 'Anmelden…',
   'tk.xemBxh': 'Rangliste ansehen',
   'tk.chuaAi': 'Noch niemand in der Rangliste.',

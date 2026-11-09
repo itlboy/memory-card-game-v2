@@ -370,6 +370,7 @@ const vi = {
   'tk.loiIchSo2': ' của máy này khi đổi máy, và có tên trên bảng xếp hạng.',
   'tk.loiIchChung': 'Đăng nhập để điểm, kỷ lục và danh hiệu đi theo bạn sang máy khác và có tên trên bảng xếp hạng.',
   'tk.vanChoi': 'Không đăng nhập vẫn chơi bình thường.',
+  'tk.loiIchNgan': 'Đăng nhập để giữ điểm khi đổi máy.',
   'tk.dangDangNhap': 'Đang đăng nhập…',
   'tk.xemBxh': 'Xem bảng xếp hạng',
   'tk.chuaAi': 'Chưa có ai trên bảng.',

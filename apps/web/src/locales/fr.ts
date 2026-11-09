@@ -369,6 +369,7 @@ const fr: TuDien = {
   'tk.loiIchSo2': ' de cet appareil si tu en changes, et pour figurer au classement.',
   'tk.loiIchChung': 'Connecte-toi pour retrouver ton score, tes records et tes succès sur tous tes appareils, et pour figurer au classement.',
   'tk.vanChoi': 'Tu peux aussi jouer sans te connecter.',
+  'tk.loiIchNgan': 'Connecte-toi pour garder ta progression en changeant d’appareil.',
   'tk.dangDangNhap': 'Connexion…',
   'tk.xemBxh': 'Voir le classement',
   'tk.chuaAi': 'Personne au classement pour l’instant.',
