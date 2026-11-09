@@ -3,9 +3,8 @@
  *
  * Hàng emoji ngoài thanh = emoji MÌNH hay bấm nhất; máy chưa bấm gì thì là bộ phổ
  * biến `EMOJI_PHO_BIEN`. Đếm trên từng máy (localStorage), không gửi đi đâu.
- * Hoà số lần thì giữ thứ tự mặc định, để hàng không nhảy lung tung sau mỗi lần bấm.
+ * Hoà số lần thì giữ thứ tự mặc định.
  */
-import { ref } from 'vue';
 import { EMOJI_PHO_BIEN, QUICK_EMOJIS, type QuickEmoji } from '@mm/engine';
 
 const KHOA = 'mm.emojiDung';
@@ -19,7 +18,7 @@ function doc(): Record<string, number> {
   } catch { return {}; }
 }
 
-const dem = ref<Record<string, number>>(doc());
+let dem: Record<string, number> = doc();
 
 /** Thứ tự hàng ngoài: dùng nhiều trước, còn lại theo bộ phổ biến, rồi tới cả danh sách. */
 export function xepHayDung(soLan: Record<string, number>, n: number): QuickEmoji[] {
@@ -30,10 +29,16 @@ export function xepHayDung(soLan: Record<string, number>, n: number): QuickEmoji
     .slice(0, n);
 }
 
-export const hayDung = (n: number): QuickEmoji[] => xepHayDung(dem.value, n);
+/*
+ * THỨ TỰ CHỐT THEO PHIÊN (09.11.2026, chủ dự án: "emoji chat nhiều đột xuất nhảy"): hàng
+ * ngoài xếp MỘT LẦN lúc mở game, từ số lần đã đếm tới lúc đó. Bấm trong lúc chơi chỉ cộng
+ * số đếm — thứ tự mới có ở lần mở game sau, hàng không bao giờ nhảy dưới ngón tay.
+ */
+const thuTuPhien = xepHayDung(doc(), QUICK_EMOJIS.length);
+export const hayDung = (n: number): QuickEmoji[] => thuTuPhien.slice(0, n);
 
 export function ghiDung(e: string): void {
   if (!QUICK_EMOJIS.includes(e)) return;
-  dem.value = { ...dem.value, [e]: (dem.value[e] ?? 0) + 1 };
-  try { localStorage.setItem(KHOA, JSON.stringify(dem.value)); } catch { /* chế độ riêng tư */ }
+  dem = { ...dem, [e]: (dem[e] ?? 0) + 1 };
+  try { localStorage.setItem(KHOA, JSON.stringify(dem)); } catch { /* chế độ riêng tư */ }
 }

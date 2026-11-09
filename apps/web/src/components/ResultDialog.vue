@@ -188,7 +188,7 @@ const title = computed(() => {
 
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
-    <div class="panel">
+    <div class="panel" :class="{ 'kq-online': multiplayerOnline }">
       <h2 id="resTitle">{{ title }}</h2>
       <p class="reason">{{ reasonText }}</p>
 
@@ -218,10 +218,12 @@ const title = computed(() => {
       </p>
 
       <ol v-if="multiplayer" class="ranking">
-        <li v-for="(p, i) in summary.ranking" :key="p.id">
+        <!-- `data-kq-for`: bong bóng emoji (EmojiBlast.vue) neo vào ĐÚNG dòng người gửi — bảng
+             này phủ kín màn chơi nên chip trong ván không còn thấy được -->
+        <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="p.id" :class="{ muon: rematchState?.[p.id] === 'in' }">
           <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
           <span>
-            {{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}
+            <span class="ten-kq">{{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}</span>
             <!--
               Ai muốn chơi tiếp, ai đã đi: nhãn nằm NGAY CẠNH TÊN, không phải ở
               dòng thông báo dưới nút. Bảng xếp hạng vốn đã là chỗ mắt đang đọc
@@ -541,6 +543,32 @@ h2 { margin: 0 0 4px; }
 /* Hàng nhất có nền xanh nhạt sẵn — nhãn xanh trên đó thành chìm, nên đổi nền
    nhãn sang trắng mờ để vẫn tách ra khỏi hàng. */
 .ranking li:first-child .tag.in { background: color-mix(in srgb, var(--ok) 26%, transparent); }
+/*
+ * NGƯỜI ĐÃ BẤM "CHƠI LẠI" (09.11.2026, chủ dự án: "hiệu ứng người muốn chơi lại rõ ràng hơn"):
+ * cả DÒNG viền xanh + quầng nhấp nhẹ, nhãn thành chip xanh đặc chữ trắng. Nhìn bảng một lần
+ * là biết ai đang chờ mình. Màu cố định (không token skin) — xanh "đồng ý" ở mọi skin.
+ */
+.ranking li.muon {
+  outline: 3px solid #46ad22; outline-offset: -1px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, #46ad22 22%, transparent);
+  animation: muon 1.4s ease-in-out infinite;
+}
+@keyframes muon { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, #46ad22 8%, transparent); } }
+.ranking li.muon .tag.in { font-size: 13px; padding: 3px 10px; background: #46ad22; color: #fff; }
+@media (prefers-reduced-motion: reduce) { .ranking li.muon { animation: none; } }
+/*
+ * BẢNG KẾT QUẢ ONLINE THOÁNG HƠN (09.11.2026): khối điểm · nhóm nút · thanh emoji cách nhau rõ.
+ * Chỉ khi màn đủ cao — màn thấp (≤700px, iPhone SE/14) vẫn dùng bản gọn ở cuối file, không
+ * thì nút cuối lòi khỏi màn (`tools/do-menu-tren.mjs` canh).
+ */
+@media (min-height: 701px) {
+  .kq-online .ranking { gap: 12px; }
+  .kq-online .ranking li { padding: 12px 14px; }
+  .kq-online .row { margin-top: 22px; gap: 12px; }
+  .kq-online .row.hang-phu { margin-top: 12px; }
+  .kq-online .link.thoat { margin-top: 12px; }
+  .kq-online .chat-slot:not(:empty) { margin-top: 20px; padding-top: 16px; }
+}
 
 .achievements { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
 .achievements li {
