@@ -265,3 +265,24 @@ describe('đồng bộ nhiều máy', () => {
     expect(store.totalScore()).toBe(1300);
   });
 });
+
+describe('mở app đã đăng nhập: hiện tên NGAY, không chờ server (09.11.2026)', () => {
+  it('có token + hồ sơ đã lưu thì `me` có sẵn từ lúc nạp module', async () => {
+    const { vi } = await import('vitest');
+    vi.resetModules();
+    localStorage.setItem('mm.auth', 'tok');
+    localStorage.setItem('mm.authMe', JSON.stringify({ id: 1, name: 'An' }));
+    const tk = await import('@/lib/taikhoan');
+    expect(tk.me.value).toMatchObject({ name: 'An' });
+    expect(tk.san.value).toBe(true);
+    localStorage.removeItem('mm.auth'); localStorage.removeItem('mm.authMe');
+  });
+  it('không có token thì không dùng hồ sơ cũ', async () => {
+    const { vi } = await import('vitest');
+    vi.resetModules();
+    localStorage.setItem('mm.authMe', JSON.stringify({ id: 1, name: 'An' }));
+    const tk = await import('@/lib/taikhoan');
+    expect(tk.me.value).toBeNull();
+    localStorage.removeItem('mm.authMe');
+  });
+});

@@ -1,4 +1,4 @@
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
 import { laApp, nenApp, SERVER_URL } from './native';
@@ -84,6 +84,29 @@ let appleWebId = '';
 export const me = shallowRef<HoSo | null>(null);
 export const dangTai = ref(false);
 
+/*
+ * NHỚ HỒ SƠ TRÊN MÁY (09.11.2026, chủ dự án: "vào menu mất một lúc mới hiện đã đăng nhập —
+ * trải nghiệm kém"). Trước đây mở app là `me` = null cho tới khi xong HAI lượt hỏi server nối
+ * tiếp (`/api/auth/config` rồi `/api/me`), nên menu hiện "Đăng nhập" như người lạ vài giây.
+ * Nay: có token + có bản hồ sơ đã lưu thì hiện NGAY từ khung đầu; server trả về thì ghi đè.
+ * Token hết hạn (401) thì `goi()` xoá cả hai như cũ.
+ */
+const ME_KEY = 'mm.authMe';
+function docMeLuu(): HoSo | null {
+  try {
+    if (!localStorage.getItem(AUTH_KEY)) return null;
+    const v = JSON.parse(localStorage.getItem(ME_KEY) ?? 'null') as HoSo | null;
+    return v && typeof v === 'object' ? v : null;
+  } catch { return null; }
+}
+{
+  const luu = docMeLuu();
+  if (luu) { me.value = luu; san.value = true; }
+}
+watch(me, (m) => {
+  try { m ? localStorage.setItem(ME_KEY, JSON.stringify(m)) : localStorage.removeItem(ME_KEY); } catch { /* riêng tư */ }
+});
+
 function docToken(): string | null {
   try { return localStorage.getItem(AUTH_KEY); } catch { return null; }
 }
@@ -116,6 +139,8 @@ async function goi<T>(path: string, init: RequestInit = {}): Promise<T> {
  * Mọi lỗi mạng ở đây đều nuốt — tài khoản là lớp phủ, không được chặn trang chủ.
  */
 export async function khoiDong(): Promise<void> {
+  // Hỏi hồ sơ SONG SONG với cấu hình — không chờ nhau (trước đây nối tiếp = gấp đôi thời gian)
+  const meP = docToken() ? goi<{ me: HoSo }>('/api/me').then((r) => r.me).catch(() => null) : null;
   try {
     const res = await fetch(`${SERVER}/api/auth/config`);
     if (!res.ok) { san.value = false; return; }
@@ -134,7 +159,8 @@ export async function khoiDong(): Promise<void> {
     if (!san.value) return;
   } catch { san.value = false; return; }
   if (docToken()) {
-    try { me.value = (await goi<{ me: HoSo }>('/api/me')).me; } catch { /* đã xử lý 401 ở goi() */ }
+    const moi = await meP;   // 401 thì goi() đã xoá token + hồ sơ
+    if (moi) me.value = moi;
     /*
      * ĐỒNG BỘ NGAY LÚC MỞ APP, không chỉ lúc đăng nhập. Một tài khoản hai máy:
      * máy B chơi, máy A mở lên phải thấy điểm mới. Bản đầu chỉ nạp hồ sơ để
