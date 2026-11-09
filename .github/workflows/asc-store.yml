@@ -17,6 +17,10 @@ on:
         description: Chụp lại ảnh store cho 15 ngôn ngữ
         type: boolean
         default: true
+      nop_duyet:
+        description: 'Gắn build xong thì NỘP APPLE DUYỆT luôn'
+        type: boolean
+        default: false
       chup_ipad:
         description: Chụp ảnh iPad 13" (2064×2752) cho 15 ngôn ngữ
         type: boolean
@@ -70,6 +74,7 @@ jobs:
           KID: ${{ secrets.ASC_KEY_ID }}
           ISS: ${{ secrets.ASC_ISSUER_ID }}
           ASC_REVIEW_PHONE: ${{ secrets.ASC_REVIEW_PHONE }}
+          NOP_DUYET: ${{ inputs.nop_duyet && '1' || '' }}
         run: |
           echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/AuthKey_$KID.p8"
           node tools/asc-store.mjs "$RUNNER_TEMP/AuthKey_$KID.p8" "$ISS" anh
