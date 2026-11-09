@@ -242,7 +242,9 @@ const diemMay = store.totalScore();
 }
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .head h2 { flex: 1; margin: 0; font-size: var(--text-xl); }
-.body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+/* Đệm dưới 8px: nút thạch cuối (Danh hiệu) có gờ 4px + bóng NẰM NGOÀI hộp nút — `.body` cuộn
+   (overflow) cắt sát mép thì gờ bị xén (chủ dự án thấy 09.11.2026). Đệm hai bên cho bóng ngang. */
+.body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px 4px 10px; margin: 0 -4px; }
 .lead { margin: 0 0 14px; font-size: var(--text-md); line-height: 1.5; }
 .muted { color: var(--muted); font-size: var(--text-sm); margin: 6px 0 0; }
 .loi { color: var(--bad); font-size: var(--text-sm); margin: 8px 0 0; }
