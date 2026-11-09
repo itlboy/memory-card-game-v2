@@ -141,6 +141,13 @@ không hỏi khai báo mã hoá mỗi bản.
 
 
 
+## Chạy trên Mac / Vision Pro (09.11.2026)
+
+App iPhone/iPad bật cho **Mac chip Apple** (App Store Connect → Pricing and Availability →
+"iPhone and iPad Apps on Apple Silicon Macs" → Make this app available, macOS tự chọn 12.0)
+và **Apple Vision Pro** (đã bật sẵn). Không build riêng — cùng gói iOS. Apple ghi "chưa xác minh
+tương thích" cho tới khi có người thử trên Mac thật và bấm Verify Compatibility.
+
 ## Số phiên bản (19.10.2026)
 
 - **Mỗi bản một số mới (07.11.2026)**: `pnpm ban:tang` nâng số cuối (1.4.1 → 1.4.2) mỗi lần giao hàng có đổi app. Android và iOS cùng hiện số đó. Hai mục dưới là cách CŨ, giữ để hiểu số trên các bản đã phát hành.
