@@ -579,6 +579,12 @@
   iOS cùng hiện số đó (bỏ đuôi `.<build>` kiểu 1.3.0.362). Nâng số giữa (1.5.0) thì sửa tay.
   Apple không nhận thêm build cho phiên bản đã công khai, nên số chỉ được tăng. `minNative`
   (`apps/web/ota.json`) GIỮ `1.3.0` chừng nào chưa đổi phần native — app cũ vẫn nhận gói OTA.
+- **TRANG DANH HIỆU LÀM LẠI (09.11.2026, mockup duyệt: https://claude.ai/artifact/S6iPWAV8MkwtHe22t58qPf)**:
+  huy chương tròn `HuyChuong.vue` (biểu tượng riêng + vòng màu bậc MAU_BAC; chưa có = mờ xám, đang dở
+  = vòng tiến độ xanh) thay lá bài úp (`DanhHieu.vue` đã xoá; `HuyHieu.vue` vẫn dùng cho cảnh mở khoá
+  MoKhoaFx). "Sắp đạt" = 3 danh hiệu gần xong nhất; lọc Tất cả · Đã có · Chưa có (mặc định Tất cả);
+  KHÔNG nút trong lưới — chạm huy chương mở tờ chi tiết có MỘT nút "Chinh phục". Màn Tài khoản: nút
+  Google/Apple/Danh hiệu đều là `.thach` (Apple = thạch đen qua biến --b1..--b4, giữ màu hãng).
 - **ĐĂNG NHẬP GOOGLE TRONG APP (bản native 1.5.0, 09.11.2026)**: Google Cloud dự án `lat-the-nkien`
   có 3 client OAuth: web (GOOGLE_CLIENT_ID), iOS `…-lfla0jfjm3kllm8t67uk2u60aqou08l5` (URL scheme đảo
   ngược ở `ios/App/App/Info.plist`), Android (gói `com.cozypi.flipmatch` + SHA-1 khoá ký PLAY — đổi khoá

@@ -84,7 +84,7 @@ const DA_CHUYEN = [
   'components/TopBar.vue', 'components/HudBar.vue', 'components/SizeGrid.vue', 'components/ConfirmDialog.vue',
   'components/GameScreen.vue', 'components/PlayerStrip.vue', 'components/MenuScreen.vue',
   'components/ResultDialog.vue', 'components/KetCucFx.vue', 'components/MoKhoaFx.vue',
-  'components/DanhHieu.vue', 'components/DanhHieuDialog.vue', 'components/TaiKhoanDialog.vue',
+  'components/DanhHieuDialog.vue', 'components/HuyChuong.vue', 'components/TaiKhoanDialog.vue',
   'components/BoardGrid.vue', 'components/CardTile.vue', 'lib/achievements.ts', 'lib/ten.ts',
   'components/OnlineScreen.vue', 'components/OnlineGame.vue', 'composables/useOnlineRoom.ts',
   'components/ChiaSeDialog.vue', 'components/EmojiBar.vue', 'App.vue', 'components/RulesDialog.vue', 'components/LevelMap.vue',

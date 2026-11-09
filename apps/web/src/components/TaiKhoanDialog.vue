@@ -120,11 +120,11 @@ const diemMay = store.totalScore();
           <div v-if="coGoogleApp || coApple" class="hang-nut">
             <!-- App ≥ 1.5.0: nút Google NATIVE (nút GIS của web bị Google chặn trong WebView).
                  Kiểu nút theo hướng dẫn thương hiệu Google: nền trắng, viền xám, chữ G 4 màu. -->
-            <button v-if="coGoogleApp" class="nut-google-app" type="button" :aria-label="t('tk.google')" :disabled="dangTai" @click="googleApp">
+            <button v-if="coGoogleApp" class="nut-google-app thach" type="button" :aria-label="t('tk.google')" :disabled="dangTai" @click="googleApp">
               <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>
               Google
             </button>
-            <button v-if="coApple" class="nut-apple" type="button" :aria-label="t('tk.apple')" :disabled="dangTai" @click="apple">
+            <button v-if="coApple" class="nut-apple thach" type="button" :aria-label="t('tk.apple')" :disabled="dangTai" @click="apple">
               <svg viewBox="0 0 814 1000" width="16" height="20" aria-hidden="true"><path fill="currentColor" d="M788 341c-6 4-108 62-108 190 0 149 131 201 135 203-1 3-21 72-69 142-43 62-88 124-156 124s-86-40-165-40c-77 0-104 41-166 41s-106-57-156-127C45 792 0 667 0 548c0-191 124-292 247-292 65 0 119 43 160 43 39 0 100-45 174-45 28 0 129 3 207 87zM556 160c31-37 53-88 53-139 0-7-1-14-2-20-50 2-110 33-146 75-28 32-55 83-55 135 0 8 1 16 2 18 3 1 9 1 14 1 45 0 102-30 134-70z"/></svg>
               Apple
             </button>
@@ -132,7 +132,7 @@ const diemMay = store.totalScore();
           <p v-if="dangTai" class="muted">{{ t('tk.dangDangNhap') }}</p>
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
           <button class="btn-link" type="button" @click="moBxh">{{ t('tk.xemBxh') }}</button>
-<button class="nut-dh" type="button" @click="emit('danh-hieu')">
+<button class="nut-dh thach th-vang" type="button" @click="emit('danh-hieu')">
             🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
           <ol v-if="tab === 'bxh' && bxh" class="bxh">
@@ -175,7 +175,7 @@ const diemMay = store.totalScore();
               <div><dt>{{ t('tk.tiLe') }}</dt><dd>{{ tiLeThang }}%</dd></div>
             </dl>
 
-            <button class="nut-dh" type="button" @click="emit('danh-hieu')">
+            <button class="nut-dh thach th-vang" type="button" @click="emit('danh-hieu')">
             🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
 
@@ -257,6 +257,10 @@ const diemMay = store.totalScore();
   font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
 }
 .nut-apple:disabled { opacity: .6; }
+/* KIỂU THẠCH (mockup duyệt 09.11.2026): skin Kẹo tô nút `.thach` bằng bộ biến --b1..--b4/--bc
+   (gradient + gờ dưới, !important). Google = thạch trắng mặc định; Apple = thạch ĐEN — giữ màu
+   nhận diện đen/trắng của hai hãng, chỉ thêm khối nổi của game. */
+.nut-apple.thach { --b1: #4b4b52; --b2: #16161a; --b3: #000; --b4: #000; --bc: #fff; }
 .hang-nut { display: flex; gap: 10px; width: 100%; max-width: 320px; margin-top: 2px; }
 .hang-nut > button { flex: 1 1 0; min-width: 0; width: auto; margin-top: 0; }
 .nut-google-app {
