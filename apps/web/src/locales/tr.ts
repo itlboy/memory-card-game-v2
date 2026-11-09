@@ -385,6 +385,7 @@ const tr: TuDien = {
   'tk.thangTren': '{thang}/{van} galibiyet',
   'tk.dangTai': 'Yükleniyor…',
   'tk.apple': 'Apple ile giriş yap',
+  'tk.google': 'Google ile oturum açın',
   'tk.loiApple': 'Apple bu girişi doğrulayamadı. Lütfen tekrar dene.',
   'tk.xoaTk': 'Hesabı sil',
   'tk.xoaHoi': 'Hesabın; puanları, rekorları ve başarımlarıyla birlikte sunucumuzdan kalıcı olarak silinsin mi? Bu cihazda kayıtlı veriler korunur.',

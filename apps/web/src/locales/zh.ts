@@ -382,6 +382,7 @@ const zh: TuDien = {
   'tk.thangTren': '{thang}/{van} 胜',
   'tk.dangTai': '加载中…',
   'tk.apple': '通过 Apple 登录',
+  'tk.google': '使用 Google 账号登录',
   'tk.loiApple': 'Apple 未能确认此次登录，请重试。',
   'tk.xoaTk': '删除账号',
   'tk.xoaHoi': '永久删除你的账号，以及服务器上的分数、纪录和成就？本设备上保存的数据会保留。',

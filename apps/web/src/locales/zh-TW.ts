@@ -385,6 +385,7 @@ const zhTW: TuDien = {
   'tk.thangTren': '{thang}/{van} 勝',
   'tk.dangTai': '載入中…',
   'tk.apple': '使用 Apple 登入',
+  'tk.google': '使用 Google 帳戶登入',
   'tk.loiApple': 'Apple 無法確認這次登入，請再試一次。',
   'tk.xoaTk': '刪除帳號',
   'tk.xoaHoi': '要永久刪除你的帳號，以及伺服器上的分數、紀錄和成就嗎？儲存在這台裝置上的資料會保留。',

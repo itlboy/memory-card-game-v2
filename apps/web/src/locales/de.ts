@@ -385,6 +385,7 @@ const de: TuDien = {
   'tk.thangTren': '{thang}/{van} Siege',
   'tk.dangTai': 'Lädt…',
   'tk.apple': 'Mit Apple anmelden',
+  'tk.google': 'Mit Google anmelden',
   'tk.loiApple': 'Apple konnte diese Anmeldung nicht bestätigen. Bitte versuch es noch mal.',
   'tk.xoaTk': 'Konto löschen',
   'tk.xoaHoi': 'Dein Konto samt Punkten, Rekorden und Erfolgen endgültig vom Server löschen? Daten auf diesem Gerät bleiben erhalten.',

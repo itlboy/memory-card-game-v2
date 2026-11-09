@@ -385,6 +385,7 @@ const id: TuDien = {
   'tk.thangTren': '{thang}/{van} menang',
   'tk.dangTai': 'Memuat…',
   'tk.apple': 'Masuk dengan Apple',
+  'tk.google': 'Masuk dengan Google',
   'tk.loiApple': 'Apple tidak bisa mengonfirmasi proses masuk ini. Coba lagi.',
   'tk.xoaTk': 'Hapus akun',
   'tk.xoaHoi': 'Hapus akunmu secara permanen, beserta poin, rekor, dan pencapaian di server kami? Data yang tersimpan di perangkat ini tetap ada.',

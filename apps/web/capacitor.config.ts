@@ -24,12 +24,13 @@ const config: CapacitorConfig = {
   },
   plugins: {
     /*
-     * Chỉ Apple (Sign in with Apple, App Store luật 4.8). Google trong app phải
-     * đi đường native (cần OAuth client iOS/Android riêng ở Google Cloud) — chưa
-     * làm, nên tắt cho khỏi gói SDK Google/Facebook vào app. Xem lib/taikhoan.ts.
+     * Apple + GOOGLE NATIVE (từ bản app 1.5.0, 09.11.2026). Google trong WebView bị Google
+     * chặn, nên app dùng hộp thoại native: iOS = client OAuth iOS (URL scheme đảo ngược ở
+     * Info.plist), Android = client web + client Android (khoá ký Play) đã khai ở Google Cloud
+     * dự án `lat-the-nkien`. Facebook/Twitter tắt — khỏi gói SDK thừa. Xem lib/taikhoan.ts.
      */
     SocialLogin: {
-      providers: { apple: true, google: false, facebook: false, twitter: false }
+      providers: { apple: true, google: true, facebook: false, twitter: false }
     },
     // Màn chờ giữ tới khi main.ts gọi SplashScreen.hide() (game đã vẽ khung đầu).
     // Tự tắt sau 3 giây là CHỐT AN TOÀN: JS lỗi thì không kẹt mãi ở màn chờ.

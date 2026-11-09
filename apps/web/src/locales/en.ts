@@ -384,6 +384,7 @@ const en: TuDien = {
   'tk.thangTren': '{thang}/{van} wins',
   'tk.dangTai': 'Loading…',
   'tk.apple': 'Sign in with Apple',
+  'tk.google': 'Sign in with Google',
   'tk.loiApple': 'Apple could not confirm this sign-in. Please try again.',
   'tk.xoaTk': 'Delete Account',
   'tk.xoaHoi': 'Permanently delete your account, along with its points, records and achievements on our server? Data saved on this device will be kept.',
