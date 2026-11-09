@@ -34,12 +34,19 @@ function jwt() {
   const than = b64({ iss: issuer, iat: now, exp: now + 900, aud: 'appstoreconnect-v1' });
   return `${dau}.${than}.${sign('sha256', Buffer.from(`${dau}.${than}`), { key: khoa, dsaEncoding: 'ieee-p1363' }).toString('base64url')}`;
 }
-async function api(method, path, body) {
+async function api(method, path, body, lan = 0) {
   const r = await fetch(path.startsWith('http') ? path : `https://api.appstoreconnect.apple.com${path}`, {
     method, headers: { Authorization: `Bearer ${jwt()}`, 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
   const text = await r.text();
+  // Apple hay trả 500/503 THOÁNG QUA giữa lúc đẩy 300 ảnh (dính 09.11.2026 ở ảnh tiếng Nga) — thử lại,
+  // không thì cả lượt 25 phút chụp ảnh đổ sông.
+  if (r.status >= 500 && lan < 4) {
+    console.log(`  (Apple ${r.status} ở ${method} ${path} — thử lại sau ${5 * (lan + 1)}s)`);
+    await new Promise((ok) => setTimeout(ok, 5000 * (lan + 1)));
+    return api(method, path, body, lan + 1);
+  }
   if (!r.ok) throw new Error(`${method} ${path} → ${r.status}\n${text}`);
   return text ? JSON.parse(text) : null;
 }
