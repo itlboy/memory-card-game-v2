@@ -123,6 +123,8 @@ export interface PublicPlayer {
   id: string;
   name: string;
   avatar?: string;
+  /** Ảnh Google của người đã đăng nhập (11.11.2026) — chỉ địa chỉ qua `anhHopLe`. Không có = mặt thú. */
+  anh?: string;
   score: number;
   pairs: number;
   bestStreak: number;
@@ -483,6 +485,8 @@ export interface PublicRoom {
   code: string;
   chuPhong: string;
   avatar: string;
+  /** Ảnh Google của chủ phòng, nếu có. */
+  anh?: string;
   /** Số người đang ở trong phòng, và trần của phòng. */
   nguoi: number;
   toiDa: number;
@@ -540,3 +544,13 @@ export type ServerMsg =
   | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' }
   | { t: 'error'; code: string; message: string }
   | { t: 'pong' };
+
+/**
+ * ẢNH ĐẠI DIỆN GOOGLE (11.11.2026, mockup duyệt https://claude.ai/artifact/8RyNFCMoTUEE2w8SP5Xybj).
+ * Client gửi lên nên KHÔNG tin: chỉ nhận ảnh trên máy chủ ảnh của Google, https, không ký tự lạ —
+ * không ai chèn được ảnh/địa chỉ theo dõi của nơi khác vào phòng của người khác.
+ */
+export function anhHopLe(s: string | null | undefined): string | undefined {
+  if (!s || s.length > 512) return undefined;
+  return /^https:\/\/lh[3-6]\.googleusercontent\.com\/[A-Za-z0-9_\-/=.~%]+$/.test(s) ? s : undefined;
+}

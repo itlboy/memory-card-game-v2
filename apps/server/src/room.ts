@@ -1,7 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
   LEVEL_KEYS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
-  backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, doiThemeIds, seedFrom, themeMoi, xoayNguoiDau
+  anhHopLe, backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, doiThemeIds, seedFrom, themeMoi, xoayNguoiDau
 } from '@mm/engine';
 import type {
   ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
@@ -29,6 +29,8 @@ interface RoomPlayer {
   id: string;
   name: string;
   avatar?: string;
+  /** Ảnh Google (đã qua `anhHopLe`), hiện thay mặt thú — 11.11.2026. */
+  anh?: string;
   /**
    * Định danh BỀN của trình duyệt (client sinh, lưu localStorage).
    *
@@ -303,7 +305,7 @@ export class RoomDO extends DurableObject<Env> {
     // Nhịp 5 phút: phòng chờ không ai vào/ra vẫn phải khai lại định kỳ, không
     // thì bản ghi quá HAN_BAN_GHI_MS và phòng đang sống rơi khỏi danh sách.
     const nhip = Math.floor(Date.now() / 300_000);
-    return [r.code, chu.name, chu.avatar ?? '', r.players.length, r.config.level, nhip].join('|');
+    return [r.code, chu.name, chu.avatar ?? '', chu.anh ?? '', r.players.length, r.config.level, nhip].join('|');
   }
 
   /** Chữ ký lần khai gần nhất; `null` = chưa từng đồng bộ trong lần thức này. */
@@ -348,6 +350,7 @@ export class RoomDO extends DurableObject<Env> {
         code: r.code,
         chuPhong: chu.name,
         avatar: chu.avatar ?? AVATARS[0]!,
+        ...(chu.anh ? { anh: chu.anh } : {}),
         nguoi: r.players.length,
         toiDa: ROOM_LIMITS.maxPlayers,
         the: pairsForLevel(r.config.level) * 2,
@@ -427,6 +430,8 @@ export class RoomDO extends DurableObject<Env> {
     const goi = url.searchParams.get('pv') === '1';
     // Dạng mặt sau client hiểu được; thiếu = client cũ, chỉ biết sáu tên cũ.
     const bv = Number(url.searchParams.get('bv')) || 1;
+    // Ảnh Google của người đã đăng nhập — chỉ nhận máy chủ ảnh Google (client không đáng tin)
+    const anh = anhHopLe(url.searchParams.get('anh'));
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
     // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
@@ -460,6 +465,7 @@ export class RoomDO extends DurableObject<Env> {
         // đúng khi không ai từng rời đi: một người rời là số đó tụt xuống và
         // người vào sau đội trùng avatar của người đang ngồi đó.
         avatar: this.avatarConTrong(),
+        ...(anh ? { anh } : {}),
         token: crypto.randomUUID(),
         disconnectedAt: null,
         ready: false
@@ -472,6 +478,8 @@ export class RoomDO extends DurableObject<Env> {
       delete this.room.emptyAt;   // người giữ chỗ đã về, không còn hẹn xoá
       if (name) player.name = name;
       if (clientId) player.clientId = clientId;
+      // Vào lại: ảnh theo lần vào MỚI NHẤT (đăng xuất giữa chừng thì về mặt thú)
+      if (anh) player.anh = anh; else delete player.anh;
       this.nhipDongHoLuot();      // họ về rồi, đồng hồ chạy tiếp
     }
 
@@ -1404,12 +1412,12 @@ export class RoomDO extends DurableObject<Env> {
       congKhai: room.congKhai !== false,
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
-        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready };
+        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}) };
         return {
               id: p.id, name: p.name, avatar: p.avatar,
               score: 0, pairs: 0, bestStreak: 0, frozenTurns: 0,
               doubleNext: false, forfeited: false, connected: this.connected(p.id),
-              lives: null, ready: p.ready
+              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {})
             };
       })
     };
