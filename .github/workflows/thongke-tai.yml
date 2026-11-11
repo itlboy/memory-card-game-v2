@@ -1,0 +1,51 @@
+# THỐNG KÊ TẢI APP (chỉ đọc API) — tools/thong-ke-tai.mjs, ra daily/breakdown/status.json cho dashboard riêng.
+#
+# Repo CÔNG KHAI: log và artifact ai đăng nhập GitHub cũng đọc được. Vì vậy:
+#   - toàn bộ đầu ra (cả tóm tắt stderr) gói lại và MÃ HOÁ bằng age (khoá công khai dưới đây);
+#     khoá bí mật chỉ nằm ở máy chủ dự án (my-secrets/secrets/thongke-age.key, gitignore);
+#   - log chỉ in "xong"/"lỗi", không in số liệu.
+#
+#   gh workflow run thongke-tai.yml --ref main
+#   gh run download <id> -n thongke -D <thư mục> && age -d -i <khoá> thongke.tar.gz.age | tar xz
+name: Download stats (encrypted)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Lấy số và mã hoá
+        env:
+          KEY_B64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          AGE_PUB: age1l2lcl3yquw0dwujamepv0q427fk6fpwhuy96luu5ldr4cx5y7p7ssqy0a9
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y -qq age >/dev/null
+          T="$RUNNER_TEMP"; mkdir -p "$T/out"
+          printf '%s' "$KEY_B64" | base64 -d > "$T/k.p8"
+          printf '%s' "$SA_JSON" > "$T/sa.json"
+          export ASC_KEY_PATH="$T/k.p8" PLAY_SA_JSON="$T/sa.json"
+          rc=0; node tools/thong-ke-tai.mjs --out-dir "$T/out" > "$T/out/stdout.txt" 2> "$T/out/tomtat.txt" || rc=$?
+          rm -f "$T/k.p8" "$T/sa.json"
+          echo "$rc" > "$T/out/exit.txt"
+          tar czf - -C "$T/out" . | age -r "$AGE_PUB" -o thongke.tar.gz.age
+          rm -rf "$T/out"
+          echo "xong (mã thoát $rc) — số liệu đã mã hoá"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: thongke
+          path: thongke.tar.gz.age
+          retention-days: 1
