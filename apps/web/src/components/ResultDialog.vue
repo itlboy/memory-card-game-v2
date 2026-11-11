@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { tenNguoi } from '@/lib/ten';
-import { t, td } from '@/lib/i18n';
+import { t, td, bcp } from '@/lib/i18n';
 import { isDraw } from '@mm/engine';
 import type { Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
@@ -10,7 +10,10 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
-import { Settings2 } from 'lucide-vue-next';
+import { Settings2, Share } from 'lucide-vue-next';
+import LuuChiaSe from './LuuChiaSe.vue';
+import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
+import { SITE_URL } from '@/lib/native';
 
 const props = defineProps<{
   summary: Summary;
@@ -184,6 +187,41 @@ const title = computed(() => {
   if (props.summary.status !== 'won') return t('kq.chuaXong');
   return props.isRecord ? t('kq.kyLuc') : t('kq.hoanThanh');
 });
+
+/*
+ * NÚT LƯU / CHIA SẺ ẢNH KẾT QUẢ (11.11.2026, mockup duyệt https://claude.ai/artifact/MkD66nuGdEmYrYf9wmniWy).
+ * Mọi chế độ. Ảnh kể ĐÚNG ván: nhiều người → bảng xếp hạng ("X thắng!" — người thua lưu để phục
+ * thù cũng được); một mình → điểm, lượt, thời gian, chuỗi.
+ */
+const hienLcs = coChiaSeAnh();
+const moLcs = ref(false);
+const boEmoji = (s: string): string => s.replace(/\s*\p{Extended_Pictographic}[\u{FE0F}\u{200D}\p{Extended_Pictographic}]*\s*$/u, '').trim();
+const noiDungAnh = computed<NoiDungAnh>(() => {
+  const s = props.summary;
+  const ngay = new Date().toLocaleDateString(bcp());
+  const tieuDe = props.multiplayer
+    ? boEmoji(draw.value ? t('kq.hoa') : t('kq.thang', { ten: tenNguoi(s.ranking[0]) }))
+    : boEmoji(title.value);
+  const chung = { cau: t('kq.thachDau'), choiNgay: t('kq.choiNgay'), site: SITE_URL.replace(/^https?:\/\//, ''), tenApp: t('tb.thuongHieu') };
+  if (props.multiplayer) {
+    return {
+      ...chung, tieuDe, phu: props.multiplayerOnline ? `Online · ${ngay}` : ngay,
+      hang: s.ranking.map((p, i) => ({
+        hang: draw.value && i < 2 ? 1 : i + 1, ten: tenNguoi(p), diem: num(p.score),
+        nhat: draw.value ? i < 2 : i === 0,
+      })),
+    };
+  }
+  return {
+    ...chung, tieuDe, phu: `${reasonText.value} · ${ngay}`,
+    so: [
+      { nhan: t('chung.diem'), gt: num(s.score) },
+      { nhan: t('kq.soLuot'), gt: String(s.moves) },
+      { nhan: t('kq.thoiGian'), gt: clock(s.seconds) },
+      { nhan: t('kq.chuoiDai'), gt: String(s.bestStreak) },
+    ],
+  };
+});
 </script>
 
 <template>
@@ -220,20 +258,22 @@ const title = computed(() => {
       <ol v-if="multiplayer" class="ranking">
         <!-- `data-kq-for`: bong bóng emoji (EmojiBlast.vue) neo vào ĐÚNG dòng người gửi — bảng
              này phủ kín màn chơi nên chip trong ván không còn thấy được -->
-        <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="p.id" :class="{ muon: rematchState?.[p.id] === 'in' }">
+        <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="p.id" class="khay-nho khay-noi" :class="{ muon: rematchState?.[p.id] === 'in' }">
           <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
           <span>
             <span class="ten-kq">{{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}</span>
-            <!--
-              Ai muốn chơi tiếp, ai đã đi: nhãn nằm NGAY CẠNH TÊN, không phải ở
-              dòng thông báo dưới nút. Bảng xếp hạng vốn đã là chỗ mắt đang đọc
-              tên từng người, nên gắn vào đây là đọc một lần biết cả hai chuyện.
-            -->
-            <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.choiTiep') }}</i>
-            <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.daThoat') }}</i>
           </span>
           <b>{{ num(p.score) }}</b>
-          <small>{{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}</small>
+          <!--
+            Ai muốn chơi tiếp, ai đã đi: nhãn nằm trên DÒNG SỐ CẶP của chính người đó (11.11.2026).
+            Trước đặt cạnh tên → tên + nhãn + điểm chen một hàng, "Nguyễn Hoàng Anh" bị ngắt dòng
+            (chủ dự án hỏi "tại sao bị xuống dòng"). Dòng dưới còn trống nên nhãn vẫn liền tên.
+          -->
+          <small>
+            {{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
+            <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.choiTiep') }}</i>
+            <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.daThoat') }}</i>
+          </small>
         </li>
       </ol>
 
@@ -280,6 +320,10 @@ const title = computed(() => {
         cấp sau bên phải. "Về menu" xuống hàng dưới vì nó là lối RA, không phải
         lối tiếp; để chung một hàng thì ba nút ngang nhau, mắt không biết chọn gì.
       -->
+      <button v-if="hienLcs" class="nut-lcs btn thach th-vang th-nho" type="button" @click="moLcs = true">
+        <Share :size="18" aria-hidden="true" />{{ t('kq.luuChiaSe') }}
+      </button>
+
       <div class="row">
         <button
           v-if="!rematchBlocked" ref="primary" class="btn btn-primary" type="button"
@@ -346,6 +390,7 @@ const title = computed(() => {
            là đúng lúc người ta muốn nói chuyện nhất. -->
       <div class="chat-slot"><slot name="chat" /></div>
     </div>
+    <LuuChiaSe v-if="moLcs" :noi-dung="noiDungAnh" @close="moLcs = false" />
   </div>
 </template>
 
@@ -505,6 +550,10 @@ h2 { margin: 0 0 4px; }
    var(--text-sm) cho đọc được mà không phải nhíu mắt. Mỗi hàng có nền riêng để
    tách người này với người kia. */
 .ranking { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.nut-lcs {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 12px auto 0; padding: 8px 20px; min-height: 44px; width: auto; font-size: var(--text-md, 16px);
+}
 .ranking li {
   display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 10px;
   padding: 8px 12px; border-radius: var(--r-md);
@@ -512,7 +561,8 @@ h2 { margin: 0 0 4px; }
 }
 .ranking li > span {
   font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg);
-  min-width: 0; overflow-wrap: anywhere;
+  /* Một dòng, dài quá thì "…" — tên đầy đủ đã thấy ở phòng chờ */
+  min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ranking li b {
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl);
@@ -520,15 +570,26 @@ h2 { margin: 0 0 4px; }
 }
 .ranking li:first-child { background: color-mix(in srgb, var(--ok) 12%, var(--panel-soft)); }
 .ranking li:first-child b { color: var(--ok); }
-.ranking small { grid-column: 1 / -1; color: var(--muted); font-size: var(--text-sm); }
+.ranking small {
+  grid-column: 1 / -1; color: var(--muted); font-size: var(--text-sm);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px;
+}
+/* NỔI KHỐI (11.11.2026, "giữ ngôn ngữ nổi khối xuyên suốt"): dòng xếp hạng là khay nổi
+   (khay-nho khay-noi), người NHẤT là khay VÀNG. Màu vàng cố định — huy hiệu hạng nhất, không theo nền. */
+:root[data-skin='keo'] .ranking li { padding: 10px 14px; }
+:root[data-skin='keo'] .ranking li:first-child {
+  background: linear-gradient(#fff7d6, #ffe58a) !important; border-color: #e0a800 !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 3px 0 #e0a800 !important; color: #5a3500;
+}
+:root[data-skin='keo'] .ranking li:first-child b { color: #b45f00; }
+:root[data-skin='keo'] .ranking li:first-child small { color: #7a5410; }
 /* Nhãn "Chơi tiếp" / "Đã thoát": nhỏ và không in nghiêng (dùng <i> cho gọn thẻ,
    không phải để nghiêng), nằm cùng dòng với tên nhưng KHÔNG chiếm chỗ của điểm.
    white-space: nowrap để nó không bị ngắt giữa biểu tượng và chữ. */
 .ranking .tag {
   font-style: normal; white-space: nowrap;
   font-family: var(--font-body); font-weight: 700; font-size: var(--text-xs);
-  padding: 2px 8px; border-radius: var(--r-full); vertical-align: middle;
-  margin-left: 6px;
+  padding: 2px 8px; border-radius: var(--r-full);
 }
 /* Xanh --ok-solid chứ không phải --ok: chữ nhỏ 700 trên nền mờ, --ok chỉ đạt
    ~3,2:1 nên đọc mờ. Nền mờ cùng màu để nhãn là một chip, không phải chữ trôi. */
@@ -556,6 +617,14 @@ h2 { margin: 0 0 4px; }
 @keyframes muon { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, #46ad22 8%, transparent); } }
 .ranking li.muon .tag.in { font-size: 13px; padding: 3px 10px; background: #46ad22; color: #fff; }
 @media (prefers-reduced-motion: reduce) { .ranking li.muon { animation: none; } }
+/* Kẹo: khay nổi dùng box-shadow !important → quầng "muốn chơi lại" phải khai lại ở đây,
+   viền + đế XANH (chủ dự án duyệt mockup 11.11.2026). */
+:root[data-skin='keo'] .ranking li.muon {
+  outline: 0; border-color: #46ad22 !important;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 3px 0 #2f8a14, 0 0 0 6px rgba(70, 173, 34, .2) !important;
+  animation: none;
+}
+:root[data-skin='keo'] .ranking li.muon .tag.in { box-shadow: 0 2px 0 #2f8a14; }
 /*
  * BẢNG KẾT QUẢ ONLINE THOÁNG HƠN (09.11.2026): khối điểm · nhóm nút · thanh emoji cách nhau rõ.
  * Chỉ khi màn đủ cao — màn thấp (≤700px, iPhone SE/14) vẫn dùng bản gọn ở cuối file, không

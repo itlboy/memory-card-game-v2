@@ -259,6 +259,12 @@ const ru: TuDien = {
   'kq.chinhBan': 'Настроить стол',
   'kq.chiChuPhongChinh': 'Менять стол может только хозяин комнаты',
   'kq.thoatPhong': 'Выйти из комнаты',
+  'kq.luuChiaSe': "Сохранить / Поделиться",
+  'kq.luuAnh': "Сохранить картинку",
+  'kq.chiaSe': "Поделиться",
+  'kq.thachDau': "Кто рискнёт бросить мне вызов? 😎",
+  'kq.choiNgay': "Играй сразу, без установки",
+  'kq.chiaSeChu': "Сыграй со мной во Flip Match!",
   'kq.veMenu': 'В меню',
   'kq.doiBan': 'Другое поле',
 

@@ -249,6 +249,12 @@ const it: TuDien = {
   'kq.chinhBan': 'Modifica tavolo',
   'kq.chiChuPhongChinh': "Solo l'host può modificare il tavolo",
   'kq.thoatPhong': 'Esci dalla stanza',
+  'kq.luuChiaSe': "Salva / Condividi",
+  'kq.luuAnh': "Salva immagine",
+  'kq.chiaSe': "Condividi",
+  'kq.thachDau': "Chi osa sfidarmi? 😎",
+  'kq.choiNgay': "Gioca subito, senza installare",
+  'kq.chiaSeChu': "Gioca a Flip Match con me!",
   'kq.veMenu': 'Menu principale',
   'kq.doiBan': 'Cambia tabellone',
 

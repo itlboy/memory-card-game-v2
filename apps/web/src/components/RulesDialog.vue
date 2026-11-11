@@ -172,7 +172,7 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
            tính năng chơi. CHỈ HIỆN khi debug đang bật (để tắt) — bật thì chạm 7 lần
            vào dòng phiên bản phía trên (`chamPhienBan`). -->
       <button
-        v-if="props.debug" class="nut-do" type="button"
+        v-if="props.debug" data-phang class="nut-do" type="button"
         :aria-pressed="props.debug ? 'true' : 'false'"
         @click="emit('update:debug', !props.debug)"
       >{{ props.debug ? t('lc.debugBat') : t('lc.debugTat') }}</button>

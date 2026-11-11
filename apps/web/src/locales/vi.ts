@@ -252,6 +252,12 @@ const vi = {
   'kq.chinhBan': 'Chỉnh bàn',
   'kq.chiChuPhongChinh': 'Chỉ chủ phòng chỉnh được bàn',
   'kq.thoatPhong': 'Thoát phòng',
+  'kq.luuChiaSe': "Lưu / Chia sẻ",
+  'kq.luuAnh': "Lưu ảnh",
+  'kq.chiaSe': "Chia sẻ",
+  'kq.thachDau': "Ai dám thách đấu không? 😎",
+  'kq.choiNgay': "Chơi ngay, không cần cài",
+  'kq.chiaSeChu': "Chơi Lật Thẻ với mình nhé!",
   'kq.veMenu': 'Về menu',
   'kq.doiBan': 'Đổi bàn',
 

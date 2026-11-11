@@ -246,6 +246,12 @@ const th: TuDien = {
   'kq.chinhBan': 'ตั้งค่าโต๊ะ',
   'kq.chiChuPhongChinh': 'เฉพาะเจ้าของห้องที่ตั้งค่าโต๊ะได้',
   'kq.thoatPhong': 'ออกจากห้อง',
+  'kq.luuChiaSe': "บันทึก / แชร์",
+  'kq.luuAnh': "บันทึกรูป",
+  'kq.chiaSe': "แชร์",
+  'kq.thachDau': "ใครกล้ามาท้าบ้าง? 😎",
+  'kq.choiNgay': "เล่นได้เลย ไม่ต้องติดตั้ง",
+  'kq.chiaSeChu': "มาเล่น Flip Match กับฉันนะ!",
   'kq.veMenu': 'เมนูหลัก',
   'kq.doiBan': 'เปลี่ยนกระดาน',
 

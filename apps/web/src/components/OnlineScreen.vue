@@ -410,8 +410,15 @@ const tenPhong = computed(() => {
   return chu ? chu.name : t('on.phongCho');
 });
 
-const inviteLink = computed(() =>
-  `${SITE_URL}/?room=${o.room.value?.code ?? ''}`);
+/** Link mời mang TÊN người mời + ngôn ngữ: Worker dựng thẻ chia sẻ riêng ("Kiên mời bạn đấu
+ *  Lật Thẻ! · Phòng 482193") từ hai tham số này — apps/server/src/index.ts `theMoi`. */
+const inviteLink = computed(() => {
+  const q = new URLSearchParams({ room: o.room.value?.code ?? '' });
+  const toi = o.room.value?.players.find((p) => p.id === o.myId.value)?.name.trim();
+  if (toi) q.set('tu', toi.slice(0, 16));
+  q.set('l', ngonNgu.value);
+  return `${SITE_URL}/?${q.toString()}`;
+});
 
 /** Copy riêng mã 6 số — bạn bè đọc mã qua điện thoại thì cần đúng phần này. */
 async function copyCode(): Promise<void> {
@@ -907,7 +914,7 @@ function openCfgWizard(): void {
         </template>
       </div>
 
-      <button data-phang class="link-row" type="button" @click="entryStep = 'join'">
+      <button class="link-row thach th-nho" type="button" @click="entryStep = 'join'">
         <Hash :size="18" /> {{ t('on.nhapMa') }}
       </button>
     </template>
@@ -1012,7 +1019,7 @@ function openCfgWizard(): void {
     <div v-if="moChonCK" class="sophong">
       <div class="sp-seg" role="radiogroup" :aria-label="t('on.aiVao')">
         <button
-          class="sp-opt" :class="{ sel: o.room.value?.congKhai }" type="button"
+          class="sp-opt thach th-nho th-chon" :class="{ sel: o.room.value?.congKhai }" type="button"
           role="radio" :aria-checked="o.room.value?.congKhai ? 'true' : 'false'"
           @click="o.datCongKhai(true); moChonCK = false"
         >
@@ -1020,7 +1027,7 @@ function openCfgWizard(): void {
           <span>{{ t('on.congKhai') }}</span>
         </button>
         <button
-          class="sp-opt priv" :class="{ sel: !o.room.value?.congKhai }" type="button"
+          class="sp-opt priv thach th-nho th-chon" :class="{ sel: !o.room.value?.congKhai }" type="button"
           role="radio" :aria-checked="o.room.value?.congKhai ? 'false' : 'true'"
           @click="o.datCongKhai(false); moChonCK = false"
         >
@@ -1046,17 +1053,17 @@ function openCfgWizard(): void {
                ai biết là bấm ra ngoài sẽ lưu. Không có gì trên màn hình nói
                rằng đã xong hay chưa. -->
           <button
-            class="nut-luu" type="button" :aria-label="t('on.luuTen')"
+            class="nut-luu thach th-nho th-xanh" type="button" :aria-label="t('on.luuTen')"
             :disabled="!tenMoi.trim()" @click="luuTen()"
           ><Check :size="16" /></button>
           <button
-            class="nut-huy" type="button" :aria-label="t('on.huyDoiTen')" @click="huySuaTen()"
+            class="nut-huy thach th-nho" type="button" :aria-label="t('on.huyDoiTen')" @click="huySuaTen()"
           ><X :size="16" /></button>
         </template>
         <template v-else>
           <b>{{ p.name }}</b>
           <button
-            v-if="p.id === o.myId.value" class="nut-sua" type="button"
+            v-if="p.id === o.myId.value" class="nut-sua thach th-nho" type="button"
             :aria-label="t('on.doiTen')" :title="t('on.doiTen')"
             @click="moSuaTen(p.name)"
           ><Pencil :size="14" /></button>
@@ -1082,7 +1089,7 @@ function openCfgWizard(): void {
              "người trừ" cũ mờ quá, không ai hiểu là nút bỏ người). Vẫn nhỏ, và
              bấm vẫn hỏi xác nhận trước khi mời ra. -->
         <button
-          v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra" type="button"
+          v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra thach th-nho th-do" type="button"
           :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
           @click="hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="16" :stroke-width="2.6" /></button>

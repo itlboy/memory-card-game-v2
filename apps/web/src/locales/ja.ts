@@ -245,6 +245,12 @@ const ja: TuDien = {
   'kq.chinhBan': 'テーブル設定',
   'kq.chiChuPhongChinh': 'テーブルを変更できるのはホストだけです',
   'kq.thoatPhong': '部屋を出る',
+  'kq.luuChiaSe': "保存 / シェア",
+  'kq.luuAnh': "画像を保存",
+  'kq.chiaSe': "シェア",
+  'kq.thachDau': "挑戦する人はいる？😎",
+  'kq.choiNgay': "インストール不要ですぐ遊べる",
+  'kq.chiaSeChu': "一緒に Flip Match で遊ぼう！",
   'kq.veMenu': 'メインメニュー',
   'kq.doiBan': '盤面を変更',
 

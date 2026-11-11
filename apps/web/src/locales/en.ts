@@ -247,6 +247,12 @@ const en: TuDien = {
   'kq.chinhBan': 'Edit table',
   'kq.chiChuPhongChinh': 'Only the host can edit the table',
   'kq.thoatPhong': 'Leave room',
+  'kq.luuChiaSe': "Save / Share",
+  'kq.luuAnh': "Save image",
+  'kq.chiaSe': "Share",
+  'kq.thachDau': "Who dares to challenge me? 😎",
+  'kq.choiNgay': "Play now, no install needed",
+  'kq.chiaSeChu': "Come play Flip Match with me!",
   'kq.veMenu': 'Main Menu',
   'kq.doiBan': 'Change Board',
 

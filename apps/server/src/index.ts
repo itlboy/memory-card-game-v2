@@ -96,6 +96,51 @@ export default {
       return r;
     }
 
+    /*
+     * THẺ CHIA SẺ RIÊNG CHO LINK MỜI (11.11.2026, mockup https://claude.ai/artifact/MkD66nuGdEmYrYf9wmniWy):
+     * `/?room=482193&tu=Kiên&l=vi` → tiêu đề "Kiên mời bạn đấu Lật Thẻ!", mô tả có mã phòng, ảnh
+     * og-moi. Tên người mời nằm sẵn trong link (không tra phòng). Ảnh dùng CHUNG mọi phòng vì
+     * Zalo/Facebook cache ảnh rất lâu; phần riêng nằm ở chữ. Chỉ "/" đi qua Worker
+     * (`run_worker_first`), mọi đường khác vẫn là asset tĩnh.
+     */
+    if (url.pathname === '/') {
+      const r = await env.ASSETS.fetch(request);
+      const code = url.searchParams.get('room') ?? '';
+      if (!/^\d{6}$/.test(code) || !(r.headers.get('content-type') ?? '').includes('text/html')) return r;
+      return theMoi(r, code, url);
+    }
+
     return new Response('Not found', { status: 404, headers: CORS });
   }
 } satisfies ExportedHandler<Env>;
+
+/** Chữ thẻ mời: tiếng Việt khi người mời dùng tiếng Việt, còn lại tiếng Anh. */
+export function chuTheMoi(code: string, tuTho: string | null, l: string | null): { title: string; desc: string; anh: string } {
+  const tu = (tuTho ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16);
+  if (l === 'vi' || l === null) {
+    return {
+      title: tu ? `${tu} mời bạn đấu Lật Thẻ!` : 'Bạn được mời đấu Lật Thẻ!',
+      desc: `Phòng ${code} · Bấm để vào chơi ngay, không cần cài app`,
+      anh: 'og-moi.jpg',
+    };
+  }
+  return {
+    title: tu ? `${tu} challenges you to Flip Match!` : 'You are invited to Flip Match!',
+    desc: `Room ${code} · Tap to join and play right away, no install needed`,
+    anh: 'og-moi-en.jpg',
+  };
+}
+
+function theMoi(r: Response, code: string, url: URL): Response {
+  const c = chuTheMoi(code, url.searchParams.get('tu'), url.searchParams.get('l'));
+  const anh = `${url.origin}/${c.anh}?v=1`;
+  const dat = (v: string) => ({ element(e: Element) { e.setAttribute('content', v); } });
+  return new HTMLRewriter()
+    .on('title', { element(e) { e.setInnerContent(c.title); } })
+    .on('meta[property="og:title"], meta[name="twitter:title"]', dat(c.title))
+    .on('meta[property="og:description"], meta[name="twitter:description"], meta[name="description"]', dat(c.desc))
+    .on('meta[property="og:image"], meta[name="twitter:image"]', dat(anh))
+    .on('meta[property="og:url"]', dat(url.toString()))
+    .on('meta[property="og:image:alt"]', dat(c.title))
+    .transform(r);
+}

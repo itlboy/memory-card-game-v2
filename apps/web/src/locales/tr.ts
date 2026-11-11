@@ -248,6 +248,12 @@ const tr: TuDien = {
   'kq.chinhBan': 'Masayı ayarla',
   'kq.chiChuPhongChinh': 'Masayı yalnızca oda sahibi ayarlayabilir',
   'kq.thoatPhong': 'Odadan çık',
+  'kq.luuChiaSe': "Kaydet / Paylaş",
+  'kq.luuAnh': "Resmi kaydet",
+  'kq.chiaSe': "Paylaş",
+  'kq.thachDau': "Bana meydan okuyan var mı? 😎",
+  'kq.choiNgay': "Hemen oyna, kurulum yok",
+  'kq.chiaSeChu': "Benimle Flip Match oyna!",
   'kq.veMenu': 'Ana menü',
   'kq.doiBan': 'Tahtayı değiştir',
 
