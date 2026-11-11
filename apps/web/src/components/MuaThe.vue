@@ -301,7 +301,7 @@ defineExpose({
           <span id="mtSoCot" class="nhan">{{ t('mt.soCot') }}</span>
           <span class="ranh">
             <button
-              v-for="n in COT_CHON" :key="n" class="nut-cot" data-phang type="button"
+              v-for="n in COT_CHON" :key="n" class="nut-cot thach th-nho th-chon" type="button"
               :aria-pressed="soCot === n" :aria-label="t('mt.cot', { n })" @click="chonCot(n)"
             >
               <b>{{ n }}</b>

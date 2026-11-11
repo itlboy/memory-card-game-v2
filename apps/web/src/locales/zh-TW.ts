@@ -248,6 +248,12 @@ const zhTW: TuDien = {
   'kq.chinhBan': '調整牌桌',
   'kq.chiChuPhongChinh': '只有房主可以調整牌桌',
   'kq.thoatPhong': '退出房間',
+  'kq.luuChiaSe': "儲存 / 分享",
+  'kq.luuAnh': "儲存圖片",
+  'kq.chiaSe': "分享",
+  'kq.thachDau': "誰敢來挑戰我？😎",
+  'kq.choiNgay': "免安裝，馬上開玩",
+  'kq.chiaSeChu': "來和我一起玩 Flip Match 吧！",
   'kq.veMenu': '主選單',
   'kq.doiBan': '換牌桌',
 

@@ -245,6 +245,12 @@ const ko: TuDien = {
   'kq.chinhBan': '테이블 설정',
   'kq.chiChuPhongChinh': '방장만 테이블을 바꿀 수 있어요',
   'kq.thoatPhong': '방 나가기',
+  'kq.luuChiaSe': "저장 / 공유",
+  'kq.luuAnh': "이미지 저장",
+  'kq.chiaSe': "공유",
+  'kq.thachDau': "나한테 도전할 사람? 😎",
+  'kq.choiNgay': "설치 없이 바로 플레이",
+  'kq.chiaSeChu': "나랑 Flip Match 하자!",
   'kq.veMenu': '메인 메뉴',
   'kq.doiBan': '보드 바꾸기',
 

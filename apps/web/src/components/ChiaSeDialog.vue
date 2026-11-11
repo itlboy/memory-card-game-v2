@@ -54,7 +54,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
     <div class="hop">
       <header>
         <h2>{{ t('cs.tieuDe') }}</h2>
-        <button ref="nutDong" class="dong" type="button" :aria-label="t('cs.dong')" @click="emit('close')">
+        <button ref="nutDong" class="dong thach" type="button" :aria-label="t('cs.dong')" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>

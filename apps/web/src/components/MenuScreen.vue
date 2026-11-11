@@ -528,7 +528,7 @@ const ICO3D = {
             <span>{{ t('app.phu', { store: storeGoiY.ten }) }}</span>
           </div>
           <a class="gya-cai" :href="storeGoiY.url" target="_blank" rel="noopener" @click="suKien('goi_y_app_cai', { store: storeGoiY.ten })">{{ t('app.cai') }}</a>
-          <button class="gya-an" type="button" data-phang :aria-label="t('cai.an')" @click="suKien('goi_y_app_an'); tatGoiYApp()"><X :size="18" /></button>
+          <button class="gya-an thach th-nho" type="button" :aria-label="t('cai.an')" @click="suKien('goi_y_app_an'); tatGoiYApp()"><X :size="18" /></button>
         </div>
       </div>
 

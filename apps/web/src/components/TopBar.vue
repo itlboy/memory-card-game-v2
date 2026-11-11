@@ -227,8 +227,8 @@ watch(() => props.totalScore, (to, from) => {
         thay vì phải bấm xoay vòng để đoán. Bấm công tắc thì menu ở lại.
       -->
       <div v-if="open" class="menu" role="menu" @keydown.esc="dong">
-        <button data-phang
-          v-if="account" class="item tk" role="menuitem" type="button"
+        <button
+          v-if="account" class="item tk thach" role="menuitem" type="button"
           :aria-label="signedIn ? t('tb.tkCuaBan') : t('tb.dangNhap')"
           @click="dong(); $emit('account')"
         >
@@ -308,10 +308,10 @@ watch(() => props.totalScore, (to, from) => {
 
         <hr class="ke" />
         <!-- Cài lên màn hình chính (lib/cai-app.ts): chỉ điện thoại mở bằng trình duyệt, chưa cài -->
-        <button v-if="nenMoiCai" data-phang class="item" role="menuitem" type="button" @click="dong(); moCai()">
+        <button v-if="nenMoiCai" class="item thach" role="menuitem" type="button" @click="dong(); moCai()">
           <Smartphone :size="20" /><span>{{ t('cai.menu') }}</span>
         </button>
-        <button data-phang class="item" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
+        <button class="item thach" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
           <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>
         </button>
       </div>
@@ -527,6 +527,9 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .nut-debug::after { content: ''; position: absolute; inset: -10px -6px; }
 .item.tk { min-height: 52px; }
+/* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
+   trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
+.item.thach { border-radius: 14px; margin: 2px 0 6px; }
 .tk-chu { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .tk-chu small { font-weight: 600; font-size: 12px; color: var(--muted); }
 .nhom { margin: 6px 12px 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }

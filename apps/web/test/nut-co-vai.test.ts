@@ -15,11 +15,7 @@ import { describe, expect, it } from 'vitest';
  * nút mới. Xếp xong một nút thì xoá nó khỏi danh sách (test cũng đỏ nếu danh sách còn tên thừa).
  */
 const VAI = /\b(thach|btn|btn-primary|option|seg-btn|card|o-vuong|o-chien-dich)\b/;
-const CHUA_XEP: Record<string, string[]> = {
-  'ChiaSeDialog.vue': ['dong'],
-  'OnlineScreen.vue': ['sp-opt', 'nut-luu', 'nut-huy', 'nut-sua', 'nut-moi-ra'],
-  'RulesDialog.vue': ['nut-do'],
-};
+const CHUA_XEP: Record<string, string[]> = {};
 
 const DIR = resolve('src/components');
 const files = [...readdirSync(DIR).filter((f) => f.endsWith('.vue')).map((f) => [f, resolve(DIR, f)]), ['App.vue', resolve('src/App.vue')]];

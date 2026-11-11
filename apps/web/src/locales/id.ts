@@ -248,6 +248,12 @@ const id: TuDien = {
   'kq.chinhBan': 'Atur meja',
   'kq.chiChuPhongChinh': 'Hanya tuan rumah yang bisa mengatur meja',
   'kq.thoatPhong': 'Keluar room',
+  'kq.luuChiaSe': "Simpan / Bagikan",
+  'kq.luuAnh': "Simpan gambar",
+  'kq.chiaSe': "Bagikan",
+  'kq.thachDau': "Siapa berani tantang aku? 😎",
+  'kq.choiNgay': "Main sekarang, tanpa instal",
+  'kq.chiaSeChu': "Ayo main Flip Match bareng aku!",
   'kq.veMenu': 'Menu utama',
   'kq.doiBan': 'Ganti papan',
 

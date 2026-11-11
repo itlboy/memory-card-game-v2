@@ -362,7 +362,15 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
 }
 .countdown .first b {
   color: #fff;
-  text-shadow: 1.5px 0 0 #23600f, -1.5px 0 0 #23600f, 0 1.5px 0 #23600f, 0 -1.5px 0 #23600f;
+  /* Viền 8 HƯỚNG (11.11.2026, chủ dự án: chữ "đi trước" như bị răng cưa) — bản cũ chỉ 4 hướng
+     trên/dưới/trái/phải nên góc chéo của nét cong hở ra thành bậc thang. Thêm bóng đổ dưới cho
+     khối chữ nổi cùng kiểu nút thạch. */
+  --vs: 1.2px; --vm: #23600f;
+  text-shadow:
+    var(--vs) 0 var(--vm), calc(-1 * var(--vs)) 0 var(--vm), 0 var(--vs) var(--vm), 0 calc(-1 * var(--vs)) var(--vm),
+    var(--vs) var(--vs) var(--vm), calc(-1 * var(--vs)) var(--vs) var(--vm),
+    var(--vs) calc(-1 * var(--vs)) var(--vm), calc(-1 * var(--vs)) calc(-1 * var(--vs)) var(--vm),
+    0 2px 0 var(--vm);
 }
 @keyframes cd-phu { from { background-color: rgba(10, 14, 40, 0); } }
 

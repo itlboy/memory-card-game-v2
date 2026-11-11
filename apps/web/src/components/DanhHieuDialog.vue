@@ -93,7 +93,7 @@ function dongHoac(): void { if (chon.value) chon.value = null; else emit('close'
           <h3 class="muc">{{ t('dhd.sapDat') }}</h3>
           <ul class="gan">
             <li v-for="{ a, r } in sapDat" :key="a.id">
-              <button class="dong-gan" type="button" data-phang @click="chon = a">
+              <button class="dong-gan thach" type="button" @click="chon = a">
                 <HuyChuong :a="a" :co="false" :tien="r" />
                 <span class="gan-chu">
                   <b>{{ a.name }}</b>
@@ -106,9 +106,9 @@ function dongHoac(): void { if (chon.value) chon.value = null; else emit('close'
         </template>
 
         <div class="loc" role="tablist">
-          <button class="tab" role="tab" type="button" data-phang :aria-selected="loc === 'tat'" @click="loc = 'tat'">{{ t('dhd.tatCa') }}</button>
-          <button class="tab" role="tab" type="button" data-phang :aria-selected="loc === 'co'" @click="loc = 'co'">{{ t('dhd.daCo', { n: so }) }}</button>
-          <button class="tab" role="tab" type="button" data-phang :aria-selected="loc === 'chua'" @click="loc = 'chua'">{{ t('dhd.chuaCo', { n: dsHien.length - so }) }}</button>
+          <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loc === 'tat'" @click="loc = 'tat'">{{ t('dhd.tatCa') }}</button>
+          <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loc === 'co'" @click="loc = 'co'">{{ t('dhd.daCo', { n: so }) }}</button>
+          <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loc === 'chua'" @click="loc = 'chua'">{{ t('dhd.chuaCo', { n: dsHien.length - so }) }}</button>
         </div>
 
         <section v-for="n in nhom" :key="n.id">

@@ -248,6 +248,12 @@ const de: TuDien = {
   'kq.chinhBan': 'Tisch ändern',
   'kq.chiChuPhongChinh': 'Nur der Gastgeber kann den Tisch ändern',
   'kq.thoatPhong': 'Raum verlassen',
+  'kq.luuChiaSe': "Speichern / Teilen",
+  'kq.luuAnh': "Bild speichern",
+  'kq.chiaSe': "Teilen",
+  'kq.thachDau': "Wer traut sich gegen mich? 😎",
+  'kq.choiNgay': "Jetzt spielen, ohne Installation",
+  'kq.chiaSeChu': "Spiel Flip Match mit mir!",
   'kq.veMenu': 'Hauptmenü',
   'kq.doiBan': 'Feld wechseln',
 

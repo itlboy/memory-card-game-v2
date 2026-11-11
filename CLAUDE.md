@@ -339,6 +339,10 @@
   (robot `public/img/robot.svg`). KHÔNG icon nét mảnh (lucide) trên ô thạch; gặp chỗ còn sót thì đề xuất thay.
 - Icon trên ô phải KHÁC màu ô (bản đồ xanh trên ô xanh, tim hồng trên ô hồng đều bị chê) và đơn giản một khối.
 - Vẫn mockup bằng ảnh chụp trang thật trước khi làm.
+- **NỔI KHỐI XUYÊN SUỐT (11.11.2026, chủ dự án: "giữ ngôn ngữ giao diện nổi khối xuyên suốt")**: danh sách
+  nợ `CHUA_XEP` trong `test/nut-co-vai.test.ts` đã về 0 — ĐỪNG thêm lại. `data-phang` chỉ cho thứ không phải
+  nút chữ (chấm phân trang, nút vô hình, lá bài, công cụ debug). Dòng danh sách bấm được = `thach`; dòng
+  chứa thông tin = `khay-nho khay-noi`. Mockup mới phải tự soát chỗ phẳng trước khi đưa duyệt.
 
 ## SKIN — LỚP ÁO TÁCH KHỎI BỐ CỤC (13.10.2026)
 
@@ -609,6 +613,18 @@
     Gửi tiếp khi bong bóng còn → emoji BAY LÊN từ bong bóng (không đếm ×n — chủ dự án chọn).
   · Bảng kết quả online: dòng người đã bấm Chơi lại viền xanh nhấp (`li.muon`); khoảng cách rộng
     hơn chỉ khi màn ≥701px. KHÔNG ghi "X đang chờ bạn" dưới nút Chơi lại (chủ dự án bỏ).
+- **QUẢNG BÁ (11.11.2026, mockup duyệt: https://claude.ai/artifact/MkD66nuGdEmYrYf9wmniWy)**:
+  · LINK MỜI có tên người mời: `/?room=CODE&tu=<tên>&l=<ngôn ngữ>` (OnlineScreen `inviteLink`). Worker
+    (`apps/server/src/index.ts` `theMoi`, HTMLRewriter) thay title/og/twitter khi `/` có `?room=` hợp lệ —
+    vì vậy `"/"` nằm trong `run_worker_first`. Ảnh `og-moi.jpg`/`og-moi-en.jpg` (nguồn `tools/og/og-moi*.html`,
+    chụp `node tools/og/render.mjs`) DÙNG CHUNG mọi phòng — Zalo/FB cache ảnh lâu, phần riêng nằm ở chữ.
+  · NÚT LƯU / CHIA SẺ ẢNH KẾT QUẢ (`ResultDialog` `.nut-lcs` → `LuuChiaSe.vue`, vẽ ở `lib/anh-ket-qua.ts`,
+    canvas 1080×1350 trên máy). iPhone: "Lưu ảnh" mở bảng chia sẻ (có "Lưu hình ảnh" — tải file chỉ vào app
+    Tệp); Android/máy tính tải file. App: nút chỉ hiện khi WebView chia sẻ được FILE (`coChiaSeAnh`) — Android
+    app cần plugin native (bản 1.6, chưa làm).
+  · Bảng kết quả: dòng xếp hạng là khay nổi, người nhất khay vàng; nhãn "Chơi tiếp" nằm ở DÒNG SỐ CẶP, không
+    cạnh tên (tên dài từng bị ngắt dòng). Tên một dòng, dài thì "…".
+  · Chữ "X đi trước" lúc đếm ngược: viền chữ 8 hướng (4 hướng cũ → răng cưa ở nét cong).
 - **HẾT VÁN ONLINE (07.11.2026, mockup duyệt: https://claude.ai/artifact/6Yh26Beir4CtZj6ddSbRW9)**:
   Chơi lại · [Về phòng chờ | Chỉnh bàn] · Thoát phòng (đỏ, LUÔN hỏi lại). "Chỉnh bàn" (chỉ chủ
   phòng) mở wizard ba bước của phòng chờ dưới dạng LỚP PHỦ `.wiz-phu` — OnlineGame KHÔNG được gỡ

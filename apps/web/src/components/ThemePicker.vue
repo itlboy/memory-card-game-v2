@@ -97,7 +97,7 @@ function cham(x: CardTheme): void {
 
   <div class="tp-hang">
     <span class="tp-dem" aria-live="polite"><span class="so-hinh">{{ t('tp.daChon', { n: soDaChon, tong: tongChoiDuoc.length }) }}</span><span v-if="soHinh" class="so-hinh"> · {{ t('tp.soHinh', { n: soHinh.toLocaleString(bcp()) }) }}</span></span>
-    <button data-phang v-if="choiDuocTab.length" class="tp-het" type="button" @click="chonHet">
+    <button v-if="choiDuocTab.length" class="tp-het thach th-nho" type="button" @click="chonHet">
       {{ daChonHet ? t('tp.boChon') : t('tp.chonHet', { n: choiDuocTab.length }) }}
     </button>
   </div>

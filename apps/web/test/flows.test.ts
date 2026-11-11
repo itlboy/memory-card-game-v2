@@ -1303,7 +1303,7 @@ describe('bản đồ cấp hiện số thẻ', () => {
 describe('bố cục nút ở màn kết quả', () => {
   /** Ba nút ĐIỀU HƯỚNG, đúng thứ tự: chơi lại · cấp tiếp theo · về menu.
    *  Bỏ nút "Chinh phục" của dòng gợi ý danh hiệu — nó là lời mời, không phải lối đi. */
-  const labels = (): string[] => wrapper.findAll('[role="dialog"] button:not(.di)')
+  const labels = (): string[] => wrapper.findAll('[role="dialog"] button:not(.di):not(.nut-lcs)')
     .map((b) => b.text()).filter((t) => t.length > 0);
 
   it('thắng: hàng trên là "Chơi lại cấp này" rồi "Cấp tiếp theo", "Đổi bàn" ở dưới', async () => {
