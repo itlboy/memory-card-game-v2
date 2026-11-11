@@ -1,4 +1,6 @@
 import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
+import { anhHopLe } from '@mm/engine';
+import { me } from '@/lib/taikhoan';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
   ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
@@ -857,6 +859,9 @@ export function useOnlineRoom() {
     // phép cộng lịch sử ván đấu theo NGƯỜI. Không có nó thì `playerId` đổi mỗi
     // lần vào phòng, còn tên thì hai người trùng tên là một.
     params.set('cid', store.clientId());
+    // Ảnh Google của người đã đăng nhập (11.11.2026) — server chỉ nhận ảnh máy chủ Google
+    const anh = anhHopLe(me.value?.avatar);
+    if (anh) params.set('anh', anh);
     /*
      * KHAI LÀ HIỂU VIEW DẠNG GỌN. Server chỉ gửi dạng gọn cho ai khai — mặc
      * định vẫn là dạng đầy đủ.

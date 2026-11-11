@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SITE_URL } from '@/lib/native';
+import MatNguoi from './MatNguoi.vue';
 import {
   CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
@@ -879,7 +880,7 @@ function openCfgWizard(): void {
             :disabled="!!dangVaoPhong"
             @click="vaoPhongCongKhai(r.code)"
           >
-            <span class="av">{{ r.avatar }}</span>
+            <span class="av"><MatNguoi :mat="r.avatar" :anh="r.anh" /></span>
             <span class="body">
               <span class="rname">{{ r.chuPhong }}</span>
               <span class="meta">
@@ -1039,7 +1040,7 @@ function openCfgWizard(): void {
 
     <ul class="lobby-list">
       <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
-        <span class="avatar">{{ p.avatar }}</span>
+        <span class="avatar"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
         <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
              không ai đổi được tên người khác. -->
         <template v-if="p.id === o.myId.value && suaTen">

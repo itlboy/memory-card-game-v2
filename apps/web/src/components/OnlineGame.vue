@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
+import MatNguoi from './MatNguoi.vue';
 import { taiKhoan } from '@/lib/taikhoan';
 import { t } from '@/lib/i18n';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
@@ -280,6 +281,9 @@ watch(() => o.view.value?.summary, (s) => {
    */
   resultTimer = setTimeout(() => { showResult.value = true; }, HIEN_BANG_MS[chonCanh(loaiKetCuc.value)]);
 });
+
+/** Ảnh Google theo id người chơi — nằm ở danh sách PHÒNG (view ván không mang ảnh). */
+const anhCua = (id: string): string | undefined => o.room.value?.players.find((p) => p.id === id)?.anh;
 </script>
 
 <template>
@@ -302,7 +306,7 @@ watch(() => o.view.value?.summary, (s) => {
           class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited, 'co-loat': (o.seriesWins.value[p.name] ?? 0) > 0 }"
           :data-chip-for="p.id"
         >
-          <span class="avatar">{{ p.avatar }}</span>
+          <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
           <b>{{ p.name }}</b>
           <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
                kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
@@ -360,7 +364,7 @@ watch(() => o.view.value?.summary, (s) => {
            dạng — EmojiBlast tìm chip theo id để bay lên từ đúng chỗ người gửi. -->
       <div v-else-if="dangDi" class="strip gon">
         <div class="turn-chip" :data-chip-for="dangDi.id" :class="{ off: !dangDi.connected || dangDi.forfeited }">
-          <span class="avatar">{{ dangDi.avatar }}</span>
+          <span class="avatar"><MatNguoi :mat="dangDi.avatar" :anh="anhCua(dangDi.id)" /></span>
           <span class="tb">
             <b class="nm">{{ dangDi.name }}</b>
             <span class="sub">
@@ -387,7 +391,7 @@ watch(() => o.view.value?.summary, (s) => {
             :data-chip-for="p.id"
             :title="t('ps.diemCua', { ten: p.name, n: p.score })"
           >
-            <span class="avatar">{{ p.avatar }}</span>
+            <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
             <!-- Mất mạng / đã rời: một chấm đỏ thay cho chữ. Ở cỡ này không có
                  chỗ cho "📴 mất mạng", mà bỏ hẳn thì bên kia biến mất không lý do. -->
             <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? t('og.daRoiPhong') : t('og.matKetNoi')"></span>
@@ -413,7 +417,7 @@ watch(() => o.view.value?.summary, (s) => {
             :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
           >
             <span class="rank">{{ i + 1 }}</span>
-            <span class="avatar">{{ p.avatar }}</span>
+            <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
             <b class="nm">{{ p.name }}</b>
             <span v-if="p.forfeited" class="netbad">{{ t('og.daRoi') }}</span>
             <span v-else-if="!p.connected" class="netbad">📴 {{ t('og.offline') }}</span>

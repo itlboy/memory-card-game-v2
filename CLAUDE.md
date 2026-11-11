@@ -625,6 +625,13 @@
   · Bảng kết quả: dòng xếp hạng là khay nổi, người nhất khay vàng; nhãn "Chơi tiếp" nằm ở DÒNG SỐ CẶP, không
     cạnh tên (tên dài từng bị ngắt dòng). Tên một dòng, dài thì "…".
   · Chữ "X đi trước" lúc đếm ngược: viền chữ 8 hướng (4 hướng cũ → răng cưa ở nét cong).
+- **ẢNH GOOGLE THAY MẶT THÚ (11.11.2026, mockup duyệt: https://claude.ai/artifact/8RyNFCMoTUEE2w8SP5Xybj)**:
+  chủ dự án chốt ĐƠN GIẢN: đăng nhập Google → ảnh Google, còn lại (ẩn danh, Apple — Apple không cấp ảnh) giữ mặt
+  thú; KHÔNG công tắc ẩn ảnh (người lạ ở phòng công khai thấy ảnh — đã báo, chủ dự án vẫn chọn). Client gửi
+  `anh` khi vào phòng (useOnlineRoom), server lọc bằng `anhHopLe` (engine: chỉ https lh3–6.googleusercontent.com)
+  rồi để ở `RoomPlayer.anh` → `players[].anh` của roomInfo và `PublicRoom.anh`. View ván KHÔNG mang ảnh: OnlineGame
+  tra theo id ở danh sách phòng (`anhCua`). Hiện qua `MatNguoi.vue` (lỗi ảnh → mặt thú). Chỉ màn ONLINE; ván
+  trên máy (đấu máy/chung máy) chưa dùng ảnh.
 - **HẾT VÁN ONLINE (07.11.2026, mockup duyệt: https://claude.ai/artifact/6Yh26Beir4CtZj6ddSbRW9)**:
   Chơi lại · [Về phòng chờ | Chỉnh bàn] · Thoát phòng (đỏ, LUÔN hỏi lại). "Chỉnh bàn" (chỉ chủ
   phòng) mở wizard ba bước của phòng chờ dưới dạng LỚP PHỦ `.wiz-phu` — OnlineGame KHÔNG được gỡ
