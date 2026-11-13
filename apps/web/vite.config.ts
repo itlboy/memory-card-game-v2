@@ -74,7 +74,7 @@ export default defineConfig({
         // Trang công khai (about/support/privacy/changes) + tài nguyên của chúng ở /site/:
         // service worker KHÔNG được trả index.html của game thay cho chúng.
         // /<mã>/<trang>.html là bản dựng sẵn từng ngôn ngữ (tools/dung-trang-cong-khai.mjs).
-        navigateFallbackDenylist: [/^\/ws\//, /^\/api\//, /^\/ota\//, /^\/site\//, /^\/(privacy|support|about|changes)(\.html)?$/,
+        navigateFallbackDenylist: [/^\/app\/?$/, /^\/ws\//, /^\/api\//, /^\/ota\//, /^\/site\//, /^\/(privacy|support|about|changes)(\.html)?$/,
           /^\/[a-z]{2}(-[A-Z]{2})?\/(privacy|support|about|changes)(\.html)?$/, /^\/(sitemap\.xml|robots\.txt)$/, /^\/\.well-known\//],
         // Font đóng gói sẵn (styles/fonts.ts, file .woff2 cùng gốc) nên đã nằm trong
         // globPatterns ở trên — không còn cache font Google ở runtime.
