@@ -1,0 +1,58 @@
+# PHÁT HÀNH WEB + PHÒNG ONLINE LÊN CLOUDFLARE (13.11.2026, chủ dự án: "cho CI release").
+#
+# Mỗi lần `main` đổi: test → `pnpm release` (build web + gói OTA → `wrangler deploy` một Worker chứa cả
+# web lẫn RoomDO → soát thẻ chia sẻ → báo IndexNow). Trước đây là chạy tay, nên hay quên hoặc build từ
+# thư mục bẩn (mã gói OTA mang đuôi giờ, lệch bản app). Nay web, gói OTA và bản app (`mobile.yml`) cùng
+# dựng từ MỘT commit → cùng mã gói, app mới cài không tải lại gói y hệt.
+#
+# `tools/chan-deploy.mjs` vẫn đứng trước `wrangler deploy`: HEAD phải nằm trên origin/main, cây sạch.
+# Token: secret CLOUDFLARE_API_TOKEN (chỉ Workers Scripts: Edit + Account: Read) + CLOUDFLARE_ACCOUNT_ID.
+# Chạy tay khi cần: `gh workflow run cloudflare.yml --ref main`.
+name: Phát hành Cloudflare (web + online)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'apps/server/**'
+      - 'packages/**'
+      - 'tools/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/cloudflare.yml'
+  workflow_dispatch:
+
+# Hai lần đẩy liền nhau: XẾP HÀNG, không huỷ — huỷ giữa `wrangler deploy` là nửa vời
+concurrency:
+  group: cloudflare-release
+  cancel-in-progress: false
+
+jobs:
+  phat-hanh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6          # phiên bản pnpm lấy từ packageManager (xem docker.yml)
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Phát hành (build + wrangler deploy)
+        run: pnpm release
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Soát gói OTA đang phục vụ đúng bản vừa dựng
+        run: |
+          muon=$(node --input-type=module -e "import { maGoiOta } from './tools/ma-goi-ota.mjs'; console.log(maGoiOta())")
+          for i in 1 2 3 4 5 6; do
+            id=$(curl -sf "https://flipmatch.cozypi.com/ota/manifest.json?t=$(date +%s)" | node -pe 'JSON.parse(require("fs").readFileSync(0)).id' || true)
+            [ "$id" = "$muon" ] && { echo "✓ Đang phục vụ gói $id"; exit 0; }
+            sleep 10
+          done
+          echo "::error::manifest là '$id', mong '$muon'"; exit 1

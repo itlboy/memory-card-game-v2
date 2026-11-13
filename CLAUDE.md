@@ -1044,6 +1044,10 @@
 - **CHỈ `main` ĐƯỢC LÊN WORKER CHÍNH** (25.10.2026): `tools/chan-deploy.mjs` đứng trước `wrangler deploy`. Cloudflare
   Workers Builds có trigger deploy MỌI nhánh trừ main — từng đè bản chính bằng develop, OTA lệch bản app. Trigger
   đó vẫn còn (token my-secrets thiếu quyền Workers Builds) nên build develop trên CF sẽ ĐỎ — đó là chủ đích.
+- **DEPLOY DO CI (13.11.2026)**: `.github/workflows/cloudflare.yml` tự chạy test → `pnpm release` mỗi lần
+  `main` đổi (web/server/packages/tools), rồi soát `/ota/manifest.json` đúng `maGoiOta()` của commit. Token ở
+  secret `CLOUDFLARE_API_TOKEN` (chỉ Workers Scripts: Edit + Account Settings: Read) + `CLOUDFLARE_ACCOUNT_ID`.
+  Giao hàng = merge `develop` → `main` là xong, KHÔNG chạy `pnpm release` tay nữa (trừ khẩn cấp).
 - **Deploy: `pnpm release`** — web và phòng online nằm trong MỘT Worker
   (`apps/server/wrangler.jsonc` có khối `assets`), nên chỉ một lệnh, không còn
   chuyện web mới chạy với server cũ. `pnpm deploy:server` chỉ deploy worker mà
