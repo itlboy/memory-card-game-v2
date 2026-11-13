@@ -177,6 +177,9 @@ function cham(x: CardTheme): void {
   font-size: var(--text-sm); font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0;
 }
 .tp-het::after { content: ''; position: absolute; inset: -12px -8px; }
+/* Kẹo: nút là phím thạch nhỏ (1.5.5) → cần bo góc + đệm, không thì góc VUÔNG, chữ dính viền
+   (chủ dự án báo 13.11.2026). Skin khác vẫn là link chữ. */
+:root[data-skin='keo'] .tp-het { padding: 4px 12px; border-radius: 12px; }
 .prem-loi {
   display: flex; align-items: center; gap: 6px; margin: 0 0 10px; flex-shrink: 0;
   color: var(--muted); font-size: var(--text-sm);
