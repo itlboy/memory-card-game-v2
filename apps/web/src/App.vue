@@ -4,10 +4,10 @@ import { boEmojiVeMacDinh } from '@/lib/emoji';
 import { skinVeMacDinh } from '@/lib/skin';
 import { datPingSo } from '@/lib/ping-so';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
-import { batPhanTich, suKien } from '@/lib/phan-tich';
+import { batPhanTich, doiCaiDat, moChucNang, suKien } from '@/lib/phan-tich';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
-import { computed, defineAsyncComponent, onMounted, ref, watch, watchEffect } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import KetCucFx from './components/KetCucFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameScreen from './components/GameScreen.vue';
@@ -223,6 +223,21 @@ watch(taiKhoanMe, (m) => {
 
 /* ---------- danh hiệu ---------- */
 const showDanhHieu = ref(false);
+
+/* ---------- PHÂN TÍCH: chức năng nào được vào, cài đặt nào được đổi (13.11.2026) ----------
+ * Theo dõi BIẾN TRẠNG THÁI chứ không gắn vào từng nút: mở bằng lối nào (nút, Back, chinh phục,
+ * F5) cũng đếm, và thêm lối mới không phải nhớ gắn sự kiện. Tên cố định — xem `moChucNang`. */
+watch(screen, (sc) => {
+  if (sc === 'online') moChucNang('choi_online');
+  else if (sc === 'mua-the') moChucNang('mua_the');
+});
+for (const [r, ten] of [
+  [showRules, 'luat_choi'], [showAccount, 'tai_khoan'], [showDanhHieu, 'danh_hieu'], [hienCai, 'cai_app']
+] as const) watch(r, (v) => { if (v) moChucNang(ten); });
+watch(nen, (v) => doiCaiDat('nen', v));
+watch(soundLevel, (v) => doiCaiDat('am_thanh', v));
+watch([nhacBat, baiNhac], ([b, bai]) => doiCaiDat('nhac', b ? bai : 'off'));
+watch(rungBat, (v) => doiCaiDat('rung', v));
 useBackCloser(30, () => showDanhHieu.value, () => { showDanhHieu.value = false; });
 const daCoSet = computed(() => new Set(daCo.value));
 /** Số liệu tích luỹ — đọc lại mỗi khi tiến độ đổi (progressRev). */
@@ -274,6 +289,7 @@ const canhVan = () => chonCanh(session.loaiKetCuc.value, { kyLuc: isRecord.value
  * vào ván luôn. Tuỳ chọn còn lại về 0 (bàn trơn) để điều kiện là tối thiểu.
  */
 function chinhPhuc(a: Achievement): void {
+  moChucNang('chinh_phuc', { danh_hieu: a.id });
   showAccount.value = false;
   showDanhHieu.value = false;
   // Đang ở bảng kết quả: đóng nó trước, không thì nó nằm đè lên ván mới
@@ -646,7 +662,11 @@ function startLevel(id: number): void {
       ? presetConfig({ mode: 'campaign', level: id, symbols: symbols.value, seed: newSeed(), players: playerList() })
       : configFromOptions({ options: options.value, level: id, symbols: symbols.value, seed: newSeed(), players: playerList() });
     xoayLuotDau(cfg);
-    suKien('van_bat_dau', { che_do: kieuVan(), so_the: (cfg.pairs ?? 0) * 2, man: mode.value === 'campaign' ? id : undefined });
+    suKien('van_bat_dau', {
+      che_do: kieuVan(), so_the: (cfg.pairs ?? 0) * 2, man: mode.value === 'campaign' ? id : undefined,
+      so_nguoi: playerCount.value, theme: themeIds.value.join(',').slice(0, 100),
+      tuy_chon: mode.value === 'campaign' ? undefined : tomTatTuyChon()
+    });
     levelId.value = id;
     // Màn Chiến dịch (1..60) và khoá cỡ bàn (1..50) là hai thang khác nhau —
     // ghi màn vào `level` là bước chọn số thẻ đọc ra cỡ bàn sai hoặc ném lỗi.
@@ -681,6 +701,31 @@ function kieuVan(): string {
   if (botLevel.value) return `dau_may_${botLevel.value}`;
   return playerCount.value > 1 ? 'nhieu_nguoi' : 'choi_nhanh';
 }
+
+/** Tuỳ chọn ván đang bật, gọn cho GA: `peek2,time1` — bàn trơn là `tron`. */
+function tomTatTuyChon(): string {
+  const bat = Object.entries(options.value).filter(([, v]) => Number(v) > 0).map(([k, v]) => `${k}${v}`);
+  return bat.length ? bat.join(',').slice(0, 100) : 'tron';
+}
+
+/** Ván offline BỎ NGANG (thoát / chơi lại / đóng trang khi chưa xong) — biết người chơi nản ở đâu. */
+function boVanDo(cach: string): void {
+  const g = session.game.value;
+  if (screen.value === 'mua-the') { if (cach !== 'choi_lai') suKien('mua_the_bo_do', { cach }); return; }
+  if (!g || g.finished || screen.value !== 'game') return;
+  suKien('van_bo_do', {
+    che_do: kieuVan(), cach, so_the: g.cards.length,
+    man: g.config.mode === 'campaign' ? (levelId.value ?? undefined) : undefined,
+    tien_do: Math.round((session.matchedCount.value / Math.max(1, session.totalPairs.value)) * 100),
+    giay: Math.round(session.elapsed.value)
+  });
+}
+const khiRoiTrang = (): void => { boVanDo('dong_trang'); };
+onMounted(() => window.addEventListener('pagehide', khiRoiTrang));
+onUnmounted(() => window.removeEventListener('pagehide', khiRoiTrang));
+
+/** Nút người chơi bấm ở bảng kết quả. */
+const chonKetQua = (h: string): void => { suKien('ket_qua_chon', { hanh_dong: h, che_do: kieuVan() }); };
 
 function nextLevel(): void {
   if (levelId.value && levelId.value < tranCap()) startLevel(levelId.value + 1);
@@ -993,7 +1038,7 @@ const hasNext = computed(() => {
     :title="t('choiLai.tieuDe')"
     :body="t('choiLai.than')"
     :confirm-label="t('choiLai.nut')"
-    @confirm="confirmChoiLai = false; replay()"
+    @confirm="boVanDo('choi_lai'); confirmChoiLai = false; replay()"
     @cancel="confirmChoiLai = false"
   />
 
@@ -1002,7 +1047,7 @@ const hasNext = computed(() => {
     :title="t('thoat.tieuDe')"
     :body="t('thoat.than')"
     :confirm-label="t('thoat.nut')"
-    @confirm="confirmQuit = false; if (thoatVeBuoc) veBuocTruoc(); else { menuKey++; backToMenu(); }"
+    @confirm="boVanDo('thoat'); confirmQuit = false; if (thoatVeBuoc) veBuocTruoc(); else { menuKey++; backToMenu(); }"
     @cancel="confirmQuit = false"
   />
 
@@ -1036,10 +1081,10 @@ const hasNext = computed(() => {
     :series-wins="seriesWins"
     :has-next="hasNext"
     :level-id="levelId ?? level"
-    @replay="replay"
-    @next="nextLevel"
-    @menu="backToMenu"
-    @doi-ban="doiBan"
+    @replay="chonKetQua('choi_lai'); replay()"
+    @next="chonKetQua('man_tiep'); nextLevel()"
+    @menu="chonKetQua('ve_menu'); backToMenu()"
+    @doi-ban="chonKetQua('doi_ban'); doiBan()"
   />
 </template>
 

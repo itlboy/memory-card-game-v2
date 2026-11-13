@@ -42,6 +42,7 @@ import type { OptLevel, OptionKey, RoomConfig } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
+import { moChucNang, suKien } from '@/lib/phan-tich';
 import { store } from '@/lib/storage';
 import { sfx } from '@/lib/audio';
 import { anhEmoji } from '@/lib/emoji';
@@ -128,6 +129,15 @@ function backEntry(): void {
  */
 /** Phòng đang bấm vào — để chính DÒNG ĐÓ báo là đang vào. */
 const dangVaoPhong = ref('');
+/* PHÂN TÍCH (13.11.2026): ván online bắt đầu / kết thúc, cùng tên sự kiện với ván offline
+ * (`che_do: online`) để so được trong một bảng. Khán giả không tính. */
+watch(() => o.phase.value, (p, truoc) => {
+  if (o.spectator.value) return;
+  const soNguoi = o.room.value?.players?.length;
+  if (p === 'playing' && truoc !== 'playing') suKien('van_bat_dau', { che_do: 'online', so_nguoi: soNguoi });
+  if (p === 'ended' && truoc === 'playing') suKien('van_ket_thuc', { che_do: 'online', so_nguoi: soNguoi });
+});
+
 watch(() => o.phase.value, (p) => {
   // Vào xong (lobby/playing) hay hỏng (error/idle) thì thôi quay
   if (p !== 'connecting') dangVaoPhong.value = '';
@@ -139,6 +149,7 @@ function vaoPhongCongKhai(code: string): void {
   codeInput.value = code;
   if (!name.value.trim()) { entryStep.value = 'join'; return; }
   dangVaoPhong.value = code;
+  moChucNang('online_vao_phong_ds');
   remember();
   o.join(code, name.value.trim());
 }
@@ -170,6 +181,7 @@ function remember(): void { store.savePlayerNames([name.value.trim()]); }
 function create(): void {
   if (!name.value.trim()) return;
   sfx.select();
+  moChucNang('online_tao_phong');
   wizard.value = 'level';   // đi qua các bước chọn bàn như chơi một mình
 }
 
@@ -188,6 +200,7 @@ function create(): void {
 /* Hai khối bung ra từ dải mỏng. Mở cái này thì đóng cái kia — hai khối cùng
    bung là dải trên cùng cao bằng khối cũ, mất sạch chỗ vừa tiết kiệm được. */
 const moMoi = ref(false);
+watch(moMoi, (v) => { if (v) moChucNang('online_moi_ban'); });   // hộp mời bạn (QR + mã)
 const moChonCK = ref(false);
 
 const suaTen = ref(false);
@@ -245,6 +258,7 @@ const codeValid = computed(() => /^\d{6}$/.test(codeInput.value.trim()));
 function join(): void {
   if (!name.value.trim() || !codeValid.value) return;
   sfx.select();   // bấm là kêu NGAY, đừng đợi server — vòng đi-về có thể tới vài giây
+  moChucNang(invited.value ? 'online_vao_link_moi' : 'online_vao_ma');
   remember();
   o.join(codeInput.value, name.value.trim());
 }
@@ -426,6 +440,7 @@ async function copyCode(): Promise<void> {
   const code = o.room.value?.code ?? '';
   try {
     await navigator.clipboard.writeText(code);
+    moChucNang('online_chep_ma');
     copiedCode.value = true;
     sfx.select();
     setTimeout(() => { copiedCode.value = false; }, 1600);
@@ -446,6 +461,7 @@ const inviteText = computed(() =>
 async function copyLink(): Promise<void> {
   try {
     await navigator.clipboard.writeText(inviteText.value);
+    moChucNang('online_chep_loi_moi');
     copied.value = true;
     sfx.select();
     setTimeout(() => { copied.value = false; }, 1600);

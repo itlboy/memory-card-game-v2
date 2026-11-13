@@ -331,6 +331,13 @@
 - KHÔNG gửi dữ liệu cá nhân (tên, email, mã tài khoản). Thêm sự kiện mới = sửa luôn mục
   Google Analytics trong trang quyền riêng tư nếu nó đo thứ chưa kể ở đó.
 - Không còn được viết "không theo dõi / no tracking" ở bất cứ đâu (trang, store, studio).
+- **SỰ KIỆN ĐỂ TỐI ƯU GAME (13.11.2026, chủ dự án: biết chức năng/menu/loại game nào ÍT được vào)**:
+  `mo_chuc_nang` {chuc_nang} — MỌI màn/hộp thoại/lối vào qua MỘT tên, báo cáo xếp nhiều → ít (App.vue
+  theo dõi BIẾN trạng thái: screen, showRules…; MenuScreen: chế độ; OnlineScreen: tạo/vào phòng, mời,
+  chép mã; emoji/nói nhanh chỉ lần đầu mỗi phiên) · `buoc_menu` {buoc, nhanh} — phễu wizard · `van_bat_dau`
+  /`van_ket_thuc` (thêm `so_nguoi`, `theme`, `tuy_chon`; online `che_do: online`) · `van_bo_do` {cach,
+  tien_do %, giay} · `ket_qua_chon` {hanh_dong} · `doi_cai_dat` {muc, gia_tri}. Tên chức năng CỐ ĐỊNH —
+  đổi là đứt số liệu cũ. Tham số mới phải đăng ký custom dimension trong GA mới lọc được.
 
 ## PHONG CÁCH CHỐT: 3D NỔI KHỐI (chủ dự án 18.10.2026: "chúng ta sẽ làm theo phong cách này")
 

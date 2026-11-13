@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { moChucNang } from '@/lib/phan-tich';
 import { tenNguoi } from '@/lib/ten';
 import { t, td, bcp } from '@/lib/i18n';
 import { isDraw } from '@mm/engine';
@@ -320,7 +321,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         cấp sau bên phải. "Về menu" xuống hàng dưới vì nó là lối RA, không phải
         lối tiếp; để chung một hàng thì ba nút ngang nhau, mắt không biết chọn gì.
       -->
-      <button v-if="hienLcs" class="nut-lcs btn thach th-vang th-nho" type="button" @click="moLcs = true">
+      <button v-if="hienLcs" class="nut-lcs btn thach th-vang th-nho" type="button" @click="moLcs = true; moChucNang('luu_chia_se_anh')">
         <Share :size="18" aria-hidden="true" />{{ t('kq.luuChiaSe') }}
       </button>
 
