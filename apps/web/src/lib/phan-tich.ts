@@ -63,3 +63,20 @@ export function suKien(ten: string, thamSo: Record<string, string | number | boo
   if (!gtag) return;
   try { gtag('event', ten, { nen_tang: nenApp, ...thamSo }); } catch { /* không bao giờ làm hỏng game */ }
 }
+
+/**
+ * MỞ MỘT CHỨC NĂNG (13.11.2026, chủ dự án: biết chức năng / menu / loại game nào được vào, cái nào ÍT
+ * được vào, để tối ưu game). MỌI màn, hộp thoại, lối vào đều đi qua MỘT tên sự kiện `mo_chuc_nang` với
+ * tham số `chuc_nang` — báo cáo GA xếp hạng nhiều → ít trong một bảng. Tên chức năng snake_case, cố định
+ * (đổi tên là đứt chuỗi số liệu cũ). `motLan` = chỉ đếm lần đầu trong phiên (thứ bấm liên tục như emoji).
+ */
+const daDem = new Set<string>();
+export function moChucNang(ten: string, thamSo: Record<string, string | number | boolean | undefined> = {}, motLan = false): void {
+  if (motLan) { if (daDem.has(ten)) return; daDem.add(ten); }
+  suKien('mo_chuc_nang', { chuc_nang: ten, ...thamSo });
+}
+
+/** Đổi một cài đặt (nền, âm thanh, nhạc, rung): `muc` = cài đặt nào, `gia_tri` = giá trị mới. */
+export function doiCaiDat(muc: string, giaTri: string | boolean): void {
+  suKien('doi_cai_dat', { muc, gia_tri: String(giaTri) });
+}

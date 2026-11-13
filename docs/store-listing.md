@@ -1130,7 +1130,7 @@ Khớp với `apps/web/public/privacy.html`:
 | Gameplay content (điểm, kỷ lục, danh hiệu) | đăng nhập | Có | App functionality |
 | Other user content (tên hiển thị online) | chơi online | Không | App functionality |
 | Device ID (mã ngẫu nhiên do app tạo) | chơi online + Google Analytics | Không | Analytics |
-| Product interaction (màn đã xem, ván bắt đầu/kết thúc, chế độ) | luôn (Google Analytics) | Không | Analytics |
+| Product interaction (màn đã xem, chức năng đã mở, ván bắt đầu/kết thúc/bỏ ngang, chế độ, cài đặt đã đổi) | luôn (Google Analytics) | Không | Analytics |
 | Coarse location (vùng, suy từ IP bởi Google Analytics) | luôn | Không | Analytics |
 | Other diagnostic data (phiên bản app, loại máy) | luôn (Google Analytics) | Không | Analytics |
 

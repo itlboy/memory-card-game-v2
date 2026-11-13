@@ -8,6 +8,7 @@ import type {
 import { computed, onScopeDispose, ref, shallowRef, nextTick, watch } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
+import { moChucNang } from '@/lib/phan-tich';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
@@ -1629,6 +1630,7 @@ export function useOnlineRoom() {
     emojiSentAt.push(Date.now());
     send({ t: 'emoji', emoji });
     refreshEmojiQuota();
+    moChucNang('online_emoji', {}, true);   // chỉ đếm lần đầu mỗi phiên — bấm liên tục là nhiễu
     // Kêu NGAY lúc bấm (tiếng bấm mặc định tự im); server dội về thì không kêu lại
     sfx.select();
   }
@@ -1640,6 +1642,7 @@ export function useOnlineRoom() {
     emojiSentAt.push(Date.now());
     send({ t: 'say', id });
     refreshEmojiQuota();
+    moChucNang('online_noi_nhanh', {}, true);
     // Kêu NGAY lúc bấm (tiếng bấm mặc định tự im); server dội về thì không kêu lại
     sfx.select();
   }

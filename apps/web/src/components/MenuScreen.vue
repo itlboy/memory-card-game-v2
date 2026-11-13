@@ -20,7 +20,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
 import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
 import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
-import { suKien } from '@/lib/phan-tich';
+import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
@@ -146,6 +146,15 @@ const stepIndex = computed(() => path.value.indexOf(step.value));
  * đóng băng animation ở giữa nhịp rời.
  */
 const buocHien = ref<Step>(step.value);
+/** PHÂN TÍCH (13.11.2026): mỗi bước menu được vào một lần là một sự kiện — xếp theo bước là ra PHỄU,
+ *  thấy người chơi bỏ đi ở bước nào. `nhanh` = đang đi đường nào (chiến dịch · đấu máy · chơi nhanh). */
+watch(step, (b) => {
+  suKien('buoc_menu', {
+    buoc: b,
+    nhanh: props.mode === 'campaign' ? 'chien_dich' : props.botLevel ? 'dau_may' : 'choi_nhanh',
+    so_nguoi: props.playerCount
+  });
+}, { immediate: true, flush: 'post' });   // post: đợi mode/botLevel vừa emit về tới props
 const hienIndex = computed(() => path.value.indexOf(buocHien.value));
 let dangRoi = false;
 /**
@@ -218,6 +227,7 @@ const BOT_CHOICES = [
 
 function pickBotMode(): void {
   sfx.select();
+  moChucNang('dau_may');
   emit('update:playerCount', 1);
   emit('update:botLevel', props.botLevel ?? 'normal');
   // Thoát Chiến dịch NGAY TẠI ĐÂY, không đợi tới lúc chọn mức: còn để mode
@@ -238,6 +248,7 @@ function pickBotLevel(l: BotLevel): void {
 /** Chiến dịch: một mình, không bot, và KHÔNG qua bảng tuỳ chọn. */
 function pickCampaign(): void {
   sfx.select();
+  moChucNang('chien_dich');
   emit('update:mode', 'campaign');
   emit('update:playerCount', 1);
   emit('update:botLevel', null);
@@ -246,6 +257,7 @@ function pickCampaign(): void {
 
 function pickPlayers(): void {
   sfx.select();
+  moChucNang('choi_nhanh');
   emit('update:botLevel', null);
   // Chơi nhanh luôn dùng khoá lưu 'classic' — kỷ lục và tiến độ giữ nguyên chỗ
   // cũ, còn luật ván thì do bảng tuỳ chọn quyết định.
@@ -271,6 +283,7 @@ function pickCount(n: number): void {
 /** Lối tắt: chơi tiếp chiến dịch ở màn đang mở, khỏi đi qua bản đồ. */
 function tiepChienDich(): void {
   sfx.select();
+  moChucNang('chien_dich_choi_tiep');
   emit('update:mode', 'campaign');
   emit('update:playerCount', 1);
   emit('update:botLevel', null);
