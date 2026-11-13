@@ -20,6 +20,11 @@ export const GA_ID = 'G-MZ4MDWZRH3';   // tài khoản GA "Cozy Pi" → thuộc 
 
 type Gtag = (...a: unknown[]) => void;
 let gtag: Gtag | null = null;
+/** Sự kiện gửi TRƯỚC khi `batPhanTich` chạy (nó ở onMounted của App — sau setup của con: `buoc_menu`
+ *  immediate của MenuScreen tới trước) — giữ lại, gửi bù khi bật. Đo trên web thật 13.11.2026: thiếu cái
+ *  này là MẤT bước đầu của phễu menu mỗi lần mở trang. Có trần, vì test/dev không bao giờ bật GA. */
+const choGui: [string, Record<string, unknown>][] = [];
+const CHO_TOI_DA = 20;
 
 const chauAu = (): boolean => {
   try { return /^(Europe|Atlantic\/(Reykjavik|Canary|Madeira|Faroe|Azores))/.test(Intl.DateTimeFormat().resolvedOptions().timeZone); }
@@ -52,6 +57,7 @@ export function batPhanTich(): void {
     } : {})
   });
   gtag('set', 'user_properties', { nen_tang: nenApp, ban_web: __OTA_ID__ });
+  for (const [ten, thamSo] of choGui.splice(0)) gtag('event', ten, thamSo);
   const s = document.createElement('script');
   s.async = true;
   s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
@@ -60,7 +66,7 @@ export function batPhanTich(): void {
 
 /** Một sự kiện. Tên snake_case ≤ 40 ký tự, tham số là số/chuỗi ngắn — KHÔNG dữ liệu cá nhân. */
 export function suKien(ten: string, thamSo: Record<string, string | number | boolean | undefined> = {}): void {
-  if (!gtag) return;
+  if (!gtag) { if (choGui.length < CHO_TOI_DA) choGui.push([ten, { nen_tang: nenApp, ...thamSo }]); return; }
   try { gtag('event', ten, { nen_tang: nenApp, ...thamSo }); } catch { /* không bao giờ làm hỏng game */ }
 }
 
