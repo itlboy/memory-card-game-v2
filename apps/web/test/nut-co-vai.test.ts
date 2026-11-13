@@ -43,3 +43,15 @@ describe('nút có vai', () => {
     expect(thua, 'CHUA_XEP còn tên không ai dùng — xoá đi').toEqual([]);
   });
 });
+
+/**
+ * NÚT THẠCH PHẢI BO GÓC (13.11.2026). 1.5.5 đổi "Chọn hết" và "Nhập mã phòng" từ link chữ sang
+ * thạch; `.thach` vẽ viền nhưng không đặt góc, component cũng không → hai nút VUÔNG lên store.
+ * Nay keo-thach.css có góc mặc định cho `.thach`; test này giữ cho dòng đó không bị xoá mất.
+ */
+describe('nút thạch bo góc', () => {
+  it('keo-thach.css có bo góc mặc định cho .thach, độ đặc 0', () => {
+    const css = readFileSync(resolve('src/styles/skins/keo-thach.css'), 'utf8');
+    expect(css).toMatch(/:where\(:root\[data-skin='keo'\] \.thach\)\s*\{\s*border-radius:\s*[1-9]/);
+  });
+});

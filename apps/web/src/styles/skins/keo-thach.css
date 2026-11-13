@@ -60,6 +60,10 @@
    cũng bị viền). Ô định danh `.neon` viền riêng <strong>/<small> ở mục 5. */
 :root[data-skin='keo'] :is(.thach:is(.th-xanh, .th-vang, .th-do, .th-hong, .th-troi, .th-tim, .th-ngoc, .th-chanh, .th-cam),
   .btn-primary, .btn.danger, .th-chon-do:is([aria-selected='true'], [aria-checked='true'], [aria-pressed='true'])) { text-shadow: var(--th-chu); }
+/* BO GÓC MẶC ĐỊNH của thạch (13.11.2026): `.thach` trước không đặt góc → nút nào component quên
+   đặt là VUÔNG (1.5.5: "Chọn hết", "Nhập mã phòng"). Bọc CẢ selector trong :where = độ đặc 0,
+   góc riêng của component (50%, 999px…) luôn thắng. test/nut-co-vai.test.ts canh thêm. */
+:where(:root[data-skin='keo'] .thach) { border-radius: 14px; }
 /* bo góc của các lớp dùng chung (component đặt góc riêng nhỏ hơn) */
 :root[data-skin='keo'] :where(.btn) { border-radius: 16px !important; }
 /* Nút trắng (.btn) cùng font Kẹo với nút màu — trước rơi về font chữ thường, "Thoát về menu" lệch hẳn "Chơi tiếp" (chủ dự án báo 18.10.2026) */

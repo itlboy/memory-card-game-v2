@@ -1335,6 +1335,9 @@ function openCfgWizard(): void {
   border: 0; border-top: 1px solid var(--line); background: none;
   color: var(--accent); font: inherit; font-size: var(--text-sm); font-weight: 700;
 }
+/* Kẹo: "Nhập mã phòng" là phím thạch (1.5.5) — bỏ kiểu link (kẻ trên + đệm trên lệch) và bo góc,
+   không thì góc VUÔNG, chữ lệch xuống (chủ dự án báo 13.11.2026). */
+:root[data-skin='keo'] .link-row { padding: 0 14px; border-radius: 14px; }
 
 /* ---------- CÔNG KHAI / RIÊNG TƯ ---------- */
 
