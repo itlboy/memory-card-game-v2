@@ -4,7 +4,7 @@
 # sẵn thì dựng lại bản dự phòng ở Hà Nội chỉ bằng một lệnh `docker run`, không
 # phải build trên máy chủ.
 #
-# KHÔNG chạm tới bản Cloudflare: deploy CF vẫn là `pnpm release` chạy tay.
+# KHÔNG chạm tới bản Cloudflare: deploy CF do `cloudflare.yml` (tự chạy khi `main` đổi).
 name: Ảnh Docker (server dự phòng)
 
 on:
