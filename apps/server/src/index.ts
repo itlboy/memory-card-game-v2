@@ -110,9 +110,32 @@ export default {
       return theMoi(r, code, url);
     }
 
+    /*
+     * LINK CÀI APP MỘT-CHO-TẤT-CẢ (13.11.2026): `/app` — mã QR ở video quảng bá trỏ vào đây.
+     * iPhone/iPad → App Store, Android → Google Play, còn lại (máy tính) → trang chơi web.
+     * 302 + no-store: đổi đích sau này không bị trình duyệt/CDN giữ bản cũ.
+     */
+    if (url.pathname === '/app' || url.pathname === '/app/') {
+      return Response.redirect(new URL(noiCaiApp(request.headers.get('user-agent')), url).toString(), 302);
+    }
+
     return new Response('Not found', { status: 404, headers: CORS });
   }
 } satisfies ExportedHandler<Env>;
+
+/** Link store — cùng giá trị với `STORE` ở `apps/web/public/site/site.js`. */
+export const LINK_STORE = {
+  ios: 'https://apps.apple.com/app/id6822105774',
+  android: 'https://play.google.com/store/apps/details?id=com.cozypi.flipmatch',
+} as const;
+
+/** Đích của `/app` theo User-Agent. iPadOS 13+ tự xưng "Macintosh" — nhận ra bằng "Mobile/". */
+export function noiCaiApp(ua: string | null): string {
+  const u = ua ?? '';
+  if (/android/i.test(u)) return LINK_STORE.android;
+  if (/iphone|ipad|ipod/i.test(u) || (/macintosh/i.test(u) && /mobile\//i.test(u))) return LINK_STORE.ios;
+  return '/';
+}
 
 /** Chữ thẻ mời: tiếng Việt khi người mời dùng tiếng Việt, còn lại tiếng Anh. */
 export function chuTheMoi(code: string, tuTho: string | null, l: string | null): { title: string; desc: string; anh: string } {
