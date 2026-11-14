@@ -903,11 +903,13 @@
   web), `pnpm smoke:online` và các script `tools/smoke-*.mjs` là E2E thật
   qua wrangler dev (cần server đang chạy); đặt `MM_SERVER=<url>` để soi chính
   worker đã deploy.
-- **Server dự phòng (Node)**: `pnpm node:dev` chạy ở cổng 8080, `pnpm
-  docker:build` đóng ảnh. GitHub Action `.github/workflows/docker.yml` chạy test
-  + bộ smoke THẲNG vào server Node rồi mới đẩy ảnh lên GHCR (amd64 + arm64, vì
-  VPS ở Việt Nam hay là ARM). Deploy Cloudflare vẫn là `pnpm release` chạy tay —
-  Action không đụng tới.
+- **Server game CHÍNH là Node trên k8s** (`flipmatch-api.cozypi.com`, từ 29.08.2026 — Cloudflare
+  DO chỉ còn DỰ PHÒNG ở `thebai2`; đừng gọi Node là "dự phòng", tên cũ đó đã làm nhầm 14.11.2026).
+  `pnpm node:dev` chạy ở cổng 8080, `pnpm docker:build` đóng ảnh. `.github/workflows/docker.yml`
+  chạy test + bộ smoke THẲNG vào server Node rồi mới đẩy ảnh lên GHCR (amd64 + arm64) → Keel tự
+  thay pod: job đó ĐỎ = server chính KHÔNG cập nhật. Đổi server (room.ts, engine) thì kiểm smoke
+  trên CẢ HAI: wrangler và `node dist/server.mjs` (MySQL: thêm cột vào `VA_COT` ở `kho-mysql.ts`).
+  Deploy Cloudflare (web + DO dự phòng) do `cloudflare.yml` tự chạy khi `main` đổi.
 - **SCHEMA PHÒNG LÀ BỐN BẢNG CHUẨN HOÁ** (`rooms` · `room_players` ·
   `room_themes` · `matches`). Ba luật dễ hiểu sai:
   (1) `rooms.id` là ĐỊNH DANH, `code` chỉ là một giá trị — phòng không bị xoá

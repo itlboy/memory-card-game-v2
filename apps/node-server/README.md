@@ -1,7 +1,9 @@
-# Server dự phòng (Node)
+# Server game CHÍNH (Node, k8s)
 
-Cùng luật chơi với bản Cloudflare, khác chỗ đặt. Dùng khi mạng tới POP của
-Cloudflare lag — đã gặp thật từ Việt Nam, cả phòng lỗi mà không sửa được gì.
+Bản CHÍNH từ 29.08.2026: chạy trên cụm k8s cá nhân (`deploy/k8s/thebai.yaml`), tên
+`flipmatch-api.cozypi.com`, MySQL giữ phòng qua khởi động lại. Cùng luật chơi với bản
+Cloudflare (`apps/server`, nay chỉ là DỰ PHÒNG ở `thebai2.hello314.com`). Ban đầu bản
+Node sinh ra làm dự phòng khi Cloudflare lag từ Việt Nam, rồi đổi chỗ.
 
 ```bash
 pnpm node:dev        # build web + server rồi chạy ở cổng 8080

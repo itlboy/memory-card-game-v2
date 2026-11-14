@@ -1,4 +1,4 @@
-# Server dự phòng của Lật Thẻ: web tĩnh + phòng online trong MỘT tiến trình Node.
+# Server game CHÍNH của Lật Thẻ (k8s, flipmatch-api.cozypi.com): web tĩnh + phòng online trong MỘT tiến trình Node.
 #
 # Vì sao gộp web vào đây: bản Cloudflare cũng gộp (một Worker phục vụ cả hai), nên
 # gộp ở đây thì hai bên hành xử giống nhau — không có chuyện web mới chạy với
