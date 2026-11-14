@@ -1,11 +1,12 @@
-# Đóng ảnh Docker cho SERVER DỰ PHÒNG (apps/node-server) rồi đẩy lên GHCR.
+# Đóng ảnh Docker cho SERVER GAME CHÍNH (apps/node-server) rồi đẩy lên GHCR.
 #
-# Vì sao có việc này: Cloudflare có hôm lag từ Việt Nam và cả phòng lỗi. Có ảnh
-# sẵn thì dựng lại bản dự phòng ở Hà Nội chỉ bằng một lệnh `docker run`, không
-# phải build trên máy chủ.
+# Từ 29.08.2026 server Node là bản CHÍNH: cụm k8s cá nhân `kien-server-main`, namespace `thebai`,
+# tên `flipmatch-api.cozypi.com` (`SERVER_URL`). Keel hỏi GHCR mỗi 2 phút rồi TỰ THAY POD — nên
+# job này đỏ là server chính KHÔNG được cập nhật. Cloudflare Durable Object chỉ còn là dự phòng
+# (`thebai2.hello314.com`). Lịch sử: ban đầu ngược lại (Node là dự phòng khi Cloudflare lag từ VN).
 #
 # KHÔNG chạm tới bản Cloudflare: deploy CF do `cloudflare.yml` (tự chạy khi `main` đổi).
-name: Ảnh Docker (server dự phòng)
+name: Ảnh Docker (server game chính k8s)
 
 on:
   push:
@@ -64,7 +65,7 @@ jobs:
       - run: pnpm build
 
       # Bộ smoke chạy THẲNG vào server Node vừa gói — đây là thứ duy nhất chứng
-      # minh bản dự phòng nói cùng giao thức với bản Cloudflare.
+      # minh server chính (Node) nói cùng giao thức với bản Cloudflare dự phòng.
       - name: Smoke E2E trên server Node
         run: |
           pnpm --filter @mm/node-server build

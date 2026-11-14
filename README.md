@@ -712,7 +712,8 @@ Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.
 
 **14.11.2026 — 1.5.11 · 1.5.12 · 1.6.0: máy chơi cùng**
 - **1.6.0**: phòng online cho máy vào chơi cùng — chủ phòng "＋ Thêm máy" ở phòng chờ, đổi mức,
-  bỏ máy; máy chạy trên server (Cloudflare DO + server Node, MySQL thêm cột `room_players.may`).
+  bỏ máy; máy chạy trên server (server Node CHÍNH trên k8s — MySQL thêm cột `room_players.may` —
+  và Cloudflare DO dự phòng).
   Smoke `tools/smoke-may-online.mjs`.
 - **1.5.12**: ván nhiều người chung máy cho máy vào (công tắc Người/Máy, bảng 5 mức `ChonMucMay.vue`).
 - **1.5.11**: xem kết ván online rồi ra app khác quay lại không còn diễn lại cảnh kết ván (và không
