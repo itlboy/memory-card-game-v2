@@ -126,6 +126,7 @@ const zhTW: TuDien = {
   'menu.nguoiN': '玩家 {n}',
   'menu.laNguoi': '玩家', 'menu.laMay': '機器人',
   'menu.chamDoiMuc': '點按更換難度', 'menu.mucMayN': '{n} 號機器人的難度',
+  'on.themMay': '新增機器人', 'on.chonMucMay': '選擇機器人難度',
   'menu.tenNguoiAria': '玩家 {n} 的名稱',
   'menu.tiepTuc': '繼續',
   'menu.nhieuTheme': '可以複選，牌桌會混合所選主題的圖案。',

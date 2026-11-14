@@ -1,4 +1,4 @@
-import { BOT_SPECS } from '@mm/engine';
+import { BOT_SPECS, laBotId } from '@mm/engine';
 import type { BotLevel } from '@mm/engine';
 import { t, td } from './i18n';
 
@@ -16,7 +16,8 @@ export const tenBot = (muc: BotLevel): string => td(`bot.${muc}`);
 
 export function tenNguoi(p: { id: string; name: string; avatar?: string } | null | undefined): string {
   if (!p) return '';
-  if (p.id === 'bot' && p.avatar && MUC_THEO_MAT[p.avatar]) return tenBot(MUC_THEO_MAT[p.avatar]!);
+  // Máy (bot, bot2, bot3 — offline lẫn online): tên theo MỨC, nhận ra mức qua mặt
+  if (laBotId(p.id) && p.avatar && MUC_THEO_MAT[p.avatar]) return tenBot(MUC_THEO_MAT[p.avatar]!);
   // Ván đấu máy: App đặt người chơi là "Bạn" (id p1) — chữ của app, không phải tên tự gõ
   if (p.id === 'p1' && p.name === 'Bạn') return t('chung.ban'); // i18n-bo-qua
   return p.name;

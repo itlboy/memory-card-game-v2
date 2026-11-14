@@ -123,6 +123,7 @@ const ja: TuDien = {
   'menu.nguoiN': 'プレイヤー{n}',
   'menu.laNguoi': '人', 'menu.laMay': 'ボット',
   'menu.chamDoiMuc': 'タップでレベル変更', 'menu.mucMayN': '{n}番のボットのレベル',
+  'on.themMay': 'ボットを追加', 'on.chonMucMay': 'ボットのレベルを選ぶ',
   'menu.tenNguoiAria': 'プレイヤー{n}の名前',
   'menu.tiepTuc': '続ける',
   'menu.nhieuTheme': '複数選ぶと、すべてのテーマの絵柄が混ざります。',

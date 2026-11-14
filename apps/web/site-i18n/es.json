@@ -129,5 +129,8 @@
  "game.desc": "Juego de memoria gratis: voltea cartas y encuentra parejas en el navegador o la app. Solo, contra la máquina u online con amigos. Sin anuncios, para niños.",
  "r9.h": "Juega con bots y amigos",
  "r9.d": "14 de noviembre de 2026",
- "r9.l": "<li>En partidas de varios jugadores en un dispositivo, convierte cualquier puesto en bot y elige su nivel.</li>\n          <li>Hasta 4 jugadores en total, bots incluidos.</li>\n          <li>En línea: al volver a la app tras una partida ya no se repite el final, y el panel de emojis es más pequeño.</li>"
+ "r9.l": "<li>En partidas de varios jugadores en un dispositivo, convierte cualquier puesto en bot y elige su nivel.</li>\n          <li>Hasta 4 jugadores en total, bots incluidos.</li>\n          <li>En línea: al volver a la app tras una partida ya no se repite el final, y el panel de emojis es más pequeño.</li>",
+ "r10.h": "Bots en las salas en línea",
+ "r10.d": "14 de noviembre de 2026",
+ "r10.l": "<li>El anfitrión toca «Añadir bot» en la sala de espera, elige el nivel de cada bot o lo quita.</li>\n          <li>Los bots ocupan puestos como jugadores: hasta 4 en total.</li>\n          <li>¿No hay amigos conectados? Abre una sala y juega contra bots.</li>"
 }

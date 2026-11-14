@@ -1,5 +1,6 @@
 import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
 import { anhHopLe } from '@mm/engine';
+import type { BotLevel } from '@mm/engine';
 import { me } from '@/lib/taikhoan';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
@@ -1666,6 +1667,10 @@ export function useOnlineRoom() {
     setConfig: (config: Partial<RoomConfig>) => send({ t: 'config', config }),
     /** Chủ phòng mời một người ra khỏi phòng. */
     moiRa: (playerId: string) => { sfx.miss(); send({ t: 'kick', playerId }); },
+    /** Máy chơi cùng (1.6.0) — chỉ chủ phòng, ở phòng chờ; server kiểm lại cả hai điều đó. */
+    themMay: (level: BotLevel = 'normal') => send({ t: 'bot', op: 'add', level }),
+    doiMucMay: (id: string, level: BotLevel) => send({ t: 'bot', op: 'set', id, level }),
+    boMay: (id: string) => send({ t: 'bot', op: 'remove', id }),
     /** Đổi tên mình — nhớ luôn cho lần chơi sau. */
     doiTen: (ten: string) => {
       const t = ten.trim().slice(0, 16);

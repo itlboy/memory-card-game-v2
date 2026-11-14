@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw } from '@mm/engine';
+import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw, laBotId } from '@mm/engine';
 import MatNguoi from './MatNguoi.vue';
 import { taiKhoan } from '@/lib/taikhoan';
 import { t } from '@/lib/i18n';
@@ -14,6 +14,7 @@ import { num, numGon } from '@/lib/format';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
 import KetCucFx from './KetCucFx.vue';
+import { tenNguoi } from '@/lib/ten';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
@@ -296,6 +297,15 @@ watch(() => o.view.value?.summary, (s) => {
   ghiDaXem(k);
   fxTat.value = false;
   showResult.value = false;
+  /*
+   * PHÒNG CÓ MÁY (1.6.0): KHÔNG lên sổ tài khoản, không xét danh hiệu online — thêm Gà mờ vào
+   * phòng rồi thắng là cách cày "thắng online" không tốn công. Cùng lý do Đấu máy mức Dễ không
+   * cộng điểm. Cảnh kết ván vẫn diễn bình thường.
+   */
+  if (s.ranking.some((r) => laBotId(r.id))) {
+    resultTimer = setTimeout(() => { showResult.value = true; }, HIEN_BANG_MS[chonCanh(loaiKetCuc.value)]);
+    return;
+  }
   // Lên sổ tài khoản (nếu đăng nhập): điểm CỦA TÔI và kết cục dưới góc nhìn của tôi.
   // Danh hiệu online xét với những gì view cho biết (không có số lần lật sai)
   const cfg = o.room.value?.config;
@@ -345,7 +355,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
           :data-chip-for="p.id"
         >
           <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
-          <b>{{ p.name }}</b>
+          <b>{{ tenNguoi(p) }}</b>
           <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
                kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
           <span v-if="p.forfeited" class="netbad" :title="t('og.daRoiPhong')">{{ t('og.daRoi') }}</span>
@@ -404,7 +414,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
         <div class="turn-chip" :data-chip-for="dangDi.id" :class="{ off: !dangDi.connected || dangDi.forfeited }">
           <span class="avatar"><MatNguoi :mat="dangDi.avatar" :anh="anhCua(dangDi.id)" /></span>
           <span class="tb">
-            <b class="nm">{{ dangDi.name }}</b>
+            <b class="nm">{{ tenNguoi(dangDi) }}</b>
             <span class="sub">
               <template v-if="o.turnTimeLeft.value !== null">
                 <Timer :size="11" /><span :class="{ urgent: o.turnTimeLeft.value <= 10 }">{{ Math.ceil(o.turnTimeLeft.value) }}s</span> ·
@@ -456,7 +466,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
           >
             <span class="rank">{{ i + 1 }}</span>
             <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
-            <b class="nm">{{ p.name }}</b>
+            <b class="nm">{{ tenNguoi(p) }}</b>
             <span v-if="p.forfeited" class="netbad">{{ t('og.daRoi') }}</span>
             <span v-else-if="!p.connected" class="netbad">📴 {{ t('og.offline') }}</span>
             <small v-if="p.lives !== null" class="lives">
@@ -481,7 +491,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
          thì người còn lại ngồi nhìn bàn chết mà tưởng game hỏng — đúng thứ đã bị
          phản ánh. -->
     <p v-else-if="doiThuMatMang" class="reconnect" role="status">
-      ⏳ <b>{{ doiThuMatMang.name }}</b> {{ t('og.doiThuMatKetNoi', { n: choBaoLau }) }}
+      ⏳ <b>{{ tenNguoi(doiThuMatMang) }}</b> {{ t('og.doiThuMatKetNoi', { n: choBaoLau }) }}
     </p>
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
@@ -520,7 +530,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
             <OptionIcon name="freeze" :size="15" /> {{ t('game.dongBang', { ten: o.turnBanner.value.frozen }) }}
           </small>
           <span class="who">
-            <span class="avatar">{{ o.turnBanner.value.avatar || '🎮' }}</span>
+            <span class="avatar"><MatNguoi :mat="o.turnBanner.value.avatar || '🎮'" /></span>
             {{ t('game.denLuot') }} <b>{{ o.turnBanner.value.name }}</b>
           </span>
         </div>

@@ -24,6 +24,7 @@ import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
 import { computed, ref, watch } from 'vue';
 import MatBot from './MatBot.vue';
+import ChonMucMay from './ChonMucMay.vue';
 import Sao3D from './Sao3D.vue';
 import { dangLuiBack, useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
@@ -314,14 +315,12 @@ function datMay(i: number, l: BotLevel | null): void {
 }
 /** Chỗ đang mở bảng chọn mức (null = đóng). */
 const chonMucCho = ref<number | null>(null);
-useBackCloser(12, () => chonMucCho.value !== null, () => { chonMucCho.value = null; });
 function chuyenLoai(i: number, may: boolean): void {
   sfx.select();
   datMay(i, may ? (mayO(i) ?? 'normal') : null);
 }
 function chonMuc(l: BotLevel): void {
   if (chonMucCho.value === null) return;
-  sfx.select();
   datMay(chonMucCho.value, l);
   chonMucCho.value = null;
 }
@@ -648,19 +647,10 @@ const ICO3D = {
           </div>
         </div>
         <button class="btn-primary" type="button" @click="confirmNames">{{ t('menu.tiepTuc') }}</button>
-        <!-- Bảng chọn mức của một máy: đúng 5 ô màu của bước mức Đấu máy -->
-        <div v-if="chonMucCho !== null" class="muc-phu" @click.self="chonMucCho = null">
-          <div class="muc-bang khay" role="dialog" :aria-label="t('menu.mucMayN', { n: chonMucCho + 1 })">
-            <p class="muc-tieu">{{ t('menu.mucMayN', { n: chonMucCho + 1 }) }}</p>
-            <button
-              v-for="b in BOT_CHOICES" :key="b.id" class="option wide neon" :class="b.g" type="button"
-              :aria-pressed="mayO(chonMucCho) === b.id" @click="chonMuc(b.id)"
-            >
-              <span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span>
-              <span class="text"><strong>{{ tenBot(b.id) }}</strong><small>{{ td(`menu.bot.${b.id}`) }}</small></span>
-            </button>
-          </div>
-        </div>
+        <ChonMucMay
+          v-if="chonMucCho !== null" :tieu-de="t('menu.mucMayN', { n: chonMucCho + 1 })" :muc="mayO(chonMucCho)"
+          @chon="chonMuc" @dong="chonMucCho = null"
+        />
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
@@ -814,17 +804,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
 }
 .loai .thach::after { content: ''; position: absolute; inset: -5px -2px; }
-.muc-phu {
-  position: fixed; inset: 0; z-index: 40; background: rgba(10, 18, 45, .45);
-  display: flex; align-items: flex-end; justify-content: center;
-}
-.muc-bang {
-  width: min(100%, 520px); display: grid; gap: 8px;
-  padding: 14px 12px calc(16px + env(safe-area-inset-bottom, 0px));
-  border-radius: 24px 24px 0 0; max-height: 92dvh; overflow-y: auto;
-}
-.muc-tieu { margin: 0 4px 2px; font-family: var(--font-display); font-weight: 900; font-size: var(--text-lg); }
-.muc-bang .option { min-height: 56px; }
 
 
 /* Ô lựa chọn CHIA ĐỀU chỗ trống của panel: ít nút thì ô cao lên, nhiều nút thì

@@ -125,6 +125,7 @@ const en: TuDien = {
   'menu.nguoiN': 'Player {n}',
   'menu.laNguoi': 'Player', 'menu.laMay': 'Bot',
   'menu.chamDoiMuc': 'Tap to change level', 'menu.mucMayN': 'Level for bot #{n}',
+  'on.themMay': 'Add bot', 'on.chonMucMay': 'Choose bot level',
   'menu.tenNguoiAria': 'Name of player {n}',
   'menu.tiepTuc': 'Continue',
   'menu.nhieuTheme': 'Select multiple themes — the board mixes symbols from all of them.',

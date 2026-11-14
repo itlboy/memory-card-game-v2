@@ -123,6 +123,7 @@ const zh: TuDien = {
   'menu.nguoiN': '玩家 {n}',
   'menu.laNguoi': '玩家', 'menu.laMay': '机器人',
   'menu.chamDoiMuc': '点按更换难度', 'menu.mucMayN': '{n} 号机器人的难度',
+  'on.themMay': '添加机器人', 'on.chonMucMay': '选择机器人难度',
   'menu.tenNguoiAria': '玩家 {n} 的名字',
   'menu.tiepTuc': '继续',
   'menu.nhieuTheme': '可多选，牌面图案会从所选主题中混合抽取。',

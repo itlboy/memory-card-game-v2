@@ -129,5 +129,8 @@
  "game.desc": "Jogo da memória grátis no navegador ou app: vire as cartas, ache os pares e jogue sozinho, contra o computador ou online com amigos. Sem anúncios.",
  "r9.h": "Jogue com bots e amigos",
  "r9.d": "14 de novembro de 2026",
- "r9.l": "<li>Em partidas com vários jogadores num aparelho, transforme qualquer lugar em bot e escolha o nível.</li>\n          <li>Até 4 jogadores no total, bots incluídos.</li>\n          <li>Online: voltar ao app depois de uma partida não repete mais o final, e o painel de emojis está menor.</li>"
+ "r9.l": "<li>Em partidas com vários jogadores num aparelho, transforme qualquer lugar em bot e escolha o nível.</li>\n          <li>Até 4 jogadores no total, bots incluídos.</li>\n          <li>Online: voltar ao app depois de uma partida não repete mais o final, e o painel de emojis está menor.</li>",
+ "r10.h": "Bots nas salas online",
+ "r10.d": "14 de novembro de 2026",
+ "r10.l": "<li>O anfitrião toca em “Adicionar bot” na sala de espera, escolhe o nível de cada bot ou o remove.</li>\n          <li>Bots ocupam lugares como jogadores — até 4 no total.</li>\n          <li>Sem amigos online agora? Abra uma sala e jogue contra bots.</li>"
 }

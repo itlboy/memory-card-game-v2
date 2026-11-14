@@ -1,7 +1,8 @@
 # Lật Thẻ — Game Thẻ Bài Trí Nhớ
 
 Game rèn luyện trí nhớ chạy trên trình duyệt và trong app iOS + Android (Capacitor).
-Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số
+Chơi một mình, nhiều người chung máy, đấu máy 5 mức, hoặc phòng online bằng mã 6 số — ván
+nhiều người (chung máy lẫn online) cho máy vào chơi cùng, tổng tối đa 4
 (có nói nhanh bằng 12 câu có sẵn); 12 theme lớn (~1.360 icon, tất cả miễn phí), 15 ngôn ngữ,
 tài khoản Google/Apple, 93 danh hiệu, hiệu ứng thắng/thua/hoà có thú tự vẽ (gấu trúc · sư tử · chuột) + tiếng + rung.
 Giao diện Kẹo 3D nổi khối, chế độ sáng / tối (tự theo máy).
@@ -153,7 +154,8 @@ server.js            Web server tĩnh cho bản build production
 | Chơi đơn | Cổ điển (SP-01), Đua thời gian (SP-02), Chiến dịch (SP-03), Sinh tồn (SP-04), Chớp nhoáng (SP-05). **Mọi chế độ** đều đi qua cùng một thang 50 cấp |
 | Nhiều người | 2–4 người cùng thiết bị, luân phiên, xếp hạng cuối ván (MP-01…MP-04). Dùng được mọi chế độ trừ Chiến dịch |
 | Thang cấp | 50 cấp, 9 cỡ bàn từ 4 tới 42 thẻ, chia 4 chặng. **CHỈ chơi một mình mới bị khoá** — nhiều người cùng máy, đấu bot và online mở sẵn hết (thang cấp là để dẫn người mới, chuyện đó chỉ có nghĩa khi chơi một mình; hai người trong phòng mà mỗi máy mở tới một cấp khác nhau thì thành tranh cãi chọn bàn nào). Ô cấp LUÔN ghi số thẻ (mọi trạng thái: đã qua, đang tới, khoá) — sao và ổ khoá là dấu ở góc, không giành chỗ của nó. Sao và kỷ lục riêng từng chế độ, mở khoá dùng chung. Bản đồ cấp là ngoại lệ DUY NHẤT được cuộn — cuộn TRONG khung app, không phải cả trang |
-| Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Bot siêu đẳng rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 4 mức (Bot dễ / bình thường / Pro / siêu đẳng) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức "Bot dễ" **không** cộng điểm tích luỹ |
+| Đấu với máy | Cấp sau mở khi NGƯỜI thắng bot (hoà cũng tính). Không lấy "bàn sạch" làm mốc: phần lớn bàn do bot dọn, chọn Rồng thần rồi ngồi xem là mở hết cấp mà không chơi gì. Nút "Cấp tiếp theo" hỏi `store.unlockedLevel()`, thua thì thành "Chơi lại". 1v1 với bot ngay trên trình duyệt, không cần mạng. 5 mức (Gà mờ · Gà cứng · Báo đen · Mãnh hổ · Rồng thần) khác nhau ở TRÍ NHỚ, xem `packages/engine/src/bot.ts`. Mức Gà mờ **không** cộng điểm tích luỹ |
+| Máy chơi cùng (1.6.0) | Ván nhiều người cho máy vào thay chỗ, mỗi máy chọn mức riêng; tổng người + máy ≤ 4. **Chung máy**: bước "Tên từng người" có công tắc Người/Máy (dòng 1 luôn người). **Online**: chủ phòng bấm "＋ Thêm máy" ở phòng chờ, chạm tên máy đổi mức, ✕ bỏ máy; máy chạy TRÊN SERVER (alarm của phòng), luôn sẵn sàng, không bỏ phiếu Chơi lại; người thật cuối cùng rời thì máy đi theo. Mã máy `bot`/`bot2`/`bot3` (`laBotId`). Điểm máy không cộng vào tổng; phòng online có máy không lên sổ tài khoản / danh hiệu online |
 | Thẻ đặc biệt | Tráo đổi, x2, mắt thần (hé cả bàn **5 giây**), đóng băng — có từ cấp 1, thưa ở cấp dễ rồi dày dần tới 30% (3.4). Thẻ tráo có trọng số gấp đôi nhưng **trần 2 lá mỗi bàn** (`POWER_MAX`), nhiều hơn thì ván thành may rủi. **Bom đang tắt**: xem `PLAYABLE_POWERS` trong `deck.ts`, luật xử lý vẫn còn nguyên để bật lại |
 | Điểm | 100/cặp, combo x1.2/x1.5/x2, −10 lượt sai (Cổ điển), +5/giây còn lại, xếp 1–3 sao (3.5). Ván thi đấu cũng cộng vào tổng tích luỹ |
 | Nội dung | 12 theme nạp từ `apps/web/public/data/themes.json` (gộp từ 72 ngày 04.11.2026, bảng đổi id cũ `packages/engine/src/theme-gop.ts`), tất cả miễn phí (máy móc premium giữ để làm sau). Bước chọn theme là `ThemePicker.vue` (tab Miễn phí / Premium, xem trước bộ hình, Chọn tất cả / Bỏ chọn), dùng chung chơi đơn + online. Không còn mở theme bằng điểm |
@@ -195,10 +197,14 @@ Người chơi xem được ngay trong game: nút **?** trên thanh trên cùng 
 
   | Mức | nửa đời | `retain` | quên mỗi nước |
   |---|---|---|---|
-  | Bot dễ | **3** nước | 0,794 | 20,6% |
-  | Bot bình thường | **6** | 0,891 | 10,9% |
-  | Bot Pro | **12** | 0,944 | 5,6% |
-  | Bot siêu đẳng | **20** | 0,966 | 3,4% |
+  | Gà mờ | **1** nước | 0,5 | 50% |
+  | Gà cứng | **3** | 0,794 | 20,6% |
+  | Báo đen | **12** | 0,944 | 5,6% |
+  | Mãnh hổ | **20** | 0,966 | 3,4% |
+  | Rồng thần | **999** (nhớ gần như tuyệt đối) | ≈1 | ≈0% |
+
+  Các số đo bên dưới mang TÊN CŨ (Bot dễ / bình thường / Pro / siêu đẳng, trước khi đổi tên
+  thành thú và hạ mức thấp nhất xuống nửa đời 1) — giữ làm lịch sử đo, không phải bảng hiện hành.
 
   Nửa đời = số nước để khả năng nhớ một lá còn một nửa. Đơn vị là NƯỚC ĐI, không
   phải giây: người chơi ngồi nghĩ lâu không làm bot quên thêm. Xúc xắc tung lại
@@ -451,8 +457,8 @@ Ba điều dễ làm hỏng:
 
 ## Chưa làm
 
-Quick match (ON-02), chế độ Race (ON-06), i18n, đăng nhập trong app iOS (cần plugin
-native), E2E Playwright chạy trong CI.
+Quick match (ON-02), chế độ Race (ON-06), E2E Playwright chạy trong CI. Mưa Thẻ đang ẩn
+(`MUA_THE_MO = false`). (i18n 15 ngôn ngữ và đăng nhập Google/Apple trong app đã có.)
 
 ## Phiên bản đang chạy
 
@@ -703,6 +709,28 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 ## Nhật ký thay đổi
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
+
+**14.11.2026 — 1.5.11 · 1.5.12 · 1.6.0: máy chơi cùng**
+- **1.6.0**: phòng online cho máy vào chơi cùng — chủ phòng "＋ Thêm máy" ở phòng chờ, đổi mức,
+  bỏ máy; máy chạy trên server (Cloudflare DO + server Node, MySQL thêm cột `room_players.may`).
+  Smoke `tools/smoke-may-online.mjs`.
+- **1.5.12**: ván nhiều người chung máy cho máy vào (công tắc Người/Máy, bảng 5 mức `ChonMucMay.vue`).
+- **1.5.11**: xem kết ván online rồi ra app khác quay lại không còn diễn lại cảnh kết ván (và không
+  ghi ván vào tài khoản hai lần); bảng emoji ＋ thành khung nhỏ góc trái; số trên huy hiệu dùng font Kẹo.
+- CI: `main` đổi là tự phát hành Cloudflare (`cloudflare.yml`) + TestFlight/Play (`mobile.yml`).
+
+**19.10 – 13.11.2026 (1.3 → 1.5.10)**
+- App lên **Google Play (03.11)** và **App Store (07.11)**; link cài một-cho-tất-cả `/app`; gợi ý cài
+  app trên web điện thoại + Smart App Banner. Mỗi bản một số mới (`pnpm ban:tang`).
+- Gộp 72 theme còn **12 theme lớn**, tất cả miễn phí; ảnh store v2 15 ngôn ngữ.
+- **Chiến dịch** mỗi màn một luật (trơn · xáo · mạng · thẻ đặc biệt · trùm), sao 3D.
+- **Mưa Thẻ** (chế độ thẻ rơi) — đang ẩn, vào qua trang Debug.
+- Online: bảng emoji ~50 cái chia nhóm, emoji thành bong bóng từng người, "Chỉnh bàn" sau ván,
+  hết ván cả phòng ra ngoài app thì phòng về phòng chờ giữ 15 phút; link mời có tên người mời.
+- **Tài khoản**: đăng nhập Google native trong app (1.5.0), ảnh Google thay mặt thú ở online,
+  nhớ hồ sơ trên máy; trang Danh hiệu làm lại (huy chương theo bậc, Sắp đạt, lọc).
+- Lưu / chia sẻ ảnh kết quả; ngôn ngữ nổi khối xuyên suốt (không nút phẳng mới).
+- iOS vuốt mép trái để lùi như Android; GA4 đo chức năng được dùng (`phan-tich.ts`).
 
 **17–18.10.2026 — BẢN LỚN: giao diện Kẹo 3D nổi khối, sáng/tối**
 - Giao diện mới **Kẹo "Thạch"**: nút 3D nổi khối (đế dày, gradient, vệt sáng), icon 3D (Noto 3D
