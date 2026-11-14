@@ -13,10 +13,13 @@
   position: absolute;
   inset: 0;
   /*
-   * DƯỚI HỘP THOẠI (`ResultDialog` ở z-index 10), KHÔNG PHẢI TRÊN — bản cũ đặt
-   * 40 nên lớp xám phủ luôn lên bảng tỉ số (đã bị báo, có ảnh). Đừng nâng.
+   * THỨ TỰ LỚP (14.11.2026, chủ dự án: "lớp phủ đen chưa bao kín"): TRÊN thanh trên cùng (TopBar,
+   * z 15 — trước đây 9 nên logo/xu/menu nằm sáng trưng trên lớp tối), DƯỚI bảng kết quả
+   * (`ResultDialog` 17) — bản cũ đặt 40 nên lớp xám phủ luôn lên bảng tỉ số (đã bị báo, có ảnh).
+   * Chuỗi chung: TopBar 15 < đếm ngược / cảnh kết ván 16 < bảng kết quả 17 < TamDung 18 <
+   * MoKhoaFx 19 < hộp thoại 20. Có test canh (`lop-phu.test.ts`).
    */
-  z-index: 9;
+  z-index: 16;
   overflow: hidden;
   pointer-events: none;
 }

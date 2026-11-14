@@ -1230,8 +1230,8 @@ function openCfgWizard(): void {
 .online { display: flex; flex-direction: column; height: 100%; position: relative; }
 /* "Chỉnh bàn" từ màn kết quả: wizard là LỚP PHỦ, ván + bảng kết quả vẫn sống bên dưới
    (gỡ OnlineGame ra là đóng xong bàn lại diễn lại hiệu ứng kết ván từ đầu). Trên
-   bảng kết quả (z 10), dưới hộp xác nhận (z 20). */
-.panel.wiz-phu { position: absolute; inset: 0; z-index: 15; margin: 0; }
+   bảng kết quả (z 17), dưới hộp xác nhận (z 20). */
+.panel.wiz-phu { position: absolute; inset: 0; z-index: 18; margin: 0; }
 /* Một dòng nhỏ nổi trên đầu màn — xem chú thích "THÔNG BÁO ĐỔI BÀN" trong script.
    pointer-events: none: nó không được che nút nào trong 6 giây nó hiện. */
 .doi-ban-toast {

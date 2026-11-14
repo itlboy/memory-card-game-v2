@@ -215,6 +215,8 @@ const { wrap, fitStyle } = useBoardFit(() => {
 
 /** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
 const showResult = ref(false);
+/** Có #app để teleport cảnh kết ván ra không (test gắn component trần thì không có). */
+const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
 let resultTimer: ReturnType<typeof setTimeout> | undefined;
 /**
  * TỪ 5 NGƯỜI TRỞ LÊN ĐỔI SANG DẢI GỌN — cùng luật với PlayerStrip (chơi cùng
@@ -569,7 +571,12 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
 
     <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
          rơi; thua phải có hình riêng, không được để trống. -->
-    <KetCucFx v-if="o.view.value?.summary && !fxTat" :loai="loaiKetCuc" :seed="seedVan" />
+    <!-- TELEPORT ra #app: nằm trong <main> (đệm 12px, overflow) thì lớp tối chỉ phủ khung màn
+         chính — hở thanh trên cùng, hai bên và đáy (đo 14.11.2026: 12,72→363,541 trên màn 375×553).
+         Bản offline vốn đứng ở cấp App nên phủ kín. -->
+    <Teleport to="#app" :disabled="!coApp">
+      <KetCucFx v-if="o.view.value?.summary && !fxTat" :loai="loaiKetCuc" :seed="seedVan" />
+    </Teleport>
     <ResultDialog
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
@@ -1052,7 +1059,8 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
  * lên, tên người đi đầu nằm dưới nó.
  */
 .countdown {
-  position: fixed; inset: 0; z-index: 7;
+  /* 16: TRÊN thanh trên cùng (TopBar 15) — 7 cũ để logo/xu/menu nằm sáng trên lớp phủ tối */
+  position: fixed; inset: 0; z-index: 16;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   /* LỚP PHỦ TỐI (chủ dự án duyệt mockup 09.11.2026, https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp):
      cho số đếm + ô "đi trước" nổi lên. Lần trước (16.10.2026) lớp phủ bị gỡ vì "nháy chưa kín

@@ -320,7 +320,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
  * lên, tên người đi đầu nằm dưới nó.
  */
 .countdown {
-  position: fixed; inset: 0; z-index: 7;
+  /* 16: TRÊN thanh trên cùng (TopBar 15) — 7 cũ để logo/xu/menu nằm sáng trên lớp phủ tối */
+  position: fixed; inset: 0; z-index: 16;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   /* LỚP PHỦ TỐI (chủ dự án duyệt mockup 09.11.2026, https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp):
      cho số đếm + ô "đi trước" nổi lên. Lần trước (16.10.2026) lớp phủ bị gỡ vì "nháy chưa kín
