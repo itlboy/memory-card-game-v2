@@ -124,6 +124,8 @@ const de: TuDien = {
   'menu.nguoi': 'Spieler',
   'menu.goiYTen': 'Leer lassen für „Spieler 1“, „Spieler 2“ usw.',
   'menu.nguoiN': 'Spieler {n}',
+  'menu.laNguoi': 'Spieler', 'menu.laMay': 'Bot',
+  'menu.chamDoiMuc': 'Tippen, um die Stufe zu ändern', 'menu.mucMayN': 'Stufe für Bot Nr. {n}',
   'menu.tenNguoiAria': 'Name von Spieler {n}',
   'menu.tiepTuc': 'Weiter',
   'menu.nhieuTheme': 'Wähle mehrere Themen — das Spielfeld mischt Symbole aus allen.',

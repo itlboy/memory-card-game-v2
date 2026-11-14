@@ -12,7 +12,7 @@ import PlayerStrip from './PlayerStrip.vue';
 import MatBot from './MatBot.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
-import { BOT_ID, type useGameSession } from '@/composables/useGameSession';
+import { laBot, type useGameSession } from '@/composables/useGameSession';
 
 const props = defineProps<{
   session: ReturnType<typeof useGameSession>;
@@ -24,7 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ quit: []; 'choi-lai': [] }>();
 /** Nút chơi lại: ván một mình hoặc đấu máy (nhận ra bằng BOT_ID trong danh sách người chơi). */
-const choiLaiDuoc = computed(() => !props.game.isMultiplayer || props.game.players.some((p) => p.id === BOT_ID));
+const choiLaiDuoc = computed(() => !props.game.isMultiplayer || props.game.players.some((p) => laBot(p.id)));
 const board = ref<InstanceType<typeof BoardGrid> | null>(null);
 onMounted(() => board.value?.focusFirst());
 

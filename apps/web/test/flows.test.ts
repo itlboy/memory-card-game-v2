@@ -1601,3 +1601,72 @@ describe('lật thẻ online không được nhảy góc', () => {
     expect(flipMs, `FLIP_MS phải bằng transition .${trans}s`).toBe(Number(trans) * 10);
   });
 });
+
+describe('máy chơi cùng ván nhiều người (14.11.2026)', () => {
+  type S = { session: { players: { value: { id: string; name: string }[] }; bots: { value: Record<string, string> };
+    botTurnNow: { value: boolean }; game: { value: { finished: boolean; current: { id: string } } | null } } };
+  const s = (): S['session'] => (wrapper.vm as unknown as S).session;
+
+  async function vaoBan3(mayO: number[]): Promise<void> {
+    await mountApp();
+    await click('Chơi nhanh');
+    await click('3 người chơi');
+    const dong = wrapper.findAll('.name-row');
+    expect(dong.length).toBe(3);
+    expect(dong[0]!.find('.loai').exists(), 'dòng 1 luôn là người, không có công tắc').toBe(false);
+    for (const i of mayO) {
+      const nut = dong[i]!.findAll('.loai button').find((b) => b.text() === 'Máy')!;
+      await nut.trigger('click');
+      await flush();
+    }
+    await click('Tiếp tục');
+    await start(4);
+  }
+
+  it('1 người + 2 máy: mã bot, bot2; mỗi máy mức riêng (mặc định Gà cứng)', async () => {
+    await vaoBan3([1, 2]);
+    expect(s().players.value.map((p) => p.id).sort()).toEqual(['bot', 'bot2', 'p1']);
+    expect(s().bots.value).toEqual({ bot: 'normal', bot2: 'normal' });
+  });
+
+  it('đổi mức một máy qua bảng chọn mức', async () => {
+    await mountApp();
+    await click('Chơi nhanh');
+    await click('3 người chơi');
+    const dong = () => wrapper.findAll('.name-row');
+    await dong()[2]!.findAll('.loai button').find((b) => b.text() === 'Máy')!.trigger('click');
+    await flush();
+    await dong()[2]!.find('.may-ten').trigger('click');
+    await flush();
+    await wrapper.findAll('.muc-bang .option').find((b) => b.text().includes(BOT_SPECS.divine.name.replace('Bot ', '')))!.trigger('click');
+    await flush();
+    expect(wrapper.find('.muc-bang').exists(), 'chọn xong là đóng bảng').toBe(false);
+    await click('Tiếp tục');
+    await start(4);
+    expect(s().bots.value).toEqual({ bot: 'divine' });
+    // Máy ở chỗ 3 nhưng là máy ĐẦU tiên → mã 'bot'; người chỗ 2 vẫn là p2
+    expect(s().players.value.map((p) => p.id).sort()).toEqual(['bot', 'p1', 'p2']);
+  });
+
+  it('máy tự đi; tới lượt máy thì người bị chặn; ván chạy tới hết', async () => {
+    await vaoBan3([1, 2]);
+    await passCountdown();
+    for (let k = 0; k < 200 && !s().game.value!.finished; k++) {
+      const g = s().game.value!;
+      if (!g.current.id.startsWith('bot')) {
+        // Người: lật hai lá lệch để nhường lượt
+        const cards = session(wrapper).game.value!.cards.filter((c) => !c.blank);
+        const a = cards.find((c) => !wrapper.findAll('.card')[c.index]!.classes().some((x) => /matched|up/.test(x)))!;
+        const b = cards.find((c) => c.index !== a.index && c.pairId !== a.pairId
+          && !wrapper.findAll('.card')[c.index]!.classes().some((x) => /matched|up/.test(x)));
+        await wrapper.findAll('.card')[a.index]!.trigger('click');
+        if (b) await wrapper.findAll('.card')[b.index]!.trigger('click');
+      } else {
+        expect(s().botTurnNow.value).toBe(true);
+      }
+      await vi.advanceTimersByTimeAsync(1500);
+      await flush();
+    }
+    expect(s().game.value!.finished, 'ván 1 người + 2 máy phải chạy tới hết').toBe(true);
+  });
+});

@@ -135,6 +135,8 @@ const ru: TuDien = {
   'menu.nguoi': 'игроков',
   'menu.goiYTen': 'Оставь пустым — будет «Игрок 1», «Игрок 2» и т. д.',
   'menu.nguoiN': 'Игрок {n}',
+  'menu.laNguoi': 'Игрок', 'menu.laMay': 'Бот',
+  'menu.chamDoiMuc': 'Нажмите, чтобы сменить уровень', 'menu.mucMayN': 'Уровень бота № {n}',
   'menu.tenNguoiAria': 'Имя игрока {n}',
   'menu.tiepTuc': 'Продолжить',
   'menu.nhieuTheme': 'Можно выбрать несколько тем — на поле смешаются символы из всех.',

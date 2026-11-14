@@ -127,6 +127,8 @@ const fr: TuDien = {
   'menu.nguoi': 'joueurs',
   'menu.goiYTen': 'Laisse vide pour « Joueur 1 », « Joueur 2 », etc.',
   'menu.nguoiN': 'Joueur {n}',
+  'menu.laNguoi': 'Joueur', 'menu.laMay': 'Bot',
+  'menu.chamDoiMuc': 'Touchez pour changer le niveau', 'menu.mucMayN': 'Niveau du bot n° {n}',
   'menu.tenNguoiAria': 'Nom du joueur {n}',
   'menu.tiepTuc': 'Continuer',
   'menu.nhieuTheme': 'Choisis plusieurs thèmes — le plateau mélange tous leurs symboles.',

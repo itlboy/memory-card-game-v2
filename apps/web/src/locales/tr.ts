@@ -124,6 +124,8 @@ const tr: TuDien = {
   'menu.nguoi': 'oyuncu',
   'menu.goiYTen': 'Boş bırakırsan "Oyuncu 1", "Oyuncu 2"… kullanılır',
   'menu.nguoiN': 'Oyuncu {n}',
+  'menu.laNguoi': 'Oyuncu', 'menu.laMay': 'Bot',
+  'menu.chamDoiMuc': 'Seviyeyi değiştirmek için dokun', 'menu.mucMayN': '{n} numaralı botun seviyesi',
   'menu.tenNguoiAria': '{n}. oyuncunun adı',
   'menu.tiepTuc': 'Devam',
   'menu.nhieuTheme': 'Birden fazla tema seçebilirsin — tahta hepsinin sembollerini karıştırır.',

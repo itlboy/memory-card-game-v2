@@ -133,14 +133,14 @@ describe('banner báo lượt', () => {
 
   it('đấu với BOT cũng không báo — chỉ một người ngồi trước máy, gọi ai?', () => {
     expect(local, 'phải nhận ra ván đấu bot qua BOT_ID trong danh sách người chơi')
-      .toMatch(/const coBot = game\.value\?\.players\.some\(\(p\) => p\.id === BOT_ID\)/);
-    expect(local).toMatch(/&& !coBot\)/);
+      .toMatch(/const soNguoiThat = game\.value\?\.players\.filter\(\(p\) => !laBot\(p\.id\)\)\.length/);
+    expect(local).toMatch(/soNguoiThat > 1 && !laBot\(turnId\)\)/);
     expect(local, 'đừng đọc cờ botLevel — cờ đó tắt được giữa ván')
-      .not.toMatch(/botLevel\.value.*coBot|coBot.*botLevel\.value/);
+      .not.toMatch(/botLevel\.value.*soNguoiThat|soNguoiThat.*botLevel\.value/);
   });
 
   it('bàn NHIỀU NGƯỜI THẬT chung máy thì VẪN báo — đó là lời gọi đưa máy', () => {
-    expect(local).toMatch(/players\.length \?\? 0\) > 1 && !coBot/);
+    expect(local).toMatch(/players\.length \?\? 0\) > 1 && soNguoiThat > 1/);
     // KHÔNG kiểm "không nhắc BAO_DEN_LUOT": chú thích bên này CÓ trỏ sang công
     // tắc của ván online, và đó là chỉ dẫn hữu ích chứ không phải cờ điều khiển.
   });

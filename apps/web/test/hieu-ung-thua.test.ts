@@ -89,7 +89,7 @@ describe('mã nguồn giữ đúng luật', () => {
   it('useGameSession nhận ra bot qua BẢNG XẾP HẠNG, không qua cờ botLevel', () => {
     const src = doc('src/composables/useGameSession.ts');
     // Cờ `botLevel` tắt được giữa ván; lúc đó ván vẫn có một người tên 'bot'.
-    expect(src).toMatch(/ranking\.some\(\(p\) => p\.id === BOT_ID\)/);
+    expect(src).toMatch(/ranking\.some\(\(p\) => laBot\(p\.id\)\)/);
     // Hoà phải ra 'hoa', không được rơi vào nhánh thua.
     expect(src).toMatch(/isDraw\(s\.ranking\)\) return 'hoa'/);
   });

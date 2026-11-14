@@ -59,6 +59,8 @@ const props = defineProps<{
   maxSymbolCount: number;
   /** Đang đấu với máy ở mức nào, null là không đấu máy. */
   botLevel: BotLevel | null;
+  /** Máy chơi cùng ở ván nhiều người: chỗ i là máy mức nào (null = người). Chỗ 0 luôn người. */
+  mayCung?: (BotLevel | null)[];
   /** Tuỳ chọn bàn chơi (năm công tắc 0..3). Chiến dịch không dùng tới. */
   options: BoardOptions;
   /** DẢI LỐI TẮT trên bước đầu: danh hiệu gợi ý, chuỗi ngày chơi, màn chiến
@@ -74,6 +76,7 @@ const emit = defineEmits<{
   'update:themeIds': [string[]];
   'update:playerCount': [number];
   'update:botLevel': [BotLevel | null];
+  'update:mayCung': [(BotLevel | null)[]];
   'start-level': [number];
   'mua-the': [];
   'update:options': [BoardOptions];
@@ -301,6 +304,27 @@ function syncNames(n: number): void {
 
 // F5 ngay ở bước này (?w=names) thì pickCount chưa từng chạy — phải tự dựng ô
 watch(step, (st) => { if (st === 'names') syncNames(props.playerCount); }, { immediate: true });
+
+/* ---------- máy chơi cùng (14.11.2026, mockup https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB) ---------- */
+const mayO = (i: number): BotLevel | null => (i > 0 ? props.mayCung?.[i] ?? null : null);
+function datMay(i: number, l: BotLevel | null): void {
+  const ds = Array.from({ length: 4 }, (_, k) => props.mayCung?.[k] ?? null);
+  ds[i] = l;
+  emit('update:mayCung', ds);
+}
+/** Chỗ đang mở bảng chọn mức (null = đóng). */
+const chonMucCho = ref<number | null>(null);
+useBackCloser(12, () => chonMucCho.value !== null, () => { chonMucCho.value = null; });
+function chuyenLoai(i: number, may: boolean): void {
+  sfx.select();
+  datMay(i, may ? (mayO(i) ?? 'normal') : null);
+}
+function chonMuc(l: BotLevel): void {
+  if (chonMucCho.value === null) return;
+  sfx.select();
+  datMay(chonMucCho.value, l);
+  chonMucCho.value = null;
+}
 
 /** Tên bỏ trống thì lấy "Người i" — không ép người chơi phải điền. */
 function confirmNames(): void {
@@ -594,18 +618,49 @@ const ICO3D = {
       <div v-else-if="step === 'names'" key="names" class="step-body names">
         <p class="hint-multi">{{ t('menu.goiYTen') }}</p>
         <div class="name-list">
-          <label v-for="(_, i) in names" :key="i" class="name-row">
+          <div v-for="(_, i) in names" :key="i" class="name-row" :class="{ 'la-may': mayO(i) }">
             <span class="name-no">{{ i + 1 }}</span>
+            <button
+              v-if="mayO(i)" class="may-ten thach th-nho" type="button"
+              :aria-label="t('menu.mucMayN', { n: i + 1 })" @click="sfx.select(); chonMucCho = i"
+            >
+              <span class="may-mat" aria-hidden="true"><MatBot :mat="BOT_SPECS[mayO(i)!].avatar" /></span>
+              <span class="may-chu"><strong>{{ tenBot(mayO(i)!) }}</strong><small>{{ t('menu.chamDoiMuc') }}</small></span>
+            </button>
             <input
+              v-else
               v-model="names[i]"
               type="text" maxlength="12" enterkeyhint="next"
               :placeholder="t('menu.nguoiN', { n: i + 1 })"
               :aria-label="t('menu.tenNguoiAria', { n: i + 1 })"
               @keydown.enter="confirmNames"
             >
-          </label>
+            <span v-if="i > 0" class="loai" role="group">
+              <button
+                class="thach th-nho th-chon" type="button" :aria-pressed="!mayO(i)"
+                @click="chuyenLoai(i, false)"
+              >{{ t('menu.laNguoi') }}</button>
+              <button
+                class="thach th-nho th-chon" type="button" :aria-pressed="!!mayO(i)"
+                @click="chuyenLoai(i, true)"
+              >{{ t('menu.laMay') }}</button>
+            </span>
+          </div>
         </div>
         <button class="btn-primary" type="button" @click="confirmNames">{{ t('menu.tiepTuc') }}</button>
+        <!-- Bảng chọn mức của một máy: đúng 5 ô màu của bước mức Đấu máy -->
+        <div v-if="chonMucCho !== null" class="muc-phu" @click.self="chonMucCho = null">
+          <div class="muc-bang khay" role="dialog" :aria-label="t('menu.mucMayN', { n: chonMucCho + 1 })">
+            <p class="muc-tieu">{{ t('menu.mucMayN', { n: chonMucCho + 1 }) }}</p>
+            <button
+              v-for="b in BOT_CHOICES" :key="b.id" class="option wide neon" :class="b.g" type="button"
+              :aria-pressed="mayO(chonMucCho) === b.id" @click="chonMuc(b.id)"
+            >
+              <span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span>
+              <span class="text"><strong>{{ tenBot(b.id) }}</strong><small>{{ td(`menu.bot.${b.id}`) }}</small></span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- BƯỚC: chọn chế độ -->
@@ -737,6 +792,39 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
   font-family: var(--font-body); font-size: var(--text-lg); font-weight: 700;
 }
 .name-row input:focus { outline: none; }
+/* Máy chơi cùng: dòng máy thay ô tên bằng mặt + tên mức (chạm để đổi mức) */
+.name-row.la-may { border-color: var(--accent); }
+.may-ten {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+  padding: 4px 10px 4px 6px; text-align: left; min-height: 44px; border-radius: 14px;
+}
+.may-mat { width: 32px; height: 32px; flex: none; display: grid; place-items: center; font-size: 24px; }
+.may-mat :deep(img), .may-mat :deep(svg) { width: 100%; height: 100%; }
+.may-chu { min-width: 0; display: flex; flex-direction: column; }
+.may-chu strong { font-family: var(--font-display); font-size: var(--text-md); line-height: 1.1; }
+.may-chu small { font-size: var(--text-xs); color: var(--muted); font-weight: 600; white-space: nowrap; }
+/* Máy hẹp (SE): bỏ dòng gợi ý, tên máy được xuống hai dòng — cắt "Bot gà…" là không biết mức nào */
+@media (max-width: 400px) {
+  .may-chu small { display: none; }
+  .loai .thach { padding: 0 8px; }
+}
+.loai { display: flex; gap: 4px; flex: none; }
+.loai .thach {
+  min-height: 34px; min-width: 0; padding: 0 10px; position: relative;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
+}
+.loai .thach::after { content: ''; position: absolute; inset: -5px -2px; }
+.muc-phu {
+  position: fixed; inset: 0; z-index: 40; background: rgba(10, 18, 45, .45);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.muc-bang {
+  width: min(100%, 520px); display: grid; gap: 8px;
+  padding: 14px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 24px 24px 0 0; max-height: 92dvh; overflow-y: auto;
+}
+.muc-tieu { margin: 0 4px 2px; font-family: var(--font-display); font-weight: 900; font-size: var(--text-lg); }
+.muc-bang .option { min-height: 56px; }
 
 
 /* Ô lựa chọn CHIA ĐỀU chỗ trống của panel: ít nút thì ô cao lên, nhiều nút thì

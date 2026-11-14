@@ -57,8 +57,8 @@ describe('phát ra', () => {
 describe('chỉ rung theo nước của chính mình', () => {
   it('offline: bỏ qua nước của máy', () => {
     const s = goc('src/composables/useGameSession.ts');
-    expect(s).toMatch(/if \(e\.playerId !== BOT_ID\) rung\.ghep\(streak\)/);
-    expect(s).toMatch(/if \(game\.value\?\.current\?\.id !== BOT_ID\) rung\.sai\(\)/);
+    expect(s).toMatch(/if \(!laBot\(e\.playerId\)\) rung\.ghep\(streak\)/);
+    expect(s).toMatch(/if \(!laBot\(game\.value\?\.current\?\.id\)\) rung\.sai\(\)/);
   });
   it('online: chỉ nước của tôi', () => {
     const s = goc('src/composables/useOnlineRoom.ts');

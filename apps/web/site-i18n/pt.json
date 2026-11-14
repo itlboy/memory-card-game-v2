@@ -126,5 +126,8 @@
  "g9": "Contra o computador",
  "g10": "Campanha de 60 fases",
  "game.title": "Flip Match – Jogo da Memória Online Grátis",
- "game.desc": "Jogo da memória grátis no navegador ou app: vire as cartas, ache os pares e jogue sozinho, contra o computador ou online com amigos. Sem anúncios."
+ "game.desc": "Jogo da memória grátis no navegador ou app: vire as cartas, ache os pares e jogue sozinho, contra o computador ou online com amigos. Sem anúncios.",
+ "r9.h": "Jogue com bots e amigos",
+ "r9.d": "14 de novembro de 2026",
+ "r9.l": "<li>Em partidas com vários jogadores num aparelho, transforme qualquer lugar em bot e escolha o nível.</li>\n          <li>Até 4 jogadores no total, bots incluídos.</li>\n          <li>Online: voltar ao app depois de uma partida não repete mais o final, e o painel de emojis está menor.</li>"
 }

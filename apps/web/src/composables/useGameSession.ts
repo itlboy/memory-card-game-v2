@@ -9,6 +9,14 @@ import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 /** Mã người chơi của máy trong ván đấu máy — nhận ra ván đấu máy bằng mã này trong danh sách người chơi. */
 export const BOT_ID = 'bot';
+/**
+ * MÁY CHƠI CÙNG (14.11.2026, mockup duyệt https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB):
+ * ván nhiều người chung máy có thể có tới 3 máy — mã `bot`, `bot2`, `bot3`. Máy ĐẦU luôn là
+ * `bot` để ván đấu máy cũ (và snapshot F5 cũ) không đổi gì. Mọi chỗ hỏi "người này có phải
+ * máy" đi qua `laBot`, ĐỪNG so `=== BOT_ID` (bỏ sót bot2/bot3).
+ */
+export const laBot = (id: string | null | undefined): boolean => !!id && /^bot\d?$/.test(id);
+export const maBot = (thuTu: number): string => (thuTu === 0 ? BOT_ID : `${BOT_ID}${thuTu + 1}`);
 
 /**
  * Cầu nối engine ↔ Vue.
@@ -82,21 +90,21 @@ export function useGameSession() {
              * `playerId`, nhưng lá chỉ có thể do NGƯỜI ĐANG ĐI mở — và lượt
              * chưa đổi vào lúc sự kiện này chạy.
              */
-            cuaToi: game.value?.current?.id !== BOT_ID
+            cuaToi: !laBot(game.value?.current?.id)
           };
           break;
         case 'match': {
           const streak = game.value?.players.find((p) => p.id === e.playerId)?.streak ?? 1;
           sfx.match(streak);
           // Rung theo nước CỦA NGƯỜI — rung theo nước máy thì điện thoại rung suốt
-          if (e.playerId !== BOT_ID) rung.ghep(streak);
+          if (!laBot(e.playerId)) rung.ghep(streak);
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
           break;
         }
         case 'miss':
           sfx.miss();
           // `miss` không mang playerId; lượt chưa đổi lúc này nên người đang đi là người lật
-          if (game.value?.current?.id !== BOT_ID) rung.sai();
+          if (!laBot(game.value?.current?.id)) rung.sai();
           wrongPair.value = e.indices;
           setTimeout(() => { wrongPair.value = []; }, e.hideAfterMs);
           break;
@@ -194,8 +202,9 @@ export function useGameSession() {
      * `botLevel` — cờ đó tắt được giữa ván (cùng lý do vì sao chỗ xét thắng/thua
      * đọc bảng xếp hạng chứ không đọc cờ).
      */
-    const coBot = game.value?.players.some((p) => p.id === BOT_ID) ?? false;
-    if (turnId && (game.value?.players.length ?? 0) > 1 && !coBot) {
+    // Có máy chơi cùng: banner chỉ khi còn ≥2 NGƯỜI THẬT (phải đưa máy) và lượt tới là người
+    const soNguoiThat = game.value?.players.filter((p) => !laBot(p.id)).length ?? 0;
+    if (turnId && (game.value?.players.length ?? 0) > 1 && soNguoiThat > 1 && !laBot(turnId)) {
       const find = (id: string | null) => game.value?.players.find((p) => p.id === id);
       const p = find(turnId);
       if (p) {
@@ -220,9 +229,17 @@ export function useGameSession() {
    * gian lận: không phải vì nó tự nguyện không xem bàn thẻ, mà vì nó không có
    * tham chiếu nào tới bàn thẻ.
    */
-  const botLevel = ref<BotLevel | null>(null);
-  let botMem: BotMemory = createBotMemory();
+  /** Mức của từng máy theo mã người chơi (`bot`, `bot2`, `bot3`). Rỗng = không có máy. */
+  const bots = ref<Record<string, BotLevel>>({});
+  /** Máy đầu — giữ cho chỗ cũ chỉ biết một máy (đấu máy). */
+  const botLevel = computed<BotLevel | null>(() => bots.value[BOT_ID] ?? Object.values(bots.value)[0] ?? null);
+  /** Mỗi máy một ký ức riêng: máy không đọc được đầu máy khác. */
+  let botMems: Record<string, BotMemory> = {};
   let botRandom = botRng(1);
+  const coMay = (): boolean => Object.keys(bots.value).length > 0;
+  function memCua(id: string): BotMemory {
+    return (botMems[id] ??= createBotMemory());
+  }
   let botTimer: ReturnType<typeof setTimeout> | undefined;
 
   /** Bot đang nghĩ — UI khoá bàn để người chơi không lật hộ nó. */
@@ -242,8 +259,9 @@ export function useGameSession() {
   /** Nhìn bàn qua view công khai và ghi vào ký ức của bot. */
   function botWatch(): void {
     const g = game.value;
-    if (!g || !botLevel.value) return;
-    observe(botMem, publicView(g, now.value, () => true), botLevel.value);
+    if (!g || !coMay()) return;
+    const view = publicView(g, now.value, () => true);
+    for (const [id, level] of Object.entries(bots.value)) observe(memCua(id), view, level);
   }
 
   /**
@@ -252,9 +270,10 @@ export function useGameSession() {
    */
   function botTurn(): void {
     const g = game.value;
-    const level = botLevel.value;
-    if (!g || !level || g.finished) { stopBot(); return; }
-    if (g.current.id !== BOT_ID || countdownUntil) { stopBot(); return; }
+    const id = g?.current.id ?? '';
+    const level = bots.value[id];
+    if (!g || !coMay() || g.finished) { stopBot(); return; }
+    if (!level || countdownUntil) { stopBot(); return; }
     // Bàn đang khoá (hai thẻ chờ úp lại) thì đợi, không hỏi nước nào — engine
     // bỏ qua nước thứ ba và bot mất lượt oan
     if (botTimer) return;
@@ -262,10 +281,10 @@ export function useGameSession() {
     botTimer = setTimeout(() => {
       botTimer = undefined;
       const g2 = game.value;
-      if (!g2 || g2.finished || g2.current.id !== BOT_ID) { stopBot(); return; }
+      if (!g2 || g2.finished || g2.current.id !== id) { stopBot(); return; }
       if (locked.value) { botThinking.value = false; return; }   // thử lại ở tick sau
       botWatch();
-      const pick = botPick(publicView(g2, now.value, () => true), botMem, botRandom, level);
+      const pick = botPick(publicView(g2, now.value, () => true), memCua(id), botRandom, level);
       botThinking.value = false;
       if (pick !== null) applyFlip(pick);
       // `closing`: đang mở dở một lá, nước này chỉ là lật nốt
@@ -324,7 +343,7 @@ export function useGameSession() {
       // Nhìn bàn MỖI KHUNG, không phải chỉ lúc tới lượt mình: thẻ người chơi
       // lật rồi úp lại sẽ không bao giờ vào ký ức bot nếu chỉ nhìn theo lượt —
       // bot hoá ra mù trước mọi nước của đối thủ, chơi như đánh một mình.
-      if (botLevel.value) { botWatch(); botTurn(); }
+      if (coMay()) { botWatch(); botTurn(); }
       // Tick cảnh báo mỗi giây trong 10 giây cuối
       const left = g.timeLeft(now.value);
       if (left !== null && left > 0 && left <= 10) {
@@ -358,7 +377,7 @@ export function useGameSession() {
     lastTickSecond = -1;
     now.value = clockNow();
     stopBot();
-    botMem = createBotMemory();
+    botMems = {};
     botRandom = botRng(config.seed);
     pickBack();
     // Đếm ngược trước khi ván chạy. Multiplayer cần để người đi đầu không bị
@@ -381,7 +400,7 @@ export function useGameSession() {
   /** Đang là lượt của máy — người chơi không được lật hộ nó. */
   const botTurnNow = computed(() => {
     touch();
-    return !!botLevel.value && game.value?.current.id === BOT_ID && !game.value.finished;
+    return !!game.value && !!bots.value[game.value.current.id] && !game.value.finished;
   });
 
   /** Đưa nước lật vào engine. Chỉ dùng nội bộ — bot đi qua đây, người chơi đi
@@ -397,15 +416,19 @@ export function useGameSession() {
   /** Người chơi bấm. Chặn ở GỐC chứ không chỉ khoá giao diện: bấm trong lượt
    *  máy thì nước đó ghi vào tài khoản MÁY — tự tay mở thẻ cho đối thủ ăn. */
   function flip(index: number): void {
-    if (botLevel.value && game.value?.current.id === BOT_ID) return;
+    if (game.value && bots.value[game.value.current.id]) return;
     applyFlip(index);
   }
 
   /** Bật/tắt đối thủ máy. Gọi TRƯỚC start() để ván mới gieo đúng rng cho bot. */
   function setBot(level: BotLevel | null): void {
+    setBots(level ? { [BOT_ID]: level } : {});
+  }
+  /** Nhiều máy chơi cùng: `{ bot: 'normal', bot2: 'divine' }`. Gọi TRƯỚC start(). */
+  function setBots(map: Record<string, BotLevel>): void {
     stopBot();
-    botLevel.value = level;
-    botMem = createBotMemory();
+    bots.value = { ...map };
+    botMems = {};
   }
 
   function stop(): void {
@@ -512,8 +535,8 @@ export function useGameSession() {
     // được giữa ván (tắt bot để xem lại bàn, và test cũng làm thế), lúc ấy ván
     // vẫn có một người chơi tên 'bot' đang dẫn đầu.
     const champ = s.ranking[0];
-    if (!champ || !s.ranking.some((p) => p.id === BOT_ID)) return true;
-    return champ.id !== BOT_ID || isDraw(s.ranking);
+    if (!champ || !s.ranking.some((p) => laBot(p.id))) return true;
+    return !laBot(champ.id) || isDraw(s.ranking);
   }
 
   /** Cho UI chọn hiệu ứng: xem `lib/ketcuc-fx.ts`. */
@@ -527,10 +550,12 @@ export function useGameSession() {
   /** Kết cục của "mình" — CHỈ khi đấu máy (nhận qua BẢNG XẾP HẠNG, không qua cờ
    *  `botLevel`: cờ tắt được giữa ván). Nhiều người chung máy không có "mình". */
   const minhKetCuc = computed<LoaiKetCuc | undefined>(() =>
-    summary.value?.ranking.some((p) => p.id === BOT_ID) ? loaiKetCuc.value : undefined);
+    // Có máy VÀ chỉ một người thật thì mới có "mình"; 2 người + máy thì không biết ai cầm máy.
+    summary.value?.ranking.some((p) => laBot(p.id))
+      && summary.value.ranking.filter((p) => !laBot(p.id)).length === 1 ? loaiKetCuc.value : undefined);
 
   return {
-    game, start, flip, stop, adopt, paused, pause, resume, setBot, botLevel, botThinking, botTurnNow, thang, loaiKetCuc, minhKetCuc,
+    game, start, flip, stop, adopt, paused, pause, resume, setBot, setBots, bots, botLevel, botThinking, botTurnNow, thang, loaiKetCuc, minhKetCuc,
     cards, players, current, faceUp, matchedSet, wrongPair, vuaMo, lastPower, swapPair, lastGain, lifeGain, lifeLost, turnBanner, timeBonusFor,
     matchedCount, totalPairs, combo, revealingAll, peekLeft, status, locked,
     elapsed, timeLeft, movesLeft, moves, summary, turnTimeLeft, countdownLeft, backStyle
