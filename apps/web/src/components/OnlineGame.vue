@@ -6,7 +6,7 @@ import { t } from '@/lib/i18n';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
-import type { Card } from '@mm/engine';
+import type { Card, Summary } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { pingSo } from '@/lib/ping-so';
@@ -254,10 +254,48 @@ const loaiKetCuc = computed<LoaiKetCuc>(() => (hoa.value ? 'hoa' : iWon.value ? 
 /** Seed để bốc hình. View online không mang seed nên lấy mã phòng — cùng phòng,
  *  cùng ván thì mọi lần dựng lại view vẫn ra đúng một hình. */
 const seedVan = computed(() => Number(o.roomCode()) || 7);
+/*
+ * VÁN ĐÃ XEM KẾT CỤC THÌ KHÔNG DIỄN LẠI (14.11.2026, chủ dự án báo): xong ván, sang app chat,
+ * quay lại → socket nối lại, server gửi lại view có `summary` (object MỚI) → watch chạy lại:
+ * cảnh kết ván diễn lần hai, và tệ hơn là GHI VÁN LẦN HAI vào sổ tài khoản. Nhận ra "cùng một
+ * ván" bằng mã phòng + dấu vân tay của summary, nhớ ở localStorage (app bị hệ điều hành
+ * đóng hẳn khi ở nền thì mount lại từ đầu — biến trong component không đủ).
+ */
+const fxTat = ref(false);
+let khoaDangXem = '';
+let quaNull = false;
+const KHOA_DA_XEM = 'mm.vanDaXem';
+const khoaVan = (s: Summary): string =>
+  `${o.roomCode()}|${s.moves}|${s.seconds}|${s.ranking.map((r) => `${r.id}:${r.score}`).join(',')}`;
+function daXem(k: string): boolean {
+  try { return (JSON.parse(localStorage.getItem(KHOA_DA_XEM) ?? '[]') as string[]).includes(k); } catch { return false; }
+}
+function ghiDaXem(k: string): void {
+  try {
+    const ds = (JSON.parse(localStorage.getItem(KHOA_DA_XEM) ?? '[]') as string[]).filter((x) => x !== k);
+    localStorage.setItem(KHOA_DA_XEM, JSON.stringify([k, ...ds].slice(0, 10)));
+  } catch { /* chế độ riêng tư: chấp nhận diễn lại */ }
+}
 watch(() => o.view.value?.summary, (s) => {
+  if (!s) {
+    clearTimeout(resultTimer);
+    showResult.value = false;
+    if (khoaDangXem) quaNull = true;
+    return;
+  }
+  const k = khoaVan(s);
+  if (k === khoaDangXem) {
+    // Cùng ván, view chỉ dựng lại. Không qua null thì cảnh đang chạy dở — để yên.
+    if (quaNull) { quaNull = false; fxTat.value = true; showResult.value = true; }
+    return;
+  }
+  khoaDangXem = k;
+  quaNull = false;
   clearTimeout(resultTimer);
+  if (daXem(k)) { fxTat.value = true; showResult.value = true; return; }
+  ghiDaXem(k);
+  fxTat.value = false;
   showResult.value = false;
-  if (!s) return;
   // Lên sổ tài khoản (nếu đăng nhập): điểm CỦA TÔI và kết cục dưới góc nhìn của tôi.
   // Danh hiệu online xét với những gì view cho biết (không có số lần lật sai)
   const cfg = o.room.value?.config;
@@ -521,7 +559,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
 
     <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
          rơi; thua phải có hình riêng, không được để trống. -->
-    <KetCucFx v-if="o.view.value?.summary" :loai="loaiKetCuc" :seed="seedVan" />
+    <KetCucFx v-if="o.view.value?.summary && !fxTat" :loai="loaiKetCuc" :seed="seedVan" />
     <ResultDialog
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"

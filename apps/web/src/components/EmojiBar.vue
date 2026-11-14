@@ -78,11 +78,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
   </div>
   <div v-if="mo === 'emoji'" class="bang-emoji khay" role="menu" :aria-label="t('eb.chonEmoji')">
     <p class="bn-dau">{{ t('eb.chonEmoji') }} <span>{{ t('eb.chamGui') }}</span></p>
-    <template v-for="nhom in (['hayDung', ...NHOM] as const)" :key="nhom">
+    <template v-for="nhom in NHOM" :key="nhom">
       <p class="be-nhom">{{ t(`eb.nhom.${nhom}`) }}</p>
       <div class="be-luoi">
         <button
-          v-for="e in (nhom === 'hayDung' ? hayDung(8) : EMOJI_NHOM[nhom])" :key="e"
+          v-for="e in EMOJI_NHOM[nhom]" :key="e"
           class="emoji thach th-nho" type="button" role="menuitem"
           :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
         >{{ e }}</button>
@@ -128,11 +128,14 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .emoji.chon.mo { background: var(--fg); color: var(--panel-solid); }
 /* Nút ＋: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */
 .emoji.chon { display: inline-flex; align-items: center; justify-content: center; color: var(--fg); }
-/* Bảng emoji: cùng khung với bảng nói nhanh, cuộn trong khung khi máy thấp */
+/* Bảng emoji: KHUNG NHỎ neo góc trái ngay trên nút ＋ (14.11.2026, chủ dự án: bản cũ trải
+   hết bề ngang, cao 56vh, "đè lên màn chơi"). Hẹp 8 cột ~290px, thấp ~1/3 màn, cuộn trong khung —
+   phần lớn bàn thẻ vẫn nhìn thấy. */
 .bang-emoji {
-  position: absolute; left: 6px; right: 6px; bottom: calc(100% + 8px); z-index: 30;
-  max-height: min(56vh, 420px); overflow-y: auto; overscroll-behavior: contain;
-  padding: 8px 8px 10px;
+  position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
+  width: min(292px, calc(100% - 12px));
+  max-height: min(30vh, 220px); overflow-y: auto; overscroll-behavior: contain;
+  padding: 6px 6px 8px;
   background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
   box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
 }
@@ -141,9 +144,9 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
   margin: 8px 2px 4px; font-size: 12px; font-weight: 800; letter-spacing: .3px;
   text-transform: uppercase; color: var(--muted);
 }
-.be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
-/* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh), emoji to hơn */
-.be-luoi .emoji { flex: none; width: 100%; min-height: 38px; font-size: 22px; }
+.be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+/* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh) */
+.be-luoi .emoji { flex: none; width: 100%; min-height: 32px; font-size: 19px; }
 .bn-dau {
   grid-column: 1 / -1; margin: 0 2px 2px; display: flex; justify-content: space-between; gap: 8px;
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm); color: var(--fg);
