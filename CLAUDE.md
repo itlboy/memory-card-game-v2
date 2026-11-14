@@ -32,7 +32,7 @@
   12 cỡ bàn = 2×6; 12 theme = 3×4 / 4×3; 4 mức số người (1..4) = BỐN THANH NGANG
   xếp dọc như bước mức máy (lưới 2×2 bị chê "hơi trống" 12.10.2026) — chơi
   chung một máy TỐI ĐA 4 người (chủ dự án chốt: 10 người "không chơi nổi");
-  online vẫn tới 10. Dải lối tắt dùng lớp `lt-chip`, KHÔNG `.chip` (toàn cục, xếp cột).
+  online cũng TỐI ĐA 4 (`ROOM_LIMITS.maxPlayers`, hạ từ 10 ngày 15.10.2026); máy chơi cùng tính vào 4 chỗ đó. Dải lối tắt dùng lớp `lt-chip`, KHÔNG `.chip` (toàn cục, xếp cột).
   Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu là ô to Chiến dịch +
   ba ô vuông (Chơi nhanh · Đấu máy · Online) + dải lối tắt (`.loi-tat`, NGOÀI
   lưới ô vì lưới chia đều 1fr), số người hỏi ở bước `count`.
@@ -337,7 +337,11 @@
   chép mã; emoji/nói nhanh chỉ lần đầu mỗi phiên) · `buoc_menu` {buoc, nhanh} — phễu wizard · `van_bat_dau`
   /`van_ket_thuc` (thêm `so_nguoi`, `theme`, `tuy_chon`; online `che_do: online`) · `van_bo_do` {cach,
   tien_do %, giay} · `ket_qua_chon` {hanh_dong} · `doi_cai_dat` {muc, gia_tri}. Tên chức năng CỐ ĐỊNH —
-  đổi là đứt số liệu cũ. Tham số mới phải đăng ký custom dimension trong GA mới lọc được.
+  đổi là đứt số liệu cũ. Tham số mới phải đăng ký custom dimension trong GA mới lọc được — KHÔNG tính
+  ngược, số liệu chỉ có từ ngày đăng ký. Đã đăng ký 14.11.2026 (Admin → Định nghĩa tuỳ chỉnh): phạm vi
+  sự kiện buoc cach che_do chuc_nang danh_hieu gia_tri hanh_dong hoan_hao ket_qua man muc nhanh sao
+  so_nguoi so_the theme tuy_chon; phạm vi người dùng nen_tang ban_web; chỉ số giay_choi (giay, Giây)
+  và tien_do. Thêm tham số mới thì đăng ký luôn trong cùng lần sửa.
 
 ## PHONG CÁCH CHỐT: 3D NỔI KHỐI (chủ dự án 18.10.2026: "chúng ta sẽ làm theo phong cách này")
 
@@ -604,6 +608,13 @@
   SDK Google. BẪY ĐÃ GẶP: màn đồng ý OAuth từng ở "Testing" + 0 người thử → đăng nhập Google trên WEB
   bị chặn với mọi người, không ai báo; đã Publish (In production) 09.11.2026. KHÔNG tải logo lên trang
   Branding — có logo là Google bắt xét duyệt app.
+- **MÁY CHƠI CÙNG VÁN NHIỀU NGƯỜI (14.11.2026, mockup duyệt https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB)**:
+  Phase 1 OFFLINE xong: bước "Tên từng người" có công tắc Người/Máy mỗi dòng (dòng 1 luôn người), chạm tên
+  máy mở bảng 5 mức (`BOT_CHOICES`). Tổng người + máy ≤ 4. App giữ `mayCung` (chỗ → mức, không lưu prefs),
+  `banDoMay()` ra `{ bot, bot2, bot3 }` theo THỨ TỰ CHỖ → `session.setBots()`. Máy đầu luôn mã `bot` (đấu máy
+  + snapshot cũ không đổi). Hỏi "có phải máy" qua `laBot()` — ĐỪNG `=== BOT_ID`. Mỗi máy KÝ ỨC RIÊNG.
+  Banner "đến lượt" chỉ khi ≥2 người thật và lượt tới là người. `minhKetCuc` chỉ khi đúng 1 người thật.
+  Điểm máy không cộng vào tổng. Phase 2 ONLINE (máy chạy trên server, chủ phòng "＋ Thêm máy") CHƯA làm.
 - **VÀO LẠI APP SAU KHI XEM KẾT VÁN ONLINE → KHÔNG DIỄN LẠI (14.11.2026)**: nối lại socket, server gửi
   lại view có `summary` (object mới) → watch ở OnlineGame chạy lại = cảnh kết ván diễn lần hai VÀ ghi ván
   vào tài khoản lần hai. Nay nhận ra "cùng ván" bằng mã phòng + moves/seconds/điểm từng người, nhớ ở

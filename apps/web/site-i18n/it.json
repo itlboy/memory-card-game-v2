@@ -126,5 +126,8 @@
  "g9": "Contro il computer",
  "g10": "Campagna di 60 livelli",
  "game.title": "Gioco di memoria online gratis: trova le coppie | Flip Match",
- "game.desc": "Gioco di memoria gratis, senza download né pubblicità: gira le carte e trova le coppie. Da solo, contro il bot o online con gli amici."
+ "game.desc": "Gioco di memoria gratis, senza download né pubblicità: gira le carte e trova le coppie. Da solo, contro il bot o online con gli amici.",
+ "r9.h": "Gioca con bot e amici",
+ "r9.d": "14 novembre 2026",
+ "r9.l": "<li>Nelle partite a più giocatori su un dispositivo, trasforma qualsiasi posto in un bot e scegline il livello.</li>\n          <li>Fino a 4 giocatori in totale, bot inclusi.</li>\n          <li>Online: tornando nell'app dopo una partita il finale non viene più riprodotto, e il pannello emoji è più piccolo.</li>"
 }

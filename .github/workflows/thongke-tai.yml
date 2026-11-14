@@ -1,4 +1,5 @@
 # THỐNG KÊ TẢI APP (chỉ đọc API) — tools/thong-ke-tai.mjs, ra daily/breakdown/status.json cho dashboard riêng.
+# + THỐNG KÊ CHỨC NĂNG (GA4) — tools/thong-ke-chuc-nang.mjs, ra chuc-nang.json/.md (14.11.2026).
 #
 # Repo CÔNG KHAI: log và artifact ai đăng nhập GitHub cũng đọc được. Vì vậy:
 #   - toàn bộ đầu ra (cả tóm tắt stderr) gói lại và MÃ HOÁ bằng age (khoá công khai dưới đây);
@@ -11,6 +12,10 @@ name: Download stats (encrypted)
 
 on:
   workflow_dispatch:
+    inputs:
+      ga_tu:
+        description: 'GA từ ngày (YYYY-MM-DD hoặc 28daysAgo)'
+        default: '28daysAgo'
 
 permissions:
   contents: read
@@ -30,6 +35,7 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          GA_TU: ${{ inputs.ga_tu }}
           AGE_PUB: age1l2lcl3yquw0dwujamepv0q427fk6fpwhuy96luu5ldr4cx5y7p7ssqy0a9
         run: |
           set -euo pipefail
@@ -39,6 +45,8 @@ jobs:
           printf '%s' "$SA_JSON" > "$T/sa.json"
           export ASC_KEY_PATH="$T/k.p8" PLAY_SA_JSON="$T/sa.json"
           rc=0; node tools/thong-ke-tai.mjs --out-dir "$T/out" > "$T/out/stdout.txt" 2> "$T/out/tomtat.txt" || rc=$?
+          # Chức năng trong game (GA4) — cùng tài khoản dịch vụ, cùng gói mã hoá
+          node tools/thong-ke-chuc-nang.mjs --out-dir "$T/out" --tu "${GA_TU:-28daysAgo}" 2>> "$T/out/tomtat.txt" || echo "chuc-nang lỗi" >> "$T/out/tomtat.txt"
           rm -f "$T/k.p8" "$T/sa.json"
           echo "$rc" > "$T/out/exit.txt"
           tar czf - -C "$T/out" . | age -r "$AGE_PUB" -o thongke.tar.gz.age

@@ -126,5 +126,8 @@
  "g9": "Bilgisayara karşı",
  "g10": "60 bölümlük macera",
  "game.title": "Hafıza Oyunu Oyna: Kart Eşleştirme, Eşini Bul | Flip Match",
- "game.desc": "Ücretsiz hafıza oyunu, indirmeden ve reklamsız: kartları çevir, eşini bul. Tek başına, bota karşı ya da arkadaşlarınla online oyna."
+ "game.desc": "Ücretsiz hafıza oyunu, indirmeden ve reklamsız: kartları çevir, eşini bul. Tek başına, bota karşı ya da arkadaşlarınla online oyna.",
+ "r9.h": "Arkadaşlarla birlikte botlarla oyna",
+ "r9.d": "14 Kasım 2026",
+ "r9.l": "<li>Tek cihazda çok oyunculu oyunda herhangi bir yeri bota çevirip seviyesini seç.</li>\n          <li>Botlar dahil en fazla 4 oyuncu.</li>\n          <li>Çevrimiçi: maçtan sonra uygulamaya dönünce bitiş sahnesi tekrar oynatılmıyor, emoji paneli daha küçük.</li>"
 }

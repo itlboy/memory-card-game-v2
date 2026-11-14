@@ -157,7 +157,7 @@ describe('dấu cho lá đối thủ vừa mở', () => {
 
   it('tín hiệu mang theo CỦA AI, ở cả hai đường chơi', () => {
     expect(online).toMatch(/cuaToi: pending\.value\.has\(e\.index\)/);
-    expect(local).toMatch(/cuaToi: game\.value\?\.current\?\.id !== BOT_ID/);
+    expect(local).toMatch(/cuaToi: !laBot\(game\.value\?\.current\?\.id\)/);
   });
 
   it('lá người khác mở nở HAI nhịp, không phải một', () => {

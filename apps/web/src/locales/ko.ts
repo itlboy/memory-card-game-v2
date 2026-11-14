@@ -121,6 +121,8 @@ const ko: TuDien = {
   'menu.nguoi': '명',
   'menu.goiYTen': '비워 두면 "플레이어 1", "플레이어 2"…로 표시돼요',
   'menu.nguoiN': '플레이어 {n}',
+  'menu.laNguoi': '사람', 'menu.laMay': '봇',
+  'menu.chamDoiMuc': '탭해서 레벨 변경', 'menu.mucMayN': '{n}번 봇 레벨',
   'menu.tenNguoiAria': '플레이어 {n} 이름',
   'menu.tiepTuc': '계속',
   'menu.nhieuTheme': '테마를 여러 개 고르면 보드에 모든 테마의 그림이 섞여요.',

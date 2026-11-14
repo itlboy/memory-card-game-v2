@@ -124,6 +124,8 @@ const id: TuDien = {
   'menu.nguoi': 'pemain',
   'menu.goiYTen': 'Kosongkan untuk memakai "Pemain 1", "Pemain 2", dan seterusnya',
   'menu.nguoiN': 'Pemain {n}',
+  'menu.laNguoi': 'Pemain', 'menu.laMay': 'Bot',
+  'menu.chamDoiMuc': 'Ketuk untuk ganti level', 'menu.mucMayN': 'Level bot ke-{n}',
   'menu.tenNguoiAria': 'Nama pemain {n}',
   'menu.tiepTuc': 'Lanjut',
   'menu.nhieuTheme': 'Pilih beberapa tema — papan akan mencampur simbol dari semuanya.',

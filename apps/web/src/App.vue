@@ -49,7 +49,7 @@ const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
 import IconBay from './components/IconBay.vue';
-import { useGameSession } from './composables/useGameSession';
+import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
 import {
   ACHIEVEMENTS, dhAn, dsHien, byId, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
   type Achievement
@@ -128,6 +128,21 @@ const playerCount = ref(prefs.playerCount);
 /** Đấu với máy: mức của máy, null là không đấu máy. KHÔNG lưu vào prefs — mở
  *  app lên phải là trang chủ bình thường, không tự nhảy vào ván đấu máy. */
 const botLevel = ref<BotLevel | null>(null);
+/** MÁY CHƠI CÙNG ở ván nhiều người chung máy: chỗ i (0..3) là máy mức nào, null = người.
+ *  Chỗ 0 luôn là người. Không lưu prefs — như botLevel. */
+const mayCung = ref<(BotLevel | null)[]>([]);
+/** Mã người chơi → mức, cho session. Đấu máy: `{ bot }`; nhiều người: bot, bot2, bot3 theo thứ tự chỗ. */
+function banDoMay(): Record<string, BotLevel> {
+  if (botLevel.value) return { [BOT_ID]: botLevel.value };
+  if (playerCount.value < 2) return {};
+  const ra: Record<string, BotLevel> = {};
+  let k = 0;
+  for (let i = 1; i < playerCount.value; i++) {
+    const l = mayCung.value[i];
+    if (l) ra[maBot(k++)] = l;
+  }
+  return ra;
+}
 /**
  * Số đếm "tiến độ vừa đổi". Cần vì store đọc localStorage — computed nào gọi
  * store.unlockedLevel() không có phụ thuộc phản ứng nào, sẽ nhớ mãi giá trị cũ.
@@ -356,7 +371,7 @@ function persistGame(): void {
   const g = session.game.value;
   if (!g || g.finished) return;
   try {
-    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ snap: g.snapshot(), levelId: levelId.value, bot: botLevel.value }));
+    sessionStorage.setItem(RESUME_KEY, JSON.stringify({ snap: g.snapshot(), levelId: levelId.value, bot: botLevel.value, may: session.bots.value }));
   } catch { /* chế độ riêng tư */ }
 }
 
@@ -370,12 +385,13 @@ function restoreGame(): boolean {
   try {
     const raw = sessionStorage.getItem(RESUME_KEY);
     if (!raw) return false;
-    const blob = JSON.parse(raw) as { snap: string; levelId: number | null; bot?: BotLevel | null };
+    const blob = JSON.parse(raw) as { snap: string; levelId: number | null; bot?: BotLevel | null; may?: Record<string, BotLevel> };
     const g = MemoryGame.restore(blob.snap);
     // Ván đấu máy khôi phục sau F5: phải bật lại bộ điều khiển, không thì tới
     // lượt máy là ván treo vĩnh viễn. Mức lưu kèm snapshot.
     botLevel.value = blob.bot ?? null;
-    session.setBot(botLevel.value);
+    // Máy chơi cùng (nhiều người) lưu theo mã; bản lưu cũ chỉ có `bot`
+    session.setBots(blob.may ?? (botLevel.value ? { [BOT_ID]: botLevel.value } : {}));
     if (g.finished) return false;
     levelId.value = blob.levelId;
     session.adopt(g);
@@ -570,10 +586,12 @@ function playerList(): PlayerInit[] | undefined {
   }
   if (playerCount.value < 2) return undefined;
   const saved = store.playerNames();
-  const list = Array.from({ length: playerCount.value }, (_, i) => ({
-    id: `p${i + 1}`,
-    name: saved[i] ?? t('menu.nguoiN', { n: i + 1 })
-  }));
+  let k = 0;
+  const list: PlayerInit[] = Array.from({ length: playerCount.value }, (_, i) => {
+    const l = i > 0 ? mayCung.value[i] : null;
+    if (l) return { id: maBot(k++), name: BOT_SPECS[l].name, avatar: BOT_SPECS[l].avatar };
+    return { id: `p${i + 1}`, name: saved[i] ?? t('menu.nguoiN', { n: i + 1 }) };
+  });
   return batDauLoat(list);
 }
 
@@ -671,7 +689,7 @@ function startLevel(id: number): void {
     // Màn Chiến dịch (1..60) và khoá cỡ bàn (1..50) là hai thang khác nhau —
     // ghi màn vào `level` là bước chọn số thẻ đọc ra cỡ bàn sai hoặc ném lỗi.
     if (mode.value !== 'campaign') level.value = id;
-    session.setBot(botLevel.value);
+    session.setBots(banDoMay());
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
 }
@@ -699,7 +717,8 @@ const tranCap = (): number => (mode.value === 'campaign' ? CAMPAIGN_LEVELS : LEV
 function kieuVan(): string {
   if (mode.value === 'campaign') return 'chien_dich';
   if (botLevel.value) return `dau_may_${botLevel.value}`;
-  return playerCount.value > 1 ? 'nhieu_nguoi' : 'choi_nhanh';
+  if (playerCount.value > 1) return Object.keys(banDoMay()).length ? 'nhieu_nguoi_may' : 'nhieu_nguoi';
+  return 'choi_nhanh';
 }
 
 /** Tuỳ chọn ván đang bật, gọn cho GA: `peek2,time1` — bàn trơn là `tron`. */
@@ -846,7 +865,7 @@ watch(session.summary, (s) => {
       void taiKhoan.ghiVan({
         ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi, achievements: dat
       });
-    } else store.addScore(s.ranking[0]?.score ?? 0);
+    } else store.addScore(s.ranking.find((r) => !laBot(r.id))?.score ?? 0);   // điểm MÁY không cộng vào tổng
     // Tỷ số loạt: hoà thì không ai được cộng
     const champ = s.ranking[0];
     if (champ && !isDraw(s.ranking)) {
@@ -923,6 +942,7 @@ const hasNext = computed(() => {
       :theme-ids="themeIds"
       :player-count="playerCount"
       :bot-level="botLevel"
+      :may-cung="mayCung"
       :options="options"
       :total-score="totalScore"
       :symbol-count="symbols.length"
@@ -932,6 +952,7 @@ const hasNext = computed(() => {
       @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
       @update:bot-level="botLevel = $event"
+      @update:may-cung="mayCung = $event"
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"
@@ -981,6 +1002,7 @@ const hasNext = computed(() => {
       :theme-ids="themeIds"
       :player-count="playerCount"
       :bot-level="botLevel"
+      :may-cung="mayCung"
       :options="options"
       :total-score="totalScore"
       :symbol-count="symbols.length"
@@ -990,6 +1012,7 @@ const hasNext = computed(() => {
       @update:theme-ids="themeIds = $event"
       @update:player-count="playerCount = $event"
       @update:bot-level="botLevel = $event"
+      @update:may-cung="mayCung = $event"
       @update:options="options = $event"
       @start-level="startLevel"
       @online="screen = 'online'"

@@ -126,5 +126,8 @@
  "g9": "Lawan komputer",
  "g10": "Kampanye 60 level",
  "game.title": "Game Memori Online: Cocokkan Gambar Kartu | Flip Match",
- "game.desc": "Game memori gratis tanpa install & tanpa iklan: balik kartu, cari pasangan gambar, asah otak. Main sendiri, lawan bot, atau online bareng teman."
+ "game.desc": "Game memori gratis tanpa install & tanpa iklan: balik kartu, cari pasangan gambar, asah otak. Main sendiri, lawan bot, atau online bareng teman.",
+ "r9.h": "Main bersama bot dan teman",
+ "r9.d": "14 November 2026",
+ "r9.l": "<li>Di permainan banyak pemain pada satu perangkat, ubah kursi mana pun jadi bot dan pilih levelnya.</li>\n          <li>Maksimal 4 pemain, termasuk bot.</li>\n          <li>Online: kembali ke aplikasi setelah permainan tidak lagi memutar ulang akhir permainan, dan panel emoji lebih kecil.</li>"
 }
