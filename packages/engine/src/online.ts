@@ -24,7 +24,18 @@ export interface RoomConfig {
    * `lives: 999` hay `peek: 99` là dựng ra ván không ai chơi nổi.
    */
   options: BoardOptions;
+  /**
+   * CHẾ ĐỘ ĐỒNG ĐỘI 2 đấu 2 (docs/che-do-dong-doi.md). Chỉ bật/tắt qua gói `t:'doi'`; thiếu = tắt.
+   * Bật thì client phải khai `?dd=1` lúc mở socket — client cũ bị từ chối, không chơi sai luật.
+   */
+  doi?: boolean;
 }
+
+/** ĐỒNG ĐỘI: giới hạn giờ cho MỖI LÁ, giây (docs/che-do-dong-doi.md). Server đặt, client vẽ vạch. */
+export const GIAY_MOI_LA = 8;
+
+/** Hai đội của chế độ Đồng đội. */
+export type DoiId = 'A' | 'B';
 
 /** Chiến dịch KHÔNG mở được trong phòng: nó là chuỗi màn của riêng một người,
  *  mở khoá dần theo tiến độ cá nhân. Phòng luôn là một ván lẻ. */
@@ -139,6 +150,12 @@ export interface PublicPlayer {
   ready?: boolean;
   /** MÁY CHƠI CÙNG (1.6.0): có = người này là máy, chạy trên server, ở mức này. Client cũ bỏ qua. */
   may?: BotLevel;
+  /** ĐỒNG ĐỘI, ở PHÒNG CHỜ (RoomInfo): người này thuộc đội nào. */
+  doi?: DoiId;
+  /** ĐỒNG ĐỘI, trong VIEW VÁN: "người chơi" này là một đội — mã hai thành viên [A, B]. */
+  thanhVien?: string[];
+  /** ĐỒNG ĐỘI, trong view ván: thành viên đã rời hẳn. */
+  vang?: string[];
 }
 
 /**
@@ -289,6 +306,8 @@ export interface GameView {
   /** Id mặt sau. Hai dạng: id mới `hoạ tiết.bảng màu`, hoặc một trong sáu tên
    *  CŨ khi người nhận là client chưa khai `?bv=2` — xem `backVeCu`. */
   back: CardBack | CardBackCu;
+  /** ĐỒNG ĐỘI: mã THÀNH VIÊN được lật lá kế (`currentId` khi đó là mã ĐỘI). Chỉ có ở ván Đồng đội. */
+  nguoiLat?: string;
 }
 
 /**
@@ -372,7 +391,9 @@ export function publicView(
     peekLeft: game.revealUntil > 0 ? Math.max(0, (game.revealUntil - now) / 1000) : null,
     elapsed: Math.floor(game.elapsed(now)),
     summary: game.summary(),
-    back: backForSeed(game.config.seed)
+    back: backForSeed(game.config.seed),
+    // ĐỒNG ĐỘI: thành viên được lật lá kế — chỉ có ở ván Đồng đội, ván thường không thêm byte nào
+    ...(game.config.teamFlip ? { nguoiLat: game.nguoiLat() ?? '' } : {})
   };
 }
 
@@ -382,7 +403,9 @@ export function publicPlayer(p: Player, connected: boolean): PublicPlayer {
     score: p.score, pairs: p.pairs, bestStreak: p.bestStreak,
     frozenTurns: p.frozenTurns, doubleNext: p.doubleNext,
     forfeited: !!p.forfeited, connected,
-    lives: Number.isFinite(p.lives) ? p.lives : null
+    lives: Number.isFinite(p.lives) ? p.lives : null,
+    ...(p.thanhVien ? { thanhVien: [...p.thanhVien] } : {}),
+    ...(p.vang?.length ? { vang: [...p.vang] } : {})
   };
 }
 
@@ -461,6 +484,14 @@ export type ClientMsg =
    * `maxPlayers`), `set` đổi mức, `remove` bỏ máy. Máy luôn sẵn sàng, chạy trên server.
    */
   | { t: 'bot'; op: 'add' | 'set' | 'remove'; id?: string; level?: string }
+  /**
+   * ĐỒNG ĐỘI (chủ phòng, ở phòng chờ): `on` bật/tắt chế độ; `playerId` + `doi` chuyển một người
+   * sang đội kia. Gói tin MỚI — không đổi `config` đang có.
+   */
+  | { t: 'doi'; on?: boolean; playerId?: string; doi?: DoiId }
+  /** ĐỒNG ĐỘI: chỉ một lá úp cho đồng đội (đang trong ván). */
+  | { t: 'chi'; index: number }
+
   | { t: 'ping' }
   /**
    * Báo còn sống. KHÁC `ping`: `ping` do server tự trả lời (setWebSocketAutoResponse)
@@ -556,6 +587,9 @@ export type ServerMsg =
   | { t: 'events'; events: PublicEvent[]; view: GameView | WireView }
   | { t: 'emoji'; from: string; emoji: QuickEmoji }
   | { t: 'say'; from: string; id: QuickSay }
+  /** ĐỒNG ĐỘI: đồng đội chỉ một lá úp — server CHỈ gửi cho đồng đội của `from` (đội kia không nhận). */
+  | { t: 'chi'; from: string; index: number }
+
   /** `code` để client DỊCH (message là tiếng Việt, chỉ để dự phòng cho client cũ). */
   | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' }
   | { t: 'error'; code: string; message: string }

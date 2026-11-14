@@ -16,6 +16,7 @@ import { bcp, t, td } from '@/lib/i18n';
 import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { datPingSo, pingSo } from '@/lib/ping-so';
+import { datDongDoiThu, dongDoiThu } from '@/lib/dong-doi';
 import { boEmojiHien, boEmojiVeMacDinh, doiBoEmojiThu } from '@/lib/emoji';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 
@@ -109,6 +110,10 @@ function veMacDinh(): void {
       </button>
       <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="pingSo" @click="datPingSo(!pingSo)">
         <span>{{ t('lc.pingSo') }}</span><i class="sw" :class="{ bat: pingSo }" aria-hidden="true" />
+      </button>
+      <!-- Chế độ Đồng đội đang ẩn (lib/dong-doi.ts) — bật để thử ở phòng chờ online -->
+      <button data-phang class="dbg-cong" type="button" role="menuitemcheckbox" :aria-checked="dongDoiThu" @click="datDongDoiThu(!dongDoiThu)">
+        <span>{{ t('dd.thu') }}</span><i class="sw" :class="{ bat: dongDoiThu }" aria-hidden="true" />
       </button>
       <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
         <span>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</span><i class="doi" aria-hidden="true">↻</i>

@@ -13,6 +13,7 @@
     "dev:server": "pnpm --filter @mm/server dev",
     "smoke:online": "node tools/smoke-online.mjs",
     "smoke:may": "node tools/smoke-may-online.mjs",
+    "smoke:doi": "node tools/smoke-dong-doi.mjs",
     "smoke:freeze": "node tools/smoke-freeze.mjs",
     "smoke:offline": "node tools/smoke-offline.mjs",
     "ban:tang": "node tools/tang-ban.mjs",

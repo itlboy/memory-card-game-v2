@@ -8,12 +8,15 @@ import { store } from '@/lib/storage';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card, Summary } from '@mm/engine';
 import { List, Timer } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { sfx } from '@/lib/audio';
 import { pingSo } from '@/lib/ping-so';
 import { num, numGon } from '@/lib/format';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
 import KetCucFx from './KetCucFx.vue';
+import TeamStrip from './TeamStrip.vue';
+import { rung } from '@/lib/rung';
 import { tenNguoi } from '@/lib/ten';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
@@ -245,7 +248,68 @@ const khac = computed(() => {
 const moBang = ref(false);
 watch(() => o.view.value?.players.length, () => { moBang.value = false; });
 
-const iWon = computed(() => o.view.value?.summary?.ranking[0]?.id === o.myId.value);
+/** CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md): view có `nguoiLat` ⇔ ván đội. Ván thường: false, mọi nhánh dưới không chạy. */
+const laDoi = computed(() => o.view.value?.nguoiLat !== undefined);
+const iWon = computed(() => o.laToi(o.view.value?.summary?.ranking[0]?.id));
+
+/*
+ * CHỈ THẺ (Đồng đội): chạm GIỮ một lá úp ~0,4s → lá đó nháy trên máy đồng đội kèm "chỗ này!".
+ * Server chỉ gửi cho đồng đội. Làm bằng lớp NGOÀI CardTile (bắt ở pha capture của khung bàn +
+ * thuộc tính `data-chi` trên nút lá — Vue không đụng thuộc tính lạ), để ván thường không đổi gì.
+ */
+const GIU_MS = 400;
+let henGiu: ReturnType<typeof setTimeout> | undefined;
+let nuotClick = false;
+let diemGiu: [number, number] | null = null;
+const bongChi = ref<{ x: number; y: number; ten: string; key: number } | null>(null);
+let henChi: ReturnType<typeof setTimeout> | undefined;
+function hienChi(index: number, ten: string): void {
+  const el = wrap.value?.querySelector<HTMLElement>(`.card[data-index="${index}"]`);
+  const khung = wrap.value?.getBoundingClientRect();
+  if (!el || !khung) return;
+  wrap.value?.querySelectorAll('[data-chi]').forEach((e) => e.removeAttribute('data-chi'));
+  el.setAttribute('data-chi', '1');
+  const r = el.getBoundingClientRect();
+  bongChi.value = { x: r.left + r.width / 2 - khung.left, y: r.top - khung.top, ten, key: (bongChi.value?.key ?? 0) + 1 };
+  clearTimeout(henChi);
+  henChi = setTimeout(() => { el.removeAttribute('data-chi'); bongChi.value = null; }, 3000);
+}
+function giuXuong(e: PointerEvent): void {
+  if (!laDoi.value || o.spectator.value || o.view.value?.summary) return;
+  const la = (e.target as HTMLElement).closest<HTMLElement>('button.card');
+  if (!la || la.classList.contains('up') || la.classList.contains('done')) return;
+  const index = Number(la.dataset.index);
+  diemGiu = [e.clientX, e.clientY];
+  clearTimeout(henGiu);
+  henGiu = setTimeout(() => {
+    nuotClick = true;                        // nhả tay sau khi chỉ KHÔNG được thành cú lật
+    o.chiLa(index);
+    rung.sai();
+    sfx.select();
+    hienChi(index, '');
+  }, GIU_MS);
+}
+function giuDi(e: PointerEvent): void {
+  if (diemGiu && Math.hypot(e.clientX - diemGiu[0], e.clientY - diemGiu[1]) > 10) boGiu();
+}
+function boGiu(): void { clearTimeout(henGiu); diemGiu = null; }
+/** Nhả tay: CardTile lật ở `pointerup` (không phải click) — đã chỉ thì chặn ngay ở pha capture. */
+function giuNha(e: PointerEvent): void {
+  boGiu();
+  if (nuotClick && e.type === 'pointerup') e.stopPropagation();
+}
+function chanClick(e: MouseEvent): void {
+  if (!nuotClick) return;
+  nuotClick = false;
+  e.stopPropagation(); e.preventDefault();
+}
+watch(() => o.chiThe.value, (c) => {
+  if (!c) return;
+  const ai = o.room.value?.players.find((p) => p.id === c.from);
+  sfx.select();
+  hienChi(c.index, ai ? `${ai.avatar ?? ''} ` : '');
+});
+onBeforeUnmount(() => { clearTimeout(henGiu); clearTimeout(henChi); });
 /** HOÀ không phải thua: tiếng đã là `sfx.win()` nhẹ, nên hình cũng không được
  *  là tro rơi. Thiếu phép kiểm này thì hoà xong nhìn y như vừa bị hạ. */
 const hoa = computed(() => {
@@ -304,7 +368,16 @@ watch(() => o.view.value?.summary, (s) => {
    * phòng rồi thắng là cách cày "thắng online" không tốn công. Cùng lý do Đấu máy mức Dễ không
    * cộng điểm. Cảnh kết ván vẫn diễn bình thường.
    */
-  if (s.ranking.some((r) => laBotId(r.id))) {
+  /*
+   * VÁN ĐỒNG ĐỘI (chủ dự án chốt 14.11.2026): chỉ ghi THẮNG/THUA vào tài khoản, KHÔNG điểm xếp
+   * hạng, KHÔNG danh hiệu online. Đội đấu MÁY thì không ghi gì (như phòng có máy).
+   */
+  const coMay = s.ranking.some((r) => laBotId(r.id) || r.thanhVien?.some((m) => laBotId(m)));
+  if (laDoi.value && !coMay && !o.spectator.value) {
+    store.ghiVanBoDem({ thang: loaiKetCuc.value === 'thang', online: true });
+    void taiKhoan.ghiVan({ ketQua: loaiKetCuc.value, score: 0, achievements: [] });
+  }
+  if (coMay || laDoi.value) {
     resultTimer = setTimeout(() => { showResult.value = true; }, HIEN_BANG_MS[chonCanh(loaiKetCuc.value)]);
     return;
   }
@@ -348,7 +421,9 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       @quit="emit('quit')"
     />
 
-    <div class="strip-wrap">
+    <!-- ĐỒNG ĐỘI: thanh đội HIỆN THAY dải chip (không nhồi nhánh đội vào dải cũ) -->
+    <TeamStrip v-if="laDoi" :o="o" />
+    <div v-else class="strip-wrap">
       <!-- TỚI 4 NGƯỜI: dạng cũ, mỗi người một chip có tên -->
       <div v-if="!gonStrip" class="strip" :class="{ dong: soNguoi >= 3 }">
         <div
@@ -539,7 +614,14 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       </Transition>
     </div>
 
-    <div ref="wrap" class="board-wrap">
+    <div
+      ref="wrap" class="board-wrap"
+      @pointerdown.capture="giuXuong" @pointermove.capture="giuDi" @pointerup.capture="giuNha" @pointercancel.capture="giuNha"
+      @click.capture="chanClick"
+    >
+      <span v-if="bongChi" :key="bongChi.key" class="bong-chi" :style="{ left: `${bongChi.x}px`, top: `${bongChi.y}px` }">
+        {{ bongChi.ten }}{{ t('dd.choNay') }}
+      </span>
       <BoardGrid
         :cards="cards" :cols="o.view.value?.cols ?? 4"
         :face-up="faceUp" :matched="matchedSet"
@@ -600,6 +682,16 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
 
 <style scoped>
 .game { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+/* CHỈ THẺ (Đồng đội): lá được chỉ nháy viền vàng + bong bóng nhỏ ngay trên lá */
+.board-wrap :deep(.card[data-chi]) { outline: 4px solid #ffc83d; outline-offset: 2px; border-radius: 14px; animation: chi-nhay .6s ease-in-out 5; z-index: 5; }
+@keyframes chi-nhay { 50% { outline-color: transparent; } }
+.bong-chi {
+  position: absolute; z-index: 8; translate: -50% calc(-100% - 6px); pointer-events: none; white-space: nowrap;
+  padding: 3px 9px; border-radius: 10px; background: #ffc83d; color: #5a3500;
+  font-family: var(--font-display); font-weight: 900; font-size: 13px; box-shadow: 0 3px 0 #d99a12;
+  animation: chi-vao .25s ease-out;
+}
+@keyframes chi-vao { from { opacity: 0; scale: .7; } }
 /* Bọc để bảng đầy đủ neo được (absolute) mà không đụng tới dòng của bàn thẻ. */
 .strip-wrap { position: relative; }
 .strip { display: flex; gap: 6px; }

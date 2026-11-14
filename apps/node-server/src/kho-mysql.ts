@@ -189,7 +189,11 @@ const VA_COT: readonly [string, string, string][] = [
   ['rooms', 'close_reason', 'VARCHAR(16) NULL'],
   // MÁY CHƠI CÙNG (1.6.0): mức của máy; NULL = người thật. Thiếu cột là khởi động lại server
   // biến máy thành "người" không bao giờ kết nối — ván treo chờ nó tới hết hạn giữ chỗ.
-  ['room_players', 'may', 'VARCHAR(16) NULL']
+  ['room_players', 'may', 'VARCHAR(16) NULL'],
+  // CHẾ ĐỘ ĐỒNG ĐỘI: phòng bật chế độ + người thuộc đội nào. Thiếu là khởi động lại server mất
+  // chia đội — phòng chờ về chế độ thường, ván đang chạy (snapshot vẫn mang đội) lệch phòng.
+  ['rooms', 'che_do_doi', 'TINYINT(1) NOT NULL DEFAULT 0'],
+  ['room_players', 'doi', 'CHAR(1) NULL']
 ];
 
 /** Phòng đã đóng quá bấy nhiêu thì xoá cứng. Không có bước này thì xoá mềm làm
@@ -283,10 +287,10 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     congKhai: boolean;
     countdownEnd?: number;
     emptyAt?: number;
-    config: { level: number; themeIds: string[]; options: Record<string, number> };
+    config: { level: number; themeIds: string[]; options: Record<string, number>; doi?: boolean };
     players: {
       id: string; name: string; avatar?: string; token: string; clientId?: string;
-      ready: boolean; disconnectedAt: number | null; lastSeen?: number; may?: string;
+      ready: boolean; disconnectedAt: number | null; lastSeen?: number; may?: string; doi?: string;
     }[];
   }
 
@@ -331,14 +335,14 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         `UPDATE rooms SET
            status = ?, host_id = ?, is_public = ?, level = ?,
            opt_time = ?, opt_lives = ?, opt_peek = ?, opt_shuffle = ?, opt_special = ?,
-           countdown_end = ?, empty_at = ?, alarm_at = ?, game_state = ?,
+           countdown_end = ?, empty_at = ?, alarm_at = ?, game_state = ?, che_do_doi = ?,
            opened_at = IF(? > 0, ?, opened_at)
          WHERE id = ?`,
         [
           room?.status ?? 'lobby', room?.hostId || null, room?.congKhai === false ? 0 : 1,
           room?.config.level ?? 0,
           o.time ?? 0, o.lives ?? 0, o.peek ?? 0, o.shuffle ?? 0, o.special ?? 0,
-          room?.countdownEnd ?? null, room?.emptyAt ?? null, alarmLuc, gameState,
+          room?.countdownEnd ?? null, room?.emptyAt ?? null, alarmLuc, gameState, room?.config.doi ? 1 : 0,
           openedAt, openedAt, id
         ]
       );
@@ -353,17 +357,17 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         await c.query(
           `INSERT INTO room_players
              (room_id, player_id, seat, name, avatar, client_id, token, is_ready,
-              disconnected_at, last_seen, joined_at, left_at, may)
+              disconnected_at, last_seen, joined_at, left_at, may, doi)
            VALUES ?
            ON DUPLICATE KEY UPDATE
              seat = VALUES(seat), name = VALUES(name), avatar = VALUES(avatar),
              client_id = VALUES(client_id), token = VALUES(token),
              is_ready = VALUES(is_ready),
              disconnected_at = VALUES(disconnected_at), last_seen = VALUES(last_seen),
-             may = VALUES(may), left_at = 0`,
+             may = VALUES(may), doi = VALUES(doi), left_at = 0`,
           [ps.map((p, i) => [
             id, p.id, i, p.name, p.avatar ?? null, p.clientId ?? null, p.token,
-            p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null
+            p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null, p.doi ?? null
           ])]
         );
       }
@@ -550,12 +554,14 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     opt_shuffle: number; opt_special: number; countdown_end: number | null;
     empty_at: number | null; alarm_at: number | null; opened_at: number;
     game_state: string | null;
+    che_do_doi?: number;
   }
   /** Một dòng của bảng `room_players`. */
   interface DongNguoiChoi {
     room_id: number; player_id: string; name: string; avatar: string | null;
     token: string | null; is_ready: number; disconnected_at: number | null; last_seen: number | null;
     may?: string | null;
+    doi?: string | null;
   }
 
   return {
@@ -592,6 +598,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
             disconnectedAt: p.disconnected_at === null ? null : Number(p.disconnected_at),
             ...(p.avatar ? { avatar: p.avatar } : {}),
             ...(p.may ? { may: p.may } : {}),
+            ...(p.doi ? { doi: p.doi } : {}),
             ...(p.last_seen === null ? {} : { lastSeen: Number(p.last_seen) })
           });
           nguoiTheoPhong.set(p.room_id, ds);
@@ -622,7 +629,8 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
                   time: Number(r.opt_time), lives: Number(r.opt_lives),
                   peek: Number(r.opt_peek), shuffle: Number(r.opt_shuffle),
                   special: Number(r.opt_special)
-                }
+                },
+                ...(Number(r.che_do_doi) ? { doi: true } : {})
               },
               players: nguoiTheoPhong.get(id) ?? [],
               ...(r.countdown_end === null ? {} : { countdownEnd: Number(r.countdown_end) }),

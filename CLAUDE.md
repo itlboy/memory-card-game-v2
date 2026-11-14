@@ -626,6 +626,22 @@
   không treo). MySQL server Node có cột `room_players.may` (thiếu là khởi động lại thành người ma).
   Phòng có máy KHÔNG lên sổ tài khoản / danh hiệu online (chống cày thắng Gà mờ). Smoke:
   `tools/smoke-may-online.mjs` (`pnpm smoke:may`).
+- **CHẾ ĐỘ ĐỒNG ĐỘI ONLINE (1.7.0, 14.11.2026) — đọc `docs/che-do-dong-doi.md` trước khi đụng.** Mọi thứ sau cờ
+  `teamFlip` (engine) / `config.doi` (phòng); ván thường cùng nhánh code cũ, view/RoomInfo không thêm trường
+  nào (smoke canh). Engine: mỗi ĐỘI là một `Player` (`thanhVien`), `nguoiLat()` nói ai lật lá kế, giờ theo
+  TỪNG LÁ (`GIAY_MOI_LA` 8s), `roiDoi()`. Server: gói `doi`/`chi`, client phải khai `?dd=1` (client cũ nhận
+  `closed` + lời nhắc — KHÔNG tự đóng socket, đóng sớm là mất tin), đội hình hợp lệ = 2×2 người HOẶC 2 người
+  + MỘT máy đứng riêng đội (`doiDu`), ai cũng tự đổi đội mình. Client: `TeamStrip.vue` HIỆN THAY dải chip;
+  "lượt mình" = `view.nguoiLat === myId`; `laToi(id)` nhận cả mã ĐỘI; chỉ thẻ chặn ở pha capture của
+  `.board-wrap` — CardTile lật ở `pointerup` (không phải click) nên phải `stopPropagation` cả pointerup lẫn
+  click. Ván đội chỉ ghi thắng/thua (không điểm, không danh hiệu); đội đấu máy không ghi gì. Tắt khẩn cấp:
+  `DONG_DOI_MO = false` (lib/dong-doi.ts) giấu nút chọn. MySQL: `rooms.che_do_doi`, `room_players.doi`.
+  Smoke `pnpm smoke:doi` (chạy cả wrangler lẫn Node). ĐỪNG sửa test cũ cho khớp: test soi mã nguồn
+  (`rung.test.ts`…) đòi giữ nguyên dòng cũ — thêm nhánh `else if` cho đội.
+- **PHÒNG CHỜ GỌN (1.7.0, mockup https://claude.ai/artifact/5WCU919WRXPLyPVS51VErS)**: tiêu đề "Phòng <mã>" + chip
+  Công khai nhỏ + MỘT nút Mời; dòng người 46px; tên mình LÀ nút đổi tên; ping chỉ hiện khi mạng yếu; ✕ nhỏ
+  nhạt. BẪY: `li.empty` trùng tên `.empty` của màn danh sách (xếp dọc, đệm 24px) → phải ghi đè về một hàng,
+  không thì "Thêm máy" bị đẩy khuất (lỗi 1.6.0).
 - **CHUỖI LỚP PHỦ (1.6.1, 14.11.2026 — chủ dự án: "lớp phủ đen chưa bao kín")**: TopBar 15 < đếm ngược
   vào ván / cảnh kết ván 16 < bảng kết quả 17 < TamDung + wizard "Chỉnh bàn" sau ván (`.wiz-phu`) 18 <
   MoKhoaFx 19 < hộp thoại 20. Trước đây cảnh kết ván (9), bảng kết quả (10), đếm ngược (7) nằm DƯỚI thanh
