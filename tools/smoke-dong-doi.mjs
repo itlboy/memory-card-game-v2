@@ -22,6 +22,21 @@ const chet = (msg) => { console.log('✗', msg); process.exit(1); };
 const phong = (c) => [...c.msgs].reverse().find((m) => m.t === 'room')?.room;
 const view = (c) => [...c.msgs].reverse().find((m) => (m.t === 'state' || m.t === 'events') && m.view)?.view;
 const gui = (c, m) => c.ws.send(JSON.stringify(m));
+/*
+ * Người giả NHỚ BÀI (lật ngẫu nhiên thì bàn 16 thẻ có lúc quá 3 phút — đỏ giả trên server thật,
+ * 14.11.2026). Lá 1: nếu đã biết một cặp thì mở nó, không thì mở lá chưa biết. Lá 2: lá trùng nếu biết.
+ */
+const nho = new Map();
+function chonLa(v) {
+  for (const c of v.cards) { if (c.symbol && c.state !== 'matched') nho.set(c.index, c.symbol); if (c.state === 'matched') nho.delete(c.index); }
+  const up = v.cards.filter((c) => c.state === 'up');
+  const down = v.cards.filter((c) => c.state === 'down' && !c.blank).map((c) => c.index);
+  if (up.length >= 2 || !down.length) return null;
+  let pick;
+  if (up.length === 1) pick = down.find((i) => nho.get(i) === up[0].symbol);
+  else { const thay = {}; for (const i of down) { const sy = nho.get(i); if (sy === undefined) continue; if (thay[sy] !== undefined) { pick = i; break; } thay[sy] = i; } }
+  return pick ?? down.find((i) => !nho.has(i)) ?? down[0];
+}
 const ma = (c) => c.msgs.find((m) => m.t === 'welcome')?.playerId;
 
 // Phòng THƯỜNG: view không có trường mới
@@ -116,12 +131,11 @@ while (Date.now() - batDau < 180_000) {
   const ai = theoMa[v.nguoiLat];
   if (!ai || ai.closed) continue;
   const up = v.cards.filter((c) => c.state === 'up');
-  if (up.length >= 2) continue;
-  const down = v.cards.filter((c) => c.state === 'down' && !c.blank);
-  if (!down.length) continue;
+  const la = chonLa(v);
+  if (la === null) continue;
   if (daRoi && ai === chi && up.length === 1 && doiCua(chi) === 'B') chiLatCaHai = true;
   const s = (seq.get(ai) ?? 1) + 1; seq.set(ai, s);
-  gui(ai, { t: 'flip', index: down[Math.floor(Math.random() * down.length)].index, seq: s });
+  gui(ai, { t: 'flip', index: la, seq: s });
   soNuoc++;
   await sleep(250);
 }
@@ -132,6 +146,7 @@ console.log(`✓ Dũng rời giữa ván → Chi lật cả hai lá, đội B ch
 
 // ---- 2 NGƯỜI ĐẤU MÁY: máy là một đội đứng riêng, tự lật cả hai lá ----
 {
+  nho.clear();
   const code2 = await mkRoom();
   const x = await mk(code2, 'Xuan'); await sleep(150);
   const y = await mk(code2, 'Yen'); await sleep(400);
@@ -167,11 +182,10 @@ console.log(`✓ Dũng rời giữa ván → Chi lật cả hai lá, đội B ch
     if (!v2 || v2.status !== 'playing') continue;
     const ai = theo2[v2.nguoiLat];
     if (!ai) continue;                       // lượt máy
-    if (v2.cards.filter((c) => c.state === 'up').length >= 2) continue;
-    const down = v2.cards.filter((c) => c.state === 'down' && !c.blank);
-    if (!down.length) continue;
+    const la2 = chonLa(v2);
+    if (la2 === null) continue;
     const sq = (s2.get(ai) ?? 1) + 1; s2.set(ai, sq);
-    gui(ai, { t: 'flip', index: down[Math.floor(Math.random() * down.length)].index, seq: sq });
+    gui(ai, { t: 'flip', index: la2, seq: sq });
     await sleep(250);
   }
   if (phong(x)?.status !== 'ended') chet('ván 2 người đấu máy không kết thúc');
