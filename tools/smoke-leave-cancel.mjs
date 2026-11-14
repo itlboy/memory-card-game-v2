@@ -43,6 +43,14 @@ const sum = endEv.events.find((e) => e.type === 'end').summary;
 if (sum.reason !== 'forfeit') { console.log('✗ reason sai:', sum.reason); process.exit(1); }
 console.log('✓ đầu hàng: người còn lại thắng ngay, reason=forfeit, socket người rời đóng mã', b.closed);
 
+// 1b) HẾT VÁN, người còn lại bấm "Thoát phòng" (gửi leave) → phòng CHẾT HẲN, không về phòng chờ
+// giữ chỗ 15 phút (lỗi 14.11.2026: thoát xong vào lại thấy phòng mình còn chờ, "mình cũ" rớt mạng).
+a.ws.send(JSON.stringify({ t: 'leave' }));
+await sleep(1200);
+if (a.closed !== 4001) { console.log('✗ rời sau ván: server không xác nhận 4001, mã đóng', a.closed); process.exit(1); }
+if (await roomExists(code)) { console.log('✗ rời sau ván mà phòng vẫn sống (phòng ma)'); process.exit(1); }
+console.log('✓ rời sau ván: server xác nhận 4001, phòng dọn sạch');
+
 // 2) Chủ phòng huỷ phòng ở lobby → mọi người nhận closed + socket đóng 4002
 code = await mkRoom();
 a = await mk(code, 'An'); b = await mk(code, 'Binh');

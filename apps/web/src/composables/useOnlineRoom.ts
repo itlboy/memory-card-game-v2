@@ -1507,7 +1507,14 @@ export function useOnlineRoom() {
    * xoá phiên mà server không hề biết.
    */
   function thoatPhong(): void {
-    if (token && code && phase.value !== 'ended') roiCoBao('leave');
+    /*
+     * KỂ CẢ KHI VÁN ĐÃ XONG (14.11.2026, chủ dự án: "tạo phòng, chơi, rời phòng rồi vào vẫn thấy
+     * phòng đang chờ, vào thì thấy tôi cũ đang đứt mạng"). Trước đây màn kết quả thoát bằng `leave()`
+     * trơn — đúng hồi hết ván + 0 socket là server xoá phòng. Từ 09.11 server GIỮ phòng khi cả phòng
+     * ra ngoài app sau ván (đưa về phòng chờ, giữ đủ người 15 phút), mà nó không phân biệt được
+     * "app vào nền" với "bấm Thoát phòng" — cả hai chỉ là socket đóng. Phải NÓI rõ là mình rời.
+     */
+    if (token && code) roiCoBao('leave');
     else leave();
   }
 
