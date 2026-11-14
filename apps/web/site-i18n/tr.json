@@ -132,5 +132,8 @@
  "r9.l": "<li>Tek cihazda çok oyunculu oyunda herhangi bir yeri bota çevirip seviyesini seç.</li>\n          <li>Botlar dahil en fazla 4 oyuncu.</li>\n          <li>Çevrimiçi: maçtan sonra uygulamaya dönünce bitiş sahnesi tekrar oynatılmıyor, emoji paneli daha küçük.</li>",
  "r10.h": "Çevrimiçi odalara bot ekle",
  "r10.d": "14 Kasım 2026",
- "r10.l": "<li>Oda sahibi bekleme odasında “Bot ekle”ye dokunur, her botun seviyesini seçer ya da botu çıkarır.</li>\n          <li>Botlar oyuncu gibi yer kaplar — toplam en fazla 4.</li>\n          <li>Çevrimiçi arkadaş yok mu? Oda aç ve botlara karşı oyna.</li>"
+ "r10.l": "<li>Oda sahibi bekleme odasında “Bot ekle”ye dokunur, her botun seviyesini seçer ya da botu çıkarır.</li>\n          <li>Botlar oyuncu gibi yer kaplar — toplam en fazla 4.</li>\n          <li>Çevrimiçi arkadaş yok mu? Oda aç ve botlara karşı oyna.</li>",
+ "r11.h": "Takım modu: herkes bir kart",
+ "r11.d": "14 Kasım 2026",
+ "r11.l": "<li>Çevrimiçi odalarda yeni: takım olarak oyna — biri ilk kartı, takım arkadaşı ikinci kartı açar.</li>\n          <li>2’ye 2 ya da iki arkadaş birlikte bota karşı.</li>\n          <li>Bir karta basılı tutarak takım arkadaşına göster — diğer takım görmez.</li>"
 }

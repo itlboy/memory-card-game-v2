@@ -28,6 +28,8 @@ function dichGoiYTuyChon(s: string | null): string | null {
 import ConfirmDialog from './ConfirmDialog.vue';
 import ChonMucMay from './ChonMucMay.vue';
 import { tenNguoi } from '@/lib/ten';
+import { coChonDongDoi } from '@/lib/dong-doi';
+import { pingSo } from '@/lib/ping-so';
 /*
  * Nạp KHI CẦN, không nằm trong gói chính: hộp này kéo theo thư viện vẽ QR
  * (~47KB chưa nén) mà cả ván chỉ mở đúng một lần lúc mời bạn — có người còn
@@ -40,7 +42,7 @@ import OnlineGame from './OnlineGame.vue';
 import EmojiBar from './EmojiBar.vue';
 import EmojiBlast from './EmojiBlast.vue';
 import LoiNoi from './LoiNoi.vue';
-import type { OptLevel, OptionKey, RoomConfig } from '@mm/engine';
+import type { DoiId, OptLevel, OptionKey, RoomConfig } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
@@ -240,6 +242,12 @@ function luuTen(): void {
  * phòng phải chờ hết hạn giữ chỗ mới đi tiếp được), nên nói thẳng ra là mời ra
  * thì đi tiếp được ngay.
  */
+/** Số ô chỗ trống cần vẽ ở cuối danh sách. */
+const conCho = computed(() => Math.max(0, ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0)));
+/** ĐỒNG ĐỘI: đã có máy thì không thêm nữa (máy là MỘT đội đứng riêng — 2 người đấu máy). */
+const themMayDuoc = computed(() => !o.room.value?.config.doi || !o.room.value.players.some((p) => p.may));
+const doiKia = (d: DoiId | undefined): DoiId => (d === 'A' ? 'B' : 'A');
+
 /** Máy đang mở bảng chọn mức (mã người chơi), null = đóng. */
 const mayDangChon = ref<string | null>(null);
 
@@ -417,18 +425,6 @@ function isBusy(): boolean {
 /** Đang trong ván online (App tắt nhạc nền khi vào ván). */
 const dangChoi = computed(() => o.phase.value === 'playing');
 defineExpose({ requestHome: quit, isBusy, dangChoi });
-
-/**
- * Tên phòng = TÊN CHỦ PHÒNG, trần trụi. Thêm "Phòng của" vào chỉ tốn chỗ mà
- * không nói thêm gì — đang đứng trong phòng thì ai cũng biết đó là phòng.
- * Chủ phòng có thể đổi giữa chừng (người
- * cũ rời đi), nên đọc từ danh sách người chơi mỗi lần chứ không nhớ lại.
- */
-const tenPhong = computed(() => {
-  const r = o.room.value;
-  const chu = r?.players.find((p) => p.id === r.hostId) ?? r?.players[0];
-  return chu ? chu.name : t('on.phongCho');
-});
 
 /** Link mời mang TÊN người mời + ngôn ngữ: Worker dựng thẻ chia sẻ riêng ("Kiên mời bạn đấu
  *  Lật Thẻ! · Phòng 482193") từ hai tham số này — apps/server/src/index.ts `theMoi`. */
@@ -998,39 +994,31 @@ function openCfgWizard(): void {
 
   <!-- LOBBY -->
   <section v-else-if="!wizard && o.phase.value === 'lobby'" class="panel">
-    <div class="head">
-      <button class="btn back" :aria-label="t('on.roiPhong.nut')" type="button" @click="backLobby"><ChevronLeft :size="22" /></button>
-      <!-- Tên phòng LÀ tên chủ phòng — đúng cái người khác thấy trong danh sách
-           công khai. Không có ô gõ tên phòng: một cái tên nữa để nghĩ ra là một
-           bước nữa trước khi được chơi. -->
-      <h2>{{ tenPhong }}</h2>
-    </div>
-
     <!--
-      DẢI MỎNG: mã phòng + hai chip. Cả hai thứ ở đây (mời bạn, đổi công khai)
-      chỉ dùng MỘT LẦN lúc mở phòng rồi nằm không cả ván, nên chúng không được
-      chiếm chỗ thường trực của danh sách người chơi — phòng chứa tới 10 người.
-      Đo bản cũ: 107px + 72px = 179px, tức hơn ba dòng người chơi.
+      ĐẦU PHÒNG GỌN (14.11.2026, mockup duyệt https://claude.ai/artifact/5WCU919WRXPLyPVS51VErS):
+      tiêu đề "Phòng <mã>" (trước là tên chủ phòng — đọc như tên màn), dòng nhỏ dưới là chip
+      Công khai/Riêng tư; MỘT nút Mời bên phải. Bỏ hàng "mã + hai chip" riêng — tiết kiệm ~50px
+      để 4 dòng người chơi + ô chỗ trống vừa khung (nút "Thêm máy" từng bị khuất ở 1.6.0).
     -->
-    <div class="dai-mong">
-      <b class="ma-nho">{{ o.room.value?.code }}</b>
-      <span class="grow"></span>
-      <!-- Chip trạng thái: mở ra hai ô chọn chứ KHÔNG đổi ngay. Đổi ngay thì
-           lại rơi vào chỗ mơ hồ của công tắc cũ — không biết chữ đang hiện là
-           trạng thái hiện tại hay thứ sẽ thành sau khi bấm. -->
+    <div class="head dau-phong">
+      <button class="btn back" :aria-label="t('on.roiPhong.nut')" type="button" @click="backLobby"><ChevronLeft :size="22" /></button>
+      <div class="dp-chu">
+        <h2>{{ t('on.phongMa', { ma: o.room.value?.code ?? '' }) }}</h2>
+        <!-- Chip trạng thái: mở ra hai ô chọn chứ KHÔNG đổi ngay (xem khối .sophong dưới) -->
+        <button
+          class="ck-nho thach th-nho" :class="{ doc: !o.isHost.value }"
+          type="button" :disabled="!o.isHost.value" :aria-expanded="moChonCK"
+          :aria-label="o.room.value?.congKhai ? t('on.ckAria') : t('on.rtAria')"
+          @click="moChonCK = !moChonCK; moMoi = false"
+        >
+          <Globe v-if="o.room.value?.congKhai" :size="13" /><Lock v-else :size="13" />
+          {{ o.room.value?.congKhai ? t('on.congKhai') : t('on.riengTu') }}
+        </button>
+      </div>
       <button
-        class="pill ck thach th-nho" :class="{ priv: !o.room.value?.congKhai, doc: !o.isHost.value, 'th-ngoc': o.room.value?.congKhai, 'th-tim': !o.room.value?.congKhai }"
-        type="button" :disabled="!o.isHost.value" :aria-expanded="moChonCK"
-        :aria-label="o.room.value?.congKhai ? t('on.ckAria') : t('on.rtAria')"
-        @click="moChonCK = !moChonCK; moMoi = false"
-      >
-        <Globe v-if="o.room.value?.congKhai" :size="15" /><Lock v-else :size="15" />
-        {{ o.room.value?.congKhai ? t('on.congKhai') : t('on.riengTu') }}
-      </button>
-      <button
-        class="pill moi thach th-nho" type="button" :aria-haspopup="true"
+        class="moi-nut thach th-nho th-xanh" type="button" :aria-haspopup="true"
         @click="moMoi = true; moChonCK = false"
-      ><Link2 :size="15" /> {{ t('on.moiBan') }}</button>
+      ><Link2 :size="16" /> {{ t('on.moiBan') }}</button>
     </div>
 
     <!--
@@ -1059,8 +1047,30 @@ function openCfgWizard(): void {
       </div>
     </div>
 
+    <!-- Đầu danh sách: số người + lựa chọn Thường / Đồng đội (chủ phòng; Đồng đội đang ẩn sau
+         `coChonDongDoi` — lib/dong-doi.ts). Phòng đã bật Đồng đội thì ai cũng thấy nhãn. -->
+    <div class="ds-dau">
+      <span>{{ t('on.nguoiChoiN', { n: o.room.value?.players.length ?? 0, max: ROOM_LIMITS.maxPlayers }) }}</span>
+      <span v-if="o.isHost.value && (coChonDongDoi || o.room.value?.config.doi)" class="seg-doi">
+        <button
+          class="thach th-nho th-chon" type="button" :aria-pressed="!o.room.value?.config.doi"
+          @click="sfx.select(); o.batDongDoi(false)"
+        >{{ t('dd.thuong') }}</button>
+        <button
+          class="thach th-nho th-chon" type="button" :aria-pressed="!!o.room.value?.config.doi"
+          @click="sfx.select(); o.batDongDoi(true)"
+        >👥 {{ t('dd.dongDoi') }}</button>
+      </span>
+      <span v-else-if="o.room.value?.config.doi" class="nhan-doi">👥 {{ t('dd.dongDoi') }}</span>
+    </div>
+
+    <!-- MỘT danh sách cho cả hai chế độ. Đồng đội (bản đơn giản chủ dự án chọn 14.11.2026): mỗi
+         dòng thêm ô "Đội 1 / Đội 2" — ai cũng tự đổi đội mình, cùng đội thì chơi chung. -->
     <ul class="lobby-list">
-      <li v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id" :class="{ off: !p.connected }">
+      <li
+        v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id"
+        :class="[{ off: !p.connected, toi: p.id === o.myId.value, may: !!p.may }, p.doi ? `vd-${p.doi}` : '']"
+      >
         <span class="avatar"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
         <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
              không ai đổi được tên người khác. -->
@@ -1087,53 +1097,51 @@ function openCfgWizard(): void {
           v-else-if="p.may && o.isHost.value" class="ten-may thach th-nho" type="button"
           :aria-label="t('on.chonMucMay')" @click="sfx.select(); mayDangChon = p.id"
         ><b>{{ tenNguoi(p) }}</b></button>
-        <template v-else>
-          <b>{{ tenNguoi(p) }}</b>
-          <button
-            v-if="p.id === o.myId.value" class="nut-sua thach th-nho" type="button"
-            :aria-label="t('on.doiTen')" :title="t('on.doiTen')"
-            @click="moSuaTen(p.name)"
-          ><Pencil :size="14" /></button>
-        </template>
-        <!-- Không ghi chữ "chủ phòng"/"(bạn)": vương miện đã nói ai là chủ, bút
-             sửa tên đã nói dòng nào là mình — hai chữ đó chỉ làm tên bị bóp
-             xuống hai dòng (chủ dự án 13.10.2026). -->
-        <!-- Ping hiện từ PHÒNG CHỜ, không đợi vào ván: biết mạng mình thế nào
-             trước khi bắt đầu thì còn kịp xử lý. -->
+        <!-- Tên CỦA MÌNH là nút đổi tên (bút nhỏ trong nút) — bỏ nút bút riêng cho dòng gọn -->
+        <button
+          v-else-if="p.id === o.myId.value" class="nut-sua ten-toi thach th-nho" type="button"
+          :aria-label="t('on.doiTen')" :title="t('on.doiTen')"
+          @click="moSuaTen(p.name)"
+        ><b>{{ tenNguoi(p) }}</b><Pencil :size="12" /></button>
+        <b v-else>{{ tenNguoi(p) }}</b>
+        <!-- Ping: chỉ khi mạng YẾU (hoặc bật "ping bằng số" ở Debug) — mạng tốt không ai cần con số -->
         <span
-          v-if="p.id === o.myId.value && p.connected"
+          v-if="p.id === o.myId.value && p.connected && (pingSo || o.netHien.value === 'bad' || o.netHien.value === 'lost')"
           class="ping" :class="o.netHien.value"
           :title="o.pingHien.value === null ? t('on.doTreDangDo') : t('on.doTre', { ms: o.pingHien.value })"
         >{{ o.pingHien.value === null ? '···' : `${o.pingHien.value}ms` }}</span>
         <span v-if="!p.connected" class="offline">{{ t('on.rotMang') }}</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
           <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
+          <template v-else-if="p.doi">{{ p.ready ? '✓' : '' }}</template>
           <template v-else>{{ p.ready ? t('on.sanSang') : t('on.chuaSanSang') }}</template>
         </span>
-        <!-- Mời ra: chỉ CHỦ PHÒNG thấy, và không bao giờ hiện ở dòng của chính
-             mình — muốn đi thì có nút rời phòng, đi đường đó mới chuyển quyền
-             chủ phòng cho người khác. Dấu X tròn (chủ dự án chọn 11.10.2026: icon
-             "người trừ" cũ mờ quá, không ai hiểu là nút bỏ người). Vẫn nhỏ, và
-             bấm vẫn hỏi xác nhận trước khi mời ra. -->
+        <!-- ĐỒNG ĐỘI: ô đội. Của MÌNH thì ai cũng bấm đổi được; của người khác / máy chỉ chủ phòng. -->
         <button
-          v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra thach th-nho th-do" type="button"
+          v-if="p.doi" class="chip-doi thach th-nho" :class="`d-${p.doi}`" type="button"
+          :disabled="!(o.isHost.value || p.id === o.myId.value)"
+          :aria-label="t('dd.chamDoiDoi')"
+          @click="sfx.select(); o.doiDoi(p.id, doiKia(p.doi))"
+        >{{ p.doi === 'A' ? t('dd.doiA') : t('dd.doiB') }}<template v-if="o.isHost.value || p.id === o.myId.value"> ⇄</template></button>
+        <!-- Mời ra: chỉ CHỦ PHÒNG thấy, không bao giờ ở dòng của chính mình. Dấu X tròn (chủ dự
+             án chọn 11.10.2026) — từ 14.11.2026 nhỏ, màu nhạt (đỏ to trông như báo lỗi); bấm vẫn
+             hỏi xác nhận trước khi mời ra. -->
+        <button
+          v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra thach th-nho" type="button"
           :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
           @click="p.may ? (sfx.miss(), o.boMay(p.id)) : hoiMoiRa(p.id, p.name, p.connected)"
-        ><X :size="16" :stroke-width="2.6" /></button>
+        ><X :size="14" :stroke-width="2.6" /></button>
       </li>
-      <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
-           làm dòng này vỡ chữ -->
-      <!-- Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng: đã từng ghi 4 ở đây và
-           lệch với server khi đổi trần. -->
-      <li v-if="(o.room.value?.players.length ?? 0) < ROOM_LIMITS.maxPlayers" class="empty">
-        {{ t('on.conCho', { n: ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0) }) }}
-        <!-- Máy chơi cùng (1.6.0): chỉ chủ phòng; máy chiếm chỗ trong trần 4 -->
+      <!-- Ô chỗ trống + Thêm máy (chủ phòng). Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng. -->
+      <li v-if="conCho > 0 && (!o.room.value?.config.doi || (themMayDuoc && o.isHost.value))" class="empty">
+        {{ t('on.conCho', { n: conCho }) }}
         <button
-          v-if="o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
+          v-if="themMayDuoc && o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
           @click="sfx.select(); o.themMay()"
         ><Plus :size="15" :stroke-width="2.8" /> {{ t('on.themMay') }}</button>
       </li>
     </ul>
+    <p v-if="o.room.value?.config.doi" class="hint-doi">{{ t('dd.chamDoiDoi') }}</p>
 
     <template v-if="o.isHost.value">
       <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
@@ -1476,12 +1484,14 @@ input:focus { outline: none; border-color: var(--accent); }
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
 .cfg-summary {
-  display: flex; align-items: center; gap: 10px; margin-top: 12px;
-  padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
+  /* Một dòng ~40px (14.11.2026; trước ~64px cho một dòng chữ) */
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+  padding: 3px 4px 3px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
   background: var(--panel-soft); font-size: var(--text-sm);
 }
 .cfg-summary span { flex: 1; min-width: 0; }
-.cfg-summary .edit { white-space: nowrap; }
+.cfg-summary .edit { white-space: nowrap; min-height: 34px; padding: 0 10px; gap: 4px; font-size: var(--text-sm); position: relative; }
+.cfg-summary .edit::after { content: ''; position: absolute; inset: -5px 0; }
 /* Nền tảng của ô lựa chọn nay ở wizard.css. Màn này ô cao hơn nên chỉ nới
    padding, phần còn lại dùng chung. */
 .option { padding: 24px 16px; }
@@ -1495,38 +1505,52 @@ input:focus { outline: none; border-color: var(--accent); }
   font-family: var(--font-display); font-weight: 700; text-align: center; font-size: 22px;
 }
 
-/* ---------- DẢI MỎNG: mã phòng + hai chip ----------
- * Mời bạn và đổi công khai đều là việc làm MỘT LẦN lúc mở phòng rồi thôi, nên
- * chúng không được chiếm chỗ thường trực của danh sách người chơi — phòng chứa
- * tới 10 người, mỗi dòng 54px. Bản cũ tốn 179px cho hai khối này, tức hơn ba
- * dòng người chơi. Nay 40px, phần còn lại chỉ hiện khi chạm.
+/* ---------- ĐẦU PHÒNG GỌN (14.11.2026) ----------
+ * Thay "dải mỏng" mã + hai chip: tiêu đề "Phòng <mã>", chip Công khai nhỏ ngay dưới, MỘT nút Mời
+ * bên phải. Tiết kiệm một hàng (~50px) để 4 dòng người chơi + ô chỗ trống vừa khung.
  */
-.dai-mong {
-  display: flex; align-items: center; gap: 10px;
-  min-height: 40px; margin: 0 0 8px; padding: 0 12px;
-  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--panel-soft);
-}
-.ma-nho {
-  font-family: var(--font-display); font-weight: 800; font-size: 17px;
-  letter-spacing: .09em; color: var(--accent); font-variant-numeric: tabular-nums;
-}
-.dai-mong .grow { flex: 1; }
-.pill {
-  position: relative; flex-shrink: 0;
-  display: inline-flex; align-items: center; gap: 5px;
-  height: 26px; min-height: 0; min-width: 0; padding: 0 10px;
-  border: 0; border-radius: var(--r-full);
+.dau-phong { margin-bottom: 8px; }
+.dp-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.dp-chu h2 { flex: none; font-variant-numeric: tabular-nums; }
+.ck-nho {
+  position: relative; display: inline-flex; align-items: center; gap: 4px;
+  min-height: 0; min-width: 0; height: 24px; padding: 0 9px;
   font-size: var(--text-xs); font-weight: 700;
 }
-/* Vùng chạm 44px mà chip vẫn 26px (NF-07) — nới bằng ::after, đừng phình chip
-   lên, phình là cả dải cao lại như cũ. */
-.pill::after { content: ''; position: absolute; inset: -9px; }
-.pill.ck { color: #fff; background: linear-gradient(150deg, #109edb, #1aa793); }
-.pill.ck.priv { background: linear-gradient(150deg, #6f5bd6, #8f4fd0); }
-/* Khách: chip vẫn ĐỌC được trạng thái, chỉ không bấm được */
-.pill.ck.doc { opacity: .85; }
-.pill.ck:disabled { cursor: default; }
-.pill.moi { color: var(--accent); background: var(--accent-soft); }
+/* Vùng chạm 44px mà chip vẫn 24px (NF-07) */
+.ck-nho::after { content: ''; position: absolute; inset: -10px -4px; }
+/* Khách: vẫn ĐỌC được trạng thái, chỉ không bấm được */
+.ck-nho.doc { opacity: .85; }
+.ck-nho:disabled { cursor: default; }
+.moi-nut {
+  flex: none; display: inline-flex; align-items: center; gap: 5px;
+  min-height: 38px; padding: 0 12px; position: relative;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
+}
+.moi-nut::after { content: ''; position: absolute; inset: -3px 0; }
+/* Đầu danh sách: "Người chơi 3/4" + Thường/Đồng đội */
+.ds-dau {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 6px;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm); color: var(--muted);
+}
+.seg-doi { display: inline-flex; gap: 4px; }
+.seg-doi .thach { min-height: 30px; min-width: 0; padding: 0 10px; position: relative; font-size: var(--text-xs); font-weight: 800; }
+.seg-doi .thach::after { content: ''; position: absolute; inset: -7px -2px; }
+.nhan-doi { font-size: var(--text-xs); }
+/* Đồng đội: ô đội mỗi dòng + vạch màu bên trái cho thấy ai cùng đội */
+.lobby-list li.vd-A { border-left: 6px solid #ff8a3d; }
+.lobby-list li.vd-B { border-left: 6px solid #3d9bff; }
+.chip-doi {
+  position: relative; flex: none; min-height: 30px; min-width: 0; padding: 0 9px;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-xs); white-space: nowrap;
+}
+.chip-doi::after { content: ''; position: absolute; inset: -7px -2px; }
+.chip-doi.d-A { color: #b4510f; border-color: #ff8a3d; }
+.chip-doi.d-B { color: #1a5fb8; border-color: #3d9bff; }
+.chip-doi:disabled { cursor: default; opacity: 1; }
+/* Máy thấp (iPhone SE): bỏ dòng gợi ý để danh sách đủ chỗ — luật KHÔNG SCROLL */
+@media (max-height: 620px) { .hint-doi { display: none; } }
+.hint-doi { margin: 4px 0 0; text-align: center; font-size: var(--text-xs); color: var(--muted); }
 
 /* Bung ra khi chạm "Mời bạn" */
 .bung { display: flex; gap: 8px; margin: 0 0 8px; }
@@ -1559,6 +1583,13 @@ input:focus { outline: none; border-color: var(--accent); }
 /* Vùng chạm 44px mà KHÔNG phình cái nút — phình là hàng người chơi cao thêm và
    danh sách ngắn đi một dòng (xem luật ở CLAUDE.md). */
 .nut-sua::after { content: ''; position: absolute; inset: -9px; }
+/* Tên của mình LÀ nút đổi tên (14.11.2026) — rộng theo chữ, bút nhỏ bên trong */
+.nut-sua.ten-toi {
+  width: auto; height: 32px; min-width: 0; max-width: 100%; margin-left: 0; padding: 0 8px; gap: 5px;
+  color: var(--fg); font-size: inherit;
+}
+.nut-sua.ten-toi b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nut-sua.ten-toi::after { inset: -6px 0; }
 @media (hover: hover) {
   .nut-sua:hover { background: var(--accent-soft); color: var(--accent); }
 }
@@ -1589,7 +1620,7 @@ input:focus { outline: none; border-color: var(--accent); }
   display: inline-flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0;
   border: 0; border-radius: 50%;
-  background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad);
+  color: color-mix(in srgb, var(--bad) 70%, var(--muted));
 }
 .nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
 @media (hover: hover) {
@@ -1603,11 +1634,18 @@ input:focus { outline: none; border-color: var(--accent); }
   min-height: 0; overflow-y: auto;
 }
 .lobby-list li {
-  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  /* 46px (14.11.2026): 58px cũ làm 4 dòng không vừa khung — "Thêm máy" bị khuất */
+  display: flex; align-items: center; gap: 8px; padding: 4px 10px; min-height: 46px; box-sizing: border-box;
   border: 2px solid var(--line); border-radius: var(--r-md); background: var(--panel-soft);
 }
 .lobby-list li.off { opacity: .55; }
+/* Dòng CỦA MÌNH: tô vàng nhạt — thay chữ "(bạn)" */
+.lobby-list li.toi { background: color-mix(in srgb, #ffc83d 16%, var(--panel-soft)); border-color: color-mix(in srgb, #ffc83d 55%, var(--line)); }
+.lobby-list li.may { background: color-mix(in srgb, #9b6cf0 10%, var(--panel-soft)); }
 .lobby-list li.empty {
+  /* `.empty` TRÙNG TÊN với ô "chưa có phòng" của màn danh sách (xếp DỌC, đệm 24px) — phải ghi
+     đè về một hàng, không thì ô chỗ trống cao gấp đôi và đẩy "Thêm máy" khuất (lỗi 1.6.0). */
+  flex: none; flex-direction: row; gap: 8px; padding: 4px 10px;
   border-style: dashed; color: var(--muted); font-size: var(--text-sm); justify-content: center;
 }
 .lobby-list .avatar { font-size: 20px; }

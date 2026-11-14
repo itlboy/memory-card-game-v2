@@ -21,6 +21,11 @@ export interface PlayerInit {
   id: string;
   name: string;
   avatar?: string;
+  /**
+   * CHẾ ĐỘ ĐỒNG ĐỘI (`GameConfig.teamFlip`, docs/che-do-dong-doi.md): "người chơi" này là một ĐỘI,
+   * đây là mã hai thành viên theo thứ tự [A, B]. Không bật chế độ thì không có trường này.
+   */
+  thanhVien?: readonly string[];
 }
 
 export interface Player extends PlayerInit {
@@ -42,6 +47,10 @@ export interface Player extends PlayerInit {
   doubleNext: boolean;
   /** Đã bỏ cuộc / bị xử thua (online: rớt mạng quá 30 giây — ON-07). */
   forfeited?: boolean;
+  /** ĐỒNG ĐỘI: số lượt đội ĐÃ BẮT ĐẦU, chẵn → thành viên [0] lật lá đầu, lẻ → [1]. */
+  luotDoi?: number;
+  /** ĐỒNG ĐỘI: thành viên đã rời hẳn — người còn lại lật cả hai lá. */
+  vang?: string[];
 }
 
 export interface GameConfig {
@@ -87,6 +96,12 @@ export interface GameConfig {
   /** Số lần lật sai TỐI ĐA để đạt 2 và 3 sao (Chiến dịch). Có thì ưu tiên hơn
    *  `starThresholds`. */
   starMisses?: readonly [number, number];
+  /**
+   * CHẾ ĐỘ ĐỒNG ĐỘI "mỗi người một lá" (docs/che-do-dong-doi.md). Mỗi `players[i]` là một ĐỘI
+   * (`thanhVien`); lá 1 do người lật trước của đội mở, lá 2 do người kia. `turnLimit` khi đó tính
+   * cho TỪNG LÁ. Không có / false = ván như cũ, cùng nhánh code.
+   */
+  teamFlip?: boolean;
 }
 
 export type GameStatus = 'idle' | 'peeking' | 'playing' | 'won' | 'lost';

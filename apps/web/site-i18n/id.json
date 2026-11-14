@@ -132,5 +132,8 @@
  "r9.l": "<li>Di permainan banyak pemain pada satu perangkat, ubah kursi mana pun jadi bot dan pilih levelnya.</li>\n          <li>Maksimal 4 pemain, termasuk bot.</li>\n          <li>Online: kembali ke aplikasi setelah permainan tidak lagi memutar ulang akhir permainan, dan panel emoji lebih kecil.</li>",
  "r10.h": "Bot di room online",
  "r10.d": "14 November 2026",
- "r10.l": "<li>Pemilik room ketuk “Tambah bot” di lobi, pilih level tiap bot, atau hapus bot.</li>\n          <li>Bot menempati kursi seperti pemain — maksimal 4 total.</li>\n          <li>Belum ada teman online? Buka room dan main melawan bot.</li>"
+ "r10.l": "<li>Pemilik room ketuk “Tambah bot” di lobi, pilih level tiap bot, atau hapus bot.</li>\n          <li>Bot menempati kursi seperti pemain — maksimal 4 total.</li>\n          <li>Belum ada teman online? Buka room dan main melawan bot.</li>",
+ "r11.h": "Mode Tim: satu kartu tiap orang",
+ "r11.d": "14 November 2026",
+ "r11.l": "<li>Baru di room online: main sebagai tim — satu pemain membuka kartu pertama, rekannya kartu kedua.</li>\n          <li>2 lawan 2, atau berdua melawan bot.</li>\n          <li>Tekan lama sebuah kartu untuk menunjukkannya ke rekan tim — tim lawan tidak melihatnya.</li>"
 }

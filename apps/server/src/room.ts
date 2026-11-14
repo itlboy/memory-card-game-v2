@@ -9,8 +9,8 @@ import type {
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { TURN_PAUSE_CAP_MS, pairsForLevel } from '@mm/engine';
-import { BOT_LEVELS, BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, observe } from '@mm/engine';
-import type { BotLevel, BotMemory } from '@mm/engine';
+import { BOT_LEVELS, BOT_SPECS, GIAY_MOI_LA, botPick, botRng, botThinkMs, createBotMemory, observe } from '@mm/engine';
+import type { BotLevel, BotMemory, DoiId, PlayerInit } from '@mm/engine';
 import { soPhongTuBinding, type SoPhong } from './sophong.js';
 
 export interface Env {
@@ -66,7 +66,11 @@ interface RoomPlayer {
    * chỉ còn máy là phòng vắng (`nguoiThat`), hết người thật thì máy đi theo (`donMayNeuHetNguoi`).
    */
   may?: BotLevel;
+  /** CHẾ ĐỘ ĐỒNG ĐỘI (`config.doi`): người này ở đội nào. Chỉ có khi phòng bật Đồng đội. */
+  doi?: DoiId;
 }
+
+const DOI_IDS: readonly DoiId[] = ['A', 'B'];
 
 interface RoomState {
   code: string;
@@ -116,7 +120,7 @@ interface RoomState {
  * bao giờ do server tự quyết. Đây là luật chung cho mọi thay đổi giao thức sau
  * này, không riêng gì việc gói view.
  */
-interface Attachment { playerId: string; goi?: boolean; bv?: number }
+interface Attachment { playerId: string; goi?: boolean; bv?: number; /** client hiểu chế độ Đồng đội (`?dd=1`) */ dd?: boolean }
 
 // Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
@@ -449,6 +453,8 @@ export class RoomDO extends DurableObject<Env> {
     const bv = Number(url.searchParams.get('bv')) || 1;
     // Ảnh Google của người đã đăng nhập — chỉ nhận máy chủ ảnh Google (client không đáng tin)
     const anh = anhHopLe(url.searchParams.get('anh'));
+    // Client hiểu chế độ Đồng đội không (`?dd=1`) — xem `tuChoiClientCu`
+    const dd = url.searchParams.get('dd') === '1';
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
     // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
@@ -462,6 +468,9 @@ export class RoomDO extends DurableObject<Env> {
         status: 'lobby', congKhai: true
       };
     }
+
+    // ĐỒNG ĐỘI: client CŨ không biết luật "mỗi người một lá" → từ chối kèm lời nhắc, không để chơi sai
+    if (this.room.config.doi && !dd) return this.tuChoiClientCu();
 
     // Vào lại bằng token (ON-07) hay người chơi mới?
     let player = token ? this.room.players.find((p) => p.token === token) : undefined;
@@ -488,6 +497,7 @@ export class RoomDO extends DurableObject<Env> {
         ready: false
       };
       this.room.players.push(player);
+      if (this.room.config.doi) player.doi = this.doiItNguoiHon();   // ĐỒNG ĐỘI: vào đội đang thiếu
       if (!this.room.hostId) this.room.hostId = player.id;
       delete this.room.emptyAt;   // phòng có người trở lại, không còn hẹn xoá
     } else {
@@ -506,7 +516,7 @@ export class RoomDO extends DurableObject<Env> {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], [player.id]);
-    pair[1].serializeAttachment({ playerId: player.id, goi, bv } satisfies Attachment);
+    pair[1].serializeAttachment({ playerId: player.id, goi, bv, ...(dd ? { dd } : {}) } satisfies Attachment);
 
     await this.save();
     this.send(pair[1], {
@@ -672,6 +682,8 @@ export class RoomDO extends DurableObject<Env> {
         // Đủ phiếu: VÀO VÁN LUÔN (đếm ngược rồi chơi), không bắt về phòng chờ bấm
         // Sẵn sàng lần nữa — ai cũng đã bấm Chơi lại, thế là đủ ý rồi.
         this.againVotes.clear();
+        // ĐỒNG ĐỘI: thiếu người thì không đủ 2 đội × 2 — về phòng chờ để chủ phòng xếp lại
+        if (this.room.config.doi && !this.doiDu(here)) { await this.veLobby(here); return; }
         this.room.players = here;
         if (!here.some((p) => p.id === this.room!.hostId)) this.room.hostId = this.chuMoi();
         for (const p of here) p.ready = true;
@@ -748,6 +760,10 @@ export class RoomDO extends DurableObject<Env> {
         // (LOBBY_HOLD_MS) không bấm được gì, tính họ vào là phòng kẹt tới 30 giây.
         const notReady = this.room.players.filter(
           (p) => p.id !== this.room!.hostId && !p.ready && this.connected(p.id));
+        if (this.room.config.doi && !this.doiDu(this.room.players)) {
+          this.send(ws, { t: 'error', code: 'doi-thieu', message: 'Chế độ Đồng đội cần 2 đội, mỗi đội 2 người.' });
+          return;
+        }
         if (notReady.length) {
           this.send(ws, {
             t: 'error', code: 'not-ready',
@@ -786,7 +802,8 @@ export class RoomDO extends DurableObject<Env> {
           }
           player.lastFlipSeq = msg.seq;
         }
-        if (this.game.current.id !== player.id) {
+        const saiLuot = this.game.config.teamFlip ? !this.duocLat(player.id) : this.game.current.id !== player.id;
+        if (saiLuot) {
           // Sai lượt: cũng phải trả view. Hay gặp nhất là gửi lại một nước đã
           // được xử xong và lượt đã sang người khác — im lặng là client treo.
           this.send(ws, { t: 'state', view: this.view() });
@@ -802,7 +819,7 @@ export class RoomDO extends DurableObject<Env> {
         // Đầu hàng giữa ván: xử thua ngay, không chờ hạn vào lại
         if (this.room.status === 'playing' && this.game && !this.game.finished) {
           player.disconnectedAt = null;
-          const events = this.game.forfeit(player.id, Date.now());
+          const events = this.xuThua(player.id, Date.now());
           await this.afterEvents(events);
         }
         this.removePlayer(player.id);   // ván sau không còn chờ người đã đi
@@ -908,7 +925,7 @@ export class RoomDO extends DurableObject<Env> {
           sock.close(4003, 'kicked');
         }
         if (this.room.status === 'playing' && this.game) {
-          const events = this.game.forfeit(ai, Date.now());
+          const events = this.xuThua(ai, Date.now());
           this.removePlayer(ai);
           await this.afterEvents(events, false);
         } else {
@@ -930,10 +947,13 @@ export class RoomDO extends DurableObject<Env> {
         const level = BOT_LEVELS.includes(msg.level as BotLevel) ? msg.level as BotLevel : null;
         if (msg.op === 'add') {
           if (this.room.players.length >= ROOM_LIMITS.maxPlayers) return;
+          // ĐỒNG ĐỘI + MÁY: máy là một ĐỘI ĐỨNG MỘT MÌNH (2 người đấu máy) — chỉ một máy
+          if (this.room.config.doi && this.room.players.some((p) => p.may)) return;
           const l = level ?? 'normal';
           this.room.players.push({
             id: this.maMayMoi(), name: BOT_SPECS[l].name, avatar: BOT_SPECS[l].avatar,
-            token: crypto.randomUUID(), disconnectedAt: null, ready: true, may: l
+            token: crypto.randomUUID(), disconnectedAt: null, ready: true, may: l,
+            ...(this.room.config.doi ? { doi: this.doiChoMay() } : {})
           });
         } else {
           const may = this.room.players.find((p) => p.id === msg.id && p.may);
@@ -945,6 +965,59 @@ export class RoomDO extends DurableObject<Env> {
         }
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
+      /*
+       * CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md) — hai gói tin MỚI, phòng thường không dùng tới.
+       * Emoji vẫn CHAT CHUNG cả phòng (chủ dự án 14.11.2026: không cần kênh riêng cho đội).
+       */
+      case 'doi': {
+        if (this.room.status !== 'lobby') return;
+        // AI CŨNG tự chọn đội CỦA MÌNH (chủ dự án 14.11.2026: "mỗi user có số đội rồi chọn");
+        // bật/tắt chế độ và đổi đội NGƯỜI KHÁC / máy thì chỉ chủ phòng.
+        const laChu = player.id === this.room.hostId;
+        if (!laChu && !(typeof msg.on !== 'boolean' && msg.playerId === player.id)) return;
+        if (typeof msg.on === 'boolean') {
+          if (msg.on) {
+            const cu = this.room.players.filter((p) => !p.may && !this.hieuDongDoi(p.id));
+            if (cu.length) {
+              this.send(ws, { t: 'error', code: 'doi-client-cu', message: `Cần cập nhật app: ${cu.map((p) => p.name).join(', ')}` });
+              return;
+            }
+            if (this.room.players.filter((p) => p.may).length > 1) {
+              this.send(ws, { t: 'error', code: 'doi-co-may', message: 'Đồng đội chỉ đấu được với MỘT máy — bỏ bớt máy ra.' });
+              return;
+            }
+            this.room.config.doi = true;
+            // Mặc định chia XEN KẼ theo thứ tự vào phòng; có máy thì người thật cùng một đội, máy đội kia
+            const may = this.room.players.find((p) => p.may);
+            if (may) {
+              for (const p of this.room.players) p.doi = p.may ? 'B' : 'A';
+            } else {
+              this.room.players.filter((p) => !p.may).forEach((p, i) => { p.doi = DOI_IDS[i % 2]; });
+            }
+          } else {
+            delete this.room.config.doi;
+            for (const p of this.room.players) delete p.doi;
+          }
+        } else if (this.room.config.doi && msg.playerId && DOI_IDS.includes(msg.doi as DoiId)) {
+          const ai = this.room.players.find((p) => p.id === msg.playerId);
+          if (!ai) return;
+          // Đổi đội của MÁY = đổi cả hai đội cho nhau (máy luôn đứng riêng một đội)
+          if (ai.may) { for (const p of this.room.players) p.doi = p === ai ? msg.doi : (msg.doi === 'A' ? 'B' : 'A'); }
+          else ai.doi = msg.doi;
+        } else return;
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
+      case 'chi': {
+        if (!this.game?.config.teamFlip || this.room.status !== 'playing') return;
+        if (!Number.isInteger(msg.index) || msg.index < 0 || msg.index >= this.game.cards.length) return;
+        if (!this.allowEmoji(player.id)) return;
+        this.guiDongDoi(player.id, { t: 'chi', from: player.id, index: msg.index });
         return;
       }
 
@@ -1163,7 +1236,7 @@ export class RoomDO extends DurableObject<Env> {
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null && now - p.disconnectedAt >= ROOM_LIMITS.reconnectMs) {
           p.disconnectedAt = null;
-          const events = this.game.forfeit(p.id, now);
+          const events = this.xuThua(p.id, now);
           this.removePlayer(p.id);
           await this.afterEvents(events, false);
           this.broadcast({ t: 'room', room: this.roomInfo() });
@@ -1231,7 +1304,8 @@ export class RoomDO extends DurableObject<Env> {
          *    người đó lên tiếng, mà lúc họ lên tiếng thì `webSocketMessage` cho
          *    đồng hồ chạy lại ngay, không cần alarm nào.
          */
-        if (p.id === this.game?.current?.id) {
+        const dangLat = this.game?.config.teamFlip ? this.nguoiDangPhaiLat() : this.game?.current?.id;
+        if (p.id === dangLat) {
           const moc = (p.lastSeen ?? 0) + LAG_MS + 200;
           if (p.lastSeen && moc > now && !this.game?.turnPausedAt) marks.push(moc);
         }
@@ -1306,7 +1380,8 @@ export class RoomDO extends DurableObject<Env> {
    */
   private async demNguocThieuNguoi(): Promise<void> {
     if (!this.room) return;
-    if (this.room.players.length >= ROOM_LIMITS.minPlayers) {
+    if (this.room.players.length >= ROOM_LIMITS.minPlayers
+        && (!this.room.config.doi || this.doiDu(this.room.players))) {
       await this.batDauDemNguoc();
       return;
     }
@@ -1336,8 +1411,16 @@ export class RoomDO extends DurableObject<Env> {
      * — chủ phòng không mặc nhiên đi trước. Tắt `shufflePlayers` của engine:
      * nó xáo lại mỗi ván và chính là thứ khiến lượt đầu "ngẫu nhiên mãi".
      */
+    // ĐỒNG ĐỘI: "người chơi" của engine là ĐỘI (thành viên theo thứ tự vào phòng)
+    const nguoiChoi: PlayerInit[] = room.config.doi
+      ? DOI_IDS.map((d) => {
+        const tv = room.players.filter((p) => p.doi === d);
+        // Đội máy: một thành viên → engine cho nó lật cả hai lá (`nguoiLat`)
+        return { id: `doi-${d}`, name: tv.map((p) => p.name).join(' & '), avatar: tv[0]?.avatar, thanhVien: tv.map((p) => p.id) };
+      })
+      : room.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }));
     const xoay = xoayNguoiDau(
-      room.players.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar })),
+      nguoiChoi,
       room.nguoiDauTruoc,
       crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32
     );
@@ -1350,6 +1433,7 @@ export class RoomDO extends DurableObject<Env> {
       players: xoay
     });
     cfg.shufflePlayers = false;
+    if (room.config.doi) { cfg.teamFlip = true; cfg.turnLimit = GIAY_MOI_LA; }
     this.game = new MemoryGame(cfg);
     this.botMems.clear();
     this.botHen = 0;
@@ -1382,7 +1466,9 @@ export class RoomDO extends DurableObject<Env> {
    */
   private nhipDongHoLuot(): boolean {
     if (!this.game || !this.room || this.room.status !== 'playing') return false;
-    const dangDi = this.game.current?.id;
+    // ĐỒNG ĐỘI: đồng hồ theo NGƯỜI PHẢI LẬT LÁ NÀY; họ rớt mà đồng đội còn đó thì đồng đội lật thay
+    // (`duocLat`) nên đồng hồ KHÔNG dừng — lấy người còn kết nối trong đội làm mốc.
+    const dangDi = this.game.config.teamFlip ? this.nguoiDangPhaiLat() : this.game.current?.id;
     if (!dangDi) return false;
     const truoc = this.game.turnDangDung();
     const now = Date.now();
@@ -1436,7 +1522,7 @@ export class RoomDO extends DurableObject<Env> {
   private henMay(now: number): number | null {
     const g = this.game;
     const p = g && this.room?.status === 'playing' && !g.finished
-      ? this.room.players.find((x) => x.id === g.current.id) : undefined;
+      ? this.room.players.find((x) => x.id === (g.config.teamFlip ? g.nguoiLat() : g.current.id)) : undefined;
     if (!g || !p?.may || g.locked) { if (!p?.may) this.botHen = 0; return null; }
     if (!this.botHen || this.botHenCho !== p.id) {
       const conLai = g.cards.filter((c) => !c.blank && !g.isMatched(c.index)).length;
@@ -1450,7 +1536,7 @@ export class RoomDO extends DurableObject<Env> {
   private async diMay(now: number): Promise<void> {
     const g = this.game;
     if (!g || this.room?.status !== 'playing' || g.finished || g.locked) return;
-    const p = this.room.players.find((x) => x.id === g.current.id);
+    const p = this.room.players.find((x) => x.id === (g.config.teamFlip ? g.nguoiLat() : g.current.id));
     if (!p?.may || !this.botHen || this.botHenCho !== p.id || now < this.botHen) return;
     this.botHen = 0;
     this.quanSatMay();
@@ -1463,7 +1549,97 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   private view() {
-    return publicView(this.game!, Date.now(), (id) => this.connected(id));
+    return publicView(this.game!, Date.now(), (id) => this.connected(id) || this.doiConNguoi(id));
+  }
+
+  /* ---------- CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md) ---------- */
+
+  /**
+   * Client cũ (không khai `?dd=1`) vào phòng Đồng đội: chỉ gửi tin `closed` kèm lời nhắc cập nhật.
+   * KHÔNG tự đóng socket: đóng trước khi bắt tay xong thì cả Workers lẫn server Node đều nuốt mất
+   * tin (đo bằng smoke-dong-doi). Client nào cũng xử `closed` bằng cách TỰ rời phòng, về màn chờ
+   * kèm dòng báo và không nối lại. Socket không mang mã người chơi nên không thao tác được gì.
+   */
+  private tuChoiClientCu(): Response {
+    const pair = new WebSocketPair();
+    this.ctx.acceptWebSocket(pair[1], ['cap-nhat']);
+    pair[1].serializeAttachment({ playerId: '' } satisfies Attachment);
+    this.send(pair[1], { t: 'closed', message: 'Phòng này chơi chế độ Đồng đội — hãy cập nhật Lật Thẻ để vào.' });
+    return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+
+  /** Mọi socket của người này đều khai hiểu Đồng đội (`dd`). */
+  private hieuDongDoi(id: string): boolean {
+    const ss = this.ctx.getWebSockets(id);
+    return ss.length > 0 && ss.every((ws) => (ws.deserializeAttachment() as Attachment | null)?.dd === true);
+  }
+
+  /** Đội đang ít người hơn (người mới vào phòng Đồng đội). */
+  private doiItNguoiHon(): DoiId {
+    // Có máy thì người mới luôn vào đội NGƯỜI (máy đứng riêng một đội)
+    const may = this.room!.players.find((p) => p.may && p.doi);
+    if (may) return may.doi === 'A' ? 'B' : 'A';
+    const dem = (d: DoiId): number => this.room!.players.filter((p) => p.doi === d).length;
+    return dem('B') < dem('A') ? 'B' : 'A';
+  }
+
+  /**
+   * Đội hình hợp lệ để mở ván: mỗi đội là 2 NGƯỜI THẬT, hoặc đúng MỘT MÁY đứng một mình
+   * (2 người đấu máy). Phải có ít nhất một đội người; người không được chung đội với máy.
+   */
+  private doiDu(ds: RoomPlayer[]): boolean {
+    const hopLe = (d: DoiId): 'nguoi' | 'may' | null => {
+      const tv = ds.filter((p) => p.doi === d);
+      if (tv.length === 2 && tv.every((p) => !p.may)) return 'nguoi';
+      if (tv.length === 1 && tv[0]!.may) return 'may';
+      return null;
+    };
+    const k = DOI_IDS.map(hopLe);
+    return ds.every((p) => p.doi) && k.every(Boolean) && k.includes('nguoi');
+  }
+
+  /** Máy vào đội không có người thật (hoặc đội ít người hơn). */
+  private doiChoMay(): DoiId {
+    const nguoi = (d: DoiId): number => this.room!.players.filter((p) => p.doi === d && !p.may).length;
+    return nguoi('B') <= nguoi('A') ? 'B' : 'A';
+  }
+
+  /** `id` là mã ĐỘI (`doi-A`) có thành viên còn kết nối — view ván coi đội là "người chơi". */
+  private doiConNguoi(id: string): boolean {
+    const d = this.game?.players.find((p) => p.id === id);
+    return !!d?.thanhVien?.some((m) => !d.vang?.includes(m) && this.connected(m));
+  }
+
+  /** Người phải lật lá kế: người được engine chỉ định, hoặc đồng đội nếu người đó đang rớt mạng. */
+  private nguoiDangPhaiLat(): string | null {
+    const g = this.game!;
+    const ai = g.nguoiLat();
+    if (!ai || this.connected(ai)) return ai;
+    const thay = g.current.thanhVien?.find((m) => m !== ai && !g.current.vang?.includes(m) && this.connected(m));
+    return thay ?? ai;
+  }
+
+  /** Người này có được lật lá kế không (ván Đồng đội). */
+  private duocLat(id: string): boolean {
+    const g = this.game!;
+    if (g.nguoiLat() === id) return true;
+    // Người được chỉ định đang rớt mạng → đồng đội lật thay (docs: không xử thua cả đội)
+    return this.nguoiDangPhaiLat() === id;
+  }
+
+  /** Xử thua một người: ván Đồng đội thì chỉ người đó rời đội (`roiDoi`), đội chơi tiếp. */
+  private xuThua(id: string, now: number): GameEvent[] {
+    return this.game!.config.teamFlip ? this.game!.roiDoi(id, now) : this.game!.forfeit(id, now);
+  }
+
+  /** Gửi CHỈ cho đồng đội của `from` (lọc ở server — đội kia không nhận được gói tin). */
+  private guiDongDoi(from: string, msg: ServerMsg): void {
+    const toi = this.room?.players.find((p) => p.id === from);
+    if (!toi?.doi) return;
+    for (const p of this.room!.players) {
+      if (p.id === from || p.doi !== toi.doi) continue;
+      for (const ws of this.ctx.getWebSockets(p.id)) this.send(ws, msg);
+    }
   }
 
   /**
@@ -1533,7 +1709,7 @@ export class RoomDO extends DurableObject<Env> {
       congKhai: room.congKhai !== false,
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
-        const may = p.may ? { may: p.may } : {};
+        const may = { ...(p.may ? { may: p.may } : {}), ...(p.doi ? { doi: p.doi } : {}) };
         if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...may };
         return {
               id: p.id, name: p.name, avatar: p.avatar,

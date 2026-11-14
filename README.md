@@ -710,6 +710,13 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**14.11.2026 — 1.7.0: chế độ Đồng đội online + phòng chờ gọn**
+- **Đồng đội "mỗi người một lá"** (phòng online): 2 đấu 2, hoặc **2 người cùng đội đấu một máy**. Người A lật
+  lá 1, người B lật lá 2; điểm/chuỗi/mạng theo đội; 8 giây mỗi lá; chạm giữ một lá để **chỉ cho đồng đội**
+  (đội kia không thấy). Chi tiết: `docs/che-do-dong-doi.md`. Smoke `pnpm smoke:doi`.
+- Phòng chờ gọn lại (tiêu đề "Phòng <mã>", dòng người thấp hơn, nút "Thêm máy" hết bị khuất).
+- **1.6.1**: lớp phủ kết ván / đếm ngược kín màn (trên thanh trên cùng).
+
 **14.11.2026 — 1.5.11 · 1.5.12 · 1.6.0: máy chơi cùng**
 - **1.6.0**: phòng online cho máy vào chơi cùng — chủ phòng "＋ Thêm máy" ở phòng chờ, đổi mức,
   bỏ máy; máy chạy trên server (server Node CHÍNH trên k8s — MySQL thêm cột `room_players.may` —

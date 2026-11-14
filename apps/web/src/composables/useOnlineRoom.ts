@@ -1,6 +1,6 @@
 import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
 import { anhHopLe } from '@mm/engine';
-import type { BotLevel } from '@mm/engine';
+import type { BotLevel, DoiId } from '@mm/engine';
 import { me } from '@/lib/taikhoan';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
@@ -488,6 +488,8 @@ export function useOnlineRoom() {
    */
   const BONG_MS = 2600;
   const emojiBong = ref<{ from: string; name: string; emoji: QuickEmoji; key: number }[]>([]);
+  /** ĐỒNG ĐỘI: lá đồng đội vừa chỉ (`key` tăng mỗi lần để vẽ lại hiệu ứng). */
+  const chiThe = ref<{ from: string; index: number; key: number } | null>(null);
   const bongHen = new Map<string, ReturnType<typeof setTimeout>>();
   let bongKey = 0;
   /** Câu nói nhanh đang hiện — MỖI NGƯỜI MỘT bong bóng (câu mới của cùng người
@@ -553,7 +555,7 @@ export function useOnlineRoom() {
     // Tới lượt mình mà còn ≤10 giây: tick dồn dập mỗi 500ms để giục
     const left = turnTimeLeft.value;
     if (left !== null && left > 0 && left <= 10
-      && view.value?.currentId === myId.value
+      && (view.value?.nguoiLat !== undefined ? view.value.nguoiLat === myId.value : view.value?.currentId === myId.value)
       && luc - lastUrgentTick >= 500) {
       lastUrgentTick = luc;
       sfx.tick();
@@ -633,6 +635,7 @@ export function useOnlineRoom() {
       case 'not-host': return t('or.loi.notHost');
       case 'not-lobby': return t('or.loi.notLobby');
       case 'not-enough': return t('or.loi.notEnough');
+      case 'doi-thieu': return t('dd.thieu');
       case 'not-ready': {
         const r = room.value;
         const ten = r?.players.filter((p) => p.id !== r.hostId && !p.ready && p.connected)
@@ -652,10 +655,18 @@ export function useOnlineRoom() {
   let bannerNoiLai: ReturnType<typeof setTimeout> | undefined;
   let bannerTimer: ReturnType<typeof setTimeout> | undefined;
 
+  /** `id` là mình — hoặc (ván ĐỒNG ĐỘI) là ĐỘI của mình: engine tính điểm/mạng/thắng theo đội. */
+  function laToi(id: string | null | undefined): boolean {
+    if (!id || !myId.value) return false;
+    if (id === myId.value) return true;
+    return !!view.value?.players.find((p) => p.id === id)?.thanhVien?.includes(myId.value);
+  }
   const isHost = computed(() => !!room.value && room.value.hostId === myId.value);
   const me = computed(() => room.value?.players.find((p) => p.id === myId.value) ?? null);
   const myTurn = computed(() =>
-    !spectator.value && !!view.value && !!myId.value && view.value.currentId === myId.value);
+    !spectator.value && !!view.value && !!myId.value
+    // ĐỒNG ĐỘI: "lượt của mình" = mình là người phải lật LÁ NÀY (`nguoiLat`), không phải đội đang đi
+    && (view.value.nguoiLat !== undefined ? view.value.nguoiLat === myId.value : view.value.currentId === myId.value));
 
   /** Gửi tin; trả về false nếu socket không mở (tin bị bỏ). */
   function send(msg: ClientMsg): boolean {
@@ -881,6 +892,9 @@ export function useOnlineRoom() {
        server cứ gửi id mới thì client cũ trong cache không khớp class nào và mặt
        sau ra Ô TRẮNG TRƠN giữa ván. */
     params.set('bv', '2');
+    /* KHAI HIỂU CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md). Cùng luật với `pv`/`bv`: phòng Đồng đội
+       từ chối client KHÔNG khai (app cũ không biết luật "mỗi người một lá" — chơi sai luật). */
+    params.set('dd', '1');
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
     doNhip.noiLai++;
     doNhip.socket = 'đang nối'; // i18n-bo-qua — bảng đo nội bộ (DoNhip), không phải chữ cho người chơi
@@ -1110,6 +1124,11 @@ export function useOnlineRoom() {
         break;
       }
 
+      /* ĐỒNG ĐỘI: đồng đội chỉ một lá — server chỉ gửi cho đồng đội, đội kia không nhận. */
+      case 'chi':
+        chiThe.value = { from: msg.from, index: msg.index, key: (chiThe.value?.key ?? 0) + 1 };
+        break;
+
       case 'error':
         error.value = loiServer(msg.code, msg.message);
         loiTam = true;
@@ -1174,6 +1193,7 @@ export function useOnlineRoom() {
           const streak = 1 + (view.value?.players.find((p) => p.id === e.playerId)?.bestStreak ?? 0);
           sfx.match(Math.min(streak, 4));
           if (e.playerId === myId.value) rung.ghep(streak);
+          else if (view.value?.nguoiLat !== undefined && laToi(e.playerId)) rung.ghep(streak);   // Đồng đội: cặp của ĐỘI mình
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
           break;
         }
@@ -1261,9 +1281,9 @@ export function useOnlineRoom() {
          */
         case 'life-lost': {
           const who = view.value?.players.find((p) => p.id === e.playerId);
-          if (e.playerId === myId.value) sfx.lifeLost();
+          if (laToi(e.playerId)) sfx.lifeLost();
           lifeLost.value = {
-            name: who?.name ?? '', left: e.livesLeft, cuaToi: e.playerId === myId.value,
+            name: who?.name ?? '', left: e.livesLeft, cuaToi: laToi(e.playerId),
             key: (lifeLost.value?.key ?? 0) + 1
           };
           setTimeout(() => { lifeLost.value = null; }, 2600);
@@ -1278,7 +1298,7 @@ export function useOnlineRoom() {
           if (champName && !draw) {
             seriesWins.value = { ...seriesWins.value, [champName]: (seriesWins.value[champName] ?? 0) + 1 };
           }
-          const iLead = e.summary.ranking[0]?.id === myId.value;
+          const iLead = laToi(e.summary.ranking[0]?.id);
           if (draw) sfx.win();                     // hoà: mừng nhẹ, không fanfare
           else if (iLead) sfx.victory();
           // Thua: tiếng do KetCucFx phát theo biến thể (TIENG_BIEN_THE), không phát ở đây
@@ -1499,7 +1519,7 @@ export function useOnlineRoom() {
     const xoa = (): void => { try { localStorage.removeItem(ROI_CHO_KEY); } catch { /* bỏ qua */ } };
     if (Date.now() - r.luc > HAN_ROI_CHO_MS) { xoa(); return; }
     await new Promise<void>((xong) => {
-      const p = new URLSearchParams({ name: r!.name, token: r!.token, cid: store.clientId(), pv: '1', bv: '2' });
+      const p = new URLSearchParams({ name: r!.name, token: r!.token, cid: store.clientId(), pv: '1', bv: '2', dd: '1' });
       let s: WebSocket;
       try { s = new WebSocket(`${WS_SERVER}/ws/${r!.code}?${p}`); } catch { xong(); return; }
       const het = setTimeout(() => { try { s.close(); } catch { /* */ } xong(); }, 4000);
@@ -1669,6 +1689,12 @@ export function useOnlineRoom() {
     moiRa: (playerId: string) => { sfx.miss(); send({ t: 'kick', playerId }); },
     /** Máy chơi cùng (1.6.0) — chỉ chủ phòng, ở phòng chờ; server kiểm lại cả hai điều đó. */
     themMay: (level: BotLevel = 'normal') => send({ t: 'bot', op: 'add', level }),
+    /** ĐỒNG ĐỘI (chủ phòng, phòng chờ): bật/tắt chế độ, chuyển một người sang đội kia. */
+    batDongDoi: (on: boolean) => send({ t: 'doi', on }),
+    doiDoi: (playerId: string, doi: DoiId) => send({ t: 'doi', playerId, doi }),
+    /** ĐỒNG ĐỘI: chỉ một lá úp cho đồng đội. */
+    chiLa: (index: number) => send({ t: 'chi', index }),
+    chiThe, laToi,
     doiMucMay: (id: string, level: BotLevel) => send({ t: 'bot', op: 'set', id, level }),
     boMay: (id: string) => send({ t: 'bot', op: 'remove', id }),
     /** Đổi tên mình — nhớ luôn cho lần chơi sau. */

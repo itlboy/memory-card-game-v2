@@ -132,5 +132,8 @@
  "r9.l": "<li>En partidas de varios jugadores en un dispositivo, convierte cualquier puesto en bot y elige su nivel.</li>\n          <li>Hasta 4 jugadores en total, bots incluidos.</li>\n          <li>En línea: al volver a la app tras una partida ya no se repite el final, y el panel de emojis es más pequeño.</li>",
  "r10.h": "Bots en las salas en línea",
  "r10.d": "14 de noviembre de 2026",
- "r10.l": "<li>El anfitrión toca «Añadir bot» en la sala de espera, elige el nivel de cada bot o lo quita.</li>\n          <li>Los bots ocupan puestos como jugadores: hasta 4 en total.</li>\n          <li>¿No hay amigos conectados? Abre una sala y juega contra bots.</li>"
+ "r10.l": "<li>El anfitrión toca «Añadir bot» en la sala de espera, elige el nivel de cada bot o lo quita.</li>\n          <li>Los bots ocupan puestos como jugadores: hasta 4 en total.</li>\n          <li>¿No hay amigos conectados? Abre una sala y juega contra bots.</li>",
+ "r11.h": "Modo Equipo: una carta cada uno",
+ "r11.d": "14 de noviembre de 2026",
+ "r11.l": "<li>Nuevo en las salas en línea: juega en equipo — uno voltea la primera carta y su compañero la segunda.</li>\n          <li>2 contra 2, o dos amigos juntos contra un bot.</li>\n          <li>Mantén pulsada una carta para señalársela a tu compañero — el otro equipo no lo ve.</li>"
 }

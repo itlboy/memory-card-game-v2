@@ -285,6 +285,8 @@ export class MemoryGame {
   start(now: number): GameEvent[] {
     if (this.status !== 'idle') return [];
     this.startedAt = now;
+    // ĐỒNG ĐỘI: đội đi đầu bắt đầu lượt số 0 (thành viên [0] lật lá đầu)
+    if (this.config.teamFlip && this.current.luotDoi === undefined) this.current.luotDoi = 0;
     const peek = this.config.peekMs ?? 0;
     if (peek > 0) {
       this.status = 'peeking';
@@ -351,6 +353,8 @@ export class MemoryGame {
 
     const out: GameEvent[] = [{ type: 'flip', index }];
     this.selection.push(index);
+    // ĐỒNG ĐỘI: giới hạn giờ tính THEO TỪNG LÁ — lá 1 xong thì người lật lá 2 có trọn `turnLimit`
+    if (this.config.teamFlip && this.selection.length === 1) this.armTurnClock(now);
 
     const card = this.cards[index]!;
     if (card.power && !card.powerUsed) out.push(...this.trigger(card, now));
@@ -381,7 +385,10 @@ export class MemoryGame {
         player.lives++;
         out.push({ type: 'life-gain', playerId: player.id, livesLeft: player.lives });
       }
-      if (this.turnDeadline) {
+      if (this.config.teamFlip) {
+        // ĐỒNG ĐỘI: ghép đúng → đội đi tiếp, lá đầu của cặp sau có trọn giờ của MỘT lá
+        this.armTurnClock(now);
+      } else if (this.turnDeadline) {
         // +5 giây nhưng không vượt trần 15 giây tính từ bây giờ
         this.turnDeadline = Math.min(this.turnDeadline + TURN_BONUS_MS, now + this.turnLimitMs);
         out.push({ type: 'time-bonus', playerId: player.id, ms: TURN_BONUS_MS });
@@ -529,6 +536,8 @@ export class MemoryGame {
         continue;
       }
       out.push({ type: 'turn', playerId: p.id, skipped: false });
+      // ĐỒNG ĐỘI: mỗi lượt MỚI của đội đổi người lật lá đầu (lượt bị ❄️ bỏ qua không tính)
+      if (this.config.teamFlip) p.luotDoi = p.luotDoi === undefined ? 0 : p.luotDoi + 1;
       this.armTurnClock(now);
       return out;
     }
@@ -685,6 +694,46 @@ export class MemoryGame {
       this.pendingUntil = 0;
       return this.nextTurn(now);
     }
+    return [];
+  }
+
+  /* ---------- CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md) — chỉ có nghĩa khi `teamFlip` ---------- */
+
+  /**
+   * Mã THÀNH VIÊN được lật lá kế tiếp; null = không phải ván Đồng đội (hoặc đội không còn ai).
+   * Lá 1 → người lật trước của lượt này (`luotDoi` chẵn → [0], lẻ → [1]), lá 2 → người kia.
+   * Trong một lượt, ghép đúng đi tiếp thì GIỮ NGUYÊN người lật lá đầu (chủ dự án 14.11.2026).
+   * Một người đã rời (`vang`) thì người còn lại lật cả hai lá.
+   *
+   * Engine không biết ai đang kết nối: tầng phòng tự cho đồng đội lật thay khi người được chỉ
+   * định đang rớt mạng tạm thời.
+   */
+  nguoiLat(): string | null {
+    if (!this.config.teamFlip) return null;
+    const doi = this.current;
+    const tv = doi.thanhVien ?? [];
+    const con = tv.filter((id) => !doi.vang?.includes(id));
+    if (!con.length) return null;
+    if (con.length === 1) return con[0]!;
+    const k = (doi.luotDoi ?? 0) % 2;
+    return this.selection.length === 0 ? tv[k]! : tv[1 - k]!;
+  }
+
+  /** Đội có thành viên này (ván Đồng đội); undefined nếu không có. */
+  doiCua(memberId: string): Player | undefined {
+    if (!this.config.teamFlip) return undefined;
+    return this.players.find((p) => p.thanhVien?.includes(memberId));
+  }
+
+  /**
+   * Một THÀNH VIÊN rời hẳn (đầu hàng / quá hạn giữ chỗ): đội chơi tiếp với người còn lại; cả đội
+   * rời thì xử thua cả đội như `forfeit`.
+   */
+  roiDoi(memberId: string, now: number): GameEvent[] {
+    const doi = this.doiCua(memberId);
+    if (!doi || this.finished || doi.vang?.includes(memberId)) return [];
+    doi.vang = [...(doi.vang ?? []), memberId];
+    if ((doi.thanhVien ?? []).every((id) => doi.vang!.includes(id))) return this.forfeit(doi.id, now);
     return [];
   }
 

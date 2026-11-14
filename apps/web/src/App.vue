@@ -3,6 +3,7 @@ import { maPhongDangDo } from '@/composables/useOnlineRoom';
 import { boEmojiVeMacDinh } from '@/lib/emoji';
 import { skinVeMacDinh } from '@/lib/skin';
 import { datPingSo } from '@/lib/ping-so';
+import { datDongDoiThu } from '@/lib/dong-doi';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { batPhanTich, doiCaiDat, moChucNang, suKien } from '@/lib/phan-tich';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
@@ -42,7 +43,7 @@ const debug = ref(store.prefs().debug || new URLSearchParams(location.search).ge
 const coSkinUrl = new URLSearchParams(location.search).has('skin');
 watch(debug, (v) => {
   store.savePrefs({ debug: v });
-  if (!v) { boEmojiVeMacDinh(); datPingSo(false); if (!coSkinUrl) skinVeMacDinh(); }
+  if (!v) { boEmojiVeMacDinh(); datPingSo(false); datDongDoiThu(false); if (!coSkinUrl) skinVeMacDinh(); }
 }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
 const doNhip = ref(!!store.prefs().doNhip);
