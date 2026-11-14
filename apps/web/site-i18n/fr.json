@@ -129,5 +129,8 @@
  "game.desc": "Jeu de mémoire gratuit dans le navigateur ou l'appli : retournez les cartes, trouvez les paires, en solo, contre l'ordi ou en ligne entre amis. Sans pub.",
  "r9.h": "Jouez avec des bots et vos amis",
  "r9.d": "14 novembre 2026",
- "r9.l": "<li>En partie à plusieurs sur un appareil, changez n'importe quelle place en bot et choisissez son niveau.</li>\n          <li>Jusqu'à 4 joueurs au total, bots compris.</li>\n          <li>En ligne : revenir dans l'app après une partie ne rejoue plus la fin, et le panneau d'emojis est plus petit.</li>"
+ "r9.l": "<li>En partie à plusieurs sur un appareil, changez n'importe quelle place en bot et choisissez son niveau.</li>\n          <li>Jusqu'à 4 joueurs au total, bots compris.</li>\n          <li>En ligne : revenir dans l'app après une partie ne rejoue plus la fin, et le panneau d'emojis est plus petit.</li>",
+ "r10.h": "Des bots dans les salons en ligne",
+ "r10.d": "14 novembre 2026",
+ "r10.l": "<li>L’hôte touche « Ajouter un bot » dans le salon, choisit le niveau de chaque bot ou le retire.</li>\n          <li>Les bots prennent une place comme les joueurs — 4 au total maximum.</li>\n          <li>Pas d’amis en ligne ? Ouvrez un salon et jouez contre des bots.</li>"
 }

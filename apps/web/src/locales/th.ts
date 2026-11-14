@@ -124,6 +124,7 @@ const th: TuDien = {
   'menu.nguoiN': 'ผู้เล่น {n}',
   'menu.laNguoi': 'ผู้เล่น', 'menu.laMay': 'บอท',
   'menu.chamDoiMuc': 'แตะเพื่อเปลี่ยนระดับ', 'menu.mucMayN': 'ระดับของบอทหมายเลข {n}',
+  'on.themMay': 'เพิ่มบอท', 'on.chonMucMay': 'เลือกระดับบอท',
   'menu.tenNguoiAria': 'ชื่อผู้เล่น {n}',
   'menu.tiepTuc': 'ต่อไป',
   'menu.nhieuTheme': 'เลือกได้หลายธีม — กระดานจะผสมสัญลักษณ์จากทุกธีมที่เลือก',

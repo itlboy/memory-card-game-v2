@@ -9,6 +9,8 @@ import type {
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { TURN_PAUSE_CAP_MS, pairsForLevel } from '@mm/engine';
+import { BOT_LEVELS, BOT_SPECS, botPick, botRng, botThinkMs, createBotMemory, observe } from '@mm/engine';
+import type { BotLevel, BotMemory } from '@mm/engine';
 import { soPhongTuBinding, type SoPhong } from './sophong.js';
 
 export interface Env {
@@ -58,6 +60,12 @@ interface RoomPlayer {
   lastFlipSeq?: number;
   /** Đã bấm sẵn sàng ở lobby. */
   ready: boolean;
+  /**
+   * MÁY CHƠI CÙNG (1.6.0): có = đây là máy ở mức này, chạy NGAY TRONG phòng (không socket).
+   * Mã `bot`/`bot2`/`bot3`. Máy luôn "kết nối" và "sẵn sàng", nhưng KHÔNG tính là người: phòng
+   * chỉ còn máy là phòng vắng (`nguoiThat`), hết người thật thì máy đi theo (`donMayNeuHetNguoi`).
+   */
+  may?: BotLevel;
 }
 
 interface RoomState {
@@ -249,6 +257,15 @@ export class RoomDO extends DurableObject<Env> {
   /** Ai đã bấm "chơi lại" sau ván này. Chỉ trong RAM: DO ngủ giữa lúc chờ thì
    *  coi như mọi người bấm lại — thà hỏi lại còn hơn mở ván mà một bên chưa muốn. */
   private againVotes = new Set<string>();
+  /*
+   * MÁY: ký ức từng máy + mốc hẹn nước đi kế. Chỉ trong bộ nhớ — DO ngủ đông / server khởi động
+   * lại thì máy quên bàn (chơi kém đi một chút ở phần còn lại của ván), KHÔNG làm ván treo: mốc
+   * hẹn tự dựng lại ở `henMay`.
+   */
+  private botMems = new Map<string, BotMemory>();
+  private botRandom = botRng(crypto.getRandomValues(new Uint32Array(1))[0]!);
+  private botHen = 0;
+  private botHenCho = '';
 
   /* ---------- nạp / lưu ---------- */
 
@@ -513,7 +530,7 @@ export class RoomDO extends DurableObject<Env> {
     this.againVotes.clear();
     this.room.players = giuLai;
     if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
-      this.room.hostId = this.room.players[0]?.id ?? '';
+      this.room.hostId = this.chuMoi();
     }
     this.room.status = 'lobby';
     this.game = null;
@@ -532,7 +549,8 @@ export class RoomDO extends DurableObject<Env> {
   private removePlayer(id: string): void {
     if (!this.room) return;
     this.room.players = this.room.players.filter((p) => p.id !== id);
-    if (this.room.hostId === id) this.room.hostId = this.room.players[0]?.id ?? '';
+    this.donMayNeuHetNguoi();
+    if (this.room.hostId === id) this.room.hostId = this.chuMoi();
   }
 
   /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
@@ -642,8 +660,9 @@ export class RoomDO extends DurableObject<Env> {
         // phòng thì không biết đối phương có muốn chơi nữa hay không.
         this.againVotes.add(player.id);
         const here = this.room.players.filter((p) => this.connected(p.id));
-        const allWant = here.length >= ROOM_LIMITS.minPlayers
-          && here.every((p) => this.againVotes.has(p.id));
+        // Máy không bấm gì: chỉ đòi phiếu của NGƯỜI THẬT (và phải còn ít nhất một người)
+        const allWant = here.length >= ROOM_LIMITS.minPlayers && here.some((p) => !p.may)
+          && here.every((p) => p.may || this.againVotes.has(p.id));
         if (!allWant) {
           // Chưa đủ: phát cho cả phòng biết ai đã bấm
           await this.save();
@@ -654,7 +673,7 @@ export class RoomDO extends DurableObject<Env> {
         // Sẵn sàng lần nữa — ai cũng đã bấm Chơi lại, thế là đủ ý rồi.
         this.againVotes.clear();
         this.room.players = here;
-        if (!here.some((p) => p.id === this.room!.hostId)) this.room.hostId = here[0]?.id ?? '';
+        if (!here.some((p) => p.id === this.room!.hostId)) this.room.hostId = this.chuMoi();
         for (const p of here) p.ready = true;
         await this.batDauDemNguoc();
         return;
@@ -718,7 +737,7 @@ export class RoomDO extends DurableObject<Env> {
           (p) => this.connected(p.id) || p.disconnectedAt !== null
         );
         if (this.room.hostId && !this.room.players.some((p) => p.id === this.room!.hostId)) {
-          this.room.hostId = this.room.players[0]?.id ?? '';
+          this.room.hostId = this.chuMoi();
         }
         if (this.room.players.length < ROOM_LIMITS.minPlayers) {
           this.send(ws, { t: 'error', code: 'not-enough', message: 'Cần ít nhất 2 người chơi đang kết nối' });
@@ -902,6 +921,33 @@ export class RoomDO extends DurableObject<Env> {
         return;
       }
 
+      /*
+       * MÁY CHƠI CÙNG (1.6.0, mockup https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB): chỉ chủ
+       * phòng, chỉ ở phòng chờ. Máy chiếm chỗ trong `maxPlayers` (4) như người.
+       */
+      case 'bot': {
+        if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
+        const level = BOT_LEVELS.includes(msg.level as BotLevel) ? msg.level as BotLevel : null;
+        if (msg.op === 'add') {
+          if (this.room.players.length >= ROOM_LIMITS.maxPlayers) return;
+          const l = level ?? 'normal';
+          this.room.players.push({
+            id: this.maMayMoi(), name: BOT_SPECS[l].name, avatar: BOT_SPECS[l].avatar,
+            token: crypto.randomUUID(), disconnectedAt: null, ready: true, may: l
+          });
+        } else {
+          const may = this.room.players.find((p) => p.id === msg.id && p.may);
+          if (!may) return;
+          if (msg.op === 'remove') this.room.players = this.room.players.filter((p) => p !== may);
+          else if (msg.op === 'set' && level) {
+            may.may = level; may.name = BOT_SPECS[level].name; may.avatar = BOT_SPECS[level].avatar;
+          } else return;
+        }
+        await this.save();
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
       case 'emoji': {
         if (!(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;   // ON-08: danh sách đóng
         if (!this.allowEmoji(player.id)) return;   // vượt hạn mức thì nuốt êm
@@ -1034,9 +1080,10 @@ export class RoomDO extends DurableObject<Env> {
       this.room.players = this.room.players.filter(
         (p) => p.disconnectedAt === null || now - p.disconnectedAt < LOBBY_HOLD_MS
       );
+      this.donMayNeuHetNguoi();
       if (this.room.players.length !== truoc) {
         if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
-          this.room.hostId = this.room.players[0]?.id ?? '';
+          this.room.hostId = this.chuMoi();
         }
         if (!this.room.players.length) this.room.emptyAt = now;
         await this.save();
@@ -1062,6 +1109,7 @@ export class RoomDO extends DurableObject<Env> {
       this.room.players = this.room.players.filter(
         (p) => !p.lastSeen || now - p.lastSeen <= IDLE_SILENT_MS
       );
+      this.donMayNeuHetNguoi();
       if (this.room.players.length !== truoc) {
         if (!this.room.players.length) {
           if (this.room.status === 'lobby') {
@@ -1079,7 +1127,7 @@ export class RoomDO extends DurableObject<Env> {
         }
         // Chủ phòng im tiếng thì phải chuyển quyền, không thì không ai bấm được gì
         if (!this.room.players.some((p) => p.id === this.room!.hostId)) {
-          this.room.hostId = this.room.players[0]!.id;
+          this.room.hostId = this.chuMoi();
         }
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
@@ -1128,6 +1176,7 @@ export class RoomDO extends DurableObject<Env> {
       // Úp lại thẻ sai / hết giờ
       const events = this.game.tick(now);
       if (events.length) await this.afterEvents(events, false);
+      await this.diMay(now);
     }
 
     await this.save();
@@ -1165,6 +1214,8 @@ export class RoomDO extends DurableObject<Env> {
       }
       const left = this.game.timeLeft(now);
       if (left !== null) marks.push(now + left * 1000 + 50);
+      const hen = this.henMay(now);
+      if (hen) marks.push(hen);
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null) marks.push(p.disconnectedAt + ROOM_LIMITS.reconnectMs);
         /*
@@ -1300,12 +1351,15 @@ export class RoomDO extends DurableObject<Env> {
     });
     cfg.shufflePlayers = false;
     this.game = new MemoryGame(cfg);
+    this.botMems.clear();
+    this.botHen = 0;
   }
 
   /** Phát sự kiện + view mới cho cả phòng, cập nhật trạng thái phòng nếu ván xong. */
   private async afterEvents(events: GameEvent[], save = true): Promise<void> {
     if (!events.length || !this.game || !this.room) return;
     if (events.some((e) => e.type === 'end')) this.room.status = 'ended';
+    this.quanSatMay();   // máy NHÌN mọi lá vừa mở (của cả người lẫn máy) — như người ngồi cùng bàn
     if (save) await this.save();
     this.broadcast({ t: 'events', events: publicEvents(this.game, events), view: this.view() });
     if (this.room.status === 'ended') this.broadcast({ t: 'room', room: this.roomInfo() });
@@ -1342,6 +1396,72 @@ export class RoomDO extends DurableObject<Env> {
     return this.game.turnDangDung() !== truoc;
   }
 
+  /* ---------- máy chơi cùng ---------- */
+
+  private nguoiThat(): RoomPlayer[] {
+    return this.room?.players.filter((p) => !p.may) ?? [];
+  }
+
+  /** Chủ phòng mới khi chủ cũ đi: NGƯỜI THẬT đầu tiên — máy không bấm được gì. */
+  private chuMoi(): string {
+    return this.nguoiThat()[0]?.id ?? '';
+  }
+
+  /** Hết người thật thì máy cũng đi: phòng chỉ còn máy là phòng rỗng (để luật dọn phòng chạy). */
+  private donMayNeuHetNguoi(): void {
+    if (this.room && this.room.players.length && !this.nguoiThat().length) this.room.players = [];
+  }
+
+  /** `bot`, `bot2`, `bot3` — client nhận ra máy qua dạng mã này (`laBotId`). */
+  private maMayMoi(): string {
+    for (let k = 0; ; k++) {
+      const id = k === 0 ? 'bot' : `bot${k + 1}`;
+      if (!this.room!.players.some((p) => p.id === id)) return id;
+    }
+  }
+
+  /** Mọi máy ghi bàn hiện tại vào ký ức riêng (view công khai — không thấy lá úp, NF-04). */
+  private quanSatMay(): void {
+    if (!this.game || !this.room?.players.some((p) => p.may)) return;
+    const v = publicView(this.game, Date.now(), () => true);
+    for (const p of this.room.players) {
+      if (!p.may) continue;
+      let m = this.botMems.get(p.id);
+      if (!m) this.botMems.set(p.id, m = createBotMemory());
+      observe(m, v, p.may);
+    }
+  }
+
+  /** Mốc máy đang tới lượt sẽ lật; null = không phải lượt máy / bàn đang khoá chờ úp. */
+  private henMay(now: number): number | null {
+    const g = this.game;
+    const p = g && this.room?.status === 'playing' && !g.finished
+      ? this.room.players.find((x) => x.id === g.current.id) : undefined;
+    if (!g || !p?.may || g.locked) { if (!p?.may) this.botHen = 0; return null; }
+    if (!this.botHen || this.botHenCho !== p.id) {
+      const conLai = g.cards.filter((c) => !c.blank && !g.isMatched(c.index)).length;
+      this.botHen = now + botThinkMs(p.may, this.botRandom, { cardsLeft: conLai, closing: g.selection.length === 1 });
+      this.botHenCho = p.id;
+    }
+    return this.botHen;
+  }
+
+  /** Tới mốc thì máy lật một lá (gọi từ alarm). Kết quả phát như nước đi của người. */
+  private async diMay(now: number): Promise<void> {
+    const g = this.game;
+    if (!g || this.room?.status !== 'playing' || g.finished || g.locked) return;
+    const p = this.room.players.find((x) => x.id === g.current.id);
+    if (!p?.may || !this.botHen || this.botHenCho !== p.id || now < this.botHen) return;
+    this.botHen = 0;
+    this.quanSatMay();
+    let m = this.botMems.get(p.id);
+    if (!m) this.botMems.set(p.id, m = createBotMemory());
+    const pick = botPick(publicView(g, now, () => true), m, this.botRandom, p.may);
+    if (pick === null) return;
+    const events = g.flip(pick, now);
+    if (events.length) await this.afterEvents(events, false);
+  }
+
   private view() {
     return publicView(this.game!, Date.now(), (id) => this.connected(id));
   }
@@ -1363,7 +1483,7 @@ export class RoomDO extends DurableObject<Env> {
    * nằm nền, TCP không đóng) — không tính là có người.
    */
   private conNguoiSong(now: number): boolean {
-    return !!this.room?.players.some((p) =>
+    return !!this.room?.players.some((p) => !p.may &&
       this.connected(p.id) && (!p.lastSeen || now - p.lastSeen <= IDLE_SILENT_MS));
   }
 
@@ -1395,6 +1515,7 @@ export class RoomDO extends DurableObject<Env> {
 
   private connected(id: string): boolean {
     const p = this.room?.players.find((x) => x.id === id);
+    if (p?.may) return true;   // máy không có socket, nhưng luôn có mặt
     return !!p && p.disconnectedAt === null && this.ctx.getWebSockets(id).length > 0;
   }
 
@@ -1412,12 +1533,13 @@ export class RoomDO extends DurableObject<Env> {
       congKhai: room.congKhai !== false,
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
-        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}) };
+        const may = p.may ? { may: p.may } : {};
+        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...may };
         return {
               id: p.id, name: p.name, avatar: p.avatar,
               score: 0, pairs: 0, bestStreak: 0, frozenTurns: 0,
               doubleNext: false, forfeited: false, connected: this.connected(p.id),
-              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {})
+              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...may
             };
       })
     };

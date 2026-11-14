@@ -137,6 +137,7 @@ const ru: TuDien = {
   'menu.nguoiN': 'Игрок {n}',
   'menu.laNguoi': 'Игрок', 'menu.laMay': 'Бот',
   'menu.chamDoiMuc': 'Нажмите, чтобы сменить уровень', 'menu.mucMayN': 'Уровень бота № {n}',
+  'on.themMay': 'Добавить бота', 'on.chonMucMay': 'Выберите уровень бота',
   'menu.tenNguoiAria': 'Имя игрока {n}',
   'menu.tiepTuc': 'Продолжить',
   'menu.nhieuTheme': 'Можно выбрать несколько тем — на поле смешаются символы из всех.',

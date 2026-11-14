@@ -127,6 +127,7 @@ const it: TuDien = {
   'menu.nguoiN': 'Giocatore {n}',
   'menu.laNguoi': 'Giocatore', 'menu.laMay': 'Bot',
   'menu.chamDoiMuc': 'Tocca per cambiare livello', 'menu.mucMayN': 'Livello del bot n. {n}',
+  'on.themMay': 'Aggiungi bot', 'on.chonMucMay': 'Scegli il livello del bot',
   'menu.tenNguoiAria': 'Nome del giocatore {n}',
   'menu.tiepTuc': 'Continua',
   'menu.nhieuTheme': 'Scegli più temi — il tabellone mescola i simboli di tutti.',

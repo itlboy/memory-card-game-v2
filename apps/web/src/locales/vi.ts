@@ -130,6 +130,7 @@ const vi = {
   'menu.nguoiN': 'Người {n}',
   'menu.laNguoi': 'Người', 'menu.laMay': 'Máy',
   'menu.chamDoiMuc': 'Chạm để đổi mức', 'menu.mucMayN': 'Mức của máy số {n}',
+  'on.themMay': 'Thêm máy', 'on.chonMucMay': 'Chọn mức cho máy',
   'menu.tenNguoiAria': 'Tên người chơi {n}',
   'menu.tiepTuc': 'Tiếp tục',
   'menu.nhieuTheme': 'Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.',

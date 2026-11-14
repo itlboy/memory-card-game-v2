@@ -7,6 +7,7 @@ import { DEFAULT_OPTIONS } from './options.js';
 import type { BoardOptions } from './options.js';
 import type { GameEvent, Player, Summary } from './types.js';
 import type { MemoryGame } from './game.js';
+import type { BotLevel } from './bot.js';
 
 /* ---------- cấu hình phòng (ON-03) ---------- */
 
@@ -136,7 +137,17 @@ export interface PublicPlayer {
   lives: number | null;
   /** Đã bấm sẵn sàng ở lobby (chủ phòng mặc nhiên sẵn sàng). */
   ready?: boolean;
+  /** MÁY CHƠI CÙNG (1.6.0): có = người này là máy, chạy trên server, ở mức này. Client cũ bỏ qua. */
+  may?: BotLevel;
 }
+
+/**
+ * Mã người chơi của MÁY — `bot`, `bot2`, `bot3` (cả offline lẫn online). Client nhận ra máy qua
+ * mã này ở những chỗ chỉ có view ván (không có `may`). Người thật online mang mã 8 ký tự hex,
+ * không bao giờ trùng dạng này.
+ */
+export const laBotId = (id: string | null | undefined): boolean => !!id && /^bot\d?$/.test(id);
+export const BOT_LEVELS: readonly BotLevel[] = ['easy', 'normal', 'hard', 'insane', 'divine'];
 
 /**
  * MẶT SAU LÁ BÀI = HOẠ TIẾT × BẢNG MÀU, sinh bằng mã.
@@ -445,6 +456,11 @@ export type ClientMsg =
    * hết hạn giữ chỗ mới đi tiếp được.
    */
   | { t: 'kick'; playerId: string }
+  /**
+   * MÁY CHƠI CÙNG (1.6.0) — chỉ chủ phòng, chỉ ở phòng chờ. `add` thêm một máy (còn chỗ trong
+   * `maxPlayers`), `set` đổi mức, `remove` bỏ máy. Máy luôn sẵn sàng, chạy trên server.
+   */
+  | { t: 'bot'; op: 'add' | 'set' | 'remove'; id?: string; level?: string }
   | { t: 'ping' }
   /**
    * Báo còn sống. KHÁC `ping`: `ping` do server tự trả lời (setWebSocketAutoResponse)

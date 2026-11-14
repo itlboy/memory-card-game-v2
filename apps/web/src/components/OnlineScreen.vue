@@ -26,6 +26,8 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import ConfirmDialog from './ConfirmDialog.vue';
+import ChonMucMay from './ChonMucMay.vue';
+import { tenNguoi } from '@/lib/ten';
 /*
  * Nạp KHI CẦN, không nằm trong gói chính: hộp này kéo theo thư viện vẽ QR
  * (~47KB chưa nén) mà cả ván chỉ mở đúng một lần lúc mời bạn — có người còn
@@ -238,6 +240,9 @@ function luuTen(): void {
  * phòng phải chờ hết hạn giữ chỗ mới đi tiếp được), nên nói thẳng ra là mời ra
  * thì đi tiếp được ngay.
  */
+/** Máy đang mở bảng chọn mức (mã người chơi), null = đóng. */
+const mayDangChon = ref<string | null>(null);
+
 function hoiMoiRa(id: string, ten: string, dangKetNoi: boolean): void {
   sfx.select();
   confirm.value = {
@@ -1077,8 +1082,13 @@ function openCfgWizard(): void {
             class="nut-huy thach th-nho" type="button" :aria-label="t('on.huyDoiTen')" @click="huySuaTen()"
           ><X :size="16" /></button>
         </template>
+        <!-- MÁY (1.6.0): chủ phòng chạm tên máy để đổi mức -->
+        <button
+          v-else-if="p.may && o.isHost.value" class="ten-may thach th-nho" type="button"
+          :aria-label="t('on.chonMucMay')" @click="sfx.select(); mayDangChon = p.id"
+        ><b>{{ tenNguoi(p) }}</b></button>
         <template v-else>
-          <b>{{ p.name }}</b>
+          <b>{{ tenNguoi(p) }}</b>
           <button
             v-if="p.id === o.myId.value" class="nut-sua thach th-nho" type="button"
             :aria-label="t('on.doiTen')" :title="t('on.doiTen')"
@@ -1108,7 +1118,7 @@ function openCfgWizard(): void {
         <button
           v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra thach th-nho th-do" type="button"
           :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
-          @click="hoiMoiRa(p.id, p.name, p.connected)"
+          @click="p.may ? (sfx.miss(), o.boMay(p.id)) : hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="16" :stroke-width="2.6" /></button>
       </li>
       <!-- Mã và nút chia sẻ đã nằm trong khối mời phía trên, nhắc lại ở đây chỉ
@@ -1117,6 +1127,11 @@ function openCfgWizard(): void {
            lệch với server khi đổi trần. -->
       <li v-if="(o.room.value?.players.length ?? 0) < ROOM_LIMITS.maxPlayers" class="empty">
         {{ t('on.conCho', { n: ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0) }) }}
+        <!-- Máy chơi cùng (1.6.0): chỉ chủ phòng; máy chiếm chỗ trong trần 4 -->
+        <button
+          v-if="o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
+          @click="sfx.select(); o.themMay()"
+        ><Plus :size="15" :stroke-width="2.8" /> {{ t('on.themMay') }}</button>
       </li>
     </ul>
 
@@ -1196,7 +1211,13 @@ function openCfgWizard(): void {
     </p>
   </Transition>
 
-  <ConfirmDialog
+  <ChonMucMay
+      v-if="mayDangChon" :tieu-de="t('on.chonMucMay')"
+      :muc="o.room.value?.players.find((x) => x.id === mayDangChon)?.may ?? null"
+      @chon="(l) => { if (mayDangChon) o.doiMucMay(mayDangChon, l); mayDangChon = null; }"
+      @dong="mayDangChon = null"
+    />
+    <ConfirmDialog
     v-if="confirm"
     :title="confirm.title" :body="confirm.body" :confirm-label="confirm.label"
     @confirm="xacNhan()"
@@ -1590,6 +1611,20 @@ input:focus { outline: none; border-color: var(--accent); }
   border-style: dashed; color: var(--muted); font-size: var(--text-sm); justify-content: center;
 }
 .lobby-list .avatar { font-size: 20px; }
+/* Máy chơi cùng (1.6.0) */
+.lobby-list li.empty:has(.them-may) { justify-content: space-between; padding-block: 6px; }
+.them-may {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 12px; position: relative;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
+}
+.them-may::after { content: ''; position: absolute; inset: -6px 0; }
+.lobby-list li:has(.ten-may) { padding-block: 6px; }
+.ten-may {
+  min-width: 0; min-height: 32px; padding: 0 10px; position: relative;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm);
+}
+.ten-may b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ten-may::after { content: ''; position: absolute; inset: -6px 0; }
 .lobby-list li > b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lobby-list small { color: var(--muted); font-size: var(--text-xs); }
 .offline { margin-left: auto; font-size: var(--text-xs); color: var(--warn); }

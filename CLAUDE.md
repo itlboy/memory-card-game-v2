@@ -162,9 +162,10 @@
   của người đang đi nay nở rộng + gradient tím, nói đủ rồi, mà banner thì đập
   vào giữa màn hình MỖI LƯỢT:
   · ONLINE: công tắc `BAO_DEN_LUOT` ở đầu `useOnlineRoom.ts` (`false`);
-  · ĐẤU BOT: nhận ra bằng `BOT_ID` TRONG DANH SÁCH NGƯỜI CHƠI, không bằng cờ
-  `botLevel` — cờ đó tắt được giữa ván, cùng lý do vì sao chỗ xét thắng/thua
-  đọc bảng xếp hạng chứ không đọc cờ.
+  · ĐẤU BOT / MÁY CHƠI CÙNG: nhận ra máy bằng MÃ (`laBot()` — bot, bot2, bot3) TRONG DANH
+  SÁCH NGƯỜI CHƠI, không bằng cờ `botLevel` — cờ đó tắt được giữa ván, cùng lý do vì sao chỗ
+  xét thắng/thua đọc bảng xếp hạng chứ không đọc cờ. Banner chỉ hiện khi ≥2 NGƯỜI THẬT và
+  lượt tới là người (`soNguoiThat`).
   Chuyện ĐÓNG BĂNG vẫn báo ở cả hai: đó là SỰ KIỆN hiếm, không phải nhịp lặp
   mỗi lượt, và chip chỉ đeo được một icon chứ không kể được chuyện. Người chơi
   đã bác bản "chỉ bỏ banner của người khác, giữ banner của mình" — đừng dựng lại.
@@ -206,8 +207,9 @@
 - **MẶT BOT BÁO ĐEN LÀ SVG, KHÔNG PHẢI EMOJI.** Avatar là chuỗi chạy xuyên
   engine/lưu trữ; báo đen mang KHOÁ `MAT_BAO_DEN` (`:bao-den:`) và `MatBot.vue`
   là cửa duy nhất dịch khoá ra hình. Màn có bot (PlayerStrip, MenuScreen,
-  GameScreen) KHÔNG được in `{{ avatar }}` thẳng — `test/mat-bot.test.ts` canh;
-  online không có bot nên OnlineGame in chữ trơn vẫn đúng. Thang 5 mức:
+  GameScreen) KHÔNG được in `{{ avatar }}` thẳng — `test/mat-bot.test.ts` canh.
+  Từ 1.6.0 ONLINE CŨNG CÓ MÁY: OnlineScreen/OnlineGame vẽ mặt qua `MatNguoi` (→ `MatBot`), tên
+  qua `tenNguoi()` (máy dịch theo mức, nhận ra qua `laBotId` + mặt). Thang 5 mức:
   🐣 gà mờ · 🐥 gà cứng · báo đen (SVG tự vẽ) · 🐯 mãnh hổ · rồng thần (`MAT_RONG_VANG`,
   Twemoji 🐉 đổi sang vàng — CC-BY 4.0. Ghi công BẮT BUỘC theo giấy phép: nay ở
   `public/credits.txt` và trong chế độ debug của RulesDialog — chủ dự án bỏ dòng ghi
@@ -225,7 +227,7 @@
   ở 4. Taptic Engine iPhone chỉ có cú chạm rời, không có "rung dài". Web trên
   iPhone KHÔNG rung được (Safari không có `navigator.vibrate`) — chỉ bản app
   (`@capacitor/haptics`) và Android; máy không rung được thì công tắc trong menu
-  TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (đấu máy lọc `BOT_ID`, online lọc `myId` /
+  TỰ ẨN. Chỉ rung theo nước CỦA MÌNH (offline lọc máy bằng `laBot()`, online lọc `myId` /
   `myTurn`). Gắn đúng hai chỗ phát `sfx.match`/`sfx.miss`, có `test/rung.test.ts`.
   Thêm plugin Capacitor là phải `cap sync ios` (đã có trong `build:ios`).
 - **DANH HIỆU: 153 MỤC (15.10.2026), MỘT CỬA MỞ KHOÁ** (`lib/achievements.ts`, 11.10.2026).
@@ -614,7 +616,16 @@
   `banDoMay()` ra `{ bot, bot2, bot3 }` theo THỨ TỰ CHỖ → `session.setBots()`. Máy đầu luôn mã `bot` (đấu máy
   + snapshot cũ không đổi). Hỏi "có phải máy" qua `laBot()` — ĐỪNG `=== BOT_ID`. Mỗi máy KÝ ỨC RIÊNG.
   Banner "đến lượt" chỉ khi ≥2 người thật và lượt tới là người. `minhKetCuc` chỉ khi đúng 1 người thật.
-  Điểm máy không cộng vào tổng. Phase 2 ONLINE (máy chạy trên server, chủ phòng "＋ Thêm máy") CHƯA làm.
+  Điểm máy không cộng vào tổng. Bảng mức là component chung `ChonMucMay.vue` (offline + online).
+  **ONLINE (1.6.0)**: `t:'bot'` op add/set/remove — CHỈ chủ phòng, CHỈ ở lobby; trần `maxPlayers` (4) tính
+  cả máy. `RoomPlayer.may` = mức; `connected()` của máy luôn true NHƯNG `conNguoiSong()` bỏ máy ra (phòng
+  chỉ còn máy = phòng vắng), hết người thật thì `donMayNeuHetNguoi()` dọn máy (thiếu là máy giữ phòng
+  sống mãi), chủ phòng mới = người thật đầu tiên (`chuMoi`). `again` chỉ đòi phiếu người thật. Máy đi
+  bằng ALARM: `henMay()` (mốc trong `scheduleNext`, KHÔNG hẹn khi bàn khoá — mốc quá khứ làm alarm
+  quay vòng) + `diMay()` trong `alarm()`; ký ức máy chỉ trong bộ nhớ (DO ngủ đông thì máy quên bàn,
+  không treo). MySQL server Node có cột `room_players.may` (thiếu là khởi động lại thành người ma).
+  Phòng có máy KHÔNG lên sổ tài khoản / danh hiệu online (chống cày thắng Gà mờ). Smoke:
+  `tools/smoke-may-online.mjs` (`pnpm smoke:may`).
 - **VÀO LẠI APP SAU KHI XEM KẾT VÁN ONLINE → KHÔNG DIỄN LẠI (14.11.2026)**: nối lại socket, server gửi
   lại view có `summary` (object mới) → watch ở OnlineGame chạy lại = cảnh kết ván diễn lần hai VÀ ghi ván
   vào tài khoản lần hai. Nay nhận ra "cùng ván" bằng mã phòng + moves/seconds/điểm từng người, nhớ ở
