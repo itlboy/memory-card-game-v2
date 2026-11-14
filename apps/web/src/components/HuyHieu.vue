@@ -68,10 +68,10 @@ const mau = computed(() => MAU_BAC[props.bac ?? 'dong']);
 .vien-vua { stroke: var(--ink, #1d2a5a); stroke-width: 3; stroke-linejoin: round; }
 .vien-mong { stroke: var(--ink, #1d2a5a); stroke-width: 3; stroke-linejoin: round; }
 .so {
-  font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 800; fill: #fff;
+  font-family: var(--font-display); font-weight: 800; fill: #fff;
   stroke: var(--ink, #1d2a5a); stroke-width: 2.4; paint-order: stroke;
 }
 .goc { paint-order: stroke; }
 /* Số trên nền KEM của kiểu nhỏ: chữ đậm màu mực, không phải chữ trắng viền (trắng trên kem không đọc ra) */
-.so-nho { font-family: 'Baloo 2', system-ui, sans-serif; font-weight: 800; fill: var(--ink, #1d2a5a); }
+.so-nho { font-family: var(--font-display); font-weight: 800; fill: var(--ink, #1d2a5a); }
 </style>

@@ -604,6 +604,13 @@
   SDK Google. BẪY ĐÃ GẶP: màn đồng ý OAuth từng ở "Testing" + 0 người thử → đăng nhập Google trên WEB
   bị chặn với mọi người, không ai báo; đã Publish (In production) 09.11.2026. KHÔNG tải logo lên trang
   Branding — có logo là Google bắt xét duyệt app.
+- **VÀO LẠI APP SAU KHI XEM KẾT VÁN ONLINE → KHÔNG DIỄN LẠI (14.11.2026)**: nối lại socket, server gửi
+  lại view có `summary` (object mới) → watch ở OnlineGame chạy lại = cảnh kết ván diễn lần hai VÀ ghi ván
+  vào tài khoản lần hai. Nay nhận ra "cùng ván" bằng mã phòng + moves/seconds/điểm từng người, nhớ ở
+  localStorage `mm.vanDaXem` (10 ván gần nhất — app bị đóng hẳn ở nền thì mount lại từ đầu): đã xem thì
+  hiện thẳng bảng kết quả, không KetCucFx, không ghi sổ.
+- **BẢNG EMOJI (nút ＋) LÀ KHUNG NHỎ (14.11.2026, chủ dự án: "đè lên màn chơi")**: neo góc trái trên nút ＋,
+  rộng ≤292px, cao ≤30vh, 8 cột; KHÔNG có nhóm "Hay dùng" (trùng hàng ngoài). Đừng trải lại hết bề ngang.
 - **HẾT VÁN MÀ CẢ PHÒNG RA NGOÀI APP → PHÒNG CÒN (09.11.2026)**: trước đây ván xong + 0 socket là xoá
   phòng ngay, và ra ngoài >5 phút thì nhánh "im lặng" xoá nốt — hai người cùng sang app chat là mất
   phòng. Nay cả hai đường đưa phòng về PHÒNG CHỜ VẮNG (`emptyAt`, giữ mã 15 phút). Trong

@@ -94,7 +94,7 @@
         <rect width="40" height="40" rx="12" fill="url(#mmg-x2)" />
         <text
           x="20" y="27" text-anchor="middle" fill="#fff"
-          font-family="'Baloo 2', sans-serif" font-weight="800" font-size="19"
+          style="font-family: var(--font-display)" font-weight="800" font-size="19"
         >×2</text>
       </symbol>
       <symbol id="mmi-eye" viewBox="0 0 40 40">
