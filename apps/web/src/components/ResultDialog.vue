@@ -409,7 +409,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 /* Lời mời chơi lại: nổi hơn dòng "đang chờ", vì đây là việc CẦN người đọc làm gì */
 .waiting.want { color: var(--accent); font-weight: 700; }
 .overlay {
-  position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
+  /* 17: TRÊN thanh trên cùng (15) và cảnh kết ván (16) — xem chuỗi lớp ở styles/ketcuc-fx.css */
+  position: fixed; inset: 0; z-index: 17; display: flex; align-items: center; justify-content: center;
   padding: 20px; background: rgba(6, 9, 18, .3);   /* nền nhạt để thấy pháo hoa phía sau */
   /* Lớp phủ fixed nằm NGOÀI đệm vùng an toàn của #app: tự cộng env() (iPhone: tai thỏ,
      Dynamic Island, dải home) — không thì nút ✕ chui dưới đồng hồ/pin, khó bấm. */

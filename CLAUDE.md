@@ -626,6 +626,12 @@
   không treo). MySQL server Node có cột `room_players.may` (thiếu là khởi động lại thành người ma).
   Phòng có máy KHÔNG lên sổ tài khoản / danh hiệu online (chống cày thắng Gà mờ). Smoke:
   `tools/smoke-may-online.mjs` (`pnpm smoke:may`).
+- **CHUỖI LỚP PHỦ (1.6.1, 14.11.2026 — chủ dự án: "lớp phủ đen chưa bao kín")**: TopBar 15 < đếm ngược
+  vào ván / cảnh kết ván 16 < bảng kết quả 17 < TamDung + wizard "Chỉnh bàn" sau ván (`.wiz-phu`) 18 <
+  MoKhoaFx 19 < hộp thoại 20. Trước đây cảnh kết ván (9), bảng kết quả (10), đếm ngược (7) nằm DƯỚI thanh
+  trên cùng → logo/xu/menu sáng trưng trên lớp tối, cả offline lẫn online. Cảnh kết ván ONLINE phải
+  `<Teleport to="#app">` (trong `<main>` đệm 12px là hở hai bên + đáy). Nâng một lớp thì soát CẢ CHUỖI:
+  lần này suýt để bảng kết quả che wizard Chỉnh bàn. `test/lop-phu.test.ts` canh.
 - **VÀO LẠI APP SAU KHI XEM KẾT VÁN ONLINE → KHÔNG DIỄN LẠI (14.11.2026)**: nối lại socket, server gửi
   lại view có `summary` (object mới) → watch ở OnlineGame chạy lại = cảnh kết ván diễn lần hai VÀ ghi ván
   vào tài khoản lần hai. Nay nhận ra "cùng ván" bằng mã phòng + moves/seconds/điểm từng người, nhớ ở
