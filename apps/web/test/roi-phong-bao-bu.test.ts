@@ -22,6 +22,11 @@ describe('rời phòng có xác nhận + báo bù', () => {
   it('thoát không qua hộp hỏi (màn lỗi/đang nối) vẫn báo rời — không xoá phiên trơn', () => {
     expect(man).toMatch(/function exit\(\): void \{\s*o\.thoatPhong\(\)/);
   });
+  it('thoát ở màn KẾT QUẢ cũng báo rời — server giữ phòng sau ván nên im lặng là để lại phòng ma', () => {
+    const khoi = src.slice(src.indexOf('function thoatPhong('), src.indexOf('async function guiRoiCho('));
+    expect(khoi).toMatch(/if \(token && code\) roiCoBao\('leave'\)/);
+    expect(khoi, 'không được loại trừ pha ended').not.toMatch(/phase\.value !== 'ended'/);
+  });
   it('mở màn online: báo bù TRƯỚC khi tải danh sách phòng', () => {
     expect(man).toMatch(/o\.guiRoiCho\(\)\.then\(\(\) => o\.taiPhongCongKhai\(\)\)/);
   });
