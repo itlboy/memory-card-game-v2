@@ -16,6 +16,7 @@ import { bcp, t, td } from '@/lib/i18n';
 import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { datPingSo, pingSo } from '@/lib/ping-so';
+import { chanDoanGa } from '@/lib/phan-tich';
 import { boEmojiHien, boEmojiVeMacDinh, doiBoEmojiThu } from '@/lib/emoji';
 import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 
@@ -88,6 +89,8 @@ function veMacDinh(): void {
         <template v-if="native"><br>{{ t('lc.banApp', { ban: native }) }}</template>
         <template v-if="nguon"><br><b class="nguon">{{ nguon }}</b></template>
         <br><span class="ota">{{ otaId }}</span>
+        <!-- Chẩn đoán GA (15.11.2026): `call` > 0 mà `net` = 0 là sự kiện không rời máy -->
+        <br><span class="ota">{{ chanDoanGa() }}</span>
       </p>
       <div class="dbg-ota" :class="trangThaiOta.buoc" role="status">
         <i aria-hidden="true" />

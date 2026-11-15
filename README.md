@@ -710,6 +710,13 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**15.11.2026 — 1.8.1: GA4 trên app iOS**
+- App iOS chưa từng gửi được sự kiện GA4: `gtag.js` huỷ mọi sự kiện khi trang không chạy trên
+  http/https, mà iOS chạy `capacitor://localhost` (Android `https://localhost` nên không sao). Nay
+  trang không phải http/https tự gửi thẳng tới địa chỉ thu thập của GA (`lib/ga-truc-tiep.ts`);
+  Android và web vẫn dùng gtag.js. Trang Debug có dòng chẩn đoán GA; `tools/thong-ke-chuc-nang.mjs`
+  thêm bảng "Sự kiện 30 phút gần nhất".
+
 **15.11.2026 — 1.8.0: đội theo số (thay chế độ Đồng đội 1.7)**
 - Phòng online bỏ nút Thường/Đồng đội. Mỗi người (và máy) có ô **Đội 1–4**, mặc định mỗi người một
   đội = ván thường; chọn **cùng số là cùng đội**. Luật đội mới: mỗi lượt **một người lật cả hai lá**,

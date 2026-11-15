@@ -326,6 +326,13 @@
 
 - Một mã `G-MZ4MDWZRH3` (tài khoản GA "Cozy Pi" → thuộc tính "Flip Match") cho game web,
   app (qua phần web — tới app bằng cập nhật nóng), 4 trang công khai và `cozypi.com`.
+- **APP iOS ĐI ĐƯỜNG RIÊNG (1.8.1, 15.11.2026):** `gtag.js` HUỶ mọi sự kiện khi `location.protocol` khác
+  http/https — iOS chạy `capacitor://localhost` nên GA ghi 0 người iOS suốt từ khi công khai (Android
+  `https://localhost` không sao). `batPhanTich` gặp giao thức lạ thì dùng `lib/ga-truc-tiep.ts`: tự gửi tới
+  `/g/collect` (tham số chép từ yêu cầu thật của gtag.js, tự tính phiên + thời gian xem). Giao thức này
+  Google không công bố — số iOS tụt về 0 thì soi ở đó trước. ĐỪNG chuyển Android/web sang đường này.
+  Kiểm nhanh: trang Debug có dòng `GA <giao thức> <gtag|direct> · call N · net M` (call > 0 mà net = 0 là
+  sự kiện không rời máy); `thongke-tai.yml` ra bảng "Sự kiện 30 phút gần nhất" (Realtime API).
 - Cửa DUY NHẤT trong game: `lib/phan-tich.ts` (`batPhanTich`, `suKien`). Cố định: tắt Google
   Signals + cá nhân hoá quảng cáo; múi giờ châu Âu → `analytics_storage: denied` (không
   cookie, thay cho hộp hỏi đồng ý); trong app dùng `store.clientId()` làm client_id.

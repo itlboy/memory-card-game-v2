@@ -1,5 +1,6 @@
 import { laApp, nenApp } from './native';
 import { store } from './storage';
+import { gaDem, taoGaTrucTiep } from './ga-truc-tiep';
 
 /**
  * GOOGLE ANALYTICS 4 — game web + app (app nhận qua cập nhật nóng, không cần bản store).
@@ -31,10 +32,42 @@ const chauAu = (): boolean => {
   catch { return false; }
 };
 
+/** Đang gửi bằng đường nào — cho dòng chẩn đoán ở trang Debug. */
+let kieuGui: 'off' | 'gtag' | 'direct' = 'off';
+let soGoi = 0;
+
+/**
+ * DÒNG CHẨN ĐOÁN (trang Debug): giao thức trang, đường gửi, số sự kiện game đã gọi, và số yêu cầu
+ * `/g/collect` trình duyệt THẬT SỰ phát đi (đọc từ Resource Timing — đúng cho cả gtag.js lẫn gửi thẳng).
+ * Gọi > 0 mà phát = 0 nghĩa là sự kiện không rời máy (đúng cảnh iOS trước 15.11.2026).
+ */
+export function chanDoanGa(): string {
+  let phat = 0;
+  try { phat = performance.getEntriesByType('resource').filter((e) => e.name.includes('/g/collect')).length; } catch { /* bỏ qua */ }
+  const them = kieuGui === 'direct' ? ` ok ${gaDem.xong} err ${gaDem.loi}` : '';
+  return `GA ${location.protocol} ${kieuGui} · call ${soGoi} · net ${phat}${them}`;
+}
+
 export function batPhanTich(): void {
   if (gtag || !/^G-[A-Z0-9]{6,}$/.test(GA_ID) || typeof window === 'undefined') return;
   if (import.meta.env.MODE === 'test' || import.meta.env.DEV || navigator.webdriver) return;
   if (!laApp && /^(localhost|127\.|\[::1\])/.test(location.hostname)) return;
+  /*
+   * APP iOS (`capacitor://localhost`): gtag.js huỷ mọi sự kiện khi trang không chạy trên http/https
+   * → 0 người ở /app/ios suốt từ khi công khai (15.11.2026). Tự gửi thẳng — xem lib/ga-truc-tiep.ts.
+   * Android (`https://localhost`) và web vẫn đi gtag.js bên dưới.
+   */
+  if (!/^https?:$/.test(location.protocol)) {
+    kieuGui = 'direct';
+    const truc = taoGaTrucTiep({
+      tid: GA_ID, cid: store.clientId(), dl: `https://flipmatch.cozypi.com/app/${nenApp}`,
+      eu: chauAu(), up: { nen_tang: nenApp, ban_web: __OTA_ID__ }
+    });
+    gtag = (lenh, ten, thamSo) => { if (lenh === 'event') truc(String(ten), (thamSo ?? {}) as Record<string, unknown>); };
+    for (const [ten, thamSo] of choGui.splice(0)) gtag('event', ten, thamSo);
+    return;
+  }
+  kieuGui = 'gtag';
   const w = window as unknown as { dataLayer: unknown[]; gtag: Gtag };
   w.dataLayer = w.dataLayer || [];
   // gtag CHUẨN đẩy `arguments`, không phải mảng — đổi sang mảng là GA bỏ qua lệnh
@@ -66,6 +99,7 @@ export function batPhanTich(): void {
 
 /** Một sự kiện. Tên snake_case ≤ 40 ký tự, tham số là số/chuỗi ngắn — KHÔNG dữ liệu cá nhân. */
 export function suKien(ten: string, thamSo: Record<string, string | number | boolean | undefined> = {}): void {
+  soGoi++;
   if (!gtag) { if (choGui.length < CHO_TOI_DA) choGui.push([ten, { nen_tang: nenApp, ...thamSo }]); return; }
   try { gtag('event', ten, { nen_tang: nenApp, ...thamSo }); } catch { /* không bao giờ làm hỏng game */ }
 }
