@@ -1110,7 +1110,8 @@ function openCfgWizard(): void {
         >{{ o.pingHien.value === null ? '···' : `${o.pingHien.value}ms` }}</span>
         <span v-if="!p.connected" class="offline">{{ t('on.rotMang') }}</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
-          <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
+          <!-- Có ô đội (server 1.8+): vương miện dời ra CỘT NGOÀI CÙNG, thẳng cột với nút ✕ -->
+          <Crown v-if="p.id === o.room.value?.hostId && !p.doiSo" :size="15" class="crown" />
           <template v-else-if="p.doiSo">{{ p.ready ? '✓' : '…' }}</template>
           <template v-else>{{ p.ready ? t('on.sanSang') : t('on.chuaSanSang') }}</template>
         </span>
@@ -1129,8 +1130,11 @@ function openCfgWizard(): void {
           :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
           @click="p.may ? (sfx.miss(), o.boMay(p.id)) : hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="14" :stroke-width="2.6" /></button>
-        <!-- Dòng của CHỦ PHÒNG không có nút ✕: chừa đúng chỗ đó để ô đội mọi dòng thẳng hàng -->
-        <span v-else-if="o.isHost.value" class="cho-moi-ra" aria-hidden="true" />
+        <!-- CỘT NGOÀI CÙNG luôn rộng bằng nút ✕ để ô đội mọi dòng thẳng hàng: dòng chủ phòng đặt
+             vương miện ở đây (chủ dự án 15.11.2026); dòng không có gì thì để trống. -->
+        <span v-else-if="p.doiSo" class="cho-moi-ra" aria-hidden="true">
+          <Crown v-if="p.id === o.room.value?.hostId" :size="17" class="crown" />
+        </span>
       </li>
       <!-- Ô chỗ trống + Thêm máy (chủ phòng). Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng. -->
       <li v-if="conCho > 0" class="empty">
@@ -1626,7 +1630,7 @@ input:focus { outline: none; border-color: var(--accent); }
   color: color-mix(in srgb, var(--bad) 70%, var(--muted));
 }
 .nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
-.cho-moi-ra { flex: none; width: 26px; }
+.cho-moi-ra { flex: none; width: 26px; display: inline-flex; align-items: center; justify-content: center; }
 @media (hover: hover) {
   .nut-moi-ra:hover { background: var(--bad-solid); color: #fff; }
 }
