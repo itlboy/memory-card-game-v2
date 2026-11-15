@@ -92,6 +92,27 @@ for (const [id, tieuDe, dims, mets, loc] of BANG) {
   catch (e) { kq.bang[id] = { tieuDe, loi: e.message }; }
 }
 
+// NGƯỜI CHƠI THEO NỀN TẢNG. Không dùng customUser:nen_tang: chiều đó đăng ký 14.11.2026, số liệu trước
+// đó ra "(not set)". App gán page_location = /app/<ios|android> ngay từ bản GA đầu (phan-tich.ts) nên
+// lọc theo pagePath tách được CẢ lịch sử; còn lại là web. Lọc từng nền tảng (không cộng theo trang —
+// một người xem nhiều trang sẽ bị đếm lặp).
+const trang = (gt) => ({ filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: gt } } });
+const NEN = { android: trang('/app/android'), ios: trang('/app/ios'), web: { notExpression: trang('/app/') } };
+kq.nenTang = [];
+for (const [nen_tang, loc] of Object.entries(NEN)) {
+  try {
+    const [t = {}] = await bao([], ['activeUsers', 'sessions', 'userEngagementDuration'], loc);
+    const sk = await bao(['eventName'], ['eventCount', 'totalUsers'],
+      { andGroup: { expressions: [loc, suKienLa('van_bat_dau', 'van_ket_thuc')] } });
+    const cua = (ten) => sk.find((h) => h.eventName === ten) ?? {};
+    kq.nenTang.push({
+      nen_tang, nguoi: t.activeUsers ?? 0, phien: t.sessions ?? 0, phut: Math.round((t.userEngagementDuration ?? 0) / 60),
+      nguoi_choi: cua('van_bat_dau').totalUsers ?? 0, van_bat_dau: cua('van_bat_dau').eventCount ?? 0,
+      van_ket_thuc: cua('van_ket_thuc').eventCount ?? 0
+    });
+  } catch (e) { kq.nenTang.push({ nen_tang, loi: e.message }); }
+}
+
 // Bỏ dở: chỉ số tuỳ chỉnh GA trả TỔNG — đổi ra trung bình mỗi ván
 for (const h of kq.bang.bo_do.hang ?? []) {
   h.tb_tien_do_pct = h.eventCount ? Math.round(h.tien_do / h.eventCount) : 0;
@@ -123,6 +144,7 @@ const bangMd = (hang) => {
   const fmt = (v) => (typeof v === 'number' && v % 1 ? v.toFixed(1) : String(v));
   return [`| ${k.join(' | ')} |`, `|${k.map(() => '---').join('|')}|`, ...hang.map((h) => `| ${k.map((x) => fmt(h[x])).join(' | ')} |`), ''];
 };
+md.push('## Người chơi theo nền tảng', '', ...bangMd(kq.nenTang));
 md.push('## Xếp hạng chức năng (theo số người)', '', ...bangMd(kq.xepHang));
 md.push('## Chơi hết ván theo chế độ', '', ...bangMd(kq.hoanThanh));
 for (const [id, b] of Object.entries(kq.bang)) {
