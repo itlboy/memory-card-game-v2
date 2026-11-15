@@ -145,18 +145,18 @@ const bangMd = (hang) => {
   return [`| ${k.join(' | ')} |`, `|${k.map(() => '---').join('|')}|`, ...hang.map((h) => `| ${k.map((x) => fmt(h[x])).join(' | ')} |`), ''];
 };
 // 30 PHÚT GẦN NHẤT (Realtime API) — vừa phát hành xong muốn biết sự kiện có tới GA không thì báo cáo
-// thường phải chờ vài giờ tới một ngày; bảng này có ngay. Tách theo nền tảng GA tự nhận (iOS/Android/web).
+// thường phải chờ vài giờ tới một ngày; bảng này có ngay, tách theo loại thiết bị GA tự nhận.
 try {
   const r = await fetch(`https://analyticsdata.googleapis.com/v1beta/${PROP}:runRealtimeReport`, {
     method: 'POST', headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ dimensions: [{ name: 'eventName' }, { name: 'deviceCategory' }, { name: 'platform' }],
-      metrics: [{ name: 'eventCount' }, { name: 'activeUsers' }], limit: 200 })
+    // Realtime không cho ghép eventName với activeUsers / platform ("cannot be queried together")
+    body: JSON.stringify({ dimensions: [{ name: 'eventName' }, { name: 'deviceCategory' }],
+      metrics: [{ name: 'eventCount' }], limit: 200 })
   });
   const j = await r.json();
   if (!r.ok) throw new Error(j.error?.message ?? `HTTP ${r.status}`);
   kq.vuaXong = (j.rows ?? []).map((h) => ({
-    su_kien: h.dimensionValues[0].value, thiet_bi: h.dimensionValues[1].value, nen: h.dimensionValues[2].value,
-    so_lan: Number(h.metricValues[0].value), nguoi: Number(h.metricValues[1].value)
+    su_kien: h.dimensionValues[0].value, thiet_bi: h.dimensionValues[1].value, so_lan: Number(h.metricValues[0].value)
   }));
 } catch (e) { kq.vuaXong = [{ loi: e.message }]; }
 md.push('## Sự kiện 30 phút gần nhất', '', ...bangMd(kq.vuaXong));
