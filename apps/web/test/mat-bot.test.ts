@@ -7,8 +7,8 @@ import MatBot from '@/components/MatBot.vue';
 
 /*
  * Mặt báo đen là một KHOÁ chứ không phải emoji; màn nào có thể hiện bot mà in
- * thẳng chuỗi avatar là người chơi thấy ":bao-den:". Online không có bot nên
- * OnlineGame/OnlineScreen in chữ trơn vẫn đúng.
+ * thẳng chuỗi avatar là người chơi thấy ":bao-den:". Online CÓ bot (từ 1.7) — bản 1.8.1 còn in
+ * thẳng mặt người đi trước ở màn đếm ngược, ra "🎮 :rong-vang: Bot rồng thần đi trước" (15.11.2026).
  */
 const doc = (f: string): string => readFileSync(resolve(process.cwd(), 'src/components', f), 'utf8');
 
@@ -28,8 +28,9 @@ describe('mặt bot', () => {
     expect(w.text()).toBe('🐲');
   });
 
-  it.each(['PlayerStrip.vue', 'MenuScreen.vue', 'GameScreen.vue'])('%s không in avatar thẳng', (f) => {
+  it.each(['PlayerStrip.vue', 'MenuScreen.vue', 'GameScreen.vue', 'OnlineGame.vue', 'OnlineScreen.vue', 'TeamStrip.vue', 'ChonDoi.vue'])('%s không in avatar thẳng', (f) => {
     const tpl = doc(f);
     expect(tpl, `${f}: có "{{ …avatar… }}" — phải đi qua <MatBot>`).not.toMatch(/\{\{[^}]*avatar[^}]*\}\}/i);
+    expect(tpl, `${f}: mặt người đi trước in chữ trơn`).not.toMatch(/\{\{\s*matDiTruoc\s*\}\}/);
   });
 });

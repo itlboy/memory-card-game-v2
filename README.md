@@ -710,6 +710,14 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**15.11.2026 — 1.8.2: tên/mặt bot ở câu báo, mặt thú ngẫu nhiên, tỷ số loạt dễ nhìn**
+- Đếm ngược online in thẳng mặt bot (":rong-vang:") và tên bot không dịch; ván đội báo tên cả đội
+  thay vì người lật đầu. Mọi câu báo tên (đếm ngược, emoji, câu nói nhanh, mất/hồi mạng, đóng băng,
+  chơi lại…) nay qua `tenHien`/`tenNguoi`; `test/dem-nguoc-bot.test.ts` canh cả hành vi lẫn mã nguồn.
+- Mặt thú: server bốc NGẪU NHIÊN trong số con còn trống (trước luôn 🦊 cho chủ phòng); ván chung máy
+  giữ nguyên mặt suốt loạt (App.vue `matLoat`), bàn mới mới bốc lại.
+- Tỷ số loạt 🏅: viên nền tối chữ trắng (cả huy hiệu góc bàn ≥3 người) — nền vàng trên chip vàng chìm.
+
 **15.11.2026 — 1.8.1: GA4 trên app iOS**
 - App iOS chưa từng gửi được sự kiện GA4: `gtag.js` huỷ mọi sự kiện khi trang không chạy trên
   http/https, mà iOS chạy `capacitor://localhost` (Android `https://localhost` nên không sao). Nay

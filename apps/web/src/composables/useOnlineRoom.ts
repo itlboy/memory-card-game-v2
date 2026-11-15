@@ -15,6 +15,7 @@ import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
 import { t, td } from '@/lib/i18n';
 import { SERVER_URL } from '@/lib/native';
+import { tenNguoi } from '@/lib/ten';
 
 /**
  * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
@@ -251,7 +252,7 @@ export function useOnlineRoom() {
     if (!r) return [] as string[];
     return (r.againVotes ?? [])
       .filter((id) => id !== myId.value)
-      .map((id) => r.players.find((p) => p.id === id)?.name)
+      .map((id) => { const p = r.players.find((x) => x.id === id); return p ? tenNguoi(p) : undefined; })
       .filter((n): n is string => !!n);
   });
 
@@ -260,7 +261,7 @@ export function useOnlineRoom() {
     const r = room.value;
     if (!r) return [] as string[];
     const voted = new Set(r.againVotes ?? []);
-    return r.players.filter((p) => p.connected && !voted.has(p.id)).map((p) => p.name);
+    return r.players.filter((p) => p.connected && !voted.has(p.id)).map((p) => tenNguoi(p));
   });
 
   /* ---------- nhịp tim: đo độ trễ mạng của CHÍNH MÌNH ---------- */
@@ -508,6 +509,20 @@ export function useOnlineRoom() {
   const peekDeadline = ref(0);
   /** Đếm ngược trước ván (ROOM_LIMITS.countdownMs) + người đi đầu. */
   const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
+  /**
+   * TÊN ĐỂ HIỆN của một người/đội theo mã — MỌI câu báo (đếm ngược, đến lượt, mất/hồi mạng…)
+   * phải đi qua đây. Tên bot server gửi là chữ gốc tiếng Việt ("Bot rồng thần"), chỉ `tenNguoi`
+   * mới dịch theo ngôn ngữ; đội (`doi-N`) thì ghép tên từng thành viên.
+   */
+  function tenHien(id: string | null | undefined): string {
+    if (!id) return '';
+    if (id === myId.value) return t('chung.ban');
+    const p = room.value?.players.find((x) => x.id === id) ?? view.value?.players.find((x) => x.id === id);
+    if (!p) return '';
+    const tv = (p as { thanhVien?: string[] }).thanhVien;
+    if (tv?.length) return tv.map((m) => tenHien(m)).filter(Boolean).join(' & ');
+    return tenNguoi(p);
+  }
   /** Mặt sau của ván — bốc ngẫu nhiên mỗi ván mới. */
   /** Mặt sau lấy TỪ SERVER: bốc tại client thì hai người chơi cùng một bàn lại
    *  thấy hai kiểu khác nhau — đúng lỗi đã gặp. */
@@ -639,7 +654,7 @@ export function useOnlineRoom() {
       case 'not-ready': {
         const r = room.value;
         const ten = r?.players.filter((p) => p.id !== r.hostId && !p.ready && p.connected)
-          .map((p) => p.name).join(', ');
+          .map((p) => tenNguoi(p)).join(', ');
         return ten ? t('or.loi.notReady', { ten }) : message;
       }
       default: return message;
@@ -1043,8 +1058,9 @@ export function useOnlineRoom() {
         if (!spectator.value && token) luuPhien();
         countdown.value = {
           endsAt: Date.now() + msg.endsInMs,
-          firstId: msg.firstId,
-          firstName: msg.firstId === myId.value ? t('chung.ban') : msg.firstName
+          // Ván ĐỘI: server báo mã ĐỘI (`doi-N`) — người lật đầu tiên là `nguoiLat` của view
+          firstId: view.value?.nguoiLat || msg.firstId,
+          firstName: tenHien(view.value?.nguoiLat || msg.firstId) || msg.firstName
         };
         phase.value = 'playing';
         // "Sắp bắt đầu": nốt đầu của câu đếm ngược, không dùng ding-dong chuyển
@@ -1095,7 +1111,7 @@ export function useOnlineRoom() {
         const sender = room.value?.players.find((p) => p.id === msg.from);
         const moi = {
           from: msg.from,
-          name: msg.from === myId.value ? t('chung.ban') : (sender?.name ?? ''),
+          name: tenHien(msg.from),
           emoji: msg.emoji,
           key: ++bongKey
         };
@@ -1112,7 +1128,7 @@ export function useOnlineRoom() {
 
       case 'say': {
         const sender = room.value?.players.find((p) => p.id === msg.from);
-        const name = msg.from === myId.value ? t('chung.ban') : (sender?.name ?? '');
+        const name = tenHien(msg.from);
         loiNoi.value = [...loiNoi.value.filter((x) => x.from !== msg.from), { from: msg.from, id: msg.id, name, key: ++loiNoiKey }];
         clearTimeout(loiNoiHen.get(msg.from));
         // 3,2 giây: đủ đọc một câu ngắn, không đủ lâu để che bàn thẻ
@@ -1268,9 +1284,8 @@ export function useOnlineRoom() {
           setTimeout(() => { timeBonusFor.value = null; }, 1400);
           break;
         case 'life-gain': {
-          const who = view.value?.players.find((p) => p.id === e.playerId);
           sfx.lifeGain();
-          lifeGain.value = { name: who?.name ?? '', key: (lifeGain.value?.key ?? 0) + 1 };
+          lifeGain.value = { name: tenHien(e.playerId), key: (lifeGain.value?.key ?? 0) + 1 };
           setTimeout(() => { lifeGain.value = null; }, 3200);
           break;
         }
@@ -1280,10 +1295,9 @@ export function useOnlineRoom() {
          * MÌNH mất — mất mạng của đối thủ là tin vui, không đáng giật mình.
          */
         case 'life-lost': {
-          const who = view.value?.players.find((p) => p.id === e.playerId);
           if (laToi(e.playerId)) sfx.lifeLost();
           lifeLost.value = {
-            name: who?.name ?? '', left: e.livesLeft, cuaToi: laToi(e.playerId),
+            name: tenHien(e.playerId), left: e.livesLeft, cuaToi: laToi(e.playerId),
             key: (lifeLost.value?.key ?? 0) + 1
           };
           setTimeout(() => { lifeLost.value = null; }, 2600);
@@ -1322,9 +1336,9 @@ export function useOnlineRoom() {
       const coDongBang = find(frozenId) !== undefined;
       if (p && (BAO_DEN_LUOT || coDongBang)) {
         turnBanner.value = {
-          name: p.id === myId.value ? t('or.banThuong') : p.name,
+          name: p.id === myId.value ? t('or.banThuong') : tenNguoi(p),
           avatar: p.avatar ?? '',
-          frozen: find(frozenId)?.name ?? null,
+          frozen: frozenId && find(frozenId) ? tenHien(frozenId) : null,
           key: (turnBanner.value?.key ?? 0) + 1
         };
         clearTimeout(bannerTimer);

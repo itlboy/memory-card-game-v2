@@ -386,7 +386,7 @@ function quit(): void {
     const khac = (o.room.value?.players ?? []).filter((p) => p.id !== o.myId.value);
     confirm.value = {
       title: t('on.thoat.tieuDe'),
-      body: khac.length === 1 ? t('on.thoat.than1', { ten: khac[0]!.name }) : t('on.thoat.than'),
+      body: khac.length === 1 ? t('on.thoat.than1', { ten: tenNguoi(khac[0]!) }) : t('on.thoat.than'),
       label: t('on.thoat.nut'),
       action: exit
     };
@@ -1127,7 +1127,7 @@ function openCfgWizard(): void {
              hỏi xác nhận trước khi mời ra. -->
         <button
           v-if="o.isHost.value && p.id !== o.myId.value" class="nut-moi-ra thach th-nho" type="button"
-          :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
+          :aria-label="t('on.moiRaAria', { ten: tenNguoi(p) })" :title="t('on.moiRaAria', { ten: tenNguoi(p) })"
           @click="p.may ? (sfx.miss(), o.boMay(p.id)) : hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="14" :stroke-width="2.6" /></button>
         <!-- CỘT NGOÀI CÙNG luôn rộng bằng nút ✕ để ô đội mọi dòng thẳng hàng: dòng chủ phòng đặt

@@ -4,6 +4,7 @@ import { computed, onScopeDispose, ref, shallowRef } from 'vue';
 import { botPick, botRng, botThinkMs, createBotMemory, observe, publicView } from '@mm/engine';
 import type { BotLevel, BotMemory } from '@mm/engine';
 import { sfx } from '@/lib/audio';
+import { tenNguoi } from '@/lib/ten';
 import { rung } from '@/lib/rung';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
@@ -209,9 +210,10 @@ export function useGameSession() {
       const p = find(turnId);
       if (p) {
         turnBanner.value = {
-          name: p.name,
+          // Tên qua `tenNguoi`: bot bị đóng băng mà in `.name` là chữ gốc tiếng Việt, không dịch
+          name: tenNguoi(p),
           avatar: p.avatar ?? '',
-          frozen: find(frozenId)?.name ?? null,
+          frozen: find(frozenId) ? tenNguoi(find(frozenId)) : null,
           key: (turnBanner.value?.key ?? 0) + 1
         };
         clearTimeout(bannerTimer);

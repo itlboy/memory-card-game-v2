@@ -128,7 +128,7 @@ describe('banner báo lượt', () => {
 
   it('chuyện ĐÓNG BĂNG vẫn báo — nó là sự kiện hiếm, không phải nhịp mỗi lượt', () => {
     expect(online).toMatch(/coDongBang/);
-    expect(online).toMatch(/frozen: find\(frozenId\)\?\.name \?\? null/);
+    expect(online).toMatch(/frozen: frozenId && find\(frozenId\) \? tenHien\(frozenId\) : null/);
   });
 
   it('đấu với BOT cũng không báo — chỉ một người ngồi trước máy, gọi ai?', () => {
