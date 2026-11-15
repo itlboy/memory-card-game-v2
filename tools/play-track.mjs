@@ -12,6 +12,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { createSign } from 'node:crypto';
+import { MOI } from './asc-moi.mjs';
 
 const PKG = 'com.cozypi.flipmatch';
 const [keyPath, versionCode, kenh] = process.argv.slice(2);
@@ -63,9 +64,18 @@ if (!nguon) {
   await api('DELETE', E);
   console.error(`✗ Build ${versionCode} chưa có ở kênh nào — phải tải lên trước (mobile.yml phat_hanh=true).`); process.exit(1);
 }
+/*
+ * Lên PRODUCTION thì kèm ghi chú phát hành ("Có gì mới") — cùng nội dung với App Store (tools/asc-moi.mjs),
+ * mã ngôn ngữ theo Play. Kênh thử giữ ghi chú của bản nguồn (thường là trống).
+ */
+const MA_PLAY = { en: 'en-US', vi: 'vi', es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', ja: 'ja-JP', ko: 'ko-KR',
+  zh: 'zh-CN', ru: 'ru-RU', id: 'id', th: 'th', it: 'it-IT', tr: 'tr-TR', 'zh-TW': 'zh-TW' };
+const ghiChu = kenh === 'production'
+  ? Object.entries(MOI).map(([k, text]) => ({ language: MA_PLAY[k], text })).filter((g) => g.language)
+  : nguon.releaseNotes;
 await api('PUT', `${E}/tracks/${kenh}`, {
   track: kenh,
-  releases: [{ name: nguon.name, versionCodes: [String(versionCode)], status: 'completed', ...(nguon.releaseNotes ? { releaseNotes: nguon.releaseNotes } : {}) }],
+  releases: [{ name: nguon.name, versionCodes: [String(versionCode)], status: 'completed', ...(ghiChu?.length ? { releaseNotes: ghiChu } : {}) }],
 });
 const xong = await api('POST', `${E}:commit`);
 console.log(`✓ Build ${versionCode} (${nguon.name ?? ''}) → kênh ${kenh} · edit ${xong.id}`);
