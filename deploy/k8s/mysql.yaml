@@ -221,7 +221,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: pa-thebai.hello314.com
+    - host: pa-flipmatch.cozypi.com
       http:
         paths:
           - path: /
@@ -241,8 +241,10 @@ spec:
 #   3. kubectl apply -f deploy/k8s/mysql.yaml
 #   4. Thêm MYSQL_URL vào Deployment thebai-server (xem thebai.yaml) rồi apply.
 #
-# Trang quản trị: https://pa-thebai.hello314.com (wildcard *.hello314.com đã trỏ
-# sẵn tunnel, không phải thêm DNS). Đăng nhập bằng chính tài khoản MariaDB.
+# Trang quản trị: https://pa-flipmatch.cozypi.com (đổi từ pa-thebai.hello314.com 15.11.2026;
+# wildcard *.cozypi.com đã trỏ sẵn tunnel, không phải thêm DNS). Đứng sau Cloudflare Access
+# (app "phpMyAdmin Lật Thẻ", policy "Chỉ Kiên") — đổi tên miền thì đổi CẢ app Access, trước
+# khi đổi ingress. Đăng nhập bằng chính tài khoản MariaDB.
 #
 # VỀ NHIỀU POD — cái này KHÔNG mở đường cho việc đó:
 #   - WebSocket dính vào một pod; hai người cùng phòng có thể rơi vào hai pod
