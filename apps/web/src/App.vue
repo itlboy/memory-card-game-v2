@@ -604,9 +604,14 @@ function batDauLoat(list: PlayerInit[]): PlayerInit[] {
   if (key !== seriesKey.value) {
     seriesKey.value = key;
     seriesWins.value = {};
+    matLoat = {};
   }
-  return list;
+  // MẶT THÚ GIỮ NGUYÊN CẢ LOẠT (15.11.2026, chủ dự án): engine bốc ngẫu nhiên mỗi ván, nên chơi
+  // lại là cả bàn đổi mặt. Bàn mới (danh sách đổi) thì bốc lại; bot có mặt cố định, không đụng.
+  return list.map((p) => (p.avatar || !matLoat[p.id] ? p : { ...p, avatar: matLoat[p.id] }));
 }
+/** Mặt engine đã bốc cho từng người của loạt hiện tại — ghi sau mỗi lần vào ván (`launch`). */
+let matLoat: Record<string, string> = {};
 
 /** Seed lấy từ ngoài engine để engine giữ tính tất định (dùng chung với server sau này). */
 const newSeed = (): number => Math.floor(Math.random() * 0xffffffff) || 1;
@@ -660,7 +665,8 @@ function launch(config: GameConfig): void {
   nhoBuocTruoc();
   isRecord.value = false;
   freshAchievements.value = [];
-  session.start(config);
+  const g = session.start(config);
+  if ((config.players?.length ?? 0) > 1) for (const p of g.players) if (p.avatar) matLoat[p.id] = p.avatar;
   screen.value = 'game';
   setUrl('playing=1');
   persistGame();

@@ -1617,10 +1617,15 @@ export class RoomDO extends DurableObject<Env> {
    * Avatar chưa ai trong phòng đang đội. AVATARS có 10 con, đúng bằng
    * ROOM_LIMITS.maxPlayers, nên luôn còn ít nhất một con trống; hết sạch (không
    * xảy ra được, nhưng đừng để trả về undefined) thì quay vòng như cũ.
+   *
+   * BỐC NGẪU NHIÊN trong số con còn trống (15.11.2026): bản cũ lấy con trống ĐẦU TIÊN theo
+   * thứ tự, nên chủ phòng nào cũng là 🦊, người thứ hai luôn 🐼 — chủ dự án thấy "cáo lặp lại
+   * khá nhiều".
    */
   private avatarConTrong(): string {
     const dangDung = new Set(this.room!.players.map((p) => p.avatar));
-    return AVATARS.find((a) => !dangDung.has(a))
+    const trong = AVATARS.filter((a) => !dangDung.has(a));
+    return trong[Math.floor(Math.random() * trong.length)]
       ?? AVATARS[this.room!.players.length % AVATARS.length]!;
   }
 

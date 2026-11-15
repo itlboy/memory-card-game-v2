@@ -36,10 +36,11 @@ import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
 const emit = defineEmits<{ quit: []; chinh: [] }>();
 const o = props.o;
-/** Avatar người đi đầu (đếm ngược trước ván) — thay 🎲; online không có máy nên in chữ trơn. */
+/** Avatar người đi đầu (đếm ngược trước ván) — thay 🎲. Online có BOT (mặt là khoá `:rong-vang:`…) nên phải vẽ qua MatNguoi, đừng in chữ trơn. */
 const matDiTruoc = computed(() => {
   const id = o.countdown.value?.firstId;
-  const ps = o.view.value?.players ?? o.room.value?.players ?? [];
+  // room.players trước: ván đội thì `firstId` là THÀNH VIÊN lật đầu, chỉ có trong phòng
+  const ps = [...(o.room.value?.players ?? []), ...(o.view.value?.players ?? [])];
   return ps.find((p) => p.id === id)?.avatar ?? '🎮';
 });
 
@@ -317,7 +318,8 @@ watch(() => o.chiThe.value, (c) => {
   if (!c) return;
   const ai = o.room.value?.players.find((p) => p.id === c.from);
   sfx.select();
-  hienChi(c.index, ai ? `${ai.avatar ?? ''} ` : '');
+  // Mặt dạng khoá (`:bao-den:`) không in được thành chữ — bỏ, chỉ giữ emoji
+  hienChi(c.index, ai?.avatar && !/^:.+:$/.test(ai.avatar) ? `${ai.avatar} ` : '');
 });
 onBeforeUnmount(() => { clearTimeout(henGiu); clearTimeout(henChi); });
 /** HOÀ không phải thua: tiếng đã là `sfx.win()` nhẹ, nên hình cũng không được
@@ -524,14 +526,14 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
             v-for="(p, k) in khac" :key="p.id"
             class="mini" :class="{ next: k === 0, off: !p.connected || p.forfeited }"
             :data-chip-for="p.id"
-            :title="t('ps.diemCua', { ten: p.name, n: p.score })"
+            :title="t('ps.diemCua', { ten: tenNguoi(p), n: p.score })"
           >
             <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
             <!-- Mất mạng / đã rời: một chấm đỏ thay cho chữ. Ở cỡ này không có
                  chỗ cho "📴 mất mạng", mà bỏ hẳn thì bên kia biến mất không lý do. -->
             <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? t('og.daRoiPhong') : t('og.matKetNoi')"></span>
             <span class="mpts">{{ p.score }}</span>
-            <span class="sr-only">{{ t('ps.diemCuaSr', { ten: p.name, n: p.score }) }}</span>
+            <span class="sr-only">{{ t('ps.diemCuaSr', { ten: tenNguoi(p), n: p.score }) }}</span>
           </li>
           <li class="more">
             <button
@@ -648,7 +650,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       <!-- Đếm ngược trước ván + báo người đi đầu -->
       <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
-        <span class="first"><span class="mat-dau">{{ matDiTruoc }}</span> <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
+        <span class="first"><span class="mat-dau"><MatNguoi :mat="matDiTruoc" :anh="anhCua(o.countdown.value?.firstId ?? '')" /></span> <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
       </div>
 
     </div>
@@ -936,11 +938,11 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
 .strip.dong .pchip .wins {
   position: absolute; z-index: 1; left: 2px; top: 2px;
   min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
-  background: var(--gold); color: #3a2a00; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  background: rgba(30, 22, 48, .85); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, .3);
 }
 .strip.dong .pchip .wins .huy { display: none; }
 
-.pchip:not(.active) .wins { padding: 1px 3px; font-size: 10.5px; }
+.pchip:not(.active) .wins { padding: 1px 5px 1px 2px; font-size: 11px; }
 .netbad {
   flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
   padding: 1px 5px; border-radius: var(--r-full);
@@ -993,11 +995,16 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
 .pchip .lives :deep(.opt-ico) { border-radius: 4px; }
 /* Số ván thắng trong loạt — thấy ai đang dẫn ngay trong ván */
 .pchip .wins {
-  flex-shrink: 0; font-size: 11px; font-weight: 800;
-  padding: 1px 5px; border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--gold) 30%, transparent);
+  /* VIÊN VÀNG ĐẶC, CHỮ NÂU ĐẬM (15.11.2026, chủ dự án: "tỷ số huy chương khó nhìn"): nền vàng 30%
+     trong suốt chìm vào chip, nhất là chip VÀNG của người đang đi. Nền KHÔNG được vàng (🏅 đã vàng,
+     vàng trên vàng là chìm, chủ dự án chê) — viên tối trung tính, chữ trắng: nổi trên mọi chip. */
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 1px;
+  font-size: 11.5px; font-weight: 900; line-height: 1.25;
+  padding: 1px 6px 1px 3px; border-radius: var(--r-full);
+  background: rgba(30, 22, 48, .78); color: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+.pchip .wins .huy { font-size: .95em; }
 /*
  * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI.
  *

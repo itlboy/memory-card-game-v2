@@ -239,18 +239,23 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .player.active .name { font-size: 12px; }
 /* Số ván đã thắng trong loạt — biết ai đang dẫn mà không phải mở bảng kết quả */
 .wins {
-  flex-shrink: 0; font-size: 11px; font-weight: 800;
-  padding: 1px 5px; border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--gold) 30%, transparent);
+  /* VIÊN VÀNG ĐẶC, CHỮ NÂU ĐẬM (15.11.2026, chủ dự án: "tỷ số huy chương khó nhìn"): nền vàng 30%
+     trong suốt chìm vào chip, nhất là chip VÀNG của người đang đi. Nền KHÔNG được vàng (🏅 đã vàng,
+     vàng trên vàng là chìm, chủ dự án chê) — viên tối trung tính, chữ trắng: nổi trên mọi chip. */
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 1px;
+  font-size: 11.5px; font-weight: 900; line-height: 1.25;
+  padding: 1px 6px 1px 3px; border-radius: var(--r-full);
+  background: rgba(30, 22, 48, .78); color: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+.wins .huy { font-size: .95em; }
 /* CHIP CHỜ CÓ 🏅: bỏ tên, giữ avatar + 🏅 + điểm — xem chú thích đầy đủ ở OnlineGame.vue
    (lỗi điểm bị cắt ở chip phải, bàn 2 người, iPhone 15 Pro Max, 07.11.2026). */
 @container (max-width: 150px) {
   .player.co-loat:not(.active) .name { display: none; }
   .player.co-loat:not(.active) { justify-content: space-between; }
 }
-.player:not(.active) .wins { padding: 1px 3px; font-size: 10.5px; }
+.player:not(.active) .wins { padding: 1px 5px 1px 2px; font-size: 11px; }
 /*
  * BÀN ≥3 NGƯỜI: 🏅 THÀNH HUY HIỆU SỐ Ở GÓC AVATAR (absolute, tốn 0px bề ngang).
  * Chip chờ ở đây chỉ rộng 70px = avatar + điểm; viên 🏅 chen vào là đẩy điểm ra khỏi chip
@@ -259,7 +264,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .strip.dong .player .wins {
   position: absolute; z-index: 1; left: 2px; top: 2px;
   min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
-  background: var(--gold); color: #3a2a00; box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+  background: rgba(30, 22, 48, .85); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, .3);
 }
 .strip.dong .player .wins .huy { display: none; }
 
