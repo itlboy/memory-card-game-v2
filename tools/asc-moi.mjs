@@ -1,22 +1,23 @@
 /**
  * "CÓ GÌ MỚI" của bản App Store đang nộp (Apple BẮT BUỘC với mọi bản cập nhật). Sửa ở đây mỗi lần
- * ra bản store mới; khoá theo mã ảnh (`anh` trong NGON_NGU của asc-store.mjs).
- * Bản 1.5 (09.11.2026): gộp mọi thay đổi từ 1.3.0 (bản công khai trước).
+ * ra bản store mới; khoá theo mã ảnh (`anh` trong NGON_NGU của asc-store.mjs). Google Play dùng CÙNG
+ * nội dung làm ghi chú phát hành khi đưa build lên production (tools/play-track.mjs).
+ * Bản 1.8.1 (15.11.2026): gộp mọi thay đổi từ 1.5.4 (bản công khai trước).
  */
 export const MOI = {
-  vi: '• Đăng nhập bằng Google\n• Trang danh hiệu mới với huy chương theo bậc\n• Emoji chat dạng bong bóng, thêm nhiều emoji\n• Chỉnh bàn ngay sau ván online, phòng không mất khi ra ngoài app\n• Giao diện mượt và dễ nhìn hơn',
-  en: '• Sign in with Google\n• Brand-new achievements page with tiered medals\n• Emoji chat bubbles and many more emojis\n• Edit the table right after an online game; rooms stay open when you switch apps\n• Smoother, clearer interface',
-  es: '• Inicia sesión con Google\n• Nueva página de logros con medallas por nivel\n• Burbujas de emoji y muchos más emojis\n• Ajusta la mesa tras una partida online; la sala sigue abierta si cambias de app\n• Interfaz más fluida y clara',
-  pt: '• Entre com o Google\n• Nova página de conquistas com medalhas por nível\n• Bolhas de emoji e muito mais emojis\n• Ajuste a mesa logo após a partida online; a sala continua aberta ao trocar de app\n• Interface mais fluida e clara',
-  fr: '• Connexion avec Google\n• Nouvelle page des succès avec médailles par rang\n• Bulles d’emoji et bien plus d’emojis\n• Réglez la table juste après une partie en ligne ; le salon reste ouvert si vous changez d’app\n• Interface plus fluide et lisible',
-  de: '• Anmelden mit Google\n• Neue Erfolge-Seite mit Medaillen nach Stufe\n• Emoji-Sprechblasen und viel mehr Emojis\n• Tisch direkt nach dem Online-Spiel anpassen; der Raum bleibt beim App-Wechsel offen\n• Flüssigere, klarere Oberfläche',
-  ja: '• Google でログイン\n• ランク別メダルの新しい実績ページ\n• 吹き出し型の絵文字チャット、絵文字も大幅に追加\n• オンライン対戦後すぐにテーブル設定を変更可能、アプリを切り替えても部屋が残ります\n• より滑らかで見やすい画面',
-  ko: '• Google로 로그인\n• 등급별 메달이 있는 새 업적 페이지\n• 말풍선 이모지 채팅, 이모지 대폭 추가\n• 온라인 게임 후 바로 테이블 설정 변경, 앱을 전환해도 방이 유지돼요\n• 더 부드럽고 보기 쉬운 화면',
-  zh: '• 使用 Google 账号登录\n• 全新成就页面，按等级展示奖牌\n• 气泡式表情聊天，新增大量表情\n• 在线对局后可直接调整牌桌；切换应用时房间不会消失\n• 界面更流畅清晰',
-  ru: '• Вход через Google\n• Новая страница достижений с медалями по уровням\n• Эмодзи в пузырях и намного больше эмодзи\n• Настройка стола сразу после онлайн-игры; комната сохраняется при переключении приложений\n• Более плавный и понятный интерфейс',
-  id: '• Masuk dengan Google\n• Halaman pencapaian baru dengan medali bertingkat\n• Gelembung emoji dan lebih banyak emoji\n• Atur meja langsung setelah main online; room tetap ada saat pindah aplikasi\n• Tampilan lebih mulus dan jelas',
-  th: '• ลงชื่อเข้าใช้ด้วย Google\n• หน้าความสำเร็จใหม่ พร้อมเหรียญตามระดับ\n• แชทอีโมจิแบบบับเบิล และอีโมจิเพิ่มอีกมาก\n• ปรับโต๊ะได้ทันทีหลังเล่นออนไลน์ ห้องไม่หายเมื่อสลับแอป\n• หน้าตาลื่นไหลและดูง่ายขึ้น',
-  it: '• Accedi con Google\n• Nuova pagina obiettivi con medaglie per livello\n• Fumetti emoji e molte più emoji\n• Modifica il tavolo subito dopo la partita online; la stanza resta aperta se cambi app\n• Interfaccia più fluida e chiara',
-  tr: '• Google ile giriş\n• Seviyeli madalyalarla yeni başarımlar sayfası\n• Balon emoji sohbeti ve çok daha fazla emoji\n• Çevrim içi oyundan hemen sonra masayı ayarlayın; uygulama değiştirince oda kapanmaz\n• Daha akıcı ve net arayüz',
-  'zh-TW': '• 使用 Google 帳戶登入\n• 全新成就頁面，依等級展示獎牌\n• 氣泡式表情聊天，新增大量表情\n• 線上對局後可直接調整牌桌；切換應用程式時房間不會消失\n• 介面更流暢清晰'
+  vi: "• Chơi theo đội: trong phòng online chọn cùng số đội là chơi chung một đội\n• Thêm máy vào phòng online và ván nhiều người chung máy\n• Phòng chờ online gọn hơn, thoát phòng là phòng đóng đúng\n• Sửa lỗi, giao diện mượt hơn",
+  en: "• Team play: pick the same team number in an online room to play together\n• Add bots to online rooms and same-device games\n• Cleaner online lobby; rooms close properly when you leave\n• Fixes and a smoother interface",
+  es: "• Juego en equipo: elegid el mismo número de equipo en una sala online para jugar juntos\n• Añade bots a las salas online y a las partidas en el mismo dispositivo\n• Sala de espera online más clara; las salas se cierran bien al salir\n• Correcciones e interfaz más fluida",
+  pt: "• Jogo em equipe: escolham o mesmo número de equipe numa sala online para jogar juntos\n• Adicione bots às salas online e às partidas no mesmo aparelho\n• Sala de espera online mais limpa; as salas fecham corretamente ao sair\n• Correções e interface mais fluida",
+  fr: "• Jeu en équipe : choisissez le même numéro d’équipe dans un salon en ligne pour jouer ensemble\n• Ajoutez des bots aux salons en ligne et aux parties sur le même appareil\n• Salle d’attente en ligne plus claire ; les salons se ferment bien quand vous partez\n• Corrections et interface plus fluide",
+  de: "• Teamspiel: gleiche Teamnummer im Online-Raum wählen und zusammen spielen\n• Bots in Online-Räumen und Spielen am selben Gerät\n• Übersichtlicherer Online-Warteraum; Räume schließen beim Verlassen richtig\n• Fehlerbehebungen und flüssigere Oberfläche",
+  ja: "• チーム戦：オンラインルームで同じチーム番号を選ぶと一緒にプレイ\n• オンラインルームと1台での対戦にボットを追加\n• オンライン待機画面がすっきり、退出すると部屋が正しく閉じます\n• 不具合の修正と操作性の向上",
+  ko: "• 팀 플레이: 온라인 방에서 같은 팀 번호를 고르면 함께 플레이\n• 온라인 방과 한 기기 게임에 봇 추가\n• 더 깔끔한 온라인 대기실, 나가면 방이 제대로 닫혀요\n• 버그 수정 및 더 부드러운 화면",
+  zh: "• 组队玩法：在线房间里选同一队号即可同队\n• 在线房间和同屏多人对局可加入机器人\n• 在线等候室更简洁，离开后房间会正确关闭\n• 问题修复，界面更流畅",
+  ru: "• Командная игра: выберите одинаковый номер команды в онлайн-комнате, чтобы играть вместе\n• Боты в онлайн-комнатах и играх на одном устройстве\n• Более понятный онлайн-лобби; комнаты правильно закрываются, когда вы выходите\n• Исправления и более плавный интерфейс",
+  id: "• Main tim: pilih nomor tim yang sama di room online untuk main bersama\n• Tambahkan bot ke room online dan permainan satu perangkat\n• Lobi online lebih rapi; room tertutup dengan benar saat kamu keluar\n• Perbaikan dan tampilan lebih mulus",
+  th: "• เล่นเป็นทีม: เลือกเลขทีมเดียวกันในห้องออนไลน์เพื่อเล่นด้วยกัน\n• เพิ่มบอทในห้องออนไลน์และเกมเครื่องเดียวกัน\n• ห้องรอออนไลน์ดูง่ายขึ้น ออกจากห้องแล้วห้องปิดถูกต้อง\n• แก้ไขปัญหาและหน้าตาลื่นไหลขึ้น",
+  it: "• Gioco a squadre: scegliete lo stesso numero di squadra in una stanza online per giocare insieme\n• Aggiungi bot alle stanze online e alle partite sullo stesso dispositivo\n• Sala d’attesa online più chiara; le stanze si chiudono bene quando esci\n• Correzioni e interfaccia più fluida",
+  tr: "• Takım oyunu: çevrim içi odada aynı takım numarasını seçin, birlikte oynayın\n• Çevrim içi odalara ve aynı cihaz oyunlarına bot ekleyin\n• Daha sade çevrim içi bekleme odası; çıkınca oda düzgün kapanır\n• Hata düzeltmeleri ve daha akıcı arayüz",
+  'zh-TW': "• 組隊玩法：線上房間裡選同一隊號即可同隊\n• 線上房間和同一支手機輪流玩都能加入機器人\n• 線上等候室更簡潔，離開後房間會正確關閉\n• 問題修正，介面更流暢"
 };

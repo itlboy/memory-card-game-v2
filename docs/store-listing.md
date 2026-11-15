@@ -80,6 +80,7 @@ PLAY YOUR WAY
 • Versus bot — five levels, from Wobbly Chick to Divine Dragon
 • Same device — pass the phone around, up to 4 players
 • Online rooms — create a room, share the 6-digit code or link, up to 4 players
+• Teams and bots — pick the same team number to play together, or fill empty seats with bots
 • Campaign — a 60-level journey where every stage has its own twist
 
 MAKE THE BOARD YOURS
@@ -145,6 +146,7 @@ CHƠI THEO CÁCH CỦA BẠN
 • Đấu máy — năm mức, từ Gà Mờ tới Rồng Thần
 • Chung một máy — chuyền điện thoại, tối đa 4 người
 • Phòng online — tạo phòng, gửi mã 6 số hoặc link, tối đa 4 người
+• Đội và máy — chọn cùng số đội để chơi chung, hoặc thêm máy vào chỗ trống
 • Chiến dịch — hành trình 60 màn, màn nào cũng có luật riêng
 
 BÀN CHƠI CỦA RIÊNG BẠN
@@ -215,6 +217,7 @@ JUEGA A TU MANERA
 • Contra el bot: cinco niveles, del Pollito Torpe al Dragón Divino
 • Mismo dispositivo: pasa el móvil, hasta 4 jugadores
 • Salas online: crea una sala, comparte el código de 6 dígitos o el enlace, hasta 4 jugadores
+• Equipos y bots: elegid el mismo número de equipo para jugar juntos o llenad los huecos con bots
 • Campaña: un viaje de 60 niveles, cada uno con su propio giro
 
 UN TABLERO A TU MEDIDA
@@ -280,6 +283,7 @@ JOGUE DO SEU JEITO
 • Contra o bot — cinco níveis, do Pintinho Tonto ao Dragão Divino
 • Mesmo aparelho — passe o celular, até 4 jogadores
 • Salas online — crie uma sala, compartilhe o código de 6 dígitos ou o link, até 4 jogadores
+• Equipes e bots — escolham o mesmo número de equipe para jogar juntos ou completem as vagas com bots
 • Campanha — uma jornada de 60 fases, cada uma com uma regra diferente
 
 UM TABULEIRO DO SEU JEITO
@@ -345,6 +349,7 @@ JOUEZ COMME VOUS VOULEZ
 • Contre le bot — cinq niveaux, du Poussin Pataud au Dragon Divin
 • Sur le même appareil — passez-vous le téléphone, jusqu'à 4 joueurs
 • Salons en ligne — créez un salon, partagez le code à 6 chiffres ou le lien, jusqu'à 4 joueurs
+• Équipes et bots — choisissez le même numéro d'équipe pour jouer ensemble, ou complétez avec des bots
 • Campagne — un parcours de 60 niveaux, chacune avec sa propre surprise
 
 UN PLATEAU À VOTRE IMAGE
@@ -415,6 +420,7 @@ SPIEL, WIE DU WILLST
 • Gegen den Bot – fünf Stufen, vom Wackelküken bis zum Götterdrachen
 • Am selben Gerät – reich das Handy weiter, bis zu 4 Spieler
 • Online-Räume – Raum erstellen, 6-stelligen Code oder Link teilen, bis zu 4 Spieler
+• Teams und Bots – gleiche Teamnummer wählen und zusammen spielen oder freie Plätze mit Bots füllen
 • Kampagne – eine Reise über 60 Level, jede mit eigenem Kniff
 
 DEIN SPIELFELD, DEINE REGELN
@@ -485,6 +491,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • CPU対戦 ― よちよちヒヨコから神龍まで5段階
 • 1台でみんなで ― スマホを回して最大4人
 • オンラインルーム ― ルームを作って6桁のコードやリンクを送るだけ、最大4人
+• チームとボット ― 同じチーム番号を選べば一緒にプレイ、空いた席はボットで埋められます
 • キャンペーン ― ステージごとに違うルールが待つ全60ステージの冒険
 
 自分好みの盤面に
@@ -555,6 +562,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 봇 대결 — 아장아장 병아리부터 신룡까지 5단계
 • 한 기기로 함께 — 폰을 돌려 가며 최대 4명
 • 온라인 방 — 방을 만들고 6자리 코드나 링크만 보내면 끝, 최대 4명
+• 팀과 봇 — 같은 팀 번호를 고르면 함께 플레이, 빈자리는 봇으로 채우기
 • 캠페인 — 스테이지마다 새로운 규칙이 기다리는 60스테이지 여정
 
 나만의 게임판
@@ -625,6 +633,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 人机对战 — 五个难度，从菜鸟小鸡到神龙
 • 同屏多人 — 一台手机轮流玩，最多 4 人
 • 在线房间 — 创建房间，分享 6 位房间号或链接，最多 4 人
+• 组队与机器人 — 选同一队号即可同队，空位可加机器人
 • 战役 — 60 关的冒险旅程，每一关都有独特玩法
 
 打造你的专属牌桌
@@ -695,6 +704,7 @@ Flip Match — классическая игра на память с карто
 • Против бота — пять уровней, от Цыплёнка до Дракона
 • На одном устройстве — передавай телефон по кругу, до 4 игроков
 • Онлайн-комнаты — создай комнату, поделись 6-значным кодом или ссылкой, до 4 игроков
+• Команды и боты — выберите одинаковый номер команды, чтобы играть вместе, или добавьте ботов на свободные места
 • Кампания — путешествие из 60 уровней, и в каждом своя особенность
 
 ПОЛЕ ПОД ТЕБЯ
@@ -760,6 +770,7 @@ MAIN SESUKAMU
 • Lawan bot — lima level, dari Anak Ayam sampai Naga Dewa
 • Satu perangkat — gantian pegang HP, sampai 4 pemain
 • Room online — buat room, bagikan kode 6 digit atau link, sampai 4 pemain
+• Tim dan bot — pilih nomor tim yang sama untuk main bersama, atau isi kursi kosong dengan bot
 • Kampanye — petualangan 60 level, tiap tahap punya aturan unik
 
 PAPAN SESUAI SELERAMU
@@ -830,6 +841,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • ท้าบอท — ห้าระดับ ตั้งแต่ลูกเจี๊ยบไปจนถึงมังกรเทพ
 • เครื่องเดียวกัน — ส่งโทรศัพท์ต่อกัน สูงสุด 4 คน
 • ห้องออนไลน์ — สร้างห้อง แชร์รหัส 6 หลักหรือลิงก์ สูงสุด 4 คน
+• ทีมและบอท — เลือกเลขทีมเดียวกันเพื่อเล่นด้วยกัน หรือเติมที่ว่างด้วยบอท
 • แคมเปญ — การผจญภัย 60 ด่าน แต่ละด่านมีกติกาเฉพาะ
 
 กระดานในแบบของคุณ
@@ -900,6 +912,7 @@ GIOCA COME VUOI
 • Contro il bot: cinque livelli, dal Pulcino Goffo al Drago Divino
 • Stesso dispositivo: passa il telefono, fino a 4 giocatori
 • Stanze online: crea una stanza, condividi il codice di 6 cifre o il link, fino a 4 giocatori
+• Squadre e bot: scegliete lo stesso numero di squadra per giocare insieme o riempite i posti con i bot
 • Campagna: un viaggio di 60 livelli, ognuna con la sua sorpresa
 
 UN TABELLONE TUTTO TUO
@@ -965,6 +978,7 @@ Flip Match, klasik hafıza kartı oyununun tek başına ya da arkadaşlarla hız
 • Bota karşı — Sakar Civciv'den İlahi Ejderha'ya beş seviye
 • Aynı cihazda — telefonu elden ele dolaştır, en fazla 4 oyuncu
 • Çevrim içi odalar — oda kur, 6 haneli kodu ya da bağlantıyı paylaş, en fazla 4 oyuncu
+• Takımlar ve botlar — birlikte oynamak için aynı takım numarasını seçin ya da boş yerleri botlarla doldurun
 • Kampanya — her aşamanın kendine özgü bir sürprizi olduğu 60 seviyelik bir yolculuk
 
 TAHTAN, KURALLARIN
@@ -1035,6 +1049,7 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 • 對戰電腦 — 五種難度，從菜鳥小雞到神龍
 • 同一支手機 — 輪流傳手機，最多 4 人
 • 線上房間 — 建立房間，分享 6 位數房號或連結，最多 4 人
+• 組隊與機器人 — 選同一隊號即可同隊，空位可加機器人
 • 闖關模式 — 60 關的冒險旅程，每一關都有獨特玩法
 
 打造專屬牌桌
@@ -1097,10 +1112,12 @@ WHAT TO TRY
 
 ONLINE MULTIPLAYER
 - "Play online" > "Create new room" creates a room with a 6-digit code.
-- To join from a second device, open "Play online" and enter the code, or open https://flipmatch.cozypi.com in Safari on any device. A second player is needed to start a match.
+- To test alone, tap "+ Add bot" in the room, then "Start". Bots run on our server.
+- Every player has a team tag ("Team 1"…"Team 4"). Tap it to pick a team; players with the same number play as one team and take turns.
+- To join from a second device, open "Play online" and enter the code, or open https://flipmatch.cozypi.com in Safari on any device.
 
 SIGN IN (OPTIONAL)
-- Menu > "Sign in" offers Sign in with Apple. Signing in only syncs scores and achievements across devices.
+- Menu > "Sign in" offers Sign in with Apple or Google. Signing in only syncs scores and achievements across devices.
 - Account deletion is available in the app: Menu > Account > "Delete account". It permanently deletes the account and its server data.
 
 OTHER
