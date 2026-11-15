@@ -35,7 +35,8 @@ export interface RoomConfig {
 export const GIAY_MOI_LA = 8;
 
 /** Hai đội của chế độ Đồng đội. */
-export type DoiId = 'A' | 'B';
+export type DoiId = 1 | 2 | 3 | 4;
+export const DOI_IDS: readonly DoiId[] = [1, 2, 3, 4];
 
 /** Chiến dịch KHÔNG mở được trong phòng: nó là chuỗi màn của riêng một người,
  *  mở khoá dần theo tiến độ cá nhân. Phòng luôn là một ván lẻ. */
@@ -150,12 +151,17 @@ export interface PublicPlayer {
   ready?: boolean;
   /** MÁY CHƠI CÙNG (1.6.0): có = người này là máy, chạy trên server, ở mức này. Client cũ bỏ qua. */
   may?: BotLevel;
-  /** ĐỒNG ĐỘI, ở PHÒNG CHỜ (RoomInfo): người này thuộc đội nào. */
-  doi?: DoiId;
+  /**
+   * SỐ ĐỘI ở PHÒNG CHỜ (RoomInfo, 1.8.0): cùng số là cùng đội. Tên trường KHÁC `doi` của bản 1.7
+   * ('A'/'B') để app 1.7 chưa cập nhật không vẽ nhầm ô đội — với nó đây là phòng thường.
+   */
+  doiSo?: DoiId;
   /** ĐỒNG ĐỘI, trong VIEW VÁN: "người chơi" này là một đội — mã hai thành viên [A, B]. */
   thanhVien?: string[];
   /** ĐỒNG ĐỘI, trong view ván: thành viên đã rời hẳn. */
   vang?: string[];
+  /** ĐỘI THEO LƯỢT, trong view ván: số cặp từng thành viên tự ghép. */
+  capTV?: Record<string, number>;
 }
 
 /**
@@ -393,7 +399,7 @@ export function publicView(
     summary: game.summary(),
     back: backForSeed(game.config.seed),
     // ĐỒNG ĐỘI: thành viên được lật lá kế — chỉ có ở ván Đồng đội, ván thường không thêm byte nào
-    ...(game.config.teamFlip ? { nguoiLat: game.nguoiLat() ?? '' } : {})
+    ...(game.vanDoi ? { nguoiLat: game.nguoiLat() ?? '' } : {})
   };
 }
 
@@ -405,7 +411,8 @@ export function publicPlayer(p: Player, connected: boolean): PublicPlayer {
     forfeited: !!p.forfeited, connected,
     lives: Number.isFinite(p.lives) ? p.lives : null,
     ...(p.thanhVien ? { thanhVien: [...p.thanhVien] } : {}),
-    ...(p.vang?.length ? { vang: [...p.vang] } : {})
+    ...(p.vang?.length ? { vang: [...p.vang] } : {}),
+    ...(p.capTV ? { capTV: { ...p.capTV } } : {})
   };
 }
 

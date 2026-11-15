@@ -290,7 +290,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     config: { level: number; themeIds: string[]; options: Record<string, number>; doi?: boolean };
     players: {
       id: string; name: string; avatar?: string; token: string; clientId?: string;
-      ready: boolean; disconnectedAt: number | null; lastSeen?: number; may?: string; doi?: string;
+      ready: boolean; disconnectedAt: number | null; lastSeen?: number; may?: string; doi?: string | number;
     }[];
   }
 
@@ -367,7 +367,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
              may = VALUES(may), doi = VALUES(doi), left_at = 0`,
           [ps.map((p, i) => [
             id, p.id, i, p.name, p.avatar ?? null, p.clientId ?? null, p.token,
-            p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null, p.doi ?? null
+            p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null, p.doi != null ? String(p.doi) : null
           ])]
         );
       }
@@ -598,7 +598,8 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
             disconnectedAt: p.disconnected_at === null ? null : Number(p.disconnected_at),
             ...(p.avatar ? { avatar: p.avatar } : {}),
             ...(p.may ? { may: p.may } : {}),
-            ...(p.doi ? { doi: p.doi } : {}),
+            // Số đội 1–4 lưu dạng CHAR(1); 'A'/'B' là phòng lưu từ bản 1.7 — room.ts `chuanDoi` đổi sang số
+            ...(p.doi ? { doi: /^[1-4]$/.test(p.doi) ? Number(p.doi) : p.doi } : {}),
             ...(p.last_seen === null ? {} : { lastSeen: Number(p.last_seen) })
           });
           nguoiTheoPhong.set(p.room_id, ds);

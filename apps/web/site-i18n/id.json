@@ -135,5 +135,8 @@
  "r10.l": "<li>Pemilik room ketuk “Tambah bot” di lobi, pilih level tiap bot, atau hapus bot.</li>\n          <li>Bot menempati kursi seperti pemain — maksimal 4 total.</li>\n          <li>Belum ada teman online? Buka room dan main melawan bot.</li>",
  "r11.h": "Mode Tim: satu kartu tiap orang",
  "r11.d": "14 November 2026",
- "r11.l": "<li>Baru di room online: main sebagai tim — satu pemain membuka kartu pertama, rekannya kartu kedua.</li>\n          <li>2 lawan 2, atau berdua melawan bot.</li>\n          <li>Tekan lama sebuah kartu untuk menunjukkannya ke rekan tim — tim lawan tidak melihatnya.</li>"
+ "r11.l": "<li>Baru di room online: main sebagai tim — satu pemain membuka kartu pertama, rekannya kartu kedua.</li>\n          <li>2 lawan 2, atau berdua melawan bot.</li>\n          <li>Tekan lama sebuah kartu untuk menunjukkannya ke rekan tim — tim lawan tidak melihatnya.</li>",
+ "r12.h": "Main tim jadi lebih mudah",
+ "r12.d": "15 November 2026",
+ "r12.l": "<li>Setiap pemain di room online punya nomor tim — pilih nomor yang sama untuk main satu tim.</li>\n          <li>Rekan setim bergiliran: tiap giliran, satu pemain membuka dua kartu.</li>\n          <li>Bot bisa masuk tim mana pun. Hasil menampilkan skor tim dan jumlah pasangan tiap pemain.</li>"
 }

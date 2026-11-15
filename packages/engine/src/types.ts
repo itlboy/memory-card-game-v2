@@ -51,6 +51,8 @@ export interface Player extends PlayerInit {
   luotDoi?: number;
   /** ĐỒNG ĐỘI: thành viên đã rời hẳn — người còn lại lật cả hai lá. */
   vang?: string[];
+  /** ĐỘI THEO LƯỢT (`teamTurn`): số cặp TỪNG THÀNH VIÊN tự ghép được, theo mã thành viên. */
+  capTV?: Record<string, number>;
 }
 
 export interface GameConfig {
@@ -102,6 +104,12 @@ export interface GameConfig {
    * cho TỪNG LÁ. Không có / false = ván như cũ, cùng nhánh code.
    */
   teamFlip?: boolean;
+  /**
+   * ĐỘI THEO LƯỢT (15.11.2026, thay "mỗi người một lá"): mỗi `players[i]` vẫn là một ĐỘI
+   * (`thanhVien`, 1 người trở lên), nhưng MỖI LƯỢT của đội do MỘT thành viên lật CẢ HAI lá, lượt
+   * sau của đội tới thành viên kế (A+B đấu C: A → C → B → C). Đồng hồ lượt y ván thường.
+   */
+  teamTurn?: boolean;
 }
 
 export type GameStatus = 'idle' | 'peeking' | 'playing' | 'won' | 'lost';

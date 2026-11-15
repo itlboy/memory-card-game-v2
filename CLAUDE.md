@@ -626,18 +626,19 @@
   không treo). MySQL server Node có cột `room_players.may` (thiếu là khởi động lại thành người ma).
   Phòng có máy KHÔNG lên sổ tài khoản / danh hiệu online (chống cày thắng Gà mờ). Smoke:
   `tools/smoke-may-online.mjs` (`pnpm smoke:may`).
-- **CHẾ ĐỘ ĐỒNG ĐỘI ONLINE (1.7.0, 14.11.2026) — đọc `docs/che-do-dong-doi.md` trước khi đụng.** Mọi thứ sau cờ
-  `teamFlip` (engine) / `config.doi` (phòng); ván thường cùng nhánh code cũ, view/RoomInfo không thêm trường
-  nào (smoke canh). Engine: mỗi ĐỘI là một `Player` (`thanhVien`), `nguoiLat()` nói ai lật lá kế, giờ theo
-  TỪNG LÁ (`GIAY_MOI_LA` 8s), `roiDoi()`. Server: gói `doi`/`chi`, client phải khai `?dd=1` (client cũ nhận
-  `closed` + lời nhắc — KHÔNG tự đóng socket, đóng sớm là mất tin), đội hình hợp lệ = 2×2 người HOẶC 2 người
-  + MỘT máy đứng riêng đội (`doiDu`), ai cũng tự đổi đội mình. Client: `TeamStrip.vue` HIỆN THAY dải chip;
-  "lượt mình" = `view.nguoiLat === myId`; `laToi(id)` nhận cả mã ĐỘI; chỉ thẻ chặn ở pha capture của
-  `.board-wrap` — CardTile lật ở `pointerup` (không phải click) nên phải `stopPropagation` cả pointerup lẫn
-  click. Ván đội chỉ ghi thắng/thua (không điểm, không danh hiệu); đội đấu máy không ghi gì. Tắt khẩn cấp:
-  `DONG_DOI_MO = false` (lib/dong-doi.ts) giấu nút chọn. MySQL: `rooms.che_do_doi`, `room_players.doi`.
-  Smoke `pnpm smoke:doi` (chạy cả wrangler lẫn Node). ĐỪNG sửa test cũ cho khớp: test soi mã nguồn
-  (`rung.test.ts`…) đòi giữ nguyên dòng cũ — thêm nhánh `else if` cho đội.
+- **ĐỘI THEO SỐ ONLINE (1.8.0, 15.11.2026 — thay "chế độ Đồng đội" 1.7; đọc `docs/che-do-dong-doi.md`).**
+  KHÔNG còn công tắc Thường/Đồng đội: mỗi người/máy trong phòng có `doi` 1–4 (trên dây RoomInfo là `doiSo` — khác tên với 1.7 để app cũ không vẽ nhầm), mặc định mỗi người một số
+  (`doiTrong()`); CÙNG SỐ là cùng đội. Không ai chung đội → ván THƯỜNG y nhánh cũ (không cờ, không
+  `nguoiLat`); có đội ≥2 người → engine `teamTurn`: mỗi ĐỘI là một `Player` (`doi-N`, `thanhVien`), MỖI LƯỢT
+  một thành viên lật CẢ HAI lá, lượt sau của đội tới người kế (A+B đấu C: A→C→B→C), đồng hồ lượt như ván
+  thường, `capTV` = số cặp từng người (màn kết quả). Mở ván cần ≥2 đội (`doi-thieu`); có đội ghép mà ai đó
+  không khai `?dd=2` thì không mở ván (`doi-client-cu`). Ai cũng tự đổi đội mình, chủ phòng đổi được người
+  khác/máy (gói `doi` playerId+doi; `on` của 1.7 bị bỏ qua). Cờ `teamFlip` ("mỗi người một lá", 1.7) CÒN
+  trong engine chỉ để ván đang chạy dở + test cũ sống — server không dựng ván kiểu đó nữa. Phòng lưu từ
+  1.7 (đội 'A'/'B', `config.doi`) được `chuanDoi()` đổi sang số lúc nạp. Client: `ChonDoi.vue` (bảng 4 ô),
+  `TeamStrip.vue` HIỆN THAY dải chip khi view có `nguoiLat`; "lượt mình" = `view.nguoiLat === myId`. Ván đội
+  chỉ ghi thắng/thua; có máy không ghi gì. MySQL: `room_players.doi` CHAR(1) giữ '1'–'4'. Smoke
+  `pnpm smoke:doi`. ĐỪNG sửa test cũ cho khớp: test soi mã nguồn (`rung.test.ts`…) đòi giữ nguyên dòng cũ.
 - **PHÒNG CHỜ GỌN (1.7.0, mockup https://claude.ai/artifact/5WCU919WRXPLyPVS51VErS)**: tiêu đề "Phòng <mã>" + chip
   Công khai nhỏ + MỘT nút Mời; dòng người 46px; tên mình LÀ nút đổi tên; ping chỉ hiện khi mạng yếu; ✕ nhỏ
   nhạt. BẪY: `li.empty` trùng tên `.empty` của màn danh sách (xếp dọc, đệm 24px) → phải ghi đè về một hàng,

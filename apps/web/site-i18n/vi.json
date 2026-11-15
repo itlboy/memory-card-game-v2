@@ -136,5 +136,8 @@
  "r10.l": "<li>Chủ phòng bấm “Thêm máy” ở phòng chờ, chọn mức cho từng máy hoặc bỏ máy.</li>\n          <li>Máy ngồi chỗ như người chơi — tối đa 4, tính cả máy.</li>\n          <li>Chưa có bạn online? Mở phòng và chơi với máy.</li>",
  "r11.h": "Chế độ Đồng đội: mỗi người một lá",
  "r11.d": "14 tháng 11, 2026",
- "r11.l": "<li>Mới ở phòng online: chơi chung đội — một người lật lá đầu, đồng đội lật lá thứ hai.</li>\n          <li>2 đấu 2, hoặc hai người cùng đội đấu với máy.</li>\n          <li>Chạm giữ một lá để chỉ cho đồng đội — đội kia không thấy.</li>"
+ "r11.l": "<li>Mới ở phòng online: chơi chung đội — một người lật lá đầu, đồng đội lật lá thứ hai.</li>\n          <li>2 đấu 2, hoặc hai người cùng đội đấu với máy.</li>\n          <li>Chạm giữ một lá để chỉ cho đồng đội — đội kia không thấy.</li>",
+ "r12.h": "Chơi đội đơn giản hơn",
+ "r12.d": "15 tháng 11, 2026",
+ "r12.l": "<li>Ai trong phòng online cũng có một số đội — chọn cùng số là chơi chung một đội.</li>\n          <li>Đồng đội thay nhau đi: mỗi lượt một người lật cả hai lá.</li>\n          <li>Máy vào đội nào cũng được. Cuối ván có điểm cả đội và số cặp từng người.</li>"
 }

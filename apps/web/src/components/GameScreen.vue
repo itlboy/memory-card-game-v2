@@ -363,6 +363,8 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
 }
 .countdown .first b {
   color: #fff;
+  /* Font tiêu đề của game (15.11.2026, chủ dự án) — trước đây rơi về font thân bài */
+  font-family: var(--font-display); font-weight: 800; letter-spacing: .01em;
   /* Viền 8 HƯỚNG (11.11.2026, chủ dự án: chữ "đi trước" như bị răng cưa) — bản cũ chỉ 4 hướng
      trên/dưới/trái/phải nên góc chéo của nét cong hở ra thành bậc thang. Thêm bóng đổ dưới cho
      khối chữ nổi cùng kiểu nút thạch. */

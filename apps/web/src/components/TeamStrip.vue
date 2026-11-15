@@ -5,11 +5,11 @@
  * khi view có `nguoiLat`; ván thường không bao giờ mount component này.
  *
  * MỘT hàng cao 44px (bằng dải chip — luật "chip cao cố định", bàn thẻ không mất px nào): mỗi đội
- * một nửa; đội đang đi nở ra + tô màu đội, mặt người PHẢI LẬT to, đồng đội mờ; chữ ngắn
- * "Bạn · lá 1"; vạch vàng ở đáy là giờ của LÁ đó. Mặt từng người mang `data-chip-for` để bong
+ * một ô (2–3 đội); đội đang đi nở ra + tô màu đội, mặt người ĐANG ĐI LƯỢT NÀY to, đồng đội mờ,
+ * kèm tên người đó; vạch vàng ở đáy là giờ của lượt (từ 15.11.2026 một người lật cả hai lá). Mặt từng người mang `data-chip-for` để bong
  * bóng emoji (EmojiBlast) neo đúng người.
  */
-import { GIAY_MOI_LA } from '@mm/engine';
+import { TURN_LIMIT_SEC } from '@mm/engine';
 import type { PublicPlayer } from '@mm/engine';
 import { computed } from 'vue';
 import { t } from '@/lib/i18n';
@@ -23,7 +23,6 @@ const doi = computed(() => {
   const v = props.o.view.value;
   const phong = props.o.room.value?.players ?? [];
   if (!v) return [];
-  const laDau = v.cards.filter((c) => c.state === 'up').length === 0 || props.o.revealingAll.value;
   return v.players.map((d) => {
     const tv = (d.thanhVien ?? []).map((id) => phong.find((p) => p.id === id)
       ?? ({ id, name: '?', connected: false } as PublicPlayer));
@@ -32,16 +31,17 @@ const doi = computed(() => {
     const lat = dang ? tv.find((m) => m.id === v.nguoiLat) : undefined;
     const ten = lat ? (lat.id === props.o.myId.value ? t('chung.ban') : tenNguoi(lat)) : '';
     return {
-      id: d.id, mau: d.id.endsWith('A') ? 'A' : 'B', diem: d.score, lives: d.lives,
+      // Mã đội `doi-1`…`doi-4` (ván cũ đang chạy dở lúc đổi bản: `doi-A`/`doi-B`)
+      id: d.id, mau: ({ A: '1', B: '2' } as Record<string, string>)[d.id.slice(-1)] ?? d.id.slice(-1), diem: d.score, lives: d.lives,
       tv, dang, latId: lat?.id,
-      nhan: !lat ? '' : con.length < 2 ? t('dd.caHai', { ten }) : t('dd.laN', { ten, n: laDau ? 1 : 2 }),
+      nhan: con.length > 1 ? ten : '',   // đội một người: mặt người đã đủ nói ai đang đi
       vang: d.vang ?? [], bo: d.forfeited
     };
   });
 });
 const con = computed(() => {
   const s = props.o.turnTimeLeft.value;
-  return s === null ? null : Math.max(0, Math.min(1, s / GIAY_MOI_LA));
+  return s === null ? null : Math.max(0, Math.min(1, s / TURN_LIMIT_SEC));
 });
 </script>
 
@@ -73,8 +73,10 @@ const con = computed(() => {
   box-shadow: 0 3px 0 var(--line); font-family: var(--font-display); font-weight: 800; color: var(--fg);
   transition: flex-grow .22s ease;
 }
-.nua.doi-A { --mau: #ff8a3d; --mau-d: #d2641a; }
-.nua.doi-B { --mau: #3d9bff; --mau-d: #1f6fd0; }
+.nua.doi-1 { --mau: #ff8a3d; --mau-d: #d2641a; }
+.nua.doi-2 { --mau: #3d9bff; --mau-d: #1f6fd0; }
+.nua.doi-3 { --mau: #3fbf6b; --mau-d: #26944a; }
+.nua.doi-4 { --mau: #a66bff; --mau-d: #7a3fe0; }
 .nua { border-color: var(--mau); }
 .nua.dang { flex-grow: 1.7; background: var(--mau); color: #fff; box-shadow: 0 3px 0 var(--mau-d); }
 .nua.bo { opacity: .5; }

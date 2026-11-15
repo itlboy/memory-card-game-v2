@@ -27,8 +27,8 @@ function dichGoiYTuyChon(s: string | null): string | null {
 }
 import ConfirmDialog from './ConfirmDialog.vue';
 import ChonMucMay from './ChonMucMay.vue';
+import ChonDoi from './ChonDoi.vue';
 import { tenNguoi } from '@/lib/ten';
-import { coChonDongDoi } from '@/lib/dong-doi';
 import { pingSo } from '@/lib/ping-so';
 /*
  * Nạp KHI CẦN, không nằm trong gói chính: hộp này kéo theo thư viện vẽ QR
@@ -244,9 +244,16 @@ function luuTen(): void {
  */
 /** Số ô chỗ trống cần vẽ ở cuối danh sách. */
 const conCho = computed(() => Math.max(0, ROOM_LIMITS.maxPlayers - (o.room.value?.players.length ?? 0)));
-/** ĐỒNG ĐỘI: đã có máy thì không thêm nữa (máy là MỘT đội đứng riêng — 2 người đấu máy). */
-const themMayDuoc = computed(() => !o.room.value?.config.doi || !o.room.value.players.some((p) => p.may));
-const doiKia = (d: DoiId | undefined): DoiId => (d === 'A' ? 'B' : 'A');
+/**
+ * ĐỘI THEO SỐ (15.11.2026): ai cũng có một ô "Đội N", mặc định mỗi người một số (= ván thường);
+ * chọn CÙNG SỐ là cùng đội. Không còn nút Thường / Đồng đội.
+ */
+const doiDangChon = ref<string | null>(null);
+/** Số đội khác nhau trong phòng — dưới 2 thì chưa có đối thủ, chưa mở ván được. */
+const soDoi = computed(() => new Set((o.room.value?.players ?? []).map((p) => p.doiSo ?? p.id)).size);
+/** Đội có từ 2 người trở lên → tô vạch màu cho thấy ai chung đội với ai. */
+const doiGhep = (d: DoiId | undefined): boolean =>
+  !!d && (o.room.value?.players.filter((p) => p.doiSo === d).length ?? 0) > 1;
 
 /** Máy đang mở bảng chọn mức (mã người chơi), null = đóng. */
 const mayDangChon = ref<string | null>(null);
@@ -488,7 +495,7 @@ const readyCount = computed(() => {
 });
 const canStart = computed(() => {
   const r = o.room.value;
-  return !!r && r.players.filter((p) => p.connected).length >= 2
+  return !!r && r.players.filter((p) => p.connected).length >= 2 && soDoi.value >= 2
     && readyCount.value.ok === readyCount.value.need;
 });
 /**
@@ -526,11 +533,15 @@ function batDauVan(): void {
 watch(() => o.room.value?.status, (st) => {
   if (st && st !== 'lobby') { clearTimeout(moVanTimer); dangMoVan.value = false; }
 });
+// Server TỪ CHỐI mở ván (báo lỗi) thì tắt vòng quay ngay — trước đây nút kẹt "Đang mở ván…"
+// suốt 6 giây ngay trên dòng lỗi (ảnh chủ dự án gửi 15.11.2026).
+watch(() => o.error.value, (e) => { if (e && dangMoVan.value) { clearTimeout(moVanTimer); dangMoVan.value = false; } });
 onBeforeUnmount(() => clearTimeout(moVanTimer));
 
 const startLabel = computed(() => {
   const r = o.room.value;
   if (!r || r.players.length < 2) return t('on.canHaiNguoi');
+  if (soDoi.value < 2) return t('dd.thieu');
   if (!canStart.value) return t('on.choSanSang', { ok: readyCount.value.ok, need: readyCount.value.need });
   return t('on.batDau');
 });
@@ -1047,29 +1058,16 @@ function openCfgWizard(): void {
       </div>
     </div>
 
-    <!-- Đầu danh sách: số người + lựa chọn Thường / Đồng đội (chủ phòng; Đồng đội đang ẩn sau
-         `coChonDongDoi` — lib/dong-doi.ts). Phòng đã bật Đồng đội thì ai cũng thấy nhãn. -->
     <div class="ds-dau">
       <span>{{ t('on.nguoiChoiN', { n: o.room.value?.players.length ?? 0, max: ROOM_LIMITS.maxPlayers }) }}</span>
-      <span v-if="o.isHost.value && (coChonDongDoi || o.room.value?.config.doi)" class="seg-doi">
-        <button
-          class="thach th-nho th-chon" type="button" :aria-pressed="!o.room.value?.config.doi"
-          @click="sfx.select(); o.batDongDoi(false)"
-        >{{ t('dd.thuong') }}</button>
-        <button
-          class="thach th-nho th-chon" type="button" :aria-pressed="!!o.room.value?.config.doi"
-          @click="sfx.select(); o.batDongDoi(true)"
-        >👥 {{ t('dd.dongDoi') }}</button>
-      </span>
-      <span v-else-if="o.room.value?.config.doi" class="nhan-doi">👥 {{ t('dd.dongDoi') }}</span>
     </div>
 
-    <!-- MỘT danh sách cho cả hai chế độ. Đồng đội (bản đơn giản chủ dự án chọn 14.11.2026): mỗi
-         dòng thêm ô "Đội 1 / Đội 2" — ai cũng tự đổi đội mình, cùng đội thì chơi chung. -->
+    <!-- Mỗi dòng có ô "Đội N": ai cũng tự đổi đội mình (chủ phòng đổi được cả máy và người khác);
+         cùng số là cùng đội, mỗi người một số là ván thường. -->
     <ul class="lobby-list">
       <li
         v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id"
-        :class="[{ off: !p.connected, toi: p.id === o.myId.value, may: !!p.may }, p.doi ? `vd-${p.doi}` : '']"
+        :class="[{ off: !p.connected, toi: p.id === o.myId.value, may: !!p.may }, doiGhep(p.doiSo) ? `vd-${p.doiSo}` : '']"
       >
         <span class="avatar"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
         <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
@@ -1112,17 +1110,18 @@ function openCfgWizard(): void {
         >{{ o.pingHien.value === null ? '···' : `${o.pingHien.value}ms` }}</span>
         <span v-if="!p.connected" class="offline">{{ t('on.rotMang') }}</span>
         <span v-else class="ready-tag" :class="{ on: p.ready || p.id === o.room.value?.hostId }">
-          <Crown v-if="p.id === o.room.value?.hostId" :size="15" class="crown" />
-          <template v-else-if="p.doi">{{ p.ready ? '✓' : '' }}</template>
+          <!-- Có ô đội (server 1.8+): vương miện dời ra CỘT NGOÀI CÙNG, thẳng cột với nút ✕ -->
+          <Crown v-if="p.id === o.room.value?.hostId && !p.doiSo" :size="15" class="crown" />
+          <template v-else-if="p.doiSo">{{ p.ready ? '✓' : '…' }}</template>
           <template v-else>{{ p.ready ? t('on.sanSang') : t('on.chuaSanSang') }}</template>
         </span>
         <!-- ĐỒNG ĐỘI: ô đội. Của MÌNH thì ai cũng bấm đổi được; của người khác / máy chỉ chủ phòng. -->
         <button
-          v-if="p.doi" class="chip-doi thach th-nho" :class="`d-${p.doi}`" type="button"
+          v-if="p.doiSo" class="chip-doi thach th-nho" :class="`d-${p.doiSo}`" type="button"
           :disabled="!(o.isHost.value || p.id === o.myId.value)"
-          :aria-label="t('dd.chamDoiDoi')"
-          @click="sfx.select(); o.doiDoi(p.id, doiKia(p.doi))"
-        >{{ p.doi === 'A' ? t('dd.doiA') : t('dd.doiB') }}<template v-if="o.isHost.value || p.id === o.myId.value"> ⇄</template></button>
+          :aria-label="t('dd.chonDoi')"
+          @click="sfx.select(); doiDangChon = p.id"
+        >{{ t('dd.doiN', { n: p.doiSo }) }}</button>
         <!-- Mời ra: chỉ CHỦ PHÒNG thấy, không bao giờ ở dòng của chính mình. Dấu X tròn (chủ dự
              án chọn 11.10.2026) — từ 14.11.2026 nhỏ, màu nhạt (đỏ to trông như báo lỗi); bấm vẫn
              hỏi xác nhận trước khi mời ra. -->
@@ -1131,17 +1130,21 @@ function openCfgWizard(): void {
           :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
           @click="p.may ? (sfx.miss(), o.boMay(p.id)) : hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="14" :stroke-width="2.6" /></button>
+        <!-- CỘT NGOÀI CÙNG luôn rộng bằng nút ✕ để ô đội mọi dòng thẳng hàng: dòng chủ phòng đặt
+             vương miện ở đây (chủ dự án 15.11.2026); dòng không có gì thì để trống. -->
+        <span v-else-if="p.doiSo" class="cho-moi-ra" aria-hidden="true">
+          <Crown v-if="p.id === o.room.value?.hostId" :size="17" class="crown" />
+        </span>
       </li>
       <!-- Ô chỗ trống + Thêm máy (chủ phòng). Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng. -->
-      <li v-if="conCho > 0 && (!o.room.value?.config.doi || (themMayDuoc && o.isHost.value))" class="empty">
+      <li v-if="conCho > 0" class="empty">
         {{ t('on.conCho', { n: conCho }) }}
         <button
-          v-if="themMayDuoc && o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
+          v-if="o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
           @click="sfx.select(); o.themMay()"
         ><Plus :size="15" :stroke-width="2.8" /> {{ t('on.themMay') }}</button>
       </li>
     </ul>
-    <p v-if="o.room.value?.config.doi" class="hint-doi">{{ t('dd.chamDoiDoi') }}</p>
 
     <template v-if="o.isHost.value">
       <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
@@ -1219,6 +1222,12 @@ function openCfgWizard(): void {
     </p>
   </Transition>
 
+  <ChonDoi
+      v-if="doiDangChon" :players="o.room.value?.players ?? []" :bo-qua="doiDangChon"
+      :doi="o.room.value?.players.find((x) => x.id === doiDangChon)?.doiSo"
+      @chon="(d) => { if (doiDangChon) o.doiDoi(doiDangChon, d); doiDangChon = null; }"
+      @dong="doiDangChon = null"
+    />
   <ChonMucMay
       v-if="mayDangChon" :tieu-de="t('on.chonMucMay')"
       :muc="o.room.value?.players.find((x) => x.id === mayDangChon)?.may ?? null"
@@ -1533,24 +1542,22 @@ input:focus { outline: none; border-color: var(--accent); }
   display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 6px;
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm); color: var(--muted);
 }
-.seg-doi { display: inline-flex; gap: 4px; }
-.seg-doi .thach { min-height: 30px; min-width: 0; padding: 0 10px; position: relative; font-size: var(--text-xs); font-weight: 800; }
-.seg-doi .thach::after { content: ''; position: absolute; inset: -7px -2px; }
-.nhan-doi { font-size: var(--text-xs); }
-/* Đồng đội: ô đội mỗi dòng + vạch màu bên trái cho thấy ai cùng đội */
-.lobby-list li.vd-A { border-left: 6px solid #ff8a3d; }
-.lobby-list li.vd-B { border-left: 6px solid #3d9bff; }
+/* Vạch màu bên trái CHỈ khi đội có từ 2 người — nhìn là biết ai chung đội với ai */
+.lobby-list li.vd-1, .lobby-list li.toi.vd-1 { border-left: 6px solid #ff8a3d; }
+.lobby-list li.vd-2, .lobby-list li.toi.vd-2 { border-left: 6px solid #3d9bff; }
+.lobby-list li.vd-3, .lobby-list li.toi.vd-3 { border-left: 6px solid #3fbf6b; }
+.lobby-list li.vd-4, .lobby-list li.toi.vd-4 { border-left: 6px solid #a66bff; }
 .chip-doi {
   position: relative; flex: none; min-height: 30px; min-width: 0; padding: 0 9px;
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-xs); white-space: nowrap;
 }
 .chip-doi::after { content: ''; position: absolute; inset: -7px -2px; }
-.chip-doi.d-A { color: #b4510f; border-color: #ff8a3d; }
-.chip-doi.d-B { color: #1a5fb8; border-color: #3d9bff; }
+.chip-doi { min-width: 66px; justify-content: center; }   /* "Đội 1" và "Đội 3" rộng bằng nhau → thẳng cột */
+/* Chấm màu đội trước chữ — nền thạch nuốt mất màu viền nên phải có dấu riêng */
+.chip-doi::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 50%; background: var(--mau); }
+.chip-doi.d-1 { --mau: #ff8a3d; } .chip-doi.d-2 { --mau: #3d9bff; }
+.chip-doi.d-3 { --mau: #3fbf6b; } .chip-doi.d-4 { --mau: #a66bff; }
 .chip-doi:disabled { cursor: default; opacity: 1; }
-/* Máy thấp (iPhone SE): bỏ dòng gợi ý để danh sách đủ chỗ — luật KHÔNG SCROLL */
-@media (max-height: 620px) { .hint-doi { display: none; } }
-.hint-doi { margin: 4px 0 0; text-align: center; font-size: var(--text-xs); color: var(--muted); }
 
 /* Bung ra khi chạm "Mời bạn" */
 .bung { display: flex; gap: 8px; margin: 0 0 8px; }
@@ -1623,6 +1630,7 @@ input:focus { outline: none; border-color: var(--accent); }
   color: color-mix(in srgb, var(--bad) 70%, var(--muted));
 }
 .nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
+.cho-moi-ra { flex: none; width: 26px; display: inline-flex; align-items: center; justify-content: center; }
 @media (hover: hover) {
   .nut-moi-ra:hover { background: var(--bad-solid); color: #fff; }
 }

@@ -710,6 +710,12 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**15.11.2026 — 1.8.0: đội theo số (thay chế độ Đồng đội 1.7)**
+- Phòng online bỏ nút Thường/Đồng đội. Mỗi người (và máy) có ô **Đội 1–4**, mặc định mỗi người một
+  đội = ván thường; chọn **cùng số là cùng đội**. Luật đội mới: mỗi lượt **một người lật cả hai lá**,
+  lượt sau của đội tới đồng đội (A+B đấu C: A → C → B → C). Cuối ván: điểm cả đội + số cặp từng người.
+- Sửa nút "Đang mở ván…" kẹt khi server từ chối mở ván; nhãn "Đã thoát" sai ở dòng đội màn kết quả.
+
 **14.11.2026 — 1.7.0: chế độ Đồng đội online + phòng chờ gọn**
 - **Đồng đội "mỗi người một lá"** (phòng online): 2 đấu 2, hoặc **2 người cùng đội đấu một máy**. Người A lật
   lá 1, người B lật lá 2; điểm/chuỗi/mạng theo đội; 8 giây mỗi lá; chạm giữ một lá để **chỉ cho đồng đội**

@@ -286,7 +286,7 @@ export class MemoryGame {
     if (this.status !== 'idle') return [];
     this.startedAt = now;
     // ĐỒNG ĐỘI: đội đi đầu bắt đầu lượt số 0 (thành viên [0] lật lá đầu)
-    if (this.config.teamFlip && this.current.luotDoi === undefined) this.current.luotDoi = 0;
+    if (this.vanDoi && this.current.luotDoi === undefined) this.current.luotDoi = 0;
     const peek = this.config.peekMs ?? 0;
     if (peek > 0) {
       this.status = 'peeking';
@@ -377,6 +377,9 @@ export class MemoryGame {
       this.seen.add(b);
       this.selection = [];
       out.push({ type: 'match', indices: [a, b], gained, playerId: player.id });
+      // ĐỘI THEO LƯỢT: ghi cặp này cho đúng THÀNH VIÊN vừa lật (thống kê cuối ván)
+      const tv = this.config.teamTurn ? this.nguoiLat() : null;
+      if (tv) player.capTV = { ...(player.capTV ?? {}), [tv]: (player.capTV?.[tv] ?? 0) + 1 };
 
       // Sinh tồn: đang nguy (dưới 2 mạng) mà ghép đúng hai lần liên tiếp thì
       // được hồi 1 mạng. Chỉ hồi khi đang nguy — nếu không thì người chơi giỏi
@@ -537,7 +540,7 @@ export class MemoryGame {
       }
       out.push({ type: 'turn', playerId: p.id, skipped: false });
       // ĐỒNG ĐỘI: mỗi lượt MỚI của đội đổi người lật lá đầu (lượt bị ❄️ bỏ qua không tính)
-      if (this.config.teamFlip) p.luotDoi = p.luotDoi === undefined ? 0 : p.luotDoi + 1;
+      if (this.vanDoi) p.luotDoi = p.luotDoi === undefined ? 0 : p.luotDoi + 1;
       this.armTurnClock(now);
       return out;
     }
@@ -697,7 +700,10 @@ export class MemoryGame {
     return [];
   }
 
-  /* ---------- CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md) — chỉ có nghĩa khi `teamFlip` ---------- */
+  /* ---------- CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md) — chỉ có nghĩa khi `teamFlip`/`teamTurn` ---------- */
+
+  /** Ván có ĐỘI: kiểu cũ "mỗi người một lá" (`teamFlip`) hoặc đội theo lượt (`teamTurn`). */
+  get vanDoi(): boolean { return !!(this.config.teamFlip || this.config.teamTurn); }
 
   /**
    * Mã THÀNH VIÊN được lật lá kế tiếp; null = không phải ván Đồng đội (hoặc đội không còn ai).
@@ -709,19 +715,21 @@ export class MemoryGame {
    * định đang rớt mạng tạm thời.
    */
   nguoiLat(): string | null {
-    if (!this.config.teamFlip) return null;
+    if (!this.vanDoi) return null;
     const doi = this.current;
     const tv = doi.thanhVien ?? [];
     const con = tv.filter((id) => !doi.vang?.includes(id));
     if (!con.length) return null;
     if (con.length === 1) return con[0]!;
+    // ĐỘI THEO LƯỢT: một thành viên lật CẢ HAI lá của lượt; lượt sau của đội tới người kế
+    if (this.config.teamTurn) return con[(doi.luotDoi ?? 0) % con.length]!;
     const k = (doi.luotDoi ?? 0) % 2;
     return this.selection.length === 0 ? tv[k]! : tv[1 - k]!;
   }
 
   /** Đội có thành viên này (ván Đồng đội); undefined nếu không có. */
   doiCua(memberId: string): Player | undefined {
-    if (!this.config.teamFlip) return undefined;
+    if (!this.vanDoi) return undefined;
     return this.players.find((p) => p.thanhVien?.includes(memberId));
   }
 

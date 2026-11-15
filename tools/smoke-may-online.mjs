@@ -66,31 +66,54 @@ if (loi) chet(`mở ván bị từ chối: ${loi.message}`);
 console.log('✓ 1 người + 2 máy mở ván được');
 
 // Chơi: tới lượt An thì lật hai lá úp bất kỳ; máy tự đi. Đếm nước của máy.
-const batDau = Date.now();
-let nuocMay = 0; let daThay = 0; let luotTruoc = '';
-while (Date.now() - batDau < 180_000) {
-  await sleep(250);
-  if (phong(a)?.status === 'ended') break;
-  const v = view(a);
-  if (!v || v.status !== 'playing') continue;
-  // Sự kiện `flip` không mang mã người lật: lượt của VIEW NGAY TRƯỚC là của ai thì nước đó của người ấy
-  for (const m of a.msgs.slice(daThay)) {
-    if (m.t === 'events' && luotTruoc && /^bot\d?$/.test(luotTruoc)) nuocMay += m.events.filter((e) => e.type === 'flip').length;
-    if (m.view) luotTruoc = m.view.currentId;
+let nuocMay = 0;
+async function choi() {
+  const batDau = Date.now();
+  let daThay = a.msgs.length; let luotTruoc = '';
+  while (Date.now() - batDau < 180_000) {
+    await sleep(250);
+    if (phong(a)?.status === 'ended') break;
+    const v = view(a);
+    if (!v || v.status !== 'playing') continue;
+    // Sự kiện `flip` không mang mã người lật: lượt của VIEW NGAY TRƯỚC là của ai thì nước đó của người ấy
+    for (const m of a.msgs.slice(daThay)) {
+      if (m.t === 'events' && luotTruoc && /^bot\d?$/.test(luotTruoc)) nuocMay += m.events.filter((e) => e.type === 'flip').length;
+      if (m.view) luotTruoc = m.view.currentId;
+    }
+    daThay = a.msgs.length;
+    if (v.currentId !== maA) continue;
+    const up = v.cards.filter((c) => c.state === 'down').map((c) => c.index);
+    const dangMo = v.cards.filter((c) => c.state === 'up').length;
+    if (dangMo >= 2 || !up.length) continue;
+    gui(a, { t: 'flip', index: up[Math.floor(Math.random() * up.length)] });
+    await sleep(350);
   }
-  daThay = a.msgs.length;
-  if (v.currentId !== maA) continue;
-  const up = v.cards.filter((c) => c.state === 'down').map((c) => c.index);
-  const dangMo = v.cards.filter((c) => c.state === 'up').length;
-  if (dangMo >= 2 || !up.length) continue;
-  gui(a, { t: 'flip', index: up[Math.floor(Math.random() * up.length)] });
-  await sleep(350);
 }
+await choi();
 r = phong(a);
 if (r?.status !== 'ended') chet(`ván không kết thúc trong 3 phút (máy treo?) — nước của máy: ${nuocMay}`);
 const kq = view(a)?.summary?.ranking;
 if (!nuocMay) chet('máy không lật lá nào');
 console.log(`✓ ván chạy tới hết: máy lật ${nuocMay} lá; xếp hạng ${kq?.map((p) => `${p.name}:${p.score}`).join(' · ')}`);
+
+// VỀ PHÒNG CHỜ sau ván: máy phải VẪN SẴN SÀNG (lỗi 15.11.2026: máy thành "chưa sẵn sàng", không ai
+// bấm hộ được nên phòng kẹt "Chờ sẵn sàng"); đổi mức máy cũng không làm mất sẵn sàng; mở ván lại được.
+gui(a, { t: 'tolobby' });
+await sleep(600);
+r = phong(a);
+if (r?.status !== 'lobby') chet(`tolobby không về phòng chờ: ${r?.status}`);
+if (!r.players.filter((p) => p.may).every((p) => p.ready)) chet('về phòng chờ mà máy không còn sẵn sàng');
+gui(a, { t: 'bot', op: 'set', id: r.players.find((p) => p.may).id, level: 'easy' });
+await sleep(400);
+if (!phong(a).players.filter((p) => p.may).every((p) => p.ready)) chet('đổi mức máy làm mất sẵn sàng');
+const truoc = a.msgs.length;
+gui(a, { t: 'start' });
+await sleep(600);
+const loi2 = a.msgs.slice(truoc).find((m) => m.t === 'error');
+if (loi2) chet(`về phòng chờ rồi mở ván lại bị từ chối: ${loi2.message}`);
+console.log('✓ về phòng chờ: máy vẫn sẵn sàng (kể cả sau khi đổi mức), mở ván lại được');
+await choi();
+if (phong(a)?.status !== 'ended') chet('ván thứ hai không kết thúc');
 
 // Chơi lại: chỉ cần phiếu của người thật
 gui(a, { t: 'again' });

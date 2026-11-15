@@ -892,9 +892,9 @@ export function useOnlineRoom() {
        server cứ gửi id mới thì client cũ trong cache không khớp class nào và mặt
        sau ra Ô TRẮNG TRƠN giữa ván. */
     params.set('bv', '2');
-    /* KHAI HIỂU CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md). Cùng luật với `pv`/`bv`: phòng Đồng đội
-       từ chối client KHÔNG khai (app cũ không biết luật "mỗi người một lá" — chơi sai luật). */
-    params.set('dd', '1');
+    /* KHAI HIỂU ĐỘI THEO SỐ (`dd=2`, 15.11.2026; `dd=1` là bản 1.7 với đội A/B). Có người chung
+       đội mà ai đó trong phòng không khai mức này thì server không mở ván, nhắc họ cập nhật. */
+    params.set('dd', '2');
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
     doNhip.noiLai++;
     doNhip.socket = 'đang nối'; // i18n-bo-qua — bảng đo nội bộ (DoNhip), không phải chữ cho người chơi
@@ -1526,7 +1526,7 @@ export function useOnlineRoom() {
     const xoa = (): void => { try { localStorage.removeItem(ROI_CHO_KEY); } catch { /* bỏ qua */ } };
     if (Date.now() - r.luc > HAN_ROI_CHO_MS) { xoa(); return; }
     await new Promise<void>((xong) => {
-      const p = new URLSearchParams({ name: r!.name, token: r!.token, cid: store.clientId(), pv: '1', bv: '2', dd: '1' });
+      const p = new URLSearchParams({ name: r!.name, token: r!.token, cid: store.clientId(), pv: '1', bv: '2', dd: '2' });
       let s: WebSocket;
       try { s = new WebSocket(`${WS_SERVER}/ws/${r!.code}?${p}`); } catch { xong(); return; }
       const het = setTimeout(() => { try { s.close(); } catch { /* */ } xong(); }, 4000);
@@ -1697,7 +1697,6 @@ export function useOnlineRoom() {
     /** Máy chơi cùng (1.6.0) — chỉ chủ phòng, ở phòng chờ; server kiểm lại cả hai điều đó. */
     themMay: (level: BotLevel = 'normal') => send({ t: 'bot', op: 'add', level }),
     /** ĐỒNG ĐỘI (chủ phòng, phòng chờ): bật/tắt chế độ, chuyển một người sang đội kia. */
-    batDongDoi: (on: boolean) => send({ t: 'doi', on }),
     doiDoi: (playerId: string, doi: DoiId) => send({ t: 'doi', playerId, doi }),
     /** ĐỒNG ĐỘI: chỉ một lá úp cho đồng đội. */
     chiLa: (index: number) => send({ t: 'chi', index }),

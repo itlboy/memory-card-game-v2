@@ -135,5 +135,8 @@
  "r10.l": "<li>Oda sahibi bekleme odasında “Bot ekle”ye dokunur, her botun seviyesini seçer ya da botu çıkarır.</li>\n          <li>Botlar oyuncu gibi yer kaplar — toplam en fazla 4.</li>\n          <li>Çevrimiçi arkadaş yok mu? Oda aç ve botlara karşı oyna.</li>",
  "r11.h": "Takım modu: herkes bir kart",
  "r11.d": "14 Kasım 2026",
- "r11.l": "<li>Çevrimiçi odalarda yeni: takım olarak oyna — biri ilk kartı, takım arkadaşı ikinci kartı açar.</li>\n          <li>2’ye 2 ya da iki arkadaş birlikte bota karşı.</li>\n          <li>Bir karta basılı tutarak takım arkadaşına göster — diğer takım görmez.</li>"
+ "r11.l": "<li>Çevrimiçi odalarda yeni: takım olarak oyna — biri ilk kartı, takım arkadaşı ikinci kartı açar.</li>\n          <li>2’ye 2 ya da iki arkadaş birlikte bota karşı.</li>\n          <li>Bir karta basılı tutarak takım arkadaşına göster — diğer takım görmez.</li>",
+ "r12.h": "Takımlar artık daha basit",
+ "r12.d": "15 Kasım 2026",
+ "r12.l": "<li>Çevrimiçi odadaki herkesin bir takım numarası var — aynı takımda oynamak için aynı numarayı seçin.</li>\n          <li>Takım arkadaşları sırayla oynar: her turda bir oyuncu iki kartı da çevirir.</li>\n          <li>Botlar herhangi bir takıma katılabilir. Sonuçta takım puanı ve her oyuncunun eşleri görünür.</li>"
 }
