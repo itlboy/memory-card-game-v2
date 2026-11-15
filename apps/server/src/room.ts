@@ -547,7 +547,9 @@ export class RoomDO extends DurableObject<Env> {
     this.room.status = 'lobby';
     this.game = null;
     await this.ctx.storage.delete('game');
-    for (const p of this.room.players) p.ready = false;
+    // MÁY LUÔN SẴN SÀNG: nó không bấm lại được — đặt false là phòng kẹt "Chờ sẵn sàng" mãi
+    // (lỗi chủ dự án báo 15.11.2026: về phòng chờ / chỉnh bàn xong máy không sẵn sàng).
+    for (const p of this.room.players) p.ready = !!p.may;
     await this.save();
     this.broadcast({ t: 'room', room: this.roomInfo() });
     await this.scheduleNext();
@@ -1549,6 +1551,7 @@ export class RoomDO extends DurableObject<Env> {
       else if (!DOI_IDS.includes(p.doi as DoiId)) delete p.doi;
     }
     for (const p of this.room.players) if (!p.doi) p.doi = this.doiTrong();
+    for (const p of this.room.players) if (p.may) p.ready = true;   // phòng đã kẹt từ bản cũ tự gỡ
   }
 
   /** Client của người này hiểu ĐỘI THEO SỐ (`?dd=2`, bản 1.8+) trên mọi socket. */

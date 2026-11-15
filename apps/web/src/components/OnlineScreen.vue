@@ -1129,6 +1129,8 @@ function openCfgWizard(): void {
           :aria-label="t('on.moiRaAria', { ten: p.name })" :title="t('on.moiRaAria', { ten: p.name })"
           @click="p.may ? (sfx.miss(), o.boMay(p.id)) : hoiMoiRa(p.id, p.name, p.connected)"
         ><X :size="14" :stroke-width="2.6" /></button>
+        <!-- Dòng của CHỦ PHÒNG không có nút ✕: chừa đúng chỗ đó để ô đội mọi dòng thẳng hàng -->
+        <span v-else-if="o.isHost.value" class="cho-moi-ra" aria-hidden="true" />
       </li>
       <!-- Ô chỗ trống + Thêm máy (chủ phòng). Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng. -->
       <li v-if="conCho > 0" class="empty">
@@ -1546,6 +1548,7 @@ input:focus { outline: none; border-color: var(--accent); }
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-xs); white-space: nowrap;
 }
 .chip-doi::after { content: ''; position: absolute; inset: -7px -2px; }
+.chip-doi { min-width: 66px; justify-content: center; }   /* "Đội 1" và "Đội 3" rộng bằng nhau → thẳng cột */
 /* Chấm màu đội trước chữ — nền thạch nuốt mất màu viền nên phải có dấu riêng */
 .chip-doi::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 50%; background: var(--mau); }
 .chip-doi.d-1 { --mau: #ff8a3d; } .chip-doi.d-2 { --mau: #3d9bff; }
@@ -1623,6 +1626,7 @@ input:focus { outline: none; border-color: var(--accent); }
   color: color-mix(in srgb, var(--bad) 70%, var(--muted));
 }
 .nut-moi-ra::after { content: ''; position: absolute; inset: -9px; }
+.cho-moi-ra { flex: none; width: 26px; }
 @media (hover: hover) {
   .nut-moi-ra:hover { background: var(--bad-solid); color: #fff; }
 }
