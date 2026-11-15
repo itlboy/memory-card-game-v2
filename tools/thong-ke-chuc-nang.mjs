@@ -160,6 +160,17 @@ try {
   }));
 } catch (e) { kq.vuaXong = [{ loi: e.message }]; }
 md.push('## Sự kiện 30 phút gần nhất', '', ...bangMd(kq.vuaXong));
+// Cùng 30 phút, tách theo thuộc tính người dùng `nen_tang` (ios/android/web) mà game tự gán
+try {
+  const r = await fetch(`https://analyticsdata.googleapis.com/v1beta/${PROP}:runRealtimeReport`, {
+    method: 'POST', headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dimensions: [{ name: 'customUser:nen_tang' }], metrics: [{ name: 'activeUsers' }, { name: 'eventCount' }], limit: 20 })
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message ?? `HTTP ${r.status}`);
+  kq.vuaXongNen = (j.rows ?? []).map((h) => ({ nen_tang: h.dimensionValues[0].value, nguoi: Number(h.metricValues[0].value), su_kien: Number(h.metricValues[1].value) }));
+} catch (e) { kq.vuaXongNen = [{ loi: e.message }]; }
+md.push('## 30 phút gần nhất theo nền tảng', '', ...bangMd(kq.vuaXongNen));
 md.push('## Người chơi theo nền tảng', '', ...bangMd(kq.nenTang));
 md.push('## Xếp hạng chức năng (theo số người)', '', ...bangMd(kq.xepHang));
 md.push('## Chơi hết ván theo chế độ', '', ...bangMd(kq.hoanThanh));
