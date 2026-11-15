@@ -1,15 +1,16 @@
 import { moGoiTin } from './lib-view.mjs';
 /*
- * CHẾ ĐỘ ĐỒNG ĐỘI 2 đấu 2 (docs/che-do-dong-doi.md) — chạy thật qua server.
- * Canh: client cũ bị từ chối; chia đội xen kẽ + đổi đội; chỉ đúng người được lật đúng lá;
- * "chỉ thẻ"/emoji đội CHỈ tới đồng đội (đội kia không nhận gói tin); một người rời → đồng đội lật
- * cả hai lá; ván chạy tới hết; phòng THƯỜNG không nhận gì mới (`nguoiLat` vắng trong view).
+ * ĐỘI THEO SỐ (15.11.2026, thay "chế độ Đồng đội" 1.7) — chạy thật qua server.
+ * Canh: ai vào cũng có số đội riêng (= ván thường, view KHÔNG có `nguoiLat`); cùng số là cùng đội;
+ * chỉ tự đổi đội mình (chủ phòng đổi được người khác); cả phòng một đội → không mở ván; có người
+ * chung đội mà ai đó dùng app cũ → không mở ván; trong ván MỘT người lật cả hai lá, lượt sau của
+ * đội tới người kế (A+B đấu C: A → C → B → C); cuối ván có số cặp từng người; máy vào đội nào cũng chạy.
  *   pnpm dev  rồi  node tools/smoke-dong-doi.mjs   (MM_SERVER=… để soi server khác)
  */
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
 const mkRoom = async () => (await (await fetch(`${SERVER}/api/rooms`, { method: 'POST' })).json()).code;
-const mk = (code, name, dd = true) => new Promise((res, rej) => {
-  const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${name}&pv=1&bv=2${dd ? '&dd=1' : ''}`);
+const mk = (code, name, dd = 2) => new Promise((res, rej) => {
+  const ws = new WebSocket(`${SERVER.replace('http', 'ws')}/ws/${code}?name=${name}&pv=1&bv=2${dd ? `&dd=${dd}` : ''}`);
   const c = { ws, msgs: [], closed: null, name };
   const hetgio = setTimeout(() => rej(new Error(`không mở được socket vào phòng ${code}`)), 5000);
   ws.onmessage = (e) => c.msgs.push(moGoiTin(JSON.parse(e.data)));
@@ -39,159 +40,116 @@ function chonLa(v) {
 }
 const ma = (c) => c.msgs.find((m) => m.t === 'welcome')?.playerId;
 
-// Phòng THƯỜNG: view không có trường mới
+
+const doiCua = (nhin, c) => phong(nhin).players.find((p) => p.id === ma(c))?.doiSo;
+
+/** Lái ván tới hết: `ds` là các client người; trả về chuỗi người đã đi từng lượt. */
+async function choiHet(ds, han = 240_000) {
+  nho.clear();
+  const luot = [];
+  let seq = 0;
+  const het = Date.now() + han;
+  while (Date.now() < het) {
+    const v = view(ds[0]);
+    if (v?.summary) return luot;
+    const key = v ? `${v.currentId}/${v.nguoiLat}` : '';
+    if (v && v.status === 'playing' && luot.at(-1) !== key && v.cards.filter((c) => c.state === 'up').length === 0) luot.push(key);
+    const ai = v && ds.find((c) => ma(c) === (v.nguoiLat ?? v.currentId));
+    if (ai && v.status === 'playing') {
+      const la = chonLa(v);
+      if (la != null) gui(ai, { t: 'flip', index: la, seq: ++seq });
+    }
+    await sleep(350);
+  }
+  chet('ván không kết thúc trong hạn');
+}
+
+// 1) Phòng THƯỜNG: mỗi người một số đội, ván y như cũ
 {
   const code = await mkRoom();
   const x = await mk(code, 'X'); const y = await mk(code, 'Y');
-  await sleep(400); gui(y, { t: 'ready', ready: true }); await sleep(300);
-  gui(x, { t: 'start' }); await sleep(800);
-  if (!view(x) || 'nguoiLat' in view(x)) chet('phòng thường mà view có nguoiLat (đổi định dạng gói tin cũ)');
-  if (phong(x).players.some((p) => 'doi' in p)) chet('phòng thường mà RoomInfo có trường doi');
-  gui(x, { t: 'leave' }); gui(y, { t: 'leave' });
-  console.log('✓ phòng thường: không có trường mới nào trong view / RoomInfo');
-}
-
-const code = await mkRoom();
-const ds = [];
-for (const n of ['An', 'Binh', 'Chi', 'Dung']) { ds.push(await mk(code, n)); await sleep(150); }
-const [an, binh, chi, dung] = ds;
-await sleep(500);
-
-// Khách không bật được; chủ phòng bật → chia xen kẽ A B A B
-gui(binh, { t: 'doi', on: true }); await sleep(300);
-if (phong(an).config.doi) chet('khách bật được chế độ Đồng đội');
-gui(an, { t: 'doi', on: true }); await sleep(500);
-let r = phong(an);
-if (!r.config.doi) chet('chủ phòng bật Đồng đội không ăn');
-const doiCua = (c) => phong(an).players.find((p) => p.id === ma(c))?.doi;
-if ([an, binh, chi, dung].map(doiCua).join('') !== 'ABAB') chet(`chia đội không xen kẽ: ${[an, binh, chi, dung].map(doiCua).join('')}`);
-console.log('✓ khách không bật được; chủ phòng bật → chia xen kẽ A B A B');
-
-// Đổi đội: Bình sang A, Chi sang B → A = An+Bình, B = Chi+Dũng
-gui(an, { t: 'doi', playerId: ma(binh), doi: 'A' });
-gui(an, { t: 'doi', playerId: ma(chi), doi: 'B' });
-await sleep(500);
-if ([an, binh, chi, dung].map(doiCua).join('') !== 'AABB') chet('đổi đội không ăn');
-console.log('✓ chủ phòng đổi đội: An+Bình | Chi+Dũng');
-
-// Client CŨ (không ?dd=1) vào phòng Đồng đội → nhận lời nhắc + đóng, không thành người chơi
-const cu = await mk(code, 'Cu', false);
-await sleep(600);
-if (!cu.msgs.some((m) => m.t === 'closed' && /cập nhật/.test(m.message))) chet('client cũ không nhận lời nhắc cập nhật');
-if (phong(an).players.length !== 4) chet('client cũ lọt vào danh sách người chơi');
-cu.ws.close();   // client thật tự rời phòng khi nhận `closed`
-console.log('✓ client cũ bị từ chối kèm lời nhắc cập nhật, không thành người chơi');
-
-// Máy không được thêm vào phòng Đồng đội
-gui(an, { t: 'bot', op: 'add' }); await sleep(300);
-if (phong(an).players.some((p) => p.may)) chet('thêm được máy vào phòng Đồng đội');
-
-// Bắt đầu
-for (const c of [binh, chi, dung]) gui(c, { t: 'ready', ready: true });
-await sleep(400);
-gui(an, { t: 'start' });
-await sleep(400);
-const loi = an.msgs.find((m) => m.t === 'error');
-if (loi) chet(`mở ván bị từ chối: ${loi.message}`);
-let batDau = Date.now();
-while (view(an)?.status !== 'playing' && Date.now() - batDau < 15000) await sleep(200);
-let v = view(an);
-if (!v?.nguoiLat || v.players.length !== 2 || !v.players.every((p) => p.thanhVien?.length === 2)) chet('view ván Đồng đội thiếu đội / nguoiLat');
-console.log(`✓ ván 2 đấu 2 bắt đầu: ${v.players.map((p) => p.name).join(' vs ')}, lượt ${v.currentId}, ${v.nguoiLat} lật`);
-
-const theoMa = Object.fromEntries([an, binh, chi, dung].map((c) => [ma(c), c]));
-// Người SAI lật → bỏ qua
-const sai = [an, binh, chi, dung].find((c) => ma(c) !== v.nguoiLat);
-const truoc = v.cards.filter((c) => c.state === 'up').length;
-gui(sai, { t: 'flip', index: v.cards.find((c) => c.state === 'down').index, seq: 1 });
-await sleep(500);
-if (view(an).cards.filter((c) => c.state === 'up').length !== truoc) chet(`${sai.name} lật trộm được dù không tới lá của mình`);
-console.log(`✓ người không tới lá (${sai.name}) lật thì server bỏ qua`);
-
-// Chỉ thẻ: chỉ đồng đội nhận
-const nguoiChi = theoMa[v.nguoiLat];
-const dongDoi = [an, binh, chi, dung].find((c) => c !== nguoiChi && doiCua(c) === doiCua(nguoiChi));
-const doiKia = [an, binh, chi, dung].filter((c) => doiCua(c) !== doiCua(nguoiChi));
-gui(nguoiChi, { t: 'chi', index: 3 });
-await sleep(500);
-if (!dongDoi.msgs.some((m) => m.t === 'chi' && m.index === 3)) chet('đồng đội không nhận được "chỉ thẻ"');
-if (doiKia.some((c) => c.msgs.some((m) => m.t === 'chi'))) chet('đội KIA nhận được gói tin chỉ thẻ');
-console.log('✓ chỉ thẻ: đồng đội nhận, đội kia KHÔNG nhận gói tin nào');
-
-// Chơi: luôn để đúng người lật. Giữa chừng Dũng rời → Chi lật cả hai lá của đội B.
-const seq = new Map();
-let daRoi = false; let chiLatCaHai = false; let soNuoc = 0;
-batDau = Date.now();
-while (Date.now() - batDau < 180_000) {
-  await sleep(200);
-  if (phong(an)?.status === 'ended') break;
-  v = view(an);
-  if (!v || v.status !== 'playing' || !v.nguoiLat) continue;
-  if (!daRoi && soNuoc >= 6) { gui(dung, { t: 'leave' }); daRoi = true; await sleep(500); continue; }
-  const ai = theoMa[v.nguoiLat];
-  if (!ai || ai.closed) continue;
-  const up = v.cards.filter((c) => c.state === 'up');
-  const la = chonLa(v);
-  if (la === null) continue;
-  if (daRoi && ai === chi && up.length === 1 && doiCua(chi) === 'B') chiLatCaHai = true;
-  const s = (seq.get(ai) ?? 1) + 1; seq.set(ai, s);
-  gui(ai, { t: 'flip', index: la, seq: s });
-  soNuoc++;
-  await sleep(250);
-}
-if (phong(an)?.status !== 'ended') chet('ván Đồng đội không kết thúc trong 3 phút');
-if (!chiLatCaHai) chet('Dũng rời mà Chi không được lật lá thứ hai của đội B');
-const kq = view(an)?.summary?.ranking;
-console.log(`✓ Dũng rời giữa ván → Chi lật cả hai lá, đội B chơi tiếp; kết quả ${kq?.map((p) => `${p.name}:${p.score}`).join(' · ')}`);
-
-// ---- 2 NGƯỜI ĐẤU MÁY: máy là một đội đứng riêng, tự lật cả hai lá ----
-{
-  nho.clear();
-  const code2 = await mkRoom();
-  const x = await mk(code2, 'Xuan'); await sleep(150);
-  const y = await mk(code2, 'Yen'); await sleep(400);
-  gui(x, { t: 'doi', on: true }); await sleep(300);
-  gui(x, { t: 'bot', op: 'add', level: 'normal' }); await sleep(400);
-  gui(x, { t: 'bot', op: 'add', level: 'easy' }); await sleep(300);
-  let r2 = phong(x);
-  const mayP = r2.players.filter((p) => p.may);
-  if (mayP.length !== 1) chet(`phòng Đồng đội phải chỉ nhận MỘT máy (có ${mayP.length})`);
-  // Mặc định xen kẽ: Xuân A, Yến B → xếp hai người vào đội của nhau, máy đội kia
-  const doiMay = mayP[0].doi;
-  const doiNguoi = doiMay === 'A' ? 'B' : 'A';
-  for (const c of [x, y]) gui(x, { t: 'doi', playerId: ma(c), doi: doiNguoi });
-  await sleep(500);
-  r2 = phong(x);
-  if (r2.players.filter((p) => p.doi === doiNguoi && !p.may).length !== 2) chet('không xếp được hai người vào cùng đội');
+  await sleep(400);
+  if ([doiCua(x, x), doiCua(x, y)].join('') !== '12') chet(`mặc định phải mỗi người một đội 1,2: ${doiCua(x, x)},${doiCua(x, y)}`);
   gui(y, { t: 'ready', ready: true }); await sleep(300);
-  gui(x, { t: 'start' }); await sleep(400);
-  const l2 = x.msgs.find((m) => m.t === 'error');
-  if (l2) chet(`2 người + máy mở ván bị từ chối: ${l2.message}`);
-  const theo2 = { [ma(x)]: x, [ma(y)]: y };
-  const s2 = new Map(); let mayLat = 0; let luotTruoc = '';
-  const bd = Date.now(); let daThay = 0;
-  while (Date.now() - bd < 180_000) {
-    await sleep(200);
-    if (phong(x)?.status === 'ended') break;
-    for (const m of x.msgs.slice(daThay)) {
-      if (m.t === 'events' && luotTruoc === mayP[0].id) mayLat += m.events.filter((e) => e.type === 'flip').length;
-      if (m.view) luotTruoc = m.view.nguoiLat ?? '';
-    }
-    daThay = x.msgs.length;
-    const v2 = view(x);
-    if (!v2 || v2.status !== 'playing') continue;
-    const ai = theo2[v2.nguoiLat];
-    if (!ai) continue;                       // lượt máy
-    const la2 = chonLa(v2);
-    if (la2 === null) continue;
-    const sq = (s2.get(ai) ?? 1) + 1; s2.set(ai, sq);
-    gui(ai, { t: 'flip', index: la2, seq: sq });
-    await sleep(250);
-  }
-  if (phong(x)?.status !== 'ended') chet('ván 2 người đấu máy không kết thúc');
-  if (mayLat < 2) chet(`máy không tự lật đủ (lật ${mayLat} lá)`);
-  console.log(`✓ 2 người đấu máy: máy (đội riêng) lật ${mayLat} lá; kết quả ${view(x)?.summary?.ranking.map((p) => `${p.name}:${p.score}`).join(' · ')}`);
+  gui(x, { t: 'start' }); await sleep(800);
+  const v = view(x);
+  if (!v || 'nguoiLat' in v) chet('không ai chung đội mà view có nguoiLat (phải là ván thường)');
+  if (v.players.map((p) => p.id).sort().join() !== [ma(x), ma(y)].sort().join()) chet('ván thường mà người chơi không phải từng người');
+  gui(x, { t: 'leave' }); gui(y, { t: 'leave' });
+  console.log('✓ mặc định mỗi người một đội → ván thường y như cũ (không có nguoiLat)');
 }
 
-console.log('\nĐỒNG ĐỘI SMOKE OK');
+// 2) An + Bình cùng đội 1, đấu Chi
+{
+  const code = await mkRoom();
+  const an = await mk(code, 'An'); await sleep(150);
+  const binh = await mk(code, 'Binh'); await sleep(150);
+  const chi = await mk(code, 'Chi'); await sleep(500);
+  gui(binh, { t: 'doi', playerId: ma(chi), doi: 1 }); await sleep(300);
+  if (doiCua(an, chi) !== 3) chet('khách đổi được đội của người khác');
+  gui(binh, { t: 'doi', playerId: ma(binh), doi: 1 }); await sleep(300);
+  if (doiCua(an, binh) !== 1) chet('không tự đổi được đội mình');
+  console.log('✓ tự đổi đội mình được, không đổi được đội người khác');
+
+  // Cả phòng một đội → không mở ván
+  gui(an, { t: 'doi', playerId: ma(chi), doi: 1 }); await sleep(300);
+  if (doiCua(an, chi) !== 1) chet('chủ phòng không đổi được đội người khác');
+  gui(binh, { t: 'ready', ready: true }); gui(chi, { t: 'ready', ready: true }); await sleep(300);
+  gui(an, { t: 'start' }); await sleep(500);
+  if (!an.msgs.some((m) => m.t === 'error' && m.code === 'doi-thieu') || phong(an).status !== 'lobby') chet('cả phòng một đội mà vẫn mở ván');
+  console.log('✓ cả phòng cùng một đội → không mở ván (doi-thieu)');
+  gui(an, { t: 'doi', playerId: ma(chi), doi: 3 }); await sleep(300);
+
+  // App cũ (dd=1) trong phòng có người chung đội → không mở ván, nêu tên
+  const cu = await mk(code, 'Cu', 1); await sleep(400);
+  gui(cu, { t: 'ready', ready: true }); await sleep(300);
+  gui(an, { t: 'start' }); await sleep(500);
+  if (!an.msgs.some((m) => m.t === 'error' && m.code === 'doi-client-cu' && /Cu/.test(m.message))) chet('app cũ trong phòng có đội ghép mà không bị chặn');
+  gui(cu, { t: 'leave' }); await sleep(400);
+  console.log('✓ có người chung đội + app cũ trong phòng → không mở ván, nhắc cập nhật');
+
+  gui(an, { t: 'start' }); await sleep(6200);
+  let v = view(an);
+  if (v?.players.map((p) => p.id).join() !== 'doi-1,doi-3' && v?.players.map((p) => p.id).join() !== 'doi-3,doi-1') chet(`ván phải có 2 đội doi-1/doi-3: ${v?.players.map((p) => p.id)}`);
+  // Sai người lật: đồng đội KHÔNG phải người đi lượt này thì không lật được
+  if (v.currentId === 'doi-1') {
+    const sai = [an, binh].find((c) => ma(c) !== v.nguoiLat);
+    gui(sai, { t: 'flip', index: v.cards.find((c) => c.state === 'down').index, seq: 900 });
+    await sleep(400);
+    if (view(an).cards.some((c) => c.state === 'up')) chet('đồng đội không tới lượt mà lật được');
+    console.log('✓ đồng đội không phải người đi lượt này → không lật được');
+  }
+  const luot = await choiHet([an, binh, chi]);
+  // Lượt của đội 1 phải LUÂN PHIÊN An/Bình; đội 3 luôn là Chi
+  const d1 = luot.filter((k) => k.startsWith('doi-1/')).map((k) => k.split('/')[1]);
+  for (let i = 1; i < d1.length; i++) if (d1[i] === d1[i - 1]) chet(`đội 1 không luân phiên người đi: ${d1.join(' ')}`);
+  if (luot.some((k) => k.startsWith('doi-3/') && k !== `doi-3/${ma(chi)}`)) chet('đội 3 có người đi không phải Chi');
+  if (d1.length < 2) chet('đội 1 đi quá ít lượt để kiểm luân phiên');
+  const kq = view(an).summary.ranking;
+  const doi1 = kq.find((p) => p.id === 'doi-1');
+  const tong = Object.values(doi1.capTV ?? {}).reduce((a, b) => a + b, 0);
+  if (tong !== doi1.pairs) chet(`số cặp từng người (${JSON.stringify(doi1.capTV)}) không cộng ra số cặp đội (${doi1.pairs})`);
+  console.log(`✓ A+B đấu C: đội 1 luân phiên ${d1.length} lượt, mỗi lượt một người lật cả hai lá; cuối ván ${doi1.name}: ${doi1.score} điểm, cặp từng người ${JSON.stringify(doi1.capTV)}`);
+  for (const c of [an, binh, chi]) gui(c, { t: 'leave' });
+}
+
+// 3) Máy: An + Bình (đội 1) đấu máy; rồi An + máy (đội 1) đấu Bình
+for (const kieu of ['2 người đấu máy', 'người + máy chung đội']) {
+  const code = await mkRoom();
+  const an = await mk(code, 'An'); await sleep(150);
+  const binh = await mk(code, 'Binh'); await sleep(400);
+  gui(an, { t: 'bot', op: 'add', level: 'hard' }); await sleep(400);
+  const may = phong(an).players.find((p) => p.may);
+  if (may?.doiSo !== 3) chet(`máy mới phải đứng đội riêng (3): ${may?.doiSo}`);
+  if (kieu === '2 người đấu máy') gui(binh, { t: 'doi', playerId: ma(binh), doi: 1 });
+  else gui(an, { t: 'doi', playerId: may.id, doi: 1 });
+  gui(binh, { t: 'ready', ready: true }); await sleep(400);
+  gui(an, { t: 'start' }); await sleep(6200);
+  if (!view(an)?.players.every((p) => p.id.startsWith('doi-'))) chet(`${kieu}: ván không chạy luật đội`);
+  await choiHet([an, binh]);
+  console.log(`✓ ${kieu}: ván chạy tới hết — ${view(an).summary.ranking.map((p) => `${p.name}:${p.score}`).join(' · ')}`);
+  gui(an, { t: 'leave' }); gui(binh, { t: 'leave' });
+}
+
+console.log('\nĐỘI THEO SỐ OK');
 process.exit(0);

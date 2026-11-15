@@ -61,6 +61,14 @@ const rematchState = computed<Record<string, 'in' | 'out'>>(() => {
   const votes = new Set(r.againVotes ?? []);
   const out: Record<string, 'in' | 'out'> = {};
   for (const p of o.view.value?.players ?? []) {
+    // DÒNG ĐỘI: mã `doi-N` không có trong phòng — xét theo THÀNH VIÊN (máy không bỏ phiếu)
+    if (p.thanhVien) {
+      const con = p.thanhVien.filter((m) => r.players.some((q) => q.id === m));
+      const nguoi = con.filter((m) => !laBotId(m));
+      if (!con.length || p.forfeited) out[p.id] = 'out';
+      else if (nguoi.length && nguoi.every((m) => votes.has(m))) out[p.id] = 'in';
+      continue;
+    }
     const inRoom = r.players.some((q) => q.id === p.id);
     if (votes.has(p.id)) out[p.id] = 'in';
     else if (!inRoom || p.forfeited) out[p.id] = 'out';
@@ -250,6 +258,8 @@ watch(() => o.view.value?.players.length, () => { moBang.value = false; });
 
 /** CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md): view có `nguoiLat` ⇔ ván đội. Ván thường: false, mọi nhánh dưới không chạy. */
 const laDoi = computed(() => o.view.value?.nguoiLat !== undefined);
+/** Tên từng người trong phòng theo mã — màn kết quả ván đội ghi số cặp mỗi người tự ghép. */
+const tenThanhVien = computed(() => Object.fromEntries((o.room.value?.players ?? []).map((p) => [p.id, tenNguoi(p)])));
 const iWon = computed(() => o.laToi(o.view.value?.summary?.ranking[0]?.id));
 
 /*
@@ -664,6 +674,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       :summary="o.view.value.summary"
       :is-record="false" :show-stars="false" :multiplayer="true" :la-chu-phong="o.isHost.value && !o.spectator.value" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
       :fresh-achievements="[]" :has-next="false" :multiplayer-online="true"
+      :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
       :rematch-sent="o.iWantAgain.value"

@@ -1,6 +1,27 @@
-# Chế độ Đồng đội — "Mỗi người một lá"
+# Chơi đội online — đội theo số
 
-Trạng thái: **ĐÃ PHÁT HÀNH 1.7.0 (14.11.2026)** — online 2 đấu 2 + 2 người đấu máy, mở cho mọi người (`DONG_DOI_MO`). Chưa làm: offline chung máy, máy lấp chỗ trống. Tài liệu bàn giao, đọc hết trước khi code.
+Trạng thái: **1.8.0 (15.11.2026) — ĐỘI THEO SỐ**, thay cho chế độ "mỗi người một lá" của 1.7.0
+(chủ dự án: phòng chờ rối, muốn đơn giản). Phần "Ý tưởng / Luật đã chốt" bên dưới là thiết kế 1.7 —
+giữ làm lịch sử; luật ĐANG CHẠY là mục này.
+
+## Luật đang chạy (1.8.0)
+
+- **Không có chế độ riêng.** Ai vào phòng (kể cả máy) cũng nhận một số đội 1–4 chưa ai dùng. Mỗi người
+  một số = ván thường, chạy đúng nhánh code cũ. Chạm ô "Đội N" ở dòng của mình để chọn; **cùng số là
+  cùng đội**. Chủ phòng đổi được đội của máy và người khác.
+- **Mở ván cần ít nhất 2 đội.** Cả phòng cùng một số thì nút Bắt đầu ghi "Cần ít nhất 2 đội".
+- **Trong ván đội: mỗi lượt một người lật cả hai lá.** Lượt sau của đội tới thành viên kế.
+  A+B đấu C: A → C → B → C. Ghép đúng thì chính người đó đi tiếp. Đồng hồ lượt như ván thường.
+- **Điểm, mạng, chuỗi tính theo đội**; cuối ván ghi thêm số cặp từng người tự ghép (`capTV`).
+- **Máy** vào đội nào cũng được (đứng riêng, hoặc chung đội với người).
+- Một người rời giữa ván: đồng đội đi mọi lượt của đội; cả đội rời mới xử thua.
+- Chạm giữ một lá để chỉ cho đồng đội vẫn còn (chỉ đồng đội thấy).
+- Ván đội chỉ ghi thắng/thua vào tài khoản; ván có máy không ghi gì.
+- App cũ: phòng nào cũng vào được; nhưng nếu có người chung đội mà ai đó dùng app chưa hiểu đội theo số
+  (`?dd=2`) thì server không mở ván và nêu tên người cần cập nhật.
+- Kỹ thuật: engine cờ `teamTurn` (cờ `teamFlip` của 1.7 còn lại chỉ để ván dở + test cũ);
+  server `room.ts` (`doiTrong`, `duDoi`, `coDoiGhep`, `chuanDoi`); client `ChonDoi.vue`, `TeamStrip.vue`.
+  Test `packages/engine/test/doi-luot.test.ts`, smoke `pnpm smoke:doi`.
 
 ## NGUYÊN TẮC SỐ MỘT: không đổi luồng hiện tại
 

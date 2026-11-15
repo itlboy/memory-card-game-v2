@@ -135,5 +135,8 @@
  "r10.l": "<li>El anfitrión toca «Añadir bot» en la sala de espera, elige el nivel de cada bot o lo quita.</li>\n          <li>Los bots ocupan puestos como jugadores: hasta 4 en total.</li>\n          <li>¿No hay amigos conectados? Abre una sala y juega contra bots.</li>",
  "r11.h": "Modo Equipo: una carta cada uno",
  "r11.d": "14 de noviembre de 2026",
- "r11.l": "<li>Nuevo en las salas en línea: juega en equipo — uno voltea la primera carta y su compañero la segunda.</li>\n          <li>2 contra 2, o dos amigos juntos contra un bot.</li>\n          <li>Mantén pulsada una carta para señalársela a tu compañero — el otro equipo no lo ve.</li>"
+ "r11.l": "<li>Nuevo en las salas en línea: juega en equipo — uno voltea la primera carta y su compañero la segunda.</li>\n          <li>2 contra 2, o dos amigos juntos contra un bot.</li>\n          <li>Mantén pulsada una carta para señalársela a tu compañero — el otro equipo no lo ve.</li>",
+ "r12.h": "Equipos más sencillos",
+ "r12.d": "15 de noviembre de 2026",
+ "r12.l": "<li>Cada jugador de una sala online tiene un número de equipo: elige el mismo número para jugar en el mismo equipo.</li>\n          <li>Los compañeros se turnan: en cada turno, un jugador voltea las dos cartas.</li>\n          <li>Los bots pueden unirse a cualquier equipo. El resultado muestra los puntos del equipo y las parejas de cada jugador.</li>"
 }

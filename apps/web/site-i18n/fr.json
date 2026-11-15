@@ -135,5 +135,8 @@
  "r10.l": "<li>L’hôte touche « Ajouter un bot » dans le salon, choisit le niveau de chaque bot ou le retire.</li>\n          <li>Les bots prennent une place comme les joueurs — 4 au total maximum.</li>\n          <li>Pas d’amis en ligne ? Ouvrez un salon et jouez contre des bots.</li>",
  "r11.h": "Mode Équipe : une carte chacun",
  "r11.d": "14 novembre 2026",
- "r11.l": "<li>Nouveau dans les salons en ligne : jouez en équipe — l’un retourne la première carte, son coéquipier la seconde.</li>\n          <li>2 contre 2, ou deux amis ensemble contre un bot.</li>\n          <li>Maintenez une carte pour la montrer à votre coéquipier — l’autre équipe ne la voit pas.</li>"
+ "r11.l": "<li>Nouveau dans les salons en ligne : jouez en équipe — l’un retourne la première carte, son coéquipier la seconde.</li>\n          <li>2 contre 2, ou deux amis ensemble contre un bot.</li>\n          <li>Maintenez une carte pour la montrer à votre coéquipier — l’autre équipe ne la voit pas.</li>",
+ "r12.h": "Les équipes, en plus simple",
+ "r12.d": "15 novembre 2026",
+ "r12.l": "<li>Chaque joueur d’un salon en ligne a un numéro d’équipe : choisissez le même numéro pour jouer ensemble.</li>\n          <li>Les coéquipiers jouent à tour de rôle : à chaque tour, un joueur retourne les deux cartes.</li>\n          <li>Les bots peuvent rejoindre n’importe quelle équipe. Le résultat affiche le score de l’équipe et les paires de chaque joueur.</li>"
 }

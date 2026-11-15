@@ -135,5 +135,8 @@
  "r10.l": "<li>Der Raumgastgeber tippt in der Lobby auf „Bot hinzufügen“, wählt die Stufe jedes Bots oder entfernt ihn.</li>\n          <li>Bots belegen Plätze wie Spieler — insgesamt bis zu 4.</li>\n          <li>Gerade keine Freunde online? Raum öffnen und gegen Bots spielen.</li>",
  "r11.h": "Team-Modus: jeder eine Karte",
  "r11.d": "14. November 2026",
- "r11.l": "<li>Neu in Online-Räumen: als Team spielen — einer deckt die erste Karte auf, der Teamkollege die zweite.</li>\n          <li>2 gegen 2 oder zu zweit gegen einen Bot.</li>\n          <li>Karte gedrückt halten, um sie dem Teamkollegen zu zeigen — das andere Team sieht es nicht.</li>"
+ "r11.l": "<li>Neu in Online-Räumen: als Team spielen — einer deckt die erste Karte auf, der Teamkollege die zweite.</li>\n          <li>2 gegen 2 oder zu zweit gegen einen Bot.</li>\n          <li>Karte gedrückt halten, um sie dem Teamkollegen zu zeigen — das andere Team sieht es nicht.</li>",
+ "r12.h": "Teams ganz einfach",
+ "r12.d": "15. November 2026",
+ "r12.l": "<li>Jeder im Online-Raum hat eine Teamnummer – gleiche Nummer heißt gleiches Team.</li>\n          <li>Teammitglieder wechseln sich ab: Pro Zug deckt ein Spieler beide Karten auf.</li>\n          <li>Bots können jedem Team beitreten. Das Ergebnis zeigt die Teampunkte und die Paare jedes Spielers.</li>"
 }

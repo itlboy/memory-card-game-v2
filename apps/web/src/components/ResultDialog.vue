@@ -37,6 +37,8 @@ const props = defineProps<{
   levelId?: number;
   /** Ván online: không có thang cấp nên không có "cấp tiếp theo". */
   multiplayerOnline?: boolean;
+  /** Ván ĐỘI online: tên từng thành viên theo mã — để ghi "ai tự ghép mấy cặp" dưới dòng đội. */
+  tenThanhVien?: Record<string, string>;
   /** Phòng online: mình là chủ phòng → bấm được "Chỉnh bàn" (người khác thấy nút mờ). */
   laChuPhong?: boolean;
   /** Ván online: mình đã bấm chơi lại chưa. Nút đổi thành trạng thái chờ —
@@ -274,6 +276,10 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
             {{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
             <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.choiTiep') }}</i>
             <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.daThoat') }}</i>
+          </small>
+          <!-- ĐỘI: điểm ở trên là của CẢ ĐỘI; dòng này là số cặp từng người tự ghép -->
+          <small v-if="tenThanhVien && (p.thanhVien?.length ?? 0) > 1" class="cap-tv">
+            {{ p.thanhVien!.map((m) => `${tenThanhVien![m] ?? '?'} ${p.capTV?.[m] ?? 0}`).join(' · ') }}
           </small>
         </li>
       </ol>
