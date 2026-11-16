@@ -710,6 +710,8 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**16.11.2026 — 1.8.6: bản OTA thử lần 2** — chỉ nâng số bản.
+
 **16.11.2026 — 1.8.5: bản OTA thử** — chỉ nâng số bản để chủ dự án xem màn "Đang cập nhật" của 1.8.4.
 
 **16.11.2026 — 1.8.4: cập nhật bắt buộc ở trang chủ**
