@@ -126,6 +126,14 @@ async function pickMode(name: string): Promise<void> {
 /** Qua nốt bước theme rồi bảng tuỳ chọn. Chiến dịch không có bảng tuỳ chọn nên
  *  bước theme của nó đã là nút "Bắt đầu cấp N" luôn. */
 async function xongTuyChon(): Promise<void> {
+  // Màn Chơi nhanh một màn (16.11.2026): bàn chơi là bước phụ — mở, tắt sạch, Xong, rồi Bắt đầu
+  if (wrapper.find('.step-body.nhanh').exists()) {
+    await moLuatBan();
+    for (const [hang, muc] of Object.entries(TAT_HET)) await chonMuc(hang, muc);
+    await click('Xong');
+    await click('Bắt đầu');
+    return;
+  }
   const tiep = wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
   if (tiep) { await tiep.trigger('click'); await flush(); }
   // Tắt sạch năm luật: mặc định nay bật cả năm ở mức 1, mà những test dùng hàm
@@ -156,15 +164,39 @@ const banDe = (level: number): number =>
 
 async function chonBan(level: number): Promise<void> {
   if (luatDangCho === null) { await click(`Cấp ${level},`); return; }
-  await click(`${levelSpec(level).pairs * 2} thẻ`);
+  await chonSoThe(levelSpec(level).pairs * 2);
+}
+
+/** Màn Chơi nhanh: ô 12/24/42 bấm thẳng; cỡ khác qua ô "Khác" (lưới 12 cỡ) rồi quay về màn. */
+async function chonSoThe(n: number): Promise<void> {
+  const o = wrapper.findAll('.nh-o').find((b) => b.attributes('aria-label') === `${n} thẻ`);
+  if (o) { await o.trigger('click'); await flush(); return; }
+  const khac = wrapper.findAll('.nh-o').find((b) => b.text().includes('Khác'));
+  if (khac) { await khac.trigger('click'); await flush(); }
+  await click(`${n} thẻ`);
+}
+
+/** Màn Chơi nhanh: mở bước phụ "Tên" (nhiều người). */
+async function moTen(): Promise<void> {
+  await wrapper.find('.nh-ten').trigger('click'); await flush();
+}
+
+/** Màn Chơi nhanh: mở bước phụ "Luật bàn" (bảng năm tuỳ chọn). */
+async function moLuatBan(): Promise<void> {
+  const dong = wrapper.findAll('.nh-dong').find((b) => b.text().includes('Luật bàn'));
+  if (!dong) throw new Error('Không thấy dòng "Luật bàn"');
+  await dong.trigger('click'); await flush();
 }
 
 /** Từ bước chọn bàn: chọn bàn, qua theme, đặt luật rồi Bắt đầu. Cấp 8 = bàn 4×4. */
 async function start(level = 8): Promise<void> {
   await chonBan(level);
   if (luatDangCho === null) { await click('Bắt đầu'); return; }   // Chiến dịch: vào thẳng
-  await click('Tiếp');                                            // xong bước theme
+  const nhanh = wrapper.find('.step-body.nhanh').exists();
+  if (nhanh) await moLuatBan();                                   // Chơi nhanh: bàn chơi là bước phụ
+  else await click('Tiếp');                                       // Đấu máy: xong bước theme
   for (const [hang, muc] of Object.entries(luatDangCho)) await chonMuc(hang, muc);
+  if (nhanh) await click('Xong');
   await click('Bắt đầu');
 }
 
@@ -319,9 +351,9 @@ describe('luồng trọn ván', () => {
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
     await click('Thoát ván');
-    // Về bước "Bàn chơi" (nơi vừa bấm Bắt đầu), không về tận trang chủ
+    // Về màn Chơi nhanh (nơi vừa bấm Bắt đầu), không về tận trang chủ
     expect(wrapper.text()).toContain('Bắt đầu — bàn 16 thẻ');
-    expect(location.search).toBe('?w=options');
+    expect(location.search).toBe('?w=nhanh');
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
   });
 
@@ -485,7 +517,7 @@ describe('F5 giữa ván (state trên URL + snapshot)', () => {
     await wrapper.find('[aria-label="Thoát về menu"]').trigger('click');
     await flush();
     await click('Thoát ván');   // qua popup xác nhận
-    expect(location.search).toBe('?w=options');
+    expect(location.search).toBe('?w=nhanh');
     // Logo vẫn là "về trang chủ" (luật cũ: lau sạch URL), kể cả từ giữa ván
     await click('Bắt đầu');
     await wrapper.findAll('.card')[0]!.trigger('click');
@@ -557,7 +589,7 @@ describe('đồng hồ lượt (multiplayer cùng máy)', () => {
     await mountApp();
     await click('Chơi nhanh');
     await click('2 người chơi');
-    await click('Tiếp tục');        // bước điền tên — để trống, dùng "Người 1/2"
+    // (bước tên giờ là bước phụ, không bắt buộc — để trống dùng "Người 1/2")
     await start();
     await passCountdown();
   }
@@ -612,7 +644,7 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
     await mountApp();
     await click('Chơi nhanh');
     await click('2 người chơi');
-    await click('Tiếp tục');        // bước điền tên
+    // (bước tên là bước phụ, không bắt buộc)
     await start();
     expect(wrapper.find('.countdown').exists()).toBe(true);
     expect(wrapper.text()).toContain('đi trước!');
@@ -642,13 +674,18 @@ describe('F5 giữ bước wizard (?w= trên URL)', () => {
   it('đi tới bước cấp độ, F5 vẫn đứng ở bước cấp độ', async () => {
     await mountApp();
     await click('Chơi nhanh'); await click('1 người chơi');
-    expect(location.search).toBe('?w=level');
+    expect(location.search).toBe('?w=nhanh');
+    wrapper.unmount();
+    await mountApp();                                  // "F5" ở màn Chơi nhanh
+    expect(wrapper.find('.step-body.nhanh').exists()).toBe(true);
+    await click('Khác');                               // bước phụ: lưới 12 cỡ bàn
     expect(location.search).toBe('?w=level');
     wrapper.unmount();
-    await mountApp();                                  // "F5"
+    await mountApp();                                  // "F5" ở bước phụ
     expect(wrapper.text()).toContain('Chọn số thẻ');   // vẫn ở bước cấp độ
-    await chonBan(8);
-    expect(location.search).toBe('?w=theme');
+    await click('16 thẻ');
+    expect(location.search).toBe('?w=nhanh');          // chọn xong quay về màn Chơi nhanh
+    expect(wrapper.text()).toContain('Bắt đầu — bàn 16 thẻ');
   });
 
   it('logo về trang chủ thì URL sạch và về bước 1 — mất trạng thái là chủ đích', async () => {
@@ -1167,7 +1204,9 @@ describe('mở khoá cấp sau', () => {
     await click('Chơi nhanh'); await click('1 người chơi');
     // Thang cấp của chơi đơn không còn khoá gì (chọn thẳng số thẻ), nên thứ
     // phải đúng chỉ là TIẾN ĐỘ đã được ghi — kiểm ở dòng `classic:1` phía trên.
+    await click('Khác');
     expect(wrapper.findAll('.size-grid .option').length).toBe(BOARD_SIZES.length);
+    expect(wrapper.findAll('.size-grid .option[disabled]').length).toBe(0);
   });
 });
 
@@ -1450,6 +1489,7 @@ describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await pickMode('Cổ điển');
+    await click('Khác');            // lưới đủ 12 cỡ bàn (màn Chơi nhanh chỉ gợi ý 3 cỡ)
     expect(wrapper.findAll('.node').length, 'không còn bản đồ cấp ở chế độ thường').toBe(0);
     // Không còn ô nào bị KHOÁ theo tiến độ. Ô duy nhất có thể bấm không được là
     // ô mà bộ theme đang mở chưa đủ biểu tượng — lý do khác hẳn, và có ghi rõ
@@ -1465,7 +1505,7 @@ describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
     await mountApp();
     await click('Chơi nhanh');
     await click('2 người chơi');
-    await click('Tiếp tục');
+    await click('Khác');            // lưới đủ 12 cỡ bàn
     expect(oMo(), 'mọi cỡ bàn phải mở').toBeGreaterThanOrEqual(oTatCa() - 1);
   });
 
@@ -1546,7 +1586,7 @@ describe('bảng tuỳ chọn: hàng nào cũng có đúng một nút đang ch�
     await mountApp();
     await click('Chơi nhanh'); await click('1 người chơi');
     await chonBan(1);
-    await click('Tiếp');
+    await moLuatBan();
     // Đưa MỌI hàng về mức tắt — đây là cảnh dễ trông thành "không chọn gì nhất"
     for (const hang of ['Thời gian', 'Số mạng', 'Xem trước', 'Xáo thẻ', 'Thẻ đặc biệt']) {
       const row = wrapper.findAll('.opt-row').find((r) => r.find('.opt-name').text() === hang)!;
@@ -1611,6 +1651,7 @@ describe('máy chơi cùng ván nhiều người (14.11.2026)', () => {
     await mountApp();
     await click('Chơi nhanh');
     await click('3 người chơi');
+    await moTen();                  // bước phụ "Tên": chọn người/máy từng chỗ
     const dong = wrapper.findAll('.name-row');
     expect(dong.length).toBe(3);
     expect(dong[0]!.find('.loai').exists(), 'dòng 1 luôn là người, không có công tắc').toBe(false);
@@ -1633,6 +1674,7 @@ describe('máy chơi cùng ván nhiều người (14.11.2026)', () => {
     await mountApp();
     await click('Chơi nhanh');
     await click('3 người chơi');
+    await moTen();                  // bước phụ "Tên": chọn người/máy từng chỗ
     const dong = () => wrapper.findAll('.name-row');
     await dong()[2]!.findAll('.loai button').find((b) => b.text() === 'Máy')!.trigger('click');
     await flush();

@@ -590,7 +590,7 @@ function playerList(): PlayerInit[] | undefined {
   const list: PlayerInit[] = Array.from({ length: playerCount.value }, (_, i) => {
     const l = i > 0 ? mayCung.value[i] : null;
     if (l) return { id: maBot(k++), name: BOT_SPECS[l].name, avatar: BOT_SPECS[l].avatar };
-    return { id: `p${i + 1}`, name: saved[i] ?? t('menu.nguoiN', { n: i + 1 }) };
+    return { id: `p${i + 1}`, name: saved[i] || t('menu.nguoiN', { n: i + 1 }) };   // '' = để trống
   });
   return batDauLoat(list);
 }
@@ -695,6 +695,8 @@ function startLevel(id: number): void {
     // Màn Chiến dịch (1..60) và khoá cỡ bàn (1..50) là hai thang khác nhau —
     // ghi màn vào `level` là bước chọn số thẻ đọc ra cỡ bàn sai hoặc ném lỗi.
     if (mode.value !== 'campaign') level.value = id;
+    // Ván CHƠI NHANH: nhớ cỡ bàn + số người để lần sau bấm ô Chơi nhanh là vào luôn (Prefs.nhanh)
+    if (mode.value !== 'campaign' && !botLevel.value) store.savePrefs({ nhanh: { level: id, playerCount: playerCount.value } });
     session.setBots(banDoMay());
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }

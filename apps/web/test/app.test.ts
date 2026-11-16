@@ -79,7 +79,9 @@ const unlockTo = (n: number): void => {
  * không phải chạy lại cho tới lúc xanh.
  */
 const xongTuyChon = async (): Promise<void> => {
-  const tiep = wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
+  // Màn Chơi nhanh một màn (16.11.2026): bàn chơi là bước phụ, mở từ dòng "Luật bàn"
+  const luat = wrapper.findAll('.nh-dong').find((b) => b.text().includes('Luật bàn'));
+  const tiep = luat ?? wrapper.findAll('button').find((b) => b.text() === 'Tiếp');
   if (tiep) {
     await tiep.trigger('click');
     await flush();
@@ -95,14 +97,31 @@ const xongTuyChon = async (): Promise<void> => {
       const tat = hang?.findAll('.seg-btn').find((b) => b.text() === muc);
       if (tat) { await tat.trigger('click'); await flush(); }
     }
+    if (luat) await click('Xong');
   }
   await click('Bắt đầu');
 };
 
-/** Đi hết wizard chơi nhanh: Chơi nhanh → cấp → theme → tuỳ chọn → Bắt đầu. */
+/** Màn Chơi nhanh: mở bước phụ "Bộ thẻ" (chọn theme). */
+const moBoThe = async (): Promise<void> => {
+  const dong = wrapper.findAll('.nh-dong').find((b) => b.text().includes('Bộ thẻ'));
+  if (!dong) throw new Error('Không thấy dòng "Bộ thẻ"');
+  await dong.trigger('click'); await flush();
+};
+
+/** Màn Chơi nhanh: ô 12/24/42 bấm thẳng; cỡ khác qua ô "Khác" (lưới 12 cỡ) rồi quay về màn. */
+const chonSoThe = async (n: number): Promise<void> => {
+  const o = wrapper.findAll('.nh-o').find((b) => b.attributes('aria-label') === `${n} thẻ`);
+  if (o) { await o.trigger('click'); await flush(); return; }
+  const khac = wrapper.findAll('.nh-o').find((b) => b.text().includes('Khác'));
+  if (khac) { await khac.trigger('click'); await flush(); }
+  await click(`${n} thẻ`);
+};
+
+/** Đi hết wizard chơi nhanh: Chơi nhanh → màn Chơi nhanh (số người, số thẻ, luật bàn) → Bắt đầu. */
 const start = async (_mode = '', cards = 16): Promise<void> => {
   await click('Chơi nhanh'); await click('1 người chơi');
-  await click(`${cards} thẻ`);
+  await chonSoThe(cards);
   await xongTuyChon();
 };
 
@@ -122,25 +141,26 @@ describe('App', () => {
     expect(wrapper.text()).not.toContain('Theme thẻ');
   });
 
-  it('theme nạp từ JSON hiện ở bước chọn bàn', async () => {
+  it('theme nạp từ JSON hiện ở bước phụ "Bộ thẻ" của màn Chơi nhanh', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
     expect(wrapper.text()).not.toContain('Động vật');
-    expect(wrapper.text()).toContain('Chọn số thẻ');       // bước chọn bàn đứng trước theme
-    await click('16 thẻ');
+    expect(wrapper.text()).toContain('Tất cả 2 bộ');        // dòng tóm tắt: mặc định bật hết theme
+    await moBoThe();
     expect(wrapper.text()).toContain('Chọn theme thẻ');
     expect(wrapper.text()).toContain('Động vật');
   });
 
-  it('nút quay lại đưa về bước trước', async () => {
+  it('nút quay lại: bước phụ → màn Chơi nhanh → trang chủ', async () => {
     wrapper = mount(App);
     await flush();
-    await click('Chơi nhanh'); await click('1 người chơi');
-    expect(wrapper.text()).toContain('Chọn số thẻ');
-    // Lùi từng bước: chọn bàn → số người → màn đầu (bước Thể loại chỉ có khi MUA_THE_MO)
+    await click('Chơi nhanh');
+    await moBoThe();
+    expect(wrapper.text()).toContain('Chọn theme thẻ');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
+    expect(wrapper.find('.step-body.nhanh').exists()).toBe(true);
     expect(wrapper.text()).toContain('Mấy người chơi?');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();
@@ -152,7 +172,7 @@ describe('App', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
-    await click('16 thẻ');
+    await moBoThe();
     // Tab mặc định là Miễn phí: không có ô premium nào
     expect(wrapper.findAll('.theme-opt').some((c) => c.text().includes('Bị khoá'))).toBe(false);
     await click('Premium');
@@ -175,7 +195,7 @@ describe('App', () => {
       wrapper = mount(App);
       await flush();
       await click('Chơi nhanh'); await click('1 người chơi');
-      await click('16 thẻ');
+      await moBoThe();
       await click('Premium');
       const o = () => wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes('Bị khoá'))!;
       // Đã mua thì "mặc định bật mọi theme chơi được" gồm cả premium
@@ -243,14 +263,15 @@ describe('App', () => {
     await click('Chơi nhanh');
     expect(wrapper.text()).toContain('Mấy người chơi?');
     await click('2 người chơi');
-    // Bước điền tên: đúng số ô theo số người, để trống thì lấy tên mặc định
+    // Bước phụ điền tên (mở từ dòng "Tên"): đúng số ô theo số người, để trống thì lấy tên mặc định
+    await wrapper.find('.nh-ten').trigger('click'); await flush();
     expect(wrapper.text()).toContain('Tên từng người');
     expect(wrapper.findAll('.name-row input')).toHaveLength(2);
     await click('Tiếp tục');
-    // Nhiều người có mọi chế độ trừ Chiến dịch
-
+    // Về màn Chơi nhanh — nhiều người không có Chiến dịch
+    expect(wrapper.find('.step-body.nhanh').exists()).toBe(true);
     expect(wrapper.text()).not.toContain('Chiến dịch');
-    await click('4 thẻ');         // cấp mặc định mở sẵn
+    await chonSoThe(4);
     await xongTuyChon();
     expect(wrapper.findAll('.player')).toHaveLength(2);
     expect(wrapper.text()).toContain('Đang chơi');
@@ -286,7 +307,7 @@ describe('multi-theme', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
-    await click('16 thẻ');
+    await moBoThe();
     const chon = () => wrapper.findAll('.theme-opt[role="checkbox"]').filter((c) => c.attributes('aria-checked') === 'true').length;
     const nut = () => wrapper.find('.tp-het');
     // Mặc định đã bật hết theme miễn phí → nút là "Bỏ chọn"
@@ -305,7 +326,7 @@ describe('multi-theme', () => {
     wrapper = mount(App);
     await flush();
     await click('Chơi nhanh'); await click('1 người chơi');
-    await click('16 thẻ');
+    await moBoThe();
     const chip = (name: string) =>
       wrapper.findAll('[role="checkbox"]').find((c) => c.text().includes(name))!;
     // Chưa từng chọn thì App bật SẴN mọi theme đang mở khoá

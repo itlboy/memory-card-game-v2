@@ -17,8 +17,8 @@ function dichGoiYTuyChon(s: string | null): string | null {
   // i18n-bo-qua: mẫu tiếng Việt của engine là thứ ĐI DỊCH, không phải chữ hiển thị
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
-import { BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
+import { BOARD_SIZES, BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
+import { Bot, ChevronLeft, ChevronRight, Globe, Map, Play, SlidersHorizontal, Users, X } from 'lucide-vue-next';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -42,6 +42,7 @@ import QuatLa from './QuatLa.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
+import { choiDuoc } from '@/lib/premium';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
@@ -97,8 +98,15 @@ const emit = defineEmits<{
  * đó là một hành trình có luật riêng từng màn, không phải bàn chơi tự chọn.
  * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
  */
-type Step = 'players' | 'kieu' | 'bot' | 'count' | 'names' | 'level' | 'theme' | 'options';
-const STEPS: readonly Step[] = ['players', 'kieu', 'bot', 'count', 'names', 'level', 'theme', 'options'];
+type Step = 'players' | 'kieu' | 'bot' | 'count' | 'nhanh' | 'names' | 'level' | 'theme' | 'options';
+const STEPS: readonly Step[] = ['players', 'kieu', 'bot', 'count', 'nhanh', 'names', 'level', 'theme', 'options'];
+/**
+ * CHƠI NHANH MỘT MÀN (16.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1).
+ * Bản cũ đi 4 bước (số người → số thẻ → theme → bàn chơi) và GA4 thấy rơi một nửa người ở giữa,
+ * trong khi theme và bàn chơi để mặc định hầu như không ai đổi. Nay bước `nhanh` gom hết vào một
+ * màn có nút Bắt đầu; tên, lưới 12 cỡ bàn, theme và bàn chơi thành BƯỚC PHỤ mở từ đó và quay về đó.
+ */
+const BUOC_PHU: readonly Step[] = ['names', 'level', 'theme', 'options'];
 
 /** Bước hiện tại nằm trên URL (?w=level) để F5 không bị bật về bước 1. */
 function stepFromUrl(): Step {
@@ -131,12 +139,16 @@ const path = computed<Step[]>(() => {
   // Chiến dịch: luật do từng màn quyết định, không có bước tuỳ chọn
   if (props.mode === 'campaign') return ['players', 'level', 'theme'];
   if (props.botLevel) return ['players', 'bot', 'level', 'theme', 'options'];
-  // "Chơi nhanh" gộp cả một mình lẫn nhiều người: hỏi THỂ LOẠI (Thường / Mưa Thẻ — 27.10.2026) rồi số người
-  const kieu: Step[] = MUA_THE_MO ? ['kieu'] : [];   // bước Thể loại chỉ khi Mưa Thẻ mở (lib/mua-the.ts)
-  return isMulti.value
-    ? ['players', ...kieu, 'count', 'names', 'level', 'theme', 'options']
-    : ['players', ...kieu, 'count', 'level', 'theme', 'options'];
+  // "Chơi nhanh": (Thể loại nếu Mưa Thẻ mở — lib/mua-the.ts) → màn `nhanh`, cộng bước phụ đang mở.
+  // Bước phụ lấy theo `step` HOẶC `buocHien`: lúc đang rời bước phụ về `nhanh`, phần đầu vẫn vẽ bước
+  // phụ thêm một nhịp — bỏ nó khỏi path sớm là nút quay lại nháy mất.
+  const kieu: Step[] = MUA_THE_MO ? ['kieu'] : [];
+  const goc: Step[] = ['players', ...kieu, 'nhanh'];
+  const phu = BUOC_PHU.includes(step.value) ? step.value : BUOC_PHU.includes(buocHien.value) ? buocHien.value : null;
+  return phu ? [...goc, phu] : goc;
 });
+/** Đang ở nhánh Chơi nhanh (không Chiến dịch, không đấu máy) — bước phụ quay về màn `nhanh`. */
+const laNhanh = computed(() => props.mode !== 'campaign' && !props.botLevel);
 const stepIndex = computed(() => path.value.indexOf(step.value));
 /**
  * BƯỚC ĐANG HIỆN TRÊN PHẦN ĐẦU (tiêu đề, chấm tiến độ, nút quay lại, nền panel).
@@ -155,7 +167,8 @@ const buocHien = ref<Step>(step.value);
 watch(step, (b) => {
   suKien('buoc_menu', {
     buoc: b,
-    nhanh: props.mode === 'campaign' ? 'chien_dich' : props.botLevel ? 'dau_may' : 'choi_nhanh',
+    // Trang chủ là bước CHUNG — trước 16.11.2026 nó bị tính vào 'choi_nhanh' nên phễu Chơi nhanh phồng ra
+    nhanh: b === 'players' ? 'trang_chu' : props.mode === 'campaign' ? 'chien_dich' : props.botLevel ? 'dau_may' : 'choi_nhanh',
     so_nguoi: props.playerCount
   });
 }, { immediate: true, flush: 'post' });   // post: đợi mode/botLevel vừa emit về tới props
@@ -259,14 +272,102 @@ function pickCampaign(): void {
   step.value = 'level';
 }
 
-function pickPlayers(): void {
-  sfx.select();
-  moChucNang('choi_nhanh');
+/** Ván chơi nhanh gần nhất (Prefs.nhanh) — đọc một lần: MenuScreen dựng lại mỗi lần về menu. */
+const nhanhCu = store.prefs().nhanh ?? null;
+const coCua = (level: number) => BOARD_SIZES.find((s) => s.level === level);
+/** Ba cỡ bàn gợi ý của màn Chơi nhanh. "Khác" mở lưới đủ 12 cỡ (SizeGrid). */
+const MUC_NHANH = ([['de', 6], ['vua', 12], ['kho', 21]] as const).map(([k, pairs]) => ({
+  k, pairs, level: BOARD_SIZES.find((s) => s.pairs === pairs)!.level
+}));
+const coDangChon = computed(() => coCua(props.level));
+const laCoKhac = computed(() => !MUC_NHANH.some((m) => m.level === props.level) && !!coDangChon.value);
+
+/** Vào màn Chơi nhanh: dựng lại cỡ bàn + số người của ván trước (Chiến dịch/Đấu máy có thể đã ghi đè). */
+function vaoNhanh(): void {
   emit('update:botLevel', null);
   // Chơi nhanh luôn dùng khoá lưu 'classic' — kỷ lục và tiến độ giữ nguyên chỗ
   // cũ, còn luật ván thì do bảng tuỳ chọn quyết định.
   emit('update:mode', 'classic');
-  step.value = MUA_THE_MO ? 'kieu' : 'count';
+  emit('update:playerCount', nhanhCu?.playerCount ?? (props.mode === 'classic' ? props.playerCount : 1));
+  // Chưa chơi nhanh lần nào: bàn "Dễ" (12 thẻ). `level` mặc định 1 = bàn 4 thẻ quá nhỏ để làm gợi ý,
+  // mà nó còn có thể giữ số màn Chiến dịch — không phải khoá cỡ bàn.
+  const lv = nhanhCu?.level ?? (props.level > 1 && coCua(props.level) ? props.level : MUC_NHANH[0]!.level);
+  emit('update:level', coCua(lv) ? lv : MUC_NHANH[0]!.level);
+  step.value = MUA_THE_MO ? 'kieu' : 'nhanh';
+}
+
+/**
+ * Ô CHƠI NHANH Ở TRANG CHỦ: đã chơi nhanh rồi thì VÀO VÁN NGAY với cỡ bàn + số người lần trước
+ * (mockup B). Lần đầu, hay theme đang chọn không đủ hình cho bàn đó, thì mở màn `nhanh`.
+ */
+function pickPlayers(): void {
+  sfx.select();
+  const co = nhanhCu && coCua(nhanhCu.level);
+  if (nhanhCu && co && co.pairs <= props.symbolCount) {
+    moChucNang('choi_nhanh_ngay');
+    emit('update:botLevel', null);
+    emit('update:mode', 'classic');
+    emit('update:playerCount', nhanhCu.playerCount);
+    emit('update:level', nhanhCu.level);
+    emit('start-level', nhanhCu.level);
+    return;
+  }
+  moChucNang('choi_nhanh');
+  vaoNhanh();
+}
+
+/** Dải "Chơi nhanh: 12 thẻ · Một mình — Đổi" dưới ba ô: mở màn `nhanh` để đổi. */
+function doiNhanh(): void {
+  sfx.select();
+  moChucNang('choi_nhanh_doi');
+  vaoNhanh();
+}
+const tenSoNguoi = (n: number): string => (n === 1 ? t('menu.soNguoi.1') : t('menu.soNguoi.n', { n }));
+const tomTatNhanh = computed(() => {
+  const co = nhanhCu && coCua(nhanhCu.level);
+  return co && nhanhCu ? `${t('menu.theN', { n: co.pairs * 2 })} · ${tenSoNguoi(nhanhCu.playerCount)}` : '';
+});
+
+/* ---------- màn Chơi nhanh ---------- */
+function chonSoNguoi(n: number): void {
+  if (n === props.playerCount) return;
+  sfx.select();
+  emit('update:playerCount', n);
+  if (n > 1) syncNames(n);
+}
+function chonCo(level: number): void {
+  if (level === props.level) return;
+  sfx.select();
+  emit('update:level', level);
+}
+function moBuocPhu(b: Step): void {
+  sfx.select();
+  if (b === 'names') syncNames(props.playerCount);
+  step.value = b;
+}
+/** Tên trên dòng "Tên" — tên đã lưu, trống thì "Người i". */
+const tenDangDung = computed(() => {
+  const saved = store.playerNames();
+  return Array.from({ length: props.playerCount }, (_, i) =>
+    (mayO(i) ? tenBot(mayO(i)!) : (names.value[i] || saved[i] || '').trim() || t('menu.nguoiN', { n: i + 1 }))).join(', ');
+});
+/** Theme đang chọn: "Tất cả 12 bộ" hay "Đã chọn 3 bộ", kèm hình mẫu của tối đa 3 bộ. */
+const tomTatTheme = computed(() => {
+  // So với theme CHƠI ĐƯỢC (premium chưa mua không tính) — không thì bật hết vẫn ra "Đã chọn N bộ"
+  const chon = props.themes.filter((th) => props.themeIds.includes(th.id));
+  return chon.length >= props.themes.filter(choiDuoc).length && chon.length > 0
+    ? t('menu.nhanh.tatCaBo', { n: chon.length }) : t('menu.nhanh.soBo', { n: chon.length });
+});
+const hinhTheme = computed(() => props.themes.filter((th) => props.themeIds.includes(th.id)).slice(0, 3)
+  .map((th) => anhEmoji(th.symbols[0], true, 128)).filter((x): x is string => !!x));
+/** Bàn chơi: tên các tuỳ chọn đang bật, không bật gì thì "Thường". */
+const tomTatLuat = computed(() => {
+  const bat = OPTION_KEYS.filter((k) => props.options[k] > 0).map((k) => td(`opt.${k}`));
+  return bat.length ? bat.join(', ') : t('menu.nhanh.luatThuong');
+});
+function batDauNhanh(): void {
+  if (themeTooSmall.value) { moBuocPhu('theme'); return; }
+  emit('start-level', props.level);
 }
 
 /** Bước THỂ LOẠI của Chơi nhanh: Thường đi tiếp wizard; Mưa Thẻ là màn riêng (App). */
@@ -282,6 +383,7 @@ function pickCount(n: number): void {
   if (n < 2) { step.value = 'level'; return; }   // một mình: không có bước tên
   syncNames(n);
   step.value = 'names';
+  // (bước `count` không còn trong đường Chơi nhanh từ 16.11.2026 — giữ cho ?w=count cũ không gãy)
 }
 
 /** Lối tắt: chơi tiếp chiến dịch ở màn đang mở, khỏi đi qua bản đồ. */
@@ -325,13 +427,13 @@ function chonMuc(l: BotLevel): void {
   chonMucCho.value = null;
 }
 
-/** Tên bỏ trống thì lấy "Người i" — không ép người chơi phải điền. */
+/** Tên bỏ trống thì lấy "Người i" — không ép người chơi phải điền. Lưu TRỐNG chứ không lưu "Người i":
+ *  lưu chữ mặc định là đổi ngôn ngữ xong nó vẫn hiện tiếng cũ ("Người 1" trong bản English, 16.11.2026). */
 function confirmNames(): void {
-  const filled = names.value.map((v, i) => v.trim() || t('menu.nguoiN', { n: i + 1 }));
-  store.savePlayerNames(filled);
-  names.value = filled;
+  store.savePlayerNames(names.value.map((v) => v.trim()));
+  names.value = names.value.map((v) => v.trim());
   sfx.select();
-  step.value = 'level';
+  step.value = 'nhanh';
 }
 
 /**
@@ -368,13 +470,13 @@ function setOption(key: OptionKey, muc: OptLevel): void {
 function xongTheme(): void {
   if (props.mode === 'campaign') { emit('start-level', props.level); return; }
   sfx.select();
-  step.value = 'options';
+  step.value = laNhanh.value ? 'nhanh' : 'options';
 }
 
 function pickLevel(id: number): void {
   sfx.select();
   emit('update:level', id);
-  step.value = 'theme';
+  step.value = laNhanh.value ? 'nhanh' : 'theme';
 }
 
 function back(): void {
@@ -505,7 +607,8 @@ const ICO3D = {
     <header v-if="buocHien !== 'players'" class="wizard-head">
       <button v-if="hienIndex > 0" class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="back"><ChevronLeft :size="22" /></button>
       <h2>{{ tieuDe }}</h2>
-      <span class="dots" aria-hidden="true">
+      <!-- Chơi nhanh chỉ còn một màn (+ bước phụ quay về) — chấm tiến độ không còn nghĩa gì -->
+      <span v-if="!laNhanh" class="dots" aria-hidden="true">
         <i v-for="(s, i) in path" :key="s" :class="{ on: i <= hienIndex }" />
       </span>
     </header>
@@ -544,6 +647,13 @@ const ICO3D = {
           </button>
         </div>
 
+        <!-- CHƠI NHANH LẦN TRƯỚC (16.11.2026, mockup B): ô Chơi nhanh vào ván ngay, dải này để ĐỔI cài đặt -->
+        <button v-if="tomTatNhanh" class="nhanh-bar thach" type="button" @click="doiNhanh">
+          <SlidersHorizontal class="nb-ic" :size="18" aria-hidden="true" />
+          <span class="nb-chu"><b>{{ t('menu.choiNhanh') }}:</b> {{ tomTatNhanh }}</span>
+          <span class="nb-doi">{{ t('menu.nhanh.doi') }}<ChevronRight :size="16" aria-hidden="true" /></span>
+        </button>
+
         <!-- DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm -->
         <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1" class="loi-tat">
           <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua thach th-vang" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })">🔥 {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
@@ -566,6 +676,62 @@ const ICO3D = {
           <a class="gya-cai" :href="storeGoiY.url" target="_blank" rel="noopener" @click="suKien('goi_y_app_cai', { store: storeGoiY.ten })">{{ t('app.cai') }}</a>
           <button class="gya-an thach th-nho" type="button" :aria-label="t('cai.an')" @click="suKien('goi_y_app_an'); tatGoiYApp()"><X :size="18" /></button>
         </div>
+      </div>
+
+      <!--
+        MÀN CHƠI NHANH (16.11.2026, mockup A duyệt): số người · số thẻ · theme · bàn chơi trên MỘT màn,
+        Bắt đầu ở đáy. Hai hàng ô theo kiểu SizeGrid (số to, chữ nhỏ); theme và bàn chơi là dòng tóm
+        tắt mở bước phụ. KHÔNG SCROLL: hàng ô và dòng co theo chỗ còn lại (min 44px vùng chạm).
+      -->
+      <div v-else-if="step === 'nhanh'" key="nhanh" class="step-body nhanh">
+        <p class="nh-nhan">{{ t('menu.buoc.count') }}</p>
+        <div class="nh-hang" role="radiogroup" :aria-label="t('menu.buoc.count')">
+          <button
+            v-for="c in COUNTS" :key="c.n" class="option nh-o" type="button" role="radio"
+            :aria-checked="playerCount === c.n" :aria-label="t('menu.soNguoiAria', { n: c.n })"
+            @click="chonSoNguoi(c.n)"
+          >
+            <strong class="num">{{ c.n }}</strong>
+            <small>{{ c.n === 1 ? t('menu.nhanh.motMinh') : t('menu.nhanh.nguoi') }}</small>
+          </button>
+        </div>
+        <button v-if="isMulti" class="nh-dong nh-ten thach" type="button" @click="moBuocPhu('names')">
+          <span class="nh-chu"><strong>{{ t('menu.nhanh.ten') }}</strong><small>{{ tenDangDung }}</small></span>
+          <span class="nh-sua">{{ t('menu.nhanh.sua') }}</span>
+        </button>
+
+        <p class="nh-nhan">{{ t('menu.soThe') }}</p>
+        <div class="nh-hang" role="radiogroup" :aria-label="t('menu.soThe')">
+          <button
+            v-for="m in MUC_NHANH" :key="m.k" class="option nh-o" type="button" role="radio"
+            :aria-checked="level === m.level" :aria-label="t('menu.theN', { n: m.pairs * 2 })"
+            :disabled="m.pairs > maxSymbolCount"
+            @click="chonCo(m.level)"
+          >
+            <strong class="num">{{ m.pairs * 2 }}</strong>
+            <small>{{ t(`menu.nhanh.${m.k}`) }}</small>
+          </button>
+          <button class="option nh-o" type="button" role="radio" :aria-checked="laCoKhac" @click="moBuocPhu('level')">
+            <strong class="num">{{ laCoKhac && coDangChon ? coDangChon.pairs * 2 : '…' }}</strong>
+            <small>{{ t('menu.nhanh.khac') }}</small>
+          </button>
+        </div>
+
+        <button class="nh-dong thach" type="button" @click="moBuocPhu('theme')">
+          <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhTheme" :key="h" :src="h" alt=""></span>
+          <span class="nh-chu"><strong>{{ t('menu.nhanh.boThe') }}</strong><small>{{ tomTatTheme }}</small></span>
+          <ChevronRight class="nh-mui" :size="20" aria-hidden="true" />
+        </button>
+        <button class="nh-dong thach" type="button" @click="moBuocPhu('options')">
+          <OptionIcon name="time" :size="30" />
+          <span class="nh-chu"><strong>{{ t('menu.nhanh.luat') }}</strong><small>{{ tomTatLuat }}</small></span>
+          <ChevronRight class="nh-mui" :size="20" aria-hidden="true" />
+        </button>
+
+        <p v-if="themeTooSmall" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
+        <button class="btn-primary nh-bat-dau" type="button" @click="batDauNhanh">
+          {{ t('menu.batDau', { ban: tenBan }) }}
+        </button>
       </div>
 
       <!-- BƯỚC (đấu máy): mức của máy -->
@@ -697,7 +863,7 @@ const ICO3D = {
           class="btn-primary" :disabled="themeTooSmall" type="button"
           @click="xongTheme()"
         >
-          {{ mode === 'campaign' ? t('menu.batDauCap', { n: level }) : t('menu.tiep') }}
+          {{ mode === 'campaign' ? t('menu.batDauCap', { n: level }) : laNhanh ? t('menu.nhanh.xong') : t('menu.tiep') }}
         </button>
 
         <!-- Mốc sao nói TRƯỚC khi chơi (chủ dự án 14.10.2026): 3★ cố ý khó, người
@@ -740,7 +906,11 @@ const ICO3D = {
         </div>
         </div>
 
-        <button class="btn-primary" type="button" @click="emit('start-level', level)">
+        <!-- Chơi nhanh: bàn chơi là bước phụ — Xong quay về màn `nhanh`; đấu máy thì vào ván -->
+        <button v-if="laNhanh" class="btn-primary" type="button" @click="sfx.select(); step = 'nhanh'">
+          {{ t('menu.nhanh.xong') }}
+        </button>
+        <button v-else class="btn-primary" type="button" @click="emit('start-level', level)">
           {{ t('menu.batDau', { ban: tenBan }) }}
         </button>
       </div>
@@ -1060,4 +1230,38 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
   section.panel:not(.trang-chu) { padding: 14px; }
   .wizard-head { margin-bottom: 10px; }
 }
+
+/* ---------- MÀN CHƠI NHANH (16.11.2026) ---------- */
+.step-body.nhanh { gap: clamp(6px, 1.4vh, 12px); }
+.nh-nhan { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: var(--text-md, 17px); line-height: 1.1; flex: none; }
+/* Hàng 4 ô: co theo chiều cao còn lại nhưng không dưới 48px (vùng chạm) và không quá 92px */
+.nh-hang { flex: 1 1 72px; min-height: 48px; max-height: 92px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.nh-o { height: 100%; padding: 4px; gap: 0; }
+.nh-o .num { font-size: clamp(20px, min(30cqw, 46cqh), 34px); line-height: 1.05; font-variant-numeric: tabular-nums; }
+.nh-o small { font-size: clamp(11px, min(14cqw, 20cqh), 14px); font-weight: 700; letter-spacing: .2px; }
+.nh-dong {
+  flex: 1 1 58px; min-height: 44px; max-height: 68px; width: 100%;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px; text-align: left;
+  font: inherit; color: var(--fg); cursor: pointer;
+}
+.nh-dong.nh-ten { flex-basis: 48px; max-height: 56px; }
+.nh-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.nh-chu strong { font-family: var(--font-display); font-weight: 800; font-size: var(--text-md, 16px); }
+.nh-chu small { font-size: var(--text-xs, 13px); font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nh-hinh { flex: none; display: flex; }
+.nh-hinh img { width: 26px; height: 26px; margin-left: -6px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .2)); }
+.nh-hinh img:first-child { margin-left: 0; }
+.nh-mui { flex: none; color: var(--muted); }
+.nh-sua { flex: none; font-family: var(--font-display); font-weight: 800; color: var(--accent); }
+.nh-bat-dau { flex: none; margin-top: auto; }
+
+/* Dải "Chơi nhanh: 12 thẻ · Một mình — Đổi" ở trang chủ */
+.nhanh-bar {
+  flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 12px 0 0; padding: 0 12px;
+  font: inherit; font-size: 14px; color: var(--fg); cursor: pointer; text-align: left;
+}
+.nb-ic { flex: none; color: var(--accent); }
+.nb-chu { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nb-chu b { font-weight: 800; }
+.nb-doi { flex: none; display: inline-flex; align-items: center; font-family: var(--font-display); font-weight: 800; color: var(--accent); }
 </style>
