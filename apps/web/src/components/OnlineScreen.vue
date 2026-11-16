@@ -362,22 +362,37 @@ function veDanhSachPhong(): void {
  *  trang chủ → danh sách phòng → phòng chờ, nên lùi một bậc là danh sách. */
 function backLobby(): void { hoiRoiPhong(veDanhSachPhong); }
 
-/** Thoát có xác nhận — dùng cho nút ✕ trong ván và khi bấm logo. */
-function quit(): void {
+/**
+ * THOÁT KHỎI VÁN → VỀ MÀN ONLINE (chỗ tạo/vào phòng), không văng ra trang chủ (16.11.2026, chủ
+ * dự án). Rời phòng THẬT qua `thoatPhong` (báo server, như `exit`), chỉ khác đích đến.
+ */
+function veManOnline(): void {
+  o.thoatPhong();
+  ghiUrl(location.pathname);
+  entryStep.value = 'choose';
+  o.error.value = '';
+  void o.taiPhongCongKhai();
+}
+/** Nút ✕ / "Thoát phòng" trong ván và màn kết quả: hỏi như `quit` nhưng đích là màn online. */
+function quitVeOnline(): void { quit(veManOnline); }
+
+/** Thoát có xác nhận — dùng cho nút ✕ trong ván và khi bấm logo. `sau`: đích sau khi rời
+ *  (mặc định trang chủ — việc của nút logo). */
+function quit(sau: () => void = exit): void {
   const phase = o.phase.value;
   if (phase === 'playing' && !o.spectator.value) {
     confirm.value = {
       title: t('on.dauHang.tieuDe'),
       body: t('on.dauHang.than'),
       label: t('on.dauHang.nut'),
-      action: () => { o.surrender(); exit(); }
+      action: () => { o.surrender(); sau(); }
     };
     return;
   }
   // Ở phòng chờ CŨNG phải hỏi, kể cả khi đang một mình: vừa tạo phòng xong,
   // chưa ai vào, lỡ chạm là mất phòng cùng cái mã vừa gửi cho bạn bè. Đích ở
   // đây là TRANG CHỦ vì đó đúng là việc của nút logo.
-  if (phase === 'lobby') { hoiRoiPhong(exit); return; }
+  if (phase === 'lobby') { hoiRoiPhong(sau); return; }
   /*
    * HẾT VÁN → "Thoát phòng" CŨNG HỎI (07.11.2026, chủ dự án duyệt mockup): một chạm
    * nhầm là mất phòng lẫn tỷ số cả loạt. "Về phòng chờ" thì không hỏi — vẫn ở trong phòng.
@@ -388,11 +403,11 @@ function quit(): void {
       title: t('on.thoat.tieuDe'),
       body: khac.length === 1 ? t('on.thoat.than1', { ten: tenNguoi(khac[0]!) }) : t('on.thoat.than'),
       label: t('on.thoat.nut'),
-      action: exit
+      action: sau
     };
     return;
   }
-  exit();
+  sau();
 }
 
 /*
@@ -431,7 +446,7 @@ function isBusy(): boolean {
 
 /** Đang trong ván online (App tắt nhạc nền khi vào ván). */
 const dangChoi = computed(() => o.phase.value === 'playing');
-defineExpose({ requestHome: quit, isBusy, dangChoi });
+defineExpose({ requestHome: () => quit(), isBusy, dangChoi });
 
 /** Link mời mang TÊN người mời + ngôn ngữ: Worker dựng thẻ chia sẻ riêng ("Kiên mời bạn đấu
  *  Lật Thẻ! · Phòng 482193") từ hai tham số này — apps/server/src/index.ts `theMoi`. */
@@ -1201,7 +1216,7 @@ function openCfgWizard(): void {
   </section>
 
   <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
-  <OnlineGame v-else-if="!wizard || o.phase.value === 'ended'" :o="o" @quit="quit" @chinh="openCfgWizard" />
+  <OnlineGame v-else-if="!wizard || o.phase.value === 'ended'" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
 
   <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
        được mount một bản: trong ván đã có bản của OnlineGame. -->
