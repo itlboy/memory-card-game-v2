@@ -230,6 +230,7 @@ const it: TuDien = {
   'kq.choiLai': 'Rigioca',
   'kq.choiLaiCap': 'Rigioca il livello',
   'kq.hoa': "Pareggio! 🤝",
+  'kq.tySo': 'Punteggio',
   'kq.thang': 'Vince {ten}! 🏆',
   'kq.banThang': 'Hai vinto! 🏆',
   'kq.banThua': 'Hai perso 😢',

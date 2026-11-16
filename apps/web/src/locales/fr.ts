@@ -232,6 +232,7 @@ const fr: TuDien = {
   'kq.choiLai': 'Rejouer',
   'kq.choiLaiCap': 'Rejouer le niveau',
   'kq.hoa': 'Égalité ! 🤝',
+  'kq.tySo': 'Score',
   'kq.thang': '{ten} gagne ! 🏆',
   'kq.banThang': 'Tu as gagné ! 🏆',
   'kq.banThua': 'Tu as perdu 😢',

@@ -226,6 +226,7 @@ const ja: TuDien = {
   'kq.choiLai': 'もう一度プレイ',
   'kq.choiLaiCap': 'もう一度挑戦',
   'kq.hoa': '引き分け！🤝',
+  'kq.tySo': '対戦成績',
   'kq.thang': '{ten}の勝ち！🏆',
   'kq.banThang': 'あなたの勝ち！🏆',
   'kq.banThua': 'あなたの負け 😢',

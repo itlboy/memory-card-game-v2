@@ -240,6 +240,7 @@ const ru: TuDien = {
   'kq.choiLai': 'Ещё раз',
   'kq.choiLaiCap': 'Переиграть уровень',
   'kq.hoa': 'Ничья! 🤝',
+  'kq.tySo': 'Счёт',
   'kq.thang': '{ten} побеждает! 🏆',
   'kq.banThang': 'Победа! 🏆',
   'kq.banThua': 'Поражение 😢',

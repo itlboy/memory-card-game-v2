@@ -227,6 +227,7 @@ const es: TuDien = {
   'kq.choiLai': 'Jugar de nuevo',
   'kq.choiLaiCap': 'Repetir nivel',
   'kq.hoa': '¡Empate! 🤝',
+  'kq.tySo': 'Marcador',
   'kq.thang': '¡{ten} gana! 🏆',
   'kq.banThang': '¡Ganaste! 🏆',
   'kq.banThua': 'Perdiste 😢',

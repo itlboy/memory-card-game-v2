@@ -229,6 +229,7 @@ const tr: TuDien = {
   'kq.choiLai': 'Tekrar oyna',
   'kq.choiLaiCap': 'Seviyeyi tekrarla',
   'kq.hoa': "Berabere! 🤝",
+  'kq.tySo': 'Skor',
   'kq.thang': '{ten} kazandı! 🏆',
   'kq.banThang': 'Kazandın! 🏆',
   'kq.banThua': 'Kaybettin 😢',
