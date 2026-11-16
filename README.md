@@ -710,6 +710,8 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**16.11.2026 — 1.8.5: bản OTA thử** — chỉ nâng số bản để chủ dự án xem màn "Đang cập nhật" của 1.8.4.
+
 **16.11.2026 — 1.8.4: cập nhật bắt buộc ở trang chủ**
 - Có gói OTA mới mà đang ở trang chủ: màn phủ "Đang cập nhật" + % (không dùng được gì khác), xong là
   tự khởi động lại; bỏ đếm 3·2·1. Đang chơi thì không chen ngang. Tải lỗi/đứng 20 giây → gỡ phủ,
