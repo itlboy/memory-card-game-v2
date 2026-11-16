@@ -710,6 +710,12 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**16.11.2026 — 1.8.7: nút "Kiểm tra cập nhật", báo cả máy cần cập nhật**
+- Menu (chỉ app): "Kiểm tra cập nhật" kèm số bản; bấm thì hỏi server ngay — "Mới nhất" / "Mất mạng",
+  có bản mới thì phủ "Đang cập nhật" + tự khởi động lại ở MỌI màn (`kiemTraThuCong`, lib/ota.ts).
+- Phòng chơi đội có người dùng app cũ: chủ phòng thấy "Linh cần cập nhật app" (dịch theo ngôn ngữ),
+  và CHÍNH máy cũ cũng được báo (`can-cap-nhat`, trước chỉ chủ phòng thấy); app mới kèm nút Cập nhật.
+
 **16.11.2026 — 1.8.6: bản OTA thử lần 2** — chỉ nâng số bản.
 
 **16.11.2026 — 1.8.5: bản OTA thử** — chỉ nâng số bản để chủ dự án xem màn "Đang cập nhật" của 1.8.4.

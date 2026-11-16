@@ -599,7 +599,7 @@ export type ServerMsg =
 
   /** `code` để client DỊCH (message là tiếng Việt, chỉ để dự phòng cho client cũ). */
   | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' }
-  | { t: 'error'; code: string; message: string }
+  | { t: 'error'; code: string; message: string; /** tên người liên quan (vd. `doi-client-cu`) — client tự dịch câu */ ten?: string[] }
   | { t: 'pong' };
 
 /**

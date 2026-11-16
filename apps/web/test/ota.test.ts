@@ -388,6 +388,44 @@ describe('cập nhật nóng', () => {
     });
   });
 
+  /* NÚT "KIỂM TRA CẬP NHẬT" (mockup duyệt 16.11.2026): người dùng tự bấm → áp ở MỌI màn. */
+  describe('kiểm tra cập nhật thủ công', () => {
+    beforeEach(async () => { (await import('@/lib/ota')).huyApKhiRanh(true); goi.download.mockResolvedValue({ id: 'b1', version: 'moi', status: 'success' }); });
+
+    it('đã mới nhất → "moiNhat", không tải', async () => {
+      manifest = { ...MOI, id: __OTA_ID__ };
+      const { kiemTraThuCong } = await import('@/lib/ota');
+      expect(await kiemTraThuCong()).toBe('moiNhat');
+      expect(goi.download).not.toHaveBeenCalled();
+    });
+
+    it('server không trả lời → "matMang"', async () => {
+      manifest = null;
+      const { kiemTraThuCong } = await import('@/lib/ota');
+      expect(await kiemTraThuCong()).toBe('matMang');
+    });
+
+    it('có bản mới GIỮA VÁN: vẫn phủ và khởi động lại (người dùng tự bấm)', async () => {
+      manifest = MOI;
+      history.replaceState(null, '', '/?playing=1');
+      document.getElementById('man-chu')?.remove();
+      const { kiemTraThuCong } = await import('@/lib/ota');
+      expect(await kiemTraThuCong()).toBe('coBan');
+      await vi.waitFor(() => expect(goi.set).toHaveBeenCalledWith({ id: 'b1' }));
+      history.replaceState(null, '', '/');
+    });
+  });
+
+  it('menu có dòng "Kiểm tra cập nhật" (chỉ app) gọi kiemTraThuCong; lỗi "cần cập nhật" có nút tại chỗ', () => {
+    const tb = readFileSync(resolve(process.cwd(), 'src/components/TopBar.vue'), 'utf8');
+    expect(tb).toMatch(/v-if="laApp"[^>]*@click="kiemCapNhat"/);
+    expect(tb).toMatch(/kiemTraThuCong\(\)/);
+    const os = readFileSync(resolve(process.cwd(), 'src/components/OnlineScreen.vue'), 'utf8');
+    expect(os).toMatch(/v-if="o\.canCapNhat\.value"[^>]*@click="capNhatNgay"/);
+    const room = readFileSync(resolve(process.cwd(), '../server/src/room.ts'), 'utf8');
+    expect(room, 'máy cũ cũng phải được báo, không chỉ chủ phòng').toMatch(/code: 'can-cap-nhat'/);
+  });
+
   it('trang chủ nhận bằng MÀN HÌNH: panel trang chủ của MenuScreen phải có, và manTrangChu đọc đúng nó', async () => {
     const { manTrangChu } = await import('@/lib/ota');
     document.getElementById('man-chu')?.remove();

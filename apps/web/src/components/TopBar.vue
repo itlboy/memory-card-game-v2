@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ChevronRight, Crown, HelpCircle, Languages, Menu, Music, Palette, Smartphone, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { ChevronRight, Crown, HelpCircle, Languages, Menu, Music, Palette, RefreshCw, Smartphone, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { laApp } from '@/lib/native';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
 import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
@@ -109,7 +110,23 @@ const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
 /** Menu đang hiện bảng chọn ngôn ngữ thay cho danh sách cài đặt; đóng menu là về danh sách. */
 const chonNN = ref(false);
-watch(open, (v) => { if (!v) chonNN.value = false; });
+watch(open, (v) => { if (!v) chonNN.value = false; else if (kiemCN.value !== 'dang') kiemCN.value = ''; });
+
+/*
+ * KIỂM TRA CẬP NHẬT (mockup duyệt 16.11.2026): chỉ app (web luôn là bản mới khi tải lại). Menu ở
+ * lại trong lúc kiểm, kết quả ghi ngay bên phải dòng; có bản mới thì đóng menu, lib/ota phủ
+ * "Đang cập nhật" và khởi động lại — ở bất kỳ màn nào, vì người dùng tự bấm.
+ */
+const banHien = __APP_VERSION__;
+const kiemCN = ref<'' | 'dang' | 'moiNhat' | 'matMang' | 'cuQua'>('');
+async function kiemCapNhat(): Promise<void> {
+  if (kiemCN.value === 'dang') return;
+  kiemCN.value = 'dang';
+  const { kiemTraThuCong } = await import('@/lib/ota');
+  const kq = await kiemTraThuCong();
+  if (kq === 'coBan') { kiemCN.value = ''; dong(); return; }
+  kiemCN.value = kq === 'web' ? 'moiNhat' : kq;
+}
 const tenNN = computed(() => NGON_NGU.find((l) => l.id === ngonNgu.value)?.ten ?? '');
 /* Hộp mọc NGAY DƯỚI nút Ngôn ngữ, mép phải thẳng nút (chủ dự án: "đúng vị trí bấm, không xa quá");
    không đủ chỗ phía dưới thì đẩy lên cho lọt cột game. Toạ độ tính theo #app (nơi teleport tới). */
@@ -313,6 +330,16 @@ watch(() => props.totalScore, (to, from) => {
         </button>
         <button class="item thach" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
           <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>
+        </button>
+        <button v-if="laApp" class="item thach kiem-cn" role="menuitem" type="button" :aria-busy="kiemCN === 'dang'" @click="kiemCapNhat">
+          <RefreshCw :size="20" /><span>{{ t('tb.kiemCapNhat') }}</span>
+          <small class="kq-cn" :class="kiemCN" role="status">
+            <span v-if="kiemCN === 'dang'" class="cham" :aria-label="t('tb.dangKiem')"><i /><i /><i /></span>
+            <template v-else-if="kiemCN === 'moiNhat'">{{ t('tb.moiNhat') }}</template>
+            <template v-else-if="kiemCN === 'matMang'">{{ t('tb.matMang') }}</template>
+            <template v-else-if="kiemCN === 'cuQua'">{{ t('tb.canBanStore') }}</template>
+            <template v-else>{{ banHien }}</template>
+          </small>
         </button>
       </div>
     </div>
@@ -530,6 +557,13 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 /* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
    trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
 .item.thach { border-radius: 14px; margin: 2px 0 6px; }
+.kiem-cn .kq-cn { margin-left: auto; font-size: 12px; font-weight: 700; opacity: .7; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kiem-cn .kq-cn.moiNhat { color: #15803d; opacity: 1; }
+.kiem-cn .cham { display: inline-flex; gap: 3px; }
+.kiem-cn .cham i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: cham-nhay 1s ease-in-out infinite; }
+.kiem-cn .cham i:nth-child(2) { animation-delay: .15s; } .kiem-cn .cham i:nth-child(3) { animation-delay: .3s; }
+@keyframes cham-nhay { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .kiem-cn .cham i { animation: none; } }
 .tk-chu { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .tk-chu small { font-weight: 600; font-size: 12px; color: var(--muted); }
 .nhom { margin: 6px 12px 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
