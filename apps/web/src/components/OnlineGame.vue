@@ -18,6 +18,7 @@ import KetCucFx from './KetCucFx.vue';
 import TeamStrip from './TeamStrip.vue';
 import { rung } from '@/lib/rung';
 import { tenNguoi } from '@/lib/ten';
+import { tySoLoat } from '@/lib/ty-so-loat';
 import HudBar from './HudBar.vue';
 import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
@@ -258,6 +259,8 @@ const moBang = ref(false);
 watch(() => o.view.value?.players.length, () => { moBang.value = false; });
 
 /** CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md): view có `nguoiLat` ⇔ ván đội. Ván thường: false, mọi nhánh dưới không chạy. */
+/** Tỷ số cả loạt theo tên (lib/ty-so-loat.ts) — luôn hiện, kể cả ván đầu. */
+const tySo = computed(() => tySoLoat(o.view.value?.players ?? [], o.seriesWins.value));
 const laDoi = computed(() => o.view.value?.nguoiLat !== undefined);
 /** Tên từng người trong phòng theo mã — màn kết quả ván đội ghi số cặp mỗi người tự ghép. */
 const tenThanhVien = computed(() => Object.fromEntries((o.room.value?.players ?? []).map((p) => [p.id, tenNguoi(p)])));
@@ -440,7 +443,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       <div v-if="!gonStrip" class="strip" :class="{ dong: soNguoi >= 3 }">
         <div
           v-for="p in o.view.value?.players" :key="p.id"
-          class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited, 'co-loat': (o.seriesWins.value[p.name] ?? 0) > 0 }"
+          class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited, 'co-loat': !!tySo }"
           :data-chip-for="p.id"
         >
           <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
@@ -490,9 +493,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
               :key="o.timeBonusFor.value.key" class="plus10"
             >+5s</span>
           </Transition>
-          <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: o.seriesWins.value[p.name] ?? 0 })">
-            <span class="huy">🏅</span>{{ o.seriesWins.value[p.name] }}
-          </span>
+          <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }" :title="t('ps.daThang', { n: tySo[p.name]?.n ?? 0 })">{{ tySo[p.name]?.n ?? 0 }}</span>
           <span class="pts" :class="{ dai: p.score >= 1000 }" :title="num(p.score)">{{ numGon(p.score) }}</span>
         </div>
       </div>
@@ -562,7 +563,7 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
               <template v-if="p.lives <= 0">💔</template>
               <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
             </small>
-            <span v-if="(o.seriesWins.value[p.name] ?? 0) > 0" class="wins">🏅{{ o.seriesWins.value[p.name] }}</span>
+            <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }">{{ tySo[p.name]?.n ?? 0 }}</span>
             <span class="pts">{{ p.score }}</span>
           </li>
         </ul>
@@ -940,9 +941,8 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
   min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
   background: rgba(30, 22, 48, .85); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, .3);
 }
-.strip.dong .pchip .wins .huy { display: none; }
 
-.pchip:not(.active) .wins { padding: 1px 5px 1px 2px; font-size: 11px; }
+.pchip:not(.active) .wins { padding: 1px 5px; font-size: 11px; min-width: 20px; }
 .netbad {
   flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
   padding: 1px 5px; border-radius: var(--r-full);
@@ -995,16 +995,16 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
 .pchip .lives :deep(.opt-ico) { border-radius: 4px; }
 /* Số ván thắng trong loạt — thấy ai đang dẫn ngay trong ván */
 .pchip .wins {
-  /* VIÊN VÀNG ĐẶC, CHỮ NÂU ĐẬM (15.11.2026, chủ dự án: "tỷ số huy chương khó nhìn"): nền vàng 30%
-     trong suốt chìm vào chip, nhất là chip VÀNG của người đang đi. Nền KHÔNG được vàng (🏅 đã vàng,
-     vàng trên vàng là chìm, chủ dự án chê) — viên tối trung tính, chữ trắng: nổi trên mọi chip. */
-  flex-shrink: 0; display: inline-flex; align-items: center; gap: 1px;
-  font-size: 11.5px; font-weight: 900; line-height: 1.25;
-  padding: 1px 6px 1px 3px; border-radius: var(--r-full);
+  /* TỶ SỐ CẢ LOẠT (mockup duyệt 16.11.2026): chỉ con số, không 🏅 (huy chương vàng trên nền
+     vàng là chìm). Viên tối chữ trắng cho mọi người — kể cả 0; người DẪN xanh lá (`.dan`,
+     lib/ty-so-loat.ts). KHÔNG tô đỏ người thua: đỏ hút mắt và trùng nghĩa mạng yếu. */
+  flex-shrink: 0; min-width: 22px; box-sizing: border-box; text-align: center;
+  font-size: 12px; font-weight: 900; line-height: 1.35;
+  padding: 1px 7px; border-radius: var(--r-full);
   background: rgba(30, 22, 48, .78); color: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.pchip .wins .huy { font-size: .95em; }
+.wins.dan, .strip.dong .wins.dan { background: #16a34a; }
 /*
  * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI.
  *

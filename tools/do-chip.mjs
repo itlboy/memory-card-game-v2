@@ -49,7 +49,8 @@ for (const [w, h, may] of KHO) for (const so of [2, 3, 4]) {
     await p.evaluate(() => document.querySelectorAll('.pchip').forEach((c) => {
       const pts = c.querySelector('.pts'); let wn = c.querySelector('.wins');
       if (!wn) { wn = document.createElement('span'); for (const a of pts.attributes) if (a.name.startsWith('data-v')) wn.setAttribute(a.name, ''); wn.className = 'wins'; pts.before(wn); }
-      wn.innerHTML = '<span class="huy">🏅</span>12'; for (const a of pts.attributes) if (a.name.startsWith('data-v')) wn.firstChild.setAttribute(a.name, ''); c.classList.add('co-loat');
+      // Từ 16.11.2026 chỉ con số (không 🏅); chip đầu là người DẪN (xanh)
+      wn.textContent = '12'; wn.classList.toggle('dan', c === c.parentElement.firstElementChild); c.classList.add('co-loat');
     }));
     await p.waitForTimeout(300);
     const kq = await p.evaluate((w) => {

@@ -710,6 +710,11 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**16.11.2026 — 1.8.3: tỷ số loạt luôn hiện, thoát ván về màn tạo phòng**
+- Tỷ số cả loạt hiện cho MỌI người từ ván đầu (0–0), chỉ con số (bỏ 🏅); người đang dẫn viên xanh lá,
+  còn lại viên tối, hoà loạt không ai xanh (`lib/ty-so-loat.ts`, mockup duyệt 16.11.2026).
+- Thoát ván online (✕, "Thoát phòng" ở màn kết quả) về màn tạo/vào phòng; logo vẫn về trang chủ.
+
 **15.11.2026 — 1.8.2: tên/mặt bot ở câu báo, mặt thú ngẫu nhiên, tỷ số loạt dễ nhìn**
 - Đếm ngược online in thẳng mặt bot (":rong-vang:") và tên bot không dịch; ván đội báo tên cả đội
   thay vì người lật đầu. Mọi câu báo tên (đếm ngược, emoji, câu nói nhanh, mất/hồi mạng, đóng băng,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { tenNguoi } from '@/lib/ten';
+import { tySoLoat } from '@/lib/ty-so-loat';
 import { num, numGon } from '@/lib/format';
 import { t } from '@/lib/i18n';
 import type { Player } from '@mm/engine';
@@ -22,6 +23,8 @@ const props = defineProps<{
 
 // Đủ 10 con — bàn local nay tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
+/** Tỷ số cả loạt (lib/ty-so-loat.ts) — luôn hiện từ 2 người, kể cả ván đầu. */
+const tySo = computed(() => tySoLoat(props.players, props.seriesWins));
 const avatarOf = (p: Player, i: number): string => p.avatar ?? AVATARS[i % AVATARS.length]!;
 
 /**
@@ -70,7 +73,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         v-for="(p, i) in players"
         :key="p.id"
         class="player panel"
-        :class="{ active: p.id === currentId, frozen: p.frozenTurns > 0, 'co-loat': (seriesWins?.[p.name] ?? 0) > 0 }"
+        :class="{ active: p.id === currentId, frozen: p.frozenTurns > 0, 'co-loat': !!tySo }"
         :aria-current="p.id === currentId ? 'true' : undefined"
       >
         <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
@@ -92,9 +95,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <Transition name="plus">
           <span v-if="bonusFor && bonusFor.playerId === p.id" :key="bonusFor.key" class="plus10">+10s</span>
         </Transition>
-        <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins" :title="t('ps.daThang', { n: seriesWins?.[p.name] ?? 0 })">
-          <span class="huy">🏅</span>{{ seriesWins?.[p.name] }}
-        </span>
+        <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }" :title="t('ps.daThang', { n: tySo[p.name]?.n ?? 0 })">{{ tySo[p.name]?.n ?? 0 }}</span>
         <span class="pts" :class="{ dai: p.score >= 1000 }" :data-pts-for="p.id" :title="num(p.score)">{{ numGon(p.score) }}</span>
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
              tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
@@ -167,7 +168,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
             <template v-if="p.lives <= 0">💔</template>
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
-          <span v-if="(seriesWins?.[p.name] ?? 0) > 0" class="wins">🏅{{ seriesWins?.[p.name] }}</span>
+          <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }">{{ tySo[p.name]?.n ?? 0 }}</span>
           <span v-if="p.frozenTurns > 0" class="tag" :title="t('ps.dongBang')"><OptionIcon name="freeze" :size="13" /></span>
           <span v-else-if="p.doubleNext" class="tag" :title="t('ps.nhanDoi')"><OptionIcon name="x2" :size="13" /></span>
           <span class="pts">{{ p.score }}</span>
@@ -239,23 +240,23 @@ watch(() => props.players.length, () => { moBang.value = false; });
 .player.active .name { font-size: 12px; }
 /* Số ván đã thắng trong loạt — biết ai đang dẫn mà không phải mở bảng kết quả */
 .wins {
-  /* VIÊN VÀNG ĐẶC, CHỮ NÂU ĐẬM (15.11.2026, chủ dự án: "tỷ số huy chương khó nhìn"): nền vàng 30%
-     trong suốt chìm vào chip, nhất là chip VÀNG của người đang đi. Nền KHÔNG được vàng (🏅 đã vàng,
-     vàng trên vàng là chìm, chủ dự án chê) — viên tối trung tính, chữ trắng: nổi trên mọi chip. */
-  flex-shrink: 0; display: inline-flex; align-items: center; gap: 1px;
-  font-size: 11.5px; font-weight: 900; line-height: 1.25;
-  padding: 1px 6px 1px 3px; border-radius: var(--r-full);
+  /* TỶ SỐ CẢ LOẠT (mockup duyệt 16.11.2026): chỉ con số, không 🏅 (huy chương vàng trên nền
+     vàng là chìm). Viên tối chữ trắng cho mọi người — kể cả 0; người DẪN xanh lá (`.dan`,
+     lib/ty-so-loat.ts). KHÔNG tô đỏ người thua: đỏ hút mắt và trùng nghĩa mạng yếu. */
+  flex-shrink: 0; min-width: 22px; box-sizing: border-box; text-align: center;
+  font-size: 12px; font-weight: 900; line-height: 1.35;
+  padding: 1px 7px; border-radius: var(--r-full);
   background: rgba(30, 22, 48, .78); color: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-.wins .huy { font-size: .95em; }
+.wins.dan, .strip.dong .wins.dan { background: #16a34a; }
 /* CHIP CHỜ CÓ 🏅: bỏ tên, giữ avatar + 🏅 + điểm — xem chú thích đầy đủ ở OnlineGame.vue
    (lỗi điểm bị cắt ở chip phải, bàn 2 người, iPhone 15 Pro Max, 07.11.2026). */
 @container (max-width: 150px) {
   .player.co-loat:not(.active) .name { display: none; }
   .player.co-loat:not(.active) { justify-content: space-between; }
 }
-.player:not(.active) .wins { padding: 1px 5px 1px 2px; font-size: 11px; }
+.player:not(.active) .wins { padding: 1px 5px; font-size: 11px; min-width: 20px; }
 /*
  * BÀN ≥3 NGƯỜI: 🏅 THÀNH HUY HIỆU SỐ Ở GÓC AVATAR (absolute, tốn 0px bề ngang).
  * Chip chờ ở đây chỉ rộng 70px = avatar + điểm; viên 🏅 chen vào là đẩy điểm ra khỏi chip
@@ -266,7 +267,6 @@ watch(() => props.players.length, () => { moBang.value = false; });
   min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
   background: rgba(30, 22, 48, .85); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, .3);
 }
-.strip.dong .player .wins .huy { display: none; }
 
 /*
  * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI — xem chú thích đầy đủ ở OnlineGame.vue.
