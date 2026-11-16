@@ -508,6 +508,9 @@ export function useOnlineRoom() {
    *  tự đếm — không thì đồng hồ nhảy giật theo nhịp tin nhắn. */
   const peekDeadline = ref(0);
   /** Đếm ngược trước ván (ROOM_LIMITS.countdownMs) + người đi đầu. */
+  /** Lỗi hiện tại là "bạn cần cập nhật app" → kèm nút Cập nhật (16.11.2026). Tự tắt khi lỗi được xoá. */
+  const canCapNhat = ref(false);
+  watch(error, (e) => { if (!e) canCapNhat.value = false; });
   const countdown = ref<{ endsAt: number; firstId: string; firstName: string } | null>(null);
   /**
    * TÊN ĐỂ HIỆN của một người/đội theo mã — MỌI câu báo (đếm ngược, đến lượt, mất/hồi mạng…)
@@ -645,8 +648,12 @@ export function useOnlineRoom() {
    * in thẳng ra là người chơi tiếng Anh đọc "Chưa sẵn sàng: …". Mã lạ (server mới
    * hơn client) thì đành dùng `message`.
    */
-  function loiServer(ma: string, message: string): string {
+  function loiServer(ma: string, message: string, ten?: string[]): string {
     switch (ma) {
+      // Chủ phòng: ai đó dùng app cũ không hiểu đội theo số (server gửi kèm tên)
+      case 'doi-client-cu': return ten?.length ? t('or.loi.canCapNhatTen', { ten: ten.join(', ') }) : message;
+      // CHÍNH mình dùng bản cũ — OnlineScreen hiện kèm nút Cập nhật (`canCapNhat`)
+      case 'can-cap-nhat': return t('or.loi.canCapNhat');
       case 'not-host': return t('or.loi.notHost');
       case 'not-lobby': return t('or.loi.notLobby');
       case 'not-enough': return t('or.loi.notEnough');
@@ -1146,7 +1153,8 @@ export function useOnlineRoom() {
         break;
 
       case 'error':
-        error.value = loiServer(msg.code, msg.message);
+        error.value = loiServer(msg.code, msg.message, msg.ten);
+        canCapNhat.value = msg.code === 'can-cap-nhat';
         loiTam = true;
         break;
 
@@ -1699,6 +1707,7 @@ export function useOnlineRoom() {
      *  tiếp là mất lớp kiểm tra "ô này có được phép ngửa chưa". */
     symbolNeuDuocPhep,
     countdown, countdownLeft, backStyle,
+    canCapNhat,
     createRoom, join, leave, thoatPhong, guiRoiCho, retry, resumeStored, coPhienLuu,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */

@@ -299,6 +299,13 @@ function xacNhan(): void {
   viec?.();
 }
 
+/** Nút "Cập nhật" ngay tại lỗi "bạn cần cập nhật app" — y như nút trong menu (lib/ota). */
+async function capNhatNgay(): Promise<void> {
+  const { kiemTraThuCong } = await import('@/lib/ota');
+  const kq = await kiemTraThuCong();
+  if (kq === 'matMang') o.error.value = t('chung.chuaCapNhat');
+}
+
 function exit(): void {
   o.thoatPhong();   // còn phiên ở phòng sống → báo rời (hoặc ghi để báo bù), không xoá phiên trơn
   ghiUrl(location.pathname);
@@ -876,6 +883,7 @@ function openCfgWizard(): void {
     </div>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
+    <button v-if="o.canCapNhat.value" class="nut-cap-nhat thach th-tim" type="button" @click="capNhatNgay">{{ t('chung.capNhat') }}</button>
   </section>
 
   <!-- VÀO ONLINE: bước 1 chọn việc, bước 2 điền form -->
@@ -1011,6 +1019,7 @@ function openCfgWizard(): void {
     </template>
 
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
+    <button v-if="o.canCapNhat.value" class="nut-cap-nhat thach th-tim" type="button" @click="capNhatNgay">{{ t('chung.capNhat') }}</button>
     <!-- Mất kết nối mà phòng vẫn còn (token còn trong localStorage): cho bấm
          thử lại tại chỗ, đừng bắt người ta gõ lại mã phòng. -->
     <button v-if="o.phase.value === 'error' && o.coThuLai.value" class="btn primary" type="button" @click="o.retry()">
@@ -1213,6 +1222,7 @@ function openCfgWizard(): void {
       <EmojiBar :o="o" />
     </div>
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
+    <button v-if="o.canCapNhat.value" class="nut-cap-nhat thach th-tim" type="button" @click="capNhatNgay">{{ t('chung.capNhat') }}</button>
   </section>
 
   <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
@@ -1807,4 +1817,5 @@ input:focus { outline: none; border-color: var(--accent); }
   .opt-name { font-size: var(--text-sm); }
   .seg-btn { height: 26px; min-height: 26px; }   /* vùng chạm vẫn 42px nhờ ::after */
 }
+.nut-cap-nhat { display: block; margin: 8px auto 0; min-height: 44px; padding: 0 22px; font-weight: 800; }
 </style>

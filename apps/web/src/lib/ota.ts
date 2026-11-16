@@ -82,11 +82,13 @@ let lucNhich = 0;
 export function apDuoc(o: { search: string; manChu: boolean; hien: boolean; coHop: boolean }): boolean {
   return oTrangChu(o.search) && o.manChu && o.hien && !o.coHop;
 }
-const hienTrangChu = (): boolean => typeof document !== 'undefined' && dangOTrangChu() && document.visibilityState === 'visible';
-const apDuocBayGio = (): boolean => typeof document !== 'undefined' && apDuoc({
+/** Người dùng TỰ BẤM "Kiểm tra cập nhật" (menu / nút tại chỗ): phủ và áp ở MỌI màn — họ đã chọn. */
+let epBuoc = false;
+const hienTrangChu = (): boolean => typeof document !== 'undefined' && document.visibilityState === 'visible' && (epBuoc || dangOTrangChu());
+const apDuocBayGio = (): boolean => typeof document !== 'undefined' && (epBuoc ? document.visibilityState === 'visible' : apDuoc({
   search: location.search, manChu: manTrangChu(), hien: document.visibilityState === 'visible',
   coHop: !!document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]')
-});
+}));
 
 /** Màn phủ "Đang cập nhật" + thanh % (một phần tử, cập nhật tại chỗ). */
 function hienManPhu(pct: number): void {
@@ -160,7 +162,30 @@ function canhCapNhat(): void {
 export function huyApKhiRanh(datLai = false): void {
   clearInterval(henCanh);
   henCanh = undefined;
-  if (datLai) { daAp = false; boChan = false; pctCu = -1; goiCho = null; anManPhu(); }
+  if (datLai) { daAp = false; boChan = false; epBuoc = false; pctCu = -1; goiCho = null; anManPhu(); }
+}
+
+/**
+ * NÚT "KIỂM TRA CẬP NHẬT" (menu, và nút tại chỗ ở lỗi "cần cập nhật" — mockup duyệt 16.11.2026,
+ * https://claude.ai/artifact/SwoLymx3xiXGjMZMfveNQj). Hỏi server NGAY; có bản mới thì phủ
+ * "Đang cập nhật" và khởi động lại ở BẤT KỲ màn nào (người dùng tự bấm). Trả kết luận cho menu.
+ */
+export type KetQuaKiem = 'moiNhat' | 'matMang' | 'cuQua' | 'coBan' | 'web';
+export async function kiemTraThuCong(): Promise<KetQuaKiem> {
+  if (!laApp) return 'web';
+  epBuoc = true;
+  boChan = false;
+  if (goiCho && !daAp) { void apGoi(goiCho); return 'coBan'; }       // đã tải sẵn: áp luôn
+  if (!dangKiem) { soLanThuLai = 0; void kiemOta(); }
+  for (let i = 0; i < 200; i++) {                                    // tối đa ~20 giây chờ kết luận
+    await new Promise((r) => setTimeout(r, 100));
+    const b = trangThaiOta.value.buoc;
+    if (b === 'tai' || b === 'choMoLai') return 'coBan';
+    if (!dangKiem) break;
+  }
+  epBuoc = false;
+  const b = trangThaiOta.value.buoc;
+  return b === 'moiNhat' ? 'moiNhat' : b === 'cuQua' ? 'cuQua' : 'matMang';
 }
 
 export function soSanhBan(a: string, b: string): number {

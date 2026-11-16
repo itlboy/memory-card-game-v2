@@ -772,7 +772,15 @@ export class RoomDO extends DurableObject<Env> {
         if (this.coDoiGhep(this.room.players)) {
           const cu = this.room.players.filter((p) => !p.may && this.connected(p.id) && !this.hieuDoi(p.id));
           if (cu.length) {
-            this.send(ws, { t: 'error', code: 'doi-client-cu', message: `Cần cập nhật app: ${cu.map((p) => p.name).join(', ')}` });
+            this.send(ws, { t: 'error', code: 'doi-client-cu', message: `Cần cập nhật app: ${cu.map((p) => p.name).join(', ')}`, ten: cu.map((p) => p.name) });
+            /*
+             * BÁO CẢ MÁY CŨ (16.11.2026, chủ dự án: "có khi Linh bị báo lỗi") — trước chỉ chủ phòng thấy,
+             * người cần cập nhật không hay biết gì. App cũ in thẳng `message`; app mới (code
+             * `can-cap-nhat`) hiện kèm nút Cập nhật.
+             */
+            for (const p of cu) for (const w of this.ctx.getWebSockets(p.id)) {
+              this.send(w, { t: 'error', code: 'can-cap-nhat', message: 'Bạn cần cập nhật app để chơi đội. Về trang chủ, app sẽ tự cập nhật.' });
+            }
             return;
           }
         }

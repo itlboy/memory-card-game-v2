@@ -105,8 +105,11 @@ async function choiHet(ds, han = 240_000) {
   gui(cu, { t: 'ready', ready: true }); await sleep(300);
   gui(an, { t: 'start' }); await sleep(500);
   if (!an.msgs.some((m) => m.t === 'error' && m.code === 'doi-client-cu' && /Cu/.test(m.message))) chet('app cũ trong phòng có đội ghép mà không bị chặn');
+  if (!an.msgs.some((m) => m.code === 'doi-client-cu' && Array.isArray(m.ten) && m.ten.includes('Cu'))) chet('lỗi doi-client-cu thiếu danh sách tên (client dịch câu)');
+  // 16.11.2026: chính máy cũ cũng phải được báo (trước chỉ chủ phòng thấy)
+  if (!cu.msgs.some((m) => m.t === 'error' && m.code === 'can-cap-nhat')) chet('máy dùng app cũ không được báo cần cập nhật');
   gui(cu, { t: 'leave' }); await sleep(400);
-  console.log('✓ có người chung đội + app cũ trong phòng → không mở ván, nhắc cập nhật');
+  console.log('✓ có người chung đội + app cũ trong phòng → không mở ván, nhắc cả chủ phòng lẫn máy cũ');
 
   gui(an, { t: 'start' }); await sleep(6200);
   let v = view(an);
