@@ -30,14 +30,15 @@ beforeEach(() => {
 const MOI = { id: 'moi', url: '/ota/moi.zip', sha256: 'abc', minNative: '1.3.0' };
 
 describe('cập nhật nóng', () => {
-  it('mở app ở TRANG CHỦ, tải kịp: báo "đang cập nhật" rồi áp NGAY', async () => {
+  it('mở app ở TRANG CHỦ: tải xong là khởi động lại NGAY (không đếm 3·2·1), vẫn đặt dự phòng kill', async () => {
     manifest = MOI;
     history.replaceState(null, '', '/');
     const { kiemOta } = await import('@/lib/ota');
     await kiemOta();
     expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
-    expect(goi.next).not.toHaveBeenCalled();
-    expect(document.querySelector('.bao-cap-nhat')?.textContent).toBeTruthy();
+    expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
+    expect(document.querySelector('.man-cap-nhat .mcn-pct')?.textContent).toBe('100%');
+    expect(document.querySelector('.bcn-so'), 'không còn đếm 3·2·1').toBeNull();
   });
 
   it('đang trong ván / wizard: KHÔNG áp ngay, hẹn lần mở sau', async () => {
@@ -257,7 +258,7 @@ describe('cập nhật nóng', () => {
     co512.value = true;
   });
 
-  it('chờ mở lại: VỀ TRANG CHỦ và rảnh thì áp luôn (đếm 3·2·1); trong ván / hộp thoại / vừa chạm thì chờ', async () => {
+  it('đang chơi: KHÔNG chen ngang; về trang chủ là áp NGAY; hộp thoại mở thì chờ; mỗi lần mở app áp MỘT lần', async () => {
     vi.useFakeTimers();
     try {
       const ota = await import('@/lib/ota');
@@ -268,38 +269,123 @@ describe('cập nhật nóng', () => {
       expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
       await vi.advanceTimersByTimeAsync(5000);
       expect(goi.set, 'đang trong ván').not.toHaveBeenCalled();
+      expect(document.querySelector('.man-cap-nhat'), 'không phủ giữa ván').toBeNull();
       // Hết ván ONLINE: URL sạch nhưng màn kết quả còn hiện (không có panel trang chủ) — KHÔNG áp
       document.getElementById('man-chu')!.remove();
-      document.querySelectorAll('.bao-cap-nhat').forEach((e) => e.remove());   // sót từ ca trước
       history.replaceState(null, '', '/');
-      await vi.advanceTimersByTimeAsync(6000);
+      await vi.advanceTimersByTimeAsync(3000);
       expect(goi.set, 'màn kết quả online, URL đã sạch').not.toHaveBeenCalled();
-      expect(document.querySelector('.bao-cap-nhat'), 'không đếm 3·2·1 ở màn kết quả').toBeNull();
       document.body.insertAdjacentHTML('beforeend', '<section id="man-chu" class="panel trang-chu"></section>');
       document.body.insertAdjacentHTML('beforeend', '<div id="hop-thu" role="dialog" aria-modal="true"></div>');
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(3000);
       expect(goi.set, 'hộp thoại đang mở').not.toHaveBeenCalled();
       document.getElementById('hop-thu')!.remove();
-      await vi.advanceTimersByTimeAsync(1500);
-      expect(document.querySelector('.bao-cap-nhat'), 'báo trước khi tải lại').toBeTruthy();
-      await vi.advanceTimersByTimeAsync(4000);
-      expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
-      expect(goi.set).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(600);
+      expect(goi.set, 'về trang chủ là áp ngay, không chờ rảnh/đếm').toHaveBeenCalledWith({ id: 'b1' });
       await vi.advanceTimersByTimeAsync(10_000);
       expect(goi.set, 'mỗi lần mở app áp tối đa MỘT lần').toHaveBeenCalledTimes(1);
-    } finally { vi.useRealTimers(); document.querySelectorAll('.bao-cap-nhat').forEach((e) => e.remove()); }
+    } finally { vi.useRealTimers(); document.querySelectorAll('.man-cap-nhat').forEach((e) => e.remove()); }
   });
 
-  it('rảnh = trang chủ + đang hiện + không hộp thoại + không chạm 2 giây', async () => {
-    const { dangRanh } = await import('@/lib/ota');
-    const ok = { search: '', manChu: true, hien: true, coHop: false, tuLucCham: 5000 };
-    expect(dangRanh(ok)).toBe(true);
+  it('áp được = trang chủ (URL + màn) + đang hiện + không hộp thoại', async () => {
+    const { apDuoc } = await import('@/lib/ota');
+    const ok = { search: '', manChu: true, hien: true, coHop: false };
+    expect(apDuoc(ok)).toBe(true);
     // Hết ván online: URL đã sạch (endSession lau ?room=) nhưng màn kết quả vẫn hiện — KHÔNG áp
-    expect(dangRanh({ ...ok, manChu: false })).toBe(false);
-    expect(dangRanh({ ...ok, search: '?room=123456' })).toBe(false);
-    expect(dangRanh({ ...ok, hien: false })).toBe(false);
-    expect(dangRanh({ ...ok, coHop: true })).toBe(false);
-    expect(dangRanh({ ...ok, tuLucCham: 500 })).toBe(false);
+    expect(apDuoc({ ...ok, manChu: false })).toBe(false);
+    expect(apDuoc({ ...ok, search: '?room=123456' })).toBe(false);
+    expect(apDuoc({ ...ok, hien: false })).toBe(false);
+    expect(apDuoc({ ...ok, coHop: true })).toBe(false);
+  });
+
+  /* CẬP NHẬT BẮT BUỘC (16.11.2026, mockup duyệt): đang tải ở trang chủ → phủ kín + %; lỗi/đứng → gỡ, chơi bình thường. */
+  describe('màn phủ "Đang cập nhật"', () => {
+    let nghe: ((e: { percent: number }) => void) | null = null;
+    let xong: (v: unknown) => void = () => {};
+    let hong: (e: unknown) => void = () => {};
+    beforeEach(async () => {
+      (await import('@/lib/ota')).huyApKhiRanh(true);
+      goi.addListener.mockImplementation(async (_: string, f: (e: { percent: number }) => void) => { nghe = f; return { remove: async () => {} }; });
+      goi.download.mockImplementation(() => new Promise((ok, loi) => { xong = ok; hong = loi; }));
+      manifest = MOI;
+      history.replaceState(null, '', '/');
+      document.querySelectorAll('.man-cap-nhat, .loi-cap-nhat').forEach((e) => e.remove());
+    });
+    const phu = () => document.querySelector('.man-cap-nhat');
+
+    it('ở trang chủ: phủ kín kèm %, chặn chạm; xong là khởi động lại', async () => {
+      vi.useFakeTimers();
+      try {
+        const { kiemOta } = await import('@/lib/ota');
+        const chay = kiemOta();
+        await vi.advanceTimersByTimeAsync(600);
+        expect(phu(), 'đang tải ở trang chủ').toBeTruthy();
+        nghe!({ percent: 42 });
+        await vi.advanceTimersByTimeAsync(600);
+        expect(phu()!.querySelector('.mcn-pct')!.textContent).toBe('42%');
+        const bam = vi.fn();
+        document.body.addEventListener('click', bam);
+        phu()!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(bam, 'không bấm xuyên xuống trang chủ').not.toHaveBeenCalled();
+        document.body.removeEventListener('click', bam);
+        xong({ id: 'b1', version: 'moi', status: 'success' });
+        await chay;
+        expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+      } finally { vi.useRealTimers(); }
+    });
+
+    it('đang chơi thì không phủ; về trang chủ giữa lúc tải thì phủ', async () => {
+      vi.useFakeTimers();
+      try {
+        history.replaceState(null, '', '/?playing=1');
+        const { kiemOta } = await import('@/lib/ota');
+        const chay = kiemOta();
+        await vi.advanceTimersByTimeAsync(1200);
+        expect(phu()).toBeNull();
+        history.replaceState(null, '', '/');
+        await vi.advanceTimersByTimeAsync(600);
+        expect(phu()).toBeTruthy();
+        xong({ id: 'b1', version: 'moi', status: 'success' });
+        await chay;
+      } finally { vi.useRealTimers(); }
+    });
+
+    it('tải LỖI: gỡ phủ, báo "Chưa cập nhật được", không khoá app, không phủ lại lần mở này', async () => {
+      vi.useFakeTimers();
+      try {
+        const { kiemOta } = await import('@/lib/ota');
+        const chay = kiemOta();
+        await vi.advanceTimersByTimeAsync(600);
+        expect(phu()).toBeTruthy();
+        hong(new Error('mất mạng'));
+        await chay;
+        expect(phu()).toBeNull();
+        expect(document.querySelector('.loi-cap-nhat')?.textContent).toBeTruthy();
+        // tự thử lại sau 1 phút: vẫn tải ngầm nhưng KHÔNG phủ nữa
+        await vi.advanceTimersByTimeAsync(61_000);
+        expect(phu()).toBeNull();
+        expect(goi.set).not.toHaveBeenCalled();
+        hong(new Error('vẫn mất mạng'));                   // kết thúc lượt thử lại đang treo
+        await vi.advanceTimersByTimeAsync(0);
+      } finally { vi.useRealTimers(); }
+    });
+
+    it('tải ĐỨNG 20 giây không nhích: gỡ phủ, chơi bình thường; tải xong sau đó thì để lần mở sau', async () => {
+      vi.useFakeTimers();
+      try {
+        const { kiemOta } = await import('@/lib/ota');
+        const chay = kiemOta();
+        await vi.advanceTimersByTimeAsync(600);
+        nghe!({ percent: 10 });
+        await vi.advanceTimersByTimeAsync(21_000);
+        expect(phu()).toBeNull();
+        expect(document.querySelector('.loi-cap-nhat')).toBeTruthy();
+        xong({ id: 'b1', version: 'moi', status: 'success' });
+        await chay;
+        expect(goi.set, 'đã báo chưa cập nhật được thì không tự khởi động lại').not.toHaveBeenCalled();
+        expect(goi.setMultiDelay).toHaveBeenCalledWith({ delayConditions: [{ kind: 'kill' }] });
+      } finally { vi.useRealTimers(); }
+    });
   });
 
   it('trang chủ nhận bằng MÀN HÌNH: panel trang chủ của MenuScreen phải có, và manTrangChu đọc đúng nó', async () => {

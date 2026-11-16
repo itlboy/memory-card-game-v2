@@ -15,12 +15,10 @@ import { t } from './i18n';
  *     Đi đường HTTP NATIVE (CapacitorHttp) vì origin app là capacitor://localhost —
  *     fetch thường thì vướng CORS.
  *  3. Khác gói đang chạy (`__OTA_ID__`) và app đủ mới (`minNative`) → tải zip ngầm,
- *     kiểm sha256, rồi:
- *       · tải xong trong `AP_NGAY_MS` đầu VÀ người chơi còn ở TRANG CHỦ (URL không
- *         mang ?playing/?room/?online/?w) → báo "đang cập nhật" và áp NGAY (`set` tải
- *         lại app) — chủ dự án muốn mở app là có bản mới (14.10.2026);
- *       · không thì đặt làm gói KẾ TIẾP với điều kiện `kill`: áp khi app được MỞ LẠI
- *         TỪ ĐẦU, không áp lúc chuyển nền — không bao giờ cắt ngang ván đang chơi.
+ *     kiểm sha256. Ở TRANG CHỦ thì phủ "Đang cập nhật" + % trong lúc tải và khởi động lại
+ *     NGAY khi xong; đang chơi thì không chen ngang, về trang chủ mới phủ/áp (16.11.2026,
+ *     xem `canhCapNhat`). Tải lỗi → gỡ phủ, chơi bình thường. Luôn đặt kèm gói KẾ TIẾP với
+ *     điều kiện `kill` làm dự phòng.
  * Gói đã từng hỏng (status 'error') thì không tải lại — khỏi vòng lặp tải/hỏng.
  * Đổi phần NATIVE (plugin, Swift/Java) vẫn phải qua store + nâng `minNative` (ota.json).
  */
@@ -44,9 +42,6 @@ export const trangThaiOta = ref<{ buoc: BuocOta; id?: string; pct?: number; loi?
 /** Gói đã tải xong, chờ áp (để nút "Áp dụng ngay" trong debug dùng). */
 let goiCho: string | null = null;
 
-/** Mở app được bao lâu thì thôi không áp ngay nữa (người chơi đã bắt đầu dùng app). */
-const AP_NGAY_MS = 8000;
-const LUC_MO = typeof performance !== 'undefined' ? performance.now() : 0;
 
 /** Còn ở trang chủ, chưa vào wizard / ván / online — tải lại lúc này không mất gì. */
 export function oTrangChu(search = typeof location === 'undefined' ? '' : location.search): boolean {
@@ -63,87 +58,109 @@ export function oTrangChu(search = typeof location === 'undefined' ? '' : locati
 export const manTrangChu = (): boolean => typeof document !== 'undefined' && !!document.querySelector('section.panel.trang-chu');
 const dangOTrangChu = (): boolean => oTrangChu() && manTrangChu();
 
-/** Thẻ giữa màn "Có bản mới · khởi động lại sau ③" — MỘT dòng, đếm 3·2·1 rồi mới
- *  tải lại. Cú tải lại không lời giải thích bị đọc thành app giật ("nháy một cái
- *  quá nhanh"), còn thẻ không đếm thì đọc thành app treo/lỗi (chủ dự án 14.10.2026). */
-const DEM_GIAY = 3;
-async function baoCapNhat(): Promise<void> {
+/*
+ * CẬP NHẬT BẮT BUỘC Ở TRANG CHỦ (16.11.2026, mockup duyệt https://claude.ai/artifact/T6Mw3r4bUeVc1SJf2UVw4Z —
+ * chủ dự án: "có bản mới thì phải update trước khi dùng tính năng khác").
+ *  · Đang tải gói mới mà người chơi ở TRANG CHỦ → màn phủ kín "Đang cập nhật" + thanh %, không bấm
+ *    được gì khác. Không chữ thừa, không icon, không nút.
+ *  · Tải xong + ở trang chủ → khởi động lại NGAY (không đếm 3·2·1 — chủ dự án bỏ).
+ *  · Đang chơi / phòng online / wizard → KHÔNG chen ngang; về trang chủ mới phủ (hoặc áp ngay nếu xong).
+ *  · Tải LỖI hoặc đứng `DUNG_MS` không nhích → gỡ màn phủ, báo nhỏ "Chưa cập nhật được", chơi bình
+ *    thường; cả lần mở app này không phủ nữa (`boChan`), gói nếu tải xong sau đó thì áp ở lần mở sau
+ *    (`next` + `kill`). Người không có mạng KHÔNG BAO GIỜ bị khoá app.
+ * Hộp thoại đang mở (`[role=dialog][aria-modal]`, `[role=menu]`) thì chờ đóng rồi mới tải lại.
+ */
+const NHIP_MS = 500;
+const DUNG_MS = 20_000;
+let henCanh: ReturnType<typeof setInterval> | undefined;
+let daAp = false;
+let boChan = false;
+let pctCu = -1;
+let lucNhich = 0;
+
+/** Áp được ngay lúc này: trang chủ thật + app đang hiện + không hộp thoại/menu. */
+export function apDuoc(o: { search: string; manChu: boolean; hien: boolean; coHop: boolean }): boolean {
+  return oTrangChu(o.search) && o.manChu && o.hien && !o.coHop;
+}
+const hienTrangChu = (): boolean => typeof document !== 'undefined' && dangOTrangChu() && document.visibilityState === 'visible';
+const apDuocBayGio = (): boolean => typeof document !== 'undefined' && apDuoc({
+  search: location.search, manChu: manTrangChu(), hien: document.visibilityState === 'visible',
+  coHop: !!document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]')
+});
+
+/** Màn phủ "Đang cập nhật" + thanh % (một phần tử, cập nhật tại chỗ). */
+function hienManPhu(pct: number): void {
+  if (typeof document === 'undefined') return;
+  let el = document.querySelector<HTMLElement>('.man-cap-nhat');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'man-cap-nhat';
+    el.setAttribute('role', 'status');
+    el.innerHTML = '<div class="mcn-the"><b class="mcn-chu"></b><span class="mcn-thanh"><i></i></span><span class="mcn-pct"></span></div>';
+    el.querySelector('.mcn-chu')!.textContent = t('chung.dangCapNhat');
+    // Chặn chạm xuyên xuống trang chủ (màn phủ là để KHÔNG dùng được gì khác)
+    for (const ev of ['pointerdown', 'click', 'touchstart'] as const) el.addEventListener(ev, (e) => { e.stopPropagation(); e.preventDefault(); }, { passive: false });
+    (document.getElementById('app') ?? document.body).appendChild(el);
+  }
+  const p = Math.max(0, Math.min(100, Math.round(pct)));
+  el.querySelector<HTMLElement>('.mcn-thanh i')!.style.width = `${p}%`;
+  el.querySelector('.mcn-pct')!.textContent = `${p}%`;
+}
+function anManPhu(): void { document.querySelector('.man-cap-nhat')?.remove(); }
+/** Dòng nhỏ "Chưa cập nhật được" — tự tắt. */
+function baoChuaCapNhat(): void {
+  if (typeof document === 'undefined') return;
+  document.querySelector('.loi-cap-nhat')?.remove();
   const el = document.createElement('div');
-  el.className = 'bao-cap-nhat';
+  el.className = 'loi-cap-nhat';
   el.setAttribute('role', 'status');
-  el.innerHTML = '<span class="bcn-the"><span class="bcn-sao" aria-hidden="true">✨</span><span class="bcn-chu"></span><b class="bcn-so"></b></span>';
-  el.querySelector('.bcn-chu')!.textContent = t('chung.dangCapNhat');
-  const so = el.querySelector<HTMLElement>('.bcn-so')!;
-  const app = document.getElementById('app') ?? document.body;
-  /* ĐẶT GIỮA mép dưới quạt lá và mép trên ô Chiến dịch (chủ dự án 17.10.2026: trên iPhone 15 Pro Max
-     thẻ đè lên lá giữa). Đếm chỉ chạy ở trang chủ nên hai mốc này có; thiếu thì về giữa màn như cũ. */
-  // mép dưới LÁ THẬT thấp nhất (khung .quat cao hơn lá nhiều — đo nó là thẻ rơi xuống đè ô Chiến dịch)
-  const day = Math.max(...[...document.querySelectorAll('.la-quat .lac')].map((e) => e.getBoundingClientRect().bottom));
-  const nut = document.querySelector('.o-chien-dich')?.getBoundingClientRect();
-  if (Number.isFinite(day) && nut) {
-    const goc = app.getBoundingClientRect();
-    el.classList.add('co-moc');
-    el.style.setProperty('--bcn-y', `${Math.round((day + nut.top) / 2 - goc.top)}px`);
-  }
-  app.appendChild(el);
-  for (let n = DEM_GIAY; n >= 1; n--) {
-    so.textContent = String(n);
-    so.classList.remove('nay'); void so.offsetWidth; so.classList.add('nay');   // nảy lại mỗi nhịp
-    await new Promise((r) => setTimeout(r, 1000));
-  }
+  el.textContent = t('chung.chuaCapNhat');
+  (document.getElementById('app') ?? document.body).appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+/** Thôi phủ cả lần mở app này: lỗi / tải đứng. Chỉ báo khi người chơi ĐÃ thấy màn phủ. */
+function thoiChan(): void {
+  if (boChan) return;
+  boChan = true;
+  if (document.querySelector('.man-cap-nhat')) { anManPhu(); baoChuaCapNhat(); }
 }
 
-/*
- * ÁP KHI RẢNH Ở TRANG CHỦ (17.10.2026, chủ dự án: "ở trang chủ họ cũng không làm gì cả").
- * Gói đã tải xong mà quá mốc áp ngay (`AP_NGAY_MS`) thì trước đây phải TẮT HẲN app rồi mở lại.
- * Nay canh mỗi `NHIP_RANH_MS`: đang ở trang chủ + app đang hiện + không hộp thoại/menu nào mở
- * + không chạm gì trong `RANH_MS` → đếm 3·2·1 rồi áp. Bắt cả hai lúc: VỀ trang chủ sau ván /
- * phòng online, và QUAY LẠI từ nền khi đang đứng ở trang chủ. Mỗi lần mở app áp tối đa MỘT lần
- * (không bao giờ vòng tải lại). Lối "tắt hẳn rồi mở lại" (`next` + `kill`) vẫn giữ làm dự phòng.
- */
-const RANH_MS = 2000;
-const NHIP_RANH_MS = 1000;
-let lucCham = 0;
-let daApKhiRanh = false;
-let henRanh: ReturnType<typeof setInterval> | undefined;
-let daGanCham = false;
-export function dangRanh(o: { search: string; manChu: boolean; hien: boolean; coHop: boolean; tuLucCham: number }): boolean {
-  return oTrangChu(o.search) && o.manChu && o.hien && !o.coHop && o.tuLucCham >= RANH_MS;
+async function apGoi(id: string): Promise<void> {
+  if (daAp) return;
+  daAp = true;
+  huyApKhiRanh();
+  hienManPhu(100);
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+    await CapacitorUpdater.set({ id });                // tải lại app sang gói mới
+  } catch { anManPhu(); /* vẫn còn lối `next` + `kill`: mở lại app là có */ }
 }
-function canhApKhiRanh(id: string): void {
-  if (henRanh || daApKhiRanh || typeof document === 'undefined') return;
-  if (!daGanCham) {
-    daGanCham = true;
-    document.addEventListener('pointerdown', () => { lucCham = performance.now(); }, { capture: true, passive: true });
-  }
-  const ranh = (): boolean => dangRanh({
-    search: location.search, manChu: manTrangChu(), hien: document.visibilityState === 'visible',
-    coHop: !!document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]'),
-    tuLucCham: performance.now() - lucCham
-  });
-  henRanh = setInterval(() => {
-    if (goiCho !== id) { huyApKhiRanh(); return; }
-    if (!ranh()) return;
-    huyApKhiRanh();
-    daApKhiRanh = true;
-    void (async () => {
-      try {
-        await baoCapNhat();
-        if (!dangOTrangChu()) {                   // chạm đi chỗ khác giữa lúc đếm: thôi, để lần mở sau
-          document.querySelector('.bao-cap-nhat')?.remove();
-          return;
-        }
-        const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
-        await CapacitorUpdater.set({ id });
-      } catch { document.querySelector('.bao-cap-nhat')?.remove(); /* vẫn còn lối mở lại app */ }
-    })();
-  }, NHIP_RANH_MS);
+
+/** Canh mỗi `NHIP_MS` từ lúc biết có gói mới: phủ khi đang tải ở trang chủ, áp khi xong ở trang chủ. */
+function canhCapNhat(): void {
+  if (henCanh || daAp || typeof window === 'undefined') return;
+  henCanh = setInterval(() => {
+    const o = trangThaiOta.value;
+    if (o.buoc === 'tai') {
+      const pct = o.pct ?? 0;
+      if (pct !== pctCu) { pctCu = pct; lucNhich = Date.now(); }
+      if (!boChan && Date.now() - lucNhich > DUNG_MS) thoiChan();
+      if (boChan || !hienTrangChu()) anManPhu(); else hienManPhu(pct);
+      return;
+    }
+    if (goiCho && !boChan) {
+      if (apDuocBayGio()) void apGoi(goiCho);
+      else if (!hienTrangChu()) anManPhu();
+      return;
+    }
+    if (o.buoc !== 'kiem') { anManPhu(); huyApKhiRanh(); }   // lỗi / xong việc: thôi canh
+  }, NHIP_MS);
 }
-/** Thôi canh (và để test dọn trạng thái giữa các ca). */
+/** Thôi canh. `datLai` (test): xoá cả trạng thái của lần mở app. */
 export function huyApKhiRanh(datLai = false): void {
-  clearInterval(henRanh);
-  henRanh = undefined;
-  if (datLai) daApKhiRanh = false;
+  clearInterval(henCanh);
+  henCanh = undefined;
+  if (datLai) { daAp = false; boChan = false; pctCu = -1; goiCho = null; anManPhu(); }
 }
 
 export function soSanhBan(a: string, b: string): number {
@@ -220,6 +237,8 @@ export async function kiemOta(): Promise<void> {
     let goi = co;
     if (!goi) {
       dat({ buoc: 'tai', id: m.id, pct: 0 });
+      pctCu = 0; lucNhich = Date.now();
+      canhCapNhat();                                   // phủ "Đang cập nhật" nếu đang ở trang chủ
       const nghe = await CapacitorUpdater.addListener('download', (e) => {
         if (trangThaiOta.value.buoc === 'tai') dat({ buoc: 'tai', id: m.id, pct: Math.round(e.percent) });
       });
@@ -249,17 +268,16 @@ export async function kiemOta(): Promise<void> {
       } finally { void nghe.remove(); }
     }
     goiCho = goi.id;
-    if (performance.now() - LUC_MO < AP_NGAY_MS && dangOTrangChu()) {
-      await baoCapNhat();                              // đếm 3·2·1 rồi mới tải lại
-      await CapacitorUpdater.set({ id: goi.id });      // tải lại app sang gói mới
-      return;
-    }
+    // Dự phòng: tắt hẳn rồi mở lại là áp (kể cả khi lần này không áp được)
     await CapacitorUpdater.next({ id: goi.id });
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
     dat({ buoc: 'choMoLai', id: m.id });
-    canhApKhiRanh(goi.id);
+    if (!boChan && apDuocBayGio()) { await apGoi(goi.id); return; }   // ở trang chủ: khởi động lại NGAY
+    if (!boChan) canhCapNhat();                                         // đang chơi: chờ về trang chủ
   } catch (e) {
-    // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do
+    // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do.
+    // Đang phủ "Đang cập nhật" thì gỡ ngay + báo nhỏ: KHÔNG BAO GIỜ khoá app vì tải lỗi.
+    thoiChan();
     dat({ buoc: 'loi', id: trangThaiOta.value.id, loi: String((e as Error)?.message ?? e).slice(0, 80) });
   } finally {
     dangKiem = false;

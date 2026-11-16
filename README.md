@@ -710,6 +710,11 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**16.11.2026 — 1.8.4: cập nhật bắt buộc ở trang chủ**
+- Có gói OTA mới mà đang ở trang chủ: màn phủ "Đang cập nhật" + % (không dùng được gì khác), xong là
+  tự khởi động lại; bỏ đếm 3·2·1. Đang chơi thì không chen ngang. Tải lỗi/đứng 20 giây → gỡ phủ,
+  báo "Chưa cập nhật được", vẫn chơi bình thường (mockup duyệt 16.11.2026).
+
 **16.11.2026 — 1.8.3: tỷ số loạt luôn hiện, thoát ván về màn tạo phòng**
 - Tỷ số cả loạt hiện cho MỌI người từ ván đầu (0–0), chỉ con số (bỏ 🏅); người đang dẫn viên xanh lá,
   còn lại viên tối, hoà loạt không ai xanh (`lib/ty-so-loat.ts`, mockup duyệt 16.11.2026).

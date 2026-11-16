@@ -803,10 +803,12 @@
   · `main.ts` LUÔN gọi `kiemOta()`; trong đó `notifyAppReady()` đứng TRƯỚC mọi lời gọi mạng;
     không chặn khởi động; mọi lỗi nuốt trong `catch` (nhưng ghi vào `trangThaiOta`).
     Lỗi tạm thì tự thử lại sau 1 phút (tối đa 3 lần) + kiểm lại khi app quay lại từ nền.
-    ÁP KHI RẢNH Ở TRANG CHỦ (17.10.2026): gói tải xong quá 8 giây đầu thì canh mỗi giây — trang
-    chủ + app đang hiện + không hộp thoại/menu (`[role=dialog][aria-modal]`, `[role=menu]`) + không
-    chạm 2 giây → đếm 3·2·1 rồi áp; bắt cả lúc VỀ trang chủ lẫn lúc QUAY LẠI từ nền. Mỗi lần mở app
-    áp tối đa MỘT lần; `next` + `kill` (tắt hẳn rồi mở) vẫn là dự phòng.
+    CẬP NHẬT BẮT BUỘC Ở TRANG CHỦ (16.11.2026, thay "áp khi rảnh + đếm 3·2·1"): đang tải gói mới mà
+    ở trang chủ → màn phủ kín "Đang cập nhật" + % (chặn chạm); tải xong + trang chủ + app đang hiện +
+    không hộp thoại/menu (`[role=dialog][aria-modal]`, `[role=menu]`) → khởi động lại NGAY. Đang
+    chơi/online/wizard thì không chen ngang, về trang chủ mới phủ/áp. Tải LỖI hoặc ĐỨNG 20 giây →
+    gỡ phủ + báo "Chưa cập nhật được", chơi bình thường, cả lần mở đó không phủ nữa (`boChan`) —
+    KHÔNG BAO GIỜ khoá app vì mạng. Mỗi lần mở app áp tối đa MỘT lần; `next` + `kill` vẫn là dự phòng.
     "TRANG CHỦ" = URL sạch **VÀ** panel trang chủ đang hiện (`manTrangChu`: `section.panel.trang-chu` của
     MenuScreen) — KHÔNG chỉ URL: hết ván online `endSession` lau `?room=` khi bảng kết quả còn trên màn,
     app từng tự khởi động lại ngay sau ván (chủ dự án báo 18.10.2026). Đổi lớp đó ở MenuScreen là test ota đỏ. Thêm hộp thoại mới mà
