@@ -229,6 +229,7 @@ const zhTW: TuDien = {
   'kq.choiLai': '再玩一次',
   'kq.choiLaiCap': '重玩本關',
   'kq.hoa': '平手！🤝',
+  'kq.tySo': '比分',
   'kq.thang': '{ten}獲勝！🏆',
   'kq.banThang': '你贏了！🏆',
   'kq.banThua': '你輸了 😢',

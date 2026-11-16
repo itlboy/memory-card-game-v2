@@ -226,6 +226,7 @@ const ko: TuDien = {
   'kq.choiLai': '다시 하기',
   'kq.choiLaiCap': '레벨 다시 하기',
   'kq.hoa': '무승부! 🤝',
+  'kq.tySo': '전적',
   'kq.thang': '{ten} 승리! 🏆',
   'kq.banThang': '승리! 🏆',
   'kq.banThua': '패배 😢',

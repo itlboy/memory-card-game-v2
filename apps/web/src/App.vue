@@ -1108,6 +1108,7 @@ const hasNext = computed(() => {
     :total-before="totalBefore"
     :total-after="totalScore"
     :series-wins="seriesWins"
+    :nguoi-choi="session.game.value?.players"
     :has-next="hasNext"
     :level-id="levelId ?? level"
     @replay="chonKetQua('choi_lai'); replay()"

@@ -229,6 +229,7 @@ const de: TuDien = {
   'kq.choiLai': 'Nochmal spielen',
   'kq.choiLaiCap': 'Level wiederholen',
   'kq.hoa': 'Unentschieden! 🤝',
+  'kq.tySo': 'Spielstand',
   'kq.thang': '{ten} gewinnt! 🏆',
   'kq.banThang': 'Du gewinnst! 🏆',
   'kq.banThua': 'Du verlierst 😢',

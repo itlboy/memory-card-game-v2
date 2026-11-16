@@ -710,6 +710,11 @@ vì thứ khó nhất không phải sửa mà là biết mình đang sai.
 
 Ghi chú theo đợt giao hàng; chi tiết luật và lý do nằm ở `CLAUDE.md`.
 
+**16.11.2026 — 1.8.8: bảng tỷ số loạt ở màn kết quả**
+- Thay dòng chữ nhạt "🏅 Kiên 2 - 1 An" bằng bảng TỶ SỐ nổi khối (tím nhạt, ô số trắng, người dẫn
+  ô xanh lá, hoà loạt không ai xanh), hiện NGAY TỪ VÁN ĐẦU (1 – 0) như viên số trong bàn chơi.
+  Xếp theo chỗ ngồi (`nguoiChoi`), không theo hạng ván. Mockup duyệt: claude.ai/artifact/CXGRc9YiHD6JM7oygnUfpm.
+
 **16.11.2026 — 1.8.7: nút "Kiểm tra cập nhật", báo cả máy cần cập nhật**
 - Menu (chỉ app): "Kiểm tra cập nhật" kèm số bản; bấm thì hỏi server ngay — "Mới nhất" / "Mất mạng",
   có bản mới thì phủ "Đang cập nhật" + tự khởi động lại ở MỌI màn (`kiemTraThuCong`, lib/ota.ts).

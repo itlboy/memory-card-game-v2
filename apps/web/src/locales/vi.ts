@@ -233,6 +233,7 @@ const vi = {
   'kq.choiLai': 'Chơi lại',
   'kq.choiLaiCap': 'Chơi lại cấp này',
   'kq.hoa': 'Hoà rồi! 🤝',
+  'kq.tySo': 'Tỷ số',
   'kq.thang': '{ten} thắng! 🏆',
   'kq.banThang': 'Bạn thắng! 🏆',
   'kq.banThua': 'Bạn thua rồi 😢',

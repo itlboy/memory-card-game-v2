@@ -228,6 +228,7 @@ const en: TuDien = {
   'kq.choiLai': 'Play Again',
   'kq.choiLaiCap': 'Replay Level',
   'kq.hoa': "It's a draw! 🤝",
+  'kq.tySo': 'Series',
   'kq.thang': '{ten} wins! 🏆',
   'kq.banThang': 'You win! 🏆',
   'kq.banThua': 'You lose 😢',

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { moChucNang } from '@/lib/phan-tich';
 import { tenNguoi } from '@/lib/ten';
+import { tySoLoat } from '@/lib/ty-so-loat';
+import MatNguoi from './MatNguoi.vue';
 import { t, td, bcp } from '@/lib/i18n';
 import { isDraw } from '@mm/engine';
-import type { Summary } from '@mm/engine';
+import type { PlayerInit, Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { byId, type Achievement } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
@@ -31,6 +33,11 @@ const props = defineProps<{
   totalAfter: number;
   /** Số ván thắng của từng người trong loạt đang chơi (theo tên). */
   seriesWins?: Record<string, number>;
+  /** Người chơi theo THỨ TỰ CHỖ NGỒI — bảng tỷ số loạt xếp theo đây để cột không nhảy chỗ giữa
+   *  các ván. Không truyền thì dùng thứ tự xếp hạng ván. */
+  nguoiChoi?: readonly PlayerInit[];
+  /** Ảnh Google của người chơi online (theo id), để mặt trong bảng tỷ số giống trong bàn. */
+  anhCua?: (id: string) => string | undefined;
   /** Có màn kế tiếp trong Chiến dịch không. */
   hasNext: boolean;
   /** Cấp đang chơi; không có nghĩa là ván lẻ, không thuộc thang cấp. */
@@ -163,20 +170,23 @@ const reasonText = computed(() =>
     ? t('kq.banSach')
     : td(`kq.ly.${props.summary.reason}`));
 
-/** "Kiên 2 - 1 An" — tỷ số cả loạt, xếp theo số ván thắng. Chỉ hiện khi đã
- *  chơi từ ván thứ hai: ván đầu thì tỷ số 1-0 chẳng nói lên điều gì. */
-const series = computed(() => {
-  const wins = props.seriesWins;
-  if (!props.multiplayer || !wins) return null;
-  const rows = props.summary.ranking
-    .map((p) => ({ name: tenNguoi(p), w: wins[p.name] ?? 0 }))
-    .sort((a, b) => b.w - a.w);
-  const total = rows.reduce((n, r) => n + r.w, 0);
-  if (total < 2) return null;
-  return rows.length === 2
-    ? `${rows[0]!.name} ${rows[0]!.w} - ${rows[1]!.w} ${rows[1]!.name}`
-    : rows.map((r) => `${r.name} ${r.w}`).join(' · ');
+/*
+ * BẢNG TỶ SỐ CẢ LOẠT (16.11.2026, mockup duyệt https://claude.ai/artifact/CXGRc9YiHD6JM7oygnUfpm).
+ * Hiện NGAY TỪ VÁN ĐẦU (1 – 0), như tỷ số bóng đá và như viên số trong bàn chơi — trước đây
+ * ẩn tới ván 2 nên hết ván 1 không thấy, sang ván 2 bàn chơi lại hiện 1–0. Người dẫn ô xanh lá,
+ * hoà loạt không ai xanh (cùng luật `tySoLoat`). Xếp theo chỗ ngồi, không theo hạng ván.
+ */
+const loat = computed(() => {
+  if (!props.multiplayer || !props.seriesWins) return null;
+  const ds = props.nguoiChoi?.length ? props.nguoiChoi : props.summary.ranking;
+  const ty = tySoLoat(ds, props.seriesWins);
+  if (!ty) return null;
+  return ds.map((p) => ({
+    id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id),
+    n: ty[p.name]?.n ?? 0, dan: ty[p.name]?.dan ?? false,
+  }));
 });
+const loatAria = computed(() => loat.value?.map((r) => `${r.ten} ${r.n}`).join(', ') ?? '');
 
 const title = computed(() => {
   // Nhiều người: LUÔN xếp hạng, kể cả khi ván dừng vì hết giờ hay hết mạng —
@@ -235,7 +245,17 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 
       <!-- Tỷ số cả loạt: chơi với nhau nhiều ván thì đây mới là con số người ta
            thực sự quan tâm, chứ không phải điểm của riêng ván vừa xong -->
-      <p v-if="series" class="series">🏅 {{ series }}</p>
+      <div v-if="loat" class="loat" role="group" :aria-label="`${t('kq.tySo')}: ${loatAria}`">
+        <span class="loat-nhan" aria-hidden="true">{{ t('kq.tySo') }}</span>
+        <div v-if="loat.length === 2" class="loat-hai" aria-hidden="true">
+          <span class="loat-ng"><span class="loat-mat"><MatNguoi :mat="loat[0]!.mat" :anh="loat[0]!.anh" /></span><span class="loat-ten">{{ loat[0]!.ten }}</span></span>
+          <span class="loat-so"><b class="loat-o" :class="{ dan: loat[0]!.dan }">{{ loat[0]!.n }}</b><i>–</i><b class="loat-o" :class="{ dan: loat[1]!.dan }">{{ loat[1]!.n }}</b></span>
+          <span class="loat-ng"><span class="loat-mat"><MatNguoi :mat="loat[1]!.mat" :anh="loat[1]!.anh" /></span><span class="loat-ten">{{ loat[1]!.ten }}</span></span>
+        </div>
+        <div v-else class="loat-nhieu" :style="{ '--n': loat.length }" aria-hidden="true">
+          <span v-for="r in loat" :key="r.id" class="loat-ng"><b class="loat-o" :class="{ dan: r.dan }">{{ r.n }}</b><span class="loat-ten">{{ r.ten }}</span></span>
+        </div>
+      </div>
 
       <p v-if="hienSao" class="stars" :aria-label="t('kq.saoAria', { n: summary.stars })">
         <Sao3D
@@ -480,13 +500,34 @@ h2 { margin: 0 0 4px; }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
-.series {
-  margin: 0 0 10px; padding: 8px 14px; border-radius: var(--r-full);
-  font-family: var(--font-display); font-weight: 800;
-  font-size: var(--text-lg); text-align: center;
-  font-variant-numeric: tabular-nums;
-  background: var(--accent-soft); color: var(--fg);
+/* Bảng tỷ số loạt: màu CỐ ĐỊNH (tím nhạt, ô trắng nổi khối, người dẫn ô xanh) ở mọi skin —
+   như khay vàng của người nhất. Chữ tối trên nền sáng nên đọc được cả khi panel tối. */
+.loat {
+  margin: 0 0 12px; padding: 8px 10px 10px; border-radius: 18px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: linear-gradient(#f3efff, #e4dcff); border: 2px solid #cfc2ff;
+  box-shadow: inset 0 -4px 0 #d3c7ff; color: #1d2433;
 }
+.loat-nhan { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #5a3fe0; }
+.loat-hai { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.loat-nhieu { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px; }
+.loat-ng { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.loat-mat { font-size: 26px; line-height: 1; }
+.loat-ten {
+  max-width: 100%; font-size: 13px; font-weight: 700; color: #1d2433;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.loat-so { display: flex; align-items: center; gap: 6px; }
+.loat-so i { font-style: normal; font-family: var(--font-display); font-weight: 800; font-size: 26px; color: #7b6aa8; }
+.loat-o {
+  min-width: 46px; height: 52px; padding: 0 8px; box-sizing: border-box; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 36px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: #fff; color: #1d2433; box-shadow: inset 0 -4px 0 #d5e2f0;
+}
+.loat-nhieu .loat-o { width: 100%; min-width: 0; height: 44px; font-size: 28px; }
+.loat-o.dan { background: #16a34a; color: #fff; box-shadow: inset 0 -4px 0 #0f7a35; }
 
 /* Điểm tổng: con số lớn nhất trong dialog, có nền sáng và ngôi sao dẫn */
 .score-big {
@@ -717,5 +758,11 @@ h2 { margin: 0 0 4px; }
   .goi-y small { display: none; }
   .row { margin-top: 10px; }
   .row .btn, .row .btn-primary { min-height: 46px; }
+  /* Bảng tỷ số loạt: mặt nhỏ, ô thấp — vẫn là con số to nhất sau tiêu đề */
+  .loat { margin-bottom: 6px; padding: 5px 8px 7px; gap: 3px; }
+  .loat-mat { font-size: 20px; }
+  .loat-ng { gap: 2px; }
+  .loat-o { height: 40px; min-width: 40px; font-size: 28px; }
+  .loat-nhieu .loat-o { height: 34px; font-size: 22px; }
 }
 </style>

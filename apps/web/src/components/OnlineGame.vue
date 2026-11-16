@@ -680,6 +680,8 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
       :total-before="0" :total-after="0"
       :series-wins="o.seriesWins.value"
+      :nguoi-choi="o.view.value.players"
+      :anh-cua="anhCua"
       :rematch-sent="o.iWantAgain.value"
       :rematch-blocked="!enoughToRematch || o.spectator.value"
       :rematch-state="rematchState"

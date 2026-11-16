@@ -229,6 +229,7 @@ const id: TuDien = {
   'kq.choiLai': 'Main lagi',
   'kq.choiLaiCap': 'Ulangi level',
   'kq.hoa': 'Seri! 🤝',
+  'kq.tySo': 'Skor',
   'kq.thang': '{ten} menang! 🏆',
   'kq.banThang': 'Kamu menang! 🏆',
   'kq.banThua': 'Kamu kalah 😢',
