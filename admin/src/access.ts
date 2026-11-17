@@ -8,7 +8,7 @@
 
 interface Jwk { kid: string; kty: string; n: string; e: string; alg?: string }
 
-let khoaCache: { het: number; keys: Jwk[] } | null = null;
+const khoaCache = new Map<string, { het: number; keys: Jwk[] }>();   // theo từng nhóm Access
 
 const b64url = (s: string): Uint8Array => {
   const b = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4));
@@ -16,11 +16,12 @@ const b64url = (s: string): Uint8Array => {
 };
 
 async function layKhoa(team: string, epMoi = false): Promise<Jwk[]> {
-  if (!epMoi && khoaCache && khoaCache.het > Date.now()) return khoaCache.keys;
+  const co = khoaCache.get(team);
+  if (!epMoi && co && co.het > Date.now()) return co.keys;
   const r = await fetch(`https://${team}/cdn-cgi/access/certs`);
   if (!r.ok) throw new Error(`certs ${r.status}`);
   const j = (await r.json()) as { keys: Jwk[] };
-  khoaCache = { het: Date.now() + 3600_000, keys: j.keys };
+  khoaCache.set(team, { het: Date.now() + 3600_000, keys: j.keys });
   return j.keys;
 }
 
