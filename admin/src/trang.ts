@@ -115,7 +115,9 @@ body.dang-tai .the,body.dang-tai .kpi{animation:tt-tho 1.2s ease-in-out infinite
 @keyframes tt-lap{to{background-position:-200% 0}}
 .song-so .sk{display:inline-block}
 #nenTang .sk+.sk{margin-top:10px}
-.chip.quay::after{content:'';width:14px;height:14px;border-radius:999px;border:2px solid currentColor;border-right-color:transparent;animation:tt-xoay .7s linear infinite}
+/* vòng xoay ĐÈ lên chữ (chữ trong suốt) — nút giữ nguyên bề ngang, không đẩy hàng nút xuống dòng */
+.chip.quay{position:relative;color:transparent!important}
+.chip.quay::after{content:'';position:absolute;inset:0;margin:auto;width:16px;height:16px;border-radius:999px;border:2px solid #fff;border-right-color:transparent;animation:tt-xoay .7s linear infinite}
 @keyframes tt-xoay{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.thanh-tai::before,.sk,.chip.quay::after,body.dang-tai .the,body.dang-tai .kpi{animation-duration:3s}}
 html{color-scheme:dark}
