@@ -89,6 +89,7 @@ export const CSS = String.raw`
 :root{--nen:#0c0e1c;--o:#171a30;--o2:#10132a;--vien:#2a2f52;--day:#070812;--chu:#e6e8f8;--mo:#9aa0c8;--vua:#c9cdea;--tim:#6a5cff;--tim2:#8b7dff;
 --web:#67e8f9;--ios:#8b7dff;--android:#c026d3;--tat_ca:#a99fff}
 *{box-sizing:border-box}
+[hidden]{display:none!important}   /* .tuy-chon{display:flex} đè thuộc tính hidden */
 html{color-scheme:dark}
 body{margin:0;background:var(--nen);color:var(--chu);font:16px/1.5 Nunito,system-ui,sans-serif}
 .khung{max-width:1320px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:20px}
