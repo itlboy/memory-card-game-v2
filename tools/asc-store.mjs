@@ -97,6 +97,23 @@ console.log(`App: ${app.attributes.name} (${app.id})`);
 const SUA_DUOC = ['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'WAITING_FOR_REVIEW', 'INVALID_BINARY'];
 // Phiên bản hiển thị khớp package.json, bản quyền
 const pkgVer = JSON.parse(readFileSync(new URL('../apps/web/package.json', import.meta.url), 'utf8')).version;
+// NỘP BẢN MỚI khi bản cũ còn trong hàng duyệt (17.11.2026: 1.8.8 đang IN_REVIEW, chủ dự án muốn nộp
+// 1.8.15 — "cần huỷ gì cứ huỷ"): Apple chỉ cho MỘT phiên bản đang bay, nên rút lượt nộp cũ trước. Phiên
+// bản cũ về DEVELOPER_REJECTED (sửa được) và bên dưới đổi số của nó thành pkgVer. Bản cũ xếp lại CUỐI hàng.
+if (process.env.NOP_DUYET === '1') {
+  const dangDuyet = (await api('GET', `/v1/reviewSubmissions?filter[app]=${app.id}&filter[platform]=IOS&filter[state]=WAITING_FOR_REVIEW,IN_REVIEW`)).data ?? [];
+  for (const s of dangDuyet) {
+    await api('PATCH', `/v1/reviewSubmissions/${s.id}`, { data: { type: 'reviewSubmissions', id: s.id, attributes: { canceled: true } } });
+    console.log(`✓ Rút lượt nộp đang ${s.attributes.state} (${s.id}) để nộp ${pkgVer}`);
+  }
+  // Rút là bất đồng bộ (CANCELING) — chờ phiên bản về trạng thái sửa được, tối đa ~10 phút
+  for (let lan = 0; dangDuyet.length && lan < 40; lan++) {
+    const ds = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=5`)).data;
+    if (!ds.some((v) => ['WAITING_FOR_REVIEW', 'IN_REVIEW'].includes(v.attributes.appStoreState ?? v.attributes.appVersionState))) break;
+    console.log(`  (Apple đang rút — chờ 15s, lần ${lan + 1})`);
+    await new Promise((ok) => setTimeout(ok, 15000));
+  }
+}
 let version = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=5`)).data
   .find((v) => SUA_DUOC.includes(v.attributes.appStoreState ?? v.attributes.appVersionState));
 // Chưa có phiên bản đang soạn (bản trước đã công khai) → TẠO phiên bản mới = số trong package.json
