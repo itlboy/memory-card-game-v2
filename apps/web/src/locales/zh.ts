@@ -364,6 +364,8 @@ const zh: TuDien = {
   'chung.backThoat': "再按一次返回键退出",
   'chung.dangCapNhat': '正在更新',
   'chung.chuaCapNhat': '暂时无法更新',
+  'chung.capNhatXong': '更新完成！',
+  'chung.banSo': '版本 {v}',
   'tb.kiemCapNhat': "检查更新",
   'tb.dangKiem': "正在检查",
   'tb.moiNhat': "已是最新",

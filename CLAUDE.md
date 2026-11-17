@@ -880,6 +880,12 @@
   tải dở thì lần sau tải tiếp (zip thì lại từ đầu). Lỗi gì cũng xoá dấu 'error' rồi quay về
   zip — zip PHẢI giữ (client cũ chỉ biết zip). Trạng thái cập nhật (kiểm / tải x% / chờ mở lại
   / lỗi gì) + nút "Kiểm tra", "Áp dụng ngay" ở trang Debug (`trangThaiOta`).
+  **BÁO CẬP NHẬT XONG (17.11.2026, mockup duyệt https://claude.ai/artifact/4WQiH5YiA9SE2cKHVJru1F):** tải xong,
+  trước khi `set` (khởi động lại), màn "Đang cập nhật" diễn `baoXong`: thanh xanh → co thành dấu ✓ thạch xanh
+  nảy ra + vòng sáng + đốm vàng, chữ "Cập nhật xong!" + "Bản x.y.z" (từ mã gói), `sfx.star(3)`, giữ `XONG_MS`
+  1,5 giây. Hiệu ứng do GÓI CŨ (đang chạy) diễn — bản đầu có nó chỉ thấy từ lần cập nhật KẾ TIẾP. BẪY: quy tắc
+  thanh là `.mcn-thanh > i` (con trực tiếp) — `.mcn-thanh i` tô hồng luôn các vòng sáng `<i>` bên trong. Test
+  đặt `datXongMs(0)` trong beforeEach (đồng hồ giả của test khác không chờ 1,5 giây thật).
 - **Mockup cho chủ dự án**: ưu tiên ẢNH CHỤP THẬT (chế độ debug → "Xem thử hiệu ứng",
   hoặc sửa DOM ngay trên trang thật để ra bản đề xuất) ghép vào một artifact, thay vì
   vẽ lại bằng tay. Họ duyệt mockup trước khi làm tính năng giao diện mới.

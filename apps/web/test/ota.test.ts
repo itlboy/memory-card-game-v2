@@ -23,13 +23,30 @@ beforeEach(() => {
   goi.download.mockResolvedValue({ id: 'b1', version: 'moi', status: 'success' });
   banApp = '1.3.0';
   dsFile = null;
-  void import('@/lib/ota').then((m) => m.huyApKhiRanh(true));
+  void import('@/lib/ota').then((m) => { m.huyApKhiRanh(true); m.datXongMs(0); });
   // Trang chủ THẬT đang hiện (lib/ota.ts manTrangChu) — ca nào cần "không ở trang chủ" thì tự gỡ
   if (!document.getElementById('man-chu')) document.body.insertAdjacentHTML('beforeend', '<section id="man-chu" class="panel trang-chu"></section>');
 });
 const MOI = { id: 'moi', url: '/ota/moi.zip', sha256: 'abc', minNative: '1.3.0' };
 
 describe('cập nhật nóng', () => {
+  it('tải xong: báo "Cập nhật xong" ĐỦ XONG_MS rồi mới khởi động lại', async () => {
+    manifest = MOI;
+    history.replaceState(null, '', '/');
+    const m = await import('@/lib/ota');
+    m.datXongMs(m.XONG_MS);
+    vi.useFakeTimers();
+    try {
+      const xong = m.kiemOta();
+      await vi.advanceTimersByTimeAsync(300);
+      expect(document.querySelector('.man-cap-nhat.xong'), 'đã đổi sang báo xong').not.toBeNull();
+      expect(goi.set, 'chưa khởi động lại khi còn đang báo xong').not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(m.XONG_MS);
+      await xong;
+      expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+    } finally { vi.useRealTimers(); m.datXongMs(0); }
+  });
+
   it('mở app ở TRANG CHỦ: tải xong là khởi động lại NGAY (không đếm 3·2·1), vẫn đặt dự phòng kill', async () => {
     manifest = MOI;
     history.replaceState(null, '', '/');
@@ -37,7 +54,12 @@ describe('cập nhật nóng', () => {
     await kiemOta();
     expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
     expect(goi.next).toHaveBeenCalledWith({ id: 'b1' });
-    expect(document.querySelector('.man-cap-nhat .mcn-pct')?.textContent).toBe('100%');
+    // Báo XONG trên chính màn cập nhật trước khi khởi động lại (mockup duyệt 17.11.2026)
+    const phu = document.querySelector('.man-cap-nhat');
+    expect(phu?.classList.contains('xong')).toBe(true);
+    expect(phu?.querySelector('.mcn-chu')?.textContent).toBe('Cập nhật xong!');
+    expect(phu?.querySelector('.mcn-pct')?.textContent).toBe('Bản moi');
+    expect(phu?.querySelector('.mcn-xong')).not.toBeNull();
     expect(document.querySelector('.bcn-so'), 'không còn đếm 3·2·1').toBeNull();
   });
 

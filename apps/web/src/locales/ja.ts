@@ -364,6 +364,8 @@ const ja: TuDien = {
   'chung.backThoat': "もう一度「戻る」で終了",
   'chung.dangCapNhat': 'アップデート中',
   'chung.chuaCapNhat': 'アップデートできませんでした',
+  'chung.capNhatXong': 'アップデート完了！',
+  'chung.banSo': 'バージョン {v}',
   'tb.kiemCapNhat': "アップデートを確認",
   'tb.dangKiem': "確認中",
   'tb.moiNhat': "最新です",

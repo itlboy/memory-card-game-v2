@@ -366,6 +366,8 @@ const en: TuDien = {
   'chung.backThoat': "Press Back again to exit",
   'chung.dangCapNhat': 'Updating',
   'chung.chuaCapNhat': "Couldn't update",
+  'chung.capNhatXong': 'Update complete!',
+  'chung.banSo': 'Version {v}',
   'tb.kiemCapNhat': "Check for updates",
   'tb.dangKiem': "Checking",
   'tb.moiNhat': "Up to date",

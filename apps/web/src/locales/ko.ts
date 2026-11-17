@@ -364,6 +364,8 @@ const ko: TuDien = {
   'chung.backThoat': "한 번 더 누르면 종료돼요",
   'chung.dangCapNhat': '업데이트 중',
   'chung.chuaCapNhat': '업데이트하지 못했어요',
+  'chung.capNhatXong': '업데이트 완료!',
+  'chung.banSo': '버전 {v}',
   'tb.kiemCapNhat': "업데이트 확인",
   'tb.dangKiem': "확인 중",
   'tb.moiNhat': "최신 버전",

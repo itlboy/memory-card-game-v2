@@ -367,6 +367,8 @@ const id: TuDien = {
   'chung.backThoat': "Tekan Kembali sekali lagi untuk keluar",
   'chung.dangCapNhat': 'Memperbarui',
   'chung.chuaCapNhat': 'Gagal memperbarui',
+  'chung.capNhatXong': 'Pembaruan selesai!',
+  'chung.banSo': 'Versi {v}',
   'tb.kiemCapNhat': "Cek pembaruan",
   'tb.dangKiem': "Memeriksa",
   'tb.moiNhat': "Sudah terbaru",
