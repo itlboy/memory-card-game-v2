@@ -646,6 +646,9 @@ h2 { margin: 0 0 4px; }
 @keyframes nay { 40% { transform: scale(1.35); } }
 @media (prefers-reduced-motion: reduce) { .cong, .o-so b.nay { animation: none; } }
 .nut-ct {
+  /* position: relative BẮT BUỘC (18.11.2026): thiếu nó thì ::after nới vùng chạm bên dưới bám vào CẢ
+     bảng kết quả và trùm lên mọi nút — người chơi online bấm "Chơi lại" lại thành bấm "Chi tiết ván". */
+  position: relative;
   display: flex; align-items: center; gap: 6px; margin: 10px auto 0; min-height: 40px; padding: 0 16px;
   border-radius: 999px; font: 700 15px var(--font-display); color: var(--fg); cursor: pointer;
 }

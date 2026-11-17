@@ -63,12 +63,13 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
   font-size: var(--text-sm); font-weight: 700; line-height: 1.25;
   pointer-events: none;
 }
-/* Mũi nhọn chỉ lên chip người nói */
-.bong:not(.tren)::before {
-  content: ''; position: absolute; top: -7px; left: 50%; width: 10px; height: 10px;
-  transform: translateX(-50%) rotate(45deg);
-  background: var(--panel-solid); border-left: 2px solid var(--accent); border-top: 2px solid var(--accent);
+/* Mũi nhọn chỉ lên chip người nói — TAM GIÁC THẬT (18.11.2026; ô vuông xoay 45° cũ lộ thành con
+   thoi): lớp ngoài màu viền, lớp trong màu nền đè lên vạch viền của bong bóng (2px) → mũi liền thân. */
+.bong:not(.tren)::before, .bong:not(.tren)::after {
+  content: ''; position: absolute; left: 50%; translate: -50% 0; clip-path: polygon(50% 0, 100% 100%, 0 100%);
 }
+.bong:not(.tren)::before { bottom: calc(100% - 2px); width: 18px; height: 11px; background: var(--accent); }
+.bong:not(.tren)::after { bottom: calc(100% - 2px); width: 12px; height: 7.5px; background: var(--panel-solid); }
 .bong .e { font-size: 18px; flex-shrink: 0; }
 .bong .chu { min-width: 0; }
 .loi-enter-active { transition: opacity .16s ease, translate .16s ease; }

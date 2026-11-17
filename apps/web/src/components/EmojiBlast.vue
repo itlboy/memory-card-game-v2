@@ -152,7 +152,8 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   display: flex; align-items: center; gap: 4px; width: max-content;
   padding: 6px 10px; border-radius: 20px;
   background: var(--panel-solid, #fff);
-  border: 2.5px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  --vien: color-mix(in srgb, var(--accent) 55%, var(--line));
+  border: 2.5px solid var(--vien);
   box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
 }
 /* TRÊN chip: `top` = mép trên chip − 10 → tự kéo lên trọn chiều cao mình */
@@ -185,13 +186,16 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   100% { opacity: 0; transform: translate(-50%, calc(-100% - 70px)) scale(1); }
 }
 
-/* Đuôi: ô vuông xoay 45°, chỉ hai cạnh có viền, cùng nền bong bóng */
-.duoi {
-  position: absolute; width: 14px; height: 14px; background: inherit;
-  border: inherit; border-width: 0 0 2.5px 2.5px; border-radius: 0 0 0 3px;
-}
-.tren .duoi { left: 18px; bottom: -8.5px; transform: rotate(-45deg); }
-.phai .duoi { left: -8.5px; top: calc(50% - 7px); transform: rotate(45deg); }
+/* ĐUÔI = TAM GIÁC THẬT (18.11.2026, chủ dự án: "mũi nhọn là hình con thoi"): bản cũ là ô vuông xoay
+   45° — phần lọt vào trong bong bóng không che kín nên lộ thành con thoi. Nay hai tam giác clip-path
+   chồng nhau: lớp ngoài màu VIỀN, lớp trong (::after) màu NỀN đè lên vạch viền của bong bóng → miệng
+   đuôi liền với thân, chỉ còn hai cạnh viền chụm thành mũi. Đè vào trong 2.5px = đúng độ dày viền. */
+.duoi { position: absolute; background: var(--vien); }
+.duoi::after { content: ''; position: absolute; background: var(--panel-solid, #fff); }
+.tren .duoi { left: 14px; top: calc(100% - 2.5px); width: 20px; height: 12.5px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.tren .duoi::after { left: 3.5px; right: 3.5px; top: 0; bottom: 4px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.phai .duoi { right: calc(100% - 2.5px); top: calc(50% - 10px); width: 12.5px; height: 20px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+.phai .duoi::after { top: 3.5px; bottom: 3.5px; right: 0; left: 4px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
 .giua .duoi { display: none; }
 
 /* Vào: nảy từ chỗ đuôi; ra: mờ + trôi nhẹ lên. Giữ nguyên translate của từng kiểu. */
