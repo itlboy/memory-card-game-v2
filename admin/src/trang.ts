@@ -25,13 +25,20 @@ export const HTML = String.raw`<!doctype html>
       <div class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="12" rx="2"/><rect x="13" y="8" width="8" height="12" rx="2"/></svg></div>
       <div><h1>Lật Thẻ · Quản trị</h1><p class="phu" id="capNhat">admin.cozypi.com</p></div>
     </div>
-    <div class="dieu-khien">
-      <div class="chips" id="khoang" role="group" aria-label="Khoảng thời gian"></div>
-      <button class="chip" id="nutTuyChon" type="button" aria-expanded="false">Tuỳ chọn…</button>
-      <button class="chip" id="nutMoi" type="button" title="Bỏ qua bộ nhớ tạm, hỏi GA lại">Làm mới</button>
-      <a class="nguoi" id="nguoi" href="/cdn-cgi/access/logout" title="Đăng xuất Cloudflare Access">Access</a>
-    </div>
+    <!-- NGAY LÚC NÀY: luôn là 30 phút gần nhất, KHÔNG theo khoảng đang chọn — đặt cạnh tiêu đề, tách khỏi
+         phần thống kê (17.11.2026: để dưới hàng nút thì bấm "Hôm nay" vẫn thấy "30 phút qua", gây hiểu lầm) -->
+    <section class="song" aria-live="polite" aria-label="Ngay lúc này, 30 phút gần nhất">
+      <div class="song-tieu"><span class="cham"></span><h2 class="ktieu">Ngay lúc này</h2><span class="phu-nho">30 phút gần nhất · tự cập nhật mỗi phút</span></div>
+      <div class="song-so" id="song"><span class="sk" style="width:110px;height:28px"></span><span class="sk" style="width:110px;height:28px"></span><span class="sk" style="width:90px;height:28px"></span></div>
+    </section>
   </header>
+
+  <nav class="dieu-khien" aria-label="Khoảng thời gian thống kê">
+    <div class="chips" id="khoang" role="group" aria-label="Khoảng thời gian"></div>
+    <button class="chip" id="nutTuyChon" type="button" aria-expanded="false">Tuỳ chọn…</button>
+    <button class="chip" id="nutMoi" type="button" title="Bỏ qua bộ nhớ tạm, hỏi GA lại">Làm mới</button>
+    <a class="nguoi" id="nguoi" href="/cdn-cgi/access/logout" title="Đăng xuất Cloudflare Access">Access</a>
+  </nav>
 
   <form class="tuy-chon thach" id="tuyChon" hidden>
     <label>Từ ngày <input type="date" id="tu" required></label>
@@ -41,10 +48,7 @@ export const HTML = String.raw`<!doctype html>
 
   <div class="bao" id="bao" hidden></div>
 
-  <section class="thach song" aria-live="polite">
-    <div class="song-tieu"><span class="cham"></span><h2 class="ktieu">30 phút qua</h2><span class="nguon n-live">GA Realtime</span></div>
-    <div class="song-so" id="song"><span class="sk" style="width:120px;height:30px"></span><span class="sk" style="width:120px;height:30px"></span><span class="sk" style="width:100px;height:30px"></span></div>
-  </section>
+  <p class="ky-chon" id="kyChon">Đang tải…</p>
 
   <!-- Khung xương lần mở đầu: ve() thay bằng số thật -->
   <section class="luoi-kpi" id="kpi">
@@ -149,11 +153,16 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .n-ga{background:rgba(251,191,36,.16);color:#fcd34d}
 .n-live{background:rgba(74,222,128,.16);color:#86efac}
 .ktieu{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--mo)}
-.song{padding:18px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:28px}
+.song{padding:10px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;border-radius:18px;border:2px solid #23573a;background:rgba(74,222,128,.06)}
+.phu-nho{font-size:12px;color:var(--mo);font-weight:600}
+.ky-chon{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mo)}
+.ky-chon b{color:#fff}
+.kpi-dau{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.kpi-dau .nhan{min-width:0}
 .song-tieu{display:flex;align-items:center;gap:10px}
 .cham{width:12px;height:12px;border-radius:999px;background:#4ade80;box-shadow:0 0 0 5px rgba(74,222,128,.18)}
 .song-so{display:flex;flex-wrap:wrap;gap:28px}
-.song-so b,.kpi b{font:800 30px/1 'Baloo 2',sans-serif;color:#fff}
+.song-so b,.kpi b{font:800 26px/1 'Baloo 2',sans-serif;color:#fff}
 .song-so span.k{font-size:14px;color:var(--mo);font-weight:700;margin-left:8px}
 .luoi-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
 .kpi{padding:18px;display:flex;flex-direction:column;gap:8px}
@@ -214,7 +223,7 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   #khoang .chip{flex:none;scroll-snap-align:center}
   .chip{padding:0 14px;font-size:13.5px}
   .nguoi{margin-left:auto;padding:0 12px}
-  .song{padding:14px 16px;gap:10px 16px}
+  .song{width:100%;padding:12px 14px;gap:8px 16px}
   .song-so{width:100%;gap:12px 22px}
   .song-so b{font-size:26px}
   .song-so span.k{display:block;margin:2px 0 0;font-size:12px}
@@ -342,8 +351,12 @@ export const JS = String.raw`
   }
 
   function ve(g) {
-    var gio = new Date(g.capNhat);
-    $('capNhat').textContent = 'admin.cozypi.com · ' + (g.email || '') + ' · số lúc ' + gio.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    gHien = g;
+    capNhatTuoi();
+    var tenKhoang = (KHOANG.find(function (k) { return k[0] === g.khoang; }) || ['', 'Tuỳ chọn'])[1];
+    var ngay = function (d) { return d.split('-').reverse().join('.'); };
+    var kc = $('kyChon'); kc.textContent = 'Thống kê theo khoảng: ';
+    kc.appendChild(el('b', null, tenKhoang + (g.ky ? ' · ' + (g.ky.startDate === g.ky.endDate ? ngay(g.ky.startDate) : ngay(g.ky.startDate) + ' → ' + ngay(g.ky.endDate)) : '')));
     if (g.email) $('nguoi').textContent = 'Đăng xuất';
 
     // KPI
@@ -361,7 +374,7 @@ export const JS = String.raw`
     ].forEach(function (x) {
       if (g.khoang === '30m' && x[1] == null) return;
       var o = el('div', 'thach kpi');
-      var tren = el('div', 'tieu'); tren.style.justifyContent = 'space-between';
+      var tren = el('div', 'kpi-dau');
       tren.appendChild(el('span', 'nhan', x[0])); tren.appendChild(el('span', 'nguon n-ga', g.khoang === '30m' ? 'Realtime' : 'GA4'));
       o.appendChild(tren);
       var v = x[1] ? x[1].v : null;
@@ -473,6 +486,35 @@ export const JS = String.raw`
   }
 
   veKhoang(); tai(false); song(false);
-  setInterval(function () { if (!document.hidden) song(false); }, 60000);
+  /*
+   * TỰ LÀM MỚI (17.11.2026): khoảng có HÔM NAY thì số còn đổi → tự hỏi lại khi số đã cũ 5 phút (đúng bằng
+   * thời gian server nhớ tạm — hỏi sớm hơn cũng chỉ nhận lại số cũ); khoảng 30 phút thì 1 phút. Khoảng đã
+   * qua (Hôm qua…) không làm mới. Chỉ chạy khi tab đang hiện; quay lại tab mà số đã cũ thì làm mới ngay.
+   */
+  var gHien = null, lucSong = Date.now();
+  function homNay() { return new Date().toLocaleDateString('sv-SE'); }
+  function conChay() { return !!gHien && (gHien.khoang === '30m' || (gHien.ky && gHien.ky.endDate >= homNay())); }
+  function tuoiMs() { return gHien ? Date.now() - new Date(gHien.capNhat).getTime() : 0; }
+  function hanMs() { return gHien && gHien.khoang === '30m' ? 60000 : 300000; }
+  function capNhatTuoi() {
+    if (!gHien) return;
+    var gio = new Date(gHien.capNhat), phut = Math.floor(tuoiMs() / 60000);
+    $('capNhat').textContent = 'admin.cozypi.com · ' + (gHien.email || '') + ' · số lúc '
+      + gio.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+      + ' (' + (phut < 1 ? 'vừa xong' : phut + ' phút trước') + ')'
+      + (conChay() ? ' · tự làm mới' : '');
+  }
+  function kiemMoi() {
+    if (document.hidden) return;
+    capNhatTuoi();
+    if (conChay() && tuoiMs() >= hanMs() && !document.body.classList.contains('dang-tai')) tai(false);
+  }
+  setInterval(function () { if (!document.hidden) { song(false); lucSong = Date.now(); } }, 60000);
+  setInterval(kiemMoi, 30000);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) return;
+    if (Date.now() - lucSong > 60000) { song(false); lucSong = Date.now(); }
+    kiemMoi();
+  });
 })();
 `;
