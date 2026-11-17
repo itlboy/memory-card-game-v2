@@ -110,6 +110,7 @@ const en: TuDien = {
   'menu.choiNhanh': 'Quick Play',
   'menu.choiNhanhMo': 'Solo or 2–4 players on one device, with your own rules',
   'menu.dauMay': 'Vs Computer',
+  'menu.doiThu': 'Opponent',
   'menu.dauMayMo': 'Challenge an AI opponent — works offline, no internet needed',
   'menu.online': 'Play Online',
   'menu.onlineMo': 'Create a room and invite friends with a 6-digit code',

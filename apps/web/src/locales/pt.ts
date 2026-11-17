@@ -109,6 +109,7 @@ const pt: TuDien = {
   'menu.choiNhanh': 'Partida rápida',
   'menu.choiNhanhMo': 'Sozinho ou de 2 a 4 no mesmo aparelho, com suas regras',
   'menu.dauMay': 'Contra o computador',
+  'menu.doiThu': 'Adversário',
   'menu.dauMayMo': 'Desafie o computador — funciona offline, sem internet',
   'menu.online': 'Jogar online',
   'menu.onlineMo': 'Crie uma sala e convide amigos com um código de 6 dígitos',

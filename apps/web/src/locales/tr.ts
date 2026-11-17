@@ -111,6 +111,7 @@ const tr: TuDien = {
   'menu.choiNhanh': 'Hızlı oyun',
   'menu.choiNhanhMo': 'Tek başına ya da tek cihazda 2–4 kişi, kuralları sen koy',
   'menu.dauMay': 'Bilgisayara karşı',
+  'menu.doiThu': 'Rakip',
   'menu.dauMayMo': 'Yapay zekâ rakibe meydan oku — internet gerekmez',
   'menu.online': 'Çevrim içi oyna',
   'menu.onlineMo': 'Oda kur, arkadaşlarını 6 haneli kodla davet et',

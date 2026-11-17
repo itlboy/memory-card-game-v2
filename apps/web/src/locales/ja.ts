@@ -108,6 +108,7 @@ const ja: TuDien = {
   'menu.choiNhanh': 'クイックプレイ',
   'menu.choiNhanhMo': '1人でも、1台で2〜4人でも。ルールは自由に設定',
   'menu.dauMay': 'コンピューター対戦',
+  'menu.doiThu': '対戦相手',
   'menu.dauMayMo': '1人でも対戦相手がいる！オフラインでも遊べます',
   'menu.online': 'オンライン対戦',
   'menu.onlineMo': 'ルームを作って6桁のコードで友達を招待',

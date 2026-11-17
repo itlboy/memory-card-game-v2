@@ -108,6 +108,7 @@ const ko: TuDien = {
   'menu.choiNhanh': '빠른 플레이',
   'menu.choiNhanhMo': '혼자 또는 한 기기에서 2–4명, 규칙은 내 마음대로',
   'menu.dauMay': '컴퓨터 대전',
+  'menu.doiThu': '상대',
   'menu.dauMayMo': '혼자서도 상대가 있어요 — 인터넷 없이 바로 플레이',
   'menu.online': '온라인 플레이',
   'menu.onlineMo': '방을 만들고 6자리 코드로 친구를 초대해요',

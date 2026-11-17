@@ -635,6 +635,12 @@
   dưới ba ô ("rối trang chủ") — đừng dựng lại. GA4: `choi_nhanh_ngay`/`choi_nhanh_doi` thôi gửi; `buoc_menu` bước trang chủ nay `nhanh=trang_chu`
   (trước bị tính vào `choi_nhanh` làm phễu phồng). Tên bỏ trống lưu RỖNG (không lưu "Người 1") — lưu chữ
   mặc định là đổi ngôn ngữ vẫn hiện tiếng cũ. Test bấm theo luồng: `chonSoThe` / `moLuatBan` / `moTen`.
+- **ĐẤU MÁY MỘT MÀN (17.11.2026, mockup duyệt https://claude.ai/artifact/3K8cznht31tMNprJ7oZBhV)**: chủ dự án
+  thấy đấu máy vẫn đi 4 bước cũ (máy → số thẻ → bộ thẻ → luật bàn). Nay bước `bot` = "Đấu với máy": hàng 5
+  mặt máy (`.may-hang`, ô `.nh-o` như số người/số thẻ; máy đang chọn tô vàng) + dòng tên và lời của máy +
+  `BanChon` + Bắt đầu. Chọn máy KHÔNG chuyển màn. Bước phụ quay về `veMan` (`bot` hoặc `nhanh`); `laNhanh`
+  nay = mọi nhánh không phải Chiến dịch. Máy + cỡ bàn ván trước lưu `Prefs.dauMay` (ở `startLevel`), vào lại
+  là chọn sẵn; chưa có thì Gà cứng, bàn Dễ 12 thẻ. Không còn chấm tiến độ.
 - **MÁY CHƠI CÙNG VÁN NHIỀU NGƯỜI (14.11.2026, mockup duyệt https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB)**:
   Phase 1 OFFLINE xong: bước "Tên từng người" có công tắc Người/Máy mỗi dòng (dòng 1 luôn người), chạm tên
   máy mở bảng 5 mức (`BOT_CHOICES`). Tổng người + máy ≤ 4. App giữ `mayCung` (chỗ → mức, không lưu prefs),

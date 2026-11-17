@@ -111,6 +111,7 @@ const de: TuDien = {
   'menu.choiNhanh': 'Schnellspiel',
   'menu.choiNhanhMo': 'Allein oder zu 2–4 an einem Gerät, mit eigenen Regeln',
   'menu.dauMay': 'Gegen den Computer',
+  'menu.doiThu': 'Gegner',
   'menu.dauMayMo': 'Fordere den Computer heraus — auch offline, ganz ohne Internet',
   'menu.online': 'Online spielen',
   'menu.onlineMo': 'Raum erstellen und Freunde per 6-stelligem Code einladen',
