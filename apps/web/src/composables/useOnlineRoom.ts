@@ -1316,6 +1316,7 @@ export function useOnlineRoom() {
           // Tỷ số cả loạt trong phòng: chủ phòng bấm "chơi lại" nhiều ván nên
           // đây là con số người trong phòng thực sự theo dõi. Giữ ở client theo
           // TÊN (id đổi khi vào lại phòng), hoà thì không ai được cộng.
+          soVanLoat.value++;
           const champName = e.summary.ranking[0]?.name;
           if (champName && !draw) {
             seriesWins.value = { ...seriesWins.value, [champName]: (seriesWins.value[champName] ?? 0) + 1 };
@@ -1644,6 +1645,8 @@ export function useOnlineRoom() {
   // để người chơi THẤY mình đã hết lượt, chứ không phải bấm mà chẳng có gì xảy ra.
   /** Số ván thắng của từng người trong phòng, theo tên. */
   const seriesWins = ref<Record<string, number>>({});
+  /** Số ván đã xong trong loạt của phòng (kể cả ván hoà) — dòng "Ván N" ở màn kết quả. */
+  const soVanLoat = ref(0);
   /** Ai vừa hồi mạng (Sinh tồn). */
   const lifeGain = ref<{ name: string; key: number } | null>(null);
   /** Ai vừa MẤT một mạng, còn mấy mạng, và có phải mình không. */
@@ -1791,6 +1794,8 @@ export function useOnlineRoom() {
     emojiCooldown,
     /** Số ván thắng trong loạt của phòng (theo tên). */
     seriesWins,
+    /** Số ván đã xong trong loạt (kể cả hoà). */
+    soVanLoat,
     /** Ai vừa hồi mạng (Sinh tồn). */
     lifeGain,
     lifeLost,

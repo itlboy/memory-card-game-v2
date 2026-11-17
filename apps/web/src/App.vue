@@ -184,6 +184,8 @@ const totalBefore = ref(0);
  *  không thì tỷ số của nhóm cũ dính sang nhóm mới. */
 const seriesKey = ref('');
 const seriesWins = ref<Record<string, number>>({});
+/** Số ván đã xong trong loạt (kể cả hoà) — dòng "Ván N" ở màn kết quả nhiều người. */
+const soVanLoat = ref(0);
 const freshAchievements = ref<string[]>([]);
 /** Ăn mừng 5 giây trước rồi mới hiện popup kết quả. */
 const showResult = ref(false);
@@ -604,6 +606,7 @@ function batDauLoat(list: PlayerInit[]): PlayerInit[] {
   if (key !== seriesKey.value) {
     seriesKey.value = key;
     seriesWins.value = {};
+    soVanLoat.value = 0;
     matLoat = {};
   }
   // MẶT THÚ GIỮ NGUYÊN CẢ LOẠT (15.11.2026, chủ dự án): engine bốc ngẫu nhiên mỗi ván, nên chơi
@@ -874,6 +877,7 @@ watch(session.summary, (s) => {
         ketQua: session.loaiKetCuc.value, score: botLevel.value === 'easy' ? 0 : diemNguoi, achievements: dat
       });
     } else store.addScore(s.ranking.find((r) => !laBot(r.id))?.score ?? 0);   // điểm MÁY không cộng vào tổng
+    soVanLoat.value++;
     // Tỷ số loạt: hoà thì không ai được cộng
     const champ = s.ranking[0];
     if (champ && !isDraw(s.ranking)) {
@@ -1110,6 +1114,7 @@ const hasNext = computed(() => {
     :total-before="totalBefore"
     :total-after="totalScore"
     :series-wins="seriesWins"
+    :so-van="soVanLoat"
     :nguoi-choi="session.game.value?.players"
     :has-next="hasNext"
     :level-id="levelId ?? level"
