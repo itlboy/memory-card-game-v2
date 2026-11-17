@@ -61,9 +61,21 @@ async function nho<T>(khoa: string, giay: number, boQua: boolean, lam: () => Pro
 export default {
   async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const ai = await kiemAccess(req, env.ACCESS_TEAM, env.ACCESS_AUD).catch(() => null);
-    if (!ai) return tra('Không có quyền. Trang này chỉ mở qua Cloudflare Access.', 'text/plain; charset=utf-8', 403);
-
     const url = new URL(req.url);
+    if (!ai) {
+      // Phiên Access CŨ (vd trước khi đổi tên miền nhóm 17.11.2026: cổng Access vẫn cho qua nhưng khoá
+      // của nhóm cũ đã mất) → xoá cookie rồi quay lại, cổng Access sẽ hiện trang đăng nhập. Chỉ làm MỘT
+      // lần (cờ ?dn=1) để cấu hình sai thật không thành vòng lặp đăng nhập vô tận.
+      if (req.method === 'GET' && !url.pathname.startsWith('/api/') && req.headers.get('Cf-Access-Jwt-Assertion') && !url.searchParams.has('dn')) {
+        return new Response(null, { status: 302, headers: {
+          location: '/?dn=1',
+          'set-cookie': 'CF_Authorization=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax',
+          'cache-control': 'no-store'
+        } });
+      }
+      return tra('Không có quyền. Trang này chỉ mở qua Cloudflare Access.', 'text/plain; charset=utf-8', 403);
+    }
+
     if (req.method !== 'GET') return tra('Chỉ đọc.', 'text/plain; charset=utf-8', 405);
     switch (url.pathname) {
       case '/': return tra(HTML_PHIEN, 'text/html; charset=utf-8');
