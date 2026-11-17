@@ -13,6 +13,7 @@
  */
 import { ref } from 'vue';
 import { laApp } from './native';
+import { suKien } from './phan-tich';
 
 const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
 
@@ -55,12 +56,14 @@ export const coCaiNgay = ref(false);
 let hoi: SuKienCai | null = null;
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); hoi = e as SuKienCai; coCaiNgay.value = true; });
-  window.addEventListener('appinstalled', () => { hoi = null; coCaiNgay.value = false; hienCai.value = false; });
+  window.addEventListener('appinstalled', () => { hoi = null; coCaiNgay.value = false; hienCai.value = false; suKien('cai_app_ket_qua', { ket_qua: 'da_cai' }); });
 }
 export async function caiNgay(): Promise<void> {
   if (!hoi) return;
   const e = hoi;
   await e.prompt();
-  await e.userChoice.catch(() => null);
+  const chon = await e.userChoice.catch(() => null);
+  // PHÂN TÍCH (17.11.2026): hộp cài của Chrome — người chơi đồng ý hay từ chối
+  suKien('cai_app_ket_qua', { ket_qua: chon?.outcome === 'accepted' ? 'dong_y' : chon?.outcome === 'dismissed' ? 'tu_choi' : 'khong_ro' });
   hoi = null; coCaiNgay.value = false;
 }

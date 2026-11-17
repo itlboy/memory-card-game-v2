@@ -16,7 +16,7 @@ const NEN_TANG = [
   { id: 'android', ten: 'Android', loc: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/app/android' } } } }
 ] as const;
 
-type Kv = { k: string; v: number };
+type Kv = { k: string; v: number; luot?: number };
 
 export interface GoiThongKe {
   khoang: string; hat: string; hatDuocChon: string[]; ky: KeHoach['ky']; capNhat: string;
@@ -121,6 +121,64 @@ export async function tongQuan(ga: Ga, kh: KeHoach): Promise<GoiThongKe> {
     goi.kpi.phongTao = { v: cn.find((x) => x.k === 'online_tao_phong')?.v ?? 0 };
   } else goi.kpi.phongTao = { v: null };
   goi.kpi.vanOnline = { v: cheDo ? (goi.danhSach.che_do?.find((x) => x.k === 'online')?.v ?? 0) : null };
+
+  /* ---- 17.11.2026: TÌM VÌ SAO NGƯỜI MỚI BỎ ĐI + sự kiện mới của game (CLAUDE.md game, mục GA4) ---- */
+  const moi = { filter: { fieldName: 'newVsReturning', stringFilter: { matchType: 'EXACT', value: 'new' } } };
+  const cheDoCd = { filter: { fieldName: 'customEvent:che_do', stringFilter: { matchType: 'EXACT', value: 'chien_dich' } } };
+  const dem = (ten: string, dims: string[], khoa: string) => o(khoa, R(kh.ky, kh.gio, dims, ['eventCount'], loc.su_kien(ten)));
+  const [pheu, quayLai, manKq, manBo, nguon, loiJs, roiPhong, ketNoi, dangNhap, chiaSe, ota] = await Promise.all([
+    o('pheu', R(kh.ky, kh.gio, ['eventName'], ['totalUsers'], loc.trong('eventName', ['first_visit', 'buoc_menu', 'van_bat_dau', 'van_ket_thuc']), moi)),
+    o('kpi', R(kh.ky, kh.gio, ['newVsReturning'], ['activeUsers'])),
+    o('man_kho', R(kh.ky, kh.gio, ['customEvent:man', 'customEvent:ket_qua'], ['eventCount'], loc.su_kien('van_ket_thuc'), cheDoCd)),
+    o('man_kho', R(kh.ky, kh.gio, ['customEvent:man'], ['eventCount'], loc.su_kien('van_bo_do'), cheDoCd)),
+    o('nguon', R(kh.ky, kh.gio, ['sessionSource'], ['activeUsers'])),
+    dem('loi_js', ['customEvent:thong_diep'], 'loi_js'),
+    dem('online_roi_phong', ['customEvent:ly_do'], 'roi_phong'),
+    dem('online_ket_noi', ['customEvent:ket_qua'], 'ket_noi'),
+    dem('dang_nhap', ['customEvent:cach', 'customEvent:ket_qua', 'customEvent:moi'], 'dang_nhap'),
+    dem('chia_se', ['customEvent:kenh', 'customEvent:ket_qua'], 'chia_se'),
+    dem('cap_nhat_ota', ['customEvent:ket_qua'], 'ota')
+  ]);
+
+  // Phễu người MỚI trong kỳ — giữ đúng thứ tự bước, không xếp theo số
+  if (pheu) {
+    const so = (ten: string) => pheu.find((r) => r.d[0] === ten)?.m[0] ?? 0;
+    goi.danhSach.pheu = [['first_visit', 'lan_dau'], ['buoc_menu', 'vao_menu'], ['van_bat_dau', 'bat_dau_van'], ['van_ket_thuc', 'choi_xong']]
+      .map(([ten, k]) => ({ k: k!, v: so(ten!) }));
+  }
+  if (quayLai) {
+    const tongNguoi = quayLai.reduce((a, r) => a + (r.m[0] ?? 0), 0);
+    const cu = quayLai.find((r) => r.d[0] === 'returning')?.m[0] ?? 0;
+    goi.kpi.quayLai = { v: tongNguoi ? Math.round(cu / tongNguoi * 100) : null };
+  }
+  // Màn chiến dịch KHÓ: tỉ lệ (thua + bỏ dở) trên số lượt, chỉ màn có ≥ 3 lượt
+  if (manKq || manBo) {
+    const m = new Map<string, { luot: number; hong: number }>();
+    for (const r of manKq ?? []) {
+      const x = m.get(r.d[0] ?? '') ?? { luot: 0, hong: 0 };
+      x.luot += r.m[0] ?? 0; if (r.d[1] === 'thua') x.hong += r.m[0] ?? 0;
+      m.set(r.d[0] ?? '', x);
+    }
+    for (const r of manBo ?? []) {
+      const x = m.get(r.d[0] ?? '') ?? { luot: 0, hong: 0 };
+      x.luot += r.m[0] ?? 0; x.hong += r.m[0] ?? 0;
+      m.set(r.d[0] ?? '', x);
+    }
+    goi.danhSach.man_kho = [...m].filter(([k, x]) => k && k !== '(not set)' && x.luot >= 3)
+      .map(([k, x]) => ({ k, v: Math.round(x.hong / x.luot * 100), luot: x.luot }))
+      .sort((a, b) => b.v - a.v || b.luot - a.luot).slice(0, 8);
+  }
+  const ghep = (d: Dong[] | null) => kv(d ? d.map((r) => ({ d: [r.d.filter((x) => x && x !== '(not set)').join(' · ')], m: r.m })) : null);
+  if (nguon) goi.danhSach.nguon = ghep(nguon).slice(0, 8);
+  if (loiJs) goi.danhSach.loi_js = kv(loiJs).slice(0, 8);
+  if (roiPhong) goi.danhSach.roi_phong = kv(roiPhong);
+  if (ketNoi) goi.danhSach.ket_noi = kv(ketNoi);
+  if (dangNhap) {
+    goi.danhSach.dang_nhap = ghep(dangNhap.map((r) => ({ d: [r.d[0] ?? '', r.d[1] ?? '', r.d[2] === 'true' ? 'moi' : ''], m: r.m })));
+    goi.kpi.taiKhoanMoi = { v: dangNhap.filter((r) => r.d[1] === 'ok' && r.d[2] === 'true').reduce((a, r) => a + (r.m[0] ?? 0), 0) };
+  }
+  if (chiaSe) goi.danhSach.chia_se = ghep(chiaSe);
+  if (ota) goi.danhSach.ota = kv(ota);
   return goi;
 }
 

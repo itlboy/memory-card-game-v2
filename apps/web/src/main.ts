@@ -20,6 +20,10 @@ import './styles/skins/sao.css';
 import './styles/skins/bong.css';
 import { ganSkin } from './lib/skin';
 import { napTuDien, ngonNgu } from './lib/i18n';
+import { ganBatLoi, guiLoi } from './lib/phan-tich';
+
+// Lỗi JS → GA (lib/phan-tich.ts `guiLoi`) — gắn SỚM NHẤT để bắt cả lỗi lúc nạp
+ganBatLoi();
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
@@ -40,7 +44,12 @@ if (!laApp) void registerSW({ immediate: true });
 // Skin gắn TRƯỚC khi mount: không loé giao diện mặc định một khung hình
 ganSkin();
 // Chờ từ điển của ngôn ngữ đầu (chunk riêng, lib/i18n.ts) — mount trước là loé tiếng Việt một nhịp
-void napTuDien(ngonNgu.value).finally(() => createApp(App).mount('#app'));
+void napTuDien(ngonNgu.value).finally(() => {
+  const app = createApp(App);
+  // Lỗi trong component Vue không tới window.onerror — báo riêng, vẫn in ra console như mặc định
+  app.config.errorHandler = (err, _vm, info) => { guiLoi('vue', err, info); console.error(err); };
+  app.mount('#app');
+});
 
 // MÀN CHỜ (app): giữ tới khi game vẽ xong khung đầu rồi mờ dần — cả iOS lẫn Android.
 // Không có bước này thì iOS bỏ màn chờ ngay lúc WebView mở, trước khi game kịp vẽ,

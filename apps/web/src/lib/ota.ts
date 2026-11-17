@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import { laApp, SITE_URL } from './native';
 import { t } from './i18n';
 import { sfx } from './audio';
+import { suKien } from './phan-tich';
 
 /**
  * CẬP NHẬT NÓNG (OTA) — app gói nhận bản web mới KHÔNG cần qua duyệt store
@@ -268,6 +269,21 @@ export async function nguonGoi(): Promise<{ loai: 'app' | 'ota'; luc?: string } 
   } catch { return null; }
 }
 
+/**
+ * PHÂN TÍCH OTA (17.11.2026): `cap_nhat_ota { ket_qua: ok|loi|cu_qua, tu, den, giay, loi }` — trước đây chỉ
+ * thấy gián tiếp qua ô "Phiên bản web". `ok` = tải xong, chờ mở lại là chạy bản mới. `cu_qua` = app
+ * native quá cũ, phải lên store (đếm một lần mỗi phiên). Không báo `moiNhat`/`kiem` — chuyện bình thường.
+ */
+let lucTaiOta = 0;
+let daBaoCuQua = false;
+function baoOta(v: typeof trangThaiOta.value): void {
+  if (v.buoc === 'tai' && !lucTaiOta) lucTaiOta = Date.now();
+  const giay = lucTaiOta ? Math.round((Date.now() - lucTaiOta) / 1000) : undefined;
+  if (v.buoc === 'choMoLai') { suKien('cap_nhat_ota', { ket_qua: 'ok', tu: __OTA_ID__, den: v.id, giay }); lucTaiOta = 0; }
+  else if (v.buoc === 'loi') { suKien('cap_nhat_ota', { ket_qua: 'loi', tu: __OTA_ID__, den: v.id, giay, loi: (v.loi ?? '').slice(0, 60) }); lucTaiOta = 0; }
+  else if (v.buoc === 'cuQua' && !daBaoCuQua) { daBaoCuQua = true; suKien('cap_nhat_ota', { ket_qua: 'cu_qua', tu: __OTA_ID__, den: v.id }); }
+}
+
 let dangKiem = false;
 export async function kiemOta(): Promise<void> {
   if (!laApp || dangKiem) return;
@@ -275,7 +291,7 @@ export async function kiemOta(): Promise<void> {
   lucKiem = Date.now();
   clearTimeout(henThuLai);
   ganKiemKhiQuayLai();
-  const dat = (v: typeof trangThaiOta.value): void => { trangThaiOta.value = v; };
+  const dat = (v: typeof trangThaiOta.value): void => { trangThaiOta.value = v; baoOta(v); };
   dat({ buoc: 'kiem' });
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');

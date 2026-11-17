@@ -19,6 +19,9 @@ import { gaDem, taoGaTrucTiep } from './ga-truc-tiep';
  */
 export const GA_ID = 'G-MZ4MDWZRH3';   // tài khoản GA "Cozy Pi" → thuộc tính "Flip Match" (15.10.2026)
 
+/** Địa chỉ lúc nạp trang — trước mọi lần viết lại URL (xem page_location ở batPhanTich). */
+const URL_DAU = typeof location === 'undefined' ? '' : location.href;
+
 type Gtag = (...a: unknown[]) => void;
 let gtag: Gtag | null = null;
 /** Sự kiện gửi TRƯỚC khi `batPhanTich` chạy (nó ở onMounted của App — sau setup của con: `buoc_menu`
@@ -87,6 +90,10 @@ export function batPhanTich(): void {
       client_id: store.clientId(),
       client_storage: 'none',
       page_location: `https://flipmatch.cozypi.com/app/${nenApp}`
+    } : URL_DAU.includes('utm_') ? {
+      // Link mời / chia sẻ mang utm_*; App.vue có thể đã viết lại URL (?room=…) trước khi GA bật → đưa
+      // địa chỉ LÚC MỞ để GA ghi đúng nguồn (17.11.2026)
+      page_location: URL_DAU
     } : {})
   });
   gtag('set', 'user_properties', { nen_tang: nenApp, ban_web: __OTA_ID__ });
@@ -119,4 +126,73 @@ export function moChucNang(ten: string, thamSo: Record<string, string | number |
 /** Đổi một cài đặt (nền, âm thanh, nhạc, rung): `muc` = cài đặt nào, `gia_tri` = giá trị mới. */
 export function doiCaiDat(muc: string, giaTri: string | boolean): void {
   suKien('doi_cai_dat', { muc, gia_tri: String(giaTri) });
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * ĐO ĐỂ TỐI ƯU (17.11.2026, chủ dự án duyệt): ~1/3 người mới vào rồi đi không chơi ván nào, ~18% quay
+ * lại. Ba thứ dưới đây trả lời "vì sao": trang có LỖI không, tải có CHẬM không, người mới thấy gì đầu tiên.
+ * ------------------------------------------------------------------------------------------------ */
+
+const T0 = typeof performance === 'undefined' ? 0 : performance.now();
+const msTuMo = (): number => Math.round((typeof performance === 'undefined' ? 0 : performance.now()) - T0);
+
+/** Lần đầu máy này mở game (không có dữ liệu cũ). Đọc MỘT lần lúc nạp module rồi đánh dấu. */
+const LAN_DAU_KEY = 'mm.daMo';
+const lanDau: boolean = (() => {
+  try {
+    if (localStorage.getItem(LAN_DAU_KEY)) return false;
+    localStorage.setItem(LAN_DAU_KEY, String(Date.now()));
+    return true;
+  } catch { return false; }
+})();
+
+/**
+ * MÀN ĐẦU + THỜI GIAN TẢI: gọi một lần khi khung đầu của game ĐÃ VẼ. `man_hinh` = màn mở ra (menu, online qua
+ * link mời, …), `lan_dau` = máy lần đầu mở game — lọc `lan_dau=true` là ra phễu người mới:
+ * tai_xong → buoc_menu → van_bat_dau → van_ket_thuc.
+ */
+let daBaoTai = false;
+export function baoTaiXong(man: string): void {
+  if (daBaoTai) return;
+  daBaoTai = true;
+  suKien('tai_xong', { man_hinh: man, lan_dau: lanDau, ms_toi_menu: msTuMo() });
+}
+
+/** Ván ĐẦU TIÊN của phiên mang thêm `ms_tu_mo` (mở trang → bắt đầu ván) — người mới mất bao lâu mới chơi. */
+let daVanDau = false;
+export function thamSoVanDau(): Record<string, number | boolean> {
+  if (daVanDau) return {};
+  daVanDau = true;
+  return { van_dau_phien: true, ms_tu_mo: msTuMo(), lan_dau: lanDau };
+}
+
+/**
+ * LỖI JAVASCRIPT → GA (`loi_js`). Trước đây trang hỏng trên máy người chơi là mình KHÔNG BIẾT. Rút gọn
+ * thông điệp (bỏ URL, email, số dài — không dữ liệu cá nhân), tối đa 5 lỗi khác nhau mỗi phiên để một
+ * vòng lặp lỗi không xả hết hạn mức GA. `noi` = window | promise | vue.
+ */
+const loiDaGui = new Set<string>();
+const LOI_TOI_DA = 5;
+const LOI_BO_QUA = /ResizeObserver loop|Script error\.?$|Load failed|NetworkError|Failed to fetch|AbortError/i;
+export function guiLoi(noi: string, e: unknown, nguon = ''): void {
+  try {
+    const tho = e instanceof Error ? `${e.name}: ${e.message}` : String((e as { message?: unknown })?.message ?? e);
+    if (!tho || LOI_BO_QUA.test(tho)) return;
+    const gon = tho
+      .replace(/https?:\/\/\S+/g, '<url>')
+      .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>')
+      .replace(/\d{4,}/g, '#')
+      .slice(0, 100);
+    if (loiDaGui.has(gon) || loiDaGui.size >= LOI_TOI_DA) return;
+    loiDaGui.add(gon);
+    suKien('loi_js', { noi, thong_diep: gon, nguon: nguon.replace(/^.*\//, '').replace(/\?.*$/, '').slice(0, 60), ban_web: __OTA_ID__ });
+  } catch { /* bắt lỗi không bao giờ được gây lỗi */ }
+}
+
+export function ganBatLoi(): void {
+  if (typeof window === 'undefined') return;
+  window.addEventListener('error', (ev) => {
+    guiLoi('window', ev.error ?? ev.message, ev.filename ? `${ev.filename}:${ev.lineno}` : '');
+  });
+  window.addEventListener('unhandledrejection', (ev) => guiLoi('promise', ev.reason));
 }

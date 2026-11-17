@@ -2,6 +2,7 @@ import { ref, shallowRef, watch } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
 import { laApp, nenApp, SERVER_URL } from './native';
+import { suKien } from './phan-tich';
 
 /**
  * TÀI KHOẢN phía client — đăng nhập Google hoặc Apple, hồ sơ, gửi kết quả ván.
@@ -190,16 +191,33 @@ export async function lamMoi(): Promise<void> {
  * Trả về hồ sơ sau khi hợp nhất.
  */
 export async function dangNhap(credential: string): Promise<HoSo> {
-  return hoanTat('/api/auth/google', { credential });
+  return baoDangNhap('google', () => hoanTat('/api/auth/google', { credential }, 'google'));
 }
 
-async function hoanTat(path: string, than: Record<string, unknown>): Promise<HoSo> {
+/**
+ * PHÂN TÍCH ĐĂNG NHẬP (17.11.2026): `dang_nhap { cach, ket_qua: ok|huy|loi, moi }` — trang admin đọc GA,
+ * không đọc MySQL, nên số tài khoản mới phải đi đường này. `moi` = hồ sơ server trả về còn TRẮNG (chưa
+ * ván, chưa điểm, chưa danh hiệu) trước khi đồng bộ bản máy — tài khoản vừa tạo, hoặc tạo rồi chưa từng
+ * chơi khi đăng nhập. `loi` chỉ giữ mã ngắn, KHÔNG gửi email/tên.
+ */
+async function baoDangNhap(cach: 'google' | 'apple', lam: () => Promise<HoSo>): Promise<HoSo> {
+  try {
+    return await lam();
+  } catch (e) {
+    const m = String((e as Error)?.message ?? e);
+    suKien('dang_nhap', { cach, ket_qua: m === 'huy' ? 'huy' : 'loi', loi: m === 'huy' ? undefined : m.replace(/[^\w.-]+/g, ' ').trim().slice(0, 40) });
+    throw e;
+  }
+}
+
+async function hoanTat(path: string, than: Record<string, unknown>, cach: 'google' | 'apple'): Promise<HoSo> {
   dangTai.value = true;
   try {
     const r = await goi<{ token: string; me: HoSo }>(path, {
       method: 'POST', body: JSON.stringify(than)
     });
     ghiToken(r.token);
+    suKien('dang_nhap', { cach, ket_qua: 'ok', moi: !r.me.matches && !r.me.totalScore && !r.me.achievements?.length });
     me.value = r.me;
     await dongBo();
     return me.value ?? r.me;
@@ -245,6 +263,9 @@ export function dangXuat(): void {
  * Người chơi tự đóng hộp thoại thì ném `huy` để màn tài khoản im lặng.
  */
 export async function dangNhapApple(): Promise<HoSo> {
+  return baoDangNhap('apple', dangNhapAppleTho);
+}
+async function dangNhapAppleTho(): Promise<HoSo> {
   const { SocialLogin } = await import('@capgo/capacitor-social-login');
   await SocialLogin.initialize({
     apple: nenApp === 'web'
@@ -262,7 +283,7 @@ export async function dangNhapApple(): Promise<HoSo> {
   if (!r.idToken) throw new Error('401');
   // Apple chỉ đưa tên ở LẦN ĐẦU, và không nằm trong token
   const name = [r.profile?.givenName, r.profile?.familyName].filter(Boolean).join(' ');
-  return hoanTat('/api/auth/apple', { idToken: r.idToken, code: r.authorizationCode, name: name || undefined });
+  return hoanTat('/api/auth/apple', { idToken: r.idToken, code: r.authorizationCode, name: name || undefined }, 'apple');
 }
 
 /**
@@ -271,6 +292,9 @@ export async function dangNhapApple(): Promise<HoSo> {
  * (node-server/taikhoan.ts). Người chơi tự đóng hộp chọn thì ném `huy`.
  */
 export async function dangNhapGoogleApp(): Promise<HoSo> {
+  return baoDangNhap('google', dangNhapGoogleAppTho);
+}
+async function dangNhapGoogleAppTho(): Promise<HoSo> {
   const { SocialLogin } = await import('@capgo/capacitor-social-login');
   await SocialLogin.initialize({
     google: {
@@ -289,7 +313,7 @@ export async function dangNhapGoogleApp(): Promise<HoSo> {
   }
   const r = kq.result as { idToken?: string | null };
   if (!r.idToken) throw new Error('401');
-  return hoanTat('/api/auth/google', { credential: r.idToken });
+  return hoanTat('/api/auth/google', { credential: r.idToken }, 'google');
 }
 
 /**

@@ -10,6 +10,7 @@
  * và nút ẩn đi; bản app có plugin chia sẻ sẽ bật lại (bản 1.6).
  */
 import { laApp, nenApp } from './native';
+import { suKien } from './phan-tich';
 
 export interface DongXepHang { hang: number; ten: string; diem: string; nhat?: boolean }
 export interface NoiDungAnh {
@@ -171,6 +172,11 @@ export function tenFile(): string {
  * Android/máy tính: tải file thẳng (Android hiện trong Thư viện ảnh).
  */
 export async function luuAnh(blob: Blob): Promise<'xong' | 'huy'> {
+  const kq = await luuAnhTho(blob);
+  suKien('chia_se', { kenh: 'luu_anh', ket_qua: kq });   // PHÂN TÍCH 17.11.2026: mở hộp ≠ lưu thật
+  return kq;
+}
+async function luuAnhTho(blob: Blob): Promise<'xong' | 'huy'> {
   const ten = tenFile();
   if (laIOS() && coChiaSeFile()) {
     try { await navigator.share({ files: [new File([blob], ten, { type: 'image/png' })] }); return 'xong'; }
@@ -186,6 +192,12 @@ export async function luuAnh(blob: Blob): Promise<'xong' | 'huy'> {
 
 /** CHIA SẺ: ảnh + câu mời + link. Không chia sẻ được file thì chia sẻ chữ, không nữa thì copy. */
 export async function chiaSeAnh(blob: Blob, chu: string, url: string): Promise<'xong' | 'huy' | 'copy'> {
+  const kq = await chiaSeAnhTho(blob, chu, url);
+  // `kenh` = đường chia sẻ máy này đi được; `copy` = không có bảng chia sẻ, đã chép chữ + link
+  suKien('chia_se', { kenh: kq === 'copy' ? 'copy' : coChiaSeFile() ? 'anh' : 'chu', ket_qua: kq });
+  return kq;
+}
+async function chiaSeAnhTho(blob: Blob, chu: string, url: string): Promise<'xong' | 'huy' | 'copy'> {
   const file = new File([blob], tenFile(), { type: 'image/png' });
   try {
     if (coChiaSeFile()) { await navigator.share({ files: [file], text: `${chu}\n${url}` }); return 'xong'; }

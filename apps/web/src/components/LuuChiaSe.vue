@@ -34,7 +34,7 @@ async function luu(): Promise<void> {
 async function chiaSe(): Promise<void> {
   if (!blob.value) return;
   sfx.select();
-  const kq = await chiaSeAnh(blob.value, t('kq.chiaSeChu'), `${SITE_URL}/`);
+  const kq = await chiaSeAnh(blob.value, t('kq.chiaSeChu'), `${SITE_URL}/?utm_source=chia_se&utm_medium=anh_ket_qua`);
   if (kq === 'copy') { bao.value = t('cs.daCopyLink'); setTimeout(() => { bao.value = ''; }, 1800); }
 }
 </script>

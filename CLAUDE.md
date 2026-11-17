@@ -351,6 +351,20 @@
   sự kiện buoc cach che_do chuc_nang danh_hieu gia_tri hanh_dong hoan_hao ket_qua man muc nhanh sao
   so_nguoi so_the theme tuy_chon; phạm vi người dùng nen_tang ban_web; chỉ số giay_choi (giay, Giây)
   và tien_do. Thêm tham số mới thì đăng ký luôn trong cùng lần sửa.
+- **SỰ KIỆN ĐỂ TÌM VÌ SAO NGƯỜI MỚI BỎ ĐI (17.11.2026, chủ dự án duyệt 9 mục)** — số GA 28 ngày: ~1/3 người
+  mới không chơi ván nào, ~18% quay lại. `tai_xong` {man_hinh, lan_dau, ms_toi_menu} (App.vue onMounted, hai
+  rAF) · `van_bat_dau` ván ĐẦU phiên thêm {van_dau_phien, ms_tu_mo, lan_dau} (`thamSoVanDau`) · `loi_js` {noi:
+  window|promise|vue, thong_diep đã lọc URL/email/số dài, nguon, ban_web} — tối đa 5 lỗi khác nhau/phiên, bỏ
+  qua lỗi mạng/ResizeObserver (`ganBatLoi` ở main.ts + `app.config.errorHandler`) · `online_roi_phong` {ly_do:
+  tu_roi|huy_phong|chu_huy|bi_kick|phong_dong|mat_mang|khac, giai_doan: cho|choi|ket_qua, giay} và
+  `online_ket_noi` {ket_qua: noi_lai_ok|noi_lai_hong, ma_dong, giay} — useOnlineRoom theo dõi `phase`, chỗ gây
+  rời đặt `lyDoRoi` TRƯỚC khi phase đổi; rớt lúc app ở NỀN không đếm · `dang_nhap` {cach, ket_qua: ok|huy|loi,
+  moi} (taikhoan.ts `baoDangNhap`; `moi` = hồ sơ server còn trắng) · `chia_se` {kenh: luu_anh|anh|chu|copy,
+  ket_qua} (anh-ket-qua.ts — mở hộp ≠ chia sẻ thật) · `cai_app_ket_qua` {dong_y|tu_choi|da_cai} · `cap_nhat_ota`
+  {ket_qua: ok|loi|cu_qua, tu, den, giay}. Link mời mang `utm_source=moi_ban`, ảnh chia sẻ
+  `utm_source=chia_se` — `page_location` lấy địa chỉ LÚC MỞ (`URL_DAU`) vì App.vue viết lại URL trước khi GA
+  bật. Custom definitions đăng ký 17.11.2026: sự kiện ly_do giai_doan ma_dong loi kenh noi thong_diep nguon
+  lan_dau moi tu den man_hinh van_dau_phien; chỉ số ms_toi_menu ms_tu_mo (ms).
 
 ## PHONG CÁCH CHỐT: 3D NỔI KHỐI (chủ dự án 18.10.2026: "chúng ta sẽ làm theo phong cách này")
 

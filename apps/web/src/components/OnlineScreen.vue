@@ -47,7 +47,7 @@ import type { DoiId, OptLevel, OptionKey, RoomConfig } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { useOnlineRoom } from '@/composables/useOnlineRoom';
-import { moChucNang, suKien } from '@/lib/phan-tich';
+import { moChucNang, suKien, thamSoVanDau } from '@/lib/phan-tich';
 import { store } from '@/lib/storage';
 import { sfx } from '@/lib/audio';
 import { anhEmoji } from '@/lib/emoji';
@@ -139,7 +139,7 @@ const dangVaoPhong = ref('');
 watch(() => o.phase.value, (p, truoc) => {
   if (o.spectator.value) return;
   const soNguoi = o.room.value?.players?.length;
-  if (p === 'playing' && truoc !== 'playing') suKien('van_bat_dau', { che_do: 'online', so_nguoi: soNguoi });
+  if (p === 'playing' && truoc !== 'playing') suKien('van_bat_dau', { ...thamSoVanDau(), che_do: 'online', so_nguoi: soNguoi });
   if (p === 'ended' && truoc === 'playing') suKien('van_ket_thuc', { che_do: 'online', so_nguoi: soNguoi });
 });
 
@@ -487,6 +487,8 @@ const inviteLink = computed(() => {
   const toi = o.room.value?.players.find((p) => p.id === o.myId.value)?.name.trim();
   if (toi) q.set('tu', toi.slice(0, 16));
   q.set('l', ngonNgu.value);
+  // Nguồn cho GA (17.11.2026): người mới tới từ lời mời bạn bè hiện ở Báo cáo → Thu nạp, không cần sự kiện
+  q.set('utm_source', 'moi_ban'); q.set('utm_medium', 'link_moi');
   return `${SITE_URL}/?${q.toString()}`;
 });
 

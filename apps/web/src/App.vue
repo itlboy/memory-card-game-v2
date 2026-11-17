@@ -4,7 +4,7 @@ import { boEmojiVeMacDinh } from '@/lib/emoji';
 import { skinVeMacDinh } from '@/lib/skin';
 import { datPingSo } from '@/lib/ping-so';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
-import { batPhanTich, doiCaiDat, moChucNang, suKien } from '@/lib/phan-tich';
+import { baoTaiXong, batPhanTich, doiCaiDat, moChucNang, suKien, thamSoVanDau } from '@/lib/phan-tich';
 import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
@@ -228,7 +228,12 @@ const showAccount = ref(false);
 useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; });
 // Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
 // trong đó — đây là lớp phủ, không được chặn trang chủ.
-onMounted(() => { void taiKhoan.khoiDong(); batPhanTich(); });
+onMounted(() => {
+  void taiKhoan.khoiDong();
+  batPhanTich();
+  // Màn đầu + thời gian tới khi khung đầu ĐÃ VẼ (hai rAF) — phễu người mới, lib/phan-tich.ts
+  requestAnimationFrame(() => requestAnimationFrame(() => baoTaiXong(String(screen.value))));
+});
 // Hồ sơ đổi (đồng bộ từ máy khác về) → số trên thanh và theme mở theo điểm đổi
 // theo; danh hiệu đếm (tổng điểm, số ván thắng của tài khoản) mở lặng lẽ.
 watch(taiKhoanMe, (m) => {
@@ -690,6 +695,7 @@ function startLevel(id: number): void {
       : configFromOptions({ options: options.value, level: id, symbols: symbols.value, seed: newSeed(), players: playerList() });
     xoayLuotDau(cfg);
     suKien('van_bat_dau', {
+      ...thamSoVanDau(),
       che_do: kieuVan(), so_the: (cfg.pairs ?? 0) * 2, man: mode.value === 'campaign' ? id : undefined,
       so_nguoi: playerCount.value, theme: themeIds.value.join(',').slice(0, 100),
       tuy_chon: mode.value === 'campaign' ? undefined : tomTatTuyChon()

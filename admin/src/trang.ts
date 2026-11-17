@@ -239,6 +239,13 @@ export const JS = String.raw`
   var CACH_VAO = { online_vao_link_moi: 'Link mời', online_vao_ma: 'Nhập mã', online_vao_phong_ds: 'Danh sách phòng' };
   var THEME = { animals: 'Động vật', ocean: 'Đại dương', nature: 'Thiên nhiên', seasons: 'Bốn mùa', food: 'Đồ ăn', letters: 'Chữ & hình', smileys: 'Mặt cười', games: 'Trò chơi', objects: 'Đồ vật', travel: 'Du lịch', festive: 'Lễ hội', flags: 'Cờ' };
   var THU = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  var PHEU = { lan_dau: 'Lần đầu vào game', vao_menu: 'Vào menu chọn', bat_dau_van: 'Bắt đầu ván', choi_xong: 'Chơi xong ván' };
+  var CHU = { tu_roi: 'Tự rời', huy_phong: 'Chủ phòng tự huỷ', chu_huy: 'Bị chủ phòng huỷ', bi_kick: 'Bị mời ra', phong_dong: 'Phòng đã đóng',
+    mat_mang: 'Mất mạng', khac: 'Khác', noi_lai_ok: 'Rớt rồi nối lại được', noi_lai_hong: 'Rớt, không nối lại được',
+    ok: 'thành công', xong: 'xong', huy: 'huỷ', loi: 'lỗi', cu_qua: 'app quá cũ — cần lên store', moi: 'tài khoản mới',
+    google: 'Google', apple: 'Apple', luu_anh: 'Lưu ảnh', anh: 'Chia sẻ ảnh', chu: 'Chia sẻ chữ', copy: 'Chép link',
+    '(direct)': 'Vào thẳng', moi_ban: 'Link mời bạn', chia_se: 'Ảnh chia sẻ', 'play.google.com': 'Google Play', 'apps.apple.com': 'App Store' };
+  var dich = function (x) { return String(x).split(' · ').map(function (p) { return CHU[p] || p; }).join(' · '); };
   var HEAT = ['#14183a', '#2c2a6e', '#4b3fb3', '#7a63f0', '#c4b5ff'];
   var tenNuoc = null;
   try { tenNuoc = new Intl.DisplayNames(['vi'], { type: 'region' }); } catch (e) { /* trình duyệt cũ */ }
@@ -348,6 +355,8 @@ export const JS = String.raw`
       ['Ván đã chơi', k.van, k.vanXong && k.vanXong.v != null ? so(k.vanXong.v) + ' ván chơi tới cuối' : null],
       ['Ván online', k.vanOnline, null],
       ['Phòng online đã tạo', k.phongTao, null],
+      ['Người quay lại', k.quayLai && k.quayLai.v != null ? { v: k.quayLai.v + '%' } : null, 'trong số người chơi của kỳ'],
+      ['Tài khoản mới', k.taiKhoanMoi, 'đăng nhập Google/Apple lần đầu'],
       ['Thời gian chơi TB', phut == null ? null : { v: phut }, 'phút:giây mỗi người']
     ].forEach(function (x) {
       if (g.khoang === '30m' && x[1] == null) return;
@@ -438,13 +447,22 @@ export const JS = String.raw`
       ['Cỡ bàn hay chơi', g.danhSach.so_the, '#67e8f9', function (x) { return x + ' thẻ'; }, 'so_the'],
       ['Chủ đề hay chọn', g.danhSach.theme, '#e3a6ff', function (x) { return THEME[x] || x; }, 'theme'],
       ['Cách vào phòng online', g.danhSach.cach_vao, '#fca5a5', function (x) { return CACH_VAO[x] || x; }, 'chuc_nang'],
-      ['Phiên bản web', g.danhSach.ban_web, '#8b7dff', function (x) { return x; }, 'ban_web']
+      ['Phiên bản web', g.danhSach.ban_web, '#8b7dff', function (x) { return x; }, 'ban_web'],
+      ['Phễu người mới', g.danhSach.pheu, '#86efac', function (x) { return PHEU[x] || x; }, 'pheu', function (r, ds) { var dau = ds[0] && ds[0].v; return so(r.v) + (dau ? ' · ' + Math.round(r.v / dau * 100) + '%' : ''); }],
+      ['Nguồn người chơi', g.danhSach.nguon, '#fcd34d', dich, 'nguon'],
+      ['Màn chiến dịch khó (thua + bỏ dở)', g.danhSach.man_kho, '#fca5a5', function (x) { return 'Màn ' + x; }, 'man_kho', function (r) { return r.v + '% · ' + so(r.luot) + ' lượt'; }],
+      ['Lỗi JavaScript', g.danhSach.loi_js, '#fca5a5', function (x) { return x; }, 'loi_js'],
+      ['Rời phòng online vì', g.danhSach.roi_phong, '#67e8f9', dich, 'roi_phong'],
+      ['Kết nối online', g.danhSach.ket_noi, '#67e8f9', dich, 'ket_noi'],
+      ['Đăng nhập', g.danhSach.dang_nhap, '#8b7dff', dich, 'dang_nhap'],
+      ['Chia sẻ', g.danhSach.chia_se, '#e3a6ff', dich, 'chia_se'],
+      ['Cập nhật nóng (OTA)', g.danhSach.ota, '#86efac', dich, 'ota']
     ].forEach(function (x) {
       if (g.khoang === '30m' && x[4] !== 'quocGia') return;
       var o = el('div', 'thach the'); var t = el('div', 'tieu'); t.appendChild(el('h2', 'ktieu', x[0])); t.appendChild(el('span', 'nguon n-ga', 'GA4')); o.appendChild(t);
-      var ds = x[1] || [], m = Math.max.apply(null, ds.map(function (r) { return r.v; }).concat([1]));
+      var ds = x[1] || [], m = x[4] === 'man_kho' ? 100 : Math.max.apply(null, ds.map(function (r) { return r.v; }).concat([1]));
       ds.forEach(function (r) {
-        var d = el('div', 'ds-dong'); var tr = el('div', 'tren'); tr.appendChild(el('span', null, x[3](r.k))); tr.appendChild(el('span', null, so(r.v)));
+        var d = el('div', 'ds-dong'); var tr = el('div', 'tren'); tr.appendChild(el('span', null, x[3](r.k))); tr.appendChild(el('span', null, x[5] ? x[5](r, ds) : so(r.v)));
         var ray = el('div', 'ray'); var f = el('div'); f.style.width = Math.max(2, Math.round(r.v / m * 100)) + '%'; f.style.background = x[2]; ray.appendChild(f);
         d.appendChild(tr); d.appendChild(ray); o.appendChild(d);
       });

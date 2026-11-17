@@ -9,7 +9,7 @@ import type {
 import { computed, onScopeDispose, ref, shallowRef, nextTick, watch } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
-import { moChucNang } from '@/lib/phan-tich';
+import { moChucNang, suKien } from '@/lib/phan-tich';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
@@ -151,6 +151,27 @@ const BANNER_AFTER_MS = 5_000;
  */
 export function useOnlineRoom() {
   const phase = ref<Phase>('idle');
+  /* PHÂN TÍCH ONLINE (17.11.2026): rời phòng VÌ SAO, ở GIAI ĐOẠN nào, sau bao lâu; kết nối rớt có nối lại
+   * được không. Theo dõi `phase` thay vì gắn từng nút — lối thoát nào cũng đếm. `lyDoRoi` do chỗ gây ra
+   * việc rời đặt TRƯỚC khi phase đổi; chỗ đặt trước thắng (`||=`). Vào phòng = tới phòng chờ / ván / kết
+   * quả — lỗi lúc còn đang nối (sai mã, phòng đầy) không phải "rời phòng". */
+  let vaoPhongLuc = 0;
+  let lyDoRoi = '';
+  let rotLuc = 0;
+  let rotMa = 0;
+  const trongPhong = (x?: Phase): boolean => x === 'lobby' || x === 'playing' || x === 'ended';
+  watch(phase, (p, truoc) => {
+    if (trongPhong(p)) { if (!vaoPhongLuc) vaoPhongLuc = Date.now(); return; }
+    if ((p === 'idle' || p === 'error') && vaoPhongLuc) {
+      suKien('online_roi_phong', {
+        ly_do: p === 'error' ? 'mat_mang' : lyDoRoi || 'khac',
+        giai_doan: truoc === 'playing' ? 'choi' : truoc === 'ended' ? 'ket_qua' : 'cho',
+        giay: Math.round((Date.now() - vaoPhongLuc) / 1000)
+      });
+      vaoPhongLuc = 0;
+      lyDoRoi = '';
+    }
+  });
   const error = ref('');
   const room = shallowRef<RoomInfo | null>(null);
   const view = shallowRef<GameView | null>(null);
@@ -810,6 +831,8 @@ export function useOnlineRoom() {
   /** Phòng không còn: về màn danh sách phòng kèm một dòng báo — như tin 'closed'. */
   function phongDaDong(ma: string): void {
     if (ws?.readyState === WebSocket.OPEN) return;   // vừa nối được thì thôi
+    lyDoRoi ||= 'phong_dong';
+    rotLuc = 0;
     clearStored();
     leaveSocket();
     tatNoiLai();
@@ -921,7 +944,14 @@ export function useOnlineRoom() {
     doNhip.noiLai++;
     doNhip.socket = 'đang nối'; // i18n-bo-qua — bảng đo nội bộ (DoNhip), không phải chữ cho người chơi
 
-    ws.onopen = () => { doNhip.socket = 'mở'; startHeartbeat(); }; // i18n-bo-qua — bảng đo nội bộ
+    ws.onopen = () => {
+      doNhip.socket = 'mở'; // i18n-bo-qua — bảng đo nội bộ
+      startHeartbeat();
+      if (rotLuc) {   // nối lại được sau một lần rớt (đang mở app)
+        suKien('online_ket_noi', { ket_qua: 'noi_lai_ok', ma_dong: rotMa, giay: Math.round((Date.now() - rotLuc) / 1000) });
+        rotLuc = 0;
+      }
+    };
     ws.onmessage = (e) => {
       tinCuoiLuc = Date.now();
       // Đếm cho bảng đo (`?debug=1`). Ghi ở đây vì bật bảng lúc đã trong phòng
@@ -953,6 +983,8 @@ export function useOnlineRoom() {
          */
         const oNen = document.visibilityState === 'hidden';
         if (!oNen && !reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
+        // Rớt lúc ĐANG MỞ app mới đếm — vào nền thì hệ điều hành cắt socket là chuyện bình thường
+        if (!oNen && !rotLuc) { rotLuc = Date.now(); rotMa = e.code; }
         if (oNen || Date.now() < reconnectDeadline) {
           if (oNen) dangNoiLai = true; else batNoiLai();
           kiemPhongCon();
@@ -966,6 +998,10 @@ export function useOnlineRoom() {
       clearAck();
       pending.value = new Set();
       seqCuaO.clear();
+      if (rotLuc) {
+        suKien('online_ket_noi', { ket_qua: 'noi_lai_hong', ma_dong: rotMa || e.code, giay: Math.round((Date.now() - rotLuc) / 1000) });
+        rotLuc = 0;
+      }
       phase.value = 'error';
       error.value ||= t('or.matKetNoiPhong');
     };
@@ -1096,6 +1132,7 @@ export function useOnlineRoom() {
       }
 
       case 'closed':
+        lyDoRoi ||= msg.code === 'kicked' ? 'bi_kick' : 'chu_huy';
         /*
          * Phòng đóng (chủ phòng huỷ) hoặc bị mời ra: về MÀN CHỜ kèm một dòng
          * báo, không phải màn lỗi.
@@ -1502,6 +1539,7 @@ export function useOnlineRoom() {
    * ghi ROI_CHO_KEY để `guiRoiCho` báo bù. Giao diện chuyển màn NGAY, không đợi.
    */
   function roiCoBao(loai: 'cancel' | 'leave'): void {
+    lyDoRoi ||= loai === 'cancel' ? 'huy_phong' : 'tu_roi';
     const s = ws, maPhong = code, tk = token, ten = myName;
     const ghi = (): void => {
       if (!maPhong || !tk) return;
@@ -1568,6 +1606,8 @@ export function useOnlineRoom() {
   }
 
   function leave(): void {
+    lyDoRoi ||= 'tu_roi';
+    rotLuc = 0;
     leaveSocket();
     clearStored();
     daVaoPhong = false;
