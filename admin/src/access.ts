@@ -42,25 +42,27 @@ export async function kiemAccess(req: Request, teams: string, aud: string): Prom
     head = JSON.parse(new TextDecoder().decode(b64url(h)));
     body = JSON.parse(new TextDecoder().decode(b64url(p)));
   } catch { return null; }
-  if (head.alg !== 'RS256' || !head.kid) return null;
+  // Ghi LÝ DO từ chối (không ghi token) — xem bằng `wrangler tail`. Đã cần tới khi đổi tên nhóm Access.
+  const tu = (ly: string): null => { console.log(`[access] từ chối: ${ly} · iss=${body.iss} · kid=${head.kid}`); return null; };
+  if (head.alg !== 'RS256' || !head.kid) return tu('alg/kid');
   const team = dsTeam.find((t) => body.iss === `https://${t}`);
-  if (!team) return null;
+  if (!team) return tu('iss lạ');
 
   let keys = await layKhoa(team);
   let jwk = keys.find((k) => k.kid === head.kid);
   if (!jwk) { keys = await layKhoa(team, true); jwk = keys.find((k) => k.kid === head.kid); }   // Access xoay khoá
-  if (!jwk) return null;
+  if (!jwk) return tu('không có kid trong certs');
 
   const key = await crypto.subtle.importKey('jwk', { kty: jwk.kty, n: jwk.n, e: jwk.e, alg: 'RS256', ext: true },
     { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
   const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, b64url(s), new TextEncoder().encode(`${h}.${p}`));
-  if (!ok) return null;
+  if (!ok) return tu('sai chữ ký');
 
   const now = Math.floor(Date.now() / 1000);
   const auds = Array.isArray(body.aud) ? body.aud : [body.aud];
-  if (!auds.includes(aud)) return null;
+  if (!auds.includes(aud)) return tu('aud khác');
   if (body.iss !== `https://${team}`) return null;
-  if (!body.exp || body.exp < now - 30) return null;
-  if (body.nbf && body.nbf > now + 30) return null;
+  if (!body.exp || body.exp < now - 30) return tu('hết hạn');
+  if (body.nbf && body.nbf > now + 30) return tu('nbf');
   return { email: body.email ?? '' };
 }

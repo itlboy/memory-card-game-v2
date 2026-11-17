@@ -60,7 +60,7 @@ async function nho<T>(khoa: string, giay: number, boQua: boolean, lam: () => Pro
 
 export default {
   async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const ai = await kiemAccess(req, env.ACCESS_TEAM, env.ACCESS_AUD).catch(() => null);
+    const ai = await kiemAccess(req, env.ACCESS_TEAM, env.ACCESS_AUD).catch((e) => { console.log(`[access] lỗi: ${e instanceof Error ? e.message : e}`); return null; });
     const url = new URL(req.url);
     if (!ai) {
       // Phiên Access CŨ (vd trước khi đổi tên miền nhóm 17.11.2026: cổng Access vẫn cho qua nhưng khoá
