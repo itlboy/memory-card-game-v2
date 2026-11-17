@@ -286,27 +286,61 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
       <!-- Tỷ số cả loạt: chơi với nhau nhiều ván thì đây mới là con số người ta thực sự quan tâm.
            `data-kq-for`: bong bóng emoji (EmojiBlast.vue) neo vào CỘT người gửi (đội: vào MẶT
            từng thành viên) — bảng này phủ kín màn chơi nên chip trong ván không còn thấy được. -->
-      <div
-        v-if="loat" v-show="!moChiTiet" class="loat khay-nho khay-noi" role="group"
-        :aria-label="`${t('kq.tySo')}: ${loatAria}`" :style="{ '--n': loat.length }"
-      >
+      <!-- Hai bảng CHỒNG lên cùng một ô lưới, khung cao bằng bảng cao hơn: bấm "Chi tiết ván" chỉ
+           đổi phần bên trong, khung không co giật (chủ dự án 17.11.2026). Bảng đang ẩn dùng
+           visibility chứ không display:none — display:none là mất chỗ, khung nhảy. -->
+      <div v-if="multiplayer" class="lat" :class="{ chong: loat }">
         <div
-          v-for="r in loat" :key="r.id" class="cot" :class="[{ ra: r.ra }, r.doi && `doi d${r.doi}`]"
-          :data-kq-for="r.tv.length ? undefined : r.id"
+          v-if="loat" class="loat khay-nho khay-noi" :class="{ an: moChiTiet }" role="group"
+          :aria-label="`${t('kq.tySo')}: ${loatAria}`" :style="{ '--n': loat.length }"
         >
-          <span class="xep" aria-hidden="true">
-            <template v-if="r.tv.length">
-              <span v-for="m in r.tv" :key="m.id" class="mat" :class="{ ok: m.ok }" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
-            </template>
-            <span v-else class="mat" :class="{ ok: r.ok }"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
-          </span>
-          <b class="ten ten-kq">{{ r.ten }}</b>
-          <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
-          <!-- Hàng số CAO CỐ ĐỊNH: viên +1 nổi bên trên, không đẩy dòng điểm của cột thắng
-               xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
-          <span class="so"><span class="o-so"><b :class="{ lui: r.lui, nay: r.thang }">{{ r.n }}</b><i v-if="r.thang" class="cong" aria-hidden="true">+1</i></span></span>
-          <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
+          <div
+            v-for="r in loat" :key="r.id" class="cot" :class="[{ ra: r.ra }, r.doi && `doi d${r.doi}`]"
+            :data-kq-for="r.tv.length ? undefined : r.id"
+          >
+            <span class="xep" aria-hidden="true">
+              <template v-if="r.tv.length">
+                <span v-for="m in r.tv" :key="m.id" class="mat" :class="{ ok: m.ok }" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
+              </template>
+              <span v-else class="mat" :class="{ ok: r.ok }"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
+            </span>
+            <b class="ten ten-kq">{{ r.ten }}</b>
+            <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
+            <!-- Hàng số CAO CỐ ĐỊNH: viên +1 nổi bên trên, không đẩy dòng điểm của cột thắng
+                 xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
+            <span class="so"><span class="o-so"><b :class="{ lui: r.lui, nay: r.thang }">{{ r.n }}</b><i v-if="r.thang" class="cong" aria-hidden="true">+1</i></span></span>
+            <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
+          </div>
         </div>
+
+        <!-- CHI TIẾT VÁN: điểm · cặp · chuỗi từng người, xếp theo hạng ván. Có bảng tỷ số thì ẩn sau
+             nút "Chi tiết ván" (lật chỗ với bảng tỷ số); không có (thiếu dữ liệu loạt) thì hiện thẳng. -->
+        <ol v-if="multiplayer" id="kqChiTiet" class="ranking" :class="{ 'khay-nho khay-noi': loat, an: loat && !moChiTiet }">
+          <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="loat ? undefined : p.id">
+            <span v-if="cotCua(p.id)" class="mat-ct" aria-hidden="true">
+              <template v-if="cotCua(p.id)!.tv.length"><span v-for="m in cotCua(p.id)!.tv" :key="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span></template>
+              <span v-else><MatNguoi :mat="cotCua(p.id)!.mat" :anh="cotCua(p.id)!.anh" /></span>
+            </span>
+            <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
+            <span class="ten-dong">
+              <span class="ten-kq">{{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}</span>
+            </span>
+            <b>{{ num(p.score) }}</b>
+            <!--
+              Ai muốn chơi tiếp, ai đã đi: nhãn nằm trên DÒNG SỐ CẶP của chính người đó (11.11.2026).
+              Trước đặt cạnh tên → tên + nhãn + điểm chen một hàng, "Nguyễn Hoàng Anh" bị ngắt dòng.
+            -->
+            <small>
+              {{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
+              <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.choiTiep') }}</i>
+              <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.daThoat') }}</i>
+            </small>
+            <!-- ĐỘI: điểm ở trên là của CẢ ĐỘI; dòng này là số cặp từng người tự ghép -->
+            <small v-if="tenThanhVien && (p.thanhVien?.length ?? 0) > 1" class="cap-tv">
+              {{ p.thanhVien!.map((m) => `${tenThanhVien![m] ?? '?'} ${p.capTV?.[m] ?? 0}`).join(' · ') }}
+            </small>
+          </li>
+        </ol>
       </div>
 
       <p v-if="hienSao" class="stars" :aria-label="t('kq.saoAria', { n: summary.stars })">
@@ -330,34 +364,6 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         </template>
       </p>
 
-      <!-- CHI TIẾT VÁN: điểm · cặp · chuỗi từng người, xếp theo hạng ván. Có bảng tỷ số thì ẩn sau
-           nút "Chi tiết ván" (lật chỗ với bảng tỷ số); không có (thiếu dữ liệu loạt) thì hiện thẳng. -->
-      <ol v-if="multiplayer" v-show="!loat || moChiTiet" id="kqChiTiet" class="ranking" :class="{ 'khay-nho khay-noi': loat }">
-        <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="loat ? undefined : p.id">
-          <span v-if="cotCua(p.id)" class="mat-ct" aria-hidden="true">
-            <template v-if="cotCua(p.id)!.tv.length"><span v-for="m in cotCua(p.id)!.tv" :key="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span></template>
-            <span v-else><MatNguoi :mat="cotCua(p.id)!.mat" :anh="cotCua(p.id)!.anh" /></span>
-          </span>
-          <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
-          <span class="ten-dong">
-            <span class="ten-kq">{{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}</span>
-          </span>
-          <b>{{ num(p.score) }}</b>
-          <!--
-            Ai muốn chơi tiếp, ai đã đi: nhãn nằm trên DÒNG SỐ CẶP của chính người đó (11.11.2026).
-            Trước đặt cạnh tên → tên + nhãn + điểm chen một hàng, "Nguyễn Hoàng Anh" bị ngắt dòng.
-          -->
-          <small>
-            {{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
-            <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.choiTiep') }}</i>
-            <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.daThoat') }}</i>
-          </small>
-          <!-- ĐỘI: điểm ở trên là của CẢ ĐỘI; dòng này là số cặp từng người tự ghép -->
-          <small v-if="tenThanhVien && (p.thanhVien?.length ?? 0) > 1" class="cap-tv">
-            {{ p.thanhVien!.map((m) => `${tenThanhVien![m] ?? '?'} ${p.capTV?.[m] ?? 0}`).join(' · ') }}
-          </small>
-        </li>
-      </ol>
       <button
         v-if="loat" class="nut-ct thach th-nho" type="button" aria-controls="kqChiTiet" :aria-expanded="moChiTiet"
         @click="moChiTiet = !moChiTiet"
@@ -584,7 +590,9 @@ h2 { margin: 0 0 4px; }
   margin-left: auto; width: 44px; height: 44px; padding: 0; display: grid; place-items: center;
   border-radius: 14px; color: var(--fg); cursor: pointer;
 }
-.loat, .ranking.khay-nho { min-height: 196px; box-sizing: border-box; margin: 10px 0 0; }
+.lat.chong { display: grid; margin: 10px 0 0; }
+.lat.chong > * { grid-area: 1 / 1; min-height: 196px; box-sizing: border-box; margin: 0; }
+.lat.chong > .an { visibility: hidden; }
 .loat {
   --mat: calc(88px / var(--n) + 12px); --so: calc(128px / var(--n) + 22px);
   display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); align-content: center;
@@ -841,7 +849,8 @@ h2 { margin: 0 0 4px; }
   .row { margin-top: 10px; }
   .row .btn, .row .btn-primary { min-height: 46px; }
   /* Bảng tỷ số loạt: thấp hơn, vẫn là con số to nhất sau tiêu đề */
-  .loat, .ranking.khay-nho { min-height: 0; margin-top: 6px; }
+  .lat.chong { margin-top: 6px; }
+  .lat.chong > * { min-height: 0; }
   .loat { --mat: calc(64px / var(--n) + 10px); --so: calc(96px / var(--n) + 18px); padding: 10px 6px; }
   .dau-kq { min-height: 40px; }
   .nut-ct { margin-top: 6px; min-height: 36px; }

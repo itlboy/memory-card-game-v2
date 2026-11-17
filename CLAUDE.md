@@ -735,7 +735,8 @@
   ô xanh, nút cam, bản tối giữ màu sáng). `ResultDialog`: mỗi người/đội một CỘT theo chỗ ngồi — mặt, tên, MỘT số
   to = ván thắng cả loạt, điểm ván chữ nhỏ; người thắng ván có viên "+1" vàng (màu nhấn DUY NHẤT, tắt sau 1 nhịp);
   người dẫn số đậm, người kém số mờ (`lui`), KHÔNG ô màu. Không chữ "Tỷ số" ("ai cũng biết"). Số cặp/chuỗi ẩn sau
-  nút "Chi tiết ván" (lật CHỖ với bảng tỷ số, cùng `min-height`; không nhớ trạng thái). Đội: mặt thành viên xếp
+  nút "Chi tiết ván" (lật CHỖ với bảng tỷ số; không nhớ trạng thái). Hai bảng CHỒNG cùng một ô lưới (`.lat.chong`),
+  bảng ẩn dùng `visibility` (class `an`) — KHÔNG `v-show`/display:none: mất chỗ là khung co lại, nhảy (chủ dự án báo). Đội: mặt thành viên xếp
   chồng + chấm màu đội như TeamStrip, ✓ từng người đã bấm Chơi lại (`phieuChoiLai`). "Ván N" (`soVanLoat`, đếm
   cả hoà) + nút Lưu/Chia sẻ biểu tượng trên tiêu đề. CHUNG MÁY (không có "mình"): bỏ sao + Tổng điểm, một nút xanh
   "Chơi lại", "Cấp tiếp theo"/"Đổi bàn" thạch trắng; đấu máy và online giữ nút cũ. BẪY: hàng số phải CAO CỐ ĐỊNH
