@@ -509,6 +509,9 @@ const vi = {
   'on.phongDangCho': 'Phòng đang chờ',
   'on.dangVaoPhong': 'Đang vào phòng…',
   'on.soThe': '{n} thẻ',
+  'on.banChung': 'Cả phòng chơi chung bàn này.',
+  'on.ban': 'Bàn: {n} thẻ',
+  'on.luatThuong': 'luật thường',
   /** Nhãn nhỏ dưới số chỗ còn trống của một phòng trong danh sách. */
   'on.cho': 'CHỖ',
   'on.loiDs.tieuDe': 'Không xem được danh sách',

@@ -358,11 +358,11 @@ describe('màn online (điều hướng, không cần server)', () => {
     await flush();
     await click('Chơi online');
     // Bước 1: nút tạo phòng + danh sách phòng công khai, chưa hiện form
-    expect(wrapper.text()).toContain('Tạo phòng mới');
+    expect(wrapper.text()).toContain('Tạo phòng');
     expect(wrapper.text()).toContain('Phòng đang chờ');
     expect(wrapper.text()).toContain('Nhập mã 6 số');
     expect(wrapper.text()).not.toContain('Tên của bạn');
-    await click('Tạo phòng mới');
+    await click('Tạo phòng');
     expect(wrapper.text()).toContain('Tên của bạn');
     await wrapper.find('[aria-label="Quay lại"]').trigger('click');
     await flush();

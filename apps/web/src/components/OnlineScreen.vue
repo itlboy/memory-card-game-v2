@@ -2,7 +2,7 @@
 import { SITE_URL } from '@/lib/native';
 import MatNguoi from './MatNguoi.vue';
 import {
-  CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
+  BOARD_SIZES, CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
 import {
   Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
@@ -38,6 +38,7 @@ import { pingSo } from '@/lib/ping-so';
  */
 const ChiaSeDialog = defineAsyncComponent(() => import('./ChiaSeDialog.vue'));
 import SizeGrid from './SizeGrid.vue';
+import BanChon from './BanChon.vue';
 import OnlineGame from './OnlineGame.vue';
 import EmojiBar from './EmojiBar.vue';
 import EmojiBlast from './EmojiBlast.vue';
@@ -182,12 +183,36 @@ watch(() => o.room.value?.code, (code) => {
 });
 
 function remember(): void { store.savePlayerNames([name.value.trim()]); }
+/*
+ * TẠO PHÒNG LÀ CÓ PHÒNG NGAY (17.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1):
+ * trước đây đi Số thẻ → Bộ thẻ → Bàn chơi rồi mới có mã — bạn bè chờ suốt ba màn mà hầu hết để
+ * mặc định. Nay dùng bàn của phòng mình làm chủ lần trước (Prefs.banOnline), lần đầu là Dễ 12 thẻ
+ * + mọi bộ chơi được; đổi bàn thì làm trong phòng chờ (dòng "Bàn … Đổi", một màn BanChon).
+ */
+const LEVEL_DE = BOARD_SIZES.find((s) => s.pairs === 6)!.level;
+function banMacDinh(): RoomConfig {
+  const cu = store.prefs().banOnline;
+  const choiDuocIds = allThemes.value.filter(choiDuoc).map((x) => x.id);
+  if (cu) {
+    // Bộ premium đã hết hạn / theme đã bỏ thì lọc đi; lọc hết thì [] = server trộn mọi bộ miễn phí
+    const ids = choiDuocIds.length ? cu.themeIds.filter((id) => choiDuocIds.includes(id)) : cu.themeIds;
+    return { level: cu.level, themeIds: ids, options: { ...cu.options } };
+  }
+  return { ...DEFAULT_ROOM_CONFIG, level: LEVEL_DE, themeIds: choiDuocIds, options: { ...DEFAULT_ROOM_CONFIG.options } };
+}
 function create(): void {
-  if (!name.value.trim()) return;
+  if (!name.value.trim() || creatingRoom.value) return;
   sfx.select();
   moChucNang('online_tao_phong');
-  wizard.value = 'level';   // đi qua các bước chọn bàn như chơi một mình
+  cfg.value = banMacDinh();
+  remember();
+  creatingRoom.value = true;
+  void o.createRoom(name.value.trim(), { ...cfg.value });
 }
+// Bàn của phòng mình làm chủ = bàn cho lần "Tạo phòng" sau
+watch(() => (o.isHost.value ? o.room.value?.config : undefined), (c) => {
+  if (c) store.savePrefs({ banOnline: { level: c.level, themeIds: [...c.themeIds], options: { ...c.options } } });
+}, { deep: true });
 
 /**
  * Bấm "Tạo phòng mới": ĐÃ CÓ TÊN thì đi thẳng vào chọn bàn.
@@ -608,6 +633,25 @@ function optionChips(c?: RoomConfig): { key: OptionKey; icon: IconName; text: st
     .map((k) => ({ key: k, icon: OPTION_ICONS[k], text: dichGoiYTuyChon(optionSummary(k, c.options[k], c.level)) ?? '' }))
     .filter((x) => x.text !== '');
 }
+/** Dòng "Bàn" ở phòng chờ: luật đang bật (tên ngắn), không bật gì thì "luật thường". */
+const luatBan = computed(() => {
+  const c = o.room.value?.config;
+  const bat = c ? OPTION_KEYS.filter((k) => c.options[k] > 0).map((k) => td(`opt.${k}`)) : [];
+  return bat.length ? bat.join(', ') : t('on.luatThuong');
+});
+/** "Tất cả 12 bộ" / "Đã chọn 3 bộ" — cùng chữ với màn Bàn chơi (BanChon). Rỗng = mọi bộ miễn phí. */
+const boBan = computed(() => {
+  const ids = o.room.value?.config.themeIds ?? [];
+  const mienPhi = allThemes.value.filter((x) => !x.premium).length;
+  if (!ids.length) return t('menu.nhanh.tatCaBo', { n: mienPhi });
+  return ids.length >= allThemes.value.filter(choiDuoc).length ? t('menu.nhanh.tatCaBo', { n: ids.length }) : t('menu.nhanh.soBo', { n: ids.length });
+});
+/** Hình mẫu tối đa 3 bộ của phòng; rỗng = mọi bộ miễn phí. */
+const hinhBan = computed(() => {
+  const ids = o.room.value?.config.themeIds ?? [];
+  const ds = ids.length ? allThemes.value.filter((x) => ids.includes(x.id)) : allThemes.value.filter((x) => !x.premium);
+  return ds.slice(0, 3).map((x) => anhEmoji(x.symbols[0], true, 128)).filter((x): x is string => !!x);
+});
 /** Liệt kê hết 12 tên theme thì dòng cấu hình dài mấy dòng và vỡ bố cục. */
 function themeSummary(ids: string[]): string {
   /*
@@ -631,7 +675,7 @@ function themeSummary(ids: string[]): string {
 
 /** Wizard chọn bàn chơi — dùng cả trước khi tạo phòng lẫn khi chỉnh trong lobby. */
 // Cùng thứ tự với wizard chơi đơn: chế độ → cấp độ → theme.
-const wizard = ref<null | 'level' | 'theme' | 'options'>(null);
+const wizard = ref<null | 'ban' | 'level' | 'theme' | 'options'>(null);
 
 /* ---------- TỰ LÀM MỚI DANH SÁCH PHÒNG ----------
  *
@@ -695,8 +739,7 @@ onUnmounted(() => { dung(); document.removeEventListener('visibilitychange', the
 const cfg = ref<RoomConfig>({ ...DEFAULT_ROOM_CONFIG, themeIds: [] });
 // Chỉnh bàn của phòng đang có: ở lobby, hoặc từ nút "Chỉnh bàn" ở màn kết quả (07.11.2026)
 const editingInLobby = computed(() => o.phase.value === 'lobby' || o.phase.value === 'ended');
-const WIZ_STEPS = ['level', 'theme', 'options'] as const;
-const WIZ_TITLES = computed(() => ({ level: t('menu.chonSoThe'), theme: t('menu.buoc.theme'), options: t('menu.buoc.options') }));
+const WIZ_TITLES = computed(() => ({ ban: t('menu.buoc.options'), level: t('menu.chonSoThe'), theme: t('menu.buoc.theme'), options: t('menu.nhanh.luat') }));
 
 function wizToggleTheme(id: string): void {
   const cur = cfg.value.themeIds;
@@ -716,11 +759,20 @@ function flashThemeWarn(): void {
   themeWarnTimer = setTimeout(() => { themeWarn.value = false; }, 2000);
 }
 
+/** Bước phụ (lưới cỡ, bộ thẻ, luật) lùi về màn Bàn chơi; màn Bàn chơi lùi về phòng — KHÔNG lưu. */
 function wizBack(): void {
-  if (wizard.value === 'theme') { wizard.value = 'level'; return; }
-  if (wizard.value === 'options') { wizard.value = 'theme'; return; }
-  wizard.value = null;   // về nhập tên (tạo mới) hoặc lobby (đang chỉnh)
+  if (wizard.value && wizard.value !== 'ban') {
+    if (wizard.value === 'theme' && wizTooSmall.value) return;   // thiếu biểu tượng: ở lại, cảnh báo đang hiện
+    wizard.value = 'ban'; return;
+  }
+  wizard.value = null;
 }
+function chonCoBan(level: number): void {
+  if (level === cfg.value.level) return;
+  sfx.select();
+  cfg.value = { ...cfg.value, level };
+}
+function moBuocBan(b: 'level' | 'theme' | 'options'): void { sfx.select(); wizard.value = b; }
 
 /*
  * NÚT BACK CỦA TRÌNH DUYỆT trong màn online. Độ sâu gộp hai thứ xếp chồng nhau:
@@ -772,7 +824,7 @@ const cardCount = computed(() => {
 function wizPickLevel(id: number): void {
   sfx.select();
   cfg.value = { ...cfg.value, level: id };
-  wizard.value = 'theme';
+  wizard.value = 'ban';
 }
 
 /** Bộ theme đang chọn đủ biểu tượng cho cấp đã chọn chưa? */
@@ -780,16 +832,14 @@ const wizTooSmall = computed(() =>
   wizPool.value > 0 && wizPool.value < levelSpec(cfg.value.level).pairs);
 
 const creatingRoom = ref(false);
+// Tạo hỏng (mất mạng…) thì thôi cờ đang tạo — nút "Tạo phòng" bấm lại được
+watch(o.phase, (ph) => { if (creatingRoom.value && (ph === 'error' || ph === 'idle')) creatingRoom.value = false; });
 
 function wizFinish(): void {
-  if (editingInLobby.value) {
-    o.setConfig({ ...cfg.value });
-    wizard.value = null;
-    return;
-  }
-  remember();
-  creatingRoom.value = true;
-  void o.createRoom(name.value.trim(), { ...cfg.value });
+  if (wizTooSmall.value) { wizard.value = 'theme'; return; }
+  sfx.select();
+  if (editingInLobby.value) o.setConfig({ ...cfg.value });
+  wizard.value = null;
 }
 
 // Đang "Chỉnh bàn" sau ván mà phòng đi tiếp nơi khác (ai đó vào ván, phòng đóng…) thì
@@ -807,8 +857,9 @@ watch(o.phase, (ph) => {
 
 function openCfgWizard(): void {
   const c = o.room.value?.config;
-  if (c) cfg.value = { level: c.level, themeIds: [...c.themeIds], options: { ...c.options } };
-  wizard.value = 'level';
+  // themeIds rỗng = server trộn mọi bộ miễn phí: hiện đúng như thế (đủ các bộ chơi được) để màn Bộ thẻ khớp
+  if (c) cfg.value = { level: c.level, themeIds: c.themeIds.length ? [...c.themeIds] : allThemes.value.filter((x) => !x.premium).map((x) => x.id), options: { ...c.options } };
+  wizard.value = 'ban';
 }
 </script>
 
@@ -821,12 +872,22 @@ function openCfgWizard(): void {
     <div class="head">
       <button class="btn back" :aria-label="t('menu.quayLai')" type="button" @click="wizBack"><ChevronLeft :size="22" /></button>
       <h2>{{ WIZ_TITLES[wizard!] }}</h2>
-      <span class="dots" aria-hidden="true">
-        <i v-for="(st, i) in WIZ_STEPS" :key="st" :class="{ on: i <= WIZ_STEPS.indexOf(wizard) }" />
-      </span>
     </div>
 
-    <div v-if="wizard === 'level'" class="step-body">
+    <!-- ĐỔI BÀN MỘT MÀN (17.11.2026): như màn Chơi nhanh — bước phụ xong là quay về đây -->
+    <div v-if="wizard === 'ban'" class="step-body nhanh">
+      <p class="hint-multi">{{ t('on.banChung') }}</p>
+      <BanChon
+        :level="cfg.level" :symbol-count="allSymbols" :themes="allThemes" :theme-ids="cfg.themeIds" :options="cfg.options"
+        @chon-co="chonCoBan" @mo="moBuocBan"
+      />
+      <p v-if="wizTooSmall" class="warn" role="alert">
+        {{ t('on.thieuBieuTuong', { n: levelSpec(cfg.level).pairs * 2 }) }}
+      </p>
+      <button class="btn-primary nh-bat-dau" type="button" @click="wizFinish">{{ t('menu.nhanh.xong') }}</button>
+    </div>
+
+    <div v-else-if="wizard === 'level'" class="step-body">
       <!-- Phòng online chọn SỐ THẺ, không đi theo thang cấp: thang cấp chỉ có
            nghĩa khi chơi một mình (mỗi máy mở tới một cấp khác nhau, khoá lại
            thành ra tranh cãi chọn bàn nào), mà độ khó thì đã nằm ở bước tuỳ
@@ -846,9 +907,9 @@ function openCfgWizard(): void {
       <button
         class="btn-primary" type="button"
         :disabled="wizTooSmall"
-        @click="wizard = 'options'"
+        @click="sfx.select(); wizard = 'ban'"
       >
-        {{ t('menu.tiep') }}
+        {{ t('menu.nhanh.xong') }}
       </button>
     </div>
 
@@ -873,12 +934,8 @@ function openCfgWizard(): void {
       </div>
       </div>
 
-      <button
-        class="btn-primary" type="button"
-        :disabled="o.phase.value === 'connecting'"
-        @click="wizFinish"
-      >
-        {{ editingInLobby ? t('on.luuBan') : o.phase.value === 'connecting' ? t('on.dangTao') : t('on.taoPhong') }}
+      <button class="btn-primary" type="button" @click="sfx.select(); wizard = 'ban'">
+        {{ t('menu.nhanh.xong') }}
       </button>
     </div>
 
@@ -902,8 +959,9 @@ function openCfgWizard(): void {
       thành một dòng ở dưới, dành cho phòng riêng tư.
     -->
     <template v-if="entryStep === 'choose'">
-      <button class="btn-primary tao-phong" type="button" @click="batDauTao()">
-        <Plus :size="22" /> {{ t('on.taoPhongMoi') }}
+      <button class="btn-primary tao-phong" type="button" :disabled="creatingRoom" @click="batDauTao()">
+        <template v-if="creatingRoom">{{ t('on.dangTao') }}</template>
+        <template v-else><Plus :size="22" /> {{ t('on.taoPhong') }}</template>
       </button>
 
       <div class="list-head">
@@ -977,8 +1035,8 @@ function openCfgWizard(): void {
         <span>{{ t('on.tenBan') }}</span>
         <input v-model="name" maxlength="16" :placeholder="namePlaceholder" @keydown.enter="create">
       </label>
-      <button class="btn-primary" :disabled="!name.trim()" type="button" @click="create">
-        {{ t('menu.tiepTuc') }}
+      <button class="btn-primary" :disabled="!name.trim() || creatingRoom" type="button" @click="create">
+        {{ creatingRoom ? t('on.dangTao') : t('on.taoPhong') }}
       </button>
     </template>
 
@@ -1171,21 +1229,15 @@ function openCfgWizard(): void {
     </ul>
 
     <template v-if="o.isHost.value">
-      <!-- Tóm tắt bàn chơi + nút chỉnh (mở lại wizard) — không còn hàng cuộn ngang che mất theme -->
-      <div class="cfg-summary">
-        <span>
-          <b>{{ t('on.soThe', { n: cardCount }) }}</b>
-          · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
+      <!-- Một dòng "Bàn: 12 thẻ (Dễ) — bộ · luật — Đổi ›" (17.11.2026) thay tóm tắt + nút Chỉnh + chip -->
+      <button class="nh-dong ban-dong thach" type="button" @click="openCfgWizard">
+        <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhBan" :key="h" :src="h" alt=""></span>
+        <span class="nh-chu">
+          <strong>{{ t('on.ban', { n: cardCount }) }}</strong>
+          <small>{{ boBan }} · {{ luatBan }}</small>
         </span>
-        <button class="btn edit" type="button" @click="openCfgWizard"><Settings2 :size="16" /> {{ t('on.chinh') }}</button>
-      </div>
-      <!-- Chỉ hiện tuỳ chọn ĐANG BẬT: bàn trơn thì dòng này rỗng, và không có
-           gì để đọc là đúng — không có luật lạ nào. -->
-      <div v-if="optionChips(o.room.value?.config).length" class="cfg-chips">
-        <span v-for="c in optionChips(o.room.value?.config)" :key="c.key" class="cfg-chip">
-          <OptionIcon :name="c.icon" :size="17" />{{ c.text }}
-        </span>
-      </div>
+        <span class="nh-sua">{{ t('menu.nhanh.doi') }} ›</span>
+      </button>
       <button
         class="btn-primary" type="button"
         :class="{ dangMo: dangMoVan }"
@@ -1517,15 +1569,6 @@ input:focus { outline: none; border-color: var(--accent); }
 /* Tên theme: MỘT dòng duy nhất, cỡ chữ co theo bề rộng ô (container query)
    — không bao giờ cắt mất từ như line-clamp trong ô grid nén */
 .hint-multi { margin: 0 0 12px; color: var(--muted); font-size: var(--text-sm); }
-.cfg-summary {
-  /* Một dòng ~40px (14.11.2026; trước ~64px cho một dòng chữ) */
-  display: flex; align-items: center; gap: 10px; margin-top: 8px;
-  padding: 3px 4px 3px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--panel-soft); font-size: var(--text-sm);
-}
-.cfg-summary span { flex: 1; min-width: 0; }
-.cfg-summary .edit { white-space: nowrap; min-height: 34px; padding: 0 10px; gap: 4px; font-size: var(--text-sm); position: relative; }
-.cfg-summary .edit::after { content: ''; position: absolute; inset: -5px 0; }
 /* Nền tảng của ô lựa chọn nay ở wizard.css. Màn này ô cao hơn nên chỉ nới
    padding, phần còn lại dùng chung. */
 .option { padding: 24px 16px; }
