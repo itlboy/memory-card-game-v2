@@ -1,5 +1,5 @@
 import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, doiDanhHieu, doiThemeIds, sanitizeOptions } from '@mm/engine';
-import type { BoardOptions, Mode } from '@mm/engine';
+import type { BoardOptions, Mode, RoomConfig } from '@mm/engine';
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
 export type SoundLevel = 'off' | 'low' | 'high';
@@ -56,6 +56,9 @@ export interface Prefs {
    *  có thì bấm ô Chơi nhanh ở trang chủ là vào ván ngay với đúng cỡ bàn + số người này.
    *  Lưu RIÊNG vì `level`/`playerCount` bị Chiến dịch và Đấu máy ghi đè. Thiếu = chưa chơi nhanh lần nào. */
   nhanh?: { level: number; playerCount: number };
+  /** Bàn của phòng online gần nhất mình làm chủ (17.11.2026): bấm "Tạo phòng" là có phòng
+   *  ngay với bàn này, không qua bước chọn nào. Thiếu = chưa tạo phòng lần nào. */
+  banOnline?: RoomConfig;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -158,6 +161,10 @@ export const store = {
     merged.nhanh = nh && Number.isInteger(nh.level) && nh.level >= 1 && nh.level <= LEVEL_KEYS
       && Number.isInteger(nh.playerCount) && nh.playerCount >= 1 && nh.playerCount <= 4
       ? { level: nh.level, playerCount: nh.playerCount } : undefined;
+    const bo = saved.banOnline;
+    merged.banOnline = bo && Number.isInteger(bo.level) && bo.level >= 1 && bo.level <= LEVEL_KEYS
+      && Array.isArray(bo.themeIds) && bo.themeIds.every((x) => typeof x === 'string')
+      ? { level: bo.level, themeIds: doiThemeIds(bo.themeIds), options: sanitizeOptions(bo.options ?? {}) } : undefined;
     return merged;
   },
 

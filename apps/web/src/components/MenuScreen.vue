@@ -40,9 +40,9 @@ import SizeGrid from './SizeGrid.vue';
 import ThemePicker from './ThemePicker.vue';
 import QuatLa from './QuatLa.vue';
 import OptionIcon from './OptionIcon.vue';
+import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
-import { choiDuoc } from '@/lib/premium';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
@@ -279,8 +279,6 @@ const coCua = (level: number) => BOARD_SIZES.find((s) => s.level === level);
 const MUC_NHANH = ([['de', 6], ['vua', 12], ['kho', 21]] as const).map(([k, pairs]) => ({
   k, pairs, level: BOARD_SIZES.find((s) => s.pairs === pairs)!.level
 }));
-const coDangChon = computed(() => coCua(props.level));
-const laCoKhac = computed(() => !MUC_NHANH.some((m) => m.level === props.level) && !!coDangChon.value);
 
 /** Vào màn Chơi nhanh: dựng lại cỡ bàn + số người của ván trước (Chiến dịch/Đấu máy có thể đã ghi đè). */
 function vaoNhanh(): void {
@@ -350,20 +348,6 @@ const tenDangDung = computed(() => {
   const saved = store.playerNames();
   return Array.from({ length: props.playerCount }, (_, i) =>
     (mayO(i) ? tenBot(mayO(i)!) : (names.value[i] || saved[i] || '').trim() || t('menu.nguoiN', { n: i + 1 }))).join(', ');
-});
-/** Theme đang chọn: "Tất cả 12 bộ" hay "Đã chọn 3 bộ", kèm hình mẫu của tối đa 3 bộ. */
-const tomTatTheme = computed(() => {
-  // So với theme CHƠI ĐƯỢC (premium chưa mua không tính) — không thì bật hết vẫn ra "Đã chọn N bộ"
-  const chon = props.themes.filter((th) => props.themeIds.includes(th.id));
-  return chon.length >= props.themes.filter(choiDuoc).length && chon.length > 0
-    ? t('menu.nhanh.tatCaBo', { n: chon.length }) : t('menu.nhanh.soBo', { n: chon.length });
-});
-const hinhTheme = computed(() => props.themes.filter((th) => props.themeIds.includes(th.id)).slice(0, 3)
-  .map((th) => anhEmoji(th.symbols[0], true, 128)).filter((x): x is string => !!x));
-/** Bàn chơi: tên các tuỳ chọn đang bật, không bật gì thì "Thường". */
-const tomTatLuat = computed(() => {
-  const bat = OPTION_KEYS.filter((k) => props.options[k] > 0).map((k) => td(`opt.${k}`));
-  return bat.length ? bat.join(', ') : t('menu.nhanh.luatThuong');
 });
 function batDauNhanh(): void {
   if (themeTooSmall.value) { moBuocPhu('theme'); return; }
@@ -700,33 +684,10 @@ const ICO3D = {
           <span class="nh-sua">{{ t('menu.nhanh.sua') }}</span>
         </button>
 
-        <p class="nh-nhan">{{ t('menu.soThe') }}</p>
-        <div class="nh-hang" role="radiogroup" :aria-label="t('menu.soThe')">
-          <button
-            v-for="m in MUC_NHANH" :key="m.k" class="option nh-o" type="button" role="radio"
-            :aria-checked="level === m.level" :aria-label="t('menu.theN', { n: m.pairs * 2 })"
-            :disabled="m.pairs > maxSymbolCount"
-            @click="chonCo(m.level)"
-          >
-            <strong class="num">{{ m.pairs * 2 }}</strong>
-            <small>{{ t(`menu.nhanh.${m.k}`) }}</small>
-          </button>
-          <button class="option nh-o" type="button" role="radio" :aria-checked="laCoKhac" @click="moBuocPhu('level')">
-            <strong class="num">{{ laCoKhac && coDangChon ? coDangChon.pairs * 2 : '…' }}</strong>
-            <small>{{ t('menu.nhanh.khac') }}</small>
-          </button>
-        </div>
-
-        <button class="nh-dong thach" type="button" @click="moBuocPhu('theme')">
-          <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhTheme" :key="h" :src="h" alt=""></span>
-          <span class="nh-chu"><strong>{{ t('menu.nhanh.boThe') }}</strong><small>{{ tomTatTheme }}</small></span>
-          <ChevronRight class="nh-mui" :size="20" aria-hidden="true" />
-        </button>
-        <button class="nh-dong thach" type="button" @click="moBuocPhu('options')">
-          <OptionIcon name="time" :size="30" />
-          <span class="nh-chu"><strong>{{ t('menu.nhanh.luat') }}</strong><small>{{ tomTatLuat }}</small></span>
-          <ChevronRight class="nh-mui" :size="20" aria-hidden="true" />
-        </button>
+        <BanChon
+          :level="level" :symbol-count="maxSymbolCount" :themes="themes" :theme-ids="themeIds" :options="options"
+          @chon-co="chonCo" @mo="moBuocPhu"
+        />
 
         <p v-if="themeTooSmall" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
         <button class="btn-primary nh-bat-dau" type="button" @click="batDauNhanh">
@@ -1232,27 +1193,6 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 }
 
 /* ---------- MÀN CHƠI NHANH (16.11.2026) ---------- */
-.step-body.nhanh { gap: clamp(6px, 1.4vh, 12px); }
-.nh-nhan { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: var(--text-md, 17px); line-height: 1.1; flex: none; }
-/* Hàng 4 ô: co theo chiều cao còn lại nhưng không dưới 48px (vùng chạm) và không quá 92px */
-.nh-hang { flex: 1 1 72px; min-height: 48px; max-height: 92px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.nh-o { height: 100%; padding: 4px; gap: 0; }
-.nh-o .num { font-size: clamp(20px, min(30cqw, 46cqh), 34px); line-height: 1.05; font-variant-numeric: tabular-nums; }
-.nh-o small { font-size: clamp(11px, min(14cqw, 20cqh), 14px); font-weight: 700; letter-spacing: .2px; }
-.nh-dong {
-  flex: 1 1 58px; min-height: 44px; max-height: 68px; width: 100%;
-  display: flex; align-items: center; gap: 10px; padding: 0 14px; text-align: left;
-  font: inherit; color: var(--fg); cursor: pointer;
-}
-.nh-dong.nh-ten { flex-basis: 48px; max-height: 56px; }
-.nh-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
-.nh-chu strong { font-family: var(--font-display); font-weight: 800; font-size: var(--text-md, 16px); }
-.nh-chu small { font-size: var(--text-xs, 13px); font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nh-hinh { flex: none; display: flex; }
-.nh-hinh img { width: 26px; height: 26px; margin-left: -6px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .2)); }
-.nh-hinh img:first-child { margin-left: 0; }
-.nh-mui { flex: none; color: var(--muted); }
-.nh-sua { flex: none; font-family: var(--font-display); font-weight: 800; color: var(--accent); }
 .nh-bat-dau { flex: none; margin-top: auto; }
 
 /* Dải "Chơi nhanh: 12 thẻ · Một mình — Đổi" ở trang chủ */

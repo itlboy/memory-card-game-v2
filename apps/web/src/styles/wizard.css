@@ -173,3 +173,26 @@ section.panel { will-change: opacity; }
  * chuyển động bên trong lúc rời: ô đứng yên, cả khối mờ cùng nhau.
  */
 .step-leave-active * { transition: none !important; animation: none !important; }
+
+/* ---------- CHỌN BÀN MỘT MÀN (Chơi nhanh + Đổi bàn online, BanChon.vue) — toàn cục vì dùng ở nhiều màn ---------- */
+.step-body.nhanh { gap: clamp(6px, 1.4vh, 12px); }
+.nh-nhan { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: var(--text-md, 17px); line-height: 1.1; flex: none; }
+/* Hàng 4 ô: co theo chiều cao còn lại nhưng không dưới 48px (vùng chạm) và không quá 92px */
+.nh-hang { flex: 1 1 72px; min-height: 48px; max-height: 92px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.nh-o { height: 100%; padding: 4px; gap: 0; }
+.nh-o .num { font-size: clamp(20px, min(30cqw, 46cqh), 34px); line-height: 1.05; font-variant-numeric: tabular-nums; }
+.nh-o small { font-size: clamp(11px, min(14cqw, 20cqh), 14px); font-weight: 700; letter-spacing: .2px; }
+.nh-dong {
+  flex: 1 1 58px; min-height: 44px; max-height: 68px; width: 100%;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px; text-align: left;
+  font: inherit; color: var(--fg); cursor: pointer;
+}
+.nh-dong.nh-ten { flex-basis: 48px; max-height: 56px; }
+.nh-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.nh-chu strong { font-family: var(--font-display); font-weight: 800; font-size: var(--text-md, 16px); }
+.nh-chu small { font-size: var(--text-xs, 13px); font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nh-hinh { flex: none; display: flex; }
+.nh-hinh img { width: 26px; height: 26px; margin-left: -6px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .2)); }
+.nh-hinh img:first-child { margin-left: 0; }
+.nh-mui { flex: none; color: var(--muted); }
+.nh-sua { flex: none; font-family: var(--font-display); font-weight: 800; color: var(--accent); }

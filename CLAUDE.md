@@ -617,6 +617,12 @@
   SDK Google. BẪY ĐÃ GẶP: màn đồng ý OAuth từng ở "Testing" + 0 người thử → đăng nhập Google trên WEB
   bị chặn với mọi người, không ai báo; đã Publish (In production) 09.11.2026. KHÔNG tải logo lên trang
   Branding — có logo là Google bắt xét duyệt app.
+- **TẠO PHÒNG ONLINE GỌN (17.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1)**:
+  bấm "Tạo phòng" là có phòng NGAY với bàn của phòng mình làm chủ lần trước (`Prefs.banOnline`, ghi mỗi
+  khi cấu hình phòng đổi lúc mình là chủ; lần đầu Dễ 12 thẻ + mọi bộ chơi được) — không còn 3 màn
+  Số thẻ/Bộ thẻ/Bàn chơi trước khi có mã. Phòng chờ: một dòng `.ban-dong` "Bàn: N thẻ · bộ · luật — Đổi ›"
+  mở `wizard = 'ban'`: MỘT màn `BanChon.vue` (dùng chung với màn Chơi nhanh; CSS `.nh-*` ở
+  `styles/wizard.css`), bước phụ level/theme/options xong là về 'ban', "Xong" mới `setConfig`.
 - **CHƠI NHANH MỘT MÀN (16.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1)**:
   GA4 (phễu `buoc_menu`) thấy wizard 4 bước rơi nửa người, mà theme + bàn chơi để mặc định hầu như không
   ai đổi. Nay bước `nhanh` (MenuScreen) gom số người (1–4, chỉ SỐ, không mặt thú — chủ dự án chốt) · số thẻ
