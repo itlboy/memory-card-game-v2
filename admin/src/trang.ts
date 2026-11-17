@@ -17,8 +17,9 @@ export const HTML = String.raw`<!doctype html>
 <link rel="stylesheet" href="/app.css">
 <script src="/app.js" defer></script>
 </head>
-<body>
-<div class="khung">
+<body class="dang-tai">
+<div class="thanh-tai" role="progressbar" aria-label="Đang tải số liệu" aria-hidden="true"></div>
+<div class="khung" id="khung" aria-busy="true">
   <header class="dau">
     <div class="ten">
       <div class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="12" rx="2"/><rect x="13" y="8" width="8" height="12" rx="2"/></svg></div>
@@ -42,10 +43,18 @@ export const HTML = String.raw`<!doctype html>
 
   <section class="thach song" aria-live="polite">
     <div class="song-tieu"><span class="cham"></span><h2 class="ktieu">30 phút qua</h2><span class="nguon n-live">GA Realtime</span></div>
-    <div class="song-so" id="song"><span class="mo">đang tải…</span></div>
+    <div class="song-so" id="song"><span class="sk" style="width:120px;height:30px"></span><span class="sk" style="width:120px;height:30px"></span><span class="sk" style="width:100px;height:30px"></span></div>
   </section>
 
-  <section class="luoi-kpi" id="kpi"></section>
+  <!-- Khung xương lần mở đầu: ve() thay bằng số thật -->
+  <section class="luoi-kpi" id="kpi">
+    <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
+    <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
+    <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
+    <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
+    <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
+    <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
+  </section>
 
   <section class="hang">
     <div class="thach the bieu-do">
@@ -54,13 +63,13 @@ export const HTML = String.raw`<!doctype html>
         <div class="chips nho" id="hat" role="group" aria-label="Mỗi cột ứng với"></div>
       </div>
       <div class="the-phu"><span id="ghiChuoi" class="mo"></span><span class="chu-giai" id="chuGiai"></span></div>
-      <div class="cuon"><div class="cot-vung" id="chuoi"></div></div>
+      <div class="cuon"><div class="cot-vung" id="chuoi"><span class="sk" style="flex:1;height:190px;align-self:flex-end"></span></div></div>
       <p class="loi-o" id="loi-chuoi" hidden></p>
     </div>
     <div class="thach the nen-tang">
       <div class="tieu"><h2 class="ktieu">Nền tảng</h2><span class="nguon n-ga">GA4</span></div>
       <div class="thanh" id="thanhNt"></div>
-      <div id="nenTang"></div>
+      <div id="nenTang"><span class="sk" style="height:40px"></span><span class="sk" style="height:40px"></span><span class="sk" style="height:40px"></span></div>
       <p class="loi-o" id="loi-nenTang" hidden></p>
     </div>
   </section>
@@ -70,11 +79,16 @@ export const HTML = String.raw`<!doctype html>
       <div class="tieu"><h2 class="ktieu">Giờ cao điểm · ván bắt đầu theo giờ trong tuần</h2><span class="nguon n-ga">GA4</span></div>
       <span class="mo" id="ghiHeat"></span>
     </div>
-    <div class="cuon"><div id="heat" class="heat"></div></div>
+    <div class="cuon"><div id="heat" class="heat"><span class="sk" style="height:200px"></span></div></div>
     <p class="loi-o" id="loi-heat" hidden></p>
   </section>
 
-  <section class="luoi-ds" id="danhSach"></section>
+  <section class="luoi-ds" id="danhSach">
+    <div class="thach the"><span class="sk" style="width:40%;height:14px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span></div>
+    <div class="thach the"><span class="sk" style="width:40%;height:14px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span></div>
+    <div class="thach the"><span class="sk" style="width:40%;height:14px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span></div>
+    <div class="thach the"><span class="sk" style="width:40%;height:14px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span><span class="sk" style="height:22px"></span></div>
+  </section>
 
   <footer class="chan">
     <span><span class="nguon n-live">GA Realtime</span> 30 phút gần nhất</span>
@@ -90,6 +104,20 @@ export const CSS = String.raw`
 --web:#67e8f9;--ios:#8b7dff;--android:#c026d3;--tat_ca:#a99fff}
 *{box-sizing:border-box}
 [hidden]{display:none!important}   /* .tuy-chon{display:flex} đè thuộc tính hidden */
+/* ĐANG TẢI: thanh chạy trên đầu + ô mờ nhịp + vòng xoay ở nút vừa bấm + khung xương lần đầu */
+.thanh-tai{position:fixed;top:0;left:0;right:0;height:4px;overflow:hidden;z-index:50;opacity:0;transition:opacity .25s;pointer-events:none}
+body.dang-tai .thanh-tai{opacity:1}
+.thanh-tai::before{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;border-radius:999px;background:linear-gradient(90deg,transparent,#8b7dff,#67e8f9,transparent);animation:tt-chay 1.1s ease-in-out infinite}
+@keyframes tt-chay{from{transform:translateX(-100%)}to{transform:translateX(260%)}}
+body.dang-tai .the,body.dang-tai .kpi{animation:tt-tho 1.2s ease-in-out infinite}
+@keyframes tt-tho{50%{opacity:.5}}
+.sk{display:block;border-radius:10px;background:linear-gradient(90deg,#1c2040 25%,#2a3060 50%,#1c2040 75%);background-size:200% 100%;animation:tt-lap 1.3s linear infinite}
+@keyframes tt-lap{to{background-position:-200% 0}}
+.song-so .sk{display:inline-block}
+#nenTang .sk+.sk{margin-top:10px}
+.chip.quay::after{content:'';width:14px;height:14px;border-radius:999px;border:2px solid currentColor;border-right-color:transparent;animation:tt-xoay .7s linear infinite}
+@keyframes tt-xoay{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.thanh-tai::before,.sk,.chip.quay::after,body.dang-tai .the,body.dang-tai .kpi{animation-duration:3s}}
 html{color-scheme:dark}
 body{margin:0;background:var(--nen);color:var(--chu);font:16px/1.5 Nunito,system-ui,sans-serif}
 .khung{max-width:1320px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:20px}
@@ -217,8 +245,16 @@ export const JS = String.raw`
   function loiO(id, msg) { var p = $('loi-' + id); if (!p) return; p.hidden = !msg; p.textContent = msg || ''; }
 
   var dangTai = 0;
-  function tai(moi) {
+  // Bật/tắt trạng thái tải: thanh chạy + ô mờ nhịp + vòng xoay ở nút vừa bấm (nutBam).
+  function batTai(bat, nutBam) {
+    document.body.classList.toggle('dang-tai', bat);
+    $('khung').setAttribute('aria-busy', String(bat));
+    Array.prototype.forEach.call(document.querySelectorAll('.chip.quay'), function (n) { n.classList.remove('quay'); });
+    if (bat && nutBam) nutBam.classList.add('quay');
+  }
+  function tai(moi, nutBam) {
     var lan = ++dangTai;
+    batTai(true, nutBam || (moi ? $('nutMoi') : document.querySelector('#khoang .chip.chon') || $('nutTuyChon')));
     var q = new URLSearchParams({ khoang: tt.khoang });
     if (tt.hat) q.set('hat', tt.hat);
     if (tt.khoang === 'custom') { q.set('tu', tt.tu); q.set('den', tt.den); }
@@ -235,7 +271,8 @@ export const JS = String.raw`
       }
       if (kq.j.loiChung) { bao('GA báo lỗi: ' + kq.j.loiChung, 'do'); return; }
       bao(''); ve(kq.j);
-    }).catch(function (e) { if (lan === dangTai) bao('Không tải được: ' + e.message, 'do'); });
+    }).catch(function (e) { if (lan === dangTai) bao('Không tải được: ' + e.message, 'do'); })
+      .then(function () { if (lan === dangTai) batTai(false); });   // chỉ lượt MỚI NHẤT được tắt hiệu ứng
   }
 
   function song(moi) {
@@ -291,7 +328,7 @@ export const JS = String.raw`
     var hc = $('hat'); hc.textContent = '';
     (g.hatDuocChon || []).forEach(function (h) {
       var b = el('button', 'chip' + (h === g.hat ? ' chon' : ''), HAT[h] || h); b.type = 'button';
-      b.onclick = function () { tt.hat = h; tai(false); }; hc.appendChild(b);
+      b.onclick = function () { tt.hat = h; tai(false, b); }; hc.appendChild(b);
     });
     $('ghiChuoi').textContent = g.hat === '5m' ? 'Ước lượng từ GA Realtime (người hoạt động mỗi phút, lấy mức cao nhất trong 5 phút)'
       : 'Kỳ ' + g.ky.startDate.split('-').reverse().join('.') + ' → ' + g.ky.endDate.split('-').reverse().join('.') + ' · giờ theo thuộc tính GA';
