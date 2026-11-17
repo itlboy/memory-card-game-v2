@@ -18,7 +18,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOARD_SIZES, BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, ChevronRight, Globe, Map, Play, SlidersHorizontal, Users, X } from 'lucide-vue-next';
+import { Bot, ChevronLeft, Globe, Map, Play, Users, X } from 'lucide-vue-next';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -295,36 +295,15 @@ function vaoNhanh(): void {
 }
 
 /**
- * Ô CHƠI NHANH Ở TRANG CHỦ: đã chơi nhanh rồi thì VÀO VÁN NGAY với cỡ bàn + số người lần trước
- * (mockup B). Lần đầu, hay theme đang chọn không đủ hình cho bàn đó, thì mở màn `nhanh`.
+ * Ô CHƠI NHANH Ở TRANG CHỦ: LUÔN mở màn `nhanh` (cấu hình + nút Bắt đầu), điền sẵn cỡ bàn + số người
+ * của ván nhanh trước (`Prefs.nhanh`). 17.11.2026 chủ dự án bỏ kiểu "vào ván ngay" của 1.8.9 ("vẫn cần
+ * một màn để cấu hình và nút start") và bỏ dải "Chơi nhanh: … — Đổi" dưới ba ô ("rối trang chủ").
  */
 function pickPlayers(): void {
   sfx.select();
-  const co = nhanhCu && coCua(nhanhCu.level);
-  if (nhanhCu && co && co.pairs <= props.symbolCount) {
-    moChucNang('choi_nhanh_ngay');
-    emit('update:botLevel', null);
-    emit('update:mode', 'classic');
-    emit('update:playerCount', nhanhCu.playerCount);
-    emit('update:level', nhanhCu.level);
-    emit('start-level', nhanhCu.level);
-    return;
-  }
   moChucNang('choi_nhanh');
   vaoNhanh();
 }
-
-/** Dải "Chơi nhanh: 12 thẻ · Một mình — Đổi" dưới ba ô: mở màn `nhanh` để đổi. */
-function doiNhanh(): void {
-  sfx.select();
-  moChucNang('choi_nhanh_doi');
-  vaoNhanh();
-}
-const tenSoNguoi = (n: number): string => (n === 1 ? t('menu.soNguoi.1') : t('menu.soNguoi.n', { n }));
-const tomTatNhanh = computed(() => {
-  const co = nhanhCu && coCua(nhanhCu.level);
-  return co && nhanhCu ? `${t('menu.theN', { n: co.pairs * 2 })} · ${tenSoNguoi(nhanhCu.playerCount)}` : '';
-});
 
 /* ---------- màn Chơi nhanh ---------- */
 function chonSoNguoi(n: number): void {
@@ -630,13 +609,6 @@ const ICO3D = {
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
           </button>
         </div>
-
-        <!-- CHƠI NHANH LẦN TRƯỚC (16.11.2026, mockup B): ô Chơi nhanh vào ván ngay, dải này để ĐỔI cài đặt -->
-        <button v-if="tomTatNhanh" class="nhanh-bar thach" type="button" @click="doiNhanh">
-          <SlidersHorizontal class="nb-ic" :size="18" aria-hidden="true" />
-          <span class="nb-chu"><b>{{ t('menu.choiNhanh') }}:</b> {{ tomTatNhanh }}</span>
-          <span class="nb-doi">{{ t('menu.nhanh.doi') }}<ChevronRight :size="16" aria-hidden="true" /></span>
-        </button>
 
         <!-- DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm -->
         <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1" class="loi-tat">
@@ -1195,13 +1167,4 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 /* ---------- MÀN CHƠI NHANH (16.11.2026) ---------- */
 .nh-bat-dau { flex: none; margin-top: auto; }
 
-/* Dải "Chơi nhanh: 12 thẻ · Một mình — Đổi" ở trang chủ */
-.nhanh-bar {
-  flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 12px 0 0; padding: 0 12px;
-  font: inherit; font-size: 14px; color: var(--fg); cursor: pointer; text-align: left;
-}
-.nb-ic { flex: none; color: var(--accent); }
-.nb-chu { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.nb-chu b { font-weight: 800; }
-.nb-doi { flex: none; display: inline-flex; align-items: center; font-family: var(--font-display); font-weight: 800; color: var(--accent); }
 </style>
