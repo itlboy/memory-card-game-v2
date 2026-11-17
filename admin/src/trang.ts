@@ -179,6 +179,10 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .tieu{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .chu-giai{display:flex;gap:14px;font-size:13px;font-weight:700;color:var(--vua)}
 .chu-giai i,.nt-dong i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px}
+.chu-giai span,.nt-dong > span{display:inline-flex;align-items:center}
+.icon-nt{width:18px;height:18px;flex:none;margin-right:6px}
+.chu-giai .icon-nt{width:15px;height:15px;margin-right:5px}
+.co{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;margin-right:6px;font-size:1.15em;line-height:1}
 .cuon{overflow-x:auto}
 .cot-vung{display:flex;align-items:flex-end;gap:3px;height:250px;border-bottom:2px solid var(--vien);padding-top:20px}
 .cot{flex:1 0 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
@@ -258,6 +262,24 @@ export const JS = String.raw`
   var HEAT = ['#14183a', '#2c2a6e', '#4b3fb3', '#7a63f0', '#c4b5ff'];
   var tenNuoc = null;
   try { tenNuoc = new Intl.DisplayNames(['vi'], { type: 'region' }); } catch (e) { /* trình duyệt cũ */ }
+  // Cờ = 2 ký tự "regional indicator" từ mã ISO (VN → 🇻🇳). Không phải mã 2 chữ cái thì 🌐.
+  function co(code) {
+    if (!/^[A-Za-z]{2}$/.test(code || '')) return '\uD83C\uDF10';
+    return String.fromCodePoint.apply(null, code.toUpperCase().split('').map(function (c) { return 0x1F1E6 + c.charCodeAt(0) - 65; }));
+  }
+  function coNuoc(code) { var s = el('span', 'co', co(code)); s.setAttribute('aria-hidden', 'true'); return s; }
+  // Icon nền tảng (SVG tự vẽ, tô theo màu nền tảng). id lạ → null, giữ ô màu cũ.
+  var ICON_NT = {
+    web: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9M12 3C9.4 5.6 8.2 8.6 8.2 12s1.2 6.4 3.8 9" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+    ios: '<path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.5-1-2.5-3.9zM14 5.5c.7-.8 1.1-1.9 1-3-.9 0-2.1.6-2.8 1.4-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.5 2.8-1.3z"/>',
+    android: '<path fill="currentColor" d="M5 10.5h14V18a1.5 1.5 0 0 1-1.5 1.5H16V22h-2v-2.5h-4V22H8v-2.5H6.5A1.5 1.5 0 0 1 5 18zM2.5 10.5a1.25 1.25 0 0 1 2.5 0v5a1.25 1.25 0 0 1-2.5 0zm16.5 0a1.25 1.25 0 0 1 2.5 0v5a1.25 1.25 0 0 1-2.5 0zM5 9.5a7 7 0 0 1 3.6-6.1L7.3 1.5l.8-.5 1.4 2a7 7 0 0 1 5 0l1.4-2 .8.5-1.3 1.9A7 7 0 0 1 19 9.5zm4.3-3a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8zm5.4 0a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"/>'
+  };
+  function iconNt(id) {
+    if (!ICON_NT[id]) { var i = el('i'); i.style.background = MAU[id]; return i; }
+    var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('class', 'icon-nt'); s.setAttribute('aria-hidden', 'true');
+    s.style.color = MAU[id]; s.innerHTML = ICON_NT[id]; return s;
+  }
   function tenNuocVi(code) { try { return tenNuoc && code && code !== '(not set)' ? tenNuoc.of(code) : (code || '?'); } catch (e) { return code; } }
 
   var nho = {}; try { nho = JSON.parse(localStorage.getItem('admin-loc') || '{}'); } catch (e) {}
@@ -338,7 +360,7 @@ export const JS = String.raw`
       });
       var dn = el('div', 'song-nuoc');
       if (!nuoc.length) dn.appendChild(el('span', 'k', 'chưa có nước nào'));
-      nuoc.forEach(function (r) { var t = el('span', 'nuoc'); t.appendChild(document.createTextNode(tenNuocVi(r.k) + ' ')); t.appendChild(el('b', null, so(r.v))); dn.appendChild(t); });
+      nuoc.forEach(function (r) { var t = el('span', 'nuoc'); t.appendChild(coNuoc(r.k)); t.appendChild(document.createTextNode(tenNuocVi(r.k) + ' ')); t.appendChild(el('b', null, so(r.v))); dn.appendChild(t); });
       c.appendChild(dn);
     }).catch(function () {});
   }
@@ -397,7 +419,7 @@ export const JS = String.raw`
     $('ghiChuoi').textContent = g.hat === '5m' ? 'Ước lượng từ GA Realtime (người hoạt động mỗi phút, lấy mức cao nhất trong 5 phút)'
       : 'Kỳ ' + g.ky.startDate.split('-').reverse().join('.') + ' → ' + g.ky.endDate.split('-').reverse().join('.') + ' · giờ theo thuộc tính GA';
     var cg = $('chuGiai'); cg.textContent = '';
-    g.chuoi.nhom.forEach(function (n) { var s = el('span'); var i = el('i'); i.style.background = MAU[n.id]; s.appendChild(i); s.appendChild(document.createTextNode(n.ten)); cg.appendChild(s); });
+    g.chuoi.nhom.forEach(function (n) { var s = el('span'); s.appendChild(iconNt(n.id)); s.appendChild(document.createTextNode(n.ten)); cg.appendChild(s); });
     var cot = g.chuoi.cot, nhom = g.chuoi.nhom, vung = $('chuoi'); vung.textContent = '';
     var tong = cot.map(function (_, i) { return nhom.reduce(function (s, n) { return s + (n.gia[i] || 0); }, 0); });
     var max = Math.max.apply(null, tong.concat([1]));
@@ -420,7 +442,7 @@ export const JS = String.raw`
     nt.forEach(function (x) {
       var p = tnt ? Math.round(x.v / tnt * 100) : 0;
       var seg = el('div'); seg.style.width = p + '%'; seg.style.background = MAU[x.id]; th.appendChild(seg);
-      var d = el('div', 'nt-dong'); var t = el('span'); var i = el('i'); i.style.background = MAU[x.id]; t.appendChild(i); t.appendChild(document.createTextNode(x.ten));
+      var d = el('div', 'nt-dong'); var t = el('span'); t.appendChild(iconNt(x.id)); t.appendChild(document.createTextNode(x.ten));
       var v = el('b', null, so(x.v)); v.appendChild(el('small', null, p + '%'));
       d.appendChild(t); d.appendChild(v); dsNt.appendChild(d);
     });
@@ -475,7 +497,7 @@ export const JS = String.raw`
       var o = el('div', 'thach the'); var t = el('div', 'tieu'); t.appendChild(el('h2', 'ktieu', x[0])); t.appendChild(el('span', 'nguon n-ga', 'GA4')); o.appendChild(t);
       var ds = x[1] || [], m = x[4] === 'man_kho' ? 100 : Math.max.apply(null, ds.map(function (r) { return r.v; }).concat([1]));
       ds.forEach(function (r) {
-        var d = el('div', 'ds-dong'); var tr = el('div', 'tren'); tr.appendChild(el('span', null, x[3](r.k))); tr.appendChild(el('span', null, x[5] ? x[5](r, ds) : so(r.v)));
+        var d = el('div', 'ds-dong'); var tr = el('div', 'tren'); var nh = el('span'); if (x[4] === 'quocGia') nh.appendChild(coNuoc(r.k)); nh.appendChild(document.createTextNode(x[3](r.k))); tr.appendChild(nh); tr.appendChild(el('span', null, x[5] ? x[5](r, ds) : so(r.v)));
         var ray = el('div', 'ray'); var f = el('div'); f.style.width = Math.max(2, Math.round(r.v / m * 100)) + '%'; f.style.background = x[2]; ray.appendChild(f);
         d.appendChild(tr); d.appendChild(ray); o.appendChild(d);
       });
