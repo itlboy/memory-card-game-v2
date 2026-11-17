@@ -11,6 +11,12 @@ import { lapKeHoach } from './khoang.ts';
 import { dangDienRa, tongQuan } from './thongke.ts';
 import { HTML, CSS, JS } from './trang.ts';
 
+/** Mã phiên bản theo NỘI DUNG JS+CSS, gắn vào đường dẫn trong HTML. Lúc Cloudflare đang chuyển bản,
+ *  HTML và app.js có thể tới từ hai bản khác nhau (đã gặp 17.11.2026: HTML mới + JS cũ → kẹt "đang tải");
+ *  đường dẫn khác nhau theo bản thì trình duyệt không lấy nhầm file của bản kia từ cache. */
+const PHIEN = (() => { let h = 5381; for (const c of JS + CSS) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return h.toString(36); })();
+const HTML_PHIEN = HTML.replaceAll('__PHIEN__', PHIEN);
+
 interface Env {
   ACCESS_TEAM: string;
   ACCESS_AUD: string;
@@ -60,7 +66,7 @@ export default {
     const url = new URL(req.url);
     if (req.method !== 'GET') return tra('Chỉ đọc.', 'text/plain; charset=utf-8', 405);
     switch (url.pathname) {
-      case '/': return tra(HTML, 'text/html; charset=utf-8');
+      case '/': return tra(HTML_PHIEN, 'text/html; charset=utf-8');
       case '/app.css': return tra(CSS, 'text/css; charset=utf-8');
       case '/app.js': return tra(JS, 'text/javascript; charset=utf-8');
     }

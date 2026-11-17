@@ -14,12 +14,12 @@ export const HTML = String.raw`<!doctype html>
 <title>Lật Thẻ · Quản trị</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/app.css">
-<script src="/app.js" defer></script>
+<link rel="stylesheet" href="/app.css?v=__PHIEN__">
+<script src="/app.js?v=__PHIEN__" defer></script>
 </head>
-<body class="dang-tai">
+<body>
 <div class="thanh-tai" role="progressbar" aria-label="Đang tải số liệu" aria-hidden="true"></div>
-<div class="khung" id="khung" aria-busy="true">
+<div class="khung" id="khung">
   <header class="dau">
     <div class="ten">
       <div class="logo" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="12" rx="2"/><rect x="13" y="8" width="8" height="12" rx="2"/></svg></div>
