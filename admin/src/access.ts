@@ -26,8 +26,11 @@ async function layKhoa(team: string, epMoi = false): Promise<Jwk[]> {
 
 export interface NguoiXem { email: string }
 
-export async function kiemAccess(req: Request, team: string, aud: string): Promise<NguoiXem | null> {
-  if (!team || !aud) return null;
+/** `teams` có thể là danh sách cách nhau bởi dấu phẩy (lúc đổi tên miền nhóm Access, chấp nhận cả cũ lẫn mới).
+ *  Nhóm được chọn theo `iss` của JWT, rồi mới lấy khoá của ĐÚNG nhóm đó. */
+export async function kiemAccess(req: Request, teams: string, aud: string): Promise<NguoiXem | null> {
+  const dsTeam = teams.split(',').map((t) => t.trim()).filter(Boolean);
+  if (!dsTeam.length || !aud) return null;
   const jwt = req.headers.get('Cf-Access-Jwt-Assertion');
   if (!jwt) return null;
   const [h, p, s] = jwt.split('.');
@@ -39,6 +42,8 @@ export async function kiemAccess(req: Request, team: string, aud: string): Promi
     body = JSON.parse(new TextDecoder().decode(b64url(p)));
   } catch { return null; }
   if (head.alg !== 'RS256' || !head.kid) return null;
+  const team = dsTeam.find((t) => body.iss === `https://${t}`);
+  if (!team) return null;
 
   let keys = await layKhoa(team);
   let jwk = keys.find((k) => k.kid === head.kid);
