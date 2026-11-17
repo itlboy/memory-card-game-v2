@@ -77,7 +77,7 @@ export default {
       const boQua = url.searchParams.get('moi') === '1';
       try {
         if (url.pathname === '/api/dang-dien-ra') {
-          return json(await nho('ddr', 60, boQua, () => dangDienRa(ga), ctx));
+          return json(await nho('ddr2', 60, boQua, () => dangDienRa(ga), ctx));
         }
         if (url.pathname === '/api/tong-quan') {
           const q = url.searchParams;

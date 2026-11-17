@@ -150,11 +150,14 @@ async function thoiGianThuc(ga: Ga, kh: KeHoach, goi: GoiThongKe,
 }
 
 /** 30 phút qua cho dải "đang diễn ra" — gọn, gọi riêng. */
-export async function dangDienRa(ga: Ga): Promise<{ nguoi: number; van: number; quocGia: number }> {
+export async function dangDienRa(ga: Ga): Promise<{ nguoi: number; van: number; quocGia: Kv[] }> {
   const [t, sk, qg] = await Promise.all([
     ga.realtime({ metrics: [{ name: 'activeUsers' }] }),
     ga.realtime({ dimensions: [{ name: 'eventName' }], metrics: [{ name: 'eventCount' }], dimensionFilter: loc.su_kien('van_bat_dau') }),
-    ga.realtime({ dimensions: [{ name: 'countryId' }], metrics: [{ name: 'activeUsers' }] })
+    ga.realtime({ dimensions: [{ name: 'countryId' }], metrics: [{ name: 'activeUsers' }],
+      orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }], limit: 6 })
   ]);
-  return { nguoi: t[0]?.m[0] ?? 0, van: sk[0]?.m[0] ?? 0, quocGia: qg.length };
+  // Danh sách nước (mã ISO + số người) — trang tự đổi mã ra tên tiếng Việt. Chỉ đếm số nước thì
+  // "1 quốc gia" không biết là nước nào (chủ dự án hỏi 17.11.2026).
+  return { nguoi: t[0]?.m[0] ?? 0, van: sk[0]?.m[0] ?? 0, quocGia: qg.map((r) => ({ k: r.d[0] ?? '', v: r.m[0] ?? 0 })) };
 }

@@ -195,7 +195,39 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .ds-dong .ray div{height:100%;border-radius:999px}
 .loi-o{margin:0;padding:10px 12px;border-radius:12px;background:rgba(252,165,165,.1);color:#fca5a5;font-size:13px;font-weight:600}
 .chan{display:flex;flex-wrap:wrap;gap:10px 20px;font-size:13px;color:var(--mo)}
-@media (max-width:700px){h1{font-size:22px}.kpi b{font-size:30px}}
+.song-nuoc{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.nuoc{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--o2);font-size:13px;font-weight:700;color:var(--vua)}
+.nuoc b{font:800 15px 'Baloo 2',sans-serif;color:#fff}
+/* ĐIỆN THOẠI (17.11.2026, chủ dự án: "trên mobile hơi xấu"): khoảng thời gian thành dải vuốt ngang
+   một dòng, ô số 2 cột gọn, số trên chữ ở dải 30 phút. */
+@media (max-width:700px){
+  .khung{padding:14px 12px 40px;gap:14px}
+  .ten{gap:10px}
+  .logo{width:40px;height:40px;border-radius:14px;box-shadow:0 4px 0 #3b2fb0}
+  .logo svg{width:22px;height:22px}
+  h1{font-size:20px}
+  .phu{font-size:12px}
+  .dau{gap:12px}
+  .dieu-khien{width:100%;gap:8px}
+  #khoang{flex-wrap:nowrap;width:100%;overflow-x:auto;gap:8px;padding:2px 2px 8px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+  #khoang::-webkit-scrollbar{display:none}
+  #khoang .chip{flex:none;scroll-snap-align:center}
+  .chip{padding:0 14px;font-size:13.5px}
+  .nguoi{margin-left:auto;padding:0 12px}
+  .song{padding:14px 16px;gap:10px 16px}
+  .song-so{width:100%;gap:12px 22px}
+  .song-so b{font-size:26px}
+  .song-so span.k{display:block;margin:2px 0 0;font-size:12px}
+  .song-nuoc{width:100%}
+  .luoi-kpi{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi{padding:12px 14px;gap:4px;border-radius:16px}
+  .kpi .nguon{display:none}
+  .kpi .nhan{font-size:12.5px;line-height:1.3}
+  .kpi b{font-size:26px}
+  .kpi .doi{font-size:11.5px;line-height:1.3}
+  .the{padding:16px;gap:12px}
+  .luoi-ds{gap:12px}
+}
 `;
 
 export const JS = String.raw`
@@ -210,6 +242,7 @@ export const JS = String.raw`
   var HEAT = ['#14183a', '#2c2a6e', '#4b3fb3', '#7a63f0', '#c4b5ff'];
   var tenNuoc = null;
   try { tenNuoc = new Intl.DisplayNames(['vi'], { type: 'region' }); } catch (e) { /* trình duyệt cũ */ }
+  function tenNuocVi(code) { try { return tenNuoc && code && code !== '(not set)' ? tenNuoc.of(code) : (code || '?'); } catch (e) { return code; } }
 
   var nho = {}; try { nho = JSON.parse(localStorage.getItem('admin-loc') || '{}'); } catch (e) {}
   var tt = { khoang: nho.khoang || '24h', hat: '', tu: nho.tu || '', den: nho.den || '' };
@@ -227,6 +260,8 @@ export const JS = String.raw`
       c.appendChild(b);
     });
     $('nutTuyChon').classList.toggle('chon', tt.khoang === 'custom');
+    var dc = c.querySelector('.chon');
+    if (dc && c.scrollWidth > c.clientWidth) c.scrollLeft = dc.offsetLeft - (c.clientWidth - dc.offsetWidth) / 2;
   }
 
   $('nutTuyChon').onclick = function () {
@@ -281,9 +316,14 @@ export const JS = String.raw`
     fetch('/api/dang-dien-ra' + (moi ? '?moi=1' : ''), { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       var c = $('song'); c.textContent = '';
       if (!j || j.chuaCauHinh) { c.appendChild(el('span', 'mo', 'chưa có số')); return; }
-      [[j.nguoi, 'người đang chơi'], [j.van, 'ván bắt đầu'], [j.quocGia, 'quốc gia']].forEach(function (x) {
+      var nuoc = Array.isArray(j.quocGia) ? j.quocGia : [];
+      [[j.nguoi, 'người đang chơi'], [j.van, 'ván bắt đầu']].forEach(function (x) {
         var d = el('div'); d.appendChild(el('b', null, so(x[0]))); d.appendChild(el('span', 'k', x[1])); c.appendChild(d);
       });
+      var dn = el('div', 'song-nuoc');
+      if (!nuoc.length) dn.appendChild(el('span', 'k', 'chưa có nước nào'));
+      nuoc.forEach(function (r) { var t = el('span', 'nuoc'); t.appendChild(document.createTextNode(tenNuocVi(r.k) + ' ')); t.appendChild(el('b', null, so(r.v))); dn.appendChild(t); });
+      c.appendChild(dn);
     }).catch(function () {});
   }
 
@@ -297,7 +337,7 @@ export const JS = String.raw`
   function ve(g) {
     var gio = new Date(g.capNhat);
     $('capNhat').textContent = 'admin.cozypi.com · ' + (g.email || '') + ' · số lúc ' + gio.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    if (g.email) $('nguoi').textContent = 'Access · Đăng xuất';
+    if (g.email) $('nguoi').textContent = 'Đăng xuất';
 
     // KPI
     var k = g.kpi || {}, c = $('kpi'); c.textContent = '';
