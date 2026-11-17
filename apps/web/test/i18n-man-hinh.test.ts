@@ -98,8 +98,7 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   await bam('.nh-ten'); chup('bước phụ tên'); await bam('.btn-primary');
   await bam('.nh-o', 0); await bam('.nh-dong:not(.nh-ten)', 0); chup('bước phụ theme'); await bam('.btn-primary');
   await bam('.nh-dong:not(.nh-ten)', 1); chup('bước phụ luật bàn'); await bam('.btn-primary');
-  await bam('.nh-o', 7); chup('bước phụ số thẻ');
-  await bam('.size-grid button', 1); chup('màn chơi nhanh sau khi chọn số thẻ');
+  await bam('.keo-o', 7); chup('màn chơi nhanh sau khi chọn số thẻ');   // dải kéo ngang, 18.11.2026
   await bam('.nh-bat-dau'); await flush(8); chup('màn chơi');
   w.unmount(); w = null;
   // Ván vừa rồi để lại ?playing=1 + snapshot: dọn để app mở lại ở trang chủ

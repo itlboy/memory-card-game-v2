@@ -62,7 +62,7 @@ describe('không bao giờ có ô trắng trơn giữa ván', () => {
     await flush(); await vi.advanceTimersByTimeAsync(10); await flush();
 
     await click('Chơi nhanh'); await click('1 người chơi');
-    await click('Khác'); await click('88 thẻ');   // màn Chơi nhanh: cỡ ngoài 12/24/42 qua ô "Khác"
+    await wrapper.findAll('.keo-o').find((b) => b.attributes('aria-label') === '88 thẻ')!.trigger('click'); await flush();   // dải số thẻ
     await click('Luật bàn');
     for (const [h, m] of Object.entries({ 'Thời gian': 'Vô hạn', 'Số mạng': 'Vô hạn',
       'Xem trước': 'Không', 'Xáo thẻ': 'Nhiều', 'Thẻ đặc biệt': 'Nhiều' })) await chonMuc(h, m);

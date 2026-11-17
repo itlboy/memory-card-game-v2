@@ -109,13 +109,11 @@ const moBoThe = async (): Promise<void> => {
   await dong.trigger('click'); await flush();
 };
 
-/** Màn Chơi nhanh: ô 12/24/42 bấm thẳng; cỡ khác qua ô "Khác" (lưới 12 cỡ) rồi quay về màn. */
+/** Màn Chơi nhanh: dải kéo ngang có đủ 12 cỡ — bấm thẳng ô `n thẻ` (18.11.2026). */
 const chonSoThe = async (n: number): Promise<void> => {
-  const o = wrapper.findAll('.nh-o').find((b) => b.attributes('aria-label') === `${n} thẻ`);
-  if (o) { await o.trigger('click'); await flush(); return; }
-  const khac = wrapper.findAll('.nh-o').find((b) => b.text().includes('Khác'));
-  if (khac) { await khac.trigger('click'); await flush(); }
-  await click(`${n} thẻ`);
+  const o = wrapper.findAll('.keo-o').find((b) => b.attributes('aria-label') === `${n} thẻ`);
+  if (!o) throw new Error(`không thấy ô ${n} thẻ trên dải số thẻ`);
+  await o.trigger('click'); await flush();
 };
 
 /** Đi hết wizard chơi nhanh: Chơi nhanh → màn Chơi nhanh (số người, số thẻ, luật bàn) → Bắt đầu. */

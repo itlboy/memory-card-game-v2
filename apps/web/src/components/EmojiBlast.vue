@@ -24,7 +24,7 @@
  */
 import type { QuickEmoji } from '@mm/engine';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import DuoiBong from './DuoiBong.vue';
+import KhungBong from './KhungBong.vue';
 
 type Bong = { from: string; name: string; emoji: QuickEmoji; key: number };
 const props = defineProps<{ o: { emojiBong: { value: Bong[] } } }>();
@@ -136,10 +136,14 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
         class="bong" :class="[neo[b.from]?.kieu ?? 'giua', { nho: neo[b.from]?.nho }]" :data-from="b.from"
         :style="kieuCua(b) ?? { top: `calc(${12 + i * 64}px + env(safe-area-inset-top, 0px))` }"
       >
+        <KhungBong
+          :canh="neo[b.from] ? (neo[b.from]!.kieu === 'phai' ? 'trai' : 'duoi') : undefined"
+          :day="2.5" :r="neo[b.from]?.nho ? 16 : 18"
+        />
         <!-- :key theo lượt gửi → mỗi lần gửi lại là một nhịp nảy, bong bóng thì đứng yên -->
         <span :key="b.key" class="e">{{ b.emoji }}</span>
         <span v-if="!neo[b.from]" class="ai">{{ b.name }}</span>
-        <DuoiBong v-if="neo[b.from]" :huong="neo[b.from]!.kieu === 'phai' ? 'trai' : 'xuong'" :day="2.5" :rong="neo[b.from]!.nho ? 18 : 20" :cao="neo[b.from]!.nho ? 10 : 12" />
+        
       </div>
     </TransitionGroup>
     <span v-for="f in bay" :key="f.id" class="bay" :style="{ left: `${f.x}px`, top: `${f.y}px` }" aria-hidden="true">{{ f.emoji }}</span>
@@ -151,11 +155,10 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   /* Nổi trên MỌI thứ kể cả bảng kết quả (10) và hộp xác nhận (20) */
   position: fixed; z-index: 60; pointer-events: none;
   display: flex; align-items: center; gap: 4px; width: max-content;
-  padding: 6px 10px; border-radius: 18px;
+  /* Nền + viền: KhungBong (một nét liền cả đuôi) — không border/background ở đây. Đệm = đệm cũ + 2.5px viền. */
+  padding: 8.5px 14px;
   --nen: var(--panel-solid, #fff);
   --vien: color-mix(in srgb, var(--accent) 55%, var(--line));
-  background: var(--nen);
-  border: 2.5px solid var(--vien);
   /* drop-shadow chứ không box-shadow: bóng ăn theo cả đuôi */
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .26));
 }
@@ -168,7 +171,7 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
 
 .e { font-size: 36px; line-height: 1; animation: nay .45s cubic-bezier(.2, 1.4, .4, 1); }
 /* Dòng kết quả / phòng chờ: nhỏ hơn — nó nằm giữa chữ, không phải giữa khoảng trời trống */
-.nho { padding: 4px 8px; border-radius: 16px; }
+.nho { padding: 7px 11px; }
 .nho .e { font-size: 28px; }
 .ai { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--fg); max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @keyframes nay {
@@ -189,9 +192,7 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   100% { opacity: 0; transform: translate(-50%, calc(-100% - 70px)) scale(1); }
 }
 
-/* ĐUÔI: DuoiBong.vue (SVG, viền đều, mũi bo). Ở đây chỉ đặt vị trí dọc cạnh. */
-.tren .duoi-bong { left: 14px; }
-.phai .duoi-bong { top: 50%; translate: 0 -50%; }
+/* ĐUÔI: vẽ chung một nét với thân trong KhungBong.vue (lib/duong-bong.ts), mọc ra ngoài khung. */
 
 /* Vào: nảy từ chỗ đuôi; ra: mờ + trôi nhẹ lên. Giữ nguyên translate của từng kiểu. */
 .bong-enter-active { transition: opacity .15s ease, scale .3s cubic-bezier(.2, 1.4, .4, 1); }

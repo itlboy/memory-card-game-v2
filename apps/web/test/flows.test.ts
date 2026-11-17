@@ -167,13 +167,11 @@ async function chonBan(level: number): Promise<void> {
   await chonSoThe(levelSpec(level).pairs * 2);
 }
 
-/** Màn Chơi nhanh: ô 12/24/42 bấm thẳng; cỡ khác qua ô "Khác" (lưới 12 cỡ) rồi quay về màn. */
+/** Màn Chơi nhanh: dải kéo ngang có đủ 12 cỡ — bấm thẳng ô `n thẻ` (18.11.2026). */
 async function chonSoThe(n: number): Promise<void> {
-  const o = wrapper.findAll('.nh-o').find((b) => b.attributes('aria-label') === `${n} thẻ`);
-  if (o) { await o.trigger('click'); await flush(); return; }
-  const khac = wrapper.findAll('.nh-o').find((b) => b.text().includes('Khác'));
-  if (khac) { await khac.trigger('click'); await flush(); }
-  await click(`${n} thẻ`);
+  const o = wrapper.findAll('.keo-o').find((b) => b.attributes('aria-label') === `${n} thẻ`);
+  if (!o) throw new Error(`không thấy ô ${n} thẻ trên dải số thẻ`);
+  await o.trigger('click'); await flush();
 }
 
 /** Màn Chơi nhanh: mở bước phụ "Tên" (nhiều người). */
@@ -671,20 +669,15 @@ describe('đếm ngược 5 giây trước ván multiplayer', () => {
 });
 
 describe('F5 giữ bước wizard (?w= trên URL)', () => {
-  it('đi tới bước cấp độ, F5 vẫn đứng ở bước cấp độ', async () => {
+  it('màn Chơi nhanh: F5 vẫn đứng ở màn đó, chọn số thẻ ở dải kéo ngang', async () => {
     await mountApp();
     await click('Chơi nhanh'); await click('1 người chơi');
     expect(location.search).toBe('?w=nhanh');
     wrapper.unmount();
     await mountApp();                                  // "F5" ở màn Chơi nhanh
     expect(wrapper.find('.step-body.nhanh').exists()).toBe(true);
-    await click('Khác');                               // bước phụ: lưới 12 cỡ bàn
-    expect(location.search).toBe('?w=level');
-    wrapper.unmount();
-    await mountApp();                                  // "F5" ở bước phụ
-    expect(wrapper.text()).toContain('Chọn số thẻ');   // vẫn ở bước cấp độ
-    await click('16 thẻ');
-    expect(location.search).toBe('?w=nhanh');          // chọn xong quay về màn Chơi nhanh
+    await chonSoThe(16);                               // dải kéo ngang: bấm thẳng ô 16
+    expect(location.search).toBe('?w=nhanh');
     expect(wrapper.text()).toContain('Bắt đầu — bàn 16 thẻ');
   });
 
@@ -1221,9 +1214,8 @@ describe('mở khoá cấp sau', () => {
     await click('Chơi nhanh'); await click('1 người chơi');
     // Thang cấp của chơi đơn không còn khoá gì (chọn thẳng số thẻ), nên thứ
     // phải đúng chỉ là TIẾN ĐỘ đã được ghi — kiểm ở dòng `classic:1` phía trên.
-    await click('Khác');
-    expect(wrapper.findAll('.size-grid .option').length).toBe(BOARD_SIZES.length);
-    expect(wrapper.findAll('.size-grid .option[disabled]').length).toBe(0);
+    expect(wrapper.findAll('.keo-o').length).toBe(BOARD_SIZES.length);   // dải kéo ngang: đủ 12 cỡ
+    expect(wrapper.findAll('.keo-o[disabled]').length).toBe(0);
   });
 });
 
@@ -1499,22 +1491,21 @@ describe('hai thông báo cùng lúc thì không đè nhau', () => {
 
 describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
   /** Ô cỡ bàn còn bấm được (chỉ bị chặn khi bộ theme thiếu biểu tượng). */
-  const oMo = (): number => wrapper.findAll('.size-grid .option:not([disabled])').length;
-  const oTatCa = (): number => wrapper.findAll('.size-grid .option').length;
+  const oMo = (): number => wrapper.findAll('.keo-o:not([disabled])').length;
+  const oTatCa = (): number => wrapper.findAll('.keo-o').length;
 
   it('chơi một mình: KHÔNG còn thang cấp — mọi cỡ bàn chọn được ngay từ đầu', async () => {
     localStorage.removeItem('mm.v2');
     await mountApp();
     await pickMode('Cổ điển');
-    await click('Khác');            // lưới đủ 12 cỡ bàn (màn Chơi nhanh chỉ gợi ý 3 cỡ)
     expect(wrapper.findAll('.node').length, 'không còn bản đồ cấp ở chế độ thường').toBe(0);
     // Không còn ô nào bị KHOÁ theo tiến độ. Ô duy nhất có thể bấm không được là
     // ô mà bộ theme đang mở chưa đủ biểu tượng — lý do khác hẳn, và có ghi rõ
     // trên ô.
     expect(oTatCa()).toBe(BOARD_SIZES.length);
-    for (const o of wrapper.findAll('.size-grid .option[disabled]')) {
-      expect(o.text()).toContain('thiếu biểu tượng');
-    }
+    // Ô khoá duy nhất có thể có: bộ thẻ đang mở chưa đủ biểu tượng cho cỡ đó (luôn là các cỡ LỚN nhất)
+    const khoa = wrapper.findAll('.keo-o').map((o) => o.attributes('disabled') !== undefined);
+    expect(khoa.indexOf(true) === -1 || khoa.slice(khoa.indexOf(true)).every(Boolean)).toBe(true);
   });
 
   it('nhiều người cùng máy: cũng là lưới số thẻ', async () => {
@@ -1522,7 +1513,6 @@ describe('ngoài Chiến dịch: chọn SỐ THẺ, không khoá gì', () => {
     await mountApp();
     await click('Chơi nhanh');
     await click('2 người chơi');
-    await click('Khác');            // lưới đủ 12 cỡ bàn
     expect(oMo(), 'mọi cỡ bàn phải mở').toBeGreaterThanOrEqual(oTatCa() - 1);
   });
 

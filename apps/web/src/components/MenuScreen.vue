@@ -281,7 +281,7 @@ function pickCampaign(): void {
 /** Ván chơi nhanh gần nhất (Prefs.nhanh) — đọc một lần: MenuScreen dựng lại mỗi lần về menu. */
 const nhanhCu = store.prefs().nhanh ?? null;
 const coCua = (level: number) => BOARD_SIZES.find((s) => s.level === level);
-/** Ba cỡ bàn gợi ý của màn Chơi nhanh. "Khác" mở lưới đủ 12 cỡ (SizeGrid). */
+/** Cỡ bàn mặc định (lần đầu chơi nhanh: 12 thẻ). Chọn cỡ ở dải kéo ngang của BanChon (18.11.2026). */
 const MUC_NHANH = ([['de', 6], ['vua', 12], ['kho', 21]] as const).map(([k, pairs]) => ({
   k, pairs, level: BOARD_SIZES.find((s) => s.pairs === pairs)!.level
 }));

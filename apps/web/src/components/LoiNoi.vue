@@ -12,7 +12,7 @@
  */
 import type { QuickSay } from '@mm/engine';
 import { ref, watch } from 'vue';
-import DuoiBong from './DuoiBong.vue';
+import KhungBong from './KhungBong.vue';
 import { td } from '@/lib/i18n';
 import { EMOJI_NOI } from '@/lib/noi-nhanh';
 
@@ -30,7 +30,7 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
     if (!r || r.height === 0) { m[l.key] = null; continue; }
     // Bong bóng rộng tới ~220px, căn giữa quanh tâm chip: kẹp để không thò ra mép
     const le = 112;
-    m[l.key] = { x: Math.min(Math.max(r.left + r.width / 2, le), window.innerWidth - le), y: r.bottom + 6 };
+    m[l.key] = { x: Math.min(Math.max(r.left + r.width / 2, le), window.innerWidth - le), y: r.bottom + 12 };   // chừa chỗ cho đuôi (12px) mọc lên chip
   }
   neo.value = m;
 }, { flush: 'post' });
@@ -44,9 +44,9 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
         class="bong" :class="{ tren: !neo[l.key] }"
         :style="neo[l.key] ? { left: `${neo[l.key]!.x}px`, top: `${neo[l.key]!.y}px` } : { top: `calc(${10 + i * 46}px + env(safe-area-inset-top, 0px))` }"
       >
+        <KhungBong :canh="neo[l.key] ? 'tren' : undefined" :day="2" :r="14" />
         <span class="e" aria-hidden="true">{{ EMOJI_NOI[l.id] }}</span>
         <span class="chu"><b v-if="!neo[l.key]">{{ l.name }}: </b>{{ td(`say.${l.id}`) }}</span>
-        <DuoiBong v-if="neo[l.key]" huong="len" :day="2" :rong="18" :cao="10" />
       </div>
     </TransitionGroup>
   </Teleport>
@@ -59,17 +59,16 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
   display: flex; align-items: center; gap: 6px; width: max-content; max-width: min(224px, calc(100vw - 24px));
   /* max-content: neo sát mép phải thì `fixed` tự bóp bề rộng theo chỗ còn lại và chữ
      xuống dòng (ảnh 14.10.2026) — giữ bề rộng theo chữ, vị trí đã được kẹp trong JS */
-  padding: 6px 12px; border-radius: 14px;
+  /* Nền + viền: KhungBong (một nét liền cả đuôi). Đệm = đệm cũ + 2px viền. */
+  padding: 8px 14px;
   --nen: var(--panel-solid); --vien: var(--accent);
-  background: var(--nen); color: var(--fg);
-  border: 2px solid var(--vien);
+  color: var(--fg);
   /* drop-shadow chứ không box-shadow: bóng ăn theo cả đuôi */
   filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .22));
   font-size: var(--text-sm); font-weight: 700; line-height: 1.25;
   pointer-events: none;
 }
-/* Mũi chỉ lên chip người nói: DuoiBong.vue (SVG dùng chung với bong bóng emoji) */
-.bong .duoi-bong { left: 50%; translate: -50% 0; }
+/* Mũi chỉ lên chip người nói: vẽ chung một nét với thân (KhungBong.vue) */
 .bong .e { font-size: 18px; flex-shrink: 0; }
 .bong .chu { min-width: 0; }
 .loi-enter-active { transition: opacity .16s ease, translate .16s ease; }
