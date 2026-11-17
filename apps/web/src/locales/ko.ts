@@ -132,7 +132,7 @@ const ko: TuDien = {
   'dd.chamDoiDoi': '같은 팀 번호면 함께 플레이',
   'dd.thieu': '팀이 2개 이상 필요해요',
   'dd.choNay': '여기!',
-  'dd.chiAria': '뒤집힌 카드를 길게 눌러 팀원에게 알려요',
+  'dd.chiAria': '뒤집힌 카드를 길게 누르거나 두 번 탭해 팀원에게 알려요',
   'menu.tenNguoiAria': '플레이어 {n} 이름',
   'menu.tiepTuc': '계속',
   'menu.nhieuTheme': '테마를 여러 개 고르면 보드에 모든 테마의 그림이 섞여요.',

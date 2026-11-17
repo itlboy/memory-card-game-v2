@@ -132,7 +132,7 @@ const zh: TuDien = {
   'dd.chamDoiDoi': '选同一队号就是同队一起玩',
   'dd.thieu': '至少需要 2 队',
   'dd.choNay': '这里！',
-  'dd.chiAria': '长按一张背面朝上的牌，指给队友看',
+  'dd.chiAria': '长按或双击一张背面朝上的牌，指给队友看',
   'menu.tenNguoiAria': '玩家 {n} 的名字',
   'menu.tiepTuc': '继续',
   'menu.nhieuTheme': '可多选，牌面图案会从所选主题中混合抽取。',

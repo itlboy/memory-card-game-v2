@@ -135,7 +135,7 @@ const id: TuDien = {
   'dd.chamDoiDoi': 'Nomor tim sama = main satu tim',
   'dd.thieu': 'Perlu minimal 2 tim',
   'dd.choNay': 'di sini!',
-  'dd.chiAria': 'Tekan lama kartu tertutup untuk menunjukkannya ke rekan tim',
+  'dd.chiAria': 'Tekan lama (atau ketuk dua kali) kartu tertutup untuk menunjukkannya ke rekan tim',
   'menu.tenNguoiAria': 'Nama pemain {n}',
   'menu.tiepTuc': 'Lanjut',
   'menu.nhieuTheme': 'Pilih beberapa tema — papan akan mencampur simbol dari semuanya.',

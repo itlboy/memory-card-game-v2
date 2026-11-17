@@ -135,7 +135,7 @@ const tr: TuDien = {
   'dd.chamDoiDoi': 'Aynı takım numarası = birlikte oynarsınız',
   'dd.thieu': 'En az 2 takım gerekli',
   'dd.choNay': 'burada!',
-  'dd.chiAria': 'Takım arkadaşına göstermek için kapalı karta basılı tut',
+  'dd.chiAria': 'Takım arkadaşına göstermek için kapalı karta basılı tut (ya da çift dokun)',
   'menu.tenNguoiAria': '{n}. oyuncunun adı',
   'menu.tiepTuc': 'Devam',
   'menu.nhieuTheme': 'Birden fazla tema seçebilirsin — tahta hepsinin sembollerini karıştırır.',

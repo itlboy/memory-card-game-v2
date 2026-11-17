@@ -268,6 +268,9 @@ const iWon = computed(() => o.laToi(o.view.value?.summary?.ranking[0]?.id));
 
 /*
  * CHỈ THẺ (Đồng đội): chạm GIỮ một lá úp ~0,4s → lá đó nháy trên máy đồng đội kèm "chỗ này!".
+ * CHẠM ĐÚP cũng được (18.11.2026, chủ dự án) — nhưng CHỈ KHI bàn đang khoá với mình (đồng đội
+ * đang lật): lúc đó chạm không lật gì nên chạm đúp không đụng cú lật. Đến lượt mình thì chạm
+ * đầu đã lật lá, chờ xem có chạm thứ hai không là bắt mọi cú lật trễ ~0,3s — không đáng.
  * Server chỉ gửi cho đồng đội. Làm bằng lớp NGOÀI CardTile (bắt ở pha capture của khung bàn +
  * thuộc tính `data-chi` trên nút lá — Vue không đụng thuộc tính lạ), để ván thường không đổi gì.
  */
@@ -297,11 +300,29 @@ function giuXuong(e: PointerEvent): void {
   clearTimeout(henGiu);
   henGiu = setTimeout(() => {
     nuotClick = true;                        // nhả tay sau khi chỉ KHÔNG được thành cú lật
-    o.chiLa(index);
-    rung.sai();
-    sfx.select();
-    hienChi(index, '');
+    chiNay(index);
   }, GIU_MS);
+}
+function chiNay(index: number): void {
+  o.chiLa(index);
+  rung.sai();
+  sfx.select();
+  hienChi(index, '');
+}
+/** Chạm đúp: hai lần nhả tay trên CÙNG một lá úp, cách nhau ≤ DUP_MS, khi bàn khoá với mình. */
+const DUP_MS = 350;
+let chamTruoc: { index: number; t: number } | null = null;
+function xetChamDup(e: PointerEvent): void {
+  if (!laDoi.value || o.spectator.value || o.view.value?.summary || !locked.value) { chamTruoc = null; return; }
+  const la = (e.target as HTMLElement).closest<HTMLElement>('button.card');
+  if (!la || la.classList.contains('up') || la.classList.contains('done')) { chamTruoc = null; return; }
+  const index = Number(la.dataset.index);
+  if (chamTruoc && chamTruoc.index === index && e.timeStamp - chamTruoc.t <= DUP_MS) {
+    chamTruoc = null;
+    chiNay(index);
+    return;
+  }
+  chamTruoc = { index, t: e.timeStamp };
 }
 function giuDi(e: PointerEvent): void {
   if (diemGiu && Math.hypot(e.clientX - diemGiu[0], e.clientY - diemGiu[1]) > 10) boGiu();
@@ -309,6 +330,8 @@ function giuDi(e: PointerEvent): void {
 function boGiu(): void { clearTimeout(henGiu); diemGiu = null; }
 /** Nhả tay: CardTile lật ở `pointerup` (không phải click) — đã chỉ thì chặn ngay ở pha capture. */
 function giuNha(e: PointerEvent): void {
+  // Chỉ xét chạm đúp khi đây là cú chạm thường (chưa thành chạm giữ, chưa trượt tay)
+  if (e.type === 'pointerup' && diemGiu && !nuotClick) xetChamDup(e);
   boGiu();
   if (nuotClick && e.type === 'pointerup') e.stopPropagation();
 }

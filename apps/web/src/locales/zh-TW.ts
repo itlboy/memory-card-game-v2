@@ -135,7 +135,7 @@ const zhTW: TuDien = {
   'dd.chamDoiDoi': '選同一隊號就是同隊一起玩',
   'dd.thieu': '至少需要 2 隊',
   'dd.choNay': '這裡！',
-  'dd.chiAria': '長按一張背面朝上的牌，指給隊友看',
+  'dd.chiAria': '長按或點兩下一張背面朝上的牌，指給隊友看',
   'menu.tenNguoiAria': '玩家 {n} 的名稱',
   'menu.tiepTuc': '繼續',
   'menu.nhieuTheme': '可以複選，牌桌會混合所選主題的圖案。',

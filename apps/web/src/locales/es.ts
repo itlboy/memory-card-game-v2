@@ -133,7 +133,7 @@ const es: TuDien = {
   'dd.chamDoiDoi': 'Mismo número de equipo = jugáis juntos',
   'dd.thieu': 'Se necesitan al menos 2 equipos',
   'dd.choNay': '¡aquí!',
-  'dd.chiAria': 'Mantén pulsada una carta boca abajo para señalársela a tu compañero',
+  'dd.chiAria': 'Mantén pulsada (o toca dos veces) una carta boca abajo para señalársela a tu compañero',
   'menu.tenNguoiAria': 'Nombre del jugador {n}',
   'menu.tiepTuc': 'Continuar',
   'menu.nhieuTheme': 'Elige varios temas: el tablero mezcla símbolos de todos.',

@@ -132,7 +132,7 @@ const ja: TuDien = {
   'dd.chamDoiDoi': '同じ番号のチームは一緒にプレイ',
   'dd.thieu': '2チーム以上必要です',
   'dd.choNay': 'ここ！',
-  'dd.chiAria': '伏せたカードを長押しして仲間に知らせる',
+  'dd.chiAria': '伏せたカードを長押し（またはダブルタップ）して仲間に知らせる',
   'menu.tenNguoiAria': 'プレイヤー{n}の名前',
   'menu.tiepTuc': '続ける',
   'menu.nhieuTheme': '複数選ぶと、すべてのテーマの絵柄が混ざります。',

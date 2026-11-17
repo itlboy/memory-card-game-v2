@@ -24,6 +24,7 @@
  */
 import type { QuickEmoji } from '@mm/engine';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import DuoiBong from './DuoiBong.vue';
 
 type Bong = { from: string; name: string; emoji: QuickEmoji; key: number };
 const props = defineProps<{ o: { emojiBong: { value: Bong[] } } }>();
@@ -138,7 +139,7 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
         <!-- :key theo lượt gửi → mỗi lần gửi lại là một nhịp nảy, bong bóng thì đứng yên -->
         <span :key="b.key" class="e">{{ b.emoji }}</span>
         <span v-if="!neo[b.from]" class="ai">{{ b.name }}</span>
-        <i class="duoi" />
+        <DuoiBong v-if="neo[b.from]" :huong="neo[b.from]!.kieu === 'phai' ? 'trai' : 'xuong'" :day="2.5" :rong="neo[b.from]!.nho ? 18 : 20" :cao="neo[b.from]!.nho ? 10 : 12" />
       </div>
     </TransitionGroup>
     <span v-for="f in bay" :key="f.id" class="bay" :style="{ left: `${f.x}px`, top: `${f.y}px` }" aria-hidden="true">{{ f.emoji }}</span>
@@ -150,11 +151,13 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   /* Nổi trên MỌI thứ kể cả bảng kết quả (10) và hộp xác nhận (20) */
   position: fixed; z-index: 60; pointer-events: none;
   display: flex; align-items: center; gap: 4px; width: max-content;
-  padding: 6px 10px; border-radius: 20px;
-  background: var(--panel-solid, #fff);
+  padding: 6px 10px; border-radius: 18px;
+  --nen: var(--panel-solid, #fff);
   --vien: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: var(--nen);
   border: 2.5px solid var(--vien);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, .28);
+  /* drop-shadow chứ không box-shadow: bóng ăn theo cả đuôi */
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .26));
 }
 /* TRÊN chip: `top` = mép trên chip − 10 → tự kéo lên trọn chiều cao mình */
 .bong.tren { transform: translateY(-100%); transform-origin: 24px 100%; }
@@ -186,17 +189,9 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   100% { opacity: 0; transform: translate(-50%, calc(-100% - 70px)) scale(1); }
 }
 
-/* ĐUÔI = TAM GIÁC THẬT (18.11.2026, chủ dự án: "mũi nhọn là hình con thoi"): bản cũ là ô vuông xoay
-   45° — phần lọt vào trong bong bóng không che kín nên lộ thành con thoi. Nay hai tam giác clip-path
-   chồng nhau: lớp ngoài màu VIỀN, lớp trong (::after) màu NỀN đè lên vạch viền của bong bóng → miệng
-   đuôi liền với thân, chỉ còn hai cạnh viền chụm thành mũi. Đè vào trong 2.5px = đúng độ dày viền. */
-.duoi { position: absolute; background: var(--vien); }
-.duoi::after { content: ''; position: absolute; background: var(--panel-solid, #fff); }
-.tren .duoi { left: 14px; top: calc(100% - 2.5px); width: 20px; height: 12.5px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
-.tren .duoi::after { left: 3.5px; right: 3.5px; top: 0; bottom: 4px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
-.phai .duoi { right: calc(100% - 2.5px); top: calc(50% - 10px); width: 12.5px; height: 20px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
-.phai .duoi::after { top: 3.5px; bottom: 3.5px; right: 0; left: 4px; clip-path: polygon(100% 0, 100% 100%, 0 50%); }
-.giua .duoi { display: none; }
+/* ĐUÔI: DuoiBong.vue (SVG, viền đều, mũi bo). Ở đây chỉ đặt vị trí dọc cạnh. */
+.tren .duoi-bong { left: 14px; }
+.phai .duoi-bong { top: 50%; translate: 0 -50%; }
 
 /* Vào: nảy từ chỗ đuôi; ra: mờ + trôi nhẹ lên. Giữ nguyên translate của từng kiểu. */
 .bong-enter-active { transition: opacity .15s ease, scale .3s cubic-bezier(.2, 1.4, .4, 1); }

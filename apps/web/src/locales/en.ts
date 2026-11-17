@@ -134,7 +134,7 @@ const en: TuDien = {
   'dd.chamDoiDoi': 'Same team number = you play together',
   'dd.thieu': 'Need at least 2 teams',
   'dd.choNay': 'here!',
-  'dd.chiAria': 'Press and hold a face-down card to point it out to your teammate',
+  'dd.chiAria': 'Press and hold (or double-tap) a face-down card to point it out to your teammate',
   'menu.tenNguoiAria': 'Name of player {n}',
   'menu.tiepTuc': 'Continue',
   'menu.nhieuTheme': 'Select multiple themes — the board mixes symbols from all of them.',

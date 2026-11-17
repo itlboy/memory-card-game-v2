@@ -139,7 +139,7 @@ const vi = {
   'dd.chamDoiDoi': 'Cùng số đội là chơi chung một đội',
   'dd.thieu': 'Cần ít nhất 2 đội',
   'dd.choNay': 'chỗ này!',
-  'dd.chiAria': 'Chạm giữ một lá úp để chỉ cho đồng đội',
+  'dd.chiAria': 'Chạm giữ hoặc chạm đúp một lá úp để chỉ cho đồng đội',
   'menu.tenNguoiAria': 'Tên người chơi {n}',
   'menu.tiepTuc': 'Tiếp tục',
   'menu.nhieuTheme': 'Chọn được nhiều theme — bàn thẻ sẽ trộn biểu tượng của tất cả.',

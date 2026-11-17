@@ -15,7 +15,7 @@ giữ làm lịch sử; luật ĐANG CHẠY là mục này.
 - **Điểm, mạng, chuỗi tính theo đội**; cuối ván ghi thêm số cặp từng người tự ghép (`capTV`).
 - **Máy** vào đội nào cũng được (đứng riêng, hoặc chung đội với người).
 - Một người rời giữa ván: đồng đội đi mọi lượt của đội; cả đội rời mới xử thua.
-- Chạm giữ một lá để chỉ cho đồng đội vẫn còn (chỉ đồng đội thấy).
+- Chạm giữ (hoặc chạm đúp, khi đồng đội đang lật) một lá để chỉ cho đồng đội vẫn còn (chỉ đồng đội thấy).
 - Ván đội chỉ ghi thắng/thua vào tài khoản; ván có máy không ghi gì.
 - App cũ: phòng nào cũng vào được; nhưng nếu có người chung đội mà ai đó dùng app chưa hiểu đội theo số
   (`?dd=2`) thì server không mở ván và nêu tên người cần cập nhật.
@@ -85,7 +85,7 @@ Chủ dự án muốn chế độ này chủ yếu cho **online**. Các đội h
 
 Chơi chung máy thì nói miệng được, online thì không.
 
-- **Chỉ thẻ**: chạm giữ một thẻ úp → thẻ đó nháy sáng trên màn đồng đội kèm "chỗ này!".
+- **Chỉ thẻ**: chạm giữ một thẻ úp (hoặc chạm đúp khi không phải lượt mình lật — 18.11.2026) → thẻ đó nháy sáng trên màn đồng đội kèm "chỗ này!".
   **Chỉ đồng đội thấy**, đội kia không nhận được gói tin này (lọc ở server, đừng gửi rồi ẩn ở client).
 - ~~Thanh emoji thêm kênh "chỉ đồng đội"~~ — **BỎ** (chủ dự án 14.11.2026): emoji chat CHUNG cả phòng như hiện nay.
 
@@ -144,5 +144,5 @@ Giai đoạn 1–2 là đủ chơi; 3–4 chỉ làm khi chủ dự án bảo.
 - Phòng chờ (bản đơn giản chủ dự án chọn): MỘT danh sách, mỗi người một ô "Đội 1 / Đội 2", AI CŨNG tự đổi đội
   mình (chủ phòng đổi được người khác + máy). Đội hình hợp lệ: mỗi đội 2 người, hoặc 2 người đấu MỘT máy
   (máy là đội một thành viên, tự lật cả hai lá).
-- Trong ván: `TeamStrip.vue` thay dải chip (một hàng 44px); chỉ thẻ = chạm giữ 0,4s (lớp ngoài CardTile).
+- Trong ván: `TeamStrip.vue` thay dải chip (một hàng 44px); chỉ thẻ = chạm giữ 0,4s, hoặc chạm đúp ≤ 0,35s khi bàn khoá với mình (lớp ngoài CardTile).
 - Online: client khai `?dd=1`; phòng Đồng đội từ chối client cũ. Gói tin MỚI: `doi`, `chi` (không có kênh emoji riêng — chat chung).

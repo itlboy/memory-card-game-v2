@@ -138,7 +138,7 @@ const fr: TuDien = {
   'dd.chamDoiDoi': 'Même numéro d’équipe = vous jouez ensemble',
   'dd.thieu': 'Il faut au moins 2 équipes',
   'dd.choNay': 'ici !',
-  'dd.chiAria': 'Maintenez une carte face cachée pour la montrer à votre coéquipier',
+  'dd.chiAria': 'Maintenez (ou touchez deux fois) une carte face cachée pour la montrer à votre coéquipier',
   'menu.tenNguoiAria': 'Nom du joueur {n}',
   'menu.tiepTuc': 'Continuer',
   'menu.nhieuTheme': 'Choisis plusieurs thèmes — le plateau mélange tous leurs symboles.',

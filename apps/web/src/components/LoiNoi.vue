@@ -12,6 +12,7 @@
  */
 import type { QuickSay } from '@mm/engine';
 import { ref, watch } from 'vue';
+import DuoiBong from './DuoiBong.vue';
 import { td } from '@/lib/i18n';
 import { EMOJI_NOI } from '@/lib/noi-nhanh';
 
@@ -45,6 +46,7 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
       >
         <span class="e" aria-hidden="true">{{ EMOJI_NOI[l.id] }}</span>
         <span class="chu"><b v-if="!neo[l.key]">{{ l.name }}: </b>{{ td(`say.${l.id}`) }}</span>
+        <DuoiBong v-if="neo[l.key]" huong="len" :day="2" :rong="18" :cao="10" />
       </div>
     </TransitionGroup>
   </Teleport>
@@ -58,18 +60,16 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
   /* max-content: neo sát mép phải thì `fixed` tự bóp bề rộng theo chỗ còn lại và chữ
      xuống dòng (ảnh 14.10.2026) — giữ bề rộng theo chữ, vị trí đã được kẹp trong JS */
   padding: 6px 12px; border-radius: 14px;
-  background: var(--panel-solid); color: var(--fg);
-  border: 2px solid var(--accent); box-shadow: var(--elev-2, 0 6px 18px rgba(0, 0, 0, .25));
+  --nen: var(--panel-solid); --vien: var(--accent);
+  background: var(--nen); color: var(--fg);
+  border: 2px solid var(--vien);
+  /* drop-shadow chứ không box-shadow: bóng ăn theo cả đuôi */
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .22));
   font-size: var(--text-sm); font-weight: 700; line-height: 1.25;
   pointer-events: none;
 }
-/* Mũi nhọn chỉ lên chip người nói — TAM GIÁC THẬT (18.11.2026; ô vuông xoay 45° cũ lộ thành con
-   thoi): lớp ngoài màu viền, lớp trong màu nền đè lên vạch viền của bong bóng (2px) → mũi liền thân. */
-.bong:not(.tren)::before, .bong:not(.tren)::after {
-  content: ''; position: absolute; left: 50%; translate: -50% 0; clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-.bong:not(.tren)::before { bottom: calc(100% - 2px); width: 18px; height: 11px; background: var(--accent); }
-.bong:not(.tren)::after { bottom: calc(100% - 2px); width: 12px; height: 7.5px; background: var(--panel-solid); }
+/* Mũi chỉ lên chip người nói: DuoiBong.vue (SVG dùng chung với bong bóng emoji) */
+.bong .duoi-bong { left: 50%; translate: -50% 0; }
 .bong .e { font-size: 18px; flex-shrink: 0; }
 .bong .chu { min-width: 0; }
 .loi-enter-active { transition: opacity .16s ease, translate .16s ease; }

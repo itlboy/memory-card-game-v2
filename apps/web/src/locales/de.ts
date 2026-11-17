@@ -135,7 +135,7 @@ const de: TuDien = {
   'dd.chamDoiDoi': 'Gleiche Teamnummer = ihr spielt zusammen',
   'dd.thieu': 'Mindestens 2 Teams nötig',
   'dd.choNay': 'hier!',
-  'dd.chiAria': 'Halte eine verdeckte Karte gedrückt, um sie deinem Teamkollegen zu zeigen',
+  'dd.chiAria': 'Halte eine verdeckte Karte gedrückt (oder tippe doppelt), um sie deinem Teamkollegen zu zeigen',
   'menu.tenNguoiAria': 'Name von Spieler {n}',
   'menu.tiepTuc': 'Weiter',
   'menu.nhieuTheme': 'Wähle mehrere Themen — das Spielfeld mischt Symbole aus allen.',
