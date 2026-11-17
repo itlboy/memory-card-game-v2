@@ -28,7 +28,7 @@ export const HTML = String.raw`<!doctype html>
     <!-- NGAY LÚC NÀY: luôn là 30 phút gần nhất, KHÔNG theo khoảng đang chọn — đặt cạnh tiêu đề, tách khỏi
          phần thống kê (17.11.2026: để dưới hàng nút thì bấm "Hôm nay" vẫn thấy "30 phút qua", gây hiểu lầm) -->
     <section class="song" aria-live="polite" aria-label="Ngay lúc này, 30 phút gần nhất">
-      <div class="song-tieu"><span class="cham"></span><h2 class="ktieu">Ngay lúc này</h2><span class="phu-nho">30 phút gần nhất · tự cập nhật mỗi phút</span></div>
+      <div class="song-tieu"><span class="cham"></span><div><h2 class="ktieu">Ngay lúc này</h2><span class="phu-nho">30 phút gần nhất · cập nhật mỗi phút</span></div></div>
       <div class="song-so" id="song"><span class="sk" style="width:110px;height:28px"></span><span class="sk" style="width:110px;height:28px"></span><span class="sk" style="width:90px;height:28px"></span></div>
     </section>
   </header>
@@ -130,6 +130,7 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .phu{margin:2px 0 0;font-size:13px;color:var(--mo)}
 .mo{color:var(--mo);font-size:13px;font-weight:700}
 .dau{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.dau .song{margin-left:auto}   /* cạnh tiêu đề, dạt phải; thiếu chỗ thì xuống dòng gọn */
 .ten{display:flex;align-items:center;gap:14px}
 .logo{width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:var(--tim);border:2px solid var(--tim2);border-radius:18px;box-shadow:0 5px 0 #3b2fb0}
 .dieu-khien,.chips{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
@@ -152,18 +153,22 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .n-ga{background:rgba(251,191,36,.16);color:#fcd34d}
 .n-live{background:rgba(74,222,128,.16);color:#86efac}
 .ktieu{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--mo)}
-.song{padding:10px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;border-radius:18px;border:2px solid #23573a;background:rgba(74,222,128,.06)}
+.song{padding:8px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;border-radius:18px;border:2px solid #23573a;background:rgba(74,222,128,.06)}
 .phu-nho{font-size:12px;color:var(--mo);font-weight:600}
 .ky-chon{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mo)}
 .ky-chon b{color:#fff}
 .kpi-dau{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .kpi-dau .nhan{min-width:0}
 .song-tieu{display:flex;align-items:center;gap:10px}
+.song-tieu .phu-nho{display:block;font-size:11.5px;line-height:1.2}
+.song-tieu .ktieu{line-height:1.2}
 .cham{width:12px;height:12px;border-radius:999px;background:#4ade80;box-shadow:0 0 0 5px rgba(74,222,128,.18)}
 .song-so{display:flex;flex-wrap:wrap;gap:28px}
 .song-so b,.kpi b{font:800 26px/1 'Baloo 2',sans-serif;color:#fff}
 .song-so span.k{font-size:14px;color:var(--mo);font-weight:700;margin-left:8px}
 .luoi-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+/* 8 ô: 4 + 4 cho cân (auto-fit ra 6 + 2 trên màn rộng) */
+@media (min-width:900px){.luoi-kpi{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .kpi{padding:18px;display:flex;flex-direction:column;gap:8px}
 .kpi .nhan{font-size:14px;font-weight:700;color:var(--vua)}
 .kpi b{font-size:36px}
