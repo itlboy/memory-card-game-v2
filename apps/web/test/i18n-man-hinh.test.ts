@@ -91,10 +91,8 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   const chup = (ten: string) => { man[ten] = gomChu(w!.element.parentElement ?? w!.element); };
   chup('trang chủ');
   await bam('header .menu-btn'); chup('menu thanh trên'); await bam('header .menu-btn');
-  // Ngôn ngữ trước đã chơi một ván nhanh (Prefs.nhanh) → ô Chơi nhanh vào ván NGAY; đi qua dải
-  // "Chơi nhanh: … Đổi" để tới màn Chơi nhanh (và dải đó đã được soát chữ ở 'trang chủ').
-  if (w.find('.nhanh-bar').exists()) await bam('.nhanh-bar');
-  else await bam('.home :is(.o-chien-dich, .o-vuong)', 1);
+  // Ô Chơi nhanh LUÔN mở màn Chơi nhanh (17.11.2026 bỏ kiểu vào ván ngay + dải "Đổi")
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 1);
   chup('màn chơi nhanh');
   await bam('.nh-o', 1); chup('màn chơi nhanh (2 người: dòng tên)');
   await bam('.nh-ten'); chup('bước phụ tên'); await bam('.btn-primary');
