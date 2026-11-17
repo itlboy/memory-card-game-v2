@@ -51,7 +51,8 @@ describe('tỷ số loạt ở màn kết quả', () => {
   it('số cặp/chuỗi ẩn sau "Chi tiết ván", bấm thì lật chỗ với bảng tỷ số', async () => {
     const w = dung({ seriesWins: { Kiên: 1 }, soVan: 3 });
     expect(w.text()).toContain('Ván 3');
-    const an = (sel: string): boolean => (w.find(sel).attributes('style') ?? '').includes('display: none');
+    // Ẩn bằng class `an` (visibility), KHÔNG display:none — hai bảng chồng một ô để khung không nhảy
+    const an = (sel: string): boolean => w.find(sel).classes().includes('an');
     expect(an('.ranking')).toBe(true);
     expect(an('.loat')).toBe(false);
     await w.find('.nut-ct').trigger('click');
