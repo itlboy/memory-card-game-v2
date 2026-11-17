@@ -56,6 +56,8 @@ export interface Prefs {
    *  có thì bấm ô Chơi nhanh ở trang chủ là vào ván ngay với đúng cỡ bàn + số người này.
    *  Lưu RIÊNG vì `level`/`playerCount` bị Chiến dịch và Đấu máy ghi đè. Thiếu = chưa chơi nhanh lần nào. */
   nhanh?: { level: number; playerCount: number };
+  /** Ván ĐẤU MÁY gần nhất: máy + cỡ bàn, điền sẵn màn Đấu máy (17.11.2026). */
+  dauMay?: { bot: string; level: number };
   /** Bàn của phòng online gần nhất mình làm chủ (17.11.2026): bấm "Tạo phòng" là có phòng
    *  ngay với bàn này, không qua bước chọn nào. Thiếu = chưa tạo phòng lần nào. */
   banOnline?: RoomConfig;

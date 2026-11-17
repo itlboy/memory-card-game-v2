@@ -111,6 +111,7 @@ const id: TuDien = {
   'menu.choiNhanh': 'Main cepat',
   'menu.choiNhanhMo': 'Solo atau 2–4 pemain di satu perangkat, aturannya kamu yang atur',
   'menu.dauMay': 'Lawan komputer',
+  'menu.doiThu': 'Lawan',
   'menu.dauMayMo': 'Tantang lawan AI — bisa offline, tanpa internet',
   'menu.online': 'Main online',
   'menu.onlineMo': 'Buat room dan ajak teman pakai kode 6 angka',

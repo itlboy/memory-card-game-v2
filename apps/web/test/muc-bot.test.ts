@@ -53,8 +53,9 @@ describe('các mức của máy', () => {
     }
   });
 
-  it('ô chọn xếp MỘT CỘT nên thêm mức không làm trang dài ra', () => {
-    // Luật KHÔNG SCROLL: thêm lựa chọn thì ô thấp xuống, không phải trang dài ra.
-    expect(menu).toMatch(/step === 'bot'[^>]*class="step-body options loose"/);
+  it('đấu máy MỘT MÀN: mặt máy là một HÀNG ngang trên màn có nút Bắt đầu (17.11.2026)', () => {
+    // Luật KHÔNG SCROLL: thêm mức thì ô hẹp lại trong hàng, không thêm bước hay làm trang dài ra.
+    expect(menu).toMatch(/step === 'bot'[^>]*class="step-body nhanh"/);
+    expect(menu).toMatch(/class="nh-hang may-hang"/);
   });
 });

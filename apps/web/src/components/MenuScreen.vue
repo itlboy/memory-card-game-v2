@@ -138,17 +138,18 @@ const isMulti = computed(() => props.playerCount > 1);
 const path = computed<Step[]>(() => {
   // Chiến dịch: luật do từng màn quyết định, không có bước tuỳ chọn
   if (props.mode === 'campaign') return ['players', 'level', 'theme'];
-  if (props.botLevel) return ['players', 'bot', 'level', 'theme', 'options'];
   // "Chơi nhanh": (Thể loại nếu Mưa Thẻ mở — lib/mua-the.ts) → màn `nhanh`, cộng bước phụ đang mở.
   // Bước phụ lấy theo `step` HOẶC `buocHien`: lúc đang rời bước phụ về `nhanh`, phần đầu vẫn vẽ bước
   // phụ thêm một nhịp — bỏ nó khỏi path sớm là nút quay lại nháy mất.
   const kieu: Step[] = MUA_THE_MO ? ['kieu'] : [];
-  const goc: Step[] = ['players', ...kieu, 'nhanh'];
+  const goc: Step[] = props.botLevel ? ['players', 'bot'] : ['players', ...kieu, 'nhanh'];
   const phu = BUOC_PHU.includes(step.value) ? step.value : BUOC_PHU.includes(buocHien.value) ? buocHien.value : null;
   return phu ? [...goc, phu] : goc;
 });
 /** Đang ở nhánh Chơi nhanh (không Chiến dịch, không đấu máy) — bước phụ quay về màn `nhanh`. */
-const laNhanh = computed(() => props.mode !== 'campaign' && !props.botLevel);
+const laNhanh = computed(() => props.mode !== 'campaign');
+/** Màn một-trang mà bước phụ quay về: `bot` (đấu máy) hoặc `nhanh` (chơi nhanh). */
+const veMan = computed<Step>(() => (props.botLevel ? 'bot' : 'nhanh'));
 const stepIndex = computed(() => path.value.indexOf(step.value));
 /**
  * BƯỚC ĐANG HIỆN TRÊN PHẦN ĐẦU (tiêu đề, chấm tiến độ, nút quay lại, nền panel).
@@ -246,20 +247,25 @@ function pickBotMode(): void {
   sfx.select();
   moChucNang('dau_may');
   emit('update:playerCount', 1);
-  emit('update:botLevel', props.botLevel ?? 'normal');
+  // Máy + cỡ bàn của ván đấu máy trước (Prefs.dauMay); chưa có thì Gà cứng, bàn "Dễ"
+  const cu = store.prefs().dauMay;
+  const may = cu && cu.bot in BOT_SPECS ? (cu.bot as BotLevel) : null;
+  emit('update:botLevel', props.botLevel ?? may ?? 'normal');
   // Thoát Chiến dịch NGAY TẠI ĐÂY, không đợi tới lúc chọn mức: còn để mode
   // 'campaign' thì `path` là đường của Chiến dịch, không có bước 'bot', nên
   // stepIndex = -1 và nút quay lại biến mất (người chơi báo 13.10.2026).
   if (props.mode === 'campaign') emit('update:mode', 'classic');
+  // Cỡ bàn: giữ cỡ đang có nếu hợp lệ (không phải số màn Chiến dịch), không thì bàn "Dễ" như Chơi nhanh
+  const lv = cu?.level && coCua(cu.level) ? cu.level
+    : props.mode !== 'campaign' && props.level > 1 && coCua(props.level) ? props.level : MUC_NHANH[0]!.level;
+  emit('update:level', lv);
   step.value = 'bot';
 }
 
 function pickBotLevel(l: BotLevel): void {
+  if (l === props.botLevel) return;
   sfx.select();
   emit('update:botLevel', l);
-  // Máy chỉ đấu 1v1 và không có Chiến dịch (chuỗi màn của riêng một người)
-  if (props.mode === 'campaign') emit('update:mode', 'classic');
-  step.value = 'level';
 }
 
 /** Chiến dịch: một mình, không bot, và KHÔNG qua bảng tuỳ chọn. */
@@ -396,7 +402,7 @@ function confirmNames(): void {
   store.savePlayerNames(names.value.map((v) => v.trim()));
   names.value = names.value.map((v) => v.trim());
   sfx.select();
-  step.value = 'nhanh';
+  step.value = veMan.value;
 }
 
 /**
@@ -433,13 +439,13 @@ function setOption(key: OptionKey, muc: OptLevel): void {
 function xongTheme(): void {
   if (props.mode === 'campaign') { emit('start-level', props.level); return; }
   sfx.select();
-  step.value = laNhanh.value ? 'nhanh' : 'options';
+  step.value = laNhanh.value ? veMan.value : 'options';
 }
 
 function pickLevel(id: number): void {
   sfx.select();
   emit('update:level', id);
-  step.value = laNhanh.value ? 'nhanh' : 'theme';
+  step.value = laNhanh.value ? veMan.value : 'theme';
 }
 
 function back(): void {
@@ -465,7 +471,8 @@ const tenBan = computed(() =>
   props.mode === 'campaign' ? t('menu.banCap', { n: props.level }) : t('menu.banThe', { n: pairsNeeded.value * 2 }));
 
 const tieuDe = computed(() =>
-  buocHien.value === 'level' && props.mode !== 'campaign' ? t('menu.chonSoThe') : td(`menu.buoc.${buocHien.value}`));
+  buocHien.value === 'level' && props.mode !== 'campaign' ? t('menu.chonSoThe')
+    : buocHien.value === 'bot' ? t('menu.dauMay') : td(`menu.buoc.${buocHien.value}`));
 
 const best = computed(() => store.best(props.mode, props.level));
 /** Số cặp mà cấp đang chọn cần — bước theme dùng để cảnh báo thiếu biểu tượng. */
@@ -667,14 +674,26 @@ const ICO3D = {
         </button>
       </div>
 
-      <!-- BƯỚC (đấu máy): mức của máy -->
-      <div v-else-if="step === 'bot'" key="bot" class="step-body options loose">
-        <button
-          v-for="b in BOT_CHOICES" :key="b.id" class="option wide neon" :class="b.g" type="button"
-          @click="pickBotLevel(b.id)"
-        >
-          <span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span>
-          <span class="text"><strong>{{ tenBot(b.id) }}</strong><small>{{ td(`menu.bot.${b.id}`) }}</small></span>
+      <!-- ĐẤU MÁY MỘT MÀN (mockup 17.11.2026): đối thủ + bàn (BanChon dùng chung với Chơi nhanh) + Bắt đầu -->
+      <div v-else-if="step === 'bot'" key="bot" class="step-body nhanh">
+        <p class="nh-nhan">{{ t('menu.doiThu') }}</p>
+        <div class="nh-hang may-hang" role="radiogroup" :aria-label="t('menu.doiThu')">
+          <button
+            v-for="b in BOT_CHOICES" :key="b.id" class="option nh-o may-o" type="button" role="radio"
+            :aria-checked="botLevel === b.id" :aria-label="tenBot(b.id)" :title="tenBot(b.id)"
+            @click="pickBotLevel(b.id)"
+          ><span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span></button>
+        </div>
+        <p v-if="botLevel" class="may-mo" aria-live="polite"><b>{{ tenBot(botLevel) }}</b> — {{ td(`menu.bot.${botLevel}`) }}</p>
+
+        <BanChon
+          :level="level" :symbol-count="maxSymbolCount" :themes="themes" :theme-ids="themeIds" :options="options"
+          @chon-co="chonCo" @mo="moBuocPhu"
+        />
+
+        <p v-if="themeTooSmall" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
+        <button class="btn-primary nh-bat-dau" type="button" @click="batDauNhanh">
+          {{ t('menu.batDau', { ban: tenBan }) }}
         </button>
       </div>
 
@@ -840,7 +859,7 @@ const ICO3D = {
         </div>
 
         <!-- Chơi nhanh: bàn chơi là bước phụ — Xong quay về màn `nhanh`; đấu máy thì vào ván -->
-        <button v-if="laNhanh" class="btn-primary" type="button" @click="sfx.select(); step = 'nhanh'">
+        <button v-if="laNhanh" class="btn-primary" type="button" @click="sfx.select(); step = veMan">
           {{ t('menu.nhanh.xong') }}
         </button>
         <button v-else class="btn-primary" type="button" @click="emit('start-level', level)">
@@ -852,6 +871,12 @@ const ICO3D = {
 </template>
 
 <style scoped>
+/* Đấu máy một màn: hàng 5 mặt máy (cùng ô với số người/số thẻ), dòng tên + lời của máy đang chọn */
+.may-hang { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.may-o .bot-face { font-size: clamp(30px, 11vw, 46px); line-height: 1; display: grid; place-items: center; }
+.may-mo { margin: -2px 0 0; min-height: 2.6em; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--muted); flex: none; }
+.may-mo b { color: var(--fg); font-weight: 800; }
+
 /* Nút vô hình trùng mặt trời/trăng (tính năng ẩn đổi sáng/tối) — dưới thanh trên (z 15) */
 .nut-troi {
   position: absolute; z-index: 14; left: calc(87% - 32px); top: calc(var(--tam-troi) - 32px);

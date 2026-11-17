@@ -111,6 +111,7 @@ const zhTW: TuDien = {
   'menu.choiNhanh': '快速遊戲',
   'menu.choiNhanhMo': '單人或 2–4 人同一支手機，規則自己定',
   'menu.dauMay': '對戰電腦',
+  'menu.doiThu': '對手',
   'menu.dauMayMo': '挑戰電腦對手，不用連網也能玩',
   'menu.online': '線上對戰',
   'menu.onlineMo': '建立房間，用 6 位數房號邀請好友',

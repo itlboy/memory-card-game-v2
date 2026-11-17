@@ -106,9 +106,10 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   history.replaceState(null, '', location.pathname); sessionStorage.clear();
   // Nhánh đấu máy: bước chọn mức máy + màn chơi có tên máy và "Bạn"
   w = mount(App); await flush(8);
-  await bam('.home :is(.o-chien-dich, .o-vuong)', 2); chup('bước mức máy');
-  await bam('.options .option.wide', 2); await bam('.size-grid button', 1);
-  await bam('.btn-primary'); await bam('.btn-primary'); await flush(8); chup('màn chơi đấu máy');
+  // Đấu máy MỘT MÀN (17.11.2026): đối thủ + bàn + Bắt đầu trên cùng một màn
+  await bam('.home :is(.o-chien-dich, .o-vuong)', 2); chup('màn đấu máy');
+  await bam('.may-o', 2); chup('màn đấu máy (đổi đối thủ)');
+  await bam('.nh-bat-dau'); await flush(8); chup('màn chơi đấu máy');
   w.unmount(); w = null;
   // ĐỢT 3 (13.10.2026): màn Chơi online (sổ phòng), bản đồ Chiến dịch, hộp Luật chơi.
   // Màn online lọt lưới hai đợt đầu và chỉ lộ ra khi chụp ảnh App Store bản English.

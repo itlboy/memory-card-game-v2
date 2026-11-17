@@ -109,6 +109,7 @@ const th: TuDien = {
   'menu.choiNhanh': 'เล่นด่วน',
   'menu.choiNhanhMo': 'เล่นคนเดียวหรือ 2–4 คนในเครื่องเดียว ตั้งกติกาเองได้',
   'menu.dauMay': 'เล่นกับคอม',
+  'menu.doiThu': 'คู่แข่ง',
   'menu.dauMayMo': 'ท้าดวลกับ AI — เล่นได้แม้ไม่มีเน็ต',
   'menu.online': 'เล่นออนไลน์',
   'menu.onlineMo': 'สร้างห้องแล้วชวนเพื่อนด้วยรหัส 6 หลัก',

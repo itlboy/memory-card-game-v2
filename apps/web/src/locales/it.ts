@@ -112,6 +112,7 @@ const it: TuDien = {
   'menu.choiNhanh': 'Partita rapida',
   'menu.choiNhanhMo': 'Da solo o in 2–4 sullo stesso dispositivo, con le tue regole',
   'menu.dauMay': 'Contro il computer',
+  'menu.doiThu': 'Avversario',
   'menu.dauMayMo': 'Sfida un avversario IA — funziona offline, senza internet',
   'menu.online': 'Gioca online',
   'menu.onlineMo': 'Crea una stanza e invita gli amici con un codice di 6 cifre',

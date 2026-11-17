@@ -1020,6 +1020,23 @@ describe('đấu với máy', () => {
     expect(wrapper.find('.step-body.home').exists()).toBe(true);
   });
 
+  it('đấu máy MỘT MÀN: chọn máy không chuyển màn; lần sau vào lại thì máy + cỡ bàn ván trước chọn sẵn', async () => {
+    await mountApp();
+    await click('Đấu với máy');
+    expect(wrapper.find('.step-body.nhanh .may-hang').exists()).toBe(true);
+    await click(BOT_SPECS.hard.name);
+    expect(wrapper.find('.may-hang').exists(), 'chọn máy KHÔNG được sang màn khác').toBe(true);
+    expect(wrapper.find('.may-o[aria-checked="true"]').attributes('aria-label')).toContain(BOT_SPECS.hard.name);
+    await start(4);
+    expect(JSON.parse(localStorage.getItem('mm.v2')!).prefs.dauMay).toMatchObject({ bot: 'hard' });
+    wrapper.unmount();
+    // Ván vừa rồi để lại ?playing=1 + snapshot: dọn để mở lại ở trang chủ (như mở app lần sau)
+    history.replaceState(null, '', location.pathname); sessionStorage.clear();
+    await mountApp();
+    await click('Đấu với máy');
+    expect(wrapper.find('.may-o[aria-checked="true"]').attributes('aria-label')).toContain(BOT_SPECS.hard.name);
+  });
+
   it('ván đấu máy có đúng hai người: người chơi và máy', async () => {
     await mountApp();
     await startVsBot(BOT_SPECS.hard.name);

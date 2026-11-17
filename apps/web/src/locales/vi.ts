@@ -115,6 +115,7 @@ const vi = {
   'menu.choiNhanh': 'Chơi nhanh',
   'menu.choiNhanhMo': 'Một mình hoặc 2–4 người trên cùng máy, bàn do bạn đặt luật',
   'menu.dauMay': 'Đấu với máy',
+  'menu.doiThu': 'Đối thủ',
   'menu.dauMayMo': 'Một mình vẫn có đối thủ — máy chơi ngay trên máy bạn, không cần mạng',
   'menu.online': 'Chơi online',
   'menu.onlineMo': 'Tạo phòng, mời bạn bè bằng mã 6 ký tự',

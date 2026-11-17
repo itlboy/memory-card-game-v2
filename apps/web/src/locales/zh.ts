@@ -108,6 +108,7 @@ const zh: TuDien = {
   'menu.choiNhanh': '快速游戏',
   'menu.choiNhanhMo': '单人或 2–4 人同机，规则自定',
   'menu.dauMay': '人机对战',
+  'menu.doiThu': '对手',
   'menu.dauMayMo': '挑战电脑对手，无需联网也能玩',
   'menu.online': '在线对战',
   'menu.onlineMo': '创建房间，用 6 位数房间号邀请好友',

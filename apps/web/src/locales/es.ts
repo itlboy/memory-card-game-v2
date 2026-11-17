@@ -109,6 +109,7 @@ const es: TuDien = {
   'menu.choiNhanh': 'Partida rápida',
   'menu.choiNhanhMo': 'Solo o de 2 a 4 jugadores en un dispositivo, con tus propias reglas',
   'menu.dauMay': 'Contra la máquina',
+  'menu.doiThu': 'Rival',
   'menu.dauMayMo': 'Reta a la máquina — funciona sin internet',
   'menu.online': 'Jugar en línea',
   'menu.onlineMo': 'Crea una sala e invita amigos con un código de 6 dígitos',

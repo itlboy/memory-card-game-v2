@@ -700,6 +700,8 @@ function startLevel(id: number): void {
     if (mode.value !== 'campaign') level.value = id;
     // Ván CHƠI NHANH: nhớ cỡ bàn + số người để lần sau bấm ô Chơi nhanh là vào luôn (Prefs.nhanh)
     if (mode.value !== 'campaign' && !botLevel.value) store.savePrefs({ nhanh: { level: id, playerCount: playerCount.value } });
+    // Ván ĐẤU MÁY: nhớ máy + cỡ bàn (Prefs.dauMay) — màn Đấu máy một trang điền sẵn lần sau
+    if (mode.value !== 'campaign' && botLevel.value) store.savePrefs({ dauMay: { bot: botLevel.value, level: id } });
     session.setBots(banDoMay());
     launch(cfg);
   } catch { /* bản đồ hiện cảnh báo "cần thêm theme" */ }
