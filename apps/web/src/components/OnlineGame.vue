@@ -422,6 +422,11 @@ watch(() => o.view.value?.summary, (s) => {
 
 /** Ảnh Google theo id người chơi — nằm ở danh sách PHÒNG (view ván không mang ảnh). */
 const anhCua = (id: string): string | undefined => o.room.value?.players.find((p) => p.id === id)?.anh;
+/** Mặt + tên một THÀNH VIÊN đội (mã người trong phòng) — bảng tỷ số đội xếp mặt từng người. */
+function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } | undefined {
+  const p = o.room.value?.players.find((q) => q.id === id);
+  return p && { mat: p.avatar, anh: p.anh, ten: tenNguoi(p) };
+}
 </script>
 
 <template>
@@ -682,6 +687,9 @@ const anhCua = (id: string): string | undefined => o.room.value?.players.find((p
       :series-wins="o.seriesWins.value"
       :nguoi-choi="o.view.value.players"
       :anh-cua="anhCua"
+      :so-van="o.soVanLoat.value"
+      :thanh-vien-cua="thanhVienCua"
+      :phieu-choi-lai="o.room.value?.againVotes"
       :rematch-sent="o.iWantAgain.value"
       :rematch-blocked="!enoughToRematch || o.spectator.value"
       :rematch-state="rematchState"

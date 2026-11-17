@@ -695,7 +695,8 @@
   · Emoji gửi đi = BONG BÓNG mỗi người một cái (`EmojiBlast.vue`, `emojiBong`): trong ván nằm TRÊN
     chip (không đè bàn), bảng kết quả `[data-kq-for]` / phòng chờ sau tên, hết chỗ thì lên trên tên.
     Gửi tiếp khi bong bóng còn → emoji BAY LÊN từ bong bóng (không đếm ×n — chủ dự án chọn).
-  · Bảng kết quả online: dòng người đã bấm Chơi lại viền xanh nhấp (`li.muon`); khoảng cách rộng
+  · Bảng kết quả online: người đã bấm Chơi lại có ✓ xanh trên MẶT ở bảng tỷ số (17.11.2026, thay viền
+    xanh nhấp `li.muon`), nhãn "Chơi tiếp" vẫn ở bảng Chi tiết ván; khoảng cách rộng
     hơn chỉ khi màn ≥701px. KHÔNG ghi "X đang chờ bạn" dưới nút Chơi lại (chủ dự án bỏ).
 - **QUẢNG BÁ (11.11.2026, mockup duyệt: https://claude.ai/artifact/MkD66nuGdEmYrYf9wmniWy)**:
   · LINK MỜI có tên người mời: `/?room=CODE&tu=<tên>&l=<ngôn ngữ>` (OnlineScreen `inviteLink`). Worker
@@ -706,8 +707,8 @@
     canvas 1080×1350 trên máy). iPhone: "Lưu ảnh" mở bảng chia sẻ (có "Lưu hình ảnh" — tải file chỉ vào app
     Tệp); Android/máy tính tải file. App: nút chỉ hiện khi WebView chia sẻ được FILE (`coChiaSeAnh`) — Android
     app cần plugin native (bản 1.6, chưa làm).
-  · Bảng kết quả: dòng xếp hạng là khay nổi, người nhất khay vàng; nhãn "Chơi tiếp" nằm ở DÒNG SỐ CẶP, không
-    cạnh tên (tên dài từng bị ngắt dòng). Tên một dòng, dài thì "…".
+  · Bảng kết quả: nhãn "Chơi tiếp" nằm ở DÒNG SỐ CẶP, không cạnh tên (tên dài từng bị ngắt dòng). Tên một
+    dòng, dài thì "…". (Khay vàng người nhất BỎ 17.11.2026 — xem mục BẢNG KẾT QUẢ NHIỀU NGƯỜI.)
   · Chữ "X đi trước" lúc đếm ngược: viền chữ 8 hướng (4 hướng cũ → răng cưa ở nét cong).
 - **ẢNH GOOGLE THAY MẶT THÚ (11.11.2026, mockup duyệt: https://claude.ai/artifact/8RyNFCMoTUEE2w8SP5Xybj)**:
   chủ dự án chốt ĐƠN GIẢN: đăng nhập Google → ảnh Google, còn lại (ẩn danh, Apple — Apple không cấp ảnh) giữ mặt
@@ -729,6 +730,17 @@
   (`lib/emoji-hay-dung.ts`, localStorage `mm.emojiDung`; máy mới = `EMOJI_PHO_BIEN`). Danh sách
   vẫn ĐÓNG (`EMOJI_NHOM` trong engine, server bỏ emoji ngoài danh sách) — không gõ tự do vì luật
   chat của store. Bỏ một emoji khỏi danh sách: app cũ còn gửi được nó, server lặng lẽ bỏ.
+- **BẢNG KẾT QUẢ NHIỀU NGƯỜI = TỶ SỐ LOẠT (17.11.2026, mockup duyệt
+  https://claude.ai/artifact/NTXzpWotaUaPTG96MQxNLi)** — chủ dự án chê bảng cũ "rối và chói" (tím, khay vàng,
+  ô xanh, nút cam, bản tối giữ màu sáng). `ResultDialog`: mỗi người/đội một CỘT theo chỗ ngồi — mặt, tên, MỘT số
+  to = ván thắng cả loạt, điểm ván chữ nhỏ; người thắng ván có viên "+1" vàng (màu nhấn DUY NHẤT, tắt sau 1 nhịp);
+  người dẫn số đậm, người kém số mờ (`lui`), KHÔNG ô màu. Không chữ "Tỷ số" ("ai cũng biết"). Số cặp/chuỗi ẩn sau
+  nút "Chi tiết ván" (lật CHỖ với bảng tỷ số, cùng `min-height`; không nhớ trạng thái). Đội: mặt thành viên xếp
+  chồng + chấm màu đội như TeamStrip, ✓ từng người đã bấm Chơi lại (`phieuChoiLai`). "Ván N" (`soVanLoat`, đếm
+  cả hoà) + nút Lưu/Chia sẻ biểu tượng trên tiêu đề. CHUNG MÁY (không có "mình"): bỏ sao + Tổng điểm, một nút xanh
+  "Chơi lại", "Cấp tiếp theo"/"Đổi bàn" thạch trắng; đấu máy và online giữ nút cũ. BẪY: hàng số phải CAO CỐ ĐỊNH
+  (`.so` height) — viên +1 làm cột thắng cao hơn, dòng điểm lệch (chủ dự án: "phải cân đối nhau"). Neo emoji
+  `data-kq-for` nằm ở CỘT (đội: ở mặt từng thành viên), không còn ở dòng xếp hạng.
 - **🏅 TỶ SỐ LOẠT TỪNG LÀM MẤT ĐIỂM TRONG CHIP (sửa tận gốc 07.11.2026)** — lỗi người chơi báo
   nhiều lần: bàn 2 người, người BÊN PHẢI chờ lượt có 🏅 + điểm cao → điểm bị cắt (Pro Max khuất
   3–10px, SE 28px); bàn ≥3 người thì 🏅 xoá hẳn điểm. Mọi lần đo trước KHÔNG có 🏅 nên luôn

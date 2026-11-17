@@ -13,7 +13,7 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
-import { Settings2, Share } from 'lucide-vue-next';
+import { ChevronDown, Settings2, Share } from 'lucide-vue-next';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
@@ -38,6 +38,12 @@ const props = defineProps<{
   nguoiChoi?: readonly PlayerInit[];
   /** Ảnh Google của người chơi online (theo id), để mặt trong bảng tỷ số giống trong bàn. */
   anhCua?: (id: string) => string | undefined;
+  /** Ván thứ mấy của loạt (kể cả hoà) — dòng nhỏ "Ván N" trên tiêu đề. */
+  soVan?: number;
+  /** Ván ĐỘI online: mặt + tên một thành viên theo mã — cột đội xếp chồng mặt từng người. */
+  thanhVienCua?: (id: string) => { mat?: string; anh?: string; ten: string } | undefined;
+  /** Phòng online: mã những người ĐÃ bấm "Chơi lại" — dấu ✓ trên mặt từng thành viên đội. */
+  phieuChoiLai?: readonly string[];
   /** Có màn kế tiếp trong Chiến dịch không. */
   hasNext: boolean;
   /** Cấp đang chơi; không có nghĩa là ván lẻ, không thuộc thang cấp. */
@@ -145,7 +151,10 @@ function countScoreUp(): void {
 
 const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
 /** Sao chỉ cho ván MÌNH không thua — thua máy mà hiện ba sao là nói ngược. */
-const hienSao = computed(() => props.showStars && props.summary.status === 'won' && props.minhKetCuc !== 'thua');
+/** Nhiều người CHUNG MỘT MÁY (không có "mình"): sao và Tổng điểm là của riêng một người, lạc giữa
+ *  ván nhiều người (mockup duyệt 17.11.2026) — bỏ. Đấu máy vẫn giữ (ván của một người). */
+const chungMay = computed(() => props.multiplayer && !props.multiplayerOnline && !props.minhKetCuc);
+const hienSao = computed(() => props.showStars && props.summary.status === 'won' && props.minhKetCuc !== 'thua' && !chungMay.value);
 
 /**
  * Có chỗ cho nút "Cấp tiếp theo" hay không, và có bấm được hay không — hai
@@ -171,21 +180,43 @@ const reasonText = computed(() =>
     : td(`kq.ly.${props.summary.reason}`));
 
 /*
- * BẢNG TỶ SỐ CẢ LOẠT (16.11.2026, mockup duyệt https://claude.ai/artifact/CXGRc9YiHD6JM7oygnUfpm).
- * Hiện NGAY TỪ VÁN ĐẦU (1 – 0), như tỷ số bóng đá và như viên số trong bàn chơi — trước đây
- * ẩn tới ván 2 nên hết ván 1 không thấy, sang ván 2 bàn chơi lại hiện 1–0. Người dẫn ô xanh lá,
- * hoà loạt không ai xanh (cùng luật `tySoLoat`). Xếp theo chỗ ngồi, không theo hạng ván.
+ * BẢNG KẾT QUẢ NHIỀU NGƯỜI = TỶ SỐ LOẠT (17.11.2026, mockup duyệt
+ * https://claude.ai/artifact/NTXzpWotaUaPTG96MQxNLi — thay bảng tím 16.11.2026).
+ * Mỗi người/đội một cột theo CHỖ NGỒI (cột không nhảy chỗ giữa các ván): mặt, tên, MỘT con số to
+ * = số ván thắng cả loạt, điểm ván là chữ nhỏ. Người vừa thắng ván có viên "+1" nảy lên. Người
+ * dẫn số đậm, người kém số mờ — KHÔNG ô màu (chủ dự án: "nhiều màu sắc quá"); cả bàn bằng nhau thì
+ * không ai mờ. Bỏ chữ "Tỷ số" ("ai cũng biết"). Số cặp/chuỗi ẩn sau nút "Chi tiết ván".
+ * Hiện NGAY TỪ VÁN ĐẦU (1 – 0), cùng luật `tySoLoat` với viên số trong bàn chơi.
  */
 const loat = computed(() => {
   if (!props.multiplayer || !props.seriesWins) return null;
   const ds = props.nguoiChoi?.length ? props.nguoiChoi : props.summary.ranking;
   const ty = tySoLoat(ds, props.seriesWins);
   if (!ty) return null;
-  return ds.map((p) => ({
-    id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id),
-    n: ty[p.name]?.n ?? 0, dan: ty[p.name]?.dan ?? false,
-  }));
+  const coDan = ds.some((p) => ty[p.name]?.dan);
+  const nhat = isDraw(props.summary.ranking) ? undefined : props.summary.ranking[0]?.id;
+  const phieu = new Set(props.phieuChoiLai ?? []);
+  return ds.map((p) => {
+    const hang = props.summary.ranking.find((r) => r.id === p.id);
+    const tvIds = (hang?.thanhVien ?? (p as { thanhVien?: string[] }).thanhVien) ?? [];
+    // Đội: mã `doi-1`…`doi-4` (ván cũ `doi-A`/`doi-B`) → số màu như thanh đội trong ván
+    const doi = tvIds.length ? (({ A: '1', B: '2' } as Record<string, string>)[p.id.slice(-1)] ?? p.id.slice(-1)) : '';
+    return {
+      id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id),
+      n: ty[p.name]?.n ?? 0, lui: coDan && !ty[p.name]?.dan,
+      diem: hang?.score ?? 0, thang: p.id === nhat, doi,
+      ok: props.rematchState?.[p.id] === 'in', ra: props.rematchState?.[p.id] === 'out',
+      tv: tvIds.map((id) => {
+        const m = props.thanhVienCua?.(id);
+        return { id, mat: m?.mat, anh: m?.anh ?? props.anhCua?.(id), ten: m?.ten ?? '?', ok: phieu.has(id) };
+      }),
+    };
+  });
 });
+/** Đang lật sang bảng chi tiết (điểm · cặp · chuỗi). Không nhớ: ván sau lại mở ở tỷ số. */
+const moChiTiet = ref(false);
+/** Mặt của một dòng trong bảng chi tiết — lấy từ cột tỷ số (đã có mặt từng thành viên đội). */
+const cotCua = (id: string) => loat.value?.find((r) => r.id === id);
 const loatAria = computed(() => loat.value?.map((r) => `${r.ten} ${r.n}`).join(', ') ?? '');
 
 const title = computed(() => {
@@ -239,21 +270,42 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
-    <div class="panel" :class="{ 'kq-online': multiplayerOnline }">
+    <div class="panel" :class="{ 'kq-online': multiplayerOnline, 'nhieu-nguoi': loat }">
+      <!-- Nhiều người: "Ván N" + nút Lưu/Chia sẻ (biểu tượng) trên tiêu đề, thay nút vàng to -->
+      <div v-if="loat" class="dau-kq">
+        <small v-if="soVan">{{ t('kq.van', { n: soVan }) }}</small>
+        <button
+          v-if="hienLcs" class="lcs-nho thach" type="button" :aria-label="t('kq.luuChiaSe')" :title="t('kq.luuChiaSe')"
+          @click="moLcs = true; moChucNang('luu_chia_se_anh')"
+        ><Share :size="19" aria-hidden="true" /></button>
+      </div>
       <h2 id="resTitle">{{ title }}</h2>
-      <p class="reason">{{ reasonText }}</p>
+      <!-- Nhiều người: "Bàn đã dọn sạch" là chuyện thường, bỏ cho gọn; chỉ nói khi ván dừng vì lý do khác -->
+      <p v-if="!loat || summary.reason !== 'cleared'" class="reason">{{ reasonText }}</p>
 
-      <!-- Tỷ số cả loạt: chơi với nhau nhiều ván thì đây mới là con số người ta
-           thực sự quan tâm, chứ không phải điểm của riêng ván vừa xong -->
-      <div v-if="loat" class="loat" role="group" :aria-label="`${t('kq.tySo')}: ${loatAria}`">
-        <span class="loat-nhan" aria-hidden="true">{{ t('kq.tySo') }}</span>
-        <div v-if="loat.length === 2" class="loat-hai" aria-hidden="true">
-          <span class="loat-ng"><span class="loat-mat"><MatNguoi :mat="loat[0]!.mat" :anh="loat[0]!.anh" /></span><span class="loat-ten">{{ loat[0]!.ten }}</span></span>
-          <span class="loat-so"><b class="loat-o" :class="{ dan: loat[0]!.dan }">{{ loat[0]!.n }}</b><i>–</i><b class="loat-o" :class="{ dan: loat[1]!.dan }">{{ loat[1]!.n }}</b></span>
-          <span class="loat-ng"><span class="loat-mat"><MatNguoi :mat="loat[1]!.mat" :anh="loat[1]!.anh" /></span><span class="loat-ten">{{ loat[1]!.ten }}</span></span>
-        </div>
-        <div v-else class="loat-nhieu" :style="{ '--n': loat.length }" aria-hidden="true">
-          <span v-for="r in loat" :key="r.id" class="loat-ng"><b class="loat-o" :class="{ dan: r.dan }">{{ r.n }}</b><span class="loat-ten">{{ r.ten }}</span></span>
+      <!-- Tỷ số cả loạt: chơi với nhau nhiều ván thì đây mới là con số người ta thực sự quan tâm.
+           `data-kq-for`: bong bóng emoji (EmojiBlast.vue) neo vào CỘT người gửi (đội: vào MẶT
+           từng thành viên) — bảng này phủ kín màn chơi nên chip trong ván không còn thấy được. -->
+      <div
+        v-if="loat" v-show="!moChiTiet" class="loat khay-nho khay-noi" role="group"
+        :aria-label="`${t('kq.tySo')}: ${loatAria}`" :style="{ '--n': loat.length }"
+      >
+        <div
+          v-for="r in loat" :key="r.id" class="cot" :class="[{ ra: r.ra }, r.doi && `doi d${r.doi}`]"
+          :data-kq-for="r.tv.length ? undefined : r.id"
+        >
+          <span class="xep" aria-hidden="true">
+            <template v-if="r.tv.length">
+              <span v-for="m in r.tv" :key="m.id" class="mat" :class="{ ok: m.ok }" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
+            </template>
+            <span v-else class="mat" :class="{ ok: r.ok }"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
+          </span>
+          <b class="ten ten-kq">{{ r.ten }}</b>
+          <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
+          <!-- Hàng số CAO CỐ ĐỊNH: viên +1 nổi bên trên, không đẩy dòng điểm của cột thắng
+               xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
+          <span class="so"><span class="o-so"><b :class="{ lui: r.lui, nay: r.thang }">{{ r.n }}</b><i v-if="r.thang" class="cong" aria-hidden="true">+1</i></span></span>
+          <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
         </div>
       </div>
 
@@ -278,19 +330,22 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         </template>
       </p>
 
-      <ol v-if="multiplayer" class="ranking">
-        <!-- `data-kq-for`: bong bóng emoji (EmojiBlast.vue) neo vào ĐÚNG dòng người gửi — bảng
-             này phủ kín màn chơi nên chip trong ván không còn thấy được -->
-        <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="p.id" class="khay-nho khay-noi" :class="{ muon: rematchState?.[p.id] === 'in' }">
+      <!-- CHI TIẾT VÁN: điểm · cặp · chuỗi từng người, xếp theo hạng ván. Có bảng tỷ số thì ẩn sau
+           nút "Chi tiết ván" (lật chỗ với bảng tỷ số); không có (thiếu dữ liệu loạt) thì hiện thẳng. -->
+      <ol v-if="multiplayer" v-show="!loat || moChiTiet" id="kqChiTiet" class="ranking" :class="{ 'khay-nho khay-noi': loat }">
+        <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="loat ? undefined : p.id">
+          <span v-if="cotCua(p.id)" class="mat-ct" aria-hidden="true">
+            <template v-if="cotCua(p.id)!.tv.length"><span v-for="m in cotCua(p.id)!.tv" :key="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span></template>
+            <span v-else><MatNguoi :mat="cotCua(p.id)!.mat" :anh="cotCua(p.id)!.anh" /></span>
+          </span>
           <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
-          <span>
+          <span class="ten-dong">
             <span class="ten-kq">{{ draw && i < 2 ? 1 : i + 1 }}. {{ tenNguoi(p) }}</span>
           </span>
           <b>{{ num(p.score) }}</b>
           <!--
             Ai muốn chơi tiếp, ai đã đi: nhãn nằm trên DÒNG SỐ CẶP của chính người đó (11.11.2026).
-            Trước đặt cạnh tên → tên + nhãn + điểm chen một hàng, "Nguyễn Hoàng Anh" bị ngắt dòng
-            (chủ dự án hỏi "tại sao bị xuống dòng"). Dòng dưới còn trống nên nhãn vẫn liền tên.
+            Trước đặt cạnh tên → tên + nhãn + điểm chen một hàng, "Nguyễn Hoàng Anh" bị ngắt dòng.
           -->
           <small>
             {{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
@@ -303,6 +358,10 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           </small>
         </li>
       </ol>
+      <button
+        v-if="loat" class="nut-ct thach th-nho" type="button" aria-controls="kqChiTiet" :aria-expanded="moChiTiet"
+        @click="moChiTiet = !moChiTiet"
+      >{{ moChiTiet ? t('kq.thuGon') : t('kq.chiTiet') }}<ChevronDown :size="16" aria-hidden="true" /></button>
 
       <!-- Điểm là phần thưởng của cả ván: cho nó cỡ chữ xứng đáng và đếm dần lên -->
       <p v-if="!multiplayer" class="score-big" :aria-label="t('kq.diemAria', { n: summary.score })">
@@ -314,7 +373,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
       </p>
 
       <!-- Tổng tích luỹ: đích của điểm ván, sáng lên đúng lúc nhận -->
-      <p v-if="totalGain" class="total-row khay-nho khay-noi" :class="{ landed: totalPhase === 'landed' }">
+      <p v-if="totalGain && !chungMay" class="total-row khay-nho khay-noi" :class="{ landed: totalPhase === 'landed' }">
         <span>{{ t('kq.tongDiem') }}</span>
         <b>{{ num(shownTotal) }}</b>
       </p>
@@ -347,7 +406,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         cấp sau bên phải. "Về menu" xuống hàng dưới vì nó là lối RA, không phải
         lối tiếp; để chung một hàng thì ba nút ngang nhau, mắt không biết chọn gì.
       -->
-      <button v-if="hienLcs" class="nut-lcs btn thach th-vang th-nho" type="button" @click="moLcs = true; moChucNang('luu_chia_se_anh')">
+      <button v-if="hienLcs && !loat" class="nut-lcs btn thach th-vang th-nho" type="button" @click="moLcs = true; moChucNang('luu_chia_se_anh')">
         <Share :size="18" aria-hidden="true" />{{ t('kq.luuChiaSe') }}
       </button>
 
@@ -365,7 +424,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           mà người chơi cần cái nhìn ổn định để bấm theo phản xạ.
         -->
         <button
-          v-if="showNext"
+          v-if="showNext && !chungMay"
           class="btn btn-primary next-level" type="button"
           :disabled="!canNext"
           :title="canNext ? '' : t('kq.capChuaMo')"
@@ -401,6 +460,15 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         11.10.2026). Online giữ "Về menu": ở đó không có bước chọn bàn.
       -->
       <button v-if="multiplayerOnline" class="btn link thoat" type="button" @click="emit('menu')">{{ t('kq.thoatPhong') }}</button>
+      <!-- Chung máy (mockup 17.11.2026): MỘT nút xanh "Chơi lại"; "Cấp tiếp theo" và "Đổi bàn" là
+           hai nút thạch trắng ngang nhau — hai nút xanh cạnh nhau là "nhiều màu", mắt không biết chọn gì -->
+      <div v-else-if="chungMay" class="row hang-phu">
+        <button
+          v-if="showNext" class="btn next-level" type="button" :disabled="!canNext"
+          :title="canNext ? '' : t('kq.capChuaMo')" @click="canNext && emit('next')"
+        >{{ t('kq.capTiep') }}</button>
+        <button class="btn" type="button" @click="emit('doi-ban')">{{ t('kq.doiBan') }}</button>
+      </div>
       <button v-else class="btn link" type="button" @click="emit('doi-ban')">{{ t('kq.doiBan') }}</button>
       <!--
         Chỉ còn MỘT dòng ở đây: "đang chờ ai" và "ai muốn chơi lại" đã chuyển
@@ -500,34 +568,82 @@ h2 { margin: 0 0 4px; }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
-/* Bảng tỷ số loạt: màu CỐ ĐỊNH (tím nhạt, ô trắng nổi khối, người dẫn ô xanh) ở mọi skin —
-   như khay vàng của người nhất. Chữ tối trên nền sáng nên đọc được cả khi panel tối. */
-.loat {
-  margin: 0 0 12px; padding: 8px 10px 10px; border-radius: 18px;
-  display: flex; flex-direction: column; gap: 6px;
-  background: linear-gradient(#f3efff, #e4dcff); border: 2px solid #cfc2ff;
-  box-shadow: inset 0 -4px 0 #d3c7ff; color: #1d2433;
+/*
+ * BẢNG TỶ SỐ LOẠT (mockup duyệt 17.11.2026). MỘT màu nhấn duy nhất là viên "+1" vàng, hiện một
+ * nhịp rồi tắt; người dẫn chỉ là số ĐẬM (--fg), người kém số MỜ (--muted). Khay theo token skin
+ * nên bản tối tự tối theo — bảng tím cũ giữ màu sáng ở bản tối, chói (chủ dự án báo).
+ * Cỡ mặt/số theo số cột (--n): 2 cột to nhất. `min-height` chung với bảng chi tiết để lật qua
+ * lại bảng không co giật.
+ */
+.nhieu-nguoi h2 { text-align: center; }
+.dau-kq { display: flex; align-items: center; justify-content: space-between; min-height: 44px; margin: -4px 0 2px; }
+.dau-kq small {
+  font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
 }
-.loat-nhan { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #5a3fe0; }
-.loat-hai { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
-.loat-nhieu { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px; }
-.loat-ng { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
-.loat-mat { font-size: 26px; line-height: 1; }
-.loat-ten {
-  max-width: 100%; font-size: 13px; font-weight: 700; color: #1d2433;
+.lcs-nho {
+  margin-left: auto; width: 44px; height: 44px; padding: 0; display: grid; place-items: center;
+  border-radius: 14px; color: var(--fg); cursor: pointer;
+}
+.loat, .ranking.khay-nho { min-height: 196px; box-sizing: border-box; margin: 10px 0 0; }
+.loat {
+  --mat: calc(88px / var(--n) + 12px); --so: calc(128px / var(--n) + 22px);
+  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); align-content: center;
+  gap: 4px; padding: 16px 8px 14px; border-radius: 18px;
+}
+.cot { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.cot.ra { opacity: .45; }
+.xep { display: flex; justify-content: center; }
+.xep .mat { position: relative; font-size: var(--mat); line-height: 1; }
+.xep .mat + .mat { margin-left: calc(var(--mat) * -.35); }
+/* Đã bấm "Chơi lại" (online): dấu ✓ xanh trên mặt — thay viền xanh nhấp nháy quanh cả dòng */
+.xep .mat.ok::after {
+  content: '✓'; position: absolute; z-index: 2; right: -3px; bottom: -3px;
+  width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center;
+  background: #46ad22; color: #fff; font: 900 11px/1 var(--font-body);
+  box-shadow: 0 0 0 2px var(--panel-solid);
+}
+.cot .ten {
+  max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.cot .tv, .cot .dm {
+  max-width: 100%; font-size: 12.5px; font-weight: 700; color: var(--muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.loat-so { display: flex; align-items: center; gap: 6px; }
-.loat-so i { font-style: normal; font-family: var(--font-display); font-weight: 800; font-size: 26px; color: #7b6aa8; }
-.loat-o {
-  min-width: 46px; height: 52px; padding: 0 8px; box-sizing: border-box; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 800; font-size: 36px; line-height: 1;
+.cot .dm { font-size: 13.5px; }
+/* Đội: chấm màu như thanh đội trong ván (TeamStrip) */
+.d1 { --mau: #ff8a3d; } .d2 { --mau: #3d9bff; } .d3 { --mau: #3fbf6b; } .d4 { --mau: #a66bff; }
+.doi .ten::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--mau); flex: 0 0 auto; }
+.so {
+  height: var(--so); margin-top: 4px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 800; font-size: var(--so); line-height: 1;
   font-variant-numeric: tabular-nums;
-  background: #fff; color: #1d2433; box-shadow: inset 0 -4px 0 #d5e2f0;
 }
-.loat-nhieu .loat-o { width: 100%; min-width: 0; height: 44px; font-size: 28px; }
-.loat-o.dan { background: #16a34a; color: #fff; box-shadow: inset 0 -4px 0 #0f7a35; }
+.o-so { position: relative; display: inline-block; line-height: 1; }
+.o-so b { display: inline-block; font: inherit; color: var(--fg); }
+.o-so b.lui { color: var(--muted); opacity: .6; }
+.cong {
+  position: absolute; top: -6px; right: -24px; padding: 1px 7px; border-radius: 999px;
+  font: 800 15px/1.3 var(--font-display); font-style: normal; color: #5a3500;
+  background: #ffe58a; box-shadow: 0 0 0 2px #e0a800; opacity: 0;
+  animation: cong 1.6s .9s both;
+}
+.o-so b.nay { animation: nay .5s .9s both; }
+@keyframes cong {
+  0% { opacity: 0; transform: translateY(8px) scale(.6); }
+  20% { opacity: 1; transform: none; } 75% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes nay { 40% { transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { .cong, .o-so b.nay { animation: none; } }
+.nut-ct {
+  display: flex; align-items: center; gap: 6px; margin: 10px auto 0; min-height: 40px; padding: 0 16px;
+  border-radius: 999px; font: 700 15px var(--font-display); color: var(--fg); cursor: pointer;
+}
+.nut-ct svg { transition: transform .2s; }
+.nut-ct[aria-expanded='true'] svg { transform: rotate(180deg); }
+.nut-ct::after { content: ''; position: absolute; inset: -4px 0; }
 
 /* Điểm tổng: con số lớn nhất trong dialog, có nền sáng và ngôi sao dẫn */
 .score-big {
@@ -594,11 +710,10 @@ h2 { margin: 0 0 4px; }
 .stats dt { color: var(--muted); font-size: 14px; }
 .stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
 
-/* Bảng xếp hạng là NỘI DUNG CHÍNH của bảng kết quả nhiều người, không phải chú
-   thích: tên và điểm cỡ chữ lớn, dòng "7 cặp · chuỗi 4" cũng nâng từ 12px lên
-   var(--text-sm) cho đọc được mà không phải nhíu mắt. Mỗi hàng có nền riêng để
-   tách người này với người kia. */
+/* Bảng xếp hạng ván. Có bảng tỷ số thì đây là mặt "Chi tiết ván" (khay chung, mỗi người một
+   dòng kẻ ngăn, không khay vàng/xanh — một màu nhấn thôi); không có thì hiện thẳng như cũ. */
 .ranking { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.ranking.khay-nho { gap: 0; align-content: center; padding: 6px 14px; border-radius: 18px; }
 .nut-lcs {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   margin: 12px auto 0; padding: 8px 20px; min-height: 44px; width: auto; font-size: var(--text-md, 16px);
@@ -608,80 +723,47 @@ h2 { margin: 0 0 4px; }
   padding: 8px 12px; border-radius: var(--r-md);
   background: var(--panel-soft);
 }
-.ranking li > span {
+.ranking.khay-nho li {
+  grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  padding: 9px 0; border-radius: 0; background: none; border-bottom: 1px solid var(--line);
+}
+.ranking.khay-nho li:last-child { border-bottom: 0; }
+.mat-ct { grid-row: span 2; display: flex; font-size: 28px; line-height: 1; }
+.mat-ct span + span { margin-left: -10px; }
+.ranking li > .ten-dong {
   font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg);
   /* Một dòng, dài quá thì "…" — tên đầy đủ đã thấy ở phòng chờ */
   min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+.ranking.khay-nho li > .ten-dong { font-size: 16px; }
 .ranking li b {
   font-family: var(--font-display); font-weight: 800; font-size: var(--text-xl);
   font-variant-numeric: tabular-nums;
 }
-.ranking li:first-child { background: color-mix(in srgb, var(--ok) 12%, var(--panel-soft)); }
-.ranking li:first-child b { color: var(--ok); }
+.ranking.khay-nho li b { font-size: 20px; grid-row: span 2; }
+.ranking.khay-nho li:not(:first-child) b { color: var(--muted); }
 .ranking small {
   grid-column: 1 / -1; color: var(--muted); font-size: var(--text-sm);
   display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px;
 }
-/* NỔI KHỐI (11.11.2026, "giữ ngôn ngữ nổi khối xuyên suốt"): dòng xếp hạng là khay nổi
-   (khay-nho khay-noi), người NHẤT là khay VÀNG. Màu vàng cố định — huy hiệu hạng nhất, không theo nền. */
-:root[data-skin='keo'] .ranking li { padding: 10px 14px; }
-:root[data-skin='keo'] .ranking li:first-child {
-  background: linear-gradient(#fff7d6, #ffe58a) !important; border-color: #e0a800 !important;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 3px 0 #e0a800 !important; color: #5a3500;
-}
-:root[data-skin='keo'] .ranking li:first-child b { color: #b45f00; }
-:root[data-skin='keo'] .ranking li:first-child small { color: #7a5410; }
-/* Nhãn "Chơi tiếp" / "Đã thoát": nhỏ và không in nghiêng (dùng <i> cho gọn thẻ,
-   không phải để nghiêng), nằm cùng dòng với tên nhưng KHÔNG chiếm chỗ của điểm.
-   white-space: nowrap để nó không bị ngắt giữa biểu tượng và chữ. */
+.ranking.khay-nho small { grid-column: 2; font-size: 12.5px; font-weight: 700; }
+/* Nhãn "Chơi tiếp" / "Đã thoát": nhỏ, không in nghiêng (dùng <i> cho gọn thẻ). */
 .ranking .tag {
   font-style: normal; white-space: nowrap;
   font-family: var(--font-body); font-weight: 700; font-size: var(--text-xs);
   padding: 2px 8px; border-radius: var(--r-full);
 }
-/* Xanh --ok-solid chứ không phải --ok: chữ nhỏ 700 trên nền mờ, --ok chỉ đạt
-   ~3,2:1 nên đọc mờ. Nền mờ cùng màu để nhãn là một chip, không phải chữ trôi. */
-.ranking .tag.in {
-  color: var(--ok-solid);
-  background: color-mix(in srgb, var(--ok) 16%, transparent);
-}
-.ranking .tag.out {
-  color: var(--muted);
-  background: color-mix(in srgb, var(--muted) 14%, transparent);
-}
-/* Hàng nhất có nền xanh nhạt sẵn — nhãn xanh trên đó thành chìm, nên đổi nền
-   nhãn sang trắng mờ để vẫn tách ra khỏi hàng. */
-.ranking li:first-child .tag.in { background: color-mix(in srgb, var(--ok) 26%, transparent); }
-/*
- * NGƯỜI ĐÃ BẤM "CHƠI LẠI" (09.11.2026, chủ dự án: "hiệu ứng người muốn chơi lại rõ ràng hơn"):
- * cả DÒNG viền xanh + quầng nhấp nhẹ, nhãn thành chip xanh đặc chữ trắng. Nhìn bảng một lần
- * là biết ai đang chờ mình. Màu cố định (không token skin) — xanh "đồng ý" ở mọi skin.
- */
-.ranking li.muon {
-  outline: 3px solid #46ad22; outline-offset: -1px;
-  box-shadow: 0 0 0 6px color-mix(in srgb, #46ad22 22%, transparent);
-  animation: muon 1.4s ease-in-out infinite;
-}
-@keyframes muon { 50% { box-shadow: 0 0 0 10px color-mix(in srgb, #46ad22 8%, transparent); } }
-.ranking li.muon .tag.in { font-size: 13px; padding: 3px 10px; background: #46ad22; color: #fff; }
-@media (prefers-reduced-motion: reduce) { .ranking li.muon { animation: none; } }
-/* Kẹo: khay nổi dùng box-shadow !important → quầng "muốn chơi lại" phải khai lại ở đây,
-   viền + đế XANH (chủ dự án duyệt mockup 11.11.2026). */
-:root[data-skin='keo'] .ranking li.muon {
-  outline: 0; border-color: #46ad22 !important;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 3px 0 #2f8a14, 0 0 0 6px rgba(70, 173, 34, .2) !important;
-  animation: none;
-}
-:root[data-skin='keo'] .ranking li.muon .tag.in { box-shadow: 0 2px 0 #2f8a14; }
+/* Xanh --ok-solid chứ không phải --ok: chữ nhỏ 700 trên nền mờ, --ok chỉ đạt ~3,2:1. */
+.ranking .tag.in { color: var(--ok-solid); background: color-mix(in srgb, var(--ok) 16%, transparent); }
+.ranking .tag.out { color: var(--muted); background: color-mix(in srgb, var(--muted) 14%, transparent); }
 /*
  * BẢNG KẾT QUẢ ONLINE THOÁNG HƠN (09.11.2026): khối điểm · nhóm nút · thanh emoji cách nhau rõ.
  * Chỉ khi màn đủ cao — màn thấp (≤700px, iPhone SE/14) vẫn dùng bản gọn ở cuối file, không
  * thì nút cuối lòi khỏi màn (`tools/do-menu-tren.mjs` canh).
  */
 @media (min-height: 701px) {
-  .kq-online .ranking { gap: 12px; }
-  .kq-online .ranking li { padding: 12px 14px; }
+  .kq-online .ranking:not(.khay-nho) { gap: 12px; }
+  .kq-online .ranking:not(.khay-nho) li { padding: 12px 14px; }
   .kq-online .row { margin-top: 22px; gap: 12px; }
   .kq-online .row.hang-phu { margin-top: 12px; }
   .kq-online .link.thoat { margin-top: 12px; }
@@ -758,11 +840,10 @@ h2 { margin: 0 0 4px; }
   .goi-y small { display: none; }
   .row { margin-top: 10px; }
   .row .btn, .row .btn-primary { min-height: 46px; }
-  /* Bảng tỷ số loạt: mặt nhỏ, ô thấp — vẫn là con số to nhất sau tiêu đề */
-  .loat { margin-bottom: 6px; padding: 5px 8px 7px; gap: 3px; }
-  .loat-mat { font-size: 20px; }
-  .loat-ng { gap: 2px; }
-  .loat-o { height: 40px; min-width: 40px; font-size: 28px; }
-  .loat-nhieu .loat-o { height: 34px; font-size: 22px; }
+  /* Bảng tỷ số loạt: thấp hơn, vẫn là con số to nhất sau tiêu đề */
+  .loat, .ranking.khay-nho { min-height: 0; margin-top: 6px; }
+  .loat { --mat: calc(64px / var(--n) + 10px); --so: calc(96px / var(--n) + 18px); padding: 10px 6px; }
+  .dau-kq { min-height: 40px; }
+  .nut-ct { margin-top: 6px; min-height: 36px; }
 }
 </style>
