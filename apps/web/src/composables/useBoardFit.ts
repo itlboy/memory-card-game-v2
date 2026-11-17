@@ -69,11 +69,30 @@ export function computeFit(
   };
 }
 
+/**
+ * XOAY BÀN KHI KHUNG NẰM NGANG (17.11.2026, iPhone Duo): màn trong của máy gập KHÔNG theo khoá xoay dọc
+ * của app, nên bàn dọc (hàng > cột, vd 6×7, 8×11) hiện thành một cột hẹp giữa màn ngang, hai bên trống.
+ * Thử hoán hàng ↔ cột; xoay khi lá to hơn RÕ RỆT (diện tích lá ≥ NGUONG_XOAY lần). Chỉ đổi CÁCH HIỂN
+ * THỊ: thứ tự lá, ô trống, luật chơi giữ nguyên — BoardGrid đặt lá vào ô hoán vị (`grid-row/column`).
+ * Màn dọc (điện thoại thường) không bao giờ thoả nên giữ y như cũ.
+ */
+export const NGUONG_XOAY = 1.15;
+export function nenXoay(availW: number, availH: number, cols: number, rows: number): boolean {
+  if (rows <= cols || availW <= availH) return false;
+  const dienTich = (f: ReturnType<typeof computeFit>, c: number): number => {
+    const w = (f.width - f.gap * (c - 1)) / c;
+    return w * (w / f.aspect);
+  };
+  return dienTich(computeFit(availW, availH, rows, cols), rows) >= dienTich(computeFit(availW, availH, cols, rows), cols) * NGUONG_XOAY;
+}
+
 export interface BoardFit {
   /** Gắn vào phần tử bao bàn thẻ; đây là thứ được đo. */
   wrap: Ref<HTMLElement | null>;
   /** Biến CSS cho `.board`: `--card-ar`, `--fit` và `--card-gap`. */
   fitStyle: Ref<Record<string, string>>;
+  /** Bàn đang hiển thị XOAY (hàng ↔ cột) — truyền cho BoardGrid. */
+  xoay: Ref<boolean>;
 }
 
 /**
@@ -86,6 +105,7 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
   const boardWidth = ref<number | null>(null);
   const boardHeight = ref<number | null>(null);
   const boardGap = ref(8);
+  const xoay = ref(false);
 
   function measure(): void {
     const el = wrap.value;
@@ -94,7 +114,9 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
     const availW = el.clientWidth;
     const availH = el.clientHeight;
     if (!availW || !availH) return;
-    const fit = computeFit(availW, availH, s.cols, s.rows);
+    const x = nenXoay(availW, availH, s.cols, s.rows);
+    xoay.value = x;
+    const fit = x ? computeFit(availW, availH, s.rows, s.cols) : computeFit(availW, availH, s.cols, s.rows);
     cardAspect.value = fit.aspect;
     boardWidth.value = fit.width;
     boardHeight.value = fit.height;
@@ -124,5 +146,5 @@ export function useBoardFit(size: () => { cols: number; rows: number } | null): 
     '--card-gap': `${boardGap.value}px`
   }));
 
-  return { wrap, fitStyle };
+  return { wrap, fitStyle, xoay };
 }

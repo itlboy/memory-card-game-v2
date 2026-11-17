@@ -108,7 +108,7 @@ const isPeek = computed(() => (props.game.config.peekMs ?? 0) > 0);
  * Giờ đo thật chỗ còn lại. Logic nằm ở useBoardFit, DÙNG CHUNG với màn online —
  * hai bản riêng là hai bản lệch nhau.
  */
-const { wrap, fitStyle } = useBoardFit(() => props.game.config);
+const { wrap, fitStyle, xoay } = useBoardFit(() => props.game.config);
 
 /*
  * Xếp tầng cho dải thông báo: thông báo (thẻ đặc biệt / hé mở / hồi mạng) và
@@ -217,6 +217,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
         ref="board"
         :cards="s.cards.value"
         :cols="game.config.cols"
+        :xoay="xoay"
         :face-up="s.faceUp.value"
         :matched="s.matchedSet.value"
         :wrong-pair="s.wrongPair.value"

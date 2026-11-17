@@ -221,7 +221,7 @@ const gainStyle = computed(() => {
  * sai ngay khi bố cục đổi, và nó không biết gì về khoảng tỷ lệ lá bài, nên cùng
  * một cấp mà bàn online lệch hẳn so với bàn chơi đơn.
  */
-const { wrap, fitStyle } = useBoardFit(() => {
+const { wrap, fitStyle, xoay } = useBoardFit(() => {
   const v = o.view.value;
   return v ? { cols: v.cols, rows: v.rows } : null;
 });
@@ -641,7 +641,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
         {{ bongChi.ten }}{{ t('dd.choNay') }}
       </span>
       <BoardGrid
-        :cards="cards" :cols="o.view.value?.cols ?? 4"
+        :cards="cards" :cols="o.view.value?.cols ?? 4" :xoay="xoay"
         :face-up="faceUp" :matched="matchedSet"
         :wrong-pair="o.wrongPair.value" :swap="o.swapPair.value" :pending="o.pending.value"
         :vua-mo="o.vuaMo.value"

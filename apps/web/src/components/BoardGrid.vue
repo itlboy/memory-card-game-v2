@@ -25,7 +25,12 @@ const props = defineProps<{
   /** Hình của cả bàn để TẢI TRƯỚC (online: thẻ úp không mang symbol nên bàn tự
    *  không biết). Chỉ là TẬP hình đã sắp xếp — không kèm vị trí. */
   hinhCuaBan?: readonly string[];
+  /** Hiển thị XOAY hàng ↔ cột (useBoardFit `nenXoay`: khung nằm ngang, vd màn trong iPhone Duo). */
+  xoay?: boolean;
 }>();
+
+/** Ô hiển thị của lá thứ i khi xoay: hàng logic thành cột, cột logic thành hàng. */
+const oXoay = (i: number): Record<string, number> => ({ gridRow: (i % props.cols) + 1, gridColumn: Math.floor(i / props.cols) + 1 });
 
 const emit = defineEmits<{ flip: [index: number] }>();
 const grid = ref<HTMLElement | null>(null);
@@ -91,14 +96,16 @@ watch(() => props.swap?.key, () => {
 
 /** Điều hướng lưới bằng bàn phím (NF-07). */
 function onKeydown(e: KeyboardEvent): void {
-  const deltas: Record<string, number> = {
-    ArrowRight: 1, ArrowLeft: -1, ArrowDown: props.cols, ArrowUp: -props.cols
-  };
+  const deltas: Record<string, number> = props.xoay
+    ? { ArrowRight: props.cols, ArrowLeft: -props.cols, ArrowDown: 1, ArrowUp: -1 }
+    : { ArrowRight: 1, ArrowLeft: -1, ArrowDown: props.cols, ArrowUp: -props.cols };
   const step = deltas[e.key];
   if (step === undefined) return;
   e.preventDefault();
   const active = document.activeElement as HTMLElement | null;
   const from = Number(active?.dataset.index ?? 0);
+  // Bàn xoay: đi dọc ra khỏi đáy cột thì đứng yên, không nhảy sang đầu cột kế
+  if (props.xoay && Math.abs(step) === 1 && Math.floor(from / props.cols) !== Math.floor((from + step) / props.cols)) return;
   let to = Math.min(props.cards.length - 1, Math.max(0, from + step));
   if (props.cards[to]?.blank) {
     // Nhảy qua ô trống; nếu ra ngoài lưới thì đứng yên
@@ -121,14 +128,15 @@ defineExpose({
     role="grid"
     :aria-label="t('ban.aria')"
     :style="{
-      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-      gridTemplateRows: `repeat(${Math.ceil(cards.length / cols)}, minmax(0, 1fr))`
+      gridTemplateColumns: `repeat(${xoay ? Math.ceil(cards.length / cols) : cols}, minmax(0, 1fr))`,
+      gridTemplateRows: `repeat(${xoay ? cols : Math.ceil(cards.length / cols)}, minmax(0, 1fr))`
     }"
     @keydown="onKeydown"
   >
     <CardTile
-      v-for="card in cards"
+      v-for="(card, i) in cards"
       :key="card.index"
+      :style="xoay ? oXoay(i) : undefined"
       :card="card"
       :back="back ?? 'stars'"
       :card-count="cards.length"

@@ -36,6 +36,13 @@
   Từ 11.10.2026 "Chơi nhanh" gộp cả một mình lẫn nhiều người: bước đầu là ô to Chiến dịch +
   ba ô vuông (Chơi nhanh · Đấu máy · Online) + dải lối tắt (`.loi-tat`, NGOÀI
   lưới ô vì lưới chia đều 1fr), số người hỏi ở bước `count`.
+- **iPHONE DUO (máy gập, bán 23.10.2026) — 17.11.2026:** màn NGOÀI 466×678 điểm (rộng mà THẤP — vùng app
+  ~466×594), màn TRONG 626×890 và **KHÔNG theo khoá xoay dọc** của app (Info.plist chỉ khai Portrait vẫn bị
+  nằm ngang ~890×586). Bàn dọc trên khung ngang thì `useBoardFit.nenXoay` hoán hàng↔cột (lá to hơn ≥15% mới
+  xoay; màn dọc không bao giờ xoay) — chỉ đổi CÁCH HIỂN THỊ: BoardGrid đặt lá bằng `grid-row/column`, thứ tự
+  lá + ô trống + luật giữ nguyên, phím mũi tên đổi theo. App dựng bằng SDK < iOS 27.1 bị VIỀN ĐEN ở màn
+  trong → job iOS chạy image `xcode-27` (preview GitHub, chọn Xcode 27.x mới nhất). Đo: `MAY=duongoai,
+  duotrong,duongang pnpm do:safari` (có đo cả bàn 12/42/88 thẻ).
 - Hiệu ứng `:hover` phải bọc trong `@media (hover: hover)` — thiết bị cảm
   ứng giữ trạng thái hover của lần chạm trước, gây "2 ô cùng sáng".
 - Kích thước chạm tối thiểu 44px (NF-07) — NGOẠI LỆ đã chốt: hai cỡ bàn lớn

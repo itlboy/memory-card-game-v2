@@ -29,7 +29,12 @@ import { moTrinhDuyet } from './lib-playwright.mjs';
 const URL_APP = (process.argv[2] ?? 'http://localhost:3001').replace(/\/$/, '');
 const OUT = process.env.OUT ?? '/tmp/mm-safari';
 const SKINS = process.env.SKINS?.split(',') ?? ['keo', 'neon', 'go', 'sao', 'bong'];
-const MAY_ALL = { se: [375, 553], ip14: [390, 664], promax: [430, 745] };
+const MAY_ALL = {
+  se: [375, 553], ip14: [390, 664], promax: [430, 745],
+  // iPhone Duo (gập, 23.10.2026) — vùng APP đã trừ tai thỏ + thanh home: màn NGOÀI 466×678 điểm (rộng mà
+  // THẤP), màn TRONG 626×890 dọc, và NẰM NGANG — màn trong không theo khoá xoay dọc của app.
+  duongoai: [466, 594], duotrong: [626, 830], duongang: [890, 586]
+};
 const MAY = process.env.MAY?.split(',') ?? Object.keys(MAY_ALL);
 mkdirSync(OUT, { recursive: true });
 
@@ -143,14 +148,18 @@ try {
       const buoc = async (ten, fn) => { try { await fn(); } catch (e) { console.log(`  (${may}-${skin}: dừng ở ${ten} — ${e.message.split('\n')[0]})`); } };
 
       await buoc('trang chủ', async () => { await ve(); await doMan('trang-chu'); });
-      await buoc('chơi nhanh', async () => {
-        await bam('Chơi nhanh'); await doMan('so-nguoi');
-        await bam('Một mình'); await doMan('co-ban');
-        await p.locator('.option').filter({ hasText: /^\s*12\s*thẻ/ }).first().click({ timeout: 4000 }); await p.waitForTimeout(600);
-        if (await p.getByRole('button', { name: 'Tiếp' }).count()) await bam('Tiếp');
-        await doMan('luat-ban');
-        await bam('Bắt đầu'); await p.waitForTimeout(2500); await doMan('van-choi');
-      });
+      // Chơi nhanh là MỘT trang (số người + số thẻ + Bắt đầu, từ 11.2026) — bản cũ đi qua wizard nhiều bước.
+      // Đo BÀN CHƠI ở ba cỡ: 12 (ô to), 42, và 88 thẻ (lớn nhất, qua "Khác") — chỗ dễ vỡ nhất khi màn lạ.
+      const banChoi = async (n) => {
+        await ve(); await bam('Chơi nhanh');
+        const o = p.locator('button, [role=button], .option').filter({ hasText: new RegExp(`^\\s*${n}(?!\\d)`) });
+        if (!(await o.count())) await bam('Khác');
+        await p.locator('button, [role=button], .option').filter({ hasText: new RegExp(`^\\s*${n}(?!\\d)`) }).first().click({ timeout: 4000 });
+        await p.waitForTimeout(600);
+        await bam('Bắt đầu'); await p.waitForTimeout(2500); await doMan(`van-${n}-the`);
+      };
+      await buoc('chơi nhanh', async () => { await ve(); await bam('Chơi nhanh'); await doMan('choi-nhanh'); });
+      for (const n of [12, 42, 88]) await buoc(`bàn ${n} thẻ`, () => banChoi(n));
       await buoc('đấu máy', async () => { await ve(); await bam('Đấu với máy'); await doMan('muc-may'); });
       await buoc('chiến dịch', async () => { await ve(); await bam('Chiến dịch'); await doMan('chien-dich'); });
       await buoc('online', async () => { await ve(); await bam('Chơi online'); await p.waitForTimeout(800); await doMan('online'); });

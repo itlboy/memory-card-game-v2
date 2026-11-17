@@ -156,3 +156,21 @@ describe('tính cỡ bàn thẻ', () => {
     expect(online.width).toBeLessThanOrEqual(366);
   });
 });
+
+describe('xoay bàn khi khung nằm ngang (iPhone Duo, 17.11.2026)', () => {
+  it('màn trong nằm ngang: bàn 8×11 và 6×7 xoay, lá to hơn', async () => {
+    const { nenXoay } = await import('@/composables/useBoardFit');
+    expect(nenXoay(860, 470, 8, 11)).toBe(true);
+    expect(nenXoay(860, 470, 6, 7)).toBe(true);
+  });
+  it('màn dọc / bàn vuông / bàn đã ngang: giữ nguyên', async () => {
+    const { nenXoay } = await import('@/composables/useBoardFit');
+    expect(nenXoay(400, 560, 8, 11)).toBe(false);   // điện thoại dọc
+    expect(nenXoay(860, 470, 4, 4)).toBe(false);    // vuông
+    expect(nenXoay(860, 470, 6, 5)).toBe(false);    // cột ≥ hàng
+  });
+  it('chênh ít thì không xoay (tránh lật qua lại)', async () => {
+    const { nenXoay } = await import('@/composables/useBoardFit');
+    expect(nenXoay(520, 500, 4, 5)).toBe(false);
+  });
+});
