@@ -383,6 +383,8 @@ const ru: TuDien = {
   'chung.backThoat': "Нажмите «Назад» ещё раз, чтобы выйти",
   'chung.dangCapNhat': 'Обновление',
   'chung.chuaCapNhat': 'Не удалось обновить',
+  'chung.capNhatXong': 'Обновление готово!',
+  'chung.banSo': 'Версия {v}',
   'tb.kiemCapNhat': "Проверить обновления",
   'tb.dangKiem': "Проверка",
   'tb.moiNhat': "Последняя версия",

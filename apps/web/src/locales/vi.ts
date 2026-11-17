@@ -371,6 +371,8 @@ const vi = {
   'chung.backThoat': "Nhấn Back lần nữa để thoát",
   'chung.dangCapNhat': 'Đang cập nhật',
   'chung.chuaCapNhat': 'Chưa cập nhật được',
+  'chung.capNhatXong': 'Cập nhật xong!',
+  'chung.banSo': 'Bản {v}',
   'tb.kiemCapNhat': "Kiểm tra cập nhật",
   'tb.dangKiem': "Đang kiểm tra",
   'tb.moiNhat': "Mới nhất",

@@ -373,8 +373,46 @@ button {
 }
 .mcn-chu { font-family: var(--font-display); font-weight: 800; font-size: var(--text-lg, 20px); line-height: 1.2; }
 .mcn-thanh { width: 100%; height: 12px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--fg) 12%, transparent); }
-.mcn-thanh i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--nhan-nen); transition: width .3s ease; }
+.mcn-thanh > i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--nhan-nen); transition: width .3s ease; }
 .mcn-pct { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; opacity: .8; }
+/* CẬP NHẬT XONG (mockup duyệt 17.11.2026, lib/ota.ts `baoXong`): thanh xanh → co thành dấu ✓ tròn
+   nảy ra (thạch xanh), hai vòng sáng + đốm vàng; hàng thanh giãn cao để dấu ✓ không đè chữ. */
+.mcn-thanh { position: relative; transition: height .35s cubic-bezier(.5, 0, .5, 1), background-color .2s; }
+.mcn-thanh > i { transition: width .3s ease, background-color .3s, transform .3s cubic-bezier(.5, 0, .5, 1), opacity .2s .1s; }
+.mcn-vong, .mcn-dom, .mcn-xong { display: none; }
+.man-cap-nhat.xanh .mcn-thanh > i { background: #46ad22; }
+.man-cap-nhat.xong .mcn-thanh { height: 46px; overflow: visible; background: transparent; }
+.man-cap-nhat.xong .mcn-thanh > i { transform: scaleX(0); opacity: 0; visibility: hidden; transition: transform .3s cubic-bezier(.5, 0, .5, 1), opacity .2s .1s, visibility 0s .35s; }
+.man-cap-nhat.xong :is(.mcn-vong, .mcn-dom, .mcn-xong) { display: block; position: absolute; left: 50%; top: 50%; }
+.mcn-xong {
+  width: 42px; height: 42px; margin: -21px 0 0 -21px; box-sizing: border-box; border-radius: 50%;
+  background: linear-gradient(#7fdc4f 20%, #3fae2b); border: 2px solid #2d8a1e;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), 0 3px 0 #2d8a1e;
+  animation: mcn-bat .5s .3s cubic-bezier(.3, 1.8, .5, 1) both;
+}
+.mcn-xong svg { display: block; width: 60%; height: 60%; margin: 20%; fill: none; stroke: #fff; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; }
+.mcn-vong i { position: absolute; width: 42px; height: 42px; margin: -21px 0 0 -21px; box-sizing: border-box; border-radius: 50%; border: 2px solid #7ee05a; opacity: 0; animation: mcn-gon 1s .3s ease-out both; }
+.mcn-vong i + i { animation-delay: .6s; }
+.mcn-dom b { position: absolute; font-size: 14px; line-height: 1; color: #ffd23f; text-shadow: 0 0 6px #ffe680; opacity: 0; animation: mcn-dom 1s ease-out both; }
+.mcn-dom b:nth-child(1) { --x: -70px; --y: -26px; animation-delay: .3s; }
+.mcn-dom b:nth-child(2) { --x: 66px; --y: -30px; animation-delay: .38s; }
+.mcn-dom b:nth-child(3) { --x: 80px; --y: 14px; animation-delay: .45s; }
+.mcn-dom b:nth-child(4) { --x: -82px; --y: 18px; animation-delay: .42s; }
+.mcn-dom b:nth-child(5) { --x: -30px; --y: -40px; animation-delay: .5s; font-size: 10px; }
+.mcn-dom b:nth-child(6) { --x: 34px; --y: 36px; animation-delay: .55s; font-size: 10px; }
+.man-cap-nhat.xong :is(.mcn-chu, .mcn-pct) { animation: mcn-doi .25s ease both; }
+@keyframes mcn-bat { 0% { transform: scale(0); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@keyframes mcn-gon { 0% { opacity: .9; transform: scale(.8); } 100% { opacity: 0; transform: scale(2.6); } }
+@keyframes mcn-dom {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.3); } 35% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(1.1) rotate(120deg); }
+}
+@keyframes mcn-doi { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .man-cap-nhat.xong :is(.mcn-vong, .mcn-dom) { display: none; }
+  .man-cap-nhat.xong :is(.mcn-xong, .mcn-chu, .mcn-pct) { animation: none; }
+  .mcn-thanh, .mcn-thanh > i { transition: none !important; }
+}
 /* Tải lỗi: dòng nhỏ dưới đáy, tự tắt — app dùng bình thường */
 .loi-cap-nhat {
   position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; z-index: 9000;
@@ -382,7 +420,7 @@ button {
   font-weight: 700; font-size: 13px; white-space: nowrap; pointer-events: none; animation: bcn-hien .2s ease;
 }
 @keyframes bcn-hien { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .man-cap-nhat, .loi-cap-nhat { animation: none; } .mcn-thanh i { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .man-cap-nhat, .loi-cap-nhat { animation: none; } .mcn-thanh > i { transition: none; } }
 
 
 /* Ngôi sao thứ 4 "Hoàn hảo" (cầu vồng) nay vẽ ở Sao3D.vue (public/img/sao-3d-4.svg), 21.10.2026. */

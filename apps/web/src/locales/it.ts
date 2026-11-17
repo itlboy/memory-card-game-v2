@@ -368,6 +368,8 @@ const it: TuDien = {
   'chung.backThoat': "Premi di nuovo Indietro per uscire",
   'chung.dangCapNhat': 'Aggiornamento',
   'chung.chuaCapNhat': 'Aggiornamento non riuscito',
+  'chung.capNhatXong': 'Aggiornamento completato!',
+  'chung.banSo': 'Versione {v}',
   'tb.kiemCapNhat': "Cerca aggiornamenti",
   'tb.dangKiem': "Verifica in corso",
   'tb.moiNhat': "Aggiornato",

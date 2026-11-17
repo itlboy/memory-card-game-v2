@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import { laApp, SITE_URL } from './native';
 import { t } from './i18n';
+import { sfx } from './audio';
 
 /**
  * CẬP NHẬT NÓNG (OTA) — app gói nhận bản web mới KHÔNG cần qua duyệt store
@@ -98,17 +99,46 @@ function hienManPhu(pct: number): void {
     el = document.createElement('div');
     el.className = 'man-cap-nhat';
     el.setAttribute('role', 'status');
-    el.innerHTML = '<div class="mcn-the"><b class="mcn-chu"></b><span class="mcn-thanh"><i></i></span><span class="mcn-pct"></span></div>';
+    el.innerHTML = '<div class="mcn-the"><b class="mcn-chu"></b><span class="mcn-thanh"><i></i>'
+      + '<span class="mcn-vong" aria-hidden="true"><i></i><i></i></span>'
+      + '<span class="mcn-dom" aria-hidden="true"><b>✦</b><b>✦</b><b>✦</b><b>✦</b><b>✦</b><b>✦</b></span>'
+      + '<span class="mcn-xong" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>'
+      + '</span><span class="mcn-pct"></span></div>';
     el.querySelector('.mcn-chu')!.textContent = t('chung.dangCapNhat');
     // Chặn chạm xuyên xuống trang chủ (màn phủ là để KHÔNG dùng được gì khác)
     for (const ev of ['pointerdown', 'click', 'touchstart'] as const) el.addEventListener(ev, (e) => { e.stopPropagation(); e.preventDefault(); }, { passive: false });
     (document.getElementById('app') ?? document.body).appendChild(el);
   }
   const p = Math.max(0, Math.min(100, Math.round(pct)));
-  el.querySelector<HTMLElement>('.mcn-thanh i')!.style.width = `${p}%`;
+  el.querySelector<HTMLElement>('.mcn-thanh > i')!.style.width = `${p}%`;
   el.querySelector('.mcn-pct')!.textContent = `${p}%`;
 }
 function anManPhu(): void { document.querySelector('.man-cap-nhat')?.remove(); }
+/*
+ * BÁO CẬP NHẬT XONG (17.11.2026, mockup duyệt https://claude.ai/artifact/4WQiH5YiA9SE2cKHVJru1F,
+ * phương án A — chủ dự án: "biểu tượng nhỏ báo đã update thành công… cho người dùng thích").
+ * Ngay trên màn "Đang cập nhật": thanh đổi xanh rồi co thành dấu ✓ tròn nảy ra, hai vòng sáng +
+ * đốm vàng; chữ thành "Cập nhật xong!", dòng % thành "Bản x.y.z"; tiếng ting. Giữ `XONG_MS` rồi mới
+ * khởi động lại — đủ thấy, không bắt chờ. Giảm chuyển động: chỉ đổi chữ, giữ ngắn hơn.
+ */
+export const XONG_MS = 1500;
+let xongMs = XONG_MS;
+/** Chỉ cho test: rút thời gian giữ màn "Cập nhật xong" (đồng hồ giả của test khác không chờ được). */
+export function datXongMs(ms: number): void { xongMs = ms; }
+async function baoXong(): Promise<void> {
+  const el = document.querySelector<HTMLElement>('.man-cap-nhat');
+  if (!el) return;
+  const it = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cho = (ms: number): Promise<void> | void => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : undefined);
+  el.classList.add('xanh');
+  await cho(it ? 0 : Math.min(250, xongMs));
+  const ban = (trangThaiOta.value.id ?? '').split('-')[0];
+  el.querySelector('.mcn-chu')!.textContent = t('chung.capNhatXong');
+  el.querySelector('.mcn-pct')!.textContent = ban ? t('chung.banSo', { v: ban }) : '';
+  el.classList.add('xong');
+  sfx.star(3);
+  await cho(it ? Math.min(700, xongMs) : xongMs - Math.min(250, xongMs));
+}
 /** Dòng nhỏ "Chưa cập nhật được" — tự tắt. */
 function baoChuaCapNhat(): void {
   if (typeof document === 'undefined') return;
@@ -132,6 +162,7 @@ async function apGoi(id: string): Promise<void> {
   daAp = true;
   huyApKhiRanh();
   hienManPhu(100);
+  await baoXong();
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
     await CapacitorUpdater.set({ id });                // tải lại app sang gói mới

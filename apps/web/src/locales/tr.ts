@@ -367,6 +367,8 @@ const tr: TuDien = {
   'chung.backThoat': "Çıkmak için Geri tuşuna tekrar bas",
   'chung.dangCapNhat': 'Güncelleniyor',
   'chung.chuaCapNhat': 'Güncellenemedi',
+  'chung.capNhatXong': 'Güncelleme tamam!',
+  'chung.banSo': 'Sürüm {v}',
   'tb.kiemCapNhat': "Güncellemeleri denetle",
   'tb.dangKiem': "Denetleniyor",
   'tb.moiNhat': "Güncel",
