@@ -9,7 +9,7 @@
   "preview_urls": false,
   "routes": [{ "pattern": "admin.cozypi.com", "custom_domain": true }],
   "vars": {
-    "ACCESS_TEAM": "kientest.cloudflareaccess.com,cozypi.cloudflareaccess.com",
+    "ACCESS_TEAM": "kientest.cloudflareaccess.com,cozypi-studio.cloudflareaccess.com",
     // AUD tag của ứng dụng Access "admin.cozypi.com" — không phải bí mật (nằm trong mọi JWT).
     "ACCESS_AUD": "e33cbf137bfc8395e1cdd1a2ef74e786eab5438849c7056797c3ea506b3178c4",
     // Múi giờ của THUỘC TÍNH GA (Admin → Property details). dateHour/hour GA trả theo múi này.
