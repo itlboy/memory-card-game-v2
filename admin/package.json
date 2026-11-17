@@ -1,0 +1,17 @@
+{
+  "name": "latthe-admin",
+  "private": true,
+  "type": "module",
+  "description": "Trang thống kê admin.cozypi.com — chỉ đọc GA4, sau Cloudflare Access. NGOÀI workspace pnpm (xem README).",
+  "scripts": {
+    "dev": "wrangler dev --port 8798",
+    "deploy": "node ../tools/chan-deploy.mjs && wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types test/*.test.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250110.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.125.0"
+  }
+}

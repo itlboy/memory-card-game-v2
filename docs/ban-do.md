@@ -107,5 +107,6 @@ Mẫu cho MỌI game của studio: **`<game>.cozypi.com` = web** (Cloudflare Wor
 | ~~`thebai-server.hello314.com`~~ | host chỉ-API rất cũ | — | 0 lượt/24h | **ĐÃ GỠ 18.10.2026** (Ingress bỏ host → 404) |
 | `thebai2.hello314.com` | dự phòng TOÀN BỘ (web + Durable Object) | Worker, server riêng của nó | chuyển tay khi k8s chết | giữ |
 | `cozypi.com` | trang studio | repo `itlboy/cozypi-site` | — | giữ |
+| `admin.cozypi.com` | **trang thống kê** (chỉ đọc GA4) | Worker `latthe-admin` (`admin/`, custom domain) sau Cloudflare Access "Chỉ Kiên" | chủ dự án | giữ — xem `admin/README.md` |
 
 Không redirect tên cũ: localStorage (điểm, kỷ lục người chưa đăng nhập) gắn theo origin. Web chạy trên một trong ba tên web k8s thì gọi `flipmatch-api`; chạy nơi khác (thebai2, localhost) thì gọi chính origin.

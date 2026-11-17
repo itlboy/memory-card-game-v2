@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "latthe-admin",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  // CHỈ chạy ở tên miền riêng, sau Cloudflare Access. Tắt *.workers.dev và URL xem trước:
+  // để chúng bật là có cửa vào KHÔNG qua Access (Worker vẫn tự kiểm JWT, nhưng đừng mở cửa thừa).
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "admin.cozypi.com", "custom_domain": true }],
+  "vars": {
+    "ACCESS_TEAM": "kientest.cloudflareaccess.com",
+    // AUD tag của ứng dụng Access "admin.cozypi.com" — không phải bí mật (nằm trong mọi JWT).
+    "ACCESS_AUD": "e33cbf137bfc8395e1cdd1a2ef74e786eab5438849c7056797c3ea506b3178c4",
+    // Múi giờ của THUỘC TÍNH GA (Admin → Property details). dateHour/hour GA trả theo múi này.
+    "GA_TZ": "Asia/Ho_Chi_Minh",
+    // Ngày công khai — mốc "Từ khi công khai".
+    "NGAY_CONG_KHAI": "2026-10-15"
+  },
+  // Bí mật (wrangler secret put, nạp từ my-secrets — KHÔNG ghi vào đây):
+  //   GA_SA_JSON      nội dung JSON khoá service account (quyền Viewer trên thuộc tính GA)
+  //   GA_PROPERTY_ID  số thuộc tính GA (không phải mã G-…)
+  "observability": { "enabled": true }
+}
