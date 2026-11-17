@@ -617,6 +617,18 @@
   SDK Google. BẪY ĐÃ GẶP: màn đồng ý OAuth từng ở "Testing" + 0 người thử → đăng nhập Google trên WEB
   bị chặn với mọi người, không ai báo; đã Publish (In production) 09.11.2026. KHÔNG tải logo lên trang
   Branding — có logo là Google bắt xét duyệt app.
+- **CHƠI NHANH MỘT MÀN (16.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1)**:
+  GA4 (phễu `buoc_menu`) thấy wizard 4 bước rơi nửa người, mà theme + bàn chơi để mặc định hầu như không
+  ai đổi. Nay bước `nhanh` (MenuScreen) gom số người (1–4, chỉ SỐ, không mặt thú — chủ dự án chốt) · số thẻ
+  (Dễ 12 · Vừa 24 · Khó 42 · Khác → SizeGrid) · dòng Bộ thẻ · dòng Luật bàn · nút Bắt đầu. `names`/`level`/
+  `theme`/`options` thành BƯỚC PHỤ: mở từ màn đó, xong quay về `nhanh` (`laNhanh`, `BUOC_PHU`). Bước
+  `count` không còn trên đường Chơi nhanh (giữ code cho ?w=count cũ). **Ô Chơi nhanh ở trang chủ vào ván
+  NGAY** với cỡ bàn + số người của ván nhanh trước (`Prefs.nhanh`, lưu ở `startLevel` — tách khỏi
+  `level`/`playerCount` vì Chiến dịch/Đấu máy ghi đè); dải thạch "Chơi nhanh: 12 thẻ · Một mình — Đổi"
+  dưới ba ô mở màn `nhanh`. Lần đầu (chưa có `Prefs.nhanh`) hoặc theme không đủ hình thì mở màn. GA4:
+  `mo_chuc_nang` thêm `choi_nhanh_ngay` / `choi_nhanh_doi`; `buoc_menu` bước trang chủ nay `nhanh=trang_chu`
+  (trước bị tính vào `choi_nhanh` làm phễu phồng). Tên bỏ trống lưu RỖNG (không lưu "Người 1") — lưu chữ
+  mặc định là đổi ngôn ngữ vẫn hiện tiếng cũ. Test bấm theo luồng: `chonSoThe` / `moLuatBan` / `moTen`.
 - **MÁY CHƠI CÙNG VÁN NHIỀU NGƯỜI (14.11.2026, mockup duyệt https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB)**:
   Phase 1 OFFLINE xong: bước "Tên từng người" có công tắc Người/Máy mỗi dòng (dòng 1 luôn người), chạm tên
   máy mở bảng 5 mức (`BOT_CHOICES`). Tổng người + máy ≤ 4. App giữ `mayCung` (chỗ → mức, không lưu prefs),

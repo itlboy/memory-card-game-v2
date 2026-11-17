@@ -91,11 +91,18 @@ async function duyetApp(lang: NgonNgu): Promise<Record<string, string[]>> {
   const chup = (ten: string) => { man[ten] = gomChu(w!.element.parentElement ?? w!.element); };
   chup('trang chủ');
   await bam('header .menu-btn'); chup('menu thanh trên'); await bam('header .menu-btn');
-  await bam('.home :is(.o-chien-dich, .o-vuong)', 1); chup('bước số người');
-  await bam('.counts .option', 0); chup('bước số thẻ');
-  await bam('.size-grid button', 1); chup('bước theme');
-  await bam('.btn-primary'); chup('bước luật bàn');
-  await bam('.btn-primary'); await flush(8); chup('màn chơi');
+  // Ngôn ngữ trước đã chơi một ván nhanh (Prefs.nhanh) → ô Chơi nhanh vào ván NGAY; đi qua dải
+  // "Chơi nhanh: … Đổi" để tới màn Chơi nhanh (và dải đó đã được soát chữ ở 'trang chủ').
+  if (w.find('.nhanh-bar').exists()) await bam('.nhanh-bar');
+  else await bam('.home :is(.o-chien-dich, .o-vuong)', 1);
+  chup('màn chơi nhanh');
+  await bam('.nh-o', 1); chup('màn chơi nhanh (2 người: dòng tên)');
+  await bam('.nh-ten'); chup('bước phụ tên'); await bam('.btn-primary');
+  await bam('.nh-o', 0); await bam('.nh-dong:not(.nh-ten)', 0); chup('bước phụ theme'); await bam('.btn-primary');
+  await bam('.nh-dong:not(.nh-ten)', 1); chup('bước phụ luật bàn'); await bam('.btn-primary');
+  await bam('.nh-o', 7); chup('bước phụ số thẻ');
+  await bam('.size-grid button', 1); chup('màn chơi nhanh sau khi chọn số thẻ');
+  await bam('.nh-bat-dau'); await flush(8); chup('màn chơi');
   w.unmount(); w = null;
   // Ván vừa rồi để lại ?playing=1 + snapshot: dọn để app mở lại ở trang chủ
   history.replaceState(null, '', location.pathname); sessionStorage.clear();
@@ -183,14 +190,14 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
  * 17.10.2026): es/pt/fr/de/it viết y vậy.
  */
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
-  es: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Premium'],
-  pt: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium'],
-  fr: ['Auto', 'Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium'],
-  de: ['Auto', 'Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium'],
+  es: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Premium', 'solo', 'Bot'],
+  pt: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium', 'solo', 'Bot'],
+  fr: ['Auto', 'Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium', 'solo', 'Bot'],
+  de: ['Auto', 'Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium', 'Bot'],
   en: ['Neon', 'Premium'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
-  id: ['Solo', 'Normal', 'Level 2', 'Level 3', 'Bom', 'Neon', 'Premium'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
-  it: ['Auto', 'Menu', 'Account', 'Neon', 'Premium', 'offline'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
-  tr: ['Neon', 'Premium']
+  id: ['Solo', 'Normal', 'Level 2', 'Level 3', 'Bom', 'Neon', 'Premium', 'Bot'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  it: ['Auto', 'Menu', 'Account', 'Neon', 'Premium', 'offline', 'Bot'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
+  tr: ['Neon', 'Premium', 'Bot']   // 'Bot' = nút Người/Máy ở bước tên; 'solo' = chữ nhỏ dưới ô "1" (es/pt/fr viết y vậy)
 };
 
 /** Mọi ngôn ngữ trừ tiếng Việt (bản gốc). */

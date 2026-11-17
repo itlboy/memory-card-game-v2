@@ -52,6 +52,10 @@ export interface Prefs {
   nhac: boolean;
   /** Bài nhạc nền đang chọn (lib/nhac.ts `BAI_NHAC`). Thiếu = bài mặc định. */
   baiNhac?: string;
+  /** VÁN CHƠI NHANH GẦN NHẤT (16.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1):
+   *  có thì bấm ô Chơi nhanh ở trang chủ là vào ván ngay với đúng cỡ bàn + số người này.
+   *  Lưu RIÊNG vì `level`/`playerCount` bị Chiến dịch và Đấu máy ghi đè. Thiếu = chưa chơi nhanh lần nào. */
+  nhanh?: { level: number; playerCount: number };
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -149,6 +153,11 @@ export const store = {
     merged.options = sanitizeOptions(saved.options ?? optionsFromOldMode(saved.mode));
     // Chơi chung một máy tối đa 4 người (11.10.2026); bản lưu cũ có thể còn 5–10
     merged.playerCount = Math.min(4, Math.max(1, Number(merged.playerCount) || 1));
+    // Bản lưu tay/hỏng: cỡ bàn phải là một khoá hợp lệ, số người 1..4 — sai thì coi như chưa chơi
+    const nh = saved.nhanh;
+    merged.nhanh = nh && Number.isInteger(nh.level) && nh.level >= 1 && nh.level <= LEVEL_KEYS
+      && Number.isInteger(nh.playerCount) && nh.playerCount >= 1 && nh.playerCount <= 4
+      ? { level: nh.level, playerCount: nh.playerCount } : undefined;
     return merged;
   },
 
