@@ -63,7 +63,7 @@ export const HTML = String.raw`<!doctype html>
   <section class="hang">
     <div class="thach the bieu-do">
       <div class="the-dau">
-        <div class="tieu"><h2 class="ktieu" id="tieuChuoi">Người chơi</h2><span class="nguon n-ga">GA4</span></div>
+        <div class="tieu"><h2 class="ktieu" id="tieuChuoi">Người chơi</h2></div>
         <div class="chips nho" id="hat" role="group" aria-label="Mỗi cột ứng với"></div>
       </div>
       <div class="the-phu"><span id="ghiChuoi" class="mo"></span><span class="chu-giai" id="chuGiai"></span></div>
@@ -71,7 +71,7 @@ export const HTML = String.raw`<!doctype html>
       <p class="loi-o" id="loi-chuoi" hidden></p>
     </div>
     <div class="thach the nen-tang">
-      <div class="tieu"><h2 class="ktieu">Nền tảng</h2><span class="nguon n-ga">GA4</span></div>
+      <div class="tieu"><h2 class="ktieu">Nền tảng</h2></div>
       <div class="thanh" id="thanhNt"></div>
       <div id="nenTang"><span class="sk" style="height:40px"></span><span class="sk" style="height:40px"></span><span class="sk" style="height:40px"></span></div>
       <p class="loi-o" id="loi-nenTang" hidden></p>
@@ -80,7 +80,7 @@ export const HTML = String.raw`<!doctype html>
 
   <section class="thach the">
     <div class="the-dau">
-      <div class="tieu"><h2 class="ktieu">Giờ cao điểm · ván bắt đầu theo giờ trong tuần</h2><span class="nguon n-ga">GA4</span></div>
+      <div class="tieu"><h2 class="ktieu">Giờ cao điểm · ván bắt đầu theo giờ trong tuần</h2></div>
       <span class="mo" id="ghiHeat"></span>
     </div>
     <div class="cuon"><div id="heat" class="heat"><span class="sk" style="height:200px"></span></div></div>
@@ -95,8 +95,7 @@ export const HTML = String.raw`<!doctype html>
   </section>
 
   <footer class="chan">
-    <span><span class="nguon n-live">GA Realtime</span> 30 phút gần nhất</span>
-    <span><span class="nguon n-ga">GA4</span> chỉ hỏi GA khi mở trang · số trong ngày trễ vài giờ · không chạm MySQL/server game</span>
+    <span>Số liệu từ Google Analytics · chỉ hỏi khi mở trang · số trong ngày trễ vài giờ · không chạm MySQL/server game</span>
     <span>Số GA là ước lượng: người chặn quảng cáo hoặc từ chối đồng ý thu thập không được đếm.</span>
   </footer>
 </div>
@@ -397,7 +396,7 @@ export const JS = String.raw`
       if (g.khoang === '30m' && x[1] == null) return;
       var o = el('div', 'thach kpi');
       var tren = el('div', 'kpi-dau');
-      tren.appendChild(el('span', 'nhan', x[0])); tren.appendChild(el('span', 'nguon n-ga', g.khoang === '30m' ? 'Realtime' : 'GA4'));
+      tren.appendChild(el('span', 'nhan', x[0]));
       o.appendChild(tren);
       var v = x[1] ? x[1].v : null;
       o.appendChild(el('b', null, typeof v === 'string' ? v : so(v)));
@@ -494,7 +493,7 @@ export const JS = String.raw`
       ['Cập nhật nóng (OTA)', g.danhSach.ota, '#86efac', dich, 'ota']
     ].forEach(function (x) {
       if (g.khoang === '30m' && x[4] !== 'quocGia') return;
-      var o = el('div', 'thach the'); var t = el('div', 'tieu'); t.appendChild(el('h2', 'ktieu', x[0])); t.appendChild(el('span', 'nguon n-ga', 'GA4')); o.appendChild(t);
+      var o = el('div', 'thach the'); var t = el('div', 'tieu'); t.appendChild(el('h2', 'ktieu', x[0])); o.appendChild(t);
       var ds = x[1] || [], m = x[4] === 'man_kho' ? 100 : Math.max.apply(null, ds.map(function (r) { return r.v; }).concat([1]));
       ds.forEach(function (r) {
         var d = el('div', 'ds-dong'); var tr = el('div', 'tren'); var nh = el('span'); if (x[4] === 'quocGia') nh.appendChild(coNuoc(r.k)); nh.appendChild(document.createTextNode(x[3](r.k))); tr.appendChild(nh); tr.appendChild(el('span', null, x[5] ? x[5](r, ds) : so(r.v)));
