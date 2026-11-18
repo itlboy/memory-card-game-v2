@@ -3,16 +3,20 @@
  * phiền người thật: phòng tạo bằng `?thu=1` không lên danh sách công khai, không bắn thông báo
  * "có phòng mới" (apps/node-server/src/index.ts, `phongThu`).
  *
- *   node tools/phong-thu.mjs [server] [số người]
+ *   node tools/phong-thu.mjs [server] [số người] [van]
  *   node tools/phong-thu.mjs https://flipmatch-api.cozypi.com 3
+ *   node tools/phong-thu.mjs https://flipmatch-api.cozypi.com 3 van   ← thêm cảnh MẤT MẠNG IM LẶNG trong ván
  *
  * Kịch bản: N người vào (đập nhịp tim như app) → người 2 xin `resync` (giống lúc mạng nghẽn) →
  * người 3 rớt rồi vào lại bằng token → mọi người rời (`leave`) → phòng tự dẹp.
+ * `van`: trước khi rời, cả phòng sẵn sàng + chủ bắt đầu ván, rồi người cuối NGỪNG nhịp tim 25 giây
+ * (socket vẫn mở — giống mất sóng) → server ghi `[phòng] … im 2Xs → MẤT KẾT NỐI`, rồi `sống lại…`.
  * Đọc kết quả: kubectl -n thebai logs deploy/thebai-server | grep '\[ws\]'
  * Cần Node ≥ 22 (WebSocket có sẵn).
  */
 const SERVER = (process.argv[2] ?? 'https://flipmatch-api.cozypi.com').replace(/\/$/, '');
 const SO = Number(process.argv[3] ?? 3);
+const VAN = process.argv[4] === 'van';
 const WS = SERVER.replace(/^http/, 'ws');
 const cho = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -53,6 +57,20 @@ if (ds[2]) {
   console.log('  ✓ người 3 rớt rồi vào lại');
 }
 await cho(2000);
+if (VAN) {
+  for (const n of ds) n.ws.send(JSON.stringify({ t: 'ready', ready: true }));
+  await cho(800);
+  ds[0].ws.send(JSON.stringify({ t: 'start' }));
+  console.log('  ✓ bắt đầu ván — chờ đếm ngược');
+  await cho(6000);
+  const cuoi = ds[ds.length - 1];
+  thoi(cuoi);
+  console.log(`  … người ${cuoi.i} im 25 giây (socket vẫn mở)`);
+  await cho(25_000);
+  cuoi.ws.send(JSON.stringify({ t: 'alive' }));
+  console.log(`  ✓ người ${cuoi.i} nói lại`);
+  await cho(2000);
+}
 for (const n of ds) { thoi(n); n.ws.send(JSON.stringify({ t: 'leave' })); }
 await cho(800);
 for (const n of ds) n.ws.close(1000);

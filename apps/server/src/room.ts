@@ -503,6 +503,7 @@ export class RoomDO extends DurableObject<Env> {
       if (!this.room.hostId) this.room.hostId = player.id;
       delete this.room.emptyAt;   // phòng có người trở lại, không còn hẹn xoá
     } else {
+      if (player.disconnectedAt !== null) this.ghiLog(player, `vào lại sau ${Math.round((Date.now() - player.disconnectedAt) / 1000)}s mất kết nối`);
       player.disconnectedAt = null;
       delete this.room.emptyAt;   // người giữ chỗ đã về, không còn hẹn xoá
       if (name) player.name = name;
@@ -589,7 +590,10 @@ export class RoomDO extends DurableObject<Env> {
 
     // Mọi tin nhắn đều là bằng chứng "còn sống" — ghi mốc trước khi xử lý.
     player.lastSeen = Date.now();
-    if (player.disconnectedAt !== null) player.disconnectedAt = null;
+    if (player.disconnectedAt !== null) {
+      this.ghiLog(player, `sống lại trên socket cũ sau ${Math.round((player.lastSeen - player.disconnectedAt) / 1000)}s mất kết nối`);
+      player.disconnectedAt = null;
+    }
     /*
      * Socket "đông cứng" của iOS (app nằm nền, TCP không đóng) sống lại: phòng
      * hết vắng. Thiếu dòng này thì hẹn xoá phòng rỗng vẫn chạy trong khi chủ
@@ -1054,6 +1058,7 @@ export class RoomDO extends DurableObject<Env> {
       }
     } else {
       player.disconnectedAt = Date.now();   // ON-07: có ROOM_LIMITS.reconnectMs để vào lại
+      this.ghiLog(player, `socket đóng giữa ${this.room.status === 'playing' ? 'ván' : 'màn kết quả'} → mất kết nối, chờ vào lại`);
       this.nhipDongHoLuot();
     }
     /*
@@ -1212,7 +1217,10 @@ export class RoomDO extends DurableObject<Env> {
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null) continue;
         const seen = p.lastSeen ?? 0;
-        if (seen && now - seen > SILENT_MS) { p.disconnectedAt = seen; doi = true; }
+        if (seen && now - seen > SILENT_MS) {
+          p.disconnectedAt = seen; doi = true;
+          this.ghiLog(p, `im ${Math.round((now - seen) / 1000)}s, socket vẫn mở → coi là MẤT KẾT NỐI (người khác thấy "mất kết nối — chờ…")`);
+        }
       }
       if (doi) {
         this.nhipDongHoLuot();
@@ -1226,6 +1234,7 @@ export class RoomDO extends DurableObject<Env> {
     if (this.game && this.room.status === 'playing') {
       for (const p of this.room.players) {
         if (p.disconnectedAt !== null && now - p.disconnectedAt >= ROOM_LIMITS.reconnectMs) {
+          this.ghiLog(p, `XỬ THUA — mất kết nối quá ${Math.round(ROOM_LIMITS.reconnectMs / 1000)}s`);
           p.disconnectedAt = null;
           const events = this.xuThua(p.id, now);
           this.removePlayer(p.id);
@@ -1456,6 +1465,16 @@ export class RoomDO extends DurableObject<Env> {
    * `TURN_PAUSE_CAP_MS` nay neo đúng vào con số đó, nên ván ĐÓNG BĂNG suốt thời
    * gian người kia còn giữ chỗ, không mất lượt oan ở giây thứ 30 nữa.
    */
+  /**
+   * LOG SỰ CỐ KẾT NỐI (18.11.2026) — chung cho Node (kubectl logs) và Cloudflare (wrangler tail).
+   * Người chơi ghi bằng 6 ký tự đầu `clientId` — CÙNG nhãn `cid` của dòng `[ws]` ở bản Node, để
+   * ghép. KHÔNG ghi tên. Dòng `[phòng]` nói chuyện server QUYẾT ĐỊNH (coi là mất kết nối, dừng đồng
+   * hồ, xử thua); dòng `[ws]` nói chuyện socket (vào/ra/mã đóng).
+   */
+  private ghiLog(p: RoomPlayer | undefined, viec: string): void {
+    console.log(`[phòng] ${this.room?.code ?? '?'} ${(p?.clientId ?? p?.id ?? '?').slice(0, 6)} ${viec}`);
+  }
+
   private nhipDongHoLuot(): boolean {
     if (!this.game || !this.room || this.room.status !== 'playing') return false;
     // ĐỒNG ĐỘI: đồng hồ theo NGƯỜI PHẢI LẬT LÁ NÀY; họ rớt mà đồng đội còn đó thì đồng đội lật thay
@@ -1471,7 +1490,13 @@ export class RoomDO extends DurableObject<Env> {
       || (p.lastSeen ? now - p.lastSeen > LAG_MS : false);
     if (nghen) this.game.tamDungLuot(now);
     else this.game.chayTiepLuot(now);
-    return this.game.turnDangDung() !== truoc;
+    const doi = this.game.turnDangDung() !== truoc;
+    if (doi) {
+      this.ghiLog(p, nghen
+        ? `đồng hồ lượt DỪNG — ${p?.disconnectedAt !== null ? 'mất kết nối' : `im ${((now - (p?.lastSeen ?? now)) / 1000).toFixed(1)}s`}`
+        : 'đồng hồ lượt chạy lại');
+    }
+    return doi;
   }
 
   /* ---------- máy chơi cùng ---------- */

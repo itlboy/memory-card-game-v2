@@ -371,7 +371,10 @@
   server `[ws] vào|ra|resync|lỗi <mã phòng> <cid 6 ký tự> <nền> <bản>` (node-server index.ts, mã đóng + client
   im bao lâu; KHÔNG ghi tên) — `kubectl -n thebai logs deploy/thebai-server | grep '\[ws\]'`. Cần phòng
   để soát log: `node tools/phong-thu.mjs [server] [số người]` — tạo bằng `POST /api/rooms?thu=1`: KHÔNG lên
-  danh sách công khai, KHÔNG bắn thông báo; ĐỪNG thử bằng phòng thường (máy thật nhận push) · `dang_nhap` {cach, ket_qua: ok|huy|loi,
+  danh sách công khai, KHÔNG bắn thông báo; ĐỪNG thử bằng phòng thường (máy thật nhận push); thêm `van` = cảnh
+  mất mạng im lặng trong ván. Dòng `[phòng] <mã> <cid> …` (room.ts `ghiLog`) là QUYẾT ĐỊNH của server: im >20s
+  socket vẫn mở → mất kết nối (chính là lúc người khác thấy "X mất kết nối — chờ…"), đồng hồ lượt dừng/chạy
+  (im >7s), vào lại / sống lại sau Ns, xử thua · `dang_nhap` {cach, ket_qua: ok|huy|loi,
   moi} (taikhoan.ts `baoDangNhap`; `moi` = hồ sơ server còn trắng) · `chia_se` {kenh: luu_anh|anh|chu|copy,
   ket_qua} (anh-ket-qua.ts — mở hộp ≠ chia sẻ thật) · `cai_app_ket_qua` {dong_y|tu_choi|da_cai} · `cap_nhat_ota`
   {ket_qua: ok|loi|cu_qua, tu, den, giay}. Link mời mang `utm_source=moi_ban`, ảnh chia sẻ
