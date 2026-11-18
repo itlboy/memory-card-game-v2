@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NGON_NGU } from '@/lib/i18n';
 import {
-  CACH_MAY_MS, CHU, chonNguoiNhan, chuThongBao, dangGioNgu, moThongBao, type DangKy
+  CACH_MAY_MS, CHU, TRE_MS, chonNguoiNhan, chuThongBao, dangGioNgu, moThongBao, type DangKy
 } from '../../node-server/src/thongbao';
 
 /**
@@ -56,7 +56,7 @@ describe('server: thongbao.ts', () => {
 describe('server: gửi một đợt (FCM giả, MySQL giả)', () => {
   afterEach(() => { vi.useRealTimers(); });
 
-  it('chờ 20 giây · bỏ máy chủ phòng · 404 thì xoá mã · đợt thứ hai trong 10 phút bị chặn', async () => {
+  it('chờ TRE_MS · bỏ máy chủ phòng · 404 thì xoá mã · đợt thứ hai trong 10 phút bị chặn', async () => {
     vi.useFakeTimers();
     vi.setSystemTime(Date.UTC(2026, 10, 18, 5, 0)); // 12h trưa giờ VN
     const { generateKeyPairSync } = await import('node:crypto');
@@ -80,9 +80,9 @@ describe('server: gửi một đợt (FCM giả, MySQL giả)', () => {
     const phong = { code: '123456', chuPhong: 'Kiên', avatar: '', nguoi: 1, toiDa: 4, the: 16, luc: Date.now() };
     tb.phongMoi(phong, async () => true);
     tb.phongMoi(phong, async () => true); // khai lại cùng mã: không đặt lịch lần hai
-    await vi.advanceTimersByTimeAsync(19_000);
+    await vi.advanceTimersByTimeAsync(TRE_MS - 500);
     expect(gui).toEqual([]);
-    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(1_000);
     await vi.waitFor(() => expect(cau.some((c) => c.sql.startsWith('DELETE'))).toBe(true));
     expect(gui.sort()).toEqual(['a'.repeat(30), 'chet'.repeat(8)]);
     expect(cau.find((c) => c.sql.startsWith('UPDATE'))!.v[1]).toEqual(['a'.repeat(30)]);
@@ -94,7 +94,7 @@ describe('server: gửi một đợt (FCM giả, MySQL giả)', () => {
     expect(gui).toEqual([]); // trong 10 phút sau đợt trước
   });
 
-  it('phòng đã đủ người/đóng sau 20 giây → không gửi gì', async () => {
+  it('phòng đã đủ người/đóng sau TRE_MS → không gửi gì', async () => {
     vi.useFakeTimers();
     const pool = { query: vi.fn(async () => [[]]) };
     const layFetch = vi.fn();

@@ -979,7 +979,7 @@
   ở `index.ts`, móc vào `khai`), cần MySQL + `APNS_*` và/hoặc `FCM_SERVICE_ACCOUNT` (Secret
   `thebai-push`), thiếu thì `/api/thongbao/*` 404 và chuông ẩn. iOS gửi THẲNG APNs (khoá .p8 RIÊNG
   có bật APNs — khoá Sign in with Apple không gửi được), Android qua FCM (`google-services.json` ở
-  secret CI `GOOGLE_SERVICES_JSON`, repo public nên không commit). Luật chống phiền: chờ 20 giây
+  secret CI `GOOGLE_SERVICES_JSON`, repo public nên không commit). Luật chống phiền: chờ 3 giây (từng 20 — chủ dự án chê chậm)
   phòng còn chờ người mới gửi · cả game ≤1 đợt/10 phút · mỗi máy ≤1 tin/30 phút · không gửi 22h–7h
   theo GIỜ CỦA MÁY · bỏ máy chủ phòng (`?tb=` lúc tạo phòng) · tắt = XOÁ mã máy, tắt hụt mạng thì
   lần mở sau thử lại. Đang mở app thì không hiện banner (`presentationOptions: []`). Bấm thông báo

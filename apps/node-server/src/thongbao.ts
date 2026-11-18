@@ -25,7 +25,11 @@ import type { PublicRoom } from '@mm/engine';
  * Thiếu thì `/api/thongbao/*` 404 và client giấu chuông.
  */
 
-export const TRE_MS = 20_000;
+/**
+ * Chờ bấy nhiêu rồi mới báo — chỉ để bỏ cú "tạo nhầm rồi thoát ngay". Từng là 20 giây, chủ dự án
+ * (18.11.2026): "nên báo nhanh hơn để người kia đỡ phải đợi" → 3 giây.
+ */
+export const TRE_MS = 3_000;
 export const CACH_DOT_MS = 10 * 60_000;
 export const CACH_MAY_MS = 30 * 60_000;
 export const GIO_NGU = { tu: 22, den: 7 };
