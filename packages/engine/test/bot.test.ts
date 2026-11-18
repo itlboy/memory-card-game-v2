@@ -232,13 +232,16 @@ describe('nhịp nghĩ của bot', () => {
     }
   });
 
-  it('lá thứ hai của lượt nghĩ nhanh — đã cân nhắc ở lá đầu rồi', () => {
+  it('lá thứ hai của lượt: nhanh hơn lá đầu nhưng không "bắn" liền (0,7–1,6 giây, ngẫu nhiên)', () => {
     const rng = botRng(11);
+    const got = new Set<number>();
     for (let i = 0; i < 30; i++) {
       const ms = botThinkMs('normal', rng, { closing: true });
-      expect(ms).toBeGreaterThanOrEqual(250);
-      expect(ms).toBeLessThanOrEqual(800);
+      expect(ms).toBeGreaterThanOrEqual(700);
+      expect(ms).toBeLessThanOrEqual(1600);
+      got.add(ms);
     }
+    expect(got.size).toBeGreaterThan(20);
   });
 
   it('cùng seed thì cùng nhịp — bot phải tất định', () => {
