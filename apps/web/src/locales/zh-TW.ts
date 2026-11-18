@@ -249,7 +249,6 @@ const zhTW: TuDien = {
   'kq.daThoat': '🚪 已離開',
   'kq.capChuoi': '{cap} 對 · 最高連擊 {chuoi}',
   'kq.diemAria': '{n} 分',
-  'kq.tongDiem': '總分',
   'kq.thuongGio': '時間獎勵',
   'kq.soLuot': '步數',
   'kq.thoiGian': '用時',

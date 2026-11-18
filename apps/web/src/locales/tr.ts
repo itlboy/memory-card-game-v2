@@ -249,7 +249,6 @@ const tr: TuDien = {
   'kq.daThoat': '🚪 Ayrıldı',
   'kq.capChuoi': '{cap} çift · en iyi seri {chuoi}',
   'kq.diemAria': '{n} puan',
-  'kq.tongDiem': 'Toplam puan',
   'kq.thuongGio': 'Süre bonusu',
   'kq.soLuot': 'Hamle',
   'kq.thoiGian': 'Süre',

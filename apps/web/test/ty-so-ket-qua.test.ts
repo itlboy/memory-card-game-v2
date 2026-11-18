@@ -17,7 +17,7 @@ const binh = { id: 'p3', name: 'Bình', score: 90, pairs: 2, bestStreak: 1 };
 const dung = (props: Record<string, unknown>) => mount(ResultDialog, {
   props: {
     summary: van([kien, an]), isRecord: false, showStars: false, multiplayer: true, freshAchievements: [],
-    totalBefore: 0, totalAfter: 0, hasNext: false, ...props
+    hasNext: false, ...props
   }
 });
 const so = (w: ReturnType<typeof dung>) => w.findAll('.loat .o-so b').map((o) => [o.text(), !o.classes('lui')]);
@@ -62,12 +62,11 @@ describe('tỷ số loạt ở màn kết quả', () => {
     expect(w.find('.nut-ct').text()).toContain('Thu gọn');
   });
 
-  it('chung máy: không sao, không Tổng điểm; đấu máy (có "mình") vẫn giữ', () => {
-    const chung = dung({ seriesWins: {}, showStars: true, totalBefore: 100, totalAfter: 400 });
+  it('chung máy: không sao; không chỗ nào nhắc lại Tổng điểm (TopBar có rồi)', () => {
+    const chung = dung({ seriesWins: {}, showStars: true });
     expect(chung.find('.stars').exists()).toBe(false);
-    expect(chung.find('.total-row').exists()).toBe(false);
-    const may = dung({ seriesWins: {}, minhKetCuc: 'thang', showStars: true, totalBefore: 100, totalAfter: 400 });
-    expect(may.find('.total-row').exists()).toBe(true);
+    const may = dung({ seriesWins: {}, minhKetCuc: 'thang', showStars: true });
+    expect(may.find('.total-row').exists()).toBe(false);
   });
 
   it('đội: mặt từng thành viên mang neo emoji riêng, ✓ cho người đã bấm Chơi lại', () => {

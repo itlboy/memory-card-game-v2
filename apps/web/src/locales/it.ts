@@ -250,7 +250,6 @@ const it: TuDien = {
   'kq.daThoat': '🚪 Uscito',
   'kq.capChuoi': '{cap} coppie · serie migliore {chuoi}',
   'kq.diemAria': '{n} punti',
-  'kq.tongDiem': 'Punteggio totale',
   'kq.thuongGio': 'Bonus tempo',
   'kq.soLuot': 'Mosse',
   'kq.thoiGian': 'Tempo',

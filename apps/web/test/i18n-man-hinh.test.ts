@@ -142,13 +142,13 @@ async function duyetThanhPhan(lang: NgonNgu): Promise<Record<string, string[]>> 
   };
   await dung('kết quả một mình', ResultDialog, {
     summary: TONG, isRecord: true, showStars: true, multiplayer: false, freshAchievements: ['first-win', 'board-4', 'lightspeed'],
-    goiY: byId('flawless'), totalBefore: 0, totalAfter: 220, hasNext: true, levelId: 1
+    goiY: byId('flawless'), hasNext: true, levelId: 1
   });
   await dung('kết quả đấu máy', ResultDialog, {
     summary: { ...TONG, ranking: [
       { id: 'bot', name: 'Bot báo đen', avatar: ':bao-den:', score: 300, pairs: 3, bestStreak: 2 },
       { id: 'p1', name: 'Bạn', score: 100, pairs: 1, bestStreak: 1 }] }, // i18n-bo-qua: dữ liệu ván giữ chữ gốc
-    isRecord: false, showStars: false, multiplayer: true, freshAchievements: [], totalBefore: 0, totalAfter: 0, hasNext: false
+    isRecord: false, showStars: false, multiplayer: true, freshAchievements: [], hasNext: false
   });
   await dung('màn danh hiệu', DanhHieuDialog, { daCo: new Set(['first-win', 'giay-cuoi']), tk: { wins: 3, botWins: 0, onlineWins: 0, totalScore: 600, chuoiNgay: 2, campaignMax: 3, stars3: 1 }, themeKhoa: new Set(['flags']) });
   for (const [ten, p] of [

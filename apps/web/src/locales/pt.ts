@@ -247,7 +247,6 @@ const pt: TuDien = {
   'kq.daThoat': '🚪 Saiu',
   'kq.capChuoi': '{cap} pares · melhor sequência {chuoi}',
   'kq.diemAria': '{n} pontos',
-  'kq.tongDiem': 'Pontuação total',
   'kq.thuongGio': 'Bônus de tempo',
   'kq.soLuot': 'Jogadas',
   'kq.thoiGian': 'Tempo',
