@@ -106,6 +106,11 @@ Hai bộ, khác việc:
 
 **Bật capability mới cho App ID** (vd Associated Domains): `gh workflow run ios-profile.yml --ref main -f caps=ASSOCIATED_DOMAINS` — bật qua API + cấp lại profile giữ chứng chỉ cũ; tải artifact rồi `base64 -i … | gh secret set IOS_PROFILE_BASE64`.
 
+**Thông báo đẩy (từ 1.8.17)**: App ID phải bật Push — `gh workflow run ios-profile.yml --ref main -f caps=PUSH_NOTIFICATIONS`
+rồi cập nhật `IOS_PROFILE_BASE64` như trên; thiếu là bước soát đỏ "thiếu entitlement aps-environment".
+Android: secret `GOOGLE_SERVICES_JSON` (file từ Firebase, app `com.cozypi.flipmatch`) — thiếu chỉ cảnh báo.
+Khoá gửi ở server: Secret k8s `thebai-push` (xem `deploy/k8s/thebai.yaml`).
+
 **Chứng chỉ phân phối + profile hết hạn sau 1 NĂM** — chạy lại `tools/tao-ky-ios.mjs`
 (xoá `ios-distribution.p12` cũ trước, script không ghi đè). Khoá riêng của chứng chỉ
 sinh trên máy chạy script, không qua Apple.

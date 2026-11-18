@@ -5,11 +5,12 @@ import {
   BOARD_SIZES, CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
 import {
-  Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
+  Bell, BellRing, Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hash, Heart, LayoutGrid,
   Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, Users, X
 } from 'lucide-vue-next';
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
+import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { ghiUrl } from '@/lib/appUrl';
 import { t, td, ngonNgu } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
@@ -448,6 +449,30 @@ function quit(sau: () => void = exit): void {
  * chèn vào bảng kết quả "trông xấu quá". Chỉ ghi giá trị MỚI của những gì đổi.
  */
 const doiBan = ref<{ ten: string; ds: string; key: number } | null>(null);
+
+/*
+ * CHUÔNG "BÁO TÔI KHI CÓ PHÒNG MỚI" (18.11.2026, lib/thong-bao.ts). Một nút bật/tắt cạnh tiêu đề
+ * danh sách — bấm lần nữa là TẮT (chủ dự án: "nhớ có nút tắt thông báo"), và dòng báo lúc bật
+ * nói rõ điều đó. Kết quả hiện bằng cùng dòng nổi với thông báo đổi bàn.
+ */
+const tbDangLam = ref(false);
+const tbToast = ref<{ chu: string; key: number } | null>(null);
+let henTb: ReturnType<typeof setTimeout> | undefined;
+function baoTb(chu: string): void {
+  tbToast.value = { chu, key: Date.now() };
+  clearTimeout(henTb);
+  henTb = setTimeout(() => { tbToast.value = null; }, 4500);
+}
+async function bamChuong(): Promise<void> {
+  if (tbDangLam.value) return;
+  tbDangLam.value = true;
+  try {
+    if (dangBat.value) { await tatChuong(); baoTb(t('on.tb.daTat')); return; }
+    const kq = await batChuong();
+    baoTb(t(kq === 'bat' ? 'on.tb.daBat' : kq === 'chan' ? 'on.tb.biChan' : 'on.tb.loi'));
+  } finally { tbDangLam.value = false; }
+}
+onUnmounted(() => clearTimeout(henTb));
 let hen: ReturnType<typeof setTimeout> | undefined;
 function khacBiet(a: RoomConfig, b: RoomConfig): string[] {
   const ra: string[] = [];
@@ -969,6 +994,13 @@ function openCfgWizard(): void {
       <div class="list-head">
         <h3>{{ t('on.phongDangCho') }}</h3>
         <span v-if="o.phongCongKhai.value.length" class="count">{{ o.phongCongKhai.value.length }}</span>
+        <button
+          v-if="coChuong" class="chuong thach th-nho" :class="{ bat: dangBat, 'th-xanh': dangBat }" type="button"
+          :disabled="tbDangLam" :aria-pressed="dangBat" @click="bamChuong()"
+        >
+          <BellRing v-if="dangBat" :size="16" aria-hidden="true" /><Bell v-else :size="16" aria-hidden="true" />
+          <span>{{ dangBat ? t('on.tb.dangBao') : t('on.tb.baoToi') }}</span>
+        </button>
       </div>
 
       <!-- Đang tải LẦN ĐẦU: khung xám thay vì chữ "đang tải" — người chơi thấy
@@ -1301,6 +1333,12 @@ function openCfgWizard(): void {
     </p>
   </Transition>
 
+  <Transition name="doi-ban">
+    <p v-if="tbToast" :key="tbToast.key" class="doi-ban-toast" role="status">
+      <BellRing :size="18" aria-hidden="true" /><span>{{ tbToast.chu }}</span>
+    </p>
+  </Transition>
+
   <ChonDoi
       v-if="doiDangChon" :players="o.room.value?.players ?? []" :bo-qua="doiDangChon"
       :doi="o.room.value?.players.find((x) => x.id === doiDangChon)?.doiSo"
@@ -1354,6 +1392,18 @@ function openCfgWizard(): void {
 }
 .list-head { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; }
 .list-head h3 { flex: 1; margin: 0; font-family: var(--font-display); font-size: var(--text-md); }
+.list-head .chuong {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px;
+  border-radius: var(--r-full); border: 2px solid var(--line); background: var(--panel-solid);
+  font-family: var(--font-display); font-weight: 700; font-size: var(--text-xs); color: var(--muted);
+  position: relative; cursor: pointer; flex: none; white-space: nowrap;
+}
+/* Chữ nút dài (de, ru) thì TIÊU ĐỀ nhường chỗ, không xuống dòng làm cao hàng */
+.list-head h3 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Vùng chạm 44px mà không phình nút (luật "Vùng chạm ≠ HÌNH của nút") */
+.list-head .chuong::after { content: ''; position: absolute; inset: -5px -2px; }
+.list-head .chuong.bat { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: var(--accent-soft); }
+.list-head .chuong:disabled { opacity: .6; }
 .list-head .count {
   font-size: var(--text-xs); font-weight: 800; color: var(--accent);
   background: var(--accent-soft); padding: 3px 9px; border-radius: var(--r-full);

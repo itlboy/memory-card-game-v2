@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Màu nhấn của thông báo "có phòng mới" (khớp `color` server gửi ở thongbao.ts) -->
+    <color name="thong_bao">#5BC0F0</color>
+</resources>

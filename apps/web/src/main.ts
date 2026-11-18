@@ -59,6 +59,8 @@ ganNutBackAndroid();
 ganVuotLuiIos();
 // Link mời https://…/?room=CODE mở thẳng app → vào phòng (lib/link-moi.ts)
 ganLinkMoi();
+// Chuông "báo tôi khi có phòng mới" (lib/thong-bao.ts) — chỉ app có plugin + server bật
+if (laApp) void import('./lib/thong-bao').then((m) => m.khoiDongThongBao());
 // Cập nhật nóng: báo gói chạy được NGAY (không thì plugin quay về gói trước), rồi kiểm bản mới
 void import('./lib/ota').then((m) => m.kiemOta());
 // Gói cài bằng zip OTA thiếu ảnh emoji 512 (zip phải < 25MiB) → dùng 256 (lib/emoji.ts)

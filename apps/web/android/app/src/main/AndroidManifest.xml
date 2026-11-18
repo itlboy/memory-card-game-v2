@@ -10,6 +10,10 @@
         android:localeConfig="@xml/locales_config"
         android:theme="@style/AppTheme">
 
+        <!-- Thông báo FCM khi app ở nền: icon + màu mặc định (lib/thong-bao.ts, server thongbao.ts) -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_thong_bao" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/thong_bao" />
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -54,4 +58,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Android 13+: xin quyền hiện thông báo (chuông "có phòng mới", lib/thong-bao.ts) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

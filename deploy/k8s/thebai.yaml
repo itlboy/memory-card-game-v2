@@ -105,6 +105,38 @@ spec:
                   name: thebai-google
                   key: GOOGLE_CLIENT_ID
                   optional: true
+            # THÔNG BÁO "CÓ PHÒNG MỚI" (18.11.2026, apps/node-server/src/thongbao.ts). Thiếu cả
+            # APNs lẫn FCM thì tắt êm: /api/thongbao/* 404, app giấu chuông. Tạo:
+            #   kubectl -n thebai create secret generic thebai-push \
+            #     --from-literal=APNS_KEY_ID=… --from-literal=APNS_TEAM_ID=… \
+            #     --from-file=APNS_PRIVATE_KEY=AuthKey_….p8 \
+            #     --from-file=FCM_SERVICE_ACCOUNT=fcm-sa.json
+            # Khoá APNs là khoá .p8 RIÊNG có bật "Apple Push Notifications service" — khoá
+            # Sign in with Apple (APPLE_PRIVATE_KEY) KHÔNG gửi được thông báo.
+            - name: APNS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: thebai-push
+                  key: APNS_KEY_ID
+                  optional: true
+            - name: APNS_TEAM_ID
+              valueFrom:
+                secretKeyRef:
+                  name: thebai-push
+                  key: APNS_TEAM_ID
+                  optional: true
+            - name: APNS_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: thebai-push
+                  key: APNS_PRIVATE_KEY
+                  optional: true
+            - name: FCM_SERVICE_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: thebai-push
+                  key: FCM_SERVICE_ACCOUNT
+                  optional: true
           # Hỏi SỚM và DÀY. Server Node lên trong khoảng một giây, nên chờ 3
           # giây rồi kiểm mỗi 5 giây là tự thêm vài giây chết vào mỗi lần
           # deploy — mà client chỉ im lặng 5 giây đầu trước khi báo "mất kết

@@ -1156,4 +1156,8 @@ Khớp với `apps/web/public/privacy.html`:
   "tracking" → không cần App Tracking Transparency. Bật quảng cáo/Google Signals là phải xét lại.
 - **CẦN KHAI LẠI** ở lần nộp kế tiếp: App Privacy (App Store Connect) và Data safety (Play)
   thêm 3 hàng Analytics ở trên — chỉ làm được trên giao diện.
+- **Từ 1.8.17 (chuông "có phòng mới")**: máy BẬT chuông gửi lên server mã nhận thông báo
+  (APNs/FCM) + ngôn ngữ + múi giờ, không gắn danh tính, tắt chuông là xoá. Apple: mã push KHÔNG
+  phải "Device ID" theo định nghĩa của họ — không thêm hàng. Google Data safety: khai "Device or
+  other IDs" → App functionality (FCM token). Sửa `privacy.html` mục "Playing online" (chờ chủ dự án duyệt chữ).
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).

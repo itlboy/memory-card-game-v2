@@ -67,6 +67,14 @@ jobs:
       - name: Dựng web rồi chép vào project Android
         working-directory: apps/web
         run: pnpm build:android
+      # THÔNG BÁO PHÒNG MỚI (từ 1.8.17): cấu hình Firebase cho FCM. Repo PUBLIC nên file nằm
+      # ở secret, không commit. Thiếu thì app vẫn build, chỉ là chuông bấm vào báo lỗi.
+      - name: google-services.json (Firebase Cloud Messaging)
+        env:
+          GS_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GS_JSON" ]; then printf '%s' "$GS_JSON" > apps/web/android/app/google-services.json
+          else echo "::warning::Thiếu secret GOOGLE_SERVICES_JSON — thông báo đẩy Android sẽ không chạy"; fi
       # Capacitor 8 cần JDK 21
       - uses: actions/setup-java@v6
         with:
@@ -283,6 +291,10 @@ jobs:
           APP="$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app"
           codesign -d --entitlements - "$APP" | grep -q applesignin \
             || { echo "::error::App ký ra thiếu entitlement com.apple.developer.applesignin"; exit 1; }
+          # Thông báo phòng mới (1.8.17): thiếu là `register()` lỗi và chuông không bao giờ bật được.
+          # Profile phải cấp lại sau khi bật Push cho App ID — xem docs/mobile-ci.md.
+          codesign -d --entitlements - "$APP" | grep -q aps-environment \
+            || { echo "::error::App ký ra thiếu entitlement aps-environment (profile chưa có Push Notifications)"; exit 1; }
           codesign -dvv "$APP" 2>&1 | grep -E "^Authority=Apple Distribution"
       - if: env.CO_KY == 'true' && env.PHAT_HANH != 'true'
         uses: actions/upload-artifact@v7

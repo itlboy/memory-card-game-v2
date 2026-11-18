@@ -46,6 +46,13 @@ const config: CapacitorConfig = {
       resetWhenUpdate: true,
       appReadyTimeout: 10000
     },
+    /*
+     * THÔNG BÁO PHÒNG MỚI (lib/thong-bao.ts, từ 1.8.17). Đang mở app thì KHÔNG hiện banner —
+     * người đang ở trong game tự thấy danh sách phòng, banner chỉ che màn chơi.
+     */
+    PushNotifications: {
+      presentationOptions: []
+    },
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 3000,

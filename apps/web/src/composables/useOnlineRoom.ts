@@ -16,6 +16,7 @@ import { doNhip } from '@/lib/do-nhip';
 import { t, td } from '@/lib/i18n';
 import { SERVER_URL } from '@/lib/native';
 import { tenNguoi } from '@/lib/ten';
+import { maMayHienTai } from '@/lib/thong-bao';
 
 /**
  * Địa chỉ server online. Bản deploy dùng CHÍNH origin đang chạy: web và worker
@@ -860,7 +861,9 @@ export function useOnlineRoom() {
     error.value = '';
     pendingConfig = config ?? null;
     try {
-      const res = await fetch(`${SERVER}/api/rooms`, { method: 'POST' });
+      // `?tb=` = mã máy nhận thông báo: server bỏ qua máy này khi báo "có phòng mới" (thongbao.ts)
+      const tb = maMayHienTai();
+      const res = await fetch(`${SERVER}/api/rooms${tb ? `?tb=${encodeURIComponent(tb)}` : ''}`, { method: 'POST' });
       if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { code: string };
       connect(data.code, name);

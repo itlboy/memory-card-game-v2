@@ -973,6 +973,19 @@
   lại sau mỗi nước lật thẻ; và mọi lối xoá phòng phải gọi `depPhong()` chứ không
   `storage.deleteAll()` trần, không thì phòng chết nằm lại trong danh sách. Có
   `tools/smoke-sophong.mjs` chạy với cả hai server.
+- **CHUÔNG "BÁO TÔI KHI CÓ PHÒNG MỚI" (18.11.2026, app ≥ 1.8.17)**: nút chuông cạnh tiêu đề
+  "Phòng đang chờ" (`OnlineScreen.vue`), bấm lần nữa là TẮT (chủ dự án: "nhớ có nút tắt"). Client
+  `lib/thong-bao.ts`, server `apps/node-server/src/thongbao.ts` — CHỈ bản Node (Map sổ phòng được bọc
+  ở `index.ts`, móc vào `khai`), cần MySQL + `APNS_*` và/hoặc `FCM_SERVICE_ACCOUNT` (Secret
+  `thebai-push`), thiếu thì `/api/thongbao/*` 404 và chuông ẩn. iOS gửi THẲNG APNs (khoá .p8 RIÊNG
+  có bật APNs — khoá Sign in with Apple không gửi được), Android qua FCM (`google-services.json` ở
+  secret CI `GOOGLE_SERVICES_JSON`, repo public nên không commit). Luật chống phiền: chờ 20 giây
+  phòng còn chờ người mới gửi · cả game ≤1 đợt/10 phút · mỗi máy ≤1 tin/30 phút · không gửi 22h–7h
+  theo GIỜ CỦA MÁY · bỏ máy chủ phòng (`?tb=` lúc tạo phòng) · tắt = XOÁ mã máy, tắt hụt mạng thì
+  lần mở sau thử lại. Đang mở app thì không hiện banner (`presentationOptions: []`). Bấm thông báo
+  đi CÙNG lối link mời (`?room=`). KHÔNG nâng `minNative`: client dò `isPluginAvailable` nên gói OTA
+  chạy được trên app cũ (chuông ẩn). Dựng lại phòng lúc khởi động KHÔNG báo (`batBao` bật sau
+  `khoiPhuc()`). Test: `test/thong-bao.test.ts`.
 - **CHƠI LẠI ĐỦ PHIẾU LÀ VÀO VÁN LUÔN; NGƯỜI ĐI ĐẦU XOAY VÒNG** (11.10.2026, chủ
   dự án báo). `t:'again'` đủ phiếu thì gọi `batDauDemNguoc()` — CÙNG hàm với nút
   Bắt đầu — chứ không về phòng chờ bắt bấm Sẵn sàng lại (bản cũ: hai người cùng

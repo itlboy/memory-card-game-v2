@@ -1,4 +1,5 @@
 {
   "//": "OTA: gói web cần bản APP (native) tối thiểu này. NÂNG khi thêm/đổi plugin native hay code Swift/Java — app cũ hơn sẽ KHÔNG nhận gói mới (nó thiếu plugin gói đó gọi). Xem tools/dong-goi-ota.mjs.",
+  "///": "1.8.17 thêm plugin push-notifications nhưng KHÔNG nâng minNative: lib/thong-bao.ts dò isPluginAvailable và giấu chuông trên app cũ. Làm vậy được khi web TỰ DÒ plugin; gọi thẳng plugin không dò thì vẫn phải nâng.",
   "minNative": "1.3.0"
 }

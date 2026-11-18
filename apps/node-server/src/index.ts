@@ -7,6 +7,7 @@ import { RoomDO } from '../../server/src/room.js';
 import { soPhongTrongRam } from '../../server/src/sophong.js';
 import { moKho, type Kho } from './kho-mysql.js';
 import { moTaiKhoan, type TaiKhoan } from './taikhoan.js';
+import { moThongBao, type ThongBao } from './thongbao.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -81,7 +82,24 @@ const phongs = new Map<string, Phong>();
  * liệt kê chỉ là lọc một Map. Cùng interface `SoPhong`, nên `RoomDO` chạy y
  * nguyên không biết mình đang ở đâu.
  */
-const soPhong = soPhongTrongRam();
+const soPhongGoc = soPhongTrongRam();
+/**
+ * Bọc sổ phòng để báo "có phòng mới" (thongbao.ts). Chỉ móc ở `khai` — mọi phòng công khai
+ * đều đi qua đây. `phongMoi` tự bỏ mã đã báo, nên phòng khai lại mỗi 5 phút không gửi lại.
+ * `batBao` chỉ bật SAU `khoiPhuc()`: dựng lại phòng lúc khởi động cũng khai lên sổ, mà đó
+ * không phải phòng mới.
+ */
+let batBao = false;
+const soPhong: typeof soPhongGoc = {
+  ...soPhongGoc,
+  async khai(phong) {
+    await soPhongGoc.khai(phong);
+    if (batBao && thongBao && phong.nguoi < phong.toiDa) {
+      thongBao.phongMoi(phong, async (code) =>
+        (await soPhongGoc.liet()).some((r) => r.code === code && r.nguoi < r.toiDa));
+    }
+  }
+};
 
 /**
  * Lấy (hoặc dựng) phòng theo mã. Tương đương `env.ROOM.getByName(code)` của CF:
@@ -277,6 +295,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   // Tạo phòng (ON-01)
   if (url.pathname === '/api/rooms' && req.method === 'POST') {
     const code = makeCode();
+    const tb = url.searchParams.get('tb');
+    if (tb && thongBao) thongBao.ghiChuPhong(code, tb);
     void layPhong(code).room.open().then(() => json(res, { code }));
     return;
   }
@@ -296,6 +316,17 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
    * `/api/auth/*`, `/api/me*`, `/api/bxh` rơi xuống 404 của fallback tĩnh —
    * client dò `/api/auth/config` lúc mở app để biết mà giấu nút đăng nhập.
    */
+  // Thông báo "có phòng mới" — cũng chỉ ở bản Node, thiếu cấu hình thì 404 và client giấu chuông.
+  if (thongBao && url.pathname.startsWith('/api/thongbao')) {
+    void thongBao.xuLy(req, res, url, json).then((daXuLy) => {
+      if (!daXuLy) json(res, { error: 'Không có đường này' }, 404);
+    }).catch((e) => {
+      console.error('[thongbao] lỗi:', (e as Error).message);
+      if (!res.headersSent) json(res, { error: 'Lỗi server' }, 500);
+    });
+    return;
+  }
+
   if (taiKhoan && url.pathname.startsWith('/api/')) {
     void taiKhoan.xuLy(req, res, url, json).then((daXuLy) => {
       if (!daXuLy) json(res, { error: 'Không có đường này' }, 404);
@@ -331,6 +362,7 @@ server.on('upgrade', (req, socket, head) => {
 
 let kho: Kho | null = null;
 let taiKhoan: TaiKhoan | null = null;
+let thongBao: ThongBao | null = null;
 
 /**
  * Dựng lại các phòng đã lưu, rồi mới nhận request.
@@ -410,7 +442,15 @@ taiKhoan = await moTaiKhoan(kho?.pool ?? null, process.env).catch((e) => {
 console.log(taiKhoan
   ? `  tài khoản: BẬT (${[process.env.GOOGLE_CLIENT_ID && 'Google', (process.env.APPLE_BUNDLE_ID || process.env.APPLE_SERVICES_ID) && 'Apple'].filter(Boolean).join(' + ')})`
   : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID và/hoặc APPLE_BUNDLE_ID)');
+thongBao = await moThongBao(kho?.pool ?? null, process.env).catch((e) => {
+  console.error('[thongbao] không mở được:', (e as Error).message);
+  return null;
+});
+console.log(thongBao
+  ? '  thông báo phòng mới: BẬT'
+  : '  thông báo phòng mới: TẮT (cần MYSQL_URL + APNS_* và/hoặc FCM_SERVICE_ACCOUNT)');
 await khoiPhuc();
+batBao = true;
 
 server.listen(PORT, () => {
   console.log(`Lật Thẻ — server dự phòng chạy ở http://localhost:${PORT}`);
