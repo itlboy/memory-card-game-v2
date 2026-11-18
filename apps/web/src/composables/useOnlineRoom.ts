@@ -10,6 +10,7 @@ import { computed, onScopeDispose, ref, shallowRef, nextTick, watch } from 'vue'
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 import { moChucNang, suKien } from '@/lib/phan-tich';
+import { nenApp } from '@/lib/native';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
 import { doNhip } from '@/lib/do-nhip';
@@ -173,6 +174,26 @@ export function useOnlineRoom() {
       lyDoRoi = '';
     }
   });
+  /**
+   * SỰ CỐ MẠNG MÀ APP TỰ CỨU (18.11.2026, chủ dự án: ván 3 người "hay lỗi mạng, treo" mà không có số
+   * liệu). `online_ket_noi` chỉ đếm socket ĐỨT HẲN; mấy lối tự cứu dưới đây (mất nhịp tim, nước đi không
+   * được xác nhận, bàn đứng im) trước đây im lặng — người chơi thấy treo, GA không thấy gì.
+   * `ly_do`: mat_nhip · mat_nhip_noi_lai · ack_cham · ack_hong · ban_dung · ban_dung_noi_lai · thuc_noi_lai.
+   * Mỗi loại tối đa một lần / 20 giây để một cơn mạng tệ không thành trăm sự kiện.
+   * Ghép với log server `[ws]` (apps/node-server/src/index.ts) theo giờ + mã phòng.
+   */
+  const suCoLuc = new Map<string, number>();
+  function baoSuCo(loai: string): void {
+    const luc = Date.now();
+    if (luc - (suCoLuc.get(loai) ?? 0) < 20_000) return;
+    suCoLuc.set(loai, luc);
+    suKien('online_su_co', {
+      ly_do: loai,
+      giai_doan: phase.value === 'playing' ? 'choi' : phase.value === 'ended' ? 'ket_qua' : 'cho',
+      so_nguoi: room.value?.players.length ?? 0,
+      ma_phong: code || undefined
+    });
+  }
   const error = ref('');
   const room = shallowRef<RoomInfo | null>(null);
   const view = shallowRef<GameView | null>(null);
@@ -390,12 +411,14 @@ export function useOnlineRoom() {
        * khi server thấy mình nghẽn, nên không mất lượt oan như hồi lượt 15 giây.
        */
       if (pingLost.value === 2 && send({ t: 'resync' })) {
+        baoSuCo('mat_nhip');
         pingSentAt = performance.now();
         ws.send(JSON.stringify({ t: 'ping' }));
         ws.send(JSON.stringify({ t: 'alive' }));
         return;
       }
       if (pingLost.value >= 3 && code && token) {
+        baoSuCo('mat_nhip_noi_lai');
         batNoiLai();
         connect(code, myName, token);
         return;
@@ -586,9 +609,10 @@ export function useOnlineRoom() {
       if (!stuckSince) stuckSince = luc;
       else if (luc - stuckSince >= STUCK_MS) {
         stuckSince = 0;
+        baoSuCo('ban_dung');
         // Xin lại trạng thái trên socket đang mở TRƯỚC. Chỉ khi cả cái đó cũng
         // không đi được mới mở lại kết nối — thang rẻ trước, đắt sau.
-        if (!send({ t: 'resync' })) reconnectNow(t('or.banKhongPhanHoi'));
+        if (!send({ t: 'resync' })) { baoSuCo('ban_dung_noi_lai'); reconnectNow(t('or.banKhongPhanHoi')); }
       }
     } else stuckSince = 0;
 
@@ -796,10 +820,11 @@ export function useOnlineRoom() {
       const seq = seqCuaO.get(index);
       if (seq === undefined) return unpend(index);
       if (lan < 2 && send({ t: 'flip', index, seq })) return canhAck(index, lan + 1);
-      if (lan < 3 && send({ t: 'resync' })) return canhAck(index, lan + 1);
+      if (lan < 3 && send({ t: 'resync' })) { baoSuCo('ack_cham'); return canhAck(index, lan + 1); }
       // Hết đường rẻ: thả ô ra (ô treo ở 90 độ trông như MẤT thẻ) rồi nối lại.
       const serverConNoi = viewCount > viewsLucBam;
       unpend(index);
+      baoSuCo('ack_hong');
       if (!serverConNoi) reconnectNow(t('or.mangCham'));
     }, FLIP_ACK_MS));
   }
@@ -943,6 +968,9 @@ export function useOnlineRoom() {
     /* KHAI HIỂU ĐỘI THEO SỐ (`dd=2`, 15.11.2026; `dd=1` là bản 1.7 với đội A/B). Có người chung
        đội mà ai đó trong phòng không khai mức này thì server không mở ván, nhắc họ cập nhật. */
     params.set('dd', '2');
+    /* Chỉ để LOG server (`[ws]` ở node-server): bản web/OTA + nền tảng — biết lỗi rơi vào bản nào, máy nào. */
+    params.set('v', __OTA_ID__);
+    params.set('nen', nenApp);
     ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
     doNhip.noiLai++;
     doNhip.socket = 'đang nối'; // i18n-bo-qua — bảng đo nội bộ (DoNhip), không phải chữ cho người chơi
@@ -1667,6 +1695,7 @@ export function useOnlineRoom() {
       clearTimeout(doThucTimer);
       doThucTimer = setTimeout(() => {
         if (tinCuoiLuc !== truoc || !code || !token || phase.value === 'idle') return;
+        baoSuCo('thuc_noi_lai');
         batNoiLai();
         connect(code, myName, token);
       }, 1500);

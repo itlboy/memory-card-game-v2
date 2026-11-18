@@ -147,8 +147,26 @@ async function moKetNoi(code: string, url: URL, raw: WsSocket): Promise<void> {
     return;
   }
 
+  /*
+   * LOG KẾT NỐI (18.11.2026, chủ dự án: ván 3 người "hay lỗi mạng, treo" mà log trống trơn). Một dòng
+   * lúc vào, một dòng lúc ra (mã đóng + bao lâu + client im bao lâu trước khi đứt), một dòng mỗi lần
+   * client xin `resync` (= client thấy nghẽn: mất nhịp tim / nước đi không được xác nhận / bàn đứng im —
+   * GA `online_su_co` ghi phía client). `cid` cắt 6 ký tự: đủ ghép các dòng của cùng một máy, không
+   * lộ định danh. KHÔNG ghi tên người chơi. Đọc: kubectl -n thebai logs deploy/thebai-server | grep '[ws]'.
+   * Mã đóng: 1000/1001 bình thường · 1005 không mã · 1006 đứt đột ngột (mạng/hệ điều hành cắt) ·
+   * 4000 bị socket mới thay · 4001 tự rời · 4002 chủ huỷ · 4003 bị mời ra.
+   */
+  const cid = (url.searchParams.get('cid') ?? '?').slice(0, 6);
+  const nhan = `${code} ${cid} ${url.searchParams.get('nen') ?? '?'} ${url.searchParams.get('v') ?? '?'}`;
+  const vaoLuc = Date.now();
+  let tinCuoi = vaoLuc;
+  let soResync = 0;
+  console.log(`[ws] vào ${nhan}${url.searchParams.get('token') ? ' (vào lại)' : ''} · ${box.sockets.size} socket`);
+
   raw.on('message', (data) => {
     const text = String(data);
+    tinCuoi = Date.now();
+    if (text.includes('"resync"')) { soResync++; console.log(`[ws] resync ${nhan} (lần ${soResync})`); }
     // Tự đáp `ping` như setWebSocketAutoResponse của CF: KHÔNG đưa vào
     // webSocketMessage, không thì mỗi nhịp tim là một lần chạy luật phòng.
     if (box.autoResponse && text === box.autoResponse.request) {
@@ -160,10 +178,12 @@ async function moKetNoi(code: string, url: URL, raw: WsSocket): Promise<void> {
   });
   raw.on('close', (code2, reason) => {
     box.sockets.delete(ws);
+    const giay = (ms: number): string => (ms / 1000).toFixed(1);
+    console.log(`[ws] ra ${nhan} mã ${code2}${String(reason) ? ` "${String(reason).slice(0, 40)}"` : ''} sau ${giay(Date.now() - vaoLuc)}s · client im ${giay(Date.now() - tinCuoi)}s · resync ${soResync} · còn ${box.sockets.size} socket`);
     void room.webSocketClose(ws as never, code2, String(reason), true)
       .catch((e) => console.error('[room] lỗi khi đóng:', e));
   });
-  raw.on('error', () => { box.sockets.delete(ws); });
+  raw.on('error', (e) => { box.sockets.delete(ws); console.log(`[ws] lỗi ${nhan}: ${(e as Error).message}`); });
 }
 
 /** `Request` tối giản cho room.fetch: nó chỉ đọc `url` và header Upgrade. */
