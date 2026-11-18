@@ -161,20 +161,24 @@ export function botThinkMs(
   const { cardsLeft = Infinity, closing = false } = opts;
   // Còn đúng một cặp thì không có gì để nghĩ — hai lá đó chắc chắn khớp nhau.
   // Ngồi "suy nghĩ" 3 giây trước một nước không thể sai là giả tạo lộ liễu.
-  if (cardsLeft <= 2) return LAST_PAIR_MS;
+  // Vẫn có chút lệch mỗi lần — một con số cố định lặp lại là nghe ra máy.
+  if (cardsLeft <= 2) return Math.round(LAST_PAIR_MIN_MS + rng.next() * (LAST_PAIR_MAX_MS - LAST_PAIR_MIN_MS));
   // Lá THỨ HAI của lượt: đã cân nhắc ở lá đầu rồi, lá này chỉ là hệ quả. Người
   // thật cũng vậy — đắn đo chỗ mở đầu, rồi lật lá kia rất nhanh. Nghĩ lâu cả
   // hai lá làm một lượt của bot dài tới 6 giây, người chơi ngồi không.
-  if (closing) return Math.round(FOLLOW_MIN_MS + rng.next() * (FOLLOW_MAX_MS - FOLLOW_MIN_MS));
+  // Trung bình HAI lần rút → dồn về giữa khoảng (~1,1 giây), thỉnh thoảng nhanh/chậm hẳn — giống
+  // tay người hơn rải đều. 18.11.2026 chủ dự án: "2 lần đi của bot nhanh quá" (bản cũ 0,25–0,8 giây).
+  if (closing) return Math.round(FOLLOW_MIN_MS + ((rng.next() + rng.next()) / 2) * (FOLLOW_MAX_MS - FOLLOW_MIN_MS));
   const { thinkMinMs, thinkMaxMs } = BOT_SPECS[level];
   return Math.round(thinkMinMs + rng.next() * (thinkMaxMs - thinkMinMs));
 }
 
 /** Nước cuối: chỉ đủ để mắt kịp thấy con trỏ chuyển, không phải để "nghĩ". */
-export const LAST_PAIR_MS = 300;
-/** Lá thứ hai trong cùng một lượt. */
-export const FOLLOW_MIN_MS = 250;
-export const FOLLOW_MAX_MS = 800;
+export const LAST_PAIR_MIN_MS = 450;
+export const LAST_PAIR_MAX_MS = 900;
+/** Lá thứ hai trong cùng một lượt — đủ để người xem kịp nhìn lá đầu rồi mới thấy lá sau. */
+export const FOLLOW_MIN_MS = 700;
+export const FOLLOW_MAX_MS = 1600;
 
 /** Một lá trong ký ức: biểu tượng và nước đi lúc nhìn thấy. */
 export interface BotSeen { symbol: string; at: number }
