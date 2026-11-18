@@ -253,7 +253,6 @@ const vi = {
   'kq.daThoat': '🚪 Đã thoát',
   'kq.capChuoi': '{cap} cặp · chuỗi {chuoi}',
   'kq.diemAria': '{n} điểm',
-  'kq.tongDiem': 'Tổng điểm',
   'kq.thuongGio': 'Thưởng thời gian',
   'kq.soLuot': 'Số lượt',
   'kq.thoiGian': 'Thời gian',

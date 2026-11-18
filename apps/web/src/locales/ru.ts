@@ -260,7 +260,6 @@ const ru: TuDien = {
   'kq.daThoat': '🚪 Не в игре',
   'kq.capChuoi': (p) => `${p.cap} ${pl(p.cap, 'пара', 'пары', 'пар')} · лучшая серия ${p.chuoi}`,
   'kq.diemAria': (p) => `${p.n} ${pl(p.n, 'очко', 'очка', 'очков')}`,
-  'kq.tongDiem': 'Всего очков',
   'kq.thuongGio': 'Бонус за время',
   'kq.soLuot': 'Ходы',
   'kq.thoiGian': 'Время',

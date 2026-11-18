@@ -249,7 +249,6 @@ const de: TuDien = {
   'kq.daThoat': '🚪 Gegangen',
   'kq.capChuoi': '{cap} Paare · beste Serie {chuoi}',
   'kq.diemAria': '{n} Punkte',
-  'kq.tongDiem': 'Gesamtpunkte',
   'kq.thuongGio': 'Zeitbonus',
   'kq.soLuot': 'Züge',
   'kq.thoiGian': 'Zeit',

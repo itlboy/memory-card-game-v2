@@ -168,7 +168,6 @@
 /* ---------- bảng kết quả ---------- */
 :root[data-skin='sao'] .overlay .panel { background: var(--panel); }
 :root[data-skin='sao'] .score-big { background: var(--panel-soft); }
-:root[data-skin='sao'] .total-row { border: 1.5px dashed var(--line); }
 :root[data-skin='sao'] .achievements li { background: var(--vang); color: #1a1c45; }
 :root[data-skin='sao'] .goi-y { background: var(--panel-soft); }
 :root[data-skin='sao'] { --vien-nut: 0; --vien-vien: 0; }

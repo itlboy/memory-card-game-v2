@@ -880,7 +880,7 @@ describe('bảng kết quả nhiều người', () => {
   };
   const base = {
     summary, isRecord: false, showStars: false, multiplayer: true,
-    freshAchievements: [], hasNext: false, totalBefore: 0, totalAfter: 0
+    freshAchievements: [], hasNext: false
   };
 
   it('hiện đủ tên, điểm và dòng "cặp · chuỗi" của từng người', async () => {

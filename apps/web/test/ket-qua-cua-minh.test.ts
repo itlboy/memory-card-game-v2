@@ -20,7 +20,7 @@ const thuaMay: Summary = {
 const dung = (props: Record<string, unknown>) => mount(ResultDialog, {
   props: {
     summary: thuaMay, isRecord: false, showStars: true, multiplayer: true, freshAchievements: [],
-    totalBefore: 0, totalAfter: 0, hasNext: true, levelId: 3, ...props
+    hasNext: true, levelId: 3, ...props
   }
 });
 

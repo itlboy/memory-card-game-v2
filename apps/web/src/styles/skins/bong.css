@@ -160,7 +160,6 @@
 /* ---------- bảng kết quả ---------- */
 :root[data-skin='bong'] .overlay .panel { background: #fff; }
 :root[data-skin='bong'] .score-big { background: var(--panel-soft); }
-:root[data-skin='bong'] .total-row { border: 2px dashed #f6b8d8; }
 :root[data-skin='bong'] .achievements li { background: #ffd1e8; color: var(--ink); }
 :root[data-skin='bong'] .goi-y { background: var(--panel-soft); }
 :root[data-skin='bong'] { --vien-nut: 0; --vien-vien: 0; }

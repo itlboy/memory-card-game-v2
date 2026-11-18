@@ -247,7 +247,6 @@ const th: TuDien = {
   'kq.daThoat': '🚪 ออกแล้ว',
   'kq.capChuoi': '{cap} คู่ · คอมโบสูงสุด {chuoi}',
   'kq.diemAria': '{n} แต้ม',
-  'kq.tongDiem': 'คะแนนรวม',
   'kq.thuongGio': 'โบนัสเวลา',
   'kq.soLuot': 'จำนวนครั้ง',
   'kq.thoiGian': 'เวลา',

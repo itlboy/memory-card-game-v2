@@ -247,7 +247,6 @@ const es: TuDien = {
   'kq.daThoat': '🚪 Se fue',
   'kq.capChuoi': '{cap} pares · mejor racha {chuoi}',
   'kq.diemAria': '{n} puntos',
-  'kq.tongDiem': 'Puntos totales',
   'kq.thuongGio': 'Bono de tiempo',
   'kq.soLuot': 'Jugadas',
   'kq.thoiGian': 'Tiempo',

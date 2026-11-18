@@ -177,8 +177,6 @@ watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan], () => {
 const joinCode = ref('');
 const levelId = ref<number | null>(null);
 const isRecord = ref(false);
-/** Tổng điểm TRƯỚC ván — để màn kết quả chạy số từ đây lên tổng mới. */
-const totalBefore = ref(0);
 /** Số ván THẮNG của từng người trong loạt đang chơi (nhiều người cùng máy).
  *  Khoá theo danh sách tên: đổi người hoặc đổi số người là loạt mới, tự về 0 —
  *  không thì tỷ số của nhóm cũ dính sang nhóm mới. */
@@ -892,7 +890,6 @@ watch(session.summary, (s) => {
       seriesWins.value = { ...seriesWins.value, [champ.name]: (seriesWins.value[champ.name] ?? 0) + 1 };
     }
   }
-  totalBefore.value = totalScore.value;
   totalScore.value = store.totalScore();
   progressRev.value++;
   // Bảng kết quả vào khi phần chính của cảnh đã chạy xong. Đặt SAU khi biết kỷ
@@ -1119,8 +1116,6 @@ const hasNext = computed(() => {
     :fresh-achievements="freshAchievements"
     :goi-y="goiYVan"
     @chinh-phuc="chinhPhuc"
-    :total-before="totalBefore"
-    :total-after="totalScore"
     :series-wins="seriesWins"
     :so-van="soVanLoat"
     :nguoi-choi="session.game.value?.players"

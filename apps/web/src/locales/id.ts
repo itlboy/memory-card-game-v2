@@ -249,7 +249,6 @@ const id: TuDien = {
   'kq.daThoat': '🚪 Keluar',
   'kq.capChuoi': '{cap} pasang · beruntun terbaik {chuoi}',
   'kq.diemAria': '{n} poin',
-  'kq.tongDiem': 'Total skor',
   'kq.thuongGio': 'Bonus waktu',
   'kq.soLuot': 'Langkah',
   'kq.thoiGian': 'Waktu',

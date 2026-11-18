@@ -248,7 +248,6 @@ const en: TuDien = {
   'kq.daThoat': '🚪 Left',
   'kq.capChuoi': '{cap} pairs · best streak {chuoi}',
   'kq.diemAria': '{n} points',
-  'kq.tongDiem': 'Total score',
   'kq.thuongGio': 'Time bonus',
   'kq.soLuot': 'Moves',
   'kq.thoiGian': 'Time',

@@ -246,7 +246,6 @@ const ja: TuDien = {
   'kq.daThoat': '🚪 退出',
   'kq.capChuoi': '{cap}ペア・最大{chuoi}連続',
   'kq.diemAria': '{n}ポイント',
-  'kq.tongDiem': '合計スコア',
   'kq.thuongGio': 'タイムボーナス',
   'kq.soLuot': '手数',
   'kq.thoiGian': 'タイム',

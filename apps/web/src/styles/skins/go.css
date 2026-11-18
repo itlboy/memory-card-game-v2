@@ -152,7 +152,6 @@
 /* ---------- bảng kết quả ---------- */
 :root[data-skin='go'] .overlay .panel { background: var(--panel); }
 :root[data-skin='go'] .score-big { background: #eadcbc; }
-:root[data-skin='go'] .total-row { border: 1.5px dashed #d8c8a6; }
 :root[data-skin='go'] .achievements li { background: #c9952b; color: var(--ink); }
 :root[data-skin='go'] .goi-y { background: #eadcbc; }
 

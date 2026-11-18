@@ -246,7 +246,6 @@ const ko: TuDien = {
   'kq.daThoat': '🚪 나감',
   'kq.capChuoi': '{cap}쌍 · 최고 {chuoi}연속',
   'kq.diemAria': '{n}점',
-  'kq.tongDiem': '총점',
   'kq.thuongGio': '시간 보너스',
   'kq.soLuot': '시도 횟수',
   'kq.thoiGian': '시간',
