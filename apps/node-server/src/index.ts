@@ -90,9 +90,17 @@ const soPhongGoc = soPhongTrongRam();
  * không phải phòng mới.
  */
 let batBao = false;
+/**
+ * PHÒNG THỬ (18.11.2026): tạo bằng `POST /api/rooms?thu=1` (tools/phong-thu.mjs). KHÔNG lên danh sách
+ * công khai (người thật không lỡ vào) và KHÔNG bắn thông báo "có phòng mới"; log `[ws]` gắn "(thử)".
+ * Chỉ nhớ trong RAM — server khởi động lại thì phòng thử còn sống sẽ thành phòng thường, nhưng
+ * `batBao` tắt lúc dựng lại nên vẫn không báo; phòng thử sống vài phút nên chuyện đó hầu như không gặp.
+ */
+const phongThu = new Set<string>();
 const soPhong: typeof soPhongGoc = {
   ...soPhongGoc,
   async khai(phong) {
+    if (phongThu.has(phong.code)) return;
     await soPhongGoc.khai(phong);
     if (batBao && thongBao && phong.nguoi < phong.toiDa) {
       thongBao.phongMoi(phong, async (code) =>
@@ -112,7 +120,7 @@ function layPhong(code: string, banDau?: Record<string, unknown>): Phong {
   let p: Phong;
   const box = taoBoiCanh(
     () => p.room.alarm(),
-    () => { phongs.delete(code); },
+    () => { phongs.delete(code); phongThu.delete(code); },
     kho ? {
       luu: (duLieu, alarmLuc) => kho!.ghi(code, duLieu, alarmLuc),
       dong: (lyDo) => kho!.dong(code, lyDo)
@@ -157,7 +165,7 @@ async function moKetNoi(code: string, url: URL, raw: WsSocket): Promise<void> {
    * 4000 bị socket mới thay · 4001 tự rời · 4002 chủ huỷ · 4003 bị mời ra.
    */
   const cid = (url.searchParams.get('cid') ?? '?').slice(0, 6);
-  const nhan = `${code} ${cid} ${url.searchParams.get('nen') ?? '?'} ${url.searchParams.get('v') ?? '?'}`;
+  const nhan = `${code}${phongThu.has(code) ? '(thử)' : ''} ${cid} ${url.searchParams.get('nen') ?? '?'} ${url.searchParams.get('v') ?? '?'}`;
   const vaoLuc = Date.now();
   let tinCuoi = vaoLuc;
   let soResync = 0;
@@ -315,6 +323,7 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   // Tạo phòng (ON-01)
   if (url.pathname === '/api/rooms' && req.method === 'POST') {
     const code = makeCode();
+    if (url.searchParams.get('thu') === '1') phongThu.add(code);
     const tb = url.searchParams.get('tb');
     if (tb && thongBao) thongBao.ghiChuPhong(code, tb);
     void layPhong(code).room.open().then(() => json(res, { code }));

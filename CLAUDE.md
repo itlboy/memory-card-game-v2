@@ -369,7 +369,9 @@
   mat_nhip_noi_lai|ack_cham|ack_hong|ban_dung|ban_dung_noi_lai|thuc_noi_lai, giai_doan, so_nguoi, ma_phong} —
   lối TỰ CỨU của client (trước im lặng: người chơi thấy treo, GA không thấy), ≤1 lần/loại/20 giây; ghép với log
   server `[ws] vào|ra|resync|lỗi <mã phòng> <cid 6 ký tự> <nền> <bản>` (node-server index.ts, mã đóng + client
-  im bao lâu; KHÔNG ghi tên) — `kubectl -n thebai logs deploy/thebai-server | grep '\[ws\]'` · `dang_nhap` {cach, ket_qua: ok|huy|loi,
+  im bao lâu; KHÔNG ghi tên) — `kubectl -n thebai logs deploy/thebai-server | grep '\[ws\]'`. Cần phòng
+  để soát log: `node tools/phong-thu.mjs [server] [số người]` — tạo bằng `POST /api/rooms?thu=1`: KHÔNG lên
+  danh sách công khai, KHÔNG bắn thông báo; ĐỪNG thử bằng phòng thường (máy thật nhận push) · `dang_nhap` {cach, ket_qua: ok|huy|loi,
   moi} (taikhoan.ts `baoDangNhap`; `moi` = hồ sơ server còn trắng) · `chia_se` {kenh: luu_anh|anh|chu|copy,
   ket_qua} (anh-ket-qua.ts — mở hộp ≠ chia sẻ thật) · `cai_app_ket_qua` {dong_y|tu_choi|da_cai} · `cap_nhat_ota`
   {ket_qua: ok|loi|cu_qua, tu, den, giay}. Link mời mang `utm_source=moi_ban`, ảnh chia sẻ
