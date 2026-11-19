@@ -749,7 +749,7 @@ const th: TuDien = {
   'on.nhac.nhacTatCa': 'เตือนทุกคน',
   'on.nhac.doiThem': 'รอต่อ',
   'on.nhac.ghi': 'มือถือของอีกฝ่ายจะสั่นและแสดงการเตือน เตือนได้ 1 ครั้งทุก 10 วินาที',
-  'on.tt.matKetNoi': '📡 หลุดการเชื่อมต่อ',
+  'on.tt.matKetNoi': 'หลุดการเชื่อมต่อ',
   'on.tt.chuPhong': 'เจ้าของห้อง',
   'on.tt.san': 'พร้อม',
   'on.tt.banSan': 'คุณพร้อมแล้ว',

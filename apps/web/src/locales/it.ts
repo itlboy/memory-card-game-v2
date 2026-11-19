@@ -752,7 +752,7 @@ const it: TuDien = {
   'on.nhac.nhacTatCa': 'Avvisa tutti',
   'on.nhac.doiThem': 'Aspetta ancora',
   'on.nhac.ghi': 'Il suo telefono vibrerà e mostrerà un promemoria. Puoi avvisare una volta ogni 10 secondi.',
-  'on.tt.matKetNoi': '📡 Disconnesso',
+  'on.tt.matKetNoi': 'Disconnesso',
   'on.tt.chuPhong': 'Host',
   'on.tt.san': 'Pronto',
   'on.tt.banSan': 'Sei pronto',

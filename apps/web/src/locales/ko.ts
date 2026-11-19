@@ -748,7 +748,7 @@ const ko: TuDien = {
   'on.nhac.nhacTatCa': '모두 알림',
   'on.nhac.doiThem': '더 기다리기',
   'on.nhac.ghi': '상대 폰이 진동하며 알림이 떠요. 10초에 한 번 알릴 수 있어요.',
-  'on.tt.matKetNoi': '📡 연결 끊김',
+  'on.tt.matKetNoi': '연결 끊김',
   'on.tt.chuPhong': '방장',
   'on.tt.san': '준비 완료',
   'on.tt.banSan': '준비 완료',

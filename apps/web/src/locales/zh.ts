@@ -748,7 +748,7 @@ const zh: TuDien = {
   'on.nhac.nhacTatCa': '提醒所有人',
   'on.nhac.doiThem': '再等等',
   'on.nhac.ghi': '对方手机会震动并显示提醒。每 10 秒可提醒一次。',
-  'on.tt.matKetNoi': '📡 已断线',
+  'on.tt.matKetNoi': '已断线',
   'on.tt.chuPhong': '房主',
   'on.tt.san': '已准备',
   'on.tt.banSan': '你已准备',

@@ -751,7 +751,7 @@ const tr: TuDien = {
   'on.nhac.nhacTatCa': 'Herkesi dürt',
   'on.nhac.doiThem': 'Biraz daha bekle',
   'on.nhac.ghi': 'Telefonu titreyip bir hatırlatma gösterecek. 10 saniyede bir dürtebilirsin.',
-  'on.tt.matKetNoi': '📡 Bağlantı yok',
+  'on.tt.matKetNoi': 'Bağlantı yok',
   'on.tt.chuPhong': 'Oda sahibi',
   'on.tt.san': 'Hazır',
   'on.tt.banSan': 'Hazırsın',

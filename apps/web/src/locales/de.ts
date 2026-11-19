@@ -751,7 +751,7 @@ const de: TuDien = {
   'on.nhac.nhacTatCa': 'Alle anstupsen',
   'on.nhac.doiThem': 'Weiter warten',
   'on.nhac.ghi': 'Das Handy vibriert und zeigt eine Erinnerung. Du kannst alle 10 Sekunden einmal anstupsen.',
-  'on.tt.matKetNoi': '📡 Getrennt',
+  'on.tt.matKetNoi': 'Getrennt',
   'on.tt.chuPhong': 'Host',
   'on.tt.san': 'Bereit',
   'on.tt.banSan': 'Du bist bereit',
