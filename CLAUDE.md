@@ -1477,19 +1477,18 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
   ghim người ngay TRÊN + mình, khách chỉ còn nút "Đăng nhập để giữ hạng" + link "Đổi tên · Ẩn tôi". Đừng thêm
   câu giải thích lại — dòng mình tô vàng là đủ.
 - **Viên xu có hạng** (`lib/hang-xu.ts`, mockup https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz): "🏆 #137"
-  cạnh số xu (chưa hạng → chỉ cúp). Hỏi hạng lúc mở app + 2,5 giây sau khi xu tăng; lên hạng → nháy + vòng
-  sáng + lời nhắc "Lên hạng #129 (↑8)". TRONG VÁN (`dungYen`) thì giữ lại, ra ngoài mới diễn (bảng kết quả
-  che thanh trên). Mẹo "bấm vào đây…" một lần đời máy (`mm.meoXu`). Lời nhắc căn GIỮA theo viên xu —
+  cạnh số xu (chưa hạng → chỉ cúp). ÍT GỌI (chủ dự án): hỏi hạng MỘT lần lúc khởi động app (`hoiLanDau`), một
+  lần sau khi điểm MÌNH tăng (đợi ra khỏi ván), và khi mở bảng — KHÔNG theo giờ / khi quay lại từ nền. Lên hạng →
+  nháy + vòng sáng + lời nhắc "Lên hạng #129 (↑8)" — chỉ diễn khi ngoài ván và bảng xếp hạng đã đóng. Mẹo "bấm vào đây…" một lần đời máy (`mm.meoXu`). Lời nhắc căn GIỮA theo viên xu —
   canh phải là tràn mép trái màn 390px.
-- **Mở bảng phải TỨC THÌ** (chủ dự án: "trải nghiệm loading chưa tốt"): `bxhLanTruoc()` — bảng lần hỏi trước
-  (localStorage `mm.bxh`, gắn người xem) hiện ngay, số mới thay vào sau; lỗi mạng lúc đã có bảng cũ thì im.
+- **Mở bảng phải TỨC THÌ** (chủ dự án: "trải nghiệm loading chưa tốt… hiện bảng mờ là được"): `bxhLanTruoc()` — bảng
+  lần hỏi trước (localStorage `mm.bxh`, gắn người xem) hiện ngay, MỜ (`.mo`) tới khi số mới về; lỗi mạng lúc đã có bảng cũ thì im.
   Lần đầu chưa có gì: dòng xám nhấp nháy (`.xuong`), KHÔNG chữ "Đang tải…". `guiKhach` bỏ qua khi thân
   y hệt lần vừa gửi — trước đó mở bảng luôn tốn HAI vòng mạng.
 - **Server: truy vấn TỪNG BẢNG + cache top 20 trong RAM 30 giây** (`BXH_CACHE_MS`, `ghepTop`). ĐỪNG quay lại
   `users UNION ALL khach` rồi sắp/đếm: EXPLAIN production ra `type ALL` + filesort cả hai bảng (index điểm
   không dùng được qua bảng gộp). Dòng của NGƯỜI HỎI luôn ghép lại theo điểm mới (không thấy mình cũ/hai dòng).
-  Câu đếm hạng `total_score > ?` đi range trên `idx_*_score`. App: mở app chỉ hỏi hạng nếu lần trước >10 phút
-  (`vuaHoi`); sau ván / mở bảng vẫn hỏi. SQL tài khoản/bảng KHÔNG được CI chạy (docker.yml có MySQL nhưng
+  Câu đếm hạng `total_score > ?` đi range trên `idx_*_score`. SQL tài khoản/bảng KHÔNG được CI chạy (docker.yml có MySQL nhưng
   thiếu GOOGLE_CLIENT_ID → "tài khoản: TẮT"): đổi SQL thì chạy `tools/smoke-taikhoan.mjs` tay với MYSQL_URL, hoặc
   thử trên production bằng mã khách 0 ván (không lên bảng công khai) rồi `/api/khach/xoa`.
 

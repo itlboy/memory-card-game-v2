@@ -936,7 +936,7 @@ const hasNext = computed(() => {
     @danh-hieu="showDanhHieu = true"
     :dung-yen="screen !== 'menu'"
     @set-nhac="datNhac"
-    :account="taiKhoanSan" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
+    :account="taiKhoanSan" :bxh-mo="showBxh" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @set-nen="nen = $event"
     :rung="rungBat" :co-rung="rung.coTheRung()"
     @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"

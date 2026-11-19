@@ -6,6 +6,7 @@ import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
 import { anKhach, bangXepHang, bxhLanTruoc, datTenKhach, me, type BangXh, type DongBxh } from '@/lib/taikhoan';
 import MatBot from './MatBot.vue';
+import { ghiHang } from '@/lib/hang-xu';
 
 /**
  * BẢNG XẾP HẠNG (19.11.2026, mockup duyệt https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy):
@@ -22,6 +23,8 @@ const closeBtn = ref<HTMLButtonElement | null>(null);
 /** Hiện NGAY bảng lần trước (bxhLanTruoc) rồi thay bằng số mới — xem taikhoan.ts. */
 const bang = ref<BangXh | null>(bxhLanTruoc());
 const loi = ref(false);
+/** Đang hỏi số mới: bảng (lần trước) hiện MỜ cho tới khi số mới về — chủ dự án: "hiện bảng mờ là được". */
+const dangTai = ref(false);
 
 const laKhach = computed(() => !me.value);
 const khachAn = ref(!!store.khach(false)?.an);
@@ -33,7 +36,8 @@ const dangLuu = ref(false);
 async function tai(): Promise<void> {
   loi.value = false;
   // Đang có bảng cũ mà mất mạng: giữ bảng cũ, không báo lỗi đè lên
-  try { bang.value = await bangXepHang(); } catch { if (!bang.value) loi.value = true; }
+  dangTai.value = true;
+  try { bang.value = await bangXepHang(); ghiHang(bang.value); } catch { if (!bang.value) loi.value = true; } finally { dangTai.value = false; }
 }
 onMounted(() => { closeBtn.value?.focus(); void tai(); });
 
@@ -71,7 +75,7 @@ async function doiAn(an: boolean): Promise<void> {
            thích quá"): bỏ thẻ vàng "Hạng của bạn trong N người…", bỏ cột "x/y thắng" (còn ở nhãn ẩn), bỏ dòng dưới mình,
            bỏ câu mời đăng nhập + câu dặn tên. Dòng mình tô vàng là đủ biết mình ở đâu. -->
       <div class="body">
-        <ol v-if="bang" class="bxh">
+        <ol v-if="bang" class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai">
           <li v-for="(d, i) in bang.top" :key="i" :class="{ toi: d.toi }">
             <span class="hang" :class="['vang', 'bac', 'dong'][i]">{{ i + 1 }}</span>
             <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /></span>
@@ -88,7 +92,7 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
       </div>
 
-      <div v-if="toi && ghim" class="ghim">
+      <div v-if="toi && ghim" class="ghim" :class="{ mo: dangTai }">
         <span class="cham" aria-hidden="true">···</span>
         <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><b>{{ num(toi.tren.totalScore) }}</b></div>
         <div class="toi-dong"><span class="hang">{{ num(toi.hang) }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><b>{{ num(toi.totalScore) }}</b></div>
@@ -161,6 +165,9 @@ async function doiAn(an: boolean): Promise<void> {
 }
 
 .ghim { margin-top: 2px; display: grid; gap: 4px; }
+/* Bảng lần trước đang chờ số mới: mờ đi, không bấm/đọc nhầm số cũ là số thật */
+.bxh, .ghim { transition: opacity .2s ease; }
+.bxh.mo, .ghim.mo { opacity: .45; }
 .xuong li { min-height: 36px; box-sizing: border-box; }
 .xuong .o { display: block; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--fg) 12%, transparent); animation: nhap 1.1s ease-in-out infinite alternate; }
 .xuong .mat-o { width: 22px; height: 22px; border-radius: 50%; flex: none; }
