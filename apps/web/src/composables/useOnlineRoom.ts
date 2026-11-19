@@ -222,6 +222,7 @@ export function useOnlineRoom() {
   /* ---------- danh sách phòng công khai (ON-10) ---------- */
 
   const phongCongKhai = ref<PublicRoom[]>(dsDaTai ?? []);
+  const nhacTu = ref<{ ten: string; so: number } | null>(null);
   /** Đang tải danh sách LẦN ĐẦU TRONG ĐỜI APP — màn dùng để vẽ skeleton. */
   const dangTaiPhong = ref(false);
   /** Lần làm mới gần nhất thất bại? Danh sách trống vì lỗi ≠ trống vì không có
@@ -245,7 +246,8 @@ export function useOnlineRoom() {
      */
     if (dsDaTai === null) dangTaiPhong.value = true;
     try {
-      const res = await fetch(`${SERVER}/api/rooms/public`);
+      // `?v=2` = hiểu `dangChoi` (phòng đang chơi, vào để XEM) — server chỉ trả nó cho ai khai
+      const res = await fetch(`${SERVER}/api/rooms/public?v=2`);
       if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { rooms?: PublicRoom[] };
       const moi = data.rooms ?? [];
@@ -1249,6 +1251,10 @@ export function useOnlineRoom() {
         loiTam = true;
         break;
 
+      case 'nhac':
+        // Chủ phòng nhắc mình bấm Sẵn sàng — OnlineScreen hiện dải báo + rung + nút nhịp sáng
+        nhacTu.value = { ten: msg.from, so: (nhacTu.value?.so ?? 0) + 1 };
+        return;
       case 'pong':
         if (pingSentAt) {
           pingSamples.push(Math.round(performance.now() - pingSentAt));
@@ -1846,6 +1852,12 @@ export function useOnlineRoom() {
     /** Về phòng chờ, giữ nguyên mã phòng. Một người bấm là cả phòng về lobby —
      *  khác 'again' (phải đủ phiếu), nên đây là lối thoát khi đối phương đã đi. */
     veLobby: () => { sfx.select(); send({ t: 'tolobby' }); },
+    /** Chủ phòng NHẮC người chưa sẵn sàng (server giới hạn NHAC_CACH_MS một lần). */
+    nhac: () => { sfx.select(); send({ t: 'nhac' }); },
+    /** Lần gần nhất chủ phòng nhắc MÌNH (`so` tăng mỗi lần để watch bắt được). */
+    nhacTu,
+    /** Tên mình đã dùng để vào phòng — người xem khỏi tự báo "X đang vào xem" cho chính mình. */
+    tenCuaToi: () => myName,
     /** Chủ phòng bật/tắt hiện trong danh sách công khai (ON-10). */
     datCongKhai: (on: boolean) => { sfx.select(); send({ t: 'public', on }); },
     iWantAgain,

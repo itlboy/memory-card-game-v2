@@ -905,17 +905,17 @@ describe('bảng kết quả nhiều người', () => {
     const w = mount(ResultDialog, { props: { ...base, rematchState: { b: 'in' } } });
     const rows = w.findAll('.ranking li');
     expect(rows[1]!.text()).toContain('An');
-    expect(rows[1]!.find('.tag.in').text()).toContain('Chơi tiếp');
+    expect(rows[1]!.find('.tag.in').text()).toContain('Chơi lại');
     // Người chưa bấm KHÔNG gắn nhãn — không thì cả bảng đầy nhãn, đọc không ra ai
     expect(rows[0]!.find('.tag').exists()).toBe(false);
   });
 
-  it('ai đã thoát thì nhãn "Đã thoát" cạnh tên, không lẫn với "Chơi tiếp"', async () => {
+  it('ai đã rời thì nhãn "Đã rời" cạnh tên, không lẫn với "Chơi lại" (chữ thống nhất 19.11.2026)', async () => {
     const { default: ResultDialog } = await import('@/components/ResultDialog.vue');
     const w = mount(ResultDialog, { props: { ...base, rematchState: { a: 'in', b: 'out' } } });
     const rows = w.findAll('.ranking li');
-    expect(rows[0]!.find('.tag.in').text()).toContain('Chơi tiếp');
-    expect(rows[1]!.find('.tag.out').text()).toContain('Đã thoát');
+    expect(rows[0]!.find('.tag.in').text()).toContain('Chơi lại');
+    expect(rows[1]!.find('.tag.out').text()).toContain('Đã rời');
     expect(rows[1]!.find('.tag.in').exists()).toBe(false);
   });
 

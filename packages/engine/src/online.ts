@@ -440,6 +440,9 @@ export function publicEvents(game: MemoryGame, events: GameEvent[]): PublicEvent
 export type ClientMsg =
   | { t: 'config'; config: Partial<RoomConfig> }   // chỉ chủ phòng
   | { t: 'start' }                                  // chỉ chủ phòng
+  /** NHẮC (19.11.2026): chủ phòng ở phòng chờ nhắc những ai CHƯA sẵn sàng. Server giới hạn
+   *  NHAC_CACH_MS một lần; không có "bắt đầu luôn" — ván chỉ mở khi mọi người sẵn sàng. */
+  | { t: 'nhac' }
   /**
    * Lật một ô. `seq` là SỐ THỨ TỰ TĂNG DẦN của riêng người gửi.
    *
@@ -522,7 +525,15 @@ export interface RoomInfo {
   /** Có hiện trong danh sách phòng công khai không (ON-10). Chủ phòng bật/tắt
    *  được ngay ở phòng chờ, nên client phải thấy trạng thái hiện tại. */
   congKhai: boolean;
+  /** NGƯỜI XEM đang mở phòng (19.11.2026) — chip mặt + tên trong hàng trên cùng. Server cũ thiếu = []. */
+  xem?: NguoiXem[];
 }
+
+/** Một người xem: tên tự đặt, mặt thú server gán theo tên (ổn định giữa các lần vào), ảnh Google nếu có. */
+export interface NguoiXem { ten: string; mat: string; anh?: string }
+
+/** Chủ phòng nhắc được bao lâu một lần (ms). */
+export const NHAC_CACH_MS = 10_000;
 
 /**
  * MỘT DÒNG trong danh sách phòng công khai (ON-10).
@@ -548,6 +559,13 @@ export interface PublicRoom {
   the: number;
   /** Mốc tạo phòng, để client sắp phòng mới lên trước. */
   luc: number;
+  /**
+   * ĐANG CHƠI (19.11.2026): phòng đã vào ván vẫn nằm trong sổ để người khác vào XEM. Chỉ trả cho
+   * client khai `?v=2` ở /api/rooms/public — client cũ không biết cờ này sẽ vẽ nó như phòng còn chỗ.
+   */
+  dangChoi?: boolean;
+  /** Tên những người đang chơi (chỉ phòng `dangChoi`) — dòng danh sách ghi "Kiên, Linh". */
+  ten?: string[];
 }
 
 /**
@@ -600,7 +618,9 @@ export type ServerMsg =
   /** `code` để client DỊCH (message là tiếng Việt, chỉ để dự phòng cho client cũ). */
   | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' }
   | { t: 'error'; code: string; message: string; /** tên người liên quan (vd. `doi-client-cu`) — client tự dịch câu */ ten?: string[] }
-  | { t: 'pong' };
+  | { t: 'pong' }
+  /** Chủ phòng nhắc BẠN bấm Sẵn sàng (chỉ gửi tới người chưa sẵn sàng). Client cũ bỏ qua. */
+  | { t: 'nhac'; from: string };
 
 /**
  * ẢNH ĐẠI DIỆN GOOGLE (11.11.2026, mockup duyệt https://claude.ai/artifact/8RyNFCMoTUEE2w8SP5Xybj).

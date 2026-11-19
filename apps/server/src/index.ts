@@ -47,7 +47,9 @@ export default {
      * đặt một cái bẫy cho lần đổi mã phòng tiếp theo.
      */
     if (url.pathname === '/api/rooms/public' && request.method === 'GET') {
-      const rooms = await soPhongTuBinding(env.SO_PHONG_DO).liet();
+      // Phòng ĐANG CHƠI chỉ cho client khai `?v=2` (client cũ vẽ nó như phòng còn chỗ) — PublicRoom.dangChoi
+      const v2 = url.searchParams.get('v') === '2';
+      const rooms = (await soPhongTuBinding(env.SO_PHONG_DO).liet()).filter((r) => v2 || !r.dangChoi);
       return Response.json({ rooms }, { headers: CORS });
     }
 
