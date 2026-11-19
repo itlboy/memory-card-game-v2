@@ -243,14 +243,17 @@ const moChonCK = ref(false);
 
 const suaTen = ref(false);
 const tenMoi = ref('');
-const oTen = ref<HTMLInputElement | null>(null);
+// Ô nằm trong `v-for` nên `ref="oTen"` của Vue 3 là MẢNG, không phải phần tử — từng gây
+// "oTen.value?.select is not a function" (GA `loi_js`, 18–19.11.2026). Dùng function ref.
+let oTen: HTMLInputElement | null = null;
+const ganOTen = (el: unknown): void => { oTen = el instanceof HTMLInputElement ? el : null; };
 
 function moSuaTen(hienTai: string): void {
   tenMoi.value = hienTai;
   suaTen.value = true;
   sfx.select();
   // Chờ ô hiện ra rồi mới chọn hết chữ: mở ra là gõ đè được ngay
-  void nextTick(() => { oTen.value?.select(); });
+  void nextTick(() => { oTen?.select(); });
 }
 
 /** Bỏ dở việc đổi tên, giữ nguyên tên cũ. */
@@ -1293,7 +1296,7 @@ function openCfgWizard(): void {
              không ai đổi được tên người khác. -->
         <template v-if="p.id === o.myId.value && suaTen">
           <input
-            ref="oTen" v-model="tenMoi" class="sua-ten" maxlength="16"
+            :ref="ganOTen" v-model="tenMoi" class="sua-ten" maxlength="16"
             :aria-label="t('on.tenBan')"
             @keydown.enter="luuTen()" @keydown.esc="huySuaTen()"
           >
