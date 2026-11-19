@@ -10,14 +10,13 @@
  * (ở chip mình) — biết là đã gửi đi.
  *
  * NEO THEO MÀN, tìm theo thứ tự:
- *  1. BẢNG KẾT QUẢ đang mở (`[data-kq-for]`): bên phải tên ở dòng của người đó, đuôi chỉ trái.
- *     Bảng phủ kín màn chơi, neo vào chip trong ván là mọc từ chỗ bị che.
- *  2. PHÒNG CHỜ (`.lobby-list [data-chip-for]`): ngay sau tên, đuôi chỉ trái — không che chữ
- *     "sẵn sàng" / nút mời ra ở mép phải.
- *  3. TRONG VÁN (`[data-chip-for]`: `.pchip`, `.turn-chip`, `.mini`): TRÊN chip, đuôi chỉ
- *     xuống tên — chủ dự án: "không đè lên bàn chơi". Chạm nút ← / đồng hồ thì vẫn bấm xuyên
- *     (pointer-events: none).
- *  4. Không thấy ai (khán giả, người vừa rời): giữa mép trên, kèm tên người gửi.
+ *  1. BẢNG KẾT QUẢ đang mở (`[data-kq-for]`): bảng phủ kín màn chơi, neo vào chip trong ván là
+ *     mọc từ chỗ bị che.
+ *  2. PHÒNG CHỜ (`.lobby-list [data-chip-for]`) và TRONG VÁN (`.pchip`, `.turn-chip`, `.mini`,
+ *     dải đội `.m`). Trong ván: TRÊN chip — chủ dự án: "không đè lên bàn chơi". Chạm nút ← /
+ *     đồng hồ thì vẫn bấm xuyên (pointer-events: none).
+ *  Chỗ nào cũng vậy: bong bóng nằm TRÊN, đuôi chỉ xuống MẶT người gửi (xem timNeo).
+ *  3. Không thấy ai (khán giả, người vừa rời): giữa mép trên, kèm tên người gửi.
  *
  * TELEPORT ra <body> + fixed: `main` cuộn được và chip có `overflow: hidden`, để trong đó là
  * bị cắt. CHỈ MOUNT MỘT LẦN trong cây (OnlineGame trong ván, OnlineScreen ngoài ván).
@@ -29,7 +28,7 @@ import KhungBong from './KhungBong.vue';
 type Bong = { from: string; name: string; emoji: QuickEmoji; key: number };
 const props = defineProps<{ o: { emojiBong: { value: Bong[] } } }>();
 
-type Neo = { kieu: 'tren' | 'phai'; x: number; y: number; nho?: boolean; vt?: number } | null;
+type Neo = { x: number; y: number; nho?: boolean; vt: number } | null;
 const neo = ref<Record<string, Neo>>({});
 
 const thay = (el: Element | null | undefined): DOMRect | null => {
@@ -37,58 +36,34 @@ const thay = (el: Element | null | undefined): DOMRect | null => {
   return r && r.width > 0 && r.height > 0 ? r : null;
 };
 
-/** Bề rộng bong bóng nhỏ (dòng bảng kết quả / phòng chờ): emoji 28px + đệm. */
-const RONG_NHO = 64;
-
-/**
- * Dòng (kết quả / phòng chờ): bong bóng ngay SAU TÊN nếu từ đó tới thứ đầu tiên ở mép phải
- * (điểm, "sẵn sàng", nút mời ra) còn đủ RONG_NHO; không đủ (tên dài) thì nằm TRÊN tên —
- * không bao giờ che chữ của dòng đó.
- */
-function neoDong(dong: Element, rd: DOMRect, ten: DOMRect): Neo {
-  let canPhai = rd.right - 10;
-  for (const el of Array.from(dong.querySelectorAll(':scope > *'))) {
-    const r = thay(el);
-    if (r && r.left > ten.right + 2 && r.top < rd.top + rd.height / 2 + 4) canPhai = Math.min(canPhai, r.left - 8);
-  }
-  if (ten.right + 10 + RONG_NHO <= canPhai) return { kieu: 'phai', x: ten.right + 10, y: ten.top + ten.height / 2 };
-  return { kieu: 'tren', x: Math.min(Math.max(ten.left - 6, 8), window.innerWidth - 118), y: ten.top - 4 };
+/** Mặt người gửi trong ô neo: `.avatar` (chip trong ván, phòng chờ), `.mat` / `.mat-ct` (bảng kết quả).
+ *  Ô CHÍNH LÀ cái mặt (thành viên đội ở bảng kết quả `.mat`, dải đội `.m`) thì lấy chính nó. */
+function matCua(o: Element): DOMRect | null {
+  if (o.matches('.avatar, .mat, .m')) return thay(o);
+  return thay(o.querySelector('.avatar, .mat, .mat-ct'));
 }
 
+/**
+ * MỌI CHỖ ĐỀU TRỎ VÀO AVATAR (19.11.2026, chủ dự án: "bong bóng chat trỏ vào avatar thay vì tên" — rồi
+ * "ở một số chỗ vẫn chưa trỏ bên trên avatar"): trong ván, phòng chờ, bảng kết quả — bong bóng nằm TRÊN,
+ * đuôi chỉ xuống tâm mặt. Trước đó phòng chờ / bảng kết quả đặt bong bóng sau tên, đuôi chỉ sang trái.
+ * Kẹp bong bóng vào màn hình rồi dời CHÂN ĐUÔI (`vt`) cho nó vẫn đúng tâm mặt.
+ * Bảng kết quả đang mở thì neo vào đó trước: nó phủ kín màn chơi, chip trong ván bị che.
+ */
 function timNeo(id: string): Neo {
   const k = CSS.escape(id);
-  // 1. Bảng kết quả — dòng có tên (`.ten-kq`) và điểm (`b`) ở mép phải
-  const dong = document.querySelector(`[data-kq-for="${k}"]`);
-  const rd = thay(dong);
-  if (rd) {
-    // Tên dài XUỐNG DÒNG: lấy DÒNG CUỐI (getClientRects), không lấy cả khối — khối gộp hai dòng
-    // thì mép phải là mép dòng dài nhất, bong bóng đè lên chữ dòng trên.
-    const dongTen = Array.from(dong!.querySelector('.ten-kq')?.getClientRects() ?? []).filter((r) => r.width > 0);
-    let ten = dongTen[dongTen.length - 1] ?? rd;
-    // Nhãn "Chơi tiếp" / "Đã thoát" nằm ngay sau tên: cùng dòng thì tính nó là một phần của tên
-    const nhan = thay(dong!.querySelector('.tag'));
-    if (nhan && nhan.top < ten.bottom - 4 && nhan.bottom > ten.bottom - ten.height / 2) {
-      ten = new DOMRect(ten.left, ten.top, nhan.right - ten.left, ten.height);
-    }
-    const n = neoDong(dong!, rd, ten);
-    return n && { ...n, nho: true };
-  }
-  // 2 + 3. Phòng chờ / trong ván — cùng dấu `data-chip-for`
-  const chip = document.querySelector(`[data-chip-for="${k}"]`);
-  const rc = thay(chip);
-  if (!rc) return null;
-  if (chip!.closest('.lobby-list')) {
-    const sau = thay(chip!.querySelector('.nut-sua')) ?? thay(chip!.querySelector('b')) ?? rc;
-    const n = neoDong(chip!, rc, sau);
-    return n && { ...n, nho: true };
-  }
-  // ĐUÔI CHỈ VÀO AVATAR (19.11.2026, chủ dự án: "bong bóng chat trỏ vào avatar thay vì tên"). Kẹp bong bóng
-  // vào màn hình rồi dời CHÂN ĐUÔI (`vt`) cho nó vẫn đúng tâm avatar.
-  const ten = thay(chip!.querySelector('b'));
-  const av = thay(chip!.querySelector('.avatar'));
-  const tam = av ? av.left + av.width / 2 : ten ? ten.left + 18 : rc.left + rc.width / 2;
-  const x = Math.min(Math.max(tam - 24, 8), window.innerWidth - 118);
-  return { kieu: 'tren', x, y: rc.top - 10, vt: Math.max(16, tam - x) };
+  const kq = document.querySelector(`[data-kq-for="${k}"]`);
+  const o = thay(kq) ? kq! : document.querySelector(`[data-chip-for="${k}"]`);
+  const ro = thay(o);
+  if (!ro) return null;
+  const trongVan = o !== kq && !o!.closest('.lobby-list');
+  const av = matCua(o!);
+  const ten = thay(o!.querySelector('.ten-kq, b'));
+  const tam = av ? av.left + av.width / 2 : ten ? ten.left + 18 : ro.left + ro.width / 2;
+  // Dòng kết quả / phòng chờ: bong bóng nhỏ (~64px), nằm giữa chữ chứ không giữa khoảng trời trống
+  const x = Math.min(Math.max(tam - 24, 8), window.innerWidth - (trongVan ? 118 : 72));
+  const y = trongVan ? ro.top - 10 : (av ?? ten ?? ro).top - 6;
+  return { x, y, nho: !trongVan, vt: Math.max(16, tam - x) };
 }
 
 function doLai(): void {
@@ -126,7 +101,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', doLai));
 
 function kieuCua(b: Bong): Record<string, string> | undefined {
   const n = neo.value[b.from];
-  return n ? { left: `${n.x}px`, top: `${n.y}px` } : undefined;
+  return n ? { left: `${n.x}px`, top: `${n.y}px`, transformOrigin: `${n.vt}px 100%` } : undefined;
 }
 </script>
 
@@ -135,11 +110,11 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
     <TransitionGroup name="bong" tag="div" class="bong-emoji" aria-hidden="true">
       <div
         v-for="(b, i) in props.o.emojiBong.value" :key="b.from"
-        class="bong" :class="[neo[b.from]?.kieu ?? 'giua', { nho: neo[b.from]?.nho }]" :data-from="b.from"
+        class="bong" :class="[neo[b.from] ? 'tren' : 'giua', { nho: neo[b.from]?.nho }]" :data-from="b.from"
         :style="kieuCua(b) ?? { top: `calc(${12 + i * 64}px + env(safe-area-inset-top, 0px))` }"
       >
         <KhungBong
-          :canh="neo[b.from] ? (neo[b.from]!.kieu === 'phai' ? 'trai' : 'duoi') : undefined"
+          :canh="neo[b.from] ? 'duoi' : undefined"
           :day="2.5" :r="neo[b.from]?.nho ? 16 : 18" :vt="neo[b.from]?.vt"
         />
         <!-- :key theo lượt gửi → mỗi lần gửi lại là một nhịp nảy, bong bóng thì đứng yên -->
@@ -166,8 +141,6 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
 }
 /* TRÊN chip: `top` = mép trên chip − 10 → tự kéo lên trọn chiều cao mình */
 .bong.tren { transform: translateY(-100%); transform-origin: 24px 100%; }
-/* BÊN PHẢI một dòng: `top` = tâm dòng → kéo lên nửa chiều cao */
-.bong.phai { transform: translateY(-50%); transform-origin: 0 50%; }
 /* Không có chỗ neo: giữa mép trên, kèm tên */
 .bong.giua { left: 50%; transform: translateX(-50%); transform-origin: 50% 0; }
 

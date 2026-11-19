@@ -20,20 +20,32 @@ type Loi = { from: string; id: QuickSay; name: string; key: number };
 const props = defineProps<{ o: { loiNoi: { value: Loi[] } } }>();
 
 /** Vị trí từng bong bóng theo key; null = không có chip → xếp ở mép trên. */
-const neo = ref<Record<number, { x: number; y: number; vt: number } | null>>({});
+const neo = ref<Record<number, { x: number; y: number; vt: number; tren?: boolean } | null>>({});
+
+const thay = (el: Element | null | undefined): DOMRect | null => {
+  const r = el?.getBoundingClientRect();
+  return r && r.width > 0 && r.height > 0 ? r : null;
+};
 
 watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
-  const m: Record<number, { x: number; y: number; vt: number } | null> = {};
+  const m: Record<number, { x: number; y: number; vt: number; tren?: boolean } | null> = {};
   for (const l of props.o.loiNoi.value) {
-    const chip = document.querySelector(`[data-chip-for="${CSS.escape(l.from)}"]`);
-    const r = chip?.getBoundingClientRect();
-    if (!r || r.height === 0) { m[l.key] = null; continue; }
+    const k = CSS.escape(l.from);
+    // Bảng kết quả đang mở thì neo vào dòng của người nói trong bảng (bảng phủ kín màn chơi — chip trong
+    // ván bị che, trỏ vào đó là trỏ vào khoảng không) và đặt bong bóng TRÊN mặt: dưới mặt là tên + điểm.
+    const kq = document.querySelector(`[data-kq-for="${k}"]`);
+    const trongKq = !!thay(kq);
+    const chip = trongKq ? kq : document.querySelector(`[data-chip-for="${k}"]`);
+    const r = thay(chip);
+    if (!r) { m[l.key] = null; continue; }
     // ĐUÔI CHỈ VÀO AVATAR (19.11.2026, chủ dự án). Bong bóng canh TRÁI từ tâm avatar − 24px (rộng tới ~220px),
     // kẹp vào màn hình rồi dời chân đuôi (`vt`) cho vẫn đúng tâm avatar.
-    const av = chip!.querySelector('.avatar')?.getBoundingClientRect();
-    const tam = av && av.width > 0 ? av.left + av.width / 2 : r.left + r.width / 2;
+    const av = chip!.matches('.avatar, .mat, .m') ? r : thay(chip!.querySelector('.avatar, .mat, .mat-ct'));
+    const tam = av ? av.left + av.width / 2 : r.left + r.width / 2;
     const x = Math.min(Math.max(tam - 24, 8), window.innerWidth - 228);
-    m[l.key] = { x, y: r.bottom + 12, vt: Math.max(16, tam - x) };   // chừa chỗ cho đuôi (12px) mọc lên chip
+    m[l.key] = trongKq
+      ? { x, y: (av ?? r).top - 12, vt: Math.max(16, tam - x), tren: true }
+      : { x, y: r.bottom + 12, vt: Math.max(16, tam - x) };   // chừa chỗ cho đuôi (12px) mọc lên chip
   }
   neo.value = m;
 }, { flush: 'post' });
@@ -44,10 +56,10 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
     <TransitionGroup name="loi" tag="div" class="loi-noi" aria-live="polite">
       <div
         v-for="(l, i) in props.o.loiNoi.value" :key="l.key"
-        class="bong" :class="{ tren: !neo[l.key], neo: !!neo[l.key] }"
+        class="bong" :class="{ tren: !neo[l.key], neo: !!neo[l.key], 'tren-mat': neo[l.key]?.tren }"
         :style="neo[l.key] ? { left: `${neo[l.key]!.x}px`, top: `${neo[l.key]!.y}px` } : { top: `calc(${10 + i * 46}px + env(safe-area-inset-top, 0px))` }"
       >
-        <KhungBong :canh="neo[l.key] ? 'tren' : undefined" :day="2" :r="14" :vt="neo[l.key]?.vt" />
+        <KhungBong :canh="neo[l.key] ? (neo[l.key]!.tren ? 'duoi' : 'tren') : undefined" :day="2" :r="14" :vt="neo[l.key]?.vt" />
         <span class="e" aria-hidden="true">{{ EMOJI_NOI[l.id] }}</span>
         <span class="chu"><b v-if="!neo[l.key]">{{ l.name }}: </b>{{ td(`say.${l.id}`) }}</span>
       </div>
@@ -74,6 +86,8 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
 /* Mũi chỉ lên chip người nói: vẽ chung một nét với thân (KhungBong.vue) */
 /* Neo vào avatar: canh trái theo `x` (đã tính sẵn), không căn giữa */
 .bong.neo { transform: none; }
+/* Bảng kết quả: bong bóng TRÊN mặt, đuôi chỉ xuống — `top` là chỗ mũi đuôi, kéo lên trọn chiều cao */
+.bong.tren-mat { transform: translateY(-100%); }
 .bong .e { font-size: 18px; flex-shrink: 0; }
 .bong .chu { min-width: 0; }
 .loi-enter-active { transition: opacity .16s ease, translate .16s ease; }
