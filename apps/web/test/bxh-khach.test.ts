@@ -67,7 +67,9 @@ describe('client: khách trên bảng', () => {
   });
 
   it('viên đồng xu là NÚT mở bảng xếp hạng', () => {
-    expect(goc('src/components/TopBar.vue')).toMatch(/<button class="total thach"[\s\S]{0,300}@click="emit\('xep-hang'\)"/);
+    const tb = goc('src/components/TopBar.vue');
+    expect(tb).toMatch(/<button class="total thach"[\s\S]{0,300}@click="moBxh"/);
+    expect(tb).toMatch(/function moBxh\(\)[\s\S]{0,120}emit\('xep-hang'\)/);
     expect(goc('src/App.vue')).toMatch(/@xep-hang="showBxh = true"/);
   });
 });
@@ -109,5 +111,52 @@ describe('server Node: khách', () => {
     const src = goc('../node-server/src/taikhoan.ts');
     expect(src).toMatch(/p === '\/api\/bxh' && \(req\.method === 'GET' \|\| req\.method === 'POST'\)/);
     expect(src).not.toMatch(/searchParams\.get\('khach'\)/);
+  });
+});
+
+describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', () => {
+  beforeEach(() => { localStorage.clear(); vi.resetModules(); });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('capNhatHang: nhớ hạng, báo cũ/mới để biết lên hạng; lỗi mạng giữ số cũ', async () => {
+    let hang = 137;
+    const f = vi.fn(async (u: string) => {
+      if (u.endsWith('/api/auth/config')) return json({ googleClientId: 'x' });
+      if (u.endsWith('/api/bxh')) return json({ top: [], toi: { hang, tong: 2000, matches: 3, wins: 1, totalScore: 10, name: '', avatar: null, tren: null, duoi: null } });
+      return json({ ok: true });
+    });
+    vi.stubGlobal('fetch', f);
+    const tk = await import('@/lib/taikhoan');
+    await tk.khoiDong();
+    const hx = await import('@/lib/hang-xu');
+    expect(await hx.capNhatHang()).toEqual({ cu: null, moi: 137 });
+    hang = 129;
+    expect(await hx.capNhatHang()).toEqual({ cu: 137, moi: 129 });
+    expect(localStorage.getItem('mm.hangXu')).toBe('129');
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('mất mạng'); }));
+    expect(await hx.capNhatHang()).toBeNull();
+    expect(hx.hangXu.value).toBe(129);
+  });
+
+  it('mẹo đồng xu chỉ một lần', async () => {
+    const hx = await import('@/lib/hang-xu');
+    expect(hx.daXemMeoXu()).toBe(false);
+    hx.tatMeoXu();
+    expect(hx.daXemMeoXu()).toBe(true);
+  });
+
+  it('bảng xếp hạng gọn: không còn thẻ vàng giải thích, không chữ "x/y thắng" hiện ra', () => {
+    const src = goc('src/components/BangXepHang.vue');
+    expect(src).not.toContain('hang-toi');
+    expect(src).not.toMatch(/<small[^>]*>\{\{ t\('tk\.thangTren'/);
+  });
+
+  it('kết quả: nút "Khoe tỷ số" có chữ cạnh "Chi tiết ván" (bỏ ô biểu tượng ở góc); ảnh vẽ bảng tỷ số theo sáng/tối', () => {
+    const kq = goc('src/components/ResultDialog.vue');
+    expect(kq).not.toContain('lcs-nho');
+    expect(kq).toMatch(/class="hang-ct"[\s\S]{0,600}t\('kq\.khoeTySo'\)/);
+    const anh = goc('src/lib/anh-ket-qua.ts');
+    expect(anh).toMatch(/async function veBangTySo/);
+    expect(anh).toMatch(/dataset\.theme === 'dark'/);
   });
 });
