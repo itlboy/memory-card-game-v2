@@ -35,17 +35,18 @@ describe('tỷ số loạt ở màn kết quả', () => {
     expect(so(dung({ seriesWins: { Kiên: 1, An: 1 } }))).toEqual([['1', true], ['1', true]]);
   });
 
-  it('người thắng ván này có "+1", điểm ván là chữ nhỏ dưới số', () => {
+  it('người thắng ván này: số CUỘN từ số cũ lên (data-cu), không còn viên "+1"; điểm ván là chữ nhỏ dưới số', () => {
     const w = dung({ seriesWins: { Kiên: 1 } });
     const cot = w.findAll('.loat .cot');
-    expect(cot[0]!.find('.cong').text()).toBe('+1');
-    expect(cot[1]!.find('.cong').exists()).toBe(false);
+    expect(cot[0]!.find('b.cuon').attributes('data-cu')).toBe('0');
+    expect(cot[1]!.find('b.cuon').exists()).toBe(false);
+    expect(w.find('.cong').exists()).toBe(false);
     expect(cot[0]!.find('.dm').text()).toBe('320 điểm');
   });
 
-  it('ván hoà: không ai có "+1"', () => {
+  it('ván hoà: không số nào cuộn', () => {
     const w = dung({ summary: van([kien, { ...an, score: 320, pairs: 8, bestStreak: 3 }]), seriesWins: { Kiên: 1 } });
-    expect(w.find('.cong').exists()).toBe(false);
+    expect(w.find('b.cuon').exists()).toBe(false);
   });
 
   it('số cặp/chuỗi ẩn sau "Chi tiết ván", bấm thì lật chỗ với bảng tỷ số', async () => {
