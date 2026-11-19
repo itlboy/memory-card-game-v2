@@ -1159,5 +1159,5 @@ Khớp với `apps/web/public/privacy.html`:
 - **Từ 1.8.17 (chuông "có phòng mới")**: máy BẬT chuông gửi lên server mã nhận thông báo
   (APNs/FCM) + ngôn ngữ + múi giờ, không gắn danh tính, tắt chuông là xoá. Apple: mã push KHÔNG
   phải "Device ID" theo định nghĩa của họ — không thêm hàng. Google Data safety: khai "Device or
-  other IDs" → App functionality (FCM token). Sửa `privacy.html` mục "Playing online" (chờ chủ dự án duyệt chữ).
+  other IDs" → App functionality (FCM token). `privacy.html` mục "Playing online" đã thêm đoạn `pv.s2c` (chủ dự án duyệt 19.11.2026, 15 ngôn ngữ). Nộp store lần đầu có chuông: 1.8.27.
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).
