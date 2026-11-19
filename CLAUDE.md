@@ -684,7 +684,7 @@
   sống mãi), chủ phòng mới = người thật đầu tiên (`chuMoi`). `again` chỉ đòi phiếu người thật. Máy đi
   bằng ALARM: `henMay()` (mốc trong `scheduleNext`, KHÔNG hẹn khi bàn khoá — mốc quá khứ làm alarm
   quay vòng) + `diMay()` trong `alarm()`; ký ức máy chỉ trong bộ nhớ (DO ngủ đông thì máy quên bàn,
-  không treo). MySQL server Node có cột `room_players.may` (thiếu là khởi động lại thành người ma).
+  không treo). MySQL server Node có cột `room_players.bot_level` (tên cũ `may`; thiếu là khởi động lại thành người ma). Tên bảng/cột MySQL đều TIẾNG ANH (19.11.2026: `guest_scores`, `push_subscriptions`, `rooms.team_mode`, `room_players.team` — server tự đổi tên cũ lúc khởi động).
   Phòng có máy KHÔNG lên sổ tài khoản / danh hiệu online (chống cày thắng Gà mờ). Smoke:
   `tools/smoke-may-online.mjs` (`pnpm smoke:may`).
 - **ĐỘI THEO SỐ ONLINE (1.8.0, 15.11.2026 — thay "chế độ Đồng đội" 1.7; đọc `docs/che-do-dong-doi.md`).**

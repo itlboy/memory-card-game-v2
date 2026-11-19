@@ -101,7 +101,7 @@ describe('server: gửi một đợt (FCM giả, MySQL giả)', () => {
     const tb = (await moThongBao(pool as never, { APNS_KEY_ID: 'k', APNS_TEAM_ID: 't', APNS_PRIVATE_KEY: 'p' }, layFetch as never))!;
     tb.phongMoi({ code: '111111', chuPhong: 'A', avatar: '', nguoi: 1, toiDa: 2, the: 16, luc: Date.now() }, async () => false);
     await vi.advanceTimersByTimeAsync(25_000);
-    expect(pool.query.mock.calls.filter((c) => String(c[0]).startsWith('SELECT'))).toEqual([]);
+    expect(pool.query.mock.calls.filter((c) => String(c[0]).startsWith('SELECT') && !String(c[0]).includes('information_schema'))).toEqual([]);
   });
 });
 
