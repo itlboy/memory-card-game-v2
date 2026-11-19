@@ -318,3 +318,12 @@ describe('dải số thẻ: giữ ngón rồi kéo tiếp vẫn rung + tạch (2
     expect(goc('src/lib/audio.ts')).toMatch(/type: 'bandpass', q: 3, gain: 0\.015 \}\);\s*this\.voice\(2100, \{ dur: 0\.018, type: 'sine', gain: 0\.0025 \}\)/);
   });
 });
+
+describe('bộ mặt bảng xếp hạng (20.11.2026)', () => {
+  it('49 mặt, không trùng, không mặt máy / rồng / emoji quá mới', async () => {
+    const { MAT_BXH } = await import('../../node-server/src/taikhoan');
+    expect(MAT_BXH).toHaveLength(49);
+    expect(new Set(MAT_BXH).size).toBe(49);
+    for (const x of ['🐣', '🐥', '🐲', '🐉', '🫎', '🪿', '🪼']) expect(MAT_BXH).not.toContain(x);
+  });
+});
