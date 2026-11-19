@@ -133,6 +133,24 @@ describe('cập nhật nóng', () => {
     expect(trangThaiOta.value).toMatchObject({ buoc: 'loi', loi: 'manifest HTTP 404' });
   });
 
+  it('QUAY LẠI TỪ NỀN (thoát chưa vuốt xoá) sau hơn 1 phút: hỏi lại server — 19.11.2026', async () => {
+    manifest = { ...MOI, id: __OTA_ID__ };
+    const m = await import('@/lib/ota');
+    vi.useFakeTimers();
+    try {
+      await m.kiemOta();
+      expect(m.trangThaiOta.value.buoc).toBe('moiNhat');
+      const goiTruoc = goi.notifyAppReady.mock.calls.length;
+      m.khiQuayLai();                                   // vừa kiểm xong: không hỏi lại
+      await vi.advanceTimersByTimeAsync(0);
+      expect(goi.notifyAppReady.mock.calls.length).toBe(goiTruoc);
+      vi.setSystemTime(Date.now() + 61_000);
+      m.khiQuayLai();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(goi.notifyAppReady.mock.calls.length, 'đã hỏi lại server').toBe(goiTruoc + 1);
+    } finally { vi.useRealTimers(); }
+  });
+
   it('đang chạy đúng gói trên server: không tải', async () => {
     manifest = { ...MOI, id: __OTA_ID__ };
     const { kiemOta } = await import('@/lib/ota');

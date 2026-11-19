@@ -232,27 +232,36 @@ export function soSanhBan(a: string, b: string): number {
 /*
  * TỰ THỬ LẠI (16.10.2026): lỗi tạm (mạng chập, Cloudflare chưa phát tán xong bản vừa release
  * ~1 phút) thì thử lại sau `THU_LAI_MS`, tối đa `THU_LAI_TOI_DA` lần mỗi lần mở app; và mỗi
- * khi app QUAY LẠI từ nền mà lần kiểm trước đã lỗi hoặc quá `KIEM_LAI_SAU_MS` thì kiểm lại —
+ * khi app QUAY LẠI từ nền (visibilitychange + `resume`) mà lần kiểm trước đã lỗi hoặc quá `KIEM_LAI_SAU_MS` thì kiểm lại —
  * người chơi không phải biết hay bấm gì. Gói từng hỏng ('bundle error') thì KHÔNG thử lại.
  */
 const THU_LAI_MS = 60_000;
 const THU_LAI_TOI_DA = 3;
-const KIEM_LAI_SAU_MS = 30 * 60_000;
+/**
+ * Quay lại từ nền sau bấy nhiêu thì hỏi lại server. Từng là 30 phút → 19.11.2026 chủ dự án: "thoát app (chưa
+ * vuốt xoá) rồi mở lại thì chưa tự cập nhật" — iOS giữ app trong nền, mở lại KHÔNG phải mở mới, nên bản phát
+ * hành trong 30 phút đó không bao giờ được thấy. manifest.json chỉ vài trăm byte → 1 phút là đủ chống dồn.
+ */
+const KIEM_LAI_SAU_MS = 60_000;
 let soLanThuLai = 0;
 let henThuLai: ReturnType<typeof setTimeout> | undefined;
 let lucKiem = 0;
 let daGanQuayLai = false;
+/** App vừa hiện lại: lần trước lỗi, hoặc đã quá `KIEM_LAI_SAU_MS` mà đang ở "mới nhất" → kiểm lại. */
+export function khiQuayLai(): void {
+  const o = trangThaiOta.value;
+  if (o.buoc === 'loi' || (o.buoc === 'moiNhat' && Date.now() - lucKiem > KIEM_LAI_SAU_MS)) {
+    soLanThuLai = 0;
+    void kiemOta();
+  }
+}
 function ganKiemKhiQuayLai(): void {
   if (daGanQuayLai || typeof document === 'undefined') return;
   daGanQuayLai = true;
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return;
-    const o = trangThaiOta.value;
-    if (o.buoc === 'loi' || (o.buoc === 'moiNhat' && Date.now() - lucKiem > KIEM_LAI_SAU_MS)) {
-      soLanThuLai = 0;
-      void kiemOta();
-    }
-  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') khiQuayLai(); });
+  // iOS: WKWebView không phải lúc nào cũng bắn visibilitychange khi app trở lại từ nền → nghe thêm `resume`
+  // của Capacitor (hai cái cùng bắn thì `dangKiem` + `lucKiem` chặn kiểm trùng).
+  void import('@capacitor/app').then(({ App }) => App.addListener('resume', khiQuayLai)).catch(() => undefined);
 }
 
 /**
