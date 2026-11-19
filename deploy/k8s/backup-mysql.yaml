@@ -23,7 +23,8 @@
 # Chạy thử ngay (không chờ 03:00):
 #   kubectl -n thebai create job --from=cronjob/thebai-mysql-backup thu-backup-$(date +%s)
 #
-# KHÔI PHỤC: xem docs/services/thebai-server.md trong my-secrets (mục Backup).
+# KHÔI PHỤC: xem docs/services/thebai-server.md trong my-secrets (mục Backup) — ĐÃ THỬ 19.11.2026, 10/10 bảng khớp.
+# BẬT 19.11.2026: bucket `backup-flipmatch` (IDrive e2, vùng Singapore).
 apiVersion: batch/v1
 kind: CronJob
 metadata:
