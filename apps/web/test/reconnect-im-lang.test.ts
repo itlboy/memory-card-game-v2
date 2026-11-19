@@ -140,4 +140,39 @@ describe('nhịp tim: xin lại trạng thái trước, mở lại socket sau', 
     await vi.advanceTimersByTimeAsync(4000);
     expect(FakeWS.opened, 'hết đường rẻ thì phải mở lại socket').toBeGreaterThan(truoc);
   });
+
+  /* CHẬP CHỜN (19.11.2026): mở được rồi chết ngay, lặp lại — tối 18.11 một máy làm 331 vòng trong 4 phút. */
+  it('socket MỞ ĐƯỢC rồi chết ngay liên tục thì giãn 1 → 2 → 4 giây', async () => {
+    const chuKy = async (): Promise<void> => { FakeWS.last!.open(); FakeWS.last!.rot(); };
+    FakeWS.last!.rot();                                   // lần 1: vẫn 500ms
+    await vi.advanceTimersByTimeAsync(500);
+    const n = FakeWS.opened;
+    await chuKy();                                        // lần 2 liên tiếp: chờ 1 giây
+    await vi.advanceTimersByTimeAsync(999);
+    expect(FakeWS.opened, 'chưa tới 1 giây thì chưa thử').toBe(n);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(FakeWS.opened).toBe(n + 1);
+    await chuKy();                                        // lần 3: 2 giây
+    await vi.advanceTimersByTimeAsync(1999);
+    expect(FakeWS.opened).toBe(n + 1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(FakeWS.opened).toBe(n + 2);
+  });
+
+  it('sống đủ 10 giây một lần là về lại nhịp 500ms', async () => {
+    FakeWS.last!.rot();
+    await vi.advanceTimersByTimeAsync(500);
+    FakeWS.last!.open(); FakeWS.last!.rot();              // đứt nhanh lần 2 → 1 giây
+    await vi.advanceTimersByTimeAsync(1000);
+    FakeWS.last!.open();
+    for (let i = 0; i < 10; i++) {                        // lần này sống ổn: trả nhịp tim đều
+      await vi.advanceTimersByTimeAsync(1000);
+      FakeWS.last!.onmessage?.({ data: JSON.stringify({ t: 'pong' }) });
+    }
+    const n = FakeWS.opened;
+    FakeWS.last!.rot();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(FakeWS.opened, 'rớt thường sau khi đã ổn định: lại nửa giây').toBe(n + 1);
+  });
 });
+
