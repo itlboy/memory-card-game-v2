@@ -77,6 +77,22 @@ export const TAO_BANG_TAI_KHOAN = [
      UNIQUE KEY uq_users_apple (apple_sub),
      INDEX idx_users_score (total_score)
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+  /*
+   * KHÁCH TRÊN BẢNG XẾP HẠNG (19.11.2026, mockup duyệt https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy):
+   * người chưa đăng nhập cũng lên bảng chung. Máy tự sinh một MÃ NGẪU NHIÊN (không phải mã thiết bị);
+   * server chỉ giữ SHA-256 của mã (`ma`), nên lộ bảng này cũng không giả được khách nào. `name` rỗng
+   * = chưa đặt tên → client hiện "Khách 4821" theo ngôn ngữ của người xem.
+   */
+  `CREATE TABLE IF NOT EXISTS khach (
+     ma          CHAR(64)     NOT NULL PRIMARY KEY,
+     name        VARCHAR(64)  NOT NULL DEFAULT '',
+     total_score BIGINT       NOT NULL DEFAULT 0,
+     wins        INT          NOT NULL DEFAULT 0,
+     matches     INT          NOT NULL DEFAULT 0,
+     created_at  BIGINT       NOT NULL DEFAULT 0,
+     updated_at  BIGINT       NOT NULL DEFAULT 0,
+     INDEX idx_khach_score (total_score)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   `CREATE TABLE IF NOT EXISTS user_best (
      user_id   BIGINT      NOT NULL,
      board_key VARCHAR(32) NOT NULL,
@@ -254,6 +270,51 @@ export function locVan(x: unknown): VanBao | null {
   return ra;
 }
 
+/* ---------- khách trên bảng xếp hạng ---------- */
+
+/** Khách không chơi quá 60 ngày thì rơi khỏi bảng chung (vẫn thấy hạng của chính mình). */
+export const KHACH_HET_HAN_MS = 60 * 24 * 60 * 60 * 1000;
+/** Mặt thú trên bảng: tài khoản theo id, khách theo mã băm — ổn định giữa các lần mở. */
+export const MAT_BXH = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙', '🐰', '🐶', '🐱', '🐻', '🦉', '🐮'];
+
+/** Mã khách (chuỗi ngẫu nhiên do máy sinh) → khoá lưu: SHA-256 hex. Mã sai dạng → null. */
+export function maKhach(id: unknown): string | null {
+  if (typeof id !== 'string' || !/^[A-Za-z0-9_-]{22,64}$/.test(id)) return null;
+  return createHash('sha256').update(`mm-khach:${id}`).digest('hex');
+}
+
+/** Số hiện sau chữ "Khách" khi chưa đặt tên (1000–9999), lấy từ mã băm. */
+export function soKhach(ma: string): number { return (parseInt(ma.slice(0, 8), 16) % 9000) + 1000; }
+export function matTuMa(ma: string): string { return MAT_BXH[parseInt(ma.slice(8, 16), 16) % MAT_BXH.length]!; }
+
+/** Tên hiện công khai: bỏ ký tự điều khiển và `<>`, cắt 16 ký tự (như tên phòng online). */
+export function locTen(x: unknown): string {
+  if (typeof x !== 'string') return '';
+  return [...x.replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim()].slice(0, 16).join('').trim();
+}
+
+export interface DongKhach { total: number; wins: number; matches: number; updatedAt: number }
+
+/**
+ * Điểm khách gửi lên là TỔNG trên máy (không phải từng ván) → gọi lại không nhân đôi.
+ * Chống sửa tay ở mức vừa phải: không bao giờ giảm, và mỗi lần chỉ tăng tối đa bằng
+ * số ván có thể chơi trong khoảng thời gian đó (một ván ≥ 30 giây, ≤ DIEM_TOI_DA điểm).
+ * Lần đầu (máy đã chơi từ trước khi có bảng) nhận tới trần như `/api/me/dongbo`.
+ */
+export function locDiemKhach(than: { totalScore?: unknown; wins?: unknown; matches?: unknown }, cu: DongKhach | null, now: number): Omit<DongKhach, 'updatedAt'> {
+  const so = (v: unknown, tran: number) => Math.min(tran, Math.max(0, Math.round(Number(v) || 0)));
+  let total = so(than.totalScore, 10_000_000);
+  let wins = so(than.wins, 1_000_000);
+  let matches = Math.max(so(than.matches, 1_000_000), wins);
+  if (cu) {
+    const van = 1 + Math.floor(Math.max(0, now - cu.updatedAt) / 30_000);
+    total = Math.max(cu.total, Math.min(total, cu.total + van * DIEM_TOI_DA));
+    wins = Math.max(cu.wins, Math.min(wins, cu.wins + van));
+    matches = Math.max(cu.matches, Math.min(matches, cu.matches + van), wins);
+  }
+  return { total, wins, matches };
+}
+
 /* ---------- tầng HTTP ---------- */
 
 function docThan(req: IncomingMessage): Promise<unknown> {
@@ -397,6 +458,59 @@ export async function moTaiKhoan(
     }
   }
 
+  /*
+   * BẢNG XẾP HẠNG CÔNG KHAI (không cần đăng nhập) nên CHỈ trả tên tắt (`tenTat`) của tài khoản,
+   * KHÔNG ảnh Google, KHÔNG id nội bộ — app là 4+, trẻ em đăng nhập bằng tài khoản thật thì tên
+   * thật + ảnh không được lộ cho người lạ (soát bảo mật 15.10.2026). Khách mang tên tự đặt
+   * (cũng là tên khi chơi online). Người đang xem nhận ra dòng mình qua `toi`.
+   */
+  const NGUON_BXH = `(SELECT CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches FROM users WHERE matches > 0
+     UNION ALL SELECT ma, 1, name, total_score, wins, matches FROM khach WHERE matches > 0 AND updated_at > ?) t`;
+  function dongCongKhai(r: Record<string, unknown>) {
+    const khach = Number(r.la_khach) === 1, k = String(r.k);
+    const ten = khach ? String(r.name ?? '') : tenTat(String(r.name ?? ''));
+    return {
+      name: ten, avatar: null, mat: khach ? matTuMa(k) : MAT_BXH[Number(k) % MAT_BXH.length]!,
+      khach: khach && !ten ? soKhach(k) : undefined,
+      totalScore: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches)
+    };
+  }
+  async function bangXepHang(uid: number | null, ma: string | null, now: number) {
+    const tu = now - KHACH_HET_HAN_MS;
+    const [rows] = await pool!.query(`SELECT * FROM ${NGUON_BXH} ORDER BY total_score DESC, wins DESC LIMIT 20`, [tu]);
+    const laToi = (r: Record<string, unknown>) => Number(r.la_khach) === 1 ? r.k === ma : uid !== null && r.k === String(uid);
+    const top = (rows as Record<string, unknown>[]).map((r) => ({ ...dongCongKhai(r), toi: laToi(r) }));
+    if (uid === null && !ma) return { top };
+
+    const [mine] = uid !== null
+      ? await pool!.query('SELECT CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches FROM users WHERE id = ?', [uid])
+      : await pool!.query('SELECT ma AS k, 1 AS la_khach, name, total_score, wins, matches FROM khach WHERE ma = ?', [ma]);
+    const m = (mine as Record<string, unknown>[])[0];
+    if (!m) return { top };
+    const diem = Number(m.total_score);
+    const [[dem]] = await pool!.query(
+      `SELECT COUNT(*) AS tong, SUM(total_score > ?) AS tren FROM ${NGUON_BXH}`, [diem, tu]
+    ) as unknown as [[{ tong: number; tren: number | null }]];
+    // Chưa chơi ván nào thì chưa có trong NGUON_BXH — vẫn tính mình vào tổng để "hạng X / Y" không vô lý
+    const tong = Number(dem.tong) + (Number(m.matches) > 0 ? 0 : 1);
+    const hang = Number(dem.tren ?? 0) + 1;
+    const [ke] = await pool!.query(
+      `(SELECT *, 'tren' AS phia FROM ${NGUON_BXH} WHERE total_score > ? ORDER BY total_score ASC LIMIT 1)
+       UNION ALL (SELECT *, 'duoi' AS phia FROM ${NGUON_BXH} WHERE total_score <= ? AND k <> ? ORDER BY total_score DESC LIMIT 1)`,
+      [tu, diem, tu, diem, String(m.k)]
+    );
+    const keBen = ke as Record<string, unknown>[];
+    const tren = keBen.find((r) => r.phia === 'tren'), duoi = keBen.find((r) => r.phia === 'duoi');
+    return {
+      top,
+      toi: {
+        hang, tong, ...dongCongKhai(m),
+        tren: tren ? { ...dongCongKhai(tren), hang: hang - 1 } : null,
+        duoi: duoi ? { ...dongCongKhai(duoi), hang: hang + 1 } : null
+      }
+    };
+  }
+
   function uidTu(req: IncomingMessage, now: number): number | null {
     const h = req.headers.authorization ?? '';
     return docPhien(secret, h.startsWith('Bearer ') ? h.slice(7) : undefined, now);
@@ -465,24 +579,40 @@ export async function moTaiKhoan(
         return true;
       }
 
-      /*
-       * BẢNG XẾP HẠNG CÔNG KHAI (không cần đăng nhập) nên CHỈ trả tên tắt
-       * (`tenTat`), KHÔNG ảnh Google, KHÔNG id nội bộ — app là 4+, trẻ em đăng
-       * nhập bằng tài khoản thật thì tên thật + ảnh không được lộ cho người lạ
-       * (soát bảo mật 15.10.2026). Người đang xem nhận ra dòng mình qua `toi`.
-       */
-      if (p === '/api/bxh' && req.method === 'GET') {
-        const toi = uidTu(req, now);
-        const [rows] = await pool!.query(
-          `SELECT id, name, total_score, wins, matches FROM users
-           WHERE matches > 0 ORDER BY total_score DESC, wins DESC LIMIT 20`
+      if (p === '/api/bxh' && (req.method === 'GET' || req.method === 'POST')) {
+        /*
+         * GET (bản app cũ): chỉ top. POST `{ khach }`: thêm `toi` = hạng của người đang xem
+         * (tài khoản qua phiên, hoặc khách qua mã) — mã khách đi trong THÂN, không lên URL/log.
+         */
+        const than = req.method === 'POST' ? await docThan(req) as { khach?: unknown } | null : null;
+        json(res, await bangXepHang(uidTu(req, now), maKhach(than?.khach), now));
+        return true;
+      }
+
+      /* Khách gửi tổng điểm trên máy (sau mỗi ván, và lúc đổi tên). */
+      if (p === '/api/khach' && req.method === 'POST') {
+        const than = await docThan(req) as Record<string, unknown> | null;
+        const ma = maKhach(than?.id);
+        if (!than || !ma) { json(res, { error: 'Mã khách không hợp lệ' }, 400); return true; }
+        const [rows] = await pool!.query('SELECT total_score, wins, matches, updated_at FROM khach WHERE ma = ?', [ma]);
+        const r = (rows as Record<string, unknown>[])[0];
+        const cu: DongKhach | null = r ? { total: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches), updatedAt: Number(r.updated_at) } : null;
+        const d = locDiemKhach(than, cu, now);
+        await pool!.execute(
+          `INSERT INTO khach (ma, name, total_score, wins, matches, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE name = VALUES(name), total_score = VALUES(total_score), wins = VALUES(wins),
+             matches = VALUES(matches), updated_at = VALUES(updated_at)`,
+          [ma, locTen(than.name), d.total, d.wins, d.matches, now, now]
         );
-        json(res, {
-          top: (rows as Record<string, unknown>[]).map((r) => ({
-            name: tenTat(String(r.name ?? '')), avatar: null, toi: toi !== null && Number(r.id) === toi,
-            totalScore: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches)
-          }))
-        });
+        json(res, { ok: true });
+        return true;
+      }
+
+      /* Khách tự xoá mình khỏi bảng (nút trong hộp Bảng xếp hạng — chính sách quyền riêng tư hứa điều này). */
+      if (p === '/api/khach/xoa' && req.method === 'POST') {
+        const ma = maKhach((await docThan(req) as { id?: unknown } | null)?.id);
+        if (ma) await pool!.execute('DELETE FROM khach WHERE ma = ?', [ma]);
+        json(res, { ok: true });
         return true;
       }
 
@@ -543,6 +673,9 @@ export async function moTaiKhoan(
         const best = (than.best && typeof than.best === 'object' ? than.best : {}) as HoSo['best'];
         const achs = Array.isArray(than.achievements) ? than.achievements.filter((a): a is string => typeof a === 'string') : [];
         await ghiKyLucVaDanhHieu(uid, best, achs, now);
+        // Máy này từng lên bảng dưới dạng khách → điểm đã gộp ở trên, bỏ dòng khách (không trùng hai dòng)
+        const ma = maKhach(than.khach);
+        if (ma) await pool!.execute('DELETE FROM khach WHERE ma = ?', [ma]);
         json(res, { me: await hoSo(uid) });
         return true;
       }

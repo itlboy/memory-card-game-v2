@@ -1160,4 +1160,11 @@ Khớp với `apps/web/public/privacy.html`:
   (APNs/FCM) + ngôn ngữ + múi giờ, không gắn danh tính, tắt chuông là xoá. Apple: mã push KHÔNG
   phải "Device ID" theo định nghĩa của họ — không thêm hàng. Google Data safety: khai "Device or
   other IDs" → App functionality (FCM token). `privacy.html` mục "Playing online" đã thêm đoạn `pv.s2c` (chủ dự án duyệt 19.11.2026, 15 ngôn ngữ). Nộp store lần đầu có chuông: 1.8.27.
+- **Từ 1.8.31 (khách trên bảng xếp hạng)**: máy CHƯA đăng nhập gửi mã khách ngẫu nhiên (server chỉ giữ
+  băm SHA-256), biệt danh, tổng điểm, số ván/thắng — hiện công khai trên bảng. Đoạn `pv.s2d` (duyệt
+  19.11.2026, 15 ngôn ngữ). Khai lại: Play Data safety → "Personal info › Name" (biệt danh) + "App
+  activity › Other actions" / "Game progress" (điểm) — App functionality, không chia sẻ, xoá được
+  ("Ẩn tôi khỏi bảng"). Mã khách ngẫu nhiên nằm chung hàng "Device or other IDs" đã có. Apple App
+  Privacy: thêm "Gameplay Content"/"Other User Content" (biệt danh) + "Product Interaction" nếu soát
+  thấy thiếu — không gắn danh tính, không tracking.
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).

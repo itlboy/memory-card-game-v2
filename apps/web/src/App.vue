@@ -59,6 +59,7 @@ import MoKhoaFx from './components/MoKhoaFx.vue';
 import { HIEN_BANG_MS, chonCanh } from './lib/ketcuc-fx';
 import { DEFAULT_OPTIONS } from '@mm/engine';
 import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
+import BangXepHang from './components/BangXepHang.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
@@ -224,6 +225,8 @@ useBackCloser(30, () => hienCai.value, dongCai);
 /** Màn tài khoản (đăng nhập Google, điểm, danh hiệu). */
 const showAccount = ref(false);
 useBackCloser(30, () => showAccount.value, () => { showAccount.value = false; });
+const showBxh = ref(false);
+useBackCloser(30, () => showBxh.value, () => { showBxh.value = false; });
 // Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
 // trong đó — đây là lớp phủ, không được chặn trang chủ.
 onMounted(() => {
@@ -252,7 +255,7 @@ watch(screen, (sc) => {
   else if (sc === 'mua-the') moChucNang('mua_the');
 });
 for (const [r, ten] of [
-  [showRules, 'luat_choi'], [showAccount, 'tai_khoan'], [showDanhHieu, 'danh_hieu'], [hienCai, 'cai_app']
+  [showRules, 'luat_choi'], [showAccount, 'tai_khoan'], [showBxh, 'xep_hang'], [showDanhHieu, 'danh_hieu'], [hienCai, 'cai_app']
 ] as const) watch(r, (v) => { if (v) moChucNang(ten); });
 watch(nen, (v) => doiCaiDat('nen', v));
 watch(soundLevel, (v) => doiCaiDat('am_thanh', v));
@@ -938,6 +941,7 @@ const hasNext = computed(() => {
     :rung="rungBat" :co-rung="rung.coTheRung()"
     @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     @account="showAccount = true"
+    @xep-hang="showBxh = true"
     @set-sound="(l: SoundLevel) => { soundLevel = l; applySound(); }"
     :ten-tk="taiKhoanMe?.name"
     @rules="showRules = true"
@@ -1044,7 +1048,8 @@ const hasNext = computed(() => {
   <IconDefs />
   <DoNhip v-if="debug && doNhip" />
 
-  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" />
+  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" @xep-hang="showAccount = false; showBxh = true" />
+  <BangXepHang v-if="showBxh" @close="showBxh = false" @dang-nhap="showBxh = false; showAccount = true" />
   <DanhHieuDialog
     v-if="showDanhHieu" :da-co="daCoSet" :tk="thongKe" :theme-khoa="themeKhoa"
     @close="showDanhHieu = false" @chinh-phuc="chinhPhuc"

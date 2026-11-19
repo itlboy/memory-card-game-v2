@@ -1454,3 +1454,21 @@
   Có IAP thì bật `true`; đồ premium chưa mua đeo VƯƠNG MIỆN (không dùng ổ khoá).
   Thử giao diện đã mua: menu → nút "🐞 Debug" cạnh chữ Cài đặt → trang Debug → "Mở Premium để thử" (`datPremiumThu`, chỉ đổi `mm.premium` của máy đó — trong app không có console nên đây là lối duy nhất). Công tắc Twemoji trong menu đã BỎ: máy Apple
   nay MỌI máy vẽ NOTO 3D (15.10.2026, xem mục MẶT BÀI), bản lưu `kieuEmoji` cũ bị bỏ qua.
+
+## Bảng xếp hạng có khách (19.11.2026)
+
+Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
+- **Viên đồng xu trên TopBar là NÚT** mở `BangXepHang.vue` (cũng mở từ nút 🏆 ở màn Tài khoản —
+  TaiKhoanDialog không còn tab xếp hạng riêng).
+- **Khách lên bảng chung**: `store.khach()` sinh mã NGẪU NHIÊN riêng (KHÔNG dùng `clientId`), server
+  (`/api/khach`) chỉ lưu SHA-256 của mã ở bảng MySQL `khach`. Máy gửi TỔNG (điểm, `boDem.wins`,
+  `boDem.van`) sau mỗi ván (qua `ghiVan`) và trước khi mở bảng — gửi lại không nhân đôi.
+  `locDiemKhach`: không bao giờ giảm, mỗi lần chỉ tăng ≤ số ván chơi được trong khoảng đó × 100k.
+- **Tên khách = `store.playerNames()[0]`** — chung ô với tên chơi online. Rỗng → client hiện
+  "Khách 4821" (`soKhach` từ mã băm, dịch theo ngôn ngữ người xem). Mặt thú do server chọn ổn định.
+- **`POST /api/bxh { khach }`** trả `top` (20, gộp tài khoản + khách còn chơi trong 60 ngày) và `toi`
+  (hạng, tổng người, người ngay trên/dưới). Mã khách đi trong THÂN, không lên URL/log. GET cũ vẫn chạy.
+- **Đăng nhập** → `dongBo` gửi kèm mã khách, server xoá dòng khách; máy đặt `daGop` nên đăng xuất ra
+  không thành dòng thứ hai. **"Ẩn tôi khỏi bảng"** (`anKhach`) xoá dòng + thôi gửi — chính sách
+  quyền riêng tư `pv.s2d` hứa nút này, đừng bỏ.
+
