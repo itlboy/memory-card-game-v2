@@ -1472,4 +1472,23 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
 - **Đăng nhập** → `dongBo` gửi kèm mã khách, server xoá dòng khách; máy đặt `daGop` nên đăng xuất ra
   không thành dòng thứ hai. **"Ẩn tôi khỏi bảng"** (`anKhach`) xoá dòng + thôi gửi — chính sách
   quyền riêng tư `pv.s2d` hứa nút này, đừng bỏ.
+- **Bảng GỌN** (mockup duyệt https://claude.ai/artifact/4SQdKfUtpcCdbsGvRZK7sH — chủ dự án: "nhiều chữ giải thích
+  quá"): KHÔNG thẻ vàng "Hạng của bạn trong N người…", KHÔNG chữ "x/y thắng" (chỉ còn nhãn ẩn), ngoài top chỉ
+  ghim người ngay TRÊN + mình, khách chỉ còn nút "Đăng nhập để giữ hạng" + link "Đổi tên · Ẩn tôi". Đừng thêm
+  câu giải thích lại — dòng mình tô vàng là đủ.
+- **Viên xu có hạng** (`lib/hang-xu.ts`, mockup https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz): "🏆 #137"
+  cạnh số xu (chưa hạng → chỉ cúp). Hỏi hạng lúc mở app + 2,5 giây sau khi xu tăng; lên hạng → nháy + vòng
+  sáng + lời nhắc "Lên hạng #129 (↑8)". TRONG VÁN (`dungYen`) thì giữ lại, ra ngoài mới diễn (bảng kết quả
+  che thanh trên). Mẹo "bấm vào đây…" một lần đời máy (`mm.meoXu`). Lời nhắc căn GIỮA theo viên xu —
+  canh phải là tràn mép trái màn 390px.
+
+## Ảnh chia sẻ kết quả = bảng tỷ số (19.11.2026)
+
+- Có tỷ số loạt → `veBangTySo` (anh-ket-qua.ts) vẽ y màn cuối ván: mỗi người một cột mặt · tên · số ván
+  thắng thật to · điểm ván; người dẫn DUY NHẤT nền vàng + 👑. 2 người đối đầu "3 – 2", ≤3 một hàng, ≥4 lưới
+  3 cột (hàng cao ≤ 560/số hàng — cao hơn là thẻ đè chân ảnh). Mặt vẽ tay (báo đen, rồng) → emoji gần nhất;
+  ảnh Google tải `crossOrigin` (không CORS thì lỗi êm, KHÔNG làm bẩn canvas) → mặt thú.
+- **Theo sáng/tối của app** (`data-theme` của <html> lúc vẽ): tối = trời đêm, trăng, sao, thẻ xanh đậm.
+  Dòng nền vàng luôn chữ mực tối.
+- Nút mở là **"Khoe tỷ số"** vàng có chữ cạnh "Chi tiết ván" — bỏ ô biểu tượng nhỏ ở góc (không ai nhận ra).
 

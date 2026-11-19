@@ -292,7 +292,13 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
     return {
       ...chung, tieuDe, phu: props.multiplayerOnline ? `Online · ${ngay}` : ngay,
       ...(loat.value?.length
-        ? { tySo: { nhan: props.soVan ? `${t('kq.tySo')} · ${t('kq.van', { n: props.soVan })}` : t('kq.tySo'), ds: loat.value.map((r) => ({ ten: r.ten, n: r.n })) } }
+        ? { tySo: {
+          nhan: props.soVan ? t('kq.tySoSau', { n: props.soVan }) : t('kq.tySo'),
+          ds: loat.value.map((r) => ({
+            ten: r.ten, n: r.n, diem: t('kq.diemAria', { n: num(r.diem) }),
+            mat: r.tv.length ? r.tv.map((m) => ({ mat: m.mat, anh: m.anh })) : [{ mat: r.mat, anh: r.anh }],
+          })),
+        } }
         : {}),
       hang: s.ranking.map((p, i) => ({
         hang: draw.value && i < 2 ? 1 : i + 1, ten: tenNguoi(p), diem: num(p.score),
@@ -315,13 +321,9 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
     <div class="panel" :class="{ 'kq-online': multiplayerOnline, 'nhieu-nguoi': loat }">
-      <!-- Nhiều người: "Ván N" + nút Lưu/Chia sẻ (biểu tượng) trên tiêu đề, thay nút vàng to -->
+      <!-- Nhiều người: "Ván N" trên tiêu đề. Nút chia sẻ nay là nút vàng "Khoe tỷ số" cạnh "Chi tiết ván". -->
       <div v-if="loat" class="dau-kq">
         <small v-if="soVan">{{ t('kq.van', { n: soVan }) }}</small>
-        <button
-          v-if="hienLcs" class="lcs-nho thach" type="button" :aria-label="t('kq.luuChiaSe')" :title="t('kq.luuChiaSe')"
-          @click="moLcs = true; moChucNang('luu_chia_se_anh')"
-        ><Share :size="19" aria-hidden="true" /></button>
       </div>
       <h2 id="resTitle">{{ title }}</h2>
       <!-- Nhiều người: "Bàn đã dọn sạch" là chuyện thường, bỏ cho gọn; chỉ nói khi ván dừng vì lý do khác -->
@@ -415,10 +417,17 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         </template>
       </p>
 
-      <button
-        v-if="loat" class="nut-ct thach th-nho" type="button" aria-controls="kqChiTiet" :aria-expanded="moChiTiet"
-        @click="moChiTiet = !moChiTiet"
-      >{{ moChiTiet ? t('kq.thuGon') : t('kq.chiTiet') }}<ChevronDown :size="16" aria-hidden="true" /></button>
+      <!-- KHOE TỶ SỐ (19.11.2026, mockup duyệt https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz): trước là ô biểu
+           tượng nhỏ ở góc trên, nhiều người không nhận ra là nút chia sẻ → nút vàng có chữ, cạnh "Chi tiết ván". -->
+      <div v-if="loat" class="hang-ct" :class="{ doi: hienLcs }">
+        <button
+          class="nut-ct thach th-nho" type="button" aria-controls="kqChiTiet" :aria-expanded="moChiTiet"
+          @click="moChiTiet = !moChiTiet"
+        >{{ moChiTiet ? t('kq.thuGon') : t('kq.chiTiet') }}<ChevronDown :size="16" aria-hidden="true" /></button>
+        <button v-if="hienLcs" class="nut-khoe thach th-vang th-nho" type="button" @click="moLcs = true; moChucNang('luu_chia_se_anh')">
+          <Share :size="16" aria-hidden="true" />{{ t('kq.khoeTySo') }}
+        </button>
+      </div>
 
       <!-- Điểm là phần thưởng của cả ván: cho nó cỡ chữ xứng đáng và đếm dần lên -->
       <p v-if="!multiplayer" class="score-big" :aria-label="t('kq.diemAria', { n: summary.score })">
@@ -657,9 +666,14 @@ h2 { margin: 0 0 4px; }
 .dau-kq small {
   font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
 }
-.lcs-nho {
-  margin-left: auto; width: 44px; height: 44px; padding: 0; display: grid; place-items: center;
-  border-radius: 14px; color: var(--fg); cursor: pointer;
+/* Chi tiết ván | Khoe tỷ số: hai nút cùng cỡ cạnh nhau; không chia sẻ được ảnh thì chỉ còn nút giữa */
+.hang-ct { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
+.hang-ct.doi { display: grid; grid-template-columns: 1fr 1fr; }
+.hang-ct .nut-ct { margin: 0; }
+.hang-ct.doi .nut-ct { justify-content: center; padding: 0 10px; }
+.nut-khoe {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 10px;
+  border-radius: 999px; font: 700 15px/1.1 var(--font-display); cursor: pointer; text-align: center; /* tiếng Nga/Đức dài: xuống dòng, không tràn */
 }
 .lat.chong { display: grid; margin: 10px 0 0; }
 .lat.chong > * { grid-area: 1 / 1; min-height: 196px; box-sizing: border-box; margin: 0; }
@@ -904,6 +918,7 @@ h2 { margin: 0 0 4px; }
   .lat.chong > * { min-height: 0; }
   .loat { --mat: calc(64px / var(--n) + 10px); --so: calc(96px / var(--n) + 18px); padding: 10px 6px; }
   .dau-kq { min-height: 40px; }
-  .nut-ct { margin-top: 6px; min-height: 36px; }
+  .hang-ct { margin-top: 6px; }
+  .nut-ct, .nut-khoe { min-height: 36px; }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronRight, Crown, HelpCircle, Languages, Menu, Music, Palette, RefreshCw, Smartphone, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { ChevronRight, Crown, Trophy, HelpCircle, Languages, Menu, Music, Palette, RefreshCw, Smartphone, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
 import { coNenToi, skin } from '@/lib/skin';
@@ -9,6 +9,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import DongXu from './DongXu.vue';
+import { capNhatHang, daXemMeoXu, hangXu, tatMeoXu } from '@/lib/hang-xu';
 import type { SoundLevel } from '@/lib/storage';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
@@ -195,6 +196,50 @@ watch(() => props.totalScore, (to, from) => {
   };
   raf = requestAnimationFrame(step);
 });
+
+/*
+ * HẠNG TRÊN VIÊN XU (19.11.2026, mockup duyệt https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz) — lib/hang-xu.ts.
+ * Hỏi hạng lúc mở app và 2,5 giây sau khi xu tăng (để điểm khách kịp lên server). LÊN HẠNG thì viên hạng
+ * nháy vàng + vòng sáng + lời nhắc "Lên hạng #129 (↑8). Bấm xem!" 3,5 giây. Trong ván (`dungYen`, kể cả lúc
+ * bảng kết quả che thanh trên) thì GIỮ LẠI, ra khỏi ván mới diễn — diễn sau lớp phủ là không ai thấy.
+ * Mẹo "bấm vào đây…" chỉ một lần trong đời máy, sau khi đã có hạng; bấm xu hay "Đã hiểu" là tắt hẳn.
+ */
+const lenHang = ref<{ hang: number; n: number; key: number } | null>(null);
+let choDien: { hang: number; n: number } | null = null;
+const meo = ref(false);
+let hoiTimer: ReturnType<typeof setTimeout> | undefined;
+let lenTimer: ReturnType<typeof setTimeout> | undefined;
+function dien(): void {
+  if (!choDien || props.dungYen) return;
+  lenHang.value = { ...choDien, key: (lenHang.value?.key ?? 0) + 1 };
+  choDien = null;
+  meo.value = false;
+  clearTimeout(lenTimer);
+  lenTimer = setTimeout(() => { lenHang.value = null; }, 3500);
+}
+function xemMeo(): void {
+  if (!props.dungYen && hangXu.value && !daXemMeoXu() && !lenHang.value) meo.value = true;
+}
+async function hoiHang(coDien: boolean): Promise<void> {
+  if (!props.account) return;
+  const r = await capNhatHang();
+  if (coDien && r?.cu && r.moi && r.moi < r.cu) { choDien = { hang: r.moi, n: r.cu - r.moi }; dien(); }
+  xemMeo();
+}
+onMounted(() => { void hoiHang(false); });
+watch(() => props.account, (co) => { if (co) void hoiHang(false); });
+watch(() => props.totalScore, (to, from) => {
+  if (to <= from) return;
+  clearTimeout(hoiTimer);
+  hoiTimer = setTimeout(() => { void hoiHang(true); }, 2500);
+});
+watch(() => props.dungYen, () => { dien(); xemMeo(); });
+onUnmounted(() => { clearTimeout(hoiTimer); clearTimeout(lenTimer); });
+function moBxh(): void {
+  if (meo.value) { meo.value = false; tatMeoXu(); }
+  emit('xep-hang');
+}
+function hieuMeo(): void { meo.value = false; tatMeoXu(); }
 </script>
 
 <template>
@@ -211,15 +256,28 @@ watch(() => props.totalScore, (to, from) => {
     </h1>
 
     <!-- BẤM ĐƯỢC (19.11.2026): mở Bảng xếp hạng — mockup https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy -->
-    <button class="total thach" :class="{ pop: bump }" :key="bump" type="button"
-      :title="t('tb.tongDiem', { n: num(totalScore) })" :aria-label="t('tb.moBxh', { n: num(totalScore) })" @click="emit('xep-hang')">
+    <div class="xu-wrap">
+    <button class="total thach" :class="{ pop: bump, len: lenHang }" :key="bump" type="button"
+      :title="t('tb.tongDiem', { n: num(totalScore) })"
+      :aria-label="t('tb.moBxh', { n: num(totalScore) }) + (account && hangXu ? ` · #${num(hangXu)}` : '')" @click="moBxh">
       <!-- Đồng xu = ĐIỂM, cùng hình với HUD (sao chỉ là đánh giá Chiến dịch) -->
       <DongXu :size="16" />
       <b>{{ numShort(shown) }}</b>
+      <!-- Huy hiệu hạng: nhìn là biết bấm được, và mình đứng thứ mấy. Chưa có hạng (chưa chơi / đã ẩn) → chỉ cúp. -->
+      <span v-if="account" :key="lenHang?.key" class="hg" aria-hidden="true"><Trophy :size="11" :stroke-width="2.6" />{{ hangXu ? `#${numShort(hangXu)}` : '' }}</span>
+      <i v-if="lenHang" :key="`t${lenHang.key}`" class="tia" aria-hidden="true" />
       <Transition name="gain">
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </button>
+    <Transition name="nhac-xu">
+      <p v-if="lenHang" :key="lenHang.key" class="nhac-xu" role="status" @click="moBxh">🎉 {{ t('tb.lenHang', { hang: num(lenHang.hang), n: num(lenHang.n) }) }}</p>
+      <div v-else-if="meo" class="nhac-xu meo-xu" role="note">
+        {{ t('tb.meoXu') }}
+        <button type="button" class="ok thach th-vang th-nho" @click="hieuMeo">{{ t('tb.daHieu') }}</button>
+      </div>
+    </Transition>
+    </div>
     <!-- Viên danh hiệu RIÊNG, không ghép vào viên điểm: hai thước đo khác nhau,
          ghép chung thì "536k · 10/103" đọc thành một con số khó hiểu. -->
     <button
@@ -480,6 +538,40 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   18% { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
   70% { opacity: 1; transform: translate(-50%, 8px) scale(1); }
   100% { opacity: 0; transform: translate(-50%, 20px) scale(.95); }
+}
+/* Huy hiệu hạng + hiệu ứng lên hạng + lời nhắc (19.11.2026) */
+.xu-wrap { position: relative; flex-shrink: 0; display: flex; }
+.hg {
+  display: inline-flex; align-items: center; gap: 2px; margin-left: 1px; padding: 1px 6px 1px 4px;
+  border-radius: var(--r-full); background: #fff1c7; color: #8a5a00;
+  font: 800 12px var(--font-display); font-variant-numeric: tabular-nums;
+}
+.hg:has(svg:only-child) { padding: 2px 4px; }
+.total.len { animation: total-pop .6s cubic-bezier(.2, 1.5, .4, 1); }
+.total.len .hg { animation: hg-loe 1.6s ease-out; }
+.tia { position: absolute; inset: -3px; border-radius: var(--r-full); pointer-events: none; animation: tia-song 1.3s ease-out 2; }
+@keyframes hg-loe { 20%, 60% { background: #ffd84d; transform: scale(1.12); } }
+@keyframes tia-song { 0% { box-shadow: 0 0 0 0 rgba(255, 200, 40, .75); } 100% { box-shadow: 0 0 0 14px rgba(255, 200, 40, 0); } }
+.nhac-xu {
+  /* Căn GIỮA theo viên xu: canh phải thì tràn mép trái màn 390px (đo 19.11.2026). Dưới "+N" bay xuống. */
+  position: absolute; top: calc(100% + 30px); left: 50%; translate: -50% 0; z-index: 6; margin: 0;
+  width: max-content; max-width: min(280px, 80vw); padding: 8px 12px; border-radius: 14px;
+  background: var(--panel-solid); color: var(--fg); border: 2px solid #f0c64a; box-shadow: 0 4px 0 #e2b13a;
+  font: 700 13px/1.35 var(--font-body); cursor: pointer;
+}
+.meo-xu { top: calc(100% + 12px); background: #1d2a5a; color: #fff; border-color: #1d2a5a; box-shadow: 0 8px 18px rgba(0, 0, 0, .25); cursor: default; }
+.meo-xu::before {
+  content: ''; position: absolute; left: calc(50% - 8px); top: -9px;
+  border: 8px solid transparent; border-top: 0; border-bottom-color: #1d2a5a;
+}
+.meo-xu .ok { display: block; margin-top: 8px; min-height: 30px; padding: 0 14px; border-radius: 10px; font: 800 13px var(--font-body); cursor: pointer; }
+.nhac-xu-enter-active { transition: opacity .2s ease, translate .2s ease; transition-delay: .9s; }
+.nhac-xu-leave-active { transition: opacity .25s ease; }
+.nhac-xu-enter-from { opacity: 0; }
+.nhac-xu-leave-to { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .total.len, .total.len .hg, .tia { animation: none; }
+  .nhac-xu-enter-active { transition: none; }
 }
 /* Máy rất hẹp (320px): nới chỗ cho wordmark bằng cách thu padding/gap,
    không thu chữ thêm nữa — dưới 17px là khó đọc */

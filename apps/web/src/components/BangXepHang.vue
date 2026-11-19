@@ -39,11 +39,6 @@ const ten = (d: DongBxh): string => d.name || (d.khach ? t('bxh.khach', { so: d.
 const toi = computed(() => bang.value?.toi ?? null);
 /** Ngoài top hiển thị → ghim dòng mình ở đáy. */
 const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => d.toi));
-const conDiem = computed(() => {
-  const m = toi.value;
-  if (!m?.tren) return null;
-  return { n: num(Math.max(1, m.tren.totalScore - m.totalScore + 1)), ten: ten(m.tren), hang: m.tren.hang };
-});
 /** Mở sẵn ô đặt tên khi khách chưa có tên và đã có dòng trên bảng. */
 const moTen = computed(() => laKhach.value && !khachAn.value && !!toi.value && (dangSuaTen.value || !tenMay.value));
 
@@ -64,28 +59,22 @@ async function doiAn(an: boolean): Promise<void> {
     <div class="panel">
       <header class="head">
         <h2>{{ t('tk.xepHang') }}</h2>
+        <small v-if="toi" class="so-nguoi">{{ t('bxh.soNguoi', { n: num(toi.tong) }) }}</small>
         <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
       </header>
 
-      <div v-if="toi" class="hang-toi">
-        <span class="so">#{{ num(toi.hang) }}</span>
-        <span class="chu">
-          {{ t('bxh.hangCua', { tong: num(toi.tong) }) }}<br>
-          <template v-if="!toi.matches">{{ t('bxh.chuaChoi') }}</template>
-          <template v-else-if="conDiem">{{ t('bxh.conDiem', conDiem) }}</template>
-          <template v-else>{{ t('bxh.dauBang') }}</template>
-        </span>
-      </div>
-
+      <!-- GỌN (19.11.2026, mockup duyệt https://claude.ai/artifact/4SQdKfUtpcCdbsGvRZK7sH — chủ dự án: "nhiều chữ giải
+           thích quá"): bỏ thẻ vàng "Hạng của bạn trong N người…", bỏ cột "x/y thắng" (còn ở nhãn ẩn), bỏ dòng dưới mình,
+           bỏ câu mời đăng nhập + câu dặn tên. Dòng mình tô vàng là đủ biết mình ở đâu. -->
       <div class="body">
         <ol v-if="bang" class="bxh">
           <li v-for="(d, i) in bang.top" :key="i" :class="{ toi: d.toi }">
             <span class="hang" :class="['vang', 'bac', 'dong'][i]">{{ i + 1 }}</span>
             <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /></span>
             <span class="ten">{{ ten(d) }}<i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i></span>
-            <small v-if="d.matches >= d.wins && d.matches">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</small>
+            <span v-if="d.matches >= d.wins && d.matches" class="sr-only">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</span>
             <b>{{ num(d.totalScore) }}</b>
           </li>
           <li v-if="!bang.top.length" class="muted">{{ t('tk.chuaAiMoi') }}</li>
@@ -95,19 +84,17 @@ async function doiAn(an: boolean): Promise<void> {
       </div>
 
       <div v-if="toi && ghim" class="ghim">
+        <span class="cham" aria-hidden="true">···</span>
         <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><b>{{ num(toi.tren.totalScore) }}</b></div>
         <div class="toi-dong"><span class="hang">{{ num(toi.hang) }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><b>{{ num(toi.totalScore) }}</b></div>
-        <div v-if="toi.duoi" class="ke"><span class="hang">{{ num(toi.duoi.hang) }}</span><span class="ten"><MatBot :mat="toi.duoi.mat ?? '🙂'" /> {{ ten(toi.duoi) }}</span><b>{{ num(toi.duoi.totalScore) }}</b></div>
       </div>
 
       <!-- Khách: tên trên bảng -->
       <form v-if="moTen" class="dat-ten" @submit.prevent="luuTen">
-        <label for="ten-bxh">{{ tenMay ? t('bxh.tenTren') : t('bxh.tenTrenKhach', { ten: toi ? ten(toi) : '' }) }}</label>
         <div class="hang-nhap">
-          <input id="ten-bxh" v-model="tenNhap" maxlength="16" autocomplete="nickname" enterkeyhint="done">
+          <input id="ten-bxh" v-model="tenNhap" :placeholder="t('bxh.tenTren')" :aria-label="t('bxh.tenTren')" maxlength="16" autocomplete="nickname" enterkeyhint="done">
           <button class="luu thach th-xanh" type="submit" :disabled="dangLuu || !tenNhap.trim()">{{ t('bxh.luu') }}</button>
         </div>
-        <p>{{ t('bxh.goiYTen') }}</p>
       </form>
 
       <div v-if="laKhach" class="khach">
@@ -116,7 +103,6 @@ async function doiAn(an: boolean): Promise<void> {
           <button class="btn-link" type="button" @click="doiAn(false)">{{ t('bxh.hienLai') }}</button>
         </template>
         <template v-else>
-          <p>{{ t('bxh.moiDangNhap') }}</p>
           <button class="nut-dn thach th-vang" type="button" @click="emit('dang-nhap')">{{ t('bxh.dangNhap') }}</button>
           <div class="phu">
             <button v-if="toi && tenMay && !dangSuaTen" class="btn-link" type="button" @click="dangSuaTen = true; tenNhap = tenMay">{{ t('bxh.doiTen') }}</button>
@@ -150,15 +136,6 @@ async function doiAn(an: boolean): Promise<void> {
 .muted { color: var(--muted); font-size: var(--text-sm); margin: 6px 0 0; }
 .loi { color: var(--bad); font-size: var(--text-sm); margin: 8px 0 0; }
 
-/* Thẻ vàng "hạng của bạn" — luôn đứng yên trên đầu, không cuộn theo danh sách */
-.hang-toi {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px 12px;
-  border-radius: 14px; border: 2px solid #f0c64a; background: linear-gradient(#fff4dc, #ffe7b3);
-  box-shadow: 0 3px 0 #e2b13a; color: #3d2f08;
-}
-.hang-toi .so { font-size: 26px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-.hang-toi .chu { flex: 1; min-width: 0; font-size: var(--text-sm); font-weight: 700; line-height: 1.35; color: #5b4510; }
-
 .bxh { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .bxh li, .toi-dong {
   display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px;
@@ -178,12 +155,13 @@ async function doiAn(an: boolean): Promise<void> {
   border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px;
 }
 
-.ghim { border-top: 2px dashed var(--line); margin-top: 6px; padding-top: 8px; display: grid; gap: 4px; }
+.ghim { margin-top: 2px; display: grid; gap: 4px; }
+.cham { text-align: center; color: var(--muted); font-weight: 800; letter-spacing: 4px; line-height: 1; }
+.head .so-nguoi { font-size: var(--text-sm); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .ke { display: flex; align-items: center; gap: 8px; padding: 0 8px; font-size: var(--text-sm); color: var(--muted); }
 .ke .ten { font-weight: 600; }
 
 .dat-ten { margin-top: 10px; display: grid; gap: 6px; }
-.dat-ten label { font-size: var(--text-sm); font-weight: 800; }
 .hang-nhap { display: flex; gap: 8px; }
 .hang-nhap input {
   flex: 1; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 12px;
