@@ -220,7 +220,7 @@ describe('server: cache top 20 (19.11.2026)', () => {
 describe('dải chọn số thẻ: vuốt không phải bấm (19.11.2026)', () => {
   it('kéo quá ngưỡng / chạm lúc dải đang trôi → nuốt click (pha capture) + im tiếng bấm', () => {
     const src = goc('src/components/BanChon.vue');
-    expect(src).toMatch(/@pointerdown="khiCham" @pointermove\.passive="khiDi" @click\.capture="nuotBam"/);
+    expect(src).toMatch(/@pointerdown="chuotXuong" @pointermove="chuotDi"[\s\S]{0,120}@click\.capture="nuotBam"/);
     expect(src).toMatch(/Math\.hypot\(e\.clientX - x0, e\.clientY - y0\) > NGUONG_KEO/);
     expect(src).toMatch(/Date\.now\(\) - lucCuon < CHAM_DUNG_MS/);
     expect(src).toMatch(/setAttribute\('data-nosfx'/);
@@ -276,7 +276,10 @@ describe('tên ngẫu nhiên cho người mới (19.11.2026)', () => {
 describe('dải số thẻ: rung từng ô, cuộn không kêu (19.11.2026)', () => {
   it('cuộn qua ô mới → rung.tach() (chỉ khi ngón kéo); chốt bằng cuộn không phát tiếng, bấm thì có', () => {
     const ban = goc('src/components/BanChon.vue');
-    expect(ban).toMatch(/if \(keoTay && giua\.value != null && giua\.value !== truoc\) rung\.tach\(\)/);
+    expect(ban).toMatch(/if \(keoTay && giua\.value != null && giua\.value !== truoc\) \{ rung\.tach\(\); sfx\.tach\(\); \}/);
+    // Máy tính: lăn chuột dọc → cuộn ngang; kéo chuột → cuộn
+    expect(ban).toMatch(/@wheel="khiLan"/);
+    expect(ban).toMatch(/d\.scrollLeft \+= e\.deltaY/);
     expect(ban).toMatch(/emit\('chon-co', lv, 'cuon'\)/);
     expect(ban).toMatch(/emit\('chon-co', level, 'bam'\)/);
     expect(goc('src/components/MenuScreen.vue')).toMatch(/if \(cach !== 'cuon'\) sfx\.select\(\)/);
