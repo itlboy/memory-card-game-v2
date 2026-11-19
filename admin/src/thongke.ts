@@ -126,7 +126,7 @@ export async function tongQuan(ga: Ga, kh: KeHoach): Promise<GoiThongKe> {
   const moi = { filter: { fieldName: 'newVsReturning', stringFilter: { matchType: 'EXACT', value: 'new' } } };
   const cheDoCd = { filter: { fieldName: 'customEvent:che_do', stringFilter: { matchType: 'EXACT', value: 'chien_dich' } } };
   const dem = (ten: string, dims: string[], khoa: string) => o(khoa, R(kh.ky, kh.gio, dims, ['eventCount'], loc.su_kien(ten)));
-  const [pheu, quayLai, manKq, manBo, nguon, loiJs, roiPhong, ketNoi, dangNhap, chiaSe, ota] = await Promise.all([
+  const [pheu, quayLai, manKq, manBo, nguon, loiJs, roiPhong, ketNoi, suCo, dangNhap, chiaSe, ota] = await Promise.all([
     o('pheu', R(kh.ky, kh.gio, ['eventName'], ['totalUsers'], loc.trong('eventName', ['first_visit', 'buoc_menu', 'van_bat_dau', 'van_ket_thuc']), moi)),
     o('kpi', R(kh.ky, kh.gio, ['newVsReturning'], ['activeUsers'])),
     o('man_kho', R(kh.ky, kh.gio, ['customEvent:man', 'customEvent:ket_qua'], ['eventCount'], loc.su_kien('van_ket_thuc'), cheDoCd)),
@@ -135,6 +135,8 @@ export async function tongQuan(ga: Ga, kh: KeHoach): Promise<GoiThongKe> {
     dem('loi_js', ['customEvent:thong_diep'], 'loi_js'),
     dem('online_roi_phong', ['customEvent:ly_do'], 'roi_phong'),
     dem('online_ket_noi', ['customEvent:ket_qua'], 'ket_noi'),
+    // 18.11.2026: lối tự cứu của client (mất nhịp tim, nước đi chưa xác nhận, bàn đứng im) — ghép với log [ws] server
+    dem('online_su_co', ['customEvent:ly_do', 'customEvent:giai_doan'], 'su_co'),
     dem('dang_nhap', ['customEvent:cach', 'customEvent:ket_qua', 'customEvent:moi'], 'dang_nhap'),
     dem('chia_se', ['customEvent:kenh', 'customEvent:ket_qua'], 'chia_se'),
     dem('cap_nhat_ota', ['customEvent:ket_qua'], 'ota')
@@ -173,6 +175,7 @@ export async function tongQuan(ga: Ga, kh: KeHoach): Promise<GoiThongKe> {
   if (loiJs) goi.danhSach.loi_js = kv(loiJs).slice(0, 8);
   if (roiPhong) goi.danhSach.roi_phong = kv(roiPhong);
   if (ketNoi) goi.danhSach.ket_noi = kv(ketNoi);
+  if (suCo) goi.danhSach.su_co = ghep(suCo);
   if (dangNhap) {
     goi.danhSach.dang_nhap = ghep(dangNhap.map((r) => ({ d: [r.d[0] ?? '', r.d[1] ?? '', r.d[2] === 'true' ? 'moi' : ''], m: r.m })));
     goi.kpi.taiKhoanMoi = { v: dangNhap.filter((r) => r.d[1] === 'ok' && r.d[2] === 'true').reduce((a, r) => a + (r.m[0] ?? 0), 0) };

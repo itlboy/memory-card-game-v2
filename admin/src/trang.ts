@@ -259,6 +259,8 @@ export const JS = String.raw`
   var PHEU = { lan_dau: 'Lần đầu vào game', vao_menu: 'Vào menu chọn', bat_dau_van: 'Bắt đầu ván', choi_xong: 'Chơi xong ván' };
   var CHU = { tu_roi: 'Tự rời', huy_phong: 'Chủ phòng tự huỷ', chu_huy: 'Bị chủ phòng huỷ', bi_kick: 'Bị mời ra', phong_dong: 'Phòng đã đóng',
     mat_mang: 'Mất mạng', khac: 'Khác', noi_lai_ok: 'Rớt rồi nối lại được', noi_lai_hong: 'Rớt, không nối lại được',
+    mat_nhip: 'Mất nhịp tim', mat_nhip_noi_lai: 'Mất nhịp → nối lại', ack_cham: 'Nước đi xác nhận chậm', ack_hong: 'Nước đi không được xác nhận',
+    ban_dung: 'Bàn đứng im', ban_dung_noi_lai: 'Bàn đứng im → nối lại', thuc_noi_lai: 'Mở lại app → nối lại', choi: 'đang chơi', ket_qua: 'màn kết quả', cho: 'phòng chờ',
     ok: 'thành công', xong: 'xong', huy: 'huỷ', loi: 'lỗi', cu_qua: 'app quá cũ — cần lên store', moi: 'tài khoản mới',
     google: 'Google', apple: 'Apple', luu_anh: 'Lưu ảnh', anh: 'Chia sẻ ảnh', chu: 'Chia sẻ chữ', copy: 'Chép link',
     '(direct)': 'Vào thẳng', moi_ban: 'Link mời bạn', chia_se: 'Ảnh chia sẻ', 'play.google.com': 'Google Play', 'apps.apple.com': 'App Store' };
@@ -493,6 +495,7 @@ export const JS = String.raw`
       ['Lỗi JavaScript', g.danhSach.loi_js, '#fca5a5', function (x) { return x; }, 'loi_js'],
       ['Rời phòng online vì', g.danhSach.roi_phong, '#67e8f9', dich, 'roi_phong'],
       ['Kết nối online', g.danhSach.ket_noi, '#67e8f9', dich, 'ket_noi'],
+      ['Sự cố mạng online (app tự cứu)', g.danhSach.su_co, '#fca5a5', dich, 'su_co'],
       ['Đăng nhập', g.danhSach.dang_nhap, '#8b7dff', dich, 'dang_nhap'],
       ['Chia sẻ', g.danhSach.chia_se, '#e3a6ff', dich, 'chia_se'],
       ['Cập nhật nóng (OTA)', g.danhSach.ota, '#86efac', dich, 'ota']
