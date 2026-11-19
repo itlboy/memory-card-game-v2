@@ -2,7 +2,25 @@
 
 Một Cloudflare Worker riêng, **chỉ đọc GA4**. Không chạm MySQL, không chạm server game, không có
 tác vụ chạy nền: chỉ hỏi GA lúc có người mở trang, kết quả nhớ tạm ở Cache API (kỳ đã qua 1 giờ,
-kỳ có hôm nay 5 phút, thời gian thực 1 phút; ô nào lỗi thì không nhớ).
+kỳ có hôm nay 5 phút, thời gian thực 1 phút; ô có báo cáo lỗi chỉ nhớ 1 phút) + một bản cũ 24 giờ để
+dùng khi GA bận.
+
+## BẪY: GA4 chỉ cho 10 request đồng thời mỗi thuộc tính
+
+Quá 10 là `429 RESOURCE_EXHAUSTED`. Trước 19.11.2026 trang bắn 29 runReport một lúc (+3 realtime) và
+ô lỗi không được nhớ → mỗi lần tải lại/tự làm mới lại bắn đủ 29 → 429 mãi. Nay:
+
+- **Trang tải từng ô** (`/api/o/<phan>`, `phan` ∈ `kpi chuoi nen_tang quoc_gia heat choi nguoi_moi online
+  loi_js khac` — `PHAN` ở `src/thongke.ts`, khớp `data-phan` ở `src/trang.ts`): ô chỉ tải khi cuộn tới gần
+  (IntersectionObserver, 200px), tối đa 3 ô cùng lúc; tự làm mới chỉ làm ô đang hiện; đổi khoảng thì huỷ
+  lượt đang tải. Ô lỗi có nút "Thử lại", GA bận thì tự thử lại theo `Retry-After`.
+- **Worker** (`src/ga.ts`): hàng đợi ≤ 4 request GA cùng lúc mỗi isolate; 429 vì đồng thời / 503 thì thử
+  lại ~0.5s, 1.5s, 4s; 429 vì **hết token giờ/ngày thì không thử lại** (`GaLoi` loại `het_quota`).
+  Token xin chung một lần.
+- GA hỏng mà còn bản cũ (≤ 24 giờ) → trả bản cũ kèm `cu: true` (trang ghi "Đang hiện số cũ"); không có thì
+  503 (bận, `Retry-After: 5`) hoặc 429 (hết hạn mức, `Retry-After` tới đầu giờ sau).
+
+Thêm báo cáo vào một ô thì nhớ: mỗi ô nên ≤ ~8 báo cáo.
 
 Mockup đã duyệt: https://claude.ai/artifact/VdBjJtK6bNfLz1AXFcjRB9 (17.11.2026).
 
@@ -56,21 +74,23 @@ báo lỗi tên dimension, các ô khác vẫn chạy.
 | `theme` | Event | Chủ đề hay chọn |
 | `chuc_nang` | Event | Phòng online đã tạo, Cách vào phòng |
 | `ban_web` | User | Phiên bản web |
+| `thong_diep` | Event | Lỗi JavaScript |
+| `ngan_xep` | Event | Lỗi JavaScript — chỗ lỗi `tệp:dòng:cột` (chưa đăng ký thì ô vẫn chạy, chỉ thiếu dòng này) |
 
 Không cần đăng ký: người chơi, người mới, thời gian chơi, quốc gia, giờ cao điểm, số ván, và
 **nền tảng** — lấy từ `pagePath` (app gửi `/app/ios`, `/app/android`; web là mọi đường khác).
 
 ## Thêm số liệu
 
-Game gửi thêm sự kiện qua `suKien()` (`apps/web/src/lib/phan-tich.ts`) → thêm một báo cáo trong
-`src/thongke.ts` + một ô trong `src/trang.ts`. Tham số mới cần đăng ký custom dimension (bảng trên).
+Game gửi thêm sự kiện qua `suKien()` (`apps/web/src/lib/phan-tich.ts`) → thêm một báo cáo vào một ô
+(hàm theo `phan`) trong `src/thongke.ts` + một dòng bảng `DS` (hoặc khung `data-phan`) trong `src/trang.ts`. Tham số mới cần đăng ký custom dimension (bảng trên).
 Không gửi dữ liệu cá nhân lên GA.
 
 ## Lệnh
 
 ```bash
 pnpm install --ignore-workspace
-npm test                 # khoảng/hạt thời gian (src/khoang.ts)
+npm test                 # khoảng/hạt (khoang.ts), hàng đợi + thử lại GA (ga.ts), đường /api/o + bản cũ (api.ts)
 npx tsc --noEmit
 node ~/Code/kien/my-secrets/bin/secrets.mjs run cloudflare -- npm run deploy   # chỉ từ code đã lên origin/main
 ```
