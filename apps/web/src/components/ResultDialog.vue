@@ -318,9 +318,9 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           >
             <span class="xep" aria-hidden="true">
               <template v-if="r.tv.length">
-                <span v-for="m in r.tv" :key="m.id" class="mat" :class="{ ok: m.ok }" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
+                <span v-for="m in r.tv" :key="m.id" class="mat" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
               </template>
-              <span v-else class="mat" :class="{ ok: r.ok }"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
+              <span v-else class="mat"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
             </span>
             <b class="ten ten-kq">{{ r.ten }}</b>
             <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
@@ -641,13 +641,7 @@ h2 { margin: 0 0 4px; }
 .xep { display: flex; justify-content: center; }
 .xep .mat { position: relative; font-size: var(--mat); line-height: 1; }
 .xep .mat + .mat { margin-left: calc(var(--mat) * -.35); }
-/* Đã bấm "Chơi lại" (online): dấu ✓ xanh trên mặt — thay viền xanh nhấp nháy quanh cả dòng */
-.xep .mat.ok::after {
-  content: '✓'; position: absolute; z-index: 2; right: -3px; bottom: -3px;
-  width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center;
-  background: #46ad22; color: #fff; font: 900 11px/1 var(--font-body);
-  box-shadow: 0 0 0 2px var(--panel-solid);
-}
+/* Dấu ✓ trên mặt đã BỎ (19.11.2026, chủ dự án: "thừa") — hàng biểu tượng chơi lại dưới tỷ số nói thay */
 .cot .ten {
   max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: 16px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
