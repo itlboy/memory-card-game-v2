@@ -31,7 +31,7 @@ const props = defineProps<{
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
 }>();
-const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': [];
+const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
   'update:debug': [boolean]; 'mo-debug': [] }>();
 
 /*
@@ -210,14 +210,16 @@ watch(() => props.totalScore, (to, from) => {
       </button>
     </h1>
 
-    <span class="total thach" :class="{ pop: bump }" :key="bump" :title="t('tb.tongDiem', { n: num(totalScore) })">
+    <!-- BẤM ĐƯỢC (19.11.2026): mở Bảng xếp hạng — mockup https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy -->
+    <button class="total thach" :class="{ pop: bump }" :key="bump" type="button"
+      :title="t('tb.tongDiem', { n: num(totalScore) })" :aria-label="t('tb.moBxh', { n: num(totalScore) })" @click="emit('xep-hang')">
       <!-- Đồng xu = ĐIỂM, cùng hình với HUD (sao chỉ là đánh giá Chiến dịch) -->
       <DongXu :size="16" />
       <b>{{ numShort(shown) }}</b>
       <Transition name="gain">
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
-    </span>
+    </button>
     <!-- Viên danh hiệu RIÊNG, không ghép vào viên điểm: hai thước đo khác nhau,
          ghép chung thì "536k · 10/103" đọc thành một con số khó hiểu. -->
     <button
@@ -450,6 +452,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   color: var(--fg);
   background: var(--panel-solid);
   box-shadow: var(--elev-1);
+  font: inherit; cursor: pointer;
 }
 .total b {
   font-family: var(--font-display); font-weight: 800;

@@ -39,9 +39,22 @@ export interface HoSo {
 }
 
 export interface DongBxh {
-  /** Tên TẮT (server cắt) — bảng công khai không mang tên thật, ảnh, id. */
+  /** Tên TẮT (server cắt) — bảng công khai không mang tên thật, ảnh, id. Khách: tên tự đặt. */
   name: string; avatar: string | null; toi?: boolean; totalScore: number; wins: number; matches: number;
+  /** Mặt thú (server chọn ổn định theo id / mã khách). Server cũ không gửi. */
+  mat?: string;
+  /** Khách chưa đặt tên: số để hiện "Khách 4821". */
+  khach?: number;
 }
+
+/** Hạng của người đang xem (cả khi ngoài top 20) + người ngay trên / ngay dưới. */
+export interface HangToi extends DongBxh {
+  hang: number; tong: number;
+  tren: (DongBxh & { hang: number }) | null;
+  duoi: (DongBxh & { hang: number }) | null;
+}
+
+export interface BangXh { top: DongBxh[]; toi?: HangToi }
 
 export interface VanBao {
   ketQua: 'thang' | 'thua' | 'hoa';
@@ -231,9 +244,11 @@ export async function dongBo(): Promise<void> {
     const r = await goi<{ me: HoSo }>('/api/me/dongbo', {
       method: 'POST',
       body: JSON.stringify({
-        totalScore: store.totalScore(), best: store.allBest(), achievements: store.achievements()
+        totalScore: store.totalScore(), best: store.allBest(), achievements: store.achievements(),
+        khach: store.khach(false)?.id   // từng lên bảng dạng khách → server gộp và bỏ dòng khách
       })
     });
+    if (store.khach(false)) store.ganKhach({ daGop: true });
     me.value = r.me;
     keoVeMay(r.me);
   } catch { /* lần sau đăng nhập lại sẽ đồng bộ tiếp */ }
@@ -330,7 +345,7 @@ export async function xoaTaiKhoan(): Promise<void> {
  * điểm và số ván cộng dồn ở server. Không đăng nhập thì không làm gì.
  */
 export async function ghiVan(van: VanBao): Promise<void> {
-  if (!me.value) return;
+  if (!me.value) { void guiKhach(); return; }
   try {
     const r = await goi<{ me: HoSo }>('/api/me/van', { method: 'POST', body: JSON.stringify(van) });
     me.value = r.me;
@@ -338,8 +353,45 @@ export async function ghiVan(van: VanBao): Promise<void> {
   } catch { /* mất một ván trong sổ còn hơn làm phiền người chơi */ }
 }
 
-export async function bangXepHang(): Promise<DongBxh[]> {
-  return (await goi<{ top: DongBxh[] }>('/api/bxh')).top;
+/**
+ * BẢNG XẾP HẠNG CÓ KHÁCH (19.11.2026, mockup duyệt https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy):
+ * chưa đăng nhập vẫn lên bảng chung bằng tên trong game + mặt thú. Máy gửi TỔNG điểm (không phải
+ * từng ván) nên gửi lại bao nhiêu lần cũng không nhân đôi. Chưa chơi ván nào thì chưa gửi.
+ */
+export async function guiKhach(): Promise<void> {
+  if (me.value || !san.value) return;
+  const k = store.khach(false) ?? (store.totalScore() > 0 ? store.khach() : null);
+  if (!k || k.an || k.daGop) return;
+  const d = store.boDem();
+  try {
+    await goi<{ ok: boolean }>('/api/khach', {
+      method: 'POST',
+      body: JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins) })
+    });
+  } catch { /* lần sau gửi tiếp — tổng điểm nên không mất gì */ }
+}
+
+/** Đặt tên trên bảng — cũng là tên khi chơi online (cùng ô nhớ). */
+export async function datTenKhach(ten: string): Promise<void> {
+  const tt = ten.trim().slice(0, 16);
+  const ds = store.playerNames();
+  store.savePlayerNames([tt, ...ds.slice(1)]);
+  await guiKhach();
+}
+
+/** "Ẩn tôi khỏi bảng": xoá dòng khách trên server, máy thôi gửi. `hien` = bật lại. */
+export async function anKhach(an: boolean): Promise<void> {
+  const k = store.khach(false);
+  if (!k) return;
+  store.ganKhach({ an });
+  if (an) await goi<{ ok: boolean }>('/api/khach/xoa', { method: 'POST', body: JSON.stringify({ id: k.id }) });
+  else await guiKhach();
+}
+
+export async function bangXepHang(): Promise<BangXh> {
+  if (!me.value) await guiKhach();   // hạng tính trên điểm MỚI NHẤT của máy
+  const k = me.value ? null : store.khach(false);
+  return goi<BangXh>('/api/bxh', { method: 'POST', body: JSON.stringify({ khach: k && !k.an && !k.daGop ? k.id : undefined }) });
 }
 
 /* ---------- Google Identity Services ---------- */
@@ -385,4 +437,4 @@ export async function veNutGoogle(el: HTMLElement, xong: (h: HoSo) => void, loi:
 }
 
 /** Gom một mối để App/OnlineGame gọi và để test giả lập. */
-export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangNhapApple, dangXuat, xoaTaiKhoan, ghiVan, dongBo, bangXepHang, veNutGoogle };
+export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangNhapApple, dangXuat, xoaTaiKhoan, ghiVan, dongBo, bangXepHang, guiKhach, veNutGoogle };

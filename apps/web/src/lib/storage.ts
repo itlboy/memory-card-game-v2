@@ -81,6 +81,8 @@ interface Save {
   clientId?: string;
   /** Bộ đếm cho danh hiệu đếm (lib/achievements.ts). */
   boDem?: BoDem;
+  /** Bảng xếp hạng cho khách (19.11.2026) — xem `khach()`. */
+  khach?: { id: string; an?: boolean; daGop?: boolean };
 }
 
 /**
@@ -89,6 +91,8 @@ interface Save {
  */
 export interface BoDem {
   wins: number; botWins: number; onlineWins: number;
+  /** Số ván đã xong trên máy (đếm từ 19.11.2026 — máy cũ bắt đầu từ 0, nên có thể < wins). */
+  van?: number;
   /** Ngày chơi gần nhất, `YYYY-MM-DD` giờ máy. */
   ngayCuoi: string;
   chuoi: number; chuoiMax: number;
@@ -282,6 +286,7 @@ export const store = {
   ghiVanBoDem(v: { thang: boolean; may?: boolean; online?: boolean }, homNay = ngayMay()): BoDem {
     const s = read();
     const b: BoDem = { ...BO_DEM_RONG, ...(s.boDem ?? {}) };
+    b.van = (b.van ?? 0) + 1;
     if (v.thang) {
       b.wins++;
       if (v.may) b.botWins++;
@@ -331,6 +336,31 @@ export const store = {
     s.clientId = id;
     write(s);
     return id;
+  },
+
+  /**
+   * KHÁCH TRÊN BẢNG XẾP HẠNG: mã NGẪU NHIÊN riêng (không dùng `clientId` — mã này là thứ chứng minh
+   * "dòng này là của tôi" với server, nên không đi đâu khác). `an` = người chơi bấm "Ẩn tôi khỏi
+   * bảng"; `daGop` = điểm đã gộp vào một tài khoản (đăng xuất ra cũng không lên bảng lại thành dòng
+   * thứ hai). `tao: false` → chỉ đọc, chưa có thì trả null.
+   */
+  khach(tao = true): { id: string; an?: boolean; daGop?: boolean } | null {
+    const s = read();
+    if (s.khach?.id) return { ...s.khach };
+    if (!tao) return null;
+    const b = new Uint8Array(18);
+    globalThis.crypto.getRandomValues(b);
+    const id = btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    s.khach = { id };
+    write(s);
+    return { id };
+  },
+
+  ganKhach(doi: { an?: boolean; daGop?: boolean }): void {
+    const s = read();
+    if (!s.khach) return;
+    s.khach = { ...s.khach, ...doi };
+    write(s);
   },
 
   playerNames(): string[] { return read().names ?? []; },

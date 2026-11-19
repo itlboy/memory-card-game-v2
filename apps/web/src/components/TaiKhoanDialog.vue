@@ -6,7 +6,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { dsHien, daCo as daCoRef } from '@/lib/achievements';
 import { num, numShort } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { bangXepHang, coApple, coGoogle, coGoogleApp, dangNhapApple, dangNhapGoogleApp, dangTai, dangXuat, me, veNutGoogle, xoaTaiKhoan, type DongBxh } from '@/lib/taikhoan';
+import { coApple, coGoogle, coGoogleApp, dangNhapApple, dangNhapGoogleApp, dangTai, dangXuat, me, veNutGoogle, xoaTaiKhoan } from '@/lib/taikhoan';
 
 /**
  * MÀN TÀI KHOẢN: chưa đăng nhập thì nút Google và/hoặc Apple (tuỳ nền, xem
@@ -18,13 +18,10 @@ import { bangXepHang, coApple, coGoogle, coGoogleApp, dangNhapApple, dangNhapGoo
  * XOÁ TÀI KHOẢN phải nằm NGAY TRONG app (App Store 5.1.1(v)), hai bước: bấm
  * "Xoá tài khoản" chỉ mở câu hỏi, nút đỏ mới xoá thật.
  */
-const emit = defineEmits<{ close: []; 'danh-hieu': [] }>();
+const emit = defineEmits<{ close: []; 'danh-hieu': []; 'xep-hang': [] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 const nutGoogle = ref<HTMLElement | null>(null);
 const loi = ref('');
-const tab = ref<'hoso' | 'bxh'>('hoso');
-const bxh = ref<DongBxh[] | null>(null);
-const loiBxh = ref('');
 
 onMounted(() => { closeBtn.value?.focus(); veNut(); });
 watch(me, (m) => { if (!m) veNut(); });
@@ -65,11 +62,8 @@ async function veNut(): Promise<void> {
   } catch { loi.value = t('tk.loiNut'); }
 }
 
-async function moBxh(): Promise<void> {
-  tab.value = 'bxh';
-  if (bxh.value) return;
-  try { bxh.value = await bangXepHang(); } catch { loiBxh.value = t('tk.loiBxh'); }
-}
+/** Bảng xếp hạng nay là hộp riêng (BangXepHang.vue, 19.11.2026) — mở cả từ viên đồng xu. */
+function moBxh(): void { emit('xep-hang'); }
 
 const tiLeThang = computed(() => {
   const m = me.value;
@@ -135,16 +129,6 @@ const diemMay = store.totalScore();
 <button class="nut-dh thach th-vang" type="button" @click="emit('danh-hieu')">
             🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
-          <ol v-if="tab === 'bxh' && bxh" class="bxh">
-            <li v-for="(d, i) in bxh" :key="i">
-              <span class="hang">{{ i + 1 }}</span>
-              <img v-if="d.avatar" :src="d.avatar" alt="" referrerpolicy="no-referrer">
-              <span class="ten">{{ d.name }}</span>
-              <b>{{ num(d.totalScore) }}</b>
-            </li>
-            <li v-if="!bxh.length" class="muted">{{ t('tk.chuaAi') }}</li>
-          </ol>
-          <p v-if="loiBxh" class="loi">{{ loiBxh }}</p>
         </div>
 
         <!-- Đã đăng nhập -->
@@ -161,12 +145,8 @@ const diemMay = store.totalScore();
             </button>
           </div>
 
-          <div class="tabs" role="tablist">
-            <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="tab === 'hoso'" @click="tab = 'hoso'">{{ t('tk.hoSo') }}</button>
-            <button class="tab thach th-chon th-chon-do" role="tab" type="button" :aria-selected="tab === 'bxh'" @click="moBxh">{{ t('tk.xepHang') }}</button>
-          </div>
+          <button class="nut-dh thach th-vang" type="button" @click="moBxh">🏆 <b>{{ t('tk.xepHang') }}</b> <i aria-hidden="true">›</i></button>
 
-          <template v-if="tab === 'hoso'">
             <dl class="so">
               <div><dt>{{ t('tk.van') }}</dt><dd>{{ num(me.matches) }}</dd></div>
               <div><dt>{{ t('tk.thang') }}</dt><dd>{{ num(me.wins) }}</dd></div>
@@ -200,22 +180,6 @@ const diemMay = store.totalScore();
               </template>
               <p v-if="loiXoa" class="loi" role="alert">{{ loiXoa }}</p>
             </div>
-          </template>
-
-          <template v-else>
-            <ol v-if="bxh" class="bxh">
-              <li v-for="(d, i) in bxh" :key="i" :class="{ toi: d.toi }">
-                <span class="hang">{{ i + 1 }}</span>
-                <img v-if="d.avatar" :src="d.avatar" alt="" referrerpolicy="no-referrer">
-                <span class="ten">{{ d.name }}</span>
-                <small>{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</small>
-                <b>{{ num(d.totalScore) }}</b>
-              </li>
-              <li v-if="!bxh.length" class="muted">{{ t('tk.chuaAiMoi') }}</li>
-            </ol>
-            <p v-else-if="loiBxh" class="loi">{{ loiBxh }}</p>
-            <p v-else class="muted">{{ t('tk.dangTai') }}</p>
-          </template>
         </template>
       </div>
     </div>
@@ -292,14 +256,6 @@ const diemMay = store.totalScore();
 .ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ten-khoi .muted { margin: 0; }
 
-.tabs { display: flex; gap: 6px; margin: 12px 0 10px; }
-.tab {
-  flex: 1; min-height: 40px; border-radius: 10px; border: 1px solid var(--line);
-  background: transparent; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer;
-}
-.tab[aria-selected='true'] {
-  background: var(--nhan-nen); color: var(--nhan-chu); border-color: transparent;
-}
 
 .so { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0; }
 .so div { text-align: center; padding: 8px 2px; border-radius: 10px; background: color-mix(in srgb, var(--fg) 6%, transparent); }
@@ -312,21 +268,13 @@ h3 {
 }
 h3 small { font-weight: 400; letter-spacing: 0; text-transform: none; }
 
-.ky-luc, .bxh { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.ky-luc { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 
 .ky-luc li { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 6px 10px; border-radius: 10px;
   background: color-mix(in srgb, var(--fg) 5%, transparent); font-size: var(--text-sm); }
 .ky-luc b { font-variant-numeric: tabular-nums; }
 .ky-luc small { grid-column: 1 / -1; color: var(--muted); }
 
-.bxh li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px;
-  background: color-mix(in srgb, var(--fg) 5%, transparent); font-size: var(--text-sm); }
-.bxh li.toi { background: color-mix(in srgb, var(--accent) 18%, transparent); }
-.bxh .hang { width: 22px; text-align: center; font-weight: 800; color: var(--muted); }
-.bxh img { width: 26px; height: 26px; border-radius: 50%; }
-.bxh .ten { flex: 1; min-width: 0; }
-.bxh small { color: var(--muted); }
-.bxh b { font-variant-numeric: tabular-nums; }
 .nut-dh {
   display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; margin-top: 12px;
   padding: 0 14px; border-radius: 12px; border: 0; cursor: pointer; font: inherit; color: #4a2f00;
