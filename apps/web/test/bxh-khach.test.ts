@@ -118,7 +118,7 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
   beforeEach(() => { localStorage.clear(); vi.resetModules(); });
   afterEach(() => { vi.unstubAllGlobals(); });
 
-  it('capNhatHang: nhớ hạng, báo cũ/mới để biết lên hạng; lỗi mạng giữ số cũ', async () => {
+  it('hạng: hỏi MỘT lần lúc khởi động, sau đó chỉ khi điểm tăng / mở bảng; thấy lên hạng thì báo; lỗi mạng giữ số cũ', async () => {
     let hang = 137;
     const f = vi.fn(async (u: string) => {
       if (u.endsWith('/api/auth/config')) return json({ googleClientId: 'x' });
@@ -129,13 +129,23 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
     const tk = await import('@/lib/taikhoan');
     await tk.khoiDong();
     const hx = await import('@/lib/hang-xu');
-    expect(await hx.capNhatHang()).toEqual({ cu: null, moi: 137 });
+    const soLanHoi = () => f.mock.calls.filter(([u]) => String(u).endsWith('/api/bxh')).length;
+    await hx.hoiLanDau();
+    await hx.hoiLanDau();
+    expect(soLanHoi()).toBe(1);
+    expect(hx.hangXu.value).toBe(137);
+    expect(hx.lenHangCho.value).toBeNull();
     hang = 129;
-    expect(await hx.capNhatHang()).toEqual({ cu: 137, moi: 129 });
+    await hx.hoiSauDiem();
+    expect(hx.hangXu.value).toBe(129);
+    expect(hx.lenHangCho.value).toEqual({ hang: 129, n: 8 });
     expect(localStorage.getItem('mm.hangXu')).toBe('129');
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('mất mạng'); }));
-    expect(await hx.capNhatHang()).toBeNull();
+    await hx.hoiSauDiem();
     expect(hx.hangXu.value).toBe(129);
+    // TopBar KHÔNG hỏi theo giờ / khi quay lại từ nền
+    const tb = goc('src/components/TopBar.vue');
+    expect(tb).not.toMatch(/setInterval|visibilitychange|appStateChange/);
   });
 
   it('mẹo đồng xu chỉ một lần', async () => {

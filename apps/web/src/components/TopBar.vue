@@ -9,7 +9,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import DongXu from './DongXu.vue';
-import { capNhatHang, daXemMeoXu, hangXu, tatMeoXu, vuaHoi } from '@/lib/hang-xu';
+import { daXemMeoXu, hangXu, hoiLanDau, hoiSauDiem, lenHangCho, tatMeoXu } from '@/lib/hang-xu';
 import type { SoundLevel } from '@/lib/storage';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
@@ -31,6 +31,8 @@ const props = defineProps<{
   dungYen?: boolean;
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
+  /** Bảng xếp hạng đang mở — hiệu ứng lên hạng chờ bảng đóng mới diễn. */
+  bxhMo?: boolean;
 }>();
 const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
   'update:debug': [boolean]; 'mo-debug': [] }>();
@@ -199,43 +201,41 @@ watch(() => props.totalScore, (to, from) => {
 
 /*
  * HẠNG TRÊN VIÊN XU (19.11.2026, mockup duyệt https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz) — lib/hang-xu.ts.
- * Hỏi hạng lúc mở app và 2,5 giây sau khi xu tăng (để điểm khách kịp lên server). LÊN HẠNG thì viên hạng
- * nháy vàng + vòng sáng + lời nhắc "Lên hạng #129 (↑8). Bấm xem!" 3,5 giây. Trong ván (`dungYen`, kể cả lúc
- * bảng kết quả che thanh trên) thì GIỮ LẠI, ra khỏi ván mới diễn — diễn sau lớp phủ là không ai thấy.
- * Mẹo "bấm vào đây…" chỉ một lần trong đời máy, sau khi đã có hạng; bấm xu hay "Đã hiểu" là tắt hẳn.
+ * Ít gọi server (chủ dự án): khởi động app một lần (`hoiLanDau`); điểm mình vừa tăng → một lần khi đã ra khỏi
+ * ván (`diemDoi` gom mọi lần cộng trong ván, 1,5 giây cho điểm khách kịp lên server); mở bảng xếp hạng. Lần mở đó thấy
+ * LÊN HẠNG (`lenHangCho`) thì khi BẢNG ĐÓNG (`bxhMo` false) và đang ngoài ván (`dungYen`) mới diễn: viên hạng
+ * nháy vàng + vòng sáng + lời nhắc "Lên hạng #129 (↑8)" 3,5 giây — diễn sau lớp phủ là không ai thấy.
+ * Mẹo "bấm vào đây…" một lần đời máy, sau khi đã có xu; bấm xu hay "Đã hiểu" là tắt hẳn.
  */
 const lenHang = ref<{ hang: number; n: number; key: number } | null>(null);
-let choDien: { hang: number; n: number } | null = null;
 const meo = ref(false);
-let hoiTimer: ReturnType<typeof setTimeout> | undefined;
 let lenTimer: ReturnType<typeof setTimeout> | undefined;
 function dien(): void {
-  if (!choDien || props.dungYen) return;
-  lenHang.value = { ...choDien, key: (lenHang.value?.key ?? 0) + 1 };
-  choDien = null;
+  const c = lenHangCho.value;
+  if (!c || props.dungYen || props.bxhMo) return;
+  lenHangCho.value = null;
+  lenHang.value = { ...c, key: (lenHang.value?.key ?? 0) + 1 };
   meo.value = false;
   clearTimeout(lenTimer);
   lenTimer = setTimeout(() => { lenHang.value = null; }, 3500);
 }
 function xemMeo(): void {
-  if (!props.dungYen && hangXu.value && !daXemMeoXu() && !lenHang.value) meo.value = true;
+  if (props.account && !props.dungYen && !props.bxhMo && props.totalScore > 0 && !daXemMeoXu() && !lenHang.value) meo.value = true;
 }
-async function hoiHang(coDien: boolean, khiMo = false): Promise<void> {
-  if (!props.account) return;
-  if (khiMo && vuaHoi()) { xemMeo(); return; }   // mở app lại trong 10 phút: dùng hạng đã nhớ
-  const r = await capNhatHang();
-  if (coDien && r?.cu && r.moi && r.moi < r.cu) { choDien = { hang: r.moi, n: r.cu - r.moi }; dien(); }
-  xemMeo();
-}
-onMounted(() => { void hoiHang(false, true); });
-watch(() => props.account, (co) => { if (co) void hoiHang(false, true); });
-watch(() => props.totalScore, (to, from) => {
-  if (to <= from) return;
+onMounted(() => { xemMeo(); if (props.account) void hoiLanDau(); });
+watch(() => props.account, (co) => { if (co) void hoiLanDau(); });   // tài khoản sẵn sàng sau khi dựng
+let diemDoi = false;
+let hoiTimer: ReturnType<typeof setTimeout> | undefined;
+function hoiNeuDiemDoi(): void {
+  if (!diemDoi || !props.account || props.dungYen) return;
+  diemDoi = false;
   clearTimeout(hoiTimer);
-  hoiTimer = setTimeout(() => { void hoiHang(true); }, 2500);
-});
-watch(() => props.dungYen, () => { dien(); xemMeo(); });
-onUnmounted(() => { clearTimeout(hoiTimer); clearTimeout(lenTimer); });
+  hoiTimer = setTimeout(() => { void hoiSauDiem(); }, 1500);
+}
+watch(() => props.totalScore, (to, from) => { if (to > from) { diemDoi = true; hoiNeuDiemDoi(); } });
+watch(() => props.dungYen, hoiNeuDiemDoi);
+watch(() => [lenHangCho.value, props.dungYen, props.bxhMo, props.totalScore, props.account], () => { dien(); xemMeo(); });
+onUnmounted(() => { clearTimeout(lenTimer); clearTimeout(hoiTimer); });
 function moBxh(): void {
   if (meo.value) { meo.value = false; tatMeoXu(); }
   emit('xep-hang');
