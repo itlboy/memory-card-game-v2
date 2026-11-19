@@ -988,7 +988,7 @@
     bàn; màu theo loại tot/can/roi/mang/xem; tin `can`/`mang` chen lên NGAY (xếp hàng thì nhắc tới trễ — đo
     thật). Tin sinh ở `useBaoPhong` từ chênh lệch hai bản `room` — ĐỪNG rải dòng báo riêng ở từng màn nữa.
     Chữ thống nhất "đã rời phòng" (bỏ "Đã thoát"/"đã rời").
-  - Phòng chờ: CỘT SẴN SÀNG (ô tròn tick xanh / ⏳ cam / 📡) trước ô Đội — KHÔNG chữ dưới tên, KHÔNG "Sẵn sàng
+  - Phòng chờ: CỘT SẴN SÀNG (ô tròn ✋ nền xanh lá — cùng bàn tay nút "✋ Sẵn sàng!", tick dễ đọc thành "đã xong" / ⏳ cam / 📡) trước ô Đội — KHÔNG chữ dưới tên, KHÔNG "Sẵn sàng
     x/y", KHÔNG dòng "Còn chờ X" dưới nút (chủ dự án: "nhìn rối quá"); máy luôn tick. Nút Bắt đầu LUÔN bấm được
     khi đủ người (xám xanh khi còn chờ → ô ⏳ của người chưa sẵn sàng NHÁY + `NhacSanSang.vue`; KHÔNG có "bắt đầu luôn" — chủ dự án: "chỉ có nhắc"). Tin `{t:'nhac'}` chỉ chủ
     phòng, chỉ tới người chưa sẵn sàng, `NHAC_CACH_MS` 10s. Khách: nút VÀNG "✋ Sẵn sàng!"; đã sẵn sàng = thẻ xanh
@@ -1000,6 +1000,9 @@
     = người xem (tên + mặt băm theo tên); chip `ChipXem` ở slot `phai` của HudBar (không thêm hàng), bấm ra
     danh sách. Biểu tượng người xem = xô bỏng ngô `BongNgo.vue` (chủ dự án chê 👁/👀). Không có "giữ chỗ".
   - Smoke: `tools/smoke-xem-nhac.mjs` (chạy trong docker.yml).
+  - Bong bóng emoji + câu nói nhanh trong ván: ĐUÔI CHỈ VÀO AVATAR (không vào tên) — kẹp bong bóng vào màn rồi
+    dời chân đuôi (`vt` của KhungBong) cho đúng tâm avatar. Ảnh chia sẻ ván nhiều người có khung TỶ SỐ LOẠT
+    ("Tỷ số · Ván N" + "Kiên 3 – 1 Linh", người dẫn tô vàng) — `NoiDungAnh.tySo`.
 - **CHUÔNG "BÁO TÔI KHI CÓ PHÒNG MỚI" (18.11.2026, app ≥ 1.8.17)**: nút chuông cạnh tiêu đề
   "Phòng đang chờ" (`OnlineScreen.vue`), bấm lần nữa là TẮT (chủ dự án: "nhớ có nút tắt"). Client
   `lib/thong-bao.ts`, server `apps/node-server/src/thongbao.ts` — CHỈ bản Node (Map sổ phòng được bọc
