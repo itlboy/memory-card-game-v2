@@ -1,16 +1,17 @@
-# BACKUP MARIADB LẬT THẺ → IDRIVE e2 (19.11.2026, chủ dự án: "backup lên idrive, định kỳ hàng ngày, giữ lại 7
-# bản cuối cùng, nhớ nén gzip").
+# BACKUP MARIADB LẬT THẺ → IDRIVE e2 (19.11.2026, chủ dự án: "backup lên idrive… nhớ nén gzip"; sau đó: "ngày 3 lần
+# mỗi lần cách nhau 8 tiếng và giữ lại 7 ngày cuối cùng").
 #
 # Vì sao: trước đó chỉ có Proxmox chụp CẢ máy ảo mỗi Chủ nhật, giữ 1 bản, nằm trên CÙNG máy vật lý — mất máy
 # là mất cả dữ liệu lẫn backup, hỏng thứ Bảy là mất gần một tuần. Đây là bản riêng database, ra NGOÀI nhà.
 #
-# Mỗi ngày 03:00 giờ VN:
+# 03:00 · 11:00 · 19:00 giờ VN (8 tiếng một lần):
 #   1. initContainer `dump` (ảnh mariadb — có sẵn mariadb-dump): dump database `latthe` bằng
 #      --single-transaction (InnoDB: ảnh chụp nhất quán, KHÔNG khoá bảng — game vẫn chạy), gzip -9,
 #      ra `latthe-YYYYMMDD-HHMMSS.sql.gz`. `pipefail`: dump hỏng giữa chừng thì job ĐỎ, không đẩy file cụt.
 #      File < 1 KB cũng coi là hỏng.
 #   2. container `day-len` (ảnh rclone): chép file lên `e2:<bucket>/latthe/`, rồi XOÁ mọi bản cũ hơn 7 bản mới
-#      nhất (tên có ngày giờ nên sắp theo tên = sắp theo thời gian).
+#      nhất. GIU = 21 = 7 ngày × 3 bản. Giữ theo SỐ BẢN chứ không xoá theo tuổi: backup ngưng một thời gian thì xoá
+#      theo tuổi sẽ dần xoá SẠCH, còn theo số bản thì 21 bản cuối luôn còn. Tên có ngày giờ → sắp theo tên = theo thời gian.
 #
 # ---------- KHOÁ KHÔNG NẰM TRONG FILE NÀY ----------
 # Secret `thebai-backup-e2` tạo bằng tay từ my-secrets (provider `idrive-e2`):
@@ -31,7 +32,7 @@ metadata:
   name: thebai-mysql-backup
   namespace: thebai
 spec:
-  schedule: "0 3 * * *"
+  schedule: "0 3,11,19 * * *"
   timeZone: "Asia/Ho_Chi_Minh"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
@@ -81,7 +82,7 @@ spec:
                 - { name: RCLONE_CONFIG_E2_ACCESS_KEY_ID, valueFrom: { secretKeyRef: { name: thebai-backup-e2, key: E2_ACCESS_KEY_ID } } }
                 - { name: RCLONE_CONFIG_E2_SECRET_ACCESS_KEY, valueFrom: { secretKeyRef: { name: thebai-backup-e2, key: E2_SECRET_ACCESS_KEY } } }
                 - { name: RCLONE_CONFIG_E2_ENDPOINT, valueFrom: { secretKeyRef: { name: thebai-backup-e2, key: E2_ENDPOINT } } }
-                - { name: GIU, value: "7" }
+                - { name: GIU, value: "21" }
               command: ["sh", "-c"]
               args:
                 - |
