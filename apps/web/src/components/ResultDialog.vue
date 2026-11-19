@@ -6,7 +6,7 @@ import MatNguoi from './MatNguoi.vue';
 import { t, td, bcp } from '@/lib/i18n';
 import { isDraw, laBotId } from '@mm/engine';
 import type { PlayerInit, Summary } from '@mm/engine';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { byId, type Achievement } from '@/lib/achievements';
 import { sfx } from '@/lib/audio';
 import { clock, num } from '@/lib/format';
@@ -91,6 +91,29 @@ const saoKe = computed(() => {
 /** Điểm chạy dần từ 0 lên tổng — con số nhảy sẵn thì không ai cảm nhận được
  *  là mình vừa ghi được bao nhiêu. */
 const shownScore = ref(0);
+
+/**
+ * TÊN DÀI THÌ CHẠY (19.11.2026, chủ dự án: "tên nhỏ hơn chút, dài quá thì làm tên chạy"): đo sau khi vẽ
+ * (và khi font tải xong — font hiển thị rộng hơn font dự phòng), tên tràn cột thì gắn `chay` + độ lệch
+ * `--lech` để chữ trượt qua lại. Tên vừa cột thì giữ nguyên, đứng yên.
+ */
+const bangTySo = ref<HTMLElement | null>(null);
+function doTenChay(): void {
+  for (const b of bangTySo.value?.querySelectorAll<HTMLElement>('.ten-kq') ?? []) {
+    b.classList.remove('chay');
+    // Đo trên chính ô tên (overflow hidden): span inline có scrollWidth = 0
+    const lech = b.scrollWidth - b.clientWidth;
+    if (lech > 2) {
+      b.style.setProperty('--lech', `${-lech - 4}px`);
+      b.style.setProperty('--tg', `${Math.min(9, 3 + lech / 18).toFixed(1)}s`);
+      b.classList.add('chay');
+    }
+  }
+}
+onMounted(() => {
+  void nextTick(doTenChay);
+  document.fonts?.ready.then(doTenChay).catch(() => { /* không có Font Loading API */ });
+});
 
 onMounted(() => {
   primary.value?.focus();
@@ -312,7 +335,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
            visibility chứ không display:none — display:none là mất chỗ, khung nhảy. -->
       <div v-if="multiplayer" class="lat" :class="{ chong: loat }">
         <div
-          v-if="loat" class="loat khay-nho khay-noi" :class="{ an: moChiTiet, chat: loat.length >= 3 }" role="group"
+          v-if="loat" ref="bangTySo" class="loat khay-nho khay-noi" :class="{ an: moChiTiet, chat: loat.length >= 3, 'rat-chat': loat.length >= 5 }" role="group"
           :aria-label="`${t('kq.tySo')}: ${loatAria}`" :style="{ '--n': loat.length }"
         >
           <div
@@ -325,7 +348,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
               </template>
               <span v-else class="mat"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
             </span>
-            <b class="ten ten-kq">{{ r.ten }}</b>
+            <b class="ten ten-kq"><span class="chu-ten">{{ r.ten }}</span></b>
             <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
             <!-- Hàng số CAO CỐ ĐỊNH: viên +1 nổi bên trên, không đẩy dòng điểm của cột thắng
                  xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
@@ -648,14 +671,33 @@ h2 { margin: 0 0 4px; }
 }
 .cot { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
 .cot.ra { opacity: .45; }
-.xep { display: flex; justify-content: center; }
+/* Hàng mặt CAO CỐ ĐỊNH (19.11.2026, chủ dự án gửi ảnh 4 người "giao diện bị vỡ"): mặt SVG (báo đen,
+   rồng vàng) cao hơn emoji vài px → cả cột đó tụt xuống, số và biểu tượng chơi lại lệch hàng. */
+.xep { display: flex; justify-content: center; align-items: center; height: calc(var(--mat) * 1.2); overflow: visible; }
 .xep .mat { position: relative; font-size: var(--mat); line-height: 1; }
 .xep .mat + .mat { margin-left: calc(var(--mat) * -.35); }
 /* Dấu ✓ trên mặt đã BỎ (19.11.2026, chủ dự án: "thừa") — hàng biểu tượng chơi lại dưới tỷ số nói thay */
 .cot .ten {
-  max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: 15px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
+  /* KHỐI thường, không flex: flex căn giữa làm tên dài bị cắt CẢ HAI ĐẦU ("ot báo đe") và không ra "…" */
+  display: block; text-align: center;
+}
+.loat.chat .ten { font-size: 13.5px; }
+.loat.chat .dm { font-size: 12px; }
+.loat.rat-chat .ten { font-size: 12.5px; }
+.loat.rat-chat .dm { font-size: 11px; letter-spacing: -.2px; }
+.ten.chay {
+  text-overflow: clip; text-align: left;
+  /* hai mép mờ dần: thấy rõ là chữ đang chạy, không phải bị cắt */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6px, #000 calc(100% - 6px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6px, #000 calc(100% - 6px), transparent);
+}
+.ten.chay .chu-ten { display: inline-block; padding: 0 2px; animation: chay-ten var(--tg, 5s) ease-in-out 1.2s infinite alternate; }
+@keyframes chay-ten { 0%, 18% { transform: none; } 82%, 100% { transform: translateX(var(--lech)); } }
+@media (prefers-reduced-motion: reduce) {
+  .ten.chay { text-overflow: ellipsis; -webkit-mask-image: none; mask-image: none; }
+  .ten.chay .chu-ten { display: inline; animation: none; }
 }
 .cot .tv, .cot .dm {
   max-width: 100%; font-size: 12.5px; font-weight: 700; color: var(--muted);
@@ -664,7 +706,7 @@ h2 { margin: 0 0 4px; }
 .cot .dm { font-size: 13.5px; }
 /* Đội: chấm màu như thanh đội trong ván (TeamStrip) */
 .d1 { --mau: #ff8a3d; } .d2 { --mau: #3d9bff; } .d3 { --mau: #3fbf6b; } .d4 { --mau: #a66bff; }
-.doi .ten::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--mau); flex: 0 0 auto; }
+.doi .ten::before { content: ''; display: inline-block; vertical-align: middle; width: 9px; height: 9px; margin: -2px 5px 0 0; border-radius: 50%; background: var(--mau); }
 .so {
   height: var(--so); margin-top: 4px; display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-weight: 800; font-size: var(--so); line-height: 1;
