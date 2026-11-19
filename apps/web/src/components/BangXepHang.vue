@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { anKhach, bangXepHang, datTenKhach, me, type BangXh, type DongBxh } from '@/lib/taikhoan';
+import { anKhach, bangXepHang, bxhLanTruoc, datTenKhach, me, type BangXh, type DongBxh } from '@/lib/taikhoan';
 import MatBot from './MatBot.vue';
 
 /**
@@ -19,7 +19,8 @@ import MatBot from './MatBot.vue';
  */
 const emit = defineEmits<{ close: []; 'dang-nhap': [] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
-const bang = ref<BangXh | null>(null);
+/** Hiện NGAY bảng lần trước (bxhLanTruoc) rồi thay bằng số mới — xem taikhoan.ts. */
+const bang = ref<BangXh | null>(bxhLanTruoc());
 const loi = ref(false);
 
 const laKhach = computed(() => !me.value);
@@ -31,7 +32,8 @@ const dangLuu = ref(false);
 
 async function tai(): Promise<void> {
   loi.value = false;
-  try { bang.value = await bangXepHang(); } catch { loi.value = true; }
+  // Đang có bảng cũ mà mất mạng: giữ bảng cũ, không báo lỗi đè lên
+  try { bang.value = await bangXepHang(); } catch { if (!bang.value) loi.value = true; }
 }
 onMounted(() => { closeBtn.value?.focus(); void tai(); });
 
@@ -80,7 +82,10 @@ async function doiAn(an: boolean): Promise<void> {
           <li v-if="!bang.top.length" class="muted">{{ t('tk.chuaAiMoi') }}</li>
         </ol>
         <p v-else-if="loi" class="loi">{{ t('tk.loiBxh') }} <button class="btn-link" type="button" @click="tai">{{ t('bxh.thuLai') }}</button></p>
-        <p v-else class="muted">{{ t('tk.dangTai') }}</p>
+        <!-- Lần đầu (chưa có bảng cũ): dòng xám đúng dáng bảng thay chữ "Đang tải…" — khung không giật cao -->
+        <ol v-else class="bxh xuong" :aria-label="t('tk.dangTai')" aria-busy="true">
+          <li v-for="i in 6" :key="i"><span class="hang">{{ i }}</span><i class="o mat-o" /><i class="o ten-o" :style="{ width: `${42 + (i * 17) % 30}%` }" /><i class="o so-o" /></li>
+        </ol>
       </div>
 
       <div v-if="toi && ghim" class="ghim">
@@ -156,6 +161,12 @@ async function doiAn(an: boolean): Promise<void> {
 }
 
 .ghim { margin-top: 2px; display: grid; gap: 4px; }
+.xuong li { min-height: 36px; box-sizing: border-box; }
+.xuong .o { display: block; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--fg) 12%, transparent); animation: nhap 1.1s ease-in-out infinite alternate; }
+.xuong .mat-o { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+.xuong .so-o { width: 58px; margin-left: auto; flex: none; }
+@keyframes nhap { to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .xuong .o { animation: none; } }
 .cham { text-align: center; color: var(--muted); font-weight: 800; letter-spacing: 4px; line-height: 1; }
 .head .so-nguoi { font-size: var(--text-sm); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .ke { display: flex; align-items: center; gap: 8px; padding: 0 8px; font-size: var(--text-sm); color: var(--muted); }
