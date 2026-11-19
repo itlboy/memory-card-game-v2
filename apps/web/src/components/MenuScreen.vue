@@ -318,9 +318,10 @@ function chonSoNguoi(n: number): void {
   emit('update:playerCount', n);
   if (n > 1) syncNames(n);
 }
-function chonCo(level: number): void {
+function chonCo(level: number, cach: 'cuon' | 'bam' = 'bam'): void {
   if (level === props.level) return;
-  sfx.select();
+  // Cuộn dải số thẻ: KHÔNG kêu (chủ dự án 19.11.2026: tiếng chọn "hợp với bấm thôi") — dải đã rung từng ô
+  if (cach !== 'cuon') sfx.select();
   emit('update:level', level);
 }
 function moBuocPhu(b: Step): void {

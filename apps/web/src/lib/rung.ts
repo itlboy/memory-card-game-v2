@@ -26,6 +26,8 @@ export interface Nhip { muc: Muc }
 
 /** Khoảng giữa hai nhịp, ms. Đủ thưa để tách được thành từng cú. */
 export const KHOANG_MS = 70;
+/** Hai cú "tách" khi cuộn dải chọn cách nhau ít nhất chừng này. */
+export const CACH_TACH_MS = 45;
 /** Độ dài một nhịp trên web (Android) theo mức. */
 export const WEB_MS: Record<Muc, number> = { nhe: 12, vua: 25, manh: 45 };
 
@@ -85,6 +87,40 @@ class Rung {
   sai(): void { this.phat(NHIP_SAI); }
   /** Một chạm nhẹ khi vuốt lùi qua ngưỡng (lib/nut-back.ts) — như cử chỉ Back của Android. */
   moc(): void { this.phat(NHIP_SAI); }
+
+  /**
+   * TÁCH KHI CUỘN QUA MỘT Ô (19.11.2026, chủ dự án: dải chọn số thẻ "làm hiệu ứng rung rung"): kiểu rung CHỌN của
+   * hệ thống (`selectionChanged` — như bánh xe chọn giờ iPhone), nhẹ hơn mọi `impact`. Web Android: 8ms. Giới hạn
+   * `CACH_TACH_MS` để vuốt nhanh qua nhiều ô không thành rè rè.
+   */
+  private lucTach = 0;
+  tach(): void {
+    if (!this.bat) return;
+    const now = Date.now();
+    if (now - this.lucTach < CACH_TACH_MS) return;
+    this.lucTach = now;
+    if (laApp) {
+      // Plugin chỉ rung `selectionChanged` SAU `selectionStart` (iOS tạo UISelectionFeedbackGenerator ở start,
+      // Android có cờ selectionStarted) — thiếu là im lặng không báo lỗi. Bắt đầu lười ở cú tách đầu tiên.
+      void layHaptics().then(async (h) => {
+        if (!h) return;
+        try {
+          if (!this.dangTach) { this.dangTach = true; await h.Haptics.selectionStart(); }
+          await h.Haptics.selectionChanged();
+        } catch { /* bỏ qua */ }
+      });
+      return;
+    }
+    try { if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') navigator.vibrate(8); } catch { /* bỏ qua */ }
+  }
+
+  private dangTach = false;
+  /** Dải đứng yên: đóng phiên rung chọn (giải phóng bộ rung của iOS). */
+  xongTach(): void {
+    if (!this.dangTach) return;
+    this.dangTach = false;
+    if (laApp) void layHaptics().then((h) => h?.Haptics.selectionEnd().catch(() => {}));
+  }
 
   /** Có đường rung nào trên máy này không — để giấu công tắc khi vô ích. */
   coTheRung(): boolean {

@@ -11,6 +11,7 @@
  * CSS `.nh-*` ở styles/wizard.css (toàn cục) vì màn cha còn dùng cho hàng số người, dòng tên.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { rung } from '@/lib/rung';
 import { ChevronRight } from 'lucide-vue-next';
 import { BOARD_SIZES, OPTION_KEYS } from '@mm/engine';
 import type { BoardOptions } from '@mm/engine';
@@ -28,7 +29,8 @@ const props = defineProps<{
   themeIds: string[];
   options: BoardOptions;
 }>();
-const emit = defineEmits<{ 'chon-co': [level: number]; mo: [buoc: 'level' | 'theme' | 'options'] }>();
+/** `cach`: 'cuon' = chốt sau khi cuộn (KHÔNG kêu — chỉ rung từng ô), 'bam' = bấm thẳng vào ô (kêu như nút). */
+const emit = defineEmits<{ 'chon-co': [level: number, cach: 'cuon' | 'bam']; mo: [buoc: 'level' | 'theme' | 'options'] }>();
 
 const coCua = (level: number) => BOARD_SIZES.find((s) => s.level === level);
 const coDangChon = computed(() => coCua(props.level));
@@ -66,20 +68,26 @@ function oGiua(): number | null {
 let henDung: ReturnType<typeof setTimeout> | undefined;
 /** Cuộn dừng: chốt ô giữa. Ô bị khoá (thiếu biểu tượng) thì trượt về cỡ lớn nhất còn mở. */
 function chot(): void {
+  keoTay = false;
+  rung.xongTach();
   const lv = oGiua();
   giua.value = null;
   if (lv == null) return;
   const c = coCua(lv);
   if (c && !mo(c)) {
     const lon = [...BOARD_SIZES].reverse().find(mo);
-    if (lon) { veGiua(lon.level, true); if (lon.level !== props.level) emit('chon-co', lon.level); }
+    if (lon) { veGiua(lon.level, true); if (lon.level !== props.level) emit('chon-co', lon.level, 'cuon'); }
     return;
   }
-  if (lv !== props.level) emit('chon-co', lv);
+  if (lv !== props.level) emit('chon-co', lv, 'cuon');
 }
 function khiCuon(): void {
   lucCuon = Date.now();
+  const truoc = giua.value ?? props.level;
   giua.value = oGiua();
+  // Mỗi ô MỚI đi qua giữa dải: một cú "tách" (lib/rung.ts) — chỉ khi NGÓN đang kéo/thả trôi, không khi app tự
+  // cuộn ô về giữa (veGiua lúc mở / bấm ô)
+  if (keoTay && giua.value != null && giua.value !== truoc) rung.tach();
   clearTimeout(henDung);
   henDung = setTimeout(chot, 140);   // iOS chưa có `scrollend` ổn định: chờ cuộn đứng yên
 }
@@ -92,7 +100,10 @@ function khiCuon(): void {
 const NGUONG_KEO = 8;
 const CHAM_DUNG_MS = 250;
 let x0 = 0, y0 = 0, keo = false, lucCuon = 0;
+/** Cuộn do NGƯỜI (chạm vào dải tới khi dải đứng yên) — chỉ lúc này mới rung. */
+let keoTay = false;
 function khiCham(e: PointerEvent): void {
+  keoTay = true;
   x0 = e.clientX; y0 = e.clientY;
   keo = Date.now() - lucCuon < CHAM_DUNG_MS;
   dai.value?.toggleAttribute('data-nosfx', keo);
@@ -106,11 +117,11 @@ function nuotBam(e: MouseEvent): void {
   keo = false;
 }
 function bamSo(level: number): void {
-  if (level !== props.level) emit('chon-co', level);
+  if (level !== props.level) emit('chon-co', level, 'bam');
   veGiua(level, true);
 }
 onMounted(() => nextTick(() => veGiua(coDangChon.value?.level ?? 0, false)));
-onBeforeUnmount(() => clearTimeout(henDung));
+onBeforeUnmount(() => { clearTimeout(henDung); rung.xongTach(); });
 // Đổi từ ngoài (lần mở sau, bộ thẻ ít biểu tượng đẩy cỡ xuống…) → đưa ô đó về giữa
 watch(() => props.level, (lv) => { if (giua.value == null) nextTick(() => veGiua(lv, true)); });
 
