@@ -988,12 +988,13 @@
     bàn; màu theo loại tot/can/roi/mang/xem; tin `can`/`mang` chen lên NGAY (xếp hàng thì nhắc tới trễ — đo
     thật). Tin sinh ở `useBaoPhong` từ chênh lệch hai bản `room` — ĐỪNG rải dòng báo riêng ở từng màn nữa.
     Chữ thống nhất "đã rời phòng" (bỏ "Đã thoát"/"đã rời").
-  - Phòng chờ: dòng trạng thái dưới tên; "Sẵn sàng x/y"; nút Bắt đầu LUÔN bấm được khi đủ người (xám xanh khi
-    còn chờ → `NhacSanSang.vue`; KHÔNG có "bắt đầu luôn" — chủ dự án: "chỉ có nhắc"). Tin `{t:'nhac'}` chỉ chủ
+  - Phòng chờ: CỘT SẴN SÀNG (ô tròn tick xanh / ⏳ cam / 📡) trước ô Đội — KHÔNG chữ dưới tên, KHÔNG "Sẵn sàng
+    x/y", KHÔNG dòng "Còn chờ X" dưới nút (chủ dự án: "nhìn rối quá"); máy luôn tick. Nút Bắt đầu LUÔN bấm được
+    khi đủ người (xám xanh khi còn chờ → ô ⏳ của người chưa sẵn sàng NHÁY + `NhacSanSang.vue`; KHÔNG có "bắt đầu luôn" — chủ dự án: "chỉ có nhắc"). Tin `{t:'nhac'}` chỉ chủ
     phòng, chỉ tới người chưa sẵn sàng, `NHAC_CACH_MS` 10s. Khách: nút VÀNG "✋ Sẵn sàng!"; đã sẵn sàng = thẻ xanh
     + nút nhỏ "Huỷ sẵn sàng" riêng.
-  - Màn cuối online: chip dưới cột (✓ Chơi lại / ⏳ Đang chờ / Đã rời), thanh "Chơi lại x/y", nút sáng khi mình là
-    người cuối. Số tỷ số mọi người màu đen (không làm mờ người kém); người thắng ván số CUỘN lên, không còn "+1".
+  - Màn cuối online: HÀNG BIỂU TƯỢNG chơi lại ngay dưới tỷ số (tick xanh / ⏳ / 🚪, chữ chỉ ở aria) — bỏ chip chữ
+    và khung "Chơi lại x/y" ("đỡ phải viết nhiều chữ"); máy mặc định tick; nút sáng khi mình là người cuối. Số tỷ số mọi người màu đen (không làm mờ người kém); người thắng ván số CUỘN lên, không còn "+1".
   - Xem trận: phòng `playing`/`countdown` công khai vẫn ở sổ với `dangChoi` + `ten` — CHỈ trả cho client khai
     `/api/rooms/public?v=2` (client cũ sẽ vẽ nó như phòng còn chỗ); không bắn push "phòng mới" cho nó. `room.xem`
     = người xem (tên + mặt băm theo tên); chip `ChipXem` ở slot `phai` của HudBar (không thêm hàng), bấm ra

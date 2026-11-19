@@ -598,11 +598,19 @@ watch(moNhac, (m) => {
   if (m) { clockNhac.value = Date.now(); nhacTimer = setInterval(() => { clockNhac.value = Date.now(); }, 500); }
 });
 onBeforeUnmount(() => clearInterval(nhacTimer));
+/** Bấm Bắt đầu khi còn người chưa sẵn sàng: ô ⏳ của họ NHÁY vài giây (chủ dự án 19.11.2026: "nháy những ai
+ *  chưa sẵn sàng") + bảng Nhắc. Bỏ "Sẵn sàng x/y" và dòng "Còn chờ X" dưới nút — "nhìn rối quá". */
+const nhayChua = ref(false);
+let nhayChuaTimer: ReturnType<typeof setTimeout> | undefined;
 function bamBatDau(): void {
   if (canStart.value) { batDauVan(); return; }
   sfx.select();
+  nhayChua.value = true;
+  clearTimeout(nhayChuaTimer);
+  nhayChuaTimer = setTimeout(() => { nhayChua.value = false; }, 2600);
   moNhac.value = true;
 }
+onBeforeUnmount(() => clearTimeout(nhayChuaTimer));
 function guiNhac(): void {
   if (conGiayNhac.value > 0) return;
   const ten = chuaSan.value.length === 1 ? tenNguoi(chuaSan.value[0]!) : '';
@@ -684,12 +692,7 @@ const startLabel = computed(() => {
   if (soDoi.value < 2) return t('dd.thieu');
   return canStart.value ? `▶ ${t('on.batDau')}!` : t('on.batDau');
 });
-/** Dòng nhỏ dưới "Bắt đầu" khi còn chờ người. */
-const startPhu = computed(() => {
-  if (!coTheBam.value || canStart.value) return '';
-  const ds = chuaSan.value.map((p) => tenNguoi(p));
-  return ds.length ? t('on.conChoTen', { ten: ds.slice(0, 2).join(', ') + (ds.length > 2 ? ` +${ds.length - 2}` : '') }) : '';
-});
+
 
 /** Năm hàng tuỳ chọn — giống hệt wizard chơi đơn, để hai chỗ đọc ra là một. */
 /*  Tên hàng đọc từ từ điển (`opt.<key>`), cùng khoá với MenuScreen. */
@@ -1276,11 +1279,6 @@ function openCfgWizard(): void {
 
     <div class="ds-dau">
       <span>{{ t('on.nguoiChoiN', { n: o.room.value?.players.length ?? 0, max: ROOM_LIMITS.maxPlayers }) }}</span>
-      <!-- Tiến độ sẵn sàng (mockup duyệt 19.11.2026): chủ phòng đọc ngay còn chờ bao nhiêu người -->
-      <span v-if="readyCount.need" class="tien-do" :class="{ du: readyCount.ok === readyCount.need }">
-        {{ t('on.sanSangN', { ok: readyCount.ok, need: readyCount.need }) }}
-        <span class="vach" aria-hidden="true"><i v-for="i in Math.min(readyCount.need, 9)" :key="i" :class="{ on: i <= readyCount.ok }" /></span>
-      </span>
     </div>
 
     <!-- Mỗi dòng có ô "Đội N": ai cũng tự đổi đội mình (chủ phòng đổi được cả máy và người khác);
@@ -1330,7 +1328,7 @@ function openCfgWizard(): void {
         <!-- CỘT SẴN SÀNG (19.11.2026, chủ dự án: "cho cột sẵn sàng, ai sẵn sàng thì tick xanh, không thì biểu tượng
              khác") — thay dòng chữ dưới tên. Chủ phòng không cần (vương miện ở cột ngoài cùng): ô trống giữ thẳng cột. -->
         <span
-          v-if="p.id !== o.room.value?.hostId" class="cot-san" :class="`cs-${trangThai(p).loai}`"
+          v-if="p.id !== o.room.value?.hostId" class="cot-san" :class="[`cs-${trangThai(p).loai}`, { nhay: nhayChua && trangThai(p).loai === 'cho' }]"
           role="img" :aria-label="trangThai(p).chu" :title="trangThai(p).chu"
         ><Check v-if="trangThai(p).loai === 'ok'" :size="17" :stroke-width="3.6" /><template v-else-if="trangThai(p).loai === 'mang'">📡</template><template v-else>⏳</template></span>
         <span v-else class="cot-san trong" aria-hidden="true" />
@@ -1389,7 +1387,7 @@ function openCfgWizard(): void {
         :class="{ dangMo: dangMoVan, 'cho-nguoi': coTheBam && !canStart, sang: canStart && !dangMoVan }"
         :disabled="!coTheBam || dangMoVan"
         @click="bamBatDau()"
-      ><span v-if="dangMoVan" class="quay" aria-hidden="true" />{{ dangMoVan ? t('on.dangMoVan') : startLabel }}<small v-if="startPhu && !dangMoVan" class="phu">{{ startPhu }}</small></button>
+      ><span v-if="dangMoVan" class="quay" aria-hidden="true" />{{ dangMoVan ? t('on.dangMoVan') : startLabel }}</button>
     </template>
     <template v-else>
       <!-- Bàn chơi ĐỌC TRƯỚC KHI BẤM: đây là thứ người ta cần biết để quyết
@@ -1928,22 +1926,18 @@ input:focus { outline: none; border-color: var(--accent); }
 .cot-san.cs-cho { background: #fff3e2; border-color: #f0b46a; }
 .cot-san.cs-mang { background: #ffe9e2; border-color: #f19a7c; }
 .cot-san.trong { border: 0; }
+.cot-san.nhay { animation: cs-nhay .5s ease-in-out 5; }
+@keyframes cs-nhay { 50% { transform: scale(1.35); background: #ffc56b; box-shadow: 0 0 0 5px rgba(240, 160, 50, .35); } }
+@media (prefers-reduced-motion: reduce) { .cot-san.nhay { animation: none; background: #ffc56b; } }
 .lobby-list li.san {
   background: color-mix(in srgb, #4bb033 13%, var(--panel-soft));
   border-color: color-mix(in srgb, #4bb033 60%, var(--line));
 }
-.tien-do { display: inline-flex; align-items: center; gap: 7px; }
-.tien-do.du { color: #127a3e; }
-.vach { display: inline-flex; gap: 3px; }
-.vach i { display: block; width: 18px; height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--muted) 25%, transparent); }
-.vach i.on { background: #4bb033; }
 .nut-bat-dau { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
-.nut-bat-dau .phu { font-family: var(--font-body); font-size: 13px; font-weight: 800; letter-spacing: 0; }
 .nut-bat-dau.cho-nguoi { --nhan-nen: #dde5f2; --nhan-chu: #2d3c66; box-shadow: none; }
 :root[data-skin='keo'] .nut-bat-dau.cho-nguoi {
   --b1: #f4f7fc; --b2: #dde5f2; --b3: #a9b6d2; --b4: #f4f7fc; --bc: #2d3c66; --th-chu: none;
 }
-.nut-bat-dau.cho-nguoi .phu { color: #a14d06; }
 .nut-bat-dau.sang { outline: 5px solid rgba(120, 211, 90, .35); outline-offset: 3px; }
 .nut-san { --nhan-nen: linear-gradient(#ffd45c, #f5a823); --nhan-chu: #3b2a00; }
 .nut-san.nhay { animation: nut-nhay 1s ease-in-out 4; }
