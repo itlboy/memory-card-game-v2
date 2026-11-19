@@ -4,7 +4,7 @@ import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import MatNguoi from './MatNguoi.vue';
 import { t, td, bcp } from '@/lib/i18n';
-import { isDraw } from '@mm/engine';
+import { isDraw, laBotId } from '@mm/engine';
 import type { PlayerInit, Summary } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { byId, type Achievement } from '@/lib/achievements';
@@ -180,10 +180,10 @@ const choiLai = computed(() => {
     ok: ok.length, tong: con.length, cho,
     /** Người khác đã bấm hết, chỉ còn mình. */
     cuoi: !toiDaBam && cho.length === 0 && ok.length > 0,
-    tenCho: ok.filter((r) => !laCotToi(r)).map((r) => r.ten).join(', '),
+    // Tên NGƯỜI (không kể máy) đang chờ mình — chỉ máy thì không nói gì thêm
+    tenCho: ok.filter((r) => !laCotToi(r) && !laBotId(r.id) && !(r.tv.length && r.tv.every((m) => laBotId(m.id)))).map((r) => r.ten).join(', '),
   };
 });
-const noiTen = (ds: string[]): string => (ds.length > 2 ? `${ds.slice(0, 2).join(', ')} +${ds.length - 2}` : ds.join(', '));
 
 /**
  * "Bạn đã mở hết các cặp!" chỉ đúng khi chơi MỘT MÌNH. Ván thi đấu mà bàn do đối
@@ -220,7 +220,10 @@ const loat = computed(() => {
       id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id),
       n: ty[p.name]?.n ?? 0,
       diem: hang?.score ?? 0, thang: p.id === nhat, doi,
-      ok: props.rematchState?.[p.id] === 'in', ra: props.rematchState?.[p.id] === 'out',
+      // MÁY mặc định muốn chơi lại (không bỏ phiếu) — chủ dự án 19.11.2026: "bot thì mặc định sẵn sàng"
+      ok: props.rematchState?.[p.id] === 'in' || (laBotId(p.id) && props.rematchState?.[p.id] !== 'out')
+        || (tvIds.length > 0 && tvIds.every((m) => laBotId(m))),
+      ra: props.rematchState?.[p.id] === 'out',
       tv: tvIds.map((id) => {
         const m = props.thanhVienCua?.(id);
         return { id, mat: m?.mat, anh: m?.anh ?? props.anhCua?.(id), ten: m?.ten ?? '?', ok: phieu.has(id) };
@@ -325,9 +328,13 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
                  xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
             <span class="so"><span class="o-so"><span class="khung-so" :class="{ nay: r.thang }"><b :class="{ cuon: r.thang }" :data-cu="r.thang ? r.n - 1 : undefined">{{ r.n }}</b></span></span></span>
             <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
-            <i v-if="multiplayerOnline" class="cl-tag" :class="r.ra ? 'roi' : r.ok ? 'ok' : 'cho'">{{
-              r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')
-            }}</i>
+            <!-- HÀNG CHƠI LẠI bằng BIỂU TƯỢNG ngay dưới tỷ số (19.11.2026, chủ dự án: "có biểu tượng, đỡ phải viết
+                 nhiều chữ"): tick xanh = đã bấm (máy luôn tick) · ⏳ cam = đang chờ · 🚪 xám = đã rời. Chữ ở aria/title. -->
+            <span
+              v-if="multiplayerOnline" class="cl-ic" :class="r.ra ? 'roi' : r.ok ? 'ok' : 'cho'" role="img"
+              :aria-label="r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')"
+              :title="r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')"
+            ><svg v-if="r.ok && !r.ra" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg><template v-else-if="r.ra">🚪</template><template v-else>⏳</template></span>
           </div>
         </div>
 
@@ -426,14 +433,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         <Share :size="18" aria-hidden="true" />{{ t('kq.luuChiaSe') }}
       </button>
 
-      <!-- Thanh CHƠI LẠI (online): tiến độ + ai còn chờ; hết người thì nói thẳng ở đây (thay dòng chữ cuối bảng) -->
-      <div v-if="choiLai && !rematchBlocked" class="cl-dai" :class="{ cuoi: choiLai.cuoi }" role="status">
-        <div class="cl-h"><span>{{ t('kq.cl.tieuDe') }}</span><b>{{ choiLai.ok }}/{{ choiLai.tong }}</b></div>
-        <div class="cl-vach" aria-hidden="true"><i v-for="i in choiLai.tong" :key="i" :class="{ on: i <= choiLai.ok }" /></div>
-        <p v-if="choiLai.cuoi">{{ t('on.dangChoBan', { ten: choiLai.tenCho }) }}</p>
-        <p v-else-if="choiLai.cho.length">{{ t('kq.cl.conCho', { ten: noiTen(choiLai.cho) }) }}</p>
-      </div>
-      <p v-else-if="multiplayerOnline && rematchBlocked" class="cl-dai roi" role="status">🚪 {{ t('kq.cl.khongDu') }}</p>
+      <!-- Hết người để chơi lại: nói thẳng (nút Chơi lại biến mất). Tiến độ chơi lại nay là HÀNG BIỂU TƯỢNG trong khung tỷ số. -->
+      <p v-if="multiplayerOnline && rematchBlocked" class="cl-dai roi" role="status">🚪 {{ t('kq.cl.khongDu') }}</p>
 
       <div class="row">
         <button
@@ -441,9 +442,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           :disabled="rematchSent"
           @click="emit('replay')"
         >
-          <template v-if="rematchSent && choiLai?.cho.length">{{ t('kq.cl.daBam', { ten: noiTen(choiLai.cho) }) }}</template>
-          <template v-else-if="rematchSent">{{ t('kq.daBamChoiLai') }}</template>
-          <template v-else>{{ replayLabel }}<small v-if="choiLai?.cuoi" class="cl-phu">{{ t('on.dangChoBan', { ten: choiLai.tenCho }) }}</small></template>
+          <template v-if="rematchSent">{{ t('kq.daBamChoiLai') }}</template>
+          <template v-else>{{ replayLabel }}<small v-if="choiLai?.cuoi && choiLai.tenCho" class="cl-phu">{{ t('on.dangChoBan', { ten: choiLai.tenCho }) }}</small></template>
         </button>
         <!--
           Cấp sau CHƯA MỞ (thua, hoặc thua bot) thì nút vẫn ở đúng chỗ nhưng tắt
@@ -530,29 +530,18 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 /* Lời mời chơi lại: nổi hơn dòng "đang chờ", vì đây là việc CẦN người đọc làm gì */
 .waiting.want { color: var(--accent); font-weight: 700; }
 /* CHƠI LẠI (online, 19.11.2026) — chip dưới cột, thanh tiến độ, nút theo trạng thái */
-.cl-tag {
-  margin-top: 4px; font: 800 11.5px/1.3 var(--font-body); font-style: normal; white-space: nowrap;
-  border-radius: 12px; padding: 2px 7px; border: 1.5px solid;
-  max-width: calc(100% - 4px); box-sizing: border-box; overflow: hidden; text-overflow: ellipsis;
+.cl-ic {
+  margin-top: 8px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 15px; line-height: 1; border: 2px solid; box-sizing: border-box;
 }
-/* 3+ cột (máy 390px): chip nhỏ lại cho khỏi chạm nhau (đo 19.11.2026) */
-.loat.chat .cl-tag { font-size: 10.5px; padding: 2px 5px; }
-.cl-tag.ok { background: #e3f7da; border-color: #7cc65f; color: #185c2a; }
-.cl-tag.cho { background: #fff3e2; border-color: #f0b46a; color: #8a4a00; }
-.cl-tag.roi { background: #f1f3f8; border-color: #c3cadb; color: #4b5672; }
+.cl-ic.ok { background: linear-gradient(#78d35a, #4bb033); border-color: #3c9a26; color: #fff; box-shadow: 0 2px 0 #348a20; }
+.cl-ic.cho { background: #fff3e2; border-color: #f0b46a; }
+.cl-ic.roi { background: #f1f3f8; border-color: #c3cadb; }
 .cl-dai {
   margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 16px;
   background: var(--panel-soft); border: 2px solid var(--line);
 }
-.cl-dai.cuoi { background: #fff8e6; border-color: #f0c33c; }
 .cl-dai.roi { display: block; text-align: center; font-weight: 800; font-size: var(--text-sm); color: #33405f; background: #f1f3f8; border-color: #b9c2d6; }
-.cl-h { display: flex; justify-content: space-between; font: 800 16px var(--font-display); }
-.cl-h b { color: #127a3e; }
-.cl-vach { display: flex; gap: 4px; }
-.cl-vach i { flex: 1; height: 8px; border-radius: 5px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
-.cl-vach i.on { background: #4bb033; }
-.cl-dai p { margin: 0; font-size: 13.5px; font-weight: 700; color: var(--muted); }
-.cl-dai.cuoi p { color: #5a3d00; }
 .btn-primary.cl-sang { outline: 5px solid rgba(120, 211, 90, .35); outline-offset: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
 .cl-phu { font: 800 13px var(--font-body); letter-spacing: 0; }
 .btn-primary.cl-da:disabled { opacity: 1; --nhan-nen: #e9f8e3; --nhan-chu: #185c2a; border: 2px solid #7cc65f; }
