@@ -272,3 +272,19 @@ describe('tên ngẫu nhiên cho người mới (19.11.2026)', () => {
     expect(src).toMatch(/\.slice\(0, 10\)/);
   });
 });
+
+describe('dải số thẻ: rung từng ô, cuộn không kêu (19.11.2026)', () => {
+  it('cuộn qua ô mới → rung.tach() (chỉ khi ngón kéo); chốt bằng cuộn không phát tiếng, bấm thì có', () => {
+    const ban = goc('src/components/BanChon.vue');
+    expect(ban).toMatch(/if \(keoTay && giua\.value != null && giua\.value !== truoc\) rung\.tach\(\)/);
+    expect(ban).toMatch(/emit\('chon-co', lv, 'cuon'\)/);
+    expect(ban).toMatch(/emit\('chon-co', level, 'bam'\)/);
+    expect(goc('src/components/MenuScreen.vue')).toMatch(/if \(cach !== 'cuon'\) sfx\.select\(\)/);
+  });
+  it('rung chọn: selectionStart trước selectionChanged (thiếu là plugin im lặng), có giới hạn tần suất', async () => {
+    const src = goc('src/lib/rung.ts');
+    expect(src).toMatch(/selectionStart\(\); \}\s*await h\.Haptics\.selectionChanged\(\)/);
+    const { CACH_TACH_MS } = await import('@/lib/rung');
+    expect(CACH_TACH_MS).toBeGreaterThan(20);
+  });
+});
