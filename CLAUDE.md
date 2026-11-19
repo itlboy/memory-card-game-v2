@@ -993,8 +993,8 @@
     khi đủ người (xám xanh khi còn chờ → ô ⏳ của người chưa sẵn sàng NHÁY + `NhacSanSang.vue`; KHÔNG có "bắt đầu luôn" — chủ dự án: "chỉ có nhắc"). Tin `{t:'nhac'}` chỉ chủ
     phòng, chỉ tới người chưa sẵn sàng, `NHAC_CACH_MS` 10s. Khách: nút VÀNG "✋ Sẵn sàng!"; đã sẵn sàng = thẻ xanh
     + nút nhỏ "Huỷ sẵn sàng" riêng.
-  - Màn cuối online: HÀNG BIỂU TƯỢNG chơi lại ngay dưới tỷ số (tick xanh / ⏳ / 🚪, chữ chỉ ở aria) — bỏ chip chữ
-    và khung "Chơi lại x/y" ("đỡ phải viết nhiều chữ"); máy mặc định tick; nút sáng khi mình là người cuối. Số tỷ số mọi người màu đen (không làm mờ người kém); người thắng ván số CUỘN lên, không còn "+1".
+  - Màn cuối online: HÀNG BIỂU TƯỢNG chơi lại ngay dưới tỷ số (mũi tên vòng ↻ nét trắng nền xanh = đã bấm / ba chấm nhảy nền cam = đang chờ / 🚪 — chủ dự án chọn trên canvas 19.11.2026, chê tick và ⏳ "hơi xấu"; chữ chỉ ở aria) — bỏ chip chữ
+    và khung "Chơi lại x/y" ("đỡ phải viết nhiều chữ"); máy mặc định đã bấm; nút sáng khi mình là người cuối. Số tỷ số mọi người màu đen (không làm mờ người kém); người thắng ván số CUỘN lên, không còn "+1".
   - Xem trận: phòng `playing`/`countdown` công khai vẫn ở sổ với `dangChoi` + `ten` — CHỈ trả cho client khai
     `/api/rooms/public?v=2` (client cũ sẽ vẽ nó như phòng còn chỗ); không bắn push "phòng mới" cho nó. `room.xem`
     = người xem (tên + mặt băm theo tên); chip `ChipXem` ở slot `phai` của HudBar (không thêm hàng), bấm ra

@@ -332,12 +332,12 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
             <span class="so"><span class="o-so"><span class="khung-so" :class="{ nay: r.thang }"><b :class="{ cuon: r.thang }" :data-cu="r.thang ? r.n - 1 : undefined">{{ r.n }}</b></span></span></span>
             <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
             <!-- HÀNG CHƠI LẠI bằng BIỂU TƯỢNG ngay dưới tỷ số (19.11.2026, chủ dự án: "có biểu tượng, đỡ phải viết
-                 nhiều chữ"): tick xanh = đã bấm (máy luôn tick) · ⏳ cam = đang chờ · 🚪 xám = đã rời. Chữ ở aria/title. -->
+                 nhiều chữ"): mũi tên vòng xanh = đã bấm (máy luôn coi là đã bấm) · ba chấm nhảy cam = đang chờ · 🚪 xám = đã rời. Chữ ở aria/title. -->
             <span
               v-if="multiplayerOnline" class="cl-ic" :class="r.ra ? 'roi' : r.ok ? 'ok' : 'cho'" role="img"
               :aria-label="r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')"
               :title="r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')"
-            ><svg v-if="r.ok && !r.ra" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg><template v-else-if="r.ra">🚪</template><template v-else>⏳</template></span>
+            ><svg v-if="r.ok && !r.ra" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></svg><template v-else-if="r.ra">🚪</template><span v-else class="cham" aria-hidden="true"><i /><i /><i /></span></span>
           </div>
         </div>
 
@@ -538,7 +538,14 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   font-size: 15px; line-height: 1; border: 2px solid; box-sizing: border-box;
 }
 .cl-ic.ok { background: linear-gradient(#78d35a, #4bb033); border-color: #3c9a26; color: #fff; box-shadow: 0 2px 0 #348a20; }
-.cl-ic.cho { background: #fff3e2; border-color: #f0b46a; }
+.cl-ic.cho { background: #fff3e2; border-color: #f0b46a; color: #d27a12; }
+/* Đang chờ: ba chấm nhảy như "đang gõ…" (chủ dự án chọn 19.11.2026) */
+.cham { display: flex; gap: 2.5px; }
+.cham i { width: 4.5px; height: 4.5px; border-radius: 50%; background: currentColor; animation: cham-nay 1.2s infinite ease-in-out; }
+.cham i:nth-child(2) { animation-delay: .15s; }
+.cham i:nth-child(3) { animation-delay: .3s; }
+@keyframes cham-nay { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-3px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cham i { animation: none; opacity: .8; } }
 .cl-ic.roi { background: #f1f3f8; border-color: #c3cadb; }
 .cl-dai {
   margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 16px;
