@@ -22,6 +22,13 @@ export const hangXu = ref<number | null>(doc());
 
 let dangHoi: Promise<{ cu: number | null; moi: number | null } | null> | null = null;
 
+const KHOA_LUC = 'mm.hangXuLuc';
+/** Lúc MỞ APP chỉ hỏi lại khi lần trước đã quá chừng này — mở/tắt app liên tục không dội server. */
+export const HOI_LAI_KHI_MO_MS = 10 * 60_000;
+export function vuaHoi(now = Date.now()): boolean {
+  try { return now - Number(localStorage.getItem(KHOA_LUC) ?? 0) < HOI_LAI_KHI_MO_MS; } catch { return false; }
+}
+
 /** Hỏi lại hạng. Trả { cu, moi } để người gọi biết có lên hạng không; null khi lỗi mạng. */
 export function capNhatHang(): Promise<{ cu: number | null; moi: number | null } | null> {
   dangHoi ??= (async () => {
@@ -30,7 +37,10 @@ export function capNhatHang(): Promise<{ cu: number | null; moi: number | null }
       const cu = hangXu.value;
       const moi = b.toi && b.toi.matches > 0 ? b.toi.hang : null;
       hangXu.value = moi;
-      try { if (moi) localStorage.setItem(KHOA, String(moi)); else localStorage.removeItem(KHOA); } catch { /* bỏ qua */ }
+      try {
+        if (moi) localStorage.setItem(KHOA, String(moi)); else localStorage.removeItem(KHOA);
+        localStorage.setItem(KHOA_LUC, String(Date.now()));
+      } catch { /* bỏ qua */ }
       return { cu, moi };
     } catch { return null; } finally { dangHoi = null; }
   })();

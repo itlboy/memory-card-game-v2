@@ -96,6 +96,23 @@ try {
   ok(!r.data.top.some((d) => d.toi), 'không đăng nhập thì không dòng nào là "toi"');
   ok(!JSON.stringify(r.data).includes('smoke@x.vn'), 'bảng xếp hạng KHÔNG lộ email');
 
+  // KHÁCH + HẠNG qua truy vấn từng bảng (19.11.2026): khách 1200 điểm đứng dưới tài khoản 5000
+  const khachId = `smokeKhach${Date.now()}`.padEnd(24, 'x');
+  r = await goi('/api/khach', { method: 'POST', body: { id: khachId, name: 'KhachSmoke', totalScore: 1200, wins: 1, matches: 2 } });
+  ok(r.status === 200 && r.data.ok, 'khách gửi điểm → 200');
+  r = await goi('/api/bxh', { method: 'POST', body: { khach: khachId } });
+  const tk = r.data?.toi;
+  ok(r.status === 200 && tk?.name === 'KhachSmoke' && tk.totalScore === 1200, 'POST /api/bxh {khach} có `toi` của khách');
+  ok(tk?.tren && tk.tren.totalScore > 1200 && tk.tren.hang === tk.hang - 1, 'người ngay trên khách đúng (điểm cao hơn, hạng − 1)');
+  ok(r.data.top.some((d) => d.toi && d.name === 'KhachSmoke'), 'khách nằm trong top và được đánh dấu toi');
+  // Cache top 30 giây: khách tăng điểm thì CHÍNH khách thấy ngay điểm mới trong top (ghepTop), không chờ cache
+  r = await goi('/api/khach', { method: 'POST', body: { id: khachId, name: 'KhachSmoke', totalScore: 1300, wins: 1, matches: 3 } });
+  r = await goi('/api/bxh', { method: 'POST', body: { khach: khachId } });
+  ok(r.data.top.filter((d) => d.name === 'KhachSmoke').length === 1 && r.data.top.find((d) => d.toi)?.totalScore === 1300,
+    'cache không làm khách thấy điểm cũ / hai dòng');
+  r = await goi('/api/khach/xoa', { method: 'POST', body: { id: khachId } });
+  ok(r.status === 200, 'khách ẩn khỏi bảng → 200');
+
   r = await goi('/api/me/khong-co', { token });
   ok(r.status === 404, 'đường lạ dưới /api/me → 404');
 
