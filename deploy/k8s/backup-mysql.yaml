@@ -1,0 +1,99 @@
+# BACKUP MARIADB LẬT THẺ → IDRIVE e2 (19.11.2026, chủ dự án: "backup lên idrive, định kỳ hàng ngày, giữ lại 7
+# bản cuối cùng, nhớ nén gzip").
+#
+# Vì sao: trước đó chỉ có Proxmox chụp CẢ máy ảo mỗi Chủ nhật, giữ 1 bản, nằm trên CÙNG máy vật lý — mất máy
+# là mất cả dữ liệu lẫn backup, hỏng thứ Bảy là mất gần một tuần. Đây là bản riêng database, ra NGOÀI nhà.
+#
+# Mỗi ngày 03:00 giờ VN:
+#   1. initContainer `dump` (ảnh mariadb — có sẵn mariadb-dump): dump database `latthe` bằng
+#      --single-transaction (InnoDB: ảnh chụp nhất quán, KHÔNG khoá bảng — game vẫn chạy), gzip -9,
+#      ra `latthe-YYYYMMDD-HHMMSS.sql.gz`. `pipefail`: dump hỏng giữa chừng thì job ĐỎ, không đẩy file cụt.
+#      File < 1 KB cũng coi là hỏng.
+#   2. container `day-len` (ảnh rclone): chép file lên `e2:<bucket>/latthe/`, rồi XOÁ mọi bản cũ hơn 7 bản mới
+#      nhất (tên có ngày giờ nên sắp theo tên = sắp theo thời gian).
+#
+# ---------- KHOÁ KHÔNG NẰM TRONG FILE NÀY ----------
+# Secret `thebai-backup-e2` tạo bằng tay từ my-secrets (provider `idrive-e2`):
+#   secrets run idrive-e2 -- sh -c 'kubectl -n thebai create secret generic thebai-backup-e2 \
+#     --from-literal=E2_ENDPOINT="$E2_ENDPOINT" --from-literal=E2_BUCKET="$E2_BUCKET" \
+#     --from-literal=E2_ACCESS_KEY_ID="$E2_ACCESS_KEY_ID" --from-literal=E2_SECRET_ACCESS_KEY="$E2_SECRET_ACCESS_KEY" \
+#     --dry-run=client -o yaml | kubectl apply -f -'
+# Mật khẩu MariaDB lấy từ Secret `thebai-mysql` có sẵn (xem mysql.yaml).
+#
+# Chạy thử ngay (không chờ 03:00):
+#   kubectl -n thebai create job --from=cronjob/thebai-mysql-backup thu-backup-$(date +%s)
+#
+# KHÔI PHỤC: xem docs/services/thebai-server.md trong my-secrets (mục Backup).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: thebai-mysql-backup
+  namespace: thebai
+spec:
+  schedule: "0 3 * * *"
+  timeZone: "Asia/Ho_Chi_Minh"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 900
+      ttlSecondsAfterFinished: 604800
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: tam
+              emptyDir: {}
+          initContainers:
+            - name: dump
+              image: mariadb:12.3.3
+              env:
+                - name: MARIADB_ROOT_PASSWORD
+                  valueFrom: { secretKeyRef: { name: thebai-mysql, key: MARIADB_ROOT_PASSWORD } }
+              command: ["bash", "-c"]
+              args:
+                - |
+                  set -euo pipefail
+                  f="/tam/latthe-$(TZ=Asia/Ho_Chi_Minh date +%Y%m%d-%H%M%S).sql.gz"
+                  mariadb-dump -h thebai-mysql -uroot -p"$MARIADB_ROOT_PASSWORD" \
+                    --single-transaction --quick --routines --triggers --events --hex-blob \
+                    --databases latthe | gzip -9 > "$f"
+                  co=$(stat -c %s "$f")
+                  [ "$co" -gt 1024 ] || { echo "dump quá nhỏ ($co byte) — coi là hỏng"; exit 1; }
+                  gzip -t "$f"
+                  echo "dump xong: $(basename "$f") $co byte"
+              volumeMounts:
+                - { name: tam, mountPath: /tam }
+              resources:
+                requests: { cpu: 50m, memory: 64Mi }
+                limits: { memory: 256Mi }
+          containers:
+            - name: day-len
+              image: rclone/rclone:1.68.2
+              envFrom:
+                - secretRef: { name: thebai-backup-e2 }
+              env:
+                - { name: RCLONE_CONFIG_E2_TYPE, value: s3 }
+                - { name: RCLONE_CONFIG_E2_PROVIDER, value: IDrive }
+                - { name: RCLONE_CONFIG_E2_ACCESS_KEY_ID, valueFrom: { secretKeyRef: { name: thebai-backup-e2, key: E2_ACCESS_KEY_ID } } }
+                - { name: RCLONE_CONFIG_E2_SECRET_ACCESS_KEY, valueFrom: { secretKeyRef: { name: thebai-backup-e2, key: E2_SECRET_ACCESS_KEY } } }
+                - { name: RCLONE_CONFIG_E2_ENDPOINT, valueFrom: { secretKeyRef: { name: thebai-backup-e2, key: E2_ENDPOINT } } }
+                - { name: GIU, value: "7" }
+              command: ["sh", "-c"]
+              args:
+                - |
+                  set -eu
+                  noi="e2:$E2_BUCKET/latthe"
+                  rclone copy /tam "$noi" --include 'latthe-*.sql.gz' --s3-no-check-bucket
+                  # Giữ GIU bản mới nhất: tên có ngày giờ → sắp ngược theo tên, bỏ GIU dòng đầu, xoá phần còn lại
+                  rclone lsf "$noi" --files-only --include 'latthe-*.sql.gz' | sort -r | tail -n +$((GIU + 1)) | while read -r cu; do
+                    echo "xoá bản cũ: $cu"; rclone deletefile "$noi/$cu"
+                  done
+                  echo "trên e2 còn:"; rclone lsl "$noi" --include 'latthe-*.sql.gz'
+              volumeMounts:
+                - { name: tam, mountPath: /tam }
+              resources:
+                requests: { cpu: 50m, memory: 64Mi }
+                limits: { memory: 256Mi }
