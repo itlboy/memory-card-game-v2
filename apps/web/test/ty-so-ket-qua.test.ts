@@ -6,7 +6,7 @@ import ResultDialog from '@/components/ResultDialog.vue';
 /*
  * BẢNG TỶ SỐ CẢ LOẠT Ở MÀN KẾT QUẢ (mockup duyệt 17.11.2026, thay bảng tím 16.11.2026).
  * Hiện ngay từ ván đầu (1 – 0). Mỗi cột một con số to; người dẫn số đậm, người kém số MỜ
- * (`lui`) — không ô màu. Người thắng ván có "+1". Số cặp/chuỗi ẩn sau "Chi tiết ván".
+ * — không ô màu, không làm mờ ai. Số người thắng ván CUỘN lên. Số cặp/chuỗi ẩn sau "Chi tiết ván".
  */
 const van = (ranking: Summary['ranking']): Summary => ({
   status: 'won', reason: 'cleared', score: 0, moves: 6, seconds: 20, timeBonus: 0, bestStreak: 0, stars: 0, ranking
@@ -20,19 +20,20 @@ const dung = (props: Record<string, unknown>) => mount(ResultDialog, {
     hasNext: false, ...props
   }
 });
-const so = (w: ReturnType<typeof dung>) => w.findAll('.loat .o-so b').map((o) => [o.text(), !o.classes('lui')]);
+const so = (w: ReturnType<typeof dung>) => w.findAll('.loat .o-so b').map((o) => o.text());
 
 describe('tỷ số loạt ở màn kết quả', () => {
-  it('hết VÁN ĐẦU đã hiện 1 – 0, người kém số mờ, không chữ "Tỷ số"', () => {
+  it('hết VÁN ĐẦU đã hiện 1 – 0 (số người kém KHÔNG mờ — chủ dự án 19.11.2026), không chữ "Tỷ số"', () => {
     const w = dung({ seriesWins: { Kiên: 1 } });
     expect(w.find('.loat').exists()).toBe(true);
-    expect(so(w)).toEqual([['1', true], ['0', false]]);
+    expect(so(w)).toEqual(['1', '0']);
+    expect(w.find('.loat .lui').exists()).toBe(false);
     expect(w.text()).not.toContain('🏅');
     expect(w.text()).not.toContain('Tỷ số');
   });
 
-  it('hoà loạt 1 – 1: không ai mờ', () => {
-    expect(so(dung({ seriesWins: { Kiên: 1, An: 1 } }))).toEqual([['1', true], ['1', true]]);
+  it('hoà loạt 1 – 1', () => {
+    expect(so(dung({ seriesWins: { Kiên: 1, An: 1 } }))).toEqual(['1', '1']);
   });
 
   it('người thắng ván này: số CUỘN từ số cũ lên (data-cu), không còn viên "+1"; điểm ván là chữ nhỏ dưới số', () => {
@@ -87,17 +88,17 @@ describe('tỷ số loạt ở màn kết quả', () => {
   it('xếp theo CHỖ NGỒI, không theo hạng ván (cột không nhảy chỗ)', () => {
     const w = dung({ summary: van([an, kien]), nguoiChoi: [kien, an], seriesWins: { Kiên: 1, An: 2 } });
     expect(w.findAll('.loat .ten').map((e) => e.text())).toEqual(['Kiên', 'An']);
-    expect(so(w)).toEqual([['1', false], ['2', true]]);
+    expect(so(w)).toEqual(['1', '2']);
   });
 
   it('bàn 3 người: mỗi người một cột, có cả người 0', () => {
     const w = dung({ summary: van([kien, binh, an]), nguoiChoi: [kien, an, binh], seriesWins: { Kiên: 2, Bình: 1 } });
     expect(w.findAll('.loat .cot')).toHaveLength(3);
-    expect(so(w)).toEqual([['2', true], ['0', false], ['1', false]]);
+    expect(so(w)).toEqual(['2', '0', '1']);
   });
 
   it('hai chữ số vẫn đủ', () => {
-    expect(so(dung({ seriesWins: { Kiên: 12, An: 10 } }))).toEqual([['12', true], ['10', false]]);
+    expect(so(dung({ seriesWins: { Kiên: 12, An: 10 } }))).toEqual(['12', '10']);
   });
 
   it('chơi một mình: không có bảng', () => {

@@ -175,9 +175,9 @@ const reasonText = computed(() =>
  * BẢNG KẾT QUẢ NHIỀU NGƯỜI = TỶ SỐ LOẠT (17.11.2026, mockup duyệt
  * https://claude.ai/artifact/NTXzpWotaUaPTG96MQxNLi — thay bảng tím 16.11.2026).
  * Mỗi người/đội một cột theo CHỖ NGỒI (cột không nhảy chỗ giữa các ván): mặt, tên, MỘT con số to
- * = số ván thắng cả loạt, điểm ván là chữ nhỏ. Người vừa thắng ván có viên "+1" nảy lên. Người
- * dẫn số đậm, người kém số mờ — KHÔNG ô màu (chủ dự án: "nhiều màu sắc quá"); cả bàn bằng nhau thì
- * không ai mờ. Bỏ chữ "Tỷ số" ("ai cũng biết"). Số cặp/chuỗi ẩn sau nút "Chi tiết ván".
+ * = số ván thắng cả loạt, điểm ván là chữ nhỏ. Số của người vừa thắng ván CUỘN lên rồi vàng cam
+ * (19.11.2026, bỏ viên "+1"). Số mọi người cùng màu đen, không làm mờ người kém (chủ dự án: "nhạt quá")
+ * — KHÔNG ô màu (chủ dự án: "nhiều màu sắc quá"). Bỏ chữ "Tỷ số" ("ai cũng biết"). Số cặp/chuỗi ẩn sau nút "Chi tiết ván".
  * Hiện NGAY TỪ VÁN ĐẦU (1 – 0), cùng luật `tySoLoat` với viên số trong bàn chơi.
  */
 const loat = computed(() => {
@@ -185,7 +185,6 @@ const loat = computed(() => {
   const ds = props.nguoiChoi?.length ? props.nguoiChoi : props.summary.ranking;
   const ty = tySoLoat(ds, props.seriesWins);
   if (!ty) return null;
-  const coDan = ds.some((p) => ty[p.name]?.dan);
   const nhat = isDraw(props.summary.ranking) ? undefined : props.summary.ranking[0]?.id;
   const phieu = new Set(props.phieuChoiLai ?? []);
   return ds.map((p) => {
@@ -195,7 +194,7 @@ const loat = computed(() => {
     const doi = tvIds.length ? (({ A: '1', B: '2' } as Record<string, string>)[p.id.slice(-1)] ?? p.id.slice(-1)) : '';
     return {
       id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id),
-      n: ty[p.name]?.n ?? 0, lui: coDan && !ty[p.name]?.dan,
+      n: ty[p.name]?.n ?? 0,
       diem: hang?.score ?? 0, thang: p.id === nhat, doi,
       ok: props.rematchState?.[p.id] === 'in', ra: props.rematchState?.[p.id] === 'out',
       tv: tvIds.map((id) => {
@@ -300,7 +299,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
             <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
             <!-- Hàng số CAO CỐ ĐỊNH: viên +1 nổi bên trên, không đẩy dòng điểm của cột thắng
                  xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
-            <span class="so"><span class="o-so"><span class="khung-so" :class="{ nay: r.thang }"><b :class="{ lui: r.lui && !r.thang, cuon: r.thang }" :data-cu="r.thang ? r.n - 1 : undefined">{{ r.n }}</b></span></span></span>
+            <span class="so"><span class="o-so"><span class="khung-so" :class="{ nay: r.thang }"><b :class="{ cuon: r.thang }" :data-cu="r.thang ? r.n - 1 : undefined">{{ r.n }}</b></span></span></span>
             <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
           </div>
         </div>
@@ -560,7 +559,7 @@ h2 { margin: 0 0 4px; }
 
 /*
  * BẢNG TỶ SỐ LOẠT (mockup duyệt 17.11.2026). MỘT màu nhấn duy nhất là viên "+1" vàng, hiện một
- * nhịp rồi tắt; người dẫn chỉ là số ĐẬM (--fg), người kém số MỜ (--muted). Khay theo token skin
+ * nhịp rồi tắt; mọi số màu --fg (không làm mờ người kém, 19.11.2026). Khay theo token skin
  * nên bản tối tự tối theo — bảng tím cũ giữ màu sáng ở bản tối, chói (chủ dự án báo).
  * Cỡ mặt/số theo số cột (--n): 2 cột to nhất. `min-height` chung với bảng chi tiết để lật qua
  * lại bảng không co giật.
@@ -614,7 +613,6 @@ h2 { margin: 0 0 4px; }
 }
 .o-so { position: relative; display: inline-block; line-height: 1; }
 .o-so b { display: inline-block; font: inherit; color: var(--fg); }
-.o-so b.lui { color: var(--muted); opacity: .6; }
 /*
  * NGƯỜI THẮNG VÁN (19.11.2026, chủ dự án: "+1 mờ nhạt quá… cho con số xoay 0→1, 1→2, có âm thanh, màu
  * nổi bật"): số CUỘN như đồng hồ lật — số cũ (`data-cu`, vẽ bằng ::before ngay trên) trượt lên khỏi
