@@ -216,3 +216,16 @@ describe('server: cache top 20 (19.11.2026)', () => {
     expect(src).toMatch(/bxhCache && now - bxhCache\.luc < BXH_CACHE_MS/);
   });
 });
+
+describe('dải chọn số thẻ: vuốt không phải bấm (19.11.2026)', () => {
+  it('kéo quá ngưỡng / chạm lúc dải đang trôi → nuốt click (pha capture) + im tiếng bấm', () => {
+    const src = goc('src/components/BanChon.vue');
+    expect(src).toMatch(/@pointerdown="khiCham" @pointermove\.passive="khiDi" @click\.capture="nuotBam"/);
+    expect(src).toMatch(/Math\.hypot\(e\.clientX - x0, e\.clientY - y0\) > NGUONG_KEO/);
+    expect(src).toMatch(/Date\.now\(\) - lucCuon < CHAM_DUNG_MS/);
+    expect(src).toMatch(/setAttribute\('data-nosfx'/);
+  });
+  it('huy hiệu hạng: cúp + số, không "#"', () => {
+    expect(goc('src/components/TopBar.vue')).toMatch(/hangXu \? numShort\(hangXu\) : ''/);
+  });
+});

@@ -264,8 +264,8 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
       <!-- Đồng xu = ĐIỂM, cùng hình với HUD (sao chỉ là đánh giá Chiến dịch) -->
       <DongXu :size="16" />
       <b>{{ numShort(shown) }}</b>
-      <!-- Huy hiệu hạng: nhìn là biết bấm được, và mình đứng thứ mấy. Chưa có hạng (chưa chơi / đã ẩn) → chỉ cúp. -->
-      <span v-if="account" :key="lenHang?.key" class="hg" aria-hidden="true"><Trophy :size="11" :stroke-width="2.6" />{{ hangXu ? `#${numShort(hangXu)}` : '' }}</span>
+      <!-- Huy hiệu hạng: cúp + SỐ (không "#" — chủ dự án 19.11.2026: "cho đơn giản hơn"). Chưa có hạng → chỉ cúp. -->
+      <span v-if="account" :key="lenHang?.key" class="hg" aria-hidden="true"><Trophy :size="11" :stroke-width="2.6" />{{ hangXu ? numShort(hangXu) : '' }}</span>
       <i v-if="lenHang" :key="`t${lenHang.key}`" class="tia" aria-hidden="true" />
       <Transition name="gain">
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>

@@ -78,9 +78,32 @@ function chot(): void {
   if (lv !== props.level) emit('chon-co', lv);
 }
 function khiCuon(): void {
+  lucCuon = Date.now();
   giua.value = oGiua();
   clearTimeout(henDung);
   henDung = setTimeout(chot, 140);   // iOS chưa có `scrollend` ổn định: chờ cuộn đứng yên
+}
+/*
+ * VUỐT KHÔNG PHẢI BẤM (19.11.2026, chủ dự án: "trải nghiệm vuốt của chọn bàn chưa tốt vì nó nhận cả bấm").
+ * Ngón đặt lên một ô rồi kéo, hoặc chạm để DỪNG dải đang trôi, trình duyệt vẫn bắn `click` lên ô dưới ngón →
+ * nhảy sang cỡ đó + kêu "tách". Nay: ngón đi > `NGUONG_KEO` px, hoặc chạm trong lúc dải còn trôi (`lucCuon`
+ * < `CHAM_DUNG_MS`), là VUỐT — nuốt `click` ở pha capture và gắn `data-nosfx` cho dải (App.vue im tiếng bấm).
+ */
+const NGUONG_KEO = 8;
+const CHAM_DUNG_MS = 250;
+let x0 = 0, y0 = 0, keo = false, lucCuon = 0;
+function khiCham(e: PointerEvent): void {
+  x0 = e.clientX; y0 = e.clientY;
+  keo = Date.now() - lucCuon < CHAM_DUNG_MS;
+  dai.value?.toggleAttribute('data-nosfx', keo);
+}
+function khiDi(e: PointerEvent): void {
+  if (!keo && Math.hypot(e.clientX - x0, e.clientY - y0) > NGUONG_KEO) { keo = true; dai.value?.setAttribute('data-nosfx', ''); }
+}
+function nuotBam(e: MouseEvent): void {
+  if (!keo) return;
+  e.stopPropagation(); e.preventDefault();
+  keo = false;
 }
 function bamSo(level: number): void {
   if (level !== props.level) emit('chon-co', level);
@@ -110,7 +133,8 @@ const tomTatLuat = computed(() => {
   <p class="nh-nhan">{{ t('menu.soThe') }}</p>
   <div class="keo-so">
     <span class="keo-mui" aria-hidden="true" />
-    <div ref="dai" class="keo-dai" role="radiogroup" :aria-label="t('menu.soThe')" @scroll.passive="khiCuon">
+    <div ref="dai" class="keo-dai" role="radiogroup" :aria-label="t('menu.soThe')" @scroll.passive="khiCuon"
+      @pointerdown="khiCham" @pointermove.passive="khiDi" @click.capture="nuotBam">
       <span class="keo-dem" aria-hidden="true" />
       <button
         v-for="c in BOARD_SIZES" :key="c.level" class="option nh-o keo-o" type="button" role="radio"
