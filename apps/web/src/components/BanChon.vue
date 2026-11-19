@@ -13,7 +13,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { rung } from '@/lib/rung';
 import { sfx } from '@/lib/audio';
-import { ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { BOARD_SIZES, OPTION_KEYS } from '@mm/engine';
 import type { BoardOptions } from '@mm/engine';
 import { t, td } from '@/lib/i18n';
@@ -145,6 +145,22 @@ function nuotBam(e: MouseEvent): void {
   e.stopPropagation(); e.preventDefault();
   keo = false;
 }
+/*
+ * MŨI TÊN ‹ › CHO MÁY CÓ CHUỘT (19.11.2026, mockup https://claude.ai/artifact/NYkwxUunp3XZpPtGFCRPvg phương án A —
+ * chủ dự án: "trên web chọn số thẻ hơi khó vì không có cảm ứng"). Chỉ hiện ở `(hover: hover) and (pointer: fine)`
+ * (CSS); điện thoại vẫn chỉ dải kéo. Mỗi lần bấm nhảy một nấc, BỎ QUA cỡ bị khoá (thiếu biểu tượng).
+ */
+function keBen(buoc: -1 | 1): (typeof BOARD_SIZES)[number] | null {
+  const i = BOARD_SIZES.findIndex((c) => c.level === (sang.value ?? props.level));
+  for (let k = i + buoc; k >= 0 && k < BOARD_SIZES.length; k += buoc) if (mo(BOARD_SIZES[k]!)) return BOARD_SIZES[k]!;
+  return null;
+}
+const truocDo = computed(() => keBen(-1));
+const sauDo = computed(() => keBen(1));
+function bamMui(buoc: -1 | 1): void {
+  const c = buoc < 0 ? truocDo.value : sauDo.value;
+  if (c) bamSo(c.level);
+}
 function bamSo(level: number): void {
   if (level !== props.level) emit('chon-co', level, 'bam');
   veGiua(level, true);
@@ -171,6 +187,11 @@ const tomTatLuat = computed(() => {
 
 <template>
   <p class="nh-nhan">{{ t('menu.soThe') }}</p>
+  <div class="keo-hang">
+  <button
+    class="keo-ben thach" type="button" :disabled="!truocDo"
+    :aria-label="truocDo ? t('menu.theN', { n: truocDo.pairs * 2 }) : undefined" @click="bamMui(-1)"
+  ><ChevronLeft :size="22" aria-hidden="true" /></button>
   <div class="keo-so">
     <span class="keo-mui" aria-hidden="true" />
     <div ref="dai" class="keo-dai" role="radiogroup" :aria-label="t('menu.soThe')" @scroll.passive="khiCuon"
@@ -188,6 +209,11 @@ const tomTatLuat = computed(() => {
       <span class="keo-dem" aria-hidden="true" />
     </div>
   </div>
+  <button
+    class="keo-ben thach" type="button" :disabled="!sauDo"
+    :aria-label="sauDo ? t('menu.theN', { n: sauDo.pairs * 2 }) : undefined" @click="bamMui(1)"
+  ><ChevronRight :size="22" aria-hidden="true" /></button>
+  </div>
 
   <button class="nh-dong thach" type="button" @click="emit('mo', 'theme')">
     <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhTheme" :key="h" :src="h" alt=""></span>
@@ -203,7 +229,17 @@ const tomTatLuat = computed(() => {
 
 <style scoped>
 /* Dải số thẻ: chiếm chỗ của hàng ô cũ (.nh-hang: co giãn 48–92px theo màn, luật KHÔNG SCROLL trang) */
-.keo-so { position: relative; flex: 1 1 72px; min-height: 56px; max-height: 96px; display: flex; min-width: 0; }
+/* Hàng [‹] dải [›]: chiếm chỗ của dải cũ trong cột (flex dọc của màn Chơi nhanh) */
+.keo-hang { flex: 1 1 72px; min-height: 56px; max-height: 96px; display: flex; gap: 6px; min-width: 0; }
+.keo-so { position: relative; flex: 1; display: flex; min-width: 0; }
+/* Mũi tên chỉ cho máy có chuột/trackpad — điện thoại vẫn chỉ dải kéo */
+.keo-ben { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .keo-ben {
+    display: grid; place-items: center; flex: 0 0 40px; padding: 0; border-radius: 14px; color: var(--fg); cursor: pointer;
+  }
+  .keo-ben:disabled { opacity: .35; cursor: default; }
+}
 .keo-dai {
   flex: 1; min-width: 0; display: flex; gap: 8px; align-items: stretch;
   overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none;
