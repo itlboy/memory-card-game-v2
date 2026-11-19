@@ -71,7 +71,7 @@ describe('tỷ số loạt ở màn kết quả', () => {
     expect(may.find('.total-row').exists()).toBe(false);
   });
 
-  it('đội: mặt từng thành viên mang neo emoji riêng, ✓ cho người đã bấm Chơi lại', () => {
+  it('đội: mặt từng thành viên mang neo emoji riêng; KHÔNG dấu ✓ trên mặt (19.11.2026: thừa) — hàng biểu tượng nói thay', () => {
     const d1 = { id: 'doi-1', name: 'Đội 1', score: 600, pairs: 5, bestStreak: 3, thanhVien: ['a', 'b'] };
     const d2 = { id: 'doi-2', name: 'Đội 2', score: 300, pairs: 3, bestStreak: 2, thanhVien: ['c'] };
     const w = dung({
@@ -81,7 +81,8 @@ describe('tỷ số loạt ở màn kết quả', () => {
     const cot = w.findAll('.loat .cot');
     expect(cot[0]!.classes()).toContain('d1');
     expect(cot[0]!.findAll('[data-kq-for]').map((e) => e.attributes('data-kq-for'))).toEqual(['a', 'b']);
-    expect(cot[0]!.findAll('.mat.ok')).toHaveLength(1);
+    expect(cot[0]!.findAll('.mat.ok')).toHaveLength(0);
+    expect(cot[0]!.find('.cl-ic').exists()).toBe(true);
     expect(cot[0]!.find('.tv').text()).toBe('A · B');
   });
 
