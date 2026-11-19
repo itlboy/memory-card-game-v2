@@ -374,6 +374,12 @@ export async function guiKhach(): Promise<void> {
 let khachDaGui = '';
 
 /** Đặt tên trên bảng — cũng là tên khi chơi online (cùng ô nhớ). */
+/** Trong các tên này, tên nào CHƯA ai dùng trên bảng xếp hạng (lib/ten-ngau-nhien.ts — tránh trùng tên tự tạo). */
+export async function tenTrong(ds: string[]): Promise<string[]> {
+  const r = await goi<{ trong: string[] }>('/api/ten/trong', { method: 'POST', body: JSON.stringify({ ds }) });
+  return Array.isArray(r.trong) ? r.trong : [];
+}
+
 export async function datTenKhach(ten: string): Promise<void> {
   const tt = ten.trim().slice(0, 16);
   const ds = store.playerNames();
@@ -456,4 +462,4 @@ export async function veNutGoogle(el: HTMLElement, xong: (h: HoSo) => void, loi:
 }
 
 /** Gom một mối để App/OnlineGame gọi và để test giả lập. */
-export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangNhapApple, dangXuat, xoaTaiKhoan, ghiVan, dongBo, bangXepHang, guiKhach, veNutGoogle };
+export const taiKhoan = { san, me, dangTai, khoiDong, lamMoi, dangNhap, dangNhapApple, dangXuat, xoaTaiKhoan, ghiVan, dongBo, bangXepHang, guiKhach, tenTrong, veNutGoogle };

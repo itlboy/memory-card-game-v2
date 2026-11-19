@@ -1502,3 +1502,13 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
   Dòng nền vàng luôn chữ mực tối.
 - Nút mở là **"Khoe tỷ số"** vàng có chữ cạnh "Chi tiết ván" — bỏ ô biểu tượng nhỏ ở góc (không ai nhận ra).
 
+
+## Tên ngẫu nhiên cho người mới (19.11.2026)
+
+- Chưa có tên (`playerNames[0]` rỗng) → lúc khởi động app đặt **LOÀI + MÀU + NÉT** (`lib/ten-ngau-nhien.ts`):
+  máy tiếng Việt "Sóc Đỏ Nhỏ", mọi ngôn ngữ khác tiếng Anh "Tiny Red Squirrel" (tính từ trước). ≥5.000 tổ hợp
+  mỗi thứ tiếng, mọi tên ≤16 ký tự. Tạo MỘT lần, đổi ngôn ngữ không đổi tên; KHÔNG có nút tạo lại (chủ dự án).
+- Chống trùng: `POST /api/ten/trong {ds}` (≤10 tên) trả tên chưa có trên `guest_scores`/`users` (so không phân
+  biệt hoa/dấu). Tên vừa đặt trùng mà người chơi CHƯA sửa → đổi sang tên trống. Mất mạng: giữ tên đã tạo.
+- Hệ quả: "Chơi online → Tạo phòng" đi thẳng (đã có tên); nhánh ô nhập tên chỉ còn khi người chơi tự xoá tên.
+  Test soát chữ chưa dịch phải đặt sẵn tên trung tính, không thì tên tiếng Việt tự tạo bị bắt nhầm.
