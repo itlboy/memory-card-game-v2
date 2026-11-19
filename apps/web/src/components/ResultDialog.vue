@@ -100,7 +100,15 @@ onMounted(() => {
     }
   }
   countScoreUp();
+  // Tỷ số loạt: số người thắng ván CUỘN lên đúng lúc này (khớp animation .cuon, trễ 1s) — kèm tiếng
+  if (loat.value?.some((r) => r.thang)) {
+    setTimeout(() => sfx.star(3), MOC_CUON);
+    setTimeout(() => sfx.star(5), MOC_CUON + 160);
+  }
 });
+
+/** Lúc số tỷ số của người thắng ván bắt đầu cuộn (ms) — PHẢI khớp `animation-delay` của `.cuon` trong CSS. */
+const MOC_CUON = 1000;
 
 /** Chạy một con số từ `from` tới `to`, gọi onDone khi xong. */
 function runCount(
@@ -292,7 +300,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
             <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
             <!-- Hàng số CAO CỐ ĐỊNH: viên +1 nổi bên trên, không đẩy dòng điểm của cột thắng
                  xuống thấp hơn cột bên cạnh (chủ dự án: "nó phải cân đối nhau") -->
-            <span class="so"><span class="o-so"><b :class="{ lui: r.lui, nay: r.thang }">{{ r.n }}</b><i v-if="r.thang" class="cong" aria-hidden="true">+1</i></span></span>
+            <span class="so"><span class="o-so"><span class="khung-so" :class="{ nay: r.thang }"><b :class="{ lui: r.lui && !r.thang, cuon: r.thang }" :data-cu="r.thang ? r.n - 1 : undefined">{{ r.n }}</b></span></span></span>
             <small class="dm">{{ t('kq.diemAria', { n: num(r.diem) }) }}</small>
           </div>
         </div>
@@ -607,20 +615,25 @@ h2 { margin: 0 0 4px; }
 .o-so { position: relative; display: inline-block; line-height: 1; }
 .o-so b { display: inline-block; font: inherit; color: var(--fg); }
 .o-so b.lui { color: var(--muted); opacity: .6; }
-.cong {
-  position: absolute; top: -6px; right: -24px; padding: 1px 7px; border-radius: 999px;
-  font: 800 15px/1.3 var(--font-display); font-style: normal; color: #5a3500;
-  background: #ffe58a; box-shadow: 0 0 0 2px #e0a800; opacity: 0;
-  animation: cong 1.6s .9s both;
+/*
+ * NGƯỜI THẮNG VÁN (19.11.2026, chủ dự án: "+1 mờ nhạt quá… cho con số xoay 0→1, 1→2, có âm thanh, màu
+ * nổi bật"): số CUỘN như đồng hồ lật — số cũ (`data-cu`, vẽ bằng ::before ngay trên) trượt lên khỏi
+ * khung, số mới từ dưới lên — rồi chuyển vàng cam có quầng sáng và GIỮ màu đó. Bỏ viên "+1" (chủ dự án: số cuộn
+ * lên là đủ nói rồi).
+ * Tiếng: `MOC_CUON` trong script phải khớp delay 1s ở đây. Text của <b> vẫn chỉ là số MỚI (đọc màn hình, test).
+ */
+.khung-so { display: inline-block; overflow: hidden; padding: .08em .12em; margin: -.08em -.12em; }
+.khung-so.nay { animation: nay .45s 1.45s both; }
+.o-so b.cuon { position: relative; animation: cuon .55s 1s cubic-bezier(.3, 1.45, .5, 1) both, vang .4s 1.2s both; }
+.o-so b.cuon::before { content: attr(data-cu); position: absolute; left: 0; right: 0; top: -1.16em; color: var(--muted); }
+@keyframes cuon { from { transform: translateY(1.16em); } to { transform: none; } }
+@keyframes vang { to { color: #f29b00; text-shadow: 0 0 14px rgba(255, 183, 3, .55), 0 2px 0 #c77700; } }
+@keyframes nay { 40% { transform: scale(1.3); } }
+@media (prefers-reduced-motion: reduce) {
+  .khung-so.nay { animation: none; }
+  .o-so b.cuon { animation: vang 0s both; }
+  .o-so b.cuon::before { content: none; }
 }
-.o-so b.nay { animation: nay .5s .9s both; }
-@keyframes cong {
-  0% { opacity: 0; transform: translateY(8px) scale(.6); }
-  20% { opacity: 1; transform: none; } 75% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
-@keyframes nay { 40% { transform: scale(1.35); } }
-@media (prefers-reduced-motion: reduce) { .cong, .o-so b.nay { animation: none; } }
 .nut-ct {
   /* position: relative BẮT BUỘC (18.11.2026): thiếu nó thì ::after nới vùng chạm bên dưới bám vào CẢ
      bảng kết quả và trùm lên mọi nút — người chơi online bấm "Chơi lại" lại thành bấm "Chi tiết ván". */
