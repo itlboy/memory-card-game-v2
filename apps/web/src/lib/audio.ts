@@ -415,9 +415,9 @@ class Sfx {
     const now = performance.now();
     if (now - this.lucTach < CACH_TACH_MS) return;
     this.lucTach = now;
-    // Âm lượng = 50% bản đầu (chủ dự án 20.11.2026: "tiếng tạch tạch nhỏ hơn 50%") — từng là 0.05 / 0.008
-    this.noise(0.016, { freq: 3200, type: 'bandpass', q: 3, gain: 0.025 });
-    this.voice(2100, { dur: 0.018, type: 'sine', gain: 0.004 });
+    // Âm lượng ≈ 30% bản đầu (chủ dự án 20.11.2026: "nhỏ hơn 50%", rồi "nhỏ lại chút nữa") — bản đầu 0.05 / 0.008
+    this.noise(0.016, { freq: 3200, type: 'bandpass', q: 3, gain: 0.015 });
+    this.voice(2100, { dur: 0.018, type: 'sine', gain: 0.0025 });
   }
 
   /** Đồng hồ sắp cạn — tick khô, gọi mỗi giây trong 10 giây cuối. */

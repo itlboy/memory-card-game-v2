@@ -220,7 +220,7 @@ describe('server: cache top 20 (19.11.2026)', () => {
 describe('dải chọn số thẻ: vuốt không phải bấm (19.11.2026)', () => {
   it('kéo quá ngưỡng / chạm lúc dải đang trôi → nuốt click (pha capture) + im tiếng bấm', () => {
     const src = goc('src/components/BanChon.vue');
-    expect(src).toMatch(/@pointerdown="chuotXuong" @pointermove="chuotDi"[\s\S]{0,120}@click\.capture="nuotBam"/);
+    expect(src).toMatch(/@pointerdown="chuotXuong" @pointermove="chuotDi"[\s\S]{0,300}@click\.capture="nuotBam"/);
     expect(src).toMatch(/Math\.hypot\(e\.clientX - x0, e\.clientY - y0\) > NGUONG_KEO/);
     expect(src).toMatch(/Date\.now\(\) - lucCuon < CHAM_DUNG_MS/);
     expect(src).toMatch(/setAttribute\('data-nosfx'/);
@@ -304,5 +304,17 @@ describe('dải số thẻ: mũi tên ‹ › cho máy có chuột (19.11.2026)'
     expect(src).toMatch(/\.keo-ben \{ display: none; \}\s*@media \(hover: hover\) and \(pointer: fine\)/);
     expect(src).toMatch(/if \(mo\(BOARD_SIZES\[k\]!\)\) return BOARD_SIZES\[k\]!/);
     expect(src).toMatch(/@click="bamMui\(-1\)"[\s\S]*@click="bamMui\(1\)"/);
+  });
+});
+
+describe('dải số thẻ: giữ ngón rồi kéo tiếp vẫn rung + tạch (20.11.2026)', () => {
+  it('ngón còn chạm thì chưa chốt; theo touch (iOS bắn pointercancel khi cuộn); nhấc ngón mới hẹn chốt', () => {
+    const src = goc('src/components/BanChon.vue');
+    expect(src).toMatch(/function chot\(\): void \{[\s\S]{0,400}if \(ngon\) return;\s*keoTay = false;/);
+    expect(src).toMatch(/@touchstart\.passive="ngonXuong" @touchend\.passive="ngonLen" @touchcancel\.passive="ngonLen"/);
+    expect(src).toMatch(/function ngonLen\(\): void \{[\s\S]{0,120}henDung = setTimeout\(chot, 140\)/);
+  });
+  it('tiếng tạch ≈30% bản đầu', () => {
+    expect(goc('src/lib/audio.ts')).toMatch(/type: 'bandpass', q: 3, gain: 0\.015 \}\);\s*this\.voice\(2100, \{ dur: 0\.018, type: 'sine', gain: 0\.0025 \}\)/);
   });
 });

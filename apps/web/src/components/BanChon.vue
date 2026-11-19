@@ -69,6 +69,9 @@ function oGiua(): number | null {
 let henDung: ReturnType<typeof setTimeout> | undefined;
 /** Cuộn dừng: chốt ô giữa. Ô bị khoá (thiếu biểu tượng) thì trượt về cỡ lớn nhất còn mở. */
 function chot(): void {
+  // NGÓN CÒN CHẠM thì chưa chốt (20.11.2026, chủ dự án: "bấm giữ một lúc rồi kéo thì mất rung và tiếng tạch") —
+  // trước đây đứng yên 140ms là chốt + tắt `keoTay`, kéo tiếp bằng chính ngón đó thì im. Nhấc ngón mới chốt.
+  if (ngon) return;
   keoTay = false;
   rung.xongTach();
   const lv = oGiua();
@@ -103,6 +106,17 @@ const CHAM_DUNG_MS = 250;
 let x0 = 0, y0 = 0, keo = false, lucCuon = 0;
 /** Cuộn do NGƯỜI (chạm vào dải tới khi dải đứng yên) — chỉ lúc này mới rung. */
 let keoTay = false;
+/**
+ * Ngón đang đặt trên dải. Theo `touchstart/touchend` chứ KHÔNG theo pointer: iOS bắn `pointercancel` ngay khi
+ * trình duyệt nhận cuộn, rồi im tới hết — pointer không biết ngón còn đó; touch events thì chạy suốt.
+ */
+let ngon = false;
+function ngonXuong(): void { ngon = true; keoTay = true; clearTimeout(henDung); }
+function ngonLen(): void {
+  ngon = false;
+  clearTimeout(henDung);
+  henDung = setTimeout(chot, 140);   // còn trôi theo đà thì `khiCuon` hẹn lại; đứng yên thì chốt
+}
 function khiCham(e: PointerEvent): void {
   keoTay = true;
   x0 = e.clientX; y0 = e.clientY;
@@ -196,6 +210,7 @@ const tomTatLuat = computed(() => {
     <span class="keo-mui" aria-hidden="true" />
     <div ref="dai" class="keo-dai" role="radiogroup" :aria-label="t('menu.soThe')" @scroll.passive="khiCuon"
       @pointerdown="chuotXuong" @pointermove="chuotDi" @pointerup="chuotLen" @pointercancel="chuotLen"
+      @touchstart.passive="ngonXuong" @touchend.passive="ngonLen" @touchcancel.passive="ngonLen"
       @wheel="khiLan" @click.capture="nuotBam">
       <span class="keo-dem" aria-hidden="true" />
       <button
