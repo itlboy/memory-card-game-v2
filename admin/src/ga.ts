@@ -4,10 +4,10 @@
  *
  * BẪY (19.11.2026): GA4 chỉ cho **10 request đồng thời mỗi thuộc tính** — quá là `429 RESOURCE_EXHAUSTED`.
  * Trước đây trang bắn 29 runReport một lúc (+3 realtime) → hay dính 429. Nay:
- *   - hàng đợi: tối đa `CAU_HINH.toiDa` (4) request GA cùng lúc trong một isolate;
+ *   - hàng đợi: tối đa `CAU_HINH.toiDa` (4) request GA cùng lúc trong MỘT request (xem bẫy ở Hang);
  *   - 429/503 do ĐỒNG THỜI/chập chờn → thử lại có giãn cách ngẫu nhiên (~0.5s, 1.5s, 4s);
  *   - 429 do HẾT HẠN MỨC token theo giờ/ngày → KHÔNG thử lại (thử chỉ đốt thêm), ném `GaLoi` loại `het_quota`;
- *   - nhiều request cùng cần token mới → dùng chung MỘT lần xin token.
+ *   - nhiều lời gọi trong một request cùng cần token mới → dùng chung MỘT lần xin token.
  */
 
 export interface KhoaSa { client_email: string; private_key: string }
@@ -27,29 +27,35 @@ export const CAU_HINH = {
   ngauNhien: () => Math.random()
 };
 
-/* ---------------- Hàng đợi: ≤ toiDa request GA cùng lúc ---------------- */
-let dangChay = 0;
-const cho: (() => void)[] = [];
-
-async function vaoHang(): Promise<void> {
-  if (dangChay < CAU_HINH.toiDa) { dangChay++; return; }
-  await new Promise<void>((r) => cho.push(r));          // chỗ được nhường lại nguyên (dangChay không giảm)
+/* ---------------- Hàng đợi: ≤ toiDa request GA cùng lúc ----------------
+ * BẪY WORKERS (19.11.2026, deploy đầu bị 500 cả trang): hàng đợi và "lần xin token đang chạy" TỪNG để ở
+ * cấp module, dùng chung giữa các request của cùng isolate. Workers KHÔNG cho request này chờ một promise
+ * do request khác tạo/resolve ("A promise was resolved … from a different request context") → request
+ * treo, runtime huỷ, trả 500. Nên hàng đợi và token-đang-xin thuộc về TỪNG `Ga` (mỗi request một `Ga`).
+ * Chỉ GIÁ TRỊ token đã có (chuỗi) mới được nhớ cấp module. Các ô gọi song song thì trang đã giới hạn ≤3.
+ */
+export class Hang {
+  private dangChay = 0;
+  private cho: (() => void)[] = [];
+  private async vao(): Promise<void> {
+    if (this.dangChay < CAU_HINH.toiDa) { this.dangChay++; return; }
+    await new Promise<void>((r) => this.cho.push(r));   // chỗ được nhường lại nguyên (dangChay không giảm)
+  }
+  private ra(): void {
+    const tiep = this.cho.shift();
+    if (tiep) tiep(); else this.dangChay--;
+  }
+  /** Chạy `viec` khi tới lượt. */
+  async chay<T>(viec: () => Promise<T>): Promise<T> {
+    await this.vao();
+    try { return await viec(); } finally { this.ra(); }
+  }
+  /** Chỉ cho test. */
+  trangThai() { return { dangChay: this.dangChay, cho: this.cho.length }; }
 }
-function raHang(): void {
-  const tiep = cho.shift();
-  if (tiep) tiep(); else dangChay--;
-}
-/** Chạy `viec` khi tới lượt trong hàng đợi GA. */
-export async function trongHang<T>(viec: () => Promise<T>): Promise<T> {
-  await vaoHang();
-  try { return await viec(); } finally { raHang(); }
-}
-/** Chỉ cho test: số request đang chạy / đang chờ. */
-export const _hang = () => ({ dangChay, cho: cho.length });
 
 /* ---------------- Token ---------------- */
 let tokenCache: { token: string; het: number; email: string } | null = null;
-let tokenDangXin: { email: string; p: Promise<string> } | null = null;
 
 const b64u = (b: ArrayBuffer | Uint8Array | string): string => {
   const u = typeof b === 'string' ? new TextEncoder().encode(b) : b instanceof Uint8Array ? b : new Uint8Array(b);
@@ -77,15 +83,12 @@ async function xinToken(sa: KhoaSa): Promise<string> {
   return j.access_token;
 }
 
-export async function layToken(sa: KhoaSa): Promise<string> {
-  if (tokenCache && tokenCache.email === sa.client_email && tokenCache.het > Date.now() + 60_000) return tokenCache.token;
-  if (tokenDangXin && tokenDangXin.email === sa.client_email) return tokenDangXin.p;
-  const p = xinToken(sa).finally(() => { if (tokenDangXin?.p === p) tokenDangXin = null; });
-  tokenDangXin = { email: sa.client_email, p };
-  return p;
+/** Token còn hạn thì dùng lại (giá trị chuỗi, an toàn giữa các request); hết thì xin mới. */
+export function tokenCon(email: string): string | null {
+  return tokenCache && tokenCache.email === email && tokenCache.het > Date.now() + 60_000 ? tokenCache.token : null;
 }
 /** Chỉ cho test. */
-export const _datLaiToken = () => { tokenCache = null; tokenDangXin = null; };
+export const _datLaiToken = () => { tokenCache = null; };
 
 /* ---------------- Phân loại lỗi GA ---------------- */
 /** 429 vì hết token theo giờ/ngày (thử lại vô ích) — khác 429 vì quá số request đồng thời. */
@@ -103,10 +106,21 @@ type TraVe = { rows?: { dimensionValues?: { value: string }[]; metricValues?: { 
 export class Ga {
   private sa: KhoaSa;
   private property: string;
+  /** Hàng đợi + token-đang-xin RIÊNG của request này (xem bẫy ở trên). */
+  readonly hang = new Hang();
+  private tokenDangXin: Promise<string> | null = null;
   constructor(sa: KhoaSa, property: string) { this.sa = sa; this.property = property; }
 
+  /** Các lời gọi cùng lúc trong MỘT request dùng chung một lần xin token. */
+  private layToken(): Promise<string> {
+    const co = tokenCon(this.sa.client_email);
+    if (co) return Promise.resolve(co);
+    if (!this.tokenDangXin) this.tokenDangXin = xinToken(this.sa).finally(() => { this.tokenDangXin = null; });
+    return this.tokenDangXin;
+  }
+
   private async goiMotLan(duoi: string, body: unknown): Promise<TraVe> {
-    const token = await layToken(this.sa);
+    const token = await this.layToken();
     const r = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${this.property}:${duoi}`, {
       method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' }, body: JSON.stringify(body)
     });
@@ -123,7 +137,7 @@ export class Ga {
   private async goi(duoi: string, body: unknown): Promise<TraVe> {
     for (let lan = 0; ; lan++) {
       try {
-        return await trongHang(() => this.goiMotLan(duoi, body));
+        return await this.hang.chay(() => this.goiMotLan(duoi, body));
       } catch (e) {
         if (!(e instanceof GaLoi) || e.loai !== 'ban' || lan >= CAU_HINH.tre.length) throw e;
         const tre = CAU_HINH.tre[lan]!;
