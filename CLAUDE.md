@@ -995,6 +995,9 @@
     + nút nhỏ "Huỷ sẵn sàng" riêng.
   - Màn cuối online: HÀNG BIỂU TƯỢNG chơi lại ngay dưới tỷ số (mũi tên vòng ↻ nét trắng nền xanh = đã bấm / ba chấm nhảy nền cam = đang chờ / 🚪 — chủ dự án chọn trên canvas 19.11.2026, chê tick và ⏳ "hơi xấu"; chữ chỉ ở aria) — bỏ chip chữ
     và khung "Chơi lại x/y" ("đỡ phải viết nhiều chữ"); máy mặc định đã bấm; nút sáng khi mình là người cuối. Số tỷ số mọi người màu đen (không làm mờ người kém); người thắng ván số CUỘN lên, không còn "+1".
+    Hàng mặt CAO CỐ ĐỊNH (mặt SVG báo đen/rồng cao hơn emoji từng làm lệch cả cột); tên 15px (≥3 người 13,5px,
+    ≥5 người 12,5px), tên tràn cột thì CHẠY qua lại (`doTenChay`, đo `b.scrollWidth` của ô tên — span inline
+    có scrollWidth 0), giảm chuyển động thì "…". `.ten` là khối thường, KHÔNG flex (flex cắt tên cả hai đầu).
   - Xem trận: phòng `playing`/`countdown` công khai vẫn ở sổ với `dangChoi` + `ten` — CHỈ trả cho client khai
     `/api/rooms/public?v=2` (client cũ sẽ vẽ nó như phòng còn chỗ); không bắn push "phòng mới" cho nó. `room.xem`
     = người xem (tên + mặt băm theo tên); chip `ChipXem` ở slot `phai` của HudBar (không thêm hàng), bấm ra
