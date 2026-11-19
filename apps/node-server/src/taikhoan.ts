@@ -289,8 +289,19 @@ export function ghepTop(ds: Record<string, unknown>[], toi?: Record<string, unkn
 }
 
 export const KHACH_HET_HAN_MS = 60 * 24 * 60 * 60 * 1000;
-/** Mặt thú trên bảng: tài khoản theo id, khách theo mã băm — ổn định giữa các lần mở. */
-export const MAT_BXH = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙', '🐰', '🐶', '🐱', '🐻', '🦉', '🐮'];
+/**
+ * Mặt thú trên bảng: tài khoản theo id, khách theo mã băm — ổn định giữa các lần mở.
+ * 49 MẶT (20.11.2026, chủ dự án: "trên bảng xếp hạng thấy bị trùng lặp… thêm hết đi"): 16 cũ + 8 đầu thú còn lại
+ * + 25 thú nguyên con rõ dáng ở cỡ nhỏ. TRÁNH: 🐣🐥 (mặt máy Gà mờ/Gà cứng), 🐲 (nhầm máy Rồng thần), thú đáng sợ
+ * (app 4+), emoji Unicode 15+ (🫎🪿🪼 — Android cũ ra ô vuông). Đổi số phần tử là đổi mặt của MỌI người (mod) —
+ * chỉ THÊM vào cuối danh sách cũng vẫn đổi; chấp nhận một lần.
+ */
+export const MAT_BXH = [
+  '🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙', '🐰', '🐶', '🐱', '🐻', '🦉', '🐮',
+  '🐭', '🐹', '🐻‍❄️', '🐔', '🐺', '🐗', '🐴', '🦄',
+  '🐳', '🐬', '🐠', '🦀', '🐢', '🦭', '🐿️', '🦔', '🦝', '🦦', '🦥', '🐘', '🦒', '🦓', '🦘', '🐊', '🦖',
+  '🦆', '🦜', '🦚', '🦩', '🐝', '🐞', '🦋', '🐌'
+];
 
 /** Mã khách (chuỗi ngẫu nhiên do máy sinh) → khoá lưu: SHA-256 hex. Mã sai dạng → null. */
 export function maKhach(id: unknown): string | null {
