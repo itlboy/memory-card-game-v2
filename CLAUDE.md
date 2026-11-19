@@ -1462,7 +1462,7 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
 - **Viên đồng xu trên TopBar là NÚT** mở `BangXepHang.vue` (cũng mở từ nút 🏆 ở màn Tài khoản —
   TaiKhoanDialog không còn tab xếp hạng riêng).
 - **Khách lên bảng chung**: `store.khach()` sinh mã NGẪU NHIÊN riêng (KHÔNG dùng `clientId`), server
-  (`/api/khach`) chỉ lưu SHA-256 của mã ở bảng MySQL `khach`. Máy gửi TỔNG (điểm, `boDem.wins`,
+  (`/api/khach`) chỉ lưu SHA-256 của mã (`guest_hash`) ở bảng MySQL `guest_scores` (tên cũ `khach` — server tự đổi lúc khởi động, 19.11.2026). Máy gửi TỔNG (điểm, `boDem.wins`,
   `boDem.van`) sau mỗi ván (qua `ghiVan`) và trước khi mở bảng — gửi lại không nhân đôi.
   `locDiemKhach`: không bao giờ giảm, mỗi lần chỉ tăng ≤ số ván chơi được trong khoảng đó × 100k.
 - **Tên khách = `store.playerNames()[0]`** — chung ô với tên chơi online. Rỗng → client hiện

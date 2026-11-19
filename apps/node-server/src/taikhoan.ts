@@ -80,18 +80,18 @@ export const TAO_BANG_TAI_KHOAN = [
   /*
    * KHÁCH TRÊN BẢNG XẾP HẠNG (19.11.2026, mockup duyệt https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy):
    * người chưa đăng nhập cũng lên bảng chung. Máy tự sinh một MÃ NGẪU NHIÊN (không phải mã thiết bị);
-   * server chỉ giữ SHA-256 của mã (`ma`), nên lộ bảng này cũng không giả được khách nào. `name` rỗng
+   * server chỉ giữ SHA-256 của mã (`guest_hash`), nên lộ bảng này cũng không giả được khách nào. `name` rỗng
    * = chưa đặt tên → client hiện "Khách 4821" theo ngôn ngữ của người xem.
    */
-  `CREATE TABLE IF NOT EXISTS khach (
-     ma          CHAR(64)     NOT NULL PRIMARY KEY,
+  `CREATE TABLE IF NOT EXISTS guest_scores (
+     guest_hash  CHAR(64)     NOT NULL PRIMARY KEY,
      name        VARCHAR(64)  NOT NULL DEFAULT '',
      total_score BIGINT       NOT NULL DEFAULT 0,
      wins        INT          NOT NULL DEFAULT 0,
      matches     INT          NOT NULL DEFAULT 0,
      created_at  BIGINT       NOT NULL DEFAULT 0,
      updated_at  BIGINT       NOT NULL DEFAULT 0,
-     INDEX idx_khach_score (total_score)
+     INDEX idx_guest_scores_score (total_score)
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   `CREATE TABLE IF NOT EXISTS user_best (
      user_id   BIGINT      NOT NULL,
@@ -395,6 +395,19 @@ export async function moTaiKhoan(
    */
   const secret = env.AUTH_SECRET
     ?? createHash('sha256').update(`mm-auth:${env.MYSQL_URL ?? ''}`).digest('hex');
+  /*
+   * ĐỔI TÊN `khach` → `guest_scores` (19.11.2026, chủ dự án: tên bảng tiếng Việt lạc giữa users/players/rooms).
+   * Chạy TRƯỚC khi tạo bảng: còn bảng cũ mà chưa có bảng mới thì đổi tên + đổi cột `ma` → `guest_hash` (giữ dữ
+   * liệu). Không dùng `RENAME TABLE IF EXISTS` (MariaDB có, MySQL 8 của CI không).
+   */
+  const [cu] = await pool.query(
+    `SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('khach', 'guest_scores')`
+  );
+  const coBang = new Set((cu as { t: string }[]).map((r) => r.t));
+  if (coBang.has('khach') && !coBang.has('guest_scores')) {
+    await pool.query('RENAME TABLE khach TO guest_scores');
+    await pool.query('ALTER TABLE guest_scores CHANGE ma guest_hash CHAR(64) NOT NULL, RENAME INDEX idx_khach_score TO idx_guest_scores_score');
+  }
   for (const cau of TAO_BANG_TAI_KHOAN) await pool.query(cau);
   await pool.query('ALTER TABLE users MODIFY google_sub VARCHAR(64) NULL');
   for (const [cot, cau] of NANG_CAP_USERS) {
@@ -490,7 +503,7 @@ export async function moTaiKhoan(
    * Một pod (Deployment replicas 1) nên RAM là đủ; nhiều pod thì mỗi pod một bản, vẫn đúng tới 30 giây.
    */
   const COT_U = "CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches";
-  const COT_K = "ma AS k, 1 AS la_khach, name, total_score, wins, matches";
+  const COT_K = "guest_hash AS k, 1 AS la_khach, name, total_score, wins, matches";
   let bxhCache: { luc: number; top: Record<string, unknown>[]; tong: number } | null = null;
   function dongCongKhai(r: Record<string, unknown>) {
     const khach = Number(r.la_khach) === 1, k = String(r.k);
@@ -507,9 +520,9 @@ export async function moTaiKhoan(
     // Lấy dư 5 dòng mỗi bảng: index chỉ có total_score, hoà điểm thì xếp tiếp theo wins trong code
     const [[u], [kh], [[du]], [[dk]]] = await Promise.all([
       pool!.query(`SELECT ${COT_U} FROM users WHERE matches > 0 ORDER BY total_score DESC LIMIT 25`),
-      pool!.query(`SELECT ${COT_K} FROM khach WHERE matches > 0 AND updated_at > ? ORDER BY total_score DESC LIMIT 25`, [tu]),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE matches > 0 AND updated_at > ? ORDER BY total_score DESC LIMIT 25`, [tu]),
       pool!.query('SELECT COUNT(*) AS n FROM users WHERE matches > 0'),
-      pool!.query('SELECT COUNT(*) AS n FROM khach WHERE matches > 0 AND updated_at > ?', [tu]),
+      pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE matches > 0 AND updated_at > ?', [tu]),
     ]) as unknown as [[Record<string, unknown>[]], [Record<string, unknown>[]], [[{ n: number }]], [[{ n: number }]]];
     bxhCache = { luc: now, top: ghepTop([...u, ...kh]), tong: Number(du.n) + Number(dk.n) };
     return bxhCache;
@@ -519,7 +532,7 @@ export async function moTaiKhoan(
     const chung = await topVaTong(now);
     const [mine] = uid !== null
       ? await pool!.query(`SELECT ${COT_U} FROM users WHERE id = ?`, [uid])
-      : ma ? await pool!.query(`SELECT ${COT_K} FROM khach WHERE ma = ?`, [ma]) : [[]];
+      : ma ? await pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE guest_hash = ?`, [ma]) : [[]];
     const m = (mine as Record<string, unknown>[])[0];
     const coMat = !!m && Number(m.matches) > 0;
     const k = m ? String(m.k) : null, laKhach = m ? Number(m.la_khach) === 1 : false;
@@ -530,11 +543,11 @@ export async function moTaiKhoan(
     const diem = Number(m.total_score);
     const [[[tu1]], [[tk1]], [tren1], [tren2], [duoi1], [duoi2]] = await Promise.all([
       pool!.query('SELECT COUNT(*) AS n FROM users WHERE total_score > ? AND matches > 0', [diem]),
-      pool!.query('SELECT COUNT(*) AS n FROM khach WHERE total_score > ? AND matches > 0 AND updated_at > ?', [diem, tu]),
+      pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE total_score > ? AND matches > 0 AND updated_at > ?', [diem, tu]),
       pool!.query(`SELECT ${COT_U} FROM users WHERE total_score > ? AND matches > 0 ORDER BY total_score ASC LIMIT 1`, [diem]),
-      pool!.query(`SELECT ${COT_K} FROM khach WHERE total_score > ? AND matches > 0 AND updated_at > ? ORDER BY total_score ASC LIMIT 1`, [diem, tu]),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE total_score > ? AND matches > 0 AND updated_at > ? ORDER BY total_score ASC LIMIT 1`, [diem, tu]),
       pool!.query(`SELECT ${COT_U} FROM users WHERE total_score <= ? AND matches > 0 AND NOT (id = ? AND ? = 0) ORDER BY total_score DESC LIMIT 1`, [diem, k, laKhach ? 1 : 0]),
-      pool!.query(`SELECT ${COT_K} FROM khach WHERE total_score <= ? AND matches > 0 AND updated_at > ? AND NOT (ma = ? AND ? = 1) ORDER BY total_score DESC LIMIT 1`, [diem, tu, k, laKhach ? 1 : 0]),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE total_score <= ? AND matches > 0 AND updated_at > ? AND NOT (guest_hash = ? AND ? = 1) ORDER BY total_score DESC LIMIT 1`, [diem, tu, k, laKhach ? 1 : 0]),
     ]) as unknown as [[[{ n: number }]], [[{ n: number }]], [Record<string, unknown>[]], [Record<string, unknown>[]], [Record<string, unknown>[]], [Record<string, unknown>[]]];
     const hang = Number(tu1.n) + Number(tk1.n) + 1;
     // Tổng lấy từ cache (trễ ≤30s) — nhưng không bao giờ nhỏ hơn hạng của chính mình; chưa chơi ván nào
@@ -635,12 +648,12 @@ export async function moTaiKhoan(
         const than = await docThan(req) as Record<string, unknown> | null;
         const ma = maKhach(than?.id);
         if (!than || !ma) { json(res, { error: 'Mã khách không hợp lệ' }, 400); return true; }
-        const [rows] = await pool!.query('SELECT total_score, wins, matches, updated_at FROM khach WHERE ma = ?', [ma]);
+        const [rows] = await pool!.query('SELECT total_score, wins, matches, updated_at FROM guest_scores WHERE guest_hash = ?', [ma]);
         const r = (rows as Record<string, unknown>[])[0];
         const cu: DongKhach | null = r ? { total: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches), updatedAt: Number(r.updated_at) } : null;
         const d = locDiemKhach(than, cu, now);
         await pool!.execute(
-          `INSERT INTO khach (ma, name, total_score, wins, matches, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO guest_scores (guest_hash, name, total_score, wins, matches, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE name = VALUES(name), total_score = VALUES(total_score), wins = VALUES(wins),
              matches = VALUES(matches), updated_at = VALUES(updated_at)`,
           [ma, locTen(than.name), d.total, d.wins, d.matches, now, now]
@@ -652,7 +665,7 @@ export async function moTaiKhoan(
       /* Khách tự xoá mình khỏi bảng (nút trong hộp Bảng xếp hạng — chính sách quyền riêng tư hứa điều này). */
       if (p === '/api/khach/xoa' && req.method === 'POST') {
         const ma = maKhach((await docThan(req) as { id?: unknown } | null)?.id);
-        if (ma) await pool!.execute('DELETE FROM khach WHERE ma = ?', [ma]);
+        if (ma) await pool!.execute('DELETE FROM guest_scores WHERE guest_hash = ?', [ma]);
         json(res, { ok: true });
         return true;
       }
@@ -716,7 +729,7 @@ export async function moTaiKhoan(
         await ghiKyLucVaDanhHieu(uid, best, achs, now);
         // Máy này từng lên bảng dưới dạng khách → điểm đã gộp ở trên, bỏ dòng khách (không trùng hai dòng)
         const ma = maKhach(than.khach);
-        if (ma) await pool!.execute('DELETE FROM khach WHERE ma = ?', [ma]);
+        if (ma) await pool!.execute('DELETE FROM guest_scores WHERE guest_hash = ?', [ma]);
         json(res, { me: await hoSo(uid) });
         return true;
       }
