@@ -280,6 +280,12 @@ describe('dải số thẻ: rung từng ô, cuộn không kêu (19.11.2026)', ()
     expect(ban).toMatch(/emit\('chon-co', lv, 'cuon'\)/);
     expect(ban).toMatch(/emit\('chon-co', level, 'bam'\)/);
     expect(goc('src/components/MenuScreen.vue')).toMatch(/if \(cach !== 'cuon'\) sfx\.select\(\)/);
+    // MỌI chỗ dùng BanChon phải xử lý 'cuon' — đổi bàn trong phòng online từng sót (vẫn kêu khi cuộn)
+    for (const f of ['MenuScreen.vue', 'OnlineScreen.vue']) {
+      const src = goc(`src/components/${f}`);
+      const ten = /<BanChon[\s\S]*?@chon-co="(\w+)"/.exec(src)![1];
+      expect(src, f).toMatch(new RegExp(`function ${ten}\\(level: number, cach: 'cuon' \\| 'bam'`));
+    }
   });
   it('rung chọn: selectionStart trước selectionChanged (thiếu là plugin im lặng), có giới hạn tần suất', async () => {
     const src = goc('src/lib/rung.ts');

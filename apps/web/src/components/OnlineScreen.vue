@@ -871,9 +871,10 @@ function wizBack(): void {
   }
   wizard.value = null;
 }
-function chonCoBan(level: number): void {
+function chonCoBan(level: number, cach: 'cuon' | 'bam' = 'bam'): void {
   if (level === cfg.value.level) return;
-  sfx.select();
+  // Cuộn dải số thẻ: KHÔNG kêu, dải đã rung từng ô (như MenuScreen.chonCo — 19.11.2026 sót chỗ này)
+  if (cach !== 'cuon') sfx.select();
   cfg.value = { ...cfg.value, level };
 }
 function moBuocBan(b: 'level' | 'theme' | 'options'): void { sfx.select(); wizard.value = b; }
