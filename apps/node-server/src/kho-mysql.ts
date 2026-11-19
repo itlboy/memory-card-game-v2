@@ -189,11 +189,22 @@ const VA_COT: readonly [string, string, string][] = [
   ['rooms', 'close_reason', 'VARCHAR(16) NULL'],
   // MÁY CHƠI CÙNG (1.6.0): mức của máy; NULL = người thật. Thiếu cột là khởi động lại server
   // biến máy thành "người" không bao giờ kết nối — ván treo chờ nó tới hết hạn giữ chỗ.
-  ['room_players', 'may', 'VARCHAR(16) NULL'],
+  ['room_players', 'bot_level', 'VARCHAR(16) NULL'],
   // CHẾ ĐỘ ĐỒNG ĐỘI: phòng bật chế độ + người thuộc đội nào. Thiếu là khởi động lại server mất
   // chia đội — phòng chờ về chế độ thường, ván đang chạy (snapshot vẫn mang đội) lệch phòng.
-  ['rooms', 'che_do_doi', 'TINYINT(1) NOT NULL DEFAULT 0'],
-  ['room_players', 'doi', 'CHAR(1) NULL']
+  ['rooms', 'team_mode', 'TINYINT(1) NOT NULL DEFAULT 0'],
+  ['room_players', 'team', 'CHAR(1) NULL']
+];
+
+/**
+ * ĐỔI TÊN CỘT TIẾNG VIỆT (19.11.2026, chủ dự án: tên bảng/cột phải tiếng Anh như phần còn lại). Chạy TRƯỚC
+ * `VA_COT`: còn cột cũ mà chưa có cột mới thì CHANGE (giữ dữ liệu) — không thì VA_COT sẽ thêm cột mới RỖNG và
+ * phòng đang mở mất máy/đội sau khi khởi động lại. Code TS vẫn gọi `may`/`doi` (khoá trong snapshot/engine).
+ */
+const DOI_TEN_COT: readonly [string, string, string, string][] = [
+  ['rooms', 'che_do_doi', 'team_mode', 'TINYINT(1) NOT NULL DEFAULT 0'],
+  ['room_players', 'may', 'bot_level', 'VARCHAR(16) NULL'],
+  ['room_players', 'doi', 'team', 'CHAR(1) NULL']
 ];
 
 /** Phòng đã đóng quá bấy nhiêu thì xoá cứng. Không có bước này thì xoá mềm làm
@@ -225,6 +236,18 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     try {
       // Tuần tự: room_players/room_themes/matches có khoá ngoại trỏ vào rooms.
       for (const cau of TAO_BANG) await c.query(cau);
+      for (const [bang, cu, moi, dinhNghia] of DOI_TEN_COT) {
+        const [co] = await c.query(
+          `SELECT COLUMN_NAME AS c FROM information_schema.COLUMNS
+           WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME IN (?, ?)`,
+          [bang, cu, moi]
+        );
+        const ten = new Set((co as { c: string }[]).map((r) => r.c));
+        if (ten.has(cu) && !ten.has(moi)) {
+          await c.query(`ALTER TABLE \`${bang}\` CHANGE \`${cu}\` \`${moi}\` ${dinhNghia}`);
+          console.log(`[kho] đổi tên cột: ${bang}.${cu} → ${moi}`);
+        }
+      }
       for (const [bang, cot, dinhNghia] of VA_COT) {
         const [co] = await c.query(
           `SELECT 1 FROM information_schema.COLUMNS
@@ -335,7 +358,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         `UPDATE rooms SET
            status = ?, host_id = ?, is_public = ?, level = ?,
            opt_time = ?, opt_lives = ?, opt_peek = ?, opt_shuffle = ?, opt_special = ?,
-           countdown_end = ?, empty_at = ?, alarm_at = ?, game_state = ?, che_do_doi = ?,
+           countdown_end = ?, empty_at = ?, alarm_at = ?, game_state = ?, team_mode = ?,
            opened_at = IF(? > 0, ?, opened_at)
          WHERE id = ?`,
         [
@@ -357,14 +380,14 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         await c.query(
           `INSERT INTO room_players
              (room_id, player_id, seat, name, avatar, client_id, token, is_ready,
-              disconnected_at, last_seen, joined_at, left_at, may, doi)
+              disconnected_at, last_seen, joined_at, left_at, bot_level, team)
            VALUES ?
            ON DUPLICATE KEY UPDATE
              seat = VALUES(seat), name = VALUES(name), avatar = VALUES(avatar),
              client_id = VALUES(client_id), token = VALUES(token),
              is_ready = VALUES(is_ready),
              disconnected_at = VALUES(disconnected_at), last_seen = VALUES(last_seen),
-             may = VALUES(may), doi = VALUES(doi), left_at = 0`,
+             bot_level = VALUES(bot_level), team = VALUES(team), left_at = 0`,
           [ps.map((p, i) => [
             id, p.id, i, p.name, p.avatar ?? null, p.clientId ?? null, p.token,
             p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null, p.doi != null ? String(p.doi) : null
@@ -554,14 +577,14 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     opt_shuffle: number; opt_special: number; countdown_end: number | null;
     empty_at: number | null; alarm_at: number | null; opened_at: number;
     game_state: string | null;
-    che_do_doi?: number;
+    team_mode?: number;
   }
   /** Một dòng của bảng `room_players`. */
   interface DongNguoiChoi {
     room_id: number; player_id: string; name: string; avatar: string | null;
     token: string | null; is_ready: number; disconnected_at: number | null; last_seen: number | null;
-    may?: string | null;
-    doi?: string | null;
+    bot_level?: string | null;
+    team?: string | null;
   }
 
   return {
@@ -597,9 +620,9 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
             // ai đang kết nối.
             disconnectedAt: p.disconnected_at === null ? null : Number(p.disconnected_at),
             ...(p.avatar ? { avatar: p.avatar } : {}),
-            ...(p.may ? { may: p.may } : {}),
+            ...(p.bot_level ? { may: p.bot_level } : {}),
             // Số đội 1–4 lưu dạng CHAR(1); 'A'/'B' là phòng lưu từ bản 1.7 — room.ts `chuanDoi` đổi sang số
-            ...(p.doi ? { doi: /^[1-4]$/.test(p.doi) ? Number(p.doi) : p.doi } : {}),
+            ...(p.team ? { doi: /^[1-4]$/.test(p.team) ? Number(p.team) : p.team } : {}),
             ...(p.last_seen === null ? {} : { lastSeen: Number(p.last_seen) })
           });
           nguoiTheoPhong.set(p.room_id, ds);
@@ -631,7 +654,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
                   peek: Number(r.opt_peek), shuffle: Number(r.opt_shuffle),
                   special: Number(r.opt_special)
                 },
-                ...(Number(r.che_do_doi) ? { doi: true } : {})
+                ...(Number(r.team_mode) ? { doi: true } : {})
               },
               players: nguoiTheoPhong.get(id) ?? [],
               ...(r.countdown_end === null ? {} : { countdownEnd: Number(r.countdown_end) }),

@@ -47,14 +47,33 @@ export interface EnvThongBao {
   FCM_SERVICE_ACCOUNT?: string;
 }
 
-const TAO_BANG = `CREATE TABLE IF NOT EXISTS push_dangky (
+const TAO_BANG = `CREATE TABLE IF NOT EXISTS push_subscriptions (
   token VARCHAR(255) NOT NULL PRIMARY KEY,
-  nen ENUM('ios','android') NOT NULL,
+  platform ENUM('ios','android') NOT NULL,
   lang VARCHAR(8) NOT NULL DEFAULT 'en',
-  lech_phut SMALLINT NOT NULL DEFAULT 0,
-  tao BIGINT NOT NULL,
-  gui_cuoi BIGINT NOT NULL DEFAULT 0
+  tz_offset_min SMALLINT NOT NULL DEFAULT 0,
+  created_at BIGINT NOT NULL,
+  last_sent_at BIGINT NOT NULL DEFAULT 0
 ) CHARACTER SET ascii`;
+
+/**
+ * ĐỔI TÊN `push_dangky` → `push_subscriptions` + cột sang tiếng Anh (19.11.2026, chủ dự án). Chạy TRƯỚC TAO_BANG,
+ * giữ dữ liệu (máy đã bật chuông không phải bật lại). Code TS vẫn dùng tên cũ qua bí danh trong SELECT.
+ */
+async function doiTenBangCu(pool: Pool): Promise<void> {
+  const [co] = await pool.query(
+    `SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('push_dangky', 'push_subscriptions')`
+  );
+  const ten = new Set((co as { t: string }[]).map((r) => r.t));
+  if (!ten.has('push_dangky') || ten.has('push_subscriptions')) return;
+  await pool.query('RENAME TABLE push_dangky TO push_subscriptions');
+  await pool.query(`ALTER TABLE push_subscriptions
+    CHANGE nen platform ENUM('ios','android') NOT NULL,
+    CHANGE lech_phut tz_offset_min SMALLINT NOT NULL DEFAULT 0,
+    CHANGE tao created_at BIGINT NOT NULL,
+    CHANGE gui_cuoi last_sent_at BIGINT NOT NULL DEFAULT 0`);
+  console.log('[thongbao] đổi tên bảng push_dangky → push_subscriptions');
+}
 
 /** Chữ thông báo theo ngôn ngữ máy đã khai. `{ten}` = tên chủ phòng. */
 export const CHU: Record<string, { tieuDe: string; than: string }> = {
@@ -208,6 +227,7 @@ export async function moThongBao(
     try { fcm = JSON.parse(env.FCM_SERVICE_ACCOUNT) as TaiKhoanFcm; } catch { console.error('[thongbao] FCM_SERVICE_ACCOUNT không phải JSON'); }
   }
   if (!pool || (!apns && !fcm)) return null;
+  await doiTenBangCu(pool);
   await pool.query(TAO_BANG);
 
   let jwtCache: { jwt: string; luc: number } | null = null;
@@ -265,7 +285,7 @@ export async function moThongBao(
   async function guiDot(phong: PublicRoom): Promise<void> {
     const now = Date.now();
     if (now - dotCuoi < CACH_DOT_MS) return;
-    const [rows] = await pool!.query('SELECT token, nen, lang, lech_phut, gui_cuoi FROM push_dangky WHERE gui_cuoi <= ?', [now - CACH_MAY_MS]);
+    const [rows] = await pool!.query('SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi FROM push_subscriptions WHERE last_sent_at <= ?', [now - CACH_MAY_MS]);
     const nhan = chonNguoiNhan((rows as DangKy[]).map((r) => ({ ...r, gui_cuoi: Number(r.gui_cuoi) })), now)
       .filter((r) => (r.nen === 'ios' ? !!apns : !!fcm) && r.token !== chuPhong.get(phong.code));
     if (!nhan.length) return;
@@ -280,8 +300,8 @@ export async function moThongBao(
     ]);
     const ok: string[] = []; const bo: string[] = [];
     for (const m of [kqIos, kqAnd]) for (const [t, v] of m) (v === 'ok' ? ok : v === 'bo' ? bo : []).push(t);
-    if (ok.length) await pool!.query('UPDATE push_dangky SET gui_cuoi = ? WHERE token IN (?)', [now, ok]);
-    if (bo.length) await pool!.query('DELETE FROM push_dangky WHERE token IN (?)', [bo]);
+    if (ok.length) await pool!.query('UPDATE push_subscriptions SET last_sent_at = ? WHERE token IN (?)', [now, ok]);
+    if (bo.length) await pool!.query('DELETE FROM push_subscriptions WHERE token IN (?)', [bo]);
     console.log(`[thongbao] phòng ${phong.code}: gửi ${ok.length}, bỏ ${bo.length}, lỗi ${nhan.length - ok.length - bo.length}`);
   }
 
@@ -319,8 +339,8 @@ export async function moThongBao(
         const lang = typeof b?.lang === 'string' && CHU[b.lang] ? b.lang : 'en';
         const lech = Math.max(-840, Math.min(840, Math.round(Number(b?.lechPhut) || 0)));
         await pool!.query(
-          `INSERT INTO push_dangky (token, nen, lang, lech_phut, tao) VALUES (?, ?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE nen = VALUES(nen), lang = VALUES(lang), lech_phut = VALUES(lech_phut)`,
+          `INSERT INTO push_subscriptions (token, platform, lang, tz_offset_min, created_at) VALUES (?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE platform = VALUES(platform), lang = VALUES(lang), tz_offset_min = VALUES(tz_offset_min)`,
           [token, nen, lang, lech, Date.now()]
         );
         json(res, { ok: true });
@@ -329,7 +349,7 @@ export async function moThongBao(
       if (url.pathname === '/api/thongbao/tat' && req.method === 'POST') {
         const b = await docBody(req);
         const token = typeof b?.token === 'string' ? b.token : '';
-        if (token) await pool!.query('DELETE FROM push_dangky WHERE token = ?', [token]);
+        if (token) await pool!.query('DELETE FROM push_subscriptions WHERE token = ?', [token]);
         json(res, { ok: true });
         return true;
       }
