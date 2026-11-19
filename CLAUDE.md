@@ -1481,6 +1481,10 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
   sáng + lời nhắc "Lên hạng #129 (↑8)". TRONG VÁN (`dungYen`) thì giữ lại, ra ngoài mới diễn (bảng kết quả
   che thanh trên). Mẹo "bấm vào đây…" một lần đời máy (`mm.meoXu`). Lời nhắc căn GIỮA theo viên xu —
   canh phải là tràn mép trái màn 390px.
+- **Mở bảng phải TỨC THÌ** (chủ dự án: "trải nghiệm loading chưa tốt"): `bxhLanTruoc()` — bảng lần hỏi trước
+  (localStorage `mm.bxh`, gắn người xem) hiện ngay, số mới thay vào sau; lỗi mạng lúc đã có bảng cũ thì im.
+  Lần đầu chưa có gì: dòng xám nhấp nháy (`.xuong`), KHÔNG chữ "Đang tải…". `guiKhach` bỏ qua khi thân
+  y hệt lần vừa gửi — trước đó mở bảng luôn tốn HAI vòng mạng.
 
 ## Ảnh chia sẻ kết quả = bảng tỷ số (19.11.2026)
 

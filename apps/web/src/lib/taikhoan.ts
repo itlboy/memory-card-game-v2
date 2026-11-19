@@ -363,13 +363,15 @@ export async function guiKhach(): Promise<void> {
   const k = store.khach(false) ?? (store.totalScore() > 0 ? store.khach() : null);
   if (!k || k.an || k.daGop) return;
   const d = store.boDem();
+  const body = JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins) });
+  // Y hệt lần vừa gửi xong → bỏ: mở bảng xếp hạng ngay sau ván khỏi chờ thêm một vòng mạng
+  if (body === khachDaGui) return;
   try {
-    await goi<{ ok: boolean }>('/api/khach', {
-      method: 'POST',
-      body: JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins) })
-    });
+    await goi<{ ok: boolean }>('/api/khach', { method: 'POST', body });
+    khachDaGui = body;
   } catch { /* lần sau gửi tiếp — tổng điểm nên không mất gì */ }
 }
+let khachDaGui = '';
 
 /** Đặt tên trên bảng — cũng là tên khi chơi online (cùng ô nhớ). */
 export async function datTenKhach(ten: string): Promise<void> {
@@ -391,7 +393,24 @@ export async function anKhach(an: boolean): Promise<void> {
 export async function bangXepHang(): Promise<BangXh> {
   if (!me.value) await guiKhach();   // hạng tính trên điểm MỚI NHẤT của máy
   const k = me.value ? null : store.khach(false);
-  return goi<BangXh>('/api/bxh', { method: 'POST', body: JSON.stringify({ khach: k && !k.an && !k.daGop ? k.id : undefined }) });
+  const b = await goi<BangXh>('/api/bxh', { method: 'POST', body: JSON.stringify({ khach: k && !k.an && !k.daGop ? k.id : undefined }) });
+  try { localStorage.setItem(KHOA_BXH, JSON.stringify({ ai: aiDangXem(), b })); } catch { /* đầy / riêng tư */ }
+  return b;
+}
+
+/*
+ * BẢNG LẦN TRƯỚC (19.11.2026, chủ dự án: "trải nghiệm loading của bảng xếp hạng chưa tốt"). Mở bảng phải
+ * chờ HAI vòng mạng (gửi điểm khách rồi mới hỏi bảng) → khung trống + chữ "Đang tải…" rồi giật cao lên.
+ * Nay mỗi lần hỏi xong (kể cả lần TopBar hỏi hạng lúc mở app / sau ván) lưu lại; mở bảng hiện NGAY bản đó
+ * rồi lặng lẽ thay bằng số mới. Gắn với người đang xem (tài khoản / khách): đổi người thì không dùng.
+ */
+const KHOA_BXH = 'mm.bxh';
+const aiDangXem = (): string => (me.value ? `u${me.value.id}` : 'khach');
+export function bxhLanTruoc(): BangXh | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(KHOA_BXH) ?? 'null') as { ai: string; b: BangXh } | null;
+    return v && v.ai === aiDangXem() && Array.isArray(v.b?.top) ? v.b : null;
+  } catch { return null; }
 }
 
 /* ---------- Google Identity Services ---------- */

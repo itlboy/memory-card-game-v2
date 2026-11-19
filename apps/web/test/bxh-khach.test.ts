@@ -160,3 +160,25 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
     expect(anh).toMatch(/dataset\.theme === 'dark'/);
   });
 });
+
+describe('bảng xếp hạng mở nhanh (19.11.2026)', () => {
+  beforeEach(() => { localStorage.clear(); vi.resetModules(); });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('lưu bảng lần trước theo người xem; điểm khách không đổi thì không gửi lại', async () => {
+    const f = vi.fn(async (u: string) => u.endsWith('/api/auth/config') ? json({ googleClientId: 'x' })
+      : u.endsWith('/api/bxh') ? json({ top: [{ name: 'A', avatar: null, totalScore: 5, wins: 1, matches: 1 }] }) : json({ ok: true }));
+    vi.stubGlobal('fetch', f);
+    const tk = await import('@/lib/taikhoan');
+    await tk.khoiDong();
+    expect(tk.bxhLanTruoc()).toBeNull();
+    store.addScore(100);
+    await tk.bangXepHang();
+    await tk.bangXepHang();
+    expect(f.mock.calls.filter(([u]) => String(u).endsWith('/api/khach')).length).toBe(1);
+    expect(tk.bxhLanTruoc()?.top[0]?.name).toBe('A');
+    const src = goc('src/components/BangXepHang.vue');
+    expect(src).toMatch(/ref<BangXh \| null>\(bxhLanTruoc\(\)\)/);
+    expect(src).toContain('class="bxh xuong"');
+  });
+});
