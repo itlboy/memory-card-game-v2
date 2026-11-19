@@ -12,6 +12,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { rung } from '@/lib/rung';
+import { sfx } from '@/lib/audio';
 import { ChevronRight } from 'lucide-vue-next';
 import { BOARD_SIZES, OPTION_KEYS } from '@mm/engine';
 import type { BoardOptions } from '@mm/engine';
@@ -87,7 +88,7 @@ function khiCuon(): void {
   giua.value = oGiua();
   // Mỗi ô MỚI đi qua giữa dải: một cú "tách" (lib/rung.ts) — chỉ khi NGÓN đang kéo/thả trôi, không khi app tự
   // cuộn ô về giữa (veGiua lúc mở / bấm ô)
-  if (keoTay && giua.value != null && giua.value !== truoc) rung.tach();
+  if (keoTay && giua.value != null && giua.value !== truoc) { rung.tach(); sfx.tach(); }
   clearTimeout(henDung);
   henDung = setTimeout(chot, 140);   // iOS chưa có `scrollend` ổn định: chờ cuộn đứng yên
 }
@@ -110,6 +111,34 @@ function khiCham(e: PointerEvent): void {
 }
 function khiDi(e: PointerEvent): void {
   if (!keo && Math.hypot(e.clientX - x0, e.clientY - y0) > NGUONG_KEO) { keo = true; dai.value?.setAttribute('data-nosfx', ''); }
+}
+/*
+ * MÁY TÍNH KHÔNG CẢM ỨNG (19.11.2026, đo trên WebKit 1280px): lăn chuột DỌC không cuộn dải ngang, kéo chuột cũng
+ * không — chỉ trackpad (lăn ngang) và bấm từng ô là dùng được. Nay: lăn dọc → cuộn ngang; giữ chuột kéo → cuộn
+ * (dải snap từng ô nên kéo là "nhảy nấc" — đúng cảm giác núm xoay). Cảm ứng KHÔNG đi đường này (trình duyệt tự cuộn).
+ */
+function khiLan(e: WheelEvent): void {
+  const d = dai.value;
+  if (!d || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;   // lăn ngang (trackpad): để trình duyệt tự lo
+  e.preventDefault();
+  keoTay = true;
+  d.scrollLeft += e.deltaY;
+}
+let keoChuot: { x: number; left: number; id: number } | null = null;
+function chuotXuong(e: PointerEvent): void {
+  khiCham(e);
+  if (e.pointerType !== 'mouse' || e.button !== 0 || !dai.value) return;
+  keoChuot = { x: e.clientX, left: dai.value.scrollLeft, id: e.pointerId };
+}
+function chuotDi(e: PointerEvent): void {
+  khiDi(e);
+  if (!keoChuot || e.pointerId !== keoChuot.id || !dai.value) return;
+  if (keo && !dai.value.hasPointerCapture(e.pointerId)) dai.value.setPointerCapture(e.pointerId);
+  if (keo) dai.value.scrollLeft = keoChuot.left - (e.clientX - keoChuot.x);
+}
+function chuotLen(e: PointerEvent): void {
+  if (keoChuot && dai.value?.hasPointerCapture(e.pointerId)) dai.value.releasePointerCapture(e.pointerId);
+  keoChuot = null;
 }
 function nuotBam(e: MouseEvent): void {
   if (!keo) return;
@@ -145,7 +174,8 @@ const tomTatLuat = computed(() => {
   <div class="keo-so">
     <span class="keo-mui" aria-hidden="true" />
     <div ref="dai" class="keo-dai" role="radiogroup" :aria-label="t('menu.soThe')" @scroll.passive="khiCuon"
-      @pointerdown="khiCham" @pointermove.passive="khiDi" @click.capture="nuotBam">
+      @pointerdown="chuotXuong" @pointermove="chuotDi" @pointerup="chuotLen" @pointercancel="chuotLen"
+      @wheel="khiLan" @click.capture="nuotBam">
       <span class="keo-dem" aria-hidden="true" />
       <button
         v-for="c in BOARD_SIZES" :key="c.level" class="option nh-o keo-o" type="button" role="radio"
@@ -183,6 +213,8 @@ const tomTatLuat = computed(() => {
   mask: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
 }
 .keo-dai::-webkit-scrollbar { display: none; }
+/* Chuột: kéo được (khiLan/chuotDi) — con trỏ bàn tay, không bôi đen chữ khi kéo */
+@media (hover: hover) and (pointer: fine) { .keo-dai { cursor: grab; user-select: none; -webkit-user-select: none; } .keo-dai:active { cursor: grabbing; } }
 /* Đệm hai đầu = nửa dải − nửa ô: ô đầu và ô cuối vẫn kéo vào được chính giữa */
 .keo-dem { flex: 0 0 calc(50% - var(--o-rong) / 2 - 8px); }
 .keo-so { --o-rong: clamp(62px, 21%, 86px); }

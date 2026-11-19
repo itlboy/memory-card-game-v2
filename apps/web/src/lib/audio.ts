@@ -404,6 +404,21 @@ class Sfx {
       this.voice(f, { dur: 0.3, type: 'sine', gain: 0.035, delay: i * 0.09, detune: 5 }));
   }
 
+  /**
+   * "TẠCH" KHI CUỘN QUA MỘT Ô (19.11.2026, chủ dự án: "tiếng tạch tạch kiểu xoay") — như bánh răng / núm xoay:
+   * một nhịp nhiễu cực ngắn qua lọc dải (tiếng gỗ khô) + nốt cao rất nhỏ. Nhỏ hơn hẳn tiếng bấm để vuốt nhanh
+   * không thành ồn; hai cú cách nhau ≥ `CACH_TACH_MS` (cùng nhịp với rung). KHÔNG ghi `mocPhat` theo kiểu nút —
+   * dùng chung `voice`/`noise` nên vẫn ghi, vô hại vì lúc cuộn không có nút nào chờ kêu.
+   */
+  private lucTach = 0;
+  tach(): void {
+    const now = performance.now();
+    if (now - this.lucTach < CACH_TACH_MS) return;
+    this.lucTach = now;
+    this.noise(0.016, { freq: 3200, type: 'bandpass', q: 3, gain: 0.05 });
+    this.voice(2100, { dur: 0.018, type: 'sine', gain: 0.008 });
+  }
+
   /** Đồng hồ sắp cạn — tick khô, gọi mỗi giây trong 10 giây cuối. */
   tick(): void { this.voice(1000, { dur: 0.035, type: 'square', gain: 0.028 }); }
 
@@ -595,4 +610,6 @@ class Sfx {
   }
 }
 
+/** Hai tiếng "tạch" khi cuộn cách nhau ít nhất (ms) — khớp nhịp rung (lib/rung.ts). */
+const CACH_TACH_MS = 45;
 export const sfx = new Sfx();
