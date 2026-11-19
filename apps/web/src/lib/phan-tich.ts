@@ -174,6 +174,16 @@ export function thamSoVanDau(): Record<string, number | boolean> {
 const loiDaGui = new Set<string>();
 const LOI_TOI_DA = 5;
 const LOI_BO_QUA = /ResizeObserver loop|Script error\.?$|Load failed|NetworkError|Failed to fetch|AbortError/i;
+/**
+ * Hai khung đầu của ngăn xếp, chỉ giữ `tệp:dòng:cột` (bỏ đường dẫn, bỏ query) — lỗi promise/Vue không có
+ * `filename` nên trước đây không biết lỗi ở đâu. Đối chiếu với bản dựng theo `ban_web`.
+ */
+export function nganXep(e: unknown): string {
+  const st = e instanceof Error && typeof e.stack === 'string' ? e.stack : '';
+  const khung = [...st.matchAll(/([\w.-]+\.m?js)(?:\?[^:\s)]*)?:(\d+):(\d+)/g)].slice(0, 2).map((m) => `${m[1]}:${m[2]}:${m[3]}`);
+  return khung.join(' < ').slice(0, 100);
+}
+
 export function guiLoi(noi: string, e: unknown, nguon = ''): void {
   try {
     const tho = e instanceof Error ? `${e.name}: ${e.message}` : String((e as { message?: unknown })?.message ?? e);
@@ -182,10 +192,16 @@ export function guiLoi(noi: string, e: unknown, nguon = ''): void {
       .replace(/https?:\/\/\S+/g, '<url>')
       .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>')
       .replace(/\d{4,}/g, '#')
+      // Tên biến bị rút gọn khác nhau theo từng bản dựng (`ve.value` / `Q.value` / `oe.value`) → gộp
+      // làm một, kẻo một lỗi thành ba dòng trên admin.
+      .replace(/(^|[^\w$.])[\w$]{1,3}(?=\.value\b)/g, '$1_')
       .slice(0, 100);
     if (loiDaGui.has(gon) || loiDaGui.size >= LOI_TOI_DA) return;
     loiDaGui.add(gon);
-    suKien('loi_js', { noi, thong_diep: gon, nguon: nguon.replace(/^.*\//, '').replace(/\?.*$/, '').slice(0, 60), ban_web: __OTA_ID__ });
+    suKien('loi_js', {
+      noi, thong_diep: gon, nguon: nguon.replace(/^.*\//, '').replace(/\?.*$/, '').slice(0, 60),
+      ngan_xep: nganXep(e), ban_web: __OTA_ID__
+    });
   } catch { /* bắt lỗi không bao giờ được gây lỗi */ }
 }
 
