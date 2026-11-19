@@ -1489,7 +1489,9 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
   `users UNION ALL khach` rồi sắp/đếm: EXPLAIN production ra `type ALL` + filesort cả hai bảng (index điểm
   không dùng được qua bảng gộp). Dòng của NGƯỜI HỎI luôn ghép lại theo điểm mới (không thấy mình cũ/hai dòng).
   Câu đếm hạng `total_score > ?` đi range trên `idx_*_score`. App: mở app chỉ hỏi hạng nếu lần trước >10 phút
-  (`vuaHoi`); sau ván / mở bảng vẫn hỏi. Smoke SQL thật: `tools/smoke-taikhoan.mjs` (docker.yml, MySQL 8.4).
+  (`vuaHoi`); sau ván / mở bảng vẫn hỏi. SQL tài khoản/bảng KHÔNG được CI chạy (docker.yml có MySQL nhưng
+  thiếu GOOGLE_CLIENT_ID → "tài khoản: TẮT"): đổi SQL thì chạy `tools/smoke-taikhoan.mjs` tay với MYSQL_URL, hoặc
+  thử trên production bằng mã khách 0 ván (không lên bảng công khai) rồi `/api/khach/xoa`.
 
 ## Ảnh chia sẻ kết quả = bảng tỷ số (19.11.2026)
 
