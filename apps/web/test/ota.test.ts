@@ -374,6 +374,23 @@ describe('cập nhật nóng', () => {
       } finally { vi.useRealTimers(); }
     });
 
+    it('đang mở hộp thoại (Bảng xếp hạng) lúc tải: phủ rồi tải xong vẫn áp — KHÔNG kẹt ở % cuối (19.11.2026)', async () => {
+      vi.useFakeTimers();
+      try {
+        document.body.insertAdjacentHTML('beforeend', '<div id="hop-bxh" role="dialog" aria-modal="true"></div>');
+        const { kiemOta } = await import('@/lib/ota');
+        const chay = kiemOta();
+        await vi.advanceTimersByTimeAsync(600);
+        nghe!({ percent: 69 });
+        await vi.advanceTimersByTimeAsync(600);
+        expect(phu(), 'đang tải thì phủ (che cả hộp thoại)').toBeTruthy();
+        xong({ id: 'b1', version: 'moi', status: 'success' });
+        await chay;
+        await vi.advanceTimersByTimeAsync(2000);
+        expect(goi.set, 'màn phủ chặn hết chạm, không ai đóng được hộp thoại → phải áp luôn').toHaveBeenCalledWith({ id: 'b1' });
+      } finally { vi.useRealTimers(); document.getElementById('hop-bxh')?.remove(); }
+    });
+
     it('đang chơi thì không phủ; về trang chủ giữa lúc tải thì phủ', async () => {
       vi.useFakeTimers();
       try {
