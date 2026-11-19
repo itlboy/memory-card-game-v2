@@ -1,10 +1,10 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  LEVEL_KEYS, DEFAULT_ROOM_CONFIG, MemoryGame, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
+  LEVEL_KEYS, DEFAULT_ROOM_CONFIG, MemoryGame, NHAC_CACH_MS, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
   anhHopLe, backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, doiThemeIds, seedFrom, themeMoi, xoayNguoiDau
 } from '@mm/engine';
 import type {
-  ClientMsg, GameEvent, PredealMsg, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameEvent, NguoiXem, PredealMsg, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
@@ -122,7 +122,7 @@ interface RoomState {
  * bao giờ do server tự quyết. Đây là luật chung cho mọi thay đổi giao thức sau
  * này, không riêng gì việc gói view.
  */
-interface Attachment { playerId: string; goi?: boolean; bv?: number; /** client hiểu đội tới mức nào: `?dd=2` = đội theo số (bản 1.8+); 1 = bản 1.7 (A/B) */ dd?: number | boolean }
+interface Attachment { playerId: string; goi?: boolean; bv?: number; /** NGƯỜI XEM: tên + mặt (chip người xem) */ xem?: NguoiXem; /** client hiểu đội tới mức nào: `?dd=2` = đội theo số (bản 1.8+); 1 = bản 1.7 (A/B) */ dd?: number | boolean }
 
 // Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
@@ -263,6 +263,8 @@ export class RoomDO extends DurableObject<Env> {
   /** Ai đã bấm "chơi lại" sau ván này. Chỉ trong RAM: DO ngủ giữa lúc chờ thì
    *  coi như mọi người bấm lại — thà hỏi lại còn hơn mở ván mà một bên chưa muốn. */
   private againVotes = new Set<string>();
+  /** Lần chủ phòng nhắc gần nhất — chặn nhắc dồn (NHAC_CACH_MS). */
+  private nhacLuc = 0;
   /*
    * MÁY: ký ức từng máy + mốc hẹn nước đi kế. Chỉ trong bộ nhớ — DO ngủ đông / server khởi động
    * lại thì máy quên bàn (chơi kém đi một chút ở phần còn lại của ván), KHÔNG làm ván treo: mốc
@@ -322,14 +324,17 @@ export class RoomDO extends DurableObject<Env> {
    */
   private chuKySo(): string {
     const r = this.room;
-    // Phòng ĐẦY cũng rời sổ: bấm vào chỉ được làm khán giả ở phòng chờ.
-    if (!r || !r.congKhai || r.status !== 'lobby' || r.players.length >= ROOM_LIMITS.maxPlayers) return '';
+    if (!r || !r.congKhai) return '';
+    /* ĐANG CHƠI vẫn ở trong sổ (19.11.2026, chủ dự án: "phòng đã bắt đầu thì vẫn hiện, cho người khác vào
+       xem") — đánh dấu `dangChoi`. Phòng chờ ĐẦY thì vẫn rời sổ (vào chỉ làm khán giả ở phòng chờ). */
+    const dangChoi = r.status === 'countdown' || r.status === 'playing';
+    if (!dangChoi && (r.status !== 'lobby' || r.players.length >= ROOM_LIMITS.maxPlayers)) return '';
     const chu = r.players.find((p) => p.id === r.hostId) ?? r.players[0];
     if (!chu) return '';
     // Nhịp 5 phút: phòng chờ không ai vào/ra vẫn phải khai lại định kỳ, không
     // thì bản ghi quá HAN_BAN_GHI_MS và phòng đang sống rơi khỏi danh sách.
     const nhip = Math.floor(Date.now() / 300_000);
-    return [r.code, chu.name, chu.avatar ?? '', chu.anh ?? '', r.players.length, r.config.level, nhip].join('|');
+    return [r.code, chu.name, chu.avatar ?? '', chu.anh ?? '', r.players.length, r.config.level, nhip, dangChoi ? 'choi' : ''].join('|');
   }
 
   /** Chữ ký lần khai gần nhất; `null` = chưa từng đồng bộ trong lần thức này. */
@@ -378,7 +383,10 @@ export class RoomDO extends DurableObject<Env> {
         nguoi: r.players.length,
         toiDa: ROOM_LIMITS.maxPlayers,
         the: pairsForLevel(r.config.level) * 2,
-        luc: Date.now()
+        luc: Date.now(),
+        ...(r.status === 'countdown' || r.status === 'playing'
+          ? { dangChoi: true, ten: r.players.filter((p) => !p.may).map((p) => p.name).slice(0, 4) }
+          : {})
       };
       await so.khai(phong);
     } catch (e) {
@@ -483,7 +491,7 @@ export class RoomDO extends DurableObject<Env> {
       if (!name) return new Response('Thiếu tên', { status: 400 });
       // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác
       if (this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
-        return this.acceptSpectator(goi, bv);
+        return this.acceptSpectator(goi, bv, name, anh);
       }
       player = {
         id: crypto.randomUUID().slice(0, 8),
@@ -568,17 +576,34 @@ export class RoomDO extends DurableObject<Env> {
     if (this.room.hostId === id) this.room.hostId = this.chuMoi();
   }
 
-  /** Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi. */
-  private acceptSpectator(goi: boolean, bv: number): Response {
+  /**
+   * Khán giả: nhận mọi broadcast nhưng không có mặt trong danh sách người chơi.
+   * Có TÊN (19.11.2026): `roomInfo().xem` liệt kê người xem — chip mặt + tên ở hàng trên cùng,
+   * và người trong phòng nhận dải báo "X đang vào xem trận" (client so danh sách cũ/mới).
+   * Mặt thú theo TÊN (băm) để cùng một người vào lại vẫn cùng mặt.
+   */
+  private acceptSpectator(goi: boolean, bv: number, ten: string, anh?: string): Response {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], ['spectator']);
-    pair[1].serializeAttachment({ playerId: '', goi, bv } satisfies Attachment);
+    let bam = 0;
+    for (const c of ten) bam = (bam * 31 + c.charCodeAt(0)) >>> 0;
+    const xem: NguoiXem = { ten: ten.slice(0, 16), mat: AVATARS[bam % AVATARS.length]!, ...(anh ? { anh } : {}) };
+    pair[1].serializeAttachment({ playerId: '', goi, bv, xem } satisfies Attachment);
     this.send(pair[1], {
       t: 'welcome', playerId: '', token: '', spectator: true, room: this.roomInfo()
     });
     if (this.game) this.send(pair[1], { t: 'state', view: this.view() });
+    this.broadcast({ t: 'room', room: this.roomInfo() });
     return new Response(null, { status: 101, webSocket: pair[0] });
+  }
+
+  /** Người xem đang mở phòng. `boQua` = socket đang đóng (trong webSocketClose nó vẫn còn trong danh sách). */
+  private dsXem(boQua?: WebSocket): NguoiXem[] {
+    return this.ctx.getWebSockets('spectator')
+      .filter((s) => s !== boQua)
+      .map((s) => (s.deserializeAttachment() as Attachment | null)?.xem)
+      .filter((x): x is NguoiXem => !!x);
   }
 
   override async webSocketMessage(ws: WebSocket, raw: string | ArrayBuffer): Promise<void> {
@@ -724,6 +749,19 @@ export class RoomDO extends DurableObject<Env> {
       case 'tolobby': {
         if (this.room.status !== 'ended') return;
         await this.veLobby(this.room.players.filter((p) => this.connected(p.id)));
+        return;
+      }
+
+      case 'nhac': {
+        // Chỉ chủ phòng, chỉ ở phòng chờ, mỗi NHAC_CACH_MS một lần. Gửi RIÊNG tới người chưa sẵn sàng.
+        if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
+        const now = Date.now();
+        if (now - this.nhacLuc < NHAC_CACH_MS) return;
+        this.nhacLuc = now;
+        for (const p of this.room.players) {
+          if (p.id === player.id || p.ready || p.may) continue;
+          for (const s of this.ctx.getWebSockets(p.id)) this.send(s, { t: 'nhac', from: player.name });
+        }
         return;
       }
 
@@ -1038,6 +1076,8 @@ export class RoomDO extends DurableObject<Env> {
     await this.load();
     if (!this.room) return;
     const att = ws.deserializeAttachment() as Attachment | null;
+    // Người xem đi: cập nhật chip người xem của cả phòng
+    if (att?.xem) { this.broadcast({ t: 'room', room: this.roomInfo(ws) }); return; }
     const player = this.room.players.find((p) => p.id === att?.playerId);
     if (!player) return;
     // Socket khác của cùng người còn sống thì không tính là rớt mạng
@@ -1704,9 +1744,10 @@ export class RoomDO extends DurableObject<Env> {
     return !!p && p.disconnectedAt === null && this.ctx.getWebSockets(id).length > 0;
   }
 
-  private roomInfo(): RoomInfo {
+  private roomInfo(dangDong?: WebSocket): RoomInfo {
     const room = this.room!;
     return {
+      xem: this.dsXem(dangDong),
       code: room.code,
       hostId: room.hostId,
       // Phòng lưu trước 04.11.2026 có thể còn id theme cũ: client mới chỉ biết 12 id mới

@@ -102,9 +102,10 @@ const soPhong: typeof soPhongGoc = {
   async khai(phong) {
     if (phongThu.has(phong.code)) return;
     await soPhongGoc.khai(phong);
-    if (batBao && thongBao && phong.nguoi < phong.toiDa) {
+    // Phòng ĐANG CHƠI cũng khai lên sổ (để người khác vào xem) — không phải "phòng mới" để báo
+    if (batBao && thongBao && !phong.dangChoi && phong.nguoi < phong.toiDa) {
       thongBao.phongMoi(phong, async (code) =>
-        (await soPhongGoc.liet()).some((r) => r.code === code && r.nguoi < r.toiDa));
+        (await soPhongGoc.liet()).some((r) => r.code === code && !r.dangChoi && r.nguoi < r.toiDa));
     }
   }
 };
@@ -316,7 +317,9 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
    * HTTP này có test canh phải khớp nhau.
    */
   if (url.pathname === '/api/rooms/public' && req.method === 'GET') {
-    void soPhong.liet().then((rooms) => json(res, { rooms }));
+    // Phòng ĐANG CHƠI chỉ cho client khai `?v=2` (client cũ vẽ nó như phòng còn chỗ) — PublicRoom.dangChoi
+    const v2 = url.searchParams.get('v') === '2';
+    void soPhong.liet().then((rooms) => json(res, { rooms: rooms.filter((r) => v2 || !r.dangChoi) }));
     return;
   }
 

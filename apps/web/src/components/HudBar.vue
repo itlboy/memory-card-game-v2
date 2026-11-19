@@ -108,6 +108,8 @@ const hangChat = computed(() => !!props.starMisses && (props.lives !== null || p
     </div>
     <button v-if="choiLai" class="tron thach" :aria-label="t('hud.choiLai')" type="button" @click="$emit('choi-lai')"><RotateCcw :size="18" /></button>
     <button v-if="pausable" class="tron thach" :aria-label="t('hud.tamDung')" type="button" @click="$emit('pause')"><Pause :size="18" /></button>
+    <!-- Ô bên phải khi KHÔNG tạm dừng được (online): chỗ cho chip người xem (ChipXem) — không thêm hàng -->
+    <slot v-else-if="$slots.phai" name="phai" />
     <span v-else class="tron-cho" aria-hidden="true" />
     <span
       class="tien-do" role="progressbar" :aria-label="t('hud.cap2')"

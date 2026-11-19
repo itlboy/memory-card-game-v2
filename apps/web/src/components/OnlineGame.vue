@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROOM_LIMITS, TURN_LIMIT_SEC, isDraw, laBotId } from '@mm/engine';
+import { TURN_LIMIT_SEC, isDraw, laBotId } from '@mm/engine';
 import MatNguoi from './MatNguoi.vue';
 import { taiKhoan } from '@/lib/taikhoan';
 import { t } from '@/lib/i18n';
@@ -20,6 +20,7 @@ import { rung } from '@/lib/rung';
 import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import HudBar from './HudBar.vue';
+import ChipXem from './ChipXem.vue';
 import ResultDialog from './ResultDialog.vue';
 import EmojiBar from './EmojiBar.vue';
 import OptionIcon from './OptionIcon.vue';
@@ -191,11 +192,6 @@ const locked = computed(() =>
   !o.myTurn.value || o.view.value?.status !== 'playing'
   || o.reconnecting.value || !!o.netTrouble.value
   || daDuHaiLa.value);
-
-/** Người chơi khác đang mất kết nối — bên còn online phải biết vì sao bàn im. */
-const doiThuMatMang = computed(() =>
-  (o.view.value?.players ?? []).find((p) => p.id !== o.myId.value && !p.connected && !p.forfeited) ?? null);
-const choBaoLau = Math.round(ROOM_LIMITS.reconnectMs / 1000);
 
 /*
  * Emoji chat KHÔNG còn nằm trong dải thông báo (đã teleport ra body, nổi trên
@@ -462,7 +458,12 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       :time-left="o.view.value?.timeLeft ?? null"
       :moves-left="null" :lives="null" :multiplayer="true"
       @quit="emit('quit')"
-    />
+    >
+      <!-- Chip người xem: ô bên phải hàng trên cùng, không thêm hàng (19.11.2026) -->
+      <template v-if="o.room.value?.xem?.length" #phai>
+        <ChipXem :xem="o.room.value.xem" :toi="o.spectator.value ? o.tenCuaToi() : undefined" />
+      </template>
+    </HudBar>
 
     <!-- ĐỒNG ĐỘI: thanh đội HIỆN THAY dải chip (không nhồi nhánh đội vào dải cũ) -->
     <TeamStrip v-if="laDoi" :o="o" />
@@ -598,9 +599,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       </Transition>
     </div>
 
-    <p v-if="o.spectator.value" class="spectate" role="status">
-      {{ t('og.dangXem') }}
-    </p>
+    <!-- Người xem: KHÔNG còn dải "👁️ … bạn đang xem trận đấu" chiếm cả hàng — chip ChipXem ở hàng trên cùng nói thay -->
     <p v-if="o.reconnecting.value" class="reconnect" role="status">{{ t('og.dangVaoLai') }}</p>
     <!-- Nước bấm không tới được server: phải NÓI RA. Im lặng thì người chơi cứ
          bấm vào chỗ không ai nghe cho tới khi hết lượt. -->
@@ -608,9 +607,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
     <!-- Đối thủ mất mạng: bàn sẽ im tới khi hết đồng hồ lượt của họ. Không nói ra
          thì người còn lại ngồi nhìn bàn chết mà tưởng game hỏng — đúng thứ đã bị
          phản ánh. -->
-    <p v-else-if="doiThuMatMang" class="reconnect" role="status">
-      ⏳ <b>{{ tenNguoi(doiThuMatMang) }}</b> {{ t('og.doiThuMatKetNoi', { n: choBaoLau }) }}
-    </p>
+    <!-- Đối thủ mất kết nối: nay là DẢI BÁO CHUNG (useBaoPhong, đứng yên tới khi họ vào lại) -->
 
     <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
     <div class="notice-bar">
@@ -712,7 +709,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       :so-van="o.soVanLoat.value"
       :thanh-vien-cua="thanhVienCua"
       :phieu-choi-lai="o.room.value?.againVotes"
-      :rematch-sent="o.iWantAgain.value"
+      :rematch-sent="o.iWantAgain.value" :toi-id="o.myId.value || undefined"
       :rematch-blocked="!enoughToRematch || o.spectator.value"
       :rematch-state="rematchState"
       @replay="o.again()"

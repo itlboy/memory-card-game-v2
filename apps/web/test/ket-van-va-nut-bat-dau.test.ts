@@ -21,7 +21,9 @@ describe('nút "Bắt đầu" phải phản hồi ngay khi bấm', () => {
 
   it('có trạng thái chờ nhìn thấy được, và chặn bấm lần hai', () => {
     expect(src).toMatch(/dangMoVan/);
-    expect(src, 'nút phải khoá khi đang chờ').toMatch(/:disabled="!canStart \|\| dangMoVan"/);
+    // 19.11.2026: nút bấm được khi đủ người dù chưa ai sẵn sàng (→ bảng Nhắc) — `coTheBam` thay `canStart`
+    expect(src, 'nút phải khoá khi đang chờ').toMatch(/:disabled="!coTheBam \|\| dangMoVan"/);
+    expect(src, 'chưa đủ sẵn sàng thì mở bảng Nhắc, không mở ván').toMatch(/if \(canStart\.value\) \{ batDauVan\(\); return; \}/);
     expect(src, 'phải có vòng quay').toMatch(/class="quay"/);
     expect(src, 'và CSS cho nó').toMatch(/\.btn-primary \.quay \{/);
   });

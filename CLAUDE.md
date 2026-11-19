@@ -982,6 +982,23 @@
   lại sau mỗi nước lật thẻ; và mọi lối xoá phòng phải gọi `depPhong()` chứ không
   `storage.deleteAll()` trần, không thì phòng chết nằm lại trong danh sách. Có
   `tools/smoke-sophong.mjs` chạy với cả hai server.
+- **PHÒNG CHỜ / MÀN CUỐI / XEM TRẬN RÕ RÀNG (19.11.2026, mockup duyệt https://claude.ai/artifact/H3Szxmuu6WZbDVoFozH9aH)**:
+  - DẢI BÁO CHUNG `lib/dai-bao.ts` + `DaiBao.vue` (mount MỘT bản ở OnlineScreen): mọi tin về NGƯỜI (vào, sẵn sàng,
+    rời, nhắc, chơi lại, mất kết nối, đang xem, chủ đổi bàn, chuông) nổi `fixed` trên cùng, ĐÈ chứ không đẩy
+    bàn; màu theo loại tot/can/roi/mang/xem; tin `can`/`mang` chen lên NGAY (xếp hàng thì nhắc tới trễ — đo
+    thật). Tin sinh ở `useBaoPhong` từ chênh lệch hai bản `room` — ĐỪNG rải dòng báo riêng ở từng màn nữa.
+    Chữ thống nhất "đã rời phòng" (bỏ "Đã thoát"/"đã rời").
+  - Phòng chờ: dòng trạng thái dưới tên; "Sẵn sàng x/y"; nút Bắt đầu LUÔN bấm được khi đủ người (xám xanh khi
+    còn chờ → `NhacSanSang.vue`; KHÔNG có "bắt đầu luôn" — chủ dự án: "chỉ có nhắc"). Tin `{t:'nhac'}` chỉ chủ
+    phòng, chỉ tới người chưa sẵn sàng, `NHAC_CACH_MS` 10s. Khách: nút VÀNG "✋ Sẵn sàng!"; đã sẵn sàng = thẻ xanh
+    + nút nhỏ "Huỷ sẵn sàng" riêng.
+  - Màn cuối online: chip dưới cột (✓ Chơi lại / ⏳ Đang chờ / Đã rời), thanh "Chơi lại x/y", nút sáng khi mình là
+    người cuối. Số tỷ số mọi người màu đen (không làm mờ người kém); người thắng ván số CUỘN lên, không còn "+1".
+  - Xem trận: phòng `playing`/`countdown` công khai vẫn ở sổ với `dangChoi` + `ten` — CHỈ trả cho client khai
+    `/api/rooms/public?v=2` (client cũ sẽ vẽ nó như phòng còn chỗ); không bắn push "phòng mới" cho nó. `room.xem`
+    = người xem (tên + mặt băm theo tên); chip `ChipXem` ở slot `phai` của HudBar (không thêm hàng), bấm ra
+    danh sách. Biểu tượng người xem = xô bỏng ngô `BongNgo.vue` (chủ dự án chê 👁/👀). Không có "giữ chỗ".
+  - Smoke: `tools/smoke-xem-nhac.mjs` (chạy trong docker.yml).
 - **CHUÔNG "BÁO TÔI KHI CÓ PHÒNG MỚI" (18.11.2026, app ≥ 1.8.17)**: nút chuông cạnh tiêu đề
   "Phòng đang chờ" (`OnlineScreen.vue`), bấm lần nữa là TẮT (chủ dự án: "nhớ có nút tắt"). Client
   `lib/thong-bao.ts`, server `apps/node-server/src/thongbao.ts` — CHỈ bản Node (Map sổ phòng được bọc
