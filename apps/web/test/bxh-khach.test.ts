@@ -297,3 +297,12 @@ describe('dải số thẻ: rung từng ô, cuộn không kêu (19.11.2026)', ()
     expect(CACH_TACH_MS).toBeGreaterThan(20);
   });
 });
+
+describe('dải số thẻ: mũi tên ‹ › cho máy có chuột (19.11.2026)', () => {
+  it('chỉ hiện ở (hover: hover) and (pointer: fine); bỏ qua cỡ bị khoá; nhãn đọc là số thẻ đích', () => {
+    const src = goc('src/components/BanChon.vue');
+    expect(src).toMatch(/\.keo-ben \{ display: none; \}\s*@media \(hover: hover\) and \(pointer: fine\)/);
+    expect(src).toMatch(/if \(mo\(BOARD_SIZES\[k\]!\)\) return BOARD_SIZES\[k\]!/);
+    expect(src).toMatch(/@click="bamMui\(-1\)"[\s\S]*@click="bamMui\(1\)"/);
+  });
+});
