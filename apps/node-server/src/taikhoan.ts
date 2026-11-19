@@ -273,6 +273,21 @@ export function locVan(x: unknown): VanBao | null {
 /* ---------- khách trên bảng xếp hạng ---------- */
 
 /** Khách không chơi quá 60 ngày thì rơi khỏi bảng chung (vẫn thấy hạng của chính mình). */
+/** Top 20 trên bảng xếp hạng giữ trong RAM bao lâu (dùng chung mọi người hỏi). */
+export const BXH_CACHE_MS = 30_000;
+
+/**
+ * Xếp + cắt top 20 (điểm giảm dần, hoà thì nhiều ván thắng hơn đứng trên). Có `toi` → bỏ dòng CŨ của người
+ * hỏi trong bản cache rồi chèn dòng MỚI theo điểm hiện tại — cache 30 giây không làm người vừa chơi xong
+ * thấy mình sai chỗ / vắng mặt.
+ */
+export function ghepTop(ds: Record<string, unknown>[], toi?: Record<string, unknown>, k?: string | null, laKhach?: boolean): Record<string, unknown>[] {
+  const cungNguoi = (r: Record<string, unknown>) => k != null && String(r.k) === k && (Number(r.la_khach) === 1) === !!laKhach;
+  const kq = ds.filter((r) => !toi || !cungNguoi(r));
+  if (toi) kq.push(toi);
+  return kq.sort((a, b) => Number(b.total_score) - Number(a.total_score) || Number(b.wins) - Number(a.wins)).slice(0, 20);
+}
+
 export const KHACH_HET_HAN_MS = 60 * 24 * 60 * 60 * 1000;
 /** Mặt thú trên bảng: tài khoản theo id, khách theo mã băm — ổn định giữa các lần mở. */
 export const MAT_BXH = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙', '🐰', '🐶', '🐱', '🐻', '🦉', '🐮'];
@@ -464,8 +479,19 @@ export async function moTaiKhoan(
    * thật + ảnh không được lộ cho người lạ (soát bảo mật 15.10.2026). Khách mang tên tự đặt
    * (cũng là tên khi chơi online). Người đang xem nhận ra dòng mình qua `toi`.
    */
-  const NGUON_BXH = `(SELECT CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches FROM users WHERE matches > 0
-     UNION ALL SELECT ma, 1, name, total_score, wins, matches FROM khach WHERE matches > 0 AND updated_at > ?) t`;
+  /*
+   * TRUY VẤN TỪNG BẢNG RIÊNG + CACHE (19.11.2026). Bản đầu gộp `users UNION ALL khach` rồi mới sắp/đếm:
+   * EXPLAIN trên production ra `type ALL` + `Using filesort` ở CẢ HAI bảng — index điểm có mà không dùng
+   * được qua bảng gộp, mỗi lần mở app / xong ván là quét sạch hai bảng 3 lượt. Nay:
+   *  - mỗi bảng một câu theo `idx_*_score` (ORDER BY total_score DESC LIMIT / đếm `total_score > ?`) rồi
+   *    ghép trong code — câu đếm hạng chỉ duyệt phần index PHÍA TRÊN mình;
+   *  - top 20 + tổng số người giữ trong RAM `BXH_CACHE_MS`, mọi người dùng chung. Dòng của NGƯỜI HỎI luôn
+   *    ghép lại theo điểm mới nhất (`ghepTop`) — vừa chơi xong là thấy mình đúng chỗ, chỉ người khác trễ ≤30s.
+   * Một pod (Deployment replicas 1) nên RAM là đủ; nhiều pod thì mỗi pod một bản, vẫn đúng tới 30 giây.
+   */
+  const COT_U = "CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches";
+  const COT_K = "ma AS k, 1 AS la_khach, name, total_score, wins, matches";
+  let bxhCache: { luc: number; top: Record<string, unknown>[]; tong: number } | null = null;
   function dongCongKhai(r: Record<string, unknown>) {
     const khach = Number(r.la_khach) === 1, k = String(r.k);
     const ten = khach ? String(r.name ?? '') : tenTat(String(r.name ?? ''));
@@ -475,32 +501,47 @@ export async function moTaiKhoan(
       totalScore: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches)
     };
   }
+  async function topVaTong(now: number) {
+    if (bxhCache && now - bxhCache.luc < BXH_CACHE_MS) return bxhCache;
+    const tu = now - KHACH_HET_HAN_MS;
+    // Lấy dư 5 dòng mỗi bảng: index chỉ có total_score, hoà điểm thì xếp tiếp theo wins trong code
+    const [[u], [kh], [[du]], [[dk]]] = await Promise.all([
+      pool!.query(`SELECT ${COT_U} FROM users WHERE matches > 0 ORDER BY total_score DESC LIMIT 25`),
+      pool!.query(`SELECT ${COT_K} FROM khach WHERE matches > 0 AND updated_at > ? ORDER BY total_score DESC LIMIT 25`, [tu]),
+      pool!.query('SELECT COUNT(*) AS n FROM users WHERE matches > 0'),
+      pool!.query('SELECT COUNT(*) AS n FROM khach WHERE matches > 0 AND updated_at > ?', [tu]),
+    ]) as unknown as [[Record<string, unknown>[]], [Record<string, unknown>[]], [[{ n: number }]], [[{ n: number }]]];
+    bxhCache = { luc: now, top: ghepTop([...u, ...kh]), tong: Number(du.n) + Number(dk.n) };
+    return bxhCache;
+  }
   async function bangXepHang(uid: number | null, ma: string | null, now: number) {
     const tu = now - KHACH_HET_HAN_MS;
-    const [rows] = await pool!.query(`SELECT * FROM ${NGUON_BXH} ORDER BY total_score DESC, wins DESC LIMIT 20`, [tu]);
-    const laToi = (r: Record<string, unknown>) => Number(r.la_khach) === 1 ? r.k === ma : uid !== null && r.k === String(uid);
-    const top = (rows as Record<string, unknown>[]).map((r) => ({ ...dongCongKhai(r), toi: laToi(r) }));
-    if (uid === null && !ma) return { top };
-
+    const chung = await topVaTong(now);
     const [mine] = uid !== null
-      ? await pool!.query('SELECT CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches FROM users WHERE id = ?', [uid])
-      : await pool!.query('SELECT ma AS k, 1 AS la_khach, name, total_score, wins, matches FROM khach WHERE ma = ?', [ma]);
+      ? await pool!.query(`SELECT ${COT_U} FROM users WHERE id = ?`, [uid])
+      : ma ? await pool!.query(`SELECT ${COT_K} FROM khach WHERE ma = ?`, [ma]) : [[]];
     const m = (mine as Record<string, unknown>[])[0];
+    const coMat = !!m && Number(m.matches) > 0;
+    const k = m ? String(m.k) : null, laKhach = m ? Number(m.la_khach) === 1 : false;
+    const top = ghepTop(chung.top, coMat ? m : undefined, k, laKhach)
+      .map((r) => ({ ...dongCongKhai(r), toi: k !== null && String(r.k) === k && (Number(r.la_khach) === 1) === laKhach }));
     if (!m) return { top };
+
     const diem = Number(m.total_score);
-    const [[dem]] = await pool!.query(
-      `SELECT COUNT(*) AS tong, SUM(total_score > ?) AS tren FROM ${NGUON_BXH}`, [diem, tu]
-    ) as unknown as [[{ tong: number; tren: number | null }]];
-    // Chưa chơi ván nào thì chưa có trong NGUON_BXH — vẫn tính mình vào tổng để "hạng X / Y" không vô lý
-    const tong = Number(dem.tong) + (Number(m.matches) > 0 ? 0 : 1);
-    const hang = Number(dem.tren ?? 0) + 1;
-    const [ke] = await pool!.query(
-      `(SELECT *, 'tren' AS phia FROM ${NGUON_BXH} WHERE total_score > ? ORDER BY total_score ASC LIMIT 1)
-       UNION ALL (SELECT *, 'duoi' AS phia FROM ${NGUON_BXH} WHERE total_score <= ? AND k <> ? ORDER BY total_score DESC LIMIT 1)`,
-      [tu, diem, tu, diem, String(m.k)]
-    );
-    const keBen = ke as Record<string, unknown>[];
-    const tren = keBen.find((r) => r.phia === 'tren'), duoi = keBen.find((r) => r.phia === 'duoi');
+    const [[[tu1]], [[tk1]], [tren1], [tren2], [duoi1], [duoi2]] = await Promise.all([
+      pool!.query('SELECT COUNT(*) AS n FROM users WHERE total_score > ? AND matches > 0', [diem]),
+      pool!.query('SELECT COUNT(*) AS n FROM khach WHERE total_score > ? AND matches > 0 AND updated_at > ?', [diem, tu]),
+      pool!.query(`SELECT ${COT_U} FROM users WHERE total_score > ? AND matches > 0 ORDER BY total_score ASC LIMIT 1`, [diem]),
+      pool!.query(`SELECT ${COT_K} FROM khach WHERE total_score > ? AND matches > 0 AND updated_at > ? ORDER BY total_score ASC LIMIT 1`, [diem, tu]),
+      pool!.query(`SELECT ${COT_U} FROM users WHERE total_score <= ? AND matches > 0 AND NOT (id = ? AND ? = 0) ORDER BY total_score DESC LIMIT 1`, [diem, k, laKhach ? 1 : 0]),
+      pool!.query(`SELECT ${COT_K} FROM khach WHERE total_score <= ? AND matches > 0 AND updated_at > ? AND NOT (ma = ? AND ? = 1) ORDER BY total_score DESC LIMIT 1`, [diem, tu, k, laKhach ? 1 : 0]),
+    ]) as unknown as [[[{ n: number }]], [[{ n: number }]], [Record<string, unknown>[]], [Record<string, unknown>[]], [Record<string, unknown>[]], [Record<string, unknown>[]]];
+    const hang = Number(tu1.n) + Number(tk1.n) + 1;
+    // Tổng lấy từ cache (trễ ≤30s) — nhưng không bao giờ nhỏ hơn hạng của chính mình; chưa chơi ván nào
+    // thì chưa có trong tổng, vẫn đếm mình vào để "hạng X / Y" không vô lý
+    const tong = Math.max(hang, chung.tong + (coMat ? 0 : 1));
+    const tren = [...tren1, ...tren2].sort((a, b) => Number(a.total_score) - Number(b.total_score))[0];
+    const duoi = [...duoi1, ...duoi2].sort((a, b) => Number(b.total_score) - Number(a.total_score))[0];
     return {
       top,
       toi: {

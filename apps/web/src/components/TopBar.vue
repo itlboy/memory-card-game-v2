@@ -9,7 +9,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import DongXu from './DongXu.vue';
-import { capNhatHang, daXemMeoXu, hangXu, tatMeoXu } from '@/lib/hang-xu';
+import { capNhatHang, daXemMeoXu, hangXu, tatMeoXu, vuaHoi } from '@/lib/hang-xu';
 import type { SoundLevel } from '@/lib/storage';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
@@ -220,14 +220,15 @@ function dien(): void {
 function xemMeo(): void {
   if (!props.dungYen && hangXu.value && !daXemMeoXu() && !lenHang.value) meo.value = true;
 }
-async function hoiHang(coDien: boolean): Promise<void> {
+async function hoiHang(coDien: boolean, khiMo = false): Promise<void> {
   if (!props.account) return;
+  if (khiMo && vuaHoi()) { xemMeo(); return; }   // mở app lại trong 10 phút: dùng hạng đã nhớ
   const r = await capNhatHang();
   if (coDien && r?.cu && r.moi && r.moi < r.cu) { choDien = { hang: r.moi, n: r.cu - r.moi }; dien(); }
   xemMeo();
 }
-onMounted(() => { void hoiHang(false); });
-watch(() => props.account, (co) => { if (co) void hoiHang(false); });
+onMounted(() => { void hoiHang(false, true); });
+watch(() => props.account, (co) => { if (co) void hoiHang(false, true); });
 watch(() => props.totalScore, (to, from) => {
   if (to <= from) return;
   clearTimeout(hoiTimer);

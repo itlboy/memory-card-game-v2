@@ -1485,6 +1485,11 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
   (localStorage `mm.bxh`, gắn người xem) hiện ngay, số mới thay vào sau; lỗi mạng lúc đã có bảng cũ thì im.
   Lần đầu chưa có gì: dòng xám nhấp nháy (`.xuong`), KHÔNG chữ "Đang tải…". `guiKhach` bỏ qua khi thân
   y hệt lần vừa gửi — trước đó mở bảng luôn tốn HAI vòng mạng.
+- **Server: truy vấn TỪNG BẢNG + cache top 20 trong RAM 30 giây** (`BXH_CACHE_MS`, `ghepTop`). ĐỪNG quay lại
+  `users UNION ALL khach` rồi sắp/đếm: EXPLAIN production ra `type ALL` + filesort cả hai bảng (index điểm
+  không dùng được qua bảng gộp). Dòng của NGƯỜI HỎI luôn ghép lại theo điểm mới (không thấy mình cũ/hai dòng).
+  Câu đếm hạng `total_score > ?` đi range trên `idx_*_score`. App: mở app chỉ hỏi hạng nếu lần trước >10 phút
+  (`vuaHoi`); sau ván / mở bảng vẫn hỏi. Smoke SQL thật: `tools/smoke-taikhoan.mjs` (docker.yml, MySQL 8.4).
 
 ## Ảnh chia sẻ kết quả = bảng tỷ số (19.11.2026)
 

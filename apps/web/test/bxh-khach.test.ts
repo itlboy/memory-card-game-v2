@@ -182,3 +182,27 @@ describe('bảng xếp hạng mở nhanh (19.11.2026)', () => {
     expect(src).toContain('class="bxh xuong"');
   });
 });
+
+describe('server: cache top 20 (19.11.2026)', () => {
+  it('ghepTop: xếp điểm rồi số thắng, cắt 20; thay dòng cũ của người hỏi bằng dòng mới', async () => {
+    const { ghepTop, BXH_CACHE_MS } = await import('../../node-server/src/taikhoan');
+    expect(BXH_CACHE_MS).toBeLessThanOrEqual(60_000);
+    const ds = Array.from({ length: 25 }, (_, i) => ({ k: String(i), la_khach: 0, total_score: 1000 - i * 10, wins: 0 }));
+    expect(ghepTop(ds)).toHaveLength(20);
+    expect(ghepTop([{ k: 'a', la_khach: 0, total_score: 5, wins: 1 }, { k: 'b', la_khach: 0, total_score: 5, wins: 3 }])[0]!.k).toBe('b');
+    // Khách "x" trong cache còn 0 điểm, giờ đã 995 → đứng thứ 2, không hai dòng
+    const cache = ghepTop([...ds, { k: 'x', la_khach: 1, total_score: 0, wins: 0 }]);
+    const moi = ghepTop(cache, { k: 'x', la_khach: 1, total_score: 995, wins: 0 }, 'x', true);
+    expect(moi.filter((r) => r.k === 'x')).toHaveLength(1);
+    expect(moi[1]!.k).toBe('x');
+    // Tài khoản id "3" và khách mã "3" là HAI người khác nhau
+    const hai = ghepTop(ds, { k: '3', la_khach: 1, total_score: 2000, wins: 0 }, '3', true);
+    expect(hai.filter((r) => r.k === '3')).toHaveLength(2);
+  });
+
+  it('server không còn gộp UNION rồi mới sắp/đếm (quét sạch hai bảng)', () => {
+    const src = goc('../node-server/src/taikhoan.ts');
+    expect(src).not.toContain('NGUON_BXH');
+    expect(src).toMatch(/bxhCache && now - bxhCache\.luc < BXH_CACHE_MS/);
+  });
+});
