@@ -229,3 +229,46 @@ describe('dải chọn số thẻ: vuốt không phải bấm (19.11.2026)', () 
     expect(goc('src/components/TopBar.vue')).toMatch(/hangXu \? numShort\(hangXu\) : ''/);
   });
 });
+
+describe('tên ngẫu nhiên cho người mới (19.11.2026)', () => {
+  beforeEach(() => { localStorage.clear(); vi.resetModules(); });
+
+  it('Loài + Màu + Nét, ≤16 ký tự, tiếng Việt / tiếng Anh; đủ nhiều tổ hợp', async () => {
+    const { taoTen, soToHop, DO_DAI_TOI_DA } = await import('@/lib/ten-ngau-nhien');
+    for (let i = 0; i < 500; i++) {
+      expect(taoTen('vi').length).toBeLessThanOrEqual(DO_DAI_TOI_DA);
+      expect(taoTen('en').length).toBeLessThanOrEqual(DO_DAI_TOI_DA);
+    }
+    expect(taoTen('vi')).toMatch(/^\S+ \S+ \S+$/);
+    expect(taoTen('ja')).toMatch(/^[A-Za-z]+ [A-Za-z]+ [A-Za-z]+$/);
+    expect(soToHop('vi')).toBeGreaterThan(5000);
+    expect(soToHop('en')).toBeGreaterThan(5000);
+  });
+
+  it('chưa có tên thì đặt; đã có tên thì không đụng; trùng thì đổi sang tên trống — trừ khi người chơi đã sửa', async () => {
+    const { ganTenNeuChua } = await import('@/lib/ten-ngau-nhien');
+    store.savePlayerNames(['Bông']);
+    expect(await ganTenNeuChua('vi')).toBeNull();
+    expect(store.playerNames()[0]).toBe('Bông');
+
+    store.savePlayerNames([]);
+    const t1 = await ganTenNeuChua('vi', async (ds) => ds.slice(1, 2));   // tên đầu đã có người dùng
+    expect(t1).not.toBeNull();
+    expect(store.playerNames()[0]).toBe(t1);
+
+    store.savePlayerNames([]);
+    const t2 = await ganTenNeuChua('vi', async (ds) => { store.savePlayerNames(['Tự gõ']); return ds.slice(1, 2); });
+    expect(t2).toBe('Tự gõ');
+    expect(store.playerNames()[0]).toBe('Tự gõ');
+
+    store.savePlayerNames([]);
+    await ganTenNeuChua('vi', async () => { throw new Error('mất mạng'); });
+    expect(store.playerNames()[0]!.length).toBeGreaterThan(3);
+  });
+
+  it('server: /api/ten/trong chỉ đọc, ≤10 tên, so không phân biệt dấu/hoa', () => {
+    const src = goc('../node-server/src/taikhoan.ts');
+    expect(src).toMatch(/p === '\/api\/ten\/trong' && req\.method === 'POST'/);
+    expect(src).toMatch(/\.slice\(0, 10\)/);
+  });
+});

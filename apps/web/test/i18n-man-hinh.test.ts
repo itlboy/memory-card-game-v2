@@ -69,6 +69,9 @@ beforeEach(() => {
   // Có tiến độ để dải lối tắt hiện ĐỦ (chuỗi ngày, màn chiến dịch, danh hiệu gợi ý)
   const homNay = new Date(); const p = (n: number) => String(n).padStart(2, '0');
   localStorage.setItem('mm.v2', JSON.stringify({
+    // Tên trung tính: không có thì app tự đặt tên ngẫu nhiên tiếng Việt ("Sóc Đỏ Nhỏ") lúc khởi động — đúng
+    // hành vi, nhưng test soát chữ chưa dịch sẽ bắt nhầm tên đó trên màn ngôn ngữ khác
+    names: ['Mimi'],
     levels: { 'campaign:1': { stars: 3, score: 100 }, 'campaign:2': { stars: 1, score: 50 } },
     boDem: { wins: 2, botWins: 0, onlineWins: 0, ngayCuoi: `${homNay.getFullYear()}-${p(homNay.getMonth() + 1)}-${p(homNay.getDate())}`, chuoi: 3, chuoiMax: 3 }
   }));

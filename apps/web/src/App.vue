@@ -24,7 +24,8 @@ import type { XemFx } from './components/DebugMenu.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery, urlApp } from '@/lib/appUrl';
 import { laApp } from '@/lib/native';
-import { t } from '@/lib/i18n';
+import { ngonNgu, t } from '@/lib/i18n';
+import { ganTenNeuChua } from '@/lib/ten-ngau-nhien';
 import IconDefs from './components/IconDefs.vue';
 /*
  * BẢNG ĐO chỉ nạp khi có `?debug=1` — `defineAsyncComponent` nên người chơi
@@ -230,7 +231,10 @@ useBackCloser(30, () => showBxh.value, () => { showBxh.value = false; });
 // Dò server có tài khoản không + nạp hồ sơ nếu còn phiên. Lỗi gì cũng nuốt
 // trong đó — đây là lớp phủ, không được chặn trang chủ.
 onMounted(() => {
-  void taiKhoan.khoiDong();
+  // Người mới chưa có tên → tên ngẫu nhiên "Sóc Đỏ Nhỏ" (lib/ten-ngau-nhien.ts); có server thì tránh tên đã dùng
+  void taiKhoan.khoiDong().finally(() => {
+    void ganTenNeuChua(ngonNgu.value, taiKhoan.san.value ? taiKhoan.tenTrong : undefined);
+  });
   batPhanTich();
   // Màn đầu + thời gian tới khi khung đầu ĐÃ VẼ (hai rAF) — phễu người mới, lib/phan-tich.ts
   requestAnimationFrame(() => requestAnimationFrame(() => baoTaiXong(String(screen.value))));

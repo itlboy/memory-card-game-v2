@@ -5,6 +5,7 @@ import { mount, type VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
+import { store } from '@/lib/storage';
 
 const THEMES = {
   themes: [
@@ -354,6 +355,10 @@ describe('màn online (điều hướng, không cần server)', () => {
     });
     wrapper = mount(App, { attachTo: document.body });
     await flush();
+    // Người mới tự có tên ngẫu nhiên (lib/ten-ngau-nhien.ts) → "Tạo phòng" đi thẳng. Xoá tên để còn thử nhánh
+    // ô nhập tên (người chơi tự xoá tên vẫn tới được nhánh này).
+    await vi.waitFor(() => expect(store.playerNames()[0]).toBeTruthy());
+    store.savePlayerNames([]);
     await click('Chơi online');
     // Bước 1: nút tạo phòng + danh sách phòng công khai, chưa hiện form
     expect(wrapper.text()).toContain('Tạo phòng');

@@ -643,6 +643,24 @@ export async function moTaiKhoan(
         return true;
       }
 
+      /*
+       * TÊN NGẪU NHIÊN CHƯA AI DÙNG (19.11.2026): app gửi ≤10 tên tự tạo ("Sóc Đỏ Nhỏ"), trả những tên chưa có trên
+       * bảng xếp hạng (khách + tài khoản). So bằng collation của bảng (không phân biệt hoa/thường, dấu) — "Soc Do
+       * Nho" cũng tính là trùng. Chỉ đọc; không cần đăng nhập.
+       */
+      if (p === '/api/ten/trong' && req.method === 'POST') {
+        const than = await docThan(req) as { ds?: unknown } | null;
+        const ds = [...new Set((Array.isArray(than?.ds) ? than.ds : []).map(locTen).filter(Boolean))].slice(0, 10);
+        if (!ds.length) { json(res, { trong: [] }); return true; }
+        const [rows] = await pool!.query(
+          `SELECT name FROM guest_scores WHERE name IN (?) UNION SELECT name FROM users WHERE name IN (?)`, [ds, ds]
+        );
+        const daCo = (rows as { name: string }[]).map((r) => r.name.toLocaleLowerCase('vi').normalize('NFD').replace(/\p{M}/gu, ''));
+        const bo = (x: string) => x.toLocaleLowerCase('vi').normalize('NFD').replace(/\p{M}/gu, '');
+        json(res, { trong: ds.filter((x) => !daCo.includes(bo(x))) });
+        return true;
+      }
+
       /* Khách gửi tổng điểm trên máy (sau mỗi ván, và lúc đổi tên). */
       if (p === '/api/khach' && req.method === 'POST') {
         const than = await docThan(req) as Record<string, unknown> | null;
