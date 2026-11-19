@@ -750,7 +750,7 @@ const es: TuDien = {
   'on.nhac.nhacTatCa': 'Avisar a todos',
   'on.nhac.doiThem': 'Seguir esperando',
   'on.nhac.ghi': 'Su móvil vibrará y mostrará un aviso. Puedes avisar una vez cada 10 segundos.',
-  'on.tt.matKetNoi': '📡 Sin conexión',
+  'on.tt.matKetNoi': 'Sin conexión',
   'on.tt.chuPhong': 'Anfitrión',
   'on.tt.san': 'Listo',
   'on.tt.banSan': 'Estás listo',

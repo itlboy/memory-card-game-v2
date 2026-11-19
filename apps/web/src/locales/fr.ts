@@ -754,7 +754,7 @@ const fr: TuDien = {
   'on.nhac.nhacTatCa': 'Relancer tout le monde',
   'on.nhac.doiThem': 'Attendre encore',
   'on.nhac.ghi': 'Son téléphone va vibrer et afficher un rappel. Tu peux relancer une fois toutes les 10 secondes.',
-  'on.tt.matKetNoi': '📡 Déconnecté',
+  'on.tt.matKetNoi': 'Déconnecté',
   'on.tt.chuPhong': 'Hôte',
   'on.tt.san': 'Prêt',
   'on.tt.banSan': 'Tu es prêt',

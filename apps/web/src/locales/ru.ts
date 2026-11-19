@@ -768,7 +768,7 @@ const ru: TuDien = {
   'on.nhac.nhacTatCa': 'Напомнить всем',
   'on.nhac.doiThem': 'Ждать ещё',
   'on.nhac.ghi': 'Телефон игрока завибрирует и покажет напоминание. Напоминать можно раз в 10 секунд.',
-  'on.tt.matKetNoi': '📡 Нет связи',
+  'on.tt.matKetNoi': 'Нет связи',
   'on.tt.chuPhong': 'Хозяин',
   'on.tt.san': 'Готов',
   'on.tt.banSan': 'Ты готов',

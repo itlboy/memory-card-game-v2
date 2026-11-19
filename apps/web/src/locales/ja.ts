@@ -748,7 +748,7 @@ const ja: TuDien = {
   'on.nhac.nhacTatCa': '全員に通知',
   'on.nhac.doiThem': 'もう少し待つ',
   'on.nhac.ghi': '相手の端末が振動して通知が表示されます。通知は10秒に1回までです。',
-  'on.tt.matKetNoi': '📡 接続切れ',
+  'on.tt.matKetNoi': '接続切れ',
   'on.tt.chuPhong': 'ホスト',
   'on.tt.san': '準備OK',
   'on.tt.banSan': '準備OK',

@@ -762,7 +762,7 @@ const vi = {
   'on.nhac.nhacTatCa': 'Nhắc mọi người',
   'on.nhac.doiThem': 'Đợi thêm',
   'on.nhac.ghi': 'Máy người kia sẽ rung và hiện lời nhắc. Mỗi 10 giây nhắc được một lần.',
-  'on.tt.matKetNoi': '📡 Mất kết nối',
+  'on.tt.matKetNoi': 'Mất kết nối',
   'on.tt.chuPhong': 'Chủ phòng',
   'on.tt.san': 'Sẵn sàng',
   'on.tt.banSan': 'Bạn đã sẵn sàng',

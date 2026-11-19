@@ -750,7 +750,7 @@ const en: TuDien = {
   'on.nhac.nhacTatCa': 'Nudge everyone',
   'on.nhac.doiThem': 'Keep waiting',
   'on.nhac.ghi': 'Their phone will buzz and show a reminder. You can nudge once every 10 seconds.',
-  'on.tt.matKetNoi': '📡 Disconnected',
+  'on.tt.matKetNoi': 'Disconnected',
   'on.tt.chuPhong': 'Host',
   'on.tt.san': 'Ready',
   'on.tt.banSan': 'You\'re ready',

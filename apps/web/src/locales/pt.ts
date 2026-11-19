@@ -750,7 +750,7 @@ const pt: TuDien = {
   'on.nhac.nhacTatCa': 'Chamar todos',
   'on.nhac.doiThem': 'Esperar mais',
   'on.nhac.ghi': 'O celular da pessoa vai vibrar e mostrar um aviso. Dá para chamar uma vez a cada 10 segundos.',
-  'on.tt.matKetNoi': '📡 Sem conexão',
+  'on.tt.matKetNoi': 'Sem conexão',
   'on.tt.chuPhong': 'Anfitrião',
   'on.tt.san': 'Pronto',
   'on.tt.banSan': 'Você está pronto',

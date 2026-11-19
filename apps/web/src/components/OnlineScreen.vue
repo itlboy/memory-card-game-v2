@@ -631,11 +631,11 @@ const tenChu = computed(() => {
 function trangThai(p: { id: string; ready?: boolean; connected: boolean; may?: unknown }): { chu: string; loai: string } {
   const r = o.room.value;
   if (!p.connected) return { chu: t('on.tt.matKetNoi'), loai: 'mang' };
-  if (p.id === r?.hostId) return { chu: `👑 ${t('on.tt.chuPhong')}`, loai: 'chu' };
-  if (p.may) return { chu: '', loai: '' };
+  if (p.id === r?.hostId) return { chu: t('on.tt.chuPhong'), loai: 'chu' };
   const toi = p.id === o.myId.value;
-  if (p.ready) return { chu: `✓ ${toi ? t('on.tt.banSan') : t('on.tt.san')}`, loai: 'ok' };
-  return { chu: `⏳ ${toi ? t('on.tt.banChua') : t('on.tt.chua')}`, loai: 'cho' };
+  // Máy luôn sẵn sàng (server đặt ready: true)
+  if (p.ready || p.may) return { chu: toi ? t('on.tt.banSan') : t('on.tt.san'), loai: 'ok' };
+  return { chu: toi ? t('on.tt.banChua') : t('on.tt.chua'), loai: 'cho' };
 }
 /**
  * Đã bấm "Bắt đầu" và đang chờ server mở ván.
@@ -1326,8 +1326,14 @@ function openCfgWizard(): void {
             @click="moSuaTen(p.name)"
           ><b>{{ tenNguoi(p) }}</b><Pencil :size="12" /></button>
           <b v-else>{{ tenNguoi(p) }}</b>
-          <small v-if="trangThai(p).chu" class="tt" :class="`tt-${trangThai(p).loai}`">{{ trangThai(p).chu }}</small>
         </span>
+        <!-- CỘT SẴN SÀNG (19.11.2026, chủ dự án: "cho cột sẵn sàng, ai sẵn sàng thì tick xanh, không thì biểu tượng
+             khác") — thay dòng chữ dưới tên. Chủ phòng không cần (vương miện ở cột ngoài cùng): ô trống giữ thẳng cột. -->
+        <span
+          v-if="p.id !== o.room.value?.hostId" class="cot-san" :class="`cs-${trangThai(p).loai}`"
+          role="img" :aria-label="trangThai(p).chu" :title="trangThai(p).chu"
+        ><Check v-if="trangThai(p).loai === 'ok'" :size="17" :stroke-width="3.6" /><template v-else-if="trangThai(p).loai === 'mang'">📡</template><template v-else>⏳</template></span>
+        <span v-else class="cot-san trong" aria-hidden="true" />
         <!-- Ping: chỉ khi mạng YẾU (hoặc bật "ping bằng số" ở Debug) — mạng tốt không ai cần con số -->
         <span
           v-if="p.id === o.myId.value && p.connected && (pingSo || o.netHien.value === 'bad' || o.netHien.value === 'lost')"
@@ -1914,11 +1920,14 @@ input:focus { outline: none; border-color: var(--accent); }
  */
 .ten-cot { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
 .ten-cot > b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lobby-list .tt { font-size: 12.5px; font-weight: 800; line-height: 1.15; white-space: nowrap; }
-.lobby-list .tt-ok { color: #127a3e; }
-.lobby-list .tt-cho { color: #b0560a; }
-.lobby-list .tt-chu { color: #8a6a00; }
-.lobby-list .tt-mang { color: #b3361a; }
+.cot-san {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 15px; line-height: 1; border: 2px solid;
+}
+.cot-san.cs-ok { background: linear-gradient(#78d35a, #4bb033); border-color: #3c9a26; color: #fff; box-shadow: 0 2px 0 #348a20; }
+.cot-san.cs-cho { background: #fff3e2; border-color: #f0b46a; }
+.cot-san.cs-mang { background: #ffe9e2; border-color: #f19a7c; }
+.cot-san.trong { border: 0; }
 .lobby-list li.san {
   background: color-mix(in srgb, #4bb033 13%, var(--panel-soft));
   border-color: color-mix(in srgb, #4bb033 60%, var(--line));

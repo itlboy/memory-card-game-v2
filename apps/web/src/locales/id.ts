@@ -751,7 +751,7 @@ const id: TuDien = {
   'on.nhac.nhacTatCa': 'Ingatkan semua',
   'on.nhac.doiThem': 'Tunggu lagi',
   'on.nhac.ghi': 'HP mereka akan bergetar dan menampilkan pengingat. Kamu bisa mengingatkan sekali tiap 10 detik.',
-  'on.tt.matKetNoi': '📡 Terputus',
+  'on.tt.matKetNoi': 'Terputus',
   'on.tt.chuPhong': 'Host',
   'on.tt.san': 'Siap',
   'on.tt.banSan': 'Kamu siap',
