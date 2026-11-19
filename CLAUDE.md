@@ -729,7 +729,8 @@
   · Thanh emoji: bỏ 💬 (server + LoiNoi vẫn giữ cho app cũ), nút ＋ đứng đầu (☺ cạnh 😂 trông như
     "hai mặt cười"), thứ tự hàng CHỐT THEO PHIÊN (`thuTuPhien`) — không nhảy khi đang bấm.
   · Emoji gửi đi = BONG BÓNG mỗi người một cái (`EmojiBlast.vue`, `emojiBong`): trong ván nằm TRÊN
-    chip (không đè bàn), bảng kết quả `[data-kq-for]` / phòng chờ sau tên, hết chỗ thì lên trên tên.
+    chip (không đè bàn); bảng kết quả `[data-kq-for]` và phòng chờ cũng TRÊN mặt người gửi, đuôi chỉ xuống avatar
+    (19.11.2026 — trước đặt sau tên, chủ dự án báo "chưa trỏ vào avatar").
     Gửi tiếp khi bong bóng còn → emoji BAY LÊN từ bong bóng (không đếm ×n — chủ dự án chọn).
   · Bảng kết quả online: người đã bấm Chơi lại có ✓ xanh trên MẶT ở bảng tỷ số (17.11.2026, thay viền
     xanh nhấp `li.muon`), nhãn "Chơi tiếp" vẫn ở bảng Chi tiết ván; khoảng cách rộng
@@ -1003,7 +1004,7 @@
     = người xem (tên + mặt băm theo tên); chip `ChipXem` ở slot `phai` của HudBar (không thêm hàng), bấm ra
     danh sách. Biểu tượng người xem = xô bỏng ngô `BongNgo.vue` (chủ dự án chê 👁/👀). Không có "giữ chỗ".
   - Smoke: `tools/smoke-xem-nhac.mjs` (chạy trong docker.yml).
-  - Bong bóng emoji + câu nói nhanh trong ván: ĐUÔI CHỈ VÀO AVATAR (không vào tên) — kẹp bong bóng vào màn rồi
+  - Bong bóng emoji + câu nói nhanh ở MỌI chỗ (trong ván, phòng chờ, bảng kết quả): ĐUÔI CHỈ VÀO AVATAR (không vào tên) — kẹp bong bóng vào màn rồi
     dời chân đuôi (`vt` của KhungBong) cho đúng tâm avatar. Ảnh chia sẻ ván nhiều người có khung TỶ SỐ LOẠT
     ("Tỷ số · Ván N" + "Kiên 3 – 1 Linh", người dẫn tô vàng) — `NoiDungAnh.tySo`.
 - **CHUÔNG "BÁO TÔI KHI CÓ PHÒNG MỚI" (18.11.2026, app ≥ 1.8.17)**: nút chuông cạnh tiêu đề
