@@ -268,6 +268,9 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   if (props.multiplayer) {
     return {
       ...chung, tieuDe, phu: props.multiplayerOnline ? `Online · ${ngay}` : ngay,
+      ...(loat.value?.length
+        ? { tySo: { nhan: props.soVan ? `${t('kq.tySo')} · ${t('kq.van', { n: props.soVan })}` : t('kq.tySo'), ds: loat.value.map((r) => ({ ten: r.ten, n: r.n })) } }
+        : {}),
       hang: s.ranking.map((p, i) => ({
         hang: draw.value && i < 2 ? 1 : i + 1, ten: tenNguoi(p), diem: num(p.score),
         nhat: draw.value ? i < 2 : i === 0,

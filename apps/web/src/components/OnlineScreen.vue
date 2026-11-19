@@ -1325,12 +1325,12 @@ function openCfgWizard(): void {
           ><b>{{ tenNguoi(p) }}</b><Pencil :size="12" /></button>
           <b v-else>{{ tenNguoi(p) }}</b>
         </span>
-        <!-- CỘT SẴN SÀNG (19.11.2026, chủ dự án: "cho cột sẵn sàng, ai sẵn sàng thì tick xanh, không thì biểu tượng
-             khác") — thay dòng chữ dưới tên. Chủ phòng không cần (vương miện ở cột ngoài cùng): ô trống giữ thẳng cột. -->
+        <!-- CỘT SẴN SÀNG (19.11.2026, chủ dự án: "cho cột sẵn sàng, ai sẵn sàng thì … xanh, không thì biểu tượng
+             khác"): ✋ trên nền xanh lá — cùng bàn tay của nút "✋ Sẵn sàng!" (tick xanh dễ đọc thành "đã xong") — thay dòng chữ dưới tên. Chủ phòng không cần (vương miện ở cột ngoài cùng): ô trống giữ thẳng cột. -->
         <span
           v-if="p.id !== o.room.value?.hostId" class="cot-san" :class="[`cs-${trangThai(p).loai}`, { nhay: nhayChua && trangThai(p).loai === 'cho' }]"
           role="img" :aria-label="trangThai(p).chu" :title="trangThai(p).chu"
-        ><Check v-if="trangThai(p).loai === 'ok'" :size="17" :stroke-width="3.6" /><template v-else-if="trangThai(p).loai === 'mang'">📡</template><template v-else>⏳</template></span>
+        ><template v-if="trangThai(p).loai === 'ok'">✋</template><template v-else-if="trangThai(p).loai === 'mang'">📡</template><template v-else>⏳</template></span>
         <span v-else class="cot-san trong" aria-hidden="true" />
         <!-- Ping: chỉ khi mạng YẾU (hoặc bật "ping bằng số" ở Debug) — mạng tốt không ai cần con số -->
         <span
@@ -1922,7 +1922,7 @@ input:focus { outline: none; border-color: var(--accent); }
   flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
   font-size: 15px; line-height: 1; border: 2px solid;
 }
-.cot-san.cs-ok { background: linear-gradient(#78d35a, #4bb033); border-color: #3c9a26; color: #fff; box-shadow: 0 2px 0 #348a20; }
+.cot-san.cs-ok { background: linear-gradient(#8fe06c, #4bb033); border-color: #3c9a26; box-shadow: 0 2px 0 #348a20; font-size: 16px; }
 .cot-san.cs-cho { background: #fff3e2; border-color: #f0b46a; }
 .cot-san.cs-mang { background: #ffe9e2; border-color: #f19a7c; }
 .cot-san.trong { border: 0; }

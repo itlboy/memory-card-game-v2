@@ -29,7 +29,7 @@ import KhungBong from './KhungBong.vue';
 type Bong = { from: string; name: string; emoji: QuickEmoji; key: number };
 const props = defineProps<{ o: { emojiBong: { value: Bong[] } } }>();
 
-type Neo = { kieu: 'tren' | 'phai'; x: number; y: number; nho?: boolean } | null;
+type Neo = { kieu: 'tren' | 'phai'; x: number; y: number; nho?: boolean; vt?: number } | null;
 const neo = ref<Record<string, Neo>>({});
 
 const thay = (el: Element | null | undefined): DOMRect | null => {
@@ -82,11 +82,13 @@ function timNeo(id: string): Neo {
     const n = neoDong(chip!, rc, sau);
     return n && { ...n, nho: true };
   }
+  // ĐUÔI CHỈ VÀO AVATAR (19.11.2026, chủ dự án: "bong bóng chat trỏ vào avatar thay vì tên"). Kẹp bong bóng
+  // vào màn hình rồi dời CHÂN ĐUÔI (`vt`) cho nó vẫn đúng tâm avatar.
   const ten = thay(chip!.querySelector('b'));
   const av = thay(chip!.querySelector('.avatar'));
-  const x = ten ? ten.left - 6 : av ? av.left + av.width / 2 - 24 : rc.left + rc.width / 2 - 24;
-  // Bong bóng rộng ~64px: kẹp để không thò ra mép phải
-  return { kieu: 'tren', x: Math.min(Math.max(x, 8), window.innerWidth - 118), y: rc.top - 10 };
+  const tam = av ? av.left + av.width / 2 : ten ? ten.left + 18 : rc.left + rc.width / 2;
+  const x = Math.min(Math.max(tam - 24, 8), window.innerWidth - 118);
+  return { kieu: 'tren', x, y: rc.top - 10, vt: Math.max(16, tam - x) };
 }
 
 function doLai(): void {
@@ -138,7 +140,7 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
       >
         <KhungBong
           :canh="neo[b.from] ? (neo[b.from]!.kieu === 'phai' ? 'trai' : 'duoi') : undefined"
-          :day="2.5" :r="neo[b.from]?.nho ? 16 : 18"
+          :day="2.5" :r="neo[b.from]?.nho ? 16 : 18" :vt="neo[b.from]?.vt"
         />
         <!-- :key theo lượt gửi → mỗi lần gửi lại là một nhịp nảy, bong bóng thì đứng yên -->
         <span :key="b.key" class="e">{{ b.emoji }}</span>

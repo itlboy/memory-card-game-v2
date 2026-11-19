@@ -18,6 +18,9 @@ export interface NoiDungAnh {
   phu: string;
   /** Ván nhiều người: bảng xếp hạng. Ván một mình: các ô số liệu. */
   hang?: DongXepHang[];
+  /** TỶ SỐ CẢ LOẠT (19.11.2026, chủ dự án: "chia sẻ tỷ số chưa có tổng tỷ số") — theo chỗ ngồi, kèm nhãn
+   *  ("Tỷ số · Ván 5"). Vẽ thành một khung ngay dưới tiêu đề: "Kiên 3 – 1 Linh". */
+  tySo?: { nhan: string; ds: { ten: string; n: number }[] };
   so?: { nhan: string; gt: string }[];
   cau: string;
   choiNgay: string;
@@ -91,7 +94,8 @@ export async function veAnhKetQua(n: NoiDungAnh): Promise<Blob> {
   // Thẻ trắng giữa ảnh — cao theo nội dung, đặt giữa khoảng trống
   const soDong = n.hang?.length ?? Math.ceil((n.so?.length ?? 0) / 2);
   const caoNoiDung = n.hang ? soDong * 128 : soDong * 160;
-  const cao = 150 + 96 + 52 + 40 + caoNoiDung + 110;
+  const caoTySo = n.tySo?.ds.length ? 168 : 0;
+  const cao = 150 + 96 + 52 + 40 + caoTySo + caoNoiDung + 110;
   const y0 = Math.max(200, Math.round(200 + (920 - cao) / 2));
   khoiNoi(c, 80, y0, W - 160, cao, 48, '#fffbea', 14, 8);
 
@@ -104,6 +108,38 @@ export async function veAnhKetQua(n: NoiDungAnh): Promise<Blob> {
   c.fillStyle = 'rgba(29,42,90,.65)'; c.font = `700 30px ${fB}`;
   c.fillText(vua(c, n.phu, W - 260), W / 2, y);
   y += 40;
+
+  if (n.tySo?.ds.length) {
+    const x = 140, w = W - 280, h = 140;
+    khoiNoi(c, x, y, w, h, 30, '#fff', 0, 5);
+    c.textAlign = 'center'; c.fillStyle = 'rgba(29,42,90,.65)'; c.font = `800 28px ${fB}`;
+    c.fillText(vua(c, n.tySo.nhan.toUpperCase(), w - 60), W / 2, y + 44);
+    const cao_ = Math.max(...n.tySo.ds.map((d) => d.n));
+    // Hai người: "Kiên 3 – 1 Linh". Ba người trở lên: "Kiên 3 · Linh 1 · Minh 0". Người dẫn tô vàng.
+    const hai = n.tySo.ds.length === 2;
+    const manh: { s: string; dan?: boolean }[] = [];
+    if (hai) {
+      const [a, b] = n.tySo.ds as [{ ten: string; n: number }, { ten: string; n: number }];
+      manh.push({ s: `${a.ten} ` }, { s: String(a.n), dan: a.n === cao_ && a.n > b.n }, { s: ' – ' }, { s: String(b.n), dan: b.n === cao_ && b.n > a.n }, { s: ` ${b.ten}` });
+    } else {
+      n.tySo.ds.forEach((d, i) => {
+        if (i) manh.push({ s: '  ·  ' });
+        manh.push({ s: `${d.ten} ` }, { s: String(d.n), dan: d.n === cao_ && cao_ > 0 });
+      });
+    }
+    let co = 56;
+    const rong = (): number => { c.font = `900 ${co}px ${fD}`; return manh.reduce((t_, m) => t_ + c.measureText(m.s).width, 0); };
+    while (rong() > w - 60 && co > 26) co -= 2;
+    let xx = W / 2 - rong() / 2;
+    c.textAlign = 'left';
+    for (const m of manh) {
+      c.fillStyle = m.dan ? '#e08a00' : MUC;
+      c.fillText(m.s, xx, y + 110);
+      xx += c.measureText(m.s).width;
+    }
+    c.textAlign = 'center';
+    y += caoTySo;
+  }
 
   if (n.hang) {
     for (const d of n.hang) {
