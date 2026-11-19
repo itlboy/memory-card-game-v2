@@ -84,6 +84,13 @@ let lucNhich = 0;
 export function apDuoc(o: { search: string; manChu: boolean; hien: boolean; coHop: boolean }): boolean {
   return oTrangChu(o.search) && o.manChu && o.hien && !o.coHop;
 }
+/**
+ * MÀN PHỦ ĐANG HIỆN thì tải xong là áp NGAY, kể cả có hộp thoại (19.11.2026, chủ dự án: "cập nhật bị treo ở 69%").
+ * Đang mở Bảng xếp hạng thì gói mới bắt đầu tải → phủ; tải xong lại chờ "hộp thoại đóng" — mà màn phủ chặn
+ * mọi chạm nên KHÔNG AI đóng được: kẹt vĩnh viễn ở % cuối cùng (bộ canh `DUNG_MS` chỉ chạy lúc đang tải).
+ * Đã phủ nghĩa là người chơi đang không làm gì được — khởi động lại không làm mất gì thêm.
+ */
+const dangPhu = (): boolean => typeof document !== 'undefined' && !!document.querySelector('.man-cap-nhat');
 /** Người dùng TỰ BẤM "Kiểm tra cập nhật" (menu / nút tại chỗ): phủ và áp ở MỌI màn — họ đã chọn. */
 let epBuoc = false;
 const hienTrangChu = (): boolean => typeof document !== 'undefined' && document.visibilityState === 'visible' && (epBuoc || dangOTrangChu());
@@ -183,7 +190,7 @@ function canhCapNhat(): void {
       return;
     }
     if (goiCho && !boChan) {
-      if (apDuocBayGio()) void apGoi(goiCho);
+      if (apDuocBayGio() || (dangPhu() && document.visibilityState === 'visible')) void apGoi(goiCho);
       else if (!hienTrangChu()) anManPhu();
       return;
     }
@@ -353,7 +360,8 @@ export async function kiemOta(): Promise<void> {
     await CapacitorUpdater.next({ id: goi.id });
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
     dat({ buoc: 'choMoLai', id: m.id });
-    if (!boChan && apDuocBayGio()) { await apGoi(goi.id); return; }   // ở trang chủ: khởi động lại NGAY
+    // Ở trang chủ — hoặc màn phủ đang hiện (đã chặn hết mọi thứ, xem `dangPhu`): khởi động lại NGAY
+    if (!boChan && (apDuocBayGio() || (dangPhu() && document.visibilityState === 'visible'))) { await apGoi(goi.id); return; }
     if (!boChan) canhCapNhat();                                         // đang chơi: chờ về trang chủ
   } catch (e) {
     // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do.
