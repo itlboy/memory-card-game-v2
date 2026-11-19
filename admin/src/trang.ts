@@ -260,7 +260,7 @@ export const JS = String.raw`
   var CHU = { tu_roi: 'Tự rời', huy_phong: 'Chủ phòng tự huỷ', chu_huy: 'Bị chủ phòng huỷ', bi_kick: 'Bị mời ra', phong_dong: 'Phòng đã đóng',
     mat_mang: 'Mất mạng', khac: 'Khác', noi_lai_ok: 'Rớt rồi nối lại được', noi_lai_hong: 'Rớt, không nối lại được',
     mat_nhip: 'Mất nhịp tim', mat_nhip_noi_lai: 'Mất nhịp → nối lại', ack_cham: 'Nước đi xác nhận chậm', ack_hong: 'Nước đi không được xác nhận',
-    ban_dung: 'Bàn đứng im', ban_dung_noi_lai: 'Bàn đứng im → nối lại', thuc_noi_lai: 'Mở lại app → nối lại', choi: 'đang chơi', ket_qua: 'màn kết quả', cho: 'phòng chờ',
+    ban_dung: 'Bàn đứng im', ban_dung_noi_lai: 'Bàn đứng im → nối lại', thuc_noi_lai: 'Mở lại app → nối lại', chap_chon: 'Chập chờn (nối được rồi đứt ngay)', choi: 'đang chơi', ket_qua: 'màn kết quả', cho: 'phòng chờ',
     ok: 'thành công', xong: 'xong', huy: 'huỷ', loi: 'lỗi', cu_qua: 'app quá cũ — cần lên store', moi: 'tài khoản mới',
     google: 'Google', apple: 'Apple', luu_anh: 'Lưu ảnh', anh: 'Chia sẻ ảnh', chu: 'Chia sẻ chữ', copy: 'Chép link',
     '(direct)': 'Vào thẳng', moi_ban: 'Link mời bạn', chia_se: 'Ảnh chia sẻ', 'play.google.com': 'Google Play', 'apps.apple.com': 'App Store' };

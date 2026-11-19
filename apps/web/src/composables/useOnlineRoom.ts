@@ -147,6 +147,19 @@ const RECONNECT_EVERY_MS = 500;
 const BANNER_AFTER_MS = 5_000;
 
 /**
+ * CHẬP CHỜN: socket MỞ ĐƯỢC rồi chết ngay, lặp lại (19.11.2026).
+ *
+ * Nhịp 500ms ở trên là cho ca rớt THƯỜNG và giữ nguyên. Nhưng tối 18.11 một máy iOS
+ * mở được socket rồi bị cắt ngay (mã 1005), 0,5 giây sau mở lại, lại bị cắt — 331 lượt
+ * trong 4 phút, vì mỗi lần mở được là coi như đã nối lại xong và vòng lặp không bao giờ hết hạn.
+ * Nay: socket sống chưa tới `SONG_ON_DINH_MS` mà đứt thì tính là một lần "đứt nhanh"; từ lần
+ * thứ hai liên tiếp thì giãn theo `CHO_CHAP_CHON`. Sống đủ lâu một lần là bộ đếm về 0.
+ * Socket không mở được (server chết, mất sóng) KHÔNG tính — ca đó vẫn thử dày như cũ.
+ */
+const SONG_ON_DINH_MS = 10_000;
+const CHO_CHAP_CHON = [1_000, 2_000, 4_000, 8_000, 10_000];
+
+/**
  * Client online: mọi luật chơi nằm trên server (ON-09) — composable này chỉ
  * gửi hành động, nhận sự kiện + view đã che thẻ úp, và lo tự vào lại khi
  * rớt mạng trong hạn ROOM_LIMITS.reconnectMs (ON-07).
@@ -161,6 +174,9 @@ export function useOnlineRoom() {
   let lyDoRoi = '';
   let rotLuc = 0;
   let rotMa = 0;
+  /** Lúc socket hiện tại mở (0 = chưa mở) và số lần liên tiếp nó chết sớm — xem `SONG_ON_DINH_MS`. */
+  let moLuc = 0;
+  let dutNhanh = 0;
   const trongPhong = (x?: Phase): boolean => x === 'lobby' || x === 'playing' || x === 'ended';
   watch(phase, (p, truoc) => {
     if (trongPhong(p)) { if (!vaoPhongLuc) vaoPhongLuc = Date.now(); return; }
@@ -178,7 +194,7 @@ export function useOnlineRoom() {
    * SỰ CỐ MẠNG MÀ APP TỰ CỨU (18.11.2026, chủ dự án: ván 3 người "hay lỗi mạng, treo" mà không có số
    * liệu). `online_ket_noi` chỉ đếm socket ĐỨT HẲN; mấy lối tự cứu dưới đây (mất nhịp tim, nước đi không
    * được xác nhận, bàn đứng im) trước đây im lặng — người chơi thấy treo, GA không thấy gì.
-   * `ly_do`: mat_nhip · mat_nhip_noi_lai · ack_cham · ack_hong · ban_dung · ban_dung_noi_lai · thuc_noi_lai.
+   * `ly_do`: mat_nhip · mat_nhip_noi_lai · ack_cham · ack_hong · ban_dung · ban_dung_noi_lai · thuc_noi_lai · chap_chon (socket mở rồi chết ngay, lần thứ 3 liên tiếp).
    * Mỗi loại tối đa một lần / 20 giây để một cơn mạng tệ không thành trăm sự kiện.
    * Ghép với log server `[ws]` (apps/node-server/src/index.ts) theo giờ + mã phòng.
    */
@@ -977,6 +993,7 @@ export function useOnlineRoom() {
 
     ws.onopen = () => {
       doNhip.socket = 'mở'; // i18n-bo-qua — bảng đo nội bộ
+      moLuc = Date.now();
       startHeartbeat();
       if (rotLuc) {   // nối lại được sau một lần rớt (đang mở app)
         suKien('online_ket_noi', { ket_qua: 'noi_lai_ok', ma_dong: rotMa, giay: Math.round((Date.now() - rotLuc) / 1000) });
@@ -1003,6 +1020,12 @@ export function useOnlineRoom() {
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
       // 4003: bị chủ phòng mời ra — KHÔNG nối lại, không thì quay vào ngay
       if (intentionalClose || (e.code >= 4000 && e.code <= 4003)) return;
+      if (moLuc) {
+        dutNhanh = Date.now() - moLuc < SONG_ON_DINH_MS ? dutNhanh + 1 : 0;
+        moLuc = 0;
+        if (dutNhanh === 3) baoSuCo('chap_chon');
+      }
+      const cho = dutNhanh >= 2 ? CHO_CHAP_CHON[Math.min(dutNhanh - 2, CHO_CHAP_CHON.length - 1)]! : RECONNECT_EVERY_MS;
       // Tự vào lại trong hạn giữ chỗ của server (ON-07). Kể cả ở màn kết quả:
       // phòng vẫn sống, mất socket ở đó mà bỏ luôn thì "Về phòng chờ" hết cửa.
       if ((token || spectator.value) && phase.value !== 'idle') {
@@ -1019,7 +1042,7 @@ export function useOnlineRoom() {
         if (oNen || Date.now() < reconnectDeadline) {
           if (oNen) dangNoiLai = true; else batNoiLai();
           kiemPhongCon();
-          reconnectTimer = setTimeout(() => connect(code, myName, token), RECONNECT_EVERY_MS);
+          reconnectTimer = setTimeout(() => connect(code, myName, token), cho);
           return;
         }
       }
@@ -1542,6 +1565,7 @@ export function useOnlineRoom() {
     // xoá hẹn giờ: hẹn cũ đếm từ trước lúc rớt, để lại là nó nổ ngay khi vừa về.
     clearAck();
     stopHeartbeat();
+    moLuc = 0;   // socket cũ bị bỏ chủ động — không để lần mở hỏng kế tiếp bị tính là "đứt nhanh" của nó
     if (ws) {
       intentionalClose = true;
       try { ws.close(); } catch { /* đã đóng */ }
@@ -1639,6 +1663,7 @@ export function useOnlineRoom() {
   function leave(): void {
     lyDoRoi ||= 'tu_roi';
     rotLuc = 0;
+    dutNhanh = 0;
     leaveSocket();
     clearStored();
     daVaoPhong = false;
