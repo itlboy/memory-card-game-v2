@@ -50,13 +50,13 @@ jobs:
       # "Multiple versions of pnpm specified". Để một nguồn duy nhất, và nâng
       # pnpm thì chỉ sửa package.json.
       - uses: pnpm/action-setup@v6
-      # Node 22, KHÔNG phải 20, vì hai lý do:
+      # Node 26 (Active LTS từ 28.10.2026; nâng từ 22 ngày 20.11.2026). Trước đó: Node 22, KHÔNG phải 20, vì hai lý do:
       #  - bộ smoke dùng `WebSocket` TOÀN CỤC, mà Node 20 chưa có nó (phải bật
       #    cờ --experimental-websocket); chạy trên 20 là "WebSocket is not defined";
       #  - Node 20 đã hết hạn hỗ trợ từ 4/2026.
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Đóng ảnh từ code chưa chạy test là cách chắc nhất để đẩy lỗi lên máy chủ
@@ -134,8 +134,11 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE }}
+          # `:latest` CHỈ từ nhánh main — Keel (server nhà) và latthe-cap-nhat (máy Mỹ) đều theo nó. Chạy tay trên
+          # nhánh khác (gh workflow run … --ref <nhánh>) ra tag theo tên nhánh để thử mà không đụng server thật.
           tags: |
-            type=raw,value=latest
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
             type=sha,format=short
       - uses: docker/build-push-action@v7
         with:

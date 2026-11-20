@@ -48,7 +48,7 @@ await build({
   outfile: 'dist/server.mjs',
   bundle: true,
   platform: 'node',
-  target: 'node22',
+  target: 'node26',
   format: 'esm',
   sourcemap: true,
   // `mysql2` cũng để ngoài: nó nạp driver theo nhánh lúc chạy nên gói vào là
