@@ -169,7 +169,7 @@ async function doiAn(an: boolean): Promise<void> {
 }
 .head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .head h2 { flex: 1; margin: 0; font-size: var(--text-xl); }
-.body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px 4px 6px; margin: 0 -4px; }
+.body { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; padding: 2px 4px 6px; margin: 0 -4px; }
 .muted { color: var(--muted); font-size: var(--text-sm); margin: 6px 0 0; }
 .loi { color: var(--bad); font-size: var(--text-sm); margin: 8px 0 0; }
 
@@ -209,7 +209,7 @@ async function doiAn(an: boolean): Promise<void> {
 .n2 .bac { height: 42px; background: linear-gradient(#c5cee2, #9aa6c4); }
 .n3 .bac { height: 32px; background: linear-gradient(#e2a06a, #c27a3e); }
 /* Hạt vàng bốc lên + quầng sáng thở sau hạng 1 */
-.bui { position: absolute; inset: -10px -6px 0; overflow: hidden; pointer-events: none; z-index: -1; border-radius: 14px; }
+.bui { position: absolute; inset: -10px 0 0; overflow: hidden; pointer-events: none; z-index: -1; border-radius: 14px; }
 .bui::before {
   content: ""; position: absolute; left: 50%; bottom: 20px; width: 170px; height: 170px; transform: translateX(-50%); border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 206, 64, .45), rgba(255, 206, 64, 0) 68%); animation: tho 2.6s ease-in-out infinite alternate;
