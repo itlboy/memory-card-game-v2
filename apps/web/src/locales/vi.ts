@@ -439,7 +439,7 @@ const vi = {
   'tb.lenHang': 'Lên hạng #{hang} (↑{n}). Bấm xem!',
   'tb.meoXu': 'Bấm vào đây để xem bạn đứng thứ mấy trong tất cả người chơi.',
   'tb.daHieu': 'Đã hiểu',
-  'bxh.soNguoi': '{n} người',
+  'bxh.soNguoi': '{n} người chơi',
   'tk.dangTai': 'Đang tải…',
   'tk.apple': 'Đăng nhập bằng Apple',
   'tk.google': 'Đăng nhập bằng Google',
