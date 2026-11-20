@@ -370,6 +370,7 @@ const zhTW: TuDien = {
   'chung.dangCapNhat': '正在更新',
   'chung.chuaCapNhat': '暫時無法更新',
   'chung.capNhatXong': '更新完成！',
+  'chung.daCapNhatBan': '已更新到版本 {v}',
   'chung.banSo': '版本 {v}',
   'tb.kiemCapNhat': "檢查更新",
   'tb.dangKiem': "正在檢查",

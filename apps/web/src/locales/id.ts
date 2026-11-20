@@ -370,6 +370,7 @@ const id: TuDien = {
   'chung.dangCapNhat': 'Memperbarui',
   'chung.chuaCapNhat': 'Gagal memperbarui',
   'chung.capNhatXong': 'Pembaruan selesai!',
+  'chung.daCapNhatBan': 'Diperbarui ke versi {v}',
   'chung.banSo': 'Versi {v}',
   'tb.kiemCapNhat': "Cek pembaruan",
   'tb.dangKiem': "Memeriksa",

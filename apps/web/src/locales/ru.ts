@@ -386,6 +386,7 @@ const ru: TuDien = {
   'chung.dangCapNhat': 'Обновление',
   'chung.chuaCapNhat': 'Не удалось обновить',
   'chung.capNhatXong': 'Обновление готово!',
+  'chung.daCapNhatBan': 'Обновлено до версии {v}',
   'chung.banSo': 'Версия {v}',
   'tb.kiemCapNhat': "Проверить обновления",
   'tb.dangKiem': "Проверка",

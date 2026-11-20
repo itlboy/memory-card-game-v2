@@ -28,7 +28,7 @@ import { maGoiOta } from './ma-goi-ota.mjs';
 const { zipSync } = createRequire(new URL('../apps/web/package.json', import.meta.url))('fflate');
 
 const web = new URL('../apps/web/', import.meta.url).pathname;
-const { minNative } = JSON.parse(readFileSync(join(web, 'ota.json'), 'utf8'));
+const { minNative, gapDuoi } = JSON.parse(readFileSync(join(web, 'ota.json'), 'utf8'));
 const id = maGoiOta();
 const SRC = join(web, 'dist-ota');
 
@@ -85,6 +85,6 @@ for (const [ten, du] of Object.entries(files)) {
   writeFileSync(join(ra, 'f', h + duoiOta(duong)), du);
 }
 writeFileSync(join(ra, `${id}.files.json`), JSON.stringify(ds));
-writeFileSync(join(ra, 'manifest.json'), JSON.stringify({ id, url: `/ota/${id}.zip`, sha256, files: `/ota/${id}.files.json`, minNative, builtAt: new Date().toISOString() }, null, 2));
+writeFileSync(join(ra, 'manifest.json'), JSON.stringify({ id, url: `/ota/${id}.zip`, sha256, files: `/ota/${id}.files.json`, minNative, ...(gapDuoi ? { gapDuoi } : {}), builtAt: new Date().toISOString() }, null, 2));
 rmSync(SRC, { recursive: true, force: true });
 console.log(`✓ OTA ${id} · zip ${(zip.length / 1e6).toFixed(1)} MB (${Object.keys(choZip).length} file, bỏ ảnh 512) · chênh lệch ${Object.keys(files).length} file · cần app ≥ ${minNative}`);

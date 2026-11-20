@@ -373,6 +373,7 @@ const fr: TuDien = {
   'chung.dangCapNhat': 'Mise à jour',
   'chung.chuaCapNhat': 'Mise à jour impossible',
   'chung.capNhatXong': 'Mise à jour terminée !',
+  'chung.daCapNhatBan': 'Mis à jour vers la version {v}',
   'chung.banSo': 'Version {v}',
   'tb.kiemCapNhat': "Rechercher une mise à jour",
   'tb.dangKiem': "Vérification",

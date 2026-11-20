@@ -367,6 +367,7 @@ const ko: TuDien = {
   'chung.dangCapNhat': '업데이트 중',
   'chung.chuaCapNhat': '업데이트하지 못했어요',
   'chung.capNhatXong': '업데이트 완료!',
+  'chung.daCapNhatBan': '버전 {v}(으)로 업데이트했어요',
   'chung.banSo': '버전 {v}',
   'tb.kiemCapNhat': "업데이트 확인",
   'tb.dangKiem': "확인 중",

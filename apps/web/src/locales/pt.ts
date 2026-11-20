@@ -368,6 +368,7 @@ const pt: TuDien = {
   'chung.dangCapNhat': 'Atualizando',
   'chung.chuaCapNhat': 'Não foi possível atualizar',
   'chung.capNhatXong': 'Atualização concluída!',
+  'chung.daCapNhatBan': 'Atualizado para a versão {v}',
   'chung.banSo': 'Versão {v}',
   'tb.kiemCapNhat': "Verificar atualizações",
   'tb.dangKiem': "Verificando",

@@ -370,6 +370,7 @@ const tr: TuDien = {
   'chung.dangCapNhat': 'Güncelleniyor',
   'chung.chuaCapNhat': 'Güncellenemedi',
   'chung.capNhatXong': 'Güncelleme tamam!',
+  'chung.daCapNhatBan': '{v} sürümüne güncellendi',
   'chung.banSo': 'Sürüm {v}',
   'tb.kiemCapNhat': "Güncellemeleri denetle",
   'tb.dangKiem': "Denetleniyor",

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { laApp, SITE_URL } from './native';
-import { t } from './i18n';
+import { t, napTuDien, ngonNgu } from './i18n';
 import { sfx } from './audio';
 import { suKien } from './phan-tich';
 
@@ -24,7 +24,11 @@ import { suKien } from './phan-tich';
  * Gói đã từng hỏng (status 'error') thì không tải lại — khỏi vòng lặp tải/hỏng.
  * Đổi phần NATIVE (plugin, Swift/Java) vẫn phải qua store + nâng `minNative` (ota.json).
  */
-interface Manifest { id: string; url: string; sha256: string; minNative: string; files?: string }
+interface Manifest {
+  id: string; url: string; sha256: string; minNative: string; files?: string;
+  /** BẢN GẤP (ota.json `gapDuoi`): máy đang chạy bản THẤP HƠN số này thì áp ngay khi về trang chủ, không chờ. */
+  gapDuoi?: string;
+}
 /** `/ota/<id>.files.json`: [đường dẫn trong gói, sha256] — tools/dong-goi-ota.mjs. */
 type DanhSachFile = [string, string][];
 /** Đuôi của file ở `/ota/f/<sha256><đuôi>` — PHẢI KHỚP `duoiOta` ở tools/dong-goi-ota.mjs:
@@ -81,8 +85,34 @@ const NHIP_MS = 500;
  * dùng đang chờ kết quả.
  */
 let anTienDo = true;
-/** Chỉ cho test: bật/tắt chế độ ẩn tiến độ. */
+/** Chỉ cho test: bật/tắt chế độ ẩn tiến độ (`false` = cách cũ: phủ % thật + áp ngay ở trang chủ). */
 export function datAnTienDo(v: boolean): void { anTienDo = v; }
+/*
+ * CẬP NHẬT ÊM (20.11.2026, chủ dự án: "update thì chạy ngầm, khi restart thì chạy thanh progress 2 giây rồi báo
+ * update thành công… restart ko làm nháy quá nhiều"). Khi `anTienDo`, gói tải xong được áp vào MỘT trong các lúc:
+ *  · App VÀO NỀN khi đang ở trang chủ (`khiVaoNen`) → khởi động lại trong nền, không ai thấy; quay lại có dòng
+ *    nhỏ "✓ Đã cập nhật bản x" (`baoVuaCapNhat`).
+ *  · Đứng yên ở trang chủ `RANH_MS`, hoặc BẢN GẤP (`gapDuoi`), hoặc tự bấm "Kiểm tra cập nhật" → màn "Đang cập
+ *    nhật" chạy GIẢ tới 90% (`chayGia`), khởi động lại DƯỚI màn đó; gói mới dựng lại đúng màn đó ở 90%, chạy nốt
+ *    100% + "Cập nhật xong!" (`noiTiepPhu`) — cú nháy trắng nằm sau màn phủ.
+ *  · Tắt hẳn rồi mở → `next` + `kill` như cũ; gói mới thấy mã gói đổi → dòng nhỏ "Đã cập nhật".
+ * Đang chơi / phòng online / hộp thoại: không bao giờ chen ngang (giữ nguyên).
+ */
+export const RANH_MS = 30_000;
+let lucCham = Date.now();
+let daGanCham = false;
+let apGap = false;
+const VUA_AP_KEY = 'mm.otaVuaAp';
+const DA_CHAY_KEY = 'mm.otaDaChay';
+function ganCham(): void {
+  if (daGanCham || typeof document === 'undefined') return;
+  daGanCham = true;
+  for (const ev of ['pointerdown', 'keydown'] as const) document.addEventListener(ev, () => { lucCham = Date.now(); }, { capture: true, passive: true });
+}
+const ranhDu = (): boolean => Date.now() - lucCham >= RANH_MS;
+function ghiVuaAp(cach: 'phu' | 'nen'): void {
+  try { localStorage.setItem(VUA_AP_KEY, JSON.stringify({ cach, id: trangThaiOta.value.id })); } catch { /* bỏ qua */ }
+}
 const phuDuoc = (): boolean => !anTienDo || epBuoc;
 const DUNG_MS = 20_000;
 let henCanh: ReturnType<typeof setInterval> | undefined;
@@ -111,7 +141,7 @@ const apDuocBayGio = (): boolean => typeof document !== 'undefined' && (epBuoc ?
 }));
 
 /** Màn phủ "Đang cập nhật" + thanh % (một phần tử, cập nhật tại chỗ). */
-function hienManPhu(pct: number): void {
+function hienManPhu(pct: number, vaoBody = false): void {
   if (typeof document === 'undefined') return;
   let el = document.querySelector<HTMLElement>('.man-cap-nhat');
   if (!el) {
@@ -126,7 +156,8 @@ function hienManPhu(pct: number): void {
     el.querySelector('.mcn-chu')!.textContent = t('chung.dangCapNhat');
     // Chặn chạm xuyên xuống trang chủ (màn phủ là để KHÔNG dùng được gì khác)
     for (const ev of ['pointerdown', 'click', 'touchstart'] as const) el.addEventListener(ev, (e) => { e.stopPropagation(); e.preventDefault(); }, { passive: false });
-    (document.getElementById('app') ?? document.body).appendChild(el);
+    // Lúc khởi động (`noiTiepPhu`) Vue chưa mount — mount xoá sạch #app, nên gắn vào body
+    (vaoBody ? document.body : document.getElementById('app') ?? document.body).appendChild(el);
   }
   const p = Math.max(0, Math.min(100, Math.round(pct)));
   el.querySelector<HTMLElement>('.mcn-thanh > i')!.style.width = `${p}%`;
@@ -144,14 +175,14 @@ export const XONG_MS = 1500;
 let xongMs = XONG_MS;
 /** Chỉ cho test: rút thời gian giữ màn "Cập nhật xong" (đồng hồ giả của test khác không chờ được). */
 export function datXongMs(ms: number): void { xongMs = ms; }
-async function baoXong(): Promise<void> {
+async function baoXong(banId = trangThaiOta.value.id ?? ''): Promise<void> {
   const el = document.querySelector<HTMLElement>('.man-cap-nhat');
   if (!el) return;
   const it = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cho = (ms: number): Promise<void> | void => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : undefined);
   el.classList.add('xanh');
   await cho(it ? 0 : Math.min(250, xongMs));
-  const ban = (trangThaiOta.value.id ?? '').split('-')[0];
+  const ban = banId.split('-')[0];
   el.querySelector('.mcn-chu')!.textContent = t('chung.capNhatXong');
   el.querySelector('.mcn-pct')!.textContent = ban ? t('chung.banSo', { v: ban }) : '';
   el.classList.add('xong');
@@ -180,11 +211,70 @@ async function apGoi(id: string): Promise<void> {
   if (daAp) return;
   daAp = true;
   huyApKhiRanh();
-  if (phuDuoc()) { hienManPhu(100); await baoXong(); }
+  if (anTienDo) { await chayGia(); ghiVuaAp('phu'); }
+  else if (phuDuoc()) { hienManPhu(100); await baoXong(); }
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
     await CapacitorUpdater.set({ id });                // tải lại app sang gói mới
   } catch { anManPhu(); /* vẫn còn lối `next` + `kill`: mở lại app là có */ }
+}
+
+/** Thanh GIẢ: từ % đang hiện (hoặc 0) lên 90% trong ~0,9 giây — phần còn lại gói mới chạy nốt. */
+async function chayGia(): Promise<void> {
+  const tu = document.querySelector('.man-cap-nhat') ? Math.min(90, Math.max(0, pctCu) * 0.9) : 0;
+  const tong = Math.min(900, xongMs);
+  for (let i = 1; i <= 6; i++) {
+    hienManPhu(tu + ((90 - tu) * i) / 6);
+    if (tong > 0) await new Promise((r) => setTimeout(r, tong / 6));
+  }
+}
+/** Vào nền ở trang chủ: khởi động lại khi không ai nhìn. */
+async function apNen(id: string): Promise<void> {
+  if (daAp) return;
+  daAp = true;
+  huyApKhiRanh();
+  ghiVuaAp('nen');
+  try {
+    const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+    await CapacitorUpdater.set({ id });
+  } catch { /* còn `next` + `kill` */ }
+}
+export function khiVaoNen(): void {
+  if (anTienDo && goiCho && !daAp && !boChan && dangOTrangChu()) void apNen(goiCho);
+}
+/** Gói MỚI vừa chạy: nối tiếp màn phủ (nếu áp bằng màn phủ) hoặc báo dòng nhỏ "Đã cập nhật". Một lần mỗi phiên. */
+let daBaoKhoiDong = false;
+export function baoVuaCapNhat(): void {
+  if (daBaoKhoiDong || typeof document === 'undefined') return;
+  daBaoKhoiDong = true;
+  let vua: { cach?: string; id?: string } | null = null, truoc: string | null = null;
+  try { vua = JSON.parse(localStorage.getItem(VUA_AP_KEY) ?? 'null'); localStorage.removeItem(VUA_AP_KEY); } catch { vua = null; }
+  try { truoc = localStorage.getItem(DA_CHAY_KEY); localStorage.setItem(DA_CHAY_KEY, __OTA_ID__); } catch { truoc = null; }
+  if (vua?.id === __OTA_ID__ && vua.cach === 'phu') { void noiTiepPhu(); return; }
+  if ((truoc !== null && truoc !== __OTA_ID__) || vua?.id === __OTA_ID__) khiHien(baoDaCapNhat);
+}
+function khiHien(f: () => void): void {
+  if (document.visibilityState === 'visible') { f(); return; }
+  const nghe = (): void => { if (document.visibilityState === 'visible') { document.removeEventListener('visibilitychange', nghe); f(); } };
+  document.addEventListener('visibilitychange', nghe);
+}
+async function noiTiepPhu(): Promise<void> {
+  hienManPhu(90, true);
+  await napTuDien(ngonNgu.value).catch(() => undefined);
+  document.querySelector('.man-cap-nhat .mcn-chu')!.textContent = t('chung.dangCapNhat');
+  hienManPhu(100, true);
+  await baoXong(__OTA_ID__);
+  anManPhu();
+}
+async function baoDaCapNhat(): Promise<void> {
+  await napTuDien(ngonNgu.value).catch(() => undefined);
+  document.querySelector('.loi-cap-nhat')?.remove();
+  const el = document.createElement('div');
+  el.className = 'loi-cap-nhat da-cap-nhat';
+  el.setAttribute('role', 'status');
+  el.textContent = `✓ ${t('chung.daCapNhatBan', { v: __OTA_ID__.split('-')[0] ?? '' })}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
 }
 
 /** Canh mỗi `NHIP_MS` từ lúc biết có gói mới: phủ khi đang tải ở trang chủ, áp khi xong ở trang chủ. */
@@ -196,11 +286,13 @@ function canhCapNhat(): void {
       const pct = o.pct ?? 0;
       if (pct !== pctCu) { pctCu = pct; lucNhich = Date.now(); }
       if (!boChan && Date.now() - lucNhich > DUNG_MS) thoiChan();
-      if (boChan || !hienTrangChu() || !phuDuoc()) anManPhu(); else hienManPhu(pct);
+      if (boChan || !hienTrangChu() || !phuDuoc()) anManPhu(); else hienManPhu(anTienDo ? pct * 0.9 : pct);   // êm: 90–100% do gói mới chạy nốt
       return;
     }
     if (goiCho && !boChan) {
-      if (apDuocBayGio() || (dangPhu() && document.visibilityState === 'visible')) void apGoi(goiCho);
+      // Êm: ở trang chủ chỉ áp khi ĐỨNG YÊN đủ lâu hoặc bản gấp — còn lại chờ app vào nền (`khiVaoNen`)
+      const ngay = !anTienDo || epBuoc || apGap || ranhDu();
+      if ((ngay && apDuocBayGio()) || (dangPhu() && document.visibilityState === 'visible')) void apGoi(goiCho);
       else if (!hienTrangChu()) anManPhu();
       return;
     }
@@ -211,7 +303,7 @@ function canhCapNhat(): void {
 export function huyApKhiRanh(datLai = false): void {
   clearInterval(henCanh);
   henCanh = undefined;
-  if (datLai) { daAp = false; boChan = false; epBuoc = false; pctCu = -1; goiCho = null; anManPhu(); }
+  if (datLai) { daAp = false; boChan = false; epBuoc = false; apGap = false; pctCu = -1; goiCho = null; lucCham = Date.now(); daBaoKhoiDong = false; anManPhu(); }
 }
 
 /**
@@ -237,6 +329,8 @@ export async function kiemTraThuCong(): Promise<KetQuaKiem> {
   return b === 'moiNhat' ? 'moiNhat' : b === 'cuQua' ? 'cuQua' : 'matMang';
 }
 
+/** Máy đang chạy gói `otaId` (dạng `1.9.8-<băm>`) có phải nhận BẢN GẤP không. */
+export const laGap = (otaId: string, gapDuoi?: string): boolean => !!gapDuoi && soSanhBan(otaId.split('-')[0]!, gapDuoi) < 0;
 export function soSanhBan(a: string, b: string): number {
   const x = a.split('.').map(Number), y = b.split('.').map(Number);
   for (let i = 0; i < Math.max(x.length, y.length); i++) {
@@ -275,10 +369,10 @@ export function khiQuayLai(): void {
 function ganKiemKhiQuayLai(): void {
   if (daGanQuayLai || typeof document === 'undefined') return;
   daGanQuayLai = true;
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') khiQuayLai(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') khiQuayLai(); else khiVaoNen(); });
   // iOS: WKWebView không phải lúc nào cũng bắn visibilitychange khi app trở lại từ nền → nghe thêm `resume`
   // của Capacitor (hai cái cùng bắn thì `dangKiem` + `lucKiem` chặn kiểm trùng).
-  void import('@capacitor/app').then(({ App }) => App.addListener('resume', khiQuayLai)).catch(() => undefined);
+  void import('@capacitor/app').then(({ App }) => { void App.addListener('resume', khiQuayLai); void App.addListener('pause', khiVaoNen); }).catch(() => undefined);
 }
 
 /**
@@ -313,6 +407,8 @@ function baoOta(v: typeof trangThaiOta.value): void {
 let dangKiem = false;
 export async function kiemOta(): Promise<void> {
   if (!laApp || dangKiem) return;
+  baoVuaCapNhat();
+  ganCham();
   dangKiem = true;
   lucKiem = Date.now();
   clearTimeout(henThuLai);
@@ -327,6 +423,7 @@ export async function kiemOta(): Promise<void> {
     const m = (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) as Manifest | null;
     if (r.status !== 200 || !m?.id) { dat({ buoc: 'loi', loi: `manifest HTTP ${r.status}` }); return; }
     if (m.id === __OTA_ID__) { dat({ buoc: 'moiNhat', id: m.id }); return; }
+    apGap = laGap(__OTA_ID__, m.gapDuoi);
     const { App } = await import('@capacitor/app');
     if (soSanhBan((await App.getInfo()).version, m.minNative) < 0) { dat({ buoc: 'cuQua', id: m.id, ban: m.minNative }); return; }
     const { bundles } = await CapacitorUpdater.list();
@@ -371,8 +468,9 @@ export async function kiemOta(): Promise<void> {
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
     dat({ buoc: 'choMoLai', id: m.id });
     // Ở trang chủ — hoặc màn phủ đang hiện (đã chặn hết mọi thứ, xem `dangPhu`): khởi động lại NGAY
-    if (!boChan && (apDuocBayGio() || (dangPhu() && document.visibilityState === 'visible'))) { await apGoi(goi.id); return; }
-    if (!boChan) canhCapNhat();                                         // đang chơi: chờ về trang chủ
+    const ngay = !anTienDo || epBuoc || apGap;                          // êm: không áp ngay trước mặt người chơi
+    if (!boChan && ((ngay && apDuocBayGio()) || (dangPhu() && document.visibilityState === 'visible'))) { await apGoi(goi.id); return; }
+    if (!boChan) canhCapNhat();                                         // chờ: vào nền / đứng yên / về trang chủ
   } catch (e) {
     // mất mạng / server cũ chưa có /ota — chơi tiếp bằng gói đang có; debug thấy lý do.
     // Đang phủ "Đang cập nhật" thì gỡ ngay + báo nhỏ: KHÔNG BAO GIỜ khoá app vì tải lỗi.
