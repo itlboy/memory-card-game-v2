@@ -23,7 +23,7 @@ beforeEach(() => {
   goi.download.mockResolvedValue({ id: 'b1', version: 'moi', status: 'success' });
   banApp = '1.3.0';
   dsFile = null;
-  void import('@/lib/ota').then((m) => { m.huyApKhiRanh(true); m.datXongMs(0); });
+  void import('@/lib/ota').then((m) => { m.huyApKhiRanh(true); m.datXongMs(0); m.datAnTienDo(false); });
   // Trang chủ THẬT đang hiện (lib/ota.ts manTrangChu) — ca nào cần "không ở trang chủ" thì tự gỡ
   if (!document.getElementById('man-chu')) document.body.insertAdjacentHTML('beforeend', '<section id="man-chu" class="panel trang-chu"></section>');
 });
@@ -372,6 +372,42 @@ describe('cập nhật nóng', () => {
         await chay;
         expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
       } finally { vi.useRealTimers(); }
+    });
+
+    it('ẨN TIẾN ĐỘ (20.11.2026, mặc định): tải ngầm không phủ, không thanh %; xong ở trang chủ vẫn khởi động lại như cũ', async () => {
+      vi.useFakeTimers();
+      const ota = await import('@/lib/ota');
+      ota.datAnTienDo(true);
+      try {
+        const chay = ota.kiemOta();
+        await vi.advanceTimersByTimeAsync(600);
+        nghe!({ percent: 42 });
+        await vi.advanceTimersByTimeAsync(600);
+        expect(phu(), 'không phủ khi đang tải').toBeNull();
+        xong({ id: 'b1', version: 'moi', status: 'success' });
+        await chay;
+        expect(phu(), 'không màn "Cập nhật xong"').toBeNull();
+        expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+      } finally { ota.datAnTienDo(false); vi.useRealTimers(); }
+    });
+
+    it('ẨN TIẾN ĐỘ: đang chơi (không ở trang chủ) thì vẫn chờ về trang chủ mới khởi động lại', async () => {
+      vi.useFakeTimers();
+      const ota = await import('@/lib/ota');
+      ota.datAnTienDo(true);
+      try {
+        history.replaceState(null, '', '/?playing=1');
+        const chay = ota.kiemOta();
+        await vi.advanceTimersByTimeAsync(600);
+        xong({ id: 'b1', version: 'moi', status: 'success' });
+        await chay;
+        await vi.advanceTimersByTimeAsync(1200);
+        expect(goi.set, 'không chen ngang ván').not.toHaveBeenCalled();
+        history.replaceState(null, '', '/');
+        await vi.advanceTimersByTimeAsync(1200);
+        expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+        expect(phu()).toBeNull();
+      } finally { ota.datAnTienDo(false); vi.useRealTimers(); history.replaceState(null, '', '/'); }
     });
 
     it('đang mở hộp thoại (Bảng xếp hạng) lúc tải: phủ rồi tải xong vẫn áp — KHÔNG kẹt ở % cuối (19.11.2026)', async () => {

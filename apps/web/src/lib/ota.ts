@@ -73,6 +73,17 @@ const dangOTrangChu = (): boolean => oTrangChu() && manTrangChu();
  * Hộp thoại đang mở (`[role=dialog][aria-modal]`, `[role=menu]`) thì chờ đóng rồi mới tải lại.
  */
 const NHIP_MS = 500;
+/*
+ * ẨN TIẾN ĐỘ (20.11.2026, chủ dự án: "tải và restart ngầm… để ko ảnh hưởng đến người chơi, tạm ẩn thanh progress
+ * hiện tại, sau hiện lại nếu cần" — "cơ chế và tần suất vẫn như hiện tại, chỉ là ko hiện progress thôi"):
+ * tải ngầm, KHÔNG phủ "Đang cập nhật" / thanh % / màn "Cập nhật xong"; tải xong vẫn khởi động lại đúng lúc như cũ
+ * (ở trang chủ, không hộp thoại). Muốn hiện lại: đặt `false`. Bấm TAY "Kiểm tra cập nhật" vẫn có màn phủ — người
+ * dùng đang chờ kết quả.
+ */
+let anTienDo = true;
+/** Chỉ cho test: bật/tắt chế độ ẩn tiến độ. */
+export function datAnTienDo(v: boolean): void { anTienDo = v; }
+const phuDuoc = (): boolean => !anTienDo || epBuoc;
 const DUNG_MS = 20_000;
 let henCanh: ReturnType<typeof setInterval> | undefined;
 let daAp = false;
@@ -169,8 +180,7 @@ async function apGoi(id: string): Promise<void> {
   if (daAp) return;
   daAp = true;
   huyApKhiRanh();
-  hienManPhu(100);
-  await baoXong();
+  if (phuDuoc()) { hienManPhu(100); await baoXong(); }
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
     await CapacitorUpdater.set({ id });                // tải lại app sang gói mới
@@ -186,7 +196,7 @@ function canhCapNhat(): void {
       const pct = o.pct ?? 0;
       if (pct !== pctCu) { pctCu = pct; lucNhich = Date.now(); }
       if (!boChan && Date.now() - lucNhich > DUNG_MS) thoiChan();
-      if (boChan || !hienTrangChu()) anManPhu(); else hienManPhu(pct);
+      if (boChan || !hienTrangChu() || !phuDuoc()) anManPhu(); else hienManPhu(pct);
       return;
     }
     if (goiCho && !boChan) {
