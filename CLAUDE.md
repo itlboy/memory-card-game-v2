@@ -1601,3 +1601,14 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - `docker.yml`: `:latest` CHỈ gắn từ main; chạy tay trên nhánh khác ra tag theo tên nhánh — thử ảnh mà không đụng server
   thật (Keel nhà + timer máy Mỹ đều theo `:latest`).
 Đo trên máy Mỹ 512 MB, 50 phòng: Node 26 ngang Node 22 (số ván, CPU, RAM), 0 lỗi.
+
+## Bảng xếp hạng gọn + cúp hạng TUẦN (20.11.2026 tối, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne)
+
+- `BangXepHang.vue`: bục top 3 NHỎ (~1/3), KHÔNG vương miện, nằm NGOÀI `.body` (vùng cuộn) nên đứng yên — cuộn chỉ kéo
+  hạng 4 trở đi. Mở/tải xong → `keoToiMinh()` cuộn dòng mình (`.bxh li.toi`) ra giữa + loé (`.nhay`), đang thấy sẵn thì
+  thôi. Dòng tuần MỘT dòng ("Tuần này · còn 2 ngày"). Điểm màu `--diem` (#b97800 sáng / #ffcf4d tối), tên màu chữ; bỏ
+  viên xu từng dòng. Dark trong CSS scoped: `:global([data-theme='dark'] .panel)` — `:global(x) y` làm mất ` y`.
+- Cúp cạnh tổng xu = HẠNG TUẦN NÀY (`lib/hang-xu.ts`, khoá `mm.hangTuan` {tuan, hang}; sang tuần mới bỏ số cũ —
+  `dauTuanUtc` cùng mốc server). `ghiHang` chỉ từ bảng Tuần, tuần này. `doiHangCho` 'len' | 'xuong' | 'moi' → TopBar diễn
+  (chip nảy/loé + sóng, số chạy 0,6 s, ▲N/▼N bay; xuống thì lắc) + `sfx.lenHang` / `sfx.xuongHang` ("tạch" buồn xíu) /
+  `sfx.coHang` (ba nốt). KHÔNG còn bóng chữ "Lên hạng #…"; lần đầu có hạng cũng KHÔNG chữ (chủ dự án).

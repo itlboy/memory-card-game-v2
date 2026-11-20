@@ -438,6 +438,7 @@ const vi = {
   'bxh.hienLai': 'Hiện tôi lại',
   'bxh.thuLai': 'Thử lại',
   'tb.moBxh': 'Bảng xếp hạng — {n} điểm',
+  'tb.hangTuan': 'hạng {n} tuần này',
   'tb.lenHang': 'Lên hạng #{hang} (↑{n}). Bấm xem!',
   'tb.meoXu': 'Bấm vào đây để xem bạn đứng thứ mấy trong tất cả người chơi.',
   'tb.daHieu': 'Đã hiểu',

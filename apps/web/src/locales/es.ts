@@ -432,6 +432,7 @@ const es: TuDien = {
   'bxh.hienLai': 'Mostrarme otra vez',
   'bxh.thuLai': 'Reintentar',
   'tb.moBxh': 'Clasificación — {n} puntos',
+  'tb.hangTuan': 'puesto {n} esta semana',
   'tb.lenHang': '¡Subiste a #{hang} (↑{n})! Toca para ver',
   'tb.meoXu': 'Toca aquí para ver tu puesto entre todos los jugadores.',
   'tb.daHieu': 'Entendido',

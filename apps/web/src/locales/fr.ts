@@ -437,6 +437,7 @@ const fr: TuDien = {
   'bxh.hienLai': 'M’afficher à nouveau',
   'bxh.thuLai': 'Réessayer',
   'tb.moBxh': 'Classement — {n} points',
+  'tb.hangTuan': 'rang {n} cette semaine',
   'tb.lenHang': 'Monté à #{hang} (↑{n}). Touchez pour voir !',
   'tb.meoXu': 'Touchez ici pour voir votre rang parmi tous les joueurs.',
   'tb.daHieu': 'Compris',

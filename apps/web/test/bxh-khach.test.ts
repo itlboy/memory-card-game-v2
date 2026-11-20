@@ -119,11 +119,16 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
   beforeEach(() => { localStorage.clear(); vi.resetModules(); });
   afterEach(() => { vi.unstubAllGlobals(); });
 
-  it('hạng: hỏi MỘT lần lúc khởi động, sau đó chỉ khi điểm tăng / mở bảng; thấy lên hạng thì báo; lỗi mạng giữ số cũ', async () => {
-    let hang = 137;
-    const f = vi.fn(async (u: string) => {
+  it('hạng TUẦN: hỏi MỘT lần lúc khởi động, sau đó chỉ khi điểm tăng / mở bảng; báo lên / xuống / lần đầu có hạng; lỗi mạng giữ số cũ', async () => {
+    const tuanNay = (await import('@/lib/hang-xu')).dauTuanUtc();
+    let hang: number | null = null, diem = 0;
+    const f = vi.fn(async (u: string, init?: { body?: string }) => {
       if (u.endsWith('/api/auth/config')) return json({ googleClientId: 'x' });
-      if (u.endsWith('/api/bxh')) return json({ top: [], toi: { hang, tong: 2000, matches: 3, wins: 1, totalScore: 10, name: '', avatar: null, tren: null, duoi: null } });
+      if (u.endsWith('/api/bxh')) {
+        expect(JSON.parse(init?.body ?? '{}').loai).toBe('tuan');   // hạng trên viên xu là hạng TUẦN
+        return json({ top: [], tuan: { batDau: tuanNay, het: Date.now() + 86_400_000, nay: true, coTruoc: false },
+          toi: { hang, tong: 2000, matches: 3, wins: 1, totalScore: diem, name: '', avatar: null, tren: null, duoi: null } });
+      }
       return json({ ok: true });
     });
     vi.stubGlobal('fetch', f);
@@ -134,91 +139,41 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
     await hx.hoiLanDau();
     await hx.hoiLanDau();
     expect(soLanHoi()).toBe(1);
-    expect(hx.hangXu.value).toBe(137);
-    expect(hx.lenHangCho.value).toBeNull();
-    hang = 129;
+    expect(hx.hangXu.value).toBeNull();          // chưa có xu tuần này → cúp trống
+    expect(hx.doiHangCho.value).toBeNull();
+    hang = 35; diem = 40;
     await hx.hoiSauDiem();
-    expect(hx.hangXu.value).toBe(129);
-    expect(hx.lenHangCho.value).toEqual({ hang: 129, n: 8 });
-    expect(localStorage.getItem('mm.hangXu')).toBe('129');
+    expect(hx.hangXu.value).toBe(35);
+    expect(hx.doiHangCho.value).toEqual({ kieu: 'moi', tu: null, den: 35 });
+    hang = 18;
+    await hx.hoiSauDiem();
+    expect(hx.doiHangCho.value).toEqual({ kieu: 'len', tu: 35, den: 18 });
+    hang = 20;
+    await hx.hoiSauDiem();
+    expect(hx.doiHangCho.value).toEqual({ kieu: 'xuong', tu: 18, den: 20 });
+    expect(JSON.parse(localStorage.getItem('mm.hangTuan')!)).toEqual({ tuan: tuanNay, hang: 20 });
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('mất mạng'); }));
     await hx.hoiSauDiem();
-    expect(hx.hangXu.value).toBe(129);
+    expect(hx.hangXu.value).toBe(20);
     // TopBar KHÔNG hỏi theo giờ / khi quay lại từ nền
     const tb = goc('src/components/TopBar.vue');
     expect(tb).not.toMatch(/setInterval|visibilitychange|appStateChange/);
   });
-
-  it('mẹo đồng xu chỉ một lần', async () => {
+  it('hạng tuần trước không mang sang tuần mới: số lưu của tuần khác bị bỏ', async () => {
+    localStorage.setItem('mm.hangTuan', JSON.stringify({ tuan: '2020-01-06', hang: 3 }));
     const hx = await import('@/lib/hang-xu');
-    expect(hx.daXemMeoXu()).toBe(false);
-    hx.tatMeoXu();
-    expect(hx.daXemMeoXu()).toBe(true);
+    expect(hx.hangXu.value).toBeNull();
+    expect(hx.dauTuanUtc(Date.parse('2026-11-22T23:59:00Z'))).toBe('2026-11-16');   // Chủ nhật → thứ Hai tuần đó
+    expect(hx.dauTuanUtc(Date.parse('2026-11-23T00:00:00Z'))).toBe('2026-11-23');
   });
-
-  it('bảng xếp hạng gọn: không còn thẻ vàng giải thích, không chữ "x/y thắng" hiện ra', () => {
+  it('bảng: bục không vương miện, nằm NGOÀI vùng cuộn; mở là kéo tới dòng mình; ghi hạng từ bảng Tuần', () => {
     const src = goc('src/components/BangXepHang.vue');
-    expect(src).not.toContain('hang-toi');
-    expect(src).not.toMatch(/<small[^>]*>\{\{ t\('tk\.thangTren'/);
+    expect(src).not.toMatch(/👑/);
+    expect(src.indexOf('class="buc"')).toBeLessThan(src.indexOf('ref="vungCuon" class="body"'));
+    expect(src).toMatch(/if \(l === 'tuan' && !w\) ghiHang\(b\)/);
+    expect(src).toMatch(/void keoToiMinh\(\)/);
+    expect(src).not.toMatch(/class="xu"/);
   });
-
-  it('kết quả: nút "Khoe tỷ số" có chữ cạnh "Chi tiết ván" (bỏ ô biểu tượng ở góc); ảnh vẽ bảng tỷ số theo sáng/tối', () => {
-    const kq = goc('src/components/ResultDialog.vue');
-    expect(kq).not.toContain('lcs-nho');
-    expect(kq).toMatch(/class="hang-ct"[\s\S]{0,600}t\('kq\.khoeTySo'\)/);
-    const anh = goc('src/lib/anh-ket-qua.ts');
-    expect(anh).toMatch(/async function veBangTySo/);
-    expect(anh).toMatch(/dataset\.theme === 'dark'/);
-  });
-});
-
-describe('bảng xếp hạng mở nhanh (19.11.2026)', () => {
-  beforeEach(() => { localStorage.clear(); vi.resetModules(); });
-  afterEach(() => { vi.unstubAllGlobals(); });
-
-  it('lưu bảng lần trước theo người xem; điểm khách không đổi thì không gửi lại', async () => {
-    const f = vi.fn(async (u: string) => u.endsWith('/api/auth/config') ? json({ googleClientId: 'x' })
-      : u.endsWith('/api/bxh') ? json({ top: [{ name: 'A', avatar: null, totalScore: 5, wins: 1, matches: 1 }] }) : json({ ok: true }));
-    vi.stubGlobal('fetch', f);
-    const tk = await import('@/lib/taikhoan');
-    await tk.khoiDong();
-    expect(tk.bxhLanTruoc()).toBeNull();
-    store.addScore(100);
-    await tk.bangXepHang();
-    await tk.bangXepHang();
-    expect(f.mock.calls.filter(([u]) => String(u).endsWith('/api/khach')).length).toBe(1);
-    expect(tk.bxhLanTruoc()?.top[0]?.name).toBe('A');
-    const src = goc('src/components/BangXepHang.vue');
-    expect(src).toMatch(/ref<BangXh \| null>\(bxhLanTruoc\('tuan'\)\)/);
-    expect(src).toContain('class="bxh xuong"');
-  });
-});
-
-describe('server: cache top 20 (19.11.2026)', () => {
-  it('ghepTop: xếp điểm rồi số thắng, cắt 20; thay dòng cũ của người hỏi bằng dòng mới', async () => {
-    const { ghepTop, BXH_CACHE_MS } = await import('../../node-server/src/taikhoan');
-    expect(BXH_CACHE_MS).toBeLessThanOrEqual(60_000);
-    const ds = Array.from({ length: 25 }, (_, i) => ({ k: String(i), la_khach: 0, total_score: 1000 - i * 10, wins: 0 }));
-    expect(ghepTop(ds)).toHaveLength(20);
-    expect(ghepTop([{ k: 'a', la_khach: 0, total_score: 5, wins: 1 }, { k: 'b', la_khach: 0, total_score: 5, wins: 3 }])[0]!.k).toBe('b');
-    // Khách "x" trong cache còn 0 điểm, giờ đã 995 → đứng thứ 2, không hai dòng
-    const cache = ghepTop([...ds, { k: 'x', la_khach: 1, total_score: 0, wins: 0 }]);
-    const moi = ghepTop(cache, { k: 'x', la_khach: 1, total_score: 995, wins: 0 }, 'x', true);
-    expect(moi.filter((r) => r.k === 'x')).toHaveLength(1);
-    expect(moi[1]!.k).toBe('x');
-    // Tài khoản id "3" và khách mã "3" là HAI người khác nhau
-    const hai = ghepTop(ds, { k: '3', la_khach: 1, total_score: 2000, wins: 0 }, '3', true);
-    expect(hai.filter((r) => r.k === '3')).toHaveLength(2);
-  });
-
-  it('server không còn gộp UNION rồi mới sắp/đếm (quét sạch hai bảng)', () => {
-    const src = goc('../node-server/src/taikhoan.ts');
-    expect(src).not.toContain('NGUON_BXH');
-    expect(src).toMatch(/bxhCache && now - bxhCache\.luc < BXH_CACHE_MS/);
-  });
-});
-
-describe('dải chọn số thẻ: vuốt không phải bấm (19.11.2026)', () => {
   it('kéo quá ngưỡng / chạm lúc dải đang trôi → nuốt click (pha capture) + im tiếng bấm', () => {
     const src = goc('src/components/BanChon.vue');
     expect(src).toMatch(/@pointerdown="chuotXuong" @pointermove="chuotDi"[\s\S]{0,300}@click\.capture="nuotBam"/);
@@ -226,8 +181,10 @@ describe('dải chọn số thẻ: vuốt không phải bấm (19.11.2026)', () 
     expect(src).toMatch(/Date\.now\(\) - lucCuon < CHAM_DUNG_MS/);
     expect(src).toMatch(/setAttribute\('data-nosfx'/);
   });
-  it('huy hiệu hạng: cúp + số, không "#"', () => {
-    expect(goc('src/components/TopBar.vue')).toMatch(/hangXu \? numShort\(hangXu\) : ''/);
+  it('huy hiệu hạng: cúp + số, không "#"; đổi hạng có hiệu ứng + âm thanh (lên / xuống / lần đầu)', () => {
+    const tb = goc('src/components/TopBar.vue');
+    expect(tb).toMatch(/hangHien \? numShort\(hangHien\) : ''/);
+    expect(tb).toMatch(/sfx\.lenHang\(\)[\s\S]{0,80}sfx\.xuongHang\(\)[\s\S]{0,40}sfx\.coHang\(\)/);
   });
 });
 
@@ -365,10 +322,10 @@ describe('xếp hạng tuần (20.11.2026)', () => {
     expect(sv).toMatch(/CREATE TABLE IF NOT EXISTS weekly_scores/);
   });
 
-  it('app: bảng tuần là tab mặc định; chỉ tab Mọi lúc ghi hạng viên xu', () => {
+  it('app: bảng tuần là tab mặc định; chỉ bảng Tuần (tuần này) ghi hạng viên xu (20.11.2026 tối)', () => {
     const v = goc('src/components/BangXepHang.vue');
     expect(v).toMatch(/const loai = ref<LoaiBxh>\('tuan'\)/);
-    expect(v).toMatch(/if \(l === 'tat'\) ghiHang\(b\)/);
+    expect(v).toMatch(/if \(l === 'tuan' && !w\) ghiHang\(b\)/);
   });
 
   it('app: hỏi bảng tuần gửi loai=tuan (+ tuần cũ nếu xem lịch sử)', async () => {

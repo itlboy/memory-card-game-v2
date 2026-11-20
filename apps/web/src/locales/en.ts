@@ -433,6 +433,7 @@ const en: TuDien = {
   'bxh.hienLai': 'Show me again',
   'bxh.thuLai': 'Try again',
   'tb.moBxh': 'Leaderboard — {n} points',
+  'tb.hangTuan': 'rank {n} this week',
   'tb.lenHang': 'Up to #{hang} (↑{n}). Tap to see!',
   'tb.meoXu': 'Tap here to see where you rank among all players.',
   'tb.daHieu': 'Got it',
