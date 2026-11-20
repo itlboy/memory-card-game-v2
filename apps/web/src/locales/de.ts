@@ -434,6 +434,7 @@ const de: TuDien = {
   'bxh.hienLai': 'Wieder anzeigen',
   'bxh.thuLai': 'Erneut versuchen',
   'tb.moBxh': 'Bestenliste – {n} Punkte',
+  'tb.hangTuan': 'Platz {n} diese Woche',
   'tb.lenHang': 'Aufgestiegen auf #{hang} (↑{n}). Tippen!',
   'tb.meoXu': 'Tippe hier, um deinen Rang unter allen Spielern zu sehen.',
   'tb.daHieu': 'Verstanden',

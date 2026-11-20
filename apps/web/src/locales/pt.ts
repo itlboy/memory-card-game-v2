@@ -432,6 +432,7 @@ const pt: TuDien = {
   'bxh.hienLai': 'Me mostrar de novo',
   'bxh.thuLai': 'Tentar de novo',
   'tb.moBxh': 'Ranking — {n} pontos',
+  'tb.hangTuan': 'posição {n} nesta semana',
   'tb.lenHang': 'Subiu para #{hang} (↑{n}). Toque para ver!',
   'tb.meoXu': 'Toque aqui para ver sua posição entre todos os jogadores.',
   'tb.daHieu': 'Entendi',

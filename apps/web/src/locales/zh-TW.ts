@@ -434,6 +434,7 @@ const zhTW: TuDien = {
   'bxh.hienLai': '重新顯示我',
   'bxh.thuLai': '重試',
   'tb.moBxh': '排行榜 — {n} 分',
+  'tb.hangTuan': '本週第 {n} 名',
   'tb.lenHang': '升到第 #{hang} 名(↑{n})!點我看看',
   'tb.meoXu': '點這裡查看你在所有玩家中的排名。',
   'tb.daHieu': '知道了',

@@ -9,7 +9,8 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import DongXu from './DongXu.vue';
-import { daXemMeoXu, hangXu, hoiLanDau, hoiSauDiem, lenHangCho, tatMeoXu } from '@/lib/hang-xu';
+import { sfx } from '@/lib/audio';
+import { daXemMeoXu, doiHangCho, hangXu, hoiLanDau, hoiSauDiem, tatMeoXu, type KieuDoiHang } from '@/lib/hang-xu';
 import type { SoundLevel } from '@/lib/storage';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
@@ -200,27 +201,43 @@ watch(() => props.totalScore, (to, from) => {
 });
 
 /*
- * HẠNG TRÊN VIÊN XU (19.11.2026, mockup duyệt https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz) — lib/hang-xu.ts.
- * Ít gọi server (chủ dự án): khởi động app một lần (`hoiLanDau`); điểm mình vừa tăng → một lần khi đã ra khỏi
- * ván (`diemDoi` gom mọi lần cộng trong ván, 1,5 giây cho điểm khách kịp lên server); mở bảng xếp hạng. Lần mở đó thấy
- * LÊN HẠNG (`lenHangCho`) thì khi BẢNG ĐÓNG (`bxhMo` false) và đang ngoài ván (`dungYen`) mới diễn: viên hạng
- * nháy vàng + vòng sáng + lời nhắc "Lên hạng #129 (↑8)" 3,5 giây — diễn sau lớp phủ là không ai thấy.
- * Mẹo "bấm vào đây…" một lần đời máy, sau khi đã có xu; bấm xu hay "Đã hiểu" là tắt hẳn.
+ * HẠNG TUẦN TRÊN VIÊN XU (20.11.2026, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne) — lib/hang-xu.ts.
+ * Ít gọi server: khởi động app một lần (`hoiLanDau`); điểm mình vừa tăng → một lần khi đã ra khỏi ván (`diemDoi` gom mọi
+ * lần cộng trong ván, 1,5 giây cho điểm khách kịp lên server); mở bảng xếp hạng. Hạng ĐỔI (`doiHangCho`) thì khi BẢNG
+ * ĐÓNG (`bxhMo` false) và đang ngoài ván (`dungYen`) mới diễn — diễn sau lớp phủ là không ai thấy:
+ *  · lên hạng: chip nảy + loé vàng + sóng sáng, số chạy từ hạng cũ tới mới, ▲N xanh bay lên, "tưng" (sfx.lenHang);
+ *  · bị vượt: chip lắc nhẹ, ▼N đỏ, "tạch" buồn xíu (sfx.xuongHang) — chủ dự án: không phạt;
+ *  · lần đầu có hạng tuần này: cúp trống → có số, nảy + sóng sáng, ba nốt (sfx.coHang). KHÔNG chữ (chủ dự án bỏ "Có hạng!").
+ * Bỏ bóng chữ "Lên hạng #129 (↑8)" cũ. Mẹo "bấm vào đây…" một lần đời máy, sau khi đã có xu.
  */
-const lenHang = ref<{ hang: number; n: number; key: number } | null>(null);
+const doiHang = ref<{ kieu: KieuDoiHang; n: number; key: number } | null>(null);
+/** Số đang hiện trên chip — chạy từ hạng cũ tới hạng mới khi diễn. */
+const hangHien = ref<number | null>(hangXu.value);
+watch(hangXu, (v) => { if (!doiHang.value) hangHien.value = v; });
 const meo = ref(false);
-let lenTimer: ReturnType<typeof setTimeout> | undefined;
+let doiTimer: ReturnType<typeof setTimeout> | undefined;
+let doiRaf = 0;
 function dien(): void {
-  const c = lenHangCho.value;
+  const c = doiHangCho.value;
   if (!c || props.dungYen || props.bxhMo) return;
-  lenHangCho.value = null;
-  lenHang.value = { ...c, key: (lenHang.value?.key ?? 0) + 1 };
+  doiHangCho.value = null;
+  doiHang.value = { kieu: c.kieu, n: c.tu ? Math.abs(c.tu - c.den) : 0, key: (doiHang.value?.key ?? 0) + 1 };
   meo.value = false;
-  clearTimeout(lenTimer);
-  lenTimer = setTimeout(() => { lenHang.value = null; }, 3500);
+  if (c.kieu === 'len') sfx.lenHang(); else if (c.kieu === 'xuong') sfx.xuongHang(); else sfx.coHang();
+  // Số chạy từ hạng cũ (lần đầu: từ hạng mới luôn) tới hạng mới trong 0,6 giây
+  cancelAnimationFrame(doiRaf);
+  const tu = c.tu ?? c.den, bd = performance.now();
+  const chay = (t: number): void => {
+    const k = Math.min(1, (t - bd) / 600);
+    hangHien.value = Math.round(tu + (c.den - tu) * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) doiRaf = requestAnimationFrame(chay);
+  };
+  doiRaf = requestAnimationFrame(chay);
+  clearTimeout(doiTimer);
+  doiTimer = setTimeout(() => { doiHang.value = null; hangHien.value = hangXu.value; }, 2400);
 }
 function xemMeo(): void {
-  if (props.account && !props.dungYen && !props.bxhMo && props.totalScore > 0 && !daXemMeoXu() && !lenHang.value) meo.value = true;
+  if (props.account && !props.dungYen && !props.bxhMo && props.totalScore > 0 && !daXemMeoXu() && !doiHang.value) meo.value = true;
 }
 onMounted(() => { xemMeo(); if (props.account) void hoiLanDau(); });
 watch(() => props.account, (co) => { if (co) void hoiLanDau(); });   // tài khoản sẵn sàng sau khi dựng
@@ -234,8 +251,8 @@ function hoiNeuDiemDoi(): void {
 }
 watch(() => props.totalScore, (to, from) => { if (to > from) { diemDoi = true; hoiNeuDiemDoi(); } });
 watch(() => props.dungYen, hoiNeuDiemDoi);
-watch(() => [lenHangCho.value, props.dungYen, props.bxhMo, props.totalScore, props.account], () => { dien(); xemMeo(); });
-onUnmounted(() => { clearTimeout(lenTimer); clearTimeout(hoiTimer); });
+watch(() => [doiHangCho.value, props.dungYen, props.bxhMo, props.totalScore, props.account], () => { dien(); xemMeo(); });
+onUnmounted(() => { clearTimeout(doiTimer); clearTimeout(hoiTimer); cancelAnimationFrame(doiRaf); });
 function moBxh(): void {
   if (meo.value) { meo.value = false; tatMeoXu(); }
   emit('xep-hang');
@@ -258,22 +275,21 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
 
     <!-- BẤM ĐƯỢC (19.11.2026): mở Bảng xếp hạng — mockup https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy -->
     <div class="xu-wrap">
-    <button class="total thach" :class="{ pop: bump, len: lenHang }" :key="bump" type="button"
+    <button class="total thach" :class="{ pop: bump, len: doiHang && doiHang.kieu !== 'xuong' }" :key="bump" type="button"
       :title="t('tb.tongDiem', { n: num(totalScore) })"
-      :aria-label="t('tb.moBxh', { n: num(totalScore) }) + (account && hangXu ? ` · #${num(hangXu)}` : '')" @click="moBxh">
+      :aria-label="t('tb.moBxh', { n: num(totalScore) }) + (account && hangXu ? ` · ${t('tb.hangTuan', { n: num(hangXu) })}` : '')" @click="moBxh">
       <!-- Đồng xu = ĐIỂM, cùng hình với HUD (sao chỉ là đánh giá Chiến dịch) -->
       <DongXu :size="16" />
       <b>{{ numShort(shown) }}</b>
-      <!-- Huy hiệu hạng: cúp + SỐ (không "#" — chủ dự án 19.11.2026: "cho đơn giản hơn"). Chưa có hạng → chỉ cúp. -->
-      <span v-if="account" :key="lenHang?.key" class="hg" aria-hidden="true"><Trophy :size="11" :stroke-width="2.6" />{{ hangXu ? numShort(hangXu) : '' }}</span>
-      <i v-if="lenHang" :key="`t${lenHang.key}`" class="tia" aria-hidden="true" />
+      <!-- Huy hiệu HẠNG TUẦN: cúp + SỐ (không "#"). Chưa có hạng tuần này → chỉ cúp. Hiệu ứng theo `doiHang`. -->
+      <span v-if="account" :key="doiHang?.key" class="hg" :class="doiHang?.kieu" aria-hidden="true"><Trophy :size="11" :stroke-width="2.6" />{{ hangHien ? numShort(hangHien) : '' }}<i v-if="doiHang && doiHang.n" class="mui">{{ doiHang.kieu === 'xuong' ? '▼' : '▲' }}{{ numShort(doiHang.n) }}</i></span>
+      <i v-if="doiHang && doiHang.kieu !== 'xuong'" :key="`t${doiHang.key}`" class="tia" aria-hidden="true" />
       <Transition name="gain">
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </button>
     <Transition name="nhac-xu">
-      <p v-if="lenHang" :key="lenHang.key" class="nhac-xu" role="status" @click="moBxh">🎉 {{ t('tb.lenHang', { hang: num(lenHang.hang), n: num(lenHang.n) }) }}</p>
-      <div v-else-if="meo" class="nhac-xu meo-xu" role="note">
+      <div v-if="meo && !doiHang" class="nhac-xu meo-xu" role="note">
         {{ t('tb.meoXu') }}
         <button type="button" class="ok thach th-vang th-nho" @click="hieuMeo">{{ t('tb.daHieu') }}</button>
       </div>
@@ -549,7 +565,15 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .hg:has(svg:only-child) { padding: 2px 4px; }
 .total.len { animation: total-pop .6s cubic-bezier(.2, 1.5, .4, 1); }
-.total.len .hg { animation: hg-loe 1.6s ease-out; }
+.hg { position: relative; }
+.hg.len, .hg.moi { animation: hg-loe 1.6s ease-out; }
+.hg.xuong { animation: hg-lac .5s ease-in-out; }
+/* ▲N / ▼N bay lên trên chip rồi mờ */
+.hg .mui { position: absolute; bottom: calc(100% + 2px); right: -4px; font: 800 11px var(--font-display); font-style: normal; white-space: nowrap; pointer-events: none; animation: mui-bay 2.2s ease-out forwards; text-shadow: 0 1px 0 var(--panel-solid); }
+.hg.len .mui { color: #1f9a46; }
+.hg.xuong .mui { color: #c2513f; }
+@keyframes hg-lac { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@keyframes mui-bay { 0% { opacity: 0; transform: translateY(6px); } 15%, 75% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-8px); } }
 .tia { position: absolute; inset: -3px; border-radius: var(--r-full); pointer-events: none; animation: tia-song 1.3s ease-out 2; }
 @keyframes hg-loe { 20%, 60% { background: #ffd84d; transform: scale(1.12); } }
 @keyframes tia-song { 0% { box-shadow: 0 0 0 0 rgba(255, 200, 40, .75); } 100% { box-shadow: 0 0 0 14px rgba(255, 200, 40, 0); } }
@@ -571,7 +595,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .nhac-xu-enter-from { opacity: 0; }
 .nhac-xu-leave-to { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .total.len, .total.len .hg, .tia { animation: none; }
+  .total.len, .hg.len, .hg.moi, .hg.xuong, .hg .mui, .tia { animation: none; }
   .nhac-xu-enter-active { transition: none; }
 }
 /* Máy rất hẹp (320px): nới chỗ cho wordmark bằng cách thu padding/gap,

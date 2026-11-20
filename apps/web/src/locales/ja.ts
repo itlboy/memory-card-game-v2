@@ -431,6 +431,7 @@ const ja: TuDien = {
   'bxh.hienLai': 'また表示する',
   'bxh.thuLai': '再試行',
   'tb.moBxh': 'ランキング — {n}点',
+  'tb.hangTuan': '今週 {n} 位',
   'tb.lenHang': '#{hang}位にアップ(↑{n})。タップで確認!',
   'tb.meoXu': 'ここをタップすると全プレイヤー中の順位が見られます。',
   'tb.daHieu': 'OK',

@@ -435,6 +435,7 @@ const it: TuDien = {
   'bxh.hienLai': 'Mostrami di nuovo',
   'bxh.thuLai': 'Riprova',
   'tb.moBxh': 'Classifica — {n} punti',
+  'tb.hangTuan': 'posizione {n} questa settimana',
   'tb.lenHang': 'Salito a #{hang} (↑{n}). Tocca per vedere!',
   'tb.meoXu': 'Tocca qui per vedere la tua posizione tra tutti i giocatori.',
   'tb.daHieu': 'Ho capito',

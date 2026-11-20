@@ -434,6 +434,7 @@ const id: TuDien = {
   'bxh.hienLai': 'Tampilkan aku lagi',
   'bxh.thuLai': 'Coba lagi',
   'tb.moBxh': 'Papan peringkat — {n} poin',
+  'tb.hangTuan': 'peringkat {n} minggu ini',
   'tb.lenHang': 'Naik ke #{hang} (↑{n}). Ketuk untuk lihat!',
   'tb.meoXu': 'Ketuk di sini untuk melihat peringkatmu di antara semua pemain.',
   'tb.daHieu': 'Mengerti',

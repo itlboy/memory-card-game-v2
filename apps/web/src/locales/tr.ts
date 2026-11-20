@@ -434,6 +434,7 @@ const tr: TuDien = {
   'bxh.hienLai': 'Beni tekrar göster',
   'bxh.thuLai': 'Tekrar dene',
   'tb.moBxh': 'Sıralama — {n} puan',
+  'tb.hangTuan': 'bu hafta {n}. sıra',
   'tb.lenHang': '#{hang} sıraya çıktın (↑{n}). Dokun, gör!',
   'tb.meoXu': 'Tüm oyuncular arasında kaçıncı olduğunu görmek için buraya dokun.',
   'tb.daHieu': 'Anladım',

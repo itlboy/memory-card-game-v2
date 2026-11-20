@@ -1589,3 +1589,26 @@ không đập DB). Không lộ tên máy/chuỗi kết nối. UptimeRobot canh t
 `/health` giữ nguyên (chỉ "tiến trình còn sống") — Docker healthcheck + k8s probe dùng nó.
 `tools/gia-nguoi.mjs`: thấy ván đang chạy thì cho xin chơi lại ván sau (chơi lại có thể vào thẳng ván mới, không qua
 phòng chờ — trước đó bot đứng im từ ván thứ hai).
+
+## Node 26 (20.11.2026, nâng từ 22 — Active LTS từ 28.10.2026, hết hạn 30.04.2029)
+
+Ảnh server `node:26-alpine`, esbuild `target: 'node26'`, mọi workflow `node-version: 26`. Hai bẫy đã gặp:
+- **Node ≥ 25 bỏ corepack** khỏi bản phát hành → Dockerfile `npm install -g corepack && corepack enable` (thiếu là
+  build ảnh chết mã 127 ở `corepack enable`).
+- **Node ≥ 25 có `localStorage` TOÀN CỤC** (Web Storage) trả `undefined` khi không có `--localstorage-file`; tên đã có
+  trên globalThis nên vitest KHÔNG đè bằng bản happy-dom → hàng loạt test "Cannot read properties of undefined (reading
+  'clear')". `apps/web/test/setup-luu-tru.ts` gắn kho trong RAM khi kho hiện có không dùng được (Node 22/24 không đụng).
+- `docker.yml`: `:latest` CHỈ gắn từ main; chạy tay trên nhánh khác ra tag theo tên nhánh — thử ảnh mà không đụng server
+  thật (Keel nhà + timer máy Mỹ đều theo `:latest`).
+Đo trên máy Mỹ 512 MB, 50 phòng: Node 26 ngang Node 22 (số ván, CPU, RAM), 0 lỗi.
+
+## Bảng xếp hạng gọn + cúp hạng TUẦN (20.11.2026 tối, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne)
+
+- `BangXepHang.vue`: bục top 3 NHỎ (~1/3), KHÔNG vương miện, nằm NGOÀI `.body` (vùng cuộn) nên đứng yên — cuộn chỉ kéo
+  hạng 4 trở đi. Mở/tải xong → `keoToiMinh()` cuộn dòng mình (`.bxh li.toi`) ra giữa + loé (`.nhay`), đang thấy sẵn thì
+  thôi. Dòng tuần MỘT dòng ("Tuần này · còn 2 ngày"). Điểm màu `--diem` (#b97800 sáng / #ffcf4d tối), tên màu chữ; bỏ
+  viên xu từng dòng. Dark trong CSS scoped: `:global([data-theme='dark'] .panel)` — `:global(x) y` làm mất ` y`.
+- Cúp cạnh tổng xu = HẠNG TUẦN NÀY (`lib/hang-xu.ts`, khoá `mm.hangTuan` {tuan, hang}; sang tuần mới bỏ số cũ —
+  `dauTuanUtc` cùng mốc server). `ghiHang` chỉ từ bảng Tuần, tuần này. `doiHangCho` 'len' | 'xuong' | 'moi' → TopBar diễn
+  (chip nảy/loé + sóng, số chạy 0,6 s, ▲N/▼N bay; xuống thì lắc) + `sfx.lenHang` / `sfx.xuongHang` ("tạch" buồn xíu) /
+  `sfx.coHang` (ba nốt). KHÔNG còn bóng chữ "Lên hạng #…"; lần đầu có hạng cũng KHÔNG chữ (chủ dự án).

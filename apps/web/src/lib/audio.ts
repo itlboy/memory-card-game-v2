@@ -420,6 +420,25 @@ class Sfx {
     this.voice(2100, { dur: 0.018, type: 'sine', gain: 0.0025 });
   }
 
+  /*
+   * HẠNG TUẦN ĐỔI (20.11.2026, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne — chip cúp cạnh tổng xu):
+   * lên hạng "tưng" hai nốt sáng đi lên; lần đầu có hạng tuần ba nốt; bị vượt "tạch" hai nốt trầm trượt xuống, nhỏ và
+   * ngắn — chủ dự án: "buồn xíu", không phạt.
+   */
+  lenHang(): void {
+    this.voice(988, { dur: 0.4, type: 'triangle', gain: 0.055 });
+    this.voice(1480, { dur: 0.45, type: 'triangle', gain: 0.055, delay: 0.09 });
+  }
+  coHang(): void {
+    this.voice(784, { dur: 0.4, type: 'triangle', gain: 0.05 });
+    this.voice(1175, { dur: 0.4, type: 'triangle', gain: 0.05, delay: 0.09 });
+    this.voice(1568, { dur: 0.5, type: 'triangle', gain: 0.05, delay: 0.18 });
+  }
+  xuongHang(): void {
+    this.voice(392, { dur: 0.26, type: 'sine', gain: 0.04 });
+    this.voice(311, { dur: 0.32, type: 'sine', gain: 0.04, delay: 0.13, slideTo: 264 });
+  }
+
   /** Đồng hồ sắp cạn — tick khô, gọi mỗi giây trong 10 giây cuối. */
   tick(): void { this.voice(1000, { dur: 0.035, type: 'square', gain: 0.028 }); }
 

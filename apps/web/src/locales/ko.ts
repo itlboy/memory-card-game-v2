@@ -431,6 +431,7 @@ const ko: TuDien = {
   'bxh.hienLai': '다시 보이기',
   'bxh.thuLai': '다시 시도',
   'tb.moBxh': '순위표 — {n}점',
+  'tb.hangTuan': '이번 주 {n}위',
   'tb.lenHang': '#{hang}위로 상승 (↑{n}). 눌러서 보기!',
   'tb.meoXu': '여기를 누르면 전체 플레이어 중 내 순위를 볼 수 있어요.',
   'tb.daHieu': '알겠어요',
