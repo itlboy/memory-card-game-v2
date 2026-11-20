@@ -903,7 +903,7 @@ export async function moTaiKhoan(
               `INSERT INTO weekly_scores (week_start, is_guest, player, score, wins, matches, updated_at) VALUES (?, 0, ?, ?, ?, ?, ?)
                ON DUPLICATE KEY UPDATE score = score + VALUES(score), wins = wins + VALUES(wins), matches = matches + VALUES(matches),
                  updated_at = GREATEST(updated_at, VALUES(updated_at))`,
-              [r.week_start, String(uid), r.score, r.wins, r.matches, r.updated_at]
+              [String(r.week_start), String(uid), Number(r.score), Number(r.wins), Number(r.matches), Number(r.updated_at)]
             );
           }
           await pool!.execute('DELETE FROM weekly_scores WHERE is_guest = 1 AND player = ?', [ma]);
