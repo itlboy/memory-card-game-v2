@@ -1577,3 +1577,15 @@ suspension"), hơn 140 lượt/70 giây; máy kia thấy "mất kết nối / v�
 `lib/so-phong-cho.ts` `useSoPhongCho()` (gọi trong MenuScreen): hỏi `/api/rooms/public?v=2` lúc trang chủ hiện + mỗi
 20 giây, app nằm nền thì thôi; đếm phòng `!dangChoi && nguoi < toiDa`; 0 = ẩn, ≥10 = "9+". Chấm xanh nhịp + số ở
 góc trên phải ô Online (`.so-phong`, ô có `.o-co-so` để định vị). Không chạy trong test (`MODE === 'test'`).
+
+## `/api/ping` — tự kiểm sâu cho giám sát (20.11.2026, chỉ bản Node)
+
+`apps/node-server/src/index.ts` `kiemSucKhoe()`: bản build (`ban` = version web, `commit` đọc thẳng `.git` lúc build —
+`build.mjs` `__BAN_BUILD__`, CỐ Ý không có giờ build để ảnh Docker vẫn trùng mã băm), MySQL (`SELECT 1` hạn 2 giây),
+ổ đĩa (`statfs('/')`, báo lỗi khi trống < 10% hoặc < 500 MB), RAM tiến trình so trần cgroup (≥ 90% là lỗi), heap, CPU
+tiến trình giữa hai lần ping, độ trễ vòng sự kiện (`monitorEventLoopDelay`, ĐÃ trừ chu kỳ lấy mẫu 20 ms; p99 > 500 ms là
+lỗi), số phòng/người/socket, cờ tài khoản/push. Lỗi → `ok:false` + HTTP 503 + mảng `loi`. Giữ kết quả 5 giây (gọi dồn
+không đập DB). Không lộ tên máy/chuỗi kết nối. UptimeRobot canh từ khoá `"ok":true` ở đường này.
+`/health` giữ nguyên (chỉ "tiến trình còn sống") — Docker healthcheck + k8s probe dùng nó.
+`tools/gia-nguoi.mjs`: thấy ván đang chạy thì cho xin chơi lại ván sau (chơi lại có thể vào thẳng ván mới, không qua
+phòng chờ — trước đó bot đứng im từ ván thứ hai).
