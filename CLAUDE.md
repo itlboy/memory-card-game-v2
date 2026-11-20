@@ -874,6 +874,14 @@
     **TỪ 20.11.2026 ẨN TIẾN ĐỘ** (`anTienDo = true` ở lib/ota.ts — chủ dự án: "tải và restart ngầm… tạm ẩn thanh
     progress, sau hiện lại nếu cần"; "cơ chế và tần suất vẫn như hiện tại"): KHÔNG phủ, không %, không màn "Cập nhật
     xong" — tải ngầm, xong ở trang chủ thì khởi động lại thẳng. Bấm tay "Kiểm tra cập nhật" vẫn phủ. Hiện lại = `false`.
+    **CẬP NHẬT ÊM (20.11.2026, thay đoạn trên — chủ dự án: "restart ko làm nháy quá nhiều", thanh progress 2 giây
+    là "bước làm giả")**: tải ngầm; gói xong KHÔNG khởi động lại trước mặt người chơi. Áp khi: (1) app VÀO NỀN ở
+    trang chủ (`khiVaoNen`, visibilitychange hidden + Capacitor `pause`) → set() trong nền; (2) đứng yên ở trang chủ
+    `RANH_MS` 30 giây, BẢN GẤP (`ota.json` `gapDuoi`, `laGap`), hoặc bấm tay → màn phủ chạy GIẢ tới 90% (`chayGia`),
+    set() DƯỚI màn phủ; (3) tắt hẳn → `next`+`kill`. Gói mới đọc `mm.otaVuaAp` (`baoVuaCapNhat`): cách 'phu' →
+    dựng lại màn phủ ở 90% (gắn vào BODY — Vue chưa mount, mount xoá #app) rồi "Cập nhật xong"; còn lại mã gói đổi
+    so với `mm.otaDaChay` → dòng nhỏ "✓ Đã cập nhật bản x" (chờ app hiện mới báo). Áp trong nền trên iOS cần thử
+    máy thật: WKWebView có thể hoãn tải lại tới lúc quay lại. Bản gấp: đặt `gapDuoi` = số bản sửa lỗi nặng.
     CẬP NHẬT BẮT BUỘC Ở TRANG CHỦ (16.11.2026, thay "áp khi rảnh + đếm 3·2·1"): đang tải gói mới mà
     ở trang chủ → màn phủ kín "Đang cập nhật" + % (chặn chạm); tải xong + trang chủ + app đang hiện +
     không hộp thoại/menu (`[role=dialog][aria-modal]`, `[role=menu]`) → khởi động lại NGAY. Đang

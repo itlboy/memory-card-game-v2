@@ -370,6 +370,7 @@ const de: TuDien = {
   'chung.dangCapNhat': 'Wird aktualisiert',
   'chung.chuaCapNhat': 'Update fehlgeschlagen',
   'chung.capNhatXong': 'Update fertig!',
+  'chung.daCapNhatBan': 'Auf Version {v} aktualisiert',
   'chung.banSo': 'Version {v}',
   'tb.kiemCapNhat': "Nach Updates suchen",
   'tb.dangKiem': "Wird geprüft",

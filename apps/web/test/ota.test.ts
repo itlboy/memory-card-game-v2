@@ -374,40 +374,83 @@ describe('cập nhật nóng', () => {
       } finally { vi.useRealTimers(); }
     });
 
-    it('ẨN TIẾN ĐỘ (20.11.2026, mặc định): tải ngầm không phủ, không thanh %; xong ở trang chủ vẫn khởi động lại như cũ', async () => {
+    /*
+     * CẬP NHẬT ÊM (20.11.2026, mặc định): tải ngầm; áp lúc VÀO NỀN ở trang chủ (không ai thấy), hoặc đứng yên
+     * RANH_MS / bản gấp → màn phủ chạy GIẢ tới 90%, khởi động lại dưới màn phủ, gói mới chạy nốt + "Cập nhật xong".
+     */
+    const taiXongEm = async (ota: typeof import('@/lib/ota')) => {
+      ota.datAnTienDo(true);
+      const chay = ota.kiemOta();
+      await vi.advanceTimersByTimeAsync(600);
+      nghe!({ percent: 42 });
+      await vi.advanceTimersByTimeAsync(600);
+      expect(phu(), 'không phủ khi đang tải').toBeNull();
+      xong({ id: 'b1', version: 'moi', status: 'success' });
+      await chay;
+    };
+    const anHien = (v: 'visible' | 'hidden') => {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => v });
+      document.dispatchEvent(new Event('visibilitychange'));
+    };
+
+    it('ÊM: tải xong ở trang chủ KHÔNG khởi động lại trước mặt; đứng yên RANH_MS → phủ chạy giả rồi mới áp', async () => {
       vi.useFakeTimers();
       const ota = await import('@/lib/ota');
-      ota.datAnTienDo(true);
       try {
-        const chay = ota.kiemOta();
-        await vi.advanceTimersByTimeAsync(600);
-        nghe!({ percent: 42 });
-        await vi.advanceTimersByTimeAsync(600);
-        expect(phu(), 'không phủ khi đang tải').toBeNull();
-        xong({ id: 'b1', version: 'moi', status: 'success' });
-        await chay;
-        expect(phu(), 'không màn "Cập nhật xong"').toBeNull();
+        await taiXongEm(ota);
+        await vi.advanceTimersByTimeAsync(2000);
+        expect(goi.set, 'không nháy ngay trước mặt người chơi').not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(ota.RANH_MS);
         expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+        expect(phu(), 'khởi động lại DƯỚI màn phủ').not.toBeNull();
+        expect(JSON.parse(localStorage.getItem('mm.otaVuaAp')!)).toEqual({ cach: 'phu', id: 'moi' });
+      } finally { ota.datAnTienDo(false); vi.useRealTimers(); localStorage.removeItem('mm.otaVuaAp'); }
+    });
+
+    it('ÊM: chạm màn hình thì đếm lại thời gian đứng yên', async () => {
+      vi.useFakeTimers();
+      const ota = await import('@/lib/ota');
+      try {
+        await taiXongEm(ota);
+        await vi.advanceTimersByTimeAsync(ota.RANH_MS - 5000);
+        document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+        await vi.advanceTimersByTimeAsync(10_000);
+        expect(goi.set).not.toHaveBeenCalled();
       } finally { ota.datAnTienDo(false); vi.useRealTimers(); }
     });
 
-    it('ẨN TIẾN ĐỘ: đang chơi (không ở trang chủ) thì vẫn chờ về trang chủ mới khởi động lại', async () => {
+    it('ÊM: VÀO NỀN ở trang chủ → khởi động lại ngay trong nền, không phủ', async () => {
       vi.useFakeTimers();
       const ota = await import('@/lib/ota');
-      ota.datAnTienDo(true);
       try {
-        history.replaceState(null, '', '/?playing=1');
-        const chay = ota.kiemOta();
-        await vi.advanceTimersByTimeAsync(600);
-        xong({ id: 'b1', version: 'moi', status: 'success' });
-        await chay;
-        await vi.advanceTimersByTimeAsync(1200);
-        expect(goi.set, 'không chen ngang ván').not.toHaveBeenCalled();
-        history.replaceState(null, '', '/');
-        await vi.advanceTimersByTimeAsync(1200);
+        await taiXongEm(ota);
+        anHien('hidden');
+        await vi.advanceTimersByTimeAsync(10);
         expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
         expect(phu()).toBeNull();
-      } finally { ota.datAnTienDo(false); vi.useRealTimers(); history.replaceState(null, '', '/'); }
+        expect(JSON.parse(localStorage.getItem('mm.otaVuaAp')!).cach).toBe('nen');
+      } finally { anHien('visible'); ota.datAnTienDo(false); vi.useRealTimers(); localStorage.removeItem('mm.otaVuaAp'); }
+    });
+
+    it('ÊM: vào nền GIỮA VÁN → không áp (để lần về trang chủ / mở lại)', async () => {
+      vi.useFakeTimers();
+      const ota = await import('@/lib/ota');
+      try {
+        history.replaceState(null, '', '/?playing=1');
+        await taiXongEm(ota);
+        anHien('hidden');
+        await vi.advanceTimersByTimeAsync(10);
+        expect(goi.set).not.toHaveBeenCalled();
+      } finally { anHien('visible'); ota.datAnTienDo(false); vi.useRealTimers(); history.replaceState(null, '', '/'); }
+    });
+
+    it('ÊM: BẢN GẤP — gói chạy THẤP HƠN gapDuoi thì áp ngay; bằng/cao hơn hoặc không đặt thì không', async () => {
+      const { laGap } = await import('@/lib/ota');
+      expect(laGap('1.9.8-abc', '1.9.9')).toBe(true);
+      expect(laGap('1.9.9-abc', '1.9.9')).toBe(false);
+      expect(laGap('1.10.0-abc', '1.9.9')).toBe(false);
+      expect(laGap('1.9.8-abc', '')).toBe(false);
+      expect(laGap('1.9.8-abc', undefined)).toBe(false);
     });
 
     it('đang mở hộp thoại (Bảng xếp hạng) lúc tải: phủ rồi tải xong vẫn áp — KHÔNG kẹt ở % cuối (19.11.2026)', async () => {
@@ -548,5 +591,36 @@ describe('cập nhật nóng', () => {
       await kiemOta();
       expect(trangThaiOta.value.buoc).toBe('moiNhat');
     } finally { vi.useRealTimers(); }
+  });
+});
+
+describe('gói mới vừa chạy (cập nhật êm, 20.11.2026)', () => {
+  beforeEach(() => { document.querySelectorAll('.man-cap-nhat, .loi-cap-nhat').forEach((e) => e.remove()); localStorage.removeItem('mm.otaVuaAp'); });
+  it('áp bằng màn phủ → gói mới dựng lại màn phủ, chạy nốt tới "Cập nhật xong" rồi gỡ', async () => {
+    const ota = await import('@/lib/ota');
+    ota.huyApKhiRanh(true);
+    localStorage.setItem('mm.otaVuaAp', JSON.stringify({ cach: 'phu', id: 'test-ota' }));
+    ota.baoVuaCapNhat();
+    expect(document.querySelector('.man-cap-nhat'), 'màn phủ có ngay từ đầu').not.toBeNull();
+    await vi.waitFor(() => expect(document.querySelector('.man-cap-nhat')).toBeNull());
+    expect(localStorage.getItem('mm.otaVuaAp')).toBeNull();
+  });
+  it('mã gói đổi so với lần chạy trước (vào nền / tắt hẳn) → dòng nhỏ "Đã cập nhật bản …"', async () => {
+    const ota = await import('@/lib/ota');
+    ota.huyApKhiRanh(true);
+    localStorage.setItem('mm.otaDaChay', 'cu-123');
+    ota.baoVuaCapNhat();
+    await vi.waitFor(() => expect(document.querySelector('.da-cap-nhat')?.textContent).toContain('Đã cập nhật bản test'));
+    expect(localStorage.getItem('mm.otaDaChay')).toBe('test-ota');
+  });
+  it('lần đầu chạy (chưa có dấu) hoặc cùng gói → không báo gì', async () => {
+    const ota = await import('@/lib/ota');
+    ota.huyApKhiRanh(true);
+    localStorage.removeItem('mm.otaDaChay');
+    ota.baoVuaCapNhat();
+    ota.huyApKhiRanh(true);
+    ota.baoVuaCapNhat();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(document.querySelector('.da-cap-nhat')).toBeNull();
   });
 });

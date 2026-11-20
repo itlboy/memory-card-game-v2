@@ -368,6 +368,7 @@ const th: TuDien = {
   'chung.dangCapNhat': 'กำลังอัปเดต',
   'chung.chuaCapNhat': 'อัปเดตไม่สำเร็จ',
   'chung.capNhatXong': 'อัปเดตเสร็จแล้ว!',
+  'chung.daCapNhatBan': 'อัปเดตเป็นเวอร์ชัน {v} แล้ว',
   'chung.banSo': 'เวอร์ชัน {v}',
   'tb.kiemCapNhat': "ตรวจหาอัปเดต",
   'tb.dangKiem': "กำลังตรวจ",
