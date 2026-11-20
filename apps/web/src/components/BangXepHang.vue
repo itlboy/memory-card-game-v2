@@ -41,6 +41,18 @@ async function tai(): Promise<void> {
 }
 onMounted(() => { closeBtn.value?.focus(); void tai(); });
 
+/** Hạt vàng bốc lên từ bục: cố định (không random mỗi lần vẽ), dày ở giữa chỗ hạng 1. */
+const HAT = Array.from({ length: 22 }, (_, k) => {
+  const r = (n: number): number => { const x = Math.sin(k * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const sao = k % 4 === 0;
+  const c = sao ? 9 + r(1) * 6 : 3 + r(1) * 4;
+  const trai = 50 + (r(2) - 0.5) * (k % 3 ? 60 : 96);
+  return {
+    sao,
+    st: `left:${trai.toFixed(1)}%;width:${c.toFixed(1)}px;height:${c.toFixed(1)}px;--c:${c.toFixed(1)}px;--x:${((r(3) - 0.5) * 30).toFixed(0)}px;animation-duration:${(2.4 + r(4) * 2.2).toFixed(2)}s;animation-delay:-${(r(5) * 4).toFixed(2)}s`
+  };
+});
+
 const ten = (d: DongBxh): string => d.name || (d.khach ? t('bxh.khach', { so: d.khach }) : '?');
 const toi = computed(() => bang.value?.toi ?? null);
 /** Ngoài top hiển thị → ghim dòng mình ở đáy. */
@@ -75,16 +87,32 @@ async function doiAn(an: boolean): Promise<void> {
            thích quá"): bỏ thẻ vàng "Hạng của bạn trong N người…", bỏ cột "x/y thắng" (còn ở nhãn ẩn), bỏ dòng dưới mình,
            bỏ câu mời đăng nhập + câu dặn tên. Dòng mình tô vàng là đủ biết mình ở đâu. -->
       <div class="body">
-        <ol v-if="bang" class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai">
-          <li v-for="(d, i) in bang.top" :key="i" :class="{ toi: d.toi }">
-            <span class="hang" :class="['vang', 'bac', 'dong'][i]">{{ i + 1 }}</span>
-            <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /></span>
-            <span class="ten">{{ ten(d) }}<i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i></span>
-            <span v-if="d.matches >= d.wins && d.matches" class="sr-only">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</span>
-            <b>{{ num(d.totalScore) }}</b>
-          </li>
-          <li v-if="!bang.top.length" class="muted">{{ t('tk.chuaAiMoi') }}</li>
-        </ol>
+        <template v-if="bang">
+          <!-- BỤC TOP 3 (20.11.2026, mockup duyệt https://claude.ai/artifact/QujXue1p74g1e25fWz8QtP — phương án A, bỏ vòng
+               tròn quanh mặt, thêm hạt vàng bốc lên): thứ tự trái→phải là hạng 2·1·3. Thiếu người thì ô trống giữ chỗ. -->
+          <div v-if="bang.top.length" class="buc" :class="{ mo: dangTai }">
+            <div class="bui" aria-hidden="true"><i v-for="(h, k) in HAT" :key="k" :class="{ sao: h.sao }" :style="h.st" /></div>
+            <div v-for="i in [1, 0, 2]" :key="i" class="bn" :class="`n${i + 1}`">
+              <template v-if="bang.top[i]">
+                <span class="av"><span v-if="i === 0" class="vm" aria-hidden="true">👑</span><MatBot :mat="bang.top[i].mat ?? '🙂'" /></span>
+                <span class="tn">{{ ten(bang.top[i]) }}</span>
+                <i v-if="bang.top[i].toi" class="nhan-ban">{{ t('bxh.ban') }}</i>
+                <span class="so">{{ num(bang.top[i].totalScore) }}<i class="xu" aria-hidden="true" /></span>
+              </template>
+              <div class="bac" aria-hidden="true">{{ i + 1 }}</div>
+            </div>
+          </div>
+          <ol class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai" :start="4">
+            <li v-for="(d, i) in bang.top.slice(3)" :key="i" :class="{ toi: d.toi }">
+              <span class="hang">{{ i + 4 }}</span>
+              <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /></span>
+              <span class="ten">{{ ten(d) }}<i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i></span>
+              <span v-if="d.matches >= d.wins && d.matches" class="sr-only">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</span>
+              <span class="so">{{ num(d.totalScore) }}<i class="xu" aria-hidden="true" /></span>
+            </li>
+          </ol>
+          <p v-if="!bang.top.length" class="muted">{{ t('tk.chuaAiMoi') }}</p>
+        </template>
         <p v-else-if="loi" class="loi">{{ t('tk.loiBxh') }} <button class="btn-link" type="button" @click="tai">{{ t('bxh.thuLai') }}</button></p>
         <!-- Lần đầu (chưa có bảng cũ): dòng xám đúng dáng bảng thay chữ "Đang tải…" — khung không giật cao -->
         <ol v-else class="bxh xuong" :aria-label="t('tk.dangTai')" aria-busy="true">
@@ -94,8 +122,8 @@ async function doiAn(an: boolean): Promise<void> {
 
       <div v-if="toi && ghim" class="ghim" :class="{ mo: dangTai }">
         <span class="cham" aria-hidden="true">···</span>
-        <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><b>{{ num(toi.tren.totalScore) }}</b></div>
-        <div class="toi-dong"><span class="hang">{{ num(toi.hang) }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><b>{{ num(toi.totalScore) }}</b></div>
+        <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><span class="so">{{ num(toi.tren.totalScore) }}<i class="xu" aria-hidden="true" /></span></div>
+        <div class="toi-dong"><span class="hang">{{ num(toi.hang) }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}<i class="xu" aria-hidden="true" /></span></div>
       </div>
 
       <!-- Khách: tên trên bảng -->
@@ -154,11 +182,46 @@ async function doiAn(an: boolean): Promise<void> {
 .bxh li.toi small { color: #5b4510; }
 .hang { width: 30px; flex: 0 0 30px; text-align: center; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bxh li.toi .hang, .toi-dong .hang { color: #5b4510; }
-.hang.vang { color: #c98a00; } .hang.bac { color: #8a96b3; } .hang.dong { color: #b0662c; }
 .mat { font-size: 19px; line-height: 1; flex: 0 0 auto; }
 .ten { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bxh small { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.bxh b, .ghim b { font-variant-numeric: tabular-nums; }
+/* Số điểm: Baloo 2 + chữ số đều bề ngang, cột cố định canh phải — 980 và 12.450 thẳng mép */
+.so { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; text-align: right; white-space: nowrap; }
+.bxh .so, .ghim .so { min-width: 7ch; font-size: 17px; }
+.ke .so { font-size: var(--text-sm); }
+.xu {
+  display: inline-block; width: 13px; height: 13px; border-radius: 50%; margin-left: 4px; vertical-align: -1px;
+  background: radial-gradient(circle at 35% 30%, #ffe58a, #f2b400 60%, #c98a00); box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .2);
+}
+
+/* Bục */
+.buc { position: relative; isolation: isolate; display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; margin: 4px 0 10px; }
+.bn { display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 0; }
+.bn .av { position: relative; display: grid; place-items: center; font-size: 40px; line-height: 1; padding-top: 4px; }
+.bn.n1 .av { font-size: 52px; padding-top: 14px; }
+.bn .vm { position: absolute; top: -6px; left: 50%; transform: translateX(-50%); font-size: 20px; }
+.bn .tn { font-weight: 800; font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bn .nhan-ban { margin: 0; }
+.bn .so { font-size: 16px; }
+.bn.n1 .so { font-size: 19px; }
+.bn .bac { width: 100%; margin-top: 2px; border-radius: 12px 12px 4px 4px; display: grid; place-items: center; font: 800 22px var(--font-display); color: #fff; }
+.n1 .bac { height: 58px; background: linear-gradient(#ffd34d, #f2b400); }
+.n2 .bac { height: 42px; background: linear-gradient(#c5cee2, #9aa6c4); }
+.n3 .bac { height: 32px; background: linear-gradient(#e2a06a, #c27a3e); }
+/* Hạt vàng bốc lên + quầng sáng thở sau hạng 1 */
+.bui { position: absolute; inset: -10px -6px 0; overflow: hidden; pointer-events: none; z-index: -1; border-radius: 14px; }
+.bui::before {
+  content: ""; position: absolute; left: 50%; bottom: 20px; width: 170px; height: 170px; transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 206, 64, .45), rgba(255, 206, 64, 0) 68%); animation: tho 2.6s ease-in-out infinite alternate;
+}
+.bui i { position: absolute; bottom: -8px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6c8, #ffd23f 55%, rgba(242, 180, 0, 0) 72%); opacity: 0; animation: bay linear infinite; }
+.bui i.sao { border-radius: 0; background: none; color: #ffcf33; font-size: var(--c); line-height: 1; text-shadow: 0 0 6px rgba(255, 200, 40, .8); }
+.bui i.sao::before { content: "✦"; }
+@keyframes bay { 0% { transform: translate(0, 0) scale(.6); opacity: 0; } 12% { opacity: 1; } 70% { opacity: .85; } 100% { transform: translate(var(--x), -150px) scale(1); opacity: 0; } }
+@keyframes tho { from { opacity: .55; transform: translateX(-50%) scale(.92); } to { opacity: 1; transform: translateX(-50%) scale(1.06); } }
+@media (prefers-reduced-motion: reduce) { .bui i { display: none; } .bui::before { animation: none; } }
+.buc { transition: opacity .2s ease; }
+.buc.mo { opacity: .45; }
 .nhan-ban {
   font-style: normal; font-size: 11px; font-weight: 800; color: #fff; background: #c2621a;
   border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px;
