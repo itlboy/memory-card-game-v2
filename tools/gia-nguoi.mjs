@@ -110,6 +110,9 @@ class NguoiGia {
       return;
     }
     if ((msg.t === 'state' || msg.t === 'events') && msg.view) {
+      // Chơi lại có thể vào THẲNG ván mới (không qua phòng chờ) — thấy ván đang chạy là cho phép xin lại ở ván sau,
+      // không thì từ ván thứ hai bot đứng im ở màn kết quả (tải thử 20.11.2026 đứng sau ván đầu).
+      if (msg.view.status === 'playing' && this.daXinLai) { this.daXinLai = false; this.kyUc.clear(); this.predeal = null; }
       if (this === nguoi[0]) {
         const v = msg.view, dau = `${v.status} ${v.matchedPairs}/${v.totalPairs}`;
         if (dau !== this.dauCu) { this.dauCu = dau; console.log('  ván:', dau); }

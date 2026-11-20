@@ -1,4 +1,28 @@
 import { build } from 'esbuild';
+import { existsSync, readFileSync } from 'node:fs';
+
+/** Mã commit đọc thẳng từ .git (ảnh build không có lệnh git; Docker có chép .git vì .dockerignore không bỏ nó). */
+function maCommit() {
+  try {
+    const goc = new URL('../../.git/', import.meta.url);
+    const head = readFileSync(new URL('HEAD', goc), 'utf8').trim();
+    if (!head.startsWith('ref: ')) return head.slice(0, 12);
+    const ref = head.slice(5);
+    const f = new URL(ref, goc);
+    if (existsSync(f)) return readFileSync(f, 'utf8').trim().slice(0, 12);
+    const dong = readFileSync(new URL('packed-refs', goc), 'utf8').split('\n').find((l) => l.endsWith(' ' + ref));
+    return dong ? dong.slice(0, 12) : 'khong-ro';
+  } catch { return 'khong-ro'; }
+}
+/*
+ * THÔNG TIN BẢN BUILD cho /api/ping (20.11.2026). CỐ Ý không có giờ build: ảnh Docker được làm cho TRÙNG mã băm
+ * khi nội dung không đổi (Dockerfile ghim mtime) — nhét giờ vào là lần build nào cũng ra ảnh mới, Keel khởi động lại
+ * server nhà vô cớ. Phiên bản + commit đã đủ định danh.
+ */
+const BAN_BUILD = {
+  ban: JSON.parse(readFileSync(new URL('../web/package.json', import.meta.url), 'utf8')).version,
+  commit: maCommit()
+};
 
 /**
  * Gói server dự phòng thành MỘT file để chạy bằng `node dist/server.mjs`.
@@ -34,7 +58,8 @@ await build({
   define: {
     Response: 'globalThis.__mmResponse',
     WebSocketPair: 'globalThis.__mmPair',
-    WebSocketRequestResponsePair: 'globalThis.__mmPairRR'
+    WebSocketRequestResponsePair: 'globalThis.__mmPairRR',
+    __BAN_BUILD__: JSON.stringify(BAN_BUILD)
   }
 });
 console.log('đã gói: dist/server.mjs');

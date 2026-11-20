@@ -1,5 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, statfs } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
+import { cpus, freemem, loadavg, totalmem, uptime as mayChayGiay } from 'node:os';
+import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { extname, join, normalize } from 'node:path';
 import { WebSocketServer, type WebSocket as WsSocket } from 'ws';
 import { ROOM_LIMITS } from '@mm/engine';
@@ -305,6 +308,123 @@ function docUrl(req: IncomingMessage): URL | null {
   try { return new URL(req.url ?? '/', 'http://localhost'); } catch { return null; }
 }
 
+
+/*
+ * /api/ping — TỰ KIỂM SÂU (20.11.2026, chủ dự án: "trả về thông tin bản build, kiểm tra cả kết nối mysql, ổ cứng gần
+ * đầy cũng báo lỗi"). `/health` chỉ nói tiến trình còn sống; cái này trả lời "server có ĐANG LÀM VIỆC ĐƯỢC không".
+ * `ok:false` + HTTP 503 khi: có cấu hình MySQL mà truy vấn hỏng/chậm, ổ đĩa còn dưới ngưỡng, hoặc RAM sắp chạm trần.
+ * Không lộ gì nhạy cảm: không tên máy, không chuỗi kết nối, không đường dẫn. Kết quả giữ 5 giây (gọi dồn không
+ * đập vào DB).
+ */
+declare const __BAN_BUILD__: { ban: string; commit: string };
+const BAT_DAU = Date.now();
+/* Độ trễ vòng sự kiện (event loop) — bộ đếm có sẵn của Node, lấy mẫu mỗi 20 ms, gần như không tốn gì. Trễ cao =
+ * server bận tới mức nước đi của người chơi phải xếp hàng. Đặt lại sau mỗi lần đọc → số là của khoảng giữa hai lần ping. */
+const TRE_VONG_MAU_MS = 20;
+const treVong = monitorEventLoopDelay({ resolution: TRE_VONG_MAU_MS });
+treVong.enable();
+let cpuTruoc = { luc: Date.now(), dung: process.cpuUsage() };
+/** Ổ còn dưới ngưỡng này (theo % HOẶC theo MB, cái nào chạm trước) là báo lỗi. */
+const O_TRONG_TOI_THIEU_PHAN_TRAM = 10;
+const O_TRONG_TOI_THIEU_MB = 500;
+/** RAM tiến trình chạm bấy nhiêu % trần cgroup (mem_limit / limits.memory) là báo lỗi — sắp bị OOM kill. */
+const RAM_TOI_DA_PHAN_TRAM = 90;
+let kiemCache: { luc: number; kq: Promise<Record<string, unknown> & { ok: boolean }> } | null = null;
+
+function tranRam(): number | null {
+  for (const f of ['/sys/fs/cgroup/memory.max', '/sys/fs/cgroup/memory/memory.limit_in_bytes']) {
+    try {
+      const v = readFileSync(f, 'utf8').trim();
+      const n = Number(v);
+      if (v !== 'max' && Number.isFinite(n) && n > 0 && n < 2 ** 50) return n;
+    } catch { /* không có cgroup này */ }
+  }
+  return null;
+}
+
+function kiemSucKhoe(): Promise<Record<string, unknown> & { ok: boolean }> {
+  if (kiemCache && Date.now() - kiemCache.luc < 5000) return kiemCache.kq;
+  const kq = (async () => {
+    const loi: string[] = [];
+    // MySQL: SELECT 1 có hạn 2 giây. Không cấu hình MySQL thì không coi là lỗi (bản thử không DB).
+    let mysql: Record<string, unknown> = { coCauHinh: !!process.env.MYSQL_URL, ketNoi: !!kho };
+    if (process.env.MYSQL_URL) {
+      if (!kho) { loi.push('mysql: không kết nối (đang chạy bằng RAM)'); }
+      else {
+        const t0 = performance.now();
+        try {
+          await Promise.race([
+            kho.pool.query('SELECT 1'),
+            new Promise((_, tu) => setTimeout(() => tu(new Error('quá 2 giây')), 2000))
+          ]);
+          mysql = { ...mysql, ok: true, ms: Math.round(performance.now() - t0) };
+        } catch (e) {
+          mysql = { ...mysql, ok: false };
+          loi.push(`mysql: ${(e as Error).message.slice(0, 80)}`);
+        }
+      }
+    }
+    // Ổ đĩa: statfs của / trong container = ổ thật của máy (overlay nằm trên đó).
+    let o: Record<string, unknown> = {};
+    try {
+      const st = await statfs('/');
+      const tong = st.blocks * st.bsize, trong = st.bavail * st.bsize;
+      const pt = Math.round((trong / tong) * 1000) / 10;
+      o = { tongMB: Math.round(tong / 1048576), trongMB: Math.round(trong / 1048576), trongPhanTram: pt };
+      if (pt < O_TRONG_TOI_THIEU_PHAN_TRAM || trong < O_TRONG_TOI_THIEU_MB * 1048576) loi.push(`ổ đĩa: còn ${o.trongMB} MB (${pt}%)`);
+    } catch { o = { loi: 'không đọc được' }; }
+    // RAM: RSS tiến trình so với trần cgroup; kèm RAM trống của máy để tham khảo.
+    const rss = process.memoryUsage().rss, tran = tranRam();
+    const ram: Record<string, unknown> = {
+      tienTrinhMB: Math.round(rss / 1048576),
+      tranMB: tran ? Math.round(tran / 1048576) : null,
+      mayTrongMB: Math.round(freemem() / 1048576),
+      mayTongMB: Math.round(totalmem() / 1048576)
+    };
+    if (tran && (rss / tran) * 100 >= RAM_TOI_DA_PHAN_TRAM) loi.push(`ram: tiến trình ${ram.tienTrinhMB}/${ram.tranMB} MB`);
+    const heap = process.memoryUsage();
+    ram.heapMB = Math.round(heap.heapUsed / 1048576);
+    ram.heapTongMB = Math.round(heap.heapTotal / 1048576);
+    // CPU của TIẾN TRÌNH trong khoảng từ lần ping trước (% của một nhân)
+    const bayGio = Date.now(), dung = process.cpuUsage(cpuTruoc.dung);
+    const cpuPhanTram = Math.round(((dung.user + dung.system) / 1000 / Math.max(1, bayGio - cpuTruoc.luc)) * 1000) / 10;
+    cpuTruoc = { luc: bayGio, dung: process.cpuUsage() };
+    // Số Node đo GỒM cả chu kỳ lấy mẫu (rảnh vẫn ra ~20 ms) → trừ đi cho ra phần TRỄ THẬT
+    const treMs = (ns: number): number => Math.max(0, Math.round((ns / 1e6 - TRE_VONG_MAU_MS) * 10) / 10);
+    const vong = { tbMs: treMs(treVong.mean), p99Ms: treMs(treVong.percentile(99)), maxMs: treMs(treVong.max) };
+    treVong.reset();
+    if (vong.p99Ms > 500) loi.push(`vòng sự kiện: p99 ${vong.p99Ms} ms`);
+    let soSocket = 0, soNguoi = 0, dangChoi = 0;
+    for (const ph of phongs.values()) {
+      const r = (ph.room as unknown as { room?: { status?: string; players?: unknown[] } }).room;
+      if (r?.status === 'playing') dangChoi++;
+      soNguoi += r?.players?.length ?? 0;
+    }
+    try { soSocket = wss.clients.size; } catch { /* chưa có */ }
+    return {
+      ok: loi.length === 0,
+      loi,
+      ban: __BAN_BUILD__.ban,
+      commit: __BAN_BUILD__.commit,
+      node: process.version,
+      chayGiay: Math.round((Date.now() - BAT_DAU) / 1000),
+      mayChayGiay: Math.round(mayChayGiay()),
+      phong: { trongRam: phongs.size, dangChoi, nguoi: soNguoi, socket: soSocket },
+      cpu: { tienTrinhPhanTram: cpuPhanTram, soNhan: cpus().length },
+      vongSuKien: vong,
+      taiKhoan: !!taiKhoan,
+      thongBao: !!thongBao,
+      mysql,
+      oDia: o,
+      ram,
+      tai: loadavg().map((x) => Math.round(x * 100) / 100),
+      luc: new Date().toISOString()
+    };
+  })();
+  kiemCache = { luc: Date.now(), kq };
+  return kq;
+}
+
 const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   const url = docUrl(req);
   if (!url) { res.writeHead(400); res.end(); return; }
@@ -341,6 +461,12 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   }
 
   if (url.pathname === '/health') { json(res, { ok: true, rooms: phongs.size }); return; }
+
+  // Tự kiểm sâu cho giám sát (UptimeRobot): bản build, MySQL, ổ đĩa, RAM — lỗi thì 503 + ok:false. Xem `kiemSucKhoe`.
+  if (url.pathname === '/api/ping' && req.method === 'GET') {
+    void kiemSucKhoe().then((k) => json(res, k, k.ok ? 200 : 503));
+    return;
+  }
 
   /*
    * Tài khoản (đăng nhập Google, điểm, danh hiệu) — CHỈ Ở BẢN NODE, và chỉ khi
