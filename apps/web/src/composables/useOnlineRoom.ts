@@ -625,7 +625,8 @@ export function useOnlineRoom() {
     // ai làm gì được). Người chơi KHÔNG được ngồi nhìn màn hình chết mà không
     // biết vì sao — nói ra, rồi tự đồng bộ lại.
     const tLuot = turnTimeLeft.value;
-    if (view.value?.status === 'playing' && tLuot === 0 && !dangNoiLai) {
+    // Đồng hồ server đang dừng chờ người mất kết nối thì bàn đứng là ĐÚNG — không xin resync mỗi 4 giây (log 20.11.2026)
+    if (view.value?.status === 'playing' && tLuot === 0 && !dangNoiLai && !view.value.turnPaused) {
       if (!stuckSince) stuckSince = luc;
       else if (luc - stuckSince >= STUCK_MS) {
         stuckSince = 0;
@@ -654,6 +655,8 @@ export function useOnlineRoom() {
     // cái vừa được sửa ở server. Server đã dừng đồng hồ (LAG_MS), đây chỉ là
     // cho màn hình kể đúng chuyện đó. Neo vào lúc mất tiếng chứ không phải lúc
     // này, không thì mỗi lần vẽ lại là một mốc mới và đồng hồ đứng luôn.
+    // Server đã DỪNG đồng hồ (người tới lượt mất kết nối): giữ nguyên số server gửi, đừng đếm lùi về 0
+    if (view.value.turnPaused) return view.value.turnTimeLeft;
     const moc = ngungDem.value || clock.value;
     return Math.max(0, (turnDeadline.value - moc) / 1000);
   });
@@ -1043,6 +1046,13 @@ export function useOnlineRoom() {
         if (!oNen && !reconnectDeadline) reconnectDeadline = Date.now() + ROOM_LIMITS.reconnectMs;
         // Rớt lúc ĐANG MỞ app mới đếm — vào nền thì hệ điều hành cắt socket là chuyện bình thường
         if (!oNen && !rotLuc) { rotLuc = Date.now(); rotMa = e.code; }
+        /*
+         * APP (iOS/Android) NẰM NỀN: KHÔNG thử lại — chờ mở app lên (`onWake` mở đợt nối lại mới). Log server
+         * 20.11.2026: iPhone khoá màn giữa ván vẫn mở socket mỗi 0,5 giây, hệ điều hành cắt ngay sau 0,2 giây
+         * (1006, cuối cùng "closed due to suspension") — hơn trăm lượt/phút, người khác thấy "mất kết nối /
+         * vào lại" nhảy liên tục. Trình duyệt máy tính đổi tab thì vẫn thử như cũ (giữ được chỗ).
+         */
+        if (oNen && nenApp !== 'web') { dangNoiLai = true; return; }
         if (oNen || Date.now() < reconnectDeadline) {
           if (oNen) dangNoiLai = true; else batNoiLai();
           kiemPhongCon();

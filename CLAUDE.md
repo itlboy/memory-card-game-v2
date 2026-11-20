@@ -1561,3 +1561,13 @@ Mockup duyệt: https://claude.ai/artifact/QujXue1p74g1e25fWz8QtP (bục, 1.9.3)
 - **Biểu tượng dùng chung**: đang chờ = ba chấm nhảy trong vòng cam (phòng chờ `.cot-san.cs-cho` + cuối ván
   `.cl-ic.cho`); dải báo dùng `ic: 'choiLai'` (↻) / `ic: 'sanSang'` (✋) để vẽ đúng vòng xanh như hai màn đó.
   Đừng quay lại emoji 🔁 / ✅ / ⏳.
+
+## Online: chập mạng khi app nằm nền (20.11.2026)
+
+Log `[ws]` 20.11: iPhone khoá màn giữa ván vẫn mở socket mỗi 0,5 giây, iOS cắt sau 0,2 giây (1006 → "closed due to
+suspension"), hơn 140 lượt/70 giây; máy kia thấy "mất kết nối / vào lại" nhảy liên tục. KHÔNG phải mạng server
+(người khác cùng phòng nối ổn). Sửa:
+- `useOnlineRoom` onclose: app NATIVE (`nenApp !== 'web'`) nằm nền → KHÔNG thử lại, chờ `onWake`. Web đổi tab vẫn thử.
+- `useBaoPhong`: "mất kết nối" chỉ báo sau `CHO_BAO_MANG_MS` (4 giây); "vào lại" chỉ báo khi đã báo "mất".
+- View có `turnPaused` (engine `publicView`, chỉ THÊM) khi server dừng đồng hồ lượt chờ người mất kết nối: client
+  giữ nguyên số giây, không coi là "bàn đứng im" (trước đó máy kia đếm về 0 rồi `resync` mỗi 4 giây).

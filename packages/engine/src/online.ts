@@ -297,6 +297,9 @@ export interface GameView {
   timeLeft: number | null;
   /** Giây còn lại của lượt hiện tại (đồng hồ lượt). */
   turnTimeLeft: number | null;
+  /** Đồng hồ lượt đang ĐỨNG (người tới lượt mất kết nối) — client đóng băng số, không coi là "bàn đứng im".
+   *  Chỉ THÊM (20.11.2026): client cũ bỏ qua. */
+  turnPaused?: boolean;
   /**
    * Giây còn lại của giai đoạn HÉ MỞ CẢ BÀN; null = không đang hé mở.
    *
@@ -394,6 +397,7 @@ export function publicView(
     status: game.status,
     timeLeft: game.timeLeft(now),
     turnTimeLeft: game.turnTimeLeft(now),
+    ...(game.turnDangDung() ? { turnPaused: true } : {}),
     peekLeft: game.revealUntil > 0 ? Math.max(0, (game.revealUntil - now) / 1000) : null,
     elapsed: Math.floor(game.elapsed(now)),
     summary: game.summary(),
