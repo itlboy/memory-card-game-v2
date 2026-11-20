@@ -871,6 +871,9 @@
   · `main.ts` LUÔN gọi `kiemOta()`; trong đó `notifyAppReady()` đứng TRƯỚC mọi lời gọi mạng;
     không chặn khởi động; mọi lỗi nuốt trong `catch` (nhưng ghi vào `trangThaiOta`).
     Lỗi tạm thì tự thử lại sau 1 phút (tối đa 3 lần) + kiểm lại khi app quay lại từ nền.
+    **TỪ 20.11.2026 ẨN TIẾN ĐỘ** (`anTienDo = true` ở lib/ota.ts — chủ dự án: "tải và restart ngầm… tạm ẩn thanh
+    progress, sau hiện lại nếu cần"; "cơ chế và tần suất vẫn như hiện tại"): KHÔNG phủ, không %, không màn "Cập nhật
+    xong" — tải ngầm, xong ở trang chủ thì khởi động lại thẳng. Bấm tay "Kiểm tra cập nhật" vẫn phủ. Hiện lại = `false`.
     CẬP NHẬT BẮT BUỘC Ở TRANG CHỦ (16.11.2026, thay "áp khi rảnh + đếm 3·2·1"): đang tải gói mới mà
     ở trang chủ → màn phủ kín "Đang cập nhật" + % (chặn chạm); tải xong + trang chủ + app đang hiện +
     không hộp thoại/menu (`[role=dialog][aria-modal]`, `[role=menu]`) → khởi động lại NGAY. Đang
