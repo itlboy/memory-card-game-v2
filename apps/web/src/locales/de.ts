@@ -602,6 +602,13 @@ const de: TuDien = {
   'or.loi.notReady': 'Noch nicht bereit: {ten}',
   'or.dong.cancelled': 'Der Host hat den Raum geschlossen.',
   'or.dong.kicked': 'Der Host hat dich aus dem Raum entfernt.',
+  'pd.kicked.tieuDe': 'Du hast Raum {ma} verlassen',
+  'pd.kicked.tieuDeKhongMa': 'Du hast den Raum verlassen',
+  'pd.kicked.than': 'Der Host hat dich entfernt. Tritt einem anderen Raum bei oder erstelle einen neuen.',
+  'pd.cancelled.tieuDe': 'Raum {ma} geschlossen',
+  'pd.cancelled.tieuDeKhongMa': 'Raum geschlossen',
+  'pd.cancelled.than': 'Der Host hat den Raum geschlossen. Tritt einem anderen Raum bei oder erstelle einen neuen.',
+  'pd.daHieu': 'Verstanden',
   'or.dangVaoLai': 'Verbindung getrennt — verbinde neu…',
   'or.banThuong': 'du',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

@@ -34,7 +34,7 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
         baoNoi({ loai: 'tot', ic: '🔌', chu: t('bao.vaoLai', { ten: p.name }) });
       }
       if (moi.status === 'lobby' && !truoc.ready && p.ready && !p.may) {
-        baoNoi({ loai: 'tot', ic: '✅', chu: t('bao.sanSang', { ten: p.name }) });
+        baoNoi({ loai: 'tot', ic: 'sanSang', chu: t('bao.sanSang', { ten: p.name }) });
       }
     }
 
@@ -60,7 +60,7 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
     for (const id of moi.againVotes ?? []) {
       if (id === toi || phieuCu.has(id)) continue;
       const ten = tenCua(moi, id);
-      if (ten) baoNoi({ loai: 'tot', ic: '🔁', chu: t('bao.choiLai', { ten }) });
+      if (ten) baoNoi({ loai: 'tot', ic: 'choiLai', chu: t('bao.choiLai', { ten }) });
     }
 
     // Người xem mới (so theo tên + mặt; người xem là CHÍNH MÌNH thì không tự báo)

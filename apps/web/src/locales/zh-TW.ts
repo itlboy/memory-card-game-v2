@@ -602,6 +602,13 @@ const zhTW: TuDien = {
   'or.loi.notReady': '還沒準備好：{ten}',
   'or.dong.cancelled': '房主關閉了房間。',
   'or.dong.kicked': '房主將你移出了房間。',
+  'pd.kicked.tieuDe': '你已離開房間 {ma}',
+  'pd.kicked.tieuDeKhongMa': '你已離開房間',
+  'pd.kicked.than': '房主將你移出了房間。加入其他房間或建立新房間吧。',
+  'pd.cancelled.tieuDe': '房間 {ma} 已關閉',
+  'pd.cancelled.tieuDeKhongMa': '房間已關閉',
+  'pd.cancelled.than': '房主關閉了房間。加入其他房間或建立新房間吧。',
+  'pd.daHieu': '知道了',
   'or.dangVaoLai': '連線中斷，正在重新連線…',
   'or.banThuong': '你',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

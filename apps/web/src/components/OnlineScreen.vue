@@ -27,6 +27,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import ConfirmDialog from './ConfirmDialog.vue';
+import BaoPhongDong from './BaoPhongDong.vue';
 import ChonMucMay from './ChonMucMay.vue';
 import ChonDoi from './ChonDoi.vue';
 import { tenNguoi } from '@/lib/ten';
@@ -1334,7 +1335,7 @@ function openCfgWizard(): void {
         <span
           v-if="p.id !== o.room.value?.hostId" class="cot-san" :class="[`cs-${trangThai(p).loai}`, { nhay: nhayChua && trangThai(p).loai === 'cho' }]"
           role="img" :aria-label="trangThai(p).chu" :title="trangThai(p).chu"
-        ><template v-if="trangThai(p).loai === 'ok'">✋</template><template v-else-if="trangThai(p).loai === 'mang'">📡</template><template v-else>⏳</template></span>
+        ><template v-if="trangThai(p).loai === 'ok'">✋</template><template v-else-if="trangThai(p).loai === 'mang'">📡</template><span v-else class="cham" aria-hidden="true"><i /><i /><i /></span></span>
         <span v-else class="cot-san trong" aria-hidden="true" />
         <!-- Ping: chỉ khi mạng YẾU (hoặc bật "ping bằng số" ở Debug) — mạng tốt không ai cần con số -->
         <span
@@ -1472,6 +1473,10 @@ function openCfgWizard(): void {
     @confirm="xacNhan()"
     @cancel="confirm = null"
   />
+    <BaoPhongDong
+      v-if="o.phongDong.value" :code="o.phongDong.value.code" :ma="o.phongDong.value.ma"
+      @dong="o.phongDong.value = null"
+    />
   </div>
 </template>
 
@@ -1927,7 +1932,14 @@ input:focus { outline: none; border-color: var(--accent); }
   font-size: 15px; line-height: 1; border: 2px solid;
 }
 .cot-san.cs-ok { background: linear-gradient(#8fe06c, #4bb033); border-color: #3c9a26; box-shadow: 0 2px 0 #348a20; font-size: 16px; }
-.cot-san.cs-cho { background: #fff3e2; border-color: #f0b46a; }
+.cot-san.cs-cho { background: #fff3e2; border-color: #f0b46a; color: #d27a12; }
+/* Đang chờ: ba chấm nhảy Y HỆT hàng chơi lại cuối ván (ResultDialog .cham) — 20.11.2026 thay ⏳, chủ dự án: "icon chờ hai màn khác nhau" */
+.cham { display: flex; gap: 2.5px; }
+.cham i { width: 4.5px; height: 4.5px; border-radius: 50%; background: currentColor; animation: cham-nay 1.2s infinite ease-in-out; }
+.cham i:nth-child(2) { animation-delay: .15s; }
+.cham i:nth-child(3) { animation-delay: .3s; }
+@keyframes cham-nay { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-3px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cham i { animation: none; opacity: .8; } }
 .cot-san.cs-mang { background: #ffe9e2; border-color: #f19a7c; }
 .cot-san.trong { border: 0; }
 .cot-san.nhay { animation: cs-nhay .5s ease-in-out 5; }

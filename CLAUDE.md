@@ -1540,3 +1540,16 @@ Mockup duyệt: https://claude.ai/artifact/QujXue1p74g1e25fWz8QtP (bục, 1.9.3)
   biệt hoa/dấu). Tên vừa đặt trùng mà người chơi CHƯA sửa → đổi sang tên trống. Mất mạng: giữ tên đã tạo.
 - Hệ quả: "Chơi online → Tạo phòng" đi thẳng (đã có tên); nhánh ô nhập tên chỉ còn khi người chơi tự xoá tên.
   Test soát chữ chưa dịch phải đặt sẵn tên trung tính, không thì tên tiếng Việt tự tạo bị bắt nhầm.
+
+## Online: điểm khách, hộp "bị mời ra", biểu tượng dùng chung (20.11.2026)
+
+- **Ván online cộng `store.addScore(điểm của tôi)`** như ván offline (OnlineGame, nhánh không đội/không máy).
+  Thiếu dòng này thì KHÁCH chơi online không bao giờ lên bảng xếp hạng (`guiKhach` gửi `store.totalScore()`).
+  Đã đăng nhập không cộng đôi: `keoVeMay` chỉ bù phần server − máy.
+- **Bị mời ra / chủ huỷ phòng → `BaoPhongDong.vue`** (hộp thoại 👋/🚪 + "Đã hiểu", mockup A duyệt
+  https://claude.ai/artifact/VviMC13FwDybkzYwXAH5CH) qua `o.phongDong`, KHÔNG đặt `o.error` (ô đỏ đọc như lỗi máy).
+- **`ResultDialog` `khongDu` ≠ `rematchBlocked`**: người XEM bị chặn nút chơi lại nhưng không được báo
+  "Mọi người đã rời" — dòng 🚪 chỉ theo `khongDu` (= hết người kết nối thật).
+- **Biểu tượng dùng chung**: đang chờ = ba chấm nhảy trong vòng cam (phòng chờ `.cot-san.cs-cho` + cuối ván
+  `.cl-ic.cho`); dải báo dùng `ic: 'choiLai'` (↻) / `ic: 'sanSang'` (✋) để vẽ đúng vòng xanh như hai màn đó.
+  Đừng quay lại emoji 🔁 / ✅ / ⏳.

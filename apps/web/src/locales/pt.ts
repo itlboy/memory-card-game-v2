@@ -601,6 +601,13 @@ const pt: TuDien = {
   'or.loi.notReady': 'Ainda não estão prontos: {ten}',
   'or.dong.cancelled': 'O anfitrião fechou a sala.',
   'or.dong.kicked': 'O anfitrião removeu você da sala.',
+  'pd.kicked.tieuDe': 'Você saiu da sala {ma}',
+  'pd.kicked.tieuDeKhongMa': 'Você saiu da sala',
+  'pd.kicked.than': 'O anfitrião removeu você. Entre em outra sala ou crie uma nova.',
+  'pd.cancelled.tieuDe': 'Sala {ma} fechada',
+  'pd.cancelled.tieuDeKhongMa': 'Sala fechada',
+  'pd.cancelled.than': 'O anfitrião fechou a sala. Entre em outra sala ou crie uma nova.',
+  'pd.daHieu': 'Entendi',
   'or.dangVaoLai': 'Desconectado — reconectando…',
   'or.banThuong': 'você',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

@@ -599,6 +599,13 @@ const ko: TuDien = {
   'or.loi.notReady': '아직 준비 안 됨: {ten}',
   'or.dong.cancelled': '방장이 방을 닫았어요.',
   'or.dong.kicked': '방장이 나를 방에서 내보냈어요.',
+  'pd.kicked.tieuDe': '{ma} 방에서 나왔어요',
+  'pd.kicked.tieuDeKhongMa': '방에서 나왔어요',
+  'pd.kicked.than': '방장이 나를 내보냈어요. 다른 방에 들어가거나 새 방을 만들어 보세요.',
+  'pd.cancelled.tieuDe': '{ma} 방이 닫혔어요',
+  'pd.cancelled.tieuDeKhongMa': '방이 닫혔어요',
+  'pd.cancelled.than': '방장이 방을 닫았어요. 다른 방에 들어가거나 새 방을 만들어 보세요.',
+  'pd.daHieu': '확인',
   'or.dangVaoLai': '연결이 끊겼어요 — 다시 연결하는 중…',
   'or.banThuong': '나',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

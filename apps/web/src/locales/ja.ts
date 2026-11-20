@@ -599,6 +599,13 @@ const ja: TuDien = {
   'or.loi.notReady': 'まだ準備ができていません：{ten}',
   'or.dong.cancelled': 'ホストがルームを閉じました。',
   'or.dong.kicked': 'ホストによってルームから退出させられました。',
+  'pd.kicked.tieuDe': 'ルーム {ma} から退出しました',
+  'pd.kicked.tieuDeKhongMa': 'ルームから退出しました',
+  'pd.kicked.than': 'ホストに退出させられました。別のルームに入るか、新しく作りましょう。',
+  'pd.cancelled.tieuDe': 'ルーム {ma} は閉じられました',
+  'pd.cancelled.tieuDeKhongMa': 'ルームは閉じられました',
+  'pd.cancelled.than': 'ホストがルームを閉じました。別のルームに入るか、新しく作りましょう。',
+  'pd.daHieu': 'OK',
   'or.dangVaoLai': '接続が切れました — 再接続中…',
   'or.banThuong': 'あなた',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

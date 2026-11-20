@@ -613,6 +613,13 @@ const vi = {
   'or.loi.notReady': 'Chưa sẵn sàng: {ten}',
   'or.dong.cancelled': 'Chủ phòng đã huỷ phòng.',
   'or.dong.kicked': 'Chủ phòng đã mời bạn ra khỏi phòng.',
+  'pd.kicked.tieuDe': 'Bạn đã rời phòng {ma}',
+  'pd.kicked.tieuDeKhongMa': 'Bạn đã rời phòng',
+  'pd.kicked.than': 'Chủ phòng đã mời bạn ra. Vào phòng khác hoặc tạo phòng mới nhé.',
+  'pd.cancelled.tieuDe': 'Phòng {ma} đã đóng',
+  'pd.cancelled.tieuDeKhongMa': 'Phòng đã đóng',
+  'pd.cancelled.than': 'Chủ phòng đã đóng phòng. Vào phòng khác hoặc tạo phòng mới nhé.',
+  'pd.daHieu': 'Đã hiểu',
   'or.dangVaoLai': 'Mất kết nối — đang vào lại…',
   'or.banThuong': 'bạn',
   /* ---------- hộp chia sẻ phòng (ChiaSeDialog.vue) ---------- */

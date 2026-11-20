@@ -602,6 +602,13 @@ const id: TuDien = {
   'or.loi.notReady': 'Belum siap: {ten}',
   'or.dong.cancelled': 'Host menutup room.',
   'or.dong.kicked': 'Host mengeluarkanmu dari room.',
+  'pd.kicked.tieuDe': 'Kamu keluar dari room {ma}',
+  'pd.kicked.tieuDeKhongMa': 'Kamu keluar dari room',
+  'pd.kicked.than': 'Host mengeluarkanmu. Masuk ke room lain atau buat room baru.',
+  'pd.cancelled.tieuDe': 'Room {ma} ditutup',
+  'pd.cancelled.tieuDeKhongMa': 'Room ditutup',
+  'pd.cancelled.than': 'Host menutup room. Masuk ke room lain atau buat room baru.',
+  'pd.daHieu': 'Mengerti',
   'or.dangVaoLai': 'Terputus — menyambung ulang…',
   'or.banThuong': 'kamu',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */
