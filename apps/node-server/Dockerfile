@@ -8,9 +8,10 @@
 # trong QEMU arm64 là trả giá thuần lỗ: đo trên Action, `pnpm install + build`
 # mất 19s ở amd64 và 164s ở arm64 (8,6×), chiếm nửa thời gian cả pipeline.
 # Ảnh arm64 giờ chỉ COPY dist từ tầng này.
-FROM --platform=$BUILDPLATFORM node:22-alpine AS build
+FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 WORKDIR /app
-RUN corepack enable
+# Node ≥ 25 KHÔNG còn đi kèm corepack → cài từ npm rồi bật (vẫn theo `packageManager` trong package.json)
+RUN npm install -g corepack && corepack enable
 
 # Nạp manifest trước để tận dụng cache lớp: đổi code mà không đổi deps thì
 # không phải cài lại từ đầu.
@@ -50,7 +51,7 @@ RUN mkdir -p /lop/deps /lop/emoji /lop/web \
  && cd apps/web/dist && tar --exclude=./emoji --exclude=./ota -cf - . | tar -xf - -C /lop/web \
  && find /lop /app/apps/node-server/dist -exec touch -d '2026-01-01 00:00:00' {} +
 
-FROM node:22-alpine
+FROM node:26-alpine
 WORKDIR /app
 ENV NODE_ENV=production PORT=8080 WEB_DIR=/app/web
 # `ws` để external nên phải có thật trong ảnh chạy — lấy từ tầng build
