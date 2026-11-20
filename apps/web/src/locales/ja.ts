@@ -112,6 +112,7 @@ const ja: TuDien = {
   'menu.dauMayMo': '1人でも対戦相手がいる！オフラインでも遊べます',
   'menu.online': 'オンライン対戦',
   'menu.onlineMo': 'ルームを作って6桁のコードで友達を招待',
+  'menu.soPhongCho': '待機中のルーム {n}',
   'menu.bot.easy': 'はじめて遊ぶ小さな子にぴったりだよ。',
   'menu.bot.normal': 'ボクに勝てたら、もっと強い相手と戦えるよ。',
   'menu.bot.hard': 'ここからが本番だ。オレに勝てたら本物だぜ。',

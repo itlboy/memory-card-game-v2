@@ -113,6 +113,7 @@ const es: TuDien = {
   'menu.dauMayMo': 'Reta a la máquina — funciona sin internet',
   'menu.online': 'Jugar en línea',
   'menu.onlineMo': 'Crea una sala e invita amigos con un código de 6 dígitos',
+  'menu.soPhongCho': '{n} salas esperando',
   'menu.bot.easy': 'Ideal para los peques que están aprendiendo a jugar.',
   'menu.bot.normal': 'Gáname y desbloquearás rivales más duros.',
   'menu.bot.hard': 'Ahora va en serio. Si me ganas, eres de los buenos.',

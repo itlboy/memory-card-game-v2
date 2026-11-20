@@ -114,6 +114,7 @@ const en: TuDien = {
   'menu.dauMayMo': 'Challenge an AI opponent — works offline, no internet needed',
   'menu.online': 'Play Online',
   'menu.onlineMo': 'Create a room and invite friends with a 6-digit code',
+  'menu.soPhongCho': '{n} rooms waiting',
   'menu.bot.easy': 'Perfect for little ones just learning to play.',
   'menu.bot.normal': 'Beat me to unlock tougher opponents.',
   'menu.bot.hard': 'Now it gets serious. Beat me and you\'re the real deal.',

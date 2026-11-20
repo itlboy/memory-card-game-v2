@@ -1571,3 +1571,9 @@ suspension"), hơn 140 lượt/70 giây; máy kia thấy "mất kết nối / v�
 - `useBaoPhong`: "mất kết nối" chỉ báo sau `CHO_BAO_MANG_MS` (4 giây); "vào lại" chỉ báo khi đã báo "mất".
 - View có `turnPaused` (engine `publicView`, chỉ THÊM) khi server dừng đồng hồ lượt chờ người mất kết nối: client
   giữ nguyên số giây, không coi là "bàn đứng im" (trước đó máy kia đếm về 0 rồi `resync` mỗi 4 giây).
+
+## Số phòng đang chờ trên ô Online (20.11.2026, mockup C https://claude.ai/artifact/C8WqYvu9Fbkz9R16EbkpyA)
+
+`lib/so-phong-cho.ts` `useSoPhongCho()` (gọi trong MenuScreen): hỏi `/api/rooms/public?v=2` lúc trang chủ hiện + mỗi
+20 giây, app nằm nền thì thôi; đếm phòng `!dangChoi && nguoi < toiDa`; 0 = ẩn, ≥10 = "9+". Chấm xanh nhịp + số ở
+góc trên phải ô Online (`.so-phong`, ô có `.o-co-so` để định vị). Không chạy trong test (`MODE === 'test'`).

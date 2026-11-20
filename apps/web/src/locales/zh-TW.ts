@@ -115,6 +115,7 @@ const zhTW: TuDien = {
   'menu.dauMayMo': '挑戰電腦對手，不用連網也能玩',
   'menu.online': '線上對戰',
   'menu.onlineMo': '建立房間，用 6 位數房號邀請好友',
+  'menu.soPhongCho': '{n} 個房間在等待',
   'menu.bot.easy': '專為剛學會玩的小朋友準備喔。',
   'menu.bot.normal': '贏了我，就能解鎖更強的對手。',
   'menu.bot.hard': '要來真的囉。贏得了我，你才是真高手。',
