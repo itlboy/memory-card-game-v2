@@ -1470,8 +1470,10 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
 - **`POST /api/bxh { khach }`** trả `top` (20, gộp tài khoản + khách còn chơi trong 60 ngày) và `toi`
   (hạng, tổng người, người ngay trên/dưới). Mã khách đi trong THÂN, không lên URL/log. GET cũ vẫn chạy.
 - **Đăng nhập** → `dongBo` gửi kèm mã khách, server xoá dòng khách; máy đặt `daGop` nên đăng xuất ra
-  không thành dòng thứ hai. **"Ẩn tôi khỏi bảng"** (`anKhach`) xoá dòng + thôi gửi — chính sách
-  quyền riêng tư `pv.s2d` hứa nút này, đừng bỏ.
+  không thành dòng thứ hai. **"Ẩn tôi khỏi bảng"** (`anKhach`) từ 20.11.2026 CHỈ ẨN (cột
+  `guest_scores.hidden`), KHÔNG xoá — chủ dự án: "ẩn thôi ko xóa, sau họ thích thì cho họ hiện lại". Máy đang ẩn vẫn
+  gửi điểm kèm `an: true` (điểm + điểm tuần tích tiếp), "Hiện lại" là về bảng đủ điểm. Mọi truy vấn bảng chung lọc
+  `hidden = 0`. `/api/khach/xoa` (tên cũ, app cũ còn gọi) nay chỉ bật cờ ẩn. `pv.s2d` đã sửa theo (15 ngôn ngữ).
 - **Bảng GỌN** (mockup duyệt https://claude.ai/artifact/4SQdKfUtpcCdbsGvRZK7sH — chủ dự án: "nhiều chữ giải thích
   quá"): KHÔNG thẻ vàng "Hạng của bạn trong N người…", KHÔNG chữ "x/y thắng" (chỉ còn nhãn ẩn), ngoài top chỉ
   ghim người ngay TRÊN + mình, khách chỉ còn nút "Đăng nhập để giữ hạng" + link "Đổi tên · Ẩn tôi". Đừng thêm
@@ -1491,6 +1493,29 @@ Mockup duyệt: https://claude.ai/artifact/CYPTEG9edvmDEgEGFuEnzy
   Câu đếm hạng `total_score > ?` đi range trên `idx_*_score`. SQL tài khoản/bảng KHÔNG được CI chạy (docker.yml có MySQL nhưng
   thiếu GOOGLE_CLIENT_ID → "tài khoản: TẮT"): đổi SQL thì chạy `tools/smoke-taikhoan.mjs` tay với MYSQL_URL, hoặc
   thử trên production bằng mã khách 0 ván (không lên bảng công khai) rồi `/api/khach/xoa`.
+
+## Bảng xếp hạng: bục top 3 + xếp hạng tuần (20.11.2026)
+
+Mockup duyệt: https://claude.ai/artifact/QujXue1p74g1e25fWz8QtP (bục, 1.9.3) và https://claude.ai/artifact/WqxQ9L7SgMRzERfoqkCgxP (tuần).
+- **Bục top 3** (thứ tự 2·1·3, mặt thú trần không vòng tròn, 👑 hạng 1) + hạt vàng bốc lên (`HAT` cố định, tắt
+  khi giảm chuyển động). Số điểm: Baloo 2 + `tabular-nums`, cột ≥ 7ch canh phải, kèm đồng xu nhỏ. Bảng CHỈ cuộn
+  dọc (`.body overflow-x: hidden` — hạt bay từng làm kéo ngang được, 1.9.4).
+- **Hai tab "Tuần" (mặc định) / "Mọi lúc"**. Tuần = thứ Hai 00:00 **UTC** (chủ dự án chọn UTC; = 7h sáng thứ Hai
+  giờ VN). Bảng MySQL `weekly_scores (week_start, is_guest, player)` — mỗi người mỗi tuần một dòng, KHÔNG BAO GIỜ
+  xoá tuần cũ = lịch sử (‹ › xem tuần trước). Không khoá ngoại → xoá tài khoản tự `DELETE` dòng tuần; đăng nhập
+  (`dongbo`) chuyển dòng tuần của khách sang tài khoản TỪNG DÒNG (`INSERT … SELECT` chính bảng + ON DUPLICATE thì
+  MariaDB báo cột mơ hồ — đã thử).
+- **Ghi điểm tuần** (`congTuan`): tài khoản = điểm từng ván (`/api/me/van`); khách = phần CHÊNH tổng so với lần gửi
+  trước, lần gửi đầu chỉ tính tối đa 1 ván (không mang kho điểm cũ vào top tuần). Điểm đồng bộ lúc đăng nhập
+  (`GREATEST`) KHÔNG tính vào tuần.
+- **Hạng trên viên xu vẫn là Mọi lúc** — chỉ tab Mọi lúc gọi `ghiHang`. "Bảng lần trước" lưu riêng `mm.bxh` /
+  `mm.bxhTuan` (tuần đã chốt thì bỏ); xem tuần cũ không lưu.
+- **3 người chót kèm số thứ tự** (`cuoi`, cả hai tab — chủ dự án: "cho người khác hiểu bao nhiêu người là đủ"),
+  sau `···`. **Luôn hiện vị trí của mình**: ngoài top + 3 chót thì ghim; tuần chưa có điểm thì dòng mình hạng "–".
+- Dòng nhỏ dưới tên tuần: "còn 3 ngày" / ngày cuối "còn 5 giờ" (chủ dự án: "hiển thị đơn giản hơn"). KHÔNG có
+  chữ "Đã chốt", KHÔNG dòng "Bạn về hạng X" ở tuần cũ (chủ dự án bỏ). Đầu tuần trống → 🏁 + "Chơi ngay".
+- API: `POST /api/bxh { khach, loai: 'tuan', tuan? }` → `{ top, cuoi, toi, tuan: { batDau, het, nay, coTruoc } }`;
+  không `loai` = Mọi lúc (app cũ). Cache tuần đang chạy 30 giây, tuần cũ 10 phút.
 
 ## Ảnh chia sẻ kết quả = bảng tỷ số (19.11.2026)
 

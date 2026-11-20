@@ -44,7 +44,7 @@ describe('client: khách trên bảng', () => {
     expect(than).toMatchObject({ id: store.khach(false)!.id, name: 'Bông', totalScore: 500, wins: 1, matches: 1 });
   });
 
-  it('đã ẩn khỏi bảng thì thôi gửi; bảng xếp hạng không mang mã khách', async () => {
+  it('ẩn khỏi bảng = gửi cờ an (không xoá); bảng xếp hạng không mang mã khách', async () => {
     const f = vi.fn(async (u: string) => u.endsWith('/api/auth/config') ? json({ googleClientId: 'x' }) : json({ ok: true, top: [] }));
     vi.stubGlobal('fetch', f);
     const tk = await import('@/lib/taikhoan');
@@ -52,10 +52,11 @@ describe('client: khách trên bảng', () => {
     store.addScore(100);
     store.khach();
     await tk.anKhach(true);
-    expect(f.mock.calls.some(([u]) => String(u).endsWith('/api/khach/xoa'))).toBe(true);
+    const an = f.mock.calls.find(([u]) => String(u).endsWith('/api/khach'))!;
+    expect(JSON.parse(String((an[1] as RequestInit).body))).toMatchObject({ an: true, totalScore: 100 });
+    expect(f.mock.calls.some(([u]) => String(u).endsWith('/api/khach/xoa'))).toBe(false);
     f.mockClear();
     await tk.bangXepHang();
-    expect(f.mock.calls.some(([u]) => String(u).endsWith('/api/khach'))).toBe(false);
     const bxh = f.mock.calls.find(([u]) => String(u).endsWith('/api/bxh'))!;
     expect(JSON.parse(String((bxh[1] as RequestInit).body)).khach).toBeUndefined();
   });
@@ -188,7 +189,7 @@ describe('bảng xếp hạng mở nhanh (19.11.2026)', () => {
     expect(f.mock.calls.filter(([u]) => String(u).endsWith('/api/khach')).length).toBe(1);
     expect(tk.bxhLanTruoc()?.top[0]?.name).toBe('A');
     const src = goc('src/components/BangXepHang.vue');
-    expect(src).toMatch(/ref<BangXh \| null>\(bxhLanTruoc\(\)\)/);
+    expect(src).toMatch(/ref<BangXh \| null>\(bxhLanTruoc\('tuan'\)\)/);
     expect(src).toContain('class="bxh xuong"');
   });
 });
@@ -325,5 +326,58 @@ describe('bộ mặt bảng xếp hạng (20.11.2026)', () => {
     expect(MAT_BXH).toHaveLength(49);
     expect(new Set(MAT_BXH).size).toBe(49);
     for (const x of ['🐣', '🐥', '🐲', '🐉', '🫎', '🪿', '🪼']) expect(MAT_BXH).not.toContain(x);
+  });
+});
+
+describe('xếp hạng tuần (20.11.2026)', () => {
+  beforeEach(() => { localStorage.clear(); vi.resetModules(); });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('tuần bắt đầu thứ Hai 00:00 UTC; tuần client xin phải là thứ Hai, không ở tương lai', async () => {
+    const { dauTuan, hetTuan, tuanHopLe } = await import('../../node-server/src/taikhoan');
+    expect(dauTuan(Date.parse('2026-11-20T10:00:00Z'))).toBe('2026-11-16');   // thứ Năm
+    expect(dauTuan(Date.parse('2026-11-22T23:59:59Z'))).toBe('2026-11-16');   // CN cuối tuần
+    expect(dauTuan(Date.parse('2026-11-23T00:00:00Z'))).toBe('2026-11-23');   // thứ Hai
+    // 23:30 CN giờ UTC = 6:30 sáng thứ Hai giờ VN: vẫn tuần cũ
+    expect(dauTuan(Date.parse('2026-11-22T23:30:00Z'))).toBe('2026-11-16');
+    expect(hetTuan('2026-11-16')).toBe(Date.parse('2026-11-23T00:00:00Z'));
+    const now = Date.parse('2026-11-20T10:00:00Z');
+    expect(tuanHopLe('2026-11-09', now)).toBe('2026-11-09');
+    expect(tuanHopLe('2026-11-10', now)).toBe('2026-11-16');   // không phải thứ Hai
+    expect(tuanHopLe('2026-11-23', now)).toBe('2026-11-16');   // tương lai
+    expect(tuanHopLe("x' OR 1", now)).toBe('2026-11-16');
+  });
+
+  it('server: ẩn khách chỉ bật cờ, không xoá; mọi truy vấn bảng chung bỏ khách đang ẩn', () => {
+    const sv = goc('../node-server/src/taikhoan.ts');
+    expect(sv).toMatch(/UPDATE guest_scores SET hidden = 1/);
+    expect(sv).not.toMatch(/DELETE FROM guest_scores WHERE guest_hash = \?', \[ma\]\);\n\s*json\(res, \{ ok: true \}\)/);
+    for (const m of sv.matchAll(/FROM guest_scores WHERE ([^`']*)/g)) {
+      if (/total_score|matches > 0/.test(m[1]!)) expect(m[1]).toMatch(/hidden = 0/);
+    }
+  });
+
+  it('server: mỗi ván / mỗi lần khách gửi điểm đều cộng vào tuần; xoá tài khoản dọn luôn bảng tuần', () => {
+    const sv = goc('../node-server/src/taikhoan.ts');
+    expect(sv).toMatch(/congTuan\(false, String\(uid\), van\.score/);
+    expect(sv).toMatch(/congTuan\(true, ma,/);
+    expect(sv).toMatch(/DELETE FROM weekly_scores WHERE is_guest = 0 AND player = \?/);
+    expect(sv).toMatch(/CREATE TABLE IF NOT EXISTS weekly_scores/);
+  });
+
+  it('app: bảng tuần là tab mặc định; chỉ tab Mọi lúc ghi hạng viên xu', () => {
+    const v = goc('src/components/BangXepHang.vue');
+    expect(v).toMatch(/const loai = ref<LoaiBxh>\('tuan'\)/);
+    expect(v).toMatch(/if \(l === 'tat'\) ghiHang\(b\)/);
+  });
+
+  it('app: hỏi bảng tuần gửi loai=tuan (+ tuần cũ nếu xem lịch sử)', async () => {
+    const f = vi.fn(async (u: string) => u.endsWith('/api/auth/config') ? json({ googleClientId: 'x' }) : json({ ok: true, top: [] }));
+    vi.stubGlobal('fetch', f);
+    const tk = await import('@/lib/taikhoan');
+    await tk.khoiDong();
+    await tk.bangXepHang('tuan', '2026-11-09');
+    const bxh = f.mock.calls.find(([u]) => String(u).endsWith('/api/bxh'))!;
+    expect(JSON.parse(String((bxh[1] as RequestInit).body))).toMatchObject({ loai: 'tuan', tuan: '2026-11-09' });
   });
 });

@@ -1163,8 +1163,9 @@ Khớp với `apps/web/public/privacy.html`:
 - **Từ 1.8.31 (khách trên bảng xếp hạng)**: máy CHƯA đăng nhập gửi mã khách ngẫu nhiên (server chỉ giữ
   băm SHA-256), biệt danh, tổng điểm, số ván/thắng — hiện công khai trên bảng. Đoạn `pv.s2d` (duyệt
   19.11.2026, 15 ngôn ngữ). Khai lại: Play Data safety → "Personal info › Name" (biệt danh) + "App
-  activity › Other actions" / "Game progress" (điểm) — App functionality, không chia sẻ, xoá được
-  ("Ẩn tôi khỏi bảng"). Mã khách ngẫu nhiên nằm chung hàng "Device or other IDs" đã có. Apple App
+  activity › Other actions" / "Game progress" (điểm) — App functionality, không chia sẻ. Từ 20.11.2026 "Ẩn tôi khỏi bảng" chỉ ẨN (giữ
+  điểm, hiện lại được) và điểm từng tuần được lưu làm lịch sử (`pv.s2d` đã sửa) — khi khai lại Data safety, mục
+  "người dùng yêu cầu xoá" của dữ liệu khách đi qua email hỗ trợ, không còn nút xoá trong app. Mã khách ngẫu nhiên nằm chung hàng "Device or other IDs" đã có. Apple App
   Privacy: thêm "Gameplay Content"/"Other User Content" (biệt danh) + "Product Interaction" nếu soát
   thấy thiếu — không gắn danh tính, không tracking.
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).

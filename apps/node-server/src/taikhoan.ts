@@ -93,6 +93,23 @@ export const TAO_BANG_TAI_KHOAN = [
      updated_at  BIGINT       NOT NULL DEFAULT 0,
      INDEX idx_guest_scores_score (total_score)
    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+  /*
+   * XẾP HẠNG TUẦN (20.11.2026, mockup duyệt https://claude.ai/artifact/WqxQ9L7SgMRzERfoqkCgxP): mỗi người mỗi tuần một
+   * dòng — điểm KIẾM ĐƯỢC trong tuần đó. Tuần = thứ Hai 00:00 UTC (`week_start`). Dòng tuần cũ không bao giờ xoá →
+   * chính là lịch sử các tuần. `player` = users.id (dạng chuỗi) hoặc guest_scores.guest_hash. Không có khoá ngoại
+   * (một cột trỏ hai bảng) → xoá tài khoản / gộp khách phải tự dọn ở đây.
+   */
+  `CREATE TABLE IF NOT EXISTS weekly_scores (
+     week_start DATE        NOT NULL,
+     is_guest   TINYINT     NOT NULL,
+     player     VARCHAR(64) NOT NULL,
+     score      BIGINT      NOT NULL DEFAULT 0,
+     wins       INT         NOT NULL DEFAULT 0,
+     matches    INT         NOT NULL DEFAULT 0,
+     updated_at BIGINT      NOT NULL DEFAULT 0,
+     PRIMARY KEY (week_start, is_guest, player),
+     INDEX idx_weekly_rank (week_start, score)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
   `CREATE TABLE IF NOT EXISTS user_best (
      user_id   BIGINT      NOT NULL,
      board_key VARCHAR(32) NOT NULL,
@@ -288,6 +305,23 @@ export function ghepTop(ds: Record<string, unknown>[], toi?: Record<string, unkn
   return kq.sort((a, b) => Number(b.total_score) - Number(a.total_score) || Number(b.wins) - Number(a.wins)).slice(0, 20);
 }
 
+/** Thứ Hai 00:00 UTC của tuần chứa `now`, dạng 'YYYY-MM-DD'. */
+export function dauTuan(now: number): string {
+  const d = new Date(now);
+  const lui = (d.getUTCDay() + 6) % 7;   // CN=0 → lùi 6 ngày
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - lui)).toISOString().slice(0, 10);
+}
+/** Mốc kết thúc (ms) của tuần bắt đầu `tuan` = thứ Hai tuần sau 00:00 UTC. */
+export const hetTuan = (tuan: string): number => Date.parse(`${tuan}T00:00:00Z`) + 7 * 86_400_000;
+/** Tuần client xin xem: phải là một thứ Hai hợp lệ, không ở tương lai; sai thì về tuần hiện tại. */
+export function tuanHopLe(v: unknown, now: number): string {
+  const nay = dauTuan(now);
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return nay;
+  const t = Date.parse(`${v}T00:00:00Z`);
+  if (!Number.isFinite(t) || dauTuan(t) !== v || v > nay) return nay;
+  return v;
+}
+
 export const KHACH_HET_HAN_MS = 60 * 24 * 60 * 60 * 1000;
 /**
  * Mặt thú trên bảng: tài khoản theo id, khách theo mã băm — ổn định giữa các lần mở.
@@ -421,6 +455,14 @@ export async function moTaiKhoan(
   }
   for (const cau of TAO_BANG_TAI_KHOAN) await pool.query(cau);
   await pool.query('ALTER TABLE users MODIFY google_sub VARCHAR(64) NULL');
+  /*
+   * "Ẩn tôi" (20.11.2026, chủ dự án: "ẩn thôi ko xóa, sau họ thích thì cho họ hiện lại"): trước đây XOÁ dòng khách,
+   * nay chỉ bật `hidden` — điểm + lịch sử tuần còn nguyên, bấm "Hiện lại" là về bảng.
+   */
+  const [coAn] = await pool.query(
+    `SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'guest_scores' AND column_name = 'hidden'`
+  );
+  if (!(coAn as unknown[]).length) await pool.query('ALTER TABLE guest_scores ADD COLUMN hidden TINYINT NOT NULL DEFAULT 0');
   for (const [cot, cau] of NANG_CAP_USERS) {
     const [co] = await pool.query(
       `SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = ?`, [cot]
@@ -515,7 +557,16 @@ export async function moTaiKhoan(
    */
   const COT_U = "CAST(id AS CHAR) AS k, 0 AS la_khach, name, total_score, wins, matches";
   const COT_K = "guest_hash AS k, 1 AS la_khach, name, total_score, wins, matches";
-  let bxhCache: { luc: number; top: Record<string, unknown>[]; tong: number } | null = null;
+  let bxhCache: { luc: number; top: Record<string, unknown>[]; tong: number; cuoi: Record<string, unknown>[] } | null = null;
+  /** 3 người CHÓT (hạng tong-2..tong), xếp giảm dần — chủ dự án 20.11.2026: nhìn là biết bảng có bao nhiêu người. */
+  const baCuoi = (ds: Record<string, unknown>[]) =>
+    ds.sort((a, b) => Number(a.total_score) - Number(b.total_score) || Number(a.wins) - Number(b.wins)).slice(0, 3).reverse();
+  /** Gắn hạng cho 3 người chót, chỉ giữ những ai nằm DƯỚI top đang hiện (không lặp dòng). */
+  function cuoiCongKhai(cuoi: Record<string, unknown>[], tong: number, soTop: number, k: string | null, laKhach: boolean) {
+    return cuoi.map((r, i) => ({ r, hang: tong - (cuoi.length - 1 - i) }))
+      .filter((x) => x.hang > soTop)
+      .map(({ r, hang }) => ({ ...dongCongKhai(r), hang, toi: k !== null && String(r.k) === k && (Number(r.la_khach) === 1) === laKhach }));
+  }
   function dongCongKhai(r: Record<string, unknown>) {
     const khach = Number(r.la_khach) === 1, k = String(r.k);
     const ten = khach ? String(r.name ?? '') : tenTat(String(r.name ?? ''));
@@ -529,13 +580,15 @@ export async function moTaiKhoan(
     if (bxhCache && now - bxhCache.luc < BXH_CACHE_MS) return bxhCache;
     const tu = now - KHACH_HET_HAN_MS;
     // Lấy dư 5 dòng mỗi bảng: index chỉ có total_score, hoà điểm thì xếp tiếp theo wins trong code
-    const [[u], [kh], [[du]], [[dk]]] = await Promise.all([
+    const [[u], [kh], [[du]], [[dk]], [cu1], [cu2]] = await Promise.all([
       pool!.query(`SELECT ${COT_U} FROM users WHERE matches > 0 ORDER BY total_score DESC LIMIT 25`),
-      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE matches > 0 AND updated_at > ? ORDER BY total_score DESC LIMIT 25`, [tu]),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE matches > 0 AND hidden = 0 AND updated_at > ? ORDER BY total_score DESC LIMIT 25`, [tu]),
       pool!.query('SELECT COUNT(*) AS n FROM users WHERE matches > 0'),
-      pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE matches > 0 AND updated_at > ?', [tu]),
-    ]) as unknown as [[Record<string, unknown>[]], [Record<string, unknown>[]], [[{ n: number }]], [[{ n: number }]]];
-    bxhCache = { luc: now, top: ghepTop([...u, ...kh]), tong: Number(du.n) + Number(dk.n) };
+      pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE matches > 0 AND hidden = 0 AND updated_at > ?', [tu]),
+      pool!.query(`SELECT ${COT_U} FROM users WHERE matches > 0 ORDER BY total_score ASC LIMIT 3`),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE matches > 0 AND hidden = 0 AND updated_at > ? ORDER BY total_score ASC LIMIT 3`, [tu]),
+    ]) as unknown as [[Record<string, unknown>[]], [Record<string, unknown>[]], [[{ n: number }]], [[{ n: number }]], [Record<string, unknown>[]], [Record<string, unknown>[]]];
+    bxhCache = { luc: now, top: ghepTop([...u, ...kh]), tong: Number(du.n) + Number(dk.n), cuoi: baCuoi([...cu1, ...cu2]) };
     return bxhCache;
   }
   async function bangXepHang(uid: number | null, ma: string | null, now: number) {
@@ -543,22 +596,23 @@ export async function moTaiKhoan(
     const chung = await topVaTong(now);
     const [mine] = uid !== null
       ? await pool!.query(`SELECT ${COT_U} FROM users WHERE id = ?`, [uid])
-      : ma ? await pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE guest_hash = ?`, [ma]) : [[]];
+      : ma ? await pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE guest_hash = ? AND hidden = 0`, [ma]) : [[]];
     const m = (mine as Record<string, unknown>[])[0];
     const coMat = !!m && Number(m.matches) > 0;
     const k = m ? String(m.k) : null, laKhach = m ? Number(m.la_khach) === 1 : false;
     const top = ghepTop(chung.top, coMat ? m : undefined, k, laKhach)
       .map((r) => ({ ...dongCongKhai(r), toi: k !== null && String(r.k) === k && (Number(r.la_khach) === 1) === laKhach }));
-    if (!m) return { top };
+    const cuoi = cuoiCongKhai(chung.cuoi, chung.tong, top.length, k, laKhach);
+    if (!m) return { top, cuoi };
 
     const diem = Number(m.total_score);
     const [[[tu1]], [[tk1]], [tren1], [tren2], [duoi1], [duoi2]] = await Promise.all([
       pool!.query('SELECT COUNT(*) AS n FROM users WHERE total_score > ? AND matches > 0', [diem]),
-      pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE total_score > ? AND matches > 0 AND updated_at > ?', [diem, tu]),
+      pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE total_score > ? AND matches > 0 AND hidden = 0 AND updated_at > ?', [diem, tu]),
       pool!.query(`SELECT ${COT_U} FROM users WHERE total_score > ? AND matches > 0 ORDER BY total_score ASC LIMIT 1`, [diem]),
-      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE total_score > ? AND matches > 0 AND updated_at > ? ORDER BY total_score ASC LIMIT 1`, [diem, tu]),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE total_score > ? AND matches > 0 AND hidden = 0 AND updated_at > ? ORDER BY total_score ASC LIMIT 1`, [diem, tu]),
       pool!.query(`SELECT ${COT_U} FROM users WHERE total_score <= ? AND matches > 0 AND NOT (id = ? AND ? = 0) ORDER BY total_score DESC LIMIT 1`, [diem, k, laKhach ? 1 : 0]),
-      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE total_score <= ? AND matches > 0 AND updated_at > ? AND NOT (guest_hash = ? AND ? = 1) ORDER BY total_score DESC LIMIT 1`, [diem, tu, k, laKhach ? 1 : 0]),
+      pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE total_score <= ? AND matches > 0 AND hidden = 0 AND updated_at > ? AND NOT (guest_hash = ? AND ? = 1) ORDER BY total_score DESC LIMIT 1`, [diem, tu, k, laKhach ? 1 : 0]),
     ]) as unknown as [[[{ n: number }]], [[{ n: number }]], [Record<string, unknown>[]], [Record<string, unknown>[]], [Record<string, unknown>[]], [Record<string, unknown>[]]];
     const hang = Number(tu1.n) + Number(tk1.n) + 1;
     // Tổng lấy từ cache (trễ ≤30s) — nhưng không bao giờ nhỏ hơn hạng của chính mình; chưa chơi ván nào
@@ -567,13 +621,82 @@ export async function moTaiKhoan(
     const tren = [...tren1, ...tren2].sort((a, b) => Number(a.total_score) - Number(b.total_score))[0];
     const duoi = [...duoi1, ...duoi2].sort((a, b) => Number(b.total_score) - Number(a.total_score))[0];
     return {
-      top,
+      top, cuoi,
       toi: {
         hang, tong, ...dongCongKhai(m),
         tren: tren ? { ...dongCongKhai(tren), hang: hang - 1 } : null,
         duoi: duoi ? { ...dongCongKhai(duoi), hang: hang + 1 } : null
       }
     };
+  }
+
+  /*
+   * BẢNG TUẦN. Dòng tuần chỉ có điểm; tên lấy từ users / guest_scores lúc đọc (đổi tên là đổi cả tuần cũ), khách
+   * đang ẩn thì không hiện. Cache theo tuần: tuần đang chạy 30 giây như bảng Mọi lúc, tuần cũ đã đứng yên → 10 phút.
+   */
+  const TU_TUAN = `FROM weekly_scores w
+     LEFT JOIN users u ON w.is_guest = 0 AND u.id = CAST(w.player AS UNSIGNED)
+     LEFT JOIN guest_scores g ON w.is_guest = 1 AND g.guest_hash = w.player
+     WHERE w.week_start = ? AND w.matches > 0 AND ((w.is_guest = 0 AND u.id IS NOT NULL) OR (w.is_guest = 1 AND g.hidden = 0))`;
+  const COT_TUAN = "w.player AS k, w.is_guest AS la_khach, COALESCE(u.name, g.name, '') AS name, w.score AS total_score, w.wins, w.matches";
+  const tuanCache = new Map<string, { luc: number; top: Record<string, unknown>[]; tong: number; cuoi: Record<string, unknown>[]; coTruoc: boolean }>();
+  async function topTuan(tuan: string, now: number) {
+    const c = tuanCache.get(tuan);
+    if (c && now - c.luc < (tuan === dauTuan(now) ? BXH_CACHE_MS : 600_000)) return c;
+    const [[top], [[dem]], [cuoi], [truoc]] = await Promise.all([
+      pool!.query(`SELECT ${COT_TUAN} ${TU_TUAN} ORDER BY w.score DESC LIMIT 25`, [tuan]),
+      pool!.query(`SELECT COUNT(*) AS n ${TU_TUAN}`, [tuan]),
+      pool!.query(`SELECT ${COT_TUAN} ${TU_TUAN} ORDER BY w.score ASC LIMIT 3`, [tuan]),
+      pool!.query('SELECT 1 FROM weekly_scores WHERE week_start < ? LIMIT 1', [tuan]),
+    ]) as unknown as [[Record<string, unknown>[]], [[{ n: number }]], [Record<string, unknown>[]], [unknown[]]];
+    const v = { luc: now, top: ghepTop(top), tong: Number(dem.n), cuoi: baCuoi(cuoi), coTruoc: truoc.length > 0 };
+    if (tuanCache.size > 60) tuanCache.clear();
+    tuanCache.set(tuan, v);
+    return v;
+  }
+  async function bangTuan(uid: number | null, ma: string | null, tuan: string, now: number) {
+    const chung = await topTuan(tuan, now);
+    const tuanInfo = { batDau: tuan, het: hetTuan(tuan), nay: tuan === dauTuan(now), coTruoc: chung.coTruoc };
+    // Người đang xem: dòng tuần (nếu có) + tên/mặt từ bảng gốc. Khách đang ẩn = không có trên bảng.
+    const goc = uid !== null
+      ? (await pool!.query(`SELECT ${COT_U} FROM users WHERE id = ?`, [uid]))[0] as Record<string, unknown>[]
+      : ma ? (await pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE guest_hash = ? AND hidden = 0`, [ma]))[0] as Record<string, unknown>[] : [];
+    const g = goc[0];
+    const k = g ? String(g.k) : null, laKhach = g ? Number(g.la_khach) === 1 : false;
+    let m: Record<string, unknown> | undefined;
+    if (g) {
+      const [r] = await pool!.query('SELECT score, wins, matches FROM weekly_scores WHERE week_start = ? AND is_guest = ? AND player = ?', [tuan, laKhach ? 1 : 0, k]);
+      const w = (r as Record<string, unknown>[])[0];
+      m = { ...g, total_score: w ? Number(w.score) : 0, wins: w ? Number(w.wins) : 0, matches: w ? Number(w.matches) : 0 };
+    }
+    const coMat = !!m && Number(m.matches) > 0;
+    const top = ghepTop(chung.top, coMat ? m : undefined, k, laKhach)
+      .map((r) => ({ ...dongCongKhai(r), toi: k !== null && String(r.k) === k && (Number(r.la_khach) === 1) === laKhach }));
+    const tong = chung.tong;
+    const cuoi = cuoiCongKhai(chung.cuoi, tong, top.length, k, laKhach);
+    if (!m) return { top, cuoi, tuan: tuanInfo };
+    // Chưa có điểm tuần này: vẫn hiện dòng mình (chủ dự án: "luôn phải hiện vị trí người chơi hiện tại"), hạng trống
+    if (!coMat) return { top, cuoi, tuan: tuanInfo, toi: { hang: null, tong, ...dongCongKhai(m), tren: null, duoi: null } };
+    const diem = Number(m.total_score);
+    const [[[tren1]], [tren]] = await Promise.all([
+      pool!.query(`SELECT COUNT(*) AS n ${TU_TUAN} AND w.score > ?`, [tuan, diem]),
+      pool!.query(`SELECT ${COT_TUAN} ${TU_TUAN} AND w.score > ? ORDER BY w.score ASC LIMIT 1`, [tuan, diem]),
+    ]) as unknown as [[[{ n: number }]], [Record<string, unknown>[]]];
+    const hang = Number(tren1.n) + 1;
+    const tren0 = tren[0];
+    return {
+      top, cuoi, tuan: tuanInfo,
+      toi: { hang, tong: Math.max(hang, tong), ...dongCongKhai(m), tren: tren0 ? { ...dongCongKhai(tren0), hang: hang - 1 } : null, duoi: null }
+    };
+  }
+  /** Cộng điểm một ván (hoặc phần chênh của khách) vào dòng tuần hiện tại. */
+  async function congTuan(laKhach: boolean, player: string, diem: number, thang: number, van: number, now: number): Promise<void> {
+    if (diem <= 0 && van <= 0) return;
+    await pool!.execute(
+      `INSERT INTO weekly_scores (week_start, is_guest, player, score, wins, matches, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE score = score + VALUES(score), wins = wins + VALUES(wins), matches = matches + VALUES(matches), updated_at = VALUES(updated_at)`,
+      [dauTuan(now), laKhach ? 1 : 0, player, Math.max(0, diem), Math.max(0, thang), Math.max(0, van), now]
+    );
   }
 
   function uidTu(req: IncomingMessage, now: number): number | null {
@@ -649,8 +772,10 @@ export async function moTaiKhoan(
          * GET (bản app cũ): chỉ top. POST `{ khach }`: thêm `toi` = hạng của người đang xem
          * (tài khoản qua phiên, hoặc khách qua mã) — mã khách đi trong THÂN, không lên URL/log.
          */
-        const than = req.method === 'POST' ? await docThan(req) as { khach?: unknown } | null : null;
-        json(res, await bangXepHang(uidTu(req, now), maKhach(than?.khach), now));
+        const than = req.method === 'POST' ? await docThan(req) as { khach?: unknown; loai?: unknown; tuan?: unknown } | null : null;
+        json(res, than?.loai === 'tuan'
+          ? await bangTuan(uidTu(req, now), maKhach(than?.khach), tuanHopLe(than?.tuan, now), now)
+          : await bangXepHang(uidTu(req, now), maKhach(than?.khach), now));
         return true;
       }
 
@@ -678,23 +803,32 @@ export async function moTaiKhoan(
         const ma = maKhach(than?.id);
         if (!than || !ma) { json(res, { error: 'Mã khách không hợp lệ' }, 400); return true; }
         const [rows] = await pool!.query('SELECT total_score, wins, matches, updated_at FROM guest_scores WHERE guest_hash = ?', [ma]);
+        // `an` (app ≥ 1.9.5): khách đang ẩn vẫn gửi điểm (ẩn chứ không mất); bản cũ không gửi trường này = đang hiện
         const r = (rows as Record<string, unknown>[])[0];
         const cu: DongKhach | null = r ? { total: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches), updatedAt: Number(r.updated_at) } : null;
         const d = locDiemKhach(than, cu, now);
         await pool!.execute(
-          `INSERT INTO guest_scores (guest_hash, name, total_score, wins, matches, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO guest_scores (guest_hash, name, total_score, wins, matches, created_at, updated_at, hidden) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
            ON DUPLICATE KEY UPDATE name = VALUES(name), total_score = VALUES(total_score), wins = VALUES(wins),
-             matches = VALUES(matches), updated_at = VALUES(updated_at)`,
-          [ma, locTen(than.name), d.total, d.wins, d.matches, now, now]
+             matches = VALUES(matches), updated_at = VALUES(updated_at), hidden = VALUES(hidden)`,
+          [ma, locTen(than.name), d.total, d.wins, d.matches, now, now, than.an === true ? 1 : 0]
         );
+        /*
+         * Điểm tuần của khách = phần CHÊNH so với lần gửi trước (máy gửi tổng). Lần gửi đầu tiên: máy có thể đã tích
+         * điểm từ trước khi có bảng → chỉ tính tối đa một ván, không ai mang cả kho điểm cũ vào top tuần.
+         */
+        await congTuan(true, ma,
+          cu ? d.total - cu.total : Math.min(d.total, DIEM_TOI_DA),
+          cu ? d.wins - cu.wins : Math.min(d.wins, 1),
+          cu ? d.matches - cu.matches : Math.min(d.matches, 1), now);
         json(res, { ok: true });
         return true;
       }
 
-      /* Khách tự xoá mình khỏi bảng (nút trong hộp Bảng xếp hạng — chính sách quyền riêng tư hứa điều này). */
+      /* Khách ẩn mình khỏi bảng (nút "Ẩn tôi"). Tên đường giữ nguyên cho app cũ; từ 20.11.2026 chỉ ẨN, không xoá. */
       if (p === '/api/khach/xoa' && req.method === 'POST') {
         const ma = maKhach((await docThan(req) as { id?: unknown } | null)?.id);
-        if (ma) await pool!.execute('DELETE FROM guest_scores WHERE guest_hash = ?', [ma]);
+        if (ma) await pool!.execute('UPDATE guest_scores SET hidden = 1 WHERE guest_hash = ?', [ma]);
         json(res, { ok: true });
         return true;
       }
@@ -719,6 +853,7 @@ export async function moTaiKhoan(
         const [rows] = await pool!.query('SELECT apple_refresh, apple_client FROM users WHERE id = ?', [uid]);
         const u = (rows as { apple_refresh: string | null; apple_client: string | null }[])[0];
         await pool!.execute('DELETE FROM users WHERE id = ?', [uid]);
+        await pool!.execute('DELETE FROM weekly_scores WHERE is_guest = 0 AND player = ?', [String(uid)]);
         if (u?.apple_refresh && u.apple_client) await thuHoiApple(u.apple_refresh, u.apple_client, now);
         json(res, { ok: true });
         return true;
@@ -733,6 +868,7 @@ export async function moTaiKhoan(
           `UPDATE users SET total_score = total_score + ?, matches = matches + 1, \`${cot}\` = \`${cot}\` + 1 WHERE id = ?`,
           [van.score, uid]
         );
+        await congTuan(false, String(uid), van.score, van.ketQua === 'thang' ? 1 : 0, 1, now);
         const best = van.boardKey && van.ketQua === 'thang'
           ? { [van.boardKey]: { score: van.score, moves: van.moves ?? 0, seconds: van.seconds ?? 0 } }
           : {};
@@ -758,7 +894,21 @@ export async function moTaiKhoan(
         await ghiKyLucVaDanhHieu(uid, best, achs, now);
         // Máy này từng lên bảng dưới dạng khách → điểm đã gộp ở trên, bỏ dòng khách (không trùng hai dòng)
         const ma = maKhach(than.khach);
-        if (ma) await pool!.execute('DELETE FROM guest_scores WHERE guest_hash = ?', [ma]);
+        if (ma) {
+          // Điểm tuần của khách (mọi tuần) gộp sang tài khoản, cộng dồn nếu trùng tuần; rồi bỏ dòng khách
+          // (Từng dòng một: `INSERT … SELECT` từ chính bảng này + ON DUPLICATE thì MariaDB báo cột mơ hồ — đã thử.)
+          const [tuanKhach] = await pool!.query("SELECT DATE_FORMAT(week_start, '%Y-%m-%d') AS week_start, score, wins, matches, updated_at FROM weekly_scores WHERE is_guest = 1 AND player = ?", [ma]);
+          for (const r of tuanKhach as Record<string, unknown>[]) {
+            await pool!.execute(
+              `INSERT INTO weekly_scores (week_start, is_guest, player, score, wins, matches, updated_at) VALUES (?, 0, ?, ?, ?, ?, ?)
+               ON DUPLICATE KEY UPDATE score = score + VALUES(score), wins = wins + VALUES(wins), matches = matches + VALUES(matches),
+                 updated_at = GREATEST(updated_at, VALUES(updated_at))`,
+              [r.week_start, String(uid), r.score, r.wins, r.matches, r.updated_at]
+            );
+          }
+          await pool!.execute('DELETE FROM weekly_scores WHERE is_guest = 1 AND player = ?', [ma]);
+          await pool!.execute('DELETE FROM guest_scores WHERE guest_hash = ?', [ma]);
+        }
         json(res, { me: await hoSo(uid) });
         return true;
       }

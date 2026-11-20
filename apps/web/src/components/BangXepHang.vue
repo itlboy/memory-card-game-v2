@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { anKhach, bangXepHang, bxhLanTruoc, datTenKhach, me, type BangXh, type DongBxh } from '@/lib/taikhoan';
+import { anKhach, bangXepHang, bxhLanTruoc, datTenKhach, me, type BangXh, type DongBxh, type LoaiBxh } from '@/lib/taikhoan';
 import MatBot from './MatBot.vue';
 import { ghiHang } from '@/lib/hang-xu';
 
@@ -20,8 +20,16 @@ import { ghiHang } from '@/lib/hang-xu';
  */
 const emit = defineEmits<{ close: []; 'dang-nhap': [] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
+/*
+ * HAI TAB (20.11.2026, mockup duyệt https://claude.ai/artifact/WqxQ9L7SgMRzERfoqkCgxP — chủ dự án: "bảng xếp hạng tuần
+ * để người chơi mới có động lực"): "Tuần" (mở mặc định) và "Mọi lúc". Tuần = thứ Hai 00:00 UTC; ‹ › xem các tuần cũ
+ * (server giữ lịch sử). Hạng trên viên xu vẫn là hạng Mọi lúc — chỉ tab đó gọi ghiHang.
+ */
+const loai = ref<LoaiBxh>('tuan');
+/** Thứ Hai của tuần cũ đang xem; undefined = tuần này. */
+const tuanXem = ref<string | undefined>(undefined);
 /** Hiện NGAY bảng lần trước (bxhLanTruoc) rồi thay bằng số mới — xem taikhoan.ts. */
-const bang = ref<BangXh | null>(bxhLanTruoc());
+const bang = ref<BangXh | null>(bxhLanTruoc('tuan'));
 const loi = ref(false);
 /** Đang hỏi số mới: bảng (lần trước) hiện MỜ cho tới khi số mới về — chủ dự án: "hiện bảng mờ là được". */
 const dangTai = ref(false);
@@ -33,12 +41,57 @@ const dangSuaTen = ref(false);
 const tenNhap = ref(tenMay.value);
 const dangLuu = ref(false);
 
+let luot = 0;
 async function tai(): Promise<void> {
   loi.value = false;
   // Đang có bảng cũ mà mất mạng: giữ bảng cũ, không báo lỗi đè lên
   dangTai.value = true;
-  try { bang.value = await bangXepHang(); ghiHang(bang.value); } catch { if (!bang.value) loi.value = true; } finally { dangTai.value = false; }
+  const l = loai.value, w = tuanXem.value, so = ++luot;
+  try {
+    const b = await bangXepHang(l, w);
+    if (so !== luot) return;   // đã bấm sang tab / tuần khác — bỏ kết quả cũ
+    bang.value = b;
+    if (l === 'tat') ghiHang(b);
+  } catch { if (so === luot && !bang.value) loi.value = true; } finally { if (so === luot) dangTai.value = false; }
 }
+function doiLoai(l: LoaiBxh): void {
+  if (l === loai.value) return;
+  loai.value = l; tuanXem.value = undefined;
+  bang.value = bxhLanTruoc(l);
+  void tai();
+}
+const NGAY = 86_400_000;
+const congNgay = (d: string, n: number): string => new Date(Date.parse(`${d}T00:00:00Z`) + n * NGAY).toISOString().slice(0, 10);
+/** Sang tuần trước (-1) / sau (+1). Về đúng tuần hiện tại thì xin "tuần này" (undefined) để được lưu làm bảng lần trước. */
+function doiTuan(buoc: -1 | 1): void {
+  const tw = bang.value?.tuan;
+  if (!tw) return;
+  const moi = congNgay(tw.batDau, 7 * buoc);
+  tuanXem.value = buoc === 1 && Date.parse(`${moi}T00:00:00Z`) + 7 * NGAY > Date.now() ? undefined : moi;
+  void tai();
+}
+const tuan = computed(() => (loai.value === 'tuan' ? bang.value?.tuan ?? null : null));
+const ngayNgan = (d: string): string => new Intl.DateTimeFormat(document.documentElement.lang || undefined, { day: 'numeric', month: 'numeric', timeZone: 'UTC' }).format(new Date(`${d}T00:00:00Z`));
+/** "Tuần này" / "Tuần trước" / "3 – 9/11". */
+const tenTuan = computed(() => {
+  const tw = tuan.value;
+  if (!tw) return '';
+  if (tw.nay) return t('bxh.tuanNay');
+  if (tw.het + 7 * NGAY > Date.now()) return t('bxh.tuanTruoc');
+  return `${ngayNgan(tw.batDau)} – ${ngayNgan(congNgay(tw.batDau, 6))}`;
+});
+/** Dòng nhỏ: tuần này "còn 3 ngày" (ngày cuối: "còn 5 giờ"); tuần trước: ngày tháng. Chủ dự án: "hiển thị đơn giản hơn". */
+const phuTuan = computed(() => {
+  const tw = tuan.value;
+  if (!tw) return '';
+  if (tw.nay) {
+    const con = tw.het - Date.now();
+    return con >= NGAY ? t('bxh.conNgay', { n: Math.floor(con / NGAY) }) : t('bxh.conGio', { n: Math.max(1, Math.ceil(con / 3_600_000)) });
+  }
+  return tenTuan.value === t('bxh.tuanTruoc') ? `${ngayNgan(tw.batDau)} – ${ngayNgan(congNgay(tw.batDau, 6))}` : '';
+});
+/** Đầu tuần chưa ai có điểm → mời chơi thay vì bảng trống. */
+const tuanTrong = computed(() => !!tuan.value?.nay && !bang.value?.top.length);
 onMounted(() => { closeBtn.value?.focus(); void tai(); });
 
 /** Hạt vàng bốc lên từ bục: cố định (không random mỗi lần vẽ), dày ở giữa chỗ hạng 1. */
@@ -55,8 +108,10 @@ const HAT = Array.from({ length: 22 }, (_, k) => {
 
 const ten = (d: DongBxh): string => d.name || (d.khach ? t('bxh.khach', { so: d.khach }) : '?');
 const toi = computed(() => bang.value?.toi ?? null);
-/** Ngoài top hiển thị → ghim dòng mình ở đáy. */
-const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => d.toi));
+/** Ngoài top + 3 người chót đang hiện → ghim dòng mình ở đáy (chủ dự án: "luôn phải hiện vị trí người chơi hiện tại"). */
+const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => d.toi) && !(bang.value?.cuoi ?? []).some((d) => d.toi));
+/** Số người trên bảng: theo dòng mình nếu có, không thì theo hạng của người chót. */
+const tongNguoi = computed(() => toi.value?.tong ?? Math.max(bang.value?.cuoi?.at(-1)?.hang ?? 0, bang.value?.top.length ?? 0));
 /** Mở sẵn ô đặt tên khi khách chưa có tên và đã có dòng trên bảng. */
 const moTen = computed(() => laKhach.value && !khachAn.value && !!toi.value && (dangSuaTen.value || !tenMay.value));
 
@@ -77,7 +132,7 @@ async function doiAn(an: boolean): Promise<void> {
     <div class="panel">
       <header class="head">
         <h2>{{ t('tk.xepHang') }}</h2>
-        <small v-if="toi" class="so-nguoi">{{ t('bxh.soNguoi', { n: num(toi.tong) }) }}</small>
+        <small v-if="tongNguoi" class="so-nguoi">{{ t('bxh.soNguoi', { n: num(tongNguoi) }) }}</small>
         <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
@@ -86,8 +141,24 @@ async function doiAn(an: boolean): Promise<void> {
       <!-- GỌN (19.11.2026, mockup duyệt https://claude.ai/artifact/4SQdKfUtpcCdbsGvRZK7sH — chủ dự án: "nhiều chữ giải
            thích quá"): bỏ thẻ vàng "Hạng của bạn trong N người…", bỏ cột "x/y thắng" (còn ở nhãn ẩn), bỏ dòng dưới mình,
            bỏ câu mời đăng nhập + câu dặn tên. Dòng mình tô vàng là đủ biết mình ở đâu. -->
+      <div class="tabs" role="tablist">
+        <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loai === 'tuan'" @click="doiLoai('tuan')">{{ t('bxh.tabTuan') }}</button>
+        <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loai === 'tat'" @click="doiLoai('tat')">{{ t('bxh.tabMoiLuc') }}</button>
+      </div>
+      <div v-if="tuan" class="tuan">
+        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanTruoc')" :disabled="!tuan.coTruoc || dangTai" @click="doiTuan(-1)">‹</button>
+        <div class="giua"><b>{{ tenTuan }}</b><small v-if="phuTuan" :class="{ dem: tuan.nay }">{{ phuTuan }}</small></div>
+        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanSau')" :disabled="tuan.nay || dangTai" @click="doiTuan(1)">›</button>
+      </div>
+
       <div class="body">
-        <template v-if="bang">
+        <div v-if="bang && tuanTrong" class="trong">
+          <span class="to" aria-hidden="true">🏁</span>
+          <b>{{ t('bxh.tuanMoi') }}</b>
+          <p>{{ t('bxh.tuanMoiMo') }}</p>
+          <button class="choi thach th-vang" type="button" @click="emit('close')">{{ t('bxh.choiNgay') }}</button>
+        </div>
+        <template v-else-if="bang">
           <!-- BỤC TOP 3 (20.11.2026, mockup duyệt https://claude.ai/artifact/QujXue1p74g1e25fWz8QtP — phương án A, bỏ vòng
                tròn quanh mặt, thêm hạt vàng bốc lên): thứ tự trái→phải là hạng 2·1·3. Thiếu người thì ô trống giữ chỗ. -->
           <div v-if="bang.top.length" class="buc" :class="{ mo: dangTai }">
@@ -110,6 +181,16 @@ async function doiAn(an: boolean): Promise<void> {
               <span v-if="d.matches >= d.wins && d.matches" class="sr-only">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</span>
               <span class="so">{{ num(d.totalScore) }}<i class="xu" aria-hidden="true" /></span>
             </li>
+            <!-- 3 NGƯỜI CHÓT kèm số thứ tự (20.11.2026, chủ dự án: "cho người khác hiểu bao nhiêu người là đủ") -->
+            <template v-if="bang.cuoi?.length">
+              <li v-if="bang.cuoi[0]!.hang > bang.top.length + 1" class="cham" aria-hidden="true">···</li>
+              <li v-for="d in bang.cuoi" :key="`c${d.hang}`" :class="{ toi: d.toi }">
+                <span class="hang">{{ num(d.hang) }}</span>
+                <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /></span>
+                <span class="ten">{{ ten(d) }}<i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i></span>
+                <span class="so">{{ num(d.totalScore) }}<i class="xu" aria-hidden="true" /></span>
+              </li>
+            </template>
           </ol>
           <p v-if="!bang.top.length" class="muted">{{ t('tk.chuaAiMoi') }}</p>
         </template>
@@ -120,10 +201,10 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
       </div>
 
-      <div v-if="toi && ghim" class="ghim" :class="{ mo: dangTai }">
+      <div v-if="toi && ghim && !tuanTrong" class="ghim" :class="{ mo: dangTai }">
         <span class="cham" aria-hidden="true">···</span>
         <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><span class="so">{{ num(toi.tren.totalScore) }}<i class="xu" aria-hidden="true" /></span></div>
-        <div class="toi-dong"><span class="hang">{{ num(toi.hang) }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}<i class="xu" aria-hidden="true" /></span></div>
+        <div class="toi-dong"><span class="hang">{{ toi.hang ? num(toi.hang) : '–' }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}<i class="xu" aria-hidden="true" /></span></div>
       </div>
 
       <!-- Khách: tên trên bảng -->
@@ -180,7 +261,7 @@ async function doiAn(an: boolean): Promise<void> {
 }
 .bxh li.toi, .toi-dong { background: #ffe7b3; color: #3d2f08; box-shadow: inset 0 0 0 2px #f0c64a; }
 .bxh li.toi small { color: #5b4510; }
-.hang { width: 30px; flex: 0 0 30px; text-align: center; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hang { min-width: 30px; flex: none; text-align: center; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bxh li.toi .hang, .toi-dong .hang { color: #5b4510; }
 .mat { font-size: 19px; line-height: 1; flex: 0 0 auto; }
 .ten { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -228,6 +309,23 @@ async function doiAn(an: boolean): Promise<void> {
 }
 
 .ghim { margin-top: 2px; display: grid; gap: 4px; }
+.bxh li.cham { background: none; justify-content: center; padding: 0; }
+
+/* Tab Tuần / Mọi lúc + chọn tuần */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.tabs .tab { min-height: 38px; font-weight: 800; font-size: var(--text-sm); }
+.tuan { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.tuan button { width: 40px; height: 40px; flex: none; padding: 0; font: 800 20px var(--font-body); }
+.tuan button:disabled { opacity: .3; }
+.tuan .giua { flex: 1; text-align: center; display: grid; line-height: 1.2; }
+.tuan .giua b { font: 800 16px var(--font-display); }
+.tuan .giua small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.tuan .giua small.dem { color: #c2621a; }
+.trong { text-align: center; padding: 22px 8px 14px; display: grid; gap: 6px; justify-items: center; }
+.trong .to { font-size: 44px; line-height: 1; }
+.trong b { font: 800 18px var(--font-display); }
+.trong p { margin: 0; color: var(--muted); font-size: var(--text-sm); line-height: 1.45; max-width: 30ch; }
+.trong .choi { min-height: 44px; padding: 0 22px; font-weight: 800; margin-top: 6px; }
 /* Bảng lần trước đang chờ số mới: mờ đi, không bấm/đọc nhầm số cũ là số thật */
 .bxh, .ghim { transition: opacity .2s ease; }
 .bxh.mo, .ghim.mo { opacity: .45; }

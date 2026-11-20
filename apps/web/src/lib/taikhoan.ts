@@ -49,12 +49,21 @@ export interface DongBxh {
 
 /** Hạng của người đang xem (cả khi ngoài top 20) + người ngay trên / ngay dưới. */
 export interface HangToi extends DongBxh {
-  hang: number; tong: number;
+  /** null = bảng tuần, chưa có điểm tuần đó (vẫn hiện dòng mình, hạng "–"). */
+  hang: number | null; tong: number;
   tren: (DongBxh & { hang: number }) | null;
   duoi: (DongBxh & { hang: number }) | null;
 }
 
-export interface BangXh { top: DongBxh[]; toi?: HangToi }
+export type LoaiBxh = 'tuan' | 'tat';
+/** Tuần đang xem (bảng tuần): `batDau` = thứ Hai 'YYYY-MM-DD' (UTC), `het` = mốc chốt (ms). */
+export interface TuanBxh { batDau: string; het: number; nay: boolean; coTruoc: boolean }
+export interface BangXh {
+  top: DongBxh[]; toi?: HangToi;
+  /** 3 người chót (dưới top đang hiện) kèm hạng — nhìn là biết bảng có bao nhiêu người. Server cũ không gửi. */
+  cuoi?: (DongBxh & { hang: number })[];
+  tuan?: TuanBxh;
+}
 
 export interface VanBao {
   ketQua: 'thang' | 'thua' | 'hoa';
@@ -361,9 +370,10 @@ export async function ghiVan(van: VanBao): Promise<void> {
 export async function guiKhach(): Promise<void> {
   if (me.value || !san.value) return;
   const k = store.khach(false) ?? (store.totalScore() > 0 ? store.khach() : null);
-  if (!k || k.an || k.daGop) return;
+  if (!k || k.daGop) return;
   const d = store.boDem();
-  const body = JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins) });
+  // Đang ẨN vẫn gửi (20.11.2026): server giữ điểm + điểm tuần, chỉ không hiện — bấm "Hiện lại" là về bảng đủ điểm
+  const body = JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins), an: !!k.an });
   // Y hệt lần vừa gửi xong → bỏ: mở bảng xếp hạng ngay sau ván khỏi chờ thêm một vòng mạng
   if (body === khachDaGui) return;
   try {
@@ -387,20 +397,30 @@ export async function datTenKhach(ten: string): Promise<void> {
   await guiKhach();
 }
 
-/** "Ẩn tôi khỏi bảng": xoá dòng khách trên server, máy thôi gửi. `hien` = bật lại. */
+/**
+ * "Ẩn tôi" / "Hiện lại" (20.11.2026, chủ dự án: "ẩn thôi ko xóa, sau họ thích thì cho họ hiện lại"): chỉ bật/tắt cờ
+ * ẨN trên server — điểm, lịch sử tuần còn nguyên. Gửi lại tổng điểm kèm `an` là đủ (server ≥ 20.11 đọc cờ này).
+ */
 export async function anKhach(an: boolean): Promise<void> {
   const k = store.khach(false);
   if (!k) return;
   store.ganKhach({ an });
-  if (an) await goi<{ ok: boolean }>('/api/khach/xoa', { method: 'POST', body: JSON.stringify({ id: k.id }) });
-  else await guiKhach();
+  khachDaGui = '';
+  await guiKhach();
 }
 
-export async function bangXepHang(): Promise<BangXh> {
+/**
+ * `loai`: 'tat' = Mọi lúc (mặc định — hạng trên viên xu), 'tuan' = bảng tuần; `tuan` = thứ Hai của tuần cũ muốn xem
+ * (bỏ trống = tuần này). Chỉ bảng Mọi lúc và bảng TUẦN NÀY được lưu làm "bảng lần trước".
+ */
+export async function bangXepHang(loai: LoaiBxh = 'tat', tuan?: string): Promise<BangXh> {
   if (!me.value) await guiKhach();   // hạng tính trên điểm MỚI NHẤT của máy
   const k = me.value ? null : store.khach(false);
-  const b = await goi<BangXh>('/api/bxh', { method: 'POST', body: JSON.stringify({ khach: k && !k.an && !k.daGop ? k.id : undefined }) });
-  try { localStorage.setItem(KHOA_BXH, JSON.stringify({ ai: aiDangXem(), b })); } catch { /* đầy / riêng tư */ }
+  const b = await goi<BangXh>('/api/bxh', {
+    method: 'POST',
+    body: JSON.stringify({ khach: k && !k.an && !k.daGop ? k.id : undefined, ...(loai === 'tuan' ? { loai, tuan } : {}) })
+  });
+  if (!tuan) try { localStorage.setItem(khoaBxh(loai), JSON.stringify({ ai: aiDangXem(), b })); } catch { /* đầy / riêng tư */ }
   return b;
 }
 
@@ -410,11 +430,13 @@ export async function bangXepHang(): Promise<BangXh> {
  * Nay mỗi lần hỏi xong (kể cả lần TopBar hỏi hạng lúc mở app / sau ván) lưu lại; mở bảng hiện NGAY bản đó
  * rồi lặng lẽ thay bằng số mới. Gắn với người đang xem (tài khoản / khách): đổi người thì không dùng.
  */
-const KHOA_BXH = 'mm.bxh';
+const khoaBxh = (loai: LoaiBxh): string => (loai === 'tuan' ? 'mm.bxhTuan' : 'mm.bxh');
 const aiDangXem = (): string => (me.value ? `u${me.value.id}` : 'khach');
-export function bxhLanTruoc(): BangXh | null {
+export function bxhLanTruoc(loai: LoaiBxh = 'tat'): BangXh | null {
   try {
-    const v = JSON.parse(localStorage.getItem(KHOA_BXH) ?? 'null') as { ai: string; b: BangXh } | null;
+    const v = JSON.parse(localStorage.getItem(khoaBxh(loai)) ?? 'null') as { ai: string; b: BangXh } | null;
+    // Bảng tuần đã qua tuần (chốt rồi) thì không đem ra làm "tuần này"
+    if (v?.b?.tuan && v.b.tuan.het <= Date.now()) return null;
     return v && v.ai === aiDangXem() && Array.isArray(v.b?.top) ? v.b : null;
   } catch { return null; }
 }
