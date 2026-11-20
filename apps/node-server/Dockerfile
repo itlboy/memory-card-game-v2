@@ -10,7 +10,8 @@
 # Ảnh arm64 giờ chỉ COPY dist từ tầng này.
 FROM --platform=$BUILDPLATFORM node:26-alpine AS build
 WORKDIR /app
-RUN corepack enable
+# Node ≥ 25 KHÔNG còn đi kèm corepack → cài từ npm rồi bật (vẫn theo `packageManager` trong package.json)
+RUN npm install -g corepack && corepack enable
 
 # Nạp manifest trước để tận dụng cache lớp: đổi code mà không đổi deps thì
 # không phải cài lại từ đầu.
