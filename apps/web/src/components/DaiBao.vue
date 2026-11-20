@@ -20,6 +20,10 @@ import BongNgo from './BongNgo.vue';
           <MatNguoi :mat="baoHien.mat ?? ''" :anh="baoHien.anh" />
           <BongNgo v-if="baoHien.loai === 'xem'" class="db-bong" :size="16" />
         </span>
+        <!-- VÒNG XANH dùng chung (20.11.2026, chủ dự án: thông báo "muốn chơi lại" dùng icon khác): ↻ = cột chơi lại
+             cuối ván (ResultDialog .cl-ic), ✋ = cột sẵn sàng phòng chờ (OnlineScreen .cot-san) -->
+        <span v-else-if="baoHien.ic === 'choiLai'" class="db-vong" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></svg></span>
+        <span v-else-if="baoHien.ic === 'sanSang'" class="db-vong" aria-hidden="true">✋</span>
         <span v-else-if="baoHien.ic" class="db-ic" aria-hidden="true">{{ baoHien.ic }}</span>
         <span class="db-chu">{{ baoHien.chu }}</span>
       </div>
@@ -43,6 +47,11 @@ import BongNgo from './BongNgo.vue';
 .b-mang { background: #ffe9e2; border-color: #f19a7c; --db-day: #e0896b; color: #7a2208; }
 .b-xem { background: #e5efff; border-color: #9cc0f5; --db-day: #9cb8e6; color: #1f5aab; }
 .db-ic { font-size: 20px; line-height: 1; flex: none; }
+.db-vong {
+  flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box;
+  font-size: 14px; line-height: 1; color: #fff; border: 2px solid #3c9a26;
+  background: linear-gradient(#8fe06c, #4bb033); box-shadow: 0 2px 0 #348a20;
+}
 .db-mat {
   position: relative; flex: none; width: 30px; height: 30px; border-radius: 50%; background: #fff;
   display: grid; place-items: center; font-size: 19px; line-height: 1;

@@ -211,6 +211,8 @@ export function useOnlineRoom() {
     });
   }
   const error = ref('');
+  /** Bị mời ra / chủ huỷ phòng → hộp thoại "Đã hiểu" (BaoPhongDong) thay vì ô đỏ `error` (20.11.2026). */
+  const phongDong = ref<{ code: 'kicked' | 'cancelled'; ma?: string } | null>(null);
   const room = shallowRef<RoomInfo | null>(null);
   const view = shallowRef<GameView | null>(null);
   const myId = ref('');
@@ -1198,13 +1200,17 @@ export function useOnlineRoom() {
          * cho một phòng không còn tồn tại — còn ở màn chờ thì họ thấy ngay
          * danh sách phòng khác và nút tạo phòng mới.
          */
+        const maDong = room.value?.code || code || undefined;
         clearStored();
         leaveSocket();
         room.value = null;
         view.value = null;
         coThuLai.value = false;
         phase.value = 'idle';
-        error.value = msg.code ? td(`or.dong.${msg.code}`) : msg.message;
+        if (msg.code === 'kicked' || msg.code === 'cancelled') {
+          error.value = '';
+          phongDong.value = { code: msg.code, ma: maDong };
+        } else error.value = msg.code ? td(`or.dong.${msg.code}`) : msg.message;
         break;
 
       case 'emoji': {
@@ -1805,7 +1811,7 @@ export function useOnlineRoom() {
   onScopeDispose(() => { for (const h of loiNoiHen.values()) clearTimeout(h); });
 
   return {
-    phase, error, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
+    phase, error, phongDong, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
     wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBong, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,

@@ -605,6 +605,13 @@ const fr: TuDien = {
   'or.loi.notReady': 'Pas encore prêts : {ten}',
   'or.dong.cancelled': 'L’hôte a fermé le salon.',
   'or.dong.kicked': 'L’hôte t’a retiré du salon.',
+  'pd.kicked.tieuDe': 'Tu as quitté le salon {ma}',
+  'pd.kicked.tieuDeKhongMa': 'Tu as quitté le salon',
+  'pd.kicked.than': 'L’hôte t’a retiré. Rejoins un autre salon ou crée-en un.',
+  'pd.cancelled.tieuDe': 'Le salon {ma} est fermé',
+  'pd.cancelled.tieuDeKhongMa': 'Salon fermé',
+  'pd.cancelled.than': 'L’hôte a fermé le salon. Rejoins un autre salon ou crée-en un.',
+  'pd.daHieu': 'Compris',
   'or.dangVaoLai': 'Déconnecté — reconnexion…',
   'or.banThuong': 'toi',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

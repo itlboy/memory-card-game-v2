@@ -600,6 +600,13 @@ const th: TuDien = {
   'or.loi.notReady': 'ยังไม่พร้อม: {ten}',
   'or.dong.cancelled': 'เจ้าของห้องปิดห้องแล้ว',
   'or.dong.kicked': 'เจ้าของห้องเชิญคุณออกจากห้อง',
+  'pd.kicked.tieuDe': 'คุณออกจากห้อง {ma} แล้ว',
+  'pd.kicked.tieuDeKhongMa': 'คุณออกจากห้องแล้ว',
+  'pd.kicked.than': 'เจ้าของห้องเชิญคุณออก เข้าห้องอื่นหรือสร้างห้องใหม่ได้เลย',
+  'pd.cancelled.tieuDe': 'ห้อง {ma} ปิดแล้ว',
+  'pd.cancelled.tieuDeKhongMa': 'ห้องปิดแล้ว',
+  'pd.cancelled.than': 'เจ้าของห้องปิดห้องแล้ว เข้าห้องอื่นหรือสร้างห้องใหม่ได้เลย',
+  'pd.daHieu': 'เข้าใจแล้ว',
   'or.dangVaoLai': 'ขาดการเชื่อมต่อ — กำลังเชื่อมต่อใหม่…',
   'or.banThuong': 'คุณ',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

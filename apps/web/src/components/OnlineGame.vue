@@ -426,10 +426,14 @@ watch(() => o.view.value?.summary, (s) => {
     thongKe: thongKeHienTai(taiKhoan.me.value?.wins ?? 0)
   });
   moKhoa(dat, { treMs: HIEN_BANG_MS[chonCanh(loaiKetCuc.value)] + 400 });
-  void taiKhoan.ghiVan({
-    ketQua: loaiKetCuc.value, score: s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0,
-    achievements: dat
-  });
+  const diemToi = s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0;
+  /*
+   * Cộng vào TỔNG MÁY như ván offline (20.11.2026, lỗi: khách chơi online không được điểm xếp hạng —
+   * guiKhach gửi `store.totalScore()` mà online chưa bao giờ cộng vào đó). Đã đăng nhập thì keoVeMay
+   * lấy chênh lệch server − máy nên không cộng đôi.
+   */
+  store.addScore(diemToi);
+  void taiKhoan.ghiVan({ ketQua: loaiKetCuc.value, score: diemToi, achievements: dat });
   /*
    * BẢNG TỈ SỐ HIỆN SỚM. Mốc cũ là 5 giây cho người thắng — đủ dài để hết pháo
    * hoa, nhưng người chơi thì muốn biết NGAY tỉ số, và năm giây nhìn một bàn
@@ -711,6 +715,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       :phieu-choi-lai="o.room.value?.againVotes"
       :rematch-sent="o.iWantAgain.value" :toi-id="o.myId.value || undefined"
       :rematch-blocked="!enoughToRematch || o.spectator.value"
+      :khong-du="!enoughToRematch"
       :rematch-state="rematchState"
       @replay="o.again()"
       @next="o.again()"

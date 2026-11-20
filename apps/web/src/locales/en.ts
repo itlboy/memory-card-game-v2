@@ -601,6 +601,13 @@ const en: TuDien = {
   'or.loi.notReady': 'Not ready yet: {ten}',
   'or.dong.cancelled': 'The host closed the room.',
   'or.dong.kicked': 'The host removed you from the room.',
+  'pd.kicked.tieuDe': 'You left room {ma}',
+  'pd.kicked.tieuDeKhongMa': 'You left the room',
+  'pd.kicked.than': 'The host removed you. Join another room or create a new one.',
+  'pd.cancelled.tieuDe': 'Room {ma} closed',
+  'pd.cancelled.tieuDeKhongMa': 'Room closed',
+  'pd.cancelled.than': 'The host closed the room. Join another room or create a new one.',
+  'pd.daHieu': 'Got it',
   'or.dangVaoLai': 'Disconnected — reconnecting…',
   'or.banThuong': 'you',
   /* ---------- hộp chia sẻ phòng (ChiaSeDialog.vue) ---------- */

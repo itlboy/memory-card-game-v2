@@ -603,6 +603,13 @@ const it: TuDien = {
   'or.loi.notReady': 'Non ancora pronti: {ten}',
   'or.dong.cancelled': 'L’host ha chiuso la stanza.',
   'or.dong.kicked': 'L’host ti ha rimosso dalla stanza.',
+  'pd.kicked.tieuDe': 'Hai lasciato la stanza {ma}',
+  'pd.kicked.tieuDeKhongMa': 'Hai lasciato la stanza',
+  'pd.kicked.than': 'L’host ti ha rimosso. Entra in un’altra stanza o creane una nuova.',
+  'pd.cancelled.tieuDe': 'Stanza {ma} chiusa',
+  'pd.cancelled.tieuDeKhongMa': 'Stanza chiusa',
+  'pd.cancelled.than': 'L’host ha chiuso la stanza. Entra in un’altra stanza o creane una nuova.',
+  'pd.daHieu': 'Ho capito',
   'or.dangVaoLai': 'Disconnesso — riconnessione…',
   'or.banThuong': 'tu',
   /* ---------- hộp chia sẻ phòng (ChiaSeDialog.vue) ---------- */

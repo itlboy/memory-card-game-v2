@@ -56,6 +56,9 @@ const props = defineProps<{
   rematchSent?: boolean;
   /** Không còn đủ người kết nối để chơi lại — ẩn nút thay vì để bấm vô nghĩa. */
   rematchBlocked?: boolean;
+  /** Online: thật sự HẾT người để chơi lại (khác `rematchBlocked` — người XEM cũng bị chặn nút nhưng
+   *  không được báo "mọi người đã rời", lỗi 20.11.2026). */
+  khongDu?: boolean;
   /**
    * Trạng thái chơi lại của TỪNG người, tra theo id: 'in' = đã bấm chơi tiếp,
    * 'out' = đã rời phòng. Không có tên trong map = chưa bấm, không gắn nhãn.
@@ -469,7 +472,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
       </button>
 
       <!-- Hết người để chơi lại: nói thẳng (nút Chơi lại biến mất). Tiến độ chơi lại nay là HÀNG BIỂU TƯỢNG trong khung tỷ số. -->
-      <p v-if="multiplayerOnline && rematchBlocked" class="cl-dai roi" role="status">🚪 {{ t('kq.cl.khongDu') }}</p>
+      <p v-if="multiplayerOnline && khongDu" class="cl-dai roi" role="status">🚪 {{ t('kq.cl.khongDu') }}</p>
 
       <div class="row">
         <button

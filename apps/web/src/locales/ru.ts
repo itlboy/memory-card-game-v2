@@ -618,6 +618,13 @@ const ru: TuDien = {
   'or.loi.notReady': 'Ещё не готовы: {ten}',
   'or.dong.cancelled': 'Хозяин закрыл комнату.',
   'or.dong.kicked': 'Хозяин удалил тебя из комнаты.',
+  'pd.kicked.tieuDe': 'Ты вышел из комнаты {ma}',
+  'pd.kicked.tieuDeKhongMa': 'Ты вышел из комнаты',
+  'pd.kicked.than': 'Хозяин удалил тебя. Зайди в другую комнату или создай новую.',
+  'pd.cancelled.tieuDe': 'Комната {ma} закрыта',
+  'pd.cancelled.tieuDeKhongMa': 'Комната закрыта',
+  'pd.cancelled.than': 'Хозяин закрыл комнату. Зайди в другую комнату или создай новую.',
+  'pd.daHieu': 'Понятно',
   'or.dangVaoLai': 'Нет связи — переподключаемся…',
   'or.banThuong': 'ты',
   /* ---------- share room dialog (ChiaSeDialog.vue) ---------- */

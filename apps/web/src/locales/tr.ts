@@ -602,6 +602,13 @@ const tr: TuDien = {
   'or.loi.notReady': 'Henüz hazır değil: {ten}',
   'or.dong.cancelled': 'Oda sahibi odayı kapattı.',
   'or.dong.kicked': 'Oda sahibi seni odadan çıkardı.',
+  'pd.kicked.tieuDe': '{ma} odasından çıktın',
+  'pd.kicked.tieuDeKhongMa': 'Odadan çıktın',
+  'pd.kicked.than': 'Oda sahibi seni çıkardı. Başka bir odaya katıl ya da yeni oda kur.',
+  'pd.cancelled.tieuDe': '{ma} odası kapandı',
+  'pd.cancelled.tieuDeKhongMa': 'Oda kapandı',
+  'pd.cancelled.than': 'Oda sahibi odayı kapattı. Başka bir odaya katıl ya da yeni oda kur.',
+  'pd.daHieu': 'Anladım',
   'or.dangVaoLai': 'Bağlantı koptu — yeniden bağlanılıyor…',
   'or.banThuong': 'sen',
   /* ---------- hộp chia sẻ phòng (ChiaSeDialog.vue) ---------- */

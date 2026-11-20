@@ -13,7 +13,7 @@ import { ref } from 'vue';
 export type LoaiBao = 'tot' | 'can' | 'roi' | 'mang' | 'xem';
 export interface Bao {
   loai: LoaiBao;
-  /** Biểu tượng đầu dải: emoji, hoặc mặt thú của người được nói tới (`mat`). */
+  /** Biểu tượng đầu dải: emoji, hoặc tên vòng xanh dùng chung `'choiLai'` (↻) / `'sanSang'` (✋). */
   ic?: string;
   /** Mặt thú / ảnh của người được nói tới — vẽ thay `ic` (xem). */
   mat?: string;
