@@ -16,6 +16,12 @@ on:
       ga_tu:
         description: 'GA từ ngày (YYYY-MM-DD hoặc 28daysAgo)'
         default: '28daysAgo'
+      android_pkg:
+        description: 'Gói Android (mặc định Lật Thẻ; Cozy Safe = com.cozypi.cozysafe)'
+        default: 'com.cozypi.flipmatch'
+      ios_app:
+        description: 'Bundle iOS (mặc định Lật Thẻ; Cozy Safe = com.cozypi.cozysafe)'
+        default: 'com.hello314.flipmatch'
 
 permissions:
   contents: read
@@ -36,6 +42,8 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           SA_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           GA_TU: ${{ inputs.ga_tu }}
+          ANDROID_PKG: ${{ inputs.android_pkg }}
+          IOS_APP: ${{ inputs.ios_app }}
           AGE_PUB: age1l2lcl3yquw0dwujamepv0q427fk6fpwhuy96luu5ldr4cx5y7p7ssqy0a9
         run: |
           set -euo pipefail
@@ -44,7 +52,7 @@ jobs:
           printf '%s' "$KEY_B64" | base64 -d > "$T/k.p8"
           printf '%s' "$SA_JSON" > "$T/sa.json"
           export ASC_KEY_PATH="$T/k.p8" PLAY_SA_JSON="$T/sa.json"
-          rc=0; node tools/thong-ke-tai.mjs --out-dir "$T/out" > "$T/out/stdout.txt" 2> "$T/out/tomtat.txt" || rc=$?
+          rc=0; node tools/thong-ke-tai.mjs --out-dir "$T/out" --android-pkg "${ANDROID_PKG:-com.cozypi.flipmatch}" --ios-app "${IOS_APP:-com.hello314.flipmatch}" > "$T/out/stdout.txt" 2> "$T/out/tomtat.txt" || rc=$?
           # Chức năng trong game (GA4) — cùng tài khoản dịch vụ, cùng gói mã hoá
           node tools/thong-ke-chuc-nang.mjs --out-dir "$T/out" --tu "${GA_TU:-28daysAgo}" 2>> "$T/out/tomtat.txt" || echo "chuc-nang lỗi" >> "$T/out/tomtat.txt"
           rm -f "$T/k.p8" "$T/sa.json"
