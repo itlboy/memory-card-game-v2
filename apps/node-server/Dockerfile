@@ -22,6 +22,9 @@ COPY apps/node-server/package.json apps/node-server/
 RUN pnpm install --frozen-lockfile || pnpm install
 
 COPY . .
+# Mã commit cho /api/ping — .git bị .dockerignore loại nên CI truyền vào (docker.yml build-args)
+ARG GIT_SHA=
+ENV GIT_SHA=$GIT_SHA
 # Web build ra apps/web/dist; server gói thành một file
 RUN pnpm --filter @mm/web build && pnpm --filter @mm/node-server build
 # `ws` cũng cài Ở ĐÂY (kiến trúc máy build) rồi COPY sang: nó là JS thuần, không

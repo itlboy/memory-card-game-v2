@@ -1,8 +1,9 @@
 import { build } from 'esbuild';
 import { existsSync, readFileSync } from 'node:fs';
 
-/** Mã commit đọc thẳng từ .git (ảnh build không có lệnh git; Docker có chép .git vì .dockerignore không bỏ nó). */
+/** Mã commit: biến GIT_SHA (CI truyền qua build-arg vì .dockerignore loại .git), không có thì đọc thẳng .git (build ở máy). */
 function maCommit() {
+  if (process.env.GIT_SHA) return process.env.GIT_SHA.slice(0, 12);   // CI (Docker không có .git)
   try {
     const goc = new URL('../../.git/', import.meta.url);
     const head = readFileSync(new URL('HEAD', goc), 'utf8').trim();
