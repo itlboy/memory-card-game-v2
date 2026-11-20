@@ -110,8 +110,7 @@ const ten = (d: DongBxh): string => d.name || (d.khach ? t('bxh.khach', { so: d.
 const toi = computed(() => bang.value?.toi ?? null);
 /** Ngoài top + 3 người chót đang hiện → ghim dòng mình ở đáy (chủ dự án: "luôn phải hiện vị trí người chơi hiện tại"). */
 const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => d.toi) && !(bang.value?.cuoi ?? []).some((d) => d.toi));
-/** Số người trên bảng: theo dòng mình nếu có, không thì theo hạng của người chót. */
-const tongNguoi = computed(() => toi.value?.tong ?? Math.max(bang.value?.cuoi?.at(-1)?.hang ?? 0, bang.value?.top.length ?? 0));
+
 /** Mở sẵn ô đặt tên khi khách chưa có tên và đã có dòng trên bảng. */
 const moTen = computed(() => laKhach.value && !khachAn.value && !!toi.value && (dangSuaTen.value || !tenMay.value));
 
@@ -132,7 +131,6 @@ async function doiAn(an: boolean): Promise<void> {
     <div class="panel">
       <header class="head">
         <h2>{{ t('tk.xepHang') }}</h2>
-        <small v-if="tongNguoi" class="so-nguoi">{{ t('bxh.soNguoi', { n: num(tongNguoi) }) }}</small>
         <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
@@ -145,10 +143,11 @@ async function doiAn(an: boolean): Promise<void> {
         <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loai === 'tuan'" @click="doiLoai('tuan')">{{ t('bxh.tabTuan') }}</button>
         <button class="tab thach th-nho th-chon" role="tab" type="button" :aria-selected="loai === 'tat'" @click="doiLoai('tat')">{{ t('bxh.tabMoiLuc') }}</button>
       </div>
-      <div v-if="tuan" class="tuan">
-        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanTruoc')" :disabled="!tuan.coTruoc || dangTai" @click="doiTuan(-1)">‹</button>
-        <div class="giua"><b>{{ tenTuan }}</b><small v-if="phuTuan" :class="{ dem: tuan.nay }">{{ phuTuan }}</small></div>
-        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanSau')" :disabled="tuan.nay || dangTai" @click="doiTuan(1)">›</button>
+      <!-- Luôn giữ chỗ khi ở tab Tuần (chưa có dữ liệu thì ghi "Tuần này") — hàng hiện muộn là nội dung giật xuống -->
+      <div v-if="loai === 'tuan'" class="tuan">
+        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanTruoc')" :disabled="!tuan?.coTruoc || dangTai" @click="doiTuan(-1)">‹</button>
+        <div class="giua"><b>{{ tenTuan || t('bxh.tuanNay') }}</b><small :class="{ dem: !tuan || tuan.nay }">{{ phuTuan || '\u00a0' }}</small></div>
+        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanSau')" :disabled="!tuan || tuan.nay || dangTai" @click="doiTuan(1)">›</button>
       </div>
 
       <div class="body">
@@ -242,7 +241,8 @@ async function doiAn(an: boolean): Promise<void> {
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 .panel {
-  width: 100%; max-width: var(--col-w); max-height: 100%;
+  /* CAO CỐ ĐỊNH (20.11.2026, chủ dự án: "bấm tuần / mọi lúc độ cao bị thay đổi, nhảy nhảy") — đổi tab/tuần chỉ đổi nội dung cuộn bên trong */
+  width: 100%; max-width: var(--col-w); height: 100%; max-height: 780px;
   display: flex; flex-direction: column; min-height: 0;
   padding: 16px; border-radius: 16px;
   background: var(--panel-solid); border: 1px solid var(--line);
@@ -336,7 +336,6 @@ async function doiAn(an: boolean): Promise<void> {
 @keyframes nhap { to { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .xuong .o { animation: none; } }
 .cham { text-align: center; color: var(--muted); font-weight: 800; letter-spacing: 4px; line-height: 1; }
-.head .so-nguoi { font-size: var(--text-sm); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .ke { display: flex; align-items: center; gap: 8px; padding: 0 8px; font-size: var(--text-sm); color: var(--muted); }
 .ke .ten { font-weight: 600; }
 
