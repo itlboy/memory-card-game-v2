@@ -43,6 +43,7 @@ import OptionIcon from './OptionIcon.vue';
 import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
+import { nhanSoPhong, useSoPhongCho } from '@/lib/so-phong-cho';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
@@ -87,6 +88,8 @@ const emit = defineEmits<{
   /** Chạm mặt trời/trăng ở trang chủ — tính năng ẨN đổi sáng ↔ tối (18.10.2026). */
   'doi-nen': [];
 }>();
+/** Số phòng công khai đang chờ — chấm trên ô Online (lib/so-phong-cho.ts). */
+const soPhongCho = useSoPhongCho();
 
 /** Menu đi từng bước để người mới không bị ngợp: mỗi bước một câu hỏi. */
 /*
@@ -613,8 +616,10 @@ const ICO3D = {
           <button class="o-vuong neon g-amber" type="button" :title="t('menu.dauMayMo')" @click="pickBotMode()">
             <Bot class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.dauMay" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.dauMay')) }">{{ t('menu.dauMay') }}</strong>
           </button>
-          <button class="o-vuong neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
+          <button class="o-vuong o-co-so neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
+            <!-- SỐ PHÒNG ĐANG CHỜ (20.11.2026, mockup C): chấm xanh nhịp "đang sống" + số, góc trên phải -->
+            <span v-if="soPhongCho > 0" class="so-phong" :aria-label="t('menu.soPhongCho', { n: soPhongCho })"><i aria-hidden="true" />{{ nhanSoPhong(soPhongCho) }}</span>
           </button>
         </div>
 
@@ -1193,4 +1198,13 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 /* ---------- MÀN CHƠI NHANH (16.11.2026) ---------- */
 .nh-bat-dau { flex: none; margin-top: auto; }
 
+.o-co-so { position: relative; }
+.so-phong {
+  position: absolute; top: 8px; right: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px 2px 6px; border-radius: 999px; background: rgba(0, 0, 0, .28); color: #fff;
+  font: 800 13px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.so-phong i { width: 8px; height: 8px; border-radius: 50%; background: #7dff9b; animation: so-phong-song 1.6s infinite; }
+@keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(125, 255, 155, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(125, 255, 155, 0); } }
+@media (prefers-reduced-motion: reduce) { .so-phong i { animation: none; } }
 </style>

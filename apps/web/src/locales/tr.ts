@@ -115,6 +115,7 @@ const tr: TuDien = {
   'menu.dauMayMo': 'Yapay zekâ rakibe meydan oku — internet gerekmez',
   'menu.online': 'Çevrim içi oyna',
   'menu.onlineMo': 'Oda kur, arkadaşlarını 6 haneli kodla davet et',
+  'menu.soPhongCho': '{n} oda bekliyor',
   'menu.bot.easy': 'Oyunu yeni öğrenen minikler için birebir.',
   'menu.bot.normal': 'Beni yen, daha zorlu rakipler açılsın.',
   'menu.bot.hard': 'İşler ciddileşiyor. Beni yenersen gerçekten iyisin.',

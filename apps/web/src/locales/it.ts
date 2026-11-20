@@ -116,6 +116,7 @@ const it: TuDien = {
   'menu.dauMayMo': 'Sfida un avversario IA — funziona offline, senza internet',
   'menu.online': 'Gioca online',
   'menu.onlineMo': 'Crea una stanza e invita gli amici con un codice di 6 cifre',
+  'menu.soPhongCho': '{n} stanze in attesa',
   'menu.bot.easy': 'Perfetto per i più piccoli che stanno imparando.',
   'menu.bot.normal': 'Battimi per sbloccare avversari più tosti.',
   'menu.bot.hard': 'Ora si fa sul serio. Se mi batti, sei un vero campione.',

@@ -119,6 +119,7 @@ const vi = {
   'menu.dauMayMo': 'Một mình vẫn có đối thủ — máy chơi ngay trên máy bạn, không cần mạng',
   'menu.online': 'Chơi online',
   'menu.onlineMo': 'Tạo phòng, mời bạn bè bằng mã 6 ký tự',
+  'menu.soPhongCho': '{n} phòng đang chờ',
   'menu.bot.easy': 'Dành cho các em bé mới tập chơi thôi nhé.',
   'menu.bot.normal': 'Bạn phải thắng tôi mới được lên cấp cao hơn nhé.',
   'menu.bot.hard': 'Bắt đầu khó hơn rồi nè, thắng được tôi là bạn rất giỏi.',

@@ -115,6 +115,7 @@ const id: TuDien = {
   'menu.dauMayMo': 'Tantang lawan AI — bisa offline, tanpa internet',
   'menu.online': 'Main online',
   'menu.onlineMo': 'Buat room dan ajak teman pakai kode 6 angka',
+  'menu.soPhongCho': '{n} room menunggu',
   'menu.bot.easy': 'Cocok buat si kecil yang baru belajar main.',
   'menu.bot.normal': 'Kalahkan aku dulu kalau mau lawan yang lebih jago.',
   'menu.bot.hard': 'Mulai serius nih. Bisa kalahkan aku? Berarti kamu jago beneran.',

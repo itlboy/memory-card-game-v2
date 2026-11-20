@@ -112,6 +112,7 @@ const ko: TuDien = {
   'menu.dauMayMo': '혼자서도 상대가 있어요 — 인터넷 없이 바로 플레이',
   'menu.online': '온라인 플레이',
   'menu.onlineMo': '방을 만들고 6자리 코드로 친구를 초대해요',
+  'menu.soPhongCho': '대기 중인 방 {n}개',
   'menu.bot.easy': '이제 막 배우는 꼬마 친구들한테 딱이야.',
   'menu.bot.normal': '나를 이겨야 더 센 상대가 열려!',
   'menu.bot.hard': '이제부터 진짜야. 나를 이기면 실력 인정!',
