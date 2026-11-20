@@ -1589,3 +1589,15 @@ không đập DB). Không lộ tên máy/chuỗi kết nối. UptimeRobot canh t
 `/health` giữ nguyên (chỉ "tiến trình còn sống") — Docker healthcheck + k8s probe dùng nó.
 `tools/gia-nguoi.mjs`: thấy ván đang chạy thì cho xin chơi lại ván sau (chơi lại có thể vào thẳng ván mới, không qua
 phòng chờ — trước đó bot đứng im từ ván thứ hai).
+
+## Node 26 (20.11.2026, nâng từ 22 — Active LTS từ 28.10.2026, hết hạn 30.04.2029)
+
+Ảnh server `node:26-alpine`, esbuild `target: 'node26'`, mọi workflow `node-version: 26`. Hai bẫy đã gặp:
+- **Node ≥ 25 bỏ corepack** khỏi bản phát hành → Dockerfile `npm install -g corepack && corepack enable` (thiếu là
+  build ảnh chết mã 127 ở `corepack enable`).
+- **Node ≥ 25 có `localStorage` TOÀN CỤC** (Web Storage) trả `undefined` khi không có `--localstorage-file`; tên đã có
+  trên globalThis nên vitest KHÔNG đè bằng bản happy-dom → hàng loạt test "Cannot read properties of undefined (reading
+  'clear')". `apps/web/test/setup-luu-tru.ts` gắn kho trong RAM khi kho hiện có không dùng được (Node 22/24 không đụng).
+- `docker.yml`: `:latest` CHỈ gắn từ main; chạy tay trên nhánh khác ra tag theo tên nhánh — thử ảnh mà không đụng server
+  thật (Keel nhà + timer máy Mỹ đều theo `:latest`).
+Đo trên máy Mỹ 512 MB, 50 phòng: Node 26 ngang Node 22 (số ván, CPU, RAM), 0 lỗi.
