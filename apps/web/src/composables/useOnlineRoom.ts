@@ -1552,11 +1552,10 @@ export function useOnlineRoom() {
     if (pingLost.value >= 2) return 'lost';
     const p = ping.value;
     if (p === null) return 'ok';
-    // Mốc chọn theo mạng thật đo được: 50–60ms là bình thường nên phải nằm
-    // trong "tốt"; 300ms là lúc bấm thẻ đã thấy trễ nên phải chuyển vàng, chứ
-    // để trần 350 thì đúng lúc đáng cảnh báo lại vẫn màu trung tính.
+    // Mốc theo mạng thật: dưới 100ms là "tốt". Trần "chậm" 400ms (21.11.2026, chủ dự án): server chính đã
+    // sang Dallas, người chơi ở Việt Nam thường ~230–290ms — mốc cũ 250ms làm gần như ai cũng hiện "chậm".
     if (p < 100) return 'good';
-    if (p < 250) return 'ok';
+    if (p < 400) return 'ok';
     return 'bad';
   });
 
