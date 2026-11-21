@@ -203,9 +203,9 @@ const tomTatLuat = computed(() => {
   <p class="nh-nhan">{{ t('menu.soThe') }}</p>
   <div class="keo-hang">
   <button
-    class="keo-ben thach" type="button" :disabled="!truocDo"
+    class="keo-ben thach th-nho" type="button" :disabled="!truocDo"
     :aria-label="truocDo ? t('menu.theN', { n: truocDo.pairs * 2 }) : undefined" @click="bamMui(-1)"
-  ><ChevronLeft :size="22" aria-hidden="true" /></button>
+  ><ChevronLeft :size="18" :stroke-width="2.6" aria-hidden="true" /></button>
   <div class="keo-so">
     <span class="keo-mui" aria-hidden="true" />
     <div ref="dai" class="keo-dai" role="radiogroup" :aria-label="t('menu.soThe')" @scroll.passive="khiCuon"
@@ -225,9 +225,9 @@ const tomTatLuat = computed(() => {
     </div>
   </div>
   <button
-    class="keo-ben thach" type="button" :disabled="!sauDo"
+    class="keo-ben thach th-nho" type="button" :disabled="!sauDo"
     :aria-label="sauDo ? t('menu.theN', { n: sauDo.pairs * 2 }) : undefined" @click="bamMui(1)"
-  ><ChevronRight :size="22" aria-hidden="true" /></button>
+  ><ChevronRight :size="18" :stroke-width="2.6" aria-hidden="true" /></button>
   </div>
 
   <button class="nh-dong thach" type="button" @click="emit('mo', 'theme')">
@@ -250,8 +250,11 @@ const tomTatLuat = computed(() => {
 /* Mũi tên chỉ cho máy có chuột/trackpad — điện thoại vẫn chỉ dải kéo */
 .keo-ben { display: none; }
 @media (hover: hover) and (pointer: fine) {
+  /* NÚT TRÒN NHỎ 34px giữa chiều cao dải (21.11.2026, mockup A duyệt https://claude.ai/artifact/WKTRGnDb2DXZhj1hYVPzwg —
+     chủ dự án: cột cao bằng cả dải 96×40 "to quá nhìn xấu") */
   .keo-ben {
-    display: grid; place-items: center; flex: 0 0 40px; padding: 0; border-radius: 14px; color: var(--fg); cursor: pointer;
+    display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; align-self: center;
+    padding: 0; border-radius: 50%; color: var(--fg); cursor: pointer;
   }
   .keo-ben:disabled { opacity: .35; cursor: default; }
 }
