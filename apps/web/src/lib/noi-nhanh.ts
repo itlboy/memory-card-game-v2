@@ -6,5 +6,7 @@ import type { QuickSay } from '@mm/engine';
  */
 export const EMOJI_NOI: Record<QuickSay, string> = {
   chao: '👋', hay: '👏', wow: '😮', tiec: '😅', den: '🌚', anMay: '🤞',
-  gg: '🤝', camOn: '🙏', dongY: '👍', vanNua: '🎮', ban: '😔', tamBiet: '🏃'
+  gg: '🤝', camOn: '🙏', dongY: '👍', vanNua: '🎮', ban: '😔', tamBiet: '🏃',
+  // nút nói nhanh 22.11.2026
+  gioi: '🌟', choiTiep: '🔁', henGap: '⏰', vuiChoi: '😊'
 };

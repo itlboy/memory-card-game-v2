@@ -1653,3 +1653,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   `choMoi`/`daMoi` dạng "còn N ms" → đổi ra mốc tuyệt đối NGAY lúc nhận.
 - Thanh emoji: `EmojiDock.vue` teleport vào #app, absolute đáy, z 18 (trên lớp phủ kết quả 17). Màn phía trên chừa
   `<div class="eb-cho" />` (`--eb-dock-h` 48px); ResultDialog online có `.overlay.co-dock`. Không còn khối chat riêng.
+- NÚT NÓI NHANH có lại (22.11.2026, mockup duyệt https://claude.ai/artifact/54TeMHuUCQA2pxs7FN7C4Q): bong bóng
+  `MessageCircleMore` là con ĐẦU thanh (trước ＋), khung 5 câu `NOI_NHANH` (engine) = gioi · choiTiep · henGap · vuiChoi ·
+  dongY. Id mới CHỈ THÊM CUỐI `QUICK_SAYS` (server cũ bỏ qua id lạ); mỗi câu cần `say.<id>` ở 15 ngôn ngữ + emoji
+  riêng trong `lib/noi-nhanh.ts` (LoiNoi vẽ). Màu nút qua biến thạch `--b1/--b2/--b3/--bc` — ghi background thẳng bị đè.

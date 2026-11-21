@@ -855,6 +855,11 @@ const es: TuDien = {
   'bxh.dangChoi': 'Jugando',
   'bxh.dangOnline': '{n} en línea ahora',
   'bxh.online': 'en línea',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': '¡Qué bien juegas!',
+  'say.choiTiep': 'Sigamos jugando',
+  'say.henGap': 'Tengo que irme, ¡hasta luego!',
+  'say.vuiChoi': 'Me encantó jugar contigo',
 };
 
 export default es;

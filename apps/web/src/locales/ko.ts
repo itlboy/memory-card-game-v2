@@ -853,6 +853,11 @@ const ko: TuDien = {
   'bxh.dangChoi': '게임 중',
   'bxh.dangOnline': '{n}명 온라인',
   'bxh.online': '온라인',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': '정말 잘하시네요!',
+  'say.choiTiep': '계속 해요',
+  'say.henGap': '이제 가 봐야 해요, 또 만나요!',
+  'say.vuiChoi': '같이 해서 즐거웠어요',
 };
 
 export default ko;

@@ -867,6 +867,11 @@ const vi = {
   'bxh.dangChoi': 'Đang chơi',
   'bxh.dangOnline': '{n} người đang online',
   'bxh.online': 'đang online',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'Bạn giỏi quá',
+  'say.choiTiep': 'Chúng ta chơi tiếp nhé',
+  'say.henGap': 'Tôi bận rồi, hẹn gặp lại sau nhé',
+  'say.vuiChoi': 'Rất vui được chơi với bạn',
 };
 
 export default vi;

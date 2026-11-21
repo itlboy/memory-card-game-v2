@@ -859,6 +859,11 @@ const fr: TuDien = {
   'bxh.dangChoi': 'En partie',
   'bxh.dangOnline': '{n} en ligne',
   'bxh.online': 'en ligne',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'Tu es trop fort !',
+  'say.choiTiep': 'On continue ?',
+  'say.henGap': 'Je dois y aller, à plus tard !',
+  'say.vuiChoi': 'Ravi d\'avoir joué avec toi',
 };
 
 export default fr;

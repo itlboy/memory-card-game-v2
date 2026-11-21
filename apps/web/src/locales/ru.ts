@@ -873,6 +873,11 @@ const ru: TuDien = {
   'bxh.dangChoi': 'Играет',
   'bxh.dangOnline': '{n} онлайн',
   'bxh.online': 'онлайн',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'Ты отлично играешь!',
+  'say.choiTiep': 'Давай играть дальше',
+  'say.henGap': 'Мне пора, до встречи!',
+  'say.vuiChoi': 'Было приятно поиграть',
 };
 
 export default ru;

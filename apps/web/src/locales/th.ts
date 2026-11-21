@@ -854,6 +854,11 @@ const th: TuDien = {
   'bxh.dangChoi': 'กำลังเล่น',
   'bxh.dangOnline': 'ออนไลน์ {n} คน',
   'bxh.online': 'ออนไลน์',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'เก่งมากเลย!',
+  'say.choiTiep': 'เล่นต่อกันนะ',
+  'say.henGap': 'ต้องไปแล้ว ไว้เจอกันนะ!',
+  'say.vuiChoi': 'ดีใจที่ได้เล่นด้วย',
 };
 
 export default th;
