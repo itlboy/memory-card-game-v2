@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { loiMoi, tuChoiMoi } from '@/lib/sanh';
 import { t } from '@/lib/i18n';
+import { Swords } from 'lucide-vue-next';
 import MatNguoi from './MatNguoi.vue';
 
 /**
@@ -18,21 +19,23 @@ const chiTiet = computed(() => {
   if (x.soThe) phan.push(t('moi.soThe', { n: x.soThe }));
   return phan.join(' · ');
 });
+/** Thách đấu từ bảng xếp hạng (mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG mục 1b): chữ + huy hiệu kiếm. */
+const tieuDe = computed(() => (m.value ? t(m.value.thach ? 'moi.thachTieuDe' : 'moi.tieuDe', { ten: m.value.tu.ten }) : ''));
 const conLai = computed(() => (m.value ? Math.max(0, m.value.het - Date.now()) : 0));
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="loi-moi">
-      <div v-if="m" :key="m.id" class="loi-moi" role="alertdialog" :aria-label="t('moi.tieuDe', { ten: m.tu.ten })">
+      <div v-if="m" :key="m.id" class="loi-moi" role="alertdialog" :aria-label="tieuDe">
         <div class="lm-tren">
-          <span class="lm-mat"><MatNguoi :mat="m.tu.mat" :anh="m.tu.anh" /></span>
-          <span class="lm-chu"><b>{{ t('moi.tieuDe', { ten: m.tu.ten }) }}</b><small>{{ chiTiet }}</small></span>
+          <span class="lm-mat"><MatNguoi :mat="m.tu.mat" :anh="m.tu.anh" /><span v-if="m.thach" class="lm-kiem" aria-hidden="true"><Swords :size="11" :stroke-width="2.8" /></span></span>
+          <span class="lm-chu"><b>{{ tieuDe }}</b><small>{{ chiTiet }}</small></span>
         </div>
         <div class="lm-vach" aria-hidden="true"><i :style="{ animationDuration: `${conLai}ms`, width: `${(conLai / m.han) * 100}%` }" /></div>
         <div class="lm-nut">
           <button class="thach lm-sau" type="button" @click="tuChoiMoi()">{{ t('moi.deSau') }}</button>
-          <button class="thach th-xanh lm-vao" type="button" @click="emit('vao')">{{ t('moi.vao') }}</button>
+          <button class="thach th-xanh lm-vao" type="button" @click="emit('vao')">{{ t(m.thach ? 'moi.nhanLoi' : 'moi.vao') }}</button>
         </div>
       </div>
     </Transition>
@@ -50,6 +53,8 @@ const conLai = computed(() => (m.value ? Math.max(0, m.value.het - Date.now()) :
 .lm-tren { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .lm-mat { flex: none; width: 38px; height: 38px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 23px; line-height: 1; }
 :global([data-theme='dark'] .loi-moi .lm-mat) { background: #332c66; }
+.lm-mat { position: relative; }
+.lm-kiem { position: absolute; right: -4px; bottom: -3px; width: 19px; height: 19px; border-radius: 50%; background: #6a5cff; color: #fff; display: grid; place-items: center; }
 .lm-mat :deep(img) { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 .lm-chu { min-width: 0; display: grid; }
 .lm-chu b { font: 800 16px/1.2 var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

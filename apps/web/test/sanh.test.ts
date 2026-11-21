@@ -24,7 +24,11 @@ beforeEach(async () => {
   phong = {
     '482913': { status: 'lobby', hostToken: 'tok-chu', host: { ten: 'Hổ Con', mat: '🐯' }, nguoi: 2, toiDa: 4, soThe: 12 }
   };
-  sanh = moSanh({ xemPhong: (ma) => phong[ma] ?? null, avatars: ['🦊'], now: () => gio });
+  sanh = moSanh({
+    xemPhong: (ma) => phong[ma] ?? null, avatars: ['🦊'], now: () => gio,
+    // Giả lớp tài khoản: phiên "phien-7" = tài khoản 7; mã khách hợp lệ = chuỗi dài ≥ 22
+    xacDinh: (khach, token) => (token === 'phien-7' ? 'u:7' : typeof khach === 'string' && khach.length >= 22 ? `k:${khach}` : null)
+  });
   server = createServer((req, res) => {
     const url = new URL(req.url ?? '/', 'http://x');
     if (!sanh.xuLyHttp(req, res, url)) { res.writeHead(404); res.end(); }
@@ -83,7 +87,7 @@ describe('server: sanh.ts', () => {
     const a = await may('A');
     const b = await may('B');
     const { j } = await post('/api/sanh/moi', { ...CHU, sid: a.sid });
-    expect(j).toEqual({ ok: true, han: HAN_MOI_MS });
+    expect(j).toEqual({ ok: true, han: HAN_MOI_MS, cach: CACH_MOI_LAI_MS });
     await cho();
     const moi = a.tin.find((m) => m.t === 'moi');
     expect(moi).toMatchObject({ ma: '482913', tu: { ten: 'Hổ Con', mat: '🐯' }, nguoi: 2, toiDa: 4, soThe: 12, han: HAN_MOI_MS });
@@ -101,6 +105,13 @@ describe('server: sanh.ts', () => {
     // danh sách của chủ phòng thấy "đã mời" đang đếm ngược
     const ds = (await post('/api/sanh/ds', CHU)).j.ds as Array<Record<string, unknown>>;
     expect(ds[0]!.daMoi).toBe(HAN_MOI_MS);
+    // …và còn bao lâu mới mời lại được (nút Mời thành vạch chờ suốt khoảng này, không sáng lại sau 20 giây)
+    expect(ds[0]!.choMoi).toBe(CACH_MOI_LAI_MS);
+    gio += HAN_MOI_MS + 1;
+    const ds2 = (await post('/api/sanh/ds', CHU)).j.ds as Array<Record<string, unknown>>;
+    expect(ds2[0]!.daMoi).toBeUndefined();
+    expect(ds2[0]!.choMoi).toBe(CACH_MOI_LAI_MS - HAN_MOI_MS - 1);
+    gio -= HAN_MOI_MS + 1;
     // người kia bấm Để sau → phòng đó bị khoá dù đã qua thời gian chờ
     const id = a.tin.find((m) => m.t === 'moi')!.id;
     a.ws.send(JSON.stringify({ t: 'tuChoi', id }));
@@ -129,6 +140,49 @@ describe('server: sanh.ts', () => {
     expect(kq[MOI_MOI_PHUT]).toBe('nhieuQua');
   });
 
+  it('bảng xếp hạng: danh tính gửi qua tin nhắn → online/rảnh; ở phòng online → "Đang chơi", không mời được', async () => {
+    const a = await may('A');
+    expect(sanh.trangThai('u:7')).toBeNull();   // chưa xưng danh
+    a.ws.send(JSON.stringify({ t: 'ai', token: 'phien-7' }));
+    await cho();
+    expect(sanh.trangThai('u:7')).toEqual({ sid: a.sid, ban: false });
+    // Vào phòng online: vẫn nối (để bảng hiện "Đang chơi") nhưng không có sid, không lên danh sách mời, mời bị chặn
+    a.ws.send(JSON.stringify({ t: 'tt', tt: 'phong' }));
+    await cho();
+    expect(sanh.trangThai('u:7')).toEqual({ ban: true });
+    expect((await post('/api/sanh/ds', CHU)).j.ds).toEqual([]);
+    expect((await post('/api/sanh/moi', { ...CHU, sid: a.sid })).j.loi).toBe('banPhong');
+    // Ra phòng: rảnh lại
+    a.ws.send(JSON.stringify({ t: 'tt', tt: 'chu' }));
+    await cho();
+    expect(sanh.trangThai('u:7')).toEqual({ sid: a.sid, ban: false });
+    // Danh tính giả không được nhận; đăng xuất (gửi lại không token) là thôi gắn
+    const b = await may('B');
+    b.ws.send(JSON.stringify({ t: 'ai', token: 'gia-mao' }));
+    a.ws.send(JSON.stringify({ t: 'ai' }));
+    await cho();
+    expect(sanh.trangThai('u:7')).toBeNull();
+  });
+
+  it('khách: mã khách → `k:`; đóng app là hết online', async () => {
+    const a = await may('Khách');
+    const ma = 'abcdefghijklmnopqrstuvwxyz';
+    a.ws.send(JSON.stringify({ t: 'ai', khach: ma }));
+    await cho();
+    expect(sanh.trangThai(`k:${ma}`)).toEqual({ sid: a.sid, ban: false });
+    a.ws.close();
+    await cho(100);
+    expect(sanh.trangThai(`k:${ma}`)).toBeNull();
+  });
+
+  it('thách đấu: lời mời mang cờ `thach` tới máy kia, luật chống làm phiền y như mời thường', async () => {
+    const a = await may('A');
+    expect((await post('/api/sanh/moi', { ...CHU, sid: a.sid, thach: true })).j.ok).toBe(true);
+    await cho();
+    expect(a.tin.find((m) => m.t === 'moi')).toMatchObject({ thach: true, ma: '482913' });
+    expect((await post('/api/sanh/moi', { ...CHU, sid: a.sid, thach: true })).j.loi).toBe('vuaMoi');
+  });
+
   it('đóng app (socket đóng) là biến khỏi danh sách', async () => {
     const a = await may('A');
     a.ws.close();
@@ -138,9 +192,15 @@ describe('server: sanh.ts', () => {
 });
 
 describe('client: nối sảnh đúng lúc, giao diện', () => {
-  it('lib/sanh.ts: chỉ giữ kết nối khi app đang hiện, bật nhận lời mời và KHÔNG ở phòng online', () => {
+  it('lib/sanh.ts: giữ kết nối khi app đang hiện và bật nhận lời mời; ở phòng online thì báo `phong` (không đóng)', () => {
     const s = doc('lib/sanh.ts');
-    expect(s).toMatch(/nhanLoiMoi\.value && !trongPhongOnline\.value[\s\S]*visibilityState === 'visible'/);
+    expect(s).toMatch(/const nenMo = \(\): boolean => nhanLoiMoi\.value\s*&& typeof document !== 'undefined' && document\.visibilityState === 'visible';/);
+    expect(s).toContain("trongPhongOnline.value ? 'phong'");
+    // danh tính đi trong tin nhắn sau `chao`, KHÔNG trên URL
+    expect(s).toContain("gui({ t: 'ai', ...danhTinhSanh() })");
+    // đã nối thì gửi lại trạng thái hiện tại — tin `tt` gửi lúc socket còn CONNECTING bị rơi
+    expect(s).toMatch(/m\.t === 'chao'[\s\S]{0,400}gui\(\{ t: 'tt', tt: ttHienTai\(\) \}\)/);
+    expect(s).not.toMatch(/URLSearchParams\(\{[^}]*(token|khach)/);
     expect(s).toContain("addEventListener('visibilitychange', canBang)");
     // mã phòng + token đi bằng POST body, không vào URL
     expect(s).toMatch(/method: 'POST'[\s\S]*body: JSON\.stringify\(body\)/);

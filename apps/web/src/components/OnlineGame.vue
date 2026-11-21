@@ -22,7 +22,7 @@ import { tySoLoat } from '@/lib/ty-so-loat';
 import HudBar from './HudBar.vue';
 import ChipXem from './ChipXem.vue';
 import ResultDialog from './ResultDialog.vue';
-import EmojiBar from './EmojiBar.vue';
+import EmojiDock from './EmojiDock.vue';
 import OptionIcon from './OptionIcon.vue';
 import EmojiBlast from './EmojiBlast.vue';
 import LoiNoi from './LoiNoi.vue';
@@ -690,8 +690,9 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       {{ t('og.mangCoVanDe') }}
     </p>
 
-    <!-- Emoji chat (ON-08) — xem EmojiBar.vue -->
-    <EmojiBar :o="o" />
+    <!-- Emoji chat (ON-08): thanh CỐ ĐỊNH đáy màn, dùng chung cho ván và màn kết quả (EmojiDock.vue) — chừa chỗ -->
+    <EmojiDock :o="o" />
+    <div v-if="!o.spectator.value" class="eb-cho" aria-hidden="true" />
 
     <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
          rơi; thua phải có hình riêng, không được để trống. -->
@@ -722,9 +723,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       @lobby="o.veLobby()"
       @chinh="emit('chinh')"
       @menu="emit('quit')"
-    >
-      <template #chat><EmojiBar :o="o" /></template>
-    </ResultDialog>
+    />
   </section>
 </template>
 

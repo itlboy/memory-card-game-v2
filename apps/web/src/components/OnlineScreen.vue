@@ -4,12 +4,12 @@ import MatNguoi from './MatNguoi.vue';
 import {
   BOARD_SIZES, CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
-import { Bell, BellRing, Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hand, Hash, Heart, LayoutGrid, Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Timer, Users, WifiOff, X } from 'lucide-vue-next';
+import { Bell, BellRing, Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hand, Hash, Heart, LayoutGrid, Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Swords, Timer, Users, WifiOff, X } from 'lucide-vue-next';
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { ghiUrl } from '@/lib/appUrl';
-import { dsOnline, type NguoiOnline } from '@/lib/sanh';
+import { CACH_MOI_LAI_MS, dsOnline, ghiDaThach, moiNguoi, thachCho, type NguoiOnline } from '@/lib/sanh';
 import MoiOnline from './MoiOnline.vue';
 import { t, td, ngonNgu } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
@@ -47,7 +47,7 @@ import BongNgo from './BongNgo.vue';
 import { useBaoPhong } from '@/composables/useBaoPhong';
 import { baoNoi, boBao } from '@/lib/dai-bao';
 import { NHAC_CACH_MS } from '@mm/engine';
-import EmojiBar from './EmojiBar.vue';
+import EmojiDock from './EmojiDock.vue';
 import EmojiBlast from './EmojiBlast.vue';
 import LoiNoi from './LoiNoi.vue';
 import type { DoiId, OptLevel, OptionKey, RoomConfig } from '@mm/engine';
@@ -169,6 +169,11 @@ function vaoPhongCongKhai(code: string): void {
 }
 
 onMounted(() => {
+  // Bấm "Thách" ở bảng xếp hạng: tạo phòng ngay (chưa có tên thì qua form tạo phòng, tạo xong vẫn mời)
+  if (thachCho.value && !invited.value) {
+    if (name.value.trim()) create(); else entryStep.value = 'create';
+    return;
+  }
   // Vào bằng link mời / F5 khi đang trong phòng: ưu tiên resume đúng phòng đó
   if (invited.value) {
     if (o.resumeStored(props.joinCode)) return;   // F5: vào lại bằng token, giữ danh tính
@@ -306,6 +311,33 @@ async function taiDsMoi(): Promise<void> {
 watch(coTheMoi, (co) => { if (co) void taiDsMoi(); else { clearTimeout(henDs); moMoiOnline.value = false; } }, { immediate: true });
 watch(moMoiOnline, (mo) => { if (mo) void taiDsMoi(); });
 onUnmounted(() => clearTimeout(henDs));
+
+/*
+ * THÁCH ĐẤU TỪ BẢNG XẾP HẠNG (21.11.2026, mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG mục 1b):
+ * App.vue đặt `thachCho` rồi mở màn này → tạo phòng (bàn lần trước) và mời đúng người đó. Phòng GIỮ CÔNG KHAI như
+ * phòng thường (chủ dự án 22.11.2026: "cứ để phòng công khai, không cần riêng tư"). Ghế trống ghi "Đang mời X…" +
+ * vạch 20 giây.
+ */
+const LOI_THACH: Record<string, string> = { day: 'moi.loi.day', vuaMoi: 'moi.loi.vuaMoi', banMoi: 'moi.loi.banMoi', nhieuQua: 'moi.loi.nhieuQua', tuChoi: 'moi.tuChoi', banPhong: 'moi.loi.banPhong' };
+const dangThach = ref<{ ten: string; han: number } | null>(null);
+let henThach: ReturnType<typeof setTimeout> | undefined;
+watch(() => (o.isHost.value && o.room.value?.status === 'lobby' ? o.room.value.code : ''), async (ma) => {
+  const n = thachCho.value;
+  if (!ma || !n) return;
+  thachCho.value = null;
+  const kq = await moiNguoi(ma, o.layToken(), n.sid, true);
+  if ('ok' in kq) {
+    ghiDaThach(n.ten, Date.now() + (kq.cach ?? CACH_MOI_LAI_MS));
+    dangThach.value = { ten: n.ten, han: kq.han };
+    clearTimeout(henThach);
+    henThach = setTimeout(() => { dangThach.value = null; }, kq.han);
+  } else {
+    baoNoi({ loai: 'roi', ic: 'loiMoi', chu: `${n.ten} · ${t((LOI_THACH[kq.loi] ?? 'moi.loi.chung') as 'moi.loi.chung')}` });
+  }
+}, { immediate: true });
+// Có người vào (thường là đúng người được thách) → thôi "Đang mời"
+watch(() => o.room.value?.players.length ?? 0, (n, truoc) => { if (n > truoc) dangThach.value = null; });
+onUnmounted(() => { clearTimeout(henThach); thachCho.value = null; });
 /**
  * ĐỘI THEO SỐ (15.11.2026): ai cũng có một ô "Đội N", mặc định mỗi người một số (= ván thường);
  * chọn CÙNG SỐ là cùng đội. Không còn nút Thường / Đồng đội.
@@ -1391,7 +1423,11 @@ function openCfgWizard(): void {
       </li>
       <!-- Ô chỗ trống + Thêm máy (chủ phòng). Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng. -->
       <li v-if="conCho > 0" class="empty">
-        <span class="cho-chu">{{ t('on.conCho', { n: conCho }) }}</span>
+        <span v-if="dangThach" class="cho-chu dang-thach" role="status">
+          <Swords :size="14" :stroke-width="2.6" aria-hidden="true" /><span class="dt-chu">{{ t('moi.dangMoiTen', { ten: dangThach.ten }) }}</span>
+          <i class="dt-vach" aria-hidden="true"><b :style="{ animationDuration: `${dangThach.han}ms` }" /></i>
+        </span>
+        <span v-else class="cho-chu">{{ t('on.conCho', { n: conCho }) }}</span>
         <button
           v-if="o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
           @click="sfx.select(); o.themMay()"
@@ -1456,9 +1492,8 @@ function openCfgWizard(): void {
     <!-- Chat ngay ở phòng chờ: lúc ngồi đợi nhau mới là lúc cần nói chuyện
          nhất. Server không hề chặn emoji theo trạng thái phòng, nên đây chỉ là
          chuyện thêm giao diện. -->
-    <div class="lobby-chat">
-      <EmojiBar :o="o" />
-    </div>
+    <EmojiDock :o="o" />
+    <div v-if="!o.spectator.value" class="eb-cho" aria-hidden="true" />
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
     <button v-if="o.canCapNhat.value" class="nut-cap-nhat thach th-tim" type="button" @click="capNhatNgay">{{ t('chung.capNhat') }}</button>
   </section>
@@ -1959,6 +1994,14 @@ input:focus { outline: none; border-color: var(--accent); }
 .lobby-list li.empty:has(.moi-online) .them-may { justify-content: center; min-width: 0; white-space: nowrap; }
 .lobby-list li.empty:has(.moi-online) .moi-online { order: -1; padding: 0 8px; gap: 5px; }
 .lobby-list li.empty:has(.moi-online) .moi-online .chu { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* "Đang mời X…" sau khi thách từ bảng xếp hạng: chữ tím + vạch 20 giây chạy hết */
+.cho-chu.dang-thach { display: flex; align-items: center; gap: 6px; min-width: 0; color: #5a48d8; font-weight: 800; }
+:global([data-theme='dark'] .cho-chu.dang-thach) { color: #c4b9ff; }
+.dang-thach .dt-chu { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dt-vach { flex: none; width: 54px; height: 4px; border-radius: 4px; margin-left: auto; background: rgba(106, 92, 255, .2); overflow: hidden; }
+.dt-vach b { display: block; height: 100%; width: 100%; border-radius: 4px; background: #6a5cff; animation: dt-can linear forwards; }
+@keyframes dt-can { to { width: 0; } }
+@media (prefers-reduced-motion: reduce) { .dt-vach b { animation: none; } }
 .moi-online { gap: 6px; }
 .moi-online .song { width: 8px; height: 8px; border-radius: 50%; background: #b8ffcb; box-shadow: 0 0 0 3px rgba(184, 255, 203, .3); flex: none; }
 .moi-online .so { font-size: 12px; min-width: 18px; padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, .28); text-align: center; }
@@ -2030,7 +2073,6 @@ input:focus { outline: none; border-color: var(--accent); }
 /* Thanh chat lobby: dán xuống đáy panel (margin-top: auto) để nó không chen vào
    giữa danh sách người chơi và nút chính. KHÔNG SCROLL: nó chỉ cao 40px và
    .lobby-list được phép co lại, nên nút "Bắt đầu" vẫn nằm trong màn hình. */
-.lobby-chat { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .warn {
   margin: 14px 0 0; padding: 10px 12px; border-radius: var(--r-sm); font-size: var(--text-sm);
   background: color-mix(in srgb, var(--bad) 14%, transparent);

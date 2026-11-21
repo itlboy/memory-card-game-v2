@@ -842,6 +842,17 @@ const ja: TuDien = {
   'cd.baoPhong': '新しいルームを通知',
   'cd.baoPhongMo': 'プッシュ通知（30分に1回まで）',
   'cd.phienBan': 'バージョン',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten}さんから挑戦状',
+  'moi.nhanLoi': '受ける',
+  'moi.moiLai': 'あと{t}',
+  'moi.dangMoiTen': '{ten}さんを招待中…',
+  'moi.loi.banPhong': 'この人は別のルームに入りました',
+  'bxh.thach': '挑戦',
+  'bxh.thachAria': '{ten}さんに挑戦',
+  'bxh.dangChoi': 'プレイ中',
+  'bxh.dangOnline': '{n}人がオンライン',
+  'bxh.online': 'オンライン',
 };
 
 export default ja;

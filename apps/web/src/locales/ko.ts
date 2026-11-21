@@ -842,6 +842,17 @@ const ko: TuDien = {
   'cd.baoPhong': '새 방 알림',
   'cd.baoPhongMo': '푸시 알림, 30분에 최대 1번',
   'cd.phienBan': '버전',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten}님의 도전',
+  'moi.nhanLoi': '수락',
+  'moi.moiLai': '{t} 후 다시',
+  'moi.dangMoiTen': '{ten}님 초대 중…',
+  'moi.loi.banPhong': '이 플레이어는 방금 다른 방에 들어갔어요',
+  'bxh.thach': '도전',
+  'bxh.thachAria': '{ten}님에게 도전',
+  'bxh.dangChoi': '게임 중',
+  'bxh.dangOnline': '{n}명 온라인',
+  'bxh.online': '온라인',
 };
 
 export default ko;

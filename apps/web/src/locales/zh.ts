@@ -842,6 +842,17 @@ const zh: TuDien = {
   'cd.baoPhong': '有新房间时通知我',
   'cd.baoPhongMo': '推送通知，每 30 分钟最多 1 条',
   'cd.phienBan': '版本',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} 向你发起挑战',
+  'moi.nhanLoi': '接受',
+  'moi.moiLai': '{t} 后可再邀',
+  'moi.dangMoiTen': '正在邀请 {ten}…',
+  'moi.loi.banPhong': '这位玩家刚进了别的房间',
+  'bxh.thach': '挑战',
+  'bxh.thachAria': '挑战 {ten}',
+  'bxh.dangChoi': '游戏中',
+  'bxh.dangOnline': '{n} 人在线',
+  'bxh.online': '在线',
 };
 
 export default zh;

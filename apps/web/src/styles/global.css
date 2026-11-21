@@ -99,6 +99,8 @@ body {
      thoại tự đặt max-width riêng thì nó hẹp hơn cột (luật chơi từng 460px trong
      cột 600px, nhìn ra thành một cột chữ hẹp giữa màn hình). */
   --col-w: 100%;
+  /* Cao của thanh emoji cố định đáy màn (EmojiDock.vue: đệm 7 + nút 32 + đệm 8 + viền 1), KHÔNG tính vùng an toàn. */
+  --eb-dock-h: 48px;
   /* Mốc cho lớp hiệu ứng kết ván/khoe danh hiệu (absolute, inset 0) — để chúng
      nằm gọn trong cột game chứ không trải ra cả cửa sổ máy tính. */
   position: relative;
@@ -424,3 +426,6 @@ button {
 
 
 /* Ngôi sao thứ 4 "Hoàn hảo" (cầu vồng) nay vẽ ở Sao3D.vue (public/img/sao-3d-4.svg), 21.10.2026. */
+
+/* Chỗ chừa cho thanh emoji cố định đáy màn (EmojiDock.vue) — đặt cuối nội dung phòng chờ / ván online */
+.eb-cho { flex: none; height: var(--eb-dock-h, 48px); }

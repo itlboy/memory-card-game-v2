@@ -1638,3 +1638,18 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - Trang Cài đặt (TopBar `trangCd`): menu chỉ giữ Giao diện · Âm thanh · Nhạc + "Cài đặt ›" + Luật chơi; trang chia
   Âm thanh / Hiển thị / Chơi online (Nhận lời mời, Báo khi có phòng) / Ứng dụng. Bảng ngôn ngữ (z 20) nổi đè trang (z 19).
 - `/api/ping` có thêm `phong.sanh` = số kết nối sảnh.
+
+## Thách đấu ở bảng xếp hạng + nút Mời chờ + thanh emoji đáy (22.11.2026, mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG)
+
+- Sảnh GIỮ KẾT NỐI cả lúc ở phòng online (trạng thái `phong` — không lên danh sách mời, mời bị `banPhong`) để bảng
+  xếp hạng hiện "Đang chơi". Sau `chao` app gửi lại `tt` (gửi lúc CONNECTING là rơi — chủ phòng từng thấy chính mình
+  trong danh sách mời) và danh tính `{t:'ai', token|khach}` (KHÔNG trên URL); server xác minh qua `taiKhoan.aiTu`.
+- `/api/bxh`: mỗi dòng có `ol` gắn SAU cache (`dongCongKhai` → `sanh.trangThai`): `{sid, ban:false}` rảnh / `{ban:true}`.
+  Ai tắt "Nhận lời mời" thì không nối sảnh → không hiện online, không bị thách.
+- BXH: chữ dòng 12,5px như tên trên bục, chấm online 6px, "Đang chơi" cam BÊN PHẢI tên (trong ô tên), nút "Thách"
+  (thạch tím) ở người rảnh, không ở dòng mình, ẩn khi mình đang ở phòng online. Thách → App `thachDau` → OnlineScreen
+  tạo phòng (CÔNG KHAI — chủ dự án) rồi `moiNguoi(..., thach=true)`; thẻ người nhận "X thách đấu bạn" + huy hiệu kiếm.
+- Nút Mời / Thách trong khoảng chờ 2 phút = `VachCho.vue` (vạch lấp dần, "Đã mời · 14s" rồi "Mời lại 1:32"). Server gửi
+  `choMoi`/`daMoi` dạng "còn N ms" → đổi ra mốc tuyệt đối NGAY lúc nhận.
+- Thanh emoji: `EmojiDock.vue` teleport vào #app, absolute đáy, z 18 (trên lớp phủ kết quả 17). Màn phía trên chừa
+  `<div class="eb-cho" />` (`--eb-dock-h` 48px); ResultDialog online có `.overlay.co-dock`. Không còn khối chat riêng.

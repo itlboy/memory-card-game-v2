@@ -1,34 +1,52 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { X } from 'lucide-vue-next';
-import { moiNguoi, tenKhach, type NguoiOnline } from '@/lib/sanh';
+import { CACH_MOI_LAI_MS, moiNguoi, tenKhach, type NguoiOnline } from '@/lib/sanh';
 import { t } from '@/lib/i18n';
 import { sfx } from '@/lib/audio';
 import { useBackCloser } from '@/composables/useBackGuard';
 import MatNguoi from './MatNguoi.vue';
+import VachCho from './VachCho.vue';
 
 /**
  * DANH SÁCH NGƯỜI ĐANG ONLINE để chủ phòng mời (21.11.2026, mockup duyệt
  * https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU mục 3B). OnlineScreen tải danh sách (`ds`) và làm mới
- * khi bảng mở; bảng này chỉ lo bấm Mời + đếm ngược "Đã mời · 14s". Luật chống làm phiền nằm ở server.
+ * khi bảng mở; bảng này chỉ lo bấm Mời + đếm ngược. Luật chống làm phiền nằm ở server.
+ *
+ * ĐẾM NGƯỢC TỚI LÚC MỜI LẠI (21.11.2026, mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG mục 3): trước đây
+ * hết 20 giây treo là nút "Mời" sáng lại, mà server còn chặn thêm tới hết 2 phút → bấm chỉ ra lỗi "vừa mời". Nay nút
+ * thành `VachCho` suốt khoảng chờ. Mốc là thời điểm TUYỆT ĐỐI đổi từ số "còn bao lâu" của server ngay lúc nhận
+ * (bản đầu cộng `bayGio + daMoi` mỗi nhịp nên số đứng yên tới lượt tải sau).
  */
 const p = defineProps<{ ds: NguoiOnline[]; ma: string; token: string }>();
 const emit = defineEmits<{ dong: []; 'tai-lai': [] }>();
 
-/** sid → mốc hết lời mời mình vừa gửi (đếm ngược ngay, không chờ lượt tải sau). */
-const daMoi = ref<Record<string, number>>({});
+interface Cho { moiDen: number; het: number }
+/** sid → mốc hết lời mời đang treo (`moiDen`) và mốc mời lại được (`het`). */
+const cho = ref<Record<string, Cho>>({});
+const tong = ref(CACH_MOI_LAI_MS);
 const loi = ref<Record<string, string>>({});
 const dangGui = ref<string | null>(null);
-const bayGio = ref(Date.now());
-let nhip: ReturnType<typeof setInterval> | undefined;
-onMounted(() => { nhip = setInterval(() => { bayGio.value = Date.now(); }, 1000); });
-onUnmounted(() => clearInterval(nhip));
 useBackCloser(26, () => true, () => emit('dong'));
 
-const dong = computed(() => p.ds.map((n) => {
-  const het = Math.max(daMoi.value[n.sid] ?? 0, n.daMoi ? bayGio.value + n.daMoi : 0);
-  return { ...n, giay: het > bayGio.value ? Math.ceil((het - bayGio.value) / 1000) : 0 };
-}));
+function ghiCho(sid: string, moiDen: number, het: number): void {
+  const c = cho.value[sid];
+  cho.value = { ...cho.value, [sid]: { moiDen: Math.max(c?.moiDen ?? 0, moiDen), het: Math.max(c?.het ?? 0, het) } };
+}
+// Số của server ("còn N ms") → mốc tuyệt đối ngay lúc danh sách về
+watch(() => p.ds, (ds) => {
+  const bay = Date.now();
+  for (const n of ds) if (n.choMoi || n.daMoi) ghiCho(n.sid, n.daMoi ? bay + n.daMoi : 0, bay + (n.choMoi ?? n.daMoi ?? 0));
+}, { immediate: true });
+const nhip = ref(0);
+const dong = computed(() => {
+  void nhip.value;
+  const bay = Date.now();
+  return p.ds.map((n) => {
+    const c = cho.value[n.sid];
+    return { ...n, cho: c && c.het > bay ? c : null };
+  });
+});
 
 const LOI: Record<string, string> = { day: 'moi.loi.day', vuaMoi: 'moi.loi.vuaMoi', banMoi: 'moi.loi.banMoi', nhieuQua: 'moi.loi.nhieuQua', tuChoi: 'moi.tuChoi' };
 async function moi(n: NguoiOnline): Promise<void> {
@@ -38,9 +56,11 @@ async function moi(n: NguoiOnline): Promise<void> {
   const kq = await moiNguoi(p.ma, p.token, n.sid);
   dangGui.value = null;
   if ('ok' in kq) {
-    daMoi.value = { ...daMoi.value, [n.sid]: Date.now() + kq.han };
+    if (kq.cach) tong.value = kq.cach;
+    ghiCho(n.sid, Date.now() + kq.han, Date.now() + (kq.cach ?? CACH_MOI_LAI_MS));
     loi.value = { ...loi.value, [n.sid]: '' };
   } else {
+    if (kq.loi === 'vuaMoi' && kq.con) { ghiCho(n.sid, 0, Date.now() + kq.con); return; }
     loi.value = { ...loi.value, [n.sid]: t((LOI[kq.loi] ?? 'moi.loi.chung') as 'moi.loi.chung') };
     emit('tai-lai');
   }
@@ -63,10 +83,12 @@ async function moi(n: NguoiOnline): Promise<void> {
               <b>{{ n.ten || t('moi.khach', { so: tenKhach(n.sid) }) }}</b>
               <small :class="{ loi: !!loi[n.sid] }">{{ loi[n.sid] || (n.tuChoi ? t('moi.tuChoi') : n.tt === 'choi' ? t('moi.ttChoi') : t('moi.ttChu')) }}</small>
             </span>
-            <span v-if="n.giay" class="mo-da" role="status">✓ {{ t('moi.daMoi', { n: n.giay }) }}</span>
+            <!-- Đã bấm "Để sau": phòng này không mời lại được nữa — không còn nút -->
+            <span v-if="n.tuChoi" class="mo-tc">{{ t('moi.deSau') }}</span>
+            <VachCho v-else-if="n.cho" :het="n.cho.het" :moi-den="n.cho.moiDen" :tong="tong" @xong="nhip++" />
             <button
               v-else class="thach th-xanh th-nho mo-nut" type="button"
-              :disabled="!!n.tuChoi || dangGui === n.sid" :aria-label="t('moi.moiAria', { ten: n.ten || t('moi.khach', { so: tenKhach(n.sid) }) })"
+              :disabled="dangGui === n.sid" :aria-label="t('moi.moiAria', { ten: n.ten || t('moi.khach', { so: tenKhach(n.sid) }) })"
               @click="moi(n)"
             >{{ t('moi.moi') }}</button>
           </li>
@@ -95,8 +117,8 @@ async function moi(n: NguoiOnline): Promise<void> {
 .mo-ten b { font-weight: 800; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mo-ten small { font-weight: 700; font-size: 12px; color: var(--muted); }
 .mo-ten small.loi { color: var(--bad); }
-.mo-nut { min-width: 64px; }
-.mo-da { font: 800 12.5px var(--font-body); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mo-nut { min-width: 104px; min-height: 34px; }
+.mo-tc { min-width: 104px; text-align: center; font: 800 12.5px var(--font-body); color: var(--muted); white-space: nowrap; }
 .mo-trong { margin: 10px 4px; color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
 .mo-chu { margin: 2px 4px 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
 </style>

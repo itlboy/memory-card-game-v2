@@ -843,6 +843,17 @@ const th: TuDien = {
   'cd.baoPhong': 'แจ้งเมื่อมีห้อง',
   'cd.baoPhongMo': 'การแจ้งเตือนแบบพุช ไม่เกิน 1 ครั้งต่อ 30 นาที',
   'cd.phienBan': 'เวอร์ชัน',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} ท้าดวลคุณ',
+  'moi.nhanLoi': 'รับคำท้า',
+  'moi.moiLai': 'อีก {t}',
+  'moi.dangMoiTen': 'กำลังชวน {ten}…',
+  'moi.loi.banPhong': 'คนนี้เพิ่งเข้าห้องอื่น',
+  'bxh.thach': 'ท้าดวล',
+  'bxh.thachAria': 'ท้าดวล {ten}',
+  'bxh.dangChoi': 'กำลังเล่น',
+  'bxh.dangOnline': 'ออนไลน์ {n} คน',
+  'bxh.online': 'ออนไลน์',
 };
 
 export default th;
