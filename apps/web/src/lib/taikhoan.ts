@@ -49,6 +49,9 @@ export interface DongBxh {
   ol?: { sid?: string; ban: boolean };
 }
 
+/** Nút "Phá" ở dòng kỷ lục (TaiKhoanDialog → App.vue): chế độ + màn/khoá cấp + số thẻ. */
+export interface PhaKyLuc { mode: 'campaign' | 'classic'; cap: number; cells: number }
+
 /** Hạng của người đang xem (cả khi ngoài top 20) + người ngay trên / ngay dưới. */
 export interface HangToi extends DongBxh {
   /** null = bảng tuần, chưa có điểm tuần đó (vẫn hiện dòng mình, hạng "–"). */

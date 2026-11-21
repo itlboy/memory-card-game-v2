@@ -860,6 +860,12 @@ const en: TuDien = {
   'say.choiTiep': 'Let\'s keep playing',
   'say.henGap': 'I have to go, see you later!',
   'say.vuiChoi': 'Nice playing with you',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Beat',
+  'tk.phaAria': 'Play to beat your record: {ten}',
+  'tk.khoTren': 'hardest first',
+  'tk.man': 'Level {n}',
+  'tk.diemNgan': 'total points',
 };
 
 export default en;

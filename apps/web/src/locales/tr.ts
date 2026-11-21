@@ -861,6 +861,12 @@ const tr: TuDien = {
   'say.choiTiep': 'Oynamaya devam edelim',
   'say.henGap': 'Gitmem lazım, sonra görüşürüz!',
   'say.vuiChoi': 'Seninle oynamak güzeldi',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Kır',
+  'tk.phaAria': 'Rekoru kırmak için oyna: {ten}',
+  'tk.khoTren': 'zor olanlar üstte',
+  'tk.man': 'Seviye {n}',
+  'tk.diemNgan': 'toplam puan',
 };
 
 export default tr;

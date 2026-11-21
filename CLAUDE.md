@@ -1657,3 +1657,12 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   `MessageCircleMore` là con ĐẦU thanh (trước ＋), khung 5 câu `NOI_NHANH` (engine) = gioi · choiTiep · henGap · vuiChoi ·
   dongY. Id mới CHỈ THÊM CUỐI `QUICK_SAYS` (server cũ bỏ qua id lạ); mỗi câu cần `say.<id>` ở 15 ngôn ngữ + emoji
   riêng trong `lib/noi-nhanh.ts` (LoiNoi vẽ). Màu nút qua biến thạch `--b1/--b2/--b3/--bc` — ghi background thẳng bị đè.
+
+## Trang Tài khoản mới (22.11.2026, mockup duyệt https://claude.ai/artifact/KzuWVG5QwHxQ13Hi7AUN3C)
+
+- Thẻ hồ sơ vàng · hai ô Xếp hạng (hạng tuần `hangXu`) / Danh hiệu (vạch tiến độ) · vòng tỉ lệ thắng + 4 số.
+- Kỷ lục KHÓ TRÊN DỄ DƯỚI: theo số thẻ (Chiến dịch đọc `campaignSpec(n).pairs`), cùng số thẻ thì Chiến dịch trên rồi màn
+  cao trên. Bàn thường GỘP THEO SỐ THẺ, giữ điểm cao nhất (khoá cũ classic:L3/L4 cùng 12 thẻ từng thành hai dòng trùng).
+  Nút "Phá" → emit `pha-ky-luc` → App `phaKyLuc` vào thẳng màn / cỡ bàn (1 người, luật mặc định).
+- BẪY: `:global([data-theme='dark'] .panel)` của BXH đặt biến cho MỌI `.panel` (vd `--ban-nen`) và skin có lớp `.nac` —
+  biến/lớp ở đây đặt tiền tố `--kl-` / `.kl-` để khỏi đụng.

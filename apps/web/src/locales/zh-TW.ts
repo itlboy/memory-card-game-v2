@@ -861,6 +861,12 @@ const zhTW: TuDien = {
   'say.choiTiep': '我們繼續玩吧',
   'say.henGap': '我有事先走了，回頭見！',
   'say.vuiChoi': '很高興和你一起玩',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': '挑戰',
+  'tk.phaAria': '去打破紀錄：{ten}',
+  'tk.khoTren': '難的在上',
+  'tk.man': '第 {n} 關',
+  'tk.diemNgan': '累計積分',
 };
 
 export default zhTW;

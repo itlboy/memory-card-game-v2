@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
-import { LEVEL_KEYS, sizeForLevel } from '@mm/engine';
-import { LogOut, Medal, Trophy, X } from 'lucide-vue-next';
+import { campaignSpec, CAMPAIGN_LEVELS, LEVEL_KEYS, sizeForLevel } from '@mm/engine';
+import { LayoutGrid, LogOut, Map as BanDo, Medal, Play, Trophy, X } from 'lucide-vue-next';
+import { hangXu } from '@/lib/hang-xu';
 import { computed, onMounted, ref, watch } from 'vue';
 import { dsHien, daCo as daCoRef } from '@/lib/achievements';
 import { num, numShort } from '@/lib/format';
 import { store } from '@/lib/storage';
+import type { PhaKyLuc } from '@/lib/taikhoan';
 import { coApple, coGoogle, coGoogleApp, dangNhapApple, dangNhapGoogleApp, dangTai, dangXuat, me, veNutGoogle, xoaTaiKhoan } from '@/lib/taikhoan';
 
 /**
@@ -18,7 +20,7 @@ import { coApple, coGoogle, coGoogleApp, dangNhapApple, dangNhapGoogleApp, dangT
  * XOÁ TÀI KHOẢN phải nằm NGAY TRONG app (App Store 5.1.1(v)), hai bước: bấm
  * "Xoá tài khoản" chỉ mở câu hỏi, nút đỏ mới xoá thật.
  */
-const emit = defineEmits<{ close: []; 'danh-hieu': []; 'xep-hang': [] }>();
+const emit = defineEmits<{ close: []; 'danh-hieu': []; 'xep-hang': []; 'pha-ky-luc': [PhaKyLuc] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 const nutGoogle = ref<HTMLElement | null>(null);
 const loi = ref('');
@@ -70,21 +72,41 @@ const tiLeThang = computed(() => {
   return m && m.matches ? Math.round((m.wins / m.matches) * 100) : 0;
 });
 
-/** Kỷ lục, đọc tên cỡ bàn từ khoá `mode:L<cấp>`. */
-const kyLuc = computed(() => {
+/*
+ * KỶ LỤC (22.11.2026, mockup duyệt https://claude.ai/artifact/KzuWVG5QwHxQ13Hi7AUN3C — chủ dự án: "kỷ lục cho nút bấm vào
+ * chơi tiếp để phá kỷ lục; xếp khó trên, dễ dưới"). Khoá `mode:L<cấp>`:
+ *  - Chiến dịch: cấp = số MÀN (1..60), số thẻ đọc từ `campaignSpec`.
+ *  - Còn lại: cấp = khoá cỡ bàn. GỘP THEO SỐ THẺ, giữ điểm cao nhất — bản cũ có nhiều khoá cho cùng một cỡ
+ *    (classic:L3 và L4 đều 12 thẻ → hai dòng "Bàn 12 thẻ" khó hiểu); chế độ cũ (time/peek/survival) cũng gộp vào.
+ * Độ khó = số thẻ (màn Chiến dịch có thêm luật nên ngang thẻ thì xếp trên), cùng số thẻ thì màn cao hơn trên.
+ */
+interface DongKyLuc { k: string; loai: 'campaign' | 'classic'; ten: string; cap: number; cells: number; nac: number; score: number; moves: number; seconds: number }
+const nacKho = (cells: number): number => (cells <= 8 ? 1 : cells <= 16 ? 2 : cells <= 30 ? 3 : 4);
+const kyLuc = computed<DongKyLuc[]>(() => {
   const m = me.value;
   if (!m) return [];
-  return Object.entries(m.best)
-    .map(([k, r]) => {
-      const mm = /^([a-z]+):L(\d+)$/.exec(k);
-      const cap = mm ? Number(mm[2]) : 0;
-      // Khoá Chiến dịch là số MÀN (1..60), không phải khoá cỡ bàn — đừng tra cỡ
-      const sz = cap && mm?.[1] !== 'campaign' && cap <= LEVEL_KEYS ? sizeForLevel(cap) : null;
-      const ten = mm?.[1] === 'campaign' ? t('tk.kyLucChienDich', { n: cap }) : sz ? t('tk.kyLucBan', { n: sz.cols * sz.rows }) : k;
-      return { k, ten, cap, ...r };
-    })
-    .sort((a, b) => a.cap - b.cap);
+  const ban = new Map<number, DongKyLuc>();
+  const ra: DongKyLuc[] = [];
+  for (const [k, r] of Object.entries(m.best)) {
+    const mm = /^([a-z]+):L(\d+)$/.exec(k);
+    if (!mm) continue;
+    const cap = Number(mm[2]);
+    if (mm[1] === 'campaign') {
+      if (cap < 1 || cap > CAMPAIGN_LEVELS) continue;
+      const cells = campaignSpec(cap).pairs * 2;
+      ra.push({ k, loai: 'campaign', ten: t('tk.man', { n: cap }), cap, cells, nac: nacKho(cells), ...r });
+      continue;
+    }
+    if (cap < 1 || cap > LEVEL_KEYS) continue;
+    const sz = sizeForLevel(cap);
+    const cells = sz.cols * sz.rows;
+    const cu = ban.get(cells);
+    if (!cu || r.score > cu.score) ban.set(cells, { k, loai: 'classic', ten: t('tk.kyLucBan', { n: cells }), cap, cells, nac: nacKho(cells), ...r });
+  }
+  return [...ra, ...ban.values()].sort((a, b) =>
+    b.cells - a.cells || (a.loai === b.loai ? b.cap - a.cap : a.loai === 'campaign' ? -1 : 1));
 });
+function pha(r: DongKyLuc): void { emit('pha-ky-luc', { mode: r.loai, cap: r.cap, cells: r.cells }); }
 
 /** Danh hiệu đã có: của tài khoản nếu đăng nhập, không thì của máy này. */
 /** Đếm theo sổ của MÁY: đăng nhập là đã kéo danh hiệu tài khoản về máy (dongBo). */
@@ -133,41 +155,67 @@ const diemMay = store.totalScore();
 
         <!-- Đã đăng nhập -->
         <template v-else>
+          <!-- MOCKUP DUYỆT 22.11.2026 (https://claude.ai/artifact/KzuWVG5QwHxQ13Hi7AUN3C): thẻ hồ sơ vàng ấm · hai ô Xếp hạng /
+               Danh hiệu · vòng tỉ lệ thắng + 4 số · kỷ lục khó trên dễ dưới, mỗi dòng có nút "Phá" -->
           <div class="hoso">
             <img v-if="me.avatar" class="avatar" :src="me.avatar" alt="" referrerpolicy="no-referrer">
             <span v-else class="avatar chu">{{ me.name.slice(0, 1) }}</span>
             <div class="ten-khoi">
               <b class="ten">{{ me.name }}</b>
-              <span class="muted">{{ t('tk.diemTichLuy', { n: num(me.totalScore) }) }}</span>
+              <span class="xu-tong"><i class="xu" aria-hidden="true" />{{ num(me.totalScore) }}</span>
+              <small>{{ t('tk.diemNgan') }}</small>
             </div>
-            <button class="btn" type="button" :aria-label="t('tk.dangXuat')" :title="t('tk.dangXuat')" @click="dangXuat(); emit('close')">
-              <LogOut :size="18" />
+            <button class="nut-ra thach th-nho" type="button" :aria-label="t('tk.dangXuat')" :title="t('tk.dangXuat')" @click="dangXuat(); emit('close')">
+              <LogOut :size="16" />
             </button>
           </div>
 
-          <button class="nut-dh thach th-vang" type="button" @click="moBxh"><Trophy :size="18" :stroke-width="2.4" aria-hidden="true" /> <b>{{ t('tk.xepHang') }}</b> <i aria-hidden="true">›</i></button>
+          <div class="oi">
+            <button class="o thach" type="button" @click="moBxh">
+              <span class="o-ic vang" aria-hidden="true"><Trophy :size="17" :stroke-width="2.4" /></span>
+              <b>{{ t('tk.xepHang') }}</b>
+              <span class="o-phu">{{ t('bxh.tuanNay') }}<em v-if="hangXu"> #{{ num(hangXu) }}</em></span>
+              <i class="o-mui" aria-hidden="true">›</i>
+            </button>
+            <button class="o thach" type="button" @click="emit('danh-hieu')">
+              <span class="o-ic tim" aria-hidden="true"><Medal :size="17" :stroke-width="2.4" /></span>
+              <b>{{ t('dhd.danhHieu') }}</b>
+              <span class="o-phu"><em>{{ soDaCo }}</em>/{{ dsHien.length }}</span>
+              <span class="o-vach" aria-hidden="true"><i :style="{ width: `${dsHien.length ? (soDaCo / dsHien.length) * 100 : 0}%` }" /></span>
+              <i class="o-mui" aria-hidden="true">›</i>
+            </button>
+          </div>
 
+          <div class="so-khoi">
+            <div class="vong" :style="{ '--p': `${tiLeThang}%` }" role="img" :aria-label="`${t('tk.tiLe')} ${tiLeThang}%`">
+              <span><b>{{ tiLeThang }}%</b><small>{{ t('tk.thang') }}</small></span>
+            </div>
             <dl class="so">
               <div><dt>{{ t('tk.van') }}</dt><dd>{{ num(me.matches) }}</dd></div>
               <div><dt>{{ t('tk.thang') }}</dt><dd>{{ num(me.wins) }}</dd></div>
               <div><dt>{{ t('tk.thua') }}</dt><dd>{{ num(me.losses) }}</dd></div>
               <div><dt>{{ t('tk.hoa') }}</dt><dd>{{ num(me.draws) }}</dd></div>
-              <div><dt>{{ t('tk.tiLe') }}</dt><dd>{{ tiLeThang }}%</dd></div>
             </dl>
+          </div>
 
-            <button class="nut-dh thach th-vang" type="button" @click="emit('danh-hieu')">
-            <Medal :size="18" :stroke-width="2.4" aria-hidden="true" /> <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
-          </button>
-
-            <h3>{{ t('tk.kyLuc') }}</h3>
-            <ul v-if="kyLuc.length" class="ky-luc">
-              <li v-for="r in kyLuc" :key="r.k">
-                <span>{{ r.ten }}</span>
-                <b>{{ num(r.score) }}</b>
+          <div class="kl-dau"><h3>{{ t('tk.kyLuc') }}</h3><small v-if="kyLuc.length > 1">{{ t('tk.khoTren') }}</small></div>
+          <ul v-if="kyLuc.length" class="ky-luc">
+            <li v-for="r in kyLuc" :key="r.k">
+              <span class="kl-do" aria-hidden="true">
+                <span class="kl-ic" :class="r.loai === 'campaign' ? 'la-cd' : 'la-ban'"><BanDo v-if="r.loai === 'campaign'" :size="14" :stroke-width="2.4" /><LayoutGrid v-else :size="14" :stroke-width="2.4" /></span>
+                <span class="kl-nac"><i v-for="n in 4" :key="n" :class="{ on: n <= r.nac }" /></span>
+              </span>
+              <span class="kl-chu">
+                <b>{{ r.loai === 'campaign' ? t('tk.kyLucChienDich', { n: r.cap }) : r.ten }}</b>
                 <small>{{ t('tk.luotGiay', { luot: r.moves, giay: r.seconds }) }}</small>
-              </li>
-            </ul>
-            <p v-else class="muted">{{ t('tk.chuaKyLuc') }}</p>
+              </span>
+              <span class="kl-diem">{{ num(r.score) }}</span>
+              <button class="kl-pha thach th-nho th-xanh" type="button" :aria-label="t('tk.phaAria', { ten: r.loai === 'campaign' ? t('tk.kyLucChienDich', { n: r.cap }) : r.ten })" @click="pha(r)">
+                <Play :size="12" :stroke-width="0" fill="currentColor" aria-hidden="true" />{{ t('tk.pha') }}
+              </button>
+            </li>
+          </ul>
+          <p v-else class="muted">{{ t('tk.chuaKyLuc') }}</p>
 
             <div class="xoa">
               <button v-if="!hoiXoa" class="btn-link do" type="button" @click="hoiXoa = true">{{ t('tk.xoaTk') }}</button>
@@ -246,34 +294,67 @@ const diemMay = store.totalScore();
   font: inherit; font-weight: 700; text-decoration: underline; min-height: 44px; cursor: pointer;
 }
 
-.hoso { display: flex; align-items: center; gap: 10px; }
-.avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 44px; }
+/* ---------- ĐÃ ĐĂNG NHẬP (mockup duyệt 22.11.2026) ---------- */
+.panel { --hs1: #fff4d6; --hs2: #ffe7a8; --hs-vien: #f0c64a; --diem: #b97800; --vong-nen: color-mix(in srgb, var(--fg) 10%, transparent); --vong-on: #2fb36a;
+  --kl-cd-chu: #6a4bd8; --kl-cd-nen: #efeaff; --kl-ban-chu: #1d7fd6; --kl-ban-nen: #e6f3ff; --kl-nac: color-mix(in srgb, var(--fg) 14%, transparent); --kl-nac-on: #f0a020; }
+:global([data-theme='dark'] .panel) { --hs1: #3a2f12; --hs2: #2a2412; --hs-vien: #8f7124; --diem: #ffcf4d; --vong-on: #3ccf75;
+  --kl-cd-chu: #b9a8ff; --kl-cd-nen: #2d2660; --kl-ban-chu: #7cc2ff; --kl-ban-nen: #1c3354; }
+.hoso { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: linear-gradient(135deg, var(--hs1), var(--hs2)); border: 1.5px solid var(--hs-vien); }
+.avatar { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex: 0 0 56px; box-shadow: 0 0 0 3px #ffd45c; }
 .avatar.chu {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--nhan-nen); color: var(--nhan-chu); font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center; font: 800 24px var(--font-display);
+  background: linear-gradient(135deg, #7b6bff, #4a3bd0); color: #fff;
 }
 .ten-khoi { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ten-khoi .muted { margin: 0; }
+.ten { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 17px/1.2 var(--font-display); }
+.xu-tong { display: inline-flex; align-items: center; gap: 5px; font: 800 15px var(--font-display); color: var(--diem); font-variant-numeric: tabular-nums; }
+.xu { width: 14px; height: 14px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 30%, #ffe58a, #f2b400 60%, #c98a00); }
+.ten-khoi small { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.nut-ra { width: 34px; height: 34px; min-height: 34px; padding: 0; display: grid; place-items: center; flex: none; color: var(--muted); }
 
+.oi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.o { position: relative; display: grid; gap: 2px; justify-items: start; align-content: start; padding: 10px 12px 12px; border-radius: 16px; text-align: left; font: inherit; cursor: pointer; min-width: 0; }
+.o-ic { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; margin-bottom: 2px; }
+.o-ic.vang { background: #fff1c7; color: #b77800; }
+.o-ic.tim { background: #efe7ff; color: #6a4bd8; }
+:global([data-theme='dark'] .o-ic.vang) { background: #4a3a10; color: #ffcf4d; }
+:global([data-theme='dark'] .o-ic.tim) { background: #2d2660; color: #b9a8ff; }
+.o b { font: 800 14px var(--font-display); }
+.o-phu { font-weight: 800; font-size: 13px; color: var(--muted); }
+.o-phu em { font-style: normal; color: var(--fg); font: 800 15px var(--font-display); }
+.o-vach { width: 100%; height: 5px; border-radius: 5px; background: var(--vong-nen); overflow: hidden; margin-top: 3px; }
+.o-vach i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, #a98bff, #6a4bd8); }
+.o-mui { position: absolute; right: 12px; top: 12px; font-style: normal; font-weight: 800; color: var(--muted); }
 
-.so { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 0; }
-.so div { text-align: center; padding: 8px 2px; border-radius: 10px; background: color-mix(in srgb, var(--fg) 6%, transparent); }
-.so dt { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.so dd { margin: 2px 0 0; font-weight: 800; font-variant-numeric: tabular-nums; }
+.so-khoi { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 12px; border-radius: 16px; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+.vong { width: 64px; height: 64px; flex: none; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(var(--vong-on) 0 var(--p), var(--vong-nen) var(--p) 100%); }
+.vong span { width: 50px; height: 50px; border-radius: 50%; background: var(--panel-solid); display: grid; place-content: center; text-align: center; line-height: 1; }
+.vong b { font: 800 16px var(--font-display); }
+.vong small { font-size: 9px; font-weight: 800; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.so { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0; text-align: center; }
+.so dt { font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.so dd { margin: 2px 0 0; font: 800 18px var(--font-display); font-variant-numeric: tabular-nums; }
 
-h3 {
-  margin: 14px 0 6px; font-size: var(--text-sm);
-  text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
-}
-h3 small { font-weight: 400; letter-spacing: 0; text-transform: none; }
-
+.kl-dau { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 16px 0 6px; }
+.kl-dau h3 { margin: 0; font: 800 15px var(--font-display); text-transform: none; letter-spacing: 0; color: var(--fg); }
+.kl-dau small { font-size: 11.5px; font-weight: 700; color: var(--muted); }
 .ky-luc { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-
-.ky-luc li { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; padding: 6px 10px; border-radius: 10px;
-  background: color-mix(in srgb, var(--fg) 5%, transparent); font-size: var(--text-sm); }
-.ky-luc b { font-variant-numeric: tabular-nums; }
-.ky-luc small { grid-column: 1 / -1; color: var(--muted); }
+.ky-luc li { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; border-radius: 14px; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+.kl-do { flex: none; display: grid; gap: 3px; justify-items: center; }
+.kl-ic { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; }
+.kl-ic.la-cd { background: var(--kl-cd-nen); color: var(--kl-cd-chu); }
+.kl-ic.la-ban { background: var(--kl-ban-nen); color: var(--kl-ban-chu); }
+.kl-nac { display: flex; gap: 1.5px; align-items: flex-end; height: 10px; }
+.kl-nac i { width: 3.5px; border-radius: 2px; background: var(--kl-nac); }
+.kl-nac i:nth-child(1) { height: 4px; } .kl-nac i:nth-child(2) { height: 6px; } .kl-nac i:nth-child(3) { height: 8px; } .kl-nac i:nth-child(4) { height: 10px; }
+.kl-nac i.on { background: var(--kl-nac-on); }
+.kl-chu { flex: 1; min-width: 0; display: grid; }
+.kl-chu b { font: 800 14px/1.2 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kl-chu small { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.kl-diem { font: 800 16px var(--font-display); color: var(--diem); font-variant-numeric: tabular-nums; }
+.kl-pha { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; height: 32px; padding: 0 10px 0 8px; border-radius: 11px; font: 800 12px var(--font-body); white-space: nowrap; position: relative; }
+.kl-pha::after { content: ''; position: absolute; inset: -6px -4px; }
 
 .nut-dh {
   display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; margin-top: 12px;
