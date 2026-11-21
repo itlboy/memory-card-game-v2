@@ -1391,7 +1391,7 @@ function openCfgWizard(): void {
       </li>
       <!-- Ô chỗ trống + Thêm máy (chủ phòng). Trần phòng đọc từ ROOM_LIMITS, đừng ghi cứng. -->
       <li v-if="conCho > 0" class="empty">
-        {{ t('on.conCho', { n: conCho }) }}
+        <span class="cho-chu">{{ t('on.conCho', { n: conCho }) }}</span>
         <button
           v-if="o.isHost.value && o.room.value?.status === 'lobby'" class="them-may thach th-nho th-tim" type="button"
           @click="sfx.select(); o.themMay()"
@@ -1400,7 +1400,7 @@ function openCfgWizard(): void {
         <button
           v-if="coTheMoi && dsMoi !== null" class="them-may moi-online thach th-nho th-xanh" type="button"
           @click="sfx.select(); moMoiOnline = true"
-        ><i class="song" aria-hidden="true" />{{ t('moi.nut') }}<b v-if="soMoiDuoc" class="so">{{ soMoiDuoc > 9 ? '9+' : soMoiDuoc }}</b></button>
+        ><i class="song" aria-hidden="true" /><span class="chu">{{ t('moi.nut') }}</span><b v-if="soMoiDuoc" class="so">{{ soMoiDuoc > 9 ? '9+' : soMoiDuoc }}</b></button>
       </li>
     </ul>
 
@@ -1916,6 +1916,8 @@ input:focus { outline: none; border-color: var(--accent); }
 
 .lobby-list {
   list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 8px;
+  /* Cột = đúng bề ngang khung: cột `auto` nở theo nội dung không xuống dòng (2 nút ở ô trống, 360px) làm mọi dòng lòi ra */
+  grid-template-columns: minmax(0, 1fr);
   /* Co được: thêm thanh chat bên dưới thì danh sách nhường chỗ, KHÔNG đẩy nút
      chính ra khỏi màn hình (quy tắc không-scroll). */
   min-height: 0; overflow-y: auto;
@@ -1944,7 +1946,19 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .them-may::after { content: ''; position: absolute; inset: -6px 0; }
 /* Mời người online (21.11.2026): chấm xanh "đang sống" + số người rảnh */
-.lobby-list li.empty:has(.moi-online) { flex-wrap: wrap; row-gap: 6px; }
+.lobby-list li.empty:has(.moi-online) {
+  /* Có nút mời: chữ "Còn N chỗ" một dòng trên, HAI NÚT chia đôi hàng dưới (đúng mockup A) — bản đầu để flex
+     wrap thì "Mời người online" rơi xuống một mình, lệch trái (chủ dự án chụp 21.11.2026) */
+  display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 8px; padding-block: 8px;
+  /* min-width 0: chữ nowrap của nút KHÔNG được nới cả danh sách (360px từng đẩy mọi dòng lòi khỏi khung) */
+  min-width: 0;
+}
+/* Máy hẹp: bỏ chấm "đang sống" — còn số người là đủ — để chữ "Mời người online" không bị cắt */
+@media (max-width: 380px) { .lobby-list li.empty:has(.moi-online) .moi-online .song { display: none; } }
+.lobby-list li.empty:has(.moi-online) .cho-chu { grid-column: 1 / -1; order: -2; }
+.lobby-list li.empty:has(.moi-online) .them-may { justify-content: center; min-width: 0; white-space: nowrap; }
+.lobby-list li.empty:has(.moi-online) .moi-online { order: -1; padding: 0 8px; gap: 5px; }
+.lobby-list li.empty:has(.moi-online) .moi-online .chu { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .moi-online { gap: 6px; }
 .moi-online .song { width: 8px; height: 8px; border-radius: 50%; background: #b8ffcb; box-shadow: 0 0 0 3px rgba(184, 255, 203, .3); flex: none; }
 .moi-online .so { font-size: 12px; min-width: 18px; padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, .28); text-align: center; }
