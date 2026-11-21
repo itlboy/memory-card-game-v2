@@ -45,6 +45,8 @@ export interface DongBxh {
   mat?: string;
   /** Khách chưa đặt tên: số để hiện "Khách 4821". */
   khach?: number;
+  /** Đang mở app (sảnh): `sid` khi rảnh — thách được; `ban` = đang ở phòng/ván online. Server cũ không gửi. */
+  ol?: { sid?: string; ban: boolean };
 }
 
 /** Hạng của người đang xem (cả khi ngoài top 20) + người ngay trên / ngay dưới. */
@@ -135,6 +137,17 @@ function docToken(): string | null {
 }
 function ghiToken(t: string | null): void {
   try { t ? localStorage.setItem(AUTH_KEY, t) : localStorage.removeItem(AUTH_KEY); } catch { /* bỏ qua */ }
+}
+
+/**
+ * Danh tính để SẢNH (lib/sanh.ts) biết dòng nào trên bảng xếp hạng là mình đang online: phiên đăng nhập, không thì
+ * mã khách (chỉ khi đang hiện trên bảng). Server tự xác minh — gửi trong tin nhắn WebSocket, không lên URL.
+ */
+export function danhTinhSanh(): { token?: string; khach?: string } {
+  const token = me.value ? docToken() : null;
+  if (token) return { token };
+  const k = store.khach(false);
+  return k && !k.an && !k.daGop ? { khach: k.id } : {};
 }
 
 async function goi<T>(path: string, init: RequestInit = {}): Promise<T> {

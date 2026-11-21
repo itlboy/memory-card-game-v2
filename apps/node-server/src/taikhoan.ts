@@ -392,6 +392,13 @@ function docThan(req: IncomingMessage): Promise<unknown> {
 export interface TaiKhoan {
   /** Trả true nếu đã xử lý request này. */
   xuLy(req: IncomingMessage, res: ServerResponse, url: URL, json: (res: ServerResponse, data: unknown, status?: number) => void): Promise<boolean>;
+  /**
+   * Danh tính trên bảng xếp hạng từ phiên đăng nhập (ưu tiên) hoặc mã khách: `u:<id>` / `k:<mã băm>`.
+   * Sảnh (sanh.ts) dùng để biết dòng nào trên bảng đang online.
+   */
+  aiTu(khach: unknown, token: unknown): string | null;
+  /** Gắn nguồn trạng thái online (sảnh) — mỗi dòng bảng xếp hạng mang `ol` khi người đó đang mở app. */
+  datOnline(f: (ai: string) => { sid?: string; ban: boolean } | null): void;
 }
 
 export interface EnvTaiKhoan {
@@ -567,13 +574,21 @@ export async function moTaiKhoan(
       .filter((x) => x.hang > soTop)
       .map(({ r, hang }) => ({ ...dongCongKhai(r), hang, toi: k !== null && String(r.k) === k && (Number(r.la_khach) === 1) === laKhach }));
   }
+  /*
+   * ONLINE + THÁCH ĐẤU (21.11.2026, mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG mục 1): gắn SAU cache
+   * (mỗi lần đọc), nên chấm online luôn mới dù top giữ 30 giây. `ol.sid` = mã kết nối sảnh (ngẫu nhiên, đổi mỗi lần
+   * nối lại — không phải định danh bền), chỉ có khi rảnh. Ai tắt "Nhận lời mời chơi" thì app không nối sảnh → không online.
+   */
+  let online: ((ai: string) => { sid?: string; ban: boolean } | null) | null = null;
   function dongCongKhai(r: Record<string, unknown>) {
     const khach = Number(r.la_khach) === 1, k = String(r.k);
     const ten = khach ? String(r.name ?? '') : tenTat(String(r.name ?? ''));
+    const ol = online?.(`${khach ? 'k' : 'u'}:${k}`) ?? undefined;
     return {
       name: ten, avatar: null, mat: khach ? matTuMa(k) : MAT_BXH[Number(k) % MAT_BXH.length]!,
       khach: khach && !ten ? soKhach(k) : undefined,
-      totalScore: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches)
+      totalScore: Number(r.total_score), wins: Number(r.wins), matches: Number(r.matches),
+      ...(ol ? { ol } : {})
     };
   }
   async function topVaTong(now: number) {
@@ -705,6 +720,13 @@ export async function moTaiKhoan(
   }
 
   return {
+    aiTu(khach, token) {
+      const uid = typeof token === 'string' && token ? docPhien(secret, token, Date.now()) : null;
+      if (uid !== null) return `u:${uid}`;
+      const ma = maKhach(khach);
+      return ma ? `k:${ma}` : null;
+    },
+    datOnline(f) { online = f; },
     async xuLy(req, res, url, json) {
       const p = url.pathname;
       const now = Date.now();

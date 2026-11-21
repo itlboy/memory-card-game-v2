@@ -862,6 +862,17 @@ const ru: TuDien = {
   'cd.baoPhong': 'Сообщать о новых комнатах',
   'cd.baoPhongMo': 'Push-уведомление, не чаще 1 раза в 30 минут',
   'cd.phienBan': 'Версия',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} бросает вам вызов',
+  'moi.nhanLoi': 'Принять',
+  'moi.moiLai': 'Снова через {t}',
+  'moi.dangMoiTen': 'Приглашаем {ten}…',
+  'moi.loi.banPhong': 'Этот игрок только что зашёл в другую комнату',
+  'bxh.thach': 'Вызов',
+  'bxh.thachAria': 'Бросить вызов {ten}',
+  'bxh.dangChoi': 'Играет',
+  'bxh.dangOnline': '{n} онлайн',
+  'bxh.online': 'онлайн',
 };
 
 export default ru;

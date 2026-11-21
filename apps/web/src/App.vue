@@ -50,7 +50,7 @@ const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
 import LoiMoi from './components/LoiMoi.vue';
-import { batDauSanh, dangChoiOffline, nhanMoi, trongPhongOnline } from './lib/sanh';
+import { batDauSanh, dangChoiOffline, nhanMoi, thachCho, trongPhongOnline, type ThachDau } from './lib/sanh';
 import IconBay from './components/IconBay.vue';
 import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
 import {
@@ -174,6 +174,28 @@ watchEffect(() => { dangChoiOffline.value = screen.value === 'game' || screen.va
 if (import.meta.env.MODE !== 'test') onMounted(batDauSanh);
 const hoiBoVanMoi = ref(false);
 let maMoiCho = '';
+/*
+ * THÁCH ĐẤU từ bảng xếp hạng (lib/sanh.ts `thachCho`): đóng bảng, sang màn online — OnlineScreen tạo phòng rồi mời.
+ * Đang dở ván offline: dừng và hỏi như khi nhận lời mời (cùng hộp thoại "Bỏ ván này…").
+ */
+let thachSau = false;
+function thachDau(n: ThachDau): void {
+  showBxh.value = false;
+  thachCho.value = n;
+  if (screen.value === 'game' && session.game.value && !session.game.value.finished) { session.pause(); thachSau = true; hoiBoVanMoi.value = true; return; }
+  if (screen.value === 'mua-the' && muaTheRef.value?.dangDo()) { muaTheRef.value.tamDung(); thachSau = true; hoiBoVanMoi.value = true; return; }
+  diThach();
+}
+function dongYBoVanMoi(): void { boVanDo('thoat'); if (thachSau) diThach(); else diVaoPhongMoi(); }
+function huyBoVanMoi(): void { hoiBoVanMoi.value = false; maMoiCho = ''; thachSau = false; thachCho.value = null; }
+function diThach(): void {
+  hoiBoVanMoi.value = false;
+  thachSau = false;
+  if (screen.value === 'game' || screen.value === 'mua-the') backToMenu();
+  joinCode.value = '';
+  onlineKey.value++;
+  screen.value = 'online';
+}
 function vaoPhongMoi(): void {
   const ma = nhanMoi();
   if (!ma) return;
@@ -1086,7 +1108,7 @@ const hasNext = computed(() => {
   <DoNhip v-if="debug && doNhip" />
 
   <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" @xep-hang="showAccount = false; showBxh = true" />
-  <BangXepHang v-if="showBxh" @close="showBxh = false" @dang-nhap="showBxh = false; showAccount = true" />
+  <BangXepHang v-if="showBxh" @close="showBxh = false" @dang-nhap="showBxh = false; showAccount = true" @thach="thachDau" />
   <DanhHieuDialog
     v-if="showDanhHieu" :da-co="daCoSet" :tk="thongKe" :theme-khoa="themeKhoa"
     @close="showDanhHieu = false" @chinh-phuc="chinhPhuc"
@@ -1130,8 +1152,8 @@ const hasNext = computed(() => {
     :title="t('moi.boVan.tieuDe')"
     :body="t('moi.boVan.than')"
     :confirm-label="t('moi.boVan.nut')"
-    @confirm="boVanDo('thoat'); diVaoPhongMoi()"
-    @cancel="hoiBoVanMoi = false; maMoiCho = ''"
+    @confirm="dongYBoVanMoi"
+    @cancel="huyBoVanMoi"
   />
 
   <ConfirmDialog

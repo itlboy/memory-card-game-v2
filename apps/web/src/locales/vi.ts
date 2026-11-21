@@ -856,6 +856,17 @@ const vi = {
   'cd.baoPhong': 'Báo khi có phòng',
   'cd.baoPhongMo': 'Thông báo đẩy, tối đa 1 tin mỗi 30 phút',
   'cd.phienBan': 'Phiên bản',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} thách đấu bạn',
+  'moi.nhanLoi': 'Nhận lời',
+  'moi.moiLai': 'Mời lại {t}',
+  'moi.dangMoiTen': 'Đang mời {ten}…',
+  'moi.loi.banPhong': 'Người này vừa vào phòng khác',
+  'bxh.thach': 'Thách',
+  'bxh.thachAria': 'Thách đấu {ten}',
+  'bxh.dangChoi': 'Đang chơi',
+  'bxh.dangOnline': '{n} người đang online',
+  'bxh.online': 'đang online',
 };
 
 export default vi;

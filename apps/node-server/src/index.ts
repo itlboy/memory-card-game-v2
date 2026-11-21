@@ -88,6 +88,8 @@ interface PhongTho {
 const AVATAR_SANH = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'] as const;
 const sanh = moSanh({
   avatars: AVATAR_SANH,
+  // taiKhoan mở SAU (await) — đọc lúc gọi, không lúc dựng
+  xacDinh: (khach, token) => taiKhoan?.aiTu(khach, token) ?? null,
   xemPhong(ma: string): XemPhong | null {
     const r = (phongs.get(ma)?.room as unknown as { room?: PhongTho } | undefined)?.room;
     const chu = r?.players?.find((p) => p.id === r.hostId);
@@ -627,6 +629,7 @@ taiKhoan = await moTaiKhoan(kho?.pool ?? null, process.env).catch((e) => {
   console.error('[taikhoan] không mở được tầng tài khoản:', (e as Error).message);
   return null;
 });
+taiKhoan?.datOnline((ai) => sanh.trangThai(ai));
 console.log(taiKhoan
   ? `  tài khoản: BẬT (${[process.env.GOOGLE_CLIENT_ID && 'Google', (process.env.APPLE_BUNDLE_ID || process.env.APPLE_SERVICES_ID) && 'Apple'].filter(Boolean).join(' + ')})`
   : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID và/hoặc APPLE_BUNDLE_ID)');

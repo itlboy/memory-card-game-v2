@@ -845,6 +845,17 @@ const id: TuDien = {
   'cd.baoPhong': 'Beri tahu jika ada ruang',
   'cd.baoPhongMo': 'Notifikasi push, paling banyak 1 tiap 30 menit',
   'cd.phienBan': 'Versi',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} menantangmu',
+  'moi.nhanLoi': 'Terima',
+  'moi.moiLai': 'Lagi dalam {t}',
+  'moi.dangMoiTen': 'Mengundang {ten}…',
+  'moi.loi.banPhong': 'Pemain ini baru masuk ruang lain',
+  'bxh.thach': 'Tantang',
+  'bxh.thachAria': 'Tantang {ten}',
+  'bxh.dangChoi': 'Sedang main',
+  'bxh.dangOnline': '{n} sedang online',
+  'bxh.online': 'online',
 };
 
 export default id;

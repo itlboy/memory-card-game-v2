@@ -848,6 +848,17 @@ const fr: TuDien = {
   'cd.baoPhong': 'Prévenir des nouveaux salons',
   'cd.baoPhongMo': 'Notification push, 1 au plus toutes les 30 minutes',
   'cd.phienBan': 'Version',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} te défie',
+  'moi.nhanLoi': 'Accepter',
+  'moi.moiLai': 'Encore dans {t}',
+  'moi.dangMoiTen': 'Invitation de {ten}…',
+  'moi.loi.banPhong': 'Ce joueur vient de rejoindre un autre salon',
+  'bxh.thach': 'Défier',
+  'bxh.thachAria': 'Défier {ten}',
+  'bxh.dangChoi': 'En partie',
+  'bxh.dangOnline': '{n} en ligne',
+  'bxh.online': 'en ligne',
 };
 
 export default fr;

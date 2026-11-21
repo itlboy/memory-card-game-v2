@@ -845,6 +845,17 @@ const tr: TuDien = {
   'cd.baoPhong': 'Yeni odalardan haberdar et',
   'cd.baoPhongMo': 'Anlık bildirim, 30 dakikada en fazla 1',
   'cd.phienBan': 'Sürüm',
+  /* ---------- thách đấu từ bảng xếp hạng + nút mời chờ (21.11.2026) ---------- */
+  'moi.thachTieuDe': '{ten} sana meydan okuyor',
+  'moi.nhanLoi': 'Kabul et',
+  'moi.moiLai': '{t} sonra tekrar',
+  'moi.dangMoiTen': '{ten} davet ediliyor…',
+  'moi.loi.banPhong': 'Bu oyuncu az önce başka bir odaya girdi',
+  'bxh.thach': 'Meydan oku',
+  'bxh.thachAria': '{ten} kişisine meydan oku',
+  'bxh.dangChoi': 'Oynuyor',
+  'bxh.dangOnline': '{n} kişi çevrimiçi',
+  'bxh.online': 'çevrimiçi',
 };
 
 export default tr;

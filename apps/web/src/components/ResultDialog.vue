@@ -323,7 +323,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 </script>
 
 <template>
-  <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
+  <div class="overlay" :class="{ 'co-dock': multiplayerOnline }" role="dialog" aria-modal="true" aria-labelledby="resTitle" @keydown.esc="emit('menu')">
     <div class="panel" :class="{ 'kq-online': multiplayerOnline, 'nhieu-nguoi': loat }">
       <!-- Nhiều người: "Ván N" trên tiêu đề. Nút chia sẻ nay là nút vàng "Khoe tỷ số" cạnh "Chi tiết ván". -->
       <div v-if="loat" class="dau-kq">
@@ -546,22 +546,12 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         <LogOut :size="16" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ t('kq.doiThuRoi') }}
       </p>
 
-      <!-- Chat vẫn phải chạy sau khi ván xong: overlay này che kín màn chơi nên
-           thanh emoji của OnlineGame không bấm tới được. Chờ nhau bấm "Chơi lại"
-           là đúng lúc người ta muốn nói chuyện nhất. -->
-      <div class="chat-slot"><slot name="chat" /></div>
     </div>
     <LuuChiaSe v-if="moLcs" :noi-dung="noiDungAnh" @close="moLcs = false" />
   </div>
 </template>
 
 <style scoped>
-/* Thanh chat trong bảng kết quả: cách nút một nhịp, viền trên để tách khỏi
-   khu vực nút bấm — không thì mắt đọc emoji thành một hàng nút hành động. */
-.chat-slot:not(:empty) {
-  margin-top: 12px; padding-top: 10px;
-  border-top: 1px solid var(--line);
-}
 .waiting {
   margin: 10px 0 0; text-align: center; color: var(--muted);
   font-size: var(--text-sm);
@@ -601,6 +591,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   padding-top: calc(20px + env(safe-area-inset-top, 0px));
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
+/* Online: thanh emoji cố định ở đáy (EmojiDock, z 18) — chừa chỗ để hộp không chui dưới thanh */
+.overlay.co-dock { padding-bottom: calc(20px + var(--eb-dock-h, 48px) + env(safe-area-inset-bottom, 0px)); }
 .panel {
   width: 100%; max-width: 400px; position: relative;
   /* Bán trong suốt + blur: nhìn xuyên được màn ăn mừng phía sau */
@@ -845,7 +837,6 @@ h2 { margin: 0 0 4px; }
   .kq-online .row { margin-top: 22px; gap: 12px; }
   .kq-online .row.hang-phu { margin-top: 12px; }
   .kq-online .link.thoat { margin-top: 12px; }
-  .kq-online .chat-slot:not(:empty) { margin-top: 20px; padding-top: 16px; }
 }
 
 .achievements { margin: 12px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; }
@@ -901,6 +892,7 @@ h2 { margin: 0 0 4px; }
  */
 @media (max-height: 700px) {
   .overlay { padding: calc(10px + env(safe-area-inset-top, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .overlay.co-dock { padding-bottom: calc(10px + var(--eb-dock-h, 48px) + env(safe-area-inset-bottom, 0px)); }
   .panel { padding: 14px 16px; }
   h2 { font-size: var(--text-lg); }
   .reason { margin-bottom: 6px; font-size: 13px; }
