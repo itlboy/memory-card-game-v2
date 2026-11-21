@@ -43,14 +43,14 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
         henMang.set(p.id, setTimeout(() => {
           henMang.delete(p.id);
           daBaoMang.add(p.id);
-          baoNoi({ loai: 'mang', ic: '📡', chu: t('bao.matKetNoi', { ten }), khoa: `mang:${p.id}`, giu: true });
+          baoNoi({ loai: 'mang', ic: 'matMang', chu: t('bao.matKetNoi', { ten }), khoa: `mang:${p.id}`, giu: true });
         }, CHO_BAO_MANG_MS));
       } else if (!p.may && !truoc.connected && p.connected) {
         clearTimeout(henMang.get(p.id));
         henMang.delete(p.id);
         if (daBaoMang.delete(p.id)) {
           boBao(`mang:${p.id}`);
-          baoNoi({ loai: 'tot', ic: '🔌', chu: t('bao.vaoLai', { ten: p.name }) });
+          baoNoi({ loai: 'tot', ic: 'vaoLai', chu: t('bao.vaoLai', { ten: p.name }) });
         }
       }
       if (moi.status === 'lobby' && !truoc.ready && p.ready && !p.may) {
@@ -62,18 +62,18 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
       if (p.id === toi || moiIds.has(p.id)) continue;
       clearTimeout(henMang.get(p.id)); henMang.delete(p.id); daBaoMang.delete(p.id);
       boBao(`mang:${p.id}`);
-      if (!p.may) baoNoi({ loai: 'roi', ic: '🚪', chu: t('bao.roiPhong', { ten: p.name }) });
+      if (!p.may) baoNoi({ loai: 'roi', ic: 'roi', chu: t('bao.roiPhong', { ten: p.name }) });
     }
 
     if (moi.hostId && cu.hostId && moi.hostId !== cu.hostId && !moiIds.has(cu.hostId)) {
-      baoNoi({ loai: 'roi', ic: '👑', chu: moi.hostId === toi ? t('bao.banLamChu') : t('bao.lamChu', { ten: tenCua(moi, moi.hostId) }) });
+      baoNoi({ loai: 'roi', ic: 'chuPhong', chu: moi.hostId === toi ? t('bao.banLamChu') : t('bao.lamChu', { ten: tenCua(moi, moi.hostId) }) });
     }
 
     // Chủ phòng: vừa đủ người sẵn sàng
     if (moi.status === 'lobby' && moi.hostId === toi) {
       const khac = (r: RoomInfo) => r.players.filter((p) => p.id !== r.hostId && p.connected);
       const du = (r: RoomInfo) => khac(r).length >= 1 && khac(r).every((p) => p.ready);
-      if (du(moi) && !du(cu)) baoNoi({ loai: 'tot', ic: '🎉', chu: t('bao.duNguoi') });
+      if (du(moi) && !du(cu)) baoNoi({ loai: 'tot', ic: 'duNguoi', chu: t('bao.duNguoi') });
     }
 
     // Muốn chơi lại (màn cuối)
@@ -97,7 +97,7 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
   watch(() => o.nhacTu.value?.so, () => {
     const n = o.nhacTu.value;
     if (!n) return;
-    baoNoi({ loai: 'can', ic: '🔔', chu: t('bao.nhac', { ten: n.ten }), khoa: 'nhac' });
+    baoNoi({ loai: 'can', ic: 'nhac', chu: t('bao.nhac', { ten: n.ten }), khoa: 'nhac' });
     try { navigator.vibrate?.([120, 80, 120]); } catch { /* máy không rung được */ }
   });
 

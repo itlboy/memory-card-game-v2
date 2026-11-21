@@ -10,7 +10,7 @@
  */
 import { EMOJI_NHOM, type EmojiNhom } from '@mm/engine';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { Plus } from 'lucide-vue-next';
+import { Hourglass, Plus } from 'lucide-vue-next';
 import { ghiDung, hayDung } from '@/lib/emoji-hay-dung';
 import { t } from '@/lib/i18n';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -73,7 +73,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
     >{{ e }}</button>
     <!-- Hết lượt: nói rõ còn phải chờ mấy giây -->
     <span v-if="props.o.emojiCooldown.value" class="cooldown" role="status">
-      🧊 {{ props.o.emojiCooldown.value }}s
+      <Hourglass :size="14" :stroke-width="2.5" aria-hidden="true" /> {{ props.o.emojiCooldown.value }}s
     </span>
   </div>
   <div v-if="mo === 'emoji'" class="bang-emoji khay" role="menu" :aria-label="t('eb.chonEmoji')">

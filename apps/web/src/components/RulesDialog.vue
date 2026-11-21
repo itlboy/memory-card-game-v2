@@ -4,7 +4,7 @@ import { MUA_THE_MO } from '@/lib/mua-the';
 import CaiAppBuoc from './CaiAppBuoc.vue';
 import { coHuongDanCai } from '@/lib/cai-app';
 import { CAMPAIGN_LEVELS, TURN_BONUS_MS, TURN_LIMIT_SEC } from '@mm/engine';
-import { X } from 'lucide-vue-next';
+import { CloudRain, X } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import { t } from '@/lib/i18n';
@@ -131,7 +131,7 @@ const POWERS = computed((): readonly { icon: IconName; name: string; text: strin
 
         <!-- Mưa Thẻ (27.10.2026): chế độ thẻ rơi — luật ở lib/mua-the.ts -->
         <template v-if="MUA_THE_MO">
-          <h3>🌧️ {{ t('mt.ten') }}</h3>
+          <h3><CloudRain :size="18" :stroke-width="2.4" aria-hidden="true" /> {{ t('mt.ten') }}</h3>
           <p class="lead">{{ t('mt.moTa') }}</p>
         </template>
 

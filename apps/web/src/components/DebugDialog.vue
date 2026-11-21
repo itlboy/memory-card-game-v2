@@ -5,7 +5,7 @@
  * bấm vào mở trang này — cùng khung hộp thoại với Luật chơi (lớp phủ + panel, chỉ phần
  * thân cuộn) nên không đụng bố cục chung. Nội dung là `DebugMenu.vue`.
  */
-import { X } from 'lucide-vue-next';
+import { Bug, X } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { t } from '@/lib/i18n';
 import DebugMenu, { type XemFx } from './DebugMenu.vue';
@@ -20,7 +20,7 @@ onMounted(() => nutDong.value?.focus());
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="dbgTitle" @keydown.esc="emit('close')">
     <div class="panel dbg-trang">
       <header class="dbg-head">
-        <h2 id="dbgTitle">🐞 {{ t('tb.debug') }}</h2>
+        <h2 id="dbgTitle"><Bug :size="20" :stroke-width="2.4" aria-hidden="true" /> {{ t('tb.debug') }}</h2>
         <button ref="nutDong" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>

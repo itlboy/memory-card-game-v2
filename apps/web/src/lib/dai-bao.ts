@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+import type { TenIcon } from './icon-vong';
 
 /**
  * DẢI BÁO CHUNG (19.11.2026, mockup duyệt https://claude.ai/artifact/H3Szxmuu6WZbDVoFozH9aH — chủ dự án:
@@ -13,8 +14,8 @@ import { ref } from 'vue';
 export type LoaiBao = 'tot' | 'can' | 'roi' | 'mang' | 'xem';
 export interface Bao {
   loai: LoaiBao;
-  /** Biểu tượng đầu dải: emoji, hoặc tên vòng xanh dùng chung `'choiLai'` (↻) / `'sanSang'` (✋). */
-  ic?: string;
+  /** Biểu tượng đầu dải: tên icon vòng màu (lib/icon-vong.ts) — KHÔNG emoji (21.11.2026). */
+  ic?: TenIcon;
   /** Mặt thú / ảnh của người được nói tới — vẽ thay `ic` (xem). */
   mat?: string;
   anh?: string;

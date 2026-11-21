@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import IconVong from './IconVong.vue';
 /**
  * BỊ MỜI RA / PHÒNG BỊ HUỶ (20.11.2026, mockup A duyệt https://claude.ai/artifact/VviMC13FwDybkzYwXAH5CH):
  * hộp thoại có một nút "Đã hiểu" thay cho ô đỏ `.warn` — ô đỏ đọc như máy hỏng và trôi mất giữa
@@ -19,7 +20,7 @@ const tieuDe = (): string => (props.code === 'kicked'
 <template>
   <div class="overlay" role="alertdialog" aria-modal="true" :aria-label="tieuDe()" @keydown.esc="emit('dong')">
     <div class="panel hop">
-      <div class="ic" aria-hidden="true">{{ code === 'kicked' ? '👋' : '🚪' }}</div>
+      <div class="ic"><IconVong ic="roi" :size="56" /></div>
       <h2>{{ tieuDe() }}</h2>
       <p>{{ code === 'kicked' ? t('pd.kicked.than') : t('pd.cancelled.than') }}</p>
       <button ref="btn" class="btn-primary" type="button" @click="emit('dong')">{{ t('pd.daHieu') }}</button>
@@ -35,7 +36,7 @@ const tieuDe = (): string => (props.code === 'kicked'
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
 .hop { width: 100%; max-width: 340px; text-align: center; }
-.ic { font-size: 46px; line-height: 1; }
+.ic { display: grid; place-items: center; }
 h2 { margin: 10px 0 6px; font-size: var(--text-xl); text-wrap: balance; }
 p { margin: 0 0 18px; color: var(--muted); font-size: var(--text-md); }
 .btn-primary { width: 100%; min-height: 48px; }

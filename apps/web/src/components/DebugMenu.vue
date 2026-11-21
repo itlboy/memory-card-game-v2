@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CloudRain } from 'lucide-vue-next';
 /**
  * CÔNG CỤ CHẾ ĐỘ DEBUG — nằm NGAY TRONG menu Cài đặt (chủ dự án 16.10.2026; trước đó ở
  * cuối Luật chơi, phải mở thêm một hộp thoại mới tới). Bật debug: chạm 7 lần vào chữ
@@ -77,7 +78,7 @@ function veMacDinh(): void {
   <div class="dbg" role="group" :aria-label="t('tb.debug')">
     <!-- Thử nghiệm đứng ĐẦU: thứ chủ dự án mở trang này để chơi -->
     <button class="thach th-troi dbg-thu" type="button" @click="emit('mua-the')">
-      <span class="dbg-thu-ic" aria-hidden="true">🌧️</span>
+      <span class="dbg-thu-ic" aria-hidden="true"><CloudRain :size="28" :stroke-width="2.3" /></span>
       <span class="dbg-thu-chu"><small>{{ t('mt.thuNghiem') }}</small><b>{{ t('mt.ten') }}</b><span>{{ t('mt.moTa') }}</span></span>
       <span class="dbg-thu-mui" aria-hidden="true">›</span>
     </button>

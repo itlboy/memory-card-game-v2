@@ -49,6 +49,8 @@ watch(debug, (v) => {
 const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
+import LoiMoi from './components/LoiMoi.vue';
+import { batDauSanh, dangChoiOffline, nhanMoi, trongPhongOnline } from './lib/sanh';
 import IconBay from './components/IconBay.vue';
 import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
 import {
@@ -161,6 +163,36 @@ const muaTheRef = ref<InstanceType<typeof MuaThe> | null>(null);
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 /** Đang trong VÁN (offline hoặc online đang chơi) — nhạc nền nhỏ dần rồi tắt (16.10.2026). */
 const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua-the' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
+
+/*
+ * MỜI NGƯỜI ONLINE (21.11.2026, lib/sanh.ts): mời được ai KHÔNG ở phòng online nào — trang chủ hay đang chơi
+ * offline đều được. Nhận lời khi đang dở ván offline: DỪNG ván và hỏi lại ("Bỏ ván này để vào phòng?").
+ */
+const onlineKey = ref(0);
+watchEffect(() => { trongPhongOnline.value = screen.value === 'online' && !!onlineRef.value?.trongPhong; });
+watchEffect(() => { dangChoiOffline.value = screen.value === 'game' || screen.value === 'mua-the'; });
+if (import.meta.env.MODE !== 'test') onMounted(batDauSanh);
+const hoiBoVanMoi = ref(false);
+let maMoiCho = '';
+function vaoPhongMoi(): void {
+  const ma = nhanMoi();
+  if (!ma) return;
+  maMoiCho = ma;
+  sfx.select();
+  if (screen.value === 'game' && session.game.value && !session.game.value.finished) { session.pause(); hoiBoVanMoi.value = true; return; }
+  if (screen.value === 'mua-the' && muaTheRef.value?.dangDo()) { muaTheRef.value.tamDung(); hoiBoVanMoi.value = true; return; }
+  diVaoPhongMoi();
+}
+function diVaoPhongMoi(): void {
+  hoiBoVanMoi.value = false;
+  if (!maMoiCho) return;
+  // Đang ở ván offline / Mưa Thẻ (đã đồng ý bỏ) hay màn kết quả: dọn như lối "về trang chủ" rồi mới sang
+  if (screen.value === 'game' || screen.value === 'mua-the') backToMenu();
+  joinCode.value = maMoiCho;
+  maMoiCho = '';
+  onlineKey.value++;          // đang ở danh sách phòng: dựng lại màn online theo lối "được mời"
+  screen.value = 'online';
+}
 watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan], () => {
   store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value });
   if (!nhacBat.value || soundLevel.value === 'off') nhac.dung();
@@ -988,6 +1020,7 @@ const hasNext = computed(() => {
 
     <OnlineScreen
       v-else-if="screen === 'online'"
+      :key="onlineKey"
       ref="onlineRef"
       :join-code="joinCode"
       @back="screen = 'menu'; joinCode = ''"
@@ -1089,6 +1122,16 @@ const hasNext = computed(() => {
     :confirm-label="t('choiLai.nut')"
     @confirm="boVanDo('choi_lai'); confirmChoiLai = false; replay()"
     @cancel="confirmChoiLai = false"
+  />
+
+  <LoiMoi @vao="vaoPhongMoi" />
+  <ConfirmDialog
+    v-if="hoiBoVanMoi"
+    :title="t('moi.boVan.tieuDe')"
+    :body="t('moi.boVan.than')"
+    :confirm-label="t('moi.boVan.nut')"
+    @confirm="boVanDo('thoat'); diVaoPhongMoi()"
+    @cancel="hoiBoVanMoi = false; maMoiCho = ''"
   />
 
   <ConfirmDialog

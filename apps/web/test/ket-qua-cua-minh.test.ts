@@ -27,14 +27,14 @@ const dung = (props: Record<string, unknown>) => mount(ResultDialog, {
 describe('bảng kết quả theo góc nhìn của mình', () => {
   it('thua máy: "Bạn thua", không nêu tên máy, không hiện sao', () => {
     const w = dung({ minhKetCuc: 'thua' });
-    expect(w.find('#resTitle').text()).toBe('Bạn thua rồi 😢');
+    expect(w.find('#resTitle').text()).toBe('Bạn thua rồi');
     expect(w.find('#resTitle').text()).not.toContain('Bot');
     expect(w.find('.stars').exists()).toBe(false);
   });
 
   it('thắng máy: "Bạn thắng"', () => {
     const w = dung({ minhKetCuc: 'thang', summary: { ...thuaMay, ranking: [...thuaMay.ranking].reverse() } });
-    expect(w.find('#resTitle').text()).toBe('Bạn thắng! 🏆');
+    expect(w.find('#resTitle').text()).toBe('Bạn thắng!');
   });
 
   it('hoà là kết cục thứ ba, không rơi vào nhánh thua', () => {

@@ -21,6 +21,17 @@
 
 ## Ràng buộc thiết kế BẮT BUỘC
 
+- **MOCKUP LUÔN CÓ CẢ SÁNG VÀ TỐI** (chủ dự án 21.11.2026, "note lại để ko bị lỗi"): mọi mockup giao diện đặt
+  bản sáng và bản tối cạnh nhau (khung ép theme riêng); code xong chụp kiểm cả hai. Màn tối từng bị quên:
+  dải báo và dòng "Bạn" ở bảng xếp hạng chói vì chỉ có màu sáng. Màu riêng cho tối viết
+  `:global([data-theme='dark'] .lop)` — `:global(x) y` trong CSS scoped làm RƠI mất ` y`.
+- **ICON KIỂU MỚI, KHÔNG EMOJI HỆ THỐNG** (chủ dự án 21.11.2026: 📡 📴 🚪 ⚠️ 🔔… là "icon kiểu cũ, rất xấu"):
+  icon giao diện (nút, trạng thái, dải báo) dùng Lucide (`lucide-vue-next`); icon có nghĩa trạng thái dùng
+  `IconVong` (lib/icon-vong.ts — vòng màu theo nghĩa: xanh tốt · đỏ mạng/lỗi · vàng cần làm · xám rời · tím
+  gợi ý), `baoNoi({ ic })` chỉ nhận tên trong `ICON_VONG`. Emoji chỉ còn ở chỗ là NỘI DUNG: mặt người chơi,
+  hình lá bài, chat nhanh, huy hiệu danh hiệu, ô trang chủ (ảnh Noto 3D), hiệu ứng. Không để emoji trong
+  chuỗi dịch. `test/sanh.test.ts` canh danh sách file chính.
+
 - **KHÔNG SCROLL trên mobile**: mọi màn hình (wizard chọn chế độ/lưới/theme,
   lobby online, màn chơi, bản đồ Chiến dịch) phải hiển thị TRỌN VẸN trong
   viewport — nút hành động chính (Bắt đầu, Tạo phòng…) không bao giờ bị đẩy
@@ -1612,3 +1623,18 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   `dauTuanUtc` cùng mốc server). `ghiHang` chỉ từ bảng Tuần, tuần này. `doiHangCho` 'len' | 'xuong' | 'moi' → TopBar diễn
   (chip nảy/loé + sóng, số chạy 0,6 s, ▲N/▼N bay; xuống thì lắc) + `sfx.lenHang` / `sfx.xuongHang` ("tạch" buồn xíu) /
   `sfx.coHang` (ba nốt). KHÔNG còn bóng chữ "Lên hạng #…"; lần đầu có hạng cũng KHÔNG chữ (chủ dự án).
+
+## Mời người online + trang Cài đặt + màn tối dịu (21.11.2026, mockup duyệt https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU)
+
+- **Sảnh** (`apps/node-server/src/sanh.ts`, CHỈ bản Node, chỉ RAM): app mở + bật "Nhận lời mời" + KHÔNG ở phòng
+  online nào (trang chủ hay đang chơi offline đều được — chủ dự án) → giữ một WS `/ws/sanh` (`lib/sanh.ts`); vào
+  nền / vào phòng là đóng. Server tự đặt `sid` ngẫu nhiên — danh sách cho chủ phòng không có `cid`/token.
+- Chủ phòng (phòng chờ, còn chỗ) bấm "Mời người online" → `POST /api/sanh/ds|moi` kèm mã phòng + TOKEN CHỦ PHÒNG
+  trong body (không lên URL). Chống làm phiền ở server: 1 lời mời treo/người, hết hạn 20s, mời lại cùng người
+  chờ 2 phút, "Để sau" = khoá với phòng đó 1 giờ, 8 lời mời/phút/phòng, trần 3000 kết nối.
+- Người nhận: `LoiMoi.vue` (thẻ ở đầu màn, App.vue). Đang dở ván offline / Mưa Thẻ → `session.pause()` và hỏi
+  "Bỏ ván này để vào phòng?". Vào phòng = `joinCode` + `onlineKey++` (dựng lại OnlineScreen theo lối "được mời").
+  KHÔNG gửi push khi app đóng (chống spam) — muốn có thì bàn lại với chủ dự án.
+- Trang Cài đặt (TopBar `trangCd`): menu chỉ giữ Giao diện · Âm thanh · Nhạc + "Cài đặt ›" + Luật chơi; trang chia
+  Âm thanh / Hiển thị / Chơi online (Nhận lời mời, Báo khi có phòng) / Ứng dụng. Bảng ngôn ngữ (z 20) nổi đè trang (z 19).
+- `/api/ping` có thêm `phong.sanh` = số kết nối sảnh.

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X } from 'lucide-vue-next';
+import { Flag, X } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
@@ -183,7 +183,7 @@ async function doiAn(an: boolean): Promise<void> {
           </div>
       <div ref="vungCuon" class="body">
         <div v-if="bang && tuanTrong" class="trong">
-          <span class="to" aria-hidden="true">🏁</span>
+          <span class="to" aria-hidden="true"><Flag :size="40" :stroke-width="2.2" /></span>
           <b>{{ t('bxh.tuanMoi') }}</b>
           <p>{{ t('bxh.tuanMoiMo') }}</p>
           <button class="choi thach th-vang" type="button" @click="emit('close')">{{ t('bxh.choiNgay') }}</button>
@@ -276,10 +276,14 @@ async function doiAn(an: boolean): Promise<void> {
   display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 10px;
   background: color-mix(in srgb, var(--fg) 5%, transparent);
 }
-.bxh li.toi, .toi-dong { background: #ffe7b3; color: #3d2f08; box-shadow: inset 0 0 0 2px #f0c64a; }
-.bxh li.toi small { color: #5b4510; }
+/* DÒNG CỦA MÌNH theo biến — màn tối có bộ màu riêng (21.11.2026, chủ dự án: "tên của mình cũng sáng quá";
+   mockup duyệt https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU mục 2): vàng nâu sẫm, viền mảnh, tên màu kem */
+.panel { --toi-nen: #ffe7b3; --toi-vien: #f0c64a; --toi-day: 2px; --toi-chu: #3d2f08; --toi-phu: #5b4510; --toi-so: #8a5a00; --ban-nen: #c2621a; --ban-chu: #fff; }
+:global([data-theme='dark'] .panel) { --toi-nen: #2e2817; --toi-vien: #8f7124; --toi-day: 1.5px; --toi-chu: #f0dfae; --toi-phu: #c9b27a; --toi-so: #ffcf4d; --ban-nen: #6b5214; --ban-chu: #ffe39a; }
+.bxh li.toi, .toi-dong { background: var(--toi-nen); color: var(--toi-chu); box-shadow: inset 0 0 0 var(--toi-day) var(--toi-vien); }
+.bxh li.toi small { color: var(--toi-phu); }
 .hang { min-width: 30px; flex: none; text-align: center; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
-.bxh li.toi .hang, .toi-dong .hang { color: #5b4510; }
+.bxh li.toi .hang, .toi-dong .hang { color: var(--toi-phu); }
 .mat { font-size: 19px; line-height: 1; flex: 0 0 auto; }
 .ten { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bxh small { color: var(--muted); font-size: 12px; white-space: nowrap; }
@@ -289,10 +293,10 @@ async function doiAn(an: boolean): Promise<void> {
 .panel { --diem: #b97800; }
 /* :global(x) y trong CSS scoped bỏ mất ' y' — gói CẢ selector vào :global (chỉ đặt biến --diem, vô hại với .panel khác) */
 :global([data-theme='dark'] .panel) { --diem: #ffcf4d; }
-.bxh li.toi .so, .toi-dong .so { color: #8a5a00; }
+.bxh li.toi .so, .toi-dong .so { color: var(--toi-so); }
 .bxh .so, .ghim .so { min-width: 6ch; font-size: 17px; }
 .bxh li.toi.nhay { animation: toi-nhay 1.4s ease-out 1; }
-@keyframes toi-nhay { 0% { box-shadow: inset 0 0 0 2px #f0c64a, 0 0 0 0 rgba(240, 198, 74, .85); } 100% { box-shadow: inset 0 0 0 2px #f0c64a, 0 0 0 12px rgba(240, 198, 74, 0); } }
+@keyframes toi-nhay { 0% { box-shadow: inset 0 0 0 var(--toi-day) var(--toi-vien), 0 0 0 0 rgba(240, 198, 74, .85); } 100% { box-shadow: inset 0 0 0 var(--toi-day) var(--toi-vien), 0 0 0 12px rgba(240, 198, 74, 0); } }
 @media (prefers-reduced-motion: reduce) { .bxh li.toi.nhay { animation: none; } }
 .ke .so { font-size: var(--text-sm); }
 .xu {
@@ -328,7 +332,7 @@ async function doiAn(an: boolean): Promise<void> {
 .buc { transition: opacity .2s ease; }
 .buc.mo { opacity: .45; }
 .nhan-ban {
-  font-style: normal; font-size: 11px; font-weight: 800; color: #fff; background: #c2621a;
+  font-style: normal; font-size: 11px; font-weight: 800; color: var(--ban-chu); background: var(--ban-nen);
   border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px;
 }
 

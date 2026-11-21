@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ChevronRight, Crown, Trophy, HelpCircle, Languages, Menu, Music, Palette, RefreshCw, Smartphone, SmartphoneNfc, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Bell, Bug, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
+import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
+import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
 import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
@@ -128,7 +130,7 @@ async function kiemCapNhat(): Promise<void> {
   kiemCN.value = 'dang';
   const { kiemTraThuCong } = await import('@/lib/ota');
   const kq = await kiemTraThuCong();
-  if (kq === 'coBan') { kiemCN.value = ''; dong(); return; }
+  if (kq === 'coBan') { kiemCN.value = ''; dong(); trangCd.value = false; return; }
   kiemCN.value = kq === 'web' ? 'moiNhat' : kq;
 }
 const tenNN = computed(() => NGON_NGU.find((l) => l.id === ngonNgu.value)?.ten ?? '');
@@ -163,6 +165,27 @@ onUnmounted(() => document.removeEventListener('pointerdown', ngoai, true));
 // Nút Back của máy đóng menu trước mọi thứ khác (cùng mức với hộp thoại)
 useBackCloser(31, () => chonNN.value, () => { chonNN.value = false; });
 useBackCloser(30, () => open.value, dong);
+
+/* ---------- TRANG CÀI ĐẶT (21.11.2026, mockup duyệt https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU mục 5) ---------- */
+const trangCd = ref(false);
+function moTrangCd(): void {
+  dong();
+  if (kiemCN.value !== 'dang') kiemCN.value = '';
+  tbKq.value = '';
+  trangCd.value = true;
+}
+useBackCloser(30, () => trangCd.value && !chonNN.value, () => { trangCd.value = false; });
+/** Chuông "Báo khi có phòng" — cùng lib với chuông ở màn Online; kết quả hiện ngay dưới dòng. */
+const tbDangLam = ref(false);
+const tbKq = ref<'' | 'bat' | 'chan' | 'loi' | 'tat'>('');
+async function bamChuong(): Promise<void> {
+  if (tbDangLam.value) return;
+  tbDangLam.value = true;
+  try {
+    if (dangBat.value) { await tatChuong(); tbKq.value = 'tat'; return; }
+    tbKq.value = await batChuong();
+  } finally { tbDangLam.value = false; }
+}
 
 const soundIcon = computed(() =>
   props.soundLevel === 'off' ? VolumeX : props.soundLevel === 'low' ? Volume1 : Volume2);
@@ -335,7 +358,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         <div class="nhom-hang">
           <p class="nhom" role="presentation" @pointerup="chamCaiDat">{{ t('tb.caiDat') }}</p>
           <!-- Debug đang bật: nút vào TRANG debug riêng (DebugDialog) — menu không chứa công cụ debug -->
-          <button data-phang v-if="debug" class="nut-debug" role="menuitem" type="button" @click="dong(); emit('mo-debug')">🐞 Debug</button>
+          <button data-phang v-if="debug" class="nut-debug" role="menuitem" type="button" @click="dong(); emit('mo-debug')"><Bug :size="14" :stroke-width="2.5" aria-hidden="true" /> Debug</button>
         </div>
         <!-- Giao diện = Sáng/Tối của Kẹo (chủ dự án 17.10.2026: chỉ còn Kẹo cho người chơi; skin
              khác chọn ở trang Debug). Skin không có nền tối (Gỗ…) thì chỉ còn dòng chữ. -->
@@ -378,49 +401,135 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
               :aria-checked="!!nhac && baiNhac === b"
               :aria-label="baiChoiDuoc(b) ? td(`tb.nhacBai.${b}`) : `${td(`tb.nhacBai.${b}`)} — ${t('tb.skinPlus')}`"
               @click="chonNhac(b)"
-            >{{ ICON_BAI[b] }}<Crown v-if="!baiChoiDuoc(b)" class="o-khoa" :size="10" aria-hidden="true" /></button>
+            >
+              <component :is="ICON_BAI[b]" :size="16" :stroke-width="2.4" aria-hidden="true" /><Crown v-if="!baiChoiDuoc(b)" class="o-khoa" :size="10" aria-hidden="true" /></button>
           </span>
         </div>
         <p v-if="baoPlusNhac" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
-        <!-- Rung: công tắc trở lại 17.10.2026. Giấu khi máy không rung được (web trên
-             iPhone): công tắc không làm gì là công tắc nói dối. -->
-        <button data-phang
-          v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
-          :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
-          @click="$emit('toggle-rung')"
-        >
-          <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
-        </button>
-
-        <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
-        <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
-          <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
-          <button class="chon-nn thach" type="button" :aria-label="`${t('tb.ngonNgu')}: ${tenNN}`" @click="moNN($event)">
-            <span :lang="ngonNgu">{{ tenNN }}</span><ChevronRight :size="16" aria-hidden="true" />
-          </button>
-        </div>
-
         <hr class="ke" />
-        <!-- Cài lên màn hình chính (lib/cai-app.ts): chỉ điện thoại mở bằng trình duyệt, chưa cài -->
-        <button v-if="nenMoiCai" class="item thach" role="menuitem" type="button" @click="dong(); moCai()">
-          <Smartphone :size="20" /><span>{{ t('cai.menu') }}</span>
+        <!-- TRANG CÀI ĐẶT (21.11.2026, mockup duyệt https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU mục 5 — chủ dự án:
+             "cài đặt bắt đầu nhiều rồi"): menu chỉ giữ 3 thứ hay đổi (Giao diện, Âm thanh, Nhạc); Rung, Ngôn ngữ,
+             Nhận lời mời, Báo khi có phòng, Cập nhật, Cài app vào trang riêng chia nhóm. -->
+        <button class="item thach" role="menuitem" type="button" @click="moTrangCd">
+          <Settings2 :size="20" /><span class="tk-chu"><b>{{ t('tb.caiDat') }}</b><small>{{ t('cd.moTa') }}</small></span><ChevronRight :size="18" aria-hidden="true" />
         </button>
         <button class="item thach" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
           <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>
         </button>
-        <button v-if="laApp" class="item thach kiem-cn" role="menuitem" type="button" :aria-busy="kiemCN === 'dang'" @click="kiemCapNhat">
-          <RefreshCw :size="20" /><span>{{ t('tb.kiemCapNhat') }}</span>
-          <small class="kq-cn" :class="kiemCN" role="status">
-            <span v-if="kiemCN === 'dang'" class="cham" :aria-label="t('tb.dangKiem')"><i /><i /><i /></span>
-            <template v-else-if="kiemCN === 'moiNhat'">{{ t('tb.moiNhat') }}</template>
-            <template v-else-if="kiemCN === 'matMang'">{{ t('tb.matMang') }}</template>
-            <template v-else-if="kiemCN === 'cuQua'">{{ t('tb.canBanStore') }}</template>
-            <template v-else>{{ banHien }}</template>
-          </small>
-        </button>
       </div>
     </div>
   </header>
+  <!-- TRANG CÀI ĐẶT — mở từ dòng "Cài đặt ›" của menu. Nằm trong #app như bảng ngôn ngữ (bảng đó nổi ĐÈ lên trang này). -->
+  <Teleport to="#app">
+    <div v-if="trangCd" class="cd-phu" @click.self="trangCd = false">
+      <section class="cd-trang khay" role="dialog" aria-modal="true" :aria-label="t('tb.caiDat')">
+        <header class="cd-dau">
+          <button class="nn-dong thach" type="button" :aria-label="t('dhd.dong')" @click="trangCd = false"><ChevronLeft :size="20" /></button>
+          <h2>{{ t('tb.caiDat') }}</h2>
+        </header>
+        <div class="cd-than">
+          <p class="nhom">{{ t('tb.amThanh') }}</p>
+          <div class="cd-the">
+            <div class="item am" role="group" :aria-label="t('tb.amThanh')">
+              <component :is="soundIcon" :size="20" /><span>{{ t('tb.amThanh') }}</span>
+              <span class="nac">
+                <button data-phang
+                  v-for="l in (['off', 'low', 'high'] as const)" :key="l" type="button" role="menuitemradio"
+                  :aria-checked="soundLevel === l" :aria-label="td(`tb.am.${l}`)"
+                  @click="$emit('set-sound', l)"
+                >{{ td(`tb.amNgan.${l}`) }}</button>
+              </span>
+            </div>
+            <!-- Nhạc nền: Tắt · từng bài (lib/nhac.ts), cùng dạng nút chia đoạn với Âm thanh.
+                 Nhãn bài là biểu tượng — khỏi dịch, khỏi tràn menu; tên đầy đủ ở aria-label.
+                 MỘT HÀNG như Âm thanh khi ≤ 3 bài (chủ dự án 15.10.2026); nhiều hơn (bày cả bài
+                 Premium) thì HAI TẦNG — chữ trên, dải nút chia đều dưới: một hàng 6 nút làm menu
+                 phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). -->
+            <div class="item am nhac" :class="{ 'hai-tang': baiHien.length > 3 }" role="group" :aria-label="t('tb.nhacNen')">
+              <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
+              <span class="nac ds-nhac">
+                <button data-phang
+                  type="button" role="menuitemradio" :aria-checked="!nhac"
+                  :aria-label="td('tb.nhacBai.off')" @click="chonNhac('off')"
+                >{{ td('tb.amNgan.off') }}</button>
+                <button data-phang
+                  v-for="b in baiHien" :key="b" type="button" role="menuitemradio" class="bai"
+                  :class="{ khoa: !baiChoiDuoc(b) }"
+                  :aria-checked="!!nhac && baiNhac === b"
+                  :aria-label="baiChoiDuoc(b) ? td(`tb.nhacBai.${b}`) : `${td(`tb.nhacBai.${b}`)} — ${t('tb.skinPlus')}`"
+                  @click="chonNhac(b)"
+                >
+                  <component :is="ICON_BAI[b]" :size="16" :stroke-width="2.4" aria-hidden="true" /><Crown v-if="!baiChoiDuoc(b)" class="o-khoa" :size="10" aria-hidden="true" /></button>
+              </span>
+            </div>
+            <p v-if="baoPlusNhac" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
+            <!-- Rung: công tắc trở lại 17.10.2026. Giấu khi máy không rung được (web trên
+                 iPhone): công tắc không làm gì là công tắc nói dối. -->
+            <button data-phang
+              v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
+              :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
+              @click="$emit('toggle-rung')"
+            >
+              <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
+            </button>
+
+          </div>
+          <p class="nhom">{{ t('cd.hienThi') }}</p>
+          <div class="cd-the">
+            <!-- Giao diện = Sáng/Tối của Kẹo (chủ dự án 17.10.2026: chỉ còn Kẹo cho người chơi; skin
+                 khác chọn ở trang Debug). Skin không có nền tối (Gỗ…) thì chỉ còn dòng chữ. -->
+            <div class="item am" role="group" :aria-label="t('tb.giaoDien')">
+              <!-- Cũng là cửa bật debug (7 chạm) — chữ "Cài đặt" nhỏ quá, hay chạm trượt (16.10.2026) -->
+              <Palette :size="20" /><span class="cham-debug" @pointerup="chamCaiDat">{{ t('tb.giaoDien') }}</span>
+              <span v-if="coNenToi(skin)" class="nac">
+                <button data-phang
+                  v-for="n in (['tu', 'sang', 'toi'] as const)" :key="n" type="button" role="menuitemradio"
+                  :aria-checked="nen === n" :aria-label="`${t('tb.nen')}: ${td(`tb.nenNgan.${n}`)}`"
+                  @click="$emit('set-nen', n)"
+                >{{ td(`tb.nenNgan.${n}`) }}</button>
+              </span>
+            </div>
+            <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
+            <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
+              <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
+              <button class="chon-nn thach" type="button" :aria-label="`${t('tb.ngonNgu')}: ${tenNN}`" @click="moNN($event)">
+                <span :lang="ngonNgu">{{ tenNN }}</span><ChevronRight :size="16" aria-hidden="true" />
+              </button>
+            </div>
+
+          </div>
+          <p class="nhom">{{ t('cd.online') }}</p>
+          <div class="cd-the">
+            <!-- Nhận lời mời chơi (lib/sanh.ts) — tắt là app thôi giữ kết nối sảnh, không ai thấy mình để mời -->
+            <button data-phang class="item cong-tac" role="switch" type="button" :aria-checked="nhanLoiMoi" @click="datNhanLoiMoi(!nhanLoiMoi)">
+              <MailPlus :size="20" /><span class="tk-chu"><b>{{ t('cd.nhanMoi') }}</b><small>{{ t('cd.nhanMoiMo') }}</small></span><i class="sw" :class="{ bat: nhanLoiMoi }" aria-hidden="true" />
+            </button>
+            <!-- Báo khi có phòng: CÙNG công tắc với chuông ở màn Online (lib/thong-bao.ts) — chỉ app có push -->
+            <button data-phang v-if="coChuong" class="item cong-tac" role="switch" type="button" :aria-checked="dangBat" :disabled="tbDangLam" @click="bamChuong">
+              <Bell :size="20" /><span class="tk-chu"><b>{{ t('cd.baoPhong') }}</b><small :class="{ loi: tbKq === 'chan' || tbKq === 'loi' }">{{ tbKq ? t(tbKq === 'bat' ? 'on.tb.daBat' : tbKq === 'chan' ? 'on.tb.biChan' : tbKq === 'tat' ? 'on.tb.daTat' : 'on.tb.loi') : t('cd.baoPhongMo') }}</small></span><i class="sw" :class="{ bat: dangBat }" aria-hidden="true" />
+            </button>
+          </div>
+          <p class="nhom">{{ t('cd.ungDung') }}</p>
+          <div class="cd-the">
+            <button data-phang v-if="laApp" class="item kiem-cn" type="button" :aria-busy="kiemCN === 'dang'" @click="kiemCapNhat">
+              <RefreshCw :size="20" /><span>{{ t('tb.kiemCapNhat') }}</span>
+              <small class="kq-cn" :class="kiemCN" role="status">
+                <span v-if="kiemCN === 'dang'" class="cham" :aria-label="t('tb.dangKiem')"><i /><i /><i /></span>
+                <template v-else-if="kiemCN === 'moiNhat'">{{ t('tb.moiNhat') }}</template>
+                <template v-else-if="kiemCN === 'matMang'">{{ t('tb.matMang') }}</template>
+                <template v-else-if="kiemCN === 'cuQua'">{{ t('tb.canBanStore') }}</template>
+                <template v-else>{{ banHien }}</template>
+              </small>
+            </button>
+            <div v-if="!laApp" class="item am"><Info :size="20" /><span>{{ t('cd.phienBan') }}</span><small class="kq-ban">{{ banHien }}</small></div>
+            <button data-phang v-if="nenMoiCai" class="item" type="button" @click="trangCd = false; moCai()">
+              <Smartphone :size="20" /><span>{{ t('cai.menu') }}</span><ChevronRight :size="18" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </Teleport>
   <!-- BẢNG CHỌN NGÔN NGỮ (17.10.2026, chủ dự án: <select> gốc mở danh sách hệ điều hành "dài quá";
        bản đổi ruột menu thì "ẩn menu dưới không hợp lý" + ô hẹp vỡ chữ). Hộp RIÊNG nổi giữa cột,
        menu vẫn mở phía sau. Lưới 3×5 = đúng 15 ngôn ngữ, tròn hàng, không cuộn. Tên viết bằng CHÍNH
@@ -746,4 +855,24 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
 @media (hover: hover) { .item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); } }
 .item:active { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+
+/* ---------- TRANG CÀI ĐẶT (21.11.2026) — dưới bảng ngôn ngữ (.nn-phu z 20) để chọn ngôn ngữ nổi đè lên ---------- */
+.cd-phu { position: absolute; inset: 0; z-index: 19; background: rgba(6, 9, 18, .35); display: flex; justify-content: center; align-items: stretch; }
+.cd-trang {
+  width: 100%; max-width: 520px; display: flex; flex-direction: column; min-height: 0; box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  background: var(--bg); color: var(--fg);
+}
+.cd-dau { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.cd-dau h2 { margin: 0; font: 800 21px var(--font-display); }
+.cd-than { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 4px; padding-bottom: 8px; }
+.cd-than .nhom { margin: 10px 6px 2px; }
+.cd-the { display: grid; gap: 2px; padding: 4px; border-radius: 16px; background: var(--panel-solid); border: 1px solid var(--line); }
+.cd-the .item { white-space: normal; min-height: 48px; }
+.cd-the .tk-chu small { white-space: normal; }
+.cd-the .tk-chu small.loi { color: var(--bad); }
+.cd-the .item.cong-tac .tk-chu { flex: 1; padding-block: 6px; }
+.cd-the .item.kiem-cn { width: 100%; }
+.kq-ban { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.item:disabled { opacity: .6; cursor: default; }
 </style>
