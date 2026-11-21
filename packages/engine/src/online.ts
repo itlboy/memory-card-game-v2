@@ -117,9 +117,14 @@ export const EMOJI_PHO_BIEN: readonly QuickEmoji[] = ['😂', '❤️', '👍', 
  * (server bỏ mã lạ) và chung hạn mức chống spam với emoji.
  */
 export const QUICK_SAYS = [
-  'chao', 'hay', 'wow', 'tiec', 'den', 'anMay', 'gg', 'camOn', 'dongY', 'vanNua', 'ban', 'tamBiet'
+  'chao', 'hay', 'wow', 'tiec', 'den', 'anMay', 'gg', 'camOn', 'dongY', 'vanNua', 'ban', 'tamBiet',
+  // Nút nói nhanh trở lại (22.11.2026, mockup duyệt https://claude.ai/artifact/54TeMHuUCQA2pxs7FN7C4Q) — CHỈ THÊM VÀO CUỐI:
+  // app bản cũ / server cũ không biết id mới thì bỏ qua, không đổi nghĩa id cũ
+  'gioi', 'choiTiep', 'henGap', 'vuiChoi'
 ] as const;
 export type QuickSay = (typeof QUICK_SAYS)[number];
+/** 5 câu trên nút nói nhanh (thứ tự hiện) — chủ dự án chọn 22.11.2026. */
+export const NOI_NHANH: readonly QuickSay[] = ['gioi', 'choiTiep', 'henGap', 'vuiChoi', 'dongY'];
 
 /* ---------- view công khai ---------- */
 

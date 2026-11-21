@@ -856,6 +856,11 @@ const zhTW: TuDien = {
   'bxh.dangChoi': '遊戲中',
   'bxh.dangOnline': '{n} 人在線上',
   'bxh.online': '在線上',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': '你太厲害了！',
+  'say.choiTiep': '我們繼續玩吧',
+  'say.henGap': '我有事先走了，回頭見！',
+  'say.vuiChoi': '很高興和你一起玩',
 };
 
 export default zhTW;

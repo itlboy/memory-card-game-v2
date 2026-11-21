@@ -856,6 +856,11 @@ const id: TuDien = {
   'bxh.dangChoi': 'Sedang main',
   'bxh.dangOnline': '{n} sedang online',
   'bxh.online': 'online',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'Kamu hebat banget!',
+  'say.choiTiep': 'Ayo main lagi',
+  'say.henGap': 'Aku harus pergi, sampai jumpa!',
+  'say.vuiChoi': 'Senang main sama kamu',
 };
 
 export default id;

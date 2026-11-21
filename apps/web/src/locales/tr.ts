@@ -856,6 +856,11 @@ const tr: TuDien = {
   'bxh.dangChoi': 'Oynuyor',
   'bxh.dangOnline': '{n} kişi çevrimiçi',
   'bxh.online': 'çevrimiçi',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'Çok iyisin!',
+  'say.choiTiep': 'Oynamaya devam edelim',
+  'say.henGap': 'Gitmem lazım, sonra görüşürüz!',
+  'say.vuiChoi': 'Seninle oynamak güzeldi',
 };
 
 export default tr;

@@ -853,6 +853,11 @@ const zh: TuDien = {
   'bxh.dangChoi': '游戏中',
   'bxh.dangOnline': '{n} 人在线',
   'bxh.online': '在线',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': '你太厉害了！',
+  'say.choiTiep': '我们继续玩吧',
+  'say.henGap': '我有事先走了，回头见！',
+  'say.vuiChoi': '很高兴和你一起玩',
 };
 
 export default zh;

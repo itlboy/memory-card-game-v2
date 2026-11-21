@@ -853,6 +853,11 @@ const ja: TuDien = {
   'bxh.dangChoi': 'プレイ中',
   'bxh.dangOnline': '{n}人がオンライン',
   'bxh.online': 'オンライン',
+  /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
+  'say.gioi': 'すごく上手だね！',
+  'say.choiTiep': 'このまま続けよう',
+  'say.henGap': 'もう行かなきゃ、またね！',
+  'say.vuiChoi': '一緒に遊べて楽しかった',
 };
 
 export default ja;
