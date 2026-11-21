@@ -220,6 +220,16 @@ async function android() {
     const ten = (await liet(`stats/${thuMuc}/${thuMuc}_${ANDROID_PKG}_`)).filter((n) => n.endsWith(`_${duoi}.csv`));
     return (await Promise.all(ten.map(doc))).flat();
   }
+  // --raw: lưu nguyên mọi CSV của gói này (đầu ra vẫn được CI mã hoá) để soi nguồn cài
+  if (process.argv.includes('--raw')) {
+    const { mkdirSync } = await import('node:fs');
+    mkdirSync(`${OUT}/raw`, { recursive: true });
+    const tat = [...await liet('stats/'), ...await liet('acquisition/')].filter((n) => n.includes(ANDROID_PKG));
+    for (const n of tat) {
+      const r = await fetch(`https://storage.googleapis.com/storage/v1/b/${bucket}/o/${encodeURIComponent(n)}?alt=media`, { headers: auth });
+      if (r.ok) writeFileSync(`${OUT}/raw/${n.replaceAll('/', '__')}`, Buffer.from(await r.arrayBuffer()));
+    }
+  }
   const cot = (h, ...k) => { for (const x of k) if (x in h) return so(h[x]); return 0; };
   const CAI = ['Daily Device Installs', 'Install events'], GO = ['Daily Device Uninstalls', 'Uninstall events'];
   const nhom = (rows, khoa) => { const o = {}; for (const r of rows) cong(o, khoa.map((k) => r[k]).find(Boolean), cot(r, ...CAI)); return o; };
