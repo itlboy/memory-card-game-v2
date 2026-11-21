@@ -163,6 +163,12 @@ describe('client: nối sảnh đúng lúc, giao diện', () => {
     for (const k of ["t('tb.rung')", "t('tb.ngonNgu')", 'kiemCapNhat']) expect(menu).not.toContain(k);
     for (const k of ["t('tb.rung')", "t('tb.ngonNgu')", 'kiemCapNhat', "t('cd.nhanMoi')", "t('cd.baoPhong')"]) expect(trang).toContain(k);
   });
+  it('phòng chờ không tràn ngang: cột danh sách người chơi khoá bằng bề ngang khung (Xiaomi 360px, 21.11.2026)', () => {
+    const o = doc('components/OnlineScreen.vue');
+    const khoi = o.slice(o.indexOf('.lobby-list {'), o.indexOf('}', o.indexOf('.lobby-list {')));
+    expect(khoi).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(o).toMatch(/li\.empty:has\(\.moi-online\) \{[\s\S]*?min-width: 0;/);
+  });
   it('màn tối có màu riêng cho dải báo và dòng "Bạn" ở bảng xếp hạng', () => {
     expect(doc('components/DaiBao.vue')).toMatch(/:global\(\[data-theme='dark'\] \.dai-bao\.b-tot\)/);
     expect(doc('components/BangXepHang.vue')).toMatch(/:global\(\[data-theme='dark'\] \.panel\) \{ --toi-nen/);
