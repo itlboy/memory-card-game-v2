@@ -1,6 +1,7 @@
-import { computed } from 'vue';
+import { computed, type Component } from 'vue';
 import { sfx } from './audio';
 import { daMuaPremium, hienPremium } from './premium';
+import { Fish, Leaf, Moon, Piano, Wind } from 'lucide-vue-next';
 
 /*
  * NHẠC NỀN — TỔNG HỢP bằng Web Audio, cùng cách với mọi tiếng khác của app (13.10.2026).
@@ -35,7 +36,8 @@ export type TamTrang = 'menu' | 'van';
 export const BAI_NHAC = ['keo', 'dem', 'sau', 'vuon', 'chuong'] as const;
 export type BaiNhac = typeof BAI_NHAC[number];
 /** Nhãn trên nút chọn — biểu tượng thay chữ: khỏi dịch, khỏi tràn menu ở 15 ngôn ngữ. */
-export const ICON_BAI: Record<BaiNhac, string> = { keo: '🎹', dem: '🌙', sau: '🐋', vuon: '🌿', chuong: '🎐' };
+/** Icon nút chọn bài — Lucide, KHÔNG emoji (21.11.2026, lib/icon-vong.ts). */
+export const ICON_BAI: Record<BaiNhac, Component> = { keo: Piano, dem: Moon, sau: Fish, vuon: Leaf, chuong: Wind };
 
 /**
  * Bài PREMIUM — cùng gói với theme/skin premium (lib/premium.ts), cùng luật: chưa mở

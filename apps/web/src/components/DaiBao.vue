@@ -2,6 +2,7 @@
 import { baoHien } from '@/lib/dai-bao';
 import MatNguoi from './MatNguoi.vue';
 import BongNgo from './BongNgo.vue';
+import IconVong from './IconVong.vue';
 
 /**
  * DẢI BÁO CHUNG — một chỗ, một kiểu (lib/dai-bao.ts). Nổi `fixed` trên cùng, đè lên hàng trên cùng
@@ -20,11 +21,8 @@ import BongNgo from './BongNgo.vue';
           <MatNguoi :mat="baoHien.mat ?? ''" :anh="baoHien.anh" />
           <BongNgo v-if="baoHien.loai === 'xem'" class="db-bong" :size="16" />
         </span>
-        <!-- VÒNG XANH dùng chung (20.11.2026, chủ dự án: thông báo "muốn chơi lại" dùng icon khác): ↻ = cột chơi lại
-             cuối ván (ResultDialog .cl-ic), ✋ = cột sẵn sàng phòng chờ (OnlineScreen .cot-san) -->
-        <span v-else-if="baoHien.ic === 'choiLai'" class="db-vong" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></svg></span>
-        <span v-else-if="baoHien.ic === 'sanSang'" class="db-vong" aria-hidden="true">✋</span>
-        <span v-else-if="baoHien.ic" class="db-ic" aria-hidden="true">{{ baoHien.ic }}</span>
+        <!-- Icon vòng màu theo nghĩa (lib/icon-vong.ts, 21.11.2026) — thay emoji hệ thống và hai vòng xanh vẽ tay -->
+        <IconVong v-else-if="baoHien.ic" :ic="baoHien.ic" :size="30" />
         <span class="db-chu">{{ baoHien.chu }}</span>
       </div>
     </Transition>
@@ -46,12 +44,6 @@ import BongNgo from './BongNgo.vue';
 .b-roi { background: #f1f3f8; border-color: #b9c2d6; --db-day: #a9b3c9; color: #33405f; }
 .b-mang { background: #ffe9e2; border-color: #f19a7c; --db-day: #e0896b; color: #7a2208; }
 .b-xem { background: #e5efff; border-color: #9cc0f5; --db-day: #9cb8e6; color: #1f5aab; }
-.db-ic { font-size: 20px; line-height: 1; flex: none; }
-.db-vong {
-  flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; box-sizing: border-box;
-  font-size: 14px; line-height: 1; color: #fff; border: 2px solid #3c9a26;
-  background: linear-gradient(#8fe06c, #4bb033); box-shadow: 0 2px 0 #348a20;
-}
 .db-mat {
   position: relative; flex: none; width: 30px; height: 30px; border-radius: 50%; background: #fff;
   display: grid; place-items: center; font-size: 19px; line-height: 1;
@@ -60,6 +52,15 @@ import BongNgo from './BongNgo.vue';
 .db-bong { position: absolute; right: -6px; bottom: -5px; }
 .db-chu { min-width: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .b-can { animation: db-rung .5s .1s 2; }
+/* MÀN TỐI (21.11.2026, chủ dự án: "thông báo trên màn hình tối hơi sáng quá"; mockup duyệt
+   https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU mục 1): nền sẫm ngả màu loại tin, viền vừa, chữ sáng dịu */
+:global([data-theme='dark'] .dai-bao) { box-shadow: 0 4px 0 var(--db-day), 0 8px 22px rgba(0, 0, 0, .45); }
+:global([data-theme='dark'] .dai-bao.b-tot) { background: #16301f; border-color: #3f8a52; --db-day: #0d1f14; color: #bfeccb; }
+:global([data-theme='dark'] .dai-bao.b-can) { background: #33290f; border-color: #a9851f; --db-day: #1f1806; color: #ffe39a; }
+:global([data-theme='dark'] .dai-bao.b-roi) { background: #222842; border-color: #4a5378; --db-day: #12162a; color: #d3d9f0; }
+:global([data-theme='dark'] .dai-bao.b-mang) { background: #3a1d17; border-color: #b0563f; --db-day: #22100c; color: #ffc9b8; }
+:global([data-theme='dark'] .dai-bao.b-xem) { background: #18284a; border-color: #4a76c4; --db-day: #0e1830; color: #c9dcff; }
+:global([data-theme='dark'] .dai-bao .db-mat) { background: #2a3052; }
 @keyframes db-rung { 25% { transform: translateX(-4px) rotate(-1deg); } 75% { transform: translateX(4px) rotate(1deg); } }
 .dai-bao-enter-active, .dai-bao-leave-active { transition: transform .22s cubic-bezier(.3, 1.4, .5, 1), opacity .18s; }
 .dai-bao-enter-from, .dai-bao-leave-to { transform: translateY(-16px); opacity: 0; }

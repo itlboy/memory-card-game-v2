@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BellRing, Hourglass } from 'lucide-vue-next';
 /**
  * CHỦ PHÒNG BẤM BẮT ĐẦU KHI CÒN NGƯỜI CHƯA SẴN SÀNG (19.11.2026, mockup duyệt
  * https://claude.ai/artifact/H3Szxmuu6WZbDVoFozH9aH). KHÔNG có "Bắt đầu luôn" (chủ dự án: "chỉ có nhắc
@@ -20,7 +21,7 @@ const ten = (): string => (props.chua.length === 1 ? tenNguoi(props.chua[0]!) : 
 <template>
   <div class="nhac-phu" @click.self="emit('dong')">
     <div class="nhac-bang khay" role="dialog" :aria-label="t('on.nhac.tieuDe', { n: chua.length })">
-      <p class="nhac-tieu">⏳ {{ t('on.nhac.tieuDe', { n: chua.length }) }}</p>
+      <p class="nhac-tieu"><Hourglass :size="18" :stroke-width="2.5" class="ic" aria-hidden="true" /> {{ t('on.nhac.tieuDe', { n: chua.length }) }}</p>
       <p class="nhac-mo">{{ t('on.nhac.moTa') }}</p>
       <div v-for="p in chua" :key="p.id" class="nhac-ng">
         <span class="nhac-mat"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
@@ -30,7 +31,7 @@ const ten = (): string => (props.chua.length === 1 ? tenNguoi(props.chua[0]!) : 
       <div class="nhac-hang">
         <button class="thach th-vang nhac-nut" type="button" :disabled="conGiay > 0" @click="emit('nhac')">
           <template v-if="conGiay > 0">{{ t('on.nhac.choGiay', { n: conGiay }) }}</template>
-          <template v-else>🔔 {{ ten() ? t('on.nhac.nhacTen', { ten: ten() }) : t('on.nhac.nhacTatCa') }}</template>
+          <template v-else><BellRing :size="17" :stroke-width="2.5" class="ic" aria-hidden="true" /> {{ ten() ? t('on.nhac.nhacTen', { ten: ten() }) : t('on.nhac.nhacTatCa') }}</template>
         </button>
         <button class="thach nhac-nut" type="button" @click="emit('dong')">{{ t('on.nhac.doiThem') }}</button>
       </div>
@@ -62,4 +63,5 @@ const ten = (): string => (props.chua.length === 1 ? tenNguoi(props.chua[0]!) : 
 .nhac-hang { display: flex; gap: 10px; margin-top: 2px; }
 .nhac-nut { flex: 1; min-height: 52px; font: 800 18px var(--font-display); border-radius: 18px; }
 .nhac-ghi { margin: 0; text-align: center; font-size: 12.5px; color: var(--muted); }
+.ic { vertical-align: -3px; }
 </style>

@@ -7,7 +7,7 @@ import type { Player } from '@mm/engine';
 import { TURN_LIMIT_SEC } from '@mm/engine';
 import OptionIcon from './OptionIcon.vue';
 import MatBot from './MatBot.vue';
-import { Timer, List } from 'lucide-vue-next';
+import { HeartCrack, List, Timer } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps<{
@@ -100,7 +100,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         <!-- MẠNG HIỆN BẰNG SỐ: chuỗi trái tim phình theo số mạng (bàn 42 thẻ có
              tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi chip. -->
         <small v-if="Number.isFinite(p.lives)" class="lives" :title="t('ps.mang', { n: p.lives })">
-          <template v-if="p.lives <= 0">💔</template>
+          <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
           <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
         </small>
         <span v-if="p.frozenTurns > 0" class="tag" :title="t('ps.dongBang')"><OptionIcon name="freeze" :size="14" /></span>
@@ -165,7 +165,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, players.indexOf(p))" /></span>
           <b class="name">{{ tenNguoi(p) }}</b>
           <small v-if="Number.isFinite(p.lives)" class="lives">
-            <template v-if="p.lives <= 0">💔</template>
+            <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
           <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }">{{ tySo[p.name]?.n ?? 0 }}</span>
@@ -439,4 +439,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
   .player.active .pts { font-size: 17px; padding: 1px 5px; }
   .player.active .pts.dai { font-size: 16px; }
 }
+/* Icon Lucide thay emoji (21.11.2026, lib/icon-vong.ts) */
+.ic-n { vertical-align: -2px; flex: none; }
+.ic-n.het { color: #e0533a; }
 </style>

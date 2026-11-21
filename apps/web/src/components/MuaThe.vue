@@ -18,7 +18,7 @@ import { bcp, t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import TamDung from './TamDung.vue';
-import { Pause, X } from 'lucide-vue-next';
+import { Pause, Trophy, X } from 'lucide-vue-next';
 
 const props = defineProps<{ themes: CardTheme[] }>();
 const emit = defineEmits<{
@@ -231,7 +231,7 @@ defineExpose({
       <div v-if="van" class="vien cap">{{ t('mt.cap', { n: van.cap }) }}</div>
       <div v-if="van && van.chuoi > 1 && buoc === 'choi'" :key="van.soCap" class="vien combo">×{{ comboMultiplier(van.chuoi).toLocaleString(bcp()) }}</div>
       <span class="gian" />
-      <div class="vien nhat" :title="t('mt.kyLuc')"><span aria-hidden="true">🏆</span><b>{{ num(kyLuc) }}</b></div>
+      <div class="vien nhat" :title="t('mt.kyLuc')"><Trophy :size="15" :stroke-width="2.5" aria-hidden="true" /><b>{{ num(kyLuc) }}</b></div>
       <button class="tron thach nut-dung" type="button" :aria-label="t('hud.tamDung')" :disabled="buoc !== 'choi'" @click="tamDung"><Pause :size="18" /></button>
     </div>
     <div class="vach-cap" role="progressbar" :aria-label="t('mt.cap', { n: (van?.cap ?? 1) + 1 })" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="Math.round(tienDoCap * 100)">
@@ -269,7 +269,7 @@ defineExpose({
           <h2 id="mtCuoi">{{ kyLucMoi ? t('mt.kyLucMoi') : t('mt.thua') }}</h2>
           <p class="so-to"><DongXu :size="40" />{{ num(van?.diem ?? 0) }}</p>
           <p class="phu-chu">{{ t('mt.ketQua', { n: van?.cap ?? 1, cap: van?.soCap ?? 0 }) }}</p>
-          <p class="phu-chu">🏆 {{ t('mt.kyLuc') }}: <b>{{ num(kyLuc) }}</b></p>
+          <p class="phu-chu"><Trophy :size="15" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ t('mt.kyLuc') }}: <b>{{ num(kyLuc) }}</b></p>
           <button class="btn btn-primary nut-to" type="button" @click="batDau">{{ t('hud.choiLai') }}</button>
           <div class="hang-nut">
             <button class="btn" type="button" @click="van = null; buoc = 'dau'">{{ t('mt.doiCot') }}</button>
@@ -294,7 +294,7 @@ defineExpose({
           </span>
         </div>
         <h2 id="mtDau" class="mt-ten">{{ t('mt.ten') }}</h2>
-        <p class="kl-vien">🏆 <b>{{ num(kyLuc) }}</b></p>
+        <p class="kl-vien"><Trophy :size="16" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> <b>{{ num(kyLuc) }}</b></p>
         <!-- Luật MỘT câu (chủ dự án 27.10.2026: "không cần giải thích rườm rà") -->
         <p class="mt-luat">{{ t('mt.moTa') }}</p>
         <div class="chon-cot" role="group" :aria-labelledby="'mtSoCot'">
@@ -523,4 +523,5 @@ defineExpose({
   .mua-la { animation: none; }
   .o .card.chon, .o .card.chon::after { animation: none; }
 }
+.ic-n { vertical-align: -2px; }
 </style>

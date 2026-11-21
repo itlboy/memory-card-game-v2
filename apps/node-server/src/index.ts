@@ -5,12 +5,13 @@ import { cpus, freemem, loadavg, totalmem, uptime as mayChayGiay } from 'node:os
 import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { extname, join, normalize } from 'node:path';
 import { WebSocketServer, type WebSocket as WsSocket } from 'ws';
-import { ROOM_LIMITS } from '@mm/engine';
+import { BOARD_SIZES, ROOM_LIMITS } from '@mm/engine';
 import { RoomDO } from '../../server/src/room.js';
 import { soPhongTrongRam } from '../../server/src/sophong.js';
 import { moKho, type Kho } from './kho-mysql.js';
 import { moTaiKhoan, type TaiKhoan } from './taikhoan.js';
 import { moThongBao, type ThongBao } from './thongbao.js';
+import { moSanh, type XemPhong } from './sanh.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -75,6 +76,30 @@ const CORS: Record<string, string> = {
 
 interface Phong { room: RoomDO; box: RoomBox }
 const phongs = new Map<string, Phong>();
+
+/*
+ * SẢNH — mời người đang online vào phòng chờ (sanh.ts). Đọc phòng thẳng từ RoomDO trong RAM (cùng cách
+ * /api/ping đếm người): chỉ cần trạng thái, token chủ phòng (xác thực người mời), số người, bàn.
+ */
+interface PhongTho {
+  status?: string; hostId?: string; config?: { level?: number };
+  players?: Array<{ id: string; token: string; name: string; avatar?: string; anh?: string; may?: unknown }>;
+}
+const AVATAR_SANH = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'] as const;
+const sanh = moSanh({
+  avatars: AVATAR_SANH,
+  xemPhong(ma: string): XemPhong | null {
+    const r = (phongs.get(ma)?.room as unknown as { room?: PhongTho } | undefined)?.room;
+    const chu = r?.players?.find((p) => p.id === r.hostId);
+    if (!r || !chu) return null;
+    const cap = BOARD_SIZES.find((b) => b.level === r.config?.level);
+    return {
+      status: r.status ?? '', hostToken: chu.token,
+      host: { ten: chu.name, mat: chu.avatar ?? '🙂', ...(chu.anh ? { anh: chu.anh } : {}) },
+      nguoi: r.players?.length ?? 0, toiDa: ROOM_LIMITS.maxPlayers, soThe: cap ? cap.pairs * 2 : 0
+    };
+  }
+});
 
 /**
  * Sổ phòng công khai (ON-10) — ở Node chỉ là một Map.
@@ -409,7 +434,7 @@ function kiemSucKhoe(): Promise<Record<string, unknown> & { ok: boolean }> {
       node: process.version,
       chayGiay: Math.round((Date.now() - BAT_DAU) / 1000),
       mayChayGiay: Math.round(mayChayGiay()),
-      phong: { trongRam: phongs.size, dangChoi, nguoi: soNguoi, socket: soSocket },
+      phong: { trongRam: phongs.size, dangChoi, nguoi: soNguoi, socket: soSocket, sanh: sanh.soKetNoi() },
       cpu: { tienTrinhPhanTram: cpuPhanTram, soNhan: cpus().length },
       vongSuKien: vong,
       taiKhoan: !!taiKhoan,
@@ -463,6 +488,9 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   if (url.pathname === '/health') { json(res, { ok: true, rooms: phongs.size }); return; }
 
   // Tự kiểm sâu cho giám sát (UptimeRobot): bản build, MySQL, ổ đĩa, RAM — lỗi thì 503 + ok:false. Xem `kiemSucKhoe`.
+  // Sảnh (mời người online) — trước tầng tài khoản vì cùng tiền tố /api/
+  if (sanh.xuLyHttp(req, res, url)) return;
+
   if (url.pathname === '/api/ping' && req.method === 'GET') {
     void kiemSucKhoe().then((k) => json(res, k, k.ok ? 200 : 503));
     return;
@@ -503,6 +531,7 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 server.on('upgrade', (req, socket, head) => {
   const url = docUrl(req);
   if (!url) { socket.destroy(); return; }
+  if (sanh.nhanUpgrade(req, url, socket, head)) return;
   const m = url.pathname.match(/^\/ws\/([0-9]{6})$/);
   if (!m) { socket.destroy(); return; }
   const code = m[1]!;
@@ -581,6 +610,7 @@ for (const tin of ['SIGTERM', 'SIGINT'] as const) {
             // 2) Báo NGAY mọi máy (1012 = server khởi động lại): client nối lại mỗi 0,5 giây thay
             //    vì phát hiện chậm qua nhịp tim (mạng di động hay giữ socket "chết mà vẫn mở")
             for (const c of wss.clients) { try { c.close(1012, 'restart'); } catch { /* đã đóng */ } }
+            sanh.dong();
             // 3) Đẩy nốt phần đang chờ ghi xuống MySQL
             await (kho?.dongKho() ?? Promise.resolve());
           })(),

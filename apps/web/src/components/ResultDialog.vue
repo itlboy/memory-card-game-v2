@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import IconVong from './IconVong.vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
@@ -13,7 +14,7 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
-import { ChevronDown, Settings2, Share } from 'lucide-vue-next';
+import { ChevronDown, LogOut, Settings2, Share } from 'lucide-vue-next';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
@@ -365,7 +366,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
               v-if="multiplayerOnline" class="cl-ic" :class="r.ra ? 'roi' : r.ok ? 'ok' : 'cho'" role="img"
               :aria-label="r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')"
               :title="r.ra ? t('kq.tag.daRoi') : r.ok ? t('kq.tag.choiLai') : laCotToi(r) ? t('kq.tag.banChuaBam') : t('kq.tag.dangCho')"
-            ><svg v-if="r.ok && !r.ra" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></svg><template v-else-if="r.ra">🚪</template><span v-else class="cham" aria-hidden="true"><i /><i /><i /></span></span>
+            ><svg v-if="r.ok && !r.ra" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></svg><LogOut v-else-if="r.ra" :size="15" :stroke-width="2.6" /><span v-else class="cham" aria-hidden="true"><i /><i /><i /></span></span>
           </div>
         </div>
 
@@ -453,12 +454,12 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         (MoKhoaToast) và màn Danh hiệu.
       -->
       <ul v-if="freshAchievements.length" class="achievements">
-        <li v-for="id in freshAchievements.slice(0, 2)" :key="id">🏅 {{ byId(id)?.name }}</li>
+        <li v-for="id in freshAchievements.slice(0, 2)" :key="id"><IconVong ic="danhHieu" :size="24" /> {{ byId(id)?.name }}</li>
         <li v-if="freshAchievements.length > 2" class="them">{{ t('kq.themDanhHieu', { n: freshAchievements.length - 2 }) }}</li>
       </ul>
       <!-- Lời mời đi tiếp, ngay lúc người chơi còn hứng: một cú bấm là vào ván -->
       <div v-if="goiY" class="goi-y">
-        <span class="txt">🎯 <b>{{ goiY.name }}</b><small>{{ goiY.hint }}</small></span>
+        <span class="txt"><IconVong ic="goiY" :size="24" class="gy-ic" /> <b>{{ goiY.name }}</b><small>{{ goiY.hint }}</small></span>
         <button class="di thach th-xanh th-nho" type="button" :aria-label="t('kq.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY)">{{ t('kq.chinhPhuc') }}</button>
       </div>
 
@@ -472,7 +473,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
       </button>
 
       <!-- Hết người để chơi lại: nói thẳng (nút Chơi lại biến mất). Tiến độ chơi lại nay là HÀNG BIỂU TƯỢNG trong khung tỷ số. -->
-      <p v-if="multiplayerOnline && khongDu" class="cl-dai roi" role="status">🚪 {{ t('kq.cl.khongDu') }}</p>
+      <p v-if="multiplayerOnline && khongDu" class="cl-dai roi" role="status"><LogOut :size="16" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ t('kq.cl.khongDu') }}</p>
 
       <div class="row">
         <button
@@ -542,7 +543,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         nút "Chơi lại" biến mất.
       -->
       <p v-if="rematchBlocked && !multiplayerOnline" class="waiting" role="status">
-        {{ t('kq.doiThuRoi') }}
+        <LogOut :size="16" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ t('kq.doiThuRoi') }}
       </p>
 
       <!-- Chat vẫn phải chạy sau khi ván xong: overlay này che kín màn chơi nên
@@ -924,4 +925,5 @@ h2 { margin: 0 0 4px; }
   .hang-ct { margin-top: 6px; }
   .nut-ct, .nut-khoe { min-height: 36px; }
 }
+.ic-n { vertical-align: -3px; }
 </style>

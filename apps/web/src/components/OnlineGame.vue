@@ -7,7 +7,7 @@ import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card, Summary } from '@mm/engine';
-import { List, Timer } from 'lucide-vue-next';
+import { HeartCrack, List, LogOut, Timer, TriangleAlert, WifiOff } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
 import { pingSo } from '@/lib/ping-so';
@@ -483,9 +483,9 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
           <b>{{ tenNguoi(p) }}</b>
           <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
                kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
-          <span v-if="p.forfeited" class="netbad" :title="t('og.daRoiPhong')">{{ t('og.daRoi') }}</span>
+          <span v-if="p.forfeited" class="netbad" :title="t('og.daRoiPhong')"><LogOut :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.daRoi') }}</span>
           <span v-else-if="!p.connected" class="netbad" :title="t('og.matKetNoi')">
-            📴<span class="chu"> {{ t('og.offline') }}</span>
+            <WifiOff :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /><span class="chu"> {{ t('og.offline') }}</span>
           </span>
           <!-- Mạng của MÌNH, gắn cạnh tên mình. Mặc định CHỈ CHẤM MÀU xanh · vàng · đỏ
                (chủ dự án 16.10.2026: số ms làm rối); số ms bật lại được trong chế độ
@@ -503,7 +503,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
                mạng (bàn 42 thẻ có tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi
                chip. Một icon + một số thì rộng bao nhiêu mạng cũng như nhau. -->
           <small v-if="p.lives !== null" class="lives" :title="t('ps.mang', { n: p.lives })">
-            <template v-if="p.lives <= 0">💔</template>
+            <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
             <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
           </small>
           <span
@@ -590,10 +590,10 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
             <span class="rank">{{ i + 1 }}</span>
             <span class="avatar"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
             <b class="nm">{{ tenNguoi(p) }}</b>
-            <span v-if="p.forfeited" class="netbad">{{ t('og.daRoi') }}</span>
-            <span v-else-if="!p.connected" class="netbad">📴 {{ t('og.offline') }}</span>
+            <span v-if="p.forfeited" class="netbad"><LogOut :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.daRoi') }}</span>
+            <span v-else-if="!p.connected" class="netbad"><WifiOff :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.offline') }}</span>
             <small v-if="p.lives !== null" class="lives">
-              <template v-if="p.lives <= 0">💔</template>
+              <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
               <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
             </small>
             <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }">{{ tySo[p.name]?.n ?? 0 }}</span>
@@ -607,7 +607,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
     <p v-if="o.reconnecting.value" class="reconnect" role="status">{{ t('og.dangVaoLai') }}</p>
     <!-- Nước bấm không tới được server: phải NÓI RA. Im lặng thì người chơi cứ
          bấm vào chỗ không ai nghe cho tới khi hết lượt. -->
-    <p v-else-if="o.netTrouble.value" class="reconnect" role="status">⚠️ {{ o.netTrouble.value }}</p>
+    <p v-else-if="o.netTrouble.value" class="reconnect" role="status"><TriangleAlert :size="15" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ o.netTrouble.value }}</p>
     <!-- Đối thủ mất mạng: bàn sẽ im tới khi hết đồng hồ lượt của họ. Không nói ra
          thì người còn lại ngồi nhìn bàn chết mà tưởng game hỏng — đúng thứ đã bị
          phản ánh. -->
@@ -1260,4 +1260,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
 
 
 
+/* Icon Lucide thay emoji (21.11.2026, lib/icon-vong.ts) */
+.ic-n { vertical-align: -2px; flex: none; }
+.ic-n.het { color: #e0533a; }
 </style>

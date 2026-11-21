@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { t } from '@/lib/i18n';
 import { LEVEL_KEYS, sizeForLevel } from '@mm/engine';
-import { LogOut, X } from 'lucide-vue-next';
+import { LogOut, Medal, Trophy, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { dsHien, daCo as daCoRef } from '@/lib/achievements';
 import { num, numShort } from '@/lib/format';
@@ -127,7 +127,7 @@ const diemMay = store.totalScore();
           <p v-if="loi" class="loi" role="alert">{{ loi }}</p>
           <button class="btn-link" type="button" @click="moBxh">{{ t('tk.xemBxh') }}</button>
 <button class="nut-dh thach th-vang" type="button" @click="emit('danh-hieu')">
-            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
+            <Medal :size="18" :stroke-width="2.4" aria-hidden="true" /> <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
         </div>
 
@@ -145,7 +145,7 @@ const diemMay = store.totalScore();
             </button>
           </div>
 
-          <button class="nut-dh thach th-vang" type="button" @click="moBxh">🏆 <b>{{ t('tk.xepHang') }}</b> <i aria-hidden="true">›</i></button>
+          <button class="nut-dh thach th-vang" type="button" @click="moBxh"><Trophy :size="18" :stroke-width="2.4" aria-hidden="true" /> <b>{{ t('tk.xepHang') }}</b> <i aria-hidden="true">›</i></button>
 
             <dl class="so">
               <div><dt>{{ t('tk.van') }}</dt><dd>{{ num(me.matches) }}</dd></div>
@@ -156,7 +156,7 @@ const diemMay = store.totalScore();
             </dl>
 
             <button class="nut-dh thach th-vang" type="button" @click="emit('danh-hieu')">
-            🏅 <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
+            <Medal :size="18" :stroke-width="2.4" aria-hidden="true" /> <b>{{ t('dhd.danhHieu') }}</b> <span>{{ soDaCo }}/{{ dsHien.length }}</span> <i aria-hidden="true">›</i>
           </button>
 
             <h3>{{ t('tk.kyLuc') }}</h3>

@@ -1821,6 +1821,8 @@ export function useOnlineRoom() {
   onScopeDispose(() => { for (const h of loiNoiHen.values()) clearTimeout(h); });
 
   return {
+    /** Token của mình trong phòng đang ở — chỉ để chủ phòng xác thực khi mời người online (lib/sanh.ts). */
+    layToken: (): string => token,
     phase, error, phongDong, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
     wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBong, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
