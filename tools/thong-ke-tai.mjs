@@ -64,6 +64,11 @@ async function ios() {
   if (!app) return { loi: `Không thấy app ${IOS_BUNDLE} (key không có quyền app này?)` };
   const kq = { appId: app.id, ten: app.attributes.name, nguon: [], ghiChu: [] };
 
+  // 0) Trạng thái duyệt các phiên bản gần nhất (chỉ đọc)
+  try {
+    const vs = (await json(`/v1/apps/${app.id}/appStoreVersions?limit=5`)).data ?? [];
+    kq.ghiChu.push('Phiên bản: ' + vs.map((x) => `${x.attributes.platform} ${x.attributes.versionString} ${x.attributes.appVersionState ?? x.attributes.appStoreState} (${x.attributes.releaseType}, tạo ${x.attributes.createdDate})`).join(' | '));
+  } catch (e) { kq.ghiChu.push(`Phiên bản: ${e.message}`); }
   // 1) Analytics Reports API
   let an = null;
   try { an = await iosAnalytics(app.id, goi, json, kq); } catch (e) { kq.ghiChu.push(`Analytics: ${e.message}`); }
