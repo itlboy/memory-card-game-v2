@@ -878,6 +878,12 @@ const ru: TuDien = {
   'say.choiTiep': 'Давай играть дальше',
   'say.henGap': 'Мне пора, до встречи!',
   'say.vuiChoi': 'Было приятно поиграть',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Побить',
+  'tk.phaAria': 'Сыграть и побить рекорд: {ten}',
+  'tk.khoTren': 'сложные сверху',
+  'tk.man': 'Уровень {n}',
+  'tk.diemNgan': 'всего очков',
 };
 
 export default ru;

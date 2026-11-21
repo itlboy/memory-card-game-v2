@@ -858,6 +858,12 @@ const ko: TuDien = {
   'say.choiTiep': '계속 해요',
   'say.henGap': '이제 가 봐야 해요, 또 만나요!',
   'say.vuiChoi': '같이 해서 즐거웠어요',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': '도전',
+  'tk.phaAria': '기록 깨러 가기: {ten}',
+  'tk.khoTren': '어려운 순',
+  'tk.man': '레벨 {n}',
+  'tk.diemNgan': '누적 점수',
 };
 
 export default ko;

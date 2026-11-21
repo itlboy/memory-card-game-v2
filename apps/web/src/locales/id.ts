@@ -861,6 +861,12 @@ const id: TuDien = {
   'say.choiTiep': 'Ayo main lagi',
   'say.henGap': 'Aku harus pergi, sampai jumpa!',
   'say.vuiChoi': 'Senang main sama kamu',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Pecahkan',
+  'tk.phaAria': 'Main untuk memecahkan rekor: {ten}',
+  'tk.khoTren': 'tersulit di atas',
+  'tk.man': 'Level {n}',
+  'tk.diemNgan': 'total poin',
 };
 
 export default id;

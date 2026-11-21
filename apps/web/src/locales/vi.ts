@@ -872,6 +872,12 @@ const vi = {
   'say.choiTiep': 'Chúng ta chơi tiếp nhé',
   'say.henGap': 'Tôi bận rồi, hẹn gặp lại sau nhé',
   'say.vuiChoi': 'Rất vui được chơi với bạn',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Phá',
+  'tk.phaAria': 'Chơi để phá kỷ lục {ten}',
+  'tk.khoTren': 'khó trên · dễ dưới',
+  'tk.man': 'Màn {n}',
+  'tk.diemNgan': 'điểm tích luỹ',
 };
 
 export default vi;

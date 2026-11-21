@@ -861,6 +861,12 @@ const de: TuDien = {
   'say.choiTiep': 'Lass uns weiterspielen',
   'say.henGap': 'Ich muss los, bis später!',
   'say.vuiChoi': 'Hat Spaß gemacht mit dir',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Los',
+  'tk.phaAria': 'Spielen und Rekord brechen: {ten}',
+  'tk.khoTren': 'schwerste zuerst',
+  'tk.man': 'Level {n}',
+  'tk.diemNgan': 'Gesamtpunkte',
 };
 
 export default de;

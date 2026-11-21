@@ -858,6 +858,12 @@ const ja: TuDien = {
   'say.choiTiep': 'このまま続けよう',
   'say.henGap': 'もう行かなきゃ、またね！',
   'say.vuiChoi': '一緒に遊べて楽しかった',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': '挑戦',
+  'tk.phaAria': '記録を更新しよう：{ten}',
+  'tk.khoTren': '難しい順',
+  'tk.man': 'ステージ {n}',
+  'tk.diemNgan': '累計ポイント',
 };
 
 export default ja;

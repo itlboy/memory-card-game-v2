@@ -860,6 +860,12 @@ const pt: TuDien = {
   'say.choiTiep': 'Vamos continuar jogando',
   'say.henGap': 'Tenho que ir, até mais!',
   'say.vuiChoi': 'Foi ótimo jogar com você',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'Bater',
+  'tk.phaAria': 'Jogue para bater o recorde: {ten}',
+  'tk.khoTren': 'mais difíceis no topo',
+  'tk.man': 'Nível {n}',
+  'tk.diemNgan': 'pontos totais',
 };
 
 export default pt;

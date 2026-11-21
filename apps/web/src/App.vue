@@ -62,6 +62,7 @@ import MoKhoaFx from './components/MoKhoaFx.vue';
 import { HIEN_BANG_MS, chonCanh } from './lib/ketcuc-fx';
 import { DEFAULT_OPTIONS } from '@mm/engine';
 import TaiKhoanDialog from './components/TaiKhoanDialog.vue';
+import type { PhaKyLuc } from '@/lib/taikhoan';
 import BangXepHang from './components/BangXepHang.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
@@ -391,6 +392,20 @@ function chinhPhuc(a: Achievement): void {
   // chọn theme khác — người chơi đổi lại ở bước chọn theme như thường.
   if (c.theme) themeIds.value = [c.theme];
   startLevel(levelChoCells(c.cells ?? 16));
+}
+/*
+ * PHÁ KỶ LỤC từ trang Tài khoản (22.11.2026, mockup duyệt https://claude.ai/artifact/KzuWVG5QwHxQ13Hi7AUN3C): vào thẳng
+ * đúng màn Chiến dịch / đúng cỡ bàn (một người, không máy, luật mặc định — kỷ lục ghi theo cỡ bàn).
+ */
+function phaKyLuc(r: PhaKyLuc): void {
+  moChucNang('pha_ky_luc', { che_do: r.mode, so_the: r.cells });
+  showAccount.value = false;
+  if (session.summary.value) { session.stop(); session.summary.value = null; }
+  botLevel.value = null; playerCount.value = 1;
+  if (r.mode === 'campaign') { mode.value = 'campaign'; startLevel(r.cap); return; }
+  mode.value = 'classic';
+  options.value = { ...DEFAULT_OPTIONS };
+  startLevel(levelChoCells(r.cells));
 }
 useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; });
 /**
@@ -1107,7 +1122,7 @@ const hasNext = computed(() => {
   <IconDefs />
   <DoNhip v-if="debug && doNhip" />
 
-  <TaiKhoanDialog v-if="showAccount" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" @xep-hang="showAccount = false; showBxh = true" />
+  <TaiKhoanDialog v-if="showAccount" @pha-ky-luc="phaKyLuc" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" @xep-hang="showAccount = false; showBxh = true" />
   <BangXepHang v-if="showBxh" @close="showBxh = false" @dang-nhap="showBxh = false; showAccount = true" @thach="thachDau" />
   <DanhHieuDialog
     v-if="showDanhHieu" :da-co="daCoSet" :tk="thongKe" :theme-khoa="themeKhoa"

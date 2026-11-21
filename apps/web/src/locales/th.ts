@@ -859,6 +859,12 @@ const th: TuDien = {
   'say.choiTiep': 'เล่นต่อกันนะ',
   'say.henGap': 'ต้องไปแล้ว ไว้เจอกันนะ!',
   'say.vuiChoi': 'ดีใจที่ได้เล่นด้วย',
+  /* ---------- trang tài khoản mới (22.11.2026) ---------- */
+  'tk.pha': 'ทำลาย',
+  'tk.phaAria': 'เล่นเพื่อทำลายสถิติ: {ten}',
+  'tk.khoTren': 'ยากอยู่บน',
+  'tk.man': 'ด่าน {n}',
+  'tk.diemNgan': 'คะแนนสะสม',
 };
 
 export default th;
