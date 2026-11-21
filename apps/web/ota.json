@@ -3,5 +3,5 @@
   "///": "1.8.17 thêm plugin push-notifications nhưng KHÔNG nâng minNative: lib/thong-bao.ts dò isPluginAvailable và giấu chuông trên app cũ. Làm vậy được khi web TỰ DÒ plugin; gọi thẳng plugin không dò thì vẫn phải nâng.",
   "minNative": "1.3.0",
   "////": "gapDuoi: BẢN GẤP — máy đang chạy bản web THẤP HƠN số này thì áp ngay khi về trang chủ (vẫn qua màn tiến trình), không chờ vào nền/đứng yên. Để rỗng = không gấp. Nâng lên đúng số bản sửa lỗi nặng khi phát hành nó.",
-  "gapDuoi": ""
+  "gapDuoi": "1.9.14"
 }

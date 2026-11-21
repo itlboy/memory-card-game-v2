@@ -994,11 +994,13 @@ export function useOnlineRoom() {
     /* Chỉ để LOG server (`[ws]` ở node-server): bản web/OTA + nền tảng — biết lỗi rơi vào bản nào, máy nào. */
     params.set('v', __OTA_ID__);
     params.set('nen', nenApp);
-    ws = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
+    const s = new WebSocket(`${WS_SERVER}/ws/${roomCode}?${params}`);
+    ws = s;
     doNhip.noiLai++;
     doNhip.socket = 'đang nối'; // i18n-bo-qua — bảng đo nội bộ (DoNhip), không phải chữ cho người chơi
 
     ws.onopen = () => {
+      if (ws !== s) return;   // socket đã bị thay (xem leaveSocket)
       doNhip.socket = 'mở'; // i18n-bo-qua — bảng đo nội bộ
       moLuc = Date.now();
       startHeartbeat();
@@ -1008,6 +1010,7 @@ export function useOnlineRoom() {
       }
     };
     ws.onmessage = (e) => {
+      if (ws !== s) return;
       tinCuoiLuc = Date.now();
       // Đếm cho bảng đo (`?debug=1`). Ghi ở đây vì bật bảng lúc đã trong phòng
       // thì cái bọc `window.WebSocket` không thấy socket này nữa.
@@ -1022,6 +1025,7 @@ export function useOnlineRoom() {
       }
     };
     ws.onclose = (e) => {
+      if (ws !== s) return;   // onclose MUỘN của socket cũ — không được hẹn nối lại
       doNhip.socket = `đứt(${e.code})`; // i18n-bo-qua — DoNhip.vue so `startsWith('đứt')`
       doNhip.maDong = e.code;
       // 4000: bị thay bằng socket mới · 4001: tự rời · 4002: chủ phòng huỷ
@@ -1590,6 +1594,13 @@ export function useOnlineRoom() {
     moLuc = 0;   // socket cũ bị bỏ chủ động — không để lần mở hỏng kế tiếp bị tính là "đứt nhanh" của nó
     if (ws) {
       intentionalClose = true;
+      /*
+       * GỠ HẾT HANDLER TRƯỚC KHI ĐÓNG (21.11.2026, vòng nối lại vô hạn — log server: iPhone mở socket mới mỗi
+       * 0,3–1 giây, người trong phòng thấy mình "nháy" liên tục). `onclose` của socket cũ chạy BẤT ĐỒNG BỘ, SAU
+       * khi `connect()` đã đặt lại `intentionalClose = false` cho socket mới → nó tưởng rớt mạng, hẹn `connect()`
+       * → lần đó đóng socket mới đang mở dở → onclose của nó lại muộn → lặp mãi. Socket đã bỏ thì im hẳn.
+       */
+      ws.onopen = null; ws.onmessage = null; ws.onclose = null; ws.onerror = null;
       try { ws.close(); } catch { /* đã đóng */ }
       ws = null;
     }
