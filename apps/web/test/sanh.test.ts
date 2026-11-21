@@ -169,6 +169,9 @@ describe('client: nối sảnh đúng lúc, giao diện', () => {
     expect(khoi).toContain('grid-template-columns: minmax(0, 1fr)');
     expect(o).toMatch(/li\.empty:has\(\.moi-online\) \{[\s\S]*?min-width: 0;/);
   });
+  it('ping chỉ báo "chậm" từ 400ms (chủ dự án 21.11.2026 — server Dallas, VN thường ~280ms)', () => {
+    expect(doc('composables/useOnlineRoom.ts')).toMatch(/if \(p < 100\) return 'good';\s*if \(p < 400\) return 'ok';/);
+  });
   it('màn tối có màu riêng cho dải báo và dòng "Bạn" ở bảng xếp hạng', () => {
     expect(doc('components/DaiBao.vue')).toMatch(/:global\(\[data-theme='dark'\] \.dai-bao\.b-tot\)/);
     expect(doc('components/BangXepHang.vue')).toMatch(/:global\(\[data-theme='dark'\] \.panel\) \{ --toi-nen/);
