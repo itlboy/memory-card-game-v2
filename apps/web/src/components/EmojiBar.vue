@@ -8,12 +8,13 @@
  * Riêng vụ "emoji người kia gửi" (blast) nằm ở EmojiBlast.vue: nó teleport ra
  * <body>, mount hai lần là hiện hai cái.
  */
-import { EMOJI_NHOM, NOI_NHANH, type EmojiNhom, type QuickSay } from '@mm/engine';
+import { NOI_NHANH, type QuickEmoji, type QuickSay } from '@mm/engine';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Hourglass, MessageCircleMore, Plus } from 'lucide-vue-next';
 import { ghiDung, hayDung } from '@/lib/emoji-hay-dung';
 import { t } from '@/lib/i18n';
 import { useBackCloser } from '@/composables/useBackGuard';
+import IconNoi from './IconNoi.vue';
 
 const props = defineProps<{
   /** Composable useOnlineRoom — nhận cả cụm để không phải xâu 4 prop. */
@@ -46,7 +47,16 @@ function guiNoi(id: QuickSay): void { props.o.sendSay(id); mo.value = null; }
 function guiEmoji(e: string): void { ghiDung(e); props.o.sendEmoji(e); mo.value = null; }
 /** 8 cái: cùng ＋ là 9 nút, vừa khít Pro Max; máy hẹp ẩn bớt từ cuối. Thứ tự chốt theo phiên. */
 const hangNgoai = hayDung(8);
-const NHOM: readonly EmojiNhom[] = ['camXuc', 'tay', 'vui', 'treu'];
+/*
+ * BẢNG GỌN (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 2 — chủ dự án: khung "hơi cao, còn
+ * thừa nhiều chỗ"): 24 emoji xếp KÍN 3 hàng × 8, không tiêu đề, không tên nhóm, không cuộn (trước: ~50 cái, 199px + cuộn,
+ * hàng cuối mỗi nhóm hở ô). Server vẫn nhận đủ QUICK_EMOJIS — máy bản cũ gửi cái ngoài bảng này vẫn hiện.
+ */
+const BANG: readonly QuickEmoji[] = [
+  '😂', '🤣', '😊', '😍', '🥰', '😘', '😎', '🤩',
+  '😮', '😱', '🤔', '😅', '😢', '😭', '😡', '🥳',
+  '👍', '👎', '👏', '🙏', '💪', '❤️', '🔥', '🎉'
+];
 function chamNgoai(e: PointerEvent): void {
   if (mo.value && goc.value && !goc.value.contains(e.target as Node)) mo.value = null;
 }
@@ -85,24 +95,19 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
     </span>
   </div>
   <div v-if="mo === 'noi'" class="bang-noi khay" role="menu" :aria-label="t('eb.noiNhanh')">
-    <p class="be-nhom">{{ t('eb.noiNhanh') }}</p>
     <button
       v-for="id in NOI_NHANH" :key="id" class="cau thach th-nho" type="button" role="menuitem"
       :disabled="!props.o.emojiReady.value" @click="guiNoi(id)"
-    >{{ t(`say.${id}` as 'say.gioi') }}</button>
+    ><IconNoi :id="id" /><span>{{ t(`say.${id}` as 'say.gioi') }}</span></button>
   </div>
   <div v-if="mo === 'emoji'" class="bang-emoji khay" role="menu" :aria-label="t('eb.chonEmoji')">
-    <p class="bn-dau">{{ t('eb.chonEmoji') }} <span>{{ t('eb.chamGui') }}</span></p>
-    <template v-for="nhom in NHOM" :key="nhom">
-      <p class="be-nhom">{{ t(`eb.nhom.${nhom}`) }}</p>
-      <div class="be-luoi">
-        <button
-          v-for="e in EMOJI_NHOM[nhom]" :key="e"
-          class="emoji thach th-nho" type="button" role="menuitem"
-          :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
-        >{{ e }}</button>
-      </div>
-    </template>
+    <div class="be-luoi">
+      <button
+        v-for="e in BANG" :key="e"
+        class="emoji thach th-nho" type="button" role="menuitem"
+        :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
+      >{{ e }}</button>
+    </div>
   </div>
   </div>
 </template>
@@ -151,12 +156,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 /* Khung 5 câu: neo góc trái ngay trên nút, như bảng emoji */
 .bang-noi {
   position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
-  width: min(300px, calc(100% - 12px)); display: grid; gap: 5px; padding: 6px 8px 8px;
+  width: max-content; max-width: calc(100% - 12px); display: grid; gap: 4px; padding: 6px;
   background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
   box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
 }
-.bang-noi .be-nhom { margin: 4px 2px 2px; }
-.bang-noi .cau { min-height: 38px; padding: 6px 11px; text-align: left; justify-content: flex-start; font: 800 14px var(--font-body); color: var(--fg); border-radius: 11px; }
+.bang-noi .cau { min-height: 36px; padding: 4px 12px 6px 7px; display: flex; align-items: center; gap: 8px; text-align: left; justify-content: flex-start; font: 800 14px var(--font-body); color: var(--fg); border-radius: 11px; }
 /* Nút ＋: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */
 .emoji.chon { display: inline-flex; align-items: center; justify-content: center; color: var(--fg); }
 /* Bảng emoji: KHUNG NHỎ neo góc trái ngay trên nút ＋ (14.11.2026, chủ dự án: bản cũ trải
@@ -165,24 +169,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .bang-emoji {
   position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
   width: min(292px, calc(100% - 12px));
-  max-height: min(30vh, 220px); overflow-y: auto; overscroll-behavior: contain;
-  padding: 6px 6px 8px;
+  padding: 5px 6px 7px;
   background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
   box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
-}
-.bang-emoji .bn-dau { margin-bottom: 2px; }
-.be-nhom {
-  margin: 8px 2px 4px; font-size: 12px; font-weight: 800; letter-spacing: .3px;
-  text-transform: uppercase; color: var(--muted);
 }
 .be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
 /* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh) */
 .be-luoi .emoji { flex: none; width: 100%; min-height: 32px; font-size: 19px; }
-.bn-dau {
-  grid-column: 1 / -1; margin: 0 2px 2px; display: flex; justify-content: space-between; gap: 8px;
-  font-family: var(--font-display); font-weight: 800; font-size: var(--text-sm); color: var(--fg);
-}
-.bn-dau span { font-family: var(--font-body); font-weight: 600; color: var(--muted); }
 /* Hết hạn mức: mờ đi để thấy rõ là đang chờ */
 .emoji-bar.spent .emoji { opacity: .35; }
 .cooldown {

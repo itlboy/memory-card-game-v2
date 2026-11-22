@@ -430,8 +430,8 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         <div class="cd-than">
           <p class="nhom">{{ t('tb.amThanh') }}</p>
           <div class="cd-the">
-            <div class="item am" role="group" :aria-label="t('tb.amThanh')">
-              <component :is="soundIcon" :size="20" /><span>{{ t('tb.amThanh') }}</span>
+            <div class="item am thach" role="group" :aria-label="t('tb.amThanh')">
+              <span class="cd-o cd-troi" aria-hidden="true"><component :is="soundIcon" :size="18" /></span><span>{{ t('tb.amThanh') }}</span>
               <span class="nac">
                 <button data-phang
                   v-for="l in (['off', 'low', 'high'] as const)" :key="l" type="button" role="menuitemradio"
@@ -445,8 +445,8 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                  MỘT HÀNG như Âm thanh khi ≤ 3 bài (chủ dự án 15.10.2026); nhiều hơn (bày cả bài
                  Premium) thì HAI TẦNG — chữ trên, dải nút chia đều dưới: một hàng 6 nút làm menu
                  phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). -->
-            <div class="item am nhac" :class="{ 'hai-tang': baiHien.length > 3 }" role="group" :aria-label="t('tb.nhacNen')">
-              <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
+            <div class="item am nhac thach" :class="{ 'hai-tang': baiHien.length > 3 }" role="group" :aria-label="t('tb.nhacNen')">
+              <span class="cd-o cd-tim" aria-hidden="true"><Music :size="18" /></span><span>{{ t('tb.nhacNen') }}</span>
               <span class="nac ds-nhac">
                 <button data-phang
                   type="button" role="menuitemradio" :aria-checked="!nhac"
@@ -465,12 +465,12 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
             <p v-if="baoPlusNhac" class="bao-plus" role="status">{{ t('tb.skinPlus') }}</p>
             <!-- Rung: công tắc trở lại 17.10.2026. Giấu khi máy không rung được (web trên
                  iPhone): công tắc không làm gì là công tắc nói dối. -->
-            <button data-phang
-              v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
+            <button
+              v-if="coRung" class="item cong-tac thach" role="menuitemcheckbox" type="button"
               :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')"
               @click="$emit('toggle-rung')"
             >
-              <SmartphoneNfc :size="20" /><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
+              <span class="cd-o cd-cam" aria-hidden="true"><SmartphoneNfc :size="18" /></span><span>{{ t('tb.rung') }}</span><i class="sw" :class="{ bat: rung }" aria-hidden="true" />
             </button>
 
           </div>
@@ -478,9 +478,9 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
           <div class="cd-the">
             <!-- Giao diện = Sáng/Tối của Kẹo (chủ dự án 17.10.2026: chỉ còn Kẹo cho người chơi; skin
                  khác chọn ở trang Debug). Skin không có nền tối (Gỗ…) thì chỉ còn dòng chữ. -->
-            <div class="item am" role="group" :aria-label="t('tb.giaoDien')">
+            <div class="item am thach" role="group" :aria-label="t('tb.giaoDien')">
               <!-- Cũng là cửa bật debug (7 chạm) — chữ "Cài đặt" nhỏ quá, hay chạm trượt (16.10.2026) -->
-              <Palette :size="20" /><span class="cham-debug" @pointerup="chamCaiDat">{{ t('tb.giaoDien') }}</span>
+              <span class="cd-o cd-hong" aria-hidden="true"><Palette :size="18" /></span><span class="cham-debug" @pointerup="chamCaiDat">{{ t('tb.giaoDien') }}</span>
               <span v-if="coNenToi(skin)" class="nac">
                 <button data-phang
                   v-for="n in (['tu', 'sang', 'toi'] as const)" :key="n" type="button" role="menuitemradio"
@@ -490,8 +490,8 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
               </span>
             </div>
             <!-- Ngôn ngữ: đổi TỨC THÌ, menu ở lại — lựa chọn nhớ ở localStorage (lib/i18n.ts) -->
-            <div class="item am" role="group" :aria-label="t('tb.ngonNgu')">
-              <Languages :size="20" /><span>{{ t('tb.ngonNgu') }}</span>
+            <div class="item am thach" role="group" :aria-label="t('tb.ngonNgu')">
+              <span class="cd-o cd-ngoc" aria-hidden="true"><Languages :size="18" /></span><span>{{ t('tb.ngonNgu') }}</span>
               <button class="chon-nn thach" type="button" :aria-label="`${t('tb.ngonNgu')}: ${tenNN}`" @click="moNN($event)">
                 <span :lang="ngonNgu">{{ tenNN }}</span><ChevronRight :size="16" aria-hidden="true" />
               </button>
@@ -501,18 +501,18 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
           <p class="nhom">{{ t('cd.online') }}</p>
           <div class="cd-the">
             <!-- Nhận lời mời chơi (lib/sanh.ts) — tắt là app thôi giữ kết nối sảnh, không ai thấy mình để mời -->
-            <button data-phang class="item cong-tac" role="switch" type="button" :aria-checked="nhanLoiMoi" @click="datNhanLoiMoi(!nhanLoiMoi)">
-              <MailPlus :size="20" /><span class="tk-chu"><b>{{ t('cd.nhanMoi') }}</b><small>{{ t('cd.nhanMoiMo') }}</small></span><i class="sw" :class="{ bat: nhanLoiMoi }" aria-hidden="true" />
+            <button class="item cong-tac thach" role="switch" type="button" :aria-checked="nhanLoiMoi" @click="datNhanLoiMoi(!nhanLoiMoi)">
+              <span class="cd-o cd-tim" aria-hidden="true"><MailPlus :size="18" /></span><span class="tk-chu"><b>{{ t('cd.nhanMoi') }}</b><small>{{ t('cd.nhanMoiMo') }}</small></span><i class="sw" :class="{ bat: nhanLoiMoi }" aria-hidden="true" />
             </button>
             <!-- Báo khi có phòng: CÙNG công tắc với chuông ở màn Online (lib/thong-bao.ts) — chỉ app có push -->
-            <button data-phang v-if="coChuong" class="item cong-tac" role="switch" type="button" :aria-checked="dangBat" :disabled="tbDangLam" @click="bamChuong">
-              <Bell :size="20" /><span class="tk-chu"><b>{{ t('cd.baoPhong') }}</b><small :class="{ loi: tbKq === 'chan' || tbKq === 'loi' }">{{ tbKq ? t(tbKq === 'bat' ? 'on.tb.daBat' : tbKq === 'chan' ? 'on.tb.biChan' : tbKq === 'tat' ? 'on.tb.daTat' : 'on.tb.loi') : t('cd.baoPhongMo') }}</small></span><i class="sw" :class="{ bat: dangBat }" aria-hidden="true" />
+            <button v-if="coChuong" class="item cong-tac thach" role="switch" type="button" :aria-checked="dangBat" :disabled="tbDangLam" @click="bamChuong">
+              <span class="cd-o cd-vang" aria-hidden="true"><Bell :size="18" /></span><span class="tk-chu"><b>{{ t('cd.baoPhong') }}</b><small :class="{ loi: tbKq === 'chan' || tbKq === 'loi' }">{{ tbKq ? t(tbKq === 'bat' ? 'on.tb.daBat' : tbKq === 'chan' ? 'on.tb.biChan' : tbKq === 'tat' ? 'on.tb.daTat' : 'on.tb.loi') : t('cd.baoPhongMo') }}</small></span><i class="sw" :class="{ bat: dangBat }" aria-hidden="true" />
             </button>
           </div>
           <p class="nhom">{{ t('cd.ungDung') }}</p>
           <div class="cd-the">
-            <button data-phang v-if="laApp" class="item kiem-cn" type="button" :aria-busy="kiemCN === 'dang'" @click="kiemCapNhat">
-              <RefreshCw :size="20" /><span>{{ t('tb.kiemCapNhat') }}</span>
+            <button v-if="laApp" class="item kiem-cn thach" type="button" :aria-busy="kiemCN === 'dang'" @click="kiemCapNhat">
+              <span class="cd-o cd-xanh" aria-hidden="true"><RefreshCw :size="18" /></span><span>{{ t('tb.kiemCapNhat') }}</span>
               <small class="kq-cn" :class="kiemCN" role="status">
                 <span v-if="kiemCN === 'dang'" class="cham" :aria-label="t('tb.dangKiem')"><i /><i /><i /></span>
                 <template v-else-if="kiemCN === 'moiNhat'">{{ t('tb.moiNhat') }}</template>
@@ -521,9 +521,9 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                 <template v-else>{{ banHien }}</template>
               </small>
             </button>
-            <div v-if="!laApp" class="item am"><Info :size="20" /><span>{{ t('cd.phienBan') }}</span><small class="kq-ban">{{ banHien }}</small></div>
-            <button data-phang v-if="nenMoiCai" class="item" type="button" @click="trangCd = false; moCai()">
-              <Smartphone :size="20" /><span>{{ t('cai.menu') }}</span><ChevronRight :size="18" aria-hidden="true" />
+            <div v-if="!laApp" class="item am thach"><span class="cd-o cd-xam" aria-hidden="true"><Info :size="18" /></span><span>{{ t('cd.phienBan') }}</span><small class="kq-ban">{{ banHien }}</small></div>
+            <button v-if="nenMoiCai" class="item thach" type="button" @click="trangCd = false; moCai()">
+              <span class="cd-o cd-troi" aria-hidden="true"><Smartphone :size="18" /></span><span>{{ t('cai.menu') }}</span><ChevronRight :size="18" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -865,14 +865,41 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .cd-dau { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
 .cd-dau h2 { margin: 0; font: 800 21px var(--font-display); }
-.cd-than { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 4px; padding-bottom: 8px; }
-.cd-than .nhom { margin: 10px 6px 2px; }
-.cd-the { display: grid; gap: 2px; padding: 4px; border-radius: 16px; background: var(--panel-solid); border: 1px solid var(--line); }
-.cd-the .item { white-space: normal; min-height: 48px; }
+.cd-than { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; align-content: start; gap: 2px; padding-bottom: 8px; }
+/* NỔI KHỐI (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 1): mỗi dòng là một khối thạch
+   như dòng "Bộ thẻ"/"Luật bàn" ở màn chọn bàn, icon trong ô màu, công tắc + dải chọn có độ lõm/nổi. Luật chỉ áp trong
+   .cd-trang — menu ☰ dùng chung .item/.sw/.nac vẫn giữ dáng cũ. */
+.cd-the { display: grid; gap: 7px; }
+.cd-the .item.thach { white-space: normal; min-height: 54px; padding: 7px 12px 9px; border-radius: 16px; margin: 0; gap: 11px; width: 100%; box-sizing: border-box; }
+.cd-the .item.am.thach { cursor: default; }
+.cd-the .item > span:not(.nac):not(.tk-chu):not(.cd-o) { font: 800 16px var(--font-display); }
 .cd-the .tk-chu small { white-space: normal; }
 .cd-the .tk-chu small.loi { color: var(--bad); }
-.cd-the .item.cong-tac .tk-chu { flex: 1; padding-block: 6px; }
-.cd-the .item.kiem-cn { width: 100%; }
+.cd-the .item.cong-tac .tk-chu { flex: 1; }
+.cd-than .nhom { margin: 12px 6px 5px; }
+.cd-o {
+  flex: none; width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: #fff; margin-bottom: 3px;
+  background: linear-gradient(var(--o-a), var(--o-b)); box-shadow: 0 3px 0 var(--o-c), inset 0 1px 0 rgba(255, 255, 255, .4);
+}
+/* thắng luật chung `.item > span:not(.nac):not(.tk-chu) { flex: 1 }` — không thì ô icon giãn hết dòng */
+.cd-the .item.thach > span.cd-o { flex: 0 0 34px; }
+.cd-troi { --o-a: #6cc4ff; --o-b: #2f8fe6; --o-c: #1f6fc0; } .cd-tim { --o-a: #9d8fff; --o-b: #6a5cff; --o-c: #4b3fd1; }
+.cd-cam { --o-a: #ffb25e; --o-b: #f5861f; --o-c: #c96510; } .cd-hong { --o-a: #ff8fb3; --o-b: #ef4f86; --o-c: #c23566; }
+.cd-ngoc { --o-a: #5fd8c4; --o-b: #1fa893; --o-c: #168574; } .cd-xam { --o-a: #aab3cc; --o-b: #7d88a8; --o-c: #646f8f; }
+.cd-do { --o-a: #ff8f70; --o-b: #e0533a; --o-c: #b13c27; } .cd-xanh { --o-a: #5fd27f; --o-b: #2f9e57; --o-c: #227a41; }
+.cd-vang { --o-a: #ffd35a; --o-b: #f0a816; --o-c: #c0820b; color: #5a3d00; }
+.cd-the .sw { width: 48px; height: 28px; background: #c5cde6; box-shadow: inset 0 2px 3px rgba(20, 30, 70, .22); }
+.cd-the .sw::after { width: 22px; height: 22px; top: 2px; left: 3px; box-shadow: 0 2px 0 #aeb6d0, 0 3px 5px rgba(0, 0, 0, .2); }
+.cd-the .sw.bat { background: linear-gradient(#5fd27f, #2f9e57); box-shadow: inset 0 2px 3px rgba(0, 60, 20, .3); }
+.cd-the .sw.bat::after { left: 23px; box-shadow: 0 2px 0 #cfe9d6, 0 3px 5px rgba(0, 0, 0, .2); }
+:global([data-theme='dark'] .cd-the .sw:not(.bat)) { background: #2a3566; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .45); }
+:global([data-theme='dark'] .cd-the .sw:not(.bat)::after) { background: #dfe5ff; box-shadow: 0 2px 0 #8d97c4; }
+.cd-the .nac { border: 0; padding: 3px; gap: 2px; background: rgba(30, 45, 110, .1); box-shadow: inset 0 2px 3px rgba(20, 30, 70, .18); overflow: visible; }
+:global([data-theme='dark'] .cd-the .nac) { background: rgba(0, 0, 0, .28); box-shadow: inset 0 2px 3px rgba(0, 0, 0, .4); }
+.cd-the .nac button { border-radius: 999px; min-height: 28px; }
+.cd-the .nac button[aria-checked='true'] { background: linear-gradient(#5fd27f, #2f9e57); color: #fff; box-shadow: 0 2px 0 #227a41, inset 0 1px 0 rgba(255, 255, 255, .4); }
+.cd-the .item.nhac.hai-tang .nac.ds-nhac { margin-left: 45px; flex-basis: calc(100% - 45px); }
+.cd-moi { font: 800 9.5px var(--font-body); font-style: normal; letter-spacing: .4px; padding: 2px 6px; border-radius: 999px; background: #ff5c7a; color: #fff; vertical-align: 2px; }
 .kq-ban { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .item:disabled { opacity: .6; cursor: default; }
 </style>

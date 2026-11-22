@@ -21,6 +21,12 @@ describe('nói nhanh', () => {
     expect(new Set(e).size, 'hai câu cùng emoji thì không nhận ra trong một liếc').toBe(e.length);
   });
 
+  // 22.11.2026: khung chọn và bong bóng vẽ ICON (Lucide trong vòng màu) — thiếu một câu là IconNoi vỡ lúc vẽ
+  it('câu nào cũng có icon', async () => {
+    const { ICON_NOI } = await import('@/lib/noi-nhanh');
+    for (const id of QUICK_SAYS) expect(ICON_NOI[id]?.c, id).toBeTruthy();
+  });
+
   it('câu nào cũng được dịch ở mọi ngôn ngữ', async () => {
     for (const { id: l } of NGON_NGU) {
       const tu = (await import(`../src/locales/${l}.ts`)).default as Record<string, unknown>;

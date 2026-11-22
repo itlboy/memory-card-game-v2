@@ -28,7 +28,8 @@ const coApp = typeof document !== 'undefined' && !!document.getElementById('app'
 <style scoped>
 .eb-dock {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 18;
-  padding: 7px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+  /* 4/5px (22.11.2026): thanh cao đúng 48px = --eb-dock-h (trước 7/8px ra 54px, lố hơn chỗ màn trên chừa) */
+  padding: 4px 6px calc(5px + env(safe-area-inset-bottom, 0px));
   background: color-mix(in srgb, var(--panel-solid) 94%, transparent);
   border-top: 1px solid var(--line);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);

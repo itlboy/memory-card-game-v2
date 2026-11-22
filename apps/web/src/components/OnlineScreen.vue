@@ -9,7 +9,7 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, o
 import { useBackCloser } from '@/composables/useBackGuard';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { ghiUrl } from '@/lib/appUrl';
-import { CACH_MOI_LAI_MS, dsOnline, ghiDaThach, moiNguoi, thachCho, type NguoiOnline } from '@/lib/sanh';
+import { CACH_MOI_LAI_MS, coSanh, dsOnline, ghiDaThach, moiNguoi, thachCho, type NguoiOnline } from '@/lib/sanh';
 import MoiOnline from './MoiOnline.vue';
 import { t, td, ngonNgu } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
@@ -297,7 +297,8 @@ const conCho = computed(() => Math.max(0, ROOM_LIMITS.maxPlayers - (o.room.value
  */
 const HOI_DS_MS = 15_000;
 const HOI_DS_MO_MS = 5_000;
-const dsMoi = ref<NguoiOnline[] | null>(null);
+// Biết server có sảnh thì nút hiện NGAY (danh sách rỗng, số người điền sau lượt hỏi đầu) — không chờ mạng
+const dsMoi = ref<NguoiOnline[] | null>(coSanh.value ? [] : null);
 const moMoiOnline = ref(false);
 const coTheMoi = computed(() => o.isHost.value && o.room.value?.status === 'lobby' && conCho.value > 0 && !!o.room.value?.code);
 const soMoiDuoc = computed(() => (dsMoi.value ?? []).filter((n) => !n.tuChoi).length);
