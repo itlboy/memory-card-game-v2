@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { demPhongCho, nhanSoPhong } from '@/lib/so-phong-cho';
+import { demPhongCho, demPhongXem, nhanSoPhong } from '@/lib/so-phong-cho';
 import type { PublicRoom } from '@mm/engine';
 
 /** Số phòng chờ trên ô Online (20.11.2026, mockup C): chỉ phòng CÒN CHỖ và CHƯA vào ván. */
@@ -7,6 +7,8 @@ const p = (x: Partial<PublicRoom>): PublicRoom => ({ code: '1', chuPhong: 'A', a
 describe('số phòng đang chờ', () => {
   it('bỏ phòng đầy và phòng đang chơi (phòng để xem)', () => {
     expect(demPhongCho([p({}), p({ nguoi: 4 }), p({ dangChoi: true }), p({ nguoi: 2 })])).toBe(2);
+    // Phòng ĐANG CHƠI đếm riêng (vào xem được) — đầy hay chưa đều tính
+    expect(demPhongXem([p({}), p({ nguoi: 4 }), p({ dangChoi: true }), p({ dangChoi: true, nguoi: 4 })])).toBe(2);
   });
   it('0 thì ẩn, từ 10 là "9+"', () => {
     expect(nhanSoPhong(0)).toBe('');

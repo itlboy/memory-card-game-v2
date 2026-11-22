@@ -116,6 +116,7 @@ const tr: TuDien = {
   'menu.online': 'Çevrim içi oyna',
   'menu.onlineMo': 'Oda kur, arkadaşlarını 6 haneli kodla davet et',
   'menu.soPhongCho': '{n} oda bekliyor',
+  'menu.soPhongXem': '{n} oda oynuyor',
   'menu.bot.easy': 'Oyunu yeni öğrenen minikler için birebir.',
   'menu.bot.normal': 'Beni yen, daha zorlu rakipler açılsın.',
   'menu.bot.hard': 'İşler ciddileşiyor. Beni yenersen gerçekten iyisin.',

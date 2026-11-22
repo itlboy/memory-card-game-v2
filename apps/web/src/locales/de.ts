@@ -116,6 +116,7 @@ const de: TuDien = {
   'menu.online': 'Online spielen',
   'menu.onlineMo': 'Raum erstellen und Freunde per 6-stelligem Code einladen',
   'menu.soPhongCho': '{n} Räume warten',
+  'menu.soPhongXem': '{n} Räume im Spiel',
   'menu.bot.easy': 'Perfekt für die Kleinen, die gerade spielen lernen.',
   'menu.bot.normal': 'Schlag mich, dann warten härtere Gegner auf dich.',
   'menu.bot.hard': 'Jetzt wird’s ernst. Wer mich schlägt, ist richtig gut.',
