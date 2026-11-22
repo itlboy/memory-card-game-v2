@@ -12,6 +12,7 @@ import { moKho, type Kho } from './kho-mysql.js';
 import { moTaiKhoan, type TaiKhoan } from './taikhoan.js';
 import { moThongBao, type ThongBao } from './thongbao.js';
 import { moSanh, type XemPhong } from './sanh.js';
+import { moTkThiDau, type TkThiDau } from './tk-thidau.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -90,6 +91,17 @@ const sanh = moSanh({
   avatars: AVATAR_SANH,
   // taiKhoan mở SAU (await) — đọc lúc gọi, không lúc dựng
   xacDinh: (khach, token) => taiKhoan?.aiTu(khach, token) ?? null,
+  // THI ĐẤU (thidau.ts): sảnh ghép người rồi nhờ lập phòng không chủ, bàn đã chốt số thẻ
+  async taoPhongThiDau(soThe, n) {
+    const cap = BOARD_SIZES.find((b) => b.pairs * 2 === soThe);
+    if (!cap) return null;
+    const code = makeCode();
+    await layPhong(code).room.openThiDau(code, cap.level, n);
+    return code;
+  },
+  ghiThiDau: (loai, nguoi, d) => tkThiDau?.ghi(loai, nguoi, d),
+  baoChoThiDau: (ten) => thongBao?.choThiDau(ten, () => sanh.thiDau().cho > 0),
+  datPushThiDau: (token, bat) => thongBao?.datThiDau(token, bat),
   xemPhong(ma: string): XemPhong | null {
     const r = (phongs.get(ma)?.room as unknown as { room?: PhongTho } | undefined)?.room;
     const chu = r?.players?.find((p) => p.id === r.hostId);
@@ -160,7 +172,7 @@ function layPhong(code: string, banDau?: Record<string, unknown>): Phong {
   );
   // `RoomDO` chỉ đọc `this.ctx`; `env` không dùng tới ở nhánh nào của Node.
   // `RoomDO` đọc `this.ctx` và `this.env.SO_PHONG` (sổ phòng công khai).
-  p = { room: new RoomDO(box.ctx as never, { SO_PHONG: soPhong } as never), box };
+  p = { room: new RoomDO(box.ctx as never, { SO_PHONG: soPhong, TD_GHI: (kind: string, d: Record<string, unknown>) => tkThiDau?.ghi(kind, null, d) } as never), box };
   phongs.set(code, p);
   return p;
 }
@@ -436,7 +448,7 @@ function kiemSucKhoe(): Promise<Record<string, unknown> & { ok: boolean }> {
       node: process.version,
       chayGiay: Math.round((Date.now() - BAT_DAU) / 1000),
       mayChayGiay: Math.round(mayChayGiay()),
-      phong: { trongRam: phongs.size, dangChoi, nguoi: soNguoi, socket: soSocket, sanh: sanh.soKetNoi() },
+      phong: { trongRam: phongs.size, dangChoi, nguoi: soNguoi, socket: soSocket, sanh: sanh.soKetNoi(), thiDau: sanh.thiDau() },
       cpu: { tienTrinhPhanTram: cpuPhanTram, soNhan: cpus().length },
       vongSuKien: vong,
       taiKhoan: !!taiKhoan,
@@ -492,6 +504,7 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   // Tự kiểm sâu cho giám sát (UptimeRobot): bản build, MySQL, ổ đĩa, RAM — lỗi thì 503 + ok:false. Xem `kiemSucKhoe`.
   // Sảnh (mời người online) — trước tầng tài khoản vì cùng tiền tố /api/
   if (sanh.xuLyHttp(req, res, url)) return;
+  if (tkThiDau?.xuLy(req, res, url, json)) return;
 
   if (url.pathname === '/api/ping' && req.method === 'GET') {
     void kiemSucKhoe().then((k) => json(res, k, k.ok ? 200 : 503));
@@ -552,6 +565,7 @@ server.on('upgrade', (req, socket, head) => {
 let kho: Kho | null = null;
 let taiKhoan: TaiKhoan | null = null;
 let thongBao: ThongBao | null = null;
+let tkThiDau: TkThiDau | null = null;
 
 /**
  * Dựng lại các phòng đã lưu, rồi mới nhận request.
@@ -633,13 +647,17 @@ taiKhoan?.datOnline((ai) => sanh.trangThai(ai));
 console.log(taiKhoan
   ? `  tài khoản: BẬT (${[process.env.GOOGLE_CLIENT_ID && 'Google', (process.env.APPLE_BUNDLE_ID || process.env.APPLE_SERVICES_ID) && 'Apple'].filter(Boolean).join(' + ')})`
   : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID và/hoặc APPLE_BUNDLE_ID)');
-thongBao = await moThongBao(kho?.pool ?? null, process.env).catch((e) => {
+thongBao = await moThongBao(kho?.pool ?? null, process.env, fetch, { ghiTd: (d) => tkThiDau?.ghi('td_push', null, d) }).catch((e) => {
   console.error('[thongbao] không mở được:', (e as Error).message);
   return null;
 });
 console.log(thongBao
   ? '  thông báo phòng mới: BẬT'
   : '  thông báo phòng mới: TẮT (cần MYSQL_URL + APNS_* và/hoặc FCM_SERVICE_ACCOUNT)');
+tkThiDau = await moTkThiDau(kho?.pool ?? null, process.env).catch((e) => {
+  console.error('[tk-thidau] không mở được:', (e as Error).message);
+  return null;
+});
 await khoiPhuc();
 batBao = true;
 

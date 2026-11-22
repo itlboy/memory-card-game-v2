@@ -52,6 +52,8 @@ const props = defineProps<{
   tenThanhVien?: Record<string, string>;
   /** Phòng online: mình là chủ phòng → bấm được "Chỉnh bàn" (người khác thấy nút mờ). */
   laChuPhong?: boolean;
+  /** Phòng THI ĐẤU (không chủ phòng, không phòng chờ): giấu hàng "Về phòng chờ · Chỉnh bàn". */
+  thiDau?: boolean;
   /** Ván online: mình đã bấm chơi lại chưa. Nút đổi thành trạng thái chờ —
    *  trước đây bấm xong nút y nguyên nên người chơi tưởng nút không ăn. */
   rematchSent?: boolean;
@@ -510,7 +512,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         "Về phòng chờ" + "Chỉnh bàn" chung một hàng; "Chỉnh bàn" mở đúng ba bước của nút
         "Chỉnh" ở phòng chờ (cùng icon). Chỉ chủ phòng bấm được — server cũng chặn.
       -->
-      <div v-if="multiplayerOnline" class="row hang-phu">
+      <div v-if="multiplayerOnline && !thiDau" class="row hang-phu">
         <button class="btn to-lobby" type="button" @click="emit('lobby')">
           {{ t('kq.vePhongCho') }}
         </button>

@@ -35,7 +35,7 @@ export const CACH_MAY_MS = 30 * 60_000;
 export const GIO_NGU = { tu: 22, den: 7 };
 
 export type Nen = 'ios' | 'android';
-export interface DangKy { token: string; nen: Nen; lang: string; lech_phut: number; gui_cuoi: number }
+export interface DangKy { token: string; nen: Nen; lang: string; lech_phut: number; gui_cuoi: number; td_day?: number; td_count?: number }
 
 export interface EnvThongBao {
   APNS_KEY_ID?: string; APNS_TEAM_ID?: string; APNS_PRIVATE_KEY?: string;
@@ -109,6 +109,39 @@ export function dangGioNgu(lechPhut: number, now: number): boolean {
 export function chonNguoiNhan(rows: DangKy[], now: number): DangKy[] {
   return rows.filter((r) => now - r.gui_cuoi >= CACH_MAY_MS && !dangGioNgu(r.lech_phut, now));
 }
+
+/**
+ * THI ĐẤU (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k): có người bấm Tham gia mà trong app
+ * không còn ai để ghép → báo máy đã đóng app. ĐỔI LUẬT CŨ "không gửi push cho lời mời" (chủ dự án duyệt: đang ít người
+ * online, cần kéo người quay lại). Giữ chặt: mỗi máy tối đa `TD_MOI_NGAY` tin thi đấu/ngày, cách mọi tin khác
+ * `CACH_MAY_MS`, nghỉ giờ ngủ, bỏ máy đã tắt "Gợi ý thi đấu" (`td_off`), mỗi `CACH_DOT_TD_MS` một đợt.
+ */
+export const TD_MOI_NGAY = 3;
+export const CACH_DOT_TD_MS = 5 * 60_000;
+export const TRE_TD_MS = 5_000;
+export const CHU_TD: Record<string, { tieuDe: string; than: string }> = {
+  vi: { tieuDe: '{ten} đang chờ thi đấu', than: 'Chạm để vào chơi ngay.' },
+  en: { tieuDe: '{ten} is waiting for a match', than: 'Tap to play now.' },
+  es: { tieuDe: '{ten} espera una partida', than: 'Toca para jugar ahora.' },
+  pt: { tieuDe: '{ten} está esperando uma partida', than: 'Toque para jogar agora.' },
+  fr: { tieuDe: '{ten} attend un match', than: 'Touchez pour jouer maintenant.' },
+  de: { tieuDe: '{ten} wartet auf ein Match', than: 'Tippen, um jetzt zu spielen.' },
+  it: { tieuDe: '{ten} aspetta una partita', than: 'Tocca per giocare subito.' },
+  tr: { tieuDe: '{ten} maç bekliyor', than: 'Hemen oynamak için dokun.' },
+  ja: { tieuDe: '{ten}さんが対戦相手を待っています', than: 'タップして今すぐ対戦。' },
+  ko: { tieuDe: '{ten}님이 대전 상대를 기다려요', than: '탭해서 바로 플레이하세요.' },
+  zh: { tieuDe: '{ten} 正在等待对战', than: '点击立即开始。' },
+  'zh-TW': { tieuDe: '{ten} 正在等待對戰', than: '點一下立即開始。' },
+  ru: { tieuDe: '{ten} ждёт соперника', than: 'Нажмите, чтобы сыграть сейчас.' },
+  id: { tieuDe: '{ten} menunggu lawan', than: 'Ketuk untuk main sekarang.' },
+  th: { tieuDe: '{ten} กำลังรอคู่แข่ง', than: 'แตะเพื่อเล่นเลย' }
+};
+export function chuThiDau(lang: string, ten: string): { tieuDe: string; than: string } {
+  const c = CHU_TD[lang] ?? CHU_TD.en!;
+  return { tieuDe: c.tieuDe.replace('{ten}', ten.slice(0, 40)), than: c.than };
+}
+/** Số ngày (UTC) — mốc đếm "3 tin thi đấu mỗi ngày". */
+export const soNgay = (now: number): number => Math.floor(now / 86_400_000);
 
 /* ---------- APNs ---------- */
 
@@ -202,6 +235,10 @@ export interface ThongBao {
   phongMoi(phong: PublicRoom, conCho: (code: string) => Promise<boolean>): void;
   /** Máy của chủ phòng (client gửi `?tb=` lúc tạo phòng) — không báo phòng của chính mình. */
   ghiChuPhong(code: string, token: string): void;
+  /** Thi đấu: `ten` đang chờ đối thủ. `conCho` kiểm lại sau TRE_TD_MS (đã có người vào thì thôi). */
+  choThiDau(ten: string, conCho: () => boolean): void;
+  /** Máy `token` bật/tắt "Gợi ý thi đấu" — tắt thì không nhận tin thi đấu. */
+  datThiDau(token: string, bat: boolean): void;
 }
 
 function docBody(req: IncomingMessage): Promise<Record<string, unknown> | null> {
@@ -214,7 +251,8 @@ function docBody(req: IncomingMessage): Promise<Record<string, unknown> | null> 
 }
 
 export async function moThongBao(
-  pool: Pool | null, env: EnvThongBao, layFetch: typeof fetch = fetch
+  pool: Pool | null, env: EnvThongBao, layFetch: typeof fetch = fetch,
+  opts?: { ghiTd?(d: { gui: number; loi: number }): void }
 ): Promise<ThongBao | null> {
   const apns: KhoaApns | null = env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY
     ? {
@@ -229,6 +267,10 @@ export async function moThongBao(
   if (!pool || (!apns && !fcm)) return null;
   await doiTenBangCu(pool);
   await pool.query(TAO_BANG);
+  // Cột cho tin thi đấu (22.11.2026): thêm vào bảng có sẵn; đã có thì MySQL báo 1060 — bỏ qua
+  for (const cot of ['td_off TINYINT NOT NULL DEFAULT 0', 'td_day INT NOT NULL DEFAULT 0', 'td_count TINYINT NOT NULL DEFAULT 0']) {
+    await pool.query(`ALTER TABLE push_subscriptions ADD COLUMN ${cot}`).catch((e: { errno?: number }) => { if (e.errno !== 1060) throw e; });
+  }
 
   let jwtCache: { jwt: string; luc: number } | null = null;
   const layJwt = (now: number): string => {
@@ -242,7 +284,7 @@ export async function moThongBao(
     return fcmCache.token;
   };
 
-  async function guiFcm(rows: DangKy[], phong: PublicRoom): Promise<Map<string, KetQua>> {
+  async function guiFcm(rows: DangKy[], phong: PublicRoom | null, td?: string): Promise<Map<string, KetQua>> {
     const kq = new Map<string, KetQua>();
     if (!rows.length) return kq;
     let tk: string;
@@ -252,7 +294,7 @@ export async function moThongBao(
       return kq;
     }
     await Promise.all(rows.map(async (r) => {
-      const c = chuThongBao(r.lang, phong.chuPhong);
+      const c = phong ? chuThongBao(r.lang, phong.chuPhong) : chuThiDau(r.lang, td ?? '');
       try {
         const res = await layFetch(`https://fcm.googleapis.com/v1/projects/${fcm!.project_id}/messages:send`, {
           method: 'POST',
@@ -260,8 +302,8 @@ export async function moThongBao(
           body: JSON.stringify({ message: {
             token: r.token,
             notification: { title: c.tieuDe, body: c.than },
-            data: { room: phong.code },
-            android: { priority: 'high', ttl: '600s', notification: { tag: 'phong-moi', icon: 'ic_stat_thong_bao', color: '#5bc0f0' } }
+            data: phong ? { room: phong.code } : { td: '1' },
+            android: { priority: 'high', ttl: '600s', notification: { tag: phong ? 'phong-moi' : 'thi-dau', icon: 'ic_stat_thong_bao', color: '#5bc0f0' } }
           } })
         });
         if (res.ok) kq.set(r.token, 'ok');
@@ -305,7 +347,43 @@ export async function moThongBao(
     console.log(`[thongbao] phòng ${phong.code}: gửi ${ok.length}, bỏ ${bo.length}, lỗi ${nhan.length - ok.length - bo.length}`);
   }
 
+  let dotTdCuoi = 0;
+  async function guiDotThiDau(ten: string): Promise<void> {
+    const now = Date.now();
+    if (now - dotTdCuoi < CACH_DOT_TD_MS) return;
+    const hom = soNgay(now);
+    const [rows] = await pool!.query(
+      'SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi FROM push_subscriptions WHERE last_sent_at <= ? AND td_off = 0 AND (td_day <> ? OR td_count < ?)',
+      [now - CACH_MAY_MS, hom, TD_MOI_NGAY]);
+    const nhan = chonNguoiNhan((rows as DangKy[]).map((r) => ({ ...r, gui_cuoi: Number(r.gui_cuoi) })), now)
+      .filter((r) => (r.nen === 'ios' ? !!apns : !!fcm));
+    if (!nhan.length) return;
+    dotTdCuoi = now;
+    const [kqIos, kqAnd] = await Promise.all([
+      apns ? guiApns(apns, layJwt(now), nhan.filter((r) => r.nen === 'ios'), (r) => {
+        const c = chuThiDau(r.lang, ten);
+        return { aps: { alert: { title: c.tieuDe, body: c.than }, sound: 'default', 'thread-id': 'thi-dau' }, td: '1' };
+      }) : Promise.resolve(new Map<string, KetQua>()),
+      fcm ? guiFcm(nhan.filter((r) => r.nen === 'android'), null, ten) : Promise.resolve(new Map<string, KetQua>())
+    ]);
+    const ok: string[] = []; const bo: string[] = [];
+    for (const m of [kqIos, kqAnd]) for (const [t, v] of m) (v === 'ok' ? ok : v === 'bo' ? bo : []).push(t);
+    if (ok.length) await pool!.query('UPDATE push_subscriptions SET last_sent_at = ?, td_count = IF(td_day = ?, td_count + 1, 1), td_day = ? WHERE token IN (?)', [now, hom, hom, ok]);
+    if (bo.length) await pool!.query('DELETE FROM push_subscriptions WHERE token IN (?)', [bo]);
+    console.log(`[thongbao] thi đấu: gửi ${ok.length}, bỏ ${bo.length}, lỗi ${nhan.length - ok.length - bo.length}`);
+    opts?.ghiTd?.({ gui: ok.length, loi: nhan.length - ok.length - bo.length });
+  }
+
   return {
+    choThiDau(ten, conCho) {
+      setTimeout(() => {
+        if (!conCho()) return;
+        void guiDotThiDau(ten).catch((e) => console.error('[thongbao] lỗi gửi thi đấu:', (e as Error).message));
+      }, TRE_TD_MS).unref();
+    },
+    datThiDau(token, bat) {
+      void pool!.query('UPDATE push_subscriptions SET td_off = ? WHERE token = ?', [bat ? 0 : 1, token]).catch(() => { /* bỏ qua */ });
+    },
     ghiChuPhong(code, token) {
       if (!/^[A-Za-z0-9:_-]{20,250}$/.test(token)) return;
       if (chuPhong.size > 5000) chuPhong.clear();

@@ -194,7 +194,9 @@ describe('server: sanh.ts', () => {
 describe('client: nối sảnh đúng lúc, giao diện', () => {
   it('lib/sanh.ts: giữ kết nối khi app đang hiện và bật nhận lời mời; ở phòng online thì báo `phong` (không đóng)', () => {
     const s = doc('lib/sanh.ts');
-    expect(s).toMatch(/const nenMo = \(\): boolean => nhanLoiMoi\.value\s*&& typeof document !== 'undefined' && document\.visibilityState === 'visible';/);
+    // 22.11.2026: nối khi bật MỘT trong hai công tắc (nhận lời mời / gợi ý thi đấu); tắt nhận lời mời thì khai `nm=0`
+    expect(s).toMatch(/const nenMo = \(\): boolean => \(nhanLoiMoi\.value \|\| goiYThiDau\.value\)\s*&& typeof document !== 'undefined' && document\.visibilityState === 'visible';/);
+    expect(s).toContain("nm: nhanLoiMoi.value ? '1' : '0'");
     expect(s).toContain("trongPhongOnline.value ? 'phong'");
     // danh tính đi trong tin nhắn sau `chao`, KHÔNG trên URL
     expect(s).toContain("gui({ t: 'ai', ...danhTinhSanh() })");

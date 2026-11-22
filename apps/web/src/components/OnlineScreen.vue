@@ -1283,6 +1283,15 @@ function openCfgWizard(): void {
     </button>
   </section>
 
+  <!-- PHÒNG THI ĐẤU (22.11.2026): không chủ phòng, đủ người là server tự đếm ngược — chỉ hiện ai đã vào bàn -->
+  <section v-else-if="!wizard && o.phase.value === 'lobby' && o.room.value?.thiDau" class="panel td-vao" role="status">
+    <h2>{{ t('td.dangVao') }}</h2>
+    <ul class="td-vao-ds">
+      <li v-for="p in o.room.value.players" :key="p.id"><span class="avatar"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span><b>{{ tenNguoi(p) }}</b></li>
+    </ul>
+    <div class="eb-cho" aria-hidden="true" />
+  </section>
+
   <!-- LOBBY -->
   <section v-else-if="!wizard && o.phase.value === 'lobby'" class="panel">
     <!--
@@ -1834,6 +1843,12 @@ input:focus { outline: none; border-color: var(--accent); }
  * bên phải. Tiết kiệm một hàng (~50px) để 4 dòng người chơi + ô chỗ trống vừa khung.
  */
 .dau-phong { margin-bottom: 8px; }
+.td-vao { text-align: center; }
+.td-vao h2 { margin: 18px 0 14px; font: 800 20px var(--font-display); }
+.td-vao-ds { list-style: none; margin: 0 0 18px; padding: 0; display: flex; justify-content: center; gap: 18px; }
+.td-vao-ds li { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.td-vao-ds .avatar { width: 56px; height: 56px; font-size: 34px; display: grid; place-items: center; }
+.td-vao-ds b { max-width: 96px; font: 800 13px var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dp-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
 .dp-chu h2 { flex: none; font-variant-numeric: tabular-nums; }
 .ck-nho {

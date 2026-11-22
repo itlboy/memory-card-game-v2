@@ -1,7 +1,10 @@
 import { ref, watch } from 'vue';
-import { SERVER_URL } from './native';
+import { SERVER_URL, nenApp } from './native';
 import { store } from './storage';
 import { danhTinhSanh, me } from './taikhoan';
+import { ngonNgu } from './i18n';
+import { maMayHienTai } from './thong-bao';
+import { coThiDau, datCuaGui, goiYThiDau, nhanTinThiDau, quenThiDau } from './thidau';
 
 /**
  * SẢNH — MỜI NGƯỜI ĐANG ONLINE (21.11.2026, mockup duyệt https://claude.ai/artifact/GGvThzwyg8EtsVTE6p7YpU
@@ -56,8 +59,11 @@ let henHet: ReturnType<typeof setTimeout> | undefined;
 let lui = 3_000;
 let daBatDau = false;
 
-const nenMo = (): boolean => nhanLoiMoi.value
+// Nối khi bật MỘT trong hai: nhận lời mời hoặc gợi ý thi đấu (22.11.2026). Tắt "nhận lời mời" mà còn nối vì thi đấu
+// thì khai `nm=0` — server không đưa mình lên danh sách mời / bảng xếp hạng.
+const nenMo = (): boolean => (nhanLoiMoi.value || goiYThiDau.value)
   && typeof document !== 'undefined' && document.visibilityState === 'visible';
+const guiGy = (): void => gui({ t: 'gy', bat: goiYThiDau.value, ...(maMayHienTai() ? { tb: maMayHienTai() } : {}) });
 const ttHienTai = (): 'chu' | 'choi' | 'phong' => (trongPhongOnline.value ? 'phong' : dangChoiOffline.value ? 'choi' : 'chu');
 
 function gui(tin: unknown): void { try { if (ws?.readyState === 1) ws.send(JSON.stringify(tin)); } catch { /* bỏ qua */ } }
@@ -65,7 +71,7 @@ function gui(tin: unknown): void { try { if (ws?.readyState === 1) ws.send(JSON.
 function mo(): void {
   if (ws || !nenMo() || typeof WebSocket === 'undefined') return;
   clearTimeout(henNoi);
-  const q = new URLSearchParams({ ten: store.playerNames()[0] ?? '', tt: ttHienTai() });
+  const q = new URLSearchParams({ ten: store.playerNames()[0] ?? '', tt: ttHienTai(), td: '1', nt: nenApp, nn: ngonNgu.value, nm: nhanLoiMoi.value ? '1' : '0' });
   let s: WebSocket;
   try { s = new WebSocket(`${WS_SANH}?${q}`); } catch { return; }
   ws = s;
@@ -75,12 +81,15 @@ function mo(): void {
     if (m.t === 'chao') {
       lui = 3_000;
       coSanh.value = true;
+      coThiDau.value = m.td === 1;
+      guiGy();
       // Gửi LẠI trạng thái lúc đã nối: đổi trạng thái khi socket còn đang mở thì tin `tt` bị rơi (gui() bỏ qua khi
       // chưa OPEN) — chủ phòng từng hiện trong danh sách mời của chính mình là "Ở trang chủ" (chụp kiểm 21.11.2026)
       gui({ t: 'tt', tt: ttHienTai() });
       gui({ t: 'ai', ...danhTinhSanh() });
       return;
     }
+    if (nhanTinThiDau(m)) return;
     if (m.t === 'moi' && /^\d{6}$/.test(String(m.ma)) && !trongPhongOnline.value) {
       const han = Number(m.han) || 20_000;
       loiMoi.value = {
@@ -93,7 +102,7 @@ function mo(): void {
     }
   };
   s.onclose = () => {
-    if (ws === s) ws = null;
+    if (ws === s) { ws = null; quenThiDau(); }
     // Server không có sảnh (bản Cloudflare) hay mất mạng: thử lại thưa dần, tối đa 60 giây/lần
     if (nenMo()) { henNoi = setTimeout(mo, lui); lui = Math.min(60_000, lui * 2); }
   };
@@ -101,6 +110,7 @@ function mo(): void {
 function dong(): void {
   clearTimeout(henNoi);
   const s = ws; ws = null;
+  quenThiDau();
   try { s?.close(1000); } catch { /* đã đóng */ }
 }
 function canBang(): void { if (nenMo()) mo(); else dong(); }
@@ -110,7 +120,10 @@ export function batDauSanh(): void {
   if (daBatDau || typeof document === 'undefined') return;
   daBatDau = true;
   document.addEventListener('visibilitychange', canBang);
-  watch(nhanLoiMoi, canBang);
+  // Đổi công tắc "nhận lời mời": nối lại để server nhận `nm` mới (khai trên URL lúc nối)
+  watch(nhanLoiMoi, () => { dong(); canBang(); });
+  watch(goiYThiDau, () => { canBang(); guiGy(); });
+  datCuaGui(gui);
   watch([trongPhongOnline, dangChoiOffline], () => gui({ t: 'tt', tt: ttHienTai() }));
   // Đăng nhập / đăng xuất: danh tính trên bảng đổi theo
   watch(me, () => gui({ t: 'ai', ...danhTinhSanh() }));
