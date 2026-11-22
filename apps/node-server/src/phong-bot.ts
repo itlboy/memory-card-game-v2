@@ -28,7 +28,7 @@ import {
   BOT_LEVELS, LEVEL_KEYS, botPick, botRng, botThinkMs, createBotMemory, observe, pairsForLevel,
   type BotLevel, type GameView, type RoomInfo
 } from '@mm/engine';
-import { taoTen } from '../../web/src/lib/ten-goc';
+import { NGON_NGU_CO_TEN, taoTen } from '../../web/src/lib/ten-goc';
 
 const so = (ten: string, mac: number): number => { const v = Number(process.env[ten]); return Number.isFinite(v) && v > 0 ? v : mac; };
 const SERVER = (process.env.MM_SERVER ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
@@ -69,8 +69,14 @@ function bocMuc(): [BotLevel, BotLevel] {
   return [BOT_LEVELS[a]!, BOT_LEVELS[b]!];
 }
 
-/** Tên như người mới cài app: phần lớn tiếng Anh (người chơi khắp nơi), một phần tiếng Việt. */
-const bocTen = (): string => taoTen(Math.random() < 0.35 ? 'vi' : 'en');
+/** Tên như người mới cài app: 40% tiếng Anh, 18% tiếng Việt, còn lại chia đều các tiếng có bộ tên riêng. */
+function bocTen(): string {
+  const x = Math.random();
+  if (x < 0.4) return taoTen('en');
+  if (x < 0.58) return taoTen('vi');
+  const khac = NGON_NGU_CO_TEN.filter((l) => l !== 'en' && l !== 'vi');
+  return taoTen(khac[rd(khac.length)]!);
+}
 
 type TinServer =
   | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean }

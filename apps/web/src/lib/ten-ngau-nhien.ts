@@ -2,8 +2,9 @@
  * TÊN NGẪU NHIÊN CHO NGƯỜI MỚI (19.11.2026, chủ dự án: "gen ra tên ngẫu nhiên… mà không cần lấy tên xấu như
  * 'player1'… tổ hợp 3 thứ kiểu sóc đỏ nhỏ, gấu nâu con… khó bị trùng"; KHÔNG có nút tạo lại tên).
  *
- * Lần đầu mở app mà chưa có tên → tạo LOÀI + MÀU + NÉT theo ngôn ngữ máy (tiếng Việt: "Sóc Đỏ Nhỏ"; mọi ngôn
- * ngữ khác dùng tiếng Anh, tính từ đứng trước: "Tiny Red Squirrel"), lưu vào `playerNames[0]` — CHUNG ô với tên
+ * Lần đầu mở app mà chưa có tên → tạo LOÀI + MÀU + NÉT theo ngôn ngữ máy (tiếng Việt: "Sóc Đỏ Nhỏ"; tiếng Anh, tính
+ * từ đứng trước: "Tiny Red Squirrel"; từ 22.11.2026 thêm id · tr · ja · ko · zh · zh-TW · th — xem ten-goc.ts; sáu tiếng
+ * có giống ngữ pháp es · pt · fr · it · de · ru vẫn dùng tiếng Anh), lưu vào `playerNames[0]` — CHUNG ô với tên
  * online và tên trên bảng xếp hạng. Tạo một lần rồi giữ, đổi ngôn ngữ không đổi tên; người chơi sửa tay được.
  * Chống trùng: hỏi server (`/api/ten/trong`) trong một loạt ứng viên, lấy cái chưa ai dùng trên bảng xếp
  * hạng — chỉ thay khi người chơi CHƯA tự sửa tên. Mất mạng / server không có tài khoản: giữ tên đã tạo.
