@@ -478,7 +478,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   if (url.pathname === '/api/rooms/public' && req.method === 'GET') {
     // Phòng ĐANG CHƠI chỉ cho client khai `?v=2` (client cũ vẽ nó như phòng còn chỗ) — PublicRoom.dangChoi
     const v2 = url.searchParams.get('v') === '2';
-    void soPhong.liet().then((rooms) => json(res, { rooms: rooms.filter((r) => v2 || !r.dangChoi) }));
+    // `online` = số app đang nối sảnh (23.11.2026: ô Chơi online + màn Online hiện "N người đang online")
+    void soPhong.liet().then((rooms) => json(res, { rooms: rooms.filter((r) => v2 || !r.dangChoi), online: sanh.soKetNoi() }));
     return;
   }
 

@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Check, Dices, Hourglass, Swords, X } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
 import { sfx } from '@/lib/audio';
-import { dangChoiOffline, tenKhach, trongPhongOnline } from '@/lib/sanh';
+import { tenKhach, trongPhongOnline } from '@/lib/sanh';
 import { chonSoThe, roiTran, tdBao, tdCho, tdGom, tdHoi, tdTran, thoiThiDau, traLoiHoi } from '@/lib/thidau';
 import MatNguoi from './MatNguoi.vue';
 
@@ -29,8 +29,6 @@ const giay = (het: number): number => Math.max(0, Math.ceil((het - now.value) / 
 const phutGiay = (het: number): string => { const s = giay(het); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const ten = (n: { sid: string; ten: string }): string => n.ten || tenKhach(n.sid);
 
-// Vào chơi một mình giữa lúc gom: rời đợt (server cũng chỉ chia người đang ở trang chủ). Người đang CHỜ thì giữ nguyên.
-watch(dangChoiOffline, (v) => { if (v && tdGom.value) thoiThiDau(); });
 // Hết chờ theo đồng hồ máy (server cũng báo `td_het_cho`; đây là lưới khi tin đó rơi)
 watch(now, (n) => { if (tdCho.value && tdCho.value <= n) tdCho.value = 0; });
 

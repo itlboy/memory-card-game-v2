@@ -201,7 +201,8 @@ describe('client: nối sảnh đúng lúc, giao diện', () => {
     // danh tính đi trong tin nhắn sau `chao`, KHÔNG trên URL
     expect(s).toContain("gui({ t: 'ai', ...danhTinhSanh() })");
     // đã nối thì gửi lại trạng thái hiện tại — tin `tt` gửi lúc socket còn CONNECTING bị rơi
-    expect(s).toMatch(/m\.t === 'chao'[\s\S]{0,400}gui\(\{ t: 'tt', tt: ttHienTai\(\) \}\)/);
+    // 23.11.2026: tin `tt` kèm `mot` (đang chơi offline MỘT MÌNH — thi đấu vẫn hỏi người này)
+    expect(s).toMatch(/m\.t === 'chao'[\s\S]{0,500}gui\(\{ t: 'tt', tt: ttHienTai\(\), mot: choiMotMinh\.value \}\)/);
     expect(s).not.toMatch(/URLSearchParams\(\{[^}]*(token|khach)/);
     expect(s).toContain("addEventListener('visibilitychange', canBang)");
     // mã phòng + token đi bằng POST body, không vào URL

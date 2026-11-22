@@ -1,6 +1,7 @@
 import { onScopeDispose, ref } from 'vue';
 import type { PublicRoom } from '@mm/engine';
 import { SERVER_URL } from './native';
+import { ghiSoOnline } from './sanh';
 
 /**
  * SỐ PHÒNG ĐANG CHỜ trên ô Online ở trang chủ (20.11.2026, mockup C duyệt
@@ -24,7 +25,11 @@ export function useSoPhongCho() {
     if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
       try {
         const r = await fetch(`${SERVER_URL}/api/rooms/public?v=2`);
-        if (r.ok) so.value = demPhongCho(((await r.json()) as { rooms?: PublicRoom[] }).rooms ?? []);
+        if (r.ok) {
+          const d = (await r.json()) as { rooms?: PublicRoom[]; online?: number };
+          so.value = demPhongCho(d.rooms ?? []);
+          ghiSoOnline(d.online);
+        }
       } catch { /* mất mạng: giữ số cũ */ }
     }
     if (!tat) hen = setTimeout(() => { void hoi(); }, CHU_KY_MS);

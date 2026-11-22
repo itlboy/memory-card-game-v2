@@ -41,8 +41,14 @@ export interface TdNguoi {
   cho: number;
   /** Số lần đã hỏi trong ngày (chỉ để thống kê). */
   lan: number;
+  /**
+   * Đang chơi offline MỘT MÌNH (app khai trong tin `tt`). 23.11.2026, chủ dự án: "giới hạn ở trang chủ thì ít quá, nên cho
+   * cả đang chơi offline 1 người" — người này vẫn được hỏi và được xếp trận; app chỉ rời ván khi trận THẬT SỰ thành.
+   * Chơi nhiều người cùng máy thì KHÔNG (rời ván là bỏ rơi người ngồi cạnh).
+   */
+  mot: boolean;
 }
-export const tdMoi = (ho: boolean): TdNguoi => ({ ho, gy: true, nghi: 0, hoi: null, tran: null, cho: 0, lan: 0 });
+export const tdMoi = (ho: boolean, mot = false): TdNguoi => ({ ho, gy: true, nghi: 0, hoi: null, tran: null, cho: 0, lan: 0, mot });
 
 export interface NguoiTd { sid: string; ten: string; mat: string; tt: string; td: TdNguoi }
 export type GhiTd = (loai: string, sid: string | null, duLieu: Record<string, unknown>) => void;
@@ -88,8 +94,10 @@ export function moThiDau(o: {
   const ma = (): string => randomBytes(4).toString('hex');
   const mat = (k: NguoiTd) => ({ sid: k.sid, ten: k.ten, mat: k.mat });
   const dangCho = (k: NguoiTd, t: number): boolean => k.td.cho > t;
-  /** Được tính là "người rảnh": ở trang chủ, bật gợi ý, app hiểu thi đấu, không trong trận. */
-  const ranh = (k: NguoiTd): boolean => k.td.ho && k.td.gy && k.tt === 'chu' && !k.td.tran;
+  /** Xếp trận được ngay: ở trang chủ, hoặc đang chơi offline MỘT MÌNH. */
+  const sanSang = (k: NguoiTd): boolean => k.tt === 'chu' || (k.tt === 'choi' && k.td.mot);
+  /** Được tính là "người rảnh": sẵn sàng, bật gợi ý, app hiểu thi đấu, không trong trận. */
+  const ranh = (k: NguoiTd): boolean => k.td.ho && k.td.gy && sanSang(k) && !k.td.tran;
   const hoiDuoc = (k: NguoiTd, t: number): boolean => ranh(k) && k.td.nghi <= t && !k.td.hoi && !dangCho(k, t);
 
   function guiGom(): void {
@@ -113,7 +121,7 @@ export function moThiDau(o: {
     const tat = [...o.ketNoi.values()];
     const soRanh = tat.filter((k) => ranh(k) || (k.td.ho && dangCho(k, t) && !k.td.tran)).length;
     const cho = tat.filter((k) => k.td.ho && dangCho(k, t) && !k.td.tran);
-    const choSan = cho.filter((k) => k.tt === 'chu');
+    const choSan = cho.filter(sanSang);
     // Đợt đang mở: người vừa rảnh được hỏi thêm nếu còn kịp
     if (dot) {
       if (dot.het - t < HOI_MUON_MS) return;
@@ -153,7 +161,7 @@ export function moThiDau(o: {
       k.td.nghi = t + NGHI_BO_QUA_MS;
       ghi('td_tra_loi', s, { dot: d.id, tra: 'boQua' });
     }
-    const a = d.thamGia.map((s) => o.ketNoi.get(s)).filter((k): k is NguoiTd => !!k && k.td.ho && k.tt === 'chu' && !k.td.tran);
+    const a = d.thamGia.map((s) => o.ketNoi.get(s)).filter((k): k is NguoiTd => !!k && k.td.ho && sanSang(k) && !k.td.tran);
     ghi('td_chia', null, { dot: d.id, thamGia: a.length, tran2: chiaTran(a.length).filter((x) => x === 2).length, tran3: chiaTran(a.length).filter((x) => x === 3).length, du: a.length >= 2 });
     if (a.length >= 2) { for (const k of a) k.td.cho = 0; lapCacTran(a); }
     else if (a.length === 1) giuCho(a[0]!, d.coCho && d.thamGia[0] === a[0]!.sid);
@@ -208,7 +216,7 @@ export function moThiDau(o: {
     clearTimeout(tr.hen);
     const con = conLai(tr);
     for (const k of con) { k.td.tran = null; o.gui(k, { t: 'td_huy', id: tr.id, lyDo }); }
-    if (con.length === 1 && con[0]!.tt === 'chu') giuCho(con[0]!);
+    if (con.length === 1 && sanSang(con[0]!)) giuCho(con[0]!);
     xet();
   }
 
@@ -227,7 +235,7 @@ export function moThiDau(o: {
     tran.delete(id);
     if (!maPhong || conSau.length < 2) {
       for (const k of conSau) { k.td.tran = null; o.gui(k, { t: 'td_huy', id, lyDo: maPhong ? 'thieu' : 'loi' }); }
-      if (conSau.length === 1 && conSau[0]!.tt === 'chu') giuCho(conSau[0]!);
+      if (conSau.length === 1 && sanSang(conSau[0]!)) giuCho(conSau[0]!);
       xet();
       return;
     }

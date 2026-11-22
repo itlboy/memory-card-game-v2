@@ -121,6 +121,22 @@ describe('đợt gọi', () => {
     for (const s of ['a', 'b', 'c', 'd']) expect(x.cuoi(s, 'td_hoi'), s).toBeUndefined();
   });
 
+  it('đang chơi offline MỘT MÌNH vẫn được hỏi và được xếp trận; chơi nhiều người cùng máy thì không (chủ dự án 23.11.2026)', async () => {
+    const x = dung();
+    const a = x.them('a');
+    const b = x.them('b', 'choi'); b.td.mot = true;          // một mình
+    const c = x.them('c', 'choi');                            // nhiều người cùng máy
+    x.td.xet(); await x.chay(1000);
+    expect(x.cuoi('a', 'td_hoi')!.n).toBe(2);
+    expect(x.cuoi('b', 'td_hoi')).toBeTruthy();
+    expect(x.cuoi('c', 'td_hoi')).toBeUndefined();
+    x.td.tin(a, { t: 'td_tra', id: x.cuoi('a', 'td_hoi')!.id, dong: true });
+    x.td.tin(b, { t: 'td_tra', id: x.cuoi('b', 'td_hoi')!.id, dong: true });
+    await x.chay(GOM_MS);
+    expect(x.cuoi('b', 'td_tran')!.id).toBe(x.cuoi('a', 'td_tran')!.id);
+    void c;
+  });
+
   it('"Để sau" nghỉ lâu hơn bỏ qua; hết hạn nghỉ mới hỏi lại', async () => {
     const x = dung();
     const a = x.them('a'), b = x.them('b');

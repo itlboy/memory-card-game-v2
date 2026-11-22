@@ -142,7 +142,7 @@ export function moSanh(opts: {
   function moiKetNoi(ws: WebSocket, url: URL, nuoc = ''): void {
     const sid = randomBytes(5).toString('hex');
     const k: KetNoi = {
-      sid, ws, song: true, moi: null, ai: null, td: tdMoi(url.searchParams.get('td') === '1'),
+      sid, ws, song: true, moi: null, ai: null, td: tdMoi(url.searchParams.get('td') === '1', url.searchParams.get('mot') === '1'),
       nt: String(url.searchParams.get('nt') ?? '').slice(0, 8), nn: String(url.searchParams.get('nn') ?? '').slice(0, 8), nuoc, nm: url.searchParams.get('nm') !== '0',
       ten: tenSach(url.searchParams.get('ten')),
       mat: opts.avatars[randomBytes(1)[0]! % opts.avatars.length] ?? '🙂',
@@ -159,7 +159,7 @@ export function moSanh(opts: {
       try { m = JSON.parse(String(raw)) as Record<string, unknown>; } catch { return; }
       if (m.t === 'gy' && typeof m.tb === 'string' && /^[A-Za-z0-9:_-]{20,250}$/.test(m.tb)) opts.datPushThiDau?.(m.tb, m.bat !== false);
       if (td?.tin(k, m)) return;
-      if (m.t === 'tt') { k.tt = docTt(m.tt); td?.xet(); }
+      if (m.t === 'tt') { k.tt = docTt(m.tt); k.td.mot = m.mot === true; td?.xet(); }
       else if (m.t === 'ai') {
         // Danh tính KHÔNG đi trên URL (log) — gửi trong tin nhắn, server xác minh (phiên ký / băm mã khách)
         const ai = opts.xacDinh?.(m.khach, m.token) ?? null;
