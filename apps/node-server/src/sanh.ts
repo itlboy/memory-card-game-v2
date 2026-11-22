@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { WebSocketServer, type WebSocket } from 'ws';
+import { moThiDau, tdMoi, type GhiTd, type TdNguoi, type ThiDau } from './thidau.js';
 
 /**
  * SẢNH — MỜI NGƯỜI ĐANG ONLINE VÀO PHÒNG CHỜ (21.11.2026, mockup duyệt
@@ -38,6 +39,12 @@ interface KetNoi extends NguoiSanh {
   ws: WebSocket; song: boolean; moi: { id: string; ma: string; het: number } | null;
   /** Danh tính trên bảng xếp hạng (`u:<id>` / `k:<mã băm khách>`) — app gửi sau khi nối, server tự xác minh. */
   ai: string | null;
+  /** Phần thi đấu (thidau.ts). */
+  td: TdNguoi;
+  /** Cho thống kê thi đấu: nền tảng + ngôn ngữ app khai, nước theo header Cloudflare. */
+  nt: string; nn: string; nuoc: string;
+  /** Bật "Nhận lời mời chơi" (`nm=0` = tắt, kết nối chỉ để thi đấu): tắt thì KHÔNG lên danh sách mời / bảng xếp hạng. */
+  nm: boolean;
 }
 /** Trạng thái online của một dòng bảng xếp hạng: `sid` chỉ có khi đang rảnh (thách được). */
 export interface OnlineBxh { sid?: string; ban: boolean }
@@ -60,6 +67,8 @@ export interface Sanh {
   /** Trả true nếu đã trả lời request `/api/sanh/*`. */
   xuLyHttp(req: IncomingMessage, res: ServerResponse, url: URL): boolean;
   soKetNoi(): number;
+  /** Số liệu thi đấu hiện thời cho `/api/ping`. */
+  thiDau(): ReturnType<ThiDau['soLieu']>;
   dong(): void;
 }
 
@@ -83,6 +92,12 @@ export function moSanh(opts: {
   xemPhong(ma: string): XemPhong | null; avatars: readonly string[]; now?: () => number;
   /** Xác minh danh tính app gửi lên (phiên đăng nhập / mã khách) → khoá bảng xếp hạng, hoặc null. */
   xacDinh?(khach: unknown, token: unknown): string | null;
+  /** Lập phòng thi đấu (thidau.ts) — thiếu thì tính năng thi đấu tắt. */
+  taoPhongThiDau?(soThe: number, n: number): Promise<string | null>;
+  ghiThiDau?(loai: string, nguoi: { who: string | null; platform: string; lang: string; country: string } | null, duLieu: Record<string, unknown>): void;
+  /** Công tắc "Gợi ý thi đấu" đổi trên một máy có đăng ký thông báo đẩy. */
+  datPushThiDau?(token: string, bat: boolean): void;
+  baoChoThiDau?(ten: string): void;
 }): Sanh {
   const now = opts.now ?? Date.now;
   const wss = new WebSocketServer({ noServer: true, maxPayload: 1024 });
@@ -95,6 +110,19 @@ export function moSanh(opts: {
   const nhipPhong = new Map<string, number[]>();
   /** ai → sid của kết nối mới nhất mang danh tính đó (một người mở hai máy: máy sau thắng). */
   const theoAi = new Map<string, string>();
+
+  /** Danh tính ẩn danh cho thống kê: băm `ai` (bền qua các lần mở app) hoặc `sid` khi chưa có danh tính. */
+  const ghiTd: GhiTd = (loai, sid, d) => {
+    const k = sid ? ketNoi.get(sid) : undefined;
+    opts.ghiThiDau?.(loai, k ? { who: createHash('sha256').update(k.ai ?? `s:${k.sid}`).digest('hex').slice(0, 12), platform: k.nt, lang: k.nn, country: k.nuoc } : null, d);
+  };
+  const td: ThiDau | null = opts.taoPhongThiDau ? moThiDau({
+    ketNoi, gui: (k, tin) => gui(k as KetNoi, tin), now,
+    taoPhong: opts.taoPhongThiDau, ghi: ghiTd, baoCho: opts.baoChoThiDau
+  }) : null;
+  // Nhịp riêng 10 giây cho thi đấu: người chờ hết hạn phải được báo sớm hơn nhịp tim 30 giây
+  const nhipTd = setInterval(() => td?.nhip(), 10_000);
+  nhipTd.unref?.();
 
   const nhipTim = setInterval(() => {
     const t = now();
@@ -111,23 +139,27 @@ export function moSanh(opts: {
 
   function gui(k: KetNoi, tin: unknown): void { try { k.ws.send(JSON.stringify(tin)); } catch { /* đã đóng */ } }
 
-  function moiKetNoi(ws: WebSocket, url: URL): void {
+  function moiKetNoi(ws: WebSocket, url: URL, nuoc = ''): void {
     const sid = randomBytes(5).toString('hex');
     const k: KetNoi = {
-      sid, ws, song: true, moi: null, ai: null,
+      sid, ws, song: true, moi: null, ai: null, td: tdMoi(url.searchParams.get('td') === '1'),
+      nt: String(url.searchParams.get('nt') ?? '').slice(0, 8), nn: String(url.searchParams.get('nn') ?? '').slice(0, 8), nuoc, nm: url.searchParams.get('nm') !== '0',
       ten: tenSach(url.searchParams.get('ten')),
       mat: opts.avatars[randomBytes(1)[0]! % opts.avatars.length] ?? '🙂',
       tt: docTt(url.searchParams.get('tt'))
     };
     ketNoi.set(sid, k);
     ws.on('pong', () => { k.song = true; });
-    ws.on('close', () => { ketNoi.delete(sid); if (k.ai && theoAi.get(k.ai) === sid) theoAi.delete(k.ai); });
+    // td.roi TRƯỚC khi gỡ khỏi `ketNoi`: thống kê còn tra được người này
+    ws.on('close', () => { td?.roi(k); ketNoi.delete(sid); if (k.ai && theoAi.get(k.ai) === sid) theoAi.delete(k.ai); });
     ws.on('error', () => { /* close theo sau */ });
     ws.on('message', (raw) => {
       k.song = true;
       let m: Record<string, unknown>;
       try { m = JSON.parse(String(raw)) as Record<string, unknown>; } catch { return; }
-      if (m.t === 'tt') k.tt = docTt(m.tt);
+      if (m.t === 'gy' && typeof m.tb === 'string' && /^[A-Za-z0-9:_-]{20,250}$/.test(m.tb)) opts.datPushThiDau?.(m.tb, m.bat !== false);
+      if (td?.tin(k, m)) return;
+      if (m.t === 'tt') { k.tt = docTt(m.tt); td?.xet(); }
       else if (m.t === 'ai') {
         // Danh tính KHÔNG đi trên URL (log) — gửi trong tin nhắn, server xác minh (phiên ký / băm mã khách)
         const ai = opts.xacDinh?.(m.khach, m.token) ?? null;
@@ -141,7 +173,8 @@ export function moSanh(opts: {
         k.moi = null;
       } else if (m.t === 'nhan' && k.moi && m.id === k.moi.id) k.moi = null;
     });
-    gui(k, { t: 'chao', sid, han: HAN_MOI_MS });
+    gui(k, { t: 'chao', sid, han: HAN_MOI_MS, ...(td ? { td: 1 } : {}) });
+    td?.xet();
   }
 
   /** Xác thực chủ phòng: phòng còn chờ + token đúng của chủ phòng. */
@@ -160,7 +193,7 @@ export function moSanh(opts: {
     const t = now();
     const ra: DongDs[] = [];
     for (const k of ketNoi.values()) {
-      if (k.tt === 'phong') continue;
+      if (k.tt === 'phong' || !k.nm) continue;
       const khoa = `${ma}:${k.sid}`;
       const d = daMoi.get(khoa);
       ra.push({
@@ -180,7 +213,8 @@ export function moSanh(opts: {
     nhanUpgrade(req, url, socket, head) {
       if (url.pathname !== '/ws/sanh') return false;
       if (ketNoi.size >= TOI_DA_KET_NOI) { socket.destroy(); return true; }
-      wss.handleUpgrade(req, socket, head, (ws) => moiKetNoi(ws, url));
+      const nuoc = String(req.headers['cf-ipcountry'] ?? '').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase();
+      wss.handleUpgrade(req, socket, head, (ws) => moiKetNoi(ws, url, nuoc));
       return true;
     },
     xuLyHttp(req, res, url) {
@@ -201,7 +235,7 @@ export function moSanh(opts: {
           if (p.status !== 'lobby') { json(res, { loi: 'dangChoi' }); return; }
           if (p.nguoi >= p.toiDa) { json(res, { loi: 'day' }); return; }
           const k = ketNoi.get(String(b.sid ?? ''));
-          if (!k) { json(res, { loi: 'khongCo' }); return; }
+          if (!k || !k.nm) { json(res, { loi: 'khongCo' }); return; }
           if (k.tt === 'phong') { json(res, { loi: 'banPhong' }); return; }
           const khoa = `${ma}:${k.sid}`;
           if ((tuChoi.get(khoa) ?? 0) > t) { json(res, { loi: 'tuChoi' }); return; }
@@ -223,14 +257,15 @@ export function moSanh(opts: {
       return true;
     },
     soKetNoi: () => ketNoi.size,
+    thiDau: () => td?.soLieu() ?? { cho: 0, tran: 0, dot: false },
     trangThai(ai) {
       const sid = theoAi.get(ai);
       const k = sid ? ketNoi.get(sid) : undefined;
-      if (!k) return null;
+      if (!k || !k.nm) return null;
       return k.tt === 'phong' ? { ban: true } : { sid: k.sid, ban: false };
     },
     dong() {
-      clearInterval(nhipTim);
+      clearInterval(nhipTim); clearInterval(nhipTd); td?.dong();
       for (const k of ketNoi.values()) { try { k.ws.close(1012, 'restart'); } catch { /* đã đóng */ } }
     }
   };

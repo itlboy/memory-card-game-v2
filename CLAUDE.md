@@ -1658,6 +1658,43 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   dongY. Id mới CHỈ THÊM CUỐI `QUICK_SAYS` (server cũ bỏ qua id lạ); mỗi câu cần `say.<id>` ở 15 ngôn ngữ + emoji
   riêng trong `lib/noi-nhanh.ts` (LoiNoi vẽ). Màu nút qua biến thạch `--b1/--b2/--b3/--bc` — ghi background thẳng bị đè.
 
+## Thi đấu — gọi mọi người, tự chia trận, KHÔNG chủ phòng (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 4)
+
+- **Luồng**: có từ 2 người RẢNH (ở trang chủ `tt:'chu'`, bật "Gợi ý thi đấu", app khai `?td=1`) → server mở MỘT ĐỢT GỌI 15 giây,
+  mọi người nhận thẻ "Thi đấu online?". Ai bấm Tham gia vào nhóm; hết giờ `chiaTran(n)` (engine) cắt thành trận 2–3 người
+  (4 → 2+2, 5 → 3+2, 6 → 3+3). Mỗi trận: xem mặt 3 giây → mỗi người chọn số thẻ 10 giây (`THI_DAU_SO_THE`: 2 người từ 12,
+  3 người từ 24 — chủ dự án) → khác nhau thì BỐC NGẪU NHIÊN trong các số đã chọn → lập phòng thi đấu → `td_vao` kèm mã.
+  KHÔNG có nút riêng để gọi (chủ dự án: "làm thông báo là được").
+- **Chưa đủ người**: người duy nhất tham gia được GIỮ CHỜ 10 phút (viên "Đang chờ người", vẫn chơi một mình được). Người mới
+  rảnh nhận thẻ "X đang chờ đấu" — bấm Tham gia là thành trận NGAY. Đồng thời gửi THÔNG BÁO ĐẨY cho máy đã đóng app
+  (thongbao.ts `choThiDau` — ĐỔI luật cũ "không push cho lời mời": tối đa 3 tin thi đấu/máy/ngày, cách mọi tin khác 30 phút,
+  nghỉ giờ ngủ, bỏ máy tắt gợi ý `td_off`). Bản web iPhone không nhận push.
+- **Mức hỏi lại cố ý LỎNG** (đang ít người online, cần tăng tương tác): bỏ qua thẻ → 3 phút, "Để sau" → 10 phút. Sự kiện
+  `td_tat` (tắt công tắc) trong thống kê là tín hiệu để siết lại.
+- **Server**: `apps/node-server/src/thidau.ts` (máy trạng thái, chỉ RAM, chạy trên kết nối `/ws/sanh`; tin `td_*` + `gy`),
+  nối trong `sanh.ts`. Chỉ bản Node — `chao` kèm `td: 1`, client đặt `coThiDau`.
+- **Phòng thi đấu** (`room.ts` `openThiDau`, `RoomState.thiDau`, `RoomInfo.thiDau`): `hostId` LUÔN rỗng (`chuMoi()` trả ''),
+  phòng kín, người vào là sẵn sàng, đủ `n` người thì tự đếm ngược; hết `ROOM_LIMITS.thiDauChoMs` có ≥ 2 người thì chơi, còn 1
+  thì `dongThiDau()` (tin `closed` code `thiDau`). KHÔNG có phòng chờ để về: `tolobby` bị bỏ qua, mọi `veLobby` = giải tán.
+  Hết ván: ai cũng bấm "Chơi lại" thì ván mới (luật `again` sẵn có); người không muốn thì rời. Client giấu hàng "Về phòng
+  chờ · Chỉnh bàn" (`ResultDialog` prop `thiDau`) và vẽ phòng chờ thành "Đang vào bàn…".
+  NỢ: kho MySQL không giữ `thiDau` — server khởi động lại giữa trận thì phòng đó thành phòng thường không chủ.
+- **App**: `lib/thidau.ts` (trạng thái) + `ThiDau.vue` (mount ở App.vue: thẻ đầu màn, viên chờ, lớp phủ trận) → emit `vao` →
+  `vaoPhongThiDau` (cùng lối "được mời"). Công tắc "Gợi ý thi đấu" ở Cài đặt (`mm.goiYThiDau`, mặc định bật, chỉ hiện khi
+  `coThiDau`). Sảnh nay nối khi bật MỘT trong hai công tắc; tắt "Nhận lời mời" thì khai `nm=0` → không lên danh sách mời / BXH.
+- **Thống kê** (`tk-thidau.ts`, bảng `td_events`): server ghi từng sự kiện, ẩn danh (`who` = 12 ký tự băm danh tính sảnh),
+  kèm nền tảng / ngôn ngữ / nước. Loại: td_dot · td_hoi · td_tra_loi · td_chia · td_cho · td_chon_the · td_van · td_choi_lai ·
+  td_tat · td_push. Mỗi sự kiện cũng in một dòng log `[thidau] …`. Xem: `GET /api/thongke/thidau?ngay=30` + header
+  `x-thongke-key` = env `THONGKE_KEY` (chưa đặt → 404). `/api/ping` `phong.thiDau` = {cho, tran, dot}.
+- NỢ ĐÃ BIẾT: mặt người chơi trên thẻ/trận là mặt SẢNH cấp, vào phòng lại được phòng cấp mặt khác; xếp nhóm mới chỉ xáo
+  ngẫu nhiên + tránh cặp vừa đấu (chưa xếp theo điểm tuần); "Chơi lại" kẹt nếu một người đứng im ở bảng kết quả.
+
+## Lọc người online ở bảng xếp hạng (22.11.2026, chủ dự án: "filter đi để mời thách đấu cho dễ")
+
+Dòng "N người đang online" là NÚT bật/tắt (`chiOnline`): bật thì bục + bảng thường + dòng ghim ẩn, chỉ còn `dsOnline` (người
+online trong top và 3 người chót, giữ hạng thật, có nút Thách). Đổi tab / hết người online thì tự tắt. Người online NGOÀI các
+dòng đã tải chưa hiện — chờ việc tải thêm khi cuộn (bản sau).
+
 ## Cài đặt nổi khối + khung chat gọn + nút mời hiện ngay (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 1–3)
 
 - Trang Cài đặt: mỗi dòng `.item.thach` (khối thạch), icon trong ô màu `.cd-o .cd-<màu>`, công tắc/dải chọn lõm-nổi. Luật

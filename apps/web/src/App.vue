@@ -50,6 +50,7 @@ const doNhip = ref(!!store.prefs().doNhip);
 watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
 import LoiMoi from './components/LoiMoi.vue';
+import ThiDau from './components/ThiDau.vue';
 import { batDauSanh, dangChoiOffline, nhanMoi, thachCho, trongPhongOnline, type ThachDau } from './lib/sanh';
 import IconBay from './components/IconBay.vue';
 import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
@@ -196,6 +197,11 @@ function diThach(): void {
   joinCode.value = '';
   onlineKey.value++;
   screen.value = 'online';
+}
+/** Thi đấu (ThiDau.vue): trận đã chốt bàn → vào phòng thi đấu bằng mã, cùng lối với "được mời". Chỉ tới từ trang chủ. */
+function vaoPhongThiDau(ma: string): void {
+  maMoiCho = ma;
+  diVaoPhongMoi();
 }
 function vaoPhongMoi(): void {
   const ma = nhanMoi();
@@ -1162,6 +1168,7 @@ const hasNext = computed(() => {
   />
 
   <LoiMoi @vao="vaoPhongMoi" />
+  <ThiDau @vao="vaoPhongThiDau" />
   <ConfirmDialog
     v-if="hoiBoVanMoi"
     :title="t('moi.boVan.tieuDe')"

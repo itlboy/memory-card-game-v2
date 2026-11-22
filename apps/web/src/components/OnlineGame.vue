@@ -706,7 +706,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
       :is-record="false" :show-stars="false" :multiplayer="true" :la-chu-phong="o.isHost.value && !o.spectator.value" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
-      :fresh-achievements="[]" :has-next="false" :multiplayer-online="true"
+      :fresh-achievements="[]" :has-next="false" :multiplayer-online="true" :thi-dau="!!o.room.value?.thiDau"
       :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
       :series-wins="o.seriesWins.value"
       :nguoi-choi="o.view.value.players"

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Bell, Bug, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Bell, Bug, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
+import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
 import { coNenToi, skin } from '@/lib/skin';
@@ -503,6 +504,10 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
             <!-- Nhận lời mời chơi (lib/sanh.ts) — tắt là app thôi giữ kết nối sảnh, không ai thấy mình để mời -->
             <button class="item cong-tac thach" role="switch" type="button" :aria-checked="nhanLoiMoi" @click="datNhanLoiMoi(!nhanLoiMoi)">
               <span class="cd-o cd-tim" aria-hidden="true"><MailPlus :size="18" /></span><span class="tk-chu"><b>{{ t('cd.nhanMoi') }}</b><small>{{ t('cd.nhanMoiMo') }}</small></span><i class="sw" :class="{ bat: nhanLoiMoi }" aria-hidden="true" />
+            </button>
+            <!-- Gợi ý thi đấu (lib/thidau.ts, 22.11.2026) — tắt là không nhận thẻ hỏi "Thi đấu online?" lẫn tin đẩy thi đấu -->
+            <button v-if="coThiDau" class="item cong-tac thach" role="switch" type="button" :aria-checked="goiYThiDau" @click="datGoiYThiDau(!goiYThiDau)">
+              <span class="cd-o cd-do" aria-hidden="true"><Swords :size="18" /></span><span class="tk-chu"><b>{{ t('cd.goiYTd') }} <i class="cd-moi">{{ t('cd.moi') }}</i></b><small>{{ t('cd.goiYTdMo') }}</small></span><i class="sw" :class="{ bat: goiYThiDau }" aria-hidden="true" />
             </button>
             <!-- Báo khi có phòng: CÙNG công tắc với chuông ở màn Online (lib/thong-bao.ts) — chỉ app có push -->
             <button v-if="coChuong" class="item cong-tac thach" role="switch" type="button" :aria-checked="dangBat" :disabled="tbDangLam" @click="bamChuong">

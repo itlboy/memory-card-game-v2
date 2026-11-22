@@ -79,8 +79,30 @@ export const ROOM_LIMITS = {
   emojiWindowMs: 4_000,
   /** Đếm ngược trước khi ván chạy. Client và server PHẢI đọc cùng con số này,
    *  lệch nhau là một bên đã cho lật khi bên kia còn đang đếm. */
-  countdownMs: 3_000
+  countdownMs: 3_000,
+  /** Phòng thi đấu: chờ đủ người vào tối đa bấy lâu rồi bắt đầu với ai đã có mặt (≥ 2), không thì giải tán. */
+  thiDauChoMs: 12_000
 } as const;
+
+/**
+ * THI ĐẤU — số thẻ chọn được theo số người (chủ dự án 22.11.2026: 2 người tối thiểu 12 thẻ, 3 người tối thiểu 24).
+ * Server chỉ nhận số có trong danh sách của trận đó; không ai chọn thì lấy số ĐẦU (nhỏ nhất).
+ */
+export const THI_DAU_SO_THE: Record<2 | 3, readonly number[]> = {
+  2: [12, 16, 20, 24, 30, 36],
+  3: [24, 30, 36, 42, 56, 72]
+};
+/**
+ * Chia người tham gia thành các trận 2–3 người: số trận = ⌈n/3⌉, rải đều (4 → 2+2, 5 → 3+2, 6 → 3+3, 7 → 3+2+2).
+ * n < 2 → không có trận. Trả cỡ từng trận, trận to trước.
+ */
+export function chiaTran(n: number): number[] {
+  if (n < 2) return [];
+  const so = Math.ceil(n / 3);
+  const ra: number[] = [];
+  for (let i = 0; i < so; i++) ra.push(Math.floor(n / so) + (i < n % so ? 1 : 0));
+  return ra;
+}
 
 /**
  * EMOJI CHAT — DANH SÁCH ĐÓNG (ON-08), server chỉ nhận emoji có ở đây.
@@ -534,6 +556,11 @@ export interface RoomInfo {
   /** Có hiện trong danh sách phòng công khai không (ON-10). Chủ phòng bật/tắt
    *  được ngay ở phòng chờ, nên client phải thấy trạng thái hiện tại. */
   congKhai: boolean;
+  /**
+   * PHÒNG THI ĐẤU (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 4): máy chủ ghép người
+   * và tự dẫn — KHÔNG có chủ phòng (`hostId` rỗng), phòng kín, đủ người là tự đếm ngược. Client giấu mọi nút của chủ phòng.
+   */
+  thiDau?: true;
   /** NGƯỜI XEM đang mở phòng (19.11.2026) — chip mặt + tên trong hàng trên cùng. Server cũ thiếu = []. */
   xem?: NguoiXem[];
 }
@@ -625,7 +652,7 @@ export type ServerMsg =
   | { t: 'chi'; from: string; index: number }
 
   /** `code` để client DỊCH (message là tiếng Việt, chỉ để dự phòng cho client cũ). */
-  | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' }
+  | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' | 'thiDau' }
   | { t: 'error'; code: string; message: string; /** tên người liên quan (vd. `doi-client-cu`) — client tự dịch câu */ ten?: string[] }
   | { t: 'pong' }
   /** Chủ phòng nhắc BẠN bấm Sẵn sàng (chỉ gửi tới người chưa sẵn sàng). Client cũ bỏ qua. */

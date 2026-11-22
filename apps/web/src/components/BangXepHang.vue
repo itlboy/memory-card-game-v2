@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Flag, Swords, X } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { Check, Flag, ListFilter, Swords, X } from 'lucide-vue-next';
+import { sfx } from '@/lib/audio';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
@@ -59,7 +60,7 @@ async function tai(): Promise<void> {
 }
 function doiLoai(l: LoaiBxh): void {
   if (l === loai.value) return;
-  loai.value = l; tuanXem.value = undefined;
+  loai.value = l; tuanXem.value = undefined; chiOnline.value = false;
   bang.value = bxhLanTruoc(l);
   void tai();
 }
@@ -140,6 +141,21 @@ function thach(d: DongBxh): void {
   emit('thach', { sid: d.ol.sid, ten: ten(d), mat: d.mat ?? '🙂' });
 }
 /** Số người đang online trong các dòng đang hiện (trừ mình). */
+/**
+ * LỌC NGƯỜI ONLINE (22.11.2026, chủ dự án: "báo 1 người online mà không filter được… filter đi để mời thách đấu cho dễ").
+ * Dòng "N người đang online" là NÚT bật/tắt: bật thì chỉ còn những người đang online (cả top 3 trên bục lẫn 3 người
+ * chót), mỗi dòng giữ hạng thật + nút Thách. Đổi tab / đổi tuần / hết người online thì tự tắt.
+ */
+const chiOnline = ref(false);
+const dsOnline = computed(() => {
+  const b = bang.value;
+  if (!b) return [];
+  const top = b.top.map((d, i) => ({ d, hang: i + 1 }));
+  const cuoi = (b.cuoi ?? []).filter((d) => d.hang > b.top.length).map((d) => ({ d, hang: d.hang }));
+  return [...top, ...cuoi].filter((x) => x.d.ol && !x.d.toi);
+});
+// Hết người online (họ thoát app) thì bỏ lọc — không để bảng trống mà nút lọc đã biến mất
+watch(() => dsOnline.value.length, (n) => { if (!n) chiOnline.value = false; });
 const soOnline = computed(() => [...(bang.value?.top ?? []), ...(bang.value?.cuoi ?? [])].filter((d) => d.ol && !d.toi).length);
 const toi = computed(() => bang.value?.toi ?? null);
 /** Ngoài top + 3 người chót đang hiện → ghim dòng mình ở đáy (chủ dự án: "luôn phải hiện vị trí người chơi hiện tại"). */
@@ -187,7 +203,7 @@ async function doiAn(an: boolean): Promise<void> {
 
       <!-- BỤC TOP 3 GỌN, ĐỨNG YÊN (20.11.2026 tối, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne — bỏ vương miện,
            nhỏ ~1/3, NẰM NGOÀI vùng cuộn nên cuộn chỉ kéo hạng 4 trở đi). Thứ tự 2·1·3; thiếu người thì ô trống giữ chỗ. -->
-      <div v-if="bang && !tuanTrong && bang.top.length" class="buc" :class="{ mo: dangTai }">
+      <div v-if="bang && !tuanTrong && bang.top.length && !chiOnline" class="buc" :class="{ mo: dangTai }">
       <div class="bui" aria-hidden="true"><i v-for="(h, k) in HAT" :key="k" :class="{ sao: h.sao }" :style="h.st" /></div>
       <div v-for="i in [1, 0, 2]" :key="i" class="bn" :class="`n${i + 1}`">
         <template v-if="bang.top[i]">
@@ -210,6 +226,19 @@ async function doiAn(an: boolean): Promise<void> {
           <p>{{ t('bxh.tuanMoiMo') }}</p>
           <button class="choi thach th-vang" type="button" @click="emit('close')">{{ t('bxh.choiNgay') }}</button>
         </div>
+        <!-- Đang lọc: chỉ người online, hạng thật, nút Thách như mọi dòng -->
+        <ol v-else-if="bang && chiOnline" class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai">
+          <li v-for="x in dsOnline" :key="`o${x.hang}`">
+            <span class="hang">{{ num(x.hang) }}</span>
+            <span class="mat"><MatBot :mat="x.d.mat ?? '🙂'" /><i class="dot" :class="{ ban: x.d.ol!.ban }" /></span>
+            <span class="ten"><span class="tt">{{ ten(x.d) }}</span><small v-if="x.d.ol!.ban" class="dang-choi">{{ t('bxh.dangChoi') }}</small></span>
+            <template v-if="thachDuoc(x.d)">
+              <VachCho v-if="choThach(x.d)" nho :het="choThach(x.d)" :tong="CACH_MOI_LAI_MS" @xong="nhip++" />
+              <button v-else class="td thach th-nho th-tim" type="button" :aria-label="t('bxh.thachAria', { ten: ten(x.d) })" @click="thach(x.d)"><Swords :size="13" :stroke-width="2.6" aria-hidden="true" />{{ t('bxh.thach') }}</button>
+            </template>
+            <span class="so">{{ num(x.d.totalScore) }}</span>
+          </li>
+        </ol>
         <template v-else-if="bang">
           <ol class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai" :start="4">
             <li v-for="(d, i) in bang.top.slice(3)" :key="i" :class="{ toi: d.toi }">
@@ -247,8 +276,10 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
       </div>
 
-      <p v-if="soOnline && !tuanTrong" class="loc"><i aria-hidden="true" />{{ t('bxh.dangOnline', { n: soOnline }) }}</p>
-      <div v-if="toi && ghim && !tuanTrong" class="ghim" :class="{ mo: dangTai }">
+      <button v-if="soOnline && !tuanTrong" class="loc thach th-nho" :class="{ bat: chiOnline }" type="button" :aria-pressed="chiOnline" @click="sfx.select(); chiOnline = !chiOnline">
+        <i aria-hidden="true" />{{ t('bxh.dangOnline', { n: soOnline }) }}<Check v-if="chiOnline" :size="14" :stroke-width="3" aria-hidden="true" /><ListFilter v-else :size="14" :stroke-width="2.6" aria-hidden="true" />
+      </button>
+      <div v-if="toi && ghim && !tuanTrong && !chiOnline" class="ghim" :class="{ mo: dangTai }">
         <span class="cham" aria-hidden="true">···</span>
         <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><span class="so">{{ num(toi.tren.totalScore) }}</span></div>
         <div class="toi-dong"><span class="hang">{{ toi.hang ? num(toi.hang) : '–' }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}</span></div>
@@ -345,7 +376,10 @@ async function doiAn(an: boolean): Promise<void> {
 .td { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 26px; height: 26px; padding: 0 9px 0 7px; border-radius: 999px; font: 800 11.5px var(--font-body); white-space: nowrap; position: relative; }
 .td::after { content: ''; position: absolute; inset: -6px -2px; }
 .bn .td, .bn .vach-cho { margin-top: 3px; height: 22px; min-height: 22px; padding: 0 7px 0 5px; font-size: 10.5px; }
-.loc { flex: none; display: flex; align-items: center; gap: 6px; margin: 6px 2px 0; font-size: 11.5px; font-weight: 800; color: var(--muted); }
+/* Nút lọc người online: thạch nhỏ, canh trái; bật thì nền xanh (qua biến thạch — ghi background thẳng bị luật thạch đè) */
+.loc { flex: none; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin: 8px 2px 2px; min-height: 32px; padding: 0 12px 2px; border-radius: 999px; font: 800 12.5px var(--font-body); color: var(--fg); }
+.loc.bat { --b1: #5fd27f; --b2: #2f9e57; --b3: #227a41; --bc: #fff; color: #fff; }
+.loc.bat i { background: #fff; }
 .loc i { width: 6px; height: 6px; border-radius: 50%; background: var(--ol); }
 /* :global(x) y trong CSS scoped bỏ mất ' y' — gói CẢ selector vào :global (chỉ đặt biến --diem, vô hại với .panel khác) */
 :global([data-theme='dark'] .panel) { --diem: #ffcf4d; }
