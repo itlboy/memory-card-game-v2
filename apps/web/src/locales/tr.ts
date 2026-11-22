@@ -903,6 +903,7 @@ const tr: TuDien = {
   'cd.goiYTdMo': "2 veya daha fazla oyuncu çevrimiçiyken sor",
   'cd.moi': "YENİ",
   'or.dong.thiDau': "Yeterli oyuncu olmadığı için maç sona erdi.",
+  'bxh.khongAiOnline': "Çevrimiçi kimse yok",
 };
 
 export default tr;

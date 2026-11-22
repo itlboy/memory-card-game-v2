@@ -645,6 +645,7 @@ taiKhoan = await moTaiKhoan(kho?.pool ?? null, process.env).catch((e) => {
   return null;
 });
 taiKhoan?.datOnline((ai) => sanh.trangThai(ai));
+taiKhoan?.datDsOnline(() => sanh.dsAi());
 console.log(taiKhoan
   ? `  tài khoản: BẬT (${[process.env.GOOGLE_CLIENT_ID && 'Google', (process.env.APPLE_BUNDLE_ID || process.env.APPLE_SERVICES_ID) && 'Apple'].filter(Boolean).join(' + ')})`
   : '  tài khoản: TẮT (cần MYSQL_URL + GOOGLE_CLIENT_ID và/hoặc APPLE_BUNDLE_ID)');

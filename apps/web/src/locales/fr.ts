@@ -906,6 +906,7 @@ const fr: TuDien = {
   'cd.goiYTdMo': "Demander quand 2 joueurs ou plus sont en ligne",
   'cd.moi': "NOUVEAU",
   'or.dong.thiDau': "Le match s’est terminé faute de joueurs.",
+  'bxh.khongAiOnline': "Personne en ligne",
 };
 
 export default fr;

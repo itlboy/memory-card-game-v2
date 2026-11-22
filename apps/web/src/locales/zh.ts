@@ -900,6 +900,7 @@ const zh: TuDien = {
   'cd.goiYTdMo': "有 2 人或以上在线时询问",
   'cd.moi': "新",
   'or.dong.thiDau': "因人数不足，对战已结束。",
+  'bxh.khongAiOnline': "暂无人在线",
 };
 
 export default zh;

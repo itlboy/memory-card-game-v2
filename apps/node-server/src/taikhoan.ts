@@ -305,6 +305,25 @@ export function ghepTop(ds: Record<string, unknown>[], toi?: Record<string, unkn
   return kq.sort((a, b) => Number(b.total_score) - Number(a.total_score) || Number(b.wins) - Number(a.wins)).slice(0, 20);
 }
 
+/**
+ * CẮT MỘT TRANG "tải thêm" của bảng xếp hạng — thuần, có test. `ds` = các dòng đầu bảng (đủ dài để chứa trang cần), `top` =
+ * top đang cache, `cuoi` = 3 người chót đang cache, `tong` = tổng số người. Bỏ khoá đã có ở top + 3 người chót (chỗ hoà
+ * điểm, thứ tự của hai lần truy vấn có thể lệch) rồi mới cắt: các trang nối nhau KHÔNG lặp, KHÔNG hụt ai, hạng liền nhau.
+ */
+export function catTrangBxh(ds: Record<string, unknown>[], top: Record<string, unknown>[], cuoiGoc: Record<string, unknown>[], tong: number, tu: number, co = 20): { dong: { r: Record<string, unknown>; hang: number }[]; het: boolean } {
+  const khoa = (r: Record<string, unknown>): string => `${Number(r.la_khach) === 1 ? 'k' : 'u'}:${String(r.k)}`;
+  const soTop = top.length;
+  // 3 người chót chỉ hiện (và chỉ bị loại khỏi phần "giữa") khi nằm DƯỚI top — cùng luật với `cuoiCongKhai`
+  const cuoi = cuoiGoc.filter((_, i) => tong - (cuoiGoc.length - 1 - i) > soTop);
+  const bo = new Set([...top, ...cuoi].map(khoa));
+  const tongGiua = Math.max(0, tong - soTop - cuoi.length);
+  const batDau = tu - soTop;
+  if (batDau < 0) return { dong: [], het: true };
+  const giua = [...ds].sort((a, b) => Number(b.total_score) - Number(a.total_score) || Number(b.wins) - Number(a.wins)).filter((r) => !bo.has(khoa(r)));
+  const cat = giua.slice(batDau, Math.min(batDau + co, tongGiua));
+  return { dong: cat.map((r, i) => ({ r, hang: tu + i + 1 })), het: batDau + cat.length >= tongGiua || cat.length < co };
+}
+
 /** Thứ Hai 00:00 UTC của tuần chứa `now`, dạng 'YYYY-MM-DD'. */
 export function dauTuan(now: number): string {
   const d = new Date(now);
@@ -399,6 +418,8 @@ export interface TaiKhoan {
   aiTu(khach: unknown, token: unknown): string | null;
   /** Gắn nguồn trạng thái online (sảnh) — mỗi dòng bảng xếp hạng mang `ol` khi người đó đang mở app. */
   datOnline(f: (ai: string) => { sid?: string; ban: boolean } | null): void;
+  /** Sảnh đưa danh sách danh tính đang online (`u:<id>` / `k:<mã băm>`) — cho bộ lọc "người đang online" của bảng xếp hạng. */
+  datDsOnline(f: () => string[]): void;
 }
 
 export interface EnvTaiKhoan {
@@ -606,6 +627,87 @@ export async function moTaiKhoan(
     bxhCache = { luc: now, top: ghepTop([...u, ...kh]), tong: Number(du.n) + Number(dk.n), cuoi: baCuoi([...cu1, ...cu2]) };
     return bxhCache;
   }
+  /*
+   * TẢI THÊM KHI CUỘN + LỌC NGƯỜI ONLINE (23.11.2026, chủ dự án: "bảng xếp hạng có thể lazyload để load thêm những người
+   * đang ẩn", "filter đi để mời thách đấu cho dễ").
+   *
+   * `trangBxh`: 20 dòng kế tiếp từ hạng `tu + 1` (tu = 20, 40… tối đa `TU_TOI_DA`), cho cả Mọi lúc lẫn Tuần. KHÔNG dùng
+   * UNION + sắp toàn bảng (EXPLAIN 19.11: quét hết + filesort): mỗi bảng lấy `tu + 25` dòng đầu theo index điểm rồi gộp,
+   * xếp trong code bằng ĐÚNG luật của top (`xepBxh`). Để các trang không lặp/hụt người ở chỗ hoà điểm: bỏ hẳn những
+   * khoá đã nằm trong top đang cache và trong 3 người chót, phần còn lại ("giữa") mới cắt trang — hạng = tu + thứ tự.
+   * Không cache (ít người cuộn tới). `het` = đã giáp 3 người chót.
+   *
+   * `bangOnline`: mọi danh tính đang nối sảnh (kể cả ngoài top 20) kèm hạng thật, xếp theo hạng.
+   */
+  const TRANG_BXH = 20, TU_TOI_DA = 500, ONLINE_TOI_DA = 60;
+  let dsOnline: (() => string[]) | null = null;
+  const khoaDong = (r: Record<string, unknown>): string => `${Number(r.la_khach) === 1 ? 'k' : 'u'}:${String(r.k)}`;
+  const khoaNguoiXem = (uid: number | null, ma: string | null): string | null => (uid !== null ? `u:${uid}` : ma ? `k:${ma}` : null);
+
+  async function trangBxh(loai: 'tat' | 'tuan', tuan: string, tuTho: unknown, uid: number | null, ma: string | null, now: number) {
+    const tu = Math.min(TU_TOI_DA, Math.max(TRANG_BXH, Math.floor(Number(tuTho) || 0)));
+    const can = tu + TRANG_BXH + 5;
+    let chung: { top: Record<string, unknown>[]; tong: number; cuoi: Record<string, unknown>[] };
+    let ds: Record<string, unknown>[];
+    if (loai === 'tuan') {
+      chung = await topTuan(tuan, now);
+      [ds] = await pool!.query(`SELECT ${COT_TUAN} ${TU_TUAN} ORDER BY w.score DESC LIMIT ?`, [tuan, can]) as unknown as [Record<string, unknown>[]];
+    } else {
+      chung = await topVaTong(now);
+      const moc = now - KHACH_HET_HAN_MS;
+      const [[u], [kh]] = await Promise.all([
+        pool!.query(`SELECT ${COT_U} FROM users WHERE matches > 0 ORDER BY total_score DESC LIMIT ?`, [can]),
+        pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE matches > 0 AND hidden = 0 AND updated_at > ? ORDER BY total_score DESC LIMIT ?`, [moc, can]),
+      ]) as unknown as [[Record<string, unknown>[]], [Record<string, unknown>[]]];
+      ds = [...u, ...kh];
+    }
+    const toi = khoaNguoiXem(uid, ma);
+    const { dong, het } = catTrangBxh(ds, chung.top, chung.cuoi, chung.tong, tu, TRANG_BXH);
+    return {
+      ds: dong.map(({ r, hang }) => ({ ...dongCongKhai(r), hang, toi: toi !== null && khoaDong(r) === toi })),
+      het: het || tu >= TU_TOI_DA
+    };
+  }
+
+  async function bangOnline(loai: 'tat' | 'tuan', tuan: string, uid: number | null, ma: string | null, now: number) {
+    const ai = (dsOnline?.() ?? []).slice(0, ONLINE_TOI_DA);
+    const idU = ai.filter((x) => x.startsWith('u:')).map((x) => x.slice(2)).filter((x) => /^\d+$/.test(x));
+    const maK = ai.filter((x) => x.startsWith('k:')).map((x) => x.slice(2));
+    if (!idU.length && !maK.length) return { ds: [] };
+    const moc = now - KHACH_HET_HAN_MS;
+    const u0 = idU.length ? idU : ['0'], k0 = maK.length ? maK : ['-'];
+    let rows: Record<string, unknown>[];
+    if (loai === 'tuan') {
+      [rows] = await pool!.query(
+        `SELECT ${COT_TUAN} ${TU_TUAN} AND ((w.is_guest = 0 AND w.player IN (?)) OR (w.is_guest = 1 AND w.player IN (?)))`, [tuan, u0, k0]
+      ) as unknown as [Record<string, unknown>[]];
+    } else {
+      const [[u], [kh]] = await Promise.all([
+        pool!.query(`SELECT ${COT_U} FROM users WHERE matches > 0 AND id IN (?)`, [u0]),
+        pool!.query(`SELECT ${COT_K} FROM guest_scores WHERE matches > 0 AND hidden = 0 AND updated_at > ? AND guest_hash IN (?)`, [moc, k0]),
+      ]) as unknown as [[Record<string, unknown>[]], [Record<string, unknown>[]]];
+      rows = [...u, ...kh];
+    }
+    const toi = khoaNguoiXem(uid, ma);
+    const ds = await Promise.all(rows.map(async (r) => {
+      const diem = Number(r.total_score);
+      let tren: number;
+      if (loai === 'tuan') {
+        const [[[c]]] = [await pool!.query(`SELECT COUNT(*) AS n ${TU_TUAN} AND w.score > ?`, [tuan, diem])] as unknown as [[[{ n: number }]]];
+        tren = Number(c.n);
+      } else {
+        const [[[a]], [[b]]] = await Promise.all([
+          pool!.query('SELECT COUNT(*) AS n FROM users WHERE total_score > ? AND matches > 0', [diem]),
+          pool!.query('SELECT COUNT(*) AS n FROM guest_scores WHERE total_score > ? AND matches > 0 AND hidden = 0 AND updated_at > ?', [diem, moc]),
+        ]) as unknown as [[[{ n: number }]], [[{ n: number }]]];
+        tren = Number(a.n) + Number(b.n);
+      }
+      return { ...dongCongKhai(r), hang: tren + 1, toi: toi !== null && khoaDong(r) === toi };
+    }));
+    // Chỉ người còn đang online lúc trả lời (dongCongKhai gắn `ol` theo sảnh); xếp theo hạng
+    return { ds: ds.filter((d) => d.ol).sort((x, y) => x.hang - y.hang) };
+  }
+
   async function bangXepHang(uid: number | null, ma: string | null, now: number) {
     const tu = now - KHACH_HET_HAN_MS;
     const chung = await topVaTong(now);
@@ -727,6 +829,7 @@ export async function moTaiKhoan(
       return ma ? `k:${ma}` : null;
     },
     datOnline(f) { online = f; },
+    datDsOnline(f) { dsOnline = f; },
     async xuLy(req, res, url, json) {
       const p = url.pathname;
       const now = Date.now();
@@ -794,7 +897,14 @@ export async function moTaiKhoan(
          * GET (bản app cũ): chỉ top. POST `{ khach }`: thêm `toi` = hạng của người đang xem
          * (tài khoản qua phiên, hoặc khách qua mã) — mã khách đi trong THÂN, không lên URL/log.
          */
-        const than = req.method === 'POST' ? await docThan(req) as { khach?: unknown; loai?: unknown; tuan?: unknown } | null : null;
+        const than = req.method === 'POST' ? await docThan(req) as { khach?: unknown; loai?: unknown; tuan?: unknown; tu?: unknown; online?: unknown } | null : null;
+        // Bản app cũ không gửi `tu` / `online` → chạy y như trước
+        if (than && (than.online === true || than.tu !== undefined)) {
+          const loai = than.loai === 'tuan' ? 'tuan' as const : 'tat' as const;
+          const tuan = tuanHopLe(than.tuan, now), uid = uidTu(req, now), ma = maKhach(than.khach);
+          json(res, than.online === true ? await bangOnline(loai, tuan, uid, ma, now) : await trangBxh(loai, tuan, than.tu, uid, ma, now));
+          return true;
+        }
         json(res, than?.loai === 'tuan'
           ? await bangTuan(uidTu(req, now), maKhach(than?.khach), tuanHopLe(than?.tuan, now), now)
           : await bangXepHang(uidTu(req, now), maKhach(than?.khach), now));

@@ -914,6 +914,7 @@ const vi = {
   'cd.goiYTdMo': "Hỏi khi có từ 2 người online",
   'cd.moi': "MỚI",
   'or.dong.thiDau': "Trận đã kết thúc vì không đủ người.",
+  'bxh.khongAiOnline': "Chưa ai online",
 };
 
 export default vi;

@@ -903,6 +903,7 @@ const de: TuDien = {
   'cd.goiYTdMo': "Fragen, wenn 2 oder mehr Spieler online sind",
   'cd.moi': "NEU",
   'or.dong.thiDau': "Das Match wurde beendet, weil nicht genug Spieler da waren.",
+  'bxh.khongAiOnline': "Niemand online",
 };
 
 export default de;

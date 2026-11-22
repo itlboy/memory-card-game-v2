@@ -903,6 +903,7 @@ const id: TuDien = {
   'cd.goiYTdMo': "Tanya saat ada 2 pemain atau lebih yang online",
   'cd.moi': "BARU",
   'or.dong.thiDau': "Pertandingan berakhir karena pemain tidak cukup.",
+  'bxh.khongAiOnline': "Tidak ada yang online",
 };
 
 export default id;

@@ -920,6 +920,7 @@ const ru: TuDien = {
   'cd.goiYTdMo': "Спрашивать, когда онлайн 2 или больше игроков",
   'cd.moi': "НОВОЕ",
   'or.dong.thiDau': "Матч завершён: не хватило игроков.",
+  'bxh.khongAiOnline': "Никого онлайн",
 };
 
 export default ru;
