@@ -100,6 +100,7 @@ const sanh = moSanh({
     return code;
   },
   ghiThiDau: (loai, nguoi, d) => tkThiDau?.ghi(loai, nguoi, d),
+  diemTuanThiDau: async (ai) => (await taiKhoan?.diemTuan(ai)) ?? {},
   baoChoThiDau: (ten) => thongBao?.choThiDau(ten, () => sanh.thiDau().cho > 0),
   datPushThiDau: (token, bat) => thongBao?.datThiDau(token, bat),
   xemPhong(ma: string): XemPhong | null {

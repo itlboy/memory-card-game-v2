@@ -110,7 +110,7 @@ interface RoomState {
    * đủ `n` người vào là tự đếm ngược, hết `han` mà mới có ≥ 2 thì chơi với ai đã có mặt, còn 1 thì giải tán.
    * `daChay` = đã từng vào ván (sau đó phòng chỉ sống tiếp bằng phiếu "Chơi lại").
    */
-  thiDau?: { n: number; han: number; daChay?: boolean };
+  thiDau?: { n: number; han: number; daChay?: boolean; henLai?: number };
 }
 
 /** Socket nào thuộc người chơi nào — sống sót qua hibernation nhờ attachment. */
@@ -134,6 +134,8 @@ interface Attachment { playerId: string; goi?: boolean; bv?: number; /** NGƯỜ
 
 // Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
+/** Thi đấu: từ lúc có 2 phiếu "Chơi lại", chờ người còn lại bấy lâu rồi vào ván với những người đã bấm. */
+const THI_DAU_CHO_LAI_MS = 12_000;
 
 /**
  * Một phòng chơi = một Durable Object (ON-01…ON-09).
@@ -489,6 +491,7 @@ export class RoomDO extends DurableObject<Env> {
     const anh = anhHopLe(url.searchParams.get('anh'));
     // Client hiểu chế độ Đồng đội không (`?dd=1`) — xem `tuChoiClientCu`
     const dd = Number(url.searchParams.get('dd')) || 0;
+    const matXin = url.searchParams.get('mat') ?? '';
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
     // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
@@ -523,7 +526,9 @@ export class RoomDO extends DurableObject<Env> {
         // Avatar CHƯA AI TRONG PHÒNG DÙNG. Lấy theo `players.length` thì chỉ
         // đúng khi không ai từng rời đi: một người rời là số đó tụt xuống và
         // người vào sau đội trùng avatar của người đang ngồi đó.
-        avatar: this.avatarConTrong(),
+        // Thi đấu: giữ MẶT người chơi đã thấy ở màn "Trận của bạn" (sảnh cấp, app gửi `?mat=`) — chỉ nhận mặt trong
+        // danh sách của phòng và chưa ai dùng; còn lại bốc như thường
+        avatar: this.room.thiDau && AVATARS.includes(matXin) && !this.room.players.some((p) => p.avatar === matXin) ? matXin : this.avatarConTrong(),
         ...(anh ? { anh } : {}),
         token: crypto.randomUUID(),
         disconnectedAt: null,
@@ -736,6 +741,13 @@ export class RoomDO extends DurableObject<Env> {
         const allWant = here.length >= ROOM_LIMITS.minPlayers && here.some((p) => !p.may)
           && here.every((p) => p.may || this.againVotes.has(p.id));
         if (!allWant) {
+          /*
+           * THI ĐẤU: không chủ phòng nên không ai gỡ được thế kẹt khi một người đứng im ở bảng kết quả. Từ lúc có
+           * 2 phiếu, chờ thêm `THI_DAU_CHO_LAI_MS` rồi vào ván với những người ĐÃ bấm (alarm) — người chưa bấm rời trận.
+           */
+          if (this.room.thiDau && !this.room.thiDau.henLai && here.filter((p) => this.againVotes.has(p.id)).length >= ROOM_LIMITS.minPlayers) {
+            this.room.thiDau.henLai = Date.now() + THI_DAU_CHO_LAI_MS;
+          }
           // Chưa đủ: phát cho cả phòng biết ai đã bấm
           await this.save();
           this.broadcast({ t: 'room', room: this.roomInfo() });
@@ -744,7 +756,7 @@ export class RoomDO extends DurableObject<Env> {
         // Đủ phiếu: VÀO VÁN LUÔN (đếm ngược rồi chơi), không bắt về phòng chờ bấm
         // Sẵn sàng lần nữa — ai cũng đã bấm Chơi lại, thế là đủ ý rồi.
         this.againVotes.clear();
-        if (this.room.thiDau) { this.tdBatDau = Date.now(); this.ghiTd('td_choi_lai', { nguoi: here.length }); }
+        if (this.room.thiDau) { delete this.room.thiDau.henLai; this.tdBatDau = Date.now(); this.ghiTd('td_choi_lai', { nguoi: here.length }); }
         // Người còn lại CÙNG MỘT ĐỘI hết thì không có đối thủ — về phòng chờ để xếp lại
         if (!this.duDoi(here)) { await this.veLobby(here); return; }
         this.room.players = here;
@@ -1178,6 +1190,28 @@ export class RoomDO extends DurableObject<Env> {
       }
     }
 
+    // Thi đấu, hết ván: đã quá hạn chờ người chưa bấm "Chơi lại" → vào ván với những người đã bấm
+    if (this.room.thiDau?.henLai && this.room.status === 'ended' && now >= this.room.thiDau.henLai) {
+      delete this.room.thiDau.henLai;
+      const bam = this.room.players.filter((p) => this.connected(p.id) && this.againVotes.has(p.id));
+      if (bam.length >= ROOM_LIMITS.minPlayers) {
+        for (const p of this.room.players) {
+          if (bam.includes(p)) continue;
+          for (const sock of this.ctx.getWebSockets(p.id)) {
+            this.send(sock, { t: 'closed', code: 'thiDau', message: 'Trận mới đã bắt đầu mà không có bạn.' });
+            sock.close(4003, 'kicked');
+          }
+        }
+        this.room.players = bam;
+        this.againVotes.clear();
+        for (const p of bam) p.ready = true;
+        this.tdBatDau = now;
+        this.ghiTd('td_choi_lai', { nguoi: bam.length, boNguoiIm: true });
+        await this.batDauDemNguoc();
+        return;
+      }
+    }
+
     // Hết đếm ngược 5 giây → ván thực sự bắt đầu, đồng hồ lượt chạy
     if (this.room.status === 'countdown' && this.game && now >= (this.room.countdownEnd ?? 0)) {
       this.game.start(now);
@@ -1340,6 +1374,7 @@ export class RoomDO extends DurableObject<Env> {
   private async scheduleNext(): Promise<void> {
     const marks: number[] = [];
     const now = Date.now();
+    if (this.room?.thiDau?.henLai && this.room.status === 'ended') marks.push(this.room.thiDau.henLai);
     if (this.room?.status === 'countdown' && this.room.countdownEnd) marks.push(this.room.countdownEnd);
     if (this.room?.status === 'playing' && this.game && !this.game.finished) {
       if (this.game.locked) marks.push(now + (this.game.config.flipBackMs ?? 1000));

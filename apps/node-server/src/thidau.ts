@@ -50,7 +50,7 @@ export interface TdNguoi {
 }
 export const tdMoi = (ho: boolean, mot = false): TdNguoi => ({ ho, gy: true, nghi: 0, hoi: null, tran: null, cho: 0, lan: 0, mot });
 
-export interface NguoiTd { sid: string; ten: string; mat: string; tt: string; td: TdNguoi }
+export interface NguoiTd { sid: string; ten: string; mat: string; tt: string; td: TdNguoi; ai?: string | null }
 export type GhiTd = (loai: string, sid: string | null, duLieu: Record<string, unknown>) => void;
 
 interface Dot { id: string; het: number; coCho: boolean; hoi: Set<string>; thamGia: string[]; hen: ReturnType<typeof setTimeout> }
@@ -76,6 +76,11 @@ export function moThiDau(o: {
   /** Lập phòng thi đấu cho `n` người với bàn `soThe` thẻ → mã phòng (null = không lập được). */
   taoPhong(soThe: number, n: number): Promise<string | null>;
   ghi?: GhiTd;
+  /**
+   * Điểm TUẦN theo danh tính sảnh (`ai`) — để xếp người gần hạng nhau vào cùng trận. Thiếu / lỗi / quá 400 ms thì coi như
+   * mọi người 0 điểm (xếp ngẫu nhiên như trước).
+   */
+  diemTuan?(ai: string[]): Promise<Record<string, number>>;
   /** Có người đang chờ mà trong app không còn ai để hỏi → thông báo đẩy. */
   baoCho?(ten: string): void;
   /** Hẹn giờ — test thay bằng đồng hồ giả. */
@@ -179,20 +184,37 @@ export function moThiDau(o: {
     o.gui(k, { t: 'td_cho', con: k.td.cho - t });
   }
 
-  /** Xếp nhóm: xáo, rồi thử vài lần để ít cặp "vừa đấu nhau" nhất. */
+  /**
+   * XẾP NHÓM (mockup duyệt mục "Ai vào trận nào"): xếp theo ĐIỂM TUẦN rồi cắt thành nhóm → người gần hạng nhau gặp nhau.
+   * Hai người vừa đấu nhau ở đợt trước thì ưu tiên tách: thử thêm các cách đổi chỗ hai người kề nhau, lấy cách ít cặp
+   * "vừa đấu" nhất (hoà thì giữ cách sát điểm nhất). Hoà điểm (kể cả không lấy được điểm) thì thứ tự là ngẫu nhiên.
+   */
   function lapCacTran(ds: NguoiTd[]): void {
-    const co = chiaTran(ds.length);
-    let tot: NguoiTd[][] = [], diem = Infinity;
-    for (let lan = 0; lan < 8 && diem > 0; lan++) {
-      const x = [...ds];
-      for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [x[i], x[j]] = [x[j]!, x[i]!]; }
-      const nhom: NguoiTd[][] = []; let c = 0;
-      for (const n of co) { nhom.push(x.slice(c, c + n)); c += n; }
-      let d = 0;
-      for (const g of nhom) for (const p of g) for (const q of g) if (p !== q && vuaDau.get(p.sid)?.has(q.sid)) d++;
-      if (d < diem) { diem = d; tot = nhom; }
-    }
-    for (const g of tot) lapTran(g);
+    for (const k of ds) k.td.tran = 'dang-xep';   // giữ chỗ trong lúc chờ điểm: không bị đợt khác hỏi / xếp lần nữa
+    const ai = ds.map((k) => k.ai).filter((x): x is string => !!x);
+    const lay = ai.length && o.diemTuan
+      ? Promise.race([o.diemTuan(ai).catch(() => ({} as Record<string, number>)), new Promise<Record<string, number>>((r) => { hen(() => r({}), 400); })])
+      : Promise.resolve({} as Record<string, number>);
+    const xepVaLap = (diemAi: Record<string, number>): void => {
+      const con = ds.filter((k) => o.ketNoi.get(k.sid) === k && k.td.tran === 'dang-xep');
+      for (const k of con) k.td.tran = null;
+      if (con.length < 2) { if (con.length === 1 && sanSang(con[0]!)) giuCho(con[0]!); xet(); return; }
+      const ngau = new Map(con.map((k) => [k.sid, rnd()]));
+      const xep = [...con].sort((a, b) => (diemAi[b.ai ?? ''] ?? 0) - (diemAi[a.ai ?? ''] ?? 0) || ngau.get(a.sid)! - ngau.get(b.sid)!);
+      const co = chiaTran(xep.length);
+      const cat = (x: NguoiTd[]): NguoiTd[][] => { const nhom: NguoiTd[][] = []; let c = 0; for (const n of co) { nhom.push(x.slice(c, c + n)); c += n; } return nhom; };
+      const trung = (nhom: NguoiTd[][]): number => { let d = 0; for (const g of nhom) for (const p of g) for (const q of g) if (p !== q && vuaDau.get(p.sid)?.has(q.sid)) d++; return d; };
+      let tot = cat(xep), it = trung(tot);
+      for (let i = 0; i + 1 < xep.length && it > 0; i++) {
+        const x = [...xep]; [x[i], x[i + 1]] = [x[i + 1]!, x[i]!];
+        const nhom = cat(x), d = trung(nhom);
+        if (d < it) { it = d; tot = nhom; }
+      }
+      for (const g of tot) lapTran(g);
+    };
+    // Không có nguồn điểm (hoặc chưa ai có danh tính): xếp NGAY, đồng bộ — trận thành tức thì như trước
+    if (!ai.length || !o.diemTuan) { xepVaLap({}); return; }
+    void lay.then(xepVaLap);
   }
 
   function lapTran(g: NguoiTd[]): void {

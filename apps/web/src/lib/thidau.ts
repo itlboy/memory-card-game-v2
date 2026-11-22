@@ -38,6 +38,8 @@ export const tdCho = ref(0);
 /** Dòng báo ngắn: `thieu` chỉ mình bạn tham gia · `hetCho` hết 10 phút · `huy` trận rã trước khi vào bàn. */
 export const tdBao = ref<null | 'thieu' | 'hetCho' | 'huy'>(null);
 export const tdTran = ref<TdTran | null>(null);
+/** Mặt sảnh cấp cho mình ở trận vừa chốt — gửi kèm lúc vào phòng (`?mat=`) để trong ván vẫn là mặt đã thấy ở màn "Trận của bạn". */
+export const matVaoPhong = ref<{ ma: string; mat: string } | null>(null);
 
 let guiDi: (tin: unknown) => void = () => { /* chưa nối */ };
 /** lib/sanh.ts đưa cửa gửi vào đây (tránh import vòng). */
@@ -113,6 +115,8 @@ export function nhanTinThiDau(m: Record<string, unknown>): boolean {
         const chon: Record<string, number> = { ...tr.chon };
         for (const c of ds) if (c.n) chon[c.sid] = c.n;
         tdTran.value = { ...tr, chon, nguoi: tr.nguoi.filter((x) => ds.some((c) => c.sid === x.sid)), kq: { ma: String(m.ma), soThe: Number(m.soThe) } };
+        const toi = tr.nguoi.find((x) => x.sid === tr.toi);
+        if (toi) matVaoPhong.value = { ma: String(m.ma), mat: toi.mat };
       }
       return true;
     }
