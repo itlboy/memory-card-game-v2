@@ -1703,7 +1703,11 @@ dòng đã tải chưa hiện — chờ việc tải thêm khi cuộn (bản sau
 - Nói nhanh: `ICON_NOI` (lib/noi-nhanh.ts) + `IconNoi.vue` — CÙNG icon ở dòng trong khung và trong bong bóng (LoiNoi).
   Thêm câu mới vào `QUICK_SAYS` phải thêm icon (test noi-nhanh bắt). `EMOJI_NOI` còn lại chỉ vì test cũ.
 - Bảng emoji: 24 cái cố định `BANG` (EmojiBar.vue), 3 hàng × 8, không tiêu đề/nhóm/cuộn. Server vẫn nhận đủ QUICK_EMOJIS.
-- Thanh chat cao đúng 48px (= `--eb-dock-h`; trước đệm 7/8px ra 54px).
+- Thanh chat (EmojiDock) CHỈ LÀ HÀNG NÚT, KHÔNG dải nền/viền (23.11.2026, chủ dự án: "cao quá, đè vào các nút chức năng… cho
+  bằng với trước kia"): đệm 2px, cao 42px = `--eb-dock-h`. Bản 22.11 có dải nền mờ: trên iPhone cộng vùng an toàn đáy thành
+  82px, máy nhỏ đè nút "Thoát phòng" ở bảng kết quả. Đừng thêm lại nền cho thanh.
+  Thanh LÚN vào vùng an toàn đáy tối đa 18px (`--eb-lun`, global.css — chủ dự án: "hạ xuống đi, để vùng an toàn tối thiểu"):
+  iPhone chừa 16px cho vạch Home; `.eb-cho` và đệm đáy của ResultDialog trừ đúng `--eb-lun`. Mockup: https://claude.ai/artifact/TfHKfN2R5nvi7diEVPro7A
 - Nút "Mời người online" hiện NGAY lúc tạo phòng: `coSanh` (lib/sanh.ts, nhớ ở `mm.coSanh`) = server này có sảnh →
   `dsMoi` khởi đầu `[]` thay vì `null`. Trước phải chờ lượt `/api/sanh/ds` đầu tiên.
 

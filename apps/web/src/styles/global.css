@@ -99,8 +99,11 @@ body {
      thoại tự đặt max-width riêng thì nó hẹp hơn cột (luật chơi từng 460px trong
      cột 600px, nhìn ra thành một cột chữ hẹp giữa màn hình). */
   --col-w: 100%;
-  /* Cao của thanh emoji cố định đáy màn (EmojiDock.vue: đệm 7 + nút 32 + đệm 8 + viền 1), KHÔNG tính vùng an toàn. */
-  --eb-dock-h: 48px;
+  /* Cao của thanh emoji cố định đáy màn (EmojiDock.vue: đệm 2 + nút thạch 38 + đệm 2), KHÔNG tính vùng an toàn. */
+  --eb-dock-h: 42px;
+  /* Thanh emoji LÚN vào vùng an toàn đáy tối đa 18px (23.11.2026, chủ dự án: "vẫn có khoảng trống rộng bên dưới"): vạch
+     Home của iPhone chỉ chiếm ~13px sát đáy, chừa 16px là đủ — 18px còn lại trả cho bàn thẻ. Máy không có vạch Home = 0. */
+  --eb-lun: min(18px, env(safe-area-inset-bottom, 0px));
   /* Mốc cho lớp hiệu ứng kết ván/khoe danh hiệu (absolute, inset 0) — để chúng
      nằm gọn trong cột game chứ không trải ra cả cửa sổ máy tính. */
   position: relative;
@@ -428,4 +431,4 @@ button {
 /* Ngôi sao thứ 4 "Hoàn hảo" (cầu vồng) nay vẽ ở Sao3D.vue (public/img/sao-3d-4.svg), 21.10.2026. */
 
 /* Chỗ chừa cho thanh emoji cố định đáy màn (EmojiDock.vue) — đặt cuối nội dung phòng chờ / ván online */
-.eb-cho { flex: none; height: var(--eb-dock-h, 48px); }
+.eb-cho { flex: none; height: calc(var(--eb-dock-h, 42px) - var(--eb-lun, 0px)); }

@@ -101,13 +101,18 @@ describe('thanh emoji cố định đáy màn (một chỗ cho phòng chờ, vá
       expect(s).not.toContain('<EmojiBar');
     }
     expect(rd).not.toContain('slot name="chat"');
-    expect(rd).toContain(".overlay.co-dock { padding-bottom: calc(20px + var(--eb-dock-h, 48px)");
+    expect(rd).toContain(".overlay.co-dock { padding-bottom: calc(20px + var(--eb-dock-h, 42px)");
   });
   it('thanh nằm trong #app, đáy cột, trên lớp phủ kết quả (17), dưới hộp thoại khác (≥20)', () => {
     const d = doc('components/EmojiDock.vue');
     expect(d).toContain('<Teleport to="#app"');
     expect(d).toMatch(/\.eb-dock \{\s*position: absolute; left: 0; right: 0; bottom: 0; z-index: 18;/);
-    expect(doc('styles/global.css')).toMatch(/--eb-dock-h: 48px;/);
+    // 23.11.2026: thanh chỉ là hàng nút (42px), KHÔNG dải nền — dải nền cộng vùng an toàn đáy iPhone thành 82px và đè nút
+    expect(doc('styles/global.css')).toMatch(/--eb-dock-h: 42px;/);
+    expect(d.slice(d.indexOf('.eb-dock {'))).not.toMatch(/background|border-top|backdrop-filter/);
+    // lún vào vùng an toàn đáy tối đa 18px; chỗ chừa của màn trên trừ đúng phần đó
+    expect(doc('styles/global.css')).toContain('--eb-lun: min(18px, env(safe-area-inset-bottom, 0px));');
+    expect(doc('styles/global.css')).toContain('.eb-cho { flex: none; height: calc(var(--eb-dock-h, 42px) - var(--eb-lun, 0px)); }');
   });
 });
 
