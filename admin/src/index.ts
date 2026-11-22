@@ -1,5 +1,5 @@
 /**
- * admin.cozypi.com — trang thống kê Lật Thẻ. CHỈ ĐỌC GA4, không chạm MySQL hay server game.
+ * admin.cozypi.com — trang thống kê Lật Thẻ. Đọc GA4; riêng ô Thi đấu đọc thống kê ẩn danh của server game (thidau.ts).
  *
  * Hai lớp khoá: Cloudflare Access chắn ở cạnh (policy "Chỉ Kiên"), Worker kiểm lại JWT của Access
  * cho MỌI đường (kể cả file tĩnh). Trang tải TỪNG Ô khi cuộn tới (`/api/o/<phan>`); số GA nhớ tạm ở
@@ -9,6 +9,7 @@ import { kiemAccess } from './access.ts';
 import { tra, json, xuLyApi } from './api.ts';
 import { Ga, type KhoaSa } from './ga.ts';
 import { HTML, CSS, JS } from './trang.ts';
+import { layThiDau } from './thidau.ts';
 
 /** Mã phiên bản theo NỘI DUNG JS+CSS, gắn vào đường dẫn trong HTML. Lúc Cloudflare đang chuyển bản,
  *  HTML và app.js có thể tới từ hai bản khác nhau (đã gặp 17.11.2026: HTML mới + JS cũ → kẹt "đang tải");
@@ -23,6 +24,9 @@ interface Env {
   NGAY_CONG_KHAI: string;
   GA_SA_JSON?: string;
   GA_PROPERTY_ID?: string;
+  /** Ô Thi đấu (thidau.ts): địa chỉ máy chủ game + khoá đọc thống kê (wrangler secret). */
+  GAME_API?: string;
+  THONGKE_KEY?: string;
 }
 
 function layGa(env: Env): Ga | null {
@@ -54,6 +58,9 @@ export default {
       case '/app.css': return tra(CSS, 'text/css; charset=utf-8');
       case '/app.js': return tra(JS, 'text/javascript; charset=utf-8');
     }
+
+    // Ô Thi đấu KHÔNG qua GA — đứng trước nhánh GA để GA chưa nối / hết hạn mức thì ô này vẫn chạy
+    if (url.pathname === '/api/thidau') return layThiDau(env, Number(url.searchParams.get('ngay')) || 30);
 
     if (url.pathname.startsWith('/api/')) {
       const ga = layGa(env);

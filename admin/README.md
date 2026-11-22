@@ -1,6 +1,9 @@
 # admin.cozypi.com — thống kê Lật Thẻ
 
-Một Cloudflare Worker riêng, **chỉ đọc GA4**. Không chạm MySQL, không chạm server game, không có
+Một Cloudflare Worker riêng, đọc GA4. **Ngoại lệ duy nhất (23.11.2026): ô "Thi đấu"** đọc thống kê ẩn danh của server game
+(`GET <GAME_API>/api/thongke/thidau`, header `x-thongke-key` = secret `THONGKE_KEY` của Worker — `src/thidau.ts`); nạp khoá:
+`node $S run cloudflare -- node $S run latthe-thongke -- sh -c 'printf %s "$LATTHE_THONGKE_KEY" | npx wrangler secret put THONGKE_KEY'`.
+Các ô còn lại không chạm MySQL, không chạm server game, không có
 tác vụ chạy nền: chỉ hỏi GA lúc có người mở trang, kết quả nhớ tạm ở Cache API (kỳ đã qua 1 giờ,
 kỳ có hôm nay 5 phút, thời gian thực 1 phút; ô có báo cáo lỗi chỉ nhớ 1 phút) + một bản cũ 24 giờ để
 dùng khi GA bận.

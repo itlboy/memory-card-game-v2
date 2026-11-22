@@ -1670,6 +1670,11 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Tham gia vẫn chơi tiếp; trận THÀNH (`tdTran`) thì App tự `session.pause()`, vào phòng mới dọn ván, trận huỷ thì chơi tiếp.
 - **SỐ NGƯỜI ONLINE**: `/api/rooms/public` trả thêm `online` = số kết nối sảnh → `soNguoiOnline` (lib/sanh.ts, đã trừ mình) →
   ô Chơi online ở trang chủ (icon người + số; chấm xanh nhịp chỉ khi có phòng chờ) và dòng đầu màn Chơi online.
+- **THẺ HỎI MỘT HÀNG + CHIP CHỜ NHỎ (23.11.2026, chủ dự án: "thanh thông báo thi đấu có thể làm nhỏ hơn", "nút chờ hơi cản trở
+  nội dung")**: thẻ = icon · chữ · ✕ (Để sau) · "Tham gia" cùng dòng + vạch mảnh, cao ~63px (bản đầu ~130px có hàng nút riêng).
+  Chờ = chip góc TRÁI dưới thanh trên cùng: icon kiếm + đồng hồ + ✕, z 14 (dưới mọi hộp thoại). Đừng làm to lại.
+- **Admin**: ô "Thi đấu" ở admin.cozypi.com (`admin/src/thidau.ts`, đường `/api/thidau`) đọc `GET /api/thongke/thidau` của server
+  game bằng secret `THONGKE_KEY` của Worker — ô DUY NHẤT của admin không qua GA.
 - **Chưa đủ người**: người duy nhất tham gia được GIỮ CHỜ 10 phút (viên "Đang chờ người", vẫn chơi một mình được). Người mới
   rảnh nhận thẻ "X đang chờ đấu" — bấm Tham gia là thành trận NGAY. Đồng thời gửi THÔNG BÁO ĐẨY cho máy đã đóng app
   (thongbao.ts `choThiDau` — ĐỔI luật cũ "không push cho lời mời": tối đa 3 tin thi đấu/máy/ngày, cách mọi tin khác 30 phút,
@@ -1706,6 +1711,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **Server** (`taikhoan.ts` `trangBxh` + hàm thuần `catTrangBxh`, có test): KHÔNG `UNION` rồi sắp toàn bảng (EXPLAIN xấu) — mỗi
   bảng lấy `tu + 25` dòng đầu theo index điểm, gộp, xếp bằng đúng luật của top, BỎ khoá đã nằm trong top cache + 3 người chót
   rồi mới cắt → các trang không lặp/hụt ai ở chỗ hoà điểm. `tu` tối đa 500. Không cache trang sau. App cũ không gửi `tu` → y cũ.
+- **GỌN (23.11.2026, chủ dự án: "giao diện này rối quá")**: nút lọc là CHIP trên hàng tiêu đề (chấm + số + icon lọc, tên đầy
+  đủ ở aria-label); đáy bảng chỉ còn dòng của mình — bỏ dấu `···` và dòng người đứng trên. Đừng đưa nút lọc về giữa bảng.
 - **Lọc online**: nút "N người đang online" LUÔN hiện (không ai online → "Chưa ai online", mờ, không bấm được). Danh sách lấy từ
   server `POST /api/bxh {online: true}` → `bangOnline`: mọi danh tính đang nối sảnh (`sanh.dsAi()`, tối đa 60) kèm HẠNG THẬT,
   cả người ngoài top 20. Bật lọc: ẩn bục + bảng thường + dòng ghim, chỉ còn người online + nút Thách.
