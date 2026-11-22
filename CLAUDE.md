@@ -1760,3 +1760,18 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   bằng nhãn ảnh riêng trước. CHƯA thử dưới Bun: ảnh Alpine/musl thật, gửi push thật, đăng nhập Google/Apple, chạy dài ngày.
   Bun 1.1.9 không chạy nổi (thiếu `fs/promises.statfs`) — dùng bản mới. Smoke `smoke-noi-nhanh` + `smoke-chat-limit` đang hỏng SẴN (không
   đọc được `QUICK_SAYS`/`QUICK_EMOJIS` từ nguồn engine) — không liên quan runtime.
+- **PHÒNG BOT THƯỜNG TRỰC (22.11.2026, chủ dự án) — `apps/node-server/src/phong-bot.ts`, MODULE RIÊNG, server KHÔNG biết gì về nó.**
+  Mỗi bot là một kết nối WebSocket thường (như `tools/gia-nguoi.mjs`): bot đầu `POST /api/rooms` nên làm chủ phòng, bot hai vào
+  sau. Vòng lặp: phòng chờ `CHO_MS` (30 s) → bốc mức máy (5 cấp, hai bot lệch ≤ 1 cấp) + số thẻ (`THE_MIN`–`THE_MAX`, 12–59) →
+  Bắt đầu → chơi bằng AI của engine (`botPick/observe/botThinkMs`, chỉ nhìn bàn công khai) → bảng kết quả `XEM_KQ_MS` → `tolobby`.
+  Người vào lúc chờ thì CHƠI CÙNG (bàn tối thiểu 20 thẻ khi 3 người, 28 khi 4), vào giữa ván là khán giả (luật phòng sẵn có).
+  Người chưa bấm Sẵn sàng khi hết giờ: nhắc + chờ thêm 15 s, vẫn im thì mời ra (không thì phòng kẹt). Mọi người thật đã sẵn
+  sàng → vào ván sau 5 s. Sau ~`DOI_SAU` ván (10 ± 2) và KHÔNG còn người thật trong phòng: rời, lập phòng MỚI với TÊN MỚI.
+  TÊN lấy từ bộ sinh tên người chơi (`apps/web/src/lib/ten-goc.ts` — phần thuần tách từ ten-ngau-nhien.ts, dùng CHUNG: đổi
+  danh sách là đổi cho cả hai). Chủ dự án chọn "cơ chế riêng, hạn chế can thiệp server" và "bot lấy tên người chơi" → ĐỪNG thêm
+  cờ `may`/cửa riêng ở room.ts cho nó. Hệ quả đã chấp nhận: thắng bot tính như thắng người; bot hiện trong sổ phòng như người;
+  phòng công khai mới vẫn đi qua luật thông báo "có phòng mới" (thongbao.ts: mỗi mã phòng một lần, có giãn cách).
+  Gói: `build.mjs` ra file THỨ HAI `dist/phong-bot.mjs` trong CÙNG ảnh; chạy ở container riêng `node dist/phong-bot.mjs` với
+  `MM_SERVER=http://server:8080` (+ `SO_PHONG` mặc định 2). SIGTERM = bot rời phòng gọn; bị giết ngang thì phòng treo "đang chơi"
+  tới hết hạn rớt mạng 5 phút. Thử máy: server `PORT=8795` + `MM_SERVER=… CHO_MS=8000 DOI_SAU=2 THE_MAX=16 node dist/phong-bot.mjs`,
+  thả người bằng `gia-nguoi.mjs <mã>` (`--no-ready` để thử nhánh mời ra).
