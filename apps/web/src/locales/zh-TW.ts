@@ -903,6 +903,7 @@ const zhTW: TuDien = {
   'cd.goiYTdMo': "有 2 人或以上在線時詢問",
   'cd.moi': "新",
   'or.dong.thiDau': "因人數不足，對戰已結束。",
+  'bxh.khongAiOnline': "目前沒有人在線",
 };
 
 export default zhTW;

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { Check, Flag, ListFilter, Swords, X } from 'lucide-vue-next';
 import { sfx } from '@/lib/audio';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { anKhach, bangXepHang, bxhLanTruoc, datTenKhach, me, type BangXh, type DongBxh, type LoaiBxh } from '@/lib/taikhoan';
+import { anKhach, bangXepHang, bxhLanTruoc, bxhOnline, datTenKhach, me, trangBxh, type BangXh, type DongBxh, type DongHang, type LoaiBxh } from '@/lib/taikhoan';
 import MatBot from './MatBot.vue';
 import VachCho from './VachCho.vue';
 import { CACH_MOI_LAI_MS, daThach, trongPhongOnline, type ThachDau } from '@/lib/sanh';
@@ -50,6 +50,8 @@ async function tai(): Promise<void> {
   // Đang có bảng cũ mà mất mạng: giữ bảng cũ, không báo lỗi đè lên
   dangTai.value = true;
   const l = loai.value, w = tuanXem.value, so = ++luot;
+  them.value = []; hetThem.value = false;
+  void bxhOnline(l, w).then((ds) => { if (so === luot) dsOl.value = ds; }).catch(() => { if (so === luot) dsOl.value = []; });
   try {
     const b = await bangXepHang(l, w);
     if (so !== luot) return;   // đã bấm sang tab / tuần khác — bỏ kết quả cũ
@@ -147,19 +149,60 @@ function thach(d: DongBxh): void {
  * chót), mỗi dòng giữ hạng thật + nút Thách. Đổi tab / đổi tuần / hết người online thì tự tắt.
  */
 const chiOnline = ref(false);
-const dsOnline = computed(() => {
-  const b = bang.value;
-  if (!b) return [];
-  const top = b.top.map((d, i) => ({ d, hang: i + 1 }));
-  const cuoi = (b.cuoi ?? []).filter((d) => d.hang > b.top.length).map((d) => ({ d, hang: d.hang }));
-  return [...top, ...cuoi].filter((x) => x.d.ol && !x.d.toi);
-});
+/** 23.11.2026: danh sách người online lấy THẲNG từ server (`bxhOnline`) — cả người ngoài top 20; nút lọc luôn hiện. */
+const dsOl = ref<DongHang[]>([]);
+const dsOnline = computed(() => dsOl.value.filter((d) => d.ol && !d.toi).map((d) => ({ d, hang: d.hang })));
 // Hết người online (họ thoát app) thì bỏ lọc — không để bảng trống mà nút lọc đã biến mất
 watch(() => dsOnline.value.length, (n) => { if (!n) chiOnline.value = false; });
-const soOnline = computed(() => [...(bang.value?.top ?? []), ...(bang.value?.cuoi ?? [])].filter((d) => d.ol && !d.toi).length);
+const soOnline = computed(() => dsOnline.value.length);
+
+/*
+ * TẢI THÊM KHI CUỘN (23.11.2026, chủ dự án: "bảng xếp hạng có thể lazyload để load thêm những người đang ẩn"). Giữa top
+ * và 3 người chót là một vùng xương xám; IntersectionObserver thấy nó là xin 20 dòng kế (`trangBxh`), nối dần tới khi
+ * giáp 3 người chót thì vùng đó biến mất. KHÔNG có nút bấm. Đổi tab / tuần / tải lại là xoá các trang đã nối.
+ */
+const them = ref<DongHang[]>([]);
+const hetThem = ref(false);
+let dangThem = false;
+const dongGiua = computed(() => [
+  ...(bang.value?.top ?? []).slice(3).map((d, i) => ({ d, hang: i + 4 })),
+  ...them.value.map((d) => ({ d, hang: d.hang }))
+]);
+const hangCuoiDaCo = computed(() => (bang.value?.top.length ?? 0) + them.value.length);
+/** Còn khoảng trống giữa dòng cuối đã có và 3 người chót. */
+const conKhoang = computed(() => { const c = bang.value?.cuoi?.[0]; return !!c && c.hang > hangCuoiDaCo.value + 1; });
+const conGiua = computed(() => conKhoang.value && !hetThem.value);
+async function taiThem(): Promise<void> {
+  if (dangThem || !conGiua.value || !bang.value) return;
+  dangThem = true;
+  const l = loai.value, w = tuanXem.value, so = luot, mocCuoi = bang.value.cuoi?.[0]?.hang ?? Infinity;
+  try {
+    const r = await trangBxh(l, w, hangCuoiDaCo.value);
+    if (so !== luot) return;
+    const moi = r.ds.filter((d) => d.hang > hangCuoiDaCo.value && d.hang < mocCuoi);
+    them.value = [...them.value, ...moi];
+    if (r.het || !moi.length) hetThem.value = true;
+  } catch { hetThem.value = true; } finally {
+    dangThem = false;
+    // Trang vừa nối chưa đẩy vùng xương ra khỏi khung nhìn → xin tiếp
+    await nextTick();
+    if (so === luot && mocEl.value && conGiua.value) quanSat();
+  }
+}
+const mocEl = ref<HTMLElement | null>(null);
+let io: IntersectionObserver | null = null;
+function quanSat(): void {
+  io?.disconnect(); io = null;
+  if (!mocEl.value || typeof IntersectionObserver === 'undefined') return;
+  io = new IntersectionObserver((e) => { if (e.some((x) => x.isIntersecting)) void taiThem(); }, { root: vungCuon.value, rootMargin: '120px 0px' });
+  io.observe(mocEl.value);
+}
+watch(mocEl, quanSat, { flush: 'post' });
+onBeforeUnmount(() => io?.disconnect());
 const toi = computed(() => bang.value?.toi ?? null);
 /** Ngoài top + 3 người chót đang hiện → ghim dòng mình ở đáy (chủ dự án: "luôn phải hiện vị trí người chơi hiện tại"). */
-const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => d.toi) && !(bang.value?.cuoi ?? []).some((d) => d.toi));
+const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => d.toi) && !(bang.value?.cuoi ?? []).some((d) => d.toi)
+  && !them.value.some((d) => d.toi));   // đã tải tới đúng dòng mình thì thôi ghim (không hiện hai lần)
 
 /** Mở sẵn ô đặt tên khi khách chưa có tên và đã có dòng trên bảng. */
 const moTen = computed(() => laKhach.value && !khachAn.value && !!toi.value && (dangSuaTen.value || !tenMay.value));
@@ -241,8 +284,8 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
         <template v-else-if="bang">
           <ol class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai" :start="4">
-            <li v-for="(d, i) in bang.top.slice(3)" :key="i" :class="{ toi: d.toi }">
-              <span class="hang">{{ i + 4 }}</span>
+            <li v-for="{ d, hang } in dongGiua" :key="hang" :class="{ toi: d.toi }">
+              <span class="hang">{{ num(hang) }}</span>
               <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
               <span class="ten"><span class="tt">{{ ten(d) }}</span><i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i><small v-if="d.ol?.ban && !d.toi" class="dang-choi">{{ t('bxh.dangChoi') }}</small><span v-else-if="d.ol && !d.toi" class="sr-only">{{ t('bxh.online') }}</span></span>
               <span v-if="d.matches >= d.wins && d.matches" class="sr-only">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</span>
@@ -254,7 +297,11 @@ async function doiAn(an: boolean): Promise<void> {
             </li>
             <!-- 3 NGƯỜI CHÓT kèm số thứ tự (20.11.2026, chủ dự án: "cho người khác hiểu bao nhiêu người là đủ") -->
             <template v-if="bang.cuoi?.length">
-              <li v-if="bang.cuoi[0]!.hang > bang.top.length + 1" class="cham" aria-hidden="true">···</li>
+              <!-- Vùng TỰ TẢI THÊM: xương xám như lúc mở bảng lần đầu; cuộn tới là nối 20 dòng kế, giáp 3 người chót thì biến mất -->
+              <li v-if="conGiua" ref="mocEl" class="cho-them xuong" aria-hidden="true">
+                <div v-for="i in 3" :key="i" class="xd"><i class="o mat-o" /><i class="o ten-o" :style="{ width: `${40 + (i * 19) % 30}%` }" /><i class="o so-o" /></div>
+              </li>
+              <li v-else-if="conKhoang" class="cham" aria-hidden="true">···</li>
               <li v-for="d in bang.cuoi" :key="`c${d.hang}`" :class="{ toi: d.toi }">
                 <span class="hang">{{ num(d.hang) }}</span>
                 <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
@@ -276,8 +323,8 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
       </div>
 
-      <button v-if="soOnline && !tuanTrong" class="loc thach th-nho" :class="{ bat: chiOnline }" type="button" :aria-pressed="chiOnline" @click="sfx.select(); chiOnline = !chiOnline">
-        <i aria-hidden="true" />{{ t('bxh.dangOnline', { n: soOnline }) }}<Check v-if="chiOnline" :size="14" :stroke-width="3" aria-hidden="true" /><ListFilter v-else :size="14" :stroke-width="2.6" aria-hidden="true" />
+      <button v-if="bang && !tuanTrong" class="loc thach th-nho" :class="{ bat: chiOnline, vang: !soOnline }" type="button" :aria-pressed="chiOnline" :disabled="!soOnline" @click="sfx.select(); chiOnline = !chiOnline">
+        <i aria-hidden="true" />{{ soOnline ? t('bxh.dangOnline', { n: soOnline }) : t('bxh.khongAiOnline') }}<Check v-if="chiOnline" :size="14" :stroke-width="3" aria-hidden="true" /><ListFilter v-else :size="14" :stroke-width="2.6" aria-hidden="true" />
       </button>
       <div v-if="toi && ghim && !tuanTrong && !chiOnline" class="ghim" :class="{ mo: dangTai }">
         <span class="cham" aria-hidden="true">···</span>
@@ -380,6 +427,10 @@ async function doiAn(an: boolean): Promise<void> {
 .loc { flex: none; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin: 8px 2px 2px; min-height: 32px; padding: 0 12px 2px; border-radius: 999px; font: 800 12.5px var(--font-body); color: var(--fg); }
 .loc.bat { --b1: #5fd27f; --b2: #2f9e57; --b3: #227a41; --bc: #fff; color: #fff; }
 .loc.bat i { background: #fff; }
+.loc.vang { color: var(--muted); } .loc.vang i { background: var(--muted); opacity: .6; }
+.loc:disabled { opacity: 1; cursor: default; }
+.bxh li.cho-them { display: grid; gap: 6px; background: none; padding: 0; box-shadow: none; }
+.cho-them .xd { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 10px 0 34px; box-sizing: border-box; }
 .loc i { width: 6px; height: 6px; border-radius: 50%; background: var(--ol); }
 /* :global(x) y trong CSS scoped bỏ mất ' y' — gói CẢ selector vào :global (chỉ đặt biến --diem, vô hại với .panel khác) */
 :global([data-theme='dark'] .panel) { --diem: #ffcf4d; }

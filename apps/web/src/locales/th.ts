@@ -901,6 +901,7 @@ const th: TuDien = {
   'cd.goiYTdMo': "ถามเมื่อมีผู้เล่นออนไลน์ 2 คนขึ้นไป",
   'cd.moi': "ใหม่",
   'or.dong.thiDau': "การแข่งจบลงเพราะผู้เล่นไม่พอ",
+  'bxh.khongAiOnline': "ยังไม่มีใครออนไลน์",
 };
 
 export default th;

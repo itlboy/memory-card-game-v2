@@ -1694,11 +1694,19 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - NỢ ĐÃ BIẾT: mặt người chơi trên thẻ/trận là mặt SẢNH cấp, vào phòng lại được phòng cấp mặt khác; xếp nhóm mới chỉ xáo
   ngẫu nhiên + tránh cặp vừa đấu (chưa xếp theo điểm tuần); "Chơi lại" kẹt nếu một người đứng im ở bảng kết quả.
 
-## Lọc người online ở bảng xếp hạng (22.11.2026, chủ dự án: "filter đi để mời thách đấu cho dễ")
+## Bảng xếp hạng: tải thêm khi cuộn + lọc người online (23.11.2026, chủ dự án: "lazyload để load thêm những người đang ẩn", "filter đi để mời thách đấu cho dễ")
 
-Dòng "N người đang online" là NÚT bật/tắt (`chiOnline`): bật thì bục + bảng thường + dòng ghim ẩn, chỉ còn `dsOnline` (người
-online trong top và 3 người chót, giữ hạng thật, có nút Thách). Đổi tab / hết người online thì tự tắt. Người online NGOÀI các
-dòng đã tải chưa hiện — chờ việc tải thêm khi cuộn (bản sau).
+- **Tải thêm**: giữa top 20 và 3 người chót là vùng xương xám (`li.cho-them`); IntersectionObserver (root = `.body`) thấy nó là
+  gọi `trangBxh(loai, tuan, tu)` → `POST /api/bxh {tu}` → 20 dòng kế kèm `hang`, nối vào `them`. Giáp 3 người chót (`het`) thì
+  vùng đó mất. KHÔNG có nút bấm. Đổi tab / tuần / tải lại là xoá `them`. Dòng mình: đã tải tới thì dòng ghim ở đáy tự ẩn.
+- **Server** (`taikhoan.ts` `trangBxh` + hàm thuần `catTrangBxh`, có test): KHÔNG `UNION` rồi sắp toàn bảng (EXPLAIN xấu) — mỗi
+  bảng lấy `tu + 25` dòng đầu theo index điểm, gộp, xếp bằng đúng luật của top, BỎ khoá đã nằm trong top cache + 3 người chót
+  rồi mới cắt → các trang không lặp/hụt ai ở chỗ hoà điểm. `tu` tối đa 500. Không cache trang sau. App cũ không gửi `tu` → y cũ.
+- **Lọc online**: nút "N người đang online" LUÔN hiện (không ai online → "Chưa ai online", mờ, không bấm được). Danh sách lấy từ
+  server `POST /api/bxh {online: true}` → `bangOnline`: mọi danh tính đang nối sảnh (`sanh.dsAi()`, tối đa 60) kèm HẠNG THẬT,
+  cả người ngoài top 20. Bật lọc: ẩn bục + bảng thường + dòng ghim, chỉ còn người online + nút Thách.
+- **Nút "Chơi lại" ở bảng kết quả** KHÔNG đổi chiều cao khi người khác đã bấm (chủ dự án 23.11.2026: "đã có thông báo rồi… đừng
+  để nó bị thay đổi chiều cao"): bỏ dòng phụ "X đang chờ bạn" + viền sáng, chỉ thêm icon bàn tay nhỏ trước chữ.
 
 ## Cài đặt nổi khối + khung chat gọn + nút mời hiện ngay (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 1–3)
 

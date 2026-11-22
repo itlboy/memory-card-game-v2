@@ -14,7 +14,7 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
-import { ChevronDown, LogOut, Settings2, Share } from 'lucide-vue-next';
+import { ChevronDown, Hand, LogOut, Settings2, Share } from 'lucide-vue-next';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
@@ -484,7 +484,9 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           @click="emit('replay')"
         >
           <template v-if="rematchSent">{{ t('kq.daBamChoiLai') }}</template>
-          <template v-else>{{ replayLabel }}<small v-if="choiLai?.cuoi && choiLai.tenCho" class="cl-phu">{{ t('on.dangChoBan', { ten: choiLai.tenCho }) }}</small></template>
+          <!-- Mọi người khác đã bấm, chỉ còn mình: CHỈ thêm bàn tay nhỏ trước chữ. KHÔNG thêm dòng phụ / viền sáng — nút đổi chiều
+               cao làm cả hàng nhảy, mà dải báo ở đầu màn đã nói "X đang chờ bạn" rồi (chủ dự án 23.11.2026). -->
+          <template v-else><Hand v-if="choiLai?.cuoi" class="cl-ic" :size="18" :stroke-width="2.6" aria-hidden="true" />{{ replayLabel }}</template>
         </button>
         <!--
           Cấp sau CHƯA MỞ (thua, hoặc thua bot) thì nút vẫn ở đúng chỗ nhưng tắt
@@ -580,8 +582,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   background: var(--panel-soft); border: 2px solid var(--line);
 }
 .cl-dai.roi { display: block; text-align: center; font-weight: 800; font-size: var(--text-sm); color: #33405f; background: #f1f3f8; border-color: #b9c2d6; }
-.btn-primary.cl-sang { outline: 5px solid rgba(120, 211, 90, .35); outline-offset: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
-.cl-phu { font: 800 13px var(--font-body); letter-spacing: 0; }
+.btn-primary .cl-ic { vertical-align: -3px; margin-right: 7px; }
 .btn-primary.cl-da:disabled { opacity: 1; --nhan-nen: #e9f8e3; --nhan-chu: #185c2a; border: 2px solid #7cc65f; }
 :root[data-skin='keo'] .btn-primary.cl-da:disabled { --b1: #f1fbec; --b2: #e3f7da; --b3: #9fd487; --b4: #f1fbec; --bc: #185c2a; --th-chu: none; }
 .overlay {

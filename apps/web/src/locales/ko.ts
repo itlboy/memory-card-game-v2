@@ -900,6 +900,7 @@ const ko: TuDien = {
   'cd.goiYTdMo': "2명 이상 접속 중일 때 묻기",
   'cd.moi': "NEW",
   'or.dong.thiDau': "인원이 부족해 대전이 종료됐어요.",
+  'bxh.khongAiOnline': "접속 중인 사람이 없어요",
 };
 
 export default ko;

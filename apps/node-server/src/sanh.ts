@@ -67,6 +67,8 @@ export interface Sanh {
   /** Trả true nếu đã trả lời request `/api/sanh/*`. */
   xuLyHttp(req: IncomingMessage, res: ServerResponse, url: URL): boolean;
   soKetNoi(): number;
+  /** Danh tính (`u:<id>` / `k:<mã băm>`) của mọi người đang nối sảnh và bật nhận lời mời — bộ lọc online của bảng xếp hạng. */
+  dsAi(): string[];
   /** Số liệu thi đấu hiện thời cho `/api/ping`. */
   thiDau(): ReturnType<ThiDau['soLieu']>;
   dong(): void;
@@ -257,6 +259,7 @@ export function moSanh(opts: {
       return true;
     },
     soKetNoi: () => ketNoi.size,
+    dsAi: () => [...theoAi.entries()].filter(([, sid]) => ketNoi.get(sid)?.nm).map(([ai]) => ai),
     thiDau: () => td?.soLieu() ?? { cho: 0, tran: 0, dot: false },
     trangThai(ai) {
       const sid = theoAi.get(ai);

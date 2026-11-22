@@ -904,6 +904,7 @@ const it: TuDien = {
   'cd.goiYTdMo': "Chiedi quando ci sono 2 o più giocatori online",
   'cd.moi': "NUOVO",
   'or.dong.thiDau': "La partita è terminata per mancanza di giocatori.",
+  'bxh.khongAiOnline': "Nessuno online",
 };
 
 export default it;

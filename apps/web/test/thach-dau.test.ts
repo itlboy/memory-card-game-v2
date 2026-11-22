@@ -68,7 +68,8 @@ describe('bảng xếp hạng: chữ gọn, online, thách đấu (cấu trúc)'
     expect(b.match(/v-if="thachDuoc\(/g)?.length).toBe(4);   // bục, top, 3 người chót, danh sách lọc người online (22.11.2026)
     // Lọc người online: dòng "N người đang online" là nút bật/tắt, bật thì chỉ còn người online kèm hạng thật
     expect(b).toContain(':aria-pressed="chiOnline"');
-    expect(b).toMatch(/const dsOnline = computed[\s\S]{0,400}filter\(\(x\) => x\.d\.ol && !x\.d\.toi\)/);
+    // 23.11.2026: danh sách online lấy thẳng từ server (test/bxh-tai-them.test.ts dựng bảng thật)
+    expect(b).toContain('const dsOnline = computed(() => dsOl.value.filter((d) => d.ol && !d.toi)');
   });
   it('chữ dòng bằng cỡ tên trên bục; chấm online nhỏ 6px; "Đang chơi" nằm trong ô tên (bên phải tên)', () => {
     expect(b).toMatch(/\.bxh \.ten, \.toi-dong \.ten \{ font-size: 12\.5px; font-weight: 800; \}/);
@@ -113,39 +114,5 @@ describe('thanh emoji cố định đáy màn (một chỗ cho phòng chờ, vá
     // lún vào vùng an toàn đáy tối đa 18px; chỗ chừa của màn trên trừ đúng phần đó
     expect(doc('styles/global.css')).toContain('--eb-lun: min(18px, env(safe-area-inset-bottom, 0px));');
     expect(doc('styles/global.css')).toContain('.eb-cho { flex: none; height: calc(var(--eb-dock-h, 42px) - var(--eb-lun, 0px)); }');
-  });
-});
-
-// LỌC NGƯỜI ONLINE (22.11.2026): dựng bảng thật với dữ liệu giả, bấm nút "N người đang online"
-describe('bảng xếp hạng: lọc người online', () => {
-  it('bật lọc → chỉ còn người online (kể cả top 3 và người chót) kèm hạng thật + nút Thách; tắt lọc → bảng đủ', async () => {
-    vi.resetModules();
-    const dong = (i: number, ol?: { sid?: string; ban: boolean }, toi = false) => ({ name: `N${i}`, mat: '🦊', totalScore: 1000 - i * 10, wins: 5, matches: 9, ...(ol ? { ol } : {}), ...(toi ? { toi: true } : {}) });
-    const top = [dong(1), dong(2, { sid: 's2', ban: false }), dong(3), dong(4, undefined, true), dong(5, { ban: true }), dong(6)];
-    const cuoi = [{ ...dong(40, { sid: 's40', ban: false }), hang: 40 }, { ...dong(41), hang: 41 }];
-    vi.doMock('@/lib/taikhoan', async (goc) => ({
-      ...(await goc<typeof import('@/lib/taikhoan')>()),
-      bxhLanTruoc: () => null,
-      bangXepHang: async () => ({ top, cuoi, tong: 41, toi: null })
-    }));
-    const { default: BangXepHang } = await import('@/components/BangXepHang.vue');
-    const w = mount(BangXepHang, { global: { stubs: { teleport: true } } });
-    await new Promise((r) => setTimeout(r, 30));
-    await w.vm.$nextTick();
-    const nut = w.find('button.loc');
-    expect(nut.exists(), 'có người online thì có nút lọc').toBe(true);
-    expect(nut.attributes('aria-pressed')).toBe('false');
-    expect(w.find('.buc').exists()).toBe(true);
-    await nut.trigger('click');
-    expect(w.find('button.loc').attributes('aria-pressed')).toBe('true');
-    expect(w.find('.buc').exists(), 'đang lọc thì bục top 3 ẩn').toBe(false);
-    const hang = w.findAll('ol.bxh li').map((li) => li.find('.hang').text());
-    expect(hang).toEqual(['2', '5', '40']);
-    // Người rảnh có nút Thách; người "Đang chơi" thì không
-    expect(w.findAll('ol.bxh li').map((li) => li.find('button.td').exists())).toEqual([true, false, true]);
-    await w.find('button.loc').trigger('click');
-    expect(w.find('.buc').exists()).toBe(true);
-    w.unmount();
-    vi.doUnmock('@/lib/taikhoan');
   });
 });

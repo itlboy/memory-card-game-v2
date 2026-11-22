@@ -900,6 +900,7 @@ const ja: TuDien = {
   'cd.goiYTdMo': "2人以上がオンラインのときに尋ねる",
   'cd.moi': "NEW",
   'or.dong.thiDau': "人数が足りないため対戦は終了しました。",
+  'bxh.khongAiOnline': "オンラインの人はいません",
 };
 
 export default ja;

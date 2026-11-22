@@ -429,6 +429,21 @@ export async function anKhach(an: boolean): Promise<void> {
  * `loai`: 'tat' = Mọi lúc (mặc định — hạng trên viên xu), 'tuan' = bảng tuần; `tuan` = thứ Hai của tuần cũ muốn xem
  * (bỏ trống = tuần này). Chỉ bảng Mọi lúc và bảng TUẦN NÀY được lưu làm "bảng lần trước".
  */
+export type DongHang = DongBxh & { hang: number };
+const thanBxh = (loai: LoaiBxh, tuan?: string): Record<string, unknown> => {
+  const k = me.value ? null : store.khach(false);
+  return { khach: k && !k.an && !k.daGop ? k.id : undefined, ...(loai === 'tuan' ? { loai, tuan } : {}) };
+};
+/** 20 dòng kế tiếp từ hạng `tu + 1` (tải thêm khi cuộn). `het` = đã giáp 3 người chót. Server cũ không hiểu → coi như hết. */
+export async function trangBxh(loai: LoaiBxh, tuan: string | undefined, tu: number): Promise<{ ds: DongHang[]; het: boolean }> {
+  const r = await goi<{ ds?: DongHang[]; het?: boolean }>('/api/bxh', { method: 'POST', body: JSON.stringify({ ...thanBxh(loai, tuan), tu }) });
+  return Array.isArray(r.ds) ? { ds: r.ds, het: r.het !== false } : { ds: [], het: true };
+}
+/** Mọi người đang online (kể cả ngoài top 20) kèm hạng thật — bộ lọc "người đang online". Server cũ → rỗng. */
+export async function bxhOnline(loai: LoaiBxh, tuan?: string): Promise<DongHang[]> {
+  const r = await goi<{ ds?: DongHang[] }>('/api/bxh', { method: 'POST', body: JSON.stringify({ ...thanBxh(loai, tuan), online: true }) });
+  return Array.isArray(r.ds) ? r.ds.filter((d) => typeof d.hang === 'number') : [];
+}
 export async function bangXepHang(loai: LoaiBxh = 'tat', tuan?: string): Promise<BangXh> {
   if (!me.value) await guiKhach();   // hạng tính trên điểm MỚI NHẤT của máy
   const k = me.value ? null : store.khach(false);
