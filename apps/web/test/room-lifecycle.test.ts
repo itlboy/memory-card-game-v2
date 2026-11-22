@@ -64,6 +64,32 @@ describe('phòng rỗng và mã phòng đã chia', () => {
   });
 });
 
+describe('phòng thi đấu đã giải tán thì không được hẹn alarm nữa', () => {
+  /*
+   * 22.11.2026, server Mỹ: một trận thi đấu có người bỏ, người kia thoát app ở bảng kết quả → `veLobby()` giải tán phòng
+   * (`dongThiDau`) nhưng nơi gọi chạy tiếp như thể phòng vừa về phòng chờ, hẹn mốc "im lặng" cho phòng đã chết. Tới mốc,
+   * alarm giải tán lần nữa rồi hẹn lại mốc ĐÃ QUA → nổ mỗi ~1 ms: Node ăn ~26% CPU suốt 7 giờ, tới khi khởi động lại.
+   */
+  it('dongThiDau() bỏ phòng khỏi bộ nhớ', () => {
+    const at = src.indexOf('private async dongThiDau()');
+    expect(at, 'không thấy dongThiDau()').toBeGreaterThan(-1);
+    const than = src.slice(at, src.indexOf('\n  }', at));
+    expect(than, 'phòng đã dẹp mà `this.room` còn nguyên là nơi gọi hẹn alarm tiếp').toMatch(/this\.room = null/);
+  });
+
+  it('nơi gọi veLobby() rồi đặt emptyAt phải dừng khi phòng đã giải tán', () => {
+    const cho = [...src.matchAll(/await this\.veLobby\(this\.room\.players\);\n([^\n]*)\n\s*this\.room\.emptyAt = /g)];
+    expect(cho.length, 'không còn thấy hai chỗ "hết ván, 0 socket → về phòng chờ vắng"').toBe(2);
+    for (const m of cho) expect(m[1], 'thiếu `if (!this.room) return;` ngay sau veLobby()').toMatch(/if \(!this\.room\) return;/);
+  });
+
+  it('server Node: phòng đã dẹp thì setAlarm bị bỏ qua', () => {
+    const shim = readFileSync(resolve(process.cwd(), '../node-server/src/cf-shim.ts'), 'utf8');
+    const at = shim.indexOf('setAlarm: async');
+    expect(shim.slice(at, shim.indexOf('deleteAlarm: async', at))).toMatch(/if \(daDep\)/);
+  });
+});
+
 describe('chuỗi alarm: mọi hạn chót đều phải có mốc đánh thức', () => {
   /** Khối scheduleNext() — nơi duy nhất quyết định DO thức lúc nào. */
   const schedule = (() => {
