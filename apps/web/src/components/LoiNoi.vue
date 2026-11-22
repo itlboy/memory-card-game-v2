@@ -14,7 +14,7 @@ import type { QuickSay } from '@mm/engine';
 import { ref, watch } from 'vue';
 import KhungBong from './KhungBong.vue';
 import { td } from '@/lib/i18n';
-import { EMOJI_NOI } from '@/lib/noi-nhanh';
+import IconNoi from './IconNoi.vue';
 
 type Loi = { from: string; id: QuickSay; name: string; key: number };
 const props = defineProps<{ o: { loiNoi: { value: Loi[] } } }>();
@@ -60,7 +60,7 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
         :style="neo[l.key] ? { left: `${neo[l.key]!.x}px`, top: `${neo[l.key]!.y}px` } : { top: `calc(${10 + i * 46}px + env(safe-area-inset-top, 0px))` }"
       >
         <KhungBong :canh="neo[l.key] ? (neo[l.key]!.tren ? 'duoi' : 'tren') : undefined" :day="2" :r="14" :vt="neo[l.key]?.vt" />
-        <span class="e" aria-hidden="true">{{ EMOJI_NOI[l.id] }}</span>
+        <IconNoi :id="l.id" :size="22" />
         <span class="chu"><b v-if="!neo[l.key]">{{ l.name }}: </b>{{ td(`say.${l.id}`) }}</span>
       </div>
     </TransitionGroup>
@@ -88,7 +88,6 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
 .bong.neo { transform: none; }
 /* Bảng kết quả: bong bóng TRÊN mặt, đuôi chỉ xuống — `top` là chỗ mũi đuôi, kéo lên trọn chiều cao */
 .bong.tren-mat { transform: translateY(-100%); }
-.bong .e { font-size: 18px; flex-shrink: 0; }
 .bong .chu { min-width: 0; }
 .loi-enter-active { transition: opacity .16s ease, translate .16s ease; }
 .loi-leave-active { transition: opacity .25s ease; }

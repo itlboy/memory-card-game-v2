@@ -1658,6 +1658,18 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   dongY. Id mới CHỈ THÊM CUỐI `QUICK_SAYS` (server cũ bỏ qua id lạ); mỗi câu cần `say.<id>` ở 15 ngôn ngữ + emoji
   riêng trong `lib/noi-nhanh.ts` (LoiNoi vẽ). Màu nút qua biến thạch `--b1/--b2/--b3/--bc` — ghi background thẳng bị đè.
 
+## Cài đặt nổi khối + khung chat gọn + nút mời hiện ngay (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 1–3)
+
+- Trang Cài đặt: mỗi dòng `.item.thach` (khối thạch), icon trong ô màu `.cd-o .cd-<màu>`, công tắc/dải chọn lõm-nổi. Luật
+  CHỈ áp trong `.cd-the` — menu ☰ dùng chung `.item/.sw/.nac` giữ dáng cũ. BẪY: `.item > span:not(.nac):not(.tk-chu)
+  { flex: 1 }` làm ô icon giãn hết dòng — đã ghi đè bằng `.cd-the .item.thach > span.cd-o`.
+- Nói nhanh: `ICON_NOI` (lib/noi-nhanh.ts) + `IconNoi.vue` — CÙNG icon ở dòng trong khung và trong bong bóng (LoiNoi).
+  Thêm câu mới vào `QUICK_SAYS` phải thêm icon (test noi-nhanh bắt). `EMOJI_NOI` còn lại chỉ vì test cũ.
+- Bảng emoji: 24 cái cố định `BANG` (EmojiBar.vue), 3 hàng × 8, không tiêu đề/nhóm/cuộn. Server vẫn nhận đủ QUICK_EMOJIS.
+- Thanh chat cao đúng 48px (= `--eb-dock-h`; trước đệm 7/8px ra 54px).
+- Nút "Mời người online" hiện NGAY lúc tạo phòng: `coSanh` (lib/sanh.ts, nhớ ở `mm.coSanh`) = server này có sảnh →
+  `dsMoi` khởi đầu `[]` thay vì `null`. Trước phải chờ lượt `/api/sanh/ds` đầu tiên.
+
 ## Trang Tài khoản mới (22.11.2026, mockup duyệt https://claude.ai/artifact/KzuWVG5QwHxQ13Hi7AUN3C)
 
 - Thẻ hồ sơ vàng · hai ô Xếp hạng (hạng tuần `hangXu`) / Danh hiệu (vạch tiến độ) · vòng tỉ lệ thắng + 4 số.

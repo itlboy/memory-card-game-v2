@@ -35,6 +35,15 @@ export interface LoiMoi {
   thach?: boolean;
 }
 export const loiMoi = ref<LoiMoi | null>(null);
+/**
+ * Server NÀY có sảnh (đã nhận `chao` hoặc `/api/sanh/ds` từng trả danh sách). Màn phòng chờ dựa vào đây để hiện nút
+ * "Mời người online" NGAY lúc tạo phòng (chủ dự án 22.11.2026: nút "một lúc sau mới hiện" vì phải chờ lượt hỏi danh
+ * sách đầu tiên). Bản Cloudflare không có sảnh → 404 → false, nút ẩn như cũ.
+ */
+const KHOA_CO_SANH = 'mm.coSanh';
+export const coSanh = ref((() => { try { return localStorage.getItem(KHOA_CO_SANH) === '1'; } catch { return false; } })());
+// Nhớ qua các lần mở app: người tắt "Nhận lời mời" không nối sảnh nên không bao giờ nhận `chao`
+watch(coSanh, (v) => { try { localStorage.setItem(KHOA_CO_SANH, v ? '1' : '0'); } catch { /* bỏ qua */ } });
 /** Đang ở phòng chờ / ván online (kể cả đang xem) — App.vue đặt. */
 export const trongPhongOnline = ref(false);
 /** Đang chơi một ván offline — chỉ để danh sách của chủ phòng ghi "Đang chơi". */
@@ -65,6 +74,7 @@ function mo(): void {
     try { m = JSON.parse(String(e.data)) as Record<string, unknown>; } catch { return; }
     if (m.t === 'chao') {
       lui = 3_000;
+      coSanh.value = true;
       // Gửi LẠI trạng thái lúc đã nối: đổi trạng thái khi socket còn đang mở thì tin `tt` bị rơi (gui() bỏ qua khi
       // chưa OPEN) — chủ phòng từng hiện trong danh sách mời của chính mình là "Ở trang chủ" (chụp kiểm 21.11.2026)
       gui({ t: 'tt', tt: ttHienTai() });
@@ -135,13 +145,14 @@ export const CACH_MOI_LAI_MS = 2 * 60_000;
 async function post<T>(duong: string, body: unknown): Promise<T | null> {
   try {
     const r = await fetch(`${SERVER_URL}${duong}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (r.status === 404) return null;
+    if (r.status === 404) { if (duong.startsWith('/api/sanh/')) coSanh.value = false; return null; }
     return (await r.json()) as T;
   } catch { return null; }
 }
 /** null = server không có sảnh / mất mạng (ẩn nút). */
 export async function dsOnline(ma: string, token: string): Promise<NguoiOnline[] | null> {
   const r = await post<{ ds?: NguoiOnline[] }>('/api/sanh/ds', { ma, token });
+  if (r?.ds) coSanh.value = true;
   return r?.ds ?? null;
 }
 export async function moiNguoi(ma: string, token: string, sid: string, thach = false): Promise<KetQuaMoi> {
