@@ -12,6 +12,12 @@ import { ghiSoOnline } from './sanh';
 export const CHU_KY_MS = 20_000;
 
 export const demPhongCho = (rooms: PublicRoom[]): number => rooms.filter((r) => !r.dangChoi && r.nguoi < r.toiDa).length;
+/**
+ * SỐ PHÒNG ĐANG CHƠI — vào XEM được (22.11.2026, chủ dự án: "icon chơi online hiện cả số phòng đang chơi có thể vào xem").
+ * Hiện cạnh số người / số phòng chờ, kèm xô bỏng ngô (biểu tượng "xem" của game). Cùng một lần hỏi sổ phòng.
+ */
+export const demPhongXem = (rooms: PublicRoom[]): number => rooms.filter((r) => r.dangChoi).length;
+export const soPhongXem = ref(0);
 /** Hiện trên chấm: 0 = ẩn, 10 trở lên = "9+". */
 export const nhanSoPhong = (n: number): string => (n <= 0 ? '' : n > 9 ? '9+' : String(n));
 
@@ -28,6 +34,7 @@ export function useSoPhongCho() {
         if (r.ok) {
           const d = (await r.json()) as { rooms?: PublicRoom[]; online?: number };
           so.value = demPhongCho(d.rooms ?? []);
+          soPhongXem.value = demPhongXem(d.rooms ?? []);
           ghiSoOnline(d.online);
         }
       } catch { /* mất mạng: giữ số cũ */ }

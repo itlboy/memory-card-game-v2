@@ -1788,3 +1788,13 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   và `.strip.dong .player .wins` (PlayerStrip): `left: 21px; bottom: 3px` (chip đang đi `bottom: 5px`, trên thanh giờ lượt).
   Trước ở góc TRÊN-TRÁI của chip (2px/2px): chip `overflow: hidden` + bo góc cắt lẹm vòng trắng và đè lên mặt (chủ dự án gửi
   ảnh). ĐỪNG đặt huy hiệu absolute sát góc chip; skin bo tròn hơn thì lẹm nhiều hơn. Hai file phải sửa CÙNG nhau.
+- **Ô "CHƠI ONLINE" HIỆN CẢ SỐ PHÒNG ĐANG CHƠI (22.11.2026, 1.9.31)** — chủ dự án: "hiện cả số phòng đang chơi có thể vào xem".
+  Huy hiệu `.so-phong` (MenuScreen): [chấm xanh nếu có phòng chờ] [👥 số người online | số phòng chờ] │ [xô bỏng ngô + số
+  phòng `dangChoi`] (`lib/so-phong-cho.ts` `demPhongXem`/`soPhongXem`, cùng lần hỏi `/api/rooms/public?v=2`; khoá dịch
+  `menu.soPhongXem` 15 ngôn ngữ). Ô chỉ rộng ~111px: "99+" người kèm số phòng xem thì BỎ chấm xanh (`.chat`) cho khỏi tràn.
+  Có phòng bot thường trực nên số này gần như luôn ≥ 2.
+- **Phòng bot — BẪY ĐÃ GẶP trên Dallas (22.11.2026)**: chủ phòng gửi `config` rồi `start` LIỀN NHAU thì server thật (có MySQL)
+  có thể xử lý Bắt đầu TRƯỚC khi cấu hình áp → có người vào mà bàn vẫn 12 thẻ (máy không MySQL không tái hiện được). phong-bot.ts
+  nay gửi thay đổi (số thẻ, đội) rồi CHỜ `room` mới mới bấm Bắt đầu. Bốc bàn theo SỐ THẺ (mỗi cỡ một mục), không theo cấp —
+  36 và 42 thẻ mỗi cỡ chiếm 9 cấp nên bốc theo cấp lệch về bàn to. `BOT_DEBUG=1` in dòng lúc bấm Bắt đầu.
+  Chạy thật: service `bot` trong compose máy Dallas (my-secrets `docs/services/latthe-tierhive.md`), ~17 MB RAM.

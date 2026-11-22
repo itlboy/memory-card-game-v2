@@ -43,7 +43,8 @@ import OptionIcon from './OptionIcon.vue';
 import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
-import { nhanSoPhong, useSoPhongCho } from '@/lib/so-phong-cho';
+import { nhanSoPhong, soPhongXem, useSoPhongCho } from '@/lib/so-phong-cho';
+import BongNgo from './BongNgo.vue';
 import { soNguoiOnline } from '@/lib/sanh';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
@@ -621,8 +622,16 @@ const ICO3D = {
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
             <!-- SỐ PHÒNG ĐANG CHỜ (20.11.2026, mockup C): chấm xanh nhịp "đang sống" + số, góc trên phải -->
             <!-- 23.11.2026: có người online thì hiện SỐ NGƯỜI (icon người) — chấm xanh vẫn nhịp khi có phòng đang chờ -->
-            <span v-if="soNguoiOnline > 0" class="so-phong" :aria-label="t('bxh.dangOnline', { n: soNguoiOnline })"><i v-if="soPhongCho > 0" aria-hidden="true" /><Users :size="12" :stroke-width="2.8" aria-hidden="true" />{{ soNguoiOnline > 99 ? '99+' : soNguoiOnline }}</span>
-            <span v-else-if="soPhongCho > 0" class="so-phong" :aria-label="t('menu.soPhongCho', { n: soPhongCho })"><i aria-hidden="true" />{{ nhanSoPhong(soPhongCho) }}</span>
+<!-- 22.11.2026: thêm SỐ PHÒNG ĐANG CHƠI vào xem được (xô bỏng ngô = "xem") — đứng sau, ngăn bằng một vạch mờ -->
+            <span
+              v-if="soNguoiOnline > 0 || soPhongCho > 0 || soPhongXem > 0" class="so-phong" :class="{ chat: soNguoiOnline > 99 && soPhongXem > 0 }"
+              :aria-label="[soNguoiOnline > 0 ? t('bxh.dangOnline', { n: soNguoiOnline }) : '', soPhongCho > 0 ? t('menu.soPhongCho', { n: soPhongCho }) : '', soPhongXem > 0 ? t('menu.soPhongXem', { n: soPhongXem }) : ''].filter(Boolean).join(' · ')"
+            >
+              <i v-if="soPhongCho > 0" aria-hidden="true" />
+              <template v-if="soNguoiOnline > 0"><Users :size="12" :stroke-width="2.8" aria-hidden="true" />{{ soNguoiOnline > 99 ? '99+' : soNguoiOnline }}</template>
+              <template v-else-if="soPhongCho > 0">{{ nhanSoPhong(soPhongCho) }}</template>
+              <span v-if="soPhongXem > 0" class="sp-xem" :class="{ rieng: soNguoiOnline <= 0 && soPhongCho <= 0 }"><BongNgo :size="13" aria-hidden="true" />{{ nhanSoPhong(soPhongXem) }}</span>
+            </span>
           </button>
         </div>
 
@@ -1208,6 +1217,10 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
   font: 800 13px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums; pointer-events: none;
 }
 .so-phong i { width: 8px; height: 8px; border-radius: 50%; background: #7dff9b; animation: so-phong-song 1.6s infinite; }
+.so-phong .sp-xem { display: inline-flex; align-items: center; gap: 2px; margin-left: 1px; padding-left: 5px; border-left: 1.5px solid rgba(255, 255, 255, .35); }
+/* "99+" người kèm số phòng xem: ô chỉ rộng ~111px — bỏ chấm xanh cho vừa (đo 22.11.2026: 109px, tràn mép trái) */
+.so-phong.chat i { display: none; }
+.so-phong .sp-xem.rieng { margin-left: 0; padding-left: 0; border-left: 0; }
 @keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(125, 255, 155, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(125, 255, 155, 0); } }
 @media (prefers-reduced-motion: reduce) { .so-phong i { animation: none; } }
 </style>

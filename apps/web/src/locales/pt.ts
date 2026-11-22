@@ -114,6 +114,7 @@ const pt: TuDien = {
   'menu.online': 'Jogar online',
   'menu.onlineMo': 'Crie uma sala e convide amigos com um código de 6 dígitos',
   'menu.soPhongCho': '{n} salas esperando',
+  'menu.soPhongXem': '{n} salas jogando',
   'menu.bot.easy': 'Perfeito para os pequenos que estão aprendendo.',
   'menu.bot.normal': 'Me vença para liberar adversários mais fortes.',
   'menu.bot.hard': 'Agora é sério. Se me vencer, você é fera de verdade.',

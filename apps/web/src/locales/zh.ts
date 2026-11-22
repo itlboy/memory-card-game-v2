@@ -113,6 +113,7 @@ const zh: TuDien = {
   'menu.online': '在线对战',
   'menu.onlineMo': '创建房间，用 6 位数房间号邀请好友',
   'menu.soPhongCho': '{n} 个房间在等待',
+  'menu.soPhongXem': '{n} 个房间游戏中',
   'menu.bot.easy': '专为刚上手的小朋友准备哦。',
   'menu.bot.normal': '赢了我，就能解锁更强的对手。',
   'menu.bot.hard': '要动真格了。赢了我，你才算真高手。',

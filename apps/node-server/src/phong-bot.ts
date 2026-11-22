@@ -52,7 +52,8 @@ const log = (...a: unknown[]): void => console.log(new Date().toISOString().slic
 
 /** Các cấp bàn có số thẻ trong khoảng cho phép: [level, số thẻ]. */
 const BAN: [number, number][] = [];
-for (let l = 1; l <= LEVEL_KEYS; l++) { const the = pairsForLevel(l) * 2; if (the >= THE_MIN && the <= THE_MAX) BAN.push([l, the]); }
+// MỖI SỐ THẺ MỘT MỤC: nhiều cấp chung một cỡ bàn (36 và 42 thẻ mỗi cỡ 9 cấp) — bốc theo cấp là lệch hẳn về bàn to
+for (let l = 1; l <= LEVEL_KEYS; l++) { const the = pairsForLevel(l) * 2; if (the >= THE_MIN && the <= THE_MAX && !BAN.some(([, t]) => t === the)) BAN.push([l, the]); }
 if (!BAN.length) { console.error(`Không có cỡ bàn nào trong khoảng ${THE_MIN}–${THE_MAX} thẻ`); process.exit(1); }
 
 /** Bốc bàn: đông người thì bàn to hơn chút ("số thẻ cũng tăng lên chút cho phù hợp"). */
@@ -314,19 +315,28 @@ class Phong {
       this.han = now + 1500;
       return;
     }
+    /*
+     * ĐỔI GÌ THÌ CHỜ SERVER XÁC NHẬN RỒI MỚI BẤM BẮT ĐẦU. Gửi `config` rồi `start` liền nhau thì trên server thật (có
+     * MySQL) lệnh Bắt đầu có thể được xử lý TRƯỚC khi cấu hình mới áp — đo 22.11.2026 trên Dallas: có người vào mà bàn
+     * vẫn 12 thẻ. Nên: gửi thay đổi → về; nhịp sau thấy `room` đã đúng thì mới đi tiếp.
+     */
     // Mỗi người một đội (ván thường): ai đó tự xếp chung đội thì chủ phòng tách ra
     const dung = new Set<number>();
+    let doiDoi = false;
     for (const p of r.players) {
       const d = (p as { doiSo?: number }).doiSo;
       if (d && !dung.has(d)) { dung.add(d); continue; }
       const trong = [1, 2, 3, 4].find((x) => !dung.has(x) && !r.players.some((q) => (q as { doiSo?: number }).doiSo === x));
-      if (trong) { dung.add(trong); chu.gui({ t: 'doi', playerId: p.id, doi: trong }); }
+      if (trong) { dung.add(trong); chu.gui({ t: 'doi', playerId: p.id, doi: trong }); doiDoi = true; }
     }
     // Có người chơi cùng: bàn to hơn chút
     const tong = r.players.length;
     const theHienTai = pairsForLevel(r.config.level) * 2;
     const toiThieu = tong >= 4 ? 28 : tong === 3 ? 20 : THE_MIN;
-    if (theHienTai < toiThieu || theHienTai > THE_MAX) chu.gui({ t: 'config', config: { level: bocBan(tong)[0] } });
+    const doiBan = theHienTai < toiThieu || theHienTai > THE_MAX;
+    if (doiBan) chu.gui({ t: 'config', config: { level: bocBan(tong)[0] } });
+    if (doiDoi || doiBan) { this.startGui = now - 1500; return; }   // ~1 giây sau xét lại với `room` mới
+    if (process.env.BOT_DEBUG) log(`[gỡ lỗi] start: tong=${tong} the=${theHienTai} toiThieu=${toiThieu} nguoi=${nguoi.length} players=${r.players.map((p) => p.name + (p.ready ? '✓' : '·')).join(',')}`);
     this.startGui = now;
     chu.gui({ t: 'start' });
   }
