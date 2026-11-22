@@ -23,12 +23,22 @@
  *   THE_MIN/THE_MAX  khoảng số thẻ (mặc định 12–59 = "12 tới 5x")
  *   MUC         các mức máy được dùng (mặc định easy,normal,hard)
  *   XEM_KQ_MS   đứng ở bảng kết quả bao lâu rồi về phòng chờ (mặc định 8000)
- * Tắt: SIGTERM/SIGINT → bot rời phòng gọn gàng.
+ *   TEP_TRANG_THAI  file nhớ phòng + vé vào lại (mặc định /data/phong-bot.json — gắn volume vào /data)
+ *   ROI_KHI_TAT=1   tắt module thì bot RỜI phòng hẳn (mặc định: chỉ đóng kết nối, giữ chỗ để lần chạy sau vào lại)
+ *
+ * DEPLOY LẠI KHÔNG ĐƯỢC ĐỂ LẠI PHÒNG MA (22.11.2026, chủ dự án: "khi deploy lại bot thì các ván đấu cũ sẽ bị treo"). Server
+ * giữ phòng qua MySQL khi thay ảnh, còn bot bản đầu quên sạch và mở phòng mới → sổ phòng còn lại phòng chờ 1 bot chết và
+ * ván "đang chơi" đứng đồng hồ (đo trên Dallas: 3 phòng ma sau một lần deploy). Nay bot GHI mã phòng + token + số ván ra
+ * `TEP_TRANG_THAI` mỗi khi đổi, khởi động thì VÀO LẠI ĐÚNG PHÒNG CŨ bằng token (ván dở chơi tiếp, chỉ mất ký ức thẻ) —
+ * không vào lại được (phòng đã bị dọn, mất chỗ) mới mở phòng mới. Tắt module KHÔNG gửi `leave` nữa (gửi là xử thua ván dở
+ * và nhả chỗ, lần sau không vào lại được). Server khởi động lại MỘT MÌNH: bot kiên trì nối lại ~2 phút rồi mới bỏ phòng.
  */
 import {
   BOT_LEVELS, LEVEL_KEYS, botPick, botRng, botThinkMs, createBotMemory, observe, pairsForLevel,
   type BotLevel, type GameView, type RoomInfo
 } from '@mm/engine';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { NGON_NGU_CO_TEN, taoTen } from '../../web/src/lib/ten-goc';
 
 const so = (ten: string, mac: number): number => { const v = Number(process.env[ten]); return Number.isFinite(v) && v > 0 ? v : mac; };
@@ -87,6 +97,32 @@ function bocTen(): string {
   if (x < 0.58) return taoTen('vi');
   const khac = NGON_NGU_CO_TEN.filter((l) => l !== 'en' && l !== 'vi');
   return taoTen(khac[rd(khac.length)]!);
+}
+
+const TEP = process.env.TEP_TRANG_THAI ?? '/data/phong-bot.json';
+const ROI_KHI_TAT = process.env.ROI_KHI_TAT === '1';
+interface PhongNho { code: string; soVan: number; doiKhi: number; bot: { ten: string; token: string }[] }
+let daBaoLoiTep = false;
+
+/** Ghi trạng thái mọi phòng (ghi file tạm rồi đổi tên — tắt ngang giữa chừng không để lại file hỏng). */
+function luu(): void {
+  try {
+    const ds: PhongNho[] = phongs.filter((p) => p.code && p.bot.length === 2 && p.bot.every((b) => b.token))
+      .map((p) => ({ code: p.code, soVan: p.soVan, doiKhi: p.doiKhi, bot: p.bot.map((b) => ({ ten: b.ten, token: b.token })) }));
+    mkdirSync(dirname(TEP), { recursive: true });
+    writeFileSync(TEP + '.tam', JSON.stringify({ luc: Date.now(), server: SERVER, phong: ds }));
+    renameSync(TEP + '.tam', TEP);
+  } catch (e) {
+    if (!daBaoLoiTep) { daBaoLoiTep = true; log(`không ghi được ${TEP} (${(e as Error).message}) — deploy lại sẽ mở phòng mới thay vì vào lại phòng cũ`); }
+  }
+}
+
+function docNho(): PhongNho[] {
+  try {
+    const d = JSON.parse(readFileSync(TEP, 'utf8')) as { server?: string; phong?: PhongNho[] };
+    if (d.server !== SERVER || !Array.isArray(d.phong)) return [];
+    return d.phong.filter((p) => /^\d{6}$/.test(p?.code ?? '') && Array.isArray(p.bot) && p.bot.length === 2 && p.bot.every((b) => b?.ten && b?.token));
+  } catch { return []; }
 }
 
 type TinServer =
@@ -190,6 +226,7 @@ class Phong {
         if (!(await this.bot[1]!.vao())) throw new Error('bot thứ hai không vào được');
         this.hong = 0;
         log(`[phòng ${this.so}] mở ${code}: ${a} + ${b}, đổi sau ${this.doiKhi} ván`);
+        luu();
         return;
       } catch (e) {
         for (const b of this.bot) b.dong();
@@ -199,6 +236,27 @@ class Phong {
         await nghi(Math.min(60_000, 3000 * this.hong));
       }
     }
+  }
+
+  /** Vào lại phòng của lần chạy trước bằng token. false = phòng không còn / mất chỗ → người gọi mở phòng mới. */
+  async khoiPhuc(n: PhongNho): Promise<boolean> {
+    this.code = n.code; this.room = null; this.ban = null; this.han = 0; this.hetXem = 0; this.trangThaiCu = '';
+    this.soVan = n.soVan || 0; this.doiKhi = n.doiKhi || DOI_SAU;
+    this.bot = n.bot.map((x) => { const b = new Bot(x.ten, this); b.token = x.token; return b; });
+    const cu = this.bot.map((b) => b.token);
+    let ok = true;
+    for (const b of this.bot) if (!(await b.vao())) { ok = false; break; }
+    // Server cấp token MỚI = không nhận ra mình (chỗ cũ đã bị gỡ) → mình vừa vào như người lạ; coi như hỏng
+    if (ok && this.bot.some((b, i) => b.token !== cu[i])) ok = false;
+    if (!ok) {
+      const ds = this.bot; this.bot = []; this.room = null; this.code = '';
+      for (const b of ds) { b.gui({ t: 'leave' }); }
+      await nghi(300);
+      for (const b of ds) b.dong();
+      return false;
+    }
+    log(`[phòng ${this.so}] vào lại ${n.code}: ${this.bot.map((b) => b.ten).join(' + ')} (${(this.room as RoomInfo | null)?.status}, ván ${this.soVan}/${this.doiKhi})`);
+    return true;
   }
 
   /** Rời phòng hiện tại (đổi phòng / tắt module). */
@@ -221,9 +279,14 @@ class Phong {
     this.dangNoi = true;
     void (async () => {
       try {
-        for (let lan = 1; lan <= 6; lan++) {
+        for (let lan = 1; lan <= 12; lan++) {   // ~2 phút: đủ cho server thay ảnh (chờ DB + dựng lại phòng)
           await nghi(Math.min(15_000, 1500 * lan));
           if (dangTat || this.dangDung) return;
+          // Server đã lên lại mà phòng KHÔNG còn (server không giữ phòng qua lần khởi động) → khỏi cố, mở phòng mới ngay
+          try {
+            const r = await fetch(`${SERVER}/api/rooms/${this.code}`);
+            if (r.ok && ((await r.json()) as { exists?: boolean }).exists === false) break;
+          } catch { /* server chưa lên — thử tiếp */ }
           let ok = true;
           for (const x of this.bot) if (!x.ws && !(await x.vao())) ok = false;
           if (ok) return;
@@ -244,7 +307,7 @@ class Phong {
       for (const b of this.bot) { b.kyUc = createBotMemory(); b.hen = 0; b.choBan = null; }
       this.ban = null;
     }
-    if (room.status === 'ended') { this.soVan++; this.hetXem = Date.now() + XEM_KQ_MS + rd(3000); log(`[phòng ${this.so}] ${this.code} xong ván ${this.soVan}/${this.doiKhi}`); }
+    if (room.status === 'ended') { this.soVan++; queueMicrotask(luu); this.hetXem = Date.now() + XEM_KQ_MS + rd(3000); log(`[phòng ${this.so}] ${this.code} xong ván ${this.soVan}/${this.doiKhi}`); }
   }
 
   /** Vào phòng chờ: bốc mức máy + bàn cho ván sắp tới (chủ phòng gửi cấu hình). */
@@ -374,8 +437,16 @@ const phongs = Array.from({ length: SO_PHONG }, (_, i) => new Phong(i + 1));
 async function tat(): Promise<void> {
   if (dangTat) return;
   dangTat = true;
-  log('tắt: cho bot rời phòng…');
-  await Promise.all(phongs.map((p) => p.roi().catch(() => { /* kệ */ })));
+  if (ROI_KHI_TAT) {
+    log('tắt: cho bot rời phòng…');
+    await Promise.all(phongs.map((p) => p.roi().catch(() => { /* kệ */ })));
+  } else {
+    // GIỮ CHỖ: chỉ đóng kết nối — lần chạy sau vào lại bằng token và chơi tiếp (server giữ chỗ 5 phút trong ván)
+    luu();
+    log('tắt: đóng kết nối, giữ chỗ để lần chạy sau vào lại');
+    for (const p of phongs) for (const b of p.bot) b.dong();
+    await nghi(200);
+  }
   process.exit(0);
 }
 process.on('SIGTERM', () => void tat());
@@ -387,7 +458,15 @@ for (;;) {
   try { if ((await fetch(`${SERVER}/health`)).ok) break; } catch { /* chưa lên */ }
   await nghi(2000);
 }
-for (const p of phongs) { await p.mo(); await nghi(1500 + rd(3000)); }
+const nho = docNho();
+for (const [i, p] of phongs.entries()) {
+  const n = nho[i];
+  if (n && (await p.khoiPhuc(n))) continue;
+  if (n) log(`[phòng ${p.so}] không vào lại được ${n.code} — mở phòng mới`);
+  await p.mo();
+  await nghi(1500 + rd(3000));
+}
+luu();
 setInterval(() => { for (const p of phongs) { try { p.nhip(); } catch (e) { console.error('[nhịp] lỗi:', e); } } }, 300);
 // Báo còn sống (server có mốc im lặng)
 setInterval(() => { for (const p of phongs) for (const b of p.bot) b.gui({ t: 'alive' }); }, 20_000);

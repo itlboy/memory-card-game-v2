@@ -1798,3 +1798,10 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   nay gửi thay đổi (số thẻ, đội) rồi CHỜ `room` mới mới bấm Bắt đầu. Bốc bàn theo SỐ THẺ (mỗi cỡ một mục), không theo cấp —
   36 và 42 thẻ mỗi cỡ chiếm 9 cấp nên bốc theo cấp lệch về bàn to. `BOT_DEBUG=1` in dòng lúc bấm Bắt đầu.
   Chạy thật: service `bot` trong compose máy Dallas (my-secrets `docs/services/latthe-tierhive.md`), ~17 MB RAM.
+- **Phòng bot — DEPLOY LẠI KHÔNG ĐỂ PHÒNG MA (22.11.2026)**: chủ dự án báo "deploy lại bot thì các ván đấu cũ bị treo" — server giữ
+  phòng qua MySQL còn bot quên sạch, mở phòng mới → sổ phòng còn phòng chờ 1 bot chết (nằm tới `EMPTY_LOBBY_MS` 15 phút) và ván
+  "đang chơi" đứng đồng hồ (tới hạn rớt mạng 5 phút). Nay phong-bot.ts GHI mã phòng + token + số ván ra `TEP_TRANG_THAI`
+  (mặc định `/data/phong-bot.json`, compose gắn `./bot-data:/data`) và lúc khởi động VÀO LẠI phòng cũ bằng token — ván dở chơi
+  tiếp (đã thử: tắt êm, `kill -9`, đều vào lại). Tắt module KHÔNG gửi `leave` nữa (`ROI_KHI_TAT=1` mới rời hẳn). Phòng không
+  còn (hỏi `GET /api/rooms/<mã>` → `exists:false`) hoặc server cấp token mới (mất chỗ) thì mở phòng mới. Không có volume thì
+  quay về cách cũ (mở phòng mới, để lại phòng ma) — ĐỪNG bỏ volume `bot-data`.
