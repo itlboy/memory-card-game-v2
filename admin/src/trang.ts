@@ -94,8 +94,17 @@ export const HTML = String.raw`<!doctype html>
   <!-- Các ô danh sách: JS dựng từ bảng DS (mỗi ô một data-phan) -->
   <section class="luoi-ds" id="danhSach"></section>
 
+  <!-- THI ĐẤU (23.11.2026): số từ MÁY CHỦ GAME (/api/thidau), không qua GA và không theo bộ chọn khoảng ở trên -->
+  <section class="thach the" id="thiDau">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Thi đấu · 30 ngày gần nhất</h2></div><span class="phu-nho" id="tdLuc">từ máy chủ game</span></div>
+    <div class="luoi-kpi" id="tdKpi"></div>
+    <div class="td-cuon"><table class="td-bang" id="tdBang"></table></div>
+    <div class="td-cuon"><table class="td-bang" id="tdNhom"></table></div>
+    <p class="loi-o" id="loi-thidau" hidden></p>
+  </section>
+
   <footer class="chan">
-    <span>Số liệu từ Google Analytics · chỉ hỏi khi mở trang · số trong ngày trễ vài giờ · không chạm MySQL/server game</span>
+    <span>Số liệu từ Google Analytics · chỉ hỏi khi mở trang · số trong ngày trễ vài giờ. Riêng ô Thi đấu lấy từ thống kê ẩn danh của máy chủ game.</span>
     <span>Số GA là ước lượng: người chặn quảng cáo hoặc từ chối đồng ý thu thập không được đếm.</span>
   </footer>
 </div>
@@ -158,6 +167,12 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .n-ga{background:rgba(251,191,36,.16);color:#fcd34d}
 .n-live{background:rgba(74,222,128,.16);color:#86efac}
 .ktieu{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.09em;text-transform:uppercase;color:var(--mo)}
+.td-cuon{overflow-x:auto}
+.td-bang{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+.td-bang th,.td-bang td{padding:7px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.08)}
+.td-bang th{font-weight:700;color:var(--mo);font-size:12px}
+.td-bang th:first-child,.td-bang td:first-child{text-align:left}
+#thiDau .kpi b{font-size:30px}
 .song{padding:8px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;border-radius:18px;border:2px solid #23573a;background:rgba(74,222,128,.06)}
 .phu-nho{font-size:12px;color:var(--mo);font-weight:600}
 .ky-chon{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mo)}
@@ -710,6 +725,48 @@ export const JS = String.raw`
     cacKhung.forEach(function (e) { e._gan = true; });
     PHAN.forEach(function (p) { if (gan(p)) xepHang(p); });
   }
+  /*
+   * Ô THI ĐẤU (23.11.2026): /api/thidau — máy chủ game, không qua GA nên không vào hàng đợi các ô [data-phan] và không
+   * theo bộ chọn khoảng. Tải lúc mở trang + 5 phút một lần khi trang đang hiện.
+   */
+  function pt(a, b) { return b ? Math.round(a / b * 100) + '%' : '–'; }
+  function veThiDau(g) {
+    var t = g.tong || {}, c = $('tdKpi'); c.textContent = '';
+    [
+      ['Đợt gọi', so(t.dotGoi), so(t.hoi) + ' lượt hỏi · ' + so(t.nguoiDuocHoi) + ' người'],
+      ['Bấm Tham gia', so(t.thamGia), pt(t.thamGia, t.hoi) + ' lượt hỏi · để sau ' + so(t.deSau) + ' · bỏ qua ' + so(t.boQua)],
+      ['Đợt đủ người', pt(t.dotDuNguoi, t.dotChia), so(t.dotDuNguoi) + '/' + so(t.dotChia) + ' đợt · trận 2 người ' + so(t.tran2) + ' · 3 người ' + so(t.tran3)],
+      ['Ván chơi hết', so(t.vanXong), 'bắt đầu ' + so(t.vanBatDau) + ' · có người rời ' + so(t.vanCoNguoiRoi) + ' · chơi lại ' + so(t.choiLai)],
+      ['Giữ chờ', so(t.batDauCho), 'hết 10 phút không ai vào: ' + so(t.hetGioCho)],
+      ['Tin đẩy đã gửi', so(t.pushGui), 'tắt gợi ý thi đấu: ' + so(t.tatGoiY)]
+    ].forEach(function (x) {
+      var b = el('div', 'thach kpi'), tren = el('div', 'kpi-dau');
+      tren.appendChild(el('span', 'nhan', x[0])); b.appendChild(tren);
+      b.appendChild(el('b', null, x[1])); b.appendChild(el('span', 'doi', x[2])); c.appendChild(b);
+    });
+    function bang(id, cot, ds) {
+      var tb = $(id); tb.textContent = '';
+      if (!ds || !ds.length) return;
+      var h = tb.createTHead().insertRow();
+      cot.forEach(function (k) { h.appendChild(el('th', null, k[0])); });
+      var body = tb.createTBody();
+      ds.forEach(function (r) { var tr = body.insertRow(); cot.forEach(function (k) { tr.appendChild(el('td', null, typeof r[k[1]] === 'number' ? so(r[k[1]]) : String(r[k[1]] == null ? '–' : r[k[1]]))); }); });
+    }
+    bang('tdBang', [['Ngày', 'ngay'], ['Đợt gọi', 'dotGoi'], ['Lượt hỏi', 'hoi'], ['Tham gia', 'thamGia'], ['Để sau', 'deSau'], ['Bỏ qua', 'boQua'], ['Đợt đủ người', 'dotDuNguoi'], ['Người vào trận', 'nguoiVaoTran'], ['Ván bắt đầu', 'vanBatDau'], ['Ván xong', 'vanXong'], ['Tin đẩy', 'pushGui'], ['Tắt gợi ý', 'tatGoiY']], g.ngay);
+    var TEN_NT = { ios: 'iPhone / iPad', android: 'Android', web: 'Web' };
+    bang('tdNhom', [['Nền tảng / nước', 'ten'], ['Người', 'nguoi'], ['Lượt hỏi', 'hoi'], ['Tham gia', 'thamGia']],
+      (g.nenTang || []).map(function (x) { return { ten: TEN_NT[x.ten] || x.ten, nguoi: x.nguoi, hoi: x.hoi, thamGia: x.thamGia }; }).concat(g.nuoc || []));
+    $('tdLuc').textContent = so(g.suKien) + ' sự kiện · từ máy chủ game · giờ Việt Nam';
+  }
+  function taiThiDau() {
+    fetch('/api/thidau?ngay=30', { credentials: 'same-origin' }).then(function (r) { return r.json().then(function (g) { return { ok: r.ok, g: g }; }); }).then(function (x) {
+      var l = $('loi-thidau');
+      if (!x.ok) { l.hidden = false; l.textContent = x.g && x.g.chuaCauHinh ? 'Chưa nạp khoá thống kê thi đấu (THONGKE_KEY) cho trang này.' : 'Không lấy được số thi đấu: ' + ((x.g && x.g.loi) || 'lỗi không rõ'); return; }
+      l.hidden = true; veThiDau(x.g);
+    }).catch(function () { var l = $('loi-thidau'); l.hidden = false; l.textContent = 'Không lấy được số thi đấu (mất mạng?).'; });
+  }
+  taiThiDau();
+  setInterval(function () { if (!document.hidden) taiThiDau(); }, 300000);
   setInterval(function () { if (!document.hidden) { song(false); lucSong = Date.now(); } }, 60000);
   setInterval(kiemMoi, 30000);
   document.addEventListener('visibilitychange', function () {

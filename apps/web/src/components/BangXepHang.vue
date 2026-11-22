@@ -224,6 +224,13 @@ async function doiAn(an: boolean): Promise<void> {
     <div class="panel">
       <header class="head">
         <h2>{{ t('tk.xepHang') }}</h2>
+        <!-- LỌC NGƯỜI ONLINE — chip gọn trên hàng tiêu đề (23.11.2026, chủ dự án: "giao diện này rối quá… đơn giản hơn"):
+             chấm xanh + SỐ người online, bấm để chỉ xem họ. Trước là một nút dài nằm giữa bảng và dòng của mình. -->
+        <button v-if="bang && !tuanTrong" class="loc thach th-nho" :class="{ bat: chiOnline, vang: !soOnline }" type="button"
+          :aria-pressed="chiOnline" :disabled="!soOnline" :aria-label="soOnline ? t('bxh.dangOnline', { n: soOnline }) : t('bxh.khongAiOnline')"
+          @click="sfx.select(); chiOnline = !chiOnline">
+          <i aria-hidden="true" />{{ soOnline }}<Check v-if="chiOnline" :size="14" :stroke-width="3" aria-hidden="true" /><ListFilter v-else :size="14" :stroke-width="2.6" aria-hidden="true" />
+        </button>
         <button ref="closeBtn" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')">
           <X :size="20" />
         </button>
@@ -323,12 +330,7 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
       </div>
 
-      <button v-if="bang && !tuanTrong" class="loc thach th-nho" :class="{ bat: chiOnline, vang: !soOnline }" type="button" :aria-pressed="chiOnline" :disabled="!soOnline" @click="sfx.select(); chiOnline = !chiOnline">
-        <i aria-hidden="true" />{{ soOnline ? t('bxh.dangOnline', { n: soOnline }) : t('bxh.khongAiOnline') }}<Check v-if="chiOnline" :size="14" :stroke-width="3" aria-hidden="true" /><ListFilter v-else :size="14" :stroke-width="2.6" aria-hidden="true" />
-      </button>
       <div v-if="toi && ghim && !tuanTrong && !chiOnline" class="ghim" :class="{ mo: dangTai }">
-        <span class="cham" aria-hidden="true">···</span>
-        <div v-if="toi.tren" class="ke"><span class="hang">{{ num(toi.tren.hang) }}</span><span class="ten"><MatBot :mat="toi.tren.mat ?? '🙂'" /> {{ ten(toi.tren) }}</span><span class="so">{{ num(toi.tren.totalScore) }}</span></div>
         <div class="toi-dong"><span class="hang">{{ toi.hang ? num(toi.hang) : '–' }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}</span></div>
       </div>
 
@@ -424,7 +426,7 @@ async function doiAn(an: boolean): Promise<void> {
 .td::after { content: ''; position: absolute; inset: -6px -2px; }
 .bn .td, .bn .vach-cho { margin-top: 3px; height: 22px; min-height: 22px; padding: 0 7px 0 5px; font-size: 10.5px; }
 /* Nút lọc người online: thạch nhỏ, canh trái; bật thì nền xanh (qua biến thạch — ghi background thẳng bị luật thạch đè) */
-.loc { flex: none; align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin: 8px 2px 2px; min-height: 32px; padding: 0 12px 2px; border-radius: 999px; font: 800 12.5px var(--font-body); color: var(--fg); }
+.loc { flex: none; display: inline-flex; align-items: center; gap: 6px; margin: 0; min-height: 36px; padding: 0 11px 2px; border-radius: 999px; font: 800 12.5px var(--font-body); color: var(--fg); }
 .loc.bat { --b1: #5fd27f; --b2: #2f9e57; --b3: #227a41; --bc: #fff; color: #fff; }
 .loc.bat i { background: #fff; }
 .loc.vang { color: var(--muted); } .loc.vang i { background: var(--muted); opacity: .6; }
@@ -477,7 +479,7 @@ async function doiAn(an: boolean): Promise<void> {
   border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px;
 }
 
-.ghim { margin-top: 2px; display: grid; gap: 4px; }
+.ghim { margin-top: 8px; display: grid; gap: 4px; }
 .bxh li.cham { background: none; justify-content: center; padding: 0; }
 
 /* Tab Tuần / Mọi lúc + chọn tuần */

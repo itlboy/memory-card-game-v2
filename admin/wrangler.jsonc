@@ -15,10 +15,13 @@
     // Múi giờ của THUỘC TÍNH GA (Admin → Property details). dateHour/hour GA trả theo múi này.
     "GA_TZ": "Asia/Ho_Chi_Minh",
     // Ngày công khai — mốc "Từ khi công khai".
-    "NGAY_CONG_KHAI": "2026-10-15"
+    "NGAY_CONG_KHAI": "2026-10-15",
+    // Máy chủ game cho ô Thi đấu (src/thidau.ts) — chỉ gọi GET /api/thongke/thidau
+    "GAME_API": "https://flipmatch-api-us.cozypi.com"
   },
   // Bí mật (wrangler secret put, nạp từ my-secrets — KHÔNG ghi vào đây):
   //   GA_SA_JSON      nội dung JSON khoá service account (quyền Viewer trên thuộc tính GA)
   //   GA_PROPERTY_ID  số thuộc tính GA (không phải mã G-…)
+  //   THONGKE_KEY     khoá đọc thống kê thi đấu của server game (my-secrets provider `latthe-thongke`)
   "observability": { "enabled": true }
 }
