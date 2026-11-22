@@ -1,11 +1,9 @@
 name: So runtime server (Node ↔ Bun)
 
 # Đo trên LINUX (server thật chạy Linux; số macOS chỉ tham khảo) + chạy bộ smoke của docker.yml dưới Bun.
-# Chạy tay (workflow_dispatch) hoặc đẩy nhánh `thu-bun`. Không đóng ảnh, không deploy gì.
+# CHỈ chạy tay (workflow_dispatch). Không đóng ảnh, không deploy gì.
 on:
   workflow_dispatch:
-  push:
-    branches: [thu-bun]
 
 env:
   BUN_VERSION: 1.4.5

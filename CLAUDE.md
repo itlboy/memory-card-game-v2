@@ -1746,3 +1746,17 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Nút "Phá" → emit `pha-ky-luc` → App `phaKyLuc` vào thẳng màn / cỡ bàn (1 người, luật mặc định).
 - BẪY: `:global([data-theme='dark'] .panel)` của BXH đặt biến cho MỌI `.panel` (vd `--ban-nen`) và skin có lớp `.nac` —
   biến/lớp ở đây đặt tiền tố `--kl-` / `.kl-` để khỏi đụng.
+- **SERVER GAME Ở LẠI NODE, KHÔNG CHUYỂN BUN (đo 22.11.2026, chủ dự án chốt "không làm")** — đừng đề xuất lại nếu chưa có
+  số mới. Bài đo `tools/so-runtime.mjs` (cùng `dist/server.mjs`, 250 phòng × 4 người giả lật liên tục 40 s, trung vị 3 lượt),
+  chạy trên Linux x64 bằng workflow tay `so-runtime.yml` (kèm 12 smoke + smoke deploy MySQL dưới Bun — đều QUA):
+  Node 26.13 ↔ Bun 1.4.5 = RSS rỗi 67 ↔ 48 MB · RSS đỉnh 174 ↔ 120 · RSS sau khi mọi người rời 186 ↔ 100 · khởi động 73 ↔ 53 ms ·
+  file tĩnh 7352 ↔ 8091 req/s · CPU cho cùng tải 3,7 ↔ 4,2 s (Bun TỐN HƠN ~12%) · trễ lật p50 0,17 ↔ 0,19 ms, p99 ~1 ms cả hai.
+  Tức Bun chỉ hơn RAM (vài chục MB) và khởi động; CPU thua nhẹ, độ trễ như nhau. Trên macOS arm64 với Node 24 thì Bun hơn cả
+  CPU (−13%) — ĐỪNG lấy số Mac làm chuẩn. Vì sao không "nhanh như trên mạng": server đi qua lớp giả lập Node của Bun
+  (`node:http` + `ws` + `mysql2`), việc chính là JS thuần (luật ván, JSON) nên là V8 đấu JavaScriptCore; số quảng cáo đo
+  `Bun.serve`/WebSocket gốc — muốn có phải viết lại tầng mạng và mất khả năng chạy Node. Tải thật quá nhẹ (250 phòng ≈ 10% một
+  nhân). Nếu sau này cần RAM cho máy Dallas 768 MB: code KHÔNG phải sửa, chỉ đổi Dockerfile (ảnh nền, CMD, HEALTHCHECK `node -e`)
+  + `/api/ping` (Bun tự xưng `node v26.x`; `vongSuKien` ra 0 vì phép trừ chu kỳ lấy mẫu chỉ đúng với Node) — thử máy Dallas
+  bằng nhãn ảnh riêng trước. CHƯA thử dưới Bun: ảnh Alpine/musl thật, gửi push thật, đăng nhập Google/Apple, chạy dài ngày.
+  Bun < 1.2 không chạy nổi (thiếu `fs/promises.statfs`). Smoke `smoke-noi-nhanh` + `smoke-chat-limit` đang hỏng SẴN (không
+  đọc được `QUICK_SAYS`/`QUICK_EMOJIS` từ nguồn engine) — không liên quan runtime.
