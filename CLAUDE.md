@@ -1762,7 +1762,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   đọc được `QUICK_SAYS`/`QUICK_EMOJIS` từ nguồn engine) — không liên quan runtime.
 - **PHÒNG BOT THƯỜNG TRỰC (22.11.2026, chủ dự án) — `apps/node-server/src/phong-bot.ts`, MODULE RIÊNG, server KHÔNG biết gì về nó.**
   Mỗi bot là một kết nối WebSocket thường (như `tools/gia-nguoi.mjs`): bot đầu `POST /api/rooms` nên làm chủ phòng, bot hai vào
-  sau. Vòng lặp: phòng chờ `CHO_MS` (30 s) → bốc mức máy (5 cấp, hai bot lệch ≤ 1 cấp) + số thẻ (`THE_MIN`–`THE_MAX`, 12–59) →
+  sau. Vòng lặp: phòng chờ `CHO_MS` (30 s) → bốc mức máy (CHỈ gà mờ · gà cứng · báo đen — chủ dự án: mãnh hổ/rồng thần "khó quá"; biến `MUC`; hai bot lệch ≤ 1 cấp) + số thẻ (`THE_MIN`–`THE_MAX`, 12–59) →
   Bắt đầu → chơi bằng AI của engine (`botPick/observe/botThinkMs`, chỉ nhìn bàn công khai) → bảng kết quả `XEM_KQ_MS` → `tolobby`.
   Người vào lúc chờ thì CHƠI CÙNG (bàn tối thiểu 20 thẻ khi 3 người, 28 khi 4), vào giữa ván là khán giả (luật phòng sẵn có).
   Người chưa bấm Sẵn sàng khi hết giờ: nhắc + chờ thêm 15 s, vẫn im thì mời ra (không thì phòng kẹt). Mọi người thật đã sẵn
@@ -1784,3 +1784,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   (bảy tiếng sau "ghép thẳng được", chủ dự án chọn làm trước; người mới VÀ bot phòng cùng dùng). es · pt · fr · it · de · ru
   CHƯA có — vẫn tiếng Anh, vì giống ngữ pháp/đuôi tính từ phải khớp. ja/zh/zh-TW/th viết LIỀN, không dấu cách. Tên do máy
   ghép, CHƯA có người bản xứ duyệt.
+- **VIÊN TỶ SỐ LOẠT Ở BÀN ≥3 NGƯỜI NẰM GÓC DƯỚI-PHẢI AVATAR (22.11.2026, 1.9.30)** — `.strip.dong .pchip .wins` (OnlineGame)
+  và `.strip.dong .player .wins` (PlayerStrip): `left: 21px; bottom: 3px` (chip đang đi `bottom: 5px`, trên thanh giờ lượt).
+  Trước ở góc TRÊN-TRÁI của chip (2px/2px): chip `overflow: hidden` + bo góc cắt lẹm vòng trắng và đè lên mặt (chủ dự án gửi
+  ảnh). ĐỪNG đặt huy hiệu absolute sát góc chip; skin bo tròn hơn thì lẹm nhiều hơn. Hai file phải sửa CÙNG nhau.
