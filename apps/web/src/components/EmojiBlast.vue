@@ -15,7 +15,7 @@
  *  2. PHÒNG CHỜ (`.lobby-list [data-chip-for]`) và TRONG VÁN (`.pchip`, `.turn-chip`, `.mini`,
  *     dải đội `.m`). Trong ván: TRÊN chip — chủ dự án: "không đè lên bàn chơi". Chạm nút ← /
  *     đồng hồ thì vẫn bấm xuyên (pointer-events: none).
- *  Chỗ nào cũng vậy: bong bóng nằm TRÊN, đuôi chỉ xuống MẶT người gửi (xem timNeo).
+ *  Chỗ nào cũng vậy: bong bóng nằm TRÊN, đuôi chỉ xuống MẶT người gửi (lib/neo-bong.ts).
  *  3. Không thấy ai (khán giả, người vừa rời): giữa mép trên, kèm tên người gửi.
  *
  * TELEPORT ra <body> + fixed: `main` cuộn được và chip có `overflow: hidden`, để trong đó là
@@ -24,47 +24,16 @@
 import type { QuickEmoji } from '@mm/engine';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import KhungBong from './KhungBong.vue';
+import { thay, timNeoBong, type NeoBong } from '@/lib/neo-bong';
 
 type Bong = { from: string; name: string; emoji: QuickEmoji; key: number };
 const props = defineProps<{ o: { emojiBong: { value: Bong[] } } }>();
 
-type Neo = { x: number; y: number; nho?: boolean; vt: number } | null;
+type Neo = NeoBong | null;
 const neo = ref<Record<string, Neo>>({});
 
-const thay = (el: Element | null | undefined): DOMRect | null => {
-  const r = el?.getBoundingClientRect();
-  return r && r.width > 0 && r.height > 0 ? r : null;
-};
-
-/** Mặt người gửi trong ô neo: `.avatar` (chip trong ván, phòng chờ), `.mat` / `.mat-ct` (bảng kết quả).
- *  Ô CHÍNH LÀ cái mặt (thành viên đội ở bảng kết quả `.mat`, dải đội `.m`) thì lấy chính nó. */
-function matCua(o: Element): DOMRect | null {
-  if (o.matches('.avatar, .mat, .m')) return thay(o);
-  return thay(o.querySelector('.avatar, .mat, .mat-ct'));
-}
-
-/**
- * MỌI CHỖ ĐỀU TRỎ VÀO AVATAR (19.11.2026, chủ dự án: "bong bóng chat trỏ vào avatar thay vì tên" — rồi
- * "ở một số chỗ vẫn chưa trỏ bên trên avatar"): trong ván, phòng chờ, bảng kết quả — bong bóng nằm TRÊN,
- * đuôi chỉ xuống tâm mặt. Trước đó phòng chờ / bảng kết quả đặt bong bóng sau tên, đuôi chỉ sang trái.
- * Kẹp bong bóng vào màn hình rồi dời CHÂN ĐUÔI (`vt`) cho nó vẫn đúng tâm mặt.
- * Bảng kết quả đang mở thì neo vào đó trước: nó phủ kín màn chơi, chip trong ván bị che.
- */
-function timNeo(id: string): Neo {
-  const k = CSS.escape(id);
-  const kq = document.querySelector(`[data-kq-for="${k}"]`);
-  const o = thay(kq) ? kq! : document.querySelector(`[data-chip-for="${k}"]`);
-  const ro = thay(o);
-  if (!ro) return null;
-  const trongVan = o !== kq && !o!.closest('.lobby-list');
-  const av = matCua(o!);
-  const ten = thay(o!.querySelector('.ten-kq, b'));
-  const tam = av ? av.left + av.width / 2 : ten ? ten.left + 18 : ro.left + ro.width / 2;
-  // Dòng kết quả / phòng chờ: bong bóng nhỏ (~64px), nằm giữa chữ chứ không giữa khoảng trời trống
-  const x = Math.min(Math.max(tam - 24, 8), window.innerWidth - (trongVan ? 118 : 72));
-  const y = trongVan ? ro.top - 10 : (av ?? ten ?? ro).top - 6;
-  return { x, y, nho: !trongVan, vt: Math.max(16, tam - x) };
-}
+/* Chỗ neo: lib/neo-bong.ts — CHUNG với bong bóng chữ (LoiNoi), hai loại phải nằm đúng một chỗ. */
+const timNeo = (id: string): Neo => timNeoBong(id);
 
 function doLai(): void {
   const m: Record<string, Neo> = {};

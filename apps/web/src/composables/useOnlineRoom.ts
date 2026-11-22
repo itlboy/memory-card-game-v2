@@ -1241,6 +1241,8 @@ export function useOnlineRoom() {
           key: ++bongKey
         };
         emojiBong.value = [...emojiBong.value.filter((b) => b.from !== msg.from), moi];
+        // Emoji và câu nói đứng CÙNG MỘT CHỖ trên mặt (lib/neo-bong.ts) → cái mới THAY cái cũ của người đó
+        loiNoi.value = loiNoi.value.filter((x) => x.from !== msg.from);
         clearTimeout(bongHen.get(msg.from));
         bongHen.set(msg.from, setTimeout(() => {
           emojiBong.value = emojiBong.value.filter((b) => b.from !== msg.from);
@@ -1255,6 +1257,7 @@ export function useOnlineRoom() {
         const sender = room.value?.players.find((p) => p.id === msg.from);
         const name = tenHien(msg.from);
         loiNoi.value = [...loiNoi.value.filter((x) => x.from !== msg.from), { from: msg.from, id: msg.id, name, key: ++loiNoiKey }];
+        emojiBong.value = emojiBong.value.filter((b) => b.from !== msg.from);   // cùng chỗ với bong bóng emoji — thay nhau
         clearTimeout(loiNoiHen.get(msg.from));
         // 3,2 giây: đủ đọc một câu ngắn, không đủ lâu để che bàn thẻ
         loiNoiHen.set(msg.from, setTimeout(() => {
