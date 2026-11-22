@@ -26,12 +26,15 @@ const coApp = typeof document !== 'undefined' && !!document.getElementById('app'
 </template>
 
 <style scoped>
+/*
+ * CAO BẰNG HÀNG NÚT, KHÔNG DẢI NỀN (23.11.2026, chủ dự án: "chiều cao thanh icon chat cao quá, đang bị đè vào các nút
+ * chức năng… cho bằng với trước kia"). Bản 22.11 là một dải nền mờ có viền, đệm 7/8px rồi 4/5px: trên iPhone dải đó
+ * cộng cả vùng an toàn đáy thành 82px, và ở máy nhỏ đè 4px lên nút "Thoát phòng" của bảng kết quả. Nay chỉ còn hàng nút
+ * (38px) + 2px mỗi bên = 42px = `--eb-dock-h`; nền trong suốt nên vùng an toàn đáy không thành dải màu.
+ */
 .eb-dock {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 18;
-  /* 4/5px (22.11.2026): thanh cao đúng 48px = --eb-dock-h (trước 7/8px ra 54px, lố hơn chỗ màn trên chừa) */
-  padding: 4px 6px calc(5px + env(safe-area-inset-bottom, 0px));
-  background: color-mix(in srgb, var(--panel-solid) 94%, transparent);
-  border-top: 1px solid var(--line);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  /* đáy: vùng an toàn TRỪ phần lún (`--eb-lun`, global.css) — trên iPhone hàng nút cách đáy màn 18px thay vì 36px */
+  padding: 2px 6px calc(2px + env(safe-area-inset-bottom, 0px) - var(--eb-lun, 0px));
 }
 </style>

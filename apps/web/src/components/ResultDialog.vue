@@ -594,7 +594,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 }
 /* Online: thanh emoji cố định ở đáy (EmojiDock, z 18) — chừa chỗ để hộp không chui dưới thanh */
-.overlay.co-dock { padding-bottom: calc(20px + var(--eb-dock-h, 48px) + env(safe-area-inset-bottom, 0px)); }
+.overlay.co-dock { padding-bottom: calc(20px + var(--eb-dock-h, 42px) + env(safe-area-inset-bottom, 0px) - var(--eb-lun, 0px)); }
 .panel {
   width: 100%; max-width: 400px; position: relative;
   /* Bán trong suốt + blur: nhìn xuyên được màn ăn mừng phía sau */
@@ -894,7 +894,7 @@ h2 { margin: 0 0 4px; }
  */
 @media (max-height: 700px) {
   .overlay { padding: calc(10px + env(safe-area-inset-top, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
-  .overlay.co-dock { padding-bottom: calc(10px + var(--eb-dock-h, 48px) + env(safe-area-inset-bottom, 0px)); }
+  .overlay.co-dock { padding-bottom: calc(14px + var(--eb-dock-h, 42px) + env(safe-area-inset-bottom, 0px) - var(--eb-lun, 0px)); }
   .panel { padding: 14px 16px; }
   h2 { font-size: var(--text-lg); }
   .reason { margin-bottom: 6px; font-size: 13px; }
