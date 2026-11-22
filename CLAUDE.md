@@ -1746,3 +1746,41 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Nút "Phá" → emit `pha-ky-luc` → App `phaKyLuc` vào thẳng màn / cỡ bàn (1 người, luật mặc định).
 - BẪY: `:global([data-theme='dark'] .panel)` của BXH đặt biến cho MỌI `.panel` (vd `--ban-nen`) và skin có lớp `.nac` —
   biến/lớp ở đây đặt tiền tố `--kl-` / `.kl-` để khỏi đụng.
+- **SERVER GAME Ở LẠI NODE, KHÔNG CHUYỂN BUN (đo 22.11.2026, chủ dự án chốt "không làm")** — đừng đề xuất lại nếu chưa có
+  số mới. Bài đo `tools/so-runtime.mjs` (cùng `dist/server.mjs`, 250 phòng × 4 người giả lật liên tục 40 s, trung vị 3 lượt),
+  chạy trên Linux x64 bằng workflow tay `so-runtime.yml` (kèm 12 smoke + smoke deploy MySQL dưới Bun — đều QUA):
+  Node 26.13 ↔ Bun 1.4.5 = RSS rỗi 67 ↔ 48 MB · RSS đỉnh 174 ↔ 120 · RSS sau khi mọi người rời 186 ↔ 100 · khởi động 73 ↔ 53 ms ·
+  file tĩnh 7352 ↔ 8091 req/s · CPU cho cùng tải 3,7 ↔ 4,2 s (Bun TỐN HƠN ~12%) · trễ lật p50 0,17 ↔ 0,19 ms, p99 ~1 ms cả hai.
+  Tức Bun chỉ hơn RAM (vài chục MB) và khởi động; CPU thua nhẹ, độ trễ như nhau. Trên macOS arm64 với Node 24 thì Bun hơn cả
+  CPU (−13%) — ĐỪNG lấy số Mac làm chuẩn. Vì sao không "nhanh như trên mạng": server đi qua lớp giả lập Node của Bun
+  (`node:http` + `ws` + `mysql2`), việc chính là JS thuần (luật ván, JSON) nên là V8 đấu JavaScriptCore; số quảng cáo đo
+  `Bun.serve`/WebSocket gốc — muốn có phải viết lại tầng mạng và mất khả năng chạy Node. Tải thật quá nhẹ (250 phòng ≈ 10% một
+  nhân). Nếu sau này cần RAM cho máy Dallas 768 MB: code KHÔNG phải sửa, chỉ đổi Dockerfile (ảnh nền, CMD, HEALTHCHECK `node -e`)
+  + `/api/ping` (Bun tự xưng `node v26.x`; `vongSuKien` ra 0 vì phép trừ chu kỳ lấy mẫu chỉ đúng với Node) — thử máy Dallas
+  bằng nhãn ảnh riêng trước. CHƯA thử dưới Bun: ảnh Alpine/musl thật, gửi push thật, đăng nhập Google/Apple, chạy dài ngày.
+  Bun 1.1.9 không chạy nổi (thiếu `fs/promises.statfs`) — dùng bản mới. Smoke `smoke-noi-nhanh` + `smoke-chat-limit` đang hỏng SẴN (không
+  đọc được `QUICK_SAYS`/`QUICK_EMOJIS` từ nguồn engine) — không liên quan runtime.
+- **PHÒNG BOT THƯỜNG TRỰC (22.11.2026, chủ dự án) — `apps/node-server/src/phong-bot.ts`, MODULE RIÊNG, server KHÔNG biết gì về nó.**
+  Mỗi bot là một kết nối WebSocket thường (như `tools/gia-nguoi.mjs`): bot đầu `POST /api/rooms` nên làm chủ phòng, bot hai vào
+  sau. Vòng lặp: phòng chờ `CHO_MS` (30 s) → bốc mức máy (5 cấp, hai bot lệch ≤ 1 cấp) + số thẻ (`THE_MIN`–`THE_MAX`, 12–59) →
+  Bắt đầu → chơi bằng AI của engine (`botPick/observe/botThinkMs`, chỉ nhìn bàn công khai) → bảng kết quả `XEM_KQ_MS` → `tolobby`.
+  Người vào lúc chờ thì CHƠI CÙNG (bàn tối thiểu 20 thẻ khi 3 người, 28 khi 4), vào giữa ván là khán giả (luật phòng sẵn có).
+  Người chưa bấm Sẵn sàng khi hết giờ: nhắc + chờ thêm 15 s, vẫn im thì mời ra (không thì phòng kẹt). Mọi người thật đã sẵn
+  sàng → vào ván sau 5 s. Sau ~`DOI_SAU` ván (10 ± 2) và KHÔNG còn người thật trong phòng: rời, lập phòng MỚI với TÊN MỚI.
+  TÊN lấy từ bộ sinh tên người chơi (`apps/web/src/lib/ten-goc.ts` — phần thuần tách từ ten-ngau-nhien.ts, dùng CHUNG: đổi
+  danh sách là đổi cho cả hai). Chủ dự án chọn "cơ chế riêng, hạn chế can thiệp server" và "bot lấy tên người chơi" → ĐỪNG thêm
+  cờ `may`/cửa riêng ở room.ts cho nó. Hệ quả đã chấp nhận: thắng bot tính như thắng người; bot hiện trong sổ phòng như người;
+  phòng công khai mới vẫn đi qua luật thông báo "có phòng mới" (thongbao.ts: mỗi mã phòng một lần, có giãn cách).
+  Gói: `build.mjs` ra file THỨ HAI `dist/phong-bot.mjs` trong CÙNG ảnh; chạy ở container riêng `node dist/phong-bot.mjs` với
+  `MM_SERVER=http://server:8080` (+ `SO_PHONG` mặc định 2). SIGTERM = bot rời phòng gọn; bị giết ngang thì phòng treo "đang chơi"
+  tới hết hạn rớt mạng 5 phút. Thử máy: server `PORT=8795` + `MM_SERVER=… CHO_MS=8000 DOI_SAU=2 THE_MAX=16 node dist/phong-bot.mjs`,
+  thả người bằng `gia-nguoi.mjs <mã>` (`--no-ready` để thử nhánh mời ra).
+- **GHÉP TRẬN THI ĐẤU TỰ ĐỘNG: TẠM TẮT từ 22.11.2026 (1.9.29)** — chủ dự án: "hơi phiền mà hiệu quả không cao". Công tắc ở
+  `apps/node-server/src/index.ts` `THI_DAU_BAT` (= biến môi trường `THI_DAU=1`, MẶC ĐỊNH TẮT): tắt thì sảnh không dựng thi đấu
+  → không ai bị hỏi `td_hoi`, không tin đẩy thi đấu, lời chào sảnh không kèm `td:1` nên app tự ẩn công tắc "Gợi ý thi đấu".
+  Code thi đấu (thidau.ts, ThiDau.vue, phòng thi đấu, thống kê) GIỮ NGUYÊN — bật lại chỉ cần đặt `THI_DAU=1` cho server,
+  không cần bản app. Mọi mục "THI ĐẤU" phía trên mô tả lúc BẬT.
+- **TÊN NGẪU NHIÊN 9 NGÔN NGỮ (22.11.2026, 1.9.29)**: `lib/ten-goc.ts` có bộ riêng cho vi · en · id · tr · ja · ko · zh · zh-TW · th
+  (bảy tiếng sau "ghép thẳng được", chủ dự án chọn làm trước; người mới VÀ bot phòng cùng dùng). es · pt · fr · it · de · ru
+  CHƯA có — vẫn tiếng Anh, vì giống ngữ pháp/đuôi tính từ phải khớp. ja/zh/zh-TW/th viết LIỀN, không dấu cách. Tên do máy
+  ghép, CHƯA có người bản xứ duyệt.

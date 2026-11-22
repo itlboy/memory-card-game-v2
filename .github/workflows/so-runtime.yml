@@ -1,0 +1,77 @@
+name: So runtime server (Node ↔ Bun)
+
+# Đo trên LINUX (server thật chạy Linux; số macOS chỉ tham khảo) + chạy bộ smoke của docker.yml dưới Bun.
+# CHỈ chạy tay (workflow_dispatch). Không đóng ảnh, không deploy gì.
+on:
+  workflow_dispatch:
+
+env:
+  BUN_VERSION: 1.4.5
+
+jobs:
+  so:
+    name: Smoke dưới Bun + đo hiệu năng
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: smoke
+          MYSQL_DATABASE: thebai
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psmoke"
+          --health-interval=5s --health-timeout=3s --health-retries=30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: pnpm
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build && pnpm --filter @mm/node-server build
+
+      - name: Smoke E2E trên server chạy bằng BUN
+        run: |
+          cd apps/node-server
+          PORT=8090 LOBBY_HOLD_MS=2000 WEB_DIR=../../apps/web/dist bun dist/server.mjs > /tmp/srv.log 2>&1 & echo $! > /tmp/srv.pid
+          cd ../..
+          for i in $(seq 1 30); do
+            curl -sf -m 1 http://127.0.0.1:8090/health >/dev/null && break || sleep 1
+          done
+          curl -s http://127.0.0.1:8090/api/ping; echo
+          export MM_SERVER=http://127.0.0.1:8090
+          pids=""
+          for s in online options peek leave-cancel thoat-app may-online dong-doi xem-nhac choilai sophong tolobby kick; do
+            LOBBY_HOLD_MS=2000 node "tools/smoke-$s.mjs" & pids="$pids $!"
+          done
+          rc=0
+          for p in $pids; do wait "$p" || rc=1; done
+          kill "$(cat /tmp/srv.pid)"
+          [ $rc -eq 0 ] || tail -80 /tmp/srv.log
+          exit $rc
+
+      - name: Smoke deploy giữa ván dưới BUN (MySQL + khởi động lại)
+        env:
+          MYSQL_URL: mysql://root:smoke@127.0.0.1:3306/thebai
+        run: |
+          bat() { cd apps/node-server; PORT=8091 WEB_DIR=../../apps/web/dist bun dist/server.mjs >> /tmp/srv2.log 2>&1 & echo $! > /tmp/srv2.pid; cd ../..; }
+          bat
+          for i in $(seq 1 30); do curl -sf -m 1 http://127.0.0.1:8091/health >/dev/null && break || sleep 1; done
+          export -f bat
+          rc=0
+          MM_SERVER=http://127.0.0.1:8091 node tools/smoke-deploy.mjs \
+            --restart 'kill -TERM "$(cat /tmp/srv2.pid)"; sleep 5; bat' || rc=1
+          kill "$(cat /tmp/srv2.pid)" 2>/dev/null || true
+          cat /tmp/srv2.log | tail -40
+          exit $rc
+
+      - name: Đo hiệu năng Node ↔ Bun
+        run: |
+          ulimit -n 16384
+          LAP=3 node tools/so-runtime.mjs | tee /tmp/so.txt
+          { echo '### So runtime (Linux)'; echo; grep -E '^(So runtime|\|)' /tmp/so.txt; } >> "$GITHUB_STEP_SUMMARY"

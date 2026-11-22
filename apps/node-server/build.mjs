@@ -64,3 +64,18 @@ await build({
   }
 });
 console.log('đã gói: dist/server.mjs');
+
+/*
+ * PHÒNG BOT THƯỜNG TRỰC (src/phong-bot.ts): file THỨ HAI trong cùng ảnh, chạy ở container riêng
+ * (`node dist/phong-bot.mjs`). Không dính gì tới server.mjs — chỉ là một client WebSocket, không cần `ws`/`mysql2`.
+ */
+await build({
+  entryPoints: ['src/phong-bot.ts'],
+  outfile: 'dist/phong-bot.mjs',
+  bundle: true,
+  platform: 'node',
+  target: 'node26',
+  format: 'esm',
+  sourcemap: true
+});
+console.log('đã gói: dist/phong-bot.mjs');
