@@ -207,6 +207,9 @@ export function taoBoiCanh(
         },
         setAlarm: async (when: number) => {
           if (box.alarmTimer) clearTimeout(box.alarmTimer);
+          // Phòng đã dẹp thì KHÔNG hẹn gì nữa: nó đã ra khỏi bảng phòng, không ai tắt được đồng hồ này, và một mốc đã
+          // qua là quay vòng mỗi ~1 ms tới khi khởi động lại (lỗi 22.11.2026 — xem `dongThiDau` ở room.ts).
+          if (daDep) { box.alarmTimer = null; alarmLuc = null; return; }
           alarmLuc = when;
           const cho = Math.max(0, when - Date.now());
           box.alarmTimer = setTimeout(() => {

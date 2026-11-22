@@ -1155,6 +1155,7 @@ export class RoomDO extends DurableObject<Env> {
     // Đếm TRỪ socket đang đóng: trong webSocketClose nó vẫn nằm trong getWebSockets()
     if (this.room.status === 'ended' && !this.ctx.getWebSockets().some((s) => s !== ws)) {
       await this.veLobby(this.room.players);
+      if (!this.room) return;   // phòng thi đấu: `veLobby` GIẢI TÁN chứ không về phòng chờ — không còn gì để giữ hay hẹn
       this.room.emptyAt = Date.now();
       await this.save();
       await this.scheduleNext();
@@ -1279,6 +1280,7 @@ export class RoomDO extends DurableObject<Env> {
     // (xem chú thích ở webSocketClose, 09.11.2026).
     if (this.room.status === 'ended' && this.ctx.getWebSockets().length === 0) {
       await this.veLobby(this.room.players);
+      if (!this.room) return;   // phòng thi đấu đã giải tán (xem `dongThiDau`)
       this.room.emptyAt = now;
       await this.save();
       await this.scheduleNext();
@@ -1475,6 +1477,15 @@ export class RoomDO extends DurableObject<Env> {
     for (const sock of this.ctx.getWebSockets()) sock.close(4002, 'room-cancelled');
     await this.depPhong('cancelled');
     await this.ctx.storage.deleteAlarm();
+    /*
+     * PHÒNG ĐÃ CHẾT thì bỏ luôn khỏi bộ nhớ (22.11.2026). Thiếu hai dòng này, nơi gọi `veLobby()` chạy tiếp như thể phòng
+     * vừa về phòng chờ: đặt `emptyAt`, rồi `scheduleNext()` hẹn mốc "im lặng" cho một phòng `ended` không còn ai. Tới mốc,
+     * alarm lại thấy "hết ván, 0 socket" → giải tán lần nữa → hẹn lại đúng mốc ĐÃ QUA → alarm nổ mỗi ~1 ms, mãi mãi.
+     * Đo trên server Mỹ: một trận thi đấu có người bỏ rồi người kia thoát app làm Node ăn ~26% CPU suốt 7 giờ, tới khi
+     * khởi động lại (phòng ma không nằm trong MySQL nên không dựng lại).
+     */
+    this.room = null;
+    this.game = null;
   }
 
   /** Phòng thi đấu tự mở ván với những người ĐANG kết nối (≥ 2); thiếu thì để nguyên phòng chờ. */
