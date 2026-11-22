@@ -1,54 +1,42 @@
 <script setup lang="ts">
 /**
- * BONG BÓNG CÂU NÓI NHANH — hiện ngay DƯỚI chip người nói vài giây rồi tự tắt
- * (chủ dự án chọn 14.10.2026: không chiếm chỗ của bàn thẻ).
+ * BONG BÓNG CÂU NÓI NHANH — hiện TRÊN mặt người nói, ĐÚNG CHỖ của bong bóng emoji (22.11.2026, chủ dự án:
+ * "bong bóng chat chữ cũng hiện trên, vị trí giống hệt với chat icon"). Chỗ neo tính ở lib/neo-bong.ts,
+ * CHUNG với EmojiBlast — đừng tự tính ở đây. (Bản 14.10.2026 đặt DƯỚI chip để khỏi chiếm bàn thẻ; thành
+ * ra emoji một nơi, chữ một nơi.) Cùng một người thì emoji và câu nói THAY nhau (useOnlineRoom), không chồng.
  *
  * Teleport ra <body> + position: fixed, cùng lý do với EmojiBlast: chip có
  * `overflow: hidden` và `main` cuộn được, gắn bong bóng vào trong là bị cắt.
- * Neo theo `data-chip-for` (chip trong ván, dòng ở phòng chờ); không thấy chip
- * (khán giả, màn khác đang phủ) thì xếp ở mép trên giữa màn kèm tên người nói.
+ * Không thấy chip (khán giả, màn khác đang phủ) thì xếp ở mép trên giữa màn kèm tên người nói.
  *
  * CHỈ MOUNT MỘT LẦN trong cây (như EmojiBlast).
  */
 import type { QuickSay } from '@mm/engine';
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import KhungBong from './KhungBong.vue';
 import { td } from '@/lib/i18n';
+import { timNeoBong, type NeoBong } from '@/lib/neo-bong';
 import IconNoi from './IconNoi.vue';
 
 type Loi = { from: string; id: QuickSay; name: string; key: number };
 const props = defineProps<{ o: { loiNoi: { value: Loi[] } } }>();
 
 /** Vị trí từng bong bóng theo key; null = không có chip → xếp ở mép trên. */
-const neo = ref<Record<number, { x: number; y: number; vt: number; tren?: boolean } | null>>({});
+const neo = ref<Record<number, NeoBong | null>>({});
 
-const thay = (el: Element | null | undefined): DOMRect | null => {
-  const r = el?.getBoundingClientRect();
-  return r && r.width > 0 && r.height > 0 ? r : null;
-};
-
-watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
-  const m: Record<number, { x: number; y: number; vt: number; tren?: boolean } | null> = {};
+function doLai(): void {
+  const m: Record<number, NeoBong | null> = {};
   for (const l of props.o.loiNoi.value) {
-    const k = CSS.escape(l.from);
-    // Bảng kết quả đang mở thì neo vào dòng của người nói trong bảng (bảng phủ kín màn chơi — chip trong
-    // ván bị che, trỏ vào đó là trỏ vào khoảng không) và đặt bong bóng TRÊN mặt: dưới mặt là tên + điểm.
-    const kq = document.querySelector(`[data-kq-for="${k}"]`);
-    const trongKq = !!thay(kq);
-    const chip = trongKq ? kq : document.querySelector(`[data-chip-for="${k}"]`);
-    const r = thay(chip);
-    if (!r) { m[l.key] = null; continue; }
-    // ĐUÔI CHỈ VÀO AVATAR (19.11.2026, chủ dự án). Bong bóng canh TRÁI từ tâm avatar − 24px (rộng tới ~220px),
-    // kẹp vào màn hình rồi dời chân đuôi (`vt`) cho vẫn đúng tâm avatar.
-    const av = chip!.matches('.avatar, .mat, .m') ? r : thay(chip!.querySelector('.avatar, .mat, .mat-ct'));
-    const tam = av ? av.left + av.width / 2 : r.left + r.width / 2;
-    const x = Math.min(Math.max(tam - 24, 8), window.innerWidth - 228);
-    m[l.key] = trongKq
-      ? { x, y: (av ?? r).top - 12, vt: Math.max(16, tam - x), tren: true }
-      : { x, y: r.bottom + 12, vt: Math.max(16, tam - x) };   // chừa chỗ cho đuôi (12px) mọc lên chip
+    // Bề rộng THẬT (max-content, không đổi theo vị trí): chữ dài thì kẹp mép phải sớm hơn, chữ ngắn thì
+    // đứng đúng chỗ bong bóng emoji. Chưa đo được (khung hình đầu) thì lấy bề rộng tối đa.
+    const el = document.querySelector<HTMLElement>(`.bong[data-loi="${l.key}"]`);
+    m[l.key] = timNeoBong(l.from, el?.offsetWidth || 224);
   }
   neo.value = m;
-}, { flush: 'post' });
+}
+watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), doLai, { flush: 'post' });
+onMounted(() => window.addEventListener('resize', doLai));
+onBeforeUnmount(() => window.removeEventListener('resize', doLai));
 </script>
 
 <template>
@@ -56,10 +44,10 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
     <TransitionGroup name="loi" tag="div" class="loi-noi" aria-live="polite">
       <div
         v-for="(l, i) in props.o.loiNoi.value" :key="l.key"
-        class="bong" :class="{ tren: !neo[l.key], neo: !!neo[l.key], 'tren-mat': neo[l.key]?.tren }"
+        class="bong" :class="{ tren: !neo[l.key], neo: !!neo[l.key] }" :data-loi="l.key"
         :style="neo[l.key] ? { left: `${neo[l.key]!.x}px`, top: `${neo[l.key]!.y}px` } : { top: `calc(${10 + i * 46}px + env(safe-area-inset-top, 0px))` }"
       >
-        <KhungBong :canh="neo[l.key] ? (neo[l.key]!.tren ? 'duoi' : 'tren') : undefined" :day="2" :r="14" :vt="neo[l.key]?.vt" />
+        <KhungBong :canh="neo[l.key] ? 'duoi' : undefined" :day="2" :r="14" :vt="neo[l.key]?.vt" />
         <IconNoi :id="l.id" :size="22" />
         <span class="chu"><b v-if="!neo[l.key]">{{ l.name }}: </b>{{ td(`say.${l.id}`) }}</span>
       </div>
@@ -83,14 +71,12 @@ watch(() => props.o.loiNoi.value.map((l) => l.key).join(','), () => {
   font-size: var(--text-sm); font-weight: 700; line-height: 1.25;
   pointer-events: none;
 }
-/* Mũi chỉ lên chip người nói: vẽ chung một nét với thân (KhungBong.vue) */
-/* Neo vào avatar: canh trái theo `x` (đã tính sẵn), không căn giữa */
-.bong.neo { transform: none; }
-/* Bảng kết quả: bong bóng TRÊN mặt, đuôi chỉ xuống — `top` là chỗ mũi đuôi, kéo lên trọn chiều cao */
-.bong.tren-mat { transform: translateY(-100%); }
+/* Đuôi chỉ XUỐNG mặt người nói: vẽ chung một nét với thân (KhungBong.vue) */
+/* Neo vào avatar: canh trái theo `x`, `top` là chỗ mũi đuôi → kéo lên trọn chiều cao (y như EmojiBlast `.tren`) */
+.bong.neo { transform: translateY(-100%); }
 .bong .chu { min-width: 0; }
 .loi-enter-active { transition: opacity .16s ease, translate .16s ease; }
 .loi-leave-active { transition: opacity .25s ease; }
-.loi-enter-from { opacity: 0; translate: 0 -6px; }
+.loi-enter-from { opacity: 0; translate: 0 6px; }
 .loi-leave-to { opacity: 0; }
 </style>

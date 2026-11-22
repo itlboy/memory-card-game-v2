@@ -1027,7 +1027,10 @@
     danh sách. Biểu tượng người xem = xô bỏng ngô `BongNgo.vue` (chủ dự án chê 👁/👀). Không có "giữ chỗ".
   - Smoke: `tools/smoke-xem-nhac.mjs` (chạy trong docker.yml).
   - Bong bóng emoji + câu nói nhanh ở MỌI chỗ (trong ván, phòng chờ, bảng kết quả): ĐUÔI CHỈ VÀO AVATAR (không vào tên) — kẹp bong bóng vào màn rồi
-    dời chân đuôi (`vt` của KhungBong) cho đúng tâm avatar. Ảnh chia sẻ ván nhiều người có khung TỶ SỐ LOẠT
+    dời chân đuôi (`vt` của KhungBong) cho đúng tâm avatar. Từ 22.11.2026 (1.9.28) bong bóng CHỮ cũng nằm TRÊN mặt, ĐÚNG CHỖ bong bóng
+    emoji (chủ dự án: "vị trí giống hệt với chat icon"; bản 14.10 đặt chữ DƯỚI chip): chỗ neo tính ở MỘT nơi `lib/neo-bong.ts`
+    (`timNeoBong`, LoiNoi truyền bề rộng thật để kẹp mép phải) — đừng tính lại trong component. Cùng một người thì emoji và
+    câu nói THAY nhau (useOnlineRoom xoá cái cũ), không chồng hai bong bóng. Ảnh chia sẻ ván nhiều người có khung TỶ SỐ LOẠT
     ("Tỷ số · Ván N" + "Kiên 3 – 1 Linh", người dẫn tô vàng) — `NoiDungAnh.tySo`.
 - **CHUÔNG "BÁO TÔI KHI CÓ PHÒNG MỚI" (18.11.2026, app ≥ 1.8.17)**: nút chuông cạnh tiêu đề
   "Phòng đang chờ" (`OnlineScreen.vue`), bấm lần nữa là TẮT (chủ dự án: "nhớ có nút tắt"). Client
@@ -1058,7 +1061,7 @@
   do: App Store 1.2 / Google Play bắt lọc từ xấu + báo cáo + chặn người chơi. Trên dây
   chỉ đi MÃ câu, mỗi máy tự dịch. Server bỏ mã lạ và tính CHUNG hạn mức với emoji.
   Nút 💬 là con ĐẦU của thanh emoji (luật ẩn bớt không chạm tới); bong bóng ở
-  `LoiNoi.vue` (teleport, neo `data-chip-for` như EmojiBlast). Smoke:
+  `LoiNoi.vue` (teleport, neo chung `lib/neo-bong.ts` với EmojiBlast — TRÊN mặt người nói). Smoke:
   `tools/smoke-noi-nhanh.mjs`.
 - **Hết ván online phải còn đường VỀ PHÒNG CHỜ** (`t:'tolobby'`, một người bấm
   là đủ). `t:'again'` đòi mọi người còn kết nối cùng bấm nên khi đối phương đã
