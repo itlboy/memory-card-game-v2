@@ -1758,5 +1758,5 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   nhân). Nếu sau này cần RAM cho máy Dallas 768 MB: code KHÔNG phải sửa, chỉ đổi Dockerfile (ảnh nền, CMD, HEALTHCHECK `node -e`)
   + `/api/ping` (Bun tự xưng `node v26.x`; `vongSuKien` ra 0 vì phép trừ chu kỳ lấy mẫu chỉ đúng với Node) — thử máy Dallas
   bằng nhãn ảnh riêng trước. CHƯA thử dưới Bun: ảnh Alpine/musl thật, gửi push thật, đăng nhập Google/Apple, chạy dài ngày.
-  Bun < 1.2 không chạy nổi (thiếu `fs/promises.statfs`). Smoke `smoke-noi-nhanh` + `smoke-chat-limit` đang hỏng SẴN (không
+  Bun 1.1.9 không chạy nổi (thiếu `fs/promises.statfs`) — dùng bản mới. Smoke `smoke-noi-nhanh` + `smoke-chat-limit` đang hỏng SẴN (không
   đọc được `QUICK_SAYS`/`QUICK_EMOJIS` từ nguồn engine) — không liên quan runtime.
