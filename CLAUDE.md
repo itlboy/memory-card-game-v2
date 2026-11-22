@@ -1691,8 +1691,12 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   kèm nền tảng / ngôn ngữ / nước. Loại: td_dot · td_hoi · td_tra_loi · td_chia · td_cho · td_chon_the · td_van · td_choi_lai ·
   td_tat · td_push. Mỗi sự kiện cũng in một dòng log `[thidau] …`. Xem: `GET /api/thongke/thidau?ngay=30` + header
   `x-thongke-key` = env `THONGKE_KEY` (chưa đặt → 404). `/api/ping` `phong.thiDau` = {cho, tran, dot}.
-- NỢ ĐÃ BIẾT: mặt người chơi trên thẻ/trận là mặt SẢNH cấp, vào phòng lại được phòng cấp mặt khác; xếp nhóm mới chỉ xáo
-  ngẫu nhiên + tránh cặp vừa đấu (chưa xếp theo điểm tuần); "Chơi lại" kẹt nếu một người đứng im ở bảng kết quả.
+- **Xếp nhóm theo ĐIỂM TUẦN** (23.11.2026): `lapCacTran` xin `diemTuan(ai)` (taikhoan.ts, quá 400 ms thì coi như 0), xếp giảm
+  dần rồi cắt nhóm; hai người vừa đấu nhau thì thử đổi chỗ hai người kề để tách. Không có nguồn điểm → xếp đồng bộ như cũ.
+- **Mặt người chơi khớp**: app gửi `?mat=` (mặt sảnh đã cấp, `matVaoPhong`) khi vào phòng thi đấu; room chỉ nhận cho phòng
+  thi đấu, mặt phải thuộc `AVATARS` và chưa ai dùng.
+- **"Chơi lại" không kẹt**: phòng thi đấu, từ lúc có 2 phiếu thì `thiDau.henLai` = +12 giây; hết hạn (alarm) vào ván với những
+  người ĐÃ bấm, người đứng im nhận `closed` code `thiDau` rồi rời trận.
 
 ## Bảng xếp hạng: tải thêm khi cuộn + lọc người online (23.11.2026, chủ dự án: "lazyload để load thêm những người đang ẩn", "filter đi để mời thách đấu cho dễ")
 

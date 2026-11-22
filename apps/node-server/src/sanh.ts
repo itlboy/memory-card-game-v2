@@ -96,6 +96,7 @@ export function moSanh(opts: {
   xacDinh?(khach: unknown, token: unknown): string | null;
   /** Lập phòng thi đấu (thidau.ts) — thiếu thì tính năng thi đấu tắt. */
   taoPhongThiDau?(soThe: number, n: number): Promise<string | null>;
+  diemTuanThiDau?(ai: string[]): Promise<Record<string, number>>;
   ghiThiDau?(loai: string, nguoi: { who: string | null; platform: string; lang: string; country: string } | null, duLieu: Record<string, unknown>): void;
   /** Công tắc "Gợi ý thi đấu" đổi trên một máy có đăng ký thông báo đẩy. */
   datPushThiDau?(token: string, bat: boolean): void;
@@ -120,7 +121,7 @@ export function moSanh(opts: {
   };
   const td: ThiDau | null = opts.taoPhongThiDau ? moThiDau({
     ketNoi, gui: (k, tin) => gui(k as KetNoi, tin), now,
-    taoPhong: opts.taoPhongThiDau, ghi: ghiTd, baoCho: opts.baoChoThiDau
+    taoPhong: opts.taoPhongThiDau, ghi: ghiTd, baoCho: opts.baoChoThiDau, diemTuan: opts.diemTuanThiDau
   }) : null;
   // Nhịp riêng 10 giây cho thi đấu: người chờ hết hạn phải được báo sớm hơn nhịp tim 30 giây
   const nhipTd = setInterval(() => td?.nhip(), 10_000);

@@ -152,6 +152,33 @@ describe('đợt gọi', () => {
   });
 });
 
+describe('xếp nhóm theo điểm tuần', () => {
+  it('4 người: hai người điểm cao một trận, hai người điểm thấp một trận; vừa đấu nhau thì đợt sau được tách', async () => {
+    const x = dung();
+    const diem: Record<string, number> = { 'u:1': 900, 'u:2': 850, 'u:3': 120, 'u:4': 100 };
+    // dựng lại với nguồn điểm
+    const { moThiDau: mo } = await import('../../node-server/src/thidau');
+    const tin = new Map<string, Record<string, unknown>[]>();
+    let t = 5_000_000; const hen: { luc: number; f: () => void; huy: boolean }[] = [];
+    const td = mo({
+      ketNoi: x.ketNoi, now: () => t, gui: (k, m) => { tin.get(k.sid)!.push(m as Record<string, unknown>); },
+      taoPhong: async () => '111111', diemTuan: async () => diem, ngauNhien: () => 0.5,
+      hen: (f, ms) => { const h = { luc: t + ms, f, huy: false }; hen.push(h); return h as unknown as ReturnType<typeof setTimeout>; }
+    });
+    const chay = async (ms: number) => { const den = t + ms; for (;;) { const h = hen.filter((q) => !q.huy && q.luc <= den).sort((a, b) => a.luc - b.luc)[0]; if (!h) break; h.huy = true; t = Math.max(t, h.luc); h.f(); for (let i = 0; i < 6; i++) await Promise.resolve(); } t = den; };
+    const ng = ['a', 'b', 'c', 'd'].map((sid, i) => { const k: NguoiTd = { sid, ten: sid, mat: '🙂', tt: 'chu', td: tdMoi(true), ai: `u:${[3, 1, 4, 2][i]}` }; x.ketNoi.set(sid, k); tin.set(sid, []); return k; });
+    const cuoi = (sid: string, loai: string) => [...tin.get(sid)!].reverse().find((m) => m.t === loai);
+    td.xet(); await chay(1000);
+    for (const k of ng) td.tin(k, { t: 'td_tra', id: cuoi(k.sid, 'td_hoi')!.id, dong: true });
+    await chay(GOM_MS + 500);
+    const tranCua = (sid: string) => cuoi(sid, 'td_tran')!.id;
+    // b (u:1, 900) với d (u:2, 850); a (u:3, 120) với c (u:4, 100)
+    expect(tranCua('b')).toBe(tranCua('d'));
+    expect(tranCua('a')).toBe(tranCua('c'));
+    expect(tranCua('a')).not.toBe(tranCua('b'));
+  });
+});
+
 describe('chưa đủ người', () => {
   it('chỉ một người tham gia → được giữ chờ + báo đẩy; người mới tới bấm tham gia là thành trận NGAY', async () => {
     const x = dung();

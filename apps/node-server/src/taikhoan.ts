@@ -420,6 +420,8 @@ export interface TaiKhoan {
   datOnline(f: (ai: string) => { sid?: string; ban: boolean } | null): void;
   /** Sảnh đưa danh sách danh tính đang online (`u:<id>` / `k:<mã băm>`) — cho bộ lọc "người đang online" của bảng xếp hạng. */
   datDsOnline(f: () => string[]): void;
+  /** Điểm TUẦN NÀY theo danh tính sảnh (`u:<id>` / `k:<mã băm>`) — thi đấu dùng để xếp người gần hạng nhau. */
+  diemTuan(ai: string[]): Promise<Record<string, number>>;
 }
 
 export interface EnvTaiKhoan {
@@ -830,6 +832,16 @@ export async function moTaiKhoan(
     },
     datOnline(f) { online = f; },
     datDsOnline(f) { dsOnline = f; },
+    async diemTuan(ai) {
+      const u = ai.filter((x) => /^u:\d+$/.test(x)).map((x) => x.slice(2)), k = ai.filter((x) => x.startsWith('k:')).map((x) => x.slice(2));
+      if (!u.length && !k.length) return {};
+      const [rows] = await pool!.query(
+        'SELECT player, is_guest, score FROM weekly_scores WHERE week_start = ? AND ((is_guest = 0 AND player IN (?)) OR (is_guest = 1 AND player IN (?)))',
+        [dauTuan(Date.now()), u.length ? u : ['0'], k.length ? k : ['-']]);
+      const ra: Record<string, number> = {};
+      for (const r of rows as { player: string; is_guest: number; score: number }[]) ra[`${Number(r.is_guest) === 1 ? 'k' : 'u'}:${r.player}`] = Number(r.score);
+      return ra;
+    },
     async xuLy(req, res, url, json) {
       const p = url.pathname;
       const now = Date.now();

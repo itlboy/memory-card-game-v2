@@ -1,5 +1,6 @@
 import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
 import { ghiSoOnline } from '@/lib/sanh';
+import { matVaoPhong } from '@/lib/thidau';
 import { anhHopLe } from '@mm/engine';
 import type { BotLevel, DoiId } from '@mm/engine';
 import { me } from '@/lib/taikhoan';
@@ -970,6 +971,8 @@ export function useOnlineRoom() {
     // phép cộng lịch sử ván đấu theo NGƯỜI. Không có nó thì `playerId` đổi mỗi
     // lần vào phòng, còn tên thì hai người trùng tên là một.
     params.set('cid', store.clientId());
+    // Phòng thi đấu: giữ mặt sảnh đã cấp (lib/thidau.ts) — server chỉ nhận cho phòng thi đấu
+    if (matVaoPhong.value?.ma === roomCode) params.set('mat', matVaoPhong.value.mat);
     // Ảnh Google của người đã đăng nhập (11.11.2026) — server chỉ nhận ảnh máy chủ Google
     const anh = anhHopLe(me.value?.avatar);
     if (anh) params.set('anh', anh);
