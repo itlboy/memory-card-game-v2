@@ -21,6 +21,7 @@
  *   CHO_MS      chờ người ở phòng chờ trước mỗi ván (mặc định 30000)
  *   DOI_SAU     khoảng bao nhiêu ván thì đổi phòng + đổi tên (mặc định 10, lệch ±2)
  *   THE_MIN/THE_MAX  khoảng số thẻ (mặc định 12–59 = "12 tới 5x")
+ *   MUC         các mức máy được dùng (mặc định easy,normal,hard)
  *   XEM_KQ_MS   đứng ở bảng kết quả bao lâu rồi về phòng chờ (mặc định 8000)
  * Tắt: SIGTERM/SIGINT → bot rời phòng gọn gàng.
  */
@@ -62,11 +63,20 @@ function bocBan(soNguoi: number): [number, number] {
   return ds[rd(ds.length)]!;
 }
 
-/** Hai mức máy: mức đầu bốc đều, mức sau lệch tối đa MỘT cấp (có thể bằng). */
+/**
+ * MỨC MÁY ĐƯỢC DÙNG — chỉ ba mức đầu: gà mờ · gà cứng · báo đen (chủ dự án 22.11.2026: "rồng thần… khó quá" — mãnh hổ
+ * và rồng thần làm người vào chơi cùng thua mãi). Đổi bằng biến `MUC` (vd `MUC=easy,normal`); tên lạ bị bỏ.
+ */
+const MUC: BotLevel[] = (process.env.MUC ?? 'easy,normal,hard').split(',').map((x) => x.trim())
+  .filter((x): x is BotLevel => (BOT_LEVELS as readonly string[]).includes(x))
+  .sort((x, y) => BOT_LEVELS.indexOf(x) - BOT_LEVELS.indexOf(y));
+if (!MUC.length) MUC.push('easy', 'normal', 'hard');
+
+/** Hai mức máy: mức đầu bốc đều, mức sau lệch tối đa MỘT cấp (có thể bằng) — trong các mức được dùng. */
 function bocMuc(): [BotLevel, BotLevel] {
-  const a = rd(BOT_LEVELS.length);
-  const b = Math.min(BOT_LEVELS.length - 1, Math.max(0, a + rd(3) - 1));
-  return [BOT_LEVELS[a]!, BOT_LEVELS[b]!];
+  const a = rd(MUC.length);
+  const b = Math.min(MUC.length - 1, Math.max(0, a + rd(3) - 1));
+  return [MUC[a]!, MUC[b]!];
 }
 
 /** Tên như người mới cài app: 40% tiếng Anh, 18% tiếng Việt, còn lại chia đều các tiếng có bộ tên riêng. */
@@ -361,7 +371,7 @@ async function tat(): Promise<void> {
 process.on('SIGTERM', () => void tat());
 process.on('SIGINT', () => void tat());
 
-log(`phòng bot: ${SO_PHONG} phòng tại ${SERVER} · chờ ${CHO_MS / 1000}s · ${THE_MIN}–${THE_MAX} thẻ (${BAN.length} cỡ bàn) · đổi sau ~${DOI_SAU} ván`);
+log(`phòng bot: ${SO_PHONG} phòng tại ${SERVER} · chờ ${CHO_MS / 1000}s · ${THE_MIN}–${THE_MAX} thẻ (${BAN.length} cỡ bàn) · mức ${MUC.join('/')} · đổi sau ~${DOI_SAU} ván`);
 // Chờ server lên (container bot có thể khởi động trước server)
 for (;;) {
   try { if ((await fetch(`${SERVER}/health`)).ok) break; } catch { /* chưa lên */ }

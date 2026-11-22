@@ -969,11 +969,16 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
  * Chip chờ ở đây chỉ rộng 70px = avatar + điểm; viên 🏅 chen vào là đẩy điểm ra khỏi chip
  * (`pnpm do:chip` đo: SE 4 người cả bốn chip mất điểm). Giống chấm mạng: góc avatar.
  */
+/* GÓC DƯỚI-PHẢI của avatar (22.11.2026, chủ dự án gửi ảnh: "nó bị lẹm đi, không hiển thị vị trí đẹp") — trước nằm ở
+   góc TRÊN-TRÁI của chip (left/top 2px): chip `overflow: hidden` + bo góc nên vòng trắng bị cắt lẹm, lại đè lên mặt.
+   Chỗ mới cách xa mọi góc bo, không đụng chấm mạng (góc trên-phải avatar) và thanh giờ lượt (đáy chip). */
 .strip.dong .pchip .wins {
-  position: absolute; z-index: 1; left: 2px; top: 2px;
+  position: absolute; z-index: 1; left: 21px; bottom: 3px;
   min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
   background: rgba(30, 22, 48, .85); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, .3);
 }
+/* Chip đang đi: avatar to hơn và dịch vào trong → viên số dịch theo, nhích lên khỏi thanh giờ lượt */
+.strip.dong .pchip.active .wins { left: 21px; bottom: 5px; }
 
 .pchip:not(.active) .wins { padding: 1px 5px; font-size: 11px; min-width: 20px; }
 .netbad {
