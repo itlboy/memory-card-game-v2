@@ -1665,6 +1665,11 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   (4 → 2+2, 5 → 3+2, 6 → 3+3). Mỗi trận: xem mặt 3 giây → mỗi người chọn số thẻ 10 giây (`THI_DAU_SO_THE`: 2 người từ 12,
   3 người từ 24 — chủ dự án) → khác nhau thì BỐC NGẪU NHIÊN trong các số đã chọn → lập phòng thi đấu → `td_vao` kèm mã.
   KHÔNG có nút riêng để gọi (chủ dự án: "làm thông báo là được").
+- **AI ĐƯỢC HỎI (23.11.2026, chủ dự án: "giới hạn ở trang chủ thì ít quá")**: cả người đang chơi offline MỘT MÌNH (một mình / đấu
+  máy / Mưa Thẻ — App.vue `choiMotMinh`, gửi `mot` trong tin `tt`; server `sanSang()`). Nhiều người cùng máy thì KHÔNG. Bấm
+  Tham gia vẫn chơi tiếp; trận THÀNH (`tdTran`) thì App tự `session.pause()`, vào phòng mới dọn ván, trận huỷ thì chơi tiếp.
+- **SỐ NGƯỜI ONLINE**: `/api/rooms/public` trả thêm `online` = số kết nối sảnh → `soNguoiOnline` (lib/sanh.ts, đã trừ mình) →
+  ô Chơi online ở trang chủ (icon người + số; chấm xanh nhịp chỉ khi có phòng chờ) và dòng đầu màn Chơi online.
 - **Chưa đủ người**: người duy nhất tham gia được GIỮ CHỜ 10 phút (viên "Đang chờ người", vẫn chơi một mình được). Người mới
   rảnh nhận thẻ "X đang chờ đấu" — bấm Tham gia là thành trận NGAY. Đồng thời gửi THÔNG BÁO ĐẨY cho máy đã đóng app
   (thongbao.ts `choThiDau` — ĐỔI luật cũ "không push cho lời mời": tối đa 3 tin thi đấu/máy/ngày, cách mọi tin khác 30 phút,

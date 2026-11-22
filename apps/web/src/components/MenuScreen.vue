@@ -44,6 +44,7 @@ import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
 import { nhanSoPhong, useSoPhongCho } from '@/lib/so-phong-cho';
+import { soNguoiOnline } from '@/lib/sanh';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
@@ -619,7 +620,9 @@ const ICO3D = {
           <button class="o-vuong o-co-so neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
             <!-- SỐ PHÒNG ĐANG CHỜ (20.11.2026, mockup C): chấm xanh nhịp "đang sống" + số, góc trên phải -->
-            <span v-if="soPhongCho > 0" class="so-phong" :aria-label="t('menu.soPhongCho', { n: soPhongCho })"><i aria-hidden="true" />{{ nhanSoPhong(soPhongCho) }}</span>
+            <!-- 23.11.2026: có người online thì hiện SỐ NGƯỜI (icon người) — chấm xanh vẫn nhịp khi có phòng đang chờ -->
+            <span v-if="soNguoiOnline > 0" class="so-phong" :aria-label="t('bxh.dangOnline', { n: soNguoiOnline })"><i v-if="soPhongCho > 0" aria-hidden="true" /><Users :size="12" :stroke-width="2.8" aria-hidden="true" />{{ soNguoiOnline > 99 ? '99+' : soNguoiOnline }}</span>
+            <span v-else-if="soPhongCho > 0" class="so-phong" :aria-label="t('menu.soPhongCho', { n: soPhongCho })"><i aria-hidden="true" />{{ nhanSoPhong(soPhongCho) }}</span>
           </button>
         </div>
 

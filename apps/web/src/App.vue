@@ -51,7 +51,8 @@ watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
 import LoiMoi from './components/LoiMoi.vue';
 import ThiDau from './components/ThiDau.vue';
-import { batDauSanh, dangChoiOffline, nhanMoi, thachCho, trongPhongOnline, type ThachDau } from './lib/sanh';
+import { batDauSanh, choiMotMinh, dangChoiOffline, nhanMoi, thachCho, trongPhongOnline, type ThachDau } from './lib/sanh';
+import { tdTran } from './lib/thidau';
 import IconBay from './components/IconBay.vue';
 import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
 import {
@@ -173,6 +174,18 @@ const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua
 const onlineKey = ref(0);
 watchEffect(() => { trongPhongOnline.value = screen.value === 'online' && !!onlineRef.value?.trongPhong; });
 watchEffect(() => { dangChoiOffline.value = screen.value === 'game' || screen.value === 'mua-the'; });
+// MỘT người thật (một mình / đấu máy / Mưa Thẻ): thi đấu vẫn hỏi; chơi nhiều người cùng máy thì không
+watchEffect(() => {
+  choiMotMinh.value = screen.value === 'mua-the'
+    || (screen.value === 'game' && (session.game.value?.players.filter((p) => !laBot(p.id)).length ?? 0) === 1);
+});
+// Trận thi đấu THÀNH giữa lúc đang chơi một mình: dừng ván ngay (lớp phủ trận che bàn); vào phòng thì `diVaoPhongMoi`
+// dọn ván, trận bị huỷ thì người chơi bấm tiếp tục từ màn tạm dừng.
+watch(() => tdTran.value?.id, (id) => {
+  if (!id) return;
+  if (screen.value === 'game' && session.game.value && !session.game.value.finished) session.pause();
+  else if (screen.value === 'mua-the' && muaTheRef.value?.dangDo()) muaTheRef.value.tamDung();
+});
 if (import.meta.env.MODE !== 'test') onMounted(batDauSanh);
 const hoiBoVanMoi = ref(false);
 let maMoiCho = '';

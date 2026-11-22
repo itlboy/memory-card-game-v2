@@ -9,7 +9,7 @@ import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, o
 import { useBackCloser } from '@/composables/useBackGuard';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { ghiUrl } from '@/lib/appUrl';
-import { CACH_MOI_LAI_MS, coSanh, dsOnline, ghiDaThach, moiNguoi, thachCho, type NguoiOnline } from '@/lib/sanh';
+import { CACH_MOI_LAI_MS, coSanh, soNguoiOnline, dsOnline, ghiDaThach, moiNguoi, thachCho, type NguoiOnline } from '@/lib/sanh';
 import MoiOnline from './MoiOnline.vue';
 import { t, td, ngonNgu } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
@@ -1121,6 +1121,8 @@ function openCfgWizard(): void {
       thành một dòng ở dưới, dành cho phòng riêng tư.
     -->
     <template v-if="entryStep === 'choose'">
+      <!-- 23.11.2026: số người đang online — thấy có người là chủ động tạo phòng rồi "Mời người online" -->
+      <p v-if="soNguoiOnline > 0" class="on-so-ol"><i aria-hidden="true" />{{ t('bxh.dangOnline', { n: soNguoiOnline }) }}</p>
       <button class="btn-primary tao-phong" type="button" :disabled="creatingRoom" @click="batDauTao()">
         <template v-if="creatingRoom">{{ t('on.dangTao') }}</template>
         <template v-else><Plus :size="22" /> {{ t('on.taoPhong') }}</template>
@@ -1843,6 +1845,8 @@ input:focus { outline: none; border-color: var(--accent); }
  * bên phải. Tiết kiệm một hàng (~50px) để 4 dòng người chơi + ô chỗ trống vừa khung.
  */
 .dau-phong { margin-bottom: 8px; }
+.on-so-ol { display: flex; align-items: center; gap: 7px; margin: -2px 2px 10px; font: 800 13.5px var(--font-body); color: var(--muted); }
+.on-so-ol i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #2fb85f; box-shadow: 0 0 0 3px rgba(47, 184, 95, .25); }
 .td-vao { text-align: center; }
 .td-vao h2 { margin: 18px 0 14px; font: 800 20px var(--font-display); }
 .td-vao-ds { list-style: none; margin: 0 0 18px; padding: 0; display: flex; justify-content: center; gap: 18px; }

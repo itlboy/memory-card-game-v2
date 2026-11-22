@@ -1,4 +1,5 @@
 import { ROOM_LIMITS, isDraw, unpackView } from '@mm/engine';
+import { ghiSoOnline } from '@/lib/sanh';
 import { anhHopLe } from '@mm/engine';
 import type { BotLevel, DoiId } from '@mm/engine';
 import { me } from '@/lib/taikhoan';
@@ -251,7 +252,8 @@ export function useOnlineRoom() {
       // `?v=2` = hiểu `dangChoi` (phòng đang chơi, vào để XEM) — server chỉ trả nó cho ai khai
       const res = await fetch(`${SERVER}/api/rooms/public?v=2`);
       if (!res.ok) throw new Error(String(res.status));
-      const data = (await res.json()) as { rooms?: PublicRoom[] };
+      const data = (await res.json()) as { rooms?: PublicRoom[]; online?: number };
+      ghiSoOnline(data.online);
       const moi = data.rooms ?? [];
       // Không đổi gì thì GIỮ NGUYÊN mảng cũ: khỏi vẽ lại danh sách mỗi 5 giây.
       if (JSON.stringify(moi) !== JSON.stringify(phongCongKhai.value)) phongCongKhai.value = moi;

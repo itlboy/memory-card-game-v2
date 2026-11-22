@@ -51,6 +51,19 @@ watch(coSanh, (v) => { try { localStorage.setItem(KHOA_CO_SANH, v ? '1' : '0'); 
 export const trongPhongOnline = ref(false);
 /** Đang chơi một ván offline — chỉ để danh sách của chủ phòng ghi "Đang chơi". */
 export const dangChoiOffline = ref(false);
+/** Ván offline đó chỉ có MỘT người thật (một mình / đấu máy / Mưa Thẻ) — thi đấu vẫn hỏi người này (thidau.ts `mot`). */
+export const choiMotMinh = ref(false);
+/** Kết nối sảnh đang mở (đã nhận `chao`) — để trừ chính mình khỏi "N người đang online". */
+export const dangNoiSanh = ref(false);
+/**
+ * Số app đang nối sảnh, server gửi kèm danh sách phòng công khai (`/api/rooms/public` → `online`). Đã TRỪ chính mình.
+ * Hiện ở ô Chơi online (trang chủ) và đầu màn Chơi online — để ai muốn thì chủ động tạo phòng rồi mời.
+ */
+export const soNguoiOnline = ref(0);
+export function ghiSoOnline(n: unknown): void {
+  const so = Number(n);
+  if (Number.isFinite(so)) soNguoiOnline.value = Math.max(0, Math.round(so) - (dangNoiSanh.value ? 1 : 0));
+}
 
 const WS_SANH = `${SERVER_URL.replace(/^http/, 'ws')}/ws/sanh`;
 let ws: WebSocket | null = null;
@@ -71,7 +84,7 @@ function gui(tin: unknown): void { try { if (ws?.readyState === 1) ws.send(JSON.
 function mo(): void {
   if (ws || !nenMo() || typeof WebSocket === 'undefined') return;
   clearTimeout(henNoi);
-  const q = new URLSearchParams({ ten: store.playerNames()[0] ?? '', tt: ttHienTai(), td: '1', nt: nenApp, nn: ngonNgu.value, nm: nhanLoiMoi.value ? '1' : '0' });
+  const q = new URLSearchParams({ ten: store.playerNames()[0] ?? '', tt: ttHienTai(), mot: choiMotMinh.value ? '1' : '0', td: '1', nt: nenApp, nn: ngonNgu.value, nm: nhanLoiMoi.value ? '1' : '0' });
   let s: WebSocket;
   try { s = new WebSocket(`${WS_SANH}?${q}`); } catch { return; }
   ws = s;
@@ -81,11 +94,12 @@ function mo(): void {
     if (m.t === 'chao') {
       lui = 3_000;
       coSanh.value = true;
+      dangNoiSanh.value = true;
       coThiDau.value = m.td === 1;
       guiGy();
       // Gửi LẠI trạng thái lúc đã nối: đổi trạng thái khi socket còn đang mở thì tin `tt` bị rơi (gui() bỏ qua khi
       // chưa OPEN) — chủ phòng từng hiện trong danh sách mời của chính mình là "Ở trang chủ" (chụp kiểm 21.11.2026)
-      gui({ t: 'tt', tt: ttHienTai() });
+      gui({ t: 'tt', tt: ttHienTai(), mot: choiMotMinh.value });
       gui({ t: 'ai', ...danhTinhSanh() });
       return;
     }
@@ -102,7 +116,7 @@ function mo(): void {
     }
   };
   s.onclose = () => {
-    if (ws === s) { ws = null; quenThiDau(); }
+    if (ws === s) { ws = null; dangNoiSanh.value = false; quenThiDau(); }
     // Server không có sảnh (bản Cloudflare) hay mất mạng: thử lại thưa dần, tối đa 60 giây/lần
     if (nenMo()) { henNoi = setTimeout(mo, lui); lui = Math.min(60_000, lui * 2); }
   };
@@ -110,6 +124,7 @@ function mo(): void {
 function dong(): void {
   clearTimeout(henNoi);
   const s = ws; ws = null;
+  dangNoiSanh.value = false;
   quenThiDau();
   try { s?.close(1000); } catch { /* đã đóng */ }
 }
@@ -124,7 +139,7 @@ export function batDauSanh(): void {
   watch(nhanLoiMoi, () => { dong(); canBang(); });
   watch(goiYThiDau, () => { canBang(); guiGy(); });
   datCuaGui(gui);
-  watch([trongPhongOnline, dangChoiOffline], () => gui({ t: 'tt', tt: ttHienTai() }));
+  watch([trongPhongOnline, dangChoiOffline, choiMotMinh], () => gui({ t: 'tt', tt: ttHienTai(), mot: choiMotMinh.value }));
   // Đăng nhập / đăng xuất: danh tính trên bảng đổi theo
   watch(me, () => gui({ t: 'ai', ...danhTinhSanh() }));
   // Vào phòng online thì thẻ mời cũ thôi hiện (đang ở phòng rồi)
