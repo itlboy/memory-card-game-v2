@@ -1775,3 +1775,12 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   `MM_SERVER=http://server:8080` (+ `SO_PHONG` mặc định 2). SIGTERM = bot rời phòng gọn; bị giết ngang thì phòng treo "đang chơi"
   tới hết hạn rớt mạng 5 phút. Thử máy: server `PORT=8795` + `MM_SERVER=… CHO_MS=8000 DOI_SAU=2 THE_MAX=16 node dist/phong-bot.mjs`,
   thả người bằng `gia-nguoi.mjs <mã>` (`--no-ready` để thử nhánh mời ra).
+- **GHÉP TRẬN THI ĐẤU TỰ ĐỘNG: TẠM TẮT từ 22.11.2026 (1.9.29)** — chủ dự án: "hơi phiền mà hiệu quả không cao". Công tắc ở
+  `apps/node-server/src/index.ts` `THI_DAU_BAT` (= biến môi trường `THI_DAU=1`, MẶC ĐỊNH TẮT): tắt thì sảnh không dựng thi đấu
+  → không ai bị hỏi `td_hoi`, không tin đẩy thi đấu, lời chào sảnh không kèm `td:1` nên app tự ẩn công tắc "Gợi ý thi đấu".
+  Code thi đấu (thidau.ts, ThiDau.vue, phòng thi đấu, thống kê) GIỮ NGUYÊN — bật lại chỉ cần đặt `THI_DAU=1` cho server,
+  không cần bản app. Mọi mục "THI ĐẤU" phía trên mô tả lúc BẬT.
+- **TÊN NGẪU NHIÊN 9 NGÔN NGỮ (22.11.2026, 1.9.29)**: `lib/ten-goc.ts` có bộ riêng cho vi · en · id · tr · ja · ko · zh · zh-TW · th
+  (bảy tiếng sau "ghép thẳng được", chủ dự án chọn làm trước; người mới VÀ bot phòng cùng dùng). es · pt · fr · it · de · ru
+  CHƯA có — vẫn tiếng Anh, vì giống ngữ pháp/đuôi tính từ phải khớp. ja/zh/zh-TW/th viết LIỀN, không dấu cách. Tên do máy
+  ghép, CHƯA có người bản xứ duyệt.

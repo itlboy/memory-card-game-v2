@@ -86,19 +86,28 @@ interface PhongTho {
   status?: string; hostId?: string; config?: { level?: number };
   players?: Array<{ id: string; token: string; name: string; avatar?: string; anh?: string; may?: unknown }>;
 }
+/**
+ * GHÉP TRẬN THI ĐẤU TỰ ĐỘNG — TẠM TẮT từ 22.11.2026 (chủ dự án: "tạm thời tắt chế độ ghép trận tự động đi, nó có vẻ hơi
+ * phiền mà hiệu quả không cao"). Code giữ nguyên; bật lại bằng biến môi trường `THI_DAU=1` ở server (không cần bản app mới).
+ */
+const THI_DAU_BAT = process.env.THI_DAU === '1';
 const AVATAR_SANH = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'] as const;
 const sanh = moSanh({
   avatars: AVATAR_SANH,
   // taiKhoan mở SAU (await) — đọc lúc gọi, không lúc dựng
   xacDinh: (khach, token) => taiKhoan?.aiTu(khach, token) ?? null,
-  // THI ĐẤU (thidau.ts): sảnh ghép người rồi nhờ lập phòng không chủ, bàn đã chốt số thẻ
-  async taoPhongThiDau(soThe, n) {
-    const cap = BOARD_SIZES.find((b) => b.pairs * 2 === soThe);
-    if (!cap) return null;
-    const code = makeCode();
-    await layPhong(code).room.openThiDau(code, cap.level, n);
-    return code;
-  },
+  // THI ĐẤU (thidau.ts): sảnh ghép người rồi nhờ lập phòng không chủ, bàn đã chốt số thẻ.
+  // TẠM TẮT (22.11.2026, xem THI_DAU_BAT): không trao hàm này thì sảnh không dựng thi đấu — không ai bị hỏi, không tin đẩy
+  // thi đấu, lời chào không kèm `td:1` nên app tự ẩn công tắc "Gợi ý thi đấu".
+  ...(THI_DAU_BAT ? {
+    async taoPhongThiDau(soThe: number, n: number): Promise<string | null> {
+      const cap = BOARD_SIZES.find((b) => b.pairs * 2 === soThe);
+      if (!cap) return null;
+      const code = makeCode();
+      await layPhong(code).room.openThiDau(code, cap.level, n);
+      return code;
+    }
+  } : {}),
   ghiThiDau: (loai, nguoi, d) => tkThiDau?.ghi(loai, nguoi, d),
   diemTuanThiDau: async (ai) => (await taiKhoan?.diemTuan(ai)) ?? {},
   baoChoThiDau: (ten) => thongBao?.choThiDau(ten, () => sanh.thiDau().cho > 0),
