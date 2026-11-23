@@ -622,15 +622,16 @@ const ICO3D = {
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
             <!-- SỐ PHÒNG ĐANG CHỜ (20.11.2026, mockup C): chấm xanh nhịp "đang sống" + số, góc trên phải -->
             <!-- 23.11.2026: có người online thì hiện SỐ NGƯỜI (icon người) — chấm xanh vẫn nhịp khi có phòng đang chờ -->
-<!-- 22.11.2026: thêm SỐ PHÒNG ĐANG CHƠI vào xem được (xô bỏng ngô = "xem") — đứng sau, ngăn bằng một vạch mờ -->
+<!-- 23.11.2026: ĐỦ BA CON SỐ (chủ dự án: "thường chỉ thấy có 2 thông số") — 👥 người online (kể cả mình) · chấm xanh + số
+                 PHÒNG ĐANG CHỜ (vào chơi được) · xô bỏng ngô + số PHÒNG ĐANG CHƠI (vào xem). Trước đó số phòng chờ chỉ hiện khi
+                 không có ai online, mà nay lúc nào cũng có ít nhất mình → nó chỉ còn là cái chấm không số. Số nào bằng 0 thì ẩn ô đó. -->
             <span
-              v-if="soNguoiOnline > 0 || soPhongCho > 0 || soPhongXem > 0" class="so-phong" :class="{ chat: soNguoiOnline > 99 && soPhongXem > 0 }"
-              :aria-label="[soNguoiOnline > 0 ? t('bxh.dangOnline', { n: soNguoiOnline }) : '', soPhongCho > 0 ? t('menu.soPhongCho', { n: soPhongCho }) : '', soPhongXem > 0 ? t('menu.soPhongXem', { n: soPhongXem }) : ''].filter(Boolean).join(' · ')"
+              class="so-phong" :class="{ chat: (soNguoiOnline > 99 ? 1 : 0) + (soPhongCho > 9 ? 1 : 0) + (soPhongXem > 9 ? 1 : 0) >= 2 }"
+              :aria-label="[t('bxh.dangOnline', { n: soNguoiOnline }), soPhongCho > 0 ? t('menu.soPhongCho', { n: soPhongCho }) : '', soPhongXem > 0 ? t('menu.soPhongXem', { n: soPhongXem }) : ''].filter(Boolean).join(' · ')"
             >
-              <i v-if="soPhongCho > 0" aria-hidden="true" />
-              <template v-if="soNguoiOnline > 0"><Users :size="12" :stroke-width="2.8" aria-hidden="true" />{{ soNguoiOnline > 99 ? '99+' : soNguoiOnline }}</template>
-              <template v-else-if="soPhongCho > 0">{{ nhanSoPhong(soPhongCho) }}</template>
-              <span v-if="soPhongXem > 0" class="sp-xem" :class="{ rieng: soNguoiOnline <= 0 && soPhongCho <= 0 }"><BongNgo :size="13" aria-hidden="true" />{{ nhanSoPhong(soPhongXem) }}</span>
+              <span class="sp-o"><Users :size="12" :stroke-width="2.8" aria-hidden="true" />{{ soNguoiOnline > 99 ? '99+' : soNguoiOnline }}</span>
+              <span v-if="soPhongCho > 0" class="sp-o"><i aria-hidden="true" />{{ nhanSoPhong(soPhongCho) }}</span>
+              <span v-if="soPhongXem > 0" class="sp-o"><BongNgo :size="13" aria-hidden="true" />{{ nhanSoPhong(soPhongXem) }}</span>
             </span>
           </button>
         </div>
@@ -1212,15 +1213,16 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 
 .o-co-so { position: relative; }
 .so-phong {
-  position: absolute; top: 8px; right: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px 2px 6px; border-radius: 999px; background: rgba(0, 0, 0, .28); color: #fff;
+  position: absolute; top: 8px; right: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 7px;
+  padding: 2px 8px 2px 7px; border-radius: 999px; background: rgba(0, 0, 0, .28); color: #fff;
   font: 800 13px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums; pointer-events: none;
 }
+.so-phong .sp-o { display: inline-flex; align-items: center; gap: 3px; }
 .so-phong i { width: 8px; height: 8px; border-radius: 50%; background: #7dff9b; animation: so-phong-song 1.6s infinite; }
-.so-phong .sp-xem { display: inline-flex; align-items: center; gap: 2px; margin-left: 1px; padding-left: 5px; border-left: 1.5px solid rgba(255, 255, 255, .35); }
-/* "99+" người kèm số phòng xem: ô chỉ rộng ~111px — bỏ chấm xanh cho vừa (đo 22.11.2026: 109px, tràn mép trái) */
-.so-phong.chat i { display: none; }
-.so-phong .sp-xem.rieng { margin-left: 0; padding-left: 0; border-left: 0; }
+/* Hai trong ba số chạm trần ("99+", "9+"): ô chỉ rộng ~111px — thu chữ và khoảng cách cho khỏi tràn mép trái */
+.so-phong.chat { gap: 3px; padding: 2px 5px 2px 4px; font-size: 10.5px; }
+.so-phong.chat i { width: 7px; height: 7px; }
+.so-phong.chat .sp-o { gap: 2px; }
 @keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(125, 255, 155, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(125, 255, 155, 0); } }
 @media (prefers-reduced-motion: reduce) { .so-phong i { animation: none; } }
 </style>
