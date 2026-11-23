@@ -796,6 +796,7 @@ const zh: TuDien = {
   'on.duChoChu': '全员已准备 — 等待 {ten} 开始',
   'on.choChuSan': '等待 {ten} · {ok}/{need} 已准备',
   'on.huySan': '取消准备',
+  'on.chonSoThe': '卡牌数量',
   'on.banDangXem': '你正在观战',
   'on.banDangXemNho': '下一局你只观战，不参加。',
   'on.vaoChoi': '加入游戏',

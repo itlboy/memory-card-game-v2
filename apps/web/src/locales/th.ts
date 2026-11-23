@@ -797,6 +797,7 @@ const th: TuDien = {
   'on.duChoChu': 'ทุกคนพร้อม — รอ {ten} เริ่ม',
   'on.choChuSan': 'รอ {ten} · พร้อม {ok}/{need}',
   'on.huySan': 'ยกเลิกพร้อม',
+  'on.chonSoThe': 'จำนวนการ์ด',
   'on.banDangXem': 'คุณกำลังดู',
   'on.banDangXemNho': 'เกมถัดไปคุณจะดูอย่างเดียว ไม่ได้เล่น',
   'on.vaoChoi': 'เข้าร่วมเล่น',

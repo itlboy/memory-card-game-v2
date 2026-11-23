@@ -1849,3 +1849,23 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   23.11: phòng còn một bot, bấm Bắt đầu mãi `not-enough`, và phòng "còn chỗ" đó bắn thông báo đẩy tới 46 máy). Nay `alive` 8 s;
   ở phòng chờ bot nào không còn trong `players` thì vào lại như người mới, thiếu bot thì KHÔNG bấm Bắt đầu, 90 s không chữa
   được thì đổi phòng. `BOT_DEBUG_ROI=1` cho bot thứ hai tự rời ghế một lần để thử nhánh này.
+- **CHỌN SỐ THẺ TRƯỚC MỖI VÁN (23.11.2026, 1.9.36; mockup duyệt https://claude.ai/artifact/1ZLCzgAHHk6gZYm5eFggFr)** — chủ dự án bỏ bản
+  đầu (vẽ lại bảng kết quả): "giao diện hiện tại không phải update gì, chỉ thêm thôi… đừng giải thích nhiều… bỏ chữ thẻ… 3 giây".
+  Chủ phòng bấm Bắt đầu (hoặc cả phòng bấm Chơi lại) → server KHÔNG đếm ngược ngay mà mở lượt chọn `CHON_THE_MS` = 3 s
+  (`room.ts` `moChonThe` → `chotChon`; `RoomInfo.chon { id, ds, phieu, con }`, tin mới `t:'chon'`). Ba ô = bậc dưới · hiện tại ·
+  bậc trên của thang số thẻ thật (engine `luaChonSoThe`; hai đầu thang trượt cửa sổ: 88 → 56·72·88, 4 → 4·6·12). Chốt bằng
+  `chotSoThe`: số đông; hoà thì bốc trong các số dẫn đầu; không ai chọn thì giữ nguyên. Mọi NGƯỜI THẬT đang nối đã chọn thì chốt
+  sớm. Phòng GIỮ trạng thái `lobby`/`ended` trong lúc chọn → APP CŨ không thấy popup, chỉ thấy "Đang mở ván…" lâu thêm tối đa 3 s
+  rồi vào ván với số thẻ đã chốt (đường Chơi lại với client không bỏ phiếu đã thử). Phòng thi đấu bỏ qua bước này. Lượt chọn chỉ
+  nằm trong RAM. Popup `ChonSoThe.vue` (mount MỘT chỗ ở OnlineScreen, teleport, z 55): tiêu đề + đồng hồ + ba ô CHỈ CÓ CON SỐ,
+  mặt người đã chọn dưới ô, ô mình chọn màu vàng; người xem THẤY nhưng ô bị khoá. Thanh giờ đặt bề rộng bằng JS — đừng đổi sang
+  `@keyframes`. Bot phòng cũng bỏ phiếu (phong-bot `nhanPhong`: 0,3–1,7 s, ngẫu nhiên trong ô hợp lệ theo THE_MIN/MAX và số người).
+- **NGƯỜI XEM THẢ EMOJI, KHÔNG CHAT CHỮ (23.11.2026, 1.9.36)** — chủ dự án: "người xem cũng có thể chat icon nhưng tần suất thấp hơn,
+  và không thể chat chữ". Server `emojiNguoiXem`: khán giả chỉ gửi được `emoji` (danh sách đóng), hạn mức `ROOM_LIMITS.xemEmojiBurst`
+  2 cái / `xemEmojiWindowMs` 6 s (người chơi 10 / 4 s), phát `{ from: 'xem:<tên>', ten }` — họ không có chip nên bong bóng hiện
+  giữa mép trên kèm tên. Client: EmojiDock/EmojiBar hiện cho người xem, ẩn nút nói nhanh; `sendSay` bỏ qua khi đang xem.
+- **TRANG SẬP NGẮT QUÃNG TRONG TRÌNH DUYỆT THỬ (23.11.2026, CHƯA RÕ NGUYÊN NHÂN)**: Playwright WebKit (bản webkit-2370, tải lại sáng
+  23.11 vì cache `ms-playwright` bị xoá) báo "Page crashed" ~1/7–1/10 lần khi một người chơi KHÔNG phải chủ phòng ngồi ở phòng chờ
+  sau khi bấm Sẵn sàng / lúc ván sắp mở. Đối chứng: bản 1.9.35 đang phát hành cũng sập 2/14 lần; gỡ popup chọn số thẻ vẫn sập 1/10
+  → không do popup. Chưa tái hiện trên máy thật, chưa biết là lỗi game hay của bản WebKit thử. Bài thử nào đi qua luồng này mà
+  "kẹt" hoặc "crashed" thì chạy lại trước khi kết luận; nếu người chơi báo app trắng màn hình ở phòng chờ thì đây là manh mối.

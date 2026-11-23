@@ -77,6 +77,12 @@ export const ROOM_LIMITS = {
    *  không nhấn giữ mà lấp kín màn hình người khác. */
   emojiBurst: 10,
   emojiWindowMs: 4_000,
+  /**
+   * NGƯỜI XEM cũng thả emoji được (23.11.2026, chủ dự án: "người xem cũng có thể chat icon được nhưng với tần suất thấp hơn,
+   * và không thể chat chữ") — 2 cái mỗi 6 giây, đủ để cổ vũ mà không át tiếng người đang chơi. Server chặn, client làm mờ nút.
+   */
+  xemEmojiBurst: 2,
+  xemEmojiWindowMs: 6_000,
   /** Đếm ngược trước khi ván chạy. Client và server PHẢI đọc cùng con số này,
    *  lệch nhau là một bên đã cho lật khi bên kia còn đang đếm. */
   countdownMs: 3_000,
@@ -92,6 +98,33 @@ export const THI_DAU_SO_THE: Record<2 | 3, readonly number[]> = {
   2: [12, 16, 20, 24, 30, 36],
   3: [24, 30, 36, 42, 56, 72]
 };
+/**
+ * CHỌN SỐ THẺ TRƯỚC MỖI VÁN (23.11.2026, mockup duyệt https://claude.ai/artifact/1ZLCzgAHHk6gZYm5eFggFr): chủ phòng bấm Bắt đầu
+ * (hoặc cả phòng bấm Chơi lại) → mọi người có `CHON_THE_MS` để chọn một trong BA cỡ bàn quanh cỡ đang đặt — thấp hơn một bậc,
+ * giữ nguyên, cao hơn một bậc. Ở hai đầu thang thì trượt cửa sổ cho đủ ba ô: 88 → 56·72·88, 4 → 4·6·12.
+ * `bac` = các số thẻ có thật, tăng dần (client/server lấy từ `BOARD_SIZES`).
+ */
+export const CHON_THE_MS = 3_000;
+export function luaChonSoThe(hienTai: number, bac: readonly number[]): number[] {
+  const i = bac.indexOf(hienTai);
+  if (i < 0 || bac.length <= 3) return bac.length <= 3 ? [...bac] : [hienTai];
+  const dau = Math.min(Math.max(i - 1, 0), bac.length - 3);
+  return bac.slice(dau, dau + 3);
+}
+/**
+ * Chốt số thẻ từ các phiếu: số ĐÔNG phiếu nhất thắng; nhiều số cùng dẫn đầu thì bốc ngẫu nhiên trong các số đó; không ai
+ * bỏ phiếu (hoặc toàn phiếu ngoài danh sách) thì giữ `hienTai`. `rnd` ∈ [0,1) do NGƯỜI GỌI đưa vào (engine không tự gọi
+ * Math.random — test/determinism canh).
+ */
+export function chotSoThe(phieu: readonly number[], lua: readonly number[], hienTai: number, rnd: () => number): number {
+  const dem = new Map<number, number>();
+  for (const p of phieu) if (lua.includes(p)) dem.set(p, (dem.get(p) ?? 0) + 1);
+  if (!dem.size) return hienTai;
+  const cao = Math.max(...dem.values());
+  const dan = [...dem.entries()].filter(([, n]) => n === cao).map(([t]) => t).sort((x, y) => x - y);
+  return dan[Math.min(dan.length - 1, Math.floor(rnd() * dan.length))]!;
+}
+
 /**
  * Chia người tham gia thành các trận 2–3 người: số trận = ⌈n/3⌉, rải đều (4 → 2+2, 5 → 3+2, 6 → 3+3, 7 → 3+2+2).
  * n < 2 → không có trận. Trả cỡ từng trận, trận to trước.
@@ -502,6 +535,8 @@ export type ClientMsg =
   | { t: 'resync' }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
   | { t: 'tolobby' }                                // về phòng chờ (một người bấm là đủ)
+  /** Bỏ phiếu số thẻ cho ván sắp mở (chỉ lúc `RoomInfo.chon` đang có; `the` phải nằm trong `chon.ds`). Gói tin MỚI — app cũ không gửi. */
+  | { t: 'chon'; the: number }
   | { t: 'public'; on: boolean }                    // chủ phòng bật/tắt hiện trong danh sách
   | { t: 'ready'; ready: boolean }                  // sẵn sàng ở lobby
   | { t: 'leave' }                                  // đầu hàng (đang chơi) / rời phòng (lobby)
@@ -552,6 +587,12 @@ export interface RoomInfo {
   config: RoomConfig;
   players: PublicPlayer[];
   status: 'lobby' | 'countdown' | 'playing' | 'ended';
+  /**
+   * ĐANG CHỌN SỐ THẺ (xem `luaChonSoThe`): `ds` ba lựa chọn, `phieu` id người chơi → số đã chọn, `con` ms còn lại LÚC GỬI
+   * (không gửi mốc tuyệt đối — đồng hồ máy khách lệch), `id` đổi mỗi lượt chọn. Chỉ THÊM: app cũ bỏ qua, không thấy popup,
+   * coi như không bỏ phiếu rồi vào ván như thường.
+   */
+  chon?: { id: number; ds: number[]; phieu: Record<string, number>; con: number };
   /**
    * Số ván đã XONG trong loạt của phòng (23.11.2026). CÓ trường này = server tự đếm tỷ số loạt (`players[].thang`) →
    * client lấy theo server, không tự cộng nữa. Server cũ không gửi → client đếm tại chỗ như trước.
@@ -653,7 +694,8 @@ export type ServerMsg =
   | { t: 'state'; view: GameView | WireView }
   | { t: 'countdown'; endsInMs: number; firstId: string; firstName: string }
   | { t: 'events'; events: PublicEvent[]; view: GameView | WireView }
-  | { t: 'emoji'; from: string; emoji: QuickEmoji }
+  /** `ten`: chỉ có khi NGƯỜI XEM gửi (`from` = `xem:<tên>`, không ứng với người chơi nào) — client hiện tên này. App cũ bỏ qua. */
+  | { t: 'emoji'; from: string; emoji: QuickEmoji; ten?: string }
   | { t: 'say'; from: string; id: QuickSay }
   /** ĐỒNG ĐỘI: đồng đội chỉ một lá úp — server CHỈ gửi cho đồng đội của `from` (đội kia không nhận). */
   | { t: 'chi'; from: string; index: number }

@@ -44,6 +44,7 @@ import OnlineGame from './OnlineGame.vue';
 import DaiBao from './DaiBao.vue';
 import NhacSanSang from './NhacSanSang.vue';
 import BongNgo from './BongNgo.vue';
+import ChonSoThe from './ChonSoThe.vue';
 import { useBaoPhong } from '@/composables/useBaoPhong';
 import { baoNoi, boBao } from '@/lib/dai-bao';
 import { NHAC_CACH_MS } from '@mm/engine';
@@ -1528,7 +1529,7 @@ function openCfgWizard(): void {
          nhất. Server không hề chặn emoji theo trạng thái phòng, nên đây chỉ là
          chuyện thêm giao diện. -->
     <EmojiDock :o="o" />
-    <div v-if="!o.spectator.value" class="eb-cho" aria-hidden="true" />
+    <div class="eb-cho" aria-hidden="true" />
     <p v-if="o.error.value" class="warn" role="alert">{{ o.error.value }}</p>
     <button v-if="o.canCapNhat.value" class="nut-cap-nhat thach th-tim" type="button" @click="capNhatNgay">{{ t('chung.capNhat') }}</button>
   </section>
@@ -1540,6 +1541,8 @@ function openCfgWizard(): void {
        được mount một bản: trong ván đã có bản của OnlineGame. -->
   <EmojiBlast v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
   <LoiNoi v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
+  <!-- POPUP CHỌN SỐ THẺ (23.11.2026): server mở lượt chọn khi bấm Bắt đầu / Chơi lại — nổi trên phòng chờ lẫn bảng kết quả -->
+  <ChonSoThe :o="o" />
 
   <!-- Hộp chia sẻ: mã QR + mã 6 số + hai nút copy. Có nút đóng, bấm nền hay
        Esc cũng đóng, và nút Back của trình duyệt đóng nó trước tiên. -->

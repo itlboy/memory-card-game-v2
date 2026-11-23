@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
-import { publicEvents, publicView } from '../src/online.js';
+import { CHON_THE_MS, chotSoThe, luaChonSoThe, publicEvents, publicView } from '../src/online.js';
 import { SYMBOLS, matchPair, missKnown, missPair, pairSlots } from './helpers.js';
 
 const twoP = (over = {}) => new MemoryGame({
@@ -215,4 +215,32 @@ describe('view chở thời gian hé mở cả bàn', () => {
     g.start(0);
     expect(publicView(g, 500, allOn).peekLeft).toBeNull();
   });
+});
+
+describe('chọn số thẻ trước mỗi ván (23.11.2026)', () => {
+  const BAC = [4, 6, 12, 16, 20, 24, 30, 36, 42, 56, 72, 88];
+  it('ba lựa chọn: thấp hơn một bậc · giữ nguyên · cao hơn một bậc', () => {
+    expect(luaChonSoThe(24, BAC)).toEqual([20, 24, 30]);
+    expect(luaChonSoThe(12, BAC)).toEqual([6, 12, 16]);
+  });
+  it('hai đầu thang trượt cửa sổ cho đủ ba ô: 88 → hai số thấp hơn, 4 → hai số cao hơn', () => {
+    expect(luaChonSoThe(88, BAC)).toEqual([56, 72, 88]);
+    expect(luaChonSoThe(4, BAC)).toEqual([4, 6, 12]);
+  });
+  it('số lạ (không có trên thang) thì chỉ còn chính nó', () => {
+    expect(luaChonSoThe(18, BAC)).toEqual([18]);
+  });
+  it('số đông thắng; không ai chọn thì giữ số hiện tại; phiếu ngoài danh sách bị bỏ', () => {
+    expect(chotSoThe([30, 30, 20], [20, 24, 30], 24, () => 0)).toBe(30);
+    expect(chotSoThe([], [20, 24, 30], 24, () => 0)).toBe(24);
+    expect(chotSoThe([88, 4], [20, 24, 30], 24, () => 0)).toBe(24);
+    expect(chotSoThe([20], [20, 24, 30], 24, () => 0)).toBe(20);
+  });
+  it('hoà phiếu: bốc ngẫu nhiên CHỈ trong các số dẫn đầu', () => {
+    expect(chotSoThe([20, 30, 20, 30, 24], [20, 24, 30], 24, () => 0)).toBe(20);
+    expect(chotSoThe([20, 30, 20, 30, 24], [20, 24, 30], 24, () => 0.99)).toBe(30);
+    const ra = new Set(Array.from({ length: 200 }, (_, i) => chotSoThe([20, 30], [20, 24, 30], 24, () => (i % 10) / 10)));
+    expect([...ra].sort()).toEqual([20, 30]);
+  });
+  it('thời gian chọn là 3 giây', () => { expect(CHON_THE_MS).toBe(3000); });
 });

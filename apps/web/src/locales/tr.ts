@@ -799,6 +799,7 @@ const tr: TuDien = {
   'on.duChoChu': 'Herkes hazır — {ten} başlatacak',
   'on.choChuSan': '{ten} bekleniyor · {ok}/{need} hazır',
   'on.huySan': 'Hazır değilim',
+  'on.chonSoThe': 'Kart sayısı',
   'on.banDangXem': 'İzliyorsun',
   'on.banDangXemNho': 'Sıradaki oyunu izleyeceksin, oynamayacaksın.',
   'on.vaoChoi': 'Oyuna katıl',

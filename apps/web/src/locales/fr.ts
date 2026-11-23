@@ -802,6 +802,7 @@ const fr: TuDien = {
   'on.duChoChu': 'Tout le monde est prêt — on attend que {ten} lance',
   'on.choChuSan': 'On attend {ten} · {ok}/{need} prêts',
   'on.huySan': 'Pas prêt',
+  'on.chonSoThe': 'Nombre de cartes',
   'on.banDangXem': 'Vous regardez',
   'on.banDangXemNho': 'Vous regarderez la prochaine partie sans jouer.',
   'on.vaoChoi': 'Rejoindre la partie',

@@ -800,6 +800,7 @@ const it: TuDien = {
   'on.duChoChu': 'Tutti pronti — si aspetta che {ten} inizi',
   'on.choChuSan': 'In attesa di {ten} · {ok}/{need} pronti',
   'on.huySan': 'Non pronto',
+  'on.chonSoThe': 'Numero di carte',
   'on.banDangXem': 'Stai guardando',
   'on.banDangXemNho': 'Guarderai la prossima partita senza giocare.',
   'on.vaoChoi': 'Unisciti al gioco',

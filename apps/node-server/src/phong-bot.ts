@@ -205,6 +205,8 @@ class Phong {
   thieuTu = 0;
   chuaLuc = 0;
   daThuRoi = false;
+  /** Lượt chọn số thẻ đã bỏ phiếu (id của `room.chon`). */
+  chonId = 0;
 
   constructor(public so: number) {}
 
@@ -304,6 +306,19 @@ class Phong {
   nhanPhong(room: RoomInfo): void {
     const cu = this.trangThaiCu;
     this.room = room;
+    /*
+     * BỎ PHIẾU SỐ THẺ như người chơi (23.11.2026, chủ dự án: "update bot để bot cũng chọn"): server mở lượt chọn 3 giây khi
+     * bấm Bắt đầu / Chơi lại. Mỗi bot chọn sau 0,3–1,7 s, ngẫu nhiên trong các ô hợp lệ: trong khoảng THE_MIN–THE_MAX và
+     * không nhỏ hơn mức tối thiểu theo số người (bàn 3–4 người không tụt về 12 thẻ). Không ô nào hợp lệ thì không chọn.
+     */
+    if (room.chon && room.chon.id !== this.chonId) {
+      this.chonId = room.chon.id;
+      const tong = room.players.length;
+      const toiThieu = Math.max(THE_MIN, tong >= 4 ? 28 : tong === 3 ? 20 : THE_MIN);
+      const hop = room.chon.ds.filter((the) => the >= toiThieu && the <= THE_MAX);
+      const ma = this.code;
+      if (hop.length) for (const b of this.bot) setTimeout(() => { if (this.code === ma) b.gui({ t: 'chon', the: hop[rd(hop.length)] }); }, 300 + rd(1400));
+    }
     this.trangThaiCu = room.status;
     if (room.status === cu) return;
     if (room.status === 'lobby') { this.han = Date.now() + CHO_MS; this.daNhac = false; this.daNoi.clear(); this.hetXem = 0; this.chuLaTu = 0; this.vanMoi(); }

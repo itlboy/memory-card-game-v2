@@ -798,6 +798,7 @@ const es: TuDien = {
   'on.duChoChu': 'Todos listos — esperando a que {ten} empiece',
   'on.choChuSan': 'Esperando a {ten} · {ok}/{need} listos',
   'on.huySan': 'No listo',
+  'on.chonSoThe': 'Número de cartas',
   'on.banDangXem': 'Estás mirando',
   'on.banDangXemNho': 'Verás la próxima partida sin jugar.',
   'on.vaoChoi': 'Unirme a jugar',

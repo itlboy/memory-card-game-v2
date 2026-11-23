@@ -30,3 +30,36 @@ describe('vai người xem', () => {
     expect(client).toMatch(/room\.value\?\.status !== 'lobby' \|\| isHost\.value\) return;/);
   });
 });
+
+/*
+ * NGƯỜI XEM THẢ EMOJI + POPUP CHỌN SỐ THẺ (23.11.2026). Hành vi thật đã thử bằng kết nối thật (server cục bộ); ở đây canh
+ * các mắt xích dễ bị gỡ nhầm.
+ */
+describe('người xem thả emoji, không chat chữ', () => {
+  const bar = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
+  it('server: khán giả chỉ được gửi emoji, hạn mức riêng, phát kèm tên', () => {
+    expect(room).toMatch(/if \(att\?\.xem\) this\.emojiNguoiXem\(att\.xem\.ten, raw\)/);
+    expect(room).toMatch(/if \(msg\.t !== 'emoji' \|\| !\(QUICK_EMOJIS as readonly string\[\]\)\.includes\(msg\.emoji\)\) return;/);
+    expect(room).toMatch(/ROOM_LIMITS\.xemEmojiBurst, ROOM_LIMITS\.xemEmojiWindowMs/);
+  });
+  it('client: thanh emoji hiện cho người xem nhưng không có nút nói nhanh; sendSay bỏ qua', () => {
+    expect(bar).not.toMatch(/<div v-if="!props\.o\.spectator\.value" ref="goc"/);
+    expect(bar).toMatch(/v-if="!props\.o\.spectator\.value"\s*\n\s*class="emoji noi/);
+    expect(client).toMatch(/if \(spectator\.value\) return;   \/\/ người xem chỉ thả emoji/);
+  });
+});
+
+describe('popup chọn số thẻ', () => {
+  const popup = readFileSync(resolve(process.cwd(), 'src/components/ChonSoThe.vue'), 'utf8');
+  it('server mở lượt chọn ở cả Bắt đầu lẫn Chơi lại, phòng thi đấu bỏ qua', () => {
+    expect(room.match(/await this\.moChonThe\(\);/g)?.length).toBe(2);
+    expect(room).toMatch(/if \(this\.room\.thiDau\) \{ await this\.batDauDemNguoc\(\); return; \}/);
+    expect(room).toMatch(/if \(this\.chon && now >= this\.chon\.het\) await this\.chotChon\(\);/);
+  });
+  it('popup: ô chỉ có con số, người xem thấy nhưng bị khoá, không dùng @keyframes cho thanh giờ', () => {
+    expect(popup).toMatch(/<b>\{\{ the \}\}<\/b>/);
+    expect(popup).toMatch(/:disabled="chiXem"/);
+    expect(popup).not.toMatch(/@keyframes [\w-]+ \{/);   // chỉ còn chữ "@keyframes" trong chú thích
+    expect(man).toMatch(/<ChonSoThe :o="o" \/>/);
+  });
+});
