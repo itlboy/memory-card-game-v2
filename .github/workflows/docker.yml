@@ -74,7 +74,8 @@ jobs:
           # lobby để kiểm quyền chủ phòng có chuyển không. Mặc định 30 giây là
           # đúng cho máy chạy thật nhưng bắt CI ngồi chờ 30 giây vô ích.
           # smoke đọc cùng biến này nên hai bên luôn khớp.
-          PORT=8090 LOBBY_HOLD_MS=2000 WEB_DIR=../../apps/web/dist node dist/server.mjs & echo $! > /tmp/srv.pid
+          # CHON_THE=0: các smoke này đo từ lúc bấm Bắt đầu — bước chọn số thẻ 3 giây có smoke riêng ở dưới
+          CHON_THE=0 PORT=8090 LOBBY_HOLD_MS=2000 WEB_DIR=../../apps/web/dist node dist/server.mjs & echo $! > /tmp/srv.pid
           cd ../..
           for i in $(seq 1 30); do
             curl -sf -m 1 http://127.0.0.1:8090/health >/dev/null && break || sleep 1
@@ -97,13 +98,25 @@ jobs:
       # DEPLOY KHÔNG MẤT LƯỢT (18.10.2026): server CÓ MySQL, đang giữa ván thì tắt bằng SIGTERM
       # (như Keel thay pod), chờ 5 giây, bật lại. Đỏ nếu: không nhận mã 1012, vào lại thành
       # người mới, hay đồng hồ lượt bị trừ phần server tắt. Xem tools/smoke-deploy.mjs.
+      - name: Smoke chọn số thẻ (server mặc định, có bước chọn 3 giây)
+        run: |
+          cd apps/node-server
+          PORT=8092 WEB_DIR=../../apps/web/dist node dist/server.mjs > /tmp/srv3.log 2>&1 & echo $! > /tmp/srv3.pid
+          cd ../..
+          for i in $(seq 1 30); do curl -sf -m 1 http://127.0.0.1:8092/health >/dev/null && break || sleep 1; done
+          rc=0
+          MM_SERVER=http://127.0.0.1:8092 node tools/smoke-chon-the.mjs || rc=1
+          kill "$(cat /tmp/srv3.pid)" 2>/dev/null || true
+          [ $rc -eq 0 ] || tail -40 /tmp/srv3.log
+          exit $rc
+
       - name: Smoke deploy giữa ván (MySQL + khởi động lại)
         env:
           MYSQL_URL: mysql://root:smoke@127.0.0.1:3306/thebai
         run: |
           # `$!` phải là PID của CHÍNH node: `cd … && node … &` đưa cả chuỗi vào một shell con nền,
           # `$!` thành PID shell đó và `kill` không tắt được server (lần chạy đầu đỏ đúng vì vậy)
-          bat() { cd apps/node-server; PORT=8091 WEB_DIR=../../apps/web/dist node dist/server.mjs >> /tmp/srv2.log 2>&1 & echo $! > /tmp/srv2.pid; cd ../..; }
+          bat() { cd apps/node-server; CHON_THE=0 PORT=8091 WEB_DIR=../../apps/web/dist node dist/server.mjs >> /tmp/srv2.log 2>&1 & echo $! > /tmp/srv2.pid; cd ../..; }
           bat
           for i in $(seq 1 30); do curl -sf -m 1 http://127.0.0.1:8091/health >/dev/null && break || sleep 1; done
           export -f bat

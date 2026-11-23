@@ -6,7 +6,7 @@ import {
 import type {
   ClientMsg, GameEvent, NguoiXem, PredealMsg, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
 } from '@mm/engine';
-import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
+import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, chotSoThe, luaChonSoThe, pairsForLevel } from '@mm/engine';
 
@@ -1554,7 +1554,7 @@ export class RoomDO extends DurableObject<Env> {
    */
   private async moChonThe(): Promise<void> {
     if (!this.room) return;
-    if (this.room.thiDau) { await this.batDauDemNguoc(); return; }
+    if (this.room.thiDau || !CHON_THE_BAT) { await this.batDauDemNguoc(); return; }
     const now = Date.now();
     this.chon = { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(pairsForLevel(this.room.config.level) * 2, BAC_THE), phieu: new Map() };
     await this.save();
