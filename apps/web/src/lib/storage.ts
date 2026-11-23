@@ -1,4 +1,4 @@
-import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, doiDanhHieu, doiThemeIds, sanitizeOptions } from '@mm/engine';
+import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, coHoiNho, diemTriNho, doiDanhHieu, doiThemeIds, rongNhomTuoi, sanitizeOptions } from '@mm/engine';
 import type { BoardOptions, Mode, RoomConfig } from '@mm/engine';
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
@@ -83,7 +83,29 @@ interface Save {
   boDem?: BoDem;
   /** Bảng xếp hạng cho khách (19.11.2026) — xem `khach()`. */
   khach?: { id: string; an?: boolean; daGop?: boolean };
+  /** Nhật ký trí nhớ theo ngày (`YYYY-MM-DD` giờ máy) — xem `NgayTriNho`. */
+  triNho?: Record<string, NgayTriNho>;
 }
+
+/** Số đếm nhớ/quên theo nhóm độ lâu (engine `nhomTuoi`) của các ván CÙNG một cỡ bàn. */
+export interface DemTriNho { van: number; nho: number[]; quen: number[] }
+/**
+ * NHẬT KÝ TRÍ NHỚ MỘT NGÀY (23.11.2026). Giữ SỐ ĐẾM THÔ cộng dồn theo TỪNG CỠ BÀN (khoá `ban` =
+ * số cặp), KHÔNG giữ điểm: điểm = tỉ lệ nhớ × trần của bàn, tính lúc hiện (`lib/tri-nho.ts`), nên
+ * chỉnh hệ số là mọi ngày cũ tự đổi theo. Riêng `cao` (điểm ván cao nhất trong ngày) là số đã
+ * tính lúc ghi — muốn tính lại thì phải giữ từng ván, bản lưu phình gấp chục lần.
+ */
+export interface NgayTriNho {
+  ban: Record<string, DemTriNho>;
+  /** Lần nhớ đúng xa nhất trong ngày (số nước). */
+  tam: number;
+  cao: number;
+}
+/** Giữ ngần này ngày gần nhất (hơn một năm) — bản lưu không phình mãi. */
+export const TRI_NHO_GIU_NGAY = 400;
+
+const congMang = (a: readonly number[] | undefined, b: readonly number[] | undefined): number[] =>
+  rongNhomTuoi().map((_, i) => (a?.[i] ?? 0) + (b?.[i] ?? 0));
 
 /**
  * Bộ đếm cục bộ. Đăng nhập thì `wins` lấy MAX với số của tài khoản (xem
@@ -302,6 +324,39 @@ export const store = {
     s.boDem = b;
     write(s);
     return b;
+  },
+
+  /** Nhật ký trí nhớ, khoá là ngày. Bản sao — sửa không ảnh hưởng bản lưu. */
+  nhatKyTriNho(): Record<string, NgayTriNho> { return structuredClone(read().triNho ?? {}); },
+
+  /**
+   * Cộng số đếm trí nhớ của MỘT người ở MỘT ván vào ngày hôm nay. Chỉ gọi cho ván biết chắc
+   * ai cầm máy (một mình, đấu máy, online) — nhiều người chung máy thì không ghi. Ván không có
+   * cơ hội nhớ nào (hoặc server cũ chưa gửi số đếm) thì bỏ qua, không tính là một ván.
+   */
+  ghiTriNho(
+    p: { nhoTheo?: readonly number[]; quenTheo?: readonly number[]; tamNho?: number } | undefined,
+    soCap: number, homNay = ngayMay()
+  ): void {
+    if (!p || soCap < 1 || coHoiNho(p.nhoTheo, p.quenTheo) === 0) return;
+    const s = read();
+    const tatCa = s.triNho ?? {};
+    const cu = tatCa[homNay];
+    const khoa = String(Math.round(soCap));
+    const banCu = cu?.ban?.[khoa];
+    tatCa[homNay] = {
+      ban: {
+        ...(cu?.ban ?? {}),
+        [khoa]: { van: (banCu?.van ?? 0) + 1, nho: congMang(banCu?.nho, p.nhoTheo), quen: congMang(banCu?.quen, p.quenTheo) }
+      },
+      tam: Math.max(cu?.tam ?? 0, p.tamNho ?? 0),
+      cao: Math.max(cu?.cao ?? 0, diemTriNho(p.nhoTheo, p.quenTheo, soCap) ?? 0)
+    };
+    // Khoá `YYYY-MM-DD` xếp theo chữ cũng là xếp theo ngày
+    const ngay = Object.keys(tatCa).sort();
+    for (const k of ngay.slice(0, Math.max(0, ngay.length - TRI_NHO_GIU_NGAY))) delete tatCa[k];
+    s.triNho = tatCa;
+    write(s);
   },
 
   /** Trả về danh sách thành tích vừa mở khoá lần này. */

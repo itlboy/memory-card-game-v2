@@ -5,6 +5,7 @@ import { taiKhoan } from '@/lib/taikhoan';
 import { t } from '@/lib/i18n';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
+import { hienTriNho } from '@/lib/tri-nho';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card, Summary } from '@mm/engine';
 import { HeartCrack, List, LogOut, Timer, TriangleAlert, WifiOff } from 'lucide-vue-next';
@@ -258,6 +259,8 @@ watch(() => o.view.value?.players.length, () => { moBang.value = false; });
 /** Tỷ số cả loạt theo tên (lib/ty-so-loat.ts) — luôn hiện, kể cả ván đầu. */
 const tySo = computed(() => tySoLoat(o.view.value?.players ?? [], o.seriesWins.value));
 const laDoi = computed(() => o.view.value?.nguoiLat !== undefined);
+/** Số cặp của bàn (ô trống ở lưới lẻ không tính) — trần điểm trí nhớ tính theo đây. */
+const soCapVan = computed(() => Math.floor((o.view.value?.cards.filter((c) => !c.blank).length ?? 0) / 2));
 /** Tên từng người trong phòng theo mã — màn kết quả ván đội ghi số cặp mỗi người tự ghép. */
 const tenThanhVien = computed(() => Object.fromEntries((o.room.value?.players ?? []).map((p) => [p.id, tenNguoi(p)])));
 const iWon = computed(() => o.laToi(o.view.value?.summary?.ranking[0]?.id));
@@ -407,6 +410,9 @@ watch(() => o.view.value?.summary, (s) => {
    * hạng, KHÔNG danh hiệu online. Đội đấu MÁY thì không ghi gì (như phòng có máy).
    */
   const coMay = s.ranking.some((r) => laBotId(r.id) || r.thanhVien?.some((m) => laBotId(m)));
+  // TRÍ NHỚ: chấm trên lượt của chính mình nên phòng có máy vẫn ghi; ván ĐỘI thì không (dòng xếp
+  // hạng là của cả đội). Người xem không có dòng nào mang mã mình nên tự bỏ qua.
+  if (hienTriNho.value && !laDoi.value && !o.spectator.value) store.ghiTriNho(s.ranking.find((r) => r.id === o.myId.value), soCapVan.value);
   if (laDoi.value && !coMay && !o.spectator.value) {
     store.ghiVanBoDem({ thang: loaiKetCuc.value === 'thang', online: true });
     void taiKhoan.ghiVan({ ketQua: loaiKetCuc.value, score: 0, achievements: [] });
@@ -706,7 +712,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       v-if="o.view.value?.summary && showResult"
       :summary="o.view.value.summary"
       :is-record="false" :show-stars="false" :multiplayer="true" :la-chu-phong="o.isHost.value && !o.spectator.value" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
-      :fresh-achievements="[]" :has-next="false" :multiplayer-online="true" :thi-dau="!!o.room.value?.thiDau"
+      :fresh-achievements="[]" :has-next="false" :multiplayer-online="true" :thi-dau="!!o.room.value?.thiDau" :so-cap="soCapVan"
       :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
       :series-wins="o.seriesWins.value"
       :nguoi-choi="o.view.value.players"

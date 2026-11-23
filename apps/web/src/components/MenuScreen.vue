@@ -18,7 +18,7 @@ function dichGoiYTuyChon(s: string | null): string | null {
   return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
 }
 import { BOARD_SIZES, BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChevronLeft, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
+import { Bot, ChartColumn, ChevronLeft, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -35,6 +35,7 @@ const coKhungApp = typeof document !== 'undefined' && !!document.getElementById(
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
+import { hienTriNho } from '@/lib/tri-nho';
 import LevelMap from './LevelMap.vue';
 import SizeGrid from './SizeGrid.vue';
 import ThemePicker from './ThemePicker.vue';
@@ -87,6 +88,8 @@ const emit = defineEmits<{
   'update:options': [BoardOptions];
   online: [];
   'chinh-phuc': [string];
+  /** Mở Sổ trí nhớ (thử nghiệm — viên chỉ hiện khi debug bật). */
+  'so-tri-nho': [];
   /** Chạm mặt trời/trăng ở trang chủ — tính năng ẨN đổi sáng ↔ tối (18.10.2026). */
   'doi-nen': [];
 }>();
@@ -637,10 +640,14 @@ const ICO3D = {
         </div>
 
         <!-- DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm -->
-        <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1" class="loi-tat">
+        <!-- Viên Sổ trí nhớ ghi TÊN TRANG, không kèm điểm: "Trí nhớ 639" bị chê "rất tối nghĩa" (23.11.2026) -->
+        <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1 || hienTriNho" class="loi-tat">
           <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua thach th-vang" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })"><Flame :size="14" :stroke-width="2.6" aria-hidden="true" /> {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
           <button v-if="(manChienDich ?? 0) > 1" class="lt-chip thach" type="button" @click="tiepChienDich">
             <Play :size="14" aria-hidden="true" /><span class="ten">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
+          </button>
+          <button v-if="hienTriNho" class="lt-chip tri-nho thach th-ngoc" type="button" :aria-label="t('tn.ten')" :title="t('tn.ten')" @click="sfx.select(); emit('so-tri-nho')">
+            <ChartColumn :size="14" :stroke-width="2.6" aria-hidden="true" /><span class="ten">{{ t('tn.ten') }}</span>
           </button>
           <button v-if="goiY" class="lt-chip goi-y thach th-do" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
             <Target :size="14" :stroke-width="2.6" aria-hidden="true" /><span class="ten">{{ goiY.name }}</span>
@@ -997,6 +1004,7 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .loi-tat button.lt-chip::after { content: ''; position: absolute; inset: -5px -2px; }
 .loi-tat .lt-chip.lua { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; border-color: transparent; }
 .loi-tat .lt-chip.goi-y { background: var(--nhan-nen); color: var(--nhan-chu); border-color: transparent; }
+.loi-tat .lt-chip.tri-nho { background: linear-gradient(135deg, #2bb9a8, #0b6b60); color: #fff; border-color: transparent; }
 .loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .hinh-nguoi {

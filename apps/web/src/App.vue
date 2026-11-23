@@ -18,6 +18,8 @@ import RulesDialog from './components/RulesDialog.vue';
 import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
+import SoTriNho from './components/SoTriNho.vue';
+import { hienTriNho } from './lib/tri-nho';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
 import type { XemFx } from './components/DebugMenu.vue';
@@ -43,6 +45,7 @@ const debug = ref(store.prefs().debug || new URLSearchParams(location.search).ge
 const coSkinUrl = new URLSearchParams(location.search).has('skin');
 watch(debug, (v) => {
   store.savePrefs({ debug: v });
+  hienTriNho.value = v;   // điểm trí nhớ đang THỬ NGHIỆM: chỉ GHI và chỉ HIỆN khi debug bật (chủ dự án 23.11.2026)
   if (!v) { boEmojiVeMacDinh(); datPingSo(false); if (!coSkinUrl) skinVeMacDinh(); }
 }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
@@ -285,6 +288,8 @@ const showRules = ref(false);
 /** Trang debug riêng (DebugDialog) — mở từ nút "🐞 Debug" cạnh chữ Cài đặt trong menu. */
 const showDebug = ref(false);
 useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
+const showSoTriNho = ref(false);
+useBackCloser(31, () => showSoTriNho.value, () => { showSoTriNho.value = false; });
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
@@ -921,6 +926,7 @@ watch(session.summary, (s) => {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
     store.ghiVanBoDem({ thang: s.status === 'won' });
+    if (hienTriNho.value) store.ghiTriNho(player, game.totalPairs);
     const dat = earned({
       summary: s,
       mode: game.config.mode,
@@ -967,6 +973,8 @@ watch(session.summary, (s) => {
       const thangMay = session.loaiKetCuc.value === 'thang';
       // Thắng Gà mờ không tính vào bộ đếm thắng máy (cùng lý do không cộng điểm)
       store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy' });
+      // Trí nhớ chấm trên lượt của CHÍNH NGƯỜI nên đấu máy mức nào cũng ghi (kể cả Dễ)
+      if (hienTriNho.value) store.ghiTriNho(s.ranking.find((r) => !laBot(r.id)), game.totalPairs);
       const dat = earned({
         summary: s, mode: game.config.mode, cells: game.cards.length,
         misses: player.misses, lives: game.config.lives ?? null, peekMs: game.config.peekMs ?? 0,
@@ -1072,6 +1080,7 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
+      @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -1133,6 +1142,7 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
+      @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -1162,8 +1172,10 @@ const hasNext = computed(() => {
     @update:do-nhip="doNhip = $event"
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
+    @so-tri-nho="showDebug = false; showSoTriNho = true"
     @tat="debug = false; showDebug = false"
   />
+  <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" />
 
   <CaiAppDialog v-if="hienCai" @close="dongCai" />
 
@@ -1221,6 +1233,7 @@ const hasNext = computed(() => {
     :summary="session.summary.value"
     :is-record="isRecord"
     :star-misses="session.game.value?.config.starMisses"
+    :so-cap="session.game.value?.totalPairs"
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
     :minh-ket-cuc="session.minhKetCuc.value"

@@ -10,7 +10,8 @@ export { THEME_GOP, doiDanhHieu, doiThemeIds, themeMoi } from './theme-gop.js';
 export { xoayNguoiDau } from './xoay.js';
 export {
   BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
-  comboMultiplier, isDraw, pairScore, rankPlayers, starsByMisses, starsFor, timeBonus
+  CAP_TRAN_TRI_NHO, CO_HOI_NHO_TOI_THIEU, NANG_NHO, NANG_QUEN, SO_NHOM_TUOI, TRAN_TRI_NHO,
+  coHoiNho, comboMultiplier, diemTriNho, isDraw, nhomTuoi, pairScore, rankPlayers, rongNhomTuoi, starsByMisses, starsFor, tiLeNho, timeBonus, tranBan
 } from './scoring.js';
 export {
   BOARD_SIZES, CAMPAIGN_LEVELS, LEVEL_KEYS, LUAT_THEO_CO, campaignSpec, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,

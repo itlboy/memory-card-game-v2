@@ -40,6 +40,16 @@ export interface Player extends PlayerInit {
    *  (cùng điều kiện mất mạng). Sao Chiến dịch đếm cái này, không đếm `misses` —
    *  lật hai lá chưa từng mở mà không khớp là đang dò, không phải lỗi. */
   quen?: number;
+  /**
+   * ĐIỂM TRÍ NHỚ — số đếm THÔ, chia theo ĐỘ LÂU (`scoring.nhomTuoi`: lá đôi lộ ra cách đây
+   * 1 · 2–3 · 4–7 · 8–15 · 16+ nước). `nhoTheo` = ghép đúng khi lá đôi đã từng lộ; `quenTheo`
+   * = cùng tình huống mà ghép sai (tổng của nó = `quen`). Ghép đúng do may không vào đây.
+   * Thiếu = chưa có lần nào (hoặc server/bản lưu cũ). Điểm tính bằng `diemTriNho()`.
+   */
+  nhoTheo?: number[];
+  quenTheo?: number[];
+  /** Lần nhớ đúng XA nhất trong ván, tính bằng số nước. */
+  tamNho?: number;
   lives: number;
   /** Số lượt bị khoá bởi thẻ đóng băng. */
   frozenTurns: number;
