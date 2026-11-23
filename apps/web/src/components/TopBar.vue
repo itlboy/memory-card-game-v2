@@ -33,6 +33,8 @@ const props = defineProps<{
   danhHieu?: { co: number; tong: number };
   /** Đang trong ván (offline hay online): lá bài trên viên danh hiệu đứng yên. */
   dungYen?: boolean;
+  /** Ván đang chạy, chưa có kết quả — hoãn hỏi và diễn thứ hạng. Hết ván (bảng kết quả) là làm ngay. Thiếu = như `dungYen`. */
+  trongVan?: boolean;
   /** Chế độ debug đang bật — đèn nháy vàng/đỏ ở góc logo để không quên tắt. */
   debug?: boolean;
   /** Bảng xếp hạng đang mở — hiệu ứng lên hạng chờ bảng đóng mới diễn. */
@@ -226,7 +228,7 @@ watch(() => props.totalScore, (to, from) => {
 
 /*
  * HẠNG TUẦN TRÊN VIÊN XU (20.11.2026, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne) — lib/hang-xu.ts.
- * Ít gọi server: khởi động app một lần (`hoiLanDau`); điểm mình vừa tăng → một lần khi đã ra khỏi ván (`diemDoi` gom mọi
+ * Ít gọi server: khởi động app một lần (`hoiLanDau`); điểm mình vừa tăng → một lần khi VÁN ĐÃ XONG (`diemDoi` gom mọi
  * lần cộng trong ván, 1,5 giây cho điểm khách kịp lên server); mở bảng xếp hạng. Hạng ĐỔI (`doiHangCho`) thì khi BẢNG
  * ĐÓNG (`bxhMo` false) và đang ngoài ván (`dungYen`) mới diễn — diễn sau lớp phủ là không ai thấy:
  *  · lên hạng: chip nảy + loé vàng + sóng sáng, số chạy từ hạng cũ tới mới, ▲N xanh bay lên, "tưng" (sfx.lenHang);
@@ -234,6 +236,9 @@ watch(() => props.totalScore, (to, from) => {
  *  · lần đầu có hạng tuần này: cúp trống → có số, nảy + sóng sáng, ba nốt (sfx.coHang). KHÔNG chữ (chủ dự án bỏ "Có hạng!").
  * Bỏ bóng chữ "Lên hạng #129 (↑8)" cũ. Mẹo "bấm vào đây…" một lần đời máy, sau khi đã có xu.
  */
+/** Hoãn hỏi/diễn thứ hạng CHỈ khi ván đang chạy (23.11.2026: trước là "cứ ngoài trang chủ là hoãn" — hết ván vẫn phải về
+ *  trang chủ mới thấy hạng mới). App cũ không truyền `trongVan` thì giữ cách cũ. */
+const hoanHang = (): boolean => props.trongVan ?? !!props.dungYen;
 const doiHang = ref<{ kieu: KieuDoiHang; n: number; key: number } | null>(null);
 /** Số đang hiện trên chip — chạy từ hạng cũ tới hạng mới khi diễn. */
 const hangHien = ref<number | null>(hangXu.value);
@@ -243,7 +248,7 @@ let doiTimer: ReturnType<typeof setTimeout> | undefined;
 let doiRaf = 0;
 function dien(): void {
   const c = doiHangCho.value;
-  if (!c || props.dungYen || props.bxhMo) return;
+  if (!c || hoanHang() || props.bxhMo) return;
   doiHangCho.value = null;
   doiHang.value = { kieu: c.kieu, n: c.tu ? Math.abs(c.tu - c.den) : 0, key: (doiHang.value?.key ?? 0) + 1 };
   meo.value = false;
@@ -268,14 +273,14 @@ watch(() => props.account, (co) => { if (co) void hoiLanDau(); });   // tài kho
 let diemDoi = false;
 let hoiTimer: ReturnType<typeof setTimeout> | undefined;
 function hoiNeuDiemDoi(): void {
-  if (!diemDoi || !props.account || props.dungYen) return;
+  if (!diemDoi || !props.account || hoanHang()) return;
   diemDoi = false;
   clearTimeout(hoiTimer);
   hoiTimer = setTimeout(() => { void hoiSauDiem(); }, 1500);
 }
 watch(() => props.totalScore, (to, from) => { if (to > from) { diemDoi = true; hoiNeuDiemDoi(); } });
-watch(() => props.dungYen, hoiNeuDiemDoi);
-watch(() => [doiHangCho.value, props.dungYen, props.bxhMo, props.totalScore, props.account], () => { dien(); xemMeo(); });
+watch(() => [props.dungYen, props.trongVan], hoiNeuDiemDoi);
+watch(() => [doiHangCho.value, props.dungYen, props.trongVan, props.bxhMo, props.totalScore, props.account], () => { dien(); xemMeo(); });
 onUnmounted(() => { clearTimeout(doiTimer); clearTimeout(hoiTimer); cancelAnimationFrame(doiRaf); });
 function moBxh(): void {
   if (meo.value) { meo.value = false; tatMeoXu(); }

@@ -1,5 +1,13 @@
 import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, coHoiNho, diemTriNho, doiDanhHieu, doiThemeIds, rongNhomTuoi, sanitizeOptions } from '@mm/engine';
 import type { BoardOptions, Mode, RoomConfig } from '@mm/engine';
+import { ref } from 'vue';
+
+/**
+ * Nhịp "tổng xu vừa được CỘNG" (23.11.2026, chủ dự án: "phải sang trang chủ mới cập nhật điểm và thứ hạng… làm luôn lúc đó,
+ * cho nó đồng bộ luôn"). Ván ONLINE cộng xu ở useOnlineRoom / OnlineGame, còn con số trên thanh trên cùng do App giữ và trước
+ * chỉ đọc lại khi về trang chủ. App `watch` nhịp này để đọc lại tổng NGAY lúc hết ván — ai cộng xu ở đâu cũng không phải báo riêng.
+ */
+export const diemVuaCong = ref(0);
 
 /** Ba mức âm lượng: tắt / nhỏ / to — một nút bấm xoay vòng. */
 export type SoundLevel = 'off' | 'low' | 'high';
@@ -294,6 +302,7 @@ export const store = {
     const s = read();
     s.totalScore = (s.totalScore ?? 0) + score;
     write(s);
+    diemVuaCong.value++;
   },
 
   /** Danh hiệu theme cũ (`theme-cats`…) đọc ra thành danh hiệu của nhóm mới (`theme-animals`). */

@@ -1898,3 +1898,12 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - Bẫy công cụ: `lib-playwright.donMoCoi()` tắt mọi tiến trình WebKit có cha = 1, kể cả của PHIÊN KHÁC
   đang chụp → "Page crashed" ngẫu nhiên khi hai phiên cùng chạy. Gặp thì dùng Chrome ẩn qua
   `moTrinhDuyet('chromium', { executablePath })`.
+- **XU VÀ THỨ HẠNG CẬP NHẬT NGAY Ở BẢNG KẾT QUẢ (23.11.2026, 1.9.39)** — chủ dự án: "phải sang trang chủ mới cập nhật điểm và thứ
+  hạng… làm luôn lúc đó, cho nó đồng bộ luôn". Hai chỗ chậm: (1) ván ONLINE cộng xu trong useOnlineRoom/OnlineGame nhưng số trên
+  TopBar do App giữ (`totalScore`) và chỉ đọc lại khi về trang chủ → nay `store.addScore` tăng nhịp `diemVuaCong` (lib/storage.ts),
+  App `watch` nó để đọc lại tổng ngay; (2) TopBar hoãn hỏi + diễn THỨ HẠNG tới khi `dungYen` hết (= về trang chủ) → nay hoãn theo
+  prop mới `trongVan` = VÁN ĐANG CHẠY (App `vanDangChay`: ván offline chưa có `summary`, online đang `playing`, Mưa Thẻ), tức
+  hết ván là hỏi hạng luôn. `dungYen` vẫn dùng cho mẹo viên xu và hoạt ảnh thẻ mini. App.vue đã có `trongVan` khác nghĩa (nhạc
+  nền: cả màn chơi lẫn bảng kết quả) — ĐỪNG gộp hai cái. Lưu ý: bảng kết quả (z 17) phủ mờ lên TopBar (z 15), nên số mới và
+  hiệu ứng lên hạng hiện DƯỚI lớp mờ. Đã thử thật phần xu (0 → 1.240 ngay ở bảng kết quả); phần hạng cần tài khoản + MySQL nên
+  chưa thử ngoài máy thật.

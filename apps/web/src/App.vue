@@ -74,7 +74,7 @@ import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
 import { nhac, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
-import { ngayMay, store, type SoundLevel } from './lib/storage';
+import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
 import { choiDuoc, hienPremium } from './lib/premium';
 
@@ -161,12 +161,21 @@ function banDoMay(): Record<string, BotLevel> {
  */
 const progressRev = ref(0);
 const totalScore = ref(store.totalScore());
+// Xu vừa được cộng ở BẤT KỲ đâu (kể cả ván online, cộng trong useOnlineRoom) → đọc lại tổng ngay, không chờ về trang chủ
+watch(diemVuaCong, () => { totalScore.value = store.totalScore(); });
 
 const themes = ref<CardTheme[]>([]);
 /** 'mua-the' = chế độ thẻ rơi (components/MuaThe.vue) — ô ngang ở trang chủ + trang Debug; `?mua=1` trên URL. */
 const screen = ref<'menu' | 'game' | 'online' | 'mua-the'>('menu');
 const muaTheRef = ref<InstanceType<typeof MuaThe> | null>(null);
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
+/**
+ * VÁN ĐANG CHẠY (chưa có kết quả) — TopBar chỉ hoãn hỏi/diễn THỨ HẠNG trong lúc này. Hết ván (bảng kết quả đang hiện) là hỏi
+ * hạng và cập nhật luôn, không chờ về trang chủ như trước (23.11.2026). Mưa Thẻ giữ cách cũ (không có cờ "đã xong" để đọc).
+ */
+const vanDangChay = computed(() => (screen.value === 'game' && !session.summary.value)
+  || (screen.value === 'online' && !!onlineRef.value?.dangChoi)
+  || screen.value === 'mua-the');
 /** Đang trong VÁN (offline hoặc online đang chơi) — nhạc nền nhỏ dần rồi tắt (16.10.2026). */
 const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua-the' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
 
@@ -1037,6 +1046,7 @@ const hasNext = computed(() => {
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
     :dung-yen="screen !== 'menu'"
+    :trong-van="vanDangChay"
     @set-nhac="datNhac"
     :account="taiKhoanSan" :bxh-mo="showBxh" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @set-nen="nen = $event"
