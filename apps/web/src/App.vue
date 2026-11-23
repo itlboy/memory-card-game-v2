@@ -436,6 +436,8 @@ useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; })
 useBackCloser(20, () => screen.value !== 'menu', () => {
   if (screen.value === 'game') thoatVan();
   else if (screen.value === 'mua-the') muaTheRef.value?.veLai();
+  // Online: Back giữa ván về MÀN ONLINE chứ không ra trang chủ (23.11.2026) — OnlineScreen `requestBack`
+  else if (screen.value === 'online') onlineRef.value?.requestBack();
   else goHome();
 });
 

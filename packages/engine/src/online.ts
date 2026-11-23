@@ -177,7 +177,9 @@ export interface PublicPlayer {
   /** Đã bấm sẵn sàng ở lobby (chủ phòng mặc nhiên sẵn sàng). */
   ready?: boolean;
   /** MÁY CHƠI CÙNG (1.6.0): có = người này là máy, chạy trên server, ở mức này. Client cũ bỏ qua. */
-  may?: BotLevel;
+may?: BotLevel;
+  /** Số ván đã thắng trong LOẠT của phòng (server đếm, 23.11.2026) — thiếu = 0. Chỉ có trong `RoomInfo.players`. */
+  thang?: number;
   /**
    * SỐ ĐỘI ở PHÒNG CHỜ (RoomInfo, 1.8.0): cùng số là cùng đội. Tên trường KHÁC `doi` của bản 1.7
    * ('A'/'B') để app 1.7 chưa cập nhật không vẽ nhầm ô đội — với nó đây là phòng thường.
@@ -550,6 +552,11 @@ export interface RoomInfo {
   config: RoomConfig;
   players: PublicPlayer[];
   status: 'lobby' | 'countdown' | 'playing' | 'ended';
+  /**
+   * Số ván đã XONG trong loạt của phòng (23.11.2026). CÓ trường này = server tự đếm tỷ số loạt (`players[].thang`) →
+   * client lấy theo server, không tự cộng nữa. Server cũ không gửi → client đếm tại chỗ như trước.
+   */
+  soVan?: number;
   /** Id những người đã bấm "chơi lại" sau khi ván kết thúc. Cần gửi cho client
    *  vì trước đây bấm xong không ai biết ai đã bấm — kể cả chính mình. */
   againVotes?: string[];

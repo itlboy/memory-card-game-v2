@@ -1,6 +1,6 @@
 import { DurableObject } from 'cloudflare:workers';
 import {
-  LEVEL_KEYS, DEFAULT_ROOM_CONFIG, MemoryGame, NHAC_CACH_MS, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
+  LEVEL_KEYS, DEFAULT_ROOM_CONFIG, isDraw, MemoryGame, NHAC_CACH_MS, QUICK_EMOJIS, QUICK_SAYS, ROOM_LIMITS, configFromOptions, sanitizeOptions,
   anhHopLe, backVeCu, packView, predealSymbols, publicEvents, publicPlayer, publicView, doiThemeIds, seedFrom, themeMoi, xoayNguoiDau
 } from '@mm/engine';
 import type {
@@ -69,6 +69,12 @@ interface RoomPlayer {
    */
   may?: BotLevel;
   /**
+   * SỐ VÁN ĐÃ THẮNG TRONG LOẠT của phòng này (23.11.2026). Trước chỉ đếm ở CLIENT (useOnlineRoom `seriesWins`) nên ai vào
+   * sau — khán giả, người nối lại, người vào giữa loạt — đều thấy 0–0–0 (chủ dự án: "vào phòng bất kỳ đang chơi đều 0-0-0").
+   * Nay server đếm theo NGƯỜI (id không đổi trong một phòng, kể cả khi đổi tên) và gửi kèm `RoomInfo`; hoà thì không ai được.
+   */
+  thang?: number;
+  /**
    * SỐ ĐỘI (15.11.2026): ai cũng có một số 1–4, mặc định mỗi người một số khác nhau (= ván thường).
    * Hai người CÙNG SỐ là cùng đội — không còn công tắc "chế độ Đồng đội".
    */
@@ -94,6 +100,8 @@ interface RoomState {
    * biết và tự gửi đi), thêm một lớp nữa là bắt người chơi truyền tay hai thứ.
    */
   congKhai: boolean;
+  /** Số ván đã XONG trong loạt của phòng (chỉ trong RAM — khởi động lại server thì đếm lại từ 0; số ván thắng thì giữ). */
+  soVan?: number;
   /** Thời điểm hết đếm ngược 5 giây, khi status = 'countdown'. */
   countdownEnd?: number;
   /** Lúc phòng ở lobby mà KHÔNG còn ai. Xem EMPTY_LOBBY_MS. */
@@ -1596,8 +1604,16 @@ export class RoomDO extends DurableObject<Env> {
   /** Phát sự kiện + view mới cho cả phòng, cập nhật trạng thái phòng nếu ván xong. */
   private async afterEvents(events: GameEvent[], save = true): Promise<void> {
     if (!events.length || !this.game || !this.room) return;
-    if (events.some((e) => e.type === 'end')) {
+    const het = events.find((e) => e.type === 'end');
+    if (het && het.type === 'end') {
       this.room.status = 'ended';
+      // TỶ SỐ LOẠT: cùng luật với client cũ — người đứng đầu bảng được +1, hoà thì không ai
+      this.room.soVan = (this.room.soVan ?? 0) + 1;
+      const nhat = het.summary.ranking[0];
+      if (nhat && !isDraw(het.summary.ranking)) {
+        const p = this.room.players.find((x) => x.id === nhat.id);
+        if (p) p.thang = (p.thang ?? 0) + 1;
+      }
       if (this.room.thiDau) this.ghiTd('td_van', { viec: 'xong', nguoi: this.room.players.length, giay: Math.round((Date.now() - (this.tdBatDau || Date.now())) / 1000), roi: this.game.players.filter((p) => p.forfeited).length });
     }
     this.quanSatMay();   // máy NHÌN mọi lá vừa mở (của cả người lẫn máy) — như người ngồi cùng bàn
@@ -1874,10 +1890,11 @@ export class RoomDO extends DurableObject<Env> {
       // Phòng cũ lưu trước ON-10 không có trường này — coi như công khai, đúng
       // với mặc định của phòng mới.
       congKhai: room.congKhai !== false,
+      soVan: room.soVan ?? 0,
       ...(room.thiDau ? { thiDau: true as const } : {}),
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
-        const may = { ...(p.may ? { may: p.may } : {}), ...(p.doi ? { doiSo: p.doi } : {}) };
+        const may = { ...(p.may ? { may: p.may } : {}), ...(p.doi ? { doiSo: p.doi } : {}), ...(p.thang ? { thang: p.thang } : {}) };
         if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...may };
         return {
               id: p.id, name: p.name, avatar: p.avatar,
