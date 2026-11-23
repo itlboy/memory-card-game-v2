@@ -201,6 +201,10 @@ class Phong {
   /** Chủ phòng là người khác (bot rớt mạng rồi quay lại): mốc bắt đầu chờ họ. */
   chuLaTu = 0;
   startGui = 0;
+  /** Tự chữa khi bot mất ghế ở phòng chờ: mốc bắt đầu thiếu, mốc thử vào lại gần nhất. */
+  thieuTu = 0;
+  chuaLuc = 0;
+  daThuRoi = false;
 
   constructor(public so: number) {}
 
@@ -352,6 +356,27 @@ class Phong {
   }
 
   nhipPhongCho(r: RoomInfo, now: number): void {
+    /*
+     * TỰ CHỮA: bot của mình KHÔNG còn trong danh sách người chơi (bị gỡ vì server tưởng rớt mạng, bị chủ phòng người thật
+     * mời ra…) → vào lại như người mới. Chưa đủ hai bot thì KHÔNG bấm Bắt đầu. Quá 90 giây vẫn thiếu thì bỏ phòng.
+     */
+    const thieu = this.bot.filter((b) => !r.players.some((p) => p.id === b.id));
+    if (thieu.length) {
+      if (!this.thieuTu) this.thieuTu = now;
+      if (now - this.thieuTu > 90_000 && !this.dangNoi) { this.thieuTu = 0; void this.doiPhong('không vào lại được ghế'); return; }
+      if (!this.dangNoi && now - this.chuaLuc > 4000) {
+        this.chuaLuc = now;
+        this.dangNoi = true;
+        void (async () => {
+          try {
+            for (const b of thieu) { b.token = ''; b.dong(); await nghi(300); if (await b.vao()) log(`[phòng ${this.so}] ${this.code} ${b.ten} mất ghế — đã vào lại`); }
+            luu();
+          } finally { this.dangNoi = false; }
+        })();
+      }
+      return;
+    }
+    this.thieuTu = 0;
     // Bot không phải chủ phòng thì bấm Sẵn sàng như người
     for (const b of this.bot) {
       const toi = r.players.find((p) => p.id === b.id);
@@ -365,6 +390,7 @@ class Phong {
       return;
     }
     this.chuLaTu = 0;
+    if (process.env.BOT_DEBUG_ROI && !this.daThuRoi && this.bot[1]) { this.daThuRoi = true; log('[gỡ lỗi] cho bot thứ hai rời ghế để thử tự chữa'); this.bot[1].gui({ t: 'leave' }); return; }
     if (!r.congKhai) chu.gui({ t: 'public', on: true });
     const nguoi = this.nguoi().filter((p) => p.connected);
     // Người vừa vào sát giờ: nới cho kịp bấm Sẵn sàng (mỗi người một lần)
@@ -470,4 +496,7 @@ for (const [i, p] of phongs.entries()) {
 luu();
 setInterval(() => { for (const p of phongs) { try { p.nhip(); } catch (e) { console.error('[nhịp] lỗi:', e); } } }, 300);
 // Báo còn sống (server có mốc im lặng)
-setInterval(() => { for (const p of phongs) for (const b of p.bot) b.gui({ t: 'alive' }); }, 20_000);
+// 8 GIÂY, không phải 20: server coi im quá SILENT_MS = 20 s là MẤT KẾT NỐI. Bot không tới lượt chỉ gửi mỗi tin này, nên nhịp
+// 20 s là chạm ngưỡng — bot bị đánh dấu rớt mạng, và nếu đúng lúc đó phòng về phòng chờ thì nó bị GỠ khỏi phòng (gặp thật trên
+// Dallas 23.11.2026: phòng còn một bot, bấm Bắt đầu mãi "cần ít nhất 2 người").
+setInterval(() => { for (const p of phongs) for (const b of p.bot) b.gui({ t: 'alive' }); }, 8_000);

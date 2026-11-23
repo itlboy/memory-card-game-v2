@@ -34,7 +34,7 @@ const tuanXem = ref<string | undefined>(undefined);
 /** Hiện NGAY bảng lần trước (bxhLanTruoc) rồi thay bằng số mới — xem taikhoan.ts. */
 const bang = ref<BangXh | null>(bxhLanTruoc('tuan'));
 const loi = ref(false);
-/** Đang hỏi số mới: bảng (lần trước) hiện MỜ cho tới khi số mới về — chủ dự án: "hiện bảng mờ là được". */
+/** Đang hỏi số mới: bảng lần trước vẫn hiện BÌNH THƯỜNG (23.11.2026 bỏ làm mờ); số mới về thì dòng trượt về chỗ mới. */
 const dangTai = ref(false);
 
 const laKhach = computed(() => !me.value);
@@ -44,7 +44,39 @@ const dangSuaTen = ref(false);
 const tenNhap = ref(tenMay.value);
 const dangLuu = ref(false);
 
+/*
+ * DÒNG TRƯỢT VỀ VỊ TRÍ MỚI khi số mới về (23.11.2026, chủ dự án: "khi kết quả mới có thay đổi thì mình di chuyển vị trí").
+ * Kỹ thuật FLIP: chụp vị trí từng người (`data-k`) TRƯỚC khi Vue vẽ lại, vẽ xong thì cho phần tử trượt từ chỗ cũ về chỗ mới.
+ * Chỉ khi vẫn ở cùng tab + cùng tuần (đổi tab là bảng khác, trượt qua lại chỉ gây rối). Bảng công khai không mang id nên
+ * khoá = tên + mặt + số khách; hai người trùng khoá thì bỏ qua cả hai (không đoán ai là ai).
+ */
+const gocEl = ref<HTMLElement | null>(null);
+const khoa = (d: DongBxh): string => `${d.name}|${d.mat ?? ''}|${d.khach ?? ''}`;
+function chupViTri(): Map<string, DOMRect> {
+  const m = new Map<string, DOMRect>(), trung = new Set<string>();
+  for (const el of gocEl.value?.querySelectorAll<HTMLElement>('[data-k]') ?? []) {
+    const k = el.dataset.k!;
+    if (m.has(k)) trung.add(k); else m.set(k, el.getBoundingClientRect());
+  }
+  for (const k of trung) m.delete(k);
+  return m;
+}
+async function truotDong(truoc: Map<string, DOMRect>): Promise<void> {
+  if (!truoc.size || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  await nextTick();
+  const sau = chupViTri();
+  for (const el of gocEl.value?.querySelectorAll<HTMLElement>('[data-k]') ?? []) {
+    const a = truoc.get(el.dataset.k!), b = sau.get(el.dataset.k!);
+    if (!a || !b) continue;
+    const dx = a.left - b.left, dy = a.top - b.top;
+    if (Math.abs(dx) < 2 && Math.abs(dy) < 2) continue;
+    el.animate([{ transform: `translate(${dx}px, ${dy}px)`, zIndex: 2 }, { transform: 'none', zIndex: 2 }], { duration: 520, easing: 'cubic-bezier(.2, .8, .2, 1)' });
+  }
+}
+
 let luot = 0;
+/** Tab + tuần của bảng đang hiện — chỉ trượt dòng khi số mới thuộc CÙNG bảng. */
+let cungBang = 'tuan|';
 async function tai(): Promise<void> {
   loi.value = false;
   // Đang có bảng cũ mà mất mạng: giữ bảng cũ, không báo lỗi đè lên
@@ -55,7 +87,10 @@ async function tai(): Promise<void> {
   try {
     const b = await bangXepHang(l, w);
     if (so !== luot) return;   // đã bấm sang tab / tuần khác — bỏ kết quả cũ
+    const truoc = bang.value && cungBang === `${l}|${w ?? ''}` ? chupViTri() : new Map<string, DOMRect>();
+    cungBang = `${l}|${w ?? ''}`;
     bang.value = b;
+    void truotDong(truoc);
     if (l === 'tuan' && !w) ghiHang(b);
     void keoToiMinh();
   } catch { if (so === luot && !bang.value) loi.value = true; } finally { if (so === luot) dangTai.value = false; }
@@ -223,7 +258,7 @@ async function doiAn(an: boolean): Promise<void> {
 
 <template>
   <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('tk.xepHang')" @keydown.esc="emit('close')">
-    <div class="panel">
+    <div ref="gocEl" class="panel">
       <header class="head">
         <h2>{{ t('tk.xepHang') }}</h2>
         <!-- LỌC NGƯỜI ONLINE — chip gọn trên hàng tiêu đề (23.11.2026, chủ dự án: "giao diện này rối quá… đơn giản hơn"):
@@ -257,7 +292,7 @@ async function doiAn(an: boolean): Promise<void> {
            nhỏ ~1/3, NẰM NGOÀI vùng cuộn nên cuộn chỉ kéo hạng 4 trở đi). Thứ tự 2·1·3; thiếu người thì ô trống giữ chỗ. -->
       <div v-if="bang && !tuanTrong && bang.top.length && !chiOnline" class="buc" :class="{ mo: dangTai }">
       <div class="bui" aria-hidden="true"><i v-for="(h, k) in HAT" :key="k" :class="{ sao: h.sao }" :style="h.st" /></div>
-      <div v-for="i in [1, 0, 2]" :key="i" class="bn" :class="`n${i + 1}`">
+      <div v-for="i in [1, 0, 2]" :key="i" class="bn" :class="`n${i + 1}`" :data-k="bang.top[i] ? khoa(bang.top[i]!) : undefined">
         <template v-if="bang.top[i]">
           <span class="av"><MatBot :mat="bang.top[i].mat ?? '🙂'" /><i v-if="bang.top[i].ol && !bang.top[i].toi" class="dot" :class="{ ban: bang.top[i].ol!.ban }" /><span v-if="bang.top[i].ol && !bang.top[i].toi" class="sr-only">{{ bang.top[i].ol!.ban ? t('bxh.dangChoi') : t('bxh.online') }}</span></span>
           <span class="tn">{{ ten(bang.top[i]) }}</span>
@@ -293,7 +328,7 @@ async function doiAn(an: boolean): Promise<void> {
         </ol>
         <template v-else-if="bang">
           <ol class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai" :start="4">
-            <li v-for="{ d, hang } in dongGiua" :key="hang" :class="{ toi: d.toi }">
+            <li v-for="{ d, hang } in dongGiua" :key="hang" :class="{ toi: d.toi }" :data-k="khoa(d)">
               <span class="hang">{{ num(hang) }}</span>
               <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
               <span class="ten"><span class="tt">{{ ten(d) }}</span><i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i><small v-if="d.ol?.ban && !d.toi" class="dang-choi">{{ t('bxh.dangChoi') }}</small><span v-else-if="d.ol && !d.toi" class="sr-only">{{ t('bxh.online') }}</span></span>
@@ -475,7 +510,6 @@ async function doiAn(an: boolean): Promise<void> {
 @keyframes tho { from { opacity: .55; transform: translateX(-50%) scale(.92); } to { opacity: 1; transform: translateX(-50%) scale(1.06); } }
 @media (prefers-reduced-motion: reduce) { .bui i { display: none; } .bui::before { animation: none; } }
 .buc { transition: opacity .2s ease; }
-.buc.mo { opacity: .45; }
 .nhan-ban {
   font-style: normal; font-size: 11px; font-weight: 800; color: var(--ban-chu); background: var(--ban-nen);
   border-radius: 8px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px;
@@ -499,9 +533,8 @@ async function doiAn(an: boolean): Promise<void> {
 .trong b { font: 800 18px var(--font-display); }
 .trong p { margin: 0; color: var(--muted); font-size: var(--text-sm); line-height: 1.45; max-width: 30ch; }
 .trong .choi { min-height: 44px; padding: 0 22px; font-weight: 800; margin-top: 6px; }
-/* Bảng lần trước đang chờ số mới: mờ đi, không bấm/đọc nhầm số cũ là số thật */
-.bxh, .ghim { transition: opacity .2s ease; }
-.bxh.mo, .ghim.mo { opacity: .45; }
+/* Bảng lần trước đang chờ số mới: HIỆN BÌNH THƯỜNG (23.11.2026, chủ dự án: "cứ hiện bình thường đi" — bản cũ làm mờ 45%);
+   số mới về mà thứ hạng đổi thì dòng TRƯỢT về chỗ mới (script `truotDong`). */
 .xuong li { min-height: 36px; box-sizing: border-box; }
 .xuong .o { display: block; height: 14px; border-radius: 7px; background: color-mix(in srgb, var(--fg) 12%, transparent); animation: nhap 1.1s ease-in-out infinite alternate; }
 .xuong .mat-o { width: 22px; height: 22px; border-radius: 50%; flex: none; }

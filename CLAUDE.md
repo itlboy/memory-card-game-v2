@@ -1835,3 +1835,17 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   đầu màn Chơi online); BangXepHang `dsOnline` nhận cả dòng `toi` (nhãn "Bạn", không chấm xanh, không nút Thách). Hệ quả: ô trang
   chủ LUÔN có số người ≥ 1. Ba nơi vẫn có thể lệch nhau vì định nghĩa khác: sảnh đếm MỌI app đang nối, bảng xếp hạng chỉ đếm
   người đã có dòng trên bảng (đã chơi ít nhất một ván) — chưa gộp.
+- **Ô "CHƠI ONLINE": ĐỦ BA CON SỐ (23.11.2026, 1.9.35)** — chủ dự án: "thường chỉ thấy có 2 thông số". Huy hiệu `.so-phong` =
+  👥 người online (kể cả mình, luôn ≥ 1) · chấm xanh + SỐ phòng đang chờ · xô bỏng ngô + số phòng đang chơi; số nào 0 thì ẩn ô đó
+  (`.sp-o`). Bản 1.9.31 chỉ in số phòng chờ khi không ai online → từ khi tính cả mình nó chỉ còn là cái chấm. Đo 390px: thường
+  95/111px; hai số chạm trần ("99+", "9+") thì lớp `.chat` thu chữ 10.5px → 96px. Thêm ô thứ tư là tràn — đừng.
+- **BẢNG XẾP HẠNG: KHÔNG LÀM MỜ BẢNG CŨ, DÒNG TRƯỢT VỀ CHỖ MỚI (23.11.2026, 1.9.35)** — chủ dự án: "kết quả cũ đang hiện mờ, cứ
+  hiện bình thường đi; khi kết quả mới có thay đổi thì di chuyển vị trí" (đảo quyết định 19.11 "hiện bảng mờ là được"). Bỏ
+  `opacity .45` của `.mo`. `BangXepHang.vue` `chupViTri`/`truotDong` = FLIP bằng Web Animations: chụp vị trí theo `data-k`
+  (tên + mặt + số khách — bảng công khai không có id; trùng khoá thì bỏ qua) trước khi gán `bang`, vẽ xong cho ô trượt 520ms.
+  CHỈ khi số mới thuộc cùng tab + cùng tuần (`cungBang`); bục top 3 và danh sách giữa đều trượt; tôn trọng giảm chuyển động.
+- **Phòng bot — NHỊP BÁO SỐNG 8 GIÂY + TỰ VÀO LẠI GHẾ (23.11.2026)**: server coi im quá `SILENT_MS` 20 s là mất kết nối; bot không
+  tới lượt chỉ gửi `alive`, mà nhịp cũ đúng 20 s → thỉnh thoảng bị đánh dấu rớt, trúng lúc `tolobby` là bị GỠ khỏi phòng (Dallas
+  23.11: phòng còn một bot, bấm Bắt đầu mãi `not-enough`, và phòng "còn chỗ" đó bắn thông báo đẩy tới 46 máy). Nay `alive` 8 s;
+  ở phòng chờ bot nào không còn trong `players` thì vào lại như người mới, thiếu bot thì KHÔNG bấm Bắt đầu, 90 s không chữa
+  được thì đổi phòng. `BOT_DEBUG_ROI=1` cho bot thứ hai tự rời ghế một lần để thử nhánh này.
