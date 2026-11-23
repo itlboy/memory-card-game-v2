@@ -259,21 +259,22 @@ describe('icon: không dùng emoji hệ thống làm icon giao diện (21.11.202
   });
 });
 
-describe('số người online = người KHÁC, tính lại theo trạng thái kết nối (23.11.2026)', () => {
-  it('hỏi đúng lúc sảnh vừa nối (lời chào chưa về) không còn bị đếm chính mình', async () => {
-    const { dangNoiSanh, ghiSoOnline, soNguoiOnline } = await import('@/lib/sanh');
+describe('số người online tính CẢ MÌNH, tính lại theo trạng thái kết nối (23.11.2026)', () => {
+  it('hỏi đúng lúc sảnh vừa nối (lời chào chưa về) không đếm mình hai lần; một mình thì là 1', async () => {
+    const { dangNoiSanh, ghiSoOnline, soNguoiOnline, soNguoiKhacOnline } = await import('@/lib/sanh');
     dangNoiSanh.value = false;
     ghiSoOnline(1);                       // server đã đếm mình, client chưa biết mình đã nối
+    expect(soNguoiOnline.value).toBe(2);
+    dangNoiSanh.value = true;             // lời chào về → biết "1" đó là mình
     expect(soNguoiOnline.value).toBe(1);
-    dangNoiSanh.value = true;             // lời chào về → trừ mình ngay, không chờ lần hỏi kế
-    expect(soNguoiOnline.value).toBe(0);
+    expect(soNguoiKhacOnline.value).toBe(0);
     ghiSoOnline(3);
-    expect(soNguoiOnline.value).toBe(2);
+    expect(soNguoiOnline.value).toBe(3);
     dangNoiSanh.value = false;            // vừa rớt sảnh: số thô lúc hỏi vẫn còn tính mình
-    expect(soNguoiOnline.value).toBe(2);
-    ghiSoOnline(2);                       // lần hỏi kế, không còn nối: không trừ nữa
-    expect(soNguoiOnline.value).toBe(2);
+    expect(soNguoiOnline.value).toBe(3);
+    ghiSoOnline(2);                       // không nối sảnh (tắt nhận lời mời): 2 người khác + mình
+    expect(soNguoiOnline.value).toBe(3);
     ghiSoOnline('x'); ghiSoOnline(undefined);   // số hỏng: giữ số cũ
-    expect(soNguoiOnline.value).toBe(2);
+    expect(soNguoiOnline.value).toBe(3);
   });
 });

@@ -1821,3 +1821,17 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   trừ MỘT LẦN lúc nhận số: hỏi `/api/rooms/public` đúng lúc sảnh vừa nối (server đã đếm mình, lời chào chưa về) là tự đếm mình
   thành một người. Nay `soNguoiOnline` là `computed` từ số THÔ của server, trừ mình khi đang nối sảnh hoặc đã nối lúc hỏi.
   Số này CHỈ đếm app đang nối sảnh: bot phòng (chỉ nối phòng) KHÔNG được tính.
+- **VAI NGƯỜI XEM LÀ LỰA CHỌN ĐƯỢC GIỮ (23.11.2026, 1.9.34)** — chủ dự án: "vào phòng với tư cách người xem thì kết thúc lại là
+  người chơi… người trong phòng chờ có thể chọn mình là người xem… đang xem thì sang phòng chờ cũng là người xem, trừ khi bấm
+  chuyển sang người chơi". BỎ luật cũ "khán giả gặp phòng chờ còn chỗ thì tự vào làm người chơi" (useOnlineRoom tự nối lại).
+  Server (`room.ts` fetch): `?xem=1` → `acceptSpectator` kể cả khi phòng chờ còn chỗ. Client: `muonXem` bật từ lúc server nhận
+  mình làm người xem, mọi lần nối lại không token đều khai `xem=1`; tắt khi bấm "Vào chơi" (`vaoChoi`) hoặc vào phòng khác.
+  Phòng chờ: người xem thấy thẻ "Bạn đang xem" (`.the-xem`, màu trời, có bản tối) + nút "Vào chơi" khi còn chỗ; người chơi
+  KHÔNG phải chủ phòng có nút nhỏ "Chỉ xem" (`chuyenXem`: gửi `leave` trả ghế rồi nối lại `xem=1`). Chủ phòng không có nút này
+  (phải có người bấm Bắt đầu). Đổi vai = NỐI LẠI vì nhãn socket (`spectator` / id người chơi) gắn lúc mở, không đổi được.
+  App bản cũ vẫn tự vào ghế như trước (code tự nối lại nằm trong gói cũ). Bot phòng: còn người XEM thì chưa đổi phòng.
+- **"NGƯỜI ĐANG ONLINE" TÍNH CẢ MÌNH Ở MỌI NƠI (23.11.2026, 1.9.34)** — chủ dự án: số ở phòng chờ và ở bảng xếp hạng không nhất
+  quán, "bảng xếp hạng đang bỏ tôi, cho thêm vào đi". `lib/sanh.ts`: `soNguoiOnline` = `soNguoiKhacOnline` + 1 (ô Chơi online,
+  đầu màn Chơi online); BangXepHang `dsOnline` nhận cả dòng `toi` (nhãn "Bạn", không chấm xanh, không nút Thách). Hệ quả: ô trang
+  chủ LUÔN có số người ≥ 1. Ba nơi vẫn có thể lệch nhau vì định nghĩa khác: sảnh đếm MỌI app đang nối, bảng xếp hạng chỉ đếm
+  người đã có dòng trên bảng (đã chơi ít nhất một ván) — chưa gộp.

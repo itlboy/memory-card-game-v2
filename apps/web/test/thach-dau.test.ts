@@ -69,7 +69,9 @@ describe('bảng xếp hạng: chữ gọn, online, thách đấu (cấu trúc)'
     // Lọc người online: dòng "N người đang online" là nút bật/tắt, bật thì chỉ còn người online kèm hạng thật
     expect(b).toContain(':aria-pressed="chiOnline"');
     // 23.11.2026: danh sách online lấy thẳng từ server (test/bxh-tai-them.test.ts dựng bảng thật)
-    expect(b).toContain('const dsOnline = computed(() => dsOl.value.filter((d) => d.ol && !d.toi)');
+    // 23.11.2026 (sau): TÍNH CẢ MÌNH — chủ dự án: "bảng xếp hạng đang bỏ tôi, cho thêm vào đi"; dòng mình có nhãn Bạn, không nút Thách
+    expect(b).toContain('const dsOnline = computed(() => dsOl.value.filter((d) => d.ol || d.toi)');
+    expect(b).toContain('<li v-for="x in dsOnline" :key="`o${x.hang}`" :class="{ toi: x.d.toi }">');
   });
   it('chữ dòng bằng cỡ tên trên bục; chấm online nhỏ 6px; "Đang chơi" nằm trong ô tên (bên phải tên)', () => {
     expect(b).toMatch(/\.bxh \.ten, \.toi-dong \.ten \{ font-size: 12\.5px; font-weight: 800; \}/);

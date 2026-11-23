@@ -345,7 +345,8 @@ class Phong {
     else if (r.status === 'playing') this.nhipVan(now);
     else if (r.status === 'ended' && this.hetXem && now >= this.hetXem) {
       this.hetXem = now + 5000;   // gửi rồi mà chưa đổi trạng thái thì 5 giây sau gửi lại
-      if (this.soVan >= this.doiKhi && !this.nguoi().some((p) => p.connected)) { void this.doiPhong(`đủ ${this.soVan} ván`); return; }
+      // Còn người thật NGỒI CHƠI hoặc đang XEM thì chưa đổi phòng (đổi là đóng phòng trước mặt họ)
+      if (this.soVan >= this.doiKhi && !this.nguoi().some((p) => p.connected) && !(this.room as { xem?: unknown[] } | null)?.xem?.length) { void this.doiPhong(`đủ ${this.soVan} ván`); return; }
       (this.chu ?? this.bot[0])?.gui({ t: 'tolobby' });
     }
   }

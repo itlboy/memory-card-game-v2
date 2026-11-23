@@ -151,7 +151,9 @@ function thach(d: DongBxh): void {
 const chiOnline = ref(false);
 /** 23.11.2026: danh sách người online lấy THẲNG từ server (`bxhOnline`) — cả người ngoài top 20; nút lọc luôn hiện. */
 const dsOl = ref<DongHang[]>([]);
-const dsOnline = computed(() => dsOl.value.filter((d) => d.ol && !d.toi).map((d) => ({ d, hang: d.hang })));
+// TÍNH CẢ MÌNH (23.11.2026, chủ dự án: "bảng xếp hạng đang bỏ tôi, cho thêm vào đi") — đang mở bảng thì mình đang online,
+// kể cả khi app không nối sảnh (tắt nhận lời mời nên server không gắn `ol`). Dòng của mình có nhãn "Bạn", không nút Thách.
+const dsOnline = computed(() => dsOl.value.filter((d) => d.ol || d.toi).map((d) => ({ d, hang: d.hang })));
 // Hết người online (họ thoát app) thì bỏ lọc — không để bảng trống mà nút lọc đã biến mất
 watch(() => dsOnline.value.length, (n) => { if (!n) chiOnline.value = false; });
 const soOnline = computed(() => dsOnline.value.length);
@@ -278,10 +280,10 @@ async function doiAn(an: boolean): Promise<void> {
         </div>
         <!-- Đang lọc: chỉ người online, hạng thật, nút Thách như mọi dòng -->
         <ol v-else-if="bang && chiOnline" class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai">
-          <li v-for="x in dsOnline" :key="`o${x.hang}`">
+          <li v-for="x in dsOnline" :key="`o${x.hang}`" :class="{ toi: x.d.toi }">
             <span class="hang">{{ num(x.hang) }}</span>
-            <span class="mat"><MatBot :mat="x.d.mat ?? '🙂'" /><i class="dot" :class="{ ban: x.d.ol!.ban }" /></span>
-            <span class="ten"><span class="tt">{{ ten(x.d) }}</span><small v-if="x.d.ol!.ban" class="dang-choi">{{ t('bxh.dangChoi') }}</small></span>
+            <span class="mat"><MatBot :mat="x.d.mat ?? '🙂'" /><i v-if="!x.d.toi" class="dot" :class="{ ban: x.d.ol?.ban }" /></span>
+            <span class="ten"><span class="tt">{{ ten(x.d) }}</span><i v-if="x.d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i><small v-else-if="x.d.ol?.ban" class="dang-choi">{{ t('bxh.dangChoi') }}</small></span>
             <template v-if="thachDuoc(x.d)">
               <VachCho v-if="choThach(x.d)" nho :het="choThach(x.d)" :tong="CACH_MOI_LAI_MS" @xong="nhip++" />
               <button v-else class="td thach th-nho th-tim" type="button" :aria-label="t('bxh.thachAria', { ten: ten(x.d) })" @click="thach(x.d)"><Swords :size="13" :stroke-width="2.6" aria-hidden="true" />{{ t('bxh.thach') }}</button>

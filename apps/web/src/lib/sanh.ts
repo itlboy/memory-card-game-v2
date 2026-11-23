@@ -66,7 +66,13 @@ export const dangNoiSanh = ref(false);
  */
 const soOnlineTho = ref(0);
 const noiLucHoi = ref(false);
-export const soNguoiOnline = computed(() => Math.max(0, soOnlineTho.value - (dangNoiSanh.value || noiLucHoi.value ? 1 : 0)));
+/**
+ * TÍNH CẢ CHÍNH MÌNH (23.11.2026, chủ dự án: số ở phòng chờ và ở bảng xếp hạng "không nhất quán, bảng xếp hạng đang bỏ tôi,
+ * cho thêm vào đi"). Trước đó con số này là "người KHÁC" nên một mình thì ô trang chủ trống trơn. Nay MỌI nơi (ô Chơi online,
+ * đầu màn Chơi online, nút lọc ở bảng xếp hạng) cùng một nghĩa: số người đang online KỂ CẢ BẠN = người khác + 1.
+ */
+export const soNguoiKhacOnline = computed(() => Math.max(0, soOnlineTho.value - (dangNoiSanh.value || noiLucHoi.value ? 1 : 0)));
+export const soNguoiOnline = computed(() => soNguoiKhacOnline.value + 1);
 export function ghiSoOnline(n: unknown): void {
   const so = Number(n);
   if (!Number.isFinite(so)) return;

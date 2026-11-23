@@ -1494,7 +1494,14 @@ function openCfgWizard(): void {
         {{ t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — {{ t('on.choChuPhong') }}
       </p>
-      <p v-if="o.spectator.value" class="hint" role="status">{{ t('on.phongDay') }}</p>
+      <!-- NGƯỜI XEM Ở PHÒNG CHỜ (23.11.2026): giữ vai xem, tự bấm mới thành người chơi — không còn tự bị kéo vào ghế trống -->
+      <template v-if="o.spectator.value">
+        <div class="the-san the-xem" role="status">
+          <span class="the-tick" aria-hidden="true"><BongNgo :size="28" /></span>
+          <span><b>{{ t('on.banDangXem') }}</b><small>{{ conCho > 0 ? t('on.banDangXemNho') : t('on.hetCho') }}</small></span>
+        </div>
+        <button v-if="conCho > 0" class="btn-primary nut-san" type="button" @click="sfx.select(); o.vaoChoi()">{{ t('on.vaoChoi') }}</button>
+      </template>
       <!-- ĐÃ SẴN SÀNG: thẻ trạng thái xanh lá + nút nhỏ "Huỷ sẵn sàng" RIÊNG — bản cũ gộp vào nút lớn
            ("Đã sẵn sàng — bấm để huỷ") nên dễ lỡ tay huỷ (mockup duyệt 19.11.2026). -->
       <template v-else-if="meReady">
@@ -1502,7 +1509,10 @@ function openCfgWizard(): void {
           <span class="the-tick" aria-hidden="true"><Check :size="26" :stroke-width="3.4" /></span>
           <span><b>{{ t('on.banDaSan') }}</b><small>{{ readyCount.ok === readyCount.need ? t('on.duChoChu', { ten: tenChu }) : t('on.choChuSan', { ten: tenChu, ok: readyCount.ok, need: readyCount.need }) }}</small></span>
         </div>
-        <button class="huy-san thach th-nho" type="button" @click="o.setReady(false)">{{ t('on.huySan') }}</button>
+        <div class="hang-nho">
+          <button class="huy-san thach th-nho" type="button" @click="o.setReady(false)">{{ t('on.huySan') }}</button>
+          <button class="huy-san chi-xem thach th-nho" type="button" @click="sfx.select(); o.chuyenXem()"><BongNgo :size="17" aria-hidden="true" />{{ t('on.chiXem') }}</button>
+        </div>
       </template>
       <!-- CHƯA SẴN SÀNG: nút VÀNG CAM (việc cần làm) — nhịp sáng khi chủ phòng vừa nhắc -->
       <template v-else>
@@ -1510,6 +1520,8 @@ function openCfgWizard(): void {
         <button class="btn-primary th-vang nut-san" :class="{ nhay: nutNhay }" type="button" @click="o.setReady(true)">
           <Hand :size="20" :stroke-width="2.6" aria-hidden="true" class="ic-san" /> {{ t('on.sanSangNut') }}
         </button>
+        <!-- CHỈ XEM (23.11.2026): trả ghế, ở lại phòng làm người xem — ván bắt đầu không cần chờ mình sẵn sàng -->
+        <button class="huy-san chi-xem thach th-nho" type="button" @click="sfx.select(); o.chuyenXem()"><BongNgo :size="17" aria-hidden="true" />{{ t('on.chiXem') }}</button>
       </template>
     </template>
     <!-- Chat ngay ở phòng chờ: lúc ngồi đợi nhau mới là lúc cần nói chuyện
@@ -2098,6 +2110,16 @@ input:focus { outline: none; border-color: var(--accent); }
 }
 .the-san b { display: block; font-family: var(--font-display); font-size: 20px; line-height: 1.1; }
 .the-san small { display: block; font-size: 13.5px; font-weight: 700; color: #2e6b3c; }
+.hang-nho { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.hang-nho .huy-san { margin: 12px 0 0; }
+.chi-xem { display: flex; align-items: center; gap: 6px; }
+/* Thẻ "Bạn đang xem": cùng khuôn thẻ "Bạn đã sẵn sàng" nhưng màu trời (xem ≠ sẵn sàng) */
+.the-xem { background: #e6f1ff; border-color: #7fb0ee; box-shadow: 0 5px 0 #a9c9f2; color: #1c3f73; }
+.the-xem .the-tick { background: linear-gradient(#fff, #e8f1ff); box-shadow: 0 3px 0 #9dbfe9; }
+.the-xem small { color: #2f568f; }
+:global([data-theme='dark'] .the-xem) { background: #1b2c52; border-color: #4f78c2; box-shadow: 0 5px 0 #0f1b38; color: #dbe8ff; }
+:global([data-theme='dark'] .the-xem small) { color: #a9c3f0; }
+:global([data-theme='dark'] .the-xem .the-tick) { background: linear-gradient(#34508c, #263d70); box-shadow: 0 3px 0 #162446; }
 .huy-san { display: block; margin: 12px auto 0; min-height: 40px; padding: 0 18px; font: 700 15px var(--font-display); border-radius: 14px; }
 @media (prefers-reduced-motion: reduce) { .nut-san.nhay { animation: none; outline: 5px solid rgba(245, 168, 35, .45); } }
 .hint { color: var(--muted); font-size: var(--text-sm); margin: 14px 0 0; }
