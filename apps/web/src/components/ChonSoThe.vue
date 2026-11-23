@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * POPUP CHỌN SỐ THẺ (23.11.2026, mockup duyệt https://claude.ai/artifact/1ZLCzgAHHk6gZYm5eFggFr; chủ dự án: "giao diện
- * hiện tại không phải update gì, chỉ thêm thôi… đừng giải thích nhiều, chỉ cần hiện ra ô chọn số thẻ… bỏ chữ thẻ… 3 giây").
+ * hiện tại không phải update gì, chỉ thêm thôi… đừng giải thích nhiều, chỉ cần hiện ra ô chọn số thẻ… bỏ chữ thẻ"; thời gian 10 giây").
  * Hiện khi server mở lượt chọn (`RoomInfo.chon`: chủ phòng bấm Bắt đầu, hoặc cả phòng bấm Chơi lại) và tự biến mất khi
  * server chốt. Ba ô CHỈ CÓ CON SỐ; dưới ô là mặt những người đã chọn. Ô mình chọn màu vàng, bấm ô khác là đổi ý.
  * Luật chốt (số đông, hoà thì bốc trong các số dẫn đầu, không chọn thì bỏ qua) nằm ở server — popup không giải thích.

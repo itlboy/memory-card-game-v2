@@ -307,7 +307,7 @@ class Phong {
     const cu = this.trangThaiCu;
     this.room = room;
     /*
-     * BỎ PHIẾU SỐ THẺ như người chơi (23.11.2026, chủ dự án: "update bot để bot cũng chọn"): server mở lượt chọn 3 giây khi
+     * BỎ PHIẾU SỐ THẺ như người chơi (23.11.2026, chủ dự án: "update bot để bot cũng chọn"): server mở lượt chọn 10 giây khi
      * bấm Bắt đầu / Chơi lại. Mỗi bot chọn sau 0,3–1,7 s, ngẫu nhiên trong các ô hợp lệ: trong khoảng THE_MIN–THE_MAX và
      * không nhỏ hơn mức tối thiểu theo số người (bàn 3–4 người không tụt về 12 thẻ). Không ô nào hợp lệ thì không chọn.
      */

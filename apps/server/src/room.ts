@@ -807,7 +807,7 @@ export class RoomDO extends DurableObject<Env> {
        */
       /*
        * BỎ PHIẾU SỐ THẺ (23.11.2026). Mọi người chơi trong phòng, kể cả máy ngoài (phong-bot). Ai cũng đổi ý được trong lúc
-       * còn giờ. MỌI người thật đang nối đã chọn thì chốt luôn — không bắt cả phòng ngồi nhìn hết 3 giây.
+       * còn giờ. MỌI người thật đang nối đã chọn thì chốt luôn — không bắt cả phòng ngồi nhìn hết giờ.
        */
       case 'chon': {
         const c = this.chon;
@@ -1549,7 +1549,7 @@ export class RoomDO extends DurableObject<Env> {
 
 /**
    * MỞ LƯỢT CHỌN SỐ THẺ thay cho việc đếm ngược ngay (chủ phòng bấm Bắt đầu / cả phòng bấm Chơi lại). Phòng GIỮ NGUYÊN trạng
-   * thái (`lobby` / `ended`) trong `CHON_THE_MS` — app cũ không biết `RoomInfo.chon` chỉ thấy nút "Đang mở ván…" lâu thêm 3 giây
+   * thái (`lobby` / `ended`) trong `CHON_THE_MS` — app cũ không biết `RoomInfo.chon` chỉ thấy nút "Đang mở ván…" lâu thêm tối đa 10 giây
    * rồi vào đếm ngược như mọi khi, với số thẻ cả phòng đã chốt. Phòng thi đấu bỏ qua bước này (bàn do sảnh chốt).
    */
   private async moChonThe(): Promise<void> {
