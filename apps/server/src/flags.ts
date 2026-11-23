@@ -43,6 +43,13 @@ export const LOBBY_HOLD_MS: number = Number(doc_env('LOBBY_HOLD_MS') ?? 30_000);
  * `process`, Node không có `env` toàn cục — chạm thẳng vào là ném lỗi ở một
  * trong hai nơi.
  */
+/**
+ * LƯỢT CHỌN SỐ THẺ trước mỗi ván (room.ts `moChonThe`) — mặc định BẬT. `CHON_THE=0` bỏ qua bước này (bấm Bắt đầu là đếm ngược
+ * ngay như trước 1.9.36): dùng cho các bộ smoke cũ vốn đo thời gian từ lúc bấm Bắt đầu, và là van tắt nhanh trên server thật
+ * nếu tính năng gây phiền. Bộ `smoke-chon-the.mjs` chạy với server KHÔNG đặt biến này.
+ */
+export const CHON_THE_BAT: boolean = doc_env('CHON_THE') !== '0';
+
 function doc_env(ten: string): string | undefined {
   const p = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
   return p?.env?.[ten];

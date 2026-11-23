@@ -114,7 +114,7 @@ async function doMot(rt, lan) {
   const cong = CONG + lan;
   const sv = `http://127.0.0.1:${cong}`;
   const t0 = performance.now();
-  const con = spawn(rt, [DIST], { env: { ...process.env, PORT: String(cong), WEB_DIR: WEB, NODE_ENV: 'production', MYSQL_URL: '' }, stdio: 'ignore' });
+  const con = spawn(rt, [DIST], { env: { ...process.env, PORT: String(cong), WEB_DIR: WEB, NODE_ENV: 'production', MYSQL_URL: '', CHON_THE: '0' }, stdio: 'ignore' });
   const tat = () => { try { con.kill('SIGTERM'); } catch { /* đã tắt */ } };
   process.on('exit', tat);
   try {
