@@ -104,7 +104,8 @@ export const THI_DAU_SO_THE: Record<2 | 3, readonly number[]> = {
  * giữ nguyên, cao hơn một bậc. Ở hai đầu thang thì trượt cửa sổ cho đủ ba ô: 88 → 56·72·88, 4 → 4·6·12.
  * `bac` = các số thẻ có thật, tăng dần (client/server lấy từ `BOARD_SIZES`).
  */
-export const CHON_THE_MS = 3_000;
+/** 10 giây (chủ dự án 23.11.2026 chiều: "cho lên 10 giây"; bản đầu 3 giây). Mọi người chọn xong thì server chốt sớm, không chờ hết. */
+export const CHON_THE_MS = 10_000;
 export function luaChonSoThe(hienTai: number, bac: readonly number[]): number[] {
   const i = bac.indexOf(hienTai);
   if (i < 0 || bac.length <= 3) return bac.length <= 3 ? [...bac] : [hienTai];

@@ -2,10 +2,10 @@ import { moGoiTin } from './lib-view.mjs';
 /**
  * CHỌN SỐ THẺ TRƯỚC MỖI VÁN (23.11.2026) — E2E thật qua server (KHÔNG đặt CHON_THE=0).
  * Chạy: server node rồi `MM_SERVER=http://127.0.0.1:8092 node tools/smoke-chon-the.mjs`.
- *   1. Chủ phòng bấm Bắt đầu → phòng VẪN ở phòng chờ, `room.chon` có ba lựa chọn quanh số thẻ hiện tại, còn ≤ 3 giây.
+ *   1. Chủ phòng bấm Bắt đầu → phòng VẪN ở phòng chờ, `room.chon` có ba lựa chọn quanh số thẻ hiện tại, còn ≤ 10 giây.
  *   2. Số đông thắng: 2 phiếu cho ô cao nhất, 1 phiếu ô thấp nhất → mọi người đã chọn thì chốt SỚM, ván mở với ô cao nhất.
  *   3. Phiếu ngoài danh sách và phiếu của người xem bị bỏ.
- *   4. App cũ (không ai bỏ phiếu): hết ~3 giây vẫn vào ván, giữ nguyên số thẻ. (Đường "Chơi lại" dùng chung `moChonThe` —
+ *   4. App cũ (không ai bỏ phiếu): hết ~10 giây vẫn vào ván, giữ nguyên số thẻ. (Đường "Chơi lại" dùng chung `moChonThe` —
  *      đã thử tay bằng gia-nguoi.mjs, chưa có trong smoke này.)
  */
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
@@ -33,7 +33,7 @@ const soThe = (c) => c.msgs.filter((m) => (m.t === 'state' || m.t === 'events') 
   a.send({ t: 'start' });
   const ch = await cho(() => phong(a)?.chon, 1500, 'bấm Bắt đầu mà không mở lượt chọn');
   if (phong(a).status !== 'lobby') fail(`đang chọn mà phòng đã sang ${phong(a).status} (app cũ sẽ thấy sai màn)`);
-  if (ch.ds.length !== 3 || ch.con > 3000 || ch.con < 2000) fail(`lượt chọn sai: ${JSON.stringify(ch)}`);
+  if (ch.ds.length !== 3 || ch.con > 10000 || ch.con < 9000) fail(`lượt chọn sai: ${JSON.stringify(ch)}`);
   console.log(`✓ bấm Bắt đầu → mở lượt chọn ${ch.ds.join(' · ')}, còn ${ch.con} ms, phòng vẫn ở phòng chờ`);
   if (!phong(x)?.chon) fail('người xem không nhận được lượt chọn (để hiện bảng chỉ xem)');
   a.send({ t: 'start' });                                   // bấm lần nữa: không mở lượt mới
@@ -65,9 +65,9 @@ const soThe = (c) => c.msgs.filter((m) => (m.t === 'state' || m.t === 'events') 
   const t0 = Date.now();
   a.send({ t: 'start' });
   await cho(() => phong(a)?.chon, 1500, 'không mở lượt chọn');
-  await cho(() => phong(a) && !phong(a).chon && phong(a).status !== 'lobby', 4500, 'hết 3 giây mà không tự chốt');
+  await cho(() => phong(a) && !phong(a).chon && phong(a).status !== 'lobby', 12000, 'hết 10 giây mà không tự chốt');
   const lau = Date.now() - t0;
-  if (lau < 2500) fail(`không ai chọn mà chốt sau ${lau} ms (phải chờ đủ ~3 giây)`);
+  if (lau < 9500) fail(`không ai chọn mà chốt sau ${lau} ms (phải chờ đủ ~10 giây)`);
   if (phong(a).config.level !== truoc) fail('không ai chọn mà số thẻ vẫn đổi');
   console.log(`✓ không ai bỏ phiếu: tự chốt sau ${lau} ms, giữ nguyên số thẻ, vào ván như thường`);
   await cho(() => soThe(a), 8000, 'ván không mở');

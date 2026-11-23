@@ -242,5 +242,5 @@ describe('chọn số thẻ trước mỗi ván (23.11.2026)', () => {
     const ra = new Set(Array.from({ length: 200 }, (_, i) => chotSoThe([20, 30], [20, 24, 30], 24, () => (i % 10) / 10)));
     expect([...ra].sort()).toEqual([20, 30]);
   });
-  it('thời gian chọn là 3 giây', () => { expect(CHON_THE_MS).toBe(3000); });
+  it('thời gian chọn là 10 giây', () => { expect(CHON_THE_MS).toBe(10_000); });
 });

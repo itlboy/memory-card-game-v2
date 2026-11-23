@@ -1869,3 +1869,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   sau khi bấm Sẵn sàng / lúc ván sắp mở. Đối chứng: bản 1.9.35 đang phát hành cũng sập 2/14 lần; gỡ popup chọn số thẻ vẫn sập 1/10
   → không do popup. Chưa tái hiện trên máy thật, chưa biết là lỗi game hay của bản WebKit thử. Bài thử nào đi qua luồng này mà
   "kẹt" hoặc "crashed" thì chạy lại trước khi kết luận; nếu người chơi báo app trắng màn hình ở phòng chờ thì đây là manh mối.
+- **THỜI GIAN CHỌN SỐ THẺ = 10 GIÂY (23.11.2026, 1.9.37)** — chủ dự án đổi từ 3 lên 10 ("cho lên 10 giây"). Một hằng số: engine
+  `CHON_THE_MS`. Mọi người thật đã chọn thì vẫn chốt sớm. Hệ quả: phòng có người dùng APP CŨ (không bỏ phiếu được) luôn chờ ĐỦ
+  10 giây trước mỗi ván với nút "Đang mở ván…"; phòng chỉ có bot thì bot chọn trong ~2 giây nên không chậm.
