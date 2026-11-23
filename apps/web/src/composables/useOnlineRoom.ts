@@ -1097,6 +1097,7 @@ export function useOnlineRoom() {
         tatNoiLai();
         reconnectDeadline = 0;
         room.value = msg.room;
+        layLoatTuServer(msg.room);
         // Bộ đếm phải nằm TRÊN con số server đang giữ, không thì nước đi mới bị
         // chốt chống trùng nuốt — xem `flipSeq`.
         if (typeof msg.flipSeq === 'number' && msg.flipSeq >= flipSeq) flipSeq = msg.flipSeq + 1;
@@ -1129,6 +1130,7 @@ export function useOnlineRoom() {
            sẵn sàng hay đổi cấu hình, kêu mỗi lần là thành ồn. */
         if (!daVaoPhong) { daVaoPhong = true; sfx.go(); }
         room.value = msg.room;
+        layLoatTuServer(msg.room);
         /*
          * KHÁN GIẢ GẶP PHÒNG CHỜ CÒN CHỖ (ván xong, mọi người về phòng chờ; hoặc
          * có người rời phòng đầy): vào lại KHÔNG token là server cho làm người
@@ -1441,9 +1443,11 @@ export function useOnlineRoom() {
           // Tỷ số cả loạt trong phòng: chủ phòng bấm "chơi lại" nhiều ván nên
           // đây là con số người trong phòng thực sự theo dõi. Giữ ở client theo
           // TÊN (id đổi khi vào lại phòng), hoà thì không ai được cộng.
-          soVanLoat.value++;
+          // 23.11.2026: server mới TỰ ĐẾM (RoomInfo.soVan + players[].thang, xem `layLoatTuServer`) — khán giả / người vào
+          // sau cũng thấy đúng tỷ số. Chỉ còn tự cộng ở đây khi nối vào server cũ.
+          if (!loatTuServer) soVanLoat.value++;
           const champName = e.summary.ranking[0]?.name;
-          if (champName && !draw) {
+          if (champName && !draw && !loatTuServer) {
             seriesWins.value = { ...seriesWins.value, [champName]: (seriesWins.value[champName] ?? 0) + 1 };
           }
           const iLead = laToi(e.summary.ranking[0]?.id);
@@ -1784,6 +1788,15 @@ export function useOnlineRoom() {
   const seriesWins = ref<Record<string, number>>({});
   /** Số ván đã xong trong loạt của phòng (kể cả ván hoà) — dòng "Ván N" ở màn kết quả. */
   const soVanLoat = ref(0);
+  /** Server có tự đếm tỷ số loạt không (có `RoomInfo.soVan`). Có thì lấy theo server ở MỌI tin `room`/`welcome`. */
+  let loatTuServer = false;
+  function layLoatTuServer(r: RoomInfo | null | undefined): void {
+    if (!r || typeof r.soVan !== 'number') return;
+    loatTuServer = true;
+    soVanLoat.value = r.soVan;
+    // Khoá theo TÊN như cũ (chip, bảng kết quả, ảnh chia sẻ đều tra theo tên)
+    seriesWins.value = Object.fromEntries(r.players.map((p) => [p.name, p.thang ?? 0]));
+  }
   /** Ai vừa hồi mạng (Sinh tồn). */
   const lifeGain = ref<{ name: string; key: number } | null>(null);
   /** Ai vừa MẤT một mạng, còn mấy mạng, và có phải mình không. */

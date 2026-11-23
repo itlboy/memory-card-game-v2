@@ -19,6 +19,13 @@ describe('thoát ván online', () => {
     expect(f).toMatch(/entryStep\.value = 'choose'/);
     expect(f).not.toMatch(/emit\('back'\)/);
   });
+  it('cử chỉ Back của máy giữa ván cũng về màn online (23.11.2026), không qua đường logo', () => {
+    const f = ham('requestBack');
+    expect(f).toMatch(/o\.phase\.value === 'playing' \|\| o\.phase\.value === 'ended'/);
+    expect(f).toMatch(/quit\(trongVan \? veManOnline : exit\)/);
+    const app = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8');
+    expect(app).toMatch(/screen\.value === 'online'\) onlineRef\.value\?\.requestBack\(\)/);
+  });
   it('logo vẫn về trang chủ', () => {
     expect(src).toMatch(/requestHome: \(\) => quit\(\)/);
     expect(src).toMatch(/function quit\(sau: \(\) => void = exit\)/);

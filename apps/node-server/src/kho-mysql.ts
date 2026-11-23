@@ -193,7 +193,9 @@ const VA_COT: readonly [string, string, string][] = [
   // CHẾ ĐỘ ĐỒNG ĐỘI: phòng bật chế độ + người thuộc đội nào. Thiếu là khởi động lại server mất
   // chia đội — phòng chờ về chế độ thường, ván đang chạy (snapshot vẫn mang đội) lệch phòng.
   ['rooms', 'team_mode', 'TINYINT(1) NOT NULL DEFAULT 0'],
-  ['room_players', 'team', 'CHAR(1) NULL']
+  ['room_players', 'team', 'CHAR(1) NULL'],
+  // TỶ SỐ LOẠT (23.11.2026): số ván đã thắng trong phòng. Thiếu là mỗi lần thay ảnh server cả phòng về 0–0.
+  ['room_players', 'series_wins', 'INT NOT NULL DEFAULT 0']
 ];
 
 /**
@@ -313,7 +315,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     config: { level: number; themeIds: string[]; options: Record<string, number>; doi?: boolean };
     players: {
       id: string; name: string; avatar?: string; token: string; clientId?: string;
-      ready: boolean; disconnectedAt: number | null; lastSeen?: number; may?: string; doi?: string | number;
+      ready: boolean; disconnectedAt: number | null; lastSeen?: number; may?: string; doi?: string | number; thang?: number;
     }[];
   }
 
@@ -380,17 +382,17 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         await c.query(
           `INSERT INTO room_players
              (room_id, player_id, seat, name, avatar, client_id, token, is_ready,
-              disconnected_at, last_seen, joined_at, left_at, bot_level, team)
+              disconnected_at, last_seen, joined_at, left_at, bot_level, team, series_wins)
            VALUES ?
            ON DUPLICATE KEY UPDATE
              seat = VALUES(seat), name = VALUES(name), avatar = VALUES(avatar),
              client_id = VALUES(client_id), token = VALUES(token),
              is_ready = VALUES(is_ready),
              disconnected_at = VALUES(disconnected_at), last_seen = VALUES(last_seen),
-             bot_level = VALUES(bot_level), team = VALUES(team), left_at = 0`,
+             bot_level = VALUES(bot_level), team = VALUES(team), series_wins = VALUES(series_wins), left_at = 0`,
           [ps.map((p, i) => [
             id, p.id, i, p.name, p.avatar ?? null, p.clientId ?? null, p.token,
-            p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null, p.doi != null ? String(p.doi) : null
+            p.ready ? 1 : 0, p.disconnectedAt, p.lastSeen ?? null, Date.now(), 0, p.may ?? null, p.doi != null ? String(p.doi) : null, p.thang ?? 0
           ])]
         );
       }
@@ -585,6 +587,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     token: string | null; is_ready: number; disconnected_at: number | null; last_seen: number | null;
     bot_level?: string | null;
     team?: string | null;
+    series_wins?: number | null;
   }
 
   return {
@@ -623,6 +626,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
             ...(p.bot_level ? { may: p.bot_level } : {}),
             // Số đội 1–4 lưu dạng CHAR(1); 'A'/'B' là phòng lưu từ bản 1.7 — room.ts `chuanDoi` đổi sang số
             ...(p.team ? { doi: /^[1-4]$/.test(p.team) ? Number(p.team) : p.team } : {}),
+            ...(p.series_wins ? { thang: Number(p.series_wins) } : {}),
             ...(p.last_seen === null ? {} : { lastSeen: Number(p.last_seen) })
           });
           nguoiTheoPhong.set(p.room_id, ds);

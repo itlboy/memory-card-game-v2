@@ -118,3 +118,32 @@ describe('chuỗi alarm: mọi hạn chót đều phải có mốc đánh thức
     }
   });
 });
+
+/*
+ * TỶ SỐ LOẠT DO SERVER ĐẾM (23.11.2026) — trước chỉ đếm ở client nên khán giả / người vào sau thấy 0–0–0.
+ * Canh ba mắt xích: server cộng lúc hết ván (hoà thì không), gửi kèm thông tin phòng, và kho MySQL giữ qua lần thay ảnh.
+ */
+describe('tỷ số loạt nằm ở server', () => {
+  const room = readFileSync(resolve(process.cwd(), '../server/src/room.ts'), 'utf8');
+  const kho = readFileSync(resolve(process.cwd(), '../node-server/src/kho-mysql.ts'), 'utf8');
+  const client = readFileSync(resolve(process.cwd(), 'src/composables/useOnlineRoom.ts'), 'utf8');
+  it('hết ván: +1 cho người đứng đầu, hoà thì không ai; đếm số ván của loạt', () => {
+    expect(room).toMatch(/this\.room\.soVan = \(this\.room\.soVan \?\? 0\) \+ 1/);
+    expect(room).toMatch(/if \(nhat && !isDraw\(het\.summary\.ranking\)\)/);
+    expect(room).toMatch(/p\.thang = \(p\.thang \?\? 0\) \+ 1/);
+  });
+  it('thông tin phòng mang `soVan` và `thang` của từng người', () => {
+    expect(room).toMatch(/soVan: room\.soVan \?\? 0/);
+    expect(room).toMatch(/p\.thang \? \{ thang: p\.thang \} : \{\}/);
+  });
+  it('kho MySQL lưu và nạp lại số ván thắng', () => {
+    expect(kho).toMatch(/\['room_players', 'series_wins', 'INT NOT NULL DEFAULT 0'\]/);
+    expect(kho).toMatch(/series_wins = VALUES\(series_wins\)/);
+    expect(kho).toMatch(/p\.series_wins \? \{ thang: Number\(p\.series_wins\) \}/);
+  });
+  it('client lấy theo server ở cả `welcome` lẫn `room`, và thôi tự cộng', () => {
+    expect(client.match(/layLoatTuServer\(msg\.room\);/g)?.length).toBe(2);
+    expect(client).toMatch(/if \(!loatTuServer\) soVanLoat\.value\+\+/);
+    expect(client).toMatch(/champName && !draw && !loatTuServer/);
+  });
+});

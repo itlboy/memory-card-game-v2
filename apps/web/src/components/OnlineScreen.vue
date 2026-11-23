@@ -566,7 +566,18 @@ function isBusy(): boolean {
 const dangChoi = computed(() => o.phase.value === 'playing');
 /** Đang ở trong một phòng online (chờ / chơi / xem / đang nối) — lib/sanh.ts: lúc này KHÔNG nhận lời mời. */
 const trongPhong = computed(() => o.phase.value !== 'idle' && o.phase.value !== 'error');
-defineExpose({ requestHome: () => quit(), isBusy, dangChoi, trongPhong });
+/**
+ * CỬ CHỈ / NÚT BACK CỦA MÁY khi đang trong ván online (đang chơi, bảng kết quả, đang xem): hỏi như cũ nhưng đích là MÀN
+ * ONLINE (danh sách phòng), không phải trang chủ — 23.11.2026, chủ dự án: "khi thoát một màn chơi online thì ra trang
+ * lobby, đừng ra trang chủ". Nút ✕ trong ván đã vậy từ 16.11 (`quitVeOnline`); đường Back của App gọi `requestHome` nên
+ * vuốt Back giữa ván văng thẳng ra trang chủ. Nút LOGO (`requestHome`) vẫn về trang chủ — đó đúng là việc của logo.
+ * Ở phòng chờ Back đã có chốt riêng (useBackCloser 25); ở màn chọn phòng thì lùi một bậc = trang chủ.
+ */
+function requestBack(): void {
+  const trongVan = o.phase.value === 'playing' || o.phase.value === 'ended';
+  quit(trongVan ? veManOnline : exit);
+}
+defineExpose({ requestHome: () => quit(), requestBack, isBusy, dangChoi, trongPhong });
 
 /** Link mời mang TÊN người mời + ngôn ngữ: Worker dựng thẻ chia sẻ riêng ("Kiên mời bạn đấu
  *  Lật Thẻ! · Phòng 482193") từ hai tham số này — apps/server/src/index.ts `theMoi`. */

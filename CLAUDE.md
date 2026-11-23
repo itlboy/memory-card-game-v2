@@ -1805,3 +1805,14 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   tiếp (đã thử: tắt êm, `kill -9`, đều vào lại). Tắt module KHÔNG gửi `leave` nữa (`ROI_KHI_TAT=1` mới rời hẳn). Phòng không
   còn (hỏi `GET /api/rooms/<mã>` → `exists:false`) hoặc server cấp token mới (mất chỗ) thì mở phòng mới. Không có volume thì
   quay về cách cũ (mở phòng mới, để lại phòng ma) — ĐỪNG bỏ volume `bot-data`.
+- **TỶ SỐ LOẠT DO SERVER ĐẾM (23.11.2026, 1.9.32)** — chủ dự án: "vào phòng bất kỳ đang chơi đều 0-0-0". Trước chỉ đếm ở client
+  (`useOnlineRoom.seriesWins`, trong RAM của từng máy) nên khán giả, người nối lại, người vào giữa loạt đều thấy 0. Nay
+  `room.ts` `afterEvents`: hết ván thì `RoomState.soVan`++ và người đứng đầu bảng `RoomPlayer.thang`++ (hoà: không ai — cùng luật
+  client cũ); `RoomInfo` mang `soVan` + `players[].thang`. Client: CÓ `soVan` = lấy theo server ở mọi tin `welcome`/`room`
+  (`layLoatTuServer`) và thôi tự cộng; server cũ không gửi thì đếm tại chỗ như trước. `thang` lưu MySQL (`room_players.series_wins`,
+  tự thêm cột qua `VA_COT`) nên qua lần thay ảnh vẫn còn; `soVan` chỉ trong RAM (về 0 sau khởi động lại — chỉ ảnh hưởng chữ
+  "Ván N" trên ảnh chia sẻ). Đếm theo ID người chơi (đổi tên giữa phòng không mất), client vẫn tra theo TÊN.
+- **BACK CỦA MÁY GIỮA VÁN ONLINE → MÀN ONLINE (23.11.2026, 1.9.32)** — chủ dự án: "thoát một màn chơi online thì ra trang lobby,
+  đừng ra trang chủ". Nút ✕ đã vậy từ 16.11; còn sót đường Back (vuốt cạnh iOS, nút Back Android/trình duyệt): App gọi
+  `requestHome` → trang chủ. Nay App gọi `OnlineScreen.requestBack` (đang chơi / bảng kết quả / đang xem → `veManOnline`, vẫn hỏi
+  đầu hàng như cũ). Nút LOGO vẫn `requestHome` → trang chủ. `test/thoat-ve-online.test.ts` canh cả hai.
