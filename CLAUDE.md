@@ -1816,3 +1816,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   đừng ra trang chủ". Nút ✕ đã vậy từ 16.11; còn sót đường Back (vuốt cạnh iOS, nút Back Android/trình duyệt): App gọi
   `requestHome` → trang chủ. Nay App gọi `OnlineScreen.requestBack` (đang chơi / bảng kết quả / đang xem → `veManOnline`, vẫn hỏi
   đầu hàng như cũ). Nút LOGO vẫn `requestHome` → trang chủ. `test/thoat-ve-online.test.ts` canh cả hai.
+- **SỐ NGƯỜI ONLINE PHẢI KHỚP GIỮA TRANG CHỦ VÀ MÀN ONLINE (23.11.2026, 1.9.33)** — chủ dự án: trang chủ không hiện ai, vào sảnh
+  lại ghi "1 người đang online". Cả hai đọc chung `soNguoiOnline` (lib/sanh.ts = số kết nối sảnh TRỪ chính mình), nhưng bản cũ
+  trừ MỘT LẦN lúc nhận số: hỏi `/api/rooms/public` đúng lúc sảnh vừa nối (server đã đếm mình, lời chào chưa về) là tự đếm mình
+  thành một người. Nay `soNguoiOnline` là `computed` từ số THÔ của server, trừ mình khi đang nối sảnh hoặc đã nối lúc hỏi.
+  Số này CHỈ đếm app đang nối sảnh: bot phòng (chỉ nối phòng) KHÔNG được tính.
