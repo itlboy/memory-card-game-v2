@@ -692,7 +692,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
 
     <!-- Emoji chat (ON-08): thanh CỐ ĐỊNH đáy màn, dùng chung cho ván và màn kết quả (EmojiDock.vue) — chừa chỗ -->
     <EmojiDock :o="o" />
-    <div v-if="!o.spectator.value" class="eb-cho" aria-hidden="true" />
+    <div class="eb-cho" aria-hidden="true" />
 
     <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
          rơi; thua phải có hình riêng, không được để trống. -->

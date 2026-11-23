@@ -796,6 +796,7 @@ const ko: TuDien = {
   'on.duChoChu': '모두 준비 완료 — {ten} 님 시작 대기',
   'on.choChuSan': '{ten} 님 대기 · {ok}/{need} 준비',
   'on.huySan': '준비 취소',
+  'on.chonSoThe': '카드 수',
   'on.banDangXem': '관전 중입니다',
   'on.banDangXemNho': '다음 게임은 관전만 합니다.',
   'on.vaoChoi': '게임 참가',

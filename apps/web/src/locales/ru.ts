@@ -816,6 +816,7 @@ const ru: TuDien = {
   'on.duChoChu': 'Все готовы — ждём, когда {ten} начнёт',
   'on.choChuSan': 'Ждём {ten} · готовы {ok}/{need}',
   'on.huySan': 'Не готов',
+  'on.chonSoThe': 'Количество карт',
   'on.banDangXem': 'Вы смотрите',
   'on.banDangXemNho': 'Следующую игру вы будете смотреть, а не играть.',
   'on.vaoChoi': 'Играть',

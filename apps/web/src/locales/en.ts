@@ -798,6 +798,7 @@ const en: TuDien = {
   'on.duChoChu': 'Everyone\'s ready — waiting for {ten} to start',
   'on.choChuSan': 'Waiting for {ten} · {ok}/{need} ready',
   'on.huySan': 'Not ready',
+  'on.chonSoThe': 'Number of cards',
   'on.banDangXem': 'You’re watching',
   'on.banDangXemNho': 'You’ll watch the next game, not play.',
   'on.vaoChoi': 'Join the game',

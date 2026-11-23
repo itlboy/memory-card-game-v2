@@ -11,7 +11,7 @@ import EmojiBar from './EmojiBar.vue';
  * thanh nằm đúng đáy CỘT GAME (máy tính: không trải ra cả cửa sổ) và tự phủ dải home của iPhone (đệm env() bên
  * trong). z 18: TRÊN lớp phủ kết quả (17) để vẫn bấm được khi hộp kết quả mở, DƯỚI các hộp thoại khác (≥ 20).
  * Màn phía trên phải chừa chỗ: đặt `<div class="eb-cho" />` (cao `--eb-dock-h`) ở cuối nội dung.
- * Khán giả: EmojiBar tự không vẽ gì → thanh không hiện.
+ * Khán giả (từ 23.11.2026): thanh VẪN hiện để thả emoji, chỉ thiếu nút nói nhanh — xem EmojiBar.
  */
 const props = defineProps<{ o: InstanceType<typeof EmojiBar>['$props']['o'] }>();
 const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
@@ -19,7 +19,7 @@ const coApp = typeof document !== 'undefined' && !!document.getElementById('app'
 
 <template>
   <Teleport to="#app" :disabled="!coApp">
-    <div v-if="!props.o.spectator.value" class="eb-dock">
+    <div class="eb-dock">
       <EmojiBar :o="props.o" />
     </div>
   </Teleport>

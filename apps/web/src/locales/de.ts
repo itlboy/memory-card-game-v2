@@ -799,6 +799,7 @@ const de: TuDien = {
   'on.duChoChu': 'Alle bereit — warte, bis {ten} startet',
   'on.choChuSan': 'Warte auf {ten} · {ok}/{need} bereit',
   'on.huySan': 'Nicht bereit',
+  'on.chonSoThe': 'Anzahl Karten',
   'on.banDangXem': 'Du schaust zu',
   'on.banDangXemNho': 'Du schaust beim nächsten Spiel nur zu.',
   'on.vaoChoi': 'Mitspielen',

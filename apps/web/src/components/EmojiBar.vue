@@ -65,14 +65,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 </script>
 
 <template>
-  <!-- Khán giả không gửi được -->
-  <div v-if="!props.o.spectator.value" ref="goc" class="eb-goc">
+  <!-- NGƯỜI XEM cũng thả emoji được (23.11.2026) — thưa hơn người chơi, và KHÔNG có nút nói nhanh (chat chữ) -->
+  <div ref="goc" class="eb-goc">
   <div
     class="emoji-bar"
     :class="{ spent: !props.o.emojiReady.value }"
     :aria-label="props.o.emojiReady.value ? t('eb.guiEmoji') : t('eb.doiChut')"
   >
     <button
+      v-if="!props.o.spectator.value"
       class="emoji noi thach th-nho" type="button" :class="{ mo: mo === 'noi' }"
       :aria-label="t('eb.noiNhanh')" :aria-expanded="mo === 'noi'"
       :disabled="!props.o.emojiReady.value"
@@ -94,7 +95,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
       <Hourglass :size="14" :stroke-width="2.5" aria-hidden="true" /> {{ props.o.emojiCooldown.value }}s
     </span>
   </div>
-  <div v-if="mo === 'noi'" class="bang-noi khay" role="menu" :aria-label="t('eb.noiNhanh')">
+  <div v-if="mo === 'noi' && !props.o.spectator.value" class="bang-noi khay" role="menu" :aria-label="t('eb.noiNhanh')">
     <button
       v-for="id in NOI_NHANH" :key="id" class="cau thach th-nho" type="button" role="menuitem"
       :disabled="!props.o.emojiReady.value" @click="guiNoi(id)"

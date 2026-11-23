@@ -8,7 +8,10 @@ import type {
 } from '@mm/engine';
 import { LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
-import { TURN_PAUSE_CAP_MS, pairsForLevel } from '@mm/engine';
+import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, chotSoThe, luaChonSoThe, pairsForLevel } from '@mm/engine';
+
+/** Các số thẻ có thật, tăng dần (4 … 88) — thang để lượt CHỌN SỐ THẺ lấy bậc trên / bậc dưới. */
+const BAC_THE: readonly number[] = [...new Set(BOARD_SIZES.map((b) => b.pairs * 2))].sort((x, y) => x - y);
 import { BOT_LEVELS, BOT_SPECS, DOI_IDS, botPick, botRng, botThinkMs, createBotMemory, observe } from '@mm/engine';
 import type { BotLevel, BotMemory, DoiId, PlayerInit } from '@mm/engine';
 import { soPhongTuBinding, type SoPhong } from './sophong.js';
@@ -281,6 +284,11 @@ export class RoomDO extends DurableObject<Env> {
   /** Ai đã bấm "chơi lại" sau ván này. Chỉ trong RAM: DO ngủ giữa lúc chờ thì
    *  coi như mọi người bấm lại — thà hỏi lại còn hơn mở ván mà một bên chưa muốn. */
   private againVotes = new Set<string>();
+  /**
+   * LƯỢT CHỌN SỐ THẺ đang mở (23.11.2026, engine `luaChonSoThe`). Chỉ trong RAM như `againVotes`: mất (khởi động lại giữa
+   * 3 giây) thì phòng đứng nguyên ở phòng chờ / bảng kết quả, bấm Bắt đầu / Chơi lại lần nữa là xong.
+   */
+  private chon: { id: number; het: number; ds: number[]; phieu: Map<string, number> } | null = null;
   /** Lần chủ phòng nhắc gần nhất — chặn nhắc dồn (NHAC_CACH_MS). */
   private nhacLuc = 0;
   /*
@@ -658,7 +666,11 @@ export class RoomDO extends DurableObject<Env> {
     if (!this.room) return;
     const att = ws.deserializeAttachment() as Attachment | null;
     const player = this.room.players.find((p) => p.id === att?.playerId);
-    if (!player) return;   // khán giả (playerId rỗng) không được gửi hành động
+    if (!player) {
+      // KHÁN GIẢ không được gửi hành động — trừ EMOJI (23.11.2026), thưa hơn người chơi và KHÔNG có câu nói nhanh
+      if (att?.xem) this.emojiNguoiXem(att.xem.ten, raw);
+      return;
+    }
 
     // Mọi tin nhắn đều là bằng chứng "còn sống" — ghi mốc trước khi xử lý.
     player.lastSeen = Date.now();
@@ -704,7 +716,7 @@ export class RoomDO extends DurableObject<Env> {
       case 'config': {
         // ON-03: chỉ chủ phòng chỉnh cấu hình — ở lobby, hoặc ở màn kết quả (07.11.2026,
         // nút "Chỉnh bàn" sau ván: chủ dự án duyệt mockup). Đang đếm ngược / đang chơi thì không.
-        if (player.id !== this.room.hostId || (this.room.status !== 'lobby' && this.room.status !== 'ended')) return;
+        if (player.id !== this.room.hostId || (this.room.status !== 'lobby' && this.room.status !== 'ended') || this.chon) return;
         const c = msg.config;
         // Số màn từ client: phải là số nguyên trong khoảng, không thì presetConfig
         // ném lỗi ngay lúc bắt đầu ván và cả phòng bị treo (ON-09)
@@ -744,7 +756,7 @@ export class RoomDO extends DurableObject<Env> {
       }
 
       case 'again': {
-        if (this.room.status !== 'ended') return;
+        if (this.room.status !== 'ended' || this.chon) return;   // đang chọn số thẻ: ván sắp mở rồi
         // MỌI người bấm được, không riêng chủ phòng. Trước đây server lặng lẽ
         // bỏ qua lượt bấm của khách: họ bấm mà không thấy gì xảy ra, còn chủ
         // phòng thì không biết đối phương có muốn chơi nữa hay không.
@@ -775,7 +787,7 @@ export class RoomDO extends DurableObject<Env> {
         this.room.players = here;
         if (!here.some((p) => p.id === this.room!.hostId)) this.room.hostId = this.chuMoi();
         for (const p of here) p.ready = true;
-        await this.batDauDemNguoc();
+        await this.moChonThe();
         return;
       }
 
@@ -793,6 +805,20 @@ export class RoomDO extends DurableObject<Env> {
        * lobby: vào ván rồi thì phòng tự rời danh sách (chữ ký rỗng), có bật lên
        * cũng không hiện, mà nút đổi được lại làm người ta tưởng ngược lại.
        */
+      /*
+       * BỎ PHIẾU SỐ THẺ (23.11.2026). Mọi người chơi trong phòng, kể cả máy ngoài (phong-bot). Ai cũng đổi ý được trong lúc
+       * còn giờ. MỌI người thật đang nối đã chọn thì chốt luôn — không bắt cả phòng ngồi nhìn hết 3 giây.
+       */
+      case 'chon': {
+        const c = this.chon;
+        if (!c || typeof msg.the !== 'number' || !c.ds.includes(msg.the)) return;
+        c.phieu.set(player.id, msg.the);
+        const can = this.room.players.filter((p) => !p.may && this.connected(p.id));
+        if (can.length && can.every((p) => c.phieu.has(p.id))) { await this.chotChon(); return; }
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
       case 'public': {
         if (player.id !== this.room.hostId || this.room.status !== 'lobby') return;
         this.room.congKhai = msg.on === true;
@@ -802,7 +828,7 @@ export class RoomDO extends DurableObject<Env> {
       }
 
       case 'tolobby': {
-        if (this.room.status !== 'ended') return;
+        if (this.room.status !== 'ended' || this.chon) return;
         if (this.room.thiDau) return;   // thi đấu không có phòng chờ — một người bấm không được giải tán cả trận
         await this.veLobby(this.room.players.filter((p) => this.connected(p.id)));
         return;
@@ -822,6 +848,7 @@ export class RoomDO extends DurableObject<Env> {
       }
 
       case 'start': {
+        if (this.chon) return;   // đang chọn số thẻ — bấm thêm lần nữa (bot gửi lại, chạm hai lần) không mở lượt mới
         /*
          * MỌI LỜI TỪ CHỐI ĐỀU PHẢI NÓI RA.
          *
@@ -889,7 +916,7 @@ export class RoomDO extends DurableObject<Env> {
           });
           return;
         }
-        await this.batDauDemNguoc();
+        await this.moChonThe();
         return;
       }
 
@@ -941,6 +968,7 @@ export class RoomDO extends DurableObject<Env> {
           await this.afterEvents(events);
         }
         this.removePlayer(player.id);   // ván sau không còn chờ người đã đi
+        if (this.chon && this.room.players.length < ROOM_LIMITS.minPlayers) this.chon = null;   // đang chọn số thẻ mà thiếu người: thôi
         for (const sock of this.ctx.getWebSockets(player.id)) sock.close(4001, 'left');
         if (this.room.status === 'countdown' && this.room.players.length) {
           await this.demNguocThieuNguoi();
@@ -1194,6 +1222,9 @@ export class RoomDO extends DurableObject<Env> {
       }
       return;
     }
+
+    // Hết giờ chọn số thẻ → chốt rồi đếm ngược vào ván
+    if (this.chon && now >= this.chon.het) await this.chotChon();
 
     // Thi đấu: hết hạn chờ mà chưa đủ người — có ≥ 2 thì chơi, còn 1 thì báo rồi giải tán
     if (this.room.thiDau && !this.room.thiDau.daChay && this.room.status === 'lobby' && now >= this.room.thiDau.han) {
@@ -1467,6 +1498,7 @@ export class RoomDO extends DurableObject<Env> {
     if (this.room?.status === 'lobby' && this.room.emptyAt) {
       marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
     }
+    if (this.chon) marks.push(this.chon.het);
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));
     else await this.ctx.storage.deleteAlarm();
   }
@@ -1515,7 +1547,42 @@ export class RoomDO extends DurableObject<Env> {
     this.ghiTd('td_van', { viec: 'batDau', nguoi: coMat.length, the: this.game ? this.game.cards.length : 0, lan: 1 });
   }
 
-  private async batDauDemNguoc(): Promise<void> {
+/**
+   * MỞ LƯỢT CHỌN SỐ THẺ thay cho việc đếm ngược ngay (chủ phòng bấm Bắt đầu / cả phòng bấm Chơi lại). Phòng GIỮ NGUYÊN trạng
+   * thái (`lobby` / `ended`) trong `CHON_THE_MS` — app cũ không biết `RoomInfo.chon` chỉ thấy nút "Đang mở ván…" lâu thêm 3 giây
+   * rồi vào đếm ngược như mọi khi, với số thẻ cả phòng đã chốt. Phòng thi đấu bỏ qua bước này (bàn do sảnh chốt).
+   */
+  private async moChonThe(): Promise<void> {
+    if (!this.room) return;
+    if (this.room.thiDau) { await this.batDauDemNguoc(); return; }
+    const now = Date.now();
+    this.chon = { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(pairsForLevel(this.room.config.level) * 2, BAC_THE), phieu: new Map() };
+    await this.save();
+    this.broadcast({ t: 'room', room: this.roomInfo() });
+    await this.scheduleNext();
+  }
+
+  /** Chốt số thẻ theo phiếu (engine `chotSoThe`) rồi đếm ngược vào ván. Trong lúc chọn mà thiếu người / thiếu đội thì thôi. */
+  private async chotChon(): Promise<void> {
+    const c = this.chon;
+    if (!c || !this.room) return;
+    this.chon = null;
+    const coMat = this.room.players.filter((p) => this.connected(p.id));
+    if ((this.room.status !== 'lobby' && this.room.status !== 'ended')
+        || coMat.length < ROOM_LIMITS.minPlayers || !this.duDoi(this.room.players)) {
+      this.broadcast({ t: 'room', room: this.roomInfo() });
+      await this.scheduleNext();
+      return;
+    }
+    const hienTai = pairsForLevel(this.room.config.level) * 2;
+    const phieu = [...c.phieu].filter(([id]) => this.room!.players.some((p) => p.id === id)).map(([, the]) => the);
+    const the = chotSoThe(phieu, c.ds, hienTai, Math.random);
+    const ban = the !== hienTai ? BOARD_SIZES.find((b) => b.pairs * 2 === the) : undefined;
+    if (ban) this.room.config.level = ban.level;
+    await this.batDauDemNguoc();
+  }
+
+    private async batDauDemNguoc(): Promise<void> {
     if (!this.room) return;
     // Dựng ván (thứ tự đi XOAY VÒNG, xem prepareGame) nhưng CHƯA chạy — đếm ngược
     // (ROOM_LIMITS.countdownMs) để người đi đầu không bị động
@@ -1896,6 +1963,7 @@ export class RoomDO extends DurableObject<Env> {
       // với mặc định của phòng mới.
       congKhai: room.congKhai !== false,
       soVan: room.soVan ?? 0,
+      ...(this.chon ? { chon: { id: this.chon.id, ds: this.chon.ds, phieu: Object.fromEntries(this.chon.phieu), con: Math.max(0, this.chon.het - Date.now()) } } : {}),
       ...(room.thiDau ? { thiDau: true as const } : {}),
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
@@ -2006,11 +2074,20 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   /** Người này còn được gửi emoji không? Ghi nhận luôn lần gửi nếu được. */
-  private allowEmoji(playerId: string): boolean {
+  /** Emoji của người xem: danh sách đóng như người chơi, hạn mức riêng (`xemEmojiBurst`), phát kèm TÊN vì họ không có chip. */
+  private emojiNguoiXem(ten: string, raw: string | ArrayBuffer): void {
+    let msg: ClientMsg;
+    try { msg = JSON.parse(typeof raw === 'string' ? raw : new TextDecoder().decode(raw)) as ClientMsg; } catch { return; }
+    if (msg.t !== 'emoji' || !(QUICK_EMOJIS as readonly string[]).includes(msg.emoji)) return;
+    if (!this.allowEmoji(`xem:${ten}`, ROOM_LIMITS.xemEmojiBurst, ROOM_LIMITS.xemEmojiWindowMs)) return;
+    this.broadcast({ t: 'emoji', from: `xem:${ten}`, emoji: msg.emoji as QuickEmoji, ten });
+  }
+
+  private allowEmoji(playerId: string, burst: number = ROOM_LIMITS.emojiBurst, cuaSo: number = ROOM_LIMITS.emojiWindowMs): boolean {
     const now = Date.now();
-    const cutoff = now - ROOM_LIMITS.emojiWindowMs;
+    const cutoff = now - cuaSo;
     const recent = (this.emojiLog.get(playerId) ?? []).filter((t) => t > cutoff);
-    if (recent.length >= ROOM_LIMITS.emojiBurst) {
+    if (recent.length >= burst) {
       this.emojiLog.set(playerId, recent);
       return false;
     }

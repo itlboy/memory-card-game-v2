@@ -799,6 +799,7 @@ const id: TuDien = {
   'on.duChoChu': 'Semua siap — menunggu {ten} mulai',
   'on.choChuSan': 'Menunggu {ten} · {ok}/{need} siap',
   'on.huySan': 'Batal siap',
+  'on.chonSoThe': 'Jumlah kartu',
   'on.banDangXem': 'Kamu menonton',
   'on.banDangXemNho': 'Kamu akan menonton game berikutnya, tidak ikut main.',
   'on.vaoChoi': 'Ikut main',

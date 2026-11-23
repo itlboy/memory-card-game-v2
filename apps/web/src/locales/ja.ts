@@ -796,6 +796,7 @@ const ja: TuDien = {
   'on.duChoChu': '全員準備OK — {ten}のスタート待ち',
   'on.choChuSan': '{ten}を待機中 · {ok}/{need} 準備OK',
   'on.huySan': '準備取消',
+  'on.chonSoThe': 'カードの枚数',
   'on.banDangXem': '観戦中です',
   'on.banDangXemNho': '次のゲームは観戦のみです。',
   'on.vaoChoi': 'プレイに参加',

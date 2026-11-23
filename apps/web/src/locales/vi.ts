@@ -810,6 +810,7 @@ const vi = {
   'on.duChoChu': 'Đủ người rồi — chờ {ten} bấm Bắt đầu',
   'on.choChuSan': 'Chờ {ten} bắt đầu · {ok}/{need} sẵn sàng',
   'on.huySan': 'Huỷ sẵn sàng',
+  'on.chonSoThe': 'Chọn số thẻ',
   'on.banDangXem': 'Bạn đang xem',
   'on.banDangXemNho': 'Ván bắt đầu bạn sẽ xem, không chơi.',
   'on.vaoChoi': 'Vào chơi',

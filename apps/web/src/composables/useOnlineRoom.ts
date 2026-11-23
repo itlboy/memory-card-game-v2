@@ -1234,7 +1234,7 @@ export function useOnlineRoom() {
         const sender = room.value?.players.find((p) => p.id === msg.from);
         const moi = {
           from: msg.from,
-          name: tenHien(msg.from),
+          name: msg.ten ?? tenHien(msg.from),   // `ten`: emoji của người xem (không có chip)
           emoji: msg.emoji,
           key: ++bongKey
         };
@@ -1829,9 +1829,12 @@ export function useOnlineRoom() {
   let emojiTimer: ReturnType<typeof setInterval> | undefined;
 
   function refreshEmojiQuota(): void {
-    const cutoff = Date.now() - ROOM_LIMITS.emojiWindowMs;
+    // Người xem có hạn mức riêng, thưa hơn (ROOM_LIMITS.xemEmoji*) — server cũng chặn theo đúng số này
+    const cuaSo = spectator.value ? ROOM_LIMITS.xemEmojiWindowMs : ROOM_LIMITS.emojiWindowMs;
+    const burst = spectator.value ? ROOM_LIMITS.xemEmojiBurst : ROOM_LIMITS.emojiBurst;
+    const cutoff = Date.now() - cuaSo;
     while (emojiSentAt.length && emojiSentAt[0]! <= cutoff) emojiSentAt.shift();
-    emojiReady.value = emojiSentAt.length < ROOM_LIMITS.emojiBurst;
+    emojiReady.value = emojiSentAt.length < burst;
     if (emojiReady.value) {
       emojiCooldown.value = 0;
       clearInterval(emojiTimer);
@@ -1839,7 +1842,7 @@ export function useOnlineRoom() {
       return;
     }
     // Mở lại đúng lúc cái cũ nhất rơi ra khỏi cửa sổ
-    const openAt = emojiSentAt[0]! + ROOM_LIMITS.emojiWindowMs;
+    const openAt = emojiSentAt[0]! + cuaSo;
     emojiCooldown.value = Math.max(1, Math.ceil((openAt - Date.now()) / 1000));
     if (!emojiTimer) emojiTimer = setInterval(refreshEmojiQuota, 250);
   }
@@ -1859,6 +1862,7 @@ export function useOnlineRoom() {
 
   /** Câu nói nhanh — CHUNG hạn mức với emoji (server cũng tính chung). */
   function sendSay(id: QuickSay): void {
+    if (spectator.value) return;   // người xem chỉ thả emoji, không có chat chữ
     refreshEmojiQuota();
     if (!emojiReady.value) return;
     emojiSentAt.push(Date.now());
@@ -1885,6 +1889,8 @@ export function useOnlineRoom() {
     canCapNhat,
     createRoom, join, leave, thoatPhong, guiRoiCho, retry, resumeStored, coPhienLuu,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
+    /** Bỏ phiếu số thẻ lúc server đang mở lượt chọn (`room.chon`) — xem ChonSoThe.vue. */
+    chonThe: (the: number) => send({ t: 'chon', the }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => roiCoBao('leave'),
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */
