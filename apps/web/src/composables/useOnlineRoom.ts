@@ -917,7 +917,7 @@ export function useOnlineRoom() {
       const res = await fetch(`${SERVER}/api/rooms${tb ? `?tb=${encodeURIComponent(tb)}` : ''}`, { method: 'POST' });
       if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { code: string };
-      connect(data.code, name);
+      muonXem = false; connect(data.code, name);
     } catch {
       phase.value = 'error';
       error.value = t('or.khongKetNoiMayChu');
@@ -944,7 +944,7 @@ export function useOnlineRoom() {
     } catch {
       // Không kiểm được (mất mạng) thì cứ thử kết nối — server vẫn chặn mã lạ
     }
-    connect(c, name);
+    muonXem = false; connect(c, name);
   }
 
   function connect(roomCode: string, name: string, useToken = ''): void {
@@ -967,6 +967,8 @@ export function useOnlineRoom() {
 
     const params = new URLSearchParams({ name });
     if (useToken) params.set('token', useToken);
+    // Đang ở vai NGƯỜI XEM (tự chọn, hoặc vào lúc ván đang chạy): nối lại vẫn là người xem — xem `muonXem`
+    if (muonXem && !useToken) params.set('xem', '1');
     // Định danh bền của trình duyệt (xem storage.clientId): thứ duy nhất cho
     // phép cộng lịch sử ván đấu theo NGƯỜI. Không có nó thì `playerId` đổi mỗi
     // lần vào phòng, còn tên thì hai người trùng tên là một.
@@ -1094,6 +1096,7 @@ export function useOnlineRoom() {
         // lại làm khán giả, hoặc thành người chơi nếu phòng chờ có chỗ).
         coThuLai.value = true;
         spectator.value = !!msg.spectator;
+        if (msg.spectator) muonXem = true;   // đã là người xem thì GIỮ vai đó tới khi tự bấm "Vào chơi"
         tatNoiLai();
         reconnectDeadline = 0;
         room.value = msg.room;
@@ -1132,17 +1135,10 @@ export function useOnlineRoom() {
         room.value = msg.room;
         layLoatTuServer(msg.room);
         /*
-         * KHÁN GIẢ GẶP PHÒNG CHỜ CÒN CHỖ (ván xong, mọi người về phòng chờ; hoặc
-         * có người rời phòng đầy): vào lại KHÔNG token là server cho làm người
-         * chơi. Thiếu bước này khán giả ngồi phòng chờ với nút Sẵn sàng mà server
-         * bỏ qua mọi tin của họ — bấm hoài không có gì xảy ra.
+         * KHÁN GIẢ Ở LẠI LÀM KHÁN GIẢ khi phòng về phòng chờ (23.11.2026, chủ dự án: "vào phòng với tư cách người xem thì
+         * kết thúc lại là tư cách người chơi"). Bản cũ tự nối lại không token để thành người chơi ngay khi có chỗ. Nay
+         * phòng chờ hiện thẻ "Bạn đang xem" + nút "Vào chơi" (`vaoChoi`) — đổi vai là việc người dùng tự bấm.
          */
-        if (spectator.value && msg.room.status === 'lobby'
-          && msg.room.players.length < ROOM_LIMITS.maxPlayers && myName) {
-          connect(code, myName);
-          phase.value = 'lobby';
-          break;
-        }
         if (msg.room.status === 'lobby') {
           phase.value = 'lobby';
           // "Về phòng chờ" sau ván: kết ván đã xoá phiên và lau ?room= — ghi lại,
@@ -1787,6 +1783,29 @@ export function useOnlineRoom() {
   /** Số ván thắng của từng người trong phòng, theo tên. */
   const seriesWins = ref<Record<string, number>>({});
   /** Số ván đã xong trong loạt của phòng (kể cả ván hoà) — dòng "Ván N" ở màn kết quả. */
+  /**
+   * VAI NGƯỜI XEM là lựa chọn được GIỮ (23.11.2026): true từ lúc server nhận mình làm người xem (vào phòng đang chơi, phòng
+   * đầy, hoặc tự bấm "Chỉ xem") cho tới khi tự bấm "Vào chơi" hoặc vào phòng khác. Lúc true, mọi lần nối lại không token
+   * đều khai `?xem=1` để server không xếp mình vào ghế người chơi dù phòng chờ còn chỗ.
+   */
+  let muonXem = false;
+  /** Người xem bấm "Vào chơi" ở phòng chờ: nối lại KHÔNG `xem=1` — còn chỗ thì server cho ngồi, hết chỗ thì vẫn là người xem. */
+  function vaoChoi(): void {
+    if (!spectator.value || !code) return;
+    muonXem = false;
+    connect(code, myName);
+  }
+  /** Người chơi (không phải chủ phòng) ở phòng chờ bấm "Chỉ xem": trả ghế rồi nối lại làm người xem. */
+  function chuyenXem(): void {
+    if (spectator.value || !code || room.value?.status !== 'lobby' || isHost.value) return;
+    const ma = code, ten = myName;
+    send({ t: 'leave' });
+    token = '';
+    clearStored();
+    muonXem = true;
+    // Chờ một nhịp cho tin `leave` đi hết rồi mới đổi socket (đổi ngay thì tin có thể rơi, ghế bị giữ tới hết hạn giữ chỗ)
+    setTimeout(() => { if (code === ma) connect(ma, ten); }, 200);
+  }
   const soVanLoat = ref(0);
   /** Server có tự đếm tỷ số loạt không (có `RoomInfo.soVan`). Có thì lấy theo server ở MỌI tin `room`/`welcome`. */
   let loatTuServer = false;
@@ -1855,6 +1874,7 @@ export function useOnlineRoom() {
     /** Token của mình trong phòng đang ở — chỉ để chủ phòng xác thực khi mời người online (lib/sanh.ts). */
     layToken: (): string => token,
     phase, error, phongDong, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
+    vaoChoi, chuyenXem,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
     wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBong, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
     peekLeft, revealingAll,

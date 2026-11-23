@@ -500,6 +500,8 @@ export class RoomDO extends DurableObject<Env> {
     // Client hiểu chế độ Đồng đội không (`?dd=1`) — xem `tuChoiClientCu`
     const dd = Number(url.searchParams.get('dd')) || 0;
     const matXin = url.searchParams.get('mat') ?? '';
+    // CHỦ ĐỘNG LÀM NGƯỜI XEM (`?xem=1`, 23.11.2026): kể cả khi phòng chờ còn chỗ — xem `acceptSpectator`
+    const xemChuDong = url.searchParams.get('xem') === '1';
 
     // Mã không ứng với phòng nào: từ chối thay vì lặng lẽ lập phòng mới.
     // Client đã kiểm trước qua GET /api/rooms/:code, nhưng client không đáng
@@ -523,8 +525,11 @@ export class RoomDO extends DurableObject<Env> {
     if (this.room.status === 'lobby' && this.room.emptyAt) this.datLaiHanGiuCho(player?.id);
     if (!player) {
       if (!name) return new Response('Thiếu tên', { status: 400 });
-      // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác
-      if (this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
+      // Ván đã bắt đầu / phòng đầy: vào làm KHÁN GIẢ — chỉ xem, không thao tác.
+      // HOẶC người đó TỰ CHỌN xem (chủ dự án 23.11.2026: "người trong phòng chờ có thể chọn mình là người xem… đang xem thì
+      // sang phòng chờ cũng là người xem, trừ khi bấm chuyển sang người chơi"). Trước đây khán giả gặp phòng chờ còn chỗ là
+      // app tự nối lại thành NGƯỜI CHƠI — vào xem một ván xong bị kéo vào chơi ván sau. Đổi vai = nối lại (có/không `xem=1`).
+      if (xemChuDong || this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
         return this.acceptSpectator(goi, bv, name, anh);
       }
       player = {
