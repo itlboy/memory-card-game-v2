@@ -53,7 +53,7 @@ describe('popup chọn số thẻ', () => {
   const popup = readFileSync(resolve(process.cwd(), 'src/components/ChonSoThe.vue'), 'utf8');
   it('server mở lượt chọn ở cả Bắt đầu lẫn Chơi lại, phòng thi đấu bỏ qua', () => {
     expect(room.match(/await this\.moChonThe\(\);/g)?.length).toBe(2);
-    expect(room).toMatch(/if \(this\.room\.thiDau\) \{ await this\.batDauDemNguoc\(\); return; \}/);
+    expect(room).toMatch(/if \(this\.room\.thiDau \|\| !CHON_THE_BAT\) \{ await this\.batDauDemNguoc\(\); return; \}/);
     expect(room).toMatch(/if \(this\.chon && now >= this\.chon\.het\) await this\.chotChon\(\);/);
   });
   it('popup: ô chỉ có con số, người xem thấy nhưng bị khoá, không dùng @keyframes cho thanh giờ', () => {
