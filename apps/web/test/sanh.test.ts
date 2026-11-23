@@ -258,3 +258,22 @@ describe('icon: không dùng emoji hệ thống làm icon giao diện (21.11.202
     }
   });
 });
+
+describe('số người online = người KHÁC, tính lại theo trạng thái kết nối (23.11.2026)', () => {
+  it('hỏi đúng lúc sảnh vừa nối (lời chào chưa về) không còn bị đếm chính mình', async () => {
+    const { dangNoiSanh, ghiSoOnline, soNguoiOnline } = await import('@/lib/sanh');
+    dangNoiSanh.value = false;
+    ghiSoOnline(1);                       // server đã đếm mình, client chưa biết mình đã nối
+    expect(soNguoiOnline.value).toBe(1);
+    dangNoiSanh.value = true;             // lời chào về → trừ mình ngay, không chờ lần hỏi kế
+    expect(soNguoiOnline.value).toBe(0);
+    ghiSoOnline(3);
+    expect(soNguoiOnline.value).toBe(2);
+    dangNoiSanh.value = false;            // vừa rớt sảnh: số thô lúc hỏi vẫn còn tính mình
+    expect(soNguoiOnline.value).toBe(2);
+    ghiSoOnline(2);                       // lần hỏi kế, không còn nối: không trừ nữa
+    expect(soNguoiOnline.value).toBe(2);
+    ghiSoOnline('x'); ghiSoOnline(undefined);   // số hỏng: giữ số cũ
+    expect(soNguoiOnline.value).toBe(2);
+  });
+});

@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { SERVER_URL, nenApp } from './native';
 import { store } from './storage';
 import { danhTinhSanh, me } from './taikhoan';
@@ -56,13 +56,22 @@ export const choiMotMinh = ref(false);
 /** Kết nối sảnh đang mở (đã nhận `chao`) — để trừ chính mình khỏi "N người đang online". */
 export const dangNoiSanh = ref(false);
 /**
- * Số app đang nối sảnh, server gửi kèm danh sách phòng công khai (`/api/rooms/public` → `online`). Đã TRỪ chính mình.
- * Hiện ở ô Chơi online (trang chủ) và đầu màn Chơi online — để ai muốn thì chủ động tạo phòng rồi mời.
+ * Số NGƯỜI KHÁC đang online = số app đang nối sảnh (server gửi kèm danh sách phòng công khai, `/api/rooms/public` →
+ * `online`) TRỪ chính mình. Hiện ở ô Chơi online (trang chủ) và đầu màn Chơi online.
+ *
+ * TÍNH LẠI MỖI KHI TRẠNG THÁI KẾT NỐI ĐỔI (23.11.2026, chủ dự án: trang chủ không hiện ai mà vào sảnh lại ghi "1 người
+ * đang online" — "số liệu không khớp"). Bản cũ trừ MỘT LẦN lúc nhận số: hỏi danh sách phòng đúng lúc sảnh vừa nối
+ * (server đã đếm mình nhưng lời chào chưa về) thì không trừ, và mình bị đếm thành một người online tới lần hỏi kế.
+ * Nay giữ số THÔ của server và trừ mình khi đang nối sảnh HOẶC đã nối lúc hỏi (vừa rớt sảnh thì số thô vẫn còn tính mình).
  */
-export const soNguoiOnline = ref(0);
+const soOnlineTho = ref(0);
+const noiLucHoi = ref(false);
+export const soNguoiOnline = computed(() => Math.max(0, soOnlineTho.value - (dangNoiSanh.value || noiLucHoi.value ? 1 : 0)));
 export function ghiSoOnline(n: unknown): void {
   const so = Number(n);
-  if (Number.isFinite(so)) soNguoiOnline.value = Math.max(0, Math.round(so) - (dangNoiSanh.value ? 1 : 0));
+  if (!Number.isFinite(so)) return;
+  soOnlineTho.value = Math.max(0, Math.round(so));
+  noiLucHoi.value = dangNoiSanh.value;
 }
 
 const WS_SANH = `${SERVER_URL.replace(/^http/, 'ws')}/ws/sanh`;
