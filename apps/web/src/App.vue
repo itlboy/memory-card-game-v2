@@ -18,6 +18,8 @@ import RulesDialog from './components/RulesDialog.vue';
 import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
+import SoTriNho from './components/SoTriNho.vue';
+import { hienTriNho } from './lib/tri-nho';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
 import type { XemFx } from './components/DebugMenu.vue';
@@ -43,6 +45,7 @@ const debug = ref(store.prefs().debug || new URLSearchParams(location.search).ge
 const coSkinUrl = new URLSearchParams(location.search).has('skin');
 watch(debug, (v) => {
   store.savePrefs({ debug: v });
+  hienTriNho.value = v;   // điểm trí nhớ đang THỬ NGHIỆM: chỉ GHI và chỉ HIỆN khi debug bật (chủ dự án 23.11.2026)
   if (!v) { boEmojiVeMacDinh(); datPingSo(false); if (!coSkinUrl) skinVeMacDinh(); }
 }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
@@ -71,7 +74,7 @@ import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
 import { nhac, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
-import { ngayMay, store, type SoundLevel } from './lib/storage';
+import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
 import { choiDuoc, hienPremium } from './lib/premium';
 
@@ -158,12 +161,21 @@ function banDoMay(): Record<string, BotLevel> {
  */
 const progressRev = ref(0);
 const totalScore = ref(store.totalScore());
+// Xu vừa được cộng ở BẤT KỲ đâu (kể cả ván online, cộng trong useOnlineRoom) → đọc lại tổng ngay, không chờ về trang chủ
+watch(diemVuaCong, () => { totalScore.value = store.totalScore(); });
 
 const themes = ref<CardTheme[]>([]);
 /** 'mua-the' = chế độ thẻ rơi (components/MuaThe.vue) — ô ngang ở trang chủ + trang Debug; `?mua=1` trên URL. */
 const screen = ref<'menu' | 'game' | 'online' | 'mua-the'>('menu');
 const muaTheRef = ref<InstanceType<typeof MuaThe> | null>(null);
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
+/**
+ * VÁN ĐANG CHẠY (chưa có kết quả) — TopBar chỉ hoãn hỏi/diễn THỨ HẠNG trong lúc này. Hết ván (bảng kết quả đang hiện) là hỏi
+ * hạng và cập nhật luôn, không chờ về trang chủ như trước (23.11.2026). Mưa Thẻ giữ cách cũ (không có cờ "đã xong" để đọc).
+ */
+const vanDangChay = computed(() => (screen.value === 'game' && !session.summary.value)
+  || (screen.value === 'online' && !!onlineRef.value?.dangChoi)
+  || screen.value === 'mua-the');
 /** Đang trong VÁN (offline hoặc online đang chơi) — nhạc nền nhỏ dần rồi tắt (16.10.2026). */
 const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua-the' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
 
@@ -285,6 +297,8 @@ const showRules = ref(false);
 /** Trang debug riêng (DebugDialog) — mở từ nút "🐞 Debug" cạnh chữ Cài đặt trong menu. */
 const showDebug = ref(false);
 useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
+const showSoTriNho = ref(false);
+useBackCloser(31, () => showSoTriNho.value, () => { showSoTriNho.value = false; });
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
@@ -921,6 +935,7 @@ watch(session.summary, (s) => {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
     store.ghiVanBoDem({ thang: s.status === 'won' });
+    if (hienTriNho.value) store.ghiTriNho(player, game.totalPairs);
     const dat = earned({
       summary: s,
       mode: game.config.mode,
@@ -967,6 +982,8 @@ watch(session.summary, (s) => {
       const thangMay = session.loaiKetCuc.value === 'thang';
       // Thắng Gà mờ không tính vào bộ đếm thắng máy (cùng lý do không cộng điểm)
       store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy' });
+      // Trí nhớ chấm trên lượt của CHÍNH NGƯỜI nên đấu máy mức nào cũng ghi (kể cả Dễ)
+      if (hienTriNho.value) store.ghiTriNho(s.ranking.find((r) => !laBot(r.id)), game.totalPairs);
       const dat = earned({
         summary: s, mode: game.config.mode, cells: game.cards.length,
         misses: player.misses, lives: game.config.lives ?? null, peekMs: game.config.peekMs ?? 0,
@@ -1029,6 +1046,7 @@ const hasNext = computed(() => {
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
     :dung-yen="screen !== 'menu'"
+    :trong-van="vanDangChay"
     @set-nhac="datNhac"
     :account="taiKhoanSan" :bxh-mo="showBxh" :signed-in="!!taiKhoanMe" :avatar="taiKhoanMe?.avatar"
     @set-nen="nen = $event"
@@ -1072,6 +1090,7 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
+      @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -1133,6 +1152,7 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
+      @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
     />
@@ -1162,8 +1182,10 @@ const hasNext = computed(() => {
     @update:do-nhip="doNhip = $event"
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
+    @so-tri-nho="showDebug = false; showSoTriNho = true"
     @tat="debug = false; showDebug = false"
   />
+  <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" />
 
   <CaiAppDialog v-if="hienCai" @close="dongCai" />
 
@@ -1221,6 +1243,7 @@ const hasNext = computed(() => {
     :summary="session.summary.value"
     :is-record="isRecord"
     :star-misses="session.game.value?.config.starMisses"
+    :so-cap="session.game.value?.totalPairs"
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
     :minh-ket-cuc="session.minhKetCuc.value"

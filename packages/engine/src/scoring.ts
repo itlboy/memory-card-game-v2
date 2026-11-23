@@ -80,3 +80,68 @@ export function rankPlayers<T extends {
       || y.pairs - x.pairs
   );
 }
+
+/* ───────────── ĐIỂM TRÍ NHỚ ─────────────
+ * Đo trên LƯỢT CỦA CHÍNH MÌNH nên chấm được ở mọi chế độ (một mình, đấu máy, online):
+ * mỗi lần lật lá đầu mà lá đôi của nó đã từng lộ là một "cơ hội nhớ" — ghép trúng = nhớ,
+ * ghép trật = quên. Engine chỉ giữ SỐ ĐẾM THÔ theo nhóm độ lâu; công thức nằm cả ở đây,
+ * đổi hệ số là điểm của mọi ngày đã lưu tự tính lại.
+ */
+
+/** Số nhóm độ lâu: 1 · 2–3 · 4–7 · 8–15 · 16+ nước. */
+export const SO_NHOM_TUOI = 5;
+export const rongNhomTuoi = (): number[] => new Array<number>(SO_NHOM_TUOI).fill(0);
+/** Nhóm của một độ lâu (số nước từ lúc lá đôi lộ lần cuối, ≥ 1). */
+export function nhomTuoi(tuoi: number): number {
+  return Math.min(SO_NHOM_TUOI - 1, Math.max(0, Math.floor(Math.log2(Math.max(1, tuoi)))));
+}
+/** Nhớ lá thấy từ lâu thì ĐÁNG GIÁ hơn nhớ lá vừa thấy. */
+export const NANG_NHO: readonly number[] = [1, 1.5, 2, 2.5, 3];
+/** Quên lá VỪA thấy thì nặng tội hơn quên lá thấy từ lâu. */
+export const NANG_QUEN: readonly number[] = [1.5, 1.25, 1, 0.75, 0.5];
+/** Dưới ngần này cơ hội nhớ thì chưa đủ để chấm (bàn 2–3 cặp phần lớn là may rủi). */
+export const CO_HOI_NHO_TOI_THIEU = 3;
+
+const tong = (a: readonly number[] | undefined): number => (a ?? []).reduce((s, n) => s + (n || 0), 0);
+const tongNang = (a: readonly number[] | undefined, nang: readonly number[]): number =>
+  (a ?? []).reduce((s, n, i) => s + (n || 0) * (nang[Math.min(i, nang.length - 1)] ?? 1), 0);
+
+/** Số cơ hội nhớ = lần nhớ đúng + lần quên. */
+export function coHoiNho(nho: readonly number[] | undefined, quen: readonly number[] | undefined): number {
+  return tong(nho) + tong(quen);
+}
+
+/**
+ * Tỉ lệ nhớ 0..1 CÓ TÍNH ĐỘ LÂU, `null` khi chưa đủ `CO_HOI_NHO_TOI_THIEU` cơ hội.
+ * Dùng chung cho một ván lẫn số cộng dồn nhiều ván CÙNG cỡ bàn.
+ */
+export function tiLeNho(nho: readonly number[] | undefined, quen: readonly number[] | undefined): number | null {
+  if (coHoiNho(nho, quen) < CO_HOI_NHO_TOI_THIEU) return null;
+  const n = tongNang(nho, NANG_NHO), q = tongNang(quen, NANG_QUEN);
+  return n / (n + q);
+}
+
+/** Bàn lớn nhất của game (88 thẻ) — trần điểm trí nhớ của nó là `TRAN_TRI_NHO`. */
+export const CAP_TRAN_TRI_NHO = 44;
+export const TRAN_TRI_NHO = 1000;
+/**
+ * TRẦN CỦA BÀN: điểm trí nhớ tối đa một bàn `soCap` cặp cho được. Tăng theo CĂN BẬC HAI số cặp
+ * (4 cặp ≈ 300 · 8 ≈ 425 · 18 ≈ 640 · 30 ≈ 825 · 44 = 1000): tăng thẳng thì bàn 4 cặp chỉ còn 90
+ * điểm, người mới thấy mình gần như bằng không. Làm tròn tới 5 cho dễ đọc.
+ */
+export function tranBan(soCap: number): number {
+  const c = Math.min(CAP_TRAN_TRI_NHO, Math.max(1, soCap));
+  return Math.round((TRAN_TRI_NHO * Math.sqrt(c / CAP_TRAN_TRI_NHO)) / 5) * 5;
+}
+
+/**
+ * ĐIỂM TRÍ NHỚ = tỉ lệ nhớ × trần của bàn (chủ dự án chốt 23.11.2026: độ lâu VÀ cỡ bàn đều phải
+ * vào điểm — "nếu không bàn nhỏ bàn to là như nhau"). Nhân tỉ lệ chứ không cộng dồn từng lần nhớ:
+ * ván 4 người mỗi người chỉ có một phần tư số lượt, cộng dồn là thiệt. `null` = chưa đủ để chấm.
+ */
+export function diemTriNho(
+  nho: readonly number[] | undefined, quen: readonly number[] | undefined, soCap: number
+): number | null {
+  const tl = tiLeNho(nho, quen);
+  return tl === null ? null : Math.round(tl * tranBan(soCap));
+}

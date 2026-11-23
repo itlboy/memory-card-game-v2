@@ -1872,3 +1872,38 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **THỜI GIAN CHỌN SỐ THẺ = 10 GIÂY (23.11.2026, 1.9.37)** — chủ dự án đổi từ 3 lên 10 ("cho lên 10 giây"). Một hằng số: engine
   `CHON_THE_MS`. Mọi người thật đã chọn thì vẫn chốt sớm. Hệ quả: phòng có người dùng APP CŨ (không bỏ phiếu được) luôn chờ ĐỦ
   10 giây trước mỗi ván với nút "Đang mở ván…"; phòng chỉ có bot thì bot chọn trong ~2 giây nên không chậm.
+
+## ĐIỂM TRÍ NHỚ + SỔ TRÍ NHỚ (23.11.2026) — THỬ NGHIỆM, CHỈ KHI DEBUG BẬT
+
+- **Công thức (chủ dự án chốt): điểm ván = tỉ lệ nhớ × trần của bàn.** "Cơ hội nhớ" = lật lá đầu mà lá
+  đôi ĐÃ từng lộ (`tuoiDoi` ở engine): ghép trúng = nhớ, trật = quên (cùng điều kiện với `quen`); ghép
+  trúng hai lá chưa từng lộ là MAY, không chấm. Tỉ lệ có hệ số ĐỘ LÂU (`NANG_NHO`/`NANG_QUEN`, nhóm
+  1 · 2–3 · 4–7 · 8–15 · 16+ nước); trần `tranBan()` tăng theo CĂN số cặp, 44 cặp = 1000. Cả hai
+  PHẢI vào điểm ("nếu không bàn nhỏ bàn to là như nhau"). Nhân tỉ lệ chứ không cộng dồn: ván 4 người
+  mỗi người chỉ có 1/4 số lượt. Dưới 3 cơ hội thì không chấm. Tất cả ở `packages/engine/src/scoring.ts`.
+- **Engine chỉ giữ SỐ ĐẾM THÔ theo từng người** (`Player.nhoTheo/quenTheo/tamNho`, mốc lộ lá `seenAt`
+  đi cùng `seen` — đổi chỗ lá và snapshot phải mang theo). Nhật ký ngày (`storage.ghiTriNho`, khoá
+  `triNho`) cũng giữ số đếm thô theo TỪNG CỠ BÀN, không giữ điểm → đổi hệ số là ngày cũ tự tính lại
+  (trừ `cao`, điểm ván cao nhất, đã tính lúc ghi). Gộp để hiện ở `lib/tri-nho.ts`.
+- **Chỉ GHI và chỉ HIỆN khi debug bật** (cờ `hienTriNho`, App.vue đặt theo `debug`): dòng "Trí nhớ" ở
+  ResultDialog + trang `SoTriNho.vue` mở từ viên XANH NGỌC (biểu tượng biểu đồ) ở dải lối tắt trang chủ và từ trang Debug.
+  Ở ResultDialog các chỉ số là MỘT BẢNG HÀNG (`.stats.bang`: cột biểu tượng · nhãn · đường chấm · số canh
+  phải, Trí nhớ là hàng đầu, tô xanh ngọc — màu chủ đạo của cả tính năng, chủ dự án chọn thay tím) — bản thêm một dòng rời / hai ô cạnh nhau bị chê "xấu và loạn". Ghi cho ván biết chắc ai cầm máy (một mình,
+  đấu máy, online không đội); nhiều người chung máy và ván đội thì không. Online cần server chạy
+  engine mới thì dòng xếp hạng mới mang số đếm.
+- **ĐỘ TIN CẬY** (`tinCay`, mốc 20 / 60 CƠ HỘI NHỚ của kỳ, không theo số ván): chơi ít thì số liệu
+  chưa đáng tham khảo — sổ hiện ba chấm + câu chữ, ngày ít số liệu vẽ cột sọc, và CHỈ so tuần này
+  với tuần trước khi cả hai từ mức 2 trở lên. Mockup: https://claude.ai/artifact/RGXnu5k1Pgo6LYxoVGSRxe
+- Lá ở bước xem trước đầu ván KHÔNG tính là đã thấy (như `quen` xưa nay) — chưa ai chốt đổi.
+- Bẫy công cụ: `lib-playwright.donMoCoi()` tắt mọi tiến trình WebKit có cha = 1, kể cả của PHIÊN KHÁC
+  đang chụp → "Page crashed" ngẫu nhiên khi hai phiên cùng chạy. Gặp thì dùng Chrome ẩn qua
+  `moTrinhDuyet('chromium', { executablePath })`.
+- **XU VÀ THỨ HẠNG CẬP NHẬT NGAY Ở BẢNG KẾT QUẢ (23.11.2026, 1.9.39)** — chủ dự án: "phải sang trang chủ mới cập nhật điểm và thứ
+  hạng… làm luôn lúc đó, cho nó đồng bộ luôn". Hai chỗ chậm: (1) ván ONLINE cộng xu trong useOnlineRoom/OnlineGame nhưng số trên
+  TopBar do App giữ (`totalScore`) và chỉ đọc lại khi về trang chủ → nay `store.addScore` tăng nhịp `diemVuaCong` (lib/storage.ts),
+  App `watch` nó để đọc lại tổng ngay; (2) TopBar hoãn hỏi + diễn THỨ HẠNG tới khi `dungYen` hết (= về trang chủ) → nay hoãn theo
+  prop mới `trongVan` = VÁN ĐANG CHẠY (App `vanDangChay`: ván offline chưa có `summary`, online đang `playing`, Mưa Thẻ), tức
+  hết ván là hỏi hạng luôn. `dungYen` vẫn dùng cho mẹo viên xu và hoạt ảnh thẻ mini. App.vue đã có `trongVan` khác nghĩa (nhạc
+  nền: cả màn chơi lẫn bảng kết quả) — ĐỪNG gộp hai cái. Lưu ý: bảng kết quả (z 17) phủ mờ lên TopBar (z 15), nên số mới và
+  hiệu ứng lên hạng hiện DƯỚI lớp mờ. Đã thử thật phần xu (0 → 1.240 ngay ở bảng kết quả); phần hạng cần tài khoản + MySQL nên
+  chưa thử ngoài máy thật.

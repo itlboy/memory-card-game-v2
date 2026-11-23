@@ -2,7 +2,7 @@ import { buildDeck } from './deck.js';
 import { Rng } from './rng.js';
 import {
   FLIP_BACK_MS, MATCH_TIME_BONUS_MS, TURN_BONUS_MS,
-  comboMultiplier, pairScore, rankPlayers, starsByMisses, starsFor, timeBonus
+  comboMultiplier, nhomTuoi, pairScore, rankPlayers, rongNhomTuoi, starsByMisses, starsFor, timeBonus
 } from './scoring.js';
 import type {
   Card, GameConfig, GameEvent, GameStatus, Player, PlayerInit, Power, Summary
@@ -111,6 +111,9 @@ export class MemoryGame {
   /** Các ô người chơi ĐÃ TỪNG thấy mặt trước. Dùng để phán xử lỗi trong Sinh tồn:
    *  lật hai thẻ mới toanh là phỏng đoán hợp lý, không phải sai sót. */
   private seen = new Set<number>();
+  /** Nước đi (`moves`) lúc mỗi ô lộ mặt LẦN CUỐI — tính "độ lâu" của một lần nhớ/quên
+   *  cho điểm trí nhớ (`scoring.diemTriNho`). Luôn đi cùng `seen`: ghi qua `daThay()`. */
+  private seenAt: Record<number, number> = {};
 
   constructor(config: GameConfig) {
     this.config = { flipBackMs: FLIP_BACK_MS, ...config };
@@ -373,8 +376,11 @@ export class MemoryGame {
       player.score += gained;
       player.pairs++;
       this.matched.add(this.cards[a]!.pairId);
-      this.seen.add(a);
-      this.seen.add(b);
+      // Ghép đúng mà lá đôi ĐÃ từng lộ = nhớ. Lá đôi chưa từng lộ thì là may, không chấm.
+      const tuoiNho = this.tuoiDoi(a);
+      if (tuoiNho !== null) this.ghiTriNho(player, tuoiNho, true);
+      this.daThay(a);
+      this.daThay(b);
       this.selection = [];
       out.push({ type: 'match', indices: [a, b], gained, playerId: player.id });
       // ĐỘI THEO LƯỢT: ghi cặp này cho đúng THÀNH VIÊN vừa lật (thống kê cuối ván)
@@ -434,14 +440,18 @@ export class MemoryGame {
     // sai lầm — điều kiện cũ `hasKnownTwin(a) || hasKnownTwin(b)` trừ mạng cả
     // ở đây, đúng ca người chơi phản ánh: mở thẻ cờ mới toanh rồi bốc trúng
     // thẻ bánh đã lộ, và bị trừ mạng dù không có cách nào chọn khác.
-    const avoidable = this.hasKnownTwin(a);
-    if (avoidable) player.quen = (player.quen ?? 0) + 1;
+    const tuoiQuen = this.tuoiDoi(a);
+    const avoidable = tuoiQuen !== null;
+    if (avoidable) {
+      player.quen = (player.quen ?? 0) + 1;
+      this.ghiTriNho(player, tuoiQuen, false);
+    }
     if (this.config.lives != null && avoidable) {
       player.lives--;
       out.push({ type: 'life-lost', playerId: player.id, livesLeft: player.lives });
     }
-    this.seen.add(a);
-    this.seen.add(b);
+    this.daThay(a);
+    this.daThay(b);
 
     this.pendingUntil = now + (this.config.flipBackMs ?? FLIP_BACK_MS);
     out.push({ type: 'miss', indices: [a, b], penalty, hideAfterMs: this.config.flipBackMs ?? FLIP_BACK_MS });
@@ -454,10 +464,33 @@ export class MemoryGame {
     return out;
   }
 
-  /** Thẻ ở `index` có thẻ trùng nào ĐÃ từng lộ ra trước lượt này không? */
-  private hasKnownTwin(index: number): boolean {
+  /**
+   * Lá đôi của thẻ ở `index` lộ ra LẦN CUỐI cách đây bao nhiêu nước (≥ 1)? `null` = chưa
+   * từng lộ trước lượt này — người chơi đang dò, không có gì để nhớ.
+   */
+  private tuoiDoi(index: number): number | null {
     const pairId = this.cards[index]!.pairId;
-    return this.cards.some((c) => c.index !== index && c.pairId === pairId && this.seen.has(c.index));
+    let gan: number | null = null;
+    for (const c of this.cards) {
+      if (c.index === index || c.pairId !== pairId || !this.seen.has(c.index)) continue;
+      // Snapshot cũ (trước khi có `seenAt`) không có mốc: coi như lộ từ đầu ván
+      const tuoi = Math.max(1, this.moves - (this.seenAt[c.index] ?? 0));
+      gan = gan === null ? tuoi : Math.min(gan, tuoi);
+    }
+    return gan;
+  }
+
+  private daThay(index: number): void {
+    this.seen.add(index);
+    this.seenAt[index] = this.moves;
+  }
+
+  /** Cộng một lần nhớ đúng / quên vào nhóm độ lâu của người chơi (điểm trí nhớ). */
+  private ghiTriNho(player: Player, tuoi: number, nho: boolean): void {
+    const o = nho ? (player.nhoTheo ??= rongNhomTuoi()) : (player.quenTheo ??= rongNhomTuoi());
+    const i = nhomTuoi(tuoi);
+    o[i] = (o[i] ?? 0) + 1;
+    if (nho) player.tamNho = Math.max(player.tamNho ?? 0, tuoi);
   }
 
   /** Úp lại 2 thẻ khác nhau và chuyển lượt. Gọi khi hết `flipBackMs`. */
@@ -564,6 +597,11 @@ export class MemoryGame {
       this.seen.delete(sa ? a : b);
       this.seen.add(sa ? b : a);
     }
+    // Mốc "lộ lúc nào" cũng theo LÁ BÀI
+    const ta = this.seenAt[a], tb = this.seenAt[b];
+    delete this.seenAt[a]; delete this.seenAt[b];
+    if (tb !== undefined) this.seenAt[a] = tb;
+    if (ta !== undefined) this.seenAt[b] = ta;
   }
 
   /** Kích hoạt thẻ đặc biệt (mục 3.4). */
@@ -768,6 +806,7 @@ export class MemoryGame {
       turnPausedMs: this.turnPausedMs,
       vanDungLuc: this.vanDungLuc,
       extraTimeMs: this.extraTimeMs,
+      seenAt: this.seenAt,
       seen: [...this.seen],        // thiếu cái này thì sau F5 hoặc hibernation
       rngState: this.rng.state,    // engine "quên" thẻ nào đã lộ và phán xử sai
       summaryCache: this.summaryCache && {
@@ -803,6 +842,7 @@ export class MemoryGame {
       vanDungLuc: s.vanDungLuc ?? 0,
       extraTimeMs: (s.extraTimeMs as number | undefined) ?? 0,
       seen: new Set((s.seen as number[] | undefined) ?? []),
+      seenAt: (s.seenAt as Record<number, number> | undefined) ?? {},
       rng: Rng.fromState(s.rngState as number),
       summaryCache: s.summaryCache
         ? {

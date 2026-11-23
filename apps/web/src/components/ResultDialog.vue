@@ -14,7 +14,8 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
-import { ChevronDown, Hand, LogOut, Settings2, Share } from 'lucide-vue-next';
+import { Brain, ChevronDown, Flame, Hand, LogOut, Pointer, Settings2, Share, Timer, Zap } from 'lucide-vue-next';
+import { hienTriNho, triNhoVan } from '@/lib/tri-nho';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
@@ -23,6 +24,8 @@ const props = defineProps<{
   summary: Summary;
   /** Số lần sai tối đa cho 2★/3★ (Chiến dịch) — có thì hiện mốc 3★ dưới hàng sao. */
   starMisses?: readonly [number, number];
+  /** Số cặp của bàn — có thì (và debug bật) hiện dòng ĐIỂM TRÍ NHỚ của người cầm máy. */
+  soCap?: number;
   isRecord: boolean;
   showStars: boolean;
   multiplayer: boolean;
@@ -178,6 +181,19 @@ const draw = computed(() => props.multiplayer && isDraw(props.summary.ranking));
  *  ván nhiều người (mockup duyệt 17.11.2026) — bỏ. Đấu máy vẫn giữ (ván của một người). */
 const chungMay = computed(() => props.multiplayer && !props.multiplayerOnline && !props.minhKetCuc);
 const hienSao = computed(() => props.showStars && props.summary.status === 'won' && props.minhKetCuc !== 'thua' && !chungMay.value);
+
+/**
+ * ĐIỂM TRÍ NHỚ (thử nghiệm, chỉ khi debug bật): của NGƯỜI CẦM MÁY — online là dòng mang mã mình,
+ * đấu máy là dòng không phải máy, một mình là dòng duy nhất. Nhiều người chung máy thì không hiện
+ * (không biết ai là "mình"); ván đội online cũng không (dòng xếp hạng là cả đội).
+ */
+const triNho = computed(() => {
+  if (!hienTriNho.value || !props.soCap || chungMay.value) return null;
+  const r = props.summary.ranking;
+  const toi = props.multiplayerOnline ? r.find((x) => x.id === props.toiId)
+    : props.multiplayer ? r.find((x) => !laBotId(x.id) && x.id !== 'bot') : r[0];
+  return triNhoVan(toi, props.soCap);
+});
 
 /**
  * Có chỗ cho nút "Cấp tiếp theo" hay không, và có bấm được hay không — hai
@@ -442,11 +458,27 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         <small>{{ t('chung.diem') }}</small>
       </p>
 
-      <dl v-if="!multiplayer" class="stats">
+      <dl v-if="!multiplayer && !triNho" class="stats">
         <div v-if="summary.timeBonus"><dt>{{ t('kq.thuongGio') }}</dt><dd>+{{ summary.timeBonus }}</dd></div>
         <div><dt>{{ t('kq.soLuot') }}</dt><dd>{{ summary.moves }}</dd></div>
         <div><dt>{{ t('kq.thoiGian') }}</dt><dd>{{ clock(summary.seconds) }}</dd></div>
         <div><dt>{{ t('kq.chuoiDai') }}</dt><dd>{{ summary.bestStreak }}</dd></div>
+      </dl>
+      <!-- CÓ ĐIỂM TRÍ NHỚ (thử nghiệm, debug): các chỉ số là MỘT BẢNG HÀNG — cột biểu tượng thẳng hàng bên trái,
+           đường chấm dẫn mắt sang con số canh phải (chủ dự án 23.11.2026: "hiện thành hàng, có gì để dóng
+           thẳng dễ nhìn"; bản thêm một ô rời bị chê "xấu và loạn"). Trí nhớ là hàng ĐẦU, tô xanh ngọc. -->
+      <dl v-else-if="triNho" class="stats bang">
+        <div class="h-tn">
+          <Brain :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('tn.diem') }}</dt><i aria-hidden="true" />
+          <dd v-if="triNho.diem !== null"><small>{{ triNho.tiLe }}%</small>{{ num(triNho.diem) }}</dd>
+          <dd v-else class="chua">{{ t('tn.chuaDu') }}</dd>
+        </div>
+        <template v-if="!multiplayer">
+          <div v-if="summary.timeBonus"><Zap :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.thuongGio') }}</dt><i aria-hidden="true" /><dd>+{{ summary.timeBonus }}</dd></div>
+          <div><Pointer :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.soLuot') }}</dt><i aria-hidden="true" /><dd>{{ summary.moves }}</dd></div>
+          <div><Timer :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.thoiGian') }}</dt><i aria-hidden="true" /><dd>{{ clock(summary.seconds) }}</dd></div>
+          <div><Flame :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.chuoiDai') }}</dt><i aria-hidden="true" /><dd>{{ summary.bestStreak }}</dd></div>
+        </template>
       </dl>
 
       <!--
@@ -460,7 +492,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         <li v-if="freshAchievements.length > 2" class="them">{{ t('kq.themDanhHieu', { n: freshAchievements.length - 2 }) }}</li>
       </ul>
       <!-- Lời mời đi tiếp, ngay lúc người chơi còn hứng: một cú bấm là vào ván -->
-      <div v-if="goiY" class="goi-y">
+      <div v-if="goiY" class="goi-y" :title="goiY.hint">
         <span class="txt"><IconVong ic="goiY" :size="24" class="gy-ic" /> <b>{{ goiY.name }}</b><small>{{ goiY.hint }}</small></span>
         <button class="di thach th-xanh th-nho" type="button" :aria-label="t('kq.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY)">{{ t('kq.chinhPhuc') }}</button>
       </div>
@@ -778,6 +810,26 @@ h2 { margin: 0 0 4px; }
 .score-big small { color: var(--muted); font-size: var(--text-sm); font-weight: 700; }
 @keyframes score-in { from { opacity: 0; transform: scale(.86); } }
 
+/* BẢNG HÀNG chỉ số: [biểu tượng 18px] [nhãn] [đường chấm] [số canh phải] — mọi hàng cùng lưới nên thẳng cột */
+.stats.bang {
+  gap: 0; padding: 2px 12px; border-radius: 14px;
+  background: color-mix(in srgb, var(--fg) 4%, transparent); border: 1px solid var(--line);
+}
+.stats.bang div {
+  display: grid; grid-template-columns: 18px auto minmax(12px, 1fr) auto; align-items: center; gap: 8px;
+  min-height: 34px; border-top: 1px solid var(--line);
+}
+.stats.bang div:first-child { border-top: 0; }
+.stats.bang svg { color: var(--muted); }
+.stats.bang i { align-self: end; margin-bottom: 11px; border-bottom: 2px dotted color-mix(in srgb, var(--muted) 45%, transparent); }
+.stats.bang dt { font-size: 14px; white-space: nowrap; }
+.stats.bang dd { font-size: 16px; font-weight: 800; text-align: right; white-space: nowrap; }
+.stats.bang dd small { margin-right: 8px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.stats.bang dd.chua { font-size: 13px; font-weight: 700; color: var(--muted); }
+.stats.bang .h-tn svg, .stats.bang .h-tn dt, .stats.bang .h-tn dd { color: #0b7468; }
+.stats.bang .h-tn dt { font-weight: 800; }
+:global([data-theme='dark'] .stats.bang .h-tn svg), :global([data-theme='dark'] .stats.bang .h-tn dt),
+:global([data-theme='dark'] .stats.bang .h-tn dd) { color: #6fe0d0; }
 .stats { margin: 0; display: grid; gap: 6px; }
 .stats div { display: flex; justify-content: space-between; gap: 12px; }
 .stats dt { color: var(--muted); font-size: 14px; }
@@ -850,12 +902,15 @@ h2 { margin: 0 0 4px; }
 }
 .achievements li.them { background: color-mix(in srgb, var(--warn) 18%, transparent); color: inherit; }
 
+/* MỘT DÒNG (chủ dự án 23.11.2026: ô hai-ba dòng "tốn diện tích quá"): chỉ tên danh hiệu + nút. Lời mô tả
+   bỏ khỏi bảng này — nó có ở tooltip, màn Danh hiệu và ngay trong ván khi bấm Chinh phục. */
 .goi-y {
-  display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 8px 8px 12px;
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 4px 5px 4px 10px;
   border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 13px;
 }
-.goi-y .txt { flex: 1; min-width: 0; }
-.goi-y small { display: block; color: var(--muted); }
+.goi-y .txt { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+.goi-y .txt b { overflow: hidden; text-overflow: ellipsis; }
+.goi-y small { display: none; }
 .goi-y .di {
   position: relative; flex: 0 0 auto; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 0;
   background: var(--nhan-nen); color: var(--nhan-chu);
@@ -908,8 +963,7 @@ h2 { margin: 0 0 4px; }
   .stats { grid-template-columns: 1fr 1fr; gap: 4px 14px; }
   .stats dt, .stats dd { font-size: 13px; }
   .achievements { margin-top: 8px; }
-  .goi-y { margin-top: 6px; padding: 5px 6px 5px 10px; }
-  .goi-y small { display: none; }
+  .goi-y { margin-top: 6px; }
   .row { margin-top: 10px; }
   .row .btn, .row .btn-primary { min-height: 46px; }
   /* Bảng tỷ số loạt: thấp hơn, vẫn là con số to nhất sau tiêu đề */
