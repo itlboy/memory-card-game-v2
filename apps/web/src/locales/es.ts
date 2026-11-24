@@ -376,6 +376,7 @@ const es: TuDien = {
   'tb.dangKiem': "Comprobando",
   'tb.moiNhat': "Actualizado",
   'tb.capNhat': "Actualizar",
+  'tb.banMoiNhat': "Tienes la última versión",
   'tb.matMang': "Sin conexión",
   'tb.canBanStore': "Actualiza en la tienda",
   'chung.capNhat': "Actualizar",

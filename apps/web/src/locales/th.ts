@@ -376,6 +376,7 @@ const th: TuDien = {
   'tb.dangKiem': "กำลังตรวจ",
   'tb.moiNhat': "เป็นเวอร์ชันล่าสุด",
   'tb.capNhat': "อัปเดต",
+  'tb.banMoiNhat': "คุณใช้เวอร์ชันล่าสุดอยู่แล้ว",
   'tb.matMang': "ออฟไลน์",
   'tb.canBanStore': "อัปเดตในสโตร์",
   'chung.capNhat': "อัปเดต",
