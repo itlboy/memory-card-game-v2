@@ -941,18 +941,8 @@ const ko: TuDien = {
   'ct.banChon': "{n} 선택함 · {da}/{tong}명 선택",
   'ct.dangXem': "관전 중 · {da}/{tong}명 선택",
   'ct.hetGio': "시간 종료!",
-  'ct.boIt': "표가 적은 수는 빠져요",
-  'ct.khongAi': "아무도 고르지 않았어요",
-  'ct.demPhieu': "표 세는 중…",
   'ct.bocTham': "추첨 중…",
-  'ct.bangPhieu': "{ds} 동점",
-  'ct.mayBoc': "무작위로 고르는 중…",
-  'ct.daChot': "결정!",
-  'ct.lyBoc': "{ds} 중 추첨",
-  'ct.lyTrong': "아무도 고르지 않아 그대로",
-  'ct.lyThang': "표가 가장 많음",
   'ct.choi': "{n}장으로 해요",
-  'ct.vaoVan': "시작하는 중…",
 };
 
 export default ko;

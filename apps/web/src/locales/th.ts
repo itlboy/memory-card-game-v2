@@ -942,18 +942,8 @@ const th: TuDien = {
   'ct.banChon': "คุณเลือก {n} · เลือกแล้ว {da}/{tong}",
   'ct.dangXem': "คุณกำลังดู · เลือกแล้ว {da}/{tong}",
   'ct.hetGio': "หมดเวลา!",
-  'ct.boIt': "ตัดตัวเลขที่ได้เสียงน้อยออก",
-  'ct.khongAi': "ไม่มีใครเลือก",
-  'ct.demPhieu': "กำลังนับเสียง…",
   'ct.bocTham': "กำลังจับฉลาก…",
-  'ct.bangPhieu': "{ds} คะแนนเท่ากัน",
-  'ct.mayBoc': "สุ่มเลือก…",
-  'ct.daChot': "ตัดสินแล้ว!",
-  'ct.lyBoc': "จับฉลากระหว่าง {ds}",
-  'ct.lyTrong': "ไม่มีใครเลือก ใช้เท่าเดิม",
-  'ct.lyThang': "เสียงมากสุด",
   'ct.choi': "เล่น {n} ใบ",
-  'ct.vaoVan': "กำลังเริ่ม…",
 };
 
 export default th;

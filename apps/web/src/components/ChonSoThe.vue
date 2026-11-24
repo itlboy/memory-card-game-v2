@@ -123,15 +123,9 @@ watch(() => (ket.value ? chon.value!.id : undefined), (id) => {
 watch(() => chon.value?.id, () => { if (!ket.value) { pha.value = 'chon'; conO.value = chon.value?.ds.slice() ?? []; rut.value = []; } }, { immediate: true });
 onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
 
-const dsHoa = computed(() => (ket.value?.dan ?? []).join(' · '));
-const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value === 'loai' ? t('ct.hetGio') : pha.value === 'quay' ? t('ct.bocTham') : t('ct.daChot')));
-const phuDe = computed(() => {
-  const k = ket.value;
-  if (pha.value === 'chon' || !k) return t('ct.luat');
-  if (pha.value === 'loai') return k.ly === 'trong' ? t('ct.khongAi') : t('ct.boIt');
-  if (pha.value === 'quay') return t('ct.bangPhieu', { ds: dsHoa.value });
-  return k.ly === 'boc' ? t('ct.lyBoc', { ds: dsHoa.value }) : k.ly === 'trong' ? t('ct.lyTrong') : t('ct.lyThang');
-});
+/* ÍT CHỮ (chủ dự án 24.11.2026: "bỏ bớt text đi, đã chốt, chọn giữa… bỏ đi"): lúc rút ô / bốc thăm chỉ còn tiêu đề ngắn,
+   lúc chốt không tiêu đề — chỉ ô thắng ở giữa + "Chơi N thẻ". */
+const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value === 'loai' ? t('ct.hetGio') : t('ct.bocTham')));
 </script>
 
 <template>
@@ -139,10 +133,10 @@ const phuDe = computed(() => {
     <Transition name="ct">
       <div v-if="chon" class="ct-phu" role="dialog" aria-modal="true" :aria-label="t('on.chonSoThe')">
         <div class="panel ct-hop">
-          <div class="ct-dau">
+          <div v-if="pha !== 'chot'" class="ct-dau">
             <div class="ct-chu">
               <h2>{{ tieuDe }}</h2>
-              <p>{{ phuDe }}</p>
+              <p v-if="pha === 'chon'">{{ t('ct.luat') }}</p>
             </div>
             <span v-if="pha === 'chon'" class="ct-gio" :class="{ thap: giay <= 3 }" role="timer" :aria-label="t('ct.conGiay', { n: giay })">
               <svg viewBox="0 0 46 46" aria-hidden="true">
@@ -179,9 +173,8 @@ const phuDe = computed(() => {
             <span v-if="phao.length" class="ct-phao" aria-hidden="true"><i v-for="p in phao" :key="p.id" :style="p.s" /></span>
           </div>
 
-          <p v-if="pha === 'chot' && ket" class="ct-ket">{{ t('ct.choi', { n: ket.the }) }}<small>{{ t('ct.vaoVan') }}</small></p>
-          <p v-else-if="pha === 'quay'" class="ct-chan">{{ t('ct.mayBoc') }}</p>
-          <p v-else-if="pha === 'loai'" class="ct-chan">{{ t('ct.demPhieu') }}</p>
+          <p v-if="pha === 'chot' && ket" class="ct-ket">{{ t('ct.choi', { n: ket.the }) }}</p>
+          <template v-else-if="pha !== 'chon'" />
           <p v-else-if="chiXem" class="ct-chan"><Eye :size="15" :stroke-width="2.6" aria-hidden="true" />{{ t('ct.dangXem', { da: daChon, tong: tongNguoi }) }}</p>
           <p v-else-if="cuaToi" class="ct-chan xong"><Check :size="15" :stroke-width="3" aria-hidden="true" />{{ t('ct.banChon', { n: cuaToi, da: daChon, tong: tongNguoi }) }}</p>
           <p v-else class="ct-chan">{{ t('ct.cham', { da: daChon, tong: tongNguoi }) }}</p>

@@ -1912,7 +1912,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Giữ nguyên · Nhiều hơn, so với số đang đặt) + con số đúng giữa, mặt người chọn DƯỚI ô, ô mình chọn thạch vàng + tick, đồng hồ
   vòng (đỏ 3 giây cuối). KHÔNG vẽ hình bàn thu nhỏ (chủ dự án: "không cần nhiều ô vuông"). Chốt BA BƯỚC, cuối cùng luôn còn MỘT
   ô ở giữa: (1) cả phòng chọn; (2) bỏ mọi ô ít phiếu hơn, kể cả ô không ai chọn (ô co bề ngang về 0 để ô còn lại trượt vào
-  giữa); (3) còn nhiều ô bằng phiếu → nháy luân phiên chậm dần, dừng ở số SERVER đã bốc, xoá ô kia. Kèm tiếng (`sfx.phieuKhac/
+  giữa); (3) còn nhiều ô bằng phiếu → nháy luân phiên chậm dần, dừng ở số SERVER đã bốc, xoá ô kia. ÍT CHỮ: lúc rút/bốc chỉ
+  tiêu đề ngắn (Hết giờ! / Bốc thăm…), lúc chốt KHÔNG tiêu đề, chỉ ô + "Chơi N thẻ" (chủ dự án: "bỏ bớt text… đã chốt, chọn giữa… bỏ đi"). Kèm tiếng (`sfx.phieuKhac/
   vut/nhayBoc/chotThe`, tick 3 giây cuối) + pháo giấy. Server: `chotChon` bốc ngay (engine `ketQuaChon`), gửi `chon.ket`
   `{the, dan, ly, con}`, giữ phòng ở phòng chờ đúng `lichChot().tong` (thắng rõ ~2,4 s, hoà ~5 s) rồi `vaoVanSauChot` mới đếm
   ngược; đã chốt thì bỏ phiếu mới, bot không bỏ phiếu. Nhịp ở engine (`CHOT_*_MS`) — đổi số là cả hai bên đổi theo. Client
