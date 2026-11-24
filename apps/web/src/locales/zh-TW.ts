@@ -935,17 +935,9 @@ const zhTW: TuDien = {
   'tn.chuIt': "資料少",
   'tn.choiThem': "再玩大約 {n} 局，資料會更可信",
   'ct.hoi': "下一局玩幾張？",
-  'ct.luat': "票數最多的勝出",
-  'ct.it': "更少",
-  'ct.giu': "不變",
-  'ct.nhieu': "更多",
   'ct.conGiay': "還剩 {n} 秒",
-  'ct.cham': "點一格來選 · 已選 {da}/{tong}",
-  'ct.banChon': "你選了 {n} · 已選 {da}/{tong}",
-  'ct.dangXem': "你在觀戰 · 已選 {da}/{tong}",
-  'ct.hetGio': "時間到！",
-  'ct.bocTham': "抽籤中…",
   'ct.choi': "玩 {n} 張",
+  'ct.daChon': "已選 {da}/{tong}",
 };
 
 export default zhTW;

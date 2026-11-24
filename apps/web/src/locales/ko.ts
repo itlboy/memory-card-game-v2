@@ -932,17 +932,9 @@ const ko: TuDien = {
   'tn.chuIt': "데이터 적음",
   'tn.choiThem': "약 {n}판 더 하면 수치가 더 믿을 만해져요",
   'ct.hoi': "다음 판은 몇 장?",
-  'ct.luat': "표가 가장 많은 수로 해요",
-  'ct.it': "더 적게",
-  'ct.giu': "그대로",
-  'ct.nhieu': "더 많이",
   'ct.conGiay': "{n}초 남음",
-  'ct.cham': "칸을 눌러 고르기 · {da}/{tong}명 선택",
-  'ct.banChon': "{n} 선택함 · {da}/{tong}명 선택",
-  'ct.dangXem': "관전 중 · {da}/{tong}명 선택",
-  'ct.hetGio': "시간 종료!",
-  'ct.bocTham': "추첨 중…",
   'ct.choi': "{n}장으로 해요",
+  'ct.daChon': "{da}/{tong}명 선택",
 };
 
 export default ko;

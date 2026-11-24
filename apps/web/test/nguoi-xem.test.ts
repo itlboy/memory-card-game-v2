@@ -59,7 +59,7 @@ describe('popup chọn số thẻ', () => {
     expect(room).toMatch(/c\.het = Date\.now\(\) \+ lichChot\(c\.ds, c\.ket\)\.tong;/);
     expect(room).toMatch(/if \(!c \|\| c\.ket \|\| typeof msg\.the/);
   });
-  it('popup: ô có nhãn + con số, người xem thấy nhưng bị khoá, đồng hồ vòng do JS đặt (không @keyframes cho đồng hồ)', () => {
+  it('popup: ô chỉ có con số, người xem thấy nhưng bị khoá, đồng hồ vòng do JS đặt (không @keyframes cho đồng hồ)', () => {
     expect(popup).toMatch(/<b>\{\{ the \}\}<\/b>/);
     expect(popup).toMatch(/:disabled="chiXem \|\| pha !== 'chon'"/);
     expect(popup).toMatch(/:stroke-dashoffset="CV - \(CV \* Math\.min\(conMs, CHON_THE_MS\)\) \/ CHON_THE_MS"/);

@@ -12,7 +12,7 @@
  * Đồng hồ vòng: độ dài nét do JS đặt theo ms còn lại mỗi 0,1 s (đừng đổi sang @keyframes — server gửi số ms còn lại,
  * máy vào sau phải khớp đúng chỗ).
  */
-import { CHON_THE_MS, lichChot, pairsForLevel } from '@mm/engine';
+import { CHON_THE_MS, lichChot } from '@mm/engine';
 import type { RoomInfo } from '@mm/engine';
 import { Check, Eye } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
@@ -27,8 +27,6 @@ const props = defineProps<{
 const chon = computed(() => props.o.room.value?.chon);
 const chiXem = computed(() => props.o.spectator.value);
 const ket = computed(() => chon.value?.ket);
-const hienTai = computed(() => pairsForLevel(props.o.room.value?.config.level ?? 1) * 2);
-const nhan = (n: number): string => (n < hienTai.value ? t('ct.it') : n > hienTai.value ? t('ct.nhieu') : t('ct.giu'));
 
 /* ---------- BƯỚC 1: đồng hồ ---------- */
 const het = ref(0);
@@ -123,9 +121,8 @@ watch(() => (ket.value ? chon.value!.id : undefined), (id) => {
 watch(() => chon.value?.id, () => { if (!ket.value) { pha.value = 'chon'; conO.value = chon.value?.ds.slice() ?? []; rut.value = []; } }, { immediate: true });
 onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
 
-/* ÍT CHỮ (chủ dự án 24.11.2026: "bỏ bớt text đi, đã chốt, chọn giữa… bỏ đi"): lúc rút ô / bốc thăm chỉ còn tiêu đề ngắn,
-   lúc chốt không tiêu đề — chỉ ô thắng ở giữa + "Chơi N thẻ". */
-const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value === 'loai' ? t('ct.hetGio') : t('ct.bocTham')));
+/* ÍT CHỮ (chủ dự án 24.11.2026: "bỏ bớt text đi… người dùng hiểu mà"): chỉ một tiêu đề câu hỏi suốt lúc chọn/rút/bốc,
+   ô chỉ có con số (bỏ nhãn Ít hơn/Nhiều hơn), dòng cuối "Đã chọn 2/3"; lúc chốt không tiêu đề — ô thắng + "Chơi N thẻ". */
 </script>
 
 <template>
@@ -135,8 +132,7 @@ const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value ==
         <div class="panel ct-hop">
           <div v-if="pha !== 'chot'" class="ct-dau">
             <div class="ct-chu">
-              <h2>{{ tieuDe }}</h2>
-              <p v-if="pha === 'chon'">{{ t('ct.luat') }}</p>
+              <h2>{{ t('ct.hoi') }}</h2>
             </div>
             <span v-if="pha === 'chon'" class="ct-gio" :class="{ thap: giay <= 3 }" role="timer" :aria-label="t('ct.conGiay', { n: giay })">
               <svg viewBox="0 0 46 46" aria-hidden="true">
@@ -159,7 +155,6 @@ const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value ==
                 type="button" :aria-pressed="!chiXem && cuaToi === the" :disabled="chiXem || pha !== 'chon'" @click="bam(the)"
               >
                 <span v-if="pha === 'chon' && !chiXem && cuaToi === the" class="ct-tick" aria-hidden="true"><Check :size="14" :stroke-width="4" /></span>
-                <span class="ct-nhan" :class="{ giu: the === hienTai }">{{ nhan(the) }}</span>
                 <b>{{ the }}</b>
               </button>
               <span class="ct-ai">
@@ -175,9 +170,9 @@ const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value ==
 
           <p v-if="pha === 'chot' && ket" class="ct-ket">{{ t('ct.choi', { n: ket.the }) }}</p>
           <template v-else-if="pha !== 'chon'" />
-          <p v-else-if="chiXem" class="ct-chan"><Eye :size="15" :stroke-width="2.6" aria-hidden="true" />{{ t('ct.dangXem', { da: daChon, tong: tongNguoi }) }}</p>
-          <p v-else-if="cuaToi" class="ct-chan xong"><Check :size="15" :stroke-width="3" aria-hidden="true" />{{ t('ct.banChon', { n: cuaToi, da: daChon, tong: tongNguoi }) }}</p>
-          <p v-else class="ct-chan">{{ t('ct.cham', { da: daChon, tong: tongNguoi }) }}</p>
+          <p v-else class="ct-chan" :class="{ xong: !chiXem && cuaToi }">
+            <Eye v-if="chiXem" :size="15" :stroke-width="2.6" aria-hidden="true" /><Check v-else-if="cuaToi" :size="15" :stroke-width="3" aria-hidden="true" />{{ t('ct.daChon', { da: daChon, tong: tongNguoi }) }}
+          </p>
         </div>
       </div>
     </Transition>
@@ -213,21 +208,17 @@ const tieuDe = computed(() => (pha.value === 'chon' ? t('ct.hoi') : pha.value ==
 .ct-cot { flex: 0 0 calc((100% - 20px) / 3); min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 7px; }
 .ct-cot.rut { animation: ct-rut .48s ease forwards; overflow: hidden; }
 .ct-o {
-  position: relative; width: 100%; min-height: 96px; padding: 9px 4px 8px; border-radius: 18px;
-  display: grid; grid-template-rows: auto auto; justify-items: center; align-content: center; gap: 6px;
+  position: relative; width: 100%; min-height: 88px; padding: 8px 4px; border-radius: 18px;
+  display: grid; place-items: center;
   transition: transform .15s;
 }
-.ct-o b { font: 800 42px/1 var(--font-display); font-variant-numeric: tabular-nums; }
-.ct-nhan { font-size: 11px; font-weight: 900; letter-spacing: .03em; color: var(--muted); white-space: nowrap; }
-.ct-nhan.giu { color: #2f8a14; }
-:global([data-theme='dark'] .ct-nhan.giu) { color: #8fdc6a; }
+.ct-o b { font: 800 44px/1 var(--font-display); font-variant-numeric: tabular-nums; }
 /* Người xem / đang chốt: ô vẫn rõ để đọc, chỉ không bấm được (không làm mờ kiểu disabled .45) */
 .ct-o:disabled { opacity: 1; cursor: default; }
 .ct-o.khoa { pointer-events: none; }
 /* MÌNH ĐANG CHỌN · ô đang sáng khi bốc · ô thắng: thạch VÀNG của skin (lớp `th-vang` — đặt màu nền tay thì skin Kẹo đè
    mất, đã gặp ở ảnh thật 24.11.2026) + nhô lên; ô đang nháy và ô thắng thêm quầng sáng bằng drop-shadow (skin giữ box-shadow) */
 .ct-o.chon, .ct-o.quay, .ct-o.thang { transform: translateY(-3px); }
-.ct-o.chon .ct-nhan, .ct-o.quay .ct-nhan, .ct-o.thang .ct-nhan { color: inherit; opacity: .8; }
 .ct-o.quay { filter: drop-shadow(0 0 12px rgba(255, 200, 40, .85)); animation: ct-nay .12s ease-out; }
 .ct-o.thang { filter: drop-shadow(0 0 16px rgba(255, 200, 40, .8)); transform: translateY(-3px) scale(1.12); animation: ct-no .5s cubic-bezier(.3, 1.6, .5, 1); }
 .ct-o.rung { animation: ct-lac .4s ease; }

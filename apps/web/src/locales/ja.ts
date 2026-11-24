@@ -932,17 +932,9 @@ const ja: TuDien = {
   'tn.chuIt': "データ少",
   'tn.choiThem': "あと{n}回ほどあそぶと、数字がもっと信頼できます",
   'ct.hoi': "次のゲームは何枚？",
-  'ct.luat': "いちばん票が多い数で遊びます",
-  'ct.it': "少なく",
-  'ct.giu': "そのまま",
-  'ct.nhieu': "多く",
   'ct.conGiay': "あと{n}秒",
-  'ct.cham': "マスをタップして選ぶ · {da}/{tong}人が選択",
-  'ct.banChon': "{n}を選びました · {da}/{tong}人が選択",
-  'ct.dangXem': "観戦中 · {da}/{tong}人が選択",
-  'ct.hetGio': "時間切れ！",
-  'ct.bocTham': "抽選中…",
   'ct.choi': "{n}枚で遊びます",
+  'ct.daChon': "{da}/{tong}人が選択",
 };
 
 export default ja;
