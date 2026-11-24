@@ -842,7 +842,6 @@ const pt: TuDien = {
   'moi.loi.banMoi': 'Este jogador já tem outro convite',
   'moi.loi.nhieuQua': 'Vá um pouco mais devagar',
   'moi.loi.chung': 'Não deu para convidar, tente mais tarde',
-  'cd.moTa': 'Vibração, idioma, convites, atualizações',
   'cd.hienThi': 'Tela',
   'cd.online': 'Jogo online',
   'cd.ungDung': 'App',
@@ -933,7 +932,6 @@ const pt: TuDien = {
   'tn.chuDu': "Dados suficientes",
   'tn.chuIt': "Poucos dados",
   'tn.choiThem': "Jogue cerca de mais {n} partidas para números mais confiáveis",
-  'ct.hoi': "Quantas cartas na próxima partida?",
   'ct.conGiay': "Faltam {n} segundos",
   'ct.daChon': "{da}/{tong} votaram",
 };

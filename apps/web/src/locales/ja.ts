@@ -840,7 +840,6 @@ const ja: TuDien = {
   'moi.loi.banMoi': 'この人は別の招待を受けています',
   'moi.loi.nhieuQua': '少しゆっくりお願いします',
   'moi.loi.chung': '招待できませんでした。あとで試してください',
-  'cd.moTa': 'バイブ、言語、招待、アップデート',
   'cd.hienThi': '表示',
   'cd.online': 'オンライン対戦',
   'cd.ungDung': 'アプリ',
@@ -931,7 +930,6 @@ const ja: TuDien = {
   'tn.chuDu': "データ十分",
   'tn.chuIt': "データ少",
   'tn.choiThem': "あと{n}回ほどあそぶと、数字がもっと信頼できます",
-  'ct.hoi': "次のゲームは何枚？",
   'ct.conGiay': "あと{n}秒",
   'ct.daChon': "{da}/{tong}人が選択",
 };

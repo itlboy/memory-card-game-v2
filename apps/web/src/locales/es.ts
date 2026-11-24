@@ -842,7 +842,6 @@ const es: TuDien = {
   'moi.loi.banMoi': 'Este jugador ya tiene otra invitación',
   'moi.loi.nhieuQua': 'Ve un poco más despacio',
   'moi.loi.chung': 'No se pudo invitar, inténtalo más tarde',
-  'cd.moTa': 'Vibración, idioma, invitaciones, actualizaciones',
   'cd.hienThi': 'Pantalla',
   'cd.online': 'Juego en línea',
   'cd.ungDung': 'Aplicación',
@@ -933,7 +932,6 @@ const es: TuDien = {
   'tn.chuDu': "Datos suficientes",
   'tn.chuIt': "Pocos datos",
   'tn.choiThem': "Juega unas {n} partidas más para datos más fiables",
-  'ct.hoi': "¿Cuántas cartas en la próxima partida?",
   'ct.conGiay': "Quedan {n} segundos",
   'ct.daChon': "{da}/{tong} votaron",
 };

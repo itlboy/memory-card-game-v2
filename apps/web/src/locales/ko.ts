@@ -840,7 +840,6 @@ const ko: TuDien = {
   'moi.loi.banMoi': '이 플레이어는 다른 초대를 받고 있어요',
   'moi.loi.nhieuQua': '조금만 천천히 해 주세요',
   'moi.loi.chung': '초대하지 못했어요. 나중에 다시 해 보세요',
-  'cd.moTa': '진동, 언어, 초대, 업데이트',
   'cd.hienThi': '화면',
   'cd.online': '온라인 플레이',
   'cd.ungDung': '앱',
@@ -931,7 +930,6 @@ const ko: TuDien = {
   'tn.chuDu': "데이터 충분",
   'tn.chuIt': "데이터 적음",
   'tn.choiThem': "약 {n}판 더 하면 수치가 더 믿을 만해져요",
-  'ct.hoi': "다음 판은 몇 장?",
   'ct.conGiay': "{n}초 남음",
   'ct.daChon': "{da}/{tong}명 선택",
 };

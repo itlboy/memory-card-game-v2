@@ -417,7 +417,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
              "cài đặt bắt đầu nhiều rồi"): menu chỉ giữ 3 thứ hay đổi (Giao diện, Âm thanh, Nhạc); Rung, Ngôn ngữ,
              Nhận lời mời, Báo khi có phòng, Cập nhật, Cài app vào trang riêng chia nhóm. -->
         <button class="item thach" role="menuitem" type="button" @click="moTrangCd">
-          <Settings2 :size="20" /><span class="tk-chu"><b>{{ t('tb.caiDat') }}</b><small>{{ t('cd.moTa') }}</small></span><ChevronRight :size="18" aria-hidden="true" />
+          <Settings2 :size="20" /><span>{{ t('tb.caiDat') }}</span><ChevronRight :size="18" aria-hidden="true" />
         </button>
         <button class="item thach" role="menuitem" :aria-label="t('tb.luatChoi')" type="button" @click="dong(); $emit('rules')">
           <HelpCircle :size="20" /><span>{{ t('tb.luatChoi') }}</span>

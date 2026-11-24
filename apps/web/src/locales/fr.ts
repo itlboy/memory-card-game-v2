@@ -846,7 +846,6 @@ const fr: TuDien = {
   'moi.loi.banMoi': 'Ce joueur a déjà une autre invitation',
   'moi.loi.nhieuQua': 'Ralentis un peu',
   'moi.loi.chung': 'Invitation impossible, réessaie plus tard',
-  'cd.moTa': 'Vibration, langue, invitations, mises à jour',
   'cd.hienThi': 'Affichage',
   'cd.online': 'Jeu en ligne',
   'cd.ungDung': 'Application',
@@ -937,7 +936,6 @@ const fr: TuDien = {
   'tn.chuDu': "Assez de données",
   'tn.chuIt': "Peu de données",
   'tn.choiThem': "Joue encore environ {n} parties pour des chiffres plus fiables",
-  'ct.hoi': "Combien de cartes la prochaine partie ?",
   'ct.conGiay': "Encore {n} secondes",
   'ct.daChon': "{da}/{tong} ont voté",
 };
