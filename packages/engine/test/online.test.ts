@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
-import { CHON_THE_MS, chotSoThe, luaChonSoThe, publicEvents, publicView } from '../src/online.js';
+import { CHON_THE_MS, CHOT_GIU_MS, CHOT_NGHI_MS, CHOT_RUT_MS, chotSoThe, ketQuaChon, lichChot, luaChonSoThe, publicEvents, publicView } from '../src/online.js';
 import { SYMBOLS, matchPair, missKnown, missPair, pairSlots } from './helpers.js';
 
 const twoP = (over = {}) => new MemoryGame({
@@ -243,4 +243,41 @@ describe('chọn số thẻ trước mỗi ván (23.11.2026)', () => {
     expect([...ra].sort()).toEqual([20, 30]);
   });
   it('thời gian chọn là 10 giây', () => { expect(CHON_THE_MS).toBe(10_000); });
+});
+
+describe('chốt số thẻ: kết quả + lịch hiệu ứng (24.11.2026)', () => {
+  const DS = [12, 16, 20];
+  it('số đông thắng rõ: chỉ còn số đó, lý do "thang"', () => {
+    expect(ketQuaChon([20, 20, 12], DS, 16, () => 0.5)).toEqual({ the: 20, dan: [20], ly: 'thang' });
+  });
+  it('hoà: `dan` là các số bằng phiếu, số thắng nằm trong đó và trùng chotSoThe', () => {
+    for (const r of [0, 0.49, 0.5, 0.99]) {
+      const k = ketQuaChon([16, 20], DS, 16, () => r);
+      expect(k.dan).toEqual([16, 20]);
+      expect(k.ly).toBe('boc');
+      expect(k.the).toBe(chotSoThe([16, 20], DS, 16, () => r));
+    }
+  });
+  it('không ai chọn: giữ số hiện tại, lý do "trong"', () => {
+    expect(ketQuaChon([], DS, 16, () => 0)).toEqual({ the: 16, dan: [16], ly: 'trong' });
+  });
+  it('lịch: thắng rõ = rút + nghỉ + giữ; không nháy', () => {
+    const l = lichChot(DS, { the: 20, dan: [20], ly: 'thang' });
+    expect(l.rut).toEqual([12, 16]);
+    expect(l.nhay).toEqual([]);
+    expect(l.tong).toBe(CHOT_RUT_MS + CHOT_NGHI_MS + CHOT_GIU_MS);
+  });
+  it('lịch: hoà thì nhịp nháy CUỐI rơi đúng số được bốc, ở mọi vị trí', () => {
+    for (const the of [12, 16, 20]) {
+      const l = lichChot(DS, { the, dan: [12, 16, 20], ly: 'boc' });
+      expect(l.rut).toEqual([]);
+      expect(l.nhay.at(-1)!.so).toBe(the);
+      expect(l.xoaMs).toBeGreaterThan(l.nhay.at(-1)!.ms);
+      expect(l.chotMs - l.xoaMs).toBe(CHOT_RUT_MS);
+    }
+    const hai = lichChot(DS, { the: 16, dan: [16, 20], ly: 'boc' });
+    expect(hai.rut).toEqual([12]);
+    expect(hai.nhay[0]!.ms).toBe(CHOT_RUT_MS + CHOT_NGHI_MS);
+    expect(hai.tong).toBeLessThan(6000);
+  });
 });

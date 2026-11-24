@@ -753,6 +753,16 @@ function batDauVan(): void {
 watch(() => o.room.value?.status, (st) => {
   if (st && st !== 'lobby') { clearTimeout(moVanTimer); dangMoVan.value = false; }
 });
+/*
+ * SERVER ĐÃ MỞ LƯỢT CHỌN SỐ THẺ = đã nhận lệnh Bắt đầu → thôi canh `HAN_MO_VAN` (24.11.2026). Lượt chọn 10 giây + hiệu ứng
+ * chốt vài giây dài hơn hạn 6 giây, nên bản 1.9.37 hiện "Chưa mở được ván — mạng vừa chập" ngay sau popup dù ván vẫn mở
+ * (ảnh chụp thật). Lượt chọn bị huỷ (thiếu người) mà phòng vẫn ở phòng chờ thì tắt vòng quay.
+ */
+watch(() => o.room.value?.chon?.id, (id) => {
+  if (!dangMoVan.value) return;
+  if (id !== undefined) clearTimeout(moVanTimer);
+  else if (o.room.value?.status === 'lobby') dangMoVan.value = false;
+});
 // Server TỪ CHỐI mở ván (báo lỗi) thì tắt vòng quay ngay — trước đây nút kẹt "Đang mở ván…"
 // suốt 6 giây ngay trên dòng lỗi (ảnh chủ dự án gửi 15.11.2026).
 watch(() => o.error.value, (e) => { if (e && dangMoVan.value) { clearTimeout(moVanTimer); dangMoVan.value = false; } });

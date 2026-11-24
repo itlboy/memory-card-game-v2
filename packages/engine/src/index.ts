@@ -30,10 +30,10 @@ export type {
 } from './types.js';
 export {
   BANG_MAU_BACK, BANG_MAU_DUNG, BANG_MAU_TAT, CARD_BACKS, CARD_BACKS_CU, CARD_BACKS_DUNG, HOA_TIET_DUNG, HOA_TIET_TAT, DEFAULT_ROOM_CONFIG, HOA_TIET_BACK,
-  QUICK_EMOJIS, EMOJI_NHOM, EMOJI_PHO_BIEN, QUICK_SAYS, NOI_NHANH, ROOM_LIMITS, THI_DAU_SO_THE, chiaTran, CHON_THE_MS, luaChonSoThe, chotSoThe, NHAC_CACH_MS, BOT_LEVELS, GIAY_MOI_LA, DOI_IDS, laBotId, backVeCu,
+  QUICK_EMOJIS, EMOJI_NHOM, EMOJI_PHO_BIEN, QUICK_SAYS, NOI_NHANH, ROOM_LIMITS, THI_DAU_SO_THE, chiaTran, CHON_THE_MS, luaChonSoThe, chotSoThe, ketQuaChon, lichChot, CHOT_RUT_MS, CHOT_NGHI_MS, CHOT_NHAY_MS, CHOT_DUNG_MS, CHOT_GIU_MS, NHAC_CACH_MS, BOT_LEVELS, GIAY_MOI_LA, DOI_IDS, laBotId, backVeCu,
   anhHopLe, backForSeed, packView, predealSymbols, publicEvents, publicPlayer, publicView, unpackView
 } from './online.js';
 export type {
   CardBack, ClientMsg, GameView, NguoiXem, PredealMsg, PublicCard, PublicEvent, PublicPlayer,
-  PublicRoom, DoiId, QuickEmoji, EmojiNhom, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView
+  PublicRoom, DoiId, QuickEmoji, EmojiNhom, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView, KetChon
 } from './online.js';

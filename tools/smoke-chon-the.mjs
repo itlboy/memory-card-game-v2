@@ -5,7 +5,9 @@ import { moGoiTin } from './lib-view.mjs';
  *   1. Chủ phòng bấm Bắt đầu → phòng VẪN ở phòng chờ, `room.chon` có ba lựa chọn quanh số thẻ hiện tại, còn ≤ 10 giây.
  *   2. Số đông thắng: 2 phiếu cho ô cao nhất, 1 phiếu ô thấp nhất → mọi người đã chọn thì chốt SỚM, ván mở với ô cao nhất.
  *   3. Phiếu ngoài danh sách và phiếu của người xem bị bỏ.
- *   4. App cũ (không ai bỏ phiếu): hết ~10 giây vẫn vào ván, giữ nguyên số thẻ. (Đường "Chơi lại" dùng chung `moChonThe` —
+ *   4. App cũ (không ai bỏ phiếu): hết ~10 giây vẫn vào ván, giữ nguyên số thẻ.
+ *   (24.11.2026) Chốt xong server gửi `chon.ket` rồi giữ phòng ở phòng chờ đúng thời lượng hiệu ứng (engine `lichChot`)
+ *   mới đếm ngược; trong lúc đó phiếu mới bị bỏ. (Đường "Chơi lại" dùng chung `moChonThe` —
  *      đã thử tay bằng gia-nguoi.mjs, chưa có trong smoke này.)
  */
 const SERVER = process.env.MM_SERVER ?? 'http://127.0.0.1:8787';
@@ -47,8 +49,15 @@ const soThe = (c) => c.msgs.filter((m) => (m.t === 'state' || m.t === 'events') 
   console.log('✓ phiếu ngoài danh sách và phiếu của người xem bị bỏ; bấm Bắt đầu lần hai không mở lượt mới');
   const t0 = Date.now();
   c.send({ t: 'chon', the: ch.ds[0] });
-  await cho(() => phong(a) && !phong(a).chon && phong(a).status !== 'lobby', 1200, 'mọi người đã chọn mà không chốt sớm');
+  const ket = await cho(() => phong(a)?.chon?.ket, 1200, 'mọi người đã chọn mà không chốt sớm');
   console.log(`✓ mọi người đã chọn → chốt sau ${Date.now() - t0} ms, không chờ hết giờ`);
+  if (ket.the !== ch.ds[2] || ket.ly !== 'thang' || ket.dan.join() !== String(ch.ds[2])) fail(`kết quả chốt sai: ${JSON.stringify(ket)}`);
+  if (phong(a).status !== 'lobby') fail('đang diễn hiệu ứng chốt mà phòng đã rời phòng chờ');
+  b.send({ t: 'chon', the: ch.ds[0] }); await sleep(200);
+  if (phong(a)?.chon?.phieu[idCua(b)] !== ch.ds[2]) fail('đã chốt mà vẫn nhận phiếu đổi ý');
+  const t1 = Date.now();
+  await cho(() => phong(a) && !phong(a).chon && phong(a).status !== 'lobby', ket.con + 1500, 'diễn xong hiệu ứng chốt mà không vào ván');
+  console.log(`✓ chốt ${ket.the} (thắng rõ), diễn hiệu ứng ${Date.now() - t1} ms (máy chủ báo ${ket.con} ms) rồi mới đếm ngược`);
   const n = await cho(() => soThe(a), 8000, 'chốt rồi mà ván không mở');
   if (n !== ch.ds[2]) fail(`số đông chọn ${ch.ds[2]} mà ván mở ${n} thẻ`);
   console.log(`✓ số đông (2/3) chọn ${ch.ds[2]} → ván mở ${n} thẻ`);
@@ -65,7 +74,9 @@ const soThe = (c) => c.msgs.filter((m) => (m.t === 'state' || m.t === 'events') 
   const t0 = Date.now();
   a.send({ t: 'start' });
   await cho(() => phong(a)?.chon, 1500, 'không mở lượt chọn');
-  await cho(() => phong(a) && !phong(a).chon && phong(a).status !== 'lobby', 12000, 'hết 10 giây mà không tự chốt');
+  const ketTrong = await cho(() => phong(a)?.chon?.ket, 11500, 'hết 10 giây mà không tự chốt');
+  if (ketTrong.ly !== 'trong') fail(`không ai chọn mà kết quả là ${ketTrong.ly}`);
+  await cho(() => phong(a) && !phong(a).chon && phong(a).status !== 'lobby', ketTrong.con + 1500, 'diễn xong mà không vào ván');
   const lau = Date.now() - t0;
   if (lau < 9500) fail(`không ai chọn mà chốt sau ${lau} ms (phải chờ đủ ~10 giây)`);
   if (phong(a).config.level !== truoc) fail('không ai chọn mà số thẻ vẫn đổi');

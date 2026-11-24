@@ -127,6 +127,52 @@ export function chotSoThe(phieu: readonly number[], lua: readonly number[], hien
 }
 
 /**
+ * KẾT QUẢ CHỐT để diễn hiệu ứng (24.11.2026, mockup duyệt https://claude.ai/artifact/BxHdozRXetLMa9Wz27c7g7). Ba bước:
+ * (1) cả phòng chọn; (2) bỏ mọi ô ÍT phiếu hơn, kể cả ô không ai chọn; (3) còn nhiều ô BẰNG phiếu thì nháy luân phiên rồi
+ * dừng ở số được bốc, xoá ô kia — cuối cùng luôn còn MỘT ô ở giữa. `dan` = các số nhiều phiếu nhất (tăng dần; không ai chọn
+ * thì `[hienTai]`), `ly` = vì sao thắng. Số thắng vẫn do `chotSoThe` quyết (cùng `rnd`), hàm này chỉ thêm phần để diễn.
+ */
+export interface KetChon { the: number; dan: number[]; ly: 'thang' | 'boc' | 'trong' }
+export function ketQuaChon(phieu: readonly number[], lua: readonly number[], hienTai: number, rnd: () => number): KetChon {
+  const the = chotSoThe(phieu, lua, hienTai, rnd);
+  const dem = new Map<number, number>();
+  for (const p of phieu) if (lua.includes(p)) dem.set(p, (dem.get(p) ?? 0) + 1);
+  if (!dem.size) return { the, dan: [the], ly: 'trong' };
+  const cao = Math.max(...dem.values());
+  const dan = [...dem.entries()].filter(([, n]) => n === cao).map(([t]) => t).sort((x, y) => x - y);
+  return { the, dan, ly: dan.length > 1 ? 'boc' : 'thang' };
+}
+
+/** Nhịp các bước hiệu ứng chốt (ms). Server chờ ĐÚNG `lichChot().tong` rồi mới đếm ngược — đổi số ở đây là cả hai bên đổi theo. */
+export const CHOT_RUT_MS = 480;        // ô bị bỏ co lại và biến mất
+export const CHOT_NGHI_MS = 350;       // nghỉ sau khi rút, các ô còn lại đã trượt vào giữa
+export const CHOT_NHAY_MS: readonly number[] = [80, 80, 85, 90, 100, 110, 125, 145, 170, 205, 250, 320, 420];   // nháy chậm dần
+export const CHOT_DUNG_MS = 250;       // dừng ở số được bốc trước khi xoá ô kia
+export const CHOT_GIU_MS = 1600;       // ô thắng ở giữa + "Chơi N thẻ" trước khi vào đếm ngược
+/**
+ * Lịch diễn: `nhay` = mốc bắt đầu từng nhịp nháy và số đang sáng ở nhịp đó (nhịp cuối rơi đúng vào `ket.the`),
+ * `xoaMs` = lúc xoá các ô thua bốc thăm, `chotMs` = lúc chỉ còn ô thắng, `tong` = hết hiệu ứng.
+ */
+export function lichChot(ds: readonly number[], ket: KetChon): {
+  rut: number[]; nhay: { ms: number; so: number }[]; xoaMs: number; chotMs: number; tong: number;
+} {
+  const rut = ds.filter((n) => !ket.dan.includes(n));
+  let t = (rut.length ? CHOT_RUT_MS : 0) + CHOT_NGHI_MS;
+  const nhay: { ms: number; so: number }[] = [];
+  let xoaMs = t;
+  if (ket.dan.length > 1) {
+    const n = ket.dan.length, L = CHOT_NHAY_MS.length;
+    const w = Math.max(0, ket.dan.indexOf(ket.the));
+    const dau = ((w - (L - 1)) % n + n) % n;
+    CHOT_NHAY_MS.forEach((d, j) => { nhay.push({ ms: t, so: ket.dan[(dau + j) % n]! }); t += d; });
+    t += CHOT_DUNG_MS;
+    xoaMs = t;
+    t += CHOT_RUT_MS;
+  }
+  return { rut, nhay, xoaMs, chotMs: t, tong: t + CHOT_GIU_MS };
+}
+
+/**
  * Chia người tham gia thành các trận 2–3 người: số trận = ⌈n/3⌉, rải đều (4 → 2+2, 5 → 3+2, 6 → 3+3, 7 → 3+2+2).
  * n < 2 → không có trận. Trả cỡ từng trận, trận to trước.
  */
@@ -593,7 +639,11 @@ export interface RoomInfo {
    * (không gửi mốc tuyệt đối — đồng hồ máy khách lệch), `id` đổi mỗi lượt chọn. Chỉ THÊM: app cũ bỏ qua, không thấy popup,
    * coi như không bỏ phiếu rồi vào ván như thường.
    */
-  chon?: { id: number; ds: number[]; phieu: Record<string, number>; con: number };
+  chon?: {
+    id: number; ds: number[]; phieu: Record<string, number>; con: number;
+    /** ĐÃ CHỐT, đang diễn hiệu ứng (24.11.2026): hết `con` ms thì server đếm ngược vào ván. Không nhận phiếu nữa. */
+    ket?: KetChon & { con: number };
+  };
   /**
    * Số ván đã XONG trong loạt của phòng (23.11.2026). CÓ trường này = server tự đếm tỷ số loạt (`players[].thang`) →
    * client lấy theo server, không tự cộng nữa. Server cũ không gửi → client đếm tại chỗ như trước.
