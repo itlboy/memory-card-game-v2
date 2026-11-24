@@ -60,7 +60,8 @@ async function ios() {
   };
   const json = async (path) => { const r = await goi(path); if (!r.ok) throw new Error(`${path} → ${r.status} ${(await r.text()).slice(0, 200)}`); return r.json(); };
 
-  const app = (await json(`/v1/apps?filter[bundleId]=${IOS_BUNDLE}`)).data?.[0];
+  // Bộ lọc bundleId khớp cả tiền tố (com.cozypi.cozysafe ra cả …cozysafe.beta): phải so đúng tên.
+  const app = ((await json(`/v1/apps?filter[bundleId]=${IOS_BUNDLE}`)).data ?? []).find((a) => a.attributes.bundleId === IOS_BUNDLE);
   if (!app) return { loi: `Không thấy app ${IOS_BUNDLE} (key không có quyền app này?)` };
   const kq = { appId: app.id, ten: app.attributes.name, nguon: [], ghiChu: [] };
 
