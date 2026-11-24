@@ -377,6 +377,7 @@ const en: TuDien = {
   'tb.dangKiem': "Checking",
   'tb.moiNhat': "Up to date",
   'tb.capNhat': "Update",
+  'tb.banMoiNhat': "You're on the latest version",
   'tb.matMang': "Offline",
   'tb.canBanStore': "Update in store",
   'chung.capNhat': "Update",

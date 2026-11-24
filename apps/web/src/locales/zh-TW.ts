@@ -378,6 +378,7 @@ const zhTW: TuDien = {
   'tb.dangKiem': "正在檢查",
   'tb.moiNhat': "已是最新",
   'tb.capNhat': "更新",
+  'tb.banMoiNhat': "已是最新版本",
   'tb.matMang': "沒有網路",
   'tb.canBanStore': "請在商店更新",
   'chung.capNhat': "更新",

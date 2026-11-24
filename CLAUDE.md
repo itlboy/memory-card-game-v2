@@ -1647,6 +1647,9 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   chính chia đôi "Luật chơi | Cập nhật" (Cập nhật chỉ app; chấm đỏ ở nút ☰ và nút Cập nhật khi `trangThaiOta` đang tải/
   chờ áp). BẪY: `.menu` cần `width: max-content` — khung chứa chỉ rộng bằng nút ☰ nên menu co về min-content và cắt mất
   mép phải; trang con giữ đúng bề ngang trang chính (`rongMenu`) cho khỏi co giật.
+  1.9.47: nút Cập nhật LUÔN ghi "Cập nhật" (lúc kiểm: "Đang kiểm tra"); KẾT QUẢ là BONG BÓNG nổi trên nút 3 giây
+  ("Bạn đang dùng bản mới nhất" / Mất mạng / Cập nhật ở store) — chủ dự án chê chữ "Mới nhất" trên nút khó hiểu, chữ
+  dài thì bị cắt "…". `.hang-cuoi { contain: inline-size }`: chữ trên nút KHÔNG được đổi bề ngang menu (đã nhảy thật).
 - `/api/ping` có thêm `phong.sanh` = số kết nối sảnh.
 
 ## Thách đấu ở bảng xếp hạng + nút Mời chờ + thanh emoji đáy (22.11.2026, mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG)

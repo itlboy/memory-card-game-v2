@@ -375,6 +375,7 @@ const ko: TuDien = {
   'tb.dangKiem': "확인 중",
   'tb.moiNhat': "최신 버전",
   'tb.capNhat': "업데이트",
+  'tb.banMoiNhat': "최신 버전을 쓰고 있어요",
   'tb.matMang': "오프라인",
   'tb.canBanStore': "스토어에서 업데이트",
   'chung.capNhat': "업데이트",

@@ -375,6 +375,7 @@ const ja: TuDien = {
   'tb.dangKiem': "確認中",
   'tb.moiNhat': "最新です",
   'tb.capNhat': "アップデート",
+  'tb.banMoiNhat': "最新バージョンです",
   'tb.matMang': "オフライン",
   'tb.canBanStore': "ストアで更新",
   'chung.capNhat': "更新",

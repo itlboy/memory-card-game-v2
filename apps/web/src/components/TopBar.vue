@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bell, Bug, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -138,7 +138,11 @@ async function kiemCapNhat(): Promise<void> {
   const kq = await kiemTraThuCong();
   if (kq === 'coBan') { kiemCN.value = ''; dong(); return; }
   kiemCN.value = kq === 'web' ? 'moiNhat' : kq;
+  // Kết quả hiện 3 giây rồi nút về chữ "Cập nhật" (chủ dự án 24.11.2026: chữ kết quả nằm mãi trên nút thì khó hiểu)
+  clearTimeout(henCN);
+  henCN = setTimeout(() => { kiemCN.value = ''; }, 3000);
 }
+let henCN: ReturnType<typeof setTimeout> | undefined;
 const tenNN = computed(() => NGON_NGU.find((l) => l.id === ngonNgu.value)?.ten ?? '');
 /* Hộp mọc NGAY DƯỚI nút Ngôn ngữ, mép phải thẳng nút (chủ dự án: "đúng vị trí bấm, không xa quá");
    không đủ chỗ phía dưới thì đẩy lên cho lọt cột game. Toạ độ tính theo #app (nơi teleport tới). */
@@ -436,7 +440,12 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
             <button v-if="laApp" class="item thach nut-cn" :class="[kiemCN, { moi: coBanMoi }]" role="menuitem" type="button"
               :aria-busy="kiemCN === 'dang'" :aria-label="t('tb.kiemCapNhat')" @click="kiemCapNhat">
               <RefreshCw :size="19" aria-hidden="true" />
-              <span role="status">{{ kiemCN === 'dang' ? t('tb.dangKiem') : kiemCN === 'moiNhat' ? t('tb.moiNhat') : kiemCN === 'matMang' ? t('tb.matMang') : kiemCN === 'cuQua' ? t('tb.canBanStore') : t('tb.capNhat') }}</span>
+              <span>{{ kiemCN === 'dang' ? t('tb.dangKiem') : t('tb.capNhat') }}</span>
+              <!-- KẾT QUẢ = BONG BÓNG nổi trên nút 3 giây (24.11.2026: chữ "Mới nhất" trên nút khó hiểu, chữ dài thì bị cắt "…" và
+                   đổi chữ làm menu nhảy). Nổi đè nên không đổi kích thước menu; câu đủ nghĩa ở mọi ngôn ngữ. -->
+              <span v-if="kiemCN && kiemCN !== 'dang'" class="bong-cn" :class="kiemCN" role="status">
+                <CircleCheck v-if="kiemCN === 'moiNhat'" :size="15" :stroke-width="2.6" aria-hidden="true" />{{ kiemCN === 'moiNhat' ? t('tb.banMoiNhat') : kiemCN === 'matMang' ? t('tb.matMang') : t('tb.canBanStore') }}
+              </span>
               <i v-if="coBanMoi" class="cham-do" aria-hidden="true" />
             </button>
           </div>
@@ -827,13 +836,26 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .cd-mat .tk-chu small { white-space: normal; }
 .cd-mat .tk-chu small.loi { color: var(--bad); }
 /* Hàng cuối: Luật chơi | Cập nhật chia đôi; web không có nút Cập nhật thì Luật chơi chiếm cả hàng */
+/* contain: inline-size — chữ trên nút (Cập nhật → Đang kiểm tra → Không có bản mới) KHÔNG được đổi bề ngang menu:
+   menu rộng theo max-content nên đổi chữ là cả khung nhảy (chủ dự án báo 24.11.2026). Chữ dài quá thì "…". */
+.hang-cuoi { contain: inline-size; }
 .hang-cuoi { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
 .hang-cuoi .item { min-width: 0; padding: 0 10px; gap: 8px; }
-.hang-cuoi .item > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.hang-cuoi .item > span:not(.bong-cn) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .nut-cn { position: relative; }
 .nut-cn.dang svg { animation: cn-quay .8s linear infinite; }
-.nut-cn.moiNhat { color: #15803d; }
-:global([data-theme='dark'] .nut-cn.moiNhat) { color: #5fd27f; }
+.bong-cn {
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 2; display: inline-flex; align-items: center; gap: 5px;
+  width: max-content; max-width: 250px; padding: 7px 11px; border-radius: 12px; white-space: normal;
+  background: #1d2a5a; color: #fff; font-size: 13px; font-weight: 800; line-height: 1.25; box-shadow: 0 6px 16px rgba(0, 0, 0, .25);
+  pointer-events: none; animation: bong-hien .18s ease-out;
+}
+.bong-cn::after { content: ''; position: absolute; right: 22px; top: 100%; border: 7px solid transparent; border-bottom: 0; border-top-color: #1d2a5a; }
+.bong-cn.moiNhat svg { color: #5fd27f; }
+:global([data-theme='dark'] .bong-cn) { background: #eef0fc; color: #1d2a5a; }
+:global([data-theme='dark'] .bong-cn::after) { border-top-color: #eef0fc; }
+:global([data-theme='dark'] .bong-cn.moiNhat svg) { color: #15803d; }
+@keyframes bong-hien { from { opacity: 0; transform: translateY(4px); } }
 @keyframes cn-quay { to { transform: rotate(360deg); } }
 .cham-do, .menu-btn .cham-do {
   position: absolute; top: -3px; right: -3px; width: 12px; height: 12px; border-radius: 50%;
