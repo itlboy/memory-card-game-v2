@@ -944,18 +944,8 @@ const zhTW: TuDien = {
   'ct.banChon': "你選了 {n} · 已選 {da}/{tong}",
   'ct.dangXem': "你在觀戰 · 已選 {da}/{tong}",
   'ct.hetGio': "時間到！",
-  'ct.boIt': "去掉票數少的",
-  'ct.khongAi': "沒人選擇",
-  'ct.demPhieu': "正在計票…",
   'ct.bocTham': "抽籤中…",
-  'ct.bangPhieu': "{ds} 票數相同",
-  'ct.mayBoc': "隨機挑選…",
-  'ct.daChot': "定了！",
-  'ct.lyBoc': "在 {ds} 中抽籤",
-  'ct.lyTrong': "沒人選擇，維持不變",
-  'ct.lyThang': "票數最多",
   'ct.choi': "玩 {n} 張",
-  'ct.vaoVan': "即將開始…",
 };
 
 export default zhTW;

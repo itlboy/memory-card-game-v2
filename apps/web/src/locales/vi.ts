@@ -955,18 +955,8 @@ const vi = {
   'ct.banChon': "Bạn chọn {n} · đã chọn {da}/{tong}",
   'ct.dangXem': "Bạn đang xem · đã chọn {da}/{tong}",
   'ct.hetGio': "Hết giờ!",
-  'ct.boIt': "Bỏ các số ít phiếu",
-  'ct.khongAi': "Không ai chọn",
-  'ct.demPhieu': "Đang đếm phiếu…",
   'ct.bocTham': "Bốc thăm…",
-  'ct.bangPhieu': "{ds} bằng phiếu",
-  'ct.mayBoc': "Máy bốc ngẫu nhiên…",
-  'ct.daChot': "Đã chốt!",
-  'ct.lyBoc': "Bốc thăm giữa {ds}",
-  'ct.lyTrong': "Không ai chọn, giữ nguyên",
-  'ct.lyThang': "Nhiều phiếu nhất",
   'ct.choi': "Chơi {n} thẻ",
-  'ct.vaoVan': "vào ván…",
 };
 
 export default vi;

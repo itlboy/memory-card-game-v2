@@ -961,18 +961,8 @@ const ru: TuDien = {
   'ct.banChon': "Ваш выбор {n} · проголосовали {da}/{tong}",
   'ct.dangXem': "Вы зритель · проголосовали {da}/{tong}",
   'ct.hetGio': "Время вышло!",
-  'ct.boIt': "Убираем варианты с меньшим числом голосов",
-  'ct.khongAi': "Никто не выбрал",
-  'ct.demPhieu': "Считаем голоса…",
   'ct.bocTham': "Жеребьёвка…",
-  'ct.bangPhieu': "{ds}: поровну",
-  'ct.mayBoc': "Случайный выбор…",
-  'ct.daChot': "Решено!",
-  'ct.lyBoc': "Жребий между {ds}",
-  'ct.lyTrong': "Никто не выбрал, оставляем",
-  'ct.lyThang': "Больше всего голосов",
   'ct.choi': "{n} карт",
-  'ct.vaoVan': "начинаем…",
 };
 
 export default ru;

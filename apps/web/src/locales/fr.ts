@@ -947,18 +947,8 @@ const fr: TuDien = {
   'ct.banChon': "Tu as choisi {n} · {da}/{tong} ont voté",
   'ct.dangXem': "Tu regardes · {da}/{tong} ont voté",
   'ct.hetGio': "Temps écoulé !",
-  'ct.boIt': "On retire les moins votés",
-  'ct.khongAi': "Personne n'a voté",
-  'ct.demPhieu': "Dépouillement…",
   'ct.bocTham': "Tirage au sort…",
-  'ct.bangPhieu': "{ds} à égalité",
-  'ct.mayBoc': "Tirage au hasard…",
-  'ct.daChot': "C'est décidé !",
-  'ct.lyBoc': "Tiré au sort entre {ds}",
-  'ct.lyTrong': "Personne n'a voté, on garde",
-  'ct.lyThang': "Le plus de votes",
   'ct.choi': "{n} cartes",
-  'ct.vaoVan': "la partie commence…",
 };
 
 export default fr;

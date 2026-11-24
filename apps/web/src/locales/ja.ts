@@ -941,18 +941,8 @@ const ja: TuDien = {
   'ct.banChon': "{n}を選びました · {da}/{tong}人が選択",
   'ct.dangXem': "観戦中 · {da}/{tong}人が選択",
   'ct.hetGio': "時間切れ！",
-  'ct.boIt': "票が少ない数をはずします",
-  'ct.khongAi': "だれも選びませんでした",
-  'ct.demPhieu': "集計中…",
   'ct.bocTham': "抽選中…",
-  'ct.bangPhieu': "{ds} が同票",
-  'ct.mayBoc': "ランダムに選んでいます…",
-  'ct.daChot': "決定！",
-  'ct.lyBoc': "{ds} から抽選",
-  'ct.lyTrong': "だれも選ばなかったのでそのまま",
-  'ct.lyThang': "いちばん多い票",
   'ct.choi': "{n}枚で遊びます",
-  'ct.vaoVan': "まもなく開始…",
 };
 
 export default ja;
