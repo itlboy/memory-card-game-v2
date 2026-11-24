@@ -54,12 +54,16 @@ describe('popup chọn số thẻ', () => {
   it('server mở lượt chọn ở cả Bắt đầu lẫn Chơi lại, phòng thi đấu bỏ qua', () => {
     expect(room.match(/await this\.moChonThe\(\);/g)?.length).toBe(2);
     expect(room).toMatch(/if \(this\.room\.thiDau \|\| !CHON_THE_BAT\) \{ await this\.batDauDemNguoc\(\); return; \}/);
-    expect(room).toMatch(/if \(this\.chon && now >= this\.chon\.het\) await this\.chotChon\(\);/);
+    expect(room).toMatch(/if \(this\.chon && now >= this\.chon\.het\) await \(this\.chon\.ket \? this\.vaoVanSauChot\(\) : this\.chotChon\(\)\);/);
+    // Chốt xong server chờ ĐÚNG thời lượng hiệu ứng (engine lichChot) rồi mới đếm ngược; đã chốt thì không nhận phiếu
+    expect(room).toMatch(/c\.het = Date\.now\(\) \+ lichChot\(c\.ds, c\.ket\)\.tong;/);
+    expect(room).toMatch(/if \(!c \|\| c\.ket \|\| typeof msg\.the/);
   });
-  it('popup: ô chỉ có con số, người xem thấy nhưng bị khoá, không dùng @keyframes cho thanh giờ', () => {
+  it('popup: ô có nhãn + con số, người xem thấy nhưng bị khoá, đồng hồ vòng do JS đặt (không @keyframes cho đồng hồ)', () => {
     expect(popup).toMatch(/<b>\{\{ the \}\}<\/b>/);
-    expect(popup).toMatch(/:disabled="chiXem"/);
-    expect(popup).not.toMatch(/@keyframes [\w-]+ \{/);   // chỉ còn chữ "@keyframes" trong chú thích
+    expect(popup).toMatch(/:disabled="chiXem \|\| pha !== 'chon'"/);
+    expect(popup).toMatch(/:stroke-dashoffset="CV - \(CV \* Math\.min\(conMs, CHON_THE_MS\)\) \/ CHON_THE_MS"/);
+    expect(popup).not.toMatch(/@keyframes [\w-]*(gio|dong-ho|vach)[\w-]* \{/);
     expect(man).toMatch(/<ChonSoThe :o="o" \/>/);
   });
 });

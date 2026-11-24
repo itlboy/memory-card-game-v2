@@ -311,7 +311,7 @@ class Phong {
      * bấm Bắt đầu / Chơi lại. Mỗi bot chọn sau 0,3–1,7 s, ngẫu nhiên trong các ô hợp lệ: trong khoảng THE_MIN–THE_MAX và
      * không nhỏ hơn mức tối thiểu theo số người (bàn 3–4 người không tụt về 12 thẻ). Không ô nào hợp lệ thì không chọn.
      */
-    if (room.chon && room.chon.id !== this.chonId) {
+    if (room.chon && !room.chon.ket && room.chon.id !== this.chonId) {
       this.chonId = room.chon.id;
       const tong = room.players.length;
       const toiThieu = Math.max(THE_MIN, tong >= 4 ? 28 : tong === 3 ? 20 : THE_MIN);

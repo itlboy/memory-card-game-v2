@@ -618,6 +618,21 @@ class Sfx {
     }
   }
 
+  /*
+   * CHỐT SỐ THẺ (24.11.2026, mockup duyệt https://claude.ai/artifact/BxHdozRXetLMa9Wz27c7g7): người khác bỏ phiếu "tinh"
+   * nhẹ hai nốt; ô bị bỏ "vút" trượt xuống; bốc thăm nháy cao dần theo nhịp; chốt rải hợp âm trưởng + nốt lấp lánh.
+   */
+  phieuKhac(): void {
+    this.voice(520, { dur: 0.08, type: 'sine', gain: 0.04 });
+    this.voice(780, { dur: 0.08, type: 'sine', gain: 0.03, delay: 0.06 });
+  }
+  vut(): void { this.voice(560, { dur: 0.28, type: 'sine', gain: 0.045, slideTo: 160 }); }
+  nhayBoc(i: number): void { this.voice(660 + (i % 2) * 220 + i * 18, { dur: 0.06, type: 'square', gain: 0.022 }); }
+  chotThe(): void {
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.voice(f, { dur: 0.2, type: 'triangle', gain: 0.05, delay: i * 0.09, detune: 6 }));
+    this.voice(1568, { dur: 0.35, type: 'sine', gain: 0.03, delay: 0.38 });
+  }
+
   /** "Đinh" nhỏ khi huy hiệu chạm viên 🏅 trên thanh trên. */
   dinh(): void {
     this.voice(2093, { dur: 0.25, type: 'sine', gain: 0.05 });

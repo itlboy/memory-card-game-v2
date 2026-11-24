@@ -8,7 +8,8 @@ import type {
 } from '@mm/engine';
 import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
-import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, chotSoThe, luaChonSoThe, pairsForLevel } from '@mm/engine';
+import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, ketQuaChon, lichChot, luaChonSoThe, pairsForLevel } from '@mm/engine';
+import type { KetChon } from '@mm/engine';
 
 /** Các số thẻ có thật, tăng dần (4 … 88) — thang để lượt CHỌN SỐ THẺ lấy bậc trên / bậc dưới. */
 const BAC_THE: readonly number[] = [...new Set(BOARD_SIZES.map((b) => b.pairs * 2))].sort((x, y) => x - y);
@@ -288,7 +289,8 @@ export class RoomDO extends DurableObject<Env> {
    * LƯỢT CHỌN SỐ THẺ đang mở (23.11.2026, engine `luaChonSoThe`). Chỉ trong RAM như `againVotes`: mất (khởi động lại giữa
    * 3 giây) thì phòng đứng nguyên ở phòng chờ / bảng kết quả, bấm Bắt đầu / Chơi lại lần nữa là xong.
    */
-  private chon: { id: number; het: number; ds: number[]; phieu: Map<string, number> } | null = null;
+  /** `ket` = đã chốt, đang diễn hiệu ứng tới `het` (xem `chotChon`). */
+  private chon: { id: number; het: number; ds: number[]; phieu: Map<string, number>; ket?: KetChon } | null = null;
   /** Lần chủ phòng nhắc gần nhất — chặn nhắc dồn (NHAC_CACH_MS). */
   private nhacLuc = 0;
   /*
@@ -811,7 +813,7 @@ export class RoomDO extends DurableObject<Env> {
        */
       case 'chon': {
         const c = this.chon;
-        if (!c || typeof msg.the !== 'number' || !c.ds.includes(msg.the)) return;
+        if (!c || c.ket || typeof msg.the !== 'number' || !c.ds.includes(msg.the)) return;   // đã chốt: không nhận phiếu
         c.phieu.set(player.id, msg.the);
         const can = this.room.players.filter((p) => !p.may && this.connected(p.id));
         if (can.length && can.every((p) => c.phieu.has(p.id))) { await this.chotChon(); return; }
@@ -1223,8 +1225,8 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
 
-    // Hết giờ chọn số thẻ → chốt rồi đếm ngược vào ván
-    if (this.chon && now >= this.chon.het) await this.chotChon();
+    // Hết giờ chọn số thẻ → chốt (diễn hiệu ứng); diễn xong → đếm ngược vào ván
+    if (this.chon && now >= this.chon.het) await (this.chon.ket ? this.vaoVanSauChot() : this.chotChon());
 
     // Thi đấu: hết hạn chờ mà chưa đủ người — có ≥ 2 thì chơi, còn 1 thì báo rồi giải tán
     if (this.room.thiDau && !this.room.thiDau.daChay && this.room.status === 'lobby' && now >= this.room.thiDau.han) {
@@ -1562,24 +1564,40 @@ export class RoomDO extends DurableObject<Env> {
     await this.scheduleNext();
   }
 
-  /** Chốt số thẻ theo phiếu (engine `chotSoThe`) rồi đếm ngược vào ván. Trong lúc chọn mà thiếu người / thiếu đội thì thôi. */
+  /**
+   * CHỐT số thẻ theo phiếu (engine `ketQuaChon`) rồi DIỄN HIỆU ỨNG (24.11.2026, mockup duyệt
+   * https://claude.ai/artifact/BxHdozRXetLMa9Wz27c7g7): bỏ ô ít phiếu, hoà thì nháy bốc thăm, còn một ô ở giữa. Server bốc số
+   * NGAY lúc chốt, gửi `chon.ket` để mọi máy diễn cùng một kết quả, rồi chờ đúng `lichChot().tong` mới đếm ngược
+   * (`vaoVanSauChot`). App cũ không biết `ket` → chỉ thấy "Đang mở ván…" lâu thêm vài giây.
+   */
   private async chotChon(): Promise<void> {
     const c = this.chon;
-    if (!c || !this.room) return;
-    this.chon = null;
-    const coMat = this.room.players.filter((p) => this.connected(p.id));
-    if ((this.room.status !== 'lobby' && this.room.status !== 'ended')
-        || coMat.length < ROOM_LIMITS.minPlayers || !this.duDoi(this.room.players)) {
-      this.broadcast({ t: 'room', room: this.roomInfo() });
-      await this.scheduleNext();
-      return;
-    }
+    if (!c || c.ket || !this.room) return;
+    if (!this.duNguoiVaoVan()) { this.chon = null; this.broadcast({ t: 'room', room: this.roomInfo() }); await this.scheduleNext(); return; }
     const hienTai = pairsForLevel(this.room.config.level) * 2;
     const phieu = [...c.phieu].filter(([id]) => this.room!.players.some((p) => p.id === id)).map(([, the]) => the);
-    const the = chotSoThe(phieu, c.ds, hienTai, Math.random);
-    const ban = the !== hienTai ? BOARD_SIZES.find((b) => b.pairs * 2 === the) : undefined;
+    c.ket = ketQuaChon(phieu, c.ds, hienTai, Math.random);
+    c.het = Date.now() + lichChot(c.ds, c.ket).tong;
+    this.broadcast({ t: 'room', room: this.roomInfo() });
+    await this.scheduleNext();
+  }
+
+  /** Diễn xong hiệu ứng chốt → đặt số thẻ đã chốt rồi đếm ngược vào ván. Trong lúc diễn mà thiếu người / thiếu đội thì thôi. */
+  private async vaoVanSauChot(): Promise<void> {
+    const c = this.chon;
+    if (!c?.ket || !this.room) return;
+    this.chon = null;
+    if (!this.duNguoiVaoVan()) { this.broadcast({ t: 'room', room: this.roomInfo() }); await this.scheduleNext(); return; }
+    const ban = c.ket.the !== pairsForLevel(this.room.config.level) * 2 ? BOARD_SIZES.find((b) => b.pairs * 2 === c.ket!.the) : undefined;
     if (ban) this.room.config.level = ban.level;
     await this.batDauDemNguoc();
+  }
+
+  private duNguoiVaoVan(): boolean {
+    if (!this.room) return false;
+    const coMat = this.room.players.filter((p) => this.connected(p.id));
+    return (this.room.status === 'lobby' || this.room.status === 'ended')
+      && coMat.length >= ROOM_LIMITS.minPlayers && this.duDoi(this.room.players);
   }
 
     private async batDauDemNguoc(): Promise<void> {
@@ -1963,7 +1981,11 @@ export class RoomDO extends DurableObject<Env> {
       // với mặc định của phòng mới.
       congKhai: room.congKhai !== false,
       soVan: room.soVan ?? 0,
-      ...(this.chon ? { chon: { id: this.chon.id, ds: this.chon.ds, phieu: Object.fromEntries(this.chon.phieu), con: Math.max(0, this.chon.het - Date.now()) } } : {}),
+      ...(this.chon ? { chon: {
+        id: this.chon.id, ds: this.chon.ds, phieu: Object.fromEntries(this.chon.phieu),
+        con: this.chon.ket ? 0 : Math.max(0, this.chon.het - Date.now()),
+        ...(this.chon.ket ? { ket: { ...this.chon.ket, con: Math.max(0, this.chon.het - Date.now()) } } : {})
+      } } : {}),
       ...(room.thiDau ? { thiDau: true as const } : {}),
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
