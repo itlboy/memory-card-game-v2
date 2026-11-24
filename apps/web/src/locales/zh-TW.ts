@@ -843,7 +843,6 @@ const zhTW: TuDien = {
   'moi.loi.banMoi': '這位玩家有別的邀請',
   'moi.loi.nhieuQua': '慢一點喔',
   'moi.loi.chung': '沒能邀請，請稍後再試',
-  'cd.moTa': '震動、語言、邀請、更新',
   'cd.hienThi': '顯示',
   'cd.online': '線上對戰',
   'cd.ungDung': 'App',
@@ -934,7 +933,6 @@ const zhTW: TuDien = {
   'tn.chuDu': "資料充足",
   'tn.chuIt': "資料少",
   'tn.choiThem': "再玩大約 {n} 局，資料會更可信",
-  'ct.hoi': "下一局玩幾張？",
   'ct.conGiay': "還剩 {n} 秒",
   'ct.daChon': "已選 {da}/{tong}",
 };

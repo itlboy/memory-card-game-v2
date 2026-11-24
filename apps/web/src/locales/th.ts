@@ -841,7 +841,6 @@ const th: TuDien = {
   'moi.loi.banMoi': 'คนนี้มีคำชวนอื่นอยู่',
   'moi.loi.nhieuQua': 'ช้าลงหน่อยนะ',
   'moi.loi.chung': 'ชวนไม่สำเร็จ ลองใหม่ภายหลัง',
-  'cd.moTa': 'การสั่น ภาษา คำชวน อัปเดต',
   'cd.hienThi': 'การแสดงผล',
   'cd.online': 'เล่นออนไลน์',
   'cd.ungDung': 'แอป',
@@ -932,7 +931,6 @@ const th: TuDien = {
   'tn.chuDu': "ข้อมูลพอ",
   'tn.chuIt': "ข้อมูลน้อย",
   'tn.choiThem': "เล่นอีกประมาณ {n} เกม ข้อมูลจะน่าเชื่อถือขึ้น",
-  'ct.hoi': "เกมหน้าเล่นกี่ใบ?",
   'ct.conGiay': "เหลือ {n} วินาที",
   'ct.daChon': "เลือกแล้ว {da}/{tong}",
 };

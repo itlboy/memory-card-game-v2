@@ -854,7 +854,6 @@ const vi = {
   'moi.loi.banMoi': 'Người này đang có lời mời khác',
   'moi.loi.nhieuQua': 'Mời chậm lại một chút nhé',
   'moi.loi.chung': 'Chưa mời được, thử lại sau',
-  'cd.moTa': 'Rung, ngôn ngữ, lời mời, cập nhật',
   'cd.hienThi': 'Hiển thị',
   'cd.online': 'Chơi online',
   'cd.ungDung': 'Ứng dụng',
@@ -945,7 +944,6 @@ const vi = {
   'tn.chuDu': "Đủ số liệu",
   'tn.chuIt': "Ít số liệu",
   'tn.choiThem': "Chơi thêm khoảng {n} ván nữa để số liệu đáng tin hơn",
-  'ct.hoi': "Ván sau chơi mấy thẻ?",
   'ct.conGiay': "Còn {n} giây",
   'ct.daChon': "Đã chọn {da}/{tong}",
 };

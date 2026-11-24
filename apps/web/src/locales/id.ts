@@ -843,7 +843,6 @@ const id: TuDien = {
   'moi.loi.banMoi': 'Pemain ini sedang punya undangan lain',
   'moi.loi.nhieuQua': 'Pelan-pelan sedikit ya',
   'moi.loi.chung': 'Gagal mengundang, coba lagi nanti',
-  'cd.moTa': 'Getar, bahasa, undangan, pembaruan',
   'cd.hienThi': 'Tampilan',
   'cd.online': 'Main online',
   'cd.ungDung': 'Aplikasi',
@@ -934,7 +933,6 @@ const id: TuDien = {
   'tn.chuDu': "Data cukup",
   'tn.chuIt': "Data sedikit",
   'tn.choiThem': "Main sekitar {n} kali lagi agar datanya lebih bisa dipercaya",
-  'ct.hoi': "Berapa kartu di permainan berikutnya?",
   'ct.conGiay': "Sisa {n} detik",
   'ct.daChon': "{da}/{tong} sudah memilih",
 };

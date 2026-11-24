@@ -843,7 +843,6 @@ const tr: TuDien = {
   'moi.loi.banMoi': 'Bu oyuncunun başka bir daveti var',
   'moi.loi.nhieuQua': 'Biraz yavaşla',
   'moi.loi.chung': 'Davet gönderilemedi, sonra tekrar dene',
-  'cd.moTa': 'Titreşim, dil, davetler, güncellemeler',
   'cd.hienThi': 'Görünüm',
   'cd.online': 'Çevrimiçi oyun',
   'cd.ungDung': 'Uygulama',
@@ -934,7 +933,6 @@ const tr: TuDien = {
   'tn.chuDu': "Veri yeterli",
   'tn.chuIt': "Az veri",
   'tn.choiThem': "Daha güvenilir veri için yaklaşık {n} oyun daha oyna",
-  'ct.hoi': "Sonraki oyunda kaç kart?",
   'ct.conGiay': "{n} saniye kaldı",
   'ct.daChon': "{da}/{tong} oy verdi",
 };
