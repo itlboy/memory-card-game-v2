@@ -102,8 +102,10 @@ body {
   /* Cao của thanh emoji cố định đáy màn (EmojiDock.vue: đệm 2 + nút thạch 38 + đệm 2), KHÔNG tính vùng an toàn. */
   --eb-dock-h: 42px;
   /* Thanh emoji LÚN vào vùng an toàn đáy tối đa 18px (23.11.2026, chủ dự án: "vẫn có khoảng trống rộng bên dưới"): vạch
-     Home của iPhone chỉ chiếm ~13px sát đáy, chừa 16px là đủ — 18px còn lại trả cho bàn thẻ. Máy không có vạch Home = 0. */
-  --eb-lun: min(18px, env(safe-area-inset-bottom, 0px));
+     Home của iPhone chỉ chiếm ~13px sát đáy, chừa 16px là đủ — 18px còn lại trả cho bàn thẻ. Máy không có vạch Home = 0.
+     24.11.2026 hạ còn 8px: cách đáy 16px thì ngón cái chạm nút emoji hay quẹt trúng vạch Home/Siri ("hay bị chạm nút
+     siri trên iphone") — nay hàng nút cách đáy 26px. */
+  --eb-lun: min(8px, env(safe-area-inset-bottom, 0px));
   /* Mốc cho lớp hiệu ứng kết ván/khoe danh hiệu (absolute, inset 0) — để chúng
      nằm gọn trong cột game chứ không trải ra cả cửa sổ máy tính. */
   position: relative;

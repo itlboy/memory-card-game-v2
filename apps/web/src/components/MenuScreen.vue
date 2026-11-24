@@ -604,6 +604,13 @@ const ICO3D = {
       -->
       <div v-if="step === 'players'" key="players" class="step-body home">
         <QuatLa :themes="themes" />
+        <!-- CHỈ SỐ TRÍ NHỚ (24.11.2026, mockup B duyệt https://claude.ai/artifact/E2SL85YXZwtEjtZmhy3JTd): nút tròn nổi
+             trên trời góc trái, có vòng sáng + tên dưới — thay viên ở dải lối tắt. Biểu tượng BIỂU ĐỒ, không bao giờ cái não.
+             Vẫn chỉ hiện khi bật debug (`hienTriNho`). -->
+        <button v-if="hienTriNho" class="nut-tri-nho thach th-ngoc" type="button" :aria-label="t('tn.ten')" @click="sfx.select(); emit('so-tri-nho')">
+          <i class="ntn-vong" aria-hidden="true" /><ChartColumn :size="22" :stroke-width="2.6" aria-hidden="true" />
+          <small aria-hidden="true">{{ t('tn.ten') }}</small>
+        </button>
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
           <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
@@ -641,13 +648,10 @@ const ICO3D = {
 
         <!-- DẢI LỐI TẮT (11.10.2026): việc hay làm nhất, một chạm -->
         <!-- Viên Sổ trí nhớ ghi TÊN TRANG, không kèm điểm: "Trí nhớ 639" bị chê "rất tối nghĩa" (23.11.2026) -->
-        <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1 || hienTriNho" class="loi-tat">
+        <div v-if="goiY || (chuoiNgay ?? 0) > 1 || (manChienDich ?? 0) > 1" class="loi-tat">
           <span v-if="(chuoiNgay ?? 0) > 1" class="lt-chip lua thach th-vang" :title="t('menu.chuoiNgayTitle', { n: chuoiNgay ?? 0 })"><Flame :size="14" :stroke-width="2.6" aria-hidden="true" /> {{ t('menu.chuoiNgay', { n: chuoiNgay ?? 0 }) }}</span>
           <button v-if="(manChienDich ?? 0) > 1" class="lt-chip thach" type="button" @click="tiepChienDich">
             <Play :size="14" aria-hidden="true" /><span class="ten">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
-          </button>
-          <button v-if="hienTriNho" class="lt-chip tri-nho thach th-ngoc" type="button" :aria-label="t('tn.ten')" :title="t('tn.ten')" @click="sfx.select(); emit('so-tri-nho')">
-            <ChartColumn :size="14" :stroke-width="2.6" aria-hidden="true" /><span class="ten">{{ t('tn.ten') }}</span>
           </button>
           <button v-if="goiY" class="lt-chip goi-y thach th-do" type="button" :aria-label="t('menu.chinhPhucAria', { ten: goiY.name })" @click="emit('chinh-phuc', goiY.id)">
             <Target :size="14" :stroke-width="2.6" aria-hidden="true" /><span class="ten">{{ goiY.name }}</span>
@@ -1004,7 +1008,6 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 .loi-tat button.lt-chip::after { content: ''; position: absolute; inset: -5px -2px; }
 .loi-tat .lt-chip.lua { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; border-color: transparent; }
 .loi-tat .lt-chip.goi-y { background: var(--nhan-nen); color: var(--nhan-chu); border-color: transparent; }
-.loi-tat .lt-chip.tri-nho { background: linear-gradient(135deg, #2bb9a8, #0b6b60); color: #fff; border-color: transparent; }
 .loi-tat .lt-chip .ten { overflow: hidden; text-overflow: ellipsis; }
 /* Mặt máy: emoji thay icon lucide, cỡ theo ô như .opt-icon */
 .hinh-nguoi {
@@ -1158,7 +1161,16 @@ section.panel.khung-vao { animation: khung-vao .18s ease; }
 /* ---------- TRANG CHỦ (bước players) ---------- */
 /* Panel thành trong suốt: trang chủ nằm thẳng trên nền của skin (trời, mặt gỗ…) */
 section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
-.step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+.step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; position: relative; }
+.nut-tri-nho {
+  position: absolute; left: 6px; top: 6px; z-index: 2; width: 48px; height: 48px; min-width: 0; min-height: 0; padding: 0;
+  border-radius: 50%; display: grid; place-items: center; overflow: visible; cursor: pointer; color: #fff;
+  background: linear-gradient(#3fd0bd, #149384 70%); border: 2px solid #0d7064; box-shadow: 0 3px 0 #0a5a50;
+}
+.ntn-vong { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(63, 208, 189, .7); animation: ntn-vong 2.4s ease-out infinite; pointer-events: none; }
+@keyframes ntn-vong { 0% { transform: scale(.9); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ntn-vong { animation: none; } }
+.nut-tri-nho small { position: absolute; top: calc(100% + 6px); left: -4px; font: 900 11px/1.1 var(--font-display); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); white-space: nowrap; }
 .home .loi-tat { margin: 0; }
 .ico3d { display: none; }
 
