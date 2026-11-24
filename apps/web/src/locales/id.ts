@@ -936,7 +936,6 @@ const id: TuDien = {
   'tn.choiThem': "Main sekitar {n} kali lagi agar datanya lebih bisa dipercaya",
   'ct.hoi': "Berapa kartu di permainan berikutnya?",
   'ct.conGiay': "Sisa {n} detik",
-  'ct.choi': "Main {n} kartu",
   'ct.daChon': "{da}/{tong} sudah memilih",
 };
 

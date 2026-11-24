@@ -947,7 +947,6 @@ const vi = {
   'tn.choiThem': "Chơi thêm khoảng {n} ván nữa để số liệu đáng tin hơn",
   'ct.hoi': "Ván sau chơi mấy thẻ?",
   'ct.conGiay': "Còn {n} giây",
-  'ct.choi': "Chơi {n} thẻ",
   'ct.daChon': "Đã chọn {da}/{tong}",
 };
 

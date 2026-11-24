@@ -935,7 +935,6 @@ const en: TuDien = {
   'tn.choiThem': "Play about {n} more games for more reliable numbers",
   'ct.hoi': "How many cards next game?",
   'ct.conGiay': "{n} seconds left",
-  'ct.choi': "Playing {n} cards",
   'ct.daChon': "{da}/{tong} voted",
 };
 

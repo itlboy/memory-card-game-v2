@@ -5,8 +5,8 @@
  *   1. CẢ PHÒNG CHỌN trong `CHON_THE_MS`: tiêu đề là câu hỏi, mỗi ô có nhãn "Ít hơn · Giữ nguyên · Nhiều hơn" + con số
  *      ĐÚNG GIỮA; ô mình chọn vàng, nhô lên, có dấu tick; mặt người đã chọn nằm DƯỚI ô; đồng hồ vòng tròn.
  *   2. Server chốt (`chon.ket`): bỏ mọi ô ÍT phiếu hơn (kể cả ô không ai chọn) — ô co lại, ô còn lại trượt vào giữa.
- *   3. Còn nhiều ô BẰNG phiếu: nháy luân phiên chậm dần, dừng ở số server đã bốc, xoá ô kia. Cuối cùng MỘT ô ở giữa +
- *      "Chơi N thẻ" + pháo giấy. Nhịp lấy từ engine `lichChot` — server chờ đúng `tong` ms rồi mới đếm ngược.
+ *   3. Còn nhiều ô BẰNG phiếu: nháy luân phiên chậm dần, dừng ở số server đã bốc, xoá ô kia. Cuối cùng MỘT ô ở giữa (không chữ) +
+ *      pháo giấy. Nhịp lấy từ engine `lichChot` — server chờ đúng `tong` ms rồi mới đếm ngược.
  * Máy vào giữa lúc đang diễn thì nhảy tới đúng bước (theo `ket.con`), không diễn lại từ đầu.
  * Người xem THẤY nhưng ô bị khoá. MOUNT MỘT CHỖ (OnlineScreen) — teleport ra body, nổi trên cả bảng kết quả.
  * Đồng hồ vòng: độ dài nét do JS đặt theo ms còn lại mỗi 0,1 s (đừng đổi sang @keyframes — server gửi số ms còn lại,
@@ -122,7 +122,7 @@ watch(() => chon.value?.id, () => { if (!ket.value) { pha.value = 'chon'; conO.v
 onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
 
 /* ÍT CHỮ (chủ dự án 24.11.2026: "bỏ bớt text đi… người dùng hiểu mà"): chỉ một tiêu đề câu hỏi suốt lúc chọn/rút/bốc,
-   ô chỉ có con số (bỏ nhãn Ít hơn/Nhiều hơn), dòng cuối "Đã chọn 2/3"; lúc chốt không tiêu đề — ô thắng + "Chơi N thẻ". */
+   ô chỉ có con số (bỏ nhãn Ít hơn/Nhiều hơn), dòng cuối "Đã chọn 2/3"; lúc chốt KHÔNG CHỮ NÀO — chỉ ô thắng ở giữa. */
 </script>
 
 <template>
@@ -168,9 +168,7 @@ onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
             <span v-if="phao.length" class="ct-phao" aria-hidden="true"><i v-for="p in phao" :key="p.id" :style="p.s" /></span>
           </div>
 
-          <p v-if="pha === 'chot' && ket" class="ct-ket">{{ t('ct.choi', { n: ket.the }) }}</p>
-          <template v-else-if="pha !== 'chon'" />
-          <p v-else class="ct-chan" :class="{ xong: !chiXem && cuaToi }">
+          <p v-if="pha === 'chon'" class="ct-chan" :class="{ xong: !chiXem && cuaToi }">
             <Eye v-if="chiXem" :size="15" :stroke-width="2.6" aria-hidden="true" /><Check v-else-if="cuaToi" :size="15" :stroke-width="3" aria-hidden="true" />{{ t('ct.daChon', { da: daChon, tong: tongNguoi }) }}
           </p>
         </div>
@@ -233,8 +231,6 @@ onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
   border-top: 1px solid var(--line); font-size: 13px; font-weight: 800; color: var(--muted); text-align: center; }
 .ct-chan.xong { color: #2f8a14; }
 :global([data-theme='dark'] .ct-chan.xong) { color: #8fdc6a; }
-.ct-ket { margin: 0; padding-top: 4px; text-align: center; font: 800 21px/1.2 var(--font-display); animation: ct-no2 .5s cubic-bezier(.3, 1.6, .5, 1) .1s backwards; }
-.ct-ket small { display: block; font: 700 13px var(--font-body, inherit); color: var(--muted); }
 /* Pháo giấy: bắn từ tâm ô thắng (ô thắng luôn ở giữa lưới) */
 .ct-phao { position: absolute; left: 50%; top: 48px; width: 0; height: 0; pointer-events: none; }
 .ct-phao i { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); border-radius: 2px; background: var(--c);
@@ -250,7 +246,7 @@ onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
 @keyframes ct-bay { 0% { transform: translate(-50%, -50%) rotate(0); opacity: 1; }
   100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .ct-cot.rut, .ct-o.quay, .ct-o.thang, .ct-o.rung, .ct-ai > *, .ct-gio.thap, .ct-ket, .ct-phao i { animation: none; }
+  .ct-cot.rut, .ct-o.quay, .ct-o.thang, .ct-o.rung, .ct-ai > *, .ct-gio.thap, .ct-phao i { animation: none; }
   .ct-cot.rut { display: none; }
 }
 .ct-enter-active, .ct-leave-active { transition: opacity .16s ease; }
