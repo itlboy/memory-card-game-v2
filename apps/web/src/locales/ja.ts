@@ -933,7 +933,6 @@ const ja: TuDien = {
   'tn.choiThem': "あと{n}回ほどあそぶと、数字がもっと信頼できます",
   'ct.hoi': "次のゲームは何枚？",
   'ct.conGiay': "あと{n}秒",
-  'ct.choi': "{n}枚で遊びます",
   'ct.daChon': "{da}/{tong}人が選択",
 };
 

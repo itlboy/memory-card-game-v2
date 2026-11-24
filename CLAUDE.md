@@ -1913,7 +1913,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   ô ở giữa: (1) cả phòng chọn; (2) bỏ mọi ô ít phiếu hơn, kể cả ô không ai chọn (ô co bề ngang về 0 để ô còn lại trượt vào
   giữa); (3) còn nhiều ô bằng phiếu → nháy luân phiên chậm dần, dừng ở số SERVER đã bốc, xoá ô kia. ÍT CHỮ (chủ dự án: "bỏ bớt
   chữ đi vì người dùng hiểu mà"): ô CHỈ CÓ CON SỐ (đã bỏ nhãn Ít hơn/Nhiều hơn), một tiêu đề câu hỏi suốt lúc chọn/rút/bốc,
-  dòng cuối "Đã chọn 2/3", lúc chốt không tiêu đề — ô thắng + "Chơi N thẻ". Đừng thêm chữ giải thích luật lại. Kèm tiếng (`sfx.phieuKhac/
+  dòng cuối "Đã chọn 2/3", lúc chốt KHÔNG CHỮ NÀO, chỉ ô thắng ở giữa ("bỏ cả chữ Chơi 16 thẻ"). Đừng thêm chữ giải thích luật lại. Kèm tiếng (`sfx.phieuKhac/
   vut/nhayBoc/chotThe`, tick 3 giây cuối) + pháo giấy. Server: `chotChon` bốc ngay (engine `ketQuaChon`), gửi `chon.ket`
   `{the, dan, ly, con}`, giữ phòng ở phòng chờ đúng `lichChot().tong` (thắng rõ ~2,4 s, hoà ~5 s) rồi `vaoVanSauChot` mới đếm
   ngược; đã chốt thì bỏ phiếu mới, bot không bỏ phiếu. Nhịp ở engine (`CHOT_*_MS`) — đổi số là cả hai bên đổi theo. Client

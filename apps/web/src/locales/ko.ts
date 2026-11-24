@@ -933,7 +933,6 @@ const ko: TuDien = {
   'tn.choiThem': "약 {n}판 더 하면 수치가 더 믿을 만해져요",
   'ct.hoi': "다음 판은 몇 장?",
   'ct.conGiay': "{n}초 남음",
-  'ct.choi': "{n}장으로 해요",
   'ct.daChon': "{da}/{tong}명 선택",
 };
 

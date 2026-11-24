@@ -936,7 +936,6 @@ const zhTW: TuDien = {
   'tn.choiThem': "再玩大約 {n} 局，資料會更可信",
   'ct.hoi': "下一局玩幾張？",
   'ct.conGiay': "還剩 {n} 秒",
-  'ct.choi': "玩 {n} 張",
   'ct.daChon': "已選 {da}/{tong}",
 };
 

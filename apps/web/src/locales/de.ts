@@ -936,7 +936,6 @@ const de: TuDien = {
   'tn.choiThem': "Noch etwa {n} Runden für verlässlichere Werte",
   'ct.hoi': "Wie viele Karten in der nächsten Runde?",
   'ct.conGiay': "Noch {n} Sekunden",
-  'ct.choi': "{n} Karten",
   'ct.daChon': "{da}/{tong} gewählt",
 };
 

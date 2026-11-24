@@ -936,7 +936,6 @@ const tr: TuDien = {
   'tn.choiThem': "Daha güvenilir veri için yaklaşık {n} oyun daha oyna",
   'ct.hoi': "Sonraki oyunda kaç kart?",
   'ct.conGiay': "{n} saniye kaldı",
-  'ct.choi': "{n} kart",
   'ct.daChon': "{da}/{tong} oy verdi",
 };
 
