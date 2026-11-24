@@ -1640,6 +1640,13 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   KHÔNG gửi push khi app đóng (chống spam) — muốn có thì bàn lại với chủ dự án.
 - Trang Cài đặt (TopBar `trangCd`): menu chỉ giữ Giao diện · Âm thanh · Nhạc + "Cài đặt ›" + Luật chơi; trang chia
   Âm thanh / Hiển thị / Chơi online (Nhận lời mời, Báo khi có phòng) / Ứng dụng. Bảng ngôn ngữ (z 20) nổi đè trang (z 19).
+  **THAY Ở 1.9.45 (24.11.2026, mockup duyệt https://claude.ai/artifact/R2Az6gHMGXHopiK7eNWXfo):** KHÔNG còn trang phủ kín
+  — `trangCd` là TRANG CON trong khung menu (Transition trượt ngang `cd-vao`/`cd-ra`), ‹ hoặc Back máy (`useBackCloser(30.5)`)
+  về menu chứ không đóng hẳn (chủ dự án: "bấm back lại thì vẫn ở menu cũ"). Trang con KHÔNG lặp Giao diện/Âm thanh/Nhạc;
+  dòng kiểu menu (icon nét đơn, không ô màu, không chú thích — chỉ hiện dòng kết quả chuông khi vừa bấm). Hàng cuối trang
+  chính chia đôi "Luật chơi | Cập nhật" (Cập nhật chỉ app; chấm đỏ ở nút ☰ và nút Cập nhật khi `trangThaiOta` đang tải/
+  chờ áp). BẪY: `.menu` cần `width: max-content` — khung chứa chỉ rộng bằng nút ☰ nên menu co về min-content và cắt mất
+  mép phải; trang con giữ đúng bề ngang trang chính (`rongMenu`) cho khỏi co giật.
 - `/api/ping` có thêm `phong.sanh` = số kết nối sảnh.
 
 ## Thách đấu ở bảng xếp hạng + nút Mời chờ + thanh emoji đáy (22.11.2026, mockup duyệt https://claude.ai/artifact/9DrmCWLCmnfSRy3JYnNiiG)

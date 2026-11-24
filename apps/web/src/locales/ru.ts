@@ -393,6 +393,7 @@ const ru: TuDien = {
   'tb.kiemCapNhat': "Проверить обновления",
   'tb.dangKiem': "Проверка",
   'tb.moiNhat': "Последняя версия",
+  'tb.capNhat': "Обновить",
   'tb.matMang': "Нет сети",
   'tb.canBanStore': "Обновите в магазине",
   'chung.capNhat': "Обновить",

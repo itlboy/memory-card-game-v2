@@ -381,6 +381,7 @@ const vi = {
   'tb.kiemCapNhat': "Kiểm tra cập nhật",
   'tb.dangKiem': "Đang kiểm tra",
   'tb.moiNhat': "Mới nhất",
+  'tb.capNhat': "Cập nhật",
   'tb.matMang': "Mất mạng",
   'tb.canBanStore': "Cập nhật ở store",
   'chung.capNhat': "Cập nhật",

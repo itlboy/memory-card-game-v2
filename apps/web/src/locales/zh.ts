@@ -374,6 +374,7 @@ const zh: TuDien = {
   'tb.kiemCapNhat': "检查更新",
   'tb.dangKiem': "正在检查",
   'tb.moiNhat': "已是最新",
+  'tb.capNhat': "更新",
   'tb.matMang': "无网络",
   'tb.canBanStore': "请在商店更新",
   'chung.capNhat': "更新",

@@ -218,13 +218,17 @@ describe('client: nối sảnh đúng lúc, giao diện', () => {
     const o = doc('components/OnlineScreen.vue');
     expect(o).toMatch(/coTheMoi = computed\(\(\) => o\.isHost\.value && o\.room\.value\?\.status === 'lobby' && conCho\.value > 0/);
   });
-  it('trang Cài đặt: menu giữ Giao diện/Âm thanh/Nhạc; Rung, Ngôn ngữ, lời mời, cập nhật nằm trong trang', () => {
+  it('Cài đặt là trang con TRONG menu (24.11.2026): trang chính giữ Giao diện/Âm thanh/Nhạc + Luật chơi | Cập nhật; Rung, Ngôn ngữ, lời mời ở trang con', () => {
     const tb = doc('components/TopBar.vue');
-    const menu = tb.slice(tb.indexOf('class="menu"'), tb.indexOf('</header>'));
-    const trang = tb.slice(tb.indexOf('class="cd-trang'));
-    for (const k of ["t('tb.giaoDien')", "t('tb.amThanh')", "t('tb.nhacNen')", 'moTrangCd']) expect(menu).toContain(k);
-    for (const k of ["t('tb.rung')", "t('tb.ngonNgu')", 'kiemCapNhat']) expect(menu).not.toContain(k);
-    for (const k of ["t('tb.rung')", "t('tb.ngonNgu')", 'kiemCapNhat', "t('cd.nhanMoi')", "t('cd.baoPhong')"]) expect(trang).toContain(k);
+    expect(tb).not.toContain('class="cd-trang');
+    const chinh = tb.slice(tb.indexOf('key="chinh"'), tb.indexOf('key="cd"'));
+    const con = tb.slice(tb.indexOf('key="cd"'), tb.indexOf('</header>'));
+    for (const k of ["t('tb.giaoDien')", "t('tb.amThanh')", "t('tb.nhacNen')", 'moTrangCd', "t('tb.luatChoi')", 'kiemCapNhat']) expect(chinh).toContain(k);
+    for (const k of ["t('tb.rung')", "t('tb.ngonNgu')"]) expect(chinh).not.toContain(k);
+    for (const k of ["t('tb.rung')", "t('tb.ngonNgu')", "t('cd.nhanMoi')", "t('cd.baoPhong')", "t('cd.phienBan')"]) expect(con).toContain(k);
+    for (const k of ["t('tb.giaoDien')", "t('tb.amThanh')", "t('tb.nhacNen')"]) expect(con).not.toContain(k);
+    // Back ở trang con là về menu, không đóng hẳn
+    expect(tb).toMatch(/useBackCloser\(30\.5, \(\) => open\.value && trangCd\.value/);
   });
   it('phòng chờ không tràn ngang: cột danh sách người chơi khoá bằng bề ngang khung (Xiaomi 360px, 21.11.2026)', () => {
     const o = doc('components/OnlineScreen.vue');

@@ -377,6 +377,7 @@ const de: TuDien = {
   'tb.kiemCapNhat': "Nach Updates suchen",
   'tb.dangKiem': "Wird geprüft",
   'tb.moiNhat': "Aktuell",
+  'tb.capNhat': "Update",
   'tb.matMang': "Offline",
   'tb.canBanStore': "Im Store aktualisieren",
   'chung.capNhat': "Aktualisieren",
