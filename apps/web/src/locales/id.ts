@@ -377,6 +377,7 @@ const id: TuDien = {
   'tb.kiemCapNhat': "Cek pembaruan",
   'tb.dangKiem': "Memeriksa",
   'tb.moiNhat': "Sudah terbaru",
+  'tb.capNhat': "Perbarui",
   'tb.matMang': "Offline",
   'tb.canBanStore': "Perbarui di store",
   'chung.capNhat': "Perbarui",

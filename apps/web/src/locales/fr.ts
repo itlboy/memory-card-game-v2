@@ -380,6 +380,7 @@ const fr: TuDien = {
   'tb.kiemCapNhat': "Rechercher une mise à jour",
   'tb.dangKiem': "Vérification",
   'tb.moiNhat': "À jour",
+  'tb.capNhat': "Mettre à jour",
   'tb.matMang': "Hors ligne",
   'tb.canBanStore': "Mettre à jour via le store",
   'chung.capNhat': "Mettre à jour",

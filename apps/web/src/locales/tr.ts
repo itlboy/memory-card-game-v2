@@ -377,6 +377,7 @@ const tr: TuDien = {
   'tb.kiemCapNhat': "Güncellemeleri denetle",
   'tb.dangKiem': "Denetleniyor",
   'tb.moiNhat': "Güncel",
+  'tb.capNhat': "Güncelle",
   'tb.matMang': "Çevrimdışı",
   'tb.canBanStore': "Mağazadan güncelle",
   'chung.capNhat': "Güncelle",
