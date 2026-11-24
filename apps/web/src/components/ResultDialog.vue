@@ -14,8 +14,9 @@ import { clock, num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
-import { Brain, ChevronDown, Flame, Hand, LogOut, Pointer, Settings2, Share, Timer, Zap } from 'lucide-vue-next';
+import { ChartColumn, ChevronDown, Flame, Hand, LogOut, Pointer, Settings2, Share, Timer, Zap } from 'lucide-vue-next';
 import { hienTriNho, triNhoVan } from '@/lib/tri-nho';
+import { store } from '@/lib/storage';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
@@ -193,6 +194,15 @@ const triNho = computed(() => {
   const toi = props.multiplayerOnline ? r.find((x) => x.id === props.toiId)
     : props.multiplayer ? r.find((x) => !laBotId(x.id) && x.id !== 'bot') : r[0];
   return triNhoVan(toi, props.soCap);
+});
+/** KỶ LỤC (24.11.2026): điểm ván này ≥ ván cao nhất từng ghi. Nhật ký đã ghi ván này TRƯỚC khi bảng mở (App.vue
+ *  `ghiTriNho`) nên mức cao đã gồm nó — so ≥, và phải có ít nhất 2 ván (ván đầu đời không tính là kỷ lục). */
+const kyLuc = computed(() => {
+  const d = triNho.value?.diem;
+  if (!d) return false;
+  const nk = Object.values(store.nhatKyTriNho());
+  const tongVan = nk.reduce((a, n) => a + Object.values(n.ban ?? {}).reduce((b, x) => b + x.van, 0), 0);
+  return tongVan >= 2 && d >= Math.max(0, ...nk.map((n) => n.cao ?? 0));
 });
 
 /**
@@ -469,8 +479,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
            thẳng dễ nhìn"; bản thêm một ô rời bị chê "xấu và loạn"). Trí nhớ là hàng ĐẦU, tô xanh ngọc. -->
       <dl v-else-if="triNho" class="stats bang">
         <div class="h-tn">
-          <Brain :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('tn.diem') }}</dt><i aria-hidden="true" />
-          <dd v-if="triNho.diem !== null"><small>{{ triNho.tiLe }}%</small>{{ num(triNho.diem) }}</dd>
+          <ChartColumn :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('tn.diem') }}<em v-if="kyLuc" class="ky-luc">{{ t('tn.kyLuc') }}</em></dt><i aria-hidden="true" />
+          <dd v-if="triNho.diem !== null">{{ num(triNho.diem) }}<small>/1000</small></dd>
           <dd v-else class="chua">{{ t('tn.chuaDu') }}</dd>
         </div>
         <template v-if="!multiplayer">
@@ -828,6 +838,8 @@ h2 { margin: 0 0 4px; }
 .stats.bang dd.chua { font-size: 13px; font-weight: 700; color: var(--muted); }
 .stats.bang .h-tn svg, .stats.bang .h-tn dt, .stats.bang .h-tn dd { color: #0b7468; }
 .stats.bang .h-tn dt { font-weight: 800; }
+.stats.bang .h-tn dd small { margin: 0 0 0 2px; font-size: .7em; opacity: .65; }
+.ky-luc { margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: #ffd36b; color: #6b4a00; font: 900 10.5px/1.3 var(--font-body); font-style: normal; vertical-align: 1px; }
 :global([data-theme='dark'] .stats.bang .h-tn svg), :global([data-theme='dark'] .stats.bang .h-tn dt),
 :global([data-theme='dark'] .stats.bang .h-tn dd) { color: #6fe0d0; }
 .stats { margin: 0; display: grid; gap: 6px; }

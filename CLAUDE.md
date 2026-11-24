@@ -1882,6 +1882,14 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 
 ## ĐIỂM TRÍ NHỚ + SỔ TRÍ NHỚ (23.11.2026) — THỬ NGHIỆM, CHỈ KHI DEBUG BẬT
 
+- **BẢN 2 = "CHỈ SỐ TRÍ NHỚ" (1.9.46, 24.11.2026, mockup duyệt https://claude.ai/artifact/C4U5gqmAvLeRgv42TkJxZ9) — VẪN
+  CHỈ KHI DEBUG.** Chủ dự án chốt, ĐỪNG làm ngược: tên "Chỉ số trí nhớ" (không "Sổ"); biểu tượng BIỂU ĐỒ `ChartColumn`
+  ở mọi chỗ, KHÔNG BAO GIỜ `Brain`; người chơi KHÔNG có khái niệm "cặp" — cỡ bàn ghi SỐ THẺ (code đếm cặp, nhân 2 lúc
+  hiện: ≤16 · 18–36 · 38–60 · 62+ thẻ, trần 1000 = bàn 88 thẻ). Điểm có thang "/ 1000" + thước; dưới mốc tin cậy 1 thì
+  KHÔNG bày điểm mà "Chơi thêm N ván để có điểm" + thanh tiến trình; mức 2 ghi "Tạm tính". Ba chỉ số một khay (Tỉ lệ
+  nhớ · Ván cao nhất · Nhớ xa nhất); biểu đồ chỉ ghi số ở hôm nay + ngày cao nhất VÀ chỉ cột đủ số liệu; cỡ bàn chỉ
+  nhóm đã chơi. Bảng kết quả: "412/1000" + nhãn "Kỷ lục" (≥ mức cao nhất từng ghi, ≥ 2 ván — nhật ký ghi TRƯỚC khi bảng mở).
+
 - **Công thức (chủ dự án chốt): điểm ván = tỉ lệ nhớ × trần của bàn.** "Cơ hội nhớ" = lật lá đầu mà lá
   đôi ĐÃ từng lộ (`tuoiDoi` ở engine): ghép trúng = nhớ, trật = quên (cùng điều kiện với `quen`); ghép
   trúng hai lá chưa từng lộ là MAY, không chấm. Tỉ lệ có hệ số ĐỘ LÂU (`NANG_NHO`/`NANG_QUEN`, nhóm
