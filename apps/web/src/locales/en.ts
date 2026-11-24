@@ -934,17 +934,9 @@ const en: TuDien = {
   'tn.chuIt': "Little data",
   'tn.choiThem': "Play about {n} more games for more reliable numbers",
   'ct.hoi': "How many cards next game?",
-  'ct.luat': "Most votes wins",
-  'ct.it': "Fewer",
-  'ct.giu': "Same",
-  'ct.nhieu': "More",
   'ct.conGiay': "{n} seconds left",
-  'ct.cham': "Tap a box to vote · {da}/{tong} voted",
-  'ct.banChon': "You picked {n} · {da}/{tong} voted",
-  'ct.dangXem': "You're watching · {da}/{tong} voted",
-  'ct.hetGio': "Time's up!",
-  'ct.bocTham': "Drawing…",
   'ct.choi': "Playing {n} cards",
+  'ct.daChon': "{da}/{tong} voted",
 };
 
 export default en;

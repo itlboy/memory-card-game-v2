@@ -935,17 +935,9 @@ const id: TuDien = {
   'tn.chuIt': "Data sedikit",
   'tn.choiThem': "Main sekitar {n} kali lagi agar datanya lebih bisa dipercaya",
   'ct.hoi': "Berapa kartu di permainan berikutnya?",
-  'ct.luat': "Suara terbanyak menang",
-  'ct.it': "Lebih sedikit",
-  'ct.giu': "Sama",
-  'ct.nhieu': "Lebih banyak",
   'ct.conGiay': "Sisa {n} detik",
-  'ct.cham': "Ketuk satu kotak · {da}/{tong} sudah memilih",
-  'ct.banChon': "Kamu memilih {n} · {da}/{tong} sudah memilih",
-  'ct.dangXem': "Kamu menonton · {da}/{tong} sudah memilih",
-  'ct.hetGio': "Waktu habis!",
-  'ct.bocTham': "Mengundi…",
   'ct.choi': "Main {n} kartu",
+  'ct.daChon': "{da}/{tong} sudah memilih",
 };
 
 export default id;

@@ -935,17 +935,9 @@ const tr: TuDien = {
   'tn.chuIt': "Az veri",
   'tn.choiThem': "Daha güvenilir veri için yaklaşık {n} oyun daha oyna",
   'ct.hoi': "Sonraki oyunda kaç kart?",
-  'ct.luat': "En çok oy alan kazanır",
-  'ct.it': "Daha az",
-  'ct.giu': "Aynı",
-  'ct.nhieu': "Daha çok",
   'ct.conGiay': "{n} saniye kaldı",
-  'ct.cham': "Bir kutuya dokun · {da}/{tong} oy verdi",
-  'ct.banChon': "{n} seçtin · {da}/{tong} oy verdi",
-  'ct.dangXem': "İzliyorsun · {da}/{tong} oy verdi",
-  'ct.hetGio': "Süre doldu!",
-  'ct.bocTham': "Kura çekiliyor…",
   'ct.choi': "{n} kart",
+  'ct.daChon': "{da}/{tong} oy verdi",
 };
 
 export default tr;

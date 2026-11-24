@@ -946,17 +946,9 @@ const vi = {
   'tn.chuIt': "Ít số liệu",
   'tn.choiThem': "Chơi thêm khoảng {n} ván nữa để số liệu đáng tin hơn",
   'ct.hoi': "Ván sau chơi mấy thẻ?",
-  'ct.luat': "Nhiều phiếu nhất được chơi",
-  'ct.it': "Ít hơn",
-  'ct.giu': "Giữ nguyên",
-  'ct.nhieu': "Nhiều hơn",
   'ct.conGiay': "Còn {n} giây",
-  'ct.cham': "Chạm một ô để chọn · đã chọn {da}/{tong}",
-  'ct.banChon': "Bạn chọn {n} · đã chọn {da}/{tong}",
-  'ct.dangXem': "Bạn đang xem · đã chọn {da}/{tong}",
-  'ct.hetGio': "Hết giờ!",
-  'ct.bocTham': "Bốc thăm…",
   'ct.choi': "Chơi {n} thẻ",
+  'ct.daChon': "Đã chọn {da}/{tong}",
 };
 
 export default vi;
