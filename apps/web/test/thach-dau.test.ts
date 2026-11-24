@@ -114,7 +114,7 @@ describe('thanh emoji cố định đáy màn (một chỗ cho phòng chờ, vá
     expect(doc('styles/global.css')).toMatch(/--eb-dock-h: 42px;/);
     expect(d.slice(d.indexOf('.eb-dock {'))).not.toMatch(/background|border-top|backdrop-filter/);
     // lún vào vùng an toàn đáy tối đa 18px; chỗ chừa của màn trên trừ đúng phần đó
-    expect(doc('styles/global.css')).toContain('--eb-lun: min(18px, env(safe-area-inset-bottom, 0px));');
+    expect(doc('styles/global.css')).toContain('--eb-lun: min(8px, env(safe-area-inset-bottom, 0px));');
     expect(doc('styles/global.css')).toContain('.eb-cho { flex: none; height: calc(var(--eb-dock-h, 42px) - var(--eb-lun, 0px)); }');
   });
 });
