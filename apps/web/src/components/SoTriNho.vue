@@ -51,8 +51,14 @@ const cot = ngay.map((k) => {
 const dinh = Math.max(200, ...cot.map((c) => c.diem ?? 0));
 const caoCot = (d: number | null): string => (d === null ? '4px' : `${Math.max(10, Math.round((d / dinh) * 100))}%`);
 const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice(5, 7))}`;
-/** Chỉ ghi ngày ở cột ĐẦU, cột CUỐI và cột ĐANG CHỌN — 14 nhãn là 14 con số không ai đọc. */
-const coNhan = (k: string, i: number): boolean => i === 0 || i === SO_COT - 1 || k === chon.value;
+/**
+ * Chỉ ghi ngày ở cột ĐẦU, cột CUỐI và cột ĐANG CHỌN — 14 nhãn là 14 con số không ai đọc. Nhãn ("24/11") rộng hơn cột,
+ * nên nhãn đầu/cuối NHƯỜNG khi cột đang chọn nằm sát nó (cách dưới 2 cột): chủ dự án gửi ảnh 25.11.2026 — chọn 24/11
+ * thì "24/11" đè lên "25/11".
+ */
+const viTriChon = computed(() => ngay.indexOf(chon.value));
+const coNhan = (k: string, i: number): boolean =>
+  k === chon.value || ((i === 0 || i === SO_COT - 1) && Math.abs(i - viTriChon.value) >= 2);
 </script>
 
 <template>
