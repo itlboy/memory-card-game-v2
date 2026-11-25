@@ -604,6 +604,7 @@ const tr: TuDien = {
   'or.loi.notReady': 'Henüz hazır değil: {ten}',
   'or.dong.cancelled': 'Oda sahibi odayı kapattı.',
   'or.dong.kicked': 'Oda sahibi seni odadan çıkardı.',
+  'or.dong.sang-xem': "Hazır değildin, şimdi izliyorsun. Sonraki tur için “Oyuna katıl” düğmesine dokun.",
   'pd.kicked.tieuDe': '{ma} odasından çıktın',
   'pd.kicked.tieuDeKhongMa': 'Odadan çıktın',
   'pd.kicked.than': 'Oda sahibi seni çıkardı. Başka bir odaya katıl ya da yeni oda kur.',

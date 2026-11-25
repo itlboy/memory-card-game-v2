@@ -1104,6 +1104,7 @@ export function useOnlineRoom() {
         if (msg.spectator && !spectator.value) moChucNang('online_xem');   // THỐNG KÊ: vào xem trận (trước khi gán — nối lại không đếm lần nữa)
         spectator.value = !!msg.spectator;
         if (msg.spectator) muonXem = true;   // đã là người xem thì GIỮ vai đó tới khi tự bấm "Vào chơi"
+        if (baoSangXem) { baoSangXem = false; if (msg.spectator) error.value = t('or.dong.sang-xem'); }
         tatNoiLai();
         reconnectDeadline = 0;
         room.value = msg.room;
@@ -1214,6 +1215,20 @@ export function useOnlineRoom() {
       }
 
       case 'closed':
+        /*
+         * BỊ CHUYỂN SANG XEM (25.11.2026): bot phòng chờ lâu mà mình chưa sẵn sàng → server thu ghế kèm mã `sang-xem`.
+         * Không về sảnh: nối lại ngay vào chính phòng đó làm NGƯỜI XEM, kèm một dòng báo (hiện ở tin `welcome` kế).
+         */
+        if (msg.code === 'sang-xem' && code) {
+          const ma = code, ten = myName;
+          token = '';
+          clearStored();
+          muonXem = true;
+          baoSangXem = true;
+          moChucNang('online_sang_xem');
+          connect(ma, ten);
+          break;
+        }
         lyDoRoi ||= msg.code === 'kicked' ? 'bi_kick' : 'chu_huy';
         /*
          * Phòng đóng (chủ phòng huỷ) hoặc bị mời ra: về MÀN CHỜ kèm một dòng
@@ -1796,6 +1811,8 @@ export function useOnlineRoom() {
    * đều khai `?xem=1` để server không xếp mình vào ghế người chơi dù phòng chờ còn chỗ.
    */
   let muonXem = false;
+  /** Vừa bị chuyển sang xem (mã `sang-xem`) — báo một dòng khi nối lại xong. */
+  let baoSangXem = false;
   /** Người xem bấm "Vào chơi" ở phòng chờ: nối lại KHÔNG `xem=1` — còn chỗ thì server cho ngồi, hết chỗ thì vẫn là người xem. */
   function vaoChoi(): void {
     if (!spectator.value || !code) return;

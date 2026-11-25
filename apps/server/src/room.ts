@@ -1082,9 +1082,13 @@ export class RoomDO extends DurableObject<Env> {
         const nan = this.room.players.find((p) => p.id === ai);
         if (!nan) return;
 
+        // `xem: true` ở PHÒNG CHỜ: trả ghế nhưng app tự nối lại làm người xem (bot phòng dùng khi người chơi đứng im quá lâu)
+        const sangXem = msg.xem === true && this.room.status === 'lobby';
         for (const sock of this.ctx.getWebSockets(ai)) {
-          this.send(sock, { t: 'closed', code: 'kicked', message: 'Chủ phòng đã mời bạn ra khỏi phòng.' });
-          sock.close(4003, 'kicked');
+          this.send(sock, sangXem
+            ? { t: 'closed', code: 'sang-xem', message: 'Bạn chưa sẵn sàng nên được chuyển sang xem.' }
+            : { t: 'closed', code: 'kicked', message: 'Chủ phòng đã mời bạn ra khỏi phòng.' });
+          sock.close(4003, sangXem ? 'sang-xem' : 'kicked');
         }
         if (this.room.status === 'playing' && this.game) {
           const events = this.xuThua(ai, Date.now());

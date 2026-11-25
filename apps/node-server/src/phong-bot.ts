@@ -50,7 +50,7 @@ const DOI_SAU = Math.round(so('DOI_SAU', 10));
 const THE_MIN = Math.round(so('THE_MIN', 12));
 const THE_MAX = Math.round(so('THE_MAX', 59));
 const XEM_KQ_MS = so('XEM_KQ_MS', 8_000);
-/** Người vào sát giờ vẫn có ngần này để bấm Sẵn sàng; hết hạn mà chưa sẵn sàng: nhắc + chờ thêm một lần rồi mời ra. */
+/** Người vào sát giờ vẫn có ngần này để bấm Sẵn sàng; hết hạn mà chưa sẵn sàng: nhắc + chờ thêm một lần rồi chuyển sang người xem. */
 const KIP_SAN_SANG_MS = Math.min(12_000, CHO_MS);
 const CHO_THEM_MS = Math.min(15_000, CHO_MS);
 /** Mọi người (thật) đã sẵn sàng thì không bắt họ ngồi nhìn đồng hồ: vào ván sau ngần này. */
@@ -411,7 +411,8 @@ class Phong {
     if (now < this.han || now - this.startGui < 2500) return;
     if (chuaSan.length) {
       if (!this.daNhac) { this.daNhac = true; this.han = now + CHO_THEM_MS; chu.gui({ t: 'nhac' }); return; }
-      for (const p of chuaSan) chu.gui({ t: 'kick', playerId: p.id });   // đứng im quá lâu: mời ra, vào lại lúc nào cũng được
+      // Đứng im quá lâu: KHÔNG mời ra sảnh nữa (25.11.2026) — trả ghế, app tự chuyển họ sang NGƯỜI XEM, muốn chơi thì bấm "Vào chơi"
+      for (const p of chuaSan) chu.gui({ t: 'kick', playerId: p.id, xem: true });
       this.han = now + 1500;
       return;
     }

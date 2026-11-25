@@ -603,6 +603,7 @@ const es: TuDien = {
   'or.loi.notReady': 'Aún no están listos: {ten}',
   'or.dong.cancelled': 'El anfitrión cerró la sala.',
   'or.dong.kicked': 'El anfitrión te sacó de la sala.',
+  'or.dong.sang-xem': "No estabas listo, así que ahora estás mirando. Toca «Unirme a jugar» para la siguiente ronda.",
   'pd.kicked.tieuDe': 'Saliste de la sala {ma}',
   'pd.kicked.tieuDeKhongMa': 'Saliste de la sala',
   'pd.kicked.than': 'El anfitrión te sacó. Entra en otra sala o crea una nueva.',

@@ -601,6 +601,7 @@ const ja: TuDien = {
   'or.loi.notReady': 'まだ準備ができていません：{ten}',
   'or.dong.cancelled': 'ホストがルームを閉じました。',
   'or.dong.kicked': 'ホストによってルームから退出させられました。',
+  'or.dong.sang-xem': "準備ができていなかったため、観戦に切り替わりました。「プレイに参加」をタップすると次のラウンドに参加できます。",
   'pd.kicked.tieuDe': 'ルーム {ma} から退出しました',
   'pd.kicked.tieuDeKhongMa': 'ルームから退出しました',
   'pd.kicked.than': 'ホストに退出させられました。別のルームに入るか、新しく作りましょう。',
