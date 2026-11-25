@@ -44,10 +44,13 @@ export interface Player extends PlayerInit {
    * ĐIỂM TRÍ NHỚ — số đếm THÔ, chia theo ĐỘ LÂU (`scoring.nhomTuoi`: lá đôi lộ ra cách đây
    * 1 · 2–3 · 4–7 · 8–15 · 16+ nước). `nhoTheo` = ghép đúng khi lá đôi đã từng lộ; `quenTheo`
    * = cùng tình huống mà ghép sai (tổng của nó = `quen`). Ghép đúng do may không vào đây.
-   * Thiếu = chưa có lần nào (hoặc server/bản lưu cũ). Điểm tính bằng `diemTriNho()`.
+   * Thiếu = chưa có lần nào (hoặc server/bản lưu cũ). Điểm tính bằng `chiSoTriNho()`.
+   * `mayTheo` (25.11.2026): PHẦN ĂN MAY của các cơ hội đó, cùng cách chia — mỗi cơ hội cộng 1/số lá còn úp lúc lật
+   * lá thứ hai (xác suất đoán bừa mà trúng). Số THẬP PHÂN. Thiếu = ván chấm bằng engine cũ.
    */
   nhoTheo?: number[];
   quenTheo?: number[];
+  mayTheo?: number[];
   /** Lần nhớ đúng XA nhất trong ván, tính bằng số nước. */
   tamNho?: number;
   lives: number;

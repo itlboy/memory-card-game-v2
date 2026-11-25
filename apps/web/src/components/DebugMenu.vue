@@ -84,7 +84,7 @@ function veMacDinh(): void {
     </button>
     <button class="thach th-ngoc dbg-thu" type="button" @click="emit('so-tri-nho')">
       <span class="dbg-thu-ic" aria-hidden="true"><Brain :size="28" :stroke-width="2.3" /></span>
-      <span class="dbg-thu-chu"><small>{{ t('mt.thuNghiem') }}</small><b>{{ t('tn.ten') }}</b><span>{{ t('tn.moTa') }}</span></span>
+      <span class="dbg-thu-chu"><small>{{ t('mt.thuNghiem') }}</small><b>{{ t('tn.ten') }}</b><span>{{ t('tn.nhoBaoLau') }}</span></span>
       <span class="dbg-thu-mui" aria-hidden="true">›</span>
     </button>
 

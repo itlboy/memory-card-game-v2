@@ -10,8 +10,8 @@ export { THEME_GOP, doiDanhHieu, doiThemeIds, themeMoi } from './theme-gop.js';
 export { xoayNguoiDau } from './xoay.js';
 export {
   BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
-  CAP_TRAN_TRI_NHO, CO_HOI_NHO_TOI_THIEU, NANG_NHO, NANG_QUEN, SO_NHOM_TUOI, TRAN_TRI_NHO,
-  coHoiNho, comboMultiplier, diemTriNho, isDraw, nhomTuoi, pairScore, rankPlayers, rongNhomTuoi, starsByMisses, starsFor, tiLeNho, timeBonus, tranBan
+  DIEM_CHANG, LAN_MO_CHANG, MOC_BAC_TRI_NHO, SO_NHOM_TUOI,
+  bacTriNho, chiSoTriNho, coHoiNho, comboMultiplier, isDraw, nhomTuoi, pairScore, rankPlayers, rongNhomTuoi, starsByMisses, starsFor, timeBonus
 } from './scoring.js';
 export {
   BOARD_SIZES, CAMPAIGN_LEVELS, LEVEL_KEYS, LUAT_THEO_CO, campaignSpec, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,
@@ -38,3 +38,4 @@ export type {
   PublicRoom, DoiId, QuickEmoji, EmojiNhom, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView, KetChon
 } from './online.js';
 export { AVATAR_HO_SO, MAU_HO_SO, matHoSo, mauHoSo } from './ho-so.js';
+export type { ChangNho } from './scoring.js';

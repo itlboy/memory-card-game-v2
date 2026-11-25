@@ -35,7 +35,8 @@ const coKhungApp = typeof document !== 'undefined' && !!document.getElementById(
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
-import { hienTriNho } from '@/lib/tri-nho';
+import { MOC_CO_DIEM, chiSoHomNay, hienTriNho, phienTriNho, vanConThieu } from '@/lib/tri-nho';
+import HuyChuongBac from './HuyChuongBac.vue';
 import LevelMap from './LevelMap.vue';
 import SizeGrid from './SizeGrid.vue';
 import ThemePicker from './ThemePicker.vue';
@@ -106,6 +107,22 @@ const soPhongCho = useSoPhongCho();
  * đó là một hành trình có luật riêng từng màn, không phải bàn chơi tự chọn.
  * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
  */
+/** Nút Chỉ số trí nhớ ở trang chủ: điểm + bậc + tiến độ, và có gì MỚI so với lần xem cuối không. */
+const tnNut = computed(() => {
+  void phienTriNho.value;   // nhật ký ở localStorage không tự phản ứng — ghi ván / mở màn chỉ số là tăng số này
+  if (!hienTriNho.value) return null;
+  const k = chiSoHomNay();
+  const xem = store.prefs().triNhoXem;
+  const moi = k.diem !== null && xem !== k.diem;
+  return {
+    diem: k.diem, bac: k.bac, moi, conVan: vanConThieu(k),
+    // Viền: có điểm = đã đi bao nhiêu % của bậc; chưa có = số liệu đã gom so với mốc
+    pt: Math.round((k.diem === null ? Math.min(1, k.coHoi / MOC_CO_DIEM) : k.tienBac) * 100),
+    lech: moi && xem !== undefined ? k.diem! - xem : 0,
+    nhan: k.diem === null ? t('tn.ten') : `${t('tn.ten')}: ${k.diem}`
+  };
+});
+
 type Step = 'players' | 'kieu' | 'bot' | 'count' | 'nhanh' | 'names' | 'level' | 'theme' | 'options';
 const STEPS: readonly Step[] = ['players', 'kieu', 'bot', 'count', 'nhanh', 'names', 'level', 'theme', 'options'];
 /**
@@ -604,16 +621,21 @@ const ICO3D = {
       -->
       <div v-if="step === 'players'" key="players" class="step-body home">
         <QuatLa :themes="themes" />
-        <!-- CHỈ SỐ TRÍ NHỚ (24.11.2026, mockup B duyệt https://claude.ai/artifact/E2SL85YXZwtEjtZmhy3JTd): nút tròn nổi
-             trên trời góc trái, có vòng sáng + tên dưới — thay viên ở dải lối tắt. Biểu tượng BIỂU ĐỒ, không bao giờ cái não.
-             Vẫn chỉ hiện khi bật debug (`hienTriNho`). -->
-        <!-- Khối CỘT (25.11.2026, chủ dự án gửi ảnh: "chữ không căn giữa và quá gần nút"): nút và chữ cùng căn giữa theo
-             thứ rộng hơn (thường là chữ) — chữ dài ở ngôn ngữ nào cũng không lệch, không tràn mép trái. -->
-        <div v-if="hienTriNho" class="ntn">
-          <button class="nut-tri-nho thach th-ngoc" type="button" :aria-label="t('tn.ten')" @click="sfx.select(); emit('so-tri-nho')">
-            <i class="ntn-vong" aria-hidden="true" /><ChartColumn :size="22" :stroke-width="2.6" aria-hidden="true" />
+        <!-- CHỈ SỐ TRÍ NHỚ — nút tròn nổi trên trời góc trái (chỗ đặt: mockup B duyệt 24.11.2026). Bản 3 (25.11.2026,
+             https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu): nút HIỆN LUÔN CON SỐ, viền vàng = tiến độ tới bậc kế, góc có
+             huy chương bậc; CHỈ nhấp nháy + bong bóng ▲▼ khi điểm khác lần xem cuối (bản cũ nhấp nháy mãi, chỉ có biểu
+             tượng → không có lý do bấm). Chưa đủ số liệu: biểu tượng biểu đồ (không bao giờ cái não) + "Còn N ván".
+             Nút và chữ là một KHỐI CỘT căn giữa. Vẫn chỉ hiện khi bật debug (`hienTriNho`). -->
+        <div v-if="tnNut" class="ntn">
+          <button class="nut-tri-nho thach th-ngoc" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
+            <i class="ntn-tien" :style="{ '--pt': tnNut.pt }" aria-hidden="true" />
+            <i v-if="tnNut.moi" class="ntn-vong" aria-hidden="true" />
+            <b v-if="tnNut.diem !== null">{{ tnNut.diem }}</b>
+            <ChartColumn v-else :size="22" :stroke-width="2.6" aria-hidden="true" />
+            <span v-if="tnNut.bac !== null" class="ntn-bac" aria-hidden="true"><HuyChuongBac :bac="tnNut.bac" /></span>
+            <span v-if="tnNut.lech" class="ntn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
           </button>
-          <small aria-hidden="true" @click="sfx.select(); emit('so-tri-nho')">{{ t('tn.ten') }}</small>
+          <small aria-hidden="true" @click="sfx.select(); emit('so-tri-nho')">{{ tnNut.diem !== null ? t('tn.ten') : t('tn.conVan', { n: tnNut.conVan }) }}</small>
         </div>
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
@@ -1166,14 +1188,26 @@ section.panel.khung-vao { animation: khung-vao .18s ease; }
 /* Panel thành trong suốt: trang chủ nằm thẳng trên nền của skin (trời, mặt gỗ…) */
 section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
 .step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; position: relative; }
-.ntn { position: absolute; left: 8px; top: 6px; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 13px; }
+.ntn { position: absolute; left: 10px; top: 8px; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .nut-tri-nho {
-  position: relative; width: 48px; height: 48px; min-width: 0; min-height: 0; padding: 0;
+  position: relative; width: 52px; height: 52px; min-width: 0; min-height: 0; padding: 0;
   border-radius: 50%; display: grid; place-items: center; overflow: visible; cursor: pointer; color: #fff;
   background: linear-gradient(#3fd0bd, #149384 70%); border: 2px solid #0d7064; box-shadow: 0 3px 0 #0a5a50;
 }
-.ntn-vong { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(63, 208, 189, .7); animation: ntn-vong 2.4s ease-out infinite; pointer-events: none; }
-@keyframes ntn-vong { 0% { transform: scale(.9); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+.nut-tri-nho b { position: relative; font: 800 17px/1 var(--font-display); font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 #0a5a50, 0 0 3px #0a5a50; }
+/* VIỀN TIẾN ĐỘ: vành ngoài nút, vàng trên rãnh trắng — cũng là thứ tách nút ngọc khỏi nền trời xanh (đo 25.11.2026:
+   ngọc trên trời sáng chỉ đạt 1,2–1,8). Vành = conic-gradient khoét giữa bằng mask. */
+.ntn-tien { position: absolute; inset: -8px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(#ffc93c calc(var(--pt) * 1%), rgba(255, 255, 255, .92) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .22)); }
+.ntn-bac { position: absolute; right: -11px; bottom: -9px; font-size: 19px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)); }
+.ntn-len { position: absolute; left: calc(100% + 2px); top: -12px; white-space: nowrap; padding: 4px 7px 3px; border-radius: 999px;
+  font: 800 12px/1 var(--font-display); color: #fff; background: #1f9a3a; border: 2px solid #156b28; box-shadow: 0 2px 0 #156b28; }
+.ntn-len.giam { background: #5c6187; border-color: #40456a; box-shadow: 0 2px 0 #40456a; }
+.ntn-vong { position: absolute; inset: -12px; border-radius: 50%; border: 2px solid rgba(255, 201, 60, .9); animation: ntn-vong 2.2s ease-out infinite; pointer-events: none; }
+@keyframes ntn-vong { 0% { transform: scale(.94); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ntn-vong { animation: none; } }
 .ntn small { cursor: pointer; font: 900 11px/1.1 var(--font-display); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); white-space: nowrap; }
 .home .loi-tat { margin: 0; }

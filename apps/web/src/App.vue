@@ -5,7 +5,7 @@ import { skinVeMacDinh } from '@/lib/skin';
 import { datPingSo } from '@/lib/ping-so';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { baoTaiXong, batPhanTich, doiCaiDat, moChucNang, suKien, thamSoVanDau } from '@/lib/phan-tich';
-import { BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
+import { BOARD_SIZES, BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import KetCucFx from './components/KetCucFx.vue';
@@ -22,7 +22,7 @@ import SoTriNho from './components/SoTriNho.vue';
 import HoSoDialog from './components/HoSoDialog.vue';
 import { guiHoSo } from '@/lib/taikhoan';
 import { canMoChao, hoSo, tenToi } from '@/lib/ho-so';
-import { hienTriNho } from './lib/tri-nho';
+import { ghiVanTriNho, hienTriNho } from './lib/tri-nho';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
 import type { XemFx } from './components/DebugMenu.vue';
@@ -797,6 +797,21 @@ function launch(config: GameConfig): void {
   persistGame();
 }
 
+/**
+ * "LUYỆN NGAY" ở màn Chỉ số trí nhớ (25.11.2026): vào thẳng một ván MỘT MÌNH kiểu Chơi nhanh, cỡ bàn gần `soThe`
+ * nhất mà theme đang chọn đủ biểu tượng (thiếu thì `startLevel` nuốt lỗi và người chơi đứng yên ở trang chủ).
+ */
+function luyenTriNho(soThe: number): void {
+  showSoTriNho.value = false;
+  const du = BOARD_SIZES.filter((b) => b.pairs <= symbols.value.length);
+  const ban = du.find((b) => b.pairs * 2 >= soThe) ?? du[du.length - 1];
+  if (!ban) return;
+  mode.value = 'classic';
+  botLevel.value = null;
+  playerCount.value = 1;
+  startLevel(ban.level);
+}
+
 /** Vào một cấp. MỌI chế độ đều qua đây, nên chế độ nào cũng có cấp tiếp theo
  *  để chơi tiếp — trước đây chỉ Chiến dịch có, các chế độ khác chơi xong chỉ
  *  còn "chơi lại" và "về trang chủ". */
@@ -943,7 +958,7 @@ watch(session.summary, (s) => {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
     store.ghiVanBoDem({ thang: s.status === 'won' });
-    if (hienTriNho.value) store.ghiTriNho(player, game.totalPairs);
+    ghiVanTriNho(hienTriNho.value ? player : undefined, game.totalPairs);
     const dat = earned({
       summary: s,
       mode: game.config.mode,
@@ -991,7 +1006,7 @@ watch(session.summary, (s) => {
       // Thắng Gà mờ không tính vào bộ đếm thắng máy (cùng lý do không cộng điểm)
       store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy' });
       // Trí nhớ chấm trên lượt của CHÍNH NGƯỜI nên đấu máy mức nào cũng ghi (kể cả Dễ)
-      if (hienTriNho.value) store.ghiTriNho(s.ranking.find((r) => !laBot(r.id)), game.totalPairs);
+      ghiVanTriNho(hienTriNho.value ? s.ranking.find((r) => !laBot(r.id)) : undefined, game.totalPairs);
       const dat = earned({
         summary: s, mode: game.config.mode, cells: game.cards.length,
         misses: player.misses, lives: game.config.lives ?? null, peekMs: game.config.peekMs ?? 0,
@@ -1194,7 +1209,7 @@ const hasNext = computed(() => {
     @so-tri-nho="showDebug = false; showSoTriNho = true"
     @tat="debug = false; showDebug = false"
   />
-  <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" />
+  <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />

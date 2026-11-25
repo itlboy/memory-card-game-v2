@@ -5,7 +5,7 @@ import { taiKhoan } from '@/lib/taikhoan';
 import { t } from '@/lib/i18n';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { store } from '@/lib/storage';
-import { hienTriNho } from '@/lib/tri-nho';
+import { ghiVanTriNho, hienTriNho } from '@/lib/tri-nho';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card, Summary } from '@mm/engine';
 import { HeartCrack, List, LogOut, Timer, TriangleAlert, WifiOff } from 'lucide-vue-next';
@@ -412,7 +412,8 @@ watch(() => o.view.value?.summary, (s) => {
   const coMay = s.ranking.some((r) => laBotId(r.id) || r.thanhVien?.some((m) => laBotId(m)));
   // TRÍ NHỚ: chấm trên lượt của chính mình nên phòng có máy vẫn ghi; ván ĐỘI thì không (dòng xếp
   // hạng là của cả đội). Người xem không có dòng nào mang mã mình nên tự bỏ qua.
-  if (hienTriNho.value && !laDoi.value && !o.spectator.value) store.ghiTriNho(s.ranking.find((r) => r.id === o.myId.value), soCapVan.value);
+  // Luôn gọi: ván không chấm (đội / người xem / debug tắt) thì `vuaDoi` về null — bảng kết quả không hiện số của ván trước
+  ghiVanTriNho(hienTriNho.value && !laDoi.value && !o.spectator.value ? s.ranking.find((r) => r.id === o.myId.value) : undefined, soCapVan.value);
   if (laDoi.value && !coMay && !o.spectator.value) {
     store.ghiVanBoDem({ thang: loaiKetCuc.value === 'thang', online: true });
     void taiKhoan.ghiVan({ ketQua: loaiKetCuc.value, score: 0, achievements: [] });

@@ -1,4 +1,4 @@
-import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, coHoiNho, diemTriNho, doiDanhHieu, doiThemeIds, rongNhomTuoi, sanitizeOptions } from '@mm/engine';
+import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, coHoiNho, doiDanhHieu, doiThemeIds, rongNhomTuoi, sanitizeOptions } from '@mm/engine';
 import type { BoardOptions, Mode, RoomConfig } from '@mm/engine';
 import { ref } from 'vue';
 
@@ -69,6 +69,8 @@ export interface Prefs {
   /** Bàn của phòng online gần nhất mình làm chủ (17.11.2026): bấm "Tạo phòng" là có phòng
    *  ngay với bàn này, không qua bước chọn nào. Thiếu = chưa tạo phòng lần nào. */
   banOnline?: RoomConfig;
+  /** Chỉ số trí nhớ người chơi đã XEM lần cuối (lib/tri-nho.ts `daXemTriNho`) — nút trang chủ nhấp nháy khi điểm khác số này. */
+  triNhoXem?: number;
 }
 
 export interface BestRecord { score: number; moves: number; seconds: number }
@@ -98,7 +100,18 @@ interface Save {
 }
 
 /** Số đếm nhớ/quên theo nhóm độ lâu (engine `nhomTuoi`) của các ván CÙNG một cỡ bàn. */
-export interface DemTriNho { van: number; nho: number[]; quen: number[] }
+export interface DemTriNho {
+  van: number; nho: number[]; quen: number[];
+  /** PHẦN ĂN MAY cộng dồn (engine `mayTheo`, số thập phân) — từ 1.9.57. Thiếu = ngày ghi bằng bản cũ, `lib/tri-nho.ts` ước lượng. */
+  may?: number[];
+}
+/**
+ * Ước lượng phần ăn may cho số liệu KHÔNG có `mayTheo` (ngày ghi trước 1.9.57, ván online trên server cũ): mỗi cơ hội
+ * coi như đoán bừa trúng 1/(số cặp + 1) — giữa ván còn khoảng một nửa số lá. Chỉ để số liệu cũ không được lợi so với
+ * số liệu mới; ván mới engine đếm chính xác.
+ */
+export const mayUocLuong = (nho: readonly number[] | undefined, quen: readonly number[] | undefined, soCap: number): number[] =>
+  rongNhomTuoi().map((_, i) => ((nho?.[i] ?? 0) + (quen?.[i] ?? 0)) / (Math.max(1, soCap) + 1));
 /**
  * NHẬT KÝ TRÍ NHỚ MỘT NGÀY (23.11.2026). Giữ SỐ ĐẾM THÔ cộng dồn theo TỪNG CỠ BÀN (khoá `ban` =
  * số cặp), KHÔNG giữ điểm: điểm = tỉ lệ nhớ × trần của bàn, tính lúc hiện (`lib/tri-nho.ts`), nên
@@ -109,7 +122,8 @@ export interface NgayTriNho {
   ban: Record<string, DemTriNho>;
   /** Lần nhớ đúng xa nhất trong ngày (số nước). */
   tam: number;
-  cao: number;
+  /** Bản ≤ 1.9.56: điểm ván cao nhất theo công thức cũ. Không còn dùng — giữ kiểu để đọc bản lưu cũ. */
+  cao?: number;
 }
 /** Giữ ngần này ngày gần nhất (hơn một năm) — bản lưu không phình mãi. */
 export const TRI_NHO_GIU_NGAY = 400;
@@ -348,7 +362,7 @@ export const store = {
    * cơ hội nhớ nào (hoặc server cũ chưa gửi số đếm) thì bỏ qua, không tính là một ván.
    */
   ghiTriNho(
-    p: { nhoTheo?: readonly number[]; quenTheo?: readonly number[]; tamNho?: number } | undefined,
+    p: { nhoTheo?: readonly number[]; quenTheo?: readonly number[]; mayTheo?: readonly number[]; tamNho?: number } | undefined,
     soCap: number, homNay = ngayMay()
   ): void {
     if (!p || soCap < 1 || coHoiNho(p.nhoTheo, p.quenTheo) === 0) return;
@@ -357,13 +371,16 @@ export const store = {
     const cu = tatCa[homNay];
     const khoa = String(Math.round(soCap));
     const banCu = cu?.ban?.[khoa];
+    // Phần ăn may: ván không mang `mayTheo` (server cũ) và phần đã ghi bằng bản cũ trong CÙNG ngày → ước lượng, để
+    // `may` của ô này luôn phủ đủ mọi cơ hội đã cộng vào `nho`/`quen`.
+    const mayVan = p.mayTheo ?? mayUocLuong(p.nhoTheo, p.quenTheo, soCap);
+    const mayCu = banCu ? (banCu.may ?? mayUocLuong(banCu.nho, banCu.quen, soCap)) : undefined;
     tatCa[homNay] = {
       ban: {
         ...(cu?.ban ?? {}),
-        [khoa]: { van: (banCu?.van ?? 0) + 1, nho: congMang(banCu?.nho, p.nhoTheo), quen: congMang(banCu?.quen, p.quenTheo) }
+        [khoa]: { van: (banCu?.van ?? 0) + 1, nho: congMang(banCu?.nho, p.nhoTheo), quen: congMang(banCu?.quen, p.quenTheo), may: congMang(mayCu, mayVan) }
       },
-      tam: Math.max(cu?.tam ?? 0, p.tamNho ?? 0),
-      cao: Math.max(cu?.cao ?? 0, diemTriNho(p.nhoTheo, p.quenTheo, soCap) ?? 0)
+      tam: Math.max(cu?.tam ?? 0, p.tamNho ?? 0)
     };
     // Khoá `YYYY-MM-DD` xếp theo chữ cũng là xếp theo ngày
     const ngay = Object.keys(tatCa).sort();

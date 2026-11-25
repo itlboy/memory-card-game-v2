@@ -95,53 +95,64 @@ export const rongNhomTuoi = (): number[] => new Array<number>(SO_NHOM_TUOI).fill
 export function nhomTuoi(tuoi: number): number {
   return Math.min(SO_NHOM_TUOI - 1, Math.max(0, Math.floor(Math.log2(Math.max(1, tuoi)))));
 }
-/** Nhớ lá thấy từ lâu thì ĐÁNG GIÁ hơn nhớ lá vừa thấy. */
-export const NANG_NHO: readonly number[] = [1, 1.5, 2, 2.5, 3];
-/** Quên lá VỪA thấy thì nặng tội hơn quên lá thấy từ lâu. */
-export const NANG_QUEN: readonly number[] = [1.5, 1.25, 1, 0.75, 0.5];
-/** Dưới ngần này cơ hội nhớ thì chưa đủ để chấm (bàn 2–3 cặp phần lớn là may rủi). */
-export const CO_HOI_NHO_TOI_THIEU = 3;
-
 const tong = (a: readonly number[] | undefined): number => (a ?? []).reduce((s, n) => s + (n || 0), 0);
-const tongNang = (a: readonly number[] | undefined, nang: readonly number[]): number =>
-  (a ?? []).reduce((s, n, i) => s + (n || 0) * (nang[Math.min(i, nang.length - 1)] ?? 1), 0);
-
 /** Số cơ hội nhớ = lần nhớ đúng + lần quên. */
 export function coHoiNho(nho: readonly number[] | undefined, quen: readonly number[] | undefined): number {
   return tong(nho) + tong(quen);
 }
 
-/**
- * Tỉ lệ nhớ 0..1 CÓ TÍNH ĐỘ LÂU, `null` khi chưa đủ `CO_HOI_NHO_TOI_THIEU` cơ hội.
- * Dùng chung cho một ván lẫn số cộng dồn nhiều ván CÙNG cỡ bàn.
+/*
+ * CHỈ SỐ TRÍ NHỚ = CỘNG 5 CHẶNG NHỚ, tối đa 1000 (chủ dự án duyệt 25.11.2026, trang nghiên cứu
+ * https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu). Thay công thức "tỉ lệ × trần của bàn": bàn 16 thẻ bị trần 425,
+ * muốn lên điểm chỉ cần chọn bàn to, và không nói được người chơi yếu ở đâu.
+ *
+ *   điểm một chặng = tỉ lệ nhớ THẬT của chặng (đã trừ phần ăn may) × điểm của chặng
+ *
+ * HAI CON SỐ ĐÃ MÔ PHỎNG (test/mo-phong-tri-nho.test.ts — người chơi giả quên theo nửa đời, 6 cỡ bàn):
+ *  · `DIEM_CHANG` 50·150·200·275·325, KHÔNG PHẢI 100·150·200·250·300: chặng "vừa thấy" ai cũng ~100% → 100 điểm cho
+ *    không, bậc Đồng (dưới 200) gần như không ai rơi vào.
+ *  · TRỪ ĂN MAY (`may`, engine cộng 1/số lá úp cho mỗi cơ hội): tỉ lệ = (nhớ − may) / (số lần − may). Không trừ thì
+ *    điểm phụ thuộc cỡ bàn (người không nhớ gì: ~400 ở bàn 16 thẻ, ~200 ở bàn 88 thẻ). Trừ rồi thì 24–88 thẻ ra cùng
+ *    điểm, chỉ còn phụ thuộc SỨC NHỚ: nửa đời 1 lượt ≈ 120 · 3 ≈ 265 · 8 ≈ 465 · 12 ≈ 565 · 20 ≈ 685 · 40 ≈ 810 · hoàn hảo ≈ 990.
+ * Cỡ bàn vẫn vào điểm theo cách chủ dự án chốt 23.11.2026, nhưng là MỞ KHOÁ chứ không là trần: ván 12–16 thẻ quá
+ * ngắn để có chặng 16+ lượt (trần ~675), muốn Kim cương phải chơi bàn ≥ 24 thẻ.
  */
-export function tiLeNho(nho: readonly number[] | undefined, quen: readonly number[] | undefined): number | null {
-  if (coHoiNho(nho, quen) < CO_HOI_NHO_TOI_THIEU) return null;
-  const n = tongNang(nho, NANG_NHO), q = tongNang(quen, NANG_QUEN);
-  return n / (n + q);
+/** Điểm tối đa của từng chặng (cùng thứ tự `nhomTuoi`): vừa thấy · 2–3 · 4–7 · 8–15 · 16+ lượt. Tổng = 1000. */
+export const DIEM_CHANG: readonly number[] = [50, 150, 200, 275, 325];
+/** Một chặng cần ngần này lần gặp trong kỳ mới được MỞ (ít hơn thì một lần may rủi làm điểm nhảy cả trăm). */
+export const LAN_MO_CHANG = 5;
+/** Mốc điểm của 5 bậc: Đồng · Bạc · Vàng · Bạch kim · Kim cương. Mốc CỐ ĐỊNH, không so với bot (chủ dự án: bot có thể đổi độ khó). */
+export const MOC_BAC_TRI_NHO: readonly number[] = [0, 200, 400, 600, 800];
+/** Bậc 0–4 của một điểm. */
+export const bacTriNho = (diem: number): number => MOC_BAC_TRI_NHO.reduce((b, m, i) => (diem >= m ? i : b), 0);
+
+export interface ChangNho {
+  /** Số lần gặp (nhớ + quên) trong kỳ. */
+  n: number;
+  /** Đủ `LAN_MO_CHANG` lần → có điểm. */
+  mo: boolean;
+  /** Tỉ lệ nhớ 0..1 ĐÃ TRỪ ĂN MAY; `null` khi chặng chưa mở. */
+  tiLe: number | null;
+  diem: number;
+  toiDa: number;
 }
 
-/** Bàn lớn nhất của game (88 thẻ) — trần điểm trí nhớ của nó là `TRAN_TRI_NHO`. */
-export const CAP_TRAN_TRI_NHO = 44;
-export const TRAN_TRI_NHO = 1000;
 /**
- * TRẦN CỦA BÀN: điểm trí nhớ tối đa một bàn `soCap` cặp cho được. Tăng theo CĂN BẬC HAI số cặp
- * (4 cặp ≈ 300 · 8 ≈ 425 · 18 ≈ 640 · 30 ≈ 825 · 44 = 1000): tăng thẳng thì bàn 4 cặp chỉ còn 90
- * điểm, người mới thấy mình gần như bằng không. Làm tròn tới 5 cho dễ đọc.
+ * Chấm 5 chặng từ số đếm thô đã cộng dồn của một kỳ. `may` thiếu (số liệu engine cũ) = không trừ gì.
+ * `diem` = tổng điểm các chặng ĐÃ MỞ; `null` khi chưa chặng nào mở.
  */
-export function tranBan(soCap: number): number {
-  const c = Math.min(CAP_TRAN_TRI_NHO, Math.max(1, soCap));
-  return Math.round((TRAN_TRI_NHO * Math.sqrt(c / CAP_TRAN_TRI_NHO)) / 5) * 5;
-}
-
-/**
- * ĐIỂM TRÍ NHỚ = tỉ lệ nhớ × trần của bàn (chủ dự án chốt 23.11.2026: độ lâu VÀ cỡ bàn đều phải
- * vào điểm — "nếu không bàn nhỏ bàn to là như nhau"). Nhân tỉ lệ chứ không cộng dồn từng lần nhớ:
- * ván 4 người mỗi người chỉ có một phần tư số lượt, cộng dồn là thiệt. `null` = chưa đủ để chấm.
- */
-export function diemTriNho(
-  nho: readonly number[] | undefined, quen: readonly number[] | undefined, soCap: number
-): number | null {
-  const tl = tiLeNho(nho, quen);
-  return tl === null ? null : Math.round(tl * tranBan(soCap));
+export function chiSoTriNho(
+  nho: readonly number[] | undefined, quen: readonly number[] | undefined, may?: readonly number[]
+): { diem: number | null; chang: ChangNho[] } {
+  const chang: ChangNho[] = DIEM_CHANG.map((toiDa, i) => {
+    const dung = nho?.[i] ?? 0;
+    const n = dung + (quen?.[i] ?? 0);
+    if (n < LAN_MO_CHANG) return { n, mo: false, tiLe: null, diem: 0, toiDa };
+    // Kẹp phần may dưới số lần: bàn 2 lá cuối thì may = 1 mỗi lần, mẫu số về 0
+    const m = Math.min(Math.max(0, may?.[i] ?? 0), n - 0.5);
+    const tiLe = Math.min(1, Math.max(0, (dung - m) / (n - m)));
+    return { n, mo: true, tiLe, diem: Math.round(tiLe * toiDa), toiDa };
+  });
+  const mo = chang.filter((c) => c.mo);
+  return { diem: mo.length ? mo.reduce((s, c) => s + c.diem, 0) : null, chang };
 }

@@ -1961,3 +1961,23 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Tên hiển thị = TÊN HỒ SƠ ở mọi chỗ (chủ dự án: không thích tên Google): trang tài khoản dùng `tenToi`; bảng xếp hạng đọc cột
   `users.ten_hien` (gửi qua `/api/me/ho-so` kèm `ten`, App.vue gửi lại mỗi lần mở app), chưa có thì tên Google rút gọn như cũ.
 - OTA từ 1.9.52: ÉP cập nhật trước khi dùng (`anTienDo = false`) — có bản mới ở trang chủ là phủ % thật rồi khởi động lại.
+
+## Chỉ số trí nhớ bản 3 (1.9.57, 25.11.2026 — VẪN CHỈ DEBUG; trang nghiên cứu https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu)
+- CÔNG THỨC (engine `chiSoTriNho`, scoring.ts): cộng 5 CHẶNG NHỚ theo độ lâu (vừa thấy · 2–3 · 4–7 · 8–15 · 16+ lượt),
+  điểm chặng 50·150·200·275·325 = 1000; điểm chặng = tỉ lệ nhớ ĐÃ TRỪ ĂN MAY × điểm chặng; chặng cần 5 lần gặp trong kỳ mới mở.
+  Thay "tỉ lệ × trần của bàn" (bàn 16 thẻ trần 425, chọn bàn to là lên điểm).
+- TRỪ ĂN MAY: engine cộng `mayTheo[chặng] += 1/số lá còn úp` cho mỗi cơ hội (game.ts `ghiTriNho`); tỉ lệ = (nhớ − may)/(lần − may).
+  KHÔNG BỎ: mô phỏng (`packages/engine/test/mo-phong-tri-nho.test.ts`) cho thấy không trừ thì người không nhớ gì vẫn ~400
+  điểm ở bàn 16 thẻ; trừ rồi thì 24–88 thẻ ra cùng điểm. Số liệu cũ / server cũ không có `mayTheo` → `mayUocLuong` (storage.ts).
+- Hai con số 50·150·… và 5 lần là KẾT QUẢ MÔ PHỎNG, đổi thì chạy lại test mô phỏng (canh: đơn điệu theo sức nhớ, không phụ
+  thuộc cỡ bàn, đủ 5 bậc). Bàn 12–16 thẻ trần ~675 (ván quá ngắn để có chặng 16+).
+- BẬC: Đồng·Bạc·Vàng·Bạch kim·Kim cương, mốc 0·200·400·600·800 CỐ ĐỊNH. Chủ dự án: KHÔNG so với bot (bot có thể đổi độ khó).
+- MỘT CON SỐ: kỳ 7 ngày (`lib/tri-nho.ts chiSoTai`), cần ≥ 20 cơ hội nhớ mới bày điểm. Không còn điểm riêng từng ván — sau ván
+  `ghiVanTriNho` ghi nhật ký + đặt `vuaDoi` (trước/sau), bảng kết quả hiện "Chỉ số trí nhớ 514 ▲ 8" / "Lên bậc Vàng!" / nhãn "Mới".
+  PHẢI gọi `ghiVanTriNho(undefined, …)` cho ván không chấm (đội online, người xem) để `vuaDoi` về null, không lòi số ván trước.
+- Màn `SoTriNho.vue`: đồng hồ + bậc + còn bao nhiêu tới bậc kế; 5 chặng (thay khối "Theo cỡ bàn"); BẤM CỘT 14 ngày = xem kỳ 7 ngày
+  kết thúc ở ngày đó; "Luyện ngay" (`theNenLuyen` → App `luyenTriNho`). Màu HAI TÔNG: ngọc đậm #0b7468 nền sáng, ngọc sáng
+  #4fd6c4 nền tối (một tông thì thanh trên rãnh chỉ 2,7–3,0).
+- Nút trang chủ: hiện con số + vành tiến độ (mask conic) + huy chương; chỉ nhấp nháy/bong bóng ▲▼ khi điểm ≠ `prefs.triNhoXem`.
+- `.vong-mau` (vòng màu hồ sơ) là hình tròn ::before — bo 50% lên khung emoji ra E-LÍP (bảng xếp hạng).
+- CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.
