@@ -607,6 +607,7 @@ const fr: TuDien = {
   'or.loi.notReady': 'Pas encore prêts : {ten}',
   'or.dong.cancelled': 'L’hôte a fermé le salon.',
   'or.dong.kicked': 'L’hôte t’a retiré du salon.',
+  'or.dong.sang-xem': "Tu n'étais pas prêt, tu es maintenant spectateur. Touche « Rejoindre la partie » pour jouer la prochaine manche.",
   'pd.kicked.tieuDe': 'Tu as quitté le salon {ma}',
   'pd.kicked.tieuDeKhongMa': 'Tu as quitté le salon',
   'pd.kicked.than': 'L’hôte t’a retiré. Rejoins un autre salon ou crée-en un.',

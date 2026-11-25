@@ -601,6 +601,7 @@ const ko: TuDien = {
   'or.loi.notReady': '아직 준비 안 됨: {ten}',
   'or.dong.cancelled': '방장이 방을 닫았어요.',
   'or.dong.kicked': '방장이 나를 방에서 내보냈어요.',
+  'or.dong.sang-xem': "준비하지 않아 관전으로 전환됐어요. 다음 판에 참여하려면 “게임 참가”를 누르세요.",
   'pd.kicked.tieuDe': '{ma} 방에서 나왔어요',
   'pd.kicked.tieuDeKhongMa': '방에서 나왔어요',
   'pd.kicked.than': '방장이 나를 내보냈어요. 다른 방에 들어가거나 새 방을 만들어 보세요.',

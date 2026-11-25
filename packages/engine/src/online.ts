@@ -604,8 +604,12 @@ export type ClientMsg =
    *
    * Dùng khi ai đó vào nhầm, hoặc khi một người rớt mạng và cả phòng phải chờ
    * hết hạn giữ chỗ mới đi tiếp được.
+   *
+   * `xem: true` (25.11.2026, chủ dự án: "bot đợi lâu quá đừng kick người chơi mà chuyển họ về vai trò người xem"): chỉ ở
+   * PHÒNG CHỜ — người đó trả ghế nhưng được báo mã `sang-xem`, app tự nối lại làm NGƯỜI XEM thay vì bị đưa ra sảnh.
+   * Server cũ bỏ qua cờ này (mời ra như thường); app cũ nhận mã lạ thì coi như bị mời ra.
    */
-  | { t: 'kick'; playerId: string }
+  | { t: 'kick'; playerId: string; xem?: boolean }
   /**
    * MÁY CHƠI CÙNG (1.6.0) — chỉ chủ phòng, chỉ ở phòng chờ. `add` thêm một máy (còn chỗ trong
    * `maxPlayers`), `set` đổi mức, `remove` bỏ máy. Máy luôn sẵn sàng, chạy trên server.
@@ -757,7 +761,7 @@ export type ServerMsg =
   | { t: 'chi'; from: string; index: number }
 
   /** `code` để client DỊCH (message là tiếng Việt, chỉ để dự phòng cho client cũ). */
-  | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' | 'thiDau' }
+  | { t: 'closed'; message: string; code?: 'cancelled' | 'kicked' | 'thiDau' | 'sang-xem' }
   | { t: 'error'; code: string; message: string; /** tên người liên quan (vd. `doi-client-cu`) — client tự dịch câu */ ten?: string[] }
   | { t: 'pong' }
   /** Chủ phòng nhắc BẠN bấm Sẵn sàng (chỉ gửi tới người chưa sẵn sàng). Client cũ bỏ qua. */

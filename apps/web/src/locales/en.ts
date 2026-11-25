@@ -603,6 +603,7 @@ const en: TuDien = {
   'or.loi.notReady': 'Not ready yet: {ten}',
   'or.dong.cancelled': 'The host closed the room.',
   'or.dong.kicked': 'The host removed you from the room.',
+  'or.dong.sang-xem': "You weren't ready, so you're now watching. Tap “Join the game” to play the next round.",
   'pd.kicked.tieuDe': 'You left room {ma}',
   'pd.kicked.tieuDeKhongMa': 'You left the room',
   'pd.kicked.than': 'The host removed you. Join another room or create a new one.',

@@ -604,6 +604,7 @@ const zhTW: TuDien = {
   'or.loi.notReady': '還沒準備好：{ten}',
   'or.dong.cancelled': '房主關閉了房間。',
   'or.dong.kicked': '房主將你移出了房間。',
+  'or.dong.sang-xem': "你還沒準備好，已轉為觀戰。點一下「加入遊戲」參加下一局。",
   'pd.kicked.tieuDe': '你已離開房間 {ma}',
   'pd.kicked.tieuDeKhongMa': '你已離開房間',
   'pd.kicked.than': '房主將你移出了房間。加入其他房間或建立新房間吧。',

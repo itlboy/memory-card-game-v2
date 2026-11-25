@@ -604,6 +604,7 @@ const id: TuDien = {
   'or.loi.notReady': 'Belum siap: {ten}',
   'or.dong.cancelled': 'Host menutup room.',
   'or.dong.kicked': 'Host mengeluarkanmu dari room.',
+  'or.dong.sang-xem': "Kamu belum siap, jadi sekarang menonton. Ketuk “Ikut main” untuk ronde berikutnya.",
   'pd.kicked.tieuDe': 'Kamu keluar dari room {ma}',
   'pd.kicked.tieuDeKhongMa': 'Kamu keluar dari room',
   'pd.kicked.than': 'Host mengeluarkanmu. Masuk ke room lain atau buat room baru.',

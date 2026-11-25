@@ -605,6 +605,7 @@ const it: TuDien = {
   'or.loi.notReady': 'Non ancora pronti: {ten}',
   'or.dong.cancelled': 'L’host ha chiuso la stanza.',
   'or.dong.kicked': 'L’host ti ha rimosso dalla stanza.',
+  'or.dong.sang-xem': "Non eri pronto, quindi ora stai guardando. Tocca “Unisciti al gioco” per il prossimo turno.",
   'pd.kicked.tieuDe': 'Hai lasciato la stanza {ma}',
   'pd.kicked.tieuDeKhongMa': 'Hai lasciato la stanza',
   'pd.kicked.than': 'L’host ti ha rimosso. Entra in un’altra stanza o creane una nuova.',

@@ -615,6 +615,7 @@ const vi = {
   'or.loi.notReady': 'Chưa sẵn sàng: {ten}',
   'or.dong.cancelled': 'Chủ phòng đã huỷ phòng.',
   'or.dong.kicked': 'Chủ phòng đã mời bạn ra khỏi phòng.',
+  'or.dong.sang-xem': "Bạn chưa sẵn sàng nên được chuyển sang xem. Bấm “Vào chơi” để chơi ván sau.",
   'pd.kicked.tieuDe': 'Bạn đã rời phòng {ma}',
   'pd.kicked.tieuDeKhongMa': 'Bạn đã rời phòng',
   'pd.kicked.than': 'Chủ phòng đã mời bạn ra. Vào phòng khác hoặc tạo phòng mới nhé.',
