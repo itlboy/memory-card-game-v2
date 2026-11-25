@@ -945,6 +945,20 @@ const zhTW: TuDien = {
   'tn.choiThem': "再玩大約 {n} 局，資料會更可信",
   'ct.conGiay': "還剩 {n} 秒",
   'ct.daChon': "已選 {da}/{tong}",
+  'hs.chao': "歡迎！",
+  'hs.chaoPhu': "選個名字和頭像，讓朋友認出你",
+  'hs.ten': "名字",
+  'hs.nhapTen': "輸入你的名字",
+  'hs.avatar': "頭像",
+  'hs.mau': "你的顏色",
+  'hs.vaoChoi': "開始玩",
+  'hs.goTen': "輸入名字才能繼續",
+  'hs.hoSo': "你的資料",
+  'hs.luu': "儲存",
+  'hs.trangTruoc': "上一頁",
+  'hs.trangSau': "下一頁",
+  'hs.trangN': "第 {n} 頁",
+  'hs.sua': "編輯資料",
 };
 
 export default zhTW;

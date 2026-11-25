@@ -956,6 +956,20 @@ const vi = {
   'tn.choiThem': "Chơi thêm khoảng {n} ván nữa để số liệu đáng tin hơn",
   'ct.conGiay': "Còn {n} giây",
   'ct.daChon': "Đã chọn {da}/{tong}",
+  'hs.chao': "Chào bạn mới!",
+  'hs.chaoPhu': "Chọn tên và hình để bạn bè nhận ra bạn",
+  'hs.ten': "Tên",
+  'hs.nhapTen': "Nhập tên của bạn",
+  'hs.avatar': "Hình đại diện",
+  'hs.mau': "Màu của bạn",
+  'hs.vaoChoi': "Vào chơi",
+  'hs.goTen': "Gõ tên để tiếp tục",
+  'hs.hoSo': "Hồ sơ của bạn",
+  'hs.luu': "Lưu",
+  'hs.trangTruoc': "Trang trước",
+  'hs.trangSau': "Trang sau",
+  'hs.trangN': "Trang {n}",
+  'hs.sua': "Sửa hồ sơ",
 };
 
 export default vi;

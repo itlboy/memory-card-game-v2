@@ -946,6 +946,20 @@ const it: TuDien = {
   'tn.choiThem': "Gioca ancora circa {n} partite per dati più affidabili",
   'ct.conGiay': "Ancora {n} secondi",
   'ct.daChon': "{da}/{tong} hanno votato",
+  'hs.chao': "Benvenuto!",
+  'hs.chaoPhu': "Scegli un nome e un'immagine per farti riconoscere dagli amici",
+  'hs.ten': "Nome",
+  'hs.nhapTen': "Inserisci il tuo nome",
+  'hs.avatar': "Avatar",
+  'hs.mau': "Il tuo colore",
+  'hs.vaoChoi': "Gioca",
+  'hs.goTen': "Scrivi un nome per continuare",
+  'hs.hoSo': "Il tuo profilo",
+  'hs.luu': "Salva",
+  'hs.trangTruoc': "Pagina precedente",
+  'hs.trangSau': "Pagina successiva",
+  'hs.trangN': "Pagina {n}",
+  'hs.sua': "Modifica profilo",
 };
 
 export default it;

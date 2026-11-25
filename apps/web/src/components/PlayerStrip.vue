@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { hoSo, mauKhac } from '@/lib/ho-so';
 import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import { num, numGon } from '@/lib/format';
@@ -26,6 +27,8 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷',
 /** Tỷ số cả loạt (lib/ty-so-loat.ts) — luôn hiện từ 2 người, kể cả ván đầu. */
 const tySo = computed(() => tySoLoat(props.players, props.seriesWins));
 const avatarOf = (p: Player, i: number): string => p.avatar ?? AVATARS[i % AVATARS.length]!;
+/** MÀU HỒ SƠ (25.11.2026): vòng quanh avatar — mình (p1) lấy màu đã chọn, người/máy khác xoay vòng các màu còn lại. */
+const mauCua = (p: Player, i: number): string => (p.id === 'p1' ? hoSo.value.mau : mauKhac(i));
 
 /**
  * TỪ 5 NGƯỜI TRỞ LÊN ĐỔI SANG DẢI GỌN.
@@ -76,7 +79,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
         :class="{ active: p.id === currentId, frozen: p.frozenTurns > 0, 'co-loat': !!tySo }"
         :aria-current="p.id === currentId ? 'true' : undefined"
       >
-        <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
+        <span class="avatar co-mau" :style="{ '--m': mauCua(p, i) }" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
         <b class="name">{{ tenNguoi(p) }}</b>
         <span
           v-if="p.id === currentId && turnLeft !== null && turnLeft !== undefined"
@@ -112,7 +115,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
     <!-- TỪ 5 NGƯỜI: chip lượt + hàng avatar -->
     <div v-else class="strip gon" :aria-label="t('ps.nguoiChoi')">
       <div class="turn-chip" :class="{ frozen: nguoiDangDi.frozenTurns > 0 }" aria-current="true">
-        <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(nguoiDangDi, players.indexOf(nguoiDangDi))" /></span>
+        <span class="avatar co-mau" :style="{ '--m': mauCua(nguoiDangDi, players.indexOf(nguoiDangDi)) }" aria-hidden="true"><MatBot :mat="avatarOf(nguoiDangDi, players.indexOf(nguoiDangDi))" /></span>
         <span class="tb">
           <b class="name">{{ tenNguoi(nguoiDangDi) }}</b>
           <span class="sub">
@@ -135,7 +138,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           class="mini" :class="{ next: k === 0, frozen: p.frozenTurns > 0 }"
           :title="t('ps.diemCua', { ten: tenNguoi(p), n: p.score })"
         >
-          <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
+          <span class="avatar co-mau" :style="{ '--m': mauCua(p, i) }" aria-hidden="true"><MatBot :mat="avatarOf(p, i)" /></span>
           <span class="mpts" :data-pts-for="p.id">{{ p.score }}</span>
           <span class="sr-only">{{ t('ps.diemCuaSr', { ten: tenNguoi(p), n: p.score }) }}</span>
         </li>
@@ -162,7 +165,7 @@ watch(() => props.players.length, () => { moBang.value = false; });
           :class="{ active: p.id === currentId }"
         >
           <span class="rank">{{ i + 1 }}</span>
-          <span class="avatar" aria-hidden="true"><MatBot :mat="avatarOf(p, players.indexOf(p))" /></span>
+          <span class="avatar co-mau" :style="{ '--m': mauCua(p, players.indexOf(p)) }" aria-hidden="true"><MatBot :mat="avatarOf(p, players.indexOf(p))" /></span>
           <b class="name">{{ tenNguoi(p) }}</b>
           <small v-if="Number.isFinite(p.lives)" class="lives">
             <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
@@ -447,4 +450,6 @@ watch(() => props.players.length, () => { moBang.value = false; });
 /* Icon Lucide thay emoji (21.11.2026, lib/icon-vong.ts) */
 .ic-n { vertical-align: -2px; flex: none; }
 .ic-n.het { color: #e0533a; }
+/* vòng màu hồ sơ: box-shadow, tốn 0px bề ngang (chip đã đo tay, xem .strip.dong) */
+.avatar.co-mau { border-radius: 50%; box-shadow: 0 0 0 2px var(--m); background: color-mix(in srgb, var(--m) 16%, transparent); }
 </style>

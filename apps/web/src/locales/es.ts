@@ -944,6 +944,20 @@ const es: TuDien = {
   'tn.choiThem': "Juega unas {n} partidas más para datos más fiables",
   'ct.conGiay': "Quedan {n} segundos",
   'ct.daChon': "{da}/{tong} votaron",
+  'hs.chao': "¡Bienvenido!",
+  'hs.chaoPhu': "Elige un nombre y una imagen para que tus amigos te reconozcan",
+  'hs.ten': "Nombre",
+  'hs.nhapTen': "Escribe tu nombre",
+  'hs.avatar': "Avatar",
+  'hs.mau': "Tu color",
+  'hs.vaoChoi': "A jugar",
+  'hs.goTen': "Escribe un nombre para continuar",
+  'hs.hoSo': "Tu perfil",
+  'hs.luu': "Guardar",
+  'hs.trangTruoc': "Página anterior",
+  'hs.trangSau': "Página siguiente",
+  'hs.trangN': "Página {n}",
+  'hs.sua': "Editar perfil",
 };
 
 export default es;

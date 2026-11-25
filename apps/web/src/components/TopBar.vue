@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { hoSo, tenToi } from '@/lib/ho-so';
+import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -41,7 +42,7 @@ const props = defineProps<{
   /** Bảng xếp hạng đang mở — hiệu ứng lên hạng chờ bảng đóng mới diễn. */
   bxhMo?: boolean;
 }>();
-const emit = defineEmits<{ 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
+const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
   'update:debug': [boolean]; 'mo-debug': [] }>();
 
 /*
@@ -366,6 +367,12 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
       <div v-if="open" class="menu" :class="{ 'menu-cd': trangCd }" :style="trangCd && rongMenu ? { width: `${rongMenu}px` } : undefined" role="menu" @keydown.esc="dong">
         <Transition :name="trangCd ? 'cd-vao' : 'cd-ra'" mode="out-in">
         <div v-if="!trangCd" key="chinh" class="mat">
+          <!-- HỒ SƠ (25.11.2026): avatar + màu + tên của mình, chạm là mở tấm sửa (HoSoDialog) -->
+          <button class="item ho-so thach" role="menuitem" type="button" :aria-label="t('hs.sua')" @click="dong(); emit('ho-so')">
+            <span class="hs-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}</span>
+            <span class="tk-chu"><b>{{ tenToi || t('hs.hoSo') }}</b><small>{{ t('hs.sua') }}</small></span>
+            <Pencil class="hs-but" :size="16" :stroke-width="2.6" aria-hidden="true" />
+          </button>
           <button
             v-if="account" class="item tk thach" role="menuitem" type="button"
             :aria-label="signedIn ? t('tb.tkCuaBan') : t('tb.dangNhap')"
@@ -747,6 +754,11 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .nut-debug::after { content: ''; position: absolute; inset: -10px -6px; }
 .item.tk { min-height: 52px; }
+.item.ho-so { min-height: 52px; }
+.item.ho-so .tk-chu { flex: 1; }
+.item.ho-so > span.hs-av { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 19px; line-height: 1;
+  background: color-mix(in srgb, var(--m) 18%, transparent); box-shadow: 0 0 0 2.5px var(--m); }
+.hs-but { flex: none; color: var(--muted); }
 /* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
    trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
 .item.thach { border-radius: 14px; margin: 2px 0 6px; }
@@ -761,7 +773,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .tk-chu small { font-weight: 600; font-size: 12px; color: var(--muted); }
 .nhom { margin: 6px 12px 2px; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .ke { border: 0; border-top: 1px solid var(--line); margin: 4px 6px; }
-.item > span:not(.nac):not(.tk-chu) { flex: 1; }
+.item > span:not(.nac):not(.tk-chu):not(.hs-av) { flex: 1; }
 /* Công tắc: đổi màu TỨC THÌ (luật thiết kế: trạng thái chọn không transition màu) */
 .sw { position: relative; flex: 0 0 auto; width: 38px; height: 22px; border-radius: 999px; background: var(--line); }
 .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); }
