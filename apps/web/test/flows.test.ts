@@ -273,7 +273,9 @@ describe('luồng trọn ván', () => {
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     expect(wrapper.text()).toContain('Hết thời gian');
     expect(localStorage.getItem('mm.v2') ?? '').not.toContain('"time:4x4"');
-  }, 15_000);   // tua 71s giả × 16ms/frame nên cần trần thời gian cao hơn
+  // Tua 76s giả × 16ms/khung ≈ 4.750 nhịp: chạy riêng ~3s, nhưng trong cả bộ (nhiều worker giành CPU) từng vượt 15s và đỏ
+  // GIẢ hai lần ngày 25.11.2026, chặn phát hành. Trần 60s — chỉ nới thời gian, mọi điều kiện kiểm giữ nguyên.
+  }, 60_000);
 
   it('nút Đổi bàn đóng kết quả và về ĐÚNG bước chọn số thẻ, không về tận màn đầu', async () => {
     await mountApp();

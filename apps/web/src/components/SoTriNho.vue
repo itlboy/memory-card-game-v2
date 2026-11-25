@@ -7,7 +7,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * Chủ dự án chốt từ trước: tên "Chỉ số trí nhớ"; biểu tượng BIỂU ĐỒ (không bao giờ cái não); không có khái niệm "cặp";
  * bậc Đồng → Kim cương mốc cố định, KHÔNG so với bot.
  *
- * CHỈ BA KHỐI: (1) huy chương mang màu bậc, điểm nằm TRONG huy chương + bậc + còn bao nhiêu tới bậc kế;
+ * CHỈ BA KHỐI: (1) huy chương mang màu bậc, điểm nằm TRONG huy chương + THANH 5 BẬC (mình đang ở đâu) + còn bao nhiêu tới bậc kế;
  * (2) một hình, hai tab: "5 chặng nhớ" (5 cột — nhìn ra "càng lâu càng quên") / "14 ngày" (bấm cột = xem kỳ 7 ngày
  * kết thúc ở ngày đó; nhãn tab thành "14 ngày · 20/11", bấm cột cuối là về hôm nay); (3) nút "Luyện ngay".
  * ĐÃ BỎ (bản 3 có, bị chê rối): vòng điểm + "/ 1000", điểm từng chặng "116/150", ba tiêu đề chữ hoa, 14 nhãn ngày,
@@ -42,6 +42,12 @@ const conVan = computed(() => vanConThieu(ky.value));
 /** Gợi ý luyện LUÔN theo số liệu HÔM NAY (luyện là luyện bây giờ) — đang xem ngày cũ nút vẫn hiện, vẫn đúng một con số. */
 const theLuyen = theNenLuyen(chiSoTai(nhatKy).chang);
 const tenBac = (b: number): string => td(`tn.bac.${b}`);
+const SO_BAC = 5;
+/** Đoạn của bậc `b` trên thanh 5 bậc tô bao nhiêu %: bậc đã qua = đầy, bậc đang ở = tới chỗ mình đứng, bậc chưa tới = trống. */
+const doDay = (b: number): number => {
+  const k = ky.value;
+  return k.bac === null || b > k.bac ? 0 : b < k.bac ? 100 : Math.round(k.tienBac * 100);
+};
 
 const cot = ngay.map((k) => {
   const van = Object.values(nhatKy[k]?.ban ?? {}).reduce((a, b) => a + b.van, 0);
@@ -50,7 +56,14 @@ const cot = ngay.map((k) => {
 /** Đỉnh của biểu đồ = ngày cao nhất đang hiện (tối thiểu 200): chia theo 1000 thì người 300–500 điểm chỉ thấy một dải
  *  cột lùn. Mục đích của biểu đồ là XU HƯỚNG; con số tuyệt đối đã nằm trong huy chương. */
 const dinh = Math.max(200, ...cot.map((c) => c.diem ?? 0));
-const caoCot = (d: number | null): string => (d === null ? '4px' : `${Math.max(10, Math.round((d / dinh) * 100))}%`);
+/**
+ * Chiều cao một cột theo tỉ lệ 0..1 của PHẦN CÒN LẠI sau khi trừ chỗ cho con số: con số nằm NGAY TRÊN ĐỈNH cột (25.11.2026,
+ * chủ dự án gửi ảnh: số % xếp một hàng trên cùng, cột thấp như 28% cách số của nó cả khoảng) — số và cột chung một
+ * khung xếp từ đáy lên, nên cột cao nhất vẫn phải chừa `CHO_SO` px cho số của nó.
+ */
+const CHO_SO = 21;
+const caoThan = (tiLe: number): string => `calc((100% - ${CHO_SO}px) * ${Math.min(1, tiLe).toFixed(3)})`;
+const caoCot = (d: number | null): string => (d === null ? '4px' : caoThan(Math.max(0.1, d / dinh)));
 const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice(5, 7))}`;
 /**
  * Chỉ ghi ngày ở cột ĐẦU, cột CUỐI và cột ĐANG CHỌN — 14 nhãn là 14 con số không ai đọc. Nhãn ("24/11") rộng hơn cột,
@@ -73,12 +86,21 @@ const coNhan = (k: string, i: number): boolean =>
       <!-- (1) TÔI Ở ĐÂU: điểm trong huy chương màu bậc -->
       <section v-if="ky.diem !== null" class="giua">
         <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
-        <strong>{{ t('tn.bacTen', { ten: tenBac(ky.bac!) }) }}</strong>
+        <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF; chủ dự án: "chưa
+             biểu thị được các bậc… thanh ngang hiển thị mình đang ở đâu"): mỗi bậc một đoạn mang màu của nó, đoạn đã qua
+             tô đầy, đoạn đang ở tô tới chỗ mình đứng + vạch đánh dấu; tên 5 bậc ngay dưới, bậc của mình in đậm — thay
+             dòng chữ to "Bậc Vàng" và thanh ngắn tới bậc kế. -->
+        <div class="thang" role="img" :aria-label="t('tn.bacTen', { ten: tenBac(ky.bac!) })">
+          <div class="doan">
+            <i v-for="b in SO_BAC" :key="b" :class="`b${b - 1}`">
+              <u :style="{ width: `${doDay(b - 1)}%` }" />
+              <s v-if="b - 1 === ky.bac" :style="{ left: `${doDay(b - 1)}%` }" />
+            </i>
+          </div>
+          <div class="ten5" aria-hidden="true"><span v-for="b in SO_BAC" :key="b" :class="{ day: b - 1 === ky.bac }">{{ tenBac(b - 1) }}</span></div>
+        </div>
         <p class="toi-bac">
-          <template v-if="ky.conToiBac !== null">
-            <span class="ray" :class="`b${ky.bac}`" aria-hidden="true"><i :style="{ width: `${Math.round(ky.tienBac * 100)}%` }" /></span>
-            <span>{{ t('tn.conBac', { n: num(ky.conToiBac) }) }} {{ tenBac(ky.bac! + 1) }}</span>
-          </template>
+          <span v-if="ky.conToiBac !== null">{{ t('tn.conBac', { n: num(ky.conToiBac) }) }} {{ tenBac(ky.bac! + 1) }}</span>
           <span v-else>{{ t('tn.bacCaoNhat') }}</span>
         </p>
       </section>
@@ -101,8 +123,10 @@ const coNhan = (k: string, i: number): boolean =>
 
       <div v-if="tab === 'chang'" class="hinh tru" role="tabpanel">
         <div v-for="(c, i) in ky.chang" :key="i" class="c" :class="{ khoa: !c.mo }">
-          <b>{{ c.mo ? `${Math.round(c.tiLe! * 100)}%` : `${c.n}/${LAN_MO_CHANG}` }}</b>
-          <span class="than"><i :style="c.mo ? { height: `${Math.max(5, Math.round(c.tiLe! * 100))}%` } : undefined" /></span>
+          <span class="than">
+            <b>{{ c.mo ? `${Math.round(c.tiLe! * 100)}%` : `${c.n}/${LAN_MO_CHANG}` }}</b>
+            <i :style="c.mo ? { height: caoThan(Math.max(0.04, c.tiLe!)) } : undefined" />
+          </span>
           <small>{{ td(`tn.chang.${i}`) }}</small>
         </div>
       </div>
@@ -114,8 +138,10 @@ const coNhan = (k: string, i: number): boolean =>
           :disabled="c.diem === null && c.k !== homNay"
           :aria-pressed="c.k === chon" :aria-label="`${ngayThang(c.k)}: ${c.diem === null ? t('tn.chuaDu') : num(c.diem)}`" @click="chon = c.k"
         >
-          <b>{{ c.k === chon && c.diem !== null ? c.diem : '' }}</b>
-          <span class="than"><i :style="{ height: caoCot(c.diem) }" /></span>
+          <span class="than">
+            <b>{{ c.k === chon && c.diem !== null ? c.diem : '' }}</b>
+            <i :style="{ height: caoCot(c.diem) }" />
+          </span>
           <small>{{ coNhan(c.k, i) ? ngayThang(c.k) : '' }}</small>
         </button>
       </div>
@@ -165,7 +191,18 @@ const coNhan = (k: string, i: number): boolean =>
 .huy.b4 b { text-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
 .huy.khoa { --h1: var(--o); --h2: var(--ray); --h3: var(--ray); color: var(--muted); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .25); }
 .giua strong { margin-top: 3px; font: 800 19px/1.15 var(--font-display); color: var(--fg); text-align: center; }
-.toi-bac { margin: 0; min-height: 34px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px;
+/* Thanh 5 bậc: 5 đoạn bằng nhau (mỗi bậc 200 điểm). <u> = phần tô, <s> = vạch "mình ở đây" (cao hơn thanh, nên đoạn KHÔNG overflow hidden) */
+.thang { align-self: stretch; display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
+.doan { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+.doan i { position: relative; height: 12px; background: var(--ray); }
+.doan i:first-child { border-radius: 6px 0 0 6px; }
+.doan i:last-child { border-radius: 0 6px 6px 0; }
+.doan u { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--h2); }
+.doan s { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--fg); box-shadow: 0 0 0 2px var(--panel-solid, #fff); }
+.ten5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+.ten5 span { font-size: 10.5px; font-weight: 800; line-height: 1.2; text-align: center; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ten5 span.day { color: var(--fg); font-weight: 900; }
+.toi-bac { margin: 0; min-height: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px;
   font-size: 13px; font-weight: 700; line-height: 1.3; color: var(--muted); text-align: center; }
 .toi-bac .ray { flex: none; width: 92px; height: 8px; border-radius: 4px; background: var(--ray); overflow: hidden; }
 .toi-bac .ray i { display: block; height: 100%; border-radius: 4px; background: var(--h2); }
@@ -176,7 +213,7 @@ const coNhan = (k: string, i: number): boolean =>
 /* Tab đang chọn = nút thạch NGỌC (`th-ngoc`): tự đặt nền bằng CSS thường thì kiểu thạch của skin đè mất, hai tab trông y nhau */
 .doi button { min-height: 34px; padding: 0 14px; font: 800 13px/1 var(--font-body); }
 
-/* Hai tab CÙNG chiều cao: [số 16] [thân cột co giãn] [nhãn 26] */
+/* Hai tab CÙNG chiều cao: [thân co giãn: số 16 + cột] [nhãn 24] */
 .hinh { height: 158px; display: grid; align-items: stretch; }
 .hinh.tru { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
@@ -184,9 +221,10 @@ const coNhan = (k: string, i: number): boolean =>
   display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
 .hinh button.c { cursor: pointer; }
 .hinh button.c:disabled { cursor: default; }
-.hinh .c b { height: 16px; font: 800 13px/16px var(--font-display); font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
-.hinh .than { flex: 1; min-height: 0; display: flex; align-items: flex-end; }
-.hinh .than i { display: block; width: 100%; background: var(--tn); }
+.hinh .c b { flex: none; height: 16px; font: 800 13px/16px var(--font-display); font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
+/* Số + cột xếp TỪ ĐÁY LÊN trong cùng một khung → số luôn nằm ngay trên đỉnh cột của nó */
+.hinh .than { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 5px; }
+.hinh .than i { flex: none; display: block; background: var(--tn); }
 .hinh .c small { height: 24px; font-size: 11px; font-weight: 800; line-height: 1.15; text-align: center; color: var(--muted); overflow: hidden; }
 .tru .than i { border-radius: 10px 10px 6px 6px; }
 .tru .khoa .than i { height: 22px; background: repeating-linear-gradient(135deg, var(--ray) 0 5px, transparent 5px 10px); box-shadow: inset 0 0 0 1.5px var(--ray); }

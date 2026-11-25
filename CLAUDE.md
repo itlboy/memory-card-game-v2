@@ -1990,3 +1990,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - CHẠM NỀN ĐÓNG HỘP THOẠI (1.9.62): mọi nền có `@click.self` đều kèm `v-cham-ngoai` (lib/cham-ngoai.ts) — đóng ở touchend + preventDefault.
   Lý do: trên iPhone `click` của <div> nền đến trễ ~1/3 giây (nút ✕ thì không); không chặn click thì "bấm xuyên" xuống nút bên dưới.
   Hộp thoại MỚI đóng được bằng chạm nền: thêm cả hai (`@click.self` cho chuột, `v-cham-ngoai` cho cảm ứng). Chưa đo được trên máy thật.
+- Màn chỉ số 1.9.63: dưới huy chương là THANH 5 BẬC (mockup kiểu 1 https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF) — 5 đoạn màu bậc + vạch "mình ở đây" +
+  tên 5 bậc (bậc mình in đậm); thay dòng chữ to "Bậc Vàng" và thanh ngắn. Số của mỗi cột nằm NGAY TRÊN ĐỈNH cột (số + cột chung khung xếp từ đáy,
+  cao = calc((100% - 21px) × tỉ lệ)) — chủ dự án chê số xếp một hàng trên cùng, cột thấp cách xa số.
