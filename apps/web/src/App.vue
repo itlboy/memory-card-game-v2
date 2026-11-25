@@ -304,6 +304,8 @@ const showSoTriNho = ref(false);
 const showHoSo = ref(false);
 useBackCloser(31, () => showHoSo.value, () => { showHoSo.value = false; });
 useBackCloser(31, () => showSoTriNho.value, () => { showSoTriNho.value = false; });
+/* ĐO LƯỢT DÙNG Chỉ số trí nhớ (25.11.2026, chủ dự án hỏi "có nhiều người dùng không" mà chưa có số): mở màn + bấm "Luyện ngay". */
+watch(showSoTriNho, (mo) => { if (mo) moChucNang('tri_nho'); });
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
 
@@ -802,6 +804,7 @@ function launch(config: GameConfig): void {
  */
 function luyenTriNho(soThe: number): void {
   showSoTriNho.value = false;
+  moChucNang('tri_nho_luyen');
   const du = BOARD_SIZES.filter((b) => b.pairs <= symbols.value.length);
   const ban = du.find((b) => b.pairs * 2 >= soThe) ?? du[du.length - 1];
   if (!ban) return;
