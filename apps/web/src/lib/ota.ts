@@ -84,7 +84,10 @@ const NHIP_MS = 500;
  * (ở trang chủ, không hộp thoại). Muốn hiện lại: đặt `false`. Bấm TAY "Kiểm tra cập nhật" vẫn có màn phủ — người
  * dùng đang chờ kết quả.
  */
-let anTienDo = true;
+// 25.11.2026 BẬT LẠI tiến độ (chủ dự án: "có lẽ cần phải ép người dùng cập nhật ở bước này… mãi mới update được… có thể người
+// dùng đã chuyển sang tính năng khác"): tải ngầm thì người chơi kịp đi chỗ khác, gói chỉ áp khi về trang chủ. Nay có bản
+// mới mà đang ở trang chủ → phủ "Đang cập nhật" + % thật, xong là khởi động lại (luật 16.11.2026). Lỗi/đứng 20s vẫn gỡ phủ.
+let anTienDo = false;
 /** Chỉ cho test: bật/tắt chế độ ẩn tiến độ (`false` = cách cũ: phủ % thật + áp ngay ở trang chủ). */
 export function datAnTienDo(v: boolean): void { anTienDo = v; }
 /*
