@@ -131,6 +131,8 @@ jobs:
       - name: Smoke hồ sơ người chơi (MySQL, bảng xếp hạng)
         env:
           MYSQL_URL: mysql://root:smoke@127.0.0.1:3306/thebai
+          # Tầng tài khoản (bảng xếp hạng) chỉ BẬT khi có MySQL + GOOGLE_CLIENT_ID — giá trị giả, smoke không đăng nhập
+          GOOGLE_CLIENT_ID: smoke.apps.googleusercontent.com
         run: |
           cd apps/node-server
           PORT=8093 WEB_DIR=../../apps/web/dist node dist/server.mjs > /tmp/srv4.log 2>&1 & echo $! > /tmp/srv4.pid

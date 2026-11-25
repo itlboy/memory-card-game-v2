@@ -135,9 +135,16 @@ const dangPhu = (): boolean => typeof document !== 'undefined' && !!document.que
 /** Người dùng TỰ BẤM "Kiểm tra cập nhật" (menu / nút tại chỗ): phủ và áp ở MỌI màn — họ đã chọn. */
 let epBuoc = false;
 const hienTrangChu = (): boolean => typeof document !== 'undefined' && document.visibilityState === 'visible' && (epBuoc || dangOTrangChu());
+/*
+ * MÀN CHÀO HỒ SƠ (25.11.2026) là hộp thoại bắt buộc NẰM TRÊN trang chủ — tính nó là "hộp thoại đang mở" thì người mới /
+ * người cũ chưa qua màn chào KHÔNG BAO GIỜ được cập nhật. Ô tên còn TRỐNG thì khởi động lại không mất gì → không chặn;
+ * đang gõ dở tên thì chờ (mất chữ là khó chịu).
+ */
+const coHopChan = (): boolean => [...document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"], [role="menu"]')]
+  .some((el) => !(el.matches('.hs-phu.chao') && !(el.querySelector<HTMLInputElement>('input')?.value ?? '').trim()));
 const apDuocBayGio = (): boolean => typeof document !== 'undefined' && (epBuoc ? document.visibilityState === 'visible' : apDuoc({
   search: location.search, manChu: manTrangChu(), hien: document.visibilityState === 'visible',
-  coHop: !!document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]')
+  coHop: coHopChan()
 }));
 
 /** Màn phủ "Đang cập nhật" + thanh % (một phần tử, cập nhật tại chỗ). */
@@ -290,8 +297,9 @@ function canhCapNhat(): void {
       return;
     }
     if (goiCho && !boChan) {
-      // Êm: ở trang chủ chỉ áp khi ĐỨNG YÊN đủ lâu hoặc bản gấp — còn lại chờ app vào nền (`khiVaoNen`)
-      const ngay = !anTienDo || epBuoc || apGap || ranhDu();
+      // 25.11.2026 (chủ dự án: "ở trang chủ phải tự động cập nhật cho người dùng chứ?"): ở trang chủ tải xong là áp
+      // NGAY (màn phủ giả ~1 giây) — bỏ điều kiện đứng yên `RANH_MS`, người chơi bấm liên tục thì không bao giờ tới.
+      const ngay = true;
       if ((ngay && apDuocBayGio()) || (dangPhu() && document.visibilityState === 'visible')) void apGoi(goiCho);
       else if (!hienTrangChu()) anManPhu();
       return;
@@ -468,7 +476,7 @@ export async function kiemOta(): Promise<void> {
     await CapacitorUpdater.setMultiDelay({ delayConditions: [{ kind: 'kill' }] });
     dat({ buoc: 'choMoLai', id: m.id });
     // Ở trang chủ — hoặc màn phủ đang hiện (đã chặn hết mọi thứ, xem `dangPhu`): khởi động lại NGAY
-    const ngay = !anTienDo || epBuoc || apGap;                          // êm: không áp ngay trước mặt người chơi
+    const ngay = true;                                                  // 25.11.2026: ở trang chủ áp ngay (xem canhCapNhat)
     if (!boChan && ((ngay && apDuocBayGio()) || (dangPhu() && document.visibilityState === 'visible'))) { await apGoi(goi.id); return; }
     if (!boChan) canhCapNhat();                                         // chờ: vào nền / đứng yên / về trang chủ
   } catch (e) {

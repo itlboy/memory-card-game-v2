@@ -393,43 +393,54 @@ describe('cập nhật nóng', () => {
       document.dispatchEvent(new Event('visibilitychange'));
     };
 
-    it('ÊM: tải xong ở trang chủ KHÔNG khởi động lại trước mặt; đứng yên RANH_MS → phủ chạy giả rồi mới áp', async () => {
+    // 25.11.2026 (chủ dự án: "ở trang chủ phải tự động cập nhật cho người dùng chứ?"): bỏ chờ đứng yên RANH_MS
+    it('ở trang chủ tải xong là áp NGAY — dưới màn phủ chạy giả, không chờ đứng yên', async () => {
       vi.useFakeTimers();
       const ota = await import('@/lib/ota');
       try {
         await taiXongEm(ota);
-        await vi.advanceTimersByTimeAsync(2000);
-        expect(goi.set, 'không nháy ngay trước mặt người chơi').not.toHaveBeenCalled();
-        await vi.advanceTimersByTimeAsync(ota.RANH_MS);
+        await vi.advanceTimersByTimeAsync(1500);
         expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
         expect(phu(), 'khởi động lại DƯỚI màn phủ').not.toBeNull();
         expect(JSON.parse(localStorage.getItem('mm.otaVuaAp')!)).toEqual({ cach: 'phu', id: 'moi' });
       } finally { ota.datAnTienDo(false); vi.useRealTimers(); localStorage.removeItem('mm.otaVuaAp'); }
     });
 
-    it('ÊM: chạm màn hình thì đếm lại thời gian đứng yên', async () => {
+    it('màn chào hồ sơ (ô tên TRỐNG) không chặn cập nhật; đang gõ dở tên thì chờ', async () => {
       vi.useFakeTimers();
       const ota = await import('@/lib/ota');
+      const chao = document.createElement('div');
+      chao.className = 'overlay hs-phu chao';
+      chao.setAttribute('role', 'dialog');
+      chao.setAttribute('aria-modal', 'true');
+      chao.innerHTML = '<input value="Kiê">';
+      document.body.appendChild(chao);
       try {
         await taiXongEm(ota);
-        await vi.advanceTimersByTimeAsync(ota.RANH_MS - 5000);
-        document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
-        await vi.advanceTimersByTimeAsync(10_000);
-        expect(goi.set).not.toHaveBeenCalled();
-      } finally { ota.datAnTienDo(false); vi.useRealTimers(); }
+        await vi.advanceTimersByTimeAsync(1500);
+        expect(goi.set, 'đang gõ tên: chờ').not.toHaveBeenCalled();
+        chao.querySelector('input')!.value = '';
+        await vi.advanceTimersByTimeAsync(1500);
+        expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
+      } finally { chao.remove(); ota.datAnTienDo(false); vi.useRealTimers(); localStorage.removeItem('mm.otaVuaAp'); }
     });
 
-    it('ÊM: VÀO NỀN ở trang chủ → khởi động lại ngay trong nền, không phủ', async () => {
+    it('ÊM: menu đang mở lúc tải xong → VÀO NỀN ở trang chủ thì khởi động lại trong nền, không phủ', async () => {
       vi.useFakeTimers();
       const ota = await import('@/lib/ota');
+      const menu = document.createElement('div');
+      menu.setAttribute('role', 'menu');
+      document.body.appendChild(menu);
       try {
         await taiXongEm(ota);
+        await vi.advanceTimersByTimeAsync(600);
+        expect(goi.set, 'menu mở: không áp trước mặt').not.toHaveBeenCalled();
         anHien('hidden');
         await vi.advanceTimersByTimeAsync(10);
         expect(goi.set).toHaveBeenCalledWith({ id: 'b1' });
         expect(phu()).toBeNull();
         expect(JSON.parse(localStorage.getItem('mm.otaVuaAp')!).cach).toBe('nen');
-      } finally { anHien('visible'); ota.datAnTienDo(false); vi.useRealTimers(); localStorage.removeItem('mm.otaVuaAp'); }
+      } finally { menu.remove(); anHien('visible'); ota.datAnTienDo(false); vi.useRealTimers(); localStorage.removeItem('mm.otaVuaAp'); }
     });
 
     it('ÊM: vào nền GIỮA VÁN → không áp (để lần về trang chủ / mở lại)', async () => {
