@@ -437,12 +437,14 @@ button {
 
 /* VÒNG MÀU HỒ SƠ (25.11.2026, lib/ho-so.ts): gắn lên khung chứa mặt người chơi — `--m` là màu họ chọn. Chưa chọn màu
    (app cũ / bot) thì không gắn class này.
-   Vòng là một HÌNH TRÒN RIÊNG (::before) căn giữa, cạnh tính theo cỡ chữ của khung: khung chứa emoji rộng hơn cao, bo
+   Khung là một HÌNH RIÊNG (::before) căn giữa, cạnh tính theo cỡ chữ của khung: khung chứa emoji rộng hơn cao, bo
    50% thẳng lên nó là ra hình E-LÍP (chủ dự án gửi ảnh bảng xếp hạng 25.11.2026). `absolute` nên KHÔNG tốn bề ngang
    (chip online đo tay từng px); `isolation` + z-index âm để vòng nằm SAU emoji mà không chui ra sau nền của khối cha. */
 .vong-mau { position: relative; isolation: isolate; }
 .vong-mau::before {
-  content: ""; position: absolute; left: 50%; top: 50%; width: 1.5em; height: 1.5em; transform: translate(-50%, -50%);
-  border-radius: 50%; z-index: -1; pointer-events: none;
-  box-shadow: inset 0 0 0 2px var(--m); background: color-mix(in srgb, var(--m) 16%, transparent);
+  /* KHUNG VUÔNG BO GÓC, không phải hình tròn (25.11.2026, chủ dự án gửi ảnh: vòng tròn 1,5em "vẫn xấu" — emoji thú rộng
+     ngang như con heo tràn ra ngoài vòng). Vuông thì bốn góc chứa được emoji mà khung không cần to hơn nhiều. */
+  content: ""; position: absolute; left: 50%; top: 50%; width: 1.7em; height: 1.7em; transform: translate(-50%, -50%);
+  border-radius: 30%; z-index: -1; pointer-events: none;
+  box-shadow: inset 0 0 0 2px var(--m); background: color-mix(in srgb, var(--m) 18%, transparent);
 }

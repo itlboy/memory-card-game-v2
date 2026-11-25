@@ -1979,5 +1979,5 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   kết thúc ở ngày đó; "Luyện ngay" (`theNenLuyen` → App `luyenTriNho`). Màu HAI TÔNG: ngọc đậm #0b7468 nền sáng, ngọc sáng
   #4fd6c4 nền tối (một tông thì thanh trên rãnh chỉ 2,7–3,0).
 - Nút trang chủ: hiện con số + vành tiến độ (mask conic) + huy chương; chỉ nhấp nháy/bong bóng ▲▼ khi điểm ≠ `prefs.triNhoXem`.
-- `.vong-mau` (vòng màu hồ sơ) là hình tròn ::before — bo 50% lên khung emoji ra E-LÍP (bảng xếp hạng).
+- `.vong-mau` (khung màu hồ sơ) là KHUNG VUÔNG BO GÓC ::before 1,7em: bo 50% lên khung emoji ra e-líp; vòng tròn 1,5em thì emoji rộng ngang tràn ra (chủ dự án chê hai lần).
 - CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.
