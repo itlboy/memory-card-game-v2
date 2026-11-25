@@ -12,6 +12,7 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { t } from '@/lib/i18n';
 import { AVATAR_HO_SO, MAU_HO_SO, hoSo, luuHoSo, tenDienSan } from '@/lib/ho-so';
 import { DO_DAI_TOI_DA } from '@/lib/ten-goc';
+import { guiHoSo } from '@/lib/taikhoan';
 
 const props = defineProps<{ kieu: 'chao' | 'sua' }>();
 const emit = defineEmits<{ xong: [] }>();
@@ -49,6 +50,7 @@ onMounted(async () => {
 function luu(): void {
   if (!coTen.value) { oTen.value?.focus(); return; }
   luuHoSo(ten.value, mat.value, mau.value);
+  void guiHoSo();   // lên bảng xếp hạng (khách: kèm lần gửi điểm; đăng nhập: /api/me/ho-so)
   emit('xong');
 }
 function dong(): void { if (props.kieu === 'sua') emit('xong'); }

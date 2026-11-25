@@ -434,3 +434,7 @@ button {
 
 /* Chỗ chừa cho thanh emoji cố định đáy màn (EmojiDock.vue) — đặt cuối nội dung phòng chờ / ván online */
 .eb-cho { flex: none; height: calc(var(--eb-dock-h, 42px) - var(--eb-lun, 0px)); }
+
+/* VÒNG MÀU HỒ SƠ (25.11.2026, lib/ho-so.ts): gắn lên khung chứa mặt người chơi — `--m` là màu họ chọn. box-shadow
+   nên KHÔNG tốn bề ngang (chip online đo tay từng px). Chưa chọn màu (app cũ / bot) thì không gắn class này. */
+.vong-mau { border-radius: 50%; box-shadow: 0 0 0 2px var(--m); background: color-mix(in srgb, var(--m) 16%, transparent); }

@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import { store } from './storage';
 import { laTenTuSinh } from './ten-goc';
+import { AVATAR_HO_SO, MAU_HO_SO } from '@mm/engine';
 
 /**
  * HỒ SƠ NGƯỜI CHƠI (25.11.2026, mockup duyệt https://claude.ai/artifact/TEoguR6Vy3GDoLpFcyx8go): tên + avatar thú +
@@ -10,21 +11,7 @@ import { laTenTuSinh } from './ten-goc';
  * mới và người cũ còn mang tên tự sinh ("Sóc Đỏ Nhỏ" — `laTenTuSinh`); ai đã tự gõ tên thì giữ sẵn.
  */
 
-/** 93 con lấy từ bộ thẻ Động vật (104 con), bỏ gián, muỗi, ruồi, giun, chuột cống, nhện, bọ cạp, sâu, dấu chân, lông vũ. */
-export const AVATAR_HO_SO: readonly string[] = [
-  '🐶', '🐱', '🦁', '🐼', '🦊', '🐻', '🐨', '🐯', '🐵', '🐷', '🐸', '🐧', '🦉', '🦋', '🐢', '🐬', '🦄', '🐔',
-  '🐴', '🐝', '🐞', '🦀', '🐙', '🦑', '🐘', '🦒', '🦓', '🦏', '🦛', '🐆', '🐅', '🐊', '🦍', '🐒', '🦘', '🦬',
-  '🐃', '🦌', '🐪', '🐫', '🦙', '🦨', '🦡', '🦫', '🦦', '🦥', '🐗', '🦜', '🦧', '🐍', '🦎', '🦩', '🐈', '🐈‍⬛',
-  '🐟', '🐭', '🐕', '🦮', '🐕‍🦺', '🐩', '🐹', '🐰', '🐦', '🐤', '🐥', '🐣', '🕊️', '🐠', '🐡', '🦔', '🐇', '🐄',
-  '🐖', '🐑', '🐐', '🐓', '🦆', '🐎', '🦃', '🐂', '🐏', '🦚', '🦅', '🦢', '🦤', '🐌', '🐜', '🪲', '🦗', '🦝',
-  '🐮', '🐽', '🦣',
-];
-
-/** 12 màu — tô vòng avatar, viền chip lượt. Trùng màu trong một ván: cứ để trùng (chủ dự án 25.11). */
-export const MAU_HO_SO: readonly string[] = [
-  '#ff5a6e', '#ff9a1f', '#f5c400', '#9acd32', '#3fbf4a', '#14b3a3',
-  '#22b8e6', '#2f8ff0', '#7a5cf0', '#b04fe0', '#e25bc8', '#8a6a4f',
-];
+export { AVATAR_HO_SO, MAU_HO_SO };
 
 export interface HoSo { mat: string; mau: string; xong?: boolean }
 

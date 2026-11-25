@@ -1182,7 +1182,7 @@ function openCfgWizard(): void {
             :disabled="!!dangVaoPhong"
             @click="vaoPhongCongKhai(r.code)"
           >
-            <span class="av"><MatNguoi :mat="r.avatar" :anh="r.anh" /></span>
+            <span class="av" :class="{ 'vong-mau': !!r.mau }" :style="r.mau ? { '--m': r.mau } : undefined"><MatNguoi :mat="r.avatar" :anh="r.anh" /></span>
             <span class="body">
               <span class="rname">{{ r.chuPhong }}</span>
               <span class="meta">
@@ -1228,7 +1228,7 @@ function openCfgWizard(): void {
               :class="{ vao: dangVaoPhong === r.code, mo: dangVaoPhong && dangVaoPhong !== r.code }"
               :disabled="!!dangVaoPhong" @click="vaoPhongCongKhai(r.code)"
             >
-              <span class="av"><MatNguoi :mat="r.avatar" :anh="r.anh" /></span>
+              <span class="av" :class="{ 'vong-mau': !!r.mau }" :style="r.mau ? { '--m': r.mau } : undefined"><MatNguoi :mat="r.avatar" :anh="r.anh" /></span>
               <span class="body">
                 <span class="rname">{{ r.ten?.length ? r.ten.join(', ') : r.chuPhong }}</span>
                 <span class="meta">
@@ -1311,7 +1311,7 @@ function openCfgWizard(): void {
   <section v-else-if="!wizard && o.phase.value === 'lobby' && o.room.value?.thiDau" class="panel td-vao" role="status">
     <h2>{{ t('td.dangVao') }}</h2>
     <ul class="td-vao-ds">
-      <li v-for="p in o.room.value.players" :key="p.id"><span class="avatar"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span><b>{{ tenNguoi(p) }}</b></li>
+      <li v-for="p in o.room.value.players" :key="p.id"><span class="avatar" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span><b>{{ tenNguoi(p) }}</b></li>
     </ul>
     <div class="eb-cho" aria-hidden="true" />
   </section>
@@ -1382,7 +1382,7 @@ function openCfgWizard(): void {
         v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id"
         :class="[{ off: !p.connected, toi: p.id === o.myId.value, may: !!p.may, san: p.ready && p.connected && p.id !== o.room.value?.hostId && !p.may }, doiGhep(p.doiSo) ? `vd-${p.doiSo}` : '']"
       >
-        <span class="avatar"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
+        <span class="avatar" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
         <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
              không ai đổi được tên người khác. -->
         <template v-if="p.id === o.myId.value && suaTen">

@@ -127,6 +127,21 @@ jobs:
           [ $rc -eq 0 ] || cat /tmp/srv2.log
           exit $rc
 
+      # HỒ SƠ NGƯỜI CHƠI (25.11.2026): thêm cột mat/mau trên MySQL thật + bảng xếp hạng trả đúng avatar/màu
+      - name: Smoke hồ sơ người chơi (MySQL, bảng xếp hạng)
+        env:
+          MYSQL_URL: mysql://root:smoke@127.0.0.1:3306/thebai
+        run: |
+          cd apps/node-server
+          PORT=8093 WEB_DIR=../../apps/web/dist node dist/server.mjs > /tmp/srv4.log 2>&1 & echo $! > /tmp/srv4.pid
+          cd ../..
+          for i in $(seq 1 30); do curl -sf -m 1 http://127.0.0.1:8093/health >/dev/null && break || sleep 1; done
+          rc=0
+          MM_SERVER=http://127.0.0.1:8093 node tools/smoke-ho-so.mjs || rc=1
+          kill "$(cat /tmp/srv4.pid)" 2>/dev/null || true
+          [ $rc -eq 0 ] || tail -60 /tmp/srv4.log
+          exit $rc
+
   dong-anh:
     name: Đóng và đẩy ảnh
     needs: kiem-tra

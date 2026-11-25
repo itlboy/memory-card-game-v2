@@ -8,7 +8,7 @@ import type {
 } from '@mm/engine';
 import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
-import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, ketQuaChon, lichChot, luaChonSoThe, pairsForLevel } from '@mm/engine';
+import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, pairsForLevel } from '@mm/engine';
 import type { KetChon } from '@mm/engine';
 
 /** Các số thẻ có thật, tăng dần (4 … 88) — thang để lượt CHỌN SỐ THẺ lấy bậc trên / bậc dưới. */
@@ -39,6 +39,8 @@ interface RoomPlayer {
   avatar?: string;
   /** Ảnh Google (đã qua `anhHopLe`), hiện thay mặt thú — 11.11.2026. */
   anh?: string;
+  /** Màu hồ sơ (`?mau=`, 25.11.2026) — như `anh`: không lưu DB, client gửi lại mỗi lần nối. */
+  mau?: string;
   /**
    * Định danh BỀN của trình duyệt (client sinh, lưu localStorage).
    *
@@ -362,7 +364,7 @@ export class RoomDO extends DurableObject<Env> {
     // Nhịp 5 phút: phòng chờ không ai vào/ra vẫn phải khai lại định kỳ, không
     // thì bản ghi quá HAN_BAN_GHI_MS và phòng đang sống rơi khỏi danh sách.
     const nhip = Math.floor(Date.now() / 300_000);
-    return [r.code, chu.name, chu.avatar ?? '', chu.anh ?? '', r.players.length, r.config.level, nhip, dangChoi ? 'choi' : ''].join('|');
+    return [r.code, chu.name, chu.avatar ?? '', chu.anh ?? '', chu.mau ?? '', r.players.length, r.config.level, nhip, dangChoi ? 'choi' : ''].join('|');
   }
 
   /** Chữ ký lần khai gần nhất; `null` = chưa từng đồng bộ trong lần thức này. */
@@ -408,6 +410,7 @@ export class RoomDO extends DurableObject<Env> {
         chuPhong: chu.name,
         avatar: chu.avatar ?? AVATARS[0]!,
         ...(chu.anh ? { anh: chu.anh } : {}),
+        ...(chu.mau ? { mau: chu.mau } : {}),
         nguoi: r.players.length,
         toiDa: ROOM_LIMITS.maxPlayers,
         the: pairsForLevel(r.config.level) * 2,
@@ -510,6 +513,9 @@ export class RoomDO extends DurableObject<Env> {
     // Client hiểu chế độ Đồng đội không (`?dd=1`) — xem `tuChoiClientCu`
     const dd = Number(url.searchParams.get('dd')) || 0;
     const matXin = url.searchParams.get('mat') ?? '';
+    // HỒ SƠ NGƯỜI CHƠI (25.11.2026): avatar + màu người chơi tự chọn — chỉ nhận trong danh sách chung (engine ho-so.ts)
+    const matHs = matHoSo(matXin);
+    const mau = mauHoSo(url.searchParams.get('mau'));
     // CHỦ ĐỘNG LÀM NGƯỜI XEM (`?xem=1`, 23.11.2026): kể cả khi phòng chờ còn chỗ — xem `acceptSpectator`
     const xemChuDong = url.searchParams.get('xem') === '1';
 
@@ -551,8 +557,12 @@ export class RoomDO extends DurableObject<Env> {
         // người vào sau đội trùng avatar của người đang ngồi đó.
         // Thi đấu: giữ MẶT người chơi đã thấy ở màn "Trận của bạn" (sảnh cấp, app gửi `?mat=`) — chỉ nhận mặt trong
         // danh sách của phòng và chưa ai dùng; còn lại bốc như thường
-        avatar: this.room.thiDau && AVATARS.includes(matXin) && !this.room.players.some((p) => p.avatar === matXin) ? matXin : this.avatarConTrong(),
+        // Hồ sơ (25.11.2026): phòng thường dùng ĐÚNG avatar người chơi chọn, kể cả trùng người khác (danh tính của họ).
+        avatar: this.room.thiDau
+          ? (AVATARS.includes(matXin) && !this.room.players.some((p) => p.avatar === matXin) ? matXin : this.avatarConTrong())
+          : (matHs ?? this.avatarConTrong()),
         ...(anh ? { anh } : {}),
+        ...(mau ? { mau } : {}),
         token: crypto.randomUUID(),
         disconnectedAt: null,
         ready: false
@@ -570,6 +580,9 @@ export class RoomDO extends DurableObject<Env> {
       if (clientId) player.clientId = clientId;
       // Vào lại: ảnh theo lần vào MỚI NHẤT (đăng xuất giữa chừng thì về mặt thú)
       if (anh) player.anh = anh; else delete player.anh;
+      // Hồ sơ: vào lại mang avatar/màu MỚI NHẤT (đổi hồ sơ giữa hai lần vào). Ván đang chơi giữ mặt cũ (engine).
+      if (mau) player.mau = mau; else delete player.mau;
+      if (matHs && !this.room.thiDau) player.avatar = matHs;
       this.nhipDongHoLuot();      // họ về rồi, đồng hồ chạy tiếp
     }
 
@@ -1990,12 +2003,12 @@ export class RoomDO extends DurableObject<Env> {
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
         const may = { ...(p.may ? { may: p.may } : {}), ...(p.doi ? { doiSo: p.doi } : {}), ...(p.thang ? { thang: p.thang } : {}) };
-        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...may };
+        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...(p.mau ? { mau: p.mau } : {}), ...may };
         return {
               id: p.id, name: p.name, avatar: p.avatar,
               score: 0, pairs: 0, bestStreak: 0, frozenTurns: 0,
               doubleNext: false, forfeited: false, connected: this.connected(p.id),
-              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...may
+              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...(p.mau ? { mau: p.mau } : {}), ...may
             };
       })
     };
