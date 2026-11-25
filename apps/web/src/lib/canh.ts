@@ -1,5 +1,6 @@
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { moChucNang } from './phan-tich';
+import { daMuaPremium } from './premium';
 
 /**
  * HÌNH NỀN (cảnh sau bàn chơi + trang chủ) của skin Kẹo — quyền lợi PREMIUM đang làm (25.11.2026).
@@ -10,8 +11,7 @@ import { moChucNang } from './phan-tich';
  */
 export const CANH = ['goc', 'sao-moc', 'sao-thuy', 'trai-dat', 'sao-tho', 'sao-hoa'] as const;
 export type Canh = (typeof CANH)[number];
-/** Tên chỉ dùng ở trang debug — ra Cài đặt thì chuyển sang i18n. */
-export const TEN_CANH: Record<Canh, string> = { goc: 'Gốc', 'sao-moc': 'Sao Mộc', 'sao-thuy': 'Sao Thuỷ', 'trai-dat': 'Trái Đất', 'sao-tho': 'Sao Thổ', 'sao-hoa': 'Sao Hoả' };
+/** Tên hiển thị: td(`pm.nen.${c}`) — 15 ngôn ngữ. */
 
 const KHOA = 'mm.canh';
 function doc(): Canh {
@@ -29,3 +29,6 @@ export function datCanh(c: Canh): void {
   ganCanh();
   moChucNang('hinh_nen', { canh: c });
 }
+
+/** HẾT / HUỶ PREMIUM thì về cảnh gốc — hình nền hành tinh là quyền lợi của gói (trang debug vẫn bật thử tự do được). */
+watch(daMuaPremium, (co) => { if (!co && canh.value !== 'goc') datCanh('goc'); });
