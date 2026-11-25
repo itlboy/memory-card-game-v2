@@ -538,9 +538,9 @@ async function bamChuong(): Promise<void> {
     baoTb(t(kq === 'bat' ? 'on.tb.daBat' : kq === 'chan' ? 'on.tb.biChan' : 'on.tb.loi'), kq === 'bat' ? 'tot' : 'can');
   } finally { tbDangLam.value = false; }
 }
-function khacBiet(a: RoomConfig, b: RoomConfig): string[] {
+function khacBiet(a: RoomConfig, b: RoomConfig, boSoThe = false): string[] {
   const ra: string[] = [];
-  if (a.level !== b.level) ra.push(t('on.soThe', { n: levelSpec(b.level).pairs * 2 }));
+  if (a.level !== b.level && !boSoThe) ra.push(t('on.soThe', { n: levelSpec(b.level).pairs * 2 }));
   if ([...a.themeIds].sort().join() !== [...b.themeIds].sort().join()) ra.push(themeSummary(b.themeIds));
   for (const k of OPTION_KEYS) {
     if (a.options[k] === b.options[k]) continue;
@@ -548,9 +548,13 @@ function khacBiet(a: RoomConfig, b: RoomConfig): string[] {
   }
   return ra;
 }
-watch(() => [o.room.value?.code, o.room.value?.config] as const, ([code, c], [codeCu, cu]) => {
+/*
+ * Số thẻ đổi NGAY SAU LƯỢT CHỌN SỐ THẺ (`room.chon` vừa đóng — server đặt `config.level` trong cùng gói tin,
+ * xem `vaoVanSauChot`) là kết quả cả phòng bỏ phiếu, KHÔNG phải chủ phòng đổi bàn: không báo (chủ dự án 25.11.2026).
+ */
+watch(() => [o.room.value?.code, o.room.value?.config, !!o.room.value?.chon] as const, ([code, c], [codeCu, cu, dangChonCu]) => {
   if (!c || !cu || code !== codeCu || o.isHost.value) return;
-  const ds = khacBiet(cu, c);
+  const ds = khacBiet(cu, c, dangChonCu);
   if (!ds.length) return;
   const ten = o.room.value?.players.find((p) => p.id === o.room.value?.hostId)?.name ?? '';
   // Chủ phòng đổi bàn → DẢI BÁO CHUNG (vàng: "để ý", vì nó đổi thứ mình vừa đồng ý chơi)
