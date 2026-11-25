@@ -70,7 +70,7 @@ const bocTu = computed(() => (tr.value ? tr.value.nguoi.map((p) => tr.value!.cho
       <!-- 1. Thẻ hỏi -->
       <div v-if="tdHoi && !trongPhongOnline && !tr" :key="`h${tdHoi.id}`" class="td-the" role="alertdialog" :aria-label="t('td.hoi')">
         <div class="td-tren">
-          <span v-if="tdHoi.cho" class="td-mat"><MatNguoi :mat="tdHoi.cho.mat" /><span class="td-kiem" aria-hidden="true"><Swords :size="11" :stroke-width="2.8" /></span></span>
+          <span v-if="tdHoi.cho" class="td-mat" :class="{ 'co-mau': !!tdHoi.cho.mau }" :style="tdHoi.cho.mau ? { '--m': tdHoi.cho.mau } : undefined"><MatNguoi :mat="tdHoi.cho.mat" /><span class="td-kiem" aria-hidden="true"><Swords :size="11" :stroke-width="2.8" /></span></span>
           <span v-else class="td-vong" aria-hidden="true"><Swords :size="17" :stroke-width="2.5" /></span>
           <span class="td-chu">
             <b>{{ tdHoi.cho ? t('td.choTen', { ten: tdHoi.cho.ten || t('td.aiDo') }) : t('td.hoi') }}</b>
@@ -116,7 +116,7 @@ const bocTu = computed(() => (tr.value ? tr.value.nguoi.map((p) => tr.value!.cho
           <div class="td-tran" :class="`n${tr.nguoi.length}`">
             <template v-for="(p, i) in tr.nguoi" :key="p.sid">
               <span v-if="i" class="td-vs" aria-hidden="true"><template v-if="tr.nguoi.length === 2">VS</template><Swords v-else :size="13" :stroke-width="2.8" /></span>
-              <div class="td-ng"><span class="td-av"><MatNguoi :mat="p.mat" /></span><b>{{ ten(p) }}</b><small>{{ p.sid === tr.toi ? t('td.ban') : ' ' }}</small></div>
+              <div class="td-ng"><span class="td-av" :class="{ 'co-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.mat" /></span><b>{{ ten(p) }}</b><small>{{ p.sid === tr.toi ? t('td.ban') : ' ' }}</small></div>
             </template>
           </div>
           <div class="td-dem"><span>{{ t('td.vaoBan') }}</span><b>{{ Math.max(1, giay(tr.hetXem)) }}</b></div>
@@ -127,7 +127,7 @@ const bocTu = computed(() => (tr.value ? tr.value.nguoi.map((p) => tr.value!.cho
           <h2>{{ t('td.chonThe') }}</h2>
           <div class="td-chips" :class="`n${tr.nguoi.length}`">
             <span v-for="p in tr.nguoi" :key="p.sid" class="td-chip">
-              <span class="td-cm"><MatNguoi :mat="p.mat" /></span><b>{{ p.sid === tr.toi ? t('td.ban') : ten(p) }}</b>
+              <span class="td-cm" :class="{ 'co-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.mat" /></span><b>{{ p.sid === tr.toi ? t('td.ban') : ten(p) }}</b>
               <i v-if="tr.chon[p.sid]" class="td-tt xong"><Check :size="13" :stroke-width="3.2" aria-hidden="true" />{{ tr.chon[p.sid] }}</i>
               <i v-else class="td-tt">{{ t('td.dangChon') }}</i>
             </span>
@@ -259,4 +259,8 @@ const bocTu = computed(() => (tr.value ? tr.value.nguoi.map((p) => tr.value!.cho
   .td-the-enter-from, .td-the-leave-to { transform: none; }
   .td-vien.td-the-enter-from, .td-vien.td-the-leave-to { transform: none; }
 }
+/* Ô màu hồ sơ (25.11.2026): vuông bo góc, tô đặc, phẳng — cùng kiểu mọi avatar khác (`.vong-mau` ở global.css) */
+.td-the .td-mat.co-mau, :global([data-theme='dark'] .td-the .td-mat.co-mau) { border-radius: 10px; background: var(--m); }
+.td-av.co-mau, :global([data-theme='dark'] .td-av.co-mau) { border-radius: 24%; background: var(--m); box-shadow: none; }
+.td-cm.co-mau { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; border-radius: 28%; background: var(--m); font-size: 19px; line-height: 1; }
 </style>

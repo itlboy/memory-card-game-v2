@@ -19,6 +19,8 @@ export interface Bao {
   /** Mặt thú / ảnh của người được nói tới — vẽ thay `ic` (xem). */
   mat?: string;
   anh?: string;
+  /** Màu hồ sơ của người đó — có thì mặt nằm trong ô màu. */
+  mau?: string;
   chu: string;
   /** Khoá để thay/gỡ đúng tin này (vd. `mang:<id>`). Tin trùng khoá thay chỗ nhau. */
   khoa?: string;

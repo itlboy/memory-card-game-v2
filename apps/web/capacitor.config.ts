@@ -15,12 +15,15 @@ const config: CapacitorConfig = {
   ios: {
     // Không đệm theo thanh trạng thái: web đã tự xử lý bằng env(safe-area-inset-*)
     contentInset: 'never',
-    backgroundColor: '#edeffa',
+    // Màu WebView vẽ TRƯỚC khi trang được đọc (mở app, tự khởi động lại để áp OTA). Trước là #edeffa gần trắng → loé
+    // chói ở nền tối (chủ dự án 25.11.2026). Nay = màu trời của màn chờ (SplashScreen bên dưới); trang tự tô tiếp đúng
+    // sáng/tối ngay khung hình đầu (index.html). Android dùng cùng màu.
+    backgroundColor: '#5bc0f0',
     // Không cho kéo giật trang — màn chơi vốn KHÔNG SCROLL
     scrollEnabled: false
   },
   android: {
-    backgroundColor: '#edeffa'
+    backgroundColor: '#5bc0f0'
   },
   plugins: {
     /*

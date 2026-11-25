@@ -17,7 +17,7 @@ import IconVong from './IconVong.vue';
         v-if="baoHien" :key="baoHien.so" class="dai-bao" :class="`b-${baoHien.loai}`"
         :role="baoHien.loai === 'can' || baoHien.loai === 'mang' ? 'alert' : 'status'"
       >
-        <span v-if="baoHien.mat || baoHien.anh" class="db-mat">
+        <span v-if="baoHien.mat || baoHien.anh" class="db-mat" :class="{ 'co-mau': !!baoHien.mau }" :style="baoHien.mau ? { '--m': baoHien.mau } : undefined">
           <MatNguoi :mat="baoHien.mat ?? ''" :anh="baoHien.anh" />
           <BongNgo v-if="baoHien.loai === 'xem'" class="db-bong" :size="16" />
         </span>
@@ -69,4 +69,6 @@ import IconVong from './IconVong.vue';
   .dai-bao-enter-active, .dai-bao-leave-active { transition: opacity .15s; }
   .dai-bao-enter-from, .dai-bao-leave-to { transform: none; }
 }
+/* Ô màu hồ sơ: vuông bo góc, tô đặc, phẳng (`.vong-mau` ở global.css) */
+.dai-bao .db-mat.co-mau, :global([data-theme='dark'] .dai-bao .db-mat.co-mau) { border-radius: 9px; background: var(--m); }
 </style>
