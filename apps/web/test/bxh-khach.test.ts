@@ -191,22 +191,26 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
 describe('tên ngẫu nhiên cho người mới (19.11.2026)', () => {
   beforeEach(() => { localStorage.clear(); vi.resetModules(); });
 
-  it('Loài + Màu + Nét, ≤16 ký tự, 9 ngôn ngữ có bộ riêng; đủ nhiều tổ hợp', async () => {
+  it('Loài + Màu + Nét, ≤16 ký tự, 15 ngôn ngữ có bộ riêng; đủ nhiều tổ hợp', async () => {
     const { taoTen, soToHop, DO_DAI_TOI_DA } = await import('@/lib/ten-ngau-nhien');
     for (let i = 0; i < 500; i++) {
       expect(taoTen('vi').length).toBeLessThanOrEqual(DO_DAI_TOI_DA);
       expect(taoTen('en').length).toBeLessThanOrEqual(DO_DAI_TOI_DA);
     }
     expect(taoTen('vi')).toMatch(/^\S+ \S+ \S+$/);
-    // Tiếng có giống ngữ pháp CHƯA có bộ riêng → tiếng Anh
-    for (const l of ['es', 'pt', 'fr', 'it', 'de', 'ru']) expect(taoTen(l)).toMatch(/^[A-Za-z]+ [A-Za-z]+ [A-Za-z]+$/);
+    // Tiếng có giống ngữ pháp (25.11.2026): bộ riêng toàn danh từ giống đực. es/pt/fr/it ba từ; de/ru HAI từ (tính từ + loài)
+    for (const l of ['es', 'pt', 'fr', 'it']) expect(taoTen(l)).toMatch(/^\S+ \S+ \S+$/);
+    for (const l of ['de', 'ru']) expect(taoTen(l)).toMatch(/^\S+ \S+$/);
+    expect(taoTen('ru')).not.toMatch(/[A-Za-z]/);
+    expect(taoTen('pt-BR')).not.toMatch(/^(Tiny|Big|Chubby|Sly|Quick|Silly|Wise|Happy|Gentle|Brave) /);   // mã vùng vẫn ra bộ pt
+    expect(taoTen('xx')).toMatch(/^[A-Za-z]+ [A-Za-z]+ [A-Za-z]+$/);   // mã lạ → tiếng Anh
     // Bảy tiếng ghép thẳng (22.11.2026): có bộ riêng, không còn chữ Latin ở tiếng Nhật/Hàn/Trung/Thái, vẫn ≤ 16 ký tự
     const { NGON_NGU_CO_TEN } = await import('@/lib/ten-goc');
     for (const l of NGON_NGU_CO_TEN) {
       const thay = new Set<string>();
       for (let i = 0; i < 400; i++) { const t = taoTen(l); expect(t.length).toBeGreaterThan(1); expect(t.length).toBeLessThanOrEqual(DO_DAI_TOI_DA); thay.add(t); }
       expect(thay.size).toBeGreaterThan(150);          // không dồn về vài tên vì từ quá dài
-      expect(soToHop(l)).toBeGreaterThan(5000);
+      expect(soToHop(l)).toBeGreaterThan(l === 'de' || l === 'ru' ? 900 : 5000);   // de/ru chỉ hai từ
     }
     for (const l of ['ja', 'ko', 'zh', 'zh-TW', 'th']) expect(taoTen(l)).not.toMatch(/[A-Za-z]/);
     expect(taoTen('zh-TW')).not.toBe('');
