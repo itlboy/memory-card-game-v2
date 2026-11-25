@@ -1943,3 +1943,11 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   vào giữa chừng nhảy tới đúng bước theo `ket.con`. Ô vàng PHẢI dùng lớp `th-vang` của skin (tự đặt nền thì skin Kẹo đè mất).
   `OnlineScreen` thôi canh `HAN_MO_VAN` (6 s) khi server đã mở lượt chọn — trước đó (từ 1.9.37) popup 10 giây kéo theo dòng
   "Chưa mở được ván — mạng vừa chập" dù ván vẫn mở.
+
+## Hồ sơ người chơi (1.9.49, 25.11.2026 — mockup https://claude.ai/artifact/TEoguR6Vy3GDoLpFcyx8go)
+- `lib/ho-so.ts` + `components/HoSoDialog.vue`: tên (vẫn ở `names[0]`) + avatar (93 thú, `AVATAR_HO_SO`) + màu (12, `MAU_HO_SO`), lưu `hoSo` trong bản lưu.
+- Màn chào BẮT BUỘC (`canMoChao`, không nút bỏ qua, phải gõ tên). Người cũ mang tên tự sinh bị hỏi lại: `laTenTuSinh` (ten-goc.ts) thử mọi bộ loài+màu+nét. Test: `MODE==='test'` coi như đã xong, không thì màn chào phủ mọi test giao diện.
+- Lưới avatar: trang 18 con, VUỐT NGANG (scroll-snap, ló trang sau), nút ‹ › nhỏ chỉ hiện với chuột (`hover:hover and pointer:fine`) — chủ dự án chê nút to xấu.
+- Sửa lại: mục đầu menu (TopBar `.item.ho-so`). Bẫy: `.item > span:not(.nac):not(.tk-chu) { flex: 1 }` kéo dẹt avatar — đã loại `.hs-av`.
+- Ván trên máy: p1 mang tên + avatar hồ sơ (đấu máy KHÔNG còn là "Bạn" khi đã có tên); vòng màu avatar ở PlayerStrip (`mauCua`). Trùng màu trong ván: cứ để trùng.
+- CHƯA LÀM (đợt 2, cần deploy server): phòng online + bảng xếp hạng dùng avatar/màu hồ sơ — server (room.ts) hiện chỉ nhận `?mat=` cho thi đấu và trong 10 mặt.

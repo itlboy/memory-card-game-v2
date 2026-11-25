@@ -93,6 +93,8 @@ interface Save {
   khach?: { id: string; an?: boolean; daGop?: boolean };
   /** Nhật ký trí nhớ theo ngày (`YYYY-MM-DD` giờ máy) — xem `NgayTriNho`. */
   triNho?: Record<string, NgayTriNho>;
+  /** Hồ sơ người chơi: avatar + màu, `xong` = đã qua màn chào (lib/ho-so.ts). Tên vẫn ở `names[0]`. */
+  hoSo?: { mat: string; mau: string; xong?: boolean };
 }
 
 /** Số đếm nhớ/quên theo nhóm độ lâu (engine `nhomTuoi`) của các ván CÙNG một cỡ bàn. */
@@ -161,6 +163,8 @@ const DEFAULT_PREFS: Prefs = {
   mode: 'classic', level: 1, themes: [], playerCount: 1,
   options: DEFAULT_OPTIONS, debug: false, rung: true, nhac: true
 };
+
+const dsNgheTen: ((names: string[]) => void)[] = [];
 
 function read(): Save {
   try { return (JSON.parse(localStorage.getItem(KEY) ?? '{}') ?? {}) as Save; } catch { return {}; }
@@ -428,10 +432,19 @@ export const store = {
   },
 
   playerNames(): string[] { return read().names ?? []; },
+  hoSo(): { mat: string; mau: string; xong?: boolean } | undefined { return read().hoSo; },
+  saveHoSo(h: { mat: string; mau: string; xong?: boolean }): void {
+    const s = read();
+    s.hoSo = h;
+    write(s);
+  },
 
   savePlayerNames(names: string[]): void {
     const s = read();
     s.names = names;
     write(s);
-  }
+    for (const f of dsNgheTen) f(names);
+  },
+  /** Báo khi ô tên đổi (online, nhiều người, đăng nhập…) — lib/ho-so.ts giữ `tenToi` khớp. */
+  ngheDoiTen(f: (names: string[]) => void): void { dsNgheTen.push(f); }
 };

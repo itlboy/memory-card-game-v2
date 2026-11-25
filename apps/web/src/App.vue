@@ -19,6 +19,8 @@ import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import SoTriNho from './components/SoTriNho.vue';
+import HoSoDialog from './components/HoSoDialog.vue';
+import { canMoChao, hoSo, tenToi } from '@/lib/ho-so';
 import { hienTriNho } from './lib/tri-nho';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
@@ -298,6 +300,9 @@ const showRules = ref(false);
 const showDebug = ref(false);
 useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
 const showSoTriNho = ref(false);
+/** Tấm SỬA hồ sơ (mở từ menu). Màn chào bắt buộc thì theo `canMoChao`, không có cờ riêng. */
+const showHoSo = ref(false);
+useBackCloser(31, () => showHoSo.value, () => { showHoSo.value = false; });
 useBackCloser(31, () => showSoTriNho.value, () => { showSoTriNho.value = false; });
 /** Đổi key để ép MenuScreen dựng lại — logo "về trang chủ" là về bước 1 của wizard. */
 const menuKey = ref(0);
@@ -696,7 +701,8 @@ function playerList(): PlayerInit[] | undefined {
       // online (và của nhiều người cùng máy). Lôi tên sót lại từ đó sang đây thì
       // người chơi thấy một cái tên mình chưa từng đặt cho ván này, mà nhánh
       // đấu máy lại không có bước nhập tên để sửa (MenuScreen bỏ bước 'names').
-      { id: 'p1', name: 'Bạn' }, // i18n-bo-qua — dữ liệu ván; tenNguoi() dịch lúc vẽ (so đúng chữ này)
+      // Từ 25.11.2026 có HỒ SƠ (tên tự đặt ở màn chào bắt buộc): dùng tên + avatar của mình. Chưa có tên thì vẫn "Bạn".
+      { id: 'p1', name: tenToi.value || 'Bạn', avatar: hoSo.value.mat }, // i18n-bo-qua — dữ liệu ván; tenNguoi() dịch lúc vẽ
       { id: 'bot', name: spec.name, avatar: spec.avatar }
     ]);
   }
@@ -706,7 +712,7 @@ function playerList(): PlayerInit[] | undefined {
   const list: PlayerInit[] = Array.from({ length: playerCount.value }, (_, i) => {
     const l = i > 0 ? mayCung.value[i] : null;
     if (l) return { id: maBot(k++), name: BOT_SPECS[l].name, avatar: BOT_SPECS[l].avatar };
-    return { id: `p${i + 1}`, name: saved[i] || t('menu.nguoiN', { n: i + 1 }) };   // '' = để trống
+    return { id: `p${i + 1}`, name: saved[i] || t('menu.nguoiN', { n: i + 1 }), ...(i === 0 ? { avatar: hoSo.value.mat } : {}) };   // '' = để trống; người 1 = mình (avatar hồ sơ)
   });
   return batDauLoat(list);
 }
@@ -1053,6 +1059,7 @@ const hasNext = computed(() => {
     :rung="rungBat" :co-rung="rung.coTheRung()"
     @toggle-rung="rungBat = !rungBat; if (rungBat) rung.ghep(1)"
     @account="showAccount = true"
+    @ho-so="showHoSo = true"
     @xep-hang="showBxh = true"
     @set-sound="(l: SoundLevel) => { soundLevel = l; applySound(); }"
     :ten-tk="taiKhoanMe?.name"
@@ -1186,6 +1193,9 @@ const hasNext = computed(() => {
     @tat="debug = false; showDebug = false"
   />
   <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" />
+  <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
+  <HoSoDialog v-if="canMoChao" kieu="chao" />
+  <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" />
 
   <CaiAppDialog v-if="hienCai" @close="dongCai" />
 

@@ -942,6 +942,20 @@ const ja: TuDien = {
   'tn.choiThem': "あと{n}回ほどあそぶと、数字がもっと信頼できます",
   'ct.conGiay': "あと{n}秒",
   'ct.daChon': "{da}/{tong}人が選択",
+  'hs.chao': "ようこそ！",
+  'hs.chaoPhu': "友だちにわかるように名前とアイコンを選ぼう",
+  'hs.ten': "名前",
+  'hs.nhapTen': "名前を入力",
+  'hs.avatar': "アイコン",
+  'hs.mau': "あなたの色",
+  'hs.vaoChoi': "はじめる",
+  'hs.goTen': "名前を入力して続ける",
+  'hs.hoSo': "プロフィール",
+  'hs.luu': "保存",
+  'hs.trangTruoc': "前のページ",
+  'hs.trangSau': "次のページ",
+  'hs.trangN': "{n}ページ",
+  'hs.sua': "プロフィールを編集",
 };
 
 export default ja;

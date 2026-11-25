@@ -942,6 +942,20 @@ const ko: TuDien = {
   'tn.choiThem': "약 {n}판 더 하면 수치가 더 믿을 만해져요",
   'ct.conGiay': "{n}초 남음",
   'ct.daChon': "{da}/{tong}명 선택",
+  'hs.chao': "환영해요!",
+  'hs.chaoPhu': "친구들이 알아볼 수 있게 이름과 그림을 골라요",
+  'hs.ten': "이름",
+  'hs.nhapTen': "이름을 입력하세요",
+  'hs.avatar': "아바타",
+  'hs.mau': "내 색깔",
+  'hs.vaoChoi': "시작하기",
+  'hs.goTen': "계속하려면 이름을 입력하세요",
+  'hs.hoSo': "내 프로필",
+  'hs.luu': "저장",
+  'hs.trangTruoc': "이전 페이지",
+  'hs.trangSau': "다음 페이지",
+  'hs.trangN': "{n}페이지",
+  'hs.sua': "프로필 수정",
 };
 
 export default ko;

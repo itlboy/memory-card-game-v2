@@ -944,6 +944,20 @@ const en: TuDien = {
   'tn.choiThem': "Play about {n} more games for more reliable numbers",
   'ct.conGiay': "{n} seconds left",
   'ct.daChon': "{da}/{tong} voted",
+  'hs.chao': "Welcome!",
+  'hs.chaoPhu': "Pick a name and a picture so friends know it's you",
+  'hs.ten': "Name",
+  'hs.nhapTen': "Enter your name",
+  'hs.avatar': "Avatar",
+  'hs.mau': "Your color",
+  'hs.vaoChoi': "Let's play",
+  'hs.goTen': "Type a name to continue",
+  'hs.hoSo': "Your profile",
+  'hs.luu': "Save",
+  'hs.trangTruoc': "Previous page",
+  'hs.trangSau': "Next page",
+  'hs.trangN': "Page {n}",
+  'hs.sua': "Edit profile",
 };
 
 export default en;

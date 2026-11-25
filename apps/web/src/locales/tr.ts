@@ -945,6 +945,20 @@ const tr: TuDien = {
   'tn.choiThem': "Daha güvenilir veri için yaklaşık {n} oyun daha oyna",
   'ct.conGiay': "{n} saniye kaldı",
   'ct.daChon': "{da}/{tong} oy verdi",
+  'hs.chao': "Hoş geldin!",
+  'hs.chaoPhu': "Arkadaşların seni tanısın diye bir ad ve resim seç",
+  'hs.ten': "Ad",
+  'hs.nhapTen': "Adını yaz",
+  'hs.avatar': "Avatar",
+  'hs.mau': "Rengin",
+  'hs.vaoChoi': "Hadi oyna",
+  'hs.goTen': "Devam etmek için bir ad yaz",
+  'hs.hoSo': "Profilin",
+  'hs.luu': "Kaydet",
+  'hs.trangTruoc': "Önceki sayfa",
+  'hs.trangSau': "Sonraki sayfa",
+  'hs.trangN': "Sayfa {n}",
+  'hs.sua': "Profili düzenle",
 };
 
 export default tr;

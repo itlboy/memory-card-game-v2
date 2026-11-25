@@ -945,6 +945,20 @@ const id: TuDien = {
   'tn.choiThem': "Main sekitar {n} kali lagi agar datanya lebih bisa dipercaya",
   'ct.conGiay': "Sisa {n} detik",
   'ct.daChon': "{da}/{tong} sudah memilih",
+  'hs.chao': "Selamat datang!",
+  'hs.chaoPhu': "Pilih nama dan gambar agar teman mengenalimu",
+  'hs.ten': "Nama",
+  'hs.nhapTen': "Masukkan namamu",
+  'hs.avatar': "Avatar",
+  'hs.mau': "Warnamu",
+  'hs.vaoChoi': "Ayo main",
+  'hs.goTen': "Ketik nama untuk lanjut",
+  'hs.hoSo': "Profilmu",
+  'hs.luu': "Simpan",
+  'hs.trangTruoc': "Halaman sebelumnya",
+  'hs.trangSau': "Halaman berikutnya",
+  'hs.trangN': "Halaman {n}",
+  'hs.sua': "Ubah profil",
 };
 
 export default id;

@@ -36,7 +36,8 @@ const DAU_VIET_RIENG = /[ăằắẳẵặảạầấẩẫậẻẽẹềế�
 /** Cụm CỐ Ý giống nhau ở mọi ngôn ngữ: tên ngôn ngữ trong ô chọn, từ mượn. Tên app KHÔNG còn ở đây:
  *  bản English là "Flip Match" (chủ dự án chốt 12.10.2026). */
 const GIONG_NHAU = new Set(['Flip Match', 'Tiếng Việt', 'English', 'VI', 'EN', 'Menu', 'Online', 'GAME', 'OVER', 'GAME OVER', 'Combo',
-  'iPhone / iPad', 'Android', 'flipmatch.cozypi.com']);   // tên hệ máy ở mục cài lên màn hình chính (CaiAppBuoc)
+  'iPhone / iPad', 'Android', 'flipmatch.cozypi.com',
+  'Mimi']);   // 'Mimi' = tên người chơi TỰ GÕ trong bản lưu test (từ 25.11.2026 hiện ở menu Hồ sơ + ván đấu máy) — không dịch. Tên hệ máy ở mục cài lên màn hình chính (CaiAppBuoc)
 
 const THEMES = {
   themes: [

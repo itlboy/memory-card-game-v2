@@ -116,3 +116,23 @@ export const soToHop = (lang: string): number => {
   const b = boCua(lang);
   return b.loai.length * b.mau.length * b.net.length;
 };
+
+/**
+ * Tên này có phải do `taoTen` GHÉP RA không (25.11.2026, hồ sơ người chơi: người cũ còn mang tên tự sinh thì phải gõ
+ * tên thật ở màn chào). Không lưu cờ nào từ trước, nên nhận ra bằng cách thử mọi bộ từ: tên đúng bằng loài + màu + nét
+ * (theo thứ tự + dấu nối của ngôn ngữ đó). Ai TỰ GÕ trùng y kiểu đó thì bị hỏi lại một lần — vô hại.
+ */
+export function laTenTuSinh(ten: string): boolean {
+  const s = ten.trim();
+  if (!s) return false;
+  for (const b of Object.values(BO)) {
+    for (const loai of b.loai) {
+      if (!s.includes(loai)) continue;
+      for (const mau of b.mau) {
+        if (!s.includes(mau)) continue;
+        for (const net of b.net) if (ghep(b, loai, mau, net) === s) return true;
+      }
+    }
+  }
+  return false;
+}
