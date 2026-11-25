@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dichGoiYTuyChon } from '@/lib/goi-y-tuy-chon';
 import { SITE_URL } from '@/lib/native';
 import MatNguoi from './MatNguoi.vue';
 import {
@@ -20,11 +21,7 @@ const tr = t;
  * Gợi ý số thật của tuỳ chọn do ENGINE sinh bằng tiếng Việt — cùng mẫu với
  * `dichGoiYTuyChon` ở MenuScreen (chưa tách ra lib chung).
  */
-function dichGoiYTuyChon(s: string | null): string | null {
-  if (!s || ngonNgu.value === 'vi') return s;
-  // i18n-bo-qua: mẫu tiếng Việt của engine là thứ ĐI DỊCH, không phải chữ hiển thị
-  return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
-}
+// dichGoiYTuyChon: lib/goi-y-tuy-chon.ts (dùng chung với MenuScreen)
 import ConfirmDialog from './ConfirmDialog.vue';
 import BaoPhongDong from './BaoPhongDong.vue';
 import ChonMucMay from './ChonMucMay.vue';

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dichGoiYTuyChon } from '@/lib/goi-y-tuy-chon';
 import { anhEmoji } from '@/lib/emoji';
 import { taiTruocTheme } from '@/lib/anh-theme';
 import { tenBot } from '@/lib/ten';
@@ -12,11 +13,7 @@ const tr = t;
  * "xáo 3 lần", "4 thẻ"). Đợt 3 sẽ đưa nhãn engine vào từ điển; tới lúc đó dịch
  * theo mẫu ở đây cho khỏi lẫn tiếng Việt trong bản English.
  */
-function dichGoiYTuyChon(s: string | null): string | null {
-  if (!s || ngonNgu.value === 'vi') return s;
-  // i18n-bo-qua: mẫu tiếng Việt của engine là thứ ĐI DỊCH, không phải chữ hiển thị
-  return s.replace(/^xáo (\d+) lần$/, '$1 swaps').replace(/ mạng$/, ' lives').replace(/ giây$/, 's').replace(/ thẻ$/, ' cards'); // i18n-bo-qua
-}
+// dichGoiYTuyChon: lib/goi-y-tuy-chon.ts (dùng chung với OnlineScreen)
 import { BOARD_SIZES, BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
 import { Bot, ChartColumn, ChevronLeft, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
