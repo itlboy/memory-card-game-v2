@@ -14,7 +14,7 @@ import { suKien } from './phan-tich';
 
 export interface DongXepHang { hang: number; ten: string; diem: string; nhat?: boolean }
 /** Một cột bảng tỷ số. `mat`: mặt từng người (đội thì nhiều mặt) — emoji / khoá mặt vẽ, `anh` = ảnh Google. */
-export interface CotTySo { ten: string; n: number; diem?: string; mat?: { mat?: string; anh?: string | null }[] }
+export interface CotTySo { ten: string; n: number; diem?: string; mat?: { mat?: string; anh?: string | null; mau?: string }[] }
 export interface NoiDungAnh {
   tieuDe: string;
   phu: string;
@@ -256,6 +256,8 @@ async function veBangTySo(c: CanvasRenderingContext2D, n: NoiDungAnh, fD: string
         c.drawImage(im, mx - f * .5, yMat - f * .92, f, f); c.restore();
         c.beginPath(); c.arc(mx, yMat - f * .42, f * .5, 0, Math.PI * 2); c.lineWidth = 4; c.strokeStyle = P.vienAnh; c.stroke();
       } else {
+        // Ô màu hồ sơ sau mặt (một người một cột; đội thì các mặt đứng sát nhau, không tô) — khớp bảng kết quả trong app
+        if (m.mau && mats.length === 1) { const o = f * 1.3; khoiTron(c, mx - o / 2, yMat - f * .4 - o / 2, o, o, o * .28); c.fillStyle = m.mau; c.fill(); }
         c.font = `${f}px ${fB}`; c.fillStyle = P.chu;
         c.fillText(MAT_THAY[m.mat ?? ''] ?? m.mat ?? '🙂', mx, yMat);
       }
