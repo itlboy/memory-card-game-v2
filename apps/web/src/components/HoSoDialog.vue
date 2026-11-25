@@ -167,10 +167,10 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 .sua .hs-dau-hang { flex-direction: row; }
 .av-lon {
   position: relative; flex: none; width: 76px; height: 76px; border-radius: 22px; display: grid; place-items: center; font-size: 44px; line-height: 1;
-  background: var(--m); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .32), 0 5px 0 color-mix(in srgb, var(--m) 62%, #000);
+  background: var(--m);
   margin: 6px 0 8px;
 }
-.sua .av-lon { width: 62px; height: 62px; border-radius: 18px; font-size: 36px; margin: 2px 4px 7px 0; }
+.sua .av-lon { width: 62px; height: 62px; border-radius: 18px; font-size: 36px; margin: 2px 4px 2px 0; }
 .huy { position: absolute; right: -6px; bottom: -4px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--m); color: #fff; border: 3px solid var(--panel-solid, #fff); }
 .o-ten { align-self: stretch; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 14px 0 16px; border-radius: 16px;
   background: color-mix(in srgb, var(--fg) 6%, var(--panel-solid, #fff));

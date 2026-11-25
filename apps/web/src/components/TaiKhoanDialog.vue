@@ -367,5 +367,5 @@ const diemMay = store.totalScore();
 .nut-dh b { flex: 1; }
 .nut-dh span { font-weight: 800; font-variant-numeric: tabular-nums; }
 .nut-dh i { font-style: normal; font-size: 22px; line-height: 1; }
-.avatar.chu.hs { font-size: 34px; border-radius: 16px; background: var(--m); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .32), 0 3px 0 color-mix(in srgb, var(--m) 62%, #000); }
+.avatar.chu.hs { font-size: 34px; border-radius: 16px; background: var(--m); }
 </style>
