@@ -1950,4 +1950,9 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - Lưới avatar: trang 18 con, VUỐT NGANG (scroll-snap, ló trang sau), nút ‹ › nhỏ chỉ hiện với chuột (`hover:hover and pointer:fine`) — chủ dự án chê nút to xấu.
 - Sửa lại: mục đầu menu (TopBar `.item.ho-so`). Bẫy: `.item > span:not(.nac):not(.tk-chu) { flex: 1 }` kéo dẹt avatar — đã loại `.hs-av`.
 - Ván trên máy: p1 mang tên + avatar hồ sơ (đấu máy KHÔNG còn là "Bạn" khi đã có tên); vòng màu avatar ở PlayerStrip (`mauCua`). Trùng màu trong ván: cứ để trùng.
-- CHƯA LÀM (đợt 2, cần deploy server): phòng online + bảng xếp hạng dùng avatar/màu hồ sơ — server (room.ts) hiện chỉ nhận `?mat=` cho thi đấu và trong 10 mặt.
+- ĐỢT 2 (1.9.50): danh sách dùng chung ở `packages/engine/src/ho-so.ts` (`matHoSo`/`mauHoSo` lọc giá trị client gửi).
+  Phòng online: client gửi `?mat=&mau=`; room.ts nhận avatar hồ sơ ở phòng THƯỜNG (cho trùng; thi đấu giữ luật mặt sảnh), `mau` như `anh` —
+  KHÔNG lưu DB, client gửi lại mỗi lần nối. View ván không mang màu → OnlineGame `mauCua(id)` đọc từ người trong phòng.
+  Bảng xếp hạng: cột `mat`/`mau` ở `users` + `guest_scores` (taikhoan.ts tự thêm lúc khởi động); khách gửi kèm `/api/khach`
+  (COALESCE: app cũ không gửi thì giữ), đăng nhập qua `POST /api/me/ho-so`. CI: `tools/smoke-ho-so.mjs` chạy trên MySQL thật.
+  Vòng màu: class chung `.vong-mau` + `--m` (global.css), box-shadow nên không tốn bề ngang chip.

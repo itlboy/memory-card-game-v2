@@ -41,8 +41,10 @@ export interface HoSo {
 export interface DongBxh {
   /** Tên TẮT (server cắt) — bảng công khai không mang tên thật, ảnh, id. Khách: tên tự đặt. */
   name: string; avatar: string | null; toi?: boolean; totalScore: number; wins: number; matches: number;
-  /** Mặt thú (server chọn ổn định theo id / mã khách). Server cũ không gửi. */
+  /** Mặt thú: avatar hồ sơ người chơi tự chọn, chưa chọn thì server bốc ổn định theo id / mã khách. Server cũ không gửi. */
   mat?: string;
+  /** Màu hồ sơ (25.11.2026) — vòng quanh mặt. Chưa chọn / server cũ: không có. */
+  mau?: string;
   /** Khách chưa đặt tên: số để hiện "Khách 4821". */
   khach?: number;
   /** Đang mở app (sảnh): `sid` khi rảnh — thách được; `ban` = đang ở phòng/ván online. Server cũ không gửi. */
@@ -258,6 +260,7 @@ async function hoanTat(path: string, than: Record<string, unknown>, cach: 'googl
     suKien('dang_nhap', { cach, ket_qua: 'ok', moi: !r.me.matches && !r.me.totalScore && !r.me.achievements?.length });
     me.value = r.me;
     await dongBo();
+    void guiHoSo();   // hồ sơ của máy này đi theo tài khoản lên bảng xếp hạng
     return me.value ?? r.me;
   } finally { dangTai.value = false; }
 }
@@ -389,7 +392,10 @@ export async function guiKhach(): Promise<void> {
   if (!k || k.daGop) return;
   const d = store.boDem();
   // Đang ẨN vẫn gửi (20.11.2026): server giữ điểm + điểm tuần, chỉ không hiện — bấm "Hiện lại" là về bảng đủ điểm
-  const body = JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins), an: !!k.an });
+  const hs = store.hoSo();
+  const body = JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins), an: !!k.an,
+    // Hồ sơ người chơi (25.11.2026): avatar + màu tự chọn lên bảng xếp hạng
+    ...(hs?.xong ? { mat: hs.mat, mau: hs.mau } : {}) });
   // Y hệt lần vừa gửi xong → bỏ: mở bảng xếp hạng ngay sau ván khỏi chờ thêm một vòng mạng
   if (body === khachDaGui) return;
   try {
@@ -398,6 +404,18 @@ export async function guiKhach(): Promise<void> {
   } catch { /* lần sau gửi tiếp — tổng điểm nên không mất gì */ }
 }
 let khachDaGui = '';
+
+/**
+ * HỒ SƠ (25.11.2026): đẩy avatar + màu lên bảng xếp hạng — đăng nhập thì vào tài khoản, khách thì đi kèm lần gửi điểm.
+ * Gọi sau khi lưu hồ sơ và sau khi đăng nhập. Lỗi mạng: nuốt, lần lưu/đăng nhập sau gửi lại.
+ */
+export async function guiHoSo(): Promise<void> {
+  const hs = store.hoSo();
+  if (!hs?.xong || !san.value) return;
+  if (!me.value) { void guiKhach(); return; }
+  try { await goi<{ ok: boolean }>('/api/me/ho-so', { method: 'POST', body: JSON.stringify({ mat: hs.mat, mau: hs.mau }) }); }
+  catch { /* lần sau gửi lại */ }
+}
 
 /** Đặt tên trên bảng — cũng là tên khi chơi online (cùng ô nhớ). */
 /** Trong các tên này, tên nào CHƯA ai dùng trên bảng xếp hạng (lib/ten-ngau-nhien.ts — tránh trùng tên tự tạo). */

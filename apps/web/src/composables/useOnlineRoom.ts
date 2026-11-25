@@ -975,6 +975,12 @@ export function useOnlineRoom() {
     params.set('cid', store.clientId());
     // Phòng thi đấu: giữ mặt sảnh đã cấp (lib/thidau.ts) — server chỉ nhận cho phòng thi đấu
     if (matVaoPhong.value?.ma === roomCode) params.set('mat', matVaoPhong.value.mat);
+    // HỒ SƠ NGƯỜI CHƠI (25.11.2026): phòng thường dùng avatar + màu mình chọn (server chỉ nhận trong danh sách chung)
+    else {
+      const hs = store.hoSo();
+      if (hs?.xong) params.set('mat', hs.mat);
+    }
+    { const hs = store.hoSo(); if (hs?.xong) params.set('mau', hs.mau); }
     // Ảnh Google của người đã đăng nhập (11.11.2026) — server chỉ nhận ảnh máy chủ Google
     const anh = anhHopLe(me.value?.avatar);
     if (anh) params.set('anh', anh);

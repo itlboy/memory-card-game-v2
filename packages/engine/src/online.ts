@@ -245,6 +245,8 @@ export interface PublicPlayer {
   avatar?: string;
   /** Ảnh Google của người đã đăng nhập (11.11.2026) — chỉ địa chỉ qua `anhHopLe`. Không có = mặt thú. */
   anh?: string;
+  /** Màu hồ sơ (25.11.2026, `MAU_HO_SO`) — vòng quanh avatar. Client cũ / người chưa chọn: không có. */
+  mau?: string;
   score: number;
   pairs: number;
   bestStreak: number;
@@ -687,6 +689,8 @@ export interface PublicRoom {
   avatar: string;
   /** Ảnh Google của chủ phòng, nếu có. */
   anh?: string;
+  /** Màu hồ sơ của chủ phòng (25.11.2026), nếu có. */
+  mau?: string;
   /** Số người đang ở trong phòng, và trần của phòng. */
   nguoi: number;
   toiDa: number;

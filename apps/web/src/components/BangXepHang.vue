@@ -294,7 +294,7 @@ async function doiAn(an: boolean): Promise<void> {
       <div class="bui" aria-hidden="true"><i v-for="(h, k) in HAT" :key="k" :class="{ sao: h.sao }" :style="h.st" /></div>
       <div v-for="i in [1, 0, 2]" :key="i" class="bn" :class="`n${i + 1}`" :data-k="bang.top[i] ? khoa(bang.top[i]!) : undefined">
         <template v-if="bang.top[i]">
-          <span class="av"><MatBot :mat="bang.top[i].mat ?? '🙂'" /><i v-if="bang.top[i].ol && !bang.top[i].toi" class="dot" :class="{ ban: bang.top[i].ol!.ban }" /><span v-if="bang.top[i].ol && !bang.top[i].toi" class="sr-only">{{ bang.top[i].ol!.ban ? t('bxh.dangChoi') : t('bxh.online') }}</span></span>
+          <span class="av" :class="{ 'vong-mau': !!bang.top[i].mau }" :style="bang.top[i].mau ? { '--m': bang.top[i].mau } : undefined"><MatBot :mat="bang.top[i].mat ?? '🙂'" /><i v-if="bang.top[i].ol && !bang.top[i].toi" class="dot" :class="{ ban: bang.top[i].ol!.ban }" /><span v-if="bang.top[i].ol && !bang.top[i].toi" class="sr-only">{{ bang.top[i].ol!.ban ? t('bxh.dangChoi') : t('bxh.online') }}</span></span>
           <span class="tn">{{ ten(bang.top[i]) }}</span>
           <i v-if="bang.top[i].toi" class="nhan-ban">{{ t('bxh.ban') }}</i>
           <span class="so">{{ num(bang.top[i].totalScore) }}</span>
@@ -317,7 +317,7 @@ async function doiAn(an: boolean): Promise<void> {
         <ol v-else-if="bang && chiOnline" class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai">
           <li v-for="x in dsOnline" :key="`o${x.hang}`" :class="{ toi: x.d.toi }">
             <span class="hang">{{ num(x.hang) }}</span>
-            <span class="mat"><MatBot :mat="x.d.mat ?? '🙂'" /><i v-if="!x.d.toi" class="dot" :class="{ ban: x.d.ol?.ban }" /></span>
+            <span class="mat" :class="{ 'vong-mau': !!x.d.mau }" :style="x.d.mau ? { '--m': x.d.mau } : undefined"><MatBot :mat="x.d.mat ?? '🙂'" /><i v-if="!x.d.toi" class="dot" :class="{ ban: x.d.ol?.ban }" /></span>
             <span class="ten"><span class="tt">{{ ten(x.d) }}</span><i v-if="x.d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i><small v-else-if="x.d.ol?.ban" class="dang-choi">{{ t('bxh.dangChoi') }}</small></span>
             <template v-if="thachDuoc(x.d)">
               <VachCho v-if="choThach(x.d)" nho :het="choThach(x.d)" :tong="CACH_MOI_LAI_MS" @xong="nhip++" />
@@ -330,7 +330,7 @@ async function doiAn(an: boolean): Promise<void> {
           <ol class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai" :start="4">
             <li v-for="{ d, hang } in dongGiua" :key="hang" :class="{ toi: d.toi }" :data-k="khoa(d)">
               <span class="hang">{{ num(hang) }}</span>
-              <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
+              <span class="mat" :class="{ 'vong-mau': !!d.mau }" :style="d.mau ? { '--m': d.mau } : undefined"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
               <span class="ten"><span class="tt">{{ ten(d) }}</span><i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i><small v-if="d.ol?.ban && !d.toi" class="dang-choi">{{ t('bxh.dangChoi') }}</small><span v-else-if="d.ol && !d.toi" class="sr-only">{{ t('bxh.online') }}</span></span>
               <span v-if="d.matches >= d.wins && d.matches" class="sr-only">{{ t('tk.thangTren', { thang: d.wins, van: d.matches }) }}</span>
               <template v-if="thachDuoc(d)">
@@ -348,7 +348,7 @@ async function doiAn(an: boolean): Promise<void> {
               <li v-else-if="conKhoang" class="cham" aria-hidden="true">···</li>
               <li v-for="d in bang.cuoi" :key="`c${d.hang}`" :class="{ toi: d.toi }">
                 <span class="hang">{{ num(d.hang) }}</span>
-                <span class="mat"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
+                <span class="mat" :class="{ 'vong-mau': !!d.mau }" :style="d.mau ? { '--m': d.mau } : undefined"><MatBot :mat="d.mat ?? '🙂'" /><i v-if="d.ol && !d.toi" class="dot" :class="{ ban: d.ol.ban }" /></span>
                 <span class="ten"><span class="tt">{{ ten(d) }}</span><i v-if="d.toi" class="nhan-ban">{{ t('bxh.ban') }}</i><small v-if="d.ol?.ban && !d.toi" class="dang-choi">{{ t('bxh.dangChoi') }}</small></span>
                 <template v-if="thachDuoc(d)">
                   <VachCho v-if="choThach(d)" nho :het="choThach(d)" :tong="CACH_MOI_LAI_MS" @xong="nhip++" />
@@ -368,7 +368,7 @@ async function doiAn(an: boolean): Promise<void> {
       </div>
 
       <div v-if="toi && ghim && !tuanTrong && !chiOnline" class="ghim" :class="{ mo: dangTai }">
-        <div class="toi-dong"><span class="hang">{{ toi.hang ? num(toi.hang) : '–' }}</span><span class="mat"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}</span></div>
+        <div class="toi-dong"><span class="hang">{{ toi.hang ? num(toi.hang) : '–' }}</span><span class="mat" :class="{ 'vong-mau': !!toi.mau }" :style="toi.mau ? { '--m': toi.mau } : undefined"><MatBot :mat="toi.mat ?? '🙂'" /></span><span class="ten">{{ ten(toi) }}<i class="nhan-ban">{{ t('bxh.ban') }}</i></span><span class="so">{{ num(toi.totalScore) }}</span></div>
       </div>
 
       <!-- Khách: tên trên bảng -->
