@@ -607,10 +607,14 @@ const ICO3D = {
         <!-- CHỈ SỐ TRÍ NHỚ (24.11.2026, mockup B duyệt https://claude.ai/artifact/E2SL85YXZwtEjtZmhy3JTd): nút tròn nổi
              trên trời góc trái, có vòng sáng + tên dưới — thay viên ở dải lối tắt. Biểu tượng BIỂU ĐỒ, không bao giờ cái não.
              Vẫn chỉ hiện khi bật debug (`hienTriNho`). -->
-        <button v-if="hienTriNho" class="nut-tri-nho thach th-ngoc" type="button" :aria-label="t('tn.ten')" @click="sfx.select(); emit('so-tri-nho')">
-          <i class="ntn-vong" aria-hidden="true" /><ChartColumn :size="22" :stroke-width="2.6" aria-hidden="true" />
-          <small aria-hidden="true">{{ t('tn.ten') }}</small>
-        </button>
+        <!-- Khối CỘT (25.11.2026, chủ dự án gửi ảnh: "chữ không căn giữa và quá gần nút"): nút và chữ cùng căn giữa theo
+             thứ rộng hơn (thường là chữ) — chữ dài ở ngôn ngữ nào cũng không lệch, không tràn mép trái. -->
+        <div v-if="hienTriNho" class="ntn">
+          <button class="nut-tri-nho thach th-ngoc" type="button" :aria-label="t('tn.ten')" @click="sfx.select(); emit('so-tri-nho')">
+            <i class="ntn-vong" aria-hidden="true" /><ChartColumn :size="22" :stroke-width="2.6" aria-hidden="true" />
+          </button>
+          <small aria-hidden="true" @click="sfx.select(); emit('so-tri-nho')">{{ t('tn.ten') }}</small>
+        </div>
 
         <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
           <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
@@ -1162,15 +1166,16 @@ section.panel.khung-vao { animation: khung-vao .18s ease; }
 /* Panel thành trong suốt: trang chủ nằm thẳng trên nền của skin (trời, mặt gỗ…) */
 section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
 .step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; position: relative; }
+.ntn { position: absolute; left: 8px; top: 6px; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 13px; }
 .nut-tri-nho {
-  position: absolute; left: 6px; top: 6px; z-index: 2; width: 48px; height: 48px; min-width: 0; min-height: 0; padding: 0;
+  position: relative; width: 48px; height: 48px; min-width: 0; min-height: 0; padding: 0;
   border-radius: 50%; display: grid; place-items: center; overflow: visible; cursor: pointer; color: #fff;
   background: linear-gradient(#3fd0bd, #149384 70%); border: 2px solid #0d7064; box-shadow: 0 3px 0 #0a5a50;
 }
 .ntn-vong { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(63, 208, 189, .7); animation: ntn-vong 2.4s ease-out infinite; pointer-events: none; }
 @keyframes ntn-vong { 0% { transform: scale(.9); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ntn-vong { animation: none; } }
-.nut-tri-nho small { position: absolute; top: calc(100% + 6px); left: -4px; font: 900 11px/1.1 var(--font-display); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); white-space: nowrap; }
+.ntn small { cursor: pointer; font: 900 11px/1.1 var(--font-display); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); white-space: nowrap; }
 .home .loi-tat { margin: 0; }
 .ico3d { display: none; }
 
