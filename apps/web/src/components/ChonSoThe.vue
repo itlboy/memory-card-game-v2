@@ -48,7 +48,15 @@ watch(() => (chon.value && !ket.value ? chon.value.id : undefined), (id) => {
 }, { immediate: true });
 const giay = computed(() => Math.ceil(conMs.value / 1000));
 
-const cuaToi = computed(() => chon.value?.phieu[props.o.myId.value]);
+/**
+ * Ô MÌNH CHỌN — sáng vàng NGAY lúc bấm và GIỮ vàng qua bước loại ô (25.11.2026, chủ dự án: "bấm vào không có hiệu ứng gì
+ * ngoài avatar bên dưới"). Hai lý do trước đây không thấy vàng: (1) phải chờ server báo lại phiếu (~0,3 giây qua Dallas);
+ * (2) phiếu của mình là phiếu CUỐI (chơi với máy: máy bỏ phiếu tức thì) thì server chốt luôn, màn sang bước `loai` — mà
+ * ô vàng chỉ vẽ ở bước `chon`. `toiBam` = lựa chọn tại chỗ, bỏ khi sang lượt chọn mới.
+ */
+const toiBam = ref<number | null>(null);
+watch(() => chon.value?.id, () => { toiBam.value = null; });
+const cuaToi = computed(() => chon.value?.phieu[props.o.myId.value] ?? toiBam.value ?? undefined);
 const aiChon = (the: number) => (props.o.room.value?.players ?? []).filter((p) => chon.value?.phieu[p.id] === the);
 const daChon = computed(() => Object.keys(chon.value?.phieu ?? {}).length);
 /** Mọi người chơi trong phòng đều bỏ phiếu được (kể cả máy) — người xem không nằm trong `players`. */
@@ -71,6 +79,7 @@ function bam(the: number): void {
   if (chiXem.value || ket.value || cuaToi.value === the) return;
   sfx.select();
   lac(the);
+  toiBam.value = the;
   props.o.chonThe(the);
 }
 
@@ -142,13 +151,13 @@ onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
               <button
                 class="ct-o thach"
                 :class="{
-                  chon: pha === 'chon' && !chiXem && cuaToi === the, quay: pha === 'quay' && sang === the,
+                  chon: (pha === 'chon' || pha === 'loai') && !chiXem && cuaToi === the, quay: pha === 'quay' && sang === the,
                   thang: pha === 'chot', rung: rung === the, khoa: chiXem,
-                  'th-vang': (pha === 'chon' && !chiXem && cuaToi === the) || (pha === 'quay' && sang === the) || pha === 'chot'
+                  'th-vang': ((pha === 'chon' || pha === 'loai') && !chiXem && cuaToi === the) || (pha === 'quay' && sang === the) || pha === 'chot'
                 }"
                 type="button" :aria-pressed="!chiXem && cuaToi === the" :disabled="chiXem || pha !== 'chon'" @click="bam(the)"
               >
-                <span v-if="pha === 'chon' && !chiXem && cuaToi === the" class="ct-tick" aria-hidden="true"><Check :size="14" :stroke-width="4" /></span>
+                <span v-if="(pha === 'chon' || pha === 'loai') && !chiXem && cuaToi === the" class="ct-tick" aria-hidden="true"><Check :size="14" :stroke-width="4" /></span>
                 <b>{{ the }}</b>
               </button>
               <span class="ct-ai">
