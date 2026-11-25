@@ -113,12 +113,20 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 </template>
 
 <style scoped>
-.hs-phu { z-index: 40; }
+/* Lớp phủ RIÊNG (`.overlay` của mỗi hộp thoại là scoped, không có luật chung) — thiếu nó thì hộp nằm thẳng trong
+   trang, không phủ, không mờ, rơi xuống cuối (chủ dự án gửi ảnh 25.11.2026). Màn chào ở GIỮA, nền mờ hẳn. */
+.hs-phu {
+  position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(10, 12, 32, .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
 .hs-phu.sua { align-items: flex-end; padding: 0; }
 .hs {
   width: min(420px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
-  padding: 16px 14px 14px;
+  padding: 16px 14px 14px; background: var(--panel-solid, #fff); border-radius: 26px;
 }
+/* Hộp thấp hơn nội dung thì CUỘN, không bóp con (ô tên từng bị bẹp còn ~36px) */
+.hs > * { flex-shrink: 0; }
 .sua .hs { border-radius: 24px 24px 0 0; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
 .keo { align-self: center; width: 40px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--fg) 18%, transparent); margin: -6px 0 -2px; }
 .hs-dau { display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; min-height: 32px; }
@@ -137,9 +145,13 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 }
 .sua .av-lon { width: 60px; height: 60px; font-size: 34px; margin: 4px 6px 8px 4px; }
 .huy { position: absolute; right: -6px; bottom: -4px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--m); color: #fff; border: 3px solid var(--panel-solid, #fff); }
-.o-ten { align-self: stretch; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 12px; border-radius: 14px;
-  background: color-mix(in srgb, var(--fg) 5%, transparent); border: 2px solid var(--m); }
-.o-ten input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--fg); font: 800 17px/1 var(--font-display); padding: 0; }
+.o-ten { align-self: stretch; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 14px 0 16px; border-radius: 16px;
+  background: color-mix(in srgb, var(--fg) 6%, var(--panel-solid, #fff));
+  border: 2px solid color-mix(in srgb, var(--m) 55%, transparent);
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--fg) 8%, transparent); transition: border-color .15s, box-shadow .15s; }
+.chao .o-ten { flex: none; }   /* cột dọc: `flex: 1` (basis 0) bóp mất chiều cao 52px — chủ dự án: "input bé hơn cả text" */
+.o-ten:focus-within { border-color: var(--m); box-shadow: inset 0 2px 0 color-mix(in srgb, var(--fg) 8%, transparent), 0 0 0 4px color-mix(in srgb, var(--m) 25%, transparent); }
+.o-ten input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; color: var(--fg); font: 800 19px/1.2 var(--font-display); padding: 0; }
 .o-ten input::placeholder { color: var(--muted); font-weight: 700; font-size: 15px; }
 .o-ten i { flex: none; font-style: normal; font-size: 11px; font-weight: 800; color: var(--muted); }
 

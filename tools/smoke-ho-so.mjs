@@ -8,8 +8,9 @@ const B = process.env.MM_SERVER ?? 'http://127.0.0.1:8093';
 const id = `smokehoso${Date.now()}abcdefghijk`;
 const post = async (p, body) => {
   const r = await fetch(B + p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-  if (!r.ok) throw new Error(`${p} → ${r.status} ${await r.text()}`);
-  return r.json();
+  const chu = await r.text();
+  if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) throw new Error(`${p} → ${r.status} (không phải JSON — tầng tài khoản có bật không?) ${chu.slice(0, 120)}`);
+  return JSON.parse(chu);
 };
 const loi = [];
 const kiem = (dk, msg) => { if (!dk) loi.push(msg); };
