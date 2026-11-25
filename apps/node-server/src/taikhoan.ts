@@ -499,7 +499,8 @@ export async function moTaiKhoan(
    * vẫn bốc mặt theo mã như trước (`MAT_BXH`). Chỉ nhận giá trị trong danh sách chung (`matHoSo`/`mauHoSo`).
    */
   for (const bang of ['users', 'guest_scores']) {
-    for (const [cot, kieu] of [['mat', 'VARCHAR(16) NULL'], ['mau', 'CHAR(7) NULL']] as const) {
+    // `ten_hien` (chỉ users): TÊN HỒ SƠ người chơi tự đặt — bảng xếp hạng hiện tên này thay tên Google (chủ dự án 25.11.2026)
+    for (const [cot, kieu] of [['mat', 'VARCHAR(16) NULL'], ['mau', 'CHAR(7) NULL'], ...(bang === 'users' ? [['ten_hien', 'VARCHAR(32) NULL'] as const] : [])] as const) {
       const [co] = await pool.query(
         `SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?`, [bang, cot]
       );
@@ -598,7 +599,7 @@ export async function moTaiKhoan(
    *    ghép lại theo điểm mới nhất (`ghepTop`) — vừa chơi xong là thấy mình đúng chỗ, chỉ người khác trễ ≤30s.
    * Một pod (Deployment replicas 1) nên RAM là đủ; nhiều pod thì mỗi pod một bản, vẫn đúng tới 30 giây.
    */
-  const COT_U = "CAST(id AS CHAR) AS k, 0 AS la_khach, name, mat, mau, total_score, wins, matches";
+  const COT_U = "CAST(id AS CHAR) AS k, 0 AS la_khach, name, ten_hien, mat, mau, total_score, wins, matches";
   const COT_K = "guest_hash AS k, 1 AS la_khach, name, mat, mau, total_score, wins, matches";
   let bxhCache: { luc: number; top: Record<string, unknown>[]; tong: number; cuoi: Record<string, unknown>[] } | null = null;
   /** 3 người CHÓT (hạng tong-2..tong), xếp giảm dần — chủ dự án 20.11.2026: nhìn là biết bảng có bao nhiêu người. */
@@ -618,7 +619,8 @@ export async function moTaiKhoan(
   let online: ((ai: string) => { sid?: string; ban: boolean } | null) | null = null;
   function dongCongKhai(r: Record<string, unknown>) {
     const khach = Number(r.la_khach) === 1, k = String(r.k);
-    const ten = khach ? String(r.name ?? '') : tenTat(String(r.name ?? ''));
+    // Tài khoản đã đặt TÊN HỒ SƠ (25.11.2026) → hiện đúng tên đó; chưa đặt → tên Google rút gọn như cũ
+    const ten = khach ? String(r.name ?? '') : (r.ten_hien ? String(r.ten_hien) : tenTat(String(r.name ?? '')));
     const ol = online?.(`${khach ? 'k' : 'u'}:${k}`) ?? undefined;
     return {
       name: ten, avatar: null, mat: matHoSo(r.mat) ?? (khach ? matTuMa(k) : MAT_BXH[Number(k) % MAT_BXH.length]!),
@@ -771,7 +773,7 @@ export async function moTaiKhoan(
      LEFT JOIN users u ON w.is_guest = 0 AND u.id = CAST(w.player AS UNSIGNED)
      LEFT JOIN guest_scores g ON w.is_guest = 1 AND g.guest_hash = w.player
      WHERE w.week_start = ? AND w.matches > 0 AND ((w.is_guest = 0 AND u.id IS NOT NULL) OR (w.is_guest = 1 AND g.hidden = 0))`;
-  const COT_TUAN = "w.player AS k, w.is_guest AS la_khach, COALESCE(u.name, g.name, '') AS name, COALESCE(u.mat, g.mat) AS mat, COALESCE(u.mau, g.mau) AS mau, w.score AS total_score, w.wins, w.matches";
+  const COT_TUAN = "w.player AS k, w.is_guest AS la_khach, COALESCE(u.name, g.name, '') AS name, u.ten_hien AS ten_hien, COALESCE(u.mat, g.mat) AS mat, COALESCE(u.mau, g.mau) AS mau, w.score AS total_score, w.wins, w.matches";
   const tuanCache = new Map<string, { luc: number; top: Record<string, unknown>[]; tong: number; cuoi: Record<string, unknown>[]; coTruoc: boolean }>();
   async function topTuan(tuan: string, now: number) {
     const c = tuanCache.get(tuan);
@@ -1024,7 +1026,8 @@ export async function moTaiKhoan(
         const than = await docThan(req) as Record<string, unknown> | null;
         const mat = matHoSo(than?.mat), mau = mauHoSo(than?.mau);
         if (!mat || !mau) { json(res, { error: 'Hồ sơ không hợp lệ' }, 400); return true; }
-        await pool!.execute('UPDATE users SET mat = ?, mau = ? WHERE id = ?', [mat, mau, uid]);
+        const ten = locTen(than?.ten) || null;   // tên hồ sơ — bảng xếp hạng hiện tên này thay tên Google
+        await pool!.execute('UPDATE users SET mat = ?, mau = ?, ten_hien = COALESCE(?, ten_hien) WHERE id = ?', [mat, mau, ten, uid]);
         bxhCache = null;
         json(res, { ok: true });
         return true;

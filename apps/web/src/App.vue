@@ -20,6 +20,7 @@ import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import SoTriNho from './components/SoTriNho.vue';
 import HoSoDialog from './components/HoSoDialog.vue';
+import { guiHoSo } from '@/lib/taikhoan';
 import { canMoChao, hoSo, tenToi } from '@/lib/ho-so';
 import { hienTriNho } from './lib/tri-nho';
 import CaiAppDialog from './components/CaiAppDialog.vue';
@@ -327,6 +328,7 @@ onMounted(() => {
   // Người mới chưa có tên → tên ngẫu nhiên "Sóc Đỏ Nhỏ" (lib/ten-ngau-nhien.ts); có server thì tránh tên đã dùng
   void taiKhoan.khoiDong().finally(() => {
     void ganTenNeuChua(ngonNgu.value, taiKhoan.san.value ? taiKhoan.tenTrong : undefined);
+    void guiHoSo();   // hồ sơ (tên/avatar/màu) lên bảng xếp hạng — người đã lưu hồ sơ trước bản 1.9.53 cũng có
   });
   batPhanTich();
   // Màn đầu + thời gian tới khi khung đầu ĐÃ VẼ (hai rAF) — phễu người mới, lib/phan-tich.ts
@@ -1195,7 +1197,7 @@ const hasNext = computed(() => {
   <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
-  <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" />
+  <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />
 
   <CaiAppDialog v-if="hienCai" @close="dongCai" />
 

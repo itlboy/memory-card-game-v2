@@ -959,6 +959,9 @@ const tr: TuDien = {
   'hs.trangSau': "Sonraki sayfa",
   'hs.trangN': "Sayfa {n}",
   'hs.sua': "Profili düzenle",
+  'hs.daLuu': "Puan kaydedildi",
+  'hs.tkPhu': "Puan, unvanlar, çıkış",
+  'hs.dangNhapLuu': "Puanını kaydetmek için giriş yap",
 };
 
 export default tr;

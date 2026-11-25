@@ -976,6 +976,9 @@ const ru: TuDien = {
   'hs.trangSau': "Следующая страница",
   'hs.trangN': "Страница {n}",
   'hs.sua': "Изменить профиль",
+  'hs.daLuu': "Очки сохранены",
+  'hs.tkPhu': "Очки, титулы, выход",
+  'hs.dangNhapLuu': "Войди, чтобы сохранить очки",
 };
 
 export default ru;

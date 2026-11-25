@@ -956,6 +956,9 @@ const ko: TuDien = {
   'hs.trangSau': "다음 페이지",
   'hs.trangN': "{n}페이지",
   'hs.sua': "프로필 수정",
+  'hs.daLuu': "점수 저장됨",
+  'hs.tkPhu': "점수, 칭호, 로그아웃",
+  'hs.dangNhapLuu': "로그인하고 점수 저장",
 };
 
 export default ko;

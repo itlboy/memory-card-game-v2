@@ -962,6 +962,9 @@ const fr: TuDien = {
   'hs.trangSau': "Page suivante",
   'hs.trangN': "Page {n}",
   'hs.sua': "Modifier le profil",
+  'hs.daLuu': "Score enregistré",
+  'hs.tkPhu': "Score, titres, déconnexion",
+  'hs.dangNhapLuu': "Connecte-toi pour garder ton score",
 };
 
 export default fr;

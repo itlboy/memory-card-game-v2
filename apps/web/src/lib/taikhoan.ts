@@ -413,7 +413,7 @@ export async function guiHoSo(): Promise<void> {
   const hs = store.hoSo();
   if (!hs?.xong || !san.value) return;
   if (!me.value) { void guiKhach(); return; }
-  try { await goi<{ ok: boolean }>('/api/me/ho-so', { method: 'POST', body: JSON.stringify({ mat: hs.mat, mau: hs.mau }) }); }
+  try { await goi<{ ok: boolean }>('/api/me/ho-so', { method: 'POST', body: JSON.stringify({ mat: hs.mat, mau: hs.mau, ten: store.playerNames()[0] ?? '' }) }); }
   catch { /* lần sau gửi lại */ }
 }
 

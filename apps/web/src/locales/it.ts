@@ -960,6 +960,9 @@ const it: TuDien = {
   'hs.trangSau': "Pagina successiva",
   'hs.trangN': "Pagina {n}",
   'hs.sua': "Modifica profilo",
+  'hs.daLuu': "Punti salvati",
+  'hs.tkPhu': "Punti, titoli, esci",
+  'hs.dangNhapLuu': "Accedi per salvare i punti",
 };
 
 export default it;

@@ -355,7 +355,9 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         :aria-label="t('tb.menu')" aria-haspopup="menu" :aria-expanded="open"
         type="button" @click="open = !open"
       >
-        <img v-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
+        <!-- Gộp danh tính (25.11.2026, mockup A https://claude.ai/artifact/X6UfSDYiaQz8ZWGhUfCyt1): avatar HỒ SƠ, không còn ảnh Google -->
+        <span v-if="hoSo.xong" class="mb-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}</span>
+        <img v-else-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
         <Menu v-else :size="22" />
         <i v-if="coBanMoi && !open" class="cham-do" aria-hidden="true" />
       </button>
@@ -369,12 +371,13 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         <div v-if="!trangCd" key="chinh" class="mat">
           <!-- HỒ SƠ (25.11.2026): avatar + màu + tên của mình, chạm là mở tấm sửa (HoSoDialog) -->
           <button class="item ho-so thach" role="menuitem" type="button" :aria-label="t('hs.sua')" @click="dong(); emit('ho-so')">
-            <span class="hs-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}</span>
-            <span class="tk-chu"><b>{{ tenToi || t('hs.hoSo') }}</b><small>{{ t('hs.sua') }}</small></span>
+            <span class="hs-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}<i v-if="signedIn" class="hs-g">G</i></span>
+            <span class="tk-chu"><b>{{ tenToi || t('hs.hoSo') }}</b><small>{{ signedIn ? `${t('hs.sua')} · ${t('hs.daLuu')}` : t('hs.sua') }}</small></span>
             <Pencil class="hs-but" :size="16" :stroke-width="2.6" aria-hidden="true" />
           </button>
+          <!-- Dòng TÀI KHOẢN riêng chỉ còn khi chưa qua màn chào hồ sơ; đã có hồ sơ thì tài khoản nằm cuối tấm hồ sơ -->
           <button
-            v-if="account" class="item tk thach" role="menuitem" type="button"
+            v-if="account && !hoSo.xong" class="item tk thach" role="menuitem" type="button"
             :aria-label="signedIn ? t('tb.tkCuaBan') : t('tb.dangNhap')"
             @click="dong(); $emit('account')"
           >
@@ -759,6 +762,11 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .item.ho-so > span.hs-av { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 19px; line-height: 1;
   background: color-mix(in srgb, var(--m) 18%, transparent); box-shadow: 0 0 0 2.5px var(--m); }
 .hs-but { flex: none; color: var(--muted); }
+.item.ho-so > span.hs-av { position: relative; }
+.hs-g { position: absolute; right: -5px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
+  font: 900 10px/1 var(--font-display); font-style: normal; color: #4285f4; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
+.mb-av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 17px; line-height: 1;
+  box-shadow: 0 0 0 2.5px var(--m); background: color-mix(in srgb, var(--m) 18%, transparent); }
 /* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
    trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
 .item.thach { border-radius: 14px; margin: 2px 0 6px; }

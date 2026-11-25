@@ -956,6 +956,9 @@ const zh: TuDien = {
   'hs.trangSau': "下一页",
   'hs.trangN': "第 {n} 页",
   'hs.sua': "编辑资料",
+  'hs.daLuu': "分数已保存",
+  'hs.tkPhu': "分数、称号、退出",
+  'hs.dangNhapLuu': "登录保存分数",
 };
 
 export default zh;
