@@ -25,7 +25,7 @@ const ten = (): string => (props.chua.length === 1 ? tenNguoi(props.chua[0]!) : 
       <p class="nhac-tieu"><Hourglass :size="18" :stroke-width="2.5" class="ic" aria-hidden="true" /> {{ t('on.nhac.tieuDe', { n: chua.length }) }}</p>
       <p class="nhac-mo">{{ t('on.nhac.moTa') }}</p>
       <div v-for="p in chua" :key="p.id" class="nhac-ng">
-        <span class="nhac-mat"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
+        <span class="nhac-mat" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
         <b>{{ tenNguoi(p) }}</b>
         <small>{{ t('on.nhac.chuaBam') }}</small>
       </div>

@@ -40,6 +40,8 @@ const props = defineProps<{
   nguoiChoi?: readonly PlayerInit[];
   /** Ảnh Google của người chơi online (theo id), để mặt trong bảng tỷ số giống trong bàn. */
   anhCua?: (id: string) => string | undefined;
+  /** Màu hồ sơ của một người (25.11.2026) — online: từ người trong phòng; trên máy: `mauTaiMay`. Không có = không tô ô. */
+  mauCua?: (id: string) => string | undefined;
   /** Ván thứ mấy của loạt (kể cả hoà) — dòng nhỏ "Ván N" trên tiêu đề. */
   soVan?: number;
   /** Ván ĐỘI online: mặt + tên một thành viên theo mã — cột đội xếp chồng mặt từng người. */
@@ -269,7 +271,7 @@ const loat = computed(() => {
     // Đội: mã `doi-1`…`doi-4` (ván cũ `doi-A`/`doi-B`) → số màu như thanh đội trong ván
     const doi = tvIds.length ? (({ A: '1', B: '2' } as Record<string, string>)[p.id.slice(-1)] ?? p.id.slice(-1)) : '';
     return {
-      id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id),
+      id: p.id, ten: tenNguoi(p), mat: p.avatar, anh: props.anhCua?.(p.id), mau: props.mauCua?.(p.id),
       n: ty[p.name]?.n ?? 0,
       diem: hang?.score ?? 0, thang: p.id === nhat, doi,
       // MÁY mặc định muốn chơi lại (không bỏ phiếu) — chủ dự án 19.11.2026: "bot thì mặc định sẵn sàng"
@@ -278,7 +280,7 @@ const loat = computed(() => {
       ra: props.rematchState?.[p.id] === 'out',
       tv: tvIds.map((id) => {
         const m = props.thanhVienCua?.(id);
-        return { id, mat: m?.mat, anh: m?.anh ?? props.anhCua?.(id), ten: m?.ten ?? '?', ok: phieu.has(id) };
+        return { id, mat: m?.mat, anh: m?.anh ?? props.anhCua?.(id), mau: props.mauCua?.(id), ten: m?.ten ?? '?', ok: phieu.has(id) };
       }),
     };
   });
@@ -375,9 +377,9 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           >
             <span class="xep" aria-hidden="true">
               <template v-if="r.tv.length">
-                <span v-for="m in r.tv" :key="m.id" class="mat" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
+                <span v-for="m in r.tv" :key="m.id" class="mat" :class="{ 'vong-mau': !!m.mau }" :style="m.mau ? { '--m': m.mau } : undefined" :data-kq-for="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span>
               </template>
-              <span v-else class="mat"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
+              <span v-else class="mat" :class="{ 'vong-mau': !!r.mau }" :style="r.mau ? { '--m': r.mau } : undefined"><MatNguoi :mat="r.mat" :anh="r.anh" /></span>
             </span>
             <b class="ten ten-kq"><span class="chu-ten">{{ r.ten }}</span></b>
             <small v-if="r.tv.length > 1" class="tv">{{ r.tv.map((m) => m.ten).join(' · ') }}</small>
@@ -400,8 +402,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         <ol v-if="multiplayer" id="kqChiTiet" class="ranking" :class="{ 'khay-nho khay-noi': loat, an: loat && !moChiTiet }">
           <li v-for="(p, i) in summary.ranking" :key="p.id" :data-kq-for="loat ? undefined : p.id">
             <span v-if="cotCua(p.id)" class="mat-ct" aria-hidden="true">
-              <template v-if="cotCua(p.id)!.tv.length"><span v-for="m in cotCua(p.id)!.tv" :key="m.id"><MatNguoi :mat="m.mat" :anh="m.anh" /></span></template>
-              <span v-else><MatNguoi :mat="cotCua(p.id)!.mat" :anh="cotCua(p.id)!.anh" /></span>
+              <template v-if="cotCua(p.id)!.tv.length"><span v-for="m in cotCua(p.id)!.tv" :key="m.id" :class="{ 'vong-mau': !!m.mau }" :style="m.mau ? { '--m': m.mau } : undefined"><MatNguoi :mat="m.mat" :anh="m.anh" /></span></template>
+              <span v-else :class="{ 'vong-mau': !!cotCua(p.id)!.mau }" :style="cotCua(p.id)!.mau ? { '--m': cotCua(p.id)!.mau } : undefined"><MatNguoi :mat="cotCua(p.id)!.mat" :anh="cotCua(p.id)!.anh" /></span>
             </span>
             <!-- Hoà thì hai người đầu cùng hạng 1, không phải 1 và 2 -->
             <span class="ten-dong">
@@ -731,6 +733,10 @@ h2 { margin: 0 0 4px; }
 .xep { display: flex; justify-content: center; align-items: center; height: calc(var(--mat) * 1.2); overflow: visible; }
 .xep .mat { position: relative; font-size: var(--mat); line-height: 1; }
 .xep .mat + .mat { margin-left: calc(var(--mat) * -.35); }
+/* Có Ô MÀU hồ sơ (`.vong-mau`, global.css — ô = 1,7em): thu chữ lại để cả ô vừa đúng chiều cao hàng (1,2 × --mat), không
+   thì ô tràn xuống che TÊN người chơi (soát ảnh 25.11.2026). Hai thành viên đội đứng cạnh nhau, không chồng ô lên nhau. */
+.xep .mat.vong-mau { font-size: calc(var(--mat) * .68); }
+.xep .mat.vong-mau + .mat.vong-mau { margin-left: calc(var(--mat) * .56); }
 /* Dấu ✓ trên mặt đã BỎ (19.11.2026, chủ dự án: "thừa") — hàng biểu tượng chơi lại dưới tỷ số nói thay */
 .cot .ten {
   max-width: 100%; font-family: var(--font-display); font-weight: 700; font-size: 15px;
@@ -874,6 +880,8 @@ h2 { margin: 0 0 4px; }
 .ranking.khay-nho li:last-child { border-bottom: 0; }
 .mat-ct { grid-row: span 2; display: flex; font-size: 28px; line-height: 1; }
 .mat-ct span + span { margin-left: -10px; }
+.mat-ct span.vong-mau { font-size: 19px; margin: 0 7px; align-self: center; }
+.mat-ct span.vong-mau + span.vong-mau { margin-left: 12px; }
 .ranking li > .ten-dong {
   font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg);
   /* Một dòng, dài quá thì "…" — tên đầy đủ đã thấy ở phòng chờ */

@@ -545,7 +545,7 @@ export function useOnlineRoom() {
   /** Hai ô vừa bị thẻ tráo đổi hoán chỗ — BoardGrid dùng để chạy hiệu ứng. */
   const swapPair = ref<{ a: number; b: number; key: number } | null>(null);
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
-  const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
+  const turnBanner = ref<{ name: string; avatar: string; id?: string; frozen: string | null; key: number } | null>(null);
   /** Emoji mới nhất phóng to giữa bàn cho ấn tượng. */
   // `from` = id người gửi: EmojiBlast dùng nó để tìm chip của người đó và bay
   // lên TỪ ĐÚNG CHỖ ĐÓ, thay vì luôn nổi giữa mép trên màn hình.
@@ -1477,7 +1477,7 @@ export function useOnlineRoom() {
       if (p && (BAO_DEN_LUOT || coDongBang)) {
         turnBanner.value = {
           name: p.id === myId.value ? t('or.banThuong') : tenNguoi(p),
-          avatar: p.avatar ?? '',
+          avatar: p.avatar ?? '', id: p.id,
           frozen: frozenId && find(frozenId) ? tenHien(frozenId) : null,
           key: (turnBanner.value?.key ?? 0) + 1
         };
