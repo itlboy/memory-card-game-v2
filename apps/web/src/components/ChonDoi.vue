@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * BẢNG CHỌN ĐỘI ở phòng chờ online (15.11.2026, chủ dự án: "mỗi người được chọn đội, mặc định
  * 1/2/3/4 khác nhau, chọn cùng thì cùng đội"). Bốn ô to, mỗi ô ghi ai đang ở đội đó — chọn ô có
@@ -18,7 +19,7 @@ function chon(d: DoiId): void { sfx.select(); emit('chon', d); }
 </script>
 
 <template>
-  <div class="doi-phu" @click.self="emit('dong')">
+  <div class="doi-phu" @click.self="emit('dong')" v-cham-ngoai="() => { emit('dong'); }">
     <div class="doi-bang khay" role="dialog" :aria-label="t('dd.chonDoi')">
       <p class="doi-tieu">{{ t('dd.chonDoi') }}</p>
       <p class="doi-goi-y">{{ t('dd.chamDoiDoi') }}</p>

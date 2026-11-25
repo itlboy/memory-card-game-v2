@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * BẢNG LƯU / CHIA SẺ ẢNH KẾT QUẢ (11.11.2026, mockup duyệt https://claude.ai/artifact/MkD66nuGdEmYrYf9wmniWy).
  * Mở từ nút vàng dưới bảng kết quả: xem trước ảnh, rồi "Lưu ảnh" hoặc "Chia sẻ".
@@ -40,7 +41,7 @@ async function chiaSe(): Promise<void> {
 </script>
 
 <template>
-  <div class="nen-lcs" role="dialog" aria-modal="true" :aria-label="t('kq.luuChiaSe')" @click.self="emit('close')" @keydown.esc.stop="emit('close')">
+  <div class="nen-lcs" role="dialog" aria-modal="true" :aria-label="t('kq.luuChiaSe')" @click.self="emit('close')" v-cham-ngoai="() => { emit('close'); }" @keydown.esc.stop="emit('close')">
     <div class="to khay">
       <span class="tay" aria-hidden="true" />
       <div class="khung-anh">

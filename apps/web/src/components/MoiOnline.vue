@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 import { computed, ref, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 import { CACH_MOI_LAI_MS, moiNguoi, tenKhach, type NguoiOnline } from '@/lib/sanh';
@@ -69,7 +70,7 @@ async function moi(n: NguoiOnline): Promise<void> {
 
 <template>
   <Teleport to="#app">
-    <div class="mo-phu" @click.self="emit('dong')">
+    <div class="mo-phu" @click.self="emit('dong')" v-cham-ngoai="() => { emit('dong'); }">
       <section class="mo-bang khay" role="dialog" aria-modal="true" :aria-label="t('moi.dsTieuDe', { n: ds.length })">
         <header class="mo-dau">
           <h3>{{ t('moi.dsTieuDe', { n: ds.length }) }}</h3>

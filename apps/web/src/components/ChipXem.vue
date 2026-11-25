@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * CHIP NGƯỜI XEM (19.11.2026, mockup duyệt https://claude.ai/artifact/H3Szxmuu6WZbDVoFozH9aH). Nằm ở ô
  * bên phải hàng trên cùng (HudBar slot `phai`) — KHÔNG thêm hàng nào (chủ dự án: "làm sao để ko tốn
@@ -41,7 +42,7 @@ const tenNgan = computed(() => {
     <span class="ten-xem">{{ tenNgan }}</span>
   </button>
   <Teleport to="body">
-    <div v-if="mo" class="xem-phu" @click.self="mo = false">
+    <div v-if="mo" class="xem-phu" @click.self="mo = false" v-cham-ngoai="() => { mo = false; }">
       <div class="xem-bang khay" role="dialog" :aria-label="t('xem.tieuDe', { n: ds.length })">
         <p class="xem-tieu"><BongNgo :size="22" /> {{ t('xem.tieuDe', { n: ds.length }) }}</p>
         <div v-for="x in ds" :key="`${x.ten}|${x.mat}`" class="xem-ng">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * Hộp CHIA SẺ PHÒNG: mã QR + mã 6 số + hai nút copy.
  *
@@ -50,7 +51,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
 </script>
 
 <template>
-  <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('cs.aria')" @click.self="emit('close')">
+  <div class="overlay" role="dialog" aria-modal="true" :aria-label="t('cs.aria')" @click.self="emit('close')" v-cham-ngoai="() => { emit('close'); }">
     <div class="hop">
       <header>
         <h2>{{ t('cs.tieuDe') }}</h2>

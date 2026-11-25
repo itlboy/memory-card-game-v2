@@ -1987,3 +1987,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - Màn chỉ số: đổi tab / đổi ngày CHỈ ĐỔI SỐ — hai tab cùng chiều cao, khối huy chương cùng min-height, "Luyện ngay" luôn hiện.
 - `.vong-mau` (khung màu hồ sơ) là KHUNG VUÔNG BO GÓC ::before 1,7em: bo 50% lên khung emoji ra e-líp; vòng tròn 1,5em thì emoji rộng ngang tràn ra (chủ dự án chê hai lần).
 - CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.
+- CHẠM NỀN ĐÓNG HỘP THOẠI (1.9.62): mọi nền có `@click.self` đều kèm `v-cham-ngoai` (lib/cham-ngoai.ts) — đóng ở touchend + preventDefault.
+  Lý do: trên iPhone `click` của <div> nền đến trễ ~1/3 giây (nút ✕ thì không); không chặn click thì "bấm xuyên" xuống nút bên dưới.
+  Hộp thoại MỚI đóng được bằng chạm nền: thêm cả hai (`@click.self` cho chuột, `v-cham-ngoai` cho cảm ứng). Chưa đo được trên máy thật.

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * HỒ SƠ NGƯỜI CHƠI (25.11.2026, mockup duyệt https://claude.ai/artifact/TEoguR6Vy3GDoLpFcyx8go) — tên + avatar + màu.
  *  · `kieu = 'chao'`: màn chào BẮT BUỘC trước trang chủ — không nút đóng, không Back; "Vào chơi" chỉ bấm được khi đã
@@ -74,7 +75,7 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 </script>
 
 <template>
-  <div class="overlay hs-phu" :class="kieu" role="dialog" aria-modal="true" aria-labelledby="hsTieuDe" @keydown.esc="dong" @click.self="dong">
+  <div class="overlay hs-phu" :class="kieu" role="dialog" aria-modal="true" aria-labelledby="hsTieuDe" @keydown.esc="dong" @click.self="dong" v-cham-ngoai="dong">
     <div class="panel hs" :style="{ '--m': mau }">
       <header class="hs-dau">
         <h2 id="hsTieuDe">{{ kieu === 'chao' ? t('hs.chao') : t('hs.hoSo') }}</h2>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 import { BellRing, Hourglass } from 'lucide-vue-next';
 /**
  * CHỦ PHÒNG BẤM BẮT ĐẦU KHI CÒN NGƯỜI CHƯA SẴN SÀNG (19.11.2026, mockup duyệt
@@ -19,7 +20,7 @@ const ten = (): string => (props.chua.length === 1 ? tenNguoi(props.chua[0]!) : 
 </script>
 
 <template>
-  <div class="nhac-phu" @click.self="emit('dong')">
+  <div class="nhac-phu" @click.self="emit('dong')" v-cham-ngoai="() => { emit('dong'); }">
     <div class="nhac-bang khay" role="dialog" :aria-label="t('on.nhac.tieuDe', { n: chua.length })">
       <p class="nhac-tieu"><Hourglass :size="18" :stroke-width="2.5" class="ic" aria-hidden="true" /> {{ t('on.nhac.tieuDe', { n: chua.length }) }}</p>
       <p class="nhac-mo">{{ t('on.nhac.moTa') }}</p>
