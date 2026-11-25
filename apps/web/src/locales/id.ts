@@ -916,6 +916,7 @@ const id: TuDien = {
   'tn.hoi': "Apa itu Skor Memori?",
   'tn.giaiThich': "Setiap kali kamu membuka kartu yang pasangannya sudah pernah terlihat, itu satu uji memori: menemukan pasangannya berarti ingat, meleset berarti lupa. Makin lama sejak kamu melihatnya, makin tinggi nilainya (maks. 1.000). Satu permainan butuh minimal {n} uji agar bisa dinilai — papan kecil atau menang terlalu cepat belum cukup, coba papan yang lebih besar.",
   'pm.moTa': "Latar, suara, dan efek lebih indah, statistik tersimpan lebih lama.",
+  'pm.l.hoTro': "Dukung kami mengembangkan aplikasi yang bermanfaat dan tanpa iklan",
   'pm.l.nen': "Latar Premium",
   'pm.l.amThanh': "Musik dan suara kustom",
   'pm.l.thongKe': "Statistik memori tersimpan lebih lama",

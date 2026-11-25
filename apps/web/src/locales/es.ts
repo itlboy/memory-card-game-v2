@@ -915,6 +915,7 @@ const es: TuDien = {
   'tn.hoi': "¿Qué es la puntuación de memoria?",
   'tn.giaiThich': "Cada vez que volteas una carta cuya pareja ya se había mostrado, es una prueba de memoria: encontrar la pareja cuenta como recordada; fallar, como olvidada. Cuanto más tiempo haya pasado, más vale (máx. 1.000). Una partida necesita al menos {n} pruebas para puntuar: los tableros pequeños o las victorias muy rápidas no bastan; prueba un tablero más grande.",
   'pm.moTa': "Mejores fondos, sonido y efectos, y estadísticas guardadas más tiempo.",
+  'pm.l.hoTro': "Apóyanos para crear una app útil y sin anuncios",
   'pm.l.nen': "Fondos Premium",
   'pm.l.amThanh': "Música y sonido a tu gusto",
   'pm.l.thongKe': "Estadísticas de memoria más tiempo",

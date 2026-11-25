@@ -1,6 +1,8 @@
 import { BOT_SPECS, laBotId } from '@mm/engine';
 import type { BotLevel } from '@mm/engine';
 import { t, td } from './i18n';
+import { dangDebug } from './debug';
+import { laTenBotPhong } from './ten-bot-phong';
 
 /**
  * TÊN HIỂN THỊ THEO NGÔN NGỮ cho những tên do APP đặt (không phải người chơi gõ).
@@ -20,5 +22,7 @@ export function tenNguoi(p: { id: string; name: string; avatar?: string } | null
   if (laBotId(p.id) && p.avatar && MUC_THEO_MAT[p.avatar]) return tenBot(MUC_THEO_MAT[p.avatar]!);
   // Ván đấu máy: App đặt người chơi là "Bạn" (id p1) — chữ của app, không phải tên tự gõ
   if (p.id === 'p1' && p.name === 'Bạn') return t('chung.ban'); // i18n-bo-qua
+  // Bot phòng thường trực mang dấu ẩn trong tên (lib/ten-bot-phong.ts) — chỉ người bật debug mới thấy nhãn
+  if (dangDebug.value && laTenBotPhong(p.name)) return `🤖 ${p.name}`;
   return p.name;
 }

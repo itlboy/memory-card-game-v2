@@ -288,7 +288,7 @@ export const JS = String.raw`
     cai_app: 'Hộp cài app', chinh_phuc: 'Đạt danh hiệu', pha_ky_luc: 'Phá kỷ lục', luu_chia_se_anh: 'Khoe tỷ số (mở hộp)',
     xep_hang: 'Bảng xếp hạng', xep_hang_tab: 'Bảng xếp hạng · đổi tab', xep_hang_thach: 'Bảng xếp hạng · thách đấu',
     tri_nho: 'Chỉ số trí nhớ', tri_nho_luyen: 'Chỉ số trí nhớ · Luyện ngay', tri_nho_14_ngay: 'Chỉ số trí nhớ · tab 14 ngày',
-    tri_nho_giai_thich: 'Chỉ số trí nhớ · bấm dấu ?', bxh_an: 'Xếp hạng · ẩn/hiện tôi (Cài đặt)', premium: 'Bảng Premium (debug)', premium_chon_goi: 'Bảng Premium · đổi gói', premium_mua: 'Bảng Premium · bấm mua (thử)',
+    tri_nho_giai_thich: 'Chỉ số trí nhớ · bấm dấu ?', bxh_an: 'Xếp hạng · ẩn/hiện tôi (Cài đặt)', hinh_nen: 'Hình nền hành tinh (debug)', premium: 'Bảng Premium (debug)', premium_chon_goi: 'Bảng Premium · đổi gói', premium_mua: 'Bảng Premium · bấm mua (thử)',
     ho_so: 'Hồ sơ (mở)', ho_so_luu: 'Hồ sơ (lưu)',
     online_tao_phong: 'Online · tạo phòng', online_vao_link_moi: 'Online · vào bằng link mời', online_vao_ma: 'Online · vào bằng mã',
     online_vao_phong_ds: 'Online · vào từ danh sách', online_moi_ban: 'Online · hộp mời bạn', online_chep_ma: 'Online · chép mã phòng',

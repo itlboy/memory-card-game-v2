@@ -915,6 +915,7 @@ const pt: TuDien = {
   'tn.hoi': "O que é a pontuação de memória?",
   'tn.giaiThich': "Cada vez que você vira uma carta cujo par já foi mostrado, é um teste de memória: achar o par conta como lembrado; errar, como esquecido. Quanto mais tempo passou, mais vale (máx. 1.000). Uma partida precisa de pelo menos {n} testes para pontuar — tabuleiros pequenos ou vitórias muito rápidas não bastam; tente um tabuleiro maior.",
   'pm.moTa': "Fundos, sons e efeitos mais bonitos, e estatísticas por mais tempo.",
+  'pm.l.hoTro': "Apoie-nos a criar um app útil e sem anúncios",
   'pm.l.nen': "Fundos Premium",
   'pm.l.amThanh': "Música e som personalizados",
   'pm.l.thongKe': "Estatísticas de memória por mais tempo",

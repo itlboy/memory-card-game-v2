@@ -915,6 +915,7 @@ const en: TuDien = {
   'tn.hoi': "What is the Memory Score?",
   'tn.giaiThich': "Each time you flip a card whose match has already been shown, that's a memory test: finding the pair counts as remembered, missing it as forgotten. The longer ago you saw it, the more it's worth (up to 1,000). A game needs at least {n} tests to be scored — small boards or very quick wins don't have enough, so try a bigger board.",
   'pm.moTa': "Better backgrounds, sound and effects, and longer stats history.",
+  'pm.l.hoTro': "Support us in building a useful, ad-free app",
   'pm.l.nen': "Premium backgrounds",
   'pm.l.amThanh': "Music and custom sound",
   'pm.l.thongKe': "Longer memory stats history",

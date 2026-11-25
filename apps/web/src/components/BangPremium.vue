@@ -11,7 +11,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * GIÁ LÀ SỐ TẠM (`GIA`) — chủ dự án chưa chốt; lúc bán thật giá phải đọc từ store (đã quy đổi theo nước), không viết cứng.
  * Các quyền lợi liệt kê là DỰ KIẾN, phần lớn chưa có tính năng thật đằng sau.
  */
-import { ChartColumn, Check, Crown, Image, MessageCircle, Music, Sparkles, X } from 'lucide-vue-next';
+import { ChartColumn, Check, Crown, Heart, Image, MessageCircle, Music, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
@@ -27,9 +27,10 @@ const goi = ref<Goi>('nam');
 const tien = (v: number): string => `${num(v)}đ`;
 const tietKiem = Math.round((1 - GIA.nam / (GIA.thang * 12)) * 100);
 
-/* Năm quyền lợi chủ dự án chốt 25.11.2026: hình nền, âm thanh, thời gian lưu thống kê, hiệu ứng trong ván, hiệu ứng chat online.
+/* Sáu dòng — năm quyền lợi chủ dự án chốt 25.11.2026: hình nền, âm thanh, thời gian lưu thống kê, hiệu ứng trong ván, hiệu ứng chat online.
    KHÔNG có dòng theme — chưa theme nào là premium, khoe ra là sai. */
 const LOI = computed(() => [
+  { ic: Heart, chu: t('pm.l.hoTro') },   // ĐẦU TIÊN (chủ dự án 25.11.2026)
   { ic: Image, chu: t('pm.l.nen') },
   { ic: Music, chu: t('pm.l.amThanh') },
   { ic: ChartColumn, chu: t('pm.l.thongKe') },

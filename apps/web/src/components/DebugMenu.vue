@@ -16,6 +16,7 @@ import { apOtaNgay, banNative, kiemOta, nguonGoi, trangThaiOta } from '@/lib/ota
 import { bcp, t, td } from '@/lib/i18n';
 import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
+import { CANH, TEN_CANH, canh, datCanh } from '@/lib/canh';
 import { datPingSo, pingSo } from '@/lib/ping-so';
 import { chanDoanGa } from '@/lib/phan-tich';
 import { boEmojiHien, boEmojiVeMacDinh, doiBoEmojiThu } from '@/lib/emoji';
@@ -70,6 +71,7 @@ function veMacDinh(): void {
   datPingSo(false);
   boEmojiVeMacDinh();
   skinVeMacDinh();
+  datCanh('goc');
   emit('update:doNhip', false);
 }
 </script>
@@ -128,6 +130,14 @@ function veMacDinh(): void {
       <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
         <span>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</span><i class="doi" aria-hidden="true">↻</i>
       </button>
+    </section>
+
+    <!-- HÌNH NỀN PREMIUM đang thử (25.11.2026, lib/canh.ts) — chỉ có tác dụng với skin Kẹo -->
+    <section class="khay-nho dbg-khoi">
+      <h3>{{ t('pm.l.nen') }}</h3>
+      <div class="dbg-luoi ba">
+        <button v-for="c in CANH" :key="c" class="thach th-nho th-chon" type="button" :aria-pressed="canh === c" @click="datCanh(c)">{{ TEN_CANH[c] }}</button>
+      </div>
     </section>
 
     <!-- Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở đây — người chơi chỉ có Kẹo (lib/skin.ts) -->
