@@ -239,11 +239,7 @@ async function veBangTySo(c: CanvasRenderingContext2D, n: NoiDungAnh, fD: string
     const cx = bx + 10 + lech + k * colW + colW / 2 + (hai && k === 1 ? giua : 0);
     const top = by + 20 + r * rowH;
     const laDan = dan && d.n === max;
-    if (laDan) {
-      const g = c.createLinearGradient(0, top, 0, top + rowH);
-      g.addColorStop(0, `rgba(${P.danNen},${P === TOI ? .2 : 1})`); g.addColorStop(1, `rgba(${P.danNen},0)`);
-      khoiTron(c, cx - colW / 2 + 6, top, colW - 12, rowH - 6, 26); c.fillStyle = g; c.fill();
-    }
+    // Cột người dẫn KHÔNG tô nền vàng, KHÔNG vương miện (chủ dự án 25.11.2026) — số ván thắng màu vàng đã đủ nói ai dẫn
     // Mặt (đội: nhiều mặt nhỏ cạnh nhau)
     const mats = d.mat?.length ? d.mat : [{}];
     const f = Math.round(rowH * (mats.length > 1 ? .2 : .27) / Math.max(1, Math.min(mats.length, 3) * .62));
@@ -257,12 +253,18 @@ async function veBangTySo(c: CanvasRenderingContext2D, n: NoiDungAnh, fD: string
         c.beginPath(); c.arc(mx, yMat - f * .42, f * .5, 0, Math.PI * 2); c.lineWidth = 4; c.strokeStyle = P.vienAnh; c.stroke();
       } else {
         // Ô màu hồ sơ sau mặt (một người một cột; đội thì các mặt đứng sát nhau, không tô) — khớp bảng kết quả trong app
-        if (m.mau && mats.length === 1) { const o = f * 1.3; khoiTron(c, mx - o / 2, yMat - f * .4 - o / 2, o, o, o * .28); c.fillStyle = m.mau; c.fill(); }
+        // Đúng tỉ lệ trong app (.vong-mau: ô = 1,7 × mặt, mặt nằm GỌN trong ô) và ô không chạm tên bên dưới.
+        if (m.mau && mats.length === 1) {
+          const o = f * 1.15, fe = o / 1.7, yc = yMat - f * .55;
+          khoiTron(c, mx - o / 2, yc - o / 2, o, o, o * .28); c.fillStyle = m.mau; c.fill();
+          c.font = `${Math.round(fe)}px ${fB}`; c.fillStyle = P.chu;
+          c.fillText(MAT_THAY[m.mat ?? ''] ?? m.mat ?? '🙂', mx, yc + fe * .36);
+          return;
+        }
         c.font = `${f}px ${fB}`; c.fillStyle = P.chu;
         c.fillText(MAT_THAY[m.mat ?? ''] ?? m.mat ?? '🙂', mx, yMat);
       }
     });
-    if (laDan) { c.font = `${Math.round(f * .5)}px ${fB}`; c.fillText('👑', cx + f * .48, yMat - f * .9); }
     // Tên
     const coTen = Math.round(rowH * .085);
     c.fillStyle = P.chu; c.font = `800 ${coTen}px ${fD}`;

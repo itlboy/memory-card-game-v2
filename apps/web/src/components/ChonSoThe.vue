@@ -161,10 +161,10 @@ onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
                 <b>{{ the }}</b>
               </button>
               <span class="ct-ai">
-                <MatNguoi
-                  v-for="p in aiChon(the)" :key="p.id" :mat="p.avatar" :anh="p.anh"
-                  :class="{ minh: !chiXem && p.id === o.myId.value }"
-                />
+                <span
+                  v-for="p in aiChon(the)" :key="p.id" class="ct-nguoi"
+                  :class="{ minh: !chiXem && p.id === o.myId.value, 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"
+                ><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
               </span>
             </div>
             <span v-if="phao.length" class="ct-phao" aria-hidden="true"><i v-for="p in phao" :key="p.id" :style="p.s" /></span>
@@ -226,9 +226,13 @@ onBeforeUnmount(() => { dungNhip(); huyHen(); clearTimeout(henRung); });
 .ct-o.rung { animation: ct-lac .4s ease; }
 .ct-tick { position: absolute; bottom: -9px; right: -7px; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
   background: #2f9a18; color: #fff; border: 3px solid var(--panel-solid); box-shadow: 0 2px 4px rgba(0, 0, 0, .25); }
-.ct-ai { display: flex; justify-content: center; flex-wrap: wrap; gap: 2px; min-height: 24px; font-size: 18px; line-height: 1; }
+.ct-ai { display: flex; justify-content: center; flex-wrap: wrap; gap: 2px; min-height: 27px; font-size: 18px; line-height: 1; }
 .ct-ai :deep(img) { width: 22px; height: 22px; border-radius: 50%; }
-.ct-ai .minh { border-radius: 50%; box-shadow: 0 0 0 2px #f5b324; }
+.ct-ai .minh:not(.vong-mau) { border-radius: 50%; box-shadow: 0 0 0 2px #f5b324; }
+/* Ô MÀU hồ sơ như mọi chỗ khác (chủ dự án gửi ảnh 25.11.2026: "avatar dưới số thẻ chọn chưa theo phong cách mới"). Ô = 1,7em
+   thò ra ngoài mặt → thu chữ và chừa lề để các ô không chồng nhau, không chạm ô số phía trên. */
+.ct-ai .vong-mau { font-size: 15px; margin: 6px 6px 5px; }
+.ct-ai .vong-mau.minh::before { box-shadow: 0 0 0 2px #f5b324; }
 .ct-ai > * { animation: ct-vao .3s cubic-bezier(.3, 1.6, .5, 1); }
 .ct-chan { margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding-top: 10px; min-height: 22px;
   border-top: 1px solid var(--line); font-size: 13px; font-weight: 800; color: var(--muted); text-align: center; }
