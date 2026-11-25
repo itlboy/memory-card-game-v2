@@ -5,6 +5,9 @@ import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, I
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
+import { anKhach, khachDangAn } from '@/lib/taikhoan';
+import { store } from '@/lib/storage';
+import { moChucNang } from '@/lib/phan-tich';
 import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
@@ -43,6 +46,15 @@ const props = defineProps<{
   /** Bảng xếp hạng đang mở — hiệu ứng lên hạng chờ bảng đóng mới diễn. */
   bxhMo?: boolean;
 }>();
+/** Khách đã có mã (đã từng gửi điểm) — đọc lại mỗi lần mở trang Cài đặt. */
+const coKhach = ref(!!store.khach(false));
+const dangDoiAn = ref(false);
+async function doiAnBxh(): Promise<void> {
+  const an = !khachDangAn.value;
+  dangDoiAn.value = true;
+  moChucNang('bxh_an', { an: an ? 1 : 0 });
+  try { await anKhach(an); } catch { /* mất mạng: cờ đã lưu ở máy, lần gửi điểm sau mang theo */ } finally { dangDoiAn.value = false; }
+}
 const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
   'update:debug': [boolean]; 'mo-debug': [] }>();
 
@@ -187,6 +199,7 @@ const trangCd = ref(false);
 /** Bề ngang trang chính lúc bấm "Cài đặt" — trang con giữ đúng bề ngang đó, khung menu không co giật. */
 const rongMenu = ref(0);
 function moTrangCd(): void {
+  coKhach.value = !!store.khach(false);
   tbKq.value = '';
   rongMenu.value = menuEl.value?.querySelector<HTMLElement>('.menu')?.offsetWidth ?? 0;
   trangCd.value = true;
@@ -482,6 +495,11 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
           <!-- Nhận lời mời chơi (lib/sanh.ts) — tắt là app thôi giữ kết nối sảnh, không ai thấy mình để mời -->
           <button data-phang class="item cong-tac" role="switch" type="button" :aria-checked="nhanLoiMoi" @click="datNhanLoiMoi(!nhanLoiMoi)">
             <MailPlus :size="20" /><span>{{ t('cd.nhanMoi') }}</span><i class="sw" :class="{ bat: nhanLoiMoi }" aria-hidden="true" />
+          </button>
+          <!-- Hiện tôi trên bảng xếp hạng (25.11.2026: chuyển từ nút "Ẩn tôi" ở chân bảng sang đây). Chỉ KHÁCH đã có mã
+               mới có dòng trên bảng dạng khách; đã đăng nhập thì không ẩn được nên giấu công tắc. -->
+          <button data-phang v-if="account && !signedIn && coKhach" class="item cong-tac" role="switch" type="button" :aria-checked="!khachDangAn" :disabled="dangDoiAn" @click="doiAnBxh">
+            <Trophy :size="20" /><span>{{ t('cd.hienBxh') }}</span><i class="sw" :class="{ bat: !khachDangAn }" aria-hidden="true" />
           </button>
           <!-- Gợi ý thi đấu (lib/thidau.ts) — tắt là không nhận thẻ hỏi "Thi đấu online?" lẫn tin đẩy thi đấu -->
           <button data-phang v-if="coThiDau" class="item cong-tac" role="switch" type="button" :aria-checked="goiYThiDau" @click="datGoiYThiDau(!goiYThiDau)">

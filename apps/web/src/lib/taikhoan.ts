@@ -435,10 +435,13 @@ export async function datTenKhach(ten: string): Promise<void> {
  * "Ẩn tôi" / "Hiện lại" (20.11.2026, chủ dự án: "ẩn thôi ko xóa, sau họ thích thì cho họ hiện lại"): chỉ bật/tắt cờ
  * ẨN trên server — điểm, lịch sử tuần còn nguyên. Gửi lại tổng điểm kèm `an` là đủ (server ≥ 20.11 đọc cờ này).
  */
+/** Khách đang ẩn khỏi bảng — công tắc ở Cài đặt (TopBar) và bảng xếp hạng cùng đọc một chỗ. */
+export const khachDangAn = ref(!!store.khach(false)?.an);
 export async function anKhach(an: boolean): Promise<void> {
   const k = store.khach(false);
   if (!k) return;
   store.ganKhach({ an });
+  khachDangAn.value = an;
   khachDaGui = '';
   await guiKhach();
 }
