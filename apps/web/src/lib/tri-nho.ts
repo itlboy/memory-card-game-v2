@@ -1,6 +1,6 @@
 /**
  * CHỈ SỐ TRÍ NHỚ (bản 3, 25.11.2026 — trang nghiên cứu duyệt https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu).
- * VẪN CHỈ HIỆN KHI DEBUG BẬT (`hienTriNho`). Công thức ở engine (`chiSoTriNho`): cộng 5 chặng nhớ, đã trừ ăn may.
+ * MỞ CHO MỌI NGƯỜI từ 1.9.66 (25.11.2026, chủ dự án: "bật tính năng chỉ số trí nhớ cho tất cả mọi người luôn"). Công thức ở engine (`chiSoTriNho`): cộng 5 chặng nhớ, đã trừ ăn may.
  * File này GỘP nhật ký thô (`storage.ts`, số đếm theo ngày × cỡ bàn) thành chỉ số của một KỲ 7 NGÀY, tính bậc, và
  * giữ "vừa đổi bao nhiêu" sau mỗi ván cho bảng kết quả + nút trang chủ.
  *
@@ -11,8 +11,8 @@ import { MOC_BAC_TRI_NHO, bacTriNho, chiSoTriNho, coHoiNho, rongNhomTuoi, type C
 import { ref } from 'vue';
 import { mayUocLuong, ngayMay, store, type NgayTriNho } from './storage';
 
-/** Bật = GHI nhật ký trí nhớ và HIỆN chỉ số. App.vue đặt theo cờ debug (chủ dự án 25.11.2026: vẫn debug). */
-export const hienTriNho = ref(false);
+/** Bật = GHI nhật ký trí nhớ và HIỆN chỉ số. Trước 1.9.66 theo cờ debug; nay LUÔN bật — giữ làm công tắc để tắt nhanh nếu cần. */
+export const hienTriNho = ref(true);
 
 /** Kỳ tính chỉ số: 7 ngày kết thúc ở ngày đang xem. */
 export const SO_NGAY_KY = 7;

@@ -48,7 +48,6 @@ const debug = ref(store.prefs().debug || new URLSearchParams(location.search).ge
 const coSkinUrl = new URLSearchParams(location.search).has('skin');
 watch(debug, (v) => {
   store.savePrefs({ debug: v });
-  hienTriNho.value = v;   // điểm trí nhớ đang THỬ NGHIỆM: chỉ GHI và chỉ HIỆN khi debug bật (chủ dự án 23.11.2026)
   if (!v) { boEmojiVeMacDinh(); datPingSo(false); if (!coSkinUrl) skinVeMacDinh(); }
 }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
@@ -1209,7 +1208,7 @@ const hasNext = computed(() => {
     @so-tri-nho="showDebug = false; showSoTriNho = true"
     @tat="debug = false; showDebug = false"
   />
-  <SoTriNho v-if="showSoTriNho && debug" @close="showSoTriNho = false" @luyen="luyenTriNho" />
+  <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />

@@ -3,7 +3,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * CHỈ SỐ TRÍ NHỚ — màn GỌN (bản 4, 25.11.2026: mockup B duyệt https://claude.ai/artifact/MPUFzw758MSrAqUN4osP3t,
  * chủ dự án: "giao diện hơi xấu… đừng quá nhiều thứ làm loạn"; chọn B và "điểm số cho nhỏ bớt đi, 50%").
- * VẪN CHỈ HIỆN KHI DEBUG BẬT (cổng `hienTriNho` ở App.vue). Công thức 5 chặng nhớ: engine `chiSoTriNho`.
+ * MỞ CHO MỌI NGƯỜI từ 1.9.66 (cổng `hienTriNho` ở lib/tri-nho.ts, nay luôn bật). Công thức 5 chặng nhớ: engine `chiSoTriNho`.
  * Chủ dự án chốt từ trước: tên "Chỉ số trí nhớ"; biểu tượng BIỂU ĐỒ (không bao giờ cái não); không có khái niệm "cặp";
  * bậc Đồng → Kim cương mốc cố định, KHÔNG so với bot.
  *

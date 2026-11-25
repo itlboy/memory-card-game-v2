@@ -1962,7 +1962,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   `users.ten_hien` (gửi qua `/api/me/ho-so` kèm `ten`, App.vue gửi lại mỗi lần mở app), chưa có thì tên Google rút gọn như cũ.
 - OTA từ 1.9.52: ÉP cập nhật trước khi dùng (`anTienDo = false`) — có bản mới ở trang chủ là phủ % thật rồi khởi động lại.
 
-## Chỉ số trí nhớ bản 3 (1.9.57, 25.11.2026 — VẪN CHỈ DEBUG; trang nghiên cứu https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu)
+## Chỉ số trí nhớ bản 3 (1.9.57, 25.11.2026 — MỞ CHO MỌI NGƯỜI từ 1.9.66, `hienTriNho = ref(true)` ở lib/tri-nho.ts; trang nghiên cứu https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu)
 - CÔNG THỨC (engine `chiSoTriNho`, scoring.ts): cộng 5 CHẶNG NHỚ theo độ lâu (vừa thấy · 2–3 · 4–7 · 8–15 · 16+ lượt),
   điểm chặng 50·150·200·275·325 = 1000; điểm chặng = tỉ lệ nhớ ĐÃ TRỪ ĂN MAY × điểm chặng; chặng cần 5 lần gặp trong kỳ mới mở.
   Thay "tỉ lệ × trần của bàn" (bàn 16 thẻ trần 425, chọn bàn to là lên điểm).
