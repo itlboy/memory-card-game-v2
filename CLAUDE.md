@@ -1986,7 +1986,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Chỗ đặt (1.9.59, chủ dự án): NGAY TRÊN nút Chiến dịch, bên trái — bám `.cd-khung`. Hình dạng (1.9.64, mockup 1 https://claude.ai/artifact/BP9qMdSyxbwSW4y664efvs):
   VIÊN THẠCH `.vien-tn` — huy chương bậc · tên nhỏ trên · điểm to dưới · bong bóng ▲▼ TRONG viên. Nút tròn có vành bị chê "không tương hợp" — đừng làm lại.
 - Màn chỉ số: đổi tab / đổi ngày CHỈ ĐỔI SỐ — hai tab cùng chiều cao, khối huy chương cùng min-height, "Luyện ngay" luôn hiện.
-- `.vong-mau` (màu hồ sơ) = Ô VUÔNG BO GÓC TÔ ĐẶC màu, mặt ở giữa — như ô phòng "Đang chơi" (chủ dự án chọn 25.11, sau khi chê vòng tròn và khung viền mảnh). Avatar của MÌNH ở menu / nút menu / hồ sơ / tài khoản cũng là ô đặc màu.
+- `.vong-mau` (màu hồ sơ) = Ô VUÔNG BO GÓC TÔ ĐẶC màu, PHẲNG (không gờ nổi, không vệt sáng — chủ dự án: "không muốn dạng nút nổi"), mặt ở giữa — như ô phòng "Đang chơi" (chủ dự án chọn 25.11, sau khi chê vòng tròn và khung viền mảnh). Avatar của MÌNH ở menu / nút menu / hồ sơ / tài khoản cũng là ô đặc màu.
 - CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.
 - CHẠM NỀN ĐÓNG HỘP THOẠI (1.9.62): mọi nền có `@click.self` đều kèm `v-cham-ngoai` (lib/cham-ngoai.ts) — đóng ở touchend + preventDefault.
   Lý do: trên iPhone `click` của <div> nền đến trễ ~1/3 giây (nút ✕ thì không); không chặn click thì "bấm xuyên" xuống nút bên dưới.

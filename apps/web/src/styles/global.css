@@ -437,7 +437,7 @@ button {
 
 /* Ô MÀU HỒ SƠ (lib/ho-so.ts): gắn `.vong-mau` lên khung chứa mặt người chơi — `--m` là màu họ chọn. Chưa chọn màu (app
    cũ / bot) thì không gắn.
-   Ô VUÔNG BO GÓC TÔ ĐẶC màu, mặt nằm giữa (25.11.2026, chủ dự án gửi ảnh ô phòng ở danh sách "Đang chơi": "avatar của chúng
+   Ô VUÔNG BO GÓC TÔ ĐẶC màu, PHẲNG (không gờ nổi, không vệt sáng — chủ dự án 25.11: "không muốn làm dạng nút nổi, nút phẳng là ok"), mặt nằm giữa (25.11.2026, chủ dự án gửi ảnh ô phòng ở danh sách "Đang chơi": "avatar của chúng
    ta cũng hiển thị như kiểu này, dễ nhìn hơn"). Hai bản trước bị chê: bo 50% lên khung emoji ra e-líp; vòng/khung viền
    mảnh thì emoji tràn và khó nhìn.
    Ô là ::before căn giữa, cạnh theo cỡ chữ của khung — `absolute` nên KHÔNG tốn bề ngang (chip online đo tay từng px);
@@ -446,5 +446,5 @@ button {
 .vong-mau::before {
   content: ""; position: absolute; left: 50%; top: 50%; width: 1.7em; height: 1.7em; transform: translate(-50%, -50%);
   border-radius: 28%; z-index: -1; pointer-events: none;
-  background: var(--m); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .32), 0 2px 0 color-mix(in srgb, var(--m) 62%, #000);
+  background: var(--m);
 }

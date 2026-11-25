@@ -761,13 +761,13 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .item.ho-so { min-height: 52px; }
 .item.ho-so .tk-chu { flex: 1; }
 .item.ho-so > span.hs-av { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 20px; line-height: 1;
-  background: var(--m); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .32), 0 3px 0 color-mix(in srgb, var(--m) 62%, #000); }
+  background: var(--m); }
 .hs-but { flex: none; color: var(--muted); }
 .item.ho-so > span.hs-av { position: relative; }
 .hs-g { position: absolute; right: -5px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
   font: 900 10px/1 var(--font-display); font-style: normal; color: #4285f4; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
 .mb-av { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; line-height: 1;
-  background: var(--m); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .32); }
+  background: var(--m); }
 /* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
    trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
 .item.thach { border-radius: 14px; margin: 2px 0 6px; }

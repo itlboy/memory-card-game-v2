@@ -1685,7 +1685,7 @@ function openCfgWizard(): void {
   box-shadow: var(--elev-1), inset 0 1px 0 rgba(255, 255, 255, .32);
 }
 /* Chủ phòng có màu hồ sơ: chính ô này tô màu đó (không chồng thêm ô ::before của `.vong-mau`) */
-.room .av.vong-mau { background: var(--m); }
+.room .av.vong-mau { background: var(--m); box-shadow: none; }
 .room .av.vong-mau::before { display: none; }
 .room .body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .room .rname {
