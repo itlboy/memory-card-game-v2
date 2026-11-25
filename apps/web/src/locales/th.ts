@@ -914,10 +914,6 @@ const th: TuDien = {
   'tn.khoa': "เล่นอีก {n} เกมเพื่อรับคะแนน",
   'tn.khoaMo': "ต้องเล่นสักสองสามเกมจึงจะรู้ว่าคุณจำได้ดีแค่ไหน",
   'tn.chuaDu': "ข้อมูลไม่พอให้คะแนน",
-  'tn.homNay': "วันนี้",
-  'tn.muoiBon': "14 วันที่ผ่านมา",
-  'tn.bayNgay': "7 วันที่ผ่านมา",
-  'tn.soVoi': "{n} เทียบสัปดาห์ก่อน",
   'ct.conGiay': "เหลือ {n} วินาที",
   'ct.daChon': "เลือกแล้ว {da}/{tong}",
   'hs.chao': "ยินดีต้อนรับ!",
@@ -951,13 +947,12 @@ const th: TuDien = {
   'tn.chang.2': "4–7 ตา",
   'tn.chang.3': "8–15 ตา",
   'tn.chang.4': "16+ ตา",
-  'tn.chuaMo': "ยังไม่เปิด · {n}/{can}",
-  'tn.tinhDen': "7 วันถึง {ngay}",
   'tn.luyen': "ฝึกเลย · {n} ใบ",
-  'tn.khongMay': "เดาถูกเพราะโชคไม่นับ",
   'tn.lenBac': "ขึ้นระดับ{ten}!",
   'tn.moi': "ใหม่",
   'tn.conVan': "อีก {n} เกม",
+  'tn.tab5': "5 ช่วง",
+  'tn.tab14': "14 วัน",
 };
 
 export default th;

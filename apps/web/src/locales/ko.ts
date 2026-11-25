@@ -913,10 +913,6 @@ const ko: TuDien = {
   'tn.khoa': "{n}판 더 하면 점수가 나와요",
   'tn.khoaMo': "기억력을 알려면 몇 판이 필요해요.",
   'tn.chuaDu': "채점하기엔 부족해요",
-  'tn.homNay': "오늘",
-  'tn.muoiBon': "최근 14일",
-  'tn.bayNgay': "최근 7일",
-  'tn.soVoi': "지난주 대비 {n}",
   'ct.conGiay': "{n}초 남음",
   'ct.daChon': "{da}/{tong}명 선택",
   'hs.chao': "환영해요!",
@@ -950,13 +946,12 @@ const ko: TuDien = {
   'tn.chang.2': "4–7턴",
   'tn.chang.3': "8–15턴",
   'tn.chang.4': "16+턴",
-  'tn.chuaMo': "잠김 · {n}/{can}",
-  'tn.tinhDen': "{ngay}까지 7일",
   'tn.luyen': "연습하기 · {n}장",
-  'tn.khongMay': "운으로 맞힌 것은 세지 않아요.",
   'tn.lenBac': "{ten} 등급 달성!",
   'tn.moi': "새로움",
   'tn.conVan': "{n}판 더",
+  'tn.tab5': "5단계",
+  'tn.tab14': "14일",
 };
 
 export default ko;

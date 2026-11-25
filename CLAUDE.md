@@ -1975,12 +1975,15 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - MỘT CON SỐ: kỳ 7 ngày (`lib/tri-nho.ts chiSoTai`), cần ≥ 20 cơ hội nhớ mới bày điểm. Không còn điểm riêng từng ván — sau ván
   `ghiVanTriNho` ghi nhật ký + đặt `vuaDoi` (trước/sau), bảng kết quả hiện "Chỉ số trí nhớ 514 ▲ 8" / "Lên bậc Vàng!" / nhãn "Mới".
   PHẢI gọi `ghiVanTriNho(undefined, …)` cho ván không chấm (đội online, người xem) để `vuaDoi` về null, không lòi số ván trước.
-- Màn `SoTriNho.vue`: đồng hồ + bậc + còn bao nhiêu tới bậc kế; 5 chặng (thay khối "Theo cỡ bàn"); BẤM CỘT 14 ngày = xem kỳ 7 ngày
-  kết thúc ở ngày đó; "Luyện ngay" (`theNenLuyen` → App `luyenTriNho`). Màu HAI TÔNG: ngọc đậm #0b7468 nền sáng, ngọc sáng
-  #4fd6c4 nền tối (một tông thì thanh trên rãnh chỉ 2,7–3,0).
+- Màn `SoTriNho.vue` — BẢN GỌN (1.9.60, mockup B duyệt https://claude.ai/artifact/MPUFzw758MSrAqUN4osP3t; bản 3 bị chê "xấu, quá
+  nhiều thứ làm loạn"): CHỈ BA KHỐI — huy chương 60px màu bậc có điểm BÊN TRONG + bậc + thanh tới bậc kế; một hình hai tab
+  "5 chặng nhớ" (5 cột, mỗi cột một con số %) / "14 ngày"; nút "Luyện ngay" (`theNenLuyen` theo HÔM NAY → App `luyenTriNho`).
+  ĐỪNG THÊM LẠI: vòng điểm + "/ 1000", điểm chặng "116/150", tiêu đề chữ hoa, 14 nhãn ngày, dòng chú thích, "so với tuần trước".
+  Xem ngày cũ: tab 14 ngày → bấm cột; nhãn tab thành "14 ngày · 20/11". Ngày CHƯA CÓ ĐIỂM bị khoá (trừ hôm nay) — bấm quá khứ
+  ra "Chơi thêm N ván" là vô nghĩa (chủ dự án). Tab đang chọn = thêm `th-ngoc` (tự đặt nền thì kiểu thạch đè mất).
+  Màu ngọc hai tông: đậm #0b7468 nền sáng, sáng #4fd6c4 nền tối.
 - Nút trang chủ: hiện con số + vành tiến độ (mask conic) + huy chương; chỉ nhấp nháy/bong bóng ▲▼ khi điểm ≠ `prefs.triNhoXem`.
   Chỗ đặt (1.9.59, chủ dự án): NGAY TRÊN nút Chiến dịch, bên trái, chữ nằm ngang — bám `.cd-khung`, không còn ở góc trời.
-- Màn chỉ số: đổi cột ngày CHỈ ĐỔI SỐ — "Luyện ngay" luôn hiện (gợi ý theo hôm nay), khối điểm/khoá cùng min-height; không
-  có dòng "bấm cột để xem" (chủ dự án bảo xoá); biểu đồ cao 104px.
+- Màn chỉ số: đổi tab / đổi ngày CHỈ ĐỔI SỐ — hai tab cùng chiều cao, khối huy chương cùng min-height, "Luyện ngay" luôn hiện.
 - `.vong-mau` (khung màu hồ sơ) là KHUNG VUÔNG BO GÓC ::before 1,7em: bo 50% lên khung emoji ra e-líp; vòng tròn 1,5em thì emoji rộng ngang tràn ra (chủ dự án chê hai lần).
 - CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.

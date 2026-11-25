@@ -913,10 +913,6 @@ const ja: TuDien = {
   'tn.khoa': "あと{n}回遊ぶとスコアが出ます",
   'tn.khoaMo': "記憶力を知るには数回のプレイが必要です。",
   'tn.chuaDu': "採点にはまだ足りません",
-  'tn.homNay': "今日",
-  'tn.muoiBon': "過去14日",
-  'tn.bayNgay': "過去7日",
-  'tn.soVoi': "先週比 {n}",
   'ct.conGiay': "あと{n}秒",
   'ct.daChon': "{da}/{tong}人が選択",
   'hs.chao': "ようこそ！",
@@ -950,13 +946,12 @@ const ja: TuDien = {
   'tn.chang.2': "4–7ターン",
   'tn.chang.3': "8–15ターン",
   'tn.chang.4': "16+ターン",
-  'tn.chuaMo': "未開放 · {n}/{can}",
-  'tn.tinhDen': "{ngay}までの7日間",
   'tn.luyen': "練習する · {n}枚",
-  'tn.khongMay': "まぐれ当たりは数えません。",
   'tn.lenBac': "{ten}ランクに！",
   'tn.moi': "新",
   'tn.conVan': "あと{n}回",
+  'tn.tab5': "5つの段階",
+  'tn.tab14': "14日間",
 };
 
 export default ja;

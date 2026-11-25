@@ -927,10 +927,6 @@ const vi = {
   'tn.khoa': "Chơi thêm {n} ván để có điểm",
   'tn.khoaMo': "Cần vài ván để biết bạn nhớ tốt cỡ nào.",
   'tn.chuaDu': "Chưa đủ để chấm",
-  'tn.homNay': "Hôm nay",
-  'tn.muoiBon': "14 ngày qua",
-  'tn.bayNgay': "7 ngày qua",
-  'tn.soVoi': "{n} so với tuần trước",
   'ct.conGiay': "Còn {n} giây",
   'ct.daChon': "Đã chọn {da}/{tong}",
   'hs.chao': "Chào bạn mới!",
@@ -964,13 +960,12 @@ const vi = {
   'tn.chang.2': "4–7 lượt",
   'tn.chang.3': "8–15 lượt",
   'tn.chang.4': "16+ lượt",
-  'tn.chuaMo': "Chưa mở · {n}/{can} lần",
-  'tn.tinhDen': "7 ngày tính đến {ngay}",
   'tn.luyen': "Luyện ngay · bàn {n} thẻ",
-  'tn.khongMay': "Đoán trúng do may không được tính.",
   'tn.lenBac': "Lên bậc {ten}!",
   'tn.moi': "Mới",
   'tn.conVan': "Còn {n} ván",
+  'tn.tab5': "5 chặng nhớ",
+  'tn.tab14': "14 ngày",
 };
 
 export default vi;
