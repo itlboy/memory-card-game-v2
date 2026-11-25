@@ -96,6 +96,14 @@ function veMacDinh(): void {
       <span class="dbg-thu-mui" aria-hidden="true">›</span>
     </button>
 
+    <!-- HÌNH NỀN PREMIUM đang thử (25.11.2026, lib/canh.ts) — đặt NGAY DƯỚI ba nút thử nghiệm: bản đầu nằm tận dưới công tắc, chủ dự án không tìm ra — chỉ có tác dụng với skin Kẹo -->
+    <section class="khay-nho dbg-khoi">
+      <h3>{{ t('pm.l.nen') }}</h3>
+      <div class="dbg-luoi ba">
+        <button v-for="c in CANH" :key="c" class="thach th-nho th-chon" type="button" :aria-pressed="canh === c" @click="datCanh(c)">{{ TEN_CANH[c] }}</button>
+      </div>
+    </section>
+
     <section class="khay-nho dbg-khoi">
       <h3>{{ t('dbg.phienBan') }}</h3>
       <p class="dbg-ban">
@@ -130,14 +138,6 @@ function veMacDinh(): void {
       <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
         <span>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</span><i class="doi" aria-hidden="true">↻</i>
       </button>
-    </section>
-
-    <!-- HÌNH NỀN PREMIUM đang thử (25.11.2026, lib/canh.ts) — chỉ có tác dụng với skin Kẹo -->
-    <section class="khay-nho dbg-khoi">
-      <h3>{{ t('pm.l.nen') }}</h3>
-      <div class="dbg-luoi ba">
-        <button v-for="c in CANH" :key="c" class="thach th-nho th-chon" type="button" :aria-pressed="canh === c" @click="datCanh(c)">{{ TEN_CANH[c] }}</button>
-      </div>
     </section>
 
     <!-- Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở đây — người chơi chỉ có Kẹo (lib/skin.ts) -->

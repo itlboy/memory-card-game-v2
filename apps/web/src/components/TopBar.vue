@@ -870,7 +870,11 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
   border-radius: 11px; color: var(--fg); cursor: pointer;
 }
 .cd-lui::after { content: ''; position: absolute; inset: -6px; }
-.cd-mat .item.cong-tac > span:not(.tk-chu) { flex: 1; }
+/* Nhãn công tắc được XUỐNG DÒNG (25.11.2026, ảnh chủ dự án: "Hiện tôi trên bảng xếp hạng" dài hơn khung → cả trang Cài đặt
+   phải cuộn ngang, công tắc bị cắt mép). `.item` mặc định nowrap; ở đây chữ nhường chỗ, công tắc giữ nguyên cỡ. */
+.cd-mat .item.cong-tac > span:not(.tk-chu) { flex: 1; min-width: 0; white-space: normal; line-height: 1.25; }
+.cd-mat .item.cong-tac { padding-block: 8px; }
+.cd-mat .item.cong-tac > .sw, .cd-mat .item.cong-tac > svg { flex: none; }
 .cd-mat .tk-chu { flex: 1; }
 .cd-mat .tk-chu small { white-space: normal; }
 .cd-mat .tk-chu small.loi { color: var(--bad); }

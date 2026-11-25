@@ -17,6 +17,7 @@ import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
+import { CANH, TEN_CANH, canh, datCanh } from '@/lib/canh';
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -66,6 +67,15 @@ function tat(): void { datPremiumThu(false); }
         <li v-for="l in LOI" :key="l.chu"><span aria-hidden="true"><component :is="l.ic" :size="18" :stroke-width="2.4" /></span>{{ l.chu }}</li>
       </ul>
 
+      <!-- CHỌN HÌNH NỀN ngay trong bảng (25.11.2026, chủ dự án: "tôi chưa đổi được hình nền" — bản đầu chỉ có ở cuối trang debug).
+           Bấm là đổi liền phía sau bảng. Đang thử nên chưa khoá theo gói. -->
+      <section class="pm-nen" :aria-label="t('pm.l.nen')">
+        <h3>{{ t('pm.l.nen') }}</h3>
+        <div class="pm-nen-luoi">
+          <button v-for="c in CANH" :key="c" class="thach th-nho th-chon" type="button" :aria-pressed="canh === c" @click="datCanh(c)">{{ TEN_CANH[c] }}</button>
+        </div>
+      </section>
+
       <template v-if="!daMuaPremium">
         <div class="pm-goi" role="group" :aria-label="t('tp.premium')">
           <button class="thach th-chon pm-o" type="button" :aria-pressed="goi === 'nam'" @click="chonGoi('nam')">
@@ -114,6 +124,9 @@ function tat(): void { datPremiumThu(false); }
 .pm-loi li + li { border-top: 1px solid color-mix(in srgb, var(--muted) 22%, transparent); }
 .pm-loi li span { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: var(--pm-nen); color: var(--pm); }
 
+.pm-nen h3 { margin: 0 0 8px; font: 800 12px/1.2 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pm-nen-luoi { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pm-nen-luoi button { min-width: 0; font: 800 13px/1.2 var(--font-body); }
 .pm-goi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 10px; }
 .pm-o { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 104px; padding: 16px 6px 12px; border-radius: 20px; line-height: 1.2; }
 .pm-o b { font: 800 13.5px/1.2 var(--font-body); }
