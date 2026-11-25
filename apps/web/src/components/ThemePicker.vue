@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * CHỌN THEME — dùng chung cho wizard chơi đơn (MenuScreen) và phòng online
  * (OnlineScreen). Hai tab: Miễn phí · Premium (14.10.2026).
@@ -133,7 +134,7 @@ function cham(x: CardTheme): void {
 
   <div
     v-if="xemTruoc" class="tp-phu" role="dialog" aria-modal="true"
-    :aria-label="tenTheme(xemTruoc.id, xemTruoc.name)" @click.self="dong" @keydown.esc="dong"
+    :aria-label="tenTheme(xemTruoc.id, xemTruoc.name)" @click.self="dong" v-cham-ngoai="dong" @keydown.esc="dong"
   >
     <div class="panel tp-hop">
       <button class="btn tp-dong" type="button" :aria-label="t('tp.dong')" @click="dong"><X :size="20" /></button>

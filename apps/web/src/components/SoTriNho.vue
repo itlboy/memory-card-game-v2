@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * CHỈ SỐ TRÍ NHỚ — màn GỌN (bản 4, 25.11.2026: mockup B duyệt https://claude.ai/artifact/MPUFzw758MSrAqUN4osP3t,
  * chủ dự án: "giao diện hơi xấu… đừng quá nhiều thứ làm loạn"; chọn B và "điểm số cho nhỏ bớt đi, 50%").
@@ -62,7 +63,7 @@ const coNhan = (k: string, i: number): boolean =>
 </script>
 
 <template>
-  <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="tnTitle" @keydown.esc="emit('close')" @click.self="emit('close')">
+  <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="tnTitle" @keydown.esc="emit('close')" @click.self="emit('close')" v-cham-ngoai="() => { emit('close'); }">
     <div class="panel tn">
       <header class="tn-head">
         <h2 id="tnTitle"><ChartColumn :size="22" :stroke-width="2.4" aria-hidden="true" /> {{ t('tn.ten') }}</h2>

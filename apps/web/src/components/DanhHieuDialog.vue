@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 import { t, td } from '@/lib/i18n';
 import { MAU_BAC, type BacDanhHieu } from '@/lib/ketcuc-fx';
 import { X } from 'lucide-vue-next';
@@ -128,7 +129,7 @@ function dongHoac(): void { if (chon.value) chon.value = null; else emit('close'
 
       <!-- TỜ CHI TIẾT -->
       <Transition name="to">
-        <div v-if="chon" class="nen-to" @click.self="chon = null">
+        <div v-if="chon" class="nen-to" @click.self="chon = null" v-cham-ngoai="() => { chon = null; }">
           <div class="to" role="dialog" :aria-label="tenCua(chon)">
             <span class="keo" aria-hidden="true" />
             <HuyChuong :a="chon" :co="daCo.has(chon.id)" :tien="daCo.has(chon.id) ? null : tiLe(chon)" lon />

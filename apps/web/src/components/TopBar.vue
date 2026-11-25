@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 import { hoSo, tenToi } from '@/lib/ho-so';
 import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
@@ -509,7 +510,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
        nhật nóng không tải lại giữa lúc đang chọn (lib/ota.ts). -->
   <Teleport to="#app">
     <div v-if="chonNN" ref="nnEl" class="nn-phu" role="dialog" aria-modal="true" :aria-label="t('tb.ngonNgu')"
-      @click.self="chonNN = false" @keydown.esc.stop="chonNN = false">
+      @click.self="chonNN = false" v-cham-ngoai="() => { chonNN = false; }" @keydown.esc.stop="chonNN = false">
       <div ref="nnHop" class="nn-hop khay" :style="viTriNN">
         <div class="nn-dau">
           <Languages :size="22" /><span>{{ t('tb.ngonNgu') }}</span>

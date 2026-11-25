@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * Hộp HƯỚNG DẪN CÀI LÊN MÀN HÌNH CHÍNH — luật ở `lib/cai-app.ts`.
  *
@@ -36,7 +37,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
 </script>
 
 <template>
-  <div class="cai-phu" :class="{ [tabCai]: coTay }" role="dialog" aria-modal="true" :aria-label="t('cai.tieuDe')" @click.self="emit('close')">
+  <div class="cai-phu" :class="{ [tabCai]: coTay }" role="dialog" aria-modal="true" :aria-label="t('cai.tieuDe')" @click.self="emit('close')" v-cham-ngoai="() => { emit('close'); }">
     <div class="cai-hop khay">
       <header>
         <img class="ico" src="/emoji/3d/128/1f4f1.webp" alt="" aria-hidden="true" />

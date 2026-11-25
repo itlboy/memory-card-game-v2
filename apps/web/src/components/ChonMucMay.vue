@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * BẢNG CHỌN MỨC CỦA MỘT MÁY (máy chơi cùng, 14.11.2026 — mockup
  * https://claude.ai/artifact/DY6HdqawWBH9uD7ew2gcEB). Dùng chung cho bước "Tên từng người"
@@ -25,7 +26,7 @@ function chon(l: BotLevel): void { sfx.select(); emit('chon', l); }
 </script>
 
 <template>
-  <div class="muc-phu" @click.self="emit('dong')">
+  <div class="muc-phu" @click.self="emit('dong')" v-cham-ngoai="() => { emit('dong'); }">
     <div class="muc-bang khay" role="dialog" :aria-label="tieuDe">
       <p class="muc-tieu">{{ tieuDe }}</p>
       <button
