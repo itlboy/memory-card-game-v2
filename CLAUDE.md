@@ -1983,9 +1983,10 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   ra "Chơi thêm N ván" là vô nghĩa (chủ dự án). Tab đang chọn = thêm `th-ngoc` (tự đặt nền thì kiểu thạch đè mất).
   Màu ngọc hai tông: đậm #0b7468 nền sáng, sáng #4fd6c4 nền tối.
 - Nút trang chủ: hiện con số + vành tiến độ (mask conic) + huy chương; chỉ nhấp nháy/bong bóng ▲▼ khi điểm ≠ `prefs.triNhoXem`.
-  Chỗ đặt (1.9.59, chủ dự án): NGAY TRÊN nút Chiến dịch, bên trái, chữ nằm ngang — bám `.cd-khung`, không còn ở góc trời.
+  Chỗ đặt (1.9.59, chủ dự án): NGAY TRÊN nút Chiến dịch, bên trái — bám `.cd-khung`. Hình dạng (1.9.64, mockup 1 https://claude.ai/artifact/BP9qMdSyxbwSW4y664efvs):
+  VIÊN THẠCH `.vien-tn` — huy chương bậc · tên nhỏ trên · điểm to dưới · bong bóng ▲▼ TRONG viên. Nút tròn có vành bị chê "không tương hợp" — đừng làm lại.
 - Màn chỉ số: đổi tab / đổi ngày CHỈ ĐỔI SỐ — hai tab cùng chiều cao, khối huy chương cùng min-height, "Luyện ngay" luôn hiện.
-- `.vong-mau` (khung màu hồ sơ) là KHUNG VUÔNG BO GÓC ::before 1,7em: bo 50% lên khung emoji ra e-líp; vòng tròn 1,5em thì emoji rộng ngang tràn ra (chủ dự án chê hai lần).
+- `.vong-mau` (màu hồ sơ) = Ô VUÔNG BO GÓC TÔ ĐẶC màu, mặt ở giữa — như ô phòng "Đang chơi" (chủ dự án chọn 25.11, sau khi chê vòng tròn và khung viền mảnh). Avatar của MÌNH ở menu / nút menu / hồ sơ / tài khoản cũng là ô đặc màu.
 - CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.
 - CHẠM NỀN ĐÓNG HỘP THOẠI (1.9.62): mọi nền có `@click.self` đều kèm `v-cham-ngoai` (lib/cham-ngoai.ts) — đóng ở touchend + preventDefault.
   Lý do: trên iPhone `click` của <div> nền đến trễ ~1/3 giây (nút ✕ thì không); không chặn click thì "bấm xuyên" xuống nút bên dưới.
