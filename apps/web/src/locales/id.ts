@@ -916,10 +916,6 @@ const id: TuDien = {
   'tn.khoa': "Main {n} permainan lagi untuk dapat skor",
   'tn.khoaMo': "Perlu beberapa permainan untuk tahu seberapa baik ingatanmu.",
   'tn.chuaDu': "Belum cukup untuk dinilai",
-  'tn.homNay': "Hari ini",
-  'tn.muoiBon': "14 hari terakhir",
-  'tn.bayNgay': "7 hari terakhir",
-  'tn.soVoi': "{n} dari minggu lalu",
   'ct.conGiay': "Sisa {n} detik",
   'ct.daChon': "{da}/{tong} sudah memilih",
   'hs.chao': "Selamat datang!",
@@ -953,13 +949,12 @@ const id: TuDien = {
   'tn.chang.2': "4–7 giliran",
   'tn.chang.3': "8–15 giliran",
   'tn.chang.4': "16+ giliran",
-  'tn.chuaMo': "Terkunci · {n}/{can}",
-  'tn.tinhDen': "7 hari sampai {ngay}",
   'tn.luyen': "Latihan · {n} kartu",
-  'tn.khongMay': "Tebakan beruntung tidak dihitung.",
   'tn.lenBac': "Naik ke {ten}!",
   'tn.moi': "Baru",
   'tn.conVan': "{n} game lagi",
+  'tn.tab5': "5 tahap",
+  'tn.tab14': "14 hari",
 };
 
 export default id;

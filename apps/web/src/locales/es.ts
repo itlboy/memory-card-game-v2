@@ -915,10 +915,6 @@ const es: TuDien = {
   'tn.khoa': "Juega {n} partidas más para tener puntuación",
   'tn.khoaMo': "Hacen falta unas partidas para saber qué tan bien recuerdas.",
   'tn.chuaDu': "Insuficiente para puntuar",
-  'tn.homNay': "Hoy",
-  'tn.muoiBon': "Últimos 14 días",
-  'tn.bayNgay': "Últimos 7 días",
-  'tn.soVoi': "{n} vs semana pasada",
   'ct.conGiay': "Quedan {n} segundos",
   'ct.daChon': "{da}/{tong} votaron",
   'hs.chao': "¡Bienvenido!",
@@ -952,13 +948,12 @@ const es: TuDien = {
   'tn.chang.2': "4–7 turnos",
   'tn.chang.3': "8–15 turnos",
   'tn.chang.4': "16+ turnos",
-  'tn.chuaMo': "Bloqueado · {n}/{can}",
-  'tn.tinhDen': "7 días hasta {ngay}",
   'tn.luyen': "Practicar · {n} cartas",
-  'tn.khongMay': "Acertar por suerte no cuenta.",
   'tn.lenBac': "¡Nivel {ten}!",
   'tn.moi': "Nuevo",
   'tn.conVan': "Faltan {n} partidas",
+  'tn.tab5': "5 etapas",
+  'tn.tab14': "14 días",
 };
 
 export default es;

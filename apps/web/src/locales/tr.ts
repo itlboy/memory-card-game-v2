@@ -916,10 +916,6 @@ const tr: TuDien = {
   'tn.khoa': "Puan için {n} oyun daha oyna",
   'tn.khoaMo': "Ne kadar iyi hatırladığını görmek için birkaç oyun gerekir.",
   'tn.chuaDu': "Puanlamak için yetersiz",
-  'tn.homNay': "Bugün",
-  'tn.muoiBon': "Son 14 gün",
-  'tn.bayNgay': "Son 7 gün",
-  'tn.soVoi': "Geçen haftaya göre {n}",
   'ct.conGiay': "{n} saniye kaldı",
   'ct.daChon': "{da}/{tong} oy verdi",
   'hs.chao': "Hoş geldin!",
@@ -953,13 +949,12 @@ const tr: TuDien = {
   'tn.chang.2': "4–7 tur",
   'tn.chang.3': "8–15 tur",
   'tn.chang.4': "16+ tur",
-  'tn.chuaMo': "Kilitli · {n}/{can}",
-  'tn.tinhDen': "{ngay} tarihine kadar 7 gün",
   'tn.luyen': "Şimdi çalış · {n} kart",
-  'tn.khongMay': "Şans eseri bulmalar sayılmaz.",
   'tn.lenBac': "{ten} seviyesi!",
   'tn.moi': "Yeni",
   'tn.conVan': "{n} oyun daha",
+  'tn.tab5': "5 aşama",
+  'tn.tab14': "14 gün",
 };
 
 export default tr;

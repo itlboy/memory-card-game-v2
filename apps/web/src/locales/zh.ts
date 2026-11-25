@@ -913,10 +913,6 @@ const zh: TuDien = {
   'tn.khoa': "再玩{n}局即可得分",
   'tn.khoaMo': "需要玩几局才能知道你的记忆力如何。",
   'tn.chuaDu': "数据不足，暂不评分",
-  'tn.homNay': "今天",
-  'tn.muoiBon': "最近14天",
-  'tn.bayNgay': "最近7天",
-  'tn.soVoi': "比上周 {n}",
   'ct.conGiay': "还剩 {n} 秒",
   'ct.daChon': "已选 {da}/{tong}",
   'hs.chao': "欢迎！",
@@ -950,13 +946,12 @@ const zh: TuDien = {
   'tn.chang.2': "4–7 回合",
   'tn.chang.3': "8–15 回合",
   'tn.chang.4': "16+ 回合",
-  'tn.chuaMo': "未解锁 · {n}/{can}",
-  'tn.tinhDen': "截至 {ngay} 的 7 天",
   'tn.luyen': "马上练习 · {n} 张",
-  'tn.khongMay': "靠运气猜中不计入。",
   'tn.lenBac': "升到{ten}！",
   'tn.moi': "新",
   'tn.conVan': "还差 {n} 局",
+  'tn.tab5': "5 个阶段",
+  'tn.tab14': "14 天",
 };
 
 export default zh;

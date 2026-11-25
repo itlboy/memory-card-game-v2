@@ -915,10 +915,6 @@ const pt: TuDien = {
   'tn.khoa': "Jogue mais {n} partidas para ter pontuação",
   'tn.khoaMo': "São precisas algumas partidas para saber o quanto você lembra.",
   'tn.chuaDu': "Insuficiente para pontuar",
-  'tn.homNay': "Hoje",
-  'tn.muoiBon': "Últimos 14 dias",
-  'tn.bayNgay': "Últimos 7 dias",
-  'tn.soVoi': "{n} vs semana passada",
   'ct.conGiay': "Faltam {n} segundos",
   'ct.daChon': "{da}/{tong} votaram",
   'hs.chao': "Bem-vindo!",
@@ -952,13 +948,12 @@ const pt: TuDien = {
   'tn.chang.2': "4–7 jogadas",
   'tn.chang.3': "8–15 jogadas",
   'tn.chang.4': "16+ jogadas",
-  'tn.chuaMo': "Bloqueado · {n}/{can}",
-  'tn.tinhDen': "7 dias até {ngay}",
   'tn.luyen': "Treinar · {n} cartas",
-  'tn.khongMay': "Acertos por sorte não contam.",
   'tn.lenBac': "Nível {ten}!",
   'tn.moi': "Novo",
   'tn.conVan': "Faltam {n} partidas",
+  'tn.tab5': "5 etapas",
+  'tn.tab14': "14 dias",
 };
 
 export default pt;
