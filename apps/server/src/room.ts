@@ -546,7 +546,7 @@ export class RoomDO extends DurableObject<Env> {
       // sang phòng chờ cũng là người xem, trừ khi bấm chuyển sang người chơi"). Trước đây khán giả gặp phòng chờ còn chỗ là
       // app tự nối lại thành NGƯỜI CHƠI — vào xem một ván xong bị kéo vào chơi ván sau. Đổi vai = nối lại (có/không `xem=1`).
       if (xemChuDong || this.room.status !== 'lobby' || this.room.players.length >= ROOM_LIMITS.maxPlayers) {
-        return this.acceptSpectator(goi, bv, name, anh);
+        return this.acceptSpectator(goi, bv, name, anh, matHs, mau);
       }
       player = {
         id: crypto.randomUUID().slice(0, 8),
@@ -559,7 +559,7 @@ export class RoomDO extends DurableObject<Env> {
         // danh sách của phòng và chưa ai dùng; còn lại bốc như thường
         // Hồ sơ (25.11.2026): phòng thường dùng ĐÚNG avatar người chơi chọn, kể cả trùng người khác (danh tính của họ).
         avatar: this.room.thiDau
-          ? (AVATARS.includes(matXin) && !this.room.players.some((p) => p.avatar === matXin) ? matXin : this.avatarConTrong())
+          ? (matHs ?? (AVATARS.includes(matXin) && !this.room.players.some((p) => p.avatar === matXin) ? matXin : this.avatarConTrong()))
           : (matHs ?? this.avatarConTrong()),
         ...(anh ? { anh } : {}),
         ...(mau ? { mau } : {}),
@@ -652,13 +652,14 @@ export class RoomDO extends DurableObject<Env> {
    * và người trong phòng nhận dải báo "X đang vào xem trận" (client so danh sách cũ/mới).
    * Mặt thú theo TÊN (băm) để cùng một người vào lại vẫn cùng mặt.
    */
-  private acceptSpectator(goi: boolean, bv: number, ten: string, anh?: string): Response {
+  private acceptSpectator(goi: boolean, bv: number, ten: string, anh?: string, matHs?: string, mau?: string): Response {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], ['spectator']);
     let bam = 0;
     for (const c of ten) bam = (bam * 31 + c.charCodeAt(0)) >>> 0;
-    const xem: NguoiXem = { ten: ten.slice(0, 16), mat: AVATARS[bam % AVATARS.length]!, ...(anh ? { anh } : {}) };
+    // Hồ sơ người chơi: người xem cũng mang con vật + màu mình chọn; app cũ không gửi → băm theo tên như trước
+    const xem: NguoiXem = { ten: ten.slice(0, 16), mat: matHs ?? AVATARS[bam % AVATARS.length]!, ...(anh ? { anh } : {}), ...(mau ? { mau } : {}) };
     pair[1].serializeAttachment({ playerId: '', goi, bv, xem } satisfies Attachment);
     this.send(pair[1], {
       t: 'welcome', playerId: '', token: '', spectator: true, room: this.roomInfo()

@@ -50,7 +50,7 @@ export interface TdNguoi {
 }
 export const tdMoi = (ho: boolean, mot = false): TdNguoi => ({ ho, gy: true, nghi: 0, hoi: null, tran: null, cho: 0, lan: 0, mot });
 
-export interface NguoiTd { sid: string; ten: string; mat: string; tt: string; td: TdNguoi; ai?: string | null }
+export interface NguoiTd { sid: string; ten: string; mat: string; mau?: string; tt: string; td: TdNguoi; ai?: string | null }
 export type GhiTd = (loai: string, sid: string | null, duLieu: Record<string, unknown>) => void;
 
 interface Dot { id: string; het: number; coCho: boolean; hoi: Set<string>; thamGia: string[]; hen: ReturnType<typeof setTimeout> }
@@ -97,7 +97,7 @@ export function moThiDau(o: {
   let henXet: ReturnType<typeof setTimeout> | null = null;
 
   const ma = (): string => randomBytes(4).toString('hex');
-  const mat = (k: NguoiTd) => ({ sid: k.sid, ten: k.ten, mat: k.mat });
+  const mat = (k: NguoiTd) => ({ sid: k.sid, ten: k.ten, mat: k.mat, ...(k.mau ? { mau: k.mau } : {}) });
   const dangCho = (k: NguoiTd, t: number): boolean => k.td.cho > t;
   /** Xếp trận được ngay: ở trang chủ, hoặc đang chơi offline MỘT MÌNH. */
   const sanSang = (k: NguoiTd): boolean => k.tt === 'chu' || (k.tt === 'choi' && k.td.mot);
@@ -116,7 +116,7 @@ export function moThiDau(o: {
     k.td.hoi = d.id;
     k.td.lan++;
     d.hoi.add(k.sid);
-    o.gui(k, { t: 'td_hoi', id: d.id, han: Math.max(0, d.het - o.now()), n: soRanh, ...(cho ? { cho: { ten: cho.ten, mat: cho.mat } } : {}) });
+    o.gui(k, { t: 'td_hoi', id: d.id, han: Math.max(0, d.het - o.now()), n: soRanh, ...(cho ? { cho: { ten: cho.ten, mat: cho.mat, ...(cho.mau ? { mau: cho.mau } : {}) } } : {}) });
     ghi('td_hoi', k.sid, { kenh: cho ? 'coNguoiCho' : 'theHoi', dot: d.id, ranh: soRanh, lan: k.td.lan });
   }
 

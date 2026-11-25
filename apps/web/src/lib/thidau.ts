@@ -17,8 +17,8 @@ export function datGoiYThiDau(v: boolean): void {
   try { localStorage.setItem(KHOA_GY, v ? '1' : '0'); } catch { /* bỏ qua */ }
 }
 
-export interface NguoiTran { sid: string; ten: string; mat: string }
-export interface TdHoi { id: string; het: number; han: number; n: number; cho?: { ten: string; mat: string } }
+export interface NguoiTran { sid: string; ten: string; mat: string; mau?: string }
+export interface TdHoi { id: string; het: number; han: number; n: number; cho?: { ten: string; mat: string; mau?: string } }
 export interface TdGom { id: string; het: number; han: number; n: number; ds: string[] }
 export interface TdTran {
   id: string; toi: string; nguoi: NguoiTran[]; soThe: number[];
@@ -67,7 +67,7 @@ export function nhanTinThiDau(m: Record<string, unknown>): boolean {
     case 'td_hoi': {
       const han = Number(m.han) || 15_000;
       const cho = m.cho as TdHoi['cho'] | undefined;
-      tdHoi.value = { id: String(m.id), han, het: now + han, n: Number(m.n) || 0, ...(cho ? { cho: { ten: String(cho.ten ?? ''), mat: String(cho.mat ?? '🙂') } } : {}) };
+      tdHoi.value = { id: String(m.id), han, het: now + han, n: Number(m.n) || 0, ...(cho ? { cho: { ten: String(cho.ten ?? ''), mat: String(cho.mat ?? '🙂'), ...(typeof cho.mau === 'string' ? { mau: cho.mau } : {}) } } : {}) };
       tdBao.value = null;
       clearTimeout(henHoi);
       henHoi = setTimeout(() => { if (tdHoi.value?.id === m.id) tdHoi.value = null; }, han);

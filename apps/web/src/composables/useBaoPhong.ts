@@ -28,7 +28,7 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
       if (p.id === toi) continue;
       const truoc = cuTheoId.get(p.id);
       if (!truoc) {
-        if (!p.may) baoNoi({ loai: 'tot', mat: p.avatar, anh: p.anh, chu: t('bao.vao', { ten: p.name }) });
+        if (!p.may) baoNoi({ loai: 'tot', mat: p.avatar, anh: p.anh, mau: p.mau, chu: t('bao.vao', { ten: p.name }) });
         continue;
       }
       /*
@@ -89,7 +89,7 @@ export function useBaoPhong(o: ReturnType<typeof useOnlineRoom>): void {
     for (const x of moi.xem ?? []) {
       if (xemCu.has(`${x.ten}|${x.mat}`)) continue;
       if (o.spectator.value && x.ten === o.tenCuaToi()) continue;
-      baoNoi({ loai: 'xem', mat: x.mat, anh: x.anh, chu: t('bao.dangXem', { ten: x.ten }) });
+      baoNoi({ loai: 'xem', mat: x.mat, anh: x.anh, mau: x.mau, chu: t('bao.dangXem', { ten: x.ten }) });
     }
   });
 

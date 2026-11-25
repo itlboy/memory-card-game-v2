@@ -667,7 +667,8 @@ export interface RoomInfo {
 }
 
 /** Một người xem: tên tự đặt, mặt thú server gán theo tên (ổn định giữa các lần vào), ảnh Google nếu có. */
-export interface NguoiXem { ten: string; mat: string; anh?: string }
+/** `mat`: avatar hồ sơ nếu app gửi, không thì băm theo tên. `mau`: màu hồ sơ (25.11.2026), có thì kèm. */
+export interface NguoiXem { ten: string; mat: string; anh?: string; mau?: string }
 
 /** Chủ phòng nhắc được bao lâu một lần (ms). */
 export const NHAC_CACH_MS = 10_000;

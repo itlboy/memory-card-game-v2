@@ -37,7 +37,7 @@ const tenNgan = computed(() => {
   >
     <span class="bong"><BongNgo :size="18" /></span>
     <span class="chong" aria-hidden="true">
-      <span v-for="x in ds.slice(0, 3)" :key="`${x.ten}|${x.mat}`" class="mn"><MatNguoi :mat="x.mat" :anh="x.anh" /></span>
+      <span v-for="x in ds.slice(0, 3)" :key="`${x.ten}|${x.mat}`" class="mn" :class="{ 'co-mau': !!x.mau }" :style="x.mau ? { '--m': x.mau } : undefined"><MatNguoi :mat="x.mat" :anh="x.anh" /></span>
     </span>
     <span class="ten-xem">{{ tenNgan }}</span>
   </button>
@@ -46,7 +46,7 @@ const tenNgan = computed(() => {
       <div class="xem-bang khay" role="dialog" :aria-label="t('xem.tieuDe', { n: ds.length })">
         <p class="xem-tieu"><BongNgo :size="22" /> {{ t('xem.tieuDe', { n: ds.length }) }}</p>
         <div v-for="x in ds" :key="`${x.ten}|${x.mat}`" class="xem-ng">
-          <span class="mn to"><MatNguoi :mat="x.mat" :anh="x.anh" /></span>
+          <span class="mn to" :class="{ 'co-mau': !!x.mau }" :style="x.mau ? { '--m': x.mau } : undefined"><MatNguoi :mat="x.mat" :anh="x.anh" /></span>
           <b>{{ x.ten }}</b>
           <small v-if="x.laToi">{{ t('xem.ban') }}</small>
         </div>
@@ -85,4 +85,6 @@ const tenNgan = computed(() => {
 .xem-ng b { font-family: var(--font-display); font-size: 17px; }
 .xem-ng small { margin-left: auto; font-weight: 800; color: var(--muted); }
 .mn.to { width: 36px; height: 36px; font-size: 21px; margin: 0; }
+/* Ô màu hồ sơ: vuông bo góc, tô đặc, phẳng (`.vong-mau` ở global.css) */
+.mn.co-mau { border-radius: 30%; background: var(--m); }
 </style>
