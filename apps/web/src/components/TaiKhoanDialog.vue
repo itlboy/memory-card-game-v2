@@ -7,6 +7,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { dsHien, daCo as daCoRef } from '@/lib/achievements';
 import { num, numShort } from '@/lib/format';
 import { store } from '@/lib/storage';
+import { hoSo, tenToi } from '@/lib/ho-so';
 import type { PhaKyLuc } from '@/lib/taikhoan';
 import { coApple, coGoogle, coGoogleApp, dangNhapApple, dangNhapGoogleApp, dangTai, dangXuat, me, veNutGoogle, xoaTaiKhoan } from '@/lib/taikhoan';
 
@@ -158,10 +159,12 @@ const diemMay = store.totalScore();
           <!-- MOCKUP DUYỆT 22.11.2026 (https://claude.ai/artifact/KzuWVG5QwHxQ13Hi7AUN3C): thẻ hồ sơ vàng ấm · hai ô Xếp hạng /
                Danh hiệu · vòng tỉ lệ thắng + 4 số · kỷ lục khó trên dễ dưới, mỗi dòng có nút "Phá" -->
           <div class="hoso">
-            <img v-if="me.avatar" class="avatar" :src="me.avatar" alt="" referrerpolicy="no-referrer">
+            <!-- HỒ SƠ (25.11.2026, chủ dự án: "tên hiển thị dùng tên Kiên béo thay vì tên Google"): avatar + tên hồ sơ -->
+            <span v-if="hoSo.xong" class="avatar chu hs" :style="{ '--m': hoSo.mau }">{{ hoSo.mat }}</span>
+            <img v-else-if="me.avatar" class="avatar" :src="me.avatar" alt="" referrerpolicy="no-referrer">
             <span v-else class="avatar chu">{{ me.name.slice(0, 1) }}</span>
             <div class="ten-khoi">
-              <b class="ten">{{ me.name }}</b>
+              <b class="ten">{{ tenToi || me.name }}</b>
               <span class="xu-tong"><i class="xu" aria-hidden="true" />{{ num(me.totalScore) }}</span>
               <small>{{ t('tk.diemNgan') }}</small>
             </div>
@@ -364,4 +367,5 @@ const diemMay = store.totalScore();
 .nut-dh b { flex: 1; }
 .nut-dh span { font-weight: 800; font-variant-numeric: tabular-nums; }
 .nut-dh i { font-style: normal; font-size: 22px; line-height: 1; }
+.avatar.chu.hs { font-size: 32px; background: color-mix(in srgb, var(--m) 18%, var(--panel-solid, #fff)); box-shadow: 0 0 0 3px var(--m); }
 </style>

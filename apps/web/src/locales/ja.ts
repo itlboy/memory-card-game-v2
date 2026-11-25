@@ -956,6 +956,9 @@ const ja: TuDien = {
   'hs.trangSau': "次のページ",
   'hs.trangN': "{n}ページ",
   'hs.sua': "プロフィールを編集",
+  'hs.daLuu': "スコア保存済み",
+  'hs.tkPhu': "スコア・称号・ログアウト",
+  'hs.dangNhapLuu': "ログインしてスコアを保存",
 };
 
 export default ja;

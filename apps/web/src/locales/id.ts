@@ -959,6 +959,9 @@ const id: TuDien = {
   'hs.trangSau': "Halaman berikutnya",
   'hs.trangN': "Halaman {n}",
   'hs.sua': "Ubah profil",
+  'hs.daLuu': "Skor tersimpan",
+  'hs.tkPhu': "Skor, gelar, keluar",
+  'hs.dangNhapLuu': "Masuk untuk menyimpan skor",
 };
 
 export default id;

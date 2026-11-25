@@ -1956,3 +1956,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Bảng xếp hạng: cột `mat`/`mau` ở `users` + `guest_scores` (taikhoan.ts tự thêm lúc khởi động); khách gửi kèm `/api/khach`
   (COALESCE: app cũ không gửi thì giữ), đăng nhập qua `POST /api/me/ho-so`. CI: `tools/smoke-ho-so.mjs` chạy trên MySQL thật.
   Vòng màu: class chung `.vong-mau` + `--m` (global.css), box-shadow nên không tốn bề ngang chip.
+- 1.9.53: GỘP DANH TÍNH (mockup A https://claude.ai/artifact/X6UfSDYiaQz8ZWGhUfCyt1). Nút menu = avatar hồ sơ (không còn ảnh Google); menu MỘT dòng
+  hồ sơ (chấm "G" = đã đăng nhập), dòng tài khoản riêng chỉ còn khi chưa qua màn chào; tài khoản nằm cuối tấm hồ sơ (`@tai-khoan`).
+  Tên hiển thị = TÊN HỒ SƠ ở mọi chỗ (chủ dự án: không thích tên Google): trang tài khoản dùng `tenToi`; bảng xếp hạng đọc cột
+  `users.ten_hien` (gửi qua `/api/me/ho-so` kèm `ten`, App.vue gửi lại mỗi lần mở app), chưa có thì tên Google rút gọn như cũ.
+- OTA từ 1.9.52: ÉP cập nhật trước khi dùng (`anTienDo = false`) — có bản mới ở trang chủ là phủ % thật rồi khởi động lại.

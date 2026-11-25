@@ -970,6 +970,9 @@ const vi = {
   'hs.trangSau': "Trang sau",
   'hs.trangN': "Trang {n}",
   'hs.sua': "Sửa hồ sơ",
+  'hs.daLuu': "Đã lưu điểm",
+  'hs.tkPhu': "Điểm, danh hiệu, đăng xuất",
+  'hs.dangNhapLuu': "Đăng nhập để lưu điểm",
 };
 
 export default vi;

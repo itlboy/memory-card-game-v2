@@ -957,6 +957,9 @@ const th: TuDien = {
   'hs.trangSau': "หน้าถัดไป",
   'hs.trangN': "หน้า {n}",
   'hs.sua': "แก้ไขโปรไฟล์",
+  'hs.daLuu': "บันทึกคะแนนแล้ว",
+  'hs.tkPhu': "คะแนน ฉายา ออกจากระบบ",
+  'hs.dangNhapLuu': "เข้าสู่ระบบเพื่อบันทึกคะแนน",
 };
 
 export default th;

@@ -12,10 +12,11 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { t } from '@/lib/i18n';
 import { AVATAR_HO_SO, MAU_HO_SO, hoSo, luuHoSo, tenDienSan } from '@/lib/ho-so';
 import { DO_DAI_TOI_DA } from '@/lib/ten-goc';
-import { guiHoSo } from '@/lib/taikhoan';
+import { guiHoSo, me, san } from '@/lib/taikhoan';
+import { ChevronRight as Toi } from 'lucide-vue-next';
 
 const props = defineProps<{ kieu: 'chao' | 'sua' }>();
-const emit = defineEmits<{ xong: [] }>();
+const emit = defineEmits<{ xong: []; 'tai-khoan': [] }>();
 
 const ten = ref(tenDienSan());
 const mat = ref(hoSo.value.mat);
@@ -104,6 +105,13 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
         ><Check v-if="c === mau" :size="15" :stroke-width="3.4" aria-hidden="true" /></button>
       </div>
 
+      <!-- TÀI KHOẢN (25.11.2026, mockup A): gộp vào đây — đã đăng nhập: ảnh + tên Google → trang tài khoản; chưa: nút đăng nhập -->
+      <button v-if="kieu === 'sua' && san" class="hs-tk thach" type="button" @click="emit('tai-khoan')">
+        <img v-if="me?.avatar" class="hs-tk-anh" :src="me.avatar" alt="" referrerpolicy="no-referrer">
+        <span class="hs-tk-chu"><b>{{ me ? me.name : t('hs.dangNhapLuu') }}</b><small>{{ me ? t('hs.tkPhu') : t('tb.giuDiem') }}</small></span>
+        <Toi :size="18" aria-hidden="true" />
+      </button>
+
       <button class="btn btn-primary hs-vao" type="button" :class="{ tat: !coTen }" :aria-disabled="!coTen" @click="luu">
         {{ kieu === 'chao' ? t('hs.vaoChoi') : t('hs.luu') }}
       </button>
@@ -179,6 +187,11 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
   background: var(--c); box-shadow: 0 3px 0 color-mix(in srgb, var(--c) 55%, #000); }
 .o-mau.chon { outline: 3px solid var(--fg); outline-offset: 2px; }
 
+.hs-tk { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; border-radius: 14px; text-align: left; cursor: pointer; color: var(--fg); }
+.hs-tk-anh { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none; }
+.hs-tk-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.hs-tk-chu b { font: 800 15px/1.2 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-tk-chu small { font-size: 12px; font-weight: 700; color: var(--muted); }
 .hs-vao { margin-top: 6px; min-height: 50px; font-size: 19px; }
 .hs-vao.tat { filter: grayscale(1); opacity: .55; }
 .hs-goi-y { margin: -4px 0 0; text-align: center; font-size: 12px; font-weight: 800; color: var(--muted); }

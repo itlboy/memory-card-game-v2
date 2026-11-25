@@ -959,6 +959,9 @@ const zhTW: TuDien = {
   'hs.trangSau': "下一頁",
   'hs.trangN': "第 {n} 頁",
   'hs.sua': "編輯資料",
+  'hs.daLuu': "分數已儲存",
+  'hs.tkPhu': "分數、稱號、登出",
+  'hs.dangNhapLuu': "登入儲存分數",
 };
 
 export default zhTW;
