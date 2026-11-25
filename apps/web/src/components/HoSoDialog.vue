@@ -3,7 +3,7 @@
  * HỒ SƠ NGƯỜI CHƠI (25.11.2026, mockup duyệt https://claude.ai/artifact/TEoguR6Vy3GDoLpFcyx8go) — tên + avatar + màu.
  *  · `kieu = 'chao'`: màn chào BẮT BUỘC trước trang chủ — không nút đóng, không Back; "Vào chơi" chỉ bấm được khi đã
  *    gõ tên. Ô tên trống với người mới và người cũ còn mang tên tự sinh (`tenDienSan`).
- *  · `kieu = 'sua'`: tấm trượt từ đáy để đổi lại bất cứ lúc nào (mở từ menu).
+ *  · `kieu = 'sua'`: hộp GIỮA màn để đổi lại bất cứ lúc nào (mở từ menu) — có nút đóng, chạm nền là đóng.
  * Lưới avatar CHIA TRANG 18 con, VUỐT NGANG (scroll-snap, mép phải ló trang sau để biết còn nữa); chạm chấm để nhảy
  * trang; máy dùng chuột có thêm hai nút nhỏ ‹ › ở hai đầu hàng chấm (chủ dự án: nút to xấu, chỉ cho trình duyệt).
  */
@@ -76,7 +76,6 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 <template>
   <div class="overlay hs-phu" :class="kieu" role="dialog" aria-modal="true" aria-labelledby="hsTieuDe" @keydown.esc="dong" @click.self="dong">
     <div class="panel hs" :style="{ '--m': mau }">
-      <span v-if="kieu === 'sua'" class="keo" aria-hidden="true" />
       <header class="hs-dau">
         <h2 id="hsTieuDe">{{ kieu === 'chao' ? t('hs.chao') : t('hs.hoSo') }}</h2>
         <button v-if="kieu === 'sua'" class="btn hs-dong" type="button" :aria-label="t('dhd.dong')" @click="dong"><X :size="20" /></button>
@@ -150,15 +149,13 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
   padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 12, 32, .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-.hs-phu.sua { align-items: flex-end; padding: 0; }
+/* Tấm SỬA cũng ở GIỮA màn (25.11.2026, chủ dự án: "muốn popup này hiện chính giữa màn hình") — không còn trượt từ đáy */
 .hs {
   width: min(420px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
   padding: 16px 14px 14px; background: var(--panel-solid, #fff); border-radius: 26px;
 }
 /* Hộp thấp hơn nội dung thì CUỘN, không bóp con (ô tên từng bị bẹp còn ~36px) */
 .hs > * { flex-shrink: 0; }
-.sua .hs { border-radius: 24px 24px 0 0; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
-.keo { align-self: center; width: 40px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--fg) 18%, transparent); margin: -6px 0 -2px; }
 .hs-dau { display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; min-height: 32px; }
 .sua .hs-dau { justify-content: flex-start; }
 .hs-dau h2 { margin: 0; font-size: var(--text-xl, 22px); }
