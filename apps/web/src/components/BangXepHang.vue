@@ -6,7 +6,7 @@ import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { anKhach, bangXepHang, bxhLanTruoc, bxhOnline, datTenKhach, me, trangBxh, type BangXh, type DongBxh, type DongHang, type LoaiBxh } from '@/lib/taikhoan';
+import { bangXepHang, bxhLanTruoc, bxhOnline, datTenKhach, khachDangAn, me, trangBxh, type BangXh, type DongBxh, type DongHang, type LoaiBxh } from '@/lib/taikhoan';
 import MatBot from './MatBot.vue';
 import VachCho from './VachCho.vue';
 import { CACH_MOI_LAI_MS, daThach, trongPhongOnline, type ThachDau } from '@/lib/sanh';
@@ -22,7 +22,7 @@ import { ghiHang } from '@/lib/hang-xu';
  * Khách: ô đặt tên (chưa có tên thì mở sẵn), lời mời đăng nhập để giữ điểm, và "Ẩn tôi khỏi
  * bảng" — chính sách quyền riêng tư hứa nút này (pv.s2d).
  */
-const emit = defineEmits<{ close: []; 'dang-nhap': []; thach: [ThachDau] }>();
+const emit = defineEmits<{ close: []; thach: [ThachDau] }>();
 const closeBtn = ref<HTMLButtonElement | null>(null);
 /*
  * HAI TAB (20.11.2026, mockup duyệt https://claude.ai/artifact/WqxQ9L7SgMRzERfoqkCgxP — chủ dự án: "bảng xếp hạng tuần
@@ -39,9 +39,8 @@ const loi = ref(false);
 const dangTai = ref(false);
 
 const laKhach = computed(() => !me.value);
-const khachAn = ref(!!store.khach(false)?.an);
+const khachAn = khachDangAn;
 const tenMay = ref(store.playerNames()[0] ?? '');
-const dangSuaTen = ref(false);
 const tenNhap = ref(tenMay.value);
 const dangLuu = ref(false);
 
@@ -245,17 +244,13 @@ const ghim = computed(() => !!toi.value && !(bang.value?.top ?? []).some((d) => 
   && !them.value.some((d) => d.toi));   // đã tải tới đúng dòng mình thì thôi ghim (không hiện hai lần)
 
 /** Mở sẵn ô đặt tên khi khách chưa có tên và đã có dòng trên bảng. */
-const moTen = computed(() => laKhach.value && !khachAn.value && !!toi.value && (dangSuaTen.value || !tenMay.value));
+const moTen = computed(() => laKhach.value && !khachAn.value && !!toi.value && !tenMay.value);
 
 async function luuTen(): Promise<void> {
   const tt = tenNhap.value.trim();
   if (!tt) return;
   dangLuu.value = true;
-  try { await datTenKhach(tt); tenMay.value = tt; dangSuaTen.value = false; await tai(); } finally { dangLuu.value = false; }
-}
-
-async function doiAn(an: boolean): Promise<void> {
-  try { await anKhach(an); khachAn.value = an; await tai(); } catch { loi.value = true; }
+  try { await datTenKhach(tt); tenMay.value = tt; await tai(); } finally { dangLuu.value = false; }
 }
 </script>
 
@@ -382,19 +377,9 @@ async function doiAn(an: boolean): Promise<void> {
         </div>
       </form>
 
-      <div v-if="laKhach" class="khach">
-        <template v-if="khachAn">
-          <p>{{ t('bxh.daAn') }}</p>
-          <button class="btn-link" type="button" @click="doiAn(false)">{{ t('bxh.hienLai') }}</button>
-        </template>
-        <template v-else>
-          <button class="nut-dn thach th-vang" type="button" @click="emit('dang-nhap')">{{ t('bxh.dangNhap') }}</button>
-          <div class="phu">
-            <button v-if="toi && tenMay && !dangSuaTen" class="btn-link" type="button" @click="dangSuaTen = true; tenNhap = tenMay">{{ t('bxh.doiTen') }}</button>
-            <button v-if="toi" class="btn-link mo" type="button" @click="doiAn(true)">{{ t('bxh.an') }}</button>
-          </div>
-        </template>
-      </div>
+      <!-- CHÂN BẢNG KHÔNG CÒN NÚT (25.11.2026, chủ dự án: "bỏ các nút chức năng này đi… cho đỡ rối"): đăng nhập + đổi tên
+           đã có ở Hồ sơ, ẩn/hiện mình chuyển sang công tắc trong Cài đặt (TopBar). Đang ẩn thì chỉ còn một dòng báo. -->
+      <p v-if="laKhach && khachAn" class="khach">{{ t('bxh.daAn') }}</p>
     </div>
   </div>
 </template>
@@ -558,14 +543,7 @@ async function doiAn(an: boolean): Promise<void> {
   background: var(--panel-solid); color: var(--fg);
 }
 .luu { min-height: 44px; padding: 0 16px; font-weight: 800; }
-.dat-ten p, .khach p { margin: 0; font-size: var(--text-sm); color: var(--muted); line-height: 1.45; }
+.dat-ten p { margin: 0; font-size: var(--text-sm); color: var(--muted); line-height: 1.45; }
 
-.khach { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); display: grid; gap: 8px; text-align: center; }
-.nut-dn { min-height: 44px; font-weight: 800; }
-.phu { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
-.btn-link {
-  border: 0; background: none; color: var(--accent); padding: 0;
-  font: inherit; font-weight: 700; text-decoration: underline; min-height: 44px; cursor: pointer;
-}
-.btn-link.mo { color: var(--muted); }
+.khach { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line); text-align: center; font-size: var(--text-sm); color: var(--muted); line-height: 1.45; }
 </style>

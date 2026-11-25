@@ -1200,7 +1200,7 @@ const hasNext = computed(() => {
   <DoNhip v-if="debug && doNhip" />
 
   <TaiKhoanDialog v-if="showAccount" @pha-ky-luc="phaKyLuc" @close="showAccount = false" @danh-hieu="showAccount = false; showDanhHieu = true" @xep-hang="showAccount = false; showBxh = true" />
-  <BangXepHang v-if="showBxh" @close="showBxh = false" @dang-nhap="showBxh = false; showAccount = true" @thach="thachDau" />
+  <BangXepHang v-if="showBxh" @close="showBxh = false" @thach="thachDau" />
   <DanhHieuDialog
     v-if="showDanhHieu" :da-co="daCoSet" :tk="thongKe" :theme-khoa="themeKhoa"
     @close="showDanhHieu = false" @chinh-phuc="chinhPhuc"
