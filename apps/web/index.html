@@ -47,6 +47,17 @@
   <meta name="twitter:title" content="Lật Thẻ">
   <meta name="twitter:description" content="Game thẻ bài rèn luyện trí nhớ. Tự đặt luật bàn chơi, chơi một mình hoặc với bạn bè.">
   <meta name="twitter:image" content="%VITE_ASSET_URL%/og.jpg?v=3">
+  <!--
+    TÔ NỀN NGAY TỪ KHUNG HÌNH ĐẦU (25.11.2026, chủ dự án: "lúc cập nhật hiện màn trắng chói mắt"). CSS của game nằm trong
+    gói JS, nên từ lúc trang mở (hoặc app tự khởi động lại để áp bản OTA) tới lúc gói đó chạy xong, trang là màu TRẮNG mặc
+    định — người dùng nền tối bị loé. Đoạn dưới chạy TRƯỚC mọi thứ: đọc lựa chọn nền đã lưu (`mm.v2` → prefs.nen, giống
+    App.vue `dark`) và tô <html> bằng đúng màu trời của skin Kẹo (`- -bg` ở keo.css: sáng #5cc2f2, tối #1a2456).
+    Phải là script NỘI DÒNG (file ngoài thì lại phải chờ tải) và viết MỘT DÒNG: test share-tags coi dòng nào trong <head>
+    không mở đầu bằng thẻ là chữ rò ra trang.
+    Phần còn lại không sửa được bằng web: trước khi HTML được đọc, WebView vẽ màu nền NATIVE (capacitor.config
+    `backgroundColor`) trong tích tắc — đổi nó phải ra bản app.
+  -->
+  <script>(function(){var n='tu',t=false;try{var p=(JSON.parse(localStorage.getItem('mm.v2')||'{}').prefs)||{};n=p.nen||(p.dark?'toi':'tu')}catch(e){}try{t=n==='toi'||(n==='tu'&&matchMedia('(prefers-color-scheme: dark)').matches)}catch(e){}document.documentElement.style.backgroundColor=t?'#1a2456':'#5cc2f2'})();</script>
 </head>
 <body>
   <div id="app"></div>
