@@ -9,6 +9,7 @@ import BoardGrid from './BoardGrid.vue';
 import HudBar from './HudBar.vue';
 import TamDung from './TamDung.vue';
 import PlayerStrip from './PlayerStrip.vue';
+import { mauTaiMay } from '@/lib/ho-so';
 import MatBot from './MatBot.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
@@ -39,6 +40,10 @@ onUnmounted(() => document.removeEventListener('visibilitychange', anTrang));
 const POWER_ICON: Record<string, IconName> = { bomb: 'bomb', swap: 'swap', x2: 'x2', eye: 'eye', freeze: 'freeze' };
 
 const soloScore = computed(() => s.players.value[0]?.score ?? 0);
+/** Màu hồ sơ của người ở dòng "Đến lượt…" và dòng "đi trước" — cùng nguồn với chip lượt (lib/ho-so `mauTaiMay`). */
+const dsId = computed(() => s.players.value.map((p) => p.id));
+const mauLuot = computed(() => (s.turnBanner.value?.id ? mauTaiMay(s.turnBanner.value.id, dsId.value) : undefined));
+const mauDau = computed(() => (s.current.value && s.players.value.length > 1 ? mauTaiMay(s.current.value.id, dsId.value) : undefined));
 
 /** Điểm vừa cộng có phải combo không — combo mới có vòng sáng lan. */
 const gainHot = computed(() => s.combo.value >= 1.5);
@@ -205,7 +210,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
             <OptionIcon name="freeze" :size="15" /> {{ t('game.dongBang', { ten: s.turnBanner.value.frozen }) }}
           </small>
           <span class="who">
-            <span class="avatar"><MatBot :mat="s.turnBanner.value.avatar || '🎮'" /></span>
+            <span class="avatar" :class="{ 'vong-mau': !!mauLuot }" :style="mauLuot ? { '--m': mauLuot } : undefined"><MatBot :mat="s.turnBanner.value.avatar || '🎮'" /></span>
             {{ t('game.denLuot') }} <b>{{ s.turnBanner.value.name }}</b>
           </span>
         </div>
@@ -251,7 +256,7 @@ const raised = (who: 'toast' | 'banner'): boolean => bothShown.value && newest.v
       <div v-if="s.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="s.countdownLeft.value">{{ s.countdownLeft.value }}</span>
         <span v-if="isPeek" class="first"><OptionIcon name="peek" :size="18" /> {{ t('game.sapMoBan') }} <b>{{ t('game.chuanBiNho') }}</b></span>
-        <span v-else class="first"><span class="mat-dau"><MatBot :mat="s.current.value?.avatar || '🎮'" /></span> <b>{{ t('game.diTruoc', { ten: tenNguoi(s.current.value) }) }}</b></span>
+        <span v-else class="first"><span class="mat-dau" :class="{ 'vong-mau': !!mauDau }" :style="mauDau ? { '--m': mauDau } : undefined"><MatBot :mat="s.current.value?.avatar || '🎮'" /></span> <b>{{ t('game.diTruoc', { ten: tenNguoi(s.current.value) }) }}</b></span>
       </div>
 
     </div>

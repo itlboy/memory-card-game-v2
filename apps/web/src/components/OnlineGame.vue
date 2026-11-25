@@ -658,7 +658,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
             <OptionIcon name="freeze" :size="15" /> {{ t('game.dongBang', { ten: o.turnBanner.value.frozen }) }}
           </small>
           <span class="who">
-            <span class="avatar"><MatNguoi :mat="o.turnBanner.value.avatar || '🎮'" /></span>
+            <span class="avatar" :class="{ 'vong-mau': !!mauCua(o.turnBanner.value.id ?? '') }" :style="mauCua(o.turnBanner.value.id ?? '') ? { '--m': mauCua(o.turnBanner.value.id ?? '') } : undefined"><MatNguoi :mat="o.turnBanner.value.avatar || '🎮'" /></span>
             {{ t('game.denLuot') }} <b>{{ o.turnBanner.value.name }}</b>
           </span>
         </div>
@@ -689,7 +689,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       <!-- Đếm ngược trước ván + báo người đi đầu -->
       <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
         <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
-        <span class="first"><span class="mat-dau"><MatNguoi :mat="matDiTruoc" :anh="anhCua(o.countdown.value?.firstId ?? '')" /></span> <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
+        <span class="first"><span class="mat-dau" :class="{ 'vong-mau': !!mauCua(o.countdown.value?.firstId ?? '') }" :style="mauCua(o.countdown.value?.firstId ?? '') ? { '--m': mauCua(o.countdown.value?.firstId ?? '') } : undefined"><MatNguoi :mat="matDiTruoc" :anh="anhCua(o.countdown.value?.firstId ?? '')" /></span> <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
       </div>
 
     </div>
@@ -719,7 +719,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
       :series-wins="o.seriesWins.value"
       :nguoi-choi="o.view.value.players"
-      :anh-cua="anhCua"
+      :anh-cua="anhCua" :mau-cua="mauCua"
       :so-van="o.soVanLoat.value"
       :thanh-vien-cua="thanhVienCua"
       :phieu-choi-lai="o.room.value?.againVotes"

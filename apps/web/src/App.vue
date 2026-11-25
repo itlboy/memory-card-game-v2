@@ -21,7 +21,7 @@ import MuaThe from './components/MuaThe.vue';
 import SoTriNho from './components/SoTriNho.vue';
 import HoSoDialog from './components/HoSoDialog.vue';
 import { guiHoSo } from '@/lib/taikhoan';
-import { canMoChao, hoSo, tenToi } from '@/lib/ho-so';
+import { canMoChao, hoSo, mauTaiMay, tenToi } from '@/lib/ho-so';
 import { ghiVanTriNho, hienTriNho } from './lib/tri-nho';
 import CaiAppDialog from './components/CaiAppDialog.vue';
 import { hienCai, moCai } from './lib/cai-app';
@@ -811,6 +811,12 @@ function luyenTriNho(soThe: number): void {
   startLevel(ban.level);
 }
 
+/** Màu hồ sơ ở bảng kết quả ván TRÊN MÁY — cùng nguồn với chip lượt. Ván một mình: không tô (bảng không có hàng người chơi). */
+const mauKetQua = (id: string): string | undefined => {
+  const ds = session.game.value?.players ?? [];
+  return ds.length > 1 ? mauTaiMay(id, ds.map((p) => p.id)) : undefined;
+};
+
 /** Vào một cấp. MỌI chế độ đều qua đây, nên chế độ nào cũng có cấp tiếp theo
  *  để chơi tiếp — trước đây chỉ Chiến dịch có, các chế độ khác chơi xong chỉ
  *  còn "chơi lại" và "về trang chủ". */
@@ -1272,6 +1278,7 @@ const hasNext = computed(() => {
     :so-cap="session.game.value?.totalPairs"
     :show-stars="!!levelId"
     :multiplayer="!!session.game.value?.isMultiplayer"
+    :mau-cua="mauKetQua"
     :minh-ket-cuc="session.minhKetCuc.value"
     :fresh-achievements="freshAchievements"
     :goi-y="goiYVan"

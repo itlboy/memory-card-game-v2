@@ -47,7 +47,7 @@ export function useGameSession() {
   /** Điểm vừa ghi + vị trí thẻ, cho hiệu ứng "+120" bay lên. `key` để ép re-render. */
   const lastGain = ref<{ amount: number; index: number; key: number } | null>(null);
   /** Banner "Đến lượt X" khi chuyển người chơi (multiplayer). */
-  const turnBanner = ref<{ name: string; avatar: string; frozen: string | null; key: number } | null>(null);
+  const turnBanner = ref<{ name: string; avatar: string; id?: string; frozen: string | null; key: number } | null>(null);
   let bannerTimer: ReturnType<typeof setTimeout> | undefined;
   const now = ref(0);
   let lastTickSecond = -1;
@@ -212,7 +212,7 @@ export function useGameSession() {
         turnBanner.value = {
           // Tên qua `tenNguoi`: bot bị đóng băng mà in `.name` là chữ gốc tiếng Việt, không dịch
           name: tenNguoi(p),
-          avatar: p.avatar ?? '',
+          avatar: p.avatar ?? '', id: p.id,
           frozen: find(frozenId) ? tenNguoi(find(frozenId)) : null,
           key: (turnBanner.value?.key ?? 0) + 1
         };

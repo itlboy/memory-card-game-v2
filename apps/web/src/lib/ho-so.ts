@@ -56,4 +56,13 @@ export function mauKhac(i: number): string {
   return con[i % con.length]!;
 }
 
+/**
+ * Màu của một người trong ván TRÊN MÁY (một mình / nhiều người chung máy / đấu máy): mình (p1) = màu hồ sơ, người và máy
+ * khác = `mauKhac` theo THỨ TỰ trong danh sách người chơi của ván. Một chỗ duy nhất để chip lượt, dòng "Đến lượt…",
+ * dòng "đi trước" và bảng kết quả ra CÙNG một màu cho cùng một người.
+ */
+export function mauTaiMay(id: string, dsId: readonly string[]): string {
+  return id === 'p1' ? hoSo.value.mau : mauKhac(Math.max(0, dsId.indexOf(id)));
+}
+
 store.ngheDoiTen((ds) => { tenToi.value = (ds[0] ?? '').trim(); });

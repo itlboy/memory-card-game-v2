@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { hoSo, mauKhac } from '@/lib/ho-so';
+import { mauTaiMay } from '@/lib/ho-so';
 import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import { num, numGon } from '@/lib/format';
@@ -28,7 +28,7 @@ const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷',
 const tySo = computed(() => tySoLoat(props.players, props.seriesWins));
 const avatarOf = (p: Player, i: number): string => p.avatar ?? AVATARS[i % AVATARS.length]!;
 /** MÀU HỒ SƠ (25.11.2026): vòng quanh avatar — mình (p1) lấy màu đã chọn, người/máy khác xoay vòng các màu còn lại. */
-const mauCua = (p: Player, i: number): string => (p.id === 'p1' ? hoSo.value.mau : mauKhac(i));
+const mauCua = (p: Player, _i: number): string => mauTaiMay(p.id, props.players.map((x) => x.id));
 
 /**
  * TỪ 5 NGƯỜI TRỞ LÊN ĐỔI SANG DẢI GỌN.
