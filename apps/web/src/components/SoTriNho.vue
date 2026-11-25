@@ -8,7 +8,7 @@
  *  · TRÊN trả lời "tôi ở đâu": điểm, bậc, còn bao nhiêu tới bậc kế, hơn/kém 7 ngày trước.
  *  · GIỮA là chính công thức: 5 chặng với tỉ lệ nhớ — nhìn là biết điểm từ đâu ra và yếu chặng nào. Thay khối
  *    "Theo cỡ bàn" cũ (chủ dự án: dòng lẻ một viên "hơi khó chịu").
- *  · BẤM MỘT CỘT của 14 ngày = xem chỉ số của kỳ 7 ngày kết thúc ở ngày đó (chủ dự án: "muốn bấm lại để xem chỉ số
+ *  · BẤM MỘT CỘT của 14 ngày = xem chỉ số của kỳ 7 ngày kết thúc ở ngày đó — đổi cột CHỈ ĐỔI SỐ, bố cục đứng yên (chủ dự án: "muốn bấm lại để xem chỉ số
  *    của ngày trước"). Cột cao theo đúng con số sẽ hiện khi bấm.
  *  · DƯỚI là hành động: "Luyện ngay" mở ván một mình đúng cỡ bàn nên luyện (`theNenLuyen`).
  * MÀU HAI TÔNG (đo tương phản 25.11.2026): ngọc ĐẬM trên nền sáng, ngọc SÁNG trên nền tối — một tông ngọc #149384
@@ -40,7 +40,8 @@ const ky = computed(() => chiSoTai(nhatKy, ngayTuKhoa(chon.value)));
 const kyTruoc = computed(() => { const d = ngayTuKhoa(chon.value); d.setDate(d.getDate() - 7); return chiSoTai(nhatKy, d); });
 const lech = computed(() => (ky.value.diem !== null && kyTruoc.value.diem !== null ? ky.value.diem - kyTruoc.value.diem : null));
 const conVan = computed(() => vanConThieu(ky.value));
-const theLuyen = computed(() => theNenLuyen(ky.value.chang));
+/** Gợi ý luyện LUÔN theo số liệu HÔM NAY (luyện là luyện bây giờ) — đang xem ngày cũ nút vẫn hiện, vẫn đúng một con số. */
+const theLuyen = theNenLuyen(chiSoTai(nhatKy).chang);
 const tenBac = (b: number): string => td(`tn.bac.${b}`);
 
 const cot = ngay.map((k) => {
@@ -103,7 +104,7 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
 
       <!-- 14 NGÀY: bấm một cột để xem chỉ số của ngày đó -->
       <!-- Chưa ngày nào có điểm thì ẩn hẳn: 14 vạch trống chỉ là một khoảng hở (soát ảnh 25.11.2026) -->
-      <p v-if="coCot" class="tn-nhom">{{ t('tn.muoiBon') }} <small>{{ t('tn.bamCot') }}</small></p>
+      <p v-if="coCot" class="tn-nhom">{{ t('tn.muoiBon') }}</p>
       <div v-if="coCot" class="cot" role="group" :aria-label="t('tn.muoiBon')">
         <button
           v-for="c in cot" :key="c.k" data-phang type="button" class="c" :class="{ chon: c.k === chon, nghi: !c.choi, trong: c.diem === null }"
@@ -114,7 +115,9 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
         </button>
       </div>
 
-      <button v-if="laHomNay" class="btn btn-primary luyen" type="button" @click="emit('luyen', theLuyen)">
+      <!-- LUÔN hiện, kể cả khi đang xem ngày cũ (25.11.2026, chủ dự án: "bấm cột khác lại không có nút luyện ngay, giao
+           diện thì nhảy, tại sao phải làm thế?") — đổi cột chỉ đổi SỐ, không thêm bớt khối nào -->
+      <button class="btn btn-primary luyen" type="button" @click="emit('luyen', theLuyen)">
         <Play :size="16" :stroke-width="0" fill="currentColor" aria-hidden="true" />{{ t('tn.luyen', { n: theLuyen }) }}
       </button>
       <p class="chu-thich">{{ t('tn.khongMay') }}</p>
@@ -146,7 +149,7 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
 .tn-ky.cu span { color: var(--tn); }
 .tn-ky .ve { display: inline-flex; align-items: center; gap: 4px; min-height: 28px; padding: 0 10px; font: 800 12px/1 var(--font-display); text-transform: none; letter-spacing: 0; }
 
-.tn-chinh { display: flex; align-items: center; gap: 14px; }
+.tn-chinh { display: flex; align-items: center; gap: 14px; min-height: 112px; }
 .dong-ho { flex: none; position: relative; width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center;
   background: conic-gradient(var(--tn) calc(var(--pt) * 1%), var(--ray) 0); }
 .dong-ho::before { content: ""; position: absolute; inset: 10px; border-radius: 50%; background: var(--panel-solid, #fff); }
@@ -160,7 +163,7 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
 .xu { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800; color: var(--len); }
 .xu.giam { color: var(--xuong); }
 
-.tn-khoa { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--tn-nhat); }
+.tn-khoa { box-sizing: border-box; min-height: 112px; justify-content: center; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--tn-nhat); }
 .tn-khoa b { font: 800 16px/1.25 var(--font-display); color: var(--fg); }
 .tn-khoa .thanh { height: 12px; border-radius: 6px; background: var(--ray); overflow: hidden; }
 .tn-khoa .thanh i { display: block; height: 100%; border-radius: 6px; background: var(--tn); }
@@ -168,7 +171,6 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
 
 .tn-nhom { margin: 4px 0 -4px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
   font: 800 12px/1.2 var(--font-display); letter-spacing: .03em; text-transform: uppercase; color: var(--muted); }
-.tn-nhom small { font: 700 11px/1.2 var(--font-body); text-transform: none; letter-spacing: 0; }
 
 .chang { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
 .chang li { display: grid; grid-template-columns: 76px minmax(0, 1fr) 58px; align-items: center; gap: 8px; }
@@ -184,7 +186,7 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
 .chang li.khoa .ray em { color: var(--muted); font-weight: 700; }
 .chang li.khoa b { color: var(--muted); }
 
-.cot { display: flex; align-items: flex-end; gap: 3px; height: 66px; }
+.cot { display: flex; align-items: flex-end; gap: 3px; height: 104px; }
 .cot .c { flex: 1; min-width: 0; min-height: 0; height: 100%; padding: 0; border: 0; background: none; cursor: pointer;
   display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 3px; color: var(--muted); }
 .cot .c .than { flex: 1; min-height: 0; display: flex; align-items: flex-end; }

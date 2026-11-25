@@ -953,7 +953,6 @@ const en: TuDien = {
   'tn.chang.3': "8–15 turns",
   'tn.chang.4': "16+ turns",
   'tn.chuaMo': "Locked · {n}/{can} tries",
-  'tn.bamCot': "tap a bar to view that day",
   'tn.tinhDen': "7 days up to {ngay}",
   'tn.luyen': "Practice now · {n} cards",
   'tn.khongMay': "Lucky guesses don't count.",

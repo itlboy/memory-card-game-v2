@@ -951,7 +951,6 @@ const ko: TuDien = {
   'tn.chang.3': "8–15턴",
   'tn.chang.4': "16+턴",
   'tn.chuaMo': "잠김 · {n}/{can}",
-  'tn.bamCot': "막대를 눌러 그날 보기",
   'tn.tinhDen': "{ngay}까지 7일",
   'tn.luyen': "연습하기 · {n}장",
   'tn.khongMay': "운으로 맞힌 것은 세지 않아요.",

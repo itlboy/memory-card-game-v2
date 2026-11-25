@@ -954,7 +954,6 @@ const tr: TuDien = {
   'tn.chang.3': "8–15 tur",
   'tn.chang.4': "16+ tur",
   'tn.chuaMo': "Kilitli · {n}/{can}",
-  'tn.bamCot': "o günü görmek için çubuğa dokun",
   'tn.tinhDen': "{ngay} tarihine kadar 7 gün",
   'tn.luyen': "Şimdi çalış · {n} kart",
   'tn.khongMay': "Şans eseri bulmalar sayılmaz.",

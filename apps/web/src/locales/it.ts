@@ -955,7 +955,6 @@ const it: TuDien = {
   'tn.chang.3': "8–15 turni",
   'tn.chang.4': "16+ turni",
   'tn.chuaMo': "Bloccato · {n}/{can}",
-  'tn.bamCot': "tocca una barra per vedere quel giorno",
   'tn.tinhDen': "7 giorni fino al {ngay}",
   'tn.luyen': "Allenati · {n} carte",
   'tn.khongMay': "I colpi di fortuna non contano.",

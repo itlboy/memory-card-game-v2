@@ -621,28 +621,31 @@ const ICO3D = {
       -->
       <div v-if="step === 'players'" key="players" class="step-body home">
         <QuatLa :themes="themes" />
-        <!-- CHỈ SỐ TRÍ NHỚ — nút tròn nổi trên trời góc trái (chỗ đặt: mockup B duyệt 24.11.2026). Bản 3 (25.11.2026,
-             https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu): nút HIỆN LUÔN CON SỐ, viền vàng = tiến độ tới bậc kế, góc có
-             huy chương bậc; CHỈ nhấp nháy + bong bóng ▲▼ khi điểm khác lần xem cuối (bản cũ nhấp nháy mãi, chỉ có biểu
-             tượng → không có lý do bấm). Chưa đủ số liệu: biểu tượng biểu đồ (không bao giờ cái não) + "Còn N ván".
-             Nút và chữ là một KHỐI CỘT căn giữa. Vẫn chỉ hiện khi bật debug (`hienTriNho`). -->
-        <div v-if="tnNut" class="ntn">
-          <button class="nut-tri-nho thach th-ngoc" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
-            <i class="ntn-tien" :style="{ '--pt': tnNut.pt }" aria-hidden="true" />
-            <i v-if="tnNut.moi" class="ntn-vong" aria-hidden="true" />
-            <b v-if="tnNut.diem !== null">{{ tnNut.diem }}</b>
-            <ChartColumn v-else :size="22" :stroke-width="2.6" aria-hidden="true" />
-            <span v-if="tnNut.bac !== null" class="ntn-bac" aria-hidden="true"><HuyChuongBac :bac="tnNut.bac" /></span>
-            <span v-if="tnNut.lech" class="ntn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
-          </button>
-          <small aria-hidden="true" @click="sfx.select(); emit('so-tri-nho')">{{ tnNut.diem !== null ? t('tn.ten') : t('tn.conVan', { n: tnNut.conVan }) }}</small>
-        </div>
 
-        <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
-          <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
-          <strong>{{ t('menu.chienDich') }}</strong>
-          <span v-if="(manChienDich ?? 0) > 0" class="man thach">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
-        </button>
+        <div class="cd-khung">
+          <!-- CHỈ SỐ TRÍ NHỚ — nút tròn nổi NGAY TRÊN nút Chiến dịch, bên trái, chữ nằm ngang bên phải nút (25.11.2026, chủ dự án:
+               "nút ở trang chủ cho xuống dưới, bên trên chiến dịch"; trước đó ở góc trái trên trời — mockup B 24.11). Bản 3 (25.11.2026,
+               https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu): nút HIỆN LUÔN CON SỐ, viền vàng = tiến độ tới bậc kế, góc có
+               huy chương bậc; CHỈ nhấp nháy + bong bóng ▲▼ khi điểm khác lần xem cuối (bản cũ nhấp nháy mãi, chỉ có biểu
+               tượng → không có lý do bấm). Chưa đủ số liệu: biểu tượng biểu đồ (không bao giờ cái não) + "Còn N ván".
+               Khối bám vào khung của nút Chiến dịch (`.cd-khung`) nên máy cao thấp gì cũng nằm sát trên nút. Vẫn chỉ hiện khi bật debug. -->
+          <div v-if="tnNut" class="ntn">
+            <button class="nut-tri-nho thach th-ngoc" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
+              <i class="ntn-tien" :style="{ '--pt': tnNut.pt }" aria-hidden="true" />
+              <i v-if="tnNut.moi" class="ntn-vong" aria-hidden="true" />
+              <b v-if="tnNut.diem !== null">{{ tnNut.diem }}</b>
+              <ChartColumn v-else :size="22" :stroke-width="2.6" aria-hidden="true" />
+              <span v-if="tnNut.bac !== null" class="ntn-bac" aria-hidden="true"><HuyChuongBac :bac="tnNut.bac" /></span>
+              <span v-if="tnNut.lech" class="ntn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
+            </button>
+            <small aria-hidden="true" @click="sfx.select(); emit('so-tri-nho')">{{ tnNut.diem !== null ? t('tn.ten') : t('tn.conVan', { n: tnNut.conVan }) }}</small>
+          </div>
+          <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
+            <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
+            <strong>{{ t('menu.chienDich') }}</strong>
+            <span v-if="(manChienDich ?? 0) > 0" class="man thach">{{ t('menu.man', { n: manChienDich ?? 1 }) }}</span>
+          </button>
+        </div>
 
         <div class="ba-o">
           <!-- Chơi nhanh xanh trời, Online vàng (chủ dự án đổi chỗ 18.10.2026; ở Kẹo g-cyan = trời, g-blue = vàng) -->
@@ -1188,7 +1191,9 @@ section.panel.khung-vao { animation: khung-vao .18s ease; }
 /* Panel thành trong suốt: trang chủ nằm thẳng trên nền của skin (trời, mặt gỗ…) */
 section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 4px 4px 8px; }
 .step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; position: relative; }
-.ntn { position: absolute; left: 10px; top: 8px; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+/* Khung của nút Chiến dịch: chỉ để nút Chỉ số trí nhớ bám vào mép TRÊN của nó; bản thân nút Chiến dịch giãn như cũ */
+.cd-khung { position: relative; flex: none; display: flex; flex-direction: column; }
+.ntn { position: absolute; left: 12px; bottom: calc(100% + 16px); z-index: 2; display: flex; align-items: center; gap: 18px; }
 .nut-tri-nho {
   position: relative; width: 52px; height: 52px; min-width: 0; min-height: 0; padding: 0;
   border-radius: 50%; display: grid; place-items: center; overflow: visible; cursor: pointer; color: #fff;

@@ -965,7 +965,6 @@ const vi = {
   'tn.chang.3': "8–15 lượt",
   'tn.chang.4': "16+ lượt",
   'tn.chuaMo': "Chưa mở · {n}/{can} lần",
-  'tn.bamCot': "bấm cột để xem ngày đó",
   'tn.tinhDen': "7 ngày tính đến {ngay}",
   'tn.luyen': "Luyện ngay · bàn {n} thẻ",
   'tn.khongMay': "Đoán trúng do may không được tính.",

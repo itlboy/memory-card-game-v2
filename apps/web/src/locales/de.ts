@@ -954,7 +954,6 @@ const de: TuDien = {
   'tn.chang.3': "8–15 Züge",
   'tn.chang.4': "16+ Züge",
   'tn.chuaMo': "Gesperrt · {n}/{can}",
-  'tn.bamCot': "Balken antippen für den Tag",
   'tn.tinhDen': "7 Tage bis {ngay}",
   'tn.luyen': "Jetzt üben · {n} Karten",
   'tn.khongMay': "Glückstreffer zählen nicht.",
