@@ -1,3 +1,4 @@
+import { matHoSo, mauHoSo } from '@mm/engine';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { createHash, randomBytes } from 'node:crypto';
@@ -34,7 +35,8 @@ const KHOA_TU_CHOI_MS = 60 * 60_000;
  * (21.11.2026, app giữ kết nối cả lúc đó để bảng xếp hạng hiện "Đang chơi"): KHÔNG mời được, không lên danh sách mời.
  */
 export type TrangThai = 'chu' | 'choi' | 'phong';
-export interface NguoiSanh { sid: string; ten: string; mat: string; tt: TrangThai }
+/** `mat`: avatar HỒ SƠ người chơi tự chọn nếu app gửi (`?mat=`, 25.11.2026), không thì sảnh bốc. `mau`: màu hồ sơ, có thì kèm. */
+export interface NguoiSanh { sid: string; ten: string; mat: string; mau?: string; tt: TrangThai }
 interface KetNoi extends NguoiSanh {
   ws: WebSocket; song: boolean; moi: { id: string; ma: string; het: number } | null;
   /** Danh tính trên bảng xếp hạng (`u:<id>` / `k:<mã băm khách>`) — app gửi sau khi nối, server tự xác minh. */
@@ -53,7 +55,7 @@ export interface OnlineBxh { sid?: string; ban: boolean }
 export interface XemPhong {
   status: string;
   hostToken: string;
-  host: { ten: string; mat: string; anh?: string };
+  host: { ten: string; mat: string; anh?: string; mau?: string };
   nguoi: number;
   toiDa: number;
   soThe: number;
@@ -148,7 +150,10 @@ export function moSanh(opts: {
       sid, ws, song: true, moi: null, ai: null, td: tdMoi(url.searchParams.get('td') === '1', url.searchParams.get('mot') === '1'),
       nt: String(url.searchParams.get('nt') ?? '').slice(0, 8), nn: String(url.searchParams.get('nn') ?? '').slice(0, 8), nuoc, nm: url.searchParams.get('nm') !== '0',
       ten: tenSach(url.searchParams.get('ten')),
-      mat: opts.avatars[randomBytes(1)[0]! % opts.avatars.length] ?? '🙂',
+      // HỒ SƠ NGƯỜI CHƠI (25.11.2026, chủ dự án gửi ảnh danh sách "Đang online": mặt sảnh bốc ngẫu nhiên, không phải con
+      // vật + màu người đó chọn). Chỉ nhận giá trị trong danh sách chung (engine ho-so.ts); app cũ không gửi → bốc như cũ.
+      mat: matHoSo(url.searchParams.get('mat')) ?? opts.avatars[randomBytes(1)[0]! % opts.avatars.length] ?? '🙂',
+      ...(mauHoSo(url.searchParams.get('mau')) ? { mau: mauHoSo(url.searchParams.get('mau')) } : {}),
       tt: docTt(url.searchParams.get('tt'))
     };
     ketNoi.set(sid, k);
@@ -200,7 +205,7 @@ export function moSanh(opts: {
       const khoa = `${ma}:${k.sid}`;
       const d = daMoi.get(khoa);
       ra.push({
-        sid: k.sid, ten: k.ten, mat: k.mat, tt: k.tt,
+        sid: k.sid, ten: k.ten, mat: k.mat, ...(k.mau ? { mau: k.mau } : {}), tt: k.tt,
         ...(d && d > t && k.moi?.ma === ma && k.moi.het > t ? { daMoi: k.moi.het - t } : {}),
         // Còn bao lâu mới mời lại được (vạch đếm ngược trên nút Mời — chủ dự án 21.11.2026)
         ...(d && d > t ? { choMoi: d - t } : {}),

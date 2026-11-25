@@ -84,7 +84,7 @@ const phongs = new Map<string, Phong>();
  */
 interface PhongTho {
   status?: string; hostId?: string; config?: { level?: number };
-  players?: Array<{ id: string; token: string; name: string; avatar?: string; anh?: string; may?: unknown }>;
+  players?: Array<{ id: string; token: string; name: string; avatar?: string; anh?: string; mau?: string; may?: unknown }>;
 }
 /**
  * GHÉP TRẬN THI ĐẤU TỰ ĐỘNG — TẠM TẮT từ 22.11.2026 (chủ dự án: "tạm thời tắt chế độ ghép trận tự động đi, nó có vẻ hơi
@@ -119,7 +119,7 @@ const sanh = moSanh({
     const cap = BOARD_SIZES.find((b) => b.level === r.config?.level);
     return {
       status: r.status ?? '', hostToken: chu.token,
-      host: { ten: chu.name, mat: chu.avatar ?? '🙂', ...(chu.anh ? { anh: chu.anh } : {}) },
+      host: { ten: chu.name, mat: chu.avatar ?? '🙂', ...(chu.anh ? { anh: chu.anh } : {}), ...(chu.mau ? { mau: chu.mau } : {}) },
       nguoi: r.players?.length ?? 0, toiDa: ROOM_LIMITS.maxPlayers, soThe: cap ? cap.pairs * 2 : 0
     };
   }
