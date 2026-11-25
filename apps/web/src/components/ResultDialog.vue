@@ -5,7 +5,7 @@ import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import MatNguoi from './MatNguoi.vue';
 import { t, td, bcp } from '@/lib/i18n';
-import { isDraw, laBotId } from '@mm/engine';
+import { MOC_CO_DIEM_VAN, isDraw, laBotId } from '@mm/engine';
 import type { PlayerInit, Summary } from '@mm/engine';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { byId, type Achievement } from '@/lib/achievements';
@@ -191,6 +191,9 @@ const hienSao = computed(() => props.showStars && props.summary.status === 'won'
  * OnlineGame.vue) quyết định ván có được chấm không: nhiều người chung máy, ván đội online, người xem → `vuaDoi` = null
  * → không có dòng này. `van` = null (ván quá ít cơ hội nhớ) → "Chưa đủ để chấm".
  */
+/** Dấu "?" cạnh tên chỉ số (chủ dự án 25.11.2026: "như thế nào mới đủ để chấm? cho dấu hỏi vào đó và giải thích, bấm vào") — bấm là mở/đóng đoạn giải thích NGAY DƯỚI hàng, không mở thêm popup chồng popup. */
+const moGiaiThich = ref(false);
+const vFocus = { mounted: (el: HTMLElement) => el.focus() };
 const triNho = computed(() => {
   const v = vuaDoi.value;
   if (!hienTriNho.value || !props.soCap || chungMay.value || !v) return null;
@@ -475,7 +478,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           <dt>{{ t('tn.ten') }}</dt>
           <i aria-hidden="true" />
           <dd v-if="triNho.van !== null">{{ num(triNho.van) }}</dd>
-          <dd v-else class="chua">{{ t('tn.chuaDu') }}</dd>
+          <!-- "?" đứng SAU chữ "Chưa đủ để chấm", bấm mở POPUP giải thích (chủ dự án 25.11.2026) -->
+          <dd v-else class="chua"><span>{{ t('tn.chuaDu') }}</span><button class="thach th-nho tn-hoi" type="button" :aria-label="t('tn.hoi')" aria-haspopup="dialog" @click="moGiaiThich = true; moChucNang('tri_nho_giai_thich', {}, true)">?</button></dd>
         </div>
         <template v-if="!multiplayer">
           <div v-if="summary.timeBonus"><Zap :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.thuongGio') }}</dt><i aria-hidden="true" /><dd>+{{ summary.timeBonus }}</dd></div>
@@ -590,6 +594,15 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
     <!-- Teleport ra body: nằm trong lớp phủ kết quả (z 17) thì z-index 40 của nó chỉ tính TRONG lớp đó, thanh emoji (z 18 ở
          #app) đè lên hai nút Lưu ảnh / Chia sẻ (chủ dự án gửi ảnh 25.11.2026). -->
     <Teleport to="body"><LuuChiaSe v-if="moLcs" :noi-dung="noiDungAnh" @close="moLcs = false" /></Teleport>
+    <Teleport to="body">
+      <div v-if="moGiaiThich" class="tn-phu" role="dialog" aria-modal="true" :aria-label="t('tn.ten')" @click.self="moGiaiThich = false" @keydown.esc="moGiaiThich = false">
+        <div class="panel tn-hop">
+          <h2><ChartColumn :size="20" :stroke-width="2.4" aria-hidden="true" />{{ t('tn.ten') }}</h2>
+          <p>{{ t('tn.giaiThich', { n: MOC_CO_DIEM_VAN }) }}</p>
+          <button v-focus class="btn btn-primary" type="button" @click="moGiaiThich = false">{{ t('cai.daHieu') }}</button>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -843,6 +856,28 @@ h2 { margin: 0 0 4px; }
 .stats.bang dd.chua { font-size: 13px; font-weight: 700; color: var(--muted); }
 .stats.bang .h-tn svg, .stats.bang .h-tn dt, .stats.bang .h-tn dd { color: #0b7468; }
 .stats.bang .h-tn dt { font-weight: 800; }
+/* Nút THẠCH nhỏ tròn (luật dự án: không nút phẳng mới) */
+.tn-hoi.thach {
+  display: inline-grid; place-items: center; width: 24px; min-width: 24px; height: 24px; min-height: 0; margin-left: 7px; padding: 0; border-radius: 50%;
+  font: 900 13px/1 var(--font-body); position: relative;
+}
+.tn-hoi::after { content: ""; position: absolute; inset: -10px; }   /* vùng chạm ≥ 40px */
+.stats.bang .h-tn dd.chua { display: flex; align-items: center; justify-content: flex-end; white-space: normal; line-height: 1.2; padding-block: 4px; }
+.tn-hoi { flex: none; }
+/* TÊN không bao giờ bị cắt khi chưa đủ chấm (ảnh soát 25.11.2026: "Chỉ số trí n…"): chữ "Chưa đủ để chấm" bên phải mới là
+   thứ nhường chỗ — xuống hai dòng ở máy hẹp / ngôn ngữ dài. Đặt :has() để thắng luật co nhãn bên dưới. */
+.stats.bang .h-tn:has(dd.chua) { grid-template-columns: 18px auto minmax(0, 1fr) minmax(0, auto); }
+.stats.bang .h-tn:has(dd.chua) dt { overflow: visible; }
+.stats.bang .h-tn dd.chua span { min-width: 0; }
+/* Popup giải thích — Teleport ra body, cùng lý do với LuuChiaSe (lớp phủ kết quả chỉ z 17) */
+.tn-phu {
+  position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 9, 18, .62);
+}
+.tn-hop { width: 100%; max-width: 360px; }
+.tn-hop h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: var(--text-xl); }
+.tn-hop p { margin: 0 0 18px; color: var(--muted); font-size: var(--text-md); line-height: 1.5; }
+.tn-hop .btn { width: 100%; min-height: 48px; margin: 0; }
 /* Dòng trí nhớ có thể DÀI ("Lên bậc Bạch kim!" + "740 ▲ 347"): nhãn phải CO được (ellipsis) — không thì cả bảng nở quá
    khung và mọi con số bên phải dính/tràn mép (soát ảnh 25.11.2026). Đường chấm nhường chỗ trước. */
 .stats.bang .h-tn { grid-template-columns: 18px minmax(0, auto) minmax(0, 1fr) auto; }

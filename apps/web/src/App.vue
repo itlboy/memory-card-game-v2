@@ -19,6 +19,7 @@ import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import SoTriNho from './components/SoTriNho.vue';
+import BangPremium from './components/BangPremium.vue';
 import HoSoDialog from './components/HoSoDialog.vue';
 import { guiHoSo } from '@/lib/taikhoan';
 import { canMoChao, hoSo, mauTaiMay, tenToi } from '@/lib/ho-so';
@@ -300,6 +301,9 @@ const showRules = ref(false);
 const showDebug = ref(false);
 useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
 const showSoTriNho = ref(false);
+/** Bảng Premium — CHỈ mở từ menu debug cho tới khi bán thật (25.11.2026). */
+const showPremium = ref(false);
+useBackCloser(31, () => showPremium.value, () => { showPremium.value = false; });
 /** Tấm SỬA hồ sơ (mở từ menu). Màn chào bắt buộc thì theo `canMoChao`, không có cờ riêng. */
 const showHoSo = ref(false);
 useBackCloser(31, () => showHoSo.value, () => { showHoSo.value = false; });
@@ -1215,9 +1219,11 @@ const hasNext = computed(() => {
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
     @so-tri-nho="showDebug = false; showSoTriNho = true"
+    @premium="showDebug = false; showPremium = true"
     @tat="debug = false; showDebug = false"
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
+  <BangPremium v-if="showPremium && debug" :so-theme="themes.filter((x) => x.premium).length" @close="showPremium = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />
