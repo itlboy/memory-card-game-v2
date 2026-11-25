@@ -32,7 +32,7 @@ export function datNhanLoiMoi(v: boolean): void {
 
 export interface LoiMoi {
   id: string; ma: string; het: number; han: number;
-  tu: { ten: string; mat: string; anh?: string };
+  tu: { ten: string; mat: string; anh?: string; mau?: string };
   nguoi: number; toiDa: number; soThe: number;
   /** Đến từ nút "Thách" ở bảng xếp hạng — thẻ ghi "… thách đấu bạn". */
   thach?: boolean;
@@ -100,6 +100,9 @@ function mo(): void {
   if (ws || !nenMo() || typeof WebSocket === 'undefined') return;
   clearTimeout(henNoi);
   const q = new URLSearchParams({ ten: store.playerNames()[0] ?? '', tt: ttHienTai(), mot: choiMotMinh.value ? '1' : '0', td: '1', nt: nenApp, nn: ngonNgu.value, nm: nhanLoiMoi.value ? '1' : '0' });
+  // Hồ sơ người chơi: con vật + màu mình chọn hiện ở danh sách "Đang online" và lời mời của người khác (server ≥ 1.10.3)
+  const hs = store.hoSo();
+  if (hs?.xong) { q.set('mat', hs.mat); q.set('mau', hs.mau); }
   let s: WebSocket;
   try { s = new WebSocket(`${WS_SANH}?${q}`); } catch { return; }
   ws = s;
@@ -180,7 +183,7 @@ export function tuChoiMoi(): void {
 
 /* ---------- phía chủ phòng ---------- */
 
-export interface NguoiOnline { sid: string; ten: string; mat: string; tt: 'chu' | 'choi'; daMoi?: number; choMoi?: number; tuChoi?: true }
+export interface NguoiOnline { sid: string; ten: string; mat: string; mau?: string; tt: 'chu' | 'choi'; daMoi?: number; choMoi?: number; tuChoi?: true }
 export type KetQuaMoi = { ok: true; han: number; cach?: number } | { loi: string; con?: number };
 /** Khoảng phải chờ giữa hai lần mời cùng một người (server gửi `cach`; bản server cũ thì dùng số này). */
 export const CACH_MOI_LAI_MS = 2 * 60_000;

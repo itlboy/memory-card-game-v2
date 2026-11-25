@@ -79,7 +79,7 @@ async function moi(n: NguoiOnline): Promise<void> {
         <p v-if="!ds.length" class="mo-trong">{{ t('moi.trong') }}</p>
         <ul v-else class="mo-ds">
           <li v-for="n in dong" :key="n.sid">
-            <span class="mo-mat"><MatNguoi :mat="n.mat" /><i class="song" aria-hidden="true" /></span>
+            <span class="mo-mat" :class="{ 'co-mau': !!n.mau }" :style="n.mau ? { '--m': n.mau } : undefined"><MatNguoi :mat="n.mat" /><i class="song" aria-hidden="true" /></span>
             <span class="mo-ten">
               <b>{{ n.ten || t('moi.khach', { so: tenKhach(n.sid) }) }}</b>
               <small :class="{ loi: !!loi[n.sid] }">{{ loi[n.sid] || (n.tuChoi ? t('moi.tuChoi') : n.tt === 'choi' ? t('moi.ttChoi') : t('moi.ttChu')) }}</small>
@@ -122,4 +122,6 @@ async function moi(n: NguoiOnline): Promise<void> {
 .mo-tc { min-width: 104px; text-align: center; font: 800 12.5px var(--font-body); color: var(--muted); white-space: nowrap; }
 .mo-trong { margin: 10px 4px; color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
 .mo-chu { margin: 2px 4px 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
+/* Ô màu hồ sơ: vuông bo góc, tô đặc, phẳng — cùng kiểu mọi avatar khác (xem `.vong-mau` ở global.css) */
+.mo-mat.co-mau { border-radius: 10px; background: var(--m); }
 </style>

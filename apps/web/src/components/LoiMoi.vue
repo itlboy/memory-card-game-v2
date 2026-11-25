@@ -29,7 +29,7 @@ const conLai = computed(() => (m.value ? Math.max(0, m.value.het - Date.now()) :
     <Transition name="loi-moi">
       <div v-if="m" :key="m.id" class="loi-moi" role="alertdialog" :aria-label="tieuDe">
         <div class="lm-tren">
-          <span class="lm-mat"><MatNguoi :mat="m.tu.mat" :anh="m.tu.anh" /><span v-if="m.thach" class="lm-kiem" aria-hidden="true"><Swords :size="11" :stroke-width="2.8" /></span></span>
+          <span class="lm-mat" :class="{ 'co-mau': !!m.tu.mau }" :style="m.tu.mau ? { '--m': m.tu.mau } : undefined"><MatNguoi :mat="m.tu.mat" :anh="m.tu.anh" /><span v-if="m.thach" class="lm-kiem" aria-hidden="true"><Swords :size="11" :stroke-width="2.8" /></span></span>
           <span class="lm-chu"><b>{{ tieuDe }}</b><small>{{ chiTiet }}</small></span>
         </div>
         <div class="lm-vach" aria-hidden="true"><i :style="{ animationDuration: `${conLai}ms`, width: `${(conLai / m.han) * 100}%` }" /></div>
@@ -73,4 +73,6 @@ const conLai = computed(() => (m.value ? Math.max(0, m.value.het - Date.now()) :
   .loi-moi-enter-active, .loi-moi-leave-active { transition: opacity .15s; }
   .loi-moi-enter-from, .loi-moi-leave-to { transform: none; }
 }
+/* Ô màu hồ sơ của người mời: vuông bo góc, tô đặc, phẳng (xem `.vong-mau` ở global.css) */
+.loi-moi .lm-mat.co-mau, :global([data-theme='dark'] .loi-moi .lm-mat.co-mau) { border-radius: 11px; background: var(--m); }
 </style>
