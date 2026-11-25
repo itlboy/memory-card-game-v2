@@ -455,6 +455,13 @@ const label = computed(() => {
 .card.blank {
   pointer-events: none; animation: none; background: transparent;
 }
+/* KHÔNG cho trình duyệt coi cú chạm lên lá là mở đầu một cú KÉO/CUỘN (25.11.2026, chủ dự án: "trên android… bấm lật thẻ
+   nhiều khi bấm nhanh không nhận, phải bấm lại"). Nút mặc định `touch-action: manipulation` (global.css) vẫn cho kéo:
+   bấm nhanh thì ngón tay hay trượt vài px, Chrome Android tưởng là kéo → bắn `pointercancel` thay cho `pointerup` →
+   `onUp` bỏ cú lật. Bàn chơi không cuộn (thẻ luôn vừa khung, test board-fit canh) nên chặn hẳn không mất gì.
+   Sửa theo CƠ CHẾ — chưa tái hiện được trên máy Android thật.
+   (Khối RIÊNG, đặt trước `.card {` chính: test ban-khong-tran đọc 900 ký tự đầu của khối chính.) */
+.card:not(.blank) { touch-action: none; }
 .card {
   /* Tỉ lệ do bàn quyết định (đo chỗ còn lại): 3:4 khi đủ chỗ, cao dần tới 5:8
      để lấp chiều cao dư trên màn dọc. */

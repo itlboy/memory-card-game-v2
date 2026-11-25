@@ -1994,3 +1994,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - Màn chỉ số 1.9.63: dưới huy chương là THANH 5 BẬC (mockup kiểu 1 https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF) — 5 đoạn màu bậc + vạch "mình ở đây" +
   tên 5 bậc (bậc mình in đậm); thay dòng chữ to "Bậc Vàng" và thanh ngắn. Số của mỗi cột nằm NGAY TRÊN ĐỈNH cột (số + cột chung khung xếp từ đáy,
   cao = calc((100% - 21px) × tỉ lệ)) — chủ dự án chê số xếp một hàng trên cùng, cột thấp cách xa số.
+
+## 1.10.0 (25.11.2026)
+- Dãy số bản 1.10 bắt đầu từ đây (chủ dự án dặn). Bản native trên store vẫn là 1.9.66 (tag `app-v1.9.66`, build 732) — chạy `asc-store.yml` trên main lúc này sẽ đổi phiên bản ASC thành 1.10.x, phải chạy trên tag/nhánh giữ đúng số native.
+- Lá bài `touch-action: none` (CardTile.vue, khối `.card:not(.blank)`): Android bấm nhanh hay không nhận — nghi ngón trượt vài px → `pointercancel`. Chưa tái hiện trên máy thật. ĐÃ LOẠI: `v-cham-ngoai` (1.9.62) — trong ván không có phần tử nào gắn nó (đo: 0), giả lập cảm ứng bấm nhanh 8 cú lật đủ 8. Nếu vẫn bị, nghi tiếp: bàn KHOÁ 1,5 giây sau cặp sai (`FLIP_BACK_MS`, engine bỏ mọi cú bấm trong lúc đó).
