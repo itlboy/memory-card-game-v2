@@ -448,3 +448,9 @@ button {
   border-radius: 28%; z-index: -1; pointer-events: none;
   background: var(--m);
 }
+
+/* Ô màu TRONG CHIP NGƯỜI CHƠI của ván (trên máy + online): nhỏ hơn mặc định (1,7em) — chip thấp và hẹp, ô to là tràn sát
+   mép chip và đè chấm mạng / số lượt (chủ dự án gửi ảnh 25.11.2026: "avatar hiện trong ván cũng xấu"). Chừa lề hai bên
+   bằng phần ô thò ra ngoài mặt để ô không dính mép chip và tên. */
+.pchip .vong-mau, .player .vong-mau, .turn-chip .vong-mau, .mini .vong-mau { margin-inline: .2em; }
+.pchip .vong-mau::before, .player .vong-mau::before, .turn-chip .vong-mau::before, .mini .vong-mau::before { width: 1.5em; height: 1.5em; border-radius: 26%; }

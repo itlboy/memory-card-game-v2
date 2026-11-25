@@ -327,7 +327,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
           nhan: props.soVan ? t('kq.tySoSau', { n: props.soVan }) : t('kq.tySo'),
           ds: loat.value.map((r) => ({
             ten: r.ten, n: r.n, diem: t('kq.diemAria', { n: num(r.diem) }),
-            mat: r.tv.length ? r.tv.map((m) => ({ mat: m.mat, anh: m.anh })) : [{ mat: r.mat, anh: r.anh }],
+            mat: r.tv.length ? r.tv.map((m) => ({ mat: m.mat, anh: m.anh })) : [{ mat: r.mat, anh: r.anh, mau: r.mau }],
           })),
         } }
         : {}),
@@ -595,7 +595,9 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
       </p>
 
     </div>
-    <LuuChiaSe v-if="moLcs" :noi-dung="noiDungAnh" @close="moLcs = false" />
+    <!-- Teleport ra body: nằm trong lớp phủ kết quả (z 17) thì z-index 40 của nó chỉ tính TRONG lớp đó, thanh emoji (z 18 ở
+         #app) đè lên hai nút Lưu ảnh / Chia sẻ (chủ dự án gửi ảnh 25.11.2026). -->
+    <Teleport to="body"><LuuChiaSe v-if="moLcs" :noi-dung="noiDungAnh" @close="moLcs = false" /></Teleport>
   </div>
 </template>
 
@@ -712,6 +714,9 @@ h2 { margin: 0 0 4px; }
 /* Chi tiết ván | Khoe tỷ số: hai nút cùng cỡ cạnh nhau; không chia sẻ được ảnh thì chỉ còn nút giữa */
 .hang-ct { display: flex; justify-content: center; gap: 8px; margin-top: 10px; }
 .hang-ct.doi { display: grid; grid-template-columns: 1fr 1fr; }
+/* Bảng chỉ số đứng NGAY SAU hàng nút (ván nhiều người): phải có khe — nút thạch có gờ nổi 4–5px phía dưới, sát nhau là
+   gờ đè lên viền bảng (chủ dự án gửi ảnh 25.11.2026). */
+.hang-ct ~ .stats.bang { margin-top: 14px; }
 .hang-ct .nut-ct { margin: 0; }
 .hang-ct.doi .nut-ct { justify-content: center; padding: 0 10px; }
 .nut-khoe {
