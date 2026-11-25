@@ -23,27 +23,43 @@ const mat = ref(hoSo.value.mat);
 const mau = ref(hoSo.value.mau);
 const coTen = computed(() => ten.value.trim().length > 0);
 
-const MOI = 18;
-const trang = Array.from({ length: Math.ceil(AVATAR_HO_SO.length / MOI) }, (_, k) => AVATAR_HO_SO.slice(k * MOI, k * MOI + MOI));
+const HANG = 3, MOI = 18;
+/*
+ * PHẦN LẺ VỪA MỘT CỘT (≤ 3 con) thì NỐI thành cột thứ 7 sau trang cuối, không lập trang riêng (25.11.2026, chủ dự án
+ * gửi ảnh: trang cuối chỉ 3 con một hàng, "trống trải"). 93 con = 5 trang + 1 cột; vuốt hết trang 5 là thấy cột đó.
+ */
+const du = AVATAR_HO_SO.length % MOI;
+const coCotLe = du > 0 && du <= HANG;
+const soTrang = coCotLe ? Math.floor(AVATAR_HO_SO.length / MOI) : Math.ceil(AVATAR_HO_SO.length / MOI);
+const trang = Array.from({ length: soTrang }, (_, k) => AVATAR_HO_SO.slice(k * MOI, k * MOI + MOI));
+const cotLe = coCotLe ? AVATAR_HO_SO.slice(soTrang * MOI) : [];
 const truot = ref<HTMLElement | null>(null);
 const trangHien = ref(0);
+const cuonToiDa = (): number => (truot.value ? truot.value.scrollWidth - truot.value.clientWidth : 0);
 const buoc = (): number => {
   const el = truot.value;
   const ls = el?.children;
   return ls && ls.length > 1 ? (ls[1] as HTMLElement).offsetLeft - (ls[0] as HTMLElement).offsetLeft : 1;
 };
 function khiCuon(): void {
-  if (truot.value) trangHien.value = Math.round(truot.value.scrollLeft / buoc());
+  const el = truot.value;
+  if (!el) return;
+  trangHien.value = Math.min(soTrang - 1, Math.round(el.scrollLeft / buoc()));
 }
+/**
+ * Tới trang `k`. Có cột lẻ thì TRANG CUỐI dừng ở hết lề phải (lộ đủ cột thứ 7): mốc đầu trang cuối chỉ cách đó ~10px
+ * (phần "ló" 12% gần bằng một ô), dừng ở cả hai chỗ thì nút ‹ › nhích 10px vô nghĩa — nên trang cuối không hít mép trái.
+ */
 function den(k: number, muot = true): void {
-  const n = Math.min(trang.length - 1, Math.max(0, k));
-  truot.value?.scrollTo({ left: n * buoc(), behavior: muot ? 'smooth' : 'auto' });
+  const n = Math.min(soTrang - 1, Math.max(0, k));
+  const left = coCotLe && n === soTrang - 1 ? cuonToiDa() : n * buoc();
+  truot.value?.scrollTo({ left, behavior: muot ? 'smooth' : 'auto' });
 }
 
 const oTen = ref<HTMLInputElement | null>(null);
 onMounted(async () => {
   await nextTick();
-  den(Math.floor(Math.max(0, AVATAR_HO_SO.indexOf(mat.value)) / MOI), false);
+  den(Math.floor(Math.max(0, AVATAR_HO_SO.indexOf(mat.value)) / MOI), false);   // con ở cột lẻ → kẹp về trang cuối = hết lề phải
   khiCuon();
   if (props.kieu === 'chao' && !coTen.value) oTen.value?.focus({ preventScroll: true });
 });
@@ -81,9 +97,15 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 
       <p class="nhan">{{ t('hs.avatar') }} <span>· {{ AVATAR_HO_SO.length }}</span></p>
       <div ref="truot" class="truot" @scroll.passive="khiCuon">
-        <div v-for="(ds, k) in trang" :key="k" class="luoi" role="radiogroup" :aria-label="t('hs.trangN', { n: k + 1 })">
+        <div v-for="(ds, k) in trang" :key="k" class="luoi" :class="{ 'truoc-le': coCotLe && k === soTrang - 1 }" role="radiogroup" :aria-label="t('hs.trangN', { n: k + 1 })">
           <button
             v-for="a in ds" :key="a" data-phang type="button" role="radio" class="o-av" :class="{ chon: a === mat }"
+            :aria-checked="a === mat" :aria-label="a" @click="mat = a"
+          >{{ a }}</button>
+        </div>
+        <div v-if="cotLe.length" class="luoi le" role="radiogroup" :aria-label="t('hs.trangN', { n: soTrang })">
+          <button
+            v-for="a in cotLe" :key="a" data-phang type="button" role="radio" class="o-av" :class="{ chon: a === mat }"
             :aria-checked="a === mat" :aria-label="a" @click="mat = a"
           >{{ a }}</button>
         </div>
@@ -94,7 +116,7 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
           v-for="(_, k) in trang" :key="k" data-phang type="button" class="ch" :class="{ on: k === trangHien }"
           :aria-label="t('hs.trangN', { n: k + 1 })" :aria-current="k === trangHien" @click="den(k)"
         />
-        <button data-phang class="lat-nho" type="button" :aria-label="t('hs.trangSau')" :disabled="trangHien === trang.length - 1" @click="den(trangHien + 1)"><ChevronRight :size="13" :stroke-width="3" /></button>
+        <button data-phang class="lat-nho" type="button" :aria-label="t('hs.trangSau')" :disabled="trangHien === soTrang - 1" @click="den(trangHien + 1)"><ChevronRight :size="13" :stroke-width="3" /></button>
       </div>
 
       <p class="nhan">{{ t('hs.mau') }}</p>
@@ -169,6 +191,9 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
   margin: 0 -14px; padding: 2px 14px; scroll-padding-inline: 14px; }
 .truot::-webkit-scrollbar { display: none; }
 .luoi { flex: 0 0 88%; scroll-snap-align: start; display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+/* Cột lẻ: rộng đúng MỘT ô của trang (6 ô + 5 khe 5px trong 88%), kéo sát lại cho khe bằng khe ô; hít mép PHẢI */
+.luoi.truoc-le { scroll-snap-align: none; }
+.luoi.le { flex: 0 0 calc((88% - 25px) / 6); grid-template-columns: 1fr; align-content: start; margin-left: -3px; scroll-snap-align: end; }
 .o-av { aspect-ratio: 1; min-width: 0; min-height: 0; padding: 0; border-radius: 11px; display: grid; place-items: center; font-size: 22px; line-height: 1; cursor: pointer;
   background: color-mix(in srgb, var(--fg) 6%, transparent); border: 2px solid transparent; }
 .o-av.chon { border-color: var(--m); background: color-mix(in srgb, var(--m) 22%, transparent); box-shadow: 0 3px 0 color-mix(in srgb, var(--m) 55%, #000); }
