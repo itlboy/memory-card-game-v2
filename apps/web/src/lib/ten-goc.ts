@@ -20,7 +20,7 @@ const EN = {
 /*
  * BẢY NGÔN NGỮ GHÉP TỪ THẲNG ĐƯỢC (22.11.2026, chủ dự án chọn nhóm này trước; "nhớ làm cho cả người mới vào"):
  * id · tr · ja · ko · zh · zh-TW · th — không có giống đực/cái hay đuôi tính từ phải khớp. Nhóm CÓ giống ngữ pháp
- * (es · pt · fr · it · de · ru) CHƯA làm, vẫn dùng tiếng Anh: ghép bừa là sai ngữ pháp.
+ * (es · pt · fr · it · de · ru) làm sau, theo cách riêng — xem khối bên dưới.
  * `truoc`: nét + màu đứng TRƯỚC loài (như tiếng Anh); không thì loài trước (như tiếng Việt). `cach`: dấu nối
  * ('' = viết liền, đúng thói quen tiếng Nhật / Trung / Thái). Từ chọn NGẮN để tên ≤ 16 ký tự.
  * Tên do máy ghép — CHƯA có người bản xứ duyệt; sửa từ nào thì sửa thẳng trong danh sách.
@@ -81,12 +81,71 @@ const TH = {
   cach: '',
 };
 
+/*
+ * SÁU NGÔN NGỮ CÓ GIỐNG NGỮ PHÁP (25.11.2026, chủ dự án: "viết đi"): es · pt · fr · it · de · ru. Cách né sai ngữ pháp:
+ * MỌI danh từ đều GIỐNG ĐỰC, mọi tính từ ở dạng giống đực số ít (hoặc dạng không đổi) — ghép cặp nào cũng khớp.
+ * THÊM TỪ MỚI PHẢI GIỮ LUẬT NÀY: thêm một danh từ giống cái (it "tigre", ru "панда") là cả loạt tên sai.
+ *  - es · pt · fr · it: loài + màu + nét ("Gato Rojo Feliz") — tính từ đứng sau danh từ, đúng thói quen.
+ *  - de · ru: HAI TỪ, tính từ + loài ("Flinker Fuchs", "Рыжий Лис") — ba từ không lọt 16 ký tự. `mau: ['']` là ô trống
+ *    (ghep bỏ phần rỗng), màu và nét gộp chung vào `net`. Tiếng Đức: tính từ đuôi -er (giống đực, không mạo từ).
+ * Tên do máy ghép — CHƯA có người bản xứ duyệt.
+ */
+const ES = {
+  loai: ['Gato', 'Zorro', 'Oso', 'Lobo', 'Pato', 'Mono', 'Tigre', 'Búho', 'León', 'Perro', 'Panda', 'Koala', 'Ratón', 'Cerdo',
+    'Burro', 'Pulpo', 'Sapo', 'Pavo', 'Toro', 'Topo', 'Loro', 'Erizo', 'Pez', 'Gallo'],
+  mau: ['Rojo', 'Azul', 'Verde', 'Rosa', 'Gris', 'Negro', 'Lila', 'Ocre', 'Malva', 'Pardo', 'Blanco', 'Dorado', 'Café', 'Añil'],
+  net: ['Feliz', 'Veloz', 'Audaz', 'Sabio', 'Listo', 'Fiel', 'Genial', 'Alegre', 'Dulce', 'Bravo', 'Fuerte', 'Ágil', 'Noble',
+    'Chulo', 'Guay', 'Vivaz', 'Tierno', 'Suave', 'Hábil', 'Gentil'],
+};
+const PT = {
+  loai: ['Gato', 'Urso', 'Lobo', 'Pato', 'Tigre', 'Leão', 'Sapo', 'Panda', 'Coala', 'Rato', 'Porco', 'Burro', 'Polvo', 'Peru',
+    'Touro', 'Galo', 'Peixe', 'Macaco', 'Cervo', 'Coelho', 'Grilo', 'Pombo', 'Cão', 'Tatu'],
+  mau: ['Azul', 'Verde', 'Rosa', 'Cinza', 'Preto', 'Lilás', 'Roxo', 'Ruivo', 'Bege', 'Branco', 'Dourado', 'Pardo', 'Rubro', 'Anil'],
+  net: ['Feliz', 'Veloz', 'Audaz', 'Sábio', 'Fiel', 'Alegre', 'Doce', 'Bravo', 'Forte', 'Ágil', 'Nobre', 'Legal', 'Gentil',
+    'Esperto', 'Fofo', 'Calmo', 'Manso', 'Vivo', 'Hábil', 'Leal'],
+};
+const FR = {
+  loai: ['Chat', 'Renard', 'Ours', 'Loup', 'Tigre', 'Hibou', 'Lion', 'Singe', 'Cerf', 'Panda', 'Koala', 'Lapin', 'Cochon', 'Âne',
+    'Poulpe', 'Crabe', 'Coq', 'Poisson', 'Chien', 'Canard', 'Castor', 'Zèbre', 'Lynx', 'Lézard'],
+  mau: ['Rouge', 'Bleu', 'Vert', 'Rose', 'Gris', 'Noir', 'Blanc', 'Doré', 'Brun', 'Roux', 'Lilas', 'Mauve', 'Beige', 'Jaune'],
+  net: ['Joyeux', 'Rapide', 'Sage', 'Malin', 'Fidèle', 'Gentil', 'Doux', 'Brave', 'Fort', 'Agile', 'Noble', 'Chic', 'Rusé',
+    'Calme', 'Vif', 'Futé', 'Rigolo', 'Câlin', 'Zen', 'Cool'],
+};
+const IT = {
+  loai: ['Gatto', 'Orso', 'Lupo', 'Gufo', 'Leone', 'Panda', 'Koala', 'Topo', 'Asino', 'Polpo', 'Gallo', 'Pesce', 'Cane', 'Cervo',
+    'Riccio', 'Tasso', 'Falco', 'Corvo', 'Grillo', 'Cigno', 'Ghiro', 'Merlo', 'Picchio', 'Granchio'],
+  mau: ['Rosso', 'Blu', 'Verde', 'Rosa', 'Grigio', 'Nero', 'Bianco', 'Dorato', 'Bruno', 'Viola', 'Lilla', 'Giallo', 'Beige', 'Azzurro'],
+  net: ['Felice', 'Veloce', 'Saggio', 'Furbo', 'Fedele', 'Gentile', 'Dolce', 'Bravo', 'Forte', 'Agile', 'Nobile', 'Buffo',
+    'Calmo', 'Vivace', 'Tenero', 'Astuto', 'Allegro', 'Mite', 'Lesto', 'Fiero'],
+};
+const DE = {
+  loai: ['Fuchs', 'Bär', 'Kater', 'Hase', 'Tiger', 'Uhu', 'Frosch', 'Affe', 'Hirsch', 'Wolf', 'Panda', 'Koala', 'Otter', 'Igel',
+    'Dachs', 'Biber', 'Löwe', 'Esel', 'Hund', 'Fisch', 'Krebs', 'Luchs', 'Rabe', 'Pinguin'],
+  mau: [''],
+  net: ['Roter', 'Blauer', 'Grüner', 'Gelber', 'Grauer', 'Weißer', 'Bunter', 'Goldener', 'Brauner', 'Rosa', 'Lila', 'Kleiner',
+    'Großer', 'Flinker', 'Kluger', 'Froher', 'Lieber', 'Mutiger', 'Frecher', 'Müder', 'Wilder', 'Schlauer', 'Netter', 'Cooler',
+    'Lustiger', 'Starker', 'Stiller', 'Wacher', 'Sanfter', 'Treuer', 'Dicker', 'Schneller', 'Weiser', 'Toller', 'Süßer',
+    'Flotter', 'Heller', 'Tapferer', 'Munterer', 'Fixer'],
+  truoc: true,
+};
+const RU = {
+  loai: ['Лис', 'Кот', 'Волк', 'Тигр', 'Лев', 'Ёж', 'Заяц', 'Медведь', 'Енот', 'Бобр', 'Олень', 'Слон', 'Пёс', 'Хомяк', 'Филин',
+    'Барсук', 'Краб', 'Жук', 'Кит', 'Гусь', 'Лось', 'Сурок', 'Пингвин', 'Ворон'],
+  mau: [''],
+  net: ['Рыжий', 'Синий', 'Белый', 'Серый', 'Чёрный', 'Золотой', 'Алый', 'Розовый', 'Зелёный', 'Бурый', 'Малый', 'Большой',
+    'Быстрый', 'Умный', 'Весёлый', 'Добрый', 'Смелый', 'Хитрый', 'Сонный', 'Дикий', 'Ловкий', 'Милый', 'Крутой', 'Шустрый',
+    'Сильный', 'Тихий', 'Мудрый', 'Храбрый', 'Славный', 'Пушистый', 'Толстый', 'Юркий', 'Бодрый', 'Важный', 'Гордый',
+    'Забавный', 'Ласковый', 'Честный', 'Яркий', 'Щедрый'],
+  truoc: true,
+};
+
 type BoTen = { loai: readonly string[]; mau: readonly string[]; net: readonly string[]; truoc?: boolean; cach?: string };
 const BO: Record<string, BoTen> = {
-  vi: VI, en: { ...EN, truoc: true }, id: ID, tr: TR, ja: JA, ko: KO, zh: ZH, 'zh-tw': ZH_TW, th: TH
+  vi: VI, en: { ...EN, truoc: true }, id: ID, tr: TR, ja: JA, ko: KO, zh: ZH, 'zh-tw': ZH_TW, th: TH,
+  es: ES, pt: PT, fr: FR, it: IT, de: DE, ru: RU
 };
-/** Ngôn ngữ CÓ bộ tên riêng (còn lại dùng tiếng Anh). Bot phòng bốc trong danh sách này. */
-export const NGON_NGU_CO_TEN: readonly string[] = ['vi', 'en', 'id', 'tr', 'ja', 'ko', 'zh', 'zh-TW', 'th'];
+/** Ngôn ngữ CÓ bộ tên riêng — từ 25.11.2026 là đủ cả 15 ngôn ngữ của app (mã lạ vẫn rơi về tiếng Anh). */
+export const NGON_NGU_CO_TEN: readonly string[] = ['vi', 'en', 'id', 'tr', 'ja', 'ko', 'zh', 'zh-TW', 'th', 'es', 'pt', 'fr', 'it', 'de', 'ru'];
 
 /** Bộ tên của một mã ngôn ngữ: khớp nguyên mã trước (zh-TW ≠ zh), rồi tới hai chữ đầu, không có thì tiếng Anh. */
 function boCua(lang: string): BoTen {
@@ -99,7 +158,7 @@ export const DO_DAI_TOI_DA = 16;
 const boc = <T>(ds: readonly T[], r: () => number): T => ds[Math.floor(r() * ds.length)]!;
 
 const ghep = (b: BoTen, loai: string, mau: string, net: string): string =>
-  (b.truoc ? [net, mau, loai] : [loai, mau, net]).join(b.cach ?? ' ');
+  (b.truoc ? [net, mau, loai] : [loai, mau, net]).filter(Boolean).join(b.cach ?? ' ');   // ô rỗng = bộ hai từ (de, ru)
 
 /** Một tên ngẫu nhiên (≤ 16 ký tự) theo ngôn ngữ. `r` để test cố định. */
 export function taoTen(lang: string, r: () => number = Math.random): string {
