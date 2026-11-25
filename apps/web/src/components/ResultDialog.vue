@@ -741,6 +741,8 @@ h2 { margin: 0 0 4px; }
 /* Có Ô MÀU hồ sơ (`.vong-mau`, global.css — ô = 1,7em): thu chữ lại để cả ô vừa đúng chiều cao hàng (1,2 × --mat), không
    thì ô tràn xuống che TÊN người chơi (soát ảnh 25.11.2026). Hai thành viên đội đứng cạnh nhau, không chồng ô lên nhau. */
 .xep .mat.vong-mau { font-size: calc(var(--mat) * .68); }
+/* Ô màu cao gần kín hàng → tên dính sát đáy ô (chủ dự án gửi ảnh 25.11.2026: "chữ sát avatar quá"): chừa khoảng thở. */
+.cot:has(.vong-mau) .xep { margin-bottom: 7px; }
 .xep .mat.vong-mau + .mat.vong-mau { margin-left: calc(var(--mat) * .56); }
 /* Dấu ✓ trên mặt đã BỎ (19.11.2026, chủ dự án: "thừa") — hàng biểu tượng chơi lại dưới tỷ số nói thay */
 .cot .ten {

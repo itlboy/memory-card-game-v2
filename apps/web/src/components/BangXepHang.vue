@@ -489,6 +489,8 @@ async function doiAn(an: boolean): Promise<void> {
 .bn { display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 0; }
 .bn .av { position: relative; display: grid; place-items: center; font-size: 26px; line-height: 1.1; }
 .bn.n1 .av { font-size: 31px; }
+/* Ô màu (1,7em) thò ra ngoài khung mặt ~.3em mỗi phía → đè lên tên bên dưới (chủ dự án gửi ảnh 25.11.2026): chừa lề đúng phần thò + khoảng thở. */
+.bn .av.vong-mau { margin: .32em 0 .5em; }
 .bn .tn { font-weight: 800; font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bn .nhan-ban { margin: 0; }
 .bn .so { font-size: 14px; }
