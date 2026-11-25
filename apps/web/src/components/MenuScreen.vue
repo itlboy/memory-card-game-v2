@@ -629,17 +629,13 @@ const ICO3D = {
                huy chương bậc; CHỈ nhấp nháy + bong bóng ▲▼ khi điểm khác lần xem cuối (bản cũ nhấp nháy mãi, chỉ có biểu
                tượng → không có lý do bấm). Chưa đủ số liệu: biểu tượng biểu đồ (không bao giờ cái não) + "Còn N ván".
                Khối bám vào khung của nút Chiến dịch (`.cd-khung`) nên máy cao thấp gì cũng nằm sát trên nút. Vẫn chỉ hiện khi bật debug. -->
-          <div v-if="tnNut" class="ntn">
-            <button class="nut-tri-nho thach th-ngoc" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
-              <i class="ntn-tien" :style="{ '--pt': tnNut.pt }" aria-hidden="true" />
-              <i v-if="tnNut.moi" class="ntn-vong" aria-hidden="true" />
-              <b v-if="tnNut.diem !== null">{{ tnNut.diem }}</b>
-              <ChartColumn v-else :size="22" :stroke-width="2.6" aria-hidden="true" />
-              <span v-if="tnNut.bac !== null" class="ntn-bac" aria-hidden="true"><HuyChuongBac :bac="tnNut.bac" /></span>
-              <span v-if="tnNut.lech" class="ntn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
-            </button>
-            <small aria-hidden="true" @click="sfx.select(); emit('so-tri-nho')">{{ tnNut.diem !== null ? t('tn.ten') : t('tn.conVan', { n: tnNut.conVan }) }}</small>
-          </div>
+          <button v-if="tnNut" class="vien-tn thach" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
+            <span class="vtn-hc" :class="{ khoa: tnNut.bac === null }" aria-hidden="true">
+              <HuyChuongBac v-if="tnNut.bac !== null" :bac="tnNut.bac" /><ChartColumn v-else :size="17" :stroke-width="2.8" />
+            </span>
+            <span class="vtn-chu"><small>{{ t('tn.ten') }}</small><b>{{ tnNut.diem !== null ? tnNut.diem : t('tn.conVan', { n: tnNut.conVan }) }}</b></span>
+            <span v-if="tnNut.lech" class="vtn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
+          </button>
           <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
             <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
             <strong>{{ t('menu.chienDich') }}</strong>
@@ -1193,28 +1189,23 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .step-body.home { display: flex; flex-direction: column; gap: 14px; justify-content: center; position: relative; }
 /* Khung của nút Chiến dịch: chỉ để nút Chỉ số trí nhớ bám vào mép TRÊN của nó; bản thân nút Chiến dịch giãn như cũ */
 .cd-khung { position: relative; flex: none; display: flex; flex-direction: column; }
-.ntn { position: absolute; left: 12px; bottom: calc(100% + 16px); z-index: 2; display: flex; align-items: center; gap: 18px; }
-.nut-tri-nho {
-  position: relative; width: 52px; height: 52px; min-width: 0; min-height: 0; padding: 0;
-  border-radius: 50%; display: grid; place-items: center; overflow: visible; cursor: pointer; color: #fff;
-  background: linear-gradient(#3fd0bd, #149384 70%); border: 2px solid #0d7064; box-shadow: 0 3px 0 #0a5a50;
+/* VIÊN THẠCH (25.11.2026, mockup 1 duyệt https://claude.ai/artifact/BP9qMdSyxbwSW4y664efvs; chủ dự án chê nút tròn có vành
+   "xấu và không tương hợp với giao diện"): cùng kiểu viên xu ở thanh đầu — huy chương bậc · tên nhỏ trên · điểm to dưới.
+   Bong bóng ▲▼ chỉ khi điểm khác lần xem cuối. Không vành tiến độ, không nhấp nháy. */
+.vien-tn {
+  position: absolute; left: 4px; bottom: calc(100% + 12px); z-index: 2; display: flex; align-items: center; gap: 8px;
+  min-height: 0; padding: 5px 14px 5px 6px; border-radius: 999px; text-align: left; cursor: pointer; overflow: visible;
 }
-.nut-tri-nho b { position: relative; font: 800 17px/1 var(--font-display); font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 #0a5a50, 0 0 3px #0a5a50; }
-/* VIỀN TIẾN ĐỘ: vành ngoài nút, vàng trên rãnh trắng — cũng là thứ tách nút ngọc khỏi nền trời xanh (đo 25.11.2026:
-   ngọc trên trời sáng chỉ đạt 1,2–1,8). Vành = conic-gradient khoét giữa bằng mask. */
-.ntn-tien { position: absolute; inset: -8px; border-radius: 50%; pointer-events: none;
-  background: conic-gradient(#ffc93c calc(var(--pt) * 1%), rgba(255, 255, 255, .92) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px));
-  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .22)); }
-.ntn-bac { position: absolute; right: -11px; bottom: -9px; font-size: 19px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)); }
-.ntn-len { position: absolute; left: calc(100% + 2px); top: -12px; white-space: nowrap; padding: 4px 7px 3px; border-radius: 999px;
-  font: 800 12px/1 var(--font-display); color: #fff; background: #1f9a3a; border: 2px solid #156b28; box-shadow: 0 2px 0 #156b28; }
-.ntn-len.giam { background: #5c6187; border-color: #40456a; box-shadow: 0 2px 0 #40456a; }
-.ntn-vong { position: absolute; inset: -12px; border-radius: 50%; border: 2px solid rgba(255, 201, 60, .9); animation: ntn-vong 2.2s ease-out infinite; pointer-events: none; }
-@keyframes ntn-vong { 0% { transform: scale(.94); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .ntn-vong { animation: none; } }
-.ntn small { cursor: pointer; font: 900 11px/1.1 var(--font-display); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55); white-space: nowrap; }
+.vtn-hc { flex: none; display: grid; place-items: center; width: 34px; height: 34px; font-size: 29px; line-height: 1; }
+.vtn-hc.khoa { border-radius: 50%; color: #fff; background: linear-gradient(#3fd0bd, #149384 70%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .3); }
+.vtn-chu { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.vtn-chu small { font-size: 10.5px; font-weight: 800; line-height: 1.1; color: var(--muted); white-space: nowrap; }
+.vtn-chu b { font: 800 19px/1 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vtn-hc.khoa + .vtn-chu b { font-size: 14px; line-height: 1.25; }
+/* Bong bóng nằm TRONG viên, sau chữ (bản đầu dán ở góc trên phải thì đè lên chữ "nhớ" — soát ảnh 25.11.2026) */
+.vtn-len { flex: none; align-self: center; margin-left: 2px; white-space: nowrap; padding: 4px 7px 3px; border-radius: 999px;
+  font: 800 11.5px/1 var(--font-display); color: #fff; background: #1f9a3a; }
+.vtn-len.giam { background: #5c6187; }
 .home .loi-tat { margin: 0; }
 .ico3d { display: none; }
 
