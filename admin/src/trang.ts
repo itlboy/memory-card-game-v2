@@ -281,6 +281,20 @@ export const JS = String.raw`
   var HAT = { '5m': '5 phút', '1h': 'Giờ', '1d': 'Ngày', '1w': 'Tuần' };
   var MAU = { web: '#67e8f9', ios: '#8b7dff', android: '#c026d3', tat_ca: '#a99fff' };
   var CHE_DO = { choi_nhanh: 'Chơi nhanh', chien_dich: 'Chiến dịch', dau_may: 'Đấu máy', online: 'Online', nhieu_nguoi: 'Nhiều người (một máy)', nhieu_nguoi_may: 'Nhiều người + máy' };
+  // Tên dễ đọc của chuc_nang (app: moChucNang). Thêm tính năng mới ở app thì thêm một dòng ở đây; thiếu thì hiện tên thô.
+  var TINH_NANG = {
+    choi_nhanh: 'Chơi nhanh', dau_may: 'Đấu máy', chien_dich: 'Chiến dịch', chien_dich_choi_tiep: 'Chiến dịch · chơi tiếp',
+    choi_online: 'Mở màn Online', mua_the: 'Mùa thẻ', luat_choi: 'Luật chơi', tai_khoan: 'Tài khoản', danh_hieu: 'Danh hiệu',
+    cai_app: 'Hộp cài app', chinh_phuc: 'Đạt danh hiệu', pha_ky_luc: 'Phá kỷ lục', luu_chia_se_anh: 'Khoe tỷ số (mở hộp)',
+    xep_hang: 'Bảng xếp hạng', xep_hang_tab: 'Bảng xếp hạng · đổi tab', xep_hang_thach: 'Bảng xếp hạng · thách đấu',
+    tri_nho: 'Chỉ số trí nhớ', tri_nho_luyen: 'Chỉ số trí nhớ · Luyện ngay', tri_nho_14_ngay: 'Chỉ số trí nhớ · tab 14 ngày',
+    ho_so: 'Hồ sơ (mở)', ho_so_luu: 'Hồ sơ (lưu)',
+    online_tao_phong: 'Online · tạo phòng', online_vao_link_moi: 'Online · vào bằng link mời', online_vao_ma: 'Online · vào bằng mã',
+    online_vao_phong_ds: 'Online · vào từ danh sách', online_moi_ban: 'Online · hộp mời bạn', online_chep_ma: 'Online · chép mã phòng',
+    online_chep_loi_moi: 'Online · chép lời mời', online_moi_nguoi: 'Online · mời người đang online', loi_moi: 'Online · bấm lời mời',
+    online_emoji: 'Online · thả emoji', online_noi_nhanh: 'Online · nói nhanh', online_xem: 'Online · vào xem trận',
+    online_chon_the: 'Online · bỏ phiếu số thẻ', thi_dau_chot: 'Thi đấu · chốt số thẻ'
+  };
   var CACH_VAO = { online_vao_link_moi: 'Link mời', online_vao_ma: 'Nhập mã', online_vao_phong_ds: 'Danh sách phòng' };
   var THEME = { animals: 'Động vật', ocean: 'Đại dương', nature: 'Thiên nhiên', seasons: 'Bốn mùa', food: 'Đồ ăn', letters: 'Chữ & hình', smileys: 'Mặt cười', games: 'Trò chơi', objects: 'Đồ vật', travel: 'Du lịch', festive: 'Lễ hội', flags: 'Cờ' };
   var THU = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
@@ -375,6 +389,7 @@ export const JS = String.raw`
     { phan: 'choi', khoa: 'so_the', tieu: 'Cỡ bàn hay chơi', mau: '#67e8f9', ten: function (x) { return x + ' thẻ'; }, loi: 'so_the' },
     { phan: 'choi', khoa: 'theme', tieu: 'Chủ đề hay chọn', mau: '#e3a6ff', ten: function (x) { return THEME[x] || x; }, loi: 'theme' },
     { phan: 'choi', khoa: 'cach_vao', tieu: 'Cách vào phòng online', mau: '#fca5a5', ten: function (x) { return CACH_VAO[x] || x; }, loi: 'chuc_nang' },
+    { phan: 'choi', khoa: 'tinh_nang', tieu: 'Tính năng được dùng', mau: '#5eead4', ten: function (x) { return TINH_NANG[x] || x; }, loi: 'chuc_nang' },
     { phan: 'choi', khoa: 'ban_web', tieu: 'Phiên bản web', mau: '#8b7dff', ten: nguyen, loi: 'ban_web' },
     { phan: 'nguoi_moi', khoa: 'pheu', tieu: 'Phễu người mới', mau: '#86efac', ten: function (x) { return PHEU[x] || x; }, loi: 'pheu',
       so: function (r, ds) { var dau = ds[0] && ds[0].v; return so(r.v) + (dau ? ' · ' + Math.round(r.v / dau * 100) + '%' : ''); } },
