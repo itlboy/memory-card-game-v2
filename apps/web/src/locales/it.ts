@@ -917,6 +917,7 @@ const it: TuDien = {
   'tn.hoi': "Cos'è il punteggio di memoria?",
   'tn.giaiThich': "Ogni volta che giri una carta la cui coppia è già stata mostrata è una prova di memoria: trovare la coppia conta come ricordata, sbagliare come dimenticata. Più tempo è passato, più vale (max 1.000). Una partita richiede almeno {n} prove per avere un punteggio: tabelloni piccoli o vittorie troppo rapide non bastano, prova un tabellone più grande.",
   'pm.moTa': "Sfondi, suoni ed effetti più belli, statistiche conservate più a lungo.",
+  'pm.l.hoTro': "Sostienici nello sviluppo di un'app utile e senza pubblicità",
   'pm.l.nen': "Sfondi Premium",
   'pm.l.amThanh': "Musica e audio personalizzati",
   'pm.l.thongKe': "Statistiche di memoria più a lungo",

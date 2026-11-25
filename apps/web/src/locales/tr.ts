@@ -916,6 +916,7 @@ const tr: TuDien = {
   'tn.hoi': "Hafıza Puanı nedir?",
   'tn.giaiThich': "Eşi daha önce görünmüş bir kartı her çevirdiğinde bu bir hafıza testidir: eşini bulursan hatırlandı, kaçırırsan unutuldu sayılır. Üzerinden ne kadar zaman geçtiyse o kadar değerlidir (en fazla 1.000). Bir oyunun puanlanması için en az {n} test gerekir — küçük tahtalar veya çok hızlı galibiyetler yetmez, daha büyük bir tahta dene.",
   'pm.moTa': "Daha güzel arka planlar, ses ve efektler; daha uzun istatistik geçmişi.",
+  'pm.l.hoTro': "Yararlı ve reklamsız bir uygulama geliştirmemize destek ol",
   'pm.l.nen': "Premium arka planlar",
   'pm.l.amThanh': "Müzik ve özel ses",
   'pm.l.thongKe': "Hafıza istatistikleri daha uzun saklanır",

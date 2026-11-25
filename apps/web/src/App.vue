@@ -20,6 +20,10 @@ import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import SoTriNho from './components/SoTriNho.vue';
 import BangPremium from './components/BangPremium.vue';
+import MatKhauDebug from './components/MatKhauDebug.vue';
+import SaoBang from './components/SaoBang.vue';
+import { dangDebug } from './lib/debug';
+import { canh } from './lib/canh';
 import HoSoDialog from './components/HoSoDialog.vue';
 import { guiHoSo } from '@/lib/taikhoan';
 import { canMoChao, hoSo, mauTaiMay, tenToi } from '@/lib/ho-so';
@@ -44,11 +48,15 @@ const DoNhip = defineAsyncComponent(() => import('./components/DoNhip.vue'));
  * cho một lần. `?debug=1` cũng GHI vào bản lưu, để mở link một lần rồi chơi tiếp
  * mấy ván sau vẫn còn số đo — lỗi cần soi thường không xuất hiện ở ván đầu.
  */
-const debug = ref(store.prefs().debug || new URLSearchParams(location.search).get('debug') === '1');
+/* MẬT KHẨU (25.11.2026): BẬT debug — 7 chạm hay `?debug=1` — đều phải qua MatKhauDebug; máy đã bật từ trước thì giữ. */
+const debug = ref(!!store.prefs().debug);
+const hoiMkDebug = ref(!debug.value && new URLSearchParams(location.search).get('debug') === '1');
+function xinDebug(v: boolean): void { if (v) { if (!debug.value) hoiMkDebug.value = true; } else debug.value = false; }
 // Skin khác Kẹo chỉ dành cho debug: debug tắt là về Kẹo, trừ lượt mở có `?skin=` (công cụ đo, chụp store)
 const coSkinUrl = new URLSearchParams(location.search).has('skin');
 watch(debug, (v) => {
   store.savePrefs({ debug: v });
+  dangDebug.value = v;
   if (!v) { boEmojiVeMacDinh(); datPingSo(false); if (!coSkinUrl) skinVeMacDinh(); }
 }, { immediate: true });
 /** Bảng đo nhịp: công tắc riêng trong khu debug, mặc định tắt. */
@@ -1074,9 +1082,11 @@ const hasNext = computed(() => {
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <!-- …kể cả Mưa Thẻ: icon bay giữa các lá đang rơi trông như một lá nữa -->
   <IconBay v-if="screen !== 'game' && screen !== 'mua-the'" />
+  <!-- Sao băng thưa: chỉ đi kèm hình nền hành tinh (Premium), không có lúc đang chơi Mưa Thẻ -->
+  <SaoBang v-if="canh !== 'goc' && screen !== 'mua-the'" />
   <TopBar
     :debug="debug"
-    @update:debug="debug = $event" @mo-debug="showDebug = true"
+    @update:debug="xinDebug" @mo-debug="showDebug = true"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
@@ -1223,6 +1233,7 @@ const hasNext = computed(() => {
     @tat="debug = false; showDebug = false"
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
+  <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
   <BangPremium v-if="showPremium && debug" @close="showPremium = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
@@ -1233,7 +1244,7 @@ const hasNext = computed(() => {
   <RulesDialog
     v-if="showRules" :debug="debug"
     @close="showRules = false"
-    @update:debug="debug = $event"
+    @update:debug="xinDebug"
   />
 
   <ConfirmDialog

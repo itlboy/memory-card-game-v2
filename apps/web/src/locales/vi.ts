@@ -927,6 +927,7 @@ const vi = {
   'tn.hoi': "Chỉ số trí nhớ là gì?",
   'tn.giaiThich': "Mỗi lần bạn lật một thẻ mà thẻ cùng cặp đã từng lộ ra là một lần thử trí nhớ: lật đúng cặp là nhớ, lật sai là quên. Nhớ được từ càng lâu trước thì điểm càng cao (tối đa 1.000). Ván cần ít nhất {n} lần thử mới chấm được — bàn ít thẻ hoặc thắng quá nhanh thì chưa đủ, hãy chơi bàn nhiều thẻ hơn.",
   'pm.moTa': "Hình nền, âm thanh và hiệu ứng đẹp hơn, thống kê lưu lâu hơn.",
+  'pm.l.hoTro': "Hỗ trợ chúng tôi phát triển ứng dụng có ích và không quảng cáo",
   'pm.l.nen': "Hình nền Premium",
   'pm.l.amThanh': "Nhạc nền và âm thanh tuỳ chỉnh",
   'pm.l.thongKe': "Lưu thống kê trí nhớ lâu hơn",

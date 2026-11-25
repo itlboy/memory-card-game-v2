@@ -916,6 +916,7 @@ const de: TuDien = {
   'tn.hoi': "Was ist der Gedächtniswert?",
   'tn.giaiThich': "Jedes Mal, wenn du eine Karte aufdeckst, deren Partner schon zu sehen war, ist das ein Gedächtnistest: Paar gefunden = gemerkt, verfehlt = vergessen. Je länger es her ist, desto mehr zählt es (max. 1.000). Eine Partie braucht mindestens {n} Tests für eine Wertung — kleine Felder oder sehr schnelle Siege reichen nicht, probiere ein größeres Feld.",
   'pm.moTa': "Schönere Hintergründe, Klänge und Effekte, längere Statistik.",
+  'pm.l.hoTro': "Unterstütze uns dabei, eine nützliche App ohne Werbung zu entwickeln",
   'pm.l.nen': "Premium-Hintergründe",
   'pm.l.amThanh': "Musik und eigene Klänge",
   'pm.l.thongKe': "Gedächtnisstatistik länger gespeichert",

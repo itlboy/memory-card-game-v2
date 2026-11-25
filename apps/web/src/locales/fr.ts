@@ -919,6 +919,7 @@ const fr: TuDien = {
   'tn.hoi': "Qu'est-ce que le score de mémoire ?",
   'tn.giaiThich': "Chaque fois que vous retournez une carte dont la paire a déjà été montrée, c'est un test de mémoire : trouver la paire compte comme retenu, la rater comme oublié. Plus c'était il y a longtemps, plus ça rapporte (1 000 max). Une partie doit compter au moins {n} tests pour être notée — les petits plateaux ou les victoires très rapides ne suffisent pas, essayez un plateau plus grand.",
   'pm.moTa': "De plus beaux fonds, sons et effets, et des stats gardées plus longtemps.",
+  'pm.l.hoTro': "Soutiens-nous pour créer une appli utile et sans publicité",
   'pm.l.nen': "Fonds Premium",
   'pm.l.amThanh': "Musique et son personnalisés",
   'pm.l.thongKe': "Stats de mémoire gardées plus longtemps",

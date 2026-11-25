@@ -39,7 +39,7 @@ import {
 } from '@mm/engine';
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { NGON_NGU_CO_TEN, taoTen } from '../../web/src/lib/ten-goc';
+import { taoTenBotPhong } from '../../web/src/lib/ten-bot-phong';
 
 const so = (ten: string, mac: number): number => { const v = Number(process.env[ten]); return Number.isFinite(v) && v > 0 ? v : mac; };
 const SERVER = (process.env.MM_SERVER ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
@@ -90,14 +90,9 @@ function bocMuc(): [BotLevel, BotLevel] {
   return [MUC[a]!, MUC[b]!];
 }
 
-/** Tên như người mới cài app: 40% tiếng Anh, 18% tiếng Việt, còn lại chia đều các tiếng có bộ tên riêng. */
-function bocTen(): string {
-  const x = Math.random();
-  if (x < 0.4) return taoTen('en');
-  if (x < 0.58) return taoTen('vi');
-  const khac = NGON_NGU_CO_TEN.filter((l) => l !== 'en' && l !== 'vi');
-  return taoTen(khac[rd(khac.length)]!);
-}
+/** TÊN NGƯỜI theo nước (25.11.2026, thay bộ tên con vật): 1 từ 60%, 2 từ 30%, 3 từ 10% + dấu ẩn để app bật debug nhận ra
+ *  bot — xem apps/web/src/lib/ten-bot-phong.ts. */
+function bocTen(): string { return taoTenBotPhong(); }
 
 const TEP = process.env.TEP_TRANG_THAI ?? '/data/phong-bot.json';
 const ROI_KHI_TAT = process.env.ROI_KHI_TAT === '1';
