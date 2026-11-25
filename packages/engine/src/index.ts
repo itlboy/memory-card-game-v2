@@ -10,8 +10,8 @@ export { THEME_GOP, doiDanhHieu, doiThemeIds, themeMoi } from './theme-gop.js';
 export { xoayNguoiDau } from './xoay.js';
 export {
   BASE_POINTS, FLIP_BACK_MS, MATCH_TIME_BONUS_MS, MISS_PENALTY, TIME_BONUS_PER_SEC, TURN_BONUS_MS,
-  DIEM_CHANG, LAN_MO_CHANG, MOC_BAC_TRI_NHO, SO_NHOM_TUOI,
-  bacTriNho, chiSoTriNho, coHoiNho, comboMultiplier, isDraw, nhomTuoi, pairScore, rankPlayers, rongNhomTuoi, starsByMisses, starsFor, timeBonus
+  DIEM_CHANG, LAN_MO_CHANG, MOC_BAC_TRI_NHO, MOC_CO_DIEM_VAN, SO_NHOM_TUOI,
+  bacTriNho, chiSoTriNho, chiSoVan, coHoiNho, comboMultiplier, isDraw, nhomTuoi, pairScore, rankPlayers, rongNhomTuoi, starsByMisses, starsFor, timeBonus
 } from './scoring.js';
 export {
   BOARD_SIZES, CAMPAIGN_LEVELS, LEVEL_KEYS, LUAT_THEO_CO, campaignSpec, CAMPAIGN_MAX_PAIRS, CHAPTERS, allLevels, boardForLevel,

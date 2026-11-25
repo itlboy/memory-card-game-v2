@@ -123,9 +123,9 @@ describe('vừa đổi sau ván + đã xem', () => {
 
   it('ván đầu đủ số liệu: trước chưa có điểm, sau có → "lần đầu"; ván sau báo chênh lệch', () => {
     ghiVanTriNho(NHIEU, 18);
-    expect(vuaDoi.value).toEqual({ truoc: null, sau: 200, bacTruoc: null, bacSau: 1 });
+    expect(vuaDoi.value).toEqual({ truoc: null, sau: 200, bacTruoc: null, bacSau: 1, van: 1000 });
     ghiVanTriNho({ nhoTheo: [0, 0, 10], quenTheo: [], mayTheo: [0, 0, 0] }, 18);
-    expect(vuaDoi.value).toEqual({ truoc: 200, sau: 400, bacTruoc: 1, bacSau: 2 });   // lên bậc Vàng
+    expect(vuaDoi.value).toMatchObject({ truoc: 200, sau: 400, bacTruoc: 1, bacSau: 2 });   // lên bậc Vàng
     expect(chiSoHomNay().diem).toBe(400);
   });
 

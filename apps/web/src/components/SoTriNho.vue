@@ -19,6 +19,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
 import { ChartColumn, Play, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
+import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
@@ -116,7 +117,7 @@ const coNhan = (k: string, i: number): boolean =>
       <!-- (2) MỘT HÌNH, HAI TAB -->
       <div class="doi" role="tablist">
         <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'chang' }" type="button" role="tab" :aria-selected="tab === 'chang'" @click="tab = 'chang'">{{ t('tn.tab5') }}</button>
-        <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'ngay' }" type="button" role="tab" :aria-selected="tab === 'ngay'" @click="tab = 'ngay'">
+        <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'ngay' }" type="button" role="tab" :aria-selected="tab === 'ngay'" @click="tab = 'ngay'; moChucNang('tri_nho_14_ngay', {}, true)">
           {{ t('tn.tab14') }}<template v-if="!laHomNay"> · {{ ngayThang(chon) }}</template>
         </button>
       </div>
