@@ -9,16 +9,15 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * "chưa mua → chọn gói → đã có Premium" trên máy thật. Khi nối In-App Purchase thì chỉ thay thân hàm `mua()`.
  *
  * GIÁ LÀ SỐ TẠM (`GIA`) — chủ dự án chưa chốt; lúc bán thật giá phải đọc từ store (đã quy đổi theo nước), không viết cứng.
- * Ba quyền lợi cuối (lịch sử trí nhớ, tuỳ chỉnh âm thanh, hiệu ứng bàn chơi) là DỰ KIẾN, chưa có tính năng thật đằng sau.
+ * Các quyền lợi liệt kê là DỰ KIẾN, phần lớn chưa có tính năng thật đằng sau.
  */
-import { ChartColumn, Check, Crown, Palette, Sparkles, SlidersHorizontal, LayoutGrid, X } from 'lucide-vue-next';
+import { ChartColumn, Check, Crown, Image, MessageCircle, Music, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 
-const props = defineProps<{ soTheme: number }>();
 const emit = defineEmits<{ close: [] }>();
 
 /** Giá TẠM (đồng) — xem đầu file. */
@@ -28,13 +27,14 @@ const goi = ref<Goi>('nam');
 const tien = (v: number): string => `${num(v)}đ`;
 const tietKiem = Math.round((1 - GIA.nam / (GIA.thang * 12)) * 100);
 
-/* Hiện chưa theme nào gắn cờ premium (soát 25.11.2026: bảng ghi "Tất cả 0 theme") — không có thì không khoe dòng đó. */
+/* Năm quyền lợi chủ dự án chốt 25.11.2026: hình nền, âm thanh, thời gian lưu thống kê, hiệu ứng trong ván, hiệu ứng chat online.
+   KHÔNG có dòng theme — chưa theme nào là premium, khoe ra là sai. */
 const LOI = computed(() => [
-  ...(props.soTheme > 0 ? [{ ic: LayoutGrid, chu: t('pm.l.theme', { n: props.soTheme }) }] : []),
-  { ic: Palette, chu: t('pm.l.skin') },
-  { ic: ChartColumn, chu: t('pm.l.triNho') },
-  { ic: SlidersHorizontal, chu: t('pm.l.amThanh') },
-  { ic: Sparkles, chu: t('pm.l.hieuUng') }
+  { ic: Image, chu: t('pm.l.nen') },
+  { ic: Music, chu: t('pm.l.amThanh') },
+  { ic: ChartColumn, chu: t('pm.l.thongKe') },
+  { ic: Sparkles, chu: t('pm.l.hieuUng') },
+  { ic: MessageCircle, chu: t('pm.l.chat') }
 ]);
 
 const nutDong = ref<HTMLButtonElement | null>(null);
