@@ -954,7 +954,6 @@ const id: TuDien = {
   'tn.chang.3': "8–15 giliran",
   'tn.chang.4': "16+ giliran",
   'tn.chuaMo': "Terkunci · {n}/{can}",
-  'tn.bamCot': "ketuk batang untuk lihat hari itu",
   'tn.tinhDen': "7 hari sampai {ngay}",
   'tn.luyen': "Latihan · {n} kartu",
   'tn.khongMay': "Tebakan beruntung tidak dihitung.",

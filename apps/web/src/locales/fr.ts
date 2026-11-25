@@ -957,7 +957,6 @@ const fr: TuDien = {
   'tn.chang.3': "8–15 tours",
   'tn.chang.4': "16+ tours",
   'tn.chuaMo': "Verrouillé · {n}/{can}",
-  'tn.bamCot': "touche une barre pour voir ce jour",
   'tn.tinhDen': "7 jours jusqu'au {ngay}",
   'tn.luyen': "S'entraîner · {n} cartes",
   'tn.khongMay': "Les coups de chance ne comptent pas.",

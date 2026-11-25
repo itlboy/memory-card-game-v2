@@ -951,7 +951,6 @@ const ja: TuDien = {
   'tn.chang.3': "8–15ターン",
   'tn.chang.4': "16+ターン",
   'tn.chuaMo': "未開放 · {n}/{can}",
-  'tn.bamCot': "棒をタップでその日を表示",
   'tn.tinhDen': "{ngay}までの7日間",
   'tn.luyen': "練習する · {n}枚",
   'tn.khongMay': "まぐれ当たりは数えません。",

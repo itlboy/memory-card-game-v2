@@ -951,7 +951,6 @@ const zh: TuDien = {
   'tn.chang.3': "8–15 回合",
   'tn.chang.4': "16+ 回合",
   'tn.chuaMo': "未解锁 · {n}/{can}",
-  'tn.bamCot': "点柱子查看那一天",
   'tn.tinhDen': "截至 {ngay} 的 7 天",
   'tn.luyen': "马上练习 · {n} 张",
   'tn.khongMay': "靠运气猜中不计入。",

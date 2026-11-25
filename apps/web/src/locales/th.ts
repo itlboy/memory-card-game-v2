@@ -952,7 +952,6 @@ const th: TuDien = {
   'tn.chang.3': "8–15 ตา",
   'tn.chang.4': "16+ ตา",
   'tn.chuaMo': "ยังไม่เปิด · {n}/{can}",
-  'tn.bamCot': "แตะแท่งเพื่อดูวันนั้น",
   'tn.tinhDen': "7 วันถึง {ngay}",
   'tn.luyen': "ฝึกเลย · {n} ใบ",
   'tn.khongMay': "เดาถูกเพราะโชคไม่นับ",

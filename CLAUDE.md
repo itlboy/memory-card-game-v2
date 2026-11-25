@@ -1979,5 +1979,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   kết thúc ở ngày đó; "Luyện ngay" (`theNenLuyen` → App `luyenTriNho`). Màu HAI TÔNG: ngọc đậm #0b7468 nền sáng, ngọc sáng
   #4fd6c4 nền tối (một tông thì thanh trên rãnh chỉ 2,7–3,0).
 - Nút trang chủ: hiện con số + vành tiến độ (mask conic) + huy chương; chỉ nhấp nháy/bong bóng ▲▼ khi điểm ≠ `prefs.triNhoXem`.
+  Chỗ đặt (1.9.59, chủ dự án): NGAY TRÊN nút Chiến dịch, bên trái, chữ nằm ngang — bám `.cd-khung`, không còn ở góc trời.
+- Màn chỉ số: đổi cột ngày CHỈ ĐỔI SỐ — "Luyện ngay" luôn hiện (gợi ý theo hôm nay), khối điểm/khoá cùng min-height; không
+  có dòng "bấm cột để xem" (chủ dự án bảo xoá); biểu đồ cao 104px.
 - `.vong-mau` (khung màu hồ sơ) là KHUNG VUÔNG BO GÓC ::before 1,7em: bo 50% lên khung emoji ra e-líp; vòng tròn 1,5em thì emoji rộng ngang tràn ra (chủ dự án chê hai lần).
 - CHƯA LÀM: thẻ chia sẻ, tổng kết thứ Hai, danh hiệu theo bậc, bảng xếp hạng trí nhớ, thông báo đẩy.
