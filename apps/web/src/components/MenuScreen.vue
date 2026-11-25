@@ -628,7 +628,7 @@ const ICO3D = {
                https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu): nút HIỆN LUÔN CON SỐ, viền vàng = tiến độ tới bậc kế, góc có
                huy chương bậc; CHỈ nhấp nháy + bong bóng ▲▼ khi điểm khác lần xem cuối (bản cũ nhấp nháy mãi, chỉ có biểu
                tượng → không có lý do bấm). Chưa đủ số liệu: biểu tượng biểu đồ (không bao giờ cái não) + "Còn N ván".
-               Khối bám vào khung của nút Chiến dịch (`.cd-khung`) nên máy cao thấp gì cũng nằm sát trên nút. Vẫn chỉ hiện khi bật debug. -->
+               Khối bám vào khung của nút Chiến dịch (`.cd-khung`) nên máy cao thấp gì cũng nằm sát trên nút. Mở cho mọi người từ 1.9.66. -->
           <button v-if="tnNut" class="vien-tn thach" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
             <span class="vtn-hc" :class="{ khoa: tnNut.bac === null }" aria-hidden="true">
               <HuyChuongBac v-if="tnNut.bac !== null" :bac="tnNut.bac" /><ChartColumn v-else :size="17" :stroke-width="2.8" />

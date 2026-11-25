@@ -184,7 +184,7 @@ const chungMay = computed(() => props.multiplayer && !props.multiplayerOnline &&
 const hienSao = computed(() => props.showStars && props.summary.status === 'won' && props.minhKetCuc !== 'thua' && !chungMay.value);
 
 /**
- * CHỈ SỐ TRÍ NHỚ (thử nghiệm, chỉ khi debug bật) — MỘT dòng: chỉ số 7 ngày SAU ván này và nó vừa đổi bao nhiêu
+ * CHỈ SỐ TRÍ NHỚ (mở cho mọi người từ 1.9.66) — MỘT dòng: chỉ số 7 ngày SAU ván này và nó vừa đổi bao nhiêu
  * (25.11.2026: không còn điểm riêng của từng ván — một ván quá ít số liệu để chấm 5 chặng). Ai gọi `ghiVanTriNho`
  * trước khi bảng mở (App.vue / OnlineGame.vue) quyết định ván có được chấm không: nhiều người chung máy, ván đội
  * online, người xem → `vuaDoi` = null → không có dòng này.
