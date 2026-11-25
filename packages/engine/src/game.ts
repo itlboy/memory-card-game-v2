@@ -112,7 +112,7 @@ export class MemoryGame {
    *  lật hai thẻ mới toanh là phỏng đoán hợp lý, không phải sai sót. */
   private seen = new Set<number>();
   /** Nước đi (`moves`) lúc mỗi ô lộ mặt LẦN CUỐI — tính "độ lâu" của một lần nhớ/quên
-   *  cho điểm trí nhớ (`scoring.diemTriNho`). Luôn đi cùng `seen`: ghi qua `daThay()`. */
+   *  cho điểm trí nhớ (`scoring.chiSoTriNho`). Luôn đi cùng `seen`: ghi qua `daThay()`. */
   private seenAt: Record<number, number> = {};
 
   constructor(config: GameConfig) {
@@ -378,7 +378,8 @@ export class MemoryGame {
       this.matched.add(this.cards[a]!.pairId);
       // Ghép đúng mà lá đôi ĐÃ từng lộ = nhớ. Lá đôi chưa từng lộ thì là may, không chấm.
       const tuoiNho = this.tuoiDoi(a);
-      if (tuoiNho !== null) this.ghiTriNho(player, tuoiNho, true);
+      // `soUp + 1`: cặp vừa ghép đã vào `matched`, mà lúc CHỌN lá thứ hai thì lá đó còn úp
+      if (tuoiNho !== null) this.ghiTriNho(player, tuoiNho, true, this.soLaUp() + 1);
       this.daThay(a);
       this.daThay(b);
       this.selection = [];
@@ -444,7 +445,8 @@ export class MemoryGame {
     const avoidable = tuoiQuen !== null;
     if (avoidable) {
       player.quen = (player.quen ?? 0) + 1;
-      this.ghiTriNho(player, tuoiQuen, false);
+      // `soUp - 1`: hai lá đang mở chưa ghép vẫn bị đếm, bỏ lá ĐẦU (lá thứ hai lúc chọn còn úp)
+      this.ghiTriNho(player, tuoiQuen, false, this.soLaUp() - 1);
     }
     if (this.config.lives != null && avoidable) {
       player.lives--;
@@ -485,11 +487,24 @@ export class MemoryGame {
     this.seenAt[index] = this.moves;
   }
 
-  /** Cộng một lần nhớ đúng / quên vào nhóm độ lâu của người chơi (điểm trí nhớ). */
-  private ghiTriNho(player: Player, tuoi: number, nho: boolean): void {
+  /** Số lá CHƯA GHÉP (không tính ô trống) — mẫu số của xác suất đoán bừa. */
+  private soLaUp(): number {
+    let n = 0;
+    for (const c of this.cards) if (!c.blank && !this.matched.has(c.pairId)) n++;
+    return n;
+  }
+
+  /**
+   * Cộng một lần nhớ đúng / quên vào nhóm độ lâu của người chơi (điểm trí nhớ). `soLua` = số lá người chơi có thể
+   * chọn làm lá thứ hai: đoán bừa trúng với xác suất 1/soLua — cộng vào `mayTheo` để `chiSoTriNho` trừ phần ăn may
+   * (bàn ít thẻ đoán bừa cũng hay trúng; mô phỏng 25.11.2026: không trừ thì người không nhớ gì vẫn ~400 điểm ở bàn 16 thẻ).
+   */
+  private ghiTriNho(player: Player, tuoi: number, nho: boolean, soLua: number): void {
     const o = nho ? (player.nhoTheo ??= rongNhomTuoi()) : (player.quenTheo ??= rongNhomTuoi());
     const i = nhomTuoi(tuoi);
     o[i] = (o[i] ?? 0) + 1;
+    const m = (player.mayTheo ??= rongNhomTuoi());
+    m[i] = (m[i] ?? 0) + 1 / Math.max(1, soLua);
     if (nho) player.tamNho = Math.max(player.tamNho ?? 0, tuoi);
   }
 

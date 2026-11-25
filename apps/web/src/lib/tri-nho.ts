@@ -1,82 +1,68 @@
 /**
- * SỔ TRÍ NHỚ (23.11.2026, thử nghiệm — chỉ hiện khi debug bật). Đọc nhật ký thô ở `storage.ts`
- * (`NgayTriNho`) ra con số để hiện. Công thức điểm nằm ở engine (`diemTriNho`): tỉ lệ nhớ có
- * tính độ lâu × trần của bàn. File này chỉ GỘP: nhiều ván, nhiều cỡ bàn, nhiều ngày.
+ * CHỈ SỐ TRÍ NHỚ (bản 3, 25.11.2026 — trang nghiên cứu duyệt https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu).
+ * VẪN CHỈ HIỆN KHI DEBUG BẬT (`hienTriNho`). Công thức ở engine (`chiSoTriNho`): cộng 5 chặng nhớ, đã trừ ăn may.
+ * File này GỘP nhật ký thô (`storage.ts`, số đếm theo ngày × cỡ bàn) thành chỉ số của một KỲ 7 NGÀY, tính bậc, và
+ * giữ "vừa đổi bao nhiêu" sau mỗi ván cho bảng kết quả + nút trang chủ.
+ *
+ * MỘT CON SỐ cho cả game: không còn điểm riêng của từng ván (một ván quá ít số liệu để chấm 5 chặng) — sau ván chỉ
+ * báo chỉ số 7 ngày vừa đổi bao nhiêu.
  */
-import { coHoiNho, tiLeNho, tranBan } from '@mm/engine';
+import { MOC_BAC_TRI_NHO, bacTriNho, chiSoTriNho, coHoiNho, rongNhomTuoi, type ChangNho } from '@mm/engine';
 import { ref } from 'vue';
-import { ngayMay, type DemTriNho, type NgayTriNho } from './storage';
+import { mayUocLuong, ngayMay, store, type NgayTriNho } from './storage';
 
-/** Bật = GHI nhật ký trí nhớ và HIỆN dòng điểm ở bảng kết quả. App.vue đặt theo cờ debug:
- *  đang thử nghiệm nên máy không bật debug thì không ghi, không hiện gì (chủ dự án 23.11.2026). */
+/** Bật = GHI nhật ký trí nhớ và HIỆN chỉ số. App.vue đặt theo cờ debug (chủ dự án 25.11.2026: vẫn debug). */
 export const hienTriNho = ref(false);
 
+/** Kỳ tính chỉ số: 7 ngày kết thúc ở ngày đang xem. */
+export const SO_NGAY_KY = 7;
 /**
- * ĐỘ TIN CẬY (chủ dự án 23.11.2026: "chơi ít quá không đủ số liệu để tham khảo"). Đếm theo SỐ CƠ
- * HỘI NHỚ trong kỳ chứ không theo số ván — một ván 4 cặp và một ván 30 cặp cho lượng số liệu khác
- * hẳn nhau. Sai số của một tỉ lệ đo từ n lần ≈ 1/(2√n): 20 lần ≈ ±11%, 60 lần ≈ ±6%.
- * 0 = chưa có gì · 1 = còn ít, chưa nên tin · 2 = tạm tham khảo · 3 = đáng tin.
+ * Cần ngần này CƠ HỘI NHỚ trong kỳ mới bày con số (chủ dự án 23.11.2026: "chơi ít quá không đủ số liệu để tham
+ * khảo"). Đếm cơ hội chứ không đếm ván: ván 8 thẻ và ván 60 thẻ cho lượng số liệu khác hẳn nhau.
  */
-export const MOC_TIN_CAY: readonly [number, number] = [20, 60];
-export type TinCay = 0 | 1 | 2 | 3;
-export const tinCay = (coHoi: number): TinCay => (coHoi <= 0 ? 0 : coHoi < MOC_TIN_CAY[0] ? 1 : coHoi < MOC_TIN_CAY[1] ? 2 : 3);
+export const MOC_CO_DIEM = 20;
 
-export interface TomTatTriNho {
-  /** Điểm trung bình các ván (theo số ván từng cỡ bàn); `null` = chưa đủ để chấm. */
+export interface ChiSo {
+  /** 0–1000; `null` = chưa đủ số liệu (dưới `MOC_CO_DIEM` cơ hội, hoặc chưa chặng nào mở). */
   diem: number | null;
-  /** Tỉ lệ nhớ 0–100 gộp mọi cỡ bàn; `null` = chưa đủ để chấm. */
-  tiLe: number | null;
+  chang: ChangNho[];
+  /** Bậc 0–4 (Đồng → Kim cương); `null` khi chưa có điểm. */
+  bac: number | null;
+  /** Điểm còn thiếu để lên bậc kế; `null` khi chưa có điểm hoặc đã ở bậc cao nhất. */
+  conToiBac: number | null;
+  /** Đã đi được bao nhiêu phần của bậc hiện tại (0..1) — viền nút trang chủ. */
+  tienBac: number;
   van: number;
-  cao: number;
-  tam: number;
-  /** Tổng cơ hội nhớ (nhớ + quên) của kỳ, và mức tin cậy suy ra từ đó. */
   coHoi: number;
-  tinCay: TinCay;
+  /** Lần nhớ đúng xa nhất trong kỳ (số lượt). */
+  tam: number;
 }
 
-const cong = (a: number[], b: readonly number[] | undefined): void => { (b ?? []).forEach((n, i) => { a[i] = (a[i] ?? 0) + n; }); };
-
-/** Gộp nhiều ngày thành một tóm tắt. Điểm = trung bình CÓ TRỌNG SỐ theo số ván của từng cỡ bàn. */
-export function tomTat(cacNgay: readonly (NgayTriNho | undefined)[]): TomTatTriNho {
-  const ban = new Map<string, DemTriNho>();
-  let tam = 0, cao = 0;
+/** Gộp nhiều ngày thành chỉ số của một kỳ. Số liệu cũ không có phần ăn may thì ước lượng (`mayUocLuong`). */
+export function chiSo(cacNgay: readonly (NgayTriNho | undefined)[]): ChiSo {
+  const nho = rongNhomTuoi(), quen = rongNhomTuoi(), may = rongNhomTuoi();
+  let van = 0, tam = 0;
   for (const n of cacNgay) {
     if (!n) continue;
-    tam = Math.max(tam, n.tam ?? 0); cao = Math.max(cao, n.cao ?? 0);
+    tam = Math.max(tam, n.tam ?? 0);
     for (const [k, d] of Object.entries(n.ban ?? {})) {
-      const o = ban.get(k) ?? { van: 0, nho: [], quen: [] };
-      o.van += d.van; cong(o.nho, d.nho); cong(o.quen, d.quen);
-      ban.set(k, o);
+      van += d.van;
+      const m = d.may ?? mayUocLuong(d.nho, d.quen, Number(k));
+      for (let i = 0; i < nho.length; i++) { nho[i]! += d.nho?.[i] ?? 0; quen[i]! += d.quen?.[i] ?? 0; may[i]! += m[i] ?? 0; }
     }
   }
-  let van = 0, tongDiem = 0, vanCham = 0;
-  const nho: number[] = [], quen: number[] = [];
-  for (const [k, d] of ban) {
-    van += d.van; cong(nho, d.nho); cong(quen, d.quen);
-    const tl = tiLeNho(d.nho, d.quen);
-    if (tl !== null) { tongDiem += tl * tranBan(Number(k)) * d.van; vanCham += d.van; }
-  }
-  const tl = tiLeNho(nho, quen);
+  const coHoi = coHoiNho(nho, quen);
+  const k = chiSoTriNho(nho, quen, may);
+  const diem = coHoi >= MOC_CO_DIEM ? k.diem : null;
+  const bac = diem === null ? null : bacTriNho(diem);
+  const mocKe = bac === null ? undefined : MOC_BAC_TRI_NHO[bac + 1];
+  const mocNay = bac === null ? 0 : MOC_BAC_TRI_NHO[bac]!;
   return {
-    diem: vanCham ? Math.round(tongDiem / vanCham) : null,
-    tiLe: tl === null ? null : Math.round(tl * 100),
-    van, cao, tam,
-    coHoi: coHoiNho(nho, quen), tinCay: tinCay(coHoiNho(nho, quen))
+    diem, chang: k.chang, bac,
+    conToiBac: diem === null || mocKe === undefined ? null : mocKe - diem,
+    tienBac: diem === null ? 0 : mocKe === undefined ? 1 : (diem - mocNay) / (mocKe - mocNay),
+    van, coHoi, tam
   };
-}
-
-/** Chưa có số liệu của chính người chơi thì coi mỗi ván cho ngần này cơ hội nhớ (bàn 8–12 cặp). */
-export const CO_HOI_MOI_VAN_MAC_DINH = 6;
-/**
- * CÒN PHẢI CHƠI KHOẢNG MẤY VÁN nữa để kỳ này lên mức tin cậy kế tiếp (chủ dự án 23.11.2026: "báo họ
- * phải chơi thêm bao nhiêu để họ chơi"). Mốc tính bằng cơ hội nhớ, đổi ra ván bằng số cơ hội TRUNG
- * BÌNH MỖI VÁN của chính người đó (`thamChieu`, thường là 14 ngày qua). 0 = đã đáng tin.
- */
-export function vanConThieu(ky: Pick<TomTatTriNho, 'coHoi'>, thamChieu: Pick<TomTatTriNho, 'coHoi' | 'van'>): number {
-  const moc = ky.coHoi < MOC_TIN_CAY[0] ? MOC_TIN_CAY[0] : ky.coHoi < MOC_TIN_CAY[1] ? MOC_TIN_CAY[1] : 0;
-  if (!moc) return 0;
-  const moiVan = thamChieu.van > 0 ? Math.max(1, thamChieu.coHoi / thamChieu.van) : CO_HOI_MOI_VAN_MAC_DINH;
-  return Math.max(1, Math.ceil((moc - ky.coHoi) / moiVan));
 }
 
 /** `soNgay` ngày liên tiếp kết thúc ở `den` (kể cả `den`), cũ → mới, dạng `YYYY-MM-DD`. */
@@ -86,34 +72,67 @@ export function dayNgay(soNgay: number, den = new Date()): string[] {
     return ngayMay(d);
   });
 }
+/** Khoá `YYYY-MM-DD` → Date giữa trưa (tránh lệch ngày vì múi giờ / giờ mùa hè). */
+export const ngayTuKhoa = (k: string): Date => { const [y, m, d] = k.split('-').map(Number); return new Date(y!, (m ?? 1) - 1, d ?? 1, 12); };
 
-/** Trần số cặp của từng nhóm cỡ bàn hiện ở sổ: ≤8 · 9–18 · 19–30 · 31+. */
-export const NHOM_BAN: readonly number[] = [8, 18, 30, Infinity];
-
-/** Tỉ lệ nhớ (0–100, `null` = chưa đủ) của từng nhóm cỡ bàn trong các ngày đã cho. */
-export function theoNhomBan(cacNgay: readonly (NgayTriNho | undefined)[]): { tiLe: number | null; van: number }[] {
-  const nhom = NHOM_BAN.map(() => ({ van: 0, nho: [] as number[], quen: [] as number[] }));
-  for (const n of cacNgay) {
-    for (const [k, d] of Object.entries(n?.ban ?? {})) {
-      const o = nhom[NHOM_BAN.findIndex((tran) => Number(k) <= tran)]!;
-      o.van += d.van; cong(o.nho, d.nho); cong(o.quen, d.quen);
-    }
-  }
-  return nhom.map((o) => {
-    const tl = tiLeNho(o.nho, o.quen);
-    return { tiLe: tl === null ? null : Math.round(tl * 100), van: o.van };
-  });
+/** Chỉ số của kỳ 7 ngày KẾT THÚC ở ngày `den` (mặc định hôm nay) — cũng là thứ hiện khi bấm một ngày cũ trên biểu đồ. */
+export function chiSoTai(nhatKy: Record<string, NgayTriNho>, den = new Date()): ChiSo {
+  return chiSo(dayNgay(SO_NGAY_KY, den).map((k) => nhatKy[k]));
 }
 
-/** Con số của MỘT ván, cho dòng ở bảng kết quả. `null` = ván không có cơ hội nhớ nào. */
-export function triNhoVan(
-  p: { nhoTheo?: readonly number[]; quenTheo?: readonly number[]; tamNho?: number } | undefined, soCap: number
-): { diem: number | null; tiLe: number | null; tam: number; tran: number } | null {
-  if (!p || coHoiNho(p.nhoTheo, p.quenTheo) === 0) return null;
-  const tl = tiLeNho(p.nhoTheo, p.quenTheo);
-  return {
-    diem: tl === null ? null : Math.round(tl * tranBan(soCap)),
-    tiLe: tl === null ? null : Math.round(tl * 100),
-    tam: p.tamNho ?? 0, tran: tranBan(soCap)
-  };
+/** Chưa có số liệu của chính người chơi thì coi mỗi ván cho ngần này cơ hội nhớ (bàn 16–24 thẻ). */
+export const CO_HOI_MOI_VAN_MAC_DINH = 6;
+/**
+ * CÒN PHẢI CHƠI KHOẢNG MẤY VÁN nữa để có điểm (chủ dự án 23.11.2026: "báo họ phải chơi thêm bao nhiêu để họ chơi").
+ * Mốc tính bằng cơ hội nhớ, đổi ra ván bằng số cơ hội TRUNG BÌNH MỖI VÁN của chính người đó. 0 = đã đủ.
+ */
+export function vanConThieu(ky: Pick<ChiSo, 'coHoi' | 'van'>): number {
+  if (ky.coHoi >= MOC_CO_DIEM) return 0;
+  const moiVan = ky.van > 0 ? Math.max(1, ky.coHoi / ky.van) : CO_HOI_MOI_VAN_MAC_DINH;
+  return Math.max(1, Math.ceil((MOC_CO_DIEM - ky.coHoi) / moiVan));
+}
+
+/**
+ * NÊN LUYỆN BÀN BAO NHIÊU THẺ: chặng đầu tiên CHƯA MỞ quyết định (chặng dài cần bàn to: mô phỏng — bàn 16 thẻ không
+ * bao giờ có chặng 16+ lượt); mở hết rồi thì luyện chặng có tỉ lệ thấp nhất. Chặng → số thẻ: 16 · 16 · 24 · 36 · 36.
+ */
+export const THE_LUYEN: readonly number[] = [16, 16, 24, 36, 36];
+export function theNenLuyen(chang: readonly ChangNho[]): number {
+  let i = chang.findIndex((c) => !c.mo);
+  if (i < 0) i = chang.reduce((y, c, j) => ((c.tiLe ?? 1) < (chang[y]!.tiLe ?? 1) ? j : y), 0);
+  return THE_LUYEN[i] ?? 24;
+}
+
+/* ---------- vừa đổi sau ván + đã xem ---------- */
+
+/** Đổi là các chỗ đang hiện chỉ số (nút trang chủ) tính lại — nhật ký nằm ở localStorage, không tự phản ứng. */
+export const phienTriNho = ref(0);
+/** Chỉ số của kỳ hôm nay, đọc thẳng từ bản lưu. */
+export const chiSoHomNay = (): ChiSo => chiSoTai(store.nhatKyTriNho());
+
+export interface VuaDoi { truoc: number | null; sau: number | null; bacTruoc: number | null; bacSau: number | null }
+/** Chỉ số trước/sau VÁN VỪA XONG — bảng kết quả đọc. `null` = ván vừa rồi không được chấm. */
+export const vuaDoi = ref<VuaDoi | null>(null);
+
+/**
+ * Ghi một ván vào nhật ký (như `store.ghiTriNho`) và nhớ chỉ số đổi thế nào. Gọi TRƯỚC khi bảng kết quả mở.
+ * Ván không có cơ hội nhớ nào thì không ghi, `vuaDoi` = null.
+ */
+export function ghiVanTriNho(
+  p: { nhoTheo?: readonly number[]; quenTheo?: readonly number[]; mayTheo?: readonly number[]; tamNho?: number } | undefined, soCap: number
+): void {
+  vuaDoi.value = null;
+  if (!p || coHoiNho(p.nhoTheo, p.quenTheo) === 0) return;
+  const truoc = chiSoHomNay();
+  store.ghiTriNho(p, soCap);
+  const sau = chiSoHomNay();
+  vuaDoi.value = { truoc: truoc.diem, sau: sau.diem, bacTruoc: truoc.bac, bacSau: sau.bac };
+  phienTriNho.value++;
+}
+
+/** Điểm người chơi đã XEM lần cuối ở màn chỉ số — nút trang chủ chỉ nhấp nháy khi điểm khác số này. */
+export function daXemTriNho(): void {
+  const d = chiSoHomNay().diem;
+  if (d !== null && store.prefs().triNhoXem !== d) store.savePrefs({ triNhoXem: d });
+  phienTriNho.value++;
 }

@@ -15,8 +15,8 @@ import DongXu from './DongXu.vue';
 import Sao3D from './Sao3D.vue';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { ChartColumn, ChevronDown, Flame, Hand, LogOut, Pointer, Settings2, Share, Timer, Zap } from 'lucide-vue-next';
-import { hienTriNho, triNhoVan } from '@/lib/tri-nho';
-import { store } from '@/lib/storage';
+import { hienTriNho, vuaDoi } from '@/lib/tri-nho';
+import HuyChuongBac from './HuyChuongBac.vue';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
@@ -184,25 +184,22 @@ const chungMay = computed(() => props.multiplayer && !props.multiplayerOnline &&
 const hienSao = computed(() => props.showStars && props.summary.status === 'won' && props.minhKetCuc !== 'thua' && !chungMay.value);
 
 /**
- * ĐIỂM TRÍ NHỚ (thử nghiệm, chỉ khi debug bật): của NGƯỜI CẦM MÁY — online là dòng mang mã mình,
- * đấu máy là dòng không phải máy, một mình là dòng duy nhất. Nhiều người chung máy thì không hiện
- * (không biết ai là "mình"); ván đội online cũng không (dòng xếp hạng là cả đội).
+ * CHỈ SỐ TRÍ NHỚ (thử nghiệm, chỉ khi debug bật) — MỘT dòng: chỉ số 7 ngày SAU ván này và nó vừa đổi bao nhiêu
+ * (25.11.2026: không còn điểm riêng của từng ván — một ván quá ít số liệu để chấm 5 chặng). Ai gọi `ghiVanTriNho`
+ * trước khi bảng mở (App.vue / OnlineGame.vue) quyết định ván có được chấm không: nhiều người chung máy, ván đội
+ * online, người xem → `vuaDoi` = null → không có dòng này.
+ *  · `lenBac`: vừa qua mốc bậc → dòng đổi thành "Lên bậc Vàng!" kèm huy chương.
+ *  · `lanDau`: trước ván chưa đủ số liệu, giờ đã có điểm → nhãn "Mới".
  */
 const triNho = computed(() => {
-  if (!hienTriNho.value || !props.soCap || chungMay.value) return null;
-  const r = props.summary.ranking;
-  const toi = props.multiplayerOnline ? r.find((x) => x.id === props.toiId)
-    : props.multiplayer ? r.find((x) => !laBotId(x.id) && x.id !== 'bot') : r[0];
-  return triNhoVan(toi, props.soCap);
-});
-/** KỶ LỤC (24.11.2026): điểm ván này ≥ ván cao nhất từng ghi. Nhật ký đã ghi ván này TRƯỚC khi bảng mở (App.vue
- *  `ghiTriNho`) nên mức cao đã gồm nó — so ≥, và phải có ít nhất 2 ván (ván đầu đời không tính là kỷ lục). */
-const kyLuc = computed(() => {
-  const d = triNho.value?.diem;
-  if (!d) return false;
-  const nk = Object.values(store.nhatKyTriNho());
-  const tongVan = nk.reduce((a, n) => a + Object.values(n.ban ?? {}).reduce((b, x) => b + x.van, 0), 0);
-  return tongVan >= 2 && d >= Math.max(0, ...nk.map((n) => n.cao ?? 0));
+  const v = vuaDoi.value;
+  if (!hienTriNho.value || !props.soCap || chungMay.value || !v) return null;
+  return {
+    sau: v.sau, bac: v.bacSau,
+    lech: v.truoc !== null && v.sau !== null ? v.sau - v.truoc : 0,
+    lenBac: v.bacTruoc !== null && v.bacSau !== null && v.bacSau > v.bacTruoc,
+    lanDau: v.truoc === null && v.sau !== null
+  };
 });
 
 /**
@@ -479,8 +476,11 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
            thẳng dễ nhìn"; bản thêm một ô rời bị chê "xấu và loạn"). Trí nhớ là hàng ĐẦU, tô xanh ngọc. -->
       <dl v-else-if="triNho" class="stats bang">
         <div class="h-tn">
-          <ChartColumn :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('tn.diem') }}<em v-if="kyLuc" class="ky-luc">{{ t('tn.kyLuc') }}</em></dt><i aria-hidden="true" />
-          <dd v-if="triNho.diem !== null">{{ num(triNho.diem) }}<small>/1000</small></dd>
+          <ChartColumn :size="18" :stroke-width="2.4" aria-hidden="true" />
+          <dt v-if="triNho.lenBac" class="len-bac"><HuyChuongBac :bac="triNho.bac!" /> {{ t('tn.lenBac', { ten: td(`tn.bac.${triNho.bac}`) }) }}</dt>
+          <dt v-else>{{ t('tn.ten') }}<em v-if="triNho.lanDau" class="ky-luc">{{ t('tn.moi') }}</em></dt>
+          <i aria-hidden="true" />
+          <dd v-if="triNho.sau !== null">{{ num(triNho.sau) }}<span v-if="triNho.lech" class="lech" :class="{ giam: triNho.lech < 0 }">{{ triNho.lech > 0 ? '▲' : '▼' }} {{ num(Math.abs(triNho.lech)) }}</span></dd>
           <dd v-else class="chua">{{ t('tn.chuaDu') }}</dd>
         </div>
         <template v-if="!multiplayer">
@@ -838,7 +838,14 @@ h2 { margin: 0 0 4px; }
 .stats.bang dd.chua { font-size: 13px; font-weight: 700; color: var(--muted); }
 .stats.bang .h-tn svg, .stats.bang .h-tn dt, .stats.bang .h-tn dd { color: #0b7468; }
 .stats.bang .h-tn dt { font-weight: 800; }
-.stats.bang .h-tn dd small { margin: 0 0 0 2px; font-size: .7em; opacity: .65; }
+.stats.bang .h-tn dd .lech { margin-left: 7px; padding: 2px 7px; border-radius: 999px; font: 800 12px/1.3 var(--font-body); color: #fff; background: #1f8a36; vertical-align: 1px; }
+.stats.bang .h-tn dd .lech.giam { background: #6b7093; }   /* giảm: màu trung tính, không đỏ — không phạt người chơi vì một ván kém */
+/* Dòng trí nhớ có thể DÀI ("Lên bậc Bạch kim!" + "740 ▲ 347"): nhãn phải CO được (ellipsis) — không thì cả bảng nở quá
+   khung và mọi con số bên phải dính/tràn mép (soát ảnh 25.11.2026). Đường chấm nhường chỗ trước. */
+.stats.bang .h-tn { grid-template-columns: 18px minmax(0, auto) minmax(0, 1fr) auto; }
+.stats.bang .h-tn dt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.stats.bang .h-tn dt.len-bac { display: flex; align-items: center; gap: 5px; color: #8a5a00; }
+:global([data-theme='dark'] .stats.bang .h-tn dt.len-bac) { color: #ffd36b; }
 .ky-luc { margin-left: 6px; padding: 2px 7px; border-radius: 999px; background: #ffd36b; color: #6b4a00; font: 900 10.5px/1.3 var(--font-body); font-style: normal; vertical-align: 1px; }
 :global([data-theme='dark'] .stats.bang .h-tn svg), :global([data-theme='dark'] .stats.bang .h-tn dt),
 :global([data-theme='dark'] .stats.bang .h-tn dd) { color: #6fe0d0; }
