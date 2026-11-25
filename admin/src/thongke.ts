@@ -196,6 +196,8 @@ const choi: LamO = async (_ga, kh, g, { o, R }) => {
   if (theme) ds.theme = kv(theme, themeMoi).slice(0, 6);           // chuỗi "a,b" → tách đếm từng chủ đề
   if (banWeb) ds.ban_web = kv(banWeb).slice(0, 5);
   if (chucNang) ds.cach_vao = kv(chucNang).filter((x) => ['online_vao_link_moi', 'online_vao_ma', 'online_vao_phong_ds'].includes(x.k));
+  // MỌI tính năng được đo (25.11.2026, chủ dự án: "update admin cho các thống kê vào đi") — cùng báo cáo, không thêm request GA
+  if (chucNang) ds.tinh_nang = kv(chucNang).filter((x) => x.k && x.k !== '(not set)');
   g.danhSach = ds;
 };
 

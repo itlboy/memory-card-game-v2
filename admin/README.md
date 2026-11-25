@@ -75,7 +75,7 @@ báo lỗi tên dimension, các ô khác vẫn chạy.
 | `che_do` | Event | Chế độ chơi, Ván online |
 | `so_the` | Event | Cỡ bàn hay chơi |
 | `theme` | Event | Chủ đề hay chọn |
-| `chuc_nang` | Event | Phòng online đã tạo, Cách vào phòng |
+| `chuc_nang` | Event | Phòng online đã tạo, Cách vào phòng, Tính năng được dùng (tên hiển thị: `TINH_NANG` trong `src/trang.ts`) |
 | `ban_web` | User | Phiên bản web |
 | `thong_diep` | Event | Lỗi JavaScript |
 | `ngan_xep` | Event | Lỗi JavaScript — chỗ lỗi `tệp:dòng:cột` (chưa đăng ký thì ô vẫn chạy, chỉ thiếu dòng này) |
