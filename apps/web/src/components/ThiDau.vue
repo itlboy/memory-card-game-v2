@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { Check, Dices, Hourglass, Swords, X } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
+import { moChucNang } from '@/lib/phan-tich';
 import { sfx } from '@/lib/audio';
 import { tenKhach, trongPhongOnline } from '@/lib/sanh';
 import { chonSoThe, roiTran, tdBao, tdCho, tdGom, tdHoi, tdTran, thoiThiDau, traLoiHoi } from '@/lib/thidau';
@@ -47,6 +48,7 @@ const dangChon = computed(() => nhap.value || toiChon.value);
 /** Ai (trừ mình) đã chốt số `n` — hiện mặt trên ô. */
 const aiChon = (n: number): string[] => (tr.value ? tr.value.nguoi.filter((p) => p.sid !== tr.value!.toi && tr.value!.chon[p.sid] === n).map((p) => p.mat) : []);
 function chot(): void {
+  moChucNang('thi_dau_chot');
   if (!dangChon.value || toiChon.value) return;
   sfx.select();
   chonSoThe(dangChon.value);

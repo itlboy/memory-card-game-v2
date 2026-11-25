@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { vChamNgoai } from '@/lib/cham-ngoai';
 import { computed, ref, watch } from 'vue';
+import { moChucNang } from '@/lib/phan-tich';
 import { X } from 'lucide-vue-next';
 import { CACH_MOI_LAI_MS, moiNguoi, tenKhach, type NguoiOnline } from '@/lib/sanh';
 import { t } from '@/lib/i18n';
@@ -53,6 +54,7 @@ const LOI: Record<string, string> = { day: 'moi.loi.day', vuaMoi: 'moi.loi.vuaMo
 async function moi(n: NguoiOnline): Promise<void> {
   if (dangGui.value) return;
   dangGui.value = n.sid;
+  moChucNang('online_moi_nguoi');
   sfx.select();
   const kq = await moiNguoi(p.ma, p.token, n.sid);
   dangGui.value = null;

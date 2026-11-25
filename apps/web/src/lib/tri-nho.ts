@@ -7,7 +7,7 @@
  * MỘT CON SỐ cho cả game: không còn điểm riêng của từng ván (một ván quá ít số liệu để chấm 5 chặng) — sau ván chỉ
  * báo chỉ số 7 ngày vừa đổi bao nhiêu.
  */
-import { MOC_BAC_TRI_NHO, bacTriNho, chiSoTriNho, coHoiNho, rongNhomTuoi, type ChangNho } from '@mm/engine';
+import { MOC_BAC_TRI_NHO, bacTriNho, chiSoTriNho, chiSoVan, coHoiNho, rongNhomTuoi, type ChangNho } from '@mm/engine';
 import { ref } from 'vue';
 import { mayUocLuong, ngayMay, store, type NgayTriNho } from './storage';
 
@@ -110,7 +110,9 @@ export const phienTriNho = ref(0);
 /** Chỉ số của kỳ hôm nay, đọc thẳng từ bản lưu. */
 export const chiSoHomNay = (): ChiSo => chiSoTai(store.nhatKyTriNho());
 
-export interface VuaDoi { truoc: number | null; sau: number | null; bacTruoc: number | null; bacSau: number | null }
+export interface VuaDoi { truoc: number | null; sau: number | null; bacTruoc: number | null; bacSau: number | null;
+  /** Chỉ số RIÊNG của ván vừa xong (`chiSoVan`, 0–1000) — thứ bảng kết quả hiện; `null` = ván quá ít cơ hội nhớ. */
+  van: number | null }
 /** Chỉ số trước/sau VÁN VỪA XONG — bảng kết quả đọc. `null` = ván vừa rồi không được chấm. */
 export const vuaDoi = ref<VuaDoi | null>(null);
 
@@ -126,7 +128,7 @@ export function ghiVanTriNho(
   const truoc = chiSoHomNay();
   store.ghiTriNho(p, soCap);
   const sau = chiSoHomNay();
-  vuaDoi.value = { truoc: truoc.diem, sau: sau.diem, bacTruoc: truoc.bac, bacSau: sau.bac };
+  vuaDoi.value = { truoc: truoc.diem, sau: sau.diem, bacTruoc: truoc.bac, bacSau: sau.bac, van: chiSoVan(p.nhoTheo, p.quenTheo, p.mayTheo) };
   phienTriNho.value++;
 }
 

@@ -10,6 +10,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  */
 import { ChevronLeft, ChevronRight, Pencil, Check, X } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref } from 'vue';
+import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { AVATAR_HO_SO, MAU_HO_SO, hoSo, luuHoSo, tenDienSan } from '@/lib/ho-so';
 import { DO_DAI_TOI_DA } from '@/lib/ten-goc';
@@ -68,9 +69,11 @@ onMounted(async () => {
 function luu(): void {
   if (!coTen.value) { oTen.value?.focus(); return; }
   luuHoSo(ten.value, mat.value, mau.value);
+  moChucNang('ho_so_luu', { kieu: props.kieu });
   void guiHoSo();   // lên bảng xếp hạng (khách: kèm lần gửi điểm; đăng nhập: /api/me/ho-so)
   emit('xong');
 }
+onMounted(() => moChucNang('ho_so', { kieu: props.kieu }));   // THỐNG KÊ: màn chào (bắt buộc) / tấm sửa mở bao nhiêu lần, bao nhiêu lần lưu
 function dong(): void { if (props.kieu === 'sua') emit('xong'); }
 </script>
 

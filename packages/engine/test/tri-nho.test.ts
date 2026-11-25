@@ -115,3 +115,23 @@ describe('điểm trí nhớ', () => {
     expect(chiSoTriNho([0, 6], [0, 4]).chang[1]!.tiLe).toBeCloseTo(0.6, 10);
   });
 });
+
+describe('chiSoVan — chỉ số riêng của một ván', () => {
+  it('dưới 4 cơ hội thì chưa chấm', async () => {
+    const { chiSoVan } = await import('../src/scoring.js');
+    expect(chiSoVan([2, 1, 0, 0, 0], [0, 0, 0, 0, 0])).toBeNull();
+    expect(chiSoVan(undefined, undefined)).toBeNull();
+  });
+  it('nhớ hết = 1000 kể cả bàn nhỏ chỉ có chặng gần; quên hết = 0', async () => {
+    const { chiSoVan } = await import('../src/scoring.js');
+    expect(chiSoVan([3, 3, 0, 0, 0], [0, 0, 0, 0, 0])).toBe(1000);
+    expect(chiSoVan([0, 0, 0, 0, 0], [3, 3, 0, 0, 0])).toBe(0);
+  });
+  it('nhớ xa nặng hơn nhớ gần, và ăn may bị trừ', async () => {
+    const { chiSoVan } = await import('../src/scoring.js');
+    const xa = chiSoVan([0, 0, 0, 0, 4], [4, 0, 0, 0, 0])!;
+    const gan = chiSoVan([4, 0, 0, 0, 0], [0, 0, 0, 0, 4])!;
+    expect(xa).toBeGreaterThan(gan);
+    expect(chiSoVan([4, 0, 0, 0, 0], [4, 0, 0, 0, 0], [2, 0, 0, 0, 0])!).toBeLessThan(chiSoVan([4, 0, 0, 0, 0], [4, 0, 0, 0, 0])!);
+  });
+});

@@ -156,3 +156,29 @@ export function chiSoTriNho(
   const mo = chang.filter((c) => c.mo);
   return { diem: mo.length ? mo.reduce((s, c) => s + c.diem, 0) : null, chang };
 }
+
+/** Cần ngần này cơ hội nhớ thì MỘT VÁN mới có chỉ số riêng — ít hơn thì một lần nhớ/quên đã lật cả con số. */
+export const MOC_CO_DIEM_VAN = 4;
+
+/**
+ * CHỈ SỐ TRÍ NHỚ CỦA MỘT VÁN, 0–1000 (chủ dự án 25.11.2026: "cho chỉ số trí nhớ của từng ván, hiện của ván đó thôi").
+ * Một ván không đủ lần để mở từng chặng như kỳ 7 ngày (`chiSoTriNho`), nên gộp MỌI cơ hội của ván thành một tỉ lệ
+ * nhớ đã trừ ăn may, mỗi cơ hội nặng theo điểm chặng của nó (`DIEM_CHANG` — nhớ xa đáng giá hơn nhớ gần):
+ *   1000 × Σ wᵢ·(nhớᵢ − mayᵢ) / Σ wᵢ·(nᵢ − mayᵢ).
+ * Vì chia cho đúng những cơ hội ĐÃ CÓ, bàn nhỏ (chỉ có chặng gần) vẫn lên được 1000. `null` = dưới `MOC_CO_DIEM_VAN` cơ hội.
+ */
+export function chiSoVan(
+  nho: readonly number[] | undefined, quen: readonly number[] | undefined, may?: readonly number[]
+): number | null {
+  let tu = 0, mau = 0, coHoi = 0;
+  DIEM_CHANG.forEach((w, i) => {
+    const dung = nho?.[i] ?? 0;
+    const n = dung + (quen?.[i] ?? 0);
+    if (!n) return;
+    coHoi += n;
+    const m = Math.min(Math.max(0, may?.[i] ?? 0), n - 0.5);
+    tu += w * Math.max(0, dung - m); mau += w * (n - m);
+  });
+  if (coHoi < MOC_CO_DIEM_VAN || mau <= 0) return null;
+  return Math.round(Math.min(1, tu / mau) * 1000);
+}

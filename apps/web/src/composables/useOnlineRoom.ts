@@ -1101,6 +1101,7 @@ export function useOnlineRoom() {
         // Khán giả không có token nhưng VẪN nối lại được (vào lại không token =
         // lại làm khán giả, hoặc thành người chơi nếu phòng chờ có chỗ).
         coThuLai.value = true;
+        if (msg.spectator && !spectator.value) moChucNang('online_xem');   // THỐNG KÊ: vào xem trận (trước khi gán — nối lại không đếm lần nữa)
         spectator.value = !!msg.spectator;
         if (msg.spectator) muonXem = true;   // đã là người xem thì GIỮ vai đó tới khi tự bấm "Vào chơi"
         tatNoiLai();
@@ -1896,7 +1897,7 @@ export function useOnlineRoom() {
     createRoom, join, leave, thoatPhong, guiRoiCho, retry, resumeStored, coPhienLuu,
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Bỏ phiếu số thẻ lúc server đang mở lượt chọn (`room.chon`) — xem ChonSoThe.vue. */
-    chonThe: (the: number) => send({ t: 'chon', the }),
+    chonThe: (the: number) => { moChucNang('online_chon_the', { the }); send({ t: 'chon', the }); },
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => roiCoBao('leave'),
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */

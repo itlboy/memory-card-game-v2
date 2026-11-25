@@ -2,6 +2,7 @@
 import { Check, Flag, ListFilter, Swords, X } from 'lucide-vue-next';
 import { sfx } from '@/lib/audio';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
@@ -97,6 +98,7 @@ async function tai(): Promise<void> {
 }
 function doiLoai(l: LoaiBxh): void {
   if (l === loai.value) return;
+  moChucNang('xep_hang_tab', { loai: l });
   loai.value = l; tuanXem.value = undefined; chiOnline.value = false;
   bang.value = bxhLanTruoc(l);
   void tai();
@@ -175,6 +177,7 @@ const thachDuoc = (d: DongBxh): boolean => !!d.ol?.sid && !d.toi && !trongPhongO
 const choThach = (d: DongBxh): number => { void nhip.value; const h = daThach.value[ten(d)] ?? 0; return h > Date.now() ? h : 0; };
 function thach(d: DongBxh): void {
   if (!d.ol?.sid) return;
+  moChucNang('xep_hang_thach');
   emit('thach', { sid: d.ol.sid, ten: ten(d), mat: d.mat ?? '🙂' });
 }
 /** Số người đang online trong các dòng đang hiện (trừ mình). */

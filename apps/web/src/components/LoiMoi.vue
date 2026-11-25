@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { moChucNang } from '@/lib/phan-tich';
 import { loiMoi, tuChoiMoi } from '@/lib/sanh';
 import { t } from '@/lib/i18n';
 import { Swords } from 'lucide-vue-next';
@@ -34,8 +35,8 @@ const conLai = computed(() => (m.value ? Math.max(0, m.value.het - Date.now()) :
         </div>
         <div class="lm-vach" aria-hidden="true"><i :style="{ animationDuration: `${conLai}ms`, width: `${(conLai / m.han) * 100}%` }" /></div>
         <div class="lm-nut">
-          <button class="thach lm-sau" type="button" @click="tuChoiMoi()">{{ t('moi.deSau') }}</button>
-          <button class="thach th-xanh lm-vao" type="button" @click="emit('vao')">{{ t(m.thach ? 'moi.nhanLoi' : 'moi.vao') }}</button>
+          <button class="thach lm-sau" type="button" @click="moChucNang('loi_moi', { kq: 'de_sau' }); tuChoiMoi()">{{ t('moi.deSau') }}</button>
+          <button class="thach th-xanh lm-vao" type="button" @click="moChucNang('loi_moi', { kq: 'vao' }); emit('vao')">{{ t(m.thach ? 'moi.nhanLoi' : 'moi.vao') }}</button>
         </div>
       </div>
     </Transition>
