@@ -1086,7 +1086,7 @@ const hasNext = computed(() => {
   <SaoBang v-if="canh !== 'goc' && screen !== 'mua-the'" />
   <TopBar
     :debug="debug"
-    @update:debug="xinDebug" @mo-debug="showDebug = true"
+    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="showPremium = true"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"

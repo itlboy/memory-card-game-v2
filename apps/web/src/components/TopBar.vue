@@ -56,7 +56,7 @@ async function doiAnBxh(): Promise<void> {
   try { await anKhach(an); } catch { /* mất mạng: cờ đã lưu ở máy, lần gửi điểm sau mang theo */ } finally { dangDoiAn.value = false; }
 }
 const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
-  'update:debug': [boolean]; 'mo-debug': [] }>();
+  'update:debug': [boolean]; 'mo-debug': []; premium: [] }>();
 
 /*
  * CỬA VÀO CHẾ ĐỘ DEBUG: chạm 7 LẦN LIÊN TIẾP vào chữ "Cài đặt" HOẶC dòng "Giao diện" trong
@@ -401,6 +401,10 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
               <small>{{ signedIn ? t('tb.hoSoXepHang') : t('tb.giuDiem') }}</small></span>
           </button>
 
+          <!-- PREMIUM (25.11.2026): lối vào như bản bán thật, nhưng CHỈ hiện khi đang bật debug cho tới khi mở bán -->
+          <button v-if="debug" class="item thach nut-premium" role="menuitem" type="button" @click="dong(); emit('premium')">
+            <Crown :size="20" /><span>{{ t('tp.premium') }}</span><ChevronRight :size="18" aria-hidden="true" />
+          </button>
           <div class="nhom-hang">
             <p class="nhom" role="presentation" @pointerup="chamCaiDat">{{ t('tb.caiDat') }}</p>
             <!-- Debug đang bật: nút vào TRANG debug riêng (DebugDialog) — menu không chứa công cụ debug -->
@@ -789,6 +793,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 /* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
    trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
 .item.thach { border-radius: 14px; margin: 2px 0 6px; }
+.item.nut-premium > svg:first-child { color: #d99a00; }
 .kiem-cn .kq-cn { margin-left: auto; font-size: 12px; font-weight: 700; opacity: .7; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .kiem-cn .kq-cn.moiNhat { color: #15803d; opacity: 1; }
 .kiem-cn .cham { display: inline-flex; gap: 3px; }
@@ -850,7 +855,10 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .nac button[aria-checked='true'] { background: var(--nhan-nen); color: var(--nhan-chu); }
 .nac button.bai { font-size: 15px; }
 .item.nhac.hai-tang { flex-wrap: wrap; row-gap: 6px; padding-block: 8px; }
-.item.nhac.hai-tang .nac.ds-nhac { flex: 1 0 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+/* `width: 0; min-width: 100%`: dải nút KHÔNG góp vào bề rộng menu (menu `width: max-content`, mà hàng flex-wrap tính
+   max-content như thể không xuống dòng → cả menu phình theo dải 6 nút, và phình thêm khi nút đang chọn to ra — ảnh chủ dự
+   án 25.11.2026: "thanh dài quá… chọn Tắt thì settings lại rộng ra"). Menu rộng theo các hàng khác, dải nút lấp đầy. */
+.item.nhac.hai-tang .nac.ds-nhac { flex: 1 0 100%; width: 0; min-width: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
 .item.nhac.hai-tang .ds-nhac button { min-width: 0; padding: 0 4px; }
 /* Một hàng: nút bài (biểu tượng) hẹp hơn nút chữ để cả dải vừa bằng dải Âm thanh */
 .item.nhac:not(.hai-tang) .ds-nhac button.bai { min-width: 34px; padding: 0 6px; }

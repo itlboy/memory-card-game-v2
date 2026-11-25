@@ -16,7 +16,7 @@ import { apOtaNgay, banNative, kiemOta, nguonGoi, trangThaiOta } from '@/lib/ota
 import { bcp, t, td } from '@/lib/i18n';
 import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
-import { CANH, TEN_CANH, canh, datCanh } from '@/lib/canh';
+import { CANH, canh, datCanh } from '@/lib/canh';
 import { datPingSo, pingSo } from '@/lib/ping-so';
 import { chanDoanGa } from '@/lib/phan-tich';
 import { boEmojiHien, boEmojiVeMacDinh, doiBoEmojiThu } from '@/lib/emoji';
@@ -100,7 +100,7 @@ function veMacDinh(): void {
     <section class="khay-nho dbg-khoi">
       <h3>{{ t('pm.l.nen') }}</h3>
       <div class="dbg-luoi ba">
-        <button v-for="c in CANH" :key="c" class="thach th-nho th-chon" type="button" :aria-pressed="canh === c" @click="datCanh(c)">{{ TEN_CANH[c] }}</button>
+        <button v-for="c in CANH" :key="c" class="thach th-nho th-chon" type="button" :aria-pressed="canh === c" @click="datCanh(c)">{{ td(`pm.nen.${c}`) }}</button>
       </div>
     </section>
 
