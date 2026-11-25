@@ -1223,7 +1223,7 @@ const hasNext = computed(() => {
     @tat="debug = false; showDebug = false"
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
-  <BangPremium v-if="showPremium && debug" :so-theme="themes.filter((x) => x.premium).length" @close="showPremium = false" />
+  <BangPremium v-if="showPremium && debug" @close="showPremium = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />
