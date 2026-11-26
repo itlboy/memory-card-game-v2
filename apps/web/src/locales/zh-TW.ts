@@ -795,6 +795,7 @@ const zhTW: TuDien = {
   'tt.sapUp': "卡片馬上翻面",
   'tt.upBai': "翻面中…",
   'tt.hoi': "這張卡在哪裡？",
+  'tt.timTheNay': "找出這張卡",
   'tt.cham': "點你記得的那張卡",
   'tt.choDoiThu': "已選擇，等待對手…",
   'tt.daChon': "已選擇",

@@ -792,6 +792,7 @@ const ko: TuDien = {
   'tt.sapUp': "곧 카드가 뒤집혀요",
   'tt.upBai': "뒤집는 중…",
   'tt.hoi': "이 카드는 어디 있을까요?",
+  'tt.timTheNay': "이 카드를 찾으세요",
   'tt.cham': "기억한 카드를 누르세요",
   'tt.choDoiThu': "선택 완료, 상대를 기다리는 중…",
   'tt.daChon': "선택 완료",

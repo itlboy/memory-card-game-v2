@@ -35,6 +35,8 @@ export const TIM_THE_CHON_SAN_MS = 2000;
 /** Nhịp úp bài trước khi hiện câu hỏi, và nhịp xem đáp án trước khi sang bàn mới. */
 export const TIM_THE_UP_MS = 800;
 export const TIM_THE_DAP_AN_MS = 2200;
+/** Thẻ cần tìm hiện to giữa bàn (lớp mờ) trước khi cho chọn — NGOÀI giờ chọn (27.11.2026). Phòng online dùng chung. */
+export const TIM_THE_NOI_MS = 1200;
 
 export interface TimTheConfig {
   soThe: number;
@@ -58,7 +60,7 @@ export const timTheSoCot = (soThe: number): number => (soThe === 3 ? 3 : soThe <
 /** Ước lượng một ván dài bao lâu (ms) — cho dòng mô tả ở màn cấu hình. */
 export function timTheUocMs(cfg: TimTheConfig): number {
   const luot = cfg.soLuot ?? TIM_THE_SO_LUOT;
-  return luot * (timTheXemMs(cfg) + TIM_THE_UP_MS + timTheChonMs(cfg) / 2 + TIM_THE_DAP_AN_MS);
+  return luot * (timTheXemMs(cfg) + TIM_THE_UP_MS + TIM_THE_NOI_MS + timTheChonMs(cfg) / 2 + TIM_THE_DAP_AN_MS);
 }
 
 /** Thưởng đúng nhanh nhất phòng. */

@@ -795,6 +795,7 @@ const id: TuDien = {
   'tt.sapUp': "Kartu segera ditutup",
   'tt.upBai': "Menutup…",
   'tt.hoi': "Di mana kartu ini?",
+  'tt.timTheNay': "Cari kartu ini",
   'tt.cham': "Ketuk kartu yang kamu ingat",
   'tt.choDoiThu': "Sudah memilih, menunggu lawan…",
   'tt.daChon': "Sudah memilih",

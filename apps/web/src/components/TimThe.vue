@@ -3,14 +3,17 @@
  * MÀN TÌM THẺ — kiểu chơi không ghép cặp (26.11.2026, bản chơi thử chủ dự án duyệt:
  * https://claude.ai/artifact/ESzywRX1pBqhx72tD1u1tz). Luật ở engine (`tim-the.ts`, `VanTimThe`).
  *
- * Một lượt đi qua bốn NHỊP: `xem` (cả bàn ngửa) → `up` (úp, nghỉ một nhịp — chỉ của màn hình) →
- * `hoi` (hiện thẻ cần tìm, chạm một lần) → `dap-an` (cả bàn ngửa: thẻ đúng viền xanh, chọn sai viền đỏ).
+ * Một lượt đi qua năm NHỊP: `xem` (cả bàn ngửa) → `up` (úp, nghỉ một nhịp — chỉ của màn hình) →
+ * `noi` (thẻ cần tìm hiện TO CHÍNH GIỮA BÀN trên lớp mờ, chưa chạm được, KHÔNG tính giờ chọn) →
+ * `hoi` (chạm một lần) → `dap-an` (cả bàn ngửa: thẻ đúng viền xanh, chọn sai viền đỏ).
+ * Nhịp `noi` (27.11.2026, chủ dự án duyệt https://claude.ai/artifact/45faUe94GByb1Qp2Q7C6fy): thẻ cần tìm chỉ ở bảng
+ * trên cùng làm mắt rời khỏi bàn, mất tập trung — giờ nó hiện đúng chỗ mắt đang nhìn rồi tan tại chỗ.
  * Đồng hồ tự cộng `dt` trong vòng rAF nên TẠM DỪNG là đứng hẳn (không dùng setTimeout cho nhịp ván).
  * Thanh giờ ghi thẳng `transform` — Vue chỉ vẽ lại khi nhịp / lựa chọn đổi (`rev`).
  */
 import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import {
-  BOT_SPECS, TIM_THE_DAP_AN_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheChonMs, timTheSoCot, timTheXemMs,
+  BOT_SPECS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheChonMs, timTheSoCot, timTheXemMs,
   type BotLevel, type TimTheKetQua
 } from '@mm/engine';
 import {
@@ -60,7 +63,7 @@ const tenDoiThu = computed(() => (chon.value.doiThu === 'mot' ? t('tt.motMinh') 
 const van = shallowRef<VanTimThe | null>(null);
 const rev = ref(0);
 const buoc = ref<'dau' | 'choi' | 'dung' | 'cuoi'>('dau');
-type Nhip = 'xem' | 'up' | 'hoi' | 'dap-an';
+type Nhip = 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an';
 const nhip = ref<Nhip>('xem');
 const giay = ref(0);
 const chonCuaToi = ref<number | null>(null);
@@ -139,7 +142,8 @@ function khung(ms: number): void {
   if (v && buoc.value === 'choi') {
     tNhip += dt; tVan += dt;
     if (nhip.value === 'xem' && tNhip >= v.xemMs) { vaoNhip('up'); sfx.swap(); }
-    else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { v.moHoi(); soDaChon = 0; vaoNhip('hoi'); sfx.turn(); }
+    else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { vaoNhip('noi'); sfx.turn(); }
+    else if (nhip.value === 'noi' && tNhip >= TIM_THE_NOI_MS) { v.moHoi(); soDaChon = 0; vaoNhip('hoi'); }
     else if (nhip.value === 'hoi') {
       const k = v.nguoi.filter((p) => v.daChon(p.id, tNhip)).length;
       if (k !== soDaChon) { soDaChon = k; rev.value++; }
@@ -293,13 +297,13 @@ defineExpose({
         <IconVong ic="upBai" :size="44" />
         <div class="chu"><strong>{{ t('tt.upBai') }}</strong></div>
       </template>
-      <template v-else-if="nhip === 'hoi' && van">
+      <template v-else-if="(nhip === 'noi' || nhip === 'hoi') && van">
         <span :key="van.luot" class="dich" aria-hidden="true">
           <img v-if="anhEmoji(van.hinhDich, undefined, coAnh)" :src="anhEmoji(van.hinhDich, undefined, coAnh)!" alt="" draggable="false">
           <template v-else>{{ van.hinhDich }}</template>
         </span>
         <div class="chu"><strong>{{ t('tt.hoi') }}</strong><span>{{ chonCuaToi !== null && nhieu ? t('tt.choDoiThu') : t('tt.cham') }}</span></div>
-        <b class="giay">{{ giay }}</b>
+        <b v-if="nhip === 'hoi'" class="giay">{{ giay }}</b>
       </template>
       <template v-else-if="bangKq">
         <IconVong :key="van?.luot" :ic="bangKq.ic" :size="44" />
@@ -333,6 +337,17 @@ defineExpose({
           </button>
         </div>
       </div>
+
+      <!-- THẺ CẦN TÌM giữa bàn: lớp mờ + thẻ to, tan tại chỗ khi sang nhịp hỏi (không chạm được bàn lúc này) -->
+      <Transition name="tt-noi">
+        <div v-if="nhip === 'noi' && van && buoc !== 'dau'" :key="van.luot" class="tt-noi" aria-hidden="true">
+          <span class="lon">
+            <img v-if="anhEmoji(van.hinhDich, undefined, chonCoAnh(150))" :src="anhEmoji(van.hinhDich, undefined, chonCoAnh(150))!" alt="" draggable="false">
+            <template v-else>{{ van.hinhDich }}</template>
+          </span>
+          <b class="nhan-noi">{{ t('tt.timTheNay') }}</b>
+        </div>
+      </Transition>
 
       <!-- KẾT QUẢ: phủ trong khung bàn — bàn cuối đã ngửa vẫn thấy phía sau -->
       <div v-if="buoc === 'cuoi' && ketVan" class="tt-phu ket" role="dialog" aria-modal="true" aria-labelledby="ttCuoi">
@@ -470,6 +485,28 @@ defineExpose({
 }
 .dich img { width: 70%; height: auto; object-fit: contain; }
 
+/* Nhịp `noi`: lớp mờ phủ cả bàn + thẻ cần tìm to ở giữa (mockup duyệt 27.11.2026) */
+.tt-noi {
+  position: absolute; inset: -6px; z-index: 6; border-radius: 22px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; pointer-events: auto;
+  background: rgba(13, 24, 56, .38); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
+}
+.tt-noi .lon {
+  width: min(150px, 42%); aspect-ratio: 3 / 4; border-radius: 18px; display: grid; place-items: center; font-size: 84px; line-height: 1;
+  background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 4px solid #ffc21a;
+  box-shadow: 0 6px 0 #c98f00, 0 14px 30px rgba(10, 20, 60, .35); animation: bat .38s cubic-bezier(.3, 1.5, .5, 1) both;
+}
+.tt-noi .lon img { width: 66%; height: auto; object-fit: contain; }
+.nhan-noi {
+  font-family: var(--font-display); font-weight: 900; font-size: 22px; color: #fff; padding: 6px 16px; border-radius: 999px;
+  background: #2f4fa6; box-shadow: 0 3px 0 #1f3577; animation: bat .38s .08s both;
+}
+@keyframes bat { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+.tt-noi-enter-active { transition: opacity .25s; }
+.tt-noi-leave-active { transition: opacity .3s; }
+.tt-noi-leave-active .lon { transition: transform .3s; transform: scale(.6); }
+.tt-noi-enter-from, .tt-noi-leave-to { opacity: 0; }
+
 .tt-thanh {
   flex: none; height: 10px; margin: -2px 4px 0; border-radius: 999px; overflow: hidden;
   background: color-mix(in srgb, var(--panel, #fff) 55%, transparent); box-shadow: inset 0 2px 3px rgba(20, 30, 70, .2);
@@ -570,6 +607,6 @@ defineExpose({
 .ic-n { vertical-align: -2px; }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
-  .o .card.dung, .card.sai .inner, .dich, .huy, .cong, .vien.combo { animation: none; }
+  .o .card.dung, .card.sai .inner, .dich, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi { animation: none; }
 }
 </style>

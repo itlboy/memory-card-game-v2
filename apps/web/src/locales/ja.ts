@@ -792,6 +792,7 @@ const ja: TuDien = {
   'tt.sapUp': "まもなく裏返ります",
   'tt.upBai': "裏返し中…",
   'tt.hoi': "このカードはどこ？",
+  'tt.timTheNay': "このカードを探そう",
   'tt.cham': "覚えたカードをタップ",
   'tt.choDoiThu': "選択済み、相手を待っています…",
   'tt.daChon': "選択済み",
