@@ -29,6 +29,8 @@ import { rung } from '@/lib/rung';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import DongXu from './DongXu.vue';
+import KetCucFx from './KetCucFx.vue';
+import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatBot from './MatBot.vue';
 import TamDung from './TamDung.vue';
 import { Check, Ellipsis, Pause, TimerOff, Trophy, X, Zap } from 'lucide-vue-next';
@@ -67,6 +69,14 @@ const nhip = ref<Nhip>('xem');
 const chonCuaToi = ref<number | null>(null);
 const ketToi = ref<TimTheKetQua | null>(null);
 const ketVan = ref<TimTheKetVan | null>(null);
+/*
+ * ĂN MỪNG HẾT VÁN (27.11.2026, chủ dự án: "thắng không có hiệu ứng ăn mừng như trước"): CÙNG màn KetCucFx của ván ghép cặp —
+ * cảnh thắng / kỷ lục / thua / hoà, bảng kết quả hiện SAU nhịp `HIEN_BANG_MS` như ghép cặp. Teleport ra #app để phủ kín màn.
+ */
+const fx = ref<{ loai: LoaiKetCuc; kyLuc: boolean; seed: number } | null>(null);
+const hienKq = ref(false);
+let henKq: ReturnType<typeof setTimeout> | undefined;
+const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
 /** ms đã trôi trong nhịp hiện tại / trong cả ván — KHÔNG tính lúc tạm dừng. */
 let tNhip = 0;
 let tVan = 0;
@@ -201,6 +211,7 @@ function luotMoi(v: VanTimThe): void {
 }
 
 function batDau(): void {
+  fx.value = null; hienKq.value = false; clearTimeout(henKq);
   hen.forEach(clearTimeout); hen = [];
   const c = chon.value;
   const khac = [...new Set(props.hinh)];
@@ -249,7 +260,12 @@ function ketThuc(v: VanTimThe): void {
   ketVan.value = kq;
   buoc.value = 'cuoi';
   rev.value++;
-  if (ketQua === 'thua') sfx.defeat(); else if (kyLucMoi) { sfx.win(); sfx.kyLuc(0.6); } else sfx.win();
+  if (ketQua === 'thua') sfx.defeat(); else sfx.win();   // tiếng kỷ lục do KetCucFx phát
+  // Một mình: không có thắng thua — vẫn là ván XONG, ăn mừng như thắng (phá kỷ lục thì cảnh kỷ lục)
+  const loai: LoaiKetCuc = ketQua === 'xong' ? 'thang' : ketQua;
+  fx.value = { loai, kyLuc: kyLucMoi, seed: Math.floor(Math.random() * 0xffffffff) };
+  hienKq.value = false; clearTimeout(henKq);
+  henKq = setTimeout(() => { hienKq.value = true; }, HIEN_BANG_MS[chonCanh(loai, { kyLuc: kyLucMoi })]);
   emit('ket-thuc', kq);
 }
 
@@ -272,6 +288,7 @@ onMounted(() => {
   batDau();
 });
 onUnmounted(() => {
+  clearTimeout(henKq);
   clearTimeout(henBay);
   ro?.disconnect();
   cancelAnimationFrame(raf);
@@ -363,7 +380,7 @@ defineExpose({
       </Transition>
 
       <!-- KẾT QUẢ: phủ trong khung bàn — bàn cuối đã ngửa vẫn thấy phía sau -->
-      <div v-if="buoc === 'cuoi' && ketVan" class="tt-phu ket" role="dialog" aria-modal="true" aria-labelledby="ttCuoi">
+      <div v-if="buoc === 'cuoi' && ketVan && hienKq" class="tt-phu ket" role="dialog" aria-modal="true" aria-labelledby="ttCuoi">
         <div class="hop khay">
           <h2 id="ttCuoi">{{ tieuDeCuoi }}</h2>
           <ol v-if="ketVan.ketQua !== 'xong'" class="hang">
@@ -385,6 +402,10 @@ defineExpose({
         </div>
       </div>
     </div>
+
+    <Teleport to="#app" :disabled="!coApp">
+      <KetCucFx v-if="buoc === 'cuoi' && fx" :loai="fx.loai" :ky-luc="fx.kyLuc" :seed="fx.seed" />
+    </Teleport>
 
     <!-- TẠM DỪNG: CÙNG màn với ván thường (TamDung.vue) -->
     <TamDung
@@ -535,7 +556,7 @@ defineExpose({
 }
 
 /* màn mở đầu: HUD + bàn vẫn dựng (để đo) nhưng ẩn */
-.tt-phu { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 6px; }
+.tt-phu { position: absolute; inset: 0; z-index: 17;   /* 17 > KetCucFx (16): bảng kết quả nổi TRÊN cảnh ăn mừng, cảnh chạy tiếp phía sau — như ghép cặp */ display: grid; place-items: center; padding: 6px; }
 .tt-phu.ket { border-radius: 22px; background: color-mix(in srgb, #0d1838 35%, transparent); }
 /* FONT: nút HÀNH ĐỘNG dùng `btn`/`btn-primary` (Kẹo cho font tiêu đề) — `thach` trần KHÔNG đặt font. Số và nhãn
    to đặt `--font-display`. test/tim-the-font.test.ts canh (cùng luật với Mưa Thẻ). */

@@ -27,6 +27,8 @@ import { ghiVuaThang } from '@/lib/xin-danh-gia';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import { bayBan, dangTimOnline } from '@/lib/tim-the';
 import DongXu from './DongXu.vue';
+import KetCucFx from './KetCucFx.vue';
+import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatNguoi from './MatNguoi.vue';
 import EmojiDock from './EmojiDock.vue';
 import EmojiBlast from './EmojiBlast.vue';
@@ -113,6 +115,15 @@ async function bayDiem(i: number, diem: number, ms: number): Promise<void> {
 }
 
 /* ---------- nhận trạng thái ---------- */
+/*
+ * ĂN MỪNG HẾT VÁN (27.11.2026, chủ dự án: "thắng không có hiệu ứng ăn mừng như trước"): CÙNG màn KetCucFx của ván ghép cặp —
+ * cảnh thắng / kỷ lục / thua / hoà, bảng kết quả hiện SAU nhịp `HIEN_BANG_MS` như ghép cặp. Teleport ra #app để phủ kín màn.
+ */
+const fx = ref<{ loai: LoaiKetCuc; seed: number } | null>(null);
+const hienKq = ref(false);
+let henKq: ReturnType<typeof setTimeout> | undefined;
+const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
+
 let truocPha = '';
 let truocLuot = -1;
 let daGhiVan = -1;
@@ -130,6 +141,7 @@ watch(v, (moi) => {
     // Đầu lượt: bàn ÚP (`cho`, 2 giây) rồi mới lật cho xem — giữa các lượt lá úp xuống ngay tại chỗ
     if (moi.pha === 'cho') {
       chonCuaToi.value = null; gain.value = null;
+      if (moi.luot === 0) { fx.value = null; hienKq.value = false; }
       if (moi.luot > 0) sfx.swap();
     } else if (moi.pha === 'xem') {
       chonCuaToi.value = null; gain.value = null;
@@ -184,6 +196,9 @@ function ketThuc(moi: TimView): void {
   const dongNhat = ds.filter((n) => n.diem === caoNhat).length;
   const ketQua = minh.diem === caoNhat ? (dongNhat > 1 ? 'hoa' : 'thang') : 'thua';
   if (ketQua === 'thua') sfx.defeat(); else sfx.win();
+  fx.value = { loai: ketQua, seed: moi.van * 7919 + moi.soThe };
+  hienKq.value = false; clearTimeout(henKq);
+  henKq = setTimeout(() => { hienKq.value = true; }, HIEN_BANG_MS[chonCanh(ketQua)]);
   suKien('van_ket_thuc', { che_do: 'tim_the_online', ket_qua: ketQua, so_the: moi.soThe, tuy_chon: moi.doKho, so_nguoi: moi.nguoi.length, diem: minh.diem });
   // Phòng có MÁY: không xu, không lên sổ (cùng luật ván ghép cặp online — chống cày bằng máy dễ)
   if (coMay.value) return;
@@ -200,7 +215,7 @@ onMounted(() => {
   raf = requestAnimationFrame(khung);
   dangTimOnline.value = true;
 });
-onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAnimationFrame(raf); clearTimeout(henBay); });
+onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.disconnect(); cancelAnimationFrame(raf); clearTimeout(henBay); });
 </script>
 
 <template>
@@ -273,7 +288,7 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
       <p class="an-di" aria-live="polite">{{ pha === 'hoi' && v?.hinhDich ? `${t('tt.hoi')} ${v.hinhDich}` : '' }}</p>
 
       <!-- HẾT VÁN: bảng xếp hạng + Chơi lại (cả phòng bấm) / Về phòng chờ -->
-      <div v-if="pha === 'xong'" class="ott-phu" role="dialog" aria-modal="true" aria-labelledby="ottCuoi">
+      <div v-if="pha === 'xong' && (hienKq || xem || !fx)" class="ott-phu" role="dialog" aria-modal="true" aria-labelledby="ottCuoi">
         <div class="hop khay">
           <h2 id="ottCuoi">{{ xepHang[0] && xepHang.filter((x) => x.hang === 1).length === 1 ? t('tt.thangTen', { ten: xepHang[0].ten }) : t('tt.hoa') }}</h2>
           <ol class="hang">
@@ -293,6 +308,9 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
       </div>
     </div>
 
+    <Teleport to="#app" :disabled="!coApp">
+      <KetCucFx v-if="pha === 'xong' && fx" :loai="fx.loai" :seed="fx.seed" />
+    </Teleport>
     <EmojiDock :o="o" />
     <EmojiBlast :o="o" />
     <LoiNoi :o="o" />
@@ -416,7 +434,7 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
   font-size: 15px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 #1f7a3e; animation: no .25s both;
 }
 
-.ott-phu { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 6px; border-radius: 22px; background: color-mix(in srgb, #0d1838 35%, transparent); }
+.ott-phu { position: absolute; inset: 0; z-index: 17;   /* trên KetCucFx (16), như ghép cặp */ display: grid; place-items: center; padding: 6px; border-radius: 22px; background: color-mix(in srgb, #0d1838 35%, transparent); }
 .hop { width: 100%; max-width: 380px; max-height: 100%; overflow: auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px; text-align: center; }
 .hop h2 { margin: 0; font-size: 26px; line-height: 1.15; text-wrap: balance; }
 .hop .btn { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 6px; }
