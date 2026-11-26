@@ -6,9 +6,8 @@
  * Lựa chọn ghi thẳng vào `mm.timThe.chon` (lib/tim-the) — màn Tìm Thẻ đọc lại lúc vào ván.
  */
 import { computed } from 'vue';
-import { TIM_THE_SO_LUOT, timTheChonMs, timTheXemMs } from '@mm/engine';
 import { TIM_THE_DO_KHO, TIM_THE_SO_THE, docKyLuc, type TimTheChon } from '@/lib/tim-the';
-import { bcp, t, td } from '@/lib/i18n';
+import { t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { sfx } from '@/lib/audio';
 import { Trophy } from 'lucide-vue-next';
@@ -16,10 +15,6 @@ import { Trophy } from 'lucide-vue-next';
 const props = defineProps<{ chon: TimTheChon }>();
 const emit = defineEmits<{ doi: [c: TimTheChon] }>();
 
-const giay = (ms: number): string => (ms / 1000).toLocaleString(bcp(), { maximumFractionDigits: 2 });
-const tomTat = computed(() => t('tt.tomTat', {
-  xem: giay(timTheXemMs(props.chon)), chon: giay(timTheChonMs(props.chon)), n: TIM_THE_SO_LUOT
-}));
 /** Kỷ lục chỉ có ở ván MỘT MÌNH (lib/tim-the). */
 const kyLuc = computed(() => (props.chon.doiThu === 'mot' ? docKyLuc(props.chon.soThe, props.chon.doKho) : 0));
 
@@ -44,7 +39,9 @@ function doi(p: Partial<TimTheChon>): void {
       :aria-checked="chon.doKho === k" @click="doi({ doKho: k })"
     ><b>{{ td(`tt.${k}`) }}</b></button>
   </span>
-  <p class="tt-tom">{{ tomTat }}<template v-if="kyLuc"> · <Trophy :size="14" :stroke-width="2.6" class="ic" aria-hidden="true" /> <b>{{ num(kyLuc) }}</b></template></p>
+  <!-- KHÔNG ghi thông số (giây xem / giây chọn / số lượt) — chủ dự án 27.11.2026: "Ko cần hiện các thông số kỹ thuật
+       nhiều làm ng chơi đau đầu". Chỉ còn kỷ lục khi có. -->
+  <p v-if="kyLuc" class="tt-tom"><Trophy :size="14" :stroke-width="2.6" class="ic" aria-hidden="true" /> <b>{{ num(kyLuc) }}</b></p>
 </template>
 
 <style scoped>
