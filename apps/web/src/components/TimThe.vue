@@ -13,7 +13,7 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import {
-  BOT_SPECS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheSoCot,
+  BOT_SPECS, TIM_THE_CHO_MS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheSoCot,
   type TimTheKetQua
 } from '@mm/engine';
 import {
@@ -61,7 +61,8 @@ const rev = ref(0);
 /** KHÔNG còn màn cấu hình riêng (27.11.2026): số thẻ / độ khó / đối thủ chọn ở màn Chơi nhanh / Đấu với máy
  *  (ChonTimThe) — vào màn này là vào ván ngay; `dau` chỉ là nhịp trước khi `onMounted` chia bàn. */
 const buoc = ref<'dau' | 'choi' | 'dung' | 'cuoi'>('dau');
-type Nhip = 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an';
+/** `cho` = bàn mới nằm ÚP `TIM_THE_CHO_MS` rồi mới lật cho xem (đầu mỗi lượt, chủ dự án 27.11.2026). */
+type Nhip = 'cho' | 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an';
 const nhip = ref<Nhip>('xem');
 const chonCuaToi = ref<number | null>(null);
 const ketToi = ref<TimTheKetQua | null>(null);
@@ -72,7 +73,12 @@ let tVan = 0;
 let soDaChon = 0;
 let giayCu = -1;
 
-const dsThe = computed(() => { void rev.value; return van.value ? [...van.value.the] : []; });
+/**
+ * Hình ĐANG VẼ trên mặt lá — chỉ đổi sang bàn mới lúc LẬT LÊN (`xem`). Lúc `cho` (lá đang úp xuống sau đáp án) vẫn là hình
+ * bàn cũ: đổi ngay thì mặt lá đổi hình giữa cú úp, thấy rõ. Lượt đầu chưa có gì: mặt trống (lá đang úp).
+ */
+const hinhHien = ref<string[]>([]);
+const dsThe = computed(() => { void rev.value; const n = van.value?.cfg.soThe ?? chon.value.soThe; return Array.from({ length: n }, (_, i) => hinhHien.value[i] ?? ''); });
 const soCot = ref(timTheSoCot(chon.value.soThe));
 const ngua = computed(() => nhip.value === 'xem' || nhip.value === 'dap-an');
 const toi = computed(() => { void rev.value; return van.value?.nguoi.find((p) => p.id === TOI) ?? null; });
@@ -135,7 +141,8 @@ function khung(ms: number): void {
   const v = van.value;
   if (v && buoc.value === 'choi') {
     tNhip += dt; tVan += dt;
-    if (nhip.value === 'xem' && tNhip >= v.xemMs) { vaoNhip('up'); sfx.swap(); }
+    if (nhip.value === 'cho' && tNhip >= TIM_THE_CHO_MS) { hinhHien.value = [...v.the]; vaoNhip('xem'); sfx.flip(); }
+    else if (nhip.value === 'xem' && tNhip >= v.xemMs) { vaoNhip('up'); sfx.swap(); }
     else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { vaoNhip('noi'); sfx.turn(); }
     else if (nhip.value === 'noi' && tNhip >= TIM_THE_NOI_MS) { v.moHoi(); soDaChon = 0; vaoNhip('hoi'); }
     else if (nhip.value === 'hoi') {
@@ -188,8 +195,9 @@ async function bayDiem(i: number, diem: number, ms: number): Promise<void> {
 function luotMoi(v: VanTimThe): void {
   chonCuaToi.value = null; ketToi.value = null; gain.value = null;
   taiTruocAnh(v.the, coAnh.value);
-  vaoNhip('xem');
-  sfx.flip();
+  // Bàn mới nằm úp một nhịp rồi mới lật (lượt sau: lá đang ngửa úp xuống ngay tại chỗ)
+  if (ngua.value) sfx.swap();
+  vaoNhip('cho');
 }
 
 function batDau(): void {
@@ -315,7 +323,7 @@ defineExpose({
     <p class="an-di" aria-live="polite">{{ nhip === 'hoi' && van ? `${t('tt.hoi')} ${van.hinhDich}` : bangKq?.chu ?? '' }}</p>
     <div ref="ban" class="tt-ban">
       <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
-        <div v-for="(sym, i) in dsThe" :key="`${van?.luot}-${i}`" class="o" :class="{ 'co-gain': gain?.i === i }">
+        <div v-for="(sym, i) in dsThe" :key="i" class="o" :class="{ 'co-gain': gain?.i === i }">
           <button
             class="card" type="button" data-nosfx data-phang
             :class="{

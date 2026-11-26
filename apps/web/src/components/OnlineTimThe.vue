@@ -44,7 +44,14 @@ const xem = computed(() => o.spectator.value);
 /* ---------- người chơi: dữ liệu ván + mặt/màu từ phòng ---------- */
 const nguoiPhong = (id: string) => o.room.value?.players.find((p) => p.id === id);
 const ICON = { da: Ellipsis, dung: Check, nhanh: Zap, sai: X, het: TimerOff } as const;
-const nguoi = computed(() => (v.value?.nguoi ?? []).map((n) => {
+/**
+ * ĐẾM NGƯỢC chưa có `tim` (server chỉ gửi khi vào ván): vẫn bày hàng người chơi + bàn ÚP đúng cỡ, không để màn trống trơn
+ * như lỗi (chủ dự án 27.11.2026).
+ */
+const nguoiVan = computed(() => v.value?.nguoi ?? (o.room.value?.players ?? []).map((p) => ({
+  id: p.id, ten: p.name, diem: 0, da: false, dung: 0, chuoiDai: 0, ...(p.may ? { may: p.may } : {})
+} as TimView['nguoi'][number])));
+const nguoi = computed(() => nguoiVan.value.map((n) => {
   const p = nguoiPhong(n.id);
   const lo = pha.value === 'dap-an' || pha.value === 'xong';
   const tt: keyof typeof ICON | '' = lo && n.kq
@@ -62,7 +69,7 @@ const toi = computed(() => v.value?.nguoi.find((n) => n.id === toiId.value) ?? n
 const hinhCu = ref<string[]>([]);
 const hinh = computed(() => v.value?.the ?? hinhCu.value);
 const ngua = computed(() => !!v.value?.the);
-const soThe = computed(() => v.value?.soThe ?? 9);
+const soThe = computed(() => v.value?.soThe ?? o.room.value?.config.timSoThe ?? 9);
 const soCot = ref(timTheSoCot(soThe.value));
 /** Ai chọn lá nào — chỉ ở đáp án (server mới gửi `kq`). */
 const aiChon = (i: number) => (pha.value === 'dap-an' || pha.value === 'xong') ? nguoi.value.filter((n) => n.kq?.viTri === i) : [];
@@ -120,7 +127,11 @@ watch(v, (moi) => {
     giayCu = -1;
   }
   if (doiPha) {
-    if (moi.pha === 'xem') {
+    // Đầu lượt: bàn ÚP (`cho`, 2 giây) rồi mới lật cho xem — giữa các lượt lá úp xuống ngay tại chỗ
+    if (moi.pha === 'cho') {
+      chonCuaToi.value = null; gain.value = null;
+      if (moi.luot > 0) sfx.swap();
+    } else if (moi.pha === 'xem') {
       chonCuaToi.value = null; gain.value = null;
       if (moi.the) taiTruocAnh(moi.the, coAnh.value);
       sfx.flip();
@@ -215,9 +226,10 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
     </div>
 
     <div ref="ban" class="ott-ban">
+      <!-- Đếm ngược NẰM TRÊN bàn úp (bàn đã bày sẵn — không còn màn trống) -->
       <div v-if="o.countdownLeft.value !== null" class="dem" role="status" aria-live="assertive"><span :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span></div>
-      <div v-else class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
-        <div v-for="i in soThe" :key="`${v?.van}-${v?.luot}-${i}`" class="o" :class="{ 'co-gain': gain?.i === i - 1 }">
+      <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
+        <div v-for="i in soThe" :key="`${v?.van ?? 'dem'}-${i}`" class="o" :class="{ 'co-gain': gain?.i === i - 1 }">
           <button
             class="card" type="button" data-nosfx data-phang
             :class="{
@@ -359,7 +371,7 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
 .ai-chon { position: absolute; left: 0; right: 0; bottom: -9px; z-index: 4; display: flex; justify-content: center; gap: 2px; pointer-events: none; }
 .mat-nho { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 13px; box-shadow: 0 0 0 2px #fff; animation: no .25s both; }
 
-.dem { font-family: var(--font-display); font-weight: 900; font-size: 96px; color: #fff; -webkit-text-stroke: 6px #2f4fa6; paint-order: stroke; }
+.dem { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; pointer-events: none; font-family: var(--font-display); font-weight: 900; font-size: 96px; color: #fff; -webkit-text-stroke: 6px #2f4fa6; paint-order: stroke; }
 .dem span { display: inline-block; animation: no .35s both; }
 
 .tt-noi {

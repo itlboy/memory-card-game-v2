@@ -1,7 +1,7 @@
 /**
  * TÌM THẺ ONLINE — NHỊP VÁN PHÍA SERVER (27.11.2026, chủ dự án duyệt mockup
  * https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6). Luật vẫn là `VanTimThe`; lớp này chỉ thêm ĐỒNG HỒ: mỗi lượt đi
- * `xem` → `up` → `noi` (thẻ cần tìm giữa bàn) → `hoi` (chọn) → `dap-an` → lượt sau, hết thì `xong`.
+ * `cho` (bàn úp) → `xem` → `up` → `noi` (thẻ cần tìm giữa bàn) → `hoi` (chọn) → `dap-an` → lượt sau, hết thì `xong`.
  *
  * Thuần + tất định: mọi hàm nhận `now` từ ngoài (server truyền `Date.now()`, test truyền số), không tự đọc giờ, không
  * hẹn giờ. Server hỏi `henKe(now)` để đặt alarm, alarm nổ thì gọi `tick(now)`. Mốc pha tính CỘNG DỒN từ mốc trước (không
@@ -12,11 +12,12 @@
  */
 import type { BotLevel } from './bot.js';
 import {
-  TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_UP_MS, VanTimThe, timTheHopLe,
+  TIM_THE_CHO_MS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_UP_MS, VanTimThe, timTheHopLe,
   type TimTheConfig, type TimTheKetCuc
 } from './tim-the.js';
 
-export type TimPha = 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an' | 'xong';
+/** `cho` = bàn mới nằm ÚP trước khi lật cho xem (đầu mỗi lượt, `TIM_THE_CHO_MS`). */
+export type TimPha = 'cho' | 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an' | 'xong';
 
 /** Lời chọn của client tới trễ vì đường truyền: vẫn nhận thêm bấy nhiêu sau hết giờ (giờ chọn ghi theo MÁY người chơi). */
 export const TIM_PHONG_TRE_MS = 600;
@@ -58,7 +59,7 @@ export interface TimView {
 
 export class PhongTimThe {
   readonly van: VanTimThe;
-  pha: TimPha = 'xem';
+  pha: TimPha = 'cho';
   /** Mốc bắt đầu pha hiện tại (ms, giờ server). */
   tu = 0;
   /** Đã báo cho client bao nhiêu người đã chọn (để biết khi nào phải phát lại). */
@@ -76,13 +77,14 @@ export class PhongTimThe {
   }
 
   /** Bắt đầu lượt đầu (hết đếm ngược). */
-  batDau(now: number): void { this.pha = 'xem'; this.tu = now; }
+  batDau(now: number): void { this.pha = 'cho'; this.tu = now; }
 
   get xong(): boolean { return this.pha === 'xong'; }
 
   /** Độ dài pha hiện tại; ở `hoi` = lúc chấm được (mọi người đã chọn thì sớm hơn hết giờ). */
   private daiPha(): number {
     switch (this.pha) {
+      case 'cho': return TIM_THE_CHO_MS;
       case 'xem': return this.van.xemMs;
       case 'up': return TIM_THE_UP_MS;
       case 'noi': return TIM_THE_NOI_MS;
@@ -116,11 +118,12 @@ export class PhongTimThe {
   private sangPha(moc: number): void {
     this.tu = moc;
     switch (this.pha) {
+      case 'cho': this.pha = 'xem'; break;
       case 'xem': this.pha = 'up'; break;
       case 'up': this.pha = 'noi'; break;
       case 'noi': this.van.moHoi(); this.soDaBao = 0; this.pha = 'hoi'; break;
       case 'hoi': this.van.chot(); this.pha = 'dap-an'; break;
-      case 'dap-an': this.pha = this.van.tiep() ? 'xem' : 'xong'; break;
+      case 'dap-an': this.pha = this.van.tiep() ? 'cho' : 'xong'; break;
       default: break;
     }
   }

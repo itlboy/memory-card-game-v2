@@ -41,7 +41,7 @@ export { AVATAR_HO_SO, MAU_HO_SO, HUY_HIEU, matHoSo, mauHoSo, huyHieuHoSo, type 
 export type { ChangNho } from './scoring.js';
 export {
   TIM_THE_CHON_SAN_MS, TIM_THE_DAP_AN_MS, TIM_THE_DO_KHO, TIM_THE_HE_SO_KHO, TIM_THE_MAY_HE_SO, TIM_THE_MAY_NHIP, TIM_THE_MAY_NHO,
-  TIM_THE_MAY_TRAN, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_SO_THE, TIM_THE_UP_MS, TIM_THE_X, VanTimThe,
+  TIM_THE_MAY_TRAN, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_SO_THE, TIM_THE_UP_MS, TIM_THE_CHO_MS, TIM_THE_X, VanTimThe,
   timTheChonMs, timTheDiem, timTheHopLe, timTheMayChon, timTheMayDung, timTheSoCot, timTheThuongNhanh, timTheUocMs, timTheXemMs
 } from './tim-the.js';
 export type {
