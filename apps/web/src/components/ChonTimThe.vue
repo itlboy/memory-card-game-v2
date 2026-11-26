@@ -10,6 +10,7 @@ import { TIM_THE_DO_KHO, TIM_THE_SO_THE, docKyLuc, type TimTheChon } from '@/lib
 import { t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { sfx } from '@/lib/audio';
+import { moChucNang } from '@/lib/phan-tich';
 import { Trophy } from 'lucide-vue-next';
 
 const props = defineProps<{ chon: TimTheChon }>();
@@ -20,7 +21,9 @@ const kyLuc = computed(() => (props.chon.doiThu === 'mot' ? docKyLuc(props.chon.
 
 function doi(p: Partial<TimTheChon>): void {
   sfx.select();
-  emit('doi', { ...props.chon, ...p });
+  const moi = { ...props.chon, ...p };
+  moChucNang('tim_the_chon', { so_the: moi.soThe, do_kho: moi.doKho });
+  emit('doi', moi);
 }
 </script>
 

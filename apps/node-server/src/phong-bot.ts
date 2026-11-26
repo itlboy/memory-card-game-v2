@@ -34,8 +34,8 @@
  * và nhả chỗ, lần sau không vào lại được). Server khởi động lại MỘT MÌNH: bot kiên trì nối lại ~2 phút rồi mới bỏ phòng.
  */
 import {
-  BOT_LEVELS, LEVEL_KEYS, botPick, botRng, botThinkMs, createBotMemory, observe, pairsForLevel,
-  type BotLevel, type GameView, type RoomInfo
+  BOT_LEVELS, LEVEL_KEYS, TIM_THE_DO_KHO, botPick, botRng, botThinkMs, createBotMemory, observe, pairsForLevel, timTheMayChon,
+  type BotLevel, type GameView, type RoomInfo, type TimView
 } from '@mm/engine';
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -50,6 +50,14 @@ const DOI_SAU = Math.round(so('DOI_SAU', 10));
 const THE_MIN = Math.round(so('THE_MIN', 12));
 const THE_MAX = Math.round(so('THE_MAX', 59));
 const XEM_KQ_MS = so('XEM_KQ_MS', 8_000);
+/**
+ * TÌM THẺ (27.11.2026, chủ dự án: "làm cả cho bot chơi nữa"): tỷ lệ ván phòng bot mở bằng Tìm Thẻ (0..1). MẶC ĐỊNH 0 — Tìm
+ * Thẻ còn sau cửa debug, phòng bot là phòng công khai ai cũng vào được; mở cho mọi người (`TIM_THE_MO`) thì đặt biến này.
+ * Bất kể tỷ lệ: phòng đã là Tìm Thẻ (người chủ phòng chuyển sang) thì bot CHƠI Tìm Thẻ chứ không rời ghế.
+ */
+const TIM_TI_LE = Math.min(1, Math.max(0, Number(process.env.TIM_TI_LE) || 0));
+/** Bàn Tìm Thẻ bot bỏ phiếu (không chọn 3–4 thẻ: dễ quá, ván nhạt). */
+const TIM_THE_BOT = [6, 9, 12, 16];
 /** Người vào sát giờ vẫn có ngần này để bấm Sẵn sàng; hết hạn mà chưa sẵn sàng: nhắc + chờ thêm một lần rồi chuyển sang người xem. */
 const KIP_SAN_SANG_MS = Math.min(12_000, CHO_MS);
 const CHO_THEM_MS = Math.min(15_000, CHO_MS);
@@ -138,6 +146,10 @@ class Bot {
   hen = 0;
   choBan: GameView | null = null;
   choTu = 0;
+  /** TÌM THẺ: bàn đã thấy lúc xem (vị trí → hình) và lượt đã chọn — máy nhớ/quên theo mức qua `timTheMayChon`. */
+  timBan: string[] = [];
+  timLuot = -1;
+  timVan = -1;
   constructor(public ten: string, private phong: Phong) {}
 
   gui(m: Record<string, unknown>): void { if (this.ws?.readyState === 1) this.ws.send(JSON.stringify(m)); }
@@ -145,7 +157,8 @@ class Bot {
   /** Mở (hoặc mở lại bằng token) kết nối. Trả false nếu không vào được làm NGƯỜI CHƠI. */
   vao(): Promise<boolean> {
     return new Promise((xong) => {
-      const p = new URLSearchParams({ name: this.ten, dd: '1' });
+      // `tim=1`: bot CHƠI được Tìm Thẻ online — server không chặn phòng Tìm Thẻ vì bot (xem `nhanTim`)
+      const p = new URLSearchParams({ name: this.ten, dd: '1', tim: '1' });
       if (this.token) p.set('token', this.token);
       let ws: WebSocket;
       try { ws = new WebSocket(`${WS}/ws/${this.phong.code}?${p}`); } catch { xong(false); return; }
@@ -301,15 +314,21 @@ class Phong {
   nhanPhong(room: RoomInfo): void {
     const cu = this.trangThaiCu;
     this.room = room;
-    // TÌM THẺ (27.11.2026): máy trực phòng chưa biết chơi Tìm Thẻ — chủ phòng chuyển sang thì RỜI GHẾ, không đứng chặn
-    // nút Bắt đầu (server đòi `?tim=1` ở mọi người thật mà máy ngoài là người thật với server).
-    if (room.config.kieu === 'tim') { for (const b of this.bot) b.gui({ t: 'leave' }); return; }
     /*
      * BỎ PHIẾU SỐ THẺ như người chơi (23.11.2026, chủ dự án: "update bot để bot cũng chọn"): server mở lượt chọn 10 giây khi
      * bấm Bắt đầu / Chơi lại. Mỗi bot chọn sau 0,3–1,7 s, ngẫu nhiên trong các ô hợp lệ: trong khoảng THE_MIN–THE_MAX và
      * không nhỏ hơn mức tối thiểu theo số người (bàn 3–4 người không tụt về 12 thẻ). Không ô nào hợp lệ thì không chọn.
      */
-    if (room.chon && !room.chon.ket && room.chon.id !== this.chonId) {
+    if (room.chon && !room.chon.ket && room.chon.id !== this.chonId && room.chon.kho) {
+      // Tìm Thẻ: phiếu số thẻ + phiếu độ khó, mỗi bot một ý
+      this.chonId = room.chon.id;
+      const ma = this.code;
+      for (const b of this.bot) setTimeout(() => {
+        if (this.code !== ma) return;
+        b.gui({ t: 'chon', the: TIM_THE_BOT[rd(TIM_THE_BOT.length)] });
+        b.gui({ t: 'chonKho', kho: TIM_THE_DO_KHO[rd(TIM_THE_DO_KHO.length)] });
+      }, 300 + rd(1400));
+    } else if (room.chon && !room.chon.ket && room.chon.id !== this.chonId) {
       this.chonId = room.chon.id;
       const tong = room.players.length;
       const toiThieu = Math.max(THE_MIN, tong >= 4 ? 28 : tong === 3 ? 20 : THE_MIN);
@@ -327,18 +346,41 @@ class Phong {
     if (room.status === 'ended') { this.soVan++; queueMicrotask(luu); this.hetXem = Date.now() + XEM_KQ_MS + rd(3000); log(`[phòng ${this.so}] ${this.code} xong ván ${this.soVan}/${this.doiKhi}`); }
   }
 
+  /**
+   * TÌM THẺ: mỗi bot nhận trạng thái của CHÍNH nó. Lúc xem: ghi bàn. Lúc hỏi: chọn như máy trong phòng (engine
+   * `timTheMayChon` — nhớ chắc vài thẻ theo mức, còn lại đoán; chọn sau một khoảng theo mức), gửi kèm giờ chọn.
+   */
+  nhanTim(b: Bot, v: TimView): void {
+    if (v.van !== b.timVan) { b.timVan = v.van; b.timLuot = -1; b.timBan = []; }
+    if (v.pha === 'xong' && b === this.bot[0] && b.timLuot !== -2) {
+      b.timLuot = -2;
+      log(`[phòng ${this.so}] ${this.code} Tìm Thẻ ${v.soThe} thẻ ${v.doKho}: ${v.nguoi.map((n) => `${n.ten} ${n.diem} (đúng ${n.dung}/${v.soLuot})`).join(' · ')}`);
+      return;
+    }
+    if (v.pha === 'xem' && v.the) { b.timBan = v.the; return; }
+    if (v.pha !== 'hoi' || b.timLuot === v.luot || !v.hinhDich) return;
+    b.timLuot = v.luot;
+    const dich = b.timBan.indexOf(v.hinhDich);
+    if (dich < 0) return;   // vào giữa lượt, chưa thấy bàn — bỏ lượt này
+    const nuoc = timTheMayChon(b.muc, { soThe: v.soThe, doKho: v.doKho }, dich, b.rng);
+    const ma = this.code, luot = v.luot;
+    setTimeout(() => { if (this.code === ma && b.timLuot === luot) b.gui({ t: 'timChon', viTri: nuoc.viTri, ms: nuoc.ms }); }, nuoc.ms);
+  }
+
   /** Vào phòng chờ: bốc mức máy + bàn cho ván sắp tới (chủ phòng gửi cấu hình). */
   vanMoi(): void {
     const [a, b] = bocMuc();
     if (this.bot[0]) this.bot[0].muc = a;
     if (this.bot[1]) this.bot[1].muc = b;
     const [level, the] = bocBan(2);
-    this.chu?.gui({ t: 'config', config: { level } });
-    log(`[phòng ${this.so}] ${this.code} phòng chờ: ${a} ↔ ${b}, ${the} thẻ`);
+    const tim = Math.random() < TIM_TI_LE;
+    this.chu?.gui({ t: 'config', config: { level, kieu: tim ? 'tim' : 'thuong' } });
+    log(`[phòng ${this.so}] ${this.code} phòng chờ: ${a} ↔ ${b}, ${tim ? 'Tìm Thẻ' : `${the} thẻ`}`);
   }
 
   nhan(b: Bot, m: TinServer): void {
     if (m.t === 'room') { this.nhanPhong((m as Extract<TinServer, { t: 'room' }>).room); return; }
+    if (m.t === 'tim') { this.nhanTim(b, (m as unknown as { view: TimView }).view); return; }
     if ((m.t === 'state' || m.t === 'events') && (m as { view?: GameView }).view) {
       const v = (m as { view: GameView }).view;
       if (!Array.isArray(v.cards)) return;   // chỉ đọc dạng đầy đủ (không khai ?pv=1 nên server gửi đủ)

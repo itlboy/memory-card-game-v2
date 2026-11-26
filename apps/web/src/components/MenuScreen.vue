@@ -386,6 +386,7 @@ function chonKieu(k: KieuChoi): void {
   sfx.select();
   kieuNho.value = k;
   luuKieu(k);
+  moChucNang('kieu_choi', { kieu: k, man: props.botLevel ? 'dau_may' : 'choi_nhanh' });
 }
 /** Số thẻ + độ khó của Tìm Thẻ (đối thủ lấy theo màn: một mình / mức máy đang chọn). */
 const timChon = ref<TimTheChon>(docChon());

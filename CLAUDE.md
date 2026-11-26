@@ -362,7 +362,7 @@
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
   bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Hỏi = thẻ cần tìm hiện TO CHÍNH GIỮA BÀN trên lớp mờ
-  `TIM_THE_NOI_MS` (1,2 giây, ngoài giờ chọn, chưa chạm được) rồi tan tại chỗ (27.11.2026, duyệt
+  `TIM_THE_NOI_MS` (2 giây — 27.11.2026 nâng từ 1,2 theo chủ dự án, ngoài giờ chọn, chưa chạm được) rồi tan tại chỗ (27.11.2026, duyệt
   https://claude.ai/artifact/45faUe94GByb1Qp2Q7C6fy — chỉ ở bảng trên thì mắt rời bàn, mất tập trung).
   **NGUYÊN TẮC: KHÔNG GÌ ĐƯỢC KÉO MẮT KHỎI BÀN** (chủ dự án 27.11.2026: "Ko nên làm gì gây sự mất tập trung"): màn chơi
   CHỈ có bàn thẻ — KHÔNG bảng thông báo, KHÔNG thanh giờ, KHÔNG số giây (1.10.62: "Cứ nháy nháy mất tập trung lắm",

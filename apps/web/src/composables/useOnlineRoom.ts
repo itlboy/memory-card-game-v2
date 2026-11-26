@@ -1949,7 +1949,7 @@ export function useOnlineRoom() {
     /** Bỏ phiếu số thẻ lúc server đang mở lượt chọn (`room.chon`) — xem ChonSoThe.vue. */
     chonThe: (the: number) => { moChucNang('online_chon_the', { the }); send({ t: 'chon', the }); },
     /** TÌM THẺ: phiếu độ khó trong cùng lượt biểu quyết. */
-    chonKho: (kho: TimTheDoKho) => send({ t: 'chonKho', kho }),
+    chonKho: (kho: TimTheDoKho) => { moChucNang('online_chon_kho', { kho }); send({ t: 'chonKho', kho }); },
     /** TÌM THẺ: chọn ô; `ms` = giờ chọn đo tại máy này (server kẹp). */
     timChon: (viTri: number, ms: number) => send({ t: 'timChon', viTri, ms: Math.round(ms) }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */

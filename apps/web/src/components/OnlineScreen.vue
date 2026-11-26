@@ -151,8 +151,10 @@ const dangVaoPhong = ref('');
 watch(() => o.phase.value, (p, truoc) => {
   if (o.spectator.value) return;
   const soNguoi = o.room.value?.players?.length;
-  if (p === 'playing' && truoc !== 'playing') suKien('van_bat_dau', { ...thamSoVanDau(), che_do: 'online', so_nguoi: soNguoi });
-  if (p === 'ended' && truoc === 'playing') suKien('van_ket_thuc', { che_do: 'online', so_nguoi: soNguoi });
+  // Tìm Thẻ online: `che_do` riêng; `van_ket_thuc` do OnlineTimThe gửi (có điểm, kết quả, số thẻ, độ khó)
+  const tim = o.room.value?.config.kieu === 'tim';
+  if (p === 'playing' && truoc !== 'playing') suKien('van_bat_dau', { ...thamSoVanDau(), che_do: tim ? 'tim_the_online' : 'online', so_nguoi: soNguoi, ...(tim ? { so_the: o.room.value?.config.timSoThe, tuy_chon: o.room.value?.config.timDoKho } : {}) });
+  if (p === 'ended' && truoc === 'playing' && !tim) suKien('van_ket_thuc', { che_do: 'online', so_nguoi: soNguoi });
 });
 
 watch(() => o.phase.value, (p) => {
@@ -1012,6 +1014,7 @@ const laTimPhong = computed(() => o.room.value?.config.kieu === 'tim');
 function doiKieuPhong(k: 'thuong' | 'tim'): void {
   if ((k === 'tim') === laTimPhong.value) return;
   sfx.select();
+  moChucNang('phong_kieu_choi', { kieu: k });
   o.setConfig({ kieu: k });
 }
 
@@ -1492,6 +1495,10 @@ function openCfgWizard(): void {
     <template v-if="o.isHost.value">
       <!-- KIỂU CHƠI (27.11.2026, mockup duyệt https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6 màn ①): cùng hàng hai viên như
            màn Chơi nhanh / Đấu với máy. Tìm Thẻ: số thẻ + độ khó do cả phòng biểu quyết lúc Bắt đầu, dòng Bàn chỉ còn Bộ thẻ. -->
+      <!-- KHU CÀI ĐẶT VÁN tách khỏi khu người chơi bằng vạch + nhãn (27.11.2026, chủ dự án: "chỗ chọn loại chơi với cấu hình
+           sát nhau quá… tách riêng khu vực người chơi ra cho nó gọn") -->
+      <div class="cai-van">
+      <div v-if="hienTim" class="ds-dau"><span>{{ t('menu.kieuChoi') }}</span></div>
       <span v-if="hienTim" class="kieu-seg" role="radiogroup" :aria-label="t('menu.kieuChoi')">
         <button v-for="k in (['thuong', 'tim'] as const)" :key="k" class="nut-kieu thach th-nho th-chon" type="button" role="radio" :aria-checked="(k === 'tim') === laTimPhong" @click="doiKieuPhong(k)">
           {{ k === 'tim' ? t('tt.ten') : t('menu.kieu.thuong') }}
@@ -1506,6 +1513,7 @@ function openCfgWizard(): void {
         </span>
         <span class="nh-sua">{{ t('menu.nhanh.doi') }} ›</span>
       </button>
+      </div>
       <!-- Chưa đủ sẵn sàng: nút XÁM XANH vẫn bấm được (→ bảng Nhắc); đủ: XANH LÁ sáng (mockup duyệt 19.11.2026) -->
       <button
         class="btn-primary nut-bat-dau" type="button"
@@ -2286,4 +2294,17 @@ input:focus { outline: none; border-color: var(--accent); }
   background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line)); box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
 }
 .nut-kieu { position: relative; min-height: 42px; border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--fg); font-family: var(--font-display); font-size: 16px; font-weight: 800; cursor: pointer; }
+.cai-van {
+  flex: none; display: flex; flex-direction: column; gap: 12px;
+  margin-top: 6px; padding-top: 14px; border-top: 2px solid color-mix(in srgb, var(--line) 80%, transparent);
+}
+.cai-van .ds-dau { margin: 0 0 -4px; }
+/* Màn thấp (iPhone SE) đủ 4 người: phòng chờ KHÔNG được cuộn — bỏ nhãn, gọn khoảng cách, viên thấp hơn */
+@media (max-height: 700px) {
+  .cai-van { gap: 7px; margin-top: 0; padding-top: 8px; }
+  .cai-van .ds-dau { display: none; }
+  .cai-van .nut-kieu { min-height: 36px; }
+  .lobby-list { gap: 5px; }
+  .lobby-list li { padding: 1px 10px; min-height: 42px; }
+}
 </style>

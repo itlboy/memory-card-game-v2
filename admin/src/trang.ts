@@ -280,7 +280,7 @@ export const JS = String.raw`
   var KHOANG = [['30m','30 phút'],['6h','6 giờ'],['24h','24 giờ'],['today','Hôm nay'],['yday','Hôm qua'],['7','7 ngày'],['30','30 ngày'],['90','90 ngày'],['all','Từ khi công khai']];
   var HAT = { '5m': '5 phút', '1h': 'Giờ', '1d': 'Ngày', '1w': 'Tuần' };
   var MAU = { web: '#67e8f9', ios: '#8b7dff', android: '#c026d3', tat_ca: '#a99fff' };
-  var CHE_DO = { choi_nhanh: 'Chơi nhanh', chien_dich: 'Chiến dịch', dau_may: 'Đấu máy', online: 'Online', nhieu_nguoi: 'Nhiều người (một máy)', nhieu_nguoi_may: 'Nhiều người + máy' };
+  var CHE_DO = { choi_nhanh: 'Chơi nhanh', chien_dich: 'Chiến dịch', dau_may: 'Đấu máy', online: 'Online', nhieu_nguoi: 'Nhiều người (một máy)', nhieu_nguoi_may: 'Nhiều người + máy', tim_the: 'Tìm Thẻ · một mình', tim_the_online: 'Tìm Thẻ · online' };
   // Tên dễ đọc của chuc_nang (app: moChucNang). Thêm tính năng mới ở app thì thêm một dòng ở đây; thiếu thì hiện tên thô.
   var TINH_NANG = {
     choi_nhanh: 'Chơi nhanh', dau_may: 'Đấu máy', chien_dich: 'Chiến dịch', chien_dich_choi_tiep: 'Chiến dịch · chơi tiếp',
@@ -294,7 +294,10 @@ export const JS = String.raw`
     online_vao_phong_ds: 'Online · vào từ danh sách', online_moi_ban: 'Online · hộp mời bạn', online_chep_ma: 'Online · chép mã phòng',
     online_chep_loi_moi: 'Online · chép lời mời', online_moi_nguoi: 'Online · mời người đang online', loi_moi: 'Online · bấm lời mời',
     online_emoji: 'Online · thả emoji', online_noi_nhanh: 'Online · nói nhanh', online_xem: 'Online · vào xem trận',
-    online_chon_the: 'Online · bỏ phiếu số thẻ', thi_dau_chot: 'Thi đấu · chốt số thẻ'
+    online_chon_the: 'Online · bỏ phiếu số thẻ', online_chon_kho: 'Online · bỏ phiếu độ khó (Tìm Thẻ)',
+    tim_the: 'Tìm Thẻ · vào ván', kieu_choi: 'Setup · đổi kiểu chơi (Thường/Tìm Thẻ)', tim_the_chon: 'Tìm Thẻ · đổi số thẻ/độ khó',
+    tim_the_choi_lai: 'Tìm Thẻ · chơi lại', tim_the_doi_cau_hinh: 'Tìm Thẻ · đổi cấu hình (hết ván)', phong_kieu_choi: 'Online · chủ phòng đổi kiểu chơi',
+    tim_online_choi_lai: 'Tìm Thẻ online · chơi lại', tim_online_ve_phong: 'Tìm Thẻ online · về phòng chờ', tim_online_thoat: 'Tìm Thẻ online · thoát giữa ván', thi_dau_chot: 'Thi đấu · chốt số thẻ'
   };
   var CACH_VAO = { online_vao_link_moi: 'Link mời', online_vao_ma: 'Nhập mã', online_vao_phong_ds: 'Danh sách phòng' };
   var THEME = { animals: 'Động vật', ocean: 'Đại dương', nature: 'Thiên nhiên', seasons: 'Bốn mùa', food: 'Đồ ăn', letters: 'Chữ & hình', smileys: 'Mặt cười', games: 'Trò chơi', objects: 'Đồ vật', travel: 'Du lịch', festive: 'Lễ hội', flags: 'Cờ' };
@@ -386,7 +389,7 @@ export const JS = String.raw`
   // phan = ô ở server · khoa = khoá trong danhSach (quocGia: g.quocGia) · loi = khoá trong g.loi
   var DS = [
     { phan: 'quoc_gia', khoa: 'quocGia', tieu: 'Quốc gia', mau: '#fcd34d', ten: nuocVi, loi: 'quoc_gia' },
-    { phan: 'choi', khoa: 'che_do', tieu: 'Chế độ chơi', mau: '#86efac', ten: function (x) { return CHE_DO[x] || x; }, loi: 'che_do' },
+    { phan: 'choi', khoa: 'che_do', tieu: 'Chế độ chơi', mau: '#86efac', ten: function (x) { return CHE_DO[x] || (x.indexOf('tim_the_may_') === 0 ? 'Tìm Thẻ · đấu máy ' + x.slice(12) : x); }, loi: 'che_do' },
     { phan: 'choi', khoa: 'so_the', tieu: 'Cỡ bàn hay chơi', mau: '#67e8f9', ten: function (x) { return x + ' thẻ'; }, loi: 'so_the' },
     { phan: 'choi', khoa: 'theme', tieu: 'Chủ đề hay chọn', mau: '#e3a6ff', ten: function (x) { return THEME[x] || x; }, loi: 'theme' },
     { phan: 'choi', khoa: 'cach_vao', tieu: 'Cách vào phòng online', mau: '#fca5a5', ten: function (x) { return CACH_VAO[x] || x; }, loi: 'chuc_nang' },

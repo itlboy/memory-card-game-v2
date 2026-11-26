@@ -24,7 +24,7 @@ import { store } from '@/lib/storage';
 import { taiKhoan } from '@/lib/taikhoan';
 import { tenNguoi } from '@/lib/ten';
 import { ghiVuaThang } from '@/lib/xin-danh-gia';
-import { suKien } from '@/lib/phan-tich';
+import { moChucNang, suKien } from '@/lib/phan-tich';
 import { dangTimOnline } from '@/lib/tim-the';
 import DongXu from './DongXu.vue';
 import MatNguoi from './MatNguoi.vue';
@@ -194,7 +194,7 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
 <template>
   <section class="ott">
     <div class="ott-hud">
-      <button class="tron thach nut-ra" type="button" :aria-label="t('hud.thoat')" @click="emit('quit')"><LogOut :size="18" /></button>
+      <button class="tron thach nut-ra" type="button" :aria-label="t('hud.thoat')" @click="moChucNang('tim_online_thoat'); emit('quit')"><LogOut :size="18" /></button>
       <div :key="nay" class="vien diem" :class="{ nay: nay > 0 }"><DongXu :size="22" /><b>{{ num(diemHien) }}</b></div>
       <span class="gian" />
       <div class="vien luot">{{ t('tt.luot', { n: Math.min((v?.luot ?? 0) + 1, v?.soLuot ?? TIM_THE_SO_LUOT), tong: v?.soLuot ?? TIM_THE_SO_LUOT }) }}</div>
@@ -271,10 +271,10 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
             </li>
           </ol>
           <p v-if="toi && !coMay" class="phu-chu xu"><DongXu :size="18" /> <b>+{{ num(toi.diem) }}</b></p>
-          <button v-if="!xem" class="btn btn-primary nut-to" type="button" :disabled="o.iWantAgain.value" @click="o.again()">
+          <button v-if="!xem" class="btn btn-primary nut-to" type="button" :disabled="o.iWantAgain.value" @click="moChucNang('tim_online_choi_lai'); o.again()">
             <Check v-if="o.iWantAgain.value" :size="20" :stroke-width="3" aria-hidden="true" /> {{ t('hud.choiLai') }}
           </button>
-          <button class="btn" type="button" @click="o.veLobby()">{{ t('kq.vePhongCho') }}</button>
+          <button class="btn" type="button" @click="moChucNang('tim_online_ve_phong'); o.veLobby()">{{ t('kq.vePhongCho') }}</button>
         </div>
       </div>
     </div>

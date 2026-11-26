@@ -24,6 +24,7 @@ import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
 import { hoSo, mauKhac, tenToi } from '@/lib/ho-so';
 import { tenBot } from '@/lib/ten';
 import { sfx } from '@/lib/audio';
+import { moChucNang } from '@/lib/phan-tich';
 import { rung } from '@/lib/rung';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
@@ -370,9 +371,9 @@ defineExpose({
           <p v-if="ketVan.ketQua === 'xong'" class="phu-chu"><Trophy :size="15" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ t('mt.kyLuc') }}: <b>{{ num(kyLuc) }}</b></p>
           <p v-else-if="ketVan.doiThu === 'easy'" class="phu-chu">{{ t('tt.khongXu', { ten: tenDoiThu }) }}</p>
           <p v-else class="phu-chu xu"><DongXu :size="18" /> <b>+{{ num(ketVan.diem) }}</b></p>
-          <button class="btn btn-primary nut-to" type="button" @click="batDau">{{ t('hud.choiLai') }}</button>
+          <button class="btn btn-primary nut-to" type="button" @click="moChucNang('tim_the_choi_lai'); batDau()">{{ t('hud.choiLai') }}</button>
           <!-- Đổi cấu hình = về màn Chơi nhanh / Đấu với máy (nơi chọn số thẻ, độ khó) — cũng là chỗ Thoát về -->
-          <button class="btn" type="button" @click="emit('thoat')">{{ t('tt.doiCauHinh') }}</button>
+          <button class="btn" type="button" @click="moChucNang('tim_the_doi_cau_hinh'); emit('thoat')">{{ t('tt.doiCauHinh') }}</button>
         </div>
       </div>
     </div>
