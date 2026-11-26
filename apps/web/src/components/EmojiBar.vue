@@ -180,8 +180,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
   width: max-content; max-width: calc(100% - 12px); display: grid; gap: 4px; padding: 6px;
   /* 10 câu (26.11.2026) cao ~410px — máy thấp (SE) thì cuộn trong khung thay vì trồi khỏi màn */
   max-height: min(52vh, 420px); overflow-y: auto; overscroll-behavior: contain;
-  background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
-  box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
+  background: color-mix(in srgb, var(--panel-solid) 55%, transparent); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .12);
 }
 .bang-noi .cau { min-height: 36px; padding: 4px 12px 6px 7px; display: flex; align-items: center; gap: 8px; text-align: left; justify-content: flex-start; font: 800 14px var(--font-body); color: var(--fg); border-radius: 11px; }
 /* Nút ＋: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */
@@ -189,12 +189,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 /* Bảng emoji: KHUNG NHỎ neo góc trái ngay trên nút ＋ (14.11.2026, chủ dự án: bản cũ trải
    hết bề ngang, cao 56vh, "đè lên màn chơi"). Hẹp 8 cột ~290px, thấp ~1/3 màn, cuộn trong khung —
    phần lớn bàn thẻ vẫn nhìn thấy. */
+/* TRONG SUỐT (26.11.2026, chủ dự án: "popup chọn chat text và icon có độ trong suốt để ko che bàn chơi"): nền khung
+   chỉ đặc 55%, cả khung (nền + nút) mờ còn 85%, bóng đổ nhẹ — nhìn xuyên thấy thẻ phía sau khi đang chọn. */
+.bang-noi, .bang-emoji { opacity: .85; }
 .bang-emoji {
   position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
   width: min(292px, calc(100% - 12px));
   padding: 5px 6px 7px;
-  background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
-  box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
+  background: color-mix(in srgb, var(--panel-solid) 55%, transparent); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .12);
 }
 .be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
 /* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh) */
