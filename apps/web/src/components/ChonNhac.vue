@@ -16,6 +16,7 @@ import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { moPremium } from '@/lib/premium';
 import { BAI_NHAC, BAI_PREMIUM, ICON_BAI, baiChoiDuoc, type BaiNhac } from '@/lib/nhac';
+import { tenBaiNhac } from '@/lib/ten-bai-nhac';
 
 const props = defineProps<{ nhac: boolean; bai: BaiNhac; ngauNhien?: boolean }>();
 const emit = defineEmits<{ close: []; chon: ['off' | 'nn' | BaiNhac] }>();
@@ -23,12 +24,7 @@ const nutDong = ref<HTMLButtonElement | null>(null);
 onMounted(() => { nutDong.value?.focus(); moChucNang('nhac_nen_mo'); });
 
 const dangChon = (b: 'off' | BaiNhac): boolean => (b === 'off' ? !props.nhac : props.nhac && props.bai === b);
-/** "Nhạc nền: Vui (marimba)" → "Vui": bỏ phần trước dấu hai chấm (Latin lẫn toàn chiều 日本語/中文) VÀ phần trong ngoặc
- *  (chủ dự án 26.11.2026: "bỏ cái trong ngoặc đi" — tên nhạc cụ làm dòng dài mà không giúp chọn). Nhãn aria vẫn đủ. */
-const ten = (b: BaiNhac): string => {
-  const s = td(`tb.nhacBai.${b}`).replace(/^[^:：]*[:：]\s*/, '').replace(/\s*[（(][^）)]*[）)]\s*$/, '');
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
+const ten = tenBaiNhac;
 function chon(b: 'off' | 'nn' | BaiNhac): void {
   if (b !== 'off' && b !== 'nn' && !baiChoiDuoc(b)) { moChucNang('premium_nhac_khoa', { bai: b }); emit('close'); moPremium('nhac', b); return; }
   emit('chon', b);

@@ -26,6 +26,7 @@ import ChonNhac from './components/ChonNhac.vue';
 import { bocLungVan } from './lib/lung-la';
 import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
 import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
+import { tenBaiNhac } from './lib/ten-bai-nhac';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -94,7 +95,7 @@ import { nhac, BAI_NHAC, BAI_PREMIUM, baiChoiDuoc, laBaiNhac, type BaiNhac } fro
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { choiDuoc, daMuaPremium, hienPremium, yeuCauPremium, type NoiMoPremium } from './lib/premium';
+import { choiDuoc, daMuaPremium, hienPremium, kiemHetHanTang, yeuCauPremium, type NoiMoPremium } from './lib/premium';
 
 const prefs = store.prefs();
 /*
@@ -353,10 +354,24 @@ const showNhac = ref(false);
  * đóng để nhường chỗ cho bảng Premium (bấm mục khoá) — lúc đó `showPremium` đã bật, không mở menu chồng lên.
  */
 const topBar = ref<{ moMenu: () => void } | null>(null);
+/** Bảng Chủ đề / Nhạc nền vừa được mở TỪ BẢNG PREMIUM (dòng "Cài đặt Premium") — đóng lại thì về bảng Premium, không về menu. */
+let tuPremium = false;
+function moTuPremium(muc: 'nen' | 'nhac'): void {
+  showPremium.value = false;
+  tuPremium = true;
+  if (muc === 'nen') showHinhNen.value = true; else showNhac.value = true;
+}
 function veMenuKhiDong(mo: boolean, truoc: boolean): void {
   if (mo || !truoc) return;
-  void nextTick(() => { if (!showPremium.value) topBar.value?.moMenu(); });
+  const vePremium = tuPremium;
+  tuPremium = false;
+  void nextTick(() => {
+    if (showPremium.value) return;
+    if (vePremium) { premiumTu.value = 'trang-chu'; showPremium.value = true; } else topBar.value?.moMenu();
+  });
 }
+/** Chữ ở dòng "Nhạc nền" của bảng Premium. */
+const nhacHien = computed(() => (!nhacBat.value || soundLevel.value === 'off' ? t('tb.amNgan.off') : nhacNgauNhien.value ? t('cn.ngauNhien') : tenBaiNhac(baiThat.value)));
 watch(showHinhNen, veMenuKhiDong);
 watch(showNhac, veMenuKhiDong);
 useBackCloser(31, () => showNhac.value, () => { showNhac.value = false; });
@@ -757,7 +772,8 @@ function ghiTrangThaiPremium(): void {
 onMounted(() => {
   ghiTrangThaiPremium();
   doiNgauNhienNeuDenGio();
-  henNgauNhien = setInterval(doiNgauNhienNeuDenGio, 60_000);
+  // mỗi phút: nhịp ngẫu nhiên + gói quà tặng Premium hết hạn giữa lúc app đang mở thì về bản thường ngay
+  henNgauNhien = setInterval(() => { kiemHetHanTang(); doiNgauNhienNeuDenGio(); }, 60_000);
   document.addEventListener('visibilitychange', khiHienLai);
 });
 onUnmounted(() => { clearInterval(henNgauNhien); document.removeEventListener('visibilitychange', khiHienLai); });
@@ -1331,7 +1347,7 @@ const hasNext = computed(() => {
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
-  <BangPremium v-if="showPremium && debug" :tu="premiumTu" @close="showPremium = false" />
+  <BangPremium v-if="showPremium && debug" :tu="premiumTu" :nhac-hien="nhacHien" @close="showPremium = false" @mo="moTuPremium" />
   <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
