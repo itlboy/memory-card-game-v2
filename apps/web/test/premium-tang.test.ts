@@ -94,14 +94,25 @@ describe('bảng Premium', () => {
     w.unmount();
   });
 
-  it('lưới quyền lợi: 8 thẻ, số lấy từ code (14 mặt lưng, 9 bài, 8 emoji), KHÔNG còn nhãn "Sắp có"', async () => {
+  it('lưới quyền lợi: 8 thẻ + Ủng hộ tác giả, mỗi thẻ so Thường · Premium bằng CHỮ (không con số), thẻ nào cũng đeo vương miện', async () => {
     const { w } = await moBang({ 'mm.premium': '1' });
-    const the = w.findAll('.pm-ql .q').map((r) => r.text());
-    expect(the).toHaveLength(8);
-    expect(the.some((x) => x.includes('14 mặt lưng'))).toBe(true);
-    expect(the.some((x) => x.includes('9 bài'))).toBe(true);
-    expect(the.some((x) => x.includes('8 emoji'))).toBe(true);
+    const the = w.findAll('.pm-ql .q');
+    expect(the, '8 thẻ so sánh + 1 thẻ Ủng hộ tác giả').toHaveLength(9);
+    expect(w.findAll('.pm-ql .q .vm-goc'), 'vương miện ở MỌI thẻ').toHaveLength(9);
+    expect(w.findAll('.pm-ql .so .th')).toHaveLength(8);
+    expect(w.findAll('.pm-ql .so .pr')).toHaveLength(8);
+    expect(w.find('.pm-chu-thich').text(), 'chú thích một lần cho cả lưới').toContain('Thường');
+    const chu = w.find('.pm-ql').text();
+    expect(chu).toContain('Mặc định'); expect(chu).toContain('Tất cả');
+    expect(chu, 'không đếm bài / chủ đề — sẽ còn thêm').not.toMatch(/\b(3|9|14|8) (chủ đề|bài|mặt lưng|emoji)/);
+    expect(w.find('.pm-ql .ho-tro').text()).toContain('Giúp chúng tôi duy trì ứng dụng vĩnh viễn không quảng cáo');
     expect(w.text()).not.toContain('Sắp có');
+    w.unmount();
+  });
+
+  it('còn quà: KHÔNG ghi "Hết hạn …" dưới nút nhận', async () => {
+    const { w } = await moBang();
+    expect(w.find('.pm-hero.qua .pm-han-chu').exists()).toBe(false);
     w.unmount();
   });
 });
