@@ -36,6 +36,7 @@ import type { XemFx } from './components/DebugMenu.vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery, urlApp } from '@/lib/appUrl';
 import { laApp } from '@/lib/native';
+import { giuSang } from '@/lib/giu-sang';
 import { ngonNgu, t } from '@/lib/i18n';
 import { ganTenNeuChua } from '@/lib/ten-ngau-nhien';
 import IconDefs from './components/IconDefs.vue';
@@ -679,6 +680,8 @@ onMounted(() => {
 });
 
 // Màn online (chưa vào phòng) cũng đánh dấu lên URL để F5 quay lại đúng chỗ
+// Rời menu là giữ màn hình sáng (người xem ván không chạm gì → máy tự tắt màn) — lib/giu-sang.ts
+watch(screen, (sc) => giuSang(sc !== 'menu'), { immediate: true });
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
