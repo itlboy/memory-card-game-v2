@@ -60,6 +60,8 @@ export interface Prefs {
   nhac: boolean;
   /** Bài nhạc nền đang chọn (lib/nhac.ts `BAI_NHAC`). Thiếu = bài mặc định. */
   baiNhac?: string;
+  /** Nhạc nền đổi ngẫu nhiên mỗi lần mở app / về trang chủ (App.vue `doiNhacNgauNhien`). */
+  nhacNgauNhien?: boolean;
   /** VÁN CHƠI NHANH GẦN NHẤT (16.11.2026, mockup duyệt https://claude.ai/artifact/VXsNaR3xGo9fgPBqQAAoy1):
    *  có thì bấm ô Chơi nhanh ở trang chủ là vào ván ngay với đúng cỡ bàn + số người này.
    *  Lưu RIÊNG vì `level`/`playerCount` bị Chiến dịch và Đấu máy ghi đè. Thiếu = chưa chơi nhanh lần nào. */

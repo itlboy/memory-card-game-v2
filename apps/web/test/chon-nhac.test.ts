@@ -25,18 +25,18 @@ beforeEach(() => { document.body.innerHTML = ''; });
 describe('bảng chọn nhạc nền', () => {
   it('bày ĐỦ Tắt + 5 bài, bài đang phát có dấu ✓, tên bài không lặp chữ "Nhạc nền:"', async () => {
     const { w } = await nap(false);
-    expect(dong(w)).toHaveLength(6);
-    expect(dong(w)[2]!.attributes('aria-checked')).toBe('true');
-    expect(dong(w)[2]!.find('.dang').exists()).toBe(true);
-    expect(dong(w)[1]!.find('b').text()).toBe('Vui (marimba)');
+    expect(dong(w)).toHaveLength(7);   // Tắt · Ngẫu nhiên · 5 bài
+    expect(dong(w)[3]!.attributes('aria-checked')).toBe('true');
+    expect(dong(w)[3]!.find('.dang').exists()).toBe(true);
+    expect(dong(w)[2]!.find('b').text(), 'không lặp "Nhạc nền:", không kèm tên nhạc cụ trong ngoặc').toBe('Vui');
     w.unmount();
   });
 
   it('chưa có Premium: bấm bài thường thì đổi nhạc; bấm bài khoá thì ĐÓNG bảng và mở bảng Premium, KHÔNG đổi nhạc', async () => {
     const { w, pm } = await nap(false);
-    await dong(w)[1]!.trigger('click');
+    await dong(w)[2]!.trigger('click');
     expect(w.emitted('chon')).toEqual([['keo']]);
-    await dong(w)[4]!.trigger('click');
+    await dong(w)[5]!.trigger('click');
     expect(w.emitted('chon')).toHaveLength(1);
     expect(w.emitted('close')).toHaveLength(1);
     expect(pm.yeuCauPremium.value?.tu).toBe('nhac');
@@ -46,7 +46,7 @@ describe('bảng chọn nhạc nền', () => {
   it('ĐÃ có Premium: bài Premium chọn được và VẪN đeo vương miện', async () => {
     const { w } = await nap(true);
     expect(dong(w).filter((d) => d.find('.vm').exists())).toHaveLength(2);
-    await dong(w)[5]!.trigger('click');
+    await dong(w)[6]!.trigger('click');
     expect(w.emitted('chon')).toEqual([['chuong']]);
     expect(w.emitted('close')).toBeUndefined();
     expect(w.find('.cn-chu').exists(), 'dòng giải thích vương miện hiện cho cả người đã có Premium').toBe(true);

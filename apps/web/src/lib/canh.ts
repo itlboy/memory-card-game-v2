@@ -31,14 +31,45 @@ function doc(): Canh {
 }
 export const canh = ref<Canh>(doc());
 
+/*
+ * NGẪU NHIÊN (26.11.2026, chủ dự án: "trong các settings đó có thêm mục ngẫu nhiên… chúng ta sẽ đổi ngẫu nhiên"): bật thì
+ * mỗi lần MỞ APP và mỗi lần VỀ TRANG CHỦ sau một ván, hình nền đổi sang một hình khác (`doiCanhNgauNhien`, App gọi).
+ * KHÔNG đổi giữa ván — nền đổi lúc đang nhớ thẻ là phá người chơi. Chọn tay một hình là tắt ngẫu nhiên.
+ * Cần Premium (chưa có thì chỉ có một hình, không có gì để đổi): hết Premium là tắt theo.
+ */
+const KHOA_NN = 'mm.canh.nn';
+export const canhNgauNhien = ref((() => { try { return localStorage.getItem(KHOA_NN) === '1'; } catch { return false; } })());
+function luuCanh(c: Canh): void {
+  canh.value = c;
+  try { if (c === 'goc') localStorage.removeItem(KHOA); else localStorage.setItem(KHOA, c); } catch { /* chế độ riêng tư */ }
+  ganCanh();
+}
+function luuNN(bat: boolean): void {
+  canhNgauNhien.value = bat;
+  try { if (bat) localStorage.setItem(KHOA_NN, '1'); else localStorage.removeItem(KHOA_NN); } catch { /* chế độ riêng tư */ }
+}
+/** Đang bật ngẫu nhiên thì đổi sang một hình nền KHÁC hình đang dùng. Trả hình mới (hoặc null nếu không đổi). */
+export function doiCanhNgauNhien(): Canh | null {
+  if (!canhNgauNhien.value || !daMuaPremium.value) return null;
+  const ung = CANH.filter((c) => c !== canh.value);
+  const moi = ung[Math.floor(Math.random() * ung.length)]!;
+  luuCanh(moi);
+  return moi;
+}
+/** Bật/tắt mục "Ngẫu nhiên" ở bảng hình nền. Bật là đổi ngay một lần cho người chơi thấy. */
+export function datCanhNgauNhien(bat: boolean): void {
+  luuNN(bat);
+  moChucNang('hinh_nen', { canh: bat ? 'ngau-nhien' : canh.value });
+  if (bat) doiCanhNgauNhien();
+}
+
 export function ganCanh(): void {
   if (canh.value === 'goc') delete document.documentElement.dataset.canh;
   else document.documentElement.dataset.canh = canh.value;
 }
 export function datCanh(c: Canh): void {
-  canh.value = c;
-  try { if (c === 'goc') localStorage.removeItem(KHOA); else localStorage.setItem(KHOA, c); } catch { /* chế độ riêng tư */ }
-  ganCanh();
+  luuNN(false);   // chọn tay một hình = thôi ngẫu nhiên
+  luuCanh(c);
   moChucNang('hinh_nen', { canh: c });
 }
 

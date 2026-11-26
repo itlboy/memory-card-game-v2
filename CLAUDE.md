@@ -2026,3 +2026,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **Menu ☰**: dòng "Nhạc nền" là dòng PHẲNG y như "Hình nền" (không phải thanh thạch), mở `ChonNhac.vue`; dòng "Premium" ở
   đầu menu ĐÃ BỎ ("nhìn xấu quá") — bảng Premium mở từ mục khoá và trang Debug. Mục Premium nào cũng đeo vương miện KỂ CẢ khi
   đã có Premium ("để họ hiểu quyền lợi của mình").
+- **Mục "Ngẫu nhiên"** ở cả hai bảng (26.11.2026): hình nền (`lib/canh.ts` `canhNgauNhien`, khoá `mm.canh.nn`, cần Premium) và
+  nhạc (`prefs.nhacNgauNhien`, đổi trong các bài CHƠI ĐƯỢC). Đổi lúc MỞ APP và lúc VỀ TRANG CHỦ sau một ván (App: `watch(screen)`
+  có `immediate`) — KHÔNG đổi giữa ván. Chọn tay một mục là tắt ngẫu nhiên. Thống kê nhạc chỉ ghi một lần `ngau_nhien`.
+- **Đóng bảng Hình nền / Nhạc nền là về lại menu ☰** (`veMenuKhiDong` ở App gọi `TopBar.moMenu()`), trừ khi bảng đóng để mở
+  bảng Premium. Tên bài trong bảng bỏ phần trong ngoặc ("Vui", không "Vui (marimba)"); nhãn aria vẫn giữ đủ.

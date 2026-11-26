@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vChamNgoai } from '@/lib/cham-ngoai';
 import { hoSo, tenToi } from '@/lib/ho-so';
-import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -33,6 +33,8 @@ const props = defineProps<{
   rung?: boolean; coRung?: boolean;
   /** Bài nhạc nền đang chọn (lib/nhac.ts). */
   baiNhac?: BaiNhac;
+  /** Nhạc đang ở chế độ ngẫu nhiên — dòng "Nhạc nền" hiện biểu tượng xáo thay cho bài. */
+  nhacNgauNhien?: boolean;
   /** Tên tài khoản Google đang đăng nhập — hiện ở khối tài khoản của menu. */
   tenTk?: string | null;
   /** Danh hiệu: đã có / tổng — viên 🏅 cạnh điểm, bấm mở màn Danh hiệu. */
@@ -55,7 +57,7 @@ async function doiAnBxh(): Promise<void> {
   moChucNang('bxh_an', { an: an ? 1 : 0 });
   try { await anKhach(an); } catch { /* mất mạng: cờ đã lưu ở máy, lần gửi điểm sau mang theo */ } finally { dangDoiAn.value = false; }
 }
-const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
+const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | 'nn' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
   'update:debug': [boolean]; 'mo-debug': []; premium: []; 'hinh-nen': []; 'nhac-nen': [] }>();
 
 /*
@@ -132,6 +134,8 @@ function chonNhac(b: 'off' | BaiNhac): void {
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
+/** App gọi khi bảng Hình nền / Nhạc nền đóng lại: người chơi quay về đúng menu họ vừa rời (xem App.vue `veMenuKhiDong`). */
+defineExpose({ moMenu: (): void => { open.value = true; } });
 /** Menu đang hiện bảng chọn ngôn ngữ thay cho danh sách cài đặt; đóng menu là về danh sách. */
 const chonNN = ref(false);
 watch(open, (v) => { if (!v) { chonNN.value = false; trangCd.value = false; } else if (kiemCN.value !== 'dang') kiemCN.value = ''; });
@@ -448,7 +452,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                từng bài thì không thấy cả danh sách, bài Premium nằm khuất. Bên phải là bài đang phát (hoặc "Tắt"). -->
           <button v-if="debug || baiHien.length > 3" data-phang class="item nut-nen nut-nhac" role="menuitem" type="button" @click="dong(); emit('nhac-nen')">
             <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
-            <span class="bai-dang" aria-hidden="true"><component v-if="nhac" :is="ICON_BAI[baiNhac ?? 'keo']" :size="17" :stroke-width="2.4" /><template v-else>{{ td('tb.amNgan.off') }}</template></span>
+            <span class="bai-dang" aria-hidden="true"><Shuffle v-if="nhac && nhacNgauNhien" :size="17" :stroke-width="2.4" /><component v-else-if="nhac" :is="ICON_BAI[baiNhac ?? 'keo']" :size="17" :stroke-width="2.4" /><template v-else>{{ td('tb.amNgan.off') }}</template></span>
             <Crown class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />
           </button>
           <div v-else class="item am nhac" role="group" :aria-label="t('tb.nhacNen')">

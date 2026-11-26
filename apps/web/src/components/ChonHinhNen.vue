@@ -6,12 +6,12 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * NGƯỜI CHƯA CÓ PREMIUM bấm hình khoá (đeo vương miện) → đóng bảng này, mở bảng Premium với đúng hình đó ở đầu bảng
  * (chủ dự án: "người dùng free bấm vào sẽ yêu cầu nâng cấp"). Có Premium thì áp ngay, bảng vẫn mở để đổi tiếp.
  */
-import { Check, Crown, X } from 'lucide-vue-next';
+import { Check, Crown, Shuffle, X } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { daMuaPremium, moPremium } from '@/lib/premium';
-import { CANH, canh, datCanh, type Canh } from '@/lib/canh';
+import { CANH, canh, canhNgauNhien, datCanh, datCanhNgauNhien, type Canh } from '@/lib/canh';
 
 const emit = defineEmits<{ close: [] }>();
 const khoa = (c: Canh): boolean => c !== 'goc' && !daMuaPremium.value;
@@ -21,6 +21,11 @@ onMounted(() => { nutDong.value?.focus(); moChucNang('hinh_nen_mo'); });
 function chon(c: Canh): void {
   if (khoa(c)) { moChucNang('premium_nen_khoa', { canh: c }); emit('close'); moPremium('nen', c); return; }
   if (canh.value !== c) datCanh(c);
+}
+/** Mục "Ngẫu nhiên": chưa có Premium thì cũng mời nâng cấp (chỉ một hình thì không có gì để đổi). Bấm lại là tắt. */
+function chonNgauNhien(): void {
+  if (!daMuaPremium.value) { moChucNang('premium_nen_khoa', { canh: 'ngau-nhien' }); emit('close'); moPremium('nen'); return; }
+  datCanhNgauNhien(!canhNgauNhien.value);
 }
 </script>
 
@@ -38,9 +43,17 @@ function chon(c: Canh): void {
           <!-- Vương miện ở MỌI hình Premium, kể cả khi đã có Premium (chủ dự án 26.11.2026: "ngay cả người dùng premium — để
                họ hiểu quyền lợi của mình"); dấu ✓ đang chọn sang góc TRÁI để hai dấu không đè nhau. -->
           <span v-if="c !== 'goc'" class="vm" :aria-label="t('tp.premium')"><Crown :size="13" :stroke-width="2.8" aria-hidden="true" /></span>
-          <span v-if="canh === c" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
+          <span v-if="canh === c && !canhNgauNhien" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
         </button>
       </div>
+      <!-- NGẪU NHIÊN (26.11.2026): bật thì hình nền tự đổi mỗi lần mở app / về trang chủ sau một ván (lib/canh.ts).
+           Đang bật: dấu ✓ nằm ở dòng này, ô hình đang hiện chỉ còn viền vàng. -->
+      <button class="nn thach" :class="{ chon: canhNgauNhien }" type="button" :aria-pressed="canhNgauNhien" @click="chonNgauNhien">
+        <span class="nn-ic" aria-hidden="true"><Shuffle :size="20" :stroke-width="2.4" /></span>
+        <span class="nn-chu"><b>{{ t('cn.ngauNhien') }}</b><small>{{ t('cn.ngauNhienNen') }}</small></span>
+        <span class="vm tinh" aria-hidden="true"><Crown :size="13" :stroke-width="2.8" /></span>
+        <span v-if="canhNgauNhien" class="dang tinh" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
+      </button>
       <p class="hn-chu"><Crown :size="14" :stroke-width="2.8" aria-hidden="true" />{{ t('hn.canPremium') }}</p>
     </div>
   </div>
@@ -89,6 +102,13 @@ function chon(c: Canh): void {
 .anh.anh-dao .l1 { left: 10%; bottom: 0; width: 80%; aspect-ratio: 2 / 1; background: linear-gradient(#d98ab6, rgba(246, 195, 216, 0)); clip-path: polygon(0 100%, 30% 40%, 43% 15%, 50% 11%, 57% 15%, 70% 40%, 100% 100%); }
 .anh.anh-dao .l2 { left: 14%; top: 22%; width: 22%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #fff; background: linear-gradient(155deg, #ff9dc0, #e2558c); rotate: -22deg; }
 .anh.anh-dao .l3 { left: 56%; top: 46%; width: 16%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #fff; background: linear-gradient(155deg, #ff9dc0, #e2558c); rotate: 26deg; opacity: .85; }
+.nn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 7px 12px 7px 8px; border-radius: 16px; color: inherit; cursor: pointer; text-align: left; }
+.nn.chon { outline: 2.5px solid var(--vang); outline-offset: 1px; }
+.nn-ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #7a5af0; color: #fff; }
+.nn-chu { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.nn-chu b { font: 800 15px/1.25 var(--font-body); }
+.nn-chu small { font: 600 12px/1.3 var(--font-body); color: var(--muted); }
+.vm.tinh, .dang.tinh { position: static; flex: none; }
 .hn-chu { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; color: var(--muted); font: 700 12.5px/1.35 var(--font-body); text-align: center; }
 .hn-chu svg { flex: none; color: #d99a00; }
 </style>
