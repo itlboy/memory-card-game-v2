@@ -18,14 +18,15 @@ const nap = async (premium: boolean) => {
   const w = mount(ChonNhac, { props: { nhac: true, bai: 'dem' }, attachTo: document.body });
   return { w, pm };
 };
-const dong = (w: Awaited<ReturnType<typeof nap>>['w']) => w.findAll('.cn-ds .dong');
+/** Thứ tự bấm được trong bảng: Tắt · Ngẫu nhiên · 9 bài (3 thường rồi 6 Premium). */
+const dong = (w: Awaited<ReturnType<typeof nap>>['w']) => w.findAll('.cn-ds .dong, .cn-ds .o-bai');
 
 beforeEach(() => { document.body.innerHTML = ''; });
 
 describe('bảng chọn nhạc nền', () => {
-  it('bày ĐỦ Tắt + 5 bài, bài đang phát có dấu ✓, tên bài không lặp chữ "Nhạc nền:"', async () => {
+  it('bày ĐỦ Tắt + Ngẫu nhiên + 9 bài, bài đang phát có dấu ✓, tên bài không lặp chữ "Nhạc nền:"', async () => {
     const { w } = await nap(false);
-    expect(dong(w)).toHaveLength(7);   // Tắt · Ngẫu nhiên · 5 bài
+    expect(dong(w)).toHaveLength(11);   // Tắt · Ngẫu nhiên · 9 bài
     expect(dong(w)[3]!.attributes('aria-checked')).toBe('true');
     expect(dong(w)[3]!.find('.dang').exists()).toBe(true);
     expect(dong(w)[2]!.find('b').text(), 'không lặp "Nhạc nền:", không kèm tên nhạc cụ trong ngoặc').toBe('Vui');
@@ -45,7 +46,7 @@ describe('bảng chọn nhạc nền', () => {
 
   it('ĐÃ có Premium: bài Premium chọn được và VẪN đeo vương miện', async () => {
     const { w } = await nap(true);
-    expect(dong(w).filter((d) => d.find('.vm').exists())).toHaveLength(2);
+    expect(dong(w).filter((d) => d.find('.vm').exists())).toHaveLength(6);
     await dong(w)[6]!.trigger('click');
     expect(w.emitted('chon')).toEqual([['chuong']]);
     expect(w.emitted('close')).toBeUndefined();

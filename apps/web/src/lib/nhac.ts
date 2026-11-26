@@ -1,7 +1,7 @@
 import { computed, type Component } from 'vue';
 import { sfx } from './audio';
 import { daMuaPremium, hienPremium } from './premium';
-import { Fish, Leaf, Moon, Piano, Wind } from 'lucide-vue-next';
+import { Fish, Flower2, Guitar, Leaf, Moon, Piano, Sparkles, TreePalm, Wind } from 'lucide-vue-next';
 
 /*
  * NHẠC NỀN — TỔNG HỢP bằng Web Audio, cùng cách với mọi tiếng khác của app (13.10.2026).
@@ -18,6 +18,10 @@ import { Fish, Leaf, Moon, Piano, Wind } from 'lucide-vue-next';
  *    như lớp sương (pad) — khác KHUÔN với ba bài kia (gõ nhanh, rải đều), không chỉ khác giọng;
  *  · `vuon`   — QUẠT CHẢ cả hợp âm kiểu ukulele, G–Em–C–D;
  *  · `chuong` — hộp nhạc NHỊP 3/4: Am–F–C–G, tiếng chuông có hoạ âm lệch (răng lược thép).
+ *  · `ngan`   — Ngân hà: Cmaj7–Am7–Fmaj7–G6, rải CHẬM từng nốt ngân dài, giai điệu chỉ vài tiếng chuông rất cao (Lydian);
+ *  · `dao`    — Hoa anh đào: âm giai Nhật (Rê–Mi♭–Sol–La–Si♭), đàn koto gảy từng cụm hai nốt, câu hát có nốt láy;
+ *  · `bossa`  — Chiều hè: bossa nova, bass đảo phách 1 · 2½ · 3 · 4½, hợp âm bảy gảy ngắn, sáo thổi lệch phách;
+ *  · `nang`   — Đảo nắng: reggae, hợp âm CHỈ đánh phách yếu (móc 2 và 6), bass nhảy, tiếng trống thép ngũ cung La.
  * Luật (chủ dự án 15.10.2026): mỗi bài phải khác nhau ở NHỊP ĐIỆU + KẾT CẤU, không chỉ ở
  * tiếng — bốn bài cùng khuôn "rải đều mỗi móc" bị chê na ná nhau.
  * Mỗi bài là một bộ DỮ LIỆU (`BAI`) chạy chung một bộ máy: thêm bài = thêm một mục.
@@ -33,18 +37,23 @@ import { Fish, Leaf, Moon, Piano, Wind } from 'lucide-vue-next';
  * chục ms cũng không làm lệch nhịp.
  */
 export type TamTrang = 'menu' | 'van';
-export const BAI_NHAC = ['keo', 'dem', 'sau', 'vuon', 'chuong'] as const;
+/*
+ * CHÍN BÀI (26.11.2026, chủ dự án: "làm 9 nhạc nền luôn, đảm bảo premium x3 free"): 3 bài thường + 6 bài Premium → người
+ * có Premium nghe được GẤP BA. Thêm/bớt bài phải giữ tỉ lệ đó (test `nhac-chin-bai` giữ). Thứ tự: thường trước, Premium sau —
+ * bảng chọn (ChonNhac) xếp 3 cột nên hàng đầu là ba bài thường.
+ */
+export const BAI_NHAC = ['keo', 'dem', 'sau', 'vuon', 'chuong', 'ngan', 'dao', 'bossa', 'nang'] as const;
 export type BaiNhac = typeof BAI_NHAC[number];
 /** Nhãn trên nút chọn — biểu tượng thay chữ: khỏi dịch, khỏi tràn menu ở 15 ngôn ngữ. */
 /** Icon nút chọn bài — Lucide, KHÔNG emoji (21.11.2026, lib/icon-vong.ts). */
-export const ICON_BAI: Record<BaiNhac, Component> = { keo: Piano, dem: Moon, sau: Fish, vuon: Leaf, chuong: Wind };
+export const ICON_BAI: Record<BaiNhac, Component> = { keo: Piano, dem: Moon, sau: Fish, vuon: Leaf, chuong: Wind, ngan: Sparkles, dao: Flower2, bossa: Guitar, nang: TreePalm };
 
 /**
  * Bài PREMIUM — cùng gói với theme/skin premium (lib/premium.ts), cùng luật: chưa mở
  * bán (`banPremium`) thì ẨN hẳn khỏi menu; mở bán mà chưa mua thì đeo vương miện,
  * chạm vào báo "sắp ra mắt" chứ không đổi.
  */
-export const BAI_PREMIUM: ReadonlySet<BaiNhac> = new Set<BaiNhac>(['vuon', 'chuong']);
+export const BAI_PREMIUM: ReadonlySet<BaiNhac> = new Set<BaiNhac>(['vuon', 'chuong', 'ngan', 'dao', 'bossa', 'nang']);
 export const baiHien = computed(() => BAI_NHAC.filter((b) => !BAI_PREMIUM.has(b) || hienPremium.value));
 export const baiChoiDuoc = (b: BaiNhac): boolean => !BAI_PREMIUM.has(b) || daMuaPremium.value;
 export const laBaiNhac = (x: unknown): x is BaiNhac => (BAI_NHAC as readonly unknown[]).includes(x);
@@ -218,7 +227,118 @@ const BAI: Record<BaiNhac, Bai> = {
     raiBe: { kieu: 'sine', dai: 0.7, to: 0.022, hoa: CHUONG },
     giaiBe: { kieu: 'sine', dai: 1.2, to: 0.034, hoa: CHUONG },
   },
+  ngan: {
+    vong: [0, 1].flatMap(() => [
+      { bass: 36, ton: [60, 64, 67, 71] },   // Cmaj7
+      { bass: 45, ton: [57, 60, 64, 67] },   // Am7
+      { bass: 41, ton: [57, 60, 64, 65] },   // Fmaj7
+      { bass: 43, ton: [55, 59, 62, 64] },   // G6
+    ]),
+    // Rất thưa và rất cao: như vài ngôi sao loé lên. Fa thăng (90) là màu Lydian — "lơ lửng" chứ không "về nhà"
+    giai: [
+      [0, 0, 0, 0, 88, 0, 0, 0],
+      [0, 0, 86, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 84, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 79, 0],
+      [0, 0, 0, 0, 91, 0, 90, 0],
+      [0, 0, 88, 0, 0, 0, 86, 0],
+      [0, 0, 0, 0, 84, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    // Rải lên chậm, mỗi phách một nốt, nốt nào cũng ngân chồng lên nốt sau thành một đám mây
+    rai: [0, 0, 1, 0, 2, 0, 3, 0], raiMoc: [0, 2, 4, 6], bassMoc: [0],
+    quangRai: 12, nhip: 0.72, loc: 3800,
+    bass: { kieu: 'sine', dai: 3.2, to: 0.075, hoa: [[1, 1], [2, 0.15]], vao: 0.25 },
+    raiBe: { kieu: 'sine', dai: 2.6, to: 0.02, hoa: [[1, 1], [2, 0.3], [3.01, 0.12]], vao: 0.05 },
+    giaiBe: { kieu: 'sine', dai: 2.4, to: 0.026, hoa: CHUONG },
+  },
+  dao: {
+    vong: [0, 1].flatMap(() => [
+      { bass: 38, ton: [50, 57, 62, 69] },   // Rê (quãng năm trống)
+      { bass: 43, ton: [55, 58, 62, 67] },   // Sol thứ
+      { bass: 39, ton: [51, 55, 58, 62] },   // Mi♭ trưởng bảy
+      { bass: 38, ton: [50, 57, 62, 63] },   // Rê + Mi♭: nửa cung đặc trưng của âm giai Nhật
+    ]),
+    // Âm giai "In" trên Rê (D E♭ G A B♭). Nốt láy nửa cung (75→74, 81→79) là cái làm ra tiếng koto
+    giai: [
+      [74, 0, 0, 75, 74, 0, 70, 0],
+      [69, 0, 0, 0, 67, 0, 0, 0],
+      [70, 0, 74, 0, 75, 0, 74, 0],
+      [69, 0, 0, 0, 0, 0, 0, 0],
+      [79, 0, 0, 81, 79, 0, 75, 0],
+      [74, 0, 0, 0, 70, 0, 69, 0],
+      [67, 0, 70, 0, 69, 0, 63, 0],
+      [62, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    // Gảy từng CỤM HAI NỐT rồi để trống — khác hẳn kiểu rải đều
+    rai: [0, 2, 0, 0, 3, 1, 0, 0], raiMoc: [0, 1, 4, 5], bassMoc: [0],
+    quangRai: 12, nhip: 0.88, loc: 5000,
+    bass: { kieu: 'triangle', dai: 1.3, to: 0.06, hoa: DON },
+    raiBe: { kieu: 'triangle', dai: 0.55, to: 0.02, hoa: [[1, 1], [2, 0.35], [3, 0.18], [4, 0.08]] },
+    giaiBe: { kieu: 'triangle', dai: 0.9, to: 0.034, hoa: [[1, 1], [2, 0.3], [3, 0.12]] },
+  },
+  bossa: {
+    vong: [
+      { bass: 38, ton: [53, 57, 60, 64] },   // Dm9
+      { bass: 43, ton: [53, 57, 59, 62] },   // G7
+      { bass: 36, ton: [52, 55, 59, 62] },   // Cmaj9
+      { bass: 45, ton: [52, 55, 57, 61] },   // A7 — kéo về Dm
+      { bass: 38, ton: [53, 57, 60, 64] },
+      { bass: 43, ton: [53, 57, 59, 62] },
+      { bass: 36, ton: [52, 55, 59, 62] },
+      { bass: 36, ton: [52, 55, 57, 62] },   // C6
+    ],
+    // Sáo thổi LỆCH phách (nốt rơi vào móc 5, 7, 1): cái đung đưa của bossa nằm ở đây
+    giai: [
+      [77, 0, 76, 0, 0, 74, 0, 72],
+      [0, 0, 71, 0, 0, 0, 74, 0],
+      [76, 0, 0, 0, 79, 0, 76, 0],
+      [0, 73, 0, 0, 76, 0, 0, 0],
+      [77, 0, 81, 0, 0, 79, 0, 77],
+      [0, 0, 74, 0, 0, 77, 0, 0],
+      [76, 0, 0, 74, 0, 72, 0, 71],
+      [72, 0, 0, 0, 0, 0, 0, 0],
+    ],
+    // Guitar dây nylon: cả hợp âm gảy NGẮN ở móc 0 · 2 · 5 · 7; bass đi 1 · 2½ · 3 · 4½
+    rai: [0, 0, 0, 0, 0, 0, 0, 0], raiMoc: [0, 2, 5, 7], caHopAm: true, quet: 0.01, bassMoc: [0, 3, 4, 7],
+    quangRai: 0, nhip: 1.05, loc: 3600,
+    bass: { kieu: 'sine', dai: 0.5, to: 0.075, hoa: [[1, 1], [2, 0.18]] },
+    raiBe: { kieu: 'triangle', dai: 0.3, to: 0.014, hoa: [[1, 1], [2, 0.2]] },
+    giaiBe: { kieu: 'sine', dai: 0.6, to: 0.036, hoa: [[1, 1], [2, 0.1], [3, 0.04]], vao: 0.03 },
+  },
+  nang: {
+    vong: [
+      { bass: 45, ton: [57, 61, 64, 69] },   // A
+      { bass: 38, ton: [57, 62, 66, 69] },   // D
+      { bass: 45, ton: [57, 61, 64, 69] },
+      { bass: 40, ton: [56, 59, 64, 68] },   // E
+      { bass: 42, ton: [57, 61, 66, 69] },   // F♯m
+      { bass: 38, ton: [57, 62, 66, 69] },
+      { bass: 45, ton: [57, 61, 64, 69] },
+      { bass: 40, ton: [56, 59, 64, 68] },
+    ],
+    // Trống thép, ngũ cung La trưởng. Câu nào cũng VÀO SAU phách 1 (móc 0 để trống cho bass)
+    giai: [
+      [0, 0, 76, 0, 78, 76, 73, 0],
+      [0, 0, 74, 0, 78, 0, 81, 0],
+      [0, 0, 76, 0, 73, 0, 71, 0],
+      [0, 0, 76, 0, 71, 0, 68, 0],
+      [0, 0, 81, 0, 78, 76, 73, 0],
+      [0, 0, 78, 0, 81, 0, 85, 0],
+      [0, 0, 81, 78, 76, 0, 73, 0],
+      [0, 0, 71, 0, 69, 0, 0, 0],
+    ],
+    // Reggae: hợp âm CHỈ đánh phách yếu (móc 2 và 6), cụt lủn; bass nhảy 1 · 2½ · 3½
+    rai: [0, 0, 0, 0, 0, 0, 0, 0], raiMoc: [2, 6], caHopAm: true, quet: 0.006, bassMoc: [0, 3, 5],
+    quangRai: 0, nhip: 0.95, loc: 4200,
+    bass: { kieu: 'triangle', dai: 0.45, to: 0.085, hoa: DON },
+    raiBe: { kieu: 'triangle', dai: 0.16, to: 0.02, hoa: [[1, 1], [2, 0.3], [3, 0.15]] },
+    giaiBe: { kieu: 'sine', dai: 0.5, to: 0.036, hoa: [[1, 1], [2, 0.4], [4.2, 0.1]] },
+  },
 };
+
+/** Chỉ cho test soát dữ liệu từng bài (số móc mỗi ô, chỉ số rải…) — code app đừng đọc. */
+export const BAI_DE_TEST: Readonly<Record<BaiNhac, Bai>> = BAI;
 
 /** Nhịp gốc (menu và lúc vừa vào ván) → nhịp cuối ván. 72 → 62 (15.10.2026: "chậm hơn"). */
 const BPM = 62;
