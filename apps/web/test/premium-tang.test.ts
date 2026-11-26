@@ -141,7 +141,7 @@ describe('slide Premium', () => {
   it('mỗi tính năng Premium có một trang slide + tên trang ở mọi ngôn ngữ', async () => {
     const { TINH_NANG_PREMIUM } = await import('@/lib/premium');
     const src = readFileSync(resolve(process.cwd(), 'src/components/BangPremium.vue'), 'utf8');
-    expect(TINH_NANG_PREMIUM).toEqual(expect.arrayContaining(['nen', 'lung', 'emoji', 'huyHieu', 'nhacFx', 'triNho']));
+    expect(TINH_NANG_PREMIUM).toEqual(expect.arrayContaining(['nen', 'lung', 'nhac', 'emoji', 'huyHieu', 'hieuUng', 'triNho']));
     for (const id of TINH_NANG_PREMIUM) expect(src, `trang ${id}`).toContain(`sl === '${id}'`);
     for (const f of readdirSync(resolve(process.cwd(), 'src/locales')).filter((x) => x.endsWith('.ts'))) {
       const chu = readFileSync(resolve(process.cwd(), 'src/locales', f), 'utf8');
@@ -150,7 +150,7 @@ describe('slide Premium', () => {
   });
   it('slide tự chạy, bấm chấm / vuốt để chuyển; ảnh hình nền có đủ 8 tấm (vi/en × hai hình nền × sáng/tối)', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/components/BangPremium.vue'), 'utf8');
-    expect(src).toMatch(/setInterval\(\(\) => \{ slideI\.value = \(slideI\.value \+ 1\) % SLIDE\.length; \}, 3200\)/);
+    expect(src).toMatch(/setInterval\(\(\) => \{ slideI\.value = \(slideI\.value \+ 1\) % SLIDE\.length; \}, 2500\)/);
     expect(src).toContain('@pointerdown="vuotBatDau" @pointerup="vuotXong"');
     for (const c of ['thien-ha', 'anh-dao']) for (const n of ['sang', 'toi']) for (const l of ['vi', 'en'])
       expect(existsSync(resolve(process.cwd(), `public/img/pm/${c}-${n}-${l}.jpg`)), `${c}-${n}-${l}`).toBe(true);

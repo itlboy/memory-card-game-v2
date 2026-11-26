@@ -18,6 +18,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
 import { Award, Bell, ChartColumn, Check, Crown, Gift, Image, LoaderCircle, Music, ShieldCheck, SlidersHorizontal, Smile, Undo2, X } from 'lucide-vue-next';
 import { EMOJI_PREMIUM } from '@mm/engine';
 import DauPremium from './DauPremium.vue';
+import { BAI_PREMIUM, ICON_BAI, nhac, type BaiNhac } from '@/lib/nhac';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, ngonNgu, t, td } from '@/lib/i18n';
@@ -27,7 +28,8 @@ import { canh, canhNgauNhien } from '@/lib/canh';
 import { SITE_URL, nenApp } from '@/lib/native';
 
 /** `nhacHien`: chữ hiện ở dòng cài đặt "Nhạc nền" (Tắt · Ngẫu nhiên · tên bài) — trạng thái nhạc nằm ở App.vue. */
-const props = withDefaults(defineProps<{ tu?: NoiMoPremium; nhacHien?: string }>(), { tu: 'menu', nhacHien: '' });
+/** `nhacDang`: bài đang phát ở trang chủ (null = nhạc tắt) — nghe thử ở slide Nhạc xong thì trả lại đúng bài này. */
+const props = withDefaults(defineProps<{ tu?: NoiMoPremium; nhacHien?: string; nhacDang?: BaiNhac | null }>(), { tu: 'menu', nhacHien: '', nhacDang: null });
 /** `mo`: người chơi bấm một dòng "Cài đặt Premium" — App đóng bảng này, mở bảng Chủ đề / Nhạc nền, đóng bảng đó là quay lại đây. */
 const emit = defineEmits<{ close: []; mo: ['nen' | 'nhac' | 'hh'] }>();
 
@@ -74,7 +76,9 @@ const slideI = ref(0);
 const slide = computed(() => SLIDE[slideI.value]!);
 let henSlide: ReturnType<typeof setInterval> | undefined;
 const giamDong = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-function chaySlide(): void { clearInterval(henSlide); if (!giamDong) henSlide = setInterval(() => { slideI.value = (slideI.value + 1) % SLIDE.length; }, 3200); }
+/* 2,5 giây một trang (chủ dự án 26.11.2026: 3,2 giây "delay hơi lâu"). Đang nghe thử nhạc thì DỪNG tự chạy — đang nghe mà slide
+   trôi đi là mất chỗ bấm bài khác. */
+function chaySlide(): void { clearInterval(henSlide); if (!giamDong && !dangNghe.value) henSlide = setInterval(() => { slideI.value = (slideI.value + 1) % SLIDE.length; }, 2500); }
 function denSlide(i: number): void { slideI.value = (i + SLIDE.length) % SLIDE.length; chaySlide(); }
 onMounted(chaySlide);
 onUnmounted(() => clearInterval(henSlide));
@@ -82,12 +86,28 @@ let x0: number | null = null;
 function vuotBatDau(e: PointerEvent): void { x0 = e.clientX; }
 function vuotXong(e: PointerEvent): void { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 30) denSlide(slideI.value + (dx < 0 ? 1 : -1)); }
 const toi = typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
-const anhNen = (c: 'thien-ha' | 'anh-dao'): string => `/img/pm/${c}-${toi ? 'toi' : 'sang'}-${ngonNgu.value === 'vi' ? 'vi' : 'en'}.jpg`;
+const ANH_NEN = ['anh-dao-sang', 'anh-dao-toi', 'thien-ha-sang', 'thien-ha-toi'] as const;
+const anhNen = (a: string): string => `/img/pm/${a}-${ngonNgu.value === 'vi' ? 'vi' : 'en'}.jpg`;
 const LUNG_TH = ['ht-moc', 'ht-dat', 'ht-troi'] as const;
 const LUNG_AD = ['ad-nui', 'ad-hoa', 'ad-den'] as const;
 const LA_VT = [{ x: 36, y: 66, g: -18 }, { x: 76, y: 50, g: -6 }, { x: 116, y: 44, g: 6 }, { x: 192, y: 44, g: -6 }, { x: 232, y: 50, g: 6 }, { x: 272, y: 66, g: 18 }];
 const TIA = Array.from({ length: 12 }, (_, k) => ({ x: Math.round(130 + Math.cos(k * 0.52) * (95 + (k % 3) * 12)), y: Math.round(80 + Math.sin(k * 0.52) * (95 + (k % 3) * 12) * 0.75) }));
 const COT_NAM = [38, 52, 44, 60, 58, 70, 64, 78, 72, 86, 80, 96];
+/*
+ * NGHE THỬ NHẠC PREMIUM ở slide Nhạc nền (26.11.2026, chủ dự án: "chưa thấy có phần âm thanh"). Bấm một bài là phát NGAY bài đó
+ * (âm thanh chỉ được phát sau một lần chạm — luật trình duyệt, nên KHÔNG tự phát khi slide tới); bấm lại là dừng. Ai cũng nghe
+ * thử được, kể cả chưa có Premium — nghe là để muốn mua. Đóng bảng thì trả lại nhạc trang chủ như trước (`nhacDang`).
+ */
+const BAI_PM = [...BAI_PREMIUM];
+const dangNghe = ref<BaiNhac | null>(null);
+function ngheThu(b: BaiNhac): void {
+  if (dangNghe.value === b) { dangNghe.value = null; traNhac(); chaySlide(); return; }
+  dangNghe.value = b; clearInterval(henSlide);
+  nhac.chay('menu', b);
+  moChucNang('premium_nghe_thu', { bai: b });
+}
+function traNhac(): void { if (props.nhacDang) nhac.chay('menu', props.nhacDang); else nhac.dung(); }
+onUnmounted(() => { if (dangNghe.value) traNhac(); });
 
 const ngay = (ms: number): string => new Intl.DateTimeFormat(bcp(), { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(ms));
 /** Đang trong thời gian dùng thử (chưa bị tính tiền). */
@@ -168,8 +188,8 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
           <div v-for="sl in SLIDE" :key="sl" class="slide">
             <template v-if="sl === 'nen'">
               <i class="sao" />
-              <img class="dt trai" :src="anhNen('anh-dao')" alt="" draggable="false">
-              <img class="dt phai" :src="anhNen('thien-ha')" alt="" draggable="false">
+              <!-- CẢ SÁNG LẪN TỐI của từng chủ đề (chủ dự án 26.11.2026: "phần chủ đề cho cả chủ đề sáng tối vào") -->
+              <img v-for="(a, k) in ANH_NEN" :key="a" class="dt" :class="`d${k}`" :src="anhNen(a)" alt="" draggable="false">
             </template>
             <template v-else-if="sl === 'lung'">
               <i class="sao" />
@@ -179,17 +199,22 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
             <div v-else-if="sl === 'huyHieu'" class="hh">
               <span style="--m: #f59e0b">🦊<DauPremium loai="vm" /></span><span style="--m: #e25bc8">🐼<DauPremium loai="tim" /></span><span style="--m: #22b8e6">🦁<DauPremium loai="kc" /></span>
             </div>
-            <div v-else-if="sl === 'nhacFx'" class="fx">
+            <div v-else-if="sl === 'nhac'" class="nghe">
+              <button v-for="b in BAI_PM" :key="b" data-phang type="button" :class="{ on: dangNghe === b }" :aria-pressed="dangNghe === b" :aria-label="td(`tb.nhacBai.${b}`)" @pointerdown.stop @click="ngheThu(b)">
+                <component :is="ICON_BAI[b]" :size="22" :stroke-width="2.2" aria-hidden="true" /><i class="song" aria-hidden="true"><u /><u /><u /></i>
+              </button>
+              <p>{{ dangNghe ? td(`tb.nhacBai.${dangNghe}`) : t('pm.c.ngheThu') }}</p>
+            </div>
+            <div v-else-if="sl === 'hieuUng'" class="fx">
               <i v-for="(c, k) in TIA" :key="k" class="tia" :style="{ left: `${c.x}px`, top: `${c.y}px` }" />
               <span class="cap" style="left: 44px; transform: rotate(-6deg)">🦄</span><span class="cap" style="left: 142px; transform: rotate(6deg)">🦄</span>
-              <Music class="not" style="left: 6px; top: 4px" /><Music class="not" style="right: 4px; top: 120px" />
             </div>
             <div v-else-if="sl === 'triNho'" class="nam"><b>{{ t('pm.c.thang12') }}</b><i v-for="(h, k) in COT_NAM" :key="k" :class="{ nay: k === 11 }" :style="{ height: `${h}%` }" /></div>
           </div>
         </div>
         <span class="ten-slide">{{ td(`pm.c.sl.${slide}`) }}</span>
         <button ref="nutDong" data-phang class="dong" :aria-label="t('dhd.dong')" type="button" :disabled="buoc === 'dang'" @click="dong"><X :size="19" :stroke-width="2.6" /></button>
-        <span class="cham" role="group" :aria-label="t('tp.premium')">
+        <span class="cham" :class="{ dung: dangNghe }" role="group" :aria-label="t('tp.premium')">
           <button v-for="(sl, i) in SLIDE" :key="sl" data-phang type="button" :class="{ on: slideI === i }" :aria-label="td(`pm.c.sl.${sl}`)" :aria-pressed="slideI === i" @click="denSlide(i)" />
         </span>
         <span class="nhan" aria-hidden="true"><Crown :size="15" :stroke-width="2.8" />PREMIUM</span>
@@ -311,9 +336,12 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
   radial-gradient(circle 2.5px at 80% 70%, #fff 95%, transparent), radial-gradient(circle 1.5px at 12% 76%, #fff 95%, transparent); }
 /* khung chứa slide rộng bằng bảng; các phần tử đặt theo bề rộng 378 (bảng trên iPhone 15) rồi căn giữa */
 .slide > :not(.sao) { position: absolute; }
-.dt { top: 22px; width: 104px; height: 200px; border-radius: 20px; border: 4px solid #11152f; object-fit: cover; box-shadow: 0 18px 30px rgba(20, 20, 60, .35); }
-.dt.trai { left: calc(50% - 104px); transform: rotate(-9deg); }
-.dt.phai { left: calc(50% - 8px); top: 16px; transform: rotate(8deg); z-index: 1; }
+/* Bốn điện thoại xoè: Hoa anh đào sáng · tối, Thiên hà sáng · tối — hai cái giữa cao hơn, đè lên hai cái ngoài */
+.dt { top: 40px; width: 82px; height: 158px; border-radius: 16px; border: 3px solid #11152f; object-fit: cover; box-shadow: 0 14px 24px rgba(20, 20, 60, .35); }
+.dt.d0 { left: calc(50% - 168px); top: 52px; transform: rotate(-12deg); }
+.dt.d1 { left: calc(50% - 88px); top: 36px; transform: rotate(-4deg); z-index: 1; }
+.dt.d2 { left: calc(50% + 6px); top: 36px; transform: rotate(4deg); z-index: 1; }
+.dt.d3 { left: calc(50% + 86px); top: 52px; transform: rotate(12deg); }
 .la { margin-left: calc(50% - 189px); width: 76px; height: 102px; border-radius: 13px; border: 3px solid var(--vien-la); box-shadow: 0 10px 18px rgba(20, 20, 60, .3);
   background: var(--lung-hinh) center / var(--lung-co) auto no-repeat, var(--nen-la); }
 .la.th { --nen-la: linear-gradient(155deg, #2a4fd0, #0a1650 70%); --vien-la: #cfe6ff; }
@@ -327,8 +355,18 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .fx { left: 50%; top: 48px; transform: translateX(-50%); width: 260px; height: 170px; }
 .fx .cap { position: absolute; top: 30px; width: 74px; height: 100px; border-radius: 12px; border: 4px solid #f5b324; background: linear-gradient(#fffdf2, #fff1c9); display: grid; place-items: center; font-size: 40px; box-shadow: 0 0 0 6px rgba(245, 179, 36, .25), 0 0 28px rgba(255, 200, 60, .9); }
 .fx .tia { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ffd34d; box-shadow: 0 0 8px #ffd34d; }
-.fx .not { position: absolute; width: 26px; height: 26px; color: #e17055; }
-:global([data-theme='dark'] .pm .fx .not) { color: #ff9f7a; }
+/* Slide Nhạc: 6 bài Premium, bấm để nghe thử — bài đang phát sáng lên, có ba vạch sóng nhún */
+.nghe { left: 50%; top: 54px; transform: translateX(-50%); width: 236px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.nghe button { position: relative; height: 50px; border: 0; border-radius: 18px; display: grid; place-items: center; cursor: pointer; color: #fff;
+  background: linear-gradient(155deg, #f08a5d, #c8553d); box-shadow: 0 4px 0 #9c3d2a, 0 8px 14px rgba(20, 20, 60, .2); }
+.nghe button:nth-child(2n) { background: linear-gradient(155deg, #8e7cf0, #5b47c8); box-shadow: 0 4px 0 #3f2f9a, 0 8px 14px rgba(20, 20, 60, .2); }
+.nghe button.on { outline: 3px solid #f5b324; outline-offset: 2px; }
+.nghe .song { position: absolute; right: 8px; bottom: 7px; display: none; gap: 2px; align-items: flex-end; height: 12px; }
+.nghe button.on .song { display: flex; }
+.nghe .song u { width: 3px; border-radius: 2px; background: #fff; animation: song .8s ease-in-out infinite alternate; }
+.nghe .song u:nth-child(2) { animation-delay: -.3s; } .nghe .song u:nth-child(3) { animation-delay: -.55s; }
+@keyframes song { from { height: 3px; } to { height: 12px; } }
+.nghe p { grid-column: 1 / -1; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; font: 800 13px/1.2 var(--font-body); color: var(--chu); }
 .nam { left: 50%; top: 58px; transform: translateX(-50%); width: 270px; height: 130px; display: flex; align-items: flex-end; gap: 6px; padding: 26px 12px 10px; box-sizing: border-box; border-radius: 18px; background: var(--o); border: 1px solid var(--o-vien); }
 .nam i { flex: 1; border-radius: 5px 5px 2px 2px; background: #0f8a7a; }
 .nam i.nay { background: #2ed3b7; }
@@ -337,13 +375,14 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 :global([data-theme='dark'] .pm .ten-slide) { background: rgba(255, 255, 255, .12); }
 .dong { position: absolute; z-index: 3; top: 10px; right: 10px; width: 40px; height: 40px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(29, 35, 72, .08); color: var(--chu); cursor: pointer; }
 :global([data-theme='dark'] .pm .dong) { background: rgba(255, 255, 255, .12); }
-.cham { position: absolute; z-index: 3; left: 0; right: 0; bottom: 30px; display: flex; justify-content: center; gap: 0; }
+.cham { position: absolute; z-index: 3; left: 0; right: 0; bottom: 42px; display: flex; justify-content: center; gap: 0; }
 .cham button { width: 20px; height: 22px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
 .cham button::before { content: ''; width: 7px; height: 7px; border-radius: 4px; background: rgba(29, 35, 72, .25); transition: width .3s, background .3s; }
 :global([data-theme='dark'] .pm .cham button::before) { background: rgba(255, 255, 255, .35); }
 .cham button.on::before { width: 18px; background: #f5b324; }
 .nhan { position: absolute; z-index: 3; left: 50%; bottom: 0; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px;
-  background: linear-gradient(#ffe08a, #f5b324); color: #4a3300; font: 900 13px/1 var(--font-body); letter-spacing: .08em; box-shadow: 0 3px 0 #c98f12; }
+  background: linear-gradient(#ffe08a, #f5b324); color: #4a3300; font: 900 13px/1 var(--font-body); letter-spacing: .08em; box-shadow: 0 3px 0 #c98f12;
+  margin-bottom: 8px; /* chừa chỗ cho đế 3px: khung slide `overflow: hidden` cắt mất đáy nhãn (chủ dự án chụp 26.11.2026) */ }
 
 /* ---------- thân ---------- */
 .pm-than { display: flex; flex-direction: column; gap: var(--d); padding: 14px 18px 14px; }
@@ -409,7 +448,7 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .pm-xong h3 { margin: 4px 0 0; font-size: var(--text-xl); }
 .pm-xong p { margin: 0 0 8px; color: var(--chu2); font-size: var(--text-md); line-height: 1.45; }
 .pm-xong .pm-mua { align-self: stretch; }
-@media (prefers-reduced-motion: reduce) { .pm-quay, .pm-xong-ic { animation: none; } .truot { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .pm-quay, .pm-xong-ic, .nghe .song u { animation: none; } .truot { transition: none; } }
 /* Máy thấp (iPhone SE 667): slide thấp lại và thu nhỏ, khoảng cách gọn — vừa một màn */
 @media (max-height: 700px) {
   .pm { --d: 10px; }

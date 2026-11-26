@@ -26,7 +26,7 @@ export type Goi = 'thang' | 'nam';
  * tính năng premium nào có thì phải cho vào đây", "cả icon chat nữa"). Làm thêm tính năng Premium mới = thêm mã vào đây + vẽ
  * trang của nó ở BangPremium.vue (`slide === '<mã>'`) + chữ `pm.c.sl.<mã>` 15 ngôn ngữ — test premium-tang canh đủ cả ba.
  */
-export const TINH_NANG_PREMIUM = ['nen', 'lung', 'emoji', 'huyHieu', 'nhacFx', 'triNho'] as const;
+export const TINH_NANG_PREMIUM = ['nen', 'lung', 'nhac', 'emoji', 'huyHieu', 'hieuUng', 'triNho'] as const;
 export type TinhNangPremium = (typeof TINH_NANG_PREMIUM)[number];
 /** `thuDen`: đang trong thời gian DÙNG THỬ miễn phí tới mốc này (chưa bị tính tiền). */
 /** `tang`: gói QUÀ TẶNG 1 tháng (xem `nhanQuaTang`) — không qua cửa hàng, hết hạn là về bản thường. */

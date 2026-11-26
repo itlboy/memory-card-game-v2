@@ -1366,7 +1366,7 @@ const hasNext = computed(() => {
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
-  <BangPremium v-if="showPremium && debug" :tu="premiumTu" :nhac-hien="nhacHien" @close="showPremium = false" @mo="moTuPremium" />
+  <BangPremium v-if="showPremium && debug" :tu="premiumTu" :nhac-hien="nhacHien" :nhac-dang="nhacBat && soundLevel !== 'off' ? baiThat : null" @close="showPremium = false" @mo="moTuPremium" />
   <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
   <ChonHuyHieu v-if="showHuyHieu" @close="showHuyHieu = false" />
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
