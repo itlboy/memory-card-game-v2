@@ -3,6 +3,7 @@ import { laApp, SITE_URL } from './native';
 import { t, napTuDien, ngonNgu } from './i18n';
 import { sfx } from './audio';
 import { suKien } from './phan-tich';
+import { nhoTrang } from './appUrl';
 
 /**
  * CẬP NHẬT NÓNG (OTA) — app gói nhận bản web mới KHÔNG cần qua duyệt store
@@ -225,6 +226,7 @@ async function apGoi(id: string): Promise<void> {
   else if (phuDuoc()) { hienManPhu(100); await baoXong(); }
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+    nhoTrang();                                        // gói mới mở lại ĐÚNG trang đang đứng (lib/appUrl)
     await CapacitorUpdater.set({ id });                // tải lại app sang gói mới
   } catch { anManPhu(); /* vẫn còn lối `next` + `kill`: mở lại app là có */ }
 }
@@ -501,6 +503,7 @@ export async function kiemOta(): Promise<void> {
 export async function apOtaNgay(): Promise<void> {
   if (!laApp || !goiCho) return;
   const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
+  nhoTrang();
   await CapacitorUpdater.set({ id: goiCho });
 }
 
