@@ -14,8 +14,9 @@ import { daMuaPremium } from './premium';
  * sau"): `thien-ha` và `anh-dao` đổi CẢ trời, chân trời, cách bày ba lá ở trang chủ (QuatLa), mặt lưng lá và bộ icon
  * bay (IconBay đọc `ICON_CANH`). Hành tinh chỉ đổi thiên thể. Mỗi cảnh có bản sáng + tối theo nền người chơi chọn.
  */
-export const CANH = ['goc', 'thien-ha', 'anh-dao', 'sao-moc', 'sao-thuy', 'trai-dat', 'sao-tho', 'sao-hoa'] as const;
-export const CANH_TRON_BO: ReadonlySet<string> = new Set(['thien-ha', 'anh-dao']);
+/* 26.11.2026: BỎ 5 hình nền hành tinh lẻ (chủ dự án: bảng chọn "hơi rối, chỉ có mặc định, thiên hà và hoa anh đào thôi").
+   Máy đang lưu một hành tinh thì `doc()` trả về `goc`. Ảnh hành tinh (--ht-…) vẫn giữ: Thiên hà vẽ bằng Sao Thổ + Sao Hoả. */
+export const CANH = ['goc', 'thien-ha', 'anh-dao'] as const;
 /** Bộ icon bay riêng của cảnh trọn bộ — cảnh khác dùng bộ mặc định của IconBay. */
 export const ICON_CANH: Partial<Record<string, string[]>> = {
   'thien-ha': ['🚀', '🪐', '⭐', '🛸', '☄️', '🌙', '👽', '🛰️', '🌟', '💫', '🌠', '🔭', '🌍', '✨', '👾'],

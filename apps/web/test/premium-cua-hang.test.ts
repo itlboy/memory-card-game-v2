@@ -11,7 +11,14 @@ describe('cửa hàng Premium giả lập', () => {
     expect(m.daMuaPremium.value).toBe(true);
     const g = m.goiDangCo.value!;
     expect(g.goi).toBe('nam');
-    expect(Math.round((g.het - g.tu) / 86_400_000)).toBe(365);
+    // Lần đầu có 7 ngày DÙNG THỬ miễn phí cộng trước kỳ tính tiền; dùng rồi thì lần sau không còn
+    expect(Math.round((g.het - g.tu) / 86_400_000)).toBe(365 + m.NGAY_DUNG_THU);
+    expect(Math.round((g.thuDen! - g.tu) / 86_400_000)).toBe(m.NGAY_DUNG_THU);
+    expect(m.conDungThu.value).toBe(false);
+    expect(await m.muaGoi('thang')).toBe('ok');
+    expect(m.goiDangCo.value!.thuDen).toBeUndefined();
+    expect(Math.round((m.goiDangCo.value!.het - m.goiDangCo.value!.tu) / 86_400_000)).toBe(30);
+    expect(await m.muaGoi('nam')).toBe('ok');
     vi.resetModules();
     m = await import('@/lib/premium');
     expect(m.daMuaPremium.value).toBe(true);
@@ -35,8 +42,8 @@ describe('cửa hàng Premium giả lập', () => {
     m.daMuaPremium.value = false;
     expect(await m.khoiPhucMua()).toBe(true);
     expect(m.daMuaPremium.value).toBe(true);
-    c.datCanh('sao-moc');
-    expect(document.documentElement.dataset.canh).toBe('sao-moc');
+    c.datCanh('thien-ha');
+    expect(document.documentElement.dataset.canh).toBe('thien-ha');
     m.huyGoiThu();
     await new Promise((r) => setTimeout(r, 0));
     expect(m.daMuaPremium.value).toBe(false);
