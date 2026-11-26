@@ -124,7 +124,9 @@ const baiThat = computed<BaiNhac>(() => (baiChoiDuoc(baiNhac.value) ? baiNhac.va
  * lần (nhịp chung với hình nền — `doiNgauNhienNeuDenGio` bên dưới) đổi sang một bài KHÁC trong các bài chơi được (bài Premium chỉ khi đã có Premium).
  * Chọn tay một bài hoặc Tắt là thôi ngẫu nhiên.
  */
-const nhacNgauNhien = ref(prefs.nhacNgauNhien === true);
+// MẶC ĐỊNH BẬT (chủ dự án 26.11.2026: "settings mặc định là để ngẫu nhiên… về chủ đề và âm thanh"): máy chưa từng đụng mục
+// này (`undefined`) thì ngẫu nhiên — trừ khi đang lưu một bài KHÁC bài mặc định, tức người chơi đã tự chọn bài từ trước.
+const nhacNgauNhien = ref(prefs.nhacNgauNhien ?? (!laBaiNhac(prefs.baiNhac) || prefs.baiNhac === 'keo'));
 function doiNhacNgauNhien(): void {
   if (!nhacNgauNhien.value || !nhacBat.value) return;
   const ung = BAI_NHAC.filter((b) => baiChoiDuoc(b) && b !== baiNhac.value);
