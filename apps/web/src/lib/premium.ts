@@ -1,6 +1,7 @@
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import type { CardTheme } from './themes';
 import { dangDebug } from './debug';
+import { coCuaHangThat, khoiDongCuaHang, khoiPhucThat, muaThat, type BangGia, type TrangThaiMua } from './cua-hang';
 
 /**
  * GÓI PREMIUM — gói THÁNG / NĂM (chủ dự án 25.11.2026), mở mọi thứ premium: hình nền hành tinh, skin, nhạc, theme…
@@ -20,7 +21,7 @@ import { dangDebug } from './debug';
  */
 export type Goi = 'thang' | 'nam';
 /** `thuDen`: đang trong thời gian DÙNG THỬ miễn phí tới mốc này (chưa bị tính tiền). */
-export interface GoiDangCo { goi: Goi; tu: number; het: number; thuDen?: number }
+export interface GoiDangCo { goi: Goi; tu: number; het: number; thuDen?: number; vinhVien?: boolean }
 /** Số ngày dùng thử miễn phí cho lần đăng ký ĐẦU (26.11.2026, chủ dự án: "có báo thời gian dùng thử"). Bán thật = ưu đãi mở đầu khai trên store. */
 export const NGAY_DUNG_THU = 7;
 const KHOA_DA_THU = 'mm.premium.daThu';
@@ -67,6 +68,37 @@ export const hienPremium = computed(() => banPremium.value || daMuaPremium.value
 /** Theme này người chơi có được CHỌN không. */
 export const choiDuoc = (t: Pick<CardTheme, 'premium'>): boolean => !t.premium || daMuaPremium.value;
 
+/*
+ * ---------- CỬA HÀNG THẬT (lib/cua-hang.ts, RevenueCat) ----------
+ * Khi `cuaHangThat` bật thì ba hàm bên dưới gọi store thật thay cho giả lập. Chỉ nối SDK khi ĐANG DEBUG (Premium chưa
+ * mở cho mọi người) — người chơi thường không bị tạo hồ sơ RevenueCat. Quyền lợi đọc được cũng ghi vào `mm.premium.goi`
+ * để lần mở sau có Premium ngay cả khi chưa kịp hỏi store (mất mạng).
+ */
+export const cuaHangThat = ref(false);
+/** Giá đã quy đổi theo nước từ store — null thì giao diện dùng `GIA_TAM`. */
+export const giaThat = ref<BangGia | null>(null);
+/** Mã người dùng bên RevenueCat — cần để TẶNG gói từ bảng điều khiển; hiện ở cuối bảng Premium. */
+export const maPremium = ref('');
+const XA = 100 * 365 * NGAY;
+function apThat(t: TrangThaiMua | null): void {
+  if (t?.ma) maPremium.value = t.ma;
+  const g: GoiDangCo | null = t ? { goi: t.goi ?? 'nam', tu: t.tu, het: t.het ?? Date.now() + XA, ...(t.thuDen ? { thuDen: t.thuDen } : {}), ...(t.het === null ? { vinhVien: true } : {}) } : null;
+  goiDangCo.value = g;
+  daMuaPremium.value = !!g || docCo();
+  try { if (g) localStorage.setItem(KHOA_GOI, JSON.stringify(g)); else localStorage.removeItem(KHOA_GOI); } catch { /* chế độ riêng tư */ }
+}
+let dangNoi = false;
+async function noiCuaHang(): Promise<void> {
+  if (dangNoi || !coCuaHangThat()) return;
+  dangNoi = true;
+  const r = await khoiDongCuaHang(apThat);
+  dangNoi = false;
+  if (!r) return;
+  cuaHangThat.value = true; giaThat.value = r.gia; maPremium.value = r.ma;
+  apThat(r.trangThai);
+}
+watch(dangDebug, (v) => { if (v) void noiCuaHang(); }, { immediate: true });
+
 /* ---------- CỬA HÀNG (giả lập — xem đầu file) ---------- */
 const nghi = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 /** Thời gian "cửa hàng xử lý" giả lập — test đặt 0. */
@@ -74,6 +106,7 @@ export const TRE_CUA_HANG = { ms: 1400 };
 
 /** Mua một gói. 'ok' = đã có Premium · 'huy' = người chơi đóng bảng thanh toán · 'loi' = cửa hàng báo lỗi. */
 export async function muaGoi(goi: Goi): Promise<'ok' | 'huy' | 'loi'> {
+  if (cuaHangThat.value) { const r = await muaThat(goi); if (r.kq === 'ok') apThat(r.trangThai ?? null); return r.kq; }
   await nghi(TRE_CUA_HANG.ms);
   const tu = Date.now();
   const thu = conDungThu.value ? NGAY_DUNG_THU * NGAY : 0;
@@ -88,6 +121,7 @@ export async function muaGoi(goi: Goi): Promise<'ok' | 'huy' | 'loi'> {
 
 /** Khôi phục giao dịch (đổi máy / cài lại). true = tìm thấy gói còn hạn. */
 export async function khoiPhucMua(): Promise<boolean> {
+  if (cuaHangThat.value) { const t = await khoiPhucThat(); apThat(t); return !!t; }
   await nghi(Math.min(TRE_CUA_HANG.ms, 900));
   const g = docGoi();
   goiDangCo.value = g;

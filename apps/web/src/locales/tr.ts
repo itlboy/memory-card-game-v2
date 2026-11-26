@@ -974,6 +974,8 @@ const tr: TuDien = {
   'pm.chonGoi': "Plan seç",
   'pm.thangPhu': "Aylık ödeme",
   'pm.nangCap': "Yükselt",
+  'pm.vinhVien': "Ömür boyu, yenileme gerekmez",
+  'pm.ma': "Premium kimliği: {ma}",
   'pm.thuNgay': "{n} gün ücretsiz dene",
   'pm.sauThu': "Sonra {gia} · İstediğin zaman iptal et",
   'pm.khongThu': "{gia} · İstediğin zaman iptal et",

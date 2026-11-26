@@ -985,6 +985,8 @@ const vi = {
   'pm.chonGoi': "Chọn gói",
   'pm.thangPhu': "Trả từng tháng",
   'pm.nangCap': "Nâng cấp",
+  'pm.vinhVien': "Trọn đời, không cần gia hạn",
+  'pm.ma': "Mã Premium: {ma}",
   'pm.thuNgay': "Dùng thử miễn phí {n} ngày",
   'pm.sauThu': "Sau đó {gia} · Huỷ bất cứ lúc nào",
   'pm.khongThu': "{gia} · Huỷ bất cứ lúc nào",

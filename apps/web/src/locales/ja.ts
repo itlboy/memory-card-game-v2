@@ -971,6 +971,8 @@ const ja: TuDien = {
   'pm.chonGoi': "プランを選択",
   'pm.thangPhu': "月払い",
   'pm.nangCap': "アップグレード",
+  'pm.vinhVien': "無期限(更新不要)",
+  'pm.ma': "プレミアムID: {ma}",
   'pm.thuNgay': "{n}日間無料でお試し",
   'pm.sauThu': "その後 {gia} · いつでも解約可能",
   'pm.khongThu': "{gia} · いつでも解約可能",

@@ -974,6 +974,8 @@ const id: TuDien = {
   'pm.chonGoi': "Pilih paket",
   'pm.thangPhu': "Bayar bulanan",
   'pm.nangCap': "Upgrade",
+  'pm.vinhVien': "Seumur hidup, tanpa perpanjangan",
+  'pm.ma': "ID Premium: {ma}",
   'pm.thuNgay': "Coba gratis {n} hari",
   'pm.sauThu': "Setelah itu {gia} · Batalkan kapan saja",
   'pm.khongThu': "{gia} · Batalkan kapan saja",

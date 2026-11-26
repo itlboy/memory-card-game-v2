@@ -991,6 +991,8 @@ const ru: TuDien = {
   'pm.chonGoi': "Выберите план",
   'pm.thangPhu': "Оплата помесячно",
   'pm.nangCap': "Улучшить",
+  'pm.vinhVien': "Навсегда, продление не нужно",
+  'pm.ma': "Premium ID: {ma}",
   'pm.thuNgay': "{n} дней бесплатно",
   'pm.sauThu': "Затем {gia} · Отмена в любое время",
   'pm.khongThu': "{gia} · Отмена в любое время",

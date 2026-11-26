@@ -20,7 +20,7 @@ import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
-import { GIA_TAM, NGAY_DUNG_THU, conDungThu, daMuaPremium, goiDangCo, huyGoiThu, khoiPhucMua, muaGoi, type Goi, type NoiMoPremium } from '@/lib/premium';
+import { GIA_TAM, NGAY_DUNG_THU, conDungThu, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, type Goi, type NoiMoPremium } from '@/lib/premium';
 import { CANH } from '@/lib/canh';
 import { BAI_NHAC, BAI_PREMIUM } from '@/lib/nhac';
 import { SITE_URL, nenApp } from '@/lib/native';
@@ -32,8 +32,13 @@ const goi = ref<Goi>('nam');
 const buoc = ref<'chon' | 'dang' | 'xong'>('chon');
 const bao = ref<'' | 'khoiPhucKhong' | 'loiMua'>('');
 const tien = (v: number): string => `${num(v)}đ`;
-const tietKiem = Math.round((1 - GIA_TAM.nam / (GIA_TAM.thang * 12)) * 100);
-const namMoiThang = Math.round(GIA_TAM.nam / 12 / 100) * 100;
+/* GIÁ + DÙNG THỬ: có cửa hàng thật thì lấy từ store (đã quy đổi theo nước), chưa có thì số tạm của bản giả lập */
+const gia = computed(() => giaThat.value ?? {
+  thang: tien(GIA_TAM.thang), nam: tien(GIA_TAM.nam), namMoiThang: tien(Math.round(GIA_TAM.nam / 12 / 100) * 100),
+  tietKiem: Math.round((1 - GIA_TAM.nam / (GIA_TAM.thang * 12)) * 100), ngayThu: NGAY_DUNG_THU, duocThu: conDungThu.value
+});
+/** Nút mua có chào dùng thử không. Store thật: ưu đãi mở đầu nằm ở gói NĂM. */
+const coThu = computed(() => gia.value.duocThu && gia.value.ngayThu > 0 && (!giaThat.value || goi.value === 'nam'));
 
 /*
  * BẢNG SO SÁNH (26.11.2026, chủ dự án: "bảng so sánh phải nói rõ premium khác với thường thế nào"). Mỗi dòng: bản
@@ -133,38 +138,39 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
         <template v-if="daMuaPremium">
           <div class="pm-co" role="status">
             <Check :size="22" :stroke-width="3" aria-hidden="true" />
-            <span><b>{{ goiDangCo ? t(goiDangCo.goi === 'nam' ? 'pm.nam' : 'pm.thang') : t('pm.daCo') }}</b>
-              <small v-if="dangThu">{{ t('pm.dangThu', { ngay: dangThu }) }}</small>
+            <span><b>{{ goiDangCo && !goiDangCo.vinhVien ? t(goiDangCo.goi === 'nam' ? 'pm.nam' : 'pm.thang') : t('tp.premium') }}</b>
+              <small v-if="goiDangCo?.vinhVien">{{ t('pm.vinhVien') }}</small>
+              <small v-else-if="dangThu">{{ t('pm.dangThu', { ngay: dangThu }) }}</small>
               <small v-else-if="goiDangCo">{{ t('pm.giaHan', { ngay: ngayGiaHan }) }}</small></span>
           </div>
           <a class="thach th-nho pm-ql" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
           <nav class="pm-link">
-            <button data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
+            <button v-if="!cuaHangThat" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
             <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>
             <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
           </nav>
-          <p class="pm-luat">{{ t('pm.thu') }}</p>
+          <p v-if="!cuaHangThat" class="pm-luat">{{ t('pm.thu') }}</p>
         </template>
 
         <!-- CHƯA CÓ GÓI: hai gói cạnh nhau + dùng thử + nút -->
         <template v-else>
           <div class="pm-goi" role="radiogroup" :aria-label="t('pm.chonGoi')">
             <button data-phang class="pm-g" type="button" role="radio" :aria-checked="goi === 'nam'" :disabled="buoc === 'dang'" @click="chonGoi('nam')">
-              <em>{{ t('pm.tietKiem', { pct: tietKiem }) }}</em>
-              <b>{{ t('pm.nam') }}</b><strong>{{ tien(GIA_TAM.nam) }}</strong><small>{{ t('pm.moiThang', { gia: tien(namMoiThang) }) }}</small>
+              <em v-if="gia.tietKiem > 0">{{ t('pm.tietKiem', { pct: gia.tietKiem }) }}</em>
+              <b>{{ t('pm.nam') }}</b><strong>{{ gia.nam }}</strong><small>{{ t('pm.moiThang', { gia: gia.namMoiThang }) }}</small>
             </button>
             <button data-phang class="pm-g" type="button" role="radio" :aria-checked="goi === 'thang'" :disabled="buoc === 'dang'" @click="chonGoi('thang')">
-              <b>{{ t('pm.thang') }}</b><strong>{{ tien(GIA_TAM.thang) }}</strong><small>{{ t('pm.thangPhu') }}</small>
+              <b>{{ t('pm.thang') }}</b><strong>{{ gia.thang }}</strong><small>{{ t('pm.thangPhu') }}</small>
             </button>
           </div>
           <p v-if="bao" class="pm-bao" role="status">{{ t(`pm.${bao}`) }}</p>
           <button class="thach th-vang pm-mua" type="button" :disabled="buoc === 'dang'" @click="mua">
             <template v-if="buoc === 'dang'"><LoaderCircle class="pm-quay" :size="20" :stroke-width="2.8" aria-hidden="true" />{{ t('pm.dangXuLy') }}</template>
-            <template v-else-if="conDungThu">{{ t('pm.thuNgay', { n: NGAY_DUNG_THU }) }}</template>
+            <template v-else-if="coThu">{{ t('pm.thuNgay', { n: gia.ngayThu }) }}</template>
             <template v-else><Crown :size="20" :stroke-width="2.6" aria-hidden="true" />{{ t('pm.nangCap') }}</template>
           </button>
           <!-- Sau dùng thử bao nhiêu tiền — Apple bắt buộc nói rõ ngay cạnh nút -->
-          <p class="pm-yen"><ShieldCheck :size="14" :stroke-width="2.6" aria-hidden="true" />{{ t(conDungThu ? 'pm.sauThu' : 'pm.khongThu', { gia: goi === 'nam' ? t('pm.giaNam', { gia: tien(GIA_TAM.nam) }) : t('pm.giaThang', { gia: tien(GIA_TAM.thang) }) }) }}</p>
+          <p class="pm-yen"><ShieldCheck :size="14" :stroke-width="2.6" aria-hidden="true" />{{ t(coThu ? 'pm.sauThu' : 'pm.khongThu', { gia: goi === 'nam' ? t('pm.giaNam', { gia: gia.nam }) : t('pm.giaThang', { gia: gia.thang }) }) }}</p>
           <p class="pm-luat">{{ t('pm.tuGiaHan') }}</p>
           <nav class="pm-link">
             <button data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
@@ -172,6 +178,8 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
             <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
           </nav>
         </template>
+        <!-- Mã người dùng bên cửa hàng: cần khi nhờ tặng gói. Chỉ có khi nối cửa hàng thật. -->
+        <p v-if="cuaHangThat && maPremium" class="pm-ma">{{ t('pm.ma', { ma: maPremium }) }}</p>
       </template>
     </div>
   </div>
@@ -235,6 +243,7 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .pm-quay { animation: pm-quay .9s linear infinite; }
 @keyframes pm-quay { to { transform: rotate(360deg); } }
 .pm-bao { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--pm-nen); color: var(--pm); font: 700 13px/1.35 var(--font-body); text-align: center; }
+.pm-ma { margin: 0; text-align: center; color: var(--muted); font: 600 10.5px/1.3 ui-monospace, monospace; user-select: all; -webkit-user-select: all; overflow-wrap: anywhere; }
 .pm-luat { margin: 0; text-align: center; color: var(--muted); font: 600 11px/1.35 var(--font-body); }
 .pm-link { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 16px; margin-top: calc(var(--d) * -.6); }
 .pm-link button, .pm-link a {
