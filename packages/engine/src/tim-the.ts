@@ -23,7 +23,7 @@ import type { BotLevel } from './bot.js';
 import { Rng } from './rng.js';
 import { comboMultiplier } from './scoring.js';
 
-export const TIM_THE_SO_THE = [3, 4, 6, 9, 12] as const;
+export const TIM_THE_SO_THE = [3, 4, 6, 9, 12, 16] as const;
 export type TimTheDoKho = 'de' | 'vua' | 'kho';
 export const TIM_THE_DO_KHO: readonly TimTheDoKho[] = ['de', 'vua', 'kho'];
 /** x = giây xem mỗi thẻ. */

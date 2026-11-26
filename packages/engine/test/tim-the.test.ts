@@ -18,7 +18,7 @@ describe('Tìm Thẻ — thời gian', () => {
     expect(timTheChonMs(cfg(4, 'de'))).toBe(2000);
   });
   it('số cột theo số thẻ', () => {
-    expect(TIM_THE_SO_THE.map(timTheSoCot)).toEqual([3, 2, 3, 3, 4]);
+    expect(TIM_THE_SO_THE.map(timTheSoCot)).toEqual([3, 2, 3, 3, 4, 4]);
   });
   it('cấu hình lạ bị ép về hợp lệ', () => {
     expect(timTheHopLe({ soThe: 88, doKho: 'x' as never, soLuot: 999 })).toEqual({ soThe: 9, doKho: 'vua', soLuot: 10 });

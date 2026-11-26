@@ -44,7 +44,7 @@ const emit = defineEmits<{
 
 const TOI = 'p1';
 const MAY = 'bot';
-const DU_PHONG = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🦁', '🐷', '🐰', '🐨', '🐯', '🐮', '🐙', '🦄'];
+const DU_PHONG = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🦁', '🐷', '🐰', '🐨', '🐯', '🐮', '🐙', '🦄', '🐻', '🐔', '🦉', '🐢'];
 const CAP_MAY = Object.keys(BOT_SPECS) as BotLevel[];
 const DOI_THU: readonly TimTheDoiThu[] = ['mot', ...CAP_MAY];
 
@@ -370,7 +370,7 @@ defineExpose({
         </div>
         <div class="nhom" role="group" aria-labelledby="ttSoThe">
           <span id="ttSoThe" class="nhan">{{ t('tt.soThe') }}</span>
-          <span class="ranh c5">
+          <span class="ranh c6">
             <button
               v-for="n in TIM_THE_SO_THE" :key="n" class="nut-o thach th-nho th-chon" type="button"
               :aria-pressed="chon.soThe === n" :aria-label="t('tt.the', { n })" @click="chon.soThe = n"

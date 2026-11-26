@@ -357,7 +357,7 @@
   CHỈ có bàn thẻ — KHÔNG bảng thông báo, KHÔNG thanh giờ, KHÔNG số giây (1.10.62: "Cứ nháy nháy mất tập trung lắm",
   "Ng chơi hiểu mà"); giờ báo bằng tiếng tích 3 giây cuối; đúng/sai = viền thẻ. Câu chữ chỉ còn cho trình đọc màn hình. Thêm gì vào màn chơi thì hỏi: nó có bắt
   mắt rời bàn không? Ván = 10 lượt, KHÔNG đồng hồ cả ván, KHÔNG tim. Số thẻ chỉ
-  3·4·6·9·12 ("12 là nhiều lắm đấy"). Độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
+  3·4·6·9·12·16 ("12 là nhiều lắm đấy"; 16 = 4×4 thêm 27.11.2026 theo chủ dự án). Độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
   giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
   cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.
   Nhiều người: chờ cả phòng chọn mới chấm; đúng nhanh nhất +5 × số thẻ (không nhân); trùng điểm = đồng hạng.
