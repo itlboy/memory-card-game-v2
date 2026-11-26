@@ -1666,10 +1666,11 @@ function openCfgWizard(): void {
 /* Nhịp tự làm mới KHÔNG CÒN HIỆN gì trên màn (chủ dự án bỏ vòng tròn đếm ngược
    14.10.2026): danh sách vẫn tự cập nhật mỗi CHU_KY_S giây, phòng mới tự hiện ra. */
 
-/* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): nó chiếm chỗ còn lại và tự
-   cuộn BÊN TRONG khi có nhiều phòng. */
+/* Danh sách KHÔNG cuộn cả trang (luật KHÔNG SCROLL): tự cuộn BÊN TRONG khi có nhiều phòng.
+   CAO VỪA NỘI DUNG (`0 1 auto`), KHÔNG giãn: có hai danh sách (Phòng đang chờ + Đang chơi) mà mỗi cái `flex: 1` thì chúng
+   chia đôi chỗ trống → hở một khoảng lớn giữa hai danh sách (chủ dự án gửi ảnh 26.11.2026). Chỗ thừa dồn xuống dưới. */
 .rooms {
-  flex: 1; min-height: 0; overflow-y: auto;
+  flex: 0 1 auto; min-height: 0; overflow-y: auto;
   display: flex; flex-direction: column; gap: 8px;
   list-style: none; margin: 0; padding: 0;
 }
@@ -1774,6 +1775,9 @@ function openCfgWizard(): void {
 /* Kẹo: "Nhập mã phòng" là phím thạch (1.5.5) — bỏ kiểu link (kẻ trên + đệm trên lệch) và bo góc,
    không thì góc VUÔNG, chữ lệch xuống (chủ dự án báo 13.11.2026). */
 :root[data-skin='keo'] .link-row { padding: 0 14px; border-radius: 14px; }
+/* Danh sách phòng giờ cao vừa nội dung (`.rooms`) → chỗ thừa dồn vào TRÊN nút này, nút vẫn nằm đáy khung như trước */
+.panel > .link-row { margin-top: auto; }
+.rooms { padding-bottom: 4px; }   /* chừa chỗ cho đế thạch của dòng cuối khi danh sách tự cuộn */
 
 /* ---------- CÔNG KHAI / RIÊNG TƯ ---------- */
 

@@ -2125,3 +2125,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   hộp đánh giá CỦA HỆ ĐIỀU HÀNH, không tự vẽ hộp). Chỉ sau ván THẮNG, xin lúc VỀ TRANG CHỦ (không giữa ván); dùng app ≥ 3 ngày
   (`mm.daMo`), ≥ 5 ván, cách lần trước ≥ 120 ngày, tối đa 3 lần (`mm.danhGia`). KHÔNG đổi quà lấy đánh giá (luật cả hai store).
   Cần bản app NATIVE có plugin; bản cũ nhận OTA dò `isPluginAvailable('InAppReview')` nên im lặng (không nâng `minNative`).
+- **Danh sách phòng ở màn Chơi online cao VỪA NỘI DUNG** (`.rooms { flex: 0 1 auto }`, chủ dự án 26.11.2026: "bỏ khoảng trống giữa
+  phòng đang chờ và phòng đang chơi") — hai danh sách cùng `flex: 1` thì chia đôi chỗ trống, hở một khoảng lớn ở giữa. Chỗ thừa dồn
+  lên trên nút "Có mã phòng" (`.panel > .link-row { margin-top: auto }`). Vẫn tự cuộn bên trong khi nhiều phòng.
