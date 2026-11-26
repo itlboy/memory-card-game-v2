@@ -2046,3 +2046,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **NHẠC: PHỐI KHÍ THEO LƯỢT** (26.11.2026, chủ dự án: "các bản nhạc hơi đơn điệu"): mỗi lần lặp hết vòng 8 ô là một lượt,
   bốn lượt một chu kỳ — giai điệu · giai điệu + tiếng vọng + bộ gõ · đảo câu + bộ gõ · nghỉ (chỉ bass + hợp âm). Hàm thuần
   `phoiKhi(luot)` ở lib/nhac.ts; bộ gõ (`go.tach` / `go.trong`) chỉ có ở bài sôi động. Chưa được chủ dự án nghe duyệt.
+- **Thống kê Premium trước đợt tặng dùng thử** (26.11.2026, chủ dự án: "cần đặt thống kê trước, mở tính năng sau"): mỗi lần mở
+  app ghi `premium_trang_thai` {co, chu_de, nhac, nhac_premium, nn_chu_de, nn_nhac} (App `ghiTrangThaiPremium`). Đợt tặng
+  (thông báo cho mọi người bấm NHẬN, hết hạn theo ngày mở bán) CHƯA làm — khi làm phải gắn sự kiện hiện / nhận / bỏ qua.
