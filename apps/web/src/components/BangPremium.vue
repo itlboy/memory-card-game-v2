@@ -240,9 +240,9 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
           <section class="pm-cd" :aria-label="t('pm.caiDat')">
             <p class="pm-cd-dau"><span class="ic" aria-hidden="true"><SlidersHorizontal :size="17" :stroke-width="2.6" /></span>{{ t('pm.caiDat') }}</p>
             <div class="pm-cd-o">
-              <button class="thach" type="button" @click="emit('mo', 'nen')"><span class="ic" style="--c: #6c5ce7" aria-hidden="true"><Image :size="17" :stroke-width="2.4" /></span><b>{{ t('pm.s.nen') }}</b><small>{{ chuDeHien }}</small></button>
-              <button class="thach" type="button" @click="emit('mo', 'nhac')"><span class="ic" style="--c: #e17055" aria-hidden="true"><Music :size="17" :stroke-width="2.4" /></span><b>{{ t('tb.nhacNen') }}</b><small>{{ nhacHien }}</small></button>
-              <button class="thach" type="button" @click="emit('mo', 'hh')"><span class="ic" style="--c: #f0a500" aria-hidden="true"><Award :size="17" :stroke-width="2.4" /></span><b>{{ t('pm.cd.huyHieu') }}</b><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small></button>
+              <button class="thach mau-tim" type="button" @click="emit('mo', 'nen')"><span class="ic" style="--c: #6c5ce7" aria-hidden="true"><Image :size="17" :stroke-width="2.4" /></span><b>{{ t('pm.s.nen') }}</b><small>{{ chuDeHien }}</small></button>
+              <button class="thach mau-cam" type="button" @click="emit('mo', 'nhac')"><span class="ic" style="--c: #e17055" aria-hidden="true"><Music :size="17" :stroke-width="2.4" /></span><b>{{ t('tb.nhacNen') }}</b><small>{{ nhacHien }}</small></button>
+              <button class="thach mau-xanh" type="button" @click="emit('mo', 'hh')"><span class="ic" style="--c: #f0a500" aria-hidden="true"><Award :size="17" :stroke-width="2.4" /></span><b>{{ t('pm.cd.huyHieu') }}</b><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small></button>
             </div>
           </section>
         </template>
@@ -419,8 +419,18 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 :global([data-theme='dark'] .pm-cd-dau .ic) { background: #ffd36b; color: #4a3300; }
 .pm-cd-o { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .pm-cd-o .thach { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 9px; border-radius: 15px; cursor: pointer; }
-.pm-cd-o b { font: 800 13.5px/1.2 var(--font-body); }
-.pm-cd-o small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 11.5px/1.2 var(--font-body); color: var(--muted); }
+.pm-cd-o b { font: 900 14px/1.2 var(--font-body); }
+/* BA NÚT ĐA MÀU (26.11.2026, chủ dự án: "các nút cài đặt premium hơi mờ nhạt, sợ người dùng không thấy — làm đa màu sắc"): mỗi nút
+   một màu thạch đậm, chữ trắng, icon trắng nền đặc — nổi trên khối vàng ở cả nền sáng lẫn tối. Màu qua biến hệ thạch
+   (--b1 sáng · --b2 thân · --b3 đế · --bc chữ). */
+.pm-cd-o .thach { color: #fff; }
+/* Nền tối: skin làm mờ mọi nút thạch (`brightness(.86) saturate(.9)`) — ba nút này phải giữ màu tươi */
+:global([data-theme='dark'] .pm-cd-o .thach) { filter: none !important; }
+.pm-cd-o .mau-tim { --b1: #9d8bff; --b2: #6c5ce7; --b3: #4636b8; --bc: #fff; }
+.pm-cd-o .mau-cam { --b1: #ffa27a; --b2: #e8663f; --b3: #b2401f; --bc: #fff; }
+.pm-cd-o .mau-xanh { --b1: #4fd1c5; --b2: #12a594; --b3: #0a7468; --bc: #fff; }
+.pm-cd-o .ic { background: rgba(255, 255, 255, .95) !important; color: var(--c); box-shadow: 0 2px 0 rgba(0, 0, 0, .15); }
+.pm-cd-o small { color: inherit !important; opacity: .9; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 11.5px/1.2 var(--font-body); color: var(--muted); }
 
 .pm-goi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; }
 .pm-g { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 12px 6px 8px; border: 2px solid var(--ke); border-radius: 18px; background: none; color: inherit; cursor: pointer; line-height: 1.2; }
