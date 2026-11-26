@@ -2037,3 +2037,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   (`keo` `dem` `sau`) + 6 Premium (`vuon` `chuong` `ngan` `dao` `bossa` `nang`). Thêm/bớt bài phải giữ tỉ lệ 3× (test
   `nhac-chin-bai`), và mỗi bài phải khác KHUÔN nhịp (cùng test). Bảng chọn (ChonNhac) xếp như bảng Hình nền: hai ô Tắt ·
   Ngẫu nhiên ở trên, chín bài lưới 3 cột — danh sách dọc 11 dòng tràn khỏi iPhone SE. Bốn bài mới chủ dự án CHƯA nghe duyệt.
+- **"Hình nền" giờ gọi là "CHỦ ĐỀ"** (26.11.2026, chủ dự án duyệt; tiếng Anh "Themes") vì nó đổi cả nền, mặt lưng lá, icon bay.
+  Chỉ đổi CHỮ hiển thị (`pm.s.nen`, `pm.l.nen`, `hn.canPremium`, `cn.ngauNhienNen`, `pm.moTa`, 15 ngôn ngữ); tên trong mã vẫn
+  là `canh` / `ChonHinhNen` / "hình nền". ĐỪNG lẫn với "Giao diện" (sáng/tối, `data-theme`) và "Bộ thẻ" (`CardTheme`).
