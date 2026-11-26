@@ -2040,3 +2040,9 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **"Hình nền" giờ gọi là "CHỦ ĐỀ"** (26.11.2026, chủ dự án duyệt; tiếng Anh "Themes") vì nó đổi cả nền, mặt lưng lá, icon bay.
   Chỉ đổi CHỮ hiển thị (`pm.s.nen`, `pm.l.nen`, `hn.canPremium`, `cn.ngauNhienNen`, `pm.moTa`, 15 ngôn ngữ); tên trong mã vẫn
   là `canh` / `ChonHinhNen` / "hình nền". ĐỪNG lẫn với "Giao diện" (sáng/tối, `data-theme`) và "Bộ thẻ" (`CardTheme`).
+- **Bốn skin cũ ĐÃ XOÁ** (26.11.2026, chủ dự án: "đúng, xoá đi"): Neon · Gỗ · Đêm Sao · Kẹo Bông — file CSS, ô chọn ở Debug,
+  tên ở 15 ngôn ngữ. Chỉ còn `keo`; khung `SKINS` / `data-skin` GIỮ vì mọi CSS của Kẹo viết dưới `:root[data-skin='keo']`, và
+  màu gốc ở tokens.css (vẻ neon xưa) vẫn là lớp nền Kẹo ghi đè. Các đoạn phía trên nhắc tới skin Gỗ/Neon/Sao/Bông là lịch sử.
+- **NHẠC: PHỐI KHÍ THEO LƯỢT** (26.11.2026, chủ dự án: "các bản nhạc hơi đơn điệu"): mỗi lần lặp hết vòng 8 ô là một lượt,
+  bốn lượt một chu kỳ — giai điệu · giai điệu + tiếng vọng + bộ gõ · đảo câu + bộ gõ · nghỉ (chỉ bass + hợp âm). Hàm thuần
+  `phoiKhi(luot)` ở lib/nhac.ts; bộ gõ (`go.tach` / `go.trong`) chỉ có ở bài sôi động. Chưa được chủ dự án nghe duyệt.

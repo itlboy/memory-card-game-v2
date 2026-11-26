@@ -67,10 +67,6 @@ const ko: TuDien = {
   'tb.ngonNgu': '언어',
   'tb.giaoDien': '스킨',
   'tb.skin.keo': '캔디',
-  'tb.skin.go': '나무',
-  'tb.skin.neon': '네온',
-  'tb.skin.sao': "별빛 밤",
-  'tb.skin.bong': "솜사탕",
   'tb.skinPlus': "프리미엄 — 곧 출시",
   'tb.luatChoi': '게임 방법',
 

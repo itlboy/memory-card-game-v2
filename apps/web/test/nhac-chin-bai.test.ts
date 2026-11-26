@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { BAI_DE_TEST, BAI_NHAC, BAI_PREMIUM, ICON_BAI } from '@/lib/nhac';
+import { BAI_DE_TEST, BAI_NHAC, BAI_PREMIUM, ICON_BAI, phoiKhi } from '@/lib/nhac';
 
 /**
  * CHÍN BÀI NHẠC NỀN (26.11.2026) — chủ dự án: "tôi muốn chúng ta làm 9 nhạc nền luôn, đảm bảo premium x3 free".
@@ -51,5 +51,31 @@ describe('chín bài nhạc nền', () => {
       return JSON.stringify([d.moc ?? 8, d.raiMoc ?? 'moi', d.bassMoc ?? 'macdinh', !!d.caHopAm, d.rai, d.swing ?? 0]);
     });
     expect(new Set(khuon).size).toBe(BAI_NHAC.length);
+  });
+});
+
+/** 26.11.2026 — chủ dự án: "tôi thấy các bản nhạc hơi đơn điệu". Mỗi lượt lặp mặc một áo phối khí khác. */
+describe('phối khí theo lượt: bốn lượt bốn kiểu', () => {
+  it('vào bài là có giai điệu ngay; bốn lượt liên tiếp không lượt nào giống lượt nào; lượt thứ tư là khoảng nghỉ', () => {
+    const bon = [0, 1, 2, 3].map((l) => JSON.stringify(phoiKhi(l)));
+    expect(new Set(bon).size).toBe(4);
+    expect(phoiKhi(0)).toEqual({ giai: true, vong: false, dao: false, go: false });
+    expect(phoiKhi(1).vong).toBe(true);
+    expect(phoiKhi(2).dao).toBe(true);
+    expect(phoiKhi(3).giai).toBe(false);
+    expect(phoiKhi(4)).toEqual(phoiKhi(0));
+  });
+
+  it('đảo câu dùng được cho mọi bài: vòng hợp âm có số ô chẵn', () => {
+    for (const b of BAI_NHAC) expect(BAI_DE_TEST[b].vong.length % 2, b).toBe(0);
+  });
+
+  it('bộ gõ: móc nằm trong ô nhịp; bài êm (biển sâu, hộp nhạc, ngân hà, koto) không có bộ gõ', () => {
+    for (const b of BAI_NHAC) {
+      const d = BAI_DE_TEST[b];
+      for (const m of [...(d.go?.tach ?? []), ...(d.go?.trong ?? [])]) expect(m < (d.moc ?? 8), `${b}: móc gõ ${m}`).toBe(true);
+    }
+    for (const b of ['sau', 'chuong', 'ngan', 'dao'] as const) expect(BAI_DE_TEST[b].go, b).toBeUndefined();
+    for (const b of ['keo', 'dem', 'vuon', 'bossa', 'nang'] as const) expect(BAI_DE_TEST[b].go, b).toBeTruthy();
   });
 });

@@ -81,10 +81,6 @@ const ru: TuDien = {
   'tb.ngonNgu': 'Язык',
   'tb.giaoDien': 'Оформление',
   'tb.skin.keo': 'Конфета',
-  'tb.skin.go': 'Дерево',
-  'tb.skin.neon': 'Неон',
-  'tb.skin.sao': "Звёздная ночь",
-  'tb.skin.bong': "Сахарная вата",
   'tb.skinPlus': "Премиум — скоро",
   'tb.luatChoi': 'Как играть',
 

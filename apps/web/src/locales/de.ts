@@ -70,10 +70,6 @@ const de: TuDien = {
   'tb.ngonNgu': 'Sprache',
   'tb.giaoDien': 'Design',
   'tb.skin.keo': 'Bonbon',
-  'tb.skin.go': 'Holz',
-  'tb.skin.neon': 'Neon',
-  'tb.skin.sao': "Sternennacht",
-  'tb.skin.bong': "Zuckerwatte",
   'tb.skinPlus': "Premium — bald verfügbar",
   'tb.luatChoi': 'Spielanleitung',
 

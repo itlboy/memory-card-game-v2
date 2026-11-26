@@ -70,10 +70,6 @@ const id: TuDien = {
   'tb.ngonNgu': 'Bahasa',
   'tb.giaoDien': 'Tampilan',
   'tb.skin.keo': 'Permen',
-  'tb.skin.go': 'Kayu',
-  'tb.skin.neon': 'Neon',
-  'tb.skin.sao': "Malam Berbintang",
-  'tb.skin.bong': "Gulali",
   'tb.skinPlus': "Premium — segera hadir",
   'tb.luatChoi': 'Cara bermain',
 

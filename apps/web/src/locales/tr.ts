@@ -70,10 +70,6 @@ const tr: TuDien = {
   'tb.ngonNgu': 'Dil',
   'tb.giaoDien': 'Görünüm',
   'tb.skin.keo': 'Şeker',
-  'tb.skin.go': 'Ahşap',
-  'tb.skin.neon': 'Neon',
-  'tb.skin.sao': "Yıldızlı Gece",
-  'tb.skin.bong': "Pamuk Şeker",
   'tb.skinPlus': "Premium — çok yakında",
   'tb.luatChoi': 'Nasıl oynanır',
 

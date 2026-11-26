@@ -69,10 +69,6 @@ const en: TuDien = {
   'tb.ngonNgu': 'Language',
   'tb.giaoDien': 'Appearance',
   'tb.skin.keo': 'Candy',
-  'tb.skin.go': 'Wood',
-  'tb.skin.neon': 'Neon',
-  'tb.skin.sao': "Starry Night",
-  'tb.skin.bong': "Cotton Candy",
   'tb.skinPlus': "Premium — coming soon",
   'tb.luatChoi': 'How to Play',
 

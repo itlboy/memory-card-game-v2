@@ -68,10 +68,6 @@ const th: TuDien = {
   'tb.ngonNgu': 'ภาษา',
   'tb.giaoDien': 'สกิน',
   'tb.skin.keo': 'ลูกกวาด',
-  'tb.skin.go': 'ไม้',
-  'tb.skin.neon': 'นีออน',
-  'tb.skin.sao': "คืนดาวพราว",
-  'tb.skin.bong': "สายไหม",
   'tb.skinPlus': "พรีเมียม — เร็ว ๆ นี้",
   'tb.luatChoi': 'วิธีเล่น',
 

@@ -86,6 +86,27 @@ interface Bai {
   /** Tần số lọc (Hz). */
   loc: number;
   bass: Be; raiBe: Be; giaiBe: Be;
+  /** BỘ GÕ nhẹ (tuỳ bài, chỉ vào ở những lượt `phoiKhi` cho phép): móc có tiếng "tách" cao và móc có tiếng trống trầm. */
+  go?: { tach?: readonly number[]; trong?: readonly number[] };
+}
+
+/**
+ * PHỐI KHÍ THEO LƯỢT (26.11.2026, chủ dự án: "tôi thấy các bản nhạc hơi đơn điệu"). Trước đây mỗi bài là MỘT vòng 8 ô lặp y
+ * nguyên mãi — nghe tới lượt thứ ba là thuộc. Giờ mỗi lượt lặp mặc một "áo" khác, bốn lượt một chu kỳ (~2 phút):
+ *   lượt 0  giai điệu chính                       — vào bài là có câu hát ngay
+ *   lượt 1  giai điệu + TIẾNG VỌNG (cao một quãng tám, trễ một phách, nhỏ) + bộ gõ
+ *   lượt 2  ĐẢO CÂU: nửa sau của giai điệu hát trước, nửa đầu hát sau + bộ gõ
+ *   lượt 3  NGHỈ: chỉ còn bass và hợp âm — khoảng thở trước khi câu hát quay lại
+ * Hàm thuần để test soát; `NhacNen.datNot` chỉ đọc kết quả.
+ */
+export interface PhoiKhi { giai: boolean; vong: boolean; dao: boolean; go: boolean }
+export function phoiKhi(luot: number): PhoiKhi {
+  switch (((luot % 4) + 4) % 4) {
+    case 0: return { giai: true, vong: false, dao: false, go: false };
+    case 1: return { giai: true, vong: true, dao: false, go: true };
+    case 2: return { giai: true, vong: false, dao: true, go: true };
+    default: return { giai: false, vong: false, dao: false, go: false };
+  }
 }
 
 const MARIMBA = [[1, 1], [4, 0.18]] as const;
@@ -118,6 +139,7 @@ const BAI: Record<BaiNhac, Bai> = {
     bass: { kieu: 'triangle', dai: 0.55, to: 0.07, hoa: DON },
     raiBe: { kieu: 'sine', dai: 0.32, to: 0.032, hoa: MARIMBA },
     giaiBe: { kieu: 'triangle', dai: 0.45, to: 0.042, hoa: DON },
+    go: { tach: [2, 6], trong: [0] },   // lắc nhẹ phách yếu
   },
   dem: {
     vong: [
@@ -148,6 +170,7 @@ const BAI: Record<BaiNhac, Bai> = {
     bass: { kieu: 'sine', dai: 1.4, to: 0.08, hoa: DON },
     raiBe: { kieu: 'sine', dai: 1.3, to: 0.014, hoa: [[1, 1], [2, 0.12]], vao: 0.02 },
     giaiBe: { kieu: 'sine', dai: 1.1, to: 0.04, hoa: [[1, 1], [3, 0.05]] },
+    go: { tach: [4], trong: [0, 5] },   // lo-fi: trống lười, tách ở phách 3
   },
   sau: {
     vong: [0, 1].flatMap(() => [
@@ -197,6 +220,7 @@ const BAI: Record<BaiNhac, Bai> = {
     bass: { kieu: 'triangle', dai: 0.6, to: 0.06, hoa: DON },
     raiBe: { kieu: 'triangle', dai: 0.35, to: 0.016, hoa: [[1, 1], [2, 0.25], [3, 0.1]] },
     giaiBe: { kieu: 'sine', dai: 0.5, to: 0.04, hoa: [[1, 1], [2, 0.15]] },
+    go: { tach: [2, 3, 6, 7] },         // theo nhịp quạt chả
   },
   chuong: {
     vong: [
@@ -305,6 +329,7 @@ const BAI: Record<BaiNhac, Bai> = {
     bass: { kieu: 'sine', dai: 0.5, to: 0.075, hoa: [[1, 1], [2, 0.18]] },
     raiBe: { kieu: 'triangle', dai: 0.3, to: 0.014, hoa: [[1, 1], [2, 0.2]] },
     giaiBe: { kieu: 'sine', dai: 0.6, to: 0.036, hoa: [[1, 1], [2, 0.1], [3, 0.04]], vao: 0.03 },
+    go: { tach: [0, 3, 6], trong: [0, 4] },   // clave bossa 3 tiếng
   },
   nang: {
     vong: [
@@ -334,6 +359,7 @@ const BAI: Record<BaiNhac, Bai> = {
     bass: { kieu: 'triangle', dai: 0.45, to: 0.085, hoa: DON },
     raiBe: { kieu: 'triangle', dai: 0.16, to: 0.02, hoa: [[1, 1], [2, 0.3], [3, 0.15]] },
     giaiBe: { kieu: 'sine', dai: 0.5, to: 0.036, hoa: [[1, 1], [2, 0.4], [4.2, 0.1]] },
+    go: { tach: [2, 6], trong: [4] },   // reggae "one drop": trống rơi vào phách 3
   },
 };
 
@@ -356,6 +382,8 @@ class NhacNen {
   private loc: BiquadFilterNode | null = null;
   private hen: ReturnType<typeof setInterval> | undefined;
   private buoc = 0;
+  /** Đã lặp hết vòng 8 ô bao nhiêu lần kể từ lúc vào bài — chọn "áo" phối khí (`phoiKhi`). */
+  private luot = 0;
   private lucToi = 0;
   private tam: TamTrang = 'menu';
   private tamCho: TamTrang = 'menu';
@@ -403,10 +431,10 @@ class NhacNen {
     if (bai !== this.baiCho) {
       this.baiCho = bai;
       // Đang chạy mà đổi bài: vào bài mới từ đầu câu, không chờ hết ô nhịp
-      if (this.hen) this.buoc = 0;
+      if (this.hen) { this.buoc = 0; this.luot = 0; }
     }
     if (!this.hen) {
-      this.bai = this.baiCho; this.buoc = 0;
+      this.bai = this.baiCho; this.buoc = 0; this.luot = 0;
       this.hen = setInterval(() => this.nhip(), 50);
       this.nhip();
     }
@@ -459,7 +487,7 @@ class NhacNen {
       const moc = this.buoc % soMoc(BAI[this.bai]);
       // Đổi bài ở ĐẦU ô nhịp cho khỏi gãy câu nhạc (bài mới có thể khác số móc mỗi ô)
       if (moc === 0 && (this.tamCho !== this.tam || this.baiCho !== this.bai)) {
-        if (this.baiCho !== this.bai) this.buoc = 0;
+        if (this.baiCho !== this.bai) { this.buoc = 0; this.luot = 0; }
         this.tam = this.tamCho; this.bai = this.baiCho;
         this.loc?.frequency.setTargetAtTime(this.tanSoLoc(), this.lucToi, 0.3);
       }
@@ -467,6 +495,7 @@ class NhacNen {
       this.datNot(this.lucToi, mocDai);
       this.lucToi += mocDai;
       this.buoc = (this.buoc + 1) % (soMoc(BAI[this.bai]) * BAI[this.bai].vong.length);
+      if (this.buoc === 0) this.luot++;   // hết một vòng: lượt sau mặc áo khác
     }
   }
 
@@ -491,12 +520,54 @@ class NhacNen {
       const thuTu = b.quet && moc % 2 ? [...nots].reverse() : nots;
       thuTu.forEach((m, i) => this.not(hz(m + b.quangRai), t + i * (b.quet ?? 0), b.raiBe));
     }
-    const g = b.giai[o]![moc]!;
-    if (g) this.not(hz(g), t, b.giaiBe);
+    const pk = phoiKhi(this.luot);
+    if (pk.giai) {
+      // Đảo câu: lấy ô ở nửa bên kia của vòng. Hợp âm hai nửa gần như trùng nhau nên câu hát vẫn khớp.
+      const og = pk.dao ? (o + (b.vong.length >> 1)) % b.vong.length : o;
+      const g = b.giai[og]![moc]!;
+      if (g) {
+        this.not(hz(g), t, b.giaiBe);
+        if (pk.vong) this.not(hz(g + 12), t + 2 * mocDai, b.giaiBe, 0.38);
+      }
+    }
+    if (pk.go && b.go) {
+      if (b.go.tach?.includes(moc)) this.tach(t);
+      if (b.go.trong?.includes(moc)) this.trong(t);
+    }
   }
 
-  /** Một nốt: lên nhanh, tắt dần theo hàm mũ; hoạ âm cao tắt nhanh hơn (tiếng gõ). */
-  private not(f: number, t: number, be: Be): void {
+  /** Tiếng "tách" cao, cụt (như lắc / gõ thành trống) — một dao động vuông rất ngắn, đủ nhỏ để chỉ là nhịp. */
+  private tach(t: number): void {
+    const { ctx, bus } = this;
+    if (!ctx || !bus) return;
+    try {
+      const osc = ctx.createOscillator(); const g = ctx.createGain();
+      osc.type = 'square'; osc.frequency.value = 6200;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.011, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+      osc.connect(g); g.connect(bus); osc.start(t); osc.stop(t + 0.05);
+    } catch { /* context đóng giữa chừng */ }
+  }
+
+  /** Trống trầm mềm: sóng sin trượt 120 → 46 Hz trong 0,14 giây. */
+  private trong(t: number): void {
+    const { ctx, bus } = this;
+    if (!ctx || !bus) return;
+    try {
+      const osc = ctx.createOscillator(); const g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(120, t);
+      osc.frequency.exponentialRampToValueAtTime(46, t + 0.14);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.07, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+      osc.connect(g); g.connect(bus); osc.start(t); osc.stop(t + 0.22);
+    } catch { /* context đóng giữa chừng */ }
+  }
+
+  /** Một nốt: lên nhanh, tắt dần theo hàm mũ; hoạ âm cao tắt nhanh hơn (tiếng gõ). `he` = nhân độ to (tiếng vọng nhỏ hơn). */
+  private not(f: number, t: number, be: Be, he = 1): void {
     const { ctx, bus } = this;
     if (!ctx || !bus) return;
     try {
@@ -509,7 +580,7 @@ class NhacNen {
         osc.type = be.kieu;
         osc.frequency.value = f * boi;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(be.to * muc, t + vao);
+        g.gain.exponentialRampToValueAtTime(be.to * muc * he, t + vao);
         g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(dai, vao + 0.05));
         osc.connect(g); g.connect(bus);
         osc.start(t); osc.stop(t + dai + 0.05);
