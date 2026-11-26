@@ -342,9 +342,11 @@
 
 ## TÌM THẺ — KIỂU CHƠI KHÔNG GHÉP CẶP (26.11.2026, bản chơi thử duyệt https://claude.ai/artifact/ESzywRX1pBqhx72tD1u1tz)
 
-- **ĐANG SAU CỬA DEBUG**: `TIM_THE_MO = false` ở `lib/tim-the.ts` — lối vào duy nhất là trang Debug (nút "Tìm Thẻ"),
-  `?tim=1` chỉ mở khi debug. Bật = `true`: hiện ô Tìm Thẻ ở bước Thể loại của Chơi nhanh (bước này hiện khi
-  `MUA_THE_MO || TIM_THE_MO`). Chủ dự án: "sau cửa debug trước, thử ổn mới mở".
+- **CHỈ NGƯỜI BẬT DEBUG THẤY** (`hienTim` ở MenuScreen = `TIM_THE_MO || dangDebug`; `TIM_THE_MO = false` ở `lib/tim-the.ts`).
+  Lối vào NẰM TRONG LUỒNG CHƠI, không có nút riêng ở trang Debug (chủ dự án 26.11.2026: "ghép vào trong màn chơi luôn",
+  "chỉ có debuger mới chơi được", "lại còn chơi riêng trong debug làm gì"): Chơi nhanh VÀ Đấu máy đều qua bước Thể
+  loại (Thường / Tìm Thẻ); vào từ Đấu máy thì màn Tìm Thẻ chọn sẵn mức máy đó. `?tim=1` chỉ mở khi debug. Mở cho mọi
+  người = `TIM_THE_MO = true`.
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
