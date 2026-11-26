@@ -2077,8 +2077,8 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 
 ## Chat trong ván: bong bóng trong suốt, emoji Premium, tách câu (26.11.2026)
 
-- **Bong bóng câu nói + emoji HƠI TRONG SUỐT** (`opacity: .78` ở `.bong` của LoiNoi.vue và EmojiBlast.vue — đổi thì đổi cả
-  hai, test `noi-nhanh` giữ): chủ dự án muốn "không cản việc xem thẻ mở".
+- **Bong bóng câu nói + emoji và khung chọn chat/emoji: ĐẶC, KHÔNG MỜ.** Bản mờ (bong bóng `.78` ở 1.10.37, khung chọn ở
+  1.10.45) bị chủ dự án bỏ cùng ngày 26.11.2026: "khó nhìn quá", cả bong bóng lẫn tên người chơi. Test `noi-nhanh` canh.
 - **Emoji Premium** (`EMOJI_NHOM.premium` / `EMOJI_PREMIUM` ở packages/engine): 8 cái, hàng thứ tư của bảng emoji, đeo vương
   miện. Chưa có Premium → hàng MỜ ("disable mờ với người thường"), bấm mở bảng Premium (`moPremium('chat')`). Hàng chỉ bày khi
   đã có Premium hoặc `moiNangCap` (debug / đã mở bán) — cùng cổng với mọi đồ Premium khác. Server KHÔNG kiểm quyền gửi; nhưng

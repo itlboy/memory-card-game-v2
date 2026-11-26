@@ -69,11 +69,13 @@ describe('nói nhanh', () => {
     expect(src).toMatch(/\.be-premium \.emoji\.khoa \{[^}]*grayscale/);
   });
 
-  // 26.11.2026: bong bóng hơi trong suốt để không che lá đang mở
-  it('bong bóng câu nói và emoji đều hơi trong suốt, cùng một mức', () => {
+  // 26.11.2026: bản bong bóng mờ .78 (1.10.37) bị bỏ cùng ngày — "khó nhìn". Bong bóng câu nói, emoji và khung chọn đều ĐẶC.
+  it('bong bóng câu nói, emoji và khung chọn đều đặc — không mờ', () => {
     for (const f of ['LoiNoi.vue', 'EmojiBlast.vue']) {
       const s = readFileSync(resolve(process.cwd(), 'src/components', f), 'utf8');
-      expect(s, f).toMatch(/\.bong \{[\s\S]*?opacity: \.78;[\s\S]*?\n\}/);
+      expect(s, f).not.toMatch(/\.bong \{[^}]*opacity: \./);
     }
+    const bar = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
+    expect(bar).not.toMatch(/\.bang-(noi|emoji)[^{]*\{[^}]*opacity: \./);
   });
 });
