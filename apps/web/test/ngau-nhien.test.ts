@@ -136,3 +136,15 @@ describe('nhịp đổi ngẫu nhiên: 30 phút một lần', () => {
     expect(n.denGioDoi(Date.now() + 31 * 60_000)).toBe(true);
   });
 });
+
+/** 26.11.2026 — chủ dự án: "cần đặt thống kê trước, mở tính năng sau" (trước đợt tặng Premium dùng thử). */
+describe('thống kê trạng thái Premium mỗi lần mở app', () => {
+  it('ghi MỘT lần mỗi phiên: có Premium không, chủ đề, bài nhạc, hai công tắc ngẫu nhiên', () => {
+    const s = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8');
+    const khoi = s.slice(s.indexOf('function ghiTrangThaiPremium'), s.indexOf('onMounted(() => {\n  ghiTrangThaiPremium();'));
+    expect(khoi).toContain("moChucNang('premium_trang_thai', {");
+    for (const k of ['co: daMuaPremium.value', 'chu_de: canh.value', 'nhac_premium:', 'nn_chu_de: canhNgauNhien.value', 'nn_nhac: nhacNgauNhien.value']) expect(khoi, k).toContain(k);
+    expect(khoi, 'motLan = true').toMatch(/\}, true\);/);
+    expect(s).toContain('onMounted(() => {\n  ghiTrangThaiPremium();');
+  });
+});

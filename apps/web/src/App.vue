@@ -90,11 +90,11 @@ import BangXepHang from './components/BangXepHang.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
-import { nhac, BAI_NHAC, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
+import { nhac, BAI_NHAC, BAI_PREMIUM, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { choiDuoc, hienPremium, yeuCauPremium, type NoiMoPremium } from './lib/premium';
+import { choiDuoc, daMuaPremium, hienPremium, yeuCauPremium, type NoiMoPremium } from './lib/premium';
 
 const prefs = store.prefs();
 /*
@@ -735,7 +735,25 @@ function doiNgauNhienNeuDenGio(): void {
 watch(trongVan, (v) => { if (!v) doiNgauNhienNeuDenGio(); });
 let henNgauNhien: ReturnType<typeof setInterval> | undefined;
 const khiHienLai = (): void => { if (!document.hidden) doiNgauNhienNeuDenGio(); };
+/*
+ * THỐNG KÊ "NGƯỜI CHƠI CÓ THÍCH PREMIUM KHÔNG" (26.11.2026, chủ dự án: "cần đặt thống kê trước, mở tính năng sau" — trước đợt
+ * tặng Premium dùng thử). Mỗi lần mở app ghi MỘT sự kiện `premium_trang_thai`: có Premium không, đang dùng chủ đề + bài nhạc
+ * nào, có bật ngẫu nhiên không. Đếm theo ngày là biết bao nhiêu người có Premium THẬT SỰ dùng quyền lợi (chủ đề khác `goc`,
+ * bài nhạc Premium) chứ không chỉ nhận rồi để đó. Các sự kiện hành động đã có sẵn: `hinh_nen`, `hinh_nen_mo`, `nhac_nen_mo`,
+ * `lung_la` (mỗi ván), `premium_nen_khoa`, `premium_nhac_khoa`, `doi_cai_dat` (muc = nhac).
+ */
+function ghiTrangThaiPremium(): void {
+  moChucNang('premium_trang_thai', {
+    co: daMuaPremium.value,
+    chu_de: canh.value,
+    nhac: !nhacBat.value || soundLevel.value === 'off' ? 'off' : baiThat.value,
+    nhac_premium: nhacBat.value && soundLevel.value !== 'off' && BAI_PREMIUM.has(baiThat.value),
+    nn_chu_de: canhNgauNhien.value,
+    nn_nhac: nhacNgauNhien.value
+  }, true);
+}
 onMounted(() => {
+  ghiTrangThaiPremium();
   doiNgauNhienNeuDenGio();
   henNgauNhien = setInterval(doiNgauNhienNeuDenGio, 60_000);
   document.addEventListener('visibilitychange', khiHienLai);
