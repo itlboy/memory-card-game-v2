@@ -869,6 +869,10 @@ const th: TuDien = {
   'say.choiTiep': 'เล่นต่อกันนะ',
   'say.henGap': "ไว้เจอกันใหม่นะ!",
   'say.vuiChoi': 'ดีใจที่ได้เล่นด้วย',
+  'say.choChut': "รอแป๊บนะ",
+  'say.quayLai': "กลับมาแล้ว",
+  'say.batDau': "เริ่มกันเลย!",
+  'say.mayMan': "ขอให้โชคดี!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'ทำลาย',
   'tk.phaAria': 'เล่นเพื่อทำลายสถิติ: {ten}',

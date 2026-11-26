@@ -871,6 +871,10 @@ const id: TuDien = {
   'say.choiTiep': 'Ayo main lagi',
   'say.henGap': "Sampai jumpa lagi!",
   'say.vuiChoi': 'Senang main sama kamu',
+  'say.choChut': "Tunggu sebentar ya",
+  'say.quayLai': "Aku sudah kembali",
+  'say.batDau': "Ayo mulai!",
+  'say.mayMan': "Semoga beruntung!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Pecahkan',
   'tk.phaAria': 'Main untuk memecahkan rekor: {ten}',

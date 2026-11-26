@@ -213,7 +213,9 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
         </template>
 
         <nav class="pm-link">
-          <a v-if="daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
+          <!-- "Quản lý gói" CHỈ khi gói mua qua cửa hàng THẬT (chủ dự án 26.11.2026: "quản lý gói chưa có thì nên tắt đi") — gói giả lập /
+               quà tặng không nằm trong trang gói của App Store / Google Play, bấm vào chỉ ra trang trống -->
+          <a v-if="cuaHangThat && daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
           <button v-if="!daMuaPremium && !conQuaTang" data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
           <button v-if="daMuaPremium && !cuaHangThat" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
           <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>

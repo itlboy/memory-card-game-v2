@@ -2113,3 +2113,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **Chỉ số trí nhớ tab "Cả năm"**: 12 cột theo tháng (gộp `chiSo` cả tháng), đeo vương miện; chưa có Premium bấm → bảng Premium.
   Thẻ quyền lợi ghi "Xem lại cả năm" chứ KHÔNG "vĩnh viễn": nhật ký chỉ nằm trên máy (400 ngày), xoá app là mất. Ba tab chia đều
   một dòng (`.doi.ba`) — tự co thì "Theo thời gian" xuống hai dòng.
+- **Câu nói nhanh giờ 10 câu** (26.11.2026): thêm mã `choChut` `quayLai` `batDau` `mayMan` (cuối `QUICK_SAYS`). Ván online KHÔNG có
+  nút tạm dừng — "Chờ mình chút nhé" dựa vào cơ chế có sẵn: người tới lượt mất kết nối thì đồng hồ lượt đứng, giữ chỗ tối đa 5 phút
+  (`TURN_PAUSE_CAP_MS`). Khung nói nhanh cuộn trong khung khi máy thấp (`max-height: min(52vh, 420px)`).
+- **"Quản lý gói" chỉ khi `cuaHangThat`** (chủ dự án: "chưa có thì nên tắt đi") — gói giả lập / quà tặng không có trang quản lý.

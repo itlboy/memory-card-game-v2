@@ -127,3 +127,10 @@ describe('viên Premium trang chủ + đường về', () => {
     for (const k of ['premium_tang_hien', 'premium_tang_nhan', 'premium_tang_bo_qua']) expect(s, k).toContain(`moChucNang('${k}'`);
   });
 });
+
+describe('liên kết Quản lý gói', () => {
+  it('chỉ hiện khi gói mua qua cửa hàng THẬT — gói giả lập / quà tặng không có trang quản lý', () => {
+    const s = readFileSync(resolve(process.cwd(), 'src/components/BangPremium.vue'), 'utf8');
+    expect(s).toContain('<a v-if="cuaHangThat && daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY"');
+  });
+});

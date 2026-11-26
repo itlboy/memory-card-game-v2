@@ -874,6 +874,10 @@ const fr: TuDien = {
   'say.choiTiep': 'On continue ?',
   'say.henGap': "À plus tard !",
   'say.vuiChoi': 'Ravi d\'avoir joué avec toi',
+  'say.choChut': "Attends-moi un instant",
+  'say.quayLai': "Je suis de retour",
+  'say.batDau': "On commence !",
+  'say.mayMan': "Bonne chance !",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Battre',
   'tk.phaAria': 'Jouer pour battre le record : {ten}',

@@ -868,6 +868,10 @@ const zh: TuDien = {
   'say.choiTiep': '我们继续玩吧',
   'say.henGap': "回头见！",
   'say.vuiChoi': '很高兴和你一起玩',
+  'say.choChut': "等我一下",
+  'say.quayLai': "我回来了",
+  'say.batDau': "开始吧！",
+  'say.mayMan': "祝你好运！",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': '挑战',
   'tk.phaAria': '去打破纪录：{ten}',

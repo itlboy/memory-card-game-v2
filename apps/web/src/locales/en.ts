@@ -870,6 +870,10 @@ const en: TuDien = {
   'say.choiTiep': 'Let\'s keep playing',
   'say.henGap': "See you later!",
   'say.vuiChoi': 'Nice playing with you',
+  'say.choChut': "Give me a moment",
+  'say.quayLai': "I'm back",
+  'say.batDau': "Let's start!",
+  'say.mayMan': "Good luck!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Beat',
   'tk.phaAria': 'Play to beat your record: {ten}',
