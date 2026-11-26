@@ -29,6 +29,9 @@ const props = defineProps<{
   themes: CardTheme[];
   themeIds: string[];
   options: BoardOptions;
+  /** Kiểu Tìm Thẻ (27.11.2026): chỉ còn dòng Bộ thẻ — số thẻ + độ khó do `ChonTimThe` vẽ phía trên, Tìm Thẻ không
+   *  có Luật bàn. Bật lại kiểu Thường thì dải số dựng lại nên phải đưa ô đang chọn về giữa. */
+  tim?: boolean;
 }>();
 /** `cach`: 'cuon' = chốt sau khi cuộn (KHÔNG kêu — chỉ rung từng ô), 'bam' = bấm thẳng vào ô (kêu như nút). */
 const emit = defineEmits<{ 'chon-co': [level: number, cach: 'cuon' | 'bam']; mo: [buoc: 'level' | 'theme' | 'options'] }>();
@@ -182,6 +185,7 @@ function bamSo(level: number): void {
 onMounted(() => nextTick(() => veGiua(coDangChon.value?.level ?? 0, false)));
 onBeforeUnmount(() => { clearTimeout(henDung); rung.xongTach(); });
 // Đổi từ ngoài (lần mở sau, bộ thẻ ít biểu tượng đẩy cỡ xuống…) → đưa ô đó về giữa
+watch(() => props.tim, (tim) => { if (!tim) nextTick(() => veGiua(coDangChon.value?.level ?? 0, false)); });
 watch(() => props.level, (lv) => { if (giua.value == null) nextTick(() => veGiua(lv, true)); });
 
 /** "Tất cả 12 bộ" hay "Đã chọn 3 bộ" — so với theme CHƠI ĐƯỢC (premium chưa mua không tính). */
@@ -200,6 +204,7 @@ const tomTatLuat = computed(() => {
 </script>
 
 <template>
+  <template v-if="!tim">
   <p class="nh-nhan">{{ t('menu.soThe') }}</p>
   <div class="keo-hang">
   <button
@@ -229,13 +234,14 @@ const tomTatLuat = computed(() => {
     :aria-label="sauDo ? t('menu.theN', { n: sauDo.pairs * 2 }) : undefined" @click="bamMui(1)"
   ><ChevronRight :size="18" :stroke-width="2.6" aria-hidden="true" /></button>
   </div>
+  </template>
 
   <button class="nh-dong thach" type="button" @click="emit('mo', 'theme')">
     <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhTheme" :key="h" :src="h" alt=""></span>
     <span class="nh-chu"><strong>{{ t('menu.nhanh.boThe') }}</strong><small>{{ tomTatTheme }}</small></span>
     <ChevronRight class="nh-mui" :size="20" aria-hidden="true" />
   </button>
-  <button class="nh-dong thach" type="button" @click="emit('mo', 'options')">
+  <button v-if="!tim" class="nh-dong thach" type="button" @click="emit('mo', 'options')">
     <OptionIcon name="time" :size="30" />
     <span class="nh-chu"><strong>{{ t('menu.nhanh.luat') }}</strong><small>{{ tomTatLuat }}</small></span>
     <ChevronRight class="nh-mui" :size="20" aria-hidden="true" />

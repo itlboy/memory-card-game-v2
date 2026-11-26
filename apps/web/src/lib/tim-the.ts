@@ -28,6 +28,16 @@ export function luuChon(c: TimTheChon): void {
   try { localStorage.setItem(KHOA, JSON.stringify(c)); } catch { /* chế độ riêng tư: chỉ không nhớ */ }
 }
 
+/** KIỂU CHƠI ở màn Chơi nhanh / Đấu với máy (27.11.2026): nhớ lần trước, lần sau mở ra đúng kiểu đã chơi. */
+export type KieuChoi = 'thuong' | 'tim';
+const KHOA_KIEU = 'mm.kieuChoi';
+export function docKieu(): KieuChoi {
+  try { return localStorage.getItem(KHOA_KIEU) === 'tim' ? 'tim' : 'thuong'; } catch { return 'thuong'; }
+}
+export function luuKieu(k: KieuChoi): void {
+  try { localStorage.setItem(KHOA_KIEU, k); } catch { /* chỉ không nhớ */ }
+}
+
 /** Kỷ lục RIÊNG từng cỡ bàn + độ khó, chỉ ván MỘT MÌNH — 3 thẻ Dễ và 12 thẻ Khó là hai trò khác nhau. */
 const khoaKyLuc = (soThe: number, doKho: TimTheDoKho): string => `mm.timThe.kyLuc.${soThe}.${doKho}`;
 export function docKyLuc(soThe: number, doKho: TimTheDoKho): number {

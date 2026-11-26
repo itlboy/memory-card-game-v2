@@ -20,8 +20,9 @@ import { dangDebug } from '@/lib/debug';
 /** Tìm Thẻ hiện trong luồng chơi khi đã mở cho mọi người, hoặc với người đang bật DEBUG (chủ dự án 26.11.2026:
  *  "chỉ có debuger mới chơi được", "ghép vào trong màn chơi luôn" — không chơi riêng ở trang Debug). */
 const hienTim = computed(() => TIM_THE_MO || dangDebug.value);
-/** Bước Thể loại hiện khi có ÍT NHẤT một kiểu chơi khác đang mở. */
-const coKieu = computed(() => MUA_THE_MO || hienTim.value);
+/** Bước Thể loại chỉ còn cho Mưa Thẻ. Tìm Thẻ chọn NGAY TRONG màn Chơi nhanh / Đấu với máy (hàng Kiểu chơi,
+ *  27.11.2026 — chủ dự án: "trong setup màn thì cho chọn loại thay vì cho hẳn đường đi khác bên ngoài"). */
+const coKieu = computed(() => MUA_THE_MO);
 import { conQuaTang, daMuaPremium, goiDangCo, moPremium, ngayConLai } from '@/lib/premium';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
@@ -49,7 +50,8 @@ import OptionIcon from './OptionIcon.vue';
 import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
-import { TIM_THE_MO, docChon, luuChon } from '@/lib/tim-the';
+import { TIM_THE_MO, docChon, docKieu, luuChon, luuKieu, type KieuChoi, type TimTheChon } from '@/lib/tim-the';
+import ChonTimThe from './ChonTimThe.vue';
 import { nhanSoPhong, soPhongXem, useSoPhongCho } from '@/lib/so-phong-cho';
 import { soNguoiOnline } from '@/lib/sanh';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
@@ -183,7 +185,7 @@ const path = computed<Step[]>(() => {
   // phụ thêm một nhịp — bỏ nó khỏi path sớm là nút quay lại nháy mất.
   const kieu: Step[] = coKieu.value ? ['kieu'] : [];
   // Đấu máy cũng qua Thể loại khi có Tìm Thẻ (Mưa Thẻ không có máy nên trước đây không cần)
-  const goc: Step[] = props.botLevel ? ['players', ...(hienTim.value ? kieu : []), 'bot'] : ['players', ...kieu, 'nhanh'];
+  const goc: Step[] = props.botLevel ? ['players', 'bot'] : ['players', ...kieu, 'nhanh'];
   const phu = BUOC_PHU.includes(step.value) ? step.value : BUOC_PHU.includes(buocHien.value) ? buocHien.value : null;
   return phu ? [...goc, phu] : goc;
 });
@@ -300,7 +302,7 @@ function pickBotMode(): void {
   const lv = cu?.level && coCua(cu.level) ? cu.level
     : props.mode !== 'campaign' && props.level > 1 && coCua(props.level) ? props.level : MUC_NHANH[0]!.level;
   emit('update:level', lv);
-  step.value = hienTim.value ? 'kieu' : 'bot';
+  step.value = 'bot';
 }
 
 function pickBotLevel(l: BotLevel): void {
@@ -376,21 +378,34 @@ const tenDangDung = computed(() => {
   return Array.from({ length: props.playerCount }, (_, i) =>
     (mayO(i) ? tenBot(mayO(i)!) : (names.value[i] || saved[i] || '').trim() || t('menu.nguoiN', { n: i + 1 }))).join(', ');
 });
+/** Kiểu chơi đang chọn ở màn Chơi nhanh / Đấu với máy — chỉ khi Tìm Thẻ đang hiện, không thì luôn Thường. */
+const kieuNho = ref<KieuChoi>(docKieu());
+const kieu = computed<KieuChoi>(() => (hienTim.value ? kieuNho.value : 'thuong'));
+function chonKieu(k: KieuChoi): void {
+  if (k === kieuNho.value) return;
+  sfx.select();
+  kieuNho.value = k;
+  luuKieu(k);
+}
+/** Số thẻ + độ khó của Tìm Thẻ (đối thủ lấy theo màn: một mình / mức máy đang chọn). */
+const timChon = ref<TimTheChon>(docChon());
+const laTim = computed(() => kieu.value === 'tim');
+function doiTim(c: TimTheChon): void { timChon.value = c; luuChon(c); }
+
 function batDauNhanh(): void {
+  if (laTim.value) {
+    luuChon({ ...timChon.value, doiThu: props.botLevel ?? 'mot' });
+    emit('tim-the');
+    return;
+  }
   if (themeTooSmall.value) { moBuocPhu('theme'); return; }
   emit('start-level', props.level);
 }
 
 /** Bước THỂ LOẠI của Chơi nhanh: Thường đi tiếp wizard; Mưa Thẻ là màn riêng (App). */
-function pickKieu(k: 'thuong' | 'mua' | 'tim'): void {
+function pickKieu(k: 'thuong' | 'mua'): void {
   sfx.select();
   if (k === 'mua') { emit('mua-the'); return; }
-  // Tìm Thẻ: màn riêng, chọn đối thủ (một mình / máy) ngay trong màn cấu hình của nó
-  if (k === 'tim') {
-    // Vào từ Đấu máy: màn Tìm Thẻ chọn sẵn đúng mức máy; từ Chơi nhanh: một mình
-    luuChon({ ...docChon(), doiThu: props.botLevel ?? 'mot' });
-    emit('tim-the'); return;
-  }
   step.value = props.botLevel ? 'bot' : 'nhanh';
 }
 
@@ -603,7 +618,7 @@ const ICO3D = {
   chienDich: anhEmoji('⭐', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
   dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? '',
-  thuong: anhEmoji('🧠', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? '', timThe: anhEmoji('🔍', true, 128) ?? ''
+  thuong: anhEmoji('🧠', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? ''
 };
 </script>
 
@@ -727,6 +742,15 @@ const ICO3D = {
         tắt mở bước phụ. KHÔNG SCROLL: hàng ô và dòng co theo chỗ còn lại (min 44px vùng chạm).
       -->
       <div v-else-if="step === 'nhanh'" key="nhanh" class="step-body nhanh">
+        <template v-if="hienTim">
+          <p class="nh-nhan">{{ t('menu.kieuChoi') }}</p>
+          <span class="kieu-seg" role="radiogroup" :aria-label="t('menu.kieuChoi')">
+            <button v-for="k in (['thuong', 'tim'] as const)" :key="k" class="nut-kieu thach th-nho th-chon" type="button" role="radio" :aria-checked="kieu === k" @click="chonKieu(k)">
+              {{ k === 'tim' ? t('tt.ten') : t('menu.kieu.thuong') }}<span v-if="k === 'tim'" class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
+            </button>
+          </span>
+        </template>
+        <template v-if="!laTim">
         <p class="nh-nhan">{{ t('menu.buoc.count') }}</p>
         <div class="nh-hang" role="radiogroup" :aria-label="t('menu.buoc.count')">
           <button
@@ -742,20 +766,30 @@ const ICO3D = {
           <span class="nh-chu"><strong>{{ t('menu.nhanh.ten') }}</strong><small>{{ tenDangDung }}</small></span>
           <span class="nh-sua">{{ t('menu.nhanh.sua') }}</span>
         </button>
+        </template>
+        <ChonTimThe v-else :chon="{ ...timChon, doiThu: 'mot' }" @doi="doiTim" />
 
         <BanChon
-          :level="level" :symbol-count="maxSymbolCount" :themes="themes" :theme-ids="themeIds" :options="options"
+          :level="level" :symbol-count="maxSymbolCount" :themes="themes" :theme-ids="themeIds" :options="options" :tim="laTim"
           @chon-co="chonCo" @mo="moBuocPhu"
         />
 
-        <p v-if="themeTooSmall" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
+        <p v-if="themeTooSmall && !laTim" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
         <button class="btn-primary nh-bat-dau" type="button" @click="batDauNhanh">
-          {{ t('menu.batDau', { ban: tenBan }) }}
+          {{ laTim ? t('tt.batDau', { n: timChon.soThe }) : t('menu.batDau', { ban: tenBan }) }}
         </button>
       </div>
 
       <!-- ĐẤU MÁY MỘT MÀN (mockup 17.11.2026): đối thủ + bàn (BanChon dùng chung với Chơi nhanh) + Bắt đầu -->
       <div v-else-if="step === 'bot'" key="bot" class="step-body nhanh">
+        <template v-if="hienTim">
+          <p class="nh-nhan">{{ t('menu.kieuChoi') }}</p>
+          <span class="kieu-seg" role="radiogroup" :aria-label="t('menu.kieuChoi')">
+            <button v-for="k in (['thuong', 'tim'] as const)" :key="k" class="nut-kieu thach th-nho th-chon" type="button" role="radio" :aria-checked="kieu === k" @click="chonKieu(k)">
+              {{ k === 'tim' ? t('tt.ten') : t('menu.kieu.thuong') }}<span v-if="k === 'tim'" class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
+            </button>
+          </span>
+        </template>
         <p class="nh-nhan">{{ t('menu.doiThu') }}</p>
         <div class="nh-hang may-hang" role="radiogroup" :aria-label="t('menu.doiThu')">
           <button
@@ -764,16 +798,17 @@ const ICO3D = {
             @click="pickBotLevel(b.id)"
           ><span class="bot-face" aria-hidden="true"><MatBot :mat="BOT_SPECS[b.id].avatar" /></span></button>
         </div>
-        <p v-if="botLevel" class="may-mo" aria-live="polite"><b>{{ tenBot(botLevel) }}</b> — {{ td(`menu.bot.${botLevel}`) }}</p>
+        <p v-if="botLevel" class="may-mo" :class="{ 'an-thap': laTim }" aria-live="polite"><b>{{ tenBot(botLevel) }}</b> — {{ td(`menu.bot.${botLevel}`) }}</p>
 
+        <ChonTimThe v-if="laTim" :chon="{ ...timChon, doiThu: botLevel ?? 'mot' }" @doi="doiTim" />
         <BanChon
-          :level="level" :symbol-count="maxSymbolCount" :themes="themes" :theme-ids="themeIds" :options="options"
+          :level="level" :symbol-count="maxSymbolCount" :themes="themes" :theme-ids="themeIds" :options="options" :tim="laTim"
           @chon-co="chonCo" @mo="moBuocPhu"
         />
 
-        <p v-if="themeTooSmall" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
+        <p v-if="themeTooSmall && !laTim" class="warn" role="alert">{{ t('menu.thieuTheme', { ban: tenBan, n: pairsNeeded }) }}</p>
         <button class="btn-primary nh-bat-dau" type="button" @click="batDauNhanh">
-          {{ t('menu.batDau', { ban: tenBan }) }}
+          {{ laTim ? t('tt.batDau', { n: timChon.soThe }) : t('menu.batDau', { ban: tenBan }) }}
         </button>
       </div>
 
@@ -803,11 +838,6 @@ const ICO3D = {
         <button class="option wide neon g-cyan" type="button" @click="pickKieu('thuong')">
           <img class="kieu-ic" :src="ICO3D.thuong" alt="" aria-hidden="true">
           <span class="text"><strong>{{ t('menu.kieu.thuong') }}</strong><small>{{ t('menu.kieu.thuongMo') }}</small></span>
-        </button>
-        <button v-if="hienTim" class="option wide neon g-amber o-moi" type="button" @click="pickKieu('tim')">
-          <img class="kieu-ic" :src="ICO3D.timThe" alt="" aria-hidden="true">
-          <span class="text"><strong>{{ t('tt.ten') }}</strong><small>{{ t('tt.moTa') }}</small></span>
-          <span class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
         </button>
         <button v-if="MUA_THE_MO" class="option wide neon g-pink o-moi" type="button" @click="pickKieu('mua')">
           <img class="kieu-ic" :src="ICO3D.muaThe" alt="" aria-hidden="true">
@@ -1322,4 +1352,23 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .nhan-online.co-phong i { animation: so-phong-song 1.6s infinite; }
 @keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); } }
 @media (prefers-reduced-motion: reduce) { .nhan-online.co-phong i { animation: none; } }
+/* HÀNG KIỂU CHƠI (27.11.2026, mockup https://claude.ai/artifact/VSDue1KpVaC8WXysMR7iHR): rãnh hai viên Thường / Tìm Thẻ */
+.kieu-seg {
+  flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 999px;
+  background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line)); box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
+}
+.nut-kieu {
+  position: relative; min-height: 44px; border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--fg);
+  font-family: var(--font-display); font-size: 17px; font-weight: 800; cursor: pointer;
+}
+.nut-kieu[aria-checked='true'] {
+  border-color: #33861a; color: #fff; background: linear-gradient(#a3ec72 -40%, #46ad22 70%); text-shadow: 0 1px 0 #23600f;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 #33861a, 0 3px 5px rgba(10, 20, 60, .18);
+}
+@media (max-height: 700px) {
+  .nut-kieu { min-height: 38px; }
+  /* Đấu với máy + Tìm Thẻ trên màn thấp: bỏ câu giới thiệu máy (tên máy vẫn ở aria-label từng ô) */
+  .may-mo.an-thap { display: none; }
+}
+.nut-kieu .moi-dan { position: absolute; top: -9px; right: 6px; font-size: 10.5px; padding: 1px 7px; text-shadow: none; }
 </style>

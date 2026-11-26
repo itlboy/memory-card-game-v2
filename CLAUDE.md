@@ -343,10 +343,12 @@
 ## TÌM THẺ — KIỂU CHƠI KHÔNG GHÉP CẶP (26.11.2026, bản chơi thử duyệt https://claude.ai/artifact/ESzywRX1pBqhx72tD1u1tz)
 
 - **CHỈ NGƯỜI BẬT DEBUG THẤY** (`hienTim` ở MenuScreen = `TIM_THE_MO || dangDebug`; `TIM_THE_MO = false` ở `lib/tim-the.ts`).
-  Lối vào NẰM TRONG LUỒNG CHƠI, không có nút riêng ở trang Debug (chủ dự án 26.11.2026: "ghép vào trong màn chơi luôn",
-  "chỉ có debuger mới chơi được", "lại còn chơi riêng trong debug làm gì"): Chơi nhanh VÀ Đấu máy đều qua bước Thể
-  loại (Thường / Tìm Thẻ); vào từ Đấu máy thì màn Tìm Thẻ chọn sẵn mức máy đó. `?tim=1` chỉ mở khi debug. Mở cho mọi
-  người = `TIM_THE_MO = true`.
+  Lối vào = HÀNG "KIỂU CHƠI" (Thường | Tìm Thẻ) NGAY TRONG màn Chơi nhanh và Đấu với máy (27.11.2026, mockup duyệt
+  https://claude.ai/artifact/VSDue1KpVaC8WXysMR7iHR — "trong setup màn thì cho chọn loại thay vì cho hẳn đường đi khác bên
+  ngoài"). KHÔNG còn bước Thể loại cho Tìm Thẻ (bước đó chỉ còn cho Mưa Thẻ) và KHÔNG còn màn cấu hình riêng: chọn Tìm
+  Thẻ thì BanChon (`tim`) chỉ giữ dòng Bộ thẻ, `ChonTimThe.vue` vẽ Số thẻ + Độ khó, Bắt đầu là vào ván (TimThe.vue chia
+  bàn ngay ở `onMounted`); đối thủ = một mình (Chơi nhanh) / mức máy đang chọn (Đấu với máy). Kiểu nhớ ở `mm.kieuChoi`.
+  Hết ván, "Đổi cấu hình" = về lại màn đó. Mở cho mọi người = `TIM_THE_MO = true`.
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả

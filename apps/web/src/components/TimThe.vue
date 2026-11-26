@@ -13,12 +13,12 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import {
-  BOT_SPECS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheChonMs, timTheSoCot, timTheXemMs,
-  type BotLevel, type TimTheKetQua
+  BOT_SPECS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheSoCot,
+  type TimTheKetQua
 } from '@mm/engine';
 import {
-  TIM_THE_DO_KHO, TIM_THE_SO_THE, docChon, docKyLuc, ghiKyLuc, luuChon,
-  type TimTheBoDo, type TimTheChon, type TimTheDoiThu, type TimTheKetVan
+  docChon, docKyLuc, ghiKyLuc,
+  type TimTheBoDo, type TimTheChon, type TimTheKetVan
 } from '@/lib/tim-the';
 import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
 import { hoSo, mauKhac, tenToi } from '@/lib/ho-so';
@@ -30,7 +30,7 @@ import { num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import MatBot from './MatBot.vue';
 import TamDung from './TamDung.vue';
-import { Check, Ellipsis, Pause, TimerOff, Trophy, User, X, Zap } from 'lucide-vue-next';
+import { Check, Ellipsis, Pause, TimerOff, Trophy, X, Zap } from 'lucide-vue-next';
 
 const props = defineProps<{
   /** Hình của bộ thẻ người chơi đang chọn (đã loại trùng). Thiếu thì dùng bộ dự phòng. */
@@ -45,24 +45,20 @@ const emit = defineEmits<{
 const TOI = 'p1';
 const MAY = 'bot';
 const DU_PHONG = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🦁', '🐷', '🐰', '🐨', '🐯', '🐮', '🐙', '🦄', '🐻', '🐔', '🦉', '🐢'];
-const CAP_MAY = Object.keys(BOT_SPECS) as BotLevel[];
-const DOI_THU: readonly TimTheDoiThu[] = ['mot', ...CAP_MAY];
 
 const chon = ref<TimTheChon>(docChon());
 const kyLuc = ref(docKyLuc(chon.value.soThe, chon.value.doKho));
-watch(chon, (c) => { luuChon(c); kyLuc.value = docKyLuc(c.soThe, c.doKho); }, { deep: true });
 
 const giayGon = (ms: number): string => (ms / 1000).toLocaleString(bcp(), { maximumFractionDigits: 1 });
 /** Giây CHỌN: dưới 1 giây hiện 2 chữ số, sàn 0,01 — "0s" là vô lý (chủ dự án 27.11.2026: "Làm gì có 0 giây"). */
 const giayChon = (ms: number): string => (Math.max(10, ms) / 1000).toLocaleString(bcp(), { maximumFractionDigits: ms < 1000 ? 2 : 1, minimumFractionDigits: ms < 1000 ? 2 : 0 });
-const tomTat = computed(() => t('tt.tomTat', {
-  xem: giayGon(timTheXemMs(chon.value)), chon: giayGon(timTheChonMs(chon.value)), n: TIM_THE_SO_LUOT
-}));
 const tenDoiThu = computed(() => (chon.value.doiThu === 'mot' ? t('tt.motMinh') : tenBot(chon.value.doiThu)));
 
 /* ---------- ván ---------- */
 const van = shallowRef<VanTimThe | null>(null);
 const rev = ref(0);
+/** KHÔNG còn màn cấu hình riêng (27.11.2026): số thẻ / độ khó / đối thủ chọn ở màn Chơi nhanh / Đấu với máy
+ *  (ChonTimThe) — vào màn này là vào ván ngay; `dau` chỉ là nhịp trước khi `onMounted` chia bàn. */
 const buoc = ref<'dau' | 'choi' | 'dung' | 'cuoi'>('dau');
 type Nhip = 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an';
 const nhip = ref<Nhip>('xem');
@@ -259,13 +255,13 @@ const xepHang = computed(() => { void rev.value; return van.value?.xepHang() ?? 
 
 function tamDung(): void { if (buoc.value === 'choi') buoc.value = 'dung'; }
 function anTrang(): void { if (document.hidden) tamDung(); }
-function veCauHinh(): void { van.value = null; buoc.value = 'dau'; }
 
 onMounted(() => {
   ro = new ResizeObserver(doBan);
   if (ban.value) ro.observe(ban.value);
   document.addEventListener('visibilitychange', anTrang);
   raf = requestAnimationFrame((ms) => { truoc = ms; raf = requestAnimationFrame(khung); });
+  batDau();
 });
 onUnmounted(() => {
   clearTimeout(henBay);
@@ -291,7 +287,7 @@ defineExpose({
 </script>
 
 <template>
-  <section class="tim-the" :class="{ dau: buoc === 'dau' }">
+  <section class="tim-the">
     <div class="tt-hud">
       <div :key="nay" class="vien diem" :class="{ nay: nay > 0 }" :title="t('mt.diem')"><DongXu :size="22" /><b>{{ num(diemHien) }}</b></div>
       <div v-if="heSo > 1 && buoc === 'choi'" :key="heSo" class="vien combo" :title="t('tt.heSo')">×{{ heSo.toLocaleString(bcp()) }}</div>
@@ -375,55 +371,9 @@ defineExpose({
           <p v-else-if="ketVan.doiThu === 'easy'" class="phu-chu">{{ t('tt.khongXu', { ten: tenDoiThu }) }}</p>
           <p v-else class="phu-chu xu"><DongXu :size="18" /> <b>+{{ num(ketVan.diem) }}</b></p>
           <button class="btn btn-primary nut-to" type="button" @click="batDau">{{ t('hud.choiLai') }}</button>
-          <div class="hang-nut">
-            <button class="btn" type="button" @click="veCauHinh">{{ t('tt.doiCauHinh') }}</button>
-            <button class="btn" type="button" @click="emit('thoat')">{{ t('hud.thoat') }}</button>
-          </div>
+          <!-- Đổi cấu hình = về màn Chơi nhanh / Đấu với máy (nơi chọn số thẻ, độ khó) — cũng là chỗ Thoát về -->
+          <button class="btn" type="button" @click="emit('thoat')">{{ t('tt.doiCauHinh') }}</button>
         </div>
-      </div>
-    </div>
-
-    <!-- MỞ ĐẦU = màn cấu hình: đối thủ · số thẻ · độ khó. Bàn vẫn dựng ở dưới (ẩn) để đo được chỗ. -->
-    <div v-if="buoc === 'dau'" class="tt-mo" role="dialog" aria-modal="true" aria-labelledby="ttDau">
-      <div class="hop khay mo">
-        <button class="btn nut-x" type="button" :aria-label="t('hud.thoat')" @click="emit('thoat')"><X :size="18" /></button>
-        <h2 id="ttDau" class="tt-ten">{{ t('tt.ten') }}</h2>
-        <!-- Luật MỘT câu, như Mưa Thẻ ("không cần giải thích rườm rà") -->
-        <p class="tt-luat">{{ t('tt.moTa') }}</p>
-
-        <div class="nhom" role="group" aria-labelledby="ttDoiThu">
-          <span id="ttDoiThu" class="nhan">{{ t('tt.doiThu') }} · <b>{{ tenDoiThu }}</b></span>
-          <span class="ranh c6">
-            <button
-              v-for="d in DOI_THU" :key="d" class="nut-o thach th-nho th-chon" type="button"
-              :aria-pressed="chon.doiThu === d" :aria-label="d === 'mot' ? t('tt.motMinh') : tenBot(d)" @click="chon.doiThu = d"
-            >
-              <User v-if="d === 'mot'" :size="22" :stroke-width="2.6" aria-hidden="true" />
-              <span v-else class="mat-may" aria-hidden="true"><MatBot :mat="BOT_SPECS[d].avatar" /></span>
-            </button>
-          </span>
-        </div>
-        <div class="nhom" role="group" aria-labelledby="ttSoThe">
-          <span id="ttSoThe" class="nhan">{{ t('tt.soThe') }}</span>
-          <span class="ranh c6">
-            <button
-              v-for="n in TIM_THE_SO_THE" :key="n" class="nut-o thach th-nho th-chon" type="button"
-              :aria-pressed="chon.soThe === n" :aria-label="t('tt.the', { n })" @click="chon.soThe = n"
-            ><b>{{ n }}</b></button>
-          </span>
-        </div>
-        <div class="nhom" role="group" aria-labelledby="ttDoKho">
-          <span id="ttDoKho" class="nhan">{{ t('tt.doKho') }}</span>
-          <span class="ranh c3">
-            <button
-              v-for="k in TIM_THE_DO_KHO" :key="k" class="nut-o thach th-nho th-chon" type="button"
-              :aria-pressed="chon.doKho === k" @click="chon.doKho = k"
-            ><b class="chu-nut">{{ td(`tt.${k}`) }}</b></button>
-          </span>
-        </div>
-        <p class="tt-tom">{{ tomTat }}</p>
-        <p v-if="chon.doiThu === 'mot'" class="kl-vien"><Trophy :size="16" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> <b>{{ num(kyLuc) }}</b></p>
-        <button class="btn btn-primary nut-to" type="button" @click="batDau">{{ t('tt.choi') }}</button>
       </div>
     </div>
 
@@ -565,8 +515,6 @@ defineExpose({
 }
 
 /* màn mở đầu: HUD + bàn vẫn dựng (để đo) nhưng ẩn */
-.tim-the.dau > :not(.tt-mo) { visibility: hidden; }
-.tt-mo { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; }
 .tt-phu { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 6px; }
 .tt-phu.ket { border-radius: 22px; background: color-mix(in srgb, #0d1838 35%, transparent); }
 /* FONT: nút HÀNH ĐỘNG dùng `btn`/`btn-primary` (Kẹo cho font tiêu đề) — `thach` trần KHÔNG đặt font. Số và nhãn
@@ -578,38 +526,6 @@ defineExpose({
 .hop h2 { margin: 0; font-size: 30px; line-height: 1.1; text-wrap: balance; }
 .hop .btn { min-height: 48px; }
 .hop .nut-to { min-height: 56px; font-size: 22px; }
-.hang-nut { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.tt-ten { font-family: var(--font-display); font-size: clamp(30px, 5.4vh, 42px) !important; color: #2f4fa6; letter-spacing: .01em; }
-:root[data-theme='dark'] .tt-ten { color: #9fc0ff; }
-.hop.mo { position: relative; gap: clamp(7px, 1.7vh, 13px); padding-top: 14px; }
-.nut-x { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; min-width: 0; min-height: 0 !important; padding: 0; display: grid; place-items: center; border-radius: 50% !important; }
-.nut-x::after { content: ''; position: absolute; inset: -4px; }
-.tt-luat { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 17px; line-height: 1.3; text-wrap: balance; }
-.tt-tom { margin: 0; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.kl-vien {
-  align-self: center; margin: 0; padding: 3px 14px; border-radius: 999px; font-family: var(--font-display); font-weight: 800; font-size: 16px;
-  background: color-mix(in srgb, #ffc21a 22%, transparent); color: var(--fg);
-}
-.nhom { display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
-.nhom .nhan { font-family: var(--font-display); font-weight: 800; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.nhom .nhan b { color: var(--fg); letter-spacing: 0; text-transform: none; }
-.ranh {
-  display: grid; gap: 2px; padding: 3px; border-radius: 999px;
-  background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line));
-  box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
-}
-.ranh.c6 { grid-template-columns: repeat(6, 1fr); } .ranh.c5 { grid-template-columns: repeat(5, 1fr); } .ranh.c3 { grid-template-columns: repeat(3, 1fr); }
-.nut-o {
-  position: relative; display: flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 4px; min-width: 0;
-  border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--fg); font: inherit; cursor: pointer;
-}
-.nut-o[aria-pressed='true'] {
-  border-color: #33861a; color: #fff; background: linear-gradient(#a3ec72 -40%, #46ad22 70%); text-shadow: 0 1px 0 #23600f;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 #33861a, 0 3px 5px rgba(10, 20, 60, .18);
-}
-.nut-o b { font-family: var(--font-display); font-size: 19px; font-weight: 800; }
-.nut-o .chu-nut { font-size: 16px; }
-.mat-may { font-size: 22px; line-height: 1; display: grid; place-items: center; }
 
 .so-to { margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font-display); font-size: 52px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .phu-chu { margin: 0; font-family: var(--font-display); font-weight: 700; color: var(--muted); }
