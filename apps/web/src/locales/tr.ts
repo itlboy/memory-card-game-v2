@@ -796,6 +796,7 @@ const tr: TuDien = {
   'tt.sapUp': "Kartlar birazdan kapanacak",
   'tt.upBai': "Kapanıyor…",
   'tt.hoi': "Bu kart nerede?",
+  'tt.xongVan': "{n} tur tamam!",
   'tt.chonBan': "Masayı seç",
   'tt.thangTen': "{ten} kazandı!",
   'tt.batDau': "Başla — {n} kart",

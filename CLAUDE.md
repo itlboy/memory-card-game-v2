@@ -360,6 +360,8 @@
   hơn `TIM_PHONG_LECH_MS`) và chờ thêm `TIM_PHONG_TRE_MS` cho lời chọn đang trên đường. Màn `OnlineTimThe.vue`: cùng luật
   "chỉ có bàn thẻ" + hàng người chơi; đang chọn chỉ lộ AI đã chọn, đáp án mới hiện mặt dưới lá. Phòng có máy: không xu,
   không lên sổ (như ghép cặp online). Máy trực phòng (`phong-bot.ts`) rời ghế khi phòng chuyển sang Tìm Thẻ.
+- **HẾT VÁN = ĐÚNG đồ của ghép cặp** (27.11.2026, chủ dự án): KetCucFx (ăn mừng) rồi ResultDialog với prop `timThe` (số
+  lượt) — `tomTatTimThe` (lib/tim-the) dựng `Summary`, `moves`/`pairs` = SỐ LƯỢT ĐÚNG, bảng tự đổi nhãn "Đúng x/N".
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả

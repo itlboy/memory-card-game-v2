@@ -87,6 +87,11 @@ const props = defineProps<{
    * `summary.status === 'won'` chỉ nói BÀN ĐÃ SẠCH, không nói ai thắng (CLAUDE.md).
    */
   minhKetCuc?: LoaiKetCuc;
+  /**
+   * VÁN TÌM THẺ (27.11.2026, chủ dự án: hết ván Tìm Thẻ dùng ĐÚNG bảng kết quả này): số lượt của ván. Có thì `moves` /
+   * `pairs` là SỐ LƯỢT ĐÚNG (không phải lượt lật / cặp) — nhãn đổi thành "Đúng x/N", dòng lý do thành "Xong N lượt".
+   */
+  timThe?: number;
 }>();
 
 const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; chinh: []; 'chinh-phuc': [Achievement] }>();
@@ -242,7 +247,7 @@ const choiLai = computed(() => {
  * đẳng thắng!", dòng dưới lại khen người chơi mở hết cặp.
  */
 const reasonText = computed(() =>
-  props.multiplayer && props.summary.reason === 'cleared'
+  props.timThe ? t('tt.xongVan', { n: props.timThe }) : props.multiplayer && props.summary.reason === 'cleared'
     ? t('kq.banSach')
     : td(`kq.ly.${props.summary.reason}`));
 
@@ -340,7 +345,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
     nguoi: { ten: tenToi.value || tenNguoi(s.ranking[0]), mat: hoSo.value.xong ? hoSo.value.mat : s.ranking[0]?.avatar, mau: hoSo.value.xong ? hoSo.value.mau : undefined },
     so: [
       { nhan: t('chung.diem'), gt: num(s.score) },
-      { nhan: t('kq.soLuot'), gt: String(s.moves) },
+      props.timThe ? { nhan: t('tt.dungNhan'), gt: `${s.moves}/${props.timThe}` } : { nhan: t('kq.soLuot'), gt: String(s.moves) },
       { nhan: t('kq.thoiGian'), gt: clock(s.seconds) },
       { nhan: t('kq.chuoiDai'), gt: String(s.bestStreak) },
     ],
@@ -414,7 +419,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
               Trước đặt cạnh tên → tên + nhãn + điểm chen một hàng, "Nguyễn Hoàng Anh" bị ngắt dòng.
             -->
             <small>
-              {{ t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
+              {{ timThe ? t('tt.ketQua', { n: p.pairs, tong: timThe, c: p.bestStreak }) : t('kq.capChuoi', { cap: p.pairs, chuoi: p.bestStreak }) }}
               <i v-if="rematchState?.[p.id] === 'in'" class="tag in">{{ t('kq.tag.choiLai') }}</i>
               <i v-else-if="rematchState?.[p.id] === 'out'" class="tag out">{{ t('kq.tag.daRoi') }}</i>
             </small>
@@ -468,7 +473,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
 
       <dl v-if="!multiplayer && !triNho" class="stats">
         <div v-if="summary.timeBonus"><dt>{{ t('kq.thuongGio') }}</dt><dd>+{{ summary.timeBonus }}</dd></div>
-        <div><dt>{{ t('kq.soLuot') }}</dt><dd>{{ summary.moves }}</dd></div>
+        <div><dt>{{ timThe ? t('tt.dungNhan') : t('kq.soLuot') }}</dt><dd>{{ timThe ? `${summary.moves}/${timThe}` : summary.moves }}</dd></div>
         <div><dt>{{ t('kq.thoiGian') }}</dt><dd>{{ clock(summary.seconds) }}</dd></div>
         <div><dt>{{ t('kq.chuoiDai') }}</dt><dd>{{ summary.bestStreak }}</dd></div>
       </dl>
@@ -486,7 +491,7 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         </div>
         <template v-if="!multiplayer">
           <div v-if="summary.timeBonus"><Zap :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.thuongGio') }}</dt><i aria-hidden="true" /><dd>+{{ summary.timeBonus }}</dd></div>
-          <div><Pointer :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.soLuot') }}</dt><i aria-hidden="true" /><dd>{{ summary.moves }}</dd></div>
+          <div><Pointer :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ timThe ? t('tt.dungNhan') : t('kq.soLuot') }}</dt><i aria-hidden="true" /><dd>{{ timThe ? `${summary.moves}/${timThe}` : summary.moves }}</dd></div>
           <div><Timer :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.thoiGian') }}</dt><i aria-hidden="true" /><dd>{{ clock(summary.seconds) }}</dd></div>
           <div><Flame :size="18" :stroke-width="2.4" aria-hidden="true" /><dt>{{ t('kq.chuoiDai') }}</dt><i aria-hidden="true" /><dd>{{ summary.bestStreak }}</dd></div>
         </template>

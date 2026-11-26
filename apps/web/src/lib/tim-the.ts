@@ -3,7 +3,7 @@
  * (`packages/engine/src/tim-the.ts`) vì phòng online chạy cùng bộ luật trên server.
  */
 import { ref } from 'vue';
-import { BOT_SPECS, TIM_THE_DO_KHO, TIM_THE_SO_THE, timTheHopLe, type BotLevel, type TimTheDoKho } from '@mm/engine';
+import { BOT_SPECS, TIM_THE_DO_KHO, TIM_THE_SO_THE, timTheHopLe, type BotLevel, type Player, type Summary, type TimTheDoKho } from '@mm/engine';
 
 /**
  * CÔNG TẮC MỞ CHO NGƯỜI CHƠI. `false` (chủ dự án 26.11.2026: "sau cửa debug trước, thử ổn mới mở"):
@@ -51,6 +51,26 @@ export function bayBan(n: number, rong: number, cao: number, khe = 10, tran = 13
     if (w > tot.w || (w === tot.w && (trong < tot.trong || (trong === tot.trong && lech < tot.lech)))) tot = { cot, w, trong, lech };
   }
   return { cot: tot.cot, w: Math.max(36, tot.w) };
+}
+
+/**
+ * KẾT QUẢ VÁN TÌM THẺ dạng `Summary` của ghép cặp — để hết ván dùng ĐÚNG bảng kết quả cũ (ResultDialog, prop `timThe`;
+ * chủ dự án 27.11.2026). `pairs` / `moves` = SỐ LƯỢT ĐÚNG; bảng tự đổi nhãn. `score` / `bestStreak` của NGƯỜI CẦM MÁY.
+ */
+export function tomTatTimThe(
+  ds: readonly { id: string; ten: string; mat?: string; diem: number; dung: number; chuoiDai: number }[],
+  toiId: string, soLuot: number, giay: number
+): Summary {
+  const nguoi: Player[] = ds.map((n) => ({
+    id: n.id, name: n.ten, ...(n.mat ? { avatar: n.mat } : {}), score: n.diem, pairs: n.dung, streak: 0, bestStreak: n.chuoiDai,
+    misses: Math.max(0, soLuot - n.dung), lives: 0, frozenTurns: 0, doubleNext: false
+  }));
+  const ranking = [...nguoi].sort((a, b) => b.score - a.score || b.pairs - a.pairs);
+  const toi = nguoi.find((n) => n.id === toiId) ?? ranking[0];
+  return {
+    status: 'won', reason: 'cleared', score: toi?.score ?? 0, moves: toi?.pairs ?? 0, seconds: giay, timeBonus: 0,
+    bestStreak: toi?.bestStreak ?? 0, stars: 0, ranking
+  };
 }
 
 /** KIỂU CHƠI ở màn Chơi nhanh / Đấu với máy (27.11.2026): nhớ lần trước, lần sau mở ra đúng kiểu đã chơi. */

@@ -25,9 +25,10 @@ import { taiKhoan } from '@/lib/taikhoan';
 import { tenNguoi } from '@/lib/ten';
 import { ghiVuaThang } from '@/lib/xin-danh-gia';
 import { moChucNang, suKien } from '@/lib/phan-tich';
-import { bayBan, dangTimOnline } from '@/lib/tim-the';
+import { bayBan, dangTimOnline, tomTatTimThe } from '@/lib/tim-the';
 import DongXu from './DongXu.vue';
 import KetCucFx from './KetCucFx.vue';
+import ResultDialog from './ResultDialog.vue';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatNguoi from './MatNguoi.vue';
 import EmojiDock from './EmojiDock.vue';
@@ -35,7 +36,7 @@ import EmojiBlast from './EmojiBlast.vue';
 import LoiNoi from './LoiNoi.vue';
 
 const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
-const emit = defineEmits<{ quit: [] }>();
+const emit = defineEmits<{ quit: []; chinh: [] }>();
 const o = props.o;
 
 const v = computed<TimView | null>(() => o.tim.value);
@@ -125,6 +126,7 @@ let henKq: ReturnType<typeof setTimeout> | undefined;
 const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
 
 let truocPha = '';
+let batDauLuc = performance.now();
 let truocLuot = -1;
 let daGhiVan = -1;
 watch(v, (moi) => {
@@ -141,7 +143,7 @@ watch(v, (moi) => {
     // Đầu lượt: bàn ÚP (`cho`, 2 giây) rồi mới lật cho xem — giữa các lượt lá úp xuống ngay tại chỗ
     if (moi.pha === 'cho') {
       chonCuaToi.value = null; gain.value = null;
-      if (moi.luot === 0) { fx.value = null; hienKq.value = false; }
+      if (moi.luot === 0) { fx.value = null; hienKq.value = false; batDauLuc = performance.now(); }
       if (moi.luot > 0) sfx.swap();
     } else if (moi.pha === 'xem') {
       chonCuaToi.value = null; gain.value = null;
@@ -180,11 +182,27 @@ function khung(): void {
 }
 
 /* ---------- hết ván ---------- */
-const xepHang = computed(() => {
-  const ds = [...nguoi.value].sort((a, b) => b.diem - a.diem);
-  return ds.map((n) => ({ ...n, hang: ds.findIndex((x) => x.diem === n.diem) + 1 }));
-});
 const coMay = computed(() => (v.value?.nguoi ?? []).some((n) => !!n.may));
+/** Kết quả ván cho ResultDialog (mặt + tên lấy theo người trong phòng). Giờ ván ≈ số lượt × nhịp — server không gửi. */
+const tomTat = computed(() => {
+  const x = v.value;
+  if (!x || x.pha !== 'xong') return null;
+  return tomTatTimThe(nguoi.value.map((n) => ({ id: n.id, ten: n.ten, mat: n.mat, diem: n.diem, dung: n.dung, chuoiDai: n.chuoiDai })), toiId.value, x.soLuot, Math.round((performance.now() - batDauLuc) / 1000));
+});
+/** Còn ≥ 2 người (gồm máy) trong phòng để chơi lại. */
+const duNguoiChoiLai = computed(() => (o.room.value?.players ?? []).filter((p) => p.connected !== false).length >= 2);
+/** Ai đã bấm chơi lại ('in') / đã rời phòng ('out') — như OnlineGame. */
+const rematchState = computed<Record<string, 'in' | 'out'>>(() => {
+  const r = o.room.value;
+  if (!r) return {};
+  const phieu = new Set(r.againVotes ?? []);
+  const out: Record<string, 'in' | 'out'> = {};
+  for (const n of v.value?.nguoi ?? []) {
+    if (phieu.has(n.id)) out[n.id] = 'in';
+    else if (!r.players.some((q) => q.id === n.id)) out[n.id] = 'out';
+  }
+  return out;
+});
 function ketThuc(moi: TimView): void {
   diemHien.value = moi.nguoi.find((n) => n.id === toiId.value)?.diem ?? diemHien.value;
   if (xem.value || daGhiVan === moi.van) return;
@@ -287,25 +305,21 @@ onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.di
       </Transition>
       <p class="an-di" aria-live="polite">{{ pha === 'hoi' && v?.hinhDich ? `${t('tt.hoi')} ${v.hinhDich}` : '' }}</p>
 
-      <!-- HẾT VÁN: bảng xếp hạng + Chơi lại (cả phòng bấm) / Về phòng chờ -->
-      <div v-if="pha === 'xong' && (hienKq || xem || !fx)" class="ott-phu" role="dialog" aria-modal="true" aria-labelledby="ottCuoi">
-        <div class="hop khay">
-          <h2 id="ottCuoi">{{ xepHang[0] && xepHang.filter((x) => x.hang === 1).length === 1 ? t('tt.thangTen', { ten: xepHang[0].ten }) : t('tt.hoa') }}</h2>
-          <ol class="hang">
-            <li v-for="n in xepHang" :key="n.id" class="khay-nho" :class="{ toi: n.id === toiId }">
-              <span class="so">{{ n.hang }}</span>
-              <span class="av vong-mau" :style="n.mau ? { '--m': n.mau } : undefined"><MatNguoi :mat="n.mat" :anh="n.anh" /></span>
-              <span class="ten">{{ n.ten }}</span>
-              <b class="d">{{ num(n.diem) }}</b>
-            </li>
-          </ol>
-          <p v-if="toi && !coMay" class="phu-chu xu"><DongXu :size="18" /> <b>+{{ num(toi.diem) }}</b></p>
-          <button v-if="!xem" class="btn btn-primary nut-to" type="button" :disabled="o.iWantAgain.value" @click="moChucNang('tim_online_choi_lai'); o.again()">
-            <Check v-if="o.iWantAgain.value" :size="20" :stroke-width="3" aria-hidden="true" /> {{ t('hud.choiLai') }}
-          </button>
-          <button class="btn" type="button" @click="moChucNang('tim_online_ve_phong'); o.veLobby()">{{ t('kq.vePhongCho') }}</button>
-        </div>
-      </div>
+      <!-- HẾT VÁN = ĐÚNG bảng kết quả online của ghép cặp (ResultDialog chế độ `tim-the`, chủ dự án 27.11.2026) -->
+      <ResultDialog
+        v-if="pha === 'xong' && tomTat && (hienKq || xem || !fx)"
+        :summary="tomTat" :is-record="false" :show-stars="false" :multiplayer="true" :multiplayer-online="true"
+        :la-chu-phong="o.isHost.value && !xem" :minh-ket-cuc="toiId && !xem ? fx?.loai : undefined"
+        :fresh-achievements="[]" :has-next="false" :tim-the="v?.soLuot"
+        :series-wins="o.seriesWins.value" :so-van="o.soVanLoat.value"
+        :nguoi-choi="tomTat.ranking.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))"
+        :anh-cua="(id) => nguoiPhong(id)?.anh" :mau-cua="(id) => nguoiPhong(id)?.mau"
+        :phieu-choi-lai="o.room.value?.againVotes"
+        :rematch-sent="o.iWantAgain.value" :toi-id="toiId || undefined"
+        :rematch-blocked="!duNguoiChoiLai || xem" :khong-du="!duNguoiChoiLai" :rematch-state="rematchState"
+        @replay="moChucNang('tim_online_choi_lai'); o.again()" @next="o.again()"
+        @lobby="moChucNang('tim_online_ve_phong'); o.veLobby()" @chinh="emit('chinh')" @menu="emit('quit')"
+      />
     </div>
 
     <Teleport to="#app" :disabled="!coApp">
@@ -434,18 +448,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.di
   font-size: 15px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 #1f7a3e; animation: no .25s both;
 }
 
-.ott-phu { position: absolute; inset: 0; z-index: 17;   /* trên KetCucFx (16), như ghép cặp */ display: grid; place-items: center; padding: 6px; border-radius: 22px; background: color-mix(in srgb, #0d1838 35%, transparent); }
-.hop { width: 100%; max-width: 380px; max-height: 100%; overflow: auto; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px; text-align: center; }
-.hop h2 { margin: 0; font-size: 26px; line-height: 1.15; text-wrap: balance; }
-.hop .btn { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.hop .nut-to { min-height: 56px; font-size: 22px; }
-.hang { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.hang li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; text-align: start; }
-.hang li.toi { border-color: #ffc21a; }
-.hang .so { flex: none; width: 1.2em; font-family: var(--font-display); font-weight: 800; font-size: 18px; text-align: center; }
-.phu-chu { margin: 0; font-family: var(--font-display); font-weight: 700; color: var(--muted); }
-.phu-chu b { color: var(--fg); }
-.phu-chu.xu { display: flex; align-items: center; justify-content: center; gap: 6px; }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
   .card.dung, .card.cho, .huy, .cong, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay, .mat-nho, .dem span { animation: none; }

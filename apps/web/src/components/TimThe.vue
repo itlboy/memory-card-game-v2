@@ -17,7 +17,7 @@ import {
   type TimTheKetQua
 } from '@mm/engine';
 import {
-  bayBan, docChon, docKyLuc, ghiKyLuc,
+  bayBan, docChon, docKyLuc, ghiKyLuc, tomTatTimThe,
   type TimTheBoDo, type TimTheChon, type TimTheKetVan
 } from '@/lib/tim-the';
 import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
@@ -30,10 +30,11 @@ import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import DongXu from './DongXu.vue';
 import KetCucFx from './KetCucFx.vue';
+import ResultDialog from './ResultDialog.vue';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatBot from './MatBot.vue';
 import TamDung from './TamDung.vue';
-import { Check, Ellipsis, Pause, TimerOff, Trophy, X, Zap } from 'lucide-vue-next';
+import { Check, Ellipsis, Pause, TimerOff, X, Zap } from 'lucide-vue-next';
 
 const props = defineProps<{
   /** Hình của bộ thẻ người chơi đang chọn (đã loại trùng). Thiếu thì dùng bộ dự phòng. */
@@ -55,7 +56,6 @@ const kyLuc = ref(docKyLuc(chon.value.soThe, chon.value.doKho));
 const giayGon = (ms: number): string => (ms / 1000).toLocaleString(bcp(), { maximumFractionDigits: 1 });
 /** Giây CHỌN: dưới 1 giây hiện 2 chữ số, sàn 0,01 — "0s" là vô lý (chủ dự án 27.11.2026: "Làm gì có 0 giây"). */
 const giayChon = (ms: number): string => (Math.max(10, ms) / 1000).toLocaleString(bcp(), { maximumFractionDigits: ms < 1000 ? 2 : 1, minimumFractionDigits: ms < 1000 ? 2 : 0 });
-const tenDoiThu = computed(() => (chon.value.doiThu === 'mot' ? t('tt.motMinh') : tenBot(chon.value.doiThu)));
 
 /* ---------- ván ---------- */
 const van = shallowRef<VanTimThe | null>(null);
@@ -269,13 +269,17 @@ function ketThuc(v: VanTimThe): void {
   emit('ket-thuc', kq);
 }
 
-const tieuDeCuoi = computed(() => {
-  const k = ketVan.value;
-  if (!k) return '';
-  if (k.ketQua === 'xong') return k.kyLucMoi ? t('mt.kyLucMoi') : t('tt.xong');
-  return t(k.ketQua === 'thang' ? 'tt.thang' : k.ketQua === 'thua' ? 'tt.thua' : 'tt.hoa');
+/** Kết quả ván cho ResultDialog: mình mang tên + mặt hồ sơ, máy mang tên + mặt của máy. */
+const tomTat = computed(() => {
+  void rev.value;
+  const v = van.value, k = ketVan.value;
+  if (!v || !k) return null;
+  return tomTatTimThe(v.nguoi.map((p) => ({
+    id: p.id, ten: p.id === TOI ? (tenToi.value || t('tt.ban')) : p.ten, mat: p.may ? BOT_SPECS[p.may].avatar : hoSo.value.mat,
+    diem: p.diem, dung: p.dung, chuoiDai: p.chuoiDai
+  })), TOI, k.soLuot, k.giay);
 });
-const xepHang = computed(() => { void rev.value; return van.value?.xepHang() ?? []; });
+const mauCuaTim = (id: string): string | undefined => (id === TOI ? hoSo.value.mau : mauKhac(0));
 
 function tamDung(): void { if (buoc.value === 'choi') buoc.value = 'dung'; }
 function anTrang(): void { if (document.hidden) tamDung(); }
@@ -379,28 +383,15 @@ defineExpose({
         </div>
       </Transition>
 
-      <!-- KẾT QUẢ: phủ trong khung bàn — bàn cuối đã ngửa vẫn thấy phía sau -->
-      <div v-if="buoc === 'cuoi' && ketVan && hienKq" class="tt-phu ket" role="dialog" aria-modal="true" aria-labelledby="ttCuoi">
-        <div class="hop khay">
-          <h2 id="ttCuoi">{{ tieuDeCuoi }}</h2>
-          <ol v-if="ketVan.ketQua !== 'xong'" class="hang">
-            <li v-for="p in xepHang" :key="p.id" class="khay-nho" :class="{ toi: p.id === TOI }">
-              <span class="so">{{ p.hang }}</span>
-              <span class="av" :style="{ background: p.may ? mauKhac(0) : hoSo.mau }"><MatBot :mat="p.may ? BOT_SPECS[p.may].avatar : hoSo.mat" /></span>
-              <span class="ten">{{ p.id === TOI ? (tenToi || t('tt.ban')) : p.ten }}</span>
-              <b class="d">{{ num(p.diem) }}</b>
-            </li>
-          </ol>
-          <p v-else class="so-to"><DongXu :size="40" />{{ num(ketVan.diem) }}</p>
-          <p class="phu-chu">{{ t('tt.ketQua', { n: ketVan.dung, tong: ketVan.soLuot, c: ketVan.chuoiDai }) }}</p>
-          <p v-if="ketVan.ketQua === 'xong'" class="phu-chu"><Trophy :size="15" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ t('mt.kyLuc') }}: <b>{{ num(kyLuc) }}</b></p>
-          <p v-else-if="ketVan.doiThu === 'easy'" class="phu-chu">{{ t('tt.khongXu', { ten: tenDoiThu }) }}</p>
-          <p v-else class="phu-chu xu"><DongXu :size="18" /> <b>+{{ num(ketVan.diem) }}</b></p>
-          <button class="btn btn-primary nut-to" type="button" @click="moChucNang('tim_the_choi_lai'); batDau()">{{ t('hud.choiLai') }}</button>
-          <!-- Đổi cấu hình = về màn Chơi nhanh / Đấu với máy (nơi chọn số thẻ, độ khó) — cũng là chỗ Thoát về -->
-          <button class="btn" type="button" @click="moChucNang('tim_the_doi_cau_hinh'); emit('thoat')">{{ t('tt.doiCauHinh') }}</button>
-        </div>
-      </div>
+      <!-- KẾT QUẢ = ĐÚNG bảng kết quả của ván ghép cặp (ResultDialog, chế độ `tim-the`; chủ dự án 27.11.2026) -->
+      <ResultDialog
+        v-if="buoc === 'cuoi' && ketVan && hienKq && tomTat"
+        :summary="tomTat" :is-record="ketVan.kyLucMoi" :show-stars="false" :multiplayer="nhieu"
+        :minh-ket-cuc="nhieu ? fx?.loai : undefined" :fresh-achievements="[]" :has-next="false" :tim-the="ketVan.soLuot"
+        :nguoi-choi="tomTat.ranking.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))" :mau-cua="mauCuaTim"
+        @replay="moChucNang('tim_the_choi_lai'); batDau()" @next="batDau()"
+        @menu="emit('thoat')" @doi-ban="moChucNang('tim_the_doi_cau_hinh'); emit('thoat')"
+      />
     </div>
 
     <Teleport to="#app" :disabled="!coApp">
@@ -556,26 +547,9 @@ defineExpose({
 }
 
 /* màn mở đầu: HUD + bàn vẫn dựng (để đo) nhưng ẩn */
-.tt-phu { position: absolute; inset: 0; z-index: 17;   /* 17 > KetCucFx (16): bảng kết quả nổi TRÊN cảnh ăn mừng, cảnh chạy tiếp phía sau — như ghép cặp */ display: grid; place-items: center; padding: 6px; }
-.tt-phu.ket { border-radius: 22px; background: color-mix(in srgb, #0d1838 35%, transparent); }
 /* FONT: nút HÀNH ĐỘNG dùng `btn`/`btn-primary` (Kẹo cho font tiêu đề) — `thach` trần KHÔNG đặt font. Số và nhãn
    to đặt `--font-display`. test/tim-the-font.test.ts canh (cùng luật với Mưa Thẻ). */
-.hop {
-  width: 100%; max-width: 380px; max-height: 100%; overflow: hidden; box-sizing: border-box;
-  display: flex; flex-direction: column; gap: clamp(6px, 1.5vh, 12px); padding: 18px 18px 16px; text-align: center;
-}
-.hop h2 { margin: 0; font-size: 30px; line-height: 1.1; text-wrap: balance; }
-.hop .btn { min-height: 48px; }
-.hop .nut-to { min-height: 56px; font-size: 22px; }
 
-.so-to { margin: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font-display); font-size: 52px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-.phu-chu { margin: 0; font-family: var(--font-display); font-weight: 700; color: var(--muted); }
-.phu-chu b { color: var(--fg); }
-.phu-chu.xu { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.hang { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.hang li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; text-align: start; }
-.hang li.toi { border-color: #ffc21a; }
-.hang .so { flex: none; width: 1.2em; font-family: var(--font-display); font-weight: 800; font-size: 18px; text-align: center; }
 .ic-n { vertical-align: -2px; }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }

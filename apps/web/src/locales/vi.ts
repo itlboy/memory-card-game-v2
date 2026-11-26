@@ -807,6 +807,7 @@ const vi = {
   'tt.sapUp': "Thẻ sắp úp lại",
   'tt.upBai': "Úp thẻ…",
   'tt.hoi': "Thẻ này nằm ở đâu?",
+  'tt.xongVan': "Xong {n} lượt Tìm Thẻ!",
   'tt.chonBan': "Chọn bàn chơi",
   'tt.thangTen': "{ten} thắng!",
   'tt.batDau': "Bắt đầu — {n} thẻ",

@@ -1,3 +1,4 @@
+import { huyHieuDangDeo } from './premium';
 import { ref, shallowRef, watch } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
@@ -45,6 +46,8 @@ export interface DongBxh {
   mat?: string;
   /** Màu hồ sơ (25.11.2026) — vòng quanh mặt. Chưa chọn / server cũ: không có. */
   mau?: string;
+  /** Huy hiệu Premium đang đeo (27.11.2026) — vẽ bằng DauPremium. Không đeo / server cũ: không có. */
+  hh?: string;
   /** Khách chưa đặt tên: số để hiện "Khách 4821". */
   khach?: number;
   /** Đang mở app (sảnh): `sid` khi rảnh — thách được; `ban` = đang ở phòng/ván online. Server cũ không gửi. */
@@ -427,7 +430,7 @@ export async function guiKhach(): Promise<void> {
   const hs = store.hoSo();
   const body = JSON.stringify({ id: k.id, name: store.playerNames()[0] ?? '', totalScore: store.totalScore(), wins: d.wins, matches: Math.max(d.van ?? 0, d.wins), an: !!k.an,
     // Hồ sơ người chơi (25.11.2026): avatar + màu tự chọn lên bảng xếp hạng
-    ...(hs?.xong ? { mat: hs.mat, mau: hs.mau } : {}) });
+    ...(hs?.xong ? { mat: hs.mat, mau: hs.mau } : {}), hh: huyHieuDangDeo.value });
   // Y hệt lần vừa gửi xong → bỏ: mở bảng xếp hạng ngay sau ván khỏi chờ thêm một vòng mạng
   if (body === khachDaGui) return;
   try {
@@ -445,9 +448,12 @@ export async function guiHoSo(): Promise<void> {
   const hs = store.hoSo();
   if (!hs?.xong || !san.value) return;
   if (!me.value) { void guiKhach(); return; }
-  try { await goi<{ ok: boolean }>('/api/me/ho-so', { method: 'POST', body: JSON.stringify({ mat: hs.mat, mau: hs.mau, ten: store.playerNames()[0] ?? '' }) }); }
+  try { await goi<{ ok: boolean }>('/api/me/ho-so', { method: 'POST', body: JSON.stringify({ mat: hs.mat, mau: hs.mau, ten: store.playerNames()[0] ?? '', hh: huyHieuDangDeo.value }) }); }
   catch { /* lần sau gửi lại */ }
 }
+
+/** Đổi / tháo huy hiệu, hết Premium (huy hiệu tự gỡ) → báo lại bảng xếp hạng (27.11.2026). */
+watch(huyHieuDangDeo, () => { void guiHoSo(); });
 
 /** Đặt tên trên bảng — cũng là tên khi chơi online (cùng ô nhớ). */
 /** Trong các tên này, tên nào CHƯA ai dùng trên bảng xếp hạng (lib/ten-ngau-nhien.ts — tránh trùng tên tự tạo). */

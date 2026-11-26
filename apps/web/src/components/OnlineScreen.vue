@@ -1582,7 +1582,7 @@ function openCfgWizard(): void {
 
   <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
   <!-- TÌM THẺ ONLINE: màn riêng (server gửi `t:'tim'`), cùng chỗ với OnlineGame -->
-  <OnlineTimThe v-else-if="laTimPhong && (!wizard || o.phase.value === 'ended')" :o="o" @quit="quitVeOnline" />
+  <OnlineTimThe v-else-if="laTimPhong && (!wizard || o.phase.value === 'ended')" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
   <OnlineGame v-else-if="!wizard || o.phase.value === 'ended'" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
 
   <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
