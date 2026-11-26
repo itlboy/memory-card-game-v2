@@ -215,12 +215,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 /* KHUNG CÂU NÓI — y bản cũ: một cột, neo góc trái ngay trên nút; 10 câu cao ~410px, máy thấp (SE) thì cuộn trong khung */
 .bang-noi {
   position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
-  width: max-content; max-width: calc(100% - 12px); display: grid; gap: 4px; padding: 6px;
+  /* HAI CỘT (26.11.2026, chủ dự án: "ô chat text đồng ý cách gộp lại như lúc trước, nhưng đừng gộp với icon"): 10 câu xếp
+     2 × 5, thấp hơn nửa so với một cột — vẫn là khung RIÊNG của nút bong bóng */
+  width: min(340px, calc(100% - 12px)); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 6px;
   max-height: min(52vh, 420px); overflow-y: auto; overscroll-behavior: contain;
   background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
   box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
 }
-.bang-noi .cau { min-height: 36px; padding: 4px 12px 6px 7px; display: flex; align-items: center; gap: 8px; text-align: left; justify-content: flex-start; font: 800 14px var(--font-body); color: var(--fg); border-radius: 11px; }
+.bang-noi .cau { min-width: 0; min-height: 40px; padding: 4px 8px 6px 6px; display: flex; align-items: center; gap: 6px; text-align: left; justify-content: flex-start; font: 800 13px/1.2 var(--font-body); color: var(--fg); border-radius: 11px; }
+.bang-noi .cau span { min-width: 0; }
 .o-emoji { display: flex; flex-direction: column; gap: 7px; }
 .mo-pm { min-height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; gap: 7px; font: 900 14.5px/1.2 var(--font-body); }
 /* Nút ＋: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */

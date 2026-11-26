@@ -56,6 +56,7 @@ describe('nói nhanh', () => {
     // 26.11.2026: khung câu nói RIÊNG như bản cũ (chủ dự án: "tách riêng ô chat text và ô chat icon") — 10 câu cuộn trên máy thấp
     const eb = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
     expect(eb, 'khung 10 câu cuộn trên máy thấp').toMatch(/\.bang-noi \{[^}]*max-height: min\(52vh, 420px\); overflow-y: auto;/);
+    expect(eb, 'khung câu nói hai cột').toMatch(/\.bang-noi \{[^}]*grid-template-columns: 1fr 1fr;/);
     expect(eb, 'khung câu nói KHÔNG nằm trong khung emoji').toContain(`<div v-if="mo === 'noi' && !props.o.spectator.value" class="bang-noi khay"`);
     // Khung emoji: hàng ô nằm SAU phần nội dung (dưới cùng) — đổi ô không làm hàng ô nhảy dưới ngón tay
     expect(eb.indexOf('<div class="tab-o"'), 'hàng ô dưới cùng').toBeGreaterThan(eb.indexOf('<div class="noi-dung">'));

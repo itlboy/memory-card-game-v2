@@ -16,11 +16,13 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * GIÁ LÀ SỐ TẠM (`GIA_TAM`) — bán thật thì đọc giá đã quy đổi theo nước từ store.
  */
 import { Award, Bell, ChartColumn, Check, Crown, Gift, Image, LoaderCircle, Music, ShieldCheck, SlidersHorizontal, Smile, Undo2, X } from 'lucide-vue-next';
+import { EMOJI_PREMIUM } from '@mm/engine';
+import DauPremium from './DauPremium.vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
-import { bcp, t, td } from '@/lib/i18n';
+import { bcp, ngonNgu, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
-import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
+import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, TINH_NANG_PREMIUM, type Goi, type NoiMoPremium } from '@/lib/premium';
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { SITE_URL, nenApp } from '@/lib/native';
 
@@ -59,16 +61,33 @@ const QL: Dong[] = [
   { id: 'triNho', ic: ChartColumn, mau: '#00b894', tu: ['tri-nho'] }
 ];
 const dongNoi = computed(() => QL.find((d) => d.tu.includes(props.tu))?.id ?? '');
-/** Ảnh đầu bảng: tự chuyển giữa hai hình nền mỗi 3,5 giây, bấm chấm để chọn. Máy giảm chuyển động thì đứng yên. */
-const ANH = ['thien-ha', 'anh-dao'] as const;
-const anh = ref(0);
-let henAnh: ReturnType<typeof setInterval> | undefined;
-onMounted(() => {
-  if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  henAnh = setInterval(() => { anh.value = (anh.value + 1) % ANH.length; }, 3500);
-});
-onUnmounted(() => clearInterval(henAnh));
-function chonAnh(i: number): void { anh.value = i; clearInterval(henAnh); }
+/*
+ * SLIDE ĐẦU BẢNG (bản C, 26.11.2026, mockup duyệt https://claude.ai/artifact/FxwKDjFwv2xKyHwQ9cv5KP — chủ dự án: "ưng lắm",
+ * "nên chạy tự động", "tính năng premium nào có thì phải cho vào đây", "cả icon chat nữa"). Mỗi tính năng trong
+ * `TINH_NANG_PREMIUM` một trang; tự chuyển 3,2 giây, bấm chấm hoặc vuốt ngang để xem (bấm/vuốt thì đặt lại nhịp).
+ * Trang Hình nền dùng ẢNH CHỤP THẬT của app (public/img/pm, tiếng Việt cho máy tiếng Việt, tiếng Anh cho mọi ngôn ngữ khác —
+ * chữ trong ảnh rất nhỏ); các trang khác vẽ bằng chính CSS của app (mặt lưng `data-lung` ở keo-lung.css, huy hiệu DauPremium,
+ * emoji `EMOJI_PREMIUM`). Máy giảm chuyển động: đứng yên ở trang đầu, vẫn bấm chấm được.
+ */
+const SLIDE = TINH_NANG_PREMIUM;
+const slideI = ref(0);
+const slide = computed(() => SLIDE[slideI.value]!);
+let henSlide: ReturnType<typeof setInterval> | undefined;
+const giamDong = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function chaySlide(): void { clearInterval(henSlide); if (!giamDong) henSlide = setInterval(() => { slideI.value = (slideI.value + 1) % SLIDE.length; }, 3200); }
+function denSlide(i: number): void { slideI.value = (i + SLIDE.length) % SLIDE.length; chaySlide(); }
+onMounted(chaySlide);
+onUnmounted(() => clearInterval(henSlide));
+let x0: number | null = null;
+function vuotBatDau(e: PointerEvent): void { x0 = e.clientX; }
+function vuotXong(e: PointerEvent): void { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 30) denSlide(slideI.value + (dx < 0 ? 1 : -1)); }
+const toi = typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
+const anhNen = (c: 'thien-ha' | 'anh-dao'): string => `/img/pm/${c}-${toi ? 'toi' : 'sang'}-${ngonNgu.value === 'vi' ? 'vi' : 'en'}.jpg`;
+const LUNG_TH = ['ht-moc', 'ht-dat', 'ht-troi'] as const;
+const LUNG_AD = ['ad-nui', 'ad-hoa', 'ad-den'] as const;
+const LA_VT = [{ x: 36, y: 66, g: -18 }, { x: 76, y: 50, g: -6 }, { x: 116, y: 44, g: 6 }, { x: 192, y: 44, g: -6 }, { x: 232, y: 50, g: 6 }, { x: 272, y: 66, g: 18 }];
+const TIA = Array.from({ length: 12 }, (_, k) => ({ x: Math.round(130 + Math.cos(k * 0.52) * (95 + (k % 3) * 12)), y: Math.round(80 + Math.sin(k * 0.52) * (95 + (k % 3) * 12) * 0.75) }));
+const COT_NAM = [38, 52, 44, 60, 58, 70, 64, 78, 72, 86, 80, 96];
 
 const ngay = (ms: number): string => new Intl.DateTimeFormat(bcp(), { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(ms));
 /** Đang trong thời gian dùng thử (chưa bị tính tiền). */
@@ -143,21 +162,41 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pmTitle" @keydown.esc="dong" @click.self="dong" v-cham-ngoai="dong">
     <div class="panel pm" :aria-busy="buoc === 'dang'">
-      <!-- ẢNH ĐẦU BẢNG: hai hình nền thu nhỏ (vẽ bằng CSS, không tải ảnh), mờ dần vào nền bảng -->
-      <header class="pm-anh" :class="{ gon: daMuaPremium }">
-        <Transition name="pm-anh"><span :key="ANH[anh]" class="ca" :class="ANH[anh]" aria-hidden="true"><i class="l1" /><i class="l2" /><i class="l3" /><i class="l4" /></span></Transition>
-        <span class="ten-anh"><Crown :size="12" :stroke-width="2.8" aria-hidden="true" />{{ td(`pm.nen.${ANH[anh]}`) }}</span>
-        <button ref="nutDong" class="btn dong" :aria-label="t('dhd.dong')" type="button" :disabled="buoc === 'dang'" @click="dong"><X :size="20" /></button>
-        <span v-if="!daMuaPremium" class="cham" role="group" :aria-label="t('pm.s.nen')">
-          <button v-for="(c, i) in ANH" :key="c" data-phang type="button" :class="{ on: anh === i }" :aria-label="td(`pm.nen.${c}`)" :aria-pressed="anh === i" @click="chonAnh(i)" />
+      <!-- SLIDE: mỗi tính năng Premium một trang (TINH_NANG_PREMIUM) -->
+      <header class="pm-anh" @pointerdown="vuotBatDau" @pointerup="vuotXong">
+        <div class="truot" :style="{ transform: `translateX(${-100 * slideI}%)` }" aria-hidden="true">
+          <div v-for="sl in SLIDE" :key="sl" class="slide">
+            <template v-if="sl === 'nen'">
+              <i class="sao" />
+              <img class="dt trai" :src="anhNen('anh-dao')" alt="" draggable="false">
+              <img class="dt phai" :src="anhNen('thien-ha')" alt="" draggable="false">
+            </template>
+            <template v-else-if="sl === 'lung'">
+              <i class="sao" />
+              <span v-for="(m, i) in [...LUNG_TH, ...LUNG_AD]" :key="m" class="la" :class="i < 3 ? 'th' : 'ad'" :data-lung="m" :style="{ left: `${LA_VT[i]!.x}px`, top: `${LA_VT[i]!.y}px`, transform: `rotate(${LA_VT[i]!.g}deg)` }" />
+            </template>
+            <div v-else-if="sl === 'emoji'" class="e-pm"><span v-for="e in EMOJI_PREMIUM.slice(0, 8)" :key="e">{{ e }}<i><Crown :size="11" :stroke-width="3" /></i></span></div>
+            <div v-else-if="sl === 'huyHieu'" class="hh">
+              <span style="--m: #f59e0b">🦊<DauPremium loai="vm" /></span><span style="--m: #e25bc8">🐼<DauPremium loai="tim" /></span><span style="--m: #22b8e6">🦁<DauPremium loai="kc" /></span>
+            </div>
+            <div v-else-if="sl === 'nhacFx'" class="fx">
+              <i v-for="(c, k) in TIA" :key="k" class="tia" :style="{ left: `${c.x}px`, top: `${c.y}px` }" />
+              <span class="cap" style="left: 44px; transform: rotate(-6deg)">🦄</span><span class="cap" style="left: 142px; transform: rotate(6deg)">🦄</span>
+              <Music class="not" style="left: 6px; top: 4px" /><Music class="not" style="right: 4px; top: 120px" />
+            </div>
+            <div v-else-if="sl === 'triNho'" class="nam"><b>{{ t('pm.c.thang12') }}</b><i v-for="(h, k) in COT_NAM" :key="k" :class="{ nay: k === 11 }" :style="{ height: `${h}%` }" /></div>
+          </div>
+        </div>
+        <span class="ten-slide">{{ td(`pm.c.sl.${slide}`) }}</span>
+        <button ref="nutDong" data-phang class="dong" :aria-label="t('dhd.dong')" type="button" :disabled="buoc === 'dang'" @click="dong"><X :size="19" :stroke-width="2.6" /></button>
+        <span class="cham" role="group" :aria-label="t('tp.premium')">
+          <button v-for="(sl, i) in SLIDE" :key="sl" data-phang type="button" :class="{ on: slideI === i }" :aria-label="td(`pm.c.sl.${sl}`)" :aria-pressed="slideI === i" @click="denSlide(i)" />
         </span>
+        <span class="nhan" aria-hidden="true"><Crown :size="15" :stroke-width="2.8" />PREMIUM</span>
       </header>
 
       <div class="pm-than">
-        <div class="pm-td">
-          <span class="vm" aria-hidden="true"><Crown :size="23" :stroke-width="2.6" /></span>
-          <span><h2 id="pmTitle">{{ t('tb.thuongHieu') }} {{ t('tp.premium') }}</h2><small>{{ daMuaPremium && buoc !== 'xong' ? t('pm.b.camOn') : t('pm.b.phu') }}</small></span>
-        </div>
+        <h2 id="pmTitle">{{ t('tb.thuongHieu') }} <b>{{ t('tp.premium') }}</b></h2>
 
         <!-- ĐÃ MUA / NHẬN XONG: lời cảm ơn -->
         <section v-if="buoc === 'xong'" class="pm-xong" role="status">
@@ -168,13 +207,11 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
         </section>
 
         <template v-else-if="daMuaPremium">
-          <!-- ĐANG CÓ: trạng thái + thanh số ngày còn lại -->
           <section class="pm-con" role="status">
             <b><Gift v-if="goiDangCo?.tang" :size="19" :stroke-width="2.4" aria-hidden="true" /><Crown v-else :size="19" :stroke-width="2.6" aria-hidden="true" />{{ tongNgay ? t('pm.b.con', { n: conLai }) : t('pm.daCo') }}</b>
             <span v-if="tongNgay" class="thanh" aria-hidden="true"><i :style="{ width: `${Math.min(100, Math.round((conLai / tongNgay) * 100))}%` }" /></span>
             <small>{{ trangThaiCo }}</small>
           </section>
-          <!-- CÀI ĐẶT PREMIUM: khối vàng NỔI BẬT, ba ô mở bảng chọn như cũ -->
           <section class="pm-cd" :aria-label="t('pm.caiDat')">
             <p class="pm-cd-dau"><span class="ic" aria-hidden="true"><SlidersHorizontal :size="17" :stroke-width="2.6" /></span>{{ t('pm.caiDat') }}</p>
             <div class="pm-cd-o">
@@ -186,24 +223,19 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
         </template>
 
         <template v-else>
-          <!-- BỐN DÒNG QUYỀN LỢI -->
+          <!-- BỐN Ô QUYỀN LỢI — mỗi ô MỘT nhãn đậm (chủ dự án: chữ phụ màu nhạt "mau rít", bỏ) -->
           <ul class="pm-ql">
-            <li v-for="d in QL" :key="d.id" :class="{ noi: dongNoi === d.id }">
-              <span class="ic" :style="{ '--c': d.mau }" aria-hidden="true"><component :is="d.ic" :size="16" :stroke-width="2.4" /></span>
-              <span><b>{{ td(`pm.b.${d.id}`) }}</b><small>{{ td(`pm.b.${d.id}P`) }}</small></span>
-            </li>
+            <li v-for="d in QL" :key="d.id" :class="{ noi: dongNoi === d.id }"><span class="ic" :style="{ '--c': d.mau }" aria-hidden="true"><component :is="d.ic" :size="17" :stroke-width="2.4" /></span>{{ td(`pm.c.${d.id}`) }}</li>
           </ul>
 
-          <!-- CÒN QUÀ: dòng thời gian + một nút -->
+          <!-- CÒN QUÀ: dòng thời gian NGANG + một nút -->
           <template v-if="conQuaTang">
             <section class="pm-moc" :aria-label="t('pm.b.moc')">
-              <p>{{ t('pm.b.moc') }}</p>
-              <div><span class="ic" style="--c: #f0a500" aria-hidden="true"><Gift :size="14" :stroke-width="2.6" /></span><span><b>{{ t('pm.b.homNay') }}</b><small>{{ t('pm.b.homNayP') }}</small></span></div>
-              <div><span class="ic" style="--c: #2f8ff0" aria-hidden="true"><Bell :size="14" :stroke-width="2.6" /></span><span><b>{{ t('pm.b.ngay', { n: NGAY_TANG - 3 }) }}</b><small>{{ t('pm.b.nhoP') }}</small></span></div>
-              <div><span class="ic" style="--c: #1f9d6b" aria-hidden="true"><Undo2 :size="14" :stroke-width="2.6" /></span><span><b>{{ t('pm.b.ngay', { n: NGAY_TANG }) }}</b><small>{{ t('pm.b.hetP') }}</small></span></div>
+              <div><span class="ic" style="--c: #f5b324" aria-hidden="true"><Gift :size="16" :stroke-width="2.6" /></span><b>{{ t('pm.b.homNay') }}</b><small>{{ t('pm.c.moPm') }}</small></div>
+              <div><span class="ic" style="--c: #2f8ff0" aria-hidden="true"><Bell :size="16" :stroke-width="2.6" /></span><b>{{ t('pm.b.ngay', { n: NGAY_TANG - 3 }) }}</b><small>{{ t('pm.c.nhacBan') }}</small></div>
+              <div><span class="ic" style="--c: #1f9d6b" aria-hidden="true"><Undo2 :size="16" :stroke-width="2.6" /></span><b>{{ t('pm.b.ngay', { n: NGAY_TANG }) }}</b><small>{{ t('pm.c.tuVe') }}</small></div>
             </section>
-            <button class="thach th-vang pm-mua" type="button" @click="nhanTang"><Gift :size="21" :stroke-width="2.6" aria-hidden="true" />{{ t('pm.b.nhan') }}</button>
-            <p class="pm-yen">{{ t('pm.b.khongThe') }}</p>
+            <button data-phang class="pm-mua cta" type="button" @click="nhanTang"><Gift :size="22" :stroke-width="2.6" aria-hidden="true" />{{ t('pm.b.nhan') }}</button>
           </template>
 
           <!-- HẾT QUÀ: hai gói + nút mua + câu tự gia hạn — Apple bắt buộc có đủ cạnh nút mua -->
@@ -218,7 +250,7 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
               </button>
             </div>
             <p v-if="bao" class="pm-bao" role="status">{{ t(`pm.${bao}`) }}</p>
-            <button class="thach th-vang pm-mua" type="button" :disabled="buoc === 'dang'" @click="mua">
+            <button data-phang class="pm-mua cta" type="button" :disabled="buoc === 'dang'" @click="mua">
               <template v-if="buoc === 'dang'"><LoaderCircle class="pm-quay" :size="20" :stroke-width="2.8" aria-hidden="true" />{{ t('pm.dangXuLy') }}</template>
               <template v-else-if="coThu">{{ t('pm.thuNgay', { n: gia.ngayThu }) }}</template>
               <template v-else><Crown :size="20" :stroke-width="2.6" aria-hidden="true" />{{ t('pm.nangCap') }}</template>
@@ -229,6 +261,7 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
         </template>
 
         <nav v-if="buoc !== 'xong'" class="pm-link">
+          <span v-if="!daMuaPremium && conQuaTang" class="chan">{{ t('pm.c.chan') }}</span>
           <!-- "Quản lý gói" CHỈ khi gói mua qua cửa hàng THẬT (chủ dự án 26.11.2026: "quản lý gói chưa có thì nên tắt đi") -->
           <a v-if="cuaHangThat && daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
           <button v-if="!daMuaPremium && !conQuaTang" data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
@@ -249,82 +282,96 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
   padding: calc(10px + env(safe-area-inset-top, 0px)) 12px calc(10px + env(safe-area-inset-bottom, 0px));
   background: rgba(10, 12, 32, .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-/* Vàng ĐẬM trên nền sáng · vàng SÁNG trên nền tối. Máy thấp (SE) thì khoảng cách nhỏ lại; vẫn không vừa mới cuộn. */
+/*
+ * BẢN C: nền bảng có quầng màu ở trên (vàng ấm nền sáng · tím đêm nền tối); CHỮ CHÍNH MÀU ĐẶC tương phản cao — chủ dự án chê chữ
+ * phụ màu nhạt "mau rít ra" ở bản trước, nên chỉ còn đúng một dòng chữ nhỏ (chân bảng).
+ */
 .pm {
-  --pm: #8a5a00; --pm-nen: #fff3cf; --pm-cot: #fff6dc; --pm-vien: #f0cf7a; --o: #f1f3fb; --ke: #e3e7f5; --nen: var(--panel-solid, #fff); --d: 12px;
-  width: min(410px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column;
-  padding: 0; background: var(--nen); border-radius: 28px;
+  --chu: #1d2348; --chu2: #3c4778; --o: #f3f5fc; --o-vien: #e3e8f6; --vien-moc: #fff;
+  --pm: #8a5a00; --pm-nen: #fff3cf; --pm-cot: #fff6dc; --pm-vien: #f0cf7a; --ke: #e3e8f6; --d: 14px;
+  --quang: radial-gradient(120% 60% at 50% 0%, #fff1c2 0%, #ffffff 58%);
+  position: relative; isolation: isolate;
+  width: min(410px, 100%); max-height: 100%; overflow-y: auto; display: flex; flex-direction: column; padding: 0; border-radius: 30px; color: var(--chu);
 }
-:global([data-theme='dark'] .pm) { --pm: #ffd36b; --pm-nen: #3a3160; --pm-cot: #2f2a5c; --pm-vien: #7a6530; --o: #2a3170; --ke: #343c80; }
-
+/* Quầng màu nằm ở lớp RIÊNG phía dưới: nền `.panel` của skin (bộ chọn mạnh hơn, có !important) đè mất nếu ghi thẳng `background` */
+.pm::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--quang); }
+:global([data-theme='dark'] .pm) {
+  --chu: #ffffff; --chu2: #d9def8; --o: rgba(255, 255, 255, .07); --o-vien: rgba(255, 255, 255, .12); --vien-moc: #1c1d52;
+  --pm: #ffd36b; --pm-nen: #3a3160; --pm-cot: #2f2a5c; --pm-vien: #7a6530; --ke: rgba(255, 255, 255, .14);
+  --quang: radial-gradient(120% 60% at 50% 0%, #4a3a9e 0%, #1c1d52 55%, #141640 100%);
+}
 .pm > * { flex-shrink: 0; }
 
-/* ---------- ảnh đầu bảng ---------- */
-.pm-anh { position: relative; height: 172px; overflow: hidden; border-radius: 28px 28px 0 0; }
-.pm-anh.gon { height: 112px; }
-/* Ảnh mờ dần vào nền bảng bằng MẶT NẠ (không phủ màu): nền `.panel` có lớp riêng, phủ màu đoán sai là ra vệt ranh giới */
-.pm-anh { background: none; }
-.ca { -webkit-mask-image: linear-gradient(#000 55%, transparent); mask-image: linear-gradient(#000 55%, transparent); }
-.ca { position: absolute; inset: 0; overflow: hidden; }
-.ca i { position: absolute; }
-.pm-anh-enter-active, .pm-anh-leave-active { transition: opacity .6s ease; }
-.pm-anh-enter-from, .pm-anh-leave-to { opacity: 0; }
-/* THIÊN HÀ thu nhỏ: trời xanh thẳm, tinh vân, Sao Thổ, lá giữa trong quỹ đạo */
-.ca.thien-ha { background:
-  radial-gradient(circle 1.4px at 12% 22%, #fff 95%, transparent), radial-gradient(circle 1px at 30% 60%, #cfe6ff 95%, transparent),
-  radial-gradient(circle 1.6px at 46% 16%, #fff 95%, transparent), radial-gradient(circle 1px at 64% 78%, #fff 95%, transparent),
-  radial-gradient(circle 1.2px at 90% 66%, #fff 95%, transparent), radial-gradient(circle 1px at 8% 80%, #fff 95%, transparent),
-  radial-gradient(60% 40% at 20% 30%, rgba(60, 200, 255, .3), transparent 72%), radial-gradient(70% 45% at 92% 70%, rgba(80, 110, 255, .35), transparent 72%),
-  linear-gradient(#030719, #0d2466 70%, #153a8c); }
-.ca.thien-ha .l1 { right: 6%; top: 10%; width: 128px; height: 86px; background: var(--ht-sao-tho) center / contain no-repeat; }
-.ca.thien-ha .l2 { left: 18%; top: 50%; width: 64%; height: 46px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .75); rotate: -12deg; box-shadow: 0 0 10px rgba(130, 200, 255, .9); }
-.ca.thien-ha .l3 { left: 43%; top: 40%; width: 40px; height: 54px; border-radius: 9px; border: 2.5px solid #5f9bff; background: linear-gradient(#fffdf2, #fff1c9); rotate: 4deg; box-shadow: 0 0 14px rgba(130, 200, 255, .9); }
-.ca.thien-ha .l4 { left: 6%; top: 18%; width: 120px; height: 44px; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(255, 255, 255, .85) 0 6%, rgba(160, 210, 255, .45) 22%, transparent 70%); rotate: -24deg; }
-/* HOA ANH ĐÀO thu nhỏ: trời hồng, mặt trời, núi tuyết, lá bài rơi */
-.ca.anh-dao { background: radial-gradient(circle at 84% 24%, #fffbe8 0 9%, rgba(255, 248, 214, .6) 10% 19%, transparent 20%), linear-gradient(#ff9fc0, #ffc1d4 45%, #ffe9d6); }
-.ca.anh-dao .l1 { left: 16%; bottom: 0; width: 68%; height: 100px; background: linear-gradient(#d98ab6, rgba(246, 195, 216, 0)); clip-path: polygon(0 100%, 30% 40%, 43% 15%, 50% 11%, 57% 15%, 70% 40%, 100% 100%); }
-.ca.anh-dao .l2 { left: 10%; top: 18%; width: 34px; height: 46px; border-radius: 8px; border: 2.5px solid #fff; background: radial-gradient(circle, #fff 0 14%, transparent 15%), linear-gradient(155deg, #ff9dc0, #e2558c); rotate: -22deg; }
-.ca.anh-dao .l3 { left: 62%; top: 46%; width: 26px; height: 35px; border-radius: 7px; border: 2px solid #fff; background: linear-gradient(155deg, #ff9dc0, #e2558c); rotate: 26deg; opacity: .9; }
-.ca.anh-dao .l4 { left: 34%; top: 8%; width: 20px; height: 27px; border-radius: 6px; border: 2px solid #f27aa6; background: linear-gradient(#fffdf2, #fff1c9); rotate: 12deg; opacity: .85; }
-.ten-anh { position: absolute; z-index: 1; left: 12px; top: 12px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; background: rgba(0, 0, 0, .45); color: #fff; font: 800 12px/1.2 var(--font-body); }
-.pm-anh .dong { position: absolute; z-index: 1; top: 10px; right: 10px; }
-.cham { position: absolute; z-index: 1; left: 0; right: 0; bottom: 12px; display: flex; justify-content: center; gap: 4px; }
-.cham button { width: 22px; height: 22px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
-.cham button::before { content: ''; width: 7px; height: 7px; border-radius: 4px; background: rgba(255, 255, 255, .55); transition: width .3s; }
-.cham button.on::before { width: 18px; background: #fff; }
+/* ---------- slide ---------- */
+.pm-anh { position: relative; height: 262px; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.truot { position: absolute; inset: 0; display: flex; transition: transform .5s cubic-bezier(.3, .8, .3, 1); }
+.slide { position: relative; flex: 0 0 100%; height: 100%; }
+.sao { position: absolute; inset: 0; background:
+  radial-gradient(circle 2px at 18% 30%, #ffd34d 95%, transparent), radial-gradient(circle 1.5px at 84% 22%, #ffd34d 95%, transparent),
+  radial-gradient(circle 2.5px at 80% 70%, #fff 95%, transparent), radial-gradient(circle 1.5px at 12% 76%, #fff 95%, transparent); }
+/* khung chứa slide rộng bằng bảng; các phần tử đặt theo bề rộng 378 (bảng trên iPhone 15) rồi căn giữa */
+.slide > :not(.sao) { position: absolute; }
+.dt { top: 22px; width: 104px; height: 200px; border-radius: 20px; border: 4px solid #11152f; object-fit: cover; box-shadow: 0 18px 30px rgba(20, 20, 60, .35); }
+.dt.trai { left: calc(50% - 104px); transform: rotate(-9deg); }
+.dt.phai { left: calc(50% - 8px); top: 16px; transform: rotate(8deg); z-index: 1; }
+.la { margin-left: calc(50% - 189px); width: 76px; height: 102px; border-radius: 13px; border: 3px solid var(--vien-la); box-shadow: 0 10px 18px rgba(20, 20, 60, .3);
+  background: var(--lung-hinh) center / var(--lung-co) auto no-repeat, var(--nen-la); }
+.la.th { --nen-la: linear-gradient(155deg, #2a4fd0, #0a1650 70%); --vien-la: #cfe6ff; }
+.la.ad { --nen-la: linear-gradient(155deg, #ff8fb6, #e0508a); --vien-la: #fff; }
+:global([data-theme='dark'] .pm .la.ad) { --nen-la: linear-gradient(155deg, #d8478a, #7a1f5c); --vien-la: #ffd3e3; }
+.e-pm { left: 50%; top: 66px; transform: translateX(-50%); display: grid; grid-template-columns: repeat(4, 52px); gap: 10px; }
+.e-pm span { position: relative; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; background: var(--o); border: 1px solid var(--o-vien); box-shadow: 0 4px 10px rgba(20, 20, 60, .12); }
+.e-pm span i { position: absolute; top: -5px; right: -5px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(#ffe08a, #f5b324); color: #5b3d00; }
+.hh { left: 50%; top: 76px; transform: translateX(-50%); display: flex; gap: 22px; }
+.hh span { position: relative; width: 76px; height: 76px; border-radius: 22px; display: grid; place-items: center; font-size: 44px; background: var(--m); box-shadow: 0 6px 0 rgba(0, 0, 0, .15); }
+.fx { left: 50%; top: 48px; transform: translateX(-50%); width: 260px; height: 170px; }
+.fx .cap { position: absolute; top: 30px; width: 74px; height: 100px; border-radius: 12px; border: 4px solid #f5b324; background: linear-gradient(#fffdf2, #fff1c9); display: grid; place-items: center; font-size: 40px; box-shadow: 0 0 0 6px rgba(245, 179, 36, .25), 0 0 28px rgba(255, 200, 60, .9); }
+.fx .tia { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ffd34d; box-shadow: 0 0 8px #ffd34d; }
+.fx .not { position: absolute; width: 26px; height: 26px; color: #e17055; }
+:global([data-theme='dark'] .pm .fx .not) { color: #ff9f7a; }
+.nam { left: 50%; top: 58px; transform: translateX(-50%); width: 270px; height: 130px; display: flex; align-items: flex-end; gap: 6px; padding: 26px 12px 10px; box-sizing: border-box; border-radius: 18px; background: var(--o); border: 1px solid var(--o-vien); }
+.nam i { flex: 1; border-radius: 5px 5px 2px 2px; background: #0f8a7a; }
+.nam i.nay { background: #2ed3b7; }
+.nam b { position: absolute; left: 12px; top: 8px; font: 900 13px/1 var(--font-body); color: var(--chu2); }
+.ten-slide { position: absolute; z-index: 3; left: 14px; top: 14px; padding: 5px 11px; border-radius: 999px; background: rgba(29, 35, 72, .08); color: var(--chu); font: 800 12.5px/1.2 var(--font-body); }
+:global([data-theme='dark'] .pm .ten-slide) { background: rgba(255, 255, 255, .12); }
+.dong { position: absolute; z-index: 3; top: 10px; right: 10px; width: 40px; height: 40px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(29, 35, 72, .08); color: var(--chu); cursor: pointer; }
+:global([data-theme='dark'] .pm .dong) { background: rgba(255, 255, 255, .12); }
+.cham { position: absolute; z-index: 3; left: 0; right: 0; bottom: 30px; display: flex; justify-content: center; gap: 0; }
+.cham button { width: 20px; height: 22px; border: 0; padding: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.cham button::before { content: ''; width: 7px; height: 7px; border-radius: 4px; background: rgba(29, 35, 72, .25); transition: width .3s, background .3s; }
+:global([data-theme='dark'] .pm .cham button::before) { background: rgba(255, 255, 255, .35); }
+.cham button.on::before { width: 18px; background: #f5b324; }
+.nhan { position: absolute; z-index: 3; left: 50%; bottom: 0; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px;
+  background: linear-gradient(#ffe08a, #f5b324); color: #4a3300; font: 900 13px/1 var(--font-body); letter-spacing: .08em; box-shadow: 0 3px 0 #c98f12; }
 
 /* ---------- thân ---------- */
-.pm-than { display: flex; flex-direction: column; gap: var(--d); padding: 0 16px 14px; margin-top: -10px; position: relative; }
+.pm-than { display: flex; flex-direction: column; gap: var(--d); padding: 14px 18px 14px; }
 .pm-than > * { flex-shrink: 0; }
-.pm-td { display: flex; align-items: center; gap: 11px; }
-.pm-td .vm { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; background: linear-gradient(#ffe08a, #f5b324); color: #5b3d00; box-shadow: 0 3px 0 #c98f12; }
-.pm-td > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pm-td h2 { margin: 0; font: 900 23px/1.1 var(--font-display); }
-.pm-td small { font: 700 13.5px/1.3 var(--font-body); color: var(--muted); }
-
-.pm-ql { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.pm-ql li { display: flex; align-items: center; gap: 11px; }
+.pm-than h2 { margin: 2px 0 0; text-align: center; font: 900 27px/1.1 var(--font-display); color: var(--chu); }
+.pm-than h2 b { background: linear-gradient(90deg, #e8930c, #f5b324); -webkit-background-clip: text; background-clip: text; color: transparent; }
+:global([data-theme='dark'] .pm-than h2 b) { background: linear-gradient(90deg, #ffd36b, #ffb238); -webkit-background-clip: text; background-clip: text; }
+.pm-ql { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pm-ql li { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px; border-radius: 16px; background: var(--o); border: 1px solid var(--o-vien); font: 800 14px/1.2 var(--font-body); color: var(--chu); }
+.pm-ql li.noi { border-color: #f5b324; box-shadow: 0 0 0 2px rgba(245, 179, 36, .35); }
 .pm-ql .ic, .pm-cd .ic, .pm-moc .ic { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--c); color: #fff; }
-.pm-ql b { display: block; font: 800 15px/1.25 var(--font-body); }
-.pm-ql small { display: block; font: 700 12px/1.3 var(--font-body); color: var(--muted); }
-.pm-ql li.noi b { color: var(--pm); }
-.pm-ql li.noi .ic { box-shadow: 0 0 0 3px var(--pm-vien); }
-
-.pm-moc { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--o); }
-.pm-moc p { margin: 0; font: 800 11.5px/1.2 var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.pm-moc div { position: relative; display: flex; align-items: center; gap: 10px; }
-.pm-moc .ic { width: 26px; height: 26px; border-radius: 50%; }
-.pm-moc b { display: block; font: 800 13.5px/1.2 var(--font-body); }
-.pm-moc small { display: block; font: 700 11.5px/1.25 var(--font-body); color: var(--muted); }
-.pm-moc div + div::before { content: ''; position: absolute; left: 12px; top: -11px; height: 10px; border-left: 2px dashed var(--ke); }
+/* Dòng thời gian NGANG một hàng: ba mốc nối bằng vạch màu */
+.pm-moc { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pm-moc::before { content: ''; position: absolute; top: 16px; left: 16.6%; right: 16.6%; height: 3px; border-radius: 3px; background: linear-gradient(90deg, #f5b324, #2f8ff0, #1f9d6b); }
+.pm-moc div { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; min-width: 0; }
+.pm-moc .ic { width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 0 0 4px var(--vien-moc); }
+.pm-moc b { font: 900 13.5px/1.1 var(--font-body); color: var(--chu); }
+.pm-moc small { font: 700 12px/1.25 var(--font-body); color: var(--chu2); }
+.cta { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 58px; border: 0; border-radius: 19px; cursor: pointer; font: 900 19px/1 var(--font-body); color: #3d2a00;
+  background: linear-gradient(#ffe590, #ffc83a); box-shadow: 0 5px 0 #d69a12, 0 12px 22px rgba(214, 154, 18, .35); }
+.cta:active { transform: translateY(3px); box-shadow: 0 2px 0 #d69a12; }
+.cta:disabled { opacity: .7; }
 
 .pm-con { display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; border-radius: 18px; background: var(--pm-nen); border: 2px solid var(--pm-vien); color: var(--pm); }
 .pm-con b { display: flex; align-items: center; gap: 7px; font: 900 16px/1.2 var(--font-body); }
 .pm-con small { font: 700 12.5px/1.3 var(--font-body); }
 .pm-con .thanh { height: 8px; border-radius: 99px; background: rgba(0, 0, 0, .1); overflow: hidden; }
 .pm-con .thanh i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f5b324, #ffd96a); }
-
-/* Cài đặt Premium: khối vàng nổi khối — vàng nắng nền sáng · vàng nâu nền tối */
 .pm-cd { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 20px; background: linear-gradient(160deg, #ffe7a0, #ffc94a); box-shadow: 0 4px 0 #d69a12, 0 10px 20px rgba(214, 154, 18, .28); }
 :global([data-theme='dark'] .pm-cd) { background: linear-gradient(160deg, #6b5418, #4a3a10); box-shadow: 0 4px 0 #2e2408, 0 10px 20px rgba(0, 0, 0, .35); }
 .pm-cd-dau { margin: 0; display: flex; align-items: center; gap: 9px; font: 900 17px/1.2 var(--font-display); color: #4a3300; }
@@ -336,41 +383,40 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .pm-cd-o b { font: 800 13.5px/1.2 var(--font-body); }
 .pm-cd-o small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 11.5px/1.2 var(--font-body); color: var(--muted); }
 
-/* ---------- mua gói (hết quà) ---------- */
 .pm-goi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; }
 .pm-g { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 12px 6px 8px; border: 2px solid var(--ke); border-radius: 18px; background: none; color: inherit; cursor: pointer; line-height: 1.2; }
 .pm-g[aria-checked='true'] { border-color: #f0b429; background: var(--pm-cot); box-shadow: 0 3px 0 var(--pm-vien); }
 .pm-g b { font: 800 13px/1.2 var(--font-body); }
 .pm-g strong { font: 900 20px/1.15 var(--font-display); }
-.pm-g small { font: 700 11.5px/1.2 var(--font-body); color: var(--muted); }
+.pm-g small { font: 700 11.5px/1.2 var(--font-body); color: var(--chu2); }
 .pm-g em { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); padding: 2px 9px; border-radius: 999px; background: #1f9d6b; color: #fff; font: 900 11px/1.3 var(--font-body); font-style: normal; white-space: nowrap; }
-
-.pm-mua { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 56px; border-radius: 18px; font: 900 18px/1.2 var(--font-body); cursor: pointer; }
-.pm-yen { display: flex; align-items: center; justify-content: center; gap: 5px; margin: calc(var(--d) * -.5) 0 0; color: var(--muted); font: 700 12.5px/1.3 var(--font-body); text-align: center; }
+.pm-yen { display: flex; align-items: center; justify-content: center; gap: 5px; margin: calc(var(--d) * -.5) 0 0; color: var(--chu2); font: 700 12.5px/1.3 var(--font-body); text-align: center; }
 .pm-yen svg { flex: none; color: #1f9d6b; }
 .pm-quay { animation: pm-quay .9s linear infinite; }
 @keyframes pm-quay { to { transform: rotate(360deg); } }
 .pm-bao { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--pm-nen); color: var(--pm); font: 700 13px/1.35 var(--font-body); text-align: center; }
-.pm-luat { margin: 0; text-align: center; color: var(--muted); font: 600 11px/1.35 var(--font-body); }
-.pm-ma { margin: 0; text-align: center; color: var(--muted); font: 600 10.5px/1.3 ui-monospace, monospace; user-select: all; -webkit-user-select: all; overflow-wrap: anywhere; }
-.pm-link { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 16px; margin-top: calc(var(--d) * -.5); }
+.pm-luat { margin: 0; text-align: center; color: var(--chu2); font: 600 11px/1.35 var(--font-body); }
+.pm-ma { margin: 0; text-align: center; color: var(--chu2); font: 600 10.5px/1.3 ui-monospace, monospace; user-select: all; -webkit-user-select: all; overflow-wrap: anywhere; }
+.pm-link { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 12px; margin-top: calc(var(--d) * -.5); }
+.pm-link .chan { flex-basis: 100%; text-align: center; font: 700 12.5px/1.3 var(--font-body); color: var(--chu2); }
 .pm-link button, .pm-link a {
   border: 0; background: none; padding: 0; min-height: 28px; display: inline-flex; align-items: center; cursor: pointer;
-  color: var(--accent); font: 700 12.5px/1.2 var(--font-body); text-decoration: underline;
+  color: var(--chu2); font: 700 12.5px/1.2 var(--font-body); text-decoration: underline;
 }
-
-.pm-xong { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 6px 6px 2px; text-align: center; }
+.pm-xong { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0 6px 2px; text-align: center; }
 .pm-xong-ic { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(180deg, #ffd96a, #f5b324); color: #6b4a00; animation: pm-no .45s cubic-bezier(.2, 1.6, .4, 1); }
 @keyframes pm-no { from { transform: scale(.4); opacity: 0; } }
 .pm-xong h3 { margin: 4px 0 0; font-size: var(--text-xl); }
-.pm-xong p { margin: 0 0 8px; color: var(--muted); font-size: var(--text-md); line-height: 1.45; }
+.pm-xong p { margin: 0 0 8px; color: var(--chu2); font-size: var(--text-md); line-height: 1.45; }
 .pm-xong .pm-mua { align-self: stretch; }
-@media (prefers-reduced-motion: reduce) { .pm-quay, .pm-xong-ic { animation: none; } .pm-anh-enter-active, .pm-anh-leave-active { transition: none; } }
-/* Máy thấp (iPhone SE 667): ảnh thấp lại, dòng thời gian và danh sách gọn lại — vừa một màn, không phải cuộn */
+@media (prefers-reduced-motion: reduce) { .pm-quay, .pm-xong-ic { animation: none; } .truot { transition: none; } }
+/* Máy thấp (iPhone SE 667): slide thấp lại và thu nhỏ, khoảng cách gọn — vừa một màn */
 @media (max-height: 700px) {
-  .pm { --d: 7px; }
-  .pm-anh { height: 112px; } .pm-anh.gon { height: 84px; }
-  .pm-ql { gap: 6px; } .pm-ql .ic { width: 28px; height: 28px; }
-  .pm-moc { gap: 6px; padding: 8px 12px; }
-  .pm-mua { min-height: 50px; }
-}</style>
+  .pm { --d: 10px; }
+  .pm-anh { height: 206px; }
+  .slide > :not(.sao) { zoom: .8; }
+  .pm-than h2 { font-size: 24px; }
+  .pm-ql li { padding: 8px; }
+  .cta { min-height: 52px; }
+}
+</style>

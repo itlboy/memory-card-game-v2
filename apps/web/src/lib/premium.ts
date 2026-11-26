@@ -21,6 +21,13 @@ import { huyHieuHoSo, type HuyHieu } from '@mm/engine';
  * bạn bè, không chống gian lận.
  */
 export type Goi = 'thang' | 'nam';
+/*
+ * MỌI TÍNH NĂNG PREMIUM ĐANG CÓ — mỗi cái MỘT trang trong slide đầu bảng Premium (26.11.2026, chủ dự án: "thêm ràng buộc là
+ * tính năng premium nào có thì phải cho vào đây", "cả icon chat nữa"). Làm thêm tính năng Premium mới = thêm mã vào đây + vẽ
+ * trang của nó ở BangPremium.vue (`slide === '<mã>'`) + chữ `pm.c.sl.<mã>` 15 ngôn ngữ — test premium-tang canh đủ cả ba.
+ */
+export const TINH_NANG_PREMIUM = ['nen', 'lung', 'emoji', 'huyHieu', 'nhacFx', 'triNho'] as const;
+export type TinhNangPremium = (typeof TINH_NANG_PREMIUM)[number];
 /** `thuDen`: đang trong thời gian DÙNG THỬ miễn phí tới mốc này (chưa bị tính tiền). */
 /** `tang`: gói QUÀ TẶNG 1 tháng (xem `nhanQuaTang`) — không qua cửa hàng, hết hạn là về bản thường. */
 export interface GoiDangCo { goi: Goi; tu: number; het: number; thuDen?: number; vinhVien?: boolean; tang?: boolean }

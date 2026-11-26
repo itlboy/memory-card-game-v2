@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -132,5 +132,27 @@ describe('liên kết Quản lý gói', () => {
   it('chỉ hiện khi gói mua qua cửa hàng THẬT — gói giả lập / quà tặng không có trang quản lý', () => {
     const s = readFileSync(resolve(process.cwd(), 'src/components/BangPremium.vue'), 'utf8');
     expect(s).toContain('<a v-if="cuaHangThat && daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY"');
+  });
+});
+
+describe('slide Premium', () => {
+  // Chủ dự án 26.11.2026: "tính năng premium nào có thì phải cho vào đây" — mỗi mã trong TINH_NANG_PREMIUM phải có trang vẽ
+  // trong BangPremium.vue và tên trang ở cả 15 ngôn ngữ. Thêm tính năng Premium mà quên slide là test này đỏ.
+  it('mỗi tính năng Premium có một trang slide + tên trang ở mọi ngôn ngữ', async () => {
+    const { TINH_NANG_PREMIUM } = await import('@/lib/premium');
+    const src = readFileSync(resolve(process.cwd(), 'src/components/BangPremium.vue'), 'utf8');
+    expect(TINH_NANG_PREMIUM).toEqual(expect.arrayContaining(['nen', 'lung', 'emoji', 'huyHieu', 'nhacFx', 'triNho']));
+    for (const id of TINH_NANG_PREMIUM) expect(src, `trang ${id}`).toContain(`sl === '${id}'`);
+    for (const f of readdirSync(resolve(process.cwd(), 'src/locales')).filter((x) => x.endsWith('.ts'))) {
+      const chu = readFileSync(resolve(process.cwd(), 'src/locales', f), 'utf8');
+      for (const id of TINH_NANG_PREMIUM) expect(chu, `${f}: pm.c.sl.${id}`).toContain(`'pm.c.sl.${id}':`);
+    }
+  });
+  it('slide tự chạy, bấm chấm / vuốt để chuyển; ảnh hình nền có đủ 8 tấm (vi/en × hai hình nền × sáng/tối)', () => {
+    const src = readFileSync(resolve(process.cwd(), 'src/components/BangPremium.vue'), 'utf8');
+    expect(src).toMatch(/setInterval\(\(\) => \{ slideI\.value = \(slideI\.value \+ 1\) % SLIDE\.length; \}, 3200\)/);
+    expect(src).toContain('@pointerdown="vuotBatDau" @pointerup="vuotXong"');
+    for (const c of ['thien-ha', 'anh-dao']) for (const n of ['sang', 'toi']) for (const l of ['vi', 'en'])
+      expect(existsSync(resolve(process.cwd(), `public/img/pm/${c}-${n}-${l}.jpg`)), `${c}-${n}-${l}`).toBe(true);
   });
 });
