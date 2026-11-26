@@ -39,7 +39,17 @@ export const canh = ref<Canh>(doc());
  * Cần Premium (chưa có thì chỉ có một hình, không có gì để đổi): hết Premium là tắt theo.
  */
 const KHOA_NN = 'mm.canh.nn';
-export const canhNgauNhien = ref((() => { try { return localStorage.getItem(KHOA_NN) === '1'; } catch { return false; } })());
+/*
+ * MẶC ĐỊNH LÀ NGẪU NHIÊN (26.11.2026, chủ dự án: "settings mặc định là để ngẫu nhiên được không? về chủ đề và âm thanh").
+ * Khoá `mm.canh.nn`: '1' bật · '0' người chơi đã TỰ TẮT (chọn tay một chủ đề) · chưa có khoá = mặc định BẬT — trừ khi máy
+ * đang lưu một chủ đề chọn tay từ trước (`mm.canh`): đó là lựa chọn thật, không đè lên.
+ */
+export const canhNgauNhien = ref((() => {
+  try {
+    const v = localStorage.getItem(KHOA_NN);
+    return v === '1' || (v === null && localStorage.getItem(KHOA) === null);
+  } catch { return true; }
+})());
 function luuCanh(c: Canh): void {
   canh.value = c;
   try { if (c === 'goc') localStorage.removeItem(KHOA); else localStorage.setItem(KHOA, c); } catch { /* chế độ riêng tư */ }
@@ -47,7 +57,7 @@ function luuCanh(c: Canh): void {
 }
 function luuNN(bat: boolean): void {
   canhNgauNhien.value = bat;
-  try { if (bat) localStorage.setItem(KHOA_NN, '1'); else localStorage.removeItem(KHOA_NN); } catch { /* chế độ riêng tư */ }
+  try { localStorage.setItem(KHOA_NN, bat ? '1' : '0'); } catch { /* chế độ riêng tư */ }   // '0' = đã tự tắt, khác với "chưa từng đụng"
 }
 /** Đang bật ngẫu nhiên thì đổi sang một hình nền KHÁC hình đang dùng. Trả hình mới (hoặc null nếu không đổi). */
 export function doiCanhNgauNhien(): Canh | null {
@@ -75,4 +85,5 @@ export function datCanh(c: Canh): void {
 }
 
 /** HẾT / HUỶ PREMIUM thì về cảnh gốc — hình nền hành tinh là quyền lợi của gói (trang debug vẫn bật thử tự do được). */
-watch(daMuaPremium, (co) => { if (!co && canh.value !== 'goc') datCanh('goc'); });
+// `luuCanh` chứ không `datCanh`: hết Premium KHÔNG phải người chơi tự tắt ngẫu nhiên — có Premium lại thì ngẫu nhiên chạy tiếp
+watch(daMuaPremium, (co) => { if (!co && canh.value !== 'goc') { luuCanh('goc'); moChucNang('hinh_nen', { canh: 'goc' }); } });

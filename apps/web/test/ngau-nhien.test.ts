@@ -17,8 +17,15 @@ const napCanh = async (premium: boolean, kho: Record<string, string> = {}) => {
 beforeEach(() => { document.body.innerHTML = ''; delete document.documentElement.dataset.canh; });
 
 describe('hình nền ngẫu nhiên', () => {
+  it('MẶC ĐỊNH là ngẫu nhiên; máy đã lưu một chủ đề chọn tay từ trước thì giữ lựa chọn đó', async () => {
+    expect((await napCanh(true)).canhNgauNhien.value, 'máy mới').toBe(true);
+    expect((await napCanh(true, { 'mm.canh': 'thien-ha' })).canhNgauNhien.value, 'đã chọn tay từ trước').toBe(false);
+    expect((await napCanh(true, { 'mm.canh.nn': '0' })).canhNgauNhien.value, 'đã tự tắt').toBe(false);
+    expect((await napCanh(true, { 'mm.canh.nn': '1', 'mm.canh': 'thien-ha' })).canhNgauNhien.value).toBe(true);
+  });
+
   it('bật là đổi ngay sang hình KHÁC, nhớ qua lần mở sau; mỗi lần gọi lại đổi tiếp', async () => {
-    const c = await napCanh(true);
+    const c = await napCanh(true, { 'mm.canh.nn': '0' });
     expect(c.canhNgauNhien.value).toBe(false);
     c.datCanhNgauNhien(true);
     expect(c.canh.value).not.toBe('goc');
@@ -28,16 +35,26 @@ describe('hình nền ngẫu nhiên', () => {
     expect(c2.canhNgauNhien.value).toBe(true);
   });
 
-  it('chọn tay một hình là tắt ngẫu nhiên; chưa bật thì doiCanhNgauNhien không đụng gì', async () => {
-    const c = await napCanh(true);
+  it('chọn tay một hình là tắt ngẫu nhiên (ghi nhớ là ĐÃ TỰ TẮT); đã tắt thì doiCanhNgauNhien không đụng gì', async () => {
+    const c = await napCanh(true, { 'mm.canh.nn': '0' });
     expect(c.doiCanhNgauNhien()).toBeNull();
     expect(c.canh.value).toBe('goc');
     c.datCanhNgauNhien(true);
     c.datCanh('anh-dao');
     expect(c.canhNgauNhien.value).toBe(false);
-    expect(localStorage.getItem('mm.canh.nn')).toBeNull();
+    expect(localStorage.getItem('mm.canh.nn')).toBe('0');
     expect(c.doiCanhNgauNhien()).toBeNull();
     expect(c.canh.value).toBe('anh-dao');
+  });
+
+  it('hết Premium thì về chủ đề gốc nhưng KHÔNG coi là tự tắt ngẫu nhiên', async () => {
+    const c = await napCanh(true, { 'mm.canh.nn': '1', 'mm.canh': 'thien-ha' });
+    const pm = await import('@/lib/premium');
+    pm.datPremiumThu(false);
+    await Promise.resolve();
+    expect(c.canh.value).toBe('goc');
+    expect(c.canhNgauNhien.value).toBe(true);
+    expect(localStorage.getItem('mm.canh.nn')).toBe('1');
   });
 
   it('không có Premium thì không đổi (chỉ có một hình)', async () => {
@@ -47,7 +64,7 @@ describe('hình nền ngẫu nhiên', () => {
   });
 
   it('bảng Hình nền: dòng Ngẫu nhiên bật/tắt; chưa Premium thì mời nâng cấp', async () => {
-    await napCanh(true);
+    await napCanh(true, { 'mm.canh.nn': '0' });
     const Chon = (await import('@/components/ChonHinhNen.vue')).default;
     const c = await import('@/lib/canh');
     const w = mount(Chon, { attachTo: document.body });
@@ -66,7 +83,7 @@ describe('hình nền ngẫu nhiên', () => {
     await w2.find('.nn').trigger('click');
     expect(w2.emitted('close')).toHaveLength(1);
     expect(pm.yeuCauPremium.value?.tu).toBe('nen');
-    expect((await import('@/lib/canh')).canhNgauNhien.value).toBe(false);
+    expect(localStorage.getItem('mm.canh.nn'), 'chưa Premium bấm vào: không ghi gì').toBeNull();
     w2.unmount();
   });
 });
@@ -98,6 +115,8 @@ describe('nhạc nền ngẫu nhiên', () => {
     expect(s).toContain('watch(trongVan, (v) => { if (!v) doiNgauNhienNeuDenGio(); });');
     expect(s, 'không còn đổi mỗi lần về trang chủ').not.toMatch(/sc === 'menu' && cu !== 'menu'\) \{ doiCanhNgauNhien/);
     expect(s).toContain('nhacNgauNhien: nhacNgauNhien.value');
+    // mặc định BẬT, trừ khi máy đang lưu một bài khác bài mặc định (đã tự chọn từ trước)
+    expect(s).toContain("ref(prefs.nhacNgauNhien ?? (!laBaiNhac(prefs.baiNhac) || prefs.baiNhac === 'keo'))");
   });
 });
 
@@ -129,7 +148,7 @@ describe('nhịp đổi ngẫu nhiên: 30 phút một lần', () => {
   });
 
   it('bật Ngẫu nhiên ở bảng hình nền là đặt mốc — 30 phút tính từ lúc bật', async () => {
-    const c = await napCanh(true);
+    const c = await napCanh(true, { 'mm.canh.nn': '0' });
     c.datCanhNgauNhien(true);
     const n = await import('@/lib/ngau-nhien');
     expect(n.denGioDoi()).toBe(false);

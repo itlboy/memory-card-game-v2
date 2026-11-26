@@ -2052,3 +2052,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **Ô "chưa có phòng nào đang chờ" ở màn Chơi online là MỘT DẢI GỌN** (26.11.2026, chủ dự án: "tốn diện tích quá, cho nó bé
   lại"): `.empty` giờ là grid (biểu tượng 44px trái, chữ phải), không còn `flex: 1`. `.lobby-list li.empty` TRÙNG TÊN lớp nên
   phải tự ghi `display: flex` — bỏ dòng đó là ô chỗ trống trong phòng chờ vỡ thành lưới hai cột.
+- **Ngẫu nhiên là MẶC ĐỊNH** cho chủ đề và nhạc (26.11.2026, chủ dự án). Chủ đề: `mm.canh.nn` = '1' bật · '0' đã tự tắt · chưa
+  có = bật, trừ khi máy đang lưu `mm.canh` (đã chọn tay từ trước). Nhạc: `prefs.nhacNgauNhien` chưa có = bật, trừ khi đang lưu
+  một bài khác `keo`. Hết Premium KHÔNG ghi '0' (không phải người chơi tự tắt). Người chơi thường (không debug) chỉ thấy hàng
+  3 nút nhạc, không có nút "Ngẫu nhiên": bấm một bài là tắt ngẫu nhiên và chưa có lối bật lại — biết trước, chưa xử lý.
