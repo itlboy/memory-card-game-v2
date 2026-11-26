@@ -973,6 +973,8 @@ const en: TuDien = {
   'pm.chonGoi': "Choose a plan",
   'pm.thangPhu': "Billed monthly",
   'pm.nangCap': "Upgrade",
+  'pm.vinhVien': "Lifetime, no renewal needed",
+  'pm.ma': "Premium ID: {ma}",
   'pm.thuNgay': "Try free for {n} days",
   'pm.sauThu': "Then {gia} · Cancel anytime",
   'pm.khongThu': "{gia} · Cancel anytime",

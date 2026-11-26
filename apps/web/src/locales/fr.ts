@@ -977,6 +977,8 @@ const fr: TuDien = {
   'pm.chonGoi': "Choisir une offre",
   'pm.thangPhu': "Paiement mensuel",
   'pm.nangCap': "Passer à Premium",
+  'pm.vinhVien': "À vie, sans renouvellement",
+  'pm.ma': "ID Premium : {ma}",
   'pm.thuNgay': "Essai gratuit de {n} jours",
   'pm.sauThu': "Ensuite {gia} · Annulez quand vous voulez",
   'pm.khongThu': "{gia} · Annulez quand vous voulez",

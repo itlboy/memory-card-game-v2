@@ -971,6 +971,8 @@ const ko: TuDien = {
   'pm.chonGoi': "요금제 선택",
   'pm.thangPhu': "월 결제",
   'pm.nangCap': "업그레이드",
+  'pm.vinhVien': "평생 이용, 갱신 불필요",
+  'pm.ma': "프리미엄 ID: {ma}",
   'pm.thuNgay': "{n}일 무료 체험",
   'pm.sauThu': "이후 {gia} · 언제든 해지 가능",
   'pm.khongThu': "{gia} · 언제든 해지 가능",

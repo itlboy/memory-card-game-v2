@@ -972,6 +972,8 @@ const th: TuDien = {
   'pm.chonGoi': "เลือกแพ็ก",
   'pm.thangPhu': "จ่ายรายเดือน",
   'pm.nangCap': "อัปเกรด",
+  'pm.vinhVien': "ตลอดชีพ ไม่ต้องต่ออายุ",
+  'pm.ma': "รหัส Premium: {ma}",
   'pm.thuNgay': "ทดลองใช้ฟรี {n} วัน",
   'pm.sauThu': "หลังจากนั้น {gia} · ยกเลิกได้ทุกเมื่อ",
   'pm.khongThu': "{gia} · ยกเลิกได้ทุกเมื่อ",

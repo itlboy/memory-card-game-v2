@@ -973,6 +973,8 @@ const es: TuDien = {
   'pm.chonGoi': "Elige un plan",
   'pm.thangPhu': "Pago mensual",
   'pm.nangCap': "Mejorar",
+  'pm.vinhVien': "De por vida, sin renovación",
+  'pm.ma': "ID Premium: {ma}",
   'pm.thuNgay': "Prueba gratis {n} días",
   'pm.sauThu': "Después {gia} · Cancela cuando quieras",
   'pm.khongThu': "{gia} · Cancela cuando quieras",

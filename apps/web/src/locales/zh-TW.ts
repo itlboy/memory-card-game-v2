@@ -974,6 +974,8 @@ const zhTW: TuDien = {
   'pm.chonGoi': "選擇方案",
   'pm.thangPhu': "按月付費",
   'pm.nangCap': "升級",
+  'pm.vinhVien': "永久有效，無需續訂",
+  'pm.ma': "Premium ID：{ma}",
   'pm.thuNgay': "免費試用 {n} 天",
   'pm.sauThu': "之後 {gia} · 隨時可取消",
   'pm.khongThu': "{gia} · 隨時可取消",
