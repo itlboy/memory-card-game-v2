@@ -6,7 +6,6 @@ import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
 import { anKhach, conTheMay, khachDangAn } from '@/lib/taikhoan';
-import { moiNangCap } from '@/lib/premium';
 import { store } from '@/lib/storage';
 import { moChucNang } from '@/lib/phan-tich';
 import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
@@ -402,10 +401,8 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
               <small>{{ signedIn ? t('tb.hoSoXepHang') : t('tb.giuDiem') }}</small></span>
           </button>
 
-          <!-- PREMIUM (25.11.2026): lối vào như bản bán thật, nhưng CHỈ hiện khi đang bật debug cho tới khi mở bán -->
-          <button v-if="debug" class="item thach nut-premium" role="menuitem" type="button" @click="dong(); emit('premium')">
-            <Crown :size="20" /><span>{{ moiNangCap ? t('pm.moi.menu') : t('tp.premium') }}</span><ChevronRight :size="18" aria-hidden="true" />
-          </button>
+          <!-- Dòng "Premium" ở đầu menu ĐÃ BỎ (chủ dự án 26.11.2026: "bỏ cả thanh premium kia đi, nhìn xấu quá"). Bảng Premium
+               vẫn mở được từ mục khoá ở bảng Hình nền / Nhạc nền / bộ hình, và từ trang Debug. -->
           <div class="nhom-hang">
             <p class="nhom" role="presentation" @pointerup="chamCaiDat">{{ t('tb.caiDat') }}</p>
             <!-- Debug đang bật: nút vào TRANG debug riêng (DebugDialog) — menu không chứa công cụ debug -->
@@ -446,10 +443,10 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                MỘT HÀNG như Âm thanh khi ≤ 3 bài (chủ dự án 15.10.2026); nhiều hơn (bày cả bài
                Premium) thì HAI TẦNG — chữ trên, dải nút chia đều dưới: một hàng 6 nút làm menu
                phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). -->
-          <!-- CÓ BÀI PREMIUM ĐỂ BÀY (đã có Premium, đã mở bán, hoặc đang debug — cùng cổng với "Hình nền"): MỘT DÒNG mở bảng chọn nhạc (ChonNhac.vue), y như "Hình nền" — chủ dự án
+          <!-- CÓ BÀI PREMIUM ĐỂ BÀY (đã có Premium, đã mở bán, hoặc đang debug — cùng cổng với "Hình nền"): MỘT DÒNG mở bảng chọn nhạc (ChonNhac.vue), y như "Hình nền" (dòng PHẲNG, không phải thanh thạch — chủ dự án chê "sao làm một thanh thế kia, làm giống hình nền đi") — chủ dự án
                26.11.2026: "nhạc nền bấm vào tôi cũng muốn ra trang settings giống như hình nền". Thay bộ lật ‹ bài ›: lật
                từng bài thì không thấy cả danh sách, bài Premium nằm khuất. Bên phải là bài đang phát (hoặc "Tắt"). -->
-          <button v-if="debug || baiHien.length > 3" class="item thach nut-nhac" role="menuitem" type="button" @click="dong(); emit('nhac-nen')">
+          <button v-if="debug || baiHien.length > 3" data-phang class="item nut-nen nut-nhac" role="menuitem" type="button" @click="dong(); emit('nhac-nen')">
             <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
             <span class="bai-dang" aria-hidden="true"><component v-if="nhac" :is="ICON_BAI[baiNhac ?? 'keo']" :size="17" :stroke-width="2.4" /><template v-else>{{ td('tb.amNgan.off') }}</template></span>
             <Crown class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />
@@ -805,7 +802,6 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 /* NỔI KHỐI (11.11.2026): dòng BẤM ĐƯỢC của menu (tài khoản, cài app, luật chơi) là phím thạch
    trắng; dòng cài đặt có công tắc/nấc giữ nền phẳng — chính công tắc/nấc đã nổi khối. */
 .item.thach { border-radius: 14px; margin: 2px 0 6px; }
-.item.nut-premium > svg:first-child { color: #d99a00; }
 .ba-ht { flex: none !important; display: inline-flex; }
 .ba-ht i { width: 26px; height: 26px; margin-left: -7px; border-radius: 50%; background: #1a1a4a center / 118% no-repeat; box-shadow: 0 0 0 2px var(--panel-solid, #fff); }
 .ba-ht i.th { background: var(--ht-sao-tho) center / 120% no-repeat, linear-gradient(#030719, #153a8c); }

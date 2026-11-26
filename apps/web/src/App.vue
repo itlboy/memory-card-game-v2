@@ -23,6 +23,7 @@ import BangPremium from './components/BangPremium.vue';
 import LaRoi from './components/LaRoi.vue';
 import ChonHinhNen from './components/ChonHinhNen.vue';
 import ChonNhac from './components/ChonNhac.vue';
+import { bocLungVan } from './lib/lung-la';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -293,6 +294,12 @@ const showResult = ref(false);
 let resultTimer: ReturnType<typeof setTimeout> | undefined;
 
 const session = useGameSession();
+/*
+ * MẶT LƯNG THEO HÌNH NỀN: mỗi VÁN MỚI bốc một mặt lưng cho cả bàn (lib/lung-la.ts). Ván offline = `session.game` đổi sang
+ * ván khác (bắt đầu, chơi lại, khôi phục sau F5); ván online = phòng chuyển sang đang chơi.
+ */
+watch(() => session.game.value, (g, cu) => { if (g && g !== cu) bocLungVan(); });
+watch(() => !!onlineRef.value?.dangChoi, (v) => { if (v) bocLungVan(); });
 /* Nhạc dồn dần về cuối ván: tiến độ cặp đã ghép, hoặc gấp nhất khi đồng hồ còn
    ≤ 15 giây. Làm tròn để watch không chạy mỗi khung hình theo đồng hồ. */
 const doGapNhac = computed(() => {

@@ -2005,3 +2005,24 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   NATIVE (cần bản app): `capacitor.config.ts backgroundColor` #edeffa → #5bc0f0 (màu màn chờ) — hết tích tắc gần-trắng trước khi trang được đọc. Cố ý không tô: chọn số thẻ (mặt nhỏ dưới ô phiếu), thanh đội (đã có màu đội).
 - 1.10.5 (chủ dự án gửi 3 ảnh chê): (1) bảng kết quả nhiều người — `.hang-ct ~ .stats.bang` cách 14px (gờ nút thạch đè viền bảng chỉ số); (2) Khoe tỷ số — `LuuChiaSe` Teleport ra body (nằm trong lớp phủ kết quả thì thanh emoji z-18 đè nút Lưu/Chia sẻ), ảnh chia sẻ vẽ ô màu sau mặt (`CotTySo.mat[].mau`, chỉ cột một người); (3) dòng "đi trước" KHÔNG tô ô màu (ô trên nút xanh bị chê "rất xấu"); (4) chip trong ván: ô 1,5em + lề .2em (global.css) — ô 1,7em tràn sát mép chip, đè chấm mạng.
 - 1.10.6: (a) Chọn số thẻ — ô mình bấm vàng NGAY (`toiBam`, không chờ server) và GIỮ vàng qua bước `loai`: phiếu của mình là phiếu cuối (chơi với máy) thì server chốt luôn, trước đây ô vàng chỉ vẽ ở bước `chon` nên không bao giờ thấy. (b) Bong bóng chat neo vào HÌNH BAO NGOÀI (`baoNgoai` ở lib/neo-bong.ts đo ::before của `.vong-mau`), không cắm đuôi vào icon bên trong.
+
+## Mặt lưng lá theo hình nền + bảng chọn nhạc (26.11.2026, mockup duyệt https://claude.ai/artifact/DMXKhwABieKhBdT9vV4Gij)
+
+- **Chọn hình nền nào thì lá dùng mặt lưng của hình nền đó, cả TRONG VÁN** (chủ dự án: "ngẫu nhiên nếu có nhiều").
+  Thiên hà = Mặt Trời + 8 hành tinh, Hoa anh đào = hoa · cánh hoa · trăng · núi tuyết · đèn lồng. Hình ở
+  `styles/skins/keo-lung.css` (`--lg-<mã>`), danh sách mã ở `lib/lung-la.ts` (`LUNG`) — hai chỗ phải khớp, test `lung-la` giữ.
+- **MỖI VÁN MỘT MẶT LƯNG CHO CẢ BÀN** (`bocLungVan()` gắn `<html data-lung>`; App gọi khi `session.game` đổi ván hoặc phòng
+  online vào ván). ĐỪNG bốc theo từng lá: lưng khác nhau là đánh dấu bài. Trang chủ thì mỗi lá một hình (QuatLa: hai lá quay
+  bốc hai thiên thể khác nhau; LaRoi: chia vòng năm hình) — ở đó không có gì để lộ.
+- **Luật hình đã chốt qua 10 bản mockup, đừng "làm đẹp" lại**: lưng TRƠN (không chấm sao), một hình NHỎ ở giữa, KHÔNG quầng
+  sáng, KHÔNG vành (Sao Thổ, Thiên Vương), Mặt Trời KHÔNG tia và vẽ giống thật, núi tuyết THẲNG cân hai bên. Mọi khối cầu
+  r=38 trong khung 100 → `--lung-co: 39.5%` (cầu = 30% bề ngang lá); lệch tỉ lệ là "to nhỏ không đồng đều".
+- **BẪY `--ht-anh-dao`** (keo-canh.css) là HAI lớp nền (bông hoa + nền hồng) — dùng thẳng làm hình lưng thì nền phủ kín lá;
+  `--lg-ad-hoa` chép riêng lớp bông hoa.
+- **BẪY CHỤP ẢNH**: WebKit headless của Playwright vẽ lá ÚP thành mặt ngửa lật gương (cả ở cảnh gốc) — không phải lỗi app.
+  Muốn chụp mặt lưng trong ván thì chèn tạm `.card .front{visibility:hidden}`.
+- **Lá rơi Hoa anh đào** (LaRoi): KHÔNG trong suốt (bỏ `mo`), rơi chậm `CHAM` = 1,6 lần (chủ dự án: "tại sao lá bài rơi có
+  độ trong suốt, cho tốc độ rơi nhẹ hơn").
+- **Menu ☰**: dòng "Nhạc nền" là dòng PHẲNG y như "Hình nền" (không phải thanh thạch), mở `ChonNhac.vue`; dòng "Premium" ở
+  đầu menu ĐÃ BỎ ("nhìn xấu quá") — bảng Premium mở từ mục khoá và trang Debug. Mục Premium nào cũng đeo vương miện KỂ CẢ khi
+  đã có Premium ("để họ hiểu quyền lợi của mình").
