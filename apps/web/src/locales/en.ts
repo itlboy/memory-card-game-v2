@@ -795,6 +795,8 @@ const en: TuDien = {
   'tt.sapUp': "Cards flip down soon",
   'tt.upBai': "Flipping…",
   'tt.hoi': "Where is this card?",
+  'tt.chonBan': "Choose the board",
+  'tt.thangTen': "{ten} wins!",
   'tt.batDau': "Start — {n} cards",
   'tt.timTheNay': "Find this card",
   'tt.cham': "Tap the card you remember",

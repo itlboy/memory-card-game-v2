@@ -797,6 +797,8 @@ const it: TuDien = {
   'tt.sapUp': "Le carte stanno per coprirsi",
   'tt.upBai': "Copro…",
   'tt.hoi': "Dov'è questa carta?",
+  'tt.chonBan': "Scegli il tavolo",
+  'tt.thangTen': "Vince {ten}!",
   'tt.batDau': "Inizia — {n} carte",
   'tt.timTheNay': "Trova questa carta",
   'tt.cham': "Tocca la carta che ricordi",

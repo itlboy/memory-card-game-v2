@@ -2,6 +2,7 @@
  * TÌM THẺ — phần của MÁY NÀY: công tắc mở, lựa chọn đã lưu, kỷ lục. Luật nằm ở engine
  * (`packages/engine/src/tim-the.ts`) vì phòng online chạy cùng bộ luật trên server.
  */
+import { ref } from 'vue';
 import { BOT_SPECS, TIM_THE_DO_KHO, TIM_THE_SO_THE, timTheHopLe, type BotLevel, type TimTheDoKho } from '@mm/engine';
 
 /**
@@ -10,6 +11,9 @@ import { BOT_SPECS, TIM_THE_DO_KHO, TIM_THE_SO_THE, timTheHopLe, type BotLevel, 
  * Bật lại = `true`, không phải sửa chỗ nào khác.
  */
 export const TIM_THE_MO = false;
+
+/** Đang ở màn chơi Tìm Thẻ ONLINE — App tắt icon bay phía sau (màn chơi không gì kéo mắt khỏi bàn). OnlineTimThe đặt. */
+export const dangTimOnline = ref(false);
 
 /** Đối thủ: một mình, hoặc MỘT máy ở mức đã chọn. */
 export type TimTheDoiThu = 'mot' | BotLevel;

@@ -36,7 +36,8 @@ describe('nút công khai / riêng tư', () => {
 
   it('bày CẢ HAI lựa chọn, không phải một công tắc có nhãn tự đổi', () => {
     expect(src, 'phải có nhóm radio hai ô').toContain('role="radiogroup"');
-    expect(src.match(/role="radio"/g)?.length, 'đúng hai ô').toBe(2);
+    // Hàng Kiểu chơi (Thường / Tìm Thẻ, 27.11.2026) cũng là radio — chỉ đếm các ô KHÔNG thuộc nó
+    expect(src.split('\n').filter((d) => d.includes('role="radio"') && !d.includes('nut-kieu')).length, 'đúng hai ô').toBe(2);
     expect(src).toContain("t('on.congKhai')");
     expect(src).toContain("t('on.riengTu')");
     // Nhãn không còn là biểu thức ba ngôi đổi giữa hai tên phòng

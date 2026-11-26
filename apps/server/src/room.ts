@@ -9,7 +9,8 @@ import type {
 import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, huyHieuHoSo, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, pairsForLevel } from '@mm/engine';
-import type { KetChon } from '@mm/engine';
+import type { KetChon, TimTheDoKho } from '@mm/engine';
+import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_SO_THE, chotSoThe } from '@mm/engine';
 
 /** Các số thẻ có thật, tăng dần (4 … 88) — thang để lượt CHỌN SỐ THẺ lấy bậc trên / bậc dưới. */
 const BAC_THE: readonly number[] = [...new Set(BOARD_SIZES.map((b) => b.pairs * 2))].sort((x, y) => x - y);
@@ -148,7 +149,7 @@ interface RoomState {
  * bao giờ do server tự quyết. Đây là luật chung cho mọi thay đổi giao thức sau
  * này, không riêng gì việc gói view.
  */
-interface Attachment { playerId: string; goi?: boolean; bv?: number; /** NGƯỜI XEM: tên + mặt (chip người xem) */ xem?: NguoiXem; /** client hiểu đội tới mức nào: `?dd=2` = đội theo số (bản 1.8+); 1 = bản 1.7 (A/B) */ dd?: number | boolean }
+interface Attachment { playerId: string; goi?: boolean; bv?: number; /** NGƯỜI XEM: tên + mặt (chip người xem) */ xem?: NguoiXem; /** client hiểu đội tới mức nào: `?dd=2` = đội theo số (bản 1.8+); 1 = bản 1.7 (A/B) */ dd?: number | boolean; /** client vẽ được Tìm Thẻ online (`?tim=1`, 27.11.2026) */ tt?: boolean }
 
 // Đủ 10 con — phòng nay chứa tới 10 người, lặp lại là hai người cùng mặt.
 const AVATARS = ['🦊', '🐼', '🐯', '🐸', '🐵', '🐨', '🦁', '🐷', '🐧', '🐙'];
@@ -267,6 +268,12 @@ const EMPTY_LOBBY_MS = 900_000;
 export class RoomDO extends DurableObject<Env> {
   private room: RoomState | null = null;
   private game: MemoryGame | null = null;
+  /**
+   * VÁN TÌM THẺ (27.11.2026, `config.kieu === 'tim'`): ô riêng, KHÔNG chung `game` — mọi chỗ của ghép cặp (lật, lượt, máy,
+   * snapshot) đọc `game` và không biết gì về Tìm Thẻ. Chỉ trong RAM (ván ~2 phút): server khởi động lại giữa ván thì
+   * phòng về phòng chờ (`load`), không treo.
+   */
+  private tim: PhongTimThe | null = null;
   /** Mốc thời gian các emoji gần nhất của từng người, để chặn spam.
    *  Chỉ trong RAM: mất khi DO ngủ cũng không sao — spam là hành vi liên tục,
    *  còn người ngủ dậy gửi lại một cái thì đáng được cho qua. */
@@ -296,7 +303,7 @@ export class RoomDO extends DurableObject<Env> {
    * 3 giây) thì phòng đứng nguyên ở phòng chờ / bảng kết quả, bấm Bắt đầu / Chơi lại lần nữa là xong.
    */
   /** `ket` = đã chốt, đang diễn hiệu ứng tới `het` (xem `chotChon`). */
-  private chon: { id: number; het: number; ds: number[]; phieu: Map<string, number>; ket?: KetChon } | null = null;
+  private chon: { id: number; het: number; ds: number[]; phieu: Map<string, number>; ket?: KetChon; kho?: { phieu: Map<string, TimTheDoKho>; ket?: TimTheDoKho } } | null = null;
   /** Lần chủ phòng nhắc gần nhất — chặn nhắc dồn (NHAC_CACH_MS). */
   private nhacLuc = 0;
   /*
@@ -317,6 +324,13 @@ export class RoomDO extends DurableObject<Env> {
     this.chuanDoi();
     const snap = await this.ctx.storage.get<string>('game');
     if (snap) this.game = MemoryGame.restore(snap);
+    // Ván Tìm Thẻ không lưu: dậy mà phòng còn "đang chơi / đếm ngược" Tìm Thẻ thì ván đã mất — về phòng chờ, không treo
+    if (this.room?.config.kieu === 'tim' && (this.room.status === 'playing' || this.room.status === 'countdown')) {
+      this.room.status = 'lobby';
+      delete this.room.countdownEnd;
+      this.game = null;
+      for (const p of this.room.players) p.ready = !!p.may;
+    }
   }
 
   /**
@@ -516,6 +530,8 @@ export class RoomDO extends DurableObject<Env> {
     const anh = anhHopLe(url.searchParams.get('anh'));
     // Client hiểu chế độ Đồng đội không (`?dd=1`) — xem `tuChoiClientCu`
     const dd = Number(url.searchParams.get('dd')) || 0;
+    // Client vẽ được Tìm Thẻ online không (`?tim=1`) — xem `hieuTim`
+    const tt = url.searchParams.get('tim') === '1';
     const matXin = url.searchParams.get('mat') ?? '';
     // HỒ SƠ NGƯỜI CHƠI (25.11.2026): avatar + màu người chơi tự chọn — chỉ nhận trong danh sách chung (engine ho-so.ts)
     const matHs = matHoSo(matXin);
@@ -602,7 +618,7 @@ export class RoomDO extends DurableObject<Env> {
     const pair = new WebSocketPair();
     this.armPingAutoResponse();
     this.ctx.acceptWebSocket(pair[1], [player.id]);
-    pair[1].serializeAttachment({ playerId: player.id, goi, bv, ...(dd ? { dd } : {}) } satisfies Attachment);
+    pair[1].serializeAttachment({ playerId: player.id, goi, bv, ...(dd ? { dd } : {}), ...(tt ? { tt } : {}) } satisfies Attachment);
 
     await this.save();
     this.send(pair[1], {
@@ -611,6 +627,7 @@ export class RoomDO extends DurableObject<Env> {
     });
     this.broadcast({ t: 'room', room: this.roomInfo() }, player.id);
     if (this.game) this.send(pair[1], { t: 'state', view: this.view() });
+    if (this.tim) this.send(pair[1], { t: 'tim', view: this.tim.view(Date.now()) });
     await this.scheduleNext();
     // Thi đấu: đủ người sảnh đã ghép → vào ván luôn, không ai phải bấm gì
     if (this.room.thiDau && !this.room.thiDau.daChay && this.room.status === 'lobby'
@@ -635,6 +652,7 @@ export class RoomDO extends DurableObject<Env> {
     }
     this.room.status = 'lobby';
     this.game = null;
+    this.tim = null;
     await this.ctx.storage.delete('game');
     // MÁY LUÔN SẴN SÀNG: nó không bấm lại được — đặt false là phòng kẹt "Chờ sẵn sàng" mãi
     // (lỗi chủ dự án báo 15.11.2026: về phòng chờ / chỉnh bàn xong máy không sẵn sàng).
@@ -675,6 +693,7 @@ export class RoomDO extends DurableObject<Env> {
       t: 'welcome', playerId: '', token: '', spectator: true, room: this.roomInfo()
     });
     if (this.game) this.send(pair[1], { t: 'state', view: this.view() });
+    if (this.tim) this.send(pair[1], { t: 'tim', view: this.tim.view(Date.now()) });
     this.broadcast({ t: 'room', room: this.roomInfo() });
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
@@ -737,6 +756,7 @@ export class RoomDO extends DurableObject<Env> {
       case 'resync':
         this.send(ws, { t: 'room', room: this.roomInfo() });
         if (this.game) this.send(ws, { t: 'state', view: this.view() });
+        if (this.tim) this.send(ws, { t: 'tim', view: this.tim.view(Date.now()) });
         return;
 
       case 'config': {
@@ -759,6 +779,8 @@ export class RoomDO extends DurableObject<Env> {
          * DUY NHẤT cấu hình phòng đi vào server.
          */
         if (c.options) this.room.config.options = sanitizeOptions(c.options);
+        // Kiểu chơi: chỉ `'tim'` hoặc bỏ (= ghép cặp). Không tin client: giá trị lạ coi như ghép cặp.
+        if ('kieu' in c) { if (c.kieu === 'tim') this.room.config.kieu = 'tim'; else delete this.room.config.kieu; }
         if (Array.isArray(c.themeIds)) {
           // App bản cũ còn gửi id của 72 theme trước 04.11.2026 → đổi sang nhóm mới rồi mới lọc
           const valid = [...new Set(c.themeIds.filter((id): id is string => typeof id === 'string').map(themeMoi))]
@@ -839,9 +861,29 @@ export class RoomDO extends DurableObject<Env> {
         const c = this.chon;
         if (!c || c.ket || typeof msg.the !== 'number' || !c.ds.includes(msg.the)) return;   // đã chốt: không nhận phiếu
         c.phieu.set(player.id, msg.the);
-        const can = this.room.players.filter((p) => !p.may && this.connected(p.id));
-        if (can.length && can.every((p) => c.phieu.has(p.id))) { await this.chotChon(); return; }
+        if (this.duPhieu()) { await this.chotChon(); return; }
         this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
+      // TÌM THẺ: phiếu ĐỘ KHÓ — cùng lượt biểu quyết với số thẻ, đủ cả hai phiếu của mọi người thật thì chốt sớm
+      case 'chonKho': {
+        const c = this.chon;
+        if (!c?.kho || c.ket || !TIM_THE_DO_KHO.includes(msg.kho)) return;
+        c.kho.phieu.set(player.id, msg.kho);
+        if (this.duPhieu()) { await this.chotChon(); return; }
+        this.broadcast({ t: 'room', room: this.roomInfo() });
+        return;
+      }
+
+      // TÌM THẺ: chọn một ô. Server phán (ON-09): đúng pha, đúng giờ, mỗi lượt một lần — `PhongTimThe.chon`
+      case 'timChon': {
+        const v = this.tim;
+        if (!v || this.room.status !== 'playing' || typeof msg.viTri !== 'number') return;
+        const now = Date.now();
+        if (!v.chon(player.id, msg.viTri, typeof msg.ms === 'number' ? msg.ms : undefined, now)) return;
+        v.tick(now);
+        await this.phatTim(now);
         return;
       }
 
@@ -935,6 +977,17 @@ export class RoomDO extends DurableObject<Env> {
             return;
           }
         }
+        // TÌM THẺ: ai dùng app chưa vẽ được Tìm Thẻ online (thiếu `?tim=1`) thì chặn, như app cũ ở chế độ đội
+        if (this.room.config.kieu === 'tim') {
+          const cu = this.room.players.filter((p) => !p.may && this.connected(p.id) && !this.hieuTim(p.id));
+          if (cu.length) {
+            this.send(ws, { t: 'error', code: 'tim-client-cu', message: `Cần cập nhật app: ${cu.map((p) => p.name).join(', ')}`, ten: cu.map((p) => p.name) });
+            for (const p of cu) for (const w of this.ctx.getWebSockets(p.id)) {
+              this.send(w, { t: 'error', code: 'can-cap-nhat', message: 'Bạn cần cập nhật app để chơi Tìm Thẻ. Về trang chủ, app sẽ tự cập nhật.' });
+            }
+            return;
+          }
+        }
         if (notReady.length) {
           this.send(ws, {
             t: 'error', code: 'not-ready',
@@ -1012,7 +1065,7 @@ export class RoomDO extends DurableObject<Env> {
           }
           await this.depPhong('empty');
           this.room = null;
-          this.game = null;
+          this.game = null; this.tim = null;
           return;
         }
         await this.save();
@@ -1029,7 +1082,7 @@ export class RoomDO extends DurableObject<Env> {
         await this.depPhong('cancelled');
         await this.ctx.storage.deleteAlarm();
         this.room = null;
-        this.game = null;
+        this.game = null; this.tim = null;
         return;
       }
 
@@ -1287,6 +1340,18 @@ export class RoomDO extends DurableObject<Env> {
       }
     }
 
+    // Tìm Thẻ: hết đếm ngược → lượt đầu; đang chơi → cho nhịp ván chạy tới bây giờ
+    if (this.room.status === 'countdown' && this.tim && now >= (this.room.countdownEnd ?? 0)) {
+      this.tim.batDau(now);
+      this.room.status = 'playing';
+      delete this.room.countdownEnd;
+      await this.save();
+      this.broadcast({ t: 'room', room: this.roomInfo() });
+      this.broadcast({ t: 'tim', view: this.tim.view(now) });
+    } else if (this.room.status === 'playing' && this.tim && this.tim.tick(now)) {
+      await this.phatTim(now);
+    }
+
     // Hết đếm ngược 5 giây → ván thực sự bắt đầu, đồng hồ lượt chạy
     if (this.room.status === 'countdown' && this.game && now >= (this.room.countdownEnd ?? 0)) {
       this.game.start(now);
@@ -1309,7 +1374,7 @@ export class RoomDO extends DurableObject<Env> {
       await this.depPhong('empty');
       await this.ctx.storage.deleteAlarm();
       this.room = null;
-      this.game = null;
+      this.game = null; this.tim = null;
       return;
     }
 
@@ -1381,7 +1446,7 @@ export class RoomDO extends DurableObject<Env> {
           await this.depPhong('empty');
           await this.ctx.storage.deleteAlarm();
           this.room = null;
-          this.game = null;
+          this.game = null; this.tim = null;
           return;
         }
         // Chủ phòng im tiếng thì phải chuyển quyền, không thì không ai bấm được gì
@@ -1416,7 +1481,7 @@ export class RoomDO extends DurableObject<Env> {
         this.nhipDongHoLuot();
         await this.save();
         this.broadcast({ t: 'room', room: this.roomInfo() });
-        this.broadcast({ t: 'state', view: this.view() });
+        if (this.game) this.broadcast({ t: 'state', view: this.view() });
       }
     }
 
@@ -1529,6 +1594,7 @@ export class RoomDO extends DurableObject<Env> {
       marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
     }
     if (this.chon) marks.push(this.chon.het);
+    if (this.room?.status === 'playing' && this.tim) { const h = this.tim.henKe(now); if (h) marks.push(h); }
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));
     else await this.ctx.storage.deleteAlarm();
   }
@@ -1560,7 +1626,7 @@ export class RoomDO extends DurableObject<Env> {
      * khởi động lại (phòng ma không nằm trong MySQL nên không dựng lại).
      */
     this.room = null;
-    this.game = null;
+    this.game = null; this.tim = null;
   }
 
   /** Phòng thi đấu tự mở ván với những người ĐANG kết nối (≥ 2); thiếu thì để nguyên phòng chờ. */
@@ -1586,7 +1652,10 @@ export class RoomDO extends DurableObject<Env> {
     if (!this.room) return;
     if (this.room.thiDau || !CHON_THE_BAT) { await this.batDauDemNguoc(); return; }
     const now = Date.now();
-    this.chon = { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(pairsForLevel(this.room.config.level) * 2, BAC_THE), phieu: new Map() };
+    this.chon = this.room.config.kieu === 'tim'
+      // Tìm Thẻ: chọn trong ĐỦ sáu cỡ bàn + độ khó (mockup duyệt 27.11.2026)
+      ? { id: now, het: now + CHON_THE_MS, ds: [...TIM_THE_SO_THE], phieu: new Map(), kho: { phieu: new Map() } }
+      : { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(pairsForLevel(this.room.config.level) * 2, BAC_THE), phieu: new Map() };
     await this.save();
     this.broadcast({ t: 'room', room: this.roomInfo() });
     await this.scheduleNext();
@@ -1602,9 +1671,18 @@ export class RoomDO extends DurableObject<Env> {
     const c = this.chon;
     if (!c || c.ket || !this.room) return;
     if (!this.duNguoiVaoVan()) { this.chon = null; this.broadcast({ t: 'room', room: this.roomInfo() }); await this.scheduleNext(); return; }
-    const hienTai = pairsForLevel(this.room.config.level) * 2;
-    const phieu = [...c.phieu].filter(([id]) => this.room!.players.some((p) => p.id === id)).map(([, the]) => the);
+    const tim = !!c.kho;
+    const hienTai = tim ? (this.room.config.timSoThe ?? 9) : pairsForLevel(this.room.config.level) * 2;
+    const conO = (id: string) => this.room!.players.some((p) => p.id === id);
+    const phieu = [...c.phieu].filter(([id]) => conO(id)).map(([, the]) => the);
     c.ket = ketQuaChon(phieu, c.ds, hienTai, Math.random);
+    if (c.kho) {
+      // Độ khó: cùng luật số thẻ — đông phiếu thắng, hoà thì bốc, không ai chọn thì giữ lần trước (dùng chỉ số 0..2)
+      const ds = TIM_THE_DO_KHO.map((_, i) => i);
+      const pk = [...c.kho.phieu].filter(([id]) => conO(id)).map(([, k]) => TIM_THE_DO_KHO.indexOf(k));
+      const cu = Math.max(0, TIM_THE_DO_KHO.indexOf(this.room.config.timDoKho ?? 'vua'));
+      c.kho.ket = TIM_THE_DO_KHO[chotSoThe(pk, ds, cu, Math.random)] ?? 'vua';
+    }
     c.het = Date.now() + lichChot(c.ds, c.ket).tong;
     this.broadcast({ t: 'room', room: this.roomInfo() });
     await this.scheduleNext();
@@ -1616,8 +1694,13 @@ export class RoomDO extends DurableObject<Env> {
     if (!c?.ket || !this.room) return;
     this.chon = null;
     if (!this.duNguoiVaoVan()) { this.broadcast({ t: 'room', room: this.roomInfo() }); await this.scheduleNext(); return; }
-    const ban = c.ket.the !== pairsForLevel(this.room.config.level) * 2 ? BOARD_SIZES.find((b) => b.pairs * 2 === c.ket!.the) : undefined;
-    if (ban) this.room.config.level = ban.level;
+    if (c.kho) {
+      this.room.config.timSoThe = c.ket.the;
+      this.room.config.timDoKho = c.kho.ket ?? 'vua';
+    } else {
+      const ban = c.ket.the !== pairsForLevel(this.room.config.level) * 2 ? BOARD_SIZES.find((b) => b.pairs * 2 === c.ket!.the) : undefined;
+      if (ban) this.room.config.level = ban.level;
+    }
     await this.batDauDemNguoc();
   }
 
@@ -1630,8 +1713,20 @@ export class RoomDO extends DurableObject<Env> {
 
     private async batDauDemNguoc(): Promise<void> {
     if (!this.room) return;
+    // TÌM THẺ: không có "người đi đầu" — dựng ván rồi đếm ngược y như ghép cặp
+    if (this.room.config.kieu === 'tim') {
+      this.prepareTim();
+      this.room.status = 'countdown';
+      this.room.countdownEnd = Date.now() + ROOM_LIMITS.countdownMs;
+      await this.save();
+      this.broadcast({ t: 'room', room: this.roomInfo() });
+      this.broadcast({ t: 'countdown', endsInMs: this.room.countdownEnd - Date.now(), firstId: '', firstName: '' });
+      await this.ctx.storage.setAlarm(this.room.countdownEnd);
+      return;
+    }
     // Dựng ván (thứ tự đi XOAY VÒNG, xem prepareGame) nhưng CHƯA chạy — đếm ngược
     // (ROOM_LIMITS.countdownMs) để người đi đầu không bị động
+    this.tim = null;
     this.prepareGame();
     this.room.status = 'countdown';
     this.room.countdownEnd = Date.now() + ROOM_LIMITS.countdownMs;
@@ -1666,6 +1761,64 @@ export class RoomDO extends DurableObject<Env> {
     }
     delete this.room.countdownEnd;
     await this.veLobby(this.room.players);
+  }
+
+  /** Biểu tượng của phòng: mọi theme đã chọn (loại trùng); không chọn gì thì mọi theme MIỄN PHÍ server có. */
+  private bieuTuongPhong(): string[] {
+    const room = this.room!;
+    const symbols = [...new Set(room.config.themeIds.flatMap((id) => THEME_SYMBOLS[themeMoi(id)] ?? []))];
+    if (!symbols.length) {
+      symbols.push(...new Set(Object.entries(THEME_SYMBOLS).filter(([id]) => !THEME_PREMIUM.has(id)).flatMap(([, s]) => s)));
+    }
+    return symbols;
+  }
+
+  /** Dựng ván Tìm Thẻ với mọi người trong phòng (máy chạy ở server qua `PhongTimThe`). Bỏ ván ghép cặp cũ khỏi kho. */
+  private prepareTim(): void {
+    const room = this.room!;
+    let hinh = this.bieuTuongPhong();
+    const soThe = room.config.timSoThe ?? 9;
+    // Bộ thẻ ít hơn số thẻ cần (khác nhau) thì trộn mọi theme miễn phí
+    if (hinh.length < soThe) hinh = [...new Set([...hinh, ...Object.entries(THEME_SYMBOLS).filter(([id]) => !THEME_PREMIUM.has(id)).flatMap(([, s]) => s)])];
+    this.tim = new PhongTimThe(
+      { soThe, doKho: room.config.timDoKho ?? 'vua' },
+      room.players.map((p) => ({ id: p.id, ten: p.name, ...(p.may ? { may: p.may } : {}) })),
+      hinh,
+      crypto.getRandomValues(new Uint32Array(1))[0]!,
+      (room.soVan ?? 0) + 1
+    );
+    this.game = null;
+    void this.ctx.storage.delete('game');
+  }
+
+  /** Mọi người thật đang nối đã bỏ đủ phiếu (Tìm Thẻ: cả số thẻ lẫn độ khó). */
+  private duPhieu(): boolean {
+    const c = this.chon;
+    if (!c || !this.room) return false;
+    const can = this.room.players.filter((p) => !p.may && this.connected(p.id));
+    return can.length > 0 && can.every((p) => c.phieu.has(p.id) && (!c.kho || c.kho.phieu.has(p.id)));
+  }
+
+  /** Phát trạng thái Tìm Thẻ; ván vừa xong thì chốt phòng (tỷ số loạt) rồi phát cả phòng. */
+  private async phatTim(now: number): Promise<void> {
+    const v = this.tim;
+    if (!v || !this.room) return;
+    if (v.xong && this.room.status === 'playing') {
+      this.room.status = 'ended';
+      this.room.soVan = (this.room.soVan ?? 0) + 1;
+      const hang = v.xepHang();
+      // Tỷ số loạt: người nhất ĐỘC NHẤT được +1, đồng hạng nhất thì không ai
+      if (hang[0] && hang.filter((h) => h.hang === 1).length === 1) {
+        const p = this.room.players.find((x) => x.id === hang[0]!.id);
+        if (p) p.thang = (p.thang ?? 0) + 1;
+      }
+      await this.save();
+      this.broadcast({ t: 'tim', view: v.view(now) });
+      this.broadcast({ t: 'room', room: this.roomInfo() });
+    } else {
+      this.broadcast({ t: 'tim', view: v.view(now) });
+    }
+    await this.scheduleNext();
   }
 
   private prepareGame(): void {
@@ -1884,6 +2037,12 @@ export class RoomDO extends DurableObject<Env> {
     return ss.length > 0 && ss.every((ws) => Number((ws.deserializeAttachment() as Attachment | null)?.dd) >= 2);
   }
 
+  /** Client của người này vẽ được Tìm Thẻ online (`?tim=1`) trên mọi socket. */
+  private hieuTim(id: string): boolean {
+    const ss = this.ctx.getWebSockets(id);
+    return ss.length > 0 && ss.every((ws) => (ws.deserializeAttachment() as Attachment | null)?.tt === true);
+  }
+
   /** Số đội nhỏ nhất CHƯA AI dùng — người/máy mới vào mặc định đứng một mình một đội. */
   private doiTrong(): DoiId {
     return DOI_IDS.find((d) => !this.room!.players.some((p) => p.doi === d)) ?? 1;
@@ -2012,7 +2171,8 @@ export class RoomDO extends DurableObject<Env> {
       ...(this.chon ? { chon: {
         id: this.chon.id, ds: this.chon.ds, phieu: Object.fromEntries(this.chon.phieu),
         con: this.chon.ket ? 0 : Math.max(0, this.chon.het - Date.now()),
-        ...(this.chon.ket ? { ket: { ...this.chon.ket, con: Math.max(0, this.chon.het - Date.now()) } } : {})
+        ...(this.chon.ket ? { ket: { ...this.chon.ket, con: Math.max(0, this.chon.het - Date.now()) } } : {}),
+        ...(this.chon.kho ? { kho: { phieu: Object.fromEntries(this.chon.kho.phieu), ...(this.chon.kho.ket ? { ket: this.chon.kho.ket } : {}) } } : {})
       } } : {}),
       ...(room.thiDau ? { thiDau: true as const } : {}),
       players: room.players.map((p) => {

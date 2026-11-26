@@ -794,6 +794,8 @@ const th: TuDien = {
   'tt.sapUp': "การ์ดกำลังจะคว่ำ",
   'tt.upBai': "กำลังคว่ำ…",
   'tt.hoi': "การ์ดใบนี้อยู่ไหน?",
+  'tt.chonBan': "เลือกกระดาน",
+  'tt.thangTen': "{ten} ชนะ!",
   'tt.batDau': "เริ่ม — {n} ใบ",
   'tt.timTheNay': "หาการ์ดใบนี้",
   'tt.cham': "แตะการ์ดที่คุณจำได้",

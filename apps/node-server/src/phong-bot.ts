@@ -301,6 +301,9 @@ class Phong {
   nhanPhong(room: RoomInfo): void {
     const cu = this.trangThaiCu;
     this.room = room;
+    // TÌM THẺ (27.11.2026): máy trực phòng chưa biết chơi Tìm Thẻ — chủ phòng chuyển sang thì RỜI GHẾ, không đứng chặn
+    // nút Bắt đầu (server đòi `?tim=1` ở mọi người thật mà máy ngoài là người thật với server).
+    if (room.config.kieu === 'tim') { for (const b of this.bot) b.gui({ t: 'leave' }); return; }
     /*
      * BỎ PHIẾU SỐ THẺ như người chơi (23.11.2026, chủ dự án: "update bot để bot cũng chọn"): server mở lượt chọn 10 giây khi
      * bấm Bắt đầu / Chơi lại. Mỗi bot chọn sau 0,3–1,7 s, ngẫu nhiên trong các ô hợp lệ: trong khoảng THE_MIN–THE_MAX và

@@ -202,6 +202,9 @@ export class VanTimThe {
     return true;
   }
 
+  /** Lúc người này chọn (ms từ khi hỏi), `null` = chưa chọn. Máy: mốc đã định sẵn ở `moHoi` (server hẹn alarm theo nó). */
+  lucChon(id: string): number | null { return this.chonCua.get(id)?.ms ?? null; }
+
   /** Ai đã chọn tính tới lúc `ms` — máy "chọn" đúng thời điểm đã định, không lộ trước. */
   daChon(id: string, ms: number): boolean {
     const c = this.chonCua.get(id);

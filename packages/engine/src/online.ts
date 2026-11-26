@@ -8,6 +8,8 @@ import type { BoardOptions } from './options.js';
 import type { GameEvent, Player, Summary } from './types.js';
 import type { MemoryGame } from './game.js';
 import type { BotLevel } from './bot.js';
+import type { TimTheDoKho } from './tim-the.js';
+import type { TimView } from './tim-the-phong.js';
 
 /* ---------- cấu hình phòng (ON-03) ---------- */
 
@@ -29,6 +31,14 @@ export interface RoomConfig {
    * Bật thì client phải khai `?dd=1` lúc mở socket — client cũ bị từ chối, không chơi sai luật.
    */
   doi?: boolean;
+  /**
+   * KIỂU CHƠI của phòng (27.11.2026): thiếu = ghép cặp như mọi khi; `'tim'` = Tìm Thẻ (engine `PhongTimThe`). Bật Tìm Thẻ
+   * thì mọi người thật phải khai `?tim=1` lúc mở socket — app cũ bị chặn ở Bắt đầu (như `dd`), không ai vào ván không vẽ được.
+   */
+  kieu?: 'tim' | 'thuong';
+  /** Số thẻ / độ khó Tìm Thẻ của ván trước — ô chọn sẵn ở lượt biểu quyết sau. */
+  timSoThe?: number;
+  timDoKho?: TimTheDoKho;
 }
 
 /** ĐỒNG ĐỘI: giới hạn giờ cho MỖI LÁ, giây (docs/che-do-dong-doi.md). Server đặt, client vẽ vạch. */
@@ -595,6 +605,10 @@ export type ClientMsg =
    * Thiếu `seq` (client cũ) thì server xử như trước, không ai vỡ.
    */
   | { t: 'flip'; index: number; seq?: number }
+  /** TÌM THẺ: chọn ô `viTri`; `ms` = giờ chọn máy người chơi tự đo từ lúc thấy câu hỏi (server kẹp — `PhongTimThe.chon`). */
+  | { t: 'timChon'; viTri: number; ms?: number }
+  /** TÌM THẺ: phiếu độ khó trong lượt biểu quyết (cùng lượt với phiếu số thẻ `chon`). */
+  | { t: 'chonKho'; kho: TimTheDoKho }
   /**
    * Xin lại trạng thái hiện tại trên CHÍNH socket đang mở.
    *
@@ -671,6 +685,8 @@ export interface RoomInfo {
     id: number; ds: number[]; phieu: Record<string, number>; con: number;
     /** ĐÃ CHỐT, đang diễn hiệu ứng (24.11.2026): hết `con` ms thì server đếm ngược vào ván. Không nhận phiếu nữa. */
     ket?: KetChon & { con: number };
+    /** TÌM THẺ: biểu quyết thêm ĐỘ KHÓ cùng lượt. `ket` có khi đã chốt. */
+    kho?: { phieu: Record<string, TimTheDoKho>; ket?: TimTheDoKho };
   };
   /**
    * Số ván đã XONG trong loạt của phòng (23.11.2026). CÓ trường này = server tự đếm tỷ số loạt (`players[].thang`) →
@@ -774,6 +790,8 @@ export type ServerMsg =
   | { t: 'welcome'; playerId: string; token: string; room: RoomInfo; spectator?: boolean; flipSeq?: number }
   | { t: 'room'; room: RoomInfo }
   | { t: 'state'; view: GameView | WireView }
+  /** TÌM THẺ: trạng thái ván (mỗi lần đổi pha / có người chọn). App cũ không bao giờ nhận — bị chặn ở Bắt đầu. */
+  | { t: 'tim'; view: TimView }
   | { t: 'countdown'; endsInMs: number; firstId: string; firstName: string }
   | { t: 'events'; events: PublicEvent[]; view: GameView | WireView }
   /** `ten`: chỉ có khi NGƯỜI XEM gửi (`from` = `xem:<tên>`, không ứng với người chơi nào) — client hiện tên này. App cũ bỏ qua. */

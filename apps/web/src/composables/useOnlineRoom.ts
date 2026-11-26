@@ -6,7 +6,7 @@ import type { BotLevel, DoiId } from '@mm/engine';
 import { me } from '@/lib/taikhoan';
 import { ghiUrl } from '@/lib/appUrl';
 import type {
-  ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg
+  ClientMsg, GameView, PublicEvent, PublicRoom, QuickEmoji, QuickSay, RoomConfig, RoomInfo, ServerMsg, TimTheDoKho, TimView
 } from '@mm/engine';
 import { computed, onScopeDispose, ref, shallowRef, nextTick, watch } from 'vue';
 import { CARD_BACKS } from '@mm/engine';
@@ -219,6 +219,12 @@ export function useOnlineRoom() {
   const phongDong = ref<{ code: 'kicked' | 'cancelled'; ma?: string } | null>(null);
   const room = shallowRef<RoomInfo | null>(null);
   const view = shallowRef<GameView | null>(null);
+  /**
+   * TÌM THẺ ONLINE (27.11.2026): trạng thái ván do server gửi (`t:'tim'`), và lúc máy này NHẬN nó (`performance.now()`) —
+   * client đếm giờ pha từ đó (server gửi `conMs`, không gửi mốc tuyệt đối: đồng hồ máy lệch).
+   */
+  const tim = shallowRef<TimView | null>(null);
+  const timNhanLuc = ref(0);
   const myId = ref('');
   /** Số cặp ghép LIỀN hiện tại của từng người — server chỉ gửi `bestStreak`, nhãn "Chuỗi N" cần chuỗi đang chạy. */
   const chuoiOnline = new Map<string, number>();
@@ -727,7 +733,7 @@ export function useOnlineRoom() {
   function loiServer(ma: string, message: string, ten?: string[]): string {
     switch (ma) {
       // Chủ phòng: ai đó dùng app cũ không hiểu đội theo số (server gửi kèm tên)
-      case 'doi-client-cu': return ten?.length ? t('or.loi.canCapNhatTen', { ten: ten.join(', ') }) : message;
+      case 'doi-client-cu': case 'tim-client-cu': return ten?.length ? t('or.loi.canCapNhatTen', { ten: ten.join(', ') }) : message;
       // CHÍNH mình dùng bản cũ — OnlineScreen hiện kèm nút Cập nhật (`canCapNhat`)
       case 'can-cap-nhat': return t('or.loi.canCapNhat');
       case 'not-host': return t('or.loi.notHost');
@@ -897,7 +903,7 @@ export function useOnlineRoom() {
     pending.value = new Set();
     seqCuaO.clear();
     room.value = null;
-    view.value = null;
+    view.value = null; tim.value = null;
     coThuLai.value = false;
     netTrouble.value = '';
     phase.value = 'idle';
@@ -1012,6 +1018,8 @@ export function useOnlineRoom() {
     /* KHAI HIỂU ĐỘI THEO SỐ (`dd=2`, 15.11.2026; `dd=1` là bản 1.7 với đội A/B). Có người chung
        đội mà ai đó trong phòng không khai mức này thì server không mở ván, nhắc họ cập nhật. */
     params.set('dd', '2');
+    /* KHAI VẼ ĐƯỢC TÌM THẺ ONLINE (`tim=1`, 27.11.2026): phòng Tìm Thẻ chặn ai không khai (app cũ không có màn đó). */
+    params.set('tim', '1');
     /* Chỉ để LOG server (`[ws]` ở node-server): bản web/OTA + nền tảng — biết lỗi rơi vào bản nào, máy nào. */
     params.set('v', __OTA_ID__);
     params.set('nen', nenApp);
@@ -1162,7 +1170,7 @@ export function useOnlineRoom() {
           if (!spectator.value && token && !location.search.includes('room=')) {
             ghiUrl(`${location.pathname}?room=${code}`);
           }
-          view.value = null;          // "Chơi lại" đưa cả phòng về lobby — bỏ view ván cũ
+          view.value = null; tim.value = null;          // "Chơi lại" đưa cả phòng về lobby — bỏ view ván cũ
           countdown.value = null;
         }
         if (msg.room.status === 'playing') {
@@ -1171,6 +1179,13 @@ export function useOnlineRoom() {
         }
         if (msg.room.status === 'ended') endSession();
         else if (!spectator.value && token) luuPhien();   // ảnh phòng + hạn phiên luôn mới
+        break;
+
+      case 'tim':
+        tim.value = msg.view;
+        timNhanLuc.value = performance.now();
+        phase.value = 'playing';
+        if (msg.view.pha === 'xong') endSession();
         break;
 
       case 'state': {
@@ -1251,7 +1266,7 @@ export function useOnlineRoom() {
         clearStored();
         leaveSocket();
         room.value = null;
-        view.value = null;
+        view.value = null; tim.value = null;
         coThuLai.value = false;
         phase.value = 'idle';
         if (msg.code === 'kicked' || msg.code === 'cancelled') {
@@ -1749,7 +1764,7 @@ export function useOnlineRoom() {
     daVaoPhong = false;
     phase.value = 'idle';
     room.value = null;
-    view.value = null;
+    view.value = null; tim.value = null;
     myId.value = '';
     token = '';
     error.value = '';
@@ -1919,7 +1934,7 @@ export function useOnlineRoom() {
   return {
     /** Token của mình trong phòng đang ở — chỉ để chủ phòng xác thực khi mời người online (lib/sanh.ts). */
     layToken: (): string => token,
-    phase, error, phongDong, room, view, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
+    phase, error, phongDong, room, view, tim, timNhanLuc, myId, isHost, me, myTurn, reconnecting, coThuLai, spectator, hinhCuaBan,
     vaoChoi, chuyenXem,
     phongCongKhai, dangTaiPhong, loiTaiPhong, taiPhongCongKhai,
     wrongPair, giuMo, swapPair, lastGain, turnBanner, emojiBong, loiNoi, sendSay, turnTimeLeft, timeBonusFor, elapsed,
@@ -1933,6 +1948,10 @@ export function useOnlineRoom() {
     setReady: (ready: boolean) => send({ t: 'ready', ready }),
     /** Bỏ phiếu số thẻ lúc server đang mở lượt chọn (`room.chon`) — xem ChonSoThe.vue. */
     chonThe: (the: number) => { moChucNang('online_chon_the', { the }); send({ t: 'chon', the }); },
+    /** TÌM THẺ: phiếu độ khó trong cùng lượt biểu quyết. */
+    chonKho: (kho: TimTheDoKho) => send({ t: 'chonKho', kho }),
+    /** TÌM THẺ: chọn ô; `ms` = giờ chọn đo tại máy này (server kẹp). */
+    timChon: (viTri: number, ms: number) => send({ t: 'timChon', viTri, ms: Math.round(ms) }),
     /** Đầu hàng (đang chơi) hoặc rời phòng (lobby) rồi thoát. */
     surrender: () => roiCoBao('leave'),
     /** Chủ phòng huỷ phòng — mọi người bị đưa ra ngoài. */

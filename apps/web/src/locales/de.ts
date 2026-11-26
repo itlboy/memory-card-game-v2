@@ -796,6 +796,8 @@ const de: TuDien = {
   'tt.sapUp': "Gleich werden die Karten verdeckt",
   'tt.upBai': "Verdecken…",
   'tt.hoi': "Wo liegt diese Karte?",
+  'tt.chonBan': "Spielfeld wählen",
+  'tt.thangTen': "{ten} gewinnt!",
   'tt.batDau': "Start — {n} Karten",
   'tt.timTheNay': "Finde diese Karte",
   'tt.cham': "Tippe die Karte, an die du dich erinnerst",

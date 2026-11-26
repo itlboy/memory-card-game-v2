@@ -19,7 +19,7 @@ import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import TimThe from './components/TimThe.vue';
-import { TIM_THE_MO, cheDoGa, type TimTheChon, type TimTheKetVan } from './lib/tim-the';
+import { TIM_THE_MO, cheDoGa, dangTimOnline, type TimTheChon, type TimTheKetVan } from './lib/tim-the';
 import SoTriNho from './components/SoTriNho.vue';
 import BangPremium from './components/BangPremium.vue';
 import LaRoi from './components/LaRoi.vue';
@@ -1267,7 +1267,7 @@ const hasNext = computed(() => {
 <template>
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <!-- …kể cả Mưa Thẻ: icon bay giữa các lá đang rơi trông như một lá nữa -->
-  <IconBay v-if="screen !== 'game' && !laManRieng(screen)" />
+  <IconBay v-if="screen !== 'game' && !laManRieng(screen) && !dangTimOnline" />
   <!-- Lá bài rơi như cánh hoa — riêng hình nền Hoa anh đào (LaRoi.vue), cùng luật với icon bay: không có lúc đang chơi -->
   <LaRoi v-if="canh === 'anh-dao' && screen !== 'game' && !laManRieng(screen)" />
   <!-- Sao băng thưa: chỉ đi kèm hình nền hành tinh (Premium), không có lúc đang chơi Mưa Thẻ -->

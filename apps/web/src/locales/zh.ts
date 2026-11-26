@@ -793,6 +793,8 @@ const zh: TuDien = {
   'tt.sapUp': "卡片马上翻面",
   'tt.upBai': "翻面中…",
   'tt.hoi': "这张卡在哪里？",
+  'tt.chonBan': "选择牌桌",
+  'tt.thangTen': "{ten} 获胜！",
   'tt.batDau': "开始 — {n} 张",
   'tt.timTheNay': "找出这张卡",
   'tt.cham': "点你记得的那张卡",

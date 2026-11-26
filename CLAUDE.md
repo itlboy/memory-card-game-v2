@@ -349,6 +349,15 @@
   Thẻ thì BanChon (`tim`) chỉ giữ dòng Bộ thẻ, `ChonTimThe.vue` vẽ Số thẻ + Độ khó, Bắt đầu là vào ván (TimThe.vue chia
   bàn ngay ở `onMounted`); đối thủ = một mình (Chơi nhanh) / mức máy đang chọn (Đấu với máy). Kiểu nhớ ở `mm.kieuChoi`.
   Hết ván, "Đổi cấu hình" = về lại màn đó. Mở cho mọi người = `TIM_THE_MO = true`.
+- **ONLINE (chặng 2, 27.11.2026, mockup duyệt https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6)**: chủ phòng chọn Kiểu chơi
+  ở phòng chờ (`config.kieu = 'tim'`, hàng hai viên như màn setup). Bắt đầu → `ChonTimTheOnline.vue` biểu quyết số thẻ
+  (đủ 6 cỡ) + độ khó (`chon.kho`, tin `chonKho`) — popup ghép cặp `ChonSoThe` bỏ qua khi có `kho`. Nhịp ván do SERVER dẫn:
+  engine `PhongTimThe` (`tim-the-phong.ts`, test riêng) — room.ts giữ ở ô `tim` RIÊNG (KHÔNG đụng `game` của ghép cặp),
+  hẹn alarm theo `henKe`, phát `t:'tim'`. Ván KHÔNG lưu (dậy giữa ván → về phòng chờ, `load`). Client khai `?tim=1`; thiếu
+  thì Bắt đầu báo `tim-client-cu` (như `dd`). Giờ chọn đo TẠI MÁY người chơi, server kẹp (không quá giờ server, không sớm
+  hơn `TIM_PHONG_LECH_MS`) và chờ thêm `TIM_PHONG_TRE_MS` cho lời chọn đang trên đường. Màn `OnlineTimThe.vue`: cùng luật
+  "chỉ có bàn thẻ" + hàng người chơi; đang chọn chỉ lộ AI đã chọn, đáp án mới hiện mặt dưới lá. Phòng có máy: không xu,
+  không lên sổ (như ghép cặp online). Máy trực phòng (`phong-bot.ts`) rời ghế khi phòng chuyển sang Tìm Thẻ.
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả

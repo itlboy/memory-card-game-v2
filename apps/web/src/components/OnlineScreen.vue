@@ -43,6 +43,10 @@ import DaiBao from './DaiBao.vue';
 import NhacSanSang from './NhacSanSang.vue';
 import BongNgo from './BongNgo.vue';
 import ChonSoThe from './ChonSoThe.vue';
+import ChonTimTheOnline from './ChonTimTheOnline.vue';
+import OnlineTimThe from './OnlineTimThe.vue';
+import { dangDebug } from '@/lib/debug';
+import { TIM_THE_MO } from '@/lib/tim-the';
 import { useBaoPhong } from '@/composables/useBaoPhong';
 import { baoNoi, boBao } from '@/lib/dai-bao';
 import { NHAC_CACH_MS } from '@mm/engine';
@@ -1002,6 +1006,15 @@ const wizPool = computed(() => new Set(
 
 /** Số thẻ của cấp phòng đang chọn — nói "cấp 12" suông thì không ai hình dung
  *  được bàn to cỡ nào. */
+/** TÌM THẺ ONLINE (27.11.2026): chủ phòng chọn kiểu chơi ngay ở phòng chờ — hiện khi Tìm Thẻ mở / đang bật debug. */
+const hienTim = computed(() => TIM_THE_MO || dangDebug.value);
+const laTimPhong = computed(() => o.room.value?.config.kieu === 'tim');
+function doiKieuPhong(k: 'thuong' | 'tim'): void {
+  if ((k === 'tim') === laTimPhong.value) return;
+  sfx.select();
+  o.setConfig({ kieu: k });
+}
+
 const cardCount = computed(() => {
   const lv = o.room.value?.config.level;
   return lv ? levelSpec(lv).pairs * 2 : 0;
@@ -1064,7 +1077,7 @@ function openCfgWizard(): void {
     <div v-if="wizard === 'ban'" class="step-body nhanh">
       <p class="hint-multi">{{ t('on.banChung') }}</p>
       <BanChon
-        :level="cfg.level" :symbol-count="allSymbols" :themes="allThemes" :theme-ids="cfg.themeIds" :options="cfg.options"
+        :level="cfg.level" :symbol-count="allSymbols" :themes="allThemes" :theme-ids="cfg.themeIds" :options="cfg.options" :tim="laTimPhong"
         @chon-co="chonCoBan" @mo="moBuocBan"
       />
       <p v-if="wizTooSmall" class="warn" role="alert">
@@ -1477,12 +1490,19 @@ function openCfgWizard(): void {
     </ul>
 
     <template v-if="o.isHost.value">
+      <!-- KIỂU CHƠI (27.11.2026, mockup duyệt https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6 màn ①): cùng hàng hai viên như
+           màn Chơi nhanh / Đấu với máy. Tìm Thẻ: số thẻ + độ khó do cả phòng biểu quyết lúc Bắt đầu, dòng Bàn chỉ còn Bộ thẻ. -->
+      <span v-if="hienTim" class="kieu-seg" role="radiogroup" :aria-label="t('menu.kieuChoi')">
+        <button v-for="k in (['thuong', 'tim'] as const)" :key="k" class="nut-kieu thach th-nho th-chon" type="button" role="radio" :aria-checked="(k === 'tim') === laTimPhong" @click="doiKieuPhong(k)">
+          {{ k === 'tim' ? t('tt.ten') : t('menu.kieu.thuong') }}
+        </button>
+      </span>
       <!-- Một dòng "Bàn: 12 thẻ (Dễ) — bộ · luật — Đổi ›" (17.11.2026) thay tóm tắt + nút Chỉnh + chip -->
       <button class="nh-dong ban-dong thach" type="button" @click="openCfgWizard">
         <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhBan" :key="h" :src="h" alt=""></span>
         <span class="nh-chu">
-          <strong>{{ t('on.ban', { n: cardCount }) }}</strong>
-          <small>{{ boBan }} · {{ luatBan }}</small>
+          <strong>{{ laTimPhong ? t('tt.ten') : t('on.ban', { n: cardCount }) }}</strong>
+          <small>{{ laTimPhong ? boBan : `${boBan} · ${luatBan}` }}</small>
         </span>
         <span class="nh-sua">{{ t('menu.nhanh.doi') }} ›</span>
       </button>
@@ -1498,13 +1518,13 @@ function openCfgWizard(): void {
       <!-- Bàn chơi ĐỌC TRƯỚC KHI BẤM: đây là thứ người ta cần biết để quyết
            định có sẵn sàng hay không, nên nó phải nằm TRÊN nút. Ở dưới thì đọc
            xong mới thấy, mà lúc đó đã bấm rồi. -->
-      <div v-if="optionChips(o.room.value?.config).length" class="cfg-chips">
+      <div v-if="!laTimPhong && optionChips(o.room.value?.config).length" class="cfg-chips">
         <span v-for="c in optionChips(o.room.value?.config)" :key="c.key" class="cfg-chip">
           <OptionIcon :name="c.icon" :size="17" />{{ c.text }}
         </span>
       </div>
       <p class="hint">
-        {{ t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
+        {{ laTimPhong ? t('tt.ten') : t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — {{ t('on.choChuPhong') }}
       </p>
       <!-- NGƯỜI XEM Ở PHÒNG CHỜ (23.11.2026): giữ vai xem, tự bấm mới thành người chơi — không còn tự bị kéo vào ghế trống -->
@@ -1547,6 +1567,8 @@ function openCfgWizard(): void {
   </section>
 
   <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
+  <!-- TÌM THẺ ONLINE: màn riêng (server gửi `t:'tim'`), cùng chỗ với OnlineGame -->
+  <OnlineTimThe v-else-if="laTimPhong && (!wizard || o.phase.value === 'ended')" :o="o" @quit="quitVeOnline" />
   <OnlineGame v-else-if="!wizard || o.phase.value === 'ended'" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
 
   <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
@@ -1555,6 +1577,7 @@ function openCfgWizard(): void {
   <LoiNoi v-if="o.phase.value !== 'playing' && o.phase.value !== 'ended'" :o="o" />
   <!-- POPUP CHỌN SỐ THẺ (23.11.2026): server mở lượt chọn khi bấm Bắt đầu / Chơi lại — nổi trên phòng chờ lẫn bảng kết quả -->
   <ChonSoThe :o="o" />
+  <ChonTimTheOnline :o="o" />
 
   <!-- Hộp chia sẻ: mã QR + mã 6 số + hai nút copy. Có nút đóng, bấm nền hay
        Esc cũng đóng, và nút Back của trình duyệt đóng nó trước tiên. -->
@@ -2257,4 +2280,10 @@ input:focus { outline: none; border-color: var(--accent); }
   .seg-btn { height: 26px; min-height: 26px; }   /* vùng chạm vẫn 42px nhờ ::after */
 }
 .nut-cap-nhat { display: block; margin: 8px auto 0; min-height: 44px; padding: 0 22px; font-weight: 800; }
+/* Hàng KIỂU CHƠI ở phòng chờ — cùng chất hàng ở màn Chơi nhanh (MenuScreen `.kieu-seg`) */
+.kieu-seg {
+  flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 999px;
+  background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line)); box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
+}
+.nut-kieu { position: relative; min-height: 42px; border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--fg); font-family: var(--font-display); font-size: 16px; font-weight: 800; cursor: pointer; }
 </style>

@@ -799,6 +799,8 @@ const fr: TuDien = {
   'tt.sapUp': "Les cartes vont se retourner",
   'tt.upBai': "Retournement…",
   'tt.hoi': "Où est cette carte ?",
+  'tt.chonBan': "Choisir la table",
+  'tt.thangTen': "{ten} gagne !",
   'tt.batDau': "Commencer — {n} cartes",
   'tt.timTheNay': "Trouve cette carte",
   'tt.cham': "Touche la carte dont tu te souviens",
