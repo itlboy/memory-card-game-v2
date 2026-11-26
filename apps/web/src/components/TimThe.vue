@@ -28,7 +28,6 @@ import { rung } from '@/lib/rung';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import DongXu from './DongXu.vue';
-import IconVong from './IconVong.vue';
 import MatBot from './MatBot.vue';
 import TamDung from './TamDung.vue';
 import { Check, Ellipsis, Pause, TimerOff, Trophy, User, X, Zap } from 'lucide-vue-next';
@@ -115,21 +114,18 @@ const bangKq = computed(() => {
 const ban = ref<HTMLElement | null>(null);
 const laW = ref(72);
 const KHE = 10;
-/** Thanh giờ (10px) + khe tới bàn thẻ — trừ khỏi chiều cao khi tính cỡ thẻ. */
-const THANH_CAO = 22;
 let ro: ResizeObserver | undefined;
 function doBan(): void {
   const el = ban.value;
   if (!el) return;
   const n = van.value?.cfg.soThe ?? chon.value.soThe;
   const cot = timTheSoCot(n), hang = Math.ceil(n / cot);
-  const w = Math.min((el.clientWidth - KHE * (cot - 1)) / cot, ((el.clientHeight - THANH_CAO - KHE * (hang - 1)) / hang) * 0.75, 132);
+  const w = Math.min((el.clientWidth - KHE * (cot - 1)) / cot, ((el.clientHeight - KHE * (hang - 1)) / hang) * 0.75, 132);
   laW.value = Math.max(36, Math.floor(w));
 }
 const coAnh = computed(() => chonCoAnh(laW.value * 0.62));
 
 /* ---------- vòng lặp ---------- */
-const thanh = ref<HTMLElement | null>(null);
 let raf = 0;
 let truoc = 0;
 let hen: ReturnType<typeof setTimeout>[] = [];
@@ -157,13 +153,10 @@ function khung(ms: number): void {
   raf = requestAnimationFrame(khung);
 }
 
-/** Thanh giờ + số giây: chỉ nhịp `xem` và `hoi` có đồng hồ; ba giây cuối của nhịp hỏi kêu tích. */
+/** Không có thanh giờ trên màn (27.11.2026) — giờ chỉ báo bằng tiếng tích ba giây cuối của nhịp hỏi. */
 function veGio(v: VanTimThe): void {
-  const dai = nhip.value === 'xem' ? v.xemMs : nhip.value === 'hoi' ? v.chonMs : 0;
+  const dai = nhip.value === 'hoi' ? v.chonMs : 0;
   if (!dai) return;
-  const con = Math.max(0, 1 - tNhip / dai);
-  const el = thanh.value;
-  if (el) { el.style.transform = `scaleX(${con})`; el.classList.toggle('gap', nhip.value === 'hoi' && con < 0.3); }
   const s = Math.ceil((dai - tNhip) / 1000);
   if (s !== giayCu) {
     if (giayCu !== -1 && nhip.value === 'hoi' && s <= 3 && s > 0 && chonCuaToi.value === null) sfx.tick();
@@ -288,33 +281,11 @@ defineExpose({
       </div>
     </div>
 
-    <!-- Bảng trên KHÔNG có số giây nhảy (27.11.2026): số đổi mỗi giây kéo mắt khỏi bàn. Giờ = thanh sát bàn + tiếng tích. -->
-    <div class="khay tt-bang" aria-live="polite">
-      <template v-if="nhip === 'xem'">
-        <IconVong ic="ghiNho" :size="44" />
-        <div class="chu"><strong>{{ t('tt.ghiNho') }}</strong><span>{{ t('tt.sapUp') }}</span></div>
-      </template>
-      <template v-else-if="nhip === 'up'">
-        <IconVong ic="upBai" :size="44" />
-        <div class="chu"><strong>{{ t('tt.upBai') }}</strong></div>
-      </template>
-      <template v-else-if="(nhip === 'noi' || nhip === 'hoi') && van">
-        <span :key="van.luot" class="dich" aria-hidden="true">
-          <img v-if="anhEmoji(van.hinhDich, undefined, coAnh)" :src="anhEmoji(van.hinhDich, undefined, coAnh)!" alt="" draggable="false">
-          <template v-else>{{ van.hinhDich }}</template>
-        </span>
-        <div class="chu"><strong>{{ t('tt.hoi') }}</strong><span>{{ chonCuaToi !== null && nhieu ? t('tt.choDoiThu') : t('tt.cham') }}</span></div>
-      </template>
-      <template v-else-if="bangKq">
-        <IconVong :key="van?.luot" :ic="bangKq.ic" :size="44" />
-        <div class="chu"><strong>{{ bangKq.chu }}</strong><span>{{ bangKq.phu }}</span></div>
-      </template>
-    </div>
+    <!-- KHÔNG có bảng thông báo, KHÔNG thanh giờ (27.11.2026, chủ dự án: "Cứ nháy nháy mất tập trung lắm", "Ng chơi
+         hiểu mà", "thanh ghi nhớ thời gian cũng bỏ đi"). Màn chơi CHỈ có bàn thẻ; giờ báo bằng tiếng tích 3 giây cuối.
+         Dòng dưới chỉ cho trình đọc màn hình. -->
+    <p class="an-di" aria-live="polite">{{ nhip === 'hoi' && van ? `${t('tt.hoi')} ${van.hinhDich}` : bangKq?.chu ?? '' }}</p>
     <div ref="ban" class="tt-ban">
-      <!-- Thanh giờ DÍNH SÁT bàn thẻ, rộng đúng bằng bàn (27.11.2026): đặt ở dưới bảng trên cùng thì mắt rời bàn để
-           xem giờ — mất tập trung. Nguyên tắc của Tìm Thẻ: thứ gì cần nhìn trong lượt phải nằm ngay ở bàn. -->
-      <div class="cum">
-      <div class="tt-thanh" aria-hidden="true"><i ref="thanh" /></div>
       <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
         <div v-for="(sym, i) in dsThe" :key="`${van?.luot}-${i}`" class="o">
           <button
@@ -338,7 +309,6 @@ defineExpose({
             </span>
           </button>
         </div>
-      </div>
       </div>
 
       <!-- THẺ CẦN TÌM giữa bàn: lớp mờ + thẻ to, tan tại chỗ khi sang nhịp hỏi (không chạm được bàn lúc này) -->
@@ -476,16 +446,6 @@ defineExpose({
 @keyframes bay { from { transform: translateY(8px); opacity: 0; } 25% { opacity: 1; } to { transform: translateY(-6px); opacity: 1; } }
 @keyframes no { from { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.12); } to { transform: none; opacity: 1; } }
 
-.tt-bang { flex: none; display: flex; align-items: center; gap: 12px; min-height: 84px; padding: 10px 14px; box-sizing: border-box; }
-.tt-bang .chu { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.tt-bang strong { font-family: var(--font-display); font-weight: 800; font-size: clamp(18px, 5vw, 22px); line-height: 1.15; text-wrap: balance; }
-.tt-bang .chu span { font-size: 13.5px; color: var(--muted); }
-.dich {
-  flex: none; width: 52px; aspect-ratio: 3 / 4; border-radius: 11px; display: grid; place-items: center; font-size: 28px;
-  background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 2.5px solid #6d8fdc;
-  box-shadow: 0 3px 0 #4563ad, 0 6px 10px rgba(20, 30, 70, .2); animation: no .32s both;
-}
-.dich img { width: 70%; height: auto; object-fit: contain; }
 
 /* Nhịp `noi`: lớp mờ phủ cả bàn + thẻ cần tìm to ở giữa (mockup duyệt 27.11.2026) */
 .tt-noi {
@@ -511,18 +471,8 @@ defineExpose({
 .tt-noi-leave-active .lon { transition: transform .12s; transform: scale(.8); }
 .tt-noi-enter-from, .tt-noi-leave-to { opacity: 0; }
 
-.cum { display: flex; flex-direction: column; gap: 12px; }
-.tt-thanh {
-  flex: none; height: 10px; margin: 0 2px; border-radius: 999px; overflow: hidden;
-  background: color-mix(in srgb, var(--panel, #fff) 55%, transparent); box-shadow: inset 0 2px 3px rgba(20, 30, 70, .2);
-}
-.tt-thanh i {
-  display: block; height: 100%; border-radius: inherit; transform-origin: left center;
-  background: linear-gradient(#a3ec72, #46ad22 70%); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5);
-}
-[dir='rtl'] .tt-thanh i { transform-origin: right center; }
-.tt-thanh i.gap { background: linear-gradient(#ff9c8a, #e0533a 70%); }
 
+.an-di { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; }
 .tt-ban { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
 .luoi { display: grid; gap: 10px; justify-content: center; align-content: center; }
 .o { position: relative; aspect-ratio: 3 / 4; }
@@ -612,6 +562,6 @@ defineExpose({
 .ic-n { vertical-align: -2px; }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
-  .o .card.dung, .card.sai .inner, .dich, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi { animation: none; }
+  .o .card.dung, .card.sai .inner, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi { animation: none; }
 }
 </style>

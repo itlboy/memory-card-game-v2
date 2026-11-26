@@ -351,10 +351,11 @@
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
   bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Hỏi = thẻ cần tìm hiện TO CHÍNH GIỮA BÀN trên lớp mờ
-  `TIM_THE_NOI_MS` (1,2 giây, ngoài giờ chọn, chưa chạm được) rồi tan tại chỗ; bảng trên giữ ô nhỏ nhắc lại (27.11.2026, duyệt
+  `TIM_THE_NOI_MS` (1,2 giây, ngoài giờ chọn, chưa chạm được) rồi tan tại chỗ (27.11.2026, duyệt
   https://claude.ai/artifact/45faUe94GByb1Qp2Q7C6fy — chỉ ở bảng trên thì mắt rời bàn, mất tập trung).
-  **NGUYÊN TẮC: KHÔNG GÌ ĐƯỢC KÉO MẮT KHỎI BÀN** (chủ dự án 27.11.2026: "Ko nên làm gì gây sự mất tập trung"): thanh giờ
-  dính sát ngay trên bàn thẻ, rộng bằng bàn; bảng trên KHÔNG có số giây nhảy. Thêm gì vào màn chơi thì hỏi: nó có bắt
+  **NGUYÊN TẮC: KHÔNG GÌ ĐƯỢC KÉO MẮT KHỎI BÀN** (chủ dự án 27.11.2026: "Ko nên làm gì gây sự mất tập trung"): màn chơi
+  CHỈ có bàn thẻ — KHÔNG bảng thông báo, KHÔNG thanh giờ, KHÔNG số giây (1.10.62: "Cứ nháy nháy mất tập trung lắm",
+  "Ng chơi hiểu mà"); giờ báo bằng tiếng tích 3 giây cuối; đúng/sai = viền thẻ. Câu chữ chỉ còn cho trình đọc màn hình. Thêm gì vào màn chơi thì hỏi: nó có bắt
   mắt rời bàn không? Ván = 10 lượt, KHÔNG đồng hồ cả ván, KHÔNG tim. Số thẻ chỉ
   3·4·6·9·12 ("12 là nhiều lắm đấy"). Độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
   giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
