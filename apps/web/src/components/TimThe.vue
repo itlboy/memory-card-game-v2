@@ -345,7 +345,7 @@ defineExpose({
       <Transition name="tt-noi">
         <div v-if="nhip === 'noi' && van && buoc !== 'dau'" :key="van.luot" class="tt-noi" aria-hidden="true">
           <span class="lon">
-            <img v-if="anhEmoji(van.hinhDich, undefined, chonCoAnh(150))" :src="anhEmoji(van.hinhDich, undefined, chonCoAnh(150))!" alt="" draggable="false">
+            <img v-if="anhEmoji(van.hinhDich, undefined, chonCoAnh(108))" :src="anhEmoji(van.hinhDich, undefined, chonCoAnh(108))!" alt="" draggable="false">
             <template v-else>{{ van.hinhDich }}</template>
           </span>
           <b class="nhan-noi">{{ t('tt.timTheNay') }}</b>
@@ -494,19 +494,21 @@ defineExpose({
   background: rgba(13, 24, 56, .38); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
 }
 .tt-noi .lon {
-  width: min(150px, 42%); aspect-ratio: 3 / 4; border-radius: 18px; display: grid; place-items: center; font-size: 84px; line-height: 1;
+  width: min(108px, 30%); aspect-ratio: 3 / 4; border-radius: 15px; display: grid; place-items: center; font-size: 60px; line-height: 1;
   background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 4px solid #ffc21a;
   box-shadow: 0 6px 0 #c98f00, 0 14px 30px rgba(10, 20, 60, .35); animation: bat .38s cubic-bezier(.3, 1.5, .5, 1) both;
 }
 .tt-noi .lon img { width: 66%; height: auto; object-fit: contain; }
 .nhan-noi {
-  font-family: var(--font-display); font-weight: 900; font-size: 22px; color: #fff; padding: 6px 16px; border-radius: 999px;
+  font-family: var(--font-display); font-weight: 900; font-size: 18px; color: #fff; padding: 5px 14px; border-radius: 999px;
   background: #2f4fa6; box-shadow: 0 3px 0 #1f3577; animation: bat .38s .08s both;
 }
 @keyframes bat { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
 .tt-noi-enter-active { transition: opacity .25s; }
-.tt-noi-leave-active { transition: opacity .3s; }
-.tt-noi-leave-active .lon { transition: transform .3s; transform: scale(.6); }
+/* Lúc tan: KHÔNG chặn chạm + tan nhanh — đồng hồ chọn đã chạy, lớp mờ còn đón chạm thì cú bấm đầu bị nuốt
+   (chủ dự án 27.11.2026: "bấm rất nhanh mà vẫn lâu"). */
+.tt-noi-leave-active { transition: opacity .12s; pointer-events: none; }
+.tt-noi-leave-active .lon { transition: transform .12s; transform: scale(.8); }
 .tt-noi-enter-from, .tt-noi-leave-to { opacity: 0; }
 
 .cum { display: flex; flex-direction: column; gap: 12px; }
