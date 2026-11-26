@@ -988,6 +988,19 @@ const ru: TuDien = {
   'hhb.tim': "Сердце",
   'hhb.kc': "Бриллиант",
   'hhb.khong': "Не показывать значок",
+  'fx.chuoi': "Серия {n}",
+  'fx.premium': "Эффект Premium",
+  'pm.d.nen': "{n} темы с подходящим фоном и рубашкой",
+  'pm.d.lung': "{n} рубашек карт под тему",
+  'pm.d.nhac': "{n} треков, втрое больше бесплатных",
+  'pm.d.huyHieu': "Все видят, что у вас Premium",
+  'pm.d.thongKe': "Смотрите целый год, а не 14 дней",
+  'pm.d.hieuUng': "Пары вспыхивают в стиле темы",
+  'pm.s.emoji': "Эмодзи Premium",
+  'pm.d.emoji': "{n} особых эмодзи для онлайн-чата",
+  'pm.d.hoTro': "Игра остаётся без рекламы",
+  'pm.han': "Осталось {con} / {tong} дн.",
+  'pm.banSeCo': "Вы получите",
   'cn.ngauNhien': "Случайно",
   'cn.ngauNhienNen': "Новая тема примерно каждые 30 минут",
   'cn.ngauNhienNhac': "Новый трек примерно каждые 30 минут",
@@ -1059,6 +1072,8 @@ const ru: TuDien = {
   'tn.conVan': "Ещё {n} игр",
   'tn.tab5': "По ходам",
   'tn.tab14': "По времени",
+  'tn.tabNam': "Год",
+  'tn.thang': "Месяц {n}",
 };
 
 export default ru;

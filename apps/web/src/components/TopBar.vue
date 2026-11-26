@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { vChamNgoai } from '@/lib/cham-ngoai';
 import { hoSo, tenToi } from '@/lib/ho-so';
-import { huyHieuDangDeo } from '@/lib/premium';
+import { daMuaPremium, huyHieu, huyHieuDangDeo, moiNangCap } from '@/lib/premium';
+import { canh, canhNgauNhien } from '@/lib/canh';
+import { tenBaiNhac } from '@/lib/ten-bai-nhac';
 import DauPremium from './DauPremium.vue';
-import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -60,7 +62,7 @@ async function doiAnBxh(): Promise<void> {
   try { await anKhach(an); } catch { /* mất mạng: cờ đã lưu ở máy, lần gửi điểm sau mang theo */ } finally { dangDoiAn.value = false; }
 }
 const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | 'nn' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
-  'update:debug': [boolean]; 'mo-debug': []; premium: []; 'hinh-nen': []; 'nhac-nen': [] }>();
+  'update:debug': [boolean]; 'mo-debug': []; premium: []; 'hinh-nen': []; 'nhac-nen': []; 'mo-pm': ['nen' | 'nhac' | 'hh'] }>();
 
 /*
  * CỬA VÀO CHẾ ĐỘ DEBUG: chạm 7 LẦN LIÊN TIẾP vào chữ "Cài đặt" HOẶC dòng "Giao diện" trong
@@ -137,7 +139,8 @@ const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
 /** App gọi khi bảng Hình nền / Nhạc nền đóng lại: người chơi quay về đúng menu họ vừa rời (xem App.vue `veMenuKhiDong`). */
-defineExpose({ moMenu: (): void => { open.value = true; } });
+/** `cd`: mở thẳng trang Cài đặt (đóng bảng con mở từ mục Cài đặt Premium ở trang đó thì về lại đây). */
+defineExpose({ moMenu: (trang?: 'cd'): void => { open.value = true; if (trang === 'cd') void nextTick(() => { trangCd.value = true; }); } });
 /** Menu đang hiện bảng chọn ngôn ngữ thay cho danh sách cài đặt; đóng menu là về danh sách. */
 const chonNN = ref(false);
 watch(open, (v) => { if (!v) { chonNN.value = false; trangCd.value = false; } else if (kiemCN.value !== 'dang') kiemCN.value = ''; });
@@ -498,6 +501,22 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
             <button class="cd-lui thach" type="button" :aria-label="t('tb.menu')" @click="trangCd = false"><ChevronLeft :size="18" /></button>
             <p class="nhom" role="presentation">{{ t('tb.caiDat') }}</p>
           </div>
+          <!-- CÀI ĐẶT PREMIUM ngay trong trang Cài đặt (26.11.2026, chủ dự án: "trong cài đặt giờ cũng cho menu cài đặt premium,
+               tương tự bấm vào nút premium") — cùng ba ô như bảng Premium. Đóng bảng con là về lại ĐÚNG trang này (App
+               `veMenuKhiDong` gọi `moMenu('cd')`). Chưa có Premium (đang được mời) thì một dòng mở bảng Premium. Cùng cổng
+               với mọi đồ Premium: chỉ khi có Premium hoặc `moiNangCap`. -->
+          <template v-if="daMuaPremium || moiNangCap">
+            <p class="nhom cd-pm-nhom" role="presentation"><Crown :size="13" :stroke-width="2.8" aria-hidden="true" />{{ t('pm.caiDat') }}</p>
+            <div v-if="daMuaPremium" class="cd-pm" role="group" :aria-label="t('pm.caiDat')">
+              <button class="thach cd-pm-o" type="button" @click="emit('mo-pm', 'nen')"><Image :size="18" :stroke-width="2.4" aria-hidden="true" /><b>{{ t('pm.s.nen') }}</b><small>{{ canhNgauNhien ? t('cn.ngauNhien') : td(`pm.nen.${canh}`) }}</small></button>
+              <button class="thach cd-pm-o" type="button" @click="emit('mo-pm', 'nhac')"><Music :size="18" :stroke-width="2.4" aria-hidden="true" /><b>{{ t('tb.nhacNen') }}</b><small>{{ !nhac ? td('tb.amNgan.off') : nhacNgauNhien ? t('cn.ngauNhien') : tenBaiNhac(baiNhac ?? 'keo') }}</small></button>
+              <button class="thach cd-pm-o" type="button" @click="emit('mo-pm', 'hh')"><Award :size="18" :stroke-width="2.4" aria-hidden="true" /><b>{{ t('pm.cd.huyHieu') }}</b><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : td('tb.amNgan.off') }}</small></button>
+            </div>
+            <button v-else class="item thach" type="button" @click="dong(); emit('premium')">
+              <Crown :size="20" /><span>{{ t('pm.moi.menu') }}</span><ChevronRight :size="18" aria-hidden="true" />
+            </button>
+            <hr class="ke" />
+          </template>
           <!-- Rung: giấu khi máy không rung được (web trên iPhone) — công tắc không làm gì là công tắc nói dối -->
           <button data-phang v-if="coRung" class="item cong-tac" role="menuitemcheckbox" type="button"
             :aria-checked="!!rung" :aria-label="rung ? t('tb.rungBat') : t('tb.rungTat')" @click="$emit('toggle-rung')">
@@ -885,6 +904,12 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 .mat { display: grid; gap: 2px; min-width: 0; }
 /* Trang con cùng bề ngang trang chính: menu không co giật khi trượt qua lại */
 .menu-cd { min-width: 268px; }
+.cd-pm-nhom { display: flex; align-items: center; gap: 5px; margin: 6px 4px 0 !important; color: #c9820a !important; }
+:global([data-theme='dark'] .cd-pm-nhom) { color: #ffd166 !important; }
+.cd-pm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 2px 2px 4px; }
+.cd-pm-o { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 8px 3px 7px; border-radius: 14px; color: inherit; cursor: pointer; }
+.cd-pm-o b { font: 800 12.5px/1.15 var(--font-body); }
+.cd-pm-o small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 11px/1.15 var(--font-body); color: var(--muted); }
 .cd-dau { display: flex; align-items: center; gap: 6px; margin: 2px 4px 2px 2px; }
 .cd-dau .nhom { margin: 0; }
 .cd-lui {

@@ -16,14 +16,16 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * tab / đổi ngày CHỈ ĐỔI SỐ (chủ dự án: "bấm cột khác… giao diện thì nhảy, tại sao phải làm thế?").
  * MÀU: phần chính lấy màu của BẬC; ngọc chỉ còn ở các cột — hai tông (đậm nền sáng, sáng nền tối) vì một tông chỉ đạt 2,7–3,0.
  */
-import { ChartColumn, Play, X } from 'lucide-vue-next';
+import { ChartColumn, Crown, Play, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { MOC_CO_DIEM, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theNenLuyen, vanConThieu } from '@/lib/tri-nho';
+import { MOC_CO_DIEM, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theNenLuyen, vanConThieu } from '@/lib/tri-nho';
+import { ngayMay } from '@/lib/storage';
+import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 
 const emit = defineEmits<{ close: []; luyen: [soThe: number] }>();
 const nutDong = ref<HTMLButtonElement | null>(null);
@@ -36,7 +38,7 @@ const homNay = ngay[SO_COT - 1]!;
 /** Ngày đang xem (khoá `YYYY-MM-DD`) — mặc định hôm nay; bấm cột ở tab 14 ngày để đổi. */
 const chon = ref(homNay);
 const laHomNay = computed(() => chon.value === homNay);
-const tab = ref<'chang' | 'ngay'>('chang');
+const tab = ref<'chang' | 'ngay' | 'nam'>('chang');
 
 const ky = computed(() => chiSoTai(nhatKy, ngayTuKhoa(chon.value)));
 const conVan = computed(() => vanConThieu(ky.value));
@@ -72,6 +74,27 @@ const ngayThang = (k: string): string => `${Number(k.slice(8))}/${Number(k.slice
  * thì "24/11" đè lên "25/11".
  */
 const viTriChon = computed(() => ngay.indexOf(chon.value));
+/*
+ * TAB "CẢ NĂM" — QUYỀN LỢI PREMIUM (26.11.2026, mockup duyệt https://claude.ai/artifact/ALpRKG88kcozoAgRgw9gCh mục 3).
+ * 12 cột = 12 tháng gần nhất (tháng này ở cuối), mỗi cột là chỉ số GỘP CẢ THÁNG (cùng công thức `chiSo`, gộp mọi ngày
+ * của tháng). Máy giữ 400 ngày nhật ký (`TRI_NHO_GIU_NGAY`) nên đủ số liệu. Tab đeo vương miện; chưa có Premium thì bấm vào
+ * là mở bảng Premium. Chỉ bày khi có Premium hoặc đang được mời nâng cấp (cùng cổng mọi đồ Premium).
+ */
+const hienTabNam = computed(() => daMuaPremium.value || moiNangCap.value);
+const nayD = new Date();
+const thang = Array.from({ length: 12 }, (_, i) => {
+  const dau = new Date(nayD.getFullYear(), nayD.getMonth() - 11 + i, 1, 12);
+  const soNgay = new Date(dau.getFullYear(), dau.getMonth() + 1, 0).getDate();
+  const cacNgay = Array.from({ length: soNgay }, (_, d) => nhatKy[ngayMay(new Date(dau.getFullYear(), dau.getMonth(), d + 1, 12))]);
+  return { k: `${dau.getFullYear()}-${dau.getMonth() + 1}`, thang: dau.getMonth() + 1, diem: chiSo(cacNgay).diem };
+});
+const dinhNam = Math.max(200, ...thang.map((c) => c.diem ?? 0));
+const thangChon = ref(thang.length - 1);
+function moTabNam(): void {
+  if (!daMuaPremium.value) { moChucNang('premium_tri_nho_khoa'); emit('close'); moPremium('tri-nho'); return; }
+  tab.value = 'nam';
+  moChucNang('tri_nho_ca_nam', {}, true);
+}
 const coNhan = (k: string, i: number): boolean =>
   k === chon.value || ((i === 0 || i === SO_COT - 1) && Math.abs(i - viTriChon.value) >= 2);
 </script>
@@ -115,10 +138,13 @@ const coNhan = (k: string, i: number): boolean =>
       </section>
 
       <!-- (2) MỘT HÌNH, HAI TAB -->
-      <div class="doi" role="tablist">
+      <div class="doi" :class="{ ba: hienTabNam }" role="tablist">
         <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'chang' }" type="button" role="tab" :aria-selected="tab === 'chang'" @click="tab = 'chang'">{{ t('tn.tab5') }}</button>
         <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'ngay' }" type="button" role="tab" :aria-selected="tab === 'ngay'" @click="tab = 'ngay'; moChucNang('tri_nho_14_ngay', {}, true)">
           {{ t('tn.tab14') }}<template v-if="!laHomNay"> · {{ ngayThang(chon) }}</template>
+        </button>
+        <button v-if="hienTabNam" class="thach th-nho tab-nam" :class="{ 'th-ngoc': tab === 'nam', khoa: !daMuaPremium }" type="button" role="tab" :aria-selected="tab === 'nam'" :aria-label="`${t('tn.tabNam')} — ${t('tp.premium')}`" @click="moTabNam">
+          {{ t('tn.tabNam') }}<span class="vm" aria-hidden="true"><Crown :size="10" :stroke-width="3" /></span>
         </button>
       </div>
 
@@ -133,6 +159,18 @@ const coNhan = (k: string, i: number): boolean =>
       </div>
       <!-- Ngày CHƯA CÓ ĐIỂM thì không bấm được (trừ hôm nay): bấm vào quá khứ mà ra "Chơi thêm 4 ván để có điểm" là vô
            nghĩa (chủ dự án gửi ảnh 25.11.2026) — quá khứ thì không chơi thêm được. Bấm ngày cũ luôn ra một con số thật. -->
+      <div v-else-if="tab === 'nam'" class="hinh nam" role="tabpanel">
+        <button
+          v-for="(c, i) in thang" :key="c.k" data-phang type="button" class="c" :class="{ chon: i === thangChon, trong: c.diem === null }"
+          :disabled="c.diem === null" :aria-pressed="i === thangChon" :aria-label="`${t('tn.thang', { n: c.thang })}: ${c.diem === null ? t('tn.chuaDu') : num(c.diem)}`" @click="thangChon = i"
+        >
+          <span class="than">
+            <b>{{ i === thangChon && c.diem !== null ? c.diem : '' }}</b>
+            <i :style="{ height: c.diem === null ? '4px' : caoThan(Math.max(0.1, c.diem / dinhNam)) }" />
+          </span>
+          <small>{{ c.thang }}</small>
+        </button>
+      </div>
       <div v-else class="hinh ngay" role="tabpanel">
         <button
           v-for="(c, i) in cot" :key="c.k" data-phang type="button" class="c" :class="{ chon: c.k === chon, nghi: !c.choi, trong: c.diem === null }"
@@ -215,9 +253,17 @@ const coNhan = (k: string, i: number): boolean =>
 .doi button { min-height: 34px; padding: 0 14px; font: 800 13px/1 var(--font-body); }
 
 /* Hai tab CÙNG chiều cao: [thân co giãn: số 16 + cột] [nhãn 24] */
+/* BA TAB (có tab Cả năm): chia đều cả bề ngang, chữ một dòng — để tự co là "Theo thời gian" xuống hai dòng (chụp 26.11.2026) */
+.doi.ba { align-self: stretch; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.doi.ba button { min-width: 0; padding: 0 6px; white-space: nowrap; font-size: 12.5px; justify-content: center; }
 .hinh { height: 158px; display: grid; align-items: stretch; }
 .hinh.tru { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
+.hinh.nam { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+/* Tab Cả năm: vương miện nhỏ cạnh chữ; chưa có Premium thì tab hơi mờ (bấm vẫn mở bảng Premium) */
+.tab-nam { display: inline-flex; align-items: center; gap: 5px; }
+.tab-nam.khoa { opacity: .7; }
+.tab-nam .vm { display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }
 .hinh .c { min-width: 0; min-height: 0; height: 100%; padding: 0; border: 0; background: none; color: var(--fg);
   display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
 .hinh button.c { cursor: pointer; }

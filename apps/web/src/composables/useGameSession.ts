@@ -6,6 +6,8 @@ import type { BotLevel, BotMemory } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 import { tenNguoi } from '@/lib/ten';
 import { rung } from '@/lib/rung';
+import { daMuaPremium } from '@/lib/premium';
+import { bungGhep } from '@/lib/hieu-ung-premium';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 
 /** Mã người chơi của máy trong ván đấu máy — nhận ra ván đấu máy bằng mã này trong danh sách người chơi. */
@@ -100,6 +102,8 @@ export function useGameSession() {
           // Rung theo nước CỦA NGƯỜI — rung theo nước máy thì điện thoại rung suốt
           if (!laBot(e.playerId)) rung.ghep(streak);
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
+          // Hiệu ứng Premium (lib/hieu-ung-premium.ts): chỉ cặp của NGƯỜI trên máy có Premium, không cho cặp của máy
+          if (daMuaPremium.value && !laBot(e.playerId)) bungGhep(e.indices, streak);
           break;
         }
         case 'miss':

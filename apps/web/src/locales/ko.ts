@@ -968,6 +968,19 @@ const ko: TuDien = {
   'hhb.tim': "하트",
   'hhb.kc': "다이아몬드",
   'hhb.khong': "배지 숨기기",
+  'fx.chuoi': "{n}연속",
+  'fx.premium': "Premium 효과",
+  'pm.d.nen': "배경과 카드 뒷면이 함께 바뀌는 테마 {n}개",
+  'pm.d.lung': "테마별 카드 뒷면 {n}개",
+  'pm.d.nhac': "{n}곡, 무료 버전의 3배",
+  'pm.d.huyHieu': "모두가 Premium 이용자임을 알아봐요",
+  'pm.d.thongKe': "14일이 아니라 1년 전체를 돌아봐요",
+  'pm.d.hieuUng': "짝을 맞추면 테마에 맞게 반짝여요",
+  'pm.s.emoji': "Premium 이모지",
+  'pm.d.emoji': "온라인 채팅 전용 이모지 {n}개",
+  'pm.d.hoTro': "광고 없는 게임을 지켜 줘요",
+  'pm.han': "{con} / {tong}일 남음",
+  'pm.banSeCo': "받게 될 혜택",
   'cn.ngauNhien': "랜덤",
   'cn.ngauNhienNen': "약 30분마다 테마가 바뀝니다",
   'cn.ngauNhienNhac': "약 30분마다 곡이 바뀝니다",
@@ -1039,6 +1052,8 @@ const ko: TuDien = {
   'tn.conVan': "{n}판 더",
   'tn.tab5': "턴별",
   'tn.tab14': "기간별",
+  'tn.tabNam': "1년",
+  'tn.thang': "{n}월",
 };
 
 export default ko;

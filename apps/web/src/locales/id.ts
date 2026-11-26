@@ -971,6 +971,19 @@ const id: TuDien = {
   'hhb.tim': "Hati",
   'hhb.kc': "Berlian",
   'hhb.khong': "Jangan tampilkan lencana",
+  'fx.chuoi': "Beruntun {n}",
+  'fx.premium': "Efek Premium",
+  'pm.d.nen': "{n} tema, latar dan punggung kartu ikut berubah",
+  'pm.d.lung': "{n} punggung kartu sesuai tema",
+  'pm.d.nhac': "{n} lagu, 3× versi gratis",
+  'pm.d.huyHieu': "Semua orang tahu kamu punya Premium",
+  'pm.d.thongKe': "Lihat setahun penuh, bukan cuma 14 hari",
+  'pm.d.hieuUng': "Pasangan bersinar sesuai tema",
+  'pm.s.emoji': "Emoji Premium",
+  'pm.d.emoji': "{n} emoji khusus untuk chat online",
+  'pm.d.hoTro': "Membuat game tetap tanpa iklan",
+  'pm.han': "Sisa {con} / {tong} hari",
+  'pm.banSeCo': "Kamu akan dapat",
   'cn.ngauNhien': "Acak",
   'cn.ngauNhienNen': "Tema baru kira-kira setiap 30 menit",
   'cn.ngauNhienNhac': "Lagu baru kira-kira setiap 30 menit",
@@ -1042,6 +1055,8 @@ const id: TuDien = {
   'tn.conVan': "{n} game lagi",
   'tn.tab5': "Per giliran",
   'tn.tab14': "Per waktu",
+  'tn.tabNam': "Setahun",
+  'tn.thang': "Bulan {n}",
 };
 
 export default id;

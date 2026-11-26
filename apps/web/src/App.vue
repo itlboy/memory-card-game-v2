@@ -24,6 +24,7 @@ import LaRoi from './components/LaRoi.vue';
 import ChonHinhNen from './components/ChonHinhNen.vue';
 import ChonNhac from './components/ChonNhac.vue';
 import ChonHuyHieu from './components/ChonHuyHieu.vue';
+import GhepPremiumFx from './components/GhepPremiumFx.vue';
 import { bocLungVan } from './lib/lung-la';
 import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
 import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
@@ -354,7 +355,13 @@ const showNhac = ref(false);
  * đóng là mất luôn"). Hai bảng mở TỪ menu nên đóng (nút ✕, chạm ngoài, nút Back) phải trả người chơi về menu. Ngoại lệ: bảng
  * đóng để nhường chỗ cho bảng Premium (bấm mục khoá) — lúc đó `showPremium` đã bật, không mở menu chồng lên.
  */
-const topBar = ref<{ moMenu: () => void } | null>(null);
+const topBar = ref<{ moMenu: (trang?: 'cd') => void } | null>(null);
+/** Bảng con mở từ mục "Cài đặt Premium" ở trang Cài đặt của menu ☰ — đóng lại thì về lại trang Cài đặt. */
+let tuCaiDat = false;
+function moTuCaiDat(muc: 'nen' | 'nhac' | 'hh'): void {
+  tuCaiDat = true;
+  if (muc === 'nen') showHinhNen.value = true; else if (muc === 'nhac') showNhac.value = true; else showHuyHieu.value = true;
+}
 /** Bảng Chủ đề / Nhạc nền vừa được mở TỪ BẢNG PREMIUM (dòng "Cài đặt Premium") — đóng lại thì về bảng Premium, không về menu. */
 let tuPremium = false;
 function moTuPremium(muc: 'nen' | 'nhac' | 'hh'): void {
@@ -367,11 +374,11 @@ const showHuyHieu = ref(false);
 useBackCloser(31, () => showHuyHieu.value, () => { showHuyHieu.value = false; });
 function veMenuKhiDong(mo: boolean, truoc: boolean): void {
   if (mo || !truoc) return;
-  const vePremium = tuPremium;
-  tuPremium = false;
+  const vePremium = tuPremium, veCaiDat = tuCaiDat;
+  tuPremium = false; tuCaiDat = false;
   void nextTick(() => {
     if (showPremium.value) return;
-    if (vePremium) { premiumTu.value = 'trang-chu'; showPremium.value = true; } else topBar.value?.moMenu();
+    if (vePremium) { premiumTu.value = 'trang-chu'; showPremium.value = true; } else topBar.value?.moMenu(veCaiDat ? 'cd' : undefined);
   });
 }
 /** Chữ ở dòng "Nhạc nền" của bảng Premium. */
@@ -1200,11 +1207,13 @@ const hasNext = computed(() => {
   <!-- Lá bài rơi như cánh hoa — riêng hình nền Hoa anh đào (LaRoi.vue), cùng luật với icon bay: không có lúc đang chơi -->
   <LaRoi v-if="canh === 'anh-dao' && screen !== 'game' && screen !== 'mua-the'" />
   <!-- Sao băng thưa: chỉ đi kèm hình nền hành tinh (Premium), không có lúc đang chơi Mưa Thẻ -->
+  <!-- Hiệu ứng ghép cặp Premium (lib/hieu-ung-premium.ts) — lớp vẽ chung cho ván offline + online -->
+  <GhepPremiumFx />
   <SaoBang v-if="canh !== 'goc' && canh !== 'anh-dao' && screen !== 'mua-the'" />
   <TopBar
     ref="topBar"
     :debug="debug"
-    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="premiumTu = 'menu'; showPremium = true" @hinh-nen="showHinhNen = true" @nhac-nen="showNhac = true"
+    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="premiumTu = 'menu'; showPremium = true" @hinh-nen="showHinhNen = true" @nhac-nen="showNhac = true" @mo-pm="moTuCaiDat"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac" :nhac-ngau-nhien="nhacNgauNhien"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"

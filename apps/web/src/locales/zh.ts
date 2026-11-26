@@ -968,6 +968,19 @@ const zh: TuDien = {
   'hhb.tim': "爱心",
   'hhb.kc': "钻石",
   'hhb.khong': "不显示徽章",
+  'fx.chuoi': "{n} 连击",
+  'fx.premium': "Premium 特效",
+  'pm.d.nen': "{n} 个主题，背景和卡背一起换",
+  'pm.d.lung': "按主题搭配的 {n} 款卡背",
+  'pm.d.nhac': "{n} 首曲目，普通版的 3 倍",
+  'pm.d.huyHieu': "大家都能看到你有 Premium",
+  'pm.d.thongKe': "回顾一整年，不只 14 天",
+  'pm.d.hieuUng': "配对时按主题闪耀",
+  'pm.s.emoji': "Premium 表情",
+  'pm.d.emoji': "在线聊天专属 {n} 个表情",
+  'pm.d.hoTro': "让游戏保持无广告",
+  'pm.han': "还剩 {con} / {tong} 天",
+  'pm.banSeCo': "你将获得",
   'cn.ngauNhien': "随机",
   'cn.ngauNhienNen': "大约每 30 分钟换一个主题",
   'cn.ngauNhienNhac': "大约每 30 分钟换一首曲目",
@@ -1039,6 +1052,8 @@ const zh: TuDien = {
   'tn.conVan': "还差 {n} 局",
   'tn.tab5': "按回合",
   'tn.tab14': "按时间",
+  'tn.tabNam': "全年",
+  'tn.thang': "{n} 月",
 };
 
 export default zh;

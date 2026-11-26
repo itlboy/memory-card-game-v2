@@ -970,6 +970,19 @@ const en: TuDien = {
   'hhb.tim': "Heart",
   'hhb.kc': "Diamond",
   'hhb.khong': "Don't show a badge",
+  'fx.chuoi': "Streak {n}",
+  'fx.premium': "Premium effect",
+  'pm.d.nen': "{n} themes with matching backgrounds and card backs",
+  'pm.d.lung': "{n} card backs to match each theme",
+  'pm.d.nhac': "{n} tracks, 3× the free version",
+  'pm.d.huyHieu': "Everyone can see you have Premium",
+  'pm.d.thongKe': "Look back over a whole year, not just 14 days",
+  'pm.d.hieuUng': "Matches burst with light in your theme",
+  'pm.s.emoji': "Premium emoji",
+  'pm.d.emoji': "{n} exclusive emoji for online chat",
+  'pm.d.hoTro': "Keeps the game ad-free",
+  'pm.han': "{con} / {tong} days left",
+  'pm.banSeCo': "You'll get",
   'cn.ngauNhien': "Random",
   'cn.ngauNhienNen': "A new theme about every 30 minutes",
   'cn.ngauNhienNhac': "A new track about every 30 minutes",
@@ -1041,6 +1054,8 @@ const en: TuDien = {
   'tn.conVan': "{n} more games",
   'tn.tab5': "By turns",
   'tn.tab14': "Over time",
+  'tn.tabNam': "Year",
+  'tn.thang': "Month {n}",
 };
 
 export default en;

@@ -971,6 +971,19 @@ const tr: TuDien = {
   'hhb.tim': "Kalp",
   'hhb.kc': "Elmas",
   'hhb.khong': "Rozet gösterme",
+  'fx.chuoi': "{n} seri",
+  'fx.premium': "Premium efekti",
+  'pm.d.nen': "Arka plan ve kart arkası değişen {n} tema",
+  'pm.d.lung': "Temaya uygun {n} kart arkası",
+  'pm.d.nhac': "{n} parça, ücretsizin 3 katı",
+  'pm.d.huyHieu': "Herkes Premium olduğunu görür",
+  'pm.d.thongKe': "Sadece 14 gün değil, tüm yılı gör",
+  'pm.d.hieuUng': "Eşleşmeler temana göre parlar",
+  'pm.s.emoji': "Premium emojiler",
+  'pm.d.emoji': "Çevrim içi sohbete özel {n} emoji",
+  'pm.d.hoTro': "Oyunu reklamsız tutar",
+  'pm.han': "{con} / {tong} gün kaldı",
+  'pm.banSeCo': "Kazanacakların",
   'cn.ngauNhien': "Rastgele",
   'cn.ngauNhienNen': "Yaklaşık 30 dakikada bir yeni tema",
   'cn.ngauNhienNhac': "Yaklaşık 30 dakikada bir yeni parça",
@@ -1042,6 +1055,8 @@ const tr: TuDien = {
   'tn.conVan': "{n} oyun daha",
   'tn.tab5': "Hamleye göre",
   'tn.tab14': "Zamana göre",
+  'tn.tabNam': "Yıl",
+  'tn.thang': "{n}. ay",
 };
 
 export default tr;
