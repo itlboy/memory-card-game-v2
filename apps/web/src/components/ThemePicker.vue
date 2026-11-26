@@ -129,6 +129,11 @@ function cham(x: CardTheme): void {
       <span v-else-if="!choiDuoc(x)" class="tick locked prem" aria-hidden="true">
         <Crown :size="11" />
       </span>
+      <!-- ĐÃ CÓ Premium vẫn đeo vương miện ở bộ hình Premium (góc TRÁI, nhường góc phải cho dấu ✓) — chủ dự án 26.11.2026:
+           "tính năng premium nào cần có dấu premium… ngay cả người dùng premium — để họ hiểu quyền lợi của mình". -->
+      <span v-if="x.premium && choiDuoc(x)" class="tick prem cua-minh" aria-hidden="true">
+        <Crown :size="11" />
+      </span>
     </button>
   </div>
 
@@ -189,6 +194,7 @@ function cham(x: CardTheme): void {
    mờ là người chơi đọc ra "không chạm được" và không bao giờ thấy bộ hình */
 .theme-opt.prem-khoa .tname { opacity: .85; }
 .tick.prem { background: linear-gradient(135deg, #ffd76a, #f0a500); color: #4a2f00; }
+.options.theme-grid .tick.cua-minh { right: auto; left: -5px; }
 
 .tp-phu {
   position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;

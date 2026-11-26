@@ -35,11 +35,13 @@ function chon(c: Canh): void {
         <button v-for="c in CANH" :key="c" data-phang class="o lon" type="button" :aria-pressed="canh === c" @click="chon(c)">
           <span class="anh" :class="c" aria-hidden="true"><i class="l1" /><i class="l2" /><i class="l3" /></span>
           <span class="ten"><b>{{ td(`pm.nen.${c}`) }}</b></span>
-          <span v-if="khoa(c)" class="vm" :aria-label="t('tp.premium')"><Crown :size="13" :stroke-width="2.8" aria-hidden="true" /></span>
-          <span v-else-if="canh === c" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
+          <!-- Vương miện ở MỌI hình Premium, kể cả khi đã có Premium (chủ dự án 26.11.2026: "ngay cả người dùng premium — để
+               họ hiểu quyền lợi của mình"); dấu ✓ đang chọn sang góc TRÁI để hai dấu không đè nhau. -->
+          <span v-if="c !== 'goc'" class="vm" :aria-label="t('tp.premium')"><Crown :size="13" :stroke-width="2.8" aria-hidden="true" /></span>
+          <span v-if="canh === c" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
         </button>
       </div>
-      <p v-if="!daMuaPremium" class="hn-chu"><Crown :size="14" :stroke-width="2.8" aria-hidden="true" />{{ t('hn.canPremium') }}</p>
+      <p class="hn-chu"><Crown :size="14" :stroke-width="2.8" aria-hidden="true" />{{ t('hn.canPremium') }}</p>
     </div>
   </div>
 </template>
@@ -71,7 +73,7 @@ function chon(c: Canh): void {
 .ten small { font: 600 11.5px/1.3 var(--font-body); color: var(--muted); text-wrap: balance; }
 .vm, .dang { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; }
 .vm { background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: 0 2px 0 #c98f12; }
-.dang { background: #1f9d6b; color: #fff; }
+.dang { right: auto; left: 10px; background: #1f9d6b; color: #fff; }
 /* MẶC ĐỊNH thu nhỏ: trời xanh, mặt trời, đồi, ba lá xoè */
 .anh.goc .l1 { left: 22%; top: 46%; width: 26%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #fff; background: #2b4c9b; rotate: -14deg; }
 .anh.goc .l2 { left: 52%; top: 45%; width: 26%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #fff; background: #2b4c9b; rotate: 12deg; }
