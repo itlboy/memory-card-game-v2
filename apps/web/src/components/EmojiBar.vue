@@ -130,6 +130,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
         @click="chonO(x.id)"
       ><MessageCircleMore v-if="x.id === 'cau'" :size="18" :stroke-width="2.4" aria-hidden="true" /><Crown v-else-if="x.id === 'premium'" :size="18" :stroke-width="2.6" aria-hidden="true" /><template v-else>{{ x.hinh }}</template></button>
     </div>
+    <!-- NỘI DUNG Ô (26.11.2026, chủ dự án: "bấm ô bên trên nút bị tụt xuống, khó chịu"): khung neo ở ĐÁY, ô Câu nói (cao) ↔ ô
+         emoji (thấp) làm khung đổi cao — nên HÀNG Ô nằm DƯỚI CÙNG (CSS `order`) để không dời chỗ dưới ngón tay. Máy thấp thì
+         phần nội dung cuộn bên trong. -->
+    <div class="noi-dung">
     <!-- Ô CÂU NÓI -->
     <div v-if="o === 'cau'" class="bang-noi" role="menu" :aria-label="t('eb.noiNhanh')">
       <button
@@ -157,6 +161,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
           :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
         >{{ e }}</button>
       </div>
+    </div>
     </div>
   </div>
   </div>
@@ -219,9 +224,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .tab-o .thach.pm.chon { outline: 3px solid #8a5a00; outline-offset: 1px; }
 :global([data-theme='dark'] .tab-o .thach.pm.chon) { outline-color: #ffd36b; }
 /* Ô câu nói: 10 câu cuộn trong ô trên máy thấp (SE) thay vì trồi khỏi màn */
+.noi-dung { max-height: min(214px, 38vh); overflow-y: auto; overscroll-behavior: contain; }
+/* HÀNG Ô Ở DƯỚI CÙNG khung, sát thanh emoji: khung neo đáy nên hàng ô đứng yên khi đổi ô (nội dung co giãn PHÍA TRÊN) —
+   bản đầu để hàng ô trên cùng thì đổi ô là hàng ô nhảy dưới ngón tay; cố định chiều cao thì ô emoji thừa khoảng trống */
+.khung-chat .tab-o { order: 2; }
 .bang-noi {
   display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-  max-height: min(52vh, 420px); overflow-y: auto; overscroll-behavior: contain;
+  max-height: min(52vh, 420px);
 }
 .bang-noi .cau { min-height: 38px; padding: 4px 8px 6px 6px; display: flex; align-items: center; gap: 6px; text-align: left; justify-content: flex-start; font: 800 13px/1.2 var(--font-body); color: var(--fg); border-radius: 11px; min-width: 0; }
 .bang-noi .cau span { min-width: 0; }

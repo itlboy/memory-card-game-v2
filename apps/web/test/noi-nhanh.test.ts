@@ -53,7 +53,9 @@ describe('nói nhanh', () => {
       'Bạn giỏi quá', 'Chúng ta chơi tiếp nhé', 'Chúc may mắn!', 'Bắt đầu đi!', 'Chờ mình chút nhé', 'Mình quay lại rồi',
       'Rất tiếc, tôi bận mất rồi', 'Hẹn gặp lại bạn sau nhé', 'Rất vui được chơi với bạn', 'Đồng ý'
     ]);
-    expect(readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8'), 'khung 10 câu cuộn trên máy thấp').toMatch(/\.bang-noi \{[^}]*max-height: min\(52vh, 420px\); overflow-y: auto;/);
+    // 26.11.2026: khung chat gom theo ô — phần nội dung CAO CỐ ĐỊNH, cuộn bên trong: đổi ô thì hàng ô không dời chỗ, máy thấp cuộn
+    expect(readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8'), 'nội dung cao cố định, cuộn trong khung').toMatch(/\.noi-dung \{[^}]*max-height: min\(214px, 38vh\); overflow-y: auto;/);
+    expect(readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8'), 'hàng ô dưới cùng — đổi ô không dời chỗ').toContain('.khung-chat .tab-o { order: 2; }');
   });
 
   // 26.11.2026: emoji Premium — chủ dự án: "làm thêm một số icon premium", "disable mờ với người thường"
