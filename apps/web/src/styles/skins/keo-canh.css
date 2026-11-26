@@ -138,8 +138,9 @@
 @keyframes qd-z { 0% { z-index: 2; } 50% { z-index: 0; } }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat .lac { border-color: #cfe6ff; box-shadow: 0 0 30px rgba(110, 180, 255, .8), 0 12px 22px rgba(0, 5, 40, .5); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat.giua .lac { border-color: #5f9bff; box-shadow: 0 0 36px rgba(130, 200, 255, .9), 0 2px 0 #3f78e0, 0 4px 0 #2c58b8, 0 16px 28px rgba(0, 5, 40, .5); }
-:root[data-skin='keo'][data-canh='thien-ha'] .la-quat:not(.giua) .lac { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 80'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='9' cy='12' r='1.1'/%3E%3Ccircle cx='48' cy='9' r='.9'/%3E%3Ccircle cx='52' cy='40' r='1.2'/%3E%3Ccircle cx='8' cy='52' r='.9'/%3E%3Ccircle cx='20' cy='70' r='1.1'/%3E%3Ccircle cx='44' cy='66' r='.8'/%3E%3Ccircle cx='30' cy='14' r='.7'/%3E%3C/g%3E%3C/svg%3E") center / cover, linear-gradient(155deg, #2a4fd0, #0a1650 70%); }
-/* Lưng lá để TRƠN, chỉ lấm tấm sao (chủ dự án 26.11.2026: in thêm Sao Thổ "rối mắt quá") */
+/* Lưng hai lá quay: TRƠN + một thiên thể nhỏ ở giữa, mỗi lá một hình (QuatLa đặt `data-lung`, hình ở keo-lung.css).
+   Lịch sử 26.11.2026: in Sao Thổ to → "rối mắt quá" → để trơn lấm tấm sao → chốt bản này qua mockup. */
+:root[data-skin='keo'][data-canh='thien-ha'] .la-quat:not(.giua) .lac { background: var(--lung-hinh, none) center / var(--lung-co, 39.5%) auto no-repeat, linear-gradient(155deg, #2a4fd0, #0a1650 70%); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat .lac i { display: none; }
 
 /* ---------- HOA ANH ĐÀO · sáng: trời hồng đào, nắng sớm, cành hoa vươn từ góc trái, cánh hoa rơi ---------- */

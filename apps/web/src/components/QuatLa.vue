@@ -3,6 +3,9 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { anhEmoji } from '@/lib/emoji';
 import { HINH_TRANG_CHU } from '@/lib/hinh-trang-chu';
 import type { CardTheme } from '@/lib/themes';
+import { bocNhieu } from '@/lib/lung-la';
+/** Hai lá quay của cảnh Thiên hà: mỗi lần mở trang chủ bốc HAI thiên thể khác nhau (cảnh khác không dùng tới). */
+const lungHaiLa = bocNhieu('thien-ha', 2);
 
 /*
  * QUẠT LÁ TRANG CHỦ (14.10.2026). Lá GIỮA luôn ngửa, chỉ ICON đổi mỗi 5 giây
@@ -42,8 +45,8 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
 
 <template>
   <div class="quat" aria-hidden="true">
-    <span class="la-quat trai"><span class="lac"><i /></span></span>
-    <span class="la-quat phai"><span class="lac"><i /></span></span>
+    <span class="la-quat trai" :data-lung="lungHaiLa[0]"><span class="lac"><i /></span></span>
+    <span class="la-quat phai" :data-lung="lungHaiLa[1]"><span class="lac"><i /></span></span>
     <span class="la-quat giua"><span class="lac">
       <span class="khung-hinh">
         <Transition name="hinh" mode="out-in">
