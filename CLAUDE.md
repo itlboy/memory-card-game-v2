@@ -2117,3 +2117,11 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   nút tạm dừng — "Chờ mình chút nhé" dựa vào cơ chế có sẵn: người tới lượt mất kết nối thì đồng hồ lượt đứng, giữ chỗ tối đa 5 phút
   (`TURN_PAUSE_CAP_MS`). Khung nói nhanh cuộn trong khung khi máy thấp (`max-height: min(52vh, 420px)`).
 - **"Quản lý gói" chỉ khi `cuaHangThat`** (chủ dự án: "chưa có thì nên tắt đi") — gói giả lập / quà tặng không có trang quản lý.
+- **Thẻ quyền lợi so sánh bằng CHỮ, KHÔNG con số** (chủ dự án 26.11.2026: "không nên để con số cụ thể, vì chúng ta sẽ cập nhật
+  thêm sau"): mỗi thẻ "Thường → Premium" bằng hai chip (xám → vàng), chú thích MỘT lần ở tiêu đề lưới; mọi thẻ đeo vương miện;
+  thẻ đầu "Chơi đủ mọi chế độ: Có → Có" (bản thường không bị cắt xén) và thẻ cuối "Ủng hộ tác giả" trải hết bề ngang với câu chủ
+  dự án đặt. Khối mời nhận quà KHÔNG ghi "Hết hạn …" dưới nút.
+- **XIN ĐÁNH GIÁ APP** (26.11.2026, chủ dự án duyệt; `lib/xin-danh-gia.ts`, plugin `@capacitor-community/in-app-review` 8.0.0 —
+  hộp đánh giá CỦA HỆ ĐIỀU HÀNH, không tự vẽ hộp). Chỉ sau ván THẮNG, xin lúc VỀ TRANG CHỦ (không giữa ván); dùng app ≥ 3 ngày
+  (`mm.daMo`), ≥ 5 ván, cách lần trước ≥ 120 ngày, tối đa 3 lần (`mm.danhGia`). KHÔNG đổi quà lấy đánh giá (luật cả hai store).
+  Cần bản app NATIVE có plugin; bản cũ nhận OTA dò `isPluginAvailable('InAppReview')` nên im lặng (không nâng `minNative`).

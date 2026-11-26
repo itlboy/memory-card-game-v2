@@ -1,6 +1,6 @@
 {
   "name": "@mm/web",
-  "version": "1.10.40",
+  "version": "1.10.42",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "android": "pnpm build:android && cap open android"
   },
   "dependencies": {
+    "@capacitor-community/in-app-review": "8.0.0",
     "@capacitor/android": "^8.5.2",
     "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.2",

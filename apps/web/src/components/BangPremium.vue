@@ -15,16 +15,13 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * HÌNH NỀN: chọn ngay trong bảng. Chưa có Premium thì hành tinh mang vương miện, bấm vào chỉ nhắc "cần Premium".
  * GIÁ LÀ SỐ TẠM (`GIA_TAM`) — bán thật thì đọc giá đã quy đổi theo nước từ store.
  */
-import { Award, ChartColumn, Check, Crown, Gift, Heart, Image, Layers, LoaderCircle, MessageCircle, Music, ShieldCheck, Sparkles, X } from 'lucide-vue-next';
-import { EMOJI_PREMIUM } from '@mm/engine';
+import { Award, ChartColumn, Check, Crown, Gamepad2, Gift, Heart, Image, Layers, LoaderCircle, MessageCircle, Music, ShieldCheck, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
-import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
-import { CANH, canh, canhNgauNhien } from '@/lib/canh';
-import { LUNG } from '@/lib/lung-la';
-import { BAI_NHAC } from '@/lib/nhac';
+import { GIA_TAM, NGAY_DUNG_THU, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
+import { canh, canhNgauNhien } from '@/lib/canh';
 import { SITE_URL, nenApp } from '@/lib/native';
 
 /** `nhacHien`: chữ hiện ở dòng cài đặt "Nhạc nền" (Tắt · Ngẫu nhiên · tên bài) — trạng thái nhạc nằm ở App.vue. */
@@ -45,25 +42,25 @@ const gia = computed(() => giaThat.value ?? {
 const coThu = computed(() => gia.value.duocThu && gia.value.ngayThu > 0 && (!giaThat.value || goi.value === 'nam'));
 
 /*
- * THẺ QUYỀN LỢI (26.11.2026, mockup duyệt https://claude.ai/artifact/ALpRKG88kcozoAgRgw9gCh — chủ dự án: "trang này đẹp hơn,
- * thu hút hơn"): lưới 2 cột, mỗi quyền lợi một thẻ có biểu tượng màu + tên + một dòng mô tả, thay bảng so sánh Thường/Premium
- * dài. CON SỐ LẤY TỪ CODE (số chủ đề, mặt lưng, bài nhạc, emoji) — đổi nội dung là thẻ tự đúng. Mọi quyền lợi ĐÃ LÀM (hết
- * nhãn "Sắp có"); thêm quyền lợi chưa làm thì PHẢI ghi rõ là sắp có — quảng cáo thứ chưa có là store gỡ app.
- * `tu` = mở bảng từ chỗ nào thì thẻ đó sáng lên (bấm chủ đề khoá → thẻ Chủ đề).
+ * THẺ QUYỀN LỢI (26.11.2026, mockup duyệt https://claude.ai/artifact/ALpRKG88kcozoAgRgw9gCh), sửa theo góp ý cùng ngày:
+ *  - "bạn sẽ có chưa rõ ràng, chưa so sánh được với free" → mỗi thẻ có HAI dòng: Thường · Premium;
+ *  - "không nên để con số cụ thể, vì chúng ta sẽ cập nhật thêm sau" → so bằng CHỮ (Mặc định → Tất cả), không đếm bài / chủ đề;
+ *  - "tất cả các lựa chọn đều có huy hiệu premium cho đẹp" → mọi thẻ đeo vương miện ở góc;
+ *  - Ủng hộ tác giả: một thẻ trải hết bề ngang với câu chủ dự án đặt.
+ * Mọi quyền lợi ĐÃ LÀM; thêm quyền lợi chưa làm thì phải ghi rõ là sắp có — quảng cáo thứ chưa có là store gỡ app.
+ * `tu` = mở bảng từ chỗ nào thì thẻ đó sáng lên.
  */
-const soNen = CANH.length, soBai = BAI_NHAC.length;
-/** Mặt lưng lá: bản thường chỉ có lưng ngôi sao; Premium thêm cả bộ của từng chủ đề (lib/lung-la.ts). */
-const soLung = Object.values(LUNG).reduce((n, bo) => n + bo.length, 0);
-interface The { id: string; ic: typeof Crown; mau: string; ten: string; moTa: string; tu?: NoiMoPremium }
+interface The { id: string; ic: typeof Crown; mau: string; ten: string; thuong: string; premium: string; tu?: NoiMoPremium }
 const QL = computed<The[]>(() => [
-  { id: 'nen', ic: Image, mau: '#6c5ce7', ten: t('pm.s.nen'), moTa: t('pm.d.nen', { n: soNen }), tu: 'nen' },
-  { id: 'lung', ic: Layers, mau: '#0fa3b1', ten: t('pm.s.lung'), moTa: t('pm.d.lung', { n: soLung }) },
-  { id: 'nhac', ic: Music, mau: '#e17055', ten: t('tb.nhacNen'), moTa: t('pm.d.nhac', { n: soBai }), tu: 'nhac' },
-  { id: 'huyHieu', ic: Award, mau: '#f0a500', ten: t('pm.s.huyHieu'), moTa: t('pm.d.huyHieu') },
-  { id: 'thongKe', ic: ChartColumn, mau: '#00b894', ten: t('pm.s.thongKe'), moTa: t('pm.d.thongKe'), tu: 'tri-nho' },
-  { id: 'hieuUng', ic: Sparkles, mau: '#e8559b', ten: t('pm.s.hieuUng'), moTa: t('pm.d.hieuUng') },
-  { id: 'chat', ic: MessageCircle, mau: '#0984e3', ten: t('pm.s.emoji'), moTa: t('pm.d.emoji', { n: EMOJI_PREMIUM.length }), tu: 'chat' },
-  { id: 'hoTro', ic: Heart, mau: '#d6336c', ten: t('pm.s.hoTro'), moTa: t('pm.d.hoTro') }
+  // Dòng đầu là thứ HAI BÊN ĐỀU CÓ: người chơi thấy bản thường không bị cắt xén — Premium là thêm, không phải chuộc
+  { id: 'choi', ic: Gamepad2, mau: '#5b8def', ten: t('pm.s.choi'), thuong: t('pm.co'), premium: t('pm.co') },
+  { id: 'nen', ic: Image, mau: '#6c5ce7', ten: t('pm.s.nen'), thuong: t('pm.v.macDinh'), premium: t('pm.v.tatCa'), tu: 'nen' },
+  { id: 'lung', ic: Layers, mau: '#0fa3b1', ten: t('pm.s.lung'), thuong: t('pm.v.ngoiSao'), premium: t('pm.v.theoChuDe') },
+  { id: 'nhac', ic: Music, mau: '#e17055', ten: t('tb.nhacNen'), thuong: t('pm.v.coBan'), premium: t('pm.v.tatCa'), tu: 'nhac' },
+  { id: 'huyHieu', ic: Award, mau: '#f0a500', ten: t('pm.s.huyHieu'), thuong: t('pm.khong'), premium: t('pm.co') },
+  { id: 'thongKe', ic: ChartColumn, mau: '#00b894', ten: t('pm.s.thongKe'), thuong: t('pm.v.14ngay'), premium: t('pm.v.caNam'), tu: 'tri-nho' },
+  { id: 'hieuUng', ic: Sparkles, mau: '#e8559b', ten: t('pm.s.hieuUng'), thuong: t('pm.v.coBan'), premium: t('pm.v.dacBiet') },
+  { id: 'chat', ic: MessageCircle, mau: '#0984e3', ten: t('pm.s.emoji'), thuong: t('pm.v.coBan'), premium: t('pm.v.themRieng'), tu: 'chat' }
 ]);
 /** Thẻ ứng với thứ người chơi vừa chạm (mở từ chủ đề khoá → thẻ Chủ đề sáng lên). */
 const theNoi = computed(() => QL.value.find((d) => d.tu && (d.tu === props.tu || (props.tu === 'cai-dat' && d.tu === 'nen')))?.id ?? '');
@@ -88,7 +85,6 @@ const nutDong = ref<HTMLButtonElement | null>(null);
  */
 const duocMoi = conQuaTang.value;
 let daNhan = false;
-const hetHanTang = computed(() => ngay(Date.now() + NGAY_TANG * 86_400_000));
 const conLai = computed(() => ngayConLai());
 /** Thanh "còn bao nhiêu ngày" ở khối đầu: tổng số ngày của gói đang có (gói tặng 30, gói tháng 30…), null = không có hạn. */
 const tongNgay = computed(() => { const g = goiDangCo.value; return g && !g.vinhVien ? Math.max(1, Math.round((g.het - g.tu) / 86_400_000)) : null; });
@@ -171,8 +167,8 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
             <span class="pm-han-chu">{{ t('pm.han', { con: conLai, tong: tongNgay }) }}</span>
           </template>
           <template v-else-if="!daMuaPremium && conQuaTang">
+            <!-- KHÔNG ghi "Hết hạn …" dưới nút (chủ dự án 26.11.2026: "bỏ đi") — câu trong khối đã nói "hết hạn tự về bản thường" -->
             <button class="pm-nhan thach" type="button" @click="nhanTang">{{ t('pm.tang.nhan') }}</button>
-            <span class="pm-han-chu">{{ t('pm.tang.hetHan', { ngay: hetHanTang }) }}</span>
           </template>
         </section>
 
@@ -183,11 +179,23 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
           <button class="thach pm-o" type="button" @click="emit('mo', 'hh')"><span class="ic" style="--c: #f0a500" aria-hidden="true"><Award :size="18" :stroke-width="2.4" /></span><b>{{ t('pm.cd.huyHieu') }}</b><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small></button>
         </nav>
 
-        <h3 class="pm-nh">{{ daMuaPremium ? t('pm.quyenLoi') : t('pm.banSeCo') }}</h3>
+        <!-- Tiêu đề + CHÚ THÍCH so sánh một lần cho cả lưới (Thường xám → Premium vàng) — lặp nhãn ở từng thẻ thì chữ xuống dòng -->
+        <div class="pm-nh-hang">
+          <h3 class="pm-nh">{{ daMuaPremium ? t('pm.quyenLoi') : t('pm.banSeCo') }}</h3>
+          <span class="pm-chu-thich" aria-hidden="true"><span class="th">{{ t('pm.cot.thuong') }}</span>→<span class="pr">{{ t('tp.premium') }}</span></span>
+        </div>
         <ul class="pm-ql">
           <li v-for="q in QL" :key="q.id" class="q" :class="{ noi: theNoi === q.id }">
             <span class="ic" :style="{ '--c': q.mau }" aria-hidden="true"><component :is="q.ic" :size="16" :stroke-width="2.4" /></span>
-            <b>{{ q.ten }}</b><small>{{ q.moTa }}</small>
+            <b>{{ q.ten }}</b>
+            <span class="vm-goc" aria-hidden="true"><Crown :size="10" :stroke-width="3" /></span>
+            <span class="so" :aria-label="`${t('pm.cot.thuong')}: ${q.thuong}. ${t('tp.premium')}: ${q.premium}`"><span class="th">{{ q.thuong }}</span><span class="mui" aria-hidden="true">→</span><span class="pr">{{ q.premium }}</span></span>
+          </li>
+          <li class="q ho-tro">
+            <span class="ic" style="--c: #d6336c" aria-hidden="true"><Heart :size="16" :stroke-width="0" fill="currentColor" /></span>
+            <b>{{ t('pm.s.hoTro') }}</b>
+            <span class="vm-goc" aria-hidden="true"><Crown :size="10" :stroke-width="3" /></span>
+            <small>{{ t('pm.d.hoTro') }}</small>
           </li>
         </ul>
 
@@ -284,11 +292,22 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 /* ---------- QUYỀN LỢI: lưới thẻ ---------- */
 .pm-nh { margin: 2px 0 0; font: 800 11px/1.2 var(--font-body); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
 .pm-ql { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
-.pm-ql .q { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 9px; align-items: center; padding: 9px; border-radius: 14px; background: var(--o); }
-.pm-ql .q .ic { grid-row: 1 / span 2; width: 30px; height: 30px; }
-.pm-ql .q b { align-self: end; font: 800 13.5px/1.2 var(--font-body); }
-.pm-ql .q small { align-self: start; font: 600 11.5px/1.25 var(--font-body); color: var(--muted); }
-/* Thẻ ứng với chỗ người chơi vừa bấm: viền vàng */
+.pm-ql .q { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 9px; row-gap: 4px; align-items: center; padding: 9px 9px 8px; border-radius: 14px; background: var(--o); }
+.pm-ql .q .ic { grid-row: 1 / span 2; align-self: start; width: 30px; height: 30px; }
+.pm-ql .q b { min-width: 0; padding-right: 22px; font: 800 13.5px/1.2 var(--font-body); overflow-wrap: anywhere; hyphens: auto; }  /* tiếng Đức từ dài ("Kartenrücken") đâm vào vương miện */
+/* So sánh: Thường (chip xám) → Premium (chip vàng) — chữ, không con số; chú thích nằm một lần ở tiêu đề lưới */
+.pm-ql .so { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 4px; min-width: 0; }
+.th, .pr { padding: 1px 6px; border-radius: 6px; font: 800 11.5px/1.35 var(--font-body); }
+.th { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+.pr { background: var(--pm-nen); color: var(--pm); }
+.mui { color: var(--muted); font: 800 11px/1 var(--font-body); }
+.pm-nh-hang { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pm-chu-thich { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font: 800 11px/1 var(--font-body); }
+/* Vương miện ở góc MỌI thẻ (chủ dự án: "tất cả các lựa chọn đều có huy hiệu premium cho đẹp") */
+.pm-ql .vm-goc { position: absolute; top: 7px; right: 7px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: 0 1px 0 #c98f12; }
+/* Ủng hộ tác giả: một thẻ trải hết bề ngang, câu chủ dự án đặt */
+.pm-ql .q.ho-tro { grid-column: 1 / -1; }
+.pm-ql .q.ho-tro small { font: 700 12px/1.3 var(--font-body); color: var(--muted); }
 .pm-ql .q.noi { outline: 2.5px solid #f0b429; outline-offset: -1px; }
 
 
