@@ -23,6 +23,8 @@ const LUNG_LA = tron(LUNG['anh-dao']);
  * `CHAM` lần: nhân vào thời gian rơi `rs` (và độ trễ, để các lá vẫn rải đều chứ không dồn một đợt lúc mở màn).
  */
 const CHAM = 1.6;
+/** Cỡ lá nhân hệ số này (27.11.2026, chủ dự án: "thẻ rơi ở theme hoa anh đào hãy bé hơn 30%"). */
+const CO = 0.7;
 const LA = [
   // xa
   { x: 5, co: 22, rs: 21, ds: 5.2, tre: -3, mat: false }, { x: 31, co: 20, rs: 24, ds: 5.8, tre: -15, mat: true },
@@ -38,7 +40,7 @@ const LA = [
 
 <template>
   <div class="la-roi" aria-hidden="true">
-    <span v-for="(l, i) in LA" :key="i" class="lr" :data-lung="LUNG_LA[i % LUNG_LA.length]" :style="{ left: `${l.x}%`, width: `${l.co}px`, marginLeft: `${-l.co / 2}px`, animationDuration: `${l.rs * CHAM}s`, animationDelay: `${l.tre * CHAM}s` }">
+    <span v-for="(l, i) in LA" :key="i" class="lr" :data-lung="LUNG_LA[i % LUNG_LA.length]" :style="{ left: `${l.x}%`, width: `${l.co * CO}px`, marginLeft: `${(-l.co * CO) / 2}px`, animationDuration: `${l.rs * CHAM}s`, animationDelay: `${l.tre * CHAM}s` }">
       <span class="lat" :class="{ nguoc: l.mat }" :style="{ animationDuration: `${l.ds * 2}s`, animationDelay: `${l.tre}s` }">
         <i class="mat"><img v-if="anhEmoji(HINH[i % HINH.length]!)" :src="anhEmoji(HINH[i % HINH.length]!)!" alt="" draggable="false"><template v-else>{{ HINH[i % HINH.length] }}</template></i>
         <i class="lung" />

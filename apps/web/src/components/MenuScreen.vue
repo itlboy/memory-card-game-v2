@@ -1151,16 +1151,18 @@ section.panel { display: flex; flex-direction: column; min-height: 0; }
 
 /* Chỉ MỜ DẦN, không trượt ngang — chủ dự án 16.10.2026 chê kiểu "kéo ngang
    như chuyển trang" khó chịu khi đổi bước/chức năng. */
-.step-enter-active { transition: opacity .18s ease; }
+/* NHANH HƠN (27.11.2026, chủ dự án: "tối ưu tốc độ… render"): bước cũ RỜI NGAY (trước mờ .12s rồi bước mới mới dựng — ~0,3s
+   chỉ để chờ hiệu ứng, đo được là phần chậm nhất của chuyển bước menu), bước mới mờ vào .14s. `out-in` giữ nguyên nên
+   hai bước không bao giờ chồng nhau; leave 0 giây thì Vue đổi ngay trong cùng nhịp. */
+.step-enter-active { transition: opacity .14s ease; }
 .step-enter-from { opacity: 0; }
-.step-leave-active { transition: opacity .12s ease; }
-.step-leave-to { opacity: 0; }
+.step-leave-active { transition: none; }
 /* lùi bằng Back/vuốt: KHÔNG chuyển động — `:css="false"` bật/tắt giữa chừng làm Vue vỡ khi vá DOM (đo được),
    nên đổi TÊN hiệu ứng sang một tên không có transition: Vue đo ra 0 giây và đổi ngay */
 .tuc-thi-enter-active, .tuc-thi-leave-active { transition: none; }
 /* cả khung mờ theo khi đi về / ra khỏi trang chủ — xem `khungMo` */
-section.panel.khung-roi { opacity: 0; transition: opacity .12s ease; }
-section.panel.khung-vao { animation: khung-vao .18s ease; }
+section.panel.khung-roi { opacity: 0; }
+section.panel.khung-vao { animation: khung-vao .14s ease; }
 @keyframes khung-vao { from { opacity: 0; } }
 
 .chip.compact { flex: 0 1 auto; min-width: 96px; }
