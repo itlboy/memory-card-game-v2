@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { ICON_CANH, canh } from '@/lib/canh';
 
 /*
  * ICON BAY LƠ LỬNG sau các màn menu (13.10.2026, chủ dự án: "icon ngộ nghĩnh
@@ -11,7 +12,9 @@ import { onMounted, onUnmounted, ref } from 'vue';
  *  · máy bật giảm chuyển động thì đứng yên và không đổi hình.
  * Thỉnh thoảng một icon mờ đi rồi hiện lại thành hình khác — "thay đổi".
  */
-const KHO = ['🐼', '🦊', '🐸', '🍓', '🍩', '🌈', '⭐', '🎈', '🐙', '🦄', '🍉', '🐣', '🍭', '🐳', '🌸', '🎲', '🍀', '🐝'];
+const KHO_GOC = ['🐼', '🦊', '🐸', '🍓', '🍩', '🌈', '⭐', '🎈', '🐙', '🦄', '🍉', '🐣', '🍭', '🐳', '🌸', '🎲', '🍀', '🐝'];
+/** Cảnh trọn bộ (Premium) mang bộ icon riêng: Thiên hà bay tên lửa và hành tinh, Hoa anh đào bay cánh hoa. */
+const kho = (): string[] => [...new Set(ICON_CANH[canh.value] ?? KHO_GOC)];
 
 /** Vị trí rải đều cột (%), cỡ, nhịp trôi — cố định để bố cục ổn định qua mỗi lần mở. */
 const CHO = [
@@ -23,7 +26,8 @@ const CHO = [
 ];
 
 const tron = <T,>(a: T[]): T[] => a.map((v) => [Math.random(), v] as const).sort((p, q) => p[0] - q[0]).map(([, v]) => v);
-const hinh = ref<string[]>(tron(KHO).slice(0, CHO.length));
+const hinh = ref<string[]>(tron(kho()).slice(0, CHO.length));
+watch(canh, () => { hinh.value = tron(kho()).slice(0, CHO.length); });
 const tat = ref<boolean[]>(CHO.map(() => false));
 
 let hen: ReturnType<typeof setInterval> | undefined;
@@ -33,7 +37,7 @@ function doiMot(): void {
   tat.value[i] = true;
   setTimeout(() => {
     const dang = new Set(hinh.value);
-    const moi = KHO.filter((e) => !dang.has(e));
+    const moi = kho().filter((e) => !dang.has(e));
     hinh.value[i] = moi[Math.floor(Math.random() * moi.length)] ?? hinh.value[i]!;
     tat.value[i] = false;
   }, 700);
