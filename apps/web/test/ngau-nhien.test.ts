@@ -87,12 +87,52 @@ describe('nhạc nền ngẫu nhiên', () => {
     w.unmount();
   });
 
-  it('App: đổi bài chỉ trong các bài CHƠI ĐƯỢC, khác bài đang phát; chọn tay/Tắt là thôi; đổi khi về trang chủ', () => {
+  it('App: đổi bài chỉ trong các bài CHƠI ĐƯỢC, khác bài đang phát; chọn tay/Tắt là thôi; nhịp 30 phút ngoài ván', () => {
     const s = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8');
     expect(s).toContain('BAI_NHAC.filter((b) => baiChoiDuoc(b) && b !== baiNhac.value)');
     expect(s).toMatch(/if \(v === 'off'\) \{ nhacBat\.value = false; nhacNgauNhien\.value = false; return; \}/);
     expect(s).toMatch(/nhacNgauNhien\.value = false; baiNhac\.value = v;/);
-    expect(s).toMatch(/if \(sc === 'menu' && cu !== 'menu'\) \{ doiCanhNgauNhien\(\); doiNhacNgauNhien\(\); \} \}, \{ immediate: true \}/);
+    // nhịp 30 phút, KHÔNG đổi trong ván: cửa chặn nằm ở đầu hàm, và rời ván là hỏi lại
+    expect(s).toMatch(/function doiNgauNhienNeuDenGio\(\): void \{\s*if \(trongVan\.value \|\| /);
+    expect(s).toMatch(/if \(!denGioDoi\(\)\) return;\s*doiCanhNgauNhien\(\); doiNhacNgauNhien\(\);\s*ghiMocDoi\(\);/);
+    expect(s).toContain('watch(trongVan, (v) => { if (!v) doiNgauNhienNeuDenGio(); });');
+    expect(s, 'không còn đổi mỗi lần về trang chủ').not.toMatch(/sc === 'menu' && cu !== 'menu'\) \{ doiCanhNgauNhien/);
     expect(s).toContain('nhacNgauNhien: nhacNgauNhien.value');
+  });
+});
+
+describe('nhịp đổi ngẫu nhiên: 30 phút một lần', () => {
+  it('chưa đủ 30 phút thì chưa đổi, đủ thì đổi; mốc tính xuyên các lần mở app', async () => {
+    localStorage.clear(); vi.resetModules();
+    const n = await import('@/lib/ngau-nhien');
+    const T = 1_800_000_000_000;
+    n.ghiMocDoi(T);
+    expect(n.denGioDoi(T + 10 * 60_000)).toBe(false);
+    expect(n.denGioDoi(T + 29 * 60_000 + 59_000)).toBe(false);
+    expect(n.denGioDoi(T + 30 * 60_000)).toBe(true);
+    vi.resetModules();                                   // mở app lần khác: mốc vẫn còn
+    const n2 = await import('@/lib/ngau-nhien');
+    expect(n2.denGioDoi(T + 45 * 60_000)).toBe(true);
+    n2.ghiMocDoi(T + 45 * 60_000);
+    expect(n2.denGioDoi(T + 50 * 60_000)).toBe(false);
+  });
+
+  it('chưa có mốc hoặc đồng hồ bị chỉnh lùi thì đặt mốc mới, chưa đổi', async () => {
+    localStorage.clear(); vi.resetModules();
+    const n = await import('@/lib/ngau-nhien');
+    const T = 1_800_000_000_000;
+    expect(n.denGioDoi(T)).toBe(false);
+    expect(n.denGioDoi(T + 30 * 60_000)).toBe(true);
+    n.ghiMocDoi(T + 5 * 3_600_000);
+    expect(n.denGioDoi(T), 'mốc ở tương lai').toBe(false);
+    expect(n.denGioDoi(T + 31 * 60_000)).toBe(true);
+  });
+
+  it('bật Ngẫu nhiên ở bảng hình nền là đặt mốc — 30 phút tính từ lúc bật', async () => {
+    const c = await napCanh(true);
+    c.datCanhNgauNhien(true);
+    const n = await import('@/lib/ngau-nhien');
+    expect(n.denGioDoi()).toBe(false);
+    expect(n.denGioDoi(Date.now() + 31 * 60_000)).toBe(true);
   });
 });

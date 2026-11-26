@@ -24,7 +24,8 @@ import LaRoi from './components/LaRoi.vue';
 import ChonHinhNen from './components/ChonHinhNen.vue';
 import ChonNhac from './components/ChonNhac.vue';
 import { bocLungVan } from './lib/lung-la';
-import { doiCanhNgauNhien } from './lib/canh';
+import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
+import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -119,8 +120,8 @@ const nhacBat = ref(prefs.nhac !== false);
 const baiNhac = ref<BaiNhac>(laBaiNhac(prefs.baiNhac) ? prefs.baiNhac : 'keo');
 const baiThat = computed<BaiNhac>(() => (baiChoiDuoc(baiNhac.value) ? baiNhac.value : 'keo'));
 /*
- * NHẠC NGẪU NHIÊN (26.11.2026, chủ dự án: "có thêm mục ngẫu nhiên… chúng ta sẽ đổi ngẫu nhiên"): bật thì mỗi lần mở app và
- * mỗi lần về trang chủ sau một ván đổi sang một bài KHÁC trong các bài chơi được (bài Premium chỉ khi đã có Premium).
+ * NHẠC NGẪU NHIÊN (26.11.2026, chủ dự án: "có thêm mục ngẫu nhiên… chúng ta sẽ đổi ngẫu nhiên"): bật thì khoảng 30 phút một
+ * lần (nhịp chung với hình nền — `doiNgauNhienNeuDenGio` bên dưới) đổi sang một bài KHÁC trong các bài chơi được (bài Premium chỉ khi đã có Premium).
  * Chọn tay một bài hoặc Tắt là thôi ngẫu nhiên.
  */
 const nhacNgauNhien = ref(prefs.nhacNgauNhien === true);
@@ -132,7 +133,7 @@ function doiNhacNgauNhien(): void {
 function datNhac(v: 'off' | 'nn' | BaiNhac): void {
   if (v === 'off') { nhacBat.value = false; nhacNgauNhien.value = false; return; }
   nhacBat.value = true;
-  if (v === 'nn') { nhacNgauNhien.value = true; doiNhacNgauNhien(); return; }
+  if (v === 'nn') { nhacNgauNhien.value = true; doiNhacNgauNhien(); ghiMocDoi(); return; }   // 30 phút tính từ lúc bật
   nhacNgauNhien.value = false; baiNhac.value = v;
 }
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
@@ -720,8 +721,26 @@ onMounted(() => {
 // Màn online (chưa vào phòng) cũng đánh dấu lên URL để F5 quay lại đúng chỗ
 // Rời menu là giữ màn hình sáng (người xem ván không chạm gì → máy tự tắt màn) — lib/giu-sang.ts
 watch(screen, (sc) => giuSang(sc !== 'menu'), { immediate: true });
-// NGẪU NHIÊN: về trang chủ sau một ván (và lúc mở app, `immediate`) thì đổi hình nền + nhạc nếu người chơi bật mục đó
-watch(screen, (sc, cu) => { if (sc === 'menu' && cu !== 'menu') { doiCanhNgauNhien(); doiNhacNgauNhien(); } }, { immediate: true });
+/*
+ * NHỊP NGẪU NHIÊN (26.11.2026, chủ dự án: "đổi ngẫu nhiên khoảng 30 phút một lần, và không đổi khi trong ván"). Hỏi
+ * `denGioDoi()` lúc mở app, lúc RỜI ván, mỗi phút, và lúc app hiện lại — nhưng chỉ khi đang NGOÀI ván (`trongVan` gồm
+ * ván offline, Mưa Thẻ và phòng online đang chơi). Đủ 30 phút giữa ván thì chờ: vừa rời ván là đổi.
+ */
+function doiNgauNhienNeuDenGio(): void {
+  if (trongVan.value || (!canhNgauNhien.value && !nhacNgauNhien.value)) return;
+  if (!denGioDoi()) return;
+  doiCanhNgauNhien(); doiNhacNgauNhien();
+  ghiMocDoi();
+}
+watch(trongVan, (v) => { if (!v) doiNgauNhienNeuDenGio(); });
+let henNgauNhien: ReturnType<typeof setInterval> | undefined;
+const khiHienLai = (): void => { if (!document.hidden) doiNgauNhienNeuDenGio(); };
+onMounted(() => {
+  doiNgauNhienNeuDenGio();
+  henNgauNhien = setInterval(doiNgauNhienNeuDenGio, 60_000);
+  document.addEventListener('visibilitychange', khiHienLai);
+});
+onUnmounted(() => { clearInterval(henNgauNhien); document.removeEventListener('visibilitychange', khiHienLai); });
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');

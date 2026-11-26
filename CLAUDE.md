@@ -2027,7 +2027,9 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   đầu menu ĐÃ BỎ ("nhìn xấu quá") — bảng Premium mở từ mục khoá và trang Debug. Mục Premium nào cũng đeo vương miện KỂ CẢ khi
   đã có Premium ("để họ hiểu quyền lợi của mình").
 - **Mục "Ngẫu nhiên"** ở cả hai bảng (26.11.2026): hình nền (`lib/canh.ts` `canhNgauNhien`, khoá `mm.canh.nn`, cần Premium) và
-  nhạc (`prefs.nhacNgauNhien`, đổi trong các bài CHƠI ĐƯỢC). Đổi lúc MỞ APP và lúc VỀ TRANG CHỦ sau một ván (App: `watch(screen)`
-  có `immediate`) — KHÔNG đổi giữa ván. Chọn tay một mục là tắt ngẫu nhiên. Thống kê nhạc chỉ ghi một lần `ngau_nhien`.
+  nhạc (`prefs.nhacNgauNhien`, đổi trong các bài CHƠI ĐƯỢC). **Khoảng 30 PHÚT MỘT LẦN, KHÔNG đổi trong ván** (chủ dự án; bản
+  đầu đổi mỗi lần về trang chủ — bị sửa ngay). Nhịp ở `lib/ngau-nhien.ts` (mốc `mm.nn.luc`, tính xuyên các lần mở app, chung
+  cho cả nền lẫn nhạc); App `doiNgauNhienNeuDenGio` hỏi lúc mở app · rời ván · mỗi phút · app hiện lại, và tự thôi khi
+  `trongVan`. Bật mục là đổi ngay + đặt mốc. Chọn tay một mục là tắt ngẫu nhiên. Thống kê nhạc chỉ ghi một lần `ngau_nhien`.
 - **Đóng bảng Hình nền / Nhạc nền là về lại menu ☰** (`veMenuKhiDong` ở App gọi `TopBar.moMenu()`), trừ khi bảng đóng để mở
   bảng Premium. Tên bài trong bảng bỏ phần trong ngoặc ("Vui", không "Vui (marimba)"); nhãn aria vẫn giữ đủ.
