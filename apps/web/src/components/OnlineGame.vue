@@ -29,6 +29,7 @@ import OptionIcon from './OptionIcon.vue';
 import EmojiBlast from './EmojiBlast.vue';
 import LoiNoi from './LoiNoi.vue';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
+import { ghiVuaThang } from '@/lib/xin-danh-gia';
 
 /**
  * Màn ĐANG CHƠI của phòng online.
@@ -417,6 +418,7 @@ watch(() => o.view.value?.summary, (s) => {
   ghiVanTriNho(hienTriNho.value && !laDoi.value && !o.spectator.value ? s.ranking.find((r) => r.id === o.myId.value) : undefined, soCapVan.value);
   if (laDoi.value && !coMay && !o.spectator.value) {
     store.ghiVanBoDem({ thang: loaiKetCuc.value === 'thang', online: true });
+    if (loaiKetCuc.value === 'thang') ghiVuaThang();   // xin đánh giá lúc về trang chủ (lib/xin-danh-gia.ts)
     void taiKhoan.ghiVan({ ketQua: loaiKetCuc.value, score: 0, achievements: [] });
   }
   if (coMay || laDoi.value) {
@@ -427,6 +429,7 @@ watch(() => o.view.value?.summary, (s) => {
   // Danh hiệu online xét với những gì view cho biết (không có số lần lật sai)
   const cfg = o.room.value?.config;
   store.ghiVanBoDem({ thang: loaiKetCuc.value === 'thang', online: true });
+  if (loaiKetCuc.value === 'thang') ghiVuaThang();   // xin đánh giá lúc về trang chủ (lib/xin-danh-gia.ts)
   const dat = earned({
     summary: s, mode: 'classic', cells: o.view.value?.cards.length ?? 0,
     lives: null, peekMs: 0, options: cfg?.options ?? null, online: true, ketQua: loaiKetCuc.value,

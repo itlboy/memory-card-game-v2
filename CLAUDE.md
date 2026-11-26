@@ -2121,3 +2121,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   thêm sau"): mỗi thẻ "Thường → Premium" bằng hai chip (xám → vàng), chú thích MỘT lần ở tiêu đề lưới; mọi thẻ đeo vương miện;
   thẻ đầu "Chơi đủ mọi chế độ: Có → Có" (bản thường không bị cắt xén) và thẻ cuối "Ủng hộ tác giả" trải hết bề ngang với câu chủ
   dự án đặt. Khối mời nhận quà KHÔNG ghi "Hết hạn …" dưới nút.
+- **XIN ĐÁNH GIÁ APP** (26.11.2026, chủ dự án duyệt; `lib/xin-danh-gia.ts`, plugin `@capacitor-community/in-app-review` 8.0.0 —
+  hộp đánh giá CỦA HỆ ĐIỀU HÀNH, không tự vẽ hộp). Chỉ sau ván THẮNG, xin lúc VỀ TRANG CHỦ (không giữa ván); dùng app ≥ 3 ngày
+  (`mm.daMo`), ≥ 5 ván, cách lần trước ≥ 120 ngày, tối đa 3 lần (`mm.danhGia`). KHÔNG đổi quà lấy đánh giá (luật cả hai store).
+  Cần bản app NATIVE có plugin; bản cũ nhận OTA dò `isPluginAvailable('InAppReview')` nên im lặng (không nâng `minNative`).

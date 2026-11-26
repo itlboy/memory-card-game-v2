@@ -29,6 +29,7 @@ import { bocLungVan } from './lib/lung-la';
 import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
 import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
 import { tenBaiNhac } from './lib/ten-bai-nhac';
+import { ghiVuaThang, thuXinDanhGia } from './lib/xin-danh-gia';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -789,6 +790,8 @@ onMounted(() => {
   document.addEventListener('visibilitychange', khiHienLai);
 });
 onUnmounted(() => { clearInterval(henNgauNhien); document.removeEventListener('visibilitychange', khiHienLai); });
+// Về trang chủ sau một ván THẮNG → có thể xin đánh giá (luật ở lib/xin-danh-gia.ts: đủ gắn bó, thưa, không giữa ván)
+watch(screen, (sc, cu) => { if (sc === 'menu' && cu !== 'menu') setTimeout(() => { void thuXinDanhGia(); }, 900); });
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
@@ -1100,6 +1103,7 @@ watch(session.summary, (s) => {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
     store.ghiVanBoDem({ thang: s.status === 'won' });
+    if (s.status === 'won') ghiVuaThang();   // xin đánh giá lúc về trang chủ (lib/xin-danh-gia.ts)
     ghiVanTriNho(hienTriNho.value ? player : undefined, game.totalPairs);
     const dat = earned({
       summary: s,
@@ -1147,6 +1151,7 @@ watch(session.summary, (s) => {
       const thangMay = session.loaiKetCuc.value === 'thang';
       // Thắng Gà mờ không tính vào bộ đếm thắng máy (cùng lý do không cộng điểm)
       store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy' });
+      if (thangMay) ghiVuaThang();   // xin đánh giá lúc về trang chủ (lib/xin-danh-gia.ts)
       // Trí nhớ chấm trên lượt của CHÍNH NGƯỜI nên đấu máy mức nào cũng ghi (kể cả Dễ)
       ghiVanTriNho(hienTriNho.value ? s.ranking.find((r) => !laBot(r.id)) : undefined, game.totalPairs);
       const dat = earned({
