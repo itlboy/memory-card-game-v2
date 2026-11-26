@@ -7,7 +7,7 @@ import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, L
 import { baoTaiXong, batPhanTich, doiCaiDat, moChucNang, suKien, thamSoVanDau } from '@/lib/phan-tich';
 import { BOARD_SIZES, BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
-import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import KetCucFx from './components/KetCucFx.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import GameScreen from './components/GameScreen.vue';
@@ -24,6 +24,7 @@ import LaRoi from './components/LaRoi.vue';
 import ChonHinhNen from './components/ChonHinhNen.vue';
 import ChonNhac from './components/ChonNhac.vue';
 import { bocLungVan } from './lib/lung-la';
+import { doiCanhNgauNhien } from './lib/canh';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -88,7 +89,7 @@ import BangXepHang from './components/BangXepHang.vue';
 import { me as taiKhoanMe, san as taiKhoanSan, taiKhoan } from './lib/taikhoan';
 import { sfx } from './lib/audio';
 import { rung } from './lib/rung';
-import { nhac, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
+import { nhac, BAI_NHAC, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
@@ -117,9 +118,22 @@ const nhacBat = ref(prefs.nhac !== false);
  *  — vẫn giữ lựa chọn, mua lại là về đúng bài cũ. */
 const baiNhac = ref<BaiNhac>(laBaiNhac(prefs.baiNhac) ? prefs.baiNhac : 'keo');
 const baiThat = computed<BaiNhac>(() => (baiChoiDuoc(baiNhac.value) ? baiNhac.value : 'keo'));
-function datNhac(v: 'off' | BaiNhac): void {
-  if (v === 'off') { nhacBat.value = false; return; }
-  nhacBat.value = true; baiNhac.value = v;
+/*
+ * NHẠC NGẪU NHIÊN (26.11.2026, chủ dự án: "có thêm mục ngẫu nhiên… chúng ta sẽ đổi ngẫu nhiên"): bật thì mỗi lần mở app và
+ * mỗi lần về trang chủ sau một ván đổi sang một bài KHÁC trong các bài chơi được (bài Premium chỉ khi đã có Premium).
+ * Chọn tay một bài hoặc Tắt là thôi ngẫu nhiên.
+ */
+const nhacNgauNhien = ref(prefs.nhacNgauNhien === true);
+function doiNhacNgauNhien(): void {
+  if (!nhacNgauNhien.value || !nhacBat.value) return;
+  const ung = BAI_NHAC.filter((b) => baiChoiDuoc(b) && b !== baiNhac.value);
+  if (ung.length) baiNhac.value = ung[Math.floor(Math.random() * ung.length)]!;
+}
+function datNhac(v: 'off' | 'nn' | BaiNhac): void {
+  if (v === 'off') { nhacBat.value = false; nhacNgauNhien.value = false; return; }
+  nhacBat.value = true;
+  if (v === 'nn') { nhacNgauNhien.value = true; doiNhacNgauNhien(); return; }
+  nhacNgauNhien.value = false; baiNhac.value = v;
 }
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
  *  tính) là quá to; 2,6 nghe rõ mà không giật mình, "nhỏ" thì đủ để biết mình
@@ -263,8 +277,8 @@ function diVaoPhongMoi(): void {
   onlineKey.value++;          // đang ở danh sách phòng: dựng lại màn online theo lối "được mời"
   screen.value = 'online';
 }
-watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan], () => {
-  store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value });
+watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan, nhacNgauNhien], () => {
+  store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value, nhacNgauNhien: nhacNgauNhien.value });
   if (!nhacBat.value || soundLevel.value === 'off') nhac.dung();
   else if (trongVan.value) nhac.nhoDanRoiTat();
   else nhac.chay('menu', baiThat.value);
@@ -330,6 +344,18 @@ const showHinhNen = ref(false);
 useBackCloser(31, () => showHinhNen.value, () => { showHinhNen.value = false; });
 /** Bảng chọn nhạc nền — dòng "Nhạc nền" trong menu ☰ khi có bài Premium để bày (ChonNhac.vue). */
 const showNhac = ref(false);
+/*
+ * ĐÓNG BẢNG LÀ VỀ LẠI MENU ☰ (chủ dự án 26.11.2026: "các settings này nếu đóng thì vẫn hiện settings bên ngoài được chứ, hiện
+ * đóng là mất luôn"). Hai bảng mở TỪ menu nên đóng (nút ✕, chạm ngoài, nút Back) phải trả người chơi về menu. Ngoại lệ: bảng
+ * đóng để nhường chỗ cho bảng Premium (bấm mục khoá) — lúc đó `showPremium` đã bật, không mở menu chồng lên.
+ */
+const topBar = ref<{ moMenu: () => void } | null>(null);
+function veMenuKhiDong(mo: boolean, truoc: boolean): void {
+  if (mo || !truoc) return;
+  void nextTick(() => { if (!showPremium.value) topBar.value?.moMenu(); });
+}
+watch(showHinhNen, veMenuKhiDong);
+watch(showNhac, veMenuKhiDong);
 useBackCloser(31, () => showNhac.value, () => { showNhac.value = false; });
 useBackCloser(31, () => showPremium.value, () => { showPremium.value = false; });
 /** Tấm SỬA hồ sơ (mở từ menu). Màn chào bắt buộc thì theo `canMoChao`, không có cờ riêng. */
@@ -391,7 +417,8 @@ for (const [r, ten] of [
 ] as const) watch(r, (v) => { if (v) moChucNang(ten); });
 watch(nen, (v) => doiCaiDat('nen', v));
 watch(soundLevel, (v) => doiCaiDat('am_thanh', v));
-watch([nhacBat, baiNhac], ([b, bai]) => doiCaiDat('nhac', b ? bai : 'off'));
+// Đang ngẫu nhiên thì chỉ ghi MỘT lần 'ngau_nhien' — không ghi từng lần bài tự đổi (đó không phải người chơi đổi cài đặt)
+watch(() => (!nhacBat.value ? 'off' : nhacNgauNhien.value ? 'ngau_nhien' : baiNhac.value), (v) => doiCaiDat('nhac', v));
 watch(rungBat, (v) => doiCaiDat('rung', v));
 useBackCloser(30, () => showDanhHieu.value, () => { showDanhHieu.value = false; });
 const daCoSet = computed(() => new Set(daCo.value));
@@ -693,6 +720,8 @@ onMounted(() => {
 // Màn online (chưa vào phòng) cũng đánh dấu lên URL để F5 quay lại đúng chỗ
 // Rời menu là giữ màn hình sáng (người xem ván không chạm gì → máy tự tắt màn) — lib/giu-sang.ts
 watch(screen, (sc) => giuSang(sc !== 'menu'), { immediate: true });
+// NGẪU NHIÊN: về trang chủ sau một ván (và lúc mở app, `immediate`) thì đổi hình nền + nhạc nếu người chơi bật mục đó
+watch(screen, (sc, cu) => { if (sc === 'menu' && cu !== 'menu') { doiCanhNgauNhien(); doiNhacNgauNhien(); } }, { immediate: true });
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
@@ -1113,9 +1142,10 @@ const hasNext = computed(() => {
   <!-- Sao băng thưa: chỉ đi kèm hình nền hành tinh (Premium), không có lúc đang chơi Mưa Thẻ -->
   <SaoBang v-if="canh !== 'goc' && canh !== 'anh-dao' && screen !== 'mua-the'" />
   <TopBar
+    ref="topBar"
     :debug="debug"
     @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="premiumTu = 'menu'; showPremium = true" @hinh-nen="showHinhNen = true" @nhac-nen="showNhac = true"
-    :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
+    :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac" :nhac-ngau-nhien="nhacNgauNhien"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
     :dung-yen="screen !== 'menu'"
@@ -1264,7 +1294,7 @@ const hasNext = computed(() => {
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
   <BangPremium v-if="showPremium && debug" :tu="premiumTu" @close="showPremium = false" />
   <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
-  <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" @chon="datNhac" @close="showNhac = false" />
+  <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />

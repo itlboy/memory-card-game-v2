@@ -10,26 +10,27 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * này, mở bảng Premium ở mục nhạc. Tên bài lấy lại từ nhãn aria sẵn có (`tb.nhacBai.*` = "Nhạc nền: Vui (marimba)"),
  * cắt phần trước dấu hai chấm — khỏi thêm 5 khoá × 15 ngôn ngữ chỉ để lặp lại cùng một chữ.
  */
-import { Check, Crown, VolumeX, X } from 'lucide-vue-next';
+import { Check, Crown, Shuffle, VolumeX, X } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { moPremium } from '@/lib/premium';
 import { BAI_NHAC, BAI_PREMIUM, ICON_BAI, baiChoiDuoc, type BaiNhac } from '@/lib/nhac';
 
-const props = defineProps<{ nhac: boolean; bai: BaiNhac }>();
-const emit = defineEmits<{ close: []; chon: ['off' | BaiNhac] }>();
+const props = defineProps<{ nhac: boolean; bai: BaiNhac; ngauNhien?: boolean }>();
+const emit = defineEmits<{ close: []; chon: ['off' | 'nn' | BaiNhac] }>();
 const nutDong = ref<HTMLButtonElement | null>(null);
 onMounted(() => { nutDong.value?.focus(); moChucNang('nhac_nen_mo'); });
 
 const dangChon = (b: 'off' | BaiNhac): boolean => (b === 'off' ? !props.nhac : props.nhac && props.bai === b);
-/** "Nhạc nền: Vui (marimba)" → "Vui (marimba)" — dấu hai chấm Latin lẫn toàn chiều (日本語/中文). */
+/** "Nhạc nền: Vui (marimba)" → "Vui": bỏ phần trước dấu hai chấm (Latin lẫn toàn chiều 日本語/中文) VÀ phần trong ngoặc
+ *  (chủ dự án 26.11.2026: "bỏ cái trong ngoặc đi" — tên nhạc cụ làm dòng dài mà không giúp chọn). Nhãn aria vẫn đủ. */
 const ten = (b: BaiNhac): string => {
-  const s = td(`tb.nhacBai.${b}`).replace(/^[^:：]*[:：]\s*/, '');
+  const s = td(`tb.nhacBai.${b}`).replace(/^[^:：]*[:：]\s*/, '').replace(/\s*[（(][^）)]*[）)]\s*$/, '');
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
-function chon(b: 'off' | BaiNhac): void {
-  if (b !== 'off' && !baiChoiDuoc(b)) { moChucNang('premium_nhac_khoa', { bai: b }); emit('close'); moPremium('nhac', b); return; }
+function chon(b: 'off' | 'nn' | BaiNhac): void {
+  if (b !== 'off' && b !== 'nn' && !baiChoiDuoc(b)) { moChucNang('premium_nhac_khoa', { bai: b }); emit('close'); moPremium('nhac', b); return; }
   emit('chon', b);
 }
 </script>
@@ -47,6 +48,13 @@ function chon(b: 'off' | BaiNhac): void {
           <b>{{ td('tb.amNgan.off') }}</b>
           <span v-if="dangChon('off')" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
         </button>
+        <!-- NGẪU NHIÊN (26.11.2026): mỗi lần mở app / về trang chủ sau một ván đổi sang một bài khác trong các bài CHƠI ĐƯỢC
+             (App.vue `doiNhacNgauNhien`). Đang bật: dấu ✓ ở dòng này, bài đang phát chỉ còn viền vàng. -->
+        <button class="dong thach" :class="{ chon: nhac && ngauNhien }" type="button" role="radio" :aria-checked="nhac && !!ngauNhien" @click="chon('nn')">
+          <span class="ic nn" aria-hidden="true"><Shuffle :size="20" :stroke-width="2.4" /></span>
+          <span class="hai"><b>{{ t('cn.ngauNhien') }}</b><small>{{ t('cn.ngauNhienNhac') }}</small></span>
+          <span v-if="nhac && ngauNhien" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
+        </button>
         <button
           v-for="b in BAI_NHAC" :key="b" class="dong thach" :class="{ chon: dangChon(b) }" type="button" role="radio"
           :aria-checked="dangChon(b)" :aria-label="BAI_PREMIUM.has(b) ? `${td(`tb.nhacBai.${b}`)} — ${t('tp.premium')}` : td(`tb.nhacBai.${b}`)" @click="chon(b)"
@@ -56,7 +64,7 @@ function chon(b: 'off' | BaiNhac): void {
           <!-- Vương miện ở MỌI bài Premium, kể cả khi đã có Premium (chủ dự án 26.11.2026: "tính năng premium nào cần có dấu
                premium để người dùng biết, ngay cả người dùng premium — để họ hiểu quyền lợi của mình"). -->
           <span v-if="BAI_PREMIUM.has(b)" class="vm" aria-hidden="true"><Crown :size="13" :stroke-width="2.8" /></span>
-          <span v-if="dangChon(b)" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
+          <span v-if="dangChon(b) && !ngauNhien" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
         </button>
       </div>
       <p class="cn-chu"><Crown :size="14" :stroke-width="2.8" aria-hidden="true" />{{ t('cn.canPremium') }}</p>
@@ -88,6 +96,10 @@ function chon(b: 'off' | BaiNhac): void {
 .dong.chon { outline: 2.5px solid var(--vang); outline-offset: 1px; }
 .ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; color: #fff; }
 .ic.tat { background: #8b93ad; }
+.ic.nn { background: #7a5af0; }
+.hai { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.hai b { flex: none; }
+.hai small { font: 600 12px/1.3 var(--font-body); color: var(--muted); }
 .ic.keo { background: #ff8a3c; }
 .ic.dem { background: #5b62d6; }
 .ic.sau { background: #1c9bc9; }
