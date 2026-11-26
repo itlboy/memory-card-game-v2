@@ -14,7 +14,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { buildAgeText } from '@/lib/format';
 import { apOtaNgay, banNative, kiemOta, nguonGoi, trangThaiOta } from '@/lib/ota';
 import { bcp, t, td } from '@/lib/i18n';
-import { SKINS, datSkin, skin, skinVeMacDinh } from '@/lib/skin';
+import { skinVeMacDinh } from '@/lib/skin';
 import { daMuaPremium, datPremiumThu } from '@/lib/premium';
 import { CANH, canh, datCanh } from '@/lib/canh';
 import { datPingSo, pingSo } from '@/lib/ping-so';
@@ -138,14 +138,6 @@ function veMacDinh(): void {
       <button data-phang class="dbg-cong" type="button" role="menuitem" @click="doiBoEmojiThu()">
         <span>{{ t('lc.boEmoji', { ten: tenBoEmoji }) }}</span><i class="doi" aria-hidden="true">↻</i>
       </button>
-    </section>
-
-    <!-- Skin cũ (Neon, Gỗ, Đêm Sao, Kẹo Bông) chỉ còn ở đây — người chơi chỉ có Kẹo (lib/skin.ts) -->
-    <section class="khay-nho dbg-khoi">
-      <h3>{{ t('tb.giaoDien') }}</h3>
-      <div class="dbg-luoi ba">
-        <button v-for="s in SKINS" :key="s" class="thach th-nho th-chon" type="button" :aria-pressed="skin === s" @click="datSkin(s, true)">{{ td(`tb.skin.${s}`) }}</button>
-      </div>
     </section>
 
     <section class="khay-nho dbg-khoi">

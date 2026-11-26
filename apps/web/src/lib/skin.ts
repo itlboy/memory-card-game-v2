@@ -1,5 +1,4 @@
-import { computed, ref, watch } from 'vue';
-import { daMuaPremium, hienPremium } from './premium';
+import { ref, watch } from 'vue';
 
 /*
  * SKIN = LỚP ÁO CỦA CẢ APP, tách khỏi bố cục và luật chơi.
@@ -20,22 +19,19 @@ import { daMuaPremium, hienPremium } from './premium';
  * khác GIỮ NGUYÊN (có thể dùng lại) nhưng chỉ chọn được ở trang Debug. Tắt debug — hoặc
  * mở app khi debug tắt — là về Kẹo (`skinVeMacDinh`, App.vue), trừ khi URL có `?skin=`.
  */
-export const SKINS = ['keo', 'neon', 'go', 'sao', 'bong'] as const;
+/*
+ * CHỈ CÒN KẸO (26.11.2026): bốn skin cũ Neon · Gỗ · Đêm Sao · Kẹo Bông ĐÃ XOÁ theo lời chủ dự án ("các theme cũ trước kia
+ * thì tôi nghĩ nên bỏ đi luôn" → "đúng, xoá đi") — từ 17.10 chúng chỉ còn chọn được ở trang Debug, còn vẻ ngoài của app giờ
+ * đổi bằng CHỦ ĐỀ (lib/canh.ts: nền + mặt lưng lá + icon bay). Giữ nguyên khung `SKINS` / `data-skin` vì toàn bộ CSS của Kẹo
+ * viết dưới `:root[data-skin='keo']`; máy còn lưu `mm.skin` cũ thì `laSkin` loại ra và về Kẹo.
+ * Màu gốc ở tokens.css (vẻ "neon" ngày trước) vẫn là LỚP NỀN mà Kẹo ghi đè — đừng xoá nó.
+ */
+export const SKINS = ['keo'] as const;
 export type Skin = (typeof SKINS)[number];
 export const SKIN_MAC_DINH: Skin = 'keo';
 
-/** Màu thanh trình duyệt / thanh trạng thái (meta theme-color) cho từng skin. */
-export const MAU_THANH: Record<Skin, string> = { keo: '#5cc2f2', go: '#3a2618', neon: '#6a5cff', sao: '#0d0f2b', bong: '#ffe3f1' };
-
-/**
- * Skin PREMIUM — nằm trong cùng gói với theme premium (lib/premium.ts). Chủ dự án
- * chốt 14.10.2026: thêm Đêm Sao (sao) và Kẹo Bông (bong); Gỗ ở lại miễn phí.
- * Chưa mua thì menu vẫn bày ra (kèm khoá) để người chơi biết có, nhưng không chọn được.
- */
-export const SKIN_PREMIUM: ReadonlySet<Skin> = new Set<Skin>(['sao', 'bong']);
-/** Skin bày trong menu: chưa bán Premium (`banPremium`) thì skin premium ẩn hẳn. */
-export const skinsHien = computed(() => SKINS.filter((s) => !SKIN_PREMIUM.has(s) || hienPremium.value));
-export const skinChoiDuoc = (s: Skin): boolean => !SKIN_PREMIUM.has(s) || daMuaPremium.value;
+/** Màu thanh trình duyệt / thanh trạng thái (meta theme-color). */
+export const MAU_THANH: Record<Skin, string> = { keo: '#5cc2f2' };
 
 const KHOA = 'mm.skin';
 const laSkin = (s: unknown): s is Skin => typeof s === 'string' && (SKINS as readonly string[]).includes(s);
@@ -43,25 +39,22 @@ const laSkin = (s: unknown): s is Skin => typeof s === 'string' && (SKINS as rea
 function docSkin(): Skin {
   try {
     const q = new URLSearchParams(location.search).get('skin');
-    if (laSkin(q)) { localStorage.setItem(KHOA, q); return q; }   // ?skin= để thử, kể cả skin premium
+    if (laSkin(q)) { localStorage.setItem(KHOA, q); return q; }
     const s = localStorage.getItem(KHOA);
-    // Skin premium mà gói hết hạn/chưa mua → về mặc định (người dùng Gỗ cũ cũng vậy)
-    if (laSkin(s) && skinChoiDuoc(s)) return s;
+    if (laSkin(s)) return s;
   } catch { /* chế độ riêng tư */ }
   return SKIN_MAC_DINH;
 }
 
 export const skin = ref<Skin>(docSkin());
 
-/** `thu`: chọn từ trang Debug — bỏ qua khoá Premium như `?skin=`. */
-export function datSkin(s: Skin, thu = false): void {
-  if (!thu && !skinChoiDuoc(s)) return;
+export function datSkin(s: Skin): void {
   skin.value = s;
   try { localStorage.setItem(KHOA, s); } catch { /* chế độ riêng tư */ }
 }
 
-/** Skin có công tắc Sáng/Tối (`data-theme`): Kẹo và Neon. Các skin còn lại mang bảng màu cố định. */
-export const coNenToi = (s: Skin): boolean => s === 'keo' || s === 'neon';
+/** Skin có công tắc Sáng/Tối (`data-theme`). Chỉ còn Kẹo nên luôn đúng — giữ hàm cho các chỗ đang gọi. */
+export const coNenToi = (_s: Skin): boolean => true;
 
 /** Về Kẹo — gọi khi debug tắt (skin khác chỉ dành cho debug). */
 export function skinVeMacDinh(): void {

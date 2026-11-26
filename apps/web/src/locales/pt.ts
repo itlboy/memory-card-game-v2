@@ -68,10 +68,6 @@ const pt: TuDien = {
   'tb.ngonNgu': 'Idioma',
   'tb.giaoDien': 'Aparência',
   'tb.skin.keo': 'Doces',
-  'tb.skin.go': 'Madeira',
-  'tb.skin.neon': 'Neon',
-  'tb.skin.sao': "Noite estrelada",
-  'tb.skin.bong': "Algodão-doce",
   'tb.skinPlus': "Premium — em breve",
   'tb.luatChoi': 'Como jogar',
 

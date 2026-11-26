@@ -72,10 +72,6 @@ const vi = {
   'tb.ngonNgu': 'Ngôn ngữ',
   'tb.giaoDien': 'Giao diện',
   'tb.skin.keo': 'Kẹo',
-  'tb.skin.go': 'Gỗ',
-  'tb.skin.neon': 'Neon',
-  'tb.skin.sao': "Đêm Sao",
-  'tb.skin.bong': "Kẹo Bông",
   'tb.skinPlus': "Gói Premium — sắp ra mắt",
   'tb.luatChoi': 'Luật chơi',
 

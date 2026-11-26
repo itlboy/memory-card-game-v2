@@ -70,10 +70,6 @@ const zhTW: TuDien = {
   'tb.ngonNgu': '語言',
   'tb.giaoDien': '外觀',
   'tb.skin.keo': '糖果',
-  'tb.skin.go': '木紋',
-  'tb.skin.neon': '霓虹',
-  'tb.skin.sao': "星空之夜",
-  'tb.skin.bong': "棉花糖",
   'tb.skinPlus': "進階版 — 即將推出",
   'tb.luatChoi': '玩法說明',
 

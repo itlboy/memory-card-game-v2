@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 const URL_APP = process.argv[2] ?? 'http://127.0.0.1:8080';
 const OUT = process.env.OUT ?? '/tmp/mm-tuong-phan';
 // SKINS=neon,sao để đo nhanh vài skin
-const SKINS = process.env.SKINS?.split(',') ?? ['keo', 'go', 'neon', 'sao', 'bong'];
+const SKINS = process.env.SKINS?.split(',') ?? ['keo'];   // bốn skin cũ đã xoá 26.11.2026
 
 // Chạy chính file này làm KICHBAN của chup-store (nó lo Chrome, CDP, bấm nút).
 if (!process.env.MM_TP_TRONG) {

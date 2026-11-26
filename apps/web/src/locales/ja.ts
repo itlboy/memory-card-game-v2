@@ -67,10 +67,6 @@ const ja: TuDien = {
   'tb.ngonNgu': '言語',
   'tb.giaoDien': '着せかえ',
   'tb.skin.keo': 'キャンディ',
-  'tb.skin.go': '木目',
-  'tb.skin.neon': 'ネオン',
-  'tb.skin.sao': "星降る夜",
-  'tb.skin.bong': "わたあめ",
   'tb.skinPlus': "プレミアム — 近日公開",
   'tb.luatChoi': '遊び方',
 

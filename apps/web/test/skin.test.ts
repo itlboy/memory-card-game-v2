@@ -38,28 +38,37 @@ describe('skin', () => {
   });
 });
 
-describe('chưa bật bán Premium (bản đầu lên store)', () => {
-  it('menu chỉ bày skin miễn phí — Kẹo, Neon, Gỗ; bật bán thì hiện đủ', async () => {
-    const { banPremium, daMuaPremium } = await import('../src/lib/premium');
-    const { skinsHien, SKIN_PREMIUM } = await import('../src/lib/skin');
-    daMuaPremium.value = false; banPremium.value = false;
-    expect(skinsHien.value).toEqual(['keo', 'neon', 'go']);
-    expect(skinsHien.value.length % 3).toBe(0);            // một hàng tròn
-    banPremium.value = true;
-    expect(skinsHien.value.filter((s) => SKIN_PREMIUM.has(s))).toEqual(['sao', 'bong']);
-    banPremium.value = false;
+/**
+ * 26.11.2026 — chủ dự án: "các theme cũ trước kia thì tôi nghĩ nên bỏ đi luôn" → "đúng, xoá đi". Bốn skin Neon · Gỗ · Đêm Sao ·
+ * Kẹo Bông đã xoá hẳn; vẻ ngoài giờ đổi bằng Chủ đề (lib/canh.ts).
+ */
+describe('chỉ còn skin Kẹo', () => {
+  it('danh sách skin chỉ có Kẹo; file CSS, dòng nạp và tên của bốn skin cũ không còn', () => {
+    expect([...SKINS]).toEqual(['keo']);
+    const main = readFileSync(src('main.ts'), 'utf8');
+    for (const cu of ['neon', 'go', 'sao', 'bong']) {
+      expect(existsSync(src(`styles/skins/${cu}.css`)), `${cu}.css còn sót`).toBe(false);
+      expect(main).not.toContain(`./styles/skins/${cu}.css`);
+      for (const { id } of NGON_NGU) expect((TU_DIEN[id] as unknown as Record<string, string>)[`tb.skin.${cu}`], `${id}: tb.skin.${cu}`).toBeUndefined();
+    }
   });
-});
 
-describe('nút "Mở Premium để thử" ở chế độ debug', () => {
-  it('bật thì menu bày đủ 5 skin và nhớ qua lần mở sau; tắt thì về 3', async () => {
+  it('máy còn lưu skin cũ (hoặc mở bằng ?skin=go) thì về Kẹo, không vỡ giao diện', async () => {
+    const { vi } = await import('vitest');
+    for (const cu of ['neon', 'go', 'sao', 'bong']) {
+      localStorage.setItem('mm.skin', cu);
+      vi.resetModules();
+      const m = await import('../src/lib/skin');
+      expect(m.skin.value, cu).toBe('keo');
+    }
+    localStorage.removeItem('mm.skin');
+  });
+
+  it('nút "Mở Premium để thử" ở chế độ debug vẫn nhớ qua lần mở sau', async () => {
     const { datPremiumThu } = await import('../src/lib/premium');
-    const { skinsHien } = await import('../src/lib/skin');
     datPremiumThu(true);
-    expect(skinsHien.value).toHaveLength(5);
     expect(localStorage.getItem('mm.premium')).toBe('1');
     datPremiumThu(false);
-    expect(skinsHien.value).toEqual(['keo', 'neon', 'go']);
     expect(localStorage.getItem('mm.premium')).toBeNull();
   });
 });

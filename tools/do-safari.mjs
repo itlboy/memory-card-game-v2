@@ -28,7 +28,7 @@ import { moTrinhDuyet } from './lib-playwright.mjs';
 
 const URL_APP = (process.argv[2] ?? 'http://localhost:3001').replace(/\/$/, '');
 const OUT = process.env.OUT ?? '/tmp/mm-safari';
-const SKINS = process.env.SKINS?.split(',') ?? ['keo', 'neon', 'go', 'sao', 'bong'];
+const SKINS = process.env.SKINS?.split(',') ?? ['keo'];   // bốn skin cũ đã xoá 26.11.2026
 const MAY_ALL = {
   se: [375, 553], ip14: [390, 664], promax: [430, 745],
   // iPhone Duo (gập, 23.10.2026) — vùng APP đã trừ tai thỏ + thanh home: màn NGOÀI 466×678 điểm (rộng mà
