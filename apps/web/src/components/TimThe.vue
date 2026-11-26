@@ -11,7 +11,7 @@
  * Đồng hồ tự cộng `dt` trong vòng rAF nên TẠM DỪNG là đứng hẳn (không dùng setTimeout cho nhịp ván).
  * Thanh giờ ghi thẳng `transform` — Vue chỉ vẽ lại khi nhịp / lựa chọn đổi (`rev`).
  */
-import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import {
   BOT_SPECS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheChonMs, timTheSoCot, timTheXemMs,
   type BotLevel, type TimTheKetQua
@@ -164,8 +164,32 @@ function veGio(v: VanTimThe): void {
   }
 }
 
+/*
+ * ĐIỂM BAY (27.11.2026, chủ dự án: "hiện ngay chỗ lá bài được mở… cho nó bay về phía điểm như việc lật hai thẻ
+ * trùng"): chọn đúng thì số giây nằm trên lá vừa chọn, "+điểm" bật lên ở tâm lá rồi bị hút về ô Điểm — CÙNG
+ * đường cong `gain-suck` của GameScreen. Ô Điểm chỉ nhảy số khi điểm CẬP BẾN (850ms), như bàn chính.
+ */
+const gain = ref<{ key: number; i: number; diem: number; s: string } | null>(null);
+let gainEl: HTMLElement | null = null;
+function datGain(el: unknown): void { gainEl = el instanceof HTMLElement ? el : null; }
+const diemHien = ref(0);
+const nay = ref(0);
+let henBay: ReturnType<typeof setTimeout> | undefined;
+async function bayDiem(i: number, diem: number, ms: number): Promise<void> {
+  clearTimeout(henBay);
+  gain.value = { key: (gain.value?.key ?? 0) + 1, i, diem, s: giayGon(ms) };
+  await nextTick();
+  const dich = document.querySelector('.tim-the .vien.diem b');
+  if (gainEl && dich) {
+    const a = gainEl.getBoundingClientRect(), b = dich.getBoundingClientRect();
+    gainEl.style.setProperty('--to-x', `${b.left + b.width / 2 - (a.left + a.width / 2)}px`);
+    gainEl.style.setProperty('--to-y', `${b.top + b.height / 2 - (a.top + a.height / 2)}px`);
+  }
+  henBay = setTimeout(() => { diemHien.value = toi.value?.diem ?? 0; nay.value++; }, 850);
+}
+
 function luotMoi(v: VanTimThe): void {
-  chonCuaToi.value = null; ketToi.value = null;
+  chonCuaToi.value = null; ketToi.value = null; gain.value = null;
   taiTruocAnh(v.the, coAnh.value);
   vaoNhip('xem');
   sfx.flip();
@@ -179,7 +203,7 @@ function batDau(): void {
   const nguoi = [{ id: TOI, ten: tenToi.value || t('tt.ban') }, ...(c.doiThu === 'mot' ? [] : [{ id: MAY, ten: tenBot(c.doiThu), may: c.doiThu }])];
   const v = new VanTimThe({ soThe: c.soThe, doKho: c.doKho }, nguoi, hinh, Math.floor(Math.random() * 0xffffffff));
   van.value = v;
-  tVan = 0; ketVan.value = null;
+  tVan = 0; ketVan.value = null; diemHien.value = 0; clearTimeout(henBay);
   buoc.value = 'choi';
   doBan();
   luotMoi(v);
@@ -198,6 +222,7 @@ function cham(i: number): void {
 function chot(v: VanTimThe): void {
   const kq = v.chot().ketQua.find((k) => k.id === TOI) ?? null;
   ketToi.value = kq;
+  if (kq?.ketCuc === 'dung' && kq.viTri != null) void bayDiem(kq.viTri, kq.diem, kq.ms ?? 0);
   vaoNhip('dap-an');
   if (kq?.ketCuc === 'dung') { sfx.match(kq.chuoi); rung.ghep(kq.chuoi); } else { sfx.miss(); rung.sai(); }
 }
@@ -238,6 +263,7 @@ onMounted(() => {
   raf = requestAnimationFrame((ms) => { truoc = ms; raf = requestAnimationFrame(khung); });
 });
 onUnmounted(() => {
+  clearTimeout(henBay);
   ro?.disconnect();
   cancelAnimationFrame(raf);
   hen.forEach(clearTimeout);
@@ -262,7 +288,7 @@ defineExpose({
 <template>
   <section class="tim-the" :class="{ dau: buoc === 'dau' }">
     <div class="tt-hud">
-      <div class="vien diem" :title="t('mt.diem')"><DongXu :size="22" /><b>{{ num(toi?.diem ?? 0) }}</b></div>
+      <div :key="nay" class="vien diem" :class="{ nay: nay > 0 }" :title="t('mt.diem')"><DongXu :size="22" /><b>{{ num(diemHien) }}</b></div>
       <div v-if="heSo > 1 && buoc === 'choi'" :key="heSo" class="vien combo" :title="t('tt.heSo')">×{{ heSo.toLocaleString(bcp()) }}</div>
       <span class="gian" />
       <div class="vien luot">{{ t('tt.luot', { n: Math.min((van?.luot ?? 0) + 1, van?.cfg.soLuot ?? TIM_THE_SO_LUOT), tong: van?.cfg.soLuot ?? TIM_THE_SO_LUOT }) }}</div>
@@ -287,7 +313,7 @@ defineExpose({
     <p class="an-di" aria-live="polite">{{ nhip === 'hoi' && van ? `${t('tt.hoi')} ${van.hinhDich}` : bangKq?.chu ?? '' }}</p>
     <div ref="ban" class="tt-ban">
       <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
-        <div v-for="(sym, i) in dsThe" :key="`${van?.luot}-${i}`" class="o">
+        <div v-for="(sym, i) in dsThe" :key="`${van?.luot}-${i}`" class="o" :class="{ 'co-gain': gain?.i === i }">
           <button
             class="card" type="button" data-nosfx data-phang
             :class="{
@@ -308,6 +334,10 @@ defineExpose({
               </span>
             </span>
           </button>
+          <template v-if="gain && gain.i === i && nhip === 'dap-an'">
+            <span :key="`s${gain.key}`" class="tt-giay" aria-hidden="true">{{ gain.s }}s</span>
+            <span :key="`g${gain.key}`" :ref="datGain" class="tt-gain" aria-hidden="true">+{{ num(gain.diem) }}</span>
+          </template>
         </div>
       </div>
 
@@ -423,6 +453,28 @@ defineExpose({
 .vien.luot { font-size: 15px; padding: 0 12px; }
 .vien.combo { background: linear-gradient(#ff9cb2, #ee3a5e); color: #fff; box-shadow: 0 3px 0 #c21f42, 0 6px 10px rgba(20, 30, 70, .15); animation: nay .3s; }
 @keyframes nay { 40% { transform: scale(1.25); } }
+.vien.diem.nay { animation: nay .3s; }
+/* Điểm bay: cùng đường cong `gain-suck` của GameScreen (bàn chính) */
+.o.co-gain { z-index: 8; }
+.tt-gain {
+  --to-x: 0px; --to-y: -120px;
+  position: absolute; left: 50%; top: 50%; z-index: 9; transform: translate(-50%, -50%); pointer-events: none; white-space: nowrap;
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(22px, 6vw, 30px); color: #ffd23a;
+  -webkit-text-stroke: 4px #8a5a00; paint-order: stroke; text-shadow: 0 3px 10px rgba(217, 158, 0, .5);
+  animation: gain-suck 1.05s cubic-bezier(.35, .05, .3, 1) forwards;
+}
+@keyframes gain-suck {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1.35); }
+  45% { opacity: 1; transform: translate(calc(-50% + var(--to-x) * .18), calc(-50% + var(--to-y) * .18)) scale(1.2); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--to-x)), calc(-50% + var(--to-y))) scale(.45); }
+}
+/* Số giây chọn: viên nhỏ dính đáy lá vừa chọn, ở lại tới bàn sau */
+.tt-giay {
+  position: absolute; left: 0; right: 0; bottom: -10px; z-index: 9; width: fit-content; margin: 0 auto; pointer-events: none; white-space: nowrap;
+  padding: 2px 10px; border-radius: 999px; background: #2f9e57; color: #fff; font-family: var(--font-display); font-weight: 800;
+  font-size: 15px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 #1f7a3e; animation: no .25s both;
+}
 .gian { flex: 1; }
 .nut-dung { flex: none; width: 44px; height: 44px; min-width: 0; min-height: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; }
 
@@ -565,6 +617,6 @@ defineExpose({
 .ic-n { vertical-align: -2px; }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
-  .o .card.dung, .card.sai .inner, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi { animation: none; }
+  .o .card.dung, .card.sai .inner, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay { animation: none; }
 }
 </style>
