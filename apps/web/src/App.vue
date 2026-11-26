@@ -1430,7 +1430,6 @@ const hasNext = computed(() => {
     @update:do-nhip="doNhip = $event"
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
-    @tim-the="showDebug = false; nhoBuocTruoc(); screen = 'tim-the'"
     @so-tri-nho="showDebug = false; showSoTriNho = true"
     @premium="showDebug = false; premiumTu = 'debug'; showPremium = true"
     @tat="debug = false; showDebug = false"
