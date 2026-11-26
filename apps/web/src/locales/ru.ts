@@ -888,6 +888,10 @@ const ru: TuDien = {
   'say.choiTiep': 'Давай играть дальше',
   'say.henGap': "До встречи!",
   'say.vuiChoi': 'Было приятно поиграть',
+  'say.choChut': "Подожди минутку",
+  'say.quayLai': "Я вернулся",
+  'say.batDau': "Начинаем!",
+  'say.mayMan': "Удачи!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Побить',
   'tk.phaAria': 'Сыграть и побить рекорд: {ten}',

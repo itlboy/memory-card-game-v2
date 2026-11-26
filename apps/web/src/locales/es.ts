@@ -870,6 +870,10 @@ const es: TuDien = {
   'say.choiTiep': 'Sigamos jugando',
   'say.henGap': "¡Hasta luego!",
   'say.vuiChoi': 'Me encantó jugar contigo',
+  'say.choChut': "Espérame un momento",
+  'say.quayLai': "Ya volví",
+  'say.batDau': "¡Empecemos!",
+  'say.mayMan': "¡Buena suerte!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Superar',
   'tk.phaAria': 'Juega para superar tu récord: {ten}',

@@ -44,13 +44,16 @@ describe('nói nhanh', () => {
     expect(bar.indexOf('emoji chon')).toBeLessThan(bar.indexOf('v-for="e in hangNgoai"'));
   });
   // 26.11.2026: câu "Tôi bận rồi, hẹn gặp lại sau nhé" TÁCH LÀM HAI (chủ dự án: "tách ra làm hai câu nhé") — dùng lại hai mã có sẵn
-  it('6 câu đúng chủ dự án chọn, đúng thứ tự; "bận" và "hẹn gặp lại" là HAI câu riêng', async () => {
-    const { NOI_NHANH } = await import('@mm/engine');
-    expect([...NOI_NHANH]).toEqual(['gioi', 'choiTiep', 'ban', 'henGap', 'vuiChoi', 'dongY']);
+  it('10 câu đúng chủ dự án chọn, đúng thứ tự; "bận" và "hẹn gặp lại" là HAI câu riêng; 4 câu mới 26.11.2026', async () => {
+    const { NOI_NHANH, QUICK_SAYS } = await import('@mm/engine');
+    expect([...NOI_NHANH]).toEqual(['gioi', 'choiTiep', 'mayMan', 'batDau', 'choChut', 'quayLai', 'ban', 'henGap', 'vuiChoi', 'dongY']);
+    expect(QUICK_SAYS.slice(-4), 'mã mới CHỈ THÊM VÀO CUỐI').toEqual(['choChut', 'quayLai', 'batDau', 'mayMan']);
     const vi = (await import('../src/locales/vi.ts')).default as Record<string, string>;
     expect(NOI_NHANH.map((id) => vi[`say.${id}`])).toEqual([
-      'Bạn giỏi quá', 'Chúng ta chơi tiếp nhé', 'Rất tiếc, tôi bận mất rồi', 'Hẹn gặp lại bạn sau nhé', 'Rất vui được chơi với bạn', 'Đồng ý'
+      'Bạn giỏi quá', 'Chúng ta chơi tiếp nhé', 'Chúc may mắn!', 'Bắt đầu đi!', 'Chờ mình chút nhé', 'Mình quay lại rồi',
+      'Rất tiếc, tôi bận mất rồi', 'Hẹn gặp lại bạn sau nhé', 'Rất vui được chơi với bạn', 'Đồng ý'
     ]);
+    expect(readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8'), 'khung 10 câu cuộn trên máy thấp').toMatch(/\.bang-noi \{[^}]*max-height: min\(52vh, 420px\); overflow-y: auto;/);
   });
 
   // 26.11.2026: emoji Premium — chủ dự án: "làm thêm một số icon premium", "disable mờ với người thường"

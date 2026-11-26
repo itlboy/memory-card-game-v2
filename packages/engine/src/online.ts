@@ -228,7 +228,9 @@ export const QUICK_SAYS = [
   'chao', 'hay', 'wow', 'tiec', 'den', 'anMay', 'gg', 'camOn', 'dongY', 'vanNua', 'ban', 'tamBiet',
   // Nút nói nhanh trở lại (22.11.2026, mockup duyệt https://claude.ai/artifact/54TeMHuUCQA2pxs7FN7C4Q) — CHỈ THÊM VÀO CUỐI:
   // app bản cũ / server cũ không biết id mới thì bỏ qua, không đổi nghĩa id cũ
-  'gioi', 'choiTiep', 'henGap', 'vuiChoi'
+  'gioi', 'choiTiep', 'henGap', 'vuiChoi',
+  // 26.11.2026 (chủ dự án duyệt): câu người chơi thật hay cần — chờ / quay lại / giục bắt đầu / chúc đầu ván
+  'choChut', 'quayLai', 'batDau', 'mayMan'
 ] as const;
 export type QuickSay = (typeof QUICK_SAYS)[number];
 /**
@@ -236,7 +238,12 @@ export type QuickSay = (typeof QUICK_SAYS)[number];
  * LÀM HAI ("tách ra làm hai câu nhé") — `ban` = "Rất tiếc, tôi bận mất rồi", `henGap` = "Hẹn gặp lại bạn sau nhé". Dùng lại
  * hai mã CÓ SẴN (không thêm mã) nên server/app cũ vẫn nhận; máy bản cũ chỉ hiện chữ cũ của đúng mã đó.
  */
-export const NOI_NHANH: readonly QuickSay[] = ['gioi', 'choiTiep', 'ban', 'henGap', 'vuiChoi', 'dongY'];
+export const NOI_NHANH: readonly QuickSay[] = ['gioi', 'choiTiep', 'mayMan', 'batDau', 'choChut', 'quayLai', 'ban', 'henGap', 'vuiChoi', 'dongY'];
+/*
+ * 26.11.2026: thêm 4 câu (chủ dự án duyệt) — "Chờ mình chút nhé", "Mình quay lại rồi", "Bắt đầu đi!", "Chúc may mắn!".
+ * Ván online KHÔNG có nút tạm dừng: "chờ mình" dựa vào cơ chế có sẵn — người tới lượt mất kết nối thì đồng hồ lượt đứng,
+ * giữ chỗ tối đa `TURN_PAUSE_CAP_MS` (5 phút). Server phải lên trước: mã lạ server lặng lẽ bỏ.
+ */
 
 /* ---------- view công khai ---------- */
 

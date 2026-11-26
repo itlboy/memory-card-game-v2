@@ -871,6 +871,10 @@ const tr: TuDien = {
   'say.choiTiep': 'Oynamaya devam edelim',
   'say.henGap': "Sonra görüşürüz!",
   'say.vuiChoi': 'Seninle oynamak güzeldi',
+  'say.choChut': "Biraz bekle lütfen",
+  'say.quayLai': "Geri döndüm",
+  'say.batDau': "Başlayalım!",
+  'say.mayMan': "İyi şanslar!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Kır',
   'tk.phaAria': 'Rekoru kırmak için oyna: {ten}',

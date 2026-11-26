@@ -178,6 +178,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .bang-noi {
   position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
   width: max-content; max-width: calc(100% - 12px); display: grid; gap: 4px; padding: 6px;
+  /* 10 câu (26.11.2026) cao ~410px — máy thấp (SE) thì cuộn trong khung thay vì trồi khỏi màn */
+  max-height: min(52vh, 420px); overflow-y: auto; overscroll-behavior: contain;
   background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
   box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
 }

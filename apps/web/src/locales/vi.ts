@@ -882,6 +882,10 @@ const vi = {
   'say.choiTiep': 'Chúng ta chơi tiếp nhé',
   'say.henGap': "Hẹn gặp lại bạn sau nhé",
   'say.vuiChoi': 'Rất vui được chơi với bạn',
+  'say.choChut': "Chờ mình chút nhé",
+  'say.quayLai': "Mình quay lại rồi",
+  'say.batDau': "Bắt đầu đi!",
+  'say.mayMan': "Chúc may mắn!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Phá',
   'tk.phaAria': 'Chơi để phá kỷ lục {ten}',

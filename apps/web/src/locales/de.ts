@@ -871,6 +871,10 @@ const de: TuDien = {
   'say.choiTiep': 'Lass uns weiterspielen',
   'say.henGap': "Bis später!",
   'say.vuiChoi': 'Hat Spaß gemacht mit dir',
+  'say.choChut': "Kurz warten, bitte",
+  'say.quayLai': "Bin wieder da",
+  'say.batDau': "Lass uns anfangen!",
+  'say.mayMan': "Viel Glück!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Los',
   'tk.phaAria': 'Spielen und Rekord brechen: {ten}',

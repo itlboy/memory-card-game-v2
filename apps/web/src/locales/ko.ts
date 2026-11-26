@@ -868,6 +868,10 @@ const ko: TuDien = {
   'say.choiTiep': '계속 해요',
   'say.henGap': "다음에 또 만나요!",
   'say.vuiChoi': '같이 해서 즐거웠어요',
+  'say.choChut': "잠깐만 기다려 줘",
+  'say.quayLai': "나 돌아왔어",
+  'say.batDau': "시작하자!",
+  'say.mayMan': "행운을 빌어!",
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': '도전',
   'tk.phaAria': '기록 깨러 가기: {ten}',

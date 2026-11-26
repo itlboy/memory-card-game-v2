@@ -1,8 +1,8 @@
 import type { QuickSay } from '@mm/engine';
 import type { Component } from 'vue';
 import {
-  CalendarX, Clock, CloudRain, Clover, Frown, Gamepad2, Hand, Handshake, Heart, LogOut, PartyPopper, Repeat, Smile, Sparkles,
-  ThumbsUp, Zap
+  CalendarX, Clock, CloudRain, Clover, Frown, Gamepad2, Hand, Handshake, Heart, Hourglass, LogOut, PartyPopper, Repeat, Rocket, Smile, Sparkles,
+  Star, ThumbsUp, Undo2, Zap
 } from 'lucide-vue-next';
 
 /**
@@ -13,7 +13,9 @@ export const EMOJI_NOI: Record<QuickSay, string> = {
   chao: '👋', hay: '👏', wow: '😮', tiec: '😅', den: '🌚', anMay: '🤞',
   gg: '🤝', camOn: '🙏', dongY: '👍', vanNua: '🎮', ban: '😔', tamBiet: '🏃',
   // nút nói nhanh 22.11.2026
-  gioi: '🌟', choiTiep: '🔁', henGap: '⏰', vuiChoi: '😊'
+  gioi: '🌟', choiTiep: '🔁', henGap: '⏰', vuiChoi: '😊',
+  // 26.11.2026
+  choChut: '⏳', quayLai: '🙋', batDau: '🚀', mayMan: '🍀'
 };
 
 /**
@@ -26,5 +28,6 @@ export const ICON_NOI: Record<QuickSay, { c: Component; mau: MauNoi }> = {
   chao: { c: Hand, mau: 'vang' }, hay: { c: PartyPopper, mau: 'xanh' }, wow: { c: Zap, mau: 'vang' }, tiec: { c: Frown, mau: 'xam' },
   den: { c: CloudRain, mau: 'xam' }, anMay: { c: Clover, mau: 'xanh' }, gg: { c: Handshake, mau: 'troi' }, camOn: { c: Heart, mau: 'hong' },
   dongY: { c: ThumbsUp, mau: 'troi' }, vanNua: { c: Gamepad2, mau: 'tim' }, ban: { c: CalendarX, mau: 'xam' }, tamBiet: { c: LogOut, mau: 'xam' },
-  gioi: { c: Sparkles, mau: 'vang' }, choiTiep: { c: Repeat, mau: 'xanh' }, henGap: { c: Clock, mau: 'xam' }, vuiChoi: { c: Smile, mau: 'hong' }
+  gioi: { c: Sparkles, mau: 'vang' }, choiTiep: { c: Repeat, mau: 'xanh' }, henGap: { c: Clock, mau: 'xam' }, vuiChoi: { c: Smile, mau: 'hong' },
+  choChut: { c: Hourglass, mau: 'vang' }, quayLai: { c: Undo2, mau: 'xanh' }, batDau: { c: Rocket, mau: 'tim' }, mayMan: { c: Star, mau: 'troi' }
 };
