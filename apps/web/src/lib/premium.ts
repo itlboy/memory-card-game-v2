@@ -180,7 +180,7 @@ export function huyGoiThu(): void { datPremiumThu(false); }
  * mở đầu bằng đúng thứ người chơi vừa chạm vào. `moiNangCap` = có bày các nút đó không: CHƯA BÁN THẬT nên chỉ khi
  * đang debug (đồ khoá mà không mua được là App Review loại), và thôi mời khi đã có gói.
  */
-export type NoiMoPremium = 'menu' | 'trang-chu' | 'cai-dat' | 'nen' | 'nhac' | 'tri-nho' | 'debug';
+export type NoiMoPremium = 'menu' | 'trang-chu' | 'cai-dat' | 'nen' | 'nhac' | 'tri-nho' | 'chat' | 'debug';
 /** `canh`: hình nền người chơi vừa bấm (đang khoá) — bảng Premium mở đầu bằng đúng hình đó. */
 export const yeuCauPremium = ref<{ tu: NoiMoPremium; lan: number; canh?: string } | null>(null);
 export function moPremium(tu: NoiMoPremium, canh?: string): void {

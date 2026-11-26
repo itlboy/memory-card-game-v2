@@ -2074,3 +2074,17 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   mỗi lần mở app.
 - **Chữ trên viên phải NGẮN**: hai viên chia nhau bề ngang trang chủ (`max-width: 52%`), máy 375px chữ dài là bị cắt — tiếng Việt
   dùng "Tặng 1 tháng", tiếng Nga "1 месяц даром". Thêm ngôn ngữ / đổi chữ thì đo lại trên máy hẹp.
+
+## Chat trong ván: bong bóng trong suốt, emoji Premium, tách câu (26.11.2026)
+
+- **Bong bóng câu nói + emoji HƠI TRONG SUỐT** (`opacity: .78` ở `.bong` của LoiNoi.vue và EmojiBlast.vue — đổi thì đổi cả
+  hai, test `noi-nhanh` giữ): chủ dự án muốn "không cản việc xem thẻ mở".
+- **Emoji Premium** (`EMOJI_NHOM.premium` / `EMOJI_PREMIUM` ở packages/engine): 8 cái, hàng thứ tư của bảng emoji, đeo vương
+  miện. Chưa có Premium → hàng MỜ ("disable mờ với người thường"), bấm mở bảng Premium (`moPremium('chat')`). Hàng chỉ bày khi
+  đã có Premium hoặc `moiNangCap` (debug / đã mở bán) — cùng cổng với mọi đồ Premium khác. Server KHÔNG kiểm quyền gửi; nhưng
+  server PHẢI lên bản mới mới chuyển emoji mới (danh sách đóng) — sửa engine là CI `docker.yml` tự dựng ảnh server.
+- **Câu nói nhanh giờ 6 câu**: câu "bận + hẹn gặp lại" tách làm hai, DÙNG LẠI mã có sẵn `ban` và `henGap` (chỉ đổi chữ ở 15
+  ngôn ngữ) nên không cần server mới. Thêm câu MỚI thì cần mã mới ở cuối `QUICK_SAYS` + emoji ở `EMOJI_NOI` + icon ở `ICON_NOI`
+  + bản dịch 15 ngôn ngữ, và server phải lên trước.
+- **BẪY chạy server cục bộ để chụp màn online**: `wrangler dev` cần `apps/web/dist` (assets) — chưa `pnpm build` web là thoát
+  ngay với lỗi "assets.directory does not exist".

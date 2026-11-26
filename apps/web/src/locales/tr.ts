@@ -642,7 +642,7 @@ const tr: TuDien = {
   'say.camOn': "Teşekkürler!",
   'say.dongY': "Katılıyorum",
   'say.vanNua': "Bir el daha?",
-  'say.ban': "Kusura bakma, meşgulüm",
+  'say.ban': "Kusura bakma, şimdi meşgulüm",
   'say.tamBiet': "Görüşürüz!",
   /* ---------- luật chơi (RulesDialog) ---------- */
   'lc.tieuDe': 'Nasıl oynanır',
@@ -869,7 +869,7 @@ const tr: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Çok iyisin!',
   'say.choiTiep': 'Oynamaya devam edelim',
-  'say.henGap': 'Gitmem lazım, sonra görüşürüz!',
+  'say.henGap': "Sonra görüşürüz!",
   'say.vuiChoi': 'Seninle oynamak güzeldi',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Kır',

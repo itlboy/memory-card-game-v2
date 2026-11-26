@@ -641,7 +641,7 @@ const es: TuDien = {
   'say.camOn': "¡Gracias!",
   'say.dongY': "De acuerdo",
   'say.vanNua': "¿Otra partida?",
-  'say.ban': "Lo siento, estoy ocupado",
+  'say.ban': "Lo siento, ahora estoy ocupado",
   'say.tamBiet': "¡Adiós!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': 'Cómo jugar',
@@ -868,7 +868,7 @@ const es: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': '¡Qué bien juegas!',
   'say.choiTiep': 'Sigamos jugando',
-  'say.henGap': 'Tengo que irme, ¡hasta luego!',
+  'say.henGap': "¡Hasta luego!",
   'say.vuiChoi': 'Me encantó jugar contigo',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Superar',

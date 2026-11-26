@@ -640,7 +640,7 @@ const th: TuDien = {
   'say.camOn': "ขอบคุณ!",
   'say.dongY': "ตกลง",
   'say.vanNua': "อีกตาไหม?",
-  'say.ban': "ขอโทษ ติดธุระอยู่",
+  'say.ban': "ขอโทษ ตอนนี้ติดธุระ",
   'say.tamBiet': "บ๊ายบาย!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': 'วิธีเล่น',
@@ -867,7 +867,7 @@ const th: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'เก่งมากเลย!',
   'say.choiTiep': 'เล่นต่อกันนะ',
-  'say.henGap': 'ต้องไปแล้ว ไว้เจอกันนะ!',
+  'say.henGap': "ไว้เจอกันใหม่นะ!",
   'say.vuiChoi': 'ดีใจที่ได้เล่นด้วย',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'ทำลาย',

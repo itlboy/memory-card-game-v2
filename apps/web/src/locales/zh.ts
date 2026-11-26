@@ -639,7 +639,7 @@ const zh: TuDien = {
   'say.camOn': "谢谢！",
   'say.dongY': "同意",
   'say.vanNua': "再来一局？",
-  'say.ban': "抱歉，我有事",
+  'say.ban': "抱歉，我现在有事",
   'say.tamBiet': "再见！",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': '玩法说明',
@@ -866,7 +866,7 @@ const zh: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': '你太厉害了！',
   'say.choiTiep': '我们继续玩吧',
-  'say.henGap': '我有事先走了，回头见！',
+  'say.henGap': "回头见！",
   'say.vuiChoi': '很高兴和你一起玩',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': '挑战',

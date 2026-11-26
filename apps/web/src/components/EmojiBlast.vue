@@ -107,6 +107,8 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
   --vien: color-mix(in srgb, var(--accent) 55%, var(--line));
   /* drop-shadow chứ không box-shadow: bóng ăn theo cả đuôi */
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .26));
+  /* Hơi trong suốt như bong bóng câu nói (LoiNoi.vue, cùng lý do: không che lá đang mở) — cùng số .78 */
+  opacity: .78;
 }
 /* TRÊN chip: `top` = mép trên chip − 10 → tự kéo lên trọn chiều cao mình */
 .bong.tren { transform: translateY(-100%); transform-origin: 24px 100%; }
@@ -132,7 +134,7 @@ function kieuCua(b: Bong): Record<string, string> | undefined {
 }
 @keyframes bay-len {
   0% { opacity: 0; transform: translate(-50%, -60%) scale(.5); }
-  15% { opacity: 1; transform: translate(-50%, -100%) scale(1.1); }
+  15% { opacity: .78; transform: translate(-50%, -100%) scale(1.1); }
   100% { opacity: 0; transform: translate(-50%, calc(-100% - 70px)) scale(1); }
 }
 

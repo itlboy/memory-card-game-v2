@@ -639,7 +639,7 @@ const ja: TuDien = {
   'say.camOn': "ありがとう！",
   'say.dongY': "いいよ",
   'say.vanNua': "もう一回やる？",
-  'say.ban': "ごめん、今忙しい",
+  'say.ban': "ごめん、今は忙しいんだ",
   'say.tamBiet': "またね！",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': '遊び方',
@@ -866,7 +866,7 @@ const ja: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'すごく上手だね！',
   'say.choiTiep': 'このまま続けよう',
-  'say.henGap': 'もう行かなきゃ、またね！',
+  'say.henGap': "またあとでね！",
   'say.vuiChoi': '一緒に遊べて楽しかった',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': '挑戦',

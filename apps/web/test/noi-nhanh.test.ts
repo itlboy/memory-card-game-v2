@@ -43,12 +43,34 @@ describe('nói nhanh', () => {
     expect(bar.indexOf('emoji noi')).toBeLessThan(bar.indexOf('emoji chon'));
     expect(bar.indexOf('emoji chon')).toBeLessThan(bar.indexOf('v-for="e in hangNgoai"'));
   });
-  it('5 câu đúng chủ dự án chọn, đúng thứ tự', async () => {
+  // 26.11.2026: câu "Tôi bận rồi, hẹn gặp lại sau nhé" TÁCH LÀM HAI (chủ dự án: "tách ra làm hai câu nhé") — dùng lại hai mã có sẵn
+  it('6 câu đúng chủ dự án chọn, đúng thứ tự; "bận" và "hẹn gặp lại" là HAI câu riêng', async () => {
     const { NOI_NHANH } = await import('@mm/engine');
-    expect([...NOI_NHANH]).toEqual(['gioi', 'choiTiep', 'henGap', 'vuiChoi', 'dongY']);
+    expect([...NOI_NHANH]).toEqual(['gioi', 'choiTiep', 'ban', 'henGap', 'vuiChoi', 'dongY']);
     const vi = (await import('../src/locales/vi.ts')).default as Record<string, string>;
     expect(NOI_NHANH.map((id) => vi[`say.${id}`])).toEqual([
-      'Bạn giỏi quá', 'Chúng ta chơi tiếp nhé', 'Tôi bận rồi, hẹn gặp lại sau nhé', 'Rất vui được chơi với bạn', 'Đồng ý'
+      'Bạn giỏi quá', 'Chúng ta chơi tiếp nhé', 'Rất tiếc, tôi bận mất rồi', 'Hẹn gặp lại bạn sau nhé', 'Rất vui được chơi với bạn', 'Đồng ý'
     ]);
+  });
+
+  // 26.11.2026: emoji Premium — chủ dự án: "làm thêm một số icon premium", "disable mờ với người thường"
+  it('emoji Premium: nằm trong danh sách server nhận, không trùng emoji thường; bảng có hàng riêng, chưa có Premium thì mờ + mở bảng Premium', async () => {
+    const { EMOJI_PREMIUM, EMOJI_NHOM, QUICK_EMOJIS } = await import('@mm/engine');
+    expect(EMOJI_PREMIUM).toHaveLength(8);                       // vừa một hàng 8 cột của bảng
+    const thuong = [...EMOJI_NHOM.camXuc, ...EMOJI_NHOM.tay, ...EMOJI_NHOM.vui, ...EMOJI_NHOM.treu] as string[];
+    for (const e of EMOJI_PREMIUM) { expect(QUICK_EMOJIS, e).toContain(e); expect(thuong, e).not.toContain(e); }
+    const src = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
+    expect(src).toContain('<div v-if="hienPremium()" class="be-luoi be-premium">');
+    expect(src).toContain(":class=\"{ khoa: !daMuaPremium }\"");
+    expect(src).toMatch(/if \(!daMuaPremium\.value\) \{[\s\S]{0,120}moPremium\('chat'\); return; \}/);
+    expect(src).toMatch(/\.be-premium \.emoji\.khoa \{[^}]*grayscale/);
+  });
+
+  // 26.11.2026: bong bóng hơi trong suốt để không che lá đang mở
+  it('bong bóng câu nói và emoji đều hơi trong suốt, cùng một mức', () => {
+    for (const f of ['LoiNoi.vue', 'EmojiBlast.vue']) {
+      const s = readFileSync(resolve(process.cwd(), 'src/components', f), 'utf8');
+      expect(s, f).toMatch(/\.bong \{[\s\S]*?opacity: \.78;[\s\S]*?\n\}/);
+    }
   });
 });
