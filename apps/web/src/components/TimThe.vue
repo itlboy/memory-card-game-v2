@@ -79,7 +79,7 @@ const toi = computed(() => { void rev.value; return van.value?.nguoi.find((p) =>
 const heSo = computed(() => { void rev.value; return van.value?.heSoKe(TOI) ?? 1; });
 const nhieu = computed(() => !!van.value?.nhieuNguoi);
 
-interface NguoiHien { id: string; ten: string; mat: string; mau: string; diem: number; tt: '' | 'da' | 'dung' | 'nhanh' | 'sai' | 'het'; cong: number }
+interface NguoiHien { id: string; ten: string; mat: string; mau: string; diem: number; tt: '' | 'da' | 'dung' | 'nhanh' | 'sai' | 'het'; cong: number; giay: string }
 const nguoiHien = computed((): NguoiHien[] => {
   void rev.value;
   const v = van.value;
@@ -90,7 +90,7 @@ const nguoiHien = computed((): NguoiHien[] => {
       ? (kq.ketCuc === 'dung' ? (kq.nhanhNhat ? 'nhanh' : 'dung') : kq.ketCuc === 'sai' ? 'sai' : 'het')
       : nhip.value === 'hoi' && v.daChon(p.id, tNhip) ? 'da' : '';
     return {
-      id: p.id, ten: p.id === TOI ? (tenToi.value || t('tt.ban')) : p.ten, diem: p.diem, tt, cong: kq?.diem ?? 0,
+      id: p.id, ten: p.id === TOI ? (tenToi.value || t('tt.ban')) : p.ten, diem: p.diem, tt, cong: kq?.diem ?? 0, giay: kq && kq.ms !== null ? giayChon(kq.ms) : '',
       mat: p.may ? BOT_SPECS[p.may].avatar : hoSo.value.mat, mau: p.may ? mauKhac(0) : hoSo.value.mau
     };
   });
@@ -305,6 +305,7 @@ defineExpose({
         <span class="ten">{{ p.ten }}</span>
         <b class="d">{{ num(p.diem) }}</b>
         <span v-if="p.cong" :key="`c${van?.luot}`" class="cong">+{{ num(p.cong) }}</span>
+        <span v-if="p.giay" :key="`g${van?.luot}`" class="giay-chip" :class="{ sai: p.tt === 'sai' }">{{ p.giay }}s</span>
       </div>
     </div>
 
@@ -446,6 +447,14 @@ defineExpose({
 }
 .huy.da { background: #7d88a8; } .huy.dung { background: #2f9e57; } .huy.nhanh { background: #f0a816; color: #5a3d00; }
 .huy.sai, .huy.het { background: #e0533a; }
+/* GIÂY CHỌN trên khung điểm (27.11.2026, chủ dự án: "hiện cả thời gian chọn… cho người xem cũng thấy"): mỗi người đã chọn
+   có viên số giây ở góc dưới khung tới hết đáp án — xanh nếu đúng, xám nếu sai */
+.giay-chip {
+  position: absolute; right: 6px; bottom: -9px; z-index: 2; pointer-events: none; white-space: nowrap;
+  padding: 1px 7px; border-radius: 999px; background: #2f9e57; color: #fff; font-family: var(--font-display); font-weight: 800;
+  font-size: 11.5px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 #1f7a3e; animation: no .25s both;
+}
+.giay-chip.sai { background: #7d88a8; box-shadow: 0 2px 0 #5b6688; }
 .cong {
   position: absolute; right: 8px; top: -8px; font-family: var(--font-display); font-weight: 800; font-size: 14px; color: #fff;
   -webkit-text-stroke: 3px #2f9e57; paint-order: stroke; pointer-events: none; animation: bay 1s both;

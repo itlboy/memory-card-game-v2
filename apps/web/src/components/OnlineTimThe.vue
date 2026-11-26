@@ -52,7 +52,8 @@ const nguoi = computed(() => (v.value?.nguoi ?? []).map((n) => {
     : pha.value === 'hoi' && (n.da || (n.id === toiId.value && chonCuaToi.value !== null)) ? 'da' : '';
   return {
     ...n, tt, mat: p?.avatar ?? '🙂', mau: p?.mau, anh: p?.anh,
-    ten: n.id === toiId.value ? t('tt.ban') : (p ? tenNguoi(p) : n.ten), cong: pha.value === 'dap-an' ? (n.kq?.diem ?? 0) : 0
+    ten: n.id === toiId.value ? t('tt.ban') : (p ? tenNguoi(p) : n.ten), cong: pha.value === 'dap-an' ? (n.kq?.diem ?? 0) : 0,
+    giay: lo && n.kq && n.kq.ms !== null ? giayChon(n.kq.ms) : ''
   };
 }));
 const toi = computed(() => v.value?.nguoi.find((n) => n.id === toiId.value) ?? null);
@@ -209,6 +210,7 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
         <span class="ten">{{ n.ten }}</span>
         <b class="d">{{ num(n.diem) }}</b>
         <span v-if="n.cong" :key="`c${v?.luot}`" class="cong">+{{ num(n.cong) }}</span>
+        <span v-if="n.giay && pha === 'dap-an'" :key="`g${v?.luot}`" class="giay-chip" :class="{ sai: n.kq?.ketCuc !== 'dung' }">{{ n.giay }}s</span>
       </div>
     </div>
 
@@ -313,6 +315,14 @@ onBeforeUnmount(() => { dangTimOnline.value = false; ro?.disconnect(); cancelAni
 }
 .huy.da { background: #7d88a8; } .huy.dung { background: #2f9e57; } .huy.nhanh { background: #f0a816; color: #5a3d00; }
 .huy.sai, .huy.het { background: #e0533a; }
+/* GIÂY CHỌN trên khung điểm (27.11.2026, chủ dự án: "hiện cả thời gian chọn… cho người xem cũng thấy"): mỗi người đã chọn
+   có viên số giây ở góc dưới khung tới hết đáp án — xanh nếu đúng, xám nếu sai */
+.giay-chip {
+  position: absolute; right: 6px; bottom: -9px; z-index: 2; pointer-events: none; white-space: nowrap;
+  padding: 1px 7px; border-radius: 999px; background: #2f9e57; color: #fff; font-family: var(--font-display); font-weight: 800;
+  font-size: 11.5px; font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 #1f7a3e; animation: no .25s both;
+}
+.giay-chip.sai { background: #7d88a8; box-shadow: 0 2px 0 #5b6688; }
 .cong {
   position: absolute; right: 6px; top: -9px; font-family: var(--font-display); font-weight: 800; font-size: 14px; color: #fff;
   -webkit-text-stroke: 3px #2f9e57; paint-order: stroke; pointer-events: none; animation: bay 1s both;
