@@ -71,48 +71,37 @@ describe('bảng Premium', () => {
     return { pm, w };
   };
 
-  it('còn quà: thẻ quà + nút "Nhận miễn phí", KHÔNG bày hai gói mua; bấm nhận là sang trạng thái đang có Premium', async () => {
+  // BẢNG PHƯƠNG ÁN B (26.11.2026, mockup https://claude.ai/artifact/1ZwuoozRFvTHxkdK9wRNeo): ảnh đầu bảng · 4 dòng quyền lợi ·
+  // dòng thời gian của quà · một nút; đang có thì thanh ngày còn lại + khối "Cài đặt Premium" nổi bật
+  it('còn quà: 4 dòng quyền lợi + dòng thời gian (hôm nay · ngày 27 nhắc · ngày 30 tự về) + nút nhận, KHÔNG bày hai gói mua', async () => {
     const { pm, w } = await moBang();
-    expect(w.find('.pm-hero.qua').exists()).toBe(true);
+    expect(w.findAll('.pm-ql li')).toHaveLength(4);
+    expect(w.findAll('.pm-moc > div')).toHaveLength(3);
+    expect(w.find('.pm-moc').text()).toMatch(/Ngày 27[\s\S]*Ngày 30/);
     expect(w.find('.pm-goi').exists(), 'chưa bán thật thì không bày gói').toBe(false);
-    expect(w.find('.pm-menu').exists(), 'chưa có Premium thì chưa có cài đặt').toBe(false);
-    await w.find('.pm-nhan').trigger('click');
-    expect(pm.daMuaPremium.value).toBe(true);
-    expect(w.find('.pm-hero.qua').exists()).toBe(false);
-    expect(w.find('.pm-han-chu').text(), 'thanh số ngày còn lại').toMatch(/30 \/ 30/);
-    w.unmount();
-  });
-
-  it('đang có Premium: "Cài đặt Premium" có Chủ đề · Nhạc nền · Huy hiệu — bấm dòng nào App mở đúng bảng đó', async () => {
-    const { w } = await moBang({ 'mm.premium': '1' });
-    const dong = w.findAll('.pm-menu .pm-o');
-    expect(dong).toHaveLength(3);
-    for (const d of dong) await d.trigger('click');
-    expect(w.emitted('mo')).toEqual([['nen'], ['nhac'], ['hh']]);
-    expect(dong[1]!.text()).toContain('Ngẫu nhiên');
-    expect(dong[2]!.text(), 'mặc định đeo vương miện').toContain('Vương miện');
-    w.unmount();
-  });
-
-  it('lưới quyền lợi: 8 thẻ + Ủng hộ tác giả, mỗi thẻ so Thường · Premium bằng CHỮ (không con số), thẻ nào cũng đeo vương miện', async () => {
-    const { w } = await moBang({ 'mm.premium': '1' });
-    const the = w.findAll('.pm-ql .q');
-    expect(the, '8 thẻ so sánh + 1 thẻ Ủng hộ tác giả').toHaveLength(9);
-    expect(w.findAll('.pm-ql .q .vm-goc'), 'vương miện ở MỌI thẻ').toHaveLength(9);
-    expect(w.findAll('.pm-ql .so .th')).toHaveLength(8);
-    expect(w.findAll('.pm-ql .so .pr')).toHaveLength(8);
-    expect(w.find('.pm-chu-thich').text(), 'chú thích một lần cho cả lưới').toContain('Thường');
-    const chu = w.find('.pm-ql').text();
-    expect(chu).toContain('Mặc định'); expect(chu).toContain('Tất cả');
-    expect(chu, 'không đếm bài / chủ đề — sẽ còn thêm').not.toMatch(/\b(3|9|14|8) (chủ đề|bài|mặt lưng|emoji)/);
-    expect(w.find('.pm-ql .ho-tro').text()).toContain('Giúp chúng tôi duy trì ứng dụng vĩnh viễn không quảng cáo');
+    expect(w.find('.pm-cd').exists(), 'chưa có Premium thì chưa có cài đặt').toBe(false);
     expect(w.text()).not.toContain('Sắp có');
+    await w.find('.pm-mua').trigger('click');
+    expect(pm.daMuaPremium.value).toBe(true);
+    expect(w.find('.pm-moc').exists()).toBe(false);
+    expect(w.find('.pm-con').text(), 'thanh số ngày còn lại').toMatch(/Còn 30 ngày/);
+    w.unmount();
+  });
+
+  it('đang có Premium: khối "Cài đặt Premium" có Chủ đề · Nhạc nền · Huy hiệu — bấm ô nào App mở đúng bảng đó', async () => {
+    const { w } = await moBang({ 'mm.premium': '1' });
+    const o = w.findAll('.pm-cd-o .thach');
+    expect(o).toHaveLength(3);
+    for (const x of o) await x.trigger('click');
+    expect(w.emitted('mo')).toEqual([['nen'], ['nhac'], ['hh']]);
+    expect(o[1]!.text()).toContain('Ngẫu nhiên');
+    expect(o[2]!.text(), 'mặc định đeo vương miện').toContain('Vương miện');
     w.unmount();
   });
 
   it('còn quà: KHÔNG ghi "Hết hạn …" dưới nút nhận', async () => {
     const { w } = await moBang();
-    expect(w.find('.pm-hero.qua .pm-han-chu').exists()).toBe(false);
+    expect(w.text()).not.toMatch(/Hết hạn/);
     w.unmount();
   });
 });
@@ -122,7 +111,7 @@ describe('viên Premium trang chủ + đường về', () => {
   it('viên CHỈ hiện khi debug, bấm mở bảng Premium từ "trang-chu", có chấm đỏ khi còn quà', () => {
     const s = doc('components/MenuScreen.vue');
     expect(s).toMatch(/<button v-if="dangDebug" class="vien-pm thach"[^>]*@click="sfx\.select\(\); moPremium\('trang-chu'\)"/);
-    expect(s).toContain('<i v-if="conQuaTang" class="vpm-cham"');
+    expect(s, 'chấm đỏ khi còn quà, và khi quà sắp hết (nhắc trước 3 ngày)').toContain('<i v-if="conQuaTang || sapHetQua" class="vpm-cham"');
     expect(s, 'hai viên không đè nhau').toMatch(/\.vien-pm \{[^}]*max-width: 52%/);
   });
   it('App: bảng Premium vẫn chỉ mở khi debug; mở Chủ đề / Nhạc từ bảng Premium thì đóng lại là VỀ bảng Premium', () => {

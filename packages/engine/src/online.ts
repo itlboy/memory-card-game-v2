@@ -203,7 +203,8 @@ export const EMOJI_NHOM = {
   // EMOJI PREMIUM (26.11.2026, chủ dự án: "làm thêm một số icon premium"): chỉ người có Premium GỬI được (client chặn — server
   // không kiểm quyền, y như mọi thứ Premium khác); AI CŨNG THẤY khi người khác gửi. Thêm ở đây thì thêm vào hàng Premium của
   // EmojiBar. Server chưa lên bản mới thì lặng lẽ bỏ emoji lạ — không hỏng gì.
-  premium: ['👑', '💎', '🚀', '🦄', '🌈', '🍀', '🥇', '🎯']
+  // 24 cái (26.11.2026, chủ dự án: "icon premium làm cho nhiều vào") — ô Premium riêng trong khung chat, 3 hàng × 8
+  premium: ['👑', '💎', '🚀', '🦄', '🌈', '🍀', '🥇', '🎯', '🌟', '💫', '🪐', '🌙', '☄️', '🐉', '🦋', '🌸', '🍭', '🧁', '🎁', '🎆', '🪄', '🧸', '🐳', '🦚']
 } as const;
 /** Emoji chỉ người có Premium gửi được. */
 export const EMOJI_PREMIUM: readonly string[] = EMOJI_NHOM.premium;

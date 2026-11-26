@@ -59,11 +59,11 @@ describe('nói nhanh', () => {
   // 26.11.2026: emoji Premium — chủ dự án: "làm thêm một số icon premium", "disable mờ với người thường"
   it('emoji Premium: nằm trong danh sách server nhận, không trùng emoji thường; bảng có hàng riêng, chưa có Premium thì mờ + mở bảng Premium', async () => {
     const { EMOJI_PREMIUM, EMOJI_NHOM, QUICK_EMOJIS } = await import('@mm/engine');
-    expect(EMOJI_PREMIUM).toHaveLength(8);                       // vừa một hàng 8 cột của bảng
+    expect(EMOJI_PREMIUM).toHaveLength(24);                      // ô Premium: 3 hàng × 8
     const thuong = [...EMOJI_NHOM.camXuc, ...EMOJI_NHOM.tay, ...EMOJI_NHOM.vui, ...EMOJI_NHOM.treu] as string[];
     for (const e of EMOJI_PREMIUM) { expect(QUICK_EMOJIS, e).toContain(e); expect(thuong, e).not.toContain(e); }
     const src = readFileSync(resolve(process.cwd(), 'src/components/EmojiBar.vue'), 'utf8');
-    expect(src).toContain('<div v-if="hienPremium()" class="be-luoi be-premium">');
+    expect(src).toContain('<div v-if="hienPremium()" class="be-luoi be-premium"');
     expect(src).toContain(":class=\"{ khoa: !daMuaPremium }\"");
     expect(src).toMatch(/if \(!daMuaPremium\.value\) \{[\s\S]{0,120}moPremium\('chat'\); return; \}/);
     expect(src).toMatch(/\.be-premium \.emoji\.khoa \{[^}]*grayscale/);

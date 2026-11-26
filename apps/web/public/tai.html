@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flip Match — Get the app</title>
+<meta name="description" content="Flip Match: a cozy memory card game. Free on iPhone, Android and the web.">
+<meta property="og:title" content="Flip Match — Get the app">
+<meta property="og:image" content="/og.jpg">
+<link rel="icon" href="/icon.svg">
+<!--
+  LINK TẢI APP DUY NHẤT (26.11.2026, chủ dự án: chia sẻ Chỉ số trí nhớ "nhớ kèm link để người dùng cài app"). Điện thoại iPhone/iPad
+  → App Store, Android → Google Play, ngay khi mở; máy tính (hay script bị chặn) thì thấy hai nút + "chơi trên web".
+  Giữ nguyên tham số utm_* khi chuyển để đo được nguồn. Link store phải khớp public/site/site.js (STORE) và lib/goi-y-app.ts.
+-->
+<style>
+:root { color-scheme: light dark; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; font: 600 16px/1.5 system-ui, -apple-system, sans-serif;
+  background: linear-gradient(#45b3ef, #b5e8ff); color: #1d2a5a; padding: 24px max(16px, env(safe-area-inset-left)); box-sizing: border-box; }
+main { width: min(380px, 100%); background: #fff; border-radius: 28px; padding: 28px 22px; text-align: center; box-shadow: 0 6px 0 #1d2a5a33, 0 20px 40px #0003; }
+img { width: 88px; height: 88px; border-radius: 22px; }
+h1 { margin: 12px 0 4px; font-size: 26px; }
+p { margin: 0 0 18px; color: #45558a; }
+a { display: block; margin: 10px 0; padding: 14px; border-radius: 16px; text-decoration: none; font-weight: 800; background: #1d2a5a; color: #fff; }
+a.web { background: #eaf6ff; color: #1d2a5a; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icon-192.png" alt="">
+  <h1>Flip Match</h1>
+  <p>Memory card game · Lật Thẻ</p>
+  <a id="ios" href="https://apps.apple.com/app/id6822105774">App Store</a>
+  <a id="android" href="https://play.google.com/store/apps/details?id=com.cozypi.flipmatch">Google Play</a>
+  <a class="web" href="/">Play in the browser</a>
+</main>
+<script>
+(() => {
+  const ua = navigator.userAgent;
+  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua);
+  const q = location.search.replace(/^\?/, '');
+  const den = ios ? document.getElementById('ios').href : android ? document.getElementById('android').href : '';
+  if (den) location.replace(android && q ? `${den}&referrer=${encodeURIComponent(q)}` : den);
+})();
+</script>
+</body>
+</html>

@@ -12,7 +12,11 @@ import { sfx } from '@/lib/audio';
 import { veAnhKetQua, luuAnh, chiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
 
-const props = defineProps<{ noiDung: NoiDungAnh }>();
+/**
+ * Dùng chung cho ảnh kết quả ván (`noiDung`) và ảnh Chỉ số trí nhớ (26.11.2026): truyền `ve` để vẽ ảnh khác, `chu` + `url`
+ * để đổi câu và link đi kèm khi chia sẻ.
+ */
+const props = defineProps<{ noiDung?: NoiDungAnh; ve?: () => Promise<Blob>; chu?: string; url?: string }>();
 const emit = defineEmits<{ close: [] }>();
 
 const blob = ref<Blob | null>(null);
@@ -21,7 +25,7 @@ const bao = ref('');
 
 onMounted(async () => {
   try {
-    blob.value = await veAnhKetQua(props.noiDung);
+    blob.value = props.ve ? await props.ve() : await veAnhKetQua(props.noiDung!);
     xem.value = URL.createObjectURL(blob.value);
   } catch { emit('close'); }
 });
@@ -35,7 +39,7 @@ async function luu(): Promise<void> {
 async function chiaSe(): Promise<void> {
   if (!blob.value) return;
   sfx.select();
-  const kq = await chiaSeAnh(blob.value, t('kq.chiaSeChu'), `${SITE_URL}/?utm_source=chia_se&utm_medium=anh_ket_qua`);
+  const kq = await chiaSeAnh(blob.value, props.chu ?? t('kq.chiaSeChu'), props.url ?? `${SITE_URL}/?utm_source=chia_se&utm_medium=anh_ket_qua`);
   if (kq === 'copy') { bao.value = t('cs.daCopyLink'); setTimeout(() => { bao.value = ''; }, 1800); }
 }
 </script>

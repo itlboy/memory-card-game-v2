@@ -16,7 +16,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * tab / đổi ngày CHỈ ĐỔI SỐ (chủ dự án: "bấm cột khác… giao diện thì nhảy, tại sao phải làm thế?").
  * MÀU: phần chính lấy màu của BẬC; ngọc chỉ còn ở các cột — hai tông (đậm nền sáng, sáng nền tối) vì một tông chỉ đạt 2,7–3,0.
  */
-import { ChartColumn, Crown, Play, X } from 'lucide-vue-next';
+import { ChartColumn, Crown, Play, Share2, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
@@ -26,6 +26,9 @@ import { store } from '@/lib/storage';
 import { MOC_CO_DIEM, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theNenLuyen, vanConThieu } from '@/lib/tri-nho';
 import { ngayMay } from '@/lib/storage';
 import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
+import { veAnhTriNho } from '@/lib/anh-ket-qua';
+import { SITE_URL } from '@/lib/native';
+import LuuChiaSe from './LuuChiaSe.vue';
 
 const emit = defineEmits<{ close: []; luyen: [soThe: number] }>();
 const nutDong = ref<HTMLButtonElement | null>(null);
@@ -95,6 +98,26 @@ function moTabNam(): void {
   tab.value = 'nam';
   moChucNang('tri_nho_ca_nam', {}, true);
 }
+/*
+ * CHIA SẺ (26.11.2026, chủ dự án: "làm tính năng chia sẻ chỉ số trí nhớ… nhớ kèm link để người dùng cài app"; "vừa có text vừa
+ * có ảnh"). Nút ở đầu bảng, cạnh nút đóng; chỉ hiện khi đã có điểm. Mở bảng xem trước ảnh (LuuChiaSe) với Lưu / Chia sẻ —
+ * chia sẻ gửi ẢNH + CÂU + LINK `/tai` (trang tự chuyển tới App Store / Google Play theo máy người bấm, máy tính thì hiện cả
+ * hai nút và "chơi trên web"). Link cũng in trên ảnh vì Facebook / Instagram bỏ phần chữ đi kèm.
+ * App Android cũ chưa có plugin chia sẻ file: bảng chia sẻ không mở được thì chép câu + link (lib/anh-ket-qua.ts).
+ */
+const LINK_TAI = `${SITE_URL}/tai`;
+const moChiaSe = ref(false);
+function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; }
+const veAnh = (): Promise<Blob> => {
+  const k = ky.value;
+  return veAnhTriNho({
+    tenApp: t('tb.thuongHieu'), tieuDe: t('tn.ten'), diem: k.diem ?? 0, bac: k.bac ?? 0, tenBac: tenBac(k.bac ?? 0),
+    cacBac: Array.from({ length: SO_BAC }, (_, i) => tenBac(i)),
+    chang: k.chang.map((c, i) => ({ nhan: td(`tn.chang.${i}`), tiLe: c.mo ? c.tiLe : null })),
+    cau: t('tn.cs.cau'), taiApp: t('tn.cs.taiApp'), link: LINK_TAI.replace(/^https?:\/\//, '')
+  });
+};
+const chuChiaSe = computed(() => t('tn.cs.chu', { diem: ky.value.diem ?? 0, bac: tenBac(ky.value.bac ?? 0) }));
 const coNhan = (k: string, i: number): boolean =>
   k === chon.value || ((i === 0 || i === SO_COT - 1) && Math.abs(i - viTriChon.value) >= 2);
 </script>
@@ -104,12 +127,20 @@ const coNhan = (k: string, i: number): boolean =>
     <div class="panel tn">
       <header class="tn-head">
         <h2 id="tnTitle"><ChartColumn :size="22" :stroke-width="2.4" aria-hidden="true" /> {{ t('tn.ten') }}</h2>
-        <button ref="nutDong" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')"><X :size="20" /></button>
+        <span class="tn-nut">
+          <button v-if="ky.diem !== null && laHomNay" class="btn chia-se" :aria-label="t('tn.cs.nut')" type="button" @click="chiaSe"><Share2 :size="19" :stroke-width="2.4" /></button>
+          <button ref="nutDong" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')"><X :size="20" /></button>
+        </span>
       </header>
+      <Teleport to="body"><LuuChiaSe v-if="moChiaSe" :ve="veAnh" :chu="chuChiaSe" :url="`${LINK_TAI}?utm_source=chia_se&utm_medium=tri_nho`" @close="moChiaSe = false" /></Teleport>
 
       <!-- (1) TÔI Ở ĐÂU: điểm trong huy chương màu bậc -->
       <section v-if="ky.diem !== null" class="giua">
         <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
+        <!-- GHI RÕ điểm của NGÀY NÀO và tính trên bao nhiêu ngày (26.11.2026, chủ dự án: "ghi rõ điểm số hôm nay"; trước đó hỏi
+             "điểm hiện tại là trung bình của bao nhiêu ngày?") — điểm GỘP mọi lượt nhớ của 7 ngày tới ngày đang xem, không phải
+             trung bình cộng điểm từng ngày -->
+        <p class="huy-chu"><b>{{ laHomNay ? t('tn.diemHomNay') : t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b> · {{ t('tn.tinh7Ngay') }}</p>
         <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF; chủ dự án: "chưa
              biểu thị được các bậc… thanh ngang hiển thị mình đang ở đâu"): mỗi bậc một đoạn mang màu của nó, đoạn đã qua
              tô đầy, đoạn đang ở tô tới chỗ mình đứng + vạch đánh dấu; tên 5 bậc ngay dưới, bậc của mình in đậm — thay
@@ -141,13 +172,16 @@ const coNhan = (k: string, i: number): boolean =>
       <div class="doi" :class="{ ba: hienTabNam }" role="tablist">
         <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'chang' }" type="button" role="tab" :aria-selected="tab === 'chang'" @click="tab = 'chang'">{{ t('tn.tab5') }}</button>
         <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'ngay' }" type="button" role="tab" :aria-selected="tab === 'ngay'" @click="tab = 'ngay'; moChucNang('tri_nho_14_ngay', {}, true)">
-          {{ t('tn.tab14') }}<template v-if="!laHomNay"> · {{ ngayThang(chon) }}</template>
+          {{ t('tn.tab14') }}
         </button>
         <button v-if="hienTabNam" class="thach th-nho tab-nam" :class="{ 'th-ngoc': tab === 'nam', khoa: !daMuaPremium }" type="button" role="tab" :aria-selected="tab === 'nam'" :aria-label="`${t('tn.tabNam')} — ${t('tp.premium')}`" @click="moTabNam">
           {{ t('tn.tabNam') }}<span class="vm" aria-hidden="true"><Crown :size="10" :stroke-width="3" /></span>
         </button>
       </div>
 
+      <!-- NGÀY ĐANG XEM ở dòng RIÊNG (26.11.2026, chủ dự án gửi ảnh "giao diện vỡ": ghép "· 25/11" vào nhãn tab làm chữ tràn
+           sang tab Cả năm khi có ba tab) — kèm nút về hôm nay -->
+      <p v-if="tab === 'ngay' && !laHomNay" class="ngay-xem">{{ t('tn.dangXem', { ngay: ngayThang(chon) }) }}<button data-phang type="button" @click="chon = homNay">{{ t('tn.veHomNay') }}</button></p>
       <div v-if="tab === 'chang'" class="hinh tru" role="tabpanel">
         <div v-for="(c, i) in ky.chang" :key="i" class="c" :class="{ khoa: !c.mo }">
           <span class="than">
@@ -210,6 +244,8 @@ const coNhan = (k: string, i: number): boolean =>
 .tn-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tn-head h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--text-xl, 22px); }
 .tn-head h2 svg { color: var(--tn); }
+.tn-nut { display: flex; gap: 8px; flex: none; }
+.tn-nut .chia-se { color: var(--tn); }
 .tn-head .btn { width: 38px; height: 38px; min-height: 38px; padding: 0; display: grid; place-items: center; }
 
 /* (1) Huy chương 60px — nhỏ bằng nửa mockup (chủ dự án: "điểm số cũng cho nhỏ bớt đi, 50%") */
@@ -222,6 +258,8 @@ const coNhan = (k: string, i: number): boolean =>
 }
 .huy b { font: 800 21px/1 var(--font-display); font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgba(255, 255, 255, .45); }
 .huy b.dai { font-size: 17px; }
+.huy-chu { margin: -2px 0 0; font: 700 12.5px/1.3 var(--font-body); color: var(--muted); text-align: center; }
+.huy-chu b { color: var(--fg); font-weight: 800; }
 .b0 { --h1: #f6d0aa; --h2: #c98345; --h3: #8a4a18; --hc: #45220a; }
 .b1 { --h1: #ffffff; --h2: #b3bccd; --h3: #6f7a90; --hc: #2b3346; }
 .b2 { --h1: #fff0a8; --h2: #f0b400; --h3: #a87400; --hc: #4a3600; }
@@ -255,7 +293,9 @@ const coNhan = (k: string, i: number): boolean =>
 /* Hai tab CÙNG chiều cao: [thân co giãn: số 16 + cột] [nhãn 24] */
 /* BA TAB (có tab Cả năm): chia đều cả bề ngang, chữ một dòng — để tự co là "Theo thời gian" xuống hai dòng (chụp 26.11.2026) */
 .doi.ba { align-self: stretch; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.doi.ba button { min-width: 0; padding: 0 6px; white-space: nowrap; font-size: 12.5px; justify-content: center; }
+.doi.ba button { min-width: 0; padding: 0 6px; white-space: nowrap; font-size: 12.5px; justify-content: center; overflow: hidden; text-overflow: ellipsis; }
+.ngay-xem { margin: -6px 0 0; display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 13px/1.3 var(--font-body); color: var(--muted); }
+.ngay-xem button { border: 0; background: none; padding: 4px 0; min-height: 28px; color: var(--accent); font: 800 13px/1.2 var(--font-body); text-decoration: underline; cursor: pointer; }
 .hinh { height: 158px; display: grid; align-items: stretch; }
 .hinh.tru { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }

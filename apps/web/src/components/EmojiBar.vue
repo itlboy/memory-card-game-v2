@@ -8,8 +8,8 @@
  * Riêng vụ "emoji người kia gửi" (blast) nằm ở EmojiBlast.vue: nó teleport ra
  * <body>, mount hai lần là hiện hai cái.
  */
-import { EMOJI_PREMIUM, NOI_NHANH, type QuickEmoji, type QuickSay } from '@mm/engine';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { EMOJI_NHOM, EMOJI_PREMIUM, NOI_NHANH, type QuickSay } from '@mm/engine';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Crown, Hourglass, MessageCircleMore, Plus } from 'lucide-vue-next';
 import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 import { moChucNang } from '@/lib/phan-tich';
@@ -41,37 +41,51 @@ const props = defineProps<{
  * MÌNH hay bấm nhất (lib/emoji-hay-dung.ts), máy mới thì là bộ phổ biến. Một lúc
  * chạm ra ngoài / Back là đóng.
  */
-const mo = ref<null | 'emoji' | 'noi'>(null);
+/*
+ * KHUNG CHAT GOM THEO Ô (26.11.2026, chủ dự án duyệt mockup https://claude.ai/artifact/1ZwuoozRFvTHxkdK9wRNeo mục 3 — "các icon
+ * chat text gom lại thành từng ô riêng cho đỡ rối"). Hai nút bong bóng / ＋ mở CÙNG một khung; hàng nút trên cùng chọn Ô:
+ * Câu nói · Cảm xúc · Tay · Vui · Trêu · Premium — mỗi lần chỉ hiện một ô (trước: hai khung riêng, khung emoji một lưới dài trộn
+ * mọi nhóm). Bong bóng mở thẳng ô Câu nói, ＋ mở ô vừa dùng gần nhất (mặc định Cảm xúc). Người xem không có ô Câu nói.
+ * Ô Premium chỉ bày khi đã có Premium hoặc đang được mời (`moiNangCap`) — chưa mua được thì không thấy đồ khoá (luật App Review).
+ */
+type O = 'cau' | 'camXuc' | 'tay' | 'vui' | 'treu' | 'premium';
+const mo = ref(false);
+const o = ref<O>('camXuc');
+let oEmojiCuoi: O = 'camXuc';
 const goc = ref<HTMLElement | null>(null);
-useBackCloser(25, () => mo.value !== null, () => { mo.value = null; });
-const batTat = (b: 'emoji' | 'noi'): void => { mo.value = mo.value === b ? null : b; };
-function guiNoi(id: QuickSay): void { props.o.sendSay(id); mo.value = null; }
-function guiEmoji(e: string): void { ghiDung(e); props.o.sendEmoji(e); mo.value = null; }
+useBackCloser(25, () => mo.value, () => { mo.value = false; });
+/** Bấm bong bóng / ＋: mở đúng ô; bấm lại nút đang mở ô đó thì đóng. */
+function batTat(b: 'noi' | 'emoji'): void {
+  const muon: O = b === 'noi' ? 'cau' : oEmojiCuoi;
+  if (mo.value && (b === 'noi' ? o.value === 'cau' : o.value !== 'cau')) { mo.value = false; return; }
+  o.value = muon; mo.value = true;
+}
+function chonO(x: O): void { o.value = x; if (x !== 'cau') oEmojiCuoi = x; moChucNang('chat_o', { o: x }); }
+function guiNoi(id: QuickSay): void { props.o.sendSay(id); mo.value = false; }
+function guiEmoji(e: string): void { ghiDung(e); props.o.sendEmoji(e); mo.value = false; }
 /** 8 cái: cùng ＋ là 9 nút, vừa khít Pro Max; máy hẹp ẩn bớt từ cuối. Thứ tự chốt theo phiên. */
 const hangNgoai = hayDung(8);
-/*
- * BẢNG GỌN (22.11.2026, mockup duyệt https://claude.ai/artifact/74bGgXpFDdDXSEXVwEWe6k mục 2 — chủ dự án: khung "hơi cao, còn
- * thừa nhiều chỗ"): 24 emoji xếp KÍN 3 hàng × 8, không tiêu đề, không tên nhóm, không cuộn (trước: ~50 cái, 199px + cuộn,
- * hàng cuối mỗi nhóm hở ô). Server vẫn nhận đủ QUICK_EMOJIS — máy bản cũ gửi cái ngoài bảng này vẫn hiện.
- */
-const BANG: readonly QuickEmoji[] = [
-  '😂', '🤣', '😊', '😍', '🥰', '😘', '😎', '🤩',
-  '😮', '😱', '🤔', '😅', '😢', '😭', '😡', '🥳',
-  '👍', '👎', '👏', '🙏', '💪', '❤️', '🔥', '🎉'
-];
-/*
- * HÀNG EMOJI PREMIUM (26.11.2026, chủ dự án: "làm thêm một số icon premium"): hàng thứ tư của bảng, 8 emoji `EMOJI_PREMIUM`,
- * đeo vương miện (kể cả khi đã có Premium — "để họ hiểu quyền lợi của mình"). Có Premium thì gửi như emoji thường; chưa có thì
- * bấm vào mở bảng Premium. CHỈ BÀY khi đã có Premium hoặc đang được mời nâng cấp (`moiNangCap` = debug / đã mở bán) — người
- * chơi thường chưa mua được thì không thấy đồ khoá (luật App Review, xem lib/premium.ts). Người NHẬN thì ai cũng thấy.
- */
 const hienPremium = (): boolean => daMuaPremium.value || moiNangCap.value;
+/** Các ô của khung — icon là chính emoji đại diện của nhóm (Câu nói và Premium dùng icon nét). */
+const CAC_O = computed(() => [
+  ...(props.o.spectator.value ? [] : [{ id: 'cau' as const, hinh: '' }]),
+  { id: 'camXuc' as const, hinh: '😂' }, { id: 'tay' as const, hinh: '👍' }, { id: 'vui' as const, hinh: '🎉' }, { id: 'treu' as const, hinh: '🐔' },
+  ...(hienPremium() ? [{ id: 'premium' as const, hinh: '' }] : [])
+]);
+/** Emoji của ô đang mở. Số cột theo số emoji: 21 → 7 cột (3 hàng kín), còn lại 8 cột. */
+const dsO = computed<readonly string[]>(() => (o.value === 'cau' ? [] : EMOJI_NHOM[o.value]));
+const cot = computed(() => (dsO.value.length % 7 === 0 && dsO.value.length % 8 !== 0 ? 7 : 8));
+/*
+ * EMOJI PREMIUM (26.11.2026): 24 cái (`EMOJI_PREMIUM`, trước 8 — chủ dự án: "icon premium làm cho nhiều vào"), đeo vương miện kể
+ * cả khi đã có Premium ("để họ hiểu quyền lợi của mình"). Chưa có thì ô mờ, bấm emoji hay nút dưới đều mở bảng Premium.
+ */
 function guiEmojiPremium(e: string): void {
-  if (!daMuaPremium.value) { moChucNang('premium_emoji_khoa', { emoji: e }); mo.value = null; moPremium('chat'); return; }
-  props.o.sendEmoji(e); mo.value = null;   // KHÔNG `ghiDung`: không cho emoji Premium lọt ra hàng ngoài của người hết Premium
+  if (!daMuaPremium.value) { moChucNang('premium_emoji_khoa', { emoji: e }); mo.value = false; moPremium('chat'); return; }
+  props.o.sendEmoji(e); mo.value = false;   // KHÔNG `ghiDung`: không cho emoji Premium lọt ra hàng ngoài của người hết Premium
 }
+function moBangPremium(): void { moChucNang('premium_emoji_khoa', { emoji: 'nut' }); mo.value = false; moPremium('chat'); }
 function chamNgoai(e: PointerEvent): void {
-  if (mo.value && goc.value && !goc.value.contains(e.target as Node)) mo.value = null;
+  if (mo.value && goc.value && !goc.value.contains(e.target as Node)) mo.value = false;
 }
 onMounted(() => document.addEventListener('pointerdown', chamNgoai, true));
 onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, true));
@@ -87,14 +101,14 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
   >
     <button
       v-if="!props.o.spectator.value"
-      class="emoji noi thach th-nho" type="button" :class="{ mo: mo === 'noi' }"
-      :aria-label="t('eb.noiNhanh')" :aria-expanded="mo === 'noi'"
+      class="emoji noi thach th-nho" type="button" :class="{ mo: mo && o === 'cau' }"
+      :aria-label="t('eb.noiNhanh')" :aria-expanded="mo && o === 'cau'"
       :disabled="!props.o.emojiReady.value"
       @click="batTat('noi')"
     ><MessageCircleMore :size="18" :stroke-width="2.4" /></button>
     <button
-      class="emoji chon thach th-nho" type="button" :class="{ mo: mo === 'emoji' }"
-      :aria-label="t('eb.chonEmoji')" :aria-expanded="mo === 'emoji'"
+      class="emoji chon thach th-nho" type="button" :class="{ mo: mo && o !== 'cau' }"
+      :aria-label="t('eb.chonEmoji')" :aria-expanded="mo && o !== 'cau'"
       :disabled="!props.o.emojiReady.value"
       @click="batTat('emoji')"
     ><Plus :size="20" :stroke-width="2.6" /></button>
@@ -108,26 +122,41 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
       <Hourglass :size="14" :stroke-width="2.5" aria-hidden="true" /> {{ props.o.emojiCooldown.value }}s
     </span>
   </div>
-  <div v-if="mo === 'noi' && !props.o.spectator.value" class="bang-noi khay" role="menu" :aria-label="t('eb.noiNhanh')">
-    <button
-      v-for="id in NOI_NHANH" :key="id" class="cau thach th-nho" type="button" role="menuitem"
-      :disabled="!props.o.emojiReady.value" @click="guiNoi(id)"
-    ><IconNoi :id="id" /><span>{{ t(`say.${id}` as 'say.gioi') }}</span></button>
-  </div>
-  <div v-if="mo === 'emoji'" class="bang-emoji khay" role="menu" :aria-label="t('eb.chonEmoji')">
-    <div class="be-luoi">
+  <div v-if="mo" class="khung-chat khay" role="dialog" :aria-label="t('eb.chonEmoji')">
+    <div class="tab-o" role="tablist">
       <button
-        v-for="e in BANG" :key="e"
-        class="emoji thach th-nho" type="button" role="menuitem"
-        :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
-      >{{ e }}</button>
+        v-for="x in CAC_O" :key="x.id" class="thach th-nho" type="button" role="tab"
+        :class="{ chon: o === x.id, pm: x.id === 'premium' }" :aria-selected="o === x.id" :aria-label="t(`eb.o.${x.id}` as 'eb.o.cau')"
+        @click="chonO(x.id)"
+      ><MessageCircleMore v-if="x.id === 'cau'" :size="18" :stroke-width="2.4" aria-hidden="true" /><Crown v-else-if="x.id === 'premium'" :size="18" :stroke-width="2.6" aria-hidden="true" /><template v-else>{{ x.hinh }}</template></button>
     </div>
-    <div v-if="hienPremium()" class="be-luoi be-premium">
+    <!-- Ô CÂU NÓI -->
+    <div v-if="o === 'cau'" class="bang-noi" role="menu" :aria-label="t('eb.noiNhanh')">
       <button
-        v-for="e in EMOJI_PREMIUM" :key="e"
-        class="emoji thach th-nho" type="button" role="menuitem" :class="{ khoa: !daMuaPremium }"
-        :disabled="!props.o.emojiReady.value" :aria-label="`${e} — ${t('tp.premium')}`" @click="guiEmojiPremium(e)"
-      >{{ e }}<Crown class="vm" :size="9" :stroke-width="3" aria-hidden="true" /></button>
+        v-for="id in NOI_NHANH" :key="id" class="cau thach th-nho" type="button" role="menuitem"
+        :disabled="!props.o.emojiReady.value" @click="guiNoi(id)"
+      ><IconNoi :id="id" /><span>{{ t(`say.${id}` as 'say.gioi') }}</span></button>
+    </div>
+    <!-- Ô PREMIUM -->
+    <div v-else-if="o === 'premium'" class="o-emoji" role="menu" :aria-label="t('tp.premium')">
+      <div v-if="hienPremium()" class="be-luoi be-premium" :style="{ '--cot': 8 }">
+        <button
+          v-for="e in EMOJI_PREMIUM" :key="e"
+          class="emoji thach th-nho" type="button" role="menuitem" :class="{ khoa: !daMuaPremium }"
+          :disabled="!props.o.emojiReady.value" :aria-label="`${e} — ${t('tp.premium')}`" @click="guiEmojiPremium(e)"
+        >{{ e }}<Crown class="vm" :size="9" :stroke-width="3" aria-hidden="true" /></button>
+      </div>
+      <button v-if="!daMuaPremium" class="thach th-vang mo-pm" type="button" @click="moBangPremium"><Crown :size="17" :stroke-width="2.6" aria-hidden="true" />{{ t('eb.moPremium') }}</button>
+    </div>
+    <!-- Ô EMOJI THƯỜNG -->
+    <div v-else class="o-emoji" role="menu" :aria-label="t(`eb.o.${o}` as 'eb.o.cau')">
+      <div class="be-luoi" :style="{ '--cot': cot }">
+        <button
+          v-for="e in dsO" :key="e"
+          class="emoji thach th-nho" type="button" role="menuitem"
+          :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
+        >{{ e }}</button>
+      </div>
     </div>
   </div>
   </div>
@@ -174,34 +203,37 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .emoji.noi.mo { --b1: #5a78e0; --b2: #2747b8; --b3: #1b3590; --bc: #fff; color: #fff; }
 :global([data-theme='dark'] .emoji.noi) { --b1: #2e3d74; --b2: #243262; --b3: #5671d8; --bc: #cdd8ff; color: #cdd8ff; }
 :global([data-theme='dark'] .emoji.noi.mo) { --b1: #b3c4ff; --b2: #8fa6ff; --b3: #6a83e0; --bc: #121729; color: #121729; }
-/* Khung 5 câu: neo góc trái ngay trên nút, như bảng emoji */
-.bang-noi {
+/* KHUNG CHAT (26.11.2026): một khung neo góc trái ngay trên thanh; hàng ô ở trên, nội dung ô ở dưới. NỀN ĐẶC — bản trong suốt
+   (1.10.45) bị chủ dự án bỏ ngay: "khó nhìn quá". Đừng làm mờ khung chọn nữa. */
+.khung-chat {
   position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
-  width: max-content; max-width: calc(100% - 12px); display: grid; gap: 4px; padding: 6px;
-  /* 10 câu (26.11.2026) cao ~410px — máy thấp (SE) thì cuộn trong khung thay vì trồi khỏi màn */
-  max-height: min(52vh, 420px); overflow-y: auto; overscroll-behavior: contain;
+  width: min(340px, calc(100% - 12px)); display: flex; flex-direction: column; gap: 7px; padding: 7px;
   background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
   box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
 }
-.bang-noi .cau { min-height: 36px; padding: 4px 12px 6px 7px; display: flex; align-items: center; gap: 8px; text-align: left; justify-content: flex-start; font: 800 14px var(--font-body); color: var(--fg); border-radius: 11px; }
+.tab-o { display: flex; gap: 4px; }
+.tab-o .thach { flex: 1; min-width: 0; height: 36px; border-radius: 11px; display: grid; place-items: center; padding: 0; font-size: 18px; line-height: 1; }
+.tab-o .thach.chon { --b1: #cfe0ff; --b2: #a9c4ff; --b3: #6a8ee6; --bc: #122a6b; color: #122a6b; }
+:global([data-theme='dark'] .tab-o .thach.chon) { --b1: #b3c4ff; --b2: #8fa6ff; --b3: #6a83e0; --bc: #121729; color: #121729; }
+.tab-o .thach.pm { --b1: #ffe590; --b2: #ffc83a; --b3: #d69a12; --bc: #4a3300; color: #4a3300; }
+.tab-o .thach.pm.chon { outline: 3px solid #8a5a00; outline-offset: 1px; }
+:global([data-theme='dark'] .tab-o .thach.pm.chon) { outline-color: #ffd36b; }
+/* Ô câu nói: 10 câu cuộn trong ô trên máy thấp (SE) thay vì trồi khỏi màn */
+.bang-noi {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+  max-height: min(52vh, 420px); overflow-y: auto; overscroll-behavior: contain;
+}
+.bang-noi .cau { min-height: 38px; padding: 4px 8px 6px 6px; display: flex; align-items: center; gap: 6px; text-align: left; justify-content: flex-start; font: 800 13px/1.2 var(--font-body); color: var(--fg); border-radius: 11px; min-width: 0; }
+.bang-noi .cau span { min-width: 0; }
+.o-emoji { display: flex; flex-direction: column; gap: 7px; }
+.mo-pm { min-height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center; gap: 7px; font: 900 14.5px/1.2 var(--font-body); }
 /* Nút ＋: icon nét, căn giữa (glyph emoji tự căn theo dòng chữ, svg thì không) */
 .emoji.chon { display: inline-flex; align-items: center; justify-content: center; color: var(--fg); }
-/* Bảng emoji: KHUNG NHỎ neo góc trái ngay trên nút ＋ (14.11.2026, chủ dự án: bản cũ trải
-   hết bề ngang, cao 56vh, "đè lên màn chơi"). Hẹp 8 cột ~290px, thấp ~1/3 màn, cuộn trong khung —
-   phần lớn bàn thẻ vẫn nhìn thấy. */
-/* NỀN ĐẶC: bản trong suốt (1.10.45, 26.11.2026) bị chủ dự án bỏ ngay — "khó nhìn quá". Đừng làm mờ khung chọn nữa. */
-.bang-emoji {
-  position: absolute; left: 6px; bottom: calc(100% + 6px); z-index: 30;
-  width: min(292px, calc(100% - 12px));
-  padding: 5px 6px 7px;
-  background: var(--panel-solid); border: 2px solid var(--line); border-radius: var(--r-lg, 16px);
-  box-shadow: var(--elev-3, 0 14px 30px rgba(0, 0, 0, .25));
-}
-.be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
+.be-luoi { display: grid; grid-template-columns: repeat(var(--cot, 8), minmax(0, 1fr)); gap: 4px; }
 /* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh) */
-.be-luoi .emoji { flex: none; width: 100%; min-height: 32px; font-size: 19px; }
+.be-luoi .emoji { flex: none; width: 100%; min-height: 36px; font-size: 21px; }
 /* Hàng Premium: vạch vàng ngăn với ba hàng thường, mỗi nút có vương miện nhỏ ở góc */
-.be-premium { margin-top: 5px; padding-top: 5px; border-top: 2px dashed #f0cf7a; }
+.be-premium { gap: 5px; }
 .be-premium .emoji { position: relative; overflow: visible; }
 /* Chưa có Premium: cả hàng MỜ như nút tắt (chủ dự án 26.11.2026: "nó thuộc dạng disable mờ với người thường") — vẫn bấm
    được để mở bảng Premium; vương miện giữ nguyên độ rõ để biết vì sao mờ. Mờ phần HÌNH bằng màu chữ + lọc xám, không

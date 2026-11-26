@@ -351,3 +351,74 @@ async function chiaSeAnhTho(blob: Blob, chu: string, url: string): Promise<'xong
   }
   try { await navigator.clipboard.writeText(`${chu}\n${url}`); return 'copy'; } catch { return 'huy'; }
 }
+
+/*
+ * ẢNH CHIA SẺ CHỈ SỐ TRÍ NHỚ (26.11.2026, chủ dự án: "làm tính năng chia sẻ chỉ số trí nhớ ở trang chỉ số trí nhớ, nhớ kèm
+ * link để người dùng cài app" — "vừa có text vừa có ảnh"). Cùng khổ 1080×1350, cùng nền trời / khối nổi với ảnh kết quả.
+ * Trên ảnh: điểm trong huy chương màu bậc, thanh 5 bậc, 5 cột chặng nhớ, câu thách — và LINK TẢI APP in ngay trên ảnh: Facebook /
+ * Instagram bỏ phần chữ đi kèm ảnh, chữ in trên ảnh thì không mất.
+ */
+export interface NoiDungTriNho {
+  tenApp: string; tieuDe: string; diem: number; bac: number; tenBac: string; cacBac: string[];
+  chang: { nhan: string; tiLe: number | null }[]; cau: string; taiApp: string; link: string;
+}
+const MAU_BAC = ['#c98a4b', '#b6bfd3', '#f0b400', '#8fd3f4', '#8ee0ff'];
+export async function veAnhTriNho(n: NoiDungTriNho): Promise<Blob> {
+  try { await document.fonts?.ready; } catch { /* vẽ bằng font dự phòng */ }
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const c = cv.getContext('2d')!;
+  const fD = font('--font-display', "'Grandstander', system-ui, sans-serif");
+  const fB = font('--font-body', "'Be Vietnam Pro', system-ui, sans-serif");
+  P = laToi() ? TOI : SANG; MUC = P.vien;
+  c.fillStyle = P.troi; c.fillRect(0, 0, W, H);
+  c.fillStyle = P.doi; c.beginPath(); c.ellipse(260, H + 40, 620, 120, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = P === TOI ? 'rgba(255,255,255,.8)' : '#fff';
+  for (const [x, y, r] of (P === TOI ? [[90, 90, 4], [210, 150, 3], [860, 170, 2.5], [990, 90, 4]] : []) as [number, number, number][]) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
+  if (P !== TOI) for (const [x, y, rx, ry] of [[110, 108, 90, 34], [185, 82, 60, 26]] as const) { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); }
+
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.font = `900 66px ${fD}`; chuVien(c, n.tenApp, W / 2, 128, 5);
+
+  // Thẻ chính
+  const y0 = 196, cao = 850;
+  khoiNoi(c, 70, y0, W - 140, cao, 48, P.the, 14, 8);
+  c.fillStyle = P.chu; c.font = `800 52px ${fD}`; c.fillText(n.tieuDe, W / 2, y0 + 92);
+  // Huy chương điểm
+  const cx = W / 2, cy = y0 + 232, r = 108, mau = MAU_BAC[n.bac] ?? MAU_BAC[0]!;
+  c.fillStyle = MUC; c.beginPath(); c.arc(cx, cy + 10, r, 0, Math.PI * 2); c.fill();
+  const g = c.createRadialGradient(cx - 30, cy - 40, 10, cx, cy, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, mau);
+  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+  c.lineWidth = 8; c.strokeStyle = MUC; c.stroke();
+  c.fillStyle = '#1d2a5a'; c.font = `900 ${n.diem >= 1000 ? 86 : 104}px ${fD}`; c.fillText(String(n.diem), cx, cy + 36);
+  // Tên bậc
+  c.font = `900 46px ${fD}`; const rb = c.measureText(n.tenBac).width + 70;
+  khoiNoi(c, cx - rb / 2, cy + r + 22, rb, 68, 34, mau, 6, 5);
+  c.fillStyle = '#1d2a5a'; c.fillText(n.tenBac, cx, cy + r + 72);
+  // Thanh 5 bậc
+  const tx = 150, tw = W - 300, ty = cy + r + 128, o = (tw - 4 * 12) / 5;
+  n.cacBac.forEach((ten, i) => {
+    const x = tx + i * (o + 12);
+    khoiTron(c, x, ty, o, 22, 11); c.fillStyle = i <= n.bac ? (MAU_BAC[i] ?? P.o) : P.mo; c.fill();
+    c.fillStyle = i === n.bac ? P.chu : P.nhat; c.font = `${i === n.bac ? 800 : 700} 26px ${fB}`; c.fillText(vua(c, ten, o + 8), x + o / 2, ty + 58);
+  });
+  // 5 cột chặng nhớ
+  const bx = 150, bw = W - 300, by = ty + 150, bh = 165, cw = (bw - 4 * 22) / 5;
+  n.chang.forEach((ch, i) => {
+    const x = bx + i * (cw + 22), tl = ch.tiLe === null ? 0 : Math.max(.06, Math.min(1, ch.tiLe)), h = Math.round(bh * tl);
+    khoiTron(c, x, by, cw, bh, 18); c.fillStyle = P.mo; c.globalAlpha = .35; c.fill(); c.globalAlpha = 1;
+    if (h > 0) { khoiTron(c, x, by + bh - h, cw, h, 18); c.fillStyle = '#0f8a7a'; c.fill(); }
+    c.fillStyle = P.chu; c.font = `900 34px ${fD}`; c.fillText(ch.tiLe === null ? '–' : `${Math.round(ch.tiLe * 100)}%`, x + cw / 2, by - 14);
+    c.fillStyle = P.nhat; c.font = `700 24px ${fB}`; c.fillText(vua(c, ch.nhan, cw + 16), x + cw / 2, by + bh + 38);
+  });
+  // Câu thách
+  c.fillStyle = P.chu; c.font = `800 38px ${fB}`; c.fillText(vua(c, n.cau, W - 220), W / 2, y0 + cao + 84);
+
+  // Chân ảnh: mời tải app + link
+  c.font = `800 34px ${fB}`; c.fillStyle = P.chu; c.fillText(n.taiApp, W / 2, H - 150);
+  c.font = `800 38px ${fB}`;
+  const rong = c.measureText(n.link).width + 80;
+  khoiNoi(c, (W - rong) / 2, H - 128, rong, 76, 38, P.o, 6, 5);
+  c.fillStyle = P.chu; c.fillText(n.link, W / 2, H - 76);
+  return new Promise((ok, loi) => cv.toBlob((b) => (b ? ok(b) : loi(new Error('toBlob'))), 'image/png'));
+}

@@ -106,6 +106,9 @@ const soPhongCho = useSoPhongCho();
  * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
  */
 /** Chữ trên viên Premium: còn quà → "1 tháng miễn phí" · có gói có hạn → "Còn N ngày" · có Premium không hạn → "Đang dùng" · hết quà chưa mua → "Nâng cấp". */
+/** NHẮC trước khi hết quà (bảng Premium hứa "nhắc bạn trước khi hết quà", 26.11.2026): quà còn ≤ 3 ngày thì viên Premium đeo
+ * chấm đỏ, chữ "Còn N ngày" — chấm đỏ cũng là thứ đã mời nhận quà, người chơi quen bấm vào. */
+const sapHetQua = computed(() => !!goiDangCo.value?.tang && ngayConLai() > 0 && ngayConLai() <= 3);
 const chuVienPremium = computed(() => {
   if (conQuaTang.value) return t('pm.vien.tang');
   if (!daMuaPremium.value) return t('pm.nangCap');
@@ -647,7 +650,7 @@ const ICO3D = {
           <button v-if="dangDebug" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
             <span class="vtn-chu"><small>{{ t('tp.premium') }}</small><b>{{ chuVienPremium }}</b></span>
             <span class="vpm-vm" aria-hidden="true"><Crown :size="18" :stroke-width="2.6" /></span>
-            <i v-if="conQuaTang" class="vpm-cham" aria-hidden="true" />
+            <i v-if="conQuaTang || sapHetQua" class="vpm-cham" aria-hidden="true" />
           </button>
           <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
             <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
