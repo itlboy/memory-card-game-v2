@@ -39,6 +39,8 @@ const VOLUME_KEY = 'mm.volume';
  * tiếng riêng phát trễ (sau một `await` ngắn).
  */
 const CHO_MS = 40;
+/** Trong app: số lần dựng lại context sau khi quay lại từ nền (mỗi lần cách 350ms). */
+const DUNG_LAI_TOI_DA = 4;
 
 function initialVolume(): number {
   try {
@@ -170,12 +172,27 @@ class Sfx {
    *  Lưu ý: iOS chỉ cho resume trong cử chỉ người dùng, nên App còn gắn lại
    *  unlock() vào lần chạm kế tiếp; hai lớp này bù cho nhau. */
   resume(): void {
-    const ctx = this.ctx;
+    const lan = this.tuDungLai ? DUNG_LAI_TOI_DA : 0;
+    if (this.ctx?.state === 'closed') this.dispose();
+    // Trong app, context đã bị bỏ (lần kiểm trước rơi đúng lúc app xuống nền) thì dựng luôn
+    const ctx = this.ctx ?? (lan ? this.ac() : null);
     if (!ctx) return;
-    if (ctx.state === 'closed') { this.dispose(); return; }
     void ctx.resume().catch(() => { /* cần cử chỉ mới */ });
-    this.verifyAlive(ctx);
+    this.verifyAlive(ctx, lan);
   }
+
+  /**
+   * TRONG APP (App.vue đặt): context hỏng sau khi quay lại thì DỰNG LẠI NGAY, không
+   * chờ chạm — WebView của app không đòi cử chỉ (xem App.vue). Trình duyệt để false:
+   * ở đó context dựng ngoài cử chỉ đằng nào cũng bị chặn.
+   *
+   * Vì sao cần (chủ dự án 26.11.2026: "thoát ra vào lại bị mất âm thanh, phải bấm
+   * vào màn hình mới có"): iOS đưa context về 'interrupted' khi app xuống nền, và
+   * `resume()` gọi lúc app vừa hiện lại (phiên âm thanh chưa kịp bật) thì treo luôn
+   * ở đó. Bản cũ chỉ bỏ context 'suspended'/đứng đồng hồ nên 'interrupted' lọt lưới,
+   * nằm im tới lần chạm kế.
+   */
+  tuDungLai = false;
 
   /**
    * Kiểm context có SỐNG THẬT không, chết thì bỏ để lần sau dựng cái mới.
@@ -185,14 +202,21 @@ class Sfx {
    * đứng im. Không có phép kiểm này thì người chơi chạm mãi mà vẫn im lặng, và
    * không có gì tự phục hồi.
    */
-  private verifyAlive(ctx: AudioContext): void {
+  private verifyAlive(ctx: AudioContext, dungLai = 0): void {
     const t0 = ctx.currentTime;
     setTimeout(() => {
       if (this.ctx !== ctx) return;
-      const stuck = ctx.state === 'running' && ctx.currentTime === t0;
-      // 'suspended' sau khi đã cố resume trong một cử chỉ cũng là chết: iOS
-      // không bao giờ cho nó chạy lại nữa
-      if (ctx.state === 'closed' || stuck || ctx.state === 'suspended') this.dispose();
+      // Không 'running' sau khi đã cố resume là chết: 'suspended' thì iOS không bao
+      // giờ cho chạy lại, 'interrupted' (chỉ iOS có) thì treo tới lần chạm kế.
+      // 'running' mà đồng hồ đứng im cũng vậy.
+      if (ctx.state === 'running' && ctx.currentTime !== t0) return;
+      this.dispose();
+      // App lại xuống nền rồi thì thôi — lần hiện lại sau sẽ lo
+      if (dungLai <= 0 || (typeof document !== 'undefined' && document.hidden)) return;
+      // Dựng cái mới ngay rồi kiểm tiếp: phiên âm thanh của iOS có khi bật trễ hơn
+      // lúc trang hiện lại, cái mới dựng sớm quá cũng chết theo → thử vài lần.
+      const moi = this.ac();
+      if (moi) this.verifyAlive(moi, dungLai - 1);
     }, 350);
   }
 
@@ -212,7 +236,9 @@ class Sfx {
     // Mở khoá xong PHẢI kiểm lại. Thiếu bước này là lỗ hổng đã gây "thỉnh
     // thoảng iPhone mất tiếng mà không rõ vì sao": cử chỉ gọi resume() thành
     // công trên giấy tờ, context vẫn chết, và không còn gì phát hiện ra.
-    this.verifyAlive(ctx);
+    // Cùng số lần dựng lại với resume(): hai lượt kiểm chạy song song thì lượt nào
+    // tới trước cũng phải dựng lại được, không thì lượt "chỉ bỏ" phá lượt kia.
+    this.verifyAlive(ctx, this.tuDungLai ? DUNG_LAI_TOI_DA : 0);
   }
 
   /** Một nốt nhạc với envelope mềm; detune tạo cảm giác "dày" hai lớp. */

@@ -586,6 +586,7 @@ onMounted(() => {
   // ngay — người chơi báo "phải chạm mới có nhạc" là cảm giác trang web, không
   // phải app. Trình duyệt vẫn giữ luật cũ: ở đó chạm trước là bắt buộc thật.
   if (laApp) {
+    sfx.tuDungLai = true;   // quay lại từ nền: context hỏng thì dựng lại ngay, khỏi chờ chạm
     sfx.unlock();
     nhac.daCham = true;
   }
@@ -627,6 +628,9 @@ onMounted(() => {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
   window.addEventListener('focus', wake);
   window.addEventListener('pageshow', wake);
+  // iOS: WKWebView không phải lúc nào cũng bắn visibilitychange khi app trở lại từ nền, và có bắn
+  // thì đôi khi SỚM hơn lúc phiên âm thanh bật lại → nghe thêm `resume` của Capacitor (như lib/ota.ts).
+  if (laApp) void import('@capacitor/app').then(({ App }) => { void App.addListener('resume', wake); }).catch(() => undefined);
   // Khôi phục vị trí từ URL sau F5 / mở link mời
   const q = new URLSearchParams(location.search);
   const code = q.get('room');
