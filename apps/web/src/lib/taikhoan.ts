@@ -414,7 +414,12 @@ export async function ghiVan(van: VanBao): Promise<void> {
  * từng ván) nên gửi lại bao nhiêu lần cũng không nhân đôi. Chưa chơi ván nào thì chưa gửi.
  */
 export async function guiKhach(): Promise<void> {
-  if (me.value || !san.value) return;
+  /*
+   * Còn THẺ MÁY (đã đăng xuất nhưng máy vẫn gắn tài khoản): KHÔNG lên bảng dạng khách. Bản 1.10.20 quên chỗ này → máy
+   * đăng nhập từ đầu (chưa từng có mã khách) đăng xuất ra là TẠO dòng khách mới mang cả tổng điểm kéo về từ tài khoản —
+   * đúng thứ "dòng trùng" thẻ máy sinh ra để tránh (26.11.2026, dòng lạ "Kiên béo 2" 769.595 điểm / 19 ván).
+   */
+  if (me.value || conTheMay.value || !san.value) return;
   const k = store.khach(false) ?? (store.totalScore() > 0 ? store.khach() : null);
   if (!k || k.daGop) return;
   const d = store.boDem();
@@ -479,7 +484,7 @@ export async function anKhach(an: boolean): Promise<void> {
  */
 export type DongHang = DongBxh & { hang: number };
 const thanBxh = (loai: LoaiBxh, tuan?: string): Record<string, unknown> => {
-  const k = me.value ? null : store.khach(false);
+  const k = me.value || conTheMay.value ? null : store.khach(false);
   return { khach: k && !k.an && !k.daGop ? k.id : undefined, ...(loai === 'tuan' ? { loai, tuan } : {}) };
 };
 /** 20 dòng kế tiếp từ hạng `tu + 1` (tải thêm khi cuộn). `het` = đã giáp 3 người chót. Server cũ không hiểu → coi như hết. */
@@ -494,7 +499,7 @@ export async function bxhOnline(loai: LoaiBxh, tuan?: string): Promise<DongHang[
 }
 export async function bangXepHang(loai: LoaiBxh = 'tat', tuan?: string): Promise<BangXh> {
   if (!me.value) await guiKhach();   // hạng tính trên điểm MỚI NHẤT của máy
-  const k = me.value ? null : store.khach(false);
+  const k = me.value || conTheMay.value ? null : store.khach(false);
   const b = await goi<BangXh>('/api/bxh', {
     method: 'POST',
     body: JSON.stringify({ khach: k && !k.an && !k.daGop ? k.id : undefined, ...(loai === 'tuan' ? { loai, tuan } : {}) })

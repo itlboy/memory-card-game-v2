@@ -40,6 +40,21 @@ describe('thẻ máy — client', () => {
     expect(tk.me.value).toBeNull();
   });
 
+  it('máy chưa từng có mã khách: đăng xuất (còn thẻ) KHÔNG tạo dòng khách mới mang điểm tài khoản', async () => {
+    const goi = dung();
+    const { store } = await import('@/lib/storage');
+    store.addScore(769_595);   // điểm kéo về từ tài khoản lúc đăng nhập
+    const tk = await import('@/lib/taikhoan');
+    tk.san.value = true;
+    await tk.dangNhap('cred');
+    tk.dangXuat();
+    goi.length = 0;
+    await tk.guiKhach();
+    await tk.bangXepHang();
+    expect(goi.map((g) => g.url.replace(/^.*\/api/, '/api'))).toEqual(['/api/bxh']);
+    expect(store.khach(false)).toBeNull();
+  });
+
   it('server từ chối thẻ ở đường ghi ván (tài khoản đã xoá) → bỏ thẻ, về khách', async () => {
     dung(401);
     localStorage.setItem('mm.auth.may', 'm1.9.cu');
