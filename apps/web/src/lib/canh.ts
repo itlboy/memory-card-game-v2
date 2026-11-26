@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue';
 import { moChucNang } from './phan-tich';
 import { daMuaPremium } from './premium';
+import { ghiMocDoi } from './ngau-nhien';
 
 /**
  * HÌNH NỀN (cảnh sau bàn chơi + trang chủ) của skin Kẹo — quyền lợi PREMIUM đang làm (25.11.2026).
@@ -33,7 +34,7 @@ export const canh = ref<Canh>(doc());
 
 /*
  * NGẪU NHIÊN (26.11.2026, chủ dự án: "trong các settings đó có thêm mục ngẫu nhiên… chúng ta sẽ đổi ngẫu nhiên"): bật thì
- * mỗi lần MỞ APP và mỗi lần VỀ TRANG CHỦ sau một ván, hình nền đổi sang một hình khác (`doiCanhNgauNhien`, App gọi).
+ * khoảng 30 PHÚT MỘT LẦN hình nền đổi sang một hình khác (`doiCanhNgauNhien`; nhịp ở lib/ngau-nhien.ts, App giữ nhịp).
  * KHÔNG đổi giữa ván — nền đổi lúc đang nhớ thẻ là phá người chơi. Chọn tay một hình là tắt ngẫu nhiên.
  * Cần Premium (chưa có thì chỉ có một hình, không có gì để đổi): hết Premium là tắt theo.
  */
@@ -60,7 +61,7 @@ export function doiCanhNgauNhien(): Canh | null {
 export function datCanhNgauNhien(bat: boolean): void {
   luuNN(bat);
   moChucNang('hinh_nen', { canh: bat ? 'ngau-nhien' : canh.value });
-  if (bat) doiCanhNgauNhien();
+  if (bat) { doiCanhNgauNhien(); ghiMocDoi(); }   // 30 phút tính từ lúc bật
 }
 
 export function ganCanh(): void {
