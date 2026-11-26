@@ -351,8 +351,9 @@
   bàn ngay ở `onMounted`); đối thủ = một mình (Chơi nhanh) / mức máy đang chọn (Đấu với máy). Kiểu nhớ ở `mm.kieuChoi`.
   Hết ván, "Đổi cấu hình" = về lại màn đó. Mở cho mọi người = `TIM_THE_MO = true`.
 - **ONLINE (chặng 2, 27.11.2026, mockup duyệt https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6)**: chủ phòng chọn Kiểu chơi
-  ở phòng chờ (`config.kieu = 'tim'`, hàng hai viên như màn setup). Bắt đầu → `ChonTimTheOnline.vue` biểu quyết số thẻ
-  (đủ 6 cỡ) + độ khó (`chon.kho`, tin `chonKho`) — popup ghép cặp `ChonSoThe` bỏ qua khi có `kho`. Nhịp ván do SERVER dẫn:
+  ở phòng chờ (`config.kieu = 'tim'`, hàng hai viên như màn setup); số thẻ + độ khó chủ phòng đặt ở bảng Bàn chơi
+  (`ChonTimThe` trong wizard, `config.timSoThe/timDoKho`). Bắt đầu → cả phòng biểu quyết SỐ THẺ ±1 bậc bằng chính popup
+  ghép cặp `ChonSoThe` (`luaChonSoThe` trên `TIM_THE_SO_THE`); độ KHÓ KHÔNG biểu quyết (chủ dự án 27.11.2026). Nhịp ván do SERVER dẫn:
   engine `PhongTimThe` (`tim-the-phong.ts`, test riêng) — room.ts giữ ở ô `tim` RIÊNG (KHÔNG đụng `game` của ghép cặp),
   hẹn alarm theo `henKe`, phát `t:'tim'`. Ván KHÔNG lưu (dậy giữa ván → về phòng chờ, `load`). Client khai `?tim=1`; thiếu
   thì Bắt đầu báo `tim-client-cu` (như `dd`). Giờ chọn đo TẠI MÁY người chơi, server kẹp (không quá giờ server, không sớm

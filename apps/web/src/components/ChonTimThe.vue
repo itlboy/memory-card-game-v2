@@ -13,11 +13,12 @@ import { sfx } from '@/lib/audio';
 import { moChucNang } from '@/lib/phan-tich';
 import { Trophy } from 'lucide-vue-next';
 
-const props = defineProps<{ chon: TimTheChon }>();
+/** `anKyLuc`: phòng online — kỷ lục chơi một mình không liên quan, không hiện. */
+const props = defineProps<{ chon: TimTheChon; anKyLuc?: boolean }>();
 const emit = defineEmits<{ doi: [c: TimTheChon] }>();
 
 /** Kỷ lục chỉ có ở ván MỘT MÌNH (lib/tim-the). */
-const kyLuc = computed(() => (props.chon.doiThu === 'mot' ? docKyLuc(props.chon.soThe, props.chon.doKho) : 0));
+const kyLuc = computed(() => (props.chon.doiThu === 'mot' && !props.anKyLuc ? docKyLuc(props.chon.soThe, props.chon.doKho) : 0));
 
 function doi(p: Partial<TimTheChon>): void {
   sfx.select();

@@ -319,15 +319,13 @@ class Phong {
      * bấm Bắt đầu / Chơi lại. Mỗi bot chọn sau 0,3–1,7 s, ngẫu nhiên trong các ô hợp lệ: trong khoảng THE_MIN–THE_MAX và
      * không nhỏ hơn mức tối thiểu theo số người (bàn 3–4 người không tụt về 12 thẻ). Không ô nào hợp lệ thì không chọn.
      */
-    if (room.chon && !room.chon.ket && room.chon.id !== this.chonId && room.chon.kho) {
-      // Tìm Thẻ: phiếu số thẻ + phiếu độ khó, mỗi bot một ý
+    if (room.chon && !room.chon.ket && room.chon.id !== this.chonId && room.config.kieu === 'tim') {
+      // Tìm Thẻ: phiếu số thẻ trong ba ô ±1 bậc (độ khó chủ phòng đặt, không biểu quyết) — tránh bàn 3–4 thẻ nhạt
       this.chonId = room.chon.id;
       const ma = this.code;
-      for (const b of this.bot) setTimeout(() => {
-        if (this.code !== ma) return;
-        b.gui({ t: 'chon', the: TIM_THE_BOT[rd(TIM_THE_BOT.length)] });
-        b.gui({ t: 'chonKho', kho: TIM_THE_DO_KHO[rd(TIM_THE_DO_KHO.length)] });
-      }, 300 + rd(1400));
+      const hop = room.chon.ds.filter((n) => TIM_THE_BOT.includes(n));
+      const ds = hop.length ? hop : room.chon.ds;
+      for (const b of this.bot) setTimeout(() => { if (this.code === ma) b.gui({ t: 'chon', the: ds[rd(ds.length)] }); }, 300 + rd(1400));
     } else if (room.chon && !room.chon.ket && room.chon.id !== this.chonId) {
       this.chonId = room.chon.id;
       const tong = room.players.length;
@@ -374,7 +372,8 @@ class Phong {
     if (this.bot[1]) this.bot[1].muc = b;
     const [level, the] = bocBan(2);
     const tim = Math.random() < TIM_TI_LE;
-    this.chu?.gui({ t: 'config', config: { level, kieu: tim ? 'tim' : 'thuong' } });
+    // Tìm Thẻ: chủ phòng (bot) đặt số thẻ + độ khó — độ khó không biểu quyết nên bốc ở đây
+    this.chu?.gui({ t: 'config', config: { level, kieu: tim ? 'tim' : 'thuong', ...(tim ? { timSoThe: TIM_THE_BOT[rd(TIM_THE_BOT.length)], timDoKho: TIM_THE_DO_KHO[rd(TIM_THE_DO_KHO.length)] } : {}) } });
     log(`[phòng ${this.so}] ${this.code} phòng chờ: ${a} ↔ ${b}, ${tim ? 'Tìm Thẻ' : `${the} thẻ`}`);
   }
 

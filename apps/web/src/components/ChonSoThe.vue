@@ -24,8 +24,8 @@ const props = defineProps<{
   o: { room: { value: RoomInfo | null }; myId: { value: string }; spectator: { value: boolean }; chonThe: (the: number) => void };
 }>();
 
-// Lượt chọn của Tìm Thẻ (có `kho`) là việc của ChonTimTheOnline.vue — popup này chỉ cho ghép cặp
-const chon = computed(() => (props.o.room.value?.chon?.kho ? undefined : props.o.room.value?.chon));
+// Dùng CHUNG cho Tìm Thẻ online (27.11.2026): ba ô ±1 bậc quanh số thẻ chủ phòng đặt, y như ghép cặp
+const chon = computed(() => props.o.room.value?.chon);
 const chiXem = computed(() => props.o.spectator.value);
 const ket = computed(() => chon.value?.ket);
 
