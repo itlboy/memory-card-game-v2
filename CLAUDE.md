@@ -2049,3 +2049,6 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **Thống kê Premium trước đợt tặng dùng thử** (26.11.2026, chủ dự án: "cần đặt thống kê trước, mở tính năng sau"): mỗi lần mở
   app ghi `premium_trang_thai` {co, chu_de, nhac, nhac_premium, nn_chu_de, nn_nhac} (App `ghiTrangThaiPremium`). Đợt tặng
   (thông báo cho mọi người bấm NHẬN, hết hạn theo ngày mở bán) CHƯA làm — khi làm phải gắn sự kiện hiện / nhận / bỏ qua.
+- **Ô "chưa có phòng nào đang chờ" ở màn Chơi online là MỘT DẢI GỌN** (26.11.2026, chủ dự án: "tốn diện tích quá, cho nó bé
+  lại"): `.empty` giờ là grid (biểu tượng 44px trái, chữ phải), không còn `flex: 1`. `.lobby-list li.empty` TRÙNG TÊN lớp nên
+  phải tự ghi `display: flex` — bỏ dòng đó là ô chỗ trống trong phòng chờ vỡ thành lưới hai cột.

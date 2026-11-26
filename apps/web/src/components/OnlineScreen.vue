@@ -1739,24 +1739,30 @@ function openCfgWizard(): void {
 .room.sk .bar.w2 { width: 42%; height: 10px; margin-top: 7px; }
 @keyframes lap { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+/* Ô "chưa có phòng nào đang chờ" GỌN MỘT DẢI (26.11.2026, chủ dự án: "chỗ phòng chờ trống kia tốn diện tích quá, cho nó bé lại"):
+   trước là khối dọc cao ~360px (biểu tượng 74px, chữ giữa, `flex: 1` kéo giãn) đẩy danh sách "Đang chơi — vào xem" xuống
+   dưới màn. Nay biểu tượng nhỏ bên trái, tiêu đề + một dòng chữ bên phải, cao theo nội dung. */
 .empty {
-  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; padding: 24px 18px; text-align: center;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 2px;
+  padding: 10px 14px; text-align: left;
   border: 2px dashed var(--line-strong); border-radius: var(--r-md); background: var(--panel-soft);
 }
 .empty .art {
+  grid-row: 1 / span 2;
   display: flex; align-items: center; justify-content: center;
-  width: 74px; height: 74px; border-radius: 22px; color: var(--chon-chu);
+  width: 44px; height: 44px; border-radius: 14px; color: var(--chon-chu);
   background: var(--chon-nen);
-  /* Ô THẠCH NỔI KHỐI: đế dày tối hơn ở đáy + vệt sáng trên + bóng đổ (phong cách 3D, 18.10.2026) */
-  /* --b3 = màu đế của thạch vàng (keo-thach.css, có nhờ lớp th-vang); skin khác không có thì đế tối trung tính */
-  box-shadow: 0 6px 0 var(--b3, rgba(0, 0, 0, .2)), 0 14px 26px var(--card-back-glow),
-    inset 0 3px 0 rgba(255, 255, 255, .55), inset 0 -5px 0 rgba(0, 0, 0, .1);
-  margin-bottom: 6px;
+  /* Ô THẠCH NỔI KHỐI: đế dày tối hơn ở đáy + vệt sáng trên (phong cách 3D, 18.10.2026) — thu theo cỡ ô */
+  /* --b3 = màu đế của thạch vàng (keo-thach.css, có nhờ lớp th-vang) */
+  box-shadow: 0 4px 0 var(--b3, rgba(0, 0, 0, .2)), inset 0 2px 0 rgba(255, 255, 255, .55), inset 0 -3px 0 rgba(0, 0, 0, .1);
+  margin-bottom: 4px;
 }
-.empty .art img { width: 52px; height: 52px; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .25)); }
-.empty h4 { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); }
-.empty p { margin: 0; max-width: 250px; color: var(--muted); font-size: var(--text-sm); line-height: 1.45; }
+.empty .art img { width: 30px; height: 30px; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .25)); }
+.empty .art svg { width: 24px; height: 24px; }
+.empty h4 { margin: 0; align-self: end; font-family: var(--font-display); font-size: var(--text-md, 16px); line-height: 1.2; }
+.empty p { margin: 0; align-self: start; color: var(--muted); font-size: var(--text-sm); line-height: 1.35; }
+/* trạng thái lỗi có nút "Thử lại": nút xuống dòng riêng, chạy hết bề ngang phần chữ */
+.empty .btn { grid-column: 2; justify-self: start; margin-top: 6px; }
 
 .link-row {
   display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -2029,8 +2035,8 @@ input:focus { outline: none; border-color: var(--accent); }
 .lobby-list li.empty {
   /* `.empty` TRÙNG TÊN với ô "chưa có phòng" của màn danh sách (xếp DỌC, đệm 24px) — phải ghi
      đè về một hàng, không thì ô chỗ trống cao gấp đôi và đẩy "Thêm máy" khuất (lỗi 1.6.0). */
-  flex: none; flex-direction: row; gap: 8px; padding: 4px 10px;
-  border-style: dashed; color: var(--muted); font-size: var(--text-sm); justify-content: center;
+  display: flex; flex: none; flex-direction: row; gap: 8px; padding: 4px 10px;   /* `display` ghi rõ: `.empty` gốc giờ là grid */
+  border-style: dashed; color: var(--muted); font-size: var(--text-sm); justify-content: center; text-align: center;
 }
 .lobby-list .avatar { font-size: 20px; }
 /* Máy chơi cùng (1.6.0) */
