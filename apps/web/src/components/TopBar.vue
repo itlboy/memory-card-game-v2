@@ -6,7 +6,7 @@ import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
 import { anKhach, conTheMay, khachDangAn } from '@/lib/taikhoan';
-import { moPremium, moiNangCap } from '@/lib/premium';
+import { moiNangCap } from '@/lib/premium';
 import { store } from '@/lib/storage';
 import { moChucNang } from '@/lib/phan-tich';
 import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
@@ -57,7 +57,7 @@ async function doiAnBxh(): Promise<void> {
   try { await anKhach(an); } catch { /* mất mạng: cờ đã lưu ở máy, lần gửi điểm sau mang theo */ } finally { dangDoiAn.value = false; }
 }
 const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
-  'update:debug': [boolean]; 'mo-debug': []; premium: []; 'hinh-nen': [] }>();
+  'update:debug': [boolean]; 'mo-debug': []; premium: []; 'hinh-nen': []; 'nhac-nen': [] }>();
 
 /*
  * CỬA VÀO CHẾ ĐỘ DEBUG: chạm 7 LẦN LIÊN TIẾP vào chữ "Cài đặt" HOẶC dòng "Giao diện" trong
@@ -130,26 +130,12 @@ function chonNhac(b: 'off' | BaiNhac): void {
   }
   emit('set-nhac', b);
 }
-/*
- * BỘ LẬT NHẠC: `nhacXem` = bài đang hiện ở ô giữa. Thường trùng bài đang phát; lật tới bài KHOÁ thì ô giữa dừng ở đó
- * (kèm vương miện) còn nhạc giữ nguyên. Đóng menu là về lại bài đang phát.
- */
-const nhacThat = (): 'off' | BaiNhac => (props.nhac ? props.baiNhac ?? 'keo' : 'off');
-const nhacXem = ref<'off' | BaiNhac>(nhacThat());
-const nhacKhoa = computed(() => nhacXem.value !== 'off' && !baiChoiDuoc(nhacXem.value));
-function latNhac(buoc: 1 | -1): void {
-  const ds: ('off' | BaiNhac)[] = ['off', ...baiHien.value];
-  const i = Math.max(0, ds.indexOf(nhacXem.value));
-  const b = ds[(i + buoc + ds.length) % ds.length]!;
-  nhacXem.value = b;
-  if (b === 'off' || baiChoiDuoc(b)) emit('set-nhac', b);
-}
 const open = ref(false);
 const menuEl = ref<HTMLElement | null>(null);
 function dong(): void { open.value = false; }
 /** Menu đang hiện bảng chọn ngôn ngữ thay cho danh sách cài đặt; đóng menu là về danh sách. */
 const chonNN = ref(false);
-watch(open, (v) => { nhacXem.value = nhacThat(); if (!v) { chonNN.value = false; trangCd.value = false; } else if (kiemCN.value !== 'dang') kiemCN.value = ''; });
+watch(open, (v) => { if (!v) { chonNN.value = false; trangCd.value = false; } else if (kiemCN.value !== 'dang') kiemCN.value = ''; });
 /** Đã có bản mới đang tải/chờ áp — chấm đỏ ở nút menu và nút Cập nhật. */
 const coBanMoi = computed(() => laApp && (trangThaiOta.value.buoc === 'tai' || trangThaiOta.value.buoc === 'choMoLai'));
 
@@ -443,7 +429,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
           <button v-if="debug" data-phang class="item nut-nen" role="menuitem" type="button" @click="dong(); emit('hinh-nen')">
             <Image :size="20" /><span>{{ t('pm.s.nen') }}</span>
             <span class="ba-ht" aria-hidden="true"><i class="th" /><i class="ad" /></span>
-            <Crown v-if="moiNangCap" class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />
+            <Crown class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />
           </button>
           <div class="item am" role="group" :aria-label="t('tb.amThanh')">
             <component :is="soundIcon" :size="20" /><span>{{ t('tb.amThanh') }}</span>
@@ -460,22 +446,14 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                MỘT HÀNG như Âm thanh khi ≤ 3 bài (chủ dự án 15.10.2026); nhiều hơn (bày cả bài
                Premium) thì HAI TẦNG — chữ trên, dải nút chia đều dưới: một hàng 6 nút làm menu
                phình 371px và lòi khỏi iPhone SE (do:safari bắt, 15.10.2026). -->
-          <!-- NHIỀU HƠN 3 BÀI (bày cả bài Premium): bộ LẬT ‹ bài › gọn một hàng (26.11.2026, chủ dự án: "không muốn thanh
-               âm thanh dài như thế"). Bản trước xếp 6 nút thành dải chạy hết bề ngang menu. Lật tới bài khoá: KHÔNG đổi
-               nhạc, ô giữa đeo vương miện — bấm vào là mở bảng Premium. -->
-          <div v-if="baiHien.length > 3" class="item am nhac" role="group" :aria-label="t('tb.nhacNen')">
+          <!-- CÓ BÀI PREMIUM ĐỂ BÀY (đã có Premium, đã mở bán, hoặc đang debug — cùng cổng với "Hình nền"): MỘT DÒNG mở bảng chọn nhạc (ChonNhac.vue), y như "Hình nền" — chủ dự án
+               26.11.2026: "nhạc nền bấm vào tôi cũng muốn ra trang settings giống như hình nền". Thay bộ lật ‹ bài ›: lật
+               từng bài thì không thấy cả danh sách, bài Premium nằm khuất. Bên phải là bài đang phát (hoặc "Tắt"). -->
+          <button v-if="debug || baiHien.length > 3" class="item thach nut-nhac" role="menuitem" type="button" @click="dong(); emit('nhac-nen')">
             <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
-            <span class="nac lat-nhac">
-              <button data-phang type="button" :aria-label="t('tb.nhacTruoc')" @click="latNhac(-1)"><ChevronLeft :size="16" :stroke-width="2.8" aria-hidden="true" /></button>
-              <button data-phang type="button" class="giua" :class="{ khoa: nhacKhoa }" aria-live="polite"
-                :aria-label="nhacXem === 'off' ? td('tb.nhacBai.off') : nhacKhoa ? `${td(`tb.nhacBai.${nhacXem}`)} — ${t('tp.premium')}` : td(`tb.nhacBai.${nhacXem}`)"
-                @click="nhacKhoa ? moPremium('nhac') : latNhac(1)">
-                <template v-if="nhacXem === 'off'">{{ td('tb.amNgan.off') }}</template>
-                <template v-else><component :is="ICON_BAI[nhacXem]" :size="17" :stroke-width="2.4" aria-hidden="true" /><Crown v-if="nhacKhoa" class="vm" :size="12" :stroke-width="2.8" aria-hidden="true" /></template>
-              </button>
-              <button data-phang type="button" :aria-label="t('tb.nhacSau')" @click="latNhac(1)"><ChevronRight :size="16" :stroke-width="2.8" aria-hidden="true" /></button>
-            </span>
-          </div>
+            <span class="bai-dang" aria-hidden="true"><component v-if="nhac" :is="ICON_BAI[baiNhac ?? 'keo']" :size="17" :stroke-width="2.4" /><template v-else>{{ td('tb.amNgan.off') }}</template></span>
+            <Crown class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />
+          </button>
           <div v-else class="item am nhac" role="group" :aria-label="t('tb.nhacNen')">
             <Music :size="20" /><span>{{ t('tb.nhacNen') }}</span>
             <span class="nac ds-nhac">
@@ -894,10 +872,7 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 .nac button[aria-checked='true'] { background: var(--nhan-nen); color: var(--nhan-chu); }
 .nac button.bai { font-size: 15px; }
-.lat-nhac button { min-width: 34px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; }
-.lat-nhac .giua { position: relative; min-width: 52px; font-weight: 800; }
-.lat-nhac .giua.khoa { background: #fff1c7; color: #8a5a00; }
-.lat-nhac .vm { position: absolute; top: 2px; right: 4px; }
+.bai-dang { flex: none !important; display: inline-flex; align-items: center; color: var(--muted); font: 800 13px/1 var(--font-body); }
 .item.nhac .ds-nhac button.bai { min-width: 34px; padding: 0 6px; }
 .item.nhac > span:not(.nac) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
