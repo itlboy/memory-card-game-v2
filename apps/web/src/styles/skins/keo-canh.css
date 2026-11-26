@@ -116,6 +116,8 @@
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat.trai { transform: translate(-50%, -50%) rotate(-14deg) translateX(calc(var(--qd-a) * -1)); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat.phai { transform: translate(-50%, -50%) rotate(-14deg) translateX(var(--qd-a)); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat.giua { transform: translate(-50%, -52%) rotate(4deg); z-index: 1; }
+/* Lá GIỮA nhỏ hơn hai lá quay (27.11.2026, chủ dự án: "lá bài giữa phải bé hơn mới đúng") — lá quay lúc ở phía trước (scale 1) không còn bằng/đè cỡ lá giữa */
+:root[data-skin='keo'][data-canh='thien-ha'] .la-quat.giua { --la-h: calc(min(86cqh, 53cqw, 320px) * .4); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat:not(.giua) .lac { animation: none; transform: rotate(14deg) scale(.85); }
 @media (prefers-reduced-motion: no-preference) {
   :root[data-skin='keo'][data-canh='thien-ha'] .la-quat:not(.giua) {
