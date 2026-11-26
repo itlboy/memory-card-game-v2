@@ -37,5 +37,5 @@ export type {
   CardBack, ClientMsg, GameView, NguoiXem, PredealMsg, PublicCard, PublicEvent, PublicPlayer,
   PublicRoom, DoiId, QuickEmoji, EmojiNhom, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView, KetChon
 } from './online.js';
-export { AVATAR_HO_SO, MAU_HO_SO, matHoSo, mauHoSo } from './ho-so.js';
+export { AVATAR_HO_SO, MAU_HO_SO, HUY_HIEU, matHoSo, mauHoSo, huyHieuHoSo, type HuyHieu } from './ho-so.js';
 export type { ChangNho } from './scoring.js';

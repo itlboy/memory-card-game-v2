@@ -2,6 +2,7 @@
 import { dichGoiYTuyChon } from '@/lib/goi-y-tuy-chon';
 import { SITE_URL } from '@/lib/native';
 import MatNguoi from './MatNguoi.vue';
+import DauPremium from './DauPremium.vue';
 import {
   BOARD_SIZES, CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
@@ -1312,7 +1313,7 @@ function openCfgWizard(): void {
   <section v-else-if="!wizard && o.phase.value === 'lobby' && o.room.value?.thiDau" class="panel td-vao" role="status">
     <h2>{{ t('td.dangVao') }}</h2>
     <ul class="td-vao-ds">
-      <li v-for="p in o.room.value.players" :key="p.id"><span class="avatar" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span><b>{{ tenNguoi(p) }}</b></li>
+      <li v-for="p in o.room.value.players" :key="p.id"><span class="avatar" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /><DauPremium :loai="p.hh" /></span><b>{{ tenNguoi(p) }}</b></li>
     </ul>
     <div class="eb-cho" aria-hidden="true" />
   </section>
@@ -1383,7 +1384,7 @@ function openCfgWizard(): void {
         v-for="p in o.room.value?.players" :key="p.id" :data-chip-for="p.id"
         :class="[{ off: !p.connected, toi: p.id === o.myId.value, may: !!p.may, san: p.ready && p.connected && p.id !== o.room.value?.hostId && !p.may }, doiGhep(p.doiSo) ? `vd-${p.doiSo}` : '']"
       >
-        <span class="avatar" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /></span>
+        <span class="avatar" :class="{ 'vong-mau': !!p.mau }" :style="p.mau ? { '--m': p.mau } : undefined"><MatNguoi :mat="p.avatar" :anh="p.anh" /><DauPremium :loai="p.hh" /></span>
         <!-- Dòng CỦA MÌNH: tên sửa được tại chỗ. Ai cũng đổi được tên mình,
              không ai đổi được tên người khác. -->
         <template v-if="p.id === o.myId.value && suaTen">

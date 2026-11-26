@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { TURN_LIMIT_SEC, isDraw, laBotId } from '@mm/engine';
 import MatNguoi from './MatNguoi.vue';
+import DauPremium from './DauPremium.vue';
 import { taiKhoan } from '@/lib/taikhoan';
 import { t } from '@/lib/i18n';
 import { earned, moKhoa, thongKeHienTai } from '@/lib/achievements';
@@ -454,6 +455,8 @@ watch(() => o.view.value?.summary, (s) => {
 const anhCua = (id: string): string | undefined => o.room.value?.players.find((p) => p.id === id)?.anh;
 /** Màu hồ sơ (25.11.2026) — như `anhCua`: nằm ở người trong PHÒNG, view ván không mang. */
 const mauCua = (id: string): string | undefined => o.room.value?.players.find((p) => p.id === id)?.mau;
+/** Huy hiệu Premium của một người trong phòng (DauPremium.vue). */
+const hhCua = (id: string): string | undefined => o.room.value?.players.find((p) => p.id === id)?.hh;
 /** Mặt + tên một THÀNH VIÊN đội (mã người trong phòng) — bảng tỷ số đội xếp mặt từng người. */
 function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } | undefined {
   const p = o.room.value?.players.find((q) => q.id === id);
@@ -488,7 +491,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
           class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited, 'co-loat': !!tySo }"
           :data-chip-for="p.id"
         >
-          <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
+          <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /><DauPremium :loai="hhCua(p.id)" /></span>
           <b>{{ tenNguoi(p) }}</b>
           <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
                kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
@@ -544,7 +547,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
            dạng — EmojiBlast tìm chip theo id để bay lên từ đúng chỗ người gửi. -->
       <div v-else-if="dangDi" class="strip gon">
         <div class="turn-chip" :data-chip-for="dangDi.id" :class="{ off: !dangDi.connected || dangDi.forfeited }">
-          <span class="avatar" :class="{ 'vong-mau': !!mauCua(dangDi.id) }" :style="mauCua(dangDi.id) ? { '--m': mauCua(dangDi.id) } : undefined"><MatNguoi :mat="dangDi.avatar" :anh="anhCua(dangDi.id)" /></span>
+          <span class="avatar" :class="{ 'vong-mau': !!mauCua(dangDi.id) }" :style="mauCua(dangDi.id) ? { '--m': mauCua(dangDi.id) } : undefined"><MatNguoi :mat="dangDi.avatar" :anh="anhCua(dangDi.id)" /><DauPremium :loai="hhCua(dangDi.id)" /></span>
           <span class="tb">
             <b class="nm">{{ tenNguoi(dangDi) }}</b>
             <span class="sub">
@@ -571,7 +574,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
             :data-chip-for="p.id"
             :title="t('ps.diemCua', { ten: tenNguoi(p), n: p.score })"
           >
-            <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
+            <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /><DauPremium :loai="hhCua(p.id)" /></span>
             <!-- Mất mạng / đã rời: một chấm đỏ thay cho chữ. Ở cỡ này không có
                  chỗ cho "📴 mất mạng", mà bỏ hẳn thì bên kia biến mất không lý do. -->
             <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? t('og.daRoiPhong') : t('og.matKetNoi')"></span>
@@ -597,7 +600,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
             :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
           >
             <span class="rank">{{ i + 1 }}</span>
-            <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /></span>
+            <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /><DauPremium :loai="hhCua(p.id)" /></span>
             <b class="nm">{{ tenNguoi(p) }}</b>
             <span v-if="p.forfeited" class="netbad"><LogOut :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.daRoi') }}</span>
             <span v-else-if="!p.connected" class="netbad"><WifiOff :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.offline') }}</span>
@@ -658,7 +661,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
             <OptionIcon name="freeze" :size="15" /> {{ t('game.dongBang', { ten: o.turnBanner.value.frozen }) }}
           </small>
           <span class="who">
-            <span class="avatar" :class="{ 'vong-mau': !!mauCua(o.turnBanner.value.id ?? '') }" :style="mauCua(o.turnBanner.value.id ?? '') ? { '--m': mauCua(o.turnBanner.value.id ?? '') } : undefined"><MatNguoi :mat="o.turnBanner.value.avatar || '🎮'" /></span>
+            <span class="avatar" :class="{ 'vong-mau': !!mauCua(o.turnBanner.value.id ?? '') }" :style="mauCua(o.turnBanner.value.id ?? '') ? { '--m': mauCua(o.turnBanner.value.id ?? '') } : undefined"><MatNguoi :mat="o.turnBanner.value.avatar || '🎮'" /><DauPremium :loai="hhCua(o.turnBanner.value.id ?? '')" /></span>
             {{ t('game.denLuot') }} <b>{{ o.turnBanner.value.name }}</b>
           </span>
         </div>

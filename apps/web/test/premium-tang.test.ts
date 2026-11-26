@@ -82,15 +82,14 @@ describe('bảng Premium', () => {
     w.unmount();
   });
 
-  it('đang có Premium: có "Cài đặt Premium" — bấm Chủ đề / Nhạc nền thì báo App mở đúng bảng; Huy hiệu còn tắt', async () => {
+  it('đang có Premium: "Cài đặt Premium" có Chủ đề · Nhạc nền · Huy hiệu — bấm dòng nào App mở đúng bảng đó', async () => {
     const { w } = await moBang({ 'mm.premium': '1' });
     const dong = w.findAll('.pm-cd-dong');
     expect(dong).toHaveLength(3);
-    await dong[0]!.trigger('click');
-    await dong[1]!.trigger('click');
-    expect(w.emitted('mo')).toEqual([['nen'], ['nhac']]);
+    for (const d of dong) await d.trigger('click');
+    expect(w.emitted('mo')).toEqual([['nen'], ['nhac'], ['hh']]);
     expect(dong[1]!.text()).toContain('Ngẫu nhiên');
-    expect(dong[2]!.attributes('disabled')).toBeDefined();
+    expect(dong[2]!.text(), 'mặc định đeo vương miện').toContain('Vương miện');
     w.unmount();
   });
 
@@ -114,7 +113,8 @@ describe('viên Premium trang chủ + đường về', () => {
   it('App: bảng Premium vẫn chỉ mở khi debug; mở Chủ đề / Nhạc từ bảng Premium thì đóng lại là VỀ bảng Premium', () => {
     const s = doc('App.vue');
     expect(s).toContain('<BangPremium v-if="showPremium && debug"');
-    expect(s).toMatch(/function moTuPremium\(muc: 'nen' \| 'nhac'\): void \{\s*showPremium\.value = false;\s*tuPremium = true;/);
+    expect(s).toMatch(/function moTuPremium\(muc: 'nen' \| 'nhac' \| 'hh'\): void \{\s*showPremium\.value = false;\s*tuPremium = true;/);
+    expect(s, 'đóng bảng huy hiệu cũng về bảng Premium').toContain('watch(showHuyHieu, veMenuKhiDong);');
     expect(s).toMatch(/if \(vePremium\) \{ premiumTu\.value = 'trang-chu'; showPremium\.value = true; \} else topBar\.value\?\.moMenu\(\);/);
     expect(s).toContain('kiemHetHanTang();');
   });

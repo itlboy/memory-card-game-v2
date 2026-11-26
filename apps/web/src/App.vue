@@ -23,6 +23,7 @@ import BangPremium from './components/BangPremium.vue';
 import LaRoi from './components/LaRoi.vue';
 import ChonHinhNen from './components/ChonHinhNen.vue';
 import ChonNhac from './components/ChonNhac.vue';
+import ChonHuyHieu from './components/ChonHuyHieu.vue';
 import { bocLungVan } from './lib/lung-la';
 import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
 import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
@@ -356,11 +357,14 @@ const showNhac = ref(false);
 const topBar = ref<{ moMenu: () => void } | null>(null);
 /** Bảng Chủ đề / Nhạc nền vừa được mở TỪ BẢNG PREMIUM (dòng "Cài đặt Premium") — đóng lại thì về bảng Premium, không về menu. */
 let tuPremium = false;
-function moTuPremium(muc: 'nen' | 'nhac'): void {
+function moTuPremium(muc: 'nen' | 'nhac' | 'hh'): void {
   showPremium.value = false;
   tuPremium = true;
-  if (muc === 'nen') showHinhNen.value = true; else showNhac.value = true;
+  if (muc === 'nen') showHinhNen.value = true; else if (muc === 'nhac') showNhac.value = true; else showHuyHieu.value = true;
 }
+/** Bảng chọn huy hiệu Premium — chỉ mở được từ bảng Premium (ChonHuyHieu.vue). */
+const showHuyHieu = ref(false);
+useBackCloser(31, () => showHuyHieu.value, () => { showHuyHieu.value = false; });
 function veMenuKhiDong(mo: boolean, truoc: boolean): void {
   if (mo || !truoc) return;
   const vePremium = tuPremium;
@@ -374,6 +378,7 @@ function veMenuKhiDong(mo: boolean, truoc: boolean): void {
 const nhacHien = computed(() => (!nhacBat.value || soundLevel.value === 'off' ? t('tb.amNgan.off') : nhacNgauNhien.value ? t('cn.ngauNhien') : tenBaiNhac(baiThat.value)));
 watch(showHinhNen, veMenuKhiDong);
 watch(showNhac, veMenuKhiDong);
+watch(showHuyHieu, veMenuKhiDong);
 useBackCloser(31, () => showNhac.value, () => { showNhac.value = false; });
 useBackCloser(31, () => showPremium.value, () => { showPremium.value = false; });
 /** Tấm SỬA hồ sơ (mở từ menu). Màn chào bắt buộc thì theo `canMoChao`, không có cờ riêng. */
@@ -1349,6 +1354,7 @@ const hasNext = computed(() => {
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
   <BangPremium v-if="showPremium && debug" :tu="premiumTu" :nhac-hien="nhacHien" @close="showPremium = false" @mo="moTuPremium" />
   <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
+  <ChonHuyHieu v-if="showHuyHieu" @close="showHuyHieu = false" />
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />

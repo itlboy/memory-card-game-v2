@@ -1207,13 +1207,15 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
    "xấu và không tương hợp với giao diện"): cùng kiểu viên xu ở thanh đầu — huy chương bậc · tên nhỏ trên · điểm to dưới.
    Bong bóng ▲▼ chỉ khi điểm khác lần xem cuối. Không vành tiến độ, không nhấp nháy. */
 .vien-tn {
-  position: absolute; left: 4px; bottom: calc(100% + 12px); z-index: 2; display: flex; align-items: center; gap: 8px;
+  /* +22px chứ không +12px: nhãn "Màn N" dán lệch LÊN TRÊN mép nút Chiến dịch 12px (keo-thach.css) — viên Premium ở bên phải
+     từng đè lên nó (chủ dự án báo kèm ảnh 26.11.2026). Hai viên cùng một mốc cho thẳng hàng. */
+  position: absolute; left: 4px; bottom: calc(100% + 22px); z-index: 2; display: flex; align-items: center; gap: 8px;
   min-height: 0; padding: 5px 14px 5px 6px; border-radius: 999px; text-align: left; cursor: pointer; overflow: visible;
 }
 /* Viên Premium: soi gương của viên trí nhớ — bám mép PHẢI, chữ canh phải, vương miện vàng ở cuối. `max-width` để hai viên
    không bao giờ đè nhau trên máy hẹp (SE 375) hay ngôn ngữ chữ dài: chữ dài thì cắt bằng dấu ba chấm. */
 .vien-pm {
-  position: absolute; right: 4px; bottom: calc(100% + 12px); z-index: 2; display: flex; align-items: center; gap: 8px;
+  position: absolute; right: 4px; bottom: calc(100% + 22px); z-index: 2; display: flex; align-items: center; gap: 8px;
   max-width: 52%; min-height: 0; padding: 5px 6px 5px 14px; border-radius: 999px; text-align: right; cursor: pointer; overflow: visible;
 }
 .vien-pm .vtn-chu { align-items: flex-end; }
