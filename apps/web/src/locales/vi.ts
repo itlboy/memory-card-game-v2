@@ -653,7 +653,7 @@ const vi = {
   'say.camOn': "Cảm ơn!",
   'say.dongY': "Đồng ý",
   'say.vanNua': "Làm ván nữa không?",
-  'say.ban': "Rất tiếc, tôi bận rồi",
+  'say.ban': "Rất tiếc, tôi bận mất rồi",
   'say.tamBiet': "Tạm biệt!",
   /* ---------- luật chơi (RulesDialog) ---------- */
   'lc.tieuDe': 'Luật chơi',
@@ -880,7 +880,7 @@ const vi = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Bạn giỏi quá',
   'say.choiTiep': 'Chúng ta chơi tiếp nhé',
-  'say.henGap': 'Tôi bận rồi, hẹn gặp lại sau nhé',
+  'say.henGap': "Hẹn gặp lại bạn sau nhé",
   'say.vuiChoi': 'Rất vui được chơi với bạn',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Phá',

@@ -62,7 +62,8 @@ const SO: Dong[] = [
   { id: 'huyHieu', ic: Award, thuong: false, premium: true, sap: true },
   { id: 'thongKe', ic: ChartColumn, thuong: 'pm.v.14ngay', premium: 'pm.v.tronVen', sap: true, tu: 'tri-nho' },
   { id: 'hieuUng', ic: Sparkles, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', sap: true },
-  { id: 'chat', ic: MessageCircle, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', sap: true },
+  // Chat: emoji Premium ĐÃ CÓ (26.11.2026, EmojiBar) nên bỏ nhãn "Sắp có"; mở bảng từ emoji khoá thì dòng này sáng lên
+  { id: 'chat', ic: MessageCircle, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', tu: 'chat' },
   { id: 'hoTro', ic: Heart, thuong: false, premium: true }
 ];
 const gt = (v: string): string => (v.startsWith('pm.') ? td(v) : v);

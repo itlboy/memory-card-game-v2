@@ -639,7 +639,7 @@ const ko: TuDien = {
   'say.camOn': "고마워!",
   'say.dongY': "좋아",
   'say.vanNua': "한 판 더?",
-  'say.ban': "미안, 지금 바빠",
+  'say.ban': "미안, 지금 바빠요",
   'say.tamBiet': "잘 가!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': '게임 방법',
@@ -866,7 +866,7 @@ const ko: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': '정말 잘하시네요!',
   'say.choiTiep': '계속 해요',
-  'say.henGap': '이제 가 봐야 해요, 또 만나요!',
+  'say.henGap': "다음에 또 만나요!",
   'say.vuiChoi': '같이 해서 즐거웠어요',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': '도전',

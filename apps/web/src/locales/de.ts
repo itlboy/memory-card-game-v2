@@ -642,7 +642,7 @@ const de: TuDien = {
   'say.camOn': "Danke!",
   'say.dongY': "Einverstanden",
   'say.vanNua': "Noch eine Runde?",
-  'say.ban': "Sorry, ich hab keine Zeit",
+  'say.ban': "Sorry, ich hab gerade keine Zeit",
   'say.tamBiet': "Tschüss!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': 'Spielanleitung',
@@ -869,7 +869,7 @@ const de: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Du bist richtig gut!',
   'say.choiTiep': 'Lass uns weiterspielen',
-  'say.henGap': 'Ich muss los, bis später!',
+  'say.henGap': "Bis später!",
   'say.vuiChoi': 'Hat Spaß gemacht mit dir',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Los',

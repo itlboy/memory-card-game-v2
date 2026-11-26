@@ -8,9 +8,11 @@
  * Riêng vụ "emoji người kia gửi" (blast) nằm ở EmojiBlast.vue: nó teleport ra
  * <body>, mount hai lần là hiện hai cái.
  */
-import { NOI_NHANH, type QuickEmoji, type QuickSay } from '@mm/engine';
+import { EMOJI_PREMIUM, NOI_NHANH, type QuickEmoji, type QuickSay } from '@mm/engine';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { Hourglass, MessageCircleMore, Plus } from 'lucide-vue-next';
+import { Crown, Hourglass, MessageCircleMore, Plus } from 'lucide-vue-next';
+import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
+import { moChucNang } from '@/lib/phan-tich';
 import { ghiDung, hayDung } from '@/lib/emoji-hay-dung';
 import { t } from '@/lib/i18n';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -57,6 +59,17 @@ const BANG: readonly QuickEmoji[] = [
   '😮', '😱', '🤔', '😅', '😢', '😭', '😡', '🥳',
   '👍', '👎', '👏', '🙏', '💪', '❤️', '🔥', '🎉'
 ];
+/*
+ * HÀNG EMOJI PREMIUM (26.11.2026, chủ dự án: "làm thêm một số icon premium"): hàng thứ tư của bảng, 8 emoji `EMOJI_PREMIUM`,
+ * đeo vương miện (kể cả khi đã có Premium — "để họ hiểu quyền lợi của mình"). Có Premium thì gửi như emoji thường; chưa có thì
+ * bấm vào mở bảng Premium. CHỈ BÀY khi đã có Premium hoặc đang được mời nâng cấp (`moiNangCap` = debug / đã mở bán) — người
+ * chơi thường chưa mua được thì không thấy đồ khoá (luật App Review, xem lib/premium.ts). Người NHẬN thì ai cũng thấy.
+ */
+const hienPremium = (): boolean => daMuaPremium.value || moiNangCap.value;
+function guiEmojiPremium(e: string): void {
+  if (!daMuaPremium.value) { moChucNang('premium_emoji_khoa', { emoji: e }); mo.value = null; moPremium('chat'); return; }
+  props.o.sendEmoji(e); mo.value = null;   // KHÔNG `ghiDung`: không cho emoji Premium lọt ra hàng ngoài của người hết Premium
+}
 function chamNgoai(e: PointerEvent): void {
   if (mo.value && goc.value && !goc.value.contains(e.target as Node)) mo.value = null;
 }
@@ -108,6 +121,13 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
         class="emoji thach th-nho" type="button" role="menuitem"
         :disabled="!props.o.emojiReady.value" @click="guiEmoji(e)"
       >{{ e }}</button>
+    </div>
+    <div v-if="hienPremium()" class="be-luoi be-premium">
+      <button
+        v-for="e in EMOJI_PREMIUM" :key="e"
+        class="emoji thach th-nho" type="button" role="menuitem" :class="{ khoa: !daMuaPremium }"
+        :disabled="!props.o.emojiReady.value" :aria-label="`${e} — ${t('tp.premium')}`" @click="guiEmojiPremium(e)"
+      >{{ e }}<Crown class="vm" :size="9" :stroke-width="3" aria-hidden="true" /></button>
     </div>
   </div>
   </div>
@@ -177,6 +197,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', chamNgoai, tru
 .be-luoi { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 3px; }
 /* Trong lưới: nút giãn theo ô (không giữ 40px cố định của thanh) */
 .be-luoi .emoji { flex: none; width: 100%; min-height: 32px; font-size: 19px; }
+/* Hàng Premium: vạch vàng ngăn với ba hàng thường, mỗi nút có vương miện nhỏ ở góc */
+.be-premium { margin-top: 5px; padding-top: 5px; border-top: 2px dashed #f0cf7a; }
+.be-premium .emoji { position: relative; overflow: visible; }
+/* Chưa có Premium: cả hàng MỜ như nút tắt (chủ dự án 26.11.2026: "nó thuộc dạng disable mờ với người thường") — vẫn bấm
+   được để mở bảng Premium; vương miện giữ nguyên độ rõ để biết vì sao mờ. Mờ phần HÌNH bằng màu chữ + lọc xám, không
+   `opacity` cả nút: opacity kéo mờ luôn vương miện. */
+.be-premium .emoji.khoa { color: color-mix(in srgb, currentColor 38%, transparent); filter: grayscale(.75); }
+.be-premium .emoji.khoa .vm { filter: none; }
+.be-premium .emoji .vm { position: absolute; top: -3px; right: -2px; padding: 1.5px; box-sizing: content-box; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }
 /* Hết hạn mức: mờ đi để thấy rõ là đang chờ */
 .emoji-bar.spent .emoji { opacity: .35; }
 .cooldown {

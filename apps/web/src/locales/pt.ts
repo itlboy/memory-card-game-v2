@@ -641,7 +641,7 @@ const pt: TuDien = {
   'say.camOn': "Valeu!",
   'say.dongY': "Combinado",
   'say.vanNua': "Mais uma?",
-  'say.ban': "Foi mal, estou ocupado",
+  'say.ban': "Foi mal, estou ocupado agora",
   'say.tamBiet': "Tchau!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': 'Como jogar',
@@ -868,7 +868,7 @@ const pt: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Você é muito bom!',
   'say.choiTiep': 'Vamos continuar jogando',
-  'say.henGap': 'Tenho que ir, até mais!',
+  'say.henGap': "Até mais!",
   'say.vuiChoi': 'Foi ótimo jogar com você',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Bater',

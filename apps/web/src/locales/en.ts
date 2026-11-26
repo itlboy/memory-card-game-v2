@@ -641,7 +641,7 @@ const en: TuDien = {
   'say.camOn': "Thanks!",
   'say.dongY': "Agreed",
   'say.vanNua': "Another round?",
-  'say.ban': "Sorry, I'm busy",
+  'say.ban': "Sorry, I'm busy now",
   'say.tamBiet': "Bye!",
   /* ---------- luật chơi (RulesDialog) ---------- */
   'lc.tieuDe': 'How to Play',
@@ -868,7 +868,7 @@ const en: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'You\'re so good!',
   'say.choiTiep': 'Let\'s keep playing',
-  'say.henGap': 'I have to go, see you later!',
+  'say.henGap': "See you later!",
   'say.vuiChoi': 'Nice playing with you',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Beat',

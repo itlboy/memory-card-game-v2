@@ -70,6 +70,10 @@ onBeforeUnmount(() => window.removeEventListener('resize', doLai));
   filter: drop-shadow(0 5px 10px rgba(0, 0, 0, .22));
   font-size: var(--text-sm); font-weight: 700; line-height: 1.25;
   pointer-events: none;
+  /* HƠI TRONG SUỐT (26.11.2026, chủ dự án: "các ô chat bật lên… có độ trong suốt để không cản việc xem thẻ mở"): bong bóng
+     nổi ngay trên bàn thẻ, đặc thì che mất lá vừa lật. .78 = vẫn đọc được chữ đậm mà thấy lờ mờ lá phía sau. Cùng số ở
+     EmojiBlast.vue — đổi thì đổi cả hai. */
+  opacity: .78;
 }
 /* Đuôi chỉ XUỐNG mặt người nói: vẽ chung một nét với thân (KhungBong.vue) */
 /* Neo vào avatar: canh trái theo `x`, `top` là chỗ mũi đuôi → kéo lên trọn chiều cao (y như EmojiBlast `.tren`) */

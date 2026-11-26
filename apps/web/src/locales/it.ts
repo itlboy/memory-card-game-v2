@@ -643,7 +643,7 @@ const it: TuDien = {
   'say.camOn': "Grazie!",
   'say.dongY': "D'accordo",
   'say.vanNua': "Un'altra?",
-  'say.ban': "Scusa, ho da fare",
+  'say.ban': "Scusa, adesso ho da fare",
   'say.tamBiet': "Ciao ciao!",
   /* ---------- luật chơi (RulesDialog) ---------- */
   'lc.tieuDe': 'Come si gioca',
@@ -870,7 +870,7 @@ const it: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Sei bravissimo!',
   'say.choiTiep': 'Continuiamo a giocare',
-  'say.henGap': 'Devo andare, a dopo!',
+  'say.henGap': "A dopo!",
   'say.vuiChoi': 'È stato bello giocare con te',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Batti',

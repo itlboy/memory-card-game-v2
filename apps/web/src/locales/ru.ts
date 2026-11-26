@@ -658,7 +658,7 @@ const ru: TuDien = {
   'say.camOn': "Спасибо!",
   'say.dongY': "Согласен",
   'say.vanNua': "Ещё партию?",
-  'say.ban': "Извини, я занят",
+  'say.ban': "Извини, я сейчас занят",
   'say.tamBiet': "Пока!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': 'Как играть',
@@ -886,7 +886,7 @@ const ru: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Ты отлично играешь!',
   'say.choiTiep': 'Давай играть дальше',
-  'say.henGap': 'Мне пора, до встречи!',
+  'say.henGap': "До встречи!",
   'say.vuiChoi': 'Было приятно поиграть',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Побить',

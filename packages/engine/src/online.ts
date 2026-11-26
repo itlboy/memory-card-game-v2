@@ -199,8 +199,14 @@ export const EMOJI_NHOM = {
   camXuc: ['😂', '🤣', '😊', '😍', '🥰', '😘', '😎', '🤩', '😮', '😱', '🤔', '😅', '😢', '😭', '😡', '🤯', '🥳', '😴', '🙄', '😏', '🤭'],
   tay: ['👍', '👎', '👏', '🙏', '💪', '👋', '✌️', '🤞'],
   vui: ['❤️', '💔', '🔥', '🎉', '⭐', '💯', '✨', '🏆'],
-  treu: ['🐔', '🐌', '🐢', '💩', '🤡', '👀', '🙈', '😈']
+  treu: ['🐔', '🐌', '🐢', '💩', '🤡', '👀', '🙈', '😈'],
+  // EMOJI PREMIUM (26.11.2026, chủ dự án: "làm thêm một số icon premium"): chỉ người có Premium GỬI được (client chặn — server
+  // không kiểm quyền, y như mọi thứ Premium khác); AI CŨNG THẤY khi người khác gửi. Thêm ở đây thì thêm vào hàng Premium của
+  // EmojiBar. Server chưa lên bản mới thì lặng lẽ bỏ emoji lạ — không hỏng gì.
+  premium: ['👑', '💎', '🚀', '🦄', '🌈', '🍀', '🥇', '🎯']
 } as const;
+/** Emoji chỉ người có Premium gửi được. */
+export const EMOJI_PREMIUM: readonly string[] = EMOJI_NHOM.premium;
 export type EmojiNhom = keyof typeof EMOJI_NHOM;
 export const QUICK_EMOJIS = [...new Set(Object.values(EMOJI_NHOM).flat())] as readonly string[];
 export type QuickEmoji = (typeof EMOJI_NHOM)[EmojiNhom][number];
@@ -225,8 +231,12 @@ export const QUICK_SAYS = [
   'gioi', 'choiTiep', 'henGap', 'vuiChoi'
 ] as const;
 export type QuickSay = (typeof QUICK_SAYS)[number];
-/** 5 câu trên nút nói nhanh (thứ tự hiện) — chủ dự án chọn 22.11.2026. */
-export const NOI_NHANH: readonly QuickSay[] = ['gioi', 'choiTiep', 'henGap', 'vuiChoi', 'dongY'];
+/**
+ * Câu trên nút nói nhanh (thứ tự hiện) — chủ dự án chọn 22.11.2026. 26.11.2026: câu "Tôi bận rồi, hẹn gặp lại sau nhé" TÁCH
+ * LÀM HAI ("tách ra làm hai câu nhé") — `ban` = "Rất tiếc, tôi bận mất rồi", `henGap` = "Hẹn gặp lại bạn sau nhé". Dùng lại
+ * hai mã CÓ SẴN (không thêm mã) nên server/app cũ vẫn nhận; máy bản cũ chỉ hiện chữ cũ của đúng mã đó.
+ */
+export const NOI_NHANH: readonly QuickSay[] = ['gioi', 'choiTiep', 'ban', 'henGap', 'vuiChoi', 'dongY'];
 
 /* ---------- view công khai ---------- */
 

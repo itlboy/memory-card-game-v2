@@ -642,7 +642,7 @@ const id: TuDien = {
   'say.camOn': "Makasih!",
   'say.dongY': "Setuju",
   'say.vanNua': "Main lagi?",
-  'say.ban': "Maaf, aku sibuk",
+  'say.ban': "Maaf, aku lagi sibuk",
   'say.tamBiet': "Dah!",
   /* ---------- rules (RulesDialog) ---------- */
   'lc.tieuDe': 'Cara bermain',
@@ -869,7 +869,7 @@ const id: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Kamu hebat banget!',
   'say.choiTiep': 'Ayo main lagi',
-  'say.henGap': 'Aku harus pergi, sampai jumpa!',
+  'say.henGap': "Sampai jumpa lagi!",
   'say.vuiChoi': 'Senang main sama kamu',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Pecahkan',

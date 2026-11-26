@@ -872,7 +872,7 @@ const fr: TuDien = {
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Tu es trop fort !',
   'say.choiTiep': 'On continue ?',
-  'say.henGap': 'Je dois y aller, à plus tard !',
+  'say.henGap': "À plus tard !",
   'say.vuiChoi': 'Ravi d\'avoir joué avec toi',
   /* ---------- trang tài khoản mới (22.11.2026) ---------- */
   'tk.pha': 'Battre',
