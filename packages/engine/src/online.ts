@@ -257,6 +257,8 @@ export interface PublicPlayer {
   anh?: string;
   /** Màu hồ sơ (25.11.2026, `MAU_HO_SO`) — vòng quanh avatar. Client cũ / người chưa chọn: không có. */
   mau?: string;
+  /** Huy hiệu Premium (26.11.2026, `HUY_HIEU`: vm · tim · kc) — dấu nhỏ ở góc avatar. Không có = không hiện. */
+  hh?: string;
   score: number;
   pairs: number;
   bestStreak: number;

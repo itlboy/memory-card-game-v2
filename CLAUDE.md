@@ -2088,3 +2088,11 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   + bản dịch 15 ngôn ngữ, và server phải lên trước.
 - **BẪY chạy server cục bộ để chụp màn online**: `wrangler dev` cần `apps/web/dist` (assets) — chưa `pnpm build` web là thoát
   ngay với lỗi "assets.directory does not exist".
+- **HUY HIỆU PREMIUM TRÊN AVATAR** (26.11.2026, mockup duyệt https://claude.ai/artifact/UTdgp7a6ngSsiWyv3ZXz7U): dấu nhỏ ở góc
+  TRÊN PHẢI avatar (`DauPremium.vue`, đặt làm con trực tiếp của ô avatar — luật `:has()` tự cho ô đó `position: relative`). Ba
+  kiểu `HUY_HIEU` (engine ho-so.ts): `vm` · `tim` · `kc`; mặc định `vm`, lưu `mm.huyHieu` ('' = không hiện). Đi trên dây `?hh=`
+  y như màu hồ sơ: server nhận qua `huyHieuHoSo`, không lưu DB, KHÔNG kiểm ai có Premium. Hiện ở chip trong ván (OnlineGame ×5),
+  danh sách phòng chờ (OnlineScreen ×2), avatar thanh đầu + menu (TopBar ×2). Bảng xếp hạng CHƯA có (cần server lưu kèm điểm).
+  Chọn kiểu ở bảng Premium → dòng Huy hiệu → `ChonHuyHieu.vue`.
+- **Hai viên trên nút Chiến dịch** cách mép nút 22px (không phải 12px): nhãn "Màn N" dán lệch lên trên 12px — viên Premium từng
+  đè lên nó. Đổi vị trí nhãn hay viên thì đo lại khe.

@@ -15,6 +15,7 @@ import { moChucNang, suKien } from '@/lib/phan-tich';
 import { nenApp } from '@/lib/native';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
+import { huyHieuDangDeo } from '@/lib/premium';
 import { doNhip } from '@/lib/do-nhip';
 import { t, td } from '@/lib/i18n';
 import { SERVER_URL } from '@/lib/native';
@@ -981,6 +982,8 @@ export function useOnlineRoom() {
       if (hs?.xong) params.set('mat', hs.mat);
     }
     { const hs = store.hoSo(); if (hs?.xong) params.set('mau', hs.mau); }
+    // Huy hiệu Premium đang đeo (lib/premium.ts) — server chỉ nhận mã trong `HUY_HIEU`
+    if (huyHieuDangDeo.value) params.set('hh', huyHieuDangDeo.value);
     // Ảnh Google của người đã đăng nhập (11.11.2026) — server chỉ nhận ảnh máy chủ Google
     const anh = anhHopLe(me.value?.avatar);
     if (anh) params.set('anh', anh);

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { vChamNgoai } from '@/lib/cham-ngoai';
 import { hoSo, tenToi } from '@/lib/ho-so';
+import { huyHieuDangDeo } from '@/lib/premium';
+import DauPremium from './DauPremium.vue';
 import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
@@ -374,7 +376,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         type="button" @click="open = !open"
       >
         <!-- Gộp danh tính (25.11.2026, mockup A https://claude.ai/artifact/X6UfSDYiaQz8ZWGhUfCyt1): avatar HỒ SƠ, không còn ảnh Google -->
-        <span v-if="hoSo.xong" class="mb-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}</span>
+        <span v-if="hoSo.xong" class="mb-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}<DauPremium :loai="huyHieuDangDeo" /></span>
         <img v-else-if="avatar" :src="avatar" alt="" referrerpolicy="no-referrer">
         <Menu v-else :size="22" />
         <i v-if="coBanMoi && !open" class="cham-do" aria-hidden="true" />
@@ -389,7 +391,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         <div v-if="!trangCd" key="chinh" class="mat">
           <!-- HỒ SƠ (25.11.2026): avatar + màu + tên của mình, chạm là mở tấm sửa (HoSoDialog) -->
           <button class="item ho-so thach" role="menuitem" type="button" :aria-label="t('hs.sua')" @click="dong(); emit('ho-so')">
-            <span class="hs-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}<i v-if="signedIn" class="hs-g">G</i></span>
+            <span class="hs-av" :style="{ '--m': hoSo.mau }" aria-hidden="true">{{ hoSo.mat }}<i v-if="signedIn" class="hs-g">G</i><DauPremium :loai="huyHieuDangDeo" /></span>
             <span class="tk-chu"><b>{{ tenToi || t('hs.hoSo') }}</b><small>{{ signedIn ? `${t('hs.sua')} · ${t('hs.daLuu')}` : t('hs.sua') }}</small></span>
             <Pencil class="hs-but" :size="16" :stroke-width="2.6" aria-hidden="true" />
           </button>

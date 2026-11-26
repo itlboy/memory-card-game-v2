@@ -20,7 +20,7 @@ import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
-import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
+import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
 import { CANH, canh, canhNgauNhien } from '@/lib/canh';
 import { LUNG } from '@/lib/lung-la';
 import { BAI_NHAC, BAI_PREMIUM } from '@/lib/nhac';
@@ -29,7 +29,7 @@ import { SITE_URL, nenApp } from '@/lib/native';
 /** `nhacHien`: chữ hiện ở dòng cài đặt "Nhạc nền" (Tắt · Ngẫu nhiên · tên bài) — trạng thái nhạc nằm ở App.vue. */
 const props = withDefaults(defineProps<{ tu?: NoiMoPremium; nhacHien?: string }>(), { tu: 'menu', nhacHien: '' });
 /** `mo`: người chơi bấm một dòng "Cài đặt Premium" — App đóng bảng này, mở bảng Chủ đề / Nhạc nền, đóng bảng đó là quay lại đây. */
-const emit = defineEmits<{ close: []; mo: ['nen' | 'nhac'] }>();
+const emit = defineEmits<{ close: []; mo: ['nen' | 'nhac' | 'hh'] }>();
 
 const goi = ref<Goi>('nam');
 const buoc = ref<'chon' | 'dang' | 'xong'>('chon');
@@ -59,7 +59,7 @@ const SO: Dong[] = [
   { id: 'nen', ic: Image, thuong: '1', premium: String(soNen), tu: 'nen' },
   { id: 'lung', ic: Layers, thuong: '1', premium: String(soLung) },
   { id: 'nhac', ic: Music, thuong: String(soBaiThuong), premium: String(soBai), tu: 'nhac' },
-  { id: 'huyHieu', ic: Award, thuong: false, premium: true, sap: true },
+  { id: 'huyHieu', ic: Award, thuong: false, premium: true },
   { id: 'thongKe', ic: ChartColumn, thuong: 'pm.v.14ngay', premium: 'pm.v.tronVen', sap: true, tu: 'tri-nho' },
   { id: 'hieuUng', ic: Sparkles, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', sap: true },
   // Chat: emoji Premium ĐÃ CÓ (26.11.2026, EmojiBar) nên bỏ nhãn "Sắp có"; mở bảng từ emoji khoá thì dòng này sáng lên
@@ -178,8 +178,7 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
             <h3>{{ t('pm.caiDat') }}</h3>
             <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'nen')"><Image :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.s.nen') }}</span><small>{{ chuDeHien }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
             <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'nhac')"><Music :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('tb.nhacNen') }}</span><small>{{ nhacHien }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
-            <!-- Huy hiệu trên avatar: mockup đã duyệt, CHƯA làm (cần server) — dòng tắt, đeo nhãn "Sắp có" như bảng quyền lợi -->
-            <button class="thach pm-cd-dong" type="button" disabled><Award :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.cd.huyHieu') }}</span><small>{{ t('pm.sapCo') }}</small></button>
+            <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'hh')"><Award :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.cd.huyHieu') }}</span><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
           </section>
           <h3 class="pm-ql-td len-giua">{{ t('pm.quyenLoi') }}</h3>
           <a v-if="!goiDangCo?.tang" class="thach th-nho pm-ql" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>

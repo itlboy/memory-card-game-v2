@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue';
 import type { CardTheme } from './themes';
 import { dangDebug } from './debug';
 import { coCuaHangThat, khoiDongCuaHang, khoiPhucThat, muaThat, type BangGia, type TrangThaiMua } from './cua-hang';
+import { huyHieuHoSo, type HuyHieu } from '@mm/engine';
 
 /**
  * GÓI PREMIUM — gói THÁNG / NĂM (chủ dự án 25.11.2026), mở mọi thứ premium: hình nền hành tinh, skin, nhạc, theme…
@@ -173,6 +174,22 @@ export async function khoiPhucMua(): Promise<boolean> {
 
 /** Huỷ gói GIẢ LẬP (bán thật thì người chơi huỷ trong App Store / Google Play, app chỉ đọc lại trạng thái). */
 export function huyGoiThu(): void { datPremiumThu(false); }
+
+/*
+ * ---------- HUY HIỆU PREMIUM TRÊN AVATAR (26.11.2026, mockup duyệt https://claude.ai/artifact/UTdgp7a6ngSsiWyv3ZXz7U) ----------
+ * Người có Premium chọn một trong ba kiểu (engine `HUY_HIEU`) hoặc không hiện. Lưu `mm.huyHieu`; mặc định là vương miện.
+ * `huyHieuDangDeo` = thứ thật sự hiện + gửi lên phòng online: rỗng khi không có Premium hoặc người chơi chọn "không hiện".
+ */
+const KHOA_HH = 'mm.huyHieu';
+function docHuyHieu(): HuyHieu | '' {
+  try { const v = localStorage.getItem(KHOA_HH); return v === '' ? '' : (huyHieuHoSo(v) ?? 'vm'); } catch { return 'vm'; }
+}
+export const huyHieu = ref<HuyHieu | ''>(docHuyHieu());
+export function datHuyHieu(v: HuyHieu | ''): void {
+  huyHieu.value = v;
+  try { localStorage.setItem(KHOA_HH, v); } catch { /* chế độ riêng tư */ }
+}
+export const huyHieuDangDeo = computed<HuyHieu | ''>(() => (daMuaPremium.value ? huyHieu.value : ''));
 
 /*
  * LỜI MỜI NÂNG CẤP (26.11.2026, chủ dự án: "cần có các nút để người dùng nâng cấp ngay trên giao diện"). Mọi nút

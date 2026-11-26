@@ -20,6 +20,16 @@ export const MAU_HO_SO: readonly string[] = [
   '#22b8e6', '#2f8ff0', '#7a5cf0', '#b04fe0', '#e25bc8', '#8a6a4f',
 ];
 
+/**
+ * HUY HIỆU PREMIUM (26.11.2026, mockup duyệt https://claude.ai/artifact/UTdgp7a6ngSsiWyv3ZXz7U): dấu nhỏ ở góc trên phải avatar
+ * cho biết đó là người có Premium. Ba kiểu người chơi tự chọn: `vm` vương miện · `tim` trái tim (người ủng hộ) · `kc` kim cương.
+ * Đi trên dây như màu hồ sơ (`?hh=`), server chỉ nhận mã trong danh sách — và KHÔNG kiểm ai có Premium (trang trí, như mọi thứ
+ * Premium khác). CHỈ THÊM VÀO CUỐI.
+ */
+export const HUY_HIEU = ['vm', 'tim', 'kc'] as const;
+export type HuyHieu = (typeof HUY_HIEU)[number];
+export const huyHieuHoSo = (x: unknown): HuyHieu | undefined => (typeof x === 'string' && (HUY_HIEU as readonly string[]).includes(x) ? (x as HuyHieu) : undefined);
+
 /** Avatar hợp lệ (trong danh sách) hoặc undefined. */
 export const matHoSo = (x: unknown): string | undefined => (typeof x === 'string' && AVATAR_HO_SO.includes(x) ? x : undefined);
 /** Màu hợp lệ (trong danh sách) hoặc undefined. */
