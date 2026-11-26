@@ -2056,3 +2056,21 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   có = bật, trừ khi máy đang lưu `mm.canh` (đã chọn tay từ trước). Nhạc: `prefs.nhacNgauNhien` chưa có = bật, trừ khi đang lưu
   một bài khác `keo`. Hết Premium KHÔNG ghi '0' (không phải người chơi tự tắt). Người chơi thường (không debug) chỉ thấy hàng
   3 nút nhạc, không có nút "Ngẫu nhiên": bấm một bài là tắt ngẫu nhiên và chưa có lối bật lại — biết trước, chưa xử lý.
+
+## Viên Premium trang chủ + quà tặng 1 tháng (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc)
+
+- **CHỈ HIỆN KHI DEBUG** — chủ dự án: "vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi". Viên `.vien-pm` (MenuScreen,
+  `v-if="dangDebug"`) đối diện viên Chỉ số trí nhớ; bảng `BangPremium` vẫn `v-if="showPremium && debug"`. MỞ CHO MỌI NGƯỜI là
+  việc chủ dự án chốt riêng — đừng tự gỡ hai cổng đó.
+- **Quà tặng** (`lib/premium.ts`): `nhanQuaTang()` ghi gói `tang: true`, hạn 30 ngày TÍNH TỪ LÚC BẤM NHẬN, nằm hoàn toàn trên máy
+  (`mm.premium.goi` + mốc `mm.premium.tang`, mỗi máy một lần). Hết hạn về bản thường (`docGoi` lúc mở app, `kiemHetHanTang` mỗi
+  phút khi app đang mở). `apThat(null)` của cửa hàng thật KHÔNG được xoá gói tặng còn hạn. Hai điểm này tôi tự chọn vì chủ dự án
+  duyệt mockup mà chưa trả lời: hạn tính theo từng người, và hết hạn mà chưa mở bán thì về bản thường.
+- **Bảng Premium là nơi làm MỌI cài đặt Premium** (chủ dự án: "mọi settings premium đều có thể làm thông qua nút premium"): mục
+  "Cài đặt Premium" có Chủ đề · Nhạc nền (bấm → `emit('mo')` → App `moTuPremium` mở bảng tương ứng, đóng lại là VỀ bảng Premium
+  chứ không về menu ☰) · Huy hiệu (tắt, nhãn "Sắp có" — mockup huy hiệu đã duyệt, chưa code vì cần server). Thêm cài đặt Premium
+  mới thì thêm một dòng ở đây.
+- **Thống kê đợt tặng**: `premium_tang_hien` · `premium_tang_nhan` · `premium_tang_bo_qua` (BangPremium), cộng `premium_trang_thai`
+  mỗi lần mở app.
+- **Chữ trên viên phải NGẮN**: hai viên chia nhau bề ngang trang chủ (`max-width: 52%`), máy 375px chữ dài là bị cắt — tiếng Việt
+  dùng "Tặng 1 tháng", tiếng Nga "1 месяц даром". Thêm ngôn ngữ / đổi chữ thì đo lại trên máy hẹp.

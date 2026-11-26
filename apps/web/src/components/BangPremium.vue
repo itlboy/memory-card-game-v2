@@ -15,18 +15,21 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * HÌNH NỀN: chọn ngay trong bảng. Chưa có Premium thì hành tinh mang vương miện, bấm vào chỉ nhắc "cần Premium".
  * GIÁ LÀ SỐ TẠM (`GIA_TAM`) — bán thật thì đọc giá đã quy đổi theo nước từ store.
  */
-import { ChartColumn, Check, Crown, Gamepad2, Heart, Image, LoaderCircle, MessageCircle, Minus, Music, ShieldCheck, Sparkles, X } from 'lucide-vue-next';
+import { Award, ChartColumn, Check, ChevronRight, Crown, Gamepad2, Gift, Heart, Image, Layers, LoaderCircle, MessageCircle, Minus, Music, ShieldCheck, Sparkles, X } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
-import { GIA_TAM, NGAY_DUNG_THU, conDungThu, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, type Goi, type NoiMoPremium } from '@/lib/premium';
-import { CANH } from '@/lib/canh';
+import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
+import { CANH, canh, canhNgauNhien } from '@/lib/canh';
+import { LUNG } from '@/lib/lung-la';
 import { BAI_NHAC, BAI_PREMIUM } from '@/lib/nhac';
 import { SITE_URL, nenApp } from '@/lib/native';
 
-const props = withDefaults(defineProps<{ tu?: NoiMoPremium }>(), { tu: 'menu' });
-const emit = defineEmits<{ close: [] }>();
+/** `nhacHien`: chữ hiện ở dòng cài đặt "Nhạc nền" (Tắt · Ngẫu nhiên · tên bài) — trạng thái nhạc nằm ở App.vue. */
+const props = withDefaults(defineProps<{ tu?: NoiMoPremium; nhacHien?: string }>(), { tu: 'menu', nhacHien: '' });
+/** `mo`: người chơi bấm một dòng "Cài đặt Premium" — App đóng bảng này, mở bảng Chủ đề / Nhạc nền, đóng bảng đó là quay lại đây. */
+const emit = defineEmits<{ close: []; mo: ['nen' | 'nhac'] }>();
 
 const goi = ref<Goi>('nam');
 const buoc = ref<'chon' | 'dang' | 'xong'>('chon');
@@ -48,11 +51,15 @@ const coThu = computed(() => gia.value.duocThu && gia.value.ngayThu > 0 && (!gia
  * Dòng đầu cố ý là thứ HAI BÊN ĐỀU CÓ: người chơi thấy bản thường không bị cắt xén, Premium là thêm chứ không phải chuộc.
  */
 const soNen = CANH.length, soBai = BAI_NHAC.length, soBaiThuong = BAI_NHAC.filter((b) => !BAI_PREMIUM.has(b)).length;
+/** Mặt lưng lá: bản thường chỉ có lưng ngôi sao; Premium thêm cả bộ của từng chủ đề (lib/lung-la.ts). */
+const soLung = Object.values(LUNG).reduce((n, bo) => n + bo.length, 0);
 interface Dong { id: string; ic: typeof Crown; thuong: string | boolean; premium: string | boolean; sap?: boolean; tu?: NoiMoPremium }
 const SO: Dong[] = [
   { id: 'choi', ic: Gamepad2, thuong: true, premium: true },
   { id: 'nen', ic: Image, thuong: '1', premium: String(soNen), tu: 'nen' },
+  { id: 'lung', ic: Layers, thuong: '1', premium: String(soLung) },
   { id: 'nhac', ic: Music, thuong: String(soBaiThuong), premium: String(soBai), tu: 'nhac' },
+  { id: 'huyHieu', ic: Award, thuong: false, premium: true, sap: true },
   { id: 'thongKe', ic: ChartColumn, thuong: 'pm.v.14ngay', premium: 'pm.v.tronVen', sap: true, tu: 'tri-nho' },
   { id: 'hieuUng', ic: Sparkles, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', sap: true },
   { id: 'chat', ic: MessageCircle, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', sap: true },
@@ -75,8 +82,28 @@ const LINK_DIEU_KHOAN = 'https://www.apple.com/legal/internet-services/itunes/de
 const LINK_RIENG_TU = `${SITE_URL}/privacy.html`;
 
 const nutDong = ref<HTMLButtonElement | null>(null);
-onMounted(() => { nutDong.value?.focus(); moChucNang('premium', { tu: props.tu }); });
-const dong = (): void => { if (buoc.value !== 'dang') emit('close'); };
+/*
+ * QUÀ TẶNG 1 THÁNG (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc; lib/premium.ts `nhanQuaTang`).
+ * Còn quà thì bảng mở bằng thẻ quà + nút "Nhận miễn phí" THAY cho hai gói mua. THỐNG KÊ (chủ dự án: "đặt thống kê trước"):
+ * `premium_tang_hien` lúc bảng mời · `premium_tang_nhan` lúc bấm nhận · `premium_tang_bo_qua` lúc đóng bảng mà không nhận.
+ */
+const duocMoi = conQuaTang.value;
+let daNhan = false;
+const hetHanTang = computed(() => ngay(Date.now() + NGAY_TANG * 86_400_000));
+const conLai = computed(() => ngayConLai());
+function nhanTang(): void {
+  if (!nhanQuaTang()) return;
+  daNhan = true;
+  moChucNang('premium_tang_nhan', { tu: props.tu });
+}
+/** Chữ ở dòng cài đặt "Chủ đề". */
+const chuDeHien = computed(() => (canhNgauNhien.value ? t('cn.ngauNhien') : td(`pm.nen.${canh.value}`)));
+onMounted(() => { nutDong.value?.focus(); moChucNang('premium', { tu: props.tu }); if (duocMoi) moChucNang('premium_tang_hien', { tu: props.tu }); });
+const dong = (): void => {
+  if (buoc.value === 'dang') return;
+  if (duocMoi && !daNhan) moChucNang('premium_tang_bo_qua', { tu: props.tu });
+  emit('close');
+};
 
 function chonGoi(g: Goi): void {
   if (goi.value === g || buoc.value === 'dang') return;
@@ -136,20 +163,41 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 
         <!-- ĐANG CÓ GÓI -->
         <template v-if="daMuaPremium">
-          <div class="pm-co" role="status">
+          <!-- TRẠNG THÁI + CÀI ĐẶT nằm TRÊN bảng quyền lợi (`.len-tren`: `order` âm trong cột flex của .pm). Chủ dự án 26.11.2026:
+               "mọi settings premium đều có thể làm thông qua nút premium, để tiện cho người dùng". -->
+          <div class="pm-co len-tren" role="status">
             <Check :size="22" :stroke-width="3" aria-hidden="true" />
-            <span><b>{{ goiDangCo && !goiDangCo.vinhVien ? t(goiDangCo.goi === 'nam' ? 'pm.nam' : 'pm.thang') : t('tp.premium') }}</b>
-              <small v-if="goiDangCo?.vinhVien">{{ t('pm.vinhVien') }}</small>
+            <span><b>{{ goiDangCo && !goiDangCo.vinhVien && !goiDangCo.tang ? t(goiDangCo.goi === 'nam' ? 'pm.nam' : 'pm.thang') : t('tp.premium') }}</b>
+              <small v-if="goiDangCo?.tang">{{ t('pm.tang.trangThai', { ngay: ngayGiaHan, n: conLai }) }}</small>
+              <small v-else-if="goiDangCo?.vinhVien">{{ t('pm.vinhVien') }}</small>
               <small v-else-if="dangThu">{{ t('pm.dangThu', { ngay: dangThu }) }}</small>
               <small v-else-if="goiDangCo">{{ t('pm.giaHan', { ngay: ngayGiaHan }) }}</small></span>
           </div>
-          <a class="thach th-nho pm-ql" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
+          <section class="pm-cd len-tren" :aria-label="t('pm.caiDat')">
+            <h3>{{ t('pm.caiDat') }}</h3>
+            <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'nen')"><Image :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.s.nen') }}</span><small>{{ chuDeHien }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
+            <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'nhac')"><Music :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('tb.nhacNen') }}</span><small>{{ nhacHien }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
+            <!-- Huy hiệu trên avatar: mockup đã duyệt, CHƯA làm (cần server) — dòng tắt, đeo nhãn "Sắp có" như bảng quyền lợi -->
+            <button class="thach pm-cd-dong" type="button" disabled><Award :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.cd.huyHieu') }}</span><small>{{ t('pm.sapCo') }}</small></button>
+          </section>
+          <h3 class="pm-ql-td len-giua">{{ t('pm.quyenLoi') }}</h3>
+          <a v-if="!goiDangCo?.tang" class="thach th-nho pm-ql" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
           <nav class="pm-link">
             <button v-if="!cuaHangThat" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
             <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>
             <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
           </nav>
           <p v-if="!cuaHangThat" class="pm-luat">{{ t('pm.thu') }}</p>
+        </template>
+
+        <!-- CÒN QUÀ TẶNG: thẻ quà + nút nhận, KHÔNG bày hai gói mua (chưa bán thật) -->
+        <template v-else-if="conQuaTang">
+          <div class="pm-qua len-tren">
+            <span class="pm-qua-ic" aria-hidden="true"><Gift :size="22" :stroke-width="2.4" /></span>
+            <span><b>{{ t('pm.tang.tieuDe') }}</b><small>{{ t('pm.tang.moTa') }}</small></span>
+          </div>
+          <button class="thach th-vang pm-mua" type="button" @click="nhanTang">{{ t('pm.tang.nhan') }}</button>
+          <p class="pm-luat">{{ t('pm.tang.hetHan', { ngay: hetHanTang }) }}</p>
         </template>
 
         <!-- CHƯA CÓ GÓI: hai gói cạnh nhau + dùng thử + nút -->
@@ -201,6 +249,21 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 :global([data-theme='dark'] .pm) { --pm: #ffd36b; --pm-nen: #3a3160; --pm-cot: #2f2a5c; --pm-vien: #7a6530; --o: #2a3170; --ke: #343c80; }
 @media (max-height: 700px) { .pm { --d: 7px; --h: 31px; padding-block: 10px; } }
 .pm > * { flex-shrink: 0; }
+/* Thứ tự trong cột: đầu bảng · (thẻ quà / trạng thái + cài đặt) · tiêu đề quyền lợi · bảng so sánh · phần còn lại */
+.pm-dau { order: -3; }
+.len-tren { order: -2; }
+.len-giua { order: -1; }
+.pm-qua { display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 16px; background: linear-gradient(135deg, #ffe9a8, #ffd166); color: #4a2f00; }
+.pm-qua-ic { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #fff; color: #c9820a; }
+.pm-qua span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pm-qua b { font: 800 16px/1.2 var(--font-body); }
+.pm-qua small { font: 600 12.5px/1.3 var(--font-body); }
+.pm-cd { display: flex; flex-direction: column; gap: 7px; }
+.pm-cd h3, .pm-ql-td { margin: 0; font: 800 11px/1.2 var(--font-body); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.pm-cd-dong { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px 0 12px; border-radius: 14px; color: inherit; cursor: pointer; text-align: left; font: 800 14.5px/1.2 var(--font-body); }
+.pm-cd-dong span { flex: 1; min-width: 0; }
+.pm-cd-dong small { flex: none; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font: 700 13px/1.2 var(--font-body); }
+.pm-cd-dong:disabled { opacity: .6; cursor: default; }
 .pm-dau { display: flex; align-items: center; gap: 10px; }
 .pm-vm { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: 0 2px 0 #c98f12; }
 .pm-td { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }

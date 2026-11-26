@@ -21,7 +21,8 @@ import { coCuaHangThat, khoiDongCuaHang, khoiPhucThat, muaThat, type BangGia, ty
  */
 export type Goi = 'thang' | 'nam';
 /** `thuDen`: đang trong thời gian DÙNG THỬ miễn phí tới mốc này (chưa bị tính tiền). */
-export interface GoiDangCo { goi: Goi; tu: number; het: number; thuDen?: number; vinhVien?: boolean }
+/** `tang`: gói QUÀ TẶNG 1 tháng (xem `nhanQuaTang`) — không qua cửa hàng, hết hạn là về bản thường. */
+export interface GoiDangCo { goi: Goi; tu: number; het: number; thuDen?: number; vinhVien?: boolean; tang?: boolean }
 /** Số ngày dùng thử miễn phí cho lần đăng ký ĐẦU (26.11.2026, chủ dự án: "có báo thời gian dùng thử"). Bán thật = ưu đãi mở đầu khai trên store. */
 export const NGAY_DUNG_THU = 7;
 const KHOA_DA_THU = 'mm.premium.daThu';
@@ -48,13 +49,51 @@ function docGoi(): GoiDangCo | null {
 export const goiDangCo = ref<GoiDangCo | null>(docGoi());
 export const daMuaPremium = ref(docCo() || !!goiDangCo.value);
 
+/*
+ * ---------- QUÀ TẶNG 1 THÁNG PREMIUM (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc) ----------
+ * Chủ dự án: tặng mỗi người 1 tháng Premium trước khi có thanh toán, người chơi tự bấm NHẬN ở bảng Premium (mở từ viên
+ * Premium trang chủ). "Vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi" → viên Premium và bảng chỉ hiện khi debug.
+ *
+ * Gói tặng nằm HOÀN TOÀN trên máy (không server, không cửa hàng): `mm.premium.goi` với `tang: true`, hạn 30 ngày TÍNH TỪ LÚC
+ * BẤM NHẬN. `mm.premium.tang` ghi mốc đã nhận → mỗi máy một lần. Hết hạn: `docGoi()` lúc mở app (hoặc `kiemHetHanTang()` lúc
+ * app đang chạy) gỡ gói, người chơi về bản thường — chủ đề về gốc nhờ `watch(daMuaPremium)` ở lib/canh.
+ * Xoá dữ liệu app là nhận lại được: chấp nhận, đây là quà chứ không phải thứ cần chống gian lận.
+ */
+export const NGAY_TANG = 30;
+const KHOA_TANG = 'mm.premium.tang';
+function docDaNhanTang(): boolean { try { return Number(localStorage.getItem(KHOA_TANG)) > 0; } catch { return false; } }
+export const daNhanTang = ref(docDaNhanTang());
+/** Còn quà để nhận: chưa nhận lần nào VÀ chưa có Premium bằng đường khác. */
+export const conQuaTang = computed(() => !daNhanTang.value && !daMuaPremium.value);
+/** Số ngày còn lại của gói đang có (làm tròn lên; 0 = hết hoặc không có hạn). */
+export function ngayConLai(bayGio = Date.now()): number {
+  const g = goiDangCo.value;
+  return g && !g.vinhVien && g.het > bayGio ? Math.ceil((g.het - bayGio) / NGAY) : 0;
+}
+/** Bấm "Nhận miễn phí". true = đã có Premium tới ngày hết hạn. */
+export function nhanQuaTang(bayGio = Date.now()): boolean {
+  if (!conQuaTang.value) return false;
+  const g: GoiDangCo = { goi: 'thang', tu: bayGio, het: bayGio + NGAY_TANG * NGAY, tang: true };
+  goiDangCo.value = g; daMuaPremium.value = true; daNhanTang.value = true;
+  try { localStorage.setItem(KHOA_GOI, JSON.stringify(g)); localStorage.setItem(KHOA_TANG, String(bayGio)); } catch { /* chế độ riêng tư */ }
+  return true;
+}
+/** App đang mở mà gói tặng vừa hết hạn → về bản thường ngay (App.vue gọi mỗi phút). true = vừa hết. */
+export function kiemHetHanTang(bayGio = Date.now()): boolean {
+  const g = goiDangCo.value;
+  if (!g?.tang || g.het > bayGio) return false;
+  goiDangCo.value = null; daMuaPremium.value = docCo();
+  try { localStorage.removeItem(KHOA_GOI); } catch { /* chế độ riêng tư */ }
+  return true;
+}
+
 /** Bật/tắt "đã mua" để THỬ — công tắc ở trang debug. Tắt là xoá luôn gói giả lập. Chỉ máy này, không mua thật. */
 export function datPremiumThu(v: boolean): void {
   daMuaPremium.value = v;
   if (!v) goiDangCo.value = null;
   try {
     if (v) localStorage.setItem(KHOA, '1');
-    else { localStorage.removeItem(KHOA); localStorage.removeItem(KHOA_GOI); localStorage.removeItem(KHOA_DA_THU); conDungThu.value = true; }   // tắt bản thử: trả lại lượt dùng thử để thử lại luồng
+    else { localStorage.removeItem(KHOA); localStorage.removeItem(KHOA_GOI); localStorage.removeItem(KHOA_DA_THU); localStorage.removeItem(KHOA_TANG); conDungThu.value = true; daNhanTang.value = false; }   // tắt bản thử: trả lại lượt dùng thử + quà tặng để thử lại luồng
   } catch { /* chế độ riêng tư */ }
 }
 
@@ -83,6 +122,9 @@ const XA = 100 * 365 * NGAY;
 function apThat(t: TrangThaiMua | null): void {
   if (t?.ma) maPremium.value = t.ma;
   const g: GoiDangCo | null = t ? { goi: t.goi ?? 'nam', tu: t.tu, het: t.het ?? Date.now() + XA, ...(t.thuDen ? { thuDen: t.thuDen } : {}), ...(t.het === null ? { vinhVien: true } : {}) } : null;
+  // Cửa hàng báo "không có gói" KHÔNG được xoá gói QUÀ TẶNG còn hạn — quà nằm trên máy, cửa hàng không biết tới nó
+  const tang = goiDangCo.value;
+  if (!g && tang?.tang && tang.het > Date.now()) return;
   goiDangCo.value = g;
   daMuaPremium.value = !!g || docCo();
   try { if (g) localStorage.setItem(KHOA_GOI, JSON.stringify(g)); else localStorage.removeItem(KHOA_GOI); } catch { /* chế độ riêng tư */ }

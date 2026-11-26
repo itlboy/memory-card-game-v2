@@ -15,7 +15,9 @@ const tr = t;
  */
 // dichGoiYTuyChon: lib/goi-y-tuy-chon.ts (dùng chung với OnlineScreen)
 import { BOARD_SIZES, BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChartColumn, ChevronLeft, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
+import { Bot, ChartColumn, ChevronLeft, Crown, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
+import { dangDebug } from '@/lib/debug';
+import { conQuaTang, daMuaPremium, goiDangCo, moPremium, ngayConLai } from '@/lib/premium';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -104,6 +106,13 @@ const soPhongCho = useSoPhongCho();
  * đó là một hành trình có luật riêng từng màn, không phải bàn chơi tự chọn.
  * Nó lên thẳng màn đầu thành một lối đi riêng, nên tổng số bước KHÔNG tăng.
  */
+/** Chữ trên viên Premium: còn quà → "1 tháng miễn phí" · có gói có hạn → "Còn N ngày" · có Premium không hạn → "Đang dùng" · hết quà chưa mua → "Nâng cấp". */
+const chuVienPremium = computed(() => {
+  if (conQuaTang.value) return t('pm.vien.tang');
+  if (!daMuaPremium.value) return t('pm.nangCap');
+  const n = goiDangCo.value ? ngayConLai() : 0;
+  return n > 0 ? t('pm.vien.con', { n }) : t('pm.vien.dangCo');
+});
 /** Nút Chỉ số trí nhớ ở trang chủ: điểm + bậc + tiến độ, và có gì MỚI so với lần xem cuối không. */
 const tnNut = computed(() => {
   void phienTriNho.value;   // nhật ký ở localStorage không tự phản ứng — ghi ván / mở màn chỉ số là tăng số này
@@ -632,6 +641,14 @@ const ICO3D = {
             </span>
             <span class="vtn-chu"><small>{{ t('tn.ten') }}</small><b>{{ tnNut.diem !== null ? tnNut.diem : t('tn.conVan', { n: tnNut.conVan }) }}</b></span>
             <span v-if="tnNut.lech" class="vtn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
+          </button>
+          <!-- VIÊN PREMIUM đối diện viên Chỉ số trí nhớ (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc).
+               Bấm mở bảng Premium: quyền lợi, cài đặt Premium, ngày hết hạn, nút nhận 1 tháng miễn phí. CHỈ HIỆN KHI DEBUG — chủ dự
+               án: "vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi". Chấm đỏ = còn quà chưa nhận. -->
+          <button v-if="dangDebug" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
+            <span class="vtn-chu"><small>{{ t('tp.premium') }}</small><b>{{ chuVienPremium }}</b></span>
+            <span class="vpm-vm" aria-hidden="true"><Crown :size="18" :stroke-width="2.6" /></span>
+            <i v-if="conQuaTang" class="vpm-cham" aria-hidden="true" />
           </button>
           <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
             <Map class="opt-icon" :size="34" aria-hidden="true" /><img class="ico3d" :src="ICO3D.chienDich" alt="" aria-hidden="true">
@@ -1193,6 +1210,16 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
   position: absolute; left: 4px; bottom: calc(100% + 12px); z-index: 2; display: flex; align-items: center; gap: 8px;
   min-height: 0; padding: 5px 14px 5px 6px; border-radius: 999px; text-align: left; cursor: pointer; overflow: visible;
 }
+/* Viên Premium: soi gương của viên trí nhớ — bám mép PHẢI, chữ canh phải, vương miện vàng ở cuối. `max-width` để hai viên
+   không bao giờ đè nhau trên máy hẹp (SE 375) hay ngôn ngữ chữ dài: chữ dài thì cắt bằng dấu ba chấm. */
+.vien-pm {
+  position: absolute; right: 4px; bottom: calc(100% + 12px); z-index: 2; display: flex; align-items: center; gap: 8px;
+  max-width: 52%; min-height: 0; padding: 5px 6px 5px 14px; border-radius: 999px; text-align: right; cursor: pointer; overflow: visible;
+}
+.vien-pm .vtn-chu { align-items: flex-end; }
+.vien-pm .vtn-chu b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.25; }
+.vpm-vm { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
+.vpm-cham { position: absolute; top: -2px; right: -2px; width: 13px; height: 13px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px var(--panel-solid, #fff); }
 .vtn-hc { flex: none; display: grid; place-items: center; width: 34px; height: 34px; font-size: 29px; line-height: 1; }
 .vtn-hc.khoa { border-radius: 50%; color: #fff; background: linear-gradient(#3fd0bd, #149384 70%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .3); }
 .vtn-chu { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
