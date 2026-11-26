@@ -862,6 +862,7 @@ const ko: TuDien = {
   'bxh.thachAria': '{ten}님에게 도전',
   'bxh.dangChoi': '게임 중',
   'bxh.dangOnline': '{n}명 온라인',
+  'menu.nOnline': "{n}명 접속",
   'bxh.online': '온라인',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': '정말 잘하시네요!',

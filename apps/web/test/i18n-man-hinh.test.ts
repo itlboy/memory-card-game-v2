@@ -191,14 +191,15 @@ function soSanh(lang: string, viMan: Record<string, string[]>, enMan: Record<str
  * English dài bị bỏ quên vẫn đỏ. Đã rà tay từng mục (12.10.2026). "Auto" (nút Giao diện Tự động,
  * 17.10.2026): es/pt/fr/de/it viết y vậy.
  */
+/* '1 online' (26.11.2026): nhãn "● N online" trên ô Chơi online — en/pt/de/it/id viết y như tiếng Việt */
 const DONG_NGUYEN: Partial<Record<NgonNgu, readonly string[]>> = {
   es: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Premium', 'solo', 'Bot'],
-  pt: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium', 'solo', 'Bot'],
+  pt: ['Auto', 'Solo', 'Normal', 'pts', '999.999k pts', 'Bronze', 'Neon', 'Premium', 'solo', 'Bot', '1 online'],
   fr: ['Auto', 'Solo', 'Normal', 'Long', 'Score', 'pts', '999.999k pts', '220 points', '100 points', 'Secret', 'Bronze', 'Double', 'Style', 'Pause', 'Premium', 'solo', 'Bot'],
-  de: ['Auto', 'Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium', 'Bot'],
-  en: ['Neon', 'Premium'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
-  id: ['Solo', 'Normal', 'Level 2', 'Level 3', 'Bom', 'Neon', 'Premium', 'Bot'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
-  it: ['Auto', 'Menu', 'Account', 'Neon', 'Premium', 'offline', 'Bot'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
+  de: ['Auto', 'Solo', 'Normal', 'Level 3', 'Lvl', 'Bronze', 'Gold', 'Neon', 'Pause', 'Premium', 'Bot', '1 online'],
+  en: ['Neon', 'Premium', '1 online'],   // tên skin (13.10.2026) + tab theme Premium (14.10.2026): tiếng Việt cũng gọi y vậy
+  id: ['Solo', 'Normal', 'Level 2', 'Level 3', 'Bom', 'Neon', 'Premium', 'Bot', '1 online'],   // "Bom" trùng cả tiếng Việt lẫn Indonesia
+  it: ['Auto', 'Menu', 'Account', 'Neon', 'Premium', 'offline', 'Bot', '1 online'],   // từ mượn thông dụng trong tiếng Ý (15.10.2026)
   tr: ['Neon', 'Premium', 'Bot']   // 'Bot' = nút Người/Máy ở bước tên; 'solo' = chữ nhỏ dưới ô "1" (es/pt/fr viết y vậy)
 };
 

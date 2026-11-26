@@ -863,6 +863,7 @@ const th: TuDien = {
   'bxh.thachAria': 'ท้าดวล {ten}',
   'bxh.dangChoi': 'กำลังเล่น',
   'bxh.dangOnline': 'ออนไลน์ {n} คน',
+  'menu.nOnline': "ออนไลน์ {n}",
   'bxh.online': 'ออนไลน์',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'เก่งมากเลย!',

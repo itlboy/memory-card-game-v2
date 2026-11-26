@@ -882,6 +882,7 @@ const ru: TuDien = {
   'bxh.thachAria': 'Бросить вызов {ten}',
   'bxh.dangChoi': 'Играет',
   'bxh.dangOnline': '{n} онлайн',
+  'menu.nOnline': "{n} в сети",
   'bxh.online': 'онлайн',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Ты отлично играешь!',

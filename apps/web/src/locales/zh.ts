@@ -862,6 +862,7 @@ const zh: TuDien = {
   'bxh.thachAria': '挑战 {ten}',
   'bxh.dangChoi': '游戏中',
   'bxh.dangOnline': '{n} 人在线',
+  'menu.nOnline': "{n} 人在线",
   'bxh.online': '在线',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': '你太厉害了！',

@@ -865,6 +865,7 @@ const zhTW: TuDien = {
   'bxh.thachAria': '挑戰 {ten}',
   'bxh.dangChoi': '遊戲中',
   'bxh.dangOnline': '{n} 人在線上',
+  'menu.nOnline': "{n} 人在線",
   'bxh.online': '在線上',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': '你太厲害了！',

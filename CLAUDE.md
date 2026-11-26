@@ -2128,3 +2128,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - **Danh sách phòng ở màn Chơi online cao VỪA NỘI DUNG** (`.rooms { flex: 0 1 auto }`, chủ dự án 26.11.2026: "bỏ khoảng trống giữa
   phòng đang chờ và phòng đang chơi") — hai danh sách cùng `flex: 1` thì chia đôi chỗ trống, hở một khoảng lớn ở giữa. Chỗ thừa dồn
   lên trên nút "Có mã phòng" (`.panel > .link-row { margin-top: auto }`). Vẫn tự cuộn bên trong khi nhiều phòng.
+- **Ô Chơi online: nhãn dán "● N online"** (26.11.2026, mockup B duyệt https://claude.ai/artifact/FbPTdLUCEZMaZhfMcKsKs2 — viên ba con số
+  nền xám bị chê "xấu quá"): nhãn trắng nổi khối lệch mép trên, nghiêng 4°, CÙNG KIỂU nhãn "Màn N". Chỉ hiện số người online (khoá
+  `menu.nOnline`); chấm xanh nhịp khi có phòng đang chờ. Số phòng chờ / đang chơi chỉ còn trong aria-label và trong màn online.
+  "1 online" là từ đồng nguyên ở en/pt/de/it/id (bảng `DONG_NGUYEN` của test i18n-man-hinh).
