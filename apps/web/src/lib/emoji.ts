@@ -79,6 +79,13 @@ export function doiBoEmojiThu(): void {
  */
 export const CO_ANH_3D = [128, 256, 512] as const;
 /** Cỡ nhỏ nhất đủ nét cho hình rộng `cssPx` trên màn này (chừa 10% non tay). */
+/**
+ * Ký hiệu là CHỮ/SỐ (theme Chữ & số) chứ không phải emoji. MỌI màn vẽ mặt thẻ (bàn chính, Tìm Thẻ, Mưa Thẻ) dùng
+ * chung hàm này và gắn lớp `chu` lên `.face.front` — skin Kẹo tối đổi chữ sang màu mực qua `.card .front.chu`.
+ * Thiếu lớp đó thì chữ ăn màu chữ sáng của màn tối: trắng trên mặt kem (chủ dự án báo ở Tìm Thẻ 27.11.2026).
+ */
+export const laKyTuChu = (kyHieu: string | undefined): boolean => /^[\x21-\x7E]{1,3}$/.test(kyHieu ?? '');
+
 export function chonCoAnh(cssPx: number, dpr = typeof window === 'undefined' ? 2 : window.devicePixelRatio || 1): number {
   const can = cssPx * dpr * 0.9;
   return CO_ANH_3D.find((c) => c >= can) ?? 512;

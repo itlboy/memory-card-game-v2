@@ -9,7 +9,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import { COT, COT_CHON, comboMultiplier, mocCap, DANG_LA, DEM_DOC, DEM_NGANG, VanMuaThe, hangChoGieng, type La } from '@/lib/mua-the';
-import { anhEmoji, chonCoAnh, taiTruocAnh } from '@/lib/emoji';
+import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
 import { choiDuoc } from '@/lib/premium';
 import type { CardTheme } from '@/lib/themes';
 import { sfx } from '@/lib/audio';
@@ -248,7 +248,7 @@ defineExpose({
         >
           <span class="inner">
             <span class="face back" aria-hidden="true" />
-            <span class="face front" aria-hidden="true">
+            <span class="face front" :class="{ chu: laKyTuChu(l.sym) }" aria-hidden="true">
               <img v-if="anhEmoji(l.sym, undefined, coAnh)" class="emoji" :src="anhEmoji(l.sym, undefined, coAnh)!" alt="" draggable="false">
               <span v-else class="emoji chu">{{ l.sym }}</span>
             </span>
@@ -382,6 +382,8 @@ defineExpose({
 .face.front { transform: rotateY(180deg); }
 .emoji { width: 62%; height: 62%; object-fit: contain; pointer-events: none; }
 .emoji.chu { width: auto; height: auto; font-size: min(48cqw, 58cqh); line-height: 1; }
+/* Chữ/số: phông hiển thị nét đậm, màu mực — CÙNG thẻ chữ ở bàn chính (CardTile `.front.chu`) */
+.front.chu { font-family: var(--font-display); font-weight: 800; color: #1d2a5a; }
 /* BÁM VÀO LÁ (27.10.2026, chủ dự án: chạm lá đang rơi — vốn đã ngửa — "không thấy hiệu ứng gì, hơi cứng").
    Bản trước có viền vàng nhưng skin Kẹo đặt box-shadow !important CÙNG độ đặc hiệu trên .card nên đè mất:
    `.o` để thắng. Nảy to rồi giữ 1,08 (thuộc tính `scale` riêng — `transform` của .o là vị trí, của .inner là lật)

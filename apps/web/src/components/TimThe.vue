@@ -20,7 +20,7 @@ import {
   TIM_THE_DO_KHO, TIM_THE_SO_THE, docChon, docKyLuc, ghiKyLuc, luuChon,
   type TimTheBoDo, type TimTheChon, type TimTheDoiThu, type TimTheKetVan
 } from '@/lib/tim-the';
-import { anhEmoji, chonCoAnh, taiTruocAnh } from '@/lib/emoji';
+import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
 import { hoSo, mauKhac, tenToi } from '@/lib/ho-so';
 import { tenBot } from '@/lib/ten';
 import { sfx } from '@/lib/audio';
@@ -302,7 +302,7 @@ defineExpose({
           >
             <span class="inner">
               <span class="face back" aria-hidden="true" />
-              <span class="face front" aria-hidden="true">
+              <span class="face front" :class="{ chu: laKyTuChu(sym) }" aria-hidden="true">
                 <img v-if="anhEmoji(sym, undefined, coAnh)" class="emoji" :src="anhEmoji(sym, undefined, coAnh)!" alt="" draggable="false">
                 <span v-else class="emoji chu">{{ sym }}</span>
               </span>
@@ -455,6 +455,7 @@ defineExpose({
 }
 .tt-noi .lon {
   width: min(108px, 30%); aspect-ratio: 3 / 4; border-radius: 15px; display: grid; place-items: center; font-size: 60px; line-height: 1;
+  font-family: var(--font-display); font-weight: 800; color: #1d2a5a;
   background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 4px solid #ffc21a;
   box-shadow: 0 6px 0 #c98f00, 0 14px 30px rgba(10, 20, 60, .35); animation: bat .38s cubic-bezier(.3, 1.5, .5, 1) both;
 }
@@ -487,6 +488,8 @@ defineExpose({
 .face.front { transform: rotateY(180deg); }
 .emoji { width: 62%; height: 62%; object-fit: contain; pointer-events: none; }
 .emoji.chu { width: auto; height: auto; font-size: min(48cqw, 58cqh); line-height: 1; }
+/* Chữ/số: phông hiển thị nét đậm, màu mực — CÙNG thẻ chữ ở bàn chính (CardTile `.front.chu`) */
+.front.chu { font-family: var(--font-display); font-weight: 800; color: #1d2a5a; }
 /* VÒNG BÁO là lớp RIÊNG (::after) chứ không phải box-shadow của `.card`: skin Kẹo đặt box-shadow !important trên
    `.card` nên vòng xanh/đỏ bị đè mất — nhất là màn tối (ảnh chụp 26.11.2026). */
 .card::after {

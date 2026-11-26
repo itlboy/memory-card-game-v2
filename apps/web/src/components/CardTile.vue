@@ -5,7 +5,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { DEAL_ANIM_MS, DEAL_SETTLE_MS } from '@/lib/timing';
 import OptionIcon from './OptionIcon.vue';
 import type { IconName } from './OptionIcon.vue';
-import { anhDaSan, anhEmoji } from '@/lib/emoji';
+import { anhDaSan, anhEmoji, laKyTuChu } from '@/lib/emoji';
 
 const props = defineProps<{
   card: Card;
@@ -51,7 +51,7 @@ const anh = computed(() => anhEmoji(props.card.symbol, undefined, props.coAnh));
 const anhXong = ref(false);
 watch(anh, (u) => { anhXong.value = anhDaSan(u); }, { immediate: true });
 /** Ký hiệu là CHỮ/SỐ (theme Chữ & số) chứ không phải emoji → nét đậm, xem `.front.chu`. */
-const laChu = computed(() => /^[\x21-\x7E]{1,3}$/.test(props.card.symbol ?? ''));
+const laChu = computed(() => laKyTuChu(props.card.symbol));
 
 const emit = defineEmits<{ flip: [index: number] }>();
 
