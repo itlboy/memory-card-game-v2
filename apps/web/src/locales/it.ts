@@ -866,6 +866,7 @@ const it: TuDien = {
   'bxh.thachAria': 'Sfida {ten}',
   'bxh.dangChoi': 'In partita',
   'bxh.dangOnline': '{n} online ora',
+  'menu.nOnline': "{n} online",
   'bxh.online': 'online',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Sei bravissimo!',

@@ -865,6 +865,7 @@ const de: TuDien = {
   'bxh.thachAria': '{ten} herausfordern',
   'bxh.dangChoi': 'Spielt',
   'bxh.dangOnline': '{n} gerade online',
+  'menu.nOnline': "{n} online",
   'bxh.online': 'online',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Du bist richtig gut!',

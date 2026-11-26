@@ -865,6 +865,7 @@ const id: TuDien = {
   'bxh.thachAria': 'Tantang {ten}',
   'bxh.dangChoi': 'Sedang main',
   'bxh.dangOnline': '{n} sedang online',
+  'menu.nOnline': "{n} online",
   'bxh.online': 'online',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Kamu hebat banget!',

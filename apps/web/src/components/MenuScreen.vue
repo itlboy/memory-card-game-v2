@@ -45,7 +45,6 @@ import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
 import { nhanSoPhong, soPhongXem, useSoPhongCho } from '@/lib/so-phong-cho';
-import BongNgo from './BongNgo.vue';
 import { soNguoiOnline } from '@/lib/sanh';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
@@ -669,19 +668,14 @@ const ICO3D = {
           </button>
           <button class="o-vuong o-co-so neon g-blue" type="button" :title="t('menu.onlineMo')" @click="sfx.select(); emit('online')">
             <Globe class="opt-icon" :size="30" aria-hidden="true" /><img class="ico3d" :src="ICO3D.online" alt="" aria-hidden="true"><strong :class="{ 'tu-dai': tuDai(t('menu.online')) }">{{ t('menu.online') }}</strong>
-            <!-- SỐ PHÒNG ĐANG CHỜ (20.11.2026, mockup C): chấm xanh nhịp "đang sống" + số, góc trên phải -->
-            <!-- 23.11.2026: có người online thì hiện SỐ NGƯỜI (icon người) — chấm xanh vẫn nhịp khi có phòng đang chờ -->
-<!-- 23.11.2026: ĐỦ BA CON SỐ (chủ dự án: "thường chỉ thấy có 2 thông số") — 👥 người online (kể cả mình) · chấm xanh + số
-                 PHÒNG ĐANG CHỜ (vào chơi được) · xô bỏng ngô + số PHÒNG ĐANG CHƠI (vào xem). Trước đó số phòng chờ chỉ hiện khi
-                 không có ai online, mà nay lúc nào cũng có ít nhất mình → nó chỉ còn là cái chấm không số. Số nào bằng 0 thì ẩn ô đó. -->
+            <!-- NHÃN "● N online" (26.11.2026, mockup B duyệt https://claude.ai/artifact/FbPTdLUCEZMaZhfMcKsKs2 — chủ dự án chê viên ba con
+                 số nền xám mờ "xấu quá"): một nhãn trắng nổi khối DÁN LỆCH mép trên, nghiêng nhẹ, CÙNG KIỂU nhãn "Màn N" của nút Chiến
+                 dịch. Chỉ một con số (người đang online, kể cả mình); chấm xanh NHỊP khi có phòng đang chờ vào được, đứng yên khi không.
+                 Số phòng chờ / phòng đang chơi xem ở trong màn Chơi online. Đọc màn hình vẫn nghe đủ ba con số (aria-label). -->
             <span
-              class="so-phong" :class="{ chat: (soNguoiOnline > 99 ? 1 : 0) + (soPhongCho > 9 ? 1 : 0) + (soPhongXem > 9 ? 1 : 0) >= 2 }"
+              class="nhan-online" :class="{ 'co-phong': soPhongCho > 0 }"
               :aria-label="[t('bxh.dangOnline', { n: soNguoiOnline }), soPhongCho > 0 ? t('menu.soPhongCho', { n: soPhongCho }) : '', soPhongXem > 0 ? t('menu.soPhongXem', { n: soPhongXem }) : ''].filter(Boolean).join(' · ')"
-            >
-              <span class="sp-o"><Users :size="12" :stroke-width="2.8" aria-hidden="true" />{{ soNguoiOnline > 99 ? '99+' : soNguoiOnline }}</span>
-              <span v-if="soPhongCho > 0" class="sp-o"><i aria-hidden="true" />{{ nhanSoPhong(soPhongCho) }}</span>
-              <span v-if="soPhongXem > 0" class="sp-o"><BongNgo :size="13" aria-hidden="true" />{{ nhanSoPhong(soPhongXem) }}</span>
-            </span>
+            ><i aria-hidden="true" />{{ t('menu.nOnline', { n: soNguoiOnline > 99 ? '99+' : soNguoiOnline }) }}</span>
           </button>
         </div>
 
@@ -1293,17 +1287,17 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .nh-bat-dau { flex: none; margin-top: auto; }
 
 .o-co-so { position: relative; }
-.so-phong {
-  position: absolute; top: 8px; right: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 7px;
-  padding: 2px 8px 2px 7px; border-radius: 999px; background: rgba(0, 0, 0, .28); color: #fff;
-  font: 800 13px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums; pointer-events: none;
+.o-co-so { overflow: visible; }
+/* Nhãn dán "● N online" — cùng kiểu nhãn "Màn N" (keo-thach.css: lệch lên mép trên, nghiêng 4°), nền trắng nổi khối */
+.nhan-online {
+  position: absolute; top: -11px; right: 6px; z-index: 2; display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px 3px 8px; border-radius: 11px; rotate: 4deg; pointer-events: none; white-space: nowrap;
+  background: #fff; color: #1b2452; font: 800 13px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums;
+  box-shadow: 0 3px 0 #c6cfe6, 0 6px 10px rgba(10, 20, 60, .18);
 }
-.so-phong .sp-o { display: inline-flex; align-items: center; gap: 3px; }
-.so-phong i { width: 8px; height: 8px; border-radius: 50%; background: #7dff9b; animation: so-phong-song 1.6s infinite; }
-/* Hai trong ba số chạm trần ("99+", "9+"): ô chỉ rộng ~111px — thu chữ và khoảng cách cho khỏi tràn mép trái */
-.so-phong.chat { gap: 3px; padding: 2px 5px 2px 4px; font-size: 10.5px; }
-.so-phong.chat i { width: 7px; height: 7px; }
-.so-phong.chat .sp-o { gap: 2px; }
-@keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(125, 255, 155, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(125, 255, 155, 0); } }
-@media (prefers-reduced-motion: reduce) { .so-phong i { animation: none; } }
+:global([data-theme='dark'] .nhan-online) { background: #2a3470; color: #eef1ff; box-shadow: 0 3px 0 #151b46, 0 6px 10px rgba(0, 0, 0, .3); }
+.nhan-online i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; }
+.nhan-online.co-phong i { animation: so-phong-song 1.6s infinite; }
+@keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); } }
+@media (prefers-reduced-motion: reduce) { .nhan-online.co-phong i { animation: none; } }
 </style>

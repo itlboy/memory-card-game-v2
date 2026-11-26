@@ -72,3 +72,14 @@ describe('Cài đặt Premium trong trang Cài đặt của menu ☰', () => {
     expect(app).toContain("topBar.value?.moMenu(veCaiDat ? 'cd' : undefined)");
   });
 });
+
+/** 26.11.2026 — mockup B duyệt https://claude.ai/artifact/FbPTdLUCEZMaZhfMcKsKs2: nhãn dán "● N online" thay viên ba con số nền xám. */
+describe('nhãn "● N online" trên ô Chơi online', () => {
+  it('một nhãn trắng dán lệch mép trên, nghiêng như nhãn "Màn N"; chấm xanh nhịp khi có phòng chờ; đọc màn hình nghe đủ ba số', () => {
+    const s = doc('src/components/MenuScreen.vue');
+    expect(s).not.toContain('class="so-phong"');
+    expect(s).toMatch(/class="nhan-online" :class="\{ 'co-phong': soPhongCho > 0 \}"/);
+    expect(s).toMatch(/\.nhan-online \{[^}]*top: -11px; right: 6px;[^}]*rotate: 4deg;/);
+    expect(s).toContain("t('menu.soPhongXem', { n: soPhongXem })");
+  });
+});

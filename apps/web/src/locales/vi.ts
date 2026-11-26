@@ -876,6 +876,7 @@ const vi = {
   'bxh.thachAria': 'Thách đấu {ten}',
   'bxh.dangChoi': 'Đang chơi',
   'bxh.dangOnline': '{n} người đang online',
+  'menu.nOnline': "{n} online",
   'bxh.online': 'đang online',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Bạn giỏi quá',

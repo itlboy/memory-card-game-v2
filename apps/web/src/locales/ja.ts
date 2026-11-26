@@ -862,6 +862,7 @@ const ja: TuDien = {
   'bxh.thachAria': '{ten}さんに挑戦',
   'bxh.dangChoi': 'プレイ中',
   'bxh.dangOnline': '{n}人がオンライン',
+  'menu.nOnline': "{n}人オンライン",
   'bxh.online': 'オンライン',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'すごく上手だね！',

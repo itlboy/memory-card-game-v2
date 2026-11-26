@@ -868,6 +868,7 @@ const fr: TuDien = {
   'bxh.thachAria': 'Défier {ten}',
   'bxh.dangChoi': 'En partie',
   'bxh.dangOnline': '{n} en ligne',
+  'menu.nOnline': "{n} en ligne",
   'bxh.online': 'en ligne',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Tu es trop fort !',

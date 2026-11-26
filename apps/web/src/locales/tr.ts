@@ -865,6 +865,7 @@ const tr: TuDien = {
   'bxh.thachAria': '{ten} kişisine meydan oku',
   'bxh.dangChoi': 'Oynuyor',
   'bxh.dangOnline': '{n} kişi çevrimiçi',
+  'menu.nOnline': "{n} çevrim içi",
   'bxh.online': 'çevrimiçi',
   /* ---------- nút nói nhanh, 4 câu mới (22.11.2026) ---------- */
   'say.gioi': 'Çok iyisin!',
