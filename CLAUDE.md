@@ -2033,3 +2033,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   `trongVan`. Bật mục là đổi ngay + đặt mốc. Chọn tay một mục là tắt ngẫu nhiên. Thống kê nhạc chỉ ghi một lần `ngau_nhien`.
 - **Đóng bảng Hình nền / Nhạc nền là về lại menu ☰** (`veMenuKhiDong` ở App gọi `TopBar.moMenu()`), trừ khi bảng đóng để mở
   bảng Premium. Tên bài trong bảng bỏ phần trong ngoặc ("Vui", không "Vui (marimba)"); nhãn aria vẫn giữ đủ.
+- **CHÍN BÀI NHẠC NỀN, Premium gấp ba** (26.11.2026, chủ dự án: "làm 9 nhạc nền luôn, đảm bảo premium x3 free"): 3 thường
+  (`keo` `dem` `sau`) + 6 Premium (`vuon` `chuong` `ngan` `dao` `bossa` `nang`). Thêm/bớt bài phải giữ tỉ lệ 3× (test
+  `nhac-chin-bai`), và mỗi bài phải khác KHUÔN nhịp (cùng test). Bảng chọn (ChonNhac) xếp như bảng Hình nền: hai ô Tắt ·
+  Ngẫu nhiên ở trên, chín bài lưới 3 cột — danh sách dọc 11 dòng tràn khỏi iPhone SE. Bốn bài mới chủ dự án CHƯA nghe duyệt.

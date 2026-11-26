@@ -76,8 +76,8 @@ describe('nhạc nền ngẫu nhiên', () => {
     localStorage.clear(); vi.resetModules();
     const ChonNhac = (await import('@/components/ChonNhac.vue')).default;
     const w = mount(ChonNhac, { props: { nhac: true, bai: 'dem', ngauNhien: false }, attachTo: document.body });
-    const dong = () => w.findAll('.cn-ds .dong');
-    expect(dong()).toHaveLength(7);
+    const dong = () => w.findAll('.cn-ds .dong, .cn-ds .o-bai');
+    expect(dong()).toHaveLength(11);
     await dong()[1]!.trigger('click');
     expect(w.emitted('chon')).toEqual([['nn']]);
     await w.setProps({ ngauNhien: true });
