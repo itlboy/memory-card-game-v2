@@ -20,6 +20,8 @@ import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import SoTriNho from './components/SoTriNho.vue';
 import BangPremium from './components/BangPremium.vue';
+import LaRoi from './components/LaRoi.vue';
+import ChonHinhNen from './components/ChonHinhNen.vue';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -87,7 +89,7 @@ import { nhac, baiChoiDuoc, laBaiNhac, type BaiNhac } from './lib/nhac';
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { choiDuoc, hienPremium } from './lib/premium';
+import { choiDuoc, hienPremium, yeuCauPremium, type NoiMoPremium } from './lib/premium';
 
 const prefs = store.prefs();
 /*
@@ -311,6 +313,13 @@ useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
 const showSoTriNho = ref(false);
 /** Bảng Premium — CHỈ mở từ menu debug cho tới khi bán thật (25.11.2026). */
 const showPremium = ref(false);
+/** Nơi người chơi bấm để mở bảng — bảng mở đầu bằng đúng thứ họ vừa chạm (lib/premium.ts `moPremium`). */
+const premiumTu = ref<NoiMoPremium>('menu');
+const premiumCanh = ref<string | undefined>();
+watch(yeuCauPremium, (y) => { if (y) { premiumTu.value = y.tu; premiumCanh.value = y.canh; showPremium.value = true; } });
+/** Bảng chọn hình nền — dòng "Hình nền" trong menu ☰ (cùng cổng debug với Premium cho tới khi bán thật). */
+const showHinhNen = ref(false);
+useBackCloser(31, () => showHinhNen.value, () => { showHinhNen.value = false; });
 useBackCloser(31, () => showPremium.value, () => { showPremium.value = false; });
 /** Tấm SỬA hồ sơ (mở từ menu). Màn chào bắt buộc thì theo `canMoChao`, không có cờ riêng. */
 const showHoSo = ref(false);
@@ -1082,11 +1091,13 @@ const hasNext = computed(() => {
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <!-- …kể cả Mưa Thẻ: icon bay giữa các lá đang rơi trông như một lá nữa -->
   <IconBay v-if="screen !== 'game' && screen !== 'mua-the'" />
+  <!-- Lá bài rơi như cánh hoa — riêng hình nền Hoa anh đào (LaRoi.vue), cùng luật với icon bay: không có lúc đang chơi -->
+  <LaRoi v-if="canh === 'anh-dao' && screen !== 'game' && screen !== 'mua-the'" />
   <!-- Sao băng thưa: chỉ đi kèm hình nền hành tinh (Premium), không có lúc đang chơi Mưa Thẻ -->
-  <SaoBang v-if="canh !== 'goc' && screen !== 'mua-the'" />
+  <SaoBang v-if="canh !== 'goc' && canh !== 'anh-dao' && screen !== 'mua-the'" />
   <TopBar
     :debug="debug"
-    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="showPremium = true"
+    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="premiumTu = 'menu'; premiumCanh = undefined; showPremium = true" @hinh-nen="showHinhNen = true"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
@@ -1229,12 +1240,13 @@ const hasNext = computed(() => {
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
     @so-tri-nho="showDebug = false; showSoTriNho = true"
-    @premium="showDebug = false; showPremium = true"
+    @premium="showDebug = false; premiumTu = 'debug'; premiumCanh = undefined; showPremium = true"
     @tat="debug = false; showDebug = false"
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
-  <BangPremium v-if="showPremium && debug" @close="showPremium = false" />
+  <BangPremium v-if="showPremium && debug" :tu="premiumTu" :xem-truoc="premiumCanh" @close="showPremium = false" />
+  <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />

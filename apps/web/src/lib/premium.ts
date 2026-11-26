@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue';
 import type { CardTheme } from './themes';
+import { dangDebug } from './debug';
 
 /**
  * GÓI PREMIUM — gói THÁNG / NĂM (chủ dự án 25.11.2026), mở mọi thứ premium: hình nền hành tinh, skin, nhạc, theme…
@@ -86,3 +87,17 @@ export async function khoiPhucMua(): Promise<boolean> {
 
 /** Huỷ gói GIẢ LẬP (bán thật thì người chơi huỷ trong App Store / Google Play, app chỉ đọc lại trạng thái). */
 export function huyGoiThu(): void { datPremiumThu(false); }
+
+/*
+ * LỜI MỜI NÂNG CẤP (26.11.2026, chủ dự án: "cần có các nút để người dùng nâng cấp ngay trên giao diện"). Mọi nút
+ * nâng cấp trong app gọi `moPremium(<nơi bấm>)`; App.vue nghe `yeuCauPremium` rồi mở BangPremium, bảng dùng `tu` để
+ * mở đầu bằng đúng thứ người chơi vừa chạm vào. `moiNangCap` = có bày các nút đó không: CHƯA BÁN THẬT nên chỉ khi
+ * đang debug (đồ khoá mà không mua được là App Review loại), và thôi mời khi đã có gói.
+ */
+export type NoiMoPremium = 'menu' | 'trang-chu' | 'cai-dat' | 'nen' | 'nhac' | 'tri-nho' | 'debug';
+/** `canh`: hình nền người chơi vừa bấm (đang khoá) — bảng Premium mở đầu bằng đúng hình đó. */
+export const yeuCauPremium = ref<{ tu: NoiMoPremium; lan: number; canh?: string } | null>(null);
+export function moPremium(tu: NoiMoPremium, canh?: string): void {
+  yeuCauPremium.value = { tu, canh, lan: (yeuCauPremium.value?.lan ?? 0) + 1 };
+}
+export const moiNangCap = computed(() => (banPremium.value || dangDebug.value) && !daMuaPremium.value);

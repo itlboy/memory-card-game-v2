@@ -9,7 +9,18 @@ import { daMuaPremium } from './premium';
  * ĐANG THỬ: chỉ chọn được ở trang debug (DebugMenu). Khi mở bán thì thêm cổng `daMuaPremium` vào `datCanh`
  * và đưa bảng chọn ra Cài đặt.
  */
-export const CANH = ['goc', 'sao-moc', 'sao-thuy', 'trai-dat', 'sao-tho', 'sao-hoa'] as const;
+/*
+ * CẢNH TRỌN BỘ (26.11.2026, chủ dự án: "hình nền đẹp hơn, thậm chí bày bố lại cả 3 lá bài, thay đổi các icon bay đằng
+ * sau"): `thien-ha` và `anh-dao` đổi CẢ trời, chân trời, cách bày ba lá ở trang chủ (QuatLa), mặt lưng lá và bộ icon
+ * bay (IconBay đọc `ICON_CANH`). Hành tinh chỉ đổi thiên thể. Mỗi cảnh có bản sáng + tối theo nền người chơi chọn.
+ */
+export const CANH = ['goc', 'thien-ha', 'anh-dao', 'sao-moc', 'sao-thuy', 'trai-dat', 'sao-tho', 'sao-hoa'] as const;
+export const CANH_TRON_BO: ReadonlySet<string> = new Set(['thien-ha', 'anh-dao']);
+/** Bộ icon bay riêng của cảnh trọn bộ — cảnh khác dùng bộ mặc định của IconBay. */
+export const ICON_CANH: Partial<Record<string, string[]>> = {
+  'thien-ha': ['🚀', '🪐', '⭐', '🛸', '☄️', '🌙', '👽', '🛰️', '🌟', '💫', '🌠', '🔭', '🌍', '✨', '👾'],
+  'anh-dao': ['🌸', '🦋', '🍡', '🎐', '🏮', '🐦', '🍵', '🎏', '🌷', '🍃', '💮', '🎋', '🐞', '🌸', '🪷']
+};
 export type Canh = (typeof CANH)[number];
 /** Tên hiển thị: td(`pm.nen.${c}`) — 15 ngôn ngữ. */
 
