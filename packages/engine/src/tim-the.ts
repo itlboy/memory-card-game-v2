@@ -36,7 +36,7 @@ export const TIM_THE_CHON_SAN_MS = 2000;
 export const TIM_THE_UP_MS = 800;
 export const TIM_THE_DAP_AN_MS = 2200;
 /** Thẻ cần tìm hiện to giữa bàn (lớp mờ) trước khi cho chọn — NGOÀI giờ chọn (27.11.2026). Phòng online dùng chung. */
-export const TIM_THE_NOI_MS = 2000;
+export const TIM_THE_NOI_MS = 3000;
 
 export interface TimTheConfig {
   soThe: number;

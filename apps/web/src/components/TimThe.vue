@@ -17,7 +17,7 @@ import {
   type TimTheKetQua
 } from '@mm/engine';
 import {
-  docChon, docKyLuc, ghiKyLuc,
+  bayBan, docChon, docKyLuc, ghiKyLuc,
   type TimTheBoDo, type TimTheChon, type TimTheKetVan
 } from '@/lib/tim-the';
 import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
@@ -73,7 +73,7 @@ let soDaChon = 0;
 let giayCu = -1;
 
 const dsThe = computed(() => { void rev.value; return van.value ? [...van.value.the] : []; });
-const soCot = computed(() => timTheSoCot(van.value?.cfg.soThe ?? chon.value.soThe));
+const soCot = ref(timTheSoCot(chon.value.soThe));
 const ngua = computed(() => nhip.value === 'xem' || nhip.value === 'dap-an');
 const toi = computed(() => { void rev.value; return van.value?.nguoi.find((p) => p.id === TOI) ?? null; });
 const heSo = computed(() => { void rev.value; return van.value?.heSoKe(TOI) ?? 1; });
@@ -117,10 +117,8 @@ let ro: ResizeObserver | undefined;
 function doBan(): void {
   const el = ban.value;
   if (!el) return;
-  const n = van.value?.cfg.soThe ?? chon.value.soThe;
-  const cot = timTheSoCot(n), hang = Math.ceil(n / cot);
-  const w = Math.min((el.clientWidth - KHE * (cot - 1)) / cot, ((el.clientHeight - KHE * (hang - 1)) / hang) * 0.75, 132);
-  laW.value = Math.max(36, Math.floor(w));
+  const b = bayBan(van.value?.cfg.soThe ?? chon.value.soThe, el.clientWidth, el.clientHeight, KHE);
+  soCot.value = b.cot; laW.value = b.w;
 }
 const coAnh = computed(() => chonCoAnh(laW.value * 0.62));
 
@@ -218,6 +216,7 @@ function cham(i: number): void {
   if (!v.chon(TOI, i, Math.min(tNhip + them, v.chonMs))) return;
   chonCuaToi.value = i;
   sfx.select();
+  rung.tach();
   rev.value++;
 }
 
@@ -505,6 +504,9 @@ defineExpose({
   border: 4px solid transparent; transition: border-color .15s;
 }
 .card.cho::after { border-color: #ffc21a; box-shadow: 0 0 16px 3px rgba(255, 194, 26, .7); }
+/* Chọn một lá: lá LẮC nhẹ (chủ dự án 27.11.2026) — `rotate` riêng, không đụng `transform` lật của `.inner` */
+.card.cho { animation: lac-chon .42s ease; }
+@keyframes lac-chon { 15% { rotate: -7deg; scale: 1.06; } 35% { rotate: 6deg; } 55% { rotate: -4deg; } 75% { rotate: 2deg; } 100% { rotate: 0deg; scale: 1; } }
 .card.dung::after { border-color: #3fbf5f; box-shadow: 0 0 18px 5px rgba(63, 191, 95, .7); }
 .card.sai::after { border-color: #ff4d6d; box-shadow: 0 0 14px 3px rgba(255, 77, 109, .6); }
 .card.dung { animation: nay-the .45s; z-index: 2; }
@@ -539,6 +541,6 @@ defineExpose({
 .ic-n { vertical-align: -2px; }
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
-  .o .card.dung, .card.sai .inner, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay { animation: none; }
+  .o .card.dung, .card.cho, .card.sai .inner, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay { animation: none; }
 }
 </style>

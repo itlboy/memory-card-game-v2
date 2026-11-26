@@ -32,6 +32,27 @@ export function luuChon(c: TimTheChon): void {
   try { localStorage.setItem(KHOA, JSON.stringify(c)); } catch { /* chế độ riêng tư: chỉ không nhớ */ }
 }
 
+/**
+ * BÀY BÀN (27.11.2026, chủ dự án: "cho các lá thẻ đồng đều hơn trên bàn để nhìn trên dưới đỡ trống"): KHÔNG cố định số cột
+ * theo số thẻ nữa — thử mọi số cột, lấy cách cho LÁ TO NHẤT trong khung (`rong` × `cao`, lá 3:4, khe `khe`, trần `tran`).
+ * Màn dọc nên bàn 6 thẻ ra 2×3, 12 thẻ ra 3×4 thay vì nằm bẹt giữa khoảng trống. Lá bằng nhau (chạm trần) thì chọn lưới ÍT Ô
+ * TRỐNG hơn, rồi lưới có tỷ lệ gần khung nhất (phủ đều cả ngang lẫn dọc).
+ */
+export function bayBan(n: number, rong: number, cao: number, khe = 10, tran = 132): { cot: number; w: number } {
+  // Bàn nhỏ giữ cách bày quen: 3 lá một HÀNG (một cột 3 lá dọc trông như cái tháp), 4 lá 2×2
+  const coDinh = n === 3 ? 3 : n === 4 ? 2 : 0;
+  let tot = { cot: 1, w: 0, trong: 0, lech: Infinity };
+  for (let cot = coDinh || 1; cot <= (coDinh || n); cot++) {
+    const hang = Math.ceil(n / cot);
+    if (cot > 1 && Math.ceil(n / (cot - 1)) === hang) continue;   // thêm cột mà không bớt hàng: chỉ thêm ô trống
+    const w = Math.floor(Math.max(0, Math.min((rong - khe * (cot - 1)) / cot, ((cao - khe * (hang - 1)) / hang) * 0.75, tran)));
+    const trong = cot * hang - n;
+    const lech = Math.abs((hang * w * 4 / 3 + khe * (hang - 1)) / cao - (cot * w + khe * (cot - 1)) / rong);
+    if (w > tot.w || (w === tot.w && (trong < tot.trong || (trong === tot.trong && lech < tot.lech)))) tot = { cot, w, trong, lech };
+  }
+  return { cot: tot.cot, w: Math.max(36, tot.w) };
+}
+
 /** KIỂU CHƠI ở màn Chơi nhanh / Đấu với máy (27.11.2026): nhớ lần trước, lần sau mở ra đúng kiểu đã chơi. */
 export type KieuChoi = 'thuong' | 'tim';
 const KHOA_KIEU = 'mm.kieuChoi';
