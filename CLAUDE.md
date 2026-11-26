@@ -2096,3 +2096,20 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Chọn kiểu ở bảng Premium → dòng Huy hiệu → `ChonHuyHieu.vue`.
 - **Hai viên trên nút Chiến dịch** cách mép nút 22px (không phải 12px): nhãn "Màn N" dán lệch lên trên 12px — viên Premium từng
   đè lên nó. Đổi vị trí nhãn hay viên thì đo lại khe.
+
+## Bảng Premium bản mới + hiệu ứng trong ván + Chỉ số trí nhớ cả năm (26.11.2026, mockup duyệt https://claude.ai/artifact/ALpRKG88kcozoAgRgw9gCh)
+
+- **Bảng Premium**: khối đầu màu (vàng nền sáng · tím đêm nền tối) có thanh số ngày còn lại / lời mời nhận quà (nút nhận NGAY
+  trong khối) / lời mời mua; ba cài đặt GỘP MỘT HÀNG BA Ô (chủ dự án: "gộp lại thành menu cho đỡ tốn diện tích"); quyền lợi là
+  LƯỚI 8 THẺ có biểu tượng màu, số lấy từ code. KHÔNG còn nhãn "Sắp có" — thêm quyền lợi chưa làm thì phải ghi rõ. Luồng mua giả
+  lập (hai gói + câu tự gia hạn + Khôi phục + hai link pháp lý — Apple bắt buộc) chỉ hiện khi chưa có Premium VÀ hết quà.
+- **Cài đặt Premium cũng nằm trong trang Cài đặt của menu ☰** (chủ dự án: "tương tự bấm vào nút premium"): ba ô giống bảng;
+  đóng bảng con về lại đúng trang Cài đặt (`moMenu('cd')`). Bảng con mở từ bảng Premium thì về bảng Premium.
+- **Hiệu ứng ghép cặp Premium** (`lib/hieu-ung-premium.ts` + `GhepPremiumFx.vue` đặt một lần ở App): ghép 1 cặp đã có (hai lá
+  phồng sáng + bung tia theo chủ đề), từ 2 cặp liền có nhãn "Chuỗi N" ĐEO VƯƠNG MIỆN, lần đầu mỗi ngày có dòng "Hiệu ứng Premium"
+  ~2 giây (`mm.fxPm.ngay`). Offline: chỉ cặp của người trên máy có Premium (không cho máy). Online: cặp của mình khi có Premium,
+  cặp người khác khi server báo `pm` (client gửi `?pm=1`, server không kiểm, không lưu DB). Chuỗi online đếm ở client
+  (`chuoiOnline`) vì server chỉ gửi `bestStreak`.
+- **Chỉ số trí nhớ tab "Cả năm"**: 12 cột theo tháng (gộp `chiSo` cả tháng), đeo vương miện; chưa có Premium bấm → bảng Premium.
+  Thẻ quyền lợi ghi "Xem lại cả năm" chứ KHÔNG "vĩnh viễn": nhật ký chỉ nằm trên máy (400 ngày), xoá app là mất. Ba tab chia đều
+  một dòng (`.doi.ba`) — tự co thì "Theo thời gian" xuống hai dòng.

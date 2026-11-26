@@ -968,6 +968,19 @@ const ja: TuDien = {
   'hhb.tim': "ハート",
   'hhb.kc': "ダイヤ",
   'hhb.khong': "バッジを表示しない",
+  'fx.chuoi': "{n}連続",
+  'fx.premium': "Premium エフェクト",
+  'pm.d.nen': "背景とカード裏面が変わるテーマ{n}種",
+  'pm.d.lung': "テーマごとのカード裏面{n}種",
+  'pm.d.nhac': "{n}曲、無料版の3倍",
+  'pm.d.huyHieu': "Premiumだとみんなに伝わる",
+  'pm.d.thongKe': "14日だけでなく1年分をふり返れる",
+  'pm.d.hieuUng': "ペアがテーマに合わせて光る",
+  'pm.s.emoji': "Premium 絵文字",
+  'pm.d.emoji': "オンラインチャット専用の絵文字{n}個",
+  'pm.d.hoTro': "広告なしのゲームを支える",
+  'pm.han': "残り{con} / {tong}日",
+  'pm.banSeCo': "もらえる特典",
   'cn.ngauNhien': "ランダム",
   'cn.ngauNhienNen': "約30分ごとにテーマが変わります",
   'cn.ngauNhienNhac': "約30分ごとに曲が変わります",
@@ -1039,6 +1052,8 @@ const ja: TuDien = {
   'tn.conVan': "あと{n}回",
   'tn.tab5': "ターン別",
   'tn.tab14': "期間別",
+  'tn.tabNam': "1年",
+  'tn.thang': "{n}月",
 };
 
 export default ja;

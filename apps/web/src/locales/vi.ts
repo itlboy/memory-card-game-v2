@@ -982,6 +982,19 @@ const vi = {
   'hhb.tim': "Trái tim",
   'hhb.kc': "Kim cương",
   'hhb.khong': "Không hiện huy hiệu",
+  'fx.chuoi': "Chuỗi {n}",
+  'fx.premium': "Hiệu ứng Premium",
+  'pm.d.nen': "{n} chủ đề, đổi cả nền và mặt lưng",
+  'pm.d.lung': "{n} mặt lưng theo chủ đề",
+  'pm.d.nhac': "{n} bài, gấp 3 bản thường",
+  'pm.d.huyHieu': "Ai cũng thấy bạn có Premium",
+  'pm.d.thongKe': "Xem lại cả năm, không chỉ 14 ngày",
+  'pm.d.hieuUng': "Ghép cặp bùng sáng theo chủ đề",
+  'pm.s.emoji': "Emoji Premium",
+  'pm.d.emoji': "{n} emoji riêng khi chat online",
+  'pm.d.hoTro': "Giúp game không quảng cáo",
+  'pm.han': "Còn {con} / {tong} ngày",
+  'pm.banSeCo': "Bạn sẽ có",
   'cn.ngauNhien': "Ngẫu nhiên",
   'cn.ngauNhienNen': "Đổi chủ đề khoảng 30 phút một lần",
   'cn.ngauNhienNhac': "Đổi bài khoảng 30 phút một lần",
@@ -1053,6 +1066,8 @@ const vi = {
   'tn.conVan': "Còn {n} ván",
   'tn.tab5': "Theo số lượt",
   'tn.tab14': "Theo thời gian",
+  'tn.tabNam': "Cả năm",
+  'tn.thang': "Tháng {n}",
 };
 
 export default vi;

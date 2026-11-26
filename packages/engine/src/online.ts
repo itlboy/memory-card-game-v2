@@ -259,6 +259,8 @@ export interface PublicPlayer {
   mau?: string;
   /** Huy hiệu Premium (26.11.2026, `HUY_HIEU`: vm · tim · kc) — dấu nhỏ ở góc avatar. Không có = không hiện. */
   hh?: string;
+  /** Có Premium (26.11.2026) — máy người khác phát hiệu ứng ghép cặp Premium cho người này. Trang trí, server không kiểm. */
+  pm?: boolean;
   score: number;
   pairs: number;
   bestStreak: number;

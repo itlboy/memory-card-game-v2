@@ -970,6 +970,19 @@ const pt: TuDien = {
   'hhb.tim': "Coração",
   'hhb.kc': "Diamante",
   'hhb.khong': "Não mostrar selo",
+  'fx.chuoi': "Sequência {n}",
+  'fx.premium': "Efeito Premium",
+  'pm.d.nen': "{n} temas com fundo e verso combinando",
+  'pm.d.lung': "{n} versos de cartas por tema",
+  'pm.d.nhac': "{n} faixas, 3× a versão grátis",
+  'pm.d.huyHieu': "Todo mundo vê que você tem Premium",
+  'pm.d.thongKe': "Veja o ano inteiro, não só 14 dias",
+  'pm.d.hieuUng': "Os pares brilham no estilo do tema",
+  'pm.s.emoji': "Emojis Premium",
+  'pm.d.emoji': "{n} emojis exclusivos para o chat online",
+  'pm.d.hoTro': "Mantém o jogo sem anúncios",
+  'pm.han': "Faltam {con} / {tong} dias",
+  'pm.banSeCo': "Você terá",
   'cn.ngauNhien': "Aleatório",
   'cn.ngauNhienNen': "Um tema novo a cada 30 minutos, mais ou menos",
   'cn.ngauNhienNhac': "Uma faixa nova a cada 30 minutos, mais ou menos",
@@ -1041,6 +1054,8 @@ const pt: TuDien = {
   'tn.conVan': "Faltam {n} partidas",
   'tn.tab5': "Por jogadas",
   'tn.tab14': "Por tempo",
+  'tn.tabNam': "Ano",
+  'tn.thang': "Mês {n}",
 };
 
 export default pt;

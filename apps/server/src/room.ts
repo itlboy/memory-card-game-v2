@@ -43,6 +43,8 @@ interface RoomPlayer {
   mau?: string;
   /** Huy hiệu Premium (`?hh=`, 26.11.2026) — như `mau`: không lưu DB, client gửi lại mỗi lần nối. */
   hh?: string;
+  /** Có Premium (`?pm=1`, 26.11.2026) — để máy khác phát hiệu ứng ghép cặp Premium. Như `hh`: không lưu DB, không kiểm. */
+  pm?: boolean;
   /**
    * Định danh BỀN của trình duyệt (client sinh, lưu localStorage).
    *
@@ -519,6 +521,7 @@ export class RoomDO extends DurableObject<Env> {
     const matHs = matHoSo(matXin);
     const mau = mauHoSo(url.searchParams.get('mau'));
     const hh = huyHieuHoSo(url.searchParams.get('hh'));
+    const pm = url.searchParams.get('pm') === '1';
     // CHỦ ĐỘNG LÀM NGƯỜI XEM (`?xem=1`, 23.11.2026): kể cả khi phòng chờ còn chỗ — xem `acceptSpectator`
     const xemChuDong = url.searchParams.get('xem') === '1';
 
@@ -567,6 +570,7 @@ export class RoomDO extends DurableObject<Env> {
         ...(anh ? { anh } : {}),
         ...(mau ? { mau } : {}),
         ...(hh ? { hh } : {}),
+        ...(pm ? { pm } : {}),
         token: crypto.randomUUID(),
         disconnectedAt: null,
         ready: false
@@ -587,6 +591,7 @@ export class RoomDO extends DurableObject<Env> {
       // Hồ sơ: vào lại mang avatar/màu MỚI NHẤT (đổi hồ sơ giữa hai lần vào). Ván đang chơi giữ mặt cũ (engine).
       if (mau) player.mau = mau; else delete player.mau;
       if (hh) player.hh = hh; else delete player.hh;
+      if (pm) player.pm = true; else delete player.pm;
       if (matHs && !this.room.thiDau) player.avatar = matHs;
       this.nhipDongHoLuot();      // họ về rồi, đồng hồ chạy tiếp
     }
@@ -2013,12 +2018,12 @@ export class RoomDO extends DurableObject<Env> {
       players: room.players.map((p) => {
         const gp = this.game?.players.find((x) => x.id === p.id);
         const may = { ...(p.may ? { may: p.may } : {}), ...(p.doi ? { doiSo: p.doi } : {}), ...(p.thang ? { thang: p.thang } : {}) };
-        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...(p.mau ? { mau: p.mau } : {}), ...(p.hh ? { hh: p.hh } : {}), ...may };
+        if (gp) return { ...publicPlayer(gp, this.connected(p.id)), ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...(p.mau ? { mau: p.mau } : {}), ...(p.hh ? { hh: p.hh } : {}), ...(p.pm ? { pm: true } : {}), ...may };
         return {
               id: p.id, name: p.name, avatar: p.avatar,
               score: 0, pairs: 0, bestStreak: 0, frozenTurns: 0,
               doubleNext: false, forfeited: false, connected: this.connected(p.id),
-              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...(p.mau ? { mau: p.mau } : {}), ...(p.hh ? { hh: p.hh } : {}), ...may
+              lives: null, ready: p.ready, ...(p.anh ? { anh: p.anh } : {}), ...(p.mau ? { mau: p.mau } : {}), ...(p.hh ? { hh: p.hh } : {}), ...(p.pm ? { pm: true } : {}), ...may
             };
       })
     };

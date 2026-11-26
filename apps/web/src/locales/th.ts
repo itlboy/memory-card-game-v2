@@ -969,6 +969,19 @@ const th: TuDien = {
   'hhb.tim': "หัวใจ",
   'hhb.kc': "เพชร",
   'hhb.khong': "ไม่แสดงป้าย",
+  'fx.chuoi': "ต่อเนื่อง {n}",
+  'fx.premium': "เอฟเฟกต์ Premium",
+  'pm.d.nen': "{n} ธีม เปลี่ยนทั้งพื้นหลังและหลังไพ่",
+  'pm.d.lung': "หลังไพ่ {n} แบบตามธีม",
+  'pm.d.nhac': "{n} เพลง มากกว่าเวอร์ชันฟรี 3 เท่า",
+  'pm.d.huyHieu': "ทุกคนเห็นว่าคุณมี Premium",
+  'pm.d.thongKe': "ดูย้อนหลังทั้งปี ไม่ใช่แค่ 14 วัน",
+  'pm.d.hieuUng': "จับคู่แล้วเปล่งแสงตามธีม",
+  'pm.s.emoji': "อีโมจิ Premium",
+  'pm.d.emoji': "อีโมจิพิเศษ {n} ตัวสำหรับแชตออนไลน์",
+  'pm.d.hoTro': "ช่วยให้เกมไม่มีโฆษณา",
+  'pm.han': "เหลือ {con} / {tong} วัน",
+  'pm.banSeCo': "คุณจะได้รับ",
   'cn.ngauNhien': "สุ่ม",
   'cn.ngauNhienNen': "เปลี่ยนธีมประมาณทุก 30 นาที",
   'cn.ngauNhienNhac': "เปลี่ยนเพลงประมาณทุก 30 นาที",
@@ -1040,6 +1053,8 @@ const th: TuDien = {
   'tn.conVan': "อีก {n} เกม",
   'tn.tab5': "ตามจำนวนตา",
   'tn.tab14': "ตามเวลา",
+  'tn.tabNam': "ทั้งปี",
+  'tn.thang': "เดือน {n}",
 };
 
 export default th;

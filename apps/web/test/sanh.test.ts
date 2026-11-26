@@ -226,7 +226,9 @@ describe('client: nối sảnh đúng lúc, giao diện', () => {
     for (const k of ["t('tb.giaoDien')", "t('tb.amThanh')", "t('tb.nhacNen')", 'moTrangCd', "t('tb.luatChoi')", 'kiemCapNhat']) expect(chinh).toContain(k);
     for (const k of ["t('tb.rung')", "t('tb.ngonNgu')"]) expect(chinh).not.toContain(k);
     for (const k of ["t('tb.rung')", "t('tb.ngonNgu')", "t('cd.nhanMoi')", "t('cd.baoPhong')", "t('cd.phienBan')"]) expect(con).toContain(k);
-    for (const k of ["t('tb.giaoDien')", "t('tb.amThanh')", "t('tb.nhacNen')"]) expect(con).not.toContain(k);
+    // Ô "Nhạc nền" trong mục Cài đặt Premium (26.11.2026) là lối tắt Premium, không phải công tắc nhạc chung → bỏ khối đó ra rồi mới soát
+    const conChung = con.replace(/<template v-if="daMuaPremium \|\| moiNangCap">[\s\S]*?<\/template>/, '');
+    for (const k of ["t('tb.giaoDien')", "t('tb.amThanh')", "t('tb.nhacNen')"]) expect(conChung).not.toContain(k);
     // Back ở trang con là về menu, không đóng hẳn
     expect(tb).toMatch(/useBackCloser\(30\.5, \(\) => open\.value && trangCd\.value/);
   });

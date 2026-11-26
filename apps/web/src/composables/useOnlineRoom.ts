@@ -15,7 +15,8 @@ import { moChucNang, suKien } from '@/lib/phan-tich';
 import { nenApp } from '@/lib/native';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
-import { huyHieuDangDeo } from '@/lib/premium';
+import { daMuaPremium, huyHieuDangDeo } from '@/lib/premium';
+import { bungGhep } from '@/lib/hieu-ung-premium';
 import { doNhip } from '@/lib/do-nhip';
 import { t, td } from '@/lib/i18n';
 import { SERVER_URL } from '@/lib/native';
@@ -219,6 +220,8 @@ export function useOnlineRoom() {
   const room = shallowRef<RoomInfo | null>(null);
   const view = shallowRef<GameView | null>(null);
   const myId = ref('');
+  /** Số cặp ghép LIỀN hiện tại của từng người — server chỉ gửi `bestStreak`, nhãn "Chuỗi N" cần chuỗi đang chạy. */
+  const chuoiOnline = new Map<string, number>();
   const spectator = ref(false);
   const reconnecting = ref(false);
   /** Đã kêu tiếng "vào phòng rồi" chưa — mỗi phiên đúng một lần. */
@@ -984,6 +987,8 @@ export function useOnlineRoom() {
     { const hs = store.hoSo(); if (hs?.xong) params.set('mau', hs.mau); }
     // Huy hiệu Premium đang đeo (lib/premium.ts) — server chỉ nhận mã trong `HUY_HIEU`
     if (huyHieuDangDeo.value) params.set('hh', huyHieuDangDeo.value);
+    // Có Premium → người khác thấy hiệu ứng ghép cặp Premium của mình (lib/hieu-ung-premium.ts)
+    if (daMuaPremium.value) params.set('pm', '1');
     // Ảnh Google của người đã đăng nhập (11.11.2026) — server chỉ nhận ảnh máy chủ Google
     const anh = anhHopLe(me.value?.avatar);
     if (anh) params.set('anh', anh);
@@ -1367,9 +1372,19 @@ export function useOnlineRoom() {
           if (e.playerId === myId.value) rung.ghep(streak);
           else if (view.value?.nguoiLat !== undefined && laToi(e.playerId)) rung.ghep(streak);   // Đồng đội: cặp của ĐỘI mình
           lastGain.value = { amount: e.gained, index: e.indices[1], key: (lastGain.value?.key ?? 0) + 1 };
+          // Hiệu ứng Premium: cặp của MÌNH khi mình có Premium, cặp của NGƯỜI KHÁC khi server báo họ có (`pm`) — người chưa có
+          // Premium nhìn thấy hiệu ứng của bạn chơi là biết có thứ này (chủ dự án duyệt 26.11.2026)
+          {
+            const n = (chuoiOnline.get(e.playerId) ?? 0) + 1;
+            chuoiOnline.set(e.playerId, n);
+            const coPm = e.playerId === myId.value ? daMuaPremium.value : !!room.value?.players.find((p) => p.id === e.playerId)?.pm;
+            if (coPm) bungGhep(e.indices, n);
+          }
           break;
         }
         case 'miss': {
+          // Trượt: chuỗi của người vừa lật về 0 (view mới chưa gán nên currentId vẫn là người đó)
+          if (view.value?.currentId) chuoiOnline.set(view.value.currentId, 0);
           sfx.miss();
           // View mới chưa gán nên currentId vẫn là người vừa lật
           if (myTurn.value) rung.sai();

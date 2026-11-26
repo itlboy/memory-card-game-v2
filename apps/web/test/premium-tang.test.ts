@@ -73,18 +73,19 @@ describe('bảng Premium', () => {
 
   it('còn quà: thẻ quà + nút "Nhận miễn phí", KHÔNG bày hai gói mua; bấm nhận là sang trạng thái đang có Premium', async () => {
     const { pm, w } = await moBang();
-    expect(w.find('.pm-qua').exists()).toBe(true);
+    expect(w.find('.pm-hero.qua').exists()).toBe(true);
     expect(w.find('.pm-goi').exists(), 'chưa bán thật thì không bày gói').toBe(false);
-    await w.find('.pm-mua').trigger('click');
+    expect(w.find('.pm-menu').exists(), 'chưa có Premium thì chưa có cài đặt').toBe(false);
+    await w.find('.pm-nhan').trigger('click');
     expect(pm.daMuaPremium.value).toBe(true);
-    expect(w.find('.pm-qua').exists()).toBe(false);
-    expect(w.find('.pm-co small').text()).toMatch(/30/);
+    expect(w.find('.pm-hero.qua').exists()).toBe(false);
+    expect(w.find('.pm-han-chu').text(), 'thanh số ngày còn lại').toMatch(/30 \/ 30/);
     w.unmount();
   });
 
   it('đang có Premium: "Cài đặt Premium" có Chủ đề · Nhạc nền · Huy hiệu — bấm dòng nào App mở đúng bảng đó', async () => {
     const { w } = await moBang({ 'mm.premium': '1' });
-    const dong = w.findAll('.pm-cd-dong');
+    const dong = w.findAll('.pm-menu .pm-o');
     expect(dong).toHaveLength(3);
     for (const d of dong) await d.trigger('click');
     expect(w.emitted('mo')).toEqual([['nen'], ['nhac'], ['hh']]);
@@ -93,11 +94,14 @@ describe('bảng Premium', () => {
     w.unmount();
   });
 
-  it('bảng quyền lợi có dòng mặt lưng lá bài (14) và huy hiệu (đeo nhãn "Sắp có")', async () => {
+  it('lưới quyền lợi: 8 thẻ, số lấy từ code (14 mặt lưng, 9 bài, 8 emoji), KHÔNG còn nhãn "Sắp có"', async () => {
     const { w } = await moBang({ 'mm.premium': '1' });
-    const hang = w.findAll('.pm-so tbody tr').map((r) => r.text());
-    expect(hang.some((x) => x.includes('14'))).toBe(true);
-    expect(w.findAll('.pm-so tbody tr').length).toBe(9);
+    const the = w.findAll('.pm-ql .q').map((r) => r.text());
+    expect(the).toHaveLength(8);
+    expect(the.some((x) => x.includes('14 mặt lưng'))).toBe(true);
+    expect(the.some((x) => x.includes('9 bài'))).toBe(true);
+    expect(the.some((x) => x.includes('8 emoji'))).toBe(true);
+    expect(w.text()).not.toContain('Sắp có');
     w.unmount();
   });
 });
@@ -115,7 +119,7 @@ describe('viên Premium trang chủ + đường về', () => {
     expect(s).toContain('<BangPremium v-if="showPremium && debug"');
     expect(s).toMatch(/function moTuPremium\(muc: 'nen' \| 'nhac' \| 'hh'\): void \{\s*showPremium\.value = false;\s*tuPremium = true;/);
     expect(s, 'đóng bảng huy hiệu cũng về bảng Premium').toContain('watch(showHuyHieu, veMenuKhiDong);');
-    expect(s).toMatch(/if \(vePremium\) \{ premiumTu\.value = 'trang-chu'; showPremium\.value = true; \} else topBar\.value\?\.moMenu\(\);/);
+    expect(s).toMatch(/if \(vePremium\) \{ premiumTu\.value = 'trang-chu'; showPremium\.value = true; \} else topBar\.value\?\.moMenu\(/);
     expect(s).toContain('kiemHetHanTang();');
   });
   it('thống kê đợt tặng: hiện · nhận · bỏ qua', () => {

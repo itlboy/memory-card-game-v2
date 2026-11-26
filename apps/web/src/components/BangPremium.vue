@@ -15,7 +15,8 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * HÌNH NỀN: chọn ngay trong bảng. Chưa có Premium thì hành tinh mang vương miện, bấm vào chỉ nhắc "cần Premium".
  * GIÁ LÀ SỐ TẠM (`GIA_TAM`) — bán thật thì đọc giá đã quy đổi theo nước từ store.
  */
-import { Award, ChartColumn, Check, ChevronRight, Crown, Gamepad2, Gift, Heart, Image, Layers, LoaderCircle, MessageCircle, Minus, Music, ShieldCheck, Sparkles, X } from 'lucide-vue-next';
+import { Award, ChartColumn, Check, Crown, Gift, Heart, Image, Layers, LoaderCircle, MessageCircle, Music, ShieldCheck, Sparkles, X } from 'lucide-vue-next';
+import { EMOJI_PREMIUM } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, t, td } from '@/lib/i18n';
@@ -23,7 +24,7 @@ import { num } from '@/lib/format';
 import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, type Goi, type NoiMoPremium } from '@/lib/premium';
 import { CANH, canh, canhNgauNhien } from '@/lib/canh';
 import { LUNG } from '@/lib/lung-la';
-import { BAI_NHAC, BAI_PREMIUM } from '@/lib/nhac';
+import { BAI_NHAC } from '@/lib/nhac';
 import { SITE_URL, nenApp } from '@/lib/native';
 
 /** `nhacHien`: chữ hiện ở dòng cài đặt "Nhạc nền" (Tắt · Ngẫu nhiên · tên bài) — trạng thái nhạc nằm ở App.vue. */
@@ -44,31 +45,28 @@ const gia = computed(() => giaThat.value ?? {
 const coThu = computed(() => gia.value.duocThu && gia.value.ngayThu > 0 && (!giaThat.value || goi.value === 'nam'));
 
 /*
- * BẢNG SO SÁNH (26.11.2026, chủ dự án: "bảng so sánh phải nói rõ premium khác với thường thế nào"). Mỗi dòng: bản
- * Thường có gì · Premium có gì. CON SỐ LẤY TỪ CODE (số hình nền, số bài nhạc) — đổi nội dung là bảng tự đúng.
- * `sap` = quyền lợi ĐÃ CHỐT nhưng CHƯA LÀM: đeo nhãn "Sắp có" cho tới khi làm xong. Bán thật mà còn nhãn này thì
- * hoặc làm xong, hoặc giữ nhãn — tuyệt đối không bỏ nhãn của thứ chưa có (quảng cáo sai là store gỡ app).
- * Dòng đầu cố ý là thứ HAI BÊN ĐỀU CÓ: người chơi thấy bản thường không bị cắt xén, Premium là thêm chứ không phải chuộc.
+ * THẺ QUYỀN LỢI (26.11.2026, mockup duyệt https://claude.ai/artifact/ALpRKG88kcozoAgRgw9gCh — chủ dự án: "trang này đẹp hơn,
+ * thu hút hơn"): lưới 2 cột, mỗi quyền lợi một thẻ có biểu tượng màu + tên + một dòng mô tả, thay bảng so sánh Thường/Premium
+ * dài. CON SỐ LẤY TỪ CODE (số chủ đề, mặt lưng, bài nhạc, emoji) — đổi nội dung là thẻ tự đúng. Mọi quyền lợi ĐÃ LÀM (hết
+ * nhãn "Sắp có"); thêm quyền lợi chưa làm thì PHẢI ghi rõ là sắp có — quảng cáo thứ chưa có là store gỡ app.
+ * `tu` = mở bảng từ chỗ nào thì thẻ đó sáng lên (bấm chủ đề khoá → thẻ Chủ đề).
  */
-const soNen = CANH.length, soBai = BAI_NHAC.length, soBaiThuong = BAI_NHAC.filter((b) => !BAI_PREMIUM.has(b)).length;
+const soNen = CANH.length, soBai = BAI_NHAC.length;
 /** Mặt lưng lá: bản thường chỉ có lưng ngôi sao; Premium thêm cả bộ của từng chủ đề (lib/lung-la.ts). */
 const soLung = Object.values(LUNG).reduce((n, bo) => n + bo.length, 0);
-interface Dong { id: string; ic: typeof Crown; thuong: string | boolean; premium: string | boolean; sap?: boolean; tu?: NoiMoPremium }
-const SO: Dong[] = [
-  { id: 'choi', ic: Gamepad2, thuong: true, premium: true },
-  { id: 'nen', ic: Image, thuong: '1', premium: String(soNen), tu: 'nen' },
-  { id: 'lung', ic: Layers, thuong: '1', premium: String(soLung) },
-  { id: 'nhac', ic: Music, thuong: String(soBaiThuong), premium: String(soBai), tu: 'nhac' },
-  { id: 'huyHieu', ic: Award, thuong: false, premium: true },
-  { id: 'thongKe', ic: ChartColumn, thuong: 'pm.v.14ngay', premium: 'pm.v.tronVen', sap: true, tu: 'tri-nho' },
-  { id: 'hieuUng', ic: Sparkles, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', sap: true },
-  // Chat: emoji Premium ĐÃ CÓ (26.11.2026, EmojiBar) nên bỏ nhãn "Sắp có"; mở bảng từ emoji khoá thì dòng này sáng lên
-  { id: 'chat', ic: MessageCircle, thuong: 'pm.v.coBan', premium: 'pm.v.dacBiet', tu: 'chat' },
-  { id: 'hoTro', ic: Heart, thuong: false, premium: true }
-];
-const gt = (v: string): string => (v.startsWith('pm.') ? td(v) : v);
-/** Dòng ứng với thứ người chơi vừa chạm (mở từ hình nền khoá → dòng Hình nền sáng lên). */
-const dongNoi = computed(() => SO.find((d) => d.tu && (d.tu === props.tu || (props.tu === 'cai-dat' && d.tu === 'nen')))?.id ?? '');
+interface The { id: string; ic: typeof Crown; mau: string; ten: string; moTa: string; tu?: NoiMoPremium }
+const QL = computed<The[]>(() => [
+  { id: 'nen', ic: Image, mau: '#6c5ce7', ten: t('pm.s.nen'), moTa: t('pm.d.nen', { n: soNen }), tu: 'nen' },
+  { id: 'lung', ic: Layers, mau: '#0fa3b1', ten: t('pm.s.lung'), moTa: t('pm.d.lung', { n: soLung }) },
+  { id: 'nhac', ic: Music, mau: '#e17055', ten: t('tb.nhacNen'), moTa: t('pm.d.nhac', { n: soBai }), tu: 'nhac' },
+  { id: 'huyHieu', ic: Award, mau: '#f0a500', ten: t('pm.s.huyHieu'), moTa: t('pm.d.huyHieu') },
+  { id: 'thongKe', ic: ChartColumn, mau: '#00b894', ten: t('pm.s.thongKe'), moTa: t('pm.d.thongKe'), tu: 'tri-nho' },
+  { id: 'hieuUng', ic: Sparkles, mau: '#e8559b', ten: t('pm.s.hieuUng'), moTa: t('pm.d.hieuUng') },
+  { id: 'chat', ic: MessageCircle, mau: '#0984e3', ten: t('pm.s.emoji'), moTa: t('pm.d.emoji', { n: EMOJI_PREMIUM.length }), tu: 'chat' },
+  { id: 'hoTro', ic: Heart, mau: '#d6336c', ten: t('pm.s.hoTro'), moTa: t('pm.d.hoTro') }
+]);
+/** Thẻ ứng với thứ người chơi vừa chạm (mở từ chủ đề khoá → thẻ Chủ đề sáng lên). */
+const theNoi = computed(() => QL.value.find((d) => d.tu && (d.tu === props.tu || (props.tu === 'cai-dat' && d.tu === 'nen')))?.id ?? '');
 
 const ngay = (ms: number): string => new Intl.DateTimeFormat(bcp(), { day: 'numeric', month: 'numeric', year: 'numeric' }).format(new Date(ms));
 /** Đang trong thời gian dùng thử (chưa bị tính tiền). */
@@ -92,12 +90,22 @@ const duocMoi = conQuaTang.value;
 let daNhan = false;
 const hetHanTang = computed(() => ngay(Date.now() + NGAY_TANG * 86_400_000));
 const conLai = computed(() => ngayConLai());
+/** Thanh "còn bao nhiêu ngày" ở khối đầu: tổng số ngày của gói đang có (gói tặng 30, gói tháng 30…), null = không có hạn. */
+const tongNgay = computed(() => { const g = goiDangCo.value; return g && !g.vinhVien ? Math.max(1, Math.round((g.het - g.tu) / 86_400_000)) : null; });
+/** Dòng phụ dưới "Bạn đang có Premium". */
+const trangThaiCo = computed(() => {
+  const g = goiDangCo.value;
+  if (g?.tang) return t('pm.tang.hetHan', { ngay: ngayGiaHan.value });
+  if (g?.vinhVien) return t('pm.vinhVien');
+  if (dangThu.value) return t('pm.dangThu', { ngay: dangThu.value });
+  return g ? t('pm.giaHan', { ngay: ngayGiaHan.value }) : t('pm.khauHieu');
+});
 function nhanTang(): void {
   if (!nhanQuaTang()) return;
   daNhan = true;
   moChucNang('premium_tang_nhan', { tu: props.tu });
 }
-/** Chữ ở dòng cài đặt "Chủ đề". */
+/** Chữ ở ô cài đặt "Chủ đề". */
 const chuDeHien = computed(() => (canhNgauNhien.value ? t('cn.ngauNhien') : td(`pm.nen.${canh.value}`)));
 onMounted(() => { nutDong.value?.focus(); moChucNang('premium', { tu: props.tu }); if (duocMoi) moChucNang('premium_tang_hien', { tu: props.tu }); });
 const dong = (): void => {
@@ -134,10 +142,8 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 <template>
   <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pmTitle" @keydown.esc="dong" @click.self="dong" v-cham-ngoai="dong">
     <div class="panel pm" :aria-busy="buoc === 'dang'">
-      <!-- ĐẦU BẢNG GỌN (26.11.2026, chủ dự án: phần trời đêm + hành tinh "thừa quá", chỉ cần một câu; cả bảng phải vừa MỘT màn hình) -->
       <header class="pm-dau">
-        <span class="pm-vm" aria-hidden="true"><Crown :size="20" :stroke-width="2.6" /></span>
-        <span class="pm-td"><h2 id="pmTitle">{{ daMuaPremium && buoc !== 'xong' ? t('pm.daCo') : t('pm.moi.menu') }}</h2><small>{{ t('pm.khauHieu') }}</small></span>
+        <h2 id="pmTitle">{{ t('tp.premium') }}</h2>
         <button ref="nutDong" class="btn" :aria-label="t('dhd.dong')" type="button" :disabled="buoc === 'dang'" @click="dong"><X :size="20" /></button>
       </header>
 
@@ -150,58 +156,43 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
       </section>
 
       <template v-else>
-        <!-- BẢNG SO SÁNH: mỗi quyền lợi MỘT dòng, cột Premium là dải vàng chạy suốt -->
-        <table class="pm-so">
-          <thead><tr><th scope="col"><span class="sr-only">{{ t('pm.cot.quyenLoi') }}</span></th><th scope="col">{{ t('pm.cot.thuong') }}</th><th scope="col" class="p"><Crown :size="12" :stroke-width="2.8" aria-hidden="true" />{{ t('tp.premium') }}</th></tr></thead>
-          <tbody>
-            <tr v-for="d in SO" :key="d.id" :class="{ noi: dongNoi === d.id }">
-              <th scope="row"><span class="ic" aria-hidden="true"><component :is="d.ic" :size="15" :stroke-width="2.4" /></span><span class="chu">{{ td(`pm.s.${d.id}`) }}<em v-if="d.sap">{{ t('pm.sapCo') }}</em></span></th>
-              <td><Check v-if="d.thuong === true" :size="17" :stroke-width="3" :aria-label="t('pm.co')" /><Minus v-else-if="d.thuong === false" :size="15" :stroke-width="3" :aria-label="t('pm.khong')" /><template v-else>{{ gt(d.thuong) }}</template></td>
-              <td class="p"><Heart v-if="d.id === 'hoTro'" :size="17" :stroke-width="0" fill="currentColor" :aria-label="t('pm.co')" /><Check v-else-if="d.premium === true" :size="17" :stroke-width="3.2" :aria-label="t('pm.co')" /><template v-else>{{ gt(String(d.premium)) }}</template></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- ĐANG CÓ GÓI -->
-        <template v-if="daMuaPremium">
-          <!-- TRẠNG THÁI + CÀI ĐẶT nằm TRÊN bảng quyền lợi (`.len-tren`: `order` âm trong cột flex của .pm). Chủ dự án 26.11.2026:
-               "mọi settings premium đều có thể làm thông qua nút premium, để tiện cho người dùng". -->
-          <div class="pm-co len-tren" role="status">
-            <Check :size="22" :stroke-width="3" aria-hidden="true" />
-            <span><b>{{ goiDangCo && !goiDangCo.vinhVien && !goiDangCo.tang ? t(goiDangCo.goi === 'nam' ? 'pm.nam' : 'pm.thang') : t('tp.premium') }}</b>
-              <small v-if="goiDangCo?.tang">{{ t('pm.tang.trangThai', { ngay: ngayGiaHan, n: conLai }) }}</small>
-              <small v-else-if="goiDangCo?.vinhVien">{{ t('pm.vinhVien') }}</small>
-              <small v-else-if="dangThu">{{ t('pm.dangThu', { ngay: dangThu }) }}</small>
-              <small v-else-if="goiDangCo">{{ t('pm.giaHan', { ngay: ngayGiaHan }) }}</small></span>
+        <!-- KHỐI ĐẦU (mockup duyệt 26.11.2026): khối màu nổi bật — vàng trên nền sáng, tím đêm trên nền tối — có vài đốm sao.
+             Đang có Premium: trạng thái + thanh số ngày còn lại · còn quà: lời mời + nút nhận ngay trong khối · còn lại: lời mời mua. -->
+        <section class="pm-hero" :class="{ qua: !daMuaPremium && conQuaTang }" role="status">
+          <i class="pm-sao s1" aria-hidden="true" /><i class="pm-sao s2" aria-hidden="true" /><i class="pm-sao s3" aria-hidden="true" />
+          <div class="pm-hero-t">
+            <span class="pm-hero-ic" aria-hidden="true"><Gift v-if="!daMuaPremium && conQuaTang" :size="24" :stroke-width="2.4" /><Crown v-else :size="24" :stroke-width="2.6" /></span>
+            <span v-if="daMuaPremium"><b>{{ t('pm.daCo') }}</b><small>{{ trangThaiCo }}</small></span>
+            <span v-else-if="conQuaTang"><b>{{ t('pm.tang.tieuDe') }}</b><small>{{ t('pm.tang.moTa') }}</small></span>
+            <span v-else><b>{{ t('pm.moi.menu') }}</b><small>{{ t('pm.khauHieu') }}</small></span>
           </div>
-          <section class="pm-cd len-tren" :aria-label="t('pm.caiDat')">
-            <h3>{{ t('pm.caiDat') }}</h3>
-            <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'nen')"><Image :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.s.nen') }}</span><small>{{ chuDeHien }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
-            <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'nhac')"><Music :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('tb.nhacNen') }}</span><small>{{ nhacHien }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
-            <button class="thach pm-cd-dong" type="button" @click="emit('mo', 'hh')"><Award :size="18" :stroke-width="2.4" aria-hidden="true" /><span>{{ t('pm.cd.huyHieu') }}</span><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small><ChevronRight :size="17" aria-hidden="true" /></button>
-          </section>
-          <h3 class="pm-ql-td len-giua">{{ t('pm.quyenLoi') }}</h3>
-          <a v-if="!goiDangCo?.tang" class="thach th-nho pm-ql" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
-          <nav class="pm-link">
-            <button v-if="!cuaHangThat" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
-            <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>
-            <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
-          </nav>
-          <p v-if="!cuaHangThat" class="pm-luat">{{ t('pm.thu') }}</p>
-        </template>
+          <template v-if="daMuaPremium && tongNgay">
+            <span class="pm-han" aria-hidden="true"><i :style="{ width: `${Math.min(100, Math.round((conLai / tongNgay) * 100))}%` }" /></span>
+            <span class="pm-han-chu">{{ t('pm.han', { con: conLai, tong: tongNgay }) }}</span>
+          </template>
+          <template v-else-if="!daMuaPremium && conQuaTang">
+            <button class="pm-nhan thach" type="button" @click="nhanTang">{{ t('pm.tang.nhan') }}</button>
+            <span class="pm-han-chu">{{ t('pm.tang.hetHan', { ngay: hetHanTang }) }}</span>
+          </template>
+        </section>
 
-        <!-- CÒN QUÀ TẶNG: thẻ quà + nút nhận, KHÔNG bày hai gói mua (chưa bán thật) -->
-        <template v-else-if="conQuaTang">
-          <div class="pm-qua len-tren">
-            <span class="pm-qua-ic" aria-hidden="true"><Gift :size="22" :stroke-width="2.4" /></span>
-            <span><b>{{ t('pm.tang.tieuDe') }}</b><small>{{ t('pm.tang.moTa') }}</small></span>
-          </div>
-          <button class="thach th-vang pm-mua" type="button" @click="nhanTang">{{ t('pm.tang.nhan') }}</button>
-          <p class="pm-luat">{{ t('pm.tang.hetHan', { ngay: hetHanTang }) }}</p>
-        </template>
+        <!-- CÀI ĐẶT PREMIUM GỘP MỘT HÀNG BA Ô (chủ dự án: "nút settings premium gộp lại thành menu cho đỡ tốn diện tích") -->
+        <nav v-if="daMuaPremium" class="pm-menu" :aria-label="t('pm.caiDat')">
+          <button class="thach pm-o" type="button" @click="emit('mo', 'nen')"><span class="ic" style="--c: #6c5ce7" aria-hidden="true"><Image :size="18" :stroke-width="2.4" /></span><b>{{ t('pm.s.nen') }}</b><small>{{ chuDeHien }}</small></button>
+          <button class="thach pm-o" type="button" @click="emit('mo', 'nhac')"><span class="ic" style="--c: #e17055" aria-hidden="true"><Music :size="18" :stroke-width="2.4" /></span><b>{{ t('tb.nhacNen') }}</b><small>{{ nhacHien }}</small></button>
+          <button class="thach pm-o" type="button" @click="emit('mo', 'hh')"><span class="ic" style="--c: #f0a500" aria-hidden="true"><Award :size="18" :stroke-width="2.4" /></span><b>{{ t('pm.cd.huyHieu') }}</b><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small></button>
+        </nav>
 
-        <!-- CHƯA CÓ GÓI: hai gói cạnh nhau + dùng thử + nút -->
-        <template v-else>
+        <h3 class="pm-nh">{{ daMuaPremium ? t('pm.quyenLoi') : t('pm.banSeCo') }}</h3>
+        <ul class="pm-ql">
+          <li v-for="q in QL" :key="q.id" class="q" :class="{ noi: theNoi === q.id }">
+            <span class="ic" :style="{ '--c': q.mau }" aria-hidden="true"><component :is="q.ic" :size="16" :stroke-width="2.4" /></span>
+            <b>{{ q.ten }}</b><small>{{ q.moTa }}</small>
+          </li>
+        </ul>
+
+        <!-- MUA GÓI (chưa có Premium, hết quà): hai gói + dùng thử + nút + câu tự gia hạn — Apple bắt buộc có đủ cạnh nút mua -->
+        <template v-if="!daMuaPremium && !conQuaTang">
           <div class="pm-goi" role="radiogroup" :aria-label="t('pm.chonGoi')">
             <button data-phang class="pm-g" type="button" role="radio" :aria-checked="goi === 'nam'" :disabled="buoc === 'dang'" @click="chonGoi('nam')">
               <em v-if="gia.tietKiem > 0">{{ t('pm.tietKiem', { pct: gia.tietKiem }) }}</em>
@@ -217,15 +208,18 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
             <template v-else-if="coThu">{{ t('pm.thuNgay', { n: gia.ngayThu }) }}</template>
             <template v-else><Crown :size="20" :stroke-width="2.6" aria-hidden="true" />{{ t('pm.nangCap') }}</template>
           </button>
-          <!-- Sau dùng thử bao nhiêu tiền — Apple bắt buộc nói rõ ngay cạnh nút -->
           <p class="pm-yen"><ShieldCheck :size="14" :stroke-width="2.6" aria-hidden="true" />{{ t(coThu ? 'pm.sauThu' : 'pm.khongThu', { gia: goi === 'nam' ? t('pm.giaNam', { gia: gia.nam }) : t('pm.giaThang', { gia: gia.thang }) }) }}</p>
           <p class="pm-luat">{{ t('pm.tuGiaHan') }}</p>
-          <nav class="pm-link">
-            <button data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
-            <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>
-            <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
-          </nav>
         </template>
+
+        <nav class="pm-link">
+          <a v-if="daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
+          <button v-if="!daMuaPremium && !conQuaTang" data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
+          <button v-if="daMuaPremium && !cuaHangThat" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
+          <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>
+          <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
+        </nav>
+        <p v-if="daMuaPremium && !cuaHangThat" class="pm-luat">{{ t('pm.thu') }}</p>
         <!-- Mã người dùng bên cửa hàng: cần khi nhờ tặng gói. Chỉ có khi nối cửa hàng thật. -->
         <p v-if="cuaHangThat && maPremium" class="pm-ma">{{ t('pm.ma', { ma: maPremium }) }}</p>
       </template>
@@ -249,47 +243,52 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 :global([data-theme='dark'] .pm) { --pm: #ffd36b; --pm-nen: #3a3160; --pm-cot: #2f2a5c; --pm-vien: #7a6530; --o: #2a3170; --ke: #343c80; }
 @media (max-height: 700px) { .pm { --d: 7px; --h: 31px; padding-block: 10px; } }
 .pm > * { flex-shrink: 0; }
-/* Thứ tự trong cột: đầu bảng · (thẻ quà / trạng thái + cài đặt) · tiêu đề quyền lợi · bảng so sánh · phần còn lại */
-.pm-dau { order: -3; }
-.len-tren { order: -2; }
-.len-giua { order: -1; }
-.pm-qua { display: flex; align-items: center; gap: 11px; padding: 11px 12px; border-radius: 16px; background: linear-gradient(135deg, #ffe9a8, #ffd166); color: #4a2f00; }
-.pm-qua-ic { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #fff; color: #c9820a; }
-.pm-qua span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pm-qua b { font: 800 16px/1.2 var(--font-body); }
-.pm-qua small { font: 600 12.5px/1.3 var(--font-body); }
-.pm-cd { display: flex; flex-direction: column; gap: 7px; }
-.pm-cd h3, .pm-ql-td { margin: 0; font: 800 11px/1.2 var(--font-body); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.pm-cd-dong { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px 0 12px; border-radius: 14px; color: inherit; cursor: pointer; text-align: left; font: 800 14.5px/1.2 var(--font-body); }
-.pm-cd-dong span { flex: 1; min-width: 0; }
-.pm-cd-dong small { flex: none; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font: 700 13px/1.2 var(--font-body); }
-.pm-cd-dong:disabled { opacity: .6; cursor: default; }
-.pm-dau { display: flex; align-items: center; gap: 10px; }
-.pm-vm { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: 0 2px 0 #c98f12; }
-.pm-td { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.pm-td h2 { margin: 0; font: 900 20px/1.15 var(--font-display); }
-.pm-td small { color: var(--muted); font: 600 12.5px/1.3 var(--font-body); text-wrap: pretty; }
+.pm-dau { display: flex; align-items: center; justify-content: space-between; }
+.pm-dau h2 { margin: 0; font: 900 21px/1.15 var(--font-display); }
 
-/* ---------- bảng so sánh ---------- */
-.pm-so { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
-.pm-so th, .pm-so td { height: var(--h); padding: 0 4px; text-align: center; vertical-align: middle; border-bottom: 1px solid var(--ke); }
-.pm-so thead th { height: 28px; border-bottom: 0; font: 800 11px/1.2 var(--font-body); color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.pm-so thead th:nth-child(2), .pm-so td:nth-child(2) { width: 62px; }
-.pm-so thead th.p, .pm-so td.p { width: 80px; background: var(--pm-cot); color: var(--pm); border-inline: 2px solid var(--pm-vien); }
-.pm-so thead th.p { border-top: 2px solid var(--pm-vien); border-radius: 12px 12px 0 0; }
-.pm-so thead th.p svg { vertical-align: -1px; margin-right: 3px; }
-.pm-so tbody tr:last-child > * { border-bottom: 0; }
-.pm-so tbody tr:last-child td.p { border-bottom: 2px solid var(--pm-vien); border-radius: 0 0 12px 12px; }
-.pm-so tbody th { text-align: left; padding-left: 0; }
-.pm-so tbody th { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.pm-so .ic { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 9px; background: var(--o); color: var(--pm); }
-.pm-so .chu { min-width: 0; font: 800 13.5px/1.2 var(--font-body); }
-.pm-so em { display: inline-block; margin-left: 5px; padding: 1px 6px; border-radius: 999px; background: var(--o); color: var(--muted); font: 800 10px/1.4 var(--font-body); font-style: normal; white-space: nowrap; vertical-align: 1px; }
-.pm-so td { font: 800 13px/1.2 var(--font-body); color: var(--muted); }
-.pm-so td.p { font-weight: 900; }
-.pm-so td svg { vertical-align: middle; }
-.pm-so tr.noi .ic { background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }
-.pm-so tr.noi .chu { color: var(--pm); }
+/* ---------- KHỐI ĐẦU (mockup duyệt 26.11.2026) ---------- */
+.pm-hero {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 9px; padding: 14px; border-radius: 20px;
+  background: radial-gradient(120% 90% at 100% 0%, #ffe6a3 0, transparent 55%), linear-gradient(135deg, #ffd166, #f5a524 60%, #e8891a);
+  color: #4a2f00; box-shadow: 0 4px 0 #c47a12;
+}
+:global([data-theme='dark'] .pm-hero) {
+  background: radial-gradient(120% 90% at 100% 0%, #7d5cff 0, transparent 55%), linear-gradient(135deg, #3b2a8f, #2a1f6b 60%, #1c1550);
+  color: #fff3d1; box-shadow: 0 4px 0 #120d38;
+}
+.pm-hero-t { position: relative; display: flex; align-items: center; gap: 11px; }
+.pm-hero-t > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pm-hero-t b { font: 900 18px/1.2 var(--font-display); }
+.pm-hero-t small { font: 700 12.5px/1.3 var(--font-body); opacity: .88; }
+.pm-hero-ic { flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: #fff; color: #d48806; box-shadow: 0 3px 0 rgba(0, 0, 0, .12); }
+.pm-han { position: relative; height: 8px; border-radius: 99px; background: rgba(0, 0, 0, .14); overflow: hidden; }
+.pm-han i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: #fff; }
+.pm-han-chu { position: relative; font: 800 12px/1 var(--font-body); opacity: .9; }
+/* Nút nhận: thạch TRẮNG trên khối vàng (nền sáng) · thạch VÀNG trên khối tím (nền tối) — màu qua biến của hệ thạch
+   (--b1 sáng · --b2 thân · --b3 đế · --bc chữ), ghi background thẳng thì luật thạch (!important) đè mất */
+.pm-nhan { position: relative; min-height: 48px; border-radius: 15px; font: 900 18px/1 var(--font-display); cursor: pointer; --b1: #ffffff; --b2: #fff7e6; --b3: #d9962a; --bc: #a86200; color: #a86200; }
+:global([data-theme='dark'] .pm-nhan) { --b1: #ffe28a; --b2: #f5b324; --b3: #b47a0c; --bc: #4a2f00; color: #4a2f00; }
+.pm-sao { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: .75; box-shadow: 0 0 8px #fff; animation: pm-nhap 2.4s ease-in-out infinite; }
+.pm-sao.s1 { top: 12px; right: 24px; } .pm-sao.s2 { top: 42px; right: 72px; width: 4px; height: 4px; animation-delay: .8s; } .pm-sao.s3 { bottom: 14px; right: 40px; width: 5px; height: 5px; animation-delay: 1.5s; }
+@keyframes pm-nhap { 50% { opacity: .15; transform: scale(.6); } }
+
+/* ---------- CÀI ĐẶT: một hàng ba ô ---------- */
+.pm-menu { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pm-o { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 10px 4px 9px; border-radius: 16px; color: inherit; cursor: pointer; }
+.pm-o b { font: 800 13.5px/1.15 var(--font-body); }
+.pm-o small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 12px/1.15 var(--font-body); color: var(--muted); }
+.ic { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--c); color: #fff; }
+
+/* ---------- QUYỀN LỢI: lưới thẻ ---------- */
+.pm-nh { margin: 2px 0 0; font: 800 11px/1.2 var(--font-body); color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.pm-ql { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.pm-ql .q { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 9px; align-items: center; padding: 9px; border-radius: 14px; background: var(--o); }
+.pm-ql .q .ic { grid-row: 1 / span 2; width: 30px; height: 30px; }
+.pm-ql .q b { align-self: end; font: 800 13.5px/1.2 var(--font-body); }
+.pm-ql .q small { align-self: start; font: 600 11.5px/1.25 var(--font-body); color: var(--muted); }
+/* Thẻ ứng với chỗ người chơi vừa bấm: viền vàng */
+.pm-ql .q.noi { outline: 2.5px solid #f0b429; outline-offset: -1px; }
+
 
 /* ---------- hai gói cạnh nhau ---------- */
 .pm-goi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; }
@@ -313,11 +312,6 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
   border: 0; background: none; padding: 0; min-height: 28px; display: inline-flex; align-items: center; cursor: pointer;
   color: var(--accent); font: 700 12.5px/1.2 var(--font-body); text-decoration: underline;
 }
-.pm-co { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; border-radius: 18px; background: var(--pm-nen); color: var(--pm); border: 2px solid var(--pm-vien); }
-.pm-co span { display: flex; flex-direction: column; line-height: 1.25; }
-.pm-co b { font: 800 16px/1.2 var(--font-body); }
-.pm-co small { font: 600 12.5px/1.3 var(--font-body); }
-.pm-ql { align-self: center; display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 18px; text-decoration: none; font: 800 14px/1.2 var(--font-body); }
 
 .pm-xong { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 6px 6px; text-align: center; }
 .pm-xong-ic { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(180deg, #ffd96a, #f5b324); color: #6b4a00; animation: pm-no .45s cubic-bezier(.2, 1.6, .4, 1); }
@@ -325,5 +319,5 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .pm-xong h3 { margin: 4px 0 0; font-size: var(--text-xl); }
 .pm-xong p { margin: 0 0 8px; color: var(--muted); font-size: var(--text-md); line-height: 1.45; }
 .pm-xong .pm-mua { align-self: stretch; }
-@media (prefers-reduced-motion: reduce) { .pm-quay, .pm-xong-ic { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .pm-quay, .pm-xong-ic, .pm-sao { animation: none; } }
 </style>
