@@ -2,7 +2,7 @@
 import { vChamNgoai } from '@/lib/cham-ngoai';
 /**
  * CHỌN HÌNH NỀN (26.11.2026) — mở từ dòng "Hình nền" trong menu ☰ (chủ dự án duyệt: đặt ngay dưới "Giao diện" cho dễ
- * thấy). Hai CẢNH TRỌN BỘ (Thiên hà, Hoa anh đào) là hai ô lớn ở trên; hành tinh + mặc định là lưới nhỏ bên dưới.
+ * thấy). CHỈ BA HÌNH một hàng: Mặc định, Thiên hà, Hoa anh đào (5 hành tinh lẻ đã bỏ 26.11.2026 — "hơi rối").
  * NGƯỜI CHƯA CÓ PREMIUM bấm hình khoá (đeo vương miện) → đóng bảng này, mở bảng Premium với đúng hình đó ở đầu bảng
  * (chủ dự án: "người dùng free bấm vào sẽ yêu cầu nâng cấp"). Có Premium thì áp ngay, bảng vẫn mở để đổi tiếp.
  */
@@ -11,11 +11,9 @@ import { onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { daMuaPremium, moPremium } from '@/lib/premium';
-import { CANH, CANH_TRON_BO, canh, datCanh, type Canh } from '@/lib/canh';
+import { CANH, canh, datCanh, type Canh } from '@/lib/canh';
 
 const emit = defineEmits<{ close: [] }>();
-const TRON_BO = CANH.filter((c) => CANH_TRON_BO.has(c));
-const CON_LAI = CANH.filter((c) => !CANH_TRON_BO.has(c));
 const khoa = (c: Canh): boolean => c !== 'goc' && !daMuaPremium.value;
 const nutDong = ref<HTMLButtonElement | null>(null);
 onMounted(() => { nutDong.value?.focus(); moChucNang('hinh_nen_mo'); });
@@ -34,19 +32,11 @@ function chon(c: Canh): void {
         <button ref="nutDong" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')"><X :size="20" /></button>
       </header>
       <div class="hn-lon">
-        <button v-for="c in TRON_BO" :key="c" data-phang class="o lon" type="button" :aria-pressed="canh === c" @click="chon(c)">
+        <button v-for="c in CANH" :key="c" data-phang class="o lon" type="button" :aria-pressed="canh === c" @click="chon(c)">
           <span class="anh" :class="c" aria-hidden="true"><i class="l1" /><i class="l2" /><i class="l3" /></span>
-          <span class="ten"><b>{{ td(`pm.nen.${c}`) }}</b><small>{{ td(`hn.mt.${c}`) }}</small></span>
+          <span class="ten"><b>{{ td(`pm.nen.${c}`) }}</b></span>
           <span v-if="khoa(c)" class="vm" :aria-label="t('tp.premium')"><Crown :size="13" :stroke-width="2.8" aria-hidden="true" /></span>
           <span v-else-if="canh === c" class="dang" aria-hidden="true"><Check :size="14" :stroke-width="3.4" /></span>
-        </button>
-      </div>
-      <div class="hn-nho">
-        <button v-for="c in CON_LAI" :key="c" data-phang class="o" type="button" :aria-pressed="canh === c" @click="chon(c)">
-          <span class="anh" :class="c" :style="c !== 'goc' ? { '--ht': `var(--ht-${c})` } : undefined" aria-hidden="true" />
-          <span class="ten"><b>{{ td(`pm.nen.${c}`) }}</b></span>
-          <span v-if="khoa(c)" class="vm" :aria-label="t('tp.premium')"><Crown :size="12" :stroke-width="2.8" aria-hidden="true" /></span>
-          <span v-else-if="canh === c" class="dang" aria-hidden="true"><Check :size="13" :stroke-width="3.4" /></span>
         </button>
       </div>
       <p v-if="!daMuaPremium" class="hn-chu"><Crown :size="14" :stroke-width="2.8" aria-hidden="true" />{{ t('hn.canPremium') }}</p>
@@ -69,24 +59,24 @@ function chon(c: Canh): void {
 .hn > * { flex-shrink: 0; }
 .hn header { display: flex; align-items: center; justify-content: space-between; }
 .hn h2 { margin: 0; font-size: var(--text-xl); }
-.hn-lon { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.hn-nho { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hn-lon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .o { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 5px 5px 8px; border: 2px solid var(--ke); border-radius: 18px; background: none; color: inherit; cursor: pointer; text-align: center; }
 .o[aria-pressed='true'] { border-color: var(--vang); box-shadow: 0 3px 0 color-mix(in srgb, var(--vang) 55%, transparent); }
 .anh { position: relative; display: block; overflow: hidden; border-radius: 13px; aspect-ratio: 5 / 4; background: linear-gradient(#0a1238, #1c2a70); }
-.o.lon .anh { aspect-ratio: 4 / 5; }
+.o.lon .anh { aspect-ratio: 3 / 5; }
 .anh i { position: absolute; }
 .ten { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding-inline: 2px; }
 .ten b { font: 800 13px/1.2 var(--font-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.o.lon .ten b { font-size: 15px; }
+.o.lon .ten b { font-size: 13.5px; }
 .ten small { font: 600 11.5px/1.3 var(--font-body); color: var(--muted); text-wrap: balance; }
 .vm, .dang { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; }
 .vm { background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: 0 2px 0 #c98f12; }
 .dang { background: #1f9d6b; color: #fff; }
-/* Hành tinh: đĩa hành tinh trên trời đêm · Mặc định: mặt trời trên trời xanh */
-.hn-nho .anh { background: var(--ht) center / 62% no-repeat, linear-gradient(#0a1238, #1c2a70); }
-.hn-nho .anh.sao-tho { background-size: 88%, auto; }
-.hn-nho .anh.goc { background: radial-gradient(circle at 70% 34%, #ffe066 0 15%, rgba(255, 232, 130, .5) 16% 26%, transparent 27%), radial-gradient(90% 50% at 30% 118%, #5cc23f 60%, transparent 61%), linear-gradient(#45b3ef, #b5e8ff); }
+/* MẶC ĐỊNH thu nhỏ: trời xanh, mặt trời, đồi, ba lá xoè */
+.anh.goc .l1 { left: 22%; top: 46%; width: 26%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #fff; background: #2b4c9b; rotate: -14deg; }
+.anh.goc .l2 { left: 52%; top: 45%; width: 26%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #fff; background: #2b4c9b; rotate: 12deg; }
+.anh.goc .l3 { left: 36%; top: 42%; width: 28%; aspect-ratio: 3 / 4; border-radius: 16%; border: 2px solid #6d8fdc; background: linear-gradient(#fffdf2, #fff1c9); rotate: -3deg; }
+.anh.goc { background: radial-gradient(circle at 70% 34%, #ffe066 0 15%, rgba(255, 232, 130, .5) 16% 26%, transparent 27%), radial-gradient(90% 50% at 30% 118%, #5cc23f 60%, transparent 61%), linear-gradient(#45b3ef, #b5e8ff); }
 /* THIÊN HÀ thu nhỏ: trời xanh thẳm, Sao Thổ, một lá bài trong quỹ đạo */
 .anh.thien-ha { background: radial-gradient(60% 30% at 20% 30%, rgba(60, 200, 255, .3), transparent 72%), radial-gradient(70% 30% at 90% 60%, rgba(80, 110, 255, .35), transparent 72%), linear-gradient(#030719, #0d2466 70%, #153a8c); }
 .anh.thien-ha .l1 { right: -14%; top: 4%; width: 74%; aspect-ratio: 3 / 2; background: var(--ht-sao-tho) center / contain no-repeat; }

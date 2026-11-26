@@ -442,7 +442,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                Người chưa có Premium bấm hình khoá trong bảng đó sẽ được mời nâng cấp. Cùng cổng debug với Premium. -->
           <button v-if="debug" data-phang class="item nut-nen" role="menuitem" type="button" @click="dong(); emit('hinh-nen')">
             <Image :size="20" /><span>{{ t('pm.s.nen') }}</span>
-            <span class="ba-ht" aria-hidden="true"><i class="th" /><i class="ad" /><i style="background-image: var(--ht-sao-moc)" /></span>
+            <span class="ba-ht" aria-hidden="true"><i class="th" /><i class="ad" /></span>
             <Crown v-if="moiNangCap" class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />
           </button>
           <div class="item am" role="group" :aria-label="t('tb.amThanh')">

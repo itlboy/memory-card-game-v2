@@ -19,7 +19,14 @@ import { dangDebug } from './debug';
  * bạn bè, không chống gian lận.
  */
 export type Goi = 'thang' | 'nam';
-export interface GoiDangCo { goi: Goi; tu: number; het: number }
+/** `thuDen`: đang trong thời gian DÙNG THỬ miễn phí tới mốc này (chưa bị tính tiền). */
+export interface GoiDangCo { goi: Goi; tu: number; het: number; thuDen?: number }
+/** Số ngày dùng thử miễn phí cho lần đăng ký ĐẦU (26.11.2026, chủ dự án: "có báo thời gian dùng thử"). Bán thật = ưu đãi mở đầu khai trên store. */
+export const NGAY_DUNG_THU = 7;
+const KHOA_DA_THU = 'mm.premium.daThu';
+function docDaThu(): boolean { try { return localStorage.getItem(KHOA_DA_THU) === '1'; } catch { return false; } }
+/** Còn được dùng thử không — mỗi người một lần (store cũng chỉ cho một lần mỗi tài khoản). */
+export const conDungThu = ref(!docDaThu());
 /** Giá TẠM (đồng) — chủ dự án chưa chốt; bán thật thì đọc giá đã quy đổi từ store. */
 export const GIA_TAM: Record<Goi, number> = { thang: 29000, nam: 199000 };
 const NGAY = 86_400_000;
@@ -46,7 +53,7 @@ export function datPremiumThu(v: boolean): void {
   if (!v) goiDangCo.value = null;
   try {
     if (v) localStorage.setItem(KHOA, '1');
-    else { localStorage.removeItem(KHOA); localStorage.removeItem(KHOA_GOI); }
+    else { localStorage.removeItem(KHOA); localStorage.removeItem(KHOA_GOI); localStorage.removeItem(KHOA_DA_THU); conDungThu.value = true; }   // tắt bản thử: trả lại lượt dùng thử để thử lại luồng
   } catch { /* chế độ riêng tư */ }
 }
 
@@ -69,7 +76,10 @@ export const TRE_CUA_HANG = { ms: 1400 };
 export async function muaGoi(goi: Goi): Promise<'ok' | 'huy' | 'loi'> {
   await nghi(TRE_CUA_HANG.ms);
   const tu = Date.now();
-  const g: GoiDangCo = { goi, tu, het: tu + (goi === 'nam' ? 365 : 30) * NGAY };
+  const thu = conDungThu.value ? NGAY_DUNG_THU * NGAY : 0;
+  const g: GoiDangCo = { goi, tu, het: tu + thu + (goi === 'nam' ? 365 : 30) * NGAY, ...(thu ? { thuDen: tu + thu } : {}) };
+  conDungThu.value = false;
+  try { localStorage.setItem(KHOA_DA_THU, '1'); } catch { /* chế độ riêng tư */ }
   goiDangCo.value = g;
   daMuaPremium.value = true;
   try { localStorage.setItem(KHOA_GOI, JSON.stringify(g)); } catch { /* chế độ riêng tư */ }

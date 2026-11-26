@@ -315,8 +315,7 @@ const showSoTriNho = ref(false);
 const showPremium = ref(false);
 /** Nơi người chơi bấm để mở bảng — bảng mở đầu bằng đúng thứ họ vừa chạm (lib/premium.ts `moPremium`). */
 const premiumTu = ref<NoiMoPremium>('menu');
-const premiumCanh = ref<string | undefined>();
-watch(yeuCauPremium, (y) => { if (y) { premiumTu.value = y.tu; premiumCanh.value = y.canh; showPremium.value = true; } });
+watch(yeuCauPremium, (y) => { if (y) { premiumTu.value = y.tu; showPremium.value = true; } });
 /** Bảng chọn hình nền — dòng "Hình nền" trong menu ☰ (cùng cổng debug với Premium cho tới khi bán thật). */
 const showHinhNen = ref(false);
 useBackCloser(31, () => showHinhNen.value, () => { showHinhNen.value = false; });
@@ -1097,7 +1096,7 @@ const hasNext = computed(() => {
   <SaoBang v-if="canh !== 'goc' && canh !== 'anh-dao' && screen !== 'mua-the'" />
   <TopBar
     :debug="debug"
-    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="premiumTu = 'menu'; premiumCanh = undefined; showPremium = true" @hinh-nen="showHinhNen = true"
+    @update:debug="xinDebug" @mo-debug="showDebug = true" @premium="premiumTu = 'menu'; showPremium = true" @hinh-nen="showHinhNen = true"
     :nen="nen" :sound-level="soundLevel" :total-score="totalScore" :nhac="nhacBat" :bai-nhac="baiNhac"
     :danh-hieu="{ co: Math.max(0, dsHien.filter((a) => daCo.includes(a.id)).length - vuaMo.length - dangKhoe), tong: dsHien.length }"
     @danh-hieu="showDanhHieu = true"
@@ -1240,12 +1239,12 @@ const hasNext = computed(() => {
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
     @so-tri-nho="showDebug = false; showSoTriNho = true"
-    @premium="showDebug = false; premiumTu = 'debug'; premiumCanh = undefined; showPremium = true"
+    @premium="showDebug = false; premiumTu = 'debug'; showPremium = true"
     @tat="debug = false; showDebug = false"
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
-  <BangPremium v-if="showPremium && debug" :tu="premiumTu" :xem-truoc="premiumCanh" @close="showPremium = false" />
+  <BangPremium v-if="showPremium && debug" :tu="premiumTu" @close="showPremium = false" />
   <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <HoSoDialog v-if="canMoChao" kieu="chao" />

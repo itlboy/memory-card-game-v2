@@ -1,15 +1,19 @@
 <script setup lang="ts">
+import { anhEmoji } from '@/lib/emoji';
+import { HINH_TRANG_CHU } from '@/lib/hinh-trang-chu';
 /*
  * LÁ BÀI RƠI — riêng hình nền Hoa anh đào (26.11.2026, chủ dự án: "hoa anh đào có hiệu ứng lá bài khác… làm các lá
- * bài rơi"). Vài lá bài nhỏ rơi chậm từ trên xuống như cánh hoa: vừa rơi vừa đưa ngang và lật mặt.
+ * bài rơi"; cảnh này KHÔNG còn ba lá to). Lá rơi chậm từ trên xuống như cánh hoa: vừa rơi vừa đưa ngang và LẬT.
+ * LÁ BÀI THẬT HAI MẶT (chủ dự án: "các lá rơi xuống có nội dung thật"): mặt ngửa là hình bốc từ bộ tuyển chọn của
+ * trang chủ (`HINH_TRANG_CHU`, cùng ảnh với lá trong ván), mặt lưng hồng in bông hoa; lá xoay quanh trục dọc nên lúc
+ * thấy hình, lúc thấy lưng. Hình bốc MỘT LẦN lúc mở màn (không đổi giữa chừng — đổi là phải tải + giải mã ảnh trong lúc
+ * đang chạy animation, đúng thứ làm iOS khựng).
  * Luật giống IconBay: chỉ ở màn menu (App không mount lúc đang chơi), chỉ `transform` thuần, HAI LỚP mỗi lớp một
  * chuyển động (lớp ngoài RƠI, lớp trong ĐƯA + LẬT) để WebKit chạy trọn trên GPU, không `will-change`.
  * Máy bật giảm chuyển động thì không hiện (lá đứng im giữa trời trông như lỗi).
  */
-/*
- * BA TẦNG XA–GẦN (bản 2, cảnh này không còn ba lá to): lá XA nhỏ, mờ, rơi chậm; lá GẦN to gấp mấy lần, rõ, rơi nhanh
- * hơn — mắt thấy chiều sâu. 12 lá. Lá gần đi qua đúng khoảng giữa màn hình (chỗ ba lá to từng đứng).
- */
+const tron = <T,>(a: readonly T[]): T[] => a.map((v) => [Math.random(), v] as const).sort((p, q) => p[0] - q[0]).map(([, v]) => v);
+const HINH = tron(HINH_TRANG_CHU);
 const LA = [
   // xa
   { x: 5, co: 22, rs: 21, ds: 5.2, tre: -3, mat: false, mo: .7 }, { x: 31, co: 20, rs: 24, ds: 5.8, tre: -15, mat: true, mo: .7 },
@@ -26,7 +30,10 @@ const LA = [
 <template>
   <div class="la-roi" aria-hidden="true">
     <span v-for="(l, i) in LA" :key="i" class="lr" :style="{ left: `${l.x}%`, width: `${l.co}px`, marginLeft: `${-l.co / 2}px`, opacity: l.mo, animationDuration: `${l.rs}s`, animationDelay: `${l.tre}s` }">
-      <i :class="{ mat: l.mat }" :style="{ animationDuration: `${l.ds}s`, animationDelay: `${l.tre}s` }" />
+      <span class="lat" :class="{ nguoc: l.mat }" :style="{ animationDuration: `${l.ds * 2}s`, animationDelay: `${l.tre}s` }">
+        <i class="mat"><img v-if="anhEmoji(HINH[i % HINH.length]!)" :src="anhEmoji(HINH[i % HINH.length]!)!" alt="" draggable="false"><template v-else>{{ HINH[i % HINH.length] }}</template></i>
+        <i class="lung" />
+      </span>
     </span>
   </div>
 </template>
@@ -34,18 +41,26 @@ const LA = [
 <style scoped>
 .la-roi { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 .lr { container-type: inline-size; position: absolute; top: -130px; aspect-ratio: 3 / 4; animation: lr-roi linear infinite; }
-.lr i {
-  display: block; width: 100%; height: 100%; border-radius: 16%; border: max(2px, 5cqw) solid #fff;
-  background: radial-gradient(circle at 50% 50%, #fff 0 16%, rgba(255, 255, 255, .35) 17% 30%, transparent 31%), linear-gradient(155deg, #ff9dc0, #e2558c);
-  box-shadow: 0 3px 6px rgba(120, 20, 60, .25);
-  animation: lr-dua ease-in-out infinite alternate;
+.lat { position: absolute; inset: 0; transform-style: preserve-3d; animation: lr-dua ease-in-out infinite alternate; }
+.lat i {
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: 16%; box-shadow: 0 3px 6px rgba(120, 20, 60, .25);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; font-style: normal; font-size: 55cqw; line-height: 1;
 }
-/* Lá NGỬA: mặt kem với một bông hoa — xen vài lá cho đỡ đều */
-.lr i.mat { background: radial-gradient(circle at 50% 50%, #ff8fb5 0 14%, #ffd0e0 15% 30%, transparent 31%), linear-gradient(#fffdf2, #fff1c9); border-color: #f27aa6; }
+/* Mặt NGỬA: nền kem + viền như lá ngửa trong ván, hình chiếm ~60% bề ngang */
+.lat .mat { border: max(2px, 5cqw) solid #f27aa6; background: radial-gradient(110% 80% at 50% 35%, #fffdf2, #fff1c9 90%); }
+.lat .mat img { width: 62cqw; height: 62cqw; }
+/* Mặt LƯNG: hồng in bông hoa */
+.lat .lung {
+  border: max(2px, 5cqw) solid #fff; transform: rotateY(180deg);
+  background: radial-gradient(circle at 50% 50%, #fff 0 13%, rgba(255, 255, 255, .35) 14% 27%, transparent 28%), linear-gradient(155deg, #ff9dc0, #e2558c);
+}
 @keyframes lr-roi { from { transform: translateY(0); } to { transform: translateY(calc(100vh + 260px)); } }
+/* Đưa ngang + nghiêng + LẬT quanh trục dọc: đi từ gần ngửa hẳn tới gần úp hẳn rồi quay lại (alternate) */
 @keyframes lr-dua {
-  from { transform: translateX(-16px) rotate(-28deg) rotateY(-50deg); }
-  to   { transform: translateX(16px) rotate(24deg) rotateY(55deg); }
+  from { transform: translateX(-16px) rotate(-22deg) rotateY(-35deg); }
+  to   { transform: translateX(16px) rotate(20deg) rotateY(215deg); }
 }
+/* Nửa số lá bắt đầu từ mặt lưng cho đỡ đều */
+.lat.nguoc { animation-direction: alternate-reverse; }
 @media (prefers-reduced-motion: reduce) { .la-roi { display: none; } }
 </style>
