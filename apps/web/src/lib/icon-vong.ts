@@ -1,7 +1,7 @@
 import type { Component } from 'vue';
 import {
-  Bug, Crown, Flame, Hand, HeartCrack, Hourglass, LogOut, Medal, PartyPopper, RotateCw, SlidersHorizontal,
-  Target, TriangleAlert, Trophy, Wifi, WifiOff, BellRing, MailPlus
+  Bug, Check, Crown, Eye, Flame, Hand, HeartCrack, Hourglass, LogOut, Medal, PartyPopper, RotateCcw, RotateCw, SlidersHorizontal,
+  Target, TimerOff, TriangleAlert, Trophy, Wifi, WifiOff, BellRing, MailPlus, X, Zap
 } from 'lucide-vue-next';
 
 /**
@@ -31,6 +31,13 @@ export const ICON_VONG = {
   xepHang: { c: Trophy, mau: 'vang' },
   lua: { c: Flame, mau: 'do' },
   debug: { c: Bug, mau: 'xam' },
-  loiMoi: { c: MailPlus, mau: 'tim' }
+  loiMoi: { c: MailPlus, mau: 'tim' },
+  // Tìm Thẻ (26.11.2026): các nhịp của một lượt
+  ghiNho: { c: Eye, mau: 'tim' },
+  upBai: { c: RotateCcw, mau: 'xam' },
+  dungRoi: { c: Check, mau: 'xanh' },
+  saiRoi: { c: X, mau: 'do' },
+  hetGio: { c: TimerOff, mau: 'xam' },
+  nhanhNhat: { c: Zap, mau: 'vang' }
 } satisfies Record<string, { c: Component; mau: MauVong }>;
 export type TenIcon = keyof typeof ICON_VONG;
