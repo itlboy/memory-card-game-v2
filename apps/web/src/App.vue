@@ -18,6 +18,8 @@ import RulesDialog from './components/RulesDialog.vue';
 import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
+import TimThe from './components/TimThe.vue';
+import { TIM_THE_MO, cheDoGa, type TimTheChon, type TimTheKetVan } from './lib/tim-the';
 import SoTriNho from './components/SoTriNho.vue';
 import BangPremium from './components/BangPremium.vue';
 import LaRoi from './components/LaRoi.vue';
@@ -203,8 +205,14 @@ watch(diemVuaCong, () => { totalScore.value = store.totalScore(); });
 
 const themes = ref<CardTheme[]>([]);
 /** 'mua-the' = chế độ thẻ rơi (components/MuaThe.vue) — ô ngang ở trang chủ + trang Debug; `?mua=1` trên URL. */
-const screen = ref<'menu' | 'game' | 'online' | 'mua-the'>('menu');
+/** 'tim-the' = Tìm Thẻ (components/TimThe.vue, 26.11.2026) — bước Thể loại + trang Debug; `?tim=1` trên URL. */
+const screen = ref<'menu' | 'game' | 'online' | 'mua-the' | 'tim-the'>('menu');
 const muaTheRef = ref<InstanceType<typeof MuaThe> | null>(null);
+const timTheRef = ref<InstanceType<typeof TimThe> | null>(null);
+/** Màn chơi RIÊNG ngoài bàn ghép cặp (Mưa Thẻ, Tìm Thẻ): cùng cách dừng / hỏi / thoát — một chỗ cho mọi lối. */
+const laManRieng = (sc: string = screen.value): boolean => sc === 'mua-the' || sc === 'tim-the';
+const manRieng = (): { dangDo: () => boolean; tamDung: () => void; veLai: () => void } | null =>
+  screen.value === 'mua-the' ? muaTheRef.value : screen.value === 'tim-the' ? timTheRef.value : null;
 const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
 /**
  * VÁN ĐANG CHẠY (chưa có kết quả) — TopBar chỉ hoãn hỏi/diễn THỨ HẠNG trong lúc này. Hết ván (bảng kết quả đang hiện) là hỏi
@@ -212,9 +220,9 @@ const onlineRef = ref<InstanceType<typeof OnlineScreen> | null>(null);
  */
 const vanDangChay = computed(() => (screen.value === 'game' && !session.summary.value)
   || (screen.value === 'online' && !!onlineRef.value?.dangChoi)
-  || screen.value === 'mua-the');
+  || laManRieng());
 /** Đang trong VÁN (offline hoặc online đang chơi) — nhạc nền nhỏ dần rồi tắt (16.10.2026). */
-const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua-the' || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
+const trongVan = computed(() => screen.value === 'game' || laManRieng() || (screen.value === 'online' && !!onlineRef.value?.dangChoi));
 
 /*
  * MỜI NGƯỜI ONLINE (21.11.2026, lib/sanh.ts): mời được ai KHÔNG ở phòng online nào — trang chủ hay đang chơi
@@ -222,10 +230,10 @@ const trongVan = computed(() => screen.value === 'game' || screen.value === 'mua
  */
 const onlineKey = ref(0);
 watchEffect(() => { trongPhongOnline.value = screen.value === 'online' && !!onlineRef.value?.trongPhong; });
-watchEffect(() => { dangChoiOffline.value = screen.value === 'game' || screen.value === 'mua-the'; });
+watchEffect(() => { dangChoiOffline.value = screen.value === 'game' || laManRieng(); });
 // MỘT người thật (một mình / đấu máy / Mưa Thẻ): thi đấu vẫn hỏi; chơi nhiều người cùng máy thì không
 watchEffect(() => {
-  choiMotMinh.value = screen.value === 'mua-the'
+  choiMotMinh.value = laManRieng()
     || (screen.value === 'game' && (session.game.value?.players.filter((p) => !laBot(p.id)).length ?? 0) === 1);
 });
 // Trận thi đấu THÀNH giữa lúc đang chơi một mình: dừng ván ngay (lớp phủ trận che bàn); vào phòng thì `diVaoPhongMoi`
@@ -233,7 +241,7 @@ watchEffect(() => {
 watch(() => tdTran.value?.id, (id) => {
   if (!id) return;
   if (screen.value === 'game' && session.game.value && !session.game.value.finished) session.pause();
-  else if (screen.value === 'mua-the' && muaTheRef.value?.dangDo()) muaTheRef.value.tamDung();
+  else if (manRieng()?.dangDo()) manRieng()!.tamDung();
 });
 if (import.meta.env.MODE !== 'test') onMounted(batDauSanh);
 const hoiBoVanMoi = ref(false);
@@ -247,7 +255,7 @@ function thachDau(n: ThachDau): void {
   showBxh.value = false;
   thachCho.value = n;
   if (screen.value === 'game' && session.game.value && !session.game.value.finished) { session.pause(); thachSau = true; hoiBoVanMoi.value = true; return; }
-  if (screen.value === 'mua-the' && muaTheRef.value?.dangDo()) { muaTheRef.value.tamDung(); thachSau = true; hoiBoVanMoi.value = true; return; }
+  if (manRieng()?.dangDo()) { manRieng()!.tamDung(); thachSau = true; hoiBoVanMoi.value = true; return; }
   diThach();
 }
 function dongYBoVanMoi(): void { boVanDo('thoat'); if (thachSau) diThach(); else diVaoPhongMoi(); }
@@ -255,7 +263,7 @@ function huyBoVanMoi(): void { hoiBoVanMoi.value = false; maMoiCho = ''; thachSa
 function diThach(): void {
   hoiBoVanMoi.value = false;
   thachSau = false;
-  if (screen.value === 'game' || screen.value === 'mua-the') backToMenu();
+  if (screen.value === 'game' || laManRieng()) backToMenu();
   joinCode.value = '';
   onlineKey.value++;
   screen.value = 'online';
@@ -271,14 +279,14 @@ function vaoPhongMoi(): void {
   maMoiCho = ma;
   sfx.select();
   if (screen.value === 'game' && session.game.value && !session.game.value.finished) { session.pause(); hoiBoVanMoi.value = true; return; }
-  if (screen.value === 'mua-the' && muaTheRef.value?.dangDo()) { muaTheRef.value.tamDung(); hoiBoVanMoi.value = true; return; }
+  if (manRieng()?.dangDo()) { manRieng()!.tamDung(); hoiBoVanMoi.value = true; return; }
   diVaoPhongMoi();
 }
 function diVaoPhongMoi(): void {
   hoiBoVanMoi.value = false;
   if (!maMoiCho) return;
   // Đang ở ván offline / Mưa Thẻ (đã đồng ý bỏ) hay màn kết quả: dọn như lối "về trang chủ" rồi mới sang
-  if (screen.value === 'game' || screen.value === 'mua-the') backToMenu();
+  if (screen.value === 'game' || laManRieng()) backToMenu();
   joinCode.value = maMoiCho;
   maMoiCho = '';
   onlineKey.value++;          // đang ở danh sách phòng: dựng lại màn online theo lối "được mời"
@@ -442,6 +450,7 @@ const showDanhHieu = ref(false);
 watch(screen, (sc) => {
   if (sc === 'online') moChucNang('choi_online');
   else if (sc === 'mua-the') moChucNang('mua_the');
+  else if (sc === 'tim-the') moChucNang('tim_the');
 });
 for (const [r, ten] of [
   [showRules, 'luat_choi'], [showAccount, 'tai_khoan'], [showBxh, 'xep_hang'], [showDanhHieu, 'danh_hieu'], [hienCai, 'cai_app']
@@ -547,7 +556,7 @@ useBackCloser(30, () => confirmQuit.value, () => { confirmQuit.value = false; })
  */
 useBackCloser(20, () => screen.value !== 'menu', () => {
   if (screen.value === 'game') thoatVan();
-  else if (screen.value === 'mua-the') muaTheRef.value?.veLai();
+  else if (laManRieng()) manRieng()?.veLai();
   // Online: Back giữa ván về MÀN ONLINE chứ không ra trang chủ (23.11.2026) — OnlineScreen `requestBack`
   else if (screen.value === 'online') onlineRef.value?.requestBack();
   else goHome();
@@ -555,10 +564,10 @@ useBackCloser(20, () => screen.value !== 'menu', () => {
 
 /** Bấm logo: về trang chủ — đang dở việc thì hỏi trước. */
 function goHome(): void {
-  if (screen.value === 'mua-the') {
-    // Ván Mưa Thẻ dở: dừng rồi HỎI như ván thường (bản đầu thoát thẳng — chủ dự án báo 27.10.2026).
+  if (laManRieng()) {
+    // Ván Mưa Thẻ / Tìm Thẻ dở: dừng rồi HỎI như ván thường (bản đầu thoát thẳng — chủ dự án báo 27.10.2026).
     // Huỷ thì ở lại màn tạm dừng của Mưa Thẻ.
-    if (muaTheRef.value?.dangDo()) { muaTheRef.value.tamDung(); thoatVeBuoc.value = false; confirmQuit.value = true; return; }
+    if (manRieng()?.dangDo()) { manRieng()!.tamDung(); thoatVeBuoc.value = false; confirmQuit.value = true; return; }
     screen.value = 'menu'; return;
   }
   if (screen.value === 'online') {
@@ -715,6 +724,8 @@ onMounted(() => {
     screen.value = 'online';           // F5 ở màn vào online
   } else if (q.get('mua') === '1' && (MUA_THE_MO || debug.value)) {
     screen.value = 'mua-the';          // F5 ở Mưa Thẻ: về màn mở đầu (ván dở không giữ — ván chỉ vài phút)
+  } else if (q.get('tim') === '1' && (TIM_THE_MO || debug.value)) {
+    screen.value = 'tim-the';          // F5 ở Tìm Thẻ: về màn cấu hình (ván ~2 phút, không giữ)
   } else if (q.get('w')) {
     /* bước wizard — MenuScreen tự khôi phục từ ?w= */
   } else if (q.get('cai') === '1') {
@@ -739,7 +750,7 @@ onMounted(() => {
   window.addEventListener('beforeunload', (e) => {
     persistGame();
     const inGame = (screen.value === 'game' && !!session.game.value && !session.game.value.finished)
-      || (screen.value === 'mua-the' && !!muaTheRef.value?.dangDo());
+      || !!manRieng()?.dangDo();
     const inOnline = screen.value === 'online' && (onlineRef.value?.isBusy() ?? false);
     if (inGame || inOnline) {
       e.preventDefault();
@@ -795,10 +806,12 @@ watch(screen, (sc, cu) => { if (sc === 'menu' && cu !== 'menu') setTimeout(() =>
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
+  else if (sc === 'tim-the') setUrl('tim=1');
   // logo về trang chủ: lau ?mua=1. Thoát bằng nút trong màn thì `veBuocTruoc` đã ghi ?w=kieu — giữ nguyên
   // đọc `urlApp()` (URL app MUỐN), không `location`: Back của trình duyệt đã kéo location lùi về mục cũ, rồi
   // useBackGuard ghi lại urlApp() — đọc location là bỏ sót và ?mua=1 sống lại (đo được 28.10.2026)
   else if (cu === 'mua-the' && sc === 'menu' && urlApp().includes('mua=1')) setUrl(null);
+  else if (cu === 'tim-the' && sc === 'menu' && urlApp().includes('tim=1')) setUrl(null);
 });
 
 /** Hết ván Mưa Thẻ: điểm vào TỔNG XU như mọi ván một mình (không ghi kỷ lục theo cỡ bàn — Mưa Thẻ có
@@ -807,6 +820,46 @@ function xongMuaThe(kq: { diem: number; cap: number; soCap: number; soCot: numbe
   store.addScore(kq.diem);
   totalScore.value = store.totalScore();
   suKien('mua_the_ket_thuc', { diem: kq.diem, cap: kq.cap, so_cap: kq.soCap, so_cot: kq.soCot, giay: Math.round(kq.giay) });
+}
+
+/** Vào Tìm Thẻ: hình lấy từ BỘ THẺ đang chọn (chốt 26.11.2026); bộ đó ít hơn 12 hình thì trộn mọi theme chơi được. */
+const hinhTimThe = computed(() => (symbols.value.length >= 12
+  ? symbols.value
+  : [...new Set(themes.value.filter(choiDuoc).flatMap((t) => t.symbols))]));
+
+/** Bắt đầu ván Tìm Thẻ: CÙNG sự kiện `van_bat_dau` với ghép cặp — `che_do` tim_the / tim_the_may_<mức>, độ khó ở `tuy_chon`. */
+function batDauTimThe(c: TimTheChon): void {
+  suKien('van_bat_dau', {
+    ...thamSoVanDau(), che_do: cheDoGa(c.doiThu), so_the: c.soThe, tuy_chon: c.doKho,
+    so_nguoi: c.doiThu === 'mot' ? 1 : 2, theme: themeIds.value.join(',').slice(0, 100)
+  });
+}
+
+/**
+ * Hết ván Tìm Thẻ (luật thưởng chủ dự án duyệt 26.11.2026):
+ *  · xu = điểm của mình, thua vẫn được; đấu Gà mờ 0 xu (cùng lý do với ghép cặp: chống cày máy dễ);
+ *  · đấu máy lên sổ tài khoản + bộ đếm thắng máy như ghép cặp; ván MỘT MÌNH chỉ tính số ván / chuỗi ngày
+ *    (không có thắng thua) và đồng bộ tổng xu lên tài khoản;
+ *  · CHƯA tính Chỉ số trí nhớ và danh hiệu — công thức của chúng dựa trên bộ đếm của ghép cặp.
+ */
+function xongTimThe(kq: TimTheKetVan): void {
+  const may = kq.doiThu !== 'mot';
+  const coXu = kq.doiThu !== 'easy';
+  if (coXu) store.addScore(kq.diem);
+  totalScore.value = store.totalScore();
+  if (may) {
+    const thang = kq.ketQua === 'thang';
+    store.ghiVanBoDem({ thang, may: thang && coXu });
+    if (thang) ghiVuaThang();
+    void taiKhoan.ghiVan({ ketQua: kq.ketQua === 'xong' ? 'hoa' : kq.ketQua, score: coXu ? kq.diem : 0 });
+  } else {
+    store.ghiVanBoDem({ thang: false });
+    void taiKhoan.dongBo();
+  }
+  suKien('van_ket_thuc', {
+    che_do: cheDoGa(kq.doiThu), ket_qua: kq.ketQua, so_the: kq.soThe, tuy_chon: kq.doKho, giay: kq.giay,
+    diem: kq.diem, so_dung: kq.dung, so_luot: kq.soLuot, chuoi_dai: kq.chuoiDai, ky_luc: kq.kyLucMoi
+  });
 }
 
 /* ---------- tuỳ chọn hiển thị ---------- */
@@ -1027,6 +1080,12 @@ function tomTatTuyChon(): string {
 function boVanDo(cach: string): void {
   const g = session.game.value;
   if (screen.value === 'mua-the') { if (cach !== 'choi_lai') suKien('mua_the_bo_do', { cach }); return; }
+  if (screen.value === 'tim-the') {
+    const d = timTheRef.value?.boDo();
+    // CÙNG sự kiện `van_bo_do` với ghép cặp (che_do = tim_the…): so được tỉ lệ bỏ ngang hai kiểu trong một báo cáo
+    if (d) suKien('van_bo_do', { che_do: cheDoGa(d.doiThu), cach, so_the: d.soThe, tuy_chon: d.doKho, tien_do: Math.round((d.luot / d.soLuot) * 100), giay: d.giay });
+    return;
+  }
   if (!g || g.finished || screen.value !== 'game') return;
   suKien('van_bo_do', {
     che_do: kieuVan(), cach, so_the: g.cards.length,
@@ -1208,9 +1267,9 @@ const hasNext = computed(() => {
 <template>
   <!-- Icon bay lơ lửng sau các màn menu — KHÔNG có trong lúc chơi (xem IconBay.vue) -->
   <!-- …kể cả Mưa Thẻ: icon bay giữa các lá đang rơi trông như một lá nữa -->
-  <IconBay v-if="screen !== 'game' && screen !== 'mua-the'" />
+  <IconBay v-if="screen !== 'game' && !laManRieng(screen)" />
   <!-- Lá bài rơi như cánh hoa — riêng hình nền Hoa anh đào (LaRoi.vue), cùng luật với icon bay: không có lúc đang chơi -->
-  <LaRoi v-if="canh === 'anh-dao' && screen !== 'game' && screen !== 'mua-the'" />
+  <LaRoi v-if="canh === 'anh-dao' && screen !== 'game' && !laManRieng(screen)" />
   <!-- Sao băng thưa: chỉ đi kèm hình nền hành tinh (Premium), không có lúc đang chơi Mưa Thẻ -->
   <!-- Hiệu ứng ghép cặp Premium (lib/hieu-ung-premium.ts) — lớp vẽ chung cho ván offline + online -->
   <GhepPremiumFx />
@@ -1268,6 +1327,7 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
+      @tim-the="nhoBuocTruoc(); screen = 'tim-the'"
       @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
@@ -1288,6 +1348,15 @@ const hasNext = computed(() => {
       @thoat="veBuocTruoc"
       @bat-dau="(soCot: number) => suKien('mua_the_bat_dau', { so_cot: soCot })"
       @ket-thuc="xongMuaThe"
+    />
+
+    <TimThe
+      v-else-if="screen === 'tim-the'"
+      ref="timTheRef"
+      :hinh="hinhTimThe"
+      @thoat="veBuocTruoc"
+      @bat-dau="batDauTimThe"
+      @ket-thuc="xongTimThe"
     />
 
     <GameScreen
@@ -1330,6 +1399,7 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
+      @tim-the="nhoBuocTruoc(); screen = 'tim-the'"
       @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
@@ -1360,6 +1430,7 @@ const hasNext = computed(() => {
     @update:do-nhip="doNhip = $event"
     @xem-fx="(fx: XemFx) => { showDebug = false; xemThuFx(fx); }"
     @mua-the="showDebug = false; nhoBuocTruoc(); screen = 'mua-the'"
+    @tim-the="showDebug = false; nhoBuocTruoc(); screen = 'tim-the'"
     @so-tri-nho="showDebug = false; showSoTriNho = true"
     @premium="showDebug = false; premiumTu = 'debug'; showPremium = true"
     @tat="debug = false; showDebug = false"

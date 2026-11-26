@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Brain, CloudRain, Crown } from 'lucide-vue-next';
+import { Brain, CloudRain, ScanSearch, Crown } from 'lucide-vue-next';
 /**
  * CÔNG CỤ CHẾ ĐỘ DEBUG — nằm NGAY TRONG menu Cài đặt (chủ dự án 16.10.2026; trước đó ở
  * cuối Luật chơi, phải mở thêm một hộp thoại mới tới). Bật debug: chạm 7 lần vào chữ
@@ -26,7 +26,7 @@ import { BIEN_THE, TEN_BIEN_THE, type BienThe, type LoaiKetCuc } from '@/lib/ket
 export interface XemFx { loai: LoaiKetCuc; bienThe?: BienThe; kyLuc?: boolean }
 
 const props = defineProps<{ doNhip: boolean }>();
-const emit = defineEmits<{ 'update:doNhip': [boolean]; 'xem-fx': [XemFx]; tat: []; 'mua-the': []; 'so-tri-nho': []; premium: [] }>();
+const emit = defineEmits<{ 'update:doNhip': [boolean]; 'xem-fx': [XemFx]; tat: []; 'mua-the': []; 'tim-the': []; 'so-tri-nho': []; premium: [] }>();
 
 const XEM_THU = computed((): { ten: string; fx: XemFx }[] => [
   ...BIEN_THE.thang.map((b) => ({ ten: t('lc.xemThang', { ten: TEN_BIEN_THE[b] }), fx: { loai: 'thang' as const, bienThe: b } })),
@@ -82,6 +82,11 @@ function veMacDinh(): void {
     <button class="thach th-troi dbg-thu" type="button" @click="emit('mua-the')">
       <span class="dbg-thu-ic" aria-hidden="true"><CloudRain :size="28" :stroke-width="2.3" /></span>
       <span class="dbg-thu-chu"><small>{{ t('mt.thuNghiem') }}</small><b>{{ t('mt.ten') }}</b><span>{{ t('mt.moTa') }}</span></span>
+      <span class="dbg-thu-mui" aria-hidden="true">›</span>
+    </button>
+    <button class="thach th-hong dbg-thu" type="button" @click="emit('tim-the')">
+      <span class="dbg-thu-ic" aria-hidden="true"><ScanSearch :size="28" :stroke-width="2.3" /></span>
+      <span class="dbg-thu-chu"><small>{{ t('mt.thuNghiem') }}</small><b>{{ t('tt.ten') }}</b><span>{{ t('tt.moTa') }}</span></span>
       <span class="dbg-thu-mui" aria-hidden="true">›</span>
     </button>
     <button class="thach th-ngoc dbg-thu" type="button" @click="emit('so-tri-nho')">

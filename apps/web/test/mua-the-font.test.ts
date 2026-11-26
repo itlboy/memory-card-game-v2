@@ -8,9 +8,9 @@ import { describe, expect, it } from 'vitest';
  * `btn-primary`) là font tiêu đề. Chủ dự án báo hai lần (màn tạm dừng, bảng kết quả): "đừng để mắc lỗi nữa".
  * Luật: nút có CHỮ DỊCH (`t(…)`) ở các màn này phải mang `btn`.
  */
-const FILES = ['components/MuaThe.vue', 'components/TamDung.vue'];
+const FILES = ['components/MuaThe.vue', 'components/TimThe.vue', 'components/TamDung.vue'];
 
-describe('Mưa Thẻ: nút có chữ dùng btn như ván thường', () => {
+describe('Mưa Thẻ, Tìm Thẻ: nút có chữ dùng btn như ván thường', () => {
   for (const f of FILES) {
     it(f, () => {
       const s = readFileSync(resolve(process.cwd(), 'src', f), 'utf8');

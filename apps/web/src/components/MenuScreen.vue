@@ -44,6 +44,9 @@ import OptionIcon from './OptionIcon.vue';
 import BanChon from './BanChon.vue';
 import type { IconName } from './OptionIcon.vue';
 import { MUA_THE_MO } from '@/lib/mua-the';
+import { TIM_THE_MO } from '@/lib/tim-the';
+/** Bước Thể loại hiện khi có ÍT NHẤT một kiểu chơi khác đang mở. */
+const CO_KIEU = MUA_THE_MO || TIM_THE_MO;
 import { nhanSoPhong, soPhongXem, useSoPhongCho } from '@/lib/so-phong-cho';
 import { soNguoiOnline } from '@/lib/sanh';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
@@ -84,6 +87,7 @@ const emit = defineEmits<{
   'update:mayCung': [(BotLevel | null)[]];
   'start-level': [number];
   'mua-the': [];
+  'tim-the': [];
   'update:options': [BoardOptions];
   online: [];
   'chinh-phuc': [string];
@@ -174,7 +178,7 @@ const path = computed<Step[]>(() => {
   // "Chơi nhanh": (Thể loại nếu Mưa Thẻ mở — lib/mua-the.ts) → màn `nhanh`, cộng bước phụ đang mở.
   // Bước phụ lấy theo `step` HOẶC `buocHien`: lúc đang rời bước phụ về `nhanh`, phần đầu vẫn vẽ bước
   // phụ thêm một nhịp — bỏ nó khỏi path sớm là nút quay lại nháy mất.
-  const kieu: Step[] = MUA_THE_MO ? ['kieu'] : [];
+  const kieu: Step[] = CO_KIEU ? ['kieu'] : [];
   const goc: Step[] = props.botLevel ? ['players', 'bot'] : ['players', ...kieu, 'nhanh'];
   const phu = BUOC_PHU.includes(step.value) ? step.value : BUOC_PHU.includes(buocHien.value) ? buocHien.value : null;
   return phu ? [...goc, phu] : goc;
@@ -330,7 +334,7 @@ function vaoNhanh(): void {
   // mà nó còn có thể giữ số màn Chiến dịch — không phải khoá cỡ bàn.
   const lv = nhanhCu?.level ?? (props.level > 1 && coCua(props.level) ? props.level : MUC_NHANH[0]!.level);
   emit('update:level', coCua(lv) ? lv : MUC_NHANH[0]!.level);
-  step.value = MUA_THE_MO ? 'kieu' : 'nhanh';
+  step.value = CO_KIEU ? 'kieu' : 'nhanh';
 }
 
 /**
@@ -374,9 +378,11 @@ function batDauNhanh(): void {
 }
 
 /** Bước THỂ LOẠI của Chơi nhanh: Thường đi tiếp wizard; Mưa Thẻ là màn riêng (App). */
-function pickKieu(k: 'thuong' | 'mua'): void {
+function pickKieu(k: 'thuong' | 'mua' | 'tim'): void {
   sfx.select();
   if (k === 'mua') { emit('mua-the'); return; }
+  // Tìm Thẻ: màn riêng, chọn đối thủ (một mình / máy) ngay trong màn cấu hình của nó
+  if (k === 'tim') { emit('tim-the'); return; }
   step.value = 'count';
 }
 
@@ -589,7 +595,7 @@ const ICO3D = {
   chienDich: anhEmoji('⭐', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
   dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? '',
-  thuong: anhEmoji('🧠', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? ''
+  thuong: anhEmoji('🧠', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? '', timThe: anhEmoji('🔍', true, 128) ?? ''
 };
 </script>
 
@@ -790,7 +796,12 @@ const ICO3D = {
           <img class="kieu-ic" :src="ICO3D.thuong" alt="" aria-hidden="true">
           <span class="text"><strong>{{ t('menu.kieu.thuong') }}</strong><small>{{ t('menu.kieu.thuongMo') }}</small></span>
         </button>
-        <button class="option wide neon g-pink o-moi" type="button" @click="pickKieu('mua')">
+        <button v-if="TIM_THE_MO" class="option wide neon g-amber o-moi" type="button" @click="pickKieu('tim')">
+          <img class="kieu-ic" :src="ICO3D.timThe" alt="" aria-hidden="true">
+          <span class="text"><strong>{{ t('tt.ten') }}</strong><small>{{ t('tt.moTa') }}</small></span>
+          <span class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
+        </button>
+        <button v-if="MUA_THE_MO" class="option wide neon g-pink o-moi" type="button" @click="pickKieu('mua')">
           <img class="kieu-ic" :src="ICO3D.muaThe" alt="" aria-hidden="true">
           <span class="text"><strong>{{ t('mt.ten') }}</strong><small>{{ t('mt.moTa') }}</small></span>
           <span class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>

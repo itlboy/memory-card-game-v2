@@ -340,6 +340,31 @@
   LIÊN TIẾP (không giới hạn giờ), chạm lệch đứt chuỗi; KHÔNG nền mưa (đã thử: "trên điện thoại đau mắt"); luật trên màn chỉ MỘT câu ("không cần giải thích rườm rà"). Điểm cộng vào tổng xu; kỷ lục riêng theo số cột.
 - Lá đang nổ phải bỏ `box-shadow` của khung (skin Kẹo đặt !important) — không thì còn sót cái viền.
 
+## TÌM THẺ — KIỂU CHƠI KHÔNG GHÉP CẶP (26.11.2026, bản chơi thử duyệt https://claude.ai/artifact/ESzywRX1pBqhx72tD1u1tz)
+
+- **ĐANG SAU CỬA DEBUG**: `TIM_THE_MO = false` ở `lib/tim-the.ts` — lối vào duy nhất là trang Debug (nút "Tìm Thẻ"),
+  `?tim=1` chỉ mở khi debug. Bật = `true`: hiện ô Tìm Thẻ ở bước Thể loại của Chơi nhanh (bước này hiện khi
+  `MUA_THE_MO || TIM_THE_MO`). Chủ dự án: "sau cửa debug trước, thử ổn mới mở".
+- Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
+  web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
+- Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
+  bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Ván = 10 lượt, KHÔNG đồng hồ cả ván, KHÔNG tim. Số thẻ chỉ
+  3·4·6·9·12 ("12 là nhiều lắm đấy"). Độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
+  giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
+  cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.
+  Nhiều người: chờ cả phòng chọn mới chấm; đúng nhanh nhất +5 × số thẻ (không nhân); trùng điểm = đồng hạng.
+- Máy: 5 mức sẵn có, mỗi mức "nhớ chắc" 2·3·5·8·11 thẻ (× 1 · 0,85 · 0,7 theo độ khó), còn lại đoán mò → đúng
+  (k+1)/n, trần 97%; chọn sau 60–95% … 20–45% giờ chọn. Đối thủ chọn NGAY trong màn cấu hình (một mình / 5 máy).
+- Thưởng: xu = điểm của mình, thua vẫn được, đấu Gà mờ 0 xu. Đấu máy lên sổ tài khoản + bộ đếm thắng máy như ghép
+  cặp; một mình chỉ đếm ván/chuỗi ngày + `dongBo`. CHƯA tính Chỉ số trí nhớ, danh hiệu (công thức dựa trên ghép cặp).
+  Kỷ lục riêng theo cỡ bàn + độ khó, chỉ ván một mình (`mm.timThe.kyLuc.<n>.<độ khó>`).
+- GA: DÙNG LẠI `van_bat_dau` / `van_ket_thuc` / `van_bo_do` với `che_do` = `tim_the` | `tim_the_may_<mức>`, độ khó ở
+  `tuy_chon`, số thẻ ở `so_the` — so được với ghép cặp trong cùng báo cáo. `van_ket_thuc` thêm `diem so_dung so_luot
+  chuoi_dai ky_luc` (CHƯA đăng ký custom dimension — khoá GA trong my-secrets chỉ Viewer). Mở màn: `mo_chuc_nang tim_the`.
+- BẪY đã dính: lớp trạng thái gốc `.dau` trùng lớp `.dau` của huy hiệu avatar trong CÙNG file scoped → cả màn thành
+  chấm 18px ở góc (màn cấu hình "trống trơn"). Vòng đúng/sai phải là `::after` riêng — box-shadow trên `.card` bị skin
+  Kẹo (!important) đè, màn tối mất hẳn. Gốc KHÔNG `height: 100%` (main không có chiều cao xác định) mà `align-self: stretch`.
+
 ## GOOGLE ANALYTICS 4 (15.10.2026, chủ dự án chốt: GA4, KHÔNG hộp hỏi cookie)
 
 - Một mã `G-MZ4MDWZRH3` (tài khoản GA "Cozy Pi" → thuộc tính "Flip Match") cho game web,
