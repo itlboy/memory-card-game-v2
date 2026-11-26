@@ -5,7 +5,7 @@ import { Bell, Bug, CircleCheck, ChevronLeft, ChevronRight, Crown, HelpCircle, I
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
-import { anKhach, khachDangAn } from '@/lib/taikhoan';
+import { anKhach, conTheMay, khachDangAn } from '@/lib/taikhoan';
 import { store } from '@/lib/storage';
 import { moChucNang } from '@/lib/phan-tich';
 import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
@@ -502,7 +502,7 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
           </button>
           <!-- Hiện tôi trên bảng xếp hạng (25.11.2026: chuyển từ nút "Ẩn tôi" ở chân bảng sang đây). Chỉ KHÁCH đã có mã
                mới có dòng trên bảng dạng khách; đã đăng nhập thì không ẩn được nên giấu công tắc. -->
-          <button data-phang v-if="account && !signedIn && coKhach" class="item cong-tac" role="switch" type="button" :aria-checked="!khachDangAn" :disabled="dangDoiAn" @click="doiAnBxh">
+          <button data-phang v-if="account && !signedIn && coKhach && !conTheMay" class="item cong-tac" role="switch" type="button" :aria-checked="!khachDangAn" :disabled="dangDoiAn" @click="doiAnBxh">
             <Trophy :size="20" /><span>{{ t('cd.hienBxh') }}</span><i class="sw" :class="{ bat: !khachDangAn }" aria-hidden="true" />
           </button>
           <!-- Gợi ý thi đấu (lib/thidau.ts) — tắt là không nhận thẻ hỏi "Thi đấu online?" lẫn tin đẩy thi đấu -->

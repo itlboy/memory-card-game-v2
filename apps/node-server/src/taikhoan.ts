@@ -163,6 +163,30 @@ export function docPhien(secret: string, token: string | undefined, now: number)
   return Number(uid);
 }
 
+/*
+ * THẺ MÁY (26.11.2026, chủ dự án: "đăng xuất ra không thấy mình trên bảng… điểm chơi thêm vẫn cộng vào tài khoản"):
+ * máy từng đăng nhập giữ một thẻ dài hạn `m<uid>.<exp>.<chữ ký>`. Đăng xuất chỉ bỏ PHIÊN; thẻ ở lại để máy vẫn
+ * (1) nhận ra dòng của mình trên bảng xếp hạng và (2) cộng điểm ván mới vào tài khoản. Thẻ KHÔNG mở được hồ sơ,
+ * đồng bộ, đổi hồ sơ hay xoá tài khoản — chỉ `/api/bxh`, `/api/me/van` và danh tính sảnh nhận nó. Ký trên chuỗi
+ * có tiền tố riêng nên không đổi qua lại với phiên được.
+ */
+export const HAN_THE_MAY_MS = 365 * 24 * 60 * 60 * 1000;
+export function taoTheMay(secret: string, uid: number, now: number): string {
+  const than = `${uid}.${now + HAN_THE_MAY_MS}`;
+  return `m${than}.${ky(secret, `may:${than}`)}`;
+}
+export function docTheMay(secret: string, the: string | undefined, now: number): number | null {
+  if (!the) return null;
+  const m = /^m(\d+)\.(\d+)\.([A-Za-z0-9_-]+)$/.exec(the);
+  if (!m) return null;
+  const [, uid, exp, chuKy] = m;
+  if (Number(exp) <= now) return null;
+  const dung = Buffer.from(ky(secret, `may:${uid}.${exp}`));
+  const nhan = Buffer.from(chuKy!);
+  if (dung.length !== nhan.length || !timingSafeEqual(dung, nhan)) return null;
+  return Number(uid);
+}
+
 /* ---------- xác minh ID token Google ---------- */
 
 /** Client OAuth iOS của Lật Thẻ (dự án Google Cloud `lat-the-nkien`, tạo 09.11.2026). */
@@ -834,14 +858,16 @@ export async function moTaiKhoan(
     );
   }
 
-  function uidTu(req: IncomingMessage, now: number): number | null {
+  /** `choMay`: đường này nhận cả THẺ MÁY (máy đã đăng xuất) — chỉ bảng xếp hạng và ghi ván. */
+  function uidTu(req: IncomingMessage, now: number, choMay = false): number | null {
     const h = req.headers.authorization ?? '';
-    return docPhien(secret, h.startsWith('Bearer ') ? h.slice(7) : undefined, now);
+    const t = h.startsWith('Bearer ') ? h.slice(7) : undefined;
+    return docPhien(secret, t, now) ?? (choMay ? docTheMay(secret, t, now) : null);
   }
 
   return {
     aiTu(khach, token) {
-      const uid = typeof token === 'string' && token ? docPhien(secret, token, Date.now()) : null;
+      const uid = typeof token === 'string' && token ? docPhien(secret, token, Date.now()) ?? docTheMay(secret, token, Date.now()) : null;
       if (uid !== null) return `u:${uid}`;
       const ma = maKhach(khach);
       return ma ? `k:${ma}` : null;
@@ -894,7 +920,7 @@ export async function moTaiKhoan(
         );
         const [rows] = await pool!.query('SELECT id FROM users WHERE apple_sub = ?', [ng.sub]);
         const uid = Number((rows as { id: number }[])[0]!.id);
-        json(res, { token: taoPhien(secret, uid, now), me: await hoSo(uid) });
+        json(res, { token: taoPhien(secret, uid, now), may: taoTheMay(secret, uid, now), me: await hoSo(uid) });
         return true;
       }
 
@@ -916,7 +942,7 @@ export async function moTaiKhoan(
         );
         const [rows] = await pool!.query('SELECT id FROM users WHERE google_sub = ?', [ng.sub]);
         const uid = Number((rows as { id: number }[])[0]!.id);
-        json(res, { token: taoPhien(secret, uid, now), me: await hoSo(uid) });
+        json(res, { token: taoPhien(secret, uid, now), may: taoTheMay(secret, uid, now), me: await hoSo(uid) });
         return true;
       }
 
@@ -929,13 +955,13 @@ export async function moTaiKhoan(
         // Bản app cũ không gửi `tu` / `online` → chạy y như trước
         if (than && (than.online === true || than.tu !== undefined)) {
           const loai = than.loai === 'tuan' ? 'tuan' as const : 'tat' as const;
-          const tuan = tuanHopLe(than.tuan, now), uid = uidTu(req, now), ma = maKhach(than.khach);
+          const tuan = tuanHopLe(than.tuan, now), uid = uidTu(req, now, true), ma = maKhach(than.khach);
           json(res, than.online === true ? await bangOnline(loai, tuan, uid, ma, now) : await trangBxh(loai, tuan, than.tu, uid, ma, now));
           return true;
         }
         json(res, than?.loai === 'tuan'
-          ? await bangTuan(uidTu(req, now), maKhach(than?.khach), tuanHopLe(than?.tuan, now), now)
-          : await bangXepHang(uidTu(req, now), maKhach(than?.khach), now));
+          ? await bangTuan(uidTu(req, now, true), maKhach(than?.khach), tuanHopLe(than?.tuan, now), now)
+          : await bangXepHang(uidTu(req, now, true), maKhach(than?.khach), now));
         return true;
       }
 
@@ -996,7 +1022,7 @@ export async function moTaiKhoan(
       }
 
       if (!p.startsWith('/api/me')) return false;
-      const uid = uidTu(req, now);
+      const uid = uidTu(req, now, p === '/api/me/van');   // ghi ván: máy đã đăng xuất vẫn cộng điểm bằng thẻ máy
       if (uid === null) { json(res, { error: 'Chưa đăng nhập hoặc phiên đã hết hạn' }, 401); return true; }
 
       if (p === '/api/me' && req.method === 'GET') {
@@ -1038,10 +1064,12 @@ export async function moTaiKhoan(
         const van = locVan(await docThan(req));
         if (!van) { json(res, { error: 'Kết quả ván không hợp lệ' }, 400); return true; }
         const cot = van.ketQua === 'thang' ? 'wins' : van.ketQua === 'thua' ? 'losses' : 'draws';
-        await pool!.execute(
+        const [kq] = await pool!.execute(
           `UPDATE users SET total_score = total_score + ?, matches = matches + 1, \`${cot}\` = \`${cot}\` + 1 WHERE id = ?`,
           [van.score, uid]
         );
+        // Thẻ máy của tài khoản đã xoá: không còn dòng nào để cộng → 401 cho máy bỏ thẻ
+        if ((kq as { affectedRows?: number }).affectedRows === 0) { json(res, { error: 'Tài khoản không còn' }, 401); return true; }
         await congTuan(false, String(uid), van.score, van.ketQua === 'thang' ? 1 : 0, 1, now);
         const best = van.boardKey && van.ketQua === 'thang'
           ? { [van.boardKey]: { score: van.score, moves: van.moves ?? 0, seconds: van.seconds ?? 0 } }
@@ -1083,7 +1111,8 @@ export async function moTaiKhoan(
           await pool!.execute('DELETE FROM weekly_scores WHERE is_guest = 1 AND player = ?', [ma]);
           await pool!.execute('DELETE FROM guest_scores WHERE guest_hash = ?', [ma]);
         }
-        json(res, { me: await hoSo(uid) });
+        // `may`: thẻ máy — app đang đăng nhập từ trước bản này nhận thẻ ở lần đồng bộ lúc mở app, khỏi đăng nhập lại
+        json(res, { me: await hoSo(uid), may: taoTheMay(secret, uid, now) });
         return true;
       }
 

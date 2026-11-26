@@ -2,7 +2,7 @@ import { ref, shallowRef, watch } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
 import { laApp, nenApp, SERVER_URL } from './native';
-import { suKien } from './phan-tich';
+import { moChucNang, suKien } from './phan-tich';
 
 /**
  * TÀI KHOẢN phía client — đăng nhập Google hoặc Apple, hồ sơ, gửi kết quả ván.
@@ -144,19 +144,38 @@ function ghiToken(t: string | null): void {
   try { t ? localStorage.setItem(AUTH_KEY, t) : localStorage.removeItem(AUTH_KEY); } catch { /* bỏ qua */ }
 }
 
+/*
+ * THẺ MÁY (26.11.2026, chủ dự án: "logout ra khỏi google thì không thấy mình trên bảng xếp hạng… điểm chơi thêm
+ * vẫn được cộng vào tài khoản"). Server cấp lúc đăng nhập / đồng bộ; ĐĂNG XUẤT KHÔNG XOÁ nó. Còn thẻ thì máy
+ * đã đăng xuất vẫn (1) được bảng xếp hạng tô đúng dòng tài khoản và (2) cộng điểm ván mới vào tài khoản.
+ * Thẻ chỉ dùng được cho hai việc đó (server chặn mọi đường khác). Bỏ thẻ khi: xoá tài khoản, server từ chối (401).
+ */
+const KHOA_THE_MAY = 'mm.auth.may';
+function docTheMay(): string | null {
+  try { return localStorage.getItem(KHOA_THE_MAY); } catch { return null; }
+}
+/** Máy đã đăng xuất nhưng còn gắn với một tài khoản (bảng xếp hạng coi là chủ dòng tài khoản đó, không phải khách). */
+export const conTheMay = ref(!!docTheMay());
+function ghiTheMay(t: string | null | undefined): void {
+  if (t === undefined) return;
+  try { t ? localStorage.setItem(KHOA_THE_MAY, t) : localStorage.removeItem(KHOA_THE_MAY); } catch { /* bỏ qua */ }
+  conTheMay.value = !!t;
+}
+
 /**
  * Danh tính để SẢNH (lib/sanh.ts) biết dòng nào trên bảng xếp hạng là mình đang online: phiên đăng nhập, không thì
  * mã khách (chỉ khi đang hiện trên bảng). Server tự xác minh — gửi trong tin nhắn WebSocket, không lên URL.
  */
 export function danhTinhSanh(): { token?: string; khach?: string } {
-  const token = me.value ? docToken() : null;
+  const token = me.value ? docToken() : docTheMay();   // đã đăng xuất: thẻ máy → vẫn là dòng tài khoản đang online
   if (token) return { token };
   const k = store.khach(false);
   return k && !k.an && !k.daGop ? { khach: k.id } : {};
 }
 
 async function goi<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = docToken();
+  const phien = docToken();
+  const token = phien ?? docTheMay();   // không có phiên thì gửi thẻ máy — server chỉ nhận nó ở bảng xếp hạng + ghi ván
   const res = await fetch(`${SERVER}${path}`, {
     ...init,
     headers: {
@@ -167,6 +186,8 @@ async function goi<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
   if (res.status === 401) {
     // Phiên hết hạn hoặc tài khoản không còn: về ẩn danh, không báo lỗi ồn ào
+    // Chỉ có thẻ máy mà đường ghi ván từ chối → thẻ hỏng / tài khoản đã xoá: bỏ thẻ (đường khác 401 thì thẻ không liên quan)
+    if (!phien && path === '/api/me/van') ghiTheMay(null);
     ghiToken(null);
     me.value = null;
     throw new Error('401');
@@ -253,10 +274,11 @@ async function baoDangNhap(cach: 'google' | 'apple', lam: () => Promise<HoSo>): 
 async function hoanTat(path: string, than: Record<string, unknown>, cach: 'google' | 'apple'): Promise<HoSo> {
   dangTai.value = true;
   try {
-    const r = await goi<{ token: string; me: HoSo }>(path, {
+    const r = await goi<{ token: string; may?: string; me: HoSo }>(path, {
       method: 'POST', body: JSON.stringify(than)
     });
     ghiToken(r.token);
+    ghiTheMay(r.may ?? null);   // tài khoản khác đăng nhập → thẻ của tài khoản cũ không ở lại
     suKien('dang_nhap', { cach, ket_qua: 'ok', moi: !r.me.matches && !r.me.totalScore && !r.me.achievements?.length });
     me.value = r.me;
     await dongBo();
@@ -269,7 +291,7 @@ async function hoanTat(path: string, than: Record<string, unknown>, cach: 'googl
 export async function dongBo(): Promise<void> {
   if (!me.value) return;
   try {
-    const r = await goi<{ me: HoSo }>('/api/me/dongbo', {
+    const r = await goi<{ me: HoSo; may?: string }>('/api/me/dongbo', {
       method: 'POST',
       body: JSON.stringify({
         totalScore: store.totalScore(), best: store.allBest(), achievements: store.achievements(),
@@ -277,6 +299,7 @@ export async function dongBo(): Promise<void> {
       })
     });
     if (store.khach(false)) store.ganKhach({ daGop: true });
+    ghiTheMay(r.may);   // server cũ không gửi → giữ nguyên thẻ đang có
     me.value = r.me;
     keoVeMay(r.me);
   } catch { /* lần sau đăng nhập lại sẽ đồng bộ tiếp */ }
@@ -365,6 +388,7 @@ async function dangNhapGoogleAppTho(): Promise<HoSo> {
  */
 export async function xoaTaiKhoan(): Promise<void> {
   await goi<{ ok: boolean }>('/api/me', { method: 'DELETE' });
+  ghiTheMay(null);
   dangXuat();
 }
 
@@ -373,9 +397,12 @@ export async function xoaTaiKhoan(): Promise<void> {
  * điểm và số ván cộng dồn ở server. Không đăng nhập thì không làm gì.
  */
 export async function ghiVan(van: VanBao): Promise<void> {
-  if (!me.value) { void guiKhach(); return; }
+  // Đã đăng xuất nhưng còn thẻ máy: ván vẫn cộng vào tài khoản (không dựng lại `me` — giao diện vẫn là đã đăng xuất)
+  if (!me.value && !conTheMay.value) { void guiKhach(); return; }
+  const daRa = !me.value;
   try {
     const r = await goi<{ me: HoSo }>('/api/me/van', { method: 'POST', body: JSON.stringify(van) });
+    if (daRa) { if (!me.value) moChucNang('van_the_may'); return; }
     me.value = r.me;
     keoVeMay(r.me);   // máy kia vừa chơi thì tổng ở server cao hơn máy này
   } catch { /* mất một ván trong sổ còn hơn làm phiền người chơi */ }
@@ -483,7 +510,7 @@ export async function bangXepHang(loai: LoaiBxh = 'tat', tuan?: string): Promise
  * rồi lặng lẽ thay bằng số mới. Gắn với người đang xem (tài khoản / khách): đổi người thì không dùng.
  */
 const khoaBxh = (loai: LoaiBxh): string => (loai === 'tuan' ? 'mm.bxhTuan' : 'mm.bxh');
-const aiDangXem = (): string => (me.value ? `u${me.value.id}` : 'khach');
+const aiDangXem = (): string => (me.value ? `u${me.value.id}` : conTheMay.value ? 'may' : 'khach');
 export function bxhLanTruoc(loai: LoaiBxh = 'tat'): BangXh | null {
   try {
     const v = JSON.parse(localStorage.getItem(khoaBxh(loai)) ?? 'null') as { ai: string; b: BangXh } | null;

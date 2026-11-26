@@ -6,7 +6,7 @@ import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { bangXepHang, bxhLanTruoc, bxhOnline, datTenKhach, khachDangAn, me, trangBxh, type BangXh, type DongBxh, type DongHang, type LoaiBxh } from '@/lib/taikhoan';
+import { bangXepHang, bxhLanTruoc, bxhOnline, conTheMay, datTenKhach, khachDangAn, me, trangBxh, type BangXh, type DongBxh, type DongHang, type LoaiBxh } from '@/lib/taikhoan';
 import MatBot from './MatBot.vue';
 import VachCho from './VachCho.vue';
 import { CACH_MOI_LAI_MS, daThach, trongPhongOnline, type ThachDau } from '@/lib/sanh';
@@ -38,7 +38,7 @@ const loi = ref(false);
 /** Đang hỏi số mới: bảng lần trước vẫn hiện BÌNH THƯỜNG (23.11.2026 bỏ làm mờ); số mới về thì dòng trượt về chỗ mới. */
 const dangTai = ref(false);
 
-const laKhach = computed(() => !me.value);
+const laKhach = computed(() => !me.value && !conTheMay.value);   // còn thẻ máy = chủ dòng tài khoản, không phải khách
 const khachAn = khachDangAn;
 const tenMay = ref(store.playerNames()[0] ?? '');
 const tenNhap = ref(tenMay.value);
