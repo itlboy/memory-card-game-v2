@@ -624,6 +624,7 @@ const de: TuDien = {
   'cs.daCopyMa': 'Code kopiert',
   'cs.copyMa': 'Code kopieren',
   'cs.daCopyLink': 'Link kopiert',
+  'cs.chepLink': "Link kopieren",
   'cs.copyLink': 'Link kopieren',
   /* ---------- emoji bar (EmojiBar.vue) ---------- */
   'eb.guiEmoji': 'Emoji senden',
@@ -1144,6 +1145,10 @@ const de: TuDien = {
   'tn.chang.3': "8–15 Züge",
   'tn.chang.4': "16+ Züge",
   'tn.cs.nut': "Gedächtniswert teilen",
+  'tn.cs.muc14': "Letzte 14 Tage",
+  'tn.cs.tang': "▲ {n} Punkte zur Vorwoche",
+  'tn.cs.giam': "▼ {n} Punkte zur Vorwoche",
+  'tn.cs.cua': "Gedächtniswert von {ten}",
   'tn.cs.cau': "Wie gut ist dein Gedächtnis? 🧠",
   'tn.cs.taiApp': "Gratis-App holen",
   'tn.cs.chu': "Mein Gedächtniswert ist {diem} — Stufe {bac}! Wie gut bist du? 🧠",

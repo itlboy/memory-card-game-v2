@@ -624,6 +624,7 @@ const zhTW: TuDien = {
   'cs.daCopyMa': '已複製房號',
   'cs.copyMa': '複製房號',
   'cs.daCopyLink': '已複製連結',
+  'cs.chepLink': "複製連結",
   'cs.copyLink': '複製連結',
   /* ---------- emoji bar (EmojiBar.vue) ---------- */
   'eb.guiEmoji': '傳送表情符號',
@@ -1144,6 +1145,10 @@ const zhTW: TuDien = {
   'tn.chang.3': "8–15 回合",
   'tn.chang.4': "16+ 回合",
   'tn.cs.nut': "分享記憶指數",
+  'tn.cs.muc14': "最近 14 天",
+  'tn.cs.tang': "比上週 ▲{n} 分",
+  'tn.cs.giam': "比上週 ▼{n} 分",
+  'tn.cs.cua': "{ten}的記憶指數",
   'tn.cs.cau': "你的記憶力有多好？🧠",
   'tn.cs.taiApp': "免費下載 App",
   'tn.cs.chu': "我的記憶指數是 {diem}（{bac}）！看看你能拿幾分 🧠",

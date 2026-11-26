@@ -623,6 +623,7 @@ const pt: TuDien = {
   'cs.daCopyMa': 'Código copiado',
   'cs.copyMa': 'Copiar código',
   'cs.daCopyLink': 'Link copiado',
+  'cs.chepLink': "Copiar link",
   'cs.copyLink': 'Copiar link',
   /* ---------- emoji bar (EmojiBar.vue) ---------- */
   'eb.guiEmoji': 'Enviar emoji',
@@ -1143,6 +1144,10 @@ const pt: TuDien = {
   'tn.chang.3': "8–15 jogadas",
   'tn.chang.4': "16+ jogadas",
   'tn.cs.nut': "Compartilhar índice de memória",
+  'tn.cs.muc14': "Últimos 14 dias",
+  'tn.cs.tang': "▲ {n} pontos vs semana passada",
+  'tn.cs.giam': "▼ {n} pontos vs semana passada",
+  'tn.cs.cua': "Índice de memória de {ten}",
   'tn.cs.cau': "Quanto vale a sua memória? 🧠",
   'tn.cs.taiApp': "Baixe o app grátis",
   'tn.cs.chu': "Meu índice de memória é {diem} — nível {bac}! Veja o seu 🧠",

@@ -623,6 +623,7 @@ const en: TuDien = {
   'cs.daCopyMa': 'Code copied',
   'cs.copyMa': 'Copy Code',
   'cs.daCopyLink': 'Link copied',
+  'cs.chepLink': "Copy link",
   'cs.copyLink': 'Copy Link',
   /* ---------- thanh emoji (EmojiBar.vue) ---------- */
   'eb.guiEmoji': 'Send emoji',
@@ -1143,6 +1144,10 @@ const en: TuDien = {
   'tn.chang.3': "8–15 turns",
   'tn.chang.4': "16+ turns",
   'tn.cs.nut': "Share memory score",
+  'tn.cs.muc14': "Last 14 days",
+  'tn.cs.tang': "▲ {n} points vs last week",
+  'tn.cs.giam': "▼ {n} points vs last week",
+  'tn.cs.cua': "{ten}'s memory score",
   'tn.cs.cau': "How good is your memory? 🧠",
   'tn.cs.taiApp': "Get the free app",
   'tn.cs.chu': "My memory score is {diem} — {bac} tier! See how you do 🧠",

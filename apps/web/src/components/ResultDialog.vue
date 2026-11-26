@@ -2,6 +2,7 @@
 import IconVong from './IconVong.vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { tenNguoi } from '@/lib/ten';
+import { hoSo, tenToi } from '@/lib/ho-so';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import MatNguoi from './MatNguoi.vue';
 import { t, td, bcp } from '@/lib/i18n';
@@ -314,7 +315,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   const tieuDe = props.multiplayer
     ? boEmoji(draw.value ? t('kq.hoa') : t('kq.thang', { ten: tenNguoi(s.ranking[0]) }))
     : boEmoji(title.value);
-  const chung = { cau: t('kq.thachDau'), choiNgay: t('kq.choiNgay'), site: SITE_URL.replace(/^https?:\/\//, ''), tenApp: t('tb.thuongHieu') };
+  // site = link TẢI APP `/tai` (tự chuyển tới đúng cửa hàng) — in ở chân ảnh kèm mã QR (bản ảnh mới 26.11.2026)
+  const chung = { cau: t('kq.thachDau'), choiNgay: t('kq.choiNgay'), site: `${SITE_URL}/tai`, tenApp: t('tb.thuongHieu') };
   if (props.multiplayer) {
     return {
       ...chung, tieuDe, phu: props.multiplayerOnline ? `Online · ${ngay}` : ngay,
@@ -329,12 +331,13 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
         : {}),
       hang: s.ranking.map((p, i) => ({
         hang: draw.value && i < 2 ? 1 : i + 1, ten: tenNguoi(p), diem: num(p.score),
-        nhat: draw.value ? i < 2 : i === 0,
+        nhat: draw.value ? i < 2 : i === 0, mat: p.avatar, mau: props.mauCua?.(p.id),
       })),
     };
   }
   return {
     ...chung, tieuDe, phu: `${reasonText.value} · ${ngay}`,
+    nguoi: { ten: tenToi.value || tenNguoi(s.ranking[0]), mat: hoSo.value.xong ? hoSo.value.mat : s.ranking[0]?.avatar, mau: hoSo.value.xong ? hoSo.value.mau : undefined },
     so: [
       { nhan: t('chung.diem'), gt: num(s.score) },
       { nhan: t('kq.soLuot'), gt: String(s.moves) },

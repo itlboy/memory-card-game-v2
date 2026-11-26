@@ -6,7 +6,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * Ảnh vẽ ở lib/anh-ket-qua.ts, trên máy, không gửi đi đâu.
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { Download, Share2 } from 'lucide-vue-next';
+import { Download, Link2, Share2 } from 'lucide-vue-next';
 import { t } from '@/lib/i18n';
 import { sfx } from '@/lib/audio';
 import { veAnhKetQua, luuAnh, chiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
@@ -36,6 +36,14 @@ async function luu(): Promise<void> {
   sfx.select();
   await luuAnh(blob.value);
 }
+const linkChiaSe = (): string => props.url ?? `${SITE_URL}/?utm_source=chia_se&utm_medium=anh_ket_qua`;
+/** Chép link (26.11.2026, bảng chia sẻ bản mới): gửi nhanh link tải vào chat mà không cần ảnh. */
+async function chepLink(): Promise<void> {
+  sfx.select();
+  try { await navigator.clipboard.writeText(`${props.chu ?? t('kq.chiaSeChu')}\n${linkChiaSe()}`); bao.value = t('cs.daCopyLink'); }
+  catch { bao.value = linkChiaSe(); }
+  setTimeout(() => { bao.value = ''; }, 1800);
+}
 async function chiaSe(): Promise<void> {
   if (!blob.value) return;
   sfx.select();
@@ -51,10 +59,13 @@ async function chiaSe(): Promise<void> {
       <div class="khung-anh">
         <img v-if="xem" :src="xem" alt="" />
       </div>
+      <!-- BẢN MỚI 26.11.2026 (mockup https://claude.ai/artifact/WLMtGi289WrYicB9N3wYb3): hai nút nhỏ Lưu ảnh · Chép link,
+           nút CHIA SẺ to ở dưới — chia sẻ là việc chính, ảnh + câu + link đi cùng nhau -->
       <div class="hang-nut">
-        <button class="btn thach th-xanh" type="button" :disabled="!blob" @click="luu"><Download :size="20" />{{ t('kq.luuAnh') }}</button>
-        <button class="btn thach th-vang" type="button" :disabled="!blob" @click="chiaSe"><Share2 :size="20" />{{ t('kq.chiaSe') }}</button>
+        <button class="btn thach th-xanh" type="button" :disabled="!blob" @click="luu"><Download :size="19" />{{ t('kq.luuAnh') }}</button>
+        <button class="btn thach th-tim" type="button" @click="chepLink"><Link2 :size="19" />{{ t('cs.chepLink') }}</button>
       </div>
+      <button class="btn thach th-vang chinh" type="button" :disabled="!blob" @click="chiaSe"><Share2 :size="21" />{{ t('kq.chiaSe') }}</button>
       <p v-if="bao" class="bao" role="status">{{ bao }}</p>
     </div>
   </div>
@@ -76,8 +87,10 @@ async function chiaSe(): Promise<void> {
 .tay { display: block; width: 44px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 12px; }
 .khung-anh { display: flex; justify-content: center; }
 /* Cao theo MÀN (không %: % của ô lưới không chặn được ảnh → ảnh tràn đè lên nút) */
-.khung-anh img { display: block; height: min(52vh, 440px); width: auto; max-width: 100%; object-fit: contain; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
+.khung-anh img { display: block; height: min(54vh, 470px); width: auto; max-width: 100%; object-fit: contain; border-radius: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); }
 .hang-nut { display: flex; gap: 12px; margin-top: 16px; }
-.hang-nut .btn { flex: 1; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; }
+.hang-nut .btn { flex: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15.5px; }
+.th-tim { --b1: #9d8bff; --b2: #6c5ce7; --b3: #4636b8; --bc: #fff; color: #fff; }
+.chinh { width: 100%; margin-top: 12px; min-height: 56px; display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 18.5px; }
 .bao { margin: 10px 0 0; text-align: center; font-weight: 700; color: var(--muted); }
 </style>

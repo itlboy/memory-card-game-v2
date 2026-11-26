@@ -27,6 +27,7 @@ import { MOC_CO_DIEM, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theNenL
 import { ngayMay } from '@/lib/storage';
 import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 import { veAnhTriNho } from '@/lib/anh-ket-qua';
+import { hoSo, tenToi } from '@/lib/ho-so';
 import { SITE_URL } from '@/lib/native';
 import LuuChiaSe from './LuuChiaSe.vue';
 
@@ -116,12 +117,21 @@ function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; 
 const veAnh = (): Promise<Blob> => {
   const k = ky.value;
   return veAnhTriNho({
-    tenApp: t('tb.thuongHieu'), tieuDe: t('tn.ten'), diem: k.diem ?? 0, bac: k.bac ?? 0, tenBac: tenBac(k.bac ?? 0),
+    tenApp: t('tb.thuongHieu'), tieuDe: hoSo.value.xong && tenToi.value ? t('tn.cs.cua', { ten: tenToi.value }) : t('tn.ten'), diem: k.diem ?? 0, bac: k.bac ?? 0, tenBac: tenBac(k.bac ?? 0),
     cacBac: Array.from({ length: SO_BAC }, (_, i) => tenBac(i)),
     chang: k.chang.map((c, i) => ({ nhan: td(`tn.chang.${i}`), tiLe: c.mo ? c.tiLe : null })),
-    cau: t('tn.cs.cau'), taiApp: t('tn.cs.taiApp'), link: LINK_TAI.replace(/^https?:\/\//, '')
+    cau: t('tn.cs.cau'), taiApp: t('tn.cs.taiApp'), link: LINK_TAI,
+    nguoi: hoSo.value.xong ? { ten: tenToi.value, mat: hoSo.value.mat, mau: hoSo.value.mau } : undefined,
+    ngay14: cot.map((c) => c.diem), nhan14: [ngayThang(cot[0]!.k), ngayThang(cot[cot.length - 1]!.k)],
+    muc5: t('tn.tab5'), muc14: t('tn.cs.muc14'), lech: lechTuan.value
   });
 };
+/** "▲ 32 điểm so với tuần trước" — so chỉ số hôm nay với chỉ số của 7 ngày trước đó (cả hai đủ số liệu mới hiện). */
+const lechTuan = computed(() => {
+  const truoc = chiSoTai(nhatKy, new Date(Date.now() - 7 * 86_400_000)).diem, nay = ky.value.diem;
+  if (truoc === null || nay === null || nay === truoc) return undefined;
+  return t(nay > truoc ? 'tn.cs.tang' : 'tn.cs.giam', { n: Math.abs(nay - truoc) });
+});
 const chuChiaSe = computed(() => t('tn.cs.chu', { diem: ky.value.diem ?? 0, bac: tenBac(ky.value.bac ?? 0) }));
 const coNhan = (k: string, i: number): boolean =>
   k === chon.value || ((i === 0 || i === SO_COT - 1) && Math.abs(i - viTriChon.value) >= 2);

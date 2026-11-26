@@ -624,6 +624,7 @@ const id: TuDien = {
   'cs.daCopyMa': 'Kode disalin',
   'cs.copyMa': 'Salin kode',
   'cs.daCopyLink': 'Tautan disalin',
+  'cs.chepLink': "Salin tautan",
   'cs.copyLink': 'Salin tautan',
   /* ---------- emoji bar (EmojiBar.vue) ---------- */
   'eb.guiEmoji': 'Kirim emoji',
@@ -1144,6 +1145,10 @@ const id: TuDien = {
   'tn.chang.3': "8–15 giliran",
   'tn.chang.4': "16+ giliran",
   'tn.cs.nut': "Bagikan skor memori",
+  'tn.cs.muc14': "14 hari terakhir",
+  'tn.cs.tang': "▲ {n} poin dari minggu lalu",
+  'tn.cs.giam': "▼ {n} poin dari minggu lalu",
+  'tn.cs.cua': "Skor memori {ten}",
   'tn.cs.cau': "Seberapa kuat ingatanmu? 🧠",
   'tn.cs.taiApp': "Unduh aplikasinya gratis",
   'tn.cs.chu': "Skor memoriku {diem} — tingkat {bac}! Coba berapa skormu 🧠",

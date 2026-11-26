@@ -635,6 +635,7 @@ const vi = {
   'cs.daCopyMa': 'Đã copy mã',
   'cs.copyMa': 'Copy mã',
   'cs.daCopyLink': 'Đã copy link',
+  'cs.chepLink': "Chép link",
   'cs.copyLink': 'Copy link',
   /* ---------- thanh emoji (EmojiBar.vue) ---------- */
   'eb.guiEmoji': 'Gửi emoji',
@@ -1155,6 +1156,10 @@ const vi = {
   'tn.chang.3': "8–15 lượt",
   'tn.chang.4': "16+ lượt",
   'tn.cs.nut': "Chia sẻ chỉ số trí nhớ",
+  'tn.cs.muc14': "14 ngày qua",
+  'tn.cs.tang': "▲ {n} điểm so với tuần trước",
+  'tn.cs.giam': "▼ {n} điểm so với tuần trước",
+  'tn.cs.cua': "Chỉ số trí nhớ của {ten}",
   'tn.cs.cau': "Trí nhớ của bạn được bao nhiêu? 🧠",
   'tn.cs.taiApp': "Tải app miễn phí",
   'tn.cs.chu': "Chỉ số trí nhớ của mình là {diem} — bậc {bac}! Thử xem bạn được bao nhiêu 🧠",

@@ -624,6 +624,7 @@ const tr: TuDien = {
   'cs.daCopyMa': 'Kod kopyalandı',
   'cs.copyMa': 'Kodu kopyala',
   'cs.daCopyLink': 'Bağlantı kopyalandı',
+  'cs.chepLink': "Bağlantıyı kopyala",
   'cs.copyLink': 'Bağlantıyı kopyala',
   /* ---------- thanh emoji (EmojiBar.vue) ---------- */
   'eb.guiEmoji': 'Emoji gönder',
@@ -1144,6 +1145,10 @@ const tr: TuDien = {
   'tn.chang.3': "8–15 tur",
   'tn.chang.4': "16+ tur",
   'tn.cs.nut': "Hafıza puanını paylaş",
+  'tn.cs.muc14': "Son 14 gün",
+  'tn.cs.tang': "Geçen haftaya göre ▲{n}",
+  'tn.cs.giam': "Geçen haftaya göre ▼{n}",
+  'tn.cs.cua': "{ten} hafıza puanı",
   'tn.cs.cau': "Hafızan ne kadar iyi? 🧠",
   'tn.cs.taiApp': "Ücretsiz uygulamayı indir",
   'tn.cs.chu': "Hafıza puanım {diem} — {bac} seviyesi! Seninki kaç? 🧠",

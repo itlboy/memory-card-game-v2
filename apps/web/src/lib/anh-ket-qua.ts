@@ -11,283 +11,126 @@
  */
 import { laApp, nenApp } from './native';
 import { suKien } from './phan-tich';
+import { THE, W, moBut, raBlob, tron, veAvatar, veChan, veLogo, veNen, veO, veThe, veVien, vua, type But } from './anh-chia-se';
 
-export interface DongXepHang { hang: number; ten: string; diem: string; nhat?: boolean }
-/** Một cột bảng tỷ số. `mat`: mặt từng người (đội thì nhiều mặt) — emoji / khoá mặt vẽ, `anh` = ảnh Google. */
+/* BẢN MỚI 26.11.2026 (mockup https://claude.ai/artifact/WLMtGi289WrYicB9N3wYb3): phần VẼ ở lib/anh-chia-se.ts — mỗi ảnh là
+   "tấm thẻ khoe" có avatar + tên, một con số thật to, và chân ảnh là vé mời (icon app · link `/tai` · mã QR thật). */
+export interface DongXepHang { hang: number; ten: string; diem: string; nhat?: boolean; mat?: string; mau?: string }
+/** Một cột bảng tỷ số. `mat`: mặt từng người (đội thì nhiều mặt). */
 export interface CotTySo { ten: string; n: number; diem?: string; mat?: { mat?: string; anh?: string | null; mau?: string }[] }
 export interface NoiDungAnh {
   tieuDe: string;
   phu: string;
-  /** Ván nhiều người: bảng xếp hạng. Ván một mình: các ô số liệu. */
+  /** Người chơi trên máy (ván một mình): avatar + tên ở đầu thẻ. */
+  nguoi?: { ten: string; mat?: string; mau?: string };
+  /** Ván nhiều người: bục 1–2–3 (+ dòng nhỏ cho người thứ 4 trở đi). Ván một mình: các ô số liệu (ô đầu là con số to). */
   hang?: DongXepHang[];
-  /** TỶ SỐ CẢ LOẠT — có thì ảnh vẽ BẢNG TỶ SỐ như màn cuối ván (mỗi người một cột: mặt, tên, số ván thắng
-   *  thật to, điểm ván này) và bỏ danh sách `hang`. Xem `veBangTySo`. */
+  /** TỶ SỐ CẢ LOẠT — có thì ảnh vẽ các avatar đối mặt và tỷ số to, bỏ `hang`. */
   tySo?: { nhan: string; ds: CotTySo[] };
   so?: { nhan: string; gt: string }[];
   cau: string;
   choiNgay: string;
+  /** Link in ở chân ảnh + mã QR (nên là `/tai`). */
   site: string;
   tenApp: string;
 }
 
-const W = 1080, H = 1350;
-/*
- * SÁNG / TỐI THEO APP (19.11.2026, chủ dự án: "bảng chia sẻ có giao diện sáng tối như app đc ko?"): đọc
- * `data-theme` của <html> lúc vẽ. Tối = trời đêm (trăng khuyết + sao thay mặt trời + mây), thẻ xanh đậm chữ sáng.
- * `VIEN` = nét viền + đế khối nổi; `CHU` = chữ chính; `NHAT` = chữ phụ.
- */
-const SANG = {
-  troi: '#5cc2f2', doi: '#4fb0ea', the: '#fffbea', o: '#fff', vien: '#1d2a5a', chu: '#1d2a5a',
-  nhat: 'rgba(29,42,90,.62)', mo: 'rgba(29,42,90,.3)', danNen: '255,243,196', danSo: '#e08a00', danBong: '#ffd86b',
-  nhat1: ['#ffe066', '#ffc21a'] as [string, string], vienAnh: '#fff',
-};
-const TOI: typeof SANG = {
-  troi: '#141b44', doi: '#1d2660', the: '#232c5e', o: '#2d3872', vien: '#0a0f2c', chu: '#eef1ff',
-  nhat: 'rgba(238,241,255,.66)', mo: 'rgba(238,241,255,.32)', danNen: '255,200,60', danSo: '#ffc21a', danBong: '#7a5200',
-  nhat1: ['#ffd84d', '#e0a200'], vienAnh: '#2d3872',
-};
-let P = SANG;
-let MUC = SANG.vien;
-const laToi = (): boolean => { try { return document.documentElement.dataset.theme === 'dark'; } catch { return false; } };
-
-function font(bien: string, duPhong: string): string {
-  try {
-    const v = getComputedStyle(document.documentElement).getPropertyValue(bien).trim();
-    return v || duPhong;
-  } catch { return duPhong; }
-}
-
-function khoiTron(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
-  c.beginPath();
-  c.moveTo(x + r, y);
-  c.arcTo(x + w, y, x + w, y + h, r);
-  c.arcTo(x + w, y + h, x, y + h, r);
-  c.arcTo(x, y + h, x, y, r);
-  c.arcTo(x, y, x + w, y, r);
-  c.closePath();
-}
-
-/** Khối nổi: đế mực lệch xuống `de` px rồi mặt khối, viền mực. */
-function khoiNoi(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, mat: string | CanvasGradient, de: number, vien: number): void {
-  khoiTron(c, x, y + de, w, h, r); c.fillStyle = MUC; c.fill();
-  khoiTron(c, x, y, w, h, r); c.fillStyle = mat; c.fill();
-  c.lineWidth = vien; c.strokeStyle = MUC; c.stroke();
-}
-
-/** Cắt chữ cho vừa `max` px, thêm "…". */
-function vua(c: CanvasRenderingContext2D, s: string, max: number): string {
-  if (c.measureText(s).width <= max) return s;
-  let t = s;
-  while (t.length > 1 && c.measureText(`${t}…`).width > max) t = t.slice(0, -1);
-  return `${t}…`;
-}
-
-function chuVien(c: CanvasRenderingContext2D, s: string, x: number, y: number, day: number): void {
-  c.lineJoin = 'round'; c.lineWidth = day * 2; c.strokeStyle = MUC;
-  c.strokeText(s, x, y + day * .9); c.strokeText(s, x, y);
-  c.fillStyle = '#fff'; c.fillText(s, x, y);
-}
-
 export async function veAnhKetQua(n: NoiDungAnh): Promise<Blob> {
-  try { await document.fonts?.ready; } catch { /* vẽ bằng font dự phòng */ }
-  const cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const c = cv.getContext('2d')!;
-  const fD = font('--font-display', "'Grandstander', system-ui, sans-serif");
-  const fB = font('--font-body', "'Be Vietnam Pro', system-ui, sans-serif");
-
-  P = laToi() ? TOI : SANG; MUC = P.vien;
-  // Nền trời + đồi; sáng: mặt trời + mây (cùng bộ với og.jpg) — tối: trăng khuyết + sao
-  c.fillStyle = P.troi; c.fillRect(0, 0, W, H);
-  c.fillStyle = P.doi;
-  c.beginPath(); c.ellipse(260, H + 40, 620, 120, 0, 0, Math.PI * 2); c.fill();
-  if (P === TOI) {
-    c.fillStyle = '#f4e6a6'; c.beginPath(); c.arc(975, 120, 54, 0, Math.PI * 2); c.fill();
-    c.fillStyle = P.troi; c.beginPath(); c.arc(995, 104, 46, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(255,255,255,.8)';
-    for (const [x, y, r] of [[90, 90, 4], [210, 150, 3], [330, 70, 2.5], [760, 60, 3], [860, 170, 2.5], [60, 1230, 3], [990, 1260, 4], [930, 1190, 2.5]] as const) {
-      c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-    }
-  } else {
-    c.fillStyle = '#ffd84d'; c.beginPath(); c.arc(975, 120, 58, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#fff';
-    for (const [x, y, rx, ry] of [[110, 108, 90, 34], [185, 82, 60, 26], [950, 1260, 80, 30]] as const) {
-      c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill();
-    }
-  }
-
-  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-  c.font = `900 66px ${fD}`;
-  chuVien(c, n.tenApp, W / 2, 128, 5);
-
-  if (n.tySo?.ds.length) {
-    await veBangTySo(c, n, fD, fB);
-  } else {
-  // Thẻ trắng giữa ảnh — cao theo nội dung, đặt giữa khoảng trống
-  const soDong = n.hang?.length ?? Math.ceil((n.so?.length ?? 0) / 2);
-  const caoNoiDung = n.hang ? soDong * 128 : soDong * 160;
-  const cao = 150 + 96 + 52 + 40 + caoNoiDung + 110;
-  const y0 = Math.max(200, Math.round(200 + (920 - cao) / 2));
-  khoiNoi(c, 80, y0, W - 160, cao, 48, P.the, 14, 8);
-
-  let y = y0 + 150;
-  c.font = `120px ${fB}`; c.fillText('🏆', W / 2, y);
-  y += 96;
-  c.fillStyle = P.chu; c.font = `800 64px ${fD}`;
-  c.fillText(vua(c, n.tieuDe, W - 260), W / 2, y);
-  y += 52;
-  c.fillStyle = P.nhat; c.font = `700 30px ${fB}`;
-  c.fillText(vua(c, n.phu, W - 260), W / 2, y);
-  y += 40;
-
-  if (n.hang) {
-    for (const d of n.hang) {
-      const x = 140, w = W - 280, h = 104;
-      let mat: string | CanvasGradient = P.o;
-      if (d.nhat) { const g = c.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, P.nhat1[0]); g.addColorStop(1, P.nhat1[1]); mat = g; }
-      khoiNoi(c, x, y, w, h, 30, mat, d.nhat ? 7 : 0, 5);
-      // Dòng nhất nền vàng: chữ mực tối ở cả hai theme (chữ sáng của theme tối không đọc được trên vàng)
-      c.fillStyle = d.nhat ? '#1d2a5a' : P.chu; c.textAlign = 'left'; c.font = `800 40px ${fB}`;
-      c.fillText(String(d.hang), x + 34, y + 66);
-      c.textAlign = 'right'; c.font = `800 46px ${fB}`;
-      c.fillText(d.diem, x + w - 34, y + 68);
-      const rongDiem = c.measureText(d.diem).width;
-      c.textAlign = 'left'; c.font = `800 40px ${fB}`;
-      c.fillText(vua(c, d.ten, w - 34 - 70 - rongDiem - 40), x + 92, y + 66);
-      y += 128;
-    }
-  } else if (n.so) {
-    const cot = 2, w = (W - 280 - 24) / cot, h = 136;
-    n.so.forEach((o, i) => {
-      const x = 140 + (i % cot) * (w + 24), yy = y + Math.floor(i / cot) * 160;
-      khoiNoi(c, x, yy, w, h, 28, P.o, 0, 5);
-      c.textAlign = 'center'; c.fillStyle = P.nhat; c.font = `700 28px ${fB}`;
-      c.fillText(vua(c, o.nhan, w - 30), x + w / 2, yy + 50);
-      c.fillStyle = P.chu; c.font = `800 52px ${fB}`;
-      c.fillText(o.gt, x + w / 2, yy + 108);
-    });
-    y += caoNoiDung;
-  }
-  c.textAlign = 'center'; c.fillStyle = P.chu; c.font = `800 36px ${fB}`;
-  c.fillText(vua(c, n.cau, W - 260), W / 2, y + 44);
-  }
-
-  // Chân ảnh: lời mời + địa chỉ trong viên trắng nổi khối
-  c.font = `800 34px ${fB}`; c.fillStyle = P.chu;
-  c.fillText(n.choiNgay, W / 2, H - 175);
-  c.font = `800 38px ${fB}`;
-  const rong = c.measureText(n.site).width + 80;
-  khoiNoi(c, (W - rong) / 2, H - 150, rong, 76, 38, P.o, 6, 5);
-  c.fillStyle = P.chu; c.fillText(n.site, W / 2, H - 98);
-
-  return new Promise((ok, loi) => cv.toBlob((b) => (b ? ok(b) : loi(new Error('toBlob'))), 'image/png'));
+  const { cv, b } = await moBut();
+  veNen(b); veLogo(b, n.tenApp); veThe(b);
+  if (n.tySo?.ds.length) veTySo(b, n);
+  else if (n.hang?.length) veBuc(b, n);
+  else veMotMinh(b, n);
+  veChan(b, n.tenApp, n.site.startsWith('http') ? n.site : `https://${n.site}`);
+  return raBlob(cv);
 }
 
-/** Mặt vẽ tay (SVG trong MatBot) không vẽ được bằng chữ lên canvas → emoji gần nhất. */
-const MAT_THAY: Record<string, string> = { ':bao-den:': '🐈‍⬛', ':rong-vang:': '🐉' };
-
-/** Ảnh Google: tải kiểu CORS — máy chủ không cho thì `onerror` (KHÔNG làm bẩn canvas, toBlob vẫn chạy) → mặt thú. */
-function taiAnh(src: string): Promise<HTMLImageElement | null> {
-  return new Promise((ok) => {
-    const im = new Image();
-    im.crossOrigin = 'anonymous'; im.referrerPolicy = 'no-referrer';
-    const het = setTimeout(() => ok(null), 2500);
-    im.onload = () => { clearTimeout(het); ok(im); };
-    im.onerror = () => { clearTimeout(het); ok(null); };
-    im.src = src;
-  });
+/** Ván một mình: avatar + tên · viên "Thắng rồi!" · ĐIỂM thật to · ba ô số liệu. */
+function veMotMinh(b: But, n: NoiDungAnh): void {
+  const { c, p, fD, fB } = b;
+  const cx = W / 2;
+  let y = THE.y + 60;
+  if (n.nguoi) {
+    c.font = `800 46px ${fB}`;
+    const ten = vua(c, n.nguoi.ten, 600), w = 104 + 22 + c.measureText(ten).width, x0 = cx - w / 2;
+    veAvatar(b, x0, y, 104, n.nguoi.mat, n.nguoi.mau);
+    c.textAlign = 'left'; c.fillStyle = p.chu; c.fillText(ten, x0 + 126, y + 68);
+    y += 130;
+  }
+  y = veVien(b, `🏆 ${n.tieuDe}`, cx, y) + 24;
+  const [dau, ...con] = n.so ?? [];
+  if (dau) {
+    c.textAlign = 'center'; c.fillStyle = p.chu; c.font = `900 200px ${fD}`;
+    c.fillText(vua(c, dau.gt, 860), cx, y + 180);
+    c.fillStyle = p.chu2; c.font = `800 38px ${fB}`;
+    c.fillText(vua(c, `${dau.nhan.toLowerCase()} · ${n.phu}`, 860), cx, y + 240);
+  }
+  const o = con.slice(0, 3), gap = 22, w = (THE.w - 120 - gap * (o.length - 1)) / Math.max(1, o.length), h = 150;
+  o.forEach((x, i) => veO(b, THE.x + 60 + i * (w + gap), THE.y + THE.h - 60 - h, w, h, x.gt, x.nhan));
 }
 
-/**
- * BẢNG TỶ SỐ NHƯ MÀN CUỐI VÁN (19.11.2026, mockup duyệt https://claude.ai/artifact/11swqn2QDAce9P5GTBxAbz,
- * chủ dự án: "hiển thị rõ kết quả tổng tỷ số hơn như chính giao diện cuối ván"). Trước đó tỷ số chỉ là một
- * dòng chữ "Linh 3 · Minh 1", phần lớn ảnh là danh sách điểm ván cuối.
- * Mỗi người một cột: mặt · tên · SỐ VÁN THẮNG thật to · "220 điểm". Người dẫn DUY NHẤT: nền vàng nhạt, số
- * vàng cam, vương miện. 2 người đặt đối đầu "3 – 2"; ≤3 người một hàng; từ 4 người lưới 3 cột (≤4 hàng).
- */
-async function veBangTySo(c: CanvasRenderingContext2D, n: NoiDungAnh, fD: string, fB: string): Promise<void> {
-  const ds = n.tySo!.ds;
-  const max = Math.max(...ds.map((d) => d.n));
-  const dan = max > 0 && ds.filter((d) => d.n === max).length === 1;
-  const hai = ds.length === 2;
-  const soCot = ds.length <= 3 ? ds.length : 3;
-  const soHang = Math.ceil(ds.length / soCot);
-  const rowH = hai ? 440 : ds.length === 3 ? 410 : Math.min(290, Math.floor(560 / soHang));   // thẻ phải dừng trước chân ảnh (~1150px)
-  const anh = await Promise.all(ds.map((d) => Promise.all((d.mat ?? []).map((m) => (m.anh ? taiAnh(m.anh) : Promise.resolve(null))))));
-
-  const caoBang = soHang * rowH + 40;
-  const cao = 236 + caoBang + 100;
-  const y0 = Math.max(190, Math.round(190 + (990 - cao) / 2));
-  khoiNoi(c, 80, y0, W - 160, cao, 48, P.the, 14, 8);
-
-  c.textAlign = 'center';
-  c.fillStyle = P.nhat; c.font = `800 30px ${fB}`;
-  c.fillText(vua(c, n.tySo!.nhan.toUpperCase(), W - 260), W / 2, y0 + 72);
-  c.fillStyle = P.chu; c.font = `900 68px ${fD}`;
-  c.fillText(vua(c, n.tieuDe, W - 240), W / 2, y0 + 150);
-  c.fillStyle = P.nhat; c.font = `700 28px ${fB}`;
-  c.fillText(vua(c, n.phu, W - 260), W / 2, y0 + 196);
-
-  const bx = 130, bw = W - 260, by = y0 + 226;
-  khoiNoi(c, bx, by, bw, caoBang, 34, P.o, 0, 6);
-  const giua = hai ? 70 : 0;                         // chỗ cho dấu "–" giữa hai người
-  const colW = (bw - 20 - giua) / soCot;
-  ds.forEach((d, i) => {
-    const r = Math.floor(i / soCot), k = i % soCot;
-    const conHang = Math.min(soCot, ds.length - r * soCot);     // hàng cuối thiếu người → căn giữa
-    const lech = (soCot - conHang) * colW / 2;
-    const cx = bx + 10 + lech + k * colW + colW / 2 + (hai && k === 1 ? giua : 0);
-    const top = by + 20 + r * rowH;
-    const laDan = dan && d.n === max;
-    // Cột người dẫn KHÔNG tô nền vàng, KHÔNG vương miện (chủ dự án 25.11.2026) — số ván thắng màu vàng đã đủ nói ai dẫn
-    // Mặt (đội: nhiều mặt nhỏ cạnh nhau)
-    const mats = d.mat?.length ? d.mat : [{}];
-    const f = Math.round(rowH * (mats.length > 1 ? .2 : .27) / Math.max(1, Math.min(mats.length, 3) * .62));
-    const yMat = top + rowH * .06 + f;
-    mats.forEach((m, j) => {
-      const mx = cx + (j - (mats.length - 1) / 2) * f * 1.05;
-      const im = anh[i]?.[j];
-      if (im) {
-        c.save(); c.beginPath(); c.arc(mx, yMat - f * .42, f * .5, 0, Math.PI * 2); c.closePath(); c.clip();
-        c.drawImage(im, mx - f * .5, yMat - f * .92, f, f); c.restore();
-        c.beginPath(); c.arc(mx, yMat - f * .42, f * .5, 0, Math.PI * 2); c.lineWidth = 4; c.strokeStyle = P.vienAnh; c.stroke();
-      } else {
-        // Ô màu hồ sơ sau mặt (một người một cột; đội thì các mặt đứng sát nhau, không tô) — khớp bảng kết quả trong app
-        // Đúng tỉ lệ trong app (.vong-mau: ô = 1,7 × mặt, mặt nằm GỌN trong ô) và ô không chạm tên bên dưới.
-        if (m.mau && mats.length === 1) {
-          const o = f * 1.15, fe = o / 1.7, yc = yMat - f * .55;
-          khoiTron(c, mx - o / 2, yc - o / 2, o, o, o * .28); c.fillStyle = m.mau; c.fill();
-          c.font = `${Math.round(fe)}px ${fB}`; c.fillStyle = P.chu;
-          c.fillText(MAT_THAY[m.mat ?? ''] ?? m.mat ?? '🙂', mx, yc + fe * .36);
-          return;
-        }
-        c.font = `${f}px ${fB}`; c.fillStyle = P.chu;
-        c.fillText(MAT_THAY[m.mat ?? ''] ?? m.mat ?? '🙂', mx, yMat);
-      }
-    });
-    // Tên
-    const coTen = Math.round(rowH * .085);
-    c.fillStyle = P.chu; c.font = `800 ${coTen}px ${fD}`;
-    const yTen = yMat + rowH * .05 + coTen;
-    c.fillText(vua(c, d.ten, colW - 24), cx, yTen);
-    // Số ván thắng — to nhất
-    const coSo = Math.round(rowH * .36);
-    c.font = `900 ${coSo}px ${fD}`;
-    const ySo = yTen + coSo * .95;
-    if (laDan) { c.fillStyle = P.danBong; c.fillText(String(d.n), cx, ySo + 6); }
-    c.fillStyle = laDan ? P.danSo : P.chu;
-    c.fillText(String(d.n), cx, ySo);
-    if (d.diem) {
-      c.fillStyle = P.nhat; c.font = `700 ${Math.round(rowH * .065)}px ${fB}`;
-      c.fillText(vua(c, d.diem, colW - 20), cx, ySo + rowH * .1);
-    }
+/** Nhiều người: viên "X thắng!" · dòng phụ · bục 1–2–3 có avatar · người thứ 4 trở đi một dòng nhỏ. */
+function veBuc(b: But, n: NoiDungAnh): void {
+  const { c, p, fD, fB } = b;
+  const cx = W / 2;
+  let y = veVien(b, `🏆 ${n.tieuDe}`, cx, THE.y + 56) + 20;
+  c.textAlign = 'center'; c.fillStyle = p.chu2; c.font = `800 32px ${fB}`; c.fillText(vua(c, n.phu, 860), cx, y + 24);
+  const ds = n.hang!;
+  const top = ds.slice(0, 3);
+  // thứ tự bày: 2 · 1 · 3 (bục giữa cao nhất); hai người thì 2 · 1
+  const bay = top.length >= 3 ? [top[1]!, top[0]!, top[2]!] : top.length === 2 ? [top[1]!, top[0]!] : [top[0]!];
+  const cao = (d: DongXepHang): number => (d.hang === 1 ? 240 : d.hang === 2 ? 170 : 120);
+  const mauBuc = (d: DongXepHang): [string, string] => (d.hang === 1 ? ['#ffe17a', '#f5b324'] : d.hang === 2 ? ['#dfe4f0', '#9aa6c2'] : ['#f3bd88', '#c97a3d']);
+  const cw = 250, gap = 26, tong = bay.length * cw + (bay.length - 1) * gap, x0 = cx - tong / 2;
+  const dayBuc = THE.y + THE.h - (ds.length > 3 ? 120 : 60);
+  bay.forEach((d, i) => {
+    const x = x0 + i * (cw + gap), hb = cao(d), yb = dayBuc - hb;
+    // bục
+    tron(b.c, x, yb, cw, hb, 26); c.fillStyle = (() => { const g = c.createLinearGradient(0, yb, 0, yb + hb); g.addColorStop(0, mauBuc(d)[0]); g.addColorStop(1, mauBuc(d)[1]); return g; })(); c.fill();
+    c.textAlign = 'center'; c.font = `900 96px ${fD}`; c.lineJoin = 'round'; c.lineWidth = 8; c.strokeStyle = 'rgba(0,0,0,.22)';
+    c.strokeText(String(d.hang), x + cw / 2, yb + hb / 2 + 34); c.fillStyle = '#fff'; c.fillText(String(d.hang), x + cw / 2, yb + hb / 2 + 34);
+    // điểm · tên · avatar phía trên bục
+    c.fillStyle = p.chu2; c.font = `800 32px ${fB}`; c.fillText(vua(c, d.diem, cw), x + cw / 2, yb - 18);
+    c.fillStyle = p.chu; c.font = `800 38px ${fB}`; c.fillText(vua(c, d.ten, cw), x + cw / 2, yb - 62);
+    const co = d.hang === 1 ? 120 : 100;
+    veAvatar(b, x + cw / 2 - co / 2, yb - 104 - co, co, d.mat, d.mau, d.hang === 1 && !!d.nhat);
   });
-  if (hai) {
-    c.fillStyle = P.mo; c.font = `900 90px ${fD}`;
-    c.fillText('–', bx + bw / 2, by + 20 + rowH * .62);
+  if (ds.length > 3) {
+    c.textAlign = 'center'; c.fillStyle = p.chu2; c.font = `800 30px ${fB}`;
+    c.fillText(vua(c, ds.slice(3).map((d) => `${d.hang}. ${d.ten} ${d.diem}`).join('   ·   '), 860), cx, THE.y + THE.h - 56);
   }
-  c.fillStyle = P.chu; c.font = `800 36px ${fB}`;
-  c.fillText(vua(c, n.cau, W - 260), W / 2, by + caoBang + 62);
+}
+
+/** Tỷ số cả loạt: viên kết quả · nhãn tỷ số · các avatar đối mặt, số ván thắng thật to (hai người thì "2 – 1" ở giữa). */
+function veTySo(b: But, n: NoiDungAnh): void {
+  const { c, p, fD, fB } = b;
+  const cx = W / 2;
+  let y = veVien(b, `🏆 ${n.tieuDe}`, cx, THE.y + 56) + 20;
+  c.textAlign = 'center'; c.fillStyle = p.chu2; c.font = `800 32px ${fB}`; c.fillText(vua(c, n.tySo!.nhan, 860), cx, y + 24);
+  const ds = n.tySo!.ds.slice(0, 4);
+  const maxN = Math.max(...ds.map((d) => d.n));
+  const vaMat = (d: CotTySo) => d.mat?.[0];
+  if (ds.length === 2) {
+    const [a, bb] = ds as [CotTySo, CotTySo];
+    const co = 170, yA = THE.y + 300;
+    for (const [d, xc] of [[a, cx - 300], [bb, cx + 300]] as const) {
+      veAvatar(b, xc - co / 2, yA, co, vaMat(d)?.mat, vaMat(d)?.mau, d.n === maxN && maxN > 0);
+      c.textAlign = 'center'; c.fillStyle = p.chu; c.font = `800 44px ${fB}`; c.fillText(vua(c, d.ten, 260), xc, yA + co + 64);
+      if (d.diem) { c.fillStyle = p.chu2; c.font = `800 30px ${fB}`; c.fillText(vua(c, d.diem, 260), xc, yA + co + 108); }
+    }
+    c.fillStyle = p.chu; c.font = `900 170px ${fD}`; c.textAlign = 'center';
+    c.fillText(`${a.n}–${bb.n}`, cx, yA + co / 2 + 60);
+  } else {
+    const cw = (THE.w - 120) / ds.length, co = 130, yA = THE.y + 290;
+    ds.forEach((d, i) => {
+      const xc = THE.x + 60 + cw * i + cw / 2;
+      veAvatar(b, xc - co / 2, yA, co, vaMat(d)?.mat, vaMat(d)?.mau, d.n === maxN && maxN > 0);
+      c.textAlign = 'center'; c.fillStyle = p.chu; c.font = `800 38px ${fB}`; c.fillText(vua(c, d.ten, cw - 16), xc, yA + co + 56);
+      c.font = `900 120px ${fD}`; c.fillText(String(d.n), xc, yA + co + 190);
+    });
+  }
+  c.fillStyle = p.chu; c.font = `800 42px ${fB}`; c.textAlign = 'center';
+  c.fillText(vua(c, n.cau, 860), cx, THE.y + THE.h - 70);
 }
 
 /** Máy này chia sẻ được FILE ảnh không (Web Share Level 2). */
@@ -353,72 +196,83 @@ async function chiaSeAnhTho(blob: Blob, chu: string, url: string): Promise<'xong
 }
 
 /*
- * ẢNH CHIA SẺ CHỈ SỐ TRÍ NHỚ (26.11.2026, chủ dự án: "làm tính năng chia sẻ chỉ số trí nhớ ở trang chỉ số trí nhớ, nhớ kèm
- * link để người dùng cài app" — "vừa có text vừa có ảnh"). Cùng khổ 1080×1350, cùng nền trời / khối nổi với ảnh kết quả.
- * Trên ảnh: điểm trong huy chương màu bậc, thanh 5 bậc, 5 cột chặng nhớ, câu thách — và LINK TẢI APP in ngay trên ảnh: Facebook /
- * Instagram bỏ phần chữ đi kèm ảnh, chữ in trên ảnh thì không mất.
+ * ẢNH CHIA SẺ CHỈ SỐ TRÍ NHỚ (26.11.2026, chủ dự án: "làm tính năng chia sẻ chỉ số trí nhớ… kèm link để người dùng cài app"; bản
+ * mới cùng ngày thêm cả biểu đồ 14 ngày). Avatar + tên · huy chương điểm + bậc + thay đổi so với tuần trước · thanh 5 bậc ·
+ * "Theo số lượt" (5 chặng) · "14 ngày qua" (cột hôm nay sáng nhất, ngày chưa có điểm là vạch mờ) · vé mời ở chân.
  */
 export interface NoiDungTriNho {
   tenApp: string; tieuDe: string; diem: number; bac: number; tenBac: string; cacBac: string[];
   chang: { nhan: string; tiLe: number | null }[]; cau: string; taiApp: string; link: string;
+  nguoi?: { ten: string; mat?: string; mau?: string };
+  /** 14 ngày, cũ → mới; null = ngày chưa đủ số liệu. */
+  ngay14?: (number | null)[]; nhan14?: [string, string];
+  muc5?: string; muc14?: string;
+  /** Dòng nhỏ cạnh huy chương, vd "▲ 32 điểm so với tuần trước". */
+  lech?: string;
 }
 const MAU_BAC = ['#c98a4b', '#b6bfd3', '#f0b400', '#8fd3f4', '#8ee0ff'];
 export async function veAnhTriNho(n: NoiDungTriNho): Promise<Blob> {
-  try { await document.fonts?.ready; } catch { /* vẽ bằng font dự phòng */ }
-  const cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const c = cv.getContext('2d')!;
-  const fD = font('--font-display', "'Grandstander', system-ui, sans-serif");
-  const fB = font('--font-body', "'Be Vietnam Pro', system-ui, sans-serif");
-  P = laToi() ? TOI : SANG; MUC = P.vien;
-  c.fillStyle = P.troi; c.fillRect(0, 0, W, H);
-  c.fillStyle = P.doi; c.beginPath(); c.ellipse(260, H + 40, 620, 120, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = P === TOI ? 'rgba(255,255,255,.8)' : '#fff';
-  for (const [x, y, r] of (P === TOI ? [[90, 90, 4], [210, 150, 3], [860, 170, 2.5], [990, 90, 4]] : []) as [number, number, number][]) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
-  if (P !== TOI) for (const [x, y, rx, ry] of [[110, 108, 90, 34], [185, 82, 60, 26]] as const) { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); }
-
-  c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-  c.font = `900 66px ${fD}`; chuVien(c, n.tenApp, W / 2, 128, 5);
-
-  // Thẻ chính
-  const y0 = 196, cao = 850;
-  khoiNoi(c, 70, y0, W - 140, cao, 48, P.the, 14, 8);
-  c.fillStyle = P.chu; c.font = `800 52px ${fD}`; c.fillText(n.tieuDe, W / 2, y0 + 92);
-  // Huy chương điểm
-  const cx = W / 2, cy = y0 + 232, r = 108, mau = MAU_BAC[n.bac] ?? MAU_BAC[0]!;
-  c.fillStyle = MUC; c.beginPath(); c.arc(cx, cy + 10, r, 0, Math.PI * 2); c.fill();
-  const g = c.createRadialGradient(cx - 30, cy - 40, 10, cx, cy, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, mau);
-  c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
-  c.lineWidth = 8; c.strokeStyle = MUC; c.stroke();
-  c.fillStyle = '#1d2a5a'; c.font = `900 ${n.diem >= 1000 ? 86 : 104}px ${fD}`; c.fillText(String(n.diem), cx, cy + 36);
-  // Tên bậc
-  c.font = `900 46px ${fD}`; const rb = c.measureText(n.tenBac).width + 70;
-  khoiNoi(c, cx - rb / 2, cy + r + 22, rb, 68, 34, mau, 6, 5);
-  c.fillStyle = '#1d2a5a'; c.fillText(n.tenBac, cx, cy + r + 72);
-  // Thanh 5 bậc
-  const tx = 150, tw = W - 300, ty = cy + r + 128, o = (tw - 4 * 12) / 5;
-  n.cacBac.forEach((ten, i) => {
-    const x = tx + i * (o + 12);
-    khoiTron(c, x, ty, o, 22, 11); c.fillStyle = i <= n.bac ? (MAU_BAC[i] ?? P.o) : P.mo; c.fill();
-    c.fillStyle = i === n.bac ? P.chu : P.nhat; c.font = `${i === n.bac ? 800 : 700} 26px ${fB}`; c.fillText(vua(c, ten, o + 8), x + o / 2, ty + 58);
+  const { cv, b } = await moBut();
+  const { c, p, fD, fB } = b;
+  veNen(b); veLogo(b, n.tenApp); veThe(b);
+  const x0 = THE.x + 56, wT = THE.w - 112, cx = W / 2;
+  let y = THE.y + 40;
+  // tiêu đề: avatar + "Chỉ số trí nhớ của …"
+  c.font = `800 42px ${fB}`;
+  const tieu = vua(c, n.tieuDe, 700), coAv = 84, wTieu = (n.nguoi ? coAv + 20 : 0) + c.measureText(tieu).width;
+  let xt = cx - wTieu / 2;
+  if (n.nguoi) { veAvatar(b, xt, y, coAv, n.nguoi.mat, n.nguoi.mau); xt += coAv + 20; }
+  c.textAlign = 'left'; c.fillStyle = p.chu; c.font = `800 42px ${fB}`; c.fillText(tieu, xt, y + 56);
+  y += 110;
+  // huy chương + bậc
+  const mau = MAU_BAC[n.bac] ?? MAU_BAC[0]!, r = 88, hx = x0 + 110, hy = y + r;
+  c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.arc(hx, hy + 9, r, 0, Math.PI * 2); c.fill();
+  const g = c.createRadialGradient(hx - 30, hy - 32, 8, hx, hy, r); g.addColorStop(0, '#ffffff'); g.addColorStop(1, mau);
+  c.fillStyle = g; c.beginPath(); c.arc(hx, hy, r, 0, Math.PI * 2); c.fill();
+  c.lineWidth = 10; c.strokeStyle = 'rgba(255,255,255,.6)'; c.beginPath(); c.arc(hx, hy, r - 7, 0, Math.PI * 2); c.stroke();
+  c.textAlign = 'center'; c.fillStyle = '#1d2a5a'; c.font = `900 ${n.diem >= 1000 ? 66 : 78}px ${fD}`; c.fillText(String(n.diem), hx, hy + 28);
+  const bx = hx + r + 40;
+  c.font = `900 46px ${fD}`;
+  const wb = Math.min(440, c.measureText(n.tenBac).width + 80);
+  tron(c, bx, hy - 62 + 7, wb, 72, 36); c.fillStyle = 'rgba(0,0,0,.2)'; c.fill();
+  tron(c, bx, hy - 62, wb, 72, 36); c.fillStyle = mau; c.fill();
+  c.textAlign = 'center'; c.fillStyle = '#1d2a5a'; c.fillText(vua(c, n.tenBac, wb - 30), bx + wb / 2, hy - 10);
+  if (n.lech) { c.textAlign = 'left'; c.fillStyle = p.chu2; c.font = `800 30px ${fB}`; c.fillText(vua(c, n.lech, THE.x + THE.w - 56 - bx), bx, hy + 52); }
+  y = hy + r + 26;
+  // thanh 5 bậc
+  const ob = (wT - 4 * 12) / 5;
+  n.cacBac.slice(0, 5).forEach((_, i) => { tron(c, x0 + i * (ob + 12), y, ob, 22, 11); c.fillStyle = i <= n.bac ? (MAU_BAC[i] ?? p.o) : p.oVien; c.fill(); });
+  y += 70;
+  const muc = (chu: string, yy: number): void => { c.textAlign = 'left'; c.fillStyle = p.chu2; c.font = `800 27px ${fB}`; c.fillText(chu.toLocaleUpperCase(), x0, yy); };
+  // 5 chặng
+  muc(n.muc5 ?? '', y);
+  const hc = 110, cw = (wT - 4 * 22) / 5, day5 = y + 40 + hc;
+  n.chang.slice(0, 5).forEach((ch, i) => {
+    const x = x0 + i * (cw + 22);
+    const h = ch.tiLe === null ? 8 : Math.max(10, Math.round(hc * Math.min(1, ch.tiLe)));
+    tron(c, x, day5 - h, cw, h, 14);
+    c.fillStyle = ch.tiLe === null ? p.oVien : (() => { const gg = c.createLinearGradient(0, day5 - h, 0, day5); gg.addColorStop(0, '#2ed3b7'); gg.addColorStop(1, '#0f8a7a'); return gg; })(); c.fill();
+    c.textAlign = 'center'; c.fillStyle = p.chu; c.font = `900 30px ${fD}`; c.fillText(ch.tiLe === null ? '–' : `${Math.round(ch.tiLe * 100)}%`, x + cw / 2, day5 - h - 10);
+    c.fillStyle = p.chu2; c.font = `800 22px ${fB}`; c.fillText(vua(c, ch.nhan, cw + 14), x + cw / 2, day5 + 30);
   });
-  // 5 cột chặng nhớ
-  const bx = 150, bw = W - 300, by = ty + 150, bh = 165, cw = (bw - 4 * 22) / 5;
-  n.chang.forEach((ch, i) => {
-    const x = bx + i * (cw + 22), tl = ch.tiLe === null ? 0 : Math.max(.06, Math.min(1, ch.tiLe)), h = Math.round(bh * tl);
-    khoiTron(c, x, by, cw, bh, 18); c.fillStyle = P.mo; c.globalAlpha = .35; c.fill(); c.globalAlpha = 1;
-    if (h > 0) { khoiTron(c, x, by + bh - h, cw, h, 18); c.fillStyle = '#0f8a7a'; c.fill(); }
-    c.fillStyle = P.chu; c.font = `900 34px ${fD}`; c.fillText(ch.tiLe === null ? '–' : `${Math.round(ch.tiLe * 100)}%`, x + cw / 2, by - 14);
-    c.fillStyle = P.nhat; c.font = `700 24px ${fB}`; c.fillText(vua(c, ch.nhan, cw + 16), x + cw / 2, by + bh + 38);
-  });
-  // Câu thách
-  c.fillStyle = P.chu; c.font = `800 38px ${fB}`; c.fillText(vua(c, n.cau, W - 220), W / 2, y0 + cao + 84);
-
-  // Chân ảnh: mời tải app + link
-  c.font = `800 34px ${fB}`; c.fillStyle = P.chu; c.fillText(n.taiApp, W / 2, H - 150);
-  c.font = `800 38px ${fB}`;
-  const rong = c.measureText(n.link).width + 80;
-  khoiNoi(c, (W - rong) / 2, H - 128, rong, 76, 38, P.o, 6, 5);
-  c.fillStyle = P.chu; c.fillText(n.link, W / 2, H - 76);
-  return new Promise((ok, loi) => cv.toBlob((b) => (b ? ok(b) : loi(new Error('toBlob'))), 'image/png'));
+  y = day5 + 92;
+  // 14 ngày
+  if (n.ngay14?.length) {
+    muc(n.muc14 ?? '', y);
+    const d14 = n.ngay14, h14 = 96, gap = 8, w14 = (wT - gap * (d14.length - 1)) / d14.length, day = y + 22 + h14;
+    const dinh = Math.max(200, ...d14.map((v) => v ?? 0));
+    d14.forEach((v, i) => {
+      const x = x0 + i * (w14 + gap);
+      const h = v === null ? 10 : Math.max(14, Math.round(h14 * (v / dinh)));
+      tron(c, x, day - h, w14, h, 8);
+      c.fillStyle = v === null ? p.oVien : i === d14.length - 1 ? '#14b8a0' : 'rgba(20,184,160,.5)'; c.fill();
+    });
+    if (n.nhan14) {
+      c.fillStyle = p.chu2; c.font = `800 22px ${fB}`;
+      c.textAlign = 'left'; c.fillText(n.nhan14[0], x0, day + 30);
+      c.textAlign = 'right'; c.fillText(n.nhan14[1], x0 + wT, day + 30);
+    }
+  }
+  veChan(b, n.tenApp, n.link.startsWith('http') ? n.link : `https://${n.link}`);
+  return raBlob(cv);
 }

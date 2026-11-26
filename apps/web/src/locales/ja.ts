@@ -621,6 +621,7 @@ const ja: TuDien = {
   'cs.daCopyMa': 'コードをコピーしました',
   'cs.copyMa': 'コードをコピー',
   'cs.daCopyLink': 'リンクをコピーしました',
+  'cs.chepLink': "リンクをコピー",
   'cs.copyLink': 'リンクをコピー',
   /* ---------- emoji bar (EmojiBar.vue) ---------- */
   'eb.guiEmoji': '絵文字を送る',
@@ -1141,6 +1142,10 @@ const ja: TuDien = {
   'tn.chang.3': "8–15ターン",
   'tn.chang.4': "16+ターン",
   'tn.cs.nut': "記憶スコアをシェア",
+  'tn.cs.muc14': "直近14日間",
+  'tn.cs.tang': "先週より ▲{n} 点",
+  'tn.cs.giam': "先週より ▼{n} 点",
+  'tn.cs.cua': "{ten}の記憶スコア",
   'tn.cs.cau': "あなたの記憶力は？🧠",
   'tn.cs.taiApp': "無料アプリをダウンロード",
   'tn.cs.chu': "わたしの記憶スコアは{diem}（{bac}）！あなたは何点？🧠",

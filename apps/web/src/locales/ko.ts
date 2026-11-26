@@ -621,6 +621,7 @@ const ko: TuDien = {
   'cs.daCopyMa': '코드를 복사했어요',
   'cs.copyMa': '코드 복사',
   'cs.daCopyLink': '링크를 복사했어요',
+  'cs.chepLink': "링크 복사",
   'cs.copyLink': '링크 복사',
   /* ---------- emoji bar (EmojiBar.vue) ---------- */
   'eb.guiEmoji': '이모지 보내기',
@@ -1141,6 +1142,10 @@ const ko: TuDien = {
   'tn.chang.3': "8–15턴",
   'tn.chang.4': "16+턴",
   'tn.cs.nut': "기억 지수 공유",
+  'tn.cs.muc14': "최근 14일",
+  'tn.cs.tang': "지난주보다 ▲{n}점",
+  'tn.cs.giam': "지난주보다 ▼{n}점",
+  'tn.cs.cua': "{ten}의 기억 지수",
   'tn.cs.cau': "당신의 기억력은? 🧠",
   'tn.cs.taiApp': "무료 앱 받기",
   'tn.cs.chu': "내 기억 지수는 {diem} — {bac} 등급! 너는 몇 점? 🧠",
