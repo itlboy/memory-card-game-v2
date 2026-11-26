@@ -53,6 +53,8 @@ const kyLuc = ref(docKyLuc(chon.value.soThe, chon.value.doKho));
 watch(chon, (c) => { luuChon(c); kyLuc.value = docKyLuc(c.soThe, c.doKho); }, { deep: true });
 
 const giayGon = (ms: number): string => (ms / 1000).toLocaleString(bcp(), { maximumFractionDigits: 1 });
+/** Giây CHỌN: dưới 1 giây hiện 2 chữ số, sàn 0,01 — "0s" là vô lý (chủ dự án 27.11.2026: "Làm gì có 0 giây"). */
+const giayChon = (ms: number): string => (Math.max(10, ms) / 1000).toLocaleString(bcp(), { maximumFractionDigits: ms < 1000 ? 2 : 1, minimumFractionDigits: ms < 1000 ? 2 : 0 });
 const tomTat = computed(() => t('tt.tomTat', {
   xem: giayGon(timTheXemMs(chon.value)), chon: giayGon(timTheChonMs(chon.value)), n: TIM_THE_SO_LUOT
 }));
@@ -102,7 +104,7 @@ const bangKq = computed(() => {
   const k = ketToi.value;
   if (!k) return null;
   if (k.ketCuc !== 'dung') return { ic: k.ketCuc === 'sai' ? 'saiRoi' : 'hetGio', chu: t(k.ketCuc === 'sai' ? 'tt.sai' : 'tt.hetGio'), phu: t('tt.xemDapAn') } as const;
-  const s = giayGon(k.ms ?? 0);
+  const s = giayChon(k.ms ?? 0);
   const dau = k.nhanhNhat ? t('tt.nhanhNhat', { s }) : t('tt.chonTrong', { s });
   return {
     ic: k.nhanhNhat ? 'nhanhNhat' : 'dungRoi', chu: t('tt.dung', { n: num(k.diem) }),
@@ -177,7 +179,7 @@ const nay = ref(0);
 let henBay: ReturnType<typeof setTimeout> | undefined;
 async function bayDiem(i: number, diem: number, ms: number): Promise<void> {
   clearTimeout(henBay);
-  gain.value = { key: (gain.value?.key ?? 0) + 1, i, diem, s: giayGon(ms) };
+  gain.value = { key: (gain.value?.key ?? 0) + 1, i, diem, s: giayChon(ms) };
   await nextTick();
   const dich = document.querySelector('.tim-the .vien.diem b');
   if (gainEl && dich) {
@@ -213,7 +215,10 @@ function batDau(): void {
 function cham(i: number): void {
   const v = van.value;
   if (!v || buoc.value !== 'choi' || nhip.value !== 'hoi' || chonCuaToi.value !== null) return;
-  if (!v.chon(TOI, i, Math.min(tNhip, v.chonMs))) return;
+  // `tNhip` chỉ cộng theo KHUNG HÌNH — chạm ngay khung đầu của nhịp hỏi thì nó còn 0. Cộng thêm phần đã trôi
+  // từ khung trước tới lúc chạm (không quá một khung, như `dt` trong vòng lặp) để ra đúng thời gian thật.
+  const them = Math.min(100, Math.max(0, performance.now() - truoc));
+  if (!v.chon(TOI, i, Math.min(tNhip + them, v.chonMs))) return;
   chonCuaToi.value = i;
   sfx.select();
   rev.value++;
