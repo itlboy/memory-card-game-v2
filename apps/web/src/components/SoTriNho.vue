@@ -41,7 +41,12 @@ const homNay = ngay[SO_COT - 1]!;
 /** Ngày đang xem (khoá `YYYY-MM-DD`) — mặc định hôm nay; bấm cột ở tab 14 ngày để đổi. */
 const chon = ref(homNay);
 const laHomNay = computed(() => chon.value === homNay);
-const tab = ref<'chang' | 'ngay' | 'nam'>('chang');
+/*
+ * HAI BIỂU ĐỒ CÙNG LÚC (26.11.2026, chủ dự án: "thêm 14 ngày vào cả trong app" — trước là hai tab, chỉ thấy một hình): "Theo số
+ * lượt" (5 chặng) luôn hiện, ngay dưới là "Theo thời gian" (14 ngày). `tab` giờ chỉ đổi biểu đồ THỜI GIAN: 14 ngày ↔ Cả năm
+ * (Premium). Mockup https://claude.ai/artifact/WLMtGi289WrYicB9N3wYb3 (bản ảnh chia sẻ) — chủ dự án cho tự duyệt.
+ */
+const tab = ref<'ngay' | 'nam'>('ngay');
 
 const ky = computed(() => chiSoTai(nhatKy, ngayTuKhoa(chon.value)));
 const conVan = computed(() => vanConThieu(ky.value));
@@ -168,32 +173,36 @@ const coNhan = (k: string, i: number): boolean =>
         </p>
       </section>
 
-      <!-- (2) MỘT HÌNH, HAI TAB -->
-      <div class="doi" :class="{ ba: hienTabNam }" role="tablist">
-        <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'chang' }" type="button" role="tab" :aria-selected="tab === 'chang'" @click="tab = 'chang'">{{ t('tn.tab5') }}</button>
-        <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'ngay' }" type="button" role="tab" :aria-selected="tab === 'ngay'" @click="tab = 'ngay'; moChucNang('tri_nho_14_ngay', {}, true)">
-          {{ t('tn.tab14') }}
-        </button>
-        <button v-if="hienTabNam" class="thach th-nho tab-nam" :class="{ 'th-ngoc': tab === 'nam', khoa: !daMuaPremium }" type="button" role="tab" :aria-selected="tab === 'nam'" :aria-label="`${t('tn.tabNam')} — ${t('tp.premium')}`" @click="moTabNam">
-          {{ t('tn.tabNam') }}<span class="vm" aria-hidden="true"><Crown :size="10" :stroke-width="3" /></span>
-        </button>
-      </div>
-
-      <!-- NGÀY ĐANG XEM ở dòng RIÊNG (26.11.2026, chủ dự án gửi ảnh "giao diện vỡ": ghép "· 25/11" vào nhãn tab làm chữ tràn
-           sang tab Cả năm khi có ba tab) — kèm nút về hôm nay -->
-      <p v-if="tab === 'ngay' && !laHomNay" class="ngay-xem">{{ t('tn.dangXem', { ngay: ngayThang(chon) }) }}<button data-phang type="button" @click="chon = homNay">{{ t('tn.veHomNay') }}</button></p>
-      <div v-if="tab === 'chang'" class="hinh tru" role="tabpanel">
-        <div v-for="(c, i) in ky.chang" :key="i" class="c" :class="{ khoa: !c.mo }">
-          <span class="than">
-            <b>{{ c.mo ? `${Math.round(c.tiLe! * 100)}%` : `${c.n}/${LAN_MO_CHANG}` }}</b>
-            <i :style="c.mo ? { height: caoThan(Math.max(0.04, c.tiLe!)) } : undefined" />
-          </span>
-          <small>{{ td(`tn.chang.${i}`) }}</small>
+      <!-- (2a) THEO SỐ LƯỢT — luôn hiện -->
+      <section class="khoi" :aria-label="t('tn.tab5')">
+        <h3 class="dau-khoi">{{ t('tn.tab5') }}</h3>
+        <div class="hinh tru">
+          <div v-for="(c, i) in ky.chang" :key="i" class="c" :class="{ khoa: !c.mo }">
+            <span class="than">
+              <b>{{ c.mo ? `${Math.round(c.tiLe! * 100)}%` : `${c.n}/${LAN_MO_CHANG}` }}</b>
+              <i :style="c.mo ? { height: caoThan(Math.max(0.04, c.tiLe!)) } : undefined" />
+            </span>
+            <small>{{ td(`tn.chang.${i}`) }}</small>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- (2b) THEO THỜI GIAN — 14 ngày; Premium đổi được sang Cả năm -->
+      <section class="khoi" :aria-label="t('tn.tab14')">
+        <div class="dau-khoi hang">
+          <h3>{{ t('tn.tab14') }}</h3>
+          <span v-if="hienTabNam" class="doi" role="tablist">
+            <button class="thach th-nho" :class="{ 'th-ngoc': tab === 'ngay' }" type="button" role="tab" :aria-selected="tab === 'ngay'" @click="tab = 'ngay'">{{ t('tn.mot14') }}</button>
+            <button class="thach th-nho tab-nam" :class="{ 'th-ngoc': tab === 'nam', khoa: !daMuaPremium }" type="button" role="tab" :aria-selected="tab === 'nam'" :aria-label="`${t('tn.tabNam')} — ${t('tp.premium')}`" @click="moTabNam">
+              {{ t('tn.tabNam') }}<span class="vm" aria-hidden="true"><Crown :size="10" :stroke-width="3" /></span>
+            </button>
+          </span>
+        </div>
+        <!-- NGÀY ĐANG XEM ở dòng RIÊNG, kèm nút về hôm nay -->
+        <p v-if="tab === 'ngay' && !laHomNay" class="ngay-xem">{{ t('tn.dangXem', { ngay: ngayThang(chon) }) }}<button data-phang type="button" @click="chon = homNay">{{ t('tn.veHomNay') }}</button></p>
       <!-- Ngày CHƯA CÓ ĐIỂM thì không bấm được (trừ hôm nay): bấm vào quá khứ mà ra "Chơi thêm 4 ván để có điểm" là vô
            nghĩa (chủ dự án gửi ảnh 25.11.2026) — quá khứ thì không chơi thêm được. Bấm ngày cũ luôn ra một con số thật. -->
-      <div v-else-if="tab === 'nam'" class="hinh nam" role="tabpanel">
+      <div v-if="tab === 'nam'" class="hinh nam" role="tabpanel">
         <button
           v-for="(c, i) in thang" :key="c.k" data-phang type="button" class="c" :class="{ chon: i === thangChon, trong: c.diem === null }"
           :disabled="c.diem === null" :aria-pressed="i === thangChon" :aria-label="`${t('tn.thang', { n: c.thang })}: ${c.diem === null ? t('tn.chuaDu') : num(c.diem)}`" @click="thangChon = i"
@@ -209,7 +218,7 @@ const coNhan = (k: string, i: number): boolean =>
         <button
           v-for="(c, i) in cot" :key="c.k" data-phang type="button" class="c" :class="{ chon: c.k === chon, nghi: !c.choi, trong: c.diem === null }"
           :disabled="c.diem === null && c.k !== homNay"
-          :aria-pressed="c.k === chon" :aria-label="`${ngayThang(c.k)}: ${c.diem === null ? t('tn.chuaDu') : num(c.diem)}`" @click="chon = c.k"
+          :aria-pressed="c.k === chon" :aria-label="`${ngayThang(c.k)}: ${c.diem === null ? t('tn.chuaDu') : num(c.diem)}`" @click="chon = c.k; moChucNang('tri_nho_14_ngay', {}, true)"
         >
           <span class="than">
             <b>{{ c.k === chon && c.diem !== null ? c.diem : '' }}</b>
@@ -218,6 +227,7 @@ const coNhan = (k: string, i: number): boolean =>
           <small>{{ coNhan(c.k, i) ? ngayThang(c.k) : '' }}</small>
         </button>
       </div>
+      </section>
 
       <!-- (3) HÀNH ĐỘNG — luôn hiện -->
       <button class="btn btn-primary luyen" type="button" @click="emit('luyen', theLuyen)">
@@ -286,17 +296,20 @@ const coNhan = (k: string, i: number): boolean =>
 .toi-bac .ray.khoa i { background: var(--tn); }
 
 /* (2) Nút chuyển hai tab */
-.doi { align-self: center; display: flex; gap: 6px; }
+.khoi { display: flex; flex-direction: column; gap: 8px; }
+/* Máy thấp (iPhone SE): hai biểu đồ thấp lại cho cả màn vừa một khung, nút Luyện ngay không bị đẩy khuất */
+@media (max-height: 700px) { .tn .hinh { height: 92px; } .tn .khoi { gap: 4px; } .tn { gap: 10px !important; } .tn .giua { min-height: 0; } }
+.dau-khoi, .dau-khoi h3 { margin: 0; font: 800 12px/1.2 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.dau-khoi.hang { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px; }
+.doi { display: flex; gap: 6px; }
 /* Tab đang chọn = nút thạch NGỌC (`th-ngoc`): tự đặt nền bằng CSS thường thì kiểu thạch của skin đè mất, hai tab trông y nhau */
-.doi button { min-height: 34px; padding: 0 14px; font: 800 13px/1 var(--font-body); }
+.doi button { min-height: 30px; padding: 0 12px; font: 800 12.5px/1 var(--font-body); text-transform: none; letter-spacing: 0; }
 
 /* Hai tab CÙNG chiều cao: [thân co giãn: số 16 + cột] [nhãn 24] */
 /* BA TAB (có tab Cả năm): chia đều cả bề ngang, chữ một dòng — để tự co là "Theo thời gian" xuống hai dòng (chụp 26.11.2026) */
-.doi.ba { align-self: stretch; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.doi.ba button { min-width: 0; padding: 0 6px; white-space: nowrap; font-size: 12.5px; justify-content: center; overflow: hidden; text-overflow: ellipsis; }
 .ngay-xem { margin: -6px 0 0; display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 13px/1.3 var(--font-body); color: var(--muted); }
 .ngay-xem button { border: 0; background: none; padding: 4px 0; min-height: 28px; color: var(--accent); font: 800 13px/1.2 var(--font-body); text-decoration: underline; cursor: pointer; }
-.hinh { height: 158px; display: grid; align-items: stretch; }
+.hinh { height: 128px; display: grid; align-items: stretch; }
 .hinh.tru { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
 .hinh.nam { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }

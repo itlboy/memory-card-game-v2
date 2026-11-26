@@ -1156,6 +1156,7 @@ const fr: TuDien = {
   'tn.conVan': "Encore {n} parties",
   'tn.tab5': "Par tours",
   'tn.tab14': "Dans le temps",
+  'tn.mot14': "14 jours",
   'tn.diemHomNay': "Score du jour",
   'tn.diemNgay': "Score du {ngay}",
   'tn.tinh7Ngay': "sur les 7 derniers jours",

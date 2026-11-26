@@ -1170,6 +1170,7 @@ const ru: TuDien = {
   'tn.conVan': "Ещё {n} игр",
   'tn.tab5': "По ходам",
   'tn.tab14': "По времени",
+  'tn.mot14': "14 дней",
   'tn.diemHomNay': "Результат сегодня",
   'tn.diemNgay': "Результат на {ngay}",
   'tn.tinh7Ngay': "за последние 7 дней",

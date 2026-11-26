@@ -1150,6 +1150,7 @@ const ja: TuDien = {
   'tn.conVan': "あと{n}回",
   'tn.tab5': "ターン別",
   'tn.tab14': "期間別",
+  'tn.mot14': "14日間",
   'tn.diemHomNay': "今日のスコア",
   'tn.diemNgay': "{ngay}のスコア",
   'tn.tinh7Ngay': "直近7日間で計算",

@@ -1154,6 +1154,7 @@ const it: TuDien = {
   'tn.conVan': "Ancora {n} partite",
   'tn.tab5': "Per turni",
   'tn.tab14': "Nel tempo",
+  'tn.mot14': "14 giorni",
   'tn.diemHomNay': "Punteggio di oggi",
   'tn.diemNgay': "Punteggio del {ngay}",
   'tn.tinh7Ngay': "sugli ultimi 7 giorni",

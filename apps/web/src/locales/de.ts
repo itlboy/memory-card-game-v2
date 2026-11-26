@@ -1153,6 +1153,7 @@ const de: TuDien = {
   'tn.conVan': "Noch {n} Spiele",
   'tn.tab5': "Nach Zügen",
   'tn.tab14': "Nach Zeit",
+  'tn.mot14': "14 Tage",
   'tn.diemHomNay': "Wert heute",
   'tn.diemNgay': "Wert am {ngay}",
   'tn.tinh7Ngay': "aus den letzten 7 Tagen",

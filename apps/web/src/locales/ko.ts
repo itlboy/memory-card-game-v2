@@ -1150,6 +1150,7 @@ const ko: TuDien = {
   'tn.conVan': "{n}판 더",
   'tn.tab5': "턴별",
   'tn.tab14': "기간별",
+  'tn.mot14': "14일",
   'tn.diemHomNay': "오늘 점수",
   'tn.diemNgay': "{ngay} 점수",
   'tn.tinh7Ngay': "최근 7일 기준",

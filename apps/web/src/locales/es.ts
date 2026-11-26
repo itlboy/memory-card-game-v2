@@ -1152,6 +1152,7 @@ const es: TuDien = {
   'tn.conVan': "Faltan {n} partidas",
   'tn.tab5': "Por turnos",
   'tn.tab14': "Por tiempo",
+  'tn.mot14': "14 días",
   'tn.diemHomNay': "Puntuación de hoy",
   'tn.diemNgay': "Puntuación del {ngay}",
   'tn.tinh7Ngay': "con los últimos 7 días",

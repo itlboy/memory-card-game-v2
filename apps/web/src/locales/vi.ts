@@ -1164,6 +1164,7 @@ const vi = {
   'tn.conVan': "Còn {n} ván",
   'tn.tab5': "Theo số lượt",
   'tn.tab14': "Theo thời gian",
+  'tn.mot14': "14 ngày",
   'tn.diemHomNay': "Điểm hôm nay",
   'tn.diemNgay': "Điểm ngày {ngay}",
   'tn.tinh7Ngay': "tính trên 7 ngày gần nhất",

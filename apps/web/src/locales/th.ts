@@ -1151,6 +1151,7 @@ const th: TuDien = {
   'tn.conVan': "อีก {n} เกม",
   'tn.tab5': "ตามจำนวนตา",
   'tn.tab14': "ตามเวลา",
+  'tn.mot14': "14 วัน",
   'tn.diemHomNay': "คะแนนวันนี้",
   'tn.diemNgay': "คะแนนวันที่ {ngay}",
   'tn.tinh7Ngay': "คิดจาก 7 วันล่าสุด",

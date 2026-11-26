@@ -1153,6 +1153,7 @@ const zhTW: TuDien = {
   'tn.conVan': "還差 {n} 局",
   'tn.tab5': "依回合",
   'tn.tab14': "依時間",
+  'tn.mot14': "14 天",
   'tn.diemHomNay': "今日分數",
   'tn.diemNgay': "{ngay} 的分數",
   'tn.tinh7Ngay': "以最近 7 天計算",

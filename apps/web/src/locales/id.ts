@@ -1153,6 +1153,7 @@ const id: TuDien = {
   'tn.conVan': "{n} game lagi",
   'tn.tab5': "Per giliran",
   'tn.tab14': "Per waktu",
+  'tn.mot14': "14 hari",
   'tn.diemHomNay': "Skor hari ini",
   'tn.diemNgay': "Skor {ngay}",
   'tn.tinh7Ngay': "dari 7 hari terakhir",

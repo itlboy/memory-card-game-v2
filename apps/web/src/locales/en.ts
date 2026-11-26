@@ -1152,6 +1152,7 @@ const en: TuDien = {
   'tn.conVan': "{n} more games",
   'tn.tab5': "By turns",
   'tn.tab14': "Over time",
+  'tn.mot14': "14 days",
   'tn.diemHomNay': "Today's score",
   'tn.diemNgay': "Score on {ngay}",
   'tn.tinh7Ngay': "based on the last 7 days",

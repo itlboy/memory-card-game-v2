@@ -1153,6 +1153,7 @@ const tr: TuDien = {
   'tn.conVan': "{n} oyun daha",
   'tn.tab5': "Hamleye göre",
   'tn.tab14': "Zamana göre",
+  'tn.mot14': "14 gün",
   'tn.diemHomNay': "Bugünkü puan",
   'tn.diemNgay': "{ngay} puanı",
   'tn.tinh7Ngay': "son 7 güne göre",
