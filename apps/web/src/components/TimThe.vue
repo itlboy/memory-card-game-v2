@@ -65,7 +65,6 @@ const rev = ref(0);
 const buoc = ref<'dau' | 'choi' | 'dung' | 'cuoi'>('dau');
 type Nhip = 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an';
 const nhip = ref<Nhip>('xem');
-const giay = ref(0);
 const chonCuaToi = ref<number | null>(null);
 const ketToi = ref<TimTheKetQua | null>(null);
 const ketVan = ref<TimTheKetVan | null>(null);
@@ -116,13 +115,15 @@ const bangKq = computed(() => {
 const ban = ref<HTMLElement | null>(null);
 const laW = ref(72);
 const KHE = 10;
+/** Thanh giờ (10px) + khe tới bàn thẻ — trừ khỏi chiều cao khi tính cỡ thẻ. */
+const THANH_CAO = 22;
 let ro: ResizeObserver | undefined;
 function doBan(): void {
   const el = ban.value;
   if (!el) return;
   const n = van.value?.cfg.soThe ?? chon.value.soThe;
   const cot = timTheSoCot(n), hang = Math.ceil(n / cot);
-  const w = Math.min((el.clientWidth - KHE * (cot - 1)) / cot, ((el.clientHeight - KHE * (hang - 1)) / hang) * 0.75, 132);
+  const w = Math.min((el.clientWidth - KHE * (cot - 1)) / cot, ((el.clientHeight - THANH_CAO - KHE * (hang - 1)) / hang) * 0.75, 132);
   laW.value = Math.max(36, Math.floor(w));
 }
 const coAnh = computed(() => chonCoAnh(laW.value * 0.62));
@@ -166,7 +167,7 @@ function veGio(v: VanTimThe): void {
   const s = Math.ceil((dai - tNhip) / 1000);
   if (s !== giayCu) {
     if (giayCu !== -1 && nhip.value === 'hoi' && s <= 3 && s > 0 && chonCuaToi.value === null) sfx.tick();
-    giayCu = s; giay.value = Math.max(0, s);
+    giayCu = s;
   }
 }
 
@@ -287,11 +288,11 @@ defineExpose({
       </div>
     </div>
 
+    <!-- Bảng trên KHÔNG có số giây nhảy (27.11.2026): số đổi mỗi giây kéo mắt khỏi bàn. Giờ = thanh sát bàn + tiếng tích. -->
     <div class="khay tt-bang" aria-live="polite">
       <template v-if="nhip === 'xem'">
         <IconVong ic="ghiNho" :size="44" />
         <div class="chu"><strong>{{ t('tt.ghiNho') }}</strong><span>{{ t('tt.sapUp') }}</span></div>
-        <b class="giay">{{ giay }}</b>
       </template>
       <template v-else-if="nhip === 'up'">
         <IconVong ic="upBai" :size="44" />
@@ -303,16 +304,17 @@ defineExpose({
           <template v-else>{{ van.hinhDich }}</template>
         </span>
         <div class="chu"><strong>{{ t('tt.hoi') }}</strong><span>{{ chonCuaToi !== null && nhieu ? t('tt.choDoiThu') : t('tt.cham') }}</span></div>
-        <b v-if="nhip === 'hoi'" class="giay">{{ giay }}</b>
       </template>
       <template v-else-if="bangKq">
         <IconVong :key="van?.luot" :ic="bangKq.ic" :size="44" />
         <div class="chu"><strong>{{ bangKq.chu }}</strong><span>{{ bangKq.phu }}</span></div>
       </template>
     </div>
-    <div class="tt-thanh" aria-hidden="true"><i ref="thanh" /></div>
-
     <div ref="ban" class="tt-ban">
+      <!-- Thanh giờ DÍNH SÁT bàn thẻ, rộng đúng bằng bàn (27.11.2026): đặt ở dưới bảng trên cùng thì mắt rời bàn để
+           xem giờ — mất tập trung. Nguyên tắc của Tìm Thẻ: thứ gì cần nhìn trong lượt phải nằm ngay ở bàn. -->
+      <div class="cum">
+      <div class="tt-thanh" aria-hidden="true"><i ref="thanh" /></div>
       <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
         <div v-for="(sym, i) in dsThe" :key="`${van?.luot}-${i}`" class="o">
           <button
@@ -336,6 +338,7 @@ defineExpose({
             </span>
           </button>
         </div>
+      </div>
       </div>
 
       <!-- THẺ CẦN TÌM giữa bàn: lớp mờ + thẻ to, tan tại chỗ khi sang nhịp hỏi (không chạm được bàn lúc này) -->
@@ -477,7 +480,6 @@ defineExpose({
 .tt-bang .chu { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .tt-bang strong { font-family: var(--font-display); font-weight: 800; font-size: clamp(18px, 5vw, 22px); line-height: 1.15; text-wrap: balance; }
 .tt-bang .chu span { font-size: 13.5px; color: var(--muted); }
-.giay { flex: none; min-width: 1.3em; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 32px; line-height: 1; font-variant-numeric: tabular-nums; }
 .dich {
   flex: none; width: 52px; aspect-ratio: 3 / 4; border-radius: 11px; display: grid; place-items: center; font-size: 28px;
   background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 2.5px solid #6d8fdc;
@@ -507,8 +509,9 @@ defineExpose({
 .tt-noi-leave-active .lon { transition: transform .3s; transform: scale(.6); }
 .tt-noi-enter-from, .tt-noi-leave-to { opacity: 0; }
 
+.cum { display: flex; flex-direction: column; gap: 12px; }
 .tt-thanh {
-  flex: none; height: 10px; margin: -2px 4px 0; border-radius: 999px; overflow: hidden;
+  flex: none; height: 10px; margin: 0 2px; border-radius: 999px; overflow: hidden;
   background: color-mix(in srgb, var(--panel, #fff) 55%, transparent); box-shadow: inset 0 2px 3px rgba(20, 30, 70, .2);
 }
 .tt-thanh i {

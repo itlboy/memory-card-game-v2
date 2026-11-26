@@ -352,7 +352,10 @@
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
   bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Hỏi = thẻ cần tìm hiện TO CHÍNH GIỮA BÀN trên lớp mờ
   `TIM_THE_NOI_MS` (1,2 giây, ngoài giờ chọn, chưa chạm được) rồi tan tại chỗ; bảng trên giữ ô nhỏ nhắc lại (27.11.2026, duyệt
-  https://claude.ai/artifact/45faUe94GByb1Qp2Q7C6fy — chỉ ở bảng trên thì mắt rời bàn, mất tập trung). Ván = 10 lượt, KHÔNG đồng hồ cả ván, KHÔNG tim. Số thẻ chỉ
+  https://claude.ai/artifact/45faUe94GByb1Qp2Q7C6fy — chỉ ở bảng trên thì mắt rời bàn, mất tập trung).
+  **NGUYÊN TẮC: KHÔNG GÌ ĐƯỢC KÉO MẮT KHỎI BÀN** (chủ dự án 27.11.2026: "Ko nên làm gì gây sự mất tập trung"): thanh giờ
+  dính sát ngay trên bàn thẻ, rộng bằng bàn; bảng trên KHÔNG có số giây nhảy. Thêm gì vào màn chơi thì hỏi: nó có bắt
+  mắt rời bàn không? Ván = 10 lượt, KHÔNG đồng hồ cả ván, KHÔNG tim. Số thẻ chỉ
   3·4·6·9·12 ("12 là nhiều lắm đấy"). Độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
   giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
   cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.
