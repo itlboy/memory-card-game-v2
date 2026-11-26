@@ -990,6 +990,7 @@ const en: TuDien = {
   'pm.tietKiem': "Save {pct}%",
   'pm.mua': "Start Premium",
   'pm.thu': "Debug preview — no real payment.",
+  'pm.sapBan': "Premium is coming soon — thanks for trying it!",
   'pm.daCo': "You have Premium",
   'pm.tat': "Turn off preview",
   'pm.dbg': "See plans and try them",

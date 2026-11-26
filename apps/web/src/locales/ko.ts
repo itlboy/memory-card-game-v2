@@ -988,6 +988,7 @@ const ko: TuDien = {
   'pm.tietKiem': "{pct}% 절약",
   'pm.mua': "Premium 시작",
   'pm.thu': "디버그 미리보기 — 실제 결제 없음.",
+  'pm.sapBan': "프리미엄이 곧 출시돼요 — 체험해 주셔서 고마워요!",
   'pm.daCo': "Premium 이용 중",
   'pm.tat': "미리보기 끄기",
   'pm.dbg': "요금제 보고 체험하기",

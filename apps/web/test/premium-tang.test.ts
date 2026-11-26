@@ -108,15 +108,15 @@ describe('bảng Premium', () => {
 
 describe('viên Premium trang chủ + đường về', () => {
   const doc = (f: string): string => readFileSync(resolve(process.cwd(), 'src', f), 'utf8');
-  it('viên CHỈ hiện khi debug, bấm mở bảng Premium từ "trang-chu", có chấm đỏ khi còn quà', () => {
+  it('viên hiện theo hienVienPremium (mở cho mọi người 27.11.2026), bấm mở bảng Premium từ "trang-chu", có chấm đỏ khi còn quà', () => {
     const s = doc('components/MenuScreen.vue');
-    expect(s).toMatch(/<button v-if="dangDebug" class="vien-pm thach"[^>]*@click="sfx\.select\(\); moPremium\('trang-chu'\)"/);
+    expect(s).toMatch(/<button v-if="hienVienPremium" class="vien-pm thach"[^>]*@click="sfx\.select\(\); moPremium\('trang-chu'\)"/);
     expect(s, 'chấm đỏ khi còn quà, và khi quà sắp hết (nhắc trước 3 ngày)').toContain('<i v-if="conQuaTang || sapHetQua" class="vpm-cham"');
     expect(s, 'hai viên không đè nhau').toMatch(/\.vien-pm \{[^}]*max-width: 52%/);
   });
-  it('App: bảng Premium vẫn chỉ mở khi debug; mở Chủ đề / Nhạc từ bảng Premium thì đóng lại là VỀ bảng Premium', () => {
+  it('App: bảng Premium mở khi debug hoặc viên Premium đang hiện; mở Chủ đề / Nhạc từ bảng Premium thì đóng lại là VỀ bảng Premium', () => {
     const s = doc('App.vue');
-    expect(s).toContain('<BangPremium v-if="showPremium && debug"');
+    expect(s).toContain('<BangPremium v-if="showPremium && (debug || hienVienPremium)"');
     expect(s).toMatch(/function moTuPremium\(muc: 'nen' \| 'nhac' \| 'hh'\): void \{\s*showPremium\.value = false;\s*tuPremium = true;/);
     expect(s, 'đóng bảng huy hiệu cũng về bảng Premium').toContain('watch(showHuyHieu, veMenuKhiDong);');
     expect(s).toMatch(/if \(vePremium\) \{ premiumTu\.value = 'trang-chu'; showPremium\.value = true; \} else topBar\.value\?\.moMenu\(/);

@@ -342,7 +342,8 @@
 
 ## TÌM THẺ — KIỂU CHƠI KHÔNG GHÉP CẶP (26.11.2026, bản chơi thử duyệt https://claude.ai/artifact/ESzywRX1pBqhx72tD1u1tz)
 
-- **CHỈ NGƯỜI BẬT DEBUG THẤY** (`hienTim` ở MenuScreen = `TIM_THE_MO || dangDebug`; `TIM_THE_MO = false` ở `lib/tim-the.ts`).
+- **MỞ CHO MỌI NGƯỜI từ 1.10.71 (27.11.2026)**: `TIM_THE_MO = true` ở `lib/tim-the.ts` (trước đó chỉ người bật debug thấy;
+  `hienTim` = `TIM_THE_MO || dangDebug`). Máy trực phòng mở ~30% số ván bằng Tìm Thẻ (biến `TIM_TI_LE=0.3` ở compose Dallas).
   Lối vào = HÀNG "KIỂU CHƠI" (Thường | Tìm Thẻ) NGAY TRONG màn Chơi nhanh và Đấu với máy (27.11.2026, mockup duyệt
   https://claude.ai/artifact/VSDue1KpVaC8WXysMR7iHR — "trong setup màn thì cho chọn loại thay vì cho hẳn đường đi khác bên
   ngoài"). KHÔNG còn bước Thể loại cho Tìm Thẻ (bước đó chỉ còn cho Mưa Thẻ) và KHÔNG còn màn cấu hình riêng: chọn Tìm
@@ -1522,6 +1523,10 @@
   danh hiệu của theme premium ẩn và KHÔNG được đếm (mọi chỗ đếm đọc `dsHien`, không đọc
   `ACHIEVEMENTS`). Lý do: đồ khoá mà không mua được là App Review hay loại (luật 2.1).
   Có IAP thì bật `true`; đồ premium chưa mua đeo VƯƠNG MIỆN (không dùng ổ khoá).
+  **GIAI ĐOẠN TẶNG (27.11.2026, chủ dự án mở Premium cho mọi người, chọn "chỉ tặng 1 tháng")**: `MO_TANG = true` ở
+  `lib/premium.ts` — ai CÒN QUÀ (`coQuaMoi`) thì thấy viên Premium trang chủ, đồ Premium, dòng Hình nền và lời mời (để nhận
+  quà). Nút mua / chọn gói / khôi phục chỉ khi `coMua` (cửa hàng thật hoặc debug); không thì câu `pm.sapBan`. "Tắt bản thử"
+  và dòng "bản thử debug" chỉ trong debug. Hết quà mà chưa bán: đồ Premium lại ẨN (vẫn luật 2.1). Có IAP thật → `banPremium`.
   Thử giao diện đã mua: menu → nút "🐞 Debug" cạnh chữ Cài đặt → trang Debug → "Mở Premium để thử" (`datPremiumThu`, chỉ đổi `mm.premium` của máy đó — trong app không có console nên đây là lối duy nhất). Công tắc Twemoji trong menu đã BỎ: máy Apple
   nay MỌI máy vẽ NOTO 3D (15.10.2026, xem mục MẶT BÀI), bản lưu `kieuEmoji` cũ bị bỏ qua.
 

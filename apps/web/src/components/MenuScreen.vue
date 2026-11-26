@@ -23,7 +23,7 @@ const hienTim = computed(() => TIM_THE_MO || dangDebug.value);
 /** Bước Thể loại chỉ còn cho Mưa Thẻ. Tìm Thẻ chọn NGAY TRONG màn Chơi nhanh / Đấu với máy (hàng Kiểu chơi,
  *  27.11.2026 — chủ dự án: "trong setup màn thì cho chọn loại thay vì cho hẳn đường đi khác bên ngoài"). */
 const coKieu = computed(() => MUA_THE_MO);
-import { conQuaTang, daMuaPremium, goiDangCo, moPremium, ngayConLai } from '@/lib/premium';
+import { conQuaTang, daMuaPremium, goiDangCo, hienVienPremium, moPremium, ngayConLai } from '@/lib/premium';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -677,7 +677,7 @@ const ICO3D = {
           <!-- VIÊN PREMIUM đối diện viên Chỉ số trí nhớ (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc).
                Bấm mở bảng Premium: quyền lợi, cài đặt Premium, ngày hết hạn, nút nhận 1 tháng miễn phí. CHỈ HIỆN KHI DEBUG — chủ dự
                án: "vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi". Chấm đỏ = còn quà chưa nhận. -->
-          <button v-if="dangDebug" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
+          <button v-if="hienVienPremium" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
             <span class="vtn-chu"><small>{{ t('tp.premium') }}</small><b>{{ chuVienPremium }}</b></span>
             <span class="vpm-vm" aria-hidden="true"><Crown :size="18" :stroke-width="2.6" /></span>
             <i v-if="conQuaTang || sapHetQua" class="vpm-cham" aria-hidden="true" />

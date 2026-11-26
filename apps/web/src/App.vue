@@ -100,7 +100,7 @@ import { nhac, BAI_NHAC, BAI_PREMIUM, baiChoiDuoc, laBaiNhac, type BaiNhac } fro
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { choiDuoc, daMuaPremium, hienPremium, kiemHetHanTang, yeuCauPremium, type NoiMoPremium } from './lib/premium';
+import { choiDuoc, daMuaPremium, hienPremium, hienVienPremium, kiemHetHanTang, yeuCauPremium, type NoiMoPremium } from './lib/premium';
 
 const prefs = store.prefs();
 /*
@@ -1436,8 +1436,8 @@ const hasNext = computed(() => {
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
-  <BangPremium v-if="showPremium && debug" :tu="premiumTu" :nhac-hien="nhacHien" :nhac-dang="nhacBat && soundLevel !== 'off' ? baiThat : null" @close="showPremium = false" @mo="moTuPremium" />
-  <ChonHinhNen v-if="showHinhNen && debug" @close="showHinhNen = false" />
+  <BangPremium v-if="showPremium && (debug || hienVienPremium)" :tu="premiumTu" :nhac-hien="nhacHien" :nhac-dang="nhacBat && soundLevel !== 'off' ? baiThat : null" @close="showPremium = false" @mo="moTuPremium" />
+  <ChonHinhNen v-if="showHinhNen && (debug || hienPremium)" @close="showHinhNen = false" />
   <ChonHuyHieu v-if="showHuyHieu" @close="showHuyHieu = false" />
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->

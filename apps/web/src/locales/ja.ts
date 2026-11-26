@@ -988,6 +988,7 @@ const ja: TuDien = {
   'pm.tietKiem': "{pct}%お得",
   'pm.mua': "Premiumを始める",
   'pm.thu': "デバッグ用プレビュー — 実際の支払いはありません。",
+  'pm.sapBan': "プレミアムはまもなく登場 — お試しありがとう！",
   'pm.daCo': "Premium利用中",
   'pm.tat': "プレビューを終了",
   'pm.dbg': "プランを見て試す",

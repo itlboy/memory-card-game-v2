@@ -991,6 +991,7 @@ const zhTW: TuDien = {
   'pm.tietKiem': "省 {pct}%",
   'pm.mua': "開始 Premium",
   'pm.thu': "除錯預覽 — 不會真實扣款。",
+  'pm.sapBan': "Premium 即將推出——感謝你的試用！",
   'pm.daCo': "你已擁有 Premium",
   'pm.tat': "關閉預覽",
   'pm.dbg': "查看方案並試用",

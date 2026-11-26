@@ -21,9 +21,10 @@ import DauPremium from './DauPremium.vue';
 import { BAI_PREMIUM, ICON_BAI, nhac, type BaiNhac } from '@/lib/nhac';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
+import { dangDebug } from '@/lib/debug';
 import { bcp, ngonNgu, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
-import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, TINH_NANG_PREMIUM, type Goi, type NoiMoPremium } from '@/lib/premium';
+import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, coMua, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, TINH_NANG_PREMIUM, type Goi, type NoiMoPremium } from '@/lib/premium';
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { SITE_URL, nenApp } from '@/lib/native';
 
@@ -264,6 +265,8 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
           </template>
 
           <!-- HẾT QUÀ: hai gói + nút mua + câu tự gia hạn — Apple bắt buộc có đủ cạnh nút mua -->
+          <!-- Giai đoạn tặng, chưa bán thật: không nút mua (lib/premium `coMua`) -->
+          <p v-else-if="!coMua" class="pm-luat">{{ t('pm.sapBan') }}</p>
           <template v-else>
             <div class="pm-goi" role="radiogroup" :aria-label="t('pm.chonGoi')">
               <button data-phang class="pm-g" type="button" role="radio" :aria-checked="goi === 'nam'" :disabled="buoc === 'dang'" @click="chonGoi('nam')">
@@ -289,12 +292,12 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
           <span v-if="!daMuaPremium && conQuaTang" class="chan">{{ t('pm.c.chan') }}</span>
           <!-- "Quản lý gói" CHỈ khi gói mua qua cửa hàng THẬT (chủ dự án 26.11.2026: "quản lý gói chưa có thì nên tắt đi") -->
           <a v-if="cuaHangThat && daMuaPremium && goiDangCo && !goiDangCo.tang && !goiDangCo.vinhVien" :href="LINK_QUAN_LY" target="_blank" rel="noopener">{{ t('pm.quanLy') }}</a>
-          <button v-if="!daMuaPremium && !conQuaTang" data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
-          <button v-if="daMuaPremium && !cuaHangThat" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
+          <button v-if="!daMuaPremium && !conQuaTang && coMua" data-phang type="button" :disabled="buoc === 'dang'" @click="khoiPhuc">{{ t('pm.khoiPhuc') }}</button>
+          <button v-if="daMuaPremium && !cuaHangThat && dangDebug" data-phang type="button" @click="huy">{{ t('pm.tat') }}</button>
           <a :href="LINK_DIEU_KHOAN" target="_blank" rel="noopener">{{ t('pm.dieuKhoan') }}</a>
           <a :href="LINK_RIENG_TU" target="_blank" rel="noopener">{{ t('pm.riengTu') }}</a>
         </nav>
-        <p v-if="daMuaPremium && !cuaHangThat && buoc !== 'xong'" class="pm-luat">{{ t('pm.thu') }}</p>
+        <p v-if="daMuaPremium && !cuaHangThat && dangDebug && buoc !== 'xong'" class="pm-luat">{{ t('pm.thu') }}</p>
         <p v-if="cuaHangThat && maPremium" class="pm-ma">{{ t('pm.ma', { ma: maPremium }) }}</p>
       </div>
     </div>

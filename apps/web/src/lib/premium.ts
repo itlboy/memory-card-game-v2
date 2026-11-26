@@ -110,7 +110,15 @@ export function datPremiumThu(v: boolean): void {
  * mua được là App Review hay loại, luật 2.1). Có IAP thì bật `true`. Người đã có Premium (thử) vẫn thấy.
  */
 export const banPremium = ref(false);   // ref (không const) để test bật được luồng đã mở bán
-export const hienPremium = computed(() => banPremium.value || daMuaPremium.value);
+/**
+ * GIAI ĐOẠN TẶNG (27.11.2026, chủ dự án mở Premium cho mọi người, chọn "Chỉ tặng 1 tháng"): ai CÒN QUÀ thì thấy viên Premium,
+ * đồ Premium và lời mời — mời để NHẬN QUÀ, không phải để mua. Chưa có cửa hàng thật thì KHÔNG bày nút mua / gói / khôi phục
+ * (`coMua`); hết quà mà chưa bán thì đồ Premium lại ẩn như trước (đồ khoá không mua được — luật App Review 2.1).
+ * Có IAP thật: bật `banPremium`, mọi thứ chạy theo luồng bán.
+ */
+export const MO_TANG = true;
+export const coQuaMoi = computed(() => MO_TANG && conQuaTang.value);
+export const hienPremium = computed(() => banPremium.value || daMuaPremium.value || coQuaMoi.value);
 
 /** Theme này người chơi có được CHỌN không. */
 export const choiDuoc = (t: Pick<CardTheme, 'premium'>): boolean => !t.premium || daMuaPremium.value;
@@ -210,4 +218,8 @@ export const yeuCauPremium = ref<{ tu: NoiMoPremium; lan: number; canh?: string 
 export function moPremium(tu: NoiMoPremium, canh?: string): void {
   yeuCauPremium.value = { tu, canh, lan: (yeuCauPremium.value?.lan ?? 0) + 1 };
 }
-export const moiNangCap = computed(() => (banPremium.value || dangDebug.value) && !daMuaPremium.value);
+export const moiNangCap = computed(() => (banPremium.value || dangDebug.value || coQuaMoi.value) && !daMuaPremium.value);
+/** Viên Premium ở trang chủ: debug, đã bán, đang có gói, hoặc còn quà để nhận. */
+export const hienVienPremium = computed(() => dangDebug.value || banPremium.value || daMuaPremium.value || coQuaMoi.value);
+/** Bày nút mua / chọn gói / khôi phục: chỉ khi cửa hàng thật chạy (hoặc đang thử ở debug). */
+export const coMua = computed(() => cuaHangThat.value || dangDebug.value);

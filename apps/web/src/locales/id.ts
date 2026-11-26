@@ -991,6 +991,7 @@ const id: TuDien = {
   'pm.tietKiem': "Hemat {pct}%",
   'pm.mua': "Mulai Premium",
   'pm.thu': "Pratinjau debug — tanpa pembayaran nyata.",
+  'pm.sapBan': "Premium segera hadir — terima kasih sudah mencoba!",
   'pm.daCo': "Kamu punya Premium",
   'pm.tat': "Matikan pratinjau",
   'pm.dbg': "Lihat paket dan coba",

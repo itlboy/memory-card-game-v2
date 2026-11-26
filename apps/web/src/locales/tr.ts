@@ -991,6 +991,7 @@ const tr: TuDien = {
   'pm.tietKiem': "%{pct} tasarruf",
   'pm.mua': "Premium'u başlat",
   'pm.thu': "Hata ayıklama önizlemesi — gerçek ödeme yok.",
+  'pm.sapBan': "Premium yakında — denediğin için teşekkürler!",
   'pm.daCo': "Premium'un var",
   'pm.tat': "Önizlemeyi kapat",
   'pm.dbg': "Paketleri gör ve dene",

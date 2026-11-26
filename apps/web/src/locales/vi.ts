@@ -1002,6 +1002,7 @@ const vi = {
   'pm.tietKiem': "Tiết kiệm {pct}%",
   'pm.mua': "Bắt đầu Premium",
   'pm.thu': "Bản thử trong chế độ debug — chưa thu tiền thật.",
+  'pm.sapBan': "Premium sắp mở bán — cảm ơn bạn đã dùng thử!",
   'pm.daCo': "Bạn đang có Premium",
   'pm.tat': "Tắt bản thử",
   'pm.dbg': "Xem bảng giá và thử gói",

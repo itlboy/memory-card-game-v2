@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { vChamNgoai } from '@/lib/cham-ngoai';
 import { hoSo, tenToi } from '@/lib/ho-so';
-import { daMuaPremium, huyHieu, huyHieuDangDeo, moiNangCap } from '@/lib/premium';
+import { daMuaPremium, hienPremium, huyHieu, huyHieuDangDeo, moiNangCap } from '@/lib/premium';
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { tenBaiNhac } from '@/lib/ten-bai-nhac';
 import DauPremium from './DauPremium.vue';
@@ -431,8 +431,8 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
             </span>
           </div>
           <!-- HÌNH NỀN (26.11.2026, chủ dự án duyệt đặt ngay dưới "Giao diện"): ba hình tròn nhỏ là lời mời, bấm mở bảng chọn.
-               Người chưa có Premium bấm hình khoá trong bảng đó sẽ được mời nâng cấp. Cùng cổng debug với Premium. -->
-          <button v-if="debug" data-phang class="item nut-nen" role="menuitem" type="button" @click="dong(); emit('hinh-nen')">
+               Người chưa có Premium bấm hình khoá trong bảng đó sẽ được mời nâng cấp. Mở cho mọi người cùng Premium (27.11.2026, `hienPremium`). -->
+          <button v-if="debug || hienPremium" data-phang class="item nut-nen" role="menuitem" type="button" @click="dong(); emit('hinh-nen')">
             <Image :size="20" /><span>{{ t('pm.s.nen') }}</span>
             <span class="ba-ht" aria-hidden="true"><i class="th" /><i class="ad" /></span>
             <Crown class="vm-nho" :size="14" :stroke-width="2.8" aria-hidden="true" /><ChevronRight :size="18" aria-hidden="true" />

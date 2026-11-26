@@ -990,6 +990,7 @@ const es: TuDien = {
   'pm.tietKiem': "Ahorra {pct}%",
   'pm.mua': "Empezar Premium",
   'pm.thu': "Vista previa de depuración: sin pago real.",
+  'pm.sapBan': "Premium llegará pronto — ¡gracias por probarlo!",
   'pm.daCo': "Tienes Premium",
   'pm.tat': "Desactivar vista previa",
   'pm.dbg': "Ver planes y probarlos",

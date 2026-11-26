@@ -10,7 +10,7 @@ import { BOT_SPECS, TIM_THE_DO_KHO, TIM_THE_SO_THE, timTheHopLe, type BotLevel, 
  * không có ô Tìm Thẻ ở bước Thể loại, `?tim=1` chỉ mở khi debug — lối vào duy nhất là trang Debug.
  * Bật lại = `true`, không phải sửa chỗ nào khác.
  */
-export const TIM_THE_MO = false;
+export const TIM_THE_MO = true;
 
 /** Đang ở màn chơi Tìm Thẻ ONLINE — App tắt icon bay phía sau (màn chơi không gì kéo mắt khỏi bàn). OnlineTimThe đặt. */
 export const dangTimOnline = ref(false);
