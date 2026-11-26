@@ -1182,6 +1182,12 @@ export function useOnlineRoom() {
         break;
 
       case 'tim':
+        /*
+         * Đã RỜI phòng (bấm thoát, phòng đóng) mà tin Tìm Thẻ tới muộn → BỎ. Server phát tin này mỗi lần đổi nhịp (dày hơn
+         * `state` của ghép cặp nhiều): nhận vào là `phase` nhảy lại 'playing' khi không còn phòng — màn ván ghép cặp
+         * TRỐNG (đồng hồ 0:00) hiện ra, đúng ảnh chủ dự án gửi 27.11.2026 sau khi thoát ra vào lại.
+         */
+        if (!room.value || room.value.config.kieu !== 'tim' || phase.value === 'idle' || phase.value === 'error') break;
         tim.value = msg.view;
         timNhanLuc.value = performance.now();
         phase.value = 'playing';

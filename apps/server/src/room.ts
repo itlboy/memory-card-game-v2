@@ -1488,6 +1488,28 @@ export class RoomDO extends DurableObject<Env> {
       }
     }
 
+    /*
+     * TÌM THẺ: người mất kết nối quá `reconnectMs` thì GỠ khỏi phòng (như xử thua ở ghép cặp) — ván vẫn chạy cho người còn
+     * lại; hết NGƯỜI THẬT (chỉ còn máy) thì đóng phòng, không để một mình máy chơi tiếp mãi trên danh sách phòng
+     * (27.11.2026, chủ dự án thoát giữa ván vào lại thấy phòng vẫn "đang chơi").
+     */
+    if (this.tim && this.room.status === 'playing') {
+      let doi = false;
+      for (const p of [...this.room.players]) {
+        if (p.disconnectedAt !== null && now - p.disconnectedAt >= ROOM_LIMITS.reconnectMs) {
+          this.ghiLog(p, `Tìm Thẻ: gỡ — mất kết nối quá ${Math.round(ROOM_LIMITS.reconnectMs / 1000)}s`);
+          this.removePlayer(p.id); doi = true;
+        }
+      }
+      if (doi && !this.room.players.length) {
+        await this.depPhong('empty');
+        await this.ctx.storage.deleteAlarm();
+        this.room = null; this.game = null; this.tim = null;
+        return;
+      }
+      if (doi) { await this.save(); this.broadcast({ t: 'room', room: this.roomInfo() }); }
+    }
+
     // Xử thua người rớt mạng quá hạn (ON-07)
     if (this.game && this.room.status === 'playing') {
       for (const p of this.room.players) {
@@ -1597,7 +1619,10 @@ export class RoomDO extends DurableObject<Env> {
       marks.push(this.room.emptyAt + EMPTY_LOBBY_MS + 500);
     }
     if (this.chon) marks.push(this.chon.het);
-    if (this.room?.status === 'playing' && this.tim) { const h = this.tim.henKe(now); if (h) marks.push(h); }
+    if (this.room?.status === 'playing' && this.tim) {
+      const h = this.tim.henKe(now); if (h) marks.push(h);
+      for (const p of this.room.players) if (p.disconnectedAt !== null) marks.push(p.disconnectedAt + ROOM_LIMITS.reconnectMs);
+    }
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));
     else await this.ctx.storage.deleteAlarm();
   }

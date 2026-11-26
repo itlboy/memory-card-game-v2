@@ -1583,7 +1583,8 @@ function openCfgWizard(): void {
   <!-- TRONG VÁN — xem OnlineGame.vue (nó tự mount EmojiBlast) -->
   <!-- TÌM THẺ ONLINE: màn riêng (server gửi `t:'tim'`), cùng chỗ với OnlineGame -->
   <OnlineTimThe v-else-if="laTimPhong && (!wizard || o.phase.value === 'ended')" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
-  <OnlineGame v-else-if="!wizard || o.phase.value === 'ended'" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
+  <!-- Không có phòng thì KHÔNG dựng màn ván (tránh màn trống đồng hồ 0:00 khi trạng thái tới muộn sau khi đã rời) -->
+  <OnlineGame v-else-if="o.room.value && (!wizard || o.phase.value === 'ended')" :o="o" @quit="quitVeOnline" @chinh="openCfgWizard" />
 
   <!-- Emoji người kia gửi, cho các màn NGOÀI ván. Teleport ra <body> nên chỉ
        được mount một bản: trong ván đã có bản của OnlineGame. -->
