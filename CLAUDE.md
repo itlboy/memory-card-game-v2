@@ -2030,9 +2030,10 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   thuộc cỡ bàn, đủ 5 bậc). Bàn 12–16 thẻ trần ~675 (ván quá ngắn để có chặng 16+).
 - BẬC: Đồng·Bạc·Vàng·Bạch kim·Kim cương, mốc 0·200·400·600·800 CỐ ĐỊNH. Chủ dự án: KHÔNG so với bot (bot có thể đổi độ khó).
 - MỖI NGÀY MỘT ĐIỂM (27.11.2026, 1.10.82; trước đó kỳ 7 ngày): `SO_NGAY_KY = 1` (`lib/tri-nho.ts chiSoTai`) — chủ dự án:
-  "hôm nào hiện điểm hôm đó… có mục tiêu cố gắng; xem lại thì xem biểu đồ". Ngày chỉ có điểm khi ĐỦ VÁN BẮT BUỘC (1.10.83):
-  ≥ 2 ván bàn 30–59 thẻ + ≥ 1 ván bàn từ 70 thẻ (`CAN_VAN_VUA/LON`, ván lớn dư tính thay ván vừa) và ≥ 20 cơ hội nhớ. Màn
-  chỉ số khi chưa đủ: hai dòng tiến độ "Bàn 30–56 thẻ 1/2 · Bàn từ 72 thẻ 0/1", nút luyện trỏ đúng bàn thiếu (72 rồi 36).
+  "hôm nào hiện điểm hôm đó… có mục tiêu cố gắng; xem lại thì xem biểu đồ". Ngày chỉ có điểm CHÍNH THỨC khi đủ 3 NHÓM BÀN
+  (1.10.86, `NHOM_BAN`): 1 ván nhỏ 16–24 · 1 vừa 30–59 · 1 lớn từ 70 thẻ (ván to dư bù nhóm nhỏ hơn; dưới 16 thẻ không tính) và
+  ≥ 20 cơ hội nhớ. Đã chơi mà chưa đủ = "SỐ LIỆU YẾU": huy chương + cột + số MỜ theo `diemTho`. Màn chỉ số khi chưa đủ GỌN: một dòng
+  chữ + hàng 3 viên Nhỏ/Vừa/Lớn (✓ hoặc ▶, bấm = chơi ngay bàn 16/36/72; ngày cũ chỉ xem).
   Áp cho CẢ NGÀY CŨ — điểm mọi ngày tính lại từ nhật ký thô theo cỡ bàn, không lưu điểm. Không còn điểm riêng từng ván — sau ván
   `ghiVanTriNho` ghi nhật ký + đặt `vuaDoi` (trước/sau), bảng kết quả hiện "Chỉ số trí nhớ 514 ▲ 8" / "Lên bậc Vàng!" / nhãn "Mới".
   PHẢI gọi `ghiVanTriNho(undefined, …)` cho ván không chấm (đội online, người xem) để `vuaDoi` về null, không lòi số ván trước.

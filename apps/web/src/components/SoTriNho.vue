@@ -23,7 +23,7 @@ import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { CAN_VAN_LON, CAN_VAN_VUA, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theConThieu, theNenLuyen, tienDoCoDiem, vanConThieu } from '@/lib/tri-nho';
+import { NHOM_BAN, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theConThieu, theNenLuyen, vanConThieu } from '@/lib/tri-nho';
 import { ngayMay } from '@/lib/storage';
 import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 import { veAnhTriNho } from '@/lib/anh-ket-qua';
@@ -65,11 +65,13 @@ const doDay = (b: number): number => {
 
 const cot = ngay.map((k) => {
   const van = Object.values(nhatKy[k]?.ban ?? {}).reduce((a, b) => a + b.van, 0);
-  return { k, diem: chiSoTai(nhatKy, ngayTuKhoa(k)).diem, choi: van > 0 };
+  const c = chiSoTai(nhatKy, ngayTuKhoa(k));
+  // `yeu` = đã chơi mà chưa đủ ván bắt buộc: cột + số MỜ theo điểm thô
+  return { k, diem: c.diem, tho: c.diem ?? c.diemTho, yeu: c.diem === null && c.diemTho !== null, choi: van > 0 };
 });
 /** Đỉnh của biểu đồ = ngày cao nhất đang hiện (tối thiểu 200): chia theo 1000 thì người 300–500 điểm chỉ thấy một dải
  *  cột lùn. Mục đích của biểu đồ là XU HƯỚNG; con số tuyệt đối đã nằm trong huy chương. */
-const dinh = Math.max(200, ...cot.map((c) => c.diem ?? 0));
+const dinh = Math.max(200, ...cot.map((c) => c.tho ?? 0));
 /**
  * Chiều cao một cột theo tỉ lệ 0..1 của PHẦN CÒN LẠI sau khi trừ chỗ cho con số: con số nằm NGAY TRÊN ĐỈNH cột (25.11.2026,
  * chủ dự án gửi ảnh: số % xếp một hàng trên cùng, cột thấp như 28% cách số của nó cả khoảng) — số và cột chung một
@@ -115,11 +117,11 @@ function moTabNam(): void {
  */
 const LINK_TAI = `${SITE_URL}/tai`;
 const moChiaSe = ref(false);
-/** Hai dòng ván bắt buộc của ngày đang xem; bấm = chơi ngay bàn đó (`luyen`). */
-const canVan = computed(() => [
-  { loai: 'vua', nhan: t('tn.canVua'), co: ky.value.vanVua, can: CAN_VAN_VUA, the: 36, du: ky.value.vanVua >= CAN_VAN_VUA },
-  { loai: 'lon', nhan: t('tn.canLon'), co: ky.value.vanLon, can: CAN_VAN_LON, the: 72, du: ky.value.vanLon >= CAN_VAN_LON }
-]);
+/** Ba nhóm bàn bắt buộc của ngày đang xem (nhỏ · vừa · lớn); bấm = chơi ngay bàn đó (`luyen`). */
+const canVan = computed(() => NHOM_BAN.map((n, i) => ({
+  loai: n.loai, the: n.the, du: ky.value.duNhom[i]!,
+  nhan: td(`tn.nhom.${n.loai}`), tam: n.den === Infinity ? `${n.the}+` : `${n.tu}–${n.loai === 'vua' ? 56 : n.den}`
+})));
 function choiCan(loai: string, the: number): void { moChucNang('tri_nho_choi_can', { loai, so_the: the }); emit('luyen', the); }
 function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; }
 const veAnh = (): Promise<Blob> => {
@@ -183,23 +185,23 @@ const coNhan = (k: string, i: number): boolean =>
           <span v-else>{{ t('tn.bacCaoNhat') }}</span>
         </p>
       </section>
+      <!-- CHƯA ĐỦ VÁN (27.11.2026, chủ dự án: "ngày đã chơi mà chưa đủ thì hiện cột mờ, điểm số cũng mờ, nói là số liệu yếu"; "một
+           ván bàn nhỏ, một bàn vừa, một bàn lớn là đủ"; "đủ thông tin mà không tốn diện tích"): huy chương MỜ mang điểm thô, một dòng
+           chữ, một hàng 3 viên nhóm bàn — hôm nay bấm viên là chơi ngay bàn đó, ngày cũ chỉ xem. -->
       <section v-else class="giua">
-        <span class="huy khoa" aria-hidden="true"><ChartColumn :size="26" :stroke-width="2.6" /></span>
-        <strong>{{ t('tn.khoa', { n: conVan }) }}</strong>
-        <p class="toi-bac">
-          <span class="ray khoa" role="img" :aria-label="`${Math.round(tienDoCoDiem(ky) * 100)}%`"><i :style="{ width: `${Math.round(tienDoCoDiem(ky) * 100)}%` }" /></span>
-          <span>{{ t('tn.khoaMo') }}</span>
+        <span v-if="ky.diemTho !== null" class="huy yeu" role="img" :aria-label="`${num(ky.diemTho)} · ${t('tn.yeu')}`"><b :class="{ dai: ky.diemTho >= 1000 }">{{ ky.diemTho }}</b></span>
+        <span v-else class="huy khoa" aria-hidden="true"><ChartColumn :size="26" :stroke-width="2.6" /></span>
+        <p class="huy-chu">
+          <b v-if="ky.diemTho !== null">{{ t('tn.yeu') }}</b><template v-if="ky.diemTho !== null && laHomNay"> · </template>
+          <template v-if="laHomNay">{{ t('tn.khoa', { n: conVan }) }}</template>
         </p>
-        <!-- VÁN BẮT BUỘC MỖI NGÀY (27.11.2026): 2 ván bàn vừa + 1 ván bàn lớn, tick khi đủ -->
-        <!-- BẤM LÀ CHƠI LUÔN (27.11.2026, chủ dự án: "thêm cả yêu cầu để người dùng chơi… bấm luôn cho tiện"): mỗi dòng là một nút
-             mở đúng bàn còn thiếu — bàn vừa 36 thẻ, bàn lớn 72 thẻ. Ngày cũ chỉ xem, không bấm. -->
-        <ul class="can-van">
+        <ul class="nhom3">
           <li v-for="d in canVan" :key="d.loai">
-            <button v-if="laHomNay" class="thach th-nho" :class="d.du ? 'du' : 'th-ngoc'" type="button" @click="choiCan(d.loai, d.the)">
-              <Check v-if="d.du" :size="16" :stroke-width="3" aria-hidden="true" /><Play v-else :size="14" :stroke-width="0" fill="currentColor" aria-hidden="true" />
-              <span>{{ d.nhan }}</span><b>{{ d.co }}/{{ d.can }}</b>
-            </button>
-            <div v-else class="dong" :class="{ du: d.du }"><span>{{ d.nhan }}</span><b>{{ d.co }}/{{ d.can }}</b></div>
+            <component :is="laHomNay ? 'button' : 'div'" :type="laHomNay ? 'button' : undefined" class="thach th-nho" :class="[d.du ? 'du' : laHomNay ? 'th-ngoc' : 'thieu', { tinh: !laHomNay }]"
+              :aria-label="`${d.nhan} ${d.tam}`" @click="laHomNay && choiCan(d.loai, d.the)">
+              <span class="n1"><Check v-if="d.du" :size="14" :stroke-width="3.2" aria-hidden="true" /><Play v-else-if="laHomNay" :size="11" :stroke-width="0" fill="currentColor" aria-hidden="true" />{{ d.nhan }}</span>
+              <small>{{ d.tam }}</small>
+            </component>
           </li>
         </ul>
       </section>
@@ -246,13 +248,13 @@ const coNhan = (k: string, i: number): boolean =>
       </div>
       <div v-else class="hinh ngay" role="tabpanel">
         <button
-          v-for="(c, i) in cot" :key="c.k" data-phang type="button" class="c" :class="{ chon: c.k === chon, nghi: !c.choi, trong: c.diem === null }"
-          :disabled="c.diem === null && c.k !== homNay"
-          :aria-pressed="c.k === chon" :aria-label="`${ngayThang(c.k)}: ${c.diem === null ? t('tn.chuaDu') : num(c.diem)}`" @click="chon = c.k; moChucNang('tri_nho_14_ngay', {}, true)"
+          v-for="(c, i) in cot" :key="c.k" data-phang type="button" class="c" :class="{ chon: c.k === chon, nghi: !c.choi, trong: c.tho === null, yeu: c.yeu }"
+          :disabled="c.tho === null && c.k !== homNay"
+          :aria-pressed="c.k === chon" :aria-label="`${ngayThang(c.k)}: ${c.tho === null ? t('tn.chuaDu') : c.yeu ? `${num(c.tho)} · ${t('tn.yeu')}` : num(c.tho)}`" @click="chon = c.k; moChucNang('tri_nho_14_ngay', {}, true)"
         >
           <span class="than">
-            <b>{{ c.k === chon && c.diem !== null ? c.diem : '' }}</b>
-            <i :style="{ height: caoCot(c.diem) }" />
+            <b>{{ c.k === chon && c.tho !== null ? c.tho : '' }}</b>
+            <i :style="{ height: caoCot(c.tho) }" />
           </span>
           <small>{{ coNhan(c.k, i) ? ngayThang(c.k) : '' }}</small>
         </button>
@@ -342,13 +344,16 @@ const coNhan = (k: string, i: number): boolean =>
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
 .hinh.nam { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
 /* Tab Cả năm: vương miện nhỏ cạnh chữ; chưa có Premium thì tab hơi mờ (bấm vẫn mở bảng Premium) */
-.can-van { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; width: 100%; max-width: 290px; }
-.can-van button, .can-van .dong { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 8px 14px; font: 800 14px/1.2 var(--font-body); }
-.can-van .dong { border-radius: 12px; background: color-mix(in srgb, currentColor 8%, transparent); }
-.can-van span { flex: 1; text-align: left; }
-.can-van b { font-variant-numeric: tabular-nums; }
-.can-van .du, .can-van .thach.du { color: #2fb57a; }
-.can-van .thach.du svg { stroke: #2fb57a; }
+.nhom3 { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.nhom3 .thach { width: 100%; min-height: 48px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.nhom3 .n1 { display: inline-flex; align-items: center; gap: 4px; font: 800 14px/1.1 var(--font-body); }
+.nhom3 small { font: 700 11.5px/1.1 var(--font-body); opacity: .8; font-variant-numeric: tabular-nums; }
+.nhom3 .du, .nhom3 .du svg { color: #2fb57a; stroke: #2fb57a; }
+.nhom3 .tinh { pointer-events: none; box-shadow: none; }
+.nhom3 .thieu { opacity: .55; }
+/* SỐ LIỆU YẾU: huy chương + cột + số MỜ */
+.huy.yeu { --h1: var(--o); --h2: var(--ray); --h3: var(--ray); color: var(--fg); opacity: .5; box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .25); }
+.huy.yeu b { text-shadow: none; }
 .tab-nam { display: inline-flex; align-items: center; gap: 5px; }
 .tab-nam.khoa { opacity: .7; }
 .tab-nam .vm { display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }
@@ -368,6 +373,9 @@ const coNhan = (k: string, i: number): boolean =>
 .ngay .nghi .than i { opacity: .26; }
 .ngay .trong .than i { background: var(--ray); opacity: 1; border-radius: 2px; }
 .ngay .chon .than i { opacity: 1; }
+.ngay .yeu .than i { opacity: .2; background: repeating-linear-gradient(135deg, var(--tn) 0 4px, transparent 4px 7px); }
+.ngay .yeu.chon .than i { opacity: .5; }
+.ngay .yeu b { opacity: .5; }
 /* Con số + ngày của cột đang chọn rộng hơn cột (cột chỉ ~22px): cho tràn hai bên, không xuống dòng */
 .ngay .c b, .ngay .c small { overflow: visible; display: flex; justify-content: center; white-space: nowrap; }
 .ngay .c small { height: 24px; align-items: flex-start; font-variant-numeric: tabular-nums; }
