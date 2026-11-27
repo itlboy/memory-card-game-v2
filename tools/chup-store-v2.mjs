@@ -157,11 +157,11 @@ export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
     localStorage.setItem('mm.v2', JSON.stringify(s)); return true; })()`);
   await trangChu(); await bam(L.cd); await cho(2000); await chupTho('chienDich');
 
-  // TÌM THẺ (bàn vòng tròn): đếm 3-2-1 (3 s) + nhìn 5 thẻ mức Vừa (5 s) + úp (0,8 s) + lật thẻ giữa (0,6 s) → chụp khi thẻ giữa
+  // TÌM THẺ (bàn vòng tròn): đếm 3-2-1 (3 s) + nhìn 5 thẻ mức Vừa (10 s — 2 s/thẻ từ 28.11.2026) + úp (0,8 s) + lật thẻ giữa (0,6 s) → chụp khi thẻ giữa
   // đã ngửa, vạch giờ đang chạy, quầng sáng đang quét vòng
   await trangChu(); await bam(L.nhanh); await cho(900);
   await bam(L.tt); await cho(700);
-  await bam(L.ttBatDau); await cho(10300); await chupTho('timThe');
+  await bam(L.ttBatDau); await cho(14700); await chupTho('timThe');
 
   // CHỈ SỐ TRÍ NHỚ: dựng 28 ngày nhật ký đi lên dần (3 cỡ bàn/ngày: nhỏ 14, vừa 22, lớn 36 thẻ) để biểu đồ có đường — ảnh minh hoạ
   await js(`(() => { const s = JSON.parse(localStorage.getItem('mm.v2') || '{}'); const tn = {}; const nay = new Date();
