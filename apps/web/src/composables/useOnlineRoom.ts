@@ -12,6 +12,7 @@ import { computed, onScopeDispose, ref, shallowRef, nextTick, watch } from 'vue'
 import { CARD_BACKS } from '@mm/engine';
 import { sfx } from '@/lib/audio';
 import { moChucNang, suKien } from '@/lib/phan-tich';
+import { batDauDemCham, chupNhatKy } from '@/lib/nhat-ky-may';
 import { nenApp } from '@/lib/native';
 import { rung } from '@/lib/rung';
 import { store } from '@/lib/storage';
@@ -178,6 +179,11 @@ export function useOnlineRoom() {
   let lyDoRoi = '';
   let rotLuc = 0;
   let rotMa = 0;
+  /** Nhật ký máy chờ gửi khi server chào (`welcome`) trên socket mới — xem lib/nhat-ky-may.ts. */
+  let nhatKyCho: ClientMsg | null = null;
+  /** Tìm Thẻ: mốc bắt đầu pha `hoi` của lượt đang chạy + lượt đã báo (không báo trùng). */
+  let hoiLuc = 0;
+  let daBaoBoLuot = '';
   /** Lúc socket hiện tại mở (0 = chưa mở) và số lần liên tiếp nó chết sớm — xem `SONG_ON_DINH_MS`. */
   let moLuc = 0;
   let dutNhanh = 0;
@@ -213,6 +219,21 @@ export function useOnlineRoom() {
       so_nguoi: room.value?.players.length ?? 0,
       ma_phong: code || undefined
     });
+  }
+  /**
+   * TÌM THẺ — BỎ LƯỢT (28.11.2026): log 27.11 có người ngồi yên cả ván không chọn. Hết giờ mà mình chưa chọn thì gửi
+   * nhật ký máy của pha `hoi` (có xuống nền? treo? chạm màn bao nhiêu lần?) — phân biệt "không hiểu luật" với "bấm
+   * không ăn" / "app bị treo".
+   */
+  function baoBoLuotTim(cu: TimView | null, moi: TimView): void {
+    if (moi.pha === 'hoi' && cu?.pha !== 'hoi') { hoiLuc = Date.now(); batDauDemCham(); return; }
+    if (spectator.value || moi.pha !== 'dap-an' || !hoiLuc) return;
+    const khoa = `${moi.van}:${moi.luot}`;
+    if (daBaoBoLuot === khoa) return;
+    if (moi.nguoi.find((p) => p.id === myId.value)?.kq?.ketCuc !== 'het-gio') return;
+    daBaoBoLuot = khoa;
+    send({ t: 'suCo', loai: 'tim_bo_luot', giay: Math.round((Date.now() - hoiLuc) / 1000), may: chupNhatKy(hoiLuc, batDauDemCham()) });
+    hoiLuc = 0;
   }
   const error = ref('');
   /** Bị mời ra / chủ huỷ phòng → hộp thoại "Đã hiểu" (BaoPhongDong) thay vì ô đỏ `error` (20.11.2026). */
@@ -1034,7 +1055,9 @@ export function useOnlineRoom() {
       moLuc = Date.now();
       startHeartbeat();
       if (rotLuc) {   // nối lại được sau một lần rớt (đang mở app)
-        suKien('online_ket_noi', { ket_qua: 'noi_lai_ok', ma_dong: rotMa, giay: Math.round((Date.now() - rotLuc) / 1000) });
+        const giay = Math.round((Date.now() - rotLuc) / 1000);
+        suKien('online_ket_noi', { ket_qua: 'noi_lai_ok', ma_dong: rotMa, giay });
+        nhatKyCho = { t: 'suCo', loai: 'noi_lai', ma: rotMa, giay, may: chupNhatKy(rotLuc) };
         rotLuc = 0;
       }
     };
@@ -1114,6 +1137,7 @@ export function useOnlineRoom() {
       case 'welcome':
         myId.value = msg.playerId;
         token = msg.token;
+        if (nhatKyCho) { send(nhatKyCho); nhatKyCho = null; }
         // Khán giả không có token nhưng VẪN nối lại được (vào lại không token =
         // lại làm khán giả, hoặc thành người chơi nếu phòng chờ có chỗ).
         coThuLai.value = true;
@@ -1188,6 +1212,7 @@ export function useOnlineRoom() {
          * TRỐNG (đồng hồ 0:00) hiện ra, đúng ảnh chủ dự án gửi 27.11.2026 sau khi thoát ra vào lại.
          */
         if (!room.value || room.value.config.kieu !== 'tim' || phase.value === 'idle' || phase.value === 'error') break;
+        baoBoLuotTim(tim.value, msg.view);
         tim.value = msg.view;
         timNhanLuc.value = performance.now();
         phase.value = 'playing';

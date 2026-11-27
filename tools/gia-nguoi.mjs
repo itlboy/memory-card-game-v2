@@ -64,7 +64,8 @@ class NguoiGia {
 
   vao() {
     return new Promise((resolve, reject) => {
-      const p = new URLSearchParams({ name: this.name });
+      // `tim=1`: khai vẽ được Tìm Thẻ — phòng Tìm Thẻ chặn ai không khai (28.11.2026, cho do-chip --tim)
+      const p = new URLSearchParams({ name: this.name, tim: '1' });
       this.ws = new WebSocket(`${WS}/ws/${CODE}?${p}`);
       const hong = setTimeout(() => reject(new Error('quá hạn nối: ' + this.name)), 10000);
       this.ws.onmessage = (e) => {
@@ -106,6 +107,16 @@ class NguoiGia {
           this.daBat = true;
           this.gui({ t: 'start' });
         }
+      }
+      return;
+    }
+    // TÌM THẺ: tới pha hỏi thì chọn bừa một ô sau `TRE`/3 (tối đa 2 giây) — đủ để có điểm, kết quả, chip đổi màu
+    if (msg.t === 'tim' && msg.view) {
+      const v = msg.view, toi = v.nguoi?.find((x) => x.id === this.id);
+      const khoa = `${v.van}:${v.luot}`;
+      if (CHOI && v.pha === 'hoi' && toi && !toi.da && this.timDaChon !== khoa) {
+        this.timDaChon = khoa;
+        setTimeout(() => this.gui({ t: 'timChon', viTri: Math.floor(Math.random() * v.soThe) }), Math.min(2000, TRE / 3) + Math.random() * 400);
       }
       return;
     }

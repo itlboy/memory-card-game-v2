@@ -455,7 +455,10 @@
   danh sách công khai, KHÔNG bắn thông báo; ĐỪNG thử bằng phòng thường (máy thật nhận push); thêm `van` = cảnh
   mất mạng im lặng trong ván. Dòng `[phòng] <mã> <cid> …` (room.ts `ghiLog`) là QUYẾT ĐỊNH của server: im >20s
   socket vẫn mở → mất kết nối (chính là lúc người khác thấy "X mất kết nối — chờ…"), đồng hồ lượt dừng/chạy
-  (im >7s), vào lại / sống lại sau Ns, xử thua · `dang_nhap` {cach, ket_qua: ok|huy|loi,
+  (im >7s), vào lại / sống lại sau Ns, xử thua; `[phòng] … máy: …` = NHẬT KÝ MÁY (28.11.2026, `lib/nhat-ky-may.ts`
+  → tin `suCo` → `dongNhatKy` lọc ở engine): app tự gửi khi VÀO LẠI sau khi rớt (`noi_lai · mã · Ns`) và khi BỎ LƯỢT
+  Tìm Thẻ (`tim_bo_luot`, kèm `chạm N` = số lần chạm màn trong pha hỏi) — mốc 30s trước sự cố: ẩn/hiện app, đang ở
+  nền, mất/có mạng, treo JS >1,5s, lỗi JS gần nhất. Không tên, không dữ liệu cá nhân · `dang_nhap` {cach, ket_qua: ok|huy|loi,
   moi} (taikhoan.ts `baoDangNhap`; `moi` = hồ sơ server còn trắng) · `chia_se` {kenh: luu_anh|anh|chu|copy,
   ket_qua} (anh-ket-qua.ts — mở hộp ≠ chia sẻ thật) · `cai_app_ket_qua` {dong_y|tu_choi|da_cai} · `cap_nhat_ota`
   {ket_qua: ok|loi|cu_qua, tu, den, giay}. Link mời mang `utm_source=moi_ban`, ảnh chia sẻ
@@ -709,7 +712,8 @@
   chip chờ chỉ còn avatar + điểm, bề ngang ĐẶT TAY 70px (không `auto`: `container-type` làm nó co về
   0); chấm mạng là huy hiệu ở góc avatar, không chiếm hàng; (3) `pnpm do:chip` (WebKit, phòng thật 2/3/4
   người × 3 khổ iPhone, tên 16 ký tự, điểm "9,9k"/"99k") — đỏ khi điểm bị cắt / chip lòi / tên người
-  đang đi < 12px. Thêm gì vào chip là chạy nó. `test/diem-trong-chip.test.ts` canh phần tĩnh.
+  đang đi < 12px. Thêm gì vào chip là chạy nó. `test/diem-trong-chip.test.ts` canh phần tĩnh. `pnpm do:chip --tim`
+  (28.11.2026) đo phòng Tìm Thẻ: viên giây / "+điểm" ở mọi chip + một người MẤT MẠNG thật (tắt tiến trình người giả).
 - **ĐIỂM = ĐỒNG XU, SAO = ĐÁNH GIÁ** (17.10.2026): `DongXu.vue` (xu dày 3D, mẫu D chủ dự án chọn — mẫu B
   trơn bị thay cùng ngày) ở HUD, thanh trên, bảng kết quả. Ngôi sao chỉ còn cho sao Chiến dịch — hai thứ cùng hình sao
   là người chơi đọc lẫn (người thử báo). Viên tổng điểm ở thanh trên nền TRẮNG (panel) — nền vàng

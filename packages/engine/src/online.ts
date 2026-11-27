@@ -10,6 +10,7 @@ import type { MemoryGame } from './game.js';
 import type { BotLevel } from './bot.js';
 import type { TimTheDoKho } from './tim-the.js';
 import type { TimView } from './tim-the-phong.js';
+import type { LoaiSuCo, NhatKyMay } from './nhat-ky-may.js';
 
 /* ---------- cấu hình phòng (ON-03) ---------- */
 
@@ -618,6 +619,8 @@ export type ClientMsg =
    * Một tin vài chục byte trên đường đã thông thì rẻ hơn nhiều lần.
    */
   | { t: 'resync' }
+  /** Nhật ký máy khi có sự cố (`nhat-ky-may.ts`) — server chỉ GHI LOG, không đổi gì. Gói tin MỚI, app cũ không gửi. */
+  | { t: 'suCo'; loai: LoaiSuCo; ma?: number; giay?: number; may: NhatKyMay }
   | { t: 'again' }                                  // chủ phòng mở ván mới sau khi kết thúc
   | { t: 'tolobby' }                                // về phòng chờ (một người bấm là đủ)
   /** Bỏ phiếu số thẻ cho ván sắp mở (chỉ lúc `RoomInfo.chon` đang có; `the` phải nằm trong `chon.ds`). Gói tin MỚI — app cũ không gửi. */

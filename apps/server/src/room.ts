@@ -10,7 +10,7 @@ import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, huyHieuHoSo, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, pairsForLevel } from '@mm/engine';
 import type { KetChon, TimTheDoKho } from '@mm/engine';
-import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE, chotSoThe, tenAnToan } from '@mm/engine';
+import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE, chotSoThe, dongNhatKy, tenAnToan } from '@mm/engine';
 /** Số thẻ Tìm Thẻ của phòng — chưa chọn, hoặc là mức đã bỏ (8, 9, 12, 16 lưu từ trước), thì về mặc định. */
 const timSoTheHopLe = (n: number | undefined): number => ((TIM_THE_SO_THE as readonly number[]).includes(n ?? -1) ? n! : TIM_THE_ONLINE_SO_THE);
 
@@ -306,6 +306,8 @@ export class RoomDO extends DurableObject<Env> {
    */
   /** `ket` = đã chốt, đang diễn hiệu ứng tới `het` (xem `chotChon`). */
   private chon: { id: number; het: number; ds: number[]; phieu: Map<string, number>; ket?: KetChon; tim?: boolean; kho?: { phieu: Map<string, TimTheDoKho>; ket?: TimTheDoKho } } | null = null;
+  /** Số dòng nhật ký máy (`suCo`) đã ghi cho từng người — tối đa 20 mỗi phòng, client lỗi vòng lặp không xả log. */
+  private suCoDem = new Map<string, number>();
   /** Lần chủ phòng nhắc gần nhất — chặn nhắc dồn (NHAC_CACH_MS). */
   private nhacLuc = 0;
   /*
@@ -775,6 +777,17 @@ export class RoomDO extends DurableObject<Env> {
         if (this.game) this.send(ws, { t: 'state', view: this.view() });
         if (this.tim) this.send(ws, { t: 'tim', view: this.tim.view(Date.now()) });
         return;
+
+      /* NHẬT KÝ MÁY (28.11.2026): chỉ ghi log — `dongNhatKy` lọc mọi trường, tin sai dạng thì bỏ. */
+      case 'suCo': {
+        const n = this.suCoDem.get(player.id) ?? 0;
+        if (n >= 20) return;
+        const dong = dongNhatKy(msg.loai, msg.ma, msg.giay, msg.may);
+        if (!dong) return;
+        this.suCoDem.set(player.id, n + 1);
+        this.ghiLog(player, `máy: ${dong}`);
+        return;
+      }
 
       case 'config': {
         // ON-03: chỉ chủ phòng chỉnh cấu hình — ở lobby, hoặc ở màn kết quả (07.11.2026,

@@ -201,6 +201,10 @@ export function nganXep(e: unknown): string {
   return khung.join(' < ').slice(0, 100);
 }
 
+/** Lỗi JS cuối cùng (đã rút gọn như trên) — cho nhật ký sự cố online (`lib/nhat-ky-may`). */
+let loiCuoi: { gon: string; luc: number } | null = null;
+export const loiGanDay = (tu: number): string | undefined => (loiCuoi && loiCuoi.luc >= tu ? loiCuoi.gon : undefined);
+
 export function guiLoi(noi: string, e: unknown, nguon = ''): void {
   try {
     const tho = e instanceof Error ? `${e.name}: ${e.message}` : String((e as { message?: unknown })?.message ?? e);
@@ -213,6 +217,7 @@ export function guiLoi(noi: string, e: unknown, nguon = ''): void {
       // làm một, kẻo một lỗi thành ba dòng trên admin.
       .replace(/(^|[^\w$.])[\w$]{1,3}(?=\.value\b)/g, '$1_')
       .slice(0, 100);
+    loiCuoi = { gon, luc: Date.now() };
     if (loiDaGui.has(gon) || loiDaGui.size >= LOI_TOI_DA) return;
     loiDaGui.add(gon);
     suKien('loi_js', {
