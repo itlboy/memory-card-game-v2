@@ -116,20 +116,22 @@ describe('chỉ số của một kỳ', () => {
     expect(theNenLuyen([mo(1), mo(.4), mo(.8), mo(.9), mo(.7)])).toBe(16);
   });
 
-  it('VÁN BẮT BUỘC MỖI NGÀY (27.11.2026): 1 ván nhỏ 16–24 · 1 vừa 30–59 · 1 lớn từ 70 thẻ; ván to dư bù nhóm nhỏ hơn', () => {
+  it('VÁN BẮT BUỘC MỖI NGÀY (27.11.2026): 1 ván nhỏ 16–24 · 1 vừa 30–42 · 1 lớn từ 56 thẻ; ván to dư bù nhóm nhỏ hơn', () => {
     const N = [10, 10, 0, 0, 0], Q = [0, 0, 0, 0, 0];
     const ban = (b: Record<number, number>): NgayTriNho =>
       ({ ban: Object.fromEntries(Object.entries(b).map(([k, v]) => [k, { van: v, nho: N, quen: Q, may: Q }])), tam: 0 });
     const k1 = chiSo([ban({ 18: 5 })]);                     // 5 ván 36 thẻ
     expect(k1.diem).toBeNull();
     expect(k1.diemTho, 'vẫn có điểm thô để vẽ MỜ').toBe(200);
-    expect([k1.duNhom, vanConThieu(k1), theConThieu(k1)], 'ván vừa dư bù bàn nhỏ').toEqual([[true, true, false], 1, 72]);
+    expect([k1.duNhom, vanConThieu(k1), theConThieu(k1)], 'ván vừa dư bù bàn nhỏ').toEqual([[true, true, false], 1, 56]);
     const k2 = chiSo([ban({ 8: 1, 36: 1 })]);               // 16 + 72 thẻ: thiếu bàn vừa
     expect([k2.diem, k2.duNhom, theConThieu(k2)]).toEqual([null, [true, false, true], 36]);
     expect(chiSo([ban({ 10: 1, 21: 1, 44: 1 })]).diem, '20 + 42 + 88 thẻ là đủ').toBe(200);
     expect(chiSo([ban({ 36: 3 })]).diem, '3 ván 72 thẻ: ván lớn dư bù nhỏ + vừa').toBe(200);
     expect(chiSo([ban({ 6: 1, 18: 1, 36: 1 })]).diem, 'bàn 12 thẻ không tính là bàn nhỏ').toBeNull();
     expect(chiSo([ban({ 8: 3, 36: 1 })]).duNhom, 'bàn nhỏ dư KHÔNG bù bàn vừa').toEqual([true, false, true]);
+    expect(chiSo([ban({ 8: 1, 15: 1, 28: 1 })]).diem, '16 + 30 + 56 thẻ là đủ (bàn lớn từ 56)').toBe(200);
+    expect(chiSo([ban({ 8: 1, 15: 1, 28: 1 })]).duNhom).toEqual([true, true, true]);
     expect(chiSo([]).diemTho).toBeNull();
     expect(tienDoCoDiem(k2)).toBeCloseTo(2 / 3, 5);
   });

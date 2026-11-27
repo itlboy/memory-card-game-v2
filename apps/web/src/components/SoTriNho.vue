@@ -129,7 +129,7 @@ const moChiaSe = ref(false);
 /** Ba nhóm bàn bắt buộc của ngày đang xem (nhỏ · vừa · lớn) — CHỈ HIỂN THỊ; chơi bằng nút dưới cùng. */
 const canVan = computed(() => NHOM_BAN.map((n, i) => ({
   loai: n.loai, du: ky.value.duNhom[i]!,
-  nhan: td(`tn.nhom.${n.loai}`), tam: n.den === Infinity ? `${n.the}+` : `${n.tu}–${n.loai === 'vua' ? 56 : n.den}`
+  nhan: td(`tn.nhom.${n.loai}`), tam: n.hien
 })));
 function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; }
 const veAnh = (): Promise<Blob> => {

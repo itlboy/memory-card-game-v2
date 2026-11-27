@@ -26,14 +26,16 @@ export const SO_NGAY_KY = 1;
 export const MOC_CO_DIEM = 20;
 /**
  * VÁN BẮT BUỘC MỖI NGÀY. 27.11.2026 lần 1: "2 ván 3x–5x, một ván trên 7x thẻ"; lần 2 (chủ dự án): "một ván bàn nhỏ, một bàn
- * vừa, một bàn lớn là đủ". Nhỏ = 16–24 thẻ, vừa = 30–59 (30·36·42·56), lớn = từ 70 (72·88). Bàn dưới 16 thẻ không tính (quá
+ * vừa, một bàn lớn là đủ". Nhỏ = 16–24 thẻ, vừa = 30–42, lớn = từ 56 (56·72·88). Bàn dưới 16 thẻ không tính (quá
  * ít lượt). Ván bàn to hơn DƯ ra được tính thay nhóm nhỏ hơn còn thiếu. Thiếu nhóm nào là ngày đó CHƯA CÓ ĐIỂM CHÍNH THỨC — vẫn
  * có `diemTho` để vẽ cột/điểm MỜ ("số liệu yếu"). Áp cho cả ngày cũ (điểm tính lại từ nhật ký thô theo cỡ bàn).
  */
+// 27.11.2026 lần 3 (chủ dự án: "2x, 3x, 7x có vẻ hơi lớn… đổi thành 2x, 3x, 5x"): bàn lớn từ 56 thẻ (56·72·88), bàn vừa 30–42.
+// `hien` = dải chữ trên nhãn, `the` = bàn mở khi bấm nút chơi.
 export const NHOM_BAN = [
-  { loai: 'nho', tu: 16, den: 24, the: 16 },
-  { loai: 'vua', tu: 30, den: 59, the: 36 },
-  { loai: 'lon', tu: 70, den: Infinity, the: 72 }
+  { loai: 'nho', tu: 16, den: 24, the: 16, hien: '16–24' },
+  { loai: 'vua', tu: 30, den: 49, the: 36, hien: '30–42' },
+  { loai: 'lon', tu: 50, den: Infinity, the: 56, hien: '56+' }
 ] as const;
 export type LoaiBan = (typeof NHOM_BAN)[number]['loai'];
 /** Nhóm của một bàn `soThe` thẻ, -1 = không tính. */
