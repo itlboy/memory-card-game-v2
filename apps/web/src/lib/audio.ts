@@ -659,6 +659,31 @@ class Sfx {
     this.voice(1568, { dur: 0.35, type: 'sine', gain: 0.03, delay: 0.38 });
   }
 
+  /*
+   * TÌM THẺ — TIẾNG CỦA NGƯỜI KHÁC (27.11.2026, chủ dự án: người xem "rất buồn, không có âm thanh khi người khác chọn, khi điểm
+   * được chốt mỗi vòng"). Nhẹ hơn tiếng của chính mình (`select`/`match`/`miss`) để không lấn át.
+   */
+  /** Một người khác vừa chọn thẻ: "tinh" ngắn hai nốt. */
+  timKhacChon(): void {
+    this.voice(988, { dur: 0.07, type: 'sine', gain: 0.035 });
+    this.voice(1319, { dur: 0.07, type: 'sine', gain: 0.025, delay: 0.05 });
+  }
+  /** Lật đáp án: tiếng "xoẹt" mở bài + nốt sáng. */
+  timLatDapAn(): void {
+    this.noise(0.14, { freq: 3200, gain: 0.03 });
+    this.voice(1047, { dur: 0.2, type: 'triangle', gain: 0.04, delay: 0.05 });
+  }
+  /** Chốt điểm một người ĐÚNG — cao dần theo thứ tự (người nhanh nhất trước). */
+  timChotDung(i: number): void {
+    const f = 659.25 * 2 ** ((Math.min(i, 6) * 2) / 12);
+    this.voice(f, { dur: 0.22, type: 'triangle', gain: 0.05, detune: 4 });
+    this.voice(f * 2, { dur: 0.16, type: 'sine', gain: 0.02, delay: 0.04 });
+  }
+  /** Chốt một người SAI / hết giờ: "bụp" trầm, nhẹ. */
+  timChotSai(): void {
+    this.voice(233, { dur: 0.16, type: 'triangle', gain: 0.04, slideTo: 150 });
+  }
+
   /** "Đinh" nhỏ khi huy hiệu chạm viên 🏅 trên thanh trên. */
   dinh(): void {
     this.voice(2093, { dur: 0.25, type: 'sine', gain: 0.05 });

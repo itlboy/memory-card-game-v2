@@ -251,14 +251,17 @@ describe('cập nhật nóng', () => {
     expect(chay(), 'version-băm10[-giờ nếu nguồn chưa commit]').toMatch(/^\d+\.\d+\.\d+-[0-9a-f]{10}(-\d{8}T\d{6})?$/);
   });
 
-  it('mã gói theo NỘI DUNG nguồn web, và mobile.yml ra bản app mỗi khi nguồn đó đổi — 25.10.2026', async () => {
-    const { NGUON_GOI } = await import('../../../tools/ma-goi-ota.mjs');
+  it('mã gói theo NỘI DUNG nguồn web; mobile.yml CHỈ ra bản app khi đẩy tag app-v* / chạy tay (27.11.2026, thay quy tắc 25.10)', () => {
     const yml = readFileSync(resolve(process.cwd(), '../../.github/workflows/mobile.yml'), 'utf8');
-    const loc = [...yml.matchAll(/^\s+- '([^']+)'$/gm)].map((m) => m[1].replace(/\/\*\*$/, ''));
-    for (const d of NGUON_GOI) expect(loc.some((l) => d === l || d.startsWith(`${l}/`)), d).toBe(true);
+    const on = yml.slice(yml.indexOf('\non:'), yml.indexOf('\nconcurrency:'));
+    expect(on, 'không dựng app mỗi lần đẩy nhánh (hết quota Google Play)').not.toMatch(/branches:/);
+    expect(on).toContain("tags: ['app-v*']");
+    expect(on).toContain('workflow_dispatch');
+    expect(yml).not.toMatch(/PHAT_HANH:.*refs\/heads\/main/);
     const ma = readFileSync(resolve(process.cwd(), '../../tools/ma-goi-ota.mjs'), 'utf8');
     expect(ma, 'không quay về sha commit').not.toMatch(/rev-parse', '--short=10', 'HEAD'/);
   });
+
 
   it('manifest GIỮ các trường bản app cũ đang đọc: id, url, sha256, minNative (chỉ được THÊM trường)', () => {
     const goiOta = readFileSync(resolve(process.cwd(), '../../tools/dong-goi-ota.mjs'), 'utf8');

@@ -20,10 +20,10 @@ import { Check, ChartColumn, Crown, Play, Share2, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
-import { t, td } from '@/lib/i18n';
+import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { NHOM_BAN, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theConThieu, theNenLuyen, vanConThieu } from '@/lib/tri-nho';
+import { NHOM_BAN, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theConThieu, theNenLuyen } from '@/lib/tri-nho';
 import { ngayMay } from '@/lib/storage';
 import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 import { veAnhTriNho } from '@/lib/anh-ket-qua';
@@ -50,7 +50,9 @@ const laHomNay = computed(() => chon.value === homNay);
 const tab = ref<'ngay' | 'nam'>('ngay');
 
 const ky = computed(() => chiSoTai(nhatKy, ngayTuKhoa(chon.value)));
-const conVan = computed(() => vanConThieu(ky.value));
+/** "Hôm nay" hoặc "25 tháng 11" theo ngôn ngữ máy — dòng duy nhất dưới huy chương. */
+const ngayChu = computed(() => (laHomNay.value ? t('pm.b.homNay')
+  : new Intl.DateTimeFormat(bcp(), { day: 'numeric', month: 'long' }).format(ngayTuKhoa(chon.value))));
 /** Gợi ý luyện LUÔN theo số liệu HÔM NAY (luyện là luyện bây giờ) — đang xem ngày cũ nút vẫn hiện, vẫn đúng một con số. */
 // Hôm nay còn thiếu ván bắt buộc thì nút luyện đưa thẳng tới bàn còn thiếu (27.11.2026)
 const kyNay = chiSoTai(nhatKy);
@@ -175,8 +177,8 @@ const coNhan = (k: string, i: number): boolean =>
           <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)} · ${tenBac(ky.bac!)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
           <span class="dai-bac">{{ tenBac(ky.bac!) }}</span>
         </div>
-        <p class="huy-chu"><b>{{ laHomNay ? t('tn.diemHomNay') : t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b>
-          · <template v-if="ky.conToiBac !== null">{{ t('tn.conBac', { n: num(ky.conToiBac) }) }} {{ tenBac(ky.bac! + 1) }}</template><template v-else>{{ t('tn.bacCaoNhat') }}</template></p>
+        <!-- CHỈ GHI NGÀY (27.11.2026, chủ dự án: "chỉ cần ghi 25 tháng 11 thôi… thông tin đơn giản nhất") -->
+        <p class="huy-chu"><b>{{ ngayChu }}</b></p>
         <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF; chủ dự án: "chưa
              biểu thị được các bậc… thanh ngang hiển thị mình đang ở đâu"): mỗi bậc một đoạn mang màu của nó, đoạn đã qua
              tô đầy, đoạn đang ở tô tới chỗ mình đứng + vạch đánh dấu; tên 5 bậc ngay dưới, bậc của mình in đậm — thay
@@ -199,10 +201,7 @@ const coNhan = (k: string, i: number): boolean =>
           <span v-if="ky.diemTho !== null" class="huy" role="img" :aria-label="`${num(ky.diemTho)} · ${t('tn.yeu')}`"><b :class="{ dai: ky.diemTho >= 1000 }">{{ ky.diemTho }}</b></span>
           <span v-else class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span>
         </div>
-        <p class="huy-chu">
-          <template v-if="!laHomNay"><b>{{ t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b><template v-if="ky.diemTho !== null"> · {{ t('tn.yeu') }}</template></template>
-          <template v-else><b v-if="ky.diemTho !== null">{{ t('tn.yeu') }} · </b>{{ t('tn.khoa', { n: conVan }) }}</template>
-        </p>
+        <p class="huy-chu"><b>{{ ngayChu }}</b><template v-if="ky.diemTho !== null"> · {{ t('tn.yeu') }}</template></p>
         <ul class="nhom3">
           <li v-for="d in canVan" :key="d.loai" :class="{ du: d.du }" :aria-label="`${d.nhan} ${d.tam}${d.du ? ' ✓' : ''}`">
             <span class="o" aria-hidden="true"><Check v-if="d.du" :size="10" :stroke-width="4.5" /></span>{{ d.nhan }} <small>{{ d.tam }}</small>
@@ -408,9 +407,7 @@ const coNhan = (k: string, i: number): boolean =>
 /* CÙNG CHIỀU CAO giữa ngày đủ / ngày yếu / ngày trống (chủ dự án 27.11.2026: "chiều cao bị thay đổi khi chọn giữa ngày không có
    số liệu và ngày đủ số liệu"): khung huy chương luôn 128px (huy chương nằm cùng chỗ), khối `.giua` giữ chiều cao của ngày đủ. */
 .huy-khung.yeu { height: 128px; }
-.giua.co-dinh { min-height: 208px; justify-content: flex-start; }
-/* Dòng chữ dưới huy chương luôn chừa ĐỦ 2 DÒNG: tiếng Đức/Nga trên máy hẹp xuống dòng ở ngày này mà không ở ngày kia */
-.giua.co-dinh .huy-chu { min-height: calc(2 * 1.3 * 12.5px); }
+.giua.co-dinh { min-height: 192px; justify-content: flex-start; }
 .huy-khung.yeu::before, .huy-khung.yeu .huy::after { display: none; }
 .huy-khung.yeu .huy:not(.khoa) { --h1: var(--o); --h2: var(--o); --h3: var(--ray); color: var(--fg); opacity: .55; border-style: dashed; box-shadow: none; }
 .huy-khung.yeu .huy b { text-shadow: none; }

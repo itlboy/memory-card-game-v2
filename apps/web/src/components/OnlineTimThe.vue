@@ -54,15 +54,62 @@ const ICON = { da: Ellipsis, dung: Check, nhanh: Zap, sai: X, het: TimerOff } as
 const nguoiVan = computed(() => v.value?.nguoi ?? (o.room.value?.players ?? []).map((p) => ({
   id: p.id, ten: p.name, diem: 0, da: false, dung: 0, chuoiDai: 0, ...(p.may ? { may: p.may } : {})
 } as TimView['nguoi'][number])));
+/*
+ * HIỆU ỨNG CHO CẢ NGƯỜI CHƠI LẪN NGƯỜI XEM (27.11.2026, chủ dự án: người xem "thấy rất buồn… không có âm thanh khi người khác
+ * chọn, khi điểm được chốt ở mỗi vòng"):
+ *   - người khác chọn thẻ → "tinh" + khung người đó nảy, viền sáng;
+ *   - đáp án → tiếng lật + thẻ đúng toả sáng; rồi CHỐT TỪNG NGƯỜI một (đúng trước, nhanh trước): tiếng cao dần, khung loé xanh,
+ *     số điểm chạy lên; sai thì "bụp" + khung lắc.
+ */
+const vuaChon = ref<Record<string, number>>({});
+const daLo = ref<Set<string>>(new Set());
+const diemChay = ref<Record<string, number>>({});
+const loLan = ref<Record<string, 'dung' | 'sai'>>({});
+let daBaoChon = new Set<string>();
+let henLo: ReturnType<typeof setTimeout>[] = [];
+function chayDiem(id: string, tu: number, den: number): void {
+  const t0 = performance.now(), dai = 550;
+  const buoc = (): void => {
+    const k = Math.min(1, (performance.now() - t0) / dai);
+    diemChay.value = { ...diemChay.value, [id]: Math.round(tu + (den - tu) * (1 - (1 - k) ** 3)) };
+    if (k < 1) requestAnimationFrame(buoc);
+  };
+  requestAnimationFrame(buoc);
+}
+function loTungNguoi(moi: TimView): void {
+  henLo.forEach(clearTimeout); henLo = [];
+  daLo.value = new Set(); loLan.value = {};
+  const thu = [...moi.nguoi].sort((a, b) => {
+    const da = a.kq?.ketCuc === 'dung' ? 0 : 1, db = b.kq?.ketCuc === 'dung' ? 0 : 1;
+    return da - db || (a.kq?.ms ?? 1e9) - (b.kq?.ms ?? 1e9);
+  });
+  let soDung = 0;
+  thu.forEach((n, i) => {
+    const dung = n.kq?.ketCuc === 'dung';
+    const thuTu = dung ? soDung++ : 0;
+    henLo.push(setTimeout(() => {
+      daLo.value = new Set([...daLo.value, n.id]);
+      loLan.value = { ...loLan.value, [n.id]: dung ? 'dung' : 'sai' };
+      const truoc = n.diem - (n.kq?.diem ?? 0);
+      if (dung) chayDiem(n.id, truoc, n.diem);
+      // Tiếng của CHÍNH MÌNH đã phát lúc lật (match/miss) — ở đây chỉ phát cho người khác, và cho mọi người khi đang xem
+      if (n.id !== toiId.value || xem.value) { if (dung) sfx.timChotDung(thuTu); else sfx.timChotSai(); }
+    }, 380 + i * 240));
+  });
+}
 const nguoi = computed(() => nguoiVan.value.map((n) => {
   const p = nguoiPhong(n.id);
-  const lo = pha.value === 'dap-an' || pha.value === 'xong';
+  const loRa = pha.value === 'xong' || (pha.value === 'dap-an' && daLo.value.has(n.id));
+  const lo = loRa;
   const tt: keyof typeof ICON | '' = lo && n.kq
     ? (n.kq.ketCuc === 'dung' ? (n.kq.nhanhNhat ? 'nhanh' : 'dung') : n.kq.ketCuc === 'sai' ? 'sai' : 'het')
     : pha.value === 'hoi' && (n.da || (n.id === toiId.value && chonCuaToi.value !== null)) ? 'da' : '';
   return {
     ...n, tt, mat: p?.avatar ?? '🙂', mau: p?.mau, anh: p?.anh,
-    ten: n.id === toiId.value ? t('tt.ban') : (p ? tenNguoi(p) : n.ten), cong: pha.value === 'dap-an' ? (n.kq?.diem ?? 0) : 0,
+    ten: n.id === toiId.value ? t('tt.ban') : (p ? tenNguoi(p) : n.ten), cong: pha.value === 'dap-an' && loRa ? (n.kq?.diem ?? 0) : 0,
+    // Điểm hiện: đang đáp án mà chưa tới lượt chốt thì giữ điểm cũ; đã chốt thì số chạy lên
+    diemHien: pha.value === 'dap-an' ? (loRa ? (diemChay.value[n.id] ?? n.diem) : n.diem - (n.kq?.diem ?? 0)) : n.diem,
+    vuaChon: vuaChon.value[n.id] ?? 0, lan: pha.value === 'dap-an' ? loLan.value[n.id] : undefined,
     giay: lo && n.kq && n.kq.ms !== null ? giayChon(n.kq.ms) : ''
   };
 }));
@@ -134,6 +181,16 @@ watch(v, (moi) => {
   if (moi.the) hinhCu.value = moi.the;
   const doiLuot = moi.luot !== truocLuot;
   const doiPha = moi.pha !== truocPha || doiLuot;
+  if (moi.pha === 'hoi') {
+    if (doiPha) daBaoChon = new Set();
+    for (const n of moi.nguoi) {
+      if (!n.da || daBaoChon.has(n.id)) continue;
+      daBaoChon.add(n.id);
+      if (n.id === toiId.value && !xem.value) continue;   // mình chọn thì đã có tiếng `select`
+      sfx.timKhacChon();
+      vuaChon.value = { ...vuaChon.value, [n.id]: (vuaChon.value[n.id] ?? 0) + 1 };
+    }
+  }
   if (moi.pha === 'hoi' && doiPha) {
     hoiDai = moi.daiMs;
     hoiTu = o.timNhanLuc.value - (moi.daiMs - moi.conMs);
@@ -153,6 +210,8 @@ watch(v, (moi) => {
     } else if (moi.pha === 'up') sfx.swap();
     else if (moi.pha === 'noi') sfx.turn();
     else if (moi.pha === 'dap-an') {
+      sfx.timLatDapAn();
+      loTungNguoi(moi);
       const k = moi.nguoi.find((n) => n.id === toiId.value)?.kq;
       if (k?.ketCuc === 'dung' && k.viTri !== null) { sfx.match(k.chuoi); rung.ghep(k.chuoi); void bayDiem(k.viTri, k.diem, k.ms ?? 0); }
       else if (!xem.value) { sfx.miss(); rung.sai(); }
@@ -174,7 +233,9 @@ function cham(i: number): void {
 
 /** Tiếng tích 3 giây cuối (thay cho thanh giờ — màn chơi không có gì kéo mắt khỏi bàn). */
 function khung(): void {
-  if (pha.value === 'hoi' && chonCuaToi.value === null && !xem.value) {
+  // Người xem cũng nghe tích 3 giây cuối, tới khi mọi người đã chọn
+  const conCho = xem.value ? (v.value?.nguoi ?? []).some((n) => !n.da) : chonCuaToi.value === null;
+  if (pha.value === 'hoi' && conCho) {
     const s = Math.ceil((hoiDai - (performance.now() - hoiTu)) / 1000);
     if (s !== giayCu) { if (giayCu !== -1 && s <= 3 && s > 0) sfx.tick(); giayCu = s; }
   }
@@ -233,7 +294,7 @@ onMounted(() => {
   raf = requestAnimationFrame(khung);
   dangTimOnline.value = true;
 });
-onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.disconnect(); cancelAnimationFrame(raf); clearTimeout(henBay); });
+onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTimOnline.value = false; ro?.disconnect(); cancelAnimationFrame(raf); clearTimeout(henBay); });
 </script>
 
 <template>
@@ -246,13 +307,13 @@ onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.di
     </div>
 
     <div class="ott-nguoi" :style="{ gridTemplateColumns: `repeat(${Math.max(2, nguoi.length)}, 1fr)` }">
-      <div v-for="n in nguoi" :key="n.id" class="khay-nho ng" :class="{ toi: n.id === toiId }">
+      <div v-for="n in nguoi" :key="`${n.id}-${n.vuaChon}-${n.lan ?? ''}`" class="khay-nho ng" :class="[{ toi: n.id === toiId, 'vua-chon': n.vuaChon > 0 && pha === 'hoi' }, n.lan ? `lo-${n.lan}` : '']">
         <span class="av vong-mau" :style="n.mau ? { '--m': n.mau } : undefined">
           <MatNguoi :mat="n.mat" :anh="n.anh" />
           <span v-if="n.tt" :key="n.tt" class="huy" :class="n.tt"><component :is="ICON[n.tt]" :size="11" :stroke-width="3.2" aria-hidden="true" /></span>
         </span>
         <span class="ten">{{ n.ten }}</span>
-        <b class="d">{{ num(n.diem) }}</b>
+        <b class="d">{{ num(n.diemHien) }}</b>
         <span v-if="n.cong" :key="`c${v?.luot}`" class="cong">+{{ num(n.cong) }}</span>
         <span v-if="n.giay && pha === 'dap-an'" :key="`g${v?.luot}`" class="giay-chip" :class="{ sai: n.kq?.ketCuc !== 'dung' }">{{ n.giay }}s</span>
       </div>
@@ -350,6 +411,16 @@ onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.di
 .ott-nguoi { flex: none; display: grid; gap: 6px; }
 .ng { position: relative; display: flex; align-items: center; gap: 6px; padding: 5px 8px; min-width: 0; }
 .ng.toi { border-color: #ffc21a; }
+/* Người khác vừa chọn: nảy + viền sáng; chốt đúng: loé xanh; chốt sai: lắc */
+.ng.vua-chon { animation: ng-nay .4s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2px #7d88a8, 0 0 12px rgba(125, 136, 168, .55); }
+.ng.lo-dung { animation: ng-nay .45s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2.5px #2f9e57, 0 0 16px rgba(47, 158, 87, .6); }
+.ng.lo-dung .d { color: #2f9e57; }
+.ng.lo-sai { animation: ng-lac .4s; }
+@keyframes ng-nay { 40% { transform: scale(1.08); } }
+@keyframes ng-lac { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+/* Thẻ đúng toả vòng sáng lan ra lúc lật đáp án (ai cũng thấy, kể cả người xem) */
+.card.dung::before { content: ""; position: absolute; inset: -6px; border-radius: 16px; border: 3px solid #3fbf5f; pointer-events: none; animation: vong-lan .9s ease-out both; }
+@keyframes vong-lan { from { opacity: .9; transform: scale(.92); } to { opacity: 0; transform: scale(1.25); } }
 .av { position: relative; flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; }
 .ten { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 13px; }
 .d { font-family: var(--font-display); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -450,6 +521,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); dangTimOnline.value = false; ro?.di
 
 @media (prefers-reduced-motion: reduce) {
   .inner { transition-duration: .01s; }
-  .card.dung, .card.cho, .huy, .cong, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay, .mat-nho, .dem span { animation: none; }
+  .card.dung, .card.dung::before, .ng.vua-chon, .ng.lo-dung, .ng.lo-sai, .card.cho, .huy, .cong, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay, .mat-nho, .dem span { animation: none; }
 }
 </style>

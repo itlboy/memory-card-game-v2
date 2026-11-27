@@ -5,7 +5,8 @@ nào thì bước cần nó tự bỏ qua, workflow vẫn xanh — điền đủ
 
 | Khi nào | Android | iOS |
 |---|---|---|
-| Đẩy `develop` / `main` | APK debug (cài thử) · có khoá → AAB + APK release đã ký | có key Apple → IPA đã ký · chưa có → build simulator (chỉ kiểm biên dịch) |
+| Đẩy `develop` / `main` | KHÔNG chạy (từ 27.11.2026: web đi bằng OTA; mỗi lần đẩy ra bản làm hết quota Google Play) | KHÔNG chạy |
+| Chạy tay, KHÔNG tích "Đẩy lên store" | APK debug · có khoá → AAB + APK release đã ký | IPA đã ký · chưa có key → build simulator |
 | Tag `app-v*` hoặc chạy tay, tích **"Đẩy lên store"** | + đẩy AAB lên Google Play | + đẩy lên TestFlight |
 
 Tải file: tab **Actions** → lần chạy → mục **Artifacts** ở cuối trang.

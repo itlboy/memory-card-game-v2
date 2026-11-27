@@ -684,8 +684,10 @@
 - **Chủ dự án thử trên APP (TestFlight / Play internal), không phải Safari.** Deploy web
   KHÔNG tới tay họ: sửa giao diện họ báo từ điện thoại xong là phải ra bản app
   (skill `phat-hanh-app`). Báo "xong" thì nói rõ web có rồi, app có từ build số mấy.
-- **ĐẨY LÊN `main` LÀ TỰ RA BẢN APP** (25.10.2026): `mobile.yml` tự đẩy TestFlight + Play internal
-  mỗi lần `main` đổi phần web/engine, nên bản store luôn khớp gói OTA. Chạy tay khi cần:
+- **BẢN NATIVE CHỈ RA KHI CẦN** (27.11.2026, thay quy tắc 25.10 "đẩy main là tự ra bản app"): `mobile.yml` CHỈ chạy
+  khi đẩy tag `app-v*` hoặc chạy tay — đẩy main/develop KHÔNG dựng app nữa (hàng chục bản/ngày làm Google Play báo
+  "Daily save quota exceeded"). Thay đổi web tới người chơi bằng OTA. Ra bản app (khi đổi native, cần nộp store, hoặc chủ dự
+  án muốn thử trên TestFlight): skill `phat-hanh-app`, hoặc
   `gh workflow run mobile.yml --ref main -f phat_hanh=true`
   (cùng phiên bản, chỉ thêm build). Build phát hành có nhóm concurrency riêng nên đẩy
   `main` không huỷ nó nữa. Soát log iOS: `Upload succeeded` + dòng `Z Authority=Apple

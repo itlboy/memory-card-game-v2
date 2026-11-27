@@ -154,10 +154,17 @@ function khung(ms: number): void {
     if (nhip.value === 'cho' && tNhip >= TIM_THE_CHO_MS) { hinhHien.value = [...v.the]; vaoNhip('xem'); sfx.flip(); }
     else if (nhip.value === 'xem' && tNhip >= v.xemMs) { vaoNhip('up'); sfx.swap(); }
     else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { vaoNhip('noi'); sfx.turn(); }
-    else if (nhip.value === 'noi' && tNhip >= TIM_THE_NOI_MS) { v.moHoi(); soDaChon = 0; vaoNhip('hoi'); }
+    else if (nhip.value === 'noi' && tNhip >= TIM_THE_NOI_MS) { v.moHoi(); soDaChon = 0; daNghe.clear(); vaoNhip('hoi'); }
     else if (nhip.value === 'hoi') {
       const k = v.nguoi.filter((p) => v.daChon(p.id, tNhip)).length;
-      if (k !== soDaChon) { soDaChon = k; rev.value++; }
+      if (k !== soDaChon) {
+        // Máy vừa chọn (27.11.2026: tiếng của người khác, như bản online)
+        if (k > soDaChon && v.nguoi.some((p) => p.id !== TOI && v.daChon(p.id, tNhip) && !daNghe.has(p.id))) {
+          for (const p of v.nguoi) if (p.id !== TOI && v.daChon(p.id, tNhip)) daNghe.add(p.id);
+          sfx.timKhacChon();
+        }
+        soDaChon = k; rev.value++;
+      }
       if (tNhip >= v.chotLuc) chot(v);
     } else if (nhip.value === 'dap-an' && tNhip >= TIM_THE_DAP_AN_MS) {
       if (v.tiep()) luotMoi(v); else ketThuc(v);
@@ -239,8 +246,13 @@ function cham(i: number): void {
   rev.value++;
 }
 
+const daNghe = new Set<string>();
 function chot(v: VanTimThe): void {
-  const kq = v.chot().ketQua.find((k) => k.id === TOI) ?? null;
+  const tatCa = v.chot().ketQua;
+  const kq = tatCa.find((k) => k.id === TOI) ?? null;
+  // Chốt điểm của máy sau tiếng của mình một nhịp
+  const may = tatCa.find((k) => k.id !== TOI);
+  if (may) setTimeout(() => { if (may.ketCuc === 'dung') sfx.timChotDung(1); else sfx.timChotSai(); }, 420);
   ketToi.value = kq;
   if (kq?.ketCuc === 'dung' && kq.viTri != null) void bayDiem(kq.viTri, kq.diem, kq.ms ?? 0);
   vaoNhip('dap-an');
