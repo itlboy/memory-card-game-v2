@@ -371,6 +371,8 @@
   ván cũng trên lớp phủ đó) — không đếm hai lần. Lá giữ nguyên qua các lượt nên thấy lá úp xuống rồi lật lên.
   Hàng người chơi online mang `data-chip-for` + mặt `.av` để bong bóng chat (lib/neo-bong) neo đúng — thiếu là bong bóng rơi
   lên mép trên màn (lỗi 1.10.107). Màn online mới có hàng người chơi thì PHẢI gắn hai thứ này.
+  Hàng người chơi cũng báo MẤT MẠNG / ĐÃ RỜI (mờ .55 + nhãn `.netbad` như chip ghép cặp; hàng 3–4 người chỉ còn biểu tượng)
+  — dải báo chung chỉ hiện lúc chuyện xảy ra, người VÀO XEM SAU chỉ biết qua hàng này (27.11.2026).
   **BÀN VÒNG TRÒN (1.10.105, 27.11.2026, mockup duyệt https://claude.ai/artifact/84a1NKjn98ViN2Koj51K7U)** — MỘT thành phần
   dùng chung `components/BanVongTim.vue` cho chơi đơn, online và người xem; cách xếp ở `bayVong` (lib/tim-the, test
   `tim-the-bay-ban`). Thẻ cần tìm ở TÂM, BẰNG lá thường (lưng vàng, khung vàng đôi, quầng sáng — markup riêng, không `.card`,

@@ -13,7 +13,7 @@
  */
 import { TIM_THE_ONLINE_SO_THE, TIM_THE_SO_LUOT, type TimView } from '@mm/engine';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Check, Ellipsis, LogOut, TimerOff, X, Zap } from 'lucide-vue-next';
+import { Check, Ellipsis, LogOut, TimerOff, WifiOff, X, Zap } from 'lucide-vue-next';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
 import { sfx } from '@/lib/audio';
@@ -108,6 +108,9 @@ const nguoi = computed(() => nguoiVan.value.map((n) => {
     : pha.value === 'hoi' && (n.da || (n.id === toiId.value && chonCuaToi.value !== null)) ? 'da' : '';
   return {
     ...n, tt, mat: p?.avatar ?? '🙂', mau: p?.mau, anh: p?.anh,
+    // Mất mạng / đã rời — CÙNG cách báo của chip ghép cặp (OnlineGame `.pchip.off` + `.netbad`). Dải báo chung chỉ hiện lúc
+    // chuyện xảy ra; người VÀO XEM SAU phải nhìn được ngay ai đang mất mạng (27.11.2026, chủ dự án xem thấy người chơi "im").
+    mang: o.room.value && !p ? 'roi' as const : p && p.connected === false ? 'mat' as const : '' as const,
     ten: n.id === toiId.value ? t('tt.ban') : (p ? tenNguoi(p) : n.ten), cong: pha.value === 'dap-an' && loRa ? (n.kq?.diem ?? 0) : 0,
     // Điểm hiện: đang đáp án mà chưa tới lượt chốt thì giữ điểm cũ; đã chốt thì số chạy lên
     diemHien: pha.value === 'dap-an' ? (loRa ? (diemChay.value[n.id] ?? n.diem) : n.diem - (n.kq?.diem ?? 0)) : n.diem,
@@ -327,13 +330,15 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
       <div class="vien luot">{{ t('tt.luot', { n: Math.min((v?.luot ?? 0) + 1, v?.soLuot ?? TIM_THE_SO_LUOT), tong: v?.soLuot ?? TIM_THE_SO_LUOT }) }}</div>
     </div>
 
-    <div class="ott-nguoi" :style="{ gridTemplateColumns: `repeat(${Math.max(2, nguoi.length)}, 1fr)` }">
-      <div v-for="n in nguoi" :key="`${n.id}-${n.vuaChon}-${n.lan ?? ''}`" class="khay-nho ng" :data-chip-for="n.id" :class="[{ toi: n.id === toiId, 'vua-chon': n.vuaChon > 0 && pha === 'hoi' }, n.lan ? `lo-${n.lan}` : '']">
+    <div class="ott-nguoi" :class="{ hep: nguoi.length >= 3 }" :style="{ gridTemplateColumns: `repeat(${Math.max(2, nguoi.length)}, 1fr)` }">
+      <div v-for="n in nguoi" :key="`${n.id}-${n.vuaChon}-${n.lan ?? ''}`" class="khay-nho ng" :data-chip-for="n.id" :class="[{ off: !!n.mang, toi: n.id === toiId, 'vua-chon': n.vuaChon > 0 && pha === 'hoi' }, n.lan ? `lo-${n.lan}` : '']">
         <span class="av vong-mau" :style="n.mau ? { '--m': n.mau } : undefined">
           <MatNguoi :mat="n.mat" :anh="n.anh" />
           <span v-if="n.tt" :key="n.tt" class="huy" :class="n.tt"><component :is="ICON[n.tt]" :size="11" :stroke-width="3.2" aria-hidden="true" /></span>
         </span>
         <span class="ten">{{ n.ten }}</span>
+        <span v-if="n.mang === 'roi'" class="netbad" :title="t('og.daRoiPhong')"><LogOut :size="12" :stroke-width="2.6" aria-hidden="true" /><span class="chu"> {{ t('og.daRoi') }}</span></span>
+        <span v-else-if="n.mang === 'mat'" class="netbad" :title="t('og.matKetNoi')"><WifiOff :size="12" :stroke-width="2.6" aria-hidden="true" /><span class="chu"> {{ t('og.offline') }}</span></span>
         <b class="d">{{ num(n.diemHien) }}</b>
         <span v-if="n.cong" :key="`c${v?.luot}`" class="cong">+{{ num(n.cong) }}</span>
         <span v-if="n.giay && pha === 'dap-an'" :key="`g${v?.luot}`" class="giay-chip" :class="{ sai: n.kq?.ketCuc !== 'dung' }">{{ n.giay }}s</span>
@@ -409,6 +414,14 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 .ott-nguoi { flex: none; display: grid; gap: 6px; }
 .ng { position: relative; display: flex; align-items: center; gap: 6px; padding: 5px 8px; min-width: 0; }
 .ng.toi { border-color: #ffc21a; }
+/* Mất mạng / đã rời: như `.pchip.off` + `.netbad` của OnlineGame */
+.ng.off { opacity: .55; }
+.netbad {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 2px; font-size: 10.5px; font-weight: 800; white-space: nowrap;
+  padding: 1px 5px; border-radius: var(--r-full); background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad);
+}
+/* Hàng 3–4 người: ô hẹp — chỉ còn biểu tượng (chữ vẫn ở title), không đẩy mất điểm */
+.ott-nguoi.hep .netbad .chu { display: none; }
 /* Người khác vừa chọn: nảy + viền sáng; chốt đúng: loé xanh; chốt sai: lắc */
 .ng.vua-chon { animation: ng-nay .4s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2px #7d88a8, 0 0 12px rgba(125, 136, 168, .55); }
 .ng.lo-dung { animation: ng-nay .45s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2.5px #2f9e57, 0 0 16px rgba(47, 158, 87, .6); }
