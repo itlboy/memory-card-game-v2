@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TURN_LIMIT_SEC, isDraw, laBotId } from '@mm/engine';
+import { isDraw, laBotId } from '@mm/engine';
 import MatNguoi from './MatNguoi.vue';
 import DauPremium from './DauPremium.vue';
 import { taiKhoan } from '@/lib/taikhoan';
@@ -9,25 +9,21 @@ import { store } from '@/lib/storage';
 import { ghiVanTriNho, hienTriNho } from '@/lib/tri-nho';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import type { Card, Summary } from '@mm/engine';
-import { HeartCrack, List, LogOut, Timer, TriangleAlert, WifiOff } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { sfx } from '@/lib/audio';
-import { pingSo } from '@/lib/ping-so';
-import { num, numGon } from '@/lib/format';
 import BoardGrid from './BoardGrid.vue';
 import { useBoardFit } from '@/composables/useBoardFit';
 import KetCucFx from './KetCucFx.vue';
 import TeamStrip from './TeamStrip.vue';
+import DaiNguoiChoi, { type NguoiDai } from './DaiNguoiChoi.vue';
+import KhungOnline from './KhungOnline.vue';
 import { rung } from '@/lib/rung';
 import { tenNguoi } from '@/lib/ten';
 import { tySoLoat } from '@/lib/ty-so-loat';
 import HudBar from './HudBar.vue';
 import ChipXem from './ChipXem.vue';
 import ResultDialog from './ResultDialog.vue';
-import EmojiDock from './EmojiDock.vue';
 import OptionIcon from './OptionIcon.vue';
-import EmojiBlast from './EmojiBlast.vue';
-import LoiNoi from './LoiNoi.vue';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { ghiVuaThang } from '@/lib/xin-danh-gia';
 
@@ -42,6 +38,10 @@ const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
 const emit = defineEmits<{ quit: []; chinh: [] }>();
 const o = props.o;
 /** Avatar người đi đầu (đếm ngược trước ván) — thay 🎲. Online có BOT (mặt là khoá `:rong-vang:`…) nên phải vẽ qua MatNguoi, đừng in chữ trơn. */
+/** Dòng "X đi trước" dưới số đếm ngược vào ván (DemNguocPhu qua KhungOnline). */
+const diTruoc = computed(() => (o.countdownLeft.value === null ? null : {
+  mat: matDiTruoc.value, anh: anhCua(o.countdown.value?.firstId ?? ''), chu: t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' })
+}));
 const matDiTruoc = computed(() => {
   const id = o.countdown.value?.firstId;
   // room.players trước: ván đội thì `firstId` là THÀNH VIÊN lật đầu, chỉ có trong phòng
@@ -230,32 +230,11 @@ const showResult = ref(false);
 /** Có #app để teleport cảnh kết ván ra không (test gắn component trần thì không có). */
 const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
 let resultTimer: ReturnType<typeof setTimeout> | undefined;
-/**
- * TỪ 5 NGƯỜI TRỞ LÊN ĐỔI SANG DẢI GỌN — cùng luật với PlayerStrip (chơi cùng
- * máy), xem chú thích đầy đủ ở đó. Tóm lại: chia đều một hàng cho 10 người là
- * mỗi chip 33px, tên biến mất và điểm rơi ra ngoài; xếp hai hàng thì ăn thêm
- * 20px chiều cao của bàn — mà bàn nay tới 88 thẻ.
- */
-const gonStrip = computed(() => (o.view.value?.players.length ?? 0) > 4);
-const soNguoi = computed(() => o.view.value?.players.length ?? 0);
-
-const dangDi = computed(() => {
-  const ps = o.view.value?.players ?? [];
-  return ps.find((p) => p.id === o.view.value?.currentId) ?? ps[0];
-});
-
-/** Những người không đang đi, xoay vòng để người ĐI NGAY SAU đứng đầu hàng. */
-const khac = computed(() => {
-  const ps = o.view.value?.players ?? [];
-  if (!ps.length) return [];
-  const at = ps.findIndex((p) => p.id === o.view.value?.currentId);
-  const start = at < 0 ? 1 : at + 1;
-  return Array.from({ length: ps.length - 1 }, (_, k) => ps[(start + k) % ps.length]!);
-});
-
-/** Bảng đầy đủ (tên, điểm, mạng, ai mất mạng) — chỉ mở khi người chơi bấm. */
-const moBang = ref(false);
-watch(() => o.view.value?.players.length, () => { moBang.value = false; });
+/** Người chơi ở dạng chung của hàng người chơi online (DaiNguoiChoi — dùng chung mọi kiểu chơi). */
+const nguoiDai = computed((): NguoiDai[] => (o.view.value?.players ?? []).map((p) => ({
+  id: p.id, ten: tenNguoi(p), tenGoc: p.name, avatar: p.avatar, anh: anhCua(p.id), mau: mauCua(p.id), hh: hhCua(p.id),
+  diem: p.score, connected: p.connected, roi: !!p.forfeited, lives: p.lives
+})));
 
 /** CHẾ ĐỘ ĐỒNG ĐỘI (docs/che-do-dong-doi.md): view có `nguoiLat` ⇔ ván đội. Ván thường: false, mọi nhánh dưới không chạy. */
 /** Tỷ số cả loạt theo tên (lib/ty-so-loat.ts) — luôn hiện, kể cả ván đầu. */
@@ -468,171 +447,32 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
 </script>
 
 <template>
-  <section class="game" :style="fitStyle">
-    <HudBar
-      :score="0" :moves="o.view.value?.moves ?? 0"
-      :matched="o.view.value?.matchedPairs ?? 0"
-      :total-pairs="o.view.value?.totalPairs ?? 0"
-      :combo="1" :elapsed="o.elapsed.value"
-      :time-left="o.view.value?.timeLeft ?? null"
-      :moves-left="null" :lives="null" :multiplayer="true"
-      @quit="emit('quit')"
-    >
-      <!-- Chip người xem: ô bên phải hàng trên cùng, không thêm hàng (19.11.2026) -->
-      <template v-if="o.room.value?.xem?.length" #phai>
-        <ChipXem :xem="o.room.value.xem" :toi="o.spectator.value ? o.tenCuaToi() : undefined" />
-      </template>
-    </HudBar>
-
-    <!-- ĐỒNG ĐỘI: thanh đội HIỆN THAY dải chip (không nhồi nhánh đội vào dải cũ) -->
-    <TeamStrip v-if="laDoi" :o="o" />
-    <div v-else class="strip-wrap">
-      <!-- TỚI 4 NGƯỜI: dạng cũ, mỗi người một chip có tên -->
-      <div v-if="!gonStrip" class="strip" :class="{ dong: soNguoi >= 3 }">
-        <div
-          v-for="p in o.view.value?.players" :key="p.id"
-          class="pchip" :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited, 'co-loat': !!tySo }"
-          :data-chip-for="p.id"
-        >
-          <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /><DauPremium :loai="hhCua(p.id)" /></span>
-          <b>{{ tenNguoi(p) }}</b>
-          <!-- Mờ 55% là không đủ để biết chuyện gì: nói thẳng ra. Trước đây bên
-               kia mất mạng hay thoát hẳn thì bên này không hay biết. -->
-          <span v-if="p.forfeited" class="netbad" :title="t('og.daRoiPhong')"><LogOut :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.daRoi') }}</span>
-          <span v-else-if="!p.connected" class="netbad" :title="t('og.matKetNoi')">
-            <WifiOff :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /><span class="chu"> {{ t('og.offline') }}</span>
-          </span>
-          <!-- Mạng của MÌNH, gắn cạnh tên mình. Mặc định CHỈ CHẤM MÀU xanh · vàng · đỏ
-               (chủ dự án 16.10.2026: số ms làm rối); số ms bật lại được trong chế độ
-               debug (lib/ping-so.ts). Số vẫn ở title / aria-label. -->
-          <span
-            v-else-if="p.id === o.myId.value"
-            class="ping" :class="[o.netHien.value, { cham: !pingSo }]"
-            role="img"
-            :title="o.pingHien.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.pingHien.value })"
-            :aria-label="o.pingHien.value === null ? t('og.pingDangDo') : t('og.ping', { n: o.pingHien.value })"
-          >{{ !pingSo ? '' : o.pingHien.value === null ? '···' : `${o.pingHien.value}ms` }}</span>
-          <!-- Quá 5 mạng thì hiện SỐ: bàn 42 thẻ có tới 56 mạng, 56 trái tim thì
-               tràn cả chip người chơi. -->
-          <!-- MẠNG HIỆN BẰNG SỐ, không phải chuỗi trái tim: chuỗi phình theo số
-               mạng (bàn 42 thẻ có tới 56 mạng) nên nó là thứ đẩy điểm ra khỏi
-               chip. Một icon + một số thì rộng bao nhiêu mạng cũng như nhau. -->
-          <small v-if="p.lives !== null" class="lives" :title="t('ps.mang', { n: p.lives })">
-            <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
-            <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
-          </small>
-          <span
-            v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
-            class="turn-clock" :class="{ urgent: o.turnTimeLeft.value <= 10 }"
-            role="timer" :aria-label="t('ps.conGiay', { n: Math.ceil(o.turnTimeLeft.value) })"
-          >{{ Math.ceil(o.turnTimeLeft.value) }}s</span>
-          <!-- ĐỒNG HỒ LƯỢT CÒN LÀ MỘT THANH RÚT DẦN ở mép dưới chip. Nó nằm
-               `absolute` nên tốn 0px bề rộng — đúng thứ đang thiếu — và cái
-               đang cạn dần đọc nhanh hơn một con số. Số giây ở trên chỉ còn là
-               phần thêm, tự ẩn khi chip hẹp. -->
-          <span
-            v-if="p.id === o.view.value?.currentId && o.turnTimeLeft.value !== null"
-            class="turn-bar" :class="{ urgent: o.turnTimeLeft.value <= 10 }" aria-hidden="true"
-            :style="{ '--con': Math.max(0, Math.min(1, o.turnTimeLeft.value / TURN_LIMIT_SEC)) }"
-          ></span>
-          <Transition name="plus">
-            <span
-              v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === p.id"
-              :key="o.timeBonusFor.value.key" class="plus10"
-            >+5s</span>
-          </Transition>
-          <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }" :title="t('ps.daThang', { n: tySo[p.name]?.n ?? 0 })">{{ tySo[p.name]?.n ?? 0 }}</span>
-          <span class="pts" :class="{ dai: p.score >= 1000 }" :title="num(p.score)">{{ numGon(p.score) }}</span>
-        </div>
-      </div>
-
-      <!-- TỪ 5 NGƯỜI: chip lượt + hàng avatar. `data-chip-for` phải có ở CẢ HAI
-           dạng — EmojiBlast tìm chip theo id để bay lên từ đúng chỗ người gửi. -->
-      <div v-else-if="dangDi" class="strip gon">
-        <div class="turn-chip" :data-chip-for="dangDi.id" :class="{ off: !dangDi.connected || dangDi.forfeited }">
-          <span class="avatar" :class="{ 'vong-mau': !!mauCua(dangDi.id) }" :style="mauCua(dangDi.id) ? { '--m': mauCua(dangDi.id) } : undefined"><MatNguoi :mat="dangDi.avatar" :anh="anhCua(dangDi.id)" /><DauPremium :loai="hhCua(dangDi.id)" /></span>
-          <span class="tb">
-            <b class="nm">{{ tenNguoi(dangDi) }}</b>
-            <span class="sub">
-              <template v-if="o.turnTimeLeft.value !== null">
-                <Timer :size="11" /><span :class="{ urgent: o.turnTimeLeft.value <= 10 }">{{ Math.ceil(o.turnTimeLeft.value) }}s</span> ·
-              </template>
-              <template v-if="dangDi.id === o.myId.value">{{ t('og.luotBan') }}</template>
-              <template v-else>{{ t('ps.dangDi') }}</template>
-            </span>
-          </span>
-          <Transition name="plus">
-            <span
-              v-if="o.timeBonusFor.value && o.timeBonusFor.value.playerId === dangDi.id"
-              :key="o.timeBonusFor.value.key" class="plus10"
-            >+5s</span>
-          </Transition>
-          <span class="pts" :title="num(dangDi.score)">{{ numGon(dangDi.score) }}</span>
-        </div>
-
-        <ul class="rest">
-          <li
-            v-for="(p, k) in khac" :key="p.id"
-            class="mini" :class="{ next: k === 0, off: !p.connected || p.forfeited }"
-            :data-chip-for="p.id"
-            :title="t('ps.diemCua', { ten: tenNguoi(p), n: p.score })"
-          >
-            <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /><DauPremium :loai="hhCua(p.id)" /></span>
-            <!-- Mất mạng / đã rời: một chấm đỏ thay cho chữ. Ở cỡ này không có
-                 chỗ cho "📴 mất mạng", mà bỏ hẳn thì bên kia biến mất không lý do. -->
-            <span v-if="p.forfeited || !p.connected" class="dot" :title="p.forfeited ? t('og.daRoiPhong') : t('og.matKetNoi')"></span>
-            <span class="mpts">{{ p.score }}</span>
-            <span class="sr-only">{{ t('ps.diemCuaSr', { ten: tenNguoi(p), n: p.score }) }}</span>
-          </li>
-          <li class="more">
-            <button
-              type="button" class="more-btn"
-              :aria-expanded="moBang" :aria-label="t('ps.bang')"
-              @click="moBang = !moBang"
-            ><List :size="15" /></button>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Bảng đầy đủ: nổi ĐÈ lên bàn, không chen vào dòng — chen vào là mỗi lần
-           mở lại bóp bàn thẻ rồi bung ra, thẻ nhảy chỗ giữa ván. Sắp theo ĐIỂM. -->
-      <Transition name="sheet">
-        <ul v-if="moBang && gonStrip" class="sheet panel" :aria-label="t('ps.bang')">
-          <li
-            v-for="(p, i) in [...(o.view.value?.players ?? [])].sort((a, b) => b.score - a.score)" :key="p.id"
-            :class="{ active: p.id === o.view.value?.currentId, off: !p.connected || p.forfeited }"
-          >
-            <span class="rank">{{ i + 1 }}</span>
-            <span class="avatar" :class="{ 'vong-mau': !!mauCua(p.id) }" :style="mauCua(p.id) ? { '--m': mauCua(p.id) } : undefined"><MatNguoi :mat="p.avatar" :anh="anhCua(p.id)" /><DauPremium :loai="hhCua(p.id)" /></span>
-            <b class="nm">{{ tenNguoi(p) }}</b>
-            <span v-if="p.forfeited" class="netbad"><LogOut :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.daRoi') }}</span>
-            <span v-else-if="!p.connected" class="netbad"><WifiOff :size="13" :stroke-width="2.6" class="ic-n" aria-hidden="true" /> {{ t('og.offline') }}</span>
-            <small v-if="p.lives !== null" class="lives">
-              <HeartCrack v-if="p.lives <= 0" :size="13" :stroke-width="2.5" class="ic-n het" aria-hidden="true" />
-              <template v-else><OptionIcon name="lives" :size="12" />{{ p.lives }}</template>
-            </small>
-            <span v-if="tySo" class="wins" :class="{ dan: tySo[p.name]?.dan }">{{ tySo[p.name]?.n ?? 0 }}</span>
-            <span class="pts">{{ p.score }}</span>
-          </li>
-        </ul>
-      </Transition>
-    </div>
-
-    <!-- Người xem: KHÔNG còn dải "👁️ … bạn đang xem trận đấu" chiếm cả hàng — chip ChipXem ở hàng trên cùng nói thay -->
-    <p v-if="o.reconnecting.value" class="reconnect" role="status">{{ t('og.dangVaoLai') }}</p>
-    <!-- Nước bấm không tới được server: phải NÓI RA. Im lặng thì người chơi cứ
-         bấm vào chỗ không ai nghe cho tới khi hết lượt. -->
-    <p v-else-if="o.netTrouble.value" class="reconnect" role="status"><TriangleAlert :size="15" :stroke-width="2.5" class="ic-n" aria-hidden="true" /> {{ o.netTrouble.value }}</p>
-    <!-- Đối thủ mất mạng: bàn sẽ im tới khi hết đồng hồ lượt của họ. Không nói ra
-         thì người còn lại ngồi nhìn bàn chết mà tưởng game hỏng — đúng thứ đã bị
-         phản ánh. -->
-    <!-- Đối thủ mất kết nối: nay là DẢI BÁO CHUNG (useBaoPhong, đứng yên tới khi họ vào lại) -->
-
-    <!-- Dải thông báo TRÊN bàn (không che thẻ) — quy tắc ở global.css -->
-    <div class="notice-bar">
-      <EmojiBlast :o="o" />
-      <LoiNoi :o="o" />
-
+  <KhungOnline :o="o" class="game" :style="fitStyle" :di-truoc="diTruoc">
+    <template #hud>
+      <HudBar
+        :score="0" :moves="o.view.value?.moves ?? 0"
+        :matched="o.view.value?.matchedPairs ?? 0"
+        :total-pairs="o.view.value?.totalPairs ?? 0"
+        :combo="1" :elapsed="o.elapsed.value"
+        :time-left="o.view.value?.timeLeft ?? null"
+        :moves-left="null" :lives="null" :multiplayer="true"
+        @quit="emit('quit')"
+      >
+        <!-- Chip người xem: ô bên phải hàng trên cùng, không thêm hàng (19.11.2026) -->
+        <template v-if="o.room.value?.xem?.length" #phai>
+          <ChipXem :xem="o.room.value.xem" :toi="o.spectator.value ? o.tenCuaToi() : undefined" />
+        </template>
+      </HudBar>
+    </template>
+    <template #nguoi>
+      <!-- ĐỒNG ĐỘI: thanh đội HIỆN THAY dải chip (không nhồi nhánh đội vào dải cũ) -->
+      <TeamStrip v-if="laDoi" :o="o" />
+      <DaiNguoiChoi
+        v-else :nguoi="nguoiDai" :dang-di-id="o.view.value?.currentId ?? null" :toi-id="o.myId.value"
+        :net-hien="o.netHien.value" :ping-hien="o.pingHien.value" :dong-ho-luot="o.turnTimeLeft.value" :cong5s="o.timeBonusFor.value" :ty-so="tySo"
+      />
+    </template>
+    <template #bao>
       <!--
         HÉ MỞ CẢ BÀN (Chớp nhoáng đầu ván, hoặc thẻ Mắt thần): phải NÓI RA và
         đếm ngược. Trước đây phòng online không hiện gì cả — người chơi thấy cả
@@ -669,7 +509,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
           </span>
         </div>
       </Transition>
-    </div>
+    </template>
 
     <div
       ref="wrap" class="board-wrap"
@@ -692,54 +532,42 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
       <span v-if="o.lastGain.value" :key="o.lastGain.value.key" class="gain" :style="gainStyle" aria-hidden="true">
         +{{ o.lastGain.value.amount }}
       </span>
-      <!-- Đếm ngược trước ván + báo người đi đầu -->
-      <div v-if="o.countdownLeft.value !== null" class="countdown" role="status" aria-live="assertive">
-        <span class="num" :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span>
-        <span class="first"><span class="mat-dau"><MatNguoi :mat="matDiTruoc" :anh="anhCua(o.countdown.value?.firstId ?? '')" /></span> <b>{{ t('game.diTruoc', { ten: o.countdown.value?.firstName ?? '' }) }}</b></span>
-      </div>
 
     </div>
 
-    <!-- Mất mạng hẳn thì nói to, vì lúc đó bấm gì cũng không ăn -->
-    <p v-if="o.netHien.value === 'lost'" class="mynet lost" role="status">
-      {{ t('og.mangCoVanDe') }}
-    </p>
-
-    <!-- Emoji chat (ON-08): thanh CỐ ĐỊNH đáy màn, dùng chung cho ván và màn kết quả (EmojiDock.vue) — chừa chỗ -->
-    <EmojiDock :o="o" />
-    <div class="eb-cho" aria-hidden="true" />
-
-    <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
-         rơi; thua phải có hình riêng, không được để trống. -->
-    <!-- TELEPORT ra #app: nằm trong <main> (đệm 12px, overflow) thì lớp tối chỉ phủ khung màn
-         chính — hở thanh trên cùng, hai bên và đáy (đo 14.11.2026: 12,72→363,541 trên màn 375×553).
-         Bản offline vốn đứng ở cấp App nên phủ kín. -->
-    <Teleport to="#app" :disabled="!coApp">
-      <KetCucFx v-if="o.view.value?.summary && !fxTat" :loai="loaiKetCuc" :seed="seedVan" />
-    </Teleport>
-    <ResultDialog
-      v-if="o.view.value?.summary && showResult"
-      :summary="o.view.value.summary"
-      :is-record="false" :show-stars="false" :multiplayer="true" :la-chu-phong="o.isHost.value && !o.spectator.value" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
-      :fresh-achievements="[]" :has-next="false" :multiplayer-online="true" :thi-dau="!!o.room.value?.thiDau" :so-cap="soCapVan"
-      :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
-      :series-wins="o.seriesWins.value"
-      :nguoi-choi="o.view.value.players"
-      :anh-cua="anhCua" :mau-cua="mauCua"
-      :so-van="o.soVanLoat.value"
-      :thanh-vien-cua="thanhVienCua"
-      :phieu-choi-lai="o.room.value?.againVotes"
-      :rematch-sent="o.iWantAgain.value" :toi-id="o.myId.value || undefined"
-      :rematch-blocked="!enoughToRematch || o.spectator.value"
-      :khong-du="!enoughToRematch"
-      :rematch-state="rematchState"
-      @replay="o.again()"
-      @next="o.again()"
-      @lobby="o.veLobby()"
-      @chinh="emit('chinh')"
-      @menu="emit('quit')"
-    />
-  </section>
+    <template #ket>
+      <!-- Ba kết cục, ba hình khác nhau. Hoà KHÔNG phải thua nên không có tro
+           rơi; thua phải có hình riêng, không được để trống. -->
+      <!-- TELEPORT ra #app: nằm trong <main> (đệm 12px, overflow) thì lớp tối chỉ phủ khung màn
+           chính — hở thanh trên cùng, hai bên và đáy (đo 14.11.2026: 12,72→363,541 trên màn 375×553).
+           Bản offline vốn đứng ở cấp App nên phủ kín. -->
+      <Teleport to="#app" :disabled="!coApp">
+        <KetCucFx v-if="o.view.value?.summary && !fxTat" :loai="loaiKetCuc" :seed="seedVan" />
+      </Teleport>
+      <ResultDialog
+        v-if="o.view.value?.summary && showResult"
+        :summary="o.view.value.summary"
+        :is-record="false" :show-stars="false" :multiplayer="true" :la-chu-phong="o.isHost.value && !o.spectator.value" :minh-ket-cuc="o.myId.value ? loaiKetCuc : undefined"
+        :fresh-achievements="[]" :has-next="false" :multiplayer-online="true" :thi-dau="!!o.room.value?.thiDau" :so-cap="soCapVan"
+        :ten-thanh-vien="laDoi ? tenThanhVien : undefined"
+        :series-wins="o.seriesWins.value"
+        :nguoi-choi="o.view.value.players"
+        :anh-cua="anhCua" :mau-cua="mauCua"
+        :so-van="o.soVanLoat.value"
+        :thanh-vien-cua="thanhVienCua"
+        :phieu-choi-lai="o.room.value?.againVotes"
+        :rematch-sent="o.iWantAgain.value" :toi-id="o.myId.value || undefined"
+        :rematch-blocked="!enoughToRematch || o.spectator.value"
+        :khong-du="!enoughToRematch"
+        :rematch-state="rematchState"
+        @replay="o.again()"
+        @next="o.again()"
+        @lobby="o.veLobby()"
+        @chinh="emit('chinh')"
+        @menu="emit('quit')"
+      />
+    </template>
+  </KhungOnline>
 </template>
 
 <style scoped>
@@ -754,389 +582,7 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
   animation: chi-vao .25s ease-out;
 }
 @keyframes chi-vao { from { opacity: 0; scale: .7; } }
-/* Bọc để bảng đầy đủ neo được (absolute) mà không đụng tới dòng của bàn thẻ. */
-.strip-wrap { position: relative; }
-.strip { display: flex; gap: 6px; }
 
-/* ---------- DẢI GỌN (từ 5 người) — cùng ngôn ngữ với PlayerStrip ---------- */
-
-.strip.gon { align-items: stretch; }
-/* Chip người đang đi: khối gradient đặc, KHÔNG viền nhấp nháy như .pchip.active —
-   ở đây nó đã là thứ duy nhất có màu, thêm animation nữa là dải bồn chồn. */
-.turn-chip {
-  position: relative; flex-shrink: 0;
-  display: flex; align-items: center; gap: 7px; padding: 5px 9px;
-  border-radius: 12px; color: var(--chon-chu);
-  background: var(--chon-nen);
-  box-shadow: 0 4px 16px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
-}
-.turn-chip.off { opacity: .55; }
-.turn-chip .avatar { font-size: 18px; }
-.turn-chip .tb { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-.turn-chip .nm {
-  font-family: var(--font-display); font-size: 12.5px; font-weight: 800;
-  max-width: 92px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.turn-chip .sub {
-  display: inline-flex; align-items: center; gap: 3px;
-  font-size: 9.5px; font-weight: 700; opacity: .92;
-  font-variant-numeric: tabular-nums; white-space: nowrap;
-}
-/* Sắp hết giờ: nhấp nháy NGAY TRONG chip lượt — đồng hồ đã ở chỗ mắt đang nhìn */
-.turn-chip .sub .urgent { animation: clock-pulse .5s steps(2) infinite; }
-.turn-chip .pts {
-  margin-left: 2px; font-family: var(--font-display); font-size: 17px; font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-.turn-chip .plus10 { color: #fff; }
-
-.rest {
-  flex: 1; min-width: 0; display: flex; align-items: center; gap: 2px;
-  padding: 0 4px; list-style: none; margin: 0;
-  border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
-}
-.mini {
-  position: relative; flex: 1 1 0; min-width: 0;
-  display: flex; flex-direction: column; align-items: center;
-  border-radius: 9px; padding: 1px 0;
-  /* Mỗi ô tự biết mình rộng bao nhiêu, để quyết định có đủ chỗ cho điểm không */
-  container-type: inline-size;
-}
-/* Người ĐI NGAY SAU: nền nhạt. Chỉ một dấu hiệu, không viền — mười ô có viền
-   thì hàng này thành một dãy hộp, mắt không bắt được ô nào đang được chỉ. */
-.mini.next { background: var(--accent-soft); }
-.mini.off { opacity: .5; }
-.mini .avatar { font-size: 15px; line-height: 1.05; }
-.mini .mpts {
-  font-size: 10px; font-weight: 800; color: var(--muted);
-  font-variant-numeric: tabular-nums; line-height: 1.1;
-}
-/*
- * Ô QUÁ HẸP THÌ BỎ ĐIỂM, giữ avatar.
- *
- * Đo trên iPhone SE (vùng web 375×553) với 10 người: mỗi ô chỉ còn 17,2px, mà
- * "100" đã cần 18px — cả chín ô đều tràn, và số càng lớn càng thò sang ô bên
- * cạnh (12345 thò 6,4px). Chữ chồng lên nhau đọc còn tệ hơn không có chữ.
- *
- * 22px là mốc đủ cho ba chữ số ở cỡ 10px. Mất điểm ở đây không mất thông tin:
- * bảng đầy đủ (nút danh sách cuối dải) vẫn có điểm của mọi người, và người
- * ĐANG ĐI thì điểm nằm ngay trên chip lượt.
- */
-@container (max-width: 22px) {
-  .mini .mpts { display: none; }
-}
-.mini .dot {
-  position: absolute; top: 0; right: 12%;
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--bad); box-shadow: 0 0 0 1.5px var(--panel-solid);
-}
-.more { flex-shrink: 0; display: flex; align-items: center; }
-/* Nút nhỏ mà vùng chạm vẫn phải 44px: nới bằng ::after, KHÔNG phình cái nút
-   (phình là dải cao thêm — đúng thứ dải gọn đang tiết kiệm). Phải ghi đè cả
-   min-width/min-height vì `.btn` toàn cục đặt 44px. */
-.more-btn {
-  position: relative;
-  display: flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; min-width: 0; min-height: 0; padding: 0;
-  border: 0; border-radius: 8px; background: transparent; color: var(--muted);
-}
-.more-btn::after { content: ''; position: absolute; inset: -9px; }
-.more-btn[aria-expanded='true'] { background: var(--accent-soft); color: var(--accent); }
-
-/* ---------- BẢNG ĐẦY ĐỦ ---------- */
-
-.sheet {
-  position: absolute; z-index: 12; top: calc(100% + 6px); left: 0; right: 0;
-  display: flex; flex-direction: column; gap: 3px;
-  max-height: 58vh; overflow: auto;
-  list-style: none; margin: 0; padding: 8px;
-}
-.sheet li {
-  display: flex; align-items: center; gap: 8px;
-  min-height: 34px; padding: 3px 7px; border-radius: 9px;
-}
-.sheet li.active { background: var(--accent-soft); }
-.sheet li.off { opacity: .6; }
-.sheet .rank {
-  flex-shrink: 0; width: 17px; text-align: center;
-  font-family: var(--font-display); font-size: 12px; font-weight: 800; color: var(--muted);
-}
-.sheet .avatar { font-size: 17px; }
-.sheet .nm {
-  flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.sheet .pts { font-family: var(--font-display); font-size: 15px; font-variant-numeric: tabular-nums; }
-.sheet-enter-active, .sheet-leave-active { transition: opacity .14s ease, transform .14s ease; }
-.sheet-enter-from, .sheet-leave-to { opacity: 0; transform: translateY(-6px); }
-.pchip {
-  /* `container-type: inline-size` để nhãn "mất mạng" tự bỏ chữ khi chip hẹp —
-     truy vấn theo CHIP, không theo màn hình: cùng một màn hình, chip 2 người
-     rộng gấp đôi chip 4 người. */
-  container-type: inline-size;
-  position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px;
-  padding: 5px 9px; border: 2px solid var(--line); border-radius: 12px;
-  background: var(--panel); box-shadow: var(--shadow-soft);
-  overflow: hidden;
-  transition: flex-grow .22s ease, transform .22s ease;
-}
-/*
- * CHIP CAO CỐ ĐỊNH 44px — DẢI KHÔNG ĐƯỢC ĐỔI CHIỀU CAO KHI CHUYỂN LƯỢT.
- * Đo trên iPhone 15 Pro Max, bàn 3 người: chip đang đi cao 46,1px (viên điểm
- * 19px) còn chip chờ 39,8px; lúc chuyển lượt chip mới còn HẸP trong 220ms
- * transition flex-grow nên truy vấn container ≤128px hạ viên điểm xuống 17px →
- * dải 48,5 → 45,5px → ResizeObserver đo lại → bàn 356 → 358px rồi quay về.
- * Đúng cái "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo. Khoá chiều
- * cao thì nội dung chip ra sao cũng không chạm tới bàn thẻ.
- */
-.pchip { height: 44px; }
-/* Dải người chơi phải chừa chỗ cho chip đang đi nở ra (scale 1.035) — không thì
-   bóng và mép trên của nó bị cắt mất. */
-/* Chừa chỗ cho chip đang đi nở ra (scale 1.035). 2px là đủ: chip cao 44px thì
-   nở ra thêm 1,4px mỗi đầu. Đệm 4px cũ ăn 8px chiều cao của BÀN THẺ — mà bàn
-   đang bị chặn bởi chiều cao, nên 8px đó biến thành bề rộng bỏ phí. */
-.strip { align-items: center; padding: 2px 0; }
-/*
- * CHIP CỦA NGƯỜI ĐANG ĐI NỞ RỘNG VÀ NỔI LÊN.
- *
- * Hai việc hoá ra là một: nó vừa là thứ bắt mắt nói "đang tới lượt ai" (trên
- * điện thoại không có hover, dải người chơi là chỗ duy nhất nói điều đó), vừa
- * chính là chip cần thêm diện tích — chip đang đi là chip đông thứ nhất: thêm
- * ping, số giây và thanh thời gian. Chỗ đó lấy từ những người đang CHỜ, nên
- * dải KHÔNG cao thêm một pixel nào và bàn thẻ không mất chỗ.
- */
-.pchip.active {
-  flex-grow: 2; transform: scale(1.035); z-index: 2;
-  border-color: transparent; color: var(--chon-chu);
-  background: var(--chon-nen);
-  box-shadow: 0 6px 22px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3);
-  animation: chip-breathe 1.8s ease-in-out infinite;
-}
-@keyframes chip-breathe {
-  50% { box-shadow: 0 8px 30px var(--card-back-glow), inset 0 1px 0 rgba(255, 255, 255, .3); }
-}
-@media (prefers-reduced-motion: reduce) { .pchip.active { animation: none; } }
-.pchip.active b { font-size: 12px; }
-/* Chip đang đi: điểm nằm trong một viên thuốc sáng — viên thuốc chỉ dành cho
-   chip này, chip chờ không đủ chỗ cho 16px đệm của nó. */
-.pchip.active .pts {
-  /*
-   * ĐẢO MÀU: mực tím đậm trên nền TRẮNG ĐẶC.
-   *
-   * Bản trước để chữ trắng trên nền trắng 18% — trên nền gradient tím thì viên
-   * thuốc mờ đó gần như cùng sáng với chữ, đọc rất khó (người chơi báo). Trắng
-   * đặc còn làm điểm thành vật SÁNG NHẤT cả dải, đúng vai nó phải đóng.
-   */
-  font-size: 19px; color: #3b1e8f;
-  padding: 1px 6px; border-radius: var(--r-full);
-  background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, .2);
-}
-.pchip.active .pts.dai { font-size: 18px; }
-.pchip.active .ping { background: rgba(255, 255, 255, .18); color: #fff; }
-.pchip.active .lives { color: #fff; }
-/* Người đang chờ lùi lại một bước — tương phản làm chip đang đi nổi hơn hẳn
-   mà không phải tô thêm màu gì. */
-.pchip:not(.active) { opacity: .82; transform: scale(.97); }
-.pchip.off { opacity: .55; }
-/* Chip 3–4 người thì hết chỗ cho cả chữ: giữ icon, bỏ chữ (title và nhãn cho
-   máy đọc vẫn còn). Bảng đầy đủ và dải gọn vẫn hiện đủ chữ. */
-@container (max-width: 150px) { .netbad .chu { display: none; } }
-/*
- * THỨ TỰ HY SINH KHI CHIP HẸP DẦN — đo trên vùng web 430px với điểm 5 chữ số.
- * Ngưỡng là CONTENT-BOX (chip trừ padding 18 và viền 4), không phải bề rộng
- * chip: chip 200px khớp `max-width: 176px`. Đã đo hụt một lần vì tưởng ngược lại.
- */
-@container (max-width: 176px) { .pchip .ping:not(.cham) { display: none; } }   /* chấm 9px thì luôn vừa */
-@container (max-width: 176px) { .pchip .turn-clock { display: none; } }  /* thanh dưới vẫn nói đủ */
-@container (max-width: 128px) {
-  .pchip .lives { display: none; }
-  /* Chip đang đi ở bàn 3–4 người: viên thuốc thu lại, nhưng con số vẫn to nhất chip. */
-  .pchip.active .pts { font-size: 17px; padding: 1px 5px; }
-  .pchip.active .pts.dai { font-size: 16px; }
-}
-/* Chip CHỜ hẹp quá (bàn 4 người: nội dung còn 61px) thì bỏ TÊN, giữ avatar và
-   ĐIỂM. Avatar đã là danh tính và tên đầy đủ còn đọc được ở bảng ☰ — điểm thì
-   không có chỗ nào khác. Đây là lỗi thứ hai người chơi bắt được. */
-@container (max-width: 72px) {
-  .pchip:not(.active) b { display: none; }
-  .pchip:not(.active) { justify-content: space-between; }
-}
-/*
- * CHIP CHỜ CÓ 🏅 TỶ SỐ LOẠT: BỎ TÊN, GIỮ AVATAR + 🏅 + ĐIỂM (07.11.2026).
- * Lỗi người chơi báo NHIỀU LẦN trên iPhone 15 Pro Max: bàn 2 người, người BÊN PHẢI đang
- * chờ lượt, đã thắng vài ván (🏅) và điểm cao → điểm bị cắt mất. Chip chờ 2 người chỉ
- * còn 1/3 dải (Pro Max 136px, SE 119px) mà phải chứa avatar + tên (sàn 2.2em) + 🏅 + điểm:
- * WebKit đo điểm khuất 3–10px ở Pro Max, tới 28px ở SE. Các lần sửa trước đều đo KHÔNG có
- * 🏅 nên không thấy. Ba chốt:
- *   · chip chờ có 🏅 mà hẹp (≤150px nội dung) thì bỏ tên — avatar đã là danh tính, giống
- *     bàn ≥3 người (`.dong`, chủ dự án duyệt 17.10);
- *   · tên ở chip chờ co được về 0 (lưới an toàn: có gì mới chen vào thì tên đi trước điểm);
- *   · 🏅 ở chip chờ gọn hơn (ít đệm).
- * `pnpm do:chip` nay đo cả ca này (🏅12 + "9,9k" ở chip phải).
- */
-@container (max-width: 150px) {
-  .pchip.co-loat:not(.active) b { display: none; }
-  .pchip.co-loat:not(.active) { justify-content: space-between; }
-}
-.pchip:not(.active) b { min-width: 0; }
-/*
- * BÀN ≥3 NGƯỜI: 🏅 THÀNH HUY HIỆU SỐ Ở GÓC AVATAR (absolute, tốn 0px bề ngang).
- * Chip chờ ở đây chỉ rộng 70px = avatar + điểm; viên 🏅 chen vào là đẩy điểm ra khỏi chip
- * (`pnpm do:chip` đo: SE 4 người cả bốn chip mất điểm). Giống chấm mạng: góc avatar.
- */
-/* GÓC DƯỚI-PHẢI của avatar (22.11.2026, chủ dự án gửi ảnh: "nó bị lẹm đi, không hiển thị vị trí đẹp") — trước nằm ở
-   góc TRÊN-TRÁI của chip (left/top 2px): chip `overflow: hidden` + bo góc nên vòng trắng bị cắt lẹm, lại đè lên mặt.
-   Chỗ mới cách xa mọi góc bo, không đụng chấm mạng (góc trên-phải avatar) và thanh giờ lượt (đáy chip). */
-.strip.dong .pchip .wins {
-  position: absolute; z-index: 1; left: 21px; bottom: 3px;
-  min-width: 15px; padding: 0 3px; font-size: 9.5px; line-height: 15px; text-align: center;
-  background: rgba(30, 22, 48, .85); color: #fff; box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, .3);
-}
-/* Chip đang đi: avatar to hơn và dịch vào trong → viên số dịch theo, nhích lên khỏi thanh giờ lượt */
-.strip.dong .pchip.active .wins { left: 21px; bottom: 5px; }
-
-.pchip:not(.active) .wins { padding: 1px 5px; font-size: 11px; min-width: 20px; }
-.netbad {
-  flex-shrink: 0; font-size: 10.5px; font-weight: 800; white-space: nowrap;
-  padding: 1px 5px; border-radius: var(--r-full);
-  background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad);
-}
-/* Mạng của mình: một dòng mảnh, chỉ hiện khi có gì đáng nói */
-.mynet {
-  margin: 0; text-align: center; font-size: var(--text-xs); color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.mynet.lost { color: var(--bad); font-weight: 800; }
-/* Ping: chip nhỏ, đủ đọc mà không tranh chỗ với tên và điểm. Màu nói chất lượng
-   nên không cần thêm chữ giải thích. */
-.ping {
-  flex-shrink: 0; font-size: 10px; font-weight: 800; white-space: nowrap;
-  padding: 1px 5px; border-radius: var(--r-full);
-  font-variant-numeric: tabular-nums;
-  background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok);
-}
-.ping.ok  { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
-.ping.bad { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
-.ping.lost { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
-/* Chấm màu (mặc định): xanh = tốt (cả 'ok' < 250ms), vàng = chậm, đỏ = mất. */
-.ping.cham { width: 9px; height: 9px; padding: 0; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 25%, transparent); }
-.ping.cham.bad { background: var(--warn); box-shadow: 0 0 0 2px color-mix(in srgb, var(--warn) 25%, transparent); }
-.ping.cham.lost { background: var(--bad); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bad) 25%, transparent); }
-.pchip.active .ping.cham { background: var(--ok); }
-.pchip.active .ping.cham.bad { background: var(--warn); }
-.pchip.active .ping.cham.lost { background: var(--bad); }
-.pchip .avatar { font-size: 18px; }
-/* Chấm mạng của MÌNH là huy hiệu ở góc avatar: nằm trong hàng là nó ăn 15px bề ngang
-   (chip SE 4 người chỉ có ~60px), đủ đẩy điểm ra ngoài. Ping dạng SỐ (debug) vẫn ở hàng. */
-.pchip .ping.cham { position: absolute; left: 24px; top: 6px; width: 8px; height: 8px; }
-/*
- * TÊN KHÔNG BAO GIỜ ĐƯỢC BIẾN MẤT HẲN.
- *
- * `netbad` (📴 mất mạng) và `ping` không co, nên trên chip hẹp chúng đẩy tên
- * xuống 0px: người chơi chỉ còn thấy avatar và một nhãn đỏ, không biết nhãn đó
- * của ai (đã bị báo, có ảnh — chip của chính mình mất tên giữa ván). Sàn 3,5em
- * đủ cho vài ký tự đầu, phần thừa vẫn cắt bằng ellipsis như cũ.
- */
-.pchip b {
-  flex: 1 1 auto; font-size: 12px; min-width: 2.2em;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.pchip .lives {
-  flex: none; display: inline-flex; align-items: center; gap: 2px;
-  font-size: 11px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums;
-}
-.pchip .lives :deep(.opt-ico) { border-radius: 4px; }
-/* Số ván thắng trong loạt — thấy ai đang dẫn ngay trong ván */
-.pchip .wins {
-  /* TỶ SỐ CẢ LOẠT (mockup duyệt 16.11.2026): chỉ con số, không 🏅 (huy chương vàng trên nền
-     vàng là chìm). Viên tối chữ trắng cho mọi người — kể cả 0; người DẪN xanh lá (`.dan`,
-     lib/ty-so-loat.ts). KHÔNG tô đỏ người thua: đỏ hút mắt và trùng nghĩa mạng yếu. */
-  flex-shrink: 0; min-width: 22px; box-sizing: border-box; text-align: center;
-  font-size: 12px; font-weight: 900; line-height: 1.35;
-  padding: 1px 7px; border-radius: var(--r-full);
-  background: rgba(30, 22, 48, .78); color: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
-  font-variant-numeric: tabular-nums; white-space: nowrap;
-}
-.wins.dan, .strip.dong .wins.dan { background: #16a34a; }
-/*
- * ĐIỂM KHÔNG BAO GIỜ BỊ ĐẨY RA NGOÀI.
- *
- * Điểm lên 4 chữ số là chip vỡ: mọi thứ trong chip đều `nowrap`, tên lại có sàn
- * `min-width`, và chip không cắt phần thừa — mà `.pts` có `margin-left: auto`
- * nên nó đứng cuối hàng và chính nó bị đẩy ra. Đo trên iPhone 15 Pro Max (vùng
- * web 430): 3 người, điểm 1280 thì điểm nằm ở x=443, tức NGOÀI màn hình; người
- * chơi đã báo. Ba chốt dưới đây, đừng gỡ cái nào:
- *   · `flex-shrink: 0` ở `.pts` — điểm là thứ cuối cùng bị hy sinh;
- *   · `overflow: hidden` ở `.pchip` — lưới an toàn, thêm huy hiệu mới vào chip
- *     thì cùng lắm nó bị cắt trong chip chứ không văng ra ngoài màn hình;
- *   · tên co được (`min-width: 2.2em`) nhưng không biến mất.
- * Trần điểm lý thuyết là 5 chữ số (bàn 88 thẻ: 44 cặp × 200 + thưởng thời gian),
- * nên mọi phép đo phải thử tới đó. Có `test/diem-trong-chip.test.ts` canh.
- */
-.pchip .pts {
-  margin-left: auto; flex: none;
-  font-family: var(--font-display); font-size: 16px; font-weight: 800;
-  letter-spacing: -.01em; font-variant-numeric: tabular-nums;
-}
-/*
- * ĐIỂM LÀ CON SỐ TO NHẤT TRONG CHIP, và điểm càng cao càng KHÔNG được nhỏ đi.
- * Bản đầu làm ngược: `.dai` tụt xuống 13px, hoá ra ván càng hay thì điểm càng
- * khó đọc. Nay chỉ hạ đúng một nấc mỗi khi thêm một chữ số, và chỗ để hạ lấy
- * từ những thứ khác trong chip (ping, số giây) chứ không từ chính con số.
- */
-.pchip .pts.dai { font-size: 15px; }        /* ≥ 1.000 */
-/* Tên lùi xuống một bậc để con SỐ là thứ mắt bắt trước. */
-.pchip:not(.active) b { color: var(--muted); font-weight: 600; }
-/*
- * BÀN ĐÔNG (≥3 NGƯỜI): CHIP CHỜ CHỈ CÒN AVATAR + ĐIỂM, NHƯỜNG CHỖ CHO TÊN NGƯỜI ĐANG ĐI
- * (chủ dự án duyệt mockup 17.10.2026). Avatar đã là danh tính, tên đầy đủ ở bảng ☰.
- * Đo "Nguyễn Minh Anh": Pro Max 3 người hiện đủ, 4 người "Nguyễn Mi…"; SE 4 người "Ng…".
- * Bề ngang ĐẶT TAY (70px = avatar 16 + "9,9k" 14px + đệm, `pnpm do:chip` đo), không `auto`: chip có `container-type: inline-size` nên bề
- * rộng theo nội dung tính ra 0 — đã thử, chip chờ co thành sợi chỉ.
- * Lớp `dong` gắn bằng Vue, KHÔNG `:has()` (iOS < 15.4 không có).
- */
-.strip.dong .pchip:not(.active) { flex: 0 1 70px; padding-inline: 6px; gap: 3px; justify-content: space-between; }
-.strip.dong .pchip:not(.active) b { display: none; }
-.strip.dong .pchip:not(.active) .pts { font-size: 14px; }
-.strip.dong .pchip:not(.active) .avatar { font-size: 16px; }
-.turn-clock {
-  flex: none;
-  font-family: var(--font-display); font-size: 12px; font-variant-numeric: tabular-nums;
-  color: var(--accent); white-space: nowrap;
-}
-.pchip.active .turn-clock { color: color-mix(in srgb, #fff 80%, transparent); }
-.turn-clock.urgent {
-  color: var(--bad);
-  animation: clock-pulse .5s steps(2) infinite;
-}
-/* Thanh thời gian: `absolute` nên KHÔNG tốn bề rộng của hàng. */
-.turn-bar {
-  position: absolute; left: 0; bottom: 0; height: 3px;
-  width: calc(var(--con, 1) * 100%);
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(90deg, color-mix(in srgb, #fff 55%, var(--accent)), #fff);
-}
-.turn-bar.urgent { background: linear-gradient(90deg, var(--bad), color-mix(in srgb, var(--bad) 40%, #fff)); }
-@keyframes clock-pulse { 50% { opacity: .45; transform: scale(1.12); } }
-.plus10 {
-  position: absolute; top: -18px; right: 8px;
-  font-family: var(--font-display); font-size: 13px; font-weight: 700;
-  color: var(--ok); text-shadow: 0 1px 6px rgba(0, 0, 0, .2); pointer-events: none;
-}
-.plus-enter-active { transition: transform .8s ease-out, opacity .8s ease-out; }
-.plus-enter-from { transform: translateY(10px); opacity: 0; }
-.plus-leave-active { transition: opacity .3s; }
-.plus-leave-to { opacity: 0; }
-.pchip.active .pts { color: var(--accent); }
-
-.reconnect {
-  margin: 0; padding: 6px 12px; border-radius: var(--r-sm); text-align: center;
-  font-size: var(--text-sm); background: color-mix(in srgb, var(--warn) 16%, transparent);
-}
-.spectate {
-  margin: 0; padding: 6px 12px; border-radius: var(--r-sm); text-align: center;
-  font-size: var(--text-sm); background: var(--accent-soft);
-}
 
 .board-wrap {
   position: relative; flex: 1; min-height: 0;
@@ -1210,76 +656,9 @@ function thanhVienCua(id: string): { mat?: string; anh?: string; ten: string } |
 .banner-leave-active { transition: opacity .3s ease, transform .3s ease; }
 .banner-leave-to { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(.95); }
 
-/* inset: -4px chứ không phải 0: lớp phủ phải TRÙM QUA mép một chút, không thì
-   góc bo của khung app hở một vành mỏng nhìn rất khó chịu. Bỏ border-radius vì
-   khung app đã cắt (overflow: hidden) — để bán kính 18px trong khi khung bo 28px
-   chính là chỗ sinh ra vành hở đó. */
-/*
- * Cân giữa CẢ MÀN HÌNH, không phải giữa bàn thẻ. `position: absolute` trong
- * .board-wrap thì tâm cụm nằm ở tâm BÀN — mà bàn bắt đầu dưới HUD nên tâm đó
- * thấp hơn tâm màn hình 63px (đo trên iPhone 13), đọc ra thành lệch xuống dưới,
- * càng rõ trên máy màn ngắn. `fixed` + inset 0 đưa cụm về đúng giữa: con số nhích
- * lên, tên người đi đầu nằm dưới nó.
- */
-.countdown {
-  /* 16: TRÊN thanh trên cùng (TopBar 15) — 7 cũ để logo/xu/menu nằm sáng trên lớp phủ tối */
-  position: fixed; inset: 0; z-index: 16;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  /* LỚP PHỦ TỐI (chủ dự án duyệt mockup 09.11.2026, https://claude.ai/artifact/XLV7MArxK818WLkYLXMMKp):
-     cho số đếm + ô "đi trước" nổi lên. Lần trước (16.10.2026) lớp phủ bị gỡ vì "nháy chưa kín
-     màn rồi mới kín" — nên NỀN NẰM NGAY TRÊN khối này (fixed, inset 0: kín màn từ khung đầu),
-     chỉ mờ dần độ trong suốt, KHÔNG backdrop-filter, KHÔNG phần tử phủ riêng lớn dần. */
-  background: rgba(10, 14, 40, .55);
-  animation: cd-phu .2s ease-out;
-  pointer-events: none;
-}
-.countdown .mat-dau { display: inline-grid; place-items: center; font-size: 1.5em; line-height: 1; }
-.countdown .num {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(80px, 30vw, 150px); line-height: 1;
-  /* Trắng + viền mực dày + bóng: đọc được trên lưng lá xanh than / đỏ / tím / hồng và cả
-     mặt lá sáng (chế độ xem trước). Màu CỐ ĐỊNH, không theo token skin — nền dưới nó là
-     lưng lá (đổi theo ván), không phải nền trang. */
-  /* Số trắng + VIỀN MẢNH vẽ bằng text-shadow 8 hướng (16.10.2026). KHÔNG dùng
-     -webkit-text-stroke + paint-order: Safari không hỗ trợ paint-order cho chữ HTML nên viền
-     vẽ ĐÈ lên chữ, cộng quầng bóng mờ thành "vòng đen" trên iOS (Android thì không — chủ dự án
-     báo). text-shadow ra giống hệt nhau trên WebKit và Chrome. */
-  --vs: .016em; --vm: #17193a;
-  color: #fff;
-  text-shadow:
-    var(--vs) 0 var(--vm), calc(-1 * var(--vs)) 0 var(--vm), 0 var(--vs) var(--vm), 0 calc(-1 * var(--vs)) var(--vm),
-    var(--vs) var(--vs) var(--vm), calc(-1 * var(--vs)) var(--vs) var(--vm),
-    var(--vs) calc(-1 * var(--vs)) var(--vm), calc(-1 * var(--vs)) calc(-1 * var(--vs)) var(--vm);
-  animation: cd-pop .9s cubic-bezier(.2, 1.4, .4, 1);
-}
-@keyframes cd-pop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
-.countdown .first {
-  display: flex; align-items: center; gap: 7px; white-space: nowrap;
-  font-size: clamp(16px, 4.5vw, 22px); padding: 6px 18px; border-radius: var(--r-full);
-  /* XANH LÁ (09.11.2026): ô trắng cũ trùng mặt lá sáng, vàng thì trùng sao lưng bài — xanh khác cả hai */
-  background: linear-gradient(#a3ec72, #46ad22); border: 2px solid #33861a; color: #fff;
-  box-shadow: 0 4px 0 #23600f, 0 10px 28px rgba(0, 0, 0, .35);
-}
-.countdown .first b {
-  color: #fff;
-  /* Font tiêu đề của game (15.11.2026, chủ dự án) — trước đây rơi về font thân bài */
-  font-family: var(--font-display); font-weight: 800; letter-spacing: .01em;
-  /* Viền 8 HƯỚNG (11.11.2026, chủ dự án: chữ "đi trước" như bị răng cưa) — bản cũ chỉ 4 hướng
-     trên/dưới/trái/phải nên góc chéo của nét cong hở ra thành bậc thang. Thêm bóng đổ dưới cho
-     khối chữ nổi cùng kiểu nút thạch. */
-  --vs: 1.2px; --vm: #23600f;
-  text-shadow:
-    var(--vs) 0 var(--vm), calc(-1 * var(--vs)) 0 var(--vm), 0 var(--vs) var(--vm), 0 calc(-1 * var(--vs)) var(--vm),
-    var(--vs) var(--vs) var(--vm), calc(-1 * var(--vs)) var(--vs) var(--vm),
-    var(--vs) calc(-1 * var(--vs)) var(--vm), calc(-1 * var(--vs)) calc(-1 * var(--vs)) var(--vm),
-    0 2px 0 var(--vm);
-}
-@keyframes cd-phu { from { background-color: rgba(10, 14, 40, 0); } }
 
 
 
 
-/* Icon Lucide thay emoji (21.11.2026, lib/icon-vong.ts) */
-.ic-n { vertical-align: -2px; flex: none; }
-.ic-n.het { color: #e0533a; }
+
 </style>

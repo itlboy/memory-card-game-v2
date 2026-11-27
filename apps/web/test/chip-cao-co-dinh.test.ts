@@ -16,7 +16,7 @@ const doc = (f: string): string => readFileSync(resolve(process.cwd(), 'src/comp
 describe('chip người chơi cao cố định', () => {
   it.each([
     ['PlayerStrip.vue', '.player'],
-    ['OnlineGame.vue', '.pchip']
+    ['DaiNguoiChoi.vue', '.pchip']   // hàng người chơi online dùng chung (28.11.2026)
   ])('%s: %s khoá height', (f, sel) => {
     const css = doc(f);
     const re = new RegExp(`^\\${sel} \\{ height: 44px; \\}`, 'm');

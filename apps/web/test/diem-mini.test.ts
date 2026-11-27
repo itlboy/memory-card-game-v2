@@ -13,7 +13,7 @@ import { resolve } from 'node:path';
  * Không mất thông tin: bảng đầy đủ vẫn có điểm mọi người, và người đang đi thì
  * điểm nằm ngay trên chip lượt.
  */
-const src = readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8');
+const src = readFileSync(resolve(process.cwd(), 'src/components/DaiNguoiChoi.vue'), 'utf8');
 
 describe('điểm trong ô mini', () => {
   it('ô mini là container để tự biết mình rộng bao nhiêu', () => {

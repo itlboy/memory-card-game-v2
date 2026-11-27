@@ -18,7 +18,7 @@ import { ngonNgu } from '@/lib/i18n';
  * cộng thưởng thời gian. Thêm huy hiệu mới vào chip thì phải đo lại tới đó.
  */
 const FILES = {
-  'OnlineGame.vue': readFileSync(resolve(process.cwd(), 'src/components/OnlineGame.vue'), 'utf8'),
+  'DaiNguoiChoi.vue': readFileSync(resolve(process.cwd(), 'src/components/DaiNguoiChoi.vue'), 'utf8'),
   'PlayerStrip.vue': readFileSync(resolve(process.cwd(), 'src/components/PlayerStrip.vue'), 'utf8')
 };
 
@@ -26,19 +26,19 @@ describe('điểm nằm trong chip người chơi', () => {
   for (const [ten, src] of Object.entries(FILES)) {
     describe(ten, () => {
       it('điểm không co lại — nó là thứ CUỐI CÙNG bị hy sinh', () => {
-        const sel = ten === 'OnlineGame.vue' ? '.pchip .pts {' : '\n.pts {';
+        const sel = ten === 'DaiNguoiChoi.vue' ? '.pchip .pts {' : '\n.pts {';
         const khoi = src.slice(src.indexOf(sel), src.indexOf(sel) + 260);
         // `flex: none` là dạng gọn của `0 0 auto` — cùng ý: điểm không co.
         expect(khoi, 'điểm co được là nó bị nén rồi bị đẩy ra').toMatch(/flex-shrink:\s*0|flex:\s*none/);
       });
 
       it('chip cắt phần thừa — lưới an toàn cho mọi huy hiệu thêm sau này', () => {
-        const mo = src.indexOf(ten === 'OnlineGame.vue' ? '.pchip {' : '.player {');
+        const mo = src.indexOf(ten === 'DaiNguoiChoi.vue' ? '.pchip {' : '.player {');
         expect(src.slice(mo, mo + 520)).toMatch(/overflow:\s*hidden/);
       });
 
       it('tên co được, nhưng không biến mất khỏi chip của người đang đi', () => {
-        const mo = src.indexOf(ten === 'OnlineGame.vue' ? '.pchip b {' : '.name {');
+        const mo = src.indexOf(ten === 'DaiNguoiChoi.vue' ? '.pchip b {' : '.name {');
         const khoi = src.slice(mo, mo + 220);
         expect(khoi, 'tên phải co được').toMatch(/flex:\s*1 1 auto/);
         expect(khoi, 'sàn 3.5em bịt mất chỗ co cuối cùng').not.toMatch(/min-width:\s*3\.5em/);
@@ -51,7 +51,7 @@ describe('điểm nằm trong chip người chơi', () => {
       });
 
       it('🏅 tỷ số loạt không được ăn chỗ của điểm (lỗi chip phải mất điểm, 07.11.2026)', () => {
-        const sel = ten === 'OnlineGame.vue' ? '.pchip' : '.player';
+        const sel = ten === 'DaiNguoiChoi.vue' ? '.pchip' : '.player';
         // Bàn ≥3 người: 🏅 là huy hiệu absolute ở góc avatar, tốn 0px bề ngang.
         const mo = src.indexOf(`.strip.dong ${sel} .wins {`);
         expect(mo, 'thiếu luật 🏅 cho bàn đông').toBeGreaterThan(0);
@@ -66,7 +66,7 @@ describe('điểm nằm trong chip người chơi', () => {
       });
 
       it('chip của người đang đi nở rộng — vừa gây chú ý, vừa là chỗ chứa điểm', () => {
-        const mo = src.indexOf(ten === 'OnlineGame.vue' ? '.pchip.active {' : '.player.active {');
+        const mo = src.indexOf(ten === 'DaiNguoiChoi.vue' ? '.pchip.active {' : '.player.active {');
         expect(src.slice(mo, mo + 420)).toMatch(/flex-grow:\s*2;/);
       });
 
@@ -79,9 +79,9 @@ describe('điểm nằm trong chip người chơi', () => {
           const m = /font-size:\s*([\d.]+)px/.exec(src.slice(mo, mo + 200));
           return m ? Number(m[1]) : 0;
         };
-        const goc = ten === 'OnlineGame.vue' ? '.pchip .pts {' : '\n.pts {';
+        const goc = ten === 'DaiNguoiChoi.vue' ? '.pchip .pts {' : '\n.pts {';
         expect(co(goc)).toBeGreaterThanOrEqual(16);
-        expect(co(ten === 'OnlineGame.vue' ? '.pchip .pts.dai {' : '\n.pts.dai {')).toBeGreaterThanOrEqual(15);
+        expect(co(ten === 'DaiNguoiChoi.vue' ? '.pchip .pts.dai {' : '\n.pts.dai {')).toBeGreaterThanOrEqual(15);
       });
 
       it('điểm in bằng numGon (≤4 ký tự), số đầy đủ ở title', () => {

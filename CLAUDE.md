@@ -640,6 +640,19 @@
   `engine.snapshot()`), `?room=CODE`, `?online=1`, `?w=<bước wizard>` —
   F5 không mất chỗ đứng; logo về trang chủ thì lau sạch URL (chủ đích).
   MenuScreen chỉ được đụng param `w`; App giữ phần còn lại.
+- **KHUNG ONLINE DÙNG CHUNG — MỌI KIỂU CHƠI ONLINE PHẢI DỰNG TRÊN NÓ (28.11.2026, chủ dự án: "tại sao chúng ta cứ có sự
+  khác biệt giữa màn chơi này và màn thường… phải làm cơ chế để tái sử dụng, vì sau này có thể làm ra các thể loại chơi
+  khác")**. Tìm Thẻ online từng tự dựng khung → thiếu báo mất mạng, bong bóng chat sai chỗ, đếm ngược không lớp phủ.
+  · `components/KhungOnline.vue`: dòng "đang vào lại" / nước bấm không tới server, dải báo trên bàn với EmojiBlast + LoiNoi,
+    đếm ngược vào ván (DemNguocPhu, `diTruoc` = "X đi trước"), dòng mạng của mình mất hẳn, thanh emoji + chừa chỗ. Kiểu chơi
+    cắm `#hud`, `#nguoi`, `#bao`, bàn (mặc định), `#ket`.
+  · `components/DaiNguoiChoi.vue`: hàng người chơi (chip 44px, nhãn mất mạng/đã rời, chấm mạng, tỷ số loạt, dải gọn ≥5 người
+    + bảng đầy đủ, `data-chip-for`) — tách NGUYÊN VĂN từ OnlineGame, số đo trước/sau khớp từng pixel. Người chơi về dạng
+    `NguoiDai`; phần riêng qua khe `#mat`, `#sau`, `lopChip`; `coLuot=false` = không có lượt (mọi chip ngang nhau).
+  · `HudBar` có khe `#giua` (viên số của kiểu chơi; `:slotted(.vien)` cho viên cắm vào trông y hệt) — nút thoát, chip người
+    xem, vạch tiến độ dùng chung.
+  · Kiểu chơi MỚI: viết bàn + phần riêng, cắm vào khe. Thứ gì CHUNG mọi kiểu (báo mạng, chat, đếm ngược, người xem…) thì
+    thêm vào khung, KHÔNG chép vào từng màn. Test đọc mã (diem-trong-chip, chip-cao-co-dinh, player-strip…) trỏ vào DaiNguoiChoi.
 
 ## Kích thước để TEST và VẼ MOCKUP
 
@@ -677,7 +690,7 @@
   dáng 5:4 vẫn là lá bài. Nới trần còn CỨU NGƯỠNG CHẠM (42 thẻ trên SE:
   38,8px → 48,6px).
 - **CHIP NGƯỜI CHƠI CAO CỐ ĐỊNH 44px** (`.player` ở PlayerStrip, `.pchip` ở
-  OnlineGame). Chip đang đi (viên điểm 19px) cao 46px còn chip chờ 40px; lúc
+  DaiNguoiChoi — hàng người chơi online dùng chung). Chip đang đi (viên điểm 19px) cao 46px còn chip chờ 40px; lúc
   chuyển lượt chip mới còn hẹp trong 220ms transition nên container query hạ
   viên điểm → dải 48,5→45,5px → ResizeObserver đo lại → bàn 356→358→356px, đúng
   "bàn đổi kích thước xíu khi chuyển lượt" người chơi báo (đo trên Pro Max, bàn

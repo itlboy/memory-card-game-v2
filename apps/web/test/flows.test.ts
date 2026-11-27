@@ -1399,9 +1399,10 @@ describe('màn đếm ngược cân giữa màn hình', () => {
     // absolute trong .board-wrap thì cụm cân giữa BÀN, mà bàn bắt đầu dưới HUD
     // nên tâm nó thấp hơn tâm màn hình (đo được 63px trên iPhone 13) — đọc ra
     // thành lệch xuống dưới, rõ nhất trên máy màn ngắn.
-    for (const file of ['GameScreen.vue', 'OnlineGame.vue']) {
+    // Online: đếm ngược ở DemNguocPhu (KhungOnline dùng chung, 28.11.2026)
+    for (const [file, sel] of [['GameScreen.vue', '.countdown {'], ['DemNguocPhu.vue', '.dem-phu {']] as const) {
       const css = readFileSync(resolve(process.cwd(), `src/components/${file}`), 'utf8');
-      const block = css.slice(css.indexOf('.countdown {'));
+      const block = css.slice(css.indexOf(sel));
       const rule = block.slice(0, block.indexOf('}'));
       expect(rule, `${file}: overlay phải fixed`).toContain('position: fixed');
       expect(rule, `${file}: phải phủ trọn màn hình`).toContain('inset: 0');

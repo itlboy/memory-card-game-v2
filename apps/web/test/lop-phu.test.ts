@@ -20,7 +20,7 @@ describe('lớp phủ nằm TRÊN thanh trên cùng', () => {
     const zFx = z(doc('styles/ketcuc-fx.css'), /\.ketcuc-fx \{[\s\S]*?z-index: (\d+)/);
     const zKq = z(doc('components/ResultDialog.vue'), /position: fixed; inset: 0; z-index: (\d+)/);
     const zDemOff = z(doc('components/GameScreen.vue'), /\.countdown \{[\s\S]*?z-index: (\d+)/);
-    const zDemOn = z(doc('components/OnlineGame.vue'), /\.countdown \{[\s\S]*?z-index: (\d+)/);
+    const zDemOn = z(doc('components/DemNguocPhu.vue'), /\.dem-phu \{[\s\S]*?z-index: (\d+)/);
     for (const [ten, v] of [['cảnh kết ván', zFx], ['bảng kết quả', zKq], ['đếm ngược offline', zDemOff], ['đếm ngược online', zDemOn]] as const) {
       expect(v, `${ten} phải nằm trên TopBar (${zTopBar})`).toBeGreaterThan(zTopBar);
     }

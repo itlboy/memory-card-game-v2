@@ -102,9 +102,9 @@ const doc = (f: string) => readFileSync(resolve(process.cwd(), 'src/components',
 describe('hai dải phải cùng luật', () => {
   it('cùng ngưỡng "> 4 người" mới đổi sang dạng gọn', () => {
     const local = /players\.length\s*>\s*(\d+)/.exec(doc('PlayerStrip.vue'));
-    const online = /players\.length\s*\?\?\s*0\)\s*>\s*(\d+)/.exec(doc('OnlineGame.vue'));
+    const online = /nguoi\.length\s*>\s*(\d+)/.exec(doc('DaiNguoiChoi.vue'));   // hàng người chơi online dùng chung
     expect(local?.[1], 'PlayerStrip không còn ngưỡng nào đọc được').toBeDefined();
-    expect(online?.[1], 'OnlineGame không còn ngưỡng nào đọc được').toBeDefined();
+    expect(online?.[1], 'DaiNguoiChoi không còn ngưỡng nào đọc được').toBeDefined();
     expect(local![1]).toBe(online![1]);
     expect(local![1]).toBe('4');
   });
@@ -115,7 +115,7 @@ describe('hai dải phải cùng luật', () => {
    * loại là emoji của người đó lặng lẽ rơi về giữa mép trên màn hình.
    */
   it('dải online: cả ba loại ô đều mang data-chip-for', () => {
-    const src = doc('OnlineGame.vue');
+    const src = doc('DaiNguoiChoi.vue');
     expect(src.match(/data-chip-for/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
   });
 });

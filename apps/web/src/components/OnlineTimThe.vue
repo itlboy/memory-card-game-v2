@@ -13,7 +13,7 @@
  */
 import { TIM_THE_ONLINE_SO_THE, TIM_THE_SO_LUOT, type TimView } from '@mm/engine';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Check, Ellipsis, LogOut, TimerOff, WifiOff, X, Zap } from 'lucide-vue-next';
+import { Check, Ellipsis, TimerOff, X, Zap } from 'lucide-vue-next';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
 import { sfx } from '@/lib/audio';
@@ -28,14 +28,15 @@ import { moChucNang, suKien } from '@/lib/phan-tich';
 import { dangTimOnline, tomTatTimThe } from '@/lib/tim-the';
 import BanVongTim from './BanVongTim.vue';
 import DemNguocPhu from './DemNguocPhu.vue';
+import KhungOnline from './KhungOnline.vue';
+import DaiNguoiChoi, { type NguoiDai } from './DaiNguoiChoi.vue';
+import HudBar from './HudBar.vue';
+import ChipXem from './ChipXem.vue';
 import DongXu from './DongXu.vue';
 import KetCucFx from './KetCucFx.vue';
 import ResultDialog from './ResultDialog.vue';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatNguoi from './MatNguoi.vue';
-import EmojiDock from './EmojiDock.vue';
-import EmojiBlast from './EmojiBlast.vue';
-import LoiNoi from './LoiNoi.vue';
 
 const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
 const emit = defineEmits<{ quit: []; chinh: [] }>();
@@ -119,6 +120,18 @@ const nguoi = computed(() => nguoiVan.value.map((n) => {
   };
 }));
 const toi = computed(() => v.value?.nguoi.find((n) => n.id === toiId.value) ?? null);
+/** Người chơi ở dạng chung của hàng người chơi online (DaiNguoiChoi — dùng chung với ghép cặp, 28.11.2026). */
+const nguoiDai = computed((): NguoiDai[] => nguoi.value.map((n) => ({
+  id: n.id, ten: n.ten, tenGoc: nguoiPhong(n.id)?.name ?? n.ten, avatar: n.mat, anh: n.anh, mau: n.mau, hh: nguoiPhong(n.id)?.hh,
+  diem: n.diemHien, connected: n.mang !== 'mat', roi: n.mang === 'roi', lives: null
+})));
+const theoId = computed(() => new Map(nguoi.value.map((n) => [n.id, n])));
+/** Phần riêng Tìm Thẻ của một người (dấu trạng thái, +điểm, số giây) — cắm vào khe của DaiNguoiChoi. */
+const phu = (id: string) => theoId.value.get(id);
+const lopChip = (p: NguoiDai): Record<string, boolean> => {
+  const n = theoId.value.get(p.id);
+  return { 'vua-chon': !!n && n.vuaChon > 0 && pha.value === 'hoi', 'lo-dung': n?.lan === 'dung', 'lo-sai': n?.lan === 'sai' };
+};
 
 /* ---------- bàn: hình đang hiện (giữ hình cũ trong lúc lá úp xuống để không loé ô trắng) ---------- */
 const hinhCu = ref<string[]>([]);
@@ -322,34 +335,44 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 </script>
 
 <template>
-  <section class="ott">
-    <div class="ott-hud">
-      <button class="tron thach nut-ra" type="button" :aria-label="t('hud.thoat')" @click="moChucNang('tim_online_thoat'); emit('quit')"><LogOut :size="18" /></button>
-      <div :key="nay" class="vien diem" :class="{ nay: nay > 0 }"><DongXu :size="22" /><b>{{ num(diemHien) }}</b></div>
-      <span class="gian" />
-      <div class="vien luot">{{ t('tt.luot', { n: Math.min((v?.luot ?? 0) + 1, v?.soLuot ?? TIM_THE_SO_LUOT), tong: v?.soLuot ?? TIM_THE_SO_LUOT }) }}</div>
-    </div>
+  <!-- KHUNG ONLINE DÙNG CHUNG (28.11.2026): thanh trên, hàng người chơi, dòng báo mạng, bong bóng chat, đếm ngược vào ván,
+       thanh emoji — y hệt ván ghép cặp. Màn này chỉ còn phần riêng: viên điểm/lượt, dấu trạng thái + số giây trên ô người
+       chơi, bàn vòng tròn, đếm 3-2-1 trước mỗi lần lật, bảng kết quả. -->
+  <KhungOnline :o="o" class="ott">
+    <template #hud>
+      <HudBar
+        :score="0" :moves="0" :matched="Math.min(v?.luot ?? 0, v?.soLuot ?? TIM_THE_SO_LUOT)" :total-pairs="v?.soLuot ?? TIM_THE_SO_LUOT"
+        :combo="1" :elapsed="0" :time-left="null" :moves-left="null" :lives="null" :multiplayer="true"
+        @quit="moChucNang('tim_online_thoat'); emit('quit')"
+      >
+        <template #giua>
+          <span :key="nay" class="vien diem" :class="{ nay: nay > 0 }" :aria-label="t('hud.diem')"><DongXu :size="18" /><b>{{ num(diemHien) }}</b></span>
+          <span class="vien luot"><b>{{ t('tt.luot', { n: Math.min((v?.luot ?? 0) + 1, v?.soLuot ?? TIM_THE_SO_LUOT), tong: v?.soLuot ?? TIM_THE_SO_LUOT }) }}</b></span>
+        </template>
+        <template v-if="o.room.value?.xem?.length" #phai>
+          <ChipXem :xem="o.room.value.xem" :toi="o.spectator.value ? o.tenCuaToi() : undefined" />
+        </template>
+      </HudBar>
+    </template>
 
-    <div class="ott-nguoi" :class="{ hep: nguoi.length >= 3 }" :style="{ gridTemplateColumns: `repeat(${Math.max(2, nguoi.length)}, 1fr)` }">
-      <div v-for="n in nguoi" :key="`${n.id}-${n.vuaChon}-${n.lan ?? ''}`" class="khay-nho ng" :data-chip-for="n.id" :class="[{ off: !!n.mang, toi: n.id === toiId, 'vua-chon': n.vuaChon > 0 && pha === 'hoi' }, n.lan ? `lo-${n.lan}` : '']">
-        <span class="av vong-mau" :style="n.mau ? { '--m': n.mau } : undefined">
-          <MatNguoi :mat="n.mat" :anh="n.anh" />
-          <span v-if="n.tt" :key="n.tt" class="huy" :class="n.tt"><component :is="ICON[n.tt]" :size="11" :stroke-width="3.2" aria-hidden="true" /></span>
-        </span>
-        <span class="ten">{{ n.ten }}</span>
-        <span v-if="n.mang === 'roi'" class="netbad" :title="t('og.daRoiPhong')"><LogOut :size="12" :stroke-width="2.6" aria-hidden="true" /><span class="chu"> {{ t('og.daRoi') }}</span></span>
-        <span v-else-if="n.mang === 'mat'" class="netbad" :title="t('og.matKetNoi')"><WifiOff :size="12" :stroke-width="2.6" aria-hidden="true" /><span class="chu"> {{ t('og.offline') }}</span></span>
-        <b class="d">{{ num(n.diemHien) }}</b>
-        <span v-if="n.cong" :key="`c${v?.luot}`" class="cong">+{{ num(n.cong) }}</span>
-        <span v-if="n.giay && pha === 'dap-an'" :key="`g${v?.luot}`" class="giay-chip" :class="{ sai: n.kq?.ketCuc !== 'dung' }">{{ n.giay }}s</span>
-      </div>
-    </div>
+    <template #nguoi>
+      <DaiNguoiChoi
+        :nguoi="nguoiDai" :co-luot="false" :trao-ra="true" :toi-id="toiId" :net-hien="o.netHien.value" :ping-hien="o.pingHien.value"
+        :lop-chip="lopChip"
+      >
+        <template #mat="{ p }">
+          <span v-if="phu(p.id)?.tt" :key="phu(p.id)!.tt" class="huy" :class="phu(p.id)!.tt"><component :is="ICON[phu(p.id)!.tt as keyof typeof ICON]" :size="11" :stroke-width="3.2" aria-hidden="true" /></span>
+        </template>
+        <template #sau="{ p }">
+          <span v-if="phu(p.id)?.cong" :key="`c${v?.luot}`" class="cong">+{{ num(phu(p.id)!.cong) }}</span>
+          <span v-if="phu(p.id)?.giay && pha === 'dap-an'" :key="`g${v?.luot}`" class="giay-chip" :class="{ sai: phu(p.id)!.kq?.ketCuc !== 'dung' }">{{ phu(p.id)!.giay }}s</span>
+        </template>
+      </DaiNguoiChoi>
+    </template>
 
     <div class="ott-ban">
-      <!-- Đếm ngược NẰM TRÊN bàn úp (bàn đã bày sẵn — không còn màn trống) -->
-      <!-- Đếm ngược vào ván (server) và 3-2-1 trước mỗi lần lật cho nhớ — CÙNG lớp phủ tối của đếm ngược ghép cặp -->
-      <DemNguocPhu v-if="o.countdownLeft.value !== null" :n="o.countdownLeft.value" />
-      <DemNguocPhu v-else-if="demSo > 0 && pha === 'cho'" :n="demSo" />
+      <!-- 3-2-1 trước MỖI lần lật cho nhớ — cùng lớp phủ tối của đếm ngược vào ván (khung lo đếm ngược vào ván) -->
+      <DemNguocPhu v-if="o.countdownLeft.value === null && demSo > 0 && pha === 'cho'" :n="demSo" />
       <BanVongTim
         ref="banVong" :so-the="soThe" :hinh="hinh" :hinh-dich="v?.hinhDich ?? null" :dich="v?.dich ?? null"
         :nhip="nhipBan" :chon="chonCuaToi" :cho-cham="!xem" @cham="cham" @lat="latBan"
@@ -365,7 +388,12 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
         </template>
       </BanVongTim>
       <p class="an-di" aria-live="polite">{{ pha === 'hoi' && v?.hinhDich ? `${t('tt.hoi')} ${v.hinhDich}` : '' }}</p>
+    </div>
 
+    <template #ket>
+      <Teleport to="#app" :disabled="!coApp">
+        <KetCucFx v-if="pha === 'xong' && fx" :loai="fx.loai" :seed="fx.seed" />
+      </Teleport>
       <!-- HẾT VÁN = ĐÚNG bảng kết quả online của ghép cặp (ResultDialog chế độ `tim-the`, chủ dự án 27.11.2026) -->
       <ResultDialog
         v-if="pha === 'xong' && tomTat && (hienKq || xem || !fx)"
@@ -381,57 +409,26 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
         @replay="moChucNang('tim_online_choi_lai'); o.again()" @next="o.again()"
         @lobby="moChucNang('tim_online_ve_phong'); o.veLobby()" @chinh="emit('chinh')" @menu="emit('quit')"
       />
-    </div>
-
-    <Teleport to="#app" :disabled="!coApp">
-      <KetCucFx v-if="pha === 'xong' && fx" :loai="fx.loai" :seed="fx.seed" />
-    </Teleport>
-    <EmojiDock :o="o" />
-    <!-- CHỪA CHỖ cho thanh emoji cố định ở đáy (như ván ghép cặp) — thiếu nó thì bàn 12+ thẻ tràn xuống dưới thanh
-         (chủ dự án gửi ảnh 27.11.2026: hàng cuối bị thanh emoji che) -->
-    <div class="eb-cho" aria-hidden="true" />
-    <EmojiBlast :o="o" />
-    <LoiNoi :o="o" />
-  </section>
+    </template>
+  </KhungOnline>
 </template>
 
 <style scoped>
 /* Cao bằng khung như OnlineGame (`.game { height: 100% }`) — thiếu thì bàn co về cỡ nội dung, thẻ tí hon */
-.ott { position: relative; display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; box-sizing: border-box; }
-.ott-hud { display: flex; align-items: center; gap: 6px; flex: none; }
-.vien {
-  display: flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 999px;
-  font-family: var(--font-display); font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums;
-  background: linear-gradient(#fff 20%, #e9effc); color: #1d2a5a;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .8), 0 3px 0 #b9c6e6, 0 6px 10px rgba(20, 30, 70, .15);
-}
-.vien.luot { font-size: 15px; padding: 0 12px; }
+.ott { position: relative; display: flex; flex-direction: column; gap: 8px; height: 100%; min-height: 0; box-sizing: border-box; }
+
+/* Viên điểm của mình nảy khi điểm cập bến (viên dùng chung kiểu HudBar qua khe `giua`) */
 .vien.diem.nay { animation: nay .3s; }
 @keyframes nay { 40% { transform: scale(1.25); } }
-.gian { flex: 1; }
-.nut-ra { flex: none; width: 44px; height: 44px; min-width: 0; min-height: 0; padding: 0; display: grid; place-items: center; border-radius: 50%; }
-
-.ott-nguoi { flex: none; display: grid; gap: 6px; }
-.ng { position: relative; display: flex; align-items: center; gap: 6px; padding: 5px 8px; min-width: 0; }
-.ng.toi { border-color: #ffc21a; }
-/* Mất mạng / đã rời: như `.pchip.off` + `.netbad` của OnlineGame */
-.ng.off { opacity: .55; }
-.netbad {
-  flex-shrink: 0; display: inline-flex; align-items: center; gap: 2px; font-size: 10.5px; font-weight: 800; white-space: nowrap;
-  padding: 1px 5px; border-radius: var(--r-full); background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad);
-}
-/* Hàng 3–4 người: ô hẹp — chỉ còn biểu tượng (chữ vẫn ở title), không đẩy mất điểm */
-.ott-nguoi.hep .netbad .chu { display: none; }
-/* Người khác vừa chọn: nảy + viền sáng; chốt đúng: loé xanh; chốt sai: lắc */
-.ng.vua-chon { animation: ng-nay .4s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2px #7d88a8, 0 0 12px rgba(125, 136, 168, .55); }
-.ng.lo-dung { animation: ng-nay .45s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2.5px #2f9e57, 0 0 16px rgba(47, 158, 87, .6); }
-.ng.lo-dung .d { color: #2f9e57; }
-.ng.lo-sai { animation: ng-lac .4s; }
+/* HIỆU ỨNG TRÊN CHIP CHUNG (DaiNguoiChoi, lớp do `lopChip` gắn): người khác vừa chọn → nảy + viền sáng; chốt đúng → loé
+   xanh; chốt sai → lắc. Chip thuộc component con nên phải `:deep()`. */
+.ott :deep(.pchip .avatar) { position: relative; }
+.ott :deep(.pchip.vua-chon) { animation: ng-nay .4s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2px #7d88a8, 0 0 12px rgba(125, 136, 168, .55); }
+.ott :deep(.pchip.lo-dung) { animation: ng-nay .45s cubic-bezier(.3, 1.6, .5, 1); box-shadow: 0 0 0 2.5px #2f9e57, 0 0 16px rgba(47, 158, 87, .6); }
+.ott :deep(.pchip.lo-dung .pts) { color: #2f9e57; }
+.ott :deep(.pchip.lo-sai) { animation: ng-lac .4s; }
 @keyframes ng-nay { 40% { transform: scale(1.08); } }
 @keyframes ng-lac { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
-.av { position: relative; flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; }
-.ten { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 13px; }
-.d { font-family: var(--font-display); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
 .huy {
   position: absolute; right: -6px; bottom: -5px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center;
   color: #fff; border: 2px solid var(--k-nen, #fff); box-sizing: border-box; animation: no .25s both;
@@ -481,6 +478,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ng.vua-chon, .ng.lo-dung, .ng.lo-sai, .huy, .cong, .tt-giay, .vien.diem.nay, .mat-nho { animation: none; }
+  .ott :deep(.pchip.vua-chon), .ott :deep(.pchip.lo-dung), .ott :deep(.pchip.lo-sai), .huy, .cong, .tt-giay, .vien.diem.nay, .mat-nho { animation: none; }
 }
 </style>

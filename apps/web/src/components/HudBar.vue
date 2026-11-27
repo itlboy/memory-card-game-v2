@@ -75,6 +75,9 @@ const hangChat = computed(() => !!props.starMisses && (props.lives !== null || p
   <div class="hud">
     <button class="tron quit thach" :aria-label="t('hud.thoat')" type="button" @click="$emit('quit')"><ChevronLeft :size="22" /></button>
     <div class="vien-hang">
+      <!-- Khe `giua`: kiểu chơi khác (Tìm Thẻ…) thay các viên số của ghép cặp bằng viên của mình — nút thoát, ô bên phải
+           (chip người xem) và vạch tiến độ vẫn DÙNG CHUNG (28.11.2026). Không truyền khe = y hệt trước. -->
+      <slot name="giua">
       <span class="vien" :class="{ urgent }" :aria-label="t('hud.thoiGian')">
         <component :is="timeLeft === null ? Timer : Hourglass" :size="16" aria-hidden="true" /><b>{{ timeText }}</b>
       </span>
@@ -105,6 +108,7 @@ const hangChat = computed(() => !!props.starMisses && (props.lives !== null || p
       >
         <OptionIcon name="lives" :size="16" /><b>{{ lives > 0 ? lives : '—' }}</b>
       </span>
+      </slot>
     </div>
     <button v-if="choiLai" class="tron thach" :aria-label="t('hud.choiLai')" type="button" @click="$emit('choi-lai')"><RotateCcw :size="18" /></button>
     <button v-if="pausable" class="tron thach" :aria-label="t('hud.tamDung')" type="button" @click="$emit('pause')"><Pause :size="18" /></button>
@@ -133,7 +137,8 @@ const hangChat = computed(() => !!props.starMisses && (props.lives !== null || p
 }
 .tron:active { transform: translateY(2px); }
 .tron-cho { flex: none; width: 44px; }
-.vien {
+/* `:slotted(...)`: viên của kiểu chơi khác cắm qua khe `giua` trông Y HỆT viên của ghép cặp (28.11.2026) */
+.vien, :slotted(.vien) {
   /* flex: none — viên KHÔNG BAO GIỜ co nhỏ hơn chữ (min-width: 0 cũ cho nó co,
      chữ lòi ra ngoài viên). Hết chỗ thì khối @container dưới gọn cả hàng. */
   flex: none; display: inline-flex; align-items: center; gap: 5px;
@@ -141,12 +146,12 @@ const hangChat = computed(() => !!props.starMisses && (props.lives !== null || p
   background: var(--panel-solid); color: var(--fg);
   border: var(--vien-vien, 1px solid var(--line)); box-shadow: var(--elev-1);
 }
-.vien b { font-family: var(--font-display); font-weight: 800; font-size: 16px; line-height: 1; font-variant-numeric: tabular-nums; }
+.vien b, :slotted(.vien b) { font-family: var(--font-display); font-weight: 800; font-size: 16px; line-height: 1; font-variant-numeric: tabular-nums; }
 .vien b i { font-style: normal; color: var(--muted); font-size: 13px; }
-.vien svg { flex: none; color: var(--accent); }
+.vien svg, :slotted(.vien svg) { flex: none; color: var(--accent); }
 .vien.urgent b, .vien.urgent svg { color: var(--bad); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-.vien.diem { position: relative; }
+.vien.diem, :slotted(.vien.diem) { position: relative; }
 .combo {
   position: absolute; top: -9px; right: -9px; z-index: 1;
   padding: 1px 6px; border-radius: 999px; font: 800 11px/1.3 var(--font-display);

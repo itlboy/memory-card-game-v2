@@ -96,7 +96,8 @@ describe('bảng xếp hạng: chữ gọn, online, thách đấu (cấu trúc)'
 describe('thanh emoji cố định đáy màn (một chỗ cho phòng chờ, ván, kết quả)', () => {
   it('phòng chờ và ván online dùng EmojiDock + chừa chỗ; hộp kết quả không còn thanh riêng', () => {
     const os = doc('components/OnlineScreen.vue');
-    const og = doc('components/OnlineGame.vue');
+    // Ván online: thanh emoji + chừa chỗ nằm ở KhungOnline (dùng chung mọi kiểu chơi, 28.11.2026)
+    const og = doc('components/KhungOnline.vue');
     const rd = doc('components/ResultDialog.vue');
     for (const s of [os, og]) {
       expect(s).toContain('<EmojiDock :o="o" />');

@@ -70,7 +70,9 @@ describe('huy hiệu Premium', () => {
   });
 
   it('hiện ở: chip người chơi trong ván (5 chỗ), danh sách phòng chờ (2), avatar trên thanh đầu + menu hồ sơ (2)', () => {
-    expect(doc('src/components/OnlineGame.vue').match(/<DauPremium :loai="hhCua\(/g)).toHaveLength(5);
+    // 5 chỗ: 4 ở hàng người chơi dùng chung (DaiNguoiChoi, 28.11.2026) + dải báo chuyển lượt của ghép cặp
+    expect(doc('src/components/DaiNguoiChoi.vue').match(/<DauPremium :loai="\w+\.hh" \/>/g)).toHaveLength(4);
+    expect(doc('src/components/OnlineGame.vue').match(/<DauPremium :loai="hhCua\(/g)).toHaveLength(1);
     expect(doc('src/components/OnlineScreen.vue').match(/<DauPremium :loai="p\.hh" \/>/g)).toHaveLength(2);
     expect(doc('src/components/TopBar.vue').match(/<DauPremium :loai="huyHieuDangDeo" \/>/g)).toHaveLength(2);
   });
