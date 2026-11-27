@@ -138,11 +138,11 @@ function moTabNam(): void {
 /*
  * CHIA SẺ (26.11.2026, chủ dự án: "làm tính năng chia sẻ chỉ số trí nhớ… nhớ kèm link để người dùng cài app"; "vừa có text vừa
  * có ảnh"). Nút ở đầu bảng, cạnh nút đóng; chỉ hiện khi đã có điểm. Mở bảng xem trước ảnh (LuuChiaSe) với Lưu / Chia sẻ —
- * chia sẻ gửi ẢNH + CÂU + LINK `/tai` (trang tự chuyển tới App Store / Google Play theo máy người bấm, máy tính thì hiện cả
+ * chia sẻ gửi ẢNH + CÂU + LINK `/downloads` (trước 27.11.2026 là `/tai`, vẫn chuyển tiếp; trang tự chuyển tới App Store / Google Play theo máy người bấm, máy tính thì hiện cả
  * hai nút và "chơi trên web"). Link cũng in trên ảnh vì Facebook / Instagram bỏ phần chữ đi kèm.
  * App Android cũ chưa có plugin chia sẻ file: bảng chia sẻ không mở được thì chép câu + link (lib/anh-ket-qua.ts).
  */
-const LINK_TAI = `${SITE_URL}/tai`;
+const LINK_TAI = `${SITE_URL}/downloads`;
 const moChiaSe = ref(false);
 /** Ba nhóm bàn bắt buộc của ngày đang xem (nhỏ · vừa · lớn) — CHỈ HIỂN THỊ; chơi bằng nút dưới cùng. */
 const canVan = computed(() => NHOM_BAN.map((n, i) => ({

@@ -320,8 +320,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
   const tieuDe = props.multiplayer
     ? boEmoji(draw.value ? t('kq.hoa') : t('kq.thang', { ten: tenNguoi(s.ranking[0]) }))
     : boEmoji(title.value);
-  // site = link TẢI APP `/tai` (tự chuyển tới đúng cửa hàng) — in ở chân ảnh kèm mã QR (bản ảnh mới 26.11.2026)
-  const chung = { cau: t('kq.thachDau'), choiNgay: t('kq.choiNgay'), site: `${SITE_URL}/tai`, tenApp: t('tb.thuongHieu') };
+  // site = link TẢI APP `/downloads` (`/tai` cũ vẫn chuyển tiếp) (tự chuyển tới đúng cửa hàng) — in ở chân ảnh kèm mã QR (bản ảnh mới 26.11.2026)
+  const chung = { cau: t('kq.thachDau'), choiNgay: t('kq.choiNgay'), site: `${SITE_URL}/downloads`, tenApp: t('tb.thuongHieu') };
   if (props.multiplayer) {
     return {
       ...chung, tieuDe, phu: props.multiplayerOnline ? `Online · ${ngay}` : ngay,

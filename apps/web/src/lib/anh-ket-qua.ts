@@ -14,7 +14,7 @@ import { suKien } from './phan-tich';
 import { THE, W, moBut, raBlob, tron, veAvatar, veChan, veLogo, veNen, veO, veThe, veVien, vua, type But } from './anh-chia-se';
 
 /* BẢN MỚI 26.11.2026 (mockup https://claude.ai/artifact/WLMtGi289WrYicB9N3wYb3): phần VẼ ở lib/anh-chia-se.ts — mỗi ảnh là
-   "tấm thẻ khoe" có avatar + tên, một con số thật to, và chân ảnh là vé mời (icon app · link `/tai` · mã QR thật). */
+   "tấm thẻ khoe" có avatar + tên, một con số thật to, và chân ảnh là vé mời (icon app · link `/downloads` · mã QR thật). */
 export interface DongXepHang { hang: number; ten: string; diem: string; nhat?: boolean; mat?: string; mau?: string }
 /** Một cột bảng tỷ số. `mat`: mặt từng người (đội thì nhiều mặt). */
 export interface CotTySo { ten: string; n: number; diem?: string; mat?: { mat?: string; anh?: string | null; mau?: string }[] }
@@ -30,7 +30,7 @@ export interface NoiDungAnh {
   so?: { nhan: string; gt: string }[];
   cau: string;
   choiNgay: string;
-  /** Link in ở chân ảnh + mã QR (nên là `/tai`). */
+  /** Link in ở chân ảnh + mã QR (nên là `/downloads`). */
   site: string;
   tenApp: string;
 }

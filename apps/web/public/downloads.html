@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flip Match — Get the app</title>
+<meta name="description" content="Flip Match: a cozy memory card game. Free on iPhone, Android and the web.">
+<meta property="og:title" content="Flip Match — Get the app">
+<meta property="og:image" content="/og.jpg">
+<link rel="icon" href="/icon.svg">
+<!--
+  LINK TẢI APP DUY NHẤT — /downloads (27.11.2026, chủ dự án đổi từ /tai; /tai vẫn chuyển tiếp sang đây vì ảnh chia sẻ + mã QR cũ
+  đã in /tai). Điện thoại: hiện trang + ĐẾM NGƯỢC 5 GIÂY rồi tự sang App Store (iPhone/iPad) / Google Play (Android); có nút
+  "Mở ngay". Máy tính (hay script bị chặn): hai nút + "chơi trên web". Giữ utm_* khi chuyển (Android: tham số referrer).
+  Link store phải khớp public/site/site.js (STORE) và lib/goi-y-app.ts.
+-->
+<style>
+:root { color-scheme: light dark; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; font: 600 16px/1.5 system-ui, -apple-system, sans-serif;
+  background: linear-gradient(#45b3ef, #b5e8ff); color: #1d2a5a; padding: 24px max(16px, env(safe-area-inset-left)); box-sizing: border-box; }
+main { width: 100%; max-width: 380px; box-sizing: border-box; background: #fff; border-radius: 28px; padding: 28px 22px; text-align: center; box-shadow: 0 6px 0 #1d2a5a33, 0 20px 40px #0003; }
+img { width: 88px; height: 88px; border-radius: 22px; }
+h1 { margin: 12px 0 4px; font-size: 26px; }
+p { margin: 0 0 18px; color: #45558a; }
+a { display: block; margin: 10px 0; padding: 14px; border-radius: 16px; text-decoration: none; font-weight: 800; background: #1d2a5a; color: #fff; }
+a.web { background: #eaf6ff; color: #1d2a5a; }
+a#ios, a#android { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.lg { width: 22px; height: 22px; flex: none; }
+a.chinh { background: linear-gradient(#7fd24f, #3c9e22); box-shadow: 0 4px 0 #2d7a18; }
+.dem { margin: -6px 0 14px; font-weight: 700; color: #45558a; }
+.dem b { display: inline-block; min-width: 1.2em; font-size: 20px; color: #1d2a5a; font-variant-numeric: tabular-nums; }
+.vach { height: 6px; border-radius: 3px; background: #e3ecf7; overflow: hidden; margin: 0 0 14px; }
+.vach i { display: block; height: 100%; width: 100%; background: #3c9e22; transform-origin: left; animation: chay 5s linear forwards; }
+@keyframes chay { to { transform: scaleX(0); } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icon-192.png" alt="">
+  <h1>Flip Match</h1>
+  <p>Memory card game · Lật Thẻ</p>
+  <div id="dem" hidden>
+    <p class="dem"><span id="chuDem"></span> <b id="so">5</b></p>
+    <div class="vach"><i></i></div>
+  </div>
+  <a id="ios" href="https://apps.apple.com/app/id6822105774"><svg class="lg" viewBox="0 0 384 512" aria-hidden="true"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg><span>App Store</span></a>
+  <a id="android" href="https://play.google.com/store/apps/details?id=com.cozypi.flipmatch"><svg class="lg" viewBox="0 0 24 24" aria-hidden="true"><path fill="#00D7FE" d="M3.6 1.8 13.4 12 3.6 22.2c-.4-.2-.6-.7-.6-1.2V3c0-.5.2-1 .6-1.2z"/><path fill="#FFCE00" d="m17 8.4-3.6 3.6L17 15.6l4-2.3c1-.6 1-2 0-2.6z"/><path fill="#FF3A44" d="M17 15.6 13.4 12 3.6 22.2c.4.3 1 .3 1.5 0z"/><path fill="#00F076" d="M17 8.4 5.1 1.8c-.5-.3-1.1-.3-1.5 0L13.4 12z"/></svg><span>Google Play</span></a>
+  <a class="web" href="/">Play in the browser</a>
+</main>
+<script>
+(() => {
+  const ua = navigator.userAgent;
+  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua);
+  const q = location.search.replace(/^\?/, '');
+  const nut = ios ? document.getElementById('ios') : android ? document.getElementById('android') : null;
+  if (!nut) return;
+  const den = android && q ? `${nut.href}&referrer=${encodeURIComponent(q)}` : nut.href;
+  // Điện thoại: chỉ hiện nút đúng máy (to, xanh), đếm ngược 5 giây rồi tự chuyển
+  nut.href = den; nut.classList.add('chinh');
+  (ios ? document.getElementById('android') : document.getElementById('ios')).hidden = true;
+  const vi = /^vi\b/i.test(navigator.language || '');
+  const kho = ios ? 'App Store' : 'Google Play';
+  document.getElementById('chuDem').textContent = vi ? `Đang mở ${kho} sau` : `Opening ${kho} in`;
+  nut.querySelector('span').textContent = vi ? `Mở ${kho} ngay` : `Open ${kho} now`;
+  document.getElementById('dem').hidden = false;
+  let con = 5;
+  const so = document.getElementById('so');
+  const h = setInterval(() => {
+    con -= 1; so.textContent = String(Math.max(con, 0));
+    if (con <= 0) { clearInterval(h); location.href = den; }
+  }, 1000);
+})();
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@ import QRCode from 'qrcode';
  * ẢNH CHIA SẺ BẢN MỚI (26.11.2026, chủ dự án: "làm lại các trang chia sẻ cho thật tử tế và đẹp đẽ"; mockup
  * https://claude.ai/artifact/WLMtGi289WrYicB9N3wYb3 — chủ dự án cho tự duyệt). Mỗi ảnh là một "tấm thẻ khoe":
  *  - AVATAR + TÊN người chơi, MỘT con số thật to là thứ đáng khoe nhất;
- *  - CHÂN ẢNH như tấm vé mời: icon app, tên, link `/tai` (tự chuyển tới đúng cửa hàng) và MÃ QR THẬT — Facebook / Instagram
+ *  - CHÂN ẢNH như tấm vé mời: icon app, tên, link `/downloads` (tự chuyển tới đúng cửa hàng) và MÃ QR THẬT — Facebook / Instagram
  *    bỏ phần chữ đi kèm ảnh, chữ + mã in trên ảnh thì không mất.
  * Khổ 1080×1350 (bài đăng + story), nền trời / đêm theo giao diện app lúc vẽ. Vẽ trên máy, không gửi gì đi.
  * File này chỉ lo phần VẼ; dữ liệu do lib/anh-ket-qua.ts (ván) và SoTriNho.vue (chỉ số trí nhớ) đưa vào.
