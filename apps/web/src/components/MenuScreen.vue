@@ -1352,12 +1352,14 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .vtn-hc.b4 { --h1: #e9e0ff; --h2: #8a6df2; --h3: #4a34b0; --hc: #ffffff; --glow: #b59cff; }
 .vtn-vong { position: absolute; inset: 0; transform: rotate(-90deg); }
 .vtn-vong circle { fill: none; stroke-width: 3.5; stroke-linecap: round; }
-.vtn-vong .nen { stroke: color-mix(in srgb, var(--muted) 30%, transparent); }
+.vtn-vong .nen { stroke: color-mix(in srgb, var(--muted) 18%, transparent); }
 .vtn-vong .chay { stroke: var(--h2); }
 .vtn-vong .du { stroke: #2fb57a; }
 .vtn-hc .xu { position: absolute; inset: 5px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: var(--hc);
-  background: radial-gradient(circle at 34% 28%, var(--h1), var(--h2) 66%, var(--h3));
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .55), 0 0 12px 1px color-mix(in srgb, var(--glow) 70%, transparent); }
+  /* CÙNG CÔNG THỨC với huy chương trong bảng Chỉ số (sáng giữa, viền màu bậc) — bản cũ tô dần về --h3 nên xu nhỏ trông TỐI
+     (chủ dự án 27.11.2026: "icon bạc ở đây hơi bị tối… không sáng như bên trong") */
+  background: radial-gradient(circle at 34% 28%, var(--h1), var(--h2) 78%); border: 2px solid color-mix(in srgb, var(--h3) 55%, #fff); box-sizing: border-box;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .5), 0 0 12px 1px color-mix(in srgb, var(--glow) 70%, transparent); }
 .vtn-hc .xu svg { filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .6)); }
 .vtn-hc .xu::after { content: ""; position: absolute; top: -40%; bottom: -40%; left: -60%; width: 40%; transform: rotate(25deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .75), transparent); animation: vtn-loe 3.6s ease-in-out infinite; }
 @keyframes vtn-loe { 0%, 60% { left: -60%; } 85%, 100% { left: 130%; } }
