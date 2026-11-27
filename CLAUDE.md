@@ -2033,7 +2033,7 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
 - BẬC: Đồng·Bạc·Vàng·Bạch kim·Kim cương, mốc 0·200·400·600·800 CỐ ĐỊNH. Chủ dự án: KHÔNG so với bot (bot có thể đổi độ khó).
 - MỖI NGÀY MỘT ĐIỂM (27.11.2026, 1.10.82; trước đó kỳ 7 ngày): `SO_NGAY_KY = 1` (`lib/tri-nho.ts chiSoTai`) — chủ dự án:
   "hôm nào hiện điểm hôm đó… có mục tiêu cố gắng; xem lại thì xem biểu đồ". Ngày chỉ có điểm CHÍNH THỨC khi đủ 3 NHÓM BÀN
-  (1.10.86, `NHOM_BAN`; 1.10.90 hạ bàn lớn: "2x, 3x, 5x thôi"): 1 ván nhỏ 16–24 · 1 vừa 30–42 · 1 lớn từ 56 thẻ (ván to dư bù nhóm nhỏ hơn; dưới 16 thẻ không tính) và
+  (1.10.86, `NHOM_BAN`; 1.10.90 hạ bàn lớn: "2x, 3x, 5x thôi"): 1 ván nhỏ 12–16 · 1 vừa 20–24 · 1 lớn từ 30 thẻ (1.10.97: "1x, 2x, 3x là đủ") (ván to dư bù nhóm nhỏ hơn; dưới 16 thẻ không tính) và
   ≥ 20 cơ hội nhớ. Đã chơi mà chưa đủ = "SỐ LIỆU YẾU": huy chương + cột + số MỜ theo `diemTho`. Màn chỉ số khi chưa đủ GỌN: một dòng
   chữ + 3 nhãn Nhỏ/Vừa/Lớn CHỈ HIỂN THỊ (✓ khi đủ). Chơi bằng NÚT DƯỚI CÙNG (1.10.87, mockup duyệt
   https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc): xanh lá bóng (màu nút chính của app), thiếu nhóm thì "Chơi bàn lớn/vừa/nhỏ"
