@@ -387,6 +387,9 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
       <KetCucFx v-if="pha === 'xong' && fx" :loai="fx.loai" :seed="fx.seed" />
     </Teleport>
     <EmojiDock :o="o" />
+    <!-- CHỪA CHỖ cho thanh emoji cố định ở đáy (như ván ghép cặp) — thiếu nó thì bàn 12+ thẻ tràn xuống dưới thanh
+         (chủ dự án gửi ảnh 27.11.2026: hàng cuối bị thanh emoji che) -->
+    <div class="eb-cho" aria-hidden="true" />
     <EmojiBlast :o="o" />
     <LoiNoi :o="o" />
   </section>
