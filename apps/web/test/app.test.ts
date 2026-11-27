@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick } from 'vue';
 import App from '@/App.vue';
 import { store } from '@/lib/storage';
+import { daNhanTang, datPremiumThu } from '@/lib/premium';
 
 const THEMES = {
   themes: [
@@ -27,6 +28,9 @@ let wrapper: VueWrapper;
 
 beforeEach(() => {
   localStorage.clear();
+  // Premium nằm ở module (ref) nên sống qua các test: về bản thường + coi như ĐÃ nhận quà, để app KHÔNG tự tặng
+  // (27.11.2026 "tặng luôn") rồi mở bảng Premium đè lên màn đang thử
+  datPremiumThu(false); daNhanTang.value = true;
   sessionStorage.clear();
   history.replaceState(null, '', location.pathname);
   // Mọi chế độ giờ đi qua bản đồ cấp, mặc định chỉ mở cấp 1 (bàn 2 thẻ). Test

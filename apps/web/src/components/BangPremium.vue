@@ -233,6 +233,11 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
         </section>
 
         <template v-else-if="daMuaPremium">
+          <!-- QUÀ TẶNG TỰ ĐỘNG (27.11.2026): app vừa tự bật 1 tháng — nói rõ MIỄN PHÍ, không cần thanh toán -->
+          <section v-if="props.tu === 'qua'" class="pm-qua" role="status">
+            <span class="ic" aria-hidden="true"><Gift :size="20" :stroke-width="2.6" /></span>
+            <span><b>{{ t('pm.qua.tieuDe') }}</b><small>{{ t('pm.qua.mo') }}</small></span>
+          </section>
           <section class="pm-con" role="status">
             <b><Gift v-if="goiDangCo?.tang" :size="19" :stroke-width="2.4" aria-hidden="true" /><Crown v-else :size="19" :stroke-width="2.6" aria-hidden="true" />{{ tongNgay ? t('pm.b.con', { n: conLai }) : t('pm.daCo') }}</b>
             <span v-if="tongNgay" class="thanh" aria-hidden="true"><i :style="{ width: `${Math.min(100, Math.round((conLai / tongNgay) * 100))}%` }" /></span>
@@ -245,6 +250,7 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
               <button class="thach mau-cam" type="button" @click="emit('mo', 'nhac')"><span class="ic" style="--c: #e17055" aria-hidden="true"><Music :size="17" :stroke-width="2.4" /></span><b>{{ t('tb.nhacNen') }}</b><small>{{ nhacHien }}</small></button>
               <button class="thach mau-xanh" type="button" @click="emit('mo', 'hh')"><span class="ic" style="--c: #f0a500" aria-hidden="true"><Award :size="17" :stroke-width="2.4" /></span><b>{{ t('pm.cd.huyHieu') }}</b><small>{{ huyHieu ? t(`hhb.${huyHieu}`) : t('tb.amNgan.off') }}</small></button>
             </div>
+            <p v-if="props.tu === 'qua'" class="pm-cd-goi">{{ t('pm.qua.goiY') }}</p>
           </section>
         </template>
 
@@ -409,6 +415,11 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .cta:active { transform: translateY(3px); box-shadow: 0 2px 0 #d69a12; }
 .cta:disabled { opacity: .7; }
 
+.pm-qua { display: flex; align-items: center; gap: 11px; padding: 12px 14px; border-radius: 18px; text-align: left; background: color-mix(in srgb, #2fb57a 16%, var(--pm-nen)); border: 2px solid color-mix(in srgb, #2fb57a 60%, transparent); color: var(--fg); }
+.pm-qua .ic { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #5b3d00; background: radial-gradient(circle at 35% 30%, #fff1b8, #f5b324 70%); box-shadow: 0 0 14px 2px rgba(255, 196, 40, .55); }
+.pm-qua b { display: block; font: 800 17px/1.2 var(--font-display); }
+.pm-qua small { display: block; margin-top: 2px; font: 700 12.5px/1.4 var(--font-body); color: var(--muted); }
+.pm-cd-goi { margin: 8px 2px 0; font: 700 12px/1.4 var(--font-body); color: var(--pm); opacity: .85; text-align: center; }
 .pm-con { display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; border-radius: 18px; background: var(--pm-nen); border: 2px solid var(--pm-vien); color: var(--pm); }
 .pm-con b { display: flex; align-items: center; gap: 7px; font: 900 16px/1.2 var(--font-body); }
 .pm-con small { font: 700 12.5px/1.3 var(--font-body); }
@@ -434,6 +445,8 @@ function huy(): void { huyGoiThu(); buoc.value = 'chon'; bao.value = ''; }
 .pm-cd-o .mau-xanh { --b1: #4fd1c5; --b2: #12a594; --b3: #0a7468; --bc: #fff; }
 .pm-cd-o .ic { background: rgba(255, 255, 255, .95) !important; color: var(--c); box-shadow: 0 2px 0 rgba(0, 0, 0, .15); }
 .pm-cd-o small { color: inherit !important; opacity: .9; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 11.5px/1.2 var(--font-body); color: var(--muted); }
+/* Máy rất hẹp (320px): chữ phụ ("Ngẫu nhiên", "Vương miện") xuống dòng thay vì bị cắt "Ngẫu nh…" */
+@media (max-width: 359px) { .pm-cd-o small { white-space: normal; text-align: center; } }
 
 .pm-goi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; }
 .pm-g { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 12px 6px 8px; border: 2px solid var(--ke); border-radius: 18px; background: none; color: inherit; cursor: pointer; line-height: 1.2; }

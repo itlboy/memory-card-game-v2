@@ -119,6 +119,26 @@ export const banPremium = ref(false);   // ref (không const) để test bật �
 export const MO_TANG = true;
 export const coQuaMoi = computed(() => MO_TANG && conQuaTang.value);
 export const hienPremium = computed(() => banPremium.value || daMuaPremium.value || coQuaMoi.value);
+/*
+ * TẶNG LUÔN, KHÔNG HỎI (27.11.2026, chủ dự án: người chơi bỏ qua lời mời vì "sợ phải thanh toán" → "được tặng luôn đi"; mockup
+ * https://claude.ai/artifact/14WsQmSiQUriSJaVDc7AxR, sửa theo ý "làm phong cách giống popup premium"). Mở app (đã qua màn chào) mà
+ * còn quà → tự nhận, App mở ĐÚNG bảng Premium (tu `qua`, có khung "Quà tặng cho bạn"), đóng bảng thì trang chủ soi sáng viên
+ * Premium chỉ chỗ cài đặt (`chiNutPremium`, một lần).
+ */
+const KHOA_CHI = 'mm.premium.chiNut';
+export const chiNutPremium = ref(false);
+export function tangTuDong(): boolean {
+  if (!MO_TANG || !conQuaTang.value) return false;
+  return nhanQuaTang();
+}
+export function batChiNutPremium(): void {
+  try { if (localStorage.getItem(KHOA_CHI)) return; } catch { /* chế độ riêng tư */ }
+  chiNutPremium.value = true;
+}
+export function xongChiNutPremium(): void {
+  chiNutPremium.value = false;
+  try { localStorage.setItem(KHOA_CHI, '1'); } catch { /* chế độ riêng tư */ }
+}
 
 /** Theme này người chơi có được CHỌN không. */
 export const choiDuoc = (t: Pick<CardTheme, 'premium'>): boolean => !t.premium || daMuaPremium.value;
@@ -212,7 +232,7 @@ export const huyHieuDangDeo = computed<HuyHieu | ''>(() => (daMuaPremium.value ?
  * mở đầu bằng đúng thứ người chơi vừa chạm vào. `moiNangCap` = có bày các nút đó không: CHƯA BÁN THẬT nên chỉ khi
  * đang debug (đồ khoá mà không mua được là App Review loại), và thôi mời khi đã có gói.
  */
-export type NoiMoPremium = 'menu' | 'trang-chu' | 'cai-dat' | 'nen' | 'nhac' | 'tri-nho' | 'chat' | 'debug';
+export type NoiMoPremium = 'menu' | 'trang-chu' | 'cai-dat' | 'nen' | 'nhac' | 'tri-nho' | 'chat' | 'debug' | 'qua';
 /** `canh`: hình nền người chơi vừa bấm (đang khoá) — bảng Premium mở đầu bằng đúng hình đó. */
 export const yeuCauPremium = ref<{ tu: NoiMoPremium; lan: number; canh?: string } | null>(null);
 export function moPremium(tu: NoiMoPremium, canh?: string): void {

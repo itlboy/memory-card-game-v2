@@ -100,7 +100,7 @@ import { nhac, BAI_NHAC, BAI_PREMIUM, baiChoiDuoc, laBaiNhac, type BaiNhac } fro
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { choiDuoc, daMuaPremium, hienPremium, hienVienPremium, kiemHetHanTang, yeuCauPremium, type NoiMoPremium } from './lib/premium';
+import { batChiNutPremium, choiDuoc, daMuaPremium, hienPremium, hienVienPremium, kiemHetHanTang, tangTuDong, yeuCauPremium, type NoiMoPremium } from './lib/premium';
 
 const prefs = store.prefs();
 /*
@@ -793,8 +793,16 @@ function ghiTrangThaiPremium(): void {
     nn_nhac: nhacNgauNhien.value
   }, true);
 }
+/** Tặng Premium luôn khi người chơi đã qua màn chào (người mới: ngay sau khi điền xong hồ sơ). */
+function thuTangLuon(): void {
+  if (!hoSo.value.xong || !tangTuDong()) return;
+  moChucNang('premium_tang_tu_dong');
+  premiumTu.value = 'qua'; showPremium.value = true;
+}
+watch(() => hoSo.value.xong, (x) => { if (x) thuTangLuon(); });
 onMounted(() => {
   ghiTrangThaiPremium();
+  thuTangLuon();
   doiNgauNhienNeuDenGio();
   // mỗi phút: nhịp ngẫu nhiên + gói quà tặng Premium hết hạn giữa lúc app đang mở thì về bản thường ngay
   henNgauNhien = setInterval(() => { kiemHetHanTang(); doiNgauNhienNeuDenGio(); }, 60_000);
@@ -1436,7 +1444,7 @@ const hasNext = computed(() => {
   />
   <SoTriNho v-if="showSoTriNho" @close="showSoTriNho = false" @luyen="luyenTriNho" />
   <MatKhauDebug v-if="hoiMkDebug" @dung="hoiMkDebug = false; debug = true" @dong="hoiMkDebug = false" />
-  <BangPremium v-if="showPremium && (debug || hienVienPremium)" :tu="premiumTu" :nhac-hien="nhacHien" :nhac-dang="nhacBat && soundLevel !== 'off' ? baiThat : null" @close="showPremium = false" @mo="moTuPremium" />
+  <BangPremium v-if="showPremium && (debug || hienVienPremium)" :tu="premiumTu" :nhac-hien="nhacHien" :nhac-dang="nhacBat && soundLevel !== 'off' ? baiThat : null" @close="if (premiumTu === 'qua') batChiNutPremium(); showPremium = false" @mo="moTuPremium" />
   <ChonHinhNen v-if="showHinhNen && (debug || hienPremium)" @close="showHinhNen = false" />
   <ChonHuyHieu v-if="showHuyHieu" @close="showHuyHieu = false" />
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />

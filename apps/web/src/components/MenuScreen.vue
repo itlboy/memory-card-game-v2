@@ -23,7 +23,8 @@ const hienTim = computed(() => TIM_THE_MO || dangDebug.value);
 /** Bước Thể loại chỉ còn cho Mưa Thẻ. Tìm Thẻ chọn NGAY TRONG màn Chơi nhanh / Đấu với máy (hàng Kiểu chơi,
  *  27.11.2026 — chủ dự án: "trong setup màn thì cho chọn loại thay vì cho hẳn đường đi khác bên ngoài"). */
 const coKieu = computed(() => MUA_THE_MO);
-import { conQuaTang, daMuaPremium, goiDangCo, hienVienPremium, moPremium, ngayConLai } from '@/lib/premium';
+import { chiNutPremium, conQuaTang, daMuaPremium, goiDangCo, hienVienPremium, moPremium, ngayConLai, xongChiNutPremium } from '@/lib/premium';
+import KhungBong from './KhungBong.vue';
 import { anGoiYApp, storeGoiY, tatGoiYApp } from '@/lib/goi-y-app';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import type { BoardOptions, BotLevel, Mode, OptLevel, OptionKey } from '@mm/engine';
@@ -124,6 +125,23 @@ const chuVienPremium = computed(() => {
   return n > 0 ? t('pm.vien.con', { n }) : t('pm.vien.dangCo');
 });
 /** Nút Chỉ số trí nhớ ở trang chủ: điểm + bậc + tiến độ, và có gì MỚI so với lần xem cuối không. */
+/* Soi sáng viên Premium: đo chỗ viên đang nằm (tính theo #app vì lớp soi Teleport vào đó) */
+const vienPmEl = ref<HTMLElement | null>(null);
+const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
+const khungPm = ref<{ x: number; y: number; w: number; h: number; phai: number; duoi: number; tren: number; duoiVien: boolean; vt: number } | null>(null);
+const BONG_W = 260;
+function doKhungPm(): void {
+  const el = vienPmEl.value, app = document.getElementById('app');
+  if (!el || !app) { khungPm.value = null; return; }
+  const a = app.getBoundingClientRect(), r = el.getBoundingClientRect();
+  const phai = Math.max(12, a.right - r.right);
+  const traiBong = a.width - phai - Math.min(BONG_W, a.width - 24);
+  // Trên viên không đủ chỗ cho bong bóng (máy xoay ngang, màn thấp) → đặt bong bóng DƯỚI viên, đuôi chỉ lên
+  const duoiVien = r.top - a.top < 190;
+  khungPm.value = { x: r.left - a.left, y: r.top - a.top, w: r.width, h: r.height, phai, duoi: a.bottom - r.top, tren: r.bottom - a.top, duoiVien, vt: Math.round(r.left - a.left + r.width * 0.72 - traiBong) };
+}
+watch(chiNutPremium, (c) => { if (c) { moChucNang('premium_chi_nut_hien'); requestAnimationFrame(doKhungPm); } }, { immediate: true });
+function xongChi(): void { moChucNang('premium_chi_nut_xong'); xongChiNutPremium(); }
 /** Chu vi vòng tiến độ quanh huy chương (r = 21). */
 const VONG = 2 * Math.PI * 21;
 const tnNut = computed(() => {
@@ -689,7 +707,19 @@ const ICO3D = {
           <!-- VIÊN PREMIUM đối diện viên Chỉ số trí nhớ (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc).
                Bấm mở bảng Premium: quyền lợi, cài đặt Premium, ngày hết hạn, nút nhận 1 tháng miễn phí. CHỈ HIỆN KHI DEBUG — chủ dự
                án: "vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi". Chấm đỏ = còn quà chưa nhận. -->
-          <button v-if="hienVienPremium" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
+          <!-- CHỈ CHỖ CÀI ĐẶT PREMIUM (27.11.2026): sau khi được tặng, một lần — soi sáng viên Premium + bong bóng chỉ vào -->
+          <Teleport to="#app" :disabled="!coApp">
+            <div v-if="chiNutPremium && khungPm" class="chi-pm" role="dialog" aria-modal="true" :aria-label="t('pm.chi.tieuDe')" @click.self="xongChi">
+              <span class="chi-lo" :style="{ left: `${khungPm.x - 5}px`, top: `${khungPm.y - 5}px`, width: `${khungPm.w + 10}px`, height: `${khungPm.h + 10}px` }" aria-hidden="true" @click="xongChi(); moPremium('trang-chu')" />
+              <div class="chi-bong" :style="khungPm.duoiVien ? { right: `${khungPm.phai}px`, top: `${khungPm.tren + 18}px` } : { right: `${khungPm.phai}px`, bottom: `${khungPm.duoi + 18}px` }">
+                <KhungBong :canh="khungPm.duoiVien ? 'tren' : 'duoi'" :day="2" :r="16" :vt="khungPm.vt" />
+                <b>{{ t('pm.chi.tieuDe') }}</b>
+                <span>{{ t('pm.chi.mo') }}</span>
+                <button class="thach th-xanh th-nho" type="button" @click="xongChi">{{ t('pm.chi.ok') }}</button>
+              </div>
+            </div>
+          </Teleport>
+          <button v-if="hienVienPremium" ref="vienPmEl" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
             <span class="vtn-chu"><small>{{ t('tp.premium') }}</small><b>{{ chuVienPremium }}</b></span>
             <!-- VƯƠNG MIỆN LÚC LẮC (27.11.2026, chủ dự án: "nút premium không gây được sự chú ý… nút vương miện lúc lắc chút"):
                  LUÔN lắc một nhịp mỗi vài giây + loé sáng (27.11.2026: chủ dự án đã nhận quà nên không thấy hiệu ứng → "còn nút premium động thì sao") -->
@@ -1283,6 +1313,14 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 }
 .vien-pm .vtn-chu { align-items: flex-end; }
 .vien-pm .vtn-chu b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.25; }
+.chi-pm { position: absolute; inset: 0; z-index: 70; }
+.chi-lo { position: absolute; border-radius: 999px; cursor: pointer; box-shadow: 0 0 0 4px #ffd34d, 0 0 0 9999px rgba(8, 10, 30, .6), 0 0 24px 6px rgba(255, 211, 77, .8); animation: chi-nhip 1.4s ease-in-out infinite; }
+@keyframes chi-nhip { 50% { box-shadow: 0 0 0 7px #ffd34d, 0 0 0 9999px rgba(8, 10, 30, .6), 0 0 34px 10px rgba(255, 211, 77, .9); } }
+.chi-bong { position: absolute; width: min(260px, calc(100% - 24px)); box-sizing: border-box; display: grid; gap: 4px; padding: 13px 14px 12px; text-align: left; isolation: isolate;
+  --nen: var(--panel-solid, #fff); --vien: color-mix(in srgb, #f0b400 70%, transparent); color: var(--fg); filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .35)); font: 700 13.5px/1.45 var(--font-body); }
+.chi-bong b { font: 800 16px/1.25 var(--font-display); }
+.chi-bong button { justify-self: end; margin-top: 6px; min-height: 36px; padding: 0 18px; }
+@media (prefers-reduced-motion: reduce) { .chi-lo { animation: none; } }
 .vpm-vm { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
 /* LẮC NGAY TỪ LÚC MỞ APP (27.11.2026, chủ dự án: "mở app một lúc mới lắc, người dùng có khi chưa kịp nhìn"): nhịp lắc nằm ĐẦU
    chu kỳ (2.6 s), cả viên Premium toả quầng vàng nhấp nháy liên tục cho nổi trên nền */

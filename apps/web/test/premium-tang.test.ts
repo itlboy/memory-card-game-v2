@@ -63,6 +63,27 @@ describe('quà tặng 1 tháng', () => {
   });
 });
 
+describe('tặng luôn (27.11.2026)', () => {
+  it('còn quà → tangTuDong bật 1 tháng ngay; lần sau không tặng lại; chỉ nút Premium đúng MỘT lần', async () => {
+    const pm = await nap();
+    expect(pm.tangTuDong()).toBe(true);
+    expect(pm.daMuaPremium.value).toBe(true);
+    expect(pm.goiDangCo.value).toMatchObject({ tang: true });
+    expect(pm.tangTuDong(), 'đã nhận rồi').toBe(false);
+    pm.batChiNutPremium();
+    expect(pm.chiNutPremium.value).toBe(true);
+    pm.xongChiNutPremium();
+    expect(pm.chiNutPremium.value).toBe(false);
+    pm.batChiNutPremium();
+    expect(pm.chiNutPremium.value, 'đã chỉ rồi thì thôi').toBe(false);
+  });
+  it('App: mở app đã qua màn chào là tặng + mở bảng Premium ở chế độ quà; đóng bảng quà thì bật chỉ nút', () => {
+    const s = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8');
+    expect(s).toMatch(/if \(!hoSo\.value\.xong \|\| !tangTuDong\(\)\) return;[\s\S]*premiumTu\.value = 'qua'; showPremium\.value = true;/);
+    expect(s).toContain("@close=\"if (premiumTu === 'qua') batChiNutPremium(); showPremium = false\"");
+  });
+});
+
 describe('bảng Premium', () => {
   const moBang = async (kho: Record<string, string> = {}) => {
     const pm = await nap(kho);
@@ -110,7 +131,7 @@ describe('viên Premium trang chủ + đường về', () => {
   const doc = (f: string): string => readFileSync(resolve(process.cwd(), 'src', f), 'utf8');
   it('viên hiện theo hienVienPremium (mở cho mọi người 27.11.2026), bấm mở bảng Premium từ "trang-chu", có chấm đỏ khi còn quà', () => {
     const s = doc('components/MenuScreen.vue');
-    expect(s).toMatch(/<button v-if="hienVienPremium" class="vien-pm thach"[^>]*@click="sfx\.select\(\); moPremium\('trang-chu'\)"/);
+    expect(s).toMatch(/<button v-if="hienVienPremium"[^>]*class="vien-pm thach"[^>]*@click="sfx\.select\(\); moPremium\('trang-chu'\)"/);
     expect(s, 'chấm đỏ khi còn quà, và khi quà sắp hết (nhắc trước 3 ngày)').toContain('<i v-if="conQuaTang || sapHetQua" class="vpm-cham"');
     expect(s, 'hai viên không đè nhau').toMatch(/\.vien-pm \{[^}]*max-width: 52%/);
   });
