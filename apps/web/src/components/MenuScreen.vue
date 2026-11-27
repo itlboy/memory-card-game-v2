@@ -709,8 +709,9 @@ const ICO3D = {
                án: "vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi". Chấm đỏ = còn quà chưa nhận. -->
           <!-- CHỈ CHỖ CÀI ĐẶT PREMIUM (27.11.2026): sau khi được tặng, một lần — soi sáng viên Premium + bong bóng chỉ vào -->
           <Teleport to="#app" :disabled="!coApp">
-            <div v-if="chiNutPremium && khungPm" class="chi-pm" role="dialog" aria-modal="true" :aria-label="t('pm.chi.tieuDe')" @click.self="xongChi">
-              <span class="chi-lo" :style="{ left: `${khungPm.x - 5}px`, top: `${khungPm.y - 5}px`, width: `${khungPm.w + 10}px`, height: `${khungPm.h + 10}px` }" aria-hidden="true" @click="xongChi(); moPremium('trang-chu')" />
+            <!-- CHỈ tắt bằng nút "Đã hiểu" (chủ dự án 27.11.2026: "bấm ra ngoài cũng bị tắt… chỉ bấm Đã hiểu mới tắt") — lớp phủ nuốt mọi chạm khác -->
+            <div v-if="chiNutPremium && khungPm" class="chi-pm" role="dialog" aria-modal="true" :aria-label="t('pm.chi.tieuDe')">
+              <span class="chi-lo" :style="{ left: `${khungPm.x - 5}px`, top: `${khungPm.y - 5}px`, width: `${khungPm.w + 10}px`, height: `${khungPm.h + 10}px` }" aria-hidden="true" />
               <div class="chi-bong" :style="khungPm.duoiVien ? { right: `${khungPm.phai}px`, top: `${khungPm.tren + 18}px` } : { right: `${khungPm.phai}px`, bottom: `${khungPm.duoi + 18}px` }">
                 <KhungBong :canh="khungPm.duoiVien ? 'tren' : 'duoi'" :day="2" :r="16" :vt="khungPm.vt" />
                 <b>{{ t('pm.chi.tieuDe') }}</b>
@@ -1314,7 +1315,7 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .vien-pm .vtn-chu { align-items: flex-end; }
 .vien-pm .vtn-chu b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.25; }
 .chi-pm { position: absolute; inset: 0; z-index: 70; }
-.chi-lo { position: absolute; border-radius: 999px; cursor: pointer; box-shadow: 0 0 0 4px #ffd34d, 0 0 0 9999px rgba(8, 10, 30, .6), 0 0 24px 6px rgba(255, 211, 77, .8); animation: chi-nhip 1.4s ease-in-out infinite; }
+.chi-lo { position: absolute; border-radius: 999px; box-shadow: 0 0 0 4px #ffd34d, 0 0 0 9999px rgba(8, 10, 30, .6), 0 0 24px 6px rgba(255, 211, 77, .8); animation: chi-nhip 1.4s ease-in-out infinite; }
 @keyframes chi-nhip { 50% { box-shadow: 0 0 0 7px #ffd34d, 0 0 0 9999px rgba(8, 10, 30, .6), 0 0 34px 10px rgba(255, 211, 77, .9); } }
 .chi-bong { position: absolute; width: min(260px, calc(100% - 24px)); box-sizing: border-box; display: grid; gap: 4px; padding: 13px 14px 12px; text-align: left; isolation: isolate;
   --nen: var(--panel-solid, #fff); --vien: color-mix(in srgb, #f0b400 70%, transparent); color: var(--fg); filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .35)); font: 700 13.5px/1.45 var(--font-body); }
