@@ -1313,6 +1313,10 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
   max-width: 52%; min-height: 0; padding: 5px 6px 5px 14px; border-radius: 999px; text-align: right; cursor: pointer; overflow: visible;
 }
 .vien-pm .vtn-chu { align-items: flex-end; }
+/* KHÔNG LÀM DỊU Ở MÀN TỐI (28.11.2026, chủ dự án: "vàng ở chỉ số trí nhớ trông rất tối, không sáng như vàng ở Premium"):
+   keo-thach.css hạ `brightness(.86) saturate(.9)` cho MỌI nút thạch ở màn tối → huy chương xỉn hẳn. Viên Premium thoát nhờ
+   animation quầng sáng ghi đè `filter` (tắt chuyển động thì cũng bị dịu) — hai viên huy hiệu ở đây phải sáng ngang nhau. */
+:root[data-skin='keo'][data-theme='dark'] .vien-tn, :root[data-skin='keo'][data-theme='dark'] .vien-pm { filter: none; }
 .vien-pm .vtn-chu b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.25; }
 .chi-pm { position: absolute; inset: 0; z-index: 70; }
 .chi-lo { position: absolute; border-radius: 999px; box-shadow: 0 0 0 4px #ffd34d, 0 0 0 9999px rgba(8, 10, 30, .6), 0 0 24px 6px rgba(255, 211, 77, .8); animation: chi-nhip 1.4s ease-in-out infinite; }
