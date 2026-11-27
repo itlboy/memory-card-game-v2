@@ -6,7 +6,7 @@
  * cả bàn lật ngửa, chấm điểm → sang bàn khác. Ván = `soLuot` lượt, không có đồng hồ cả ván.
  *
  * ĐÃ CHỐT (đừng đảo lại khi chưa hỏi):
- *  · số thẻ chỉ có các mức 3 · 4 · 6 · 9 · 12 ("12 là nhiều lắm đấy");
+ *  · số thẻ 3 · 4 · 5 · 6 · 7 · 8 · 9 — bàn VÒNG TRÒN (27.11.2026: bỏ 12 và 16, chủ dự án: "khó quá, không ai giải được");
  *  · độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5 → giờ xem = x × số thẻ;
  *  · giờ chọn = NỬA giờ xem, sàn 2 giây (2 thẻ mức Khó mà không sàn là 0,5 giây — không kịp chạm);
  *  · điểm lượt đúng = 10 × số thẻ × (1 + phần giờ chọn còn lại) × hệ số chuỗi (như ghép cặp:
@@ -23,7 +23,7 @@ import type { BotLevel } from './bot.js';
 import { Rng } from './rng.js';
 import { comboMultiplier } from './scoring.js';
 
-export const TIM_THE_SO_THE = [3, 4, 6, 9, 12, 16] as const;
+export const TIM_THE_SO_THE = [3, 4, 5, 6, 7, 8, 9] as const;
 export type TimTheDoKho = 'de' | 'vua' | 'kho';
 export const TIM_THE_DO_KHO: readonly TimTheDoKho[] = ['de', 'vua', 'kho'];
 /** x = giây xem mỗi thẻ. */
@@ -36,9 +36,13 @@ export const TIM_THE_CHON_SAN_MS = 2000;
 export const TIM_THE_UP_MS = 800;
 /** Đầu MỖI lượt (kể cả lượt đầu): bàn mới nằm ÚP chừng này rồi mới lật cho xem (chủ dự án 27.11.2026: "úp khoảng 2 giây rồi lật"). */
 export const TIM_THE_CHO_MS = 2000;
-export const TIM_THE_DAP_AN_MS = 2200;
-/** Thẻ cần tìm hiện to giữa bàn (lớp mờ) trước khi cho chọn — NGOÀI giờ chọn (27.11.2026). Phòng online dùng chung. */
-export const TIM_THE_NOI_MS = 3000;
+/** 3 giây (27.11.2026, bàn vòng tròn): ai chưa chọn thì vòng sáng quay ~1 giây về đáp án rồi mới lật — cần chỗ để nhìn kết quả. */
+export const TIM_THE_DAP_AN_MS = 3000;
+/**
+ * Nhịp THẺ GIỮA LẬT NGỬA trước khi cho chọn — NGOÀI giờ chọn. Bàn vòng tròn (27.11.2026): thẻ cần tìm nằm ở tâm, ngửa suốt
+ * nhịp chọn, nên chỉ cần đủ cho cú lật (trước là 3 giây vì thẻ hiện to trên lớp mờ rồi tan). Phòng online dùng chung.
+ */
+export const TIM_THE_NOI_MS = 600;
 
 export interface TimTheConfig {
   soThe: number;

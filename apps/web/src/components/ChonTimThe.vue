@@ -30,7 +30,7 @@ function doi(p: Partial<TimTheChon>): void {
 
 <template>
   <p class="nh-nhan">{{ t('tt.soThe') }}</p>
-  <span class="ranh c6" role="radiogroup" :aria-label="t('tt.soThe')">
+  <span class="ranh c7" role="radiogroup" :aria-label="t('tt.soThe')">
     <button
       v-for="n in TIM_THE_SO_THE" :key="n" class="nut-o thach th-nho th-chon" type="button" role="radio"
       :aria-checked="chon.soThe === n" :aria-label="t('tt.the', { n })" @click="doi({ soThe: n })"
@@ -55,7 +55,7 @@ function doi(p: Partial<TimTheChon>): void {
   background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line));
   box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
 }
-.ranh.c6 { grid-template-columns: repeat(6, 1fr); }
+.ranh.c7 { grid-template-columns: repeat(7, 1fr); }
 .ranh.c3 { grid-template-columns: repeat(3, 1fr); }
 .nut-o {
   position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 4px; min-width: 0;

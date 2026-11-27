@@ -11,11 +11,11 @@
  * Giờ chọn đo TẠI MÁY NÀY (từ lúc nhận câu hỏi, trừ phần server đã trôi trước khi gửi) — đường truyền không ăn vào điểm;
  * server kẹp lại (`PhongTimThe.chon`).
  */
-import { TIM_THE_SO_LUOT, timTheSoCot, type TimView } from '@mm/engine';
+import { TIM_THE_SO_LUOT, type TimView } from '@mm/engine';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Check, Ellipsis, LogOut, TimerOff, X, Zap } from 'lucide-vue-next';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
-import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
+import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
 import { sfx } from '@/lib/audio';
 import { rung } from '@/lib/rung';
 import { bcp, t } from '@/lib/i18n';
@@ -25,7 +25,8 @@ import { taiKhoan } from '@/lib/taikhoan';
 import { tenNguoi } from '@/lib/ten';
 import { ghiVuaThang } from '@/lib/xin-danh-gia';
 import { moChucNang, suKien } from '@/lib/phan-tich';
-import { bayBan, dangTimOnline, tomTatTimThe } from '@/lib/tim-the';
+import { dangTimOnline, tomTatTimThe } from '@/lib/tim-the';
+import BanVongTim from './BanVongTim.vue';
 import DongXu from './DongXu.vue';
 import KetCucFx from './KetCucFx.vue';
 import ResultDialog from './ResultDialog.vue';
@@ -118,9 +119,9 @@ const toi = computed(() => v.value?.nguoi.find((n) => n.id === toiId.value) ?? n
 /* ---------- bàn: hình đang hiện (giữ hình cũ trong lúc lá úp xuống để không loé ô trắng) ---------- */
 const hinhCu = ref<string[]>([]);
 const hinh = computed(() => v.value?.the ?? hinhCu.value);
-const ngua = computed(() => !!v.value?.the);
 const soThe = computed(() => v.value?.soThe ?? o.room.value?.config.timSoThe ?? 9);
-const soCot = ref(timTheSoCot(soThe.value));
+/** Nhịp cho bàn vòng: đang đếm ngược (chưa có ván) thì bàn nằm úp. */
+const nhipBan = computed(() => (v.value ? pha.value : 'cho'));
 /** Ai chọn lá nào — chỉ ở đáp án (server mới gửi `kq`). */
 const aiChon = (i: number) => (pha.value === 'dap-an' || pha.value === 'xong') ? nguoi.value.filter((n) => n.kq?.viTri === i) : [];
 
@@ -130,16 +131,9 @@ let hoiTu = 0;       // performance.now() lúc câu hỏi bắt đầu (đã tr�
 let hoiDai = 0;
 let raf = 0;
 let giayCu = -1;
-const ban = ref<HTMLElement | null>(null);
-const laW = ref(72);
-const KHE = 10;
-function doBan(): void {
-  const el = ban.value;
-  if (!el) return;
-  const b = bayBan(soThe.value, el.clientWidth, el.clientHeight, KHE);
-  soCot.value = b.cot; laW.value = b.w;
-}
-const coAnh = computed(() => chonCoAnh(laW.value * 0.62));
+const banVong = ref<InstanceType<typeof BanVongTim> | null>(null);
+/** Cỡ ảnh emoji tải trước — lá vòng tròn rộng ~60–110px. */
+const coAnh = computed(() => chonCoAnh(56));
 
 /* ---------- điểm bay (cùng `gain-suck` của bàn chính) ---------- */
 const gain = ref<{ key: number; i: number; diem: number; s: string } | null>(null);
@@ -172,6 +166,8 @@ const hienKq = ref(false);
 let henKq: ReturnType<typeof setTimeout> | undefined;
 const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
 
+/** Kết quả đáp án chờ bàn lật xong (khai báo TRƯỚC watch immediate — TDZ). */
+let choLat: TimView | null = null;
 let truocPha = '';
 let batDauLuc = performance.now();
 let truocLuot = -1;
@@ -208,25 +204,35 @@ watch(v, (moi) => {
       sfx.flip();
       if (moi.luot === 0) diemHien.value = 0;
     } else if (moi.pha === 'up') sfx.swap();
-    else if (moi.pha === 'noi') sfx.turn();
+    else if (moi.pha === 'noi') sfx.timGiua();
     else if (moi.pha === 'dap-an') {
-      sfx.timLatDapAn();
-      loTungNguoi(moi);
-      const k = moi.nguoi.find((n) => n.id === toiId.value)?.kq;
-      if (k?.ketCuc === 'dung' && k.viTri !== null) { sfx.match(k.chuoi); rung.ghep(k.chuoi); void bayDiem(k.viTri, k.diem, k.ms ?? 0); }
-      else if (!xem.value) { sfx.miss(); rung.sai(); }
+      // Mình đã chọn: lật ngay. Chưa chọn / đang xem: vòng sáng quay về đáp án rồi mới lật (`@lat` → `latBan`)
+      choLat = moi;
+      if (chonCuaToi.value !== null && !xem.value) latBan();
     } else if (moi.pha === 'xong') ketThuc(moi);
   }
   truocPha = moi.pha; truocLuot = moi.luot;
-  nextTick(doBan);
 }, { immediate: true });
+
+/** Bàn đã lật ở đáp án: chốt từng người + tiếng/điểm của mình. */
+function latBan(): void {
+  const moi = choLat;
+  if (!moi) return;
+  choLat = null;
+  sfx.timLatDapAn();
+  loTungNguoi(moi);
+  const k = moi.nguoi.find((n) => n.id === toiId.value)?.kq;
+  if (k?.ketCuc === 'dung' && k.viTri !== null) { sfx.match(k.chuoi); rung.ghep(k.chuoi); void bayDiem(k.viTri, k.diem, k.ms ?? 0); }
+  else if (!xem.value && k?.ketCuc === 'sai') { sfx.miss(); rung.sai(); }
+  else if (!xem.value) { sfx.timHet(); rung.sai(); }
+}
 
 function cham(i: number): void {
   if (xem.value || pha.value !== 'hoi' || chonCuaToi.value !== null) return;
   const ms = performance.now() - hoiTu;
   if (ms > hoiDai) return;   // hết giờ ở máy này — server cũng sẽ từ chối
   chonCuaToi.value = i;
-  sfx.select();
+  sfx.timChon();
   rung.tach();
   o.timChon(i, Math.max(0, ms));
 }
@@ -235,6 +241,8 @@ function cham(i: number): void {
 function khung(): void {
   // Người xem cũng nghe tích 3 giây cuối, tới khi mọi người đã chọn
   const conCho = xem.value ? (v.value?.nguoi ?? []).some((n) => !n.da) : chonCuaToi.value === null;
+  // Vạch giờ quanh thẻ giữa + nhạc trống (chỉ người CHƠI chưa chọn mới nghe trống)
+  banVong.value?.veGio(pha.value === 'hoi' && hoiDai ? 1 - (performance.now() - hoiTu) / hoiDai : null, !xem.value && chonCuaToi.value === null);
   if (pha.value === 'hoi' && conCho) {
     const s = Math.ceil((hoiDai - (performance.now() - hoiTu)) / 1000);
     if (s !== giayCu) { if (giayCu !== -1 && s <= 3 && s > 0) sfx.tick(); giayCu = s; }
@@ -287,14 +295,11 @@ function ketThuc(moi: TimView): void {
   void taiKhoan.ghiVan({ ketQua, score: minh.diem, achievements: [] });
 }
 
-let ro: ResizeObserver | undefined;
 onMounted(() => {
-  ro = new ResizeObserver(doBan);
-  if (ban.value) ro.observe(ban.value);
   raf = requestAnimationFrame(khung);
   dangTimOnline.value = true;
 });
-onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTimOnline.value = false; ro?.disconnect(); cancelAnimationFrame(raf); clearTimeout(henBay); });
+onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTimOnline.value = false; cancelAnimationFrame(raf); clearTimeout(henBay); });
 </script>
 
 <template>
@@ -319,51 +324,23 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
       </div>
     </div>
 
-    <div ref="ban" class="ott-ban">
+    <div class="ott-ban">
       <!-- Đếm ngược NẰM TRÊN bàn úp (bàn đã bày sẵn — không còn màn trống) -->
       <div v-if="o.countdownLeft.value !== null" class="dem" role="status" aria-live="assertive"><span :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span></div>
-      <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
-        <div v-for="i in soThe" :key="`${v?.van ?? 'dem'}-${i}`" class="o" :class="{ 'co-gain': gain?.i === i - 1 }">
-          <button
-            class="card" type="button" data-nosfx data-phang
-            :class="{
-              lat: ngua,
-              dung: (pha === 'dap-an' || pha === 'xong') && i - 1 === v?.dich,
-              sai: (pha === 'dap-an' || pha === 'xong') && i - 1 === chonCuaToi && i - 1 !== v?.dich,
-              cho: pha === 'hoi' && i - 1 === chonCuaToi
-            }"
-            :aria-label="ngua ? (hinh[i - 1] ?? '') : t('tt.theSo', { n: i })"
-            :aria-disabled="pha !== 'hoi' || chonCuaToi !== null || xem"
-            @pointerdown.prevent="cham(i - 1)" @keydown.enter.prevent="cham(i - 1)" @keydown.space.prevent="cham(i - 1)"
-          >
-            <span class="inner">
-              <span class="face back" aria-hidden="true" />
-              <span class="face front" :class="{ chu: laKyTuChu(hinh[i - 1]) }" aria-hidden="true">
-                <img v-if="anhEmoji(hinh[i - 1], undefined, coAnh)" class="emoji" :src="anhEmoji(hinh[i - 1], undefined, coAnh)!" alt="" draggable="false">
-                <span v-else class="emoji chu">{{ hinh[i - 1] }}</span>
-              </span>
-            </span>
-          </button>
-          <span v-if="aiChon(i - 1).length" class="ai-chon" aria-hidden="true">
-            <span v-for="n in aiChon(i - 1)" :key="n.id" class="mat-nho vong-mau" :style="n.mau ? { '--m': n.mau } : undefined"><MatNguoi :mat="n.mat" :anh="n.anh" /></span>
+      <BanVongTim
+        ref="banVong" :so-the="soThe" :hinh="hinh" :hinh-dich="v?.hinhDich ?? null" :dich="v?.dich ?? null"
+        :nhip="nhipBan" :chon="chonCuaToi" :cho-cham="!xem" @cham="cham" @lat="latBan"
+      >
+        <template #the="{ i, lat }">
+          <span v-if="lat && aiChon(i).length" class="ai-chon" aria-hidden="true">
+            <span v-for="n in aiChon(i)" :key="n.id" class="mat-nho vong-mau" :style="n.mau ? { '--m': n.mau } : undefined"><MatNguoi :mat="n.mat" :anh="n.anh" /></span>
           </span>
-          <template v-if="gain && gain.i === i - 1 && pha === 'dap-an'">
+          <template v-if="gain && gain.i === i && pha === 'dap-an'">
             <span :key="`s${gain.key}`" class="tt-giay" aria-hidden="true">{{ gain.s }}s</span>
             <span :key="`g${gain.key}`" :ref="datGain" class="tt-gain" aria-hidden="true">+{{ num(gain.diem) }}</span>
           </template>
-        </div>
-      </div>
-
-      <!-- Thẻ cần tìm giữa bàn (như bản chơi đơn) -->
-      <Transition name="tt-noi">
-        <div v-if="pha === 'noi' && v?.hinhDich" :key="`n${v.luot}`" class="tt-noi" aria-hidden="true">
-          <span class="lon">
-            <img v-if="anhEmoji(v.hinhDich, undefined, chonCoAnh(108))" :src="anhEmoji(v.hinhDich, undefined, chonCoAnh(108))!" alt="" draggable="false">
-            <template v-else>{{ v.hinhDich }}</template>
-          </span>
-          <b class="nhan-noi">{{ t('tt.timTheNay') }}</b>
-        </div>
-      </Transition>
+        </template>
+      </BanVongTim>
       <p class="an-di" aria-live="polite">{{ pha === 'hoi' && v?.hinhDich ? `${t('tt.hoi')} ${v.hinhDich}` : '' }}</p>
 
       <!-- HẾT VÁN = ĐÚNG bảng kết quả online của ghép cặp (ResultDialog chế độ `tim-the`, chủ dự án 27.11.2026) -->
@@ -421,9 +398,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 .ng.lo-sai { animation: ng-lac .4s; }
 @keyframes ng-nay { 40% { transform: scale(1.08); } }
 @keyframes ng-lac { 20% { transform: translateX(-4px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
-/* Thẻ đúng toả vòng sáng lan ra lúc lật đáp án (ai cũng thấy, kể cả người xem) */
-.card.dung::before { content: ""; position: absolute; inset: -6px; border-radius: 16px; border: 3px solid #3fbf5f; pointer-events: none; animation: vong-lan .9s ease-out both; }
-@keyframes vong-lan { from { opacity: .9; transform: scale(.92); } to { opacity: 0; transform: scale(1.25); } }
 .av { position: relative; flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-size: 18px; }
 .ten { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 13px; }
 .d { font-family: var(--font-display); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -449,30 +423,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 @keyframes no { from { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.12); } to { transform: none; opacity: 1; } }
 
 .ott-ban { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
-.luoi { display: grid; gap: 10px; justify-content: center; align-content: center; }
-.o { position: relative; aspect-ratio: 3 / 4; }
-.o.co-gain { z-index: 8; }
-.card {
-  position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; border-radius: 12px;
-  perspective: 600px; container-type: size; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-}
-.card[aria-disabled='true'] { cursor: default; }
-.inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .32s cubic-bezier(.3, .9, .3, 1.15); border-radius: inherit; }
-.card.lat .inner { transform: rotateY(180deg); }
-.face { position: absolute; inset: 0; box-sizing: border-box; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: grid; place-items: center; }
-.face.front { transform: rotateY(180deg); }
-.front.chu { font-family: var(--font-display); font-weight: 800; color: #1d2a5a; }
-.emoji { width: 62%; height: 62%; object-fit: contain; pointer-events: none; }
-.emoji.chu { width: auto; height: auto; font-size: min(48cqw, 58cqh); line-height: 1; }
-.card::after { content: ''; position: absolute; inset: -5px; border-radius: 16px; pointer-events: none; z-index: 3; border: 4px solid transparent; transition: border-color .15s; }
-.card.cho::after { border-color: #ffc21a; box-shadow: 0 0 16px 3px rgba(255, 194, 26, .7); }
-/* Chọn một lá: lá LẮC nhẹ (chủ dự án 27.11.2026) — `rotate` riêng, không đụng `transform` lật của `.inner` */
-.card.cho { animation: lac-chon .42s ease; }
-@keyframes lac-chon { 15% { rotate: -7deg; scale: 1.06; } 35% { rotate: 6deg; } 55% { rotate: -4deg; } 75% { rotate: 2deg; } 100% { rotate: 0deg; scale: 1; } }
-.card.dung::after { border-color: #3fbf5f; box-shadow: 0 0 18px 5px rgba(63, 191, 95, .7); }
-.card.sai::after { border-color: #ff4d6d; box-shadow: 0 0 14px 3px rgba(255, 77, 109, .6); }
-.card.dung { animation: nay-the .45s; z-index: 2; }
-@keyframes nay-the { 40% { scale: 1.1; } }
 /* Mặt người chọn lá này — chỉ ở đáp án */
 .ai-chon { position: absolute; left: 0; right: 0; bottom: -9px; z-index: 4; display: flex; justify-content: center; gap: 2px; pointer-events: none; }
 .mat-nho { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 13px; box-shadow: 0 0 0 2px #fff; animation: no .25s both; }
@@ -480,27 +430,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 .dem { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; pointer-events: none; font-family: var(--font-display); font-weight: 900; font-size: 96px; color: #fff; -webkit-text-stroke: 6px #2f4fa6; paint-order: stroke; }
 .dem span { display: inline-block; animation: no .35s both; }
 
-.tt-noi {
-  position: absolute; inset: -6px; z-index: 6; border-radius: 22px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px; pointer-events: auto;
-  background: rgba(13, 24, 56, .38); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
-}
-.tt-noi .lon {
-  width: min(108px, 30%); aspect-ratio: 3 / 4; border-radius: 15px; display: grid; place-items: center; font-size: 60px; line-height: 1;
-  font-family: var(--font-display); font-weight: 800; color: #1d2a5a;
-  background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 4px solid #ffc21a;
-  box-shadow: 0 6px 0 #c98f00, 0 14px 30px rgba(10, 20, 60, .35); animation: bat .38s cubic-bezier(.3, 1.5, .5, 1) both;
-}
-.tt-noi .lon img { width: 66%; height: auto; object-fit: contain; }
-.nhan-noi {
-  font-family: var(--font-display); font-weight: 900; font-size: 18px; color: #fff; padding: 5px 14px; border-radius: 999px;
-  background: #2f4fa6; box-shadow: 0 3px 0 #1f3577; animation: bat .38s .08s both;
-}
-@keyframes bat { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
-.tt-noi-enter-active { transition: opacity .25s; }
-.tt-noi-leave-active { transition: opacity .12s; pointer-events: none; }
-.tt-noi-leave-active .lon { transition: transform .12s; transform: scale(.8); }
-.tt-noi-enter-from, .tt-noi-leave-to { opacity: 0; }
 .an-di { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; }
 
 .tt-gain {
@@ -523,7 +452,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .inner { transition-duration: .01s; }
-  .card.dung, .card.dung::before, .ng.vua-chon, .ng.lo-dung, .ng.lo-sai, .card.cho, .huy, .cong, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay, .mat-nho, .dem span { animation: none; }
+  .ng.vua-chon, .ng.lo-dung, .ng.lo-sai, .huy, .cong, .tt-giay, .vien.diem.nay, .mat-nho, .dem span { animation: none; }
 }
 </style>

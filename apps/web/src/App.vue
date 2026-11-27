@@ -294,6 +294,7 @@ function diVaoPhongMoi(): void {
 }
 watch([nhacBat, baiNhac, baiThat, soundLevel, trongVan, nhacNgauNhien], () => {
   store.savePrefs({ nhac: nhacBat.value, baiNhac: baiNhac.value, nhacNgauNhien: nhacNgauNhien.value });
+  sfx.trongBat = nhacBat.value;   // nhạc trống Tìm Thẻ đi theo nút Nhạc (tắt âm thanh thì sfx tự câm)
   if (!nhacBat.value || soundLevel.value === 'off') nhac.dung();
   else if (trongVan.value) nhac.nhoDanRoiTat();
   else nhac.chay('menu', baiThat.value);

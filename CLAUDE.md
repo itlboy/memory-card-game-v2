@@ -359,21 +359,30 @@
   thì Bắt đầu báo `tim-client-cu` (như `dd`). Giờ chọn đo TẠI MÁY người chơi, server kẹp (không quá giờ server, không sớm
   hơn `TIM_PHONG_LECH_MS`) và chờ thêm `TIM_PHONG_TRE_MS` cho lời chọn đang trên đường. Màn `OnlineTimThe.vue`: cùng luật
   "chỉ có bàn thẻ" + hàng người chơi; đang chọn chỉ lộ AI đã chọn, đáp án mới hiện mặt dưới lá. Phòng có máy: không xu,
-  không lên sổ (như ghép cặp online). Máy trực phòng (`phong-bot.ts`) rời ghế khi phòng chuyển sang Tìm Thẻ.
+  không lên sổ (như ghép cặp online). Máy trực phòng (`phong-bot.ts`) rời ghế khi phòng chuyển sang Tìm Thẻ; phòng máy tự mở Tìm Thẻ thì bỏ phiếu bàn 5–9 thẻ.
 - **HẾT VÁN = ĐÚNG đồ của ghép cặp** (27.11.2026, chủ dự án): KetCucFx (ăn mừng) rồi ResultDialog với prop `timThe` (số
   lượt) — `tomTatTimThe` (lib/tim-the) dựng `Summary`, `moves`/`pairs` = SỐ LƯỢT ĐÚNG, bảng tự đổi nhãn "Đúng x/N".
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
   bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Đầu MỖI lượt (kể cả lượt đầu) bàn nằm ÚP `TIM_THE_CHO_MS` (2 giây)
-  rồi mới lật cho xem — nhịp `cho` (27.11.2026); lá giữ nguyên qua các lượt nên thấy lá úp xuống rồi lật lên. Hỏi = thẻ cần tìm hiện TO CHÍNH GIỮA BÀN trên lớp mờ
-  `TIM_THE_NOI_MS` (3 giây — chủ dự án nâng dần 1,2 → 2 → 3 ngày 27.11.2026, ngoài giờ chọn, chưa chạm được) rồi tan tại chỗ (27.11.2026, duyệt
-  https://claude.ai/artifact/45faUe94GByb1Qp2Q7C6fy — chỉ ở bảng trên thì mắt rời bàn, mất tập trung).
+  rồi mới lật cho xem — nhịp `cho` (27.11.2026); lá giữ nguyên qua các lượt nên thấy lá úp xuống rồi lật lên.
+  **BÀN VÒNG TRÒN (1.10.105, 27.11.2026, mockup duyệt https://claude.ai/artifact/84a1NKjn98ViN2Koj51K7U)** — MỘT thành phần
+  dùng chung `components/BanVongTim.vue` cho chơi đơn, online và người xem; cách xếp ở `bayVong` (lib/tim-the, test
+  `tim-the-bay-ban`). Thẻ cần tìm ở TÂM, BẰNG lá thường (lưng vàng, khung vàng đôi, quầng sáng — markup riêng, không `.card`,
+  để skin không đè), lá khác trên elip, lá đầu 12 giờ theo chiều kim đồng hồ; màn ngang elip nằm ngang. Nhịp: `xem` vòng ngoài
+  ngửa → `up` úp → `noi` (`TIM_THE_NOI_MS` 0,6 giây, chỉ cho cú lật) thẻ giữa ngửa → `hoi` thẻ giữa ngửa tới hết giờ.
+  VẠCH GIỜ quanh cạnh thẻ giữa (hao từ 12 giờ theo chiều kim đồng hồ, xanh→vàng→đỏ) — chủ dự án chọn, khác hẳn thanh giờ cũ
+  đã bỏ. QUẦNG SÁNG chạy vòng ~1 giây/vòng CHỈ khi lá đang úp, không nhích lá; bấm thì dừng ở lá đó, lá có viền TRẮNG (chưa
+  nói đúng/sai) + nhún + sóng, KHÔNG đổi cỡ. Hết giờ chưa chọn (và người xem): quầng chậm dần ~1 giây về THẺ ĐÁP ÁN rồi mới
+  lật (`@lat`; chốt điểm/tiếng lúc đó) — vì thế `TIM_THE_DAP_AN_MS` = 3 giây. Đúng: nảy + viền xanh + ✓; sai: mờ .55 + đỏ + ✕;
+  còn lại mờ .28. Nhạc trống "thình-thịch" lúc chọn, nhanh dần khi vạch vàng/đỏ, tắt khi mình đã chọn — đi theo NÚT NHẠC
+  (`sfx.trongBat`, App đặt). Tiếng: `sfx.timGiua/timChon/timQuay/timDich/timHet/timTrong`. KHÔNG chữ nào trên bàn.
   **NGUYÊN TẮC: KHÔNG GÌ ĐƯỢC KÉO MẮT KHỎI BÀN** (chủ dự án 27.11.2026: "Ko nên làm gì gây sự mất tập trung"): màn chơi
-  CHỈ có bàn thẻ — KHÔNG bảng thông báo, KHÔNG thanh giờ, KHÔNG số giây (1.10.62: "Cứ nháy nháy mất tập trung lắm",
-  "Ng chơi hiểu mà"); giờ báo bằng tiếng tích 3 giây cuối; đúng/sai = viền thẻ. Câu chữ chỉ còn cho trình đọc màn hình. Thêm gì vào màn chơi thì hỏi: nó có bắt
-  mắt rời bàn không? Ván = 10 lượt, KHÔNG đồng hồ cả ván, KHÔNG tim. Số thẻ chỉ
-  3·4·6·9·12·16 ("12 là nhiều lắm đấy"; 16 = 4×4 thêm 27.11.2026 theo chủ dự án). Độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
+  CHỈ có bàn thẻ + hàng người chơi — KHÔNG bảng thông báo, KHÔNG số giây nhảy; đúng/sai = viền thẻ + ✓/✕. Câu chữ chỉ còn
+  cho trình đọc màn hình. Thêm gì vào màn chơi thì hỏi: nó có bắt mắt rời bàn không? Ván = 10 lượt, KHÔNG đồng hồ cả ván,
+  KHÔNG tim. Số thẻ 3·4·5·6·7·8·9 (27.11.2026 bỏ 12, 16: "khó quá, không ai giải được"; cấu hình cũ về 9). Độ khó x = giây
+  xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
   giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
   cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.
   Nhiều người: chờ cả phòng chọn mới chấm; đúng nhanh nhất +5 × số thẻ (không nhân); trùng điểm = đồng hạng.

@@ -57,7 +57,7 @@ const XEM_KQ_MS = so('XEM_KQ_MS', 8_000);
  */
 const TIM_TI_LE = Math.min(1, Math.max(0, Number(process.env.TIM_TI_LE) || 0));
 /** Bàn Tìm Thẻ bot bỏ phiếu (không chọn 3–4 thẻ: dễ quá, ván nhạt). */
-const TIM_THE_BOT = [6, 9, 12, 16];
+const TIM_THE_BOT = [5, 6, 7, 8, 9];   // bàn vòng tròn 3–9 thẻ (27.11.2026); 3–4 thẻ quá dễ cho phòng máy
 /** Người vào sát giờ vẫn có ngần này để bấm Sẵn sàng; hết hạn mà chưa sẵn sàng: nhắc + chờ thêm một lần rồi chuyển sang người xem. */
 const KIP_SAN_SANG_MS = Math.min(12_000, CHO_MS);
 const CHO_THEM_MS = Math.min(15_000, CHO_MS);

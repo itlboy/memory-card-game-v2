@@ -33,24 +33,51 @@ export function luuChon(c: TimTheChon): void {
 }
 
 /**
- * BÀY BÀN (27.11.2026, chủ dự án: "cho các lá thẻ đồng đều hơn trên bàn để nhìn trên dưới đỡ trống"): KHÔNG cố định số cột
- * theo số thẻ nữa — thử mọi số cột, lấy cách cho LÁ TO NHẤT trong khung (`rong` × `cao`, lá 3:4, khe `khe`, trần `tran`).
- * Màn dọc nên bàn 6 thẻ ra 2×3, 12 thẻ ra 3×4 thay vì nằm bẹt giữa khoảng trống. Lá bằng nhau (chạm trần) thì chọn lưới ÍT Ô
- * TRỐNG hơn, rồi lưới có tỷ lệ gần khung nhất (phủ đều cả ngang lẫn dọc).
+ * BÀN VÒNG TRÒN (27.11.2026, chủ dự án duyệt mockup https://claude.ai/artifact/84a1NKjn98ViN2Koj51K7U): thẻ cần tìm ở TÂM,
+ * các lá xếp trên một elip quanh nó, lá đầu ở 12 giờ rồi theo chiều kim đồng hồ. Thẻ giữa BẰNG lá thường.
+ *
+ * Màn dọc: bảng cỡ lá + bán kính đã dò máy trên khung chuẩn 360 × 570 (lá TO NHẤT mà mọi khe ≥ 14px, bàn 3 thẻ cân — chủ dự
+ * án chê bản đầu "3 có vẻ không cân"), rồi co giãn theo khung thật. Màn ngang: elip nằm ngang, dò lá to nhất mà khe ≥ 12px.
+ * Cả cụm được dời cho cân giữa khung theo chiều dọc. Toạ độ là TÂM lá, tính từ góc trên trái khung.
  */
-export function bayBan(n: number, rong: number, cao: number, khe = 10, tran = 132): { cot: number; w: number } {
-  // Bàn nhỏ giữ cách bày quen: 3 lá một HÀNG (một cột 3 lá dọc trông như cái tháp), 4 lá 2×2
-  const coDinh = n === 3 ? 3 : n === 4 ? 2 : 0;
-  let tot = { cot: 1, w: 0, trong: 0, lech: Infinity };
-  for (let cot = coDinh || 1; cot <= (coDinh || n); cot++) {
-    const hang = Math.ceil(n / cot);
-    if (cot > 1 && Math.ceil(n / (cot - 1)) === hang) continue;   // thêm cột mà không bớt hàng: chỉ thêm ô trống
-    const w = Math.floor(Math.max(0, Math.min((rong - khe * (cot - 1)) / cot, ((cao - khe * (hang - 1)) / hang) * 0.75, tran)));
-    const trong = cot * hang - n;
-    const lech = Math.abs((hang * w * 4 / 3 + khe * (hang - 1)) / cao - (cot * w + khe * (cot - 1)) / rong);
-    if (w > tot.w || (w === tot.w && (trong < tot.trong || (trong === tot.trong && lech < tot.lech)))) tot = { cot, w, trong, lech };
+const VONG_CHUAN: Record<number, readonly [number, number, number]> = {
+  3: [88, 130, 156], 4: [88, 118, 144], 5: [88, 124, 176], 6: [88, 130, 156], 7: [84, 126, 188], 8: [76, 128, 164], 9: [68, 134, 236]
+};
+export interface BanVong { w: number; h: number; tam: [number, number]; vi: [number, number][] }
+export function bayVong(n: number, rong: number, cao: number): BanVong {
+  const ngang = rong > cao * 1.1;
+  let w: number, rx: number, ry: number;
+  if (!ngang) {
+    const [w0, rx0, ry0] = VONG_CHUAN[n] ?? VONG_CHUAN[9]!;
+    const k = Math.min(rong / 360, cao / 570, 1.25);
+    w = Math.round(w0 * k); rx = rx0 * k; ry = ry0 * k;
+  } else {
+    for (w = 96; ; w -= 2) {
+      const h = (w * 4) / 3;
+      ry = Math.max(0, cao / 2 - h / 2 - 4); rx = Math.min(rong / 2 - w / 2 - 4, ry * 2.4);
+      if (w <= 30 || khePhut(n, w, h, rx, ry) >= 12) break;
+    }
   }
-  return { cot: tot.cot, w: Math.max(36, tot.w) };
+  const h = (w * 4) / 3;
+  const vi: [number, number][] = Array.from({ length: n }, (_, i) => {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    return [rong / 2 + Math.cos(a) * rx, cao / 2 + Math.sin(a) * ry];
+  });
+  const tren = Math.min(cao / 2 - h / 2, ...vi.map((c) => c[1] - h / 2));
+  const duoi = Math.max(cao / 2 + h / 2, ...vi.map((c) => c[1] + h / 2));
+  const doi = cao / 2 - (tren + duoi) / 2;
+  for (const c of vi) c[1] += doi;
+  return { w, h, tam: [rong / 2, cao / 2 + doi], vi };
+}
+/** Khe hẹp nhất giữa hai lá bất kỳ (kể cả lá giữa) của một vòng. */
+function khePhut(n: number, w: number, h: number, rx: number, ry: number): number {
+  const p: [number, number][] = [[0, 0]];
+  for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i * 2 * Math.PI) / n; p.push([Math.cos(a) * rx, Math.sin(a) * ry]); }
+  let min = Infinity;
+  for (let i = 0; i < p.length; i++) for (let j = i + 1; j < p.length; j++) {
+    min = Math.min(min, Math.max(Math.abs(p[i]![0] - p[j]![0]) - w, Math.abs(p[i]![1] - p[j]![1]) - h));
+  }
+  return min;
 }
 
 /**

@@ -1,29 +1,43 @@
+/**
+ * BÀN VÒNG TRÒN của Tìm Thẻ (27.11.2026): mọi lá (kể cả thẻ giữa) không chồng nhau, nằm trọn trong khung, ở mọi số thẻ
+ * 3–9 và mọi khung hay gặp (điện thoại dọc nhỏ/to, màn ngang).
+ */
 import { describe, expect, it } from 'vitest';
-import { bayBan } from '../src/lib/tim-the';
+import { bayVong } from '../src/lib/tim-the';
 
-/** Khung bàn thật (đo ở màn Tìm Thẻ, iPhone 15 dọc): ~365 × ~520. */
-const W = 365, H = 520;
+function soat(n: number, W: number, H: number): { khe: number; tran: number } {
+  const b = bayVong(n, W, H);
+  const o = [b.tam, ...b.vi];
+  let khe = Infinity, tran = 0;
+  for (let i = 0; i < o.length; i++) {
+    const [x, y] = o[i]!;
+    if (x - b.w / 2 < -0.5 || x + b.w / 2 > W + 0.5 || y - b.h / 2 < -0.5 || y + b.h / 2 > H + 0.5) tran++;
+    for (let j = i + 1; j < o.length; j++) {
+      const [x2, y2] = o[j]!;
+      khe = Math.min(khe, Math.max(Math.abs(x - x2) - b.w, Math.abs(y - y2) - b.h));
+    }
+  }
+  return { khe, tran };
+}
 
-describe('bayBan — bàn phủ đều màn dọc (27.11.2026)', () => {
-  it('màn dọc: 6 thẻ 2×3, 12 thẻ 3×4, 9 thẻ 3×3, 16 thẻ 4×4', () => {
-    expect(bayBan(6, W, H).cot).toBe(2);
-    expect(bayBan(12, W, H).cot).toBe(3);
-    expect(bayBan(9, W, H).cot).toBe(3);
-    expect(bayBan(16, W, H).cot).toBe(4);
-  });
-  it('lá luôn vừa khung (không tràn ngang lẫn dọc)', () => {
-    for (const n of [3, 4, 6, 9, 12, 16]) for (const [w, h] of [[365, 520], [345, 430], [700, 400]]) {
-      const b = bayBan(n, w, h);
-      const hang = Math.ceil(n / b.cot);
-      expect(b.cot * b.w + 10 * (b.cot - 1)).toBeLessThanOrEqual(w);
-      expect(hang * b.w * 4 / 3 + 10 * (hang - 1)).toBeLessThanOrEqual(h + 1);
+describe('bayVong — bàn vòng tròn', () => {
+  const KHUNG = [[365, 520], [360, 570], [300, 470], [345, 430], [700, 360], [844, 330], [768, 820]] as const;
+  it('không lá nào tràn khung, khe ≥ 8px ở mọi số thẻ 3–9', () => {
+    for (const n of [3, 4, 5, 6, 7, 8, 9]) for (const [w, h] of KHUNG) {
+      const r = soat(n, w, h);
+      expect(r.tran, `${n} thẻ, ${w}×${h}`).toBe(0);
+      expect(r.khe, `${n} thẻ, ${w}×${h}`).toBeGreaterThanOrEqual(8);
     }
   });
-  it('bàn nhỏ giữ cách bày quen: 3 lá một hàng, 4 lá 2×2', () => {
-    expect(bayBan(3, W, H).cot).toBe(3);
-    expect(bayBan(4, W, H).cot).toBe(2);
+  it('lá đầu ở 12 giờ, rồi theo chiều kim đồng hồ', () => {
+    const b = bayVong(6, 365, 520);
+    expect(Math.abs(b.vi[0]![0] - b.tam[0])).toBeLessThan(0.5);
+    expect(b.vi[0]![1]).toBeLessThan(b.tam[1]);
+    expect(b.vi[1]![0]).toBeGreaterThan(b.tam[0]);
   });
-  it('màn ngang (máy tính bảng xoay ngang): nhiều cột hơn', () => {
-    expect(bayBan(6, 700, 400).cot).toBeGreaterThanOrEqual(3);
+  it('màn ngang: elip nằm ngang', () => {
+    const b = bayVong(8, 844, 330);
+    const xs = b.vi.map((p) => p[0]), ys = b.vi.map((p) => p[1]);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(Math.max(...ys) - Math.min(...ys));
   });
 });

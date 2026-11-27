@@ -684,6 +684,52 @@ class Sfx {
     this.voice(233, { dur: 0.16, type: 'triangle', gain: 0.04, slideTo: 150 });
   }
 
+  /*
+   * TÌM THẺ VÒNG TRÒN (27.11.2026, mockup duyệt https://claude.ai/artifact/84a1NKjn98ViN2Koj51K7U). Không dùng nốt dưới
+   * ~200 Hz làm thân tiếng: loa điện thoại không phát ra, nghe như mất tiếng.
+   */
+  /** Thẻ giữa ngửa: rải hợp âm Đô trưởng sáng + "xoẹt" nhẹ. */
+  timGiua(): void {
+    this.noise(0.35, { freq: 7000, gain: 0.02 });
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.voice(f, { dur: 0.45, type: 'triangle', gain: 0.04, delay: i * 0.06, detune: 4 }));
+  }
+  /** Bấm chọn một lá: "bụp" + ngân nhẹ (rõ hơn `select` của bàn ghép cặp — chủ dự án: "chọn thẻ chưa có âm thanh gì"). */
+  timChon(): void {
+    this.voice(330, { dur: 0.09, type: 'sine', gain: 0.1, slideTo: 900 });
+    this.noise(0.045, { freq: 2600, type: 'bandpass', gain: 0.07, q: 2 });
+    this.voice(1318.5, { dur: 0.22, type: 'triangle', gain: 0.04, delay: 0.06 });
+  }
+  /** Vòng sáng quay chậm dần về thẻ đáp án (hết giờ chưa chọn): mỗi bước một tiếng "tách", trầm dần (k 0 → 1). */
+  timQuay(k: number): void {
+    this.noise(0.04, { freq: 3800 - k * 1600, type: 'bandpass', gain: 0.05, q: 2.5 });
+    this.voice(900 - k * 350, { dur: 0.05, type: 'triangle', gain: 0.035 });
+  }
+  /** Vòng sáng dừng ở thẻ đáp án. */
+  timDich(): void {
+    this.voice(1046.5, { dur: 0.6, type: 'sine', gain: 0.05 });
+    this.voice(1568, { dur: 0.6, type: 'sine', gain: 0.04, delay: 0.05 });
+  }
+  /** Hết giờ mà mình chưa chọn: hai nốt trung tính (không phải tiếng "sai"). */
+  timHet(): void {
+    this.voice(587, { dur: 0.16, type: 'triangle', gain: 0.035 });
+    this.voice(494, { dur: 0.3, type: 'triangle', gain: 0.03, delay: 0.14 });
+  }
+  /**
+   * NHẠC TRỐNG lúc chọn (chủ dự án 27.11.2026: "nhạc trống trầm trầm… không cần trầm quá"): "thình-thịch" như nhịp tim, thân
+   * ~170 Hz + bồi âm 340 Hz + "tách" đầu nhịp để loa điện thoại vẫn nghe ra. Đi theo NÚT NHẠC (App đặt `trongBat`), không theo
+   * mức âm thanh hiệu ứng riêng. `gap` = vạch giờ đã đỏ: gõ mạnh hơn chút.
+   */
+  trongBat = true;
+  timTrong(gap: boolean): void {
+    if (!this.trongBat) return;
+    const g = gap ? 1.15 : 1;
+    this.voice(175, { dur: 0.22, type: 'sine', gain: 0.11 * g, slideTo: 118 });
+    this.voice(350, { dur: 0.07, type: 'triangle', gain: 0.03 * g, slideTo: 240 });
+    this.noise(0.025, { freq: 1500, type: 'bandpass', gain: 0.035 * g, q: 2 });
+    this.voice(160, { dur: 0.18, type: 'sine', gain: 0.06 * g, delay: 0.2, slideTo: 112 });
+    this.voice(320, { dur: 0.05, type: 'triangle', gain: 0.016 * g, delay: 0.2, slideTo: 230 });
+  }
+
   /** "Đinh" nhỏ khi huy hiệu chạm viên 🏅 trên thanh trên. */
   dinh(): void {
     this.voice(2093, { dur: 0.25, type: 'sine', gain: 0.05 });

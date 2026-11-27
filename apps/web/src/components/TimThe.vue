@@ -13,14 +13,14 @@
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
 import {
-  BOT_SPECS, TIM_THE_CHO_MS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe, timTheSoCot,
+  BOT_SPECS, TIM_THE_CHO_MS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe,
   type TimTheKetQua
 } from '@mm/engine';
 import {
-  bayBan, docChon, docKyLuc, ghiKyLuc, tomTatTimThe,
+  docChon, docKyLuc, ghiKyLuc, tomTatTimThe,
   type TimTheBoDo, type TimTheChon, type TimTheKetVan
 } from '@/lib/tim-the';
-import { anhEmoji, chonCoAnh, laKyTuChu, taiTruocAnh } from '@/lib/emoji';
+import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
 import { hoSo, mauKhac, tenToi } from '@/lib/ho-so';
 import { tenBot } from '@/lib/ten';
 import { sfx } from '@/lib/audio';
@@ -34,6 +34,7 @@ import ResultDialog from './ResultDialog.vue';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatBot from './MatBot.vue';
 import TamDung from './TamDung.vue';
+import BanVongTim from './BanVongTim.vue';
 import { Check, Ellipsis, Pause, TimerOff, X, Zap } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -89,7 +90,6 @@ let giayCu = -1;
  */
 const hinhHien = ref<string[]>([]);
 const dsThe = computed(() => { void rev.value; const n = van.value?.cfg.soThe ?? chon.value.soThe; return Array.from({ length: n }, (_, i) => hinhHien.value[i] ?? ''); });
-const soCot = ref(timTheSoCot(chon.value.soThe));
 const ngua = computed(() => nhip.value === 'xem' || nhip.value === 'dap-an');
 const toi = computed(() => { void rev.value; return van.value?.nguoi.find((p) => p.id === TOI) ?? null; });
 const heSo = computed(() => { void rev.value; return van.value?.heSoKe(TOI) ?? 1; });
@@ -125,18 +125,10 @@ const bangKq = computed(() => {
   } as const;
 });
 
-/* ---------- kích thước bàn (luật KHÔNG CUỘN: thẻ co theo chỗ trống) ---------- */
-const ban = ref<HTMLElement | null>(null);
-const laW = ref(72);
-const KHE = 10;
-let ro: ResizeObserver | undefined;
-function doBan(): void {
-  const el = ban.value;
-  if (!el) return;
-  const b = bayBan(van.value?.cfg.soThe ?? chon.value.soThe, el.clientWidth, el.clientHeight, KHE);
-  soCot.value = b.cot; laW.value = b.w;
-}
-const coAnh = computed(() => chonCoAnh(laW.value * 0.62));
+/* ---------- bàn vòng tròn (BanVongTim tự đo khung, xếp lá) ---------- */
+const banVong = ref<InstanceType<typeof BanVongTim> | null>(null);
+/** Cỡ ảnh emoji tải trước — lá vòng tròn rộng ~60–110px. */
+const coAnh = computed(() => chonCoAnh(56));
 
 /* ---------- vòng lặp ---------- */
 let raf = 0;
@@ -153,7 +145,7 @@ function khung(ms: number): void {
     tNhip += dt; tVan += dt;
     if (nhip.value === 'cho' && tNhip >= TIM_THE_CHO_MS) { hinhHien.value = [...v.the]; vaoNhip('xem'); sfx.flip(); }
     else if (nhip.value === 'xem' && tNhip >= v.xemMs) { vaoNhip('up'); sfx.swap(); }
-    else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { vaoNhip('noi'); sfx.turn(); }
+    else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { vaoNhip('noi'); sfx.timGiua(); }
     else if (nhip.value === 'noi' && tNhip >= TIM_THE_NOI_MS) { v.moHoi(); soDaChon = 0; daNghe.clear(); vaoNhip('hoi'); }
     else if (nhip.value === 'hoi') {
       const k = v.nguoi.filter((p) => v.daChon(p.id, tNhip)).length;
@@ -174,9 +166,10 @@ function khung(ms: number): void {
   raf = requestAnimationFrame(khung);
 }
 
-/** Không có thanh giờ trên màn (27.11.2026) — giờ chỉ báo bằng tiếng tích ba giây cuối của nhịp hỏi. */
+/** Vạch giờ quanh thẻ giữa + nhạc trống (BanVongTim) + tiếng tích ba giây cuối của nhịp hỏi. */
 function veGio(v: VanTimThe): void {
   const dai = nhip.value === 'hoi' ? v.chonMs : 0;
+  banVong.value?.veGio(dai ? 1 - tNhip / dai : null, chonCuaToi.value === null);
   if (!dai) return;
   const s = Math.ceil((dai - tNhip) / 1000);
   if (s !== giayCu) {
@@ -228,7 +221,6 @@ function batDau(): void {
   van.value = v;
   tVan = 0; ketVan.value = null; diemHien.value = 0; clearTimeout(henBay);
   buoc.value = 'choi';
-  doBan();
   luotMoi(v);
   emit('bat-dau', { ...c });
 }
@@ -241,7 +233,7 @@ function cham(i: number): void {
   const them = Math.min(100, Math.max(0, performance.now() - truoc));
   if (!v.chon(TOI, i, Math.min(tNhip + them, v.chonMs))) return;
   chonCuaToi.value = i;
-  sfx.select();
+  sfx.timChon();
   rung.tach();
   rev.value++;
 }
@@ -256,8 +248,10 @@ function chot(v: VanTimThe): void {
   ketToi.value = kq;
   if (kq?.ketCuc === 'dung' && kq.viTri != null) void bayDiem(kq.viTri, kq.diem, kq.ms ?? 0);
   vaoNhip('dap-an');
-  if (kq?.ketCuc === 'dung') { sfx.match(kq.chuoi); rung.ghep(kq.chuoi); } else { sfx.miss(); rung.sai(); }
+  if (kq?.ketCuc === 'dung') { sfx.match(kq.chuoi); rung.ghep(kq.chuoi); } else if (kq?.ketCuc === 'sai') { sfx.miss(); rung.sai(); }
+  // Hết giờ chưa chọn: vòng sáng quay về đáp án rồi mới lật — tiếng trung tính lúc lật (`latBan`)
 }
+function latBan(): void { if (ketToi.value && ketToi.value.ketCuc !== 'dung' && ketToi.value.ketCuc !== 'sai') { sfx.timHet(); rung.sai(); } }
 
 function ketThuc(v: VanTimThe): void {
   const c = chon.value;
@@ -297,8 +291,6 @@ function tamDung(): void { if (buoc.value === 'choi') buoc.value = 'dung'; }
 function anTrang(): void { if (document.hidden) tamDung(); }
 
 onMounted(() => {
-  ro = new ResizeObserver(doBan);
-  if (ban.value) ro.observe(ban.value);
   document.addEventListener('visibilitychange', anTrang);
   raf = requestAnimationFrame((ms) => { truoc = ms; raf = requestAnimationFrame(khung); });
   batDau();
@@ -306,7 +298,6 @@ onMounted(() => {
 onUnmounted(() => {
   clearTimeout(henKq);
   clearTimeout(henBay);
-  ro?.disconnect();
   cancelAnimationFrame(raf);
   hen.forEach(clearTimeout);
   document.removeEventListener('visibilitychange', anTrang);
@@ -354,46 +345,19 @@ defineExpose({
          hiểu mà", "thanh ghi nhớ thời gian cũng bỏ đi"). Màn chơi CHỈ có bàn thẻ; giờ báo bằng tiếng tích 3 giây cuối.
          Dòng dưới chỉ cho trình đọc màn hình. -->
     <p class="an-di" aria-live="polite">{{ nhip === 'hoi' && van ? `${t('tt.hoi')} ${van.hinhDich}` : bangKq?.chu ?? '' }}</p>
-    <div ref="ban" class="tt-ban">
-      <div class="luoi" :style="{ gridTemplateColumns: `repeat(${soCot}, ${laW}px)` }">
-        <div v-for="(sym, i) in dsThe" :key="i" class="o" :class="{ 'co-gain': gain?.i === i }">
-          <button
-            class="card" type="button" data-nosfx data-phang
-            :class="{
-              lat: ngua,
-              dung: nhip === 'dap-an' && i === van?.dich,
-              sai: nhip === 'dap-an' && i === chonCuaToi && i !== van?.dich,
-              cho: nhip === 'hoi' && i === chonCuaToi
-            }"
-            :aria-label="ngua ? sym : t('tt.theSo', { n: i + 1 })"
-            :aria-disabled="nhip !== 'hoi' || chonCuaToi !== null"
-            @pointerdown.prevent="cham(i)" @keydown.enter.prevent="cham(i)" @keydown.space.prevent="cham(i)"
-          >
-            <span class="inner">
-              <span class="face back" aria-hidden="true" />
-              <span class="face front" :class="{ chu: laKyTuChu(sym) }" aria-hidden="true">
-                <img v-if="anhEmoji(sym, undefined, coAnh)" class="emoji" :src="anhEmoji(sym, undefined, coAnh)!" alt="" draggable="false">
-                <span v-else class="emoji chu">{{ sym }}</span>
-              </span>
-            </span>
-          </button>
-          <template v-if="gain && gain.i === i && nhip === 'dap-an'">
+    <div class="tt-ban">
+      <BanVongTim
+        ref="banVong" :so-the="van?.cfg.soThe ?? chon.soThe" :hinh="dsThe" :hinh-dich="van && nhip !== 'cho' && nhip !== 'xem' && nhip !== 'up' ? van.hinhDich : null"
+        :dich="nhip === 'dap-an' ? (van?.dich ?? null) : null" :nhip="nhip" :chon="chonCuaToi" :cho-cham="buoc === 'choi'" :dung="buoc !== 'choi'"
+        @cham="cham" @lat="latBan"
+      >
+        <template #the="{ i, lat }">
+          <template v-if="gain && gain.i === i && nhip === 'dap-an' && lat">
             <span :key="`s${gain.key}`" class="tt-giay" aria-hidden="true">{{ gain.s }}s</span>
             <span :key="`g${gain.key}`" :ref="datGain" class="tt-gain" aria-hidden="true">+{{ num(gain.diem) }}</span>
           </template>
-        </div>
-      </div>
-
-      <!-- THẺ CẦN TÌM giữa bàn: lớp mờ + thẻ to, tan tại chỗ khi sang nhịp hỏi (không chạm được bàn lúc này) -->
-      <Transition name="tt-noi">
-        <div v-if="nhip === 'noi' && van && buoc !== 'dau'" :key="van.luot" class="tt-noi" aria-hidden="true">
-          <span class="lon">
-            <img v-if="anhEmoji(van.hinhDich, undefined, chonCoAnh(108))" :src="anhEmoji(van.hinhDich, undefined, chonCoAnh(108))!" alt="" draggable="false">
-            <template v-else>{{ van.hinhDich }}</template>
-          </span>
-          <b class="nhan-noi">{{ t('tt.timTheNay') }}</b>
-        </div>
-      </Transition>
+        </template>
+      </BanVongTim>
 
       <!-- KẾT QUẢ = ĐÚNG bảng kết quả của ván ghép cặp (ResultDialog, chế độ `tim-the`; chủ dự án 27.11.2026) -->
       <ResultDialog
@@ -495,68 +459,12 @@ defineExpose({
 @keyframes no { from { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.12); } to { transform: none; opacity: 1; } }
 
 
-/* Nhịp `noi`: lớp mờ phủ cả bàn + thẻ cần tìm to ở giữa (mockup duyệt 27.11.2026) */
-.tt-noi {
-  position: absolute; inset: -6px; z-index: 6; border-radius: 22px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 12px; pointer-events: auto;
-  background: rgba(13, 24, 56, .38); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
-}
-.tt-noi .lon {
-  width: min(108px, 30%); aspect-ratio: 3 / 4; border-radius: 15px; display: grid; place-items: center; font-size: 60px; line-height: 1;
-  font-family: var(--font-display); font-weight: 800; color: #1d2a5a;
-  background: radial-gradient(110% 80% at 50% 35%, #fff, #f1f5ff 90%); border: 4px solid #ffc21a;
-  box-shadow: 0 6px 0 #c98f00, 0 14px 30px rgba(10, 20, 60, .35); animation: bat .38s cubic-bezier(.3, 1.5, .5, 1) both;
-}
-.tt-noi .lon img { width: 66%; height: auto; object-fit: contain; }
-.nhan-noi {
-  font-family: var(--font-display); font-weight: 900; font-size: 18px; color: #fff; padding: 5px 14px; border-radius: 999px;
-  background: #2f4fa6; box-shadow: 0 3px 0 #1f3577; animation: bat .38s .08s both;
-}
-@keyframes bat { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
-.tt-noi-enter-active { transition: opacity .25s; }
-/* Lúc tan: KHÔNG chặn chạm + tan nhanh — đồng hồ chọn đã chạy, lớp mờ còn đón chạm thì cú bấm đầu bị nuốt
-   (chủ dự án 27.11.2026: "bấm rất nhanh mà vẫn lâu"). */
-.tt-noi-leave-active { transition: opacity .12s; pointer-events: none; }
-.tt-noi-leave-active .lon { transition: transform .12s; transform: scale(.8); }
-.tt-noi-enter-from, .tt-noi-leave-to { opacity: 0; }
+
 
 
 .an-di { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; }
 .tt-ban { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; }
-.luoi { display: grid; gap: 10px; justify-content: center; align-content: center; }
-.o { position: relative; aspect-ratio: 3 / 4; }
-.card {
-  position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; border-radius: 12px;
-  perspective: 600px; container-type: size; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-}
-.card[aria-disabled='true'] { cursor: default; }
-.inner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .32s cubic-bezier(.3, .9, .3, 1.15); border-radius: inherit; }
-.card.lat .inner { transform: rotateY(180deg); }
-.face { position: absolute; inset: 0; box-sizing: border-box; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: grid; place-items: center; }
-.face.front { transform: rotateY(180deg); }
-.emoji { width: 62%; height: 62%; object-fit: contain; pointer-events: none; }
-.emoji.chu { width: auto; height: auto; font-size: min(48cqw, 58cqh); line-height: 1; }
-/* Chữ/số: phông hiển thị nét đậm, màu mực — CÙNG thẻ chữ ở bàn chính (CardTile `.front.chu`) */
-.front.chu { font-family: var(--font-display); font-weight: 800; color: #1d2a5a; }
-/* VÒNG BÁO là lớp RIÊNG (::after) chứ không phải box-shadow của `.card`: skin Kẹo đặt box-shadow !important trên
-   `.card` nên vòng xanh/đỏ bị đè mất — nhất là màn tối (ảnh chụp 26.11.2026). */
-.card::after {
-  content: ''; position: absolute; inset: -5px; border-radius: 16px; pointer-events: none; z-index: 3;
-  border: 4px solid transparent; transition: border-color .15s;
-}
-.card.cho::after { border-color: #ffc21a; box-shadow: 0 0 16px 3px rgba(255, 194, 26, .7); }
-/* Chọn một lá: lá LẮC nhẹ (chủ dự án 27.11.2026) — `rotate` riêng, không đụng `transform` lật của `.inner` */
-.card.cho { animation: lac-chon .42s ease; }
-@keyframes lac-chon { 15% { rotate: -7deg; scale: 1.06; } 35% { rotate: 6deg; } 55% { rotate: -4deg; } 75% { rotate: 2deg; } 100% { rotate: 0deg; scale: 1; } }
-.card.dung::after { border-color: #3fbf5f; box-shadow: 0 0 18px 5px rgba(63, 191, 95, .7); }
-.card.sai::after { border-color: #ff4d6d; box-shadow: 0 0 14px 3px rgba(255, 77, 109, .6); }
-.card.dung { animation: nay-the .45s; z-index: 2; }
-.card.sai .inner { animation: lac .45s; }
-@keyframes nay-the { 40% { scale: 1.1; } }
-@keyframes lac {
-  20% { transform: rotateY(180deg) translateX(-6px); } 40% { transform: rotateY(180deg) translateX(6px); }
-  60% { transform: rotateY(180deg) translateX(-4px); } 80% { transform: rotateY(180deg) translateX(3px); }
-}
+
 
 /* màn mở đầu: HUD + bàn vẫn dựng (để đo) nhưng ẩn */
 /* FONT: nút HÀNH ĐỘNG dùng `btn`/`btn-primary` (Kẹo cho font tiêu đề) — `thach` trần KHÔNG đặt font. Số và nhãn
@@ -564,7 +472,6 @@ defineExpose({
 
 .ic-n { vertical-align: -2px; }
 @media (prefers-reduced-motion: reduce) {
-  .inner { transition-duration: .01s; }
-  .o .card.dung, .card.cho, .card.sai .inner, .huy, .cong, .vien.combo, .tt-noi .lon, .nhan-noi, .tt-giay, .vien.diem.nay { animation: none; }
+  .huy, .cong, .vien.combo, .tt-giay, .vien.diem.nay { animation: none; }
 }
 </style>
