@@ -1286,17 +1286,18 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .vpm-vm { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
 /* LẮC NGAY TỪ LÚC MỞ APP (27.11.2026, chủ dự án: "mở app một lúc mới lắc, người dùng có khi chưa kịp nhìn"): nhịp lắc nằm ĐẦU
    chu kỳ (2.6 s), cả viên Premium toả quầng vàng nhấp nháy liên tục cho nổi trên nền */
-.vpm-vm.lac { animation: vpm-lac 2.6s ease-in-out infinite; transform-origin: 50% 85%; }
+.vpm-vm.lac { animation: vpm-lac 2s ease-in-out infinite; transform-origin: 50% 85%; }
+/* Mockup A2 duyệt 27.11.2026 (https://claude.ai/artifact/CGe7j2CZG5nt1VEXBGgTGh, "lắc cao hơn và nhanh hơn"): nhảy 7px, ±24°, nhịp 0,5 s, lặp 2 s */
 @keyframes vpm-lac {
   0% { transform: none; }
-  5% { transform: rotate(-18deg) scale(1.18); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 16px 4px rgba(255, 205, 60, .8); }
-  11% { transform: rotate(16deg) scale(1.18); }
-  17% { transform: rotate(-12deg) scale(1.12); }
-  23% { transform: rotate(8deg) scale(1.06); }
-  29% { transform: rotate(-3deg); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 8px 1px rgba(255, 205, 60, .4); }
-  35%, 100% { transform: none; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
+  4% { transform: translateY(-7px) rotate(-24deg) scale(1.22); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 18px 5px rgba(255, 205, 60, .85); }
+  8% { transform: translateY(-7px) rotate(22deg) scale(1.22); }
+  12% { transform: translateY(-4px) rotate(-16deg) scale(1.15); }
+  16% { transform: translateY(-2px) rotate(10deg) scale(1.08); }
+  20% { transform: rotate(-4deg); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 8px 1px rgba(255, 205, 60, .4); }
+  25%, 100% { transform: none; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
 }
-.vien-pm { animation: vpm-quang 2.6s ease-in-out infinite; }
+.vien-pm { animation: vpm-quang 2s ease-in-out infinite; }
 @keyframes vpm-quang {
   0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 196, 40, 0)); }
   10% { filter: drop-shadow(0 0 10px rgba(255, 196, 40, .85)); }

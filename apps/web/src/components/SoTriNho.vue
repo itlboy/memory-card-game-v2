@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { vChamNgoai } from '@/lib/cham-ngoai';
+import KhungBong from './KhungBong.vue';
 /**
  * CHỈ SỐ TRÍ NHỚ — màn GỌN (bản 4, 25.11.2026: mockup B duyệt https://claude.ai/artifact/MPUFzw758MSrAqUN4osP3t,
  * chủ dự án: "giao diện hơi xấu… đừng quá nhiều thứ làm loạn"; chọn B và "điểm số cho nhỏ bớt đi, 50%").
@@ -65,6 +66,11 @@ const SO_BAC = 5;
 const duCa = computed(() => ky.value.diem !== null);
 const moGiaiTam = ref(false);
 const hoiEl = ref<HTMLElement | null>(null);
+const giaiEl = ref<HTMLElement | null>(null);
+/** Tâm chân đuôi bong bóng tính từ mép trái = ngay dưới tâm dấu ? (bong bóng neo phải, lệch `DUOI_PHAI` từ tâm ?). */
+const DUOI_PHAI = 34;
+const vtDuoi = ref(200);
+watch(giaiEl, (el) => { if (el) vtDuoi.value = el.offsetWidth - DUOI_PHAI; });
 watch(chon, () => { moGiaiTam.value = false; });
 /** Đang mở lời giải thích: chạm bất kỳ đâu NGOÀI dấu ? / lời giải thích là tắt. */
 const ngoaiHoi = (e: PointerEvent): void => { if (hoiEl.value && !hoiEl.value.contains(e.target as Node)) moGiaiTam.value = false; };
@@ -200,7 +206,10 @@ const coNhan = (k: string, i: number): boolean =>
           <span v-if="!duCa" ref="hoiEl" class="hoi-vung">
             <button class="hoi-tam thach th-nho" type="button" :aria-expanded="moGiaiTam" :aria-label="t('tn.canThem')"
               @click="moGiaiTam = !moGiaiTam; moGiaiTam && moChucNang('tri_nho_can_them', {}, true)">?</button>
-            <span v-if="moGiaiTam" class="giai-tam" role="note" @click="moGiaiTam = false">
+            <span v-if="moGiaiTam" ref="giaiEl" class="giai-tam" role="note" @click="moGiaiTam = false">
+              <!-- BONG BÓNG CHAT (27.11.2026, chủ dự án: "vẽ kiểu gì xấu thế… sao không làm giống bong bóng chat"): cùng KhungBong của
+                   bong bóng lời nói — thân + đuôi một nét liền, đuôi chỉ lên đúng dấu ? -->
+              <KhungBong canh="tren" :day="2" :r="14" :vt="vtDuoi" />
               <b>{{ t('tn.canThem') }}</b>
               <span>{{ hien.diem === null ? (laHomNay ? t('tn.baoTrong') : t('tn.baoTrongCu')) : laHomNay ? t('tn.baoIt') : t('tn.baoItCu') }}</span>
             </span>
@@ -443,10 +452,9 @@ const coNhan = (k: string, i: number): boolean =>
 /* Nút ? TRUNG TÍNH, nhỏ (27.11.2026, chủ dự án: vàng "nổi bật quá", "cho nhỏ hơn chút") — cùng kiểu thạch với nút đóng */
 .hoi-vung { position: absolute; top: 6px; left: calc(50% + 50px); z-index: 6; }
 .hoi-tam { width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; font: 800 13px/1 var(--font-display); color: var(--muted); }
-.giai-tam { position: absolute; top: calc(100% + 10px); right: -22px; width: min(260px, 74vw); box-sizing: border-box; display: grid; gap: 4px; padding: 10px 12px; border-radius: 14px; text-align: left;
-  background: var(--panel-solid, #fff); color: var(--fg); box-shadow: 0 10px 28px rgba(10, 20, 60, .3), inset 0 0 0 1.5px color-mix(in srgb, #f0b400 60%, transparent); font: 700 12.5px/1.45 var(--font-body); }
-/* mũi nhọn chỉ đúng vào dấu ? */
-.giai-tam::before { content: ""; position: absolute; top: -7px; right: 28px; width: 12px; height: 12px; transform: rotate(45deg); background: var(--panel-solid, #fff); box-shadow: -1.5px -1.5px 0 color-mix(in srgb, #f0b400 60%, transparent); }
+.giai-tam { position: absolute; top: calc(100% + 16px); right: -22px; width: min(260px, 74vw); box-sizing: border-box; display: grid; gap: 4px; padding: 11px 14px; text-align: left;
+  --nen: var(--panel-solid, #fff); --vien: color-mix(in srgb, #f0b400 70%, transparent); color: var(--fg);
+  filter: drop-shadow(0 6px 12px rgba(10, 20, 60, .28)); font: 700 12.5px/1.45 var(--font-body); isolation: isolate; }
 .giai-tam b { font: 800 14px/1.2 var(--font-display); color: #c98a00; }
 /* Bạc màu: huy chương + thang bậc khi là điểm tạm */
 .huy-khung.tam { filter: grayscale(1) opacity(.62); }
