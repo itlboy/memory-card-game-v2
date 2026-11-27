@@ -1147,6 +1147,7 @@ const tr: TuDien = {
   'hs.mau': "Rengin",
   'hs.vaoChoi': "Hadi oyna",
   'hs.goTen': "Devam etmek için bir ad yaz",
+  'hs.tenXau': "Bu isme izin verilmiyor — başka bir isim seç",
   'hs.hoSo': "Profilin",
   'hs.luu': "Kaydet",
   'hs.trangTruoc': "Önceki sayfa",

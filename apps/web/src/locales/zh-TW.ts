@@ -1147,6 +1147,7 @@ const zhTW: TuDien = {
   'hs.mau': "你的顏色",
   'hs.vaoChoi': "開始玩",
   'hs.goTen': "輸入名字才能繼續",
+  'hs.tenXau': "這個名稱不允許使用，請換一個",
   'hs.hoSo': "你的資料",
   'hs.luu': "儲存",
   'hs.trangTruoc': "上一頁",

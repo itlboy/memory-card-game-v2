@@ -1,4 +1,4 @@
-import { matHoSo, mauHoSo } from '@mm/engine';
+import { matHoSo, mauHoSo, tenAnToan } from '@mm/engine';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { createHash, randomBytes } from 'node:crypto';
@@ -97,7 +97,8 @@ function docBody(req: IncomingMessage): Promise<Record<string, unknown> | null> 
 }
 
 const docTt = (v: unknown): TrangThai => (v === 'choi' || v === 'phong' ? v : 'chu');
-const tenSach = (v: unknown): string => String(v ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16);
+/** Tên ở sảnh (danh sách mời): bỏ ký tự điều khiển, cắt 16, tên bậy → "***" (ten-xau, 28.11.2026). */
+const tenSach = (v: unknown): string => tenAnToan(String(v ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16));
 
 export function moSanh(opts: {
   xemPhong(ma: string): XemPhong | null; avatars: readonly string[]; now?: () => number;

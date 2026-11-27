@@ -1144,6 +1144,7 @@ const ja: TuDien = {
   'hs.mau': "あなたの色",
   'hs.vaoChoi': "はじめる",
   'hs.goTen': "名前を入力して続ける",
+  'hs.tenXau': "この名前は使用できません。別の名前を選んでください",
   'hs.hoSo': "プロフィール",
   'hs.luu': "保存",
   'hs.trangTruoc': "前のページ",

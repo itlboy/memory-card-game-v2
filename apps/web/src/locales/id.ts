@@ -1147,6 +1147,7 @@ const id: TuDien = {
   'hs.mau': "Warnamu",
   'hs.vaoChoi': "Ayo main",
   'hs.goTen': "Ketik nama untuk lanjut",
+  'hs.tenXau': "Nama ini tidak diizinkan — pilih nama lain",
   'hs.hoSo': "Profilmu",
   'hs.luu': "Simpan",
   'hs.trangTruoc': "Halaman sebelumnya",

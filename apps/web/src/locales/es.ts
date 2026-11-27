@@ -1146,6 +1146,7 @@ const es: TuDien = {
   'hs.mau': "Tu color",
   'hs.vaoChoi': "A jugar",
   'hs.goTen': "Escribe un nombre para continuar",
+  'hs.tenXau': "Este nombre no está permitido: elige otro",
   'hs.hoSo': "Tu perfil",
   'hs.luu': "Guardar",
   'hs.trangTruoc': "Página anterior",

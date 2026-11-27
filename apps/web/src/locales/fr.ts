@@ -1150,6 +1150,7 @@ const fr: TuDien = {
   'hs.mau': "Ta couleur",
   'hs.vaoChoi': "Jouer",
   'hs.goTen': "Saisis un nom pour continuer",
+  'hs.tenXau': "Ce nom n’est pas autorisé — choisis-en un autre",
   'hs.hoSo': "Ton profil",
   'hs.luu': "Enregistrer",
   'hs.trangTruoc': "Page précédente",

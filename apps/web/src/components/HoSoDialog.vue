@@ -13,6 +13,7 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { t } from '@/lib/i18n';
 import { AVATAR_HO_SO, MAU_HO_SO, hoSo, luuHoSo, tenDienSan } from '@/lib/ho-so';
+import { laTenXau } from '@mm/engine';
 import { DO_DAI_TOI_DA } from '@/lib/ten-goc';
 import { guiHoSo, me, san } from '@/lib/taikhoan';
 import { ChevronRight as Toi } from 'lucide-vue-next';
@@ -23,7 +24,9 @@ const emit = defineEmits<{ xong: []; 'tai-khoan': [] }>();
 const ten = ref(tenDienSan());
 const mat = ref(hoSo.value.mat);
 const mau = ref(hoSo.value.mau);
-const coTen = computed(() => ten.value.trim().length > 0);
+/** Tên bậy (engine ten-xau, 28.11.2026): không cho lưu — bảng xếp hạng / phòng online đằng nào server cũng che thành "***". */
+const tenXau = computed(() => laTenXau(ten.value));
+const coTen = computed(() => ten.value.trim().length > 0 && !tenXau.value);
 
 const HANG = 3, MOI = 18;
 /*
@@ -140,7 +143,7 @@ function dong(): void { if (props.kieu === 'sua') emit('xong'); }
       <button class="btn btn-primary hs-vao" type="button" :class="{ tat: !coTen }" :aria-disabled="!coTen" @click="luu">
         {{ kieu === 'chao' ? t('hs.vaoChoi') : t('hs.luu') }}
       </button>
-      <p v-if="!coTen" class="hs-goi-y" role="status">{{ t('hs.goTen') }}</p>
+      <p v-if="!coTen" class="hs-goi-y" role="status">{{ tenXau ? t('hs.tenXau') : t('hs.goTen') }}</p>
     </div>
   </div>
 </template>

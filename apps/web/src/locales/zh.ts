@@ -1144,6 +1144,7 @@ const zh: TuDien = {
   'hs.mau': "你的颜色",
   'hs.vaoChoi': "开始玩",
   'hs.goTen': "输入名字才能继续",
+  'hs.tenXau': "这个名字不允许使用，请换一个",
   'hs.hoSo': "你的资料",
   'hs.luu': "保存",
   'hs.trangTruoc': "上一页",

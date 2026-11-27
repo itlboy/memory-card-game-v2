@@ -1147,6 +1147,7 @@ const de: TuDien = {
   'hs.mau': "Deine Farbe",
   'hs.vaoChoi': "Los geht's",
   'hs.goTen': "Gib einen Namen ein, um fortzufahren",
+  'hs.tenXau': "Dieser Name ist nicht erlaubt – bitte wähle einen anderen",
   'hs.hoSo': "Dein Profil",
   'hs.luu': "Speichern",
   'hs.trangTruoc': "Vorherige Seite",

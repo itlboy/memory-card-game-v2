@@ -1144,6 +1144,7 @@ const ko: TuDien = {
   'hs.mau': "내 색깔",
   'hs.vaoChoi': "시작하기",
   'hs.goTen': "계속하려면 이름을 입력하세요",
+  'hs.tenXau': "사용할 수 없는 이름이에요. 다른 이름을 골라 주세요",
   'hs.hoSo': "내 프로필",
   'hs.luu': "저장",
   'hs.trangTruoc': "이전 페이지",

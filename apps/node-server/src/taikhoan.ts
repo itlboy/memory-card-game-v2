@@ -1,7 +1,7 @@
 import { createHmac, createHash, createPrivateKey, createPublicKey, sign, timingSafeEqual, verify, type webcrypto } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Pool } from 'mysql2/promise';
-import { huyHieuHoSo, matHoSo, mauHoSo } from '@mm/engine';
+import { huyHieuHoSo, matHoSo, mauHoSo, tenAnToan } from '@mm/engine';
 /**
  * HUY HIỆU PREMIUM trên bảng xếp hạng (27.11.2026, chủ dự án: "chưa hiện huy hiệu người chơi premium ở bảng xếp hạng").
  * Premium nằm trên MÁY (chưa có server bán) nên máy tự khai huy hiệu đang đeo; '' = không đeo (hết Premium thì gửi '' để gỡ).
@@ -651,7 +651,8 @@ export async function moTaiKhoan(
   function dongCongKhai(r: Record<string, unknown>) {
     const khach = Number(r.la_khach) === 1, k = String(r.k);
     // Tài khoản đã đặt TÊN HỒ SƠ (25.11.2026) → hiện đúng tên đó; chưa đặt → tên Google rút gọn như cũ
-    const ten = khach ? String(r.name ?? '') : (r.ten_hien ? String(r.ten_hien) : tenTat(String(r.name ?? '')));
+    // Tên bậy → "***" LÚC TRẢ RA (28.11.2026): che cả tên đã nằm sẵn trong DB, không phải dọn DB (packages/engine/src/ten-xau.ts)
+    const ten = tenAnToan(khach ? String(r.name ?? '') : (r.ten_hien ? String(r.ten_hien) : tenTat(String(r.name ?? ''))));
     const ol = online?.(`${khach ? 'k' : 'u'}:${k}`) ?? undefined;
     return {
       name: ten, avatar: null, mat: matHoSo(r.mat) ?? (khach ? matTuMa(k) : MAT_BXH[Number(k) % MAT_BXH.length]!),

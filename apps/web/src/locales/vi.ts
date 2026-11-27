@@ -1158,6 +1158,7 @@ const vi = {
   'hs.mau': "Màu của bạn",
   'hs.vaoChoi': "Vào chơi",
   'hs.goTen': "Gõ tên để tiếp tục",
+  'hs.tenXau': "Tên này không phù hợp — hãy chọn tên khác",
   'hs.hoSo': "Hồ sơ của bạn",
   'hs.luu': "Lưu",
   'hs.trangTruoc': "Trang trước",

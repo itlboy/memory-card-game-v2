@@ -640,6 +640,12 @@
   `engine.snapshot()`), `?room=CODE`, `?online=1`, `?w=<bước wizard>` —
   F5 không mất chỗ đứng; logo về trang chủ thì lau sạch URL (chủ đích).
   MenuScreen chỉ được đụng param `w`; App giữ phần còn lại.
+- **CHẶN TÊN BẬY (28.11.2026, chủ dự án: "chặn những cái tên bất lịch sự… tránh hiển thị lên bảng xếp hạng")** — engine
+  `ten-xau.ts` (`laTenXau`, `tenAnToan` → "***"), test `packages/engine/test/ten-xau.test.ts`. Server che LÚC TRẢ RA ở bảng xếp
+  hạng (taikhoan `dongCongKhai` — che cả tên cũ trong DB), lúc VÀO PHÒNG / đổi tên (room.ts), ở sảnh (sanh.ts `tenSach`); app
+  không cho lưu tên bậy ở HoSoDialog (`hs.tenXau`). Từ dài đặc trưng dò ở bất kỳ đâu; từ ngắn dễ trùng tên thật ("lon" trong
+  "Long") chỉ chặn khi đứng riêng và viết KHÔNG dấu; tiếng Việt có dấu so đúng dấu ("các" ≠ "cặc"). Thêm từ = thêm vào danh sách
+  + ca test; chặn oan tên người tệ hơn lọt một từ hiếm.
 - **KHUNG ONLINE DÙNG CHUNG — MỌI KIỂU CHƠI ONLINE PHẢI DỰNG TRÊN NÓ (28.11.2026, chủ dự án: "tại sao chúng ta cứ có sự
   khác biệt giữa màn chơi này và màn thường… phải làm cơ chế để tái sử dụng, vì sau này có thể làm ra các thể loại chơi
   khác")**. Tìm Thẻ online từng tự dựng khung → thiếu báo mất mạng, bong bóng chat sai chỗ, đếm ngược không lớp phủ.

@@ -10,7 +10,7 @@ import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, huyHieuHoSo, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, pairsForLevel } from '@mm/engine';
 import type { KetChon, TimTheDoKho } from '@mm/engine';
-import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE, chotSoThe } from '@mm/engine';
+import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE, chotSoThe, tenAnToan } from '@mm/engine';
 /** Số thẻ Tìm Thẻ của phòng — chưa chọn, hoặc là mức đã bỏ (8, 9, 12, 16 lưu từ trước), thì về mặc định. */
 const timSoTheHopLe = (n: number | undefined): number => ((TIM_THE_SO_THE as readonly number[]).includes(n ?? -1) ? n! : TIM_THE_ONLINE_SO_THE);
 
@@ -528,7 +528,8 @@ export class RoomDO extends DurableObject<Env> {
 
     const url = new URL(request.url);
     const code = url.searchParams.get('code') ?? '';
-    const name = (url.searchParams.get('name') ?? '').trim().slice(0, 16);
+    // Tên bậy → "***" ngay lúc vào phòng (ten-xau, 28.11.2026) — cả phòng, người xem, danh sách phòng công khai đều thấy tên đã che
+    const name = tenAnToan((url.searchParams.get('name') ?? '').trim().slice(0, 16));
     // Cắt 64: đây là chuỗi client gửi lên, không tin độ dài của nó
     const clientId = (url.searchParams.get('cid') ?? '').trim().slice(0, 64) || undefined;
     const token = url.searchParams.get('token') ?? '';
@@ -1122,7 +1123,7 @@ export class RoomDO extends DurableObject<Env> {
        * (ON-09) — để lọt một tên rỗng là chip người chơi thành khoảng trắng.
        */
       case 'rename': {
-        const ten = String(msg.name ?? '').trim().slice(0, 16);
+        const ten = tenAnToan(String(msg.name ?? '').trim().slice(0, 16));
         if (!ten || ten === player.name) return;
         /*
          * HẠN MỨC, y như emoji. Mỗi lần đổi tên là một `save()` cộng hai lần

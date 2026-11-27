@@ -49,3 +49,4 @@ export type {
 } from './tim-the.js';
 export { PhongTimThe, TIM_PHONG_LECH_MS, TIM_PHONG_TRE_MS } from './tim-the-phong.js';
 export type { TimNguoiView, TimPha, TimView } from './tim-the-phong.js';
+export { TEN_CHE, chuanHoaTen, laTenXau, tenAnToan } from './ten-xau.js';
