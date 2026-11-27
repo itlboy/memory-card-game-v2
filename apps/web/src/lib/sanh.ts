@@ -117,6 +117,7 @@ function mo(): void {
       coSanh.value = true;
       dangNoiSanh.value = true;
       coThiDau.value = m.td === 1;
+      if (typeof m.tong === 'number') ghiSoOnline(m.tong);
       guiGy();
       // Gửi LẠI trạng thái lúc đã nối: đổi trạng thái khi socket còn đang mở thì tin `tt` bị rơi (gui() bỏ qua khi
       // chưa OPEN) — chủ phòng từng hiện trong danh sách mời của chính mình là "Ở trang chủ" (chụp kiểm 21.11.2026)
@@ -124,6 +125,8 @@ function mo(): void {
       gui({ t: 'ai', ...danhTinhSanh() });
       return;
     }
+    // Số online server đẩy ngay khi có người vào / ra sảnh (28.11.2026) — không chờ lần hỏi 20 giây
+    if (m.t === 'so') { ghiSoOnline(m.tong); return; }
     if (nhanTinThiDau(m)) return;
     if (m.t === 'moi' && /^\d{6}$/.test(String(m.ma)) && !trongPhongOnline.value) {
       const han = Number(m.han) || 20_000;

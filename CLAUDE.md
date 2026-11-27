@@ -1759,6 +1759,9 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   Tham gia vẫn chơi tiếp; trận THÀNH (`tdTran`) thì App tự `session.pause()`, vào phòng mới dọn ván, trận huỷ thì chơi tiếp.
 - **SỐ NGƯỜI ONLINE**: `/api/rooms/public` trả thêm `online` = số kết nối sảnh → `soNguoiOnline` (lib/sanh.ts, đã trừ mình) →
   ô Chơi online ở trang chủ (icon người + số; chấm xanh nhịp chỉ khi có phòng chờ) và dòng đầu màn Chơi online.
+  CẬP NHẬT NGAY (28.11.2026, chủ dự án: "có vẻ hơi chậm"): server sảnh đẩy `{ t: 'so', tong }` cho mọi máy nối sảnh mỗi khi
+  có người vào/ra (gom 1 giây; lời `chao` cũng mang `tong`); hỏi 20 giây giữ làm dự phòng. Nhịp tim sảnh 15 giây (trước 30)
+  để máy khoá màn mà socket không đóng bị gỡ sau 15–30 giây thay vì 30–60.
 - **THẺ HỎI MỘT HÀNG + CHIP CHỜ NHỎ (23.11.2026, chủ dự án: "thanh thông báo thi đấu có thể làm nhỏ hơn", "nút chờ hơi cản trở
   nội dung")**: thẻ = icon · chữ · ✕ (Để sau) · "Tham gia" cùng dòng + vạch mảnh, cao ~63px (bản đầu ~130px có hàng nút riêng).
   Chờ = chip góc TRÁI dưới thanh trên cùng: icon kiếm + đồng hồ + ✕, z 14 (dưới mọi hộp thoại). Đừng làm to lại.

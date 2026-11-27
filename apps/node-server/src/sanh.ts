@@ -27,7 +27,14 @@ export const MOI_MOI_PHUT = 8;
 export const TOI_DA_DS = 30;
 /** Trần kết nối sảnh — máy 768 MB, mỗi socket rảnh ~ vài chục KB. */
 export const TOI_DA_KET_NOI = 3000;
-const NHIP_TIM_MS = 30_000;
+/**
+ * Nhịp tim sảnh: máy không trả `pong` qua MỘT nhịp thì bị gỡ. 15 giây (28.11.2026, trước 30): iPhone khoá màn / chuyển app
+ * thường KHÔNG đóng socket — với 30 giây, số online trên trang chủ còn đếm họ tới 60 giây sau khi họ đã đi (chủ dự án: "con
+ * số online có vẻ hơi chậm"). Mỗi nhịp chỉ là một khung ping vài byte.
+ */
+const NHIP_TIM_MS = 15_000;
+/** Gom các lần vào/ra sảnh trong chừng này rồi mới báo số online mới cho mọi người (`t: 'so'`). */
+const GOM_BAO_SO_MS = 1_000;
 const KHOA_TU_CHOI_MS = 60 * 60_000;
 
 /**
@@ -144,6 +151,26 @@ export function moSanh(opts: {
 
   function gui(k: KetNoi, tin: unknown): void { try { k.ws.send(JSON.stringify(tin)); } catch { /* đã đóng */ } }
 
+  /*
+   * SỐ ONLINE ĐẨY NGAY (28.11.2026, chủ dự án: "con số online ở trang chủ… có vẻ hơi chậm"). Trước đây trang chủ chỉ HỎI
+   * `/api/rooms/public` mỗi 20 giây. Nay ai vào / ra sảnh là server báo `{ t: 'so', tong }` cho MỌI máy đang nối sảnh (gom
+   * `GOM_BAO_SO_MS` để một đợt nhiều người vào chỉ thành một tin). Lần hỏi 20 giây vẫn giữ làm dự phòng. Client cũ bỏ qua
+   * tin lạ (`onmessage` chỉ xử lý `chao`/`moi`/thi đấu).
+   */
+  let henSo: ReturnType<typeof setTimeout> | undefined;
+  let soDaBao = -1;
+  function baoSo(): void {
+    if (henSo) return;
+    henSo = setTimeout(() => {
+      henSo = undefined;
+      const tong = ketNoi.size;
+      if (tong === soDaBao) return;
+      soDaBao = tong;
+      for (const k of ketNoi.values()) gui(k, { t: 'so', tong });
+    }, GOM_BAO_SO_MS);
+    henSo.unref?.();
+  }
+
   function moiKetNoi(ws: WebSocket, url: URL, nuoc = ''): void {
     const sid = randomBytes(5).toString('hex');
     const k: KetNoi = {
@@ -159,7 +186,7 @@ export function moSanh(opts: {
     ketNoi.set(sid, k);
     ws.on('pong', () => { k.song = true; });
     // td.roi TRƯỚC khi gỡ khỏi `ketNoi`: thống kê còn tra được người này
-    ws.on('close', () => { td?.roi(k); ketNoi.delete(sid); if (k.ai && theoAi.get(k.ai) === sid) theoAi.delete(k.ai); });
+    ws.on('close', () => { td?.roi(k); ketNoi.delete(sid); if (k.ai && theoAi.get(k.ai) === sid) theoAi.delete(k.ai); baoSo(); });
     ws.on('error', () => { /* close theo sau */ });
     ws.on('message', (raw) => {
       k.song = true;
@@ -181,7 +208,8 @@ export function moSanh(opts: {
         k.moi = null;
       } else if (m.t === 'nhan' && k.moi && m.id === k.moi.id) k.moi = null;
     });
-    gui(k, { t: 'chao', sid, han: HAN_MOI_MS, ...(td ? { td: 1 } : {}) });
+    gui(k, { t: 'chao', sid, han: HAN_MOI_MS, tong: ketNoi.size, ...(td ? { td: 1 } : {}) });
+    baoSo();
     td?.xet();
   }
 
