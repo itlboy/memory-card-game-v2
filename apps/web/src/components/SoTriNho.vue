@@ -167,7 +167,7 @@ const coNhan = (k: string, i: number): boolean =>
       <Teleport to="body"><LuuChiaSe v-if="moChiaSe" :ve="veAnh" :chu="chuChiaSe" :url="`${LINK_TAI}?utm_source=chia_se&utm_medium=tri_nho`" @close="moChiaSe = false" /></Teleport>
 
       <!-- (1) TÔI Ở ĐÂU: điểm trong huy chương màu bậc -->
-      <section v-if="ky.diem !== null" class="giua">
+      <section v-if="ky.diem !== null" class="giua co-dinh">
         <!-- HUY CHƯƠNG NỔI BẬT (27.11.2026, mockup duyệt https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc): to, quầng sáng màu bậc,
              hai đuôi ruy-băng, dải tên bậc, vệt sáng lướt qua -->
         <div class="huy-khung" :class="`b${ky.bac}`">
@@ -194,7 +194,7 @@ const coNhan = (k: string, i: number): boolean =>
       <!-- CHƯA ĐỦ VÁN (27.11.2026, chủ dự án: "ngày đã chơi mà chưa đủ thì hiện cột mờ, điểm số cũng mờ, nói là số liệu yếu"; "một
            ván bàn nhỏ, một bàn vừa, một bàn lớn là đủ"; "đủ thông tin mà không tốn diện tích"): huy chương MỜ mang điểm thô, một dòng
            chữ, một hàng 3 viên nhóm bàn — hôm nay bấm viên là chơi ngay bàn đó, ngày cũ chỉ xem. -->
-      <section v-else class="giua">
+      <section v-else class="giua co-dinh">
         <div class="huy-khung yeu">
           <span v-if="ky.diemTho !== null" class="huy" role="img" :aria-label="`${num(ky.diemTho)} · ${t('tn.yeu')}`"><b :class="{ dai: ky.diemTho >= 1000 }">{{ ky.diemTho }}</b></span>
           <span v-else class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span>
@@ -405,14 +405,22 @@ const coNhan = (k: string, i: number): boolean =>
 .huy-khung .huy::after { content: ""; position: absolute; top: -40%; bottom: -40%; left: -60%; width: 34%; transform: rotate(25deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent); animation: loe-huy 3.6s ease-in-out infinite; }
 @keyframes loe-huy { 0%, 60% { left: -60%; } 85%, 100% { left: 130%; } }
 .huy-khung .dai-bac { position: absolute; top: 100px; padding: 5px 14px; border-radius: 10px; font: 800 13px/1 var(--font-display); color: var(--hc); white-space: nowrap; background: linear-gradient(var(--h1), var(--h2)); box-shadow: 0 2px 0 var(--h3), inset 0 0 0 1.5px rgba(255, 255, 255, .5); }
-.huy-khung.yeu { height: 98px; }
+/* CÙNG CHIỀU CAO giữa ngày đủ / ngày yếu / ngày trống (chủ dự án 27.11.2026: "chiều cao bị thay đổi khi chọn giữa ngày không có
+   số liệu và ngày đủ số liệu"): khung huy chương luôn 128px (huy chương nằm cùng chỗ), khối `.giua` giữ chiều cao của ngày đủ. */
+.huy-khung.yeu { height: 128px; }
+.giua.co-dinh { min-height: 208px; justify-content: flex-start; }
+/* Dòng chữ dưới huy chương luôn chừa ĐỦ 2 DÒNG: tiếng Đức/Nga trên máy hẹp xuống dòng ở ngày này mà không ở ngày kia */
+.giua.co-dinh .huy-chu { min-height: calc(2 * 1.3 * 12.5px); }
 .huy-khung.yeu::before, .huy-khung.yeu .huy::after { display: none; }
 .huy-khung.yeu .huy:not(.khoa) { --h1: var(--o); --h2: var(--o); --h3: var(--ray); color: var(--fg); opacity: .55; border-style: dashed; box-shadow: none; }
 .huy-khung.yeu .huy b { text-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .luyen::after, .huy-khung .huy::after { animation: none; display: none; } }
 
 /* 3 NHÃN NHÓM BÀN — chỉ hiển thị */
-.nhom3 { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.nhom3 { list-style: none; margin: 2px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, max-content)); justify-content: center; gap: 6px; max-width: 100%; }
+.nhom3 li { min-width: 0; white-space: nowrap; overflow: hidden; }
+/* Máy rất hẹp (320–359px) + ngôn ngữ chữ dài: bỏ dải số thẻ, giữ tên nhóm + dấu ✓ — không cắt chữ giữa chừng */
+@media (max-width: 359px) { .nhom3 small { display: none; } .nhom3 li { padding: 5px 9px 5px 6px; } }
 .nhom3 li { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px 5px 7px; border-radius: 999px; font: 800 12.5px/1 var(--font-body); background: var(--o); color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--ray); }
 .nhom3 .o { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px currentColor; opacity: .7; }
 .nhom3 li.du { color: var(--tn-du, #1f9e6a); background: color-mix(in srgb, #2fb57a 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #2fb57a 45%, transparent); }
