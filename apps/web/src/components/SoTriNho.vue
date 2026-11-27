@@ -18,7 +18,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  */
 import { Check, ChartColumn, Crown, Play, Share2, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { bcp, t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
@@ -64,7 +64,15 @@ const SO_BAC = 5;
 /** Đủ 3 nhóm bàn (điểm chính thức). */
 const duCa = computed(() => ky.value.diem !== null);
 const moGiaiTam = ref(false);
+const hoiEl = ref<HTMLElement | null>(null);
 watch(chon, () => { moGiaiTam.value = false; });
+/** Đang mở lời giải thích: chạm bất kỳ đâu NGOÀI dấu ? / lời giải thích là tắt. */
+const ngoaiHoi = (e: PointerEvent): void => { if (hoiEl.value && !hoiEl.value.contains(e.target as Node)) moGiaiTam.value = false; };
+watch(moGiaiTam, (mo) => {
+  if (mo) setTimeout(() => document.addEventListener('pointerdown', ngoaiHoi, true));
+  else document.removeEventListener('pointerdown', ngoaiHoi, true);
+});
+onBeforeUnmount(() => document.removeEventListener('pointerdown', ngoaiHoi, true));
 const hien = computed(() => {
   const k = ky.value;
   return k.diem !== null
@@ -187,12 +195,16 @@ const coNhan = (k: string, i: number): boolean =>
           <!-- KHÔNG ghi tên bậc dưới huy chương (27.11.2026, chủ dự án: "bỏ chữ bạc, vàng đi, dấu vạch là đủ") — thang 5 bậc ngay dưới đã đánh dấu -->
         </div>
         <div v-else class="huy-khung yeu"><span class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span></div>
-          <button v-if="!duCa" class="hoi-tam thach th-nho" type="button" :aria-expanded="moGiaiTam" :aria-label="t('tn.canThem')"
-            @click="moGiaiTam = !moGiaiTam; moGiaiTam && moChucNang('tri_nho_can_them', {}, true)">?</button>
-          <div v-if="moGiaiTam && !duCa" class="giai-tam" role="note" @click="moGiaiTam = false">
-            <b>{{ t('tn.canThem') }}</b>
-            <span>{{ hien.diem === null ? (laHomNay ? t('tn.baoTrong') : t('tn.baoTrongCu')) : laHomNay ? t('tn.baoIt') : t('tn.baoItCu') }}</span>
-          </div>
+          <!-- ? + lời giải thích DÍNH NGAY DƯỚI dấu ? (mũi nhọn chỉ lên); chạm bất kỳ đâu ngoài là tắt (27.11.2026, chủ dự án gửi ảnh:
+               "tooltip hiện xa dấu hỏi quá và bấm ra ngoài thì không tắt") -->
+          <span v-if="!duCa" ref="hoiEl" class="hoi-vung">
+            <button class="hoi-tam thach th-nho" type="button" :aria-expanded="moGiaiTam" :aria-label="t('tn.canThem')"
+              @click="moGiaiTam = !moGiaiTam; moGiaiTam && moChucNang('tri_nho_can_them', {}, true)">?</button>
+            <span v-if="moGiaiTam" class="giai-tam" role="note" @click="moGiaiTam = false">
+              <b>{{ t('tn.canThem') }}</b>
+              <span>{{ hien.diem === null ? (laHomNay ? t('tn.baoTrong') : t('tn.baoTrongCu')) : laHomNay ? t('tn.baoIt') : t('tn.baoItCu') }}</span>
+            </span>
+          </span>
         </div>
         <!-- Ngày + (điểm tạm) nhóm bàn còn thiếu -->
         <p class="huy-chu"><b>{{ ngayChu }}</b></p>
@@ -429,9 +441,12 @@ const coNhan = (k: string, i: number): boolean =>
 /* Thông báo điểm chưa đáng tin */
 .huy-vung { position: relative; display: grid; justify-items: center; }
 /* Nút ? TRUNG TÍNH, nhỏ (27.11.2026, chủ dự án: vàng "nổi bật quá", "cho nhỏ hơn chút") — cùng kiểu thạch với nút đóng */
-.hoi-tam { position: absolute; top: 6px; left: calc(50% + 50px); width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; font: 800 13px/1 var(--font-display); color: var(--muted); z-index: 3; }
-.giai-tam { position: absolute; z-index: 6; top: 98px; left: 50%; transform: translateX(-50%); width: min(290px, 82vw); box-sizing: border-box; display: grid; gap: 4px; padding: 11px 13px; border-radius: 14px; text-align: left;
+.hoi-vung { position: absolute; top: 6px; left: calc(50% + 50px); z-index: 6; }
+.hoi-tam { width: 24px; height: 24px; min-height: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; font: 800 13px/1 var(--font-display); color: var(--muted); }
+.giai-tam { position: absolute; top: calc(100% + 10px); right: -22px; width: min(260px, 74vw); box-sizing: border-box; display: grid; gap: 4px; padding: 10px 12px; border-radius: 14px; text-align: left;
   background: var(--panel-solid, #fff); color: var(--fg); box-shadow: 0 10px 28px rgba(10, 20, 60, .3), inset 0 0 0 1.5px color-mix(in srgb, #f0b400 60%, transparent); font: 700 12.5px/1.45 var(--font-body); }
+/* mũi nhọn chỉ đúng vào dấu ? */
+.giai-tam::before { content: ""; position: absolute; top: -7px; right: 28px; width: 12px; height: 12px; transform: rotate(45deg); background: var(--panel-solid, #fff); box-shadow: -1.5px -1.5px 0 color-mix(in srgb, #f0b400 60%, transparent); }
 .giai-tam b { font: 800 14px/1.2 var(--font-display); color: #c98a00; }
 /* Bạc màu: huy chương + thang bậc khi là điểm tạm */
 .huy-khung.tam { filter: grayscale(1) opacity(.62); }
