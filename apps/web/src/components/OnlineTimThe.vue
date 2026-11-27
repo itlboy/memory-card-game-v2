@@ -395,13 +395,15 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
         <KetCucFx v-if="pha === 'xong' && fx" :loai="fx.loai" :seed="fx.seed" />
       </Teleport>
       <!-- HẾT VÁN = ĐÚNG bảng kết quả online của ghép cặp (ResultDialog chế độ `tim-the`, chủ dự án 27.11.2026) -->
+      <!-- `nguoiChoi.name` = TÊN THẬT trong phòng: tỷ số loạt (`seriesWins`) tra theo tên đó. Đưa "Bạn" thì tra hụt → số thắng
+           của mình thành 0, người thắng cuộn "-1 → 0" (chủ dự án báo 28.11.2026). -->
       <ResultDialog
         v-if="pha === 'xong' && tomTat && (hienKq || xem || !fx)"
         :summary="tomTat" :is-record="false" :show-stars="false" :multiplayer="true" :multiplayer-online="true"
         :la-chu-phong="o.isHost.value && !xem" :minh-ket-cuc="toiId && !xem ? fx?.loai : undefined"
         :fresh-achievements="[]" :has-next="false" :tim-the="v?.soLuot"
         :series-wins="o.seriesWins.value" :so-van="o.soVanLoat.value"
-        :nguoi-choi="tomTat.ranking.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))"
+        :nguoi-choi="tomTat.ranking.map((p) => ({ id: p.id, name: nguoiPhong(p.id)?.name ?? p.name, avatar: p.avatar }))"
         :anh-cua="(id) => nguoiPhong(id)?.anh" :mau-cua="(id) => nguoiPhong(id)?.mau"
         :phieu-choi-lai="o.room.value?.againVotes"
         :rematch-sent="o.iWantAgain.value" :toi-id="toiId || undefined"
