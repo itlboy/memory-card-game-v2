@@ -58,8 +58,9 @@
 
 /* ---------- QUẠT LÁ TRANG CHỦ ---------- */
 :root[data-skin='keo'] .la-quat .lac {
-  isolation: isolate; border-radius: 6.5cqh;
-  border: max(3px, 1.7cqh) solid #fdfdfb;
+  /* Lá quạt nay bằng 75% cỡ cũ (28.11.2026) → bo góc + viền (tính theo chiều cao khung quạt) cũng × .75 */
+  isolation: isolate; border-radius: 4.9cqh;
+  border: max(2.5px, 1.3cqh) solid #fdfdfb;
   background: var(--la-lung);
   box-shadow:
     0 0 0 1px rgba(20, 30, 70, .14), 0 2px 0 #d6dcea,

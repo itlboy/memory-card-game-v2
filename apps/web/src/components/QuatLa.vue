@@ -69,7 +69,9 @@ onUnmounted(() => { conSong = false; clearInterval(hen); });
   position: absolute; left: 50%; top: 50%;
   /* Nở theo chỗ trống (cqh của .quat), trần 320px: trên máy tính cột cao 1.200px
      mà quạt chỉ 170px thì lọt thỏm giữa một khoảng trống (chủ dự án báo). */
-  --la-h: min(86cqh, 53cqw, 320px);
+  /* × .75 (28.11.2026, chủ dự án: "cho lá bài chính nhỏ hơn… cho nó thoáng", thử 50% rồi chốt 75%) — vị trí ba lá tính theo
+     % cỡ lá nên tự co theo, vẫn cân giữa khung */
+  --la-h: calc(min(86cqh, 53cqw, 320px) * .75);
   height: var(--la-h); aspect-ratio: 3 / 4;   /* 53cqw: quạt rộng ≈2,5 lá, phải lọt bề ngang */
 }
 /* HAI LỚP, MỖI LỚP MỘT VIỆC (16.10.2026, chủ dự án: "trên iOS hiệu ứng 3 thẻ hơi giật",
