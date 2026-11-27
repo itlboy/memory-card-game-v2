@@ -24,6 +24,16 @@ export const SO_NGAY_KY = 1;
  * khảo"). Đếm cơ hội chứ không đếm ván: ván 8 thẻ và ván 60 thẻ cho lượng số liệu khác hẳn nhau.
  */
 export const MOC_CO_DIEM = 20;
+/**
+ * VÁN BẮT BUỘC MỖI NGÀY (27.11.2026, chủ dự án: "hôm nào thiếu bài thì yêu cầu chơi thêm để test. Cần ít nhất 2 ván 3x–5x,
+ * một ván trên 7x thẻ"). Bàn VỪA = 30–59 thẻ (thực tế 30·36·42·56), bàn LỚN = từ 70 thẻ (72·88). Ván lớn dư ra được tính
+ * thay ván vừa (khó hơn thì không bắt chơi lại bàn dễ). Thiếu ván nào là ngày đó CHƯA CÓ ĐIỂM — áp cho cả ngày cũ (điểm
+ * mọi ngày tính lại từ nhật ký thô theo cỡ bàn).
+ */
+export const CAN_VAN_VUA = 2;
+export const CAN_VAN_LON = 1;
+export const THE_VUA: readonly [number, number] = [30, 59];
+export const THE_LON = 70;
 
 export interface ChiSo {
   /** 0–1000; `null` = chưa đủ số liệu (dưới `MOC_CO_DIEM` cơ hội, hoặc chưa chặng nào mở). */
@@ -39,24 +49,32 @@ export interface ChiSo {
   coHoi: number;
   /** Lần nhớ đúng xa nhất trong kỳ (số lượt). */
   tam: number;
+  /** Số ván bàn vừa / bàn lớn ĐÃ TÍNH cho yêu cầu (tối đa `CAN_VAN_VUA` / `CAN_VAN_LON`). */
+  vanVua: number;
+  vanLon: number;
 }
 
 /** Gộp nhiều ngày thành chỉ số của một kỳ. Số liệu cũ không có phần ăn may thì ước lượng (`mayUocLuong`). */
 export function chiSo(cacNgay: readonly (NgayTriNho | undefined)[]): ChiSo {
   const nho = rongNhomTuoi(), quen = rongNhomTuoi(), may = rongNhomTuoi();
-  let van = 0, tam = 0;
+  let van = 0, tam = 0, vua = 0, lon = 0;
   for (const n of cacNgay) {
     if (!n) continue;
     tam = Math.max(tam, n.tam ?? 0);
     for (const [k, d] of Object.entries(n.ban ?? {})) {
       van += d.van;
+      const the = Number(k) * 2;                         // khoá nhật ký = số CẶP
+      if (the >= THE_LON) lon += d.van; else if (the >= THE_VUA[0] && the <= THE_VUA[1]) vua += d.van;
       const m = d.may ?? mayUocLuong(d.nho, d.quen, Number(k));
       for (let i = 0; i < nho.length; i++) { nho[i]! += d.nho?.[i] ?? 0; quen[i]! += d.quen?.[i] ?? 0; may[i]! += m[i] ?? 0; }
     }
   }
   const coHoi = coHoiNho(nho, quen);
   const k = chiSoTriNho(nho, quen, may);
-  const diem = coHoi >= MOC_CO_DIEM ? k.diem : null;
+  const vanLon = Math.min(CAN_VAN_LON, lon);
+  const vanVua = Math.min(CAN_VAN_VUA, vua + Math.max(0, lon - CAN_VAN_LON));
+  const duVan = vanLon >= CAN_VAN_LON && vanVua >= CAN_VAN_VUA;
+  const diem = coHoi >= MOC_CO_DIEM && duVan ? k.diem : null;
   const bac = diem === null ? null : bacTriNho(diem);
   const mocKe = bac === null ? undefined : MOC_BAC_TRI_NHO[bac + 1];
   const mocNay = bac === null ? 0 : MOC_BAC_TRI_NHO[bac]!;
@@ -64,7 +82,7 @@ export function chiSo(cacNgay: readonly (NgayTriNho | undefined)[]): ChiSo {
     diem, chang: k.chang, bac,
     conToiBac: diem === null || mocKe === undefined ? null : mocKe - diem,
     tienBac: diem === null ? 0 : mocKe === undefined ? 1 : (diem - mocNay) / (mocKe - mocNay),
-    van, coHoi, tam
+    van, coHoi, tam, vanVua, vanLon
   };
 }
 
@@ -86,13 +104,22 @@ export function chiSoTai(nhatKy: Record<string, NgayTriNho>, den = new Date()): 
 /** Chưa có số liệu của chính người chơi thì coi mỗi ván cho ngần này cơ hội nhớ (bàn 16–24 thẻ). */
 export const CO_HOI_MOI_VAN_MAC_DINH = 6;
 /**
- * CÒN PHẢI CHƠI KHOẢNG MẤY VÁN nữa để có điểm (chủ dự án 23.11.2026: "báo họ phải chơi thêm bao nhiêu để họ chơi").
- * Mốc tính bằng cơ hội nhớ, đổi ra ván bằng số cơ hội TRUNG BÌNH MỖI VÁN của chính người đó. 0 = đã đủ.
+ * CÒN PHẢI CHƠI MẤY VÁN nữa để có điểm (chủ dự án 23.11.2026: "báo họ phải chơi thêm bao nhiêu"). Từ 27.11.2026 = số ván
+ * bàn vừa + bàn lớn còn thiếu (`CAN_VAN_*`); đủ ván mà vẫn chưa đủ cơ hội nhớ (hiếm) thì đổi phần cơ hội thiếu ra ván.
  */
-export function vanConThieu(ky: Pick<ChiSo, 'coHoi' | 'van'>): number {
+export function vanConThieu(ky: Pick<ChiSo, 'coHoi' | 'van' | 'vanVua' | 'vanLon'>): number {
+  const thieu = (CAN_VAN_VUA - ky.vanVua) + (CAN_VAN_LON - ky.vanLon);
+  if (thieu > 0) return thieu;
   if (ky.coHoi >= MOC_CO_DIEM) return 0;
   const moiVan = ky.van > 0 ? Math.max(1, ky.coHoi / ky.van) : CO_HOI_MOI_VAN_MAC_DINH;
   return Math.max(1, Math.ceil((MOC_CO_DIEM - ky.coHoi) / moiVan));
+}
+/** Tiến độ tới lúc có điểm (0..1) — viền nút trang chủ, thanh ở màn chỉ số. */
+export const tienDoCoDiem = (ky: Pick<ChiSo, 'coHoi' | 'vanVua' | 'vanLon'>): number =>
+  Math.min(1, (ky.vanVua + ky.vanLon) / (CAN_VAN_VUA + CAN_VAN_LON), ky.coHoi / MOC_CO_DIEM);
+/** Chưa có điểm hôm nay thì luyện đúng bàn còn thiếu: thiếu ván lớn → 72 thẻ, thiếu ván vừa → 36 thẻ. */
+export function theConThieu(ky: Pick<ChiSo, 'vanVua' | 'vanLon'>): number | null {
+  return ky.vanLon < CAN_VAN_LON ? 72 : ky.vanVua < CAN_VAN_VUA ? 36 : null;
 }
 
 /**

@@ -40,7 +40,7 @@ const coKhungApp = typeof document !== 'undefined' && !!document.getElementById(
 import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
-import { MOC_CO_DIEM, chiSoHomNay, hienTriNho, phienTriNho, vanConThieu } from '@/lib/tri-nho';
+import { chiSoHomNay, hienTriNho, phienTriNho, tienDoCoDiem, vanConThieu } from '@/lib/tri-nho';
 import HuyChuongBac from './HuyChuongBac.vue';
 import LevelMap from './LevelMap.vue';
 import SizeGrid from './SizeGrid.vue';
@@ -134,7 +134,7 @@ const tnNut = computed(() => {
   return {
     diem: k.diem, bac: k.bac, moi, conVan: vanConThieu(k),
     // Viền: có điểm = đã đi bao nhiêu % của bậc; chưa có = số liệu đã gom so với mốc
-    pt: Math.round((k.diem === null ? Math.min(1, k.coHoi / MOC_CO_DIEM) : k.tienBac) * 100),
+    pt: Math.round((k.diem === null ? tienDoCoDiem(k) : k.tienBac) * 100),
     lech: moi && xem !== undefined ? k.diem! - xem : 0,
     nhan: k.diem === null ? t('tn.ten') : `${t('tn.ten')}: ${k.diem}`
   };

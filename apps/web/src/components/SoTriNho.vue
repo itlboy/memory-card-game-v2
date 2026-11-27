@@ -23,7 +23,7 @@ import { moChucNang } from '@/lib/phan-tich';
 import { t, td } from '@/lib/i18n';
 import { num } from '@/lib/format';
 import { store } from '@/lib/storage';
-import { MOC_CO_DIEM, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theNenLuyen, vanConThieu } from '@/lib/tri-nho';
+import { CAN_VAN_LON, CAN_VAN_VUA, chiSo, chiSoTai, daXemTriNho, dayNgay, ngayTuKhoa, theConThieu, theNenLuyen, tienDoCoDiem, vanConThieu } from '@/lib/tri-nho';
 import { ngayMay } from '@/lib/storage';
 import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 import { veAnhTriNho } from '@/lib/anh-ket-qua';
@@ -52,7 +52,9 @@ const tab = ref<'ngay' | 'nam'>('ngay');
 const ky = computed(() => chiSoTai(nhatKy, ngayTuKhoa(chon.value)));
 const conVan = computed(() => vanConThieu(ky.value));
 /** Gợi ý luyện LUÔN theo số liệu HÔM NAY (luyện là luyện bây giờ) — đang xem ngày cũ nút vẫn hiện, vẫn đúng một con số. */
-const theLuyen = theNenLuyen(chiSoTai(nhatKy).chang);
+// Hôm nay còn thiếu ván bắt buộc thì nút luyện đưa thẳng tới bàn còn thiếu (27.11.2026)
+const kyNay = chiSoTai(nhatKy);
+const theLuyen = theConThieu(kyNay) ?? theNenLuyen(kyNay.chang);
 const tenBac = (b: number): string => td(`tn.bac.${b}`);
 const SO_BAC = 5;
 /** Đoạn của bậc `b` trên thanh 5 bậc tô bao nhiêu %: bậc đã qua = đầy, bậc đang ở = tới chỗ mình đứng, bậc chưa tới = trống. */
@@ -179,9 +181,14 @@ const coNhan = (k: string, i: number): boolean =>
         <span class="huy khoa" aria-hidden="true"><ChartColumn :size="26" :stroke-width="2.6" /></span>
         <strong>{{ t('tn.khoa', { n: conVan }) }}</strong>
         <p class="toi-bac">
-          <span class="ray khoa" role="img" :aria-label="`${ky.coHoi} / ${MOC_CO_DIEM}`"><i :style="{ width: `${Math.min(100, Math.round((ky.coHoi / MOC_CO_DIEM) * 100))}%` }" /></span>
+          <span class="ray khoa" role="img" :aria-label="`${Math.round(tienDoCoDiem(ky) * 100)}%`"><i :style="{ width: `${Math.round(tienDoCoDiem(ky) * 100)}%` }" /></span>
           <span>{{ t('tn.khoaMo') }}</span>
         </p>
+        <!-- VÁN BẮT BUỘC MỖI NGÀY (27.11.2026): 2 ván bàn vừa + 1 ván bàn lớn, tick khi đủ -->
+        <ul class="can-van">
+          <li :class="{ du: ky.vanVua >= CAN_VAN_VUA }"><span>{{ t('tn.canVua') }}</span><b>{{ ky.vanVua }}/{{ CAN_VAN_VUA }}</b></li>
+          <li :class="{ du: ky.vanLon >= CAN_VAN_LON }"><span>{{ t('tn.canLon') }}</span><b>{{ ky.vanLon }}/{{ CAN_VAN_LON }}</b></li>
+        </ul>
       </section>
 
       <!-- (2a) THEO SỐ LƯỢT — luôn hiện -->
@@ -325,6 +332,10 @@ const coNhan = (k: string, i: number): boolean =>
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
 .hinh.nam { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
 /* Tab Cả năm: vương miện nhỏ cạnh chữ; chưa có Premium thì tab hơi mờ (bấm vẫn mở bảng Premium) */
+.can-van { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; width: 100%; max-width: 280px; }
+.can-van li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 12px; background: color-mix(in srgb, currentColor 8%, transparent); font-weight: 700; font-size: 14px; }
+.can-van li b { font-variant-numeric: tabular-nums; }
+.can-van li.du { color: #2fb57a; }
 .tab-nam { display: inline-flex; align-items: center; gap: 5px; }
 .tab-nam.khoa { opacity: .7; }
 .tab-nam .vm { display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }

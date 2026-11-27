@@ -2,16 +2,18 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { TRI_NHO_GIU_NGAY, mayUocLuong, store, type NgayTriNho } from '@/lib/storage';
 import {
   CO_HOI_MOI_VAN_MAC_DINH, MOC_CO_DIEM, SO_NGAY_KY, chiSo, chiSoHomNay, chiSoTai, daXemTriNho, dayNgay, ghiVanTriNho, ngayTuKhoa,
-  phienTriNho, theNenLuyen, vanConThieu, vuaDoi
+  phienTriNho, theConThieu, theNenLuyen, tienDoCoDiem, vanConThieu, vuaDoi
 } from '@/lib/tri-nho';
 
 beforeEach(() => { localStorage.clear(); vuaDoi.value = null; });
 
 /** Một ván có đủ số liệu engine mới: 15 cơ hội, kèm phần ăn may. */
 const VAN = { nhoTheo: [4, 0, 5, 3, 0], quenTheo: [1, 0, 2, 0, 0], mayTheo: [0.5, 0, 0.7, 0.3, 0], tamNho: 9 };
-/** Một ngày, một cỡ bàn. */
-const ngay = (nho: number[], quen: number[], may?: number[], soCap = 18, van = 5): NgayTriNho =>
-  ({ ban: { [soCap]: { van, nho, quen, ...(may ? { may } : {}) } }, tam: 0 });
+/** Ván bàn lớn (72 thẻ) KHÔNG có cơ hội nhớ nào — chỉ để đủ ván bắt buộc mà không đổi điểm. */
+const LON0 = { van: 1, nho: [0, 0, 0, 0, 0], quen: [0, 0, 0, 0, 0], may: [0, 0, 0, 0, 0] };
+/** Một ngày, một cỡ bàn (+ một ván bàn lớn rỗng để đủ ván bắt buộc, `du = false` thì bỏ). */
+const ngay = (nho: number[], quen: number[], may?: number[], soCap = 18, van = 5, du = true): NgayTriNho =>
+  ({ ban: { [soCap]: { van, nho, quen, ...(may ? { may } : {}) }, ...(du ? { 36: LON0 } : {}) }, tam: 0 });
 
 describe('nhật ký trí nhớ theo ngày', () => {
   it('ván không có cơ hội nhớ nào thì không ghi', () => {
@@ -59,7 +61,7 @@ describe('chỉ số của một kỳ', () => {
 
   it('gộp mọi ngày + mọi cỡ bàn rồi mới chấm: điểm, bậc, còn bao nhiêu tới bậc kế, tiến độ trong bậc', () => {
     const k = chiSo([
-      ngay([10, 8, 0, 0, 0], [0, 2, 0, 0, 0], [0, 0, 0, 0, 0], 8),
+      ngay([10, 8, 0, 0, 0], [0, 2, 0, 0, 0], [0, 0, 0, 0, 0], 18),
       undefined,
       ngay([0, 0, 5, 0, 0], [0, 0, 5, 5, 0], [0, 0, 0, 0, 0], 30)
     ]);
@@ -69,7 +71,7 @@ describe('chỉ số của một kỳ', () => {
     expect(k.bac).toBe(1);                 // Bạc: 200–399
     expect(k.conToiBac).toBe(130);
     expect(k.tienBac).toBeCloseTo(70 / 200, 10);
-    expect(k.van).toBe(10);
+    expect(k.van).toBe(12);
   });
 
   it('bậc cao nhất: không còn "tới bậc kế", tiến độ đầy', () => {
@@ -113,6 +115,22 @@ describe('chỉ số của một kỳ', () => {
     expect(theNenLuyen([mo(1), mo(.4), mo(.8), mo(.9), mo(.7)])).toBe(16);
   });
 
+  it('VÁN BẮT BUỘC MỖI NGÀY (27.11.2026): 2 ván 30–59 thẻ + 1 ván từ 70 thẻ; ván lớn dư tính thay ván vừa', () => {
+    const N = [10, 10, 0, 0, 0], Q = [0, 0, 0, 0, 0];
+    const ban = (b: Record<number, number>): NgayTriNho =>
+      ({ ban: Object.fromEntries(Object.entries(b).map(([k, v]) => [k, { van: v, nho: N, quen: Q, may: Q }])), tam: 0 });
+    const k1 = chiSo([ban({ 18: 5 })]);                     // 5 ván 36 thẻ, không ván lớn
+    expect(k1.diem).toBeNull();
+    expect([k1.vanVua, k1.vanLon, vanConThieu(k1)]).toEqual([2, 0, 1]);
+    expect(theConThieu(k1)).toBe(72);
+    const k2 = chiSo([ban({ 15: 1, 36: 1 })]);              // 30 thẻ + 72 thẻ: thiếu 1 ván vừa
+    expect([k2.diem, k2.vanVua, k2.vanLon, theConThieu(k2)]).toEqual([null, 1, 1, 36]);
+    expect(chiSo([ban({ 15: 1, 28: 1, 36: 1 })]).diem, '30 + 56 + 72 thẻ là đủ').toBe(200);
+    expect(chiSo([ban({ 44: 3 })]).diem, '3 ván 88 thẻ: ván lớn dư thay ván vừa').toBe(200);
+    expect(chiSo([ban({ 10: 9, 12: 9, 32: 9 })]).diem, 'bàn 20/24/64 thẻ không tính').toBeNull();
+    expect(tienDoCoDiem(k2)).toBeCloseTo(2 / 3, 5);
+  });
+
   it('dãy ngày liên tiếp, cũ → mới, qua được ranh giới tháng', () => {
     expect(dayNgay(3, new Date(2026, 11, 1, 9))).toEqual(['2026-11-29', '2026-11-30', '2026-12-01']);
   });
@@ -121,8 +139,11 @@ describe('chỉ số của một kỳ', () => {
 describe('vừa đổi sau ván + đã xem', () => {
   const NHIEU = { nhoTheo: [10, 10, 0, 0, 0], quenTheo: [0, 0, 0, 0, 0], mayTheo: [0, 0, 0, 0, 0] };
 
-  it('ván đầu đủ số liệu: trước chưa có điểm, sau có → "lần đầu"; ván sau báo chênh lệch', () => {
+  it('ván đủ yêu cầu đầu tiên: trước chưa có điểm, sau có → "lần đầu"; ván sau báo chênh lệch', () => {
     ghiVanTriNho(NHIEU, 18);
+    ghiVanTriNho(NHIEU, 18);
+    expect(vuaDoi.value, 'mới 2 ván bàn vừa, thiếu ván bàn lớn').toMatchObject({ truoc: null, sau: null });
+    ghiVanTriNho(NHIEU, 36);
     expect(vuaDoi.value).toEqual({ truoc: null, sau: 200, bacTruoc: null, bacSau: 1, van: 1000 });
     ghiVanTriNho({ nhoTheo: [0, 0, 10], quenTheo: [], mayTheo: [0, 0, 0] }, 18);
     expect(vuaDoi.value).toMatchObject({ truoc: 200, sau: 400, bacTruoc: 1, bacSau: 2 });   // lên bậc Vàng
@@ -141,11 +162,11 @@ describe('vừa đổi sau ván + đã xem', () => {
 
   it('mở màn chỉ số = đã xem điểm hiện tại; ghi ván / xem đều báo các chỗ đang hiện tính lại', () => {
     const p0 = phienTriNho.value;
-    ghiVanTriNho(NHIEU, 18);
-    expect(phienTriNho.value).toBe(p0 + 1);
+    ghiVanTriNho(NHIEU, 18); ghiVanTriNho(NHIEU, 18); ghiVanTriNho(NHIEU, 36);
+    expect(phienTriNho.value).toBe(p0 + 3);
     expect(store.prefs().triNhoXem).toBeUndefined();
     daXemTriNho();
     expect(store.prefs().triNhoXem).toBe(200);
-    expect(phienTriNho.value).toBe(p0 + 2);
+    expect(phienTriNho.value).toBe(p0 + 4);
   });
 });
