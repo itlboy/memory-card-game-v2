@@ -14,10 +14,10 @@ export const thay = (el: Element | null | undefined): DOMRect | null => {
   return r && r.width > 0 && r.height > 0 ? r : null;
 };
 
-/** Mặt người gửi trong ô neo: `.avatar` (chip trong ván, phòng chờ), `.mat` / `.mat-ct` (bảng kết quả).
+/** Mặt người gửi trong ô neo: `.avatar` (chip trong ván, phòng chờ), `.av` (hàng người chơi Tìm Thẻ online), `.mat` / `.mat-ct` (bảng kết quả).
  *  Ô CHÍNH LÀ cái mặt (thành viên đội ở bảng kết quả `.mat`, dải đội `.m`) thì lấy chính nó. */
 function matCua(o: Element): DOMRect | null {
-  const el = o.matches('.avatar, .mat, .m') ? o : o.querySelector('.avatar, .mat, .mat-ct');
+  const el = o.matches('.avatar, .mat, .m') ? o : o.querySelector('.avatar, .av, .mat, .mat-ct');
   return baoNgoai(el);
 }
 

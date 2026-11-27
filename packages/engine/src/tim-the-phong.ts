@@ -84,7 +84,8 @@ export class PhongTimThe {
   /** Độ dài pha hiện tại; ở `hoi` = lúc chấm được (mọi người đã chọn thì sớm hơn hết giờ). */
   private daiPha(): number {
     switch (this.pha) {
-      case 'cho': return TIM_THE_CHO_MS;
+      // Lượt đầu: phòng vừa đếm ngược vào ván (3-2-1 trên lớp phủ) — lật cho xem NGAY, không đếm lần hai
+      case 'cho': return this.van.luot === 0 ? 0 : TIM_THE_CHO_MS;
       case 'xem': return this.van.xemMs;
       case 'up': return TIM_THE_UP_MS;
       case 'noi': return TIM_THE_NOI_MS;

@@ -4,11 +4,13 @@ import { PhongTimThe, TIM_PHONG_LECH_MS, TIM_PHONG_TRE_MS, TIM_THE_CHO_MS, TIM_T
 const HINH = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🦁', '🐷', '🐰', '🐨', '🐯', '🐮', '🐙', '🦄', '🐻', '🐔'];
 const CFG = { soThe: 6, doKho: 'vua' as const, soLuot: 2 };
 const XEM = timTheXemMs(CFG), CHON = timTheChonMs(CFG), CHO = TIM_THE_CHO_MS;
+/** Lượt ĐẦU không chờ `cho` (phòng vừa đếm ngược vào ván — 27.11.2026); giữa các lượt mới chờ CHO. */
+const CHO_DAU = 0;
 const moi = (may = false) => new PhongTimThe(CFG, [{ id: 'a', ten: 'A' }, may ? { id: 'm', ten: 'Máy', may: 'normal' as const } : { id: 'b', ten: 'B' }], HINH, 7, 3);
 /** Đưa ván tới đầu nhịp hỏi, trả mốc bắt đầu hỏi. */
 function toiHoi(p: PhongTimThe, t0 = 1000): number {
   p.batDau(t0);
-  const hoi = t0 + CHO + XEM + TIM_THE_UP_MS + TIM_THE_NOI_MS;
+  const hoi = t0 + CHO_DAU + XEM + TIM_THE_UP_MS + TIM_THE_NOI_MS;
   p.tick(hoi);
   return hoi;
 }
@@ -19,8 +21,8 @@ describe('PhongTimThe — nhịp ván online', () => {
     p.batDau(1000);
     expect(p.pha).toBe('cho');
     expect(p.view(1000).the).toBeNull();          // bàn úp trước khi lật cho xem
-    p.tick(1000 + CHO); expect(p.pha).toBe('xem');
-    const t = 1000 + CHO;
+    p.tick(1000 + CHO_DAU); expect(p.pha).toBe('xem');
+    const t = 1000 + CHO_DAU;
     expect(p.tick(t + XEM - 1)).toBe(false);
     p.tick(t + XEM); expect(p.pha).toBe('up');
     p.tick(t + XEM + TIM_THE_UP_MS); expect(p.pha).toBe('noi');
@@ -30,9 +32,9 @@ describe('PhongTimThe — nhịp ván online', () => {
   it('alarm trễ: một lần tick đi qua mọi pha đã lỡ, mốc không trôi', () => {
     const p = moi();
     p.batDau(0);
-    p.tick(CHO + XEM + TIM_THE_UP_MS + TIM_THE_NOI_MS + 5);
+    p.tick(CHO_DAU + XEM + TIM_THE_UP_MS + TIM_THE_NOI_MS + 5);
     expect(p.pha).toBe('hoi');
-    expect(p.tu).toBe(CHO + XEM + TIM_THE_UP_MS + TIM_THE_NOI_MS);
+    expect(p.tu).toBe(CHO_DAU + XEM + TIM_THE_UP_MS + TIM_THE_NOI_MS);
   });
 
   it('không lộ hình khi úp, không lộ vị trí trước đáp án', () => {
@@ -43,9 +45,9 @@ describe('PhongTimThe — nhịp ván online', () => {
     expect(v.dich).toBeNull();
     expect(v.hinhDich).toBeTruthy();
     p.batDau(0);
-    p.tick(CHO);
-    expect(p.view(CHO).the).toHaveLength(6);
-    expect(p.view(CHO).hinhDich).toBeNull();
+    p.tick(CHO_DAU);
+    expect(p.view(CHO_DAU).the).toHaveLength(6);
+    expect(p.view(CHO_DAU).hinhDich).toBeNull();
   });
 
   it('mọi người chọn xong thì chấm ngay, không chờ hết giờ', () => {
@@ -106,6 +108,8 @@ describe('PhongTimThe — nhịp ván online', () => {
     p.tick(t);
     expect(p.pha).toBe('cho');                     // giữa các lượt: bàn úp chờ rồi mới lật
     expect(p.view(t).luot).toBe(1);
+    p.tick(t + CHO - 1); expect(p.pha).toBe('cho');   // giữa các lượt: đếm 3-2-1 đủ CHO
+    p.tick(t + CHO); expect(p.pha).toBe('xem');
     p.tick(t + 60_000);
     expect(p.xong).toBe(true);
     expect(p.henKe(t + 60_000)).toBeNull();

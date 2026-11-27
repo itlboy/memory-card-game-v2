@@ -27,6 +27,7 @@ import { ghiVuaThang } from '@/lib/xin-danh-gia';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import { dangTimOnline, tomTatTimThe } from '@/lib/tim-the';
 import BanVongTim from './BanVongTim.vue';
+import DemNguocPhu from './DemNguocPhu.vue';
 import DongXu from './DongXu.vue';
 import KetCucFx from './KetCucFx.vue';
 import ResultDialog from './ResultDialog.vue';
@@ -168,6 +169,9 @@ const coApp = typeof document !== 'undefined' && !!document.getElementById('app'
 
 /** Kết quả đáp án chờ bàn lật xong (khai báo TRƯỚC watch immediate — TDZ). */
 let choLat: TimView | null = null;
+/** 3-2-1 ở nhịp `cho` giữa các lượt (đo theo giờ server gửi kèm). Khai báo TRƯỚC watch immediate (TDZ). */
+const demSo = ref(0);
+let choTu = 0, choDai = 0;
 let truocPha = '';
 let batDauLuc = performance.now();
 let truocLuot = -1;
@@ -195,10 +199,14 @@ watch(v, (moi) => {
   if (doiPha) {
     // Đầu lượt: bàn ÚP (`cho`, 2 giây) rồi mới lật cho xem — giữa các lượt lá úp xuống ngay tại chỗ
     if (moi.pha === 'cho') {
+      choTu = o.timNhanLuc.value - (moi.daiMs - moi.conMs); choDai = moi.daiMs; demSo.value = 0;
       chonCuaToi.value = null; gain.value = null;
       if (moi.luot === 0) { fx.value = null; hienKq.value = false; batDauLuc = performance.now(); }
       if (moi.luot > 0) sfx.swap();
     } else if (moi.pha === 'xem') {
+      demSo.value = 0;
+      // Lượt đầu server lật NGAY sau đếm ngược vào ván (không qua `cho`) — dọn ván cũ ở đây
+      if (moi.luot === 0) { fx.value = null; hienKq.value = false; batDauLuc = performance.now(); }
       chonCuaToi.value = null; gain.value = null;
       if (moi.the) taiTruocAnh(moi.the, coAnh.value);
       sfx.flip();
@@ -239,6 +247,10 @@ function cham(i: number): void {
 
 /** Tiếng tích 3 giây cuối (thay cho thanh giờ — màn chơi không có gì kéo mắt khỏi bàn). */
 function khung(): void {
+  if (pha.value === 'cho' && choDai > 0) {
+    const n = Math.max(0, Math.ceil((choDai - (performance.now() - choTu)) / 1000));
+    if (n !== demSo.value) { demSo.value = n; if (n > 0) sfx.countdown(n); }
+  }
   // Người xem cũng nghe tích 3 giây cuối, tới khi mọi người đã chọn
   const conCho = xem.value ? (v.value?.nguoi ?? []).some((n) => !n.da) : chonCuaToi.value === null;
   // Vạch giờ quanh thẻ giữa + nhạc trống (chỉ người CHƠI chưa chọn mới nghe trống)
@@ -312,7 +324,7 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
     </div>
 
     <div class="ott-nguoi" :style="{ gridTemplateColumns: `repeat(${Math.max(2, nguoi.length)}, 1fr)` }">
-      <div v-for="n in nguoi" :key="`${n.id}-${n.vuaChon}-${n.lan ?? ''}`" class="khay-nho ng" :class="[{ toi: n.id === toiId, 'vua-chon': n.vuaChon > 0 && pha === 'hoi' }, n.lan ? `lo-${n.lan}` : '']">
+      <div v-for="n in nguoi" :key="`${n.id}-${n.vuaChon}-${n.lan ?? ''}`" class="khay-nho ng" :data-chip-for="n.id" :class="[{ toi: n.id === toiId, 'vua-chon': n.vuaChon > 0 && pha === 'hoi' }, n.lan ? `lo-${n.lan}` : '']">
         <span class="av vong-mau" :style="n.mau ? { '--m': n.mau } : undefined">
           <MatNguoi :mat="n.mat" :anh="n.anh" />
           <span v-if="n.tt" :key="n.tt" class="huy" :class="n.tt"><component :is="ICON[n.tt]" :size="11" :stroke-width="3.2" aria-hidden="true" /></span>
@@ -326,7 +338,9 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 
     <div class="ott-ban">
       <!-- Đếm ngược NẰM TRÊN bàn úp (bàn đã bày sẵn — không còn màn trống) -->
-      <div v-if="o.countdownLeft.value !== null" class="dem" role="status" aria-live="assertive"><span :key="o.countdownLeft.value">{{ o.countdownLeft.value }}</span></div>
+      <!-- Đếm ngược vào ván (server) và 3-2-1 trước mỗi lần lật cho nhớ — CÙNG lớp phủ tối của đếm ngược ghép cặp -->
+      <DemNguocPhu v-if="o.countdownLeft.value !== null" :n="o.countdownLeft.value" />
+      <DemNguocPhu v-else-if="demSo > 0 && pha === 'cho'" :n="demSo" />
       <BanVongTim
         ref="banVong" :so-the="soThe" :hinh="hinh" :hinh-dich="v?.hinhDich ?? null" :dich="v?.dich ?? null"
         :nhip="nhipBan" :chon="chonCuaToi" :cho-cham="!xem" @cham="cham" @lat="latBan"
@@ -427,8 +441,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 .ai-chon { position: absolute; left: 0; right: 0; bottom: -9px; z-index: 4; display: flex; justify-content: center; gap: 2px; pointer-events: none; }
 .mat-nho { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 13px; box-shadow: 0 0 0 2px #fff; animation: no .25s both; }
 
-.dem { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; pointer-events: none; font-family: var(--font-display); font-weight: 900; font-size: 96px; color: #fff; -webkit-text-stroke: 6px #2f4fa6; paint-order: stroke; }
-.dem span { display: inline-block; animation: no .35s both; }
 
 .an-di { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); margin: 0; }
 
@@ -452,6 +464,6 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ng.vua-chon, .ng.lo-dung, .ng.lo-sai, .huy, .cong, .tt-giay, .vien.diem.nay, .mat-nho, .dem span { animation: none; }
+  .ng.vua-chon, .ng.lo-dung, .ng.lo-sai, .huy, .cong, .tt-giay, .vien.diem.nay, .mat-nho { animation: none; }
 }
 </style>

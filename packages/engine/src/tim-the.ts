@@ -40,7 +40,7 @@ export const TIM_THE_CHON_SAN_MS = 2000;
 /** Nhịp úp bài trước khi hiện câu hỏi, và nhịp xem đáp án trước khi sang bàn mới. */
 export const TIM_THE_UP_MS = 800;
 /** Đầu MỖI lượt (kể cả lượt đầu): bàn mới nằm ÚP chừng này rồi mới lật cho xem (chủ dự án 27.11.2026: "úp khoảng 2 giây rồi lật"). */
-export const TIM_THE_CHO_MS = 2000;
+export const TIM_THE_CHO_MS = 3000;   // 27.11.2026: đếm 3-2-1 trên lớp phủ tối (mỗi số 1 giây) cho người chơi chuẩn bị nhớ
 /** 3 giây (27.11.2026, bàn vòng tròn): ai chưa chọn thì vòng sáng quay ~1 giây về đáp án rồi mới lật — cần chỗ để nhìn kết quả. */
 export const TIM_THE_DAP_AN_MS = 3000;
 /**

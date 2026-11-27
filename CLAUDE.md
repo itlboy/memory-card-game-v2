@@ -365,8 +365,12 @@
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
   web như Mưa Thẻ, vì phòng online (chặng 2, CHƯA làm) chạy cùng luật trên server. Màn: `components/TimThe.vue`.
 - Đã chốt (đừng đảo lại khi chưa hỏi): một LƯỢT = một bàn MỚI: ngửa cho xem → úp → hỏi MỘT thẻ → chọn MỘT lần → cả
-  bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Đầu MỖI lượt (kể cả lượt đầu) bàn nằm ÚP `TIM_THE_CHO_MS` (2 giây)
-  rồi mới lật cho xem — nhịp `cho` (27.11.2026); lá giữ nguyên qua các lượt nên thấy lá úp xuống rồi lật lên.
+  bàn ngửa (đúng viền xanh, chọn sai viền đỏ) → bàn khác. Đầu MỖI lượt bàn nằm ÚP `TIM_THE_CHO_MS` (3 giây) với
+  ĐẾM 3-2-1 TRÊN LỚP PHỦ TỐI (`DemNguocPhu.vue` — CÙNG kiểu `.countdown` của ghép cặp online; chủ dự án 27.11.2026: "lật thẻ
+  hơi bất ngờ… chuẩn bị tinh thần để ghi nhớ") rồi mới lật cho xem. Online: lượt ĐẦU server bỏ `cho` (phòng vừa đếm ngược vào
+  ván cũng trên lớp phủ đó) — không đếm hai lần. Lá giữ nguyên qua các lượt nên thấy lá úp xuống rồi lật lên.
+  Hàng người chơi online mang `data-chip-for` + mặt `.av` để bong bóng chat (lib/neo-bong) neo đúng — thiếu là bong bóng rơi
+  lên mép trên màn (lỗi 1.10.107). Màn online mới có hàng người chơi thì PHẢI gắn hai thứ này.
   **BÀN VÒNG TRÒN (1.10.105, 27.11.2026, mockup duyệt https://claude.ai/artifact/84a1NKjn98ViN2Koj51K7U)** — MỘT thành phần
   dùng chung `components/BanVongTim.vue` cho chơi đơn, online và người xem; cách xếp ở `bayVong` (lib/tim-the, test
   `tim-the-bay-ban`). Thẻ cần tìm ở TÂM, BẰNG lá thường (lưng vàng, khung vàng đôi, quầng sáng — markup riêng, không `.card`,

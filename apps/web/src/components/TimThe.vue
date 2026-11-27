@@ -35,6 +35,7 @@ import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatBot from './MatBot.vue';
 import TamDung from './TamDung.vue';
 import BanVongTim from './BanVongTim.vue';
+import DemNguocPhu from './DemNguocPhu.vue';
 import { Check, Ellipsis, Pause, TimerOff, X, Zap } from 'lucide-vue-next';
 
 const props = defineProps<{
@@ -135,7 +136,9 @@ let raf = 0;
 let truoc = 0;
 let hen: ReturnType<typeof setTimeout>[] = [];
 
-function vaoNhip(n: Nhip): void { nhip.value = n; tNhip = 0; giayCu = -1; rev.value++; }
+function vaoNhip(n: Nhip): void { nhip.value = n; tNhip = 0; giayCu = -1; rev.value++; if (n === 'cho') demSo.value = 0; }
+/** Số đang đếm 3-2-1 ở nhịp `cho` (trước MỖI lần lật cho nhớ, lớp phủ tối — 27.11.2026); 0 = không hiện. */
+const demSo = ref(0);
 
 function khung(ms: number): void {
   const dt = Math.min(100, ms - truoc);
@@ -143,7 +146,11 @@ function khung(ms: number): void {
   const v = van.value;
   if (v && buoc.value === 'choi') {
     tNhip += dt; tVan += dt;
-    if (nhip.value === 'cho' && tNhip >= TIM_THE_CHO_MS) { hinhHien.value = [...v.the]; vaoNhip('xem'); sfx.flip(); }
+    if (nhip.value === 'cho' && tNhip < TIM_THE_CHO_MS) {
+      const n = Math.ceil((TIM_THE_CHO_MS - tNhip) / 1000);
+      if (n !== demSo.value) { demSo.value = n; sfx.countdown(n); }
+    }
+    if (nhip.value === 'cho' && tNhip >= TIM_THE_CHO_MS) { demSo.value = 0; hinhHien.value = [...v.the]; vaoNhip('xem'); sfx.flip(); }
     else if (nhip.value === 'xem' && tNhip >= v.xemMs) { vaoNhip('up'); sfx.swap(); }
     else if (nhip.value === 'up' && tNhip >= TIM_THE_UP_MS) { vaoNhip('noi'); sfx.timGiua(); }
     else if (nhip.value === 'noi' && tNhip >= TIM_THE_NOI_MS) { v.moHoi(); soDaChon = 0; daNghe.clear(); vaoNhip('hoi'); }
@@ -370,6 +377,7 @@ defineExpose({
       />
     </div>
 
+    <DemNguocPhu v-if="buoc === 'choi' && nhip === 'cho' && demSo > 0" :n="demSo" />
     <Teleport to="#app" :disabled="!coApp">
       <KetCucFx v-if="buoc === 'cuoi' && fx" :loai="fx.loai" :ky-luc="fx.kyLuc" :seed="fx.seed" />
     </Teleport>
