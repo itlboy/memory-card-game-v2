@@ -54,7 +54,14 @@ const conVan = computed(() => vanConThieu(ky.value));
 /** Gợi ý luyện LUÔN theo số liệu HÔM NAY (luyện là luyện bây giờ) — đang xem ngày cũ nút vẫn hiện, vẫn đúng một con số. */
 // Hôm nay còn thiếu ván bắt buộc thì nút luyện đưa thẳng tới bàn còn thiếu (27.11.2026)
 const kyNay = chiSoTai(nhatKy);
-const theLuyen = theConThieu(kyNay) ?? theNenLuyen(kyNay.chang);
+const theThieu = theConThieu(kyNay);
+const theLuyen = theThieu ?? theNenLuyen(kyNay.chang);
+/** Nhãn nút chơi: thiếu nhóm nào thì "Chơi bàn lớn/vừa/nhỏ" (to trước), đủ rồi thì "Luyện ngay". */
+const loaiThieu = theThieu === null ? null : NHOM_BAN.find((n) => n.the === theThieu)!.loai;
+function bamChoi(): void {
+  if (loaiThieu) moChucNang('tri_nho_choi_can', { loai: loaiThieu, so_the: theLuyen });
+  emit('luyen', theLuyen);
+}
 const tenBac = (b: number): string => td(`tn.bac.${b}`);
 const SO_BAC = 5;
 /** Đoạn của bậc `b` trên thanh 5 bậc tô bao nhiêu %: bậc đã qua = đầy, bậc đang ở = tới chỗ mình đứng, bậc chưa tới = trống. */
@@ -117,12 +124,11 @@ function moTabNam(): void {
  */
 const LINK_TAI = `${SITE_URL}/tai`;
 const moChiaSe = ref(false);
-/** Ba nhóm bàn bắt buộc của ngày đang xem (nhỏ · vừa · lớn); bấm = chơi ngay bàn đó (`luyen`). */
+/** Ba nhóm bàn bắt buộc của ngày đang xem (nhỏ · vừa · lớn) — CHỈ HIỂN THỊ; chơi bằng nút dưới cùng. */
 const canVan = computed(() => NHOM_BAN.map((n, i) => ({
-  loai: n.loai, the: n.the, du: ky.value.duNhom[i]!,
+  loai: n.loai, du: ky.value.duNhom[i]!,
   nhan: td(`tn.nhom.${n.loai}`), tam: n.den === Infinity ? `${n.the}+` : `${n.tu}–${n.loai === 'vua' ? 56 : n.den}`
 })));
-function choiCan(loai: string, the: number): void { moChucNang('tri_nho_choi_can', { loai, so_the: the }); emit('luyen', the); }
 function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; }
 const veAnh = (): Promise<Blob> => {
   const k = ky.value;
@@ -162,11 +168,15 @@ const coNhan = (k: string, i: number): boolean =>
 
       <!-- (1) TÔI Ở ĐÂU: điểm trong huy chương màu bậc -->
       <section v-if="ky.diem !== null" class="giua">
-        <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
-        <!-- GHI RÕ điểm của NGÀY NÀO và tính trên bao nhiêu ngày (26.11.2026, chủ dự án: "ghi rõ điểm số hôm nay"; trước đó hỏi
-             "điểm hiện tại là trung bình của bao nhiêu ngày?") — từ 27.11.2026 điểm là của RIÊNG ngày đó ("hôm nào hiện điểm
-             hôm đó"), xem lại các ngày trước ở biểu đồ -->
-        <p class="huy-chu"><b>{{ laHomNay ? t('tn.diemHomNay') : t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b></p>
+        <!-- HUY CHƯƠNG NỔI BẬT (27.11.2026, mockup duyệt https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc): to, quầng sáng màu bậc,
+             hai đuôi ruy-băng, dải tên bậc, vệt sáng lướt qua -->
+        <div class="huy-khung" :class="`b${ky.bac}`">
+          <span class="duoi t" aria-hidden="true" /><span class="duoi p" aria-hidden="true" />
+          <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)} · ${tenBac(ky.bac!)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
+          <span class="dai-bac">{{ tenBac(ky.bac!) }}</span>
+        </div>
+        <p class="huy-chu"><b>{{ laHomNay ? t('tn.diemHomNay') : t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b>
+          · <template v-if="ky.conToiBac !== null">{{ t('tn.conBac', { n: num(ky.conToiBac) }) }} {{ tenBac(ky.bac! + 1) }}</template><template v-else>{{ t('tn.bacCaoNhat') }}</template></p>
         <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF; chủ dự án: "chưa
              biểu thị được các bậc… thanh ngang hiển thị mình đang ở đâu"): mỗi bậc một đoạn mang màu của nó, đoạn đã qua
              tô đầy, đoạn đang ở tô tới chỗ mình đứng + vạch đánh dấu; tên 5 bậc ngay dưới, bậc của mình in đậm — thay
@@ -180,28 +190,22 @@ const coNhan = (k: string, i: number): boolean =>
           </div>
           <div class="ten5" aria-hidden="true"><span v-for="b in SO_BAC" :key="b" :class="{ day: b - 1 === ky.bac }">{{ tenBac(b - 1) }}</span></div>
         </div>
-        <p class="toi-bac">
-          <span v-if="ky.conToiBac !== null">{{ t('tn.conBac', { n: num(ky.conToiBac) }) }} {{ tenBac(ky.bac! + 1) }}</span>
-          <span v-else>{{ t('tn.bacCaoNhat') }}</span>
-        </p>
       </section>
       <!-- CHƯA ĐỦ VÁN (27.11.2026, chủ dự án: "ngày đã chơi mà chưa đủ thì hiện cột mờ, điểm số cũng mờ, nói là số liệu yếu"; "một
            ván bàn nhỏ, một bàn vừa, một bàn lớn là đủ"; "đủ thông tin mà không tốn diện tích"): huy chương MỜ mang điểm thô, một dòng
            chữ, một hàng 3 viên nhóm bàn — hôm nay bấm viên là chơi ngay bàn đó, ngày cũ chỉ xem. -->
       <section v-else class="giua">
-        <span v-if="ky.diemTho !== null" class="huy yeu" role="img" :aria-label="`${num(ky.diemTho)} · ${t('tn.yeu')}`"><b :class="{ dai: ky.diemTho >= 1000 }">{{ ky.diemTho }}</b></span>
-        <span v-else class="huy khoa" aria-hidden="true"><ChartColumn :size="26" :stroke-width="2.6" /></span>
+        <div class="huy-khung yeu">
+          <span v-if="ky.diemTho !== null" class="huy" role="img" :aria-label="`${num(ky.diemTho)} · ${t('tn.yeu')}`"><b :class="{ dai: ky.diemTho >= 1000 }">{{ ky.diemTho }}</b></span>
+          <span v-else class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span>
+        </div>
         <p class="huy-chu">
-          <b v-if="ky.diemTho !== null">{{ t('tn.yeu') }}</b><template v-if="ky.diemTho !== null && laHomNay"> · </template>
-          <template v-if="laHomNay">{{ t('tn.khoa', { n: conVan }) }}</template>
+          <template v-if="!laHomNay"><b>{{ t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b><template v-if="ky.diemTho !== null"> · {{ t('tn.yeu') }}</template></template>
+          <template v-else><b v-if="ky.diemTho !== null">{{ t('tn.yeu') }} · </b>{{ t('tn.khoa', { n: conVan }) }}</template>
         </p>
         <ul class="nhom3">
-          <li v-for="d in canVan" :key="d.loai">
-            <component :is="laHomNay ? 'button' : 'div'" :type="laHomNay ? 'button' : undefined" class="thach th-nho" :class="[d.du ? 'du' : laHomNay ? 'th-ngoc' : 'thieu', { tinh: !laHomNay }]"
-              :aria-label="`${d.nhan} ${d.tam}`" @click="laHomNay && choiCan(d.loai, d.the)">
-              <span class="n1"><Check v-if="d.du" :size="14" :stroke-width="3.2" aria-hidden="true" /><Play v-else-if="laHomNay" :size="11" :stroke-width="0" fill="currentColor" aria-hidden="true" />{{ d.nhan }}</span>
-              <small>{{ d.tam }}</small>
-            </component>
+          <li v-for="d in canVan" :key="d.loai" :class="{ du: d.du }" :aria-label="`${d.nhan} ${d.tam}${d.du ? ' ✓' : ''}`">
+            <span class="o" aria-hidden="true"><Check v-if="d.du" :size="10" :stroke-width="4.5" /></span>{{ d.nhan }} <small>{{ d.tam }}</small>
           </li>
         </ul>
       </section>
@@ -262,8 +266,11 @@ const coNhan = (k: string, i: number): boolean =>
       </section>
 
       <!-- (3) HÀNH ĐỘNG — luôn hiện -->
-      <button class="btn btn-primary luyen" type="button" @click="emit('luyen', theLuyen)">
-        <Play :size="16" :stroke-width="0" fill="currentColor" aria-hidden="true" />{{ t('tn.luyen', { n: theLuyen }) }}
+      <!-- NÚT CHƠI bóng (27.11.2026, mockup duyệt): xanh lá nút chính của app; thiếu nhóm bàn thì mở đúng bàn thiếu -->
+      <button class="btn btn-primary luyen" type="button" @click="bamChoi">
+        <span class="pl" aria-hidden="true"><Play :size="16" :stroke-width="0" fill="currentColor" /></span>
+        <span class="ch">{{ loaiThieu ? t(`tn.choi.${loaiThieu}`) : t('tn.luyenNgay') }}</span>
+        <span class="ban"><i aria-hidden="true"><b v-for="x in 9" :key="x" /></i>{{ t('tn.nThe', { n: theLuyen }) }}</span>
       </button>
     </div>
   </div>
@@ -302,12 +309,12 @@ const coNhan = (k: string, i: number): boolean =>
 .huy b.dai { font-size: 17px; }
 .huy-chu { margin: -2px 0 0; font: 700 12.5px/1.3 var(--font-body); color: var(--muted); text-align: center; }
 .huy-chu b { color: var(--fg); font-weight: 800; }
-.b0 { --h1: #f6d0aa; --h2: #c98345; --h3: #8a4a18; --hc: #45220a; }
-.b1 { --h1: #ffffff; --h2: #b3bccd; --h3: #6f7a90; --hc: #2b3346; }
-.b2 { --h1: #fff0a8; --h2: #f0b400; --h3: #a87400; --hc: #4a3600; }
-.b3 { --h1: #f0fbff; --h2: #86c9ea; --h3: #3f84ad; --hc: #0d3b57; }
-.b4 { --h1: #e9e0ff; --h2: #8a6df2; --h3: #4a34b0; --hc: #ffffff; }
-.huy.b4 b { text-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
+.b0 { --glow: #ff9d4d; --h1: #f6d0aa; --h2: #c98345; --h3: #8a4a18; --hc: #45220a; }
+.b1 { --glow: #c9d3ea; --h1: #ffffff; --h2: #b3bccd; --h3: #6f7a90; --hc: #2b3346; }
+.b2 { --glow: #ffcf3a; --h1: #fff0a8; --h2: #f0b400; --h3: #a87400; --hc: #4a3600; }
+.b3 { --glow: #7fd8ff; --h1: #f0fbff; --h2: #86c9ea; --h3: #3f84ad; --hc: #0d3b57; }
+.b4 { --glow: #b59cff; --h1: #e9e0ff; --h2: #8a6df2; --h3: #4a34b0; --hc: #ffffff; }
+.b4 .huy b, .huy.b4 b { text-shadow: 0 1px 0 rgba(0, 0, 0, .35); }
 .huy.khoa { --h1: var(--o); --h2: var(--ray); --h3: var(--ray); color: var(--muted); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .25); }
 .giua strong { margin-top: 3px; font: 800 19px/1.15 var(--font-display); color: var(--fg); text-align: center; }
 /* Thanh 5 bậc: 5 đoạn bằng nhau (mỗi bậc 200 điểm). <u> = phần tô, <s> = vạch "mình ở đây" (cao hơn thanh, nên đoạn KHÔNG overflow hidden) */
@@ -344,16 +351,6 @@ const coNhan = (k: string, i: number): boolean =>
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
 .hinh.nam { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
 /* Tab Cả năm: vương miện nhỏ cạnh chữ; chưa có Premium thì tab hơi mờ (bấm vẫn mở bảng Premium) */
-.nhom3 { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
-.nhom3 .thach { width: 100%; min-height: 48px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-.nhom3 .n1 { display: inline-flex; align-items: center; gap: 4px; font: 800 14px/1.1 var(--font-body); }
-.nhom3 small { font: 700 11.5px/1.1 var(--font-body); opacity: .8; font-variant-numeric: tabular-nums; }
-.nhom3 .du, .nhom3 .du svg { color: #2fb57a; stroke: #2fb57a; }
-.nhom3 .tinh { pointer-events: none; box-shadow: none; }
-.nhom3 .thieu { opacity: .55; }
-/* SỐ LIỆU YẾU: huy chương + cột + số MỜ */
-.huy.yeu { --h1: var(--o); --h2: var(--ray); --h3: var(--ray); color: var(--fg); opacity: .5; box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .25); }
-.huy.yeu b { text-shadow: none; }
 .tab-nam { display: inline-flex; align-items: center; gap: 5px; }
 .tab-nam.khoa { opacity: .7; }
 .tab-nam .vm { display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }
@@ -381,5 +378,45 @@ const coNhan = (k: string, i: number): boolean =>
 .ngay .c small { height: 24px; align-items: flex-start; font-variant-numeric: tabular-nums; }
 .ngay .chon small { color: var(--tn); }
 
-.luyen { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; }
+.luyen { position: relative; overflow: hidden; width: 100%; min-height: 58px; border-radius: 20px; border: 0; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 8px;
+  font: 800 19px/1 var(--font-display); color: #fff; text-shadow: 0 1.5px 0 rgba(20, 70, 10, .45);
+  background: linear-gradient(180deg, #a3e86f 0%, #5cc236 45%, #3a9a1f 100%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .28), inset 0 -4px 0 rgba(0, 0, 0, .12), 0 6px 0 #2d7a18, 0 10px 18px rgba(60, 150, 30, .3); }
+.luyen:active { transform: translateY(3px); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .28), 0 3px 0 #2d7a18; }
+.luyen::before { content: ""; position: absolute; left: 12px; right: 12px; top: 5px; height: 40%; border-radius: 14px 14px 30px 30px; background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0)); pointer-events: none; }
+.luyen::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: -40%; width: 22%; transform: rotate(20deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); animation: loe-nut 4.2s ease-in-out infinite; pointer-events: none; }
+@keyframes loe-nut { 0%, 65% { left: -40%; } 90%, 100% { left: 130%; } }
+.luyen .pl { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #2f8a17; background: radial-gradient(circle at 35% 30%, #fff, #e6f8da 70%); box-shadow: 0 2px 0 rgba(0, 0, 0, .15), inset 0 0 0 2px rgba(255, 255, 255, .8); }
+.luyen .pl svg { margin-left: 3px; }
+.luyen .ch { position: relative; flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.luyen .ban { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 12px; font: 800 13px/1 var(--font-body); text-shadow: none; color: #2a6a12; background: rgba(255, 255, 255, .85); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .08); }
+.luyen .ban i { width: 14px; height: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; }
+.luyen .ban i b { background: #4fae2b; border-radius: 1.5px; }
+
+/* HUY CHƯƠNG NỔI BẬT */
+.huy-khung { position: relative; width: 150px; height: 128px; display: grid; justify-items: center; align-content: start; }
+.huy-khung::before { content: ""; position: absolute; top: -6px; left: 0; width: 150px; height: 120px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--glow) 55%, transparent), transparent); pointer-events: none; }
+.huy-khung .duoi { position: absolute; top: 62px; width: 26px; height: 48px; background: linear-gradient(var(--h2), var(--h3)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); }
+.huy-khung .duoi.t { left: 44px; transform: rotate(16deg); }
+.huy-khung .duoi.p { right: 44px; transform: rotate(-16deg); }
+.huy-khung .huy { position: relative; width: 92px; height: 92px; border-width: 4px; overflow: hidden; box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45), 0 4px 0 var(--h3); }
+.huy-khung .huy b { font-size: 31px; }
+.huy-khung .huy b.dai { font-size: 25px; }
+.huy-khung .huy::after { content: ""; position: absolute; top: -40%; bottom: -40%; left: -60%; width: 34%; transform: rotate(25deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent); animation: loe-huy 3.6s ease-in-out infinite; }
+@keyframes loe-huy { 0%, 60% { left: -60%; } 85%, 100% { left: 130%; } }
+.huy-khung .dai-bac { position: absolute; top: 100px; padding: 5px 14px; border-radius: 10px; font: 800 13px/1 var(--font-display); color: var(--hc); white-space: nowrap; background: linear-gradient(var(--h1), var(--h2)); box-shadow: 0 2px 0 var(--h3), inset 0 0 0 1.5px rgba(255, 255, 255, .5); }
+.huy-khung.yeu { height: 98px; }
+.huy-khung.yeu::before, .huy-khung.yeu .huy::after { display: none; }
+.huy-khung.yeu .huy:not(.khoa) { --h1: var(--o); --h2: var(--o); --h3: var(--ray); color: var(--fg); opacity: .55; border-style: dashed; box-shadow: none; }
+.huy-khung.yeu .huy b { text-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .luyen::after, .huy-khung .huy::after { animation: none; display: none; } }
+
+/* 3 NHÃN NHÓM BÀN — chỉ hiển thị */
+.nhom3 { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.nhom3 li { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px 5px 7px; border-radius: 999px; font: 800 12.5px/1 var(--font-body); background: var(--o); color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--ray); }
+.nhom3 .o { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px currentColor; opacity: .7; }
+.nhom3 li.du { color: var(--tn-du, #1f9e6a); background: color-mix(in srgb, #2fb57a 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #2fb57a 45%, transparent); }
+.nhom3 li.du .o { background: currentColor; box-shadow: none; opacity: 1; }
+.nhom3 li.du .o svg { color: var(--panel-solid, #fff); }
+.nhom3 small { font-weight: 700; opacity: .75; }
 </style>

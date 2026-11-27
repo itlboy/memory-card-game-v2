@@ -41,7 +41,6 @@ import type { CardTheme } from '@/lib/themes';
 import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
 import { chiSoHomNay, hienTriNho, phienTriNho, tienDoCoDiem, vanConThieu } from '@/lib/tri-nho';
-import HuyChuongBac from './HuyChuongBac.vue';
 import LevelMap from './LevelMap.vue';
 import SizeGrid from './SizeGrid.vue';
 import ThemePicker from './ThemePicker.vue';
@@ -125,6 +124,8 @@ const chuVienPremium = computed(() => {
   return n > 0 ? t('pm.vien.con', { n }) : t('pm.vien.dangCo');
 });
 /** Nút Chỉ số trí nhớ ở trang chủ: điểm + bậc + tiến độ, và có gì MỚI so với lần xem cuối không. */
+/** Chu vi vòng tiến độ quanh huy chương (r = 21). */
+const VONG = 2 * Math.PI * 21;
 const tnNut = computed(() => {
   void phienTriNho.value;   // nhật ký ở localStorage không tự phản ứng — ghi ván / mở màn chỉ số là tăng số này
   if (!hienTriNho.value) return null;
@@ -132,7 +133,7 @@ const tnNut = computed(() => {
   const xem = store.prefs().triNhoXem;
   const moi = k.diem !== null && xem !== k.diem;
   return {
-    diem: k.diem, bac: k.bac, moi, conVan: vanConThieu(k),
+    diem: k.diem, bac: k.bac, moi, conVan: vanConThieu(k), nhom: k.duNhom,
     // Viền: có điểm = đã đi bao nhiêu % của bậc; chưa có = số liệu đã gom so với mốc
     pt: Math.round((k.diem === null ? tienDoCoDiem(k) : k.tienBac) * 100),
     lech: moi && xem !== undefined ? k.diem! - xem : 0,
@@ -668,10 +669,21 @@ const ICO3D = {
                tượng → không có lý do bấm). Chưa đủ số liệu: biểu tượng biểu đồ (không bao giờ cái não) + "Còn N ván".
                Khối bám vào khung của nút Chiến dịch (`.cd-khung`) nên máy cao thấp gì cũng nằm sát trên nút. Mở cho mọi người từ 1.9.66. -->
           <button v-if="tnNut" class="vien-tn thach" type="button" :aria-label="tnNut.nhan" @click="sfx.select(); emit('so-tri-nho')">
-            <span class="vtn-hc" :class="{ khoa: tnNut.bac === null }" aria-hidden="true">
-              <HuyChuongBac v-if="tnNut.bac !== null" :bac="tnNut.bac" /><ChartColumn v-else :size="17" :stroke-width="2.8" />
+            <!-- HUY CHƯƠNG NỔI BẬT (27.11.2026, mockup duyệt https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc — thay quyết định 25.11 "không
+                 vành tiến độ"): xu màu bậc khắc biểu tượng biểu đồ + quầng sáng + vệt sáng lướt + vòng tiến độ tới bậc kế; chưa có điểm
+                 thì xu xanh ngọc, vòng chia 3 đoạn Nhỏ/Vừa/Lớn. Tên bậc nhỏ cạnh điểm. -->
+            <span class="vtn-hc" :class="tnNut.bac === null ? 'khoa' : `b${tnNut.bac}`" aria-hidden="true">
+              <svg class="vtn-vong" viewBox="0 0 46 46">
+                <template v-if="tnNut.bac !== null">
+                  <circle cx="23" cy="23" r="21" class="nen" />
+                  <circle cx="23" cy="23" r="21" class="chay" :stroke-dasharray="`${VONG * tnNut.pt / 100} ${VONG}`" />
+                </template>
+                <circle v-for="(d, i) in tnNut.nhom" v-else :key="i" cx="23" cy="23" r="21" :class="d ? 'du' : 'nen'"
+                  :stroke-dasharray="`${VONG / 3 - 6} ${VONG}`" :stroke-dashoffset="-(VONG / 3) * i - 3" />
+              </svg>
+              <span class="xu"><ChartColumn :size="tnNut.bac === null ? 18 : 19" :stroke-width="3" /></span>
             </span>
-            <span class="vtn-chu"><small>{{ t('tn.ten') }}</small><b>{{ tnNut.diem !== null ? tnNut.diem : t('tn.conVan', { n: tnNut.conVan }) }}</b></span>
+            <span class="vtn-chu"><small>{{ t('tn.ten') }}</small><b>{{ tnNut.diem !== null ? tnNut.diem : t('tn.conVan', { n: tnNut.conVan }) }}<span v-if="tnNut.bac !== null" class="vtn-bac">{{ td(`tn.bac.${tnNut.bac}`) }}</span></b></span>
             <span v-if="tnNut.lech" class="vtn-len" :class="{ giam: tnNut.lech < 0 }" aria-hidden="true">{{ tnNut.lech > 0 ? '▲' : '▼' }} {{ Math.abs(tnNut.lech) }}</span>
           </button>
           <!-- VIÊN PREMIUM đối diện viên Chỉ số trí nhớ (26.11.2026, mockup duyệt https://claude.ai/artifact/5y6jdDcExegghTLJbfWKUc).
@@ -1271,8 +1283,28 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .vien-pm .vtn-chu b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.25; }
 .vpm-vm { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
 .vpm-cham { position: absolute; top: -2px; right: -2px; width: 13px; height: 13px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px var(--panel-solid, #fff); }
-.vtn-hc { flex: none; display: grid; place-items: center; width: 34px; height: 34px; font-size: 29px; line-height: 1; }
-.vtn-hc.khoa { border-radius: 50%; color: #fff; background: linear-gradient(#3fd0bd, #149384 70%); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .3); }
+.vtn-hc { position: relative; flex: none; width: 46px; height: 46px; margin: -6px 0 -6px -4px; }
+.vtn-hc.b0 { --h1: #f6d0aa; --h2: #c98345; --h3: #8a4a18; --hc: #45220a; --glow: #ff9d4d; }
+.vtn-hc.b1 { --h1: #ffffff; --h2: #b3bccd; --h3: #6f7a90; --hc: #2b3346; --glow: #c9d3ea; }
+.vtn-hc.b2 { --h1: #fff0a8; --h2: #f0b400; --h3: #a87400; --hc: #4a3600; --glow: #ffcf3a; }
+.vtn-hc.b3 { --h1: #f0fbff; --h2: #86c9ea; --h3: #3f84ad; --hc: #0d3b57; --glow: #7fd8ff; }
+.vtn-hc.b4 { --h1: #e9e0ff; --h2: #8a6df2; --h3: #4a34b0; --hc: #ffffff; --glow: #b59cff; }
+.vtn-vong { position: absolute; inset: 0; transform: rotate(-90deg); }
+.vtn-vong circle { fill: none; stroke-width: 3.5; stroke-linecap: round; }
+.vtn-vong .nen { stroke: color-mix(in srgb, var(--muted) 30%, transparent); }
+.vtn-vong .chay { stroke: var(--h2); }
+.vtn-vong .du { stroke: #2fb57a; }
+.vtn-hc .xu { position: absolute; inset: 5px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: var(--hc);
+  background: radial-gradient(circle at 34% 28%, var(--h1), var(--h2) 66%, var(--h3));
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .55), 0 0 12px 1px color-mix(in srgb, var(--glow) 70%, transparent); }
+.vtn-hc .xu svg { filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .6)); }
+.vtn-hc .xu::after { content: ""; position: absolute; top: -40%; bottom: -40%; left: -60%; width: 40%; transform: rotate(25deg); background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .75), transparent); animation: vtn-loe 3.6s ease-in-out infinite; }
+@keyframes vtn-loe { 0%, 60% { left: -60%; } 85%, 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .vtn-hc .xu::after { animation: none; display: none; } }
+.vtn-hc.khoa .xu { background: linear-gradient(#3fd0bd, #149384 70%); color: #fff; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 10px rgba(63, 208, 189, .55); }
+.vtn-hc.khoa .xu svg { filter: none; }
+.vtn-hc.khoa .xu::after { display: none; }
+.vtn-bac { margin-left: 5px; font: 800 11px/1 var(--font-body); color: var(--muted); }
 .vtn-chu { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .vtn-chu small { font-size: 10.5px; font-weight: 800; line-height: 1.1; color: var(--muted); white-space: nowrap; }
 .vtn-chu b { font: 800 19px/1 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -2033,7 +2033,10 @@ phòng chờ — trước đó bot đứng im từ ván thứ hai).
   "hôm nào hiện điểm hôm đó… có mục tiêu cố gắng; xem lại thì xem biểu đồ". Ngày chỉ có điểm CHÍNH THỨC khi đủ 3 NHÓM BÀN
   (1.10.86, `NHOM_BAN`): 1 ván nhỏ 16–24 · 1 vừa 30–59 · 1 lớn từ 70 thẻ (ván to dư bù nhóm nhỏ hơn; dưới 16 thẻ không tính) và
   ≥ 20 cơ hội nhớ. Đã chơi mà chưa đủ = "SỐ LIỆU YẾU": huy chương + cột + số MỜ theo `diemTho`. Màn chỉ số khi chưa đủ GỌN: một dòng
-  chữ + hàng 3 viên Nhỏ/Vừa/Lớn (✓ hoặc ▶, bấm = chơi ngay bàn 16/36/72; ngày cũ chỉ xem).
+  chữ + 3 nhãn Nhỏ/Vừa/Lớn CHỈ HIỂN THỊ (✓ khi đủ). Chơi bằng NÚT DƯỚI CÙNG (1.10.87, mockup duyệt
+  https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc): xanh lá bóng (màu nút chính của app), thiếu nhóm thì "Chơi bàn lớn/vừa/nhỏ"
+  (to trước), đủ thì "Luyện ngay". Số liệu/biểu đồ GIỮ XANH NGỌC (chủ dự án chọn: xanh lá = hành động + đạt). Huy chương to có
+  ruy-băng + tên bậc + quầng sáng; nút trang chủ: xu màu bậc + vòng tiến độ (yếu = vòng 3 đoạn nhóm bàn).
   Áp cho CẢ NGÀY CŨ — điểm mọi ngày tính lại từ nhật ký thô theo cỡ bàn, không lưu điểm. Không còn điểm riêng từng ván — sau ván
   `ghiVanTriNho` ghi nhật ký + đặt `vuaDoi` (trước/sau), bảng kết quả hiện "Chỉ số trí nhớ 514 ▲ 8" / "Lên bậc Vàng!" / nhãn "Mới".
   PHẢI gọi `ghiVanTriNho(undefined, …)` cho ván không chấm (đội online, người xem) để `vuaDoi` về null, không lòi số ván trước.
