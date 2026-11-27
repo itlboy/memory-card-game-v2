@@ -16,7 +16,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * tab / đổi ngày CHỈ ĐỔI SỐ (chủ dự án: "bấm cột khác… giao diện thì nhảy, tại sao phải làm thế?").
  * MÀU: phần chính lấy màu của BẬC; ngọc chỉ còn ở các cột — hai tông (đậm nền sáng, sáng nền tối) vì một tông chỉ đạt 2,7–3,0.
  */
-import { Check, ChartColumn, Crown, Play, Share2, X } from 'lucide-vue-next';
+import { Check, ChartColumn, Crown, Info, Play, Share2, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
@@ -72,16 +72,13 @@ const SO_BAC = 5;
  * thêm cả thanh vàng bạc đồng như bình thường"; "số liệu yếu nên nói cụ thể hơn") — huy chương, ruy-băng, thang bậc như thường;
  * dòng chữ nói rõ "Điểm tạm — thiếu bàn lớn".
  */
+/** Đủ 3 nhóm bàn (điểm chính thức). */
+const duCa = computed(() => ky.value.diem !== null);
 const hien = computed(() => {
   const k = ky.value;
   return k.diem !== null
     ? { diem: k.diem, bac: k.bac, tienBac: k.tienBac, tam: false }
     : { diem: k.diemTho, bac: k.bacTho, tienBac: k.tienBacTho, tam: k.diemTho !== null };
-});
-/** "bàn nhỏ, bàn lớn" — các nhóm bàn còn thiếu, nối theo ngôn ngữ. */
-const thieuChu = computed(() => {
-  const ds = NHOM_BAN.filter((_, i) => !ky.value.duNhom[i]).map((n) => td(`tn.ban.${n.loai}`));
-  try { return new Intl.ListFormat(bcp(), { type: 'conjunction' }).format(ds); } catch { return ds.join(', '); }
 });
 const doDay = (b: number): number => {
   const h = hien.value;
@@ -144,9 +141,11 @@ const LINK_TAI = `${SITE_URL}/tai`;
 const moChiaSe = ref(false);
 /** Ba nhóm bàn bắt buộc của ngày đang xem (nhỏ · vừa · lớn) — CHỈ HIỂN THỊ; chơi bằng nút dưới cùng. */
 const canVan = computed(() => NHOM_BAN.map((n, i) => ({
-  loai: n.loai, du: ky.value.duNhom[i]!,
+  loai: n.loai, du: ky.value.duNhom[i]!, the: n.the,
   nhan: td(`tn.nhom.${n.loai}`), tam: n.hien
 })));
+/** Bấm nhóm bàn CÒN THIẾU (hôm nay) = chơi ngay bàn đó. Nhóm đã chơi không phải nút — không bấm thừa. */
+function choiNhom(loai: string, the: number): void { moChucNang('tri_nho_choi_can', { loai, so_the: the, tu: 'nhom' }); emit('luyen', the); }
 function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; }
 const veAnh = (): Promise<Blob> => {
   const k = ky.value;
@@ -188,17 +187,17 @@ const coNhan = (k: string, i: number): boolean =>
       <section class="giua co-dinh">
         <!-- HUY CHƯƠNG NỔI BẬT (27.11.2026, mockup duyệt https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc): to, quầng sáng màu bậc,
              hai đuôi ruy-băng, dải tên bậc, vệt sáng lướt qua -->
-        <div v-if="hien.diem !== null" class="huy-khung" :class="`b${hien.bac}`">
+        <div v-if="hien.diem !== null" class="huy-khung" :class="[`b${hien.bac}`, { tam: hien.tam }]">
           <span class="duoi t" aria-hidden="true" /><span class="duoi p" aria-hidden="true" />
           <span class="huy" :class="`b${hien.bac}`" role="img" :aria-label="`${num(hien.diem)} · ${tenBac(hien.bac!)}`"><b :class="{ dai: hien.diem >= 1000 }">{{ hien.diem }}</b></span>
           <span class="dai-bac">{{ tenBac(hien.bac!) }}</span>
         </div>
         <div v-else class="huy-khung yeu"><span class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span></div>
         <!-- Ngày + (điểm tạm) nhóm bàn còn thiếu -->
-        <p class="huy-chu"><b>{{ ngayChu }}</b><template v-if="hien.tam"> · <span class="tam">{{ t('tn.tam', { ds: thieuChu }) }}</span></template></p>
+        <p class="huy-chu"><b>{{ ngayChu }}</b></p>
         <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF) -->
         <!-- Chưa có điểm: thang vẫn chiếm chỗ (ẩn) để hàng nhóm bàn nằm đúng vị trí như các ngày khác -->
-        <div class="thang" :style="hien.diem === null ? { visibility: 'hidden' } : undefined" :role="hien.diem !== null ? 'img' : undefined"
+        <div class="thang" :class="{ tam: hien.tam }" :style="hien.diem === null ? { visibility: 'hidden' } : undefined" :role="hien.diem !== null ? 'img' : undefined"
           :aria-hidden="hien.diem === null || undefined" :aria-label="hien.diem !== null ? t('tn.bacTen', { ten: tenBac(hien.bac!) }) : undefined">
           <div class="doan">
             <i v-for="b in SO_BAC" :key="b" :class="`b${b - 1}`">
@@ -208,12 +207,16 @@ const coNhan = (k: string, i: number): boolean =>
           </div>
           <div class="ten5" aria-hidden="true"><span v-for="b in SO_BAC" :key="b" :class="{ day: b - 1 === hien.bac }">{{ tenBac(b - 1) }}</span></div>
         </div>
-        <!-- 3 NHÓM BÀN BẮT BUỘC — luôn hiện (đủ thì cả ba tick xanh) -->
-        <ul class="nhom3">
-          <li v-for="d in canVan" :key="d.loai" :class="{ du: d.du }" :aria-label="`${d.nhan} ${d.tam}${d.du ? ' ✓' : ''}`">
-            <span class="o" aria-hidden="true"><Check v-if="d.du" :size="10" :stroke-width="4.5" /></span>{{ d.nhan }} <small>{{ d.tam }}</small>
-          </li>
-        </ul>
+        <!-- ĐIỂM TẠM (mockup duyệt 27.11.2026 https://claude.ai/artifact/9jeM4ji61AkdG8VstDCceJ, bỏ chữ "tạm"): huy chương + thang
+             bạc màu, thông báo con số chưa đáng tin, 3 nhóm bàn: CHƯA CHƠI (hôm nay) = nút xanh bấm là chơi, ĐÃ CHƠI = nhãn ✓ không bấm -->
+        <p v-if="!duCa" class="bao-tam"><Info :size="16" :stroke-width="2.6" aria-hidden="true" /><span>{{ hien.diem === null ? (laHomNay ? t('tn.baoTrong') : t('tn.baoTrongCu')) : laHomNay ? t('tn.baoIt') : t('tn.baoItCu') }}</span></p>
+        <div class="nhom3">
+          <template v-for="d in canVan" :key="d.loai">
+            <span v-if="d.du" class="n da" :aria-label="`${d.nhan} ${d.tam} ✓`"><span class="t1"><Check :size="14" :stroke-width="3.5" aria-hidden="true" />{{ d.nhan }}</span><small>{{ d.tam }}</small></span>
+            <button v-else-if="laHomNay" class="n choi thach th-xanh" type="button" @click="choiNhom(d.loai, d.the)"><span class="t1"><Play :size="11" :stroke-width="0" fill="currentColor" aria-hidden="true" />{{ d.nhan }}</span><small>{{ d.tam }}</small></button>
+            <span v-else class="n cu"><span class="t1">{{ d.nhan }}</span><small>{{ d.tam }}</small></span>
+          </template>
+        </div>
       </section>
 
       <!-- (2a) THEO SỐ LƯỢT — luôn hiện -->
@@ -414,22 +417,27 @@ const coNhan = (k: string, i: number): boolean =>
 /* CÙNG CHIỀU CAO giữa ngày đủ / ngày yếu / ngày trống (chủ dự án 27.11.2026: "chiều cao bị thay đổi khi chọn giữa ngày không có
    số liệu và ngày đủ số liệu"): khung huy chương luôn 128px (huy chương nằm cùng chỗ), khối `.giua` giữ chiều cao của ngày đủ. */
 .huy-khung.yeu { height: 128px; }
-.huy-chu .tam { color: #e0a21a; font-weight: 800; }
-.giua.co-dinh { min-height: 228px; justify-content: flex-start; }
+.giua.co-dinh { min-height: 307px; justify-content: flex-start; }
 .huy-khung.yeu::before, .huy-khung.yeu .huy::after { display: none; }
 .huy-khung.yeu .huy:not(.khoa) { --h1: var(--o); --h2: var(--o); --h3: var(--ray); color: var(--fg); opacity: .55; border-style: dashed; box-shadow: none; }
 .huy-khung.yeu .huy b { text-shadow: none; }
 @media (prefers-reduced-motion: reduce) { .luyen::after, .huy-khung .huy::after { animation: none; display: none; } }
 
-/* 3 NHÃN NHÓM BÀN — chỉ hiển thị */
-.nhom3 { list-style: none; margin: 2px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, max-content)); justify-content: center; gap: 6px; max-width: 100%; }
-.nhom3 li { min-width: 0; white-space: nowrap; overflow: hidden; }
-/* Máy rất hẹp (320–359px) + ngôn ngữ chữ dài: bỏ dải số thẻ, giữ tên nhóm + dấu ✓ — không cắt chữ giữa chừng */
-@media (max-width: 359px) { .nhom3 small { display: none; } .nhom3 li { padding: 5px 9px 5px 6px; } }
-.nhom3 li { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px 5px 7px; border-radius: 999px; font: 800 12.5px/1 var(--font-body); background: var(--o); color: var(--muted); box-shadow: inset 0 0 0 1.5px var(--ray); }
-.nhom3 .o { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; box-shadow: inset 0 0 0 2px currentColor; opacity: .7; }
-.nhom3 li.du { color: var(--tn-du, #1f9e6a); background: color-mix(in srgb, #2fb57a 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #2fb57a 45%, transparent); }
-.nhom3 li.du .o { background: currentColor; box-shadow: none; opacity: 1; }
-.nhom3 li.du .o svg { color: var(--panel-solid, #fff); }
-.nhom3 small { font-weight: 700; opacity: .75; }
+/* 3 NHÓM BÀN: chưa chơi = nút thạch xanh · đã chơi = nhãn ✓ phẳng · ngày cũ chưa chơi = nhãn xám */
+.nhom3 { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.nhom3 .n { min-width: 0; min-height: 46px; padding: 4px; box-sizing: border-box; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 800 13.5px/1.1 var(--font-body); white-space: nowrap; overflow: hidden; }
+.nhom3 .t1 { display: inline-flex; align-items: center; gap: 4px; }
+.nhom3 small { font: 700 11px/1 var(--font-body); opacity: .8; font-variant-numeric: tabular-nums; }
+.nhom3 .n.choi { cursor: pointer; }   /* màu + vai: thạch xanh (th-xanh) của app */
+.nhom3 .n.da { color: #1f9e6a; background: color-mix(in srgb, #2fb57a 12%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #2fb57a 40%, transparent); }
+:global(:root[data-theme='dark']) .nhom3 .n.da { color: #5fe0a6; }
+.nhom3 .n.cu { color: var(--muted); background: var(--o); box-shadow: inset 0 0 0 1.5px var(--ray); }
+/* Thông báo điểm chưa đáng tin */
+.bao-tam { width: 100%; box-sizing: border-box; margin: 2px 0 0; display: flex; gap: 8px; align-items: flex-start; padding: 9px 11px; border-radius: 14px; text-align: left;
+  background: color-mix(in srgb, #f0b400 14%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, #f0b400 55%, transparent); color: var(--fg); font: 700 12.5px/1.4 var(--font-body); }
+.bao-tam svg { flex: none; margin-top: 1px; color: #d99a00; }
+/* Bạc màu: huy chương + thang bậc khi là điểm tạm */
+.huy-khung.tam { filter: grayscale(1) opacity(.62); }
+.huy-khung.tam::before, .huy-khung.tam .huy::after { display: none; }
+.thang.tam { filter: grayscale(.85); opacity: .7; }
 </style>
