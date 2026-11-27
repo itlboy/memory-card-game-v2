@@ -978,6 +978,7 @@ const zh: TuDien = {
   'tn.ten': "记忆指数",
   'tn.khoa': "再玩{n}局即可得分",
   'tn.yeu': "数据不足",
+  'tn.canThem': "需要更多数据",
   'tn.baoIt': "你玩得太少，这个分数还不可靠。请再玩下面的牌桌。",
   'tn.baoItCu': "那天玩得太少，这个分数还不可靠。",
   'tn.baoTrong': "玩下面的牌桌即可获得今天的分数。",

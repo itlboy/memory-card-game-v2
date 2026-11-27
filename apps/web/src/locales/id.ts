@@ -981,6 +981,7 @@ const id: TuDien = {
   'tn.ten': "Indeks Memori",
   'tn.khoa': "Main {n} permainan lagi untuk dapat skor",
   'tn.yeu': "Data lemah",
+  'tn.canThem': "Perlu data lagi",
   'tn.baoIt': "Kamu main terlalu sedikit, angka ini belum bisa dipercaya. Mainkan papan di bawah.",
   'tn.baoItCu': "Hari itu main terlalu sedikit, angka belum bisa dipercaya.",
   'tn.baoTrong': "Mainkan papan di bawah untuk dapat skor hari ini.",

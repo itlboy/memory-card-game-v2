@@ -980,6 +980,7 @@ const en: TuDien = {
   'tn.ten': "Memory Score",
   'tn.khoa': "Play {n} more games to get a score",
   'tn.yeu': "Weak data",
+  'tn.canThem': "Needs more data",
   'tn.baoIt': "You've played too little for this number to be reliable. Play the boards below.",
   'tn.baoItCu': "Too few games that day for this number to be reliable.",
   'tn.baoTrong': "Play the boards below to get today's score.",

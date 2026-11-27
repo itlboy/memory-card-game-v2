@@ -982,6 +982,7 @@ const it: TuDien = {
   'tn.ten': "Indice di memoria",
   'tn.khoa': "Gioca altre {n} partite per avere un punteggio",
   'tn.yeu': "Dati scarsi",
+  'tn.canThem': "Servono più dati",
   'tn.baoIt': "Hai giocato troppo poco: questo numero non è ancora affidabile. Gioca i tavoli qui sotto.",
   'tn.baoItCu': "Quel giorno troppe poche partite: numero non affidabile.",
   'tn.baoTrong': "Gioca i tavoli qui sotto per avere il punteggio di oggi.",

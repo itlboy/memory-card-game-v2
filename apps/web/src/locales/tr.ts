@@ -981,6 +981,7 @@ const tr: TuDien = {
   'tn.ten': "Hafıza Endeksi",
   'tn.khoa': "Puan için {n} oyun daha oyna",
   'tn.yeu': "Veri zayıf",
+  'tn.canThem': "Daha fazla veri gerekli",
   'tn.baoIt': "Çok az oynadın, bu sayı henüz güvenilir değil. Aşağıdaki masaları oyna.",
   'tn.baoItCu': "O gün çok az oynandı, bu sayı güvenilir değil.",
   'tn.baoTrong': "Bugünün puanı için aşağıdaki masaları oyna.",

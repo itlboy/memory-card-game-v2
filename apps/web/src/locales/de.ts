@@ -981,6 +981,7 @@ const de: TuDien = {
   'tn.ten': "Gedächtniswert",
   'tn.khoa': "Noch {n} Spiele bis zu deinem Wert",
   'tn.yeu': "Wenig Daten",
+  'tn.canThem': "Mehr Daten nötig",
   'tn.baoIt': "Zu wenig gespielt – diese Zahl ist noch nicht verlässlich. Spiel die Felder unten.",
   'tn.baoItCu': "An dem Tag zu wenig gespielt – Zahl nicht verlässlich.",
   'tn.baoTrong': "Spiel die Felder unten für deinen heutigen Wert.",

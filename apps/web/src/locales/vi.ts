@@ -992,6 +992,7 @@ const vi = {
   'tn.ten': "Chỉ số trí nhớ",
   'tn.khoa': "Chơi thêm {n} ván để có điểm",
   'tn.yeu': "Số liệu yếu",
+  'tn.canThem': "Cần thêm số liệu",
   'tn.baoIt': "Bạn chơi quá ít nên con số này chưa đáng tin cậy. Hãy chơi thêm các bàn bên dưới.",
   'tn.baoItCu': "Hôm đó chơi quá ít nên con số này chưa đáng tin cậy.",
   'tn.baoTrong': "Chơi đủ các bàn bên dưới để có điểm hôm nay.",
