@@ -16,7 +16,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * tab / đổi ngày CHỈ ĐỔI SỐ (chủ dự án: "bấm cột khác… giao diện thì nhảy, tại sao phải làm thế?").
  * MÀU: phần chính lấy màu của BẬC; ngọc chỉ còn ở các cột — hai tông (đậm nền sáng, sáng nền tối) vì một tông chỉ đạt 2,7–3,0.
  */
-import { ChartColumn, Crown, Play, Share2, X } from 'lucide-vue-next';
+import { Check, ChartColumn, Crown, Play, Share2, X } from 'lucide-vue-next';
 import { LAN_MO_CHANG } from '@mm/engine';
 import { computed, onMounted, ref } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
@@ -115,6 +115,12 @@ function moTabNam(): void {
  */
 const LINK_TAI = `${SITE_URL}/tai`;
 const moChiaSe = ref(false);
+/** Hai dòng ván bắt buộc của ngày đang xem; bấm = chơi ngay bàn đó (`luyen`). */
+const canVan = computed(() => [
+  { loai: 'vua', nhan: t('tn.canVua'), co: ky.value.vanVua, can: CAN_VAN_VUA, the: 36, du: ky.value.vanVua >= CAN_VAN_VUA },
+  { loai: 'lon', nhan: t('tn.canLon'), co: ky.value.vanLon, can: CAN_VAN_LON, the: 72, du: ky.value.vanLon >= CAN_VAN_LON }
+]);
+function choiCan(loai: string, the: number): void { moChucNang('tri_nho_choi_can', { loai, so_the: the }); emit('luyen', the); }
 function chiaSe(): void { moChucNang('tri_nho_chia_se'); moChiaSe.value = true; }
 const veAnh = (): Promise<Blob> => {
   const k = ky.value;
@@ -185,9 +191,16 @@ const coNhan = (k: string, i: number): boolean =>
           <span>{{ t('tn.khoaMo') }}</span>
         </p>
         <!-- VÁN BẮT BUỘC MỖI NGÀY (27.11.2026): 2 ván bàn vừa + 1 ván bàn lớn, tick khi đủ -->
+        <!-- BẤM LÀ CHƠI LUÔN (27.11.2026, chủ dự án: "thêm cả yêu cầu để người dùng chơi… bấm luôn cho tiện"): mỗi dòng là một nút
+             mở đúng bàn còn thiếu — bàn vừa 36 thẻ, bàn lớn 72 thẻ. Ngày cũ chỉ xem, không bấm. -->
         <ul class="can-van">
-          <li :class="{ du: ky.vanVua >= CAN_VAN_VUA }"><span>{{ t('tn.canVua') }}</span><b>{{ ky.vanVua }}/{{ CAN_VAN_VUA }}</b></li>
-          <li :class="{ du: ky.vanLon >= CAN_VAN_LON }"><span>{{ t('tn.canLon') }}</span><b>{{ ky.vanLon }}/{{ CAN_VAN_LON }}</b></li>
+          <li v-for="d in canVan" :key="d.loai">
+            <button v-if="laHomNay" class="thach th-nho" :class="d.du ? 'du' : 'th-ngoc'" type="button" @click="choiCan(d.loai, d.the)">
+              <Check v-if="d.du" :size="16" :stroke-width="3" aria-hidden="true" /><Play v-else :size="14" :stroke-width="0" fill="currentColor" aria-hidden="true" />
+              <span>{{ d.nhan }}</span><b>{{ d.co }}/{{ d.can }}</b>
+            </button>
+            <div v-else class="dong" :class="{ du: d.du }"><span>{{ d.nhan }}</span><b>{{ d.co }}/{{ d.can }}</b></div>
+          </li>
         </ul>
       </section>
 
@@ -329,10 +342,13 @@ const coNhan = (k: string, i: number): boolean =>
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
 .hinh.nam { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
 /* Tab Cả năm: vương miện nhỏ cạnh chữ; chưa có Premium thì tab hơi mờ (bấm vẫn mở bảng Premium) */
-.can-van { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; width: 100%; max-width: 280px; }
-.can-van li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 12px; background: color-mix(in srgb, currentColor 8%, transparent); font-weight: 700; font-size: 14px; }
-.can-van li b { font-variant-numeric: tabular-nums; }
-.can-van li.du { color: #2fb57a; }
+.can-van { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; width: 100%; max-width: 290px; }
+.can-van button, .can-van .dong { width: 100%; min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 8px 14px; font: 800 14px/1.2 var(--font-body); }
+.can-van .dong { border-radius: 12px; background: color-mix(in srgb, currentColor 8%, transparent); }
+.can-van span { flex: 1; text-align: left; }
+.can-van b { font-variant-numeric: tabular-nums; }
+.can-van .du, .can-van .thach.du { color: #2fb57a; }
+.can-van .thach.du svg { stroke: #2fb57a; }
 .tab-nam { display: inline-flex; align-items: center; gap: 5px; }
 .tab-nam.khoa { opacity: .7; }
 .tab-nam .vm { display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; }
