@@ -168,7 +168,7 @@ for (const { locale, noiDung: n, anh } of NGON_NGU) {
   else vl = (await api('POST', '/v1/appStoreVersionLocalizations', { data: { type: 'appStoreVersionLocalizations', attributes: { locale, ...verAttr }, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } } })).data;
   console.log(`✓ ${locale}: ${n.Name} — chữ`);
 
-  // Ảnh: bộ iPhone 6.7"/6.9" (1320×2868 thuộc APP_IPHONE_67) ở <lang>/, bộ iPad 13"
+  // Ảnh: bộ iPhone 6.7"/6.9" (1290×2796 = iPhone 15 Pro Max, thuộc APP_IPHONE_67) ở <lang>/, bộ iPad 13"
   // (2064×2752, APP_IPAD_PRO_3GEN_129) ở <lang>-ipad/ — bắt buộc vì app khai hỗ trợ
   // iPad. Thư mục nào không có thì giữ nguyên bộ đang có trên ASC.
   await dayAnh(locale, vl, join(thuMucAnh, anh), 'APP_IPHONE_67');

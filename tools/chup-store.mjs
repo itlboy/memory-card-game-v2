@@ -1,6 +1,9 @@
 /**
- * CHỤP ẢNH STORE bằng Chrome thật (CDP) — khung iPhone 6.9" mà App Store bắt
- * buộc: 440×956 điểm × 3 = 1320×2868 px. Google Play nhận luôn bộ này.
+ * CHỤP ẢNH STORE bằng Chrome thật (CDP).
+ * MÀN APP luôn chụp ở cỡ iPhone 15 Pro Max — 430×932 điểm × 3 (28.11.2026, chủ dự án: "ảnh chụp màn hình hơi dài quá…
+ * phải đúng cỡ màn hình iPhone 15 Pro Max"; trước chụp 440×956 = 16/17 Pro Max, còn Android chụp 360×640 = 16:9 bè).
+ * Khung ảnh RA: iPhone 1290×2796 (App Store nhận ở mục APP_IPHONE_67 — cỡ 6,7"/6,9"), Android 1080×1920 (Play không nhận
+ * ảnh dài hơn 2:1 nên khung ngoài thấp hơn máy, máy bên trong vẫn đúng tỉ lệ iPhone), iPad 2064×2752 (màn app = khung).
  *
  *   node tools/chup-store.mjs <url server> <thư mục ra> [lang=en] [buoc...]
  *   NEN=toi node tools/chup-store.mjs …   → bộ ảnh giao diện TỐI
@@ -20,7 +23,9 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 // 2:1, mà khung iPhone 6.9" là 2,17:1 — nên Android cần bộ riêng.
 // KHUNG=ipad: 1032×1376 × 2 = 2064×2752 — iPad 13" (APP_IPAD_PRO_3GEN_129), bắt buộc
 // vì app khai hỗ trợ iPad (TARGETED_DEVICE_FAMILY 1,2).
-const KHUNG = { android: { W: 360, H: 640, S: 3 }, ipad: { W: 1032, H: 1376, S: 2 } }[process.env.KHUNG] ?? { W: 440, H: 956, S: 3 };
+const KHUNG = { android: { W: 360, H: 640, S: 3 }, ipad: { W: 1032, H: 1376, S: 2 } }[process.env.KHUNG] ?? { W: 430, H: 932, S: 3 };
+/** Cỡ MÀN APP lúc chụp ảnh thô: iPhone 15 Pro Max cho cả iPhone lẫn Android; iPad thì chính khung iPad. */
+const MAY = process.env.KHUNG === 'ipad' ? KHUNG : { W: 430, H: 932, S: 3 };
 const { W, H, S } = KHUNG, PORT = 9334;
 mkdirSync(OUT, { recursive: true });
 const PROFILE = `/tmp/mm-shot-${process.pid}`;
@@ -69,7 +74,9 @@ const chuTrenMan = () => js(`[...document.querySelectorAll('button, .option')].f
 
 await goi('Network.enable');
 await goi('Network.setBypassServiceWorker', { bypass: true });
-await goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: S, mobile: true });
+await goi('Emulation.setDeviceMetricsOverride', { width: MAY.W, height: MAY.H, deviceScaleFactor: MAY.S, mobile: true });
+/** Đổi sang cỡ KHUNG ẢNH RA trước khi ghép (kịch bản v2 gọi) — iPhone: trùng cỡ màn app, không đổi gì. */
+const doiKhung = () => goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: S, mobile: true });
 await goi('Emulation.setTouchEmulationEnabled', { enabled: true });
 // NEN=toi: máy để giao diện TỐI — game mặc định "Tự động" theo máy nên ra Kẹo tối (ảnh trang công khai, 18.10.2026)
 if (process.env.NEN === 'toi') await goi('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'dark' }] });
@@ -83,7 +90,7 @@ await goi('Page.reload', { ignoreCache: true });
 // Khung iPad tải lâu hơn (đo: 2 giây còn trắng trơn, 4 giây đủ)
 await cho(process.env.KHUNG === 'ipad' ? 5000 : 2000);
 
-export const ctx = { goi, js, chup, bam, bamDung, cho, chuTrenMan };
+export const ctx = { goi, js, chup, bam, bamDung, cho, chuTrenMan, doiKhung };
 if (BUOC[0] === 'do') { console.log(JSON.stringify(await chuTrenMan(), null, 1)); await chup('do'); process.exit(0); }
 // KICHBAN=<đường dẫn> để chạy kịch bản khác (vd. chụp hiệu ứng theo mốc thời gian)
 const kichBan = await import(process.env.KICHBAN ? new URL(`file://${process.env.KICHBAN}`) : new URL('./chup-store-kichban.mjs', import.meta.url));

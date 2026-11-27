@@ -31,7 +31,9 @@ function nhan(lang) {
   const s = readFileSync(new URL(`../apps/web/src/locales/${lang}.ts`, import.meta.url), 'utf8');
   const g = (k) => { const d = `'${k}': '`, i = s.indexOf(d); if (i < 0) throw new Error(`${lang}.ts thiếu ${k}`); let j = i + d.length, v = ''; while (s[j] !== "'") { if (s[j] === '\\') j++; v += s[j++]; } return v; };
   return { nhanh: g('menu.choiNhanh'), motMinh: g('menu.soNguoi.1'), tiepTuc: g('menu.tiepTuc'), the: g('menu.the'), tiep: g('menu.tiep'),
-    batDau: g('menu.batDau').split('{ban}')[0].replace(/[\s—·:：-]+$/u, ''), online: g('menu.online'), may: g('menu.dauMay'), cd: g('menu.chienDich') };
+    batDau: g('menu.batDau').split('{ban}')[0].replace(/[\s—·:：-]+$/u, ''), online: g('menu.online'), may: g('menu.dauMay'), cd: g('menu.chienDich'),
+    // Màn Chơi nhanh MỘT MÀN (16.11.2026): Bộ thẻ / Luật bàn / Tên là bước phụ, thoát bằng "Xong"
+    luat: g('menu.nhanh.luat'), boThe: g('menu.nhanh.boThe'), xong: g('menu.nhanh.xong'), sua: g('menu.nhanh.sua'), thongTha: g('opt.time.1') };
 }
 const bamThe = (js, i) => js(`document.querySelectorAll('button.card')[${i}].click(); true`);
 async function cacCap(js) {
@@ -68,21 +70,29 @@ body{position:relative;background:${doi ? `linear-gradient(105deg,${c.mau[0]} 0 
 </style></head><body${doi ? '' : ' class="mot"'}><div class="cap">${esc(to)}<small>${esc(phu)}</small></div>${than}<script>{const c=document.querySelector('.mot .cap');if(c){let f=9.6,g=4.6;while(c.scrollHeight>c.clientHeight+1&&f>6){f-=.3;g-=.12;c.style.fontSize=f+'vw';c.querySelector('small').style.fontSize=g+'vw';}}}</script></body></html>`;
 }
 
-export async function chay({ goi, js, bam, bamDung, cho, chup }) {
+export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
   const lang = await js(`localStorage.getItem('mm.lang')`) ?? 'en';
   const L = nhan(lang), chu = CHU[lang];
   if (!chu) throw new Error(`anh-store-chu.mjs thiếu ngôn ngữ ${lang}`);
   const tho = {};   // ảnh thô theo cảnh, base64 PNG
+  /** Màn Chơi nhanh: bàn 20 thẻ + đồng hồ "Thong thả" (bước phụ Luật bàn → Xong) — ảnh có viên giờ trên HUD */
+  const batDongHo20 = async () => {
+    await bamDung('20'); await cho(400);
+    await bam(L.luat); await cho(700); await bamDung(L.thongTha.replace(/\s+/g, '')); await cho(300); await bamDung(L.xong.replace(/\s+/g, '')); await cho(700);
+  };
   const chupTho = async (k) => { tho[k] = [...(tho[k] ?? []), (await goi('Page.captureScreenshot', { format: 'png' })).result.data]; };
-  const trangChu = async () => { await js(`location.href = location.origin + '/?lang=${lang}'; true`); await cho(2200); };
-  await js(`(() => { localStorage.setItem('mm.anCai', '1'); const s = JSON.parse(localStorage.getItem('mm.v2') || '{}');
-    s.prefs = { ...(s.prefs || {}), themes: ['animals'] }; localStorage.setItem('mm.v2', JSON.stringify(s)); location.reload(); return true; })()`);
+  /** Huy hiệu mở khoá đang bay (MoKhoaFx `.mk-huy`) — chờ xong mới bấm tiếp. `.mk-fx` LUÔN có trên trang (khung hạt), đừng chờ nó. */
+  const choMoKhoa = async () => { for (let i = 0; i < 40 && await js(`!!document.querySelector('.mk-huy, .mo-khoa-toast')`); i++) await cho(1000); };
+  const trangChu = async () => { await js(`location.href = location.origin + '/?lang=${lang}'; true`); await cho(2200); await choMoKhoa(); };
+  // Người chơi ĐÃ CÓ hồ sơ (bỏ màn chào đặt tên) + đã nhận quà Premium (không bật bảng Premium, không đổi nền ngẫu nhiên)
+  await js(`(() => { localStorage.setItem('mm.anCai', '1'); localStorage.setItem('mm.premium.tang', '1'); const s = JSON.parse(localStorage.getItem('mm.v2') || '{}');
+    s.prefs = { ...(s.prefs || {}), themes: ['animals'] }; s.names = [${JSON.stringify(chu.ten[0])}]; s.hoSo = { mat: '🦊', mau: '#ff9a1f', xong: true };
+    localStorage.setItem('mm.v2', JSON.stringify(s)); location.reload(); return true; })()`);
   await cho(2200);
 
   // Ván 20 thẻ bộ Động vật, có đồng hồ: chụp lúc 6/10 cặp + một lá vừa mở, rồi cảnh thắng
-  await bam(L.nhanh); await cho(600); await bam(L.motMinh); await cho(600);
-  await bamDung(`20${L.the}`); await cho(600); await bam(L.tiep); await cho(700);
-  await js(`(() => { const o=[...document.querySelectorAll('.step-body button')].filter(e=>e.offsetParent && !e.textContent.includes(${JSON.stringify(L.batDau)})); o[2].click(); return true; })()`); await cho(300);
+  await bam(L.nhanh); await cho(700);
+  await batDongHo20();
   await bam(L.batDau); await cho(3200);
   const cap = await cacCap(js);
   for (const [a, b] of cap.slice(0, 6)) { await bamThe(js, a); await cho(450); await bamThe(js, b); await cho(900); }
@@ -92,17 +102,18 @@ export async function chay({ goi, js, bam, bamDung, cho, chup }) {
   for (const [a, b] of cap.slice(7)) { await bamThe(js, a); await cho(450); await bamThe(js, b); await cho(450); }
   await cho(1050); await chupTho('thang');   // trước HIEN_BANG_MS: thú + chữ, chưa có bảng
   await cho(6000);
-  for (let i = 0; i < 40 && await js(`!!document.querySelector('.mk-fx, .mo-khoa-toast')`); i++) await cho(1000);
+  await choMoKhoa();
 
   // Ván 2 người cùng máy: mỗi người ghép 2 cặp (người 1 trượt một lần để sang lượt) → hoà điểm,
   // chụp lúc người 1 vừa mở một lá. Tên ở anh-store-chu.mjs (`ten`), ngắn vì ô tên cắt chữ dài.
   await trangChu(); await bam(L.nhanh); await cho(600);
-  // ô "2 người" = thanh thứ hai sau "Một mình" (menu.soNguoi.n là HÀM số nhiều ở ru/… nên không bấm theo chữ)
-  await js(`(() => { const o=[...document.querySelectorAll('.step-body button')].filter(e=>e.offsetParent); const i=o.findIndex(e=>e.textContent.includes(${JSON.stringify(L.motMinh)})); o[i+1].click(); return true; })()`); await cho(700);
-  await js(`(() => { const t = ${JSON.stringify(chu.ten)}; [...document.querySelectorAll('.step-body input')].forEach((e, i) => { e.value = t[i]; e.dispatchEvent(new Event('input', { bubbles: true })); }); return true; })()`);
+  // ô "2 người" = nút ngay sau "Một mình" (menu.soNguoi.n là HÀM số nhiều ở ru/… nên không bấm theo chữ)
+  await js(`(() => { const o=[...document.querySelectorAll('button')].filter(e=>e.offsetParent); const i=o.findIndex(e=>e.textContent.toLowerCase().includes(${JSON.stringify(L.motMinh.toLowerCase())})); if (i < 0) throw new Error('không thấy nút Một mình'); o[i+1].click(); return true; })()`); await cho(700);
+  // Tên hai người: bước phụ "Tên … Sửa" → ô nhập → Tiếp tục
+  await bam(L.sua); await cho(700);
+  await js(`(() => { const t = ${JSON.stringify(chu.ten)}; [...document.querySelectorAll('input')].filter(e=>e.offsetParent).forEach((e, i) => { if (t[i] === undefined) return; e.value = t[i]; e.dispatchEvent(new Event('input', { bubbles: true })); }); return true; })()`);
   await cho(300); await bam(L.tiepTuc); await cho(700);
-  await bamDung(`20${L.the}`); await cho(600); await bam(L.tiep); await cho(700);
-  await js(`(() => { const o=[...document.querySelectorAll('.step-body button')].filter(e=>e.offsetParent && !e.textContent.includes(${JSON.stringify(L.batDau)})); o[2].click(); return true; })()`); await cho(300);
+  await batDongHo20();
   await bam(L.batDau); await cho(3200);
   { const c2 = await cacCap(js);
     const ghep = async ([a, b]) => { await bamThe(js, a); await cho(450); await bamThe(js, b); await cho(1000); };
@@ -111,8 +122,8 @@ export async function chay({ goi, js, bam, bamDung, cho, chup }) {
   await chupTho('haiNguoi');
 
   await trangChu(); await bam(L.may); await cho(900); await chupTho('may');
-  await trangChu(); await bam(L.nhanh); await cho(600); await bam(L.motMinh); await cho(700); await chupTho('coBan');
-  await bamDung(`30${L.the}`); await cho(900); await chupTho('boHinh');
+  await trangChu(); await bam(L.nhanh); await cho(900); await chupTho('coBan');
+  await bamDung('30'); await cho(400); await bam(L.boThe); await cho(900); await chupTho('boHinh');
   await trangChu(); await bam(L.online); await cho(2500); await chupTho('online');
   await trangChu();
   await js(`[...document.querySelectorAll('button')].find(e => e.offsetParent && /^\\s*\\d+\\s*\\/\\s*\\d+\\s*$/.test(e.textContent)).click(); true`);
@@ -131,7 +142,8 @@ export async function chay({ goi, js, bam, bamDung, cho, chup }) {
     await trangChu(); await cho(500); await chupTho('nen');
   }
 
-  // Ghép: thay cả tài liệu bằng khuôn rồi chụp đúng khung
+  // Ghép: thay cả tài liệu bằng khuôn rồi chụp đúng khung — đổi sang cỡ KHUNG ẢNH RA (màn app đã chụp ở cỡ iPhone 15 Pro Max)
+  await doiKhung();
   const { result: { frameTree } } = await goi('Page.getFrameTree');
   for (const [i, c] of CANH.entries()) {
     await goi('Page.navigate', { url: 'about:blank' }); await cho(300);

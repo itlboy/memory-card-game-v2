@@ -51,7 +51,7 @@ jobs:
         if: inputs.chup_anh
         env:
           # Bộ v2 (màn thật trong khung máy + chữ quảng cáo) — CÙNG bộ với Google Play (09.11.2026:
-          # chủ dự án thấy ảnh iPhone vẫn là ảnh trần cũ). Khung iPhone 6.9" 1320×2868, đủ 10 ảnh.
+          # chủ dự án thấy ảnh iPhone vẫn là ảnh trần cũ). Ảnh iPhone 1290×2796 (màn app chụp ở cỡ iPhone 15 Pro Max 430×932, 28.11.2026), đủ 10 ảnh.
           KICHBAN: ${{ github.workspace }}/tools/chup-store-v2.mjs
         run: |
           for L in en vi es pt fr de ja ko zh ru id th it tr zh-TW; do

@@ -11,7 +11,7 @@ sửa nội dung thì chạy `python3 tools/dem-ky-tu-store.py` để soát lạ
 ## Ảnh chụp màn hình
 
 `node tools/chup-store.mjs <url server> <thư mục ra> <en|vi>` chụp 7 cảnh ở khung
-iPhone 6.9" (1320×2868 — cỡ App Store bắt buộc; Google Play nhận luôn). Server
+iPhone 1290×2796 (màn app chụp ở cỡ iPhone 15 Pro Max 430×932 — 28.11.2026, chủ dự án: ảnh cũ 1320×2868 "hơi dài quá"; App Store nhận ở mục 6,7"/6,9"). Android 1080×1920, máy bên trong vẫn là màn iPhone 15 Pro Max. Server
 phải chạy bản build mới (`pnpm node:dev`) vì cảnh phòng online cần API thật.
 Kịch bản ở `tools/chup-store-kichban.mjs`; thêm ngôn ngữ = thêm một dòng `NHAN`.
 **Google Play cần bộ riêng**: `KHUNG=android node tools/chup-store.mjs …` ra 1080×1920
