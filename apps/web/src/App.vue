@@ -144,6 +144,17 @@ function datNhac(v: 'off' | 'nn' | BaiNhac): void {
   if (v === 'nn') { nhacNgauNhien.value = true; doiNhacNgauNhien(); ghiMocDoi(); return; }   // 30 phút tính từ lúc bật
   nhacNgauNhien.value = false; baiNhac.value = v;
 }
+/*
+ * VỪA CÓ PREMIUM → NHẠC NỀN NGẪU NHIÊN NGAY (28.11.2026, chủ dự án đồng ý — cùng cách hình nền ở lib/canh.ts): bật Ngẫu nhiên +
+ * chuyển ngay sang một bài PREMIUM, để người chơi nghe quyền lợi mới luôn. Đang TẮT nhạc thì tôn trọng, không tự bật lại.
+ */
+watch(daMuaPremium, (co) => {
+  if (!co || !nhacBat.value) return;
+  nhacNgauNhien.value = true;
+  const ung = BAI_NHAC.filter((b) => BAI_PREMIUM.has(b) && baiChoiDuoc(b) && b !== baiNhac.value);
+  if (ung.length) baiNhac.value = ung[Math.floor(Math.random() * ung.length)]!;
+  ghiMocDoi();
+});
 /** Độ to của từng mức. Loa điện thoại ở sát tai nên 3,5 (mức thử trên loa máy
  *  tính) là quá to; 2,6 nghe rõ mà không giật mình, "nhỏ" thì đủ để biết mình
  *  vừa bấm gì trong phòng yên tĩnh. */

@@ -22,6 +22,9 @@
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:exported="true">
+            <!-- Android 16 (SDK 36) bỏ qua khoá dọc trên máy màn lớn; khai báo này xin GIỮ khoá dọc (28.11.2026, chủ dự án: chặn xoay —
+                 trang chủ nằm ngang bị đè lên thanh trên). Chỉ còn hiệu lực khi nhắm SDK 36; lên SDK 37 phải làm bố cục ngang. -->
+            <property android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY" android:value="true" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
