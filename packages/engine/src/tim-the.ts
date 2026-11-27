@@ -8,8 +8,8 @@
  * ĐÃ CHỐT (đừng đảo lại khi chưa hỏi):
  *  · số thẻ 3 · 4 · 5 · 6 · 7, mặc định 5 — bàn VÒNG TRÒN (27.11.2026: bỏ 12, 16 "không ai giải được", rồi tạm bỏ 8, 9
  *    "khó quá, người chơi nản"; lựa chọn của người chơi được nhớ cho lần sau);
- *  · độ khó x = giây xem MỖI thẻ: Dễ 1,5 · Vừa 1 · Khó 0,75 → giờ xem = x × số thẻ (chủ dự án chốt 27.11.2026; trước là
- *    1 · 0,75 · 0,5 — "thời gian cho độ khó vừa đang hơi ít");
+ *  · tốc độ x = giây xem MỖI thẻ: Chậm 3 · Vừa 2 · Nhanh 1 → giờ xem = x × số thẻ (28.11.2026; trước Dễ/Vừa/Khó
+ *    1,5 · 1 · 0,75, trước nữa 1 · 0,75 · 0,5);
  *  · giờ chọn = BẰNG giờ xem (27.11.2026; trước là một nửa), sàn 2 giây;
  *  · điểm lượt đúng = 10 × số thẻ × (1 + phần giờ chọn còn lại) × hệ số chuỗi (như ghép cặp:
  *    1 · 1,2 · 1,5 · 2) × hệ số độ khó (1 · 1,25 · 1,5). Tính theo SỐ THẺ vì điểm = xu: để 100 điểm
@@ -32,8 +32,11 @@ export const TIM_THE_SO_THE_MAC_DINH = 5;
 export const TIM_THE_ONLINE_SO_THE = TIM_THE_SO_THE_MAC_DINH;
 export type TimTheDoKho = 'de' | 'vua' | 'kho';
 export const TIM_THE_DO_KHO: readonly TimTheDoKho[] = ['de', 'vua', 'kho'];
-/** x = giây xem mỗi thẻ. */
-export const TIM_THE_X: Record<TimTheDoKho, number> = { de: 1.5, vua: 1, kho: 0.75 };
+/**
+ * x = giây xem mỗi thẻ. 28.11.2026 chủ dự án đổi Dễ/Vừa/Khó thành TỐC ĐỘ Chậm/Vừa/Nhanh = 3 · 2 · 1 giây mỗi thẻ (trước
+ * 1,5 · 1 · 0,75). Khoá giữ `de`/`vua`/`kho` — nằm trên dây (config phòng, phiếu `chonKho`) và trong khoá kỷ lục, đổi là vỡ app cũ.
+ */
+export const TIM_THE_X: Record<TimTheDoKho, number> = { de: 3, vua: 2, kho: 1 };
 /** Chọn khó thì có lợi — không thì ai cũng chọn Dễ. */
 export const TIM_THE_HE_SO_KHO: Record<TimTheDoKho, number> = { de: 1, vua: 1.25, kho: 1.5 };
 export const TIM_THE_SO_LUOT = 10;

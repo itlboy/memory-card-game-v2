@@ -86,7 +86,7 @@ PLAY YOUR WAY
 NEW: FIND THE CARD
 • A ring of cards flips face-up for a few seconds — remember them before they turn over
 • The target card appears in the centre with a countdown ring: tap its match as fast as you can
-• 10 rounds, 3 to 7 cards, three difficulties — the faster you answer correctly, the more you score
+• 10 rounds, 3 to 7 cards, three speeds — the faster you answer correctly, the more you score
 • Play solo, against the computer, or online with friends
 
 A DAILY BRAIN SCORE
@@ -163,7 +163,7 @@ CHƠI THEO CÁCH CỦA BẠN
 MỚI: TÌM THẺ
 • Các thẻ quanh vòng tròn lật ngửa vài giây — nhớ thật nhanh trước khi chúng úp lại
 • Thẻ cần tìm hiện giữa vòng, kèm vòng đếm ngược: chạm đúng thẻ giống nó càng nhanh càng tốt
-• 10 vòng, 3 tới 7 thẻ, ba độ khó — trả lời đúng càng nhanh càng nhiều điểm
+• 10 vòng, 3 tới 7 thẻ, ba tốc độ — trả lời đúng càng nhanh càng nhiều điểm
 • Chơi một mình, đấu máy hoặc online với bạn bè
 
 THEO DÕI TRÍ NHỚ MỖI NGÀY
@@ -245,7 +245,7 @@ JUEGA A TU MANERA
 NUEVO: ENCUENTRA LA CARTA
 • Las cartas de un círculo se muestran boca arriba unos segundos: memorízalas antes de que se volteen
 • La carta objetivo aparece en el centro con un anillo de cuenta atrás: toca la igual lo más rápido que puedas
-• 10 rondas, de 3 a 7 cartas y tres dificultades: cuanto antes aciertes, más puntos
+• 10 rondas, de 3 a 7 cartas y tres velocidades: cuanto antes aciertes, más puntos
 • Juega solo, contra la máquina u online con amigos
 
 TU PROGRESO DÍA A DÍA
@@ -322,7 +322,7 @@ JOGUE DO SEU JEITO
 NOVO: ACHE A CARTA
 • As cartas em círculo ficam viradas para cima por alguns segundos — memorize antes que se escondam
 • A carta-alvo aparece no centro com um anel de contagem regressiva: toque na carta igual o mais rápido possível
-• 10 rodadas, de 3 a 7 cartas, três dificuldades — quanto mais rápido acertar, mais pontos
+• 10 rodadas, de 3 a 7 cartas, três velocidades — quanto mais rápido acertar, mais pontos
 • Jogue sozinho, contra o computador ou online com amigos
 
 SEU PROGRESSO DIA A DIA
@@ -399,7 +399,7 @@ JOUEZ COMME VOUS VOULEZ
 NOUVEAU : TROUVE LA CARTE
 • Les cartes disposées en cercle se dévoilent quelques secondes — mémorisez-les avant qu'elles se retournent
 • La carte à trouver apparaît au centre avec un anneau de compte à rebours : touchez sa jumelle le plus vite possible
-• 10 manches, de 3 à 7 cartes, trois niveaux de difficulté — plus vous répondez vite et juste, plus vous marquez
+• 10 manches, de 3 à 7 cartes, trois vitesses — plus vous répondez vite et juste, plus vous marquez
 • En solo, contre l'ordinateur ou en ligne entre amis
 
 VOS PROGRÈS JOUR APRÈS JOUR
@@ -481,7 +481,7 @@ SPIEL, WIE DU WILLST
 NEU: KARTE FINDEN
 • Die Karten im Kreis liegen ein paar Sekunden offen – merk sie dir, bevor sie sich umdrehen
 • Die gesuchte Karte erscheint in der Mitte mit einem Countdown-Ring: Tippe so schnell wie möglich auf ihr Gegenstück
-• 10 Runden, 3 bis 7 Karten, drei Schwierigkeitsstufen – je schneller richtig, desto mehr Punkte
+• 10 Runden, 3 bis 7 Karten, drei Tempostufen – je schneller richtig, desto mehr Punkte
 • Allein, gegen den Computer oder online mit Freunden
 
 DEIN FORTSCHRITT TAG FÜR TAG
@@ -563,7 +563,7 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 新モード「カードさがし」
 • 円に並んだカードが数秒だけ表に ― 裏返る前に覚えよう
 • 中央にお題のカードとカウントダウンのリングが登場。同じカードをすばやくタップ
-• 全10ラウンド、カード3〜7枚、難易度は3段階 ― 早く正解するほど高得点
+• 全10ラウンド、カード3〜7枚、スピードは3段階 ― 早く正解するほど高得点
 • ひとりで、CPU対戦で、友達とオンラインでも
 
 毎日の成長が見える
@@ -645,7 +645,7 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 새 모드: 카드 찾기
 • 원 모양으로 놓인 카드가 몇 초 동안 앞면을 보여 줘요 — 뒤집히기 전에 기억하세요
 • 가운데에 찾을 카드와 카운트다운 링이 나타나면 같은 카드를 최대한 빨리 탭
-• 10라운드, 카드 3~7장, 난이도 3단계 — 빨리 맞힐수록 높은 점수
+• 10라운드, 카드 3~7장, 속도 3단계 — 빨리 맞힐수록 높은 점수
 • 혼자서, 컴퓨터와 대결, 친구와 온라인으로
 
 매일 성장하는 나
@@ -727,7 +727,7 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 新模式：找卡片
 • 围成一圈的卡牌翻开几秒钟 — 在它们盖上之前记住
 • 中央出现目标卡牌和倒计时圆环，尽快点出和它相同的那张
-• 共 10 轮，3 到 7 张牌，三种难度 — 答对越快，得分越高
+• 共 10 轮，3 到 7 张牌，三种速度 — 答对越快，得分越高
 • 可单人、对战电脑，或和好友在线玩
 
 每天看见进步
@@ -809,7 +809,7 @@ Flip Match — классическая игра на память с карто
 НОВОЕ: НАЙДИ КАРТУ
 • Карточки по кругу открываются на несколько секунд — запомни их, пока они не перевернулись
 • В центре появляется нужная карточка с кольцом обратного отсчёта: нажми на такую же как можно быстрее
-• 10 раундов, от 3 до 7 карточек, три уровня сложности — чем быстрее верный ответ, тем больше очков
+• 10 раундов, от 3 до 7 карточек, три скорости — чем быстрее верный ответ, тем больше очков
 • Один, против компьютера или онлайн с друзьями
 
 ПРОГРЕСС ДЕНЬ ЗА ДНЁМ
@@ -886,7 +886,7 @@ MAIN SESUKAMU
 BARU: CARI KARTU
 • Kartu yang tersusun melingkar terbuka beberapa detik — hafalkan sebelum tertutup lagi
 • Kartu target muncul di tengah dengan cincin hitung mundur: ketuk kartu yang sama secepat mungkin
-• 10 ronde, 3 sampai 7 kartu, tiga tingkat kesulitan — makin cepat benar, makin besar skornya
+• 10 ronde, 3 sampai 7 kartu, tiga tingkat kecepatan — makin cepat benar, makin besar skornya
 • Main sendiri, lawan komputer, atau online bareng teman
 
 PANTAU KEMAJUANMU TIAP HARI
@@ -968,7 +968,7 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 ใหม่! โหมดหาการ์ด
 • การ์ดที่วางเป็นวงกลมจะเปิดหน้าให้ดูไม่กี่วินาที — จำให้ได้ก่อนจะคว่ำลง
 • การ์ดเป้าหมายโผล่ตรงกลางพร้อมวงนับถอยหลัง แตะใบที่เหมือนกันให้เร็วที่สุด
-• 10 รอบ การ์ด 3–7 ใบ สามระดับความยาก — ตอบถูกเร็วเท่าไร ยิ่งได้คะแนนมาก
+• 10 รอบ การ์ด 3–7 ใบ ความเร็วสามระดับ — ตอบถูกเร็วเท่าไร ยิ่งได้คะแนนมาก
 • เล่นคนเดียว ท้าคอม หรือออนไลน์กับเพื่อน
 
 เห็นพัฒนาการทุกวัน
@@ -1050,7 +1050,7 @@ GIOCA COME VUOI
 NOVITÀ: TROVA LA CARTA
 • Le carte disposte in cerchio restano scoperte per qualche secondo: memorizzale prima che si girino
 • Al centro appare la carta da trovare con un anello di conto alla rovescia: tocca quella uguale il più in fretta possibile
-• 10 round, da 3 a 7 carte, tre difficoltà: più rispondi veloce e giusto, più punti fai
+• 10 round, da 3 a 7 carte, tre velocità: più rispondi veloce e giusto, più punti fai
 • Da solo, contro il computer o online con gli amici
 
 I TUOI PROGRESSI GIORNO DOPO GIORNO
@@ -1127,7 +1127,7 @@ Flip Match, klasik hafıza kartı oyununun tek başına ya da arkadaşlarla hız
 YENİ: KARTI BUL
 • Çember şeklinde dizilen kartlar birkaç saniye açık kalır — kapanmadan önce aklında tut
 • Ortada geri sayım halkasıyla hedef kart belirir: aynısına olabildiğince hızlı dokun
-• 10 tur, 3 ila 7 kart, üç zorluk seviyesi — ne kadar hızlı doğru cevap, o kadar çok puan
+• 10 tur, 3 ila 7 kart, üç hız seviyesi — ne kadar hızlı doğru cevap, o kadar çok puan
 • Tek başına, bilgisayara karşı ya da arkadaşlarınla çevrim içi
 
 HER GÜN İLERLEMENİ GÖR
@@ -1209,7 +1209,7 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 新模式：找卡片
 • 圍成一圈的卡牌翻開幾秒鐘 — 在蓋上之前記住它們
 • 中央出現目標卡牌和倒數圓環，盡快點出和它相同的那張
-• 共 10 回合，3 到 7 張牌，三種難度 — 答對越快，得分越高
+• 共 10 回合，3 到 7 張牌，三種速度 — 答對越快，得分越高
 • 可以單人、對戰電腦，或和好友線上玩
 
 每天看見進步

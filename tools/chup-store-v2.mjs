@@ -37,6 +37,8 @@ function nhan(lang) {
     batDau: g('menu.batDau').split('{ban}')[0].replace(/[\s—·:：-]+$/u, ''), online: g('menu.online'), may: g('menu.dauMay'), cd: g('menu.chienDich'),
     // Màn Chơi nhanh MỘT MÀN (16.11.2026): Bộ thẻ / Luật bàn / Tên là bước phụ, thoát bằng "Xong"
     luat: g('menu.nhanh.luat'), boThe: g('menu.nhanh.boThe'), xong: g('menu.nhanh.xong'), sua: g('menu.nhanh.sua'), thongTha: g('opt.time.1'),
+    // Nút bắt đầu Tìm Thẻ là khoá RIÊNG (`tt.batDau`: "Empezar — {n} cartas"), khác `menu.batDau` ("Jugar") — tiếng Việt trùng chữ nên trước không thấy
+    ttBatDau: g('tt.batDau').split('{n}')[0].replace(/[\s—·:：-]+$/u, ''),
     tt: g('tt.ten'), tn: g('tn.ten') };
 }
 const bamThe = (js, i) => js(`document.querySelectorAll('button.card')[${i}].click(); true`);
@@ -159,7 +161,7 @@ export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
   // đã ngửa, vạch giờ đang chạy, quầng sáng đang quét vòng
   await trangChu(); await bam(L.nhanh); await cho(900);
   await bam(L.tt); await cho(700);
-  await bam(L.batDau); await cho(10300); await chupTho('timThe');
+  await bam(L.ttBatDau); await cho(10300); await chupTho('timThe');
 
   // CHỈ SỐ TRÍ NHỚ: dựng 28 ngày nhật ký đi lên dần (3 cỡ bàn/ngày: nhỏ 14, vừa 22, lớn 36 thẻ) để biểu đồ có đường — ảnh minh hoạ
   await js(`(() => { const s = JSON.parse(localStorage.getItem('mm.v2') || '{}'); const tn = {}; const nay = new Date();

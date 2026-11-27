@@ -9,15 +9,15 @@ const cfg = (soThe: number, doKho: TimTheConfig['doKho'] = 'vua', soLuot = 10): 
 
 describe('Tìm Thẻ — thời gian', () => {
   it('giờ xem = x × số thẻ; giờ chọn = bằng giờ xem, sàn 2 giây', () => {
-    // Dễ 1,5 · Vừa 1 · Khó 0,75 giây mỗi thẻ (chủ dự án chốt 27.11.2026)
-    expect(timTheXemMs(cfg(6, 'de'))).toBe(9000);
-    expect(timTheXemMs(cfg(5, 'vua'))).toBe(5000);
-    expect(timTheXemMs(cfg(4, 'kho'))).toBe(3000);
-    expect(timTheChonMs(cfg(6, 'de'))).toBe(9000);
-    expect(timTheChonMs(cfg(7, 'vua'))).toBe(7000);
-    expect(timTheChonMs(cfg(3, 'kho'))).toBe(2250);
-    expect(timTheChonMs({ soThe: 2, doKho: 'kho' })).toBe(2000);   // 1,5s nếu không có sàn
-    expect(timTheChonMs(cfg(3, 'de'))).toBe(4500);
+    // Tốc độ Chậm 3 · Vừa 2 · Nhanh 1 giây mỗi thẻ (chủ dự án 28.11.2026; khoá vẫn de/vua/kho)
+    expect(timTheXemMs(cfg(6, 'de'))).toBe(18000);
+    expect(timTheXemMs(cfg(5, 'vua'))).toBe(10000);
+    expect(timTheXemMs(cfg(4, 'kho'))).toBe(4000);
+    expect(timTheChonMs(cfg(6, 'de'))).toBe(18000);
+    expect(timTheChonMs(cfg(7, 'vua'))).toBe(14000);
+    expect(timTheChonMs(cfg(3, 'kho'))).toBe(3000);
+    expect(timTheChonMs({ soThe: 1, doKho: 'kho' })).toBe(2000);   // 1s nếu không có sàn
+    expect(timTheChonMs(cfg(3, 'de'))).toBe(9000);
   });
   it('số cột theo số thẻ', () => {
     expect(TIM_THE_SO_THE.map(timTheSoCot)).toEqual([3, 2, 3, 3, 3]);
