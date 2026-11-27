@@ -389,7 +389,7 @@
   chơi nản"; cấu hình cũ về 5). Lựa chọn số thẻ + độ khó NHỚ ở `mm.timThe.chon`, CHUNG cho chơi đơn và chủ phòng online
   (chuyển phòng sang Tìm Thẻ / sửa Bàn chơi đều đọc + ghi). Server ép số thẻ lạ về mặc định (`timSoTheHopLe`). Độ khó x = giây
   xem MỖI thẻ: Dễ 1,5 · Vừa 1 · Khó 0,75 (chủ dự án chốt 27.11.2026; trước 1 · 0,75 · 0,5 — "hơi ít"); giờ xem = x × số thẻ;
-  giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
+  giờ chọn = BẰNG giờ xem (27.11.2026; trước là một nửa), SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
   cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.
   Nhiều người: chờ cả phòng chọn mới chấm; đúng nhanh nhất +5 × số thẻ (không nhân); trùng điểm = đồng hạng.
 - Máy: 5 mức sẵn có, mỗi mức "nhớ chắc" 2·3·5·8·11 thẻ (× 1 · 0,85 · 0,7 theo độ khó), còn lại đoán mò → đúng

@@ -10,7 +10,7 @@
  *    "khó quá, người chơi nản"; lựa chọn của người chơi được nhớ cho lần sau);
  *  · độ khó x = giây xem MỖI thẻ: Dễ 1,5 · Vừa 1 · Khó 0,75 → giờ xem = x × số thẻ (chủ dự án chốt 27.11.2026; trước là
  *    1 · 0,75 · 0,5 — "thời gian cho độ khó vừa đang hơi ít");
- *  · giờ chọn = NỬA giờ xem, sàn 2 giây (2 thẻ mức Khó mà không sàn là 0,5 giây — không kịp chạm);
+ *  · giờ chọn = BẰNG giờ xem (27.11.2026; trước là một nửa), sàn 2 giây;
  *  · điểm lượt đúng = 10 × số thẻ × (1 + phần giờ chọn còn lại) × hệ số chuỗi (như ghép cặp:
  *    1 · 1,2 · 1,5 · 2) × hệ số độ khó (1 · 1,25 · 1,5). Tính theo SỐ THẺ vì điểm = xu: để 100 điểm
  *    cố định thì bàn 3 thẻ thành chỗ cày xu;
@@ -66,7 +66,8 @@ export function timTheHopLe(raw: Partial<TimTheConfig> | null | undefined): Requ
 }
 
 export const timTheXemMs = (cfg: TimTheConfig): number => Math.round(TIM_THE_X[cfg.doKho] * cfg.soThe * 1000);
-export const timTheChonMs = (cfg: TimTheConfig): number => Math.max(TIM_THE_CHON_SAN_MS, Math.round(timTheXemMs(cfg) / 2));
+/** Giờ chọn = ĐÚNG BẰNG giờ xem (chủ dự án 27.11.2026: "cho thời gian tìm bằng thời gian nhìn ban đầu"; trước là một nửa), sàn 2 giây. */
+export const timTheChonMs = (cfg: TimTheConfig): number => Math.max(TIM_THE_CHON_SAN_MS, timTheXemMs(cfg));
 /** Số cột của bàn — 4 thẻ xếp 2×2, 12 thẻ 4×3. */
 export const timTheSoCot = (soThe: number): number => (soThe === 3 ? 3 : soThe <= 4 ? 2 : soThe <= 9 ? 3 : 4);
 /** Ước lượng một ván dài bao lâu (ms) — cho dòng mô tả ở màn cấu hình. */
