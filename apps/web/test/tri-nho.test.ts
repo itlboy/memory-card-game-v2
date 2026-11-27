@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { TRI_NHO_GIU_NGAY, mayUocLuong, store, type NgayTriNho } from '@/lib/storage';
 import {
-  CO_HOI_MOI_VAN_MAC_DINH, MOC_CO_DIEM, chiSo, chiSoHomNay, chiSoTai, daXemTriNho, dayNgay, ghiVanTriNho, ngayTuKhoa,
+  CO_HOI_MOI_VAN_MAC_DINH, MOC_CO_DIEM, SO_NGAY_KY, chiSo, chiSoHomNay, chiSoTai, daXemTriNho, dayNgay, ghiVanTriNho, ngayTuKhoa,
   phienTriNho, theNenLuyen, vanConThieu, vuaDoi
 } from '@/lib/tri-nho';
 
@@ -88,14 +88,14 @@ describe('chỉ số của một kỳ', () => {
     expect(toBan).toBeLessThan(0.5);      // 50% thô, trừ ăn may thì dưới 50%
   });
 
-  it('kỳ = 7 ngày KẾT THÚC ở ngày đang xem — bấm một ngày cũ là xem đúng kỳ của ngày đó', () => {
+  it('kỳ = ĐÚNG MỘT NGÀY (27.11.2026: "hôm nào hiện điểm hôm đó") — ngày không chơi là chưa có điểm', () => {
     const nk: Record<string, NgayTriNho> = {
       '2026-11-10': ngay([10, 10, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]),
       '2026-11-20': ngay([10, 0, 0, 0, 0], [0, 10, 0, 0, 0], [0, 0, 0, 0, 0])
     };
+    expect(SO_NGAY_KY).toBe(1);
     expect(chiSoTai(nk, ngayTuKhoa('2026-11-10')).diem).toBe(200);
-    expect(chiSoTai(nk, ngayTuKhoa('2026-11-16')).diem).toBe(200);   // ngày 10 còn trong kỳ 10–16
-    expect(chiSoTai(nk, ngayTuKhoa('2026-11-17')).diem).toBeNull();  // ra khỏi kỳ, chưa có gì mới
+    expect(chiSoTai(nk, ngayTuKhoa('2026-11-11')).diem, 'hôm sau bắt đầu lại').toBeNull();
     expect(chiSoTai(nk, ngayTuKhoa('2026-11-20')).diem).toBe(50);
   });
 

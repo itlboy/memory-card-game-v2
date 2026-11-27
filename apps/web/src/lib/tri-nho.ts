@@ -1,11 +1,11 @@
 /**
  * CHỈ SỐ TRÍ NHỚ (bản 3, 25.11.2026 — trang nghiên cứu duyệt https://claude.ai/artifact/D1HPHCCMsVXdgzoFwRjjsu).
  * MỞ CHO MỌI NGƯỜI từ 1.9.66 (25.11.2026, chủ dự án: "bật tính năng chỉ số trí nhớ cho tất cả mọi người luôn"). Công thức ở engine (`chiSoTriNho`): cộng 5 chặng nhớ, đã trừ ăn may.
- * File này GỘP nhật ký thô (`storage.ts`, số đếm theo ngày × cỡ bàn) thành chỉ số của một KỲ 7 NGÀY, tính bậc, và
+ * File này GỘP nhật ký thô (`storage.ts`, số đếm theo ngày × cỡ bàn) thành chỉ số của MỘT NGÀY (trước 27.11.2026: kỳ 7 ngày), tính bậc, và
  * giữ "vừa đổi bao nhiêu" sau mỗi ván cho bảng kết quả + nút trang chủ.
  *
  * MỘT CON SỐ cho cả game: không còn điểm riêng của từng ván (một ván quá ít số liệu để chấm 5 chặng) — sau ván chỉ
- * báo chỉ số 7 ngày vừa đổi bao nhiêu.
+ * báo chỉ số hôm nay vừa đổi bao nhiêu.
  */
 import { MOC_BAC_TRI_NHO, bacTriNho, chiSoTriNho, chiSoVan, coHoiNho, rongNhomTuoi, type ChangNho } from '@mm/engine';
 import { ref } from 'vue';
@@ -14,8 +14,11 @@ import { mayUocLuong, ngayMay, store, type NgayTriNho } from './storage';
 /** Bật = GHI nhật ký trí nhớ và HIỆN chỉ số. Trước 1.9.66 theo cờ debug; nay LUÔN bật — giữ làm công tắc để tắt nhanh nếu cần. */
 export const hienTriNho = ref(true);
 
-/** Kỳ tính chỉ số: 7 ngày kết thúc ở ngày đang xem. */
-export const SO_NGAY_KY = 7;
+/**
+ * Kỳ tính chỉ số = ĐÚNG MỘT NGÀY (27.11.2026, chủ dự án: "hôm nào hiện điểm hôm đó thôi. Như vậy có mục tiêu cho mọi người
+ * cố gắng. Muốn xem lại thì xem biểu đồ"). Trước đó gộp 7 ngày tới ngày đang xem. Mỗi ngày bắt đầu lại từ "chưa đủ số liệu".
+ */
+export const SO_NGAY_KY = 1;
 /**
  * Cần ngần này CƠ HỘI NHỚ trong kỳ mới bày con số (chủ dự án 23.11.2026: "chơi ít quá không đủ số liệu để tham
  * khảo"). Đếm cơ hội chứ không đếm ván: ván 8 thẻ và ván 60 thẻ cho lượng số liệu khác hẳn nhau.
@@ -75,7 +78,7 @@ export function dayNgay(soNgay: number, den = new Date()): string[] {
 /** Khoá `YYYY-MM-DD` → Date giữa trưa (tránh lệch ngày vì múi giờ / giờ mùa hè). */
 export const ngayTuKhoa = (k: string): Date => { const [y, m, d] = k.split('-').map(Number); return new Date(y!, (m ?? 1) - 1, d ?? 1, 12); };
 
-/** Chỉ số của kỳ 7 ngày KẾT THÚC ở ngày `den` (mặc định hôm nay) — cũng là thứ hiện khi bấm một ngày cũ trên biểu đồ. */
+/** Chỉ số của RIÊNG ngày `den` (mặc định hôm nay) — cũng là thứ hiện khi bấm một ngày cũ trên biểu đồ. */
 export function chiSoTai(nhatKy: Record<string, NgayTriNho>, den = new Date()): ChiSo {
   return chiSo(dayNgay(SO_NGAY_KY, den).map((k) => nhatKy[k]));
 }

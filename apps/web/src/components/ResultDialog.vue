@@ -192,7 +192,7 @@ const hienSao = computed(() => props.showStars && props.summary.status === 'won'
 
 /**
  * CHỈ SỐ TRÍ NHỚ (mở cho mọi người từ 1.9.66) — MỘT dòng: chỉ số CỦA RIÊNG VÁN NÀY (`chiSoVan`, 0–1000), không còn
- * chỉ số 7 ngày + mức tăng giảm (chủ dự án 25.11.2026: "bỏ cái tổng sau mỗi ván, hiện của ván đó thôi"). Chỉ số 7 ngày
+ * chỉ số HÔM NAY (trước 27.11.2026: 7 ngày) + mức tăng giảm (chủ dự án 25.11.2026: "bỏ cái tổng sau mỗi ván, hiện của ván đó thôi"). Chỉ số 7 ngày
  * vẫn được cộng dồn và xem ở nút trang chủ / màn Chỉ số trí nhớ. Ai gọi `ghiVanTriNho` trước khi bảng mở (App.vue /
  * OnlineGame.vue) quyết định ván có được chấm không: nhiều người chung máy, ván đội online, người xem → `vuaDoi` = null
  * → không có dòng này. `van` = null (ván quá ít cơ hội nhớ) → "Chưa đủ để chấm".

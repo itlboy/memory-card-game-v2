@@ -8,7 +8,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
  * bậc Đồng → Kim cương mốc cố định, KHÔNG so với bot.
  *
  * CHỈ BA KHỐI: (1) huy chương mang màu bậc, điểm nằm TRONG huy chương + THANH 5 BẬC (mình đang ở đâu) + còn bao nhiêu tới bậc kế;
- * (2) một hình, hai tab: "5 chặng nhớ" (5 cột — nhìn ra "càng lâu càng quên") / "14 ngày" (bấm cột = xem kỳ 7 ngày
+ * (2) một hình, hai tab: "5 chặng nhớ" (5 cột — nhìn ra "càng lâu càng quên") / "14 ngày" (bấm cột = xem điểm RIÊNG ngày đó — từ 27.11.2026 mỗi ngày một điểm; trước đó kỳ 7 ngày
  * kết thúc ở ngày đó; nhãn tab thành "14 ngày · 20/11", bấm cột cuối là về hôm nay); (3) nút "Luyện ngay".
  * ĐÃ BỎ (bản 3 có, bị chê rối): vòng điểm + "/ 1000", điểm từng chặng "116/150", ba tiêu đề chữ hoa, 14 nhãn ngày,
  * dòng "so với tuần trước", dòng chú thích cuối, dòng "bấm cột để xem".
@@ -126,9 +126,10 @@ const veAnh = (): Promise<Blob> => {
     muc5: t('tn.tab5'), muc14: t('tn.cs.muc14'), lech: lechTuan.value
   });
 };
-/** "▲ 32 điểm so với tuần trước" — so chỉ số hôm nay với chỉ số của 7 ngày trước đó (cả hai đủ số liệu mới hiện). */
+/** "▲ 32 điểm so với hôm trước" — so điểm ngày đang xem với NGÀY CÓ ĐIỂM gần nhất trước nó (cả hai đủ số liệu mới hiện). */
 const lechTuan = computed(() => {
-  const truoc = chiSoTai(nhatKy, new Date(Date.now() - 7 * 86_400_000)).diem, nay = ky.value.diem;
+  const nay = ky.value.diem;
+  const truoc = [...cot].reverse().find((c) => c.k < chon.value && c.diem !== null)?.diem ?? null;
   if (truoc === null || nay === null || nay === truoc) return undefined;
   return t(nay > truoc ? 'tn.cs.tang' : 'tn.cs.giam', { n: Math.abs(nay - truoc) });
 });
@@ -153,9 +154,9 @@ const coNhan = (k: string, i: number): boolean =>
       <section v-if="ky.diem !== null" class="giua">
         <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
         <!-- GHI RÕ điểm của NGÀY NÀO và tính trên bao nhiêu ngày (26.11.2026, chủ dự án: "ghi rõ điểm số hôm nay"; trước đó hỏi
-             "điểm hiện tại là trung bình của bao nhiêu ngày?") — điểm GỘP mọi lượt nhớ của 7 ngày tới ngày đang xem, không phải
-             trung bình cộng điểm từng ngày -->
-        <p class="huy-chu"><b>{{ laHomNay ? t('tn.diemHomNay') : t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b> · {{ t('tn.tinh7Ngay') }}</p>
+             "điểm hiện tại là trung bình của bao nhiêu ngày?") — từ 27.11.2026 điểm là của RIÊNG ngày đó ("hôm nào hiện điểm
+             hôm đó"), xem lại các ngày trước ở biểu đồ -->
+        <p class="huy-chu"><b>{{ laHomNay ? t('tn.diemHomNay') : t('tn.diemNgay', { ngay: ngayThang(chon) }) }}</b></p>
         <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF; chủ dự án: "chưa
              biểu thị được các bậc… thanh ngang hiển thị mình đang ở đâu"): mỗi bậc một đoạn mang màu của nó, đoạn đã qua
              tô đầy, đoạn đang ở tô tới chỗ mình đứng + vạch đánh dấu; tên 5 bậc ngay dưới, bậc của mình in đậm — thay
