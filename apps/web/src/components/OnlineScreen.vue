@@ -49,7 +49,7 @@ import { dangDebug } from '@/lib/debug';
 import { TIM_THE_MO } from '@/lib/tim-the';
 import { useBaoPhong } from '@/composables/useBaoPhong';
 import { baoNoi, boBao } from '@/lib/dai-bao';
-import { NHAC_CACH_MS } from '@mm/engine';
+import { NHAC_CACH_MS, TIM_THE_ONLINE_SO_THE } from '@mm/engine';
 import EmojiDock from './EmojiDock.vue';
 import EmojiBlast from './EmojiBlast.vue';
 import LoiNoi from './LoiNoi.vue';
@@ -1060,7 +1060,7 @@ watch(o.phase, (ph) => {
 function openCfgWizard(): void {
   const c = o.room.value?.config;
   // themeIds rỗng = server trộn mọi bộ miễn phí: hiện đúng như thế (đủ các bộ chơi được) để màn Bộ thẻ khớp
-  if (c) cfg.value = { level: c.level, themeIds: c.themeIds.length ? [...c.themeIds] : allThemes.value.filter((x) => !x.premium).map((x) => x.id), options: { ...c.options }, timSoThe: c.timSoThe ?? 9, timDoKho: c.timDoKho ?? 'vua' };
+  if (c) cfg.value = { level: c.level, themeIds: c.themeIds.length ? [...c.themeIds] : allThemes.value.filter((x) => !x.premium).map((x) => x.id), options: { ...c.options }, timSoThe: c.timSoThe ?? TIM_THE_ONLINE_SO_THE, timDoKho: c.timDoKho ?? 'vua' };
   wizard.value = 'ban';
 }
 </script>
@@ -1082,7 +1082,7 @@ function openCfgWizard(): void {
       <!-- TÌM THẺ (27.11.2026): chủ phòng đặt số thẻ + độ khó ở đây; lúc Bắt đầu cả phòng chỉ biểu quyết số thẻ ±1 bậc -->
       <ChonTimThe
         v-if="laTimPhong" an-ky-luc
-        :chon="{ soThe: cfg.timSoThe ?? 9, doKho: cfg.timDoKho ?? 'vua', doiThu: 'mot' }"
+        :chon="{ soThe: cfg.timSoThe ?? TIM_THE_ONLINE_SO_THE, doKho: cfg.timDoKho ?? 'vua', doiThu: 'mot' }"
         @doi="(c) => { cfg = { ...cfg, timSoThe: c.soThe, timDoKho: c.doKho }; }"
       />
       <BanChon
@@ -1514,7 +1514,7 @@ function openCfgWizard(): void {
       <button class="nh-dong ban-dong thach" type="button" @click="openCfgWizard">
         <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhBan" :key="h" :src="h" alt=""></span>
         <span class="nh-chu">
-          <strong>{{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: o.room.value?.config.timSoThe ?? 9 })}` : t('on.ban', { n: cardCount }) }}</strong>
+          <strong>{{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: o.room.value?.config.timSoThe ?? TIM_THE_ONLINE_SO_THE })}` : t('on.ban', { n: cardCount }) }}</strong>
           <small>{{ laTimPhong ? `${td(`tt.${o.room.value?.config.timDoKho ?? 'vua'}`)} · ${boBan}` : `${boBan} · ${luatBan}` }}</small>
         </span>
         <span class="nh-sua">{{ t('menu.nhanh.doi') }} ›</span>
@@ -1538,7 +1538,7 @@ function openCfgWizard(): void {
         </span>
       </div>
       <p class="hint">
-        {{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: o.room.value?.config.timSoThe ?? 9 })} · ${td(`tt.${o.room.value?.config.timDoKho ?? 'vua'}`)}` : t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
+        {{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: o.room.value?.config.timSoThe ?? TIM_THE_ONLINE_SO_THE })} · ${td(`tt.${o.room.value?.config.timDoKho ?? 'vua'}`)}` : t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — {{ t('on.choChuPhong') }}
       </p>
       <!-- NGƯỜI XEM Ở PHÒNG CHỜ (23.11.2026): giữ vai xem, tự bấm mới thành người chơi — không còn tự bị kéo vào ghế trống -->

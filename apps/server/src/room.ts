@@ -10,7 +10,7 @@ import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
 import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, huyHieuHoSo, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, pairsForLevel } from '@mm/engine';
 import type { KetChon, TimTheDoKho } from '@mm/engine';
-import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_SO_THE, chotSoThe } from '@mm/engine';
+import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE, chotSoThe } from '@mm/engine';
 
 /** Các số thẻ có thật, tăng dần (4 … 88) — thang để lượt CHỌN SỐ THẺ lấy bậc trên / bậc dưới. */
 const BAC_THE: readonly number[] = [...new Set(BOARD_SIZES.map((b) => b.pairs * 2))].sort((x, y) => x - y);
@@ -1696,7 +1696,7 @@ export class RoomDO extends DurableObject<Env> {
     const now = Date.now();
     this.chon = this.room.config.kieu === 'tim'
       // Tìm Thẻ: số thẻ ±1 bậc quanh số chủ phòng đặt (chủ dự án 27.11.2026 — như ghép cặp); độ khó KHÔNG biểu quyết
-      ? { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(this.room.config.timSoThe ?? 9, TIM_THE_SO_THE), phieu: new Map(), tim: true }
+      ? { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(this.room.config.timSoThe ?? TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE), phieu: new Map(), tim: true }
       : { id: now, het: now + CHON_THE_MS, ds: luaChonSoThe(pairsForLevel(this.room.config.level) * 2, BAC_THE), phieu: new Map() };
     await this.save();
     this.broadcast({ t: 'room', room: this.roomInfo() });
@@ -1714,7 +1714,7 @@ export class RoomDO extends DurableObject<Env> {
     if (!c || c.ket || !this.room) return;
     if (!this.duNguoiVaoVan()) { this.chon = null; this.broadcast({ t: 'room', room: this.roomInfo() }); await this.scheduleNext(); return; }
     const tim = !!c.tim;
-    const hienTai = tim ? (this.room.config.timSoThe ?? 9) : pairsForLevel(this.room.config.level) * 2;
+    const hienTai = tim ? (this.room.config.timSoThe ?? TIM_THE_ONLINE_SO_THE) : pairsForLevel(this.room.config.level) * 2;
     const conO = (id: string) => this.room!.players.some((p) => p.id === id);
     const phieu = [...c.phieu].filter(([id]) => conO(id)).map(([, the]) => the);
     c.ket = ketQuaChon(phieu, c.ds, hienTai, Math.random);
@@ -1819,7 +1819,7 @@ export class RoomDO extends DurableObject<Env> {
   private prepareTim(): void {
     const room = this.room!;
     let hinh = this.bieuTuongPhong();
-    const soThe = room.config.timSoThe ?? 9;
+    const soThe = room.config.timSoThe ?? TIM_THE_ONLINE_SO_THE;
     // Bộ thẻ ít hơn số thẻ cần (khác nhau) thì trộn mọi theme miễn phí
     if (hinh.length < soThe) hinh = [...new Set([...hinh, ...Object.entries(THEME_SYMBOLS).filter(([id]) => !THEME_PREMIUM.has(id)).flatMap(([, s]) => s)])];
     this.tim = new PhongTimThe(

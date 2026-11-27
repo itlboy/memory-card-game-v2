@@ -352,7 +352,7 @@
   Hết ván, "Đổi cấu hình" = về lại màn đó. Mở cho mọi người = `TIM_THE_MO = true`.
 - **ONLINE (chặng 2, 27.11.2026, mockup duyệt https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6)**: chủ phòng chọn Kiểu chơi
   ở phòng chờ (`config.kieu = 'tim'`, hàng hai viên như màn setup); số thẻ + độ khó chủ phòng đặt ở bảng Bàn chơi
-  (`ChonTimThe` trong wizard, `config.timSoThe/timDoKho`). Bắt đầu → cả phòng biểu quyết SỐ THẺ ±1 bậc bằng chính popup
+  (`ChonTimThe` trong wizard, `config.timSoThe/timDoKho`); chưa chọn thì **4 thẻ** (`TIM_THE_ONLINE_SO_THE`, 27.11.2026, chủ dự án: "9 thẻ khó lắm") — đừng viết `?? 9` rải rác. Bắt đầu → cả phòng biểu quyết SỐ THẺ ±1 bậc bằng chính popup
   ghép cặp `ChonSoThe` (`luaChonSoThe` trên `TIM_THE_SO_THE`); độ KHÓ KHÔNG biểu quyết (chủ dự án 27.11.2026). Nhịp ván do SERVER dẫn:
   engine `PhongTimThe` (`tim-the-phong.ts`, test riêng) — room.ts giữ ở ô `tim` RIÊNG (KHÔNG đụng `game` của ghép cặp),
   hẹn alarm theo `henKe`, phát `t:'tim'`. Ván KHÔNG lưu (dậy giữa ván → về phòng chờ, `load`). Client khai `?tim=1`; thiếu

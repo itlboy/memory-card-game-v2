@@ -11,7 +11,7 @@
  * Giờ chọn đo TẠI MÁY NÀY (từ lúc nhận câu hỏi, trừ phần server đã trôi trước khi gửi) — đường truyền không ăn vào điểm;
  * server kẹp lại (`PhongTimThe.chon`).
  */
-import { TIM_THE_SO_LUOT, type TimView } from '@mm/engine';
+import { TIM_THE_ONLINE_SO_THE, TIM_THE_SO_LUOT, type TimView } from '@mm/engine';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Check, Ellipsis, LogOut, TimerOff, X, Zap } from 'lucide-vue-next';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
@@ -119,7 +119,7 @@ const toi = computed(() => v.value?.nguoi.find((n) => n.id === toiId.value) ?? n
 /* ---------- bàn: hình đang hiện (giữ hình cũ trong lúc lá úp xuống để không loé ô trắng) ---------- */
 const hinhCu = ref<string[]>([]);
 const hinh = computed(() => v.value?.the ?? hinhCu.value);
-const soThe = computed(() => v.value?.soThe ?? o.room.value?.config.timSoThe ?? 9);
+const soThe = computed(() => v.value?.soThe ?? o.room.value?.config.timSoThe ?? TIM_THE_ONLINE_SO_THE);
 /** Nhịp cho bàn vòng: đang đếm ngược (chưa có ván) thì bàn nằm úp. */
 const nhipBan = computed(() => (v.value ? pha.value : 'cho'));
 /** Ai chọn lá nào — chỉ ở đáp án (server mới gửi `kq`). */

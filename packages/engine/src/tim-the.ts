@@ -24,6 +24,8 @@ import { Rng } from './rng.js';
 import { comboMultiplier } from './scoring.js';
 
 export const TIM_THE_SO_THE = [3, 4, 5, 6, 7, 8, 9] as const;
+/** Số thẻ MẶC ĐỊNH của phòng ONLINE khi chủ phòng chưa chọn (27.11.2026, chủ dự án: "9 thẻ khó lắm" → 4). */
+export const TIM_THE_ONLINE_SO_THE = 4;
 export type TimTheDoKho = 'de' | 'vua' | 'kho';
 export const TIM_THE_DO_KHO: readonly TimTheDoKho[] = ['de', 'vua', 'kho'];
 /** x = giây xem mỗi thẻ. */
