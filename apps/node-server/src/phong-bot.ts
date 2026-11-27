@@ -56,8 +56,8 @@ const XEM_KQ_MS = so('XEM_KQ_MS', 8_000);
  * Bất kể tỷ lệ: phòng đã là Tìm Thẻ (người chủ phòng chuyển sang) thì bot CHƠI Tìm Thẻ chứ không rời ghế.
  */
 const TIM_TI_LE = Math.min(1, Math.max(0, Number(process.env.TIM_TI_LE) || 0));
-/** Bàn Tìm Thẻ bot bỏ phiếu (không chọn 3–4 thẻ: dễ quá, ván nhạt). */
-const TIM_THE_BOT = [5, 6, 7, 8, 9];   // bàn vòng tròn 3–9 thẻ (27.11.2026); 3–4 thẻ quá dễ cho phòng máy
+/** Bàn Tìm Thẻ bot bỏ phiếu (không chọn 3 thẻ: dễ quá, ván nhạt). */
+const TIM_THE_BOT = [4, 5, 6, 7];   // bàn vòng tròn 3–7 thẻ (27.11.2026); 3 thẻ quá dễ cho phòng máy
 /** Người vào sát giờ vẫn có ngần này để bấm Sẵn sàng; hết hạn mà chưa sẵn sàng: nhắc + chờ thêm một lần rồi chuyển sang người xem. */
 const KIP_SAN_SANG_MS = Math.min(12_000, CHO_MS);
 const CHO_THEM_MS = Math.min(15_000, CHO_MS);

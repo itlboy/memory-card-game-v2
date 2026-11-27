@@ -6,7 +6,8 @@
  * cả bàn lật ngửa, chấm điểm → sang bàn khác. Ván = `soLuot` lượt, không có đồng hồ cả ván.
  *
  * ĐÃ CHỐT (đừng đảo lại khi chưa hỏi):
- *  · số thẻ 3 · 4 · 5 · 6 · 7 · 8 · 9 — bàn VÒNG TRÒN (27.11.2026: bỏ 12 và 16, chủ dự án: "khó quá, không ai giải được");
+ *  · số thẻ 3 · 4 · 5 · 6 · 7, mặc định 5 — bàn VÒNG TRÒN (27.11.2026: bỏ 12, 16 "không ai giải được", rồi tạm bỏ 8, 9
+ *    "khó quá, người chơi nản"; lựa chọn của người chơi được nhớ cho lần sau);
  *  · độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5 → giờ xem = x × số thẻ;
  *  · giờ chọn = NỬA giờ xem, sàn 2 giây (2 thẻ mức Khó mà không sàn là 0,5 giây — không kịp chạm);
  *  · điểm lượt đúng = 10 × số thẻ × (1 + phần giờ chọn còn lại) × hệ số chuỗi (như ghép cặp:
@@ -23,9 +24,11 @@ import type { BotLevel } from './bot.js';
 import { Rng } from './rng.js';
 import { comboMultiplier } from './scoring.js';
 
-export const TIM_THE_SO_THE = [3, 4, 5, 6, 7, 8, 9] as const;
-/** Số thẻ MẶC ĐỊNH của phòng ONLINE khi chủ phòng chưa chọn (27.11.2026, chủ dự án: "9 thẻ khó lắm" → 4). */
-export const TIM_THE_ONLINE_SO_THE = 4;
+export const TIM_THE_SO_THE = [3, 4, 5, 6, 7] as const;
+/** Số thẻ MẶC ĐỊNH (chơi đơn lẫn phòng online khi chưa chọn) — 27.11.2026, chủ dự án: "mặc định chọn 5". */
+export const TIM_THE_SO_THE_MAC_DINH = 5;
+/** Phòng online chưa ai chọn số thẻ. */
+export const TIM_THE_ONLINE_SO_THE = TIM_THE_SO_THE_MAC_DINH;
 export type TimTheDoKho = 'de' | 'vua' | 'kho';
 export const TIM_THE_DO_KHO: readonly TimTheDoKho[] = ['de', 'vua', 'kho'];
 /** x = giây xem mỗi thẻ. */
@@ -55,7 +58,7 @@ export interface TimTheConfig {
 
 /** Ép cấu hình lạ (URL, localStorage, tin từ client) về giá trị hợp lệ. */
 export function timTheHopLe(raw: Partial<TimTheConfig> | null | undefined): Required<TimTheConfig> {
-  const soThe = (TIM_THE_SO_THE as readonly number[]).includes(Number(raw?.soThe)) ? Number(raw!.soThe) : 9;
+  const soThe = (TIM_THE_SO_THE as readonly number[]).includes(Number(raw?.soThe)) ? Number(raw!.soThe) : TIM_THE_SO_THE_MAC_DINH;
   const doKho = TIM_THE_DO_KHO.includes(raw?.doKho as TimTheDoKho) ? (raw!.doKho as TimTheDoKho) : 'vua';
   const luot = Math.trunc(Number(raw?.soLuot));
   return { soThe, doKho, soLuot: luot >= 1 && luot <= 30 ? luot : TIM_THE_SO_LUOT };

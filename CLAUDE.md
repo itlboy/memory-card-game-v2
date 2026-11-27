@@ -352,14 +352,14 @@
   Hết ván, "Đổi cấu hình" = về lại màn đó. Mở cho mọi người = `TIM_THE_MO = true`.
 - **ONLINE (chặng 2, 27.11.2026, mockup duyệt https://claude.ai/artifact/5rwkt1SVgamVqoED4nEWz6)**: chủ phòng chọn Kiểu chơi
   ở phòng chờ (`config.kieu = 'tim'`, hàng hai viên như màn setup); số thẻ + độ khó chủ phòng đặt ở bảng Bàn chơi
-  (`ChonTimThe` trong wizard, `config.timSoThe/timDoKho`); chưa chọn thì **4 thẻ** (`TIM_THE_ONLINE_SO_THE`, 27.11.2026, chủ dự án: "9 thẻ khó lắm") — đừng viết `?? 9` rải rác. Bắt đầu → cả phòng biểu quyết SỐ THẺ ±1 bậc bằng chính popup
+  (`ChonTimThe` trong wizard, `config.timSoThe/timDoKho`); chưa chọn thì lựa chọn nhớ của chủ phòng, không có thì **5 thẻ** (`TIM_THE_SO_THE_MAC_DINH`) — đừng viết `?? 9` rải rác. Bắt đầu → cả phòng biểu quyết SỐ THẺ ±1 bậc bằng chính popup
   ghép cặp `ChonSoThe` (`luaChonSoThe` trên `TIM_THE_SO_THE`); độ KHÓ KHÔNG biểu quyết (chủ dự án 27.11.2026). Nhịp ván do SERVER dẫn:
   engine `PhongTimThe` (`tim-the-phong.ts`, test riêng) — room.ts giữ ở ô `tim` RIÊNG (KHÔNG đụng `game` của ghép cặp),
   hẹn alarm theo `henKe`, phát `t:'tim'`. Ván KHÔNG lưu (dậy giữa ván → về phòng chờ, `load`). Client khai `?tim=1`; thiếu
   thì Bắt đầu báo `tim-client-cu` (như `dd`). Giờ chọn đo TẠI MÁY người chơi, server kẹp (không quá giờ server, không sớm
   hơn `TIM_PHONG_LECH_MS`) và chờ thêm `TIM_PHONG_TRE_MS` cho lời chọn đang trên đường. Màn `OnlineTimThe.vue`: cùng luật
   "chỉ có bàn thẻ" + hàng người chơi; đang chọn chỉ lộ AI đã chọn, đáp án mới hiện mặt dưới lá. Phòng có máy: không xu,
-  không lên sổ (như ghép cặp online). Máy trực phòng (`phong-bot.ts`) rời ghế khi phòng chuyển sang Tìm Thẻ; phòng máy tự mở Tìm Thẻ thì bỏ phiếu bàn 5–9 thẻ.
+  không lên sổ (như ghép cặp online). Máy trực phòng (`phong-bot.ts`) rời ghế khi phòng chuyển sang Tìm Thẻ; phòng máy tự mở Tìm Thẻ thì bỏ phiếu bàn 4–7 thẻ.
 - **HẾT VÁN = ĐÚNG đồ của ghép cặp** (27.11.2026, chủ dự án): KetCucFx (ăn mừng) rồi ResultDialog với prop `timThe` (số
   lượt) — `tomTatTimThe` (lib/tim-the) dựng `Summary`, `moves`/`pairs` = SỐ LƯỢT ĐÚNG, bảng tự đổi nhãn "Đúng x/N".
 - Luật THUẦN + TẤT ĐỊNH ở ENGINE (`packages/engine/src/tim-the.ts`, `VanTimThe`, test `test/tim-the.test.ts`) — không ở
@@ -381,7 +381,9 @@
   **NGUYÊN TẮC: KHÔNG GÌ ĐƯỢC KÉO MẮT KHỎI BÀN** (chủ dự án 27.11.2026: "Ko nên làm gì gây sự mất tập trung"): màn chơi
   CHỈ có bàn thẻ + hàng người chơi — KHÔNG bảng thông báo, KHÔNG số giây nhảy; đúng/sai = viền thẻ + ✓/✕. Câu chữ chỉ còn
   cho trình đọc màn hình. Thêm gì vào màn chơi thì hỏi: nó có bắt mắt rời bàn không? Ván = 10 lượt, KHÔNG đồng hồ cả ván,
-  KHÔNG tim. Số thẻ 3·4·5·6·7·8·9 (27.11.2026 bỏ 12, 16: "khó quá, không ai giải được"; cấu hình cũ về 9). Độ khó x = giây
+  KHÔNG tim. Số thẻ TẠM chỉ 3·4·5·6·7, MẶC ĐỊNH 5 (27.11.2026 bỏ 12, 16 "không ai giải được", rồi 8, 9 "khó quá, người
+  chơi nản"; cấu hình cũ về 5). Lựa chọn số thẻ + độ khó NHỚ ở `mm.timThe.chon`, CHUNG cho chơi đơn và chủ phòng online
+  (chuyển phòng sang Tìm Thẻ / sửa Bàn chơi đều đọc + ghi). Server ép số thẻ lạ về mặc định (`timSoTheHopLe`). Độ khó x = giây
   xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
   giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
   cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.

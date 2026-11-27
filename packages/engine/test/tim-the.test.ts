@@ -18,14 +18,14 @@ describe('Tìm Thẻ — thời gian', () => {
     expect(timTheChonMs(cfg(4, 'de'))).toBe(2000);
   });
   it('số cột theo số thẻ', () => {
-    expect(TIM_THE_SO_THE.map(timTheSoCot)).toEqual([3, 2, 3, 3, 3, 3, 3]);
+    expect(TIM_THE_SO_THE.map(timTheSoCot)).toEqual([3, 2, 3, 3, 3]);
   });
   it('cấu hình lạ bị ép về hợp lệ', () => {
-    expect(timTheHopLe({ soThe: 88, doKho: 'x' as never, soLuot: 999 })).toEqual({ soThe: 9, doKho: 'vua', soLuot: 10 });
-    expect(timTheHopLe({ soThe: 8, doKho: 'kho', soLuot: 5 })).toEqual({ soThe: 8, doKho: 'kho', soLuot: 5 });
-    // 12 và 16 thẻ đã bỏ (27.11.2026, bàn vòng tròn chỉ 3–9) — cấu hình cũ lưu trong máy về mặc định
-    expect(timTheHopLe({ soThe: 12 }).soThe).toBe(9);
-    expect(timTheHopLe(null)).toEqual({ soThe: 9, doKho: 'vua', soLuot: 10 });
+    expect(timTheHopLe({ soThe: 88, doKho: 'x' as never, soLuot: 999 })).toEqual({ soThe: 5, doKho: 'vua', soLuot: 10 });
+    expect(timTheHopLe({ soThe: 7, doKho: 'kho', soLuot: 5 })).toEqual({ soThe: 7, doKho: 'kho', soLuot: 5 });
+    // 8, 9, 12, 16 thẻ đã bỏ (27.11.2026, bàn vòng tròn chỉ 3–7) — cấu hình cũ lưu trong máy về mặc định 5
+    for (const n of [8, 9, 12, 16]) expect(timTheHopLe({ soThe: n }).soThe).toBe(5);
+    expect(timTheHopLe(null)).toEqual({ soThe: 5, doKho: 'vua', soLuot: 10 });
   });
 });
 
@@ -103,17 +103,17 @@ describe('Tìm Thẻ — ván', () => {
     expect(v.chon('p1', 1, 20)).toBe(false);
   });
   it('đúng liên tiếp nhân điểm; sai và hết giờ làm mất chuỗi', () => {
-    const v = mot(9, cfg(8, 'de', 4));
+    const v = mot(9, cfg(7, 'de', 4));
     const han = v.chonMs;
     v.moHoi(); v.chon('p1', v.dich, han); let k = v.chot().ketQua[0]!;
-    expect([k.ketCuc, k.diem, k.chuoi, k.heSo]).toEqual(['dung', 80, 1, 1]);
+    expect([k.ketCuc, k.diem, k.chuoi, k.heSo]).toEqual(['dung', 70, 1, 1]);
     v.tiep(); v.moHoi(); v.chon('p1', v.dich, han); k = v.chot().ketQua[0]!;
-    expect([k.diem, k.chuoi, k.heSo]).toEqual([96, 2, 1.2]);
-    v.tiep(); v.moHoi(); v.chon('p1', (v.dich + 1) % 8, 5); k = v.chot().ketQua[0]!;
+    expect([k.diem, k.chuoi, k.heSo]).toEqual([84, 2, 1.2]);
+    v.tiep(); v.moHoi(); v.chon('p1', (v.dich + 1) % 7, 5); k = v.chot().ketQua[0]!;
     expect([k.ketCuc, k.diem, k.chuoi]).toEqual(['sai', 0, 0]);
     v.tiep(); v.moHoi(); k = v.chot().ketQua[0]!;
     expect(k.ketCuc).toBe('het-gio');
-    expect(v.nguoi[0]).toMatchObject({ diem: 176, dung: 2, chuoiDai: 2, chuoi: 0, nhanhNhatMs: han });
+    expect(v.nguoi[0]).toMatchObject({ diem: 154, dung: 2, chuoiDai: 2, chuoi: 0, nhanhNhatMs: han });
   });
   it('một mình thì không có thưởng nhanh nhất', () => {
     const v = mot();

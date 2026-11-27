@@ -46,7 +46,7 @@ import ChonSoThe from './ChonSoThe.vue';
 import ChonTimThe from './ChonTimThe.vue';
 import OnlineTimThe from './OnlineTimThe.vue';
 import { dangDebug } from '@/lib/debug';
-import { TIM_THE_MO } from '@/lib/tim-the';
+import { TIM_THE_MO, TIM_THE_SO_THE, docChon, luuChon } from '@/lib/tim-the';
 import { useBaoPhong } from '@/composables/useBaoPhong';
 import { baoNoi, boBao } from '@/lib/dai-bao';
 import { NHAC_CACH_MS, TIM_THE_ONLINE_SO_THE } from '@mm/engine';
@@ -1011,11 +1011,15 @@ const wizPool = computed(() => new Set(
 /** TÌM THẺ ONLINE (27.11.2026): chủ phòng chọn kiểu chơi ngay ở phòng chờ — hiện khi Tìm Thẻ mở / đang bật debug. */
 const hienTim = computed(() => TIM_THE_MO || dangDebug.value);
 const laTimPhong = computed(() => o.room.value?.config.kieu === 'tim');
+/** Số thẻ còn hợp lệ (mức 8, 9, 12, 16 đã bỏ → undefined). */
+const timSoTheHop = (n: number | undefined): number | undefined => ((TIM_THE_SO_THE as readonly number[]).includes(n ?? -1) ? n : undefined);
 function doiKieuPhong(k: 'thuong' | 'tim'): void {
   if ((k === 'tim') === laTimPhong.value) return;
   sfx.select();
   moChucNang('phong_kieu_choi', { kieu: k });
-  o.setConfig({ kieu: k });
+  // Chuyển sang Tìm Thẻ: số thẻ + độ khó = lựa chọn NHỚ từ lần trước (chung với chơi đơn — chủ dự án 27.11.2026)
+  const nho = docChon(), c = o.room.value?.config;
+  o.setConfig(k === 'tim' ? { kieu: k, timSoThe: timSoTheHop(c?.timSoThe) ?? nho.soThe, timDoKho: c?.timDoKho ?? nho.doKho } : { kieu: k });
 }
 
 const cardCount = computed(() => {
@@ -1041,6 +1045,8 @@ function wizFinish(): void {
   if (wizTooSmall.value) { wizard.value = 'theme'; return; }
   sfx.select();
   if (editingInLobby.value) o.setConfig({ ...cfg.value });
+  // Nhớ số thẻ + độ khó Tìm Thẻ cho lần sau (chung với chơi đơn)
+  if (laTimPhong.value && cfg.value.timSoThe) luuChon({ ...docChon(), soThe: cfg.value.timSoThe, doKho: cfg.value.timDoKho ?? docChon().doKho });
   wizard.value = null;
 }
 
@@ -1060,7 +1066,7 @@ watch(o.phase, (ph) => {
 function openCfgWizard(): void {
   const c = o.room.value?.config;
   // themeIds rỗng = server trộn mọi bộ miễn phí: hiện đúng như thế (đủ các bộ chơi được) để màn Bộ thẻ khớp
-  if (c) cfg.value = { level: c.level, themeIds: c.themeIds.length ? [...c.themeIds] : allThemes.value.filter((x) => !x.premium).map((x) => x.id), options: { ...c.options }, timSoThe: c.timSoThe ?? TIM_THE_ONLINE_SO_THE, timDoKho: c.timDoKho ?? 'vua' };
+  if (c) cfg.value = { level: c.level, themeIds: c.themeIds.length ? [...c.themeIds] : allThemes.value.filter((x) => !x.premium).map((x) => x.id), options: { ...c.options }, timSoThe: timSoTheHop(c.timSoThe) ?? docChon().soThe, timDoKho: c.timDoKho ?? docChon().doKho };
   wizard.value = 'ban';
 }
 </script>
@@ -1514,7 +1520,7 @@ function openCfgWizard(): void {
       <button class="nh-dong ban-dong thach" type="button" @click="openCfgWizard">
         <span class="nh-hinh" aria-hidden="true"><img v-for="h in hinhBan" :key="h" :src="h" alt=""></span>
         <span class="nh-chu">
-          <strong>{{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: o.room.value?.config.timSoThe ?? TIM_THE_ONLINE_SO_THE })}` : t('on.ban', { n: cardCount }) }}</strong>
+          <strong>{{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: timSoTheHop(o.room.value?.config.timSoThe) ?? TIM_THE_ONLINE_SO_THE })}` : t('on.ban', { n: cardCount }) }}</strong>
           <small>{{ laTimPhong ? `${td(`tt.${o.room.value?.config.timDoKho ?? 'vua'}`)} · ${boBan}` : `${boBan} · ${luatBan}` }}</small>
         </span>
         <span class="nh-sua">{{ t('menu.nhanh.doi') }} ›</span>
@@ -1538,7 +1544,7 @@ function openCfgWizard(): void {
         </span>
       </div>
       <p class="hint">
-        {{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: o.room.value?.config.timSoThe ?? TIM_THE_ONLINE_SO_THE })} · ${td(`tt.${o.room.value?.config.timDoKho ?? 'vua'}`)}` : t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
+        {{ laTimPhong ? `${t('tt.ten')} · ${t('tt.the', { n: timSoTheHop(o.room.value?.config.timSoThe) ?? TIM_THE_ONLINE_SO_THE })} · ${td(`tt.${o.room.value?.config.timDoKho ?? 'vua'}`)}` : t('on.soThe', { n: cardCount }) }} · {{ themeSummary(o.room.value?.config.themeIds ?? []) }}
         — {{ t('on.choChuPhong') }}
       </p>
       <!-- NGƯỜI XEM Ở PHÒNG CHỜ (23.11.2026): giữ vai xem, tự bấm mới thành người chơi — không còn tự bị kéo vào ghế trống -->
