@@ -376,7 +376,7 @@
   `tim-the-bay-ban`). Thẻ cần tìm ở TÂM, BẰNG lá thường (lưng vàng, khung vàng đôi, quầng sáng — markup riêng, không `.card`,
   để skin không đè), lá khác trên elip, lá đầu 12 giờ theo chiều kim đồng hồ; màn ngang elip nằm ngang. Nhịp: `xem` vòng ngoài
   ngửa → `up` úp → `noi` (`TIM_THE_NOI_MS` 0,6 giây, chỉ cho cú lật) thẻ giữa ngửa → `hoi` thẻ giữa ngửa tới hết giờ.
-  VẠCH GIỜ quanh cạnh thẻ giữa (hao từ 12 giờ theo chiều kim đồng hồ, xanh→vàng→đỏ) — chủ dự án chọn, khác hẳn thanh giờ cũ
+  VẠCH GIỜ quanh cạnh thẻ giữa (hao từ 12 giờ theo chiều kim đồng hồ, xanh→vàng→đỏ; chạy CẢ lúc nhìn `xem` lẫn lúc tìm `hoi`, lúc nhìn không gõ trống) — chủ dự án chọn, khác hẳn thanh giờ cũ
   đã bỏ. QUẦNG SÁNG chạy vòng ~1 giây/vòng CHỈ khi lá đang úp, không nhích lá; bấm thì dừng ở lá đó, lá có viền TRẮNG (chưa
   nói đúng/sai) + nhún + sóng, KHÔNG đổi cỡ. Hết giờ chưa chọn (và người xem): quầng chậm dần ~1 giây về THẺ ĐÁP ÁN rồi mới
   lật (`@lat`; chốt điểm/tiếng lúc đó) — vì thế `TIM_THE_DAP_AN_MS` = 3 giây. Đúng: nảy + viền xanh + ✓; sai: mờ .55 + đỏ + ✕;

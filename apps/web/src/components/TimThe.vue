@@ -176,7 +176,9 @@ function khung(ms: number): void {
 /** Vạch giờ quanh thẻ giữa + nhạc trống (BanVongTim) + tiếng tích ba giây cuối của nhịp hỏi. */
 function veGio(v: VanTimThe): void {
   const dai = nhip.value === 'hoi' ? v.chonMs : 0;
-  banVong.value?.veGio(dai ? 1 - tNhip / dai : null, chonCuaToi.value === null);
+  // Lúc NHÌN cũng có vạch đếm ngược quanh thẻ giữa, y hệt lúc tìm (chủ dự án 27.11.2026) — nhưng không gõ trống
+  if (nhip.value === 'xem') banVong.value?.veGio(1 - tNhip / v.xemMs, false);
+  else banVong.value?.veGio(dai ? 1 - tNhip / dai : null, chonCuaToi.value === null);
   if (!dai) return;
   const s = Math.ceil((dai - tNhip) / 1000);
   if (s !== giayCu) {

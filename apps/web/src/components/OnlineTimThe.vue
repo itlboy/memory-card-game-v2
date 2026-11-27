@@ -172,6 +172,8 @@ let choLat: TimView | null = null;
 /** 3-2-1 ở nhịp `cho` giữa các lượt (đo theo giờ server gửi kèm). Khai báo TRƯỚC watch immediate (TDZ). */
 const demSo = ref(0);
 let choTu = 0, choDai = 0;
+/** Mốc + độ dài nhịp NHÌN — vạch đếm ngược quanh thẻ giữa lúc nhìn (y hệt lúc tìm, 27.11.2026). */
+let xemTu = 0, xemDai = 0;
 let truocPha = '';
 let batDauLuc = performance.now();
 let truocLuot = -1;
@@ -205,6 +207,7 @@ watch(v, (moi) => {
       if (moi.luot > 0) sfx.swap();
     } else if (moi.pha === 'xem') {
       demSo.value = 0;
+      xemTu = o.timNhanLuc.value - (moi.daiMs - moi.conMs); xemDai = moi.daiMs;
       // Lượt đầu server lật NGAY sau đếm ngược vào ván (không qua `cho`) — dọn ván cũ ở đây
       if (moi.luot === 0) { fx.value = null; hienKq.value = false; batDauLuc = performance.now(); }
       chonCuaToi.value = null; gain.value = null;
@@ -254,7 +257,8 @@ function khung(): void {
   // Người xem cũng nghe tích 3 giây cuối, tới khi mọi người đã chọn
   const conCho = xem.value ? (v.value?.nguoi ?? []).some((n) => !n.da) : chonCuaToi.value === null;
   // Vạch giờ quanh thẻ giữa + nhạc trống (chỉ người CHƠI chưa chọn mới nghe trống)
-  banVong.value?.veGio(pha.value === 'hoi' && hoiDai ? 1 - (performance.now() - hoiTu) / hoiDai : null, !xem.value && chonCuaToi.value === null);
+  if (pha.value === 'xem' && xemDai > 0) banVong.value?.veGio(1 - (performance.now() - xemTu) / xemDai, false);
+  else banVong.value?.veGio(pha.value === 'hoi' && hoiDai ? 1 - (performance.now() - hoiTu) / hoiDai : null, !xem.value && chonCuaToi.value === null);
   if (pha.value === 'hoi' && conCho) {
     const s = Math.ceil((hoiDai - (performance.now() - hoiTu)) / 1000);
     if (s !== giayCu) { if (giayCu !== -1 && s <= 3 && s > 0) sfx.tick(); giayCu = s; }
