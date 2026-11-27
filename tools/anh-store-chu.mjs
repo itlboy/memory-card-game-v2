@@ -20,6 +20,8 @@ export const CHU = {
     nen: ['Light or dark, your call', 'Follows your phone setting'],
     danhHieu: ['100+ achievements', 'Collect the whole golden set'],
     coBan: ['From 4 to 88 cards', 'Easy for kids, tough for grown-ups'],
+    timThe: ['Find the Card', 'Remember the ring, tap the match'],
+    triNho: ['A daily brain score', 'Watch it climb day by day'],
   },
   vi: {
     choi: ['Lật thẻ, tìm cặp', 'Nhìn kỹ, nhớ nhanh, ghép đôi'],
@@ -33,6 +35,8 @@ export const CHU = {
     nen: ['Sáng hay tối, tuỳ bạn', 'Tự đổi theo điện thoại'],
     danhHieu: ['Hơn 100 danh hiệu', 'Sưu tầm cả bộ thẻ vàng'],
     coBan: ['Từ 4 tới 88 thẻ', 'Dễ cho bé, siêu khó cho người lớn'],
+    timThe: ['Tìm Thẻ', 'Nhớ vòng thẻ, chạm thật nhanh'],
+    triNho: ['Chỉ số trí nhớ', 'Xem mình tiến bộ từng ngày'],
   },
   es: {
     choi: ['Voltea cartas, encuentra parejas', 'Mira, recuerda y empareja'],
@@ -46,6 +50,8 @@ export const CHU = {
     nen: ['Claro u oscuro, tú eliges', 'Sigue el ajuste de tu teléfono'],
     danhHieu: ['Más de 100 logros', 'Colecciona todas las cartas doradas'],
     coBan: ['De 4 a 88 cartas', 'Fácil para niños, difícil para adultos'],
+    timThe: ['Encuentra la carta', 'Recuerda el círculo y toca rápido'],
+    triNho: ['Tu progreso diario', 'Del bronce al diamante, día a día'],
   },
   pt: {
     choi: ['Vire cartas, ache os pares', 'Olhe, lembre e combine'],
@@ -59,6 +65,8 @@ export const CHU = {
     nen: ['Claro ou escuro, você escolhe', 'Segue o ajuste do seu celular'],
     danhHieu: ['Mais de 100 conquistas', 'Colecione todas as cartas douradas'],
     coBan: ['De 4 a 88 cartas', 'Fácil para crianças, difícil para adultos'],
+    timThe: ['Ache a carta', 'Lembre o círculo e toque rápido'],
+    triNho: ['Seu progresso diário', 'Do bronze ao diamante, dia a dia'],
   },
   fr: {
     choi: ['Retourne, trouve les paires', 'Observe, retiens, associe'],
@@ -72,6 +80,8 @@ export const CHU = {
     nen: ['Clair ou sombre, à toi de voir', 'Suit le réglage de ton téléphone'],
     danhHieu: ['Plus de 100 succès', 'Collectionne toutes les cartes dorées'],
     coBan: ['De 4 à 88 cartes', 'Facile pour les petits, coriace pour les grands'],
+    timThe: ['Trouve la carte', 'Retiens le cercle, touche vite'],
+    triNho: ['Tes progrès du jour', 'Du bronze au diamant, jour après jour'],
   },
   de: {
     choi: ['Karten umdrehen, Paare finden', 'Hinsehen, merken, zuordnen'],
@@ -85,6 +95,8 @@ export const CHU = {
     nen: ['Hell oder dunkel, du entscheidest', 'Folgt der Einstellung deines Handys'],
     danhHieu: ['Über 100 Erfolge', 'Sammle alle goldenen Karten'],
     coBan: ['Von 4 bis 88 Karten', 'Leicht für Kinder, knifflig für Große'],
+    timThe: ['Karte finden', 'Kreis merken, schnell antippen'],
+    triNho: ['Dein Tagesfortschritt', 'Von Bronze bis Diamant, Tag für Tag'],
   },
   ja: {
     choi: ['めくって、ペアを探そう', 'よく見て、覚えて、そろえよう'],
@@ -98,6 +110,8 @@ export const CHU = {
     nen: ['ライトもダークも', 'スマホの設定に合わせて自動切替'],
     danhHieu: ['実績100種類以上', '金色のカードを全部集めよう'],
     coBan: ['4枚から88枚まで', '子どもは楽しく、大人は手ごたえ'],
+    timThe: ['カードさがし', '覚えて、すばやくタップ'],
+    triNho: ['毎日の成長をグラフで', 'ブロンズからダイヤを目指そう'],
   },
   ko: {
     choi: ['카드를 뒤집어 짝을 찾아요', '보고, 기억하고, 맞춰요'],
@@ -111,6 +125,8 @@ export const CHU = {
     nen: ['라이트도 다크도', '휴대폰 설정에 맞춰 자동 전환'],
     danhHieu: ['업적 100개 이상', '황금 카드를 모두 모아 보세요'],
     coBan: ['4장부터 88장까지', '아이는 쉽게, 어른은 도전적으로'],
+    timThe: ['카드 찾기', '기억하고 빠르게 탭!'],
+    triNho: ['매일 쑥쑥 성장', '브론즈부터 다이아까지 그래프로'],
   },
   zh: {
     choi: ['翻开卡牌，找出一对', '看清楚，记住，配成对'],
@@ -124,6 +140,8 @@ export const CHU = {
     nen: ['浅色深色随你选', '跟随手机设置自动切换'],
     danhHieu: ['100 多个成就', '集齐所有金色卡牌'],
     coBan: ['从 4 张到 88 张', '孩子玩得轻松，大人玩得过瘾'],
+    timThe: ['找卡片', '记住一圈卡牌，飞快点出'],
+    triNho: ['每天看见进步', '从青铜到钻石，图表一目了然'],
   },
   ru: {
     choi: ['Переворачивай и ищи пары', 'Смотри, запоминай, совмещай'],
@@ -137,6 +155,8 @@ export const CHU = {
     nen: ['Светлая или тёмная тема', 'Как в настройках телефона'],
     danhHieu: ['Более 100 достижений', 'Собери все золотые карты'],
     coBan: ['От 4 до 88 карт', 'Легко для детей, сложно для взрослых'],
+    timThe: ['Найди карту', 'Запомни круг и жми быстрее'],
+    triNho: ['Прогресс каждый день', 'От бронзы до алмаза'],
   },
   id: {
     choi: ['Balik kartu, cari pasangan', 'Lihat, ingat, cocokkan'],
@@ -150,6 +170,8 @@ export const CHU = {
     nen: ['Terang atau gelap, terserah', 'Ikut pengaturan ponselmu'],
     danhHieu: ['100+ pencapaian', 'Kumpulkan semua kartu emas'],
     coBan: ['Dari 4 sampai 88 kartu', 'Mudah untuk anak, menantang untuk dewasa'],
+    timThe: ['Cari Kartu', 'Ingat lingkarannya, ketuk cepat'],
+    triNho: ['Kemajuan harianmu', 'Dari perunggu sampai berlian'],
   },
   th: {
     choi: ['พลิกการ์ด หาคู่ให้เจอ', 'ดูให้ดี จำให้ได้ จับคู่ให้ถูก'],
@@ -163,6 +185,8 @@ export const CHU = {
     nen: ['โหมดสว่างหรือมืด เลือกได้', 'เปลี่ยนตามการตั้งค่าโทรศัพท์'],
     danhHieu: ['ความสำเร็จกว่า 100 รายการ', 'สะสมการ์ดทองให้ครบ'],
     coBan: ['ตั้งแต่ 4 ถึง 88 ใบ', 'เด็กเล่นง่าย ผู้ใหญ่ท้าทาย'],
+    timThe: ['หาการ์ด', 'จำให้ได้ แล้วแตะให้ไว'],
+    triNho: ['เห็นพัฒนาการทุกวัน', 'จากทองแดงสู่เพชร'],
   },
   it: {
     choi: ['Gira le carte, trova le coppie', 'Guarda, ricorda, abbina'],
@@ -176,6 +200,8 @@ export const CHU = {
     nen: ['Chiaro o scuro, scegli tu', 'Segue le impostazioni del telefono'],
     danhHieu: ['Oltre 100 obiettivi', 'Colleziona tutte le carte d’oro'],
     coBan: ['Da 4 a 88 carte', 'Facile per i bimbi, tosto per i grandi'],
+    timThe: ['Trova la carta', 'Ricorda il cerchio, tocca veloce'],
+    triNho: ['I progressi del giorno', 'Dal bronzo al diamante, giorno per giorno'],
   },
   tr: {
     choi: ['Kartları çevir, eşini bul', 'Bak, aklında tut, eşleştir'],
@@ -189,6 +215,8 @@ export const CHU = {
     nen: ['Açık ya da koyu, sen seç', 'Telefon ayarına göre değişir'],
     danhHieu: ['100’den fazla başarım', 'Tüm altın kartları topla'],
     coBan: ['4’ten 88 karta kadar', 'Çocuklara kolay, büyüklere zorlu'],
+    timThe: ['Kartı Bul', 'Çemberi ezberle, hızla dokun'],
+    triNho: ['Her gün ilerle', 'Bronzdan elmasa, gün gün'],
   },
   'zh-TW': {
     choi: ['翻開卡牌，找出一對', '看清楚，記住，配成對'],
@@ -202,5 +230,7 @@ export const CHU = {
     nen: ['淺色深色隨你選', '跟隨手機設定自動切換'],
     danhHieu: ['100 多個成就', '集齊所有金色卡牌'],
     coBan: ['從 4 張到 88 張', '小孩玩得輕鬆，大人玩得過癮'],
+    timThe: ['找卡片', '記住一圈卡牌，飛快點出'],
+    triNho: ['每天看見進步', '從青銅到鑽石，圖表一目了然'],
   },
 };

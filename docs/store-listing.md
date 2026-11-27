@@ -56,7 +56,7 @@ Find Pairs Online with Friends
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
 ```
-Flip cards, match pairs, train your memory. Play solo, take on a 5-level bot, pass the phone around, or open an online room and invite friends with a 6-digit code.
+Flip cards, match pairs, train your memory. New: Find the Card — remember a ring of cards, then tap the match fast. Play solo, vs a bot, or online with friends.
 ```
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
@@ -82,6 +82,17 @@ PLAY YOUR WAY
 • Online rooms — create a room, share the 6-digit code or link, up to 4 players
 • Teams and bots — pick the same team number to play together, or fill empty seats with bots
 • Campaign — a 60-level journey where every stage has its own twist
+
+NEW: FIND THE CARD
+• A ring of cards flips face-up for a few seconds — remember them before they turn over
+• The target card appears in the centre with a countdown ring: tap its match as fast as you can
+• 10 rounds, 3 to 7 cards, three difficulties — the faster you answer correctly, the more you score
+• Play solo, against the computer, or online with friends
+
+A DAILY BRAIN SCORE
+• Play a few small, medium and large boards each day to get your score for the day
+• Climb the tiers: Bronze, Silver, Gold, Platinum and Diamond
+• A chart tracks your score day by day, so you can watch your memory improve over weeks and months
 
 MAKE THE BOARD YOURS
 • 12 board sizes, from a 4-card warm-up to a brutal 88-card challenge
@@ -122,7 +133,7 @@ Ghép cặp với bạn bè, đấu máy
 
 **Promotional text** (170)
 ```
-Lật thẻ, ghép cặp, rèn trí nhớ. Chơi một mình, đấu máy 5 mức, chuyền máy cho cả nhóm, hoặc mở phòng online và mời bạn bè bằng mã 6 số.
+Lật thẻ, ghép cặp, rèn trí nhớ. Mới: Tìm Thẻ — nhớ vòng thẻ rồi chạm thật nhanh vào thẻ giống. Chơi một mình, đấu máy, chuyền máy hoặc online với bạn bè.
 ```
 
 **Keywords** (100)
@@ -148,6 +159,17 @@ CHƠI THEO CÁCH CỦA BẠN
 • Phòng online — tạo phòng, gửi mã 6 số hoặc link, tối đa 4 người
 • Đội và máy — chọn cùng số đội để chơi chung, hoặc thêm máy vào chỗ trống
 • Chiến dịch — hành trình 60 màn, màn nào cũng có luật riêng
+
+MỚI: TÌM THẺ
+• Các thẻ quanh vòng tròn lật ngửa vài giây — nhớ thật nhanh trước khi chúng úp lại
+• Thẻ cần tìm hiện giữa vòng, kèm vòng đếm ngược: chạm đúng thẻ giống nó càng nhanh càng tốt
+• 10 vòng, 3 tới 7 thẻ, ba độ khó — trả lời đúng càng nhanh càng nhiều điểm
+• Chơi một mình, đấu máy hoặc online với bạn bè
+
+THEO DÕI TRÍ NHỚ MỖI NGÀY
+• Chơi vài bàn nhỏ, vừa và lớn mỗi ngày để có chỉ số trí nhớ của hôm đó
+• Leo bậc: Đồng, Bạc, Vàng, Bạch kim, Kim cương
+• Biểu đồ theo ngày cho bạn thấy trí nhớ tiến bộ qua từng tuần, từng tháng
 
 BÀN CHƠI CỦA RIÊNG BẠN
 • 12 cỡ bàn, từ 4 thẻ khởi động tới 88 thẻ siêu khó
@@ -193,7 +215,7 @@ Flip Match: Memorama Parejas
 
 **Promotional text** (170)
 ```
-Voltea cartas, encuentra parejas y entrena tu memoria. Juega solo, reta a un bot de 5 niveles, pasa el móvil o crea una sala online e invita con un código de 6 dígitos.
+Voltea cartas, encuentra parejas y entrena tu memoria. Nuevo: Encuentra la carta, recuerda un círculo de cartas y toca la igual. Solo, contra un bot u online.
 ```
 
 **Keywords** (100)
@@ -219,6 +241,17 @@ JUEGA A TU MANERA
 • Salas online: crea una sala, comparte el código de 6 dígitos o el enlace, hasta 4 jugadores
 • Equipos y bots: elegid el mismo número de equipo para jugar juntos o llenad los huecos con bots
 • Campaña: un viaje de 60 niveles, cada uno con su propio giro
+
+NUEVO: ENCUENTRA LA CARTA
+• Las cartas de un círculo se muestran boca arriba unos segundos: memorízalas antes de que se volteen
+• La carta objetivo aparece en el centro con un anillo de cuenta atrás: toca la igual lo más rápido que puedas
+• 10 rondas, de 3 a 7 cartas y tres dificultades: cuanto antes aciertes, más puntos
+• Juega solo, contra la máquina u online con amigos
+
+TU PROGRESO DÍA A DÍA
+• Juega unos tableros pequeños, medianos y grandes cada día y obtén tu puntuación diaria
+• Sube de rango: Bronce, Plata, Oro, Platino y Diamante
+• Un gráfico día a día te muestra cómo mejora tu memoria semana tras semana y mes a mes
 
 UN TABLERO A TU MEDIDA
 • 12 tamaños de tablero, desde un calentamiento de 4 cartas hasta un desafío brutal de 88
@@ -259,7 +292,7 @@ Encontre os pares com amigos
 
 **Promotional text** (170)
 ```
-Vire cartas, ache os pares e treine a memória. Jogue sozinho, enfrente um bot de 5 níveis, passe o celular ou crie uma sala online com um código de 6 dígitos.
+Vire cartas, ache os pares e treine a memória. Novo: Ache a carta — lembre um círculo de cartas e toque na igual bem rápido. Sozinho, contra o bot ou online.
 ```
 
 **Keywords** (100)
@@ -285,6 +318,17 @@ JOGUE DO SEU JEITO
 • Salas online — crie uma sala, compartilhe o código de 6 dígitos ou o link, até 4 jogadores
 • Equipes e bots — escolham o mesmo número de equipe para jogar juntos ou completem as vagas com bots
 • Campanha — uma jornada de 60 fases, cada uma com uma regra diferente
+
+NOVO: ACHE A CARTA
+• As cartas em círculo ficam viradas para cima por alguns segundos — memorize antes que se escondam
+• A carta-alvo aparece no centro com um anel de contagem regressiva: toque na carta igual o mais rápido possível
+• 10 rodadas, de 3 a 7 cartas, três dificuldades — quanto mais rápido acertar, mais pontos
+• Jogue sozinho, contra o computador ou online com amigos
+
+SEU PROGRESSO DIA A DIA
+• Jogue alguns tabuleiros pequenos, médios e grandes por dia e ganhe sua pontuação diária
+• Suba de nível: Bronze, Prata, Ouro, Platina e Diamante
+• Um gráfico dia a dia mostra sua memória melhorando ao longo de semanas e meses
 
 UM TABULEIRO DO SEU JEITO
 • 12 tamanhos de tabuleiro, de um aquecimento com 4 cartas a um desafio brutal com 88
@@ -325,7 +369,7 @@ Trouvez les paires entre amis
 
 **Promotional text** (170)
 ```
-Retournez les cartes, trouvez les paires, musclez votre mémoire. En solo, contre un bot à 5 niveaux, en se passant le téléphone ou en ligne avec un code à 6 chiffres.
+Retournez les cartes, trouvez les paires, musclez votre mémoire. Nouveau : Trouve la carte, retenez un cercle de cartes et touchez la bonne. Solo, bot ou en ligne.
 ```
 
 **Keywords** (100)
@@ -351,6 +395,17 @@ JOUEZ COMME VOUS VOULEZ
 • Salons en ligne — créez un salon, partagez le code à 6 chiffres ou le lien, jusqu'à 4 joueurs
 • Équipes et bots — choisissez le même numéro d'équipe pour jouer ensemble, ou complétez avec des bots
 • Campagne — un parcours de 60 niveaux, chacune avec sa propre surprise
+
+NOUVEAU : TROUVE LA CARTE
+• Les cartes disposées en cercle se dévoilent quelques secondes — mémorisez-les avant qu'elles se retournent
+• La carte à trouver apparaît au centre avec un anneau de compte à rebours : touchez sa jumelle le plus vite possible
+• 10 manches, de 3 à 7 cartes, trois niveaux de difficulté — plus vous répondez vite et juste, plus vous marquez
+• En solo, contre l'ordinateur ou en ligne entre amis
+
+VOS PROGRÈS JOUR APRÈS JOUR
+• Jouez quelques plateaux petits, moyens et grands chaque jour pour obtenir votre score du jour
+• Grimpez les paliers : Bronze, Argent, Or, Platine et Diamant
+• Un graphique jour par jour vous montre votre mémoire progresser au fil des semaines et des mois
 
 UN PLATEAU À VOTRE IMAGE
 • 12 tailles de plateau, de l'échauffement à 4 cartes au défi redoutable de 88 cartes
@@ -396,7 +451,7 @@ Flip Match: Memo Paare finden
 
 **Promotional text** (170)
 ```
-Karten umdrehen, Paare finden, Gedächtnis trainieren. Allein, gegen einen Bot mit 5 Stufen, reihum am selben Handy oder online mit Freunden per 6-stelligem Code.
+Karten umdrehen, Paare finden, Gedächtnis trainieren. Neu: Karte finden – Kartenkreis merken, dann blitzschnell die gleiche antippen. Allein, gegen Bot oder online.
 ```
 
 **Keywords** (100)
@@ -422,6 +477,17 @@ SPIEL, WIE DU WILLST
 • Online-Räume – Raum erstellen, 6-stelligen Code oder Link teilen, bis zu 4 Spieler
 • Teams und Bots – gleiche Teamnummer wählen und zusammen spielen oder freie Plätze mit Bots füllen
 • Kampagne – eine Reise über 60 Level, jede mit eigenem Kniff
+
+NEU: KARTE FINDEN
+• Die Karten im Kreis liegen ein paar Sekunden offen – merk sie dir, bevor sie sich umdrehen
+• Die gesuchte Karte erscheint in der Mitte mit einem Countdown-Ring: Tippe so schnell wie möglich auf ihr Gegenstück
+• 10 Runden, 3 bis 7 Karten, drei Schwierigkeitsstufen – je schneller richtig, desto mehr Punkte
+• Allein, gegen den Computer oder online mit Freunden
+
+DEIN FORTSCHRITT TAG FÜR TAG
+• Spiel jeden Tag ein paar kleine, mittlere und große Spielfelder und erhalte deinen Tageswert
+• Steig auf: Bronze, Silber, Gold, Platin und Diamant
+• Ein Diagramm zeigt Tag für Tag, wie sich dein Gedächtnis über Wochen und Monate verbessert
 
 DEIN SPIELFELD, DEINE REGELN
 • 12 Spielfeldgrößen, vom Aufwärmen mit 4 Karten bis zur knallharten Herausforderung mit 88
@@ -467,7 +533,7 @@ Flip Match: 神経衰弱 脳トレ
 
 **Promotional text** (170)
 ```
-カードをめくって同じ絵をそろえよう。ひとりで記録に挑戦、5段階のCPUと対戦、1台をみんなで回して遊ぶ、6桁のコードで友達とオンライン対戦も。
+カードをめくって同じ絵をそろえよう。新モード「カードさがし」は、円に並んだカードを覚えて同じカードをすばやくタップ。ひとりでも、CPU対戦でも、友達とオンラインでも。
 ```
 
 **Keywords** (100)
@@ -493,6 +559,17 @@ Flip Match は、おなじみの神経衰弱をひとりでも友達とでもサ
 • オンラインルーム ― ルームを作って6桁のコードやリンクを送るだけ、最大4人
 • チームとボット ― 同じチーム番号を選べば一緒にプレイ、空いた席はボットで埋められます
 • キャンペーン ― ステージごとに違うルールが待つ全60ステージの冒険
+
+新モード「カードさがし」
+• 円に並んだカードが数秒だけ表に ― 裏返る前に覚えよう
+• 中央にお題のカードとカウントダウンのリングが登場。同じカードをすばやくタップ
+• 全10ラウンド、カード3〜7枚、難易度は3段階 ― 早く正解するほど高得点
+• ひとりで、CPU対戦で、友達とオンラインでも
+
+毎日の成長が見える
+• 毎日、小・中・大の盤面を何回か遊ぶと、その日のスコアが出ます
+• ブロンズ、シルバー、ゴールド、プラチナ、ダイヤとランクアップ
+• 日ごとのグラフで、記憶力が週・月単位で伸びていく様子をチェック
 
 自分好みの盤面に
 • 4枚のウォームアップから88枚の超難関まで、12種類の盤面サイズ
@@ -538,7 +615,7 @@ Flip Match: 같은그림찾기 짝맞추기
 
 **Promotional text** (170)
 ```
-카드를 뒤집어 같은 그림을 찾고 기억력을 키우세요. 혼자서, 5단계 봇과 대결, 폰 하나로 다 같이, 또는 6자리 코드로 친구를 초대해 온라인으로 즐겨요.
+카드를 뒤집어 같은 그림을 찾고 기억력을 키우세요. 새 모드 ‘카드 찾기’: 둥글게 놓인 카드를 외우고 같은 카드를 빠르게 탭! 혼자서, 봇과 대결, 친구와 온라인으로.
 ```
 
 **Keywords** (100)
@@ -564,6 +641,17 @@ Flip Match는 클래식 카드 짝맞추기 게임을 혼자서도, 친구와도
 • 온라인 방 — 방을 만들고 6자리 코드나 링크만 보내면 끝, 최대 4명
 • 팀과 봇 — 같은 팀 번호를 고르면 함께 플레이, 빈자리는 봇으로 채우기
 • 캠페인 — 스테이지마다 새로운 규칙이 기다리는 60스테이지 여정
+
+새 모드: 카드 찾기
+• 원 모양으로 놓인 카드가 몇 초 동안 앞면을 보여 줘요 — 뒤집히기 전에 기억하세요
+• 가운데에 찾을 카드와 카운트다운 링이 나타나면 같은 카드를 최대한 빨리 탭
+• 10라운드, 카드 3~7장, 난이도 3단계 — 빨리 맞힐수록 높은 점수
+• 혼자서, 컴퓨터와 대결, 친구와 온라인으로
+
+매일 성장하는 나
+• 매일 작은 판, 중간 판, 큰 판을 몇 번 플레이하면 오늘의 점수가 나와요
+• 브론즈, 실버, 골드, 플래티넘, 다이아로 등급 상승
+• 날짜별 그래프로 몇 주, 몇 달에 걸쳐 기억력이 좋아지는 걸 확인하세요
 
 나만의 게임판
 • 4장짜리 워밍업부터 88장짜리 극악 난이도까지 12가지 판 크기
@@ -609,7 +697,7 @@ Flip Match: 记忆翻牌配对
 
 **Promotional text** (170)
 ```
-翻开卡牌，找出相同的一对，锻炼记忆力。单人挑战、对战5个难度的电脑、一台手机轮流玩，或开个在线房间，用6位房间号邀请好友。
+翻开卡牌，找出相同的一对，锻炼记忆力。新模式“找卡片”：记住一圈卡牌，再飞快点出相同的那张。单人、对战电脑，或和好友在线玩。
 ```
 
 **Keywords** (100)
@@ -635,6 +723,17 @@ Flip Match 是经典的翻牌记忆游戏，全新打造，一个人玩或和朋
 • 在线房间 — 创建房间，分享 6 位房间号或链接，最多 4 人
 • 组队与机器人 — 选同一队号即可同队，空位可加机器人
 • 战役 — 60 关的冒险旅程，每一关都有独特玩法
+
+新模式：找卡片
+• 围成一圈的卡牌翻开几秒钟 — 在它们盖上之前记住
+• 中央出现目标卡牌和倒计时圆环，尽快点出和它相同的那张
+• 共 10 轮，3 到 7 张牌，三种难度 — 答对越快，得分越高
+• 可单人、对战电脑，或和好友在线玩
+
+每天看见进步
+• 每天玩几局小、中、大牌桌，即可得出当天的得分
+• 从青铜、白银、黄金、铂金一路升到钻石
+• 按天显示的图表，让你看到记忆力在几周、几个月里不断提升
 
 打造你的专属牌桌
 • 12 种牌桌尺寸，从 4 张热身到 88 张极限挑战
@@ -680,7 +779,7 @@ Flip Match: Найди пару
 
 **Promotional text** (170)
 ```
-Переворачивай карточки, находи пары, тренируй память. Играй один, против бота с 5 уровнями, по очереди на одном телефоне или онлайн с друзьями по 6-значному коду.
+Переворачивай карточки, находи пары, тренируй память. Новинка: «Найди карту» — запомни круг карточек и быстро найди нужную. Один, против бота или онлайн.
 ```
 
 **Keywords** (100)
@@ -706,6 +805,17 @@ Flip Match — классическая игра на память с карто
 • Онлайн-комнаты — создай комнату, поделись 6-значным кодом или ссылкой, до 4 игроков
 • Команды и боты — выберите одинаковый номер команды, чтобы играть вместе, или добавьте ботов на свободные места
 • Кампания — путешествие из 60 уровней, и в каждом своя особенность
+
+НОВОЕ: НАЙДИ КАРТУ
+• Карточки по кругу открываются на несколько секунд — запомни их, пока они не перевернулись
+• В центре появляется нужная карточка с кольцом обратного отсчёта: нажми на такую же как можно быстрее
+• 10 раундов, от 3 до 7 карточек, три уровня сложности — чем быстрее верный ответ, тем больше очков
+• Один, против компьютера или онлайн с друзьями
+
+ПРОГРЕСС ДЕНЬ ЗА ДНЁМ
+• Сыграй за день несколько маленьких, средних и больших полей — и получи оценку дня
+• Поднимайся по ступеням: Бронза, Серебро, Золото, Платина, Алмаз
+• График по дням показывает, как твоя память становится лучше неделя за неделей, месяц за месяцем
 
 ПОЛЕ ПОД ТЕБЯ
 • 12 размеров поля: от разминки на 4 карточки до суровых 88
@@ -746,7 +856,7 @@ Cocokkan gambar & asah otak
 
 **Promotional text** (170)
 ```
-Balik kartu, cari pasangannya, latih ingatanmu. Main sendiri, lawan bot 5 level, gantian di satu HP, atau buka room online dan ajak teman pakai kode 6 digit.
+Balik kartu, cari pasangannya, latih ingatanmu. Baru: Cari Kartu — hafalkan lingkaran kartu lalu ketuk yang sama secepatnya. Main sendiri, lawan bot, atau online.
 ```
 
 **Keywords** (100)
@@ -772,6 +882,17 @@ MAIN SESUKAMU
 • Room online — buat room, bagikan kode 6 digit atau link, sampai 4 pemain
 • Tim dan bot — pilih nomor tim yang sama untuk main bersama, atau isi kursi kosong dengan bot
 • Kampanye — petualangan 60 level, tiap tahap punya aturan unik
+
+BARU: CARI KARTU
+• Kartu yang tersusun melingkar terbuka beberapa detik — hafalkan sebelum tertutup lagi
+• Kartu target muncul di tengah dengan cincin hitung mundur: ketuk kartu yang sama secepat mungkin
+• 10 ronde, 3 sampai 7 kartu, tiga tingkat kesulitan — makin cepat benar, makin besar skornya
+• Main sendiri, lawan komputer, atau online bareng teman
+
+PANTAU KEMAJUANMU TIAP HARI
+• Main beberapa papan kecil, sedang, dan besar tiap hari untuk dapat skor harianmu
+• Naik tingkat: Perunggu, Perak, Emas, Platinum, Berlian
+• Grafik harian menunjukkan daya ingatmu makin tajam dari minggu ke minggu, bulan ke bulan
 
 PAPAN SESUAI SELERAMU
 • 12 ukuran papan, dari pemanasan 4 kartu sampai tantangan berat 88 kartu
@@ -817,7 +938,7 @@ Flip Match เกมจับคู่ภาพความจำ
 
 **Promotional text** (170)
 ```
-เปิดไพ่ จับคู่ภาพเหมือน ฝึกความจำ เล่นคนเดียว ท้าบอท 5 ระดับ ผลัดกันเล่นในเครื่องเดียว หรือเปิดห้องออนไลน์ชวนเพื่อนด้วยรหัส 6 หลัก
+เปิดไพ่ จับคู่ภาพเหมือน ฝึกความจำ ใหม่! โหมดหาการ์ด จำการ์ดรอบวงแล้วแตะใบที่เหมือนให้เร็วที่สุด เล่นคนเดียว ท้าบอท หรือออนไลน์กับเพื่อน
 ```
 
 **Keywords** (100)
@@ -843,6 +964,17 @@ Flip Match คือเกมเปิดไพ่จับคู่ฝึกค
 • ห้องออนไลน์ — สร้างห้อง แชร์รหัส 6 หลักหรือลิงก์ สูงสุด 4 คน
 • ทีมและบอท — เลือกเลขทีมเดียวกันเพื่อเล่นด้วยกัน หรือเติมที่ว่างด้วยบอท
 • แคมเปญ — การผจญภัย 60 ด่าน แต่ละด่านมีกติกาเฉพาะ
+
+ใหม่! โหมดหาการ์ด
+• การ์ดที่วางเป็นวงกลมจะเปิดหน้าให้ดูไม่กี่วินาที — จำให้ได้ก่อนจะคว่ำลง
+• การ์ดเป้าหมายโผล่ตรงกลางพร้อมวงนับถอยหลัง แตะใบที่เหมือนกันให้เร็วที่สุด
+• 10 รอบ การ์ด 3–7 ใบ สามระดับความยาก — ตอบถูกเร็วเท่าไร ยิ่งได้คะแนนมาก
+• เล่นคนเดียว ท้าคอม หรือออนไลน์กับเพื่อน
+
+เห็นพัฒนาการทุกวัน
+• เล่นกระดานเล็ก กลาง และใหญ่วันละไม่กี่ตา ก็ได้คะแนนประจำวัน
+• ไต่ระดับ: ทองแดง เงิน ทอง แพลทินัม เพชร
+• กราฟรายวันให้คุณเห็นความจำที่ดีขึ้นทุกสัปดาห์ ทุกเดือน
 
 กระดานในแบบของคุณ
 • กระดาน 12 ขนาด ตั้งแต่วอร์มอัป 4 ใบไปจนถึงสุดโหด 88 ใบ
@@ -888,7 +1020,7 @@ Flip Match: Memoria e Coppie
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
 ```
-Gira le carte, trova le coppie, allena la memoria. Gioca da solo, sfida un bot a 5 livelli, passa il telefono o apri una stanza online e invita con un codice di 6 cifre.
+Gira le carte, trova le coppie, allena la memoria. Novità: Trova la carta, ricorda un cerchio di carte e tocca quella uguale. Da solo, contro il bot o online.
 ```
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
@@ -914,6 +1046,17 @@ GIOCA COME VUOI
 • Stanze online: crea una stanza, condividi il codice di 6 cifre o il link, fino a 4 giocatori
 • Squadre e bot: scegliete lo stesso numero di squadra per giocare insieme o riempite i posti con i bot
 • Campagna: un viaggio di 60 livelli, ognuna con la sua sorpresa
+
+NOVITÀ: TROVA LA CARTA
+• Le carte disposte in cerchio restano scoperte per qualche secondo: memorizzale prima che si girino
+• Al centro appare la carta da trovare con un anello di conto alla rovescia: tocca quella uguale il più in fretta possibile
+• 10 round, da 3 a 7 carte, tre difficoltà: più rispondi veloce e giusto, più punti fai
+• Da solo, contro il computer o online con gli amici
+
+I TUOI PROGRESSI GIORNO DOPO GIORNO
+• Gioca qualche tabellone piccolo, medio e grande ogni giorno per ottenere il punteggio del giorno
+• Sali di livello: Bronzo, Argento, Oro, Platino e Diamante
+• Un grafico giorno per giorno ti mostra come migliora la tua memoria nel corso di settimane e mesi
 
 UN TABELLONE TUTTO TUO
 • 12 dimensioni del tabellone, da un riscaldamento con 4 carte a una sfida tremenda con 88
@@ -954,7 +1097,7 @@ Kartları eşleştir, eşini bul
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
 ```
-Kartları çevir, çiftleri bul, hafızanı çalıştır. Tek başına oyna, 5 seviyeli bota meydan oku, telefonu elden ele dolaştır ya da 6 haneli kodla arkadaşlarını davet et.
+Kartları çevir, çiftleri bul, hafızanı çalıştır. Yeni: Kartı Bul — çemberdeki kartları aklında tut, aynısına hızla dokun. Tek başına, bota karşı ya da çevrim içi oyna.
 ```
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
@@ -980,6 +1123,17 @@ Flip Match, klasik hafıza kartı oyununun tek başına ya da arkadaşlarla hız
 • Çevrim içi odalar — oda kur, 6 haneli kodu ya da bağlantıyı paylaş, en fazla 4 oyuncu
 • Takımlar ve botlar — birlikte oynamak için aynı takım numarasını seçin ya da boş yerleri botlarla doldurun
 • Kampanya — her aşamanın kendine özgü bir sürprizi olduğu 60 seviyelik bir yolculuk
+
+YENİ: KARTI BUL
+• Çember şeklinde dizilen kartlar birkaç saniye açık kalır — kapanmadan önce aklında tut
+• Ortada geri sayım halkasıyla hedef kart belirir: aynısına olabildiğince hızlı dokun
+• 10 tur, 3 ila 7 kart, üç zorluk seviyesi — ne kadar hızlı doğru cevap, o kadar çok puan
+• Tek başına, bilgisayara karşı ya da arkadaşlarınla çevrim içi
+
+HER GÜN İLERLEMENİ GÖR
+• Her gün birkaç küçük, orta ve büyük tahta oyna, günün puanını al
+• Seviye atla: Bronz, Gümüş, Altın, Platin, Elmas
+• Günlük grafik, hafızanın haftalar ve aylar içinde nasıl geliştiğini gösterir
 
 TAHTAN, KURALLARIN
 • 4 kartlık ısınmadan 88 kartlık zorlu bir meydan okumaya kadar 12 tahta boyutu
@@ -1025,7 +1179,7 @@ Flip Match：記憶翻牌配對
 
 **Promotional text** (170) — App Store, sửa được bất cứ lúc nào không cần duyệt
 ```
-翻開卡牌、找出相同的一對，訓練記憶力！可以單人挑戰、對戰 5 種難度的電腦、一支手機輪流玩，或開個線上房間，用 6 位數房號邀請好友。
+翻開卡牌、找出相同的一對，訓練記憶力！新模式「找卡片」：記住一圈卡牌，再飛快點出相同的那張。單人、對戰電腦，或和好友線上玩。
 ```
 
 **Keywords** (100) — App Store, phẩy không cách, KHÔNG lặp từ đã có trong Name
@@ -1051,6 +1205,17 @@ Flip Match 是經典的記憶翻牌遊戲，全新打造，一個人玩或和朋
 • 線上房間 — 建立房間，分享 6 位數房號或連結，最多 4 人
 • 組隊與機器人 — 選同一隊號即可同隊，空位可加機器人
 • 闖關模式 — 60 關的冒險旅程，每一關都有獨特玩法
+
+新模式：找卡片
+• 圍成一圈的卡牌翻開幾秒鐘 — 在蓋上之前記住它們
+• 中央出現目標卡牌和倒數圓環，盡快點出和它相同的那張
+• 共 10 回合，3 到 7 張牌，三種難度 — 答對越快，得分越高
+• 可以單人、對戰電腦，或和好友線上玩
+
+每天看見進步
+• 每天玩幾局小、中、大牌桌，就能得出當天的分數
+• 從青銅、白銀、黃金、白金一路升到鑽石
+• 按日顯示的圖表，讓你看到記憶力在幾週、幾個月裡持續進步
 
 打造專屬牌桌
 • 12 種牌桌大小，從 4 張暖身到 88 張極限挑戰

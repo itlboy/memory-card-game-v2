@@ -78,6 +78,12 @@ await goi('Emulation.setDeviceMetricsOverride', { width: MAY.W, height: MAY.H, d
 /** Đổi sang cỡ KHUNG ẢNH RA trước khi ghép (kịch bản v2 gọi) — iPhone: trùng cỡ màn app, không đổi gì. */
 const doiKhung = () => goi('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: S, mobile: true });
 await goi('Emulation.setTouchEmulationEnabled', { enabled: true });
+/* VÙNG AN TOÀN như iPhone 15 Pro Max (28.11.2026): đảo động + thanh trạng thái 59pt trên, vạch vuốt 34pt dưới. Máy thật chừa
+   chỗ này qua `env(safe-area-inset-*)` ở #app (global.css); Chrome headless trả 0 nên ép thẳng — kịch bản v2 vẽ thanh trạng
+   thái + đảo động + vạch vuốt vào đúng chỗ trống đó lúc ghép. iPad không có tai thỏ: bỏ qua. */
+await goi('Page.enable');   // addScriptToEvaluateOnNewDocument chỉ chạy khi miền Page đã bật
+// Chỉ bộ iPHONE: Android không có đảo động / vạch vuốt kiểu iOS (Play không ưa ảnh lộ giao diện nền tảng khác), iPad không tai thỏ
+if (!process.env.KHUNG) await goi('Page.addScriptToEvaluateOnNewDocument', { source: `document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = '#app{padding-top:59px!important;padding-bottom:34px!important}'; document.head.appendChild(s); });` });
 // NEN=toi: máy để giao diện TỐI — game mặc định "Tự động" theo máy nên ra Kẹo tối (ảnh trang công khai, 18.10.2026)
 if (process.env.NEN === 'toi') await goi('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'dark' }] });
 // Khung Android: giả UA Android như máy thật. Mặt bài nay là Noto 3D trên MỌI máy
