@@ -67,9 +67,25 @@ function bamChoi(): void {
 const tenBac = (b: number): string => td(`tn.bac.${b}`);
 const SO_BAC = 5;
 /** Đoạn của bậc `b` trên thanh 5 bậc tô bao nhiêu %: bậc đã qua = đầy, bậc đang ở = tới chỗ mình đứng, bậc chưa tới = trống. */
-const doDay = (b: number): number => {
+/*
+ * ĐIỂM HIỆN = điểm chính thức, hoặc ĐIỂM TẠM khi chưa đủ ba nhóm bàn (27.11.2026, chủ dự án: "số 328 hiển thị mờ nhạt quá, cứ để
+ * thêm cả thanh vàng bạc đồng như bình thường"; "số liệu yếu nên nói cụ thể hơn") — huy chương, ruy-băng, thang bậc như thường;
+ * dòng chữ nói rõ "Điểm tạm — thiếu bàn lớn".
+ */
+const hien = computed(() => {
   const k = ky.value;
-  return k.bac === null || b > k.bac ? 0 : b < k.bac ? 100 : Math.round(k.tienBac * 100);
+  return k.diem !== null
+    ? { diem: k.diem, bac: k.bac, tienBac: k.tienBac, tam: false }
+    : { diem: k.diemTho, bac: k.bacTho, tienBac: k.tienBacTho, tam: k.diemTho !== null };
+});
+/** "bàn nhỏ, bàn lớn" — các nhóm bàn còn thiếu, nối theo ngôn ngữ. */
+const thieuChu = computed(() => {
+  const ds = NHOM_BAN.filter((_, i) => !ky.value.duNhom[i]).map((n) => td(`tn.ban.${n.loai}`));
+  try { return new Intl.ListFormat(bcp(), { type: 'conjunction' }).format(ds); } catch { return ds.join(', '); }
+});
+const doDay = (b: number): number => {
+  const h = hien.value;
+  return h.bac === null || b > h.bac ? 0 : b < h.bac ? 100 : Math.round(h.tienBac * 100);
 };
 
 const cot = ngay.map((k) => {
@@ -168,40 +184,31 @@ const coNhan = (k: string, i: number): boolean =>
       </header>
       <Teleport to="body"><LuuChiaSe v-if="moChiaSe" :ve="veAnh" :chu="chuChiaSe" :url="`${LINK_TAI}?utm_source=chia_se&utm_medium=tri_nho`" @close="moChiaSe = false" /></Teleport>
 
-      <!-- (1) TÔI Ở ĐÂU: điểm trong huy chương màu bậc -->
-      <section v-if="ky.diem !== null" class="giua co-dinh">
+      <!-- (1) TÔI Ở ĐÂU: điểm trong huy chương màu bậc (điểm chính thức hoặc điểm tạm — cùng một bố cục, không nhảy chiều cao) -->
+      <section class="giua co-dinh">
         <!-- HUY CHƯƠNG NỔI BẬT (27.11.2026, mockup duyệt https://claude.ai/artifact/48nT343yMfAkhQhJ5uYySc): to, quầng sáng màu bậc,
              hai đuôi ruy-băng, dải tên bậc, vệt sáng lướt qua -->
-        <div class="huy-khung" :class="`b${ky.bac}`">
+        <div v-if="hien.diem !== null" class="huy-khung" :class="`b${hien.bac}`">
           <span class="duoi t" aria-hidden="true" /><span class="duoi p" aria-hidden="true" />
-          <span class="huy" :class="`b${ky.bac}`" role="img" :aria-label="`${num(ky.diem)} · ${tenBac(ky.bac!)}`"><b :class="{ dai: ky.diem >= 1000 }">{{ ky.diem }}</b></span>
-          <span class="dai-bac">{{ tenBac(ky.bac!) }}</span>
+          <span class="huy" :class="`b${hien.bac}`" role="img" :aria-label="`${num(hien.diem)} · ${tenBac(hien.bac!)}`"><b :class="{ dai: hien.diem >= 1000 }">{{ hien.diem }}</b></span>
+          <span class="dai-bac">{{ tenBac(hien.bac!) }}</span>
         </div>
-        <!-- CHỈ GHI NGÀY (27.11.2026, chủ dự án: "chỉ cần ghi 25 tháng 11 thôi… thông tin đơn giản nhất") -->
-        <p class="huy-chu"><b>{{ ngayChu }}</b></p>
-        <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF; chủ dự án: "chưa
-             biểu thị được các bậc… thanh ngang hiển thị mình đang ở đâu"): mỗi bậc một đoạn mang màu của nó, đoạn đã qua
-             tô đầy, đoạn đang ở tô tới chỗ mình đứng + vạch đánh dấu; tên 5 bậc ngay dưới, bậc của mình in đậm — thay
-             dòng chữ to "Bậc Vàng" và thanh ngắn tới bậc kế. -->
-        <div class="thang" role="img" :aria-label="t('tn.bacTen', { ten: tenBac(ky.bac!) })">
+        <div v-else class="huy-khung yeu"><span class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span></div>
+        <!-- Ngày + (điểm tạm) nhóm bàn còn thiếu -->
+        <p class="huy-chu"><b>{{ ngayChu }}</b><template v-if="hien.tam"> · <span class="tam">{{ t('tn.tam', { ds: thieuChu }) }}</span></template></p>
+        <!-- THANH 5 BẬC (25.11.2026, mockup kiểu 1 duyệt https://claude.ai/artifact/SkY2LJDiSgiKde8yQLfbRF) -->
+        <!-- Chưa có điểm: thang vẫn chiếm chỗ (ẩn) để hàng nhóm bàn nằm đúng vị trí như các ngày khác -->
+        <div class="thang" :style="hien.diem === null ? { visibility: 'hidden' } : undefined" :role="hien.diem !== null ? 'img' : undefined"
+          :aria-hidden="hien.diem === null || undefined" :aria-label="hien.diem !== null ? t('tn.bacTen', { ten: tenBac(hien.bac!) }) : undefined">
           <div class="doan">
             <i v-for="b in SO_BAC" :key="b" :class="`b${b - 1}`">
               <u :style="{ width: `${doDay(b - 1)}%` }" />
-              <s v-if="b - 1 === ky.bac" :style="{ left: `${doDay(b - 1)}%` }" />
+              <s v-if="b - 1 === hien.bac" :style="{ left: `${doDay(b - 1)}%` }" />
             </i>
           </div>
-          <div class="ten5" aria-hidden="true"><span v-for="b in SO_BAC" :key="b" :class="{ day: b - 1 === ky.bac }">{{ tenBac(b - 1) }}</span></div>
+          <div class="ten5" aria-hidden="true"><span v-for="b in SO_BAC" :key="b" :class="{ day: b - 1 === hien.bac }">{{ tenBac(b - 1) }}</span></div>
         </div>
-      </section>
-      <!-- CHƯA ĐỦ VÁN (27.11.2026, chủ dự án: "ngày đã chơi mà chưa đủ thì hiện cột mờ, điểm số cũng mờ, nói là số liệu yếu"; "một
-           ván bàn nhỏ, một bàn vừa, một bàn lớn là đủ"; "đủ thông tin mà không tốn diện tích"): huy chương MỜ mang điểm thô, một dòng
-           chữ, một hàng 3 viên nhóm bàn — hôm nay bấm viên là chơi ngay bàn đó, ngày cũ chỉ xem. -->
-      <section v-else class="giua co-dinh">
-        <div class="huy-khung yeu">
-          <span v-if="ky.diemTho !== null" class="huy" role="img" :aria-label="`${num(ky.diemTho)} · ${t('tn.yeu')}`"><b :class="{ dai: ky.diemTho >= 1000 }">{{ ky.diemTho }}</b></span>
-          <span v-else class="huy khoa" aria-hidden="true"><ChartColumn :size="30" :stroke-width="2.6" /></span>
-        </div>
-        <p class="huy-chu"><b>{{ ngayChu }}</b><template v-if="ky.diemTho !== null"> · {{ t('tn.yeu') }}</template></p>
+        <!-- 3 NHÓM BÀN BẮT BUỘC — luôn hiện (đủ thì cả ba tick xanh) -->
         <ul class="nhom3">
           <li v-for="d in canVan" :key="d.loai" :class="{ du: d.du }" :aria-label="`${d.nhan} ${d.tam}${d.du ? ' ✓' : ''}`">
             <span class="o" aria-hidden="true"><Check v-if="d.du" :size="10" :stroke-width="4.5" /></span>{{ d.nhan }} <small>{{ d.tam }}</small>
@@ -407,7 +414,8 @@ const coNhan = (k: string, i: number): boolean =>
 /* CÙNG CHIỀU CAO giữa ngày đủ / ngày yếu / ngày trống (chủ dự án 27.11.2026: "chiều cao bị thay đổi khi chọn giữa ngày không có
    số liệu và ngày đủ số liệu"): khung huy chương luôn 128px (huy chương nằm cùng chỗ), khối `.giua` giữ chiều cao của ngày đủ. */
 .huy-khung.yeu { height: 128px; }
-.giua.co-dinh { min-height: 192px; justify-content: flex-start; }
+.huy-chu .tam { color: #e0a21a; font-weight: 800; }
+.giua.co-dinh { min-height: 228px; justify-content: flex-start; }
 .huy-khung.yeu::before, .huy-khung.yeu .huy::after { display: none; }
 .huy-khung.yeu .huy:not(.khoa) { --h1: var(--o); --h2: var(--o); --h3: var(--ray); color: var(--fg); opacity: .55; border-style: dashed; box-shadow: none; }
 .huy-khung.yeu .huy b { text-shadow: none; }

@@ -57,8 +57,11 @@ export interface ChiSo {
   tam: number;
   /** Nhóm bàn (nhỏ · vừa · lớn, theo `NHOM_BAN`) đã có ván — tính cả ván bàn to dư bù nhóm nhỏ hơn. */
   duNhom: boolean[];
-  /** Điểm theo công thức KHÔNG xét ván bắt buộc (`null` = chưa có cơ hội nhớ nào) — cột/điểm MỜ "số liệu yếu". */
+  /** Điểm theo công thức KHÔNG xét ván bắt buộc (`null` = chưa có cơ hội nhớ nào) — "điểm tạm" khi chưa đủ ván. */
   diemTho: number | null;
+  /** Bậc + tiến độ trong bậc của `diemTho` — huy chương / thang 5 bậc vẫn hiện như thường khi đang là điểm tạm. */
+  bacTho: number | null;
+  tienBacTho: number;
 }
 
 /** Gộp nhiều ngày thành chỉ số của một kỳ. Số liệu cũ không có phần ăn may thì ước lượng (`mayUocLuong`). */
@@ -89,13 +92,17 @@ export function chiSo(cacNgay: readonly (NgayTriNho | undefined)[]): ChiSo {
   const diemTho = coHoi > 0 ? k.diem : null;
   const diem = coHoi >= MOC_CO_DIEM && duNhom.every(Boolean) ? k.diem : null;
   const bac = diem === null ? null : bacTriNho(diem);
+  const bacTho = diemTho === null ? null : bacTriNho(diemTho);
+  const keTho = bacTho === null ? undefined : MOC_BAC_TRI_NHO[bacTho + 1];
+  const nayTho = bacTho === null ? 0 : MOC_BAC_TRI_NHO[bacTho]!;
+  const tienBacTho = diemTho === null ? 0 : keTho === undefined ? 1 : (diemTho - nayTho) / (keTho - nayTho);
   const mocKe = bac === null ? undefined : MOC_BAC_TRI_NHO[bac + 1];
   const mocNay = bac === null ? 0 : MOC_BAC_TRI_NHO[bac]!;
   return {
     diem, chang: k.chang, bac,
     conToiBac: diem === null || mocKe === undefined ? null : mocKe - diem,
     tienBac: diem === null ? 0 : mocKe === undefined ? 1 : (diem - mocNay) / (mocKe - mocNay),
-    van, coHoi, tam, duNhom, diemTho
+    van, coHoi, tam, duNhom, diemTho, bacTho, tienBacTho
   };
 }
 
