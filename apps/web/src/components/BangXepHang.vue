@@ -107,9 +107,11 @@ const NGAY = 86_400_000;
 const congNgay = (d: string, n: number): string => new Date(Date.parse(`${d}T00:00:00Z`) + n * NGAY).toISOString().slice(0, 10);
 /** Sang tuần trước (-1) / sau (+1). Về đúng tuần hiện tại thì xin "tuần này" (undefined) để được lưu làm bảng lần trước. */
 function doiTuan(buoc: -1 | 1): void {
-  const tw = bang.value?.tuan;
-  if (!tw) return;
-  const moi = congNgay(tw.batDau, 7 * buoc);
+  // Nút KHÔNG khoá lúc đang tải (27.11.2026, chủ dự án: "hiện luôn đi, dữ liệu có rồi") — bấm liên tiếp thì tính từ tuần
+  // vừa chọn (tuanXem), không từ bảng đang hiện (có thể còn là tuần cũ chưa tải xong); kết quả cũ về muộn bị `luot` bỏ.
+  const goc = tuanXem.value ?? bang.value?.tuan?.batDau;
+  if (!goc) return;
+  const moi = congNgay(goc, 7 * buoc);
   tuanXem.value = buoc === 1 && Date.parse(`${moi}T00:00:00Z`) + 7 * NGAY > Date.now() ? undefined : moi;
   void tai();
 }
@@ -288,10 +290,10 @@ async function luuTen(): Promise<void> {
       </div>
       <!-- Luôn giữ chỗ khi ở tab Tuần (chưa có dữ liệu thì ghi "Tuần này") — hàng hiện muộn là nội dung giật xuống -->
       <div v-if="loai === 'tuan'" class="tuan">
-        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanTruoc')" :disabled="!tuan?.coTruoc || dangTai" @click="doiTuan(-1)">‹</button>
+        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanTruoc')" :disabled="!tuan?.coTruoc" @click="doiTuan(-1)">‹</button>
         <!-- MỘT DÒNG (20.11.2026, chủ dự án: "viết cùng 1 dòng cho đỡ tốn diện tích"): "Tuần này · còn 2 ngày" -->
         <div class="giua"><b>{{ tenTuan || t('bxh.tuanNay') }}</b><small v-if="phuTuan" :class="{ dem: !tuan || tuan.nay }"> · {{ phuTuan }}</small></div>
-        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanSau')" :disabled="!tuan || tuan.nay || dangTai" @click="doiTuan(1)">›</button>
+        <button class="thach th-nho" type="button" :aria-label="t('bxh.tuanSau')" :disabled="!tuan || (tuan.nay && !tuanXem)" @click="doiTuan(1)">›</button>
       </div>
 
       <!-- BỤC TOP 3 GỌN, ĐỨNG YÊN (20.11.2026 tối, mockup duyệt https://claude.ai/artifact/4GKeTS7QbeoLB2XV3phdne — bỏ vương miện,
