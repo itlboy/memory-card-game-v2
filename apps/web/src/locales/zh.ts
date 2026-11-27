@@ -1167,8 +1167,6 @@ const zh: TuDien = {
   'tn.mot14': "14 天",
   'tn.diemHomNay': "今日分数",
   'tn.diemNgay': "{ngay} 的分数",
-  'tn.dangXem': "{ngay} 的分数",
-  'tn.veHomNay': "回到今天",
   'tn.tabNam': "全年",
   'tn.thang': "{n} 月",
 };

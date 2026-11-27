@@ -1187,8 +1187,6 @@ const ru: TuDien = {
   'tn.mot14': "14 дней",
   'tn.diemHomNay': "Результат сегодня",
   'tn.diemNgay': "Результат на {ngay}",
-  'tn.dangXem': "День {ngay}",
-  'tn.veHomNay': "К сегодняшнему дню",
   'tn.tabNam': "Год",
   'tn.thang': "Месяц {n}",
 };

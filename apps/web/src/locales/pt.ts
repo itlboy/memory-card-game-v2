@@ -1169,8 +1169,6 @@ const pt: TuDien = {
   'tn.mot14': "14 dias",
   'tn.diemHomNay': "Pontuação de hoje",
   'tn.diemNgay': "Pontuação de {ngay}",
-  'tn.dangXem': "Dia {ngay}",
-  'tn.veHomNay': "Voltar para hoje",
   'tn.tabNam': "Ano",
   'tn.thang': "Mês {n}",
 };

@@ -1171,8 +1171,6 @@ const it: TuDien = {
   'tn.mot14': "14 giorni",
   'tn.diemHomNay': "Punteggio di oggi",
   'tn.diemNgay': "Punteggio del {ngay}",
-  'tn.dangXem': "Giorno {ngay}",
-  'tn.veHomNay': "Torna a oggi",
   'tn.tabNam': "Anno",
   'tn.thang': "Mese {n}",
 };

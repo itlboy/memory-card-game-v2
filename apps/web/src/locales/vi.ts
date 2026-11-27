@@ -1181,8 +1181,6 @@ const vi = {
   'tn.mot14': "14 ngày",
   'tn.diemHomNay': "Điểm hôm nay",
   'tn.diemNgay': "Điểm ngày {ngay}",
-  'tn.dangXem': "Đang xem ngày {ngay}",
-  'tn.veHomNay': "Về hôm nay",
   'tn.tabNam': "Cả năm",
   'tn.thang': "Tháng {n}",
 };

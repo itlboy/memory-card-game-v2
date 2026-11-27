@@ -1173,8 +1173,6 @@ const fr: TuDien = {
   'tn.mot14': "14 jours",
   'tn.diemHomNay': "Score du jour",
   'tn.diemNgay': "Score du {ngay}",
-  'tn.dangXem': "Jour du {ngay}",
-  'tn.veHomNay': "Revenir à aujourd'hui",
   'tn.tabNam': "Année",
   'tn.thang': "Mois {n}",
 };

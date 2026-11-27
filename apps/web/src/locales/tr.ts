@@ -1170,8 +1170,6 @@ const tr: TuDien = {
   'tn.mot14': "14 gün",
   'tn.diemHomNay': "Bugünkü puan",
   'tn.diemNgay': "{ngay} puanı",
-  'tn.dangXem': "{ngay} günü",
-  'tn.veHomNay': "Bugüne dön",
   'tn.tabNam': "Yıl",
   'tn.thang': "{n}. ay",
 };

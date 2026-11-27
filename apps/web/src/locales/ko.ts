@@ -1167,8 +1167,6 @@ const ko: TuDien = {
   'tn.mot14': "14일",
   'tn.diemHomNay': "오늘 점수",
   'tn.diemNgay': "{ngay} 점수",
-  'tn.dangXem': "{ngay} 점수",
-  'tn.veHomNay': "오늘로",
   'tn.tabNam': "1년",
   'tn.thang': "{n}월",
 };

@@ -1167,8 +1167,6 @@ const ja: TuDien = {
   'tn.mot14': "14日間",
   'tn.diemHomNay': "今日のスコア",
   'tn.diemNgay': "{ngay}のスコア",
-  'tn.dangXem': "{ngay}の点数",
-  'tn.veHomNay': "今日に戻る",
   'tn.tabNam': "1年",
   'tn.thang': "{n}月",
 };

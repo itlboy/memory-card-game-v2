@@ -1168,8 +1168,6 @@ const th: TuDien = {
   'tn.mot14': "14 วัน",
   'tn.diemHomNay': "คะแนนวันนี้",
   'tn.diemNgay': "คะแนนวันที่ {ngay}",
-  'tn.dangXem': "วันที่ {ngay}",
-  'tn.veHomNay': "กลับไปวันนี้",
   'tn.tabNam': "ทั้งปี",
   'tn.thang': "เดือน {n}",
 };

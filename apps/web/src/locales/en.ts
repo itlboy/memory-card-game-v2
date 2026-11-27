@@ -1169,8 +1169,6 @@ const en: TuDien = {
   'tn.mot14': "14 days",
   'tn.diemHomNay': "Today's score",
   'tn.diemNgay': "Score on {ngay}",
-  'tn.dangXem': "Showing {ngay}",
-  'tn.veHomNay': "Back to today",
   'tn.tabNam': "Year",
   'tn.thang': "Month {n}",
 };

@@ -1170,8 +1170,6 @@ const id: TuDien = {
   'tn.mot14': "14 hari",
   'tn.diemHomNay': "Skor hari ini",
   'tn.diemNgay': "Skor {ngay}",
-  'tn.dangXem': "Hari {ngay}",
-  'tn.veHomNay': "Kembali ke hari ini",
   'tn.tabNam': "Setahun",
   'tn.thang': "Bulan {n}",
 };

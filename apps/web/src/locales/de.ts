@@ -1170,8 +1170,6 @@ const de: TuDien = {
   'tn.mot14': "14 Tage",
   'tn.diemHomNay': "Wert heute",
   'tn.diemNgay': "Wert am {ngay}",
-  'tn.dangXem': "Tag {ngay}",
-  'tn.veHomNay': "Zurück zu heute",
   'tn.tabNam': "Jahr",
   'tn.thang': "Monat {n}",
 };

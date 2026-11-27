@@ -217,7 +217,6 @@ const coNhan = (k: string, i: number): boolean =>
           </span>
         </div>
         <!-- NGÀY ĐANG XEM ở dòng RIÊNG, kèm nút về hôm nay -->
-        <p v-if="tab === 'ngay' && !laHomNay" class="ngay-xem">{{ t('tn.dangXem', { ngay: ngayThang(chon) }) }}<button data-phang type="button" @click="chon = homNay">{{ t('tn.veHomNay') }}</button></p>
       <!-- Ngày CHƯA CÓ ĐIỂM thì không bấm được (trừ hôm nay): bấm vào quá khứ mà ra "Chơi thêm 4 ván để có điểm" là vô
            nghĩa (chủ dự án gửi ảnh 25.11.2026) — quá khứ thì không chơi thêm được. Bấm ngày cũ luôn ra một con số thật. -->
       <div v-if="tab === 'nam'" class="hinh nam" role="tabpanel">
@@ -325,8 +324,6 @@ const coNhan = (k: string, i: number): boolean =>
 
 /* Hai tab CÙNG chiều cao: [thân co giãn: số 16 + cột] [nhãn 24] */
 /* BA TAB (có tab Cả năm): chia đều cả bề ngang, chữ một dòng — để tự co là "Theo thời gian" xuống hai dòng (chụp 26.11.2026) */
-.ngay-xem { margin: -6px 0 0; display: flex; align-items: center; justify-content: center; gap: 10px; font: 700 13px/1.3 var(--font-body); color: var(--muted); }
-.ngay-xem button { border: 0; background: none; padding: 4px 0; min-height: 28px; color: var(--accent); font: 800 13px/1.2 var(--font-body); text-decoration: underline; cursor: pointer; }
 .hinh { height: 128px; display: grid; align-items: stretch; }
 .hinh.tru { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .hinh.ngay { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
