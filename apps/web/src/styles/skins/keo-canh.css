@@ -117,7 +117,9 @@
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat.phai { transform: translate(-50%, -50%) rotate(-14deg) translateX(var(--qd-a)); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat.giua { transform: translate(-50%, -52%) rotate(4deg); z-index: 1; }
 /* Lá GIỮA nhỏ hơn hai lá quay (27.11.2026, chủ dự án: "lá bài giữa phải bé hơn mới đúng") — lá quay lúc ở phía trước (scale 1) không còn bằng/đè cỡ lá giữa */
-:root[data-skin='keo'][data-canh='thien-ha'] .la-quat.giua { --la-h: calc(min(86cqh, 53cqw, 320px) * .4); }
+/* 27.11.2026 lần 2 (chủ dự án: "cho độ sâu lớn hơn… lá ở đằng sau khi ra xa nhất bé bằng 50% lá giữa; lá giữa bé hơn, bằng 70% bây giờ"):
+   lá giữa .4 → .28; lá quay ở xa nhất scale .28 (= 50% lá giữa), gần nhất vẫn 1 */
+:root[data-skin='keo'][data-canh='thien-ha'] .la-quat.giua { --la-h: calc(min(86cqh, 53cqw, 320px) * .28); }
 :root[data-skin='keo'][data-canh='thien-ha'] .la-quat:not(.giua) .lac { animation: none; transform: rotate(14deg) scale(.85); }
 @media (prefers-reduced-motion: no-preference) {
   :root[data-skin='keo'][data-canh='thien-ha'] .la-quat:not(.giua) {
@@ -134,7 +136,7 @@
   to   { transform: translate(-50%, -50%) rotate(-14deg) translateX(var(--qd-a)); }
 }
 @keyframes qd-y {
-  from { transform: translateY(calc(var(--qd-b) * -1)) rotate(14deg) scale(.7); }
+  from { transform: translateY(calc(var(--qd-b) * -1)) rotate(14deg) scale(.28); }
   to   { transform: translateY(var(--qd-b)) rotate(14deg) scale(1); }
 }
 @keyframes qd-z { 0% { z-index: 2; } 50% { z-index: 0; } }
