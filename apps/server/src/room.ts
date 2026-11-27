@@ -323,9 +323,17 @@ export class RoomDO extends DurableObject<Env> {
     this.room = (await this.ctx.storage.get<RoomState>('room')) ?? null;
     this.chuanDoi();
     const snap = await this.ctx.storage.get<string>('game');
-    if (snap) this.game = MemoryGame.restore(snap);
-    // Ván Tìm Thẻ không lưu: dậy mà phòng còn "đang chơi / đếm ngược" Tìm Thẻ thì ván đã mất — về phòng chờ, không treo
-    if (this.room?.config.kieu === 'tim' && (this.room.status === 'playing' || this.room.status === 'countdown')) {
+    if (snap) {
+      try { this.game = MemoryGame.restore(snap); } catch (e) { console.warn('[phòng] không khôi phục được ván:', (e as Error).message); this.game = null; }
+    }
+    /*
+     * DẬY MÀ VÁN ĐÃ MẤT → VỀ PHÒNG CHỜ, không treo (27.11.2026). Ván Tìm Thẻ không lưu; ván ghép cặp có thể thiếu bản lưu (server
+     * khởi động lại giữa chừng). Trước đây phòng 408807 (phòng máy) nằm "đang chơi" 3 giờ không có ván: người xem vào thấy màn
+     * trống (đồng hồ 0:00, không bàn, không người), máy chờ mãi.
+     */
+    const dangChoi = this.room?.status === 'playing' || this.room?.status === 'countdown';
+    if (this.room && dangChoi && (this.room.config.kieu === 'tim' || !this.game)) {
+      console.warn(`[phòng] ${this.room.code} dậy ở '${this.room.status}' mà không còn ván → về phòng chờ`);
       this.room.status = 'lobby';
       delete this.room.countdownEnd;
       this.game = null;
@@ -620,6 +628,12 @@ export class RoomDO extends DurableObject<Env> {
     this.ctx.acceptWebSocket(pair[1], [player.id]);
     pair[1].serializeAttachment({ playerId: player.id, goi, bv, ...(dd ? { dd } : {}), ...(tt ? { tt } : {}) } satisfies Attachment);
 
+    // Lưới an toàn khi đang chạy: phòng "đang chơi" mà không có ván nào (ghép cặp lẫn Tìm Thẻ) → về phòng chờ trước khi chào
+    if (this.room.status === 'playing' && !this.game && !this.tim) {
+      console.warn(`[phòng] ${this.room.code} 'playing' mà không có ván → về phòng chờ`);
+      this.room.status = 'lobby';
+      for (const p of this.room.players) p.ready = !!p.may;
+    }
     await this.save();
     this.send(pair[1], {
       t: 'welcome', playerId: player.id, token: player.token, room: this.roomInfo(),
