@@ -400,6 +400,10 @@
   Google không công bố — số iOS tụt về 0 thì soi ở đó trước. ĐỪNG chuyển Android/web sang đường này.
   Kiểm nhanh: trang Debug có dòng `GA <giao thức> <gtag|direct> · call N · net M` (call > 0 mà net = 0 là
   sự kiện không rời máy); `thongke-tai.yml` ra bảng "Sự kiện 30 phút gần nhất" (Realtime API).
+- **MÃ NGƯỜI CHƠI ẨN DANH (27.11.2026)**: GA nhận `user_id` + thuộc tính người dùng `ma_nguoi` = `u<id tài khoản>` hoặc
+  `k<16 hex đầu guest_hash>` (lib/taikhoan `capNhatMaGa` → phan-tich `datMaNguoi`; đường iOS gửi `uid`). KHÔNG BAO GIỜ gửi
+  TÊN (điều khoản GA). Tra mã → tên: node-server `GET /api/thongke/ten?ma=…` (header `x-thongke-key`, tk-ten.ts). Châu Âu
+  không gắn mã. Lọc theo `ma_nguoi` cần đăng ký custom dimension phạm vi NGƯỜI DÙNG trong GA Admin (khoá GA chỉ Viewer).
 - Cửa DUY NHẤT trong game: `lib/phan-tich.ts` (`batPhanTich`, `suKien`). Cố định: tắt Google
   Signals + cá nhân hoá quảng cáo; múi giờ châu Âu → `analytics_storage: denied` (không
   cookie, thay cho hộp hỏi đồng ý); trong app dùng `store.clientId()` làm client_id.

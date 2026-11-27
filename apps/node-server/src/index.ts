@@ -13,6 +13,7 @@ import { moTaiKhoan, type TaiKhoan } from './taikhoan.js';
 import { moThongBao, type ThongBao } from './thongbao.js';
 import { moSanh, type XemPhong } from './sanh.js';
 import { moTkThiDau, type TkThiDau } from './tk-thidau.js';
+import { moTkTen } from './tk-ten.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -516,6 +517,7 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   // Sảnh (mời người online) — trước tầng tài khoản vì cùng tiền tố /api/
   if (sanh.xuLyHttp(req, res, url)) return;
   if (tkThiDau?.xuLy(req, res, url, json)) return;
+  if (tkTen?.xuLy(req, res, url, json)) return;
 
   if (url.pathname === '/api/ping' && req.method === 'GET') {
     void kiemSucKhoe().then((k) => json(res, k, k.ok ? 200 : 503));
@@ -577,6 +579,8 @@ let kho: Kho | null = null;
 let taiKhoan: TaiKhoan | null = null;
 let thongBao: ThongBao | null = null;
 let tkThiDau: TkThiDau | null = null;
+/** Tra mã người chơi GA → tên (tk-ten.ts). */
+let tkTen: ReturnType<typeof moTkTen> | null = null;
 
 /**
  * Dựng lại các phòng đã lưu, rồi mới nhận request.
@@ -666,6 +670,7 @@ thongBao = await moThongBao(kho?.pool ?? null, process.env, fetch, { ghiTd: (d) 
 console.log(thongBao
   ? '  thông báo phòng mới: BẬT'
   : '  thông báo phòng mới: TẮT (cần MYSQL_URL + APNS_* và/hoặc FCM_SERVICE_ACCOUNT)');
+tkTen = moTkTen(kho?.pool ?? null, process.env);
 tkThiDau = await moTkThiDau(kho?.pool ?? null, process.env).catch((e) => {
   console.error('[tk-thidau] không mở được:', (e as Error).message);
   return null;

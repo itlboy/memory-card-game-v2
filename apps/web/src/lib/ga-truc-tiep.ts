@@ -26,6 +26,8 @@ export interface CauHinhGa {
   dl: string;
   eu: boolean;
   up: Record<string, string>;
+  /** MÃ NGƯỜI CHƠI ẩn danh (`user_id` của GA, lib/phan-tich `datMaNguoi`) — đọc lúc gửi; không có / `eu` thì không gửi. */
+  uid?: () => string | null;
   /** Tiêm để test; mặc định fetch/localStorage/đồng hồ thật. */
   gui?: (url: string) => Promise<unknown>;
   kho?: Pick<Storage, 'getItem' | 'setItem'> | null;
@@ -99,6 +101,8 @@ export function taoGaTrucTiep(c: CauHinhGa): (ten: string, thamSo?: Record<strin
     }
     if (et > 0) q.set('_et', String(et));
     for (const [k, v] of Object.entries(c.up)) q.set(`up.${k}`, v);
+    const uid = c.eu ? null : c.uid?.();
+    if (uid) q.set('uid', uid);
 
     gaDem.goi++;
     try {

@@ -3,7 +3,7 @@ import { ref, shallowRef, watch } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
 import { laApp, nenApp, SERVER_URL } from './native';
-import { moChucNang, suKien } from './phan-tich';
+import { datMaNguoi, moChucNang, suKien } from './phan-tich';
 
 /**
  * TÀI KHOẢN phía client — đăng nhập Google hoặc Apple, hồ sơ, gửi kết quả ván.
@@ -436,6 +436,7 @@ export async function guiKhach(): Promise<void> {
   try {
     await goi<{ ok: boolean }>('/api/khach', { method: 'POST', body });
     khachDaGui = body;
+    void capNhatMaGa();   // khách vừa có dòng trên bảng → có mã để gắn GA
   } catch { /* lần sau gửi tiếp — tổng điểm nên không mất gì */ }
 }
 let khachDaGui = '';
@@ -454,6 +455,24 @@ export async function guiHoSo(): Promise<void> {
 
 /** Đổi / tháo huy hiệu, hết Premium (huy hiệu tự gỡ) → báo lại bảng xếp hạng (27.11.2026). */
 watch(huyHieuDangDeo, () => { void guiHoSo(); });
+
+/**
+ * MÃ NGƯỜI CHƠI CHO GA (27.11.2026) — ẩn danh, tra ra tên ở server (`/api/thongke/ten`). Đăng nhập: `u<id>`; đã đăng xuất mà
+ * máy còn THẺ MÁY: id trong thẻ (`m<id>.<hạn>.<ký>`); khách đã lên bảng: `k` + 16 hex đầu của sha256("mm-khach:" + mã khách)
+ * — đúng 16 ký tự đầu `guest_hash` server lưu. Chưa có gì thì không gắn.
+ */
+export async function capNhatMaGa(): Promise<void> {
+  if (me.value) { datMaNguoi(`u${me.value.id}`); return; }
+  const may = /^m(\d+)\./.exec(docTheMay() ?? '');
+  if (may) { datMaNguoi(`u${may[1]}`); return; }
+  const k = store.khach(false);
+  if (!k?.id || typeof crypto === 'undefined' || !crypto.subtle) { datMaNguoi(null); return; }
+  try {
+    const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`mm-khach:${k.id}`)));
+    datMaNguoi(`k${[...h.slice(0, 8)].map((b) => b.toString(16).padStart(2, '0')).join('')}`);
+  } catch { /* máy không có crypto.subtle: không gắn mã */ }
+}
+watch([me, conTheMay], () => { void capNhatMaGa(); }, { immediate: true });
 
 /** Đặt tên trên bảng — cũng là tên khi chơi online (cùng ô nhớ). */
 /** Trong các tên này, tên nào CHƯA ai dùng trên bảng xếp hạng (lib/ten-ngau-nhien.ts — tránh trùng tên tự tạo). */

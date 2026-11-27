@@ -37,6 +37,22 @@ const chauAu = (): boolean => {
 
 /** Đang gửi bằng đường nào — cho dòng chẩn đoán ở trang Debug. */
 let kieuGui: 'off' | 'gtag' | 'direct' = 'off';
+/*
+ * MÃ NGƯỜI CHƠI ẨN DANH (27.11.2026, chủ dự án chọn "cách 1"): `u<id tài khoản>` hoặc `k<16 hex mã băm khách>` — KHÔNG
+ * phải tên (điều khoản GA cấm thông tin định danh). Gửi làm `user_id` + thuộc tính người dùng `ma_nguoi`; tra ra tên ở
+ * server (`/api/thongke/ten`, khoá THONGKE_KEY). Châu Âu (không cookie) thì KHÔNG gắn mã. lib/taikhoan tính + gọi `datMaNguoi`.
+ */
+let maNguoi: string | null = null;
+const upChung: Record<string, string> = {};
+export function datMaNguoi(ma: string | null): void {
+  if (ma === maNguoi) return;
+  maNguoi = chauAu() ? null : ma;
+  if (maNguoi) upChung.ma_nguoi = maNguoi; else delete upChung.ma_nguoi;
+  if (kieuGui === 'gtag' && gtag) {
+    gtag('set', { user_id: maNguoi ?? undefined });
+    gtag('set', 'user_properties', { ma_nguoi: maNguoi ?? undefined });
+  }
+}
 let soGoi = 0;
 
 /**
@@ -64,7 +80,7 @@ export function batPhanTich(): void {
     kieuGui = 'direct';
     const truc = taoGaTrucTiep({
       tid: GA_ID, cid: store.clientId(), dl: `https://flipmatch.cozypi.com/app/${nenApp}`,
-      eu: chauAu(), up: { nen_tang: nenApp, ban_web: __OTA_ID__ }
+      eu: chauAu(), up: Object.assign(upChung, { nen_tang: nenApp, ban_web: __OTA_ID__ }), uid: () => maNguoi
     });
     gtag = (lenh, ten, thamSo) => { if (lenh === 'event') truc(String(ten), (thamSo ?? {}) as Record<string, unknown>); };
     for (const [ten, thamSo] of choGui.splice(0)) gtag('event', ten, thamSo);
@@ -96,7 +112,8 @@ export function batPhanTich(): void {
       page_location: URL_DAU
     } : {})
   });
-  gtag('set', 'user_properties', { nen_tang: nenApp, ban_web: __OTA_ID__ });
+  gtag('set', 'user_properties', { nen_tang: nenApp, ban_web: __OTA_ID__, ...(maNguoi ? { ma_nguoi: maNguoi } : {}) });
+  if (maNguoi) gtag('set', { user_id: maNguoi });
   for (const [ten, thamSo] of choGui.splice(0)) gtag('event', ten, thamSo);
   const s = document.createElement('script');
   s.async = true;
