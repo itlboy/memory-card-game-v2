@@ -8,7 +8,8 @@
  * ĐÃ CHỐT (đừng đảo lại khi chưa hỏi):
  *  · số thẻ 3 · 4 · 5 · 6 · 7, mặc định 5 — bàn VÒNG TRÒN (27.11.2026: bỏ 12, 16 "không ai giải được", rồi tạm bỏ 8, 9
  *    "khó quá, người chơi nản"; lựa chọn của người chơi được nhớ cho lần sau);
- *  · độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5 → giờ xem = x × số thẻ;
+ *  · độ khó x = giây xem MỖI thẻ: Dễ 1 · Vừa 0,9 · Khó 0,5 → giờ xem = x × số thẻ (Vừa 0,75 → 0,9 ngày 27.11.2026,
+ *    chủ dự án: "thời gian cho độ khó vừa đang hơi ít");
  *  · giờ chọn = NỬA giờ xem, sàn 2 giây (2 thẻ mức Khó mà không sàn là 0,5 giây — không kịp chạm);
  *  · điểm lượt đúng = 10 × số thẻ × (1 + phần giờ chọn còn lại) × hệ số chuỗi (như ghép cặp:
  *    1 · 1,2 · 1,5 · 2) × hệ số độ khó (1 · 1,25 · 1,5). Tính theo SỐ THẺ vì điểm = xu: để 100 điểm
@@ -32,7 +33,7 @@ export const TIM_THE_ONLINE_SO_THE = TIM_THE_SO_THE_MAC_DINH;
 export type TimTheDoKho = 'de' | 'vua' | 'kho';
 export const TIM_THE_DO_KHO: readonly TimTheDoKho[] = ['de', 'vua', 'kho'];
 /** x = giây xem mỗi thẻ. */
-export const TIM_THE_X: Record<TimTheDoKho, number> = { de: 1, vua: 0.75, kho: 0.5 };
+export const TIM_THE_X: Record<TimTheDoKho, number> = { de: 1, vua: 0.9, kho: 0.5 };
 /** Chọn khó thì có lợi — không thì ai cũng chọn Dễ. */
 export const TIM_THE_HE_SO_KHO: Record<TimTheDoKho, number> = { de: 1, vua: 1.25, kho: 1.5 };
 export const TIM_THE_SO_LUOT = 10;

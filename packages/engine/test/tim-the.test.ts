@@ -10,10 +10,10 @@ const cfg = (soThe: number, doKho: TimTheConfig['doKho'] = 'vua', soLuot = 10): 
 describe('Tìm Thẻ — thời gian', () => {
   it('giờ xem = x × số thẻ; giờ chọn = nửa giờ xem, sàn 2 giây', () => {
     expect(timTheXemMs(cfg(9, 'de'))).toBe(9000);
-    expect(timTheXemMs(cfg(9, 'vua'))).toBe(6750);
+    expect(timTheXemMs(cfg(9, 'vua'))).toBe(8100);
     expect(timTheXemMs(cfg(12, 'kho'))).toBe(6000);
     expect(timTheChonMs(cfg(12, 'de'))).toBe(6000);
-    expect(timTheChonMs(cfg(9, 'vua'))).toBe(3375);
+    expect(timTheChonMs(cfg(9, 'vua'))).toBe(4050);
     expect(timTheChonMs(cfg(3, 'kho'))).toBe(2000);   // 0,75s nếu không có sàn
     expect(timTheChonMs(cfg(4, 'de'))).toBe(2000);
   });

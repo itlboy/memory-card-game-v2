@@ -388,7 +388,7 @@
   KHÔNG tim. Số thẻ TẠM chỉ 3·4·5·6·7, MẶC ĐỊNH 5 (27.11.2026 bỏ 12, 16 "không ai giải được", rồi 8, 9 "khó quá, người
   chơi nản"; cấu hình cũ về 5). Lựa chọn số thẻ + độ khó NHỚ ở `mm.timThe.chon`, CHUNG cho chơi đơn và chủ phòng online
   (chuyển phòng sang Tìm Thẻ / sửa Bàn chơi đều đọc + ghi). Server ép số thẻ lạ về mặc định (`timSoTheHopLe`). Độ khó x = giây
-  xem MỖI thẻ: Dễ 1 · Vừa 0,75 · Khó 0,5; giờ xem = x × số thẻ;
+  xem MỖI thẻ: Dễ 1 · Vừa 0,9 (0,75 trước 27.11.2026: "hơi ít") · Khó 0,5; giờ xem = x × số thẻ;
   giờ chọn = nửa giờ xem, SÀN 2 giây. Điểm lượt đúng = 10 × số thẻ × (1 + phần giờ còn lại) × hệ số chuỗi (như ghép
   cặp) × hệ số độ khó (1 · 1,25 · 1,5) — theo SỐ THẺ vì điểm = xu, cố định 100 thì bàn 3 thẻ thành chỗ cày xu.
   Nhiều người: chờ cả phòng chọn mới chấm; đúng nhanh nhất +5 × số thẻ (không nhân); trùng điểm = đồng hạng.
