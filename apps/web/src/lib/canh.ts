@@ -86,4 +86,16 @@ export function datCanh(c: Canh): void {
 
 /** HẾT / HUỶ PREMIUM thì về cảnh gốc — hình nền hành tinh là quyền lợi của gói (trang debug vẫn bật thử tự do được). */
 // `luuCanh` chứ không `datCanh`: hết Premium KHÔNG phải người chơi tự tắt ngẫu nhiên — có Premium lại thì ngẫu nhiên chạy tiếp
-watch(daMuaPremium, (co) => { if (!co && canh.value !== 'goc') { luuCanh('goc'); moChucNang('hinh_nen', { canh: 'goc' }); } });
+/*
+ * VỪA CÓ PREMIUM → ĐỔI HÌNH NỀN NGAY (27.11.2026, chủ dự án: "khi người dùng chọn premium thì đổi ngay cả theme hiện tại cho họ,
+ * không chờ lần sau, để họ thấy hiệu quả luôn, chuyển cấu hình về ngẫu nhiên nhưng đổi ngay"): bật Ngẫu nhiên + lấy ngay một
+ * hình nền Premium (không phải cảnh gốc), mốc 30 phút tính lại từ lúc này.
+ */
+watch(daMuaPremium, (co) => {
+  if (!co) { if (canh.value !== 'goc') { luuCanh('goc'); moChucNang('hinh_nen', { canh: 'goc' }); } return; }
+  luuNN(true);
+  const ung = CANH.filter((c) => c !== 'goc' && c !== canh.value);
+  if (ung.length) luuCanh(ung[Math.floor(Math.random() * ung.length)]!);
+  ghiMocDoi();
+  moChucNang('hinh_nen', { canh: 'ngau-nhien', tu: 'nhan-premium' });
+});

@@ -55,6 +55,8 @@ export const dangChoiOffline = ref(false);
 export const choiMotMinh = ref(false);
 /** Kết nối sảnh đang mở (đã nhận `chao`) — để trừ chính mình khỏi "N người đang online". */
 export const dangNoiSanh = ref(false);
+/** `sid` server đặt cho kết nối sảnh của CHÍNH MÌNH (lời chào) — bảng mời nhận ra dòng "Bạn". */
+export const sidToi = ref<string | null>(null);
 /**
  * Số NGƯỜI KHÁC đang online = số app đang nối sảnh (server gửi kèm danh sách phòng công khai, `/api/rooms/public` →
  * `online`) TRỪ chính mình. Hiện ở ô Chơi online (trang chủ) và đầu màn Chơi online.
@@ -111,6 +113,7 @@ function mo(): void {
     try { m = JSON.parse(String(e.data)) as Record<string, unknown>; } catch { return; }
     if (m.t === 'chao') {
       lui = 3_000;
+      sidToi.value = typeof m.sid === 'string' ? m.sid : null;
       coSanh.value = true;
       dangNoiSanh.value = true;
       coThiDau.value = m.td === 1;
@@ -183,7 +186,11 @@ export function tuChoiMoi(): void {
 
 /* ---------- phía chủ phòng ---------- */
 
-export interface NguoiOnline { sid: string; ten: string; mat: string; mau?: string; tt: 'chu' | 'choi'; daMoi?: number; choMoi?: number; tuChoi?: true }
+/** `tt: 'phong'` = đang ở phòng / ván online — KHÔNG mời được (server chỉ gửi cho client `v: 2`). */
+export interface NguoiOnline { sid: string; ten: string; mat: string; mau?: string; tt: 'chu' | 'choi' | 'phong'; daMoi?: number; choMoi?: number; tuChoi?: true }
+/** Lần tải danh sách mời gần nhất: TỔNG số đang online (khớp ô Chơi online) và số người tắt nhận lời mời (chỉ đếm). */
+export const dsTong = ref(0);
+export const dsAn = ref(0);
 export type KetQuaMoi = { ok: true; han: number; cach?: number } | { loi: string; con?: number };
 /** Khoảng phải chờ giữa hai lần mời cùng một người (server gửi `cach`; bản server cũ thì dùng số này). */
 export const CACH_MOI_LAI_MS = 2 * 60_000;
@@ -197,8 +204,9 @@ async function post<T>(duong: string, body: unknown): Promise<T | null> {
 }
 /** null = server không có sảnh / mất mạng (ẩn nút). */
 export async function dsOnline(ma: string, token: string): Promise<NguoiOnline[] | null> {
-  const r = await post<{ ds?: NguoiOnline[] }>('/api/sanh/ds', { ma, token });
+  const r = await post<{ ds?: NguoiOnline[]; tong?: number; an?: number }>('/api/sanh/ds', { ma, token, v: 2 });
   if (r?.ds) coSanh.value = true;
+  if (r?.ds) { dsTong.value = Math.max(r.tong ?? 0, r.ds.length + (r.an ?? 0)); dsAn.value = r.an ?? 0; ghiSoOnline(r.tong); }
   return r?.ds ?? null;
 }
 export async function moiNguoi(ma: string, token: string, sid: string, thach = false): Promise<KetQuaMoi> {

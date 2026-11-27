@@ -197,11 +197,18 @@ export function moSanh(opts: {
   }
 
   type DongDs = NguoiSanh & { daMoi?: number; choMoi?: number; tuChoi?: true };
-  function dsCho(ma: string): DongDs[] {
+  /*
+   * DANH SÁCH KHỚP SỐ BÊN NGOÀI (27.11.2026, chủ dự án: bảng mời "không hiện tôi, không hiện người đang chơi online… số liệu
+   * bên ngoài và ở đây rất không đúng; ai đang chơi thì báo đang chơi online, không mời được"). Client mới (`v: 2`) nhận CẢ người
+   * đang ở phòng / ván online (`tt: 'phong'`, kể cả chủ phòng đang hỏi — client tự nhận ra mình bằng `sid` của lời chào), còn
+   * người tắt "Nhận lời mời" chỉ được ĐẾM (`an`) — không lộ tên. Tổng = `tong` = số trên ô Chơi online. Client cũ giữ bản lọc
+   * cũ (họ không biết vẽ dòng không mời được).
+   */
+  function dsCho(ma: string, coPhong = false): DongDs[] {
     const t = now();
     const ra: DongDs[] = [];
     for (const k of ketNoi.values()) {
-      if (k.tt === 'phong' || !k.nm) continue;
+      if (!k.nm || (k.tt === 'phong' && !coPhong)) continue;
       const khoa = `${ma}:${k.sid}`;
       const d = daMoi.get(khoa);
       ra.push({
@@ -211,10 +218,10 @@ export function moSanh(opts: {
         ...(d && d > t ? { choMoi: d - t } : {}),
         ...((tuChoi.get(khoa) ?? 0) > t ? { tuChoi: true as const } : {})
       });
-      if (ra.length >= TOI_DA_DS) break;
     }
-    // Người rảnh ở trang chủ lên trước, người đang chơi offline sau
-    return ra.sort((a, b) => (a.tt === b.tt ? 0 : a.tt === 'chu' ? -1 : 1));
+    // Người rảnh ở trang chủ lên trước, rồi người đang chơi offline, người đang chơi online (không mời được) cuối
+    const thu = { chu: 0, choi: 1, phong: 2 } as const;
+    return ra.sort((a, b) => thu[a.tt] - thu[b.tt]).slice(0, TOI_DA_DS);
   }
 
   return {
@@ -231,7 +238,10 @@ export function moSanh(opts: {
       if (url.pathname === '/api/sanh/ds') {
         void xacThuc(req, res).then((x) => {
           if (!x) return;
-          json(res, { ds: x.p.status === 'lobby' ? dsCho(x.ma) : [], tong: ketNoi.size, han: HAN_MOI_MS, cach: CACH_MOI_LAI_MS });
+          const v2 = Number(x.b.v) >= 2;
+          const ds = x.p.status === 'lobby' ? dsCho(x.ma, v2) : [];
+          const an = [...ketNoi.values()].filter((k) => !k.nm).length;
+          json(res, { ds, tong: ketNoi.size, ...(v2 ? { an } : {}), han: HAN_MOI_MS, cach: CACH_MOI_LAI_MS });
         });
         return true;
       }

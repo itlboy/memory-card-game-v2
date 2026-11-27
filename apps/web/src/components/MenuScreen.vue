@@ -691,7 +691,9 @@ const ICO3D = {
                án: "vẫn chờ tôi chốt đã, hiện tại vẫn cho chế độ debug thôi". Chấm đỏ = còn quà chưa nhận. -->
           <button v-if="hienVienPremium" class="vien-pm thach" type="button" :aria-label="`${t('tp.premium')} — ${chuVienPremium}`" @click="sfx.select(); moPremium('trang-chu')">
             <span class="vtn-chu"><small>{{ t('tp.premium') }}</small><b>{{ chuVienPremium }}</b></span>
-            <span class="vpm-vm" aria-hidden="true"><Crown :size="18" :stroke-width="2.6" /></span>
+            <!-- VƯƠNG MIỆN LÚC LẮC (27.11.2026, chủ dự án: "nút premium không gây được sự chú ý… nút vương miện lúc lắc chút"):
+                 còn quà chưa nhận / quà sắp hết thì cứ vài giây lắc một nhịp + loé sáng; đã nhận thì đứng yên -->
+            <span class="vpm-vm" :class="{ lac: conQuaTang || sapHetQua }" aria-hidden="true"><Crown :size="18" :stroke-width="2.6" /></span>
             <i v-if="conQuaTang || sapHetQua" class="vpm-cham" aria-hidden="true" />
           </button>
           <button class="o-chien-dich neon g-violet" type="button" :title="t('menu.chienDichMo', { n: CAMPAIGN_LEVELS })" @click="pickCampaign()">
@@ -1282,6 +1284,16 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 .vien-pm .vtn-chu { align-items: flex-end; }
 .vien-pm .vtn-chu b { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 14px; line-height: 1.25; }
 .vpm-vm { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(180deg, #ffe08a, #f5b324); color: #5b3d00; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
+.vpm-vm.lac { animation: vpm-lac 3.2s ease-in-out infinite; transform-origin: 50% 85%; }
+@keyframes vpm-lac {
+  0%, 62%, 100% { transform: none; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
+  66% { transform: rotate(-16deg) scale(1.12); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 14px 3px rgba(255, 205, 60, .75); }
+  71% { transform: rotate(14deg) scale(1.12); }
+  76% { transform: rotate(-10deg) scale(1.08); }
+  81% { transform: rotate(7deg) scale(1.04); }
+  86% { transform: rotate(-3deg); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), 0 0 8px 1px rgba(255, 205, 60, .4); }
+}
+@media (prefers-reduced-motion: reduce) { .vpm-vm.lac { animation: none; } }
 .vpm-cham { position: absolute; top: -2px; right: -2px; width: 13px; height: 13px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 0 2px var(--panel-solid, #fff); }
 .vtn-hc { position: relative; flex: none; width: 46px; height: 46px; margin: -6px 0 -6px -4px; }
 .vtn-hc.b0 { --h1: #f6d0aa; --h2: #c98345; --h3: #8a4a18; --hc: #45220a; --glow: #ff9d4d; }

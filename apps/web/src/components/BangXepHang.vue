@@ -10,7 +10,7 @@ import { bangXepHang, bxhLanTruoc, bxhOnline, conTheMay, datTenKhach, khachDangA
 import MatBot from './MatBot.vue';
 import DauPremium from './DauPremium.vue';
 import VachCho from './VachCho.vue';
-import { CACH_MOI_LAI_MS, daThach, trongPhongOnline, type ThachDau } from '@/lib/sanh';
+import { CACH_MOI_LAI_MS, daThach, soNguoiOnline, trongPhongOnline, type ThachDau } from '@/lib/sanh';
 import { ghiHang } from '@/lib/hang-xu';
 
 /**
@@ -192,9 +192,16 @@ const dsOl = ref<DongHang[]>([]);
 // TÍNH CẢ MÌNH (23.11.2026, chủ dự án: "bảng xếp hạng đang bỏ tôi, cho thêm vào đi") — đang mở bảng thì mình đang online,
 // kể cả khi app không nối sảnh (tắt nhận lời mời nên server không gắn `ol`). Dòng của mình có nhãn "Bạn", không nút Thách.
 const dsOnline = computed(() => dsOl.value.filter((d) => d.ol || d.toi).map((d) => ({ d, hang: d.hang })));
+/*
+ * CÙNG MỘT CON SỐ VỚI Ô CHƠI ONLINE (27.11.2026, chủ dự án: "hiện có 3 người online mà vào bảng xếp hạng chỉ có 1 người"). Bảng
+ * chỉ có dòng cho người ĐÃ CÓ HẠNG (đã chơi, không ẩn, khách còn hạn; tab tuần: có ván tuần này) và đang bật nhận lời mời — người
+ * mới cài, khách chưa lên bảng, người tắt nhận lời mời vẫn đang online nhưng không có dòng. Nên chip đếm TẤT CẢ người online
+ * (số của server, như trang chủ), danh sách lọc thêm một dòng cuối "+N người đang online chưa có trên bảng xếp hạng".
+ */
+const soOnline = computed(() => Math.max(soNguoiOnline.value, dsOnline.value.length));
+const soOnlineNgoai = computed(() => Math.max(0, soOnline.value - dsOnline.value.length));
 // Hết người online (họ thoát app) thì bỏ lọc — không để bảng trống mà nút lọc đã biến mất
-watch(() => dsOnline.value.length, (n) => { if (!n) chiOnline.value = false; });
-const soOnline = computed(() => dsOnline.value.length);
+watch(soOnline, (n) => { if (!n) chiOnline.value = false; });
 
 /*
  * TẢI THÊM KHI CUỘN (23.11.2026, chủ dự án: "bảng xếp hạng có thể lazyload để load thêm những người đang ẩn"). Giữa top
@@ -324,6 +331,7 @@ async function luuTen(): Promise<void> {
             </template>
             <span class="so">{{ num(x.d.totalScore) }}</span>
           </li>
+          <li v-if="soOnlineNgoai > 0" class="ngoai-bang">{{ t('bxh.ngoaiBang', { n: soOnlineNgoai }) }}</li>
         </ol>
         <template v-else-if="bang">
           <ol class="bxh" :class="{ mo: dangTai }" :aria-busy="dangTai" :start="4">
@@ -442,6 +450,8 @@ async function luuTen(): Promise<void> {
 .ten .nhan-ban, .ten .dang-choi { flex: none; }
 /* "Đang chơi" ngay BÊN PHẢI tên (chủ dự án duyệt mockup) — tên dài thì tên bị cắt, chữ này giữ nguyên */
 .ten .dang-choi { margin-left: 6px; font-size: 10.5px; font-weight: 700; color: var(--ol-ban); white-space: nowrap; }
+/* Dòng cuối khi lọc online: người đang online mà chưa có dòng trên bảng */
+.bxh li.ngoai-bang { display: block; text-align: center; font-size: 13px; font-weight: 700; color: var(--muted); background: none; box-shadow: none; padding: 8px 6px; }
 /* Chấm online NHỎ (6px — chủ dự án: "biểu tượng online nên nhỏ hơn") ở góc dưới phải mặt thú */
 .mat, .bn .av { position: relative; }
 .dot { position: absolute; right: -1px; bottom: 1px; width: 6px; height: 6px; border-radius: 50%; background: var(--ol); box-shadow: 0 0 0 1.5px var(--panel-solid); }

@@ -3,7 +3,7 @@ import { vChamNgoai } from '@/lib/cham-ngoai';
 import { computed, ref, watch } from 'vue';
 import { moChucNang } from '@/lib/phan-tich';
 import { X } from 'lucide-vue-next';
-import { CACH_MOI_LAI_MS, moiNguoi, tenKhach, type NguoiOnline } from '@/lib/sanh';
+import { CACH_MOI_LAI_MS, dsAn, dsTong, moiNguoi, sidToi, tenKhach, type NguoiOnline } from '@/lib/sanh';
 import { t } from '@/lib/i18n';
 import { sfx } from '@/lib/audio';
 import { useBackCloser } from '@/composables/useBackGuard';
@@ -46,9 +46,13 @@ const dong = computed(() => {
   const bay = Date.now();
   return p.ds.map((n) => {
     const c = cho.value[n.sid];
-    return { ...n, cho: c && c.het > bay ? c : null };
+    return { ...n, cho: c && c.het > bay ? c : null, toi: !!sidToi.value && n.sid === sidToi.value };
   });
 });
+/** Số trên đầu bảng = TẤT CẢ người đang online, kể cả mình và người không mời được — cùng số với ô Chơi online. */
+const soTong = computed(() => Math.max(dsTong.value, p.ds.length + dsAn.value));
+/** Còn ai MỜI ĐƯỢC không (không tính mình và người đang chơi online). */
+const coAiMoi = computed(() => dong.value.some((n) => !n.toi && n.tt !== 'phong'));
 
 const LOI: Record<string, string> = { day: 'moi.loi.day', vuaMoi: 'moi.loi.vuaMoi', banMoi: 'moi.loi.banMoi', nhieuQua: 'moi.loi.nhieuQua', tuChoi: 'moi.tuChoi' };
 async function moi(n: NguoiOnline): Promise<void> {
@@ -73,21 +77,23 @@ async function moi(n: NguoiOnline): Promise<void> {
 <template>
   <Teleport to="#app">
     <div class="mo-phu" @click.self="emit('dong')" v-cham-ngoai="() => { emit('dong'); }">
-      <section class="mo-bang khay" role="dialog" aria-modal="true" :aria-label="t('moi.dsTieuDe', { n: ds.length })">
+      <section class="mo-bang khay" role="dialog" aria-modal="true" :aria-label="t('moi.dsTieuDe', { n: soTong })">
         <header class="mo-dau">
-          <h3>{{ t('moi.dsTieuDe', { n: ds.length }) }}</h3>
+          <h3>{{ t('moi.dsTieuDe', { n: soTong }) }}</h3>
           <button class="btn mo-x" type="button" :aria-label="t('dhd.dong')" @click="emit('dong')"><X :size="20" /></button>
         </header>
-        <p v-if="!ds.length" class="mo-trong">{{ t('moi.trong') }}</p>
-        <ul v-else class="mo-ds">
-          <li v-for="n in dong" :key="n.sid">
+        <p v-if="!coAiMoi" class="mo-trong">{{ t('moi.trong') }}</p>
+        <ul v-if="ds.length" class="mo-ds">
+          <li v-for="n in dong" :key="n.sid" :class="{ 'khong-moi': n.toi || n.tt === 'phong' }">
             <span class="mo-mat" :class="{ 'co-mau': !!n.mau }" :style="n.mau ? { '--m': n.mau } : undefined"><MatNguoi :mat="n.mat" /><i class="song" aria-hidden="true" /></span>
             <span class="mo-ten">
-              <b>{{ n.ten || t('moi.khach', { so: tenKhach(n.sid) }) }}</b>
-              <small :class="{ loi: !!loi[n.sid] }">{{ loi[n.sid] || (n.tuChoi ? t('moi.tuChoi') : n.tt === 'choi' ? t('moi.ttChoi') : t('moi.ttChu')) }}</small>
+              <b>{{ n.ten || t('moi.khach', { so: tenKhach(n.sid) }) }}<span v-if="n.toi" class="mo-ban"> · {{ t('moi.ban') }}</span></b>
+              <small :class="{ loi: !!loi[n.sid] }">{{ loi[n.sid] || (n.tuChoi ? t('moi.tuChoi') : n.tt === 'phong' ? t('moi.ttPhong') : n.tt === 'choi' ? t('moi.ttChoi') : t('moi.ttChu')) }}</small>
             </span>
+            <!-- Chính mình / người đang chơi online: KHÔNG mời được — nhãn thay cho nút -->
+            <span v-if="n.toi || n.tt === 'phong'" class="mo-tc">{{ n.toi ? '' : t('moi.khongMoi') }}</span>
             <!-- Đã bấm "Để sau": phòng này không mời lại được nữa — không còn nút -->
-            <span v-if="n.tuChoi" class="mo-tc">{{ t('moi.deSau') }}</span>
+            <span v-else-if="n.tuChoi" class="mo-tc">{{ t('moi.deSau') }}</span>
             <VachCho v-else-if="n.cho" :het="n.cho.het" :moi-den="n.cho.moiDen" :tong="tong" @xong="nhip++" />
             <button
               v-else class="thach th-xanh th-nho mo-nut" type="button"
@@ -96,6 +102,7 @@ async function moi(n: NguoiOnline): Promise<void> {
             >{{ t('moi.moi') }}</button>
           </li>
         </ul>
+        <p v-if="dsAn > 0" class="mo-chu">{{ t('moi.an', { n: dsAn }) }}</p>
         <p class="mo-chu">{{ t('moi.ghiChu') }}</p>
       </section>
     </div>
@@ -121,6 +128,9 @@ async function moi(n: NguoiOnline): Promise<void> {
 .mo-ten small { font-weight: 700; font-size: 12px; color: var(--muted); }
 .mo-ten small.loi { color: var(--bad); }
 .mo-nut { min-width: 104px; min-height: 34px; }
+.khong-moi { opacity: .72; }
+.khong-moi .song { background: #f0a816; }
+.mo-ban { color: var(--muted); font-weight: 700; }
 .mo-tc { min-width: 104px; text-align: center; font: 800 12.5px var(--font-body); color: var(--muted); white-space: nowrap; }
 .mo-trong { margin: 10px 4px; color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
 .mo-chu { margin: 2px 4px 0; font-size: 12px; color: var(--muted); line-height: 1.45; }
