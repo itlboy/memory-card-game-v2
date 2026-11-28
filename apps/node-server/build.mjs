@@ -54,7 +54,7 @@ await build({
   // `mysql2` cũng để ngoài: nó nạp driver theo nhánh lúc chạy nên gói vào là
   // esbuild kéo theo cả đống thứ không dùng — và server phải chạy được cả khi
   // KHÔNG có nó (không đặt MYSQL_URL thì `import()` không bao giờ chạy).
-  external: ['ws', 'mysql2', 'mysql2/promise'],
+  external: ['ws', 'mysql2', 'mysql2/promise', 'ioredis'],
   alias: { 'cloudflare:workers': './src/cf-shim.ts' },
   define: {
     Response: 'globalThis.__mmResponse',

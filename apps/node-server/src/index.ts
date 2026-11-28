@@ -1,4 +1,7 @@
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { createServer, request as httpRequest, type IncomingMessage, type ServerResponse } from 'node:http';
+import { connect as netConnect } from 'node:net';
+import type { Duplex } from 'node:stream';
+import { createHash } from 'node:crypto';
 import { readFile, stat, statfs } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { cpus, freemem, loadavg, totalmem, uptime as mayChayGiay } from 'node:os';
@@ -14,6 +17,7 @@ import { moThongBao, type ThongBao } from './thongbao.js';
 import { moSanh, type XemPhong } from './sanh.js';
 import { moTkThiDau, type TkThiDau } from './tk-thidau.js';
 import { moTkTen } from './tk-ten.js';
+import { moCum, type Cum } from './cum.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -34,9 +38,8 @@ import {
  * KHÁC bản Cloudflare ở hai chỗ, cố ý:
  *  - phòng nằm trong RAM, restart là mất hết phòng đang mở (bản CF giữ được qua
  *    hibernation). Với vai trò dự phòng thì đổi lại được: không cần hạ tầng gì.
- *  - một tiến trình giữ mọi phòng, nên KHÔNG chạy nhiều bản cùng lúc trên cùng
- *    một cổng mà không có gì chia phòng — hai tiến trình sẽ thấy hai tập phòng
- *    khác nhau và người chơi vào cùng mã lại ở hai phòng riêng.
+ *  - không REDIS_URL: một tiến trình giữ mọi phòng — KHÔNG chạy hai bản, chúng thấy hai tập phòng khác nhau.
+ *    Có REDIS_URL (28.11.2026): chạy NHIỀU pod, mỗi phòng một pod chủ, pod khác chuyển tiếp — xem cum.ts.
  */
 
 /* ---------- nối shim vào chỗ build đã thay tên (xem build.mjs) ---------- */
@@ -104,7 +107,7 @@ const sanh = moSanh({
     async taoPhongThiDau(soThe: number, n: number): Promise<string | null> {
       const cap = BOARD_SIZES.find((b) => b.pairs * 2 === soThe);
       if (!cap) return null;
-      const code = makeCode();
+      const code = await maMoi();
       await layPhong(code).room.openThiDau(code, cap.level, n);
       return code;
     }
@@ -113,7 +116,21 @@ const sanh = moSanh({
   diemTuanThiDau: async (ai) => (await taiKhoan?.diemTuan(ai)) ?? {},
   baoChoThiDau: (ten) => thongBao?.choThiDau(ten, () => sanh.thiDau().cho > 0),
   datPushThiDau: (token, bat) => thongBao?.datThiDau(token, bat),
-  xemPhong(ma: string): XemPhong | null {
+  async xemPhong(ma: string): Promise<XemPhong | null> {
+    const tai = xemPhongTaiCho(ma);
+    if (tai || !cum) return tai;
+    // Nhiều pod: phòng nằm ở pod khác → hỏi pod chủ qua đường nội bộ
+    const chu = await cum.chuCua(ma);
+    if (!chu || chu === 'toi') return null;
+    try {
+      const r = await fetch(`${chu.diaChi}/_noi/xem/${ma}`, { headers: { 'x-lt-noi': NOI_KEY }, signal: AbortSignal.timeout(3000) });
+      return r.ok ? (await r.json() as XemPhong | null) : null;
+    } catch { return null; }
+  }
+});
+
+/** Thông tin phòng cho sảnh, đọc từ RoomDO trong RAM của pod này. */
+function xemPhongTaiCho(ma: string): XemPhong | null {
     const r = (phongs.get(ma)?.room as unknown as { room?: PhongTho } | undefined)?.room;
     const chu = r?.players?.find((p) => p.id === r.hostId);
     if (!r || !chu) return null;
@@ -123,8 +140,7 @@ const sanh = moSanh({
       host: { ten: chu.name, mat: chu.avatar ?? '🙂', ...(chu.anh ? { anh: chu.anh } : {}), ...(chu.mau ? { mau: chu.mau } : {}) },
       nguoi: r.players?.length ?? 0, toiDa: ROOM_LIMITS.maxPlayers, soThe: cap ? cap.pairs * 2 : 0
     };
-  }
-});
+}
 
 /**
  * Sổ phòng công khai (ON-10) — ở Node chỉ là một Map.
@@ -150,17 +166,22 @@ let batBao = false;
  * `batBao` tắt lúc dựng lại nên vẫn không báo; phòng thử sống vài phút nên chuyện đó hầu như không gặp.
  */
 const phongThu = new Set<string>();
+/** Nhiều pod: sổ nằm ở Redis (chung cả cụm); một pod: Map trong RAM như cũ. Chọn lúc gọi vì `cum` mở sau (await). */
+const soGoc = (): typeof soPhongGoc => cum?.soPhong ?? soPhongGoc;
 const soPhong: typeof soPhongGoc = {
-  ...soPhongGoc,
-  async khai(phong) {
+  khai: async (phong) => {
     if (phongThu.has(phong.code)) return;
-    await soPhongGoc.khai(phong);
+    await soGoc().khai(phong);
     // Phòng ĐANG CHƠI cũng khai lên sổ (để người khác vào xem) — không phải "phòng mới" để báo
     if (batBao && thongBao && !phong.dangChoi && phong.nguoi < phong.toiDa) {
+      // Nhiều pod: phòng đổi pod (deploy / pod chết) thì pod mới khai lại — chỉ báo MỘT lần cho cả cụm
+      if (cum && !(await cum.lanDau('bao', phong.code, 6 * 3600))) return;
       thongBao.phongMoi(phong, async (code) =>
-        (await soPhongGoc.liet()).some((r) => r.code === code && !r.dangChoi && r.nguoi < r.toiDa));
+        (await soGoc().liet()).some((r) => r.code === code && !r.dangChoi && r.nguoi < r.toiDa));
     }
-  }
+  },
+  xoa: (code) => soGoc().xoa(code),
+  liet: () => soGoc().liet()
 };
 
 /**
@@ -174,7 +195,11 @@ function layPhong(code: string, banDau?: Record<string, unknown>): Phong {
   let p: Phong;
   const box = taoBoiCanh(
     () => p.room.alarm(),
-    () => { phongs.delete(code); phongThu.delete(code); },
+    () => {
+      phongs.delete(code); phongThu.delete(code);
+      // Nhiều pod: phòng đóng hẳn → thôi giữ mã, SAU khi lệnh đóng đã xuống MySQL (pod khác nạp nhầm phòng chưa đóng là sống lại)
+      if (cum && dangGiu.delete(code)) void (kho?.dayNgay() ?? Promise.resolve()).then(() => cum?.nha(code)).catch(() => undefined);
+    },
     kho ? {
       luu: (duLieu, alarmLuc) => kho!.ghi(code, duLieu, alarmLuc),
       dong: (lyDo) => kho!.dong(code, lyDo)
@@ -191,6 +216,146 @@ function layPhong(code: string, banDau?: Record<string, unknown>): Phong {
 /* ---------- WebSocket ---------- */
 
 const wss = new WebSocketServer({ noServer: true });
+
+/* ---------- NHIỀU POD (cum.ts) ---------- */
+
+/** Mở sau (await, cuối file). null = một pod, mọi đường đi y như cũ. */
+let cum: Cum | null = null;
+/** Mã các phòng pod này đang GIỮ (đã giành khoá + đã nạp). */
+const dangGiu = new Set<string>();
+/** Pod này đang giữ sảnh. */
+let sanhCuaToi = false;
+/** Đang nạp phòng từ MySQL — hai request cùng lúc cho một mã chỉ nạp một lần. */
+const dangNap = new Map<string, Promise<boolean>>();
+/** Khoá đường nội bộ giữa các pod (`/_noi/*`), suy từ AUTH_SECRET — mọi pod cùng .env nên cùng khoá. */
+const NOI_KEY = createHash('sha256').update(`lt-noi:${process.env.AUTH_SECRET ?? ''}`).digest('hex').slice(0, 32);
+
+/** Mã phòng mới: một pod thì bốc là xong; nhiều pod thì phải GIÀNH được khoá (chống hai pod cấp trùng mã). */
+async function maMoi(): Promise<string> {
+  for (let lan = 0; ; lan++) {
+    const code = makeCode();
+    if (!cum) return code;
+    if (phongs.has(code)) continue;
+    if (await cum.gianh(code)) { dangGiu.add(code); return code; }
+    if (lan > 20) throw new Error('không cấp được mã phòng');
+  }
+}
+
+/** Nạp phòng đã giành được khoá từ MySQL vào RAM. false = không có phòng đang sống mang mã này. */
+function napVe(code: string): Promise<boolean> {
+  const dang = dangNap.get(code);
+  if (dang) return dang;
+  const viec = (async () => {
+    const co = await kho?.napMot(code);
+    if (!co) return false;
+    if (cum && await cum.laThu(code)) phongThu.add(code);
+    const { box, room } = layPhong(code, co.duLieu);
+    dangGiu.add(code);
+    void box.ctx.storage.setAlarm(co.alarmLuc !== null ? Math.max(co.alarmLuc, Date.now()) : Date.now() + 1_000);
+    await room.chayTiepSauKhoiDong(Date.now()).catch((e) => console.error('[cum] chạy tiếp ván lỗi:', code, e));
+    console.log(`[cum] nhận phòng ${code}`);
+    return true;
+  })().finally(() => dangNap.delete(code));
+  dangNap.set(code, viec);
+  return viec;
+}
+
+type DuongDi = 'toi' | 'khong' | 'ban' | { diaChi: string };
+/**
+ * Phòng `code` được xử lý ở đâu: 'toi' (pod này) · { diaChi } (chuyển tiếp) · 'khong' (không có phòng) · 'ban'
+ * (đang chuyển chủ / pod đang tắt — client thử lại). `daChuyen`: request đã đi qua một pod rồi — không chuyển tiếp
+ * lần nữa (hai pod đá bóng qua lại khi khoá đang đổi chủ).
+ */
+async function duongDiPhong(code: string, daChuyen: boolean): Promise<DuongDi> {
+  if (!cum) return 'toi';
+  if (dangGiu.has(code) && phongs.has(code)) return 'toi';
+  for (let lan = 0; lan < 3; lan++) {
+    const chu = await cum.chuCua(code);
+    if (chu && chu !== 'toi') return daChuyen ? 'ban' : chu;
+    if (dangTat) return 'ban';
+    if (chu === 'toi' || await cum.gianh(code)) {
+      if (dangGiu.has(code) && phongs.has(code)) return 'toi';
+      if (await napVe(code)) return 'toi';
+      await cum.nha(code);
+      return 'khong';
+    }
+  }
+  return 'ban';
+}
+
+/** Sảnh nằm ở pod nào (cùng luật như một phòng, tên `sanh`). */
+async function duongDiSanh(daChuyen: boolean): Promise<Exclude<DuongDi, 'khong'>> {
+  if (!cum || sanhCuaToi) return 'toi';
+  for (let lan = 0; lan < 2; lan++) {
+    const chu = await cum.chuCua('sanh');
+    if (chu && chu !== 'toi') return daChuyen ? 'ban' : chu;
+    if (dangTat) return 'ban';
+    if (chu === 'toi' || await cum.gianh('sanh')) { sanhCuaToi = true; console.log('[cum] nhận sảnh'); return 'toi'; }
+  }
+  return 'ban';
+}
+
+/** Mất quyền giữ phòng (pod khác đã giành — pod này treo quá hạn): bỏ khỏi RAM NGAY, không ghi gì nữa. */
+function boPhong(code: string): void {
+  const p = phongs.get(code);
+  dangGiu.delete(code);
+  kho?.quen(code);
+  if (!p) return;
+  p.box.nha();
+  phongs.delete(code);
+  phongThu.delete(code);
+  for (const s of [...p.box.sockets]) { try { s.close(1012, 'restart'); } catch { /* đã đóng */ } }
+  console.log(`[cum] mất phòng ${code} — pod khác đã giữ`);
+}
+
+/** Quét phòng MỒ CÔI (pod giữ đã chết, chưa ai vào lại): giành về để đồng hồ / dọn phòng còn chạy. */
+async function quetMoCoi(): Promise<void> {
+  if (!cum || !kho || dangTat) return;
+  try {
+    for (const code of await kho.dsMa()) {
+      if (dangTat) return;
+      if (dangGiu.has(code)) continue;
+      if ((await cum.chuCua(code)) === null) await duongDiPhong(code, false);
+    }
+  } catch (e) { console.error('[cum] quét mồ côi lỗi:', (e as Error).message); }
+}
+
+const daChuyen = (req: IncomingMessage): boolean => !!req.headers['x-lt-chuyen'];
+
+/** Chuyển tiếp một request HTTP sang pod chủ (giữ nguyên Host / thân / header). */
+function chuyenHttp(req: IncomingMessage, res: ServerResponse, diaChi: string): void {
+  const u = new URL(req.url ?? '/', diaChi);
+  const di = httpRequest(u, { method: req.method, headers: { ...req.headers, 'x-lt-chuyen': cum?.pod ?? '1' } }, (ve) => {
+    res.writeHead(ve.statusCode ?? 502, ve.headers);
+    ve.pipe(res);
+  });
+  di.setTimeout(15_000, () => di.destroy(new Error('quá hạn')));
+  di.on('error', () => { if (!res.headersSent) json(res, { error: 'Máy chủ đang chuyển, thử lại' }, 503); else res.destroy(); });
+  req.pipe(di);
+}
+
+/** Chuyển tiếp một kết nối WebSocket (bắt tay + luồng hai chiều) sang pod chủ — TCP thô, không mở gói. */
+function chuyenWs(req: IncomingMessage, socket: Duplex, head: Buffer, diaChi: string): void {
+  const u = new URL(diaChi);
+  const di = netConnect(Number(u.port || 80), u.hostname, () => {
+    const dong = [`${req.method ?? 'GET'} ${req.url ?? '/'} HTTP/1.1`];
+    for (let i = 0; i < req.rawHeaders.length; i += 2) dong.push(`${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}`);
+    dong.push(`x-lt-chuyen: ${cum?.pod ?? '1'}`);
+    di.write(`${dong.join('\r\n')}\r\n\r\n`);
+    if (head.length) di.write(head);
+    di.pipe(socket);
+    socket.pipe(di);
+  });
+  di.setNoDelay(true);
+  const huy = (): void => { di.destroy(); socket.destroy(); };
+  di.on('error', huy); socket.on('error', huy);
+  di.on('close', () => socket.destroy()); socket.on('close', () => di.destroy());
+}
+
+/** Từ chối một bắt tay WebSocket bằng mã đóng (client hiểu: 4404 phòng không có, 1012 thử lại). */
+function tuChoiWs(req: IncomingMessage, socket: Duplex, head: Buffer, ma: number, lyDo: string): void {
+  wss.handleUpgrade(req, socket, head, (raw) => { try { raw.close(ma, lyDo); } catch { /* đã đóng */ } });
+}
 
 async function moKetNoi(code: string, url: URL, raw: WsSocket): Promise<void> {
   const { room, box } = layPhong(code);
@@ -481,6 +646,14 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
 
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
 
+  // Đường NỘI BỘ giữa các pod: phải có khoá, và KHÔNG BAO GIỜ đi qua tunnel (request ngoài luôn mang cf-connecting-ip)
+  if (url.pathname.startsWith('/_noi/')) {
+    if (!cum || req.headers['x-lt-noi'] !== NOI_KEY || req.headers['cf-connecting-ip']) { res.writeHead(404); res.end(); return; }
+    const m = url.pathname.match(/^\/_noi\/xem\/([0-9]{6})$/);
+    if (m) { json(res, xemPhongTaiCho(m[1]!)); return; }
+    res.writeHead(404); res.end(); return;
+  }
+
   /*
    * Danh sách phòng công khai (ON-10). PHẢI đứng TRƯỚC `/api/rooms/:code` —
    * cùng lý do như bản Cloudflare (xem apps/server/src/index.ts), và hai tầng
@@ -489,29 +662,58 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   if (url.pathname === '/api/rooms/public' && req.method === 'GET') {
     // Phòng ĐANG CHƠI chỉ cho client khai `?v=2` (client cũ vẽ nó như phòng còn chỗ) — PublicRoom.dangChoi
     const v2 = url.searchParams.get('v') === '2';
-    // `online` = số app đang nối sảnh (23.11.2026: ô Chơi online + màn Online hiện "N người đang online")
-    void soPhong.liet().then((rooms) => json(res, { rooms: rooms.filter((r) => v2 || !r.dangChoi), online: sanh.soKetNoi() }));
+    // `online` = số app đang nối sảnh (23.11.2026: ô Chơi online + màn Online hiện "N người đang online").
+    // Nhiều pod: pod giữ sảnh ghi số vào Redis mỗi nhịp, pod khác đọc từ đó.
+    void Promise.all([soPhong.liet(), cum && !sanhCuaToi ? cum.docOnline() : Promise.resolve(sanh.soKetNoi())])
+      .then(([rooms, online]) => json(res, { rooms: rooms.filter((r) => v2 || !r.dangChoi), online }))
+      .catch(() => json(res, { error: 'Lỗi server' }, 500));
     return;
   }
 
   // Tạo phòng (ON-01)
   if (url.pathname === '/api/rooms' && req.method === 'POST') {
-    const code = makeCode();
-    if (url.searchParams.get('thu') === '1') phongThu.add(code);
+    const thu = url.searchParams.get('thu') === '1';
     const tb = url.searchParams.get('tb');
-    if (tb && thongBao) thongBao.ghiChuPhong(code, tb);
-    void layPhong(code).room.open().then(() => json(res, { code }));
+    void (async () => {
+      if (dangTat) { json(res, { error: 'Máy chủ đang khởi động lại, thử lại' }, 503); return; }
+      const code = await maMoi();
+      if (thu) { phongThu.add(code); await cum?.datThu(code); }
+      if (tb && thongBao) thongBao.ghiChuPhong(code, tb);
+      await layPhong(code).room.open();
+      json(res, { code });
+    })().catch((e) => { console.error('[room] tạo phòng lỗi:', e); if (!res.headersSent) json(res, { error: 'Lỗi server' }, 500); });
     return;
   }
 
   // Kiểm mã trước khi mở WebSocket, để báo lỗi rõ thay vì socket đóng im lặng
   const kiem = url.pathname.match(/^\/api\/rooms\/([0-9]{6})$/);
   if (kiem && req.method === 'GET') {
-    void layPhong(kiem[1]!).room.exists().then((exists) => json(res, { exists }));
+    const code = kiem[1]!;
+    void duongDiPhong(code, daChuyen(req)).then((di) => {
+      if (di === 'khong') json(res, { exists: false });
+      else if (di === 'ban') json(res, { error: 'Máy chủ đang chuyển, thử lại' }, 503);
+      else if (di !== 'toi') chuyenHttp(req, res, di.diaChi);
+      else void layPhong(code).room.exists().then((exists) => json(res, { exists }));
+    }).catch(() => json(res, { error: 'Lỗi server' }, 500));
     return;
   }
 
-  if (url.pathname === '/health') { json(res, { ok: true, rooms: phongs.size }); return; }
+  if (url.pathname === '/health') { json(res, { ok: true, rooms: phongs.size, ...(cum ? { pod: cum.pod, giu: dangGiu.size, sanh: sanhCuaToi } : {}) }); return; }
+
+  // Nhiều pod: sảnh (mời người online) và BXH (cần trạng thái online của sảnh) chạy ở pod giữ sảnh
+  if (cum && (url.pathname.startsWith('/api/sanh/') || url.pathname === '/api/bxh')) {
+    void duongDiSanh(daChuyen(req)).then((di) => {
+      if (di === 'ban') json(res, { error: 'Máy chủ đang chuyển, thử lại' }, 503);
+      else if (di !== 'toi') chuyenHttp(req, res, di.diaChi);
+      else xuLyHttpTiep(req, res, url);
+    }).catch(() => json(res, { error: 'Lỗi server' }, 500));
+    return;
+  }
+  xuLyHttpTiep(req, res, url);
+});
+
+/** Phần còn lại của tầng HTTP (sau khi đã biết request thuộc pod này). */
+function xuLyHttpTiep(req: IncomingMessage, res: ServerResponse, url: URL): void {
 
   // Tự kiểm sâu cho giám sát (UptimeRobot): bản build, MySQL, ổ đĩa, RAM — lỗi thì 503 + ok:false. Xem `kiemSucKhoe`.
   // Sảnh (mời người online) — trước tầng tài khoản vì cùng tiền tố /api/
@@ -554,15 +756,36 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   // Tên miền server riêng (`<game>-api.*`) CHỈ là API: không phát web — web ở Worker tên game.
   if (/-api\./.test(url.hostname)) { json(res, { error: 'Không có đường này' }, 404); return; }
   void traFileTinh(url, res);
-});
+}
 
 server.on('upgrade', (req, socket, head) => {
   const url = docUrl(req);
   if (!url) { socket.destroy(); return; }
+  if (cum && url.pathname === '/ws/sanh') {
+    void duongDiSanh(daChuyen(req)).then((di) => {
+      if (di === 'ban') tuChoiWs(req, socket, head, 1012, 'restart');
+      else if (di !== 'toi') chuyenWs(req, socket, head, di.diaChi);
+      else if (!sanh.nhanUpgrade(req, url, socket, head)) socket.destroy();
+    }).catch(() => socket.destroy());
+    return;
+  }
   if (sanh.nhanUpgrade(req, url, socket, head)) return;
   const m = url.pathname.match(/^\/ws\/([0-9]{6})$/);
   if (!m) { socket.destroy(); return; }
   const code = m[1]!;
+  if (cum) {
+    void duongDiPhong(code, daChuyen(req)).then((di) => {
+      if (di === 'khong') tuChoiWs(req, socket, head, 4404, 'Phòng không tồn tại');
+      else if (di === 'ban') tuChoiWs(req, socket, head, 1012, 'restart');
+      else if (di !== 'toi') chuyenWs(req, socket, head, di.diaChi);
+      else vaoPhongTaiCho(req, socket, head, url, code);
+    }).catch(() => socket.destroy());
+    return;
+  }
+  vaoPhongTaiCho(req, socket, head, url, code);
+});
+
+function vaoPhongTaiCho(req: IncomingMessage, socket: Duplex, head: Buffer, url: URL, code: string): void {
   wss.handleUpgrade(req, socket, head, (raw) => {
     // room.ts đọc `code` từ query, giống bản Cloudflare nhét vào ở index.ts
     url.searchParams.set('code', code);
@@ -571,7 +794,7 @@ server.on('upgrade', (req, socket, head) => {
       try { raw.close(1011, 'lỗi server'); } catch { /* đã đóng */ }
     });
   });
-});
+}
 
 /* ---------- kho bền: phòng sống sót qua cập nhật ảnh ---------- */
 
@@ -639,12 +862,23 @@ for (const tin of ['SIGTERM', 'SIGINT'] as const) {
             // 1) DỪNG đồng hồ mọi ván đang chơi rồi lưu — pod mới dời mốc, không ai mất lượt vì deploy
             const luc = Date.now();
             await Promise.all([...phongs.values()].map((p) => p.room.dungDeKhoiDongLai(luc).catch(() => undefined)));
+            /*
+             * NHIỀU POD: GHI XONG rồi NHẢ mọi phòng + sảnh, TRƯỚC khi đóng socket — máy nối lại (0,5 giây) sang pod khác,
+             * pod đó giành khoá và nạp đúng bản vừa ghi. Đóng socket trước khi nhả là client đập vào khoá còn của pod
+             * đang tắt và phải chờ khoá hết hạn (15 giây).
+             */
+            if (cum) {
+              await (kho?.dayNgay() ?? Promise.resolve());
+              for (const code of [...dangGiu]) { phongs.get(code)?.box.nha(); await cum.nha(code).catch(() => undefined); }
+              if (sanhCuaToi) await cum.nha('sanh').catch(() => undefined);
+            }
             // 2) Báo NGAY mọi máy (1012 = server khởi động lại): client nối lại mỗi 0,5 giây thay
             //    vì phát hiện chậm qua nhịp tim (mạng di động hay giữ socket "chết mà vẫn mở")
             for (const c of wss.clients) { try { c.close(1012, 'restart'); } catch { /* đã đóng */ } }
             sanh.dong();
             // 3) Đẩy nốt phần đang chờ ghi xuống MySQL
             await (kho?.dongKho() ?? Promise.resolve());
+            await cum?.dong();
           })(),
           new Promise((r) => setTimeout(r, HAN_TAT_MS))
         ]);
@@ -676,7 +910,32 @@ tkThiDau = await moTkThiDau(kho?.pool ?? null, process.env).catch((e) => {
   console.error('[tk-thidau] không mở được:', (e as Error).message);
   return null;
 });
-await khoiPhuc();
+cum = await moCum(process.env.REDIS_URL, PORT).catch((e) => {
+  // Có REDIS_URL mà không nối được thì KHÔNG được chạy kiểu một pod: pod kia có thể đang giữ phòng → hai bản một phòng
+  console.error('[cum] không nối được Redis — dừng:', (e as Error).message);
+  process.exit(1);
+});
+if (cum && !kho) {
+  // Cụm mà pod này không có MySQL: nó không nạp/ghi được phòng của ai — chạy tiếp là giữ phòng trong RAM riêng
+  console.error('[cum] có REDIS_URL mà không có MySQL — dừng');
+  process.exit(1);
+}
+if (cum) {
+  // Không nạp hết phòng lúc khởi động: phòng thuộc pod đang giữ nó. Chỉ nhận phòng mồ côi (pod giữ đã chết),
+  // rồi quét lại định kỳ. Nhịp gia hạn khoá: mất khoá nào là bỏ phòng đó ngay.
+  cum.chayNhip(
+    () => [...dangGiu, ...(sanhCuaToi ? ['sanh'] : [])],
+    (ma) => {
+      if (ma === 'sanh') { sanhCuaToi = false; sanh.xaKetNoi(); console.log('[cum] mất sảnh — pod khác đã giữ'); }
+      else boPhong(ma);
+    },
+    () => { if (sanhCuaToi) void cum?.ghiOnline(sanh.soKetNoi()).catch(() => undefined); }
+  );
+  await quetMoCoi();
+  setInterval(() => void quetMoCoi(), 10_000).unref();
+} else {
+  await khoiPhuc();
+}
 batBao = true;
 
 server.listen(PORT, () => {

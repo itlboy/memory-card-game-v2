@@ -81,6 +81,8 @@ export interface Sanh {
   /** Số liệu thi đấu hiện thời cho `/api/ping`. */
   thiDau(): ReturnType<ThiDau['soLieu']>;
   dong(): void;
+  /** Nhiều pod: mất quyền giữ sảnh → đóng mọi kết nối (1012, app tự nối lại và được chuyển sang pod giữ mới). */
+  xaKetNoi(): void;
 }
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -101,7 +103,8 @@ const docTt = (v: unknown): TrangThai => (v === 'choi' || v === 'phong' ? v : 'c
 const tenSach = (v: unknown): string => tenAnToan(String(v ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16));
 
 export function moSanh(opts: {
-  xemPhong(ma: string): XemPhong | null; avatars: readonly string[]; now?: () => number;
+  /** Nhiều pod: phòng có thể ở pod khác → được phép trả Promise. */
+  xemPhong(ma: string): XemPhong | null | Promise<XemPhong | null>; avatars: readonly string[]; now?: () => number;
   /** Xác minh danh tính app gửi lên (phiên đăng nhập / mã khách) → khoá bảng xếp hạng, hoặc null. */
   xacDinh?(khach: unknown, token: unknown): string | null;
   /** Lập phòng thi đấu (thidau.ts) — thiếu thì tính năng thi đấu tắt. */
@@ -220,7 +223,7 @@ export function moSanh(opts: {
     const ma = String(b?.ma ?? '');
     const token = String(b?.token ?? '');
     if (!b || !/^\d{6}$/.test(ma) || !token) { json(res, { loi: 'sai' }, 400); return null; }
-    const p = opts.xemPhong(ma);
+    const p = await opts.xemPhong(ma);
     if (!p || p.hostToken !== token) { json(res, { loi: 'khongPhaiChu' }, 403); return null; }
     return { ma, p, b };
   }
@@ -311,6 +314,9 @@ export function moSanh(opts: {
       const k = sid ? ketNoi.get(sid) : undefined;
       if (!k || !k.nm) return null;
       return k.tt === 'phong' ? { ban: true } : { sid: k.sid, ban: false };
+    },
+    xaKetNoi() {
+      for (const k of ketNoi.values()) { try { k.ws.close(1012, 'restart'); } catch { /* đã đóng */ } }
     },
     dong() {
       clearInterval(nhipTim); clearInterval(nhipTd); td?.dong();

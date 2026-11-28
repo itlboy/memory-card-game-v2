@@ -137,6 +137,11 @@ export interface RoomBox {
   autoResponse: MmRequestResponsePair | null;
   sockets: Set<MmSocket>;
   alarmTimer: ReturnType<typeof setTimeout> | null;
+  /**
+   * NHẢ phòng cho pod khác (nhiều pod, cum.ts): tắt đồng hồ, thôi ghi kho — KHÔNG đóng phòng. Sau lệnh này mọi
+   * `put`/`setAlarm` của RoomDO còn chạy dở đều bị bỏ qua: pod kia đã nạp bản trong MySQL và là chủ duy nhất.
+   */
+  nha(): void;
 }
 
 /**
@@ -181,10 +186,17 @@ export function taoBoiCanh(
    */
   let daDep = false;
   const luu = (): void => { if (!daDep) moc?.luu(Object.fromEntries(kho), alarmLuc); };
+  // `daDep` cũng là cờ của lần NHẢ: cùng hệ quả (không ghi, không hẹn), chỉ khác là KHÔNG báo kho đóng phòng.
   const box: RoomBox = {
     autoResponse: null,
     sockets: new Set(),
     alarmTimer: null,
+    nha() {
+      daDep = true;
+      if (box.alarmTimer) clearTimeout(box.alarmTimer);
+      box.alarmTimer = null;
+      alarmLuc = null;
+    },
     ctx: {
       storage: {
         get: async <T>(k: string) => kho.get(k) as T | undefined,

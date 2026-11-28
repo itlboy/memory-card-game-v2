@@ -36,6 +36,14 @@ export interface Kho {
   dong(code: string, lyDo: string): void;
   /** Đẩy nốt phần đang chờ rồi đóng kết nối — gọi khi server tắt. */
   dongKho(): Promise<void>;
+  /** NHIỀU POD (cum.ts): nạp MỘT phòng đang sống — pod vừa nhận quyền giữ phòng. null = không có / đã đóng. */
+  napMot(code: string): Promise<{ duLieu: DuLieuPhong; alarmLuc: number | null } | null>;
+  /** NHIỀU POD: mã mọi phòng đang sống (quét phòng mồ côi). */
+  dsMa(): Promise<string[]>;
+  /** NHIỀU POD: đẩy ngay phần đang chờ ghi (trước khi nhả phòng cho pod khác). */
+  dayNgay(): Promise<void>;
+  /** NHIỀU POD: quên id của mã (phòng đã nhả) — pod khác có thể đóng phòng rồi mã được cấp lại. */
+  quen(code: string): void;
   /** Pool dùng chung cho tầng tài khoản (taikhoan.ts) — cùng database, cùng vòng đời. */
   pool: Pool;
 }
@@ -236,6 +244,11 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     pool = createPool({ uri: url, connectionLimit: 4, waitForConnections: true });
     const c = await pool.getConnection();
     try {
+      /*
+       * NHIỀU POD (28.11.2026): hai pod khởi động cùng lúc chạy vá cột CHỒNG nhau — pod chậm hơn đập "Duplicate column"
+       * và rơi về chạy bằng RAM (đo được ở smoke-cum trên database mới). Khoá tên của MariaDB: pod sau chờ pod trước xong.
+       */
+      await c.query("SELECT GET_LOCK('lt_kho_mo', 60)");
       // Tuần tự: room_players/room_themes/matches có khoá ngoại trỏ vào rooms.
       for (const cau of TAO_BANG) await c.query(cau);
       for (const [bang, cu, moi, dinhNghia] of DOI_TEN_COT) {
@@ -261,7 +274,11 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
           console.log(`[kho] vá cột thiếu: ${bang}.${cot}`);
         }
       }
-    } finally { c.release(); }
+    } finally {
+      // Khoá tên gắn với PHIÊN, mà kết nối quay về pool chứ không đóng → phải nhả tay, không thì giữ tới khi pool đóng
+      await c.query("SELECT RELEASE_LOCK('lt_kho_mo')").catch(() => undefined);
+      c.release();
+    }
   } catch (e) {
     console.error('[kho] không mở được MySQL, chạy tiếp bằng RAM:', (e as Error).message);
     return null;
@@ -590,6 +607,76 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     series_wins?: number | null;
   }
 
+  /** Nạp phòng đang sống (mọi phòng, hoặc đúng một mã) vào `ra`. Ném lỗi khi database hỏng — nơi gọi quyết định. */
+  async function nap(ra: Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null }>, chiMa?: string): Promise<void> {
+    const loc = chiMa ? ' AND r.code = ?' : '';
+    const ts = chiMa ? [chiMa] : [];
+    const [rows] = await pool.query(`SELECT r.* FROM rooms r WHERE r.closed_at = 0${loc}`, ts);
+    const [prows] = await pool.query(
+      `SELECT p.* FROM room_players p JOIN rooms r ON r.id = p.room_id
+       WHERE r.closed_at = 0 AND p.left_at = 0${loc} ORDER BY p.room_id, p.seat`, ts
+    );
+    const [trows] = await pool.query(
+      `SELECT t.room_id, t.theme_id FROM room_themes t JOIN rooms r ON r.id = t.room_id
+       WHERE r.closed_at = 0${loc}`, ts
+    );
+    const nguoiTheoPhong = new Map<number, Record<string, unknown>[]>();
+    for (const p of prows as DongNguoiChoi[]) {
+      const ds = nguoiTheoPhong.get(p.room_id) ?? [];
+      ds.push({
+        id: p.player_id, name: p.name, token: p.token ?? '',
+        ready: !!p.is_ready,
+        // `null` chứ không phải `undefined`: room.ts so `=== null` để biết
+        // ai đang kết nối.
+        disconnectedAt: p.disconnected_at === null ? null : Number(p.disconnected_at),
+        ...(p.avatar ? { avatar: p.avatar } : {}),
+        ...(p.bot_level ? { may: p.bot_level } : {}),
+        // Số đội 1–4 lưu dạng CHAR(1); 'A'/'B' là phòng lưu từ bản 1.7 — room.ts `chuanDoi` đổi sang số
+        ...(p.team ? { doi: /^[1-4]$/.test(p.team) ? Number(p.team) : p.team } : {}),
+        ...(p.series_wins ? { thang: Number(p.series_wins) } : {}),
+        ...(p.last_seen === null ? {} : { lastSeen: Number(p.last_seen) })
+      });
+      nguoiTheoPhong.set(p.room_id, ds);
+    }
+    const themeTheoPhong = new Map<number, string[]>();
+    for (const t of trows as { room_id: number; theme_id: string }[]) {
+      const ds = themeTheoPhong.get(t.room_id) ?? [];
+      ds.push(t.theme_id);
+      themeTheoPhong.set(t.room_id, ds);
+    }
+    for (const r of rows as DongPhong[]) {
+      const id = Number(r.id);
+      idCuaMa.set(r.code, id);
+      const duLieu: DuLieuPhong = {
+        // Cờ này là thứ `exists()` đọc để biết mã phòng có thật — thiếu nó
+        // thì phòng khôi phục xong bị coi như không tồn tại.
+        created: true,
+        openedAt: Number(r.opened_at),
+        room: {
+          code: r.code,
+          hostId: r.host_id ?? '',
+          status: r.status,
+          congKhai: !!r.is_public,
+          config: {
+            level: Number(r.level),
+            themeIds: themeTheoPhong.get(id) ?? [],
+            options: {
+              time: Number(r.opt_time), lives: Number(r.opt_lives),
+              peek: Number(r.opt_peek), shuffle: Number(r.opt_shuffle),
+              special: Number(r.opt_special)
+            },
+            ...(Number(r.team_mode) ? { doi: true } : {})
+          },
+          players: nguoiTheoPhong.get(id) ?? [],
+          ...(r.countdown_end === null ? {} : { countdownEnd: Number(r.countdown_end) }),
+          ...(r.empty_at === null ? {} : { emptyAt: Number(r.empty_at) })
+        }
+      };
+      if (r.game_state !== null) duLieu.game = r.game_state;
+      ra.set(r.code, { duLieu, alarmLuc: r.alarm_at === null ? null : Number(r.alarm_at) });
+    }
+  }
+
   return {
     pool,
     /**
@@ -604,70 +691,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     async napTatCa() {
       const ra = new Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null }>();
       try {
-        const [rows] = await pool.query('SELECT * FROM rooms WHERE closed_at = 0');
-        const [prows] = await pool.query(
-          `SELECT p.* FROM room_players p JOIN rooms r ON r.id = p.room_id
-           WHERE r.closed_at = 0 AND p.left_at = 0 ORDER BY p.room_id, p.seat`
-        );
-        const [trows] = await pool.query(
-          `SELECT t.room_id, t.theme_id FROM room_themes t JOIN rooms r ON r.id = t.room_id
-           WHERE r.closed_at = 0`
-        );
-        const nguoiTheoPhong = new Map<number, Record<string, unknown>[]>();
-        for (const p of prows as DongNguoiChoi[]) {
-          const ds = nguoiTheoPhong.get(p.room_id) ?? [];
-          ds.push({
-            id: p.player_id, name: p.name, token: p.token ?? '',
-            ready: !!p.is_ready,
-            // `null` chứ không phải `undefined`: room.ts so `=== null` để biết
-            // ai đang kết nối.
-            disconnectedAt: p.disconnected_at === null ? null : Number(p.disconnected_at),
-            ...(p.avatar ? { avatar: p.avatar } : {}),
-            ...(p.bot_level ? { may: p.bot_level } : {}),
-            // Số đội 1–4 lưu dạng CHAR(1); 'A'/'B' là phòng lưu từ bản 1.7 — room.ts `chuanDoi` đổi sang số
-            ...(p.team ? { doi: /^[1-4]$/.test(p.team) ? Number(p.team) : p.team } : {}),
-            ...(p.series_wins ? { thang: Number(p.series_wins) } : {}),
-            ...(p.last_seen === null ? {} : { lastSeen: Number(p.last_seen) })
-          });
-          nguoiTheoPhong.set(p.room_id, ds);
-        }
-        const themeTheoPhong = new Map<number, string[]>();
-        for (const t of trows as { room_id: number; theme_id: string }[]) {
-          const ds = themeTheoPhong.get(t.room_id) ?? [];
-          ds.push(t.theme_id);
-          themeTheoPhong.set(t.room_id, ds);
-        }
-        for (const r of rows as DongPhong[]) {
-          const id = Number(r.id);
-          idCuaMa.set(r.code, id);
-          const duLieu: DuLieuPhong = {
-            // Cờ này là thứ `exists()` đọc để biết mã phòng có thật — thiếu nó
-            // thì phòng khôi phục xong bị coi như không tồn tại.
-            created: true,
-            openedAt: Number(r.opened_at),
-            room: {
-              code: r.code,
-              hostId: r.host_id ?? '',
-              status: r.status,
-              congKhai: !!r.is_public,
-              config: {
-                level: Number(r.level),
-                themeIds: themeTheoPhong.get(id) ?? [],
-                options: {
-                  time: Number(r.opt_time), lives: Number(r.opt_lives),
-                  peek: Number(r.opt_peek), shuffle: Number(r.opt_shuffle),
-                  special: Number(r.opt_special)
-                },
-                ...(Number(r.team_mode) ? { doi: true } : {})
-              },
-              players: nguoiTheoPhong.get(id) ?? [],
-              ...(r.countdown_end === null ? {} : { countdownEnd: Number(r.countdown_end) }),
-              ...(r.empty_at === null ? {} : { emptyAt: Number(r.empty_at) })
-            }
-          };
-          if (r.game_state !== null) duLieu.game = r.game_state;
-          ra.set(r.code, { duLieu, alarmLuc: r.alarm_at === null ? null : Number(r.alarm_at) });
-        }
+        await nap(ra);
         // Dọn phòng đã đóng lâu. Xoá mềm mà không dọn thì bảng phình mãi:
         // room_players và room_themes đi theo nhờ ON DELETE CASCADE, còn
         // `matches` thì KHÔNG — lịch sử ván đấu nhẹ và đáng giữ lâu hơn.
@@ -682,6 +706,23 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
       }
       return ra;
     },
+    async napMot(code) {
+      const ra = new Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null }>();
+      await nap(ra, code);
+      return ra.get(code) ?? null;
+    },
+    async dsMa() {
+      const [rows] = await pool.query('SELECT code FROM rooms WHERE closed_at = 0');
+      return (rows as { code: string }[]).map((r) => r.code);
+    },
+    async dayNgay() {
+      clearTimeout(hen);
+      hen = undefined;
+      await dangGhi;
+      dangGhi = day();
+      await dangGhi;
+    },
+    quen(code) { idCuaMa.delete(code); },
     ghi(code, duLieu, alarmLuc) { cho.set(code, { duLieu, alarmLuc }); henGhi(); },
     dong(code, lyDo) { cho.set(code, { dong: lyDo }); henGhi(); },
     async dongKho() {

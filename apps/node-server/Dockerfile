@@ -33,7 +33,7 @@ RUN pnpm --filter @mm/web build && pnpm --filter @mm/node-server build
 # Nhờ vậy ảnh cuối KHÔNG còn lệnh RUN nào — arm64 chỉ là mấy lớp COPY.
 # `mysql2` cùng đường với `ws`: để external nên phải có thật trong ảnh chạy.
 # Nó là JS thuần (không có phần biên dịch) nên cài ở tầng build rồi COPY sang.
-RUN mkdir /deps && cd /deps && npm i --omit=dev ws@8 mysql2@3 --silent
+RUN mkdir /deps && cd /deps && npm i --omit=dev ws@8 mysql2@3 ioredis@5.4.1 --silent
 
 # ẢNH NHỎ KHI ĐỔI — thay pod nhanh (18.10.2026). Đo trên k8s: mỗi lần thay pod phải TẢI LẠI
 # 143MB trong ~13 giây, SAU khi pod cũ đã tắt (`Recreate`) — 13 giây phòng online đứt, mà
