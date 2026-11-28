@@ -38,6 +38,8 @@ import { dangDebug } from './lib/debug';
 import { canh } from './lib/canh';
 import HoSoDialog from './components/HoSoDialog.vue';
 import { laCong } from './lib/nen-fb';
+import { baoNoi } from './lib/dai-bao';
+import DaiBao from './components/DaiBao.vue';
 import BaoLoiDialog from './components/BaoLoiDialog.vue';
 import { ghiManGanNhat, type NoiBl } from './lib/bao-loi';
 import { guiHoSo } from '@/lib/taikhoan';
@@ -103,7 +105,7 @@ import { nhac, BAI_NHAC, BAI_PREMIUM, baiChoiDuoc, laBaiNhac, type BaiNhac } fro
 import { useViewportLock } from './composables/useViewportLock';
 import { diemVuaCong, ngayMay, store, type SoundLevel } from './lib/storage';
 import { loadThemes, type CardTheme } from './lib/themes';
-import { batChiNutPremium, choiDuoc, daMuaPremium, hienPremium, hienVienPremium, kiemHetHanTang, tangTuDong, yeuCauPremium, type NoiMoPremium } from './lib/premium';
+import { batChiNutPremium, choiDuoc, daMuaPremium, hienPremium, hienVienPremium, kiemHetHanTang, ngayConLai, tangTuDong, yeuCauPremium, type NoiMoPremium } from './lib/premium';
 
 const prefs = store.prefs();
 /*
@@ -822,7 +824,9 @@ function ghiTrangThaiPremium(): void {
 function thuTangLuon(): void {
   if (!hoSo.value.xong || !tangTuDong()) return;
   moChucNang('premium_tang_tu_dong');
-  if (laCong) return;   // bản cổng game: vẫn tặng, nhưng không phủ bảng lên menu — cổng chấm "vào ván trong ≤ 1 cú bấm"
+  // Bản cổng game: vẫn tặng, nhưng KHÔNG phủ bảng lên menu (cổng chấm "vào ván trong ≤ 1 cú bấm") — báo bằng dải nổi trên cùng,
+  // tự tắt sau 5 giây, không chặn bấm (28.11.2026, chủ dự án: "cho bên cổng"). Chữ dùng lại hai câu đã dịch của bảng Premium.
+  if (laCong) { baoNoi({ loai: 'tot', ic: 'chuPhong', chu: `${t('pm.qua.tieuDe')} ${t('pm.b.con', { n: ngayConLai() })}`, ms: 5000 }); return; }
   premiumTu.value = 'qua'; showPremium.value = true;
 }
 watch(() => hoSo.value.xong, (x) => { if (x) thuTangLuon(); });
@@ -1477,6 +1481,8 @@ const hasNext = computed(() => {
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <BaoLoiDialog v-if="showBaoLoi" @xong="showBaoLoi = false" />
+  <!-- Dải báo chung ngoài màn online — chỉ bản cổng game cần (báo quà Premium); màn online tự gắn bản của nó, đừng gắn hai bản cùng lúc -->
+  <DaiBao v-if="laCong && screen !== 'online'" />
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />
 

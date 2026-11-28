@@ -26,6 +26,8 @@ export interface Bao {
   khoa?: string;
   /** Đứng yên tới khi `boBao(khoa)` — chỉ dùng cho tin mạng. */
   giu?: boolean;
+  /** Hiện bao lâu (ms) — mặc định 3 giây. */
+  ms?: number;
   /** Số thứ tự để vẽ lại hiệu ứng vào. */
   so?: number;
 }
@@ -42,7 +44,7 @@ function chay(): void {
   clearTimeout(hen);
   const ke = hang.shift() ?? null;
   baoHien.value = ke;
-  if (ke && !ke.giu) hen = setTimeout(chay, HIEN_MS);
+  if (ke && !ke.giu) hen = setTimeout(chay, ke.ms ?? HIEN_MS);
 }
 
 /** Đưa một tin lên dải. Tin đang hiện là tin `giu` mà tin mới không phải mạng thì vẫn chen lên trước. */
@@ -51,7 +53,7 @@ export function baoNoi(b: Bao): void {
   if (b.khoa) {
     const i = hang.findIndex((x) => x.khoa === b.khoa);
     if (i >= 0) hang.splice(i, 1);
-    if (baoHien.value?.khoa === b.khoa) { baoHien.value = moi; clearTimeout(hen); if (!b.giu) hen = setTimeout(chay, HIEN_MS); return; }
+    if (baoHien.value?.khoa === b.khoa) { baoHien.value = moi; clearTimeout(hen); if (!b.giu) hen = setTimeout(chay, moi.ms ?? HIEN_MS); return; }
   }
   // Tin CẦN BẠN LÀM (nhắc) và tin MẠNG chen lên NGAY — xếp hàng sau "X vừa vào…" là tới lúc hiện thì đã
   // lỡ việc (đo thật 19.11.2026: lời nhắc hiện ra khi người kia đã bấm Sẵn sàng rồi). Tin đang hiện bị thay.
@@ -60,7 +62,7 @@ export function baoNoi(b: Bao): void {
     // Tin mạng đang đứng: tin mới hiện đè, xong 3 giây thì tin mạng quay lại (nếu còn)
     if (baoHien.value?.giu) hang.unshift(baoHien.value);
     baoHien.value = moi; clearTimeout(hen);
-    if (!moi.giu) hen = setTimeout(chay, HIEN_MS);
+    if (!moi.giu) hen = setTimeout(chay, moi.ms ?? HIEN_MS);
     return;
   }
   hang.push(moi);

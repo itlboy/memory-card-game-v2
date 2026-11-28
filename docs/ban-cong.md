@@ -54,6 +54,10 @@ lớp phủ fixed, Teleport, media query) thấy đúng một màn cao như đi�
 (toàn màn hình, điện thoại dọc) thì tỉ lệ 1. BẪY: đừng thu bằng transform trên `#app` — hộp thoại Teleport ra body và đơn
 vị vh sẽ lệch. Gắn SDK cổng sau này: SDK ở trang vỏ, nói với game qua `postMessage`.
 
+Premium tặng 1 tháng VẪN TẶNG ở bản cổng (28.11.2026, chủ dự án: "cho bên cổng"), nhưng báo bằng dải nổi trên cùng 5 giây
+(`DaiBao` gắn ở App chỉ khi `laCong` và không ở màn online) thay vì phủ bảng. **Khi Premium có nút MUA thật: bản cổng phải ẩn
+nút mua** — CrazyGames chỉ cho mua trong game qua SDK của họ.
+
 Cũng ở bản cổng: không màn chào (tự đặt tên ngẫu nhiên + avatar, `lib/ho-so.ts` `tuDatHoSoCong`), bảng Premium tặng
 không tự phủ lên menu — vào ván được trong một cú bấm.
 
