@@ -68,7 +68,8 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
       </div>
 
       <p class="ma-lon">{{ code }}</p>
-      <p class="giai-thich">{{ t('cs.giaiThich') }}</p>
+      <!-- Bản cổng game (không link/QR): câu "quét mã" không đúng nữa — mã to + nút Copy mã tự đủ nghĩa -->
+      <p v-if="link" class="giai-thich">{{ t('cs.giaiThich') }}</p>
 
       <div class="nut">
         <button class="btn" type="button" @click="copy(code, 'ma')">

@@ -27,6 +27,7 @@ import { num } from '@/lib/format';
 import { GIA_TAM, NGAY_DUNG_THU, NGAY_TANG, huyHieu, conDungThu, conQuaTang, cuaHangThat, coMua, daMuaPremium, giaThat, goiDangCo, huyGoiThu, khoiPhucMua, maPremium, muaGoi, ngayConLai, nhanQuaTang, TINH_NANG_PREMIUM, type Goi, type NoiMoPremium } from '@/lib/premium';
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { SITE_URL, nenApp } from '@/lib/native';
+import { tn } from '@/lib/nen-fb';
 
 /** `nhacHien`: chữ hiện ở dòng cài đặt "Nhạc nền" (Tắt · Ngẫu nhiên · tên bài) — trạng thái nhạc nằm ở App.vue. */
 /** `nhacDang`: bài đang phát ở trang chủ (null = nhạc tắt) — nghe thử ở slide Nhạc xong thì trả lại đúng bài này. */
@@ -88,7 +89,7 @@ function vuotBatDau(e: PointerEvent): void { x0 = e.clientX; }
 function vuotXong(e: PointerEvent): void { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 30) denSlide(slideI.value + (dx < 0 ? 1 : -1)); }
 const toi = typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
 const ANH_NEN = ['anh-dao-sang', 'anh-dao-toi', 'thien-ha-sang', 'thien-ha-toi'] as const;
-const anhNen = (a: string): string => `/img/pm/${a}-${ngonNgu.value === 'vi' ? 'vi' : 'en'}.jpg`;
+const anhNen = (a: string): string => tn(`/img/pm/${a}-${ngonNgu.value === 'vi' ? 'vi' : 'en'}.jpg`);   // tn: bản nhúng đi đường dẫn tương đối
 const LUNG_TH = ['ht-moc', 'ht-dat', 'ht-troi'] as const;
 const LUNG_AD = ['ad-nui', 'ad-hoa', 'ad-den'] as const;
 const LA_VT = [{ x: 36, y: 66, g: -18 }, { x: 76, y: 50, g: -6 }, { x: 116, y: 44, g: 6 }, { x: 192, y: 44, g: -6 }, { x: 232, y: 50, g: 6 }, { x: 272, y: 66, g: 18 }];
