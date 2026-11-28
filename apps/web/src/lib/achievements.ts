@@ -2,7 +2,7 @@ import { BOARD_SIZES, CAMPAIGN_LEVELS, doiDanhHieu } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
 import { computed, ref } from 'vue';
 import { store } from './storage';
-import { td } from './i18n';
+import { ngonNgu, td } from './i18n';
 import type { BacDanhHieu } from './ketcuc-fx';
 
 /**
@@ -48,6 +48,12 @@ export interface ThongKe {
   campaignMax: number;
   /** Số màn Chiến dịch đạt 3 sao. */
   stars3: number;
+  /** Tổng số ván THẮNG không lật sai (mọi cỡ bàn) — đếm từ 28.11.2026. */
+  hoanHao: number;
+  /** Tổng số NGÀY khác nhau có chơi — đếm từ 28.11.2026, khởi đầu bằng chuỗi dài nhất đã có. */
+  soNgay: number;
+  /** Tổng số ván đã chơi xong trên máy (đếm từ 19.11.2026). */
+  soVan: number;
 }
 
 export type NhomId =
@@ -102,6 +108,44 @@ function dh(o: Omit<Achievement, 'name' | 'hint'> & { k?: string; p?: () => Tham
   });
 }
 
+/*
+ * MỐC DÀY CHO NGƯỜI CHƠI LÂU NĂM (28.11.2026, chủ dự án: "nhiều người chơi gần 1 triệu điểm rồi, họ sẽ không có danh hiệu mới… dày hơn").
+ * Mỗi dãy là các mốc của một bộ đếm; mốc ĐÃ CÓ từ trước giữ nguyên id + khoá dịch (người chơi đã mở), mốc MỚI dùng khoá dịch có
+ * tham số `{n}`. Bậc huy hiệu mốc mới theo NGƯỠNG từng dãy (`NGUONG`).
+ * Thêm mốc = thêm số vào dãy (id `<tiền tố>-<số>` phải khớp /^[a-z0-9-]{1,32}$/ — server lọc như vậy).
+ */
+const DAY_THANG = [10, 25, 50, 100, 200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 10000] as const;
+const DAY_DIEM = [10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 750_000, 1_000_000, 1_250_000, 1_500_000, 2_000_000,
+  2_500_000, 3_000_000, 4_000_000, 5_000_000, 7_500_000, 10_000_000, 15_000_000, 20_000_000, 50_000_000] as const;
+const DIEM_CU: Record<number, string> = { 10_000: '10k', 100_000: '100k', 1_000_000: '1m', 10_000_000: '10m' };
+const DAY_ONLINE = [10, 25, 50, 100, 200, 300, 500, 1000] as const;
+const DAY_MAY = [10, 25, 50, 100, 200, 500, 1000] as const;
+const DAY_HOAN_HAO = [5, 10, 25, 50, 100, 250, 500] as const;
+const DAY_CHUOI = [3, 7, 14, 30, 50, 60, 100, 150, 200, 365] as const;
+const DAY_SO_NGAY = [7, 14, 30, 60, 100, 150, 200, 300, 365, 500] as const;
+const DAY_SO_VAN = [50, 100, 250, 500, 1000, 2500, 5000, 10000] as const;
+/**
+ * Bậc theo NGƯỠNG GIÁ TRỊ của từng dãy (không theo vị trí — chia theo vị trí thì 250k ra Đồng trong khi 100k cũ là Bạc).
+ * Ngưỡng chọn để mốc CŨ giữ đúng bậc đã có: điểm 100k/1tr Bạc, 10tr Vàng; thắng 50/100 Bạc, 500 Vàng; online 10 Bạc, 50 Vàng;
+ * chuỗi ngày 7 Bạc, 30 Vàng.
+ */
+const NGUONG: Record<string, readonly [bac: number, vang: number]> = {
+  wins: [50, 500], score: [100_000, 7_500_000], online: [10, 50], 'bot-wins': [10, 200],
+  'hoan-hao': [25, 250], days: [7, 30], 'so-ngay': [30, 200], 'so-van': [250, 5000]
+};
+const BAC_DAY = new Map<string, BacDanhHieu>();
+function bacTheoMoc(id: string, day: keyof typeof NGUONG, n: number): string {
+  const [bac, vang] = NGUONG[day]!;
+  BAC_DAY.set(id, n >= vang ? 'vang' : n >= bac ? 'bac' : 'dong');
+  return id;
+}
+/** Số gọn theo ngôn ngữ đang chọn: "1,5 triệu" · "1.5 million" · "150万". */
+const soGon = (n: number): string => {
+  try { return new Intl.NumberFormat(ngonNgu.value, { notation: 'compact', compactDisplay: 'long', maximumFractionDigits: 2 }).format(n); } catch { return String(n); }
+};
+/** Số đầy đủ có dấu phân cách theo ngôn ngữ: "1.500.000" · "1,500,000". */
+const soDu = (n: number): string => { try { return new Intl.NumberFormat(ngonNgu.value).format(n); } catch { return String(n); } };
+
 export const ACHIEVEMENTS: Achievement[] = [
   // --- nhập môn ---
   dh({ id: 'first-win', nhom: 'nhap-mon', chinhPhuc: { cells: 6 } }),
@@ -115,6 +159,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   // --- cỡ bàn: thắng + thắng không sai ---
   ...CO_BAN.map((c) => dh({ id: `board-${c}`, k: 'board', p: () => ({ n: c }), nhom: 'ban', chinhPhuc: { cells: c } })),
   ...CO_BAN.map((c) => dh({ id: `perfect-${c}`, k: 'perfect', p: () => ({ n: c }), nhom: 'hoan-hao', chinhPhuc: { cells: c } })),
+  // Tổng số ván hoàn hảo (mọi cỡ bàn) — bộ đếm có từ 28.11.2026
+  ...DAY_HOAN_HAO.map((n) => dh({
+    id: bacTheoMoc(`hoan-hao-${n}`, 'hoan-hao', n), k: 'hoan-hao-n', p: () => ({ n: soDu(n) }), nhom: 'hoan-hao',
+    chinhPhuc: { cells: 12 }, tienDo: (t) => [t.hoanHao, n]
+  })),
 
   // --- luật bàn ---
   dh({ id: 'survivor', nhom: 'luat', chinhPhuc: { cells: BAN_VUA, options: { lives: 2 } } }),
@@ -132,17 +181,22 @@ export const ACHIEVEMENTS: Achievement[] = [
   dh({ id: 'bot-divine', nhom: 'may', chinhPhuc: { cells: 36, bot: 'divine' } }),
   dh({ id: 'divine-56', nhom: 'may', chinhPhuc: { cells: 56, bot: 'divine' } }),
   dh({ id: 'divine-88', nhom: 'may', chinhPhuc: { cells: 88, bot: 'divine' } }),
-  dh({ id: 'bot-wins-10', nhom: 'may', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, tienDo: (t) => [t.botWins, 10] }),
+  ...DAY_MAY.map((n) => (n === 10
+    ? dh({ id: 'bot-wins-10', nhom: 'may', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, tienDo: (t) => [t.botWins, 10] })
+    : dh({ id: bacTheoMoc(`bot-wins-${n}`, 'bot-wins', n), k: 'bot-wins-n', p: () => ({ n: soDu(n) }), nhom: 'may', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, tienDo: (t) => [t.botWins, n] }))),
 
   // --- số ván thắng ---
-  ...([10, 50, 100, 500] as const).map((n) => dh({
-    id: `wins-${n}`, k: 'wins', p: () => ({ n }), nhom: 'thang', chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.wins, n]
+  ...DAY_THANG.map((n) => dh({
+    id: bacTheoMoc(`wins-${n}`, 'wins', n), k: 'wins', p: () => ({ n: soDu(n) }), nhom: 'thang', chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.wins, n]
   })),
 
   // --- tổng điểm ---
-  ...([[10_000, '10k'], [100_000, '100k'], [1_000_000, '1m'], [10_000_000, '10m']] as const).map(([n, ma]) => dh({
-    id: `score-${ma}`, nhom: 'diem', chinhPhuc: { cells: 36 }, tienDo: (t) => [t.totalScore, n]
-  })),
+  ...DAY_DIEM.map((n) => DIEM_CU[n]
+    ? dh({ id: `score-${DIEM_CU[n]}`, nhom: 'diem', chinhPhuc: { cells: 36 }, tienDo: (t) => [t.totalScore, n] })
+    : dh({
+      id: bacTheoMoc(`score-${n}`, 'score', n), k: 'score', p: () => ({ n: soGon(n), so: soDu(n) }), nhom: 'diem',
+      chinhPhuc: { cells: 36 }, tienDo: (t) => [t.totalScore, n]
+    })),
 
   // --- chiến dịch ---
   // Mốc 5 màn một, mốc cuối là HẾT chiến dịch. Khoá chữ 'campaign-50' giữ tên cũ
@@ -158,8 +212,9 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // --- online ---
   dh({ id: 'online-win', nhom: 'online', chinhPhuc: { online: true } }),
-  dh({ id: 'online-10', nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, 10] }),
-  dh({ id: 'online-50', nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, 50] }),
+  ...DAY_ONLINE.map((n) => (n === 10 || n === 50
+    ? dh({ id: `online-${n}`, nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, n] })
+    : dh({ id: bacTheoMoc(`online-${n}`, 'online', n), k: 'online-n', p: () => ({ n: soDu(n) }), nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, n] }))),
   dh({ id: 'online-big', nhom: 'online', chinhPhuc: { online: true } }),
 
   // --- theme ---
@@ -168,8 +223,18 @@ export const ACHIEVEMENTS: Achievement[] = [
   })),
 
   // --- chuyên cần ---
-  ...([3, 7, 30] as const).map((n) => dh({
-    id: `days-${n}`, k: 'days', p: () => ({ n }), nhom: 'chuyen-can', chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.chuoiNgay, n]
+  ...DAY_CHUOI.map((n) => dh({
+    id: n === 3 || n === 7 || n === 30 ? `days-${n}` : bacTheoMoc(`days-${n}`, 'days', n), k: 'days', p: () => ({ n }),
+    nhom: 'chuyen-can', chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.chuoiNgay, n]
+  })),
+  // Tổng số NGÀY có chơi (không cần liền) + tổng số ván đã chơi — người chơi lâu năm luôn còn mốc kế tiếp
+  ...DAY_SO_NGAY.map((n) => dh({
+    id: bacTheoMoc(`so-ngay-${n}`, 'so-ngay', n), k: 'so-ngay', p: () => ({ n: soDu(n) }), nhom: 'chuyen-can',
+    chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.soNgay, n]
+  })),
+  ...DAY_SO_VAN.map((n) => dh({
+    id: bacTheoMoc(`so-van-${n}`, 'so-van', n), k: 'so-van', p: () => ({ n: soDu(n) }), nhom: 'chuyen-can',
+    chinhPhuc: { cells: BAN_VUA }, tienDo: (t) => [t.soVan, n]
   })),
 
   // --- bí mật: không có nút chinh phục, tên ẩn tới khi đạt ---
@@ -186,7 +251,7 @@ export const ACHIEVEMENTS: Achievement[] = [
  * ACHIEVEMENTS: không thì "x/127" đếm cả thứ người chơi không bao giờ thấy.
  */
 export const dhAn = ref<ReadonlySet<string>>(new Set());
-export const dsHien = computed(() => ACHIEVEMENTS.filter((a) => !dhAn.value.has(a.id)));
+export const dsHien = computed(() => chenMocDong(ACHIEVEMENTS.filter((a) => !dhAn.value.has(a.id)), daCo.value));
 
 /**
  * BẬC HUY HIỆU theo độ khó: Đồng · Bạc · Vàng · Bí mật. Một chỗ quyết định,
@@ -203,9 +268,90 @@ export function bacCua(a: Achievement): BacDanhHieu {
   if (a.biMat) return 'bi-mat';
   if (VANG.has(a.id)) return 'vang';
   if (BAC.has(a.id)) return 'bac';
-  return 'dong';
+  return BAC_DAY.get(a.id) ?? 'dong';
 }
 for (const a of ACHIEVEMENTS) a.bac = bacCua(a);
+
+/*
+ * MỐC ĐỘNG (28.11.2026, chủ dự án: "mốc động… cứ thêm 100.000 điểm, 100.000 xu là có thêm danh hiệu" — mỗi bước MỘT Ô RIÊNG).
+ * Mỗi dãy có bước; mọi bội số của bước là một danh hiệu, KHÔNG có trần. Id `<tiền tố>-<giá trị>` (cùng kiểu mốc cố định mới →
+ * server, đồng bộ tài khoản không phải đổi). Giá trị trùng mốc cố định (100k, 500k, 1tr…) thì dùng mốc cố định.
+ * Bảng danh hiệu bày: mọi ô động ĐÃ CÓ + MỘT ô kế tiếp (đang chạy tiến độ), xếp xen theo giá trị với mốc cố định cùng dãy.
+ */
+interface DayDong {
+  tienTo: string; buoc: number; lay: (t: ThongKe) => number; nhom: NhomId; k: string; nguong: keyof typeof NGUONG;
+  chinhPhuc: ChinhPhuc; p: (n: number) => ThamSoDh;
+}
+const DAY_DONG: readonly DayDong[] = [
+  { tienTo: 'score', buoc: 100_000, lay: (t) => t.totalScore, nhom: 'diem', k: 'score', nguong: 'score', chinhPhuc: { cells: 36 }, p: (n) => ({ n: soGon(n), so: soDu(n) }) },
+  { tienTo: 'wins', buoc: 100, lay: (t) => t.wins, nhom: 'thang', k: 'wins', nguong: 'wins', chinhPhuc: { cells: BAN_VUA }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'online', buoc: 25, lay: (t) => t.onlineWins, nhom: 'online', k: 'online-n', nguong: 'online', chinhPhuc: { online: true }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'bot-wins', buoc: 25, lay: (t) => t.botWins, nhom: 'may', k: 'bot-wins-n', nguong: 'bot-wins', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'hoan-hao', buoc: 25, lay: (t) => t.hoanHao, nhom: 'hoan-hao', k: 'hoan-hao-n', nguong: 'hoan-hao', chinhPhuc: { cells: 12 }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'so-ngay', buoc: 30, lay: (t) => t.soNgay, nhom: 'chuyen-can', k: 'so-ngay', nguong: 'so-ngay', chinhPhuc: { cells: BAN_VUA }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'so-van', buoc: 250, lay: (t) => t.soVan, nhom: 'chuyen-can', k: 'so-van', nguong: 'so-van', chinhPhuc: { cells: BAN_VUA }, p: (n) => ({ n: soDu(n) }) }
+];
+/** Giá trị của một mốc CỐ ĐỊNH thuộc dãy động (để biết trùng và xếp xen). */
+const CO_DINH = new Map<string, { day: DayDong; n: number }>();
+for (const a of ACHIEVEMENTS) {
+  for (const d of DAY_DONG) {
+    const m = a.id.match(new RegExp(`^${d.tienTo}-(\\d+|10k|100k|1m|10m)$`));
+    if (!m) continue;
+    const ma: Record<string, number> = { '10k': 10_000, '100k': 100_000, '1m': 1_000_000, '10m': 10_000_000 };
+    const n = d.tienTo === 'score' && ma[m[1]!] ? ma[m[1]!]! : Number(m[1]);
+    CO_DINH.set(a.id, { day: d, n });
+  }
+}
+const giaCoDinh = (d: DayDong): Set<number> => new Set([...CO_DINH.values()].filter((v) => v.day === d).map((v) => v.n));
+const GIA_CO_DINH = new Map(DAY_DONG.map((d) => [d.tienTo, giaCoDinh(d)]));
+const BO_DEM_DONG = new Map<string, Achievement>();
+/** Danh hiệu động theo id (`score-1100000`), hoặc undefined nếu id không thuộc dãy động hợp lệ. */
+export function mocDong(id: string): Achievement | undefined {
+  const co = BO_DEM_DONG.get(id);
+  if (co) return co;
+  for (const d of DAY_DONG) {
+    const m = id.match(new RegExp(`^${d.tienTo}-(\\d+)$`));
+    if (!m) continue;
+    const n = Number(m[1]);
+    if (!(n > 0) || n % d.buoc !== 0 || GIA_CO_DINH.get(d.tienTo)!.has(n)) return undefined;
+    const a = dh({ id: bacTheoMoc(id, d.nguong, n), k: d.k, p: () => d.p(n), nhom: d.nhom, chinhPhuc: d.chinhPhuc, tienDo: (t) => [d.lay(t), n] });
+    a.bac = bacCua(a);
+    BO_DEM_DONG.set(id, a);
+    return a;
+  }
+  return undefined;
+}
+/** Mọi mốc động đã đạt theo số liệu (quét bội số của bước tới con số hiện tại). */
+function mocDongDat(tk: ThongKe): string[] {
+  const out: string[] = [];
+  for (const d of DAY_DONG) {
+    const toi = Math.min(d.lay(tk), d.buoc * 5000);   // chặn vòng lặp nếu số liệu hỏng
+    for (let n = d.buoc; n <= toi; n += d.buoc) if (!GIA_CO_DINH.get(d.tienTo)!.has(n)) out.push(`${d.tienTo}-${n}`);
+  }
+  return out;
+}
+/** Danh sách bày: mốc cố định + mốc động đã có + MỘT mốc động kế tiếp mỗi dãy, xếp xen theo giá trị trong khối của dãy. */
+function chenMocDong(ds: Achievement[], co: readonly string[]): Achievement[] {
+  const out = [...ds];
+  for (const d of DAY_DONG) {
+    // `mocDong` chỉ trả mốc động hợp lệ (đúng bước, không trùng mốc cố định); `bot-wins-…` không lọt vào dãy `wins` vì khớp từ đầu id
+    const coDong = co.map(mocDong).filter((a): a is Achievement => !!a && a.id.startsWith(`${d.tienTo}-`));
+    const gia = (a: Achievement): number => Number(a.id.slice(d.tienTo.length + 1));
+    const max = coDong.reduce((m, a) => Math.max(m, gia(a)), 0);
+    let ke = max + d.buoc;
+    while (GIA_CO_DINH.get(d.tienTo)!.has(ke)) ke += d.buoc;
+    const keTiep = mocDong(`${d.tienTo}-${ke}`);
+    const dong = [...coDong, ...(keTiep && !co.includes(keTiep.id) ? [keTiep] : [])];
+    if (!dong.length) continue;
+    // Khối mốc cố định của dãy (liền nhau trong ACHIEVEMENTS) → trộn rồi đặt lại đúng chỗ
+    const viTri = out.map((a, i) => (CO_DINH.get(a.id)?.day === d ? i : -1)).filter((i) => i >= 0);
+    if (!viTri.length) { out.push(...dong); continue; }
+    const giaCua = (a: Achievement): number => CO_DINH.get(a.id)?.n ?? gia(a);
+    const khoi = [...viTri.map((i) => out[i]!), ...dong].sort((a, b) => giaCua(a) - giaCua(b));
+    out.splice(viTri[0]!, viTri.length, ...khoi);
+  }
+  return out;
+}
 
 export interface AchievementContext {
   summary: Summary;
@@ -242,8 +388,10 @@ export interface AchievementContext {
 
 /** Danh hiệu đếm đạt được từ số liệu tích luỹ — chạy được cả ngoài ván. */
 export function xetThongKe(tk: ThongKe): string[] {
-  return ACHIEVEMENTS.filter((a) => a.tienDo && (() => { const [c, n] = a.tienDo!(tk); return c >= n; })())
-    .map((a) => a.id);
+  return [
+    ...ACHIEVEMENTS.filter((a) => a.tienDo && (() => { const [c, n] = a.tienDo!(tk); return c >= n; })()).map((a) => a.id),
+    ...mocDongDat(tk)
+  ];
 }
 
 /** Xét thành tích đạt được sau một ván. */
@@ -303,7 +451,7 @@ export function earned(ctx: AchievementContext): string[] {
   return [...new Set(out)];
 }
 
-export const byId = (id: string): Achievement | undefined => ACHIEVEMENTS.find((a) => a.id === id);
+export const byId = (id: string): Achievement | undefined => ACHIEVEMENTS.find((a) => a.id === id) ?? mocDong(id);
 
 /** Cấp (level) đầu tiên của cỡ bàn có `cells` thẻ — để mở bàn đúng cỡ. */
 export function levelChoCells(cells: number): number {
@@ -313,7 +461,7 @@ export function levelChoCells(cells: number): number {
 /* ---------- trạng thái dùng chung: đã có gì, vừa mở gì ---------- */
 
 const ID_SO = new Set(ACHIEVEMENTS.map((a) => a.id));
-const docDaCo = (): string[] => store.achievements().filter((id) => ID_SO.has(id));
+const docDaCo = (): string[] => store.achievements().filter((id) => ID_SO.has(id) || !!mocDong(id));
 
 /** Danh hiệu đã có (chỉ id có trong sổ) — reactive, cho viên 🏅 và các màn. */
 export const daCo = ref<string[]>(docDaCo());
@@ -360,7 +508,10 @@ export function thongKeHienTai(serverWins = 0): ThongKe {
     totalScore: store.totalScore(),
     chuoiNgay: b.chuoiMax,
     campaignMax: cd.filter(([, v]) => v.stars > 0).reduce((m, [k]) => Math.max(m, Number(k) || 0), 0),
-    stars3: cd.filter(([, v]) => v.stars >= 3).length
+    stars3: cd.filter(([, v]) => v.stars >= 3).length,
+    hoanHao: b.hoanHao ?? 0,
+    soNgay: Math.max(b.soNgay ?? 0, b.chuoiMax),
+    soVan: b.van ?? 0
   };
 }
 
@@ -418,5 +569,10 @@ export function iconCua(a: Achievement): IconHuyHieu {
   if (a.id.startsWith('stars3-')) return { chu: '🌟' };
   if (a.id.startsWith('online-')) return { chu: '🌐' };
   if (a.id.startsWith('days-')) return { chu: '📅' };
+  // Mốc dày 28.11.2026 — mỗi dãy một hình, không dùng chung huy chương mặc định
+  if (a.id.startsWith('bot-wins-')) return { chu: '🤖' };
+  if (a.id.startsWith('hoan-hao-')) return { chu: '✨' };
+  if (a.id.startsWith('so-ngay-')) return { chu: '🗓️' };
+  if (a.id.startsWith('so-van-')) return { chu: '🎴' };
   return { chu: '🏅' };
 }

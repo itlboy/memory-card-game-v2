@@ -314,7 +314,8 @@ export function locVan(x: unknown): VanBao | null {
   if (Array.isArray(o.achievements)) {
     ra.achievements = o.achievements
       .filter((a): a is string => typeof a === 'string' && /^[a-z0-9-]{1,32}$/.test(a))
-      .slice(0, 32);
+      // 128 (trước 32): 28.11.2026 thêm ~60 danh hiệu mốc — người chơi lâu năm được MỞ BÙ cả loạt trong một ván
+      .slice(0, 128);
   }
   return ra;
 }

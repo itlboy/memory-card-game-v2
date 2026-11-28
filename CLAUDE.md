@@ -758,6 +758,12 @@
   MoKhoaFx). "Sắp đạt" = 3 danh hiệu gần xong nhất; lọc Tất cả · Đã có · Chưa có (mặc định Tất cả);
   KHÔNG nút trong lưới — chạm huy chương mở tờ chi tiết có MỘT nút "Chinh phục". Màn Tài khoản: nút
   Google/Apple/Danh hiệu đều là `.thach` (Apple = thạch đen qua biến --b1..--b4, giữ màu hãng).
+- **DANH HIỆU MỐC DÀY + MỐC ĐỘNG (28.11.2026, duyệt: https://claude.ai/artifact/6tJfDC3maNVgB9DQmpxaa3)**:
+  93 → 163 danh hiệu cố định (dãy `DAY_*` trong lib/achievements; id cũ score-10k/100k/1m/10m giữ nguyên qua
+  `DIEM_CU`), bậc theo ngưỡng từng dãy `NGUONG`. Mốc ĐỘNG không trần `DAY_DONG` (xu +100k, thắng +100,
+  online/máy/hoàn hảo +25, ngày chơi +30, ván +250): id dạng `score-<n>` dựng lại bằng `mocDong(id)` (sai bước
+  hoặc trùng mốc cố định → undefined), `chenMocDong` xen ô đã đạt + MỘT ô kế tiếp vào bảng. Bộ đếm mới
+  `hoanHao`/`soNgay` trong bản lưu (soNgay mở bù từ chuoiMax). Server giữ tối đa 128 id (`taikhoan.ts`).
 - **ĐĂNG NHẬP GOOGLE TRONG APP (bản native 1.5.0, 09.11.2026)**: Google Cloud dự án `lat-the-nkien`
   có 3 client OAuth: web (GOOGLE_CLIENT_ID), iOS `…-lfla0jfjm3kllm8t67uk2u60aqou08l5` (URL scheme đảo
   ngược ở `ios/App/App/Info.plist`), Android (gói `com.cozypi.flipmatch` + SHA-1 khoá ký PLAY — đổi khoá

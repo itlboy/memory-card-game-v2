@@ -1181,7 +1181,7 @@ watch(session.summary, (s) => {
       && store.saveResult(game.config.mode, id, {
         score: s.score, moves: s.moves, seconds: s.seconds
       });
-    store.ghiVanBoDem({ thang: s.status === 'won' });
+    store.ghiVanBoDem({ thang: s.status === 'won', hoanHao: s.status === 'won' && player.misses === 0 });
     if (s.status === 'won') ghiVuaThang();   // xin đánh giá lúc về trang chủ (lib/xin-danh-gia.ts)
     ghiVanTriNho(hienTriNho.value ? player : undefined, game.totalPairs);
     const dat = earned({
@@ -1229,7 +1229,7 @@ watch(session.summary, (s) => {
       // Danh hiệu đấu máy (hạ gà cứng… rồng thần) xét theo KẾT CỤC CỦA NGƯỜI
       const thangMay = session.loaiKetCuc.value === 'thang';
       // Thắng Gà mờ không tính vào bộ đếm thắng máy (cùng lý do không cộng điểm)
-      store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy' });
+      store.ghiVanBoDem({ thang: thangMay, may: thangMay && botLevel.value !== 'easy', hoanHao: thangMay && player.misses === 0 });
       if (thangMay) ghiVuaThang();   // xin đánh giá lúc về trang chủ (lib/xin-danh-gia.ts)
       // Trí nhớ chấm trên lượt của CHÍNH NGƯỜI nên đấu máy mức nào cũng ghi (kể cả Dễ)
       ghiVanTriNho(hienTriNho.value ? s.ranking.find((r) => !laBot(r.id)) : undefined, game.totalPairs);

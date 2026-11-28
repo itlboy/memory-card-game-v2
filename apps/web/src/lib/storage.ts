@@ -141,6 +141,10 @@ export interface BoDem {
   wins: number; botWins: number; onlineWins: number;
   /** Số ván đã xong trên máy (đếm từ 19.11.2026 — máy cũ bắt đầu từ 0, nên có thể < wins). */
   van?: number;
+  /** Ván THẮNG không lật sai, mọi cỡ bàn (từ 28.11.2026 — danh hiệu "N ván hoàn hảo"). */
+  hoanHao?: number;
+  /** Số NGÀY khác nhau có chơi (từ 28.11.2026; lần đầu lấy bằng `chuoiMax` — ít nhất từng ấy ngày). */
+  soNgay?: number;
   /** Ngày chơi gần nhất, `YYYY-MM-DD` giờ máy. */
   ngayCuoi: string;
   chuoi: number; chuoiMax: number;
@@ -334,7 +338,7 @@ export const store = {
    * Cộng MỘT ván đã xong vào bộ đếm. Gọi đúng một lần mỗi ván, ở watcher kết
    * ván. Chuỗi ngày: cùng ngày thì giữ, hôm qua thì +1, cách xa thì về 1.
    */
-  ghiVanBoDem(v: { thang: boolean; may?: boolean; online?: boolean }, homNay = ngayMay()): BoDem {
+  ghiVanBoDem(v: { thang: boolean; may?: boolean; online?: boolean; hoanHao?: boolean }, homNay = ngayMay()): BoDem {
     const s = read();
     const b: BoDem = { ...BO_DEM_RONG, ...(s.boDem ?? {}) };
     b.van = (b.van ?? 0) + 1;
@@ -342,8 +346,10 @@ export const store = {
       b.wins++;
       if (v.may) b.botWins++;
       if (v.online) b.onlineWins++;
+      if (v.hoanHao) b.hoanHao = (b.hoanHao ?? 0) + 1;
     }
     if (b.ngayCuoi !== homNay) {
+      b.soNgay = Math.max(b.soNgay ?? 0, b.chuoiMax) + 1;
       const homQua = new Date(`${homNay}T12:00:00`);
       homQua.setDate(homQua.getDate() - 1);
       b.chuoi = b.ngayCuoi === ngayMay(homQua) ? b.chuoi + 1 : 1;
