@@ -23,5 +23,6 @@
   //   GA_SA_JSON      nội dung JSON khoá service account (quyền Viewer trên thuộc tính GA)
   //   GA_PROPERTY_ID  số thuộc tính GA (không phải mã G-…)
   //   THONGKE_KEY     khoá đọc thống kê thi đấu của server game (my-secrets provider `latthe-thongke`)
+  //   QUANTRI_KEY     khoá API quản trị cụm của server game — ô Máy chủ (my-secrets provider `latthe-quantri`)
   "observability": { "enabled": true }
 }

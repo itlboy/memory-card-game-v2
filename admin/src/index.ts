@@ -10,6 +10,7 @@ import { tra, json, xuLyApi } from './api.ts';
 import { Ga, type KhoaSa } from './ga.ts';
 import { HTML, CSS, JS } from './trang.ts';
 import { layThiDau } from './thidau.ts';
+import { layMayChu } from './maychu.ts';
 
 /** Mã phiên bản theo NỘI DUNG JS+CSS, gắn vào đường dẫn trong HTML. Lúc Cloudflare đang chuyển bản,
  *  HTML và app.js có thể tới từ hai bản khác nhau (đã gặp 17.11.2026: HTML mới + JS cũ → kẹt "đang tải");
@@ -27,6 +28,8 @@ interface Env {
   /** Ô Thi đấu (thidau.ts): địa chỉ máy chủ game + khoá đọc thống kê (wrangler secret). */
   GAME_API?: string;
   THONGKE_KEY?: string;
+  /** Ô Máy chủ (maychu.ts): khoá API quản trị cụm (wrangler secret, my-secrets `latthe-quantri`). */
+  QUANTRI_KEY?: string;
 }
 
 function layGa(env: Env): Ga | null {
@@ -61,6 +64,7 @@ export default {
 
     // Ô Thi đấu KHÔNG qua GA — đứng trước nhánh GA để GA chưa nối / hết hạn mức thì ô này vẫn chạy
     if (url.pathname === '/api/thidau') return layThiDau(env, Number(url.searchParams.get('ngay')) || 30);
+    if (url.pathname === '/api/maychu') return layMayChu(env);
 
     if (url.pathname.startsWith('/api/')) {
       const ga = layGa(env);

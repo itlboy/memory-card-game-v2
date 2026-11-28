@@ -94,6 +94,15 @@ export const HTML = String.raw`<!doctype html>
   <!-- Các ô danh sách: JS dựng từ bảng DS (mỗi ô một data-phan) -->
   <section class="luoi-ds" id="danhSach"></section>
 
+  <!-- MÁY CHỦ · TRỰC TIẾP (28.11.2026): số từ API quản trị cụm của MÁY CHỦ GAME (/api/maychu), 30 giây một lần -->
+  <section class="thach the" id="mayChu">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Máy chủ · trực tiếp</h2></div><span class="phu-nho" id="mcLuc">từ máy chủ game</span></div>
+    <div class="luoi-kpi" id="mcKpi"></div>
+    <div class="td-cuon"><table class="td-bang" id="mcPod"></table></div>
+    <div class="td-cuon"><table class="td-bang" id="mcPhong"></table></div>
+    <p class="loi-o" id="loi-maychu" hidden></p>
+  </section>
+
   <!-- THI ĐẤU (23.11.2026): số từ MÁY CHỦ GAME (/api/thidau), không qua GA và không theo bộ chọn khoảng ở trên -->
   <section class="thach the" id="thiDau">
     <div class="the-dau"><div class="tieu"><h2 class="ktieu">Thi đấu · 30 ngày gần nhất</h2></div><span class="phu-nho" id="tdLuc">từ máy chủ game</span></div>
@@ -786,6 +795,46 @@ export const JS = String.raw`
   }
   taiThiDau();
   setInterval(function () { if (!document.hidden) taiThiDau(); }, 300000);
+  /* Ô MÁY CHỦ · TRỰC TIẾP (28.11.2026): /api/maychu — 30 giây một lần khi trang đang hiện. */
+  var TT_PHONG = { lobby: 'Phòng chờ', countdown: 'Đếm ngược', playing: 'Đang chơi', ended: 'Hết ván' };
+  function bangMc(id, cot, ds) {
+    var tb = $(id); tb.textContent = '';
+    if (!ds || !ds.length) return;
+    var h = tb.createTHead().insertRow();
+    cot.forEach(function (k) { h.appendChild(el('th', null, k[0])); });
+    var body = tb.createTBody();
+    ds.forEach(function (r) { var tr = body.insertRow(); cot.forEach(function (k) { var v = typeof k[1] === 'function' ? k[1](r) : r[k[1]]; tr.appendChild(el('td', null, typeof v === 'number' ? so(v) : String(v == null ? '–' : v))); }); });
+  }
+  function veMayChu(g) {
+    var t = g.tong || {}, p = t.phong || {}, n = t.nguoiTrongPhong || {}, v = t.vanOnline || {}, c = t.nguoiChoi || {}, tk = t.taiKhoan || {}, kh = t.khach || {}, o = t.online || {};
+    var k = $('mcKpi'); k.textContent = '';
+    [
+      ['Đang mở app', so(o.sanh), 'nối sảnh lúc này'],
+      ['Người trong phòng', so(n.nguoiThatDangNoi), 'đang rớt ' + so(n.nguoiThatDangRot) + ' · bot thường trực ' + so(n.botThuongTruc)],
+      ['Phòng đang mở', so(p.tong), 'chờ ' + so(p.cho) + ' · đang chơi ' + so(p.dangChoi) + ' · riêng ' + so(p.rieng)],
+      ['Ván online hôm nay', so(v.homNay), '7 ngày: ' + so(v.bayNgay)],
+      ['Người chơi hôm nay', so(c.homNay), '7 ngày: ' + so(c.bayNgay) + ' · cả offline'],
+      ['Tài khoản', so(tk.tong), 'mới hôm nay ' + so(tk.moiHomNay) + ' · khách ' + so(kh.tong)]
+    ].forEach(function (x) {
+      var b = el('div', 'thach kpi'), tren = el('div', 'kpi-dau');
+      tren.appendChild(el('span', 'nhan', x[0])); b.appendChild(tren);
+      b.appendChild(el('b', null, x[1])); b.appendChild(el('span', 'doi', x[2])); k.appendChild(b);
+    });
+    bangMc('mcPod', [['Pod', 'pod'], ['Máy (IP nội bộ)', 'may'], ['Phòng đang giữ', 'phong']], (t.cum && t.cum.pods) || []);
+    bangMc('mcPhong', [['Mã', 'ma'], ['Loại', function (r) { return r.congKhai ? 'Công khai' : 'Riêng'; }], ['Trạng thái', function (r) { return TT_PHONG[r.trangThai] || r.trangThai; }],
+      ['Người', function (r) { return (r.nguoi || []).map(function (x) { return x.ten + (x.may ? ' (máy)' : x.dangNoi ? '' : ' (rớt)'); }).join(', ') || '–'; }],
+      ['Mở (phút)', 'moPhut'], ['Pod', function (r) { return r.pod ? String(r.pod).slice(-6) : '–'; }]], (g.phong && g.phong.phong) || []);
+    $('mcLuc').textContent = (t.cum ? so(t.cum.soPod) + ' pod · ' : '') + 'cập nhật ' + new Date(t.luc || Date.now()).toLocaleTimeString('vi-VN');
+  }
+  function taiMayChu() {
+    fetch('/api/maychu', { credentials: 'same-origin' }).then(function (r) { return r.json().then(function (g) { return { ok: r.ok, g: g }; }); }).then(function (x) {
+      var l = $('loi-maychu');
+      if (!x.ok) { l.hidden = false; l.textContent = x.g && x.g.chuaCauHinh ? 'Chưa nạp khoá quản trị (QUANTRI_KEY) cho trang này.' : 'Không lấy được số máy chủ: ' + ((x.g && x.g.loi) || 'lỗi không rõ'); return; }
+      l.hidden = true; veMayChu(x.g);
+    }).catch(function () { var l = $('loi-maychu'); l.hidden = false; l.textContent = 'Không lấy được số máy chủ (mất mạng?).'; });
+  }
+  taiMayChu();
+  setInterval(function () { if (!document.hidden) taiMayChu(); }, 30000);
   setInterval(function () { if (!document.hidden) { song(false); lucSong = Date.now(); } }, 60000);
   setInterval(kiemMoi, 30000);
   document.addEventListener('visibilitychange', function () {
