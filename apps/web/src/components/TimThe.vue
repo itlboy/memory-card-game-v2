@@ -277,7 +277,8 @@ function ketThuc(v: VanTimThe): void {
   const kyLucMoi = !may && p.diem > 0 && ghiKyLuc(c.soThe, c.doKho, p.diem);
   if (kyLucMoi) kyLuc.value = p.diem;
   const kq: TimTheKetVan = {
-    ...c, diem: p.diem, dung: p.dung, soLuot: v.cfg.soLuot, chuoiDai: p.chuoiDai, ketQua, kyLucMoi, giay: Math.round(tVan / 1000)
+    ...c, diem: p.diem, dung: p.dung, soLuot: v.cfg.soLuot, chuoiDai: p.chuoiDai, ketQua, kyLucMoi, giay: Math.round(tVan / 1000),
+    nhanhNhatMs: p.nhanhNhatMs ?? null
   };
   ketVan.value = kq;
   buoc.value = 'cuoi';

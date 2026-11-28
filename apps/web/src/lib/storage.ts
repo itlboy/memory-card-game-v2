@@ -145,6 +145,8 @@ export interface BoDem {
   hoanHao?: number;
   /** Số NGÀY khác nhau có chơi (từ 28.11.2026; lần đầu lấy bằng `chuoiMax` — ít nhất từng ấy ngày). */
   soNgay?: number;
+  /** TÌM THẺ (từ 29.11.2026 — danh hiệu nhóm Tìm Thẻ): số ván đã chơi xong, tổng lượt chọn đúng, số ván online thắng. */
+  timVan?: number; timDung?: number; timOnline?: number;
   /** Ngày chơi gần nhất, `YYYY-MM-DD` giờ máy. */
   ngayCuoi: string;
   chuoi: number; chuoiMax: number;
@@ -338,10 +340,16 @@ export const store = {
    * Cộng MỘT ván đã xong vào bộ đếm. Gọi đúng một lần mỗi ván, ở watcher kết
    * ván. Chuỗi ngày: cùng ngày thì giữ, hôm qua thì +1, cách xa thì về 1.
    */
-  ghiVanBoDem(v: { thang: boolean; may?: boolean; online?: boolean; hoanHao?: boolean }, homNay = ngayMay()): BoDem {
+  ghiVanBoDem(v: { thang: boolean; may?: boolean; online?: boolean; hoanHao?: boolean; tim?: { dung: number } }, homNay = ngayMay()): BoDem {
     const s = read();
     const b: BoDem = { ...BO_DEM_RONG, ...(s.boDem ?? {}) };
     b.van = (b.van ?? 0) + 1;
+    // Ván TÌM THẺ: thêm bộ đếm riêng (vẫn tính chung số ván / ván thắng / chuỗi ngày như ván ghép cặp)
+    if (v.tim) {
+      b.timVan = (b.timVan ?? 0) + 1;
+      b.timDung = (b.timDung ?? 0) + Math.max(0, Math.min(30, Math.trunc(v.tim.dung) || 0));
+      if (v.thang && v.online) b.timOnline = (b.timOnline ?? 0) + 1;
+    }
     if (v.thang) {
       b.wins++;
       if (v.may) b.botWins++;

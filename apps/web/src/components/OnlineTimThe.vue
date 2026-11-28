@@ -25,6 +25,7 @@ import { store } from '@/lib/storage';
 import { taiKhoan } from '@/lib/taikhoan';
 import { tenNguoi } from '@/lib/ten';
 import { ghiVuaThang } from '@/lib/xin-danh-gia';
+import { earnedTim, moKhoa, thongKeHienTai } from '@/lib/achievements';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import { dangTimOnline, tomTatTimThe } from '@/lib/tim-the';
 import BanVongTim from './BanVongTim.vue';
@@ -329,8 +330,13 @@ function ketThuc(moi: TimView): void {
   // Phòng có MÁY: không xu, không lên sổ (cùng luật ván ghép cặp online — chống cày bằng máy dễ)
   if (coMay.value) return;
   store.addScore(minh.diem);
-  store.ghiVanBoDem({ thang: ketQua === 'thang', online: true });
+  store.ghiVanBoDem({ thang: ketQua === 'thang', online: true, tim: { dung: minh.dung } });
   if (ketQua === 'thang') ghiVuaThang();
+  // Danh hiệu nhóm Tìm Thẻ (29.11.2026) — online không có số "lượt nhanh nhất" của mình nên không xét Phản xạ
+  moKhoa(earnedTim({
+    soThe: moi.soThe, doKho: moi.doKho, dung: minh.dung, soLuot: moi.soLuot, ketQua, online: true,
+    thongKe: thongKeHienTai()
+  }), { treMs: HIEN_BANG_MS[chonCanh(ketQua)] + 400 });
   void taiKhoan.ghiVan({ ketQua, score: minh.diem, achievements: [] });
 }
 
