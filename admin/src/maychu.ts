@@ -48,3 +48,17 @@ export async function datTrangThaiBaoLoi(env: { GAME_API?: string; QUANTRI_KEY?:
   });
   return tra(await r.json().catch(() => ({ ok: false })), r.ok ? 200 : 502);
 }
+
+/**
+ * "AI ĐANG ONLINE" (28.11.2026, mockup duyệt https://claude.ai/artifact/3TE9pgPE7keg4BhyMSVj7c): từng người đang mở app (nối sảnh) —
+ * tên, nền tảng, đang làm gì, số xu… qua `GET /api/quantri/online` (máy chủ game chuyển về pod giữ sảnh). Cùng khoá QUANTRI_KEY.
+ */
+export async function layNguoiOnline(env: { GAME_API?: string; QUANTRI_KEY?: string }, layFetch: typeof fetch = fetch): Promise<Response> {
+  const tra = (body: unknown, status = 200): Response => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+  if (!env.QUANTRI_KEY || !env.GAME_API) return tra({ chuaCauHinh: true }, 503);
+  try {
+    const r = await layFetch(`${env.GAME_API.replace(/\/$/, '')}/api/quantri/online`, { headers: { 'x-quantri-key': env.QUANTRI_KEY.trim() } });
+    if (!r.ok) return tra({ loi: `Máy chủ game trả ${r.status}` }, 502);
+    return tra(await r.json());
+  } catch (e) { return tra({ loi: `Không gọi được máy chủ game: ${e instanceof Error ? e.message : String(e)}` }, 502); }
+}

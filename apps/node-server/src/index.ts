@@ -714,7 +714,8 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
   if (url.pathname === '/health') { json(res, { ok: true, rooms: phongs.size, ...(cum ? { pod: cum.pod, giu: dangGiu.size, sanh: sanhCuaToi } : {}) }); return; }
 
   // Nhiều pod: sảnh (mời người online) và BXH (cần trạng thái online của sảnh) chạy ở pod giữ sảnh
-  if (cum && (url.pathname.startsWith('/api/sanh/') || url.pathname === '/api/bxh')) {
+  // "Ai đang online" + MCP (có công cụ nguoi_online) của API quản trị cũng đọc sảnh → về pod giữ sảnh
+  if (cum && (url.pathname.startsWith('/api/sanh/') || url.pathname === '/api/bxh' || url.pathname === '/api/quantri/online' || url.pathname === '/api/quantri/mcp')) {
     void duongDiSanh(daChuyen(req)).then((di) => {
       if (di === 'ban') json(res, { error: 'Máy chủ đang chuyển, thử lại' }, 503);
       else if (di !== 'toi') chuyenHttp(req, res, di.diaChi);
@@ -963,7 +964,8 @@ batBao = true;
 baoLoi = await moBaoLoi(kho?.pool ?? null).catch((e) => { console.error('[baoloi] không mở được:', (e as Error).message); return null; });
 quanTri = process.env.QUANTRI_KEY ? moQuanTri({
   pool: kho?.pool ?? null, cum: () => cum, khoa: process.env.QUANTRI_KEY, baoLoi: () => baoLoi,
-  podNay: () => ({ pod: cum?.pod ?? 'mot-pod', phong: phongs.size, sanhKetNoi: sanh.soKetNoi() })
+  podNay: () => ({ pod: cum?.pod ?? 'mot-pod', phong: phongs.size, sanhKetNoi: sanh.soKetNoi() }),
+  nguoiOnline: () => sanh.dsQuanTri()
 }) : null;
 console.log(quanTri ? '  API quản trị: BẬT (/api/quantri/*)' : '  API quản trị: TẮT (cần QUANTRI_KEY)');
 

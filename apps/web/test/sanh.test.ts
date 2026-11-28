@@ -284,3 +284,34 @@ describe('số người online tính CẢ MÌNH, tính lại theo trạng thái 
     expect(soNguoiOnline.value).toBe(3);
   });
 });
+
+describe('"Ai đang online" cho trang quản trị (28.11.2026)', () => {
+  it('app gửi hd + tk → dsQuanTri có đủ; gói làm sạch (khoá lạ, chữ dài, ký tự điều khiển bị bỏ); đổi hd mới đổi mốc', async () => {
+    const a = await may('Kiên');
+    a.ws.send(JSON.stringify({ t: 'ai', token: 'phien-7' }));
+    a.ws.send(JSON.stringify({ t: 'hd', hd: { l: 'cd', man: 13, the: 20, 'khoá lạ': 1, x: '<b>' + 'a'.repeat(50) }, tk: { xu: 1234, dh: 72, pr: true, ban: '1.10.139' } }));
+    await cho();
+    const [d] = sanh.dsQuanTri();
+    expect(d).toMatchObject({ ten: 'Kiên', loaiTk: 'u', hd: { l: 'cd', man: 13, the: 20 }, tk: { xu: 1234, dh: 72, pr: true, ban: '1.10.139' } });
+    expect(String(d!.hd!.x).length).toBe(24);
+    expect(String(d!.hd!.x)).not.toContain('<');
+    const moc = d!.hdLuc;
+    gio += 5_000;
+    a.ws.send(JSON.stringify({ t: 'hd', hd: { l: 'cd', man: 13, the: 20, x: '<b>' + 'a'.repeat(50) }, tk: { xu: 1300 } }));
+    await cho();
+    expect(sanh.dsQuanTri()[0]!.hdLuc).toBe(moc);          // cùng hoạt động: giữ mốc bắt đầu
+    a.ws.send(JSON.stringify({ t: 'hd', hd: { l: 'chu' } }));
+    await cho();
+    expect(sanh.dsQuanTri()[0]!.hdLuc).toBe(gio);
+  });
+
+  it('app gửi hoạt động lúc nối + mỗi lần đổi; danh sách mời của chủ phòng KHÔNG lộ hd/tk', async () => {
+    expect(doc('lib/sanh.ts')).toMatch(/gui\(\{ t: 'ai', \.\.\.danhTinhSanh\(\) \}\);\s*guiHd\(\);/);
+    expect(doc('lib/sanh.ts')).toMatch(/watch\(hoatDong, guiHd, \{ deep: true \}\)/);
+    const a = await may('A');
+    a.ws.send(JSON.stringify({ t: 'hd', hd: { l: 'nhanh' }, tk: { xu: 5 } }));
+    await cho();
+    const ds = (await post('/api/sanh/ds', CHU)).j.ds as Array<Record<string, unknown>>;
+    expect(Object.keys(ds[0]!).sort()).toEqual(['mat', 'sid', 'ten', 'tt']);
+  });
+});
