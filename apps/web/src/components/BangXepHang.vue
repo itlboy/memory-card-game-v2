@@ -527,6 +527,10 @@ async function luuTen(): Promise<void> {
 .tuan { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
 .tuan button { width: 36px; height: 36px; flex: none; padding: 0; font: 800 20px var(--font-body); }
 .tuan button:disabled { opacity: .3; }
+/* KHÔNG `filter` (28.11.2026, chủ dự án gửi ảnh: chuyển sang tab "Mọi lúc" còn VỆT ĐEN đúng chỗ hai nút ‹ ›): kẹo tối đặt
+   `filter: brightness(.86)` cho mọi `.thach` (keo-thach.css) → nút thành lớp vẽ riêng; iOS WebKit gỡ nút (v-if) mà KHÔNG vẽ lại
+   vùng bóng đổ tràn ra ngoài → còn vết. Hai nút này là thạch trơn tối, bỏ filter gần như không đổi màu. */
+.tuan button { filter: none !important; }
 .tuan .giua { flex: 1; min-width: 0; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tuan .giua b { font: 800 16px var(--font-display); }
 .tuan .giua small { font-size: 13px; font-weight: 700; color: var(--muted); }
