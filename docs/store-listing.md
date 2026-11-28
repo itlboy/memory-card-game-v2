@@ -1333,4 +1333,12 @@ Khớp với `apps/web/public/privacy.html`:
   "người dùng yêu cầu xoá" của dữ liệu khách đi qua email hỗ trợ, không còn nút xoá trong app. Mã khách ngẫu nhiên nằm chung hàng "Device or other IDs" đã có. Apple App
   Privacy: thêm "Gameplay Content"/"Other User Content" (biệt danh) + "Product Interaction" nếu soát
   thấy thiếu — không gắn danh tính, không tracking.
+- **Từ 1.10.134 (Báo lỗi / Góp ý trong menu, build 917)**: người chơi TỰ GỬI (tuỳ chọn) loại / nơi / ô vấn đề, chữ,
+  ảnh chụp màn hình, email; app gửi kèm dòng máy, hệ điều hành, màn hình, bản app, ngôn ngữ, lỗi JS gần đây, chất lượng mạng.
+  Không tên, không gắn tài khoản, không chia sẻ, giữ ≤ 12 tháng, xoá theo yêu cầu (`pv.bl`, 15 ngôn ngữ, 28.11.2026). Khai:
+  Apple App Privacy → **User Content › Customer Support** (chữ + ảnh), **Contact Info › Email Address** thêm mục đích
+  App Functionality, **Diagnostics › Other Diagnostic Data** thêm mục đích App Functionality — tất cả Not Linked, không tracking.
+  Google Data safety → **Photos and videos › Photos** (tuỳ chọn, App functionality), **App activity › Other user-generated
+  content** (chữ người gửi), **Personal info › Email address** thêm mục đích Developer communications, **App info and
+  performance › Diagnostics** (App functionality) — không chia sẻ, mã hoá khi truyền.
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).
