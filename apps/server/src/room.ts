@@ -205,6 +205,8 @@ const SILENT_MS = 20_000;
 // ("im bao lâu thì coi như đã đi"), lệch nhau là ngoài ván bị đá sớm hơn trong
 // ván — đúng cảnh ngồi chờ ở lobby, khoá màn hình 2 phút, quay lại mất phòng.
 const IDLE_SILENT_MS = 300_000;
+/** Phòng chờ / đã kết thúc không có mốc nào: tự thức kiểm tra sau chừng này (xem `scheduleNext`). */
+const KIEM_TRA_MS = 300_000;
 
 /**
  * Im lặng bấy nhiêu là ĐỦ ĐỂ DỪNG ĐỒNG HỒ LƯỢT — khác hẳn SILENT_MS.
@@ -1289,7 +1291,8 @@ export class RoomDO extends DurableObject<Env> {
       // GIỮ CHỖ, không gỡ ngay: LOBBY_HOLD_MS để họ nối lại, và quyền chủ phòng
       // ở nguyên chỗ cũ trong lúc đó.
       player.disconnectedAt = Date.now();
-      if (!this.room.players.some((p) => this.connected(p.id))) {
+      // Máy (`may`) không tính là người còn ngồi — giống `conNguoiSong`; tính vào là phòng "chỉ còn máy" không bao giờ vắng (28.11.2026)
+      if (!this.room.players.some((p) => !p.may && this.connected(p.id))) {
         // Không còn ai ĐANG kết nối: mã phòng vẫn phải sống để cái link vừa gửi
         // đi dùng được (xem EMPTY_LOBBY_MS). Alarm sẽ dọn nếu hết giờ vẫn vắng.
         // KHÔNG xoá players và KHÔNG bỏ hostId — người rớt còn hạn quay lại.
@@ -1655,6 +1658,14 @@ export class RoomDO extends DurableObject<Env> {
       const h = this.tim.henKe(now); if (h) marks.push(h);
       for (const p of this.room.players) if (p.disconnectedAt !== null) marks.push(p.disconnectedAt + ROOM_LIMITS.reconnectMs);
     }
+    /*
+     * LƯỚI AN TOÀN (28.11.2026): phòng chờ / đã kết thúc KHÔNG BAO GIỜ được nằm không có alarm. Server Mỹ gom ~28 phòng ma
+     * sống tới 45 ngày — tất cả `alarm_at` rỗng: phòng chờ chỉ còn máy (`connected()` tính máy là có mặt nên không đặt
+     * `emptyAt`, còn `vang` lại bỏ qua máy nên không hẹn mốc nào), người chưa từng gửi `alive` (không `lastSeen`), phòng
+     * `ended` đã hết người. Thiếu mốc nào thì cứ KIEM_TRA_MS thức một lần — các nhánh trong `alarm()` tự dọn đúng luật.
+     * Mốc luôn ở TƯƠNG LAI nên không thể quay vòng như vụ thi đấu 22.11.
+     */
+    if (!marks.length && (this.room?.status === 'lobby' || this.room?.status === 'ended')) marks.push(now + KIEM_TRA_MS);
     if (marks.length) await this.ctx.storage.setAlarm(Math.min(...marks));
     else await this.ctx.storage.deleteAlarm();
   }

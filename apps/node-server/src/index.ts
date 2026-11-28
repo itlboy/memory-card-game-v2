@@ -600,11 +600,12 @@ async function khoiPhuc(): Promise<void> {
   if (!kho) return;
   const daLuu = await kho.napTatCa();
   if (!daLuu.size) return;
+  let thuTu = 0;
   for (const [code, { duLieu, alarmLuc }] of daLuu) {
     const { box } = layPhong(code, duLieu);
-    if (alarmLuc !== null) {
-      void box.ctx.storage.setAlarm(Math.max(alarmLuc, Date.now()));
-    }
+    // Không có mốc đã lưu cũng phải thức một lần (28.11.2026: ~28 phòng ma `alarm_at` rỗng sống tới 45 ngày) —
+    // `alarm()` tự xét phòng vắng/hết người; giãn 200 ms mỗi phòng cho khỏi dồn cục lúc khởi động.
+    void box.ctx.storage.setAlarm(alarmLuc !== null ? Math.max(alarmLuc, Date.now()) : Date.now() + 5_000 + (thuTu++) * 200);
     // Ván bị dừng lúc pod cũ tắt (deploy) → chạy tiếp, dời mốc đúng bằng khoảng đã tắt
     await layPhong(code).room.chayTiepSauKhoiDong(Date.now()).catch((e) => console.error('[kho] chạy tiếp ván lỗi:', code, e));
   }

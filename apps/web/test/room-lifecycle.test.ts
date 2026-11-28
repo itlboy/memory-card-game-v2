@@ -112,6 +112,25 @@ describe('chuỗi alarm: mọi hạn chót đều phải có mốc đánh thức
     expect(schedule).toMatch(/IDLE_SILENT_MS/);
   });
 
+  it('phòng chờ / đã kết thúc KHÔNG bao giờ nằm không alarm (28.11.2026: ~28 phòng ma sống tới 45 ngày)', () => {
+    expect(schedule).toMatch(/!marks\.length && \(this\.room\?\.status === 'lobby' \|\| this\.room\?\.status === 'ended'\)\) marks\.push\(now \+ KIEM_TRA_MS\)/);
+    expect(hangSo('KIEM_TRA_MS')).toBeGreaterThan(0);
+  });
+
+  it('người cuối rời phòng chờ: máy KHÔNG tính là còn người (phòng chỉ còn máy phải vắng)', () => {
+    const at = src.indexOf('async webSocketClose(');
+    const than = src.slice(at, src.indexOf('\n  }', at));
+    expect(than).toMatch(/players\.some\(\(p\) => !p\.may && this\.connected\(p\.id\)\)/);
+  });
+
+  it('server Node: phòng khôi phục KHÔNG có mốc đã lưu vẫn được hẹn thức một lần', () => {
+    const node = readFileSync(resolve(process.cwd(), '../node-server/src/index.ts'), 'utf8');
+    const at = node.indexOf('async function khoiPhuc()');
+    const than = node.slice(at, node.indexOf('\n}', at));
+    expect(than).toMatch(/setAlarm\(alarmLuc !== null \?[^:]+: Date\.now\(\)/);
+    expect(than, 'không được chỉ hẹn khi alarmLuc khác null').not.toMatch(/if \(alarmLuc !== null\) \{\s*void box/);
+  });
+
   it('vẫn còn các mốc cũ: đồng hồ lượt, hết giờ, úp lại thẻ sai, hạn vào lại', () => {
     for (const mark of ['turnDeadline', 'flipBackMs', 'reconnectMs', 'SILENT_MS']) {
       expect(schedule, `mốc ${mark} biến mất khỏi scheduleNext()`).toMatch(mark);
