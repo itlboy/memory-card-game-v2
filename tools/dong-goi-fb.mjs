@@ -45,6 +45,48 @@ if (!existsSync(join(GOC, 'index.html'))) {
   process.exit(1);
 }
 
+/**
+ * KHUNG THU NHỎ cho bản cổng (28.11.2026, chủ dự án chọn "thu nhỏ cả game theo chiều cao khung"): cổng game nhúng ở khung
+ * NGANG THẤP (CrazyGames 800×450, 821×462…) mà game thiết kế cho màn dọc cao ≥ CAO_THIET_KE. Thay vì sửa CSS từng màn
+ * (vh, lớp phủ fixed, Teleport ra body — thu bằng transform trên #app là vỡ), `index.html` của gói là một TRANG VỎ mang
+ * game trong iframe con (`game.html`): iframe con luôn cao ≥ CAO_THIET_KE px CSS rồi được `transform: scale` cho vừa
+ * khung thật. Trong iframe con mọi thứ (vh, fixed, media query) thấy đúng một màn cao như điện thoại → không sửa gì ở
+ * game. Khung đủ cao (toàn màn hình, điện thoại dọc) thì tỉ lệ = 1, y như bản web. Chạy lại nhiều lần không sao.
+ */
+const CAO_THIET_KE = 640;
+function dungKhungCong() {
+  const goc = join(GOC, 'index.html'), game = join(GOC, 'game.html');
+  const dangLaVo = readFileSync(goc, 'utf8').includes('id="khung-cong"');
+  if (!dangLaVo) writeFileSync(game, readFileSync(goc));          // lần build mới: index.html của vite → game.html
+  writeFileSync(goc, `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flip Match</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#0c0e1c}#khung-cong{position:absolute;left:0;top:0;border:0;transform-origin:0 0}</style>
+</head>
+<body>
+<iframe id="khung-cong" title="Flip Match" allow="autoplay; clipboard-write; fullscreen"></iframe>
+<script src="./khung-cong.js"></script>
+</body>
+</html>
+`);
+  writeFileSync(join(GOC, 'khung-cong.js'), `(function () {
+  var CAO = ${CAO_THIET_KE}, k = document.getElementById('khung-cong');
+  function xep() {
+    var w = window.innerWidth, h = window.innerHeight, tl = Math.min(1, h / CAO);
+    k.style.width = Math.ceil(w / tl) + 'px'; k.style.height = Math.ceil(h / tl) + 'px';
+    k.style.transform = tl < 1 ? 'scale(' + tl + ')' : '';
+  }
+  xep(); window.addEventListener('resize', xep);
+  k.src = './game.html' + location.search + location.hash;
+  window.addEventListener('focus', function () { try { k.contentWindow.focus(); } catch (e) {} });
+})();
+`);
+}
+if (CONG) dungKhungCong();
+
 function* duyet(thuMuc) {
   for (const ten of readdirSync(thuMuc)) {
     const duong = join(thuMuc, ten);
@@ -68,7 +110,7 @@ for (const duong of duyet(GOC)) {
 if (!CONG) files['fbapp-config.json'] = Buffer.from(JSON.stringify(CAU_HINH, null, 2));
 
 // Kiểm ngay tại đây thứ Meta sẽ từ chối, thay vì đợi tải lên mới biết
-const html = files['index.html'].toString('utf8');
+const html = files[CONG ? 'game.html' : 'index.html'].toString('utf8');
 const loi = [];
 if (!CONG && !html.includes('connect.facebook.net/en_US/fbinstant.')) loi.push('index.html thiếu thẻ SDK fbinstant');
 if (CONG && /fbinstant|apple-itunes-app|apps\.apple\.com|play\.google\.com/.test(html)) loi.push('index.html bản cổng còn SDK Facebook / thẻ cài app');

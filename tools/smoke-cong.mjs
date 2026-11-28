@@ -40,7 +40,8 @@ try {
   for (const [ten, w, h] of CO) {
     const page = await browser.newPage({ viewport: { width: w, height: h } });
     const loiJs = []; const ngoai = new Set();
-    page.on('pageerror', (e) => loiJs.push(String(e)));
+    // "ResizeObserver loop…" là thông báo vô hại của trình duyệt (game cũng bỏ qua nó ở ganBatLoi) — không tính là lỗi
+    page.on('pageerror', (e) => { if (!/ResizeObserver loop/.test(String(e))) loiJs.push(String(e)); });
     await page.route('**/*', (r) => {
       const u = new URL(r.request().url());
       if (u.hostname === '127.0.0.1') return r.continue();
@@ -49,7 +50,10 @@ try {
       return u.hostname === 'flipmatch.cozypi.com' && u.pathname.startsWith('/emoji/') ? r.continue() : r.abort();
     });
     await page.goto(`http://127.0.0.1:${cong}/khung`);
-    const khung = page.frames().find((f) => f.url().includes(TIEN_TO)) ?? (await page.waitForEvent('framenavigated', { predicate: (f) => f.url().includes(TIEN_TO), timeout: 10000 }));
+    // Gói cổng = trang vỏ thu nhỏ (index.html) mang game trong iframe con game.html (tools/dong-goi-fb.mjs `dungKhungCong`)
+    let khung = null;
+    for (let i = 0; i < 60 && !khung; i++) { khung = page.frames().find((f) => f.url().includes('game.html')) ?? null; if (!khung) await page.waitForTimeout(250); }
+    if (!khung) { loi.push(`${ten}: không thấy iframe game.html trong trang vỏ`); await page.close(); continue; }
     await khung.waitForFunction(() => document.querySelector('#app')?.children.length > 0, null, { timeout: 15000 }).catch(() => loi.push(`${ten}: #app trống — game không lên`));
     await page.waitForTimeout(1500);
     const kq = await khung.evaluate(async () => ({
@@ -61,6 +65,7 @@ try {
     if (kq.sw) loi.push(`${ten}: có service worker đăng ký`);
     if (kq.store.length) loi.push(`${ten}: còn link ra ngoài: ${kq.store.join(', ')}`);
     if (kq.tran) loi.push(`${ten}: trang tràn khung ${kq.co.join('×')} (phải cuộn)`);
+    if (kq.co[1] < 640) loi.push(`${ten}: game thấy màn cao ${kq.co[1]} < 640 — trang vỏ chưa thu nhỏ`);
     if (loiJs.length) loi.push(`${ten}: lỗi JS: ${loiJs.join(' | ')}`);
     if (RA) await page.screenshot({ path: join(RA, `cong-${ten}.png`) });
     console.log(`${ten} ${w}×${h}: tên miền ngoài game gọi tới: ${[...ngoai].join(', ') || '(không)'}`);

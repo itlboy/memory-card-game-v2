@@ -37,6 +37,7 @@ import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
 import { canh } from './lib/canh';
 import HoSoDialog from './components/HoSoDialog.vue';
+import { laCong } from './lib/nen-fb';
 import BaoLoiDialog from './components/BaoLoiDialog.vue';
 import { ghiManGanNhat, type NoiBl } from './lib/bao-loi';
 import { guiHoSo } from '@/lib/taikhoan';
@@ -821,6 +822,7 @@ function ghiTrangThaiPremium(): void {
 function thuTangLuon(): void {
   if (!hoSo.value.xong || !tangTuDong()) return;
   moChucNang('premium_tang_tu_dong');
+  if (laCong) return;   // bản cổng game: vẫn tặng, nhưng không phủ bảng lên menu — cổng chấm "vào ván trong ≤ 1 cú bấm"
   premiumTu.value = 'qua'; showPremium.value = true;
 }
 watch(() => hoSo.value.xong, (x) => { if (x) thuTangLuon(); });

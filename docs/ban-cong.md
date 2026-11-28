@@ -32,11 +32,22 @@ nhúng: `base: './'`, tắt PWA/service worker, không gợi ý cài app, không
 - Basic Launch: không cần SDK, quảng cáo TẮT. Kết thúc khi đủ 7 ngày VÀ 500 lượt chơi (tối đa 21 ngày). Full Launch mới cần
   SDK (gameplay start/stop, tắt tiếng, quảng cáo qua SDK) và mới chia doanh thu. Không đòi độc quyền.
 
-## Chưa làm — CHẶN NỘP
+## Thu nhỏ theo chiều cao khung (28.11.2026, chủ dự án chọn)
 
-1. **Bố cục khung ngang thấp.** Ở 800×450 / 821×462 màn chào bị cắt mất nút "Vào chơi"; menu, bàn chơi, hộp thoại chưa soát.
-   Game thiết kế cho màn dọc ≥ ~640 px cao. Cần phương án (thu nhỏ theo chiều cao hay bố cục ngang riêng) — làm mockup trước.
-2. Màn chào bắt nhập tên trước khi chơi: cổng game chấm "vào ván trong ≤ 1 cú bấm" → bản cổng nên tự đặt tên ngẫu nhiên.
-3. Chạy thử trên Chrome thật (máy này Playwright chỉ có WebKit), soát phòng online trong iframe (API/WebSocket khác tên miền).
-4. Thông báo quyền riêng tư cho người mới (GA) theo yêu cầu cổng; trang giới thiệu, ảnh bìa, video ngắn cho hồ sơ nộp.
-5. itch.io: cùng gói, chưa tạo trang.
+`index.html` của gói là TRANG VỎ (`tools/dong-goi-fb.mjs` `dungKhungCong`): game thật nằm ở `game.html`, chạy trong iframe
+con luôn cao ≥ 640 px CSS rồi `transform: scale` cho vừa khung thật (800×450 → tỉ lệ 0,70). Trong iframe con mọi thứ (vh,
+lớp phủ fixed, Teleport, media query) thấy đúng một màn cao như điện thoại → KHÔNG sửa CSS nào của game. Khung cao ≥ 640
+(toàn màn hình, điện thoại dọc) thì tỉ lệ 1. BẪY: đừng thu bằng transform trên `#app` — hộp thoại Teleport ra body và đơn
+vị vh sẽ lệch. Gắn SDK cổng sau này: SDK ở trang vỏ, nói với game qua `postMessage`.
+
+Cũng ở bản cổng: không màn chào (tự đặt tên ngẫu nhiên + avatar, `lib/ho-so.ts` `tuDatHoSoCong`), bảng Premium tặng
+không tự phủ lên menu — vào ván được trong một cú bấm.
+
+## Chưa làm
+
+1. Chạy thử trên Chrome thật (máy này Playwright chỉ có WebKit); soát phòng online trong iframe (API/WebSocket khác tên miền);
+   soát nốt hộp thoại dài (Hồ sơ, Luật chơi, Premium, kết quả) ở 800×450.
+2. Bảng Premium còn link Terms/Privacy ra web của mình — hỏi cổng hoặc ẩn.
+3. Thông báo quyền riêng tư cho người mới (GA) theo yêu cầu cổng; ảnh bìa, mô tả, video ngắn cho hồ sơ nộp.
+4. itch.io: cùng gói, đẩy bằng `butler push` (tự động được); CrazyGames tải zip tay ở Developer Portal.
+5. Bản cổng cũ phải chạy được với server mới — thêm vào diện `smoke:client-cu` khi đã nộp.

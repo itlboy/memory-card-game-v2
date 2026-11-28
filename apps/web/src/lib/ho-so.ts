@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import { store } from './storage';
-import { laTenTuSinh } from './ten-goc';
+import { laTenTuSinh, taoTen } from './ten-goc';
+import { laCong } from './nen-fb';
 import { AVATAR_HO_SO, MAU_HO_SO } from '@mm/engine';
 
 /**
@@ -24,8 +25,23 @@ function docHoSo(): HoSo {
     mat: h?.mat && AVATAR_HO_SO.includes(h.mat) ? h.mat : boc(AVATAR_HO_SO),
     mau: h?.mau && MAU_HO_SO.includes(h.mau) ? h.mau : boc(MAU_HO_SO),
     // Test (vitest): coi như đã qua màn chào — không thì màn chào bắt buộc phủ lên mọi test giao diện.
-    xong: !!h?.xong || import.meta.env.MODE === 'test',
+    xong: !!h?.xong || import.meta.env.MODE === 'test' || tuDatHoSoCong(),
   };
+}
+
+/**
+ * BẢN CỔNG GAME (28.11.2026): cổng chấm "vào ván trong tối đa một cú bấm" → KHÔNG chặn bằng màn chào. Lần đầu tự đặt
+ * tên ngẫu nhiên theo tiếng của trình duyệt + avatar/màu đã bốc; đổi sau ở Hồ sơ như thường.
+ */
+function tuDatHoSoCong(): boolean {
+  if (!laCong) return false;
+  try {
+    const ds = store.playerNames();
+    if (!(ds[0] ?? '').trim()) store.savePlayerNames([taoTen((typeof navigator === 'undefined' ? 'en' : navigator.language || 'en').slice(0, 2)), ...ds.slice(1)]);
+    const h = store.hoSo();
+    store.saveHoSo({ mat: h?.mat && AVATAR_HO_SO.includes(h.mat) ? h.mat : boc(AVATAR_HO_SO), mau: h?.mau && MAU_HO_SO.includes(h.mau) ? h.mau : boc(MAU_HO_SO), xong: true });
+    return true;
+  } catch { return false; }
 }
 
 export const hoSo = ref<HoSo>(docHoSo());
