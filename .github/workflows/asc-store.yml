@@ -59,6 +59,9 @@ jobs:
           done
       - name: Chụp ảnh iPad 13" (15 ngôn ngữ)
         if: inputs.chup_ipad
+        env:
+          # Bộ v2 cho cả iPad (28.11.2026): kịch bản cũ chup-store-kichban.mjs viết cho giao diện cũ — hỏng ở nút "30 cards"
+          KICHBAN: ${{ github.workspace }}/tools/chup-store-v2.mjs
         run: |
           for L in en vi es pt fr de ja ko zh ru id th it tr zh-TW; do
             KHUNG=ipad node tools/chup-store.mjs "${{ inputs.may_chu }}" "anh/$L-ipad" "$L"
