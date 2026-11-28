@@ -37,7 +37,7 @@ export interface Kho {
   /** Đẩy nốt phần đang chờ rồi đóng kết nối — gọi khi server tắt. */
   dongKho(): Promise<void>;
   /** NHIỀU POD (cum.ts): nạp MỘT phòng đang sống — pod vừa nhận quyền giữ phòng. null = không có / đã đóng. */
-  napMot(code: string): Promise<{ duLieu: DuLieuPhong; alarmLuc: number | null } | null>;
+  napMot(code: string): Promise<{ duLieu: DuLieuPhong; alarmLuc: number | null; luuLuc?: number } | null>;
   /** NHIỀU POD: mã mọi phòng đang sống (quét phòng mồ côi). */
   dsMa(): Promise<string[]>;
   /** NHIỀU POD: đẩy ngay phần đang chờ ghi (trước khi nhả phòng cho pod khác). */
@@ -596,6 +596,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
     opt_shuffle: number; opt_special: number; countdown_end: number | null;
     empty_at: number | null; alarm_at: number | null; opened_at: number;
     game_state: string | null;
+    updated_at?: Date | string | null;
     team_mode?: number;
   }
   /** Một dòng của bảng `room_players`. */
@@ -608,7 +609,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
   }
 
   /** Nạp phòng đang sống (mọi phòng, hoặc đúng một mã) vào `ra`. Ném lỗi khi database hỏng — nơi gọi quyết định. */
-  async function nap(ra: Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null }>, chiMa?: string): Promise<void> {
+  async function nap(ra: Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null; luuLuc?: number }>, chiMa?: string): Promise<void> {
     const loc = chiMa ? ' AND r.code = ?' : '';
     const ts = chiMa ? [chiMa] : [];
     const [rows] = await pool.query(`SELECT r.* FROM rooms r WHERE r.closed_at = 0${loc}`, ts);
@@ -673,7 +674,9 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
         }
       };
       if (r.game_state !== null) duLieu.game = r.game_state;
-      ra.set(r.code, { duLieu, alarmLuc: r.alarm_at === null ? null : Number(r.alarm_at) });
+      // Lần ghi cuối (giây) — pod nhận phòng của pod đã chết bù giờ từ mốc này
+      const luuLuc = r.updated_at ? new Date(r.updated_at).getTime() : NaN;
+      ra.set(r.code, { duLieu, alarmLuc: r.alarm_at === null ? null : Number(r.alarm_at), ...(Number.isFinite(luuLuc) ? { luuLuc } : {}) });
     }
   }
 
@@ -707,7 +710,7 @@ export async function moKho(url: string | undefined): Promise<Kho | null> {
       return ra;
     },
     async napMot(code) {
-      const ra = new Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null }>();
+      const ra = new Map<string, { duLieu: DuLieuPhong; alarmLuc: number | null; luuLuc?: number }>();
       await nap(ra, code);
       return ra.get(code) ?? null;
     },

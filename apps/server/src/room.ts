@@ -362,6 +362,19 @@ export class RoomDO extends DurableObject<Env> {
     await this.save();
   }
 
+  /**
+   * NHIỀU POD (28.11.2026): nhận phòng của pod CHẾT ĐỘT NGỘT — ván chưa kịp dừng. Dừng lùi về `luc` (lần ghi cuối của pod
+   * cũ) rồi chạy tiếp như sau deploy: mọi mốc dời đúng bằng khoảng server chết. Ván đã dừng sẵn (pod cũ tắt êm) thì giữ mốc
+   * dừng cũ — dừng lại lần nữa là mất đoạn đã tắt.
+   */
+  async chayTiepSauSuCo(luc: number, now = Date.now()): Promise<void> {
+    await this.load();
+    if (this.room && this.game && this.room.status === 'playing' && !this.game.finished && !this.game.dangTamDung) {
+      this.game.tamDungVan(Math.min(luc, now));
+    }
+    await this.chayTiepSauKhoiDong(now);
+  }
+
   async chayTiepSauKhoiDong(now = Date.now()): Promise<void> {
     await this.load();
     if (!this.room || !this.game?.dangTamDung) return;

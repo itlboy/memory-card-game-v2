@@ -21,8 +21,12 @@ import { HAN_BAN_GHI_MS, locVaSap, type SoPhong } from '../../server/src/sophong
  *
  * Không có REDIS_URL thì không dựng cụm: server chạy một pod y như trước (index.ts giữ nguyên đường cũ).
  */
-export const HAN_GIU_MS = 15_000;
-export const NHIP_GIU_MS = 5_000;
+/*
+ * 28.11.2026 (chủ dự án duyệt): 15 s → 6 s. Pod chết đột ngột thì người chơi chờ tới khi khoá hết hạn — 15 s là quá lâu.
+ * Gia hạn 2 s một lần: lỡ hai nhịp (Redis chậm, GC) vẫn còn khoá. Giá: mỗi pod ~1 lệnh Redis / 2 s, không đáng kể.
+ */
+export const HAN_GIU_MS = 6_000;
+export const NHIP_GIU_MS = 2_000;
 const TIEN_TO = 'lt:';
 
 /** Gia hạn hàng loạt: trả về những mã KHÔNG còn là của pod này. */
@@ -66,6 +70,8 @@ export interface Cum {
   /** Số người đang nối sảnh (pod giữ sảnh ghi, pod khác đọc). */
   ghiOnline(n: number): Promise<void>;
   docOnline(): Promise<number>;
+  /** Quản trị (quantri.ts): pod chủ của từng mã + pod giữ sảnh + độ trễ Redis + cỡ sổ phòng + số online. */
+  soLieu(maDs: string[]): Promise<{ chu: (string | null)[]; sanh: string | null; treMs: number; soPhongCongKhai: number; online: number }>;
   dong(): Promise<void>;
 }
 
@@ -164,6 +170,16 @@ export async function moCum(url: string | undefined, port: number): Promise<Cum 
     async laThu(ma) { return (await r.exists(`${TIEN_TO}thu:${ma}`)) === 1; },
     async ghiOnline(n) { await r.set(`${TIEN_TO}online`, String(n), 'PX', HAN_GIU_MS * 2); },
     async docOnline() { return Number(await r.get(`${TIEN_TO}online`)) || 0; },
+    async soLieu(maDs) {
+      const t0 = Date.now();
+      await r.ping();
+      const treMs = Date.now() - t0;
+      const [chu, sanh, so, onl] = await Promise.all([
+        maDs.length ? r.mget(...maDs.map(kChu)) : Promise.resolve([] as (string | null)[]),
+        r.get(kChu('sanh')), r.hlen(K_SO), r.get(`${TIEN_TO}online`)
+      ]);
+      return { chu, sanh, treMs, soPhongCongKhai: so, online: Number(onl) || 0 };
+    },
     async dong() {
       clearInterval(nhip);
       try { await r.del(kPod(pod)); } catch { /* đang tắt */ }

@@ -19,6 +19,7 @@ import { moTkThiDau, type TkThiDau } from './tk-thidau.js';
 import { moTkTen } from './tk-ten.js';
 import { moCum, type Cum } from './cum.js';
 import { chonPod } from './chon-pod.js';
+import { moQuanTri, type QuanTri } from './quantri.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -253,7 +254,9 @@ function napVe(code: string): Promise<boolean> {
     const { box, room } = layPhong(code, co.duLieu);
     dangGiu.add(code);
     void box.ctx.storage.setAlarm(co.alarmLuc !== null ? Math.max(co.alarmLuc, Date.now()) : Date.now() + 1_000);
-    await room.chayTiepSauKhoiDong(Date.now()).catch((e) => console.error('[cum] chạy tiếp ván lỗi:', code, e));
+    // Pod cũ tắt êm thì ván đã được DỪNG (chạy tiếp ở đây). Pod cũ CHẾT ĐỘT NGỘT thì ván chưa dừng: coi như dừng ở lần
+    // ghi cuối của pod cũ (`luuLuc`) rồi chạy tiếp — không ai bị hết giờ lượt vì khoảng server chết (28.11.2026).
+    await room.chayTiepSauSuCo(co.luuLuc ?? Date.now(), Date.now()).catch((e) => console.error('[cum] chạy tiếp ván lỗi:', code, e));
     console.log(`[cum] nhận phòng ${code}`);
     return true;
   })().finally(() => dangNap.delete(code));
@@ -727,6 +730,7 @@ function xuLyHttpTiep(req: IncomingMessage, res: ServerResponse, url: URL): void
   // Sảnh (mời người online) — trước tầng tài khoản vì cùng tiền tố /api/
   if (sanh.xuLyHttp(req, res, url)) return;
   if (tkThiDau?.xuLy(req, res, url, json)) return;
+  if (quanTri?.xuLy(req, res, url, json)) return;
   if (tkTen?.xuLy(req, res, url, json)) return;
 
   if (url.pathname === '/api/ping' && req.method === 'GET') {
@@ -810,6 +814,8 @@ let kho: Kho | null = null;
 let taiKhoan: TaiKhoan | null = null;
 let thongBao: ThongBao | null = null;
 let tkThiDau: TkThiDau | null = null;
+/** API quản trị cụm (quantri.ts) — bật khi có QUANTRI_KEY. */
+let quanTri: QuanTri | null = null;
 /** Tra mã người chơi GA → tên (tk-ten.ts). */
 let tkTen: ReturnType<typeof moTkTen> | null = null;
 
@@ -940,11 +946,16 @@ if (cum) {
     () => { if (sanhCuaToi) void cum?.ghiOnline(sanh.soKetNoi()).catch(() => undefined); }
   );
   await quetMoCoi();
-  setInterval(() => void quetMoCoi(), 10_000).unref();
+  setInterval(() => void quetMoCoi(), 3_000).unref();   // pod chết: phòng không ai vào lại vẫn được nhận trong ≤ 9 s
 } else {
   await khoiPhuc();
 }
 batBao = true;
+quanTri = process.env.QUANTRI_KEY ? moQuanTri({
+  pool: kho?.pool ?? null, cum: () => cum, khoa: process.env.QUANTRI_KEY,
+  podNay: () => ({ pod: cum?.pod ?? 'mot-pod', phong: phongs.size, sanhKetNoi: sanh.soKetNoi() })
+}) : null;
+console.log(quanTri ? '  API quản trị: BẬT (/api/quantri/*)' : '  API quản trị: TẮT (cần QUANTRI_KEY)');
 
 server.listen(PORT, () => {
   console.log(`Lật Thẻ — server dự phòng chạy ở http://localhost:${PORT}`);
