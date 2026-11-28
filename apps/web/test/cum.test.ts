@@ -46,6 +46,10 @@ describe('cụm nhiều pod', () => {
     expect(idx).toMatch(/x-lt-noi'\] !== NOI_KEY \|\| req\.headers\['cf-connecting-ip'\]/);
   });
 
+  it('phòng mới chia NGẪU NHIÊN cho các pod đang sống (tunnel dồn request vào một pod)', () => {
+    expect(idx).toMatch(/cum && !daChuyen\(req\)\) \{\s*const ds = await cum\.podSong\(\)/);
+  });
+
   it('thông báo "phòng mới" chỉ một lần cho cả cụm', () => {
     expect(idx).toMatch(/cum\.lanDau\('bao'/);
   });

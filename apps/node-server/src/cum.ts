@@ -45,6 +45,11 @@ export interface Cum {
   chuCua(ma: string): Promise<'toi' | { diaChi: string } | null>;
   /** Giành quyền giữ `ma` (chưa ai giữ, hoặc pod giữ đã chết). true = giờ là của mình. */
   gianh(ma: string): Promise<boolean>;
+  /**
+   * Các pod đang sống (id + địa chỉ). Dùng để CHIA phòng mới đều cả cụm: Cloudflare không chia đều giữa các tunnel
+   * (ưu tiên một kết nối), cloudflared lại giữ kết nối lâu tới một pod — để mặc thì mọi phòng dồn vào một pod.
+   */
+  podSong(): Promise<{ pod: string; diaChi: string }[]>;
   /** Thôi giữ `ma` (phòng đã đóng / nhả khi tắt). */
   nha(ma: string): Promise<void>;
   /** Đăng ký nhịp gia hạn: `dangGiu()` trả các mã đang giữ, `mat(ma)` gọi khi mất quyền. */
@@ -100,6 +105,17 @@ export async function moCum(url: string | undefined, port: number): Promise<Cum 
       return (await r.eval(LUA_CUOP, 1, kChu(ma), chu, pod, HAN_GIU_MS)) === 1;
     },
     async nha(ma) { await r.eval(LUA_NHA, 1, kChu(ma), pod); },
+    async podSong() {
+      const khoa: string[] = [];
+      let con = '0';
+      do {
+        const [tiep, ds] = await r.scan(con, 'MATCH', `${TIEN_TO}pod:*`, 'COUNT', 100);
+        con = tiep; khoa.push(...ds);
+      } while (con !== '0');
+      if (!khoa.length) return [{ pod, diaChi }];
+      const dc = await r.mget(...khoa);
+      return khoa.map((k, i) => ({ pod: k.slice(`${TIEN_TO}pod:`.length), diaChi: dc[i] ?? '' })).filter((x) => x.diaChi);
+    },
     chayNhip(dangGiu, mat, moiNhip) {
       nhip = setInterval(() => {
         void (async () => {

@@ -676,6 +676,12 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const tb = url.searchParams.get('tb');
     void (async () => {
       if (dangTat) { json(res, { error: 'Máy chủ đang khởi động lại, thử lại' }, 503); return; }
+      // Nhiều pod: bốc NGẪU NHIÊN một pod đang sống giữ phòng mới (xem `podSong`) — request đã chuyển một lần thì tạo tại chỗ
+      if (cum && !daChuyen(req)) {
+        const ds = await cum.podSong();
+        const chon = ds[Math.floor(Math.random() * ds.length)];
+        if (chon && chon.pod !== cum.pod) { chuyenHttp(req, res, chon.diaChi); return; }
+      }
       const code = await maMoi();
       if (thu) { phongThu.add(code); await cum?.datThu(code); }
       if (tb && thongBao) thongBao.ghiChuPhong(code, tb);
