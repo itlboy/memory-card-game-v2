@@ -12,7 +12,7 @@
  */
 import { describe, it } from 'vitest';
 import { MemoryGame } from '../src/game.js';
-import { BOARD_SIZES, MAN_PHANG, allLevels, giayXemTruoc, levelConfig, soLanXao, tiLeDacBiet } from '../src/campaign.js';
+import { BOARD_SIZES, MAN_GOC, MAN_PHANG, allLevels, giayXemTruoc, levelConfig, soLanXao, tiLeDacBiet } from '../src/campaign.js';
 import { Rng } from '../src/rng.js';
 import { MATCH_TIME_BONUS_MS } from '../src/scoring.js';
 import type { GameConfig, GameEvent } from '../src/types.js';
@@ -126,13 +126,15 @@ describe.skipIf(!process.env.DO_CD)('đo Chiến dịch mỗi màn một luật'
       // Bàn tí hon (≤3 cặp): giờ hết trước khi kịp ghép mà nhận phần cộng — không trừ (đo: 48% qua)
       // Màn trơn cũng không trừ: đó là màn "thở" của mỗi cỡ, phải rộng giờ nhất (test canh)
       const thuong = b.pairs <= 3 || cacLuat.length === 0 ? 0 : (MATCH_TIME_BONUS_MS / 1000) * b.pairs;
-      const gio = tron5(Math.max(b.pairs * 2, -thuong + (cacLuat.length === 0 ? pv(g, 0.99) * 1.25
+      // HUYỀN THOẠI (màn 61+): đích người khá qua ~55–65% — giờ p60 (có tim thì p70, tim p75)
+      const ht = i >= MAN_GOC;
+      const gio = tron5(Math.max(b.pairs * 2, -thuong + (ht ? pv(g, cacLuat.includes('mang') ? 0.7 : 0.6) : cacLuat.length === 0 ? pv(g, 0.99) * 1.25
         // Bàn tí hon (≤3 cặp) phương sai lớn: p75 chỉ 9 giây, nửa người chơi trượt màn 3 — p95
         : nhanh ? pv(g, b.pairs <= 3 ? 0.95 : trum ? 0.65 : 0.75)
         // Trùm có tim đã khó vì tim; trùm không tim thì đồng hồ phải gắt hơn mới ra trùm
         : trum ? pv(g, cacLuat.includes('mang') ? 0.85 : 0.75)
         : cacLuat[0] === 'xemTruoc' ? pv(g, 0.9) : pv(g, 0.95) * 1.1)));
-      const tim = cacLuat.includes('mang') ? Math.max(2, pv(q, trum ? 0.8 : 0.85) + 1) : null;
+      const tim = cacLuat.includes('mang') ? Math.max(2, pv(q, ht ? 0.75 : trum ? 0.8 : 0.85) + 1) : null;
       const s3 = pv(qg, 0.25), s2 = Math.max(s3 + 1, pv(q, 0.5));
       dong.push(`  [${gio}, ${tim}, ${s2}, ${s3}],   // ${String(i + 1).padStart(2)} · ${b.pairs * 2} thẻ · ${cacLuat.join('+') || 'trơn'}`);
     });

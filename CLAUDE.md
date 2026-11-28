@@ -808,6 +808,10 @@ web là cổng đổi theo — lỗi web là lỗi luôn trên CrazyGames), itch
   màn hình, bản app/OTA, lỗi JS gần đây, nhật ký máy; KHÔNG tên. Server `apps/node-server/src/baoloi.ts` (bảng `bug_reports`,
   5 thư/giờ/máy/IP) → admin tab Kỹ thuật + API quản trị `/api/quantri/baoloi*` + MCP `bao_loi`. Class chip trong hộp là
   `bl-chip`/`bl-chips` — `.chip`/`.chips` trùng kiểu toàn cục của app (đã vỡ khuôn thành ô to 2 cột).
+- **CHẶNG 5 · HUYỀN THOẠI (28.11.2026, duyệt: https://claude.ai/artifact/NGggJULz2V8nijpGAAta4Q)**: màn 61–75 =
+  `HUYEN_THOAI` nối sau `LUAT_THEO_CO` (`MAN_GOC` = 60), chỉ bàn 42–88, 2–4 luật/màn; DO_MAN 61–75 SINH bằng `DO_CD=1`
+  (nhánh `ht`: giờ p60, có tim p70). Vương miện = `laManChot` (màn cuối mỗi cỡ bàn: 63/67/71/75), KHÔNG theo `luat === 'trum'`.
+  Danh hiệu campaign-65/70/75 tự sinh + `huyen-thoai` (3★ cả 15). Store vẫn ghi 60 màn tới lần nộp mô tả sau.
 - **CHIẾN DỊCH TÌM THẺ (đợt 3, 28.11.2026, duyệt: https://claude.ai/artifact/BZWf4m2Ma6Tp6rGvnBWJrV)**: `lib/chien-dich-tim.ts`
   (30 màn `MAN_TIM`, 3 chặng × 10, trùm 10/20/30 luôn có máy). Sao theo lượt đúng ★6 ★★8 ★★★10; qua = ≥1★ và thắng máy nếu có.
   Tiến độ `Save.timCD` (RIÊNG với `levels` — đừng gộp, `unlockedKey` đếm mọi mode ≠ campaign). Bản đồ `LevelMapTim.vue`, thanh

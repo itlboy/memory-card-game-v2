@@ -7,7 +7,7 @@
 - Price: free. No ads. No in-app purchases.
 - Platforms: web browser (desktop and mobile), iOS app, Android app.
 - Play online in the browser: https://flipmatch.cozypi.com/en/
-- Modes: solo; vs computer (5 difficulty levels); local multiplayer on one device (up to 4 players); online rooms with friends (up to 4 players, 6-digit room code or invite link, no account needed); a 60-level campaign.
+- Modes: solo; vs computer (5 difficulty levels); local multiplayer on one device (up to 4 players); online rooms with friends (up to 4 players, 6-digit room code or invite link, no account needed); a 75-level campaign (the final Legendary chapter stacks several rules per level).
 - Boards: 12 sizes, from 4 cards to 88 cards.
 - Optional rules (each with 4 settings): Time, Lives, Preview, Shuffle, Special Cards.
 - 12 card themes with 1,300+ pictures: animals, food, flags, letters and numbers and more, drawn as 3D emoji.

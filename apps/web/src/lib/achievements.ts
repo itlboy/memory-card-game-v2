@@ -1,5 +1,5 @@
 import { tongSaoTim } from './chien-dich-tim';
-import { BOARD_SIZES, CAMPAIGN_LEVELS, doiDanhHieu } from '@mm/engine';
+import { BOARD_SIZES, CAMPAIGN_LEVELS, MAN_GOC, doiDanhHieu } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary, TimTheDoKho } from '@mm/engine';
 import { computed, ref } from 'vue';
 import { store } from './storage';
@@ -53,6 +53,8 @@ export interface ThongKe {
   campaignMax: number;
   /** Số màn Chiến dịch đạt 3 sao. */
   stars3: number;
+  /** Số màn HUYỀN THOẠI (61–75) đạt 3 sao — danh hiệu "Huyền thoại" (28.11.2026). Thiếu = 0. */
+  htSao3?: number;
   /** Tổng số ván THẮNG không lật sai (mọi cỡ bàn) — đếm từ 28.11.2026. */
   hoanHao: number;
   /** Tổng số NGÀY khác nhau có chơi — đếm từ 28.11.2026, khởi đầu bằng chuỗi dài nhất đã có. */
@@ -225,6 +227,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     chinhPhuc: { campaign: true }, tienDo: (t) => [t.campaignMax, n]
   })),
   dh({ id: 'three-star', nhom: 'chien-dich', chinhPhuc: { campaign: true } }),
+  // Chặng 5 · Huyền thoại (28.11.2026): 3★ cả 15 màn 61–75
+  dh({ id: 'huyen-thoai', nhom: 'chien-dich', chinhPhuc: { campaign: true }, tienDo: (t) => [t.htSao3 ?? 0, CAMPAIGN_LEVELS - MAN_GOC] }),
   ...([10, 25, 50] as const).map((n) => dh({
     id: `stars3-${n}`, k: 'stars3', p: () => ({ n }), nhom: 'chien-dich', chinhPhuc: { campaign: true }, tienDo: (t) => [t.stars3, n]
   })),
@@ -299,7 +303,7 @@ export const dsHien = computed(() => chenMocDong(ACHIEVEMENTS.filter((a) => !dhA
  * suy từ id, để thêm danh hiệu mới không phải nhớ khai bậc.
  */
 const VANG = new Set(['board-72', 'board-88', 'combo-12', 'hell-mode', 'bot-divine', 'divine-56', 'divine-88',
-  'wins-500', 'score-10m', `campaign-${CAMPAIGN_LEVELS}`, 'stars3-50', 'online-50', 'days-30',
+  'wins-500', 'score-10m', `campaign-${CAMPAIGN_LEVELS}`, `campaign-${MAN_GOC}`, 'campaign-70', 'huyen-thoai', 'stars3-50', 'online-50', 'days-30',
   'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88', 'tim-10-7', 'tim-may-insane', 'tim-may-divine', 'tim-cd-30', 'tim-cd-sao']);
 const BAC = new Set(['board-36', 'board-42', 'board-56', 'combo-8', 'combo-10', 'iron-man', 'time-rush', 'shuffle-master',
   'bot-hard', 'bot-insane', 'bot-wins-10', 'wins-50', 'wins-100', 'score-100k', 'score-1m',
@@ -585,6 +589,7 @@ export function thongKeHienTai(serverWins = 0): ThongKe {
     chuoiNgay: b.chuoiMax,
     campaignMax: cd.filter(([, v]) => v.stars > 0).reduce((m, [k]) => Math.max(m, Number(k) || 0), 0),
     stars3: cd.filter(([, v]) => v.stars >= 3).length,
+    htSao3: cd.filter(([k, v]) => Number(k) > MAN_GOC && v.stars >= 3).length,
     hoanHao: b.hoanHao ?? 0,
     soNgay: Math.max(b.soNgay ?? 0, b.chuoiMax),
     soVan: b.van ?? 0,
@@ -635,7 +640,7 @@ const ICON_ID: Record<string, string> = {
   survivor: '❤️', 'blind-seer': '👁️', 'time-rush': '⏱️', 'shuffle-master': '🔀', 'special-win': '🃏',
   'iron-man': '🛡️', 'hell-mode': '😈',
   'bot-normal': '🐥', 'bot-hard': '🐆', 'bot-insane': '🐯', 'bot-divine': '🐉', 'divine-56': '🐉', 'divine-88': '🐉',
-  'bot-wins-10': '🤖', [`campaign-${CAMPAIGN_LEVELS}`]: '👑', 'three-star': '🌟', 'online-win': '🌐', 'online-big': '👥',
+  'bot-wins-10': '🤖', [`campaign-${CAMPAIGN_LEVELS}`]: '👑', 'huyen-thoai': '🐲', 'three-star': '🌟', 'online-win': '🌐', 'online-big': '👥',
   'giay-cuoi': '⏳', 'cu-dem': '🦉', 'binh-minh': '🌅', 'kien-tri': '🐢', 'ngang-tai': '🤝'
 };
 export function iconCua(a: Achievement): IconHuyHieu {

@@ -127,7 +127,7 @@ export const LEVEL_KEYS = LADDER.length;
  *   · tim CHỈ ở 16–42 thẻ: dưới đó không ai quên đủ để mất tim, trên đó người khá quên
  *     30–50 lần — số tim hàng chục, thành trang trí;
  *   · bàn to thay tim bằng XEM TRƯỚC và NHANH.
- * Tổng PHẢI là 60 (bốn chặng × 15) — sự thật công khai "60 màn".
+ * Bốn chặng đầu tổng PHẢI là 60 (`MAN_GOC`); chặng 5 Huyền thoại (`HUYEN_THOAI`) nối sau → 75 màn công khai.
  */
 export const LUAT_THEO_CO: readonly (readonly (readonly LuatDon[])[])[] = [
   /*  4 */ [[]],
@@ -144,9 +144,36 @@ export const LUAT_THEO_CO: readonly (readonly (readonly LuatDon[])[])[] = [
   /* 88 */ [[], ['xemTruoc'], ['xao'], ['dacBiet'], ['nhanh'], ['xao', 'dacBiet'], ['xao', 'dacBiet', 'nhanh']]
 ];
 
-/** Màn phẳng: cỡ bàn (chỉ số BOARDS) + các luật đơn — thứ tự đúng số màn 1..60. */
-export const MAN_PHANG: readonly { bang: number; cacLuat: readonly LuatDon[] }[] =
-  LUAT_THEO_CO.flatMap((ds, bang) => ds.map((cacLuat) => ({ bang, cacLuat })));
+/**
+ * CHẶNG 5 · HUYỀN THOẠI (màn 61–75, 28.11.2026, mockup duyệt https://claude.ai/artifact/NGggJULz2V8nijpGAAta4Q): chỉ bàn
+ * 42–88 thẻ, mỗi màn 2–4 luật chồng nhau, không màn trơn. Tim vẫn chỉ ở bàn ≤ 42 thẻ (luật trên). MÀN CHỐT (đội vương
+ * miện trên bản đồ) = màn cuối của mỗi cỡ bàn — `laManChot`; màn 2 luật ở chặng này vẫn là `trum` cho luật/mô tả nhưng không vương miện.
+ * Chỉ số bàn: 8 = 42 thẻ · 9 = 56 · 10 = 72 · 11 = 88.
+ */
+export const HUYEN_THOAI: readonly { bang: number; cacLuat: readonly LuatDon[] }[] = [
+  { bang: 8, cacLuat: ['xao', 'mang'] }, { bang: 8, cacLuat: ['dacBiet', 'mang'] }, { bang: 8, cacLuat: ['xemTruoc', 'xao', 'dacBiet'] },
+  { bang: 9, cacLuat: ['xao', 'nhanh'] }, { bang: 9, cacLuat: ['dacBiet', 'nhanh'] }, { bang: 9, cacLuat: ['xemTruoc', 'xao', 'dacBiet'] },
+  { bang: 9, cacLuat: ['xao', 'dacBiet', 'nhanh'] },
+  { bang: 10, cacLuat: ['xao', 'dacBiet'] }, { bang: 10, cacLuat: ['dacBiet', 'nhanh'] }, { bang: 10, cacLuat: ['xao', 'nhanh'] },
+  { bang: 10, cacLuat: ['xao', 'dacBiet', 'nhanh'] },
+  { bang: 11, cacLuat: ['xemTruoc', 'dacBiet'] }, { bang: 11, cacLuat: ['dacBiet', 'nhanh'] }, { bang: 11, cacLuat: ['xemTruoc', 'xao', 'dacBiet', 'nhanh'] },
+  { bang: 11, cacLuat: ['xao', 'dacBiet', 'nhanh'] }
+];
+/** Số màn của bốn chặng đầu (sự thật cũ "60 màn"); Huyền thoại nối sau. */
+export const MAN_GOC = LUAT_THEO_CO.reduce((n, ds) => n + ds.length, 0);
+
+/** Màn phẳng: cỡ bàn (chỉ số BOARDS) + các luật đơn — thứ tự đúng số màn 1..75. */
+export const MAN_PHANG: readonly { bang: number; cacLuat: readonly LuatDon[] }[] = [
+  ...LUAT_THEO_CO.flatMap((ds, bang) => ds.map((cacLuat) => ({ bang, cacLuat }))),
+  ...HUYEN_THOAI
+];
+/** Màn đội vương miện trên bản đồ: trùm của bốn chặng đầu, hoặc màn cuối mỗi cỡ bàn ở Huyền thoại. */
+export function laManChot(l: { id: number; cacLuat: readonly LuatDon[] }): boolean {
+  if (l.id <= MAN_GOC) return l.cacLuat.length >= 2;
+  // Huyền thoại: màn CUỐI của mỗi cỡ bàn (63 · 67 · 71 · 75) — đúng bốn vương miện như mockup duyệt
+  const i = l.id - MAN_GOC - 1;
+  return HUYEN_THOAI[i] !== undefined && HUYEN_THOAI[i + 1]?.bang !== HUYEN_THOAI[i]!.bang;
+}
 
 export const CAMPAIGN_LEVELS = MAN_PHANG.length;
 
@@ -205,7 +232,7 @@ export function perfectScore(pairs: number): number {
  */
 export interface Chapter { id: number; name: string; from: number; to: number }
 const MAN_MOI_CHANG = 15;
-export const CHAPTERS: readonly Chapter[] = ['Nhập môn', 'Tăng tốc', 'Thử thách', 'Bậc thầy']
+export const CHAPTERS: readonly Chapter[] = ['Nhập môn', 'Tăng tốc', 'Thử thách', 'Bậc thầy', 'Huyền thoại']
   .map((name, i) => ({ id: i + 1, name, from: i * MAN_MOI_CHANG + 1, to: (i + 1) * MAN_MOI_CHANG }));
 
 /**
@@ -313,6 +340,22 @@ const DO_MAN: readonly (readonly [number, number | null, number, number])[] = [
   [250, null, 31, 7],   // 58 · 88 thẻ · nhanh
   [270, null, 33, 9],   // 59 · 88 thẻ · xao+dacBiet
   [260, null, 31, 9],   // 60 · 88 thẻ · xao+dacBiet+nhanh
+  // — Chặng 5 · Huyền thoại (đích người khá qua ~55–65%: giờ p60, có tim p70) —
+  [95, 10, 8, 2],   // 61 · 42 thẻ · xao+mang
+  [100, 11, 8, 2],   // 62 · 42 thẻ · dacBiet+mang
+  [90, null, 7, 1],   // 63 · 42 thẻ · xemTruoc+xao+dacBiet
+  [135, null, 13, 4],   // 64 · 56 thẻ · xao+nhanh
+  [140, null, 14, 3],   // 65 · 56 thẻ · dacBiet+nhanh
+  [130, null, 12, 3],   // 66 · 56 thẻ · xemTruoc+xao+dacBiet
+  [145, null, 14, 4],   // 67 · 56 thẻ · xao+dacBiet+nhanh
+  [200, null, 22, 6],   // 68 · 72 thẻ · xao+dacBiet
+  [190, null, 22, 6],   // 69 · 72 thẻ · dacBiet+nhanh
+  [180, null, 21, 6],   // 70 · 72 thẻ · xao+nhanh
+  [200, null, 22, 7],   // 71 · 72 thẻ · xao+dacBiet+nhanh
+  [240, null, 29, 6],   // 72 · 88 thẻ · xemTruoc+dacBiet
+  [260, null, 33, 8],   // 73 · 88 thẻ · dacBiet+nhanh
+  [245, null, 29, 7],   // 74 · 88 thẻ · xemTruoc+xao+dacBiet+nhanh
+  [255, null, 32, 9],   // 75 · 88 thẻ · xao+dacBiet+nhanh
 ];
 
 /**
