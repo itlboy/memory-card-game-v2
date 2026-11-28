@@ -419,7 +419,7 @@ describe('màn online (điều hướng, không cần server)', () => {
 });
 
 describe('bản đồ cấp của Chiến dịch', () => {
-  it('đủ 60 màn chia 4 chặng, cấp 1 là 4 thẻ và cấp cuối 88 thẻ', async () => {
+  it('đủ 75 màn chia 5 chặng (chặng 5 Huyền thoại), cấp 1 là 4 thẻ và cấp cuối 88 thẻ', async () => {
     wrapper = mount(App);
     await flush();
     await click('Chiến dịch');
@@ -427,16 +427,19 @@ describe('bản đồ cấp của Chiến dịch', () => {
     expect(nodes).toHaveLength(CAMPAIGN_LEVELS);
     expect(nodes[0]!.text()).toContain('4 thẻ');
     expect(nodes.at(-1)!.text()).toContain('88 thẻ');
-    // Bốn chặng, mỗi chặng một thẻ có tên riêng
-    expect(wrapper.findAll('.chapter')).toHaveLength(4);
+    // Năm chặng, mỗi chặng một thẻ có tên riêng; chặng 5 khung vàng riêng
+    expect(wrapper.findAll('.chapter')).toHaveLength(5);
     expect(wrapper.text()).toContain('Chặng 1 · Nhập môn');
     expect(wrapper.text()).toContain('Chặng 4 · Bậc thầy');
+    expect(wrapper.text()).toContain('Chặng 5 · Huyền thoại');
+    expect(wrapper.findAll('.chapter.huyen-thoai')).toHaveLength(1);
     // Chặng ghi khoảng số thẻ, và nói rõ mỗi màn trong chặng có luật riêng
     expect(wrapper.text()).toContain('4 – 20 thẻ');
     expect(wrapper.text()).toContain('mỗi màn một luật mới');
     // Mỗi màn một luật (27.10.2026): 12 vương miện màn trùm + chú giải luật
     // Màn trùm: một cái mỗi cỡ bàn từ 12 thẻ (bàn 4–6 thẻ không có), bàn 88 thẻ hai cái
-    expect(wrapper.findAll('.node.trum')).toHaveLength(11);
+    // + 4 màn chốt của Huyền thoại (63 · 67 · 71 · 75)
+    expect(wrapper.findAll('.node.trum')).toHaveLength(15);
     expect(wrapper.find('.chu-giai').text()).toContain('Trùm');
     expect(nodes[2]!.find('.luat').exists()).toBe(true);   // màn 3 = 6 thẻ, nhanh
     expect(nodes[0]!.find('.luat').exists()).toBe(false);  // màn 1 = trơn

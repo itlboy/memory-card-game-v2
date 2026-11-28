@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOARD_SIZES, CAMPAIGN_LEVELS, CHAPTERS, LEVEL_KEYS, LUAT_THEO_CO, allLevels, campaignSpec, levelConfig,
+  BOARD_SIZES, CAMPAIGN_LEVELS, CHAPTERS, LEVEL_KEYS, LUAT_THEO_CO, MAN_GOC, laManChot, allLevels, campaignSpec, levelConfig,
   levelSpec, perfectScore
 } from '../src/campaign.js';
 import { starsByMisses } from '../src/scoring.js';
@@ -24,6 +24,7 @@ describe('Campaign (SP-03)', () => {
 
   it('bàn không bao giờ nhỏ lại qua các cấp', () => {
     for (let i = 1; i < levels.length; i++) {
+      if (i === MAN_GOC) continue;   // Huyền thoại mở lại từ bàn 42 thẻ — leo lại tới 88 trong chặng
       expect(levels[i]!.pairs, `cấp ${i + 1}`).toBeGreaterThanOrEqual(levels[i - 1]!.pairs);
     }
   });
@@ -32,10 +33,11 @@ describe('Campaign (SP-03)', () => {
 
 
 
-  it('số màn theo ĐỘ SÂU: bàn nhỏ ít màn, bàn to nhiều màn, cỡ nào cũng có, tổng 60', () => {
-    expect(CAMPAIGN_LEVELS).toBe(60);
+  it('số màn theo ĐỘ SÂU: bàn nhỏ ít màn, bàn to nhiều màn, cỡ nào cũng có, tổng 60 + 15 Huyền thoại', () => {
+    expect(MAN_GOC).toBe(60);
+    expect(CAMPAIGN_LEVELS).toBe(75);
     expect(LUAT_THEO_CO).toHaveLength(BOARD_SIZES.length);
-    const soMan = BOARD_SIZES.map((b) => levels.filter((l) => l.pairs === b.pairs).length);
+    const soMan = BOARD_SIZES.map((b) => levels.filter((l) => l.id <= MAN_GOC && l.pairs === b.pairs).length);
     expect(soMan[0], 'bàn 4 thẻ chỉ một màn — không quên nổi lần nào, lặp là vô nghĩa').toBe(1);
     for (let i = 1; i < soMan.length; i++) expect(soMan[i]!).toBeGreaterThanOrEqual(soMan[i - 1]!);
     for (const n of soMan) expect(n).toBeGreaterThan(0);
@@ -49,6 +51,18 @@ describe('Campaign (SP-03)', () => {
     for (const l of levels) expect(l.luat === 'trum').toBe(l.cacLuat.length >= 2);
   });
 
+  it('HUYỀN THOẠI (61–75): chỉ bàn 42–88, mỗi màn 2–4 luật, màn chốt (vương miện) = màn cuối mỗi cỡ bàn — đúng 63/67/71/75', () => {
+    const ht = levels.filter((l) => l.id > MAN_GOC);
+    expect(ht).toHaveLength(15);
+    for (const l of ht) {
+      expect(l.pairs * 2, `màn ${l.id}`).toBeGreaterThanOrEqual(42);
+      expect(l.cacLuat.length, `màn ${l.id}`).toBeGreaterThanOrEqual(2);
+    }
+    expect(levels.filter((l) => l.id > MAN_GOC && laManChot(l)).map((l) => l.id)).toEqual([63, 67, 71, 75]);
+    expect(levels.filter((l) => l.id <= MAN_GOC).every((l) => laManChot(l) === (l.cacLuat.length >= 2))).toBe(true);
+    expect(CHAPTERS).toHaveLength(5);
+  });
+
   it('tim CHỈ ở bàn 16–42 thẻ, và ít: không quá 12 tim (nhiều tim = luật trang trí)', () => {
     for (const l of levels.filter((x) => x.lives !== null)) {
       expect(l.pairs * 2, `màn ${l.id}`).toBeGreaterThanOrEqual(16);
@@ -60,7 +74,7 @@ describe('Campaign (SP-03)', () => {
 
   it('cùng cỡ bàn: màn trơn nhiều giờ nhất; giờ là số nguyên giây', () => {
     for (const b of BOARD_SIZES) {
-      const ds = levels.filter((l) => l.pairs === b.pairs);
+      const ds = levels.filter((l) => l.pairs === b.pairs);   // Huyền thoại nằm sau màn trơn cùng cỡ → cũng phải ít giờ hơn
       for (const l of ds) expect(Number.isInteger(l.timeLimit)).toBe(true);
       for (const l of ds.slice(1)) expect(l.timeLimit, `màn ${l.id}`).toBeLessThan(ds[0]!.timeLimit);
     }

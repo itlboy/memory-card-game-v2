@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CHAPTERS, allLevels, type Level } from '@mm/engine';
+import { CHAPTERS, allLevels, laManChot, type Level } from '@mm/engine';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { Lock, TriangleAlert } from 'lucide-vue-next';
 import type { LevelProgress } from '@/lib/storage';
@@ -103,7 +103,7 @@ watch(nextLevel, scrollToActive);
     <div ref="list" class="chapters">
       <section
         v-for="c in chapters" :key="c.id"
-        class="chapter" :class="{ active: c.active, locked: c.locked, done: c.done === c.list.length }"
+        class="chapter" :class="{ active: c.active, locked: c.locked, done: c.done === c.list.length, 'huyen-thoai': c.id === 5 }"
       >
         <header>
           <h3>{{ t('cd.chang', { n: c.id, ten: c.name }) }}</h3>
@@ -118,7 +118,7 @@ watch(nextLevel, scrollToActive);
               :class="{
                 locked: l.id > unlocked,
                 cleared: cleared(l.id),
-                trum: l.luat === 'trum',
+                trum: laManChot(l),
                 next: l.id === nextLevel && !needsMore(l),
                 nosym: l.id <= unlocked && needsMore(l)
               }"
@@ -144,11 +144,12 @@ watch(nextLevel, scrollToActive);
               <Lock v-if="l.id > unlocked" class="node-lock" :size="10" aria-hidden="true" />
               <!-- Nhãn luật: dán ở GÓC DƯỚI PHẢI, thò ra ngoài mép — không chiếm dòng của số
                    màn / số thẻ. Màn trùm: vương miện nghiêng ở góc trên trái. -->
-              <span v-if="l.luat === 'trum'" class="luat vm" aria-hidden="true">
+              <span v-if="laManChot(l)" class="luat vm" aria-hidden="true">
                 <img v-if="VUONG_MIEN" :src="VUONG_MIEN" alt="" /><template v-else>👑</template>
               </span>
-              <span v-else-if="l.cacLuat.length" class="luat" aria-hidden="true">
-                <OptionIcon :name="ICON_LUAT[l.cacLuat[0]!]" :size="16" />
+              <!-- Huyền thoại: màn 2 luật không vương miện — hiện cả HAI icon luật ở góc (28.11.2026) -->
+              <span v-else-if="l.cacLuat.length" class="luat" :class="{ hai: l.cacLuat.length > 1 }" aria-hidden="true">
+                <OptionIcon v-for="x in l.cacLuat.slice(0, 2)" :key="x" :name="ICON_LUAT[x]" :size="l.cacLuat.length > 1 ? 14 : 16" />
               </span>
             </button>
           </li>
@@ -284,6 +285,13 @@ watch(nextLevel, scrollToActive);
 .luat.vm { right: auto; bottom: auto; left: -6px; top: -6px; rotate: -18deg; font-size: 16px; line-height: 1; }
 .luat.vm img { width: 20px; height: 20px; }
 .node.locked .luat { opacity: .75; }
+.luat.hai { display: flex; flex-direction: column; gap: 1px; right: -7px; bottom: -4px; }
+/* CHẶNG 5 · HUYỀN THOẠI: khung vàng + ánh vàng nhạt — nhìn là biết chặng cuối (mockup duyệt 28.11.2026) */
+.chapter.huyen-thoai {
+  border: 2px solid var(--gold, #e6a10f);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--gold, #e6a10f) 14%, var(--panel-soft)), var(--panel-soft) 60%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold, #e6a10f) 22%, transparent);
+}
 /* Đã mở nhưng không bộ theme nào đủ biểu tượng cho bàn này */
 .node.nosym {
   border-color: color-mix(in srgb, var(--warn) 60%, var(--line));
