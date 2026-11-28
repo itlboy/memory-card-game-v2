@@ -49,7 +49,9 @@ export interface Cum {
    * Các pod đang sống (id + địa chỉ). Dùng để CHIA phòng mới đều cả cụm: Cloudflare không chia đều giữa các tunnel
    * (ưu tiên một kết nối), cloudflared lại giữ kết nối lâu tới một pod — để mặc thì mọi phòng dồn vào một pod.
    */
-  podSong(): Promise<{ pod: string; diaChi: string }[]>;
+  podSong(): Promise<{ pod: string; diaChi: string; phong: number }[]>;
+  /** Vừa giao một phòng mới cho `id` — cộng tạm vào số phòng của nó tới nhịp gia hạn sau (nhiều phòng tạo cùng lúc không dồn một pod). */
+  daGiao(id: string): Promise<void>;
   /** Thôi giữ `ma` (phòng đã đóng / nhả khi tắt). */
   nha(ma: string): Promise<void>;
   /** Đăng ký nhịp gia hạn: `dangGiu()` trả các mã đang giữ, `mat(ma)` gọi khi mất quyền. */
@@ -112,15 +114,24 @@ export async function moCum(url: string | undefined, port: number): Promise<Cum 
         const [tiep, ds] = await r.scan(con, 'MATCH', `${TIEN_TO}pod:*`, 'COUNT', 100);
         con = tiep; khoa.push(...ds);
       } while (con !== '0');
-      if (!khoa.length) return [{ pod, diaChi }];
-      const dc = await r.mget(...khoa);
-      return khoa.map((k, i) => ({ pod: k.slice(`${TIEN_TO}pod:`.length), diaChi: dc[i] ?? '' })).filter((x) => x.diaChi);
+      if (!khoa.length) return [{ pod, diaChi, phong: 0 }];
+      const ids = khoa.map((k) => k.slice(`${TIEN_TO}pod:`.length));
+      const [dc, sl, moi] = await Promise.all([
+        r.mget(...khoa), r.mget(...ids.map((id) => `${TIEN_TO}sl:${id}`)), r.mget(...ids.map((id) => `${TIEN_TO}moi:${id}`))
+      ]);
+      return ids.map((id, i) => ({ pod: id, diaChi: dc[i] ?? '', phong: (Number(sl[i]) || 0) + (Number(moi[i]) || 0) }))
+        .filter((x) => x.diaChi);
+    },
+    async daGiao(id) {
+      await r.multi().incr(`${TIEN_TO}moi:${id}`).pexpire(`${TIEN_TO}moi:${id}`, NHIP_GIU_MS + 1000).exec();
     },
     chayNhip(dangGiu, mat, moiNhip) {
       nhip = setInterval(() => {
         void (async () => {
-          await r.set(kPod(pod), diaChi, 'PX', HAN_GIU_MS);
           const ds = dangGiu();
+          // Số phòng đang giữ (cho việc chia phòng mới) — số thật thay cho phần cộng tạm `moi:`
+          await r.multi().set(kPod(pod), diaChi, 'PX', HAN_GIU_MS).set(`${TIEN_TO}sl:${pod}`, String(ds.length), 'PX', HAN_GIU_MS)
+            .del(`${TIEN_TO}moi:${pod}`).exec();
           if (ds.length) {
             const kq = (await r.eval(LUA_GIU, ds.length, ...ds.map(kChu), pod, HAN_GIU_MS)) as string[];
             for (const k of kq) mat(k.slice(`${TIEN_TO}chu:`.length));

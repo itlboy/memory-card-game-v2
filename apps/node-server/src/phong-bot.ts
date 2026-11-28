@@ -20,6 +20,7 @@
  *   SO_PHONG    số phòng thường trực (mặc định 2)
  *   CHO_MS      chờ người ở phòng chờ trước mỗi ván (mặc định 30000)
  *   DOI_SAU     khoảng bao nhiêu ván thì đổi phòng + đổi tên (mặc định 10, lệch ±2)
+ *   PHONG_THU=1 THỬ TẢI (28.11.2026): lập phòng THỬ (`?thu=1`) — không lên danh sách công khai, không bắn thông báo "có phòng mới"
  *   THE_MIN/THE_MAX  khoảng số thẻ (mặc định 12–59 = "12 tới 5x")
  *   MUC         các mức máy được dùng (mặc định easy,normal,hard)
  *   XEM_KQ_MS   đứng ở bảng kết quả bao lâu rồi về phòng chờ (mặc định 8000)
@@ -47,6 +48,7 @@ const WS = SERVER.replace(/^http/, 'ws');
 const SO_PHONG = Math.min(10, Math.round(so('SO_PHONG', 2)));
 const CHO_MS = so('CHO_MS', 30_000);
 const DOI_SAU = Math.round(so('DOI_SAU', 10));
+const PHONG_THU = process.env.PHONG_THU === '1';
 const THE_MIN = Math.round(so('THE_MIN', 12));
 const THE_MAX = Math.round(so('THE_MAX', 59));
 const XEM_KQ_MS = so('XEM_KQ_MS', 8_000);
@@ -228,7 +230,7 @@ class Phong {
     for (;;) {
       if (dangTat) return;
       try {
-        const r = await fetch(`${SERVER}/api/rooms`, { method: 'POST' });
+        const r = await fetch(`${SERVER}/api/rooms${PHONG_THU ? '?thu=1' : ''}`, { method: 'POST' });
         const code = ((await r.json()) as { code?: string }).code;
         if (!code) throw new Error('server không trả mã phòng');
         this.code = code; this.room = null; this.ban = null; this.soVan = 0; this.han = 0; this.hetXem = 0; this.trangThaiCu = '';
@@ -446,7 +448,7 @@ class Phong {
     }
     this.chuLaTu = 0;
     if (process.env.BOT_DEBUG_ROI && !this.daThuRoi && this.bot[1]) { this.daThuRoi = true; log('[gỡ lỗi] cho bot thứ hai rời ghế để thử tự chữa'); this.bot[1].gui({ t: 'leave' }); return; }
-    if (!r.congKhai) chu.gui({ t: 'public', on: true });
+    if (!r.congKhai && !PHONG_THU) chu.gui({ t: 'public', on: true });
     const nguoi = this.nguoi().filter((p) => p.connected);
     // Người vừa vào sát giờ: nới cho kịp bấm Sẵn sàng (mỗi người một lần)
     for (const p of nguoi) if (!this.daNoi.has(p.id)) { this.daNoi.add(p.id); this.han = Math.max(this.han, now + KIP_SAN_SANG_MS); }

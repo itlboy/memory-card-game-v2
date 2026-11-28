@@ -18,6 +18,7 @@ import { moSanh, type XemPhong } from './sanh.js';
 import { moTkThiDau, type TkThiDau } from './tk-thidau.js';
 import { moTkTen } from './tk-ten.js';
 import { moCum, type Cum } from './cum.js';
+import { chonPod } from './chon-pod.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -676,10 +677,11 @@ const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     const tb = url.searchParams.get('tb');
     void (async () => {
       if (dangTat) { json(res, { error: 'Máy chủ đang khởi động lại, thử lại' }, 503); return; }
-      // Nhiều pod: bốc NGẪU NHIÊN một pod đang sống giữ phòng mới (xem `podSong`) — request đã chuyển một lần thì tạo tại chỗ
+      // Nhiều pod: giao phòng mới cho MÁY đang ít phòng nhất, rồi pod ít phòng nhất trên máy đó (`chonPod`) — request đã
+      // chuyển một lần thì tạo tại chỗ
       if (cum && !daChuyen(req)) {
-        const ds = await cum.podSong();
-        const chon = ds[Math.floor(Math.random() * ds.length)];
+        const chon = chonPod(await cum.podSong());
+        if (chon) await cum.daGiao(chon.pod);
         if (chon && chon.pod !== cum.pod) { chuyenHttp(req, res, chon.diaChi); return; }
       }
       const code = await maMoi();
