@@ -815,16 +815,13 @@ const ICO3D = {
         </template>
         <template v-if="!laTim">
         <p class="nh-nhan">{{ t('menu.buoc.count') }}</p>
-        <div class="nh-hang" role="radiogroup" :aria-label="t('menu.buoc.count')">
+        <span class="ranh so-nguoi" role="radiogroup" :aria-label="t('menu.buoc.count')">
           <button
-            v-for="c in COUNTS" :key="c.n" class="option nh-o" type="button" role="radio"
+            v-for="c in COUNTS" :key="c.n" class="nut-o nh-o thach th-nho th-chon" type="button" role="radio"
             :aria-checked="playerCount === c.n" :aria-label="t('menu.soNguoiAria', { n: c.n })"
             @click="chonSoNguoi(c.n)"
-          >
-            <strong class="num">{{ c.n }}</strong>
-            <small>{{ c.n === 1 ? t('menu.nhanh.motMinh') : t('menu.nhanh.nguoi') }}</small>
-          </button>
-        </div>
+          ><b>{{ c.n === 1 ? t('menu.soNguoi.1') : c.n }}</b></button>
+        </span>
         <button v-if="isMulti" class="nh-dong nh-ten thach" type="button" @click="moBuocPhu('names')">
           <span class="nh-chu"><strong>{{ t('menu.nhanh.ten') }}</strong><small>{{ tenDangDung }}</small></span>
           <span class="nh-sua">{{ t('menu.nhanh.sua') }}</span>

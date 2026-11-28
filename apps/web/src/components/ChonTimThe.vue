@@ -42,27 +42,4 @@ function doi(p: Partial<TimTheChon>): void {
        nhiều làm ng chơi đau đầu". KHÔNG hiện kỷ lục ở đây (28.11.2026: "Kỷ lục ko để chỗ đó"). -->
 </template>
 
-<style scoped>
-/* Rãnh viên thạch — cùng chất với màn Tìm Thẻ cũ (TimThe.vue) */
-.ranh {
-  flex: none; display: grid; gap: 2px; padding: 3px; border-radius: 999px;
-  background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line));
-  box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
-}
-.ranh.c5 { grid-template-columns: repeat(5, 1fr); }
-.ranh.c3 { grid-template-columns: repeat(3, 1fr); }
-.nut-o {
-  position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 4px; min-width: 0;
-  border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--fg); font: inherit; cursor: pointer;
-}
-.nut-o[aria-checked='true'] {
-  border-color: #33861a; color: #fff; background: linear-gradient(#a3ec72 -40%, #46ad22 70%); text-shadow: 0 1px 0 #23600f;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 #33861a, 0 3px 5px rgba(10, 20, 60, .18);
-}
-.nut-o b { font-family: var(--font-display); font-size: 18px; font-weight: 800; }
-.ic { vertical-align: -2px; }
-/* Màn thấp (iPhone SE…): Đấu với máy + Tìm Thẻ có thêm hai hàng — gọn lại để Bắt đầu không lọt khỏi màn (KHÔNG SCROLL) */
-@media (max-height: 700px) {
-  .nut-o { min-height: 38px; }
-}
-</style>
+<!-- Rãnh viên `.ranh` / `.nut-o`: styles/wizard.css (dùng chung với số người + số thẻ của Chơi nhanh, 28.11.2026) -->
