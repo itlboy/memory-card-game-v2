@@ -8,8 +8,8 @@
 # artifact của lần chạy (90 ngày) → đẩy:
 #   · itch       — `butler push` kênh html5. Cần secret BUTLER_API_KEY + biến repo ITCH_TARGET (dạng `tai-khoan/ten-game`).
 #                   Thiếu một trong hai thì CHỈ dựng gói, không đỏ.
-#   · crazygames — CrazyGames CHƯA có API/CLI công khai (tra 28.11.2026): tải zip từ artifact rồi kéo lên Developer Portal.
-#                   Job in sẵn dòng nhắc kèm link artifact.
+#   · crazygames — NHÚNG THẲNG https://flipmatch.cozypi.com/cong/crazygames/ ("Externally hosted"): `pnpm release` (cloudflare.yml)
+#                   tự dựng và phục vụ — job ở đây chỉ dựng + thử khói + lưu zip dự phòng, không cần đẩy.
 # THÊM CỔNG: thêm một dòng vào `matrix.include` (ten + day), và nếu cổng có CLI thì thêm một bước `if: matrix.day == '…'`.
 # Poki có `@poki/cli upload` — thêm khi đã được Poki nhận game (đăng nhập CLI trong CI chưa kiểm).
 #
@@ -45,7 +45,7 @@ jobs:
       fail-fast: false          # một cổng hỏng không kéo cổng khác
       matrix:
         include:
-          - { ten: crazygames, day: tay }
+          - { ten: crazygames, day: nhung }
           - { ten: itch, day: butler }
     steps:
       - name: Cổng này có được chọn không

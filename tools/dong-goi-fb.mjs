@@ -63,6 +63,7 @@ function dungKhungCong() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>Flip Match</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:#0c0e1c}#khung-cong{position:absolute;left:0;top:0;border:0;transform-origin:0 0}</style>
 </head>

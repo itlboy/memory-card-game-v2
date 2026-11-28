@@ -11,6 +11,8 @@
   theo ngôn ngữ cho SEO, Google Search Console, thêm mục "Có gì mới".
 - **`docs/seo.md`** — SEO web + store (18.10.2026): trang chơi theo ngôn ngữ `/<mã>/`, từ khoá từng
   thị trường, luật nhãn hiệu "Memory". Đổi tiêu đề/từ khoá là đổi theo bảng đó.
+- **`docs/ban-cong.md`** — BẢN CỔNG GAME WEB (CrazyGames, itch.io…) + **bảng YÊU CẦU CỦA CỔNG**. Làm tính năng/giao diện mới
+  là soát mục "LUẬT KHI PHÁT TRIỂN" ở đầu file đó (link ra ngoài, nút mua, popup chặn, đường dẫn tài nguyên, server).
 - `docs/i18n-style.md` (thuật ngữ dịch) · `docs/store-listing.md` (chữ store 15 ngôn ngữ) ·
   `docs/mobile-ci.md` (ra bản app). Trang studio `cozypi.com` ở repo riêng `itlboy/cozypi-site`.
 
@@ -18,6 +20,28 @@
   (Worker), `<game>-api.cozypi.com` = server game riêng (k8s, chỉ API — đường khác 404). Client
   chọn server ở MỘT chỗ: `SERVER_URL` (`lib/native.ts`). Deploy web (`pnpm release`) KHÔNG khởi động
   lại server API; pod chỉ thay khi code server đổi.
+
+## BẢN CỔNG GAME — luật khi phát triển (28.11.2026, chủ dự án: "note lại yêu cầu của cổng để kỹ thuật biết")
+
+Game còn chạy trong khung của cổng game web: CrazyGames NHÚNG THẲNG `flipmatch.cozypi.com/cong/crazygames/` (mỗi lần deploy
+web là cổng đổi theo — lỗi web là lỗi luôn trên CrazyGames), itch.io nhận gói do CI đẩy. Cờ lúc build: `laCong` / `laNhung`
+(`lib/nen-fb.ts`). Bảng yêu cầu đầy đủ + nguồn: `docs/ban-cong.md`. Khi thêm/đổi tính năng, soát:
+
+1. **Không link ra ngoài ở bản cổng**: không link App Store/Google Play, không link về web của mình, không "tải app", không
+   quảng bá game khác. Thứ gì in link (chia sẻ ảnh, QR, lời mời) → ẩn hoặc rút gọn bằng `laCong`.
+2. **Không quảng cáo tự gắn, không thanh toán riêng**: nút MUA Premium khi mở bán → ẩn ở bản cổng (cổng chỉ cho mua qua SDK của họ).
+   Bản app + web chính KHÔNG có quảng cáo (chủ dự án chốt) — quảng cáo của cổng, nếu có, chỉ trong nhánh `laCong`.
+3. **Không chặn đường vào ván**: cổng chấm "vào ván ≤ 1 cú bấm". Popup/màn bắt buộc mới (chào, quà, hỏi quyền) → ở bản cổng
+   thay bằng dải báo (`baoNoi`, `DaiBao`) hoặc bỏ. Không đăng nhập Google/Apple, không nút toàn màn hình riêng.
+4. **Đường dẫn tài nguyên viết trong chuỗi JS phải bọc `tn()`** (`/img/…`, `/emoji/…`) — bản nhúng chạy ở thư mục con. CSS
+   `url()` và thuộc tính tĩnh của template thì Vite tự lo. Quên là vỡ ảnh chỉ ở bản cổng (đã dính: ảnh bảng Premium 28.11).
+5. **Khung ngang thấp** (CrazyGames 800×450 → 1920×1080): trang vỏ tự thu nhỏ game cho cao ≥ 640 px — đừng thiết kế màn cần
+   cao hơn ~640 px CSS; chữ phải còn đọc được ở 70% cỡ. Mặc định TIẾNG ANH khi trình duyệt dùng tiếng chưa hỗ trợ.
+6. **Server phải nhận mọi Origin**: API `Access-Control-Allow-Origin: *`, WebSocket không kiểm Origin. Thêm kiểm Origin = bản
+   cổng mất online. Bản cổng cũ (itch.io) chạy tiếp với server mới → giữ tương thích như app cũ.
+7. **Thử trước khi phát hành**: `VITE_CONG=crazygames pnpm build:cong && node tools/smoke-cong.mjs` (iframe, cỡ khung cổng,
+   không 404/link ngoài/tràn). Đổi màn đầu / luồng vào ván thì xem thêm ảnh 800×450.
+8. **Đo**: bản cổng gửi GA `page_location = /cong/<tên>`, `nen_tang = cong_<tên>` — admin tách nền tảng "Cổng game".
 
 ## Ràng buộc thiết kế BẮT BUỘC
 

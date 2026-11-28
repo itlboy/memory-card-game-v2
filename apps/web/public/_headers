@@ -28,6 +28,13 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Bản cổng game tự host (tools/nhung-cong-web.mjs, docs/ban-cong.md): trang vỏ + game.html không có hash → hỏi lại mỗi lần.
+# MỘT luật cho cả thư mục: hai luật cùng khớp thì Cloudflare GỘP giá trị Cache-Control (ra "no-cache, max-age=…" mâu thuẫn).
+# Asset cũng hỏi lại — trả 304 gần như không tốn. Không cho Google lập chỉ mục (trùng nội dung web).
+/cong/*
+  Cache-Control: no-cache
+  X-Robots-Tag: noindex
+
 # Gói cập nhật nóng (app): tên file đã mang mã gói, nội dung không bao giờ đổi →
 # cache vĩnh viễn. manifest.json là thứ báo "có gói mới" nên luôn hỏi lại.
 /ota/*.zip

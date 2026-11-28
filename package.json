@@ -17,7 +17,7 @@
     "smoke:freeze": "node tools/smoke-freeze.mjs",
     "smoke:offline": "node tools/smoke-offline.mjs",
     "ban:tang": "node tools/tang-ban.mjs",
-    "release": "pnpm build && pnpm --filter @mm/server run deploy && node tools/check-share-tags.mjs && node tools/indexnow.mjs",
+    "release": "pnpm build && node tools/nhung-cong-web.mjs && pnpm --filter @mm/server run deploy && node tools/check-share-tags.mjs && node tools/indexnow.mjs",
     "check:share": "node tools/check-share-tags.mjs",
     "deploy:server": "pnpm --filter @mm/server run deploy",
     "dev:web": "pnpm --filter @mm/web dev",

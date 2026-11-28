@@ -104,7 +104,9 @@ export default defineConfig({
         // service worker KHÔNG được trả index.html của game thay cho chúng.
         // /<mã>/<trang>.html là bản dựng sẵn từng ngôn ngữ (tools/dung-trang-cong-khai.mjs).
         navigateFallbackDenylist: [/^\/app\/?$/, /^\/ws\//, /^\/api\//, /^\/ota\//, /^\/site\//, /^\/(privacy|support|about|changes)(\.html)?$/,
-          /^\/[a-z]{2}(-[A-Z]{2})?\/(privacy|support|about|changes)(\.html)?$/, /^\/(sitemap\.xml|robots\.txt)$/, /^\/\.well-known\//],
+          /^\/[a-z]{2}(-[A-Z]{2})?\/(privacy|support|about|changes)(\.html)?$/, /^\/(sitemap\.xml|robots\.txt)$/, /^\/\.well-known\//,
+          // Bản cổng game tự host (tools/nhung-cong-web.mjs) — trang riêng, KHÔNG được rơi về index.html của web
+          /^\/cong\//],
         // Font đóng gói sẵn (styles/fonts.ts, file .woff2 cùng gốc) nên đã nằm trong
         // globPatterns ở trên — không còn cache font Google ở runtime.
       }
