@@ -154,6 +154,8 @@ export interface TimTheKetVan extends TimTheChon {
   ketQua: 'xong' | 'thang' | 'thua' | 'hoa';
   kyLucMoi: boolean;
   giay: number;
+  /** Lượt chọn ĐÚNG nhanh nhất (ms, tính từ lúc được chọn) — danh hiệu "Phản xạ". null = không lượt nào đúng. */
+  nhanhNhatMs?: number | null;
 }
 /** Ván bỏ ngang (cho GA `van_bo_do`). */
 export interface TimTheBoDo extends TimTheChon { luot: number; soLuot: number; giay: number }

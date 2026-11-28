@@ -19,7 +19,7 @@ import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import TimThe from './components/TimThe.vue';
-import { TIM_THE_MO, cheDoGa, dangTimOnline, type TimTheChon, type TimTheKetVan } from './lib/tim-the';
+import { TIM_THE_MO, cheDoGa, dangTimOnline, docChon, luuChon, type TimTheChon, type TimTheKetVan } from './lib/tim-the';
 import SoTriNho from './components/SoTriNho.vue';
 import BangPremium from './components/BangPremium.vue';
 import LaRoi from './components/LaRoi.vue';
@@ -88,7 +88,7 @@ import { tdTran } from './lib/thidau';
 import IconBay from './components/IconBay.vue';
 import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
 import {
-  ACHIEVEMENTS, dhAn, dsHien, byId, daCo, dangKhoe, earned, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
+  ACHIEVEMENTS, dhAn, dsHien, byId, daCo, dangKhoe, earned, earnedTim, vuaMo, goiY as chonGoiY, levelChoCells, moKhoa, napLaiDaCo, thongKeHienTai, xetThongKe,
   type Achievement
 } from './lib/achievements';
 import DanhHieuDialog from './components/DanhHieuDialog.vue';
@@ -546,6 +546,8 @@ function chinhPhuc(a: Achievement): void {
   const c = a.chinhPhuc;
   if (!c) return;
   if (c.online) { screen.value = 'online'; return; }
+  // Danh hiệu Tìm Thẻ: mở màn Tìm Thẻ với cỡ bàn / tốc độ / đối thủ của danh hiệu (người chơi vẫn đổi được trước khi bắt đầu)
+  if (c.timThe) { luuChon({ ...docChon(), ...c.timThe }); screen.value = 'tim-the'; return; }
   if (c.campaign) {
     mode.value = 'campaign'; botLevel.value = null; playerCount.value = 1;
     startLevel(store.unlockedLevel());
@@ -878,22 +880,29 @@ function batDauTimThe(c: TimTheChon): void {
  *  · xu = điểm của mình, thua vẫn được; đấu Gà mờ 0 xu (cùng lý do với ghép cặp: chống cày máy dễ);
  *  · đấu máy lên sổ tài khoản + bộ đếm thắng máy như ghép cặp; ván MỘT MÌNH chỉ tính số ván / chuỗi ngày
  *    (không có thắng thua) và đồng bộ tổng xu lên tài khoản;
- *  · CHƯA tính Chỉ số trí nhớ và danh hiệu — công thức của chúng dựa trên bộ đếm của ghép cặp.
+ *  · CHƯA tính Chỉ số trí nhớ (công thức dựa trên ghép cặp). DANH HIỆU nhóm Tìm Thẻ từ 29.11.2026 (`earnedTim`), khoe sau khi
+ *    bảng kết quả hiện — cùng nhịp với ván ghép cặp.
  */
 function xongTimThe(kq: TimTheKetVan): void {
   const may = kq.doiThu !== 'mot';
   const coXu = kq.doiThu !== 'easy';
   if (coXu) store.addScore(kq.diem);
   totalScore.value = store.totalScore();
+  const tim = { dung: kq.dung };
   if (may) {
     const thang = kq.ketQua === 'thang';
-    store.ghiVanBoDem({ thang, may: thang && coXu });
+    store.ghiVanBoDem({ thang, may: thang && coXu, tim });
     if (thang) ghiVuaThang();
     void taiKhoan.ghiVan({ ketQua: kq.ketQua === 'xong' ? 'hoa' : kq.ketQua, score: coXu ? kq.diem : 0 });
   } else {
-    store.ghiVanBoDem({ thang: false });
+    store.ghiVanBoDem({ thang: false, tim });
     void taiKhoan.dongBo();
   }
+  const loai = kq.ketQua === 'xong' ? 'thang' : kq.ketQua;
+  moKhoa(earnedTim({
+    soThe: kq.soThe, doKho: kq.doKho, dung: kq.dung, soLuot: kq.soLuot, doiThu: kq.doiThu, ketQua: kq.ketQua,
+    nhanhNhatMs: kq.nhanhNhatMs ?? null, thongKe: thongKeHienTai(taiKhoanMe.value?.wins ?? 0)
+  }), { treMs: HIEN_BANG_MS[chonCanh(loai, { kyLuc: kq.kyLucMoi })] + 400 });
   suKien('van_ket_thuc', {
     che_do: cheDoGa(kq.doiThu), ket_qua: kq.ketQua, so_the: kq.soThe, tuy_chon: kq.doKho, giay: kq.giay,
     diem: kq.diem, so_dung: kq.dung, so_luot: kq.soLuot, chuoi_dai: kq.chuoiDai, ky_luc: kq.kyLucMoi

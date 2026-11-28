@@ -788,6 +788,10 @@ web là cổng đổi theo — lỗi web là lỗi luôn trên CrazyGames), itch
   màn hình, bản app/OTA, lỗi JS gần đây, nhật ký máy; KHÔNG tên. Server `apps/node-server/src/baoloi.ts` (bảng `bug_reports`,
   5 thư/giờ/máy/IP) → admin tab Kỹ thuật + API quản trị `/api/quantri/baoloi*` + MCP `bao_loi`. Class chip trong hộp là
   `bl-chip`/`bl-chips` — `.chip`/`.chips` trùng kiểu toàn cục của app (đã vỡ khuôn thành ô to 2 cột).
+- **DANH HIỆU TÌM THẺ (đợt 2, 28.11.2026, duyệt: https://claude.ai/artifact/UhxJouPLavdDiTTfNGqiFp)**: nhóm `tim-the`
+  (+23 → 186 cố định): `earnedTim()` theo ván (gọi ở App `xongTimThe` + OnlineTimThe), bộ đếm `timVan/timDung/timOnline`
+  trong `boDem` (`ghiVanBoDem({tim})`), mốc động tim-dung +1000, tim-van +250, tim-online +25. Bàn ≤4 thẻ không tính
+  Chớp nhoáng / Mắt máy; Mắt máy chỉ ván offline. Test `danh-hieu-tim-the.test.ts`.
 - **DANH HIỆU MỐC DÀY + MỐC ĐỘNG (28.11.2026, duyệt: https://claude.ai/artifact/6tJfDC3maNVgB9DQmpxaa3)**:
   93 → 163 danh hiệu cố định (dãy `DAY_*` trong lib/achievements; id cũ score-10k/100k/1m/10m giữ nguyên qua
   `DIEM_CU`), bậc theo ngưỡng từng dãy `NGUONG`. Mốc ĐỘNG không trần `DAY_DONG` (xu +100k, thắng +100,

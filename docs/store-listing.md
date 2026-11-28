@@ -1336,9 +1336,11 @@ Khớp với `apps/web/public/privacy.html`:
 - **Từ 1.10.134 (Báo lỗi / Góp ý trong menu, build 917)**: người chơi TỰ GỬI (tuỳ chọn) loại / nơi / ô vấn đề, chữ,
   ảnh chụp màn hình, email; app gửi kèm dòng máy, hệ điều hành, màn hình, bản app, ngôn ngữ, lỗi JS gần đây, chất lượng mạng.
   Không tên, không gắn tài khoản, không chia sẻ, giữ ≤ 12 tháng, xoá theo yêu cầu (`pv.bl`, 15 ngôn ngữ, 28.11.2026). Khai:
-  Apple App Privacy → **User Content › Customer Support** (chữ + ảnh), **Contact Info › Email Address** thêm mục đích
-  App Functionality, **Diagnostics › Other Diagnostic Data** thêm mục đích App Functionality — tất cả Not Linked, không tracking.
-  Google Data safety → **Photos and videos › Photos** (tuỳ chọn, App functionality), **App activity › Other user-generated
-  content** (chữ người gửi), **Personal info › Email address** thêm mục đích Developer communications, **App info and
-  performance › Diagnostics** (App functionality) — không chia sẻ, mã hoá khi truyền.
+  **ĐÃ KHAI 28.11.2026** — Apple App Privacy (đã Publish, cấp app): **Customer Support** (App Functionality, LINKED vì thư có
+  thể kèm email) + **Other Diagnostic Data** (App Functionality + Analytics, LINKED cùng lý do) — không tracking; Email
+  Address giữ như cũ (App Functionality, Linked). Google Data safety (đã LƯU, CHƯA gửi duyệt — gửi lúc này huỷ đợt duyệt
+  đang chạy từ 28.11): khai bù luôn phần còn thiếu từ trước — Vị trí ước chừng (GA, bắt buộc, Analytics), Tên + Email +
+  Mã người dùng (tuỳ chọn; App functionality + Account management, Email thêm Developer communications), Ảnh (tuỳ chọn,
+  App functionality), App interactions (GA, bắt buộc, Analytics), Other user-generated content (tuỳ chọn), Other actions
+  (điểm/tiến trình, bắt buộc, App functionality) — không chia sẻ, không xử lý tạm thời, mã hoá khi truyền.
 - Dữ liệu mã hoá khi truyền: CÓ. Người dùng xoá được: CÓ (trong app).

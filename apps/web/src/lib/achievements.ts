@@ -1,5 +1,5 @@
 import { BOARD_SIZES, CAMPAIGN_LEVELS, doiDanhHieu } from '@mm/engine';
-import type { BoardOptions, BotLevel, Summary } from '@mm/engine';
+import type { BoardOptions, BotLevel, Summary, TimTheDoKho } from '@mm/engine';
 import { computed, ref } from 'vue';
 import { store } from './storage';
 import { ngonNgu, td } from './i18n';
@@ -34,6 +34,8 @@ export interface ChinhPhuc {
   campaign?: true;
   /** Mở màn Chơi online. */
   online?: true;
+  /** Mở màn Tìm Thẻ với cấu hình này (cỡ bàn / tốc độ / đối thủ). */
+  timThe?: { soThe?: number; doKho?: TimTheDoKho; doiThu?: 'mot' | BotLevel };
 }
 
 /** Số liệu tích luỹ — để xét danh hiệu đếm và vẽ tiến độ. */
@@ -54,13 +56,17 @@ export interface ThongKe {
   soNgay: number;
   /** Tổng số ván đã chơi xong trên máy (đếm từ 19.11.2026). */
   soVan: number;
+  /** TÌM THẺ (đếm từ 29.11.2026): số ván xong, tổng lượt chọn đúng, số ván online thắng. */
+  timVan: number;
+  timDung: number;
+  timOnline: number;
 }
 
 export type NhomId =
   | 'nhap-mon' | 'thang' | 'diem' | 'ban' | 'hoan-hao' | 'luat'
-  | 'may' | 'online' | 'chien-dich' | 'theme' | 'chuyen-can' | 'bi-mat';
+  | 'may' | 'online' | 'tim-the' | 'chien-dich' | 'theme' | 'chuyen-can' | 'bi-mat';
 
-const NHOM_ID: readonly NhomId[] = ['nhap-mon', 'ban', 'may', 'luat', 'thang', 'diem', 'hoan-hao', 'chien-dich', 'online', 'theme', 'chuyen-can', 'bi-mat'];
+const NHOM_ID: readonly NhomId[] = ['nhap-mon', 'ban', 'may', 'luat', 'thang', 'diem', 'hoan-hao', 'chien-dich', 'online', 'tim-the', 'theme', 'chuyen-can', 'bi-mat'];
 /** Nhóm theo thứ tự hiển thị; `ten` đọc từ từ điển theo ngôn ngữ đang chọn. */
 export const NHOM: readonly { id: NhomId; readonly ten: string }[] = NHOM_ID.map((id) => ({ id, get ten() { return td(`dh.nhom.${id}`); } }));
 
@@ -124,6 +130,12 @@ const DAY_HOAN_HAO = [5, 10, 25, 50, 100, 250, 500] as const;
 const DAY_CHUOI = [3, 7, 14, 30, 50, 60, 100, 150, 200, 365] as const;
 const DAY_SO_NGAY = [7, 14, 30, 60, 100, 150, 200, 300, 365, 500] as const;
 const DAY_SO_VAN = [50, 100, 250, 500, 1000, 2500, 5000, 10000] as const;
+/** TÌM THẺ (đợt 2, 29.11.2026): tổng lượt chọn đúng · số ván · số ván online thắng. */
+const DAY_TIM_DUNG = [50, 100, 250, 500, 1000, 2500, 5000, 10000] as const;
+const DAY_TIM_VAN = [10, 25, 50, 100, 250, 500, 1000] as const;
+const DAY_TIM_ONLINE = [1, 10, 25, 50, 100, 250] as const;
+/** Cỡ bàn Tìm Thẻ có danh hiệu "đúng 10/10". */
+const TIM_CO_BAN = [3, 4, 5, 6, 7] as const;
 /**
  * Bậc theo NGƯỠNG GIÁ TRỊ của từng dãy (không theo vị trí — chia theo vị trí thì 250k ra Đồng trong khi 100k cũ là Bạc).
  * Ngưỡng chọn để mốc CŨ giữ đúng bậc đã có: điểm 100k/1tr Bạc, 10tr Vàng; thắng 50/100 Bạc, 500 Vàng; online 10 Bạc, 50 Vàng;
@@ -131,7 +143,8 @@ const DAY_SO_VAN = [50, 100, 250, 500, 1000, 2500, 5000, 10000] as const;
  */
 const NGUONG: Record<string, readonly [bac: number, vang: number]> = {
   wins: [50, 500], score: [100_000, 7_500_000], online: [10, 50], 'bot-wins': [10, 200],
-  'hoan-hao': [25, 250], days: [7, 30], 'so-ngay': [30, 200], 'so-van': [250, 5000]
+  'hoan-hao': [25, 250], days: [7, 30], 'so-ngay': [30, 200], 'so-van': [250, 5000],
+  'tim-dung': [500, 5000], 'tim-van': [100, 1000], 'tim-online': [10, 100]
 };
 const BAC_DAY = new Map<string, BacDanhHieu>();
 function bacTheoMoc(id: string, day: keyof typeof NGUONG, n: number): string {
@@ -217,6 +230,25 @@ export const ACHIEVEMENTS: Achievement[] = [
     : dh({ id: bacTheoMoc(`online-${n}`, 'online', n), k: 'online-n', p: () => ({ n: soDu(n) }), nhom: 'online', chinhPhuc: { online: true }, tienDo: (t) => [t.onlineWins, n] }))),
   dh({ id: 'online-big', nhom: 'online', chinhPhuc: { online: true } }),
 
+  // --- Tìm Thẻ (đợt 2, 29.11.2026) — theo ván rồi đếm dồn; Chinh phục mở thẳng màn Tìm Thẻ đúng cấu hình ---
+  dh({ id: 'tim-dau', nhom: 'tim-the', chinhPhuc: { timThe: { doiThu: 'mot' } } }),
+  ...TIM_CO_BAN.map((n) => dh({ id: `tim-10-${n}`, k: 'tim-10', p: () => ({ n }), nhom: 'tim-the', chinhPhuc: { timThe: { soThe: n, doiThu: 'mot' } } })),
+  dh({ id: 'tim-nhanh', nhom: 'tim-the', chinhPhuc: { timThe: { soThe: 5, doKho: 'kho', doiThu: 'mot' } } }),
+  dh({ id: 'tim-phan-xa', nhom: 'tim-the', chinhPhuc: { timThe: { doiThu: 'mot' } } }),
+  ...(['hard', 'insane', 'divine'] as const).map((m) => dh({ id: `tim-may-${m}`, nhom: 'tim-the', chinhPhuc: { timThe: { soThe: 5, doiThu: m } } })),
+  ...DAY_TIM_DUNG.map((n) => dh({
+    id: bacTheoMoc(`tim-dung-${n}`, 'tim-dung', n), k: 'tim-dung', p: () => ({ n: soDu(n) }), nhom: 'tim-the',
+    chinhPhuc: { timThe: { doiThu: 'mot' } }, tienDo: (t) => [t.timDung, n]
+  })),
+  ...DAY_TIM_VAN.map((n) => dh({
+    id: bacTheoMoc(`tim-van-${n}`, 'tim-van', n), k: 'tim-van', p: () => ({ n: soDu(n) }), nhom: 'tim-the',
+    chinhPhuc: { timThe: { doiThu: 'mot' } }, tienDo: (t) => [t.timVan, n]
+  })),
+  ...DAY_TIM_ONLINE.map((n) => dh({
+    id: bacTheoMoc(`tim-online-${n}`, 'tim-online', n), k: n === 1 ? 'tim-online-1' : 'tim-online', p: () => ({ n: soDu(n) }), nhom: 'tim-the',
+    chinhPhuc: { online: true }, tienDo: (t) => [t.timOnline, n]
+  })),
+
   // --- theme ---
   ...THEME_DH.map((id) => dh({
     id: `theme-${id}`, k: 'theme', p: () => ({ theme: tenTheme(id) }), nhom: 'theme', chinhPhuc: { cells: 16, theme: id }
@@ -259,11 +291,12 @@ export const dsHien = computed(() => chenMocDong(ACHIEVEMENTS.filter((a) => !dhA
  */
 const VANG = new Set(['board-72', 'board-88', 'combo-12', 'hell-mode', 'bot-divine', 'divine-56', 'divine-88',
   'wins-500', 'score-10m', `campaign-${CAMPAIGN_LEVELS}`, 'stars3-50', 'online-50', 'days-30',
-  'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88']);
+  'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88', 'tim-10-7', 'tim-may-insane', 'tim-may-divine']);
 const BAC = new Set(['board-36', 'board-42', 'board-56', 'combo-8', 'combo-10', 'iron-man', 'time-rush', 'shuffle-master',
   'bot-hard', 'bot-insane', 'bot-wins-10', 'wins-50', 'wins-100', 'score-100k', 'score-1m',
   'campaign-25', 'campaign-30', 'campaign-35', 'campaign-40', 'campaign-45', 'campaign-50', 'campaign-55', 'stars3-10', 'stars3-25',
-  'online-10', 'online-big', 'days-7', 'perfect-20', 'perfect-24', 'perfect-30', 'perfect-36', 'lightspeed']);
+  'online-10', 'online-big', 'days-7', 'perfect-20', 'perfect-24', 'perfect-30', 'perfect-36', 'lightspeed',
+  'tim-10-6', 'tim-nhanh', 'tim-phan-xa', 'tim-may-hard']);
 export function bacCua(a: Achievement): BacDanhHieu {
   if (a.biMat) return 'bi-mat';
   if (VANG.has(a.id)) return 'vang';
@@ -289,7 +322,10 @@ const DAY_DONG: readonly DayDong[] = [
   { tienTo: 'bot-wins', buoc: 25, lay: (t) => t.botWins, nhom: 'may', k: 'bot-wins-n', nguong: 'bot-wins', chinhPhuc: { cells: BAN_VUA, bot: 'normal' }, p: (n) => ({ n: soDu(n) }) },
   { tienTo: 'hoan-hao', buoc: 25, lay: (t) => t.hoanHao, nhom: 'hoan-hao', k: 'hoan-hao-n', nguong: 'hoan-hao', chinhPhuc: { cells: 12 }, p: (n) => ({ n: soDu(n) }) },
   { tienTo: 'so-ngay', buoc: 30, lay: (t) => t.soNgay, nhom: 'chuyen-can', k: 'so-ngay', nguong: 'so-ngay', chinhPhuc: { cells: BAN_VUA }, p: (n) => ({ n: soDu(n) }) },
-  { tienTo: 'so-van', buoc: 250, lay: (t) => t.soVan, nhom: 'chuyen-can', k: 'so-van', nguong: 'so-van', chinhPhuc: { cells: BAN_VUA }, p: (n) => ({ n: soDu(n) }) }
+  { tienTo: 'so-van', buoc: 250, lay: (t) => t.soVan, nhom: 'chuyen-can', k: 'so-van', nguong: 'so-van', chinhPhuc: { cells: BAN_VUA }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'tim-dung', buoc: 1000, lay: (t) => t.timDung, nhom: 'tim-the', k: 'tim-dung', nguong: 'tim-dung', chinhPhuc: { timThe: { doiThu: 'mot' } }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'tim-van', buoc: 250, lay: (t) => t.timVan, nhom: 'tim-the', k: 'tim-van', nguong: 'tim-van', chinhPhuc: { timThe: { doiThu: 'mot' } }, p: (n) => ({ n: soDu(n) }) },
+  { tienTo: 'tim-online', buoc: 25, lay: (t) => t.timOnline, nhom: 'tim-the', k: 'tim-online', nguong: 'tim-online', chinhPhuc: { online: true }, p: (n) => ({ n: soDu(n) }) }
 ];
 /** Giá trị của một mốc CỐ ĐỊNH thuộc dãy động (để biết trùng và xếp xen). */
 const CO_DINH = new Map<string, { day: DayDong; n: number }>();
@@ -451,6 +487,36 @@ export function earned(ctx: AchievementContext): string[] {
   return [...new Set(out)];
 }
 
+/** Kết quả một ván Tìm Thẻ — đủ để xét danh hiệu nhóm Tìm Thẻ. */
+export interface VanTim {
+  soThe: number; doKho: TimTheDoKho; dung: number; soLuot: number;
+  /** 'mot' = chơi một mình; mức máy = đấu máy. Online: không có. */
+  doiThu?: 'mot' | BotLevel;
+  ketQua: 'xong' | 'thang' | 'thua' | 'hoa';
+  online?: boolean;
+  /** Lượt chọn đúng nhanh nhất (ms), null nếu không có. Online chưa có số này. */
+  nhanhNhatMs?: number | null;
+  /** Số liệu tích luỹ SAU khi đã cộng ván này. */
+  thongKe: ThongKe;
+}
+/** Danh hiệu đạt sau một ván Tìm Thẻ (theo ván + đếm dồn). Phải chọn đúng ít nhất 1 lượt mới tính là đã chơi. */
+export function earnedTim(v: VanTim): string[] {
+  const out = xetThongKe(v.thongKe);
+  if (v.dung < 1) return [...new Set(out)];
+  out.push('tim-dau');
+  const het = v.dung >= v.soLuot && v.soLuot >= 10;
+  if (het && (TIM_CO_BAN as readonly number[]).includes(v.soThe)) out.push(`tim-10-${v.soThe}`);
+  if (het && v.doKho === 'kho' && v.soThe >= 5) out.push('tim-nhanh');
+  if (v.nhanhNhatMs != null && v.nhanhNhatMs > 0 && v.nhanhNhatMs < 1000) out.push('tim-phan-xa');
+  if (v.ketQua === 'thang' && !v.online && v.soThe >= 5) {
+    const thu = ['easy', 'normal', 'hard', 'insane', 'divine'].indexOf(v.doiThu ?? '');
+    if (thu >= 2) out.push('tim-may-hard');
+    if (thu >= 3) out.push('tim-may-insane');
+    if (thu >= 4) out.push('tim-may-divine');
+  }
+  return [...new Set(out)];
+}
+
 export const byId = (id: string): Achievement | undefined => ACHIEVEMENTS.find((a) => a.id === id) ?? mocDong(id);
 
 /** Cấp (level) đầu tiên của cỡ bàn có `cells` thẻ — để mở bàn đúng cỡ. */
@@ -511,7 +577,10 @@ export function thongKeHienTai(serverWins = 0): ThongKe {
     stars3: cd.filter(([, v]) => v.stars >= 3).length,
     hoanHao: b.hoanHao ?? 0,
     soNgay: Math.max(b.soNgay ?? 0, b.chuoiMax),
-    soVan: b.van ?? 0
+    soVan: b.van ?? 0,
+    timVan: b.timVan ?? 0,
+    timDung: b.timDung ?? 0,
+    timOnline: b.timOnline ?? 0
   };
 }
 
@@ -574,5 +643,17 @@ export function iconCua(a: Achievement): IconHuyHieu {
   if (a.id.startsWith('hoan-hao-')) return { chu: '✨' };
   if (a.id.startsWith('so-ngay-')) return { chu: '🗓️' };
   if (a.id.startsWith('so-van-')) return { chu: '🎴' };
+  // Tìm Thẻ (đợt 2)
+  const tim10 = a.id.match(/^tim-10-(\d)$/);
+  if (tim10) return { chu: tim10[1]!, so: true, goc: '🎯' };
+  if (a.id === 'tim-dau') return { chu: '👀' };
+  if (a.id === 'tim-nhanh') return { chu: '💨' };
+  if (a.id === 'tim-phan-xa') return { chu: '🐇' };
+  if (a.id === 'tim-may-hard') return { chu: '🐆', goc: '🔍' };
+  if (a.id === 'tim-may-insane') return { chu: '🐯', goc: '🔍' };
+  if (a.id === 'tim-may-divine') return { chu: '🐉', goc: '🔍' };
+  if (a.id.startsWith('tim-dung-')) return { chu: '🔍' };
+  if (a.id.startsWith('tim-van-')) return { chu: '🃏' };
+  if (a.id.startsWith('tim-online-')) return { chu: '🎖️' };
   return { chu: '🏅' };
 }
