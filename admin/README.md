@@ -27,6 +27,21 @@ Thêm báo cáo vào một ô thì nhớ: mỗi ô nên ≤ ~8 báo cáo.
 
 Mockup đã duyệt: https://claude.ai/artifact/VdBjJtK6bNfLz1AXFcjRB9 (17.11.2026).
 
+## Tab "Tăng trưởng" (28.11.2026) — mục tiêu 100 người online thường xuyên
+
+`/api/tangtruong` (`src/tangtruong.ts`), KHÔNG theo bộ chọn khoảng: luôn 28 ngày trọn tới hôm qua, 10 báo cáo GA, nhớ 1 giờ,
+chỉ tải khi mở tab. Đọc số thế nào:
+
+- **Online trung bình** = tổng giây chơi GA của ngày (`userEngagementDuration`) / 86 400 — số người có mặt cùng lúc tính
+  đều cả ngày. **Giờ đỉnh** = giờ nhiều giây chơi nhất / 3 600. Là ƯỚC LƯỢNG (GA chỉ tính lúc app ở trước mặt, không đếm
+  người chặn GA) — số tức thời thật nằm ở ô Máy chủ (tab Online); server chưa lưu lịch sử số online.
+- **Giữ chân**: nhóm người mới theo 7 ngày (cohort GA theo `firstSessionDate`), còn hoạt động ngày 1 / ngày 7, TÁCH nền
+  tảng bằng lọc `pagePath`. Nhóm mới nhất (2–7 ngày trước) chưa đủ 7 ngày nên chỉ có ngày 1.
+- **Người mới đến từ đâu**: app là webview nên GA ghi `(direct)` → phân theo TRANG VÀO (`/app/ios` = App Store,
+  `/app/android` = Google Play), web theo nguồn GA. BẪY: trang ngôn ngữ (`/en`, `/ja`…) và Mỹ có nhiều "người mới" 0 phút
+  chơi = máy quét / kiểm thử tự động của chính mình — vì thế bảng kèm phút chơi mỗi người, và ô số đầu trang chỉ tính app.
+- Muốn biết kênh web nào hiệu quả thì link chia sẻ phải mang `utm_source` (GA tự đọc).
+
 ## Vì sao nằm ngoài workspace pnpm
 
 `admin/` KHÔNG thuộc `pnpm-workspace.yaml` (chỉ `apps/*`, `packages/*`) và có lockfile riêng. Đặt

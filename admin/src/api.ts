@@ -9,6 +9,7 @@
 import { GaLoi, type Ga } from './ga.ts';
 import { lapKeHoach } from './khoang.ts';
 import { dangDienRa, laPhan, motO, PHAN } from './thongke.ts';
+import { tangTruong } from './tangtruong.ts';
 
 export const AN_TOAN: Record<string, string> = {
   'content-security-policy': "default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -85,6 +86,12 @@ export async function xuLyApi(url: URL, ga: Ga, env: EnvApi, email: string, kho:
   try {
     if (url.pathname === '/api/dang-dien-ra') {
       const { data, cu } = await nho(kho, 'ddr3', 60, boQua, () => dangDienRa(ga), cho);
+      return json({ ...data, cu });
+    }
+    if (url.pathname === '/api/tangtruong') {
+      // Tab Tăng trưởng: luôn 28 ngày trọn tới hôm qua → khoá theo NGÀY (múi GA), nhớ 1 giờ
+      const ngay = new Intl.DateTimeFormat('en-CA', { timeZone: env.GA_TZ }).format(now);
+      const { data, cu } = await nho(kho, `tt1:${ngay}`, 3600, boQua, () => tangTruong(ga, now, env.GA_TZ), cho);
       return json({ ...data, cu });
     }
     const m = /^\/api\/o\/([a-z_]+)$/.exec(url.pathname);

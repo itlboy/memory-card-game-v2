@@ -44,6 +44,7 @@ export const HTML = String.raw`<!doctype html>
        Máy tính: hàng tab dưới tiêu đề. Điện thoại: thanh tab cố định ở đáy. Địa chỉ nhớ tab (#nguoi, #online…). -->
   <nav class="tabs" id="tabs" role="tablist" aria-label="Nhóm thống kê">
     <button class="tab" type="button" role="tab" data-chon-tab="tong" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Tổng quan</span></button>
+    <button class="tab" type="button" role="tab" data-chon-tab="tangtruong" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span>Tăng trưởng</span></button>
     <button class="tab" type="button" role="tab" data-chon-tab="nguoi" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-1.5-5-4-5.6"/></svg><span>Người chơi</span></button>
     <button class="tab" type="button" role="tab" data-chon-tab="choi" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="8" height="14" rx="2"/><rect x="13" y="5" width="8" height="14" rx="2"/></svg><span>Chơi</span></button>
     <button class="tab" type="button" role="tab" data-chon-tab="online" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg><span>Online</span><b class="so-tab" id="soOnline" hidden></b></button>
@@ -78,6 +79,27 @@ export const HTML = String.raw`<!doctype html>
     <div class="mc-ngay" id="mcNgay"></div>
     <div class="td-cuon"><table class="td-bang" id="mcPhong"></table></div>
     <p class="loi-o" id="loi-maychu" hidden></p>
+  </section>
+
+  <!-- TĂNG TRƯỞNG (28.11.2026): /api/tangtruong — 28 ngày trọn tới hôm qua, KHÔNG theo bộ chọn khoảng. Mục tiêu 100 online. -->
+  <section class="thach the" id="tangTruong" data-tab="tangtruong">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Mục tiêu · 100 người online thường xuyên</h2></div><span class="phu-nho" id="ttLuc">28 ngày gần nhất · GA</span></div>
+    <div class="tt-dich" id="ttDich"><span class="sk" style="height:54px"></span></div>
+    <div class="luoi-kpi" id="ttKpi"></div>
+    <div class="the-phu"><span class="mo">Online trung bình mỗi ngày (cột) · vạch = giờ đông nhất trong ngày</span></div>
+    <div class="cuon"><div class="cot-vung" id="ttCot"></div></div>
+    <p class="loi-o" id="loi-tangtruong" hidden></p>
+  </section>
+  <section class="thach the" data-tab="tangtruong">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Giữ chân · người mới theo tuần còn quay lại</h2></div><span class="phu-nho">ngày 1 · ngày 7 sau lần đầu</span></div>
+    <div class="td-cuon"><table class="td-bang" id="ttGiuChan"></table></div>
+    <p class="ghi-o">Nhóm trên cùng chưa đủ 7 ngày nên chỉ có ngày 1. Web lẫn máy quét và kiểm thử tự động — xem iOS / Android là chính.</p>
+  </section>
+  <section class="luoi-ds tt-luoi" data-tab="tangtruong">
+    <div class="thach the"><div class="tieu"><h2 class="ktieu">Kích hoạt · người mới chơi xong ván đầu</h2></div><div class="td-cuon"><table class="td-bang" id="ttKichHoat"></table></div></div>
+    <div class="thach the"><div class="tieu"><h2 class="ktieu">Người mới đến từ đâu</h2></div><div class="td-cuon"><table class="td-bang" id="ttNguon"></table></div><p class="ghi-o">0 phút chơi = gần như chắc là máy quét, không phải người.</p></div>
+    <div class="thach the"><div class="tieu"><h2 class="ktieu">Nước · theo giờ chơi</h2></div><div class="td-cuon"><table class="td-bang" id="ttNuoc"></table></div></div>
+    <div class="thach the"><div class="tieu"><h2 class="ktieu">Lan truyền · 28 ngày</h2></div><div class="td-cuon"><table class="td-bang" id="ttLan"></table></div></div>
   </section>
 
   <!-- TỪNG Ô TẢI RIÊNG (19.11.2026): mỗi khung mang data-phan = tên ô ở /api/o/<phan>; chỉ tải khi cuộn tới gần
@@ -191,6 +213,21 @@ html{color-scheme:dark}
 .mc-canh .canh{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:800}
 .mc-canh .muc-vang{background:rgba(251,191,36,.14);color:#fcd34d}
 .mc-canh .muc-do{background:rgba(239,68,68,.22);color:#fecaca}
+/* TĂNG TRƯỞNG (28.11.2026) */
+.tt-dich{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:16px;background:var(--o2)}
+.tt-dich .hang-so{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px}
+.tt-dich .hang-so b{font:800 40px/1 'Baloo 2',sans-serif;color:var(--chu)}
+.tt-dich .hang-so span{font-size:14px;font-weight:800;color:var(--mo)}
+.tt-dich .ray{position:relative;height:14px;border-radius:999px;background:var(--o);border:2px solid var(--vien);overflow:hidden}
+.tt-dich .ray i{display:block;height:100%;min-width:6px;border-radius:999px;background:linear-gradient(90deg,var(--tim),#67e8f9)}
+.tt-dich p{margin:0;font-size:12.5px;font-weight:700;color:var(--mo)}
+.tt-luoi{grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr))}
+@media (min-width:900px){#ttKpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+#ttCot .cot .khoi{background:var(--tim2)}
+#ttCot .cot .dinh{position:absolute;left:10%;right:10%;height:3px;border-radius:2px;background:#fcd34d}
+.td-bang td.tot{color:#86efac;font-weight:800}.td-bang td.kem{color:#fca5a5;font-weight:800}
+.td-bang th.nhom{text-align:center;border-left:1px solid rgba(255,255,255,.08)}
+.td-bang td.vach,.td-bang th.vach{border-left:1px solid rgba(255,255,255,.08)}
 /* CHIA TAB (28.11.2026) */
 .ngoai-tab{display:none!important}
 .tabs{display:flex;gap:6px;border-bottom:2px solid var(--vien);margin-top:-4px;overflow-x:auto;scrollbar-width:none}
@@ -317,8 +354,8 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 @media (max-width:700px){
   .khung{padding:14px 12px calc(96px + env(safe-area-inset-bottom,0px));gap:14px}
   /* thanh tab cố định ở đáy */
-  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;border:0;border-top:2px solid var(--vien);background:var(--o);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px max(4px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-right,0px));box-shadow:0 -6px 18px rgba(0,0,0,.25)}
-  .tab{flex-direction:column;justify-content:center;gap:3px;padding:6px 0;min-height:54px;font-size:10.5px;border:0;border-radius:12px;top:0}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;border:0;border-top:2px solid var(--vien);background:var(--o);display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:6px max(4px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-right,0px));box-shadow:0 -6px 18px rgba(0,0,0,.25)}
+  .tab{flex-direction:column;justify-content:center;gap:3px;padding:6px 0;min-height:54px;font-size:9.5px;white-space:nowrap;border:0;border-radius:12px;top:0}
   .tab[aria-selected="true"]{background:rgba(106,92,255,.16);color:var(--tim2);border:0}
   .tab .so-tab{position:absolute;top:3px;left:calc(50% + 6px);font-size:9.5px;padding:0 5px}
   /* đầu trang một hàng: "Ngay lúc này" đầy đủ chỉ ở tab Tổng quan, tab khác còn viên thuốc nhỏ */
@@ -396,6 +433,7 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .kpi b{font-size:22px!important}
   .ttl-nhom{font-size:10.5px}
   .the{padding:16px;gap:12px}
+  .tt-dich .hang-so b{font-size:32px}
   .luoi-ds{gap:12px}
 }
 /* BẢN SÁNG (28.11.2026, mockup duyệt): theo cài đặt sáng/tối của máy. Bản tối giữ nguyên như cũ. */
@@ -418,6 +456,9 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .tt.muc-tot{color:#15803d;background:#dcfce7}.tt.muc-do{color:#991b1b;background:#fee2e2}
   .cs em.muc-vang{color:#b45309}.cs em.muc-do{color:#b91c1c}
   .gn{background:#fef3c7;color:#92400e}
+  .td-bang td.tot{color:#15803d}.td-bang td.kem{color:#b91c1c}
+  #ttCot .cot .dinh{background:#b45309}
+  .td-bang th.nhom,.td-bang td.vach,.td-bang th.vach{border-left-color:#e6e3f5}
   .td-bang td.muc-do,.mc-canh .muc-do{color:#991b1b;background:#fee2e2}
 }
 `;
@@ -516,7 +557,7 @@ export const JS = String.raw`
   $('nutKy').onclick = function () { document.body.classList.contains('mo-ky') ? dongKy() : moKy(); };
   $('nenKy').onclick = dongKy;
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') dongKy(); });
-  $('nutMoi').onclick = function () { dongKy(); tai(true); song(true); };
+  $('nutMoi').onclick = function () { dongKy(); tai(true); song(true); if (document.body.getAttribute('data-tab') === 'tangtruong') taiTangTruong(true); };
 
   // loai 'do' = chữ từ GA/mạng → textContent; chỉ thông báo cố định của trang mới dùng innerHTML.
   function bao(noiDung, loai) {
@@ -900,8 +941,8 @@ export const JS = String.raw`
 
   dungDs(); veKhoang(); tai(false); song(false);
   /* ---- CHIA TAB ---- */
-  var TABS = ['tong', 'nguoi', 'choi', 'online', 'kythuat'];
-  var HASH_TAB = { 'tong-quan': 'tong', nguoi: 'nguoi', choi: 'choi', online: 'online', 'ky-thuat': 'kythuat' };
+  var TABS = ['tong', 'tangtruong', 'nguoi', 'choi', 'online', 'kythuat'];
+  var HASH_TAB = { 'tong-quan': 'tong', 'tang-truong': 'tangtruong', nguoi: 'nguoi', choi: 'choi', online: 'online', 'ky-thuat': 'kythuat' };
   function hashCua(t) { for (var h in HASH_TAB) if (HASH_TAB[h] === t) return h; return 'tong-quan'; }
   function chonTab(t, ghi) {
     if (TABS.indexOf(t) < 0) t = 'tong';
@@ -914,6 +955,7 @@ export const JS = String.raw`
       b.setAttribute('aria-selected', String(b.getAttribute('data-chon-tab') === t));
     });
     if (ghi) { try { history.replaceState(null, '', '#' + hashCua(t)); } catch (e) { /* bỏ */ } window.scrollTo(0, 0); }
+    if (t === 'tangtruong' && typeof ttDang === 'boolean') taiTangTruong(false);   // trước khi khởi tạo (lần gọi đầu) thì đoạn cuối file tự tải
   }
   $('tabs').addEventListener('click', function (e) {
     var b = e.target.closest('[data-chon-tab]'); if (b) chonTab(b.getAttribute('data-chon-tab'), true);
@@ -934,6 +976,93 @@ export const JS = String.raw`
     cacKhung.forEach(function (e) { e._gan = true; });
     PHAN.forEach(function (p) { if (gan(p)) xepHang(p); });
   }
+  /*
+   * TAB TĂNG TRƯỞNG (28.11.2026): /api/tangtruong — một gói, 28 ngày trọn tới hôm qua, không theo bộ chọn khoảng.
+   * Chỉ tải khi mở tab (9 báo cáo GA), Worker nhớ 1 giờ; nút "Làm mới" hỏi lại GA.
+   */
+  var ttTai = 0, ttDang = false;
+  var TEN_LAN = { chia_se: 'Bấm chia sẻ', luu_chia_se_anh: 'Lưu / chia sẻ ảnh kết quả', tri_nho_chia_se: 'Chia sẻ Chỉ số trí nhớ', online_moi_ban: 'Bấm mời bạn vào phòng',
+    online_vao_link_moi: 'Vào phòng bằng link mời', thong_bao_bat: 'Bật thông báo', dang_nhap: 'Đăng nhập' };
+  function bangTt(id, dau, hang) {
+    var tb = $(id); tb.textContent = '';
+    if (!hang || !hang.length) { tb.appendChild(el('caption', 'mo', 'Chưa có số.')); return; }
+    dau.forEach(function (ds) { var h = tb.createTHead().insertRow(); ds.forEach(function (k) { var th = el('th', k[1] || null, k[0]); if (k[2]) th.colSpan = k[2]; h.appendChild(th); }); });
+    var body = tb.createTBody();
+    hang.forEach(function (r) { var tr = body.insertRow(); r.forEach(function (o) { var c = Array.isArray(o) ? o : [o]; tr.appendChild(el('td', c[1] || null, typeof c[0] === 'number' ? so(c[0]) : String(c[0] == null ? '–' : c[0]))); }); });
+  }
+  function ptO(a, b, tot, kem) { if (!b) return ['–']; var p = Math.round(a / b * 100); return [p + '%', b < 10 ? '' : p >= tot ? 'tot' : p < kem ? 'kem' : '']; }
+  function so1(x) { return x == null ? '—' : Number(x).toLocaleString('vi-VN', { maximumFractionDigits: 1 }); }
+  function veTangTruong(g) {
+    var t = g.tong, d = $('ttDich'); d.textContent = '';
+    if (t) {
+      var hs = el('div', 'hang-so');
+      hs.appendChild(el('b', null, so1(t.tb7))); hs.appendChild(el('span', null, '/ ' + so(g.mucTieu) + ' người online trung bình · 7 ngày qua'));
+      d.appendChild(hs);
+      var ray = el('div', 'ray'), i = el('i'); i.style.width = Math.min(100, t.tb7 / g.mucTieu * 100) + '%'; ray.appendChild(i); d.appendChild(ray);
+      var gap = t.tb7 > 0 ? g.mucTieu / t.tb7 : 0;
+      d.appendChild(el('p', null, (gap ? 'Còn cách mục tiêu ' + so1(gap) + ' lần · ' : '') + 'tính từ tổng thời gian chơi GA đo được (' + so1(t.gio7) + ' giờ chơi mỗi ngày), chia đều 24 giờ'));
+      var c = $('ttKpi'); c.textContent = '';
+      var gc = (g.giuChan || []).filter(function (x) { return x.du7; })[0], n1 = (g.giuChan || [])[0];
+      var app = function (x, k) { return x ? x.nen.ios[k] + x.nen.android[k] : 0; };
+      var kh = (g.kichHoat || []).filter(function (x) { return x.id !== 'web'; }), khMoi = kh.reduce(function (s, x) { return s + x.moi; }, 0), khXong = kh.reduce(function (s, x) { return s + x.xong; }, 0);
+      [
+        ['Online trung bình', so1(t.tb7), doi(t.tb7, t.tb7Truoc), '7 ngày trước: ' + so1(t.tb7Truoc)],
+        ['Online giờ đỉnh', so1(t.dinh7), null, 'trung bình giờ đông nhất mỗi ngày'],
+        ['Người mới · 7 ngày', so(t.moi7), doi(t.moi7, t.moi7Truoc), so(t.nguoi7) + ' người chơi mỗi ngày'],
+        ['Chơi xong ván đầu · app', khMoi ? Math.round(khXong / khMoi * 100) + '%' : '—', null, so(khXong) + '/' + so(khMoi) + ' người mới · 28 ngày'],
+        ['Quay lại ngày 1 · app', n1 && app(n1, 'moi') ? Math.round(app(n1, 'n1') / app(n1, 'moi') * 100) + '%' : '—', null, n1 ? 'nhóm ' + n1.nhan + ' · ' + so(app(n1, 'moi')) + ' người mới' : ''],
+        ['Quay lại ngày 7 · app', gc && app(gc, 'moi') ? Math.round(app(gc, 'n7') / app(gc, 'moi') * 100) + '%' : '—', null, gc ? 'nhóm ' + gc.nhan + ' · ' + so(app(gc, 'moi')) + ' người mới' : '']
+      ].forEach(function (x) {
+        var b = el('div', 'thach kpi'), tren = el('div', 'kpi-dau'); tren.appendChild(el('span', 'nhan', x[0])); b.appendChild(tren);
+        var hang = el('div', 'kpi-so'); hang.appendChild(el('b', null, x[1]));
+        if (x[2]) hang.appendChild(el('span', 'doi ' + x[2].c, x[2].t));
+        b.appendChild(hang); b.appendChild(el('span', 'kpi-ghi', x[3])); c.appendChild(b);
+      });
+    }
+    var cot = $('ttCot'); cot.textContent = '';
+    var ng = g.ngay || [], mx = Math.max.apply(null, ng.map(function (x) { return Math.max(x.tb, x.dinh || 0); }).concat([0.1]));
+    ng.forEach(function (x, i) {
+      var b = el('div', 'cot' + (i % 7 === 0 ? ' moc' : ''));
+      b.title = x.nhan + ': trung bình ' + so1(x.tb) + ' · giờ đỉnh ' + so1(x.dinh) + ' · ' + so(x.nguoi) + ' người chơi · ' + so(x.moi) + ' mới';
+      if (i === ng.length - 1 || i % 7 === 0) b.appendChild(el('span', 'so', so1(x.tb)));
+      var khoi = el('div', 'khoi'); khoi.style.height = Math.max(2, Math.round(x.tb / mx * 190)) + 'px'; b.appendChild(khoi);
+      if (x.dinh != null) { var v = el('i', 'dinh'); v.style.bottom = Math.round(x.dinh / mx * 190) + 'px'; b.appendChild(v); }
+      if (i % 7 === 0 || i === ng.length - 1) b.appendChild(el('span', 'nhan', x.nhan));
+      cot.appendChild(b);
+    });
+    var NT = [['ios', 'iOS'], ['android', 'Android'], ['web', 'Web']];
+    bangTt('ttGiuChan',
+      [[['Lần đầu vào']].concat(NT.map(function (n) { return [n[1], 'nhom', 3]; })),
+       [['tuần']].concat(NT.reduce(function (a) { return a.concat([['mới', 'vach'], ['ngày 1'], ['ngày 7']]); }, []))],
+      (g.giuChan || []).map(function (r) {
+        return [r.nhan + (r.du7 ? '' : ' · đang chạy')].concat(NT.reduce(function (a, n) {
+          var x = r.nen[n[0]]; return a.concat([[x.moi, 'vach'], ptO(x.n1, x.moi, 30, 15), x.n7 == null ? ['…'] : ptO(x.n7, x.moi, 12, 5)]);
+        }, []));
+      }));
+    bangTt('ttKichHoat', [[['Nền tảng'], ['Người mới'], ['Bắt đầu ván'], ['Chơi xong'], ['% xong']]],
+      (g.kichHoat || []).map(function (x) { return [x.ten, x.moi, x.batDau, x.xong, ptO(x.xong, x.moi, 70, 40)]; }));
+    bangTt('ttNguon', [[['Kênh'], ['Người mới'], ['Phút chơi / người']]],
+      (g.nguon || []).map(function (x) { return [x.k, x.moi, [x.phut, x.phut === 0 ? 'kem' : '']]; }));
+    var tongGio = (g.quocGia || []).reduce(function (s, x) { return s + x.gio; }, 0);
+    bangTt('ttNuoc', [[['Nước'], ['Người'], ['Mới'], ['Giờ chơi'], ['% giờ']]],
+      (g.quocGia || []).map(function (x) { return [co(x.k) + ' ' + tenNuocVi(x.k), x.nguoi, x.moi, so1(x.gio), tongGio ? Math.round(x.gio / tongGio * 100) + '%' : '–']; }));
+    bangTt('ttLan', [[['Việc'], ['Lượt'], ['Người']]],
+      (g.lanTruyen || []).map(function (x) { return [TEN_LAN[x.k] || x.k, x.luot, x.nguoi]; }));
+    var ngan = function (s) { var x = s.split('-'); return x[2] + '.' + x[1]; };
+    $('ttLuc').textContent = ngan(g.ky.startDate) + ' – ' + ngan(g.ky.endDate) + ' · GA' + (g.cu ? ' · đang hiện số cũ' : '');
+    var l = Object.keys(g.loi || {}).map(function (k) { return g.loi[k]; }).filter(function (x, i, a) { return a.indexOf(x) === i; });
+    loiO('tangtruong', l.join(' · '));
+  }
+  function taiTangTruong(moi) {
+    if (ttDang || (!moi && ttTai && Date.now() - ttTai < 600000)) return;
+    ttDang = true; $('tangTruong').classList.add('cho-o');
+    fetch('/api/tangtruong' + (moi ? '?moi=1' : ''), { credentials: 'same-origin' }).then(function (r) { return r.json().then(function (g) { return { ok: r.ok, g: g }; }); }).then(function (x) {
+      if (!x.ok) { loiO('tangtruong', x.g && x.g.chuaCauHinh ? 'Chưa nối GA.' : (x.g && x.g.loiChung) || 'Không lấy được số tăng trưởng.'); return; }
+      ttTai = Date.now(); veTangTruong(x.g);
+    }).catch(function () { loiO('tangtruong', 'Không lấy được số tăng trưởng (mất mạng?).'); })
+      .then(function () { ttDang = false; $('tangTruong').classList.remove('cho-o'); });
+  }
+  if (document.body.getAttribute('data-tab') === 'tangtruong') taiTangTruong(false);
   /*
    * Ô THI ĐẤU (23.11.2026): /api/thidau — máy chủ game, không qua GA nên không vào hàng đợi các ô [data-phan] và không
    * theo bộ chọn khoảng. Tải lúc mở trang + 5 phút một lần khi trang đang hiện.
