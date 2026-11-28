@@ -331,14 +331,20 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .ao-trong{color:var(--mo);font-weight:700;padding:12px 4px}
 @media (max-width:700px){
   .ao-h.dau-bang{display:none}
-  /* Thẻ gọn (28.11.2026, chủ dự án: "để nhiều khoảng trống thế?"): nền tảng gộp vào dòng cuối, hoạt động + chi tiết một hàng */
-  .ao-h{grid-template-columns:1fr auto;grid-template-areas:"ng xu" "hd hd" "ph ph";gap:3px 10px;padding:8px 10px;margin-top:6px;border:2px solid var(--vien);border-radius:14px;background:var(--o)}
-  .ao-av{width:30px;height:30px;font-size:18px;border-radius:9px}
-  .ao-h>.c-ng{grid-area:ng}.ao-h>.c-xu{grid-area:xu;text-align:right}
-  .ao-h>.c-hd{grid-area:hd;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}.ao-h>.c-hd small{display:inline}
-  .ao-h>.c-nt,.ao-h>.c-dh,.ao-h>.c-cd,.ao-h>.c-tg{display:none}.ao-h>.c-ph{grid-area:ph;display:block;color:var(--mo);font-size:11.5px;font-weight:700}
+  /* MỘT DÒNG CHẠY mỗi người (28.11.2026, chủ dự án: "inline hết đi cho đỡ tốn diện tích… sau có nhiều người online còn xem
+     được"): mặt · tên · hoạt động · chi tiết · mô tả ngắn · xu nối nhau, hết chỗ thì tự xuống dòng. Phân cách bằng vạch mảnh. */
+  .ao-h{display:flex;flex-wrap:wrap;align-items:center;gap:2px 7px;padding:6px 2px;margin:0;border:0;border-bottom:1px solid var(--vien);background:none;border-radius:0;font-size:12px;line-height:1.35}
+  .ao-ng{display:contents}.ao-av{width:22px;height:22px;font-size:14px;border-radius:6px}
+  .ao-ng>span:not(.ao-av){display:contents}
+  .ao-ng b{display:inline;font-size:13.5px}.ao-ng small{display:none}
+  .ao-h>.c-hd{display:contents}.ao-h>.c-hd small{display:inline;font-size:11.5px;color:var(--mo)}
+  .ao-hd{padding:0 6px;font-size:11.5px;border-radius:6px}
+  .ao-ng .ao-meta{display:inline;order:5;font-size:11px;color:var(--mo)}
+  .ao-h>.c-xu{order:6;margin-left:auto;font-size:13px}
+  .ao-h>.c-nt,.ao-h>.c-dh,.ao-h>.c-cd,.ao-h>.c-tg,.ao-h>.c-ph{display:none}
+  .ao-loc{gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:3px}.ao-loc .chip{flex:none;min-height:30px;padding:0 10px;font-size:12px;box-shadow:0 2px 0 var(--day)}
 }
-@media (min-width:701px){.ao-h>.c-ph{display:none}}
+@media (min-width:701px){.ao-h>.c-ph,.ao-meta{display:none}}
 
 .ky-chon{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mo)}
 .ky-chon b{color:#fff}
@@ -1355,7 +1361,10 @@ export const JS = String.raw`
       var ng = el('div', 'c-ng ao-ng'), av = el('span', 'ao-av', r.mat || '🙂'); if (r.mau) av.style.background = r.mau; ng.appendChild(av);
       var t1 = el('span'), b = el('b', null, r.ten || 'Khách');
       if (tk.pr) b.appendChild(el('span', 'ao-pr', 'PRO'));
-      t1.appendChild(b); t1.appendChild(el('small', null, r.loaiTk === 'u' ? 'Google' : r.loaiTk === 'k' ? 'Khách' : 'chưa có mã')); ng.appendChild(t1); h.appendChild(ng);
+      var loaiTk = r.loaiTk === 'u' ? 'Google' : r.loaiTk === 'k' ? 'Khách' : 'chưa có mã';
+      t1.appendChild(b); t1.appendChild(el('small', null, loaiTk));
+      t1.appendChild(el('small', 'ao-meta', [loaiTk, AO_NT[r.nt] || r.nt, tk.ban, (r.nn || '').toUpperCase(), aoPhut(luc - r.luc), tk.dh != null ? 'DH ' + so(tk.dh) : '', tk.cd ? 'CD ' + tk.cd : ''].filter(Boolean).join(' · ')));
+      ng.appendChild(t1); h.appendChild(ng);
       var nt = el('div', 'c-nt ao-nt'); nt.appendChild(el('b', null, AO_NT[r.nt] || r.nt || '–'));
       nt.appendChild(el('small', null, [tk.ban, (r.nn || '').toUpperCase(), r.nuoc].filter(Boolean).join(' · '))); h.appendChild(nt);
       var hd = el('div', 'c-hd'); hd.appendChild(el('span', 'ao-hd hd-' + a[0], a[1]));
