@@ -19,6 +19,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Check, X } from 'lucide-vue-next';
 import { anhEmoji, chonCoAnh, laKyTuChu } from '@/lib/emoji';
 import { bayVong, type BanVong } from '@/lib/tim-the';
+import type { MeoBan } from '@/lib/meo-tim-the';
 import { sfx } from '@/lib/audio';
 import { t } from '@/lib/i18n';
 
@@ -36,6 +37,8 @@ const props = defineProps<{
   choCham: boolean;
   /** Tạm dừng: quầng đứng yên. */
   dung?: boolean;
+  /** Mẹo lần đầu (lib/meo-tim-the): bong bóng trên lá cao nhất, `vien` = viền vàng quanh thẻ giữa. Không chặn chạm. */
+  meo?: MeoBan | null;
 }>();
 const emit = defineEmits<{ cham: [i: number]; lat: [] }>();
 
@@ -128,6 +131,8 @@ defineExpose({ veGio });
 
 const D = 'M62 2.5 H105.5 A16 16 0 0 1 121.5 18.5 V138.5 A16 16 0 0 1 105.5 154.5 H18.5 A16 16 0 0 1 2.5 138.5 V18.5 A16 16 0 0 1 18.5 2.5 Z';
 const ketQua = computed(() => props.nhip === 'dap-an' || props.nhip === 'xong');
+/** Mép trên của lá CAO NHẤT — bong bóng mẹo đứng ngay trên đó, đuôi chỉ xuống tâm bàn. */
+const dinhVong = computed(() => Math.min(...bv.value.vi.map((v) => v[1]), bv.value.tam[1]) - bv.value.h / 2);
 
 let ro: ResizeObserver | undefined;
 onMounted(() => { ro = new ResizeObserver(doBan); if (goc.value) ro.observe(goc.value); doBan(); });
@@ -169,7 +174,7 @@ onBeforeUnmount(() => { ro?.disconnect(); clearInterval(henVong); henQuay.forEac
     </div>
 
     <!-- THẺ CẦN TÌM ở tâm: markup RIÊNG (không `.card`) để skin không đè lưng vàng -->
-    <div class="giua" :class="{ ngua: giuaNgua }" :style="{ left: `${bv.tam[0]}px`, top: `${bv.tam[1]}px`, width: `${bv.w}px`, height: `${bv.h}px` }" aria-hidden="true">
+    <div class="giua" :class="{ ngua: giuaNgua, 'meo-vien': meo?.vien }" :style="{ left: `${bv.tam[0]}px`, top: `${bv.tam[1]}px`, width: `${bv.w}px`, height: `${bv.h}px` }" aria-hidden="true">
       <svg ref="gioEl" class="gio" viewBox="0 0 124 157" preserveAspectRatio="none" style="opacity: 0">
         <path class="nen" :d="D" pathLength="100" stroke-dasharray="100 100" />
         <path class="chay" :class="mauGio" :d="D" pathLength="100" stroke-dasharray="100 100" />
@@ -182,11 +187,37 @@ onBeforeUnmount(() => { ro?.disconnect(); clearInterval(henVong); henQuay.forEac
         </span>
       </span>
     </div>
+
+    <div v-if="meo" :key="meo.tieuDe" class="meo-bong" role="status" :style="{ left: `${bv.tam[0]}px`, top: `${dinhVong - 14}px` }">
+      <b>{{ meo.tieuDe }}</b>{{ meo.mo }}
+    </div>
   </div>
 </template>
 
 <style scoped>
 .vong-tim { position: relative; width: 100%; height: 100%; }
+/* MẸO LẦN ĐẦU — cùng chất bong bóng chỉ Premium ở trang chủ (MenuScreen `.chi-bong`): nền panel, viền vàng, bóng đổ */
+.meo-bong {
+  --vien: color-mix(in srgb, #f0b400 70%, transparent);
+  position: absolute; z-index: 8; transform: translate(-50%, -100%); width: min(280px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 11px 14px; border-radius: 16px; border: 2px solid var(--vien); background: var(--panel-solid, #fff); color: var(--fg);
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .35)); font: 700 13.5px/1.45 var(--font-body); text-align: center;
+  pointer-events: none; animation: meo-vao .3s ease-out both;
+}
+.meo-bong b { display: block; margin-bottom: 2px; font: 800 16px/1.25 var(--font-display); }
+.meo-bong::after {
+  content: ''; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px; margin-left: -8px; background: inherit;
+  border-right: 2px solid var(--vien); border-bottom: 2px solid var(--vien); transform: rotate(45deg);
+}
+@keyframes meo-vao { from { opacity: 0; transform: translate(-50%, calc(-100% + 8px)); } }
+.giua.meo-vien::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 16px; pointer-events: none; z-index: 3;
+  box-shadow: 0 0 0 4px #ffd34d, 0 0 24px 6px rgba(255, 211, 77, .8); animation: meo-nhip 1.4s ease-in-out infinite;
+}
+@keyframes meo-nhip { 50% { box-shadow: 0 0 0 6px #ffd34d, 0 0 32px 10px rgba(255, 211, 77, .9); } }
+/* Màn thấp (SE): bong bóng gọn lại để ít đè hàng xu / "Lượt" phía trên */
+@media (max-height: 620px) { .meo-bong { padding: 7px 12px; font-size: 12.5px; line-height: 1.35; } .meo-bong b { font-size: 14.5px; } }
+@media (prefers-reduced-motion: reduce) { .meo-bong, .giua.meo-vien::after { animation: none; } }
 .o { position: absolute; transform: translate(-50%, -50%); transition: opacity .3s, filter .3s; }
 .card {
   position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; border-radius: 12px;

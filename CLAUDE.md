@@ -398,7 +398,11 @@
   (k+1)/n, trần 97%; chọn sau 60–95% … 20–45% giờ chọn. Đối thủ chọn NGAY trong màn cấu hình (một mình / 5 máy).
 - Thưởng: xu = điểm của mình, thua vẫn được, đấu Gà mờ 0 xu. Đấu máy lên sổ tài khoản + bộ đếm thắng máy như ghép
   cặp; một mình chỉ đếm ván/chuỗi ngày + `dongBo`. CHƯA tính Chỉ số trí nhớ, danh hiệu (công thức dựa trên ghép cặp).
-  Kỷ lục riêng theo cỡ bàn + độ khó, chỉ ván một mình (`mm.timThe.kyLuc.<n>.<độ khó>`).
+  MẸO LẦN ĐẦU (28.11.2026, mockup duyệt https://claude.ai/artifact/23vzn9H7Zh5qTGRSZprbGX): `lib/meo-tim-the.ts` + prop `meo`
+  của BanVongTim — bong bóng trên lá cao nhất lúc `xem` ("Nhớ vị trí từng lá") và `noi`/`hoi` ("Lá nào giống thẻ giữa?" + viền vàng
+  thẻ giữa); không phủ tối, không chặn chạm; chạm bàn hoặc hết pha hỏi đầu = xong hẳn (`mm.meo.timThe`). Không cho người xem.
+  Script chụp store đặt sẵn cờ này. GA `mo_chuc_nang` `meo_tim_the_xem|hoi`.
+  Kỷ lục riêng theo cỡ bàn + tốc độ, chỉ ván một mình (`mm.timThe.kyLuc2.<n>.<de|vua|kho>`; 28.11.2026 xoá khoá cũ `kyLuc.` vì đổi giờ xem) — CHỈ để bắn "kỷ lục mới" cuối ván, KHÔNG hiện cúp ở màn chọn ("Kỷ lục ko để chỗ đó").
 - GA: DÙNG LẠI `van_bat_dau` / `van_ket_thuc` / `van_bo_do` với `che_do` = `tim_the` | `tim_the_may_<mức>`, độ khó ở
   `tuy_chon`, số thẻ ở `so_the` — so được với ghép cặp trong cùng báo cáo. `van_ket_thuc` thêm `diem so_dung so_luot
   chuoi_dai ky_luc` (CHƯA đăng ký custom dimension — khoá GA trong my-secrets chỉ Viewer). Mở màn: `mo_chuc_nang tim_the`.

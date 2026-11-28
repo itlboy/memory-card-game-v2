@@ -398,7 +398,20 @@ watch(() => props.nguoi.length, () => { moBang.value = false; });
 .pchip.off { opacity: .55; }
 /* Chip 3–4 người thì hết chỗ cho cả chữ: giữ icon, bỏ chữ (title và nhãn cho
    máy đọc vẫn còn). Bảng đầy đủ và dải gọn vẫn hiện đủ chữ. */
-@container (max-width: 150px) { .netbad .chu { display: none; } }
+/*
+ * CHIP HẸP (nội dung ≤ 176px — mọi chip trừ bàn 2 người màn rộng): viên MẤT MẠNG thành HUY HIỆU ở góc trên-phải avatar
+ * (absolute, 0px bề ngang), kể cả chip người đang đi. Để trong hàng thì nó ăn ~30px: `pnpm do:chip --tim` (28.11.2026)
+ * đo được điểm "9,9k" bị cắt còn "9,9" ở bàn 4 người, tên bị ép còn MỘT chữ cái ở bàn 2 người; `pnpm do:chip` (ghép
+ * cặp) bắt đúng lỗi đó ở chip người đang đi mà rớt mạng. Góc này trống: chấm ping chỉ ở chip của MÌNH, mà chip mình
+ * không bao giờ báo mất mạng. Chip mờ + icon đã đủ nói "mất mạng"; chip rộng vẫn có cả chữ trong hàng.
+ */
+@container (max-width: 176px) {
+  .netbad .chu { display: none; }
+  .netbad { position: absolute; z-index: 1; left: 22px; top: 1px; padding: 1px 2px; line-height: 0; background: var(--panel); box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bad) 40%, transparent); }
+}
+/* Ô MÀU HỒ SƠ ở chip hẹp: bỏ lề .2em hai bên (global.css) — ~7px đó đúng bằng phần điểm bị lẹm ở chip chờ bàn 3–4 người
+   và chip đang đi của mình ở SE 4 người (`pnpm do:chip`, avatar có màu từ 25.11.2026). Ô màu vẫn vẽ đủ (::before căn giữa, tràn sang khoảng `gap`). */
+@container (max-width: 128px) { .pchip .vong-mau { margin-inline: 0; } }
 /*
  * THỨ TỰ HY SINH KHI CHIP HẸP DẦN — đo trên vùng web 430px với điểm 5 chữ số.
  * Ngưỡng là CONTENT-BOX (chip trừ padding 18 và viền 4), không phải bề rộng
@@ -415,7 +428,9 @@ watch(() => props.nguoi.length, () => { moBang.value = false; });
 /* Chip CHỜ hẹp quá (bàn 4 người: nội dung còn 61px) thì bỏ TÊN, giữ avatar và
    ĐIỂM. Avatar đã là danh tính và tên đầy đủ còn đọc được ở bảng ☰ — điểm thì
    không có chỗ nào khác. Đây là lỗi thứ hai người chơi bắt được. */
-@container (max-width: 72px) {
+/* 90 (trước 72, 28.11.2026 `pnpm do:chip --tim`): Tìm Thẻ 4 người trên Pro Max nội dung chip ~78px — qua ngưỡng 72 nên tên
+   còn hiện nhưng bị ép còn "N" (5–7px). Ghép cặp ≥3 người đã ẩn tên bằng `.dong` nên không đổi gì bên đó. */
+@container (max-width: 90px) {
   .pchip:not(.active) b { display: none; }
   .pchip:not(.active) { justify-content: space-between; }
 }

@@ -12,6 +12,7 @@
  * Thanh giờ ghi thẳng `transform` — Vue chỉ vẽ lại khi nhịp / lựa chọn đổi (`rev`).
  */
 import { computed, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue';
+import { useMeoTimThe } from '@/lib/meo-tim-the';
 import {
   BOT_SPECS, TIM_THE_CHO_MS, TIM_THE_DAP_AN_MS, TIM_THE_NOI_MS, TIM_THE_SO_LUOT, TIM_THE_UP_MS, VanTimThe,
   type TimTheKetQua
@@ -69,6 +70,8 @@ const buoc = ref<'dau' | 'choi' | 'dung' | 'cuoi'>('dau');
 type Nhip = 'cho' | 'xem' | 'up' | 'noi' | 'hoi' | 'dap-an';
 const nhip = ref<Nhip>('xem');
 const chonCuaToi = ref<number | null>(null);
+/** Mẹo lần đầu (lib/meo-tim-the) — chơi một mình / đấu máy thì luôn là người chơi. */
+const meoTim = useMeoTimThe(nhip, computed(() => true));
 const ketToi = ref<TimTheKetQua | null>(null);
 const ketVan = ref<TimTheKetVan | null>(null);
 /*
@@ -235,6 +238,7 @@ function batDau(): void {
 }
 
 function cham(i: number): void {
+  meoTim.daCham();
   const v = van.value;
   if (!v || buoc.value !== 'choi' || nhip.value !== 'hoi' || chonCuaToi.value !== null) return;
   // `tNhip` chỉ cộng theo KHUNG HÌNH — chạm ngay khung đầu của nhịp hỏi thì nó còn 0. Cộng thêm phần đã trôi
@@ -358,7 +362,7 @@ defineExpose({
       <BanVongTim
         ref="banVong" :so-the="van?.cfg.soThe ?? chon.soThe" :hinh="dsThe" :hinh-dich="van && nhip !== 'cho' && nhip !== 'xem' && nhip !== 'up' ? van.hinhDich : null"
         :dich="nhip === 'dap-an' ? (van?.dich ?? null) : null" :nhip="nhip" :chon="chonCuaToi" :cho-cham="buoc === 'choi'" :dung="buoc !== 'choi'"
-        @cham="cham" @lat="latBan"
+        :meo="meoTim.meo.value" @cham="cham" @lat="latBan"
       >
         <template #the="{ i, lat }">
           <template v-if="gain && gain.i === i && nhip === 'dap-an' && lat">

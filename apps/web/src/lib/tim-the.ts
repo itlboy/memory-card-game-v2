@@ -110,8 +110,19 @@ export function luuKieu(k: KieuChoi): void {
   try { localStorage.setItem(KHOA_KIEU, k); } catch { /* chỉ không nhớ */ }
 }
 
-/** Kỷ lục RIÊNG từng cỡ bàn + độ khó, chỉ ván MỘT MÌNH — 3 thẻ Dễ và 12 thẻ Khó là hai trò khác nhau. */
-const khoaKyLuc = (soThe: number, doKho: TimTheDoKho): string => `mm.timThe.kyLuc.${soThe}.${doKho}`;
+/**
+ * Kỷ lục RIÊNG từng cỡ bàn + tốc độ, chỉ ván MỘT MÌNH — chỉ dùng để bắn hiệu ứng "kỷ lục mới" cuối ván, KHÔNG hiện ở màn
+ * chọn (chủ dự án 28.11.2026: "Kỷ lục ko để chỗ đó"). Khoá `kyLuc2` từ 28.11.2026: đổi giờ xem 1,5/1/0,75 → 3/2/1 giây/thẻ
+ * làm kỷ lục cũ không còn so được — chủ dự án: "Xoá đi". `xoaKyLucCu` dọn khoá cũ một lần.
+ */
+const khoaKyLuc = (soThe: number, doKho: TimTheDoKho): string => `mm.timThe.kyLuc2.${soThe}.${doKho}`;
+export function xoaKyLucCu(): void {
+  try {
+    const cu: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k?.startsWith('mm.timThe.kyLuc.')) cu.push(k); }
+    for (const k of cu) localStorage.removeItem(k);
+  } catch { /* chế độ riêng tư: không có gì để xoá */ }
+}
 export function docKyLuc(soThe: number, doKho: TimTheDoKho): number {
   try { return Number(localStorage.getItem(khoaKyLuc(soThe, doKho))) || 0; } catch { return 0; }
 }

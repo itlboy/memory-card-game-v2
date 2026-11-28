@@ -22,11 +22,14 @@ import { ganLung } from './lib/lung-la';
 import { napTuDien, ngonNgu } from './lib/i18n';
 import { ganBatLoi, guiLoi } from './lib/phan-tich';
 import { ganNhatKyMay } from './lib/nhat-ky-may';
+import { xoaKyLucCu } from './lib/tim-the';
 
 // Lỗi JS → GA (lib/phan-tich.ts `guiLoi`) — gắn SỚM NHẤT để bắt cả lỗi lúc nạp
 ganBatLoi();
 // Mốc nền / treo / mất mạng cho nhật ký sự cố online (lib/nhat-ky-may.ts) — gắn sớm để có cả mốc trước khi vào phòng
 ganNhatKyMay();
+// Kỷ lục Tìm Thẻ theo giờ xem cũ (trước 28.11.2026) — chủ dự án: "Xoá đi"
+xoaKyLucCu();
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {

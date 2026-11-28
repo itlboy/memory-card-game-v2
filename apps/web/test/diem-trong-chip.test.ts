@@ -101,8 +101,13 @@ describe('điểm nằm trong chip người chơi', () => {
         // rộng chip: chip 200px khớp `max-width: 176px`.
         expect(src).toMatch(/@container \(max-width: 176px\)[^}]*turn-clock[^}]*display:\s*none/);
         expect(src).toMatch(/@container \(max-width: 128px\)[^}]*lives[^}]*display:\s*none/);
-        // Bàn 4 người: chip CHỜ chỉ còn 61px nội dung — bỏ tên, giữ avatar + điểm.
-        expect(src).toMatch(/@container \(max-width: 72px\)/);
+        // Bàn 4 người: chip CHỜ chỉ còn 61–78px nội dung — bỏ tên, giữ avatar + điểm. 90 từ 28.11.2026 (Tìm Thẻ 4 người
+        // Pro Max ~78px: tên bị ép còn "N"); chip hẹp: viên mất mạng thành huy hiệu góc avatar (absolute).
+        // PlayerStrip (offline, không mất mạng) giữ 72.
+        if (ten === 'DaiNguoiChoi.vue') {
+          expect(src).toMatch(/@container \(max-width: 90px\)[^}]*b \{ display:\s*none/);
+          expect(src).toMatch(/@container \(max-width: 176px\) \{[^}]*netbad \.chu[^}]*\}\s*\.netbad \{ position: absolute/);
+        } else expect(src).toMatch(/@container \(max-width: 72px\)/);
       });
     });
   }

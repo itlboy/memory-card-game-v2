@@ -13,6 +13,7 @@
  */
 import { TIM_THE_ONLINE_SO_THE, TIM_THE_SO_LUOT, type TimView } from '@mm/engine';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useMeoTimThe } from '@/lib/meo-tim-the';
 import { Check, Ellipsis, TimerOff, X, Zap } from 'lucide-vue-next';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
@@ -139,6 +140,8 @@ const hinh = computed(() => v.value?.the ?? hinhCu.value);
 const soThe = computed(() => v.value?.soThe ?? o.room.value?.config.timSoThe ?? TIM_THE_ONLINE_SO_THE);
 /** Nhịp cho bàn vòng: đang đếm ngược (chưa có ván) thì bàn nằm úp. */
 const nhipBan = computed(() => (v.value ? pha.value : 'cho'));
+/** Mẹo lần đầu (lib/meo-tim-the) — không cho người xem. */
+const meoTim = useMeoTimThe(nhipBan, computed(() => !xem.value));
 /** Ai chọn lá nào — chỉ ở đáp án (server mới gửi `kq`). */
 const aiChon = (i: number) => (pha.value === 'dap-an' || pha.value === 'xong') ? nguoi.value.filter((n) => n.kq?.viTri === i) : [];
 
@@ -255,6 +258,7 @@ function latBan(): void {
 }
 
 function cham(i: number): void {
+  meoTim.daCham();
   if (xem.value || pha.value !== 'hoi' || chonCuaToi.value !== null) return;
   const ms = performance.now() - hoiTu;
   if (ms > hoiDai) return;   // hết giờ ở máy này — server cũng sẽ từ chối
@@ -375,7 +379,7 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
       <DemNguocPhu v-if="o.countdownLeft.value === null && demSo > 0 && pha === 'cho'" :n="demSo" />
       <BanVongTim
         ref="banVong" :so-the="soThe" :hinh="hinh" :hinh-dich="v?.hinhDich ?? null" :dich="v?.dich ?? null"
-        :nhip="nhipBan" :chon="chonCuaToi" :cho-cham="!xem" @cham="cham" @lat="latBan"
+        :nhip="nhipBan" :chon="chonCuaToi" :cho-cham="!xem" :meo="meoTim.meo.value" @cham="cham" @lat="latBan"
       >
         <template #the="{ i, lat }">
           <span v-if="lat && aiChon(i).length" class="ai-chon" aria-hidden="true">

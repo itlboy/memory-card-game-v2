@@ -1087,7 +1087,7 @@ function openCfgWizard(): void {
       <p class="hint-multi">{{ t('on.banChung') }}</p>
       <!-- TÌM THẺ (27.11.2026): chủ phòng đặt số thẻ + độ khó ở đây; lúc Bắt đầu cả phòng chỉ biểu quyết số thẻ ±1 bậc -->
       <ChonTimThe
-        v-if="laTimPhong" an-ky-luc
+        v-if="laTimPhong"
         :chon="{ soThe: cfg.timSoThe ?? TIM_THE_ONLINE_SO_THE, doKho: cfg.timDoKho ?? 'vua', doiThu: 'mot' }"
         @doi="(c) => { cfg = { ...cfg, timSoThe: c.soThe, timDoKho: c.doKho }; }"
       />

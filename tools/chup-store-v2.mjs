@@ -106,7 +106,8 @@ export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
   const choMoKhoa = async () => { for (let i = 0; i < 40 && await js(`!!document.querySelector('.mk-huy, .mo-khoa-toast')`); i++) await cho(1000); };
   const trangChu = async () => { await js(`location.href = location.origin + '/?lang=${lang}'; true`); await cho(2200); await choMoKhoa(); };
   // Người chơi ĐÃ CÓ hồ sơ (bỏ màn chào đặt tên) + đã nhận quà Premium (không bật bảng Premium, không đổi nền ngẫu nhiên)
-  await js(`(() => { localStorage.setItem('mm.anCai', '1'); localStorage.setItem('mm.premium.tang', '1'); const s = JSON.parse(localStorage.getItem('mm.v2') || '{}');
+  // + đã xem mẹo lần đầu Tìm Thẻ (không để bong bóng mẹo lọt vào ảnh store)
+  await js(`(() => { localStorage.setItem('mm.anCai', '1'); localStorage.setItem('mm.premium.tang', '1'); localStorage.setItem('mm.meo.timThe', '1'); const s = JSON.parse(localStorage.getItem('mm.v2') || '{}');
     s.prefs = { ...(s.prefs || {}), themes: ['animals'] }; s.names = [${JSON.stringify(chu.ten[0])}]; s.hoSo = { mat: '🦊', mau: '#ff9a1f', xong: true };
     localStorage.setItem('mm.v2', JSON.stringify(s)); location.reload(); return true; })()`);
   await cho(2200);

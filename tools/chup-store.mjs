@@ -52,7 +52,9 @@ const chup = async (ten) => {
 /** Bấm phần tử có chữ chứa `chu` (nút, ô chọn), KHÔNG phân biệt hoa thường — nhãn
  *  English từng đổi "Quick play" → "Quick Play" và kịch bản gãy. */
 const bam1 = (chu, sel = 'button, [role=button], .option, a') => js(`(() => {
-  const el = [...document.querySelectorAll(${JSON.stringify(sel)})].find((e) => e.offsetParent && e.textContent.toLowerCase().includes(${JSON.stringify(chu.toLowerCase())}));
+  // Ưu tiên nút BẮT ĐẦU bằng chữ (28.11.2026: tiếng Ý "Gioca" — chứa trong "2giocatori" nên bấm nhầm ô 2 người)
+  const ds = [...document.querySelectorAll(${JSON.stringify(sel)})].filter((e) => e.offsetParent), c = ${JSON.stringify(chu.toLowerCase())};
+  const el = ds.find((e) => e.textContent.trim().toLowerCase().startsWith(c)) ?? ds.find((e) => e.textContent.toLowerCase().includes(c));
   if (!el) throw new Error('không thấy: ' + ${JSON.stringify(chu)} + ' — trên màn: ' + JSON.stringify([...document.querySelectorAll('button, .option')].filter((e) => e.offsetParent).map((e) => e.textContent.trim().replace(/\\s+/g, ' ').slice(0, 30))));
   el.click(); return true;
 })()`);

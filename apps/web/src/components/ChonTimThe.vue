@@ -5,20 +5,15 @@
  * khác bên ngoài"). Thay chỗ dải số thẻ của BanChon khi Kiểu chơi = Tìm Thẻ; dòng Bộ thẻ vẫn của BanChon.
  * Lựa chọn ghi thẳng vào `mm.timThe.chon` (lib/tim-the) — màn Tìm Thẻ đọc lại lúc vào ván.
  */
-import { computed } from 'vue';
-import { TIM_THE_DO_KHO, TIM_THE_SO_THE, docKyLuc, type TimTheChon } from '@/lib/tim-the';
+import { TIM_THE_DO_KHO, TIM_THE_SO_THE, type TimTheChon } from '@/lib/tim-the';
 import { t, td } from '@/lib/i18n';
-import { num } from '@/lib/format';
 import { sfx } from '@/lib/audio';
 import { moChucNang } from '@/lib/phan-tich';
-import { Trophy } from 'lucide-vue-next';
 
-/** `anKyLuc`: phòng online — kỷ lục chơi một mình không liên quan, không hiện. */
-const props = defineProps<{ chon: TimTheChon; anKyLuc?: boolean }>();
+const props = defineProps<{ chon: TimTheChon }>();
 const emit = defineEmits<{ doi: [c: TimTheChon] }>();
 
 /** Kỷ lục chỉ có ở ván MỘT MÌNH (lib/tim-the). */
-const kyLuc = computed(() => (props.chon.doiThu === 'mot' && !props.anKyLuc ? docKyLuc(props.chon.soThe, props.chon.doKho) : 0));
 
 function doi(p: Partial<TimTheChon>): void {
   sfx.select();
@@ -44,8 +39,7 @@ function doi(p: Partial<TimTheChon>): void {
     ><b>{{ td(`tt.${k}`) }}</b></button>
   </span>
   <!-- KHÔNG ghi thông số (giây xem / giây chọn / số lượt) — chủ dự án 27.11.2026: "Ko cần hiện các thông số kỹ thuật
-       nhiều làm ng chơi đau đầu". Chỉ còn kỷ lục khi có. -->
-  <p v-if="kyLuc" class="tt-tom"><Trophy :size="14" :stroke-width="2.6" class="ic" aria-hidden="true" /> <b>{{ num(kyLuc) }}</b></p>
+       nhiều làm ng chơi đau đầu". KHÔNG hiện kỷ lục ở đây (28.11.2026: "Kỷ lục ko để chỗ đó"). -->
 </template>
 
 <style scoped>
@@ -66,12 +60,9 @@ function doi(p: Partial<TimTheChon>): void {
   box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 #33861a, 0 3px 5px rgba(10, 20, 60, .18);
 }
 .nut-o b { font-family: var(--font-display); font-size: 18px; font-weight: 800; }
-.tt-tom { flex: none; margin: 0; text-align: center; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.tt-tom b { color: var(--fg); }
 .ic { vertical-align: -2px; }
 /* Màn thấp (iPhone SE…): Đấu với máy + Tìm Thẻ có thêm hai hàng — gọn lại để Bắt đầu không lọt khỏi màn (KHÔNG SCROLL) */
 @media (max-height: 700px) {
   .nut-o { min-height: 38px; }
-  .tt-tom { display: none; }
 }
 </style>
