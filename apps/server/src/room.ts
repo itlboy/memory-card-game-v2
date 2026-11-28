@@ -393,6 +393,14 @@ export class RoomDO extends DurableObject<Env> {
     if (!dangChoi && (r.status !== 'lobby' || r.players.length >= ROOM_LIMITS.maxPlayers)) return '';
     const chu = r.players.find((p) => p.id === r.hostId) ?? r.players[0];
     if (!chu) return '';
+    /* PHÒNG MA KHÔNG LÊN SỔ (28.11.2026): phòng chờ vắng mà MỌI người đã đi quá EMPTY_LOBBY_MS (thấy lần cuối / lúc rớt) —
+       vd phòng nằm im nhiều ngày vừa được alarm đánh thức để dọn — đã hiện lên danh sách suốt 15 phút chờ dọn (18 phòng ma
+       trên màn Chơi online). Phòng vừa vắng (chủ đi gửi link) thì người còn mới → vẫn hiện như cũ. */
+    if (r.status === 'lobby' && r.emptyAt) {
+      const now = Date.now();
+      const conMoi = r.players.some((p) => !p.may && now - (p.disconnectedAt ?? p.lastSeen ?? 0) < EMPTY_LOBBY_MS);
+      if (!conMoi) return '';
+    }
     // Nhịp 5 phút: phòng chờ không ai vào/ra vẫn phải khai lại định kỳ, không
     // thì bản ghi quá HAN_BAN_GHI_MS và phòng đang sống rơi khỏi danh sách.
     const nhip = Math.floor(Date.now() / 300_000);

@@ -131,6 +131,12 @@ describe('chuỗi alarm: mọi hạn chót đều phải có mốc đánh thức
     expect(than, 'không được chỉ hẹn khi alarmLuc khác null').not.toMatch(/if \(alarmLuc !== null\) \{\s*void box/);
   });
 
+  it('phòng chờ vắng mà mọi người đã đi quá EMPTY_LOBBY_MS thì KHÔNG lên sổ công khai (phòng ma lúc chờ dọn)', () => {
+    const at = src.indexOf('private chuKySo()');
+    const than = src.slice(at, src.indexOf('\n  }', at));
+    expect(than).toMatch(/r\.emptyAt[\s\S]{0,300}EMPTY_LOBBY_MS[\s\S]{0,80}return ''/);
+  });
+
   it('vẫn còn các mốc cũ: đồng hồ lượt, hết giờ, úp lại thẻ sai, hạn vào lại', () => {
     for (const mark of ['turnDeadline', 'flipBackMs', 'reconnectMs', 'SILENT_MS']) {
       expect(schedule, `mốc ${mark} biến mất khỏi scheduleNext()`).toMatch(mark);
