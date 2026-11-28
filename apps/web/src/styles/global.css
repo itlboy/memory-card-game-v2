@@ -381,14 +381,16 @@ button {
 .mcn-chu { font-family: var(--font-display); font-weight: 800; font-size: var(--text-lg, 20px); line-height: 1.2; }
 .mcn-thanh { width: 100%; height: 12px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--fg) 12%, transparent); }
 .mcn-thanh > i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--nhan-nen); transition: width .3s ease; }
-.mcn-pct { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; opacity: .8; }
+.mcn-pct { min-height: 1.25em; line-height: 1.25; font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; opacity: .8; }
 /* CẬP NHẬT XONG (mockup duyệt 17.11.2026, lib/ota.ts `baoXong`): thanh xanh → co thành dấu ✓ tròn
    nảy ra (thạch xanh), hai vòng sáng + đốm vàng; hàng thanh giãn cao để dấu ✓ không đè chữ. */
-.mcn-thanh { position: relative; transition: height .35s cubic-bezier(.5, 0, .5, 1), background-color .2s; }
+/* Ô GIỮ NGUYÊN CHIỀU CAO (28.11.2026, chủ dự án: "ô báo cập nhật thay đổi chiều cao khi thành công"): hàng thanh luôn chiếm 46px —
+   lúc tải thanh 12px + lề 17px mỗi bên; xong thì lề về 0, thanh lên 46px. Tổng không đổi nên ô không nhảy. */
+.mcn-thanh { position: relative; margin-block: 17px; transition: height .35s cubic-bezier(.5, 0, .5, 1), margin .35s cubic-bezier(.5, 0, .5, 1), background-color .2s; }
 .mcn-thanh > i { transition: width .3s ease, background-color .3s, transform .3s cubic-bezier(.5, 0, .5, 1), opacity .2s .1s; }
 .mcn-vong, .mcn-dom, .mcn-xong { display: none; }
 .man-cap-nhat.xanh .mcn-thanh > i { background: #46ad22; }
-.man-cap-nhat.xong .mcn-thanh { height: 46px; overflow: visible; background: transparent; }
+.man-cap-nhat.xong .mcn-thanh { height: 46px; margin-block: 0; overflow: visible; background: transparent; }
 .man-cap-nhat.xong .mcn-thanh > i { transform: scaleX(0); opacity: 0; visibility: hidden; transition: transform .3s cubic-bezier(.5, 0, .5, 1), opacity .2s .1s, visibility 0s .35s; }
 .man-cap-nhat.xong :is(.mcn-vong, .mcn-dom, .mcn-xong) { display: block; position: absolute; left: 50%; top: 50%; }
 .mcn-xong {
