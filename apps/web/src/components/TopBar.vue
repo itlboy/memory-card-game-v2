@@ -19,6 +19,7 @@ import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { menuKhoiPhuc, nhoMenu } from '@/lib/appUrl';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import DongXu from './DongXu.vue';
@@ -141,6 +142,8 @@ function dong(): void { open.value = false; }
 /** App gọi khi bảng Hình nền / Nhạc nền đóng lại: người chơi quay về đúng menu họ vừa rời (xem App.vue `veMenuKhiDong`). */
 /** `cd`: mở thẳng trang Cài đặt (đóng bảng con mở từ mục Cài đặt Premium ở trang đó thì về lại đây). */
 defineExpose({ moMenu: (trang?: 'cd'): void => { open.value = true; if (trang === 'cd') void nextTick(() => { trangCd.value = true; }); } });
+/* Vừa cập nhật xong từ menu / trang Cài đặt: mở lại đúng chỗ đó (lib/appUrl `menuKhoiPhuc`) */
+onMounted(() => { if (menuKhoiPhuc) { const m = menuKhoiPhuc; setTimeout(() => { open.value = true; if (m === 'cd') void nextTick(() => { moTrangCd(); }); }, 400); } });
 /** Menu đang hiện bảng chọn ngôn ngữ thay cho danh sách cài đặt; đóng menu là về danh sách. */
 const chonNN = ref(false);
 watch(open, (v) => { if (!v) { chonNN.value = false; trangCd.value = false; } else if (kiemCN.value !== 'dang') kiemCN.value = ''; });
@@ -157,9 +160,12 @@ const kiemCN = ref<'' | 'dang' | 'moiNhat' | 'matMang' | 'cuQua'>('');
 async function kiemCapNhat(): Promise<void> {
   if (kiemCN.value === 'dang') return;
   kiemCN.value = 'dang';
+  // Nhớ đang mở menu / trang Cài đặt: gói mới nạp xong mở lại đúng chỗ (lib/appUrl `nhoMenu`, 28.11.2026)
+  nhoMenu(trangCd.value ? 'cd' : 'menu');
   const { kiemTraThuCong } = await import('@/lib/ota');
   const kq = await kiemTraThuCong();
   if (kq === 'coBan') { kiemCN.value = ''; dong(); return; }
+  nhoMenu(null);
   kiemCN.value = kq === 'web' ? 'moiNhat' : kq;
   // Kết quả hiện 3 giây rồi nút về chữ "Cập nhật" (chủ dự án 24.11.2026: chữ kết quả nằm mãi trên nút thì khó hiểu)
   clearTimeout(henCN);

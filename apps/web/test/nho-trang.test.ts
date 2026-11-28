@@ -26,15 +26,38 @@ describe('cập nhật xong về đúng trang đang đứng', () => {
     expect(b.urlApp()).toBe('/?room=123456');
   });
 
-  it('chỉ MỘT lần: lần mở sau không bị kéo lại trang cũ', async () => {
+  it('WebView nạp lại HAI lần liền (máy thật, 28.11.2026): lần hai vẫn về đúng trang', async () => {
+    const a = await nap();
+    a.ghiQuery('room=123456');
+    a.nhoTrang();
+    history.replaceState(null, '', '/');
+    await nap();
+    expect(location.search).toBe('?room=123456');
+    history.replaceState(null, '', '/');
+    await nap();
+    expect(location.search).toBe('?room=123456');
+  });
+
+  it('quá 15 giây sau lần nạp đầu: lần mở sau KHÔNG bị kéo lại trang cũ', async () => {
     const a = await nap();
     a.ghiQuery('online=1');
     a.nhoTrang();
     history.replaceState(null, '', '/');
+    vi.useFakeTimers({ toFake: ['Date'] });
     await nap();
+    vi.setSystemTime(Date.now() + 16_000);
     history.replaceState(null, '', '/');
     await nap();
+    vi.useRealTimers();
     expect(location.search).toBe('');
+  });
+
+  it('nhớ cả menu / trang Cài đặt (không có địa chỉ)', async () => {
+    const a = await nap();
+    a.nhoMenu('cd');
+    a.nhoTrang();
+    const b = await nap();
+    expect(b.menuKhoiPhuc).toBe('cd');
   });
 
   it('quá hạn (app bị tắt hẳn rồi mở lại sau) thì mở ở trang chủ', async () => {

@@ -404,7 +404,9 @@
   chỉ NỀN ô màu to (`.neon.g-*`) + chip màu trang chủ bị phủ dịu bằng bóng TRONG (`--th-trong` inset, keo-thach.css) — chữ/icon/emoji giữ sáng.
   MÁY (bot) online có Ô MÀU như người (28.11.2026): `mauMay(seed, đã dùng)` ở engine — room.ts lúc chủ "Thêm máy", phong-bot
   gửi `?mau=` theo tên. CẬP NHẬT GIỮ TRANG: `keepUrlPathAfterReload: true` (capacitor.config, cần bản native) + `nhoTrang` dự phòng;
-  GA `ota_ve_trang` {ket_qua: url_san|da_dat|qua_han|hong, trang}.
+  GA `ota_ve_trang` {ket_qua: url_san|da_dat|qua_han|hong, trang, lan}. BẪY (28.11.2026, chủ dự án tái hiện mỗi lần: phòng chờ / trang
+  Cài đặt bấm Cập nhật → về trang chủ): dấu `mm.otaTrang` KHÔNG xoá ở lần nạp đầu mà giữ 15 s (WebView có thể nạp HAI lần); menu /
+  trang Cài đặt nhớ qua `nhoMenu` (TopBar) → `menuKhoiPhuc`.
   MẸO LẦN ĐẦU (28.11.2026, mockup duyệt https://claude.ai/artifact/23vzn9H7Zh5qTGRSZprbGX): `lib/meo-tim-the.ts` + prop `meo`
   của BanVongTim — bong bóng trên lá cao nhất lúc `xem` ("Nhớ vị trí từng lá") và `noi`/`hoi` ("Lá nào giống thẻ giữa?" + viền vàng
   thẻ giữa); không phủ tối, không chặn chạm; chạm bàn hoặc hết pha hỏi đầu = xong hẳn (`mm.meo.timThe`). Không cho người xem.
