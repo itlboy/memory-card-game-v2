@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lapNhom, nenCua, tangTruong, tenKenh } from '../src/tangtruong.ts';
+import { lapNhom, nenCua, tangTruong, tenCong, tenKenh } from '../src/tangtruong.ts';
 import { GaLoi, type Ga, type Dong } from '../src/ga.ts';
 
 const NOW = new Date('2026-11-28T05:00:00Z');   // 12:00 giờ VN ngày 28.11
@@ -16,6 +16,9 @@ test('nhóm tuần: 5 nhóm đủ 7 ngày (cũ → mới) + 1 nhóm đang chạy
 test('kênh: app theo trang vào, web theo nguồn', () => {
   assert.equal(nenCua('/app/ios'), 'ios');
   assert.equal(nenCua('/vi/about'), 'web');
+  assert.equal(nenCua('/cong/crazygames'), 'cong');
+  assert.equal(tenCong('/cong/itch'), 'itch');
+  assert.equal(tenKenh('(direct)', '(none)', '/cong/crazygames'), 'Cổng game · crazygames');
   assert.equal(tenKenh('(direct)', '(none)', '/app/android'), 'Google Play (app Android)');
   assert.equal(tenKenh('(direct)', '(none)', '/'), 'Web · gõ thẳng / không rõ');
   assert.equal(tenKenh('(direct)', '(none)', '/zh-TW'), 'Web · trang ngôn ngữ, gõ thẳng');
@@ -36,7 +39,8 @@ test('gói tăng trưởng: online trung bình = giây chơi / 86 400, giờ đ�
         const ios = JSON.stringify(b.dimensionFilter).includes('/app/ios');
         return ios ? [{ d: ['t0', '0000'], m: [50] }, { d: ['t0', '0001'], m: [20] }, { d: ['t0', '0007'], m: [5] }, { d: ['moi', '0000'], m: [40] }, { d: ['moi', '0001'], m: [10] }] : [];
       }
-      case 'eventName,pagePath': return [{ d: ['first_visit', '/app/ios'], m: [10] }, { d: ['van_ket_thuc', '/app/ios'], m: [8] }, { d: ['first_visit', '/'], m: [4] }, { d: ['first_visit', '/en/'], m: [3] }];
+      case 'pagePath': return [{ d: ['/cong/crazygames'], m: [30, 20, 7200] }, { d: ['/cong/itch'], m: [5, 5, 360] }];
+      case 'eventName,pagePath': return [{ d: ['first_visit', '/cong/itch'], m: [5] }, { d: ['first_visit', '/app/ios'], m: [10] }, { d: ['van_ket_thuc', '/app/ios'], m: [8] }, { d: ['first_visit', '/'], m: [4] }, { d: ['first_visit', '/en/'], m: [3] }];
       case 'firstUserSource,firstUserMedium,landingPage': return [{ d: ['(direct)', '(none)', '/app/ios'], m: [10, 6000] }, { d: ['facebook.com', 'referral', '/'], m: [2, 0] }, { d: ['m.facebook.com', 'referral', '/'], m: [2, 240] }];
       case 'countryId': return [{ d: ['VN'], m: [100, 50, 36000] }];
       case 'eventName': return [{ d: ['chia_se'], m: [17, 8] }];
@@ -51,9 +55,10 @@ test('gói tăng trưởng: online trung bình = giây chơi / 86 400, giờ đ�
   assert.equal(g.tong!.tb7, 0.3);          // 2 người·ngày / 7 ngày
   assert.equal(g.tong!.tb7Truoc, 0.1);
   assert.equal(g.tong!.moi7, 20);
-  assert.deepEqual(g.giuChan![0], { id: 'moi', nhan: '21.11–26.11', du7: false, nen: { ios: { moi: 40, n1: 10, n7: null }, android: { moi: 0, n1: 0, n7: null }, web: { moi: 0, n1: 0, n7: null } } });
+  assert.deepEqual(g.giuChan![0], { id: 'moi', nhan: '21.11–26.11', du7: false, nen: { ios: { moi: 40, n1: 10, n7: null }, android: { moi: 0, n1: 0, n7: null }, web: { moi: 0, n1: 0, n7: null }, cong: { moi: 0, n1: 0, n7: null } } });
   assert.deepEqual(g.giuChan![1]!.nen.ios, { moi: 50, n1: 20, n7: 5 });
-  assert.deepEqual(g.kichHoat, [{ id: 'ios', ten: 'iOS', moi: 10, batDau: 0, xong: 8 }, { id: 'android', ten: 'Android', moi: 0, batDau: 0, xong: 0 }, { id: 'web', ten: 'Web', moi: 7, batDau: 0, xong: 0 }]);
+  assert.deepEqual(g.kichHoat, [{ id: 'ios', ten: 'iOS', moi: 10, batDau: 0, xong: 8 }, { id: 'android', ten: 'Android', moi: 0, batDau: 0, xong: 0 }, { id: 'web', ten: 'Web', moi: 7, batDau: 0, xong: 0 }, { id: 'cong', ten: 'Cổng game', moi: 5, batDau: 0, xong: 0 }]);
+  assert.deepEqual(g.cong, [{ k: 'crazygames', nguoi: 30, moi: 20, gio: 2 }, { k: 'itch', nguoi: 5, moi: 5, gio: 0.1 }]);
   assert.deepEqual(g.nguon, [{ k: 'App Store (app iOS)', moi: 10, phut: 10 }, { k: 'Facebook', moi: 4, phut: 1 }]);
   assert.deepEqual(g.quocGia, [{ k: 'VN', nguoi: 100, moi: 50, gio: 10 }]);
   assert.deepEqual(g.lanTruyen!.find((x) => x.k === 'online_moi_ban'), { k: 'online_moi_ban', luot: 29, nguoi: 9 });

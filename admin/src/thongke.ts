@@ -15,9 +15,11 @@ import type { KeHoach } from './khoang.ts';
 import { themeMoi } from '../../packages/engine/src/theme-gop.ts';   // id theme cũ (72) → 12 theme hiện hành
 
 const NEN_TANG = [
-  { id: 'web', ten: 'Web', loc: { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/app/' } } } } },
+  // Web = không phải app và không phải bản cổng game (28.11.2026: bản cổng gửi page_location `/cong/<tên cổng>`)
+  { id: 'web', ten: 'Web', loc: { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'FULL_REGEXP', value: '^/(app|cong)/.*' } } } } },
   { id: 'ios', ten: 'iOS', loc: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/app/ios' } } } },
-  { id: 'android', ten: 'Android', loc: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/app/android' } } } }
+  { id: 'android', ten: 'Android', loc: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/app/android' } } } },
+  { id: 'cong', ten: 'Cổng game', loc: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: '/cong/' } } } }
 ] as const;
 
 /** Các ô của trang — đúng như trang nhóm khung (trang.ts, thuộc tính data-phan). */

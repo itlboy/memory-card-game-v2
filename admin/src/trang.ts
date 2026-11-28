@@ -99,6 +99,7 @@ export const HTML = String.raw`<!doctype html>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Kích hoạt · người mới chơi xong ván đầu</h2></div><div class="td-cuon"><table class="td-bang" id="ttKichHoat"></table></div></div>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Người mới đến từ đâu</h2></div><div class="td-cuon"><table class="td-bang" id="ttNguon"></table></div><p class="ghi-o">0 phút chơi = gần như chắc là máy quét, không phải người.</p></div>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Nước · theo giờ chơi</h2></div><div class="td-cuon"><table class="td-bang" id="ttNuoc"></table></div></div>
+    <div class="thach the"><div class="tieu"><h2 class="ktieu">Cổng game · từng cổng</h2></div><div class="td-cuon"><table class="td-bang" id="ttCong"></table></div><p class="ghi-o">CrazyGames, itch.io… — bản nhúng gửi về GA theo tên cổng. Chưa nộp cổng nào thì bảng trống.</p></div>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Lan truyền · 28 ngày</h2></div><div class="td-cuon"><table class="td-bang" id="ttLan"></table></div></div>
   </section>
 
@@ -172,7 +173,7 @@ export const HTML = String.raw`<!doctype html>
 
 export const CSS = String.raw`
 :root{--nen:#0c0e1c;--o:#171a30;--o2:#10132a;--vien:#2a2f52;--day:#070812;--chu:#e6e8f8;--mo:#9aa0c8;--vua:#c9cdea;--tim:#6a5cff;--tim2:#8b7dff;
---web:#67e8f9;--ios:#8b7dff;--android:#c026d3;--tat_ca:#a99fff}
+--web:#67e8f9;--ios:#8b7dff;--android:#c026d3;--cong:#fbbf24;--tat_ca:#a99fff}
 *{box-sizing:border-box}
 [hidden]{display:none!important}   /* .tuy-chon{display:flex} đè thuộc tính hidden */
 /* ĐANG TẢI: thanh chạy trên đầu + ô mờ nhịp + vòng xoay ở nút vừa bấm + khung xương lần đầu */
@@ -494,7 +495,7 @@ export const JS = String.raw`
 (function () {
   var KHOANG = [['30m','30 phút'],['6h','6 giờ'],['24h','24 giờ'],['today','Hôm nay'],['yday','Hôm qua'],['7','7 ngày'],['30','30 ngày'],['90','90 ngày'],['all','Từ khi công khai']];
   var HAT = { '5m': '5 phút', '1h': 'Giờ', '1d': 'Ngày', '1w': 'Tuần' };
-  var MAU = { web: '#67e8f9', ios: '#8b7dff', android: '#c026d3', tat_ca: '#a99fff' };
+  var MAU = { web: '#67e8f9', ios: '#8b7dff', android: '#c026d3', cong: '#fbbf24', tat_ca: '#a99fff' };
   var CHE_DO = { choi_nhanh: 'Chơi nhanh', chien_dich: 'Chiến dịch', dau_may: 'Đấu máy', online: 'Online', nhieu_nguoi: 'Nhiều người (một máy)', nhieu_nguoi_may: 'Nhiều người + máy', tim_the: 'Tìm Thẻ · một mình', tim_the_online: 'Tìm Thẻ · online' };
   // Tên dễ đọc của chuc_nang (app: moChucNang). Thêm tính năng mới ở app thì thêm một dòng ở đây; thiếu thì hiện tên thô.
   var TINH_NANG = {
@@ -1057,7 +1058,7 @@ export const JS = String.raw`
       if (i % 7 === 0 || i === ng.length - 1) b.appendChild(el('span', 'nhan', x.nhan));
       cot.appendChild(b);
     });
-    var NT = [['ios', 'iOS'], ['android', 'Android'], ['web', 'Web']];
+    var NT = [['ios', 'iOS'], ['android', 'Android'], ['web', 'Web'], ['cong', 'Cổng game']];
     bangTt('ttGiuChan',
       [[['Lần đầu vào']].concat(NT.map(function (n) { return [n[1], 'nhom', 3]; })),
        [['tuần']].concat(NT.reduce(function (a) { return a.concat([['mới', 'vach'], ['ngày 1'], ['ngày 7']]); }, []))],
@@ -1073,6 +1074,8 @@ export const JS = String.raw`
     var tongGio = (g.quocGia || []).reduce(function (s, x) { return s + x.gio; }, 0);
     bangTt('ttNuoc', [[['Nước'], ['Người'], ['Mới'], ['Giờ chơi'], ['% giờ']]],
       (g.quocGia || []).map(function (x) { return [co(x.k) + ' ' + tenNuocVi(x.k), x.nguoi, x.moi, so1(x.gio), tongGio ? Math.round(x.gio / tongGio * 100) + '%' : '–']; }));
+    bangTt('ttCong', [[['Cổng'], ['Người'], ['Mới'], ['Giờ chơi']]],
+      (g.cong || []).map(function (x) { return [x.k, x.nguoi, x.moi, so1(x.gio)]; }));
     bangTt('ttLan', [[['Việc'], ['Lượt'], ['Người']]],
       (g.lanTruyen || []).map(function (x) { return [TEN_LAN[x.k] || x.k, x.luot, x.nguoi]; }));
     var ngan = function (s) { var x = s.split('-'); return x[2] + '.' + x[1]; };

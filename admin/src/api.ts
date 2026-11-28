@@ -91,7 +91,7 @@ export async function xuLyApi(url: URL, ga: Ga, env: EnvApi, email: string, kho:
     if (url.pathname === '/api/tangtruong') {
       // Tab Tăng trưởng: luôn 28 ngày trọn tới hôm qua → khoá theo NGÀY (múi GA), nhớ 1 giờ
       const ngay = new Intl.DateTimeFormat('en-CA', { timeZone: env.GA_TZ }).format(now);
-      const { data, cu } = await nho(kho, `tt1:${ngay}`, 3600, boQua, () => tangTruong(ga, now, env.GA_TZ), cho);
+      const { data, cu } = await nho(kho, `tt2:${ngay}`, 3600, boQua, () => tangTruong(ga, now, env.GA_TZ), cho);
       return json({ ...data, cu });
     }
     const m = /^\/api\/o\/([a-z_]+)$/.exec(url.pathname);

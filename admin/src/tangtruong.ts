@@ -1,7 +1,7 @@
 /**
  * Tab "TĂNG TRƯỞNG" (28.11.2026, chủ dự án: "cần công cụ thống kê hiệu quả để đo và tập trung đúng chỗ" — mục tiêu
  * 100 người online thường xuyên). Một gói riêng `/api/tangtruong`, KHÔNG theo bộ chọn khoảng: luôn 28 ngày trọn gần
- * nhất (tới hôm qua) + các nhóm người mới theo tuần. 11 báo cáo GA, đi qua hàng đợi ≤ 4 của `Ga`, nhớ tạm 1 giờ.
+ * nhất (tới hôm qua) + các nhóm người mới theo tuần. 13 báo cáo GA, đi qua hàng đợi ≤ 4 của `Ga`, nhớ tạm 1 giờ.
  *
  * SỐ ĐO MỤC TIÊU = "online trung bình" = tổng giây chơi (userEngagementDuration) của ngày / 86 400. Đây là số người
  * có mặt cùng lúc tính TRUNG BÌNH cả ngày theo GA (ước lượng: chỉ tính lúc app ở trước mặt, không đếm người chặn GA).
@@ -23,13 +23,19 @@ const SO_NHOM = 5;
 const NEN = [
   { id: 'ios', ten: 'iOS', dau: '/app/ios' },
   { id: 'android', ten: 'Android', dau: '/app/android' },
-  { id: 'web', ten: 'Web', dau: '' }
+  { id: 'web', ten: 'Web', dau: '' },
+  // Bản cổng game web (CrazyGames, itch.io…): game gửi page_location `/cong/<tên cổng>` (apps/web lib/phan-tich.ts)
+  { id: 'cong', ten: 'Cổng game', dau: '/cong/' }
 ] as const;
 type NenId = (typeof NEN)[number]['id'];
 
 const dauApp = (dau: string) => ({ filter: { fieldName: 'pagePath', stringFilter: { matchType: 'BEGINS_WITH', value: dau } } });
-const locNen = (id: NenId) => (id === 'web' ? { notExpression: dauApp('/app/') } : dauApp(NEN.find((n) => n.id === id)!.dau));
-export const nenCua = (duong: string): NenId => (duong.startsWith('/app/ios') ? 'ios' : duong.startsWith('/app/android') ? 'android' : 'web');
+const locNen = (id: NenId) => (id === 'web'
+  ? { notExpression: { filter: { fieldName: 'pagePath', stringFilter: { matchType: 'FULL_REGEXP', value: '^/(app|cong)/.*' } } } }
+  : dauApp(NEN.find((n) => n.id === id)!.dau));
+export const nenCua = (duong: string): NenId => (duong.startsWith('/app/ios') ? 'ios' : duong.startsWith('/app/android') ? 'android' : duong.startsWith('/cong/') ? 'cong' : 'web');
+/** Tên cổng từ đường dẫn `/cong/<tên>`. */
+export const tenCong = (duong: string): string => duong.split('/')[2] || 'khac';
 
 const p2 = (n: number) => String(n).padStart(2, '0');
 const iso = (d: Date) => `${d.getUTCFullYear()}-${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())}`;
@@ -64,6 +70,8 @@ export interface GoiTangTruong {
   nguon?: { k: string; moi: number; phut: number }[];
   quocGia?: { k: string; nguoi: number; moi: number; gio: number }[];
   lanTruyen?: { k: string; luot: number; nguoi: number }[];
+  /** Từng cổng game: người chơi, người mới, giờ chơi (28 ngày). */
+  cong?: { k: string; nguoi: number; moi: number; gio: number }[];
 }
 
 const laLoiBan = (e: unknown) => e instanceof GaLoi && e.loai !== 'khac';
@@ -73,6 +81,7 @@ export function tenKenh(nguon: string, kenh: string, trangVao: string): string {
   const nen = nenCua(trangVao);
   if (nen === 'ios') return 'App Store (app iOS)';
   if (nen === 'android') return 'Google Play (app Android)';
+  if (nen === 'cong') return `Cổng game · ${tenCong(trangVao)}`;
   if (nguon === '(direct)' || !nguon || nguon === '(not set)') return /^\/[a-z]{2}(-[A-Z]{2})?(\/|$)/.test(trangVao) ? 'Web · trang ngôn ngữ, gõ thẳng' : 'Web · gõ thẳng / không rõ';
   if (/facebook\.com$/.test(nguon)) return 'Facebook';
   if (/instagram\.com$/.test(nguon)) return 'Instagram';
@@ -106,10 +115,11 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
   });
   const moi = { filter: { fieldName: 'newVsReturning', stringFilter: { matchType: 'EXACT', value: 'new' } } };
 
-  const [theoNgay, theoGio, cIos, cAndroid, cWeb, kichHoat, nguon, quocGia, suKien, chucNang, moiQuaLink] = await Promise.all([
+  const [theoNgay, theoGio, cIos, cAndroid, cWeb, cCong, tungCong, kichHoat, nguon, quocGia, suKien, chucNang, moiQuaLink] = await Promise.all([
     o('ngay', R(['date'], ['userEngagementDuration', 'activeUsers', 'newUsers'])),
     o('dinh', R(['dateHour'], ['userEngagementDuration'])),
-    o('giu_chan', cohort('ios')), o('giu_chan', cohort('android')), o('giu_chan', cohort('web')),
+    o('giu_chan', cohort('ios')), o('giu_chan', cohort('android')), o('giu_chan', cohort('web')), o('giu_chan', cohort('cong')),
+    o('cong', R(['pagePath'], ['activeUsers', 'newUsers', 'userEngagementDuration'], dauApp('/cong/'))),
     o('kich_hoat', R(['eventName', 'pagePath'], ['totalUsers'], loc.va(loc.trong('eventName', ['first_visit', 'van_bat_dau', 'van_ket_thuc']), moi))),
     o('nguon', R(['firstUserSource', 'firstUserMedium', 'landingPage'], ['newUsers', 'userEngagementDuration'])),
     o('quoc_gia', R(['countryId'], ['activeUsers', 'newUsers', 'userEngagementDuration'], undefined,
@@ -142,13 +152,13 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
     };
   }
 
-  if (cIos || cAndroid || cWeb) {
+  if (cIos || cAndroid || cWeb || cCong) {
     const doc = (d: Dong[] | null) => {
       const m = new Map<string, number>();
       for (const r of d ?? []) m.set(`${r.d[0]}:${Number(r.d[1])}`, r.m[0] ?? 0);
       return m;
     };
-    const bang: Record<NenId, Map<string, number>> = { ios: doc(cIos), android: doc(cAndroid), web: doc(cWeb) };
+    const bang: Record<NenId, Map<string, number>> = { ios: doc(cIos), android: doc(cAndroid), web: doc(cWeb), cong: doc(cCong) };
     g.giuChan = nhom.map((n) => ({
       id: n.id, nhan: n.nhan, du7: n.du7,
       nen: Object.fromEntries(NEN.map((x) => [x.id, {
@@ -158,7 +168,7 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
   }
 
   if (kichHoat) {
-    const dem: Record<NenId, Record<string, number>> = { ios: {}, android: {}, web: {} };
+    const dem: Record<NenId, Record<string, number>> = { ios: {}, android: {}, web: {}, cong: {} };
     for (const r of kichHoat) { const x = dem[nenCua(r.d[1] ?? '')]; x[r.d[0] ?? ''] = (x[r.d[0] ?? ''] ?? 0) + (r.m[0] ?? 0); }
     g.kichHoat = NEN.map((n) => ({ id: n.id, ten: n.ten, moi: dem[n.id].first_visit ?? 0, batDau: dem[n.id].van_bat_dau ?? 0, xong: dem[n.id].van_ket_thuc ?? 0 }));
   }
@@ -175,6 +185,15 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
   }
 
   if (quocGia) g.quocGia = quocGia.filter((r) => r.d[0] && r.d[0] !== '(not set)').map((r) => ({ k: r.d[0]!, nguoi: r.m[0] ?? 0, moi: r.m[1] ?? 0, gio: tron1((r.m[2] ?? 0) / 3600) }));
+
+  if (tungCong) {
+    const m = new Map<string, { nguoi: number; moi: number; giay: number }>();
+    for (const r of tungCong) {
+      const k = tenCong(r.d[0] ?? ''), x = m.get(k) ?? { nguoi: 0, moi: 0, giay: 0 };
+      x.nguoi += r.m[0] ?? 0; x.moi += r.m[1] ?? 0; x.giay += r.m[2] ?? 0; m.set(k, x);
+    }
+    g.cong = [...m].map(([k, x]) => ({ k, nguoi: x.nguoi, moi: x.moi, gio: tron1(x.giay / 3600) })).sort((a, b) => b.gio - a.gio);
+  }
 
   if (suKien || chucNang) {
     const m = new Map([...(suKien ?? []), ...(chucNang ?? [])].map((r) => [r.d[0] ?? '', r.m]));

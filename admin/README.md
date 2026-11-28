@@ -29,7 +29,7 @@ Mockup đã duyệt: https://claude.ai/artifact/VdBjJtK6bNfLz1AXFcjRB9 (17.11.20
 
 ## Tab "Tăng trưởng" (28.11.2026) — mục tiêu 100 người online thường xuyên
 
-`/api/tangtruong` (`src/tangtruong.ts`), KHÔNG theo bộ chọn khoảng: luôn 28 ngày trọn tới hôm qua, 11 báo cáo GA, nhớ 1 giờ,
+`/api/tangtruong` (`src/tangtruong.ts`), KHÔNG theo bộ chọn khoảng: luôn 28 ngày trọn tới hôm qua, 13 báo cáo GA, nhớ 1 giờ,
 chỉ tải khi mở tab. Đọc số thế nào:
 
 - **Online trung bình** = tổng giây chơi GA của ngày (`userEngagementDuration`) / 86 400 — số người có mặt cùng lúc tính
@@ -43,6 +43,9 @@ chỉ tải khi mở tab. Đọc số thế nào:
 - Link mời/chia sẻ ĐÃ mang `utm_source` (`moi_ban`, `chia_se`) từ 17.11.2026, nhưng link mời mở thẳng APP (WebView không nhận URL)
   nên GA không thấy nguồn đó — người do lời mời kéo về đếm bằng dòng "trong đó là người MỚI" (sự kiện `online_vao_link_moi`
   của người mới) ở bảng Lan truyền.
+- **Nền tảng thứ tư "Cổng game"** (28.11.2026): bản nhúng trên CrazyGames/itch.io… gửi `page_location = /cong/<tên cổng>`
+  → mọi ô chia theo nền tảng (biểu đồ người chơi, ô Nền tảng, giữ chân, kích hoạt) có thêm cột Cổng game; bảng "Cổng game ·
+  từng cổng" ở tab Tăng trưởng tách từng cổng. Web = đường dẫn KHÔNG bắt đầu bằng `/app/` hay `/cong/`.
 - BẪY Android: Google Play tự chạy máy thử (pre-launch report) cho MỖI bản đẩy lên store — chúng mở app, bấm lung tung, thành
   "người mới" không bao giờ quay lại (`ban_web` (not set), máy Google/TCL/Samsung, vài giây chơi). Người Android thật chỉ
   ~5 người/ngày (11.2026) nên % giữ chân Android không đủ tin.
