@@ -3,7 +3,7 @@ import { laApp, SITE_URL } from './native';
 import { t, napTuDien, ngonNgu } from './i18n';
 import { sfx } from './audio';
 import { suKien } from './phan-tich';
-import { nhoTrang } from './appUrl';
+import { loaiTrang, nhoTrang } from './appUrl';
 
 /**
  * CẬP NHẬT NÓNG (OTA) — app gói nhận bản web mới KHÔNG cần qua duyệt store
@@ -227,6 +227,7 @@ async function apGoi(id: string): Promise<void> {
   try {
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
     nhoTrang();                                        // gói mới mở lại ĐÚNG trang đang đứng (lib/appUrl)
+    suKien(`ota_ap_${loaiTrang()}`);                   // chẩn đoán: lúc áp gói địa chỉ đang là trang nào (28.11.2026)
     await CapacitorUpdater.set({ id });                // tải lại app sang gói mới
   } catch { anManPhu(); /* vẫn còn lối `next` + `kill`: mở lại app là có */ }
 }

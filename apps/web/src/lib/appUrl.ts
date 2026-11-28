@@ -32,10 +32,19 @@ export function nhoMenu(m: 'menu' | 'cd' | null): void { menuNho = m; }
 export function nhoTrang(): void {
   try {
     const q = mongMuon.split('?')[1] ?? '';
-    if (q || menuNho) localStorage.setItem(NHO_KEY, JSON.stringify({ q, luc: Date.now(), ...(menuNho ? { menu: menuNho } : {}) }));
-    else localStorage.removeItem(NHO_KEY);
+    // KHÔNG ghi đè dấu TỐT bằng địa chỉ trống (28.11.2026): TopBar nhớ trang NGAY lúc bấm "Cập nhật"; tới lúc áp gói (tải xong,
+    // vài giây sau) đóng menu có thể đã kéo địa chỉ lùi về trang chủ — dấu ghi lúc bấm mới là trang thật.
+    if (!q && !menuNho) {
+      const cu = JSON.parse(localStorage.getItem(NHO_KEY) ?? 'null') as { q?: unknown; luc?: unknown; dung?: unknown } | null;
+      if (cu && typeof cu.q === 'string' && cu.q && typeof cu.luc === 'number' && Date.now() - cu.luc < HAN_NHO_MS && cu.dung === undefined) return;
+      localStorage.removeItem(NHO_KEY);
+      return;
+    }
+    localStorage.setItem(NHO_KEY, JSON.stringify({ q, luc: Date.now(), ...(menuNho ? { menu: menuNho } : {}) }));
   } catch { /* chế độ riêng tư */ }
 }
+/** Loại trang (KHOÁ đầu của query, hoặc `trong`) — chẩn đoán bằng TÊN sự kiện GA (tham số chưa đăng ký thì không đọc được). */
+export const loaiTrang = (): string => (mongMuon.split('?')[1] ?? '').split(/[=&]/)[0] || 'trong';
 /**
  * Kết quả lần khôi phục sau cập nhật — main.ts gửi GA `ota_ve_trang`. `trang` = các KHOÁ của query đã nhớ (room / playing / …),
  * không gửi giá trị (mã phòng). `lan` = lần nạp thứ mấy dùng dấu này (2 = WebView nạp lại hai lần).

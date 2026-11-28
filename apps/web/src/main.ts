@@ -32,7 +32,11 @@ ganNhatKyMay();
 // Kỷ lục Tìm Thẻ theo giờ xem cũ (trước 28.11.2026) — chủ dự án: "Xoá đi"
 xoaKyLucCu();
 // Vừa áp gói OTA: có về đúng trang đang đứng không (lib/appUrl `khoiPhucTrang`)
-if (ketQuaVeTrang) suKien('ota_ve_trang', ketQuaVeTrang);
+if (ketQuaVeTrang) {
+  suKien('ota_ve_trang', ketQuaVeTrang);
+  // Chẩn đoán đọc được ngay trên GA thời gian thực (tham số chưa đăng ký custom dimension thì không đọc được): ota_ve_<kết quả>_<trang>_<lần>
+  suKien(`ota_ve_${ketQuaVeTrang.ket_qua}_${ketQuaVeTrang.trang.split(/[,+]/)[0] || 'trong'}_${ketQuaVeTrang.lan}`.slice(0, 40));
+}
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {

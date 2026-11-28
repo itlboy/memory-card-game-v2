@@ -11,7 +11,7 @@ import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
 import { anKhach, conTheMay, khachDangAn } from '@/lib/taikhoan';
 import { store } from '@/lib/storage';
-import { moChucNang } from '@/lib/phan-tich';
+import { moChucNang, suKien } from '@/lib/phan-tich';
 import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
@@ -19,7 +19,7 @@ import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
 import { NGON_NGU, ngonNgu, t, td } from '@/lib/i18n';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { menuKhoiPhuc, nhoMenu } from '@/lib/appUrl';
+import { loaiTrang, menuKhoiPhuc, nhoMenu, nhoTrang } from '@/lib/appUrl';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { num, numShort } from '@/lib/format';
 import DongXu from './DongXu.vue';
@@ -162,6 +162,9 @@ async function kiemCapNhat(): Promise<void> {
   kiemCN.value = 'dang';
   // Nhớ đang mở menu / trang Cài đặt: gói mới nạp xong mở lại đúng chỗ (lib/appUrl `nhoMenu`, 28.11.2026)
   nhoMenu(trangCd.value ? 'cd' : 'menu');
+  // Ghi trang NGAY LÚC BẤM, trước khi đóng menu / tải gói (đóng menu có thể kéo địa chỉ lùi về trang chủ — xem lib/appUrl)
+  nhoTrang();
+  suKien(`ota_bam_${loaiTrang()}`);
   const { kiemTraThuCong } = await import('@/lib/ota');
   const kq = await kiemTraThuCong();
   if (kq === 'coBan') { kiemCN.value = ''; dong(); return; }

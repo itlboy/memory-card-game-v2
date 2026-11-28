@@ -52,6 +52,17 @@ describe('cập nhật xong về đúng trang đang đứng', () => {
     expect(location.search).toBe('');
   });
 
+  it('nhớ lúc BẤM rồi địa chỉ bị kéo về trang chủ trước khi áp gói: vẫn về đúng trang (28.11.2026)', async () => {
+    const a = await nap();
+    a.ghiQuery('w=nhanh');
+    a.nhoTrang();                 // TopBar: lúc bấm "Cập nhật"
+    a.ghiQuery(null);             // đóng menu kéo địa chỉ lùi về trang chủ
+    a.nhoTrang();                 // lib/ota: lúc áp gói — KHÔNG được xoá dấu tốt
+    history.replaceState(null, '', '/');
+    await nap();
+    expect(location.search).toBe('?w=nhanh');
+  });
+
   it('nhớ cả menu / trang Cài đặt (không có địa chỉ)', async () => {
     const a = await nap();
     a.nhoMenu('cd');
@@ -93,7 +104,7 @@ describe('cập nhật xong về đúng trang đang đứng', () => {
 
   it('lib/ota gọi nhoTrang() trước MỌI lần áp gói khi người chơi đang nhìn', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/lib/ota.ts'), 'utf8');
-    expect(src).toMatch(/async function apGoi[\s\S]{0,600}nhoTrang\(\);[\s\S]{0,120}CapacitorUpdater\.set/);
+    expect(src).toMatch(/async function apGoi[\s\S]{0,600}nhoTrang\(\);[\s\S]{0,300}CapacitorUpdater\.set/);
     expect(src).toMatch(/async function apOtaNgay[\s\S]{0,300}nhoTrang\(\);[\s\S]{0,60}CapacitorUpdater\.set/);
   });
 });
