@@ -174,13 +174,6 @@ describe('đồng xu có hạng + bảng gọn + ảnh tỷ số (19.11.2026)', 
     expect(src).toMatch(/void keoToiMinh\(\)/);
     expect(src).not.toMatch(/class="xu"/);
   });
-  it('kéo quá ngưỡng / chạm lúc dải đang trôi → nuốt click (pha capture) + im tiếng bấm', () => {
-    const src = goc('src/components/BanChon.vue');
-    expect(src).toMatch(/@pointerdown="chuotXuong" @pointermove="chuotDi"[\s\S]{0,300}@click\.capture="nuotBam"/);
-    expect(src).toMatch(/Math\.hypot\(e\.clientX - x0, e\.clientY - y0\) > NGUONG_KEO/);
-    expect(src).toMatch(/Date\.now\(\) - lucCuon < CHAM_DUNG_MS/);
-    expect(src).toMatch(/setAttribute\('data-nosfx'/);
-  });
   it('huy hiệu hạng: cúp + số, không "#"; đổi hạng có hiệu ứng + âm thanh (lên / xuống / lần đầu)', () => {
     const tb = goc('src/components/TopBar.vue');
     expect(tb).toMatch(/hangHien \? numShort\(hangHien\) : ''/);
@@ -251,22 +244,6 @@ describe('tên ngẫu nhiên cho người mới (19.11.2026)', () => {
 });
 
 describe('dải số thẻ: rung từng ô, cuộn không kêu (19.11.2026)', () => {
-  it('cuộn qua ô mới → rung.tach() (chỉ khi ngón kéo); chốt bằng cuộn không phát tiếng, bấm thì có', () => {
-    const ban = goc('src/components/BanChon.vue');
-    expect(ban).toMatch(/if \(keoTay && giua\.value != null && giua\.value !== truoc\) \{ rung\.tach\(\); sfx\.tach\(\); \}/);
-    // Máy tính: lăn chuột dọc → cuộn ngang; kéo chuột → cuộn
-    expect(ban).toMatch(/@wheel="khiLan"/);
-    expect(ban).toMatch(/d\.scrollLeft \+= e\.deltaY/);
-    expect(ban).toMatch(/emit\('chon-co', lv, 'cuon'\)/);
-    expect(ban).toMatch(/emit\('chon-co', level, 'bam'\)/);
-    expect(goc('src/components/MenuScreen.vue')).toMatch(/if \(cach !== 'cuon'\) sfx\.select\(\)/);
-    // MỌI chỗ dùng BanChon phải xử lý 'cuon' — đổi bàn trong phòng online từng sót (vẫn kêu khi cuộn)
-    for (const f of ['MenuScreen.vue', 'OnlineScreen.vue']) {
-      const src = goc(`src/components/${f}`);
-      const ten = /<BanChon[\s\S]*?@chon-co="(\w+)"/.exec(src)![1];
-      expect(src, f).toMatch(new RegExp(`function ${ten}\\(level: number, cach: 'cuon' \\| 'bam'`));
-    }
-  });
   it('rung chọn: selectionStart trước selectionChanged (thiếu là plugin im lặng), có giới hạn tần suất', async () => {
     const src = goc('src/lib/rung.ts');
     expect(src).toMatch(/selectionStart\(\); \}\s*await h\.Haptics\.selectionChanged\(\)/);
@@ -275,22 +252,15 @@ describe('dải số thẻ: rung từng ô, cuộn không kêu (19.11.2026)', ()
   });
 });
 
-describe('dải số thẻ: mũi tên ‹ › cho máy có chuột (19.11.2026)', () => {
-  it('chỉ hiện ở (hover: hover) and (pointer: fine); bỏ qua cỡ bị khoá; nhãn đọc là số thẻ đích', () => {
+describe('số thẻ: 2 hàng × 6 viên (28.11.2026, thay dải kéo ngang + mũi tên ‹ ›)', () => {
+  it('đủ 12 cỡ trong một rãnh 6 cột, cỡ bị khoá thì tắt', () => {
     const src = goc('src/components/BanChon.vue');
-    expect(src).toMatch(/\.keo-ben \{ display: none; \}\s*@media \(hover: hover\) and \(pointer: fine\)/);
-    expect(src).toMatch(/if \(mo\(BOARD_SIZES\[k\]!\)\) return BOARD_SIZES\[k\]!/);
-    expect(src).toMatch(/@click="bamMui\(-1\)"[\s\S]*@click="bamMui\(1\)"/);
+    expect(src).toMatch(/class="ranh c6"/);
+    expect(src).toMatch(/:disabled="!mo\(c\)"/);
   });
 });
 
 describe('dải số thẻ: giữ ngón rồi kéo tiếp vẫn rung + tạch (20.11.2026)', () => {
-  it('ngón còn chạm thì chưa chốt; theo touch (iOS bắn pointercancel khi cuộn); nhấc ngón mới hẹn chốt', () => {
-    const src = goc('src/components/BanChon.vue');
-    expect(src).toMatch(/function chot\(\): void \{[\s\S]{0,400}if \(ngon\) return;\s*keoTay = false;/);
-    expect(src).toMatch(/@touchstart\.passive="ngonXuong" @touchend\.passive="ngonLen" @touchcancel\.passive="ngonLen"/);
-    expect(src).toMatch(/function ngonLen\(\): void \{[\s\S]{0,120}henDung = setTimeout\(chot, 140\)/);
-  });
   it('tiếng tạch ≈30% bản đầu', () => {
     expect(goc('src/lib/audio.ts')).toMatch(/type: 'bandpass', q: 3, gain: 0\.015 \}\);\s*this\.voice\(2100, \{ dur: 0\.018, type: 'sine', gain: 0\.0025 \}\)/);
   });

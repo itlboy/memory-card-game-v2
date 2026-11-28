@@ -183,7 +183,7 @@ section.panel { will-change: opacity; }
 .nh-o .num { font-size: clamp(20px, min(30cqw, 46cqh), 34px); line-height: 1.05; font-variant-numeric: tabular-nums; }
 .nh-o small { font-size: clamp(11px, min(14cqw, 20cqh), 14px); font-weight: 700; letter-spacing: .2px; }
 .nh-dong {
-  flex: 1 1 58px; min-height: 44px; max-height: 68px; width: 100%;
+  flex: none; min-height: 46px; height: 48px; width: 100%;
   display: flex; align-items: center; gap: 10px; padding: 0 14px; text-align: left;
   font: inherit; color: var(--fg); cursor: pointer;
 }
@@ -196,3 +196,35 @@ section.panel { will-change: opacity; }
 .nh-hinh img:first-child { margin-left: 0; }
 .nh-mui { flex: none; color: var(--muted); }
 .nh-sua { flex: none; font-family: var(--font-display); font-weight: 800; color: var(--accent); }
+
+/* RÃNH VIÊN THẠCH (28.11.2026, mockup A duyệt https://claude.ai/artifact/1cdWS68mgEE7sR5YT5X3N3): số người, số thẻ (Chơi nhanh,
+   Đổi bàn online) và Số thẻ / Tốc độ của Tìm Thẻ (ChonTimThe) — MỘT kiểu chọn cho cả màn, thấp gọn thay ô vuông to. */
+.ranh {
+  flex: none; display: grid; gap: 2px; padding: 3px; border-radius: 24px;
+  background: var(--k-mem, var(--panel-soft)); border: 2px solid var(--t3, var(--line));
+  box-shadow: inset 0 2px 4px rgba(29, 42, 90, .14);
+}
+.ranh.c3 { grid-template-columns: repeat(3, 1fr); }
+.ranh.c5 { grid-template-columns: repeat(5, 1fr); }
+.ranh.c6 { grid-template-columns: repeat(6, 1fr); row-gap: 4px; }
+/* Số người: ô "Một mình" rộng hơn ba ô số */
+.ranh.so-nguoi { grid-template-columns: 1.7fr 1fr 1fr 1fr; }
+.nut-o {
+  position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 4px; min-width: 0;
+  border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--fg); font: inherit; cursor: pointer;
+}
+.nut-o[aria-checked='true'] {
+  border-color: #33861a; color: #fff; background: linear-gradient(#a3ec72 -40%, #46ad22 70%); text-shadow: 0 1px 0 #23600f;
+  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 2px 0 #33861a, 0 3px 5px rgba(10, 20, 60, .18);
+}
+.nut-o b { font-family: var(--font-display); font-size: 18px; font-weight: 800; white-space: nowrap; }
+.ranh.c6 .nut-o { min-height: 40px; }
+.ranh.c6 .nut-o b { font-size: 16px; }
+@media (max-height: 700px) { .nut-o, .ranh.c6 .nut-o { min-height: 38px; } }
+.nut-o.nh-o { height: auto; padding: 0 4px; }
+/* Dòng Bộ thẻ / Luật bàn GỌN MỘT HÀNG (28.11.2026, chủ dự án: "phần chọn theme cũng cho nhỏ lại"): nhãn trái, tóm tắt phải. */
+.nh-dong .nh-chu { flex-direction: row; align-items: baseline; gap: 8px; }
+.nh-dong .nh-chu strong { flex: none; }
+.nh-dong .nh-chu small { flex: 1; min-width: 0; text-align: right; }
+.nh-dong .nh-hinh img { width: 22px; height: 22px; }
+.nh-dong .opt-ico { width: 24px; height: 24px; }
