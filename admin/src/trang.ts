@@ -325,15 +325,18 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 .ao-ng b,.ao-nt b{display:block;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ao-h small{display:block;color:var(--mo);font-size:11.5px;font-weight:700}
 .ao-pr{font-size:10px;font-weight:900;padding:1px 6px;border-radius:6px;background:linear-gradient(#ffe066,#f6b91c);color:#5a3a00;margin-left:5px;vertical-align:1px}
 .ao-hd{display:inline-block;padding:2px 9px;border-radius:9px;font-weight:900;font-size:12.5px;background:var(--o2);color:var(--mo)}
-.ao-hd.online{background:rgba(34,197,94,.15);color:#22c55e}.ao-hd.cd{background:rgba(234,179,8,.16);color:#eab308}.ao-hd.nhanh{background:rgba(59,130,246,.15);color:#3b82f6}
-.ao-hd.may{background:rgba(236,72,153,.15);color:#ec4899}.ao-hd.tim{background:rgba(139,92,246,.16);color:#8b5cf6}.ao-hd.mua{background:rgba(20,184,166,.15);color:#14b8a6}
+.ao-hd.hd-online{background:rgba(34,197,94,.15);color:#22c55e}.ao-hd.hd-cd{background:rgba(234,179,8,.16);color:#eab308}.ao-hd.hd-nhanh{background:rgba(59,130,246,.15);color:#3b82f6}
+.ao-hd.hd-may{background:rgba(236,72,153,.15);color:#ec4899}.ao-hd.hd-tim{background:rgba(139,92,246,.16);color:#8b5cf6}.ao-hd.hd-mua{background:rgba(20,184,166,.15);color:#14b8a6}
 .ao-so{font:800 15px 'Baloo 2',sans-serif}
 .ao-trong{color:var(--mo);font-weight:700;padding:12px 4px}
 @media (max-width:700px){
   .ao-h.dau-bang{display:none}
-  .ao-h{grid-template-columns:1fr auto;grid-template-areas:"ng xu" "hd hd" "nt nt" "ph ph";gap:4px 10px;padding:10px 12px;margin-top:8px;border:2px solid var(--vien);border-radius:16px;background:var(--o)}
-  .ao-h>.c-ng{grid-area:ng}.ao-h>.c-xu{grid-area:xu;text-align:right}.ao-h>.c-hd{grid-area:hd}.ao-h>.c-nt{grid-area:nt}
-  .ao-h>.c-dh,.ao-h>.c-cd,.ao-h>.c-tg{display:none}.ao-h>.c-ph{grid-area:ph;display:block;color:var(--mo);font-size:12px;font-weight:800}
+  /* Thẻ gọn (28.11.2026, chủ dự án: "để nhiều khoảng trống thế?"): nền tảng gộp vào dòng cuối, hoạt động + chi tiết một hàng */
+  .ao-h{grid-template-columns:1fr auto;grid-template-areas:"ng xu" "hd hd" "ph ph";gap:3px 10px;padding:8px 10px;margin-top:6px;border:2px solid var(--vien);border-radius:14px;background:var(--o)}
+  .ao-av{width:30px;height:30px;font-size:18px;border-radius:9px}
+  .ao-h>.c-ng{grid-area:ng}.ao-h>.c-xu{grid-area:xu;text-align:right}
+  .ao-h>.c-hd{grid-area:hd;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}.ao-h>.c-hd small{display:inline}
+  .ao-h>.c-nt,.ao-h>.c-dh,.ao-h>.c-cd,.ao-h>.c-tg{display:none}.ao-h>.c-ph{grid-area:ph;display:block;color:var(--mo);font-size:11.5px;font-weight:700}
 }
 @media (min-width:701px){.ao-h>.c-ph{display:none}}
 
@@ -1354,13 +1357,13 @@ export const JS = String.raw`
       t1.appendChild(b); t1.appendChild(el('small', null, r.loaiTk === 'u' ? 'Google' : r.loaiTk === 'k' ? 'Khách' : 'chưa có mã')); ng.appendChild(t1); h.appendChild(ng);
       var nt = el('div', 'c-nt ao-nt'); nt.appendChild(el('b', null, AO_NT[r.nt] || r.nt || '–'));
       nt.appendChild(el('small', null, [tk.ban, (r.nn || '').toUpperCase(), r.nuoc].filter(Boolean).join(' · '))); h.appendChild(nt);
-      var hd = el('div', 'c-hd'); hd.appendChild(el('span', 'ao-hd ' + a[0], a[1]));
+      var hd = el('div', 'c-hd'); hd.appendChild(el('span', 'ao-hd hd-' + a[0], a[1]));
       hd.appendChild(el('small', null, [a[2], r.hd ? 'đã ' + aoPhut(luc - r.hdLuc) : ''].filter(Boolean).join(' · '))); h.appendChild(hd);
-      h.appendChild(el('div', 'c-xu ao-so', tk.xu == null ? '–' : so(tk.xu)));
+      h.appendChild(el('div', 'c-xu ao-so', tk.xu == null ? '' : so(tk.xu)));
       h.appendChild(el('div', 'c-dh ao-so', tk.dh == null ? '–' : so(tk.dh)));
       h.appendChild(el('div', 'c-cd', tk.cd ? 'Màn ' + tk.cd : '–'));
       h.appendChild(el('div', 'c-tg', aoPhut(luc - r.luc)));
-      h.appendChild(el('div', 'c-ph', ['Danh hiệu ' + (tk.dh == null ? '–' : so(tk.dh)), 'Chiến dịch ' + (tk.cd ? 'màn ' + tk.cd : '–'), 'online ' + aoPhut(luc - r.luc)].join(' · ')));
+      h.appendChild(el('div', 'c-ph', [AO_NT[r.nt] || r.nt, tk.ban, (r.nn || '').toUpperCase(), tk.dh != null ? 'danh hiệu ' + so(tk.dh) : '', tk.cd ? 'Chiến dịch màn ' + tk.cd : '', 'online ' + aoPhut(luc - r.luc)].filter(Boolean).join(' · ')));
       hop.appendChild(h);
     });
   }
