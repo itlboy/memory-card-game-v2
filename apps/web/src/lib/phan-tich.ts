@@ -1,5 +1,8 @@
 import { laApp, nenApp } from './native';
 import { laCong, tenCong } from './nen-fb';
+
+/** Nền tảng gửi lên GA (tham số + user property `nen_tang`): ios / android / web, bản cổng game là `cong_<tên cổng>`. */
+const nenGa: string = laCong ? `cong_${tenCong}` : nenApp;
 import { store } from './storage';
 import { gaDem, taoGaTrucTiep } from './ga-truc-tiep';
 
@@ -116,7 +119,7 @@ export function batPhanTich(): void {
       page_location: URL_DAU
     } : {})
   });
-  gtag('set', 'user_properties', { nen_tang: nenApp, ban_web: __OTA_ID__, ...(maNguoi ? { ma_nguoi: maNguoi } : {}) });
+  gtag('set', 'user_properties', { nen_tang: nenGa, ban_web: __OTA_ID__, ...(maNguoi ? { ma_nguoi: maNguoi } : {}) });
   if (maNguoi) gtag('set', { user_id: maNguoi });
   for (const [ten, thamSo] of choGui.splice(0)) gtag('event', ten, thamSo);
   const s = document.createElement('script');
@@ -128,8 +131,8 @@ export function batPhanTich(): void {
 /** Một sự kiện. Tên snake_case ≤ 40 ký tự, tham số là số/chuỗi ngắn — KHÔNG dữ liệu cá nhân. */
 export function suKien(ten: string, thamSo: Record<string, string | number | boolean | undefined> = {}): void {
   soGoi++;
-  if (!gtag) { if (choGui.length < CHO_TOI_DA) choGui.push([ten, { nen_tang: nenApp, ...thamSo }]); return; }
-  try { gtag('event', ten, { nen_tang: nenApp, ...thamSo }); } catch { /* không bao giờ làm hỏng game */ }
+  if (!gtag) { if (choGui.length < CHO_TOI_DA) choGui.push([ten, { nen_tang: nenGa, ...thamSo }]); return; }
+  try { gtag('event', ten, { nen_tang: nenGa, ...thamSo }); } catch { /* không bao giờ làm hỏng game */ }
 }
 
 /**
