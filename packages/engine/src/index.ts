@@ -37,7 +37,7 @@ export type {
   CardBack, ClientMsg, GameView, NguoiXem, PredealMsg, PublicCard, PublicEvent, PublicPlayer,
   PublicRoom, DoiId, QuickEmoji, EmojiNhom, QuickSay, RoomConfig, RoomInfo, ServerMsg, WireView, KetChon
 } from './online.js';
-export { AVATAR_HO_SO, MAU_HO_SO, HUY_HIEU, matHoSo, mauHoSo, huyHieuHoSo, type HuyHieu } from './ho-so.js';
+export { AVATAR_HO_SO, MAU_HO_SO, HUY_HIEU, matHoSo, mauHoSo, mauMay, huyHieuHoSo, type HuyHieu } from './ho-so.js';
 export type { ChangNho } from './scoring.js';
 export {
   TIM_THE_CHON_SAN_MS, TIM_THE_DAP_AN_MS, TIM_THE_DO_KHO, TIM_THE_HE_SO_KHO, TIM_THE_MAY_HE_SO, TIM_THE_MAY_NHIP, TIM_THE_MAY_NHO,

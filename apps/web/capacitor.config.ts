@@ -47,7 +47,14 @@ const config: CapacitorConfig = {
       autoUpdate: false,
       statsUrl: '',
       resetWhenUpdate: true,
-      appReadyTimeout: 10000
+      appReadyTimeout: 10000,
+      /*
+       * GIỮ NGUYÊN URL (cả `?room=` / `?playing=1` …) khi áp gói OTA (28.11.2026, chủ dự án: "đang ở phòng chờ bấm cập nhật
+       * thì bị thoát ra trang chủ… cập nhật ở đâu thì reload và ở lại ngay trang đấy"). Mặc định plugin nạp gói mới ở URL
+       * TRẦN; lib/appUrl `nhoTrang`/`khoiPhucTrang` (26.11) bù bằng localStorage nhưng trên máy thật vẫn về trang chủ.
+       * Bật cái này thì URL đi thẳng qua lần nạp lại; cách localStorage vẫn giữ làm dự phòng.
+       */
+      keepUrlPathAfterReload: true
     },
     /*
      * THÔNG BÁO PHÒNG MỚI (lib/thong-bao.ts, từ 1.8.17). Đang mở app thì KHÔNG hiện banner —

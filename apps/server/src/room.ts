@@ -8,7 +8,7 @@ import type {
 } from '@mm/engine';
 import { CHON_THE_BAT, LOBBY_HOLD_MS, PREDEAL } from './flags.js';
 import { THEME_PREMIUM, THEME_SYMBOLS } from './themes.js';
-import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, huyHieuHoSo, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, pairsForLevel } from '@mm/engine';
+import { BOARD_SIZES, CHON_THE_MS, TURN_PAUSE_CAP_MS, huyHieuHoSo, ketQuaChon, lichChot, luaChonSoThe, matHoSo, mauHoSo, mauMay, pairsForLevel } from '@mm/engine';
 import type { KetChon, TimTheDoKho } from '@mm/engine';
 import { PhongTimThe, TIM_THE_DO_KHO, TIM_THE_ONLINE_SO_THE, TIM_THE_SO_THE, chotSoThe, dongNhatKy, tenAnToan } from '@mm/engine';
 /** Số thẻ Tìm Thẻ của phòng — chưa chọn, hoặc là mức đã bỏ (8, 9, 12, 16 lưu từ trước), thì về mặc định. */
@@ -1213,6 +1213,8 @@ export class RoomDO extends DurableObject<Env> {
           this.room.players.push({
             id: this.maMayMoi(), name: BOT_SPECS[l].name, avatar: BOT_SPECS[l].avatar,
             token: crypto.randomUUID(), disconnectedAt: null, ready: true, may: l,
+            // Máy cũng có ô màu quanh avatar như người (28.11.2026) — ưu tiên màu chưa ai trong phòng dùng
+            mau: mauMay(`${l}${this.room.players.length}`, this.room.players.map((p) => p.mau)),
             doi: this.doiTrong()
           });
         } else {

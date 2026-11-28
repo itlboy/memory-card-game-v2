@@ -34,7 +34,7 @@
  * và nhả chỗ, lần sau không vào lại được). Server khởi động lại MỘT MÌNH: bot kiên trì nối lại ~2 phút rồi mới bỏ phòng.
  */
 import {
-  BOT_LEVELS, LEVEL_KEYS, TIM_THE_DO_KHO, botPick, botRng, botThinkMs, createBotMemory, observe, pairsForLevel, timTheMayChon,
+  BOT_LEVELS, LEVEL_KEYS, TIM_THE_DO_KHO, botPick, mauMay, botRng, botThinkMs, createBotMemory, observe, pairsForLevel, timTheMayChon,
   type BotLevel, type GameView, type RoomInfo, type TimView
 } from '@mm/engine';
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -158,7 +158,8 @@ class Bot {
   vao(): Promise<boolean> {
     return new Promise((xong) => {
       // `tim=1`: bot CHƠI được Tìm Thẻ online — server không chặn phòng Tìm Thẻ vì bot (xem `nhanTim`)
-      const p = new URLSearchParams({ name: this.ten, dd: '1', tim: '1' });
+      // `mau`: ô màu quanh avatar như người chơi (28.11.2026) — theo tên nên vào lại vẫn đúng màu
+      const p = new URLSearchParams({ name: this.ten, dd: '1', tim: '1', mau: mauMay(this.ten) });
       if (this.token) p.set('token', this.token);
       let ws: WebSocket;
       try { ws = new WebSocket(`${WS}/ws/${this.phong.code}?${p}`); } catch { xong(false); return; }

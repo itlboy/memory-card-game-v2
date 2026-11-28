@@ -20,7 +20,8 @@ import { ganSkin } from './lib/skin';
 import { ganCanh } from './lib/canh';
 import { ganLung } from './lib/lung-la';
 import { napTuDien, ngonNgu } from './lib/i18n';
-import { ganBatLoi, guiLoi } from './lib/phan-tich';
+import { ganBatLoi, guiLoi, suKien } from './lib/phan-tich';
+import { ketQuaVeTrang } from './lib/appUrl';
 import { ganNhatKyMay } from './lib/nhat-ky-may';
 import { xoaKyLucCu } from './lib/tim-the';
 
@@ -30,6 +31,8 @@ ganBatLoi();
 ganNhatKyMay();
 // Kỷ lục Tìm Thẻ theo giờ xem cũ (trước 28.11.2026) — chủ dự án: "Xoá đi"
 xoaKyLucCu();
+// Vừa áp gói OTA: có về đúng trang đang đứng không (lib/appUrl `khoiPhucTrang`)
+if (ketQuaVeTrang) suKien('ota_ve_trang', ketQuaVeTrang);
 
 // iOS Safari bỏ qua user-scalable=no — chặn pinch-zoom bằng gesture event
 for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {

@@ -27,6 +27,11 @@ export function nhoTrang(): void {
     else localStorage.removeItem(NHO_KEY);
   } catch { /* chế độ riêng tư */ }
 }
+/**
+ * Kết quả lần khôi phục sau cập nhật — main.ts gửi GA `ota_ve_trang` (28.11.2026: trên máy thật vẫn về trang chủ, cần số liệu
+ * xem lỗi ở đâu). `trang` = các KHOÁ của query đã nhớ (room / playing / …), không gửi giá trị (mã phòng).
+ */
+export let ketQuaVeTrang: { ket_qua: 'url_san' | 'da_dat' | 'qua_han' | 'hong'; trang: string; giay: number } | null = null;
 /** Lần nạp ngay sau `nhoTrang()`: đặt lại query. URL đã có query (link mời…) thì URL thắng. */
 export function khoiPhucTrang(): void {
   try {
@@ -34,10 +39,14 @@ export function khoiPhucTrang(): void {
     if (!tho) return;
     localStorage.removeItem(NHO_KEY);                       // một lần — không kéo lại ở lần mở sau
     const { q, luc } = JSON.parse(tho) as { q?: unknown; luc?: unknown };
-    if (typeof q !== 'string' || typeof luc !== 'number') return;
-    if (location.search || Date.now() - luc > HAN_NHO_MS || !/^[\w=&%.~-]{1,200}$/.test(q)) return;
+    if (typeof q !== 'string' || typeof luc !== 'number') { ketQuaVeTrang = { ket_qua: 'hong', trang: '', giay: 0 }; return; }
+    const trang = [...new URLSearchParams(q).keys()].join(',').slice(0, 40), giay = Math.round((Date.now() - luc) / 1000);
+    // URL đã có query: `keepUrlPathAfterReload` (capacitor.config) giữ được URL qua lần nạp — đúng đường chính
+    if (location.search) { ketQuaVeTrang = { ket_qua: 'url_san', trang, giay }; return; }
+    if (Date.now() - luc > HAN_NHO_MS || !/^[\w=&%.~-]{1,200}$/.test(q)) { ketQuaVeTrang = { ket_qua: 'qua_han', trang, giay }; return; }
     history.replaceState(history.state, '', `${location.pathname}?${q}`);
-  } catch { /* dữ liệu hỏng — mở ở trang chủ như cũ */ }
+    ketQuaVeTrang = { ket_qua: 'da_dat', trang, giay };
+  } catch { ketQuaVeTrang = { ket_qua: 'hong', trang: '', giay: 0 }; }
 }
 if (typeof location !== 'undefined') khoiPhucTrang();
 

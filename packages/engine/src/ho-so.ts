@@ -34,3 +34,15 @@ export const huyHieuHoSo = (x: unknown): HuyHieu | undefined => (typeof x === 's
 export const matHoSo = (x: unknown): string | undefined => (typeof x === 'string' && AVATAR_HO_SO.includes(x) ? x : undefined);
 /** Màu hợp lệ (trong danh sách) hoặc undefined. */
 export const mauHoSo = (x: unknown): string | undefined => (typeof x === 'string' && MAU_HO_SO.includes(x) ? x : undefined);
+
+/**
+ * MÀU CHO MÁY (bot) — 28.11.2026, chủ dự án: "avatar của bot chưa có màu bao quanh… cho vào như người bình thường". Ổn định
+ * theo `seed` (tên / mã máy: vào lại vẫn đúng màu), ưu tiên màu CHƯA AI trong phòng dùng để dễ phân biệt.
+ */
+export function mauMay(seed: string, daDung: readonly (string | undefined)[] = []): string {
+  let h = 0;
+  for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const con = MAU_HO_SO.filter((m) => !daDung.includes(m));
+  const ds = con.length ? con : MAU_HO_SO;
+  return ds[h % ds.length]!;
+}

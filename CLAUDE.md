@@ -400,6 +400,9 @@
   cặp; một mình chỉ đếm ván/chuỗi ngày + `dongBo`. CHƯA tính Chỉ số trí nhớ, danh hiệu (công thức dựa trên ghép cặp).
   Bàn vòng màn dọc NHÍCH LÊN 40% khoảng trống trên (`TIM_BAN_NHICH_LEN`, chủ dự án 28.11.2026 "chưa ở trung tâm mắt"); số đếm
   3-2-1 đặt ĐÚNG tâm thẻ giữa (`BanVongTim.tamGiua()` → `DemNguocPhu` prop `tam`). Mockup duyệt https://claude.ai/artifact/Y318uAKvc9s2m34DG2g3RS
+  MÁY (bot) online có Ô MÀU như người (28.11.2026): `mauMay(seed, đã dùng)` ở engine — room.ts lúc chủ "Thêm máy", phong-bot
+  gửi `?mau=` theo tên. CẬP NHẬT GIỮ TRANG: `keepUrlPathAfterReload: true` (capacitor.config, cần bản native) + `nhoTrang` dự phòng;
+  GA `ota_ve_trang` {ket_qua: url_san|da_dat|qua_han|hong, trang}.
   MẸO LẦN ĐẦU (28.11.2026, mockup duyệt https://claude.ai/artifact/23vzn9H7Zh5qTGRSZprbGX): `lib/meo-tim-the.ts` + prop `meo`
   của BanVongTim — bong bóng trên lá cao nhất lúc `xem` ("Nhớ vị trí từng lá") và `noi`/`hoi` ("Lá nào giống thẻ giữa?" + viền vàng
   thẻ giữa); không phủ tối, không chặn chạm; chạm bàn hoặc hết pha hỏi đầu = xong hẳn (`mm.meo.timThe`). Không cho người xem.
