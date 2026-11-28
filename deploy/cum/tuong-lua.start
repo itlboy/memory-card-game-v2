@@ -1,0 +1,14 @@
+#!/bin/sh
+# MẪU /etc/local.d/tuong-lua.start (chmod +x, rc-update add local) — MỖI máy của cụm.
+# Chặn mọi cổng Docker công bố trên IP nội bộ của máy này (DB 3306, Redis 6379, pod 8080, hook 9000) với mọi nguồn
+# TRỪ các máy khác trong cụm. Chạy lại được (kiểm -C trước khi thêm). Docker không xoá chuỗi DOCKER-USER khi khởi động lại.
+# Thêm máy mới vào cụm: thêm IP vào DONG_MINH ở MỌI máy rồi chạy lại file này (xoá quy tắc cũ: iptables -F DOCKER-USER).
+TOI=10.19.106.3                         # IP nội bộ máy này
+DONG_MINH="10.19.106.2"                 # IP nội bộ các máy khác trong cụm, cách nhau dấu cách
+iptables -N DOCKER-USER 2>/dev/null || true
+for ip in $DONG_MINH; do
+  iptables -C DOCKER-USER -i eth0 -s "$ip" -m conntrack --ctorigdst $TOI -j RETURN 2>/dev/null \
+    || iptables -I DOCKER-USER -i eth0 -s "$ip" -m conntrack --ctorigdst $TOI -j RETURN
+done
+iptables -C DOCKER-USER -i eth0 -m conntrack --ctorigdst $TOI -j DROP 2>/dev/null \
+  || iptables -A DOCKER-USER -i eth0 -m conntrack --ctorigdst $TOI -j DROP

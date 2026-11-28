@@ -1,0 +1,129 @@
+# MẪU — máy CHÍNH của cụm Lật Thẻ (bản đang chạy: tierhive-da-2). Xem deploy/cum/README.md.
+# Máy chính giữ DB + Redis + một pod + tunnel + hook + bot. Máy phụ (compose.may-phu.yaml) chỉ chạy pod + tunnel phụ.
+# Mọi giá trị bí mật lấy từ .env (xem env.mau) hoặc ./bimat/<TÊN_BIẾN> — KHÔNG viết thẳng vào file này.
+# Đặt vào /opt/latthe/compose.yaml rồi: docker compose config -q && docker compose up -d
+name: latthe
+services:
+  db:
+    image: mariadb:12.3
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: latthe
+    volumes:
+      - db:/var/lib/mysql
+      - ./mariadb.cnf:/etc/mysql/conf.d/zz-tinh-gon.cnf:ro
+    # Pod ở máy phụ nối vào đây qua IP NỘI BỘ. Tường lửa (tuong-lua.start) chỉ cho IP máy phụ.
+    # BẪY: đổi `ports:` = tạo lại container = cả cụm gián đoạn ~20 s. Mở sẵn từ đầu, đừng đổi lúc đông người.
+    ports:
+      - "${MAY_CHINH_IP}:3306:3306"
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      retries: 12
+
+  # Điều phối cụm (apps/node-server/src/cum.ts): khoá pod chủ từng phòng + sổ phòng công khai + số online.
+  # KHÔNG lưu đĩa — mất là các pod nạp lại phòng từ MySQL (người chơi nối lại, không mất ván).
+  redis:
+    image: redis:7.4.1-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --save '' --appendonly no --maxmemory 16mb --maxmemory-policy noeviction --requirepass \"$$REDIS_PASSWORD\""]
+    ports:
+      - "${MAY_CHINH_IP}:6379:6379"
+    mem_limit: 32m
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 10s
+      retries: 6
+
+  server:
+    image: ghcr.io/itlboy/memory-card-game-v2/lat-the-server:latest
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      PORT: "8080"
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=128
+      MYSQL_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@db:3306/latthe
+      AUTH_SECRET: ${AUTH_SECRET}
+      # Có REDIS_URL = chạy kiểu CỤM. Thiếu = một pod như cũ (KHÔNG được chạy hai pod thiếu Redis: hai bản một phòng).
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      # Địa chỉ pod khác gọi tới để chuyển tiếp phòng — PHẢI là IP nội bộ của MÁY (IP Docker 172.x máy kia không tới được)
+      POD_ADDR: http://${MAY_CHINH_IP}:8080
+    # Khoá thật (GOOGLE_CLIENT_ID, APNS_*, FCM_SERVICE_ACCOUNT, THONGKE_KEY, QUANTRI_KEY…): ./bimat/<TÊN_BIẾN>, quyền 600.
+    # khoi-dong.sh xuất mỗi file thành biến môi trường, đợi DB, rồi chạy server.
+    entrypoint: ["sh", "/khoi-dong.sh"]
+    volumes:
+      - ./bimat:/run/bimat:ro
+      - ./khoi-dong.sh:/khoi-dong.sh:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "${MAY_CHINH_IP}:8080:8080"
+    # Tên mạng chung `server`: tunnel + bot gọi http://server:8080
+    networks:
+      default:
+        aliases: [server]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 10s   # tắt êm: ghi MySQL → nhả khoá → đóng socket (máy nối lại sang pod khác ~1–2 s)
+    mem_limit: 200m
+
+  tunnel:
+    image: cloudflare/cloudflared:2025.11.1
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    depends_on: [server]
+    mem_limit: 64m
+
+  # Hook cập nhật ảnh: CI POST <tên miền>/cgi-bin/cap-nhat kèm khoá → ghi hook/kich/kich → inotifyd chạy cap-nhat.sh.
+  # KHÔNG gắn docker.sock. Mở cổng nội bộ cho hook chuyển tiếp ở máy phụ (tunnel phụ cũng nhận đường này).
+  hook:
+    image: busybox:1.37.0-musl
+    restart: unless-stopped
+    command: ["httpd", "-f", "-p", "9000", "-h", "/www"]
+    user: "65534:65534"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 8m
+    cpus: 0.2
+    pids_limit: 16
+    ports:
+      - "${MAY_CHINH_IP}:9000:9000"
+    volumes:
+      - ./hook/www:/www:ro
+      - ./hook/token:/token:ro
+      - ./hook/kich:/kich
+
+  # Phòng bot thường trực (phong-bot.ts) — client thường, server không biết là máy
+  bot:
+    image: ghcr.io/itlboy/memory-card-game-v2/lat-the-server:latest
+    restart: unless-stopped
+    depends_on: [server]
+    entrypoint: ["node", "dist/phong-bot.mjs"]
+    environment:
+      MM_SERVER: http://server:8080
+      SO_PHONG: "2"
+      TIM_TI_LE: "0.3"
+      NODE_OPTIONS: --max-old-space-size=64
+    healthcheck:
+      disable: true
+    stop_grace_period: 15s
+    volumes:
+      - ./bot-data:/data
+    mem_limit: 96m
+    cpus: 0.3
+
+volumes:
+  db:

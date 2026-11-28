@@ -1,0 +1,60 @@
+# MẪU — máy PHỤ của cụm Lật Thẻ (bản đang chạy: tierhive-da-3). Xem deploy/cum/README.md.
+# Chỉ chạy MỘT pod + tunnel phụ + hook chuyển tiếp. DB + Redis ở máy chính, nối qua mạng nội bộ.
+# Thêm máy phụ thứ N: chép nguyên file này, đổi MAY_PHU_IP trong .env, đổi tên service nếu muốn (server3, server4…).
+name: latthe
+services:
+  server3:
+    image: ghcr.io/itlboy/memory-card-game-v2/lat-the-server:latest
+    restart: unless-stopped
+    # `db` / `redis` trỏ sang máy chính — khoi-dong.sh đợi cổng db:3306 như ở máy chính
+    extra_hosts:
+      - "db:${MAY_CHINH_IP}"
+      - "redis:${MAY_CHINH_IP}"
+    environment:
+      PORT: "8080"
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=128
+      MYSQL_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@db:3306/latthe
+      AUTH_SECRET: ${AUTH_SECRET}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      POD_ADDR: http://${MAY_PHU_IP}:8080
+    entrypoint: ["sh", "/khoi-dong.sh"]
+    volumes:
+      - ./bimat:/run/bimat:ro
+      - ./khoi-dong.sh:/khoi-dong.sh:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "${MAY_PHU_IP}:8080:8080"
+    networks:
+      default:
+        aliases: [server]   # tunnel phụ gọi http://server:8080
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 10s
+    mem_limit: 200m
+
+  # Tunnel route /cgi-bin/cap-nhat → hook:9000. Máy phụ KHÔNG chạy hook thật: chuyển sang hook của máy chính,
+  # để mọi lần kích cập nhật đều về một chỗ điều khiển cuốn chiếu (không thì ~nửa số lần kích hỏng).
+  hook:
+    image: alpine/socat:1.8.0.3
+    restart: unless-stopped
+    command: ["TCP-LISTEN:9000,fork,reuseaddr", "TCP:${MAY_CHINH_IP}:9000"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 16m
+
+  # Cùng TUNNEL_TOKEN với máy chính = thêm một connector cho cùng tunnel (Cloudflare tự chọn connector — KHÔNG chia đều,
+  # nên server tự chia phòng theo máy: apps/node-server/src/chon-pod.ts)
+  tunnel:
+    image: cloudflare/cloudflared:2025.11.1
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    depends_on: [server3, hook]
+    mem_limit: 64m
