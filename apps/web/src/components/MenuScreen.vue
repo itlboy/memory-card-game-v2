@@ -44,6 +44,8 @@ import { store } from '@/lib/storage';
 import { clock } from '@/lib/format';
 import { chiSoHomNay, hienTriNho, phienTriNho, tienDoCoDiem, vanConThieu } from '@/lib/tri-nho';
 import LevelMap from './LevelMap.vue';
+import LevelMapTim from './LevelMapTim.vue';
+import { docKieuCD, luuKieuCD, moToiTim } from '@/lib/chien-dich-tim';
 import SizeGrid from './SizeGrid.vue';
 import ThemePicker from './ThemePicker.vue';
 import QuatLa from './QuatLa.vue';
@@ -94,6 +96,8 @@ const emit = defineEmits<{
   'start-level': [number];
   'mua-the': [];
   'tim-the': [];
+  /** Chiến dịch Tìm Thẻ: vào màn `id` (App mở TimThe với màn đó). */
+  'tim-man': [id: number];
   'update:options': [BoardOptions];
   online: [];
   'chinh-phuc': [string];
@@ -411,6 +415,18 @@ function chonKieu(k: KieuChoi): void {
 /** Số thẻ + độ khó của Tìm Thẻ (đối thủ lấy theo màn: một mình / mức máy đang chọn). */
 const timChon = ref<TimTheChon>(docChon());
 const laTim = computed(() => kieu.value === 'tim');
+/** CHIẾN DỊCH: thanh "Lật cặp | Tìm Thẻ" trên bản đồ (28.11.2026) — nhớ riêng, không dính Kiểu chơi ở Chơi nhanh. */
+const kieuCD = ref<KieuChoi>(hienTim.value ? docKieuCD() : 'thuong');
+function chonKieuCD(k: KieuChoi): void {
+  if (k === kieuCD.value) return;
+  sfx.select();
+  kieuCD.value = k;
+  luuKieuCD(k);
+  moChucNang('kieu_choi', { kieu: k, man: 'chien_dich' });
+}
+const tienDoTim = store.timCD();
+const moToiTimCD = moToiTim(tienDoTim);
+function choiManTim(id: number): void { sfx.select(); emit('tim-man', id); }
 function doiTim(c: TimTheChon): void { timChon.value = c; luuChon(c); }
 
 function batDauNhanh(): void {
@@ -942,8 +958,17 @@ const ICO3D = {
         <!-- Chiến dịch: bản đồ 60 màn, vì ở đó cấp THẬT SỰ là độ khó (sao, mở
              khoá, mỗi màn một luật). Chế độ khác: cấp chỉ còn là cỡ bàn nên
              hỏi thẳng số thẻ, độ khó để bước tuỳ chọn lo. -->
+        <span v-if="mode === 'campaign' && hienTim" class="kieu-seg kieu-cd" role="radiogroup" :aria-label="t('menu.kieuChoi')">
+          <button v-for="k in (['thuong', 'tim'] as const)" :key="k" class="nut-kieu thach th-nho th-chon" type="button" role="radio" :aria-checked="kieuCD === k" @click="chonKieuCD(k)">
+            {{ k === 'tim' ? t('tt.ten') : t('ctd.latCap') }}<span v-if="k === 'tim'" class="moi-dan thach th-vang th-nho">{{ t('mt.moi') }}</span>
+          </button>
+        </span>
+        <LevelMapTim
+          v-if="mode === 'campaign' && hienTim && kieuCD === 'tim'"
+          :progress="tienDoTim" :unlocked="moToiTimCD" @play="choiManTim"
+        />
         <LevelMap
-          v-if="mode === 'campaign'"
+          v-else-if="mode === 'campaign'"
           :progress="progress"
           :unlocked="unlockedLevel"
           :symbol-count="maxSymbolCount"
@@ -1473,5 +1498,6 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
   /* Đấu với máy + Tìm Thẻ trên màn thấp: bỏ câu giới thiệu máy (tên máy vẫn ở aria-label từng ô) */
   .may-mo.an-thap { display: none; }
 }
+.kieu-cd { margin: 0 0 10px; }
 .nut-kieu .moi-dan { position: absolute; top: -9px; right: 6px; font-size: 10.5px; padding: 1px 7px; text-shadow: none; }
 </style>

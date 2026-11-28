@@ -1,3 +1,4 @@
+import { tongSaoTim } from './chien-dich-tim';
 import { BOARD_SIZES, CAMPAIGN_LEVELS, doiDanhHieu } from '@mm/engine';
 import type { BoardOptions, BotLevel, Summary, TimTheDoKho } from '@mm/engine';
 import { computed, ref } from 'vue';
@@ -36,6 +37,8 @@ export interface ChinhPhuc {
   online?: true;
   /** Mở màn Tìm Thẻ với cấu hình này (cỡ bàn / tốc độ / đối thủ). */
   timThe?: { soThe?: number; doKho?: TimTheDoKho; doiThu?: 'mot' | BotLevel };
+  /** Chiến dịch Tìm Thẻ: mở màn đang được mở. */
+  timCD?: true;
 }
 
 /** Số liệu tích luỹ — để xét danh hiệu đếm và vẽ tiến độ. */
@@ -60,6 +63,9 @@ export interface ThongKe {
   timVan: number;
   timDung: number;
   timOnline: number;
+  /** CHIẾN DỊCH TÌM THẺ (28.11.2026): màn cao nhất đã qua, tổng sao. Bản lưu cũ / test thiếu = 0. */
+  timCDMax?: number;
+  timCDSao?: number;
 }
 
 export type NhomId =
@@ -248,6 +254,9 @@ export const ACHIEVEMENTS: Achievement[] = [
     id: bacTheoMoc(`tim-online-${n}`, 'tim-online', n), k: n === 1 ? 'tim-online-1' : 'tim-online', p: () => ({ n: soDu(n) }), nhom: 'tim-the',
     chinhPhuc: { online: true }, tienDo: (t) => [t.timOnline, n]
   })),
+  // Chiến dịch Tìm Thẻ (đợt 3, 28.11.2026): qua hết mỗi chặng + đủ 90 sao
+  ...([10, 20, 30] as const).map((n) => dh({ id: `tim-cd-${n}`, k: 'tim-cd', p: () => ({ n }), nhom: 'tim-the', chinhPhuc: { timCD: true }, tienDo: (t) => [t.timCDMax ?? 0, n] })),
+  dh({ id: 'tim-cd-sao', nhom: 'tim-the', chinhPhuc: { timCD: true }, tienDo: (t) => [t.timCDSao ?? 0, 90] }),
 
   // --- theme ---
   ...THEME_DH.map((id) => dh({
@@ -291,12 +300,12 @@ export const dsHien = computed(() => chenMocDong(ACHIEVEMENTS.filter((a) => !dhA
  */
 const VANG = new Set(['board-72', 'board-88', 'combo-12', 'hell-mode', 'bot-divine', 'divine-56', 'divine-88',
   'wins-500', 'score-10m', `campaign-${CAMPAIGN_LEVELS}`, 'stars3-50', 'online-50', 'days-30',
-  'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88', 'tim-10-7', 'tim-may-insane', 'tim-may-divine']);
+  'perfect-42', 'perfect-56', 'perfect-72', 'perfect-88', 'tim-10-7', 'tim-may-insane', 'tim-may-divine', 'tim-cd-30', 'tim-cd-sao']);
 const BAC = new Set(['board-36', 'board-42', 'board-56', 'combo-8', 'combo-10', 'iron-man', 'time-rush', 'shuffle-master',
   'bot-hard', 'bot-insane', 'bot-wins-10', 'wins-50', 'wins-100', 'score-100k', 'score-1m',
   'campaign-25', 'campaign-30', 'campaign-35', 'campaign-40', 'campaign-45', 'campaign-50', 'campaign-55', 'stars3-10', 'stars3-25',
   'online-10', 'online-big', 'days-7', 'perfect-20', 'perfect-24', 'perfect-30', 'perfect-36', 'lightspeed',
-  'tim-10-6', 'tim-nhanh', 'tim-phan-xa', 'tim-may-hard']);
+  'tim-10-6', 'tim-nhanh', 'tim-phan-xa', 'tim-may-hard', 'tim-cd-20']);
 export function bacCua(a: Achievement): BacDanhHieu {
   if (a.biMat) return 'bi-mat';
   if (VANG.has(a.id)) return 'vang';
@@ -567,6 +576,7 @@ export function napLaiDaCo(): void { daCo.value = docDaCo(); }
 export function thongKeHienTai(serverWins = 0): ThongKe {
   const b = store.boDem();
   const cd = Object.entries(store.progress('campaign'));
+  const timCD = store.timCD();
   return {
     wins: Math.max(b.wins, serverWins),
     botWins: b.botWins,
@@ -580,7 +590,9 @@ export function thongKeHienTai(serverWins = 0): ThongKe {
     soVan: b.van ?? 0,
     timVan: b.timVan ?? 0,
     timDung: b.timDung ?? 0,
-    timOnline: b.timOnline ?? 0
+    timOnline: b.timOnline ?? 0,
+    timCDMax: Object.entries(timCD).filter(([, v]) => v.stars > 0).reduce((m, [k]) => Math.max(m, Number(k) || 0), 0),
+    timCDSao: tongSaoTim(timCD)
   };
 }
 
@@ -655,5 +667,7 @@ export function iconCua(a: Achievement): IconHuyHieu {
   if (a.id.startsWith('tim-dung-')) return { chu: '🔍' };
   if (a.id.startsWith('tim-van-')) return { chu: '🃏' };
   if (a.id.startsWith('tim-online-')) return { chu: '🎖️' };
+  if (a.id === 'tim-cd-sao') return { chu: '🌟' };
+  if (a.id.startsWith('tim-cd-')) return { chu: a.id.slice(7), so: true, goc: '🗺️' };
   return { chu: '🏅' };
 }

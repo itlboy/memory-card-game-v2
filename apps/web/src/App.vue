@@ -19,6 +19,7 @@ import DebugDialog from './components/DebugDialog.vue';
 import { MUA_THE_MO } from './lib/mua-the';
 import MuaThe from './components/MuaThe.vue';
 import TimThe from './components/TimThe.vue';
+import { manTim, moToiTim } from './lib/chien-dich-tim';
 import { TIM_THE_MO, cheDoGa, dangTimOnline, docChon, luuChon, type TimTheChon, type TimTheKetVan } from './lib/tim-the';
 import SoTriNho from './components/SoTriNho.vue';
 import BangPremium from './components/BangPremium.vue';
@@ -225,6 +226,10 @@ const themes = ref<CardTheme[]>([]);
 const screen = ref<'menu' | 'game' | 'online' | 'mua-the' | 'tim-the'>('menu');
 const muaTheRef = ref<InstanceType<typeof MuaThe> | null>(null);
 const timTheRef = ref<InstanceType<typeof TimThe> | null>(null);
+/** Màn Chiến dịch Tìm Thẻ đang chơi (lib/chien-dich-tim); null = Tìm Thẻ thường (Chơi nhanh / Đấu máy / danh hiệu). */
+const timMan = ref<number | null>(null);
+watch(screen, (sc) => { if (sc !== 'tim-the') timMan.value = null; });
+function vaoManTim(id: number): void { timMan.value = id; nhoBuocTruoc(); screen.value = 'tim-the'; }
 /** Màn chơi RIÊNG ngoài bàn ghép cặp (Mưa Thẻ, Tìm Thẻ): cùng cách dừng / hỏi / thoát — một chỗ cho mọi lối. */
 const laManRieng = (sc: string = screen.value): boolean => sc === 'mua-the' || sc === 'tim-the';
 const manRieng = (): { dangDo: () => boolean; tamDung: () => void; veLai: () => void } | null =>
@@ -547,7 +552,8 @@ function chinhPhuc(a: Achievement): void {
   if (!c) return;
   if (c.online) { screen.value = 'online'; return; }
   // Danh hiệu Tìm Thẻ: mở màn Tìm Thẻ với cỡ bàn / tốc độ / đối thủ của danh hiệu (người chơi vẫn đổi được trước khi bắt đầu)
-  if (c.timThe) { luuChon({ ...docChon(), ...c.timThe }); screen.value = 'tim-the'; return; }
+  if (c.timThe) { luuChon({ ...docChon(), ...c.timThe }); timMan.value = null; screen.value = 'tim-the'; return; }
+  if (c.timCD) { timMan.value = moToiTim(store.timCD()); screen.value = 'tim-the'; return; }
   if (c.campaign) {
     mode.value = 'campaign'; botLevel.value = null; playerCount.value = 1;
     startLevel(store.unlockedLevel());
@@ -905,7 +911,8 @@ function xongTimThe(kq: TimTheKetVan): void {
   }), { treMs: HIEN_BANG_MS[chonCanh(loai, { kyLuc: kq.kyLucMoi })] + 400 });
   suKien('van_ket_thuc', {
     che_do: cheDoGa(kq.doiThu), ket_qua: kq.ketQua, so_the: kq.soThe, tuy_chon: kq.doKho, giay: kq.giay,
-    diem: kq.diem, so_dung: kq.dung, so_luot: kq.soLuot, chuoi_dai: kq.chuoiDai, ky_luc: kq.kyLucMoi
+    diem: kq.diem, so_dung: kq.dung, so_luot: kq.soLuot, chuoi_dai: kq.chuoiDai, ky_luc: kq.kyLucMoi,
+    ...(kq.man ? { man: kq.man.id, sao: kq.man.sao, qua: kq.man.qua } : {})
   });
 }
 
@@ -1375,7 +1382,8 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
-      @tim-the="nhoBuocTruoc(); screen = 'tim-the'"
+      @tim-the="nhoBuocTruoc(); timMan = null; screen = 'tim-the'"
+      @tim-man="vaoManTim"
       @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"
@@ -1400,8 +1408,11 @@ const hasNext = computed(() => {
 
     <TimThe
       v-else-if="screen === 'tim-the'"
+      :key="`tim-${timMan ?? 0}`"
       ref="timTheRef"
       :hinh="hinhTimThe"
+      :man="timMan ? manTim(timMan) : null"
+      @man-tiep="(id: number) => { timMan = id; }"
       @thoat="veBuocTruoc"
       @bat-dau="batDauTimThe"
       @ket-thuc="xongTimThe"
@@ -1447,7 +1458,8 @@ const hasNext = computed(() => {
       @start-level="startLevel"
       @online="screen = 'online'"
       @mua-the="nhoBuocTruoc(); screen = 'mua-the'"
-      @tim-the="nhoBuocTruoc(); screen = 'tim-the'"
+      @tim-the="nhoBuocTruoc(); timMan = null; screen = 'tim-the'"
+      @tim-man="vaoManTim"
       @so-tri-nho="showSoTriNho = true"
       :goi-y="goiYTrangChu" :chuoi-ngay="chuoiNgayNay" :man-chien-dich="manChienDich"
       @chinh-phuc="(id: string) => { const a = byId(id); if (a) chinhPhuc(a); }"

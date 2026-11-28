@@ -93,6 +93,8 @@ const props = defineProps<{
    * `pairs` là SỐ LƯỢT ĐÚNG (không phải lượt lật / cặp) — nhãn đổi thành "Đúng x/N", dòng lý do thành "Xong N lượt".
    */
   timThe?: number;
+  /** Chiến dịch Tìm Thẻ: dòng dưới hàng sao (thiếu mấy lượt đúng / vì sao chưa qua) thay cho dòng "quên" của Lật cặp. */
+  ghiChuSao?: string;
 }>();
 
 const emit = defineEmits<{ replay: []; next: []; menu: []; 'doi-ban': []; lobby: []; chinh: []; 'chinh-phuc': [Achievement] }>();
@@ -446,7 +448,8 @@ const noiDungAnh = computed<NoiDungAnh>(() => {
       </p>
       <!-- Mốc 3★ nói thẳng ra: 3★ cố ý khó (chủ dự án 14.10.2026), người chơi phải
            biết thiếu bao nhiêu mới có cái để phấn đấu -->
-      <p v-if="hienSao && starMisses" class="sai-sao">
+      <p v-if="ghiChuSao" class="sai-sao">{{ ghiChuSao }}</p>
+      <p v-else-if="hienSao && starMisses" class="sai-sao">
         <template v-if="summary.hoanHao">{{ t('kq.hoanHao') }}</template>
         <template v-else>
           {{ t('kq.quenN', { n: summary.ranking[0]?.quen ?? 0 }) }} ·
@@ -990,7 +993,8 @@ h2 { margin: 0 0 4px; }
 /* Cấp sau chưa mở: xám hẳn, không gradient — nhìn là biết chưa bấm được */
 .row .btn-primary:disabled {
   background: var(--line); color: var(--muted);
-  box-shadow: none; cursor: not-allowed; opacity: 1;
+  /* Skin thạch (Kẹo) tô nút bằng biến --b1… nên nền xám ở trên không thắng — mờ hẳn để vẫn đọc ra "chưa bấm được" */
+  box-shadow: none; cursor: not-allowed; opacity: .45;
 }
 /* Nút này đứng MỘT MÌNH ngoài `.row`, nên không hưởng `flex: 1` của hàng trên:
    thiếu bề rộng riêng là nó co vào vừa chữ và nằm lệch trái, trong khi "Chơi

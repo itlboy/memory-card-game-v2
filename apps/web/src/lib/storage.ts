@@ -86,6 +86,8 @@ interface Save {
   levels?: Record<string, LevelProgress>;
   /** Khoá cũ: chỉ có tiến độ Chiến dịch. Đọc để chuyển sang `levels`. */
   campaign?: Record<string, LevelProgress>;
+  /** Chiến dịch TÌM THẺ (lib/chien-dich-tim.ts, 28.11.2026): tiến độ theo số màn — riêng với `levels` để không lẫn thang Lật cặp. */
+  timCD?: Record<string, LevelProgress>;
   totalScore?: number;
   achievements?: string[];
   names?: string[];
@@ -311,6 +313,17 @@ export const store = {
       ...daQua(s, (mode) => mode === 'campaign')
     ].filter((n) => Number.isFinite(n));
     return ids.length ? Math.min(CAMPAIGN_LEVELS, Math.max(...ids) + 1) : 1;
+  },
+
+  /** Tiến độ Chiến dịch Tìm Thẻ (số màn → sao, điểm). */
+  timCD(): Record<string, LevelProgress> { return { ...(read().timCD ?? {}) }; },
+  /** Ghi một màn Chiến dịch Tìm Thẻ — chỉ khi tốt hơn lần trước (như `saveLevel`). */
+  ghiTimCD(id: number, stars: number, score: number): void {
+    const s = read();
+    s.timCD ??= {};
+    const cu = s.timCD[String(id)];
+    if (!cu || stars > cu.stars || score > cu.score) s.timCD[String(id)] = { stars: Math.max(stars, cu?.stars ?? 0), score: Math.max(score, cu?.score ?? 0) };
+    write(s);
   },
 
   /** Khoá cỡ bàn cao nhất đã mở ở chế độ thường — chỉ để biết có "cấp sau". */
