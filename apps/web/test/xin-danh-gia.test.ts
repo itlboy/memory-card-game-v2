@@ -25,7 +25,9 @@ describe('xin đánh giá', () => {
     const app = doc('src/App.vue');
     expect(app).toContain("if (s.status === 'won') ghiVuaThang();");
     expect(app).toContain('if (thangMay) ghiVuaThang();');
-    expect(app).toMatch(/watch\(screen, \(sc, cu\) => \{ if \(sc === 'menu' && cu !== 'menu'\) setTimeout\(\(\) => \{ void thuXinDanhGia\(\); \}/);
+    // Về trang chủ (sc === 'menu', từ màn khác) → sau 900 ms: giờ vàng hỏi bật nhắc NẾU đủ điều kiện, không thì xin đánh giá
+    expect(app).toMatch(/watch\(screen, \(sc, cu\) => \{\s*if \(sc !== 'menu' \|\| cu === 'menu'\) return;/);
+    expect(app).toMatch(/void thuXinDanhGia\(\);\s*\}, 900\);/);
     expect(doc('src/components/OnlineGame.vue').match(/if \(loaiKetCuc\.value === 'thang'\) ghiVuaThang\(\);/g)).toHaveLength(2);
     const lib = doc('src/lib/xin-danh-gia.ts');
     expect(lib).toContain("cap?.isPluginAvailable?.('InAppReview') === true");

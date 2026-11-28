@@ -16,7 +16,7 @@ const tr = t;
  */
 // dichGoiYTuyChon: lib/goi-y-tuy-chon.ts (dùng chung với OnlineScreen)
 import { BOARD_SIZES, BOT_SPECS, CAMPAIGN_LEVELS, LEVEL_KEYS, OPTION_KEYS, OPTION_LABELS, campaignSpec, levelSpec, optionSummary } from '@mm/engine';
-import { Bot, ChartColumn, ChevronLeft, Crown, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
+import { Bot, ChartColumn, ChevronLeft, Clock, Crown, Flame, Globe, Map, Play, Target, Users, X } from 'lucide-vue-next';
 import { dangDebug } from '@/lib/debug';
 /** Tìm Thẻ hiện trong luồng chơi khi đã mở cho mọi người, hoặc với người đang bật DEBUG (chủ dự án 26.11.2026:
  *  "chỉ có debuger mới chơi được", "ghép vào trong màn chơi luôn" — không chơi riêng ở trang Debug). */
@@ -57,6 +57,7 @@ import { TIM_THE_MO, docChon, docKieu, luuChon, luuKieu, type KieuChoi, type Tim
 import ChonTimThe from './ChonTimThe.vue';
 import { nhanSoPhong, soPhongXem, useSoPhongCho } from '@/lib/so-phong-cho';
 import { soNguoiOnline } from '@/lib/sanh';
+import { dinhDangCon, gioVang } from '@/lib/gio-vang';
 import { ICON_LUAT, moTaLuat, tenLuatMan } from '@/lib/luat-man';
 
 const props = defineProps<{
@@ -767,7 +768,14 @@ const ICO3D = {
                  số nền xám mờ "xấu quá"): một nhãn trắng nổi khối DÁN LỆCH mép trên, nghiêng nhẹ, CÙNG KIỂU nhãn "Màn N" của nút Chiến
                  dịch. Chỉ một con số (người đang online, kể cả mình); chấm xanh NHỊP khi có phòng đang chờ vào được, đứng yên khi không.
                  Số phòng chờ / phòng đang chơi xem ở trong màn Chơi online. Đọc màn hình vẫn nghe đủ ba con số (aria-label). -->
+            <!-- GIỜ VÀNG (28.11.2026, mockup duyệt https://claude.ai/artifact/TdLTzxW8Hc61MU3F23cvkk): trong 3 tiếng trước 20:00 và trong
+                 20:00–21:00 (giờ máy) nhãn vàng THAY CHỖ nhãn "N online" — đếm ngược / "×2 xu". Ngoài khung: nhãn online như cũ. -->
             <span
+              v-if="gioVang.dang || gioVang.truocPhut !== null" class="nhan-gv"
+              :aria-label="gioVang.dang ? t('gv.dang') : t('gv.sau', { t: dinhDangCon(gioVang.truocPhut ?? 0) })"
+            ><component :is="gioVang.dang ? Flame : Clock" :size="13" :stroke-width="2.8" aria-hidden="true" />{{ gioVang.dang ? t('gv.dang') : t('gv.sau', { t: dinhDangCon(gioVang.truocPhut ?? 0) }) }}</span>
+            <span
+              v-else
               class="nhan-online" :class="{ 'co-phong': soPhongCho > 0 }"
               :aria-label="[t('bxh.dangOnline', { n: soNguoiOnline }), soPhongCho > 0 ? t('menu.soPhongCho', { n: soPhongCho }) : '', soPhongXem > 0 ? t('menu.soPhongXem', { n: soPhongXem }) : ''].filter(Boolean).join(' · ')"
             ><i aria-hidden="true" />{{ t('menu.nOnline', { n: soNguoiOnline > 99 ? '99+' : soNguoiOnline }) }}</span>
@@ -1475,6 +1483,15 @@ section.panel.trang-chu { background: none; border: 0; box-shadow: none; backdro
 :global([data-theme='dark'] .nhan-online) { background: #2a3470; color: #eef1ff; box-shadow: 0 3px 0 #151b46, 0 6px 10px rgba(0, 0, 0, .3); }
 .nhan-online i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; }
 .nhan-online.co-phong i { animation: so-phong-song 1.6s infinite; }
+.nhan-gv {
+  position: absolute; top: -11px; right: 4px; z-index: 2; display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px 3px 7px; border-radius: 11px; rotate: 4deg; pointer-events: none; white-space: nowrap;
+  background: linear-gradient(#ffd54a, #f5a400); color: #5a2d00; border: 2px solid #fff;
+  font: 800 12.5px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums;
+  box-shadow: 0 3px 0 #b86e00, 0 6px 10px rgba(10, 20, 60, .18);
+}
+.nhan-gv svg { flex: none; color: #7a3a00; }
+:global([data-theme='dark'] .nhan-gv) { border-color: #2a3470; }
 @keyframes so-phong-song { 0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, .6); } 70%, 100% { box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); } }
 @media (prefers-reduced-motion: reduce) { .nhan-online.co-phong i { animation: none; } }
 /* HÀNG KIỂU CHƠI (27.11.2026, mockup https://claude.ai/artifact/VSDue1KpVaC8WXysMR7iHR): rãnh hai viên Thường / Tìm Thẻ */

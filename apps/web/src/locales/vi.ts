@@ -1310,6 +1310,20 @@ const vi = {
   'tn.diemNgay': "Điểm ngày {ngay}",
   'tn.tabNam': "Cả năm",
   'tn.thang': "Tháng {n}",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Giờ vàng sau {t}",
+  'gv.dang': "Giờ vàng · ×2 xu",
+  'gv.daiTieuDe': "Giờ vàng đang diễn ra",
+  'gv.daiPhu': "Thắng online được ×2 xu",
+  'gv.conPhut': "còn {n} phút",
+  'gv.x2': "Giờ vàng: thắng được ×2 xu!",
+  'gv.hoiTieuDe': "Hẹn bạn 20:00 mỗi tối?",
+  'gv.hoiThan': "Giờ vàng: mọi người cùng vào chơi online, thắng được gấp đôi xu. Lật Thẻ nhắc tối đa 1 lần mỗi ngày.",
+  'gv.nhacToi': "Nhắc tôi",
+  'gv.deSau': "Để sau",
+  'gv.daBat': "Đã hẹn! Lật Thẻ sẽ nhắc bạn lúc 19:55.",
+  'gv.biChan': "Thông báo đang tắt trong Cài đặt máy — bật lại để nhận nhắc.",
+  'gv.caiDat': "Nhắc giờ vàng (20:00)",
 };
 
 export default vi;

@@ -35,7 +35,7 @@ export const CACH_MAY_MS = 30 * 60_000;
 export const GIO_NGU = { tu: 22, den: 7 };
 
 export type Nen = 'ios' | 'android';
-export interface DangKy { token: string; nen: Nen; lang: string; lech_phut: number; gui_cuoi: number; td_day?: number; td_count?: number }
+export interface DangKy { token: string; nen: Nen; lang: string; lech_phut: number; gui_cuoi: number; td_day?: number; td_count?: number; gv_day?: number; seen_at?: number }
 
 export interface EnvThongBao {
   APNS_KEY_ID?: string; APNS_TEAM_ID?: string; APNS_PRIVATE_KEY?: string;
@@ -140,6 +140,49 @@ export function chuThiDau(lang: string, ten: string): { tieuDe: string; than: st
   const c = CHU_TD[lang] ?? CHU_TD.en!;
   return { tieuDe: c.tieuDe.replace('{ten}', ten.slice(0, 40)), than: c.than };
 }
+/**
+ * GIỜ VÀNG MỖI TỐI (28.11.2026, mockup duyệt https://claude.ai/artifact/TdLTzxW8Hc61MU3F23cvkk): 20:00–21:00 THEO GIỜ CỦA MÁY.
+ * Máy nào TỰ BẬT "nhắc giờ vàng" (`gv_on`) nhận tối đa MỘT tin mỗi ngày (theo ngày địa phương, `gv_day`) trong khung
+ * 19:55–20:05 giờ máy. KHÔNG gửi nếu máy đã mở app từ 19:00 hôm đó (`seen_at`) — người đang chơi không cần nhắc.
+ * Chạy nhiều pod: mỗi tin được "giành" bằng một UPDATE có điều kiện (`gv_day <> hôm nay`) — pod nào đổi được dòng mới gửi.
+ * Giờ vàng THẾ GIỚI (một giờ chung) — chủ dự án để sau.
+ */
+export const GV_GIO = 20;
+export const GV_NHAC_TU_PHUT = 19 * 60 + 55;
+export const GV_NHAC_DEN_PHUT = 20 * 60 + 5;
+export const GV_MO_TU_PHUT = 19 * 60;
+export const CHU_GV: Record<string, { tieuDe: string; than: string }> = {
+  vi: { tieuDe: 'Giờ vàng bắt đầu lúc 20:00', than: 'Vào chơi online cùng mọi người — thắng được gấp đôi xu.' },
+  en: { tieuDe: 'Golden Hour starts at 8 PM', than: 'Play online with everyone — wins earn double coins.' },
+  es: { tieuDe: 'La Hora Dorada empieza a las 20:00', than: 'Juega en línea con todos: las victorias dan el doble de monedas.' },
+  pt: { tieuDe: 'A Hora Dourada começa às 20h', than: 'Jogue online com todo mundo — vitórias valem o dobro de moedas.' },
+  fr: { tieuDe: 'L’Heure dorée commence à 20 h', than: 'Joue en ligne avec tout le monde : les victoires rapportent deux fois plus de pièces.' },
+  de: { tieuDe: 'Die Goldene Stunde beginnt um 20 Uhr', than: 'Spiel online mit allen – Siege bringen doppelte Münzen.' },
+  it: { tieuDe: 'L’Ora d’oro inizia alle 20:00', than: 'Gioca online con tutti: le vittorie valgono il doppio delle monete.' },
+  tr: { tieuDe: 'Altın Saat 20:00’de başlıyor', than: 'Herkesle çevrimiçi oyna — galibiyetler iki kat jeton kazandırır.' },
+  ja: { tieuDe: 'ゴールデンアワーは20時から', than: 'みんなとオンライン対戦 — 勝つとコインが2倍。' },
+  ko: { tieuDe: '골든 아워가 오후 8시에 시작돼요', than: '모두와 온라인으로 플레이하세요 — 이기면 코인 2배.' },
+  zh: { tieuDe: '黄金时段 20:00 开始', than: '和大家一起在线对战，获胜金币翻倍。' },
+  'zh-TW': { tieuDe: '黃金時段 20:00 開始', than: '和大家一起線上對戰，獲勝金幣加倍。' },
+  ru: { tieuDe: 'Золотой час начинается в 20:00', than: 'Играйте онлайн со всеми — за победы вдвое больше монет.' },
+  id: { tieuDe: 'Jam Emas mulai pukul 20.00', than: 'Main online bareng semua — menang dapat koin dua kali lipat.' },
+  th: { tieuDe: 'ชั่วโมงทองเริ่ม 20:00 น.', than: 'มาเล่นออนไลน์กับทุกคน ชนะได้เหรียญสองเท่า' }
+};
+export function chuGioVang(lang: string): { tieuDe: string; than: string } { return CHU_GV[lang] ?? CHU_GV.en!; }
+/** Ngày địa phương (số ngày kể từ epoch, theo giờ máy) + phút trong ngày. Thuần — có test. */
+export function gioMay(lechPhut: number, now: number): { ngay: number; phut: number } {
+  const t = now + lechPhut * 60_000;
+  return { ngay: Math.floor(t / 86_400_000), phut: Math.floor((t % 86_400_000) / 60_000) };
+}
+/** Máy này có tới lượt nhận tin giờ vàng lúc `now` không. Thuần — có test. */
+export function canNhacGioVang(r: { lech_phut: number; gv_day?: number; seen_at?: number }, now: number): boolean {
+  const { ngay, phut } = gioMay(r.lech_phut, now);
+  if (phut < GV_NHAC_TU_PHUT || phut >= GV_NHAC_DEN_PHUT) return false;
+  if ((r.gv_day ?? 0) === ngay) return false;
+  const moc19 = now - (phut - GV_MO_TU_PHUT) * 60_000;   // 19:00 giờ máy hôm nay, theo đồng hồ server
+  return (r.seen_at ?? 0) < moc19;
+}
+
 /** Số ngày (UTC) — mốc đếm "3 tin thi đấu mỗi ngày". */
 export const soNgay = (now: number): number => Math.floor(now / 86_400_000);
 
@@ -239,6 +282,8 @@ export interface ThongBao {
   choThiDau(ten: string, conCho: () => boolean): void;
   /** Máy `token` bật/tắt "Gợi ý thi đấu" — tắt thì không nhận tin thi đấu. */
   datThiDau(token: string, bat: boolean): void;
+  /** Một vòng xét + gửi tin giờ vàng (server tự gọi mỗi phút; test gọi tay). */
+  vongGioVang(): Promise<void>;
 }
 
 function docBody(req: IncomingMessage): Promise<Record<string, unknown> | null> {
@@ -252,7 +297,7 @@ function docBody(req: IncomingMessage): Promise<Record<string, unknown> | null> 
 
 export async function moThongBao(
   pool: Pool | null, env: EnvThongBao, layFetch: typeof fetch = fetch,
-  opts?: { ghiTd?(d: { gui: number; loi: number }): void }
+  opts?: { ghiTd?(d: { gui: number; loi: number }): void; /** Test: không đặt hẹn giờ vòng giờ vàng. */ khongHenGio?: boolean }
 ): Promise<ThongBao | null> {
   const apns: KhoaApns | null = env.APNS_KEY_ID && env.APNS_TEAM_ID && env.APNS_PRIVATE_KEY
     ? {
@@ -268,7 +313,9 @@ export async function moThongBao(
   await doiTenBangCu(pool);
   await pool.query(TAO_BANG);
   // Cột cho tin thi đấu (22.11.2026): thêm vào bảng có sẵn; đã có thì MySQL báo 1060 — bỏ qua
-  for (const cot of ['td_off TINYINT NOT NULL DEFAULT 0', 'td_day INT NOT NULL DEFAULT 0', 'td_count TINYINT NOT NULL DEFAULT 0']) {
+  // Giờ vàng (28.11.2026): room_on = nhận tin "phòng mới" (chuông) — máy CHỈ bật nhắc giờ vàng thì 0; gv_on/gv_day/seen_at = giờ vàng
+  for (const cot of ['td_off TINYINT NOT NULL DEFAULT 0', 'td_day INT NOT NULL DEFAULT 0', 'td_count TINYINT NOT NULL DEFAULT 0',
+    'room_on TINYINT NOT NULL DEFAULT 1', 'gv_on TINYINT NOT NULL DEFAULT 0', 'gv_day INT NOT NULL DEFAULT 0', 'seen_at BIGINT NOT NULL DEFAULT 0']) {
     await pool.query(`ALTER TABLE push_subscriptions ADD COLUMN ${cot}`).catch((e: { errno?: number }) => { if (e.errno !== 1060) throw e; });
   }
 
@@ -284,7 +331,7 @@ export async function moThongBao(
     return fcmCache.token;
   };
 
-  async function guiFcm(rows: DangKy[], phong: PublicRoom | null, td?: string): Promise<Map<string, KetQua>> {
+  async function guiFcm(rows: DangKy[], phong: PublicRoom | null, td?: string, gv = false): Promise<Map<string, KetQua>> {
     const kq = new Map<string, KetQua>();
     if (!rows.length) return kq;
     let tk: string;
@@ -294,7 +341,7 @@ export async function moThongBao(
       return kq;
     }
     await Promise.all(rows.map(async (r) => {
-      const c = phong ? chuThongBao(r.lang, phong.chuPhong) : chuThiDau(r.lang, td ?? '');
+      const c = gv ? chuGioVang(r.lang) : phong ? chuThongBao(r.lang, phong.chuPhong) : chuThiDau(r.lang, td ?? '');
       try {
         const res = await layFetch(`https://fcm.googleapis.com/v1/projects/${fcm!.project_id}/messages:send`, {
           method: 'POST',
@@ -302,8 +349,8 @@ export async function moThongBao(
           body: JSON.stringify({ message: {
             token: r.token,
             notification: { title: c.tieuDe, body: c.than },
-            data: phong ? { room: phong.code } : { td: '1' },
-            android: { priority: 'high', ttl: '600s', notification: { tag: phong ? 'phong-moi' : 'thi-dau', icon: 'ic_stat_thong_bao', color: '#5bc0f0' } }
+            data: gv ? { gv: '1' } : phong ? { room: phong.code } : { td: '1' },
+            android: { priority: 'high', ttl: '600s', notification: { tag: gv ? 'gio-vang' : phong ? 'phong-moi' : 'thi-dau', icon: 'ic_stat_thong_bao', color: '#5bc0f0' } }
           } })
         });
         if (res.ok) kq.set(r.token, 'ok');
@@ -327,7 +374,7 @@ export async function moThongBao(
   async function guiDot(phong: PublicRoom): Promise<void> {
     const now = Date.now();
     if (now - dotCuoi < CACH_DOT_MS) return;
-    const [rows] = await pool!.query('SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi FROM push_subscriptions WHERE last_sent_at <= ?', [now - CACH_MAY_MS]);
+    const [rows] = await pool!.query('SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi FROM push_subscriptions WHERE last_sent_at <= ? AND room_on = 1', [now - CACH_MAY_MS]);
     const nhan = chonNguoiNhan((rows as DangKy[]).map((r) => ({ ...r, gui_cuoi: Number(r.gui_cuoi) })), now)
       .filter((r) => (r.nen === 'ios' ? !!apns : !!fcm) && r.token !== chuPhong.get(phong.code));
     if (!nhan.length) return;
@@ -353,7 +400,7 @@ export async function moThongBao(
     if (now - dotTdCuoi < CACH_DOT_TD_MS) return;
     const hom = soNgay(now);
     const [rows] = await pool!.query(
-      'SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi FROM push_subscriptions WHERE last_sent_at <= ? AND td_off = 0 AND (td_day <> ? OR td_count < ?)',
+      'SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi FROM push_subscriptions WHERE last_sent_at <= ? AND td_off = 0 AND room_on = 1 AND (td_day <> ? OR td_count < ?)',
       [now - CACH_MAY_MS, hom, TD_MOI_NGAY]);
     const nhan = chonNguoiNhan((rows as DangKy[]).map((r) => ({ ...r, gui_cuoi: Number(r.gui_cuoi) })), now)
       .filter((r) => (r.nen === 'ios' ? !!apns : !!fcm));
@@ -374,7 +421,42 @@ export async function moThongBao(
     opts?.ghiTd?.({ gui: ok.length, loi: nhan.length - ok.length - bo.length });
   }
 
+  /* Giờ vàng: mỗi phút xét các máy đã bật nhắc. Vài chục/vài trăm dòng — lọc trong JS cho rõ (giờ máy khác nhau từng dòng). */
+  let gvDangChay = false;
+  async function vongGioVang(): Promise<void> {
+    if (gvDangChay) return;
+    gvDangChay = true;
+    try {
+      const now = Date.now();
+      const [rows] = await pool!.query('SELECT token, platform AS nen, lang, tz_offset_min AS lech_phut, last_sent_at AS gui_cuoi, gv_day, seen_at FROM push_subscriptions WHERE gv_on = 1');
+      const ung = (rows as DangKy[]).map((r) => ({ ...r, gui_cuoi: Number(r.gui_cuoi), gv_day: Number(r.gv_day), seen_at: Number(r.seen_at) }))
+        .filter((r) => canNhacGioVang(r, now) && (r.nen === 'ios' ? !!apns : !!fcm));
+      const nhan: DangKy[] = [];
+      for (const r of ung) {
+        // GIÀNH tin (nhiều pod cùng chạy vòng này): chỉ pod đổi được gv_day mới gửi
+        const ngay = gioMay(r.lech_phut, now).ngay;
+        const [kq] = await pool!.query('UPDATE push_subscriptions SET gv_day = ? WHERE token = ? AND gv_day <> ?', [ngay, r.token, ngay]);
+        if ((kq as { affectedRows?: number }).affectedRows === 1) nhan.push(r);
+      }
+      if (!nhan.length) return;
+      const [kqIos, kqAnd] = await Promise.all([
+        apns ? guiApns(apns, layJwt(now), nhan.filter((r) => r.nen === 'ios'), (r) => {
+          const c = chuGioVang(r.lang);
+          return { aps: { alert: { title: c.tieuDe, body: c.than }, sound: 'default', 'thread-id': 'gio-vang' }, gv: '1' };
+        }) : Promise.resolve(new Map<string, KetQua>()),
+        fcm ? guiFcm(nhan.filter((r) => r.nen === 'android'), null, undefined, true) : Promise.resolve(new Map<string, KetQua>())
+      ]);
+      const ok: string[] = []; const bo: string[] = [];
+      for (const m of [kqIos, kqAnd]) for (const [t, v] of m) (v === 'ok' ? ok : v === 'bo' ? bo : []).push(t);
+      if (ok.length) await pool!.query('UPDATE push_subscriptions SET last_sent_at = ? WHERE token IN (?)', [now, ok]);
+      if (bo.length) await pool!.query('DELETE FROM push_subscriptions WHERE token IN (?)', [bo]);
+      console.log(`[thongbao] giờ vàng: gửi ${ok.length}, bỏ ${bo.length}, lỗi ${nhan.length - ok.length - bo.length}`);
+    } catch (e) { console.error('[thongbao] lỗi giờ vàng:', (e as Error).message); } finally { gvDangChay = false; }
+  }
+  if (!opts?.khongHenGio) setInterval(() => void vongGioVang(), 60_000).unref();
+
   return {
+    vongGioVang,
     choThiDau(ten, conCho) {
       setTimeout(() => {
         if (!conCho()) return;
@@ -416,11 +498,23 @@ export async function moThongBao(
         if (!nen || !/^[A-Za-z0-9:_-]{20,250}$/.test(token)) { json(res, { error: 'Sai dữ liệu' }, 400); return true; }
         const lang = typeof b?.lang === 'string' && CHU[b.lang] ? b.lang : 'en';
         const lech = Math.max(-840, Math.min(840, Math.round(Number(b?.lechPhut) || 0)));
+        // Cờ từng loại tin (28.11.2026). App cũ không gửi cờ → phòng mới BẬT (như trước), giờ vàng giữ nguyên giá trị đang có.
+        const phong = b?.phong === false ? 0 : 1;
+        const gv = typeof b?.gioVang === 'boolean' ? (b.gioVang ? 1 : 0) : null;
         await pool!.query(
-          `INSERT INTO push_subscriptions (token, platform, lang, tz_offset_min, created_at) VALUES (?, ?, ?, ?, ?)
-           ON DUPLICATE KEY UPDATE platform = VALUES(platform), lang = VALUES(lang), tz_offset_min = VALUES(tz_offset_min)`,
-          [token, nen, lang, lech, Date.now()]
+          `INSERT INTO push_subscriptions (token, platform, lang, tz_offset_min, created_at, room_on, gv_on, seen_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE platform = VALUES(platform), lang = VALUES(lang), tz_offset_min = VALUES(tz_offset_min), room_on = VALUES(room_on)` +
+           (gv === null ? '' : ', gv_on = VALUES(gv_on)') + ', seen_at = VALUES(seen_at)',
+          [token, nen, lang, lech, Date.now(), phong, gv ?? 0, Date.now()]
         );
+        json(res, { ok: true });
+        return true;
+      }
+      // App vừa mở / quay lại — mốc "đã mở app hôm nay" để không nhắc giờ vàng người đang chơi
+      if (url.pathname === '/api/thongbao/mo' && req.method === 'POST') {
+        const b = await docBody(req);
+        const token = typeof b?.token === 'string' ? b.token : '';
+        if (/^[A-Za-z0-9:_-]{20,250}$/.test(token)) await pool!.query('UPDATE push_subscriptions SET seen_at = ? WHERE token = ?', [Date.now(), token]);
         json(res, { ok: true });
         return true;
       }

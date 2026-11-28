@@ -1300,6 +1300,20 @@ const it: TuDien = {
   'tn.diemNgay': "Punteggio del {ngay}",
   'tn.tabNam': "Anno",
   'tn.thang': "Mese {n}",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Ora d’oro tra {t}",
+  'gv.dang': "Ora d’oro · ×2 monete",
+  'gv.daiTieuDe': "L’Ora d’oro è iniziata",
+  'gv.daiPhu': "Le vittorie online valgono ×2 monete",
+  'gv.conPhut': "mancano {n} min",
+  'gv.x2': "Ora d’oro: hai vinto ×2 monete!",
+  'gv.hoiTieuDe': "Ci vediamo alle 20:00 ogni sera?",
+  'gv.hoiThan': "Ora d’oro: tutti giocano online insieme e le vittorie valgono il doppio delle monete. Flip Match te lo ricorda al massimo una volta al giorno.",
+  'gv.nhacToi': "Ricordamelo",
+  'gv.deSau': "Non ora",
+  'gv.daBat': "Fatto! Flip Match te lo ricorderà alle 19:55.",
+  'gv.biChan': "Le notifiche sono disattivate nelle Impostazioni del dispositivo: attivale per ricevere i promemoria.",
+  'gv.caiDat': "Promemoria Ora d’oro (20:00)",
 };
 
 export default it;

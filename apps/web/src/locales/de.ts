@@ -1299,6 +1299,20 @@ const de: TuDien = {
   'tn.diemNgay': "Wert am {ngay}",
   'tn.tabNam': "Jahr",
   'tn.thang': "Monat {n}",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Goldene Stunde in {t}",
+  'gv.dang': "Goldene Stunde · ×2 Münzen",
+  'gv.daiTieuDe': "Die Goldene Stunde läuft",
+  'gv.daiPhu': "Online-Siege bringen ×2 Münzen",
+  'gv.conPhut': "noch {n} Min.",
+  'gv.x2': "Goldene Stunde: ×2 Münzen gewonnen!",
+  'gv.hoiTieuDe': "Jeden Abend um 20 Uhr?",
+  'gv.hoiThan': "Goldene Stunde: Alle spielen gleichzeitig online, Siege bringen doppelte Münzen. Flip Match erinnert dich höchstens einmal am Tag.",
+  'gv.nhacToi': "Erinnere mich",
+  'gv.deSau': "Später",
+  'gv.daBat': "Erledigt! Flip Match erinnert dich um 19:55 Uhr.",
+  'gv.biChan': "Mitteilungen sind in den Geräteeinstellungen aus – schalte sie ein, um Erinnerungen zu bekommen.",
+  'gv.caiDat': "Erinnerung Goldene Stunde (20 Uhr)",
 };
 
 export default de;

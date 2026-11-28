@@ -500,6 +500,7 @@ export const JS = String.raw`
   // Tên dễ đọc của chuc_nang (app: moChucNang). Thêm tính năng mới ở app thì thêm một dòng ở đây; thiếu thì hiện tên thô.
   var TINH_NANG = {
     choi_nhanh: 'Chơi nhanh', dau_may: 'Đấu máy', chien_dich: 'Chiến dịch', chien_dich_choi_tiep: 'Chiến dịch · chơi tiếp',
+    gio_vang_vao: 'Giờ vàng · vào sảnh online', gio_vang_x2: 'Giờ vàng · thắng ×2 xu',
     choi_online: 'Mở màn Online', mua_the: 'Mùa thẻ', luat_choi: 'Luật chơi', tai_khoan: 'Tài khoản', danh_hieu: 'Danh hiệu',
     cai_app: 'Hộp cài app', chinh_phuc: 'Đạt danh hiệu', pha_ky_luc: 'Phá kỷ lục', luu_chia_se_anh: 'Khoe tỷ số (mở hộp)',
     xep_hang: 'Bảng xếp hạng', xep_hang_tab: 'Bảng xếp hạng · đổi tab', xep_hang_thach: 'Bảng xếp hạng · thách đấu',
@@ -1010,7 +1011,7 @@ export const JS = String.raw`
    */
   var ttTai = 0, ttDang = false;
   var TEN_LAN = { chia_se: 'Bấm chia sẻ', luu_chia_se_anh: 'Lưu / chia sẻ ảnh kết quả', tri_nho_chia_se: 'Chia sẻ Chỉ số trí nhớ', online_moi_ban: 'Bấm mời bạn vào phòng',
-    online_vao_link_moi: 'Vào phòng bằng link mời', moi_qua_link: '↳ trong đó là người MỚI', thong_bao_bat: 'Bật thông báo', dang_nhap: 'Đăng nhập' };
+    online_vao_link_moi: 'Vào phòng bằng link mời', nhac_hoi: 'Giờ vàng · đã hỏi bật nhắc', nhac_bat: 'Giờ vàng · bật nhắc', nhac_mo: 'Giờ vàng · bấm tin nhắc', moi_qua_link: '↳ trong đó là người MỚI', thong_bao_bat: 'Bật thông báo', dang_nhap: 'Đăng nhập' };
   function bangTt(id, dau, hang) {
     var tb = $(id); tb.textContent = '';
     if (!hang || !hang.length) { tb.appendChild(el('caption', 'mo', 'Chưa có số.')); return; }

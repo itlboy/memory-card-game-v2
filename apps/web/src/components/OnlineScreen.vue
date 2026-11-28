@@ -7,12 +7,13 @@ import DauPremium from './DauPremium.vue';
 import {
   BOARD_SIZES, CAMPAIGN_LEVELS, DEFAULT_ROOM_CONFIG, OPTION_KEYS, OPTION_LABELS, ROOM_LIMITS, levelSpec, optionSummary
 } from '@mm/engine';
-import { Bell, BellRing, Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Globe, Hand, Hash, Heart, LayoutGrid, Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Swords, Timer, Users, WifiOff, X } from 'lucide-vue-next';
+import { Bell, BellRing, Brain, Check, ChevronLeft, ChevronRight, Copy, Crown, Eye, Flame, Globe, Hand, Hash, Heart, LayoutGrid, Link2, Lock, Pencil, Plus, RefreshCw, Settings2, Swords, Timer, Users, WifiOff, X } from 'lucide-vue-next';
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useBackCloser } from '@/composables/useBackGuard';
 import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
 import { ghiUrl } from '@/lib/appUrl';
 import { CACH_MOI_LAI_MS, coSanh, soNguoiOnline, dsOnline, ghiDaThach, moiNguoi, thachCho, type NguoiOnline } from '@/lib/sanh';
+import { gioVang } from '@/lib/gio-vang';
 import MoiOnline from './MoiOnline.vue';
 import { t, td, ngonNgu } from '@/lib/i18n';
 import { tenTheme } from '@/lib/achievements';
@@ -175,6 +176,7 @@ function vaoPhongCongKhai(code: string): void {
 }
 
 onMounted(() => {
+  if (gioVang.value.dang) moChucNang('gio_vang_vao', {}, true);   // giờ vàng: vào sảnh trong 20:00–21:00 giờ máy
   // Bấm "Thách" ở bảng xếp hạng: tạo phòng ngay (chưa có tên thì qua form tạo phòng, tạo xong vẫn mời)
   if (thachCho.value && !invited.value) {
     if (name.value.trim()) create(); else entryStep.value = 'create';
@@ -1176,7 +1178,14 @@ function openCfgWizard(): void {
     -->
     <template v-if="entryStep === 'choose'">
       <!-- 23.11.2026: số người đang online — thấy có người là chủ động tạo phòng rồi "Mời người online" -->
-      <p v-if="soNguoiOnline > 0" class="on-so-ol"><i aria-hidden="true" />{{ t('bxh.dangOnline', { n: soNguoiOnline }) }}</p>
+      <!-- GIỜ VÀNG (28.11.2026, mockup duyệt https://claude.ai/artifact/TdLTzxW8Hc61MU3F23cvkk): 20:00–21:00 giờ máy — dải vàng thay
+           dòng số người online (số người chuyển vào dòng phụ), đồng hồ phút còn lại. Ngoài giờ: như cũ. -->
+      <div v-if="gioVang.dang" class="dai-gv" role="status">
+        <Flame :size="20" :stroke-width="2.6" aria-hidden="true" />
+        <div><b>{{ t('gv.daiTieuDe') }}</b><small>{{ t('gv.daiPhu') }}<template v-if="soNguoiOnline > 0"> · {{ t('bxh.dangOnline', { n: soNguoiOnline }) }}</template></small></div>
+        <span class="gio" :aria-label="t('gv.conPhut', { n: gioVang.conPhut })">{{ t('gv.conPhut', { n: gioVang.conPhut }) }}</span>
+      </div>
+      <p v-else-if="soNguoiOnline > 0" class="on-so-ol"><i aria-hidden="true" />{{ t('bxh.dangOnline', { n: soNguoiOnline }) }}</p>
       <button class="btn-primary tao-phong" type="button" :disabled="creatingRoom" @click="batDauTao()">
         <template v-if="creatingRoom">{{ t('on.dangTao') }}</template>
         <template v-else><Plus :size="22" /> {{ t('on.taoPhong') }}</template>
@@ -1643,6 +1652,14 @@ function openCfgWizard(): void {
 </template>
 
 <style scoped>
+/* GIỜ VÀNG (28.11.2026) — dải vàng nổi khối như viên thạch, đứng chỗ dòng "N người đang online" */
+.dai-gv { display: flex; align-items: center; gap: 9px; padding: 8px 12px; border-radius: 14px; color: #5a2d00;
+  background: linear-gradient(#ffe27a, #ffbf2e); border: 2px solid #fff; box-shadow: 0 4px 0 #c98400; }
+.dai-gv svg { flex: none; color: #7a3a00; }
+.dai-gv b { display: block; font: 800 14px/1.2 var(--font-display, inherit); }
+.dai-gv small { display: block; font: 700 12px/1.25 var(--font-body, inherit); opacity: .85; }
+.dai-gv .gio { margin-left: auto; flex: none; padding: 2px 8px; border-radius: 9px; background: #fff6d6; font: 800 12.5px var(--font-display, inherit); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 .online { display: flex; flex-direction: column; height: 100%; position: relative; }
 /* "Chỉnh bàn" từ màn kết quả: wizard là LỚP PHỦ, ván + bảng kết quả vẫn sống bên dưới
    (gỡ OnlineGame ra là đóng xong bàn lại diễn lại hiệu ứng kết ván từ đầu). Trên

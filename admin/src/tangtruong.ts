@@ -124,7 +124,7 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
     o('nguon', R(['firstUserSource', 'firstUserMedium', 'landingPage'], ['newUsers', 'userEngagementDuration'])),
     o('quoc_gia', R(['countryId'], ['activeUsers', 'newUsers', 'userEngagementDuration'], undefined,
       { orderBys: [{ metric: { metricName: 'userEngagementDuration' }, desc: true }], limit: 12 })),
-    o('lan_truyen', R(['eventName'], ['eventCount', 'totalUsers'], loc.trong('eventName', ['chia_se', 'thong_bao_bat', 'dang_nhap']))),
+    o('lan_truyen', R(['eventName'], ['eventCount', 'totalUsers'], loc.trong('eventName', ['chia_se', 'thong_bao_bat', 'dang_nhap', 'nhac_hoi', 'nhac_bat', 'nhac_mo']))),
     o('lan_truyen', R(['customEvent:chuc_nang'], ['eventCount', 'totalUsers'],
       loc.va(loc.su_kien('mo_chuc_nang'), loc.trong('customEvent:chuc_nang', ['online_moi_ban', 'online_vao_link_moi', 'luu_chia_se_anh', 'tri_nho_chia_se'])))),
     // Người MỚI có vào phòng bằng link mời = người do lời mời kéo về thật. Link mời mở thẳng APP nên utm_* không tới GA
@@ -197,7 +197,7 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
 
   if (suKien || chucNang) {
     const m = new Map([...(suKien ?? []), ...(chucNang ?? [])].map((r) => [r.d[0] ?? '', r.m]));
-    g.lanTruyen = ['chia_se', 'luu_chia_se_anh', 'tri_nho_chia_se', 'online_moi_ban', 'online_vao_link_moi', 'thong_bao_bat', 'dang_nhap']
+    g.lanTruyen = ['chia_se', 'luu_chia_se_anh', 'tri_nho_chia_se', 'online_moi_ban', 'online_vao_link_moi', 'thong_bao_bat', 'nhac_hoi', 'nhac_bat', 'nhac_mo', 'dang_nhap']
       .map((k) => ({ k, luot: m.get(k)?.[0] ?? 0, nguoi: m.get(k)?.[1] ?? 0 }));
     if (moiQuaLink) g.lanTruyen.splice(5, 0, { k: 'moi_qua_link', luot: moiQuaLink[0]?.m[0] ?? 0, nguoi: moiQuaLink[0]?.m[1] ?? 0 });
   }

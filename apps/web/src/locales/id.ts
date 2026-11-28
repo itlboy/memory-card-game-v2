@@ -1299,6 +1299,20 @@ const id: TuDien = {
   'tn.diemNgay': "Skor {ngay}",
   'tn.tabNam': "Setahun",
   'tn.thang': "Bulan {n}",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Jam Emas dalam {t}",
+  'gv.dang': "Jam Emas · ×2 koin",
+  'gv.daiTieuDe': "Jam Emas sedang berlangsung",
+  'gv.daiPhu': "Menang online dapat ×2 koin",
+  'gv.conPhut': "sisa {n} mnt",
+  'gv.x2': "Jam Emas: kamu dapat ×2 koin!",
+  'gv.hoiTieuDe': "Ketemu jam 20.00 tiap malam?",
+  'gv.hoiThan': "Jam Emas: semua main online bareng dan menang dapat koin dua kali lipat. Flip Match mengingatkan paling banyak sekali sehari.",
+  'gv.nhacToi': "Ingatkan aku",
+  'gv.deSau': "Nanti saja",
+  'gv.daBat': "Siap! Flip Match akan mengingatkan pukul 19.55.",
+  'gv.biChan': "Notifikasi mati di Pengaturan perangkat — nyalakan untuk menerima pengingat.",
+  'gv.caiDat': "Pengingat Jam Emas (20.00)",
 };
 
 export default id;

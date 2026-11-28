@@ -1296,6 +1296,20 @@ const zh: TuDien = {
   'tn.diemNgay': "{ngay} 的分数",
   'tn.tabNam': "全年",
   'tn.thang': "{n} 月",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "黄金时段还有 {t}",
+  'gv.dang': "黄金时段 · 金币×2",
+  'gv.daiTieuDe': "黄金时段进行中",
+  'gv.daiPhu': "在线获胜金币×2",
+  'gv.conPhut': "还剩 {n} 分钟",
+  'gv.x2': "黄金时段：获得×2金币！",
+  'gv.hoiTieuDe': "每晚 20:00 见？",
+  'gv.hoiThan': "黄金时段：大家一起在线对战，获胜金币翻倍。每天最多提醒一次。",
+  'gv.nhacToi': "提醒我",
+  'gv.deSau': "以后再说",
+  'gv.daBat': "好的！我们会在 19:55 提醒你。",
+  'gv.biChan': "设备设置中的通知已关闭，开启后才能收到提醒。",
+  'gv.caiDat': "黄金时段提醒（20:00）",
 };
 
 export default zh;

@@ -1302,6 +1302,20 @@ const fr: TuDien = {
   'tn.diemNgay': "Score du {ngay}",
   'tn.tabNam': "Année",
   'tn.thang': "Mois {n}",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Heure dorée dans {t}",
+  'gv.dang': "Heure dorée · ×2 pièces",
+  'gv.daiTieuDe': "L’Heure dorée a commencé",
+  'gv.daiPhu': "Les victoires en ligne rapportent ×2 pièces",
+  'gv.conPhut': "encore {n} min",
+  'gv.x2': "Heure dorée : tu as gagné ×2 pièces !",
+  'gv.hoiTieuDe': "On se retrouve à 20 h chaque soir ?",
+  'gv.hoiThan': "Heure dorée : tout le monde joue en ligne en même temps et les victoires rapportent deux fois plus de pièces. Flip Match te prévient au plus une fois par jour.",
+  'gv.nhacToi': "Me prévenir",
+  'gv.deSau': "Plus tard",
+  'gv.daBat': "C’est noté ! Flip Match te préviendra à 19 h 55.",
+  'gv.biChan': "Les notifications sont désactivées dans les Réglages de l’appareil — active-les pour recevoir les rappels.",
+  'gv.caiDat': "Rappel de l’Heure dorée (20 h)",
 };
 
 export default fr;

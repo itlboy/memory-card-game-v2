@@ -5,7 +5,7 @@ import { daMuaPremium, hienPremium, huyHieu, huyHieuDangDeo, moiNangCap } from '
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { tenBaiNhac } from '@/lib/ten-bai-nhac';
 import DauPremium from './DauPremium.vue';
-import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X, MessageSquareWarning } from 'lucide-vue-next';
+import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Crown, Flame, HelpCircle, Image, Info, Languages, MailPlus, Menu, MessageSquareWarning, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -13,7 +13,7 @@ import { anKhach, conTheMay, khachDangAn } from '@/lib/taikhoan';
 import { store } from '@/lib/storage';
 import { moChucNang, suKien } from '@/lib/phan-tich';
 import { coThiDau, datGoiYThiDau, goiYThiDau } from '@/lib/thidau';
-import { batChuong, coChuong, dangBat, tatChuong } from '@/lib/thong-bao';
+import { batChuong, batGioVang, coChuong, dangBat, gioVangBat, tatChuong, tatGioVang } from '@/lib/thong-bao';
 import { moCai, nenMoiCai } from '@/lib/cai-app';
 import { coNenToi, skin } from '@/lib/skin';
 import { ICON_BAI, baiChoiDuoc, baiHien, type BaiNhac } from '@/lib/nhac';
@@ -235,6 +235,18 @@ async function bamChuong(): Promise<void> {
     if (dangBat.value) { await tatChuong(); tbKq.value = 'tat'; return; }
     tbKq.value = await batChuong();
   } finally { tbDangLam.value = false; }
+}
+
+/* Nhắc giờ vàng (lib/gio-vang.ts, 28.11.2026) — công tắc riêng, cùng mã máy với chuông */
+const gvDangLam = ref(false);
+const gvKq = ref<'' | 'bat' | 'chan' | 'loi' | 'tat'>('');
+async function bamGioVang(): Promise<void> {
+  if (gvDangLam.value) return;
+  gvDangLam.value = true;
+  try {
+    if (gioVangBat.value) { await tatGioVang(); gvKq.value = 'tat'; return; }
+    gvKq.value = await batGioVang();
+  } finally { gvDangLam.value = false; }
 }
 
 const soundIcon = computed(() =>
@@ -561,6 +573,10 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
                Chỉ hiện dòng nhỏ khi vừa bấm (bật/bị chặn/lỗi), bình thường không chú thích. -->
           <button data-phang v-if="coChuong" class="item cong-tac" role="switch" type="button" :aria-checked="dangBat" :disabled="tbDangLam" @click="bamChuong">
             <Bell :size="20" /><span class="tk-chu"><b>{{ t('cd.baoPhong') }}</b><small v-if="tbKq" :class="{ loi: tbKq === 'chan' || tbKq === 'loi' }" role="status">{{ t(tbKq === 'bat' ? 'on.tb.daBat' : tbKq === 'chan' ? 'on.tb.biChan' : tbKq === 'tat' ? 'on.tb.daTat' : 'on.tb.loi') }}</small></span><i class="sw" :class="{ bat: dangBat }" aria-hidden="true" />
+          </button>
+          <!-- Nhắc giờ vàng 20:00 (lib/gio-vang.ts) — chỉ app có push; tin 19:55 tối đa 1 lần/ngày -->
+          <button data-phang v-if="coChuong" class="item cong-tac" role="switch" type="button" :aria-checked="gioVangBat" :disabled="gvDangLam" @click="bamGioVang">
+            <Flame :size="20" /><span class="tk-chu"><b>{{ t('gv.caiDat') }}</b><small v-if="gvKq === 'chan' || gvKq === 'loi'" class="loi" role="status">{{ t('gv.biChan') }}</small></span><i class="sw" :class="{ bat: gioVangBat }" aria-hidden="true" />
           </button>
           <hr class="ke" />
           <div class="item am"><Info :size="20" /><span>{{ t('cd.phienBan') }}</span><small class="kq-ban">{{ banHien }}</small></div>

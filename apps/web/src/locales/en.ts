@@ -1298,6 +1298,20 @@ const en: TuDien = {
   'tn.diemNgay': "Score on {ngay}",
   'tn.tabNam': "Year",
   'tn.thang': "Month {n}",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Golden Hour in {t}",
+  'gv.dang': "Golden Hour · ×2 coins",
+  'gv.daiTieuDe': "Golden Hour is on",
+  'gv.daiPhu': "Online wins earn ×2 coins",
+  'gv.conPhut': "{n} min left",
+  'gv.x2': "Golden Hour: you won ×2 coins!",
+  'gv.hoiTieuDe': "See you at 8 PM every night?",
+  'gv.hoiThan': "Golden Hour: everyone plays online together and wins earn double coins. Flip Match reminds you at most once a day.",
+  'gv.nhacToi': "Remind me",
+  'gv.deSau': "Not now",
+  'gv.daBat': "Done! Flip Match will remind you at 7:55 PM.",
+  'gv.biChan': "Notifications are off in your device Settings — turn them on to get reminders.",
+  'gv.caiDat': "Golden Hour reminder (8 PM)",
 };
 
 export default en;

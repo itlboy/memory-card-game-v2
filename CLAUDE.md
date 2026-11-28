@@ -21,6 +21,21 @@
   chọn server ở MỘT chỗ: `SERVER_URL` (`lib/native.ts`). Deploy web (`pnpm release`) KHÔNG khởi động
   lại server API; pod chỉ thay khi code server đổi.
 
+## GIỜ VÀNG MỖI TỐI (28.11.2026, mockup duyệt https://claude.ai/artifact/TdLTzxW8Hc61MU3F23cvkk)
+
+Mục tiêu 100 người online: hẹn mọi người vào CÙNG một giờ. 20:00–21:00 **theo giờ máy** người chơi ("giờ vàng thế giới" — một
+giờ chung — chủ dự án để sau). Logic giờ: `lib/gio-vang.ts` (thuần, có test).
+- Trang chủ: nhãn vàng thay nhãn "N online" trên ô Chơi online — đếm ngược trong 3 tiếng trước, "×2 xu" trong giờ.
+- Sảnh online: dải vàng + phút còn lại. Thắng ván online trong giờ → ×2 xu (`heSoXu`, OnlineGame/OnlineTimThe; xu cộng ở client).
+- Nhắc 19:55: chỉ máy TỰ BẬT (`batGioVang`), tối đa 1 tin/ngày địa phương, không gửi nếu đã mở app từ 19:00. Server
+  `vongGioVang` (thongbao.ts) chạy mỗi phút, GIÀNH tin bằng `UPDATE … gv_day <> hôm nay` → nhiều pod không gửi trùng.
+- **Hai công tắc trên MỘT mã máy**: chuông "báo phòng mới" (cột `room_on`, localStorage `mm.thongBao.phong`) và nhắc giờ vàng
+  (`gv_on`, `mm.gioVang`). Máy chỉ bật giờ vàng KHÔNG nhận tin phòng mới/thi đấu. Cả hai tắt mới xoá mã khỏi server.
+- Hỏi bật nhắc: tấm `HoiNhacGioVang` khi về trang chủ sau ván THẮNG (dùng chung tín hiệu `ghiVuaThang` của xin-danh-gia), chỉ
+  app, tối đa 2 lần cách ≥ 7 ngày; lần đã hỏi thì KHÔNG xin đánh giá chồng lên. Bật/tắt lại ở Cài đặt.
+- Bấm tin → `?online=1`. Đo: `mo_chuc_nang` gio_vang_vao / gio_vang_x2; sự kiện nhac_hoi / nhac_bat / nhac_mo / nhac_tat.
+- Bản cổng game: không có thông báo (không phải app) — chỉ nhãn, dải và ×2 xu.
+
 ## BẢN CỔNG GAME — luật khi phát triển (28.11.2026, chủ dự án: "note lại yêu cầu của cổng để kỹ thuật biết")
 
 Game còn chạy trong khung của cổng game web: CrazyGames NHÚNG THẲNG `flipmatch.cozypi.com/cong/crazygames/` (mỗi lần deploy

@@ -1,6 +1,7 @@
 import { laApp } from './native';
 import { suKien } from './phan-tich';
 import { store } from './storage';
+import { vuaThang as vuaThangGv } from './gio-vang';
 
 /**
  * XIN ĐÁNH GIÁ APP (26.11.2026, chủ dự án: "có nên xin review người dùng không? chúng ta đang cần review" → duyệt hướng dùng HỘP
@@ -37,7 +38,9 @@ export function duDieuKien(bayGio: number, moLuc: number, soVan: number, da: DaX
 
 let vuaThang = false;
 /** Gọi khi người chơi vừa THẮNG một ván (offline, đấu máy, online). */
-export function ghiVuaThang(): void { vuaThang = true; }
+export function ghiVuaThang(): void { vuaThang = true; vuaThangGv.value = true; }
+/** Lần về trang chủ này đã hiện tấm hỏi bật nhắc giờ vàng — không xin đánh giá chồng lên (App.vue). */
+export function boVuaThang(): void { vuaThang = false; }
 
 /** Gọi khi về trang chủ. Chỉ xin nếu ván vừa rồi thắng và đủ mọi điều kiện ở trên. */
 export async function thuXinDanhGia(bayGio = Date.now()): Promise<boolean> {

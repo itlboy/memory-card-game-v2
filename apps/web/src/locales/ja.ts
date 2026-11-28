@@ -1296,6 +1296,20 @@ const ja: TuDien = {
   'tn.diemNgay': "{ngay}のスコア",
   'tn.tabNam': "1年",
   'tn.thang': "{n}月",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "ゴールデンアワーまで {t}",
+  'gv.dang': "ゴールデンアワー · コイン×2",
+  'gv.daiTieuDe': "ゴールデンアワー開催中",
+  'gv.daiPhu': "オンラインで勝つとコイン×2",
+  'gv.conPhut': "残り{n}分",
+  'gv.x2': "ゴールデンアワー：コイン×2獲得！",
+  'gv.hoiTieuDe': "毎晩20時に会いませんか？",
+  'gv.hoiThan': "ゴールデンアワー：みんなが同時にオンラインで遊び、勝つとコインが2倍。お知らせは1日1回まで。",
+  'gv.nhacToi': "お知らせを受け取る",
+  'gv.deSau': "あとで",
+  'gv.daBat': "設定しました！19時55分にお知らせします。",
+  'gv.biChan': "端末の設定で通知がオフになっています。オンにするとお知らせが届きます。",
+  'gv.caiDat': "ゴールデンアワーのお知らせ（20時）",
 };
 
 export default ja;

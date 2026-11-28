@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NGON_NGU } from '@/lib/i18n';
 import {
-  CACH_MAY_MS, CHU, TRE_MS, chonNguoiNhan, chuThongBao, dangGioNgu, moThongBao, type DangKy
+  CACH_MAY_MS, CHU, CHU_GV, TRE_MS, canNhacGioVang, chonNguoiNhan, chuThongBao, dangGioNgu, gioMay, moThongBao, type DangKy
 } from '../../node-server/src/thongbao';
 
 /**
@@ -102,6 +102,56 @@ describe('server: gửi một đợt (FCM giả, MySQL giả)', () => {
     tb.phongMoi({ code: '111111', chuPhong: 'A', avatar: '', nguoi: 1, toiDa: 2, the: 16, luc: Date.now() }, async () => false);
     await vi.advanceTimersByTimeAsync(25_000);
     expect(pool.query.mock.calls.filter((c) => String(c[0]).startsWith('SELECT') && !String(c[0]).includes('information_schema'))).toEqual([]);
+  });
+});
+
+describe('server: giờ vàng (nhắc 19:55 theo giờ CỦA MÁY)', () => {
+  // 12:55 UTC = 19:55 ở Việt Nam (+420)
+  const luc = (h: number, m: number) => Date.UTC(2026, 11, 4, h, m);
+  const vn = (o: Partial<{ gv_day: number; seen_at: number }> = {}) => ({ lech_phut: 420, gv_day: 0, seen_at: 0, ...o });
+
+  it('chỉ trong 19:55–20:05 giờ máy; mỗi ngày (địa phương) một lần', () => {
+    expect(canNhacGioVang(vn(), luc(12, 54))).toBe(false);
+    expect(canNhacGioVang(vn(), luc(12, 55))).toBe(true);
+    expect(canNhacGioVang(vn(), luc(13, 4))).toBe(true);
+    expect(canNhacGioVang(vn(), luc(13, 5))).toBe(false);
+    expect(canNhacGioVang(vn({ gv_day: gioMay(420, luc(12, 55)).ngay }), luc(12, 56))).toBe(false);
+    // cùng khoảnh khắc 12:55 UTC, máy ở New York (-300) đang 7:55 sáng → không nhắc
+    expect(canNhacGioVang({ lech_phut: -300, gv_day: 0, seen_at: 0 }, luc(12, 55))).toBe(false);
+  });
+
+  it('đã mở app từ 19:00 giờ máy hôm đó thì không nhắc', () => {
+    expect(canNhacGioVang(vn({ seen_at: luc(12, 0) + 1 }), luc(12, 56))).toBe(false);   // 19:00:00.001 giờ VN
+    expect(canNhacGioVang(vn({ seen_at: luc(11, 59) }), luc(12, 56))).toBe(true);       // 18:59 giờ VN
+  });
+
+  it('có chữ giờ vàng cho ĐỦ mọi ngôn ngữ của game', () => {
+    for (const n of NGON_NGU) expect(CHU_GV[n.id], n.id).toBeTruthy();
+  });
+
+  it('vòng gửi: chỉ máy GIÀNH được (UPDATE đổi 1 dòng) mới nhận — nhiều pod không gửi trùng', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(luc(12, 56));
+    const { generateKeyPairSync } = await import('node:crypto');
+    const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const sa = JSON.stringify({ client_email: 'x@y', project_id: 'p', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) });
+    const may = (token: string) => ({ token, nen: 'android', lang: 'vi', lech_phut: 420, gui_cuoi: 0, gv_day: 0, seen_at: 0 });
+    const a = 'a'.repeat(30), b = 'b'.repeat(30);
+    const pool = { query: vi.fn(async (sql: string, v: unknown[] = []) => {
+      if (sql.startsWith('SELECT') && sql.includes('gv_on = 1')) return [[may(a), may(b)]];
+      if (sql.startsWith('UPDATE push_subscriptions SET gv_day')) return [{ affectedRows: v[1] === a ? 1 : 0 }];   // pod khác đã giành b
+      return [[]];
+    }) };
+    const gui: { token: string; title: string; data: unknown }[] = [];
+    const layFetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes('oauth2')) return new Response(JSON.stringify({ access_token: 't' }));
+      const m = (JSON.parse(String(init!.body)) as { message: { token: string; notification: { title: string }; data: unknown } }).message;
+      gui.push({ token: m.token, title: m.notification.title, data: m.data });
+      return new Response('{}');
+    });
+    const tb = (await moThongBao(pool as never, { FCM_SERVICE_ACCOUNT: sa }, layFetch as never, { khongHenGio: true }))!;
+    await tb.vongGioVang();
+    expect(gui).toEqual([{ token: a, title: CHU_GV.vi!.tieuDe, data: { gv: '1' } }]);
   });
 });
 

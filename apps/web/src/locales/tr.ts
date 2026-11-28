@@ -1299,6 +1299,20 @@ const tr: TuDien = {
   'tn.diemNgay': "{ngay} puanı",
   'tn.tabNam': "Yıl",
   'tn.thang': "{n}. ay",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "Altın Saat'e {t}",
+  'gv.dang': "Altın Saat · ×2 jeton",
+  'gv.daiTieuDe': "Altın Saat başladı",
+  'gv.daiPhu': "Çevrimiçi galibiyetler ×2 jeton kazandırır",
+  'gv.conPhut': "{n} dk kaldı",
+  'gv.x2': "Altın Saat: ×2 jeton kazandın!",
+  'gv.hoiTieuDe': "Her akşam 20:00'de görüşelim mi?",
+  'gv.hoiThan': "Altın Saat: herkes aynı anda çevrimiçi oynar, galibiyetler iki kat jeton kazandırır. Flip Match günde en fazla bir kez hatırlatır.",
+  'gv.nhacToi': "Hatırlat",
+  'gv.deSau': "Şimdi değil",
+  'gv.daBat': "Tamam! Flip Match sana 19:55'te hatırlatacak.",
+  'gv.biChan': "Bildirimler cihaz Ayarlarında kapalı — hatırlatma almak için aç.",
+  'gv.caiDat': "Altın Saat hatırlatması (20:00)",
 };
 
 export default tr;

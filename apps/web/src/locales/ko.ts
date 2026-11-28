@@ -1296,6 +1296,20 @@ const ko: TuDien = {
   'tn.diemNgay': "{ngay} 점수",
   'tn.tabNam': "1년",
   'tn.thang': "{n}월",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "골든 아워까지 {t}",
+  'gv.dang': "골든 아워 · 코인 ×2",
+  'gv.daiTieuDe': "골든 아워 진행 중",
+  'gv.daiPhu': "온라인에서 이기면 코인 ×2",
+  'gv.conPhut': "{n}분 남음",
+  'gv.x2': "골든 아워: 코인 ×2 획득!",
+  'gv.hoiTieuDe': "매일 밤 8시에 만날까요?",
+  'gv.hoiThan': "골든 아워: 모두 함께 온라인으로 플레이하고, 이기면 코인이 두 배예요. 알림은 하루 최대 한 번이에요.",
+  'gv.nhacToi': "알려 주세요",
+  'gv.deSau': "나중에",
+  'gv.daBat': "완료! 오후 7시 55분에 알려 드릴게요.",
+  'gv.biChan': "기기 설정에서 알림이 꺼져 있어요. 켜면 알림을 받을 수 있어요.",
+  'gv.caiDat': "골든 아워 알림 (오후 8시)",
 };
 
 export default ko;

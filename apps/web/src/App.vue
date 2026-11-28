@@ -32,7 +32,10 @@ import { bocLungVan } from './lib/lung-la';
 import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
 import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
 import { tenBaiNhac } from './lib/ten-bai-nhac';
-import { ghiVuaThang, thuXinDanhGia } from './lib/xin-danh-gia';
+import { boVuaThang, ghiVuaThang, thuXinDanhGia } from './lib/xin-danh-gia';
+import { nenHoiNhac, vuaThang as vuaThangGv } from './lib/gio-vang';
+import { coChuong, gioVangBat } from './lib/thong-bao';
+import HoiNhacGioVang from './components/HoiNhacGioVang.vue';
 import MatKhauDebug from './components/MatKhauDebug.vue';
 import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
@@ -848,7 +851,21 @@ onMounted(() => {
 });
 onUnmounted(() => { clearInterval(henNgauNhien); document.removeEventListener('visibilitychange', khiHienLai); });
 // Về trang chủ sau một ván THẮNG → có thể xin đánh giá (luật ở lib/xin-danh-gia.ts: đủ gắn bó, thưa, không giữa ván)
-watch(screen, (sc, cu) => { if (sc === 'menu' && cu !== 'menu') setTimeout(() => { void thuXinDanhGia(); }, 900); });
+/*
+ * Về trang chủ sau ván THẮNG: GIỜ VÀNG hỏi bật nhắc trước (lib/gio-vang.ts `nenHoiNhac` — chỉ app, tối đa 2 lần); lần nào đã hỏi
+ * thì KHÔNG xin đánh giá chồng lên (xin-danh-gia `boVuaThang`). Không đủ điều kiện hỏi → xin đánh giá như cũ.
+ */
+const hienHoiGv = ref(false);
+watch(screen, (sc, cu) => {
+  if (sc !== 'menu' || cu === 'menu') return;
+  setTimeout(() => {
+    if (nenHoiNhac({ coChuong: coChuong.value, gvBat: gioVangBat.value, vuaThang: vuaThangGv.value })) {
+      vuaThangGv.value = false; boVuaThang(); hienHoiGv.value = true; return;
+    }
+    vuaThangGv.value = false;
+    void thuXinDanhGia();
+  }, 900);
+});
 watch(screen, (sc, cu) => {
   if (sc === 'online' && !location.search.includes('room=')) setUrl('online=1');
   if (sc === 'mua-the') setUrl('mua=1');
@@ -1504,6 +1521,7 @@ const hasNext = computed(() => {
   <BaoLoiDialog v-if="showBaoLoi" @xong="showBaoLoi = false" />
   <!-- Dải báo chung ngoài màn online — chỉ bản cổng game cần (báo quà Premium); màn online tự gắn bản của nó, đừng gắn hai bản cùng lúc -->
   <DaiBao v-if="laCong && screen !== 'online'" />
+  <HoiNhacGioVang v-if="hienHoiGv && screen === 'menu'" @close="hienHoiGv = false" />
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />
 

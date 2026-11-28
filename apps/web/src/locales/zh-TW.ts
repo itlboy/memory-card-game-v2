@@ -1299,6 +1299,20 @@ const zhTW: TuDien = {
   'tn.diemNgay': "{ngay} 的分數",
   'tn.tabNam': "全年",
   'tn.thang': "{n} 月",
+  // Giờ vàng mỗi tối (28.11.2026, lib/gio-vang.ts)
+  'gv.sau': "黃金時段還有 {t}",
+  'gv.dang': "黃金時段 · 金幣×2",
+  'gv.daiTieuDe': "黃金時段進行中",
+  'gv.daiPhu': "線上獲勝金幣×2",
+  'gv.conPhut': "還剩 {n} 分鐘",
+  'gv.x2': "黃金時段：獲得×2金幣！",
+  'gv.hoiTieuDe': "每晚 20:00 見？",
+  'gv.hoiThan': "黃金時段：大家一起線上對戰，獲勝金幣加倍。每天最多提醒一次。",
+  'gv.nhacToi': "提醒我",
+  'gv.deSau': "以後再說",
+  'gv.daBat': "好的！我們會在 19:55 提醒你。",
+  'gv.biChan': "裝置設定中的通知已關閉，開啟後才能收到提醒。",
+  'gv.caiDat': "黃金時段提醒（20:00）",
 };
 
 export default zhTW;
