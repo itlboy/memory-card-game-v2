@@ -788,6 +788,11 @@ web là cổng đổi theo — lỗi web là lỗi luôn trên CrazyGames), itch
   màn hình, bản app/OTA, lỗi JS gần đây, nhật ký máy; KHÔNG tên. Server `apps/node-server/src/baoloi.ts` (bảng `bug_reports`,
   5 thư/giờ/máy/IP) → admin tab Kỹ thuật + API quản trị `/api/quantri/baoloi*` + MCP `bao_loi`. Class chip trong hộp là
   `bl-chip`/`bl-chips` — `.chip`/`.chips` trùng kiểu toàn cục của app (đã vỡ khuôn thành ô to 2 cột).
+- **CHIẾN DỊCH TÌM THẺ (đợt 3, 28.11.2026, duyệt: https://claude.ai/artifact/BZWf4m2Ma6Tp6rGvnBWJrV)**: `lib/chien-dich-tim.ts`
+  (30 màn `MAN_TIM`, 3 chặng × 10, trùm 10/20/30 luôn có máy). Sao theo lượt đúng ★6 ★★8 ★★★10; qua = ≥1★ và thắng máy nếu có.
+  Tiến độ `Save.timCD` (RIÊNG với `levels` — đừng gộp, `unlockedKey` đếm mọi mode ≠ campaign). Bản đồ `LevelMapTim.vue`, thanh
+  Lật cặp | Tìm Thẻ ở bước level của Chiến dịch (nhớ `mm.kieuCD`). TimThe nhận prop `man`: tờ Trước khi chơi, ResultDialog
+  `ghiChuSao`, `man-tiep`. Danh hiệu `tim-cd-10/20/30`, `tim-cd-sao` (90 sao). Tiến độ CHƯA đồng bộ tài khoản.
 - **DANH HIỆU TÌM THẺ (đợt 2, 28.11.2026, duyệt: https://claude.ai/artifact/UhxJouPLavdDiTTfNGqiFp)**: nhóm `tim-the`
   (+23 → 186 cố định): `earnedTim()` theo ván (gọi ở App `xongTimThe` + OnlineTimThe), bộ đếm `timVan/timDung/timOnline`
   trong `boDem` (`ghiVanBoDem({tim})`), mốc động tim-dung +1000, tim-van +250, tim-online +25. Bàn ≤4 thẻ không tính

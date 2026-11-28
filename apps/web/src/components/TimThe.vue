@@ -22,6 +22,9 @@ import {
   type TimTheBoDo, type TimTheChon, type TimTheKetVan
 } from '@/lib/tim-the';
 import { chonCoAnh, taiTruocAnh } from '@/lib/emoji';
+import { MOC_SAO_TIM, SO_MAN_TIM, chonCuaMan, quaManTim, saoTim, thieuSaoKe, type ManTim } from '@/lib/chien-dich-tim';
+import { store } from '@/lib/storage';
+import Sao3D from './Sao3D.vue';
 import { hoSo, mauKhac, tenToi } from '@/lib/ho-so';
 import { tenBot } from '@/lib/ten';
 import { sfx } from '@/lib/audio';
@@ -42,9 +45,12 @@ import { Check, Ellipsis, Pause, TimerOff, X, Zap } from 'lucide-vue-next';
 const props = defineProps<{
   /** Hình của bộ thẻ người chơi đang chọn (đã loại trùng). Thiếu thì dùng bộ dự phòng. */
   hinh: string[];
+  /** Màn Chiến dịch Tìm Thẻ (28.11.2026): có thì cấu hình theo màn, hiện tờ "Trước khi chơi", tính sao + "Màn tiếp". */
+  man?: ManTim | null;
 }>();
 const emit = defineEmits<{
   thoat: [];
+  'man-tiep': [id: number];
   'bat-dau': [chon: TimTheChon];
   'ket-thuc': [kq: TimTheKetVan];
 }>();
@@ -53,7 +59,7 @@ const TOI = 'p1';
 const MAY = 'bot';
 const DU_PHONG = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🦁', '🐷', '🐰', '🐨', '🐯', '🐮', '🐙', '🦄', '🐻', '🐔', '🦉', '🐢'];
 
-const chon = ref<TimTheChon>(docChon());
+const chon = ref<TimTheChon>(props.man ? chonCuaMan(props.man) : docChon());
 const kyLuc = ref(docKyLuc(chon.value.soThe, chon.value.doKho));
 
 const giayGon = (ms: number): string => (ms / 1000).toLocaleString(bcp(), { maximumFractionDigits: 1 });
@@ -280,6 +286,11 @@ function ketThuc(v: VanTimThe): void {
     ...c, diem: p.diem, dung: p.dung, soLuot: v.cfg.soLuot, chuoiDai: p.chuoiDai, ketQua, kyLucMoi, giay: Math.round(tVan / 1000),
     nhanhNhatMs: p.nhanhNhatMs ?? null
   };
+  if (props.man) {
+    const sao = saoTim(p.dung), qua = quaManTim(props.man, p.dung, ketQua);
+    if (qua) store.ghiTimCD(props.man.id, sao, p.diem);
+    kq.man = { id: props.man.id, sao: qua ? sao : 0, qua };
+  }
   ketVan.value = kq;
   buoc.value = 'cuoi';
   rev.value++;
@@ -297,11 +308,23 @@ const tomTat = computed(() => {
   void rev.value;
   const v = van.value, k = ketVan.value;
   if (!v || !k) return null;
+  const s = tomTatTim(v, k);
+  return k.man ? { ...s, stars: k.man.sao as 0 | 1 | 2 | 3, status: k.man.qua ? 'won' as const : 'lost' as const } : s;
+});
+/** Dòng dưới hàng sao (Chiến dịch): thiếu mấy lượt đúng cho sao kế, hay vì sao chưa qua. */
+const ghiChuSao = computed((): string | undefined => {
+  const k = ketVan.value, m = props.man;
+  if (!k?.man || !m) return undefined;
+  if (!k.man.qua) return saoTim(k.dung) === 0 ? t('ctd.canIt', { n: MOC_SAO_TIM[0] }) : t('ctd.phaiThang', { may: tenBot(m.may!) });
+  const ke = thieuSaoKe(k.dung);
+  return ke ? t('ctd.conThieu', { n: ke.thieu, sao: '★'.repeat(ke.sao) }) : undefined;
+});
+function tomTatTim(v: VanTimThe, k: TimTheKetVan) {
   return tomTatTimThe(v.nguoi.map((p) => ({
     id: p.id, ten: p.id === TOI ? (tenToi.value || t('tt.ban')) : p.ten, mat: p.may ? BOT_SPECS[p.may].avatar : hoSo.value.mat,
     diem: p.diem, dung: p.dung, chuoiDai: p.chuoiDai
   })), TOI, k.soLuot, k.giay);
-});
+}
 const mauCuaTim = (id: string): string | undefined => (id === TOI ? hoSo.value.mau : mauKhac(0));
 
 function tamDung(): void { if (buoc.value === 'choi') buoc.value = 'dung'; }
@@ -310,7 +333,7 @@ function anTrang(): void { if (document.hidden) tamDung(); }
 onMounted(() => {
   document.addEventListener('visibilitychange', anTrang);
   raf = requestAnimationFrame((ms) => { truoc = ms; raf = requestAnimationFrame(khung); });
-  batDau();
+  if (!props.man) batDau();   // Chiến dịch: chờ bấm "Bắt đầu" ở tờ Trước khi chơi
 });
 onUnmounted(() => {
   clearTimeout(henKq);
@@ -366,7 +389,7 @@ defineExpose({
       <BanVongTim
         ref="banVong" :so-the="van?.cfg.soThe ?? chon.soThe" :hinh="dsThe" :hinh-dich="van && nhip !== 'cho' && nhip !== 'xem' && nhip !== 'up' ? van.hinhDich : null"
         :dich="nhip === 'dap-an' ? (van?.dich ?? null) : null" :nhip="nhip" :chon="chonCuaToi" :cho-cham="buoc === 'choi'" :dung="buoc !== 'choi'"
-        :meo="meoTim.meo.value" @cham="cham" @lat="latBan"
+        :meo="buoc === 'dau' ? null : meoTim.meo.value" @cham="cham" @lat="latBan"
       >
         <template #the="{ i, lat }">
           <template v-if="gain && gain.i === i && nhip === 'dap-an' && lat">
@@ -379,12 +402,34 @@ defineExpose({
       <!-- KẾT QUẢ = ĐÚNG bảng kết quả của ván ghép cặp (ResultDialog, chế độ `tim-the`; chủ dự án 27.11.2026) -->
       <ResultDialog
         v-if="buoc === 'cuoi' && ketVan && hienKq && tomTat"
-        :summary="tomTat" :is-record="ketVan.kyLucMoi" :show-stars="false" :multiplayer="nhieu"
-        :minh-ket-cuc="nhieu ? fx?.loai : undefined" :fresh-achievements="[]" :has-next="false" :tim-the="ketVan.soLuot"
+        :summary="tomTat" :is-record="ketVan.kyLucMoi" :show-stars="!!man" :multiplayer="nhieu"
+        :minh-ket-cuc="nhieu ? fx?.loai : undefined" :fresh-achievements="[]" :tim-the="ketVan.soLuot"
+        :has-next="!!man && !!ketVan.man?.qua && man.id < SO_MAN_TIM" :level-id="man?.id" :ghi-chu-sao="ghiChuSao"
         :nguoi-choi="tomTat.ranking.map((p) => ({ id: p.id, name: p.name, avatar: p.avatar }))" :mau-cua="mauCuaTim"
-        @replay="moChucNang('tim_the_choi_lai'); batDau()" @next="batDau()"
+        @replay="moChucNang('tim_the_choi_lai'); batDau()" @next="man ? emit('man-tiep', man.id + 1) : batDau()"
         @menu="emit('thoat')" @doi-ban="moChucNang('tim_the_doi_cau_hinh'); emit('thoat')"
       />
+    </div>
+
+    <!-- TRƯỚC KHI CHƠI (Chiến dịch, mockup duyệt https://claude.ai/artifact/BZWf4m2Ma6Tp6rGvnBWJrV): số thẻ, tốc độ, máy, mốc sao -->
+    <div v-if="man && buoc === 'dau'" class="truoc-nen">
+      <div class="truoc" role="dialog" :aria-label="t('ctd.man', { n: man.id })">
+        <h2>{{ t('ctd.man', { n: man.id }) }}<span v-if="man.trum" aria-hidden="true"> 👑</span></h2>
+        <p class="tr-chip">
+          <span>{{ t('cd.theN', { n: man.soThe }) }}</span>
+          <span>{{ t(man.doKho === 'de' ? 'tt.de' : man.doKho === 'vua' ? 'tt.vua' : 'tt.kho') }}</span>
+          <span>{{ t('ctd.luot', { n: TIM_THE_SO_LUOT }) }}</span>
+        </p>
+        <p v-if="man.may" class="tr-luat">
+          <span class="tr-mat" aria-hidden="true"><MatBot :mat="BOT_SPECS[man.may].avatar" /></span>
+          <span><b>{{ t('ctd.dauVoi', { may: tenBot(man.may) }) }}</b> {{ t('ctd.luatMay') }}</span>
+        </p>
+        <p class="tr-moc">
+          <span v-for="(m, i) in MOC_SAO_TIM" :key="m"><Sao3D v-for="k in i + 1" :key="k" /> {{ m === TIM_THE_SO_LUOT ? `${m}/${m}` : t('ctd.dungN', { n: m }) }}</span>
+        </p>
+        <button class="btn btn-primary" type="button" @click="moChucNang('tim_the_chien_dich', { man: man.id }); batDau()">{{ t('ctd.batDau', { n: man.id }) }}</button>
+        <button class="btn link" type="button" @click="emit('thoat')">{{ t('ctd.veBanDo') }}</button>
+      </div>
     </div>
 
     <DemNguocPhu v-if="buoc === 'choi' && nhip === 'cho' && demSo > 0" :n="demSo" :tam="tamDem" />
@@ -407,6 +452,22 @@ defineExpose({
 </template>
 
 <style scoped>
+.truoc-nen { position: absolute; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; padding: 12px; background: rgba(10, 15, 42, .45); }
+.truoc {
+  width: min(100%, 460px); box-sizing: border-box; padding: 20px 18px 12px; border-radius: var(--r-lg, 24px);
+  background: var(--panel-solid); color: var(--fg); box-shadow: var(--elev-2, 0 -6px 30px rgba(0, 0, 0, .3));
+  display: flex; flex-direction: column; gap: 10px; text-align: center;
+}
+.truoc h2 { margin: 0; font-family: var(--font-display); font-size: 28px; }
+.tr-chip { margin: 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.tr-chip span { padding: 4px 12px; border-radius: 999px; background: var(--panel-soft); font-weight: 800; font-size: 14px; }
+.tr-luat {
+  margin: 0; display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 12px; font-size: 14px;
+  border-radius: var(--r-md, 16px); border: 2px solid color-mix(in srgb, var(--accent) 40%, var(--line)); background: var(--panel-soft);
+}
+.tr-mat { width: 44px; height: 44px; flex: none; font-size: 32px; display: grid; place-items: center; }
+.tr-moc { margin: 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; font-weight: 800; color: var(--muted); }
+.tr-moc span { white-space: nowrap; }
 .tim-the {
   /* KHÔNG `height: 100%`: <main> không có chiều cao xác định nên % rơi về chiều cao nội dung — màn cấu hình (bàn còn
      trống) co về 0 và mất hẳn (bắt được ở ảnh chụp 26.11.2026). Kéo giãn theo trục chéo của <main> thì luôn đủ cao. */
