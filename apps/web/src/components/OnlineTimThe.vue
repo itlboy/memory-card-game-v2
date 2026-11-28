@@ -190,6 +190,9 @@ const coApp = typeof document !== 'undefined' && !!document.getElementById('app'
 let choLat: TimView | null = null;
 /** 3-2-1 ở nhịp `cho` giữa các lượt (đo theo giờ server gửi kèm). Khai báo TRƯỚC watch immediate (TDZ). */
 const demSo = ref(0);
+/** Số 3-2-1 đặt đúng tâm thẻ giữa (đo lại mỗi số — xoay máy / đổi cỡ giữa chừng vẫn đúng). */
+const tamDem = ref<[number, number] | null>(null);
+watch(demSo, (n) => { if (n > 0) tamDem.value = banVong.value?.tamGiua() ?? null; });
 let choTu = 0, choDai = 0;
 /** Mốc + độ dài nhịp NHÌN — vạch đếm ngược quanh thẻ giữa lúc nhìn (y hệt lúc tìm, 27.11.2026). */
 let xemTu = 0, xemDai = 0;
@@ -376,7 +379,7 @@ onBeforeUnmount(() => { clearTimeout(henKq); henLo.forEach(clearTimeout); dangTi
 
     <div class="ott-ban">
       <!-- 3-2-1 trước MỖI lần lật cho nhớ — cùng lớp phủ tối của đếm ngược vào ván (khung lo đếm ngược vào ván) -->
-      <DemNguocPhu v-if="o.countdownLeft.value === null && demSo > 0 && pha === 'cho'" :n="demSo" />
+      <DemNguocPhu v-if="o.countdownLeft.value === null && demSo > 0 && pha === 'cho'" :n="demSo" :tam="tamDem" />
       <BanVongTim
         ref="banVong" :so-the="soThe" :hinh="hinh" :hinh-dich="v?.hinhDich ?? null" :dich="v?.dich ?? null"
         :nhip="nhipBan" :chon="chonCuaToi" :cho-cham="!xem" :meo="meoTim.meo.value" @cham="cham" @lat="latBan"

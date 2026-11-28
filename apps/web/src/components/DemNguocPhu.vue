@@ -12,15 +12,20 @@
  */
 import MatNguoi from './MatNguoi.vue';
 
-/** `diTruoc`: dòng "X đi trước" dưới con số (ghép cặp online — ván có lượt). */
-defineProps<{ n: number; diTruoc?: { mat?: string; anh?: string; chu: string } | null }>();
+/**
+ * `diTruoc`: dòng "X đi trước" dưới con số (ghép cặp online — ván có lượt).
+ * `tam`: toạ độ màn hình [x, y] để đặt CON SỐ (Tìm Thẻ: tâm thẻ giữa — chủ dự án 28.11.2026: "số đếm cũng ở vị trí lá bài giữa
+ * cho cân đối"). Không có thì số ở giữa màn như cũ.
+ */
+defineProps<{ n: number; diTruoc?: { mat?: string; anh?: string; chu: string } | null; tam?: [number, number] | null }>();
 const coApp = typeof document !== 'undefined' && !!document.getElementById('app');
 </script>
 
 <template>
   <Teleport to="#app" :disabled="!coApp">
     <div class="dem-phu" role="status" aria-live="assertive">
-      <span :key="n" class="so">{{ n }}</span>
+      <span v-if="tam" class="dat" :style="{ left: `${tam[0]}px`, top: `${tam[1]}px` }"><span :key="n" class="so">{{ n }}</span></span>
+      <span v-else :key="n" class="so">{{ n }}</span>
       <span v-if="diTruoc" class="first"><span class="mat-dau"><MatNguoi :mat="diTruoc.mat" :anh="diTruoc.anh" /></span> <b>{{ diTruoc.chu }}</b></span>
     </div>
   </Teleport>
@@ -36,6 +41,8 @@ const coApp = typeof document !== 'undefined' && !!document.getElementById('app'
   pointer-events: none;
 }
 @keyframes phu { from { background-color: rgba(10, 14, 40, 0); } }
+/* Đặt số theo `tam`: khối bọc lo dời chỗ, con số bên trong vẫn nảy (animation `pop` dùng transform riêng) */
+.dat { position: absolute; transform: translate(-50%, -50%); line-height: 0; }
 .so {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(80px, 30vw, 150px); line-height: 1;

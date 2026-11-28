@@ -177,11 +177,13 @@ export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
     for (let d = 27; d >= 0; d--) {
       const t = new Date(nay); t.setDate(nay.getDate() - d);
       const k = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
-      const p = Math.min(1, Math.max(0, (27 - d) / 27 + 0.07 * Math.sin(d * 1.7)));
-      const nho = (a) => [Math.round(a * (0.55 + 0.4 * p)), 0, Math.round(a * (0.5 + 0.42 * p)), Math.round(a * (0.3 + 0.35 * p)), 0];
-      const quen = (a) => [Math.round(a * (0.45 - 0.37 * p)), 0, Math.round(a * (0.5 - 0.38 * p)), Math.round(a * (0.3 - 0.22 * p)), 0];
-      tn[k] = { ban: { 7: { van: 2, nho: nho(6), quen: quen(6), may: [0.4, 0, 0.5, 0.2, 0] }, 11: { van: 2, nho: nho(9), quen: quen(9), may: [0.5, 0, 0.6, 0.3, 0] },
-        18: { van: 1, nho: nho(14), quen: quen(14), may: [0.6, 0, 0.7, 0.3, 0] } }, tam: 8 + Math.round(10 * p) };
+      const p = Math.min(1, Math.max(0, (27 - d) / 27 + 0.05 * Math.sin(d * 1.7)));
+      // ĐỦ 5 cột (28.11.2026: cột 2–3 lượt / 16+ lượt để 0 thì ảnh store hiện "0/5" trông như lỗi) và đi lên RÕ — đầu kỳ yếu
+      // hẳn (~30%) để đường "theo thời gian" có dốc, không phẳng lì
+      const nho = (a) => [Math.round(a * (0.45 + 0.5 * p)), Math.round(a * (0.4 + 0.5 * p)), Math.round(a * (0.3 + 0.55 * p)), Math.round(a * (0.2 + 0.55 * p)), Math.round(a * (0.1 + 0.5 * p))];
+      const quen = (a) => [Math.round(a * (0.55 - 0.5 * p)), Math.round(a * (0.6 - 0.5 * p)), Math.round(a * (0.7 - 0.55 * p)), Math.round(a * (0.8 - 0.55 * p)), Math.round(a * (0.9 - 0.5 * p))];
+      tn[k] = { ban: { 7: { van: 2, nho: nho(6), quen: quen(6), may: [0.4, 0.3, 0.5, 0.2, 0.1] }, 11: { van: 2, nho: nho(9), quen: quen(9), may: [0.5, 0.4, 0.6, 0.3, 0.15] },
+        18: { van: 1, nho: nho(14), quen: quen(14), may: [0.6, 0.5, 0.7, 0.3, 0.2] } }, tam: 8 + Math.round(10 * p) };
     }
     s.triNho = tn; localStorage.setItem('mm.v2', JSON.stringify(s)); return true; })()`);
   await trangChu(); await bam(L.tn); await cho(1800); await chupTho('triNho');

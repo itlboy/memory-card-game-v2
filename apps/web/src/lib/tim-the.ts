@@ -44,6 +44,8 @@ const VONG_CHUAN: Record<number, readonly [number, number, number]> = {
   3: [88, 130, 156], 4: [88, 118, 144], 5: [88, 124, 176], 6: [88, 130, 156], 7: [84, 126, 188], 8: [76, 128, 164], 9: [68, 134, 236]
 };
 export interface BanVong { w: number; h: number; tam: [number, number]; vi: [number, number][] }
+/** Phần khoảng trống phía trên bàn vòng (màn dọc) dời lên — xem `bayVong`. */
+export const TIM_BAN_NHICH_LEN = 0.4;
 export function bayVong(n: number, rong: number, cao: number): BanVong {
   const ngang = rong > cao * 1.1;
   let w: number, rx: number, ry: number;
@@ -65,7 +67,10 @@ export function bayVong(n: number, rong: number, cao: number): BanVong {
   });
   const tren = Math.min(cao / 2 - h / 2, ...vi.map((c) => c[1] - h / 2));
   const duoi = Math.max(cao / 2 + h / 2, ...vi.map((c) => c[1] + h / 2));
-  const doi = cao / 2 - (tren + duoi) / 2;
+  // Màn DỌC: không căn đúng giữa mà nhích lên 40% khoảng trống trên (chủ dự án 28.11.2026: "bàn chơi chưa đặt ở trung tâm
+  // mắt… cao lên một xíu") — vùng bàn kéo tới đáy màn (thanh home, đồi nền) nên tâm hình học trông thấp.
+  const thua = Math.max(0, (cao - (duoi - tren)) / 2);
+  const doi = cao / 2 - (tren + duoi) / 2 - (ngang ? 0 : thua * TIM_BAN_NHICH_LEN);
   for (const c of vi) c[1] += doi;
   return { w, h, tam: [rong / 2, cao / 2 + doi], vi };
 }

@@ -127,7 +127,13 @@ function veGio(conLai: number | null, trong: boolean): void {
   if (!nhipSau) nhipSau = now + 350;
   if (now >= nhipSau && conLai > 0.03) { sfx.timTrong(conLai < 0.25); nhipSau = now + (conLai > 0.5 ? 1000 : conLai > 0.25 ? 700 : 450); }
 }
-defineExpose({ veGio });
+/** Tâm thẻ giữa trên MÀN HÌNH (px) — màn cha đặt số đếm ngược 3-2-1 đúng chỗ đó (DemNguocPhu `tam`). */
+const giuaEl = ref<HTMLElement | null>(null);
+function tamGiua(): [number, number] | null {
+  const r = giuaEl.value?.getBoundingClientRect();
+  return r && r.width ? [r.left + r.width / 2, r.top + r.height / 2] : null;
+}
+defineExpose({ veGio, tamGiua });
 
 const D = 'M62 2.5 H105.5 A16 16 0 0 1 121.5 18.5 V138.5 A16 16 0 0 1 105.5 154.5 H18.5 A16 16 0 0 1 2.5 138.5 V18.5 A16 16 0 0 1 18.5 2.5 Z';
 const ketQua = computed(() => props.nhip === 'dap-an' || props.nhip === 'xong');
@@ -174,7 +180,7 @@ onBeforeUnmount(() => { ro?.disconnect(); clearInterval(henVong); henQuay.forEac
     </div>
 
     <!-- THẺ CẦN TÌM ở tâm: markup RIÊNG (không `.card`) để skin không đè lưng vàng -->
-    <div class="giua" :class="{ ngua: giuaNgua, 'meo-vien': meo?.vien }" :style="{ left: `${bv.tam[0]}px`, top: `${bv.tam[1]}px`, width: `${bv.w}px`, height: `${bv.h}px` }" aria-hidden="true">
+    <div ref="giuaEl" class="giua" :class="{ ngua: giuaNgua, 'meo-vien': meo?.vien }" :style="{ left: `${bv.tam[0]}px`, top: `${bv.tam[1]}px`, width: `${bv.w}px`, height: `${bv.h}px` }" aria-hidden="true">
       <svg ref="gioEl" class="gio" viewBox="0 0 124 157" preserveAspectRatio="none" style="opacity: 0">
         <path class="nen" :d="D" pathLength="100" stroke-dasharray="100 100" />
         <path class="chay" :class="mauGio" :d="D" pathLength="100" stroke-dasharray="100 100" />

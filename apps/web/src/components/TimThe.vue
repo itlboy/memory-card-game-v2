@@ -142,6 +142,9 @@ let hen: ReturnType<typeof setTimeout>[] = [];
 function vaoNhip(n: Nhip): void { nhip.value = n; tNhip = 0; giayCu = -1; rev.value++; if (n === 'cho') demSo.value = 0; }
 /** Số đang đếm 3-2-1 ở nhịp `cho` (trước MỖI lần lật cho nhớ, lớp phủ tối — 27.11.2026); 0 = không hiện. */
 const demSo = ref(0);
+/** Số 3-2-1 đặt đúng tâm thẻ giữa (đo lại mỗi số — xoay máy / đổi cỡ giữa chừng vẫn đúng). */
+const tamDem = ref<[number, number] | null>(null);
+watch(demSo, (n) => { if (n > 0) tamDem.value = banVong.value?.tamGiua() ?? null; });
 
 function khung(ms: number): void {
   const dt = Math.min(100, ms - truoc);
@@ -383,7 +386,7 @@ defineExpose({
       />
     </div>
 
-    <DemNguocPhu v-if="buoc === 'choi' && nhip === 'cho' && demSo > 0" :n="demSo" />
+    <DemNguocPhu v-if="buoc === 'choi' && nhip === 'cho' && demSo > 0" :n="demSo" :tam="tamDem" />
     <Teleport to="#app" :disabled="!coApp">
       <KetCucFx v-if="buoc === 'cuoi' && fx" :loai="fx.loai" :ky-luc="fx.kyLuc" :seed="fx.seed" />
     </Teleport>

@@ -398,6 +398,8 @@
   (k+1)/n, trần 97%; chọn sau 60–95% … 20–45% giờ chọn. Đối thủ chọn NGAY trong màn cấu hình (một mình / 5 máy).
 - Thưởng: xu = điểm của mình, thua vẫn được, đấu Gà mờ 0 xu. Đấu máy lên sổ tài khoản + bộ đếm thắng máy như ghép
   cặp; một mình chỉ đếm ván/chuỗi ngày + `dongBo`. CHƯA tính Chỉ số trí nhớ, danh hiệu (công thức dựa trên ghép cặp).
+  Bàn vòng màn dọc NHÍCH LÊN 40% khoảng trống trên (`TIM_BAN_NHICH_LEN`, chủ dự án 28.11.2026 "chưa ở trung tâm mắt"); số đếm
+  3-2-1 đặt ĐÚNG tâm thẻ giữa (`BanVongTim.tamGiua()` → `DemNguocPhu` prop `tam`). Mockup duyệt https://claude.ai/artifact/Y318uAKvc9s2m34DG2g3RS
   MẸO LẦN ĐẦU (28.11.2026, mockup duyệt https://claude.ai/artifact/23vzn9H7Zh5qTGRSZprbGX): `lib/meo-tim-the.ts` + prop `meo`
   của BanVongTim — bong bóng trên lá cao nhất lúc `xem` ("Nhớ vị trí từng lá") và `noi`/`hoi` ("Lá nào giống thẻ giữa?" + viền vàng
   thẻ giữa); không phủ tối, không chặn chạm; chạm bàn hoặc hết pha hỏi đầu = xong hẳn (`mm.meo.timThe`). Không cho người xem.
