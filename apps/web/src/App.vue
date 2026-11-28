@@ -33,7 +33,7 @@ import { canhNgauNhien, doiCanhNgauNhien } from './lib/canh';
 import { denGioDoi, ghiMocDoi } from './lib/ngau-nhien';
 import { tenBaiNhac } from './lib/ten-bai-nhac';
 import { boVuaThang, ghiVuaThang, thuXinDanhGia } from './lib/xin-danh-gia';
-import { nenHoiNhac, vuaThang as vuaThangGv } from './lib/gio-vang';
+import { lanX2, nenHoiNhac, vuaThang as vuaThangGv } from './lib/gio-vang';
 import { coChuong, gioVangBat } from './lib/thong-bao';
 import HoiNhacGioVang from './components/HoiNhacGioVang.vue';
 import MatKhauDebug from './components/MatKhauDebug.vue';
@@ -885,6 +885,14 @@ onUnmounted(() => { clearInterval(henNgauNhien); document.removeEventListener('v
  * thì KHÔNG xin đánh giá chồng lên (xin-danh-gia `boVuaThang`). Không đủ điều kiện hỏi → xin đánh giá như cũ.
  */
 const hienHoiGv = ref(false);
+/* Giờ vàng: một khoản xu vừa được nhân đôi (lib/gio-vang-gio.ts `lanX2`) → dải báo + sự kiện đo. Gộp các lần sát nhau (một ván có thể cộng hai cửa). */
+let x2Luc = 0;
+watch(lanX2, () => {
+  if (Date.now() - x2Luc < 3000) return;
+  x2Luc = Date.now();
+  moChucNang('gio_vang_x2');
+  baoNoi({ loai: 'tot', ic: 'lua', chu: t('gv.x2'), ms: 3500 });
+});
 watch(screen, (sc, cu) => {
   if (sc !== 'menu' || cu === 'menu') return;
   setTimeout(() => {
@@ -1549,7 +1557,8 @@ const hasNext = computed(() => {
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
   <BaoLoiDialog v-if="showBaoLoi" @xong="showBaoLoi = false" />
   <!-- Dải báo chung ngoài màn online — chỉ bản cổng game cần (báo quà Premium); màn online tự gắn bản của nó, đừng gắn hai bản cùng lúc -->
-  <DaiBao v-if="laCong && screen !== 'online'" />
+  <!-- Dải báo chung ngoài màn online (màn online tự gắn bản của nó): báo quà Premium ở bản cổng, và "Giờ vàng: ×2 xu" ở mọi bản -->
+  <DaiBao v-if="screen !== 'online'" />
   <HoiNhacGioVang v-if="hienHoiGv && screen === 'menu'" @close="hienHoiGv = false" />
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />

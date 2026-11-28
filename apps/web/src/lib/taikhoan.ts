@@ -5,6 +5,7 @@ import { moKhoa } from './achievements';
 import { laApp, nenApp, SERVER_URL } from './native';
 import { laNhung } from './nen-fb';
 import { datMaNguoi, moChucNang, suKien } from './phan-tich';
+import { heSoXu } from './gio-vang-gio';
 
 /**
  * TÀI KHOẢN phía client — đăng nhập Google hoặc Apple, hồ sơ, gửi kết quả ván.
@@ -317,7 +318,7 @@ export async function dongBo(): Promise<void> {
  */
 function keoVeMay(h: HoSo): void {
   const thieu = h.totalScore - store.totalScore();
-  if (thieu > 0) store.addScore(thieu);
+  if (thieu > 0) store.addScore(thieu, false);   // đồng bộ từ server — đã tính giờ vàng lúc ghi ván, không nhân lại
   // Lặng lẽ: đồng bộ không phải là vừa đạt được gì
   moKhoa(h.achievements, { im: true });
   store.mergeBest(h.best);
@@ -406,7 +407,8 @@ export async function ghiVan(van: VanBao): Promise<void> {
   if (!me.value && !conTheMay.value) { void guiKhach(); return; }
   const daRa = !me.value;
   try {
-    const r = await goi<{ me: HoSo }>('/api/me/van', { method: 'POST', body: JSON.stringify(van) });
+    // Giờ vàng: điểm ván ×2 ở server cùng như tổng trên máy (store.addScore) — giữ hai tổng khớp nhau
+    const r = await goi<{ me: HoSo }>('/api/me/van', { method: 'POST', body: JSON.stringify({ ...van, score: van.score * heSoXu() }) });
     if (daRa) { if (!me.value) moChucNang('van_the_may'); return; }
     me.value = r.me;
     keoVeMay(r.me);   // máy kia vừa chơi thì tổng ở server cao hơn máy này

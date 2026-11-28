@@ -1,6 +1,7 @@
 import { CAMPAIGN_LEVELS, DEFAULT_OPTIONS, LEVEL_KEYS, coHoiNho, doiDanhHieu, doiThemeIds, rongNhomTuoi, sanitizeOptions } from '@mm/engine';
 import type { BoardOptions, Mode, RoomConfig } from '@mm/engine';
 import { ref } from 'vue';
+import { heSoXu } from './gio-vang-gio';
 
 /**
  * Nhịp "tổng xu vừa được CỘNG" (23.11.2026, chủ dự án: "phải sang trang chủ mới cập nhật điểm và thứ hạng… làm luôn lúc đó,
@@ -263,7 +264,7 @@ export const store = {
     const key = `${mode}:L${level}`;
     const better = !s.best[key] || r.score > s.best[key]!.score;
     if (better) s.best[key] = r;
-    s.totalScore = (s.totalScore ?? 0) + r.score;
+    s.totalScore = (s.totalScore ?? 0) + r.score * heSoXu(new Date(), true);   // giờ vàng ×2 — kỷ lục (best) giữ điểm gốc
     write(s);
     return better;
   },
@@ -336,10 +337,11 @@ export const store = {
 
   /** Cộng điểm vào tổng tích luỹ mà không ghi kỷ lục — dùng cho ván thi đấu
    *  (nhiều người / online), nơi kỷ lục theo lưới không có nghĩa. */
-  addScore(score: number): void {
+  addScore(score: number, gioVang = true): void {
     if (score <= 0) return;
     const s = read();
-    s.totalScore = (s.totalScore ?? 0) + score;
+    // Giờ vàng (lib/gio-vang-gio.ts): ×2 mọi ván; `gioVang = false` cho đường đồng bộ xu từ server (taikhoan.ts)
+    s.totalScore = (s.totalScore ?? 0) + score * (gioVang ? heSoXu(new Date(), true) : 1);
     write(s);
     diemVuaCong.value++;
   },

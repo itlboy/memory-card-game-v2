@@ -152,21 +152,21 @@ export const GV_NHAC_TU_PHUT = 19 * 60 + 55;
 export const GV_NHAC_DEN_PHUT = 20 * 60 + 5;
 export const GV_MO_TU_PHUT = 19 * 60;
 export const CHU_GV: Record<string, { tieuDe: string; than: string }> = {
-  vi: { tieuDe: 'Giờ vàng bắt đầu lúc 20:00', than: 'Vào chơi online cùng mọi người — thắng được gấp đôi xu.' },
-  en: { tieuDe: 'Golden Hour starts at 8 PM', than: 'Play online with everyone — wins earn double coins.' },
-  es: { tieuDe: 'La Hora Dorada empieza a las 20:00', than: 'Juega en línea con todos: las victorias dan el doble de monedas.' },
-  pt: { tieuDe: 'A Hora Dourada começa às 20h', than: 'Jogue online com todo mundo — vitórias valem o dobro de moedas.' },
-  fr: { tieuDe: 'L’Heure dorée commence à 20 h', than: 'Joue en ligne avec tout le monde : les victoires rapportent deux fois plus de pièces.' },
-  de: { tieuDe: 'Die Goldene Stunde beginnt um 20 Uhr', than: 'Spiel online mit allen – Siege bringen doppelte Münzen.' },
-  it: { tieuDe: 'L’Ora d’oro inizia alle 20:00', than: 'Gioca online con tutti: le vittorie valgono il doppio delle monete.' },
-  tr: { tieuDe: 'Altın Saat 20:00’de başlıyor', than: 'Herkesle çevrimiçi oyna — galibiyetler iki kat jeton kazandırır.' },
-  ja: { tieuDe: 'ゴールデンアワーは20時から', than: 'みんなとオンライン対戦 — 勝つとコインが2倍。' },
-  ko: { tieuDe: '골든 아워가 오후 8시에 시작돼요', than: '모두와 온라인으로 플레이하세요 — 이기면 코인 2배.' },
-  zh: { tieuDe: '黄金时段 20:00 开始', than: '和大家一起在线对战，获胜金币翻倍。' },
-  'zh-TW': { tieuDe: '黃金時段 20:00 開始', than: '和大家一起線上對戰，獲勝金幣加倍。' },
-  ru: { tieuDe: 'Золотой час начинается в 20:00', than: 'Играйте онлайн со всеми — за победы вдвое больше монет.' },
-  id: { tieuDe: 'Jam Emas mulai pukul 20.00', than: 'Main online bareng semua — menang dapat koin dua kali lipat.' },
-  th: { tieuDe: 'ชั่วโมงทองเริ่ม 20:00 น.', than: 'มาเล่นออนไลน์กับทุกคน ชนะได้เหรียญสองเท่า' }
+  vi: { tieuDe: "Giờ vàng bắt đầu lúc 20:00", than: "Mở Lật Thẻ — chơi gì cũng được gấp đôi xu." },
+  en: { tieuDe: "Golden Hour starts at 8 PM", than: "Open Flip Match — every game earns double coins." },
+  es: { tieuDe: "La Hora Dorada empieza a las 20:00", than: "Abre Flip Match: cada partida da el doble de monedas." },
+  pt: { tieuDe: "A Hora Dourada começa às 20h", than: "Abra o Flip Match — toda partida vale o dobro de moedas." },
+  fr: { tieuDe: "L’Heure dorée commence à 20 h", than: "Ouvre Flip Match : chaque partie rapporte deux fois plus de pièces." },
+  de: { tieuDe: "Die Goldene Stunde beginnt um 20 Uhr", than: "Öffne Flip Match – jedes Spiel bringt doppelte Münzen." },
+  it: { tieuDe: "L’Ora d’oro inizia alle 20:00", than: "Apri Flip Match: ogni partita vale il doppio delle monete." },
+  tr: { tieuDe: "Altın Saat 20:00’de başlıyor", than: "Flip Match’i aç — her oyun iki kat jeton kazandırır." },
+  ja: { tieuDe: "ゴールデンアワーは20時から", than: "Flip Matchを開こう — どのゲームもコインが2倍。" },
+  ko: { tieuDe: "골든 아워가 오후 8시에 시작돼요", than: "Flip Match를 열어 보세요 — 모든 게임 코인 2배." },
+  zh: { tieuDe: "黄金时段 20:00 开始", than: "打开 Flip Match，玩什么都金币翻倍。" },
+  "zh-TW": { tieuDe: "黃金時段 20:00 開始", than: "打開 Flip Match，玩什麼都金幣加倍。" },
+  ru: { tieuDe: "Золотой час начинается в 20:00", than: "Откройте Flip Match — за любую игру вдвое больше монет." },
+  id: { tieuDe: "Jam Emas mulai pukul 20.00", than: "Buka Flip Match — main apa saja dapat koin dua kali lipat." },
+  th: { tieuDe: "ชั่วโมงทองเริ่ม 20:00 น.", than: "เปิด Flip Match — เล่นอะไรก็ได้เหรียญสองเท่า" },
 };
 export function chuGioVang(lang: string): { tieuDe: string; than: string } { return CHU_GV[lang] ?? CHU_GV.en!; }
 /** Ngày địa phương (số ngày kể từ epoch, theo giờ máy) + phút trong ngày. Thuần — có test. */

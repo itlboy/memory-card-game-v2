@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import { laApp } from './native';
 import { laNhung } from './nen-fb';
-import { moChucNang, suKien } from './phan-tich';
+import { suKien } from './phan-tich';
 
 /**
  * GIỜ VÀNG MỖI TỐI (28.11.2026, mockup duyệt https://claude.ai/artifact/TdLTzxW8Hc61MU3F23cvkk — mục tiêu 100 người online:
@@ -9,25 +9,12 @@ import { moChucNang, suKien } from './phan-tich';
  * chốt; "giờ vàng thế giới" — một giờ chung — để sau).
  *  · Trang chủ: huy hiệu trên ô Chơi online — đếm ngược trong 3 tiếng trước, "×2 xu" trong giờ (MenuScreen).
  *  · Sảnh online: dải vàng + phút còn lại (OnlineScreen).
- *  · Thắng ván online trong giờ: ×2 xu (`heSoXu`) — xu cộng ở client, server chỉ chặn > DIEM_TOI_DA/ván.
+ *  · MỌI ván trong giờ: ×2 xu (lib/gio-vang-gio.ts `heSoXu`, áp ở store.addScore/saveResult + taiKhoan.ghiVan).
  *  · Nhắc 19:55 (server apps/node-server/src/thongbao.ts `vongGioVang`), chỉ máy TỰ BẬT (lib/thong-bao.ts `batGioVang`).
  *  · Hỏi bật nhắc: sau ván THẮNG, khi về trang chủ, chỉ trong APP, tối đa 2 lần cách nhau ≥ 7 ngày (`nenHoiNhac`).
  */
-export const GIO_BAT_DAU = 20;
-export const GIO_KET_THUC = 21;
-/** Huy hiệu đếm ngược hiện trong bấy nhiêu giờ trước giờ vàng. */
-export const BAO_TRUOC_GIO = 3;
-
-export interface TrangThaiGv { dang: boolean; conPhut: number; truocPhut: number | null }
-
-/** Thuần — có test. `conPhut` = phút còn lại khi đang diễn ra; `truocPhut` = phút tới giờ vàng nếu trong BAO_TRUOC_GIO. */
-export function trangThaiGioVang(now: Date): TrangThaiGv {
-  const phut = now.getHours() * 60 + now.getMinutes();
-  const bd = GIO_BAT_DAU * 60, kt = GIO_KET_THUC * 60;
-  if (phut >= bd && phut < kt) return { dang: true, conPhut: kt - phut, truocPhut: null };
-  const toi = bd - phut;
-  return { dang: false, conPhut: 0, truocPhut: toi > 0 && toi <= BAO_TRUOC_GIO * 60 ? toi : null };
-}
+export { BAO_TRUOC_GIO, GIO_BAT_DAU, GIO_KET_THUC, heSoXu, lanX2, trangThaiGioVang, type TrangThaiGv } from './gio-vang-gio';
+import { trangThaiGioVang, type TrangThaiGv } from './gio-vang-gio';
 
 /** Đồng hồ giờ vàng — đọc lại mỗi 20 giây (đủ mịn cho "còn N phút"). */
 export const gioVang = ref<TrangThaiGv>(trangThaiGioVang(new Date()));
@@ -39,13 +26,6 @@ export const dangGioVang = computed(() => gioVang.value.dang);
 
 /** "1:15" / "0:05" — giờ:phút còn lại tới giờ vàng. */
 export function dinhDangCon(phut: number): string { return `${Math.floor(phut / 60)}:${String(phut % 60).padStart(2, '0')}`; }
-
-/** Hệ số xu cho một ván ONLINE vừa xong: thắng trong giờ vàng → 2 (ghi sự kiện), còn lại 1. */
-export function heSoXu(thang: boolean, now = new Date()): number {
-  if (!thang || !trangThaiGioVang(now).dang) return 1;
-  moChucNang('gio_vang_x2');
-  return 2;
-}
 
 /* ---------- hỏi bật nhắc ---------- */
 const KHOA_HOI = 'mm.gvHoi';

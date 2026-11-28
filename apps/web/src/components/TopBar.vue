@@ -5,7 +5,7 @@ import { daMuaPremium, hienPremium, huyHieu, huyHieuDangDeo, moiNangCap } from '
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { tenBaiNhac } from '@/lib/ten-bai-nhac';
 import DauPremium from './DauPremium.vue';
-import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Crown, Flame, HelpCircle, Image, Info, Languages, MailPlus, Menu, MessageSquareWarning, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Clock, Crown, Flame, HelpCircle, Image, Info, Languages, MailPlus, Menu, MessageSquareWarning, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -26,6 +26,7 @@ import DongXu from './DongXu.vue';
 import { sfx } from '@/lib/audio';
 import { daXemMeoXu, doiHangCho, hangXu, hoiLanDau, hoiSauDiem, tatMeoXu, type KieuDoiHang } from '@/lib/hang-xu';
 import type { SoundLevel } from '@/lib/storage';
+import { dinhDangCon, gioVang } from '@/lib/gio-vang';
 
 /** `account`: server có tài khoản không — không có (bản Cloudflare) thì giấu nút.
  *  `avatar`: ảnh Google của người đang đăng nhập, null là chưa đăng nhập. */
@@ -376,6 +377,12 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
         <i v-if="gain" :key="gain.key" class="gain" aria-hidden="true">+{{ num(gain.amount) }}</i>
       </Transition>
     </button>
+    <!-- GIỜ VÀNG (28.11.2026, lib/gio-vang.ts): nhãn vàng dưới viên xu — "20:00" trong 3 tiếng trước, "×2 xu" trong 20:00–21:00 giờ máy
+         (MỌI ván được ×2 xu, nên nhãn nằm ở XU chứ không ở ô Chơi online). Chữ đầy đủ ở aria-label. -->
+    <span
+      v-if="gioVang.dang || gioVang.truocPhut !== null" class="nhan-gv"
+      :aria-label="gioVang.dang ? t('gv.dang') : t('gv.sau', { t: dinhDangCon(gioVang.truocPhut ?? 0) })"
+    ><component :is="gioVang.dang ? Flame : Clock" :size="11" :stroke-width="2.8" aria-hidden="true" />{{ gioVang.dang ? t('gv.x2Ngan') : '20:00' }}</span>
     <Transition name="nhac-xu">
       <div v-if="meo && !doiHang" class="nhac-xu meo-xu" role="note">
         {{ t('tb.meoXu') }}
@@ -725,6 +732,13 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: clamp(17px, 5.2vw, var(--text-
 }
 /* Huy hiệu hạng + hiệu ứng lên hạng + lời nhắc (19.11.2026) */
 .xu-wrap { position: relative; flex-shrink: 0; display: flex; }
+.nhan-gv {
+  position: absolute; bottom: -10px; left: 50%; translate: -50% 0; z-index: 3; display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 7px 1px 5px; border-radius: 10px; rotate: -3deg; pointer-events: none; white-space: nowrap;
+  background: linear-gradient(#ffd54a, #f5a400); color: #5a2d00; border: 2px solid #fff;
+  font: 800 11px/1.2 var(--font-display, inherit); font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 #b86e00;
+}
+.nhan-gv svg { flex: none; color: #7a3a00; }
 .hg {
   display: inline-flex; align-items: center; gap: 2px; margin-left: 1px; padding: 1px 6px 1px 4px;
   border-radius: var(--r-full); background: #fff1c7; color: #8a5a00;

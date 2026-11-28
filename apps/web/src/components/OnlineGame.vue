@@ -26,8 +26,6 @@ import ResultDialog from './ResultDialog.vue';
 import OptionIcon from './OptionIcon.vue';
 import type { useOnlineRoom } from '@/composables/useOnlineRoom';
 import { ghiVuaThang } from '@/lib/xin-danh-gia';
-import { heSoXu } from '@/lib/gio-vang';
-import { baoNoi } from '@/lib/dai-bao';
 
 /**
  * Màn ĐANG CHƠI của phòng online.
@@ -418,10 +416,7 @@ watch(() => o.view.value?.summary, (s) => {
     thongKe: thongKeHienTai(taiKhoan.me.value?.wins ?? 0)
   });
   moKhoa(dat, { treMs: HIEN_BANG_MS[chonCanh(loaiKetCuc.value)] + 400 });
-  // Giờ vàng (lib/gio-vang.ts): thắng ván online trong 20:00–21:00 giờ máy → ×2 xu, báo bằng dải nổi
-  const heSo = heSoXu(loaiKetCuc.value === 'thang');
-  const diemToi = (s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0) * heSo;
-  if (heSo > 1 && diemToi > 0) baoNoi({ loai: 'tot', ic: 'lua', chu: t('gv.x2') });
+  const diemToi = s.ranking.find((r) => r.id === o.myId.value)?.score ?? 0;   // giờ vàng ×2: nhân ở store.addScore + taiKhoan.ghiVan
   /*
    * Cộng vào TỔNG MÁY như ván offline (20.11.2026, lỗi: khách chơi online không được điểm xếp hạng —
    * guiKhach gửi `store.totalScore()` mà online chưa bao giờ cộng vào đó). Đã đăng nhập thì keoVeMay

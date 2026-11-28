@@ -25,8 +25,12 @@
 
 Mục tiêu 100 người online: hẹn mọi người vào CÙNG một giờ. 20:00–21:00 **theo giờ máy** người chơi ("giờ vàng thế giới" — một
 giờ chung — chủ dự án để sau). Logic giờ: `lib/gio-vang.ts` (thuần, có test).
-- Trang chủ: nhãn vàng thay nhãn "N online" trên ô Chơi online — đếm ngược trong 3 tiếng trước, "×2 xu" trong giờ.
-- Sảnh online: dải vàng + phút còn lại. Thắng ván online trong giờ → ×2 xu (`heSoXu`, OnlineGame/OnlineTimThe; xu cộng ở client).
+- **MỌI ván trong giờ được ×2 xu** (chủ dự án 28.11.2026: mục tiêu là số người MỞ APP cùng lúc, không chỉ chơi online). Nhân ở HAI cửa
+  chung — `store.addScore`/`saveResult` (tổng máy) và `taiKhoan.ghiVan` (điểm gửi server), logic thuần ở `lib/gio-vang-gio.ts`
+  (không import gì của app: storage dùng nó, tránh vòng import). Đường đồng bộ server → máy gọi `addScore(x, false)` — không nhân.
+  Đừng nhân thêm ở từng màn (sẽ thành ×4). Mỗi lần nhân → `lanX2` → App báo dải "Giờ vàng: ×2 xu" + sự kiện gio_vang_x2.
+- Nhãn vàng DƯỚI VIÊN XU ở thanh trên (TopBar): "20:00" trong 3 tiếng trước, "×2 xu" trong giờ. KHÔNG đè nhãn "N online" ở
+  ô Chơi online (chủ dự án: số người online phải luôn thấy). Sảnh online: dải vàng + phút còn lại.
 - Nhắc 19:55: chỉ máy TỰ BẬT (`batGioVang`), tối đa 1 tin/ngày địa phương, không gửi nếu đã mở app từ 19:00. Server
   `vongGioVang` (thongbao.ts) chạy mỗi phút, GIÀNH tin bằng `UPDATE … gv_day <> hôm nay` → nhiều pod không gửi trùng.
 - **Hai công tắc trên MỘT mã máy**: chuông "báo phòng mới" (cột `room_on`, localStorage `mm.thongBao.phong`) và nhắc giờ vàng
@@ -35,6 +39,7 @@ giờ chung — chủ dự án để sau). Logic giờ: `lib/gio-vang.ts` (thu�
   app, tối đa 2 lần cách ≥ 7 ngày; lần đã hỏi thì KHÔNG xin đánh giá chồng lên. Bật/tắt lại ở Cài đặt.
 - Bấm tin → `?online=1`. Đo: `mo_chuc_nang` gio_vang_vao / gio_vang_x2; sự kiện nhac_hoi / nhac_bat / nhac_mo / nhac_tat.
 - Bản cổng game: không có thông báo (không phải app) — chỉ nhãn, dải và ×2 xu.
+- Tin nhắc: "Mở Lật Thẻ — chơi gì cũng được gấp đôi xu" (CHU_GV ở thongbao.ts, 15 thứ tiếng).
 
 ## BẢN CỔNG GAME — luật khi phát triển (28.11.2026, chủ dự án: "note lại yêu cầu của cổng để kỹ thuật biết")
 

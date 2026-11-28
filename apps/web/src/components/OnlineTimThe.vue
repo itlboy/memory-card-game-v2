@@ -39,8 +39,6 @@ import KetCucFx from './KetCucFx.vue';
 import ResultDialog from './ResultDialog.vue';
 import { HIEN_BANG_MS, chonCanh, type LoaiKetCuc } from '@/lib/ketcuc-fx';
 import MatNguoi from './MatNguoi.vue';
-import { heSoXu } from '@/lib/gio-vang';
-import { baoNoi } from '@/lib/dai-bao';
 
 const props = defineProps<{ o: ReturnType<typeof useOnlineRoom> }>();
 const emit = defineEmits<{ quit: []; chinh: [] }>();
@@ -331,10 +329,7 @@ function ketThuc(moi: TimView): void {
   suKien('van_ket_thuc', { che_do: 'tim_the_online', ket_qua: ketQua, so_the: moi.soThe, tuy_chon: moi.doKho, so_nguoi: moi.nguoi.length, diem: minh.diem });
   // Phòng có MÁY: không xu, không lên sổ (cùng luật ván ghép cặp online — chống cày bằng máy dễ)
   if (coMay.value) return;
-  // Giờ vàng (lib/gio-vang.ts): thắng trong 20:00–21:00 giờ máy → ×2 xu
-  const heSo = heSoXu(ketQua === 'thang');
-  store.addScore(minh.diem * heSo);
-  if (heSo > 1 && minh.diem > 0) baoNoi({ loai: 'tot', ic: 'lua', chu: t('gv.x2') });
+  store.addScore(minh.diem);   // giờ vàng ×2: nhân ở store.addScore
   store.ghiVanBoDem({ thang: ketQua === 'thang', online: true, tim: { dung: minh.dung } });
   if (ketQua === 'thang') ghiVuaThang();
   // Danh hiệu nhóm Tìm Thẻ (29.11.2026) — online không có số "lượt nhanh nhất" của mình nên không xét Phản xạ

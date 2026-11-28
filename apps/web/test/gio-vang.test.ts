@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { HOI_CACH_MS, dinhDangCon, nenHoiNhac, trangThaiGioVang } from '@/lib/gio-vang';
 
 /** GIỜ VÀNG — 20:00–21:00 theo giờ máy; huy hiệu đếm ngược trong 3 tiếng trước; tấm hỏi bật nhắc tối đa 2 lần cách ≥ 7 ngày. */
@@ -30,5 +30,36 @@ describe('lib/gio-vang.ts', () => {
     expect(nenHoiNhac({ ...co, daHoi: { lan: 1, luc: co.now - HOI_CACH_MS + 1 } })).toBe(false);
     expect(nenHoiNhac({ ...co, daHoi: { lan: 1, luc: co.now - HOI_CACH_MS } })).toBe(true);
     expect(nenHoiNhac({ ...co, daHoi: { lan: 2, luc: 0 } })).toBe(false);
+  });
+});
+
+describe('giờ vàng: ×2 xu MỌI ván ở cửa chung (lib/gio-vang-gio.ts)', () => {
+  // heSoXu tắt trong test trừ khi bật cờ — bật cho riêng nhóm này
+  const g = globalThis as { __gioVangTest?: boolean };
+  beforeAll(() => { g.__gioVangTest = true; });
+  afterAll(() => { g.__gioVangTest = false; });
+
+  it('heSoXu: 2 trong 20:00–20:59, 1 ngoài giờ', async () => {
+    const { heSoXu } = await import('@/lib/gio-vang-gio');
+    expect(heSoXu(new Date(2026, 11, 4, 20, 30))).toBe(2);
+    expect(heSoXu(new Date(2026, 11, 4, 21, 0))).toBe(1);
+    expect(heSoXu(new Date(2026, 11, 4, 19, 59))).toBe(1);
+  });
+
+  it('store.addScore nhân đôi trong giờ vàng; đường đồng bộ từ server (gioVang = false) không nhân', async () => {
+    const { vi } = await import('vitest');
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 11, 4, 20, 10));
+    localStorage.clear();
+    const { store } = await import('@/lib/storage');
+    const truoc = store.totalScore();
+    store.addScore(100);
+    expect(store.totalScore() - truoc).toBe(200);
+    store.addScore(50, false);
+    expect(store.totalScore() - truoc).toBe(250);
+    vi.setSystemTime(new Date(2026, 11, 4, 22, 0));
+    store.addScore(100);
+    expect(store.totalScore() - truoc).toBe(350);
+    vi.useRealTimers();
   });
 });
