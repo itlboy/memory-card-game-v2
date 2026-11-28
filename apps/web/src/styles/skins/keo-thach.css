@@ -296,5 +296,11 @@
 
 /* KẸO TỐI DỊU (chủ dự án duyệt 18.10.2026, mockup https://claude.ai/artifact/LDgBMRfEUQqRxpzAh5xuVN):
    thạch màu giữ màu kẹo nhưng hạ sáng 14% — trên trời đêm, khối vàng/hồng/xanh đặc là thứ chói nhất. */
-:root[data-skin='keo'][data-theme='dark'] :is(.thach, .neon, .btn-primary, .option, .lt-chip) { filter: brightness(.86) saturate(.9); }
+/* 28.11.2026 (chủ dự án: "mục đích chỉ là làm tối các nút TO CÓ MÀU… đang phủ tối cả icon, đồng xu, logo Premium"):
+   CHỈ ô màu to (`.neon.g-*`: trang chủ, số người, mức máy, kiểu chơi) + chip màu ở trang chủ, và CHỈ NỀN — một lớp bóng
+   TRONG tối (inset, vẽ trên nền nhưng DƯỚI nội dung) thay cho `filter: brightness(.86)` trước đây (làm tối cả chữ, emoji,
+   icon trong nút, áp cho MỌI nút ở mọi màn, và gây vệt bóng trên iOS — bảng xếp hạng 28.11). */
+:root[data-skin='keo'][data-theme='dark'] :where(.neon[class*='g-'], .trang-chu .lt-chip[class*='th-']) {
+  --th-trong: inset 0 0 0 999px rgba(8, 12, 36, .16), inset 0 -6px 10px rgba(0, 0, 0, .1), inset 0 3px 5px rgba(255, 255, 255, .3);
+}
 

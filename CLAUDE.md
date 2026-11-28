@@ -400,6 +400,8 @@
   cặp; một mình chỉ đếm ván/chuỗi ngày + `dongBo`. CHƯA tính Chỉ số trí nhớ, danh hiệu (công thức dựa trên ghép cặp).
   Bàn vòng màn dọc NHÍCH LÊN 40% khoảng trống trên (`TIM_BAN_NHICH_LEN`, chủ dự án 28.11.2026 "chưa ở trung tâm mắt"); số đếm
   3-2-1 đặt ĐÚNG tâm thẻ giữa (`BanVongTim.tamGiua()` → `DemNguocPhu` prop `tam`). Mockup duyệt https://claude.ai/artifact/Y318uAKvc9s2m34DG2g3RS
+  NỀN TỐI (28.11.2026, mockup duyệt https://claude.ai/artifact/S1nts7FLBXrEjSLfToE7Xn): KHÔNG còn `filter: brightness` cho mọi nút;
+  chỉ NỀN ô màu to (`.neon.g-*`) + chip màu trang chủ bị phủ dịu bằng bóng TRONG (`--th-trong` inset, keo-thach.css) — chữ/icon/emoji giữ sáng.
   MÁY (bot) online có Ô MÀU như người (28.11.2026): `mauMay(seed, đã dùng)` ở engine — room.ts lúc chủ "Thêm máy", phong-bot
   gửi `?mau=` theo tên. CẬP NHẬT GIỮ TRANG: `keepUrlPathAfterReload: true` (capacitor.config, cần bản native) + `nhoTrang` dự phòng;
   GA `ota_ve_trang` {ket_qua: url_san|da_dat|qua_han|hong, trang}.
