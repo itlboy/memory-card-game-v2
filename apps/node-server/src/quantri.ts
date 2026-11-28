@@ -108,7 +108,7 @@ export function moQuanTri(opts: {
     };
     if (c) {
       const pods = await c.podSong().catch(() => []);
-      ra.cum = { soPod: pods.length, pods: pods.map((p) => ({ pod: p.pod, may: tenMay(p.diaChi), phong: p.phong, sk: p.sk ?? null })),
+      ra.cum = { soPod: pods.length, pods: pods.map((p) => ({ pod: p.pod, may: tenMay(p.diaChi), phong: p.phong, giuSanh: sl?.sanh === p.pod, sk: p.sk ?? null })),
         canhBao: pods.flatMap((p) => canhBao(tenMay(p.diaChi), p.sk as SucKhoe | undefined)) };
     }
     if (!opts.pool) return ra;

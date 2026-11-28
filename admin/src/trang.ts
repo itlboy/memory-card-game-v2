@@ -25,9 +25,12 @@ export const HTML = String.raw`<!doctype html>
       <!-- LOGO = icon app Lật Thẻ (apps/web/public/icon-192.png thu 112px), BẤM ĐƯỢC về trang đầu (19.11.2026, chủ dự án).
            Nhúng data: vì CSP chỉ cho img-src 'self' data: — đổi icon app thì chạy lại: sips -Z 112 + base64. -->
       <a class="logo" href="/" title="Về trang đầu" aria-label="Lật Thẻ · Quản trị — về trang đầu"><img src="data:image/png;base64,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" alt="" width="52" height="52"></a>
-      <div><h1>Lật Thẻ · Quản trị</h1><p class="phu" id="capNhat">admin.cozypi.com</p></div>
+      <div><h1><span class="h1-dai">Lật Thẻ · </span>Quản trị</h1><p class="phu" id="capNhat">admin.cozypi.com</p></div>
     </div>
-    <span class="song-nho" id="songNho" aria-hidden="true"><span class="cham"></span><b>–</b> đang chơi</span>
+    <span class="song-nho" id="songNho" aria-hidden="true"><span class="cham"></span><b>–</b> người · 30′ <span class="gn">GA</span></span>
+    <!-- GỌN (28.11.2026, mockup https://claude.ai/artifact/J2BXe9eA3KK1Dog2eC9M44): điện thoại chọn khoảng bằng MỘT nút luôn hiện
+         khoảng đang chọn → mở tấm chọn trượt từ đáy (.dieu-khien). Máy tính giữ hàng chip. -->
+    <button class="nut-ky" id="nutKy" type="button" aria-expanded="false" aria-controls="dieuKhien"><span id="nutKyChu">…</span> ▾</button>
     <!-- NGAY LÚC NÀY: luôn là 30 phút gần nhất, KHÔNG theo khoảng đang chọn — đặt cạnh tiêu đề, tách khỏi
          phần thống kê (17.11.2026: để dưới hàng nút thì bấm "Hôm nay" vẫn thấy "30 phút qua", gây hiểu lầm) -->
     <section class="song" aria-live="polite" aria-label="Ngay lúc này, 30 phút gần nhất">
@@ -47,18 +50,20 @@ export const HTML = String.raw`<!doctype html>
     <button class="tab" type="button" role="tab" data-chon-tab="kythuat" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg><span>Kỹ thuật</span></button>
   </nav>
 
-  <nav class="dieu-khien" aria-label="Khoảng thời gian thống kê">
+  <div class="nen-ky" id="nenKy" hidden></div>
+  <nav class="dieu-khien" id="dieuKhien" aria-label="Khoảng thời gian thống kê">
+    <p class="tam-tieu">Khoảng thời gian</p>
     <div class="chips" id="khoang" role="group" aria-label="Khoảng thời gian"></div>
     <button class="chip" id="nutTuyChon" type="button" aria-expanded="false">Tuỳ chọn…</button>
     <button class="chip" id="nutMoi" type="button" title="Bỏ qua bộ nhớ tạm, hỏi GA lại">Làm mới</button>
     <a class="nguoi" id="nguoi" href="/cdn-cgi/access/logout" title="Đăng xuất Cloudflare Access">Access</a>
-  </nav>
-
-  <form class="tuy-chon thach" id="tuyChon" hidden>
+    <form class="tuy-chon thach" id="tuyChon" hidden>
     <label>Từ ngày <input type="date" id="tu" required></label>
     <label>Đến ngày <input type="date" id="den" required></label>
     <button class="chip chon" type="submit">Xem</button>
   </form>
+  </nav>
+
 
   <div class="bao" id="bao" hidden></div>
 
@@ -68,8 +73,9 @@ export const HTML = String.raw`<!doctype html>
   <section class="thach the" id="mayChu" data-tab="online">
     <div class="the-dau"><div class="tieu"><h2 class="ktieu">Máy chủ · trực tiếp</h2></div><span class="phu-nho" id="mcLuc">từ máy chủ game</span></div>
     <div class="mc-canh" id="mcCanhBao" hidden></div>
-    <div class="luoi-kpi" id="mcKpi"></div>
-    <div class="td-cuon"><table class="td-bang" id="mcPod"></table></div>
+    <div class="mc-dai" id="mcDai"></div>
+    <div class="mc-may" id="mcMay"></div>
+    <div class="mc-ngay" id="mcNgay"></div>
     <div class="td-cuon"><table class="td-bang" id="mcPhong"></table></div>
     <p class="loi-o" id="loi-maychu" hidden></p>
   </section>
@@ -77,6 +83,7 @@ export const HTML = String.raw`<!doctype html>
   <!-- TỪNG Ô TẢI RIÊNG (19.11.2026): mỗi khung mang data-phan = tên ô ở /api/o/<phan>; chỉ tải khi cuộn tới gần
        (IntersectionObserver), tối đa 3 ô cùng lúc. Khung xương lần đầu: vẽ đè bằng số thật. -->
   <div class="o-kpi" data-phan="kpi" data-tab="tong">
+    <p class="ttl-nhom">Kỳ này · so với kỳ trước</p>
     <section class="luoi-kpi" id="kpi">
       <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
       <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
@@ -156,6 +163,27 @@ body.dang-tai .thanh-tai{opacity:1}
 @keyframes tt-xoay{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.thanh-tai::before,.sk,.chip.quay::after,.cho-o{animation-duration:3s}}
 html{color-scheme:dark}
+/* GỌN (28.11.2026) */
+.ttl-nhom{margin:0 2px;font:800 11.5px Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mo)}
+.kpi-so{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.kpi-so .doi{font-size:14px;font-weight:800}
+.kpi-ghi{font-size:12px;color:var(--mo);font-weight:700}
+.gn{font:800 10px Nunito,sans-serif;padding:1px 6px;border-radius:6px;background:rgba(251,191,36,.16);color:#fcd34d;vertical-align:1px}
+.nut-ky,.nen-ky,.tam-tieu{display:none}
+.mc-dai{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px;border-radius:16px;background:var(--o2)}
+.mc-dai div{text-align:center}.mc-dai b{display:block;font:800 26px/1.1 'Baloo 2',sans-serif;color:var(--chu)}.mc-dai span{font-size:12px;font-weight:800;color:var(--mo)}
+.mc-may{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.may{padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.may-dau{display:flex;align-items:baseline;gap:10px;margin-bottom:2px}.may-dau b{font:800 19px 'Baloo 2',sans-serif;color:var(--chu)}.may-dau span{font-size:12.5px;color:var(--mo);font-weight:700}
+.may-dau .tt{margin-left:auto;font-size:11px;font-weight:800;padding:2px 9px;border-radius:99px}
+.tt.muc-tot{background:rgba(74,222,128,.14);color:#86efac}.tt.muc-vang{background:rgba(251,191,36,.16);color:#fcd34d}.tt.muc-do{background:rgba(239,68,68,.22);color:#fecaca}
+.cs{display:grid;grid-template-columns:64px 1fr 44px;align-items:center;gap:8px;font-size:12.5px}
+.cs span{color:var(--mo);font-weight:800}.cs em{font-style:normal;text-align:right;font-weight:800;font-variant-numeric:tabular-nums;color:var(--vua)}
+.cs .ray{height:8px;border-radius:6px;background:var(--o2);overflow:hidden}.cs .ray i{display:block;height:100%;border-radius:6px;background:var(--tim2)}
+.cs .ray i.muc-vang{background:#f59e0b}.cs .ray i.muc-do{background:#ef4444}.cs em.muc-vang{color:#fcd34d}.cs em.muc-do{color:#fca5a5}
+.may-ghi{margin:4px 0 0;font-size:11.5px;color:var(--mo);font-weight:700}
+.mc-ngay{display:flex;flex-wrap:wrap;gap:8px 24px;padding:2px 4px}
+.mc-ngay div{display:flex;align-items:baseline;gap:6px;font-size:12.5px;color:var(--mo);font-weight:700}.mc-ngay b{font:800 17px 'Baloo 2',sans-serif;color:var(--chu)}
 /* BẢNG MÁY CHỦ (28.11.2026): ≥ 80% vàng, ≥ 95% đỏ */
 .td-bang td.muc-vang{color:#fcd34d;background:rgba(251,191,36,.12);font-weight:800}
 .td-bang td.muc-do{color:#fecaca;background:rgba(239,68,68,.28);font-weight:800}
@@ -299,9 +327,43 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .song-nho .cham{width:8px;height:8px;box-shadow:0 0 0 3px rgba(74,222,128,.2)}
   .song-nho b{font:800 15px 'Baloo 2',sans-serif}
   .dau .song{display:none}
+  /* đầu trang một hàng: logo nhỏ · "Quản trị" · nút khoảng (+ viên trực tiếp ở tab khác Tổng quan) */
+  .logo{width:32px;height:32px;border-radius:10px;box-shadow:0 3px 0 #3b2fb0}
+  h1{font-size:18px}
+  .ten{gap:8px}
+  .h1-dai{display:none}
+  .nut-ky{display:inline-flex;align-items:center;gap:4px;margin-left:8px;min-height:36px;padding:0 12px;border-radius:999px;border:2px solid var(--tim2);background:var(--tim);color:#fff;font:800 13px Nunito,sans-serif;box-shadow:0 3px 0 #3b2fb0;white-space:nowrap;flex:none}
+  .song-nho{font-size:11.5px;padding:4px 9px}
+  .song-nho .gn{display:none}
+  /* Tổng quan: dải trực tiếp một hàng — số + cờ (tên nước ẩn, giữ trong title) */
   body[data-tab="tong"] .dau{flex-wrap:wrap}
-  body[data-tab="tong"] .dau .song{display:flex}
   body[data-tab="tong"] .song-nho{display:none}
+  body[data-tab="tong"] .nut-ky{margin-left:auto}
+  body[data-tab="tong"] .dau .song{display:flex;flex-wrap:nowrap;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;border-width:1.5px}
+  .song-tieu .ktieu,.song-tieu .phu-nho{display:none}
+  .song-tieu .cham{width:9px;height:9px;box-shadow:0 0 0 4px rgba(74,222,128,.2)}
+  .song-so{flex-wrap:nowrap;gap:12px;align-items:baseline;width:auto!important}
+  .song-so > div{display:flex;align-items:baseline;gap:4px;white-space:nowrap}
+  .song-so b{font-size:18px!important}
+  .song-so span.k{display:inline!important;margin:0!important;font-size:11.5px!important}
+  .song-so > div:nth-child(2) span.k{font-size:0!important}.song-so > div:nth-child(2) span.k::after{content:'ván';font-size:11.5px}
+  .song-nuoc{width:auto!important;margin-left:auto;flex-wrap:nowrap;gap:6px;overflow:hidden}
+  .nuoc{padding:0;background:none;gap:3px;font-size:12px}.nuoc .ten-nuoc{display:none}.nuoc b{font-size:13px}
+  .nuoc .co{margin-right:0}
+  /* tấm chọn khoảng trượt lên từ đáy */
+  .ky-chon{display:none}
+  .dieu-khien{display:none}
+  body.mo-ky .nen-ky{display:block;position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.45)}
+  body.mo-ky .dieu-khien{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:45;overflow:visible;padding:16px max(14px,env(safe-area-inset-left,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-right,0px));background:var(--o);border-top:2px solid var(--vien);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.4)}
+  body.mo-ky .tam-tieu{display:block;grid-column:1/-1;margin:0 0 2px;font:800 16px 'Baloo 2',sans-serif;color:var(--chu)}
+  body.mo-ky #khoang{display:contents}
+  body.mo-ky .dieu-khien .chip{justify-content:center;width:100%;padding:0 6px}
+  body.mo-ky .nguoi{justify-content:center}
+  body.mo-ky .tuy-chon{grid-column:1/-1}
+  /* Online: thẻ máy + dải số gọn */
+  .mc-dai{padding:10px 6px;gap:4px}.mc-dai b{font-size:21px}.mc-dai span{font-size:10.5px}
+  .may{padding:11px 12px;gap:5px}
+  .mc-ngay{gap:6px 16px}
   /* hàng khoảng thời gian + nút: một dải vuốt ngang */
   .dieu-khien{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}
   .dieu-khien::-webkit-scrollbar{display:none}
@@ -329,7 +391,10 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .kpi .nguon{display:none}
   .kpi .nhan{font-size:12.5px;line-height:1.3}
   .kpi b{font-size:26px}
-  .kpi .doi{font-size:11.5px;line-height:1.3}
+  .kpi .doi{font-size:12px;line-height:1.3}
+  .kpi-ghi{font-size:11px}
+  .kpi b{font-size:22px!important}
+  .ttl-nhom{font-size:10.5px}
   .the{padding:16px;gap:12px}
   .luoi-ds{gap:12px}
 }
@@ -349,7 +414,10 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .tab:focus-visible,.chip:focus-visible,.nguoi:focus-visible{outline-color:#b45309}
   .ray div,.cot .khoi,.thanh > *,.heat .o,.chu-giai i,.nt-dong i{filter:saturate(1.35) brightness(.85)}
   .tabs{box-shadow:none}
-  .td-bang td.muc-vang,.mc-canh .muc-vang{color:#92400e;background:#fef3c7}
+  .td-bang td.muc-vang,.mc-canh .muc-vang,.tt.muc-vang{color:#92400e;background:#fef3c7}
+  .tt.muc-tot{color:#15803d;background:#dcfce7}.tt.muc-do{color:#991b1b;background:#fee2e2}
+  .cs em.muc-vang{color:#b45309}.cs em.muc-do{color:#b91c1c}
+  .gn{background:#fef3c7;color:#92400e}
   .td-bang td.muc-do,.mc-canh .muc-do{color:#991b1b;background:#fee2e2}
 }
 `;
@@ -425,10 +493,12 @@ export const JS = String.raw`
     KHOANG.forEach(function (k) {
       var b = el('button', 'chip' + (tt.khoang === k[0] ? ' chon' : ''), k[1]);
       b.type = 'button'; b.setAttribute('aria-pressed', String(tt.khoang === k[0]));
-      b.onclick = function () { tt.khoang = k[0]; tt.hat = ''; $('tuyChon').hidden = true; luu(); veKhoang(); tai(false); };
+      b.onclick = function () { tt.khoang = k[0]; tt.hat = ''; $('tuyChon').hidden = true; dongKy(); luu(); veKhoang(); tai(false); };
       c.appendChild(b);
     });
     $('nutTuyChon').classList.toggle('chon', tt.khoang === 'custom');
+    var tk = KHOANG.find(function (k) { return k[0] === tt.khoang; });
+    $('nutKyChu').textContent = tk ? tk[1] : 'Tuỳ chọn';
     var dc = c.querySelector('.chon');
     if (dc && c.scrollWidth > c.clientWidth) c.scrollLeft = dc.offsetLeft - (c.clientWidth - dc.offsetWidth) / 2;
   }
@@ -438,9 +508,15 @@ export const JS = String.raw`
     if (!f.hidden) { $('tu').value = tt.tu; $('den').value = tt.den; $('tu').focus(); }
   };
   $('tuyChon').onsubmit = function (e) {
-    e.preventDefault(); tt.khoang = 'custom'; tt.tu = $('tu').value; tt.den = $('den').value; tt.hat = ''; luu(); veKhoang(); tai(false);
+    e.preventDefault(); tt.khoang = 'custom'; tt.tu = $('tu').value; tt.den = $('den').value; tt.hat = ''; dongKy(); luu(); veKhoang(); tai(false);
   };
-  $('nutMoi').onclick = function () { tai(true); song(true); };
+  /* Tấm chọn khoảng (điện thoại) */
+  function moKy() { document.body.classList.add('mo-ky'); $('nenKy').hidden = false; $('nutKy').setAttribute('aria-expanded', 'true'); }
+  function dongKy() { document.body.classList.remove('mo-ky'); $('nenKy').hidden = true; $('nutKy').setAttribute('aria-expanded', 'false'); }
+  $('nutKy').onclick = function () { document.body.classList.contains('mo-ky') ? dongKy() : moKy(); };
+  $('nenKy').onclick = dongKy;
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') dongKy(); });
+  $('nutMoi').onclick = function () { dongKy(); tai(true); song(true); };
 
   // loai 'do' = chữ từ GA/mạng → textContent; chỉ thông báo cố định của trang mới dùng innerHTML.
   function bao(noiDung, loai) {
@@ -633,12 +709,12 @@ export const JS = String.raw`
       if (!j || j.chuaCauHinh) { c.appendChild(el('span', 'mo', 'chưa có số')); return; }
       var nuoc = Array.isArray(j.quocGia) ? j.quocGia : [];
       var sn = $('songNho'); if (sn) sn.querySelector('b').textContent = so(j.nguoi);
-      [[j.nguoi, 'người đang chơi'], [j.van, 'ván bắt đầu']].forEach(function (x) {
+      [[j.nguoi, 'người · 30 phút'], [j.van, 'ván bắt đầu']].forEach(function (x) {
         var d = el('div'); d.appendChild(el('b', null, so(x[0]))); d.appendChild(el('span', 'k', x[1])); c.appendChild(d);
       });
       var dn = el('div', 'song-nuoc');
       if (!nuoc.length) dn.appendChild(el('span', 'k', j.quocGia ? 'chưa có nước nào' : 'chưa có số nước'));
-      nuoc.forEach(function (r) { var t = el('span', 'nuoc'); t.appendChild(coNuoc(r.k)); t.appendChild(document.createTextNode(tenNuocVi(r.k) + ' ')); t.appendChild(el('b', null, so(r.v))); dn.appendChild(t); });
+      nuoc.forEach(function (r) { var t = el('span', 'nuoc'); t.title = tenNuocVi(r.k); t.appendChild(coNuoc(r.k)); t.appendChild(el('span', 'ten-nuoc', tenNuocVi(r.k) + ' ')); t.appendChild(el('b', null, so(r.v))); dn.appendChild(t); });
       c.appendChild(dn);
     }).catch(function () {});
   }
@@ -647,7 +723,7 @@ export const JS = String.raw`
     if (v == null || truoc == null) return null;
     if (!truoc) return v ? { t: 'mới có số', c: 'len' } : null;
     var p = Math.round((v - truoc) / truoc * 100);
-    return { t: (p > 0 ? '+' : p < 0 ? '−' : '±') + Math.abs(p) + '% so với kỳ trước', c: p > 0 ? 'len' : p < 0 ? 'xuong' : '' };
+    return { t: (p > 0 ? '▲' : p < 0 ? '▼' : '±') + Math.abs(p) + '%', c: p > 0 ? 'len' : p < 0 ? 'xuong' : '' };
   }
   function ngay(d) { return d.split('-').reverse().join('.'); }
 
@@ -655,6 +731,9 @@ export const JS = String.raw`
     var tenKhoang = (KHOANG.find(function (k) { return k[0] === g.khoang; }) || ['', 'Tuỳ chọn'])[1];
     var kc = $('kyChon'); kc.textContent = 'Thống kê theo khoảng: ';
     kc.appendChild(el('b', null, tenKhoang + (g.ky ? ' · ' + (g.ky.startDate === g.ky.endDate ? ngay(g.ky.startDate) : ngay(g.ky.startDate) + ' → ' + ngay(g.ky.endDate)) : '')));
+    // Nút khoảng (điện thoại): "7 ngày · 22–28.11"
+    var ngan = function (d) { var x = d.split('-'); return x[2] + '.' + x[1]; };
+    $('nutKyChu').textContent = tenKhoang + (g.ky && g.khoang !== '30m' ? ' · ' + (g.ky.startDate === g.ky.endDate ? ngan(g.ky.startDate) : ngan(g.ky.startDate).split('.')[0] + '–' + ngan(g.ky.endDate)) : '');
   }
 
   function veKpi(g) {
@@ -676,10 +755,14 @@ export const JS = String.raw`
       tren.appendChild(el('span', 'nhan', x[0]));
       b.appendChild(tren);
       var v = x[1] ? x[1].v : null;
-      b.appendChild(el('b', null, typeof v === 'string' ? v : so(v)));
+      // GỌN (28.11.2026): mức tăng/giảm đứng CẠNH con số ("▲109%"), "so với kỳ trước" ghi một lần ở tiêu đề nhóm
+      var hang = el('div', 'kpi-so');
+      hang.appendChild(el('b', null, typeof v === 'string' ? v : so(v)));
       var d = x[1] ? doi(x[1].v, x[1].truoc) : null;
-      var ghi = d ? d.t : x[2] || (v == null ? 'chưa có số (xem lỗi bên dưới)' : '');
-      b.appendChild(el('span', 'doi' + (d && d.c ? ' ' + d.c : ''), ghi));
+      if (d) hang.appendChild(el('span', 'doi' + (d.c ? ' ' + d.c : ''), d.t));
+      b.appendChild(hang);
+      var ghi = x[2] || (v == null ? 'chưa có số (xem lỗi bên dưới)' : '');
+      if (ghi) b.appendChild(el('span', 'kpi-ghi', ghi));
       c.appendChild(b);
     });
     var l = g.loi || {};
@@ -906,53 +989,53 @@ export const JS = String.raw`
   /* BẢNG MÁY CHỦ (28.11.2026): mỗi máy một hàng — CPU / RAM / swap / ổ cứng của MÁY + RAM pod. ≥ 80% vàng, ≥ 95% đỏ. */
   function mucPt(v) { return v == null ? '' : v >= 95 ? 'muc-do' : v >= 80 ? 'muc-vang' : ''; }
   function veMay(c) {
-    var tb = $('mcPod'); tb.textContent = '';
+    var hop = $('mcMay'); hop.textContent = '';
     var cb = $('mcCanhBao'); cb.textContent = ''; cb.hidden = true;
     if (!c || !c.pods || !c.pods.length) return;
-    var h = tb.createTHead().insertRow();
-    ['Máy', 'CPU', 'RAM', 'Swap', 'Ổ cứng', 'RAM pod', 'Tải', 'Phòng'].forEach(function (k) { h.appendChild(el('th', null, k)); });
-    var body = tb.createTBody();
-    c.pods.slice().sort(function (a, b) { return a.may < b.may ? -1 : 1; }).forEach(function (p) {
-      var sk = p.sk || {}, m = sk.may || {}, pd = sk.pod || {}, tr = body.insertRow();
-      tr.appendChild(el('td', null, sk.ten || p.may));
-      [[m.cpu, ''], [m.ram, m.ramMB != null ? so(m.ramMB) + '/' + so(m.ramTongMB) + ' MB' : ''], [m.swap, ''], [m.oDia, m.oDiaTrongMB != null ? 'trống ' + so(m.oDiaTrongMB) + ' MB' : ''],
-       [pd.ram, pd.ramMB != null ? so(pd.ramMB) + (pd.tranMB ? '/' + so(pd.tranMB) : '') + ' MB' : '']].forEach(function (x) {
-        var td = el('td', mucPt(x[0]), x[0] == null ? '–' : x[0] + '%');
-        if (x[1]) td.title = x[1];
-        tr.appendChild(td);
+    c.pods.slice().sort(function (a, b) { return (a.sk && a.sk.ten || a.may) < (b.sk && b.sk.ten || b.may) ? -1 : 1; }).forEach(function (p) {
+      var sk = p.sk || {}, m = sk.may || {}, pd = sk.pod || {};
+      var cs = [['CPU', m.cpu], ['RAM', m.ram], ['Swap', m.swap], ['Ổ cứng', m.oDia], ['RAM pod', pd.ram]];
+      var cao = cs.reduce(function (a, x) { return x[1] != null && x[1] > a ? x[1] : a; }, 0);
+      var the = el('div', 'thach may');
+      var dau = el('div', 'may-dau');
+      dau.appendChild(el('b', null, sk.ten || p.may));
+      dau.appendChild(el('span', null, so(p.phong) + ' phòng' + (p.giuSanh ? ' · giữ sảnh' : '')));
+      var mu = mucPt(cao); dau.appendChild(el('span', 'tt ' + (mu || 'muc-tot'), mu === 'muc-do' ? 'nguy hiểm' : mu === 'muc-vang' ? 'cao' : 'khoẻ'));
+      the.appendChild(dau);
+      cs.forEach(function (x) {
+        var h = el('div', 'cs'); h.appendChild(el('span', null, x[0]));
+        var ray = el('div', 'ray'), i = el('i', mucPt(x[1])); i.style.width = Math.min(100, x[1] || 0) + '%'; ray.appendChild(i); h.appendChild(ray);
+        h.appendChild(el('em', mucPt(x[1]), x[1] == null ? '–' : Math.round(x[1]) + '%'));
+        the.appendChild(h);
       });
-      tr.appendChild(el('td', null, m.tai1 == null ? '–' : String(m.tai1)));
-      tr.appendChild(el('td', null, so(p.phong)));
+      the.appendChild(el('p', 'may-ghi', 'RAM ' + so(m.ramMB) + '/' + so(m.ramTongMB) + ' MB · ổ trống ' + so(m.oDiaTrongMB) + ' MB · pod ' + so(pd.ramMB) + ' MB · tải ' + (m.tai1 == null ? '–' : m.tai1)));
+      hop.appendChild(the);
     });
     var ds = c.canhBao || [];
     if (ds.length) {
       cb.hidden = false;
       ds.sort(function (a, b) { return a.muc === b.muc ? 0 : a.muc === 'do' ? -1 : 1; }).forEach(function (x) {
-        cb.appendChild(el('span', 'canh ' + (x.muc === 'do' ? 'muc-do' : 'muc-vang'), (x.muc === 'do' ? 'Nguy hiểm' : 'Cao') + ': ' + (x.ten || x.may) + ' · ' + x.chiSo + ' ' + x.giaTri + '%'));
+        cb.appendChild(el('span', 'canh ' + (x.muc === 'do' ? 'muc-do' : 'muc-vang'), (x.muc === 'do' ? 'Nguy hiểm' : 'Cao') + ': ' + (x.ten || x.may) + ' · ' + x.chiSo + ' ' + Math.round(x.giaTri) + '%'));
       });
     }
   }
   function veMayChu(g) {
     var t = g.tong || {}, p = t.phong || {}, n = t.nguoiTrongPhong || {}, v = t.vanOnline || {}, c = t.nguoiChoi || {}, tk = t.taiKhoan || {}, kh = t.khach || {}, o = t.online || {};
     var so1 = $('soOnline'); if (so1) { so1.hidden = !o.sanh; so1.textContent = so(o.sanh); }
-    var k = $('mcKpi'); k.textContent = '';
-    [
-      ['Đang mở app', so(o.sanh), 'nối sảnh lúc này'],
-      ['Người trong phòng', so(n.nguoiThatDangNoi), 'đang rớt ' + so(n.nguoiThatDangRot) + ' · bot thường trực ' + so(n.botThuongTruc)],
-      ['Phòng đang mở', so(p.tong), 'chờ ' + so(p.cho) + ' · đang chơi ' + so(p.dangChoi) + ' · riêng ' + so(p.rieng)],
-      ['Ván online hôm nay', so(v.homNay), '7 ngày: ' + so(v.bayNgay)],
-      ['Người chơi hôm nay', so(c.homNay), '7 ngày: ' + so(c.bayNgay) + ' · cả offline'],
-      ['Tài khoản', so(tk.tong), 'mới hôm nay ' + so(tk.moiHomNay) + ' · khách ' + so(kh.tong)]
-    ].forEach(function (x) {
-      var b = el('div', 'thach kpi'), tren = el('div', 'kpi-dau');
-      tren.appendChild(el('span', 'nhan', x[0])); b.appendChild(tren);
-      b.appendChild(el('b', null, x[1])); b.appendChild(el('span', 'doi', x[2])); k.appendChild(b);
+    // Dải số TRỰC TIẾP (28.11.2026, mockup duyệt): 4 số nhỏ thay 6 ô to
+    var dai = $('mcDai'); dai.textContent = '';
+    [[o.sanh, 'mở app'], [n.nguoiThatDangNoi, 'trong phòng'], [p.tong, 'phòng'], [n.botThuongTruc, 'bot']].forEach(function (x) {
+      var d = el('div'); d.appendChild(el('b', null, so(x[0]))); d.appendChild(el('span', null, x[1])); dai.appendChild(d);
+    });
+    var ng = $('mcNgay'); ng.textContent = '';
+    [['Ván online hôm nay', v.homNay, '7 ngày ' + so(v.bayNgay)], ['Người chơi hôm nay', c.homNay, '7 ngày ' + so(c.bayNgay)], ['Tài khoản', tk.tong, 'khách ' + so(kh.tong)]].forEach(function (x) {
+      var d = el('div'); d.appendChild(el('span', null, x[0])); d.appendChild(el('b', null, so(x[1]))); d.appendChild(el('small', null, x[2])); ng.appendChild(d);
     });
     veMay(t.cum);
     bangMc('mcPhong', [['Mã', 'ma'], ['Loại', function (r) { return r.congKhai ? 'Công khai' : 'Riêng'; }], ['Trạng thái', function (r) { return TT_PHONG[r.trangThai] || r.trangThai; }],
       ['Người', function (r) { return (r.nguoi || []).map(function (x) { return x.ten + (x.may ? ' (máy)' : x.dangNoi ? '' : ' (rớt)'); }).join(', ') || '–'; }],
       ['Mở (phút)', 'moPhut'], ['Pod', function (r) { return r.pod ? String(r.pod).slice(-6) : '–'; }]], (g.phong && g.phong.phong) || []);
-    $('mcLuc').textContent = (t.cum ? so(t.cum.soPod) + ' pod · ' : '') + 'cập nhật ' + new Date(t.luc || Date.now()).toLocaleTimeString('vi-VN');
+    $('mcLuc').textContent = 'trực tiếp · ' + new Date(t.luc || Date.now()).toLocaleTimeString('vi-VN');
   }
   function taiMayChu() {
     fetch('/api/maychu', { credentials: 'same-origin' }).then(function (r) { return r.json().then(function (g) { return { ok: r.ok, g: g }; }); }).then(function (x) {
