@@ -129,7 +129,14 @@ export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
   // chụp lúc người 1 vừa mở một lá. Tên ở anh-store-chu.mjs (`ten`), ngắn vì ô tên cắt chữ dài.
   await trangChu(); await bam(L.nhanh); await cho(600);
   // ô "2 người" = nút ngay sau "Một mình" (menu.soNguoi.n là HÀM số nhiều ở ru/… nên không bấm theo chữ)
-  await js(`(() => { const o=[...document.querySelectorAll('button')].filter(e=>e.offsetParent); const i=o.findIndex(e=>e.textContent.toLowerCase().includes(${JSON.stringify(L.motMinh.toLowerCase())})); if (i < 0) throw new Error('không thấy nút Một mình'); o[i+1].click(); return true; })()`); await cho(700);
+  // Thử lại tới ~6 giây: CI 28.11.2026 hỏng ở tiếng Pháp "không thấy nút Một mình" — màn Chơi nhanh chưa kịp mở sau 0,6 s
+  for (let lan = 0; ; lan++) {
+    const duoc = await js(`(() => { const o=[...document.querySelectorAll('button')].filter(e=>e.offsetParent); const i=o.findIndex(e=>e.textContent.toLowerCase().includes(${JSON.stringify(L.motMinh.toLowerCase())})); if (i < 0) return false; o[i+1].click(); return true; })()`);
+    if (duoc) break;
+    if (lan >= 12) throw new Error('không thấy nút Một mình');
+    await cho(500);
+  }
+  await cho(700);
   // Tên hai người: bước phụ "Tên … Sửa" → ô nhập → Tiếp tục
   await bam(L.sua); await cho(700);
   await js(`(() => { const t = ${JSON.stringify(chu.ten)}; [...document.querySelectorAll('input')].filter(e=>e.offsetParent).forEach((e, i) => { if (t[i] === undefined) return; e.value = t[i]; e.dispatchEvent(new Event('input', { bubbles: true })); }); return true; })()`);
