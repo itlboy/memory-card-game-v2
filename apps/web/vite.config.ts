@@ -89,7 +89,7 @@ export default defineConfig({
         // 665 SVG mặt bài chỉ máy không-Apple dùng (lib/emoji.ts): không nhét vào
         // precache (iPhone tải ~1MB vô ích), nạp dần lúc chơi và giữ trong cache.
         // Trang công khai + /site/ không thuộc game: không precache (thêm ~250KB vô ích).
-        globIgnores: ['**/emoji/**', '**/site/**', '**/{about,support,privacy,changes}.html', 'sitemap.xml'],
+        globIgnores: ['**/emoji/**', '**/site/**', '**/press/**', '**/{about,support,privacy,changes}.html', 'sitemap.xml'],
         runtimeCaching: [{
           urlPattern: ({ url }: { url: URL }) => url.pathname.startsWith('/emoji/'),
           handler: 'CacheFirst',
@@ -106,7 +106,9 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/app\/?$/, /^\/ws\//, /^\/api\//, /^\/ota\//, /^\/site\//, /^\/(privacy|support|about|changes)(\.html)?$/,
           /^\/[a-z]{2}(-[A-Z]{2})?\/(privacy|support|about|changes)(\.html)?$/, /^\/(sitemap\.xml|robots\.txt)$/, /^\/\.well-known\//,
           // Bản cổng game tự host (tools/nhung-cong-web.mjs) — trang riêng, KHÔNG được rơi về index.html của web
-          /^\/cong\//],
+          /^\/cong\//,
+          // Trang báo chí (public/press/) — trang tĩnh riêng
+          /^\/press(\/|$)/],
         // Font đóng gói sẵn (styles/fonts.ts, file .woff2 cùng gốc) nên đã nằm trong
         // globPatterns ở trên — không còn cache font Google ở runtime.
       }

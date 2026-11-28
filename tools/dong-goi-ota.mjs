@@ -43,6 +43,8 @@ const files = {};
 (function gom(dir) {
   for (const ten of readdirSync(dir)) {
     const p = join(dir, ten);
+    // press/ (trang báo chí: ảnh bìa + video ~5 MB, 28.11.2026) chỉ phục vụ trên web — app không cần, đừng nhét vào gói
+    if (relative(SRC, p).split('\\').join('/').startsWith('press')) continue;
     if (statSync(p).isDirectory()) gom(p);
     else files[relative(SRC, p)] = new Uint8Array(readFileSync(p));
   }
