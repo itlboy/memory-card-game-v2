@@ -758,6 +758,12 @@
   MoKhoaFx). "Sắp đạt" = 3 danh hiệu gần xong nhất; lọc Tất cả · Đã có · Chưa có (mặc định Tất cả);
   KHÔNG nút trong lưới — chạm huy chương mở tờ chi tiết có MỘT nút "Chinh phục". Màn Tài khoản: nút
   Google/Apple/Danh hiệu đều là `.thach` (Apple = thạch đen qua biến --b1..--b4, giữ màu hãng).
+- **BÁO LỖI / GÓP Ý (28.11.2026, mockup duyệt https://claude.ai/artifact/QUH5duZnNP6ZJ7kS8Q78BJ)**: hàng riêng trong menu dưới
+  "Luật chơi | Cập nhật" → `BaoLoiDialog.vue` (chạm là xong: loại · ở đâu chọn sẵn theo màn vừa rời `ghiManGanNhat` · ô vấn đề;
+  chữ/ảnh/email không bắt buộc). `lib/bao-loi.ts` gửi kèm máy (`@capacitor/device` — app cũ chưa có plugin thì đoán từ UA),
+  màn hình, bản app/OTA, lỗi JS gần đây, nhật ký máy; KHÔNG tên. Server `apps/node-server/src/baoloi.ts` (bảng `bug_reports`,
+  5 thư/giờ/máy/IP) → admin tab Kỹ thuật + API quản trị `/api/quantri/baoloi*` + MCP `bao_loi`. Class chip trong hộp là
+  `bl-chip`/`bl-chips` — `.chip`/`.chips` trùng kiểu toàn cục của app (đã vỡ khuôn thành ô to 2 cột).
 - **DANH HIỆU MỐC DÀY + MỐC ĐỘNG (28.11.2026, duyệt: https://claude.ai/artifact/6tJfDC3maNVgB9DQmpxaa3)**:
   93 → 163 danh hiệu cố định (dãy `DAY_*` trong lib/achievements; id cũ score-10k/100k/1m/10m giữ nguyên qua
   `DIEM_CU`), bậc theo ngưỡng từng dãy `NGUONG`. Mốc ĐỘNG không trần `DAY_DONG` (xu +100k, thắng +100,

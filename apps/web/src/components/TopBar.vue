@@ -5,7 +5,7 @@ import { daMuaPremium, hienPremium, huyHieu, huyHieuDangDeo, moiNangCap } from '
 import { canh, canhNgauNhien } from '@/lib/canh';
 import { tenBaiNhac } from '@/lib/ten-bai-nhac';
 import DauPremium from './DauPremium.vue';
-import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X } from 'lucide-vue-next';
+import { Award, Bell, Bug, ChevronLeft, ChevronRight, CircleCheck, Crown, HelpCircle, Image, Info, Languages, MailPlus, Menu, Music, Palette, Pencil, RefreshCw, Settings2, Shuffle, Smartphone, SmartphoneNfc, Swords, Trophy, UserRound, Volume1, Volume2, VolumeX, X, MessageSquareWarning } from 'lucide-vue-next';
 import { laApp } from '@/lib/native';
 import { trangThaiOta } from '@/lib/ota';
 import { datNhanLoiMoi, nhanLoiMoi } from '@/lib/sanh';
@@ -62,7 +62,8 @@ async function doiAnBxh(): Promise<void> {
   moChucNang('bxh_an', { an: an ? 1 : 0 });
   try { await anKhach(an); } catch { /* mất mạng: cờ đã lưu ở máy, lần gửi điểm sau mang theo */ } finally { dangDoiAn.value = false; }
 }
-const emit = defineEmits<{ 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | 'nn' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
+const emit = defineEmits<{
+  'bao-loi': []; 'ho-so': []; 'set-nen': ['tu' | 'sang' | 'toi']; 'cycle-sound': []; 'set-sound': [SoundLevel]; 'set-nhac': ['off' | 'nn' | BaiNhac]; 'toggle-rung': []; home: []; rules: []; account: []; 'danh-hieu': []; 'xep-hang': [];
   'update:debug': [boolean]; 'mo-debug': []; premium: []; 'hinh-nen': []; 'nhac-nen': []; 'mo-pm': ['nen' | 'nhac' | 'hh'] }>();
 
 /*
@@ -504,6 +505,10 @@ function hieuMeo(): void { meo.value = false; tatMeoXu(); }
               <i v-if="coBanMoi" class="cham-do" aria-hidden="true" />
             </button>
           </div>
+          <!-- BÁO LỖI / GÓP Ý (28.11.2026, mockup duyệt): hàng riêng dưới "Luật chơi | Cập nhật" — không nút thường trực trên màn chơi -->
+          <button class="item thach nut-bl" role="menuitem" type="button" @click="dong(); emit('bao-loi')">
+            <MessageSquareWarning :size="20" aria-hidden="true" /><span>{{ t('tb.baoLoi') }}</span>
+          </button>
         </div>
         <div v-else key="cd" class="mat cd-mat">
           <div class="cd-dau">

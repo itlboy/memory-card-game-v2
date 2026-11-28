@@ -37,6 +37,8 @@ import SaoBang from './components/SaoBang.vue';
 import { dangDebug } from './lib/debug';
 import { canh } from './lib/canh';
 import HoSoDialog from './components/HoSoDialog.vue';
+import BaoLoiDialog from './components/BaoLoiDialog.vue';
+import { ghiManGanNhat, type NoiBl } from './lib/bao-loi';
 import { guiHoSo } from '@/lib/taikhoan';
 import { canMoChao, hoSo, mauTaiMay, tenToi } from '@/lib/ho-so';
 import { ghiVanTriNho, hienTriNho } from './lib/tri-nho';
@@ -357,6 +359,8 @@ watch(doGapNhac, (v) => { nhac.gap = v; }, { immediate: true });
 useViewportLock();
 const confirmQuit = ref(false);
 const showRules = ref(false);
+/** Báo lỗi / góp ý (BaoLoiDialog) — mở từ menu. */
+const showBaoLoi = ref(false);
 /** Trang debug riêng (DebugDialog) — mở từ nút "🐞 Debug" cạnh chữ Cài đặt trong menu. */
 const showDebug = ref(false);
 useBackCloser(30, () => showDebug.value, () => { showDebug.value = false; });
@@ -425,6 +429,7 @@ const menuKey = ref(0);
  */
 // Hộp thoại đóng TRƯỚC mọi thứ bên dưới nó
 useBackCloser(30, () => showRules.value, () => { showRules.value = false; });
+useBackCloser(30, () => showBaoLoi.value, () => { showBaoLoi.value = false; });
 const dongCai = (): void => { hienCai.value = false; };
 useBackCloser(30, () => hienCai.value, dongCai);
 /** Màn tài khoản (đăng nhập Google, điểm, danh hiệu). */
@@ -468,6 +473,13 @@ for (const [r, ten] of [
   [showRules, 'luat_choi'], [showAccount, 'tai_khoan'], [showBxh, 'xep_hang'], [showDanhHieu, 'danh_hieu'], [hienCai, 'cai_app']
 ] as const) watch(r, (v) => { if (v) moChucNang(ten); });
 watch(nen, (v) => doiCaiDat('nen', v));
+/* BÁO LỖI: nhớ màn chơi gần nhất để hộp báo lỗi chọn sẵn "Ở đâu" (người chơi thường báo SAU khi rời màn gặp lỗi). Trang
+   chủ không ghi đè — mở menu từ trang chủ vẫn giữ màn vừa rời. */
+watch([screen, mode, botLevel], () => {
+  const n: NoiBl | null = screen.value === 'online' ? 'online' : screen.value === 'tim-the' ? 'timThe' : screen.value === 'mua-the' ? 'premium'
+    : screen.value === 'game' ? (mode.value === 'campaign' ? 'chienDich' : botLevel.value ? 'may' : 'motMinh') : null;
+  if (n) ghiManGanNhat(n);
+}, { immediate: true });
 watch(soundLevel, (v) => doiCaiDat('am_thanh', v));
 // Đang ngẫu nhiên thì chỉ ghi MỘT lần 'ngau_nhien' — không ghi từng lần bài tự đổi (đó không phải người chơi đổi cài đặt)
 watch(() => (!nhacBat.value ? 'off' : nhacNgauNhien.value ? 'ngau_nhien' : baiNhac.value), (v) => doiCaiDat('nhac', v));
@@ -1314,6 +1326,7 @@ const hasNext = computed(() => {
     @set-sound="(l: SoundLevel) => { soundLevel = l; applySound(); }"
     :ten-tk="taiKhoanMe?.name"
     @rules="showRules = true"
+    @bao-loi="showBaoLoi = true"
     @cycle-sound="cycleSound"
     @home="goHome"
   />
@@ -1461,6 +1474,7 @@ const hasNext = computed(() => {
   <ChonHuyHieu v-if="showHuyHieu" @close="showHuyHieu = false" />
   <ChonNhac v-if="showNhac" :nhac="nhacBat" :bai="baiNhac" :ngau-nhien="nhacNgauNhien" @chon="datNhac" @close="showNhac = false" />
   <!-- HỒ SƠ NGƯỜI CHƠI (25.11.2026): màn chào BẮT BUỘC (chưa xong là chặn), tấm sửa mở từ menu -->
+  <BaoLoiDialog v-if="showBaoLoi" @xong="showBaoLoi = false" />
   <HoSoDialog v-if="canMoChao" kieu="chao" />
   <HoSoDialog v-else-if="showHoSo" kieu="sua" @xong="showHoSo = false" @tai-khoan="showHoSo = false; showAccount = true" />
 

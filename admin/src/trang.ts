@@ -48,7 +48,7 @@ export const HTML = String.raw`<!doctype html>
     <button class="tab" type="button" role="tab" data-chon-tab="nguoi" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-1.5-5-4-5.6"/></svg><span>Người chơi</span></button>
     <button class="tab" type="button" role="tab" data-chon-tab="choi" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="8" height="14" rx="2"/><rect x="13" y="5" width="8" height="14" rx="2"/></svg><span>Chơi</span></button>
     <button class="tab" type="button" role="tab" data-chon-tab="online" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg><span>Online</span><b class="so-tab" id="soOnline" hidden></b></button>
-    <button class="tab" type="button" role="tab" data-chon-tab="kythuat" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg><span>Kỹ thuật</span></button>
+    <button class="tab" type="button" role="tab" data-chon-tab="kythuat" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg><span>Kỹ thuật</span><b class="so-tab do" id="soBaoLoi" hidden></b></button>
   </nav>
 
   <div class="nen-ky" id="nenKy" hidden></div>
@@ -100,6 +100,14 @@ export const HTML = String.raw`<!doctype html>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Người mới đến từ đâu</h2></div><div class="td-cuon"><table class="td-bang" id="ttNguon"></table></div><p class="ghi-o">0 phút chơi = gần như chắc là máy quét, không phải người.</p></div>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Nước · theo giờ chơi</h2></div><div class="td-cuon"><table class="td-bang" id="ttNuoc"></table></div></div>
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Lan truyền · 28 ngày</h2></div><div class="td-cuon"><table class="td-bang" id="ttLan"></table></div></div>
+  </section>
+
+  <!-- BÁO LỖI / GÓP Ý (28.11.2026): thư người chơi gửi từ app — đầu tab Kỹ thuật -->
+  <section class="thach the" id="baoLoi" data-tab="kythuat">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Báo lỗi / Góp ý</h2></div><span class="phu-nho" id="blLuc">từ app</span></div>
+    <div class="bl-ds" id="blDs"></div>
+    <button class="chip" id="blThem" type="button" hidden>Xem thư cũ hơn</button>
+    <p class="loi-o" id="loi-baoloi" hidden></p>
   </section>
 
   <!-- TỪNG Ô TẢI RIÊNG (19.11.2026): mỗi khung mang data-phan = tên ô ở /api/o/<phan>; chỉ tải khi cuộn tới gần
@@ -185,6 +193,24 @@ body.dang-tai .thanh-tai{opacity:1}
 @keyframes tt-xoay{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.thanh-tai::before,.sk,.chip.quay::after,.cho-o{animation-duration:3s}}
 html{color-scheme:dark}
+/* BÁO LỖI (28.11.2026) */
+.bl-ds{display:flex;flex-direction:column;gap:12px}
+.bl-thu{padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-left:5px solid #ef4444}
+.bl-thu.bl-gopy{border-left-color:#f59e0b}.bl-thu.bl-hoi{border-left-color:#3b82f6}.bl-thu.bl-xong{opacity:.6}
+.bl-dau{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px}.bl-dau b{font:800 16px 'Baloo 2',sans-serif;color:var(--chu)}
+.bl-loai{font:800 11px Nunito,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mo)}
+.bl-tt{margin-left:auto;font-size:11px;font-weight:800;padding:2px 9px;border-radius:99px;background:var(--o2);color:var(--vua)}
+.bl-tt.tt-moi{background:rgba(239,68,68,.2);color:#fca5a5}.bl-tt.tt-xong{background:rgba(74,222,128,.14);color:#86efac}
+.bl-vd{display:flex;flex-wrap:wrap;gap:6px}
+.bl-chu{margin:0;white-space:pre-wrap;font-size:14.5px;line-height:1.45;color:var(--chu)}
+.bl-anh{max-height:180px;max-width:100%;border-radius:12px;border:2px solid var(--vien);display:block}
+.bl-may{margin:0;font-size:12.5px;color:var(--vua);font-weight:700}
+.bl-loijs{margin:0;font:600 12px ui-monospace,Menlo,monospace;color:#fca5a5;word-break:break-all}
+.bl-ct summary{cursor:pointer;font-size:12px;font-weight:800;color:var(--mo)}
+.bl-ct pre{margin:6px 0 0;padding:10px;border-radius:10px;background:var(--o2);font-size:11.5px;overflow-x:auto;max-height:260px;color:var(--vua)}
+.bl-nut{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.bl-nut .chip{min-height:36px;padding:0 14px;font-size:13px}
+.bl-email{font-size:13px;font-weight:800;color:var(--chu);user-select:all;margin-right:auto}
+.so-tab.do{background:rgba(239,68,68,.22);color:#fecaca}
 /* GỌN (28.11.2026) */
 .ttl-nhom{margin:0 2px;font:800 11.5px Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mo)}
 .kpi-so{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
@@ -454,6 +480,7 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .tabs{box-shadow:none}
   .td-bang td.muc-vang,.mc-canh .muc-vang,.tt.muc-vang{color:#92400e;background:#fef3c7}
   .tt.muc-tot{color:#15803d;background:#dcfce7}.tt.muc-do{color:#991b1b;background:#fee2e2}
+  .bl-tt.tt-moi,.so-tab.do{color:#991b1b;background:#fee2e2}.bl-tt.tt-xong{color:#15803d;background:#dcfce7}.bl-loijs{color:#b91c1c}
   .cs em.muc-vang{color:#b45309}.cs em.muc-do{color:#b91c1c}
   .gn{background:#fef3c7;color:#92400e}
   .td-bang td.tot{color:#15803d}.td-bang td.kem{color:#b91c1c}
@@ -1105,6 +1132,71 @@ export const JS = String.raw`
   }
   taiThiDau();
   setInterval(function () { if (!document.hidden) taiThiDau(); }, 300000);
+  /* Ô BÁO LỖI / GÓP Ý (28.11.2026): /api/baoloi — 60 giây một lần khi trang đang hiện; "Xem thư cũ hơn" nối trang. */
+  var BL_LOAI = { loi: 'Lỗi', gopy: 'Góp ý', hoi: 'Câu hỏi' };
+  var BL_NOI = { motMinh: 'Chơi một mình', may: 'Đấu với máy', online: 'Online', timThe: 'Tìm Thẻ', chienDich: 'Chiến dịch', premium: 'Premium', khac: 'Khác' };
+  var BL_VD = { dung: 'Bị đứng', vang: 'Văng ra ngoài', matKetNoi: 'Mất kết nối', hienThi: 'Hiển thị sai', diemSai: 'Điểm / xu sai', cham: 'Chậm, giật', amThanh: 'Âm thanh', khac: 'Khác', tinhNang: 'Thêm tính năng', giaoDien: 'Giao diện', doKho: 'Độ khó' };
+  var BL_TT = { moi: 'Mới', xem: 'Đã xem', xong: 'Xong' };
+  var blCuoi = null;
+  function truocDay(ms) { var p = Math.round((Date.now() - ms) / 60000); return p < 60 ? p + ' phút trước' : p < 1440 ? Math.round(p / 60) + ' giờ trước' : new Date(ms).toLocaleString('vi-VN'); }
+  function veThu(x) {
+    var the = el('article', 'thach bl-thu bl-' + x.loai + (x.trangThai === 'xong' ? ' bl-xong' : ''));
+    var dau = el('div', 'bl-dau');
+    dau.appendChild(el('span', 'bl-loai', BL_LOAI[x.loai] || x.loai));
+    dau.appendChild(el('b', null, BL_NOI[x.noi] || x.noi));
+    dau.appendChild(el('span', 'phu-nho', '#' + x.id + ' · ' + truocDay(x.luc)));
+    dau.appendChild(el('span', 'bl-tt tt-' + x.trangThai, BL_TT[x.trangThai] || x.trangThai));
+    the.appendChild(dau);
+    if (x.vanDe && x.vanDe.length) {
+      var vd = el('div', 'bl-vd'); x.vanDe.forEach(function (k) { vd.appendChild(el('span', 'nuoc', BL_VD[k] || k)); }); the.appendChild(vd);
+    }
+    if (x.noiDung) the.appendChild(el('p', 'bl-chu', x.noiDung));
+    if (x.coAnh) { var a = el('a'); a.href = '/api/baoloi/' + x.id + '/anh'; a.target = '_blank'; a.rel = 'noopener'; var im = el('img', 'bl-anh'); im.src = a.href; im.alt = 'Ảnh chụp màn hình #' + x.id; im.loading = 'lazy'; a.appendChild(im); the.appendChild(a); }
+    var m = x.may || {};
+    var tom = [m.may, m.hang && m.may && String(m.may).indexOf(m.hang) < 0 ? m.hang : null, [m.heDieuHanh, m.banHdh].filter(Boolean).join(' '), m.manHinh ? m.manHinh + (m.doNet ? ' ×' + m.doNet : '') : null,
+      m.banApp ? 'app ' + m.banApp + (m.buildApp ? ' (' + m.buildApp + ')' : '') : null, m.banWeb ? 'web ' + m.banWeb : null, m.ngonNgu].filter(Boolean).join(' · ');
+    the.appendChild(el('p', 'bl-may', tom || 'không có thông tin máy'));
+    if (m.loiJs) the.appendChild(el('p', 'bl-loijs', 'Lỗi JS: ' + m.loiJs));
+    var ct = el('details', 'bl-ct'); ct.appendChild(el('summary', null, 'Toàn bộ thông tin máy')); ct.appendChild(el('pre', null, JSON.stringify(m, null, 1))); the.appendChild(ct);
+    var hang = el('div', 'bl-nut');
+    if (x.email) { var e = el('span', 'bl-email', '✉ ' + x.email); e.title = 'Chọn để chép'; hang.appendChild(e); }
+    [['xem', 'Đã xem'], ['xong', 'Xong'], ['moi', 'Đánh dấu mới']].forEach(function (k) {
+      if (k[0] === x.trangThai) return;
+      var b = el('button', 'chip', k[1]); b.type = 'button';
+      b.onclick = function () {
+        b.disabled = true;
+        fetch('/api/baoloi/' + x.id + '/trangthai', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', 'x-admin': '1' }, body: JSON.stringify({ tt: k[0] }) })
+          .then(function (r) { return r.json(); }).then(function () { x.trangThai = k[0]; the.replaceWith(veThu(x)); demMoi(); }).catch(function () { b.disabled = false; });
+      };
+      hang.appendChild(b);
+    });
+    the.appendChild(hang);
+    the._thu = x;
+    return the;
+  }
+  function demMoi() {
+    var n = Array.prototype.filter.call(document.querySelectorAll('#blDs .bl-thu'), function (e) { return e._thu && e._thu.trangThai === 'moi'; }).length;
+    var b = $('soBaoLoi'); b.hidden = !n; b.textContent = String(n);
+  }
+  function taiBaoLoi(them) {
+    fetch('/api/baoloi' + (them && blCuoi ? '?truoc=' + blCuoi : ''), { credentials: 'same-origin' }).then(function (r) { return r.json().then(function (g) { return { ok: r.ok, g: g }; }); }).then(function (x) {
+      var l = $('loi-baoloi');
+      if (!x.ok) { l.hidden = false; l.textContent = x.g && x.g.chuaCauHinh ? 'Chưa nạp khoá quản trị (QUANTRI_KEY) cho trang này.' : 'Không lấy được thư báo lỗi: ' + ((x.g && x.g.loi) || 'lỗi không rõ'); return; }
+      l.hidden = true;
+      var ds = x.g.thu || [], c = $('blDs');
+      if (!them) c.textContent = '';
+      if (!ds.length && !them) c.appendChild(el('p', 'phu-nho', 'Chưa có thư nào.'));
+      ds.forEach(function (t) { c.appendChild(veThu(t)); });
+      if (ds.length) blCuoi = ds[ds.length - 1].id;
+      $('blThem').hidden = ds.length < 30;
+      $('blLuc').textContent = 'cập nhật ' + new Date().toLocaleTimeString('vi-VN');
+      demMoi();
+    }).catch(function () { var l = $('loi-baoloi'); l.hidden = false; l.textContent = 'Không lấy được thư báo lỗi (mất mạng?).'; });
+  }
+  $('blThem').onclick = function () { taiBaoLoi(true); };
+  taiBaoLoi(false);
+  setInterval(function () { if (!document.hidden && document.body.getAttribute('data-tab') === 'kythuat') taiBaoLoi(false); }, 60000);
+
   /* Ô MÁY CHỦ · TRỰC TIẾP (28.11.2026): /api/maychu — 30 giây một lần khi trang đang hiện. */
   var TT_PHONG = { lobby: 'Phòng chờ', countdown: 'Đếm ngược', playing: 'Đang chơi', ended: 'Hết ván' };
   function bangMc(id, cot, ds) {

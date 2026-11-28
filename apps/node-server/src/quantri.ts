@@ -3,6 +3,7 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import type { Pool } from 'mysql2/promise';
 import type { Cum } from './cum.js';
 import { doSucKhoe, mucCanhBao, type SucKhoe } from './suc-khoe-may.js';
+import type { BaoLoi } from './baoloi.js';
 
 /**
  * API QUẢN TRỊ CỤM (28.11.2026, chủ dự án: "làm các api thống kê cần thiết để sau ko cần ssh vào redis hay db mysql").
@@ -18,6 +19,9 @@ import { doSucKhoe, mucCanhBao, type SucKhoe } from './suc-khoe-may.js';
  *   POST /api/quantri/mcp              — MCP (Streamable HTTP, JSON-RPC): cùng các số trên dưới dạng tool cho Claude —
  *                                        `claude mcp add --transport http latthe <gốc>/api/quantri/mcp --header "x-quantri-key: …"`
  *   Lọc /phong: `?trangThai=lobby|playing|ended`, `?congKhai=1|0`, `?boMa=1` (bỏ phòng ma)
+ *   GET /api/quantri/baoloi[?truoc=<id>]        — thư báo lỗi / góp ý mới nhất (30 thư, không kèm ảnh)
+ *   GET /api/quantri/baoloi/<id>/anh            — ảnh đính kèm
+ *   POST /api/quantri/baoloi/<id>/trangthai     — { tt: 'moi' | 'xem' | 'xong' }
  *
  * XÁC THỰC: header `x-quantri-key` = env `QUANTRI_KEY` (khoá RIÊNG, không dùng chung THONGKE_KEY). Thiếu env → API tắt (404).
  *  - So bằng băm SHA-256 + timingSafeEqual: thời gian so không lộ độ dài / phần đúng của khoá.
@@ -49,6 +53,8 @@ function docThan(req: IncomingMessage): Promise<unknown> {
 
 export function moQuanTri(opts: {
   pool: Pool | null; cum: () => Cum | null; khoa: string | undefined; now?: () => number;
+  /** Thư báo lỗi trong app (baoloi.ts). */
+  baoLoi?: () => BaoLoi | null;
   /** Thông tin của chính pod nhận request (cho `/cum` khi chạy một pod không Redis). */
   podNay: () => { pod: string; phong: number; sanhKetNoi: number };
 }): QuanTri {
@@ -150,6 +156,9 @@ export function moQuanTri(opts: {
       congKhai: { type: 'boolean', description: 'true = chỉ phòng công khai, false = chỉ phòng riêng' },
       boMa: { type: 'boolean', description: 'Bỏ phòng ma (phòng chờ mọi người đã đi > 15 phút)' } } } },
     { name: 'xem_phong', description: 'Chi tiết một phòng theo mã 6 số.', inputSchema: { type: 'object', properties: { ma: { type: 'string', pattern: '^[0-9]{6}$' } }, required: ['ma'] } },
+    { name: 'bao_loi', description: 'Thư báo lỗi / góp ý người chơi gửi từ app (mới nhất trước): loại, ở đâu, chuyện gì xảy ra, nội dung, email nếu có, thông tin máy (dòng máy, hệ điều hành, màn hình, bản app, chẩn đoán), có ảnh không, trạng thái.', inputSchema: { type: 'object', properties: {
+      soLuong: { type: 'number', description: 'Số thư (mặc định 10, tối đa 50)' },
+      chiMoi: { type: 'boolean', description: 'Chỉ thư chưa xử lý (trạng thái khác "xong")' } } } },
     { name: 'cum_may_chu', description: 'Sức khoẻ cụm máy chủ: từng máy/pod với CPU, RAM, swap, ổ cứng của máy (%), RAM pod, số phòng giữ, ai giữ sảnh; Redis và MySQL + độ trễ; danh sách cảnh báo (≥ 80% vàng, ≥ 95% đỏ).', inputSchema: { type: 'object', properties: {} } }
   ];
   async function goiCongCu(ten: string, a: Record<string, unknown>): Promise<unknown> {
@@ -157,6 +166,13 @@ export function moQuanTri(opts: {
     if (ten === 'cum_may_chu') return cum();
     if (ten === 'xem_phong') return /^[0-9]{6}$/.test(String(a.ma ?? '')) ? (await dsPhong(String(a.ma)))[0] ?? { loi: 'không có phòng đang mở mang mã này' } : { loi: 'mã phải là 6 số' };
     if (ten === 'danh_sach_phong') return locPhong(await dsPhong(), a);
+    if (ten === 'bao_loi') {
+      const bl = opts.baoLoi?.();
+      if (!bl) return { loi: 'chưa bật báo lỗi (cần MySQL)' };
+      const n = Math.min(50, Math.max(1, Number(a.soLuong) || 10));
+      const ds = (await bl.ds(a.chiMoi ? 50 : n)) as { trangThai: string }[];
+      return a.chiMoi ? ds.filter((x) => x.trangThai !== 'xong').slice(0, n) : ds;
+    }
     throw new Error(`không có công cụ ${ten}`);
   }
   async function mcp(than: unknown): Promise<{ status: number; body?: unknown }> {
@@ -235,7 +251,8 @@ export function moQuanTri(opts: {
       if (s && t - s.tu > CUA_SO_MS) sai.delete(ip);
       if ((sai.get(ip)?.n ?? 0) >= SAI_TOI_DA) { json(res, { loi: 'thuQuaNhieu' }, 429); return true; }
       const laMcp = url.pathname === '/api/quantri/mcp';
-      if (!dungKhoa(req) || req.method !== (laMcp ? 'POST' : 'GET')) {
+      const mTt = url.pathname.match(/^\/api\/quantri\/baoloi\/(\d{1,12})\/trangthai$/);
+      if (!dungKhoa(req) || req.method !== (laMcp || mTt ? 'POST' : 'GET')) {
         const x = sai.get(ip) ?? { n: 0, tu: t };
         x.n++; sai.set(ip, x);
         if (sai.size > 10_000) sai.clear();
@@ -247,6 +264,30 @@ export function moQuanTri(opts: {
           if (body === undefined) { res.writeHead(status); res.end(); return; }
           json(res, body, status);
         }).catch(() => { if (!res.headersSent) json(res, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }, 400); });
+        return true;
+      }
+      // Báo lỗi: danh sách / ảnh / đổi trạng thái
+      const bl = opts.baoLoi?.() ?? null;
+      const mAnh = url.pathname.match(/^\/api\/quantri\/baoloi\/(\d{1,12})\/anh$/);
+      if (mAnh || mTt || url.pathname === '/api/quantri/baoloi') {
+        if (!bl) { json(res, { loi: 'chưa bật báo lỗi (cần MySQL)' }, 503); return true; }
+        const loiSv = (e: unknown): void => { console.error('[quantri] báo lỗi:', (e as Error).message); if (!res.headersSent) json(res, { error: 'Lỗi server' }, 500); };
+        if (mAnh) {
+          void bl.anh(Number(mAnh[1])).then((a) => {
+            if (!a) { json(res, { error: 'Không có ảnh' }, 404); return; }
+            res.writeHead(200, { 'Content-Type': a.loai, 'Cache-Control': 'private, max-age=86400', 'Content-Security-Policy': "default-src 'none'", 'X-Content-Type-Options': 'nosniff' });
+            res.end(a.du);
+          }).catch(loiSv);
+        } else if (mTt) {
+          docThan(req).then((b) => {
+            const tt = String((b as { tt?: unknown } | null)?.tt ?? '');
+            if (tt !== 'moi' && tt !== 'xem' && tt !== 'xong') { json(res, { error: 'tt phải là moi | xem | xong' }, 400); return; }
+            return bl.datTrangThai(Number(mTt[1]), tt).then((ok) => json(res, { ok }));
+          }).catch(loiSv);
+        } else {
+          const truoc = Number(url.searchParams.get('truoc')) || undefined;
+          void bl.ds(30, truoc).then((ds) => { res.setHeader('Cache-Control', 'no-store'); json(res, { thu: ds }); }).catch(loiSv);
+        }
         return true;
       }
       const m = url.pathname.match(/^\/api\/quantri\/phong\/([0-9]{6})$/);

@@ -21,6 +21,7 @@ import { moCum, type Cum } from './cum.js';
 import { chonPod } from './chon-pod.js';
 import { moQuanTri, type QuanTri } from './quantri.js';
 import { doSucKhoe } from './suc-khoe-may.js';
+import { moBaoLoi, type BaoLoi } from './baoloi.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -732,6 +733,7 @@ function xuLyHttpTiep(req: IncomingMessage, res: ServerResponse, url: URL): void
   if (sanh.xuLyHttp(req, res, url)) return;
   if (tkThiDau?.xuLy(req, res, url, json)) return;
   if (quanTri?.xuLy(req, res, url, json)) return;
+  if (baoLoi?.xuLy(req, res, url, json)) return;
   if (tkTen?.xuLy(req, res, url, json)) return;
 
   if (url.pathname === '/api/ping' && req.method === 'GET') {
@@ -817,6 +819,8 @@ let thongBao: ThongBao | null = null;
 let tkThiDau: TkThiDau | null = null;
 /** API quản trị cụm (quantri.ts) — bật khi có QUANTRI_KEY. */
 let quanTri: QuanTri | null = null;
+/** Báo lỗi / góp ý trong app (baoloi.ts) — cần MySQL. */
+let baoLoi: BaoLoi | null = null;
 /** Tra mã người chơi GA → tên (tk-ten.ts). */
 let tkTen: ReturnType<typeof moTkTen> | null = null;
 
@@ -956,8 +960,9 @@ if (cum) {
   await khoiPhuc();
 }
 batBao = true;
+baoLoi = await moBaoLoi(kho?.pool ?? null).catch((e) => { console.error('[baoloi] không mở được:', (e as Error).message); return null; });
 quanTri = process.env.QUANTRI_KEY ? moQuanTri({
-  pool: kho?.pool ?? null, cum: () => cum, khoa: process.env.QUANTRI_KEY,
+  pool: kho?.pool ?? null, cum: () => cum, khoa: process.env.QUANTRI_KEY, baoLoi: () => baoLoi,
   podNay: () => ({ pod: cum?.pod ?? 'mot-pod', phong: phongs.size, sanhKetNoi: sanh.soKetNoi() })
 }) : null;
 console.log(quanTri ? '  API quản trị: BẬT (/api/quantri/*)' : '  API quản trị: TẮT (cần QUANTRI_KEY)');

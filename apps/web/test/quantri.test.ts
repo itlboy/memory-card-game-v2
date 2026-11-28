@@ -89,7 +89,7 @@ describe('MCP /api/quantri/mcp', () => {
 
   it('tools/list có đủ 4 công cụ; tools/call xem_phong trả JSON phòng, không token', async () => {
     const ds = (await goiMcp({ jsonrpc: '2.0', id: 2, method: 'tools/list' })).body as { result: { tools: { name: string }[] } };
-    expect(ds.result.tools.map((x) => x.name).sort()).toEqual(['cum_may_chu', 'danh_sach_phong', 'tong_quan', 'xem_phong']);
+    expect(ds.result.tools.map((x) => x.name).sort()).toEqual(['bao_loi', 'cum_may_chu', 'danh_sach_phong', 'tong_quan', 'xem_phong']);
     const r = (await goiMcp({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'xem_phong', arguments: { ma: '111111' } } })).body as { result: { content: { text: string }[] } };
     expect(JSON.parse(r.result.content[0]!.text)).toMatchObject({ ma: '111111' });
     expect(r.result.content[0]!.text).not.toMatch(/BI-MAT/);

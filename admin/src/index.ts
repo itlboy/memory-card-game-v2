@@ -10,7 +10,7 @@ import { tra, json, xuLyApi } from './api.ts';
 import { Ga, type KhoaSa } from './ga.ts';
 import { HTML, CSS, JS } from './trang.ts';
 import { layThiDau } from './thidau.ts';
-import { layMayChu } from './maychu.ts';
+import { layMayChu, layBaoLoi, layAnhBaoLoi, datTrangThaiBaoLoi } from './maychu.ts';
 
 /** Mã phiên bản theo NỘI DUNG JS+CSS, gắn vào đường dẫn trong HTML. Lúc Cloudflare đang chuyển bản,
  *  HTML và app.js có thể tới từ hai bản khác nhau (đã gặp 17.11.2026: HTML mới + JS cũ → kẹt "đang tải");
@@ -55,6 +55,14 @@ export default {
       return tra('Không có quyền. Trang này chỉ mở qua Cloudflare Access.', 'text/plain; charset=utf-8', 403);
     }
 
+    // Đánh dấu thư báo lỗi (POST duy nhất của trang). Header riêng `x-admin: 1` buộc trình duyệt preflight nếu khác gốc →
+    // trang lạ không giả được lệnh này (cookie Access còn là SameSite=Lax).
+    const mTt = url.pathname.match(/^\/api\/baoloi\/(\d{1,12})\/trangthai$/);
+    if (mTt && req.method === 'POST') {
+      if (req.headers.get('x-admin') !== '1') return json({ loi: 'thiếu x-admin' }, 403);
+      const b = await req.json().catch(() => null) as { tt?: string } | null;
+      return datTrangThaiBaoLoi(env, Number(mTt[1]), String(b?.tt ?? ''));
+    }
     if (req.method !== 'GET') return tra('Chỉ đọc.', 'text/plain; charset=utf-8', 405);
     switch (url.pathname) {
       case '/': return tra(HTML_PHIEN, 'text/html; charset=utf-8');
@@ -65,6 +73,9 @@ export default {
     // Ô Thi đấu KHÔNG qua GA — đứng trước nhánh GA để GA chưa nối / hết hạn mức thì ô này vẫn chạy
     if (url.pathname === '/api/thidau') return layThiDau(env, Number(url.searchParams.get('ngay')) || 30);
     if (url.pathname === '/api/maychu') return layMayChu(env);
+    if (url.pathname === '/api/baoloi') return layBaoLoi(env, Number(url.searchParams.get('truoc')) || null);
+    const mAnh = url.pathname.match(/^\/api\/baoloi\/(\d{1,12})\/anh$/);
+    if (mAnh) return layAnhBaoLoi(env, Number(mAnh[1]));
 
     if (url.pathname.startsWith('/api/')) {
       const ga = layGa(env);
