@@ -3,6 +3,7 @@ import { ref, shallowRef, watch } from 'vue';
 import { store } from './storage';
 import { moKhoa } from './achievements';
 import { laApp, nenApp, SERVER_URL } from './native';
+import { laNhung } from './nen-fb';
 import { datMaNguoi, moChucNang, suKien } from './phan-tich';
 
 /**
@@ -212,8 +213,9 @@ export async function khoiDong(): Promise<void> {
     const cfg = await res.json() as { googleClientId?: string; apple?: { app?: boolean; webClientId?: string } };
     googleClientId.value = cfg.googleClientId ?? '';
     appleWebId = cfg.apple?.webClientId ?? '';
-    coGoogle.value = !!cfg.googleClientId && !laApp;
-    coApple.value = nenApp === 'ios' ? !!cfg.apple?.app : nenApp === 'web' && !!appleWebId;
+    // Bản Facebook: thư viện đăng nhập Google/Apple bị CSP của Meta chặn và Meta cấm đăng nhập bên ngoài
+    coGoogle.value = !!cfg.googleClientId && !laApp && !laNhung;
+    coApple.value = nenApp === 'ios' ? !!cfg.apple?.app : nenApp === 'web' && !laNhung && !!appleWebId;
     if (laApp && cfg.googleClientId) {
       try {
         const { App } = await import('@capacitor/app');

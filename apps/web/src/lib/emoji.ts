@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { store } from './storage';
+import { tn } from './nen-fb';
 
 /**
  * MẶT BÀI VẼ EMOJI BẰNG GÌ: NOTO 3D TRÊN MỌI MÁY (chủ dự án 15.10.2026).
@@ -123,7 +124,7 @@ export function anhEmoji(kyHieu: string | undefined, vector?: boolean, co = 512)
   if (bo === 'may' || !kyHieu || !LA_EMOJI.test(kyHieu)) return null;
   const ma = tenFileEmoji(kyHieu);
   if (co >= 512 && !co512.value) co = 256;
-  return co >= 512 ? `/emoji/3d/${ma}.webp` : `/emoji/3d/${co}/${ma}.webp`;
+  return tn(co >= 512 ? `/emoji/3d/${ma}.webp` : `/emoji/3d/${co}/${ma}.webp`);
 }
 
 /**

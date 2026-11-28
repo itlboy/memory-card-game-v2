@@ -1,4 +1,5 @@
 import { laApp, nenApp } from './native';
+import { laCong, tenCong } from './nen-fb';
 import { store } from './storage';
 import { gaDem, taoGaTrucTiep } from './ga-truc-tiep';
 
@@ -106,6 +107,9 @@ export function batPhanTich(): void {
       client_id: store.clientId(),
       client_storage: 'none',
       page_location: `https://flipmatch.cozypi.com/app/${nenApp}`
+    } : laCong ? {
+      // Bản cổng game chạy trong khung ở tên miền của cổng → gom về một đường dẫn riêng từng cổng (admin tab Tăng trưởng)
+      page_location: `https://flipmatch.cozypi.com/cong/${tenCong}`
     } : URL_DAU.includes('utm_') ? {
       // Link mời / chia sẻ mang utm_*; App.vue có thể đã viết lại URL (?room=…) trước khi GA bật → đưa
       // địa chỉ LÚC MỞ để GA ghi đúng nguồn (17.11.2026)

@@ -4,6 +4,8 @@ import App from './App.vue';
 import { sfx } from './lib/audio';
 import { nhac } from './lib/nhac';
 import { laApp } from './lib/native';
+import { laFacebook, laNhung } from './lib/nen-fb';
+import { fbBatDau, fbKhoiDong, fbTienDo } from './lib/facebook';
 import { ganNutBackAndroid, ganVuotLuiIos } from './lib/nut-back';
 import { ganLinkMoi } from './lib/link-moi';
 import './styles/fonts';   // font đóng gói sẵn — xem styles/fonts.ts
@@ -46,7 +48,8 @@ for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
 // Cache app shell để rời app rồi quay lại là hiện ngay (mobile hay giải phóng
 // tab); bản mới tự thay khi có deploy. Thiếu SW cũng không sao — app vẫn chạy.
 // Trong app iOS gói bằng Capacitor web nằm sẵn trong máy, SW chỉ thêm một lớp cache lệch bản.
-if (!laApp) void registerSW({ immediate: true });
+// Bản Facebook: không service worker (khung của Meta, origin không phải của mình)
+if (!laApp && !laNhung) void registerSW({ immediate: true });
 
 // Mở sẵn cho console: `sfx.volume = 2.5` để thử âm lượng (giá trị được nhớ lại).
 // Không có dòng này thì `sfx` chỉ là biến trong module, console không thấy.
@@ -59,11 +62,16 @@ ganSkin();
 ganCanh();
 ganLung();   // mặt lưng lá theo hình nền — trước khi mount để lá đầu tiên đã đúng hình
 // Chờ từ điển của ngôn ngữ đầu (chunk riêng, lib/i18n.ts) — mount trước là loé tiếng Việt một nhịp
-void napTuDien(ngonNgu.value).finally(() => {
+// Bản Facebook: SDK phải `initializeAsync` XONG trước mọi lời gọi khác; màn chờ của Meta chỉ tắt
+// khi gọi `startGameAsync` (lib/facebook.ts). Web/app: `fbKhoiDong()` trả về ngay, không đổi gì.
+void fbKhoiDong().then(() => napTuDien(ngonNgu.value)).finally(() => {
+  fbTienDo(80);
   const app = createApp(App);
   // Lỗi trong component Vue không tới window.onerror — báo riêng, vẫn in ra console như mặc định
   app.config.errorHandler = (err, _vm, info) => { guiLoi('vue', err, info); console.error(err); };
   app.mount('#app');
+  // Hai rAF = sau khi trình duyệt THẬT SỰ vẽ khung đầu, mới bỏ màn chờ của Facebook
+  if (laFacebook) requestAnimationFrame(() => requestAnimationFrame(() => void fbBatDau()));
 });
 
 // MÀN CHỜ (app): giữ tới khi game vẽ xong khung đầu rồi mờ dần — cả iOS lẫn Android.

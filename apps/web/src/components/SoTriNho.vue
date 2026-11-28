@@ -30,6 +30,7 @@ import { daMuaPremium, moPremium, moiNangCap } from '@/lib/premium';
 import { veAnhTriNho } from '@/lib/anh-ket-qua';
 import { hoSo, tenToi } from '@/lib/ho-so';
 import { SITE_URL } from '@/lib/native';
+import { laCong } from '@/lib/nen-fb';
 import LuuChiaSe from './LuuChiaSe.vue';
 
 const emit = defineEmits<{ close: []; luyen: [soThe: number] }>();
@@ -182,7 +183,7 @@ const coNhan = (k: string, i: number): boolean =>
       <header class="tn-head">
         <h2 id="tnTitle"><ChartColumn :size="22" :stroke-width="2.4" aria-hidden="true" /> {{ t('tn.ten') }}</h2>
         <span class="tn-nut">
-          <button v-if="ky.diem !== null && laHomNay" class="btn chia-se" :aria-label="t('tn.cs.nut')" type="button" @click="chiaSe"><Share2 :size="19" :stroke-width="2.4" /></button>
+          <button v-if="ky.diem !== null && laHomNay && !laCong" class="btn chia-se" :aria-label="t('tn.cs.nut')" type="button" @click="chiaSe"><Share2 :size="19" :stroke-width="2.4" /></button>
           <button ref="nutDong" class="btn" :aria-label="t('dhd.dong')" type="button" @click="emit('close')"><X :size="20" /></button>
         </span>
       </header>

@@ -15,6 +15,7 @@
 import { ref } from 'vue';
 import { daCai, heMay, trongAppKhac } from './cai-app';
 import { laApp } from './native';
+import { laNhung } from './nen-fb';
 
 const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
 const safariIos = heMay === 'ios' && !trongAppKhac && !/CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser|GSA\//.test(ua);
@@ -25,7 +26,7 @@ export const STORE_APP = {
 } as const;
 
 /** Store cho máy này, hoặc null khi không nên gợi ý. */
-export const storeGoiY = laApp || daCai || heMay === 'khac' || safariIos ? null : STORE_APP[heMay];
+export const storeGoiY = laApp || laNhung || daCai || heMay === 'khac' || safariIos ? null : STORE_APP[heMay];
 
 const KHOA = 'mm.anGoiYApp';
 const NGAY_AN = 30;

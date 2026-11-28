@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue';
 import vi from '@/locales/vi';
 import { laApp } from './native';
+import { laNhung } from './nen-fb';
 import { ghiUrl } from './appUrl';
 
 /**
@@ -119,6 +120,8 @@ function docBanDau(): NgonNgu {
       return LA_NGON_NGU(luu) ? luu : may;
     }
     if (LA_NGON_NGU(luu)) return luu;
+    // Bản NHÚNG (cổng game, Facebook): không có địa chỉ /<mã>/ để chọn tiếng → theo ngôn ngữ trình duyệt (cổng game là khách quốc tế)
+    if (laNhung && typeof navigator !== 'undefined') return theoMay(navigator.languages ?? [navigator.language]);
   } catch { /* chế độ riêng tư / môi trường không có location */ }
   return 'vi';
 }

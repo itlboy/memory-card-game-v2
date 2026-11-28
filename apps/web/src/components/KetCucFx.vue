@@ -6,6 +6,7 @@ import type { BienThe } from '@/lib/ketcuc-fx';
 import type { LoaiKetCuc } from '@/lib/ketcuc-fx';
 import { rung } from '@/lib/rung';
 import { t, td } from '@/lib/i18n';
+import { tn } from '@/lib/nen-fb';
 
 /**
  * HIỆU ỨNG KẾT VÁN — component DUY NHẤT cho mọi kết cục (xem `lib/ketcuc-fx.ts`).
@@ -37,7 +38,7 @@ const canh = computed(() => chonCanh(props.loai, { kyLuc: props.kyLuc }));
  * canh GIỮA màn. SVG TỰ VẼ (`public/img/`, cùng chất với robot trang chủ): bộ Noto 3D chỉ có
  * mặt trung tính cho ba con này, không vẽ được cười/khóc.
  */
-const THU = { cuoi: '/img/gau-truc-cuoi.svg', khoc: '/img/su-tu-khoc.svg', hoa: '/img/chuot.svg' } as const;
+const THU = { cuoi: tn('/img/gau-truc-cuoi.svg'), khoc: tn('/img/su-tu-khoc.svg'), hoa: tn('/img/chuot.svg') } as const;
 const bt = computed<BienThe | null>(() => props.bienThe ?? bocBienThe(canh.value, props.seed ?? 7));
 const cv = ref<HTMLCanvasElement | null>(null);
 /** Số cặp còn úp lúc thua — đếm từ DOM bàn thẻ, đúng cho cả offline lẫn online. */

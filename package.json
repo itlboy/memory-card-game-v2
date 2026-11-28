@@ -44,7 +44,10 @@
     "do:tuong-phan": "node tools/do-tuong-phan.mjs",
     "do:safari": "node tools/do-safari.mjs",
     "do:chip": "node tools/do-chip.mjs",
-    "smoke:ota": "node tools/smoke-ota.mjs"
+    "smoke:ota": "node tools/smoke-ota.mjs",
+    "build:fb": "pnpm --filter @mm/web build:fb",
+    "build:cong": "pnpm --filter @mm/web build:cong",
+    "smoke:fb": "node tools/smoke-fb.mjs"
   },
   "packageManager": "pnpm@10.0.0",
   "devDependencies": {

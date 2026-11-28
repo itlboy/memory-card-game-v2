@@ -20,6 +20,7 @@ import { hienTriNho, vuaDoi } from '@/lib/tri-nho';
 import LuuChiaSe from './LuuChiaSe.vue';
 import { coChiaSeAnh, type NoiDungAnh } from '@/lib/anh-ket-qua';
 import { SITE_URL } from '@/lib/native';
+import { laCong } from '@/lib/nen-fb';
 
 const props = defineProps<{
   summary: Summary;
@@ -311,7 +312,8 @@ const title = computed(() => {
  * Mọi chế độ. Ảnh kể ĐÚNG ván: nhiều người → bảng xếp hạng ("X thắng!" — người thua lưu để phục
  * thù cũng được); một mình → điểm, lượt, thời gian, chuỗi.
  */
-const hienLcs = coChiaSeAnh();
+// Bản cổng game: ảnh in link tải app (cổng cấm quảng bá chéo) → không có nút
+const hienLcs = !laCong && coChiaSeAnh();
 const moLcs = ref(false);
 const boEmoji = (s: string): string => s.replace(/\s*\p{Extended_Pictographic}[\u{FE0F}\u{200D}\p{Extended_Pictographic}]*\s*$/u, '').trim();
 const noiDungAnh = computed<NoiDungAnh>(() => {

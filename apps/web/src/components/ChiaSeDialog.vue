@@ -38,6 +38,7 @@ function phim(e: KeyboardEvent): void { if (e.key === 'Escape') emit('close'); }
 onMounted(async () => {
   nutDong.value?.focus();
   document.addEventListener('keydown', phim);
+  if (!props.link) return;   // bản cổng game: chỉ mã phòng, không QR/link
   try {
     // Màu lấy từ token thật để QR hợp với phần còn lại, và ĐỦ TƯƠNG PHẢN cho
     // máy quét: nền trắng đặc, không dùng nền trong suốt.
@@ -61,7 +62,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
       </header>
 
       <!-- QR quét được là vào thẳng phòng: bạn bè khỏi gõ mã, khỏi gõ link -->
-      <div class="qr">
+      <div v-if="link" class="qr">
         <canvas v-show="!loiQR" ref="canvas" :aria-label="t('cs.qrAria')"></canvas>
         <p v-if="loiQR" class="loi">{{ t('cs.loiQR') }}</p>
       </div>
@@ -74,7 +75,7 @@ onUnmounted(() => document.removeEventListener('keydown', phim));
           <Check v-if="daCopyMa" :size="17" /><Copy v-else :size="17" />
           {{ daCopyMa ? t('cs.daCopyMa') : t('cs.copyMa') }}
         </button>
-        <button class="btn chinh" type="button" :title="inviteText" @click="copy(inviteText, 'link')">
+        <button v-if="link" class="btn chinh" type="button" :title="inviteText" @click="copy(inviteText, 'link')">
           <Check v-if="daCopyLink" :size="17" /><Link2 v-else :size="17" />
           {{ daCopyLink ? t('cs.daCopyLink') : t('cs.copyLink') }}
         </button>

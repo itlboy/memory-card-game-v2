@@ -15,3 +15,9 @@ undefined/
 .design/*.html
 !.design/*.dc.html
 apps/web/dist-ota/
+
+# Bản Facebook Instant Games (pnpm --filter @mm/web build:fb)
+apps/web/dist-fb/
+apps/web/lat-the-fb.zip
+apps/web/dist-cong/
+apps/web/lat-the-cong-*.zip

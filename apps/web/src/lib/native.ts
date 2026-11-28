@@ -11,6 +11,8 @@
  * worker và in link mời `https://localhost/?room=…`. Cầu nối native của
  * Capacitor gắn `window.Capacitor` TRƯỚC khi script trang chạy, ở cả hai nền.
  */
+import { laNhung } from './nen-fb';
+
 interface CapBridge { isNativePlatform?: () => boolean; getPlatform?: () => string }
 export const laApp = typeof location !== 'undefined' && (
   (globalThis as { Capacitor?: CapBridge }).Capacitor?.isNativePlatform?.() === true
@@ -25,7 +27,7 @@ export const nenApp: 'ios' | 'android' | 'web' = (() => {
 })();
 
 /** Địa chỉ công khai của game (dùng cho link chia sẻ). Trong trình duyệt là chính origin. */
-export const SITE_URL: string = laApp
+export const SITE_URL: string = laApp || laNhung
   ? ((import.meta.env.VITE_SITE_URL as string | undefined) ?? 'https://flipmatch.cozypi.com').replace(/\/$/, '')
   : (typeof location === 'undefined' ? '' : location.origin);
 

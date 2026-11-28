@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { dichGoiYTuyChon } from '@/lib/goi-y-tuy-chon';
 import { SITE_URL } from '@/lib/native';
+import { laCong } from '@/lib/nen-fb';
 import MatNguoi from './MatNguoi.vue';
 import DauPremium from './DauPremium.vue';
 import {
@@ -591,6 +592,7 @@ defineExpose({ requestHome: () => quit(), requestBack, isBusy, dangChoi, trongPh
 /** Link mời mang TÊN người mời + ngôn ngữ: Worker dựng thẻ chia sẻ riêng ("Kiên mời bạn đấu
  *  Lật Thẻ! · Phòng 482193") từ hai tham số này — apps/server/src/index.ts `theMoi`. */
 const inviteLink = computed(() => {
+  if (laCong) return '';   // cổng game: không đưa link về web của mình — mời bằng mã 6 số
   const q = new URLSearchParams({ room: o.room.value?.code ?? '' });
   const toi = o.room.value?.players.find((p) => p.id === o.myId.value)?.name.trim();
   if (toi) q.set('tu', toi.slice(0, 16));
@@ -618,7 +620,7 @@ async function copyCode(): Promise<void> {
  * chứ một cái link trần thì người nhận không biết là gì.
  */
 const inviteText = computed(() =>
-  `${t('on.loiMoi', { code: o.room.value?.code ?? '' })}\n${inviteLink.value}`);
+  `${t('on.loiMoi', { code: o.room.value?.code ?? '' })}${inviteLink.value ? `\n${inviteLink.value}` : ''}`);
 
 /** Copy lời mời. KHÔNG dùng `navigator.share` nữa: bảng chia sẻ của hệ điều
  *  hành đòi thêm 2–3 chạm mới tới được app muốn gửi, mà thứ người chơi cần chỉ

@@ -13,6 +13,7 @@
  */
 import { ref } from 'vue';
 import { laApp } from './native';
+import { laNhung } from './nen-fb';
 import { suKien } from './phan-tich';
 
 const ua = typeof navigator === 'undefined' ? '' : navigator.userAgent;
@@ -29,10 +30,10 @@ export const daCai = typeof window !== 'undefined' && (
   window.matchMedia?.('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true);
 
 /** Có nên mời cài không: điện thoại/máy tính bảng mở bằng trình duyệt, chưa cài. */
-export const nenMoiCai = !laApp && !daCai && heMay !== 'khac';
+export const nenMoiCai = !laApp && !laNhung && !daCai && heMay !== 'khac';
 
 /** Mục hướng dẫn trong Luật chơi: mọi nơi trừ khi đang là app (store hoặc đã cài). */
-export const coHuongDanCai = !laApp && !daCai;
+export const coHuongDanCai = !laApp && !laNhung && !daCai;
 
 /** Tab đang xem (iOS / Android) — chung cho hộp và mục Luật chơi, mở sẵn theo máy. */
 export const tabCai = ref<'ios' | 'android'>(heMay === 'android' ? 'android' : 'ios');

@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 import vue from '@vitejs/plugin-vue';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { maGoiOta } from '../../tools/ma-goi-ota.mjs';
 
@@ -18,7 +18,34 @@ const buildAt = new Intl.DateTimeFormat('vi-VN', {
   hour: '2-digit', minute: '2-digit', hour12: false
 }).format(new Date());
 
+/**
+ * BẢN FACEBOOK INSTANT GAMES (`pnpm build:fb`, cờ `VITE_NEN=facebook` — xem lib/nen-fb.ts `laFacebook`).
+ * Khác bản web ở bốn chỗ, TẤT CẢ chỉ bật khi có cờ (build web/app không đổi một byte cấu hình):
+ *  · `base: './'` — Meta host gói zip ở thư mục con, đường dẫn tuyệt đối `/assets/…` sẽ 404;
+ *  · ra thư mục `dist-fb`, KHÔNG đụng `dist` (thứ đang deploy và đóng gói OTA);
+ *  · tắt PWA (không service worker, không manifest) — `disable` vẫn giữ module ảo `virtual:pwa-register`;
+ *  · index.html: chèn SDK `fbinstant.8.0.js` TRƯỚC script game (Meta bắt buộc), bỏ thẻ Smart App Banner
+ *    và preconnect (CSP của Meta tự lo), bỏ thẻ og (con bọ không đọc trang trong khung).
+ */
+const laFb = process.env.VITE_NEN === 'facebook';
+/** Bản CỔNG GAME WEB (`pnpm build:cong`, lib/nen-fb.ts `laCong`): cùng `base: './'`, tắt PWA, bỏ thẻ banner/og — KHÔNG chèn SDK nào. Ra `dist-cong`. */
+const laCong = process.env.VITE_NEN === 'cong';
+const laNhung = laFb || laCong;
+const SDK_FB = 'https://connect.facebook.net/en_US/fbinstant.8.0.js';
+const htmlFacebook = (): Plugin => ({
+  name: 'html-facebook',
+  transformIndexHtml: {
+    order: 'pre',
+    handler: (html) => html
+      .replace(/^\s*<meta name="apple-itunes-app"[^\n]*\n/m, '')
+      .replace(/^\s*<meta (property="og:|name="twitter:)[^\n]*\n/gm, '')
+      .replace(/^\s*<link rel="(icon|apple-touch-icon)"[^\n]*\n/gm, '')
+      .replace('</head>', laFb ? `  <script src="${SDK_FB}"></script>\n</head>` : '</head>')
+  }
+});
+
 export default defineConfig({
+  ...(laNhung ? { base: './' } : {}),
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '1.1.0'),
     __BUILD_AT__: JSON.stringify(buildAt),
@@ -36,7 +63,9 @@ export default defineConfig({
     // Trình duyệt mobile giải phóng tab khi người chơi rời app; không có cache thì
     // quay lại là tải lại toàn bộ bundle + font + theme từ mạng (chờ vài giây).
     // Service worker cache app shell nên mở lại là hiện ngay, và chơi được offline.
+    ...(laNhung ? [htmlFacebook()] : []),
     VitePWA({
+      disable: laNhung,
       registerType: 'autoUpdate',
       includeAssets: ['data/themes.json'],
       manifest: {
@@ -88,5 +117,5 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  build: { target: 'es2022' }
+  build: { target: 'es2022', ...(laNhung ? { outDir: laFb ? 'dist-fb' : 'dist-cong' } : {}) }
 });

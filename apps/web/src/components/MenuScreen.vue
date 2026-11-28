@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { dichGoiYTuyChon } from '@/lib/goi-y-tuy-chon';
 import { anhEmoji } from '@/lib/emoji';
+import { tn } from '@/lib/nen-fb';
 import { taiTruocTheme } from '@/lib/anh-theme';
 import { tenBot } from '@/lib/ten';
 import { tenTheme } from '@/lib/achievements';
@@ -637,7 +638,7 @@ const ICO3D = {
   // ngôi sao một khối, vàng nổi trên xanh, và khớp sao đánh giá — sao giờ chỉ dành cho Chiến dịch.
   chienDich: anhEmoji('⭐', true, 128) ?? '', choiNhanh: anhEmoji('🚀', true, 128) ?? '',
   // robot TỰ VẼ (public/img/robot.svg) — 🤖 Noto vuông cứng, chủ dự án muốn "đáng yêu hơn"
-  dauMay: '/img/robot.svg', online: anhEmoji('🌍', true, 128) ?? '',
+  dauMay: tn('/img/robot.svg'), online: anhEmoji('🌍', true, 128) ?? '',
   thuong: anhEmoji('🧠', true, 128) ?? '', muaThe: anhEmoji('🌧️', true, 128) ?? ''
 };
 </script>
