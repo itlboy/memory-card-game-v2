@@ -57,6 +57,8 @@ export function moQuanTri(opts: {
   baoLoi?: () => BaoLoi | null;
   /** Thông tin của chính pod nhận request (cho `/cum` khi chạy một pod không Redis). */
   podNay: () => { pod: string; phong: number; sanhKetNoi: number };
+  /** "Ai đang online" — danh sách kết nối sảnh (chỉ pod giữ sảnh có; index.ts chuyển request về pod đó). */
+  nguoiOnline?: () => unknown[];
 }): QuanTri {
   const now = opts.now ?? Date.now;
   const khoa = (opts.khoa ?? '').trim();
@@ -159,11 +161,13 @@ export function moQuanTri(opts: {
     { name: 'bao_loi', description: 'Thư báo lỗi / góp ý người chơi gửi từ app (mới nhất trước): loại, ở đâu, chuyện gì xảy ra, nội dung, email nếu có, thông tin máy (dòng máy, hệ điều hành, màn hình, bản app, chẩn đoán), có ảnh không, trạng thái.', inputSchema: { type: 'object', properties: {
       soLuong: { type: 'number', description: 'Số thư (mặc định 10, tối đa 50)' },
       chiMoi: { type: 'boolean', description: 'Chỉ thư chưa xử lý (trạng thái khác "xong")' } } } },
+    { name: 'nguoi_online', description: 'Ai đang mở app lúc này (kết nối sảnh): tên, avatar, nền tảng, ngôn ngữ, nước, Google hay khách, đang làm gì (hd.l: chu trang chủ · menu đang chọn bàn · nhanh chơi nhanh · cd Chiến dịch màn hd.man · may đấu máy hd.may · tim Tìm Thẻ · timcd Chiến dịch Tìm Thẻ · mua Mưa Thẻ · online phòng hd.ma, hd.o = lobby/playing/xem/sanh), làm từ lúc nào (hdLuc), số xu / danh hiệu / màn Chiến dịch / Premium / bản app (tk), nối lúc nào (luc). App bản cũ không gửi hd/tk.', inputSchema: { type: 'object', properties: {} } },
     { name: 'cum_may_chu', description: 'Sức khoẻ cụm máy chủ: từng máy/pod với CPU, RAM, swap, ổ cứng của máy (%), RAM pod, số phòng giữ, ai giữ sảnh; Redis và MySQL + độ trễ; danh sách cảnh báo (≥ 80% vàng, ≥ 95% đỏ).', inputSchema: { type: 'object', properties: {} } }
   ];
   async function goiCongCu(ten: string, a: Record<string, unknown>): Promise<unknown> {
     if (ten === 'tong_quan') return tong();
     if (ten === 'cum_may_chu') return cum();
+    if (ten === 'nguoi_online') return { luc: now(), nguoi: opts.nguoiOnline?.() ?? [] };
     if (ten === 'xem_phong') return /^[0-9]{6}$/.test(String(a.ma ?? '')) ? (await dsPhong(String(a.ma)))[0] ?? { loi: 'không có phòng đang mở mang mã này' } : { loi: 'mã phải là 6 số' };
     if (ten === 'danh_sach_phong') return locPhong(await dsPhong(), a);
     if (ten === 'bao_loi') {
@@ -300,6 +304,7 @@ export function moQuanTri(opts: {
           boMa: sp.get('boMa') === '1'
         }))
         : m ? dsPhong(m[1]).then((ds) => ds[0] ?? null)
+        : url.pathname === '/api/quantri/online' ? Promise.resolve({ luc: now(), nguoi: opts.nguoiOnline?.() ?? [] })
         : null;
       if (!viec) { json(res, { error: 'Không có đường này' }, 404); return true; }
       void viec.then((kq) => { res.setHeader('Cache-Control', 'no-store'); json(res, kq); })

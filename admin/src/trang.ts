@@ -70,6 +70,15 @@ export const HTML = String.raw`<!doctype html>
 
   <p class="ky-chon" id="kyChon">Đang tải…</p>
 
+  <!-- AI ĐANG ONLINE (28.11.2026, mockup duyệt https://claude.ai/artifact/3TE9pgPE7keg4BhyMSVj7c) — /api/nguoi-online, 10 giây một lần khi tab Online đang mở -->
+  <section class="thach the" id="aiOnline" data-tab="online">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Ai đang online</h2></div><span class="phu-nho" id="aoLuc">từ sảnh máy chủ game</span></div>
+    <div class="chips nho ao-loc" id="aoLoc"></div>
+    <div class="ao-ds" id="aoDs"><span class="sk" style="height:54px"></span></div>
+    <p class="ghi-o">Chỉ thấy người đang MỞ app (vào nền là rời sảnh) và không tắt “Nhận lời mời chơi”. App bản cũ chỉ báo Trang chủ / Đang chơi / Online, không có xu.</p>
+    <p class="loi-o" id="loi-aionline" hidden></p>
+  </section>
+
   <!-- MÁY CHỦ · TRỰC TIẾP (28.11.2026) — đứng ĐẦU tab Online (số trực tiếp trước số GA): số từ API quản trị cụm của MÁY CHỦ GAME (/api/maychu), 30 giây một lần -->
   <section class="thach the" id="mayChu" data-tab="online">
     <div class="the-dau"><div class="tieu"><h2 class="ktieu">Máy chủ · trực tiếp</h2></div><span class="phu-nho" id="mcLuc">từ máy chủ game</span></div>
@@ -307,6 +316,30 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 #thiDau .kpi b{font-size:30px}
 .song{padding:8px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;border-radius:18px;border:2px solid #23573a;background:rgba(74,222,128,.06)}
 .phu-nho{font-size:12px;color:var(--mo);font-weight:600}
+.ao-loc{margin:4px 0 10px}.ao-loc .chip{min-height:34px}.ao-loc .chip[aria-pressed="true"]{background:var(--tim);border-color:var(--tim2);color:#fff}
+.ao-loc .chip b{font:800 14px 'Baloo 2',sans-serif}
+.ao-ds{display:flex;flex-direction:column}
+.ao-h{display:grid;grid-template-columns:minmax(150px,1.3fr) minmax(110px,.9fr) minmax(200px,1.8fr) 90px 70px 70px 70px;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--vien)}
+.ao-h.dau-bang{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--mo);font-weight:800;border-bottom-width:2px}
+.ao-ng{display:flex;align-items:center;gap:9px;min-width:0}.ao-av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:20px;flex:none;background:var(--o2)}
+.ao-ng b,.ao-nt b{display:block;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ao-h small{display:block;color:var(--mo);font-size:11.5px;font-weight:700}
+.ao-pr{font-size:10px;font-weight:900;padding:1px 6px;border-radius:6px;background:linear-gradient(#ffe066,#f6b91c);color:#5a3a00;margin-left:5px;vertical-align:1px}
+.ao-hd{display:inline-block;padding:2px 9px;border-radius:9px;font-weight:900;font-size:12.5px;background:var(--o2);color:var(--mo)}
+.ao-hd.hd-online{background:rgba(34,197,94,.15);color:#22c55e}.ao-hd.hd-cd{background:rgba(234,179,8,.16);color:#eab308}.ao-hd.hd-nhanh{background:rgba(59,130,246,.15);color:#3b82f6}
+.ao-hd.hd-may{background:rgba(236,72,153,.15);color:#ec4899}.ao-hd.hd-tim{background:rgba(139,92,246,.16);color:#8b5cf6}.ao-hd.hd-mua{background:rgba(20,184,166,.15);color:#14b8a6}
+.ao-so{font:800 15px 'Baloo 2',sans-serif}
+.ao-trong{color:var(--mo);font-weight:700;padding:12px 4px}
+@media (max-width:700px){
+  .ao-h.dau-bang{display:none}
+  /* Thẻ gọn (28.11.2026, chủ dự án: "để nhiều khoảng trống thế?"): nền tảng gộp vào dòng cuối, hoạt động + chi tiết một hàng */
+  .ao-h{grid-template-columns:1fr auto;grid-template-areas:"ng xu" "hd hd" "ph ph";gap:3px 10px;padding:8px 10px;margin-top:6px;border:2px solid var(--vien);border-radius:14px;background:var(--o)}
+  .ao-av{width:30px;height:30px;font-size:18px;border-radius:9px}
+  .ao-h>.c-ng{grid-area:ng}.ao-h>.c-xu{grid-area:xu;text-align:right}
+  .ao-h>.c-hd{grid-area:hd;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}.ao-h>.c-hd small{display:inline}
+  .ao-h>.c-nt,.ao-h>.c-dh,.ao-h>.c-cd,.ao-h>.c-tg{display:none}.ao-h>.c-ph{grid-area:ph;display:block;color:var(--mo);font-size:11.5px;font-weight:700}
+}
+@media (min-width:701px){.ao-h>.c-ph{display:none}}
+
 .ky-chon{margin:0;font:700 13px Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mo)}
 .ky-chon b{color:#fff}
 .kpi-dau{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -1269,6 +1302,82 @@ export const JS = String.raw`
       l.hidden = true; veMayChu(x.g);
     }).catch(function () { var l = $('loi-maychu'); l.hidden = false; l.textContent = 'Không lấy được số máy chủ (mất mạng?).'; });
   }
+
+  /* AI ĐANG ONLINE (28.11.2026): /api/nguoi-online — 10 giây một lần khi tab Online đang hiện. */
+  var AO_BOT = { easy: 'Bot gà mờ', normal: 'Bot gà cứng', hard: 'Bot báo đen', insane: 'Bot mãnh hổ', divine: 'Bot rồng thần' };
+  var AO_TOC = { de: 'Chậm', vua: 'Vừa', kho: 'Nhanh' };
+  var AO_PHONG = { lobby: 'Đang chờ trong phòng', countdown: 'Đếm ngược', playing: 'Đang chơi', ended: 'Hết ván', xem: 'Đang xem' };
+  var AO_NT = { ios: 'iOS', android: 'Android', web: 'Web' };
+  var AO_BUOC = { level: 'chọn số thẻ', theme: 'chọn bộ thẻ', options: 'luật bàn', names: 'đặt tên', count: 'số người', bot: 'chọn máy' };
+  var AO_NHOM = [['online', 'Online'], ['cd', 'Chiến dịch'], ['nhanh', 'Chơi nhanh'], ['may', 'Đấu máy'], ['tim', 'Tìm Thẻ'], ['mua', 'Mưa Thẻ'], ['chu', 'Trang chủ']];
+  var aoLoc = 'tat', aoDuLieu = null;
+  function aoPhut(ms) { var g = Math.max(0, Math.round(ms / 1000)); return g < 60 ? g + ' giây' : g < 3600 ? Math.round(g / 60) + ' phút' : Math.floor(g / 3600) + ' giờ ' + Math.round((g % 3600) / 60) + ' phút'; }
+  /** Hoạt động → [nhóm, chữ chính, chữ phụ]. App bản cũ (không có hd) đoán theo tt. */
+  function aoHd(r) {
+    var h = r.hd;
+    if (!h) return r.tt === 'phong' ? ['online', 'Online', 'app bản cũ'] : r.tt === 'choi' ? ['nhanh', 'Đang chơi', 'app bản cũ'] : ['chu', 'Trang chủ', 'app bản cũ'];
+    var the = h.the ? h.the + ' thẻ' : '', luat = h.luat ? ' · ' + h.luat : '';
+    switch (h.l) {
+      case 'menu': return ['chu', 'Đang chọn bàn', (h.che === 'cd' ? 'Chiến dịch' : h.che === 'may' ? 'Đấu máy' : 'Chơi nhanh') + (h.kieu === 'tim' && h.che !== 'cd' ? ' · Tìm Thẻ' : '') + (AO_BUOC[h.w] ? ' · ' + AO_BUOC[h.w] : '')];
+      case 'nhanh': return ['nhanh', 'Chơi nhanh · ' + the, (h.n || 1) + ' người' + luat];
+      case 'cd': return ['cd', 'Chiến dịch · màn ' + h.man, the];
+      case 'may': return ['may', 'Đấu ' + (AO_BOT[h.may] || h.may), the + luat];
+      case 'tim': return ['tim', 'Tìm Thẻ · ' + h.the + ' thẻ', (AO_TOC[h.kho] || '') + (h.doi && h.doi !== 'mot' ? ' · đấu ' + (AO_BOT[h.doi] || h.doi) : ' · một mình')];
+      case 'timcd': return ['tim', 'Chiến dịch Tìm Thẻ · màn ' + h.man, ''];
+      case 'mua': return ['mua', 'Mưa Thẻ', ''];
+      case 'online':
+        if (!h.ma) return ['online', 'Online', 'đang xem danh sách phòng'];
+        return ['online', 'Online · phòng ' + h.ma, [AO_PHONG[h.o] || h.o, h.n ? h.n + ' người' : '', the, h.kieu === 'tim' ? 'Tìm Thẻ' : '', h.doi ? 'đồng đội' : '', h.td ? 'thi đấu' : ''].filter(Boolean).join(' · ')];
+      default: return ['chu', 'Trang chủ', ''];
+    }
+  }
+  function veAiOnline() {
+    var g = aoDuLieu; if (!g) return;
+    var luc = g.luc || Date.now(), ds = g.nguoi || [];
+    var dem = { tat: ds.length }, rows = ds.map(function (r) { var a = aoHd(r); dem[a[0]] = (dem[a[0]] || 0) + 1; var n = r.nt || 'khac'; dem['nt:' + n] = (dem['nt:' + n] || 0) + 1; return { r: r, a: a }; });
+    var loc = $('aoLoc'); loc.textContent = '';
+    var nut = function (k, ten) {
+      if (k !== 'tat' && !dem[k]) return;
+      var b = el('button', 'chip'); b.type = 'button'; b.setAttribute('aria-pressed', String(aoLoc === k));
+      b.appendChild(document.createTextNode(ten + ' ')); b.appendChild(el('b', null, so(dem[k] || 0)));
+      b.onclick = function () { aoLoc = aoLoc === k ? 'tat' : k; veAiOnline(); }; loc.appendChild(b);
+    };
+    nut('tat', 'Tất cả'); AO_NHOM.forEach(function (x) { nut(x[0], x[1]); }); ['ios', 'android', 'web'].forEach(function (n) { nut('nt:' + n, AO_NT[n]); });
+    var hop = $('aoDs'); hop.textContent = '';
+    var hien = rows.filter(function (x) { return aoLoc === 'tat' || x.a[0] === aoLoc || ('nt:' + (x.r.nt || 'khac')) === aoLoc; });
+    if (!hien.length) { hop.appendChild(el('div', 'ao-trong', ds.length ? 'Không ai khớp bộ lọc.' : 'Chưa có ai mở app lúc này.')); return; }
+    var dau = el('div', 'ao-h dau-bang');
+    ['Người chơi', 'Nền tảng', 'Đang làm gì', 'Xu', 'Danh hiệu', 'Chiến dịch', 'Online'].forEach(function (t) { dau.appendChild(el('span', null, t)); });
+    hop.appendChild(dau);
+    hien.forEach(function (x) {
+      var r = x.r, a = x.a, tk = r.tk || {};
+      var h = el('div', 'ao-h');
+      var ng = el('div', 'c-ng ao-ng'), av = el('span', 'ao-av', r.mat || '🙂'); if (r.mau) av.style.background = r.mau; ng.appendChild(av);
+      var t1 = el('span'), b = el('b', null, r.ten || 'Khách');
+      if (tk.pr) b.appendChild(el('span', 'ao-pr', 'PRO'));
+      t1.appendChild(b); t1.appendChild(el('small', null, r.loaiTk === 'u' ? 'Google' : r.loaiTk === 'k' ? 'Khách' : 'chưa có mã')); ng.appendChild(t1); h.appendChild(ng);
+      var nt = el('div', 'c-nt ao-nt'); nt.appendChild(el('b', null, AO_NT[r.nt] || r.nt || '–'));
+      nt.appendChild(el('small', null, [tk.ban, (r.nn || '').toUpperCase(), r.nuoc].filter(Boolean).join(' · '))); h.appendChild(nt);
+      var hd = el('div', 'c-hd'); hd.appendChild(el('span', 'ao-hd hd-' + a[0], a[1]));
+      hd.appendChild(el('small', null, [a[2], r.hd ? 'đã ' + aoPhut(luc - r.hdLuc) : ''].filter(Boolean).join(' · '))); h.appendChild(hd);
+      h.appendChild(el('div', 'c-xu ao-so', tk.xu == null ? '' : so(tk.xu)));
+      h.appendChild(el('div', 'c-dh ao-so', tk.dh == null ? '–' : so(tk.dh)));
+      h.appendChild(el('div', 'c-cd', tk.cd ? 'Màn ' + tk.cd : '–'));
+      h.appendChild(el('div', 'c-tg', aoPhut(luc - r.luc)));
+      h.appendChild(el('div', 'c-ph', [AO_NT[r.nt] || r.nt, tk.ban, (r.nn || '').toUpperCase(), tk.dh != null ? 'danh hiệu ' + so(tk.dh) : '', tk.cd ? 'Chiến dịch màn ' + tk.cd : '', 'online ' + aoPhut(luc - r.luc)].filter(Boolean).join(' · ')));
+      hop.appendChild(h);
+    });
+  }
+  function taiAiOnline() {
+    fetch('/api/nguoi-online', { credentials: 'same-origin' }).then(function (r) { return r.json().then(function (g) { return { ok: r.ok, g: g }; }); }).then(function (x) {
+      var l = $('loi-aionline');
+      if (!x.ok) { l.hidden = false; l.textContent = x.g && x.g.chuaCauHinh ? 'Chưa nạp khoá quản trị (QUANTRI_KEY) cho trang này.' : 'Không lấy được danh sách: ' + ((x.g && x.g.loi) || 'lỗi không rõ'); return; }
+      l.hidden = true; aoDuLieu = x.g; veAiOnline();
+      $('aoLuc').textContent = 'trực tiếp · ' + new Date(x.g.luc || Date.now()).toLocaleTimeString('vi-VN');
+    }).catch(function () { var l = $('loi-aionline'); l.hidden = false; l.textContent = 'Không lấy được danh sách (mất mạng?).'; });
+  }
+  taiAiOnline();
+  setInterval(function () { if (!document.hidden && document.body.getAttribute('data-tab') === 'online') taiAiOnline(); }, 10000);
   taiMayChu();
   setInterval(function () { if (!document.hidden) taiMayChu(); }, 30000);
   setInterval(function () { if (!document.hidden) { song(false); lucSong = Date.now(); } }, 60000);

@@ -54,6 +54,27 @@ interface KetNoi extends NguoiSanh {
   nt: string; nn: string; nuoc: string;
   /** Bật "Nhận lời mời chơi" (`nm=0` = tắt, kết nối chỉ để thi đấu): tắt thì KHÔNG lên danh sách mời / bảng xếp hạng. */
   nm: boolean;
+  /** "Ai đang online" (quản trị, 28.11.2026): lúc nối, hoạt động app khai (`hd`) + lúc đổi, số liệu tài khoản (`tk`). */
+  luc: number; hd: Record<string, string | number | boolean> | null; hdLuc: number; tk: Record<string, string | number | boolean> | null;
+}
+/** Một dòng "Ai đang online" của trang quản trị — CHỈ API quản trị đọc. */
+export interface DongQuanTri {
+  sid: string; ten: string; mat: string; mau?: string; tt: TrangThai; nt: string; nn: string; nuoc: string;
+  /** `u` tài khoản Google · `k` khách có mã · null chưa khai. */
+  loaiTk: 'u' | 'k' | null; nm: boolean; luc: number; hd: Record<string, string | number | boolean> | null; hdLuc: number;
+  tk: Record<string, string | number | boolean> | null;
+}
+/** Làm sạch gói `hd` / `tk` app gửi: tối đa 12 khoá ngắn, giá trị chữ ≤ 24 / số hữu hạn / bool. */
+function sachGoi(v: unknown): Record<string, string | number | boolean> | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const ra: Record<string, string | number | boolean> = {};
+  for (const [k, x] of Object.entries(v as Record<string, unknown>).slice(0, 12)) {
+    if (!/^[A-Za-z]{1,8}$/.test(k)) continue;
+    if (typeof x === 'number' && Number.isFinite(x)) ra[k] = x;
+    else if (typeof x === 'boolean') ra[k] = x;
+    else if (typeof x === 'string') ra[k] = x.replace(/[\u0000-\u001f<>]/g, '').slice(0, 24);
+  }
+  return ra;
 }
 /** Trạng thái online của một dòng bảng xếp hạng: `sid` chỉ có khi đang rảnh (thách được). */
 export interface OnlineBxh { sid?: string; ban: boolean }
@@ -78,6 +99,8 @@ export interface Sanh {
   soKetNoi(): number;
   /** Danh tính (`u:<id>` / `k:<mã băm>`) của mọi người đang nối sảnh và bật nhận lời mời — bộ lọc online của bảng xếp hạng. */
   dsAi(): string[];
+  /** Mọi kết nối sảnh, đủ chi tiết cho trang quản trị "Ai đang online". */
+  dsQuanTri(): DongQuanTri[];
   /** Số liệu thi đấu hiện thời cho `/api/ping`. */
   thiDau(): ReturnType<ThiDau['soLieu']>;
   dong(): void;
@@ -185,7 +208,8 @@ export function moSanh(opts: {
       // vật + màu người đó chọn). Chỉ nhận giá trị trong danh sách chung (engine ho-so.ts); app cũ không gửi → bốc như cũ.
       mat: matHoSo(url.searchParams.get('mat')) ?? opts.avatars[randomBytes(1)[0]! % opts.avatars.length] ?? '🙂',
       ...(mauHoSo(url.searchParams.get('mau')) ? { mau: mauHoSo(url.searchParams.get('mau')) } : {}),
-      tt: docTt(url.searchParams.get('tt'))
+      tt: docTt(url.searchParams.get('tt')),
+      luc: now(), hd: null, hdLuc: now(), tk: null
     };
     ketNoi.set(sid, k);
     ws.on('pong', () => { k.song = true; });
@@ -207,6 +231,11 @@ export function moSanh(opts: {
         if (ai) theoAi.set(ai, sid);
       }
       else if (m.t === 'ten') k.ten = tenSach(m.ten);
+      else if (m.t === 'hd') {
+        const hd = sachGoi(m.hd);
+        if (JSON.stringify(hd) !== JSON.stringify(k.hd)) { k.hd = hd; k.hdLuc = now(); }
+        k.tk = sachGoi(m.tk);
+      }
       else if (m.t === 'tuChoi' && k.moi && m.id === k.moi.id) {
         tuChoi.set(`${k.moi.ma}:${sid}`, now() + KHOA_TU_CHOI_MS);
         k.moi = null;
@@ -308,6 +337,11 @@ export function moSanh(opts: {
     },
     soKetNoi: () => ketNoi.size,
     dsAi: () => [...theoAi.entries()].filter(([, sid]) => ketNoi.get(sid)?.nm).map(([ai]) => ai),
+    dsQuanTri: () => [...ketNoi.values()].map((k) => ({
+      sid: k.sid, ten: k.ten, mat: k.mat, ...(k.mau ? { mau: k.mau } : {}), tt: k.tt, nt: k.nt, nn: k.nn, nuoc: k.nuoc,
+      loaiTk: k.ai?.startsWith('u:') ? 'u' as const : k.ai?.startsWith('k:') ? 'k' as const : null,
+      nm: k.nm, luc: k.luc, hd: k.hd, hdLuc: k.hdLuc, tk: k.tk
+    })).sort((a, b) => a.luc - b.luc),
     thiDau: () => td?.soLieu() ?? { cho: 0, tran: 0, dot: false },
     trangThai(ai) {
       const sid = theoAi.get(ai);

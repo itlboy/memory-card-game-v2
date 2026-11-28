@@ -5,7 +5,7 @@ import { skinVeMacDinh } from '@/lib/skin';
 import { datPingSo } from '@/lib/ping-so';
 import { MemoryGame, presetConfig, configFromOptions, isDraw, CAMPAIGN_LEVELS, LEVEL_KEYS } from '@mm/engine';
 import { baoTaiXong, batPhanTich, doiCaiDat, moChucNang, suKien, thamSoVanDau } from '@/lib/phan-tich';
-import { BOARD_SIZES, BOT_SPECS, Rng, xoayNguoiDau } from '@mm/engine';
+import { BOARD_SIZES, BOT_SPECS, OPTION_KEYS, Rng, xoayNguoiDau } from '@mm/engine';
 import type { BoardOptions, BotLevel, GameConfig, Mode, PlayerInit } from '@mm/engine';
 import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import KetCucFx from './components/KetCucFx.vue';
@@ -87,7 +87,10 @@ watch(doNhip, (v) => store.savePrefs({ doNhip: v }));
 import TopBar from './components/TopBar.vue';
 import LoiMoi from './components/LoiMoi.vue';
 import ThiDau from './components/ThiDau.vue';
-import { batDauSanh, choiMotMinh, dangChoiOffline, nhanMoi, thachCho, trongPhongOnline, type ThachDau } from './lib/sanh';
+import { batDauSanh, buocMenu, choiMotMinh, dangChoiOffline, datLayTk, hoatDong, nhanMoi, thachCho, trongPhongOnline, type HoatDong, type ThachDau } from './lib/sanh';
+import { goiDangCo } from './lib/premium';
+import { docKieu } from './lib/tim-the';
+import { tongSaoTim } from './lib/chien-dich-tim';
 import { tdTran } from './lib/thidau';
 import IconBay from './components/IconBay.vue';
 import { BOT_ID, laBot, maBot, useGameSession } from './composables/useGameSession';
@@ -255,6 +258,32 @@ const trongVan = computed(() => screen.value === 'game' || laManRieng() || (scre
 const onlineKey = ref(0);
 watchEffect(() => { trongPhongOnline.value = screen.value === 'online' && !!onlineRef.value?.trongPhong; });
 watchEffect(() => { dangChoiOffline.value = screen.value === 'game' || laManRieng(); });
+/*
+ * "AI ĐANG ONLINE" trên trang quản trị (28.11.2026, mockup duyệt https://claude.ai/artifact/3TE9pgPE7keg4BhyMSVj7c): màn đang mở
+ * → `hoatDong` (lib/sanh gửi lên sảnh). Chỉ vài thông số ngắn: số thẻ, số người, mức máy, màn — không gửi gì riêng tư.
+ */
+watchEffect(() => {
+  const sc = screen.value;
+  let hd: HoatDong;
+  if (sc === 'game') {
+    const g = session.game.value;
+    const the = g?.cards.length ?? 0, n = g?.players.length ?? playerCount.value;
+    const luat = OPTION_KEYS.filter((k) => options.value[k] > 0).join(',');
+    hd = mode.value === 'campaign' && levelId.value ? { l: 'cd', man: levelId.value, the }
+      : botLevel.value ? { l: 'may', may: botLevel.value, the, n, ...(luat ? { luat } : {}) }
+      : { l: 'nhanh', the, n, ...(luat ? { luat } : {}) };
+  } else if (sc === 'tim-the') {
+    const c = docChon();
+    hd = timMan.value ? { l: 'timcd', man: timMan.value } : { l: 'tim', the: c.soThe, kho: c.doKho, doi: c.doiThu };
+  } else if (sc === 'mua-the') hd = { l: 'mua' };
+  else if (sc === 'online') hd = onlineRef.value?.hoatDong ?? { l: 'online', o: 'sanh' };
+  else hd = buocMenu.value ? { l: 'menu', w: buocMenu.value, che: mode.value === 'campaign' ? 'cd' : botLevel.value ? 'may' : 'nhanh', kieu: docKieu() } : { l: 'chu' };
+  hoatDong.value = hd;
+});
+datLayTk(() => ({
+  xu: store.totalScore(), dh: store.achievements().length, cd: Math.max(0, store.unlockedLevel() - 1),
+  cdTim: tongSaoTim(store.timCD()), pr: daMuaPremium.value || !!goiDangCo.value, ban: __APP_VERSION__
+}));
 // MỘT người thật (một mình / đấu máy / Mưa Thẻ): thi đấu vẫn hỏi; chơi nhiều người cùng máy thì không
 watchEffect(() => {
   choiMotMinh.value = laManRieng()

@@ -108,3 +108,45 @@ describe('cập nhật xong về đúng trang đang đứng', () => {
     expect(src).toMatch(/async function apOtaNgay[\s\S]{0,300}nhoTrang\(\);[\s\S]{0,60}CapacitorUpdater\.set/);
   });
 });
+
+describe('dự phòng theo phiên bản (28.11.2026: GA không có ota_ve_* nào — dấu mm.otaTrang không sống tới gói mới)', () => {
+  /** Giả gói mới: bản đã ghi trong dấu là bản CŨ (bản đang chạy trong test là 1.1.0). */
+  const thanhBanCu = (): void => {
+    const d = JSON.parse(localStorage.getItem('mm.trangCuoi')!) as Record<string, unknown>;
+    localStorage.setItem('mm.trangCuoi', JSON.stringify({ ...d, ban: '1.0.9' }));
+  };
+
+  it('mất dấu cũ nhưng lên bản mới ngay sau khi bấm Cập nhật → mở lại trang Chơi nhanh + trang Cài đặt', async () => {
+    const a = await nap();
+    a.ghiQuery('w=nhanh');
+    a.nhoMenu('cd');
+    a.nhoTrang();
+    a.ghiQuery(null);                             // đóng menu kéo địa chỉ lùi về trang chủ — không được đè dấu
+    localStorage.removeItem('mm.otaTrang');       // dấu cũ không sống tới gói mới
+    thanhBanCu();
+    history.replaceState(null, '', '/');
+    const b = await nap();
+    expect(location.search).toBe('?w=nhanh');
+    expect(b.menuKhoiPhuc).toBe('cd');
+    expect(b.ketQuaVeTrang?.ket_qua).toBe('theo_ban');
+  });
+
+  it('không bấm Cập nhật (chỉ mở lại app sau khi lên bản mới) → vẫn trang chủ', async () => {
+    const a = await nap();
+    a.ghiQuery('w=nhanh');
+    thanhBanCu();
+    history.replaceState(null, '', '/');
+    await nap();
+    expect(location.search).toBe('');
+  });
+
+  it('cùng phiên bản (cập nhật hỏng, mở lại app) → không kéo về trang cũ', async () => {
+    const a = await nap();
+    a.ghiQuery('w=nhanh');
+    a.nhoTrang();
+    localStorage.removeItem('mm.otaTrang');
+    history.replaceState(null, '', '/');
+    await nap();
+    expect(location.search).toBe('');
+  });
+});

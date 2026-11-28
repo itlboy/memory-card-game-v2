@@ -53,6 +53,19 @@ export const trongPhongOnline = ref(false);
 export const dangChoiOffline = ref(false);
 /** Ván offline đó chỉ có MỘT người thật (một mình / đấu máy / Mưa Thẻ) — thi đấu vẫn hỏi người này (thidau.ts `mot`). */
 export const choiMotMinh = ref(false);
+/**
+ * HOẠT ĐỘNG CHI TIẾT cho trang quản trị "Ai đang online" (28.11.2026, mockup duyệt https://claude.ai/artifact/3TE9pgPE7keg4BhyMSVj7c).
+ * App.vue dựng `hoatDong` từ màn đang mở (l = chu | menu | nhanh | cd | may | tim | timcd | mua | online, kèm vài thông số
+ * ngắn); MenuScreen ghi `buocMenu`. Gửi `{ t: 'hd', hd, tk }` lúc nối + mỗi lần đổi; `tk` = số xu, số danh hiệu, màn Chiến
+ * dịch, Premium, bản app — CHỈ để quản trị đọc (không ai khác thấy). KHÔNG gửi gì định danh ngoài tên đã có sẵn trên sảnh.
+ */
+export type HoatDong = Record<string, string | number | boolean>;
+export const hoatDong = ref<HoatDong>({ l: 'chu' });
+export const buocMenu = ref<string | null>(null);
+let layTk: () => Record<string, string | number | boolean> = () => ({});
+/** App.vue đặt cách đọc số liệu tài khoản (xu, danh hiệu…) — để sanh.ts không phải nhập storage/premium/achievements. */
+export function datLayTk(f: () => Record<string, string | number | boolean>): void { layTk = f; }
+const guiHd = (): void => gui({ t: 'hd', hd: hoatDong.value, tk: layTk() });
 /** Kết nối sảnh đang mở (đã nhận `chao`) — để trừ chính mình khỏi "N người đang online". */
 export const dangNoiSanh = ref(false);
 /** `sid` server đặt cho kết nối sảnh của CHÍNH MÌNH (lời chào) — bảng mời nhận ra dòng "Bạn". */
@@ -123,6 +136,7 @@ function mo(): void {
       // chưa OPEN) — chủ phòng từng hiện trong danh sách mời của chính mình là "Ở trang chủ" (chụp kiểm 21.11.2026)
       gui({ t: 'tt', tt: ttHienTai(), mot: choiMotMinh.value });
       gui({ t: 'ai', ...danhTinhSanh() });
+      guiHd();
       return;
     }
     // Số online server đẩy ngay khi có người vào / ra sảnh (28.11.2026) — không chờ lần hỏi 20 giây
@@ -166,6 +180,7 @@ export function batDauSanh(): void {
   watch([trongPhongOnline, dangChoiOffline, choiMotMinh], () => gui({ t: 'tt', tt: ttHienTai(), mot: choiMotMinh.value }));
   // Đăng nhập / đăng xuất: danh tính trên bảng đổi theo
   watch(me, () => gui({ t: 'ai', ...danhTinhSanh() }));
+  watch(hoatDong, guiHd, { deep: true });
   // Vào phòng online thì thẻ mời cũ thôi hiện (đang ở phòng rồi)
   watch(trongPhongOnline, (v) => { if (v) loiMoi.value = null; });
   canBang();

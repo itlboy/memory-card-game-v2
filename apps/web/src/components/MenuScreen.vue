@@ -35,6 +35,7 @@ import ChonMucMay from './ChonMucMay.vue';
 import Sao3D from './Sao3D.vue';
 import { dangLuiBack, useBackCloser } from '@/composables/useBackGuard';
 import { ghiQuery } from '@/lib/appUrl';
+import { buocMenu } from '@/lib/sanh';
 import { sfx } from '@/lib/audio';
 import { skin } from '@/lib/skin';
 /** #app có thật mới gắn nút mặt trời (test dựng component trần, không có #app → Teleport hỏng). */
@@ -185,6 +186,7 @@ function stepFromUrl(): Step {
 const step = ref<Step>(stepFromUrl());
 
 watch(step, (st) => {
+  buocMenu.value = st === 'players' ? null : st;   // trang quản trị "Ai đang online" (lib/sanh)
   // Chỉ đụng đúng param `w` — các con trỏ khác (?playing, ?online, ?room) là của App
   const q = new URLSearchParams(location.search);
   if (st === 'players') {

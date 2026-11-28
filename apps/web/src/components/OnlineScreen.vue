@@ -589,7 +589,18 @@ function requestBack(): void {
   const trongVan = o.phase.value === 'playing' || o.phase.value === 'ended';
   quit(trongVan ? veManOnline : exit);
 }
-defineExpose({ requestHome: () => quit(), requestBack, isBusy, dangChoi, trongPhong });
+/** Cho trang quản trị "Ai đang online" (lib/sanh `hoatDong`): đang ở sảnh online hay phòng nào, đang chờ / chơi / xem. */
+const hoatDong = computed((): Record<string, string | number | boolean> => {
+  const r = o.room.value;
+  if (!r || !trongPhong.value) return { l: 'online', o: 'sanh' };
+  const c = BOARD_SIZES.find((b) => b.level === r.config.level);
+  return {
+    l: 'online', ma: r.code, o: o.spectator.value ? 'xem' : r.status, n: r.players.length,
+    kieu: r.config.kieu === 'tim' ? 'tim' : 'cap', ...(c ? { the: c.pairs * 2 } : {}),
+    ...(r.config.doi ? { doi: true } : {}), ...(r.thiDau ? { td: true } : {}), ...(r.congKhai ? { ck: true } : {})
+  };
+});
+defineExpose({ requestHome: () => quit(), requestBack, isBusy, dangChoi, trongPhong, hoatDong });
 
 /** Link mời mang TÊN người mời + ngôn ngữ: Worker dựng thẻ chia sẻ riêng ("Kiên mời bạn đấu
  *  Lật Thẻ! · Phòng 482193") từ hai tham số này — apps/server/src/index.ts `theMoi`. */
