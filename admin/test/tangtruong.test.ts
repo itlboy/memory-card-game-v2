@@ -41,6 +41,7 @@ test('gói tăng trưởng: online trung bình = giây chơi / 86 400, giờ đ�
       case 'countryId': return [{ d: ['VN'], m: [100, 50, 36000] }];
       case 'eventName': return [{ d: ['chia_se'], m: [17, 8] }];
       case 'customEvent:chuc_nang': return [{ d: ['online_moi_ban'], m: [29, 9] }];
+      case '': return [{ d: [], m: [6, 4] }];
     }
     return [];
   }), NOW, 'Asia/Ho_Chi_Minh');
@@ -56,6 +57,8 @@ test('gói tăng trưởng: online trung bình = giây chơi / 86 400, giờ đ�
   assert.deepEqual(g.nguon, [{ k: 'App Store (app iOS)', moi: 10, phut: 10 }, { k: 'Facebook', moi: 4, phut: 1 }]);
   assert.deepEqual(g.quocGia, [{ k: 'VN', nguoi: 100, moi: 50, gio: 10 }]);
   assert.deepEqual(g.lanTruyen!.find((x) => x.k === 'online_moi_ban'), { k: 'online_moi_ban', luot: 29, nguoi: 9 });
+  assert.deepEqual(g.lanTruyen![5], { k: 'moi_qua_link', luot: 6, nguoi: 4 });
+  assert.deepEqual(g.lanTruyen![4]!.k, 'online_vao_link_moi');
   assert.deepEqual(g.loi, {});
 });
 

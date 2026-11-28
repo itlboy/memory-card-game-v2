@@ -1,7 +1,7 @@
 /**
  * Tab "TĂNG TRƯỞNG" (28.11.2026, chủ dự án: "cần công cụ thống kê hiệu quả để đo và tập trung đúng chỗ" — mục tiêu
  * 100 người online thường xuyên). Một gói riêng `/api/tangtruong`, KHÔNG theo bộ chọn khoảng: luôn 28 ngày trọn gần
- * nhất (tới hôm qua) + các nhóm người mới theo tuần. 10 báo cáo GA, đi qua hàng đợi ≤ 4 của `Ga`, nhớ tạm 1 giờ.
+ * nhất (tới hôm qua) + các nhóm người mới theo tuần. 11 báo cáo GA, đi qua hàng đợi ≤ 4 của `Ga`, nhớ tạm 1 giờ.
  *
  * SỐ ĐO MỤC TIÊU = "online trung bình" = tổng giây chơi (userEngagementDuration) của ngày / 86 400. Đây là số người
  * có mặt cùng lúc tính TRUNG BÌNH cả ngày theo GA (ước lượng: chỉ tính lúc app ở trước mặt, không đếm người chặn GA).
@@ -106,7 +106,7 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
   });
   const moi = { filter: { fieldName: 'newVsReturning', stringFilter: { matchType: 'EXACT', value: 'new' } } };
 
-  const [theoNgay, theoGio, cIos, cAndroid, cWeb, kichHoat, nguon, quocGia, suKien, chucNang] = await Promise.all([
+  const [theoNgay, theoGio, cIos, cAndroid, cWeb, kichHoat, nguon, quocGia, suKien, chucNang, moiQuaLink] = await Promise.all([
     o('ngay', R(['date'], ['userEngagementDuration', 'activeUsers', 'newUsers'])),
     o('dinh', R(['dateHour'], ['userEngagementDuration'])),
     o('giu_chan', cohort('ios')), o('giu_chan', cohort('android')), o('giu_chan', cohort('web')),
@@ -116,7 +116,10 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
       { orderBys: [{ metric: { metricName: 'userEngagementDuration' }, desc: true }], limit: 12 })),
     o('lan_truyen', R(['eventName'], ['eventCount', 'totalUsers'], loc.trong('eventName', ['chia_se', 'thong_bao_bat', 'dang_nhap']))),
     o('lan_truyen', R(['customEvent:chuc_nang'], ['eventCount', 'totalUsers'],
-      loc.va(loc.su_kien('mo_chuc_nang'), loc.trong('customEvent:chuc_nang', ['online_moi_ban', 'online_vao_link_moi', 'luu_chia_se_anh', 'tri_nho_chia_se']))))
+      loc.va(loc.su_kien('mo_chuc_nang'), loc.trong('customEvent:chuc_nang', ['online_moi_ban', 'online_vao_link_moi', 'luu_chia_se_anh', 'tri_nho_chia_se'])))),
+    // Người MỚI có vào phòng bằng link mời = người do lời mời kéo về thật. Link mời mở thẳng APP nên utm_* không tới GA
+    // (WebView không nhận URL) — phải đếm bằng sự kiện, không đọc được ở bảng nguồn.
+    o('lan_truyen', R([], ['eventCount', 'totalUsers'], loc.va(loc.su_kien('mo_chuc_nang'), loc.trong('customEvent:chuc_nang', ['online_vao_link_moi']), moi)))
   ]);
 
   if (theoNgay) {
@@ -177,6 +180,7 @@ export async function tangTruong(ga: Ga, now: Date, tz: string): Promise<GoiTang
     const m = new Map([...(suKien ?? []), ...(chucNang ?? [])].map((r) => [r.d[0] ?? '', r.m]));
     g.lanTruyen = ['chia_se', 'luu_chia_se_anh', 'tri_nho_chia_se', 'online_moi_ban', 'online_vao_link_moi', 'thong_bao_bat', 'dang_nhap']
       .map((k) => ({ k, luot: m.get(k)?.[0] ?? 0, nguoi: m.get(k)?.[1] ?? 0 }));
+    if (moiQuaLink) g.lanTruyen.splice(5, 0, { k: 'moi_qua_link', luot: moiQuaLink[0]?.m[0] ?? 0, nguoi: moiQuaLink[0]?.m[1] ?? 0 });
   }
   return g;
 }

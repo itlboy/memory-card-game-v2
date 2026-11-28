@@ -93,7 +93,7 @@ export const HTML = String.raw`<!doctype html>
   <section class="thach the" data-tab="tangtruong">
     <div class="the-dau"><div class="tieu"><h2 class="ktieu">Giữ chân · người mới theo tuần còn quay lại</h2></div><span class="phu-nho">ngày 1 · ngày 7 sau lần đầu</span></div>
     <div class="td-cuon"><table class="td-bang" id="ttGiuChan"></table></div>
-    <p class="ghi-o">Nhóm trên cùng chưa đủ 7 ngày nên chỉ có ngày 1. Web lẫn máy quét và kiểm thử tự động — xem iOS / Android là chính.</p>
+    <p class="ghi-o">Nhóm trên cùng chưa đủ 7 ngày nên chỉ có ngày 1. Web lẫn máy quét và kiểm thử tự động. Android lẫn máy thử của Google Play (mỗi bản đẩy lên store là một loạt máy tự mở app) và mỗi tuần chỉ vài người thật — số % Android chưa đủ tin; iOS là số sạch nhất.</p>
   </section>
   <section class="luoi-ds tt-luoi" data-tab="tangtruong">
     <div class="thach the"><div class="tieu"><h2 class="ktieu">Kích hoạt · người mới chơi xong ván đầu</h2></div><div class="td-cuon"><table class="td-bang" id="ttKichHoat"></table></div></div>
@@ -982,7 +982,7 @@ export const JS = String.raw`
    */
   var ttTai = 0, ttDang = false;
   var TEN_LAN = { chia_se: 'Bấm chia sẻ', luu_chia_se_anh: 'Lưu / chia sẻ ảnh kết quả', tri_nho_chia_se: 'Chia sẻ Chỉ số trí nhớ', online_moi_ban: 'Bấm mời bạn vào phòng',
-    online_vao_link_moi: 'Vào phòng bằng link mời', thong_bao_bat: 'Bật thông báo', dang_nhap: 'Đăng nhập' };
+    online_vao_link_moi: 'Vào phòng bằng link mời', moi_qua_link: '↳ trong đó là người MỚI', thong_bao_bat: 'Bật thông báo', dang_nhap: 'Đăng nhập' };
   function bangTt(id, dau, hang) {
     var tb = $(id); tb.textContent = '';
     if (!hang || !hang.length) { tb.appendChild(el('caption', 'mo', 'Chưa có số.')); return; }
