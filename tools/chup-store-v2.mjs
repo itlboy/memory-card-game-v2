@@ -33,7 +33,7 @@ function nhan(lang) {
   const s = readFileSync(new URL(`../apps/web/src/locales/${lang}.ts`, import.meta.url), 'utf8');
   // Chữ trong file ngôn ngữ có thể đặt trong nháy ĐƠN hoặc nháy KÉP (vd. 'tt.ten': "Tìm Thẻ")
   const g = (k) => { let q = "'", i = s.indexOf(`'${k}': '`); if (i < 0) { q = '"'; i = s.indexOf(`'${k}': "`); } if (i < 0) throw new Error(`${lang}.ts thiếu ${k}`); let j = i + k.length + 5, v = ''; while (s[j] !== q) { if (s[j] === '\\') j++; v += s[j++]; } return v; };
-  return { nhanh: g('menu.choiNhanh'), motMinh: g('menu.soNguoi.1'), tiepTuc: g('menu.tiepTuc'), the: g('menu.the'), tiep: g('menu.tiep'),
+  return { nhanh: g('menu.choiNhanh'), motMinh: g('menu.nhanh.motMinh'), tiepTuc: g('menu.tiepTuc'), the: g('menu.the'), tiep: g('menu.tiep'),
     batDau: g('menu.batDau').split('{ban}')[0].replace(/[\s—·:：-]+$/u, ''), online: g('menu.online'), may: g('menu.dauMay'), cd: g('menu.chienDich'),
     // Màn Chơi nhanh MỘT MÀN (16.11.2026): Bộ thẻ / Luật bàn / Tên là bước phụ, thoát bằng "Xong"
     luat: g('menu.nhanh.luat'), boThe: g('menu.nhanh.boThe'), xong: g('menu.nhanh.xong'), sua: g('menu.nhanh.sua'), thongTha: g('opt.time.1'),
@@ -129,11 +129,12 @@ export async function chay({ goi, js, bam, bamDung, cho, chup, doiKhung }) {
   // chụp lúc người 1 vừa mở một lá. Tên ở anh-store-chu.mjs (`ten`), ngắn vì ô tên cắt chữ dài.
   await trangChu(); await bam(L.nhanh); await cho(600);
   // ô "2 người" = nút ngay sau "Một mình" (menu.soNguoi.n là HÀM số nhiều ở ru/… nên không bấm theo chữ)
-  // Thử lại tới ~6 giây: CI 28.11.2026 hỏng ở tiếng Pháp "không thấy nút Một mình" — màn Chơi nhanh chưa kịp mở sau 0,6 s
+  // Nút "1 + menu.nhanh.motMinh" ("1allein") — KHÔNG phải menu.soNguoi.1 ("Solo", màn khác): CI 28.11.2026 hỏng ở tiếng Đức
+  // vì chỉ trùng chữ ở vài ngôn ngữ. So TRỌN chữ nút (bỏ khoảng trắng) để nhãn ngắn như "tek" không khớp nhầm. Thử lại ~6 s.
   for (let lan = 0; ; lan++) {
-    const duoc = await js(`(() => { const o=[...document.querySelectorAll('button')].filter(e=>e.offsetParent); const i=o.findIndex(e=>e.textContent.toLowerCase().includes(${JSON.stringify(L.motMinh.toLowerCase())})); if (i < 0) return false; o[i+1].click(); return true; })()`);
+    const duoc = await js(`(() => { const o=[...document.querySelectorAll('button')].filter(e=>e.offsetParent); const i=o.findIndex(e=>e.textContent.replace(/\\s+/g,'').toLowerCase()===${JSON.stringify('1' + L.motMinh.replace(/\s+/g, '').toLowerCase())}); if (i < 0) return false; o[i+1].click(); return true; })()`);
     if (duoc) break;
-    if (lan >= 12) throw new Error('không thấy nút Một mình');
+    if (lan >= 12) throw new Error('không thấy nút Một mình — trên màn: ' + await js(`JSON.stringify([...document.querySelectorAll('button')].filter(e=>e.offsetParent).map(e=>e.textContent.trim().slice(0,30)))`));
     await cho(500);
   }
   await cho(700);
