@@ -30,7 +30,8 @@ giờ chung — chủ dự án để sau). Logic giờ: `lib/gio-vang.ts` (thu�
   (không import gì của app: storage dùng nó, tránh vòng import). Đường đồng bộ server → máy gọi `addScore(x, false)` — không nhân.
   Đừng nhân thêm ở từng màn (sẽ thành ×4). Mỗi lần nhân → `lanX2` → App báo dải "Giờ vàng: ×2 xu" + sự kiện gio_vang_x2.
 - Nhãn vàng DƯỚI VIÊN XU ở thanh trên (TopBar): "20:00" trong 3 tiếng trước, "×2 xu" trong giờ. KHÔNG đè nhãn "N online" ở
-  ô Chơi online (chủ dự án: số người online phải luôn thấy). Sảnh online: dải vàng + phút còn lại.
+  ô Chơi online (chủ dự án: số người online phải luôn thấy). Sảnh online KHÔNG có dải giờ vàng (chủ dự án bỏ 28.11.2026) —
+  chỉ còn nhãn dưới viên xu và dải báo "×2 xu" khi được cộng.
 - Nhắc 19:55: chỉ máy TỰ BẬT (`batGioVang`), tối đa 1 tin/ngày địa phương, không gửi nếu đã mở app từ 19:00. Server
   `vongGioVang` (thongbao.ts) chạy mỗi phút, GIÀNH tin bằng `UPDATE … gv_day <> hôm nay` → nhiều pod không gửi trùng.
 - **Hai công tắc trên MỘT mã máy**: chuông "báo phòng mới" (cột `room_on`, localStorage `mm.thongBao.phong`) và nhắc giờ vàng
