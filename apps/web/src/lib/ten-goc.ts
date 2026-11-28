@@ -167,7 +167,13 @@ export function taoTen(lang: string, r: () => number = Math.random): string {
     const ten = ghep(b, boc(b.loai, r), boc(b.mau, r), boc(b.net, r));
     if (ten.length <= DO_DAI_TOI_DA) return ten;
   }
-  return ghep(b, b.loai[0]!, b.mau[0]!, b.net[0]!);
+  // Dự phòng (r() hỏng / bị giả thành hằng số trong test): tổ hợp ĐẦU TIÊN vừa độ dài — không trả ghép cứng loai[0]+mau[0]+net[0]
+  // (CI 28.11.2026: ghép cứng ra 18 ký tự, vượt ô tên 16).
+  for (const loai of b.loai) for (const mau of b.mau) for (const net of b.net) {
+    const ten = ghep(b, loai, mau, net);
+    if (ten.length <= DO_DAI_TOI_DA) return ten;
+  }
+  return ghep(b, b.loai[0]!, b.mau[0]!, b.net[0]!).slice(0, DO_DAI_TOI_DA);
 }
 
 /** Số tổ hợp của một ngôn ngữ (để biết độ "khó trùng"). */

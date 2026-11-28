@@ -213,6 +213,8 @@ describe('tên ngẫu nhiên cho người mới (19.11.2026)', () => {
       expect(soToHop(l)).toBeGreaterThan(l === 'de' || l === 'ru' ? 900 : 5000);   // de/ru chỉ hai từ
     }
     for (const l of ['ja', 'ko', 'zh', 'zh-TW', 'th']) expect(taoTen(l)).not.toMatch(/[A-Za-z]/);
+    // Random hỏng / giả thành hằng số: dòng dự phòng vẫn ≤ 16 (CI 28.11.2026 ra 18 ký tự)
+    for (const l of NGON_NGU_CO_TEN) for (const k of [0, 0.5, 0.999]) expect(taoTen(l, () => k).length).toBeLessThanOrEqual(DO_DAI_TOI_DA);
     expect(taoTen('zh-TW')).not.toBe('');
     expect(taoTen('ko')).toMatch(/^\S+ \S+ \S+$/);
     expect(taoTen('ja')).not.toMatch(/\s/);
