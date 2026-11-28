@@ -55,6 +55,8 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       # Địa chỉ pod khác gọi tới để chuyển tiếp phòng — PHẢI là IP nội bộ của MÁY (IP Docker 172.x máy kia không tới được)
       POD_ADDR: http://${MAY_CHINH_IP}:8080
+      # Tên máy hiện trên bảng máy chủ của admin (đặt trong .env mỗi máy, vd da-2)
+      MAY_TEN: ${MAY_TEN:-}
     # Khoá thật (GOOGLE_CLIENT_ID, APNS_*, FCM_SERVICE_ACCOUNT, THONGKE_KEY, QUANTRI_KEY…): ./bimat/<TÊN_BIẾN>, quyền 600.
     # khoi-dong.sh xuất mỗi file thành biến môi trường, đợi DB, rồi chạy server.
     entrypoint: ["sh", "/khoi-dong.sh"]

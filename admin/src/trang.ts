@@ -27,6 +27,7 @@ export const HTML = String.raw`<!doctype html>
       <a class="logo" href="/" title="Về trang đầu" aria-label="Lật Thẻ · Quản trị — về trang đầu"><img src="data:image/png;base64,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" alt="" width="52" height="52"></a>
       <div><h1>Lật Thẻ · Quản trị</h1><p class="phu" id="capNhat">admin.cozypi.com</p></div>
     </div>
+    <span class="song-nho" id="songNho" aria-hidden="true"><span class="cham"></span><b>–</b> đang chơi</span>
     <!-- NGAY LÚC NÀY: luôn là 30 phút gần nhất, KHÔNG theo khoảng đang chọn — đặt cạnh tiêu đề, tách khỏi
          phần thống kê (17.11.2026: để dưới hàng nút thì bấm "Hôm nay" vẫn thấy "30 phút qua", gây hiểu lầm) -->
     <section class="song" aria-live="polite" aria-label="Ngay lúc này, 30 phút gần nhất">
@@ -34,6 +35,17 @@ export const HTML = String.raw`<!doctype html>
       <div class="song-so" id="song"><span class="sk" style="width:110px;height:28px"></span><span class="sk" style="width:110px;height:28px"></span><span class="sk" style="width:90px;height:28px"></span></div>
     </section>
   </header>
+
+  <!-- CHIA TAB (28.11.2026, mockup duyệt https://claude.ai/artifact/99GPQHggzVe1WBuApjcfQU): mỗi khung mang data-tab; khung
+       ngoài tab đang chọn bị ẩn (class ngoai-tab) nên bộ tải theo IntersectionObserver tự chỉ tải ô của tab đang xem.
+       Máy tính: hàng tab dưới tiêu đề. Điện thoại: thanh tab cố định ở đáy. Địa chỉ nhớ tab (#nguoi, #online…). -->
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Nhóm thống kê">
+    <button class="tab" type="button" role="tab" data-chon-tab="tong" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Tổng quan</span></button>
+    <button class="tab" type="button" role="tab" data-chon-tab="nguoi" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-1.5-5-4-5.6"/></svg><span>Người chơi</span></button>
+    <button class="tab" type="button" role="tab" data-chon-tab="choi" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="8" height="14" rx="2"/><rect x="13" y="5" width="8" height="14" rx="2"/></svg><span>Chơi</span></button>
+    <button class="tab" type="button" role="tab" data-chon-tab="online" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1"/></svg><span>Online</span><b class="so-tab" id="soOnline" hidden></b></button>
+    <button class="tab" type="button" role="tab" data-chon-tab="kythuat" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-.6-.6-2.6z"/></svg><span>Kỹ thuật</span></button>
+  </nav>
 
   <nav class="dieu-khien" aria-label="Khoảng thời gian thống kê">
     <div class="chips" id="khoang" role="group" aria-label="Khoảng thời gian"></div>
@@ -52,9 +64,19 @@ export const HTML = String.raw`<!doctype html>
 
   <p class="ky-chon" id="kyChon">Đang tải…</p>
 
+  <!-- MÁY CHỦ · TRỰC TIẾP (28.11.2026) — đứng ĐẦU tab Online (số trực tiếp trước số GA): số từ API quản trị cụm của MÁY CHỦ GAME (/api/maychu), 30 giây một lần -->
+  <section class="thach the" id="mayChu" data-tab="online">
+    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Máy chủ · trực tiếp</h2></div><span class="phu-nho" id="mcLuc">từ máy chủ game</span></div>
+    <div class="mc-canh" id="mcCanhBao" hidden></div>
+    <div class="luoi-kpi" id="mcKpi"></div>
+    <div class="td-cuon"><table class="td-bang" id="mcPod"></table></div>
+    <div class="td-cuon"><table class="td-bang" id="mcPhong"></table></div>
+    <p class="loi-o" id="loi-maychu" hidden></p>
+  </section>
+
   <!-- TỪNG Ô TẢI RIÊNG (19.11.2026): mỗi khung mang data-phan = tên ô ở /api/o/<phan>; chỉ tải khi cuộn tới gần
        (IntersectionObserver), tối đa 3 ô cùng lúc. Khung xương lần đầu: vẽ đè bằng số thật. -->
-  <div class="o-kpi" data-phan="kpi">
+  <div class="o-kpi" data-phan="kpi" data-tab="tong">
     <section class="luoi-kpi" id="kpi">
       <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
       <div class="thach kpi"><span class="sk" style="width:60%;height:16px"></span><span class="sk" style="width:45%;height:36px"></span><span class="sk" style="width:70%;height:12px"></span></div>
@@ -64,7 +86,7 @@ export const HTML = String.raw`<!doctype html>
     <p class="loi-o" id="loi-kpi" hidden></p>
   </div>
 
-  <section class="hang">
+  <section class="hang" data-tab="tong">
     <div class="thach the bieu-do" data-phan="chuoi">
       <div class="the-dau">
         <div class="tieu"><h2 class="ktieu" id="tieuChuoi">Người chơi</h2></div>
@@ -82,7 +104,7 @@ export const HTML = String.raw`<!doctype html>
     </div>
   </section>
 
-  <section class="thach the" data-phan="heat">
+  <section class="thach the" data-phan="heat" data-tab="nguoi">
     <div class="the-dau">
       <div class="tieu"><h2 class="ktieu">Giờ cao điểm · ván bắt đầu theo giờ trong tuần</h2></div>
       <span class="mo" id="ghiHeat"></span>
@@ -94,17 +116,8 @@ export const HTML = String.raw`<!doctype html>
   <!-- Các ô danh sách: JS dựng từ bảng DS (mỗi ô một data-phan) -->
   <section class="luoi-ds" id="danhSach"></section>
 
-  <!-- MÁY CHỦ · TRỰC TIẾP (28.11.2026): số từ API quản trị cụm của MÁY CHỦ GAME (/api/maychu), 30 giây một lần -->
-  <section class="thach the" id="mayChu">
-    <div class="the-dau"><div class="tieu"><h2 class="ktieu">Máy chủ · trực tiếp</h2></div><span class="phu-nho" id="mcLuc">từ máy chủ game</span></div>
-    <div class="luoi-kpi" id="mcKpi"></div>
-    <div class="td-cuon"><table class="td-bang" id="mcPod"></table></div>
-    <div class="td-cuon"><table class="td-bang" id="mcPhong"></table></div>
-    <p class="loi-o" id="loi-maychu" hidden></p>
-  </section>
-
   <!-- THI ĐẤU (23.11.2026): số từ MÁY CHỦ GAME (/api/thidau), không qua GA và không theo bộ chọn khoảng ở trên -->
-  <section class="thach the" id="thiDau">
+  <section class="thach the" id="thiDau" data-tab="online">
     <div class="the-dau"><div class="tieu"><h2 class="ktieu">Thi đấu · 30 ngày gần nhất</h2></div><span class="phu-nho" id="tdLuc">từ máy chủ game</span></div>
     <div class="luoi-kpi" id="tdKpi"></div>
     <div class="td-cuon"><table class="td-bang" id="tdBang"></table></div>
@@ -143,6 +156,24 @@ body.dang-tai .thanh-tai{opacity:1}
 @keyframes tt-xoay{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.thanh-tai::before,.sk,.chip.quay::after,.cho-o{animation-duration:3s}}
 html{color-scheme:dark}
+/* BẢNG MÁY CHỦ (28.11.2026): ≥ 80% vàng, ≥ 95% đỏ */
+.td-bang td.muc-vang{color:#fcd34d;background:rgba(251,191,36,.12);font-weight:800}
+.td-bang td.muc-do{color:#fecaca;background:rgba(239,68,68,.28);font-weight:800}
+.mc-canh{display:flex;flex-wrap:wrap;gap:8px}
+.mc-canh .canh{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:800}
+.mc-canh .muc-vang{background:rgba(251,191,36,.14);color:#fcd34d}
+.mc-canh .muc-do{background:rgba(239,68,68,.22);color:#fecaca}
+/* CHIA TAB (28.11.2026) */
+.ngoai-tab{display:none!important}
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--vien);margin-top:-4px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{appearance:none;flex:none;background:none;border:2px solid transparent;border-bottom:0;display:inline-flex;align-items:center;gap:8px;padding:10px 16px 12px;border-radius:14px 14px 0 0;color:var(--mo);font:800 14.5px Nunito,sans-serif;cursor:pointer;position:relative;top:2px;min-height:46px}
+.tab svg{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"]{color:var(--chu);background:var(--o);border-color:var(--vien);border-bottom:2px solid var(--o)}
+.tab:focus-visible{outline:3px solid #fcd34d;outline-offset:-3px}
+@media (hover:hover){.tab[aria-selected="false"]:hover{color:var(--chu)}}
+.so-tab{font:800 11px Nunito,sans-serif;padding:1px 7px;border-radius:99px;background:rgba(74,222,128,.15);color:#86efac}
+.song-nho{display:none}
 body{margin:0;background:var(--nen);color:var(--chu);font:16px/1.5 Nunito,system-ui,sans-serif}
 .khung{max-width:1320px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-direction:column;gap:20px}
 h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
@@ -256,7 +287,26 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
 /* ĐIỆN THOẠI (17.11.2026, chủ dự án: "trên mobile hơi xấu"): khoảng thời gian thành dải vuốt ngang
    một dòng, ô số 2 cột gọn, số trên chữ ở dải 30 phút. */
 @media (max-width:700px){
-  .khung{padding:14px 12px 40px;gap:14px}
+  .khung{padding:14px 12px calc(96px + env(safe-area-inset-bottom,0px));gap:14px}
+  /* thanh tab cố định ở đáy */
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;border:0;border-top:2px solid var(--vien);background:var(--o);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px max(4px,env(safe-area-inset-left,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-right,0px));box-shadow:0 -6px 18px rgba(0,0,0,.25)}
+  .tab{flex-direction:column;justify-content:center;gap:3px;padding:6px 0;min-height:54px;font-size:10.5px;border:0;border-radius:12px;top:0}
+  .tab[aria-selected="true"]{background:rgba(106,92,255,.16);color:var(--tim2);border:0}
+  .tab .so-tab{position:absolute;top:3px;left:calc(50% + 6px);font-size:9.5px;padding:0 5px}
+  /* đầu trang một hàng: "Ngay lúc này" đầy đủ chỉ ở tab Tổng quan, tab khác còn viên thuốc nhỏ */
+  .dau{flex-wrap:nowrap}
+  .song-nho{display:inline-flex;align-items:center;gap:7px;margin-left:auto;padding:5px 11px;border-radius:999px;background:rgba(74,222,128,.12);color:#86efac;font-weight:800;font-size:12.5px;white-space:nowrap}
+  .song-nho .cham{width:8px;height:8px;box-shadow:0 0 0 3px rgba(74,222,128,.2)}
+  .song-nho b{font:800 15px 'Baloo 2',sans-serif}
+  .dau .song{display:none}
+  body[data-tab="tong"] .dau{flex-wrap:wrap}
+  body[data-tab="tong"] .dau .song{display:flex}
+  body[data-tab="tong"] .song-nho{display:none}
+  /* hàng khoảng thời gian + nút: một dải vuốt ngang */
+  .dieu-khien{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}
+  .dieu-khien::-webkit-scrollbar{display:none}
+  .dieu-khien > *{flex:none}
+  #khoang{width:auto!important;overflow:visible!important;padding:2px 0!important;margin:0!important}
   .ten{gap:10px}
   .logo{width:40px;height:40px;border-radius:12px;box-shadow:0 4px 0 #3b2fb0}
   h1{font-size:20px}
@@ -269,6 +319,7 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .chip{padding:0 14px;font-size:13.5px}
   .nguoi{margin-left:auto;padding:0 12px}
   .song{width:100%;padding:12px 14px;gap:8px 16px}
+  .dau .phu{display:none}
   .song-so{width:100%;gap:12px 22px}
   .song-so b{font-size:26px}
   .song-so span.k{display:block;margin:2px 0 0;font-size:12px}
@@ -281,6 +332,25 @@ h1{margin:0;font:800 28px/1.1 'Baloo 2',sans-serif;color:#fff}
   .kpi .doi{font-size:11.5px;line-height:1.3}
   .the{padding:16px;gap:12px}
   .luoi-ds{gap:12px}
+}
+/* BẢN SÁNG (28.11.2026, mockup duyệt): theo cài đặt sáng/tối của máy. Bản tối giữ nguyên như cũ. */
+@media (prefers-color-scheme:light){
+  :root{--nen:#f4f3fb;--o:#fff;--o2:#efedfa;--vien:#dcd8f2;--day:#d3cdec;--chu:#1d1f3a;--mo:#5d6390;--vua:#3a3f66;--tim2:#5847f0}
+  html{color-scheme:light}
+  h1,.song-so b,.kpi b,.ky-chon b,.nuoc b{color:var(--chu)}
+  @media (hover:hover){.chip:not(.chon):hover{color:var(--chu)}}
+  .sk{background:linear-gradient(90deg,#e9e6f7 25%,#f6f4fd 50%,#e9e6f7 75%);background-size:200% 100%}
+  .nt-dong,.td-bang th,.td-bang td{border-bottom-color:#e6e3f5}
+  .song{border-color:#bfe7cd;background:rgba(22,163,74,.06)}
+  .kpi .doi.len,.nguoi,.n-live,.so-tab,.song-nho{color:#15803d}
+  .kpi .doi.xuong,.o-trang.loi,.loi-o,.bao.do{color:#b91c1c}
+  .o-trang.cu,.bao,.n-ga{color:#a16207}
+  .chip.quay::after{border-color:var(--tim);border-right-color:transparent}
+  .tab:focus-visible,.chip:focus-visible,.nguoi:focus-visible{outline-color:#b45309}
+  .ray div,.cot .khoi,.thanh > *,.heat .o,.chu-giai i,.nt-dong i{filter:saturate(1.35) brightness(.85)}
+  .tabs{box-shadow:none}
+  .td-bang td.muc-vang,.mc-canh .muc-vang{color:#92400e;background:#fef3c7}
+  .td-bang td.muc-do,.mc-canh .muc-do{color:#991b1b;background:#fee2e2}
 }
 `;
 
@@ -396,6 +466,11 @@ export const JS = String.raw`
   var nuocVi = function (code) { try { return tenNuoc ? tenNuoc.of(code) : code; } catch (e) { return code; } };
   var nguyen = function (x) { return x; };
   // phan = ô ở server · khoa = khoá trong danhSach (quocGia: g.quocGia) · loi = khoá trong g.loi
+  /* Ô danh sách thuộc tab nào (khoá DS → tab). Thiếu khoá thì về Tổng quan. */
+  var TAB_DS = { quocGia: 'nguoi', nguon: 'nguoi', pheu: 'nguoi', dang_nhap: 'nguoi', chia_se: 'nguoi',
+    che_do: 'choi', so_the: 'choi', theme: 'choi', tinh_nang: 'choi', man_kho: 'choi',
+    cach_vao: 'online', roi_phong: 'online', ket_noi: 'online', su_co: 'online',
+    loi_js: 'kythuat', ban_web: 'kythuat', ota: 'kythuat' };
   var DS = [
     { phan: 'quoc_gia', khoa: 'quocGia', tieu: 'Quốc gia', mau: '#fcd34d', ten: nuocVi, loi: 'quoc_gia' },
     { phan: 'choi', khoa: 'che_do', tieu: 'Chế độ chơi', mau: '#86efac', ten: function (x) { return CHE_DO[x] || (x.indexOf('tim_the_may_') === 0 ? 'Tìm Thẻ · đấu máy ' + x.slice(12) : x); }, loi: 'che_do' },
@@ -421,7 +496,7 @@ export const JS = String.raw`
   function dungDs() {
     var c = $('danhSach');
     DS.forEach(function (x, i) {
-      var b = el('div', 'thach the o-ds'); b.setAttribute('data-phan', x.phan); b.setAttribute('data-ds', String(i));
+      var b = el('div', 'thach the o-ds'); b.setAttribute('data-phan', x.phan); b.setAttribute('data-ds', String(i)); b.setAttribute('data-tab', TAB_DS[x.khoa] || 'tong');
       var t = el('div', 'tieu'); t.appendChild(el('h2', 'ktieu', x.tieu)); b.appendChild(t);
       var than = el('div', 'ds-than');
       [['40%', 14], ['100%', 22], ['100%', 22]].forEach(function (k) { var s = el('span', 'sk'); s.style.width = k[0]; s.style.height = k[1] + 'px'; than.appendChild(s); });
@@ -557,6 +632,7 @@ export const JS = String.raw`
       var c = $('song'); c.textContent = '';
       if (!j || j.chuaCauHinh) { c.appendChild(el('span', 'mo', 'chưa có số')); return; }
       var nuoc = Array.isArray(j.quocGia) ? j.quocGia : [];
+      var sn = $('songNho'); if (sn) sn.querySelector('b').textContent = so(j.nguoi);
       [[j.nguoi, 'người đang chơi'], [j.van, 'ván bắt đầu']].forEach(function (x) {
         var d = el('div'); d.appendChild(el('b', null, so(x[0]))); d.appendChild(el('span', 'k', x[1])); c.appendChild(d);
       });
@@ -740,6 +816,28 @@ export const JS = String.raw`
   }
 
   dungDs(); veKhoang(); tai(false); song(false);
+  /* ---- CHIA TAB ---- */
+  var TABS = ['tong', 'nguoi', 'choi', 'online', 'kythuat'];
+  var HASH_TAB = { 'tong-quan': 'tong', nguoi: 'nguoi', choi: 'choi', online: 'online', 'ky-thuat': 'kythuat' };
+  function hashCua(t) { for (var h in HASH_TAB) if (HASH_TAB[h] === t) return h; return 'tong-quan'; }
+  function chonTab(t, ghi) {
+    if (TABS.indexOf(t) < 0) t = 'tong';
+    document.body.setAttribute('data-tab', t);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'), function (e) {
+      if (e === document.body) return;
+      e.classList.toggle('ngoai-tab', e.getAttribute('data-tab') !== t);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-chon-tab]'), function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-chon-tab') === t));
+    });
+    if (ghi) { try { history.replaceState(null, '', '#' + hashCua(t)); } catch (e) { /* bỏ */ } window.scrollTo(0, 0); }
+  }
+  $('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-chon-tab]'); if (b) chonTab(b.getAttribute('data-chon-tab'), true);
+  });
+  window.addEventListener('hashchange', function () { chonTab(HASH_TAB[location.hash.slice(1)], false); });
+  chonTab(HASH_TAB[location.hash.slice(1)], false);
+
   // Quan sát MỌI khung [data-phan]: tới gần màn hình 200px thì tải (lần đầu) hoặc làm mới (nếu số đã cũ).
   var cacKhung = Array.prototype.slice.call(document.querySelectorAll('[data-phan]'));
   if ('IntersectionObserver' in window) {
@@ -805,8 +903,38 @@ export const JS = String.raw`
     var body = tb.createTBody();
     ds.forEach(function (r) { var tr = body.insertRow(); cot.forEach(function (k) { var v = typeof k[1] === 'function' ? k[1](r) : r[k[1]]; tr.appendChild(el('td', null, typeof v === 'number' ? so(v) : String(v == null ? '–' : v))); }); });
   }
+  /* BẢNG MÁY CHỦ (28.11.2026): mỗi máy một hàng — CPU / RAM / swap / ổ cứng của MÁY + RAM pod. ≥ 80% vàng, ≥ 95% đỏ. */
+  function mucPt(v) { return v == null ? '' : v >= 95 ? 'muc-do' : v >= 80 ? 'muc-vang' : ''; }
+  function veMay(c) {
+    var tb = $('mcPod'); tb.textContent = '';
+    var cb = $('mcCanhBao'); cb.textContent = ''; cb.hidden = true;
+    if (!c || !c.pods || !c.pods.length) return;
+    var h = tb.createTHead().insertRow();
+    ['Máy', 'CPU', 'RAM', 'Swap', 'Ổ cứng', 'RAM pod', 'Tải', 'Phòng'].forEach(function (k) { h.appendChild(el('th', null, k)); });
+    var body = tb.createTBody();
+    c.pods.slice().sort(function (a, b) { return a.may < b.may ? -1 : 1; }).forEach(function (p) {
+      var sk = p.sk || {}, m = sk.may || {}, pd = sk.pod || {}, tr = body.insertRow();
+      tr.appendChild(el('td', null, sk.ten || p.may));
+      [[m.cpu, ''], [m.ram, m.ramMB != null ? so(m.ramMB) + '/' + so(m.ramTongMB) + ' MB' : ''], [m.swap, ''], [m.oDia, m.oDiaTrongMB != null ? 'trống ' + so(m.oDiaTrongMB) + ' MB' : ''],
+       [pd.ram, pd.ramMB != null ? so(pd.ramMB) + (pd.tranMB ? '/' + so(pd.tranMB) : '') + ' MB' : '']].forEach(function (x) {
+        var td = el('td', mucPt(x[0]), x[0] == null ? '–' : x[0] + '%');
+        if (x[1]) td.title = x[1];
+        tr.appendChild(td);
+      });
+      tr.appendChild(el('td', null, m.tai1 == null ? '–' : String(m.tai1)));
+      tr.appendChild(el('td', null, so(p.phong)));
+    });
+    var ds = c.canhBao || [];
+    if (ds.length) {
+      cb.hidden = false;
+      ds.sort(function (a, b) { return a.muc === b.muc ? 0 : a.muc === 'do' ? -1 : 1; }).forEach(function (x) {
+        cb.appendChild(el('span', 'canh ' + (x.muc === 'do' ? 'muc-do' : 'muc-vang'), (x.muc === 'do' ? 'Nguy hiểm' : 'Cao') + ': ' + (x.ten || x.may) + ' · ' + x.chiSo + ' ' + x.giaTri + '%'));
+      });
+    }
+  }
   function veMayChu(g) {
     var t = g.tong || {}, p = t.phong || {}, n = t.nguoiTrongPhong || {}, v = t.vanOnline || {}, c = t.nguoiChoi || {}, tk = t.taiKhoan || {}, kh = t.khach || {}, o = t.online || {};
+    var so1 = $('soOnline'); if (so1) { so1.hidden = !o.sanh; so1.textContent = so(o.sanh); }
     var k = $('mcKpi'); k.textContent = '';
     [
       ['Đang mở app', so(o.sanh), 'nối sảnh lúc này'],
@@ -820,7 +948,7 @@ export const JS = String.raw`
       tren.appendChild(el('span', 'nhan', x[0])); b.appendChild(tren);
       b.appendChild(el('b', null, x[1])); b.appendChild(el('span', 'doi', x[2])); k.appendChild(b);
     });
-    bangMc('mcPod', [['Pod', 'pod'], ['Máy (IP nội bộ)', 'may'], ['Phòng đang giữ', 'phong']], (t.cum && t.cum.pods) || []);
+    veMay(t.cum);
     bangMc('mcPhong', [['Mã', 'ma'], ['Loại', function (r) { return r.congKhai ? 'Công khai' : 'Riêng'; }], ['Trạng thái', function (r) { return TT_PHONG[r.trangThai] || r.trangThai; }],
       ['Người', function (r) { return (r.nguoi || []).map(function (x) { return x.ten + (x.may ? ' (máy)' : x.dangNoi ? '' : ' (rớt)'); }).join(', ') || '–'; }],
       ['Mở (phút)', 'moPhut'], ['Pod', function (r) { return r.pod ? String(r.pod).slice(-6) : '–'; }]], (g.phong && g.phong.phong) || []);

@@ -53,7 +53,9 @@ export interface Cum {
    * Các pod đang sống (id + địa chỉ). Dùng để CHIA phòng mới đều cả cụm: Cloudflare không chia đều giữa các tunnel
    * (ưu tiên một kết nối), cloudflared lại giữ kết nối lâu tới một pod — để mặc thì mọi phòng dồn vào một pod.
    */
-  podSong(): Promise<{ pod: string; diaChi: string; phong: number }[]>;
+  podSong(): Promise<{ pod: string; diaChi: string; phong: number; sk?: unknown }[]>;
+  /** Ghi số đo sức khoẻ máy/pod (suc-khoe-may.ts) — hạn như khoá pod: pod chết thì số biến theo. */
+  ghiSucKhoe(sk: unknown): Promise<void>;
   /** Vừa giao một phòng mới cho `id` — cộng tạm vào số phòng của nó tới nhịp gia hạn sau (nhiều phòng tạo cùng lúc không dồn một pod). */
   daGiao(id: string): Promise<void>;
   /** Thôi giữ `ma` (phòng đã đóng / nhả khi tắt). */
@@ -122,12 +124,15 @@ export async function moCum(url: string | undefined, port: number): Promise<Cum 
       } while (con !== '0');
       if (!khoa.length) return [{ pod, diaChi, phong: 0 }];
       const ids = khoa.map((k) => k.slice(`${TIEN_TO}pod:`.length));
-      const [dc, sl, moi] = await Promise.all([
-        r.mget(...khoa), r.mget(...ids.map((id) => `${TIEN_TO}sl:${id}`)), r.mget(...ids.map((id) => `${TIEN_TO}moi:${id}`))
+      const [dc, sl, moi, sk] = await Promise.all([
+        r.mget(...khoa), r.mget(...ids.map((id) => `${TIEN_TO}sl:${id}`)), r.mget(...ids.map((id) => `${TIEN_TO}moi:${id}`)),
+        r.mget(...ids.map((id) => `${TIEN_TO}sk:${id}`))
       ]);
-      return ids.map((id, i) => ({ pod: id, diaChi: dc[i] ?? '', phong: (Number(sl[i]) || 0) + (Number(moi[i]) || 0) }))
+      const docSk = (v: string | null | undefined): unknown => { try { return v ? JSON.parse(v) : undefined; } catch { return undefined; } };
+      return ids.map((id, i) => ({ pod: id, diaChi: dc[i] ?? '', phong: (Number(sl[i]) || 0) + (Number(moi[i]) || 0), sk: docSk(sk[i]) }))
         .filter((x) => x.diaChi);
     },
+    async ghiSucKhoe(sk) { await r.set(`${TIEN_TO}sk:${pod}`, JSON.stringify(sk), 'PX', HAN_GIU_MS); },
     async daGiao(id) {
       await r.multi().incr(`${TIEN_TO}moi:${id}`).pexpire(`${TIEN_TO}moi:${id}`, NHIP_GIU_MS + 1000).exec();
     },

@@ -18,6 +18,8 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       POD_ADDR: http://${MAY_PHU_IP}:8080
+      # Tên máy hiện trên bảng máy chủ của admin (đặt trong .env mỗi máy, vd da-2)
+      MAY_TEN: ${MAY_TEN:-}
     entrypoint: ["sh", "/khoi-dong.sh"]
     volumes:
       - ./bimat:/run/bimat:ro

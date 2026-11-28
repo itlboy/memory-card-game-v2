@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { Pool } from 'mysql2/promise';
 import type { Cum } from './cum.js';
+import { doSucKhoe, mucCanhBao, type SucKhoe } from './suc-khoe-may.js';
 
 /**
  * API QUẢN TRỊ CỤM (28.11.2026, chủ dự án: "làm các api thống kê cần thiết để sau ko cần ssh vào redis hay db mysql").
@@ -107,7 +108,8 @@ export function moQuanTri(opts: {
     };
     if (c) {
       const pods = await c.podSong().catch(() => []);
-      ra.cum = { soPod: pods.length, pods: pods.map((p) => ({ pod: p.pod, may: p.diaChi.replace(/^https?:\/\//, ''), phong: p.phong })) };
+      ra.cum = { soPod: pods.length, pods: pods.map((p) => ({ pod: p.pod, may: tenMay(p.diaChi), phong: p.phong, sk: p.sk ?? null })),
+        canhBao: pods.flatMap((p) => canhBao(tenMay(p.diaChi), p.sk as SucKhoe | undefined)) };
     }
     if (!opts.pool) return ra;
     const q = async <T>(sql: string, v: unknown[] = []): Promise<T[]> => (await opts.pool!.query(sql, v))[0] as T[];
@@ -148,7 +150,7 @@ export function moQuanTri(opts: {
       congKhai: { type: 'boolean', description: 'true = chỉ phòng công khai, false = chỉ phòng riêng' },
       boMa: { type: 'boolean', description: 'Bỏ phòng ma (phòng chờ mọi người đã đi > 15 phút)' } } } },
     { name: 'xem_phong', description: 'Chi tiết một phòng theo mã 6 số.', inputSchema: { type: 'object', properties: { ma: { type: 'string', pattern: '^[0-9]{6}$' } }, required: ['ma'] } },
-    { name: 'cum_may_chu', description: 'Sức khoẻ cụm máy chủ: các pod (địa chỉ, số phòng giữ, ai giữ sảnh), Redis và MySQL sống + độ trễ.', inputSchema: { type: 'object', properties: {} } }
+    { name: 'cum_may_chu', description: 'Sức khoẻ cụm máy chủ: từng máy/pod với CPU, RAM, swap, ổ cứng của máy (%), RAM pod, số phòng giữ, ai giữ sảnh; Redis và MySQL + độ trễ; danh sách cảnh báo (≥ 80% vàng, ≥ 95% đỏ).', inputSchema: { type: 'object', properties: {} } }
   ];
   async function goiCongCu(ten: string, a: Record<string, unknown>): Promise<unknown> {
     if (ten === 'tong_quan') return tong();
@@ -187,6 +189,18 @@ export function moQuanTri(opts: {
     return { so: kq.length, phong: kq };
   }
 
+  /** Cảnh báo theo ngưỡng (≥ 80% vàng, ≥ 95% đỏ) cho từng máy: CPU, RAM, swap, ổ cứng máy + RAM pod. */
+  function canhBao(ten: string, sk: SucKhoe | undefined): { muc: 'vang' | 'do'; chiSo: string; giaTri: number; may: string; ten?: string }[] {
+    if (!sk) return [];
+    const ra: { muc: 'vang' | 'do'; chiSo: string; giaTri: number; may: string; ten?: string }[] = [];
+    for (const [chiSo, v] of [['CPU', sk.may.cpu], ['RAM', sk.may.ram], ['Swap', sk.may.swap], ['Ổ cứng', sk.may.oDia], ['RAM pod', sk.pod.ram]] as const) {
+      const m = mucCanhBao(v);
+      if (m && v != null) ra.push({ muc: m, chiSo, giaTri: v, may: ten, ...(sk.ten ? { ten: sk.ten } : {}) });
+    }
+    return ra;
+  }
+  const tenMay = (diaChi: string): string => diaChi.replace(/^https?:\/\//, '');
+
   async function cum(): Promise<unknown> {
     const t0 = now();
     let mysql: { song: boolean; treMs?: number; phongMo?: number } = { song: false };
@@ -197,12 +211,13 @@ export function moQuanTri(opts: {
       } catch { /* mysql chết → song: false */ }
     }
     const c = opts.cum();
-    if (!c) return { cum: false, pod: opts.podNay(), mysql };
+    if (!c) { const sk = await doSucKhoe(); return { cum: false, pod: { ...opts.podNay(), sk }, mysql, canhBao: canhBao('máy này', sk) }; }
     try {
       const [pods, sl] = await Promise.all([c.podSong(), c.soLieu([])]);
       return {
         cum: true, podNhan: c.pod,
-        pods: pods.map((p) => ({ pod: p.pod, diaChi: p.diaChi, phong: p.phong, giuSanh: sl.sanh === p.pod })),
+        pods: pods.map((p) => ({ pod: p.pod, diaChi: p.diaChi, phong: p.phong, giuSanh: sl.sanh === p.pod, sk: p.sk ?? null })),
+        canhBao: pods.flatMap((p) => canhBao(tenMay(p.diaChi), p.sk as SucKhoe | undefined)),
         redis: { song: true, treMs: sl.treMs }, mysql,
         soPhongCongKhai: sl.soPhongCongKhai, online: sl.online
       };

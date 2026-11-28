@@ -20,6 +20,7 @@ import { moTkTen } from './tk-ten.js';
 import { moCum, type Cum } from './cum.js';
 import { chonPod } from './chon-pod.js';
 import { moQuanTri, type QuanTri } from './quantri.js';
+import { doSucKhoe } from './suc-khoe-may.js';
 import {
   MmRequestResponsePair, MmResponse, MmSocket, makePairFactory, taoBoiCanh, type RoomBox
 } from './cf-shim.js';
@@ -943,7 +944,11 @@ if (cum) {
       if (ma === 'sanh') { sanhCuaToi = false; sanh.xaKetNoi(); console.log('[cum] mất sảnh — pod khác đã giữ'); }
       else boPhong(ma);
     },
-    () => { if (sanhCuaToi) void cum?.ghiOnline(sanh.soKetNoi()).catch(() => undefined); }
+    () => {
+      if (sanhCuaToi) void cum?.ghiOnline(sanh.soKetNoi()).catch(() => undefined);
+      // Sức khoẻ máy + pod cho bảng máy chủ (admin / API quản trị)
+      void doSucKhoe().then((sk) => cum?.ghiSucKhoe(sk)).catch(() => undefined);
+    }
   );
   await quetMoCoi();
   setInterval(() => void quetMoCoi(), 3_000).unref();   // pod chết: phòng không ai vào lại vẫn được nhận trong ≤ 9 s
