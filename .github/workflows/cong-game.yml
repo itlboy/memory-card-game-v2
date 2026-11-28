@@ -1,0 +1,107 @@
+# BẢN CỔNG GAME WEB — dựng gói cho từng cổng và ĐẨY TỰ ĐỘNG nơi cổng có đường đẩy (28.11.2026, chủ dự án: "nên làm cơ chế
+# tự động cho các nền tảng"). Chi tiết bản cổng: docs/ban-cong.md.
+#
+# Chạy khi: gắn tag `app-v*` (cùng nhịp với bản app native — bản cổng nói chuyện với cùng server game nên KHÔNG cần ra theo
+# từng bản web/OTA), hoặc chạy tay: `gh workflow run cong-game.yml --ref main [-f cong="crazygames itch"] [-f day=false]`.
+#
+# Mỗi cổng một job trong ma trận: build `VITE_CONG=<tên>` → thử khói trong iframe (cỡ khung CrazyGames) → lưu zip làm
+# artifact của lần chạy (90 ngày) → đẩy:
+#   · itch       — `butler push` kênh html5. Cần secret BUTLER_API_KEY + biến repo ITCH_TARGET (dạng `tai-khoan/ten-game`).
+#                   Thiếu một trong hai thì CHỈ dựng gói, không đỏ.
+#   · crazygames — CrazyGames CHƯA có API/CLI công khai (tra 28.11.2026): tải zip từ artifact rồi kéo lên Developer Portal.
+#                   Job in sẵn dòng nhắc kèm link artifact.
+# THÊM CỔNG: thêm một dòng vào `matrix.include` (ten + day), và nếu cổng có CLI thì thêm một bước `if: matrix.day == '…'`.
+# Poki có `@poki/cli upload` — thêm khi đã được Poki nhận game (đăng nhập CLI trong CI chưa kiểm).
+#
+# KHÔNG có quảng cáo ở bản app và web chính; workflow này không đụng `dist`, gói OTA hay Cloudflare.
+name: Bản cổng game (dựng + đẩy)
+
+on:
+  push:
+    tags: ['app-v*']
+  workflow_dispatch:
+    inputs:
+      cong:
+        description: 'Cổng cần dựng, cách nhau bằng dấu cách (để trống = tất cả)'
+        default: ''
+      day:
+        description: 'Đẩy lên cổng có đường tự động (bỏ chọn = chỉ dựng gói)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cong-game-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cong:
+    name: ${{ matrix.ten }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false          # một cổng hỏng không kéo cổng khác
+      matrix:
+        include:
+          - { ten: crazygames, day: tay }
+          - { ten: itch, day: butler }
+    steps:
+      - name: Cổng này có được chọn không
+        id: chon
+        run: |
+          ds="${{ github.event.inputs.cong }}"
+          if [ -z "$ds" ] || echo " $ds " | grep -q " ${{ matrix.ten }} "; then echo "lam=true" >> "$GITHUB_OUTPUT"; else echo "lam=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v7
+        if: steps.chon.outputs.lam == 'true'
+      - uses: pnpm/action-setup@v6
+        if: steps.chon.outputs.lam == 'true'
+      - uses: actions/setup-node@v7
+        if: steps.chon.outputs.lam == 'true'
+        with:
+          node-version: 26
+          cache: pnpm
+      - name: Cài + dựng gói
+        if: steps.chon.outputs.lam == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          VITE_CONG=${{ matrix.ten }} pnpm build:cong
+      - name: Thử khói trong iframe (WebKit)
+        if: steps.chon.outputs.lam == 'true'
+        run: |
+          npx playwright install --with-deps webkit
+          node tools/smoke-cong.mjs
+      - name: Lưu gói zip
+        if: steps.chon.outputs.lam == 'true'
+        id: luu
+        uses: actions/upload-artifact@v7
+        with:
+          name: lat-the-cong-${{ matrix.ten }}
+          path: apps/web/lat-the-cong-${{ matrix.ten }}.zip
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Đẩy lên itch.io (butler)
+        if: steps.chon.outputs.lam == 'true' && matrix.day == 'butler' && github.event.inputs.day != 'false'
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_TARGET: ${{ vars.ITCH_TARGET }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ] || [ -z "$ITCH_TARGET" ]; then
+            echo "::notice::Chưa có BUTLER_API_KEY / ITCH_TARGET — chỉ dựng gói, không đẩy itch.io."; exit 0
+          fi
+          # Đẩy đúng NỘI DUNG GÓI ZIP (dist-cong còn thư mục emoji 43 MB không thuộc gói)
+          mkdir goi && unzip -q apps/web/lat-the-cong-${{ matrix.ten }}.zip -d goi
+          curl -sSfL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip -d butler && chmod +x butler/butler
+          ban=$(node -p "require('./apps/web/package.json').version")
+          ./butler/butler push goi "$ITCH_TARGET:html5" --userversion "$ban"
+          echo "### itch.io: đã đẩy bản $ban lên \`$ITCH_TARGET:html5\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Nhắc tải tay (cổng chưa có API)
+        if: steps.chon.outputs.lam == 'true' && matrix.day == 'tay'
+        run: |
+          echo "### ${{ matrix.ten }}: tải gói rồi kéo lên trang nhà phát triển của cổng" >> "$GITHUB_STEP_SUMMARY"
+          echo "Gói: ${{ steps.luu.outputs.artifact-url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::${{ matrix.ten }} chưa có API đẩy — tải zip ở ${{ steps.luu.outputs.artifact-url }} rồi tải lên tay."

@@ -13,6 +13,20 @@ chốt 28.11.2026) — cổng nào bắt gắn SDK quảng cáo thì code đó c
 
 Không lệnh nào đụng `dist` hay gói OTA. Tên cổng (`VITE_CONG`, chữ thường) đi vào GA: `page_location = /cong/<tên>`.
 
+## Tự động (`.github/workflows/cong-game.yml`)
+
+Gắn tag `app-v*` (cùng nhịp bản app) hoặc `gh workflow run cong-game.yml --ref main` → mỗi cổng một job: build → thử khói
+→ lưu zip làm artifact → đẩy nếu cổng có đường tự động.
+
+| Cổng | Đẩy | Cần |
+|---|---|---|
+| itch.io | tự động, `butler push` kênh `html5` | secret `BUTLER_API_KEY` (itch.io → Settings → API keys), biến repo `ITCH_TARGET` = `tài-khoản/tên-game` |
+| CrazyGames | tay: tải zip từ artifact, kéo lên Developer Portal | chưa có API/CLI công khai (tra 28.11.2026) |
+| Poki | chưa nối — có `@poki/cli upload`, duyệt vẫn bấm tay | được Poki nhận game trước |
+
+Thiếu khoá thì job vẫn xanh, chỉ dựng gói. Thêm cổng = thêm một dòng `matrix.include` (và một bước đẩy nếu cổng có CLI).
+Bản cổng dùng CHUNG server game → không cần ra theo từng bản web; nhưng bản cổng cũ phải chạy được với server mới.
+
 ## Khác bản web ở đâu
 
 Cờ lúc build ở `lib/nen-fb.ts`: `laCong` (riêng cổng game), `laNhung` = `laFacebook || laCong` (mọi thứ chung của hai bản
@@ -49,5 +63,5 @@ không tự phủ lên menu — vào ván được trong một cú bấm.
    soát nốt hộp thoại dài (Hồ sơ, Luật chơi, Premium, kết quả) ở 800×450.
 2. Bảng Premium còn link Terms/Privacy ra web của mình — hỏi cổng hoặc ẩn.
 3. Thông báo quyền riêng tư cho người mới (GA) theo yêu cầu cổng; ảnh bìa, mô tả, video ngắn cho hồ sơ nộp.
-4. itch.io: cùng gói, đẩy bằng `butler push` (tự động được); CrazyGames tải zip tay ở Developer Portal.
+4. Tạo tài khoản nhà phát triển + trang game ở itch.io và CrazyGames; nạp `BUTLER_API_KEY` + `ITCH_TARGET` cho repo.
 5. Bản cổng cũ phải chạy được với server mới — thêm vào diện `smoke:client-cu` khi đã nộp.
